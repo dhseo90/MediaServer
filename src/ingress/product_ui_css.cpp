@@ -1073,6 +1073,33 @@ std::string ProductUiCss() {
     }
     .status.error,
     .message.error { color: var(--color-danger); }
+    .clipboard-fallback {
+      margin-top: var(--space-3);
+      padding: var(--space-3);
+      display: grid;
+      gap: var(--space-2);
+      border: 1px solid color-mix(in srgb, var(--color-warning) 46%, var(--color-border));
+      border-radius: var(--radius-md);
+      background: var(--color-warning-bg);
+    }
+    .clipboard-fallback strong {
+      color: var(--color-warning);
+      font-size: 13px;
+      font-weight: 950;
+    }
+    .clipboard-fallback p {
+      margin: 2px 0 0;
+      color: var(--color-text-muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .clipboard-fallback textarea {
+      min-height: 92px;
+      resize: vertical;
+      font-family: var(--font-mono);
+      font-size: 12px;
+      line-height: 1.45;
+    }
     .toast-stack {
       position: fixed;
       right: clamp(16px, 3vw, 32px);

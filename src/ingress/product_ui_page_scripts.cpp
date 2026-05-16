@@ -94,7 +94,7 @@ void AppendClientShellScript(std::ostringstream& out) {
     const clientHashParams = () => new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
     let selectedViewId = clientHashParams().get('view') || views[0]?.viewId || '';
     const isPreviewMode = document.body.dataset.clientPreview === 'true';
-    const { escapeHtml, display, numberValue, requestJson, applyPrincipalVisibility, setSelectOptions, showToast } = window.MediaServerUi;
+    const { escapeHtml, display, numberValue, requestJson, applyPrincipalVisibility, setSelectOptions, showToast, currentLanguage } = window.MediaServerUi;
     let clientWebRtcConfigPromise = null;
     const ms = value => value === null || value === undefined ? '미제공' : `${Math.max(0, Math.round(Number(value)))}ms`;
     const formatTime = value => {
@@ -182,6 +182,42 @@ void AppendClientShellScript(std::ostringstream& out) {
         area.remove();
       }
     }
+    const clientUiText = (ko, en) => {
+      try {
+        return currentLanguage && currentLanguage() === 'en' ? en : ko;
+      } catch (_) {
+        return ko;
+      }
+    };
+    function clearClientClipboardFallback(root = detail) {
+      root?.querySelector('[data-client-copy-fallback]')?.remove();
+    }
+    function showClientClipboardFallback(text, root = detail) {
+      const value = String(text || '').trim();
+      if (!root || !value) return;
+      clearClientClipboardFallback(root);
+      const box = document.createElement('div');
+      box.className = 'clipboard-fallback';
+      box.dataset.clientCopyFallback = 'true';
+      box.innerHTML = `
+        <div>
+          <strong>${escapeHtml(clientUiText('클립보드 복사 실패', 'Clipboard copy failed'))}</strong>
+          <p>${escapeHtml(clientUiText('아래 텍스트를 선택해 직접 복사하세요.', 'Select the text below and copy it manually.'))}</p>
+        </div>
+        <textarea readonly aria-label="${escapeHtml(clientUiText('수동 복사용 텍스트', 'Manual copy text'))}"></textarea>
+        <button type="button" class="ghost" data-clipboard-fallback-close>${escapeHtml(clientUiText('닫기', 'Close'))}</button>
+      `;
+      const area = box.querySelector('textarea');
+      area.value = value;
+      box.querySelector('[data-clipboard-fallback-close]')?.addEventListener('click', () => box.remove());
+      root.appendChild(box);
+      try {
+        area.focus({ preventScroll: false });
+      } catch (_) {
+        area.focus();
+      }
+      area.select();
+    }
     const clientEventSummaryText = (events = {}) => {
       const lines = ['이벤트 요약'];
       const counts = Array.isArray(events.countsByType) ? events.countsByType : [];
@@ -227,12 +263,19 @@ void AppendClientShellScript(std::ostringstream& out) {
       root?.querySelectorAll('[data-client-copy]').forEach(button => {
         button.addEventListener('click', async () => {
           const mode = String(button.dataset.clientCopy || '');
+          const copyText = mode === 'events' ? clientEventSummaryText(payload.events || {}) : clientStatusSummaryText(payload);
           button.disabled = true;
           try {
-            await copyClientText(mode === 'events' ? clientEventSummaryText(payload.events || {}) : clientStatusSummaryText(payload));
+            await copyClientText(copyText);
+            clearClientClipboardFallback(root);
             showToast(mode === 'events' ? '이벤트 요약 복사 완료' : '상태 요약 복사 완료');
           } catch (error) {
-            showToast(error.message === '복사할 상태가 없습니다.' ? error.message : '클립보드 복사 실패', true);
+            if (error.message === '복사할 상태가 없습니다.') {
+              showToast(error.message, true);
+            } else {
+              showClientClipboardFallback(copyText, root);
+              showToast('클립보드 복사 실패. 아래 내용을 선택해 직접 복사하세요.', true);
+            }
           } finally {
             button.disabled = false;
           }

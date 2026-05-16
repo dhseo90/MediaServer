@@ -351,6 +351,7 @@ async function runOpsClickFlow(browser, context) {
   await assertReady(browser, "/client/live", '[data-testid="client-shell-page"]');
   await assertClientPreviewAdminAffordance(browser, `${context.label}:client-live-return`);
   await assertClientCopyPayload(browser, '[data-client-copy="status"]', ["채널:", "상태 요약:", "연결:"], "클라이언트 라이브 상태 복사");
+  await assertClientCopyFallback(browser, '[data-client-copy="status"]', ["채널:", "상태 요약:", "연결:"], "클라이언트 라이브 상태 복사 fallback");
   await assertClientCopyPayload(browser, '[data-client-copy="events"]', ["이벤트 요약", "경고:"], "클라이언트 라이브 이벤트 복사");
   steps.push("client:preview-admin", "client:live-copy");
   await clickSelector(browser, 'a[href="/client/dashboard"]', "클라이언트 대시보드");
@@ -375,6 +376,7 @@ async function runOpsClickFlow(browser, context) {
   await clickSelector(browser, ".view", "클라이언트 대시보드 채널 선택");
   await assertVisible(browser, '[data-testid="client-dashboard-field-summary"]', "클라이언트 현장 요약");
   await assertClientCopyPayload(browser, '[data-client-copy="status"]', ["채널:", "현장 상태:", "상태 요약:"], "클라이언트 대시보드 상태 복사");
+  await assertClientCopyFallback(browser, '[data-client-copy="status"]', ["채널:", "현장 상태:", "상태 요약:"], "클라이언트 대시보드 상태 복사 fallback");
   await assertClientCopyPayload(browser, '[data-client-copy="events"]', ["이벤트 요약", "경고:"], "클라이언트 대시보드 이벤트 복사");
   await assertNoOverflow(browser, `${context.label}:client-dashboard`);
   steps.push("client:dashboard", "client:preset-config", "client:dashboard-copy");
@@ -889,6 +891,57 @@ async function assertClientCopyPayload(browser, selector, expectedSnippets, desc
     );
   } finally {
     await restoreClipboardCaptureStub(browser);
+  }
+}
+
+async function assertClientCopyFallback(browser, selector, expectedSnippets, description) {
+  const forbiddenSnippets = [
+    "rtsp://",
+    "http://",
+    "https://",
+    "/webrtc/session",
+    "/lab/analysis",
+    "/ws/va-metadata",
+    "sessionToken",
+    "analysisTapId",
+    "sourceUrl",
+    "Developer URL",
+    "raw diagnostic",
+    "BBox",
+  ];
+  await installClipboardFailureStub(browser);
+  try {
+    await clickSelector(browser, selector, description);
+    await assertToastContains(browser, "아래 내용을 선택", `${description} toast`);
+    await waitForResult(
+      browser,
+      `
+        (() => {
+          const box = document.querySelector('[data-client-copy-fallback]');
+          const value = String(box?.querySelector('textarea')?.value || '');
+          const expected = ${JSON.stringify(expectedSnippets)};
+          const forbidden = ${JSON.stringify(forbiddenSnippets)};
+          const missing = expected.filter(item => !value.includes(item));
+          const leaked = forbidden.filter(item => value.includes(item));
+          return {
+            ok: Boolean(box) && value.length > 0 && missing.length === 0 && leaked.length === 0,
+            missing,
+            leaked,
+            value: value.slice(0, 500),
+          };
+        })()
+      `,
+      item => item?.ok === true,
+      `${description} fallback content`,
+    );
+    await browser.evaluate(`
+      (() => {
+        document.querySelector('[data-client-copy-fallback] [data-clipboard-fallback-close]')?.click();
+        return true;
+      })()
+    `, 3000);
+  } finally {
+    await restoreClipboardFailureStub(browser);
   }
 }
 
