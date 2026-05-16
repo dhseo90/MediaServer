@@ -390,6 +390,7 @@ async function assertClientPreviewAdminAffordance(browser, label) {
       (() => {
         const body = document.body;
         const shortcut = document.querySelector('.account-shortcut[href="/ops/home"]');
+        const previewCopy = document.querySelector('.brand-copy span');
         const accountName = document.querySelector('.account-menu .account-name');
         const accountMeta = document.querySelector('.account-menu .account-meta');
         const navLinks = Array.from(document.querySelectorAll('.client-image-nav-tabs a'))
@@ -399,6 +400,7 @@ async function assertClientPreviewAdminAffordance(browser, label) {
           }));
         const issues = [];
         if (body?.dataset?.clientPreview !== 'true') issues.push('missing client preview flag');
+        if (!previewCopy || !(previewCopy.textContent || '').includes('Client Preview as admin')) issues.push('missing admin preview copy');
         if (!shortcut || !(shortcut.textContent || '').includes('Ops')) issues.push('missing Ops shortcut');
         if (!accountName || !(accountName.textContent || '').trim()) issues.push('missing account name');
         if (!accountMeta || !(accountMeta.textContent || '').includes('admin')) issues.push('missing admin role');
@@ -408,6 +410,7 @@ async function assertClientPreviewAdminAffordance(browser, label) {
         return {
           ok: issues.length === 0,
           issues,
+          previewCopy: (previewCopy?.textContent || '').trim(),
           shortcutText: (shortcut?.textContent || '').trim(),
           accountName: (accountName?.textContent || '').trim(),
           accountMeta: (accountMeta?.textContent || '').trim(),

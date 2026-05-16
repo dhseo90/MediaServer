@@ -3863,6 +3863,8 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     const bool preview_mode =
         (auth::IsAdmin(principal) || auth::IsOperator(principal)) &&
         auth::RequireScope(principal, "ops:read");
+    const std::string client_subtitle =
+        preview_mode ? "Client Preview as admin" : "할당된 live view와 상태만 봅니다.";
     std::ostringstream out;
     out << R"(<!doctype html>
 <html lang="ko">
@@ -3881,7 +3883,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
             <span class="brand-mark" aria-hidden="true">MS</span>
             <div class="brand-copy">
               <strong>Client Portal</strong>
-              <span>할당된 live view와 상태만 봅니다.</span>
+              <span>)" << HtmlEscape(client_subtitle) << R"(</span>
             </div>
           </div>
           <nav class="image-nav-tabs client-image-nav-tabs" aria-label="클라이언트 메뉴">
