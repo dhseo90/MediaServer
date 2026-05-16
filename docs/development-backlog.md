@@ -510,6 +510,19 @@ PR template과 정적 verifier를 연결했습니다.
 - `verify-ui-visual-artifact-index`가 strict/allow-extra policy fixture를 검증합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
+### UI artifact 보관/정리 명령 후속 종료 판정
+
+2026-05-16 기준 UI visual artifact retention policy를 기준으로 dry-run, archive, cleanup을 수행하는 보조 명령을 추가했습니다.
+
+확인됨:
+
+- `./server.sh ui-visual-artifact-maintenance --artifact-root <artifact-root>` 명령을 추가했습니다.
+- 기본은 dry-run이며, 실제 archive/copy와 cleanup 삭제는 `--apply`가 있을 때만 수행합니다.
+- `visual-regression-manifest.json`의 retention policy와 generatedAt을 읽어 만료 여부를 계산합니다.
+- JSON/Markdown report schema는 `media-server.ui-visual-artifact-maintenance.v1`입니다.
+- `verify-ui-visual-artifact-index`가 dry-run/apply fixture를 임시 디렉터리에서 검증합니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
 ## v1.2.0 시작 전 체크리스트
 
 - [x] v1.1.0 PR이 `main`에 merge됨

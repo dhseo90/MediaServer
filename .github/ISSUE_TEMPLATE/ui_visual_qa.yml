@@ -74,6 +74,7 @@ body:
         - label: "`./server.sh verify-ops-client-ui --screenshots --output-dir <artifact-dir>`"
         - label: "`./server.sh compare-ui-visual-baseline --baseline-dir <baseline-artifact-dir> --candidate-dir <candidate-artifact-dir>`"
         - label: "`./server.sh write-ui-visual-qa-issue-links --artifact-dir <artifact-dir> --output <artifact-dir>/ui-visual-qa-issue-links.md`"
+        - label: "`./server.sh ui-visual-artifact-maintenance --artifact-root <artifact-root> --archive-dir <archive-dir> --report <report.json>`"
         - label: "`MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1 ./server.sh verify-auth-bootstrap`"
         - label: "`./server.sh verify-ui-visual-artifact-index`"
         - label: "`git diff --check`"

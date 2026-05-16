@@ -123,6 +123,10 @@ UI visual regression issue는 `.github/ISSUE_TEMPLATE/ui_visual_qa.yml`
 debug/source 비노출 확인, 미실행 검증을 함께 남깁니다.
 `./server.sh write-ui-visual-qa-issue-links --artifact-dir <artifact-dir> --output <artifact-dir>/ui-visual-qa-issue-links.md`
 를 실행하면 issue template의 artifact 영역에 붙일 manifest/index/baseline diff/screenshot 링크를 자동으로 생성합니다.
+보존 기간이 지난 artifact는 먼저
+`./server.sh ui-visual-artifact-maintenance --artifact-root <artifact-root> --archive-dir <archive-dir> --report <report.json>`
+로 dry-run report를 생성합니다. 실제 archive/cleanup은 `--apply`가 있을 때만 수행하며,
+report schema는 `media-server.ui-visual-artifact-maintenance.v1`입니다.
 
 VA rule/scenario 변경:
 

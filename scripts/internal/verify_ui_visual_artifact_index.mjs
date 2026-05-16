@@ -10,6 +10,7 @@ import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { compareVisualBaseline } from "./compare_ui_visual_baseline.mjs";
+import { manageUiVisualArtifacts } from "./manage_ui_visual_artifacts.mjs";
 import { writeVisualArtifactIndex } from "./ui_visual_smoke_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -70,6 +71,7 @@ const authSmoke = fs.readFileSync(path.join(rootDir, "scripts/internal/verify_au
 const serverSh = fs.readFileSync(path.join(rootDir, "server.sh"), "utf8");
 const compareScript = fs.readFileSync(path.join(rootDir, "scripts/internal/compare_ui_visual_baseline.mjs"), "utf8");
 const issueLinkScript = fs.readFileSync(path.join(rootDir, "scripts/internal/write_ui_visual_qa_issue_links.mjs"), "utf8");
+const maintenanceScript = fs.readFileSync(path.join(rootDir, "scripts/internal/manage_ui_visual_artifacts.mjs"), "utf8");
 
 const checksRun = [];
 check("manifest schema and screenshot rows", () => {
@@ -113,6 +115,7 @@ check("PR template requires visual review artifact evidence", () => {
     "source URL, Developer URL, raw JSON",
     "14 days",
     "45 days",
+    "./server.sh ui-visual-artifact-maintenance --artifact-root <artifact-root> --archive-dir <archive-dir> --report <report.json>",
   ]) {
     assert(template.includes(snippet), `PR template missing visual review checklist snippet: ${snippet}`);
   }
@@ -130,6 +133,7 @@ check("visual QA issue template captures artifact evidence", () => {
     "./server.sh verify-ops-client-ui --screenshots --output-dir <artifact-dir>",
     "./server.sh compare-ui-visual-baseline --baseline-dir <baseline-artifact-dir> --candidate-dir <candidate-artifact-dir>",
     "./server.sh write-ui-visual-qa-issue-links --artifact-dir <artifact-dir> --output <artifact-dir>/ui-visual-qa-issue-links.md",
+    "./server.sh ui-visual-artifact-maintenance --artifact-root <artifact-root> --archive-dir <archive-dir> --report <report.json>",
     "MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1 ./server.sh verify-auth-bootstrap",
     "./server.sh verify-ui-visual-artifact-index",
     "source URL",
@@ -221,6 +225,33 @@ check("visual QA issue link helper is wired and documented", () => {
   }
 });
 
+check("visual artifact maintenance command is wired and documented", () => {
+  const inventory = fs.readFileSync(path.join(rootDir, "scripts/internal/verify_script_inventory.mjs"), "utf8");
+  for (const snippet of [
+    "ui-visual-artifact-maintenance",
+    "manage_ui_visual_artifacts.mjs",
+  ]) {
+    assert(serverSh.includes(snippet), `server.sh missing visual artifact maintenance snippet: ${snippet}`);
+  }
+  assert(inventory.includes("manage_ui_visual_artifacts.mjs"), "script inventory missing visual artifact maintenance script");
+  for (const snippet of [
+    "ui-visual-artifact-maintenance",
+    "--artifact-root <artifact-root>",
+    "dry-run",
+    "media-server.ui-visual-artifact-maintenance.v1",
+  ]) {
+    assert(docs.includes(snippet), `docs missing visual artifact maintenance snippet: ${snippet}`);
+  }
+  for (const snippet of [
+    "media-server.ui-visual-artifact-maintenance.v1",
+    "--apply",
+    "retentionPolicy",
+    "visual-regression-manifest.json",
+  ]) {
+    assert(maintenanceScript.includes(snippet), `maintenance script missing snippet: ${snippet}`);
+  }
+});
+
 check("visual baseline diff report fixture", () => {
   const baselineDir = path.join(outputDir, "baseline");
   const candidateDir = path.join(outputDir, "candidate");
@@ -301,6 +332,59 @@ check("visual baseline candidate policy fixture", () => {
   assert(failReport.summary.decision === "fail", `strict policy decision mismatch: ${failReport.summary.decision}`);
 });
 
+check("visual artifact maintenance fixture", () => {
+  const artifactRoot = path.join(outputDir, "maintenance-root");
+  const archiveDir = path.join(outputDir, "maintenance-archive");
+  const freshDir = path.join(artifactRoot, "fresh-artifact");
+  const expiredDir = path.join(artifactRoot, "expired-artifact");
+  fs.mkdirSync(freshDir, { recursive: true });
+  fs.mkdirSync(expiredDir, { recursive: true });
+  fs.writeFileSync(path.join(freshDir, "ops-home-320.png"), "fresh\n");
+  fs.writeFileSync(path.join(expiredDir, "ops-home-320.png"), "expired\n");
+  for (const dir of [freshDir, expiredDir]) {
+    writeVisualArtifactIndex({
+      outputDir: dir,
+      title: "Maintenance Fixture",
+      command: "./server.sh verify-ops-client-ui --screenshots",
+      httpBase: "http://127.0.0.1:8081",
+      visualWidths: [320],
+      visualHeight: 900,
+      checks: [{ name: "ops-home", path: "/ops/home", visualSelector: '[data-testid="ops-home-page"]' }],
+    });
+  }
+  setManifestGeneratedAt(path.join(freshDir, "visual-regression-manifest.json"), "2026-05-15T00:00:00Z");
+  setManifestGeneratedAt(path.join(expiredDir, "visual-regression-manifest.json"), "2026-04-01T00:00:00Z");
+  const dryRun = manageUiVisualArtifacts({
+    artifactRoot,
+    archiveDir,
+    apply: false,
+    now: "2026-05-16T00:00:00Z",
+  });
+  assert(dryRun.summary.keep === 1, `maintenance dry-run keep mismatch: ${dryRun.summary.keep}`);
+  assert(dryRun.summary.archive === 1, `maintenance dry-run archive mismatch: ${dryRun.summary.archive}`);
+  assert(dryRun.summary.cleanup === 1, `maintenance dry-run cleanup mismatch: ${dryRun.summary.cleanup}`);
+  assert(fs.existsSync(expiredDir), "dry-run must not remove expired artifact");
+  const reportPath = path.join(outputDir, "maintenance-report.json");
+  const markdownPath = path.join(outputDir, "maintenance-report.md");
+  const applied = manageUiVisualArtifacts({
+    artifactRoot,
+    archiveDir,
+    report: reportPath,
+    markdownReport: markdownPath,
+    apply: true,
+    now: "2026-05-16T00:00:00Z",
+  });
+  assert(applied.schema === "media-server.ui-visual-artifact-maintenance.v1", "maintenance report schema mismatch");
+  assert(applied.summary.keep === 1, `maintenance apply keep mismatch: ${applied.summary.keep}`);
+  assert(applied.summary.archive === 1, `maintenance apply archive mismatch: ${applied.summary.archive}`);
+  assert(applied.summary.cleanup === 1, `maintenance apply cleanup mismatch: ${applied.summary.cleanup}`);
+  assert(fs.existsSync(freshDir), "maintenance apply removed fresh artifact");
+  assert(!fs.existsSync(expiredDir), "maintenance apply did not remove expired artifact");
+  assert(fs.existsSync(path.join(archiveDir, "expired-artifact", "visual-regression-manifest.json")), "maintenance archive copy missing manifest");
+  assert(fs.existsSync(reportPath), "maintenance JSON report missing");
+  assert(fs.existsSync(markdownPath), "maintenance Markdown report missing");
+});
+
 let failCount = 0;
 for (const item of checksRun) {
   try {
@@ -323,6 +407,12 @@ if (failCount > 0) process.exit(1);
 
 function check(name, run) {
   checksRun.push({ name, run });
+}
+
+function setManifestGeneratedAt(manifestPath, generatedAt) {
+  const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+  manifest.generatedAt = generatedAt;
+  fs.writeFileSync(manifestPath, `${JSON.stringify(manifest, null, 2)}\n`);
 }
 
 function assert(condition, message) {

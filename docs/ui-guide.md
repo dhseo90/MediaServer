@@ -375,6 +375,10 @@ Ops/Client/Lab API guard를 확인합니다.
 - visual QA issue에 artifact 링크를 붙일 때는
   `./server.sh write-ui-visual-qa-issue-links --artifact-dir <artifact-dir> --output <artifact-dir>/ui-visual-qa-issue-links.md`
   로 manifest/index/baseline diff/screenshot 링크 블록을 생성합니다.
+- 오래된 UI artifact 보관/정리는
+  `./server.sh ui-visual-artifact-maintenance --artifact-root <artifact-root> --archive-dir <archive-dir> --report <report.json>`
+  로 먼저 dry-run합니다. 실제 복사/삭제는 `--apply`를 명시한 경우에만 수행하며,
+  report schema는 `media-server.ui-visual-artifact-maintenance.v1`입니다.
 - `visual-regression-manifest.json`에는
   `media-server.ui-visual-artifact-retention.v1` retention policy를 함께
   기록합니다. PR screenshot artifact 기본 보존은 14 days, release baseline
