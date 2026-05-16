@@ -127,6 +127,8 @@ debug/source 비노출 확인, 미실행 검증을 함께 남깁니다.
 `./server.sh ui-visual-artifact-maintenance --artifact-root <artifact-root> --archive-dir <archive-dir> --report <report.json>`
 로 dry-run report를 생성합니다. 실제 archive/cleanup은 `--apply`가 있을 때만 수행하며,
 report schema는 `media-server.ui-visual-artifact-maintenance.v1`입니다.
+preflight CI는 같은 명령을 `--apply` 없이 실행하고
+`media-server-ui-visual-maintenance-dry-run` artifact에 JSON/Markdown report를 업로드합니다.
 
 VA rule/scenario 변경:
 

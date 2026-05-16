@@ -521,6 +521,7 @@ PR template과 정적 verifier를 연결했습니다.
 - `visual-regression-manifest.json`의 retention policy와 generatedAt을 읽어 만료 여부를 계산합니다.
 - JSON/Markdown report schema는 `media-server.ui-visual-artifact-maintenance.v1`입니다.
 - `verify-ui-visual-artifact-index`가 dry-run/apply fixture를 임시 디렉터리에서 검증합니다.
+- preflight CI가 `--apply` 없이 dry-run report를 만들고 `media-server-ui-visual-maintenance-dry-run` artifact로 업로드합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
 ## v1.2.0 시작 전 체크리스트

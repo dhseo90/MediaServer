@@ -52,3 +52,24 @@ jobs:
         shell: bash
         run: |
           ./server.sh verify-docs-ui-assets
+
+      - name: UI visual artifact maintenance dry-run
+        shell: bash
+        run: |
+          ./server.sh verify-ui-visual-artifact-index --output-dir artifacts/ui-visual-maintenance-fixture/fresh
+          ./server.sh ui-visual-artifact-maintenance \
+            --artifact-root artifacts/ui-visual-maintenance-fixture \
+            --archive-dir artifacts/ui-visual-maintenance-archive \
+            --report artifacts/ui-visual-maintenance-report.json \
+            --markdown-report artifacts/ui-visual-maintenance-report.md \
+            --max-age-days 0
+
+      - name: Upload UI visual maintenance dry-run report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: media-server-ui-visual-maintenance-dry-run
+          path: |
+            artifacts/ui-visual-maintenance-report.json
+            artifacts/ui-visual-maintenance-report.md
+          if-no-files-found: ignore

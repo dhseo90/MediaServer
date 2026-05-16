@@ -379,6 +379,8 @@ Ops/Client/Lab API guard를 확인합니다.
   `./server.sh ui-visual-artifact-maintenance --artifact-root <artifact-root> --archive-dir <archive-dir> --report <report.json>`
   로 먼저 dry-run합니다. 실제 복사/삭제는 `--apply`를 명시한 경우에만 수행하며,
   report schema는 `media-server.ui-visual-artifact-maintenance.v1`입니다.
+  CI preflight는 `media-server-ui-visual-maintenance-dry-run` artifact로 dry-run
+  report를 업로드하며 삭제를 수행하지 않습니다.
 - `visual-regression-manifest.json`에는
   `media-server.ui-visual-artifact-retention.v1` retention policy를 함께
   기록합니다. PR screenshot artifact 기본 보존은 14 days, release baseline

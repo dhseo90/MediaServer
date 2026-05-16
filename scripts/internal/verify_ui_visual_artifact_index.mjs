@@ -227,6 +227,7 @@ check("visual QA issue link helper is wired and documented", () => {
 
 check("visual artifact maintenance command is wired and documented", () => {
   const inventory = fs.readFileSync(path.join(rootDir, "scripts/internal/verify_script_inventory.mjs"), "utf8");
+  const preflight = fs.readFileSync(path.join(rootDir, ".github/workflows/preflight.yml"), "utf8");
   for (const snippet of [
     "ui-visual-artifact-maintenance",
     "manage_ui_visual_artifacts.mjs",
@@ -237,6 +238,7 @@ check("visual artifact maintenance command is wired and documented", () => {
   for (const snippet of [
     "ui-visual-artifact-maintenance",
     "--artifact-root <artifact-root>",
+    "media-server-ui-visual-maintenance-dry-run",
     "dry-run",
     "media-server.ui-visual-artifact-maintenance.v1",
   ]) {
@@ -249,6 +251,15 @@ check("visual artifact maintenance command is wired and documented", () => {
     "visual-regression-manifest.json",
   ]) {
     assert(maintenanceScript.includes(snippet), `maintenance script missing snippet: ${snippet}`);
+  }
+  for (const snippet of [
+    "UI visual artifact maintenance dry-run",
+    "./server.sh ui-visual-artifact-maintenance",
+    "--max-age-days 0",
+    "media-server-ui-visual-maintenance-dry-run",
+    "actions/upload-artifact@v4",
+  ]) {
+    assert(preflight.includes(snippet), `preflight missing visual artifact maintenance CI snippet: ${snippet}`);
   }
 });
 
