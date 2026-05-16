@@ -113,7 +113,7 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 | V120-P1-02 | P1 | Rule/Scenario field tuning | 완료 | 현장 샘플 기반 threshold preset, Loitering/ZoneOccupancy 기본값, scenario issue wording 정리 | ScenarioEngine 판단 로직, event type, payload schema 변경 |
 | V120-P1-03 | P1 | Integrator contract artifact | 완료 | Event POST/WebRTC/SSE/WS contract JSON Schema와 synthetic sample bundle 제공. 2026-05-16 기준 artifact manifest/schema/sample 정적 검증과 문서 연결로 종료 | payload field 추가/삭제, schema identifier 변경 |
 | V120-P1-04 | P1 | Account lifecycle policy | 완료 | `/ops/users` 계정 라이프사이클 정책 영역, password reset UI/문구, invite expiry 표시, user audit export 안내, disable/restore 절차 polish를 기존 auth/session 계약 안에서 종료 | auth store migration, password/session/token contract 변경 |
-| V120-P2-01 | P2 | Release packaging rehearsal | 조건부 Gate | source-only 기준 유지와 container/offline/binary 후보 dry-run 정책 gate 확인 | runtime/model binary를 실제 release asset에 포함 |
+| V120-P2-01 | P2 | Release packaging rehearsal | 완료 | source-only 기준 유지와 container/offline/binary 후보 dry-run 정책 gate 확인 | runtime/model binary를 실제 release asset에 포함 |
 | V120-P2-02 | P2 | Re-ID/advanced tracking experiment | 실험 | default-off benchmark와 privacy review 기준으로 close-object association 비교 | Re-ID default-on, 대형 tracker 교체, media pipeline blocking risk |
 | V120-P2-03 | P2 | YouTube experiment decision | 보류 | 유지/축소/제거 중 하나로 결정하고 docs/test 범위 정리 | 운영 기본 기능 승격, 장시간 import job 정책 도입 |
 
@@ -279,6 +279,41 @@ release packaging, 계정 lifecycle, integrator auth scope 고도화는 이 항�
 
 V120-P1-04 범주 안의 잔여 이슈는 남기지 않습니다. 위 범위 밖 항목은 이 항목의
 잔여가 아니라 별도 로드맵 범주입니다.
+
+### V120-P2-01 종료 판정
+
+2026-05-16 기준 V120-P2-01은 Release packaging rehearsal 조건부 gate
+범위에서 종료합니다.
+
+확인됨:
+
+- `verify-release-bundle-dry-run`이 source-only, local-binary,
+  offline-package, container-root 후보를 임시 생성하고 각 후보에
+  `verify-bundle-policy`를 실행합니다.
+- dry-run 후보는 FFmpeg/ffprobe, libav*, x264/x265, GStreamer GPL-risk
+  plugin, ONNX Runtime package, YOLO/model binary, 고객/현장 영상,
+  auth store, log, snapshot, evidence bundle을 release asset으로 복사하지
+  않는 기준을 manifest와 scope 문서로 남깁니다.
+- negative fixture는 binary 후보의 `ffmpeg`, offline 후보의 model binary,
+  container 후보의 ONNX Runtime package와 GStreamer GPL-risk plugin이
+  bundle policy gate에서 차단되는지 확인합니다.
+- `config/bundle_distribution_policy.json`은 기존 FFmpeg/GStreamer/x264/x265
+  차단 규칙에 ONNX Runtime package와 model binary 차단 규칙을 추가했습니다.
+- `docs/release-policy.md`, `docs/distribution-policy.md`,
+  `docs/stream-verification.md`, `CONTRIBUTING.md`에 release packaging
+  rehearsal 명령과 container/offline/binary 후보 gate 기준을 연결했습니다.
+
+범위 밖:
+
+- runtime/model binary를 실제 release asset에 포함하는 작업
+- container image build/push, registry publishing, offline installer 생성
+- source archive/tag/release note 작성 또는 GitHub Release 업로드
+- RTSP/WebRTC media path, Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- Re-ID/advanced tracking experiment, YouTube experiment decision
+
+V120-P2-01 범주 안의 잔여 이슈는 남기지 않습니다. runtime/model 포함 배포,
+registry publish, installer 제작은 이 항목의 잔여가 아니라 별도 review가 필요한
+배포 결정입니다.
 
 ### V120-P1-08 Ops Dashboard incident timeline 종료 판정
 

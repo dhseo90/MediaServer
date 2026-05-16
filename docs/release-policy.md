@@ -17,13 +17,19 @@ binary bundle, app bundle, container image, offline package는 별도 release ca
 필수 확인:
 
 ```bash
+./server.sh verify-release-bundle-dry-run
 ./server.sh verify-bundle-policy --bundle-dir <release_bundle_dir> --json-output /tmp/media_server_bundle_policy.json
 ./server.sh source-offer-checklist --stable --bundle-policy-report /tmp/media_server_bundle_policy.json
 ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
 ```
 
 위반 항목이 있으면 기본 release 대상이 아닙니다.
-runtime을 의도적으로 포함하면 upstream license text, attribution, source offer, checksum manifest를 release note에 연결합니다.
+`verify-release-bundle-dry-run`은 source-only, local-binary, offline-package,
+container-root 후보를 임시로 만들고, FFmpeg/GStreamer GPL-risk runtime,
+ONNX Runtime package, model binary가 policy gate에서 차단되는지 negative fixture로
+함께 확인합니다.
+runtime/model을 의도적으로 포함하면 upstream license text, attribution,
+source offer, checksum manifest를 release note에 연결합니다.
 
 ## GitHub Releases 운영
 
@@ -76,6 +82,7 @@ major update를 적용하려면 workflow 권한, upstream changelog, pin 전략�
 - Licensing and Artifact Guardrails: pass
 - verify-public-repo-readiness: pass
 - verify-bundle-policy: pass
+- verify-release-bundle-dry-run: pass
 
 ## Notes
 

@@ -27,6 +27,7 @@ git diff --check -- README.md SECURITY.md CONTRIBUTING.md NOTICE THIRD_PARTY_NOT
 ./server.sh write-dependency-notice --check
 ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
 ./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
+./server.sh verify-release-bundle-dry-run
 ./server.sh source-offer-checklist --stable --bundle-policy-report /tmp/media_server_bundle_policy.json
 ```
 
