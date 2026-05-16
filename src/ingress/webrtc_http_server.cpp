@@ -2360,6 +2360,7 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
                 <option value="log-tail">Log tail</option>
               </select>
             </label>
+            <button type="button" class="secondary button-compact" id="dashIncidentTimelineShare" title="현재 인시던트 필터 링크 복사" aria-label="현재 인시던트 필터 링크 복사">링크 복사</button>
           </div>
         </div>
         <div id="dashIncidentTimelineBadges" class="badge-row"><span class="chip">로딩 중</span></div>

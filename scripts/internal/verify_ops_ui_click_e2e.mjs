@@ -101,13 +101,30 @@ if (failures.length > 0) {
 }
 
 async function ensureOpsClickPrereqs() {
-  const created = { eventRuleId: "" };
+  const created = { eventRuleId: "", profileId: "" };
   const catalog = await requestJson("/ops/api/rules/catalog");
+  const profiles = Array.isArray(catalog.profiles) ? catalog.profiles : [];
   const rules = Array.isArray(catalog.rules) ? catalog.rules : [];
+  const vaRules = Array.isArray(catalog.vaRules) ? catalog.vaRules : [];
+  if (profiles.length === 0) {
+    const profileId = nextNumericId([
+      ...profiles.map(item => item?.id || item?.profileId),
+      ...rules.map(item => item?.id),
+      ...vaRules.map(item => item?.id),
+    ], 9891);
+    await requestJson(`/lab/analysis/profiles/${encodeURIComponent(profileId)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(opsClickProfilePayload(profileId)),
+    });
+    created.profileId = profileId;
+  }
   if (rules.length > 0) return created;
   const id = nextNumericId([
     ...rules.map(item => item?.id),
-    ...(Array.isArray(catalog.vaRules) ? catalog.vaRules.map(item => item?.id) : []),
+    ...profiles.map(item => item?.id || item?.profileId),
+    ...vaRules.map(item => item?.id),
+    created.profileId,
   ], 9901);
   await requestJson(`/lab/analysis/rules/${encodeURIComponent(id)}`, {
     method: "PUT",
@@ -119,10 +136,16 @@ async function ensureOpsClickPrereqs() {
 }
 
 async function cleanupOpsClickPrereqs(created) {
-  if (!created?.eventRuleId) return;
-  await requestJson(`/lab/analysis/rules/${encodeURIComponent(created.eventRuleId)}`, {
-    method: "DELETE",
-  }).catch(error => console.log(`[warn] ops-click event template cleanup failed: ${error.message}`));
+  if (created?.eventRuleId) {
+    await requestJson(`/lab/analysis/rules/${encodeURIComponent(created.eventRuleId)}`, {
+      method: "DELETE",
+    }).catch(error => console.log(`[warn] ops-click event template cleanup failed: ${error.message}`));
+  }
+  if (created?.profileId) {
+    await requestJson(`/lab/analysis/profiles/${encodeURIComponent(created.profileId)}`, {
+      method: "DELETE",
+    }).catch(error => console.log(`[warn] ops-click profile cleanup failed: ${error.message}`));
+  }
 }
 
 function nextNumericId(values, startAt) {
@@ -131,6 +154,20 @@ function nextNumericId(values, startAt) {
     if (!used.has(String(candidate))) return String(candidate);
   }
   throw new Error("no free numeric id for ops click prereq");
+}
+
+function opsClickProfilePayload(id) {
+  return {
+    id,
+    detector: "yolo",
+    fps: 6,
+    maxQueue: 1,
+    confidence: 0.25,
+    nms: 0.45,
+    inputWidth: 640,
+    inputHeight: 640,
+    adaptive: true,
+  };
 }
 
 function opsClickEventTemplatePayload(id) {
@@ -185,6 +222,7 @@ async function runOpsClickFlow(browser, context) {
   await installErrorCollector(browser);
   await assertReady(browser, "/ops/dashboard", '[data-testid="ops-dashboard-page"]');
   await assertVisible(browser, "#dashIncidentTimelineSearch", "인시던트 검색 입력");
+  await assertVisible(browser, "#dashIncidentTimelineShare", "인시던트 필터 링크 복사");
   await setTextValue(browser, "#dashIncidentTimelineSearch", "__no_match__", "인시던트 검색 no-match");
   await assertHashParam(browser, "incidentQ", "__no_match__", "인시던트 검색 hash 저장");
   await assertText(browser, "#dashIncidentTimelineText", "필터에 맞는", "인시던트 필터 no-match 문구");
@@ -193,6 +231,8 @@ async function runOpsClickFlow(browser, context) {
   await setSelectValue(browser, "#dashIncidentTimelineSource", "event-record", "인시던트 출처 필터");
   await assertHashParam(browser, "incidentSource", "event-record", "인시던트 출처 hash 저장");
   await assertText(browser, "#dashIncidentTimelineBadges", "필터 결과", "인시던트 출처 필터 badge");
+  await clickSelector(browser, "#dashIncidentTimelineShare", "인시던트 필터 링크 복사");
+  await assertAttributeContains(browser, "#dashIncidentTimelineShare", "data-incident-share-url", "/ops/dashboard#incidentSource=event-record", "인시던트 필터 링크 data");
   await navigatePath(browser, "/ops/dashboard#incidentQ=event&incidentSource=event-record");
   await installErrorCollector(browser);
   await assertReady(browser, "/ops/dashboard", '[data-testid="ops-dashboard-page"]');
@@ -655,6 +695,22 @@ async function assertFormValueContains(browser, selector, expected, description)
       (() => {
         const node = document.querySelector(${JSON.stringify(selector)});
         const value = String(node?.value || '');
+        return { ok: value.includes(${JSON.stringify(expected)}), value };
+      })()
+    `,
+    item => item?.ok === true,
+    description,
+  );
+  return result;
+}
+
+async function assertAttributeContains(browser, selector, attribute, expected, description) {
+  const result = await waitForResult(
+    browser,
+    `
+      (() => {
+        const node = document.querySelector(${JSON.stringify(selector)});
+        const value = String(node?.getAttribute(${JSON.stringify(attribute)}) || '');
         return { ok: value.includes(${JSON.stringify(expected)}), value };
       })()
     `,

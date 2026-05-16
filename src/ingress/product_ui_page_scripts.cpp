@@ -1952,6 +1952,17 @@ void AppendOpsShellScript(std::ostringstream& out,
           rerenderDashboardIncidentTimelineFromCache();
         }
       };
+      const dashboardIncidentShareUrl = () => {
+        writeDashboardIncidentFilterHash();
+        return `${window.location.origin}${window.location.pathname}${window.location.search || ''}${window.location.hash || ''}`;
+      };
+      const copyDashboardIncidentFilterLink = async () => {
+        const button = document.getElementById('dashIncidentTimelineShare');
+        const url = dashboardIncidentShareUrl();
+        if (button) button.dataset.incidentShareUrl = url;
+        await opsRulesCopyText(url);
+        showToast('인시던트 필터 링크 복사 완료');
+      };
       const dashboardIncidentTimelineItems = (rootItems = [], eventsStatus = {}, diagnosticLog = {}, sourceHealth = {}) => {
         const rootTimeline = (Array.isArray(rootItems) ? rootItems : [])
           .filter(item => item && (item.level === 'warn' || item.level === 'bad'))
@@ -5554,6 +5565,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         syncDashboardIncidentFilterFromHash();
         document.getElementById('dashIncidentTimelineSearch')?.addEventListener('input', () => handleDashboardIncidentFilterChange());
         document.getElementById('dashIncidentTimelineSource')?.addEventListener('change', () => handleDashboardIncidentFilterChange());
+        document.getElementById('dashIncidentTimelineShare')?.addEventListener('click', () => copyDashboardIncidentFilterLink().catch(error => showToast(error.message || '인시던트 필터 링크 복사 실패', true)));
         window.addEventListener('hashchange', () => handleDashboardIncidentHashChange());
         document.getElementById('opsEventsRefresh')?.addEventListener('click', () => refreshEvents().catch(error => setText('eventRecordSummary', error.message)));
         document.getElementById('eventRecordsEvidenceSelect')?.addEventListener('change', () => {

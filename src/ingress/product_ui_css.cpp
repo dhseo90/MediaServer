@@ -1637,6 +1637,10 @@ std::string ProductUiCss() {
       font-size: 12px;
       font-weight: 850;
     }
+    .incident-timeline-controls button {
+      min-height: 38px;
+      white-space: nowrap;
+    }
     .event-record-controls .check-inline {
       min-width: auto;
       display: inline-flex;
@@ -2161,6 +2165,9 @@ std::string ProductUiCss() {
       .incident-timeline-controls label {
         min-width: min(100%, 150px);
         flex: 1 1 150px;
+      }
+      .incident-timeline-controls button {
+        flex: 1 1 120px;
       }
     }
     @media (max-width: 560px) {

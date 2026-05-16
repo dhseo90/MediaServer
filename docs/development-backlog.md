@@ -217,6 +217,18 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 - Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
 - client/viewer raw diagnostic 노출
 
+### Ops incident filter 공유 링크 후속 종료 판정
+
+2026-05-16 기준 Ops Dashboard incident timeline 필터 상태를 공유 링크로 복사할 수 있습니다.
+
+확인됨:
+
+- `/ops/dashboard`의 `최근 인시던트 흐름` 필터 영역에 `링크 복사` 버튼을 추가했습니다.
+- 버튼은 현재 검색/출처 필터를 `incidentQ`, `incidentSource` hash parameter로 먼저 반영한 뒤 현재 dashboard URL을 복사합니다.
+- `verify-ops-root-cause-panel`이 버튼, hash share helper, responsive CSS를 정적으로 확인합니다.
+- `verify-ops-click-e2e`가 필터 선택 후 share URL data를 확인합니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
 ### V120-P1-01 종료 판정
 
 2026-05-16 기준 V120-P1-01은 viewer/client shell polish 범위에서 종료합니다.
