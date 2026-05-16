@@ -129,6 +129,8 @@ baseline을 새로 채택하거나 교체할 때는
 템플릿에 manifest/index, diff report, 320/390/760/1180px 수동 검토,
 client/viewer source/debug/raw 비노출 확인, 미실행 field smoke를 함께 남깁니다.
 template presence와 CI 연결은 `./server.sh verify-ui-release-baseline-approval-log`로 확인합니다.
+작성 형식 예시는 `test/fixtures/ui_visual_release_baseline_approval_log_sample.md`에
+sample-only fixture로 고정하며, 실제 approval/pass evidence로 사용하지 않습니다.
 UI visual regression issue는 `.github/ISSUE_TEMPLATE/ui_visual_qa.yml`
 템플릿을 사용해 artifact directory, manifest/index, viewport, client/viewer
 debug/source 비노출 확인, 미실행 검증을 함께 남깁니다.

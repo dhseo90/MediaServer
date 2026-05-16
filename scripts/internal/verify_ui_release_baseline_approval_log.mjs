@@ -20,6 +20,7 @@ Usage:
 
 Checks:
   - docs/ui-visual-release-baseline-approval-template.md required fields
+  - test/fixtures/ui_visual_release_baseline_approval_log_sample.md sample-only completed shape
   - PR/release/verification docs link the approval log workflow
   - preflight CI runs this presence check without write permissions
 `);
@@ -78,6 +79,37 @@ check("release baseline approval template has required fields", () => {
   }
 });
 
+check("release baseline approval sample fixture is complete and non-evidence", () => {
+  const sample = readText("test/fixtures/ui_visual_release_baseline_approval_log_sample.md");
+  for (const snippet of [
+    "UI Visual Release Baseline Approval Log Sample",
+    "sample-only fixture",
+    "실제 release baseline 승인",
+    "candidate pass proof",
+    "sample-baseline-run-20260516",
+    "0000000000000000000000000000000000000000",
+    "`visual-regression-manifest.json`:",
+    "`index.md`:",
+    "retention: 45 days",
+    "decision: review",
+    "320px reviewed: sample-only yes",
+    "390px reviewed: sample-only yes",
+    "760px reviewed: sample-only yes",
+    "1180px reviewed: sample-only yes",
+    "client/viewer source URL hidden: sample-only checked",
+    "Developer URL hidden: sample-only checked",
+    "raw JSON/debug counters/BBox diagnostics hidden: sample-only checked",
+    "rule/profile editor hidden from client/viewer: sample-only checked",
+    "accepted baseline run: sample-baseline-run-20260516",
+    "실물 ONVIF/RTSP/WebRTC 원본 장비 field smoke: not run",
+    "장시간 테스트: not run",
+    "`verify-predev`: not run",
+    "sample-only fixture, no commands executed",
+  ]) {
+    assert(sample.includes(snippet), `approval sample fixture missing snippet: ${snippet}`);
+  }
+});
+
 check("PR and release docs require approval log evidence", () => {
   const docs = [
     readText(".github/PULL_REQUEST_TEMPLATE.md"),
@@ -87,6 +119,7 @@ check("PR and release docs require approval log evidence", () => {
   ].join("\n");
   for (const snippet of [
     "docs/ui-visual-release-baseline-approval-template.md",
+    "test/fixtures/ui_visual_release_baseline_approval_log_sample.md",
     "accepted baseline run",
     "approved comparator",
     "not a public release asset",

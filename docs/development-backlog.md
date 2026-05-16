@@ -639,6 +639,17 @@ PR template과 정적 verifier를 연결했습니다.
 - workflow 권한은 `contents: read`만 유지하며 쓰기 권한을 열지 않았습니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
+### Release baseline approval log sample fixture 후속 종료 판정
+
+2026-05-16 기준 release baseline approval log 작성본 예시를 sample-only fixture로 추가했습니다.
+
+확인됨:
+
+- `test/fixtures/ui_visual_release_baseline_approval_log_sample.md`를 추가했습니다.
+- sample fixture는 `sample-only`, no-command-executed, 실제 approval/pass evidence 아님을 명시합니다.
+- `verify-ui-release-baseline-approval-log`가 sample fixture의 baseline identity, comparison evidence, manual review, approval, not-run/limitation 필드를 검증합니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
 ### Release baseline artifact role 후속 종료 판정
 
 2026-05-16 기준 release baseline artifact의 역할을 release/visual review 문서와 PR template에 명시했습니다.
