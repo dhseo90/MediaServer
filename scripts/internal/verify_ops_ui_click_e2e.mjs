@@ -2,9 +2,11 @@
 // 파일 용도: Ops 제품 UI의 주요 탭/패널 흐름을 실제 브라우저 포인터 클릭으로 검증한다.
 
 import os from "node:os";
+import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 import { setTimeout as delay } from "node:timers/promises";
+import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { findChrome, openBrowserPage, parseWidthList } from "./ui_visual_smoke_lib.mjs";
@@ -24,6 +26,8 @@ Options:
   --height <px>             viewport 높이입니다. 기본 900.
   --debug-port-base <port>  Chrome CDP port 시작값입니다. 기본 9750.
   --output-dir <path>       screenshot/log 출력 디렉터리입니다.
+  --auth-users-file <path>  접근 요청 승인 fixture 복원 대상 users file입니다.
+                            기본 MEDIA_SERVER_AUTH_USERS_FILE 또는 repo .media_server.users.json.
   -h, --help                도움말 출력
 `);
 }
@@ -35,6 +39,7 @@ assertKnownOptions(rawArgs, [
   "height",
   "debug-port-base",
   "output-dir",
+  "auth-users-file",
   "h",
   "help",
 ]);
@@ -46,6 +51,9 @@ const widths = parseWidthList(args.widths || "390,1180");
 const height = Number(args.height || 900);
 const debugPortBase = Number(args.debugPortBase || 9750);
 const outputDir = args.outputDir || path.join(os.tmpdir(), `media_server_ops_click_e2e_${Date.now()}_${process.pid}`);
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const rootDir = path.resolve(scriptDir, "../..");
+const authUsersFile = args.authUsersFile || process.env.MEDIA_SERVER_AUTH_USERS_FILE || ".media_server.users.json";
 
 if (!chromePath) {
   console.error("[fail] Chrome executable not found");
@@ -335,6 +343,8 @@ async function runOpsClickFlow(browser, context) {
   } else {
     steps.push("users:add-empty");
   }
+  await assertAccessRequestApprovalFlow(browser, context);
+  steps.push("users:access-request-approve");
 
   await clickSelector(browser, 'a[href="/client/live"]', "클라이언트 라이브");
   await waitForPath(browser, "/client/live");
@@ -424,6 +434,218 @@ async function assertClientPreviewAdminAffordance(browser, label) {
     label,
   );
   return result;
+}
+
+async function assertAccessRequestApprovalFlow(browser, context) {
+  const fixture = await createAccessRequestFixture(context);
+  try {
+    await navigatePath(browser, "/ops/users");
+    await installErrorCollector(browser);
+    await assertReady(browser, "/ops/users", '[data-testid="ops-users-page"]');
+    await installAccessRequestApprovalSpy(browser, fixture.requestId);
+    const viewSelector = attrEqualsSelector("data-request-approve-view", fixture.requestId);
+    const approveSelector = attrEqualsSelector("data-request-approve", fixture.requestId);
+    await assertVisible(browser, viewSelector, "접근 요청 승인 채널 ID 입력");
+    await assertFormValue(browser, viewSelector, fixture.initialViewId, "접근 요청 승인 채널 ID 기본값");
+    await setTextValue(browser, viewSelector, fixture.approvalViewId, "접근 요청 승인 채널 ID 변경");
+    await assertAccessRequestRow(browser, fixture.username, "대기", "접근 요청 pending row");
+    await clickSelector(browser, approveSelector, "접근 요청 승인");
+    await assertText(browser, "#request-status", "접근 요청 승인 완료", "접근 요청 승인 상태");
+    await assertText(browser, "#request-invite-output", `계정: ${fixture.username}`, "접근 요청 승인 계정 출력");
+    await assertText(browser, "#request-invite-output", "초대 링크:", "접근 요청 승인 invite 링크 출력");
+    await assertText(browser, "#request-invite-output", "초대 링크 만료:", "접근 요청 승인 invite 만료 출력");
+    await assertText(browser, "#request-invite-output", "초대 설정 완료 전까지는 로그인/세션/채널 권한이 열리지 않습니다.", "접근 요청 승인 전 권한 안내");
+    await assertApproveRequestPayload(browser, fixture.requestId, fixture.approvalViewId);
+    await assertAccessRequestRow(browser, fixture.username, "승인됨", "접근 요청 approved row");
+    await assertNoOverflow(browser, `${context.label}:users-access-request-approve`);
+  } finally {
+    await restoreAccessRequestApprovalSpy(browser);
+    await restoreAuthStoreSnapshot(fixture.snapshot);
+    await assertAccessRequestFixtureCleaned(fixture);
+  }
+}
+
+async function createAccessRequestFixture(context) {
+  const snapshot = snapshotAuthStore();
+  const suffix = `${process.pid}-${String(context?.width || "w")}-${Date.now()}`;
+  const username = `click-request-${suffix}`.slice(0, 64);
+  const payload = {
+    username,
+    displayName: "Click Request",
+    contact: `${username}@example.test`,
+    viewId: "1",
+    reason: "ops click e2e approval fixture",
+  };
+  try {
+    const result = await requestJson("/client/api/access-requests", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    const requestId = String(result?.accessRequest?.requestId || "");
+    if (!requestId) {
+      throw new Error(`access request fixture missing requestId: ${JSON.stringify(result)}`);
+    }
+    return {
+      snapshot,
+      username,
+      requestId,
+      initialViewId: payload.viewId,
+      approvalViewId: "2",
+    };
+  } catch (error) {
+    await restoreAuthStoreSnapshot(snapshot);
+    throw error;
+  }
+}
+
+function snapshotAuthStore() {
+  const filePath = resolveAuthStorePath();
+  if (!fs.existsSync(filePath)) {
+    return { filePath, existed: false, content: "", mode: 0o600 };
+  }
+  const stat = fs.statSync(filePath);
+  return {
+    filePath,
+    existed: true,
+    content: fs.readFileSync(filePath),
+    mode: stat.mode & 0o777,
+  };
+}
+
+async function restoreAuthStoreSnapshot(snapshot) {
+  if (!snapshot?.filePath) return;
+  if (snapshot.existed) {
+    fs.writeFileSync(snapshot.filePath, snapshot.content);
+    fs.chmodSync(snapshot.filePath, snapshot.mode || 0o600);
+    return;
+  }
+  if (fs.existsSync(snapshot.filePath)) {
+    fs.unlinkSync(snapshot.filePath);
+  }
+}
+
+function resolveAuthStorePath() {
+  const raw = authUsersFile;
+  return path.isAbsolute(raw) ? path.normalize(raw) : path.resolve(rootDir, raw);
+}
+
+async function assertAccessRequestFixtureCleaned(fixture) {
+  const result = await requestJson("/ops/api/access-requests");
+  const requests = Array.isArray(result.accessRequests) ? result.accessRequests : [];
+  const leaked = requests.find(request =>
+    String(request?.requestId || "") === fixture.requestId ||
+    String(request?.username || "") === fixture.username
+  );
+  if (leaked) {
+    throw new Error(`access request fixture cleanup failed: ${JSON.stringify({
+      authUsersFile: resolveAuthStorePath(),
+      requestId: fixture.requestId,
+      username: fixture.username,
+      status: leaked.status || "",
+    })}`);
+  }
+}
+
+async function installAccessRequestApprovalSpy(browser, requestId) {
+  await browser.evaluate(`
+    (() => {
+      const requestId = ${JSON.stringify(requestId)};
+      if (!window.__opsClickOriginalFetch) {
+        window.__opsClickOriginalFetch = window.fetch.bind(window);
+      }
+      window.__opsClickApprovalBody = null;
+      window.__opsClickApprovalResponse = null;
+      window.__opsClickAuditPosts = [];
+      window.fetch = async (input, init = {}) => {
+        const url = String(typeof input === 'string' ? input : input?.url || '');
+        const method = String(init?.method || input?.method || 'GET').toUpperCase();
+        if (method === 'POST' && url.includes('/ops/api/audit')) {
+          window.__opsClickAuditPosts.push(String(init?.body || ''));
+          return new Response(JSON.stringify({ status: 'ops-audit', persistent: false, entry: {} }), {
+            status: 201,
+            statusText: 'Created',
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+        const response = await window.__opsClickOriginalFetch(input, init);
+        if (method === 'POST' && url.includes('/ops/api/access-requests/' + encodeURIComponent(requestId) + '/approve')) {
+          window.__opsClickApprovalBody = String(init?.body || '');
+          response.clone().json()
+            .then(payload => { window.__opsClickApprovalResponse = payload; })
+            .catch(error => { window.__opsClickApprovalResponse = { error: String(error?.message || error) }; });
+        }
+        return response;
+      };
+      return true;
+    })()
+  `, 3000);
+}
+
+async function restoreAccessRequestApprovalSpy(browser) {
+  await browser.evaluate(`
+    (() => {
+      if (window.__opsClickOriginalFetch) {
+        window.fetch = window.__opsClickOriginalFetch;
+        window.__opsClickOriginalFetch = null;
+      }
+      return true;
+    })()
+  `, 3000).catch(() => null);
+}
+
+async function assertApproveRequestPayload(browser, requestId, expectedViewId) {
+  await waitForResult(
+    browser,
+    `
+      (() => {
+        let body = {};
+        try {
+          body = JSON.parse(String(window.__opsClickApprovalBody || '{}'));
+        } catch (error) {
+          return { ok: false, reason: 'invalid body', error: String(error?.message || error), raw: window.__opsClickApprovalBody || '' };
+        }
+        const response = window.__opsClickApprovalResponse || {};
+        return {
+          ok: body.viewId === ${JSON.stringify(expectedViewId)} &&
+            response.status === 'approved' &&
+            response.invite &&
+            String(response.invite.setupUrl || '').includes('/invite/setup'),
+          requestId: ${JSON.stringify(requestId)},
+          body,
+          responseStatus: response.status || '',
+          setupUrl: response.invite?.setupUrl || '',
+        };
+      })()
+    `,
+    item => item?.ok === true,
+    "접근 요청 승인 POST payload",
+  );
+}
+
+async function assertAccessRequestRow(browser, username, expectedStatus, description) {
+  await waitForResult(
+    browser,
+    `
+      (() => {
+        const username = ${JSON.stringify(username)};
+        const expectedStatus = ${JSON.stringify(expectedStatus)};
+        const row = Array.from(document.querySelectorAll('#access-requests-body tr'))
+          .find(candidate => String(candidate.textContent || '').includes(username));
+        const text = String(row?.textContent || '').replace(/\\s+/g, ' ').trim();
+        return {
+          ok: Boolean(row) && text.includes(expectedStatus),
+          text,
+        };
+      })()
+    `,
+    item => item?.ok === true,
+    description,
+  );
+}
+
+function attrEqualsSelector(attribute, value) {
+  return `[${attribute}="${String(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"')}"]`;
 }
 
 async function clickSelector(browser, selector, description) {

@@ -88,7 +88,13 @@ FFmpeg/ffprobe CLI가 없는 공개/CI 환경에서는 codec matrix와 RTSP deco
 - 채널 추가/상세
 - 룰 패널 이동
 - 사용자 상세
+- 접근 요청 승인 채널 ID 입력과 invite 출력
 - client dashboard
+
+서버를 `MEDIA_SERVER_AUTH_USERS_FILE` override로 띄운 경우에는
+`verify-ops-click-e2e --auth-users-file <path>`에도 같은 경로를 넘겨
+접근 요청 fixture cleanup을 같은 users file에 적용합니다.
+
 `verify-ops-tables-layout`은 채널/룰/사용자 table을
 1180/900/760/560/390/320/760/1180px 순서로 리사이즈하며
 cell/action overflow를 확인합니다. 각 화면의 첫 상세 panel과 audit
