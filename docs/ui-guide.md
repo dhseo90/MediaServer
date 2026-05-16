@@ -288,7 +288,8 @@ Route 역할:
     검색과 출처 필터는 `incidentQ`, `incidentSource` hash parameter로
     저장되어 새로고침과 직접 링크에서도 같은 필터 상태를 복원합니다.
     `링크 복사` 버튼은 현재 필터 hash를 포함한 dashboard URL을 공유용으로
-    복사합니다.
+    복사합니다. Clipboard API가 막히면 주소창의 필터 링크를 직접 복사하라는
+    fallback toast를 표시합니다.
     다음 조치 버튼은 source 재검증, registry diff, Event/evidence 진단,
     auth/config 확인, log correlation 필터를 즉시 실행합니다.
     Live VA Event Quality panel은 active analysis tap의 state-dump/metrics를

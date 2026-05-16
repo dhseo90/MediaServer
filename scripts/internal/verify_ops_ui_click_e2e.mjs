@@ -238,6 +238,10 @@ async function runOpsClickFlow(browser, context) {
   assertUrlContains(shareUrl, "/ops/dashboard", "인시던트 공유 링크 path");
   assertUrlContains(shareUrl, "incidentQ=event", "인시던트 공유 링크 검색");
   assertUrlContains(shareUrl, "incidentSource=event-record", "인시던트 공유 링크 출처");
+  await installClipboardFailureStub(browser);
+  await clickSelector(browser, "#dashIncidentTimelineShare", "인시던트 필터 링크 복사 fallback");
+  await assertToastContains(browser, "주소창의 필터 링크", "인시던트 필터 링크 clipboard fallback");
+  await restoreClipboardFailureStub(browser);
   await navigatePath(browser, "/ops/dashboard");
   await installErrorCollector(browser);
   await assertReady(browser, "/ops/dashboard", '[data-testid="ops-dashboard-page"]');
@@ -748,6 +752,58 @@ function assertUrlContains(value, expected, description) {
   if (!String(value || "").includes(expected)) {
     throw new Error(`${description}: ${JSON.stringify(value)} does not include ${JSON.stringify(expected)}`);
   }
+}
+
+async function installClipboardFailureStub(browser) {
+  await browser.evaluate(`
+    (() => {
+      window.__opsClickClipboardOriginalExecCommand = document.execCommand;
+      document.execCommand = () => false;
+      try {
+        window.__opsClickClipboardOriginal = navigator.clipboard;
+        Object.defineProperty(navigator, 'clipboard', {
+          configurable: true,
+          value: { writeText: () => Promise.reject(new Error('forced clipboard failure')) },
+        });
+      } catch (_) {}
+      return true;
+    })()
+  `, 3000);
+}
+
+async function restoreClipboardFailureStub(browser) {
+  await browser.evaluate(`
+    (() => {
+      if (window.__opsClickClipboardOriginalExecCommand) {
+        document.execCommand = window.__opsClickClipboardOriginalExecCommand;
+      }
+      try {
+        if (window.__opsClickClipboardOriginal !== undefined) {
+          Object.defineProperty(navigator, 'clipboard', {
+            configurable: true,
+            value: window.__opsClickClipboardOriginal,
+          });
+        }
+      } catch (_) {}
+      return true;
+    })()
+  `, 3000).catch(() => null);
+}
+
+async function assertToastContains(browser, expected, description) {
+  const result = await waitForResult(
+    browser,
+    `
+      (() => {
+        const toasts = Array.from(document.querySelectorAll('.toast.error, .toast'));
+        const text = toasts.map(node => String(node.textContent || '')).join('\\n');
+        return { ok: text.includes(${JSON.stringify(expected)}), text };
+      })()
+    `,
+    item => item?.ok === true,
+    description,
+  );
+  return result;
 }
 
 async function assertHashParam(browser, key, expected, description) {

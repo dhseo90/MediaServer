@@ -370,6 +370,7 @@ std::string ProductSharedUiScript() {
         '이벤트 템플릿 추가': 'Add Event Template',
         '영역/라인': 'Zone / Line',
         'URL 복사': 'Copy URL',
+        '클립보드 복사 실패. 주소창의 필터 링크를 직접 복사하세요.': 'Clipboard copy failed. Copy the filter link from the address bar.',
         '구분': 'Mode',
         '대상': 'Target',
         '조건': 'Condition',

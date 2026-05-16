@@ -42,6 +42,7 @@ check("product translation map includes recent UI copy", () => {
     "'정지': 'Stop'",
     "'보기 방식': 'View mode'",
     "'채널 미선택': 'No channel selected'",
+    "'클립보드 복사 실패. 주소창의 필터 링크를 직접 복사하세요.': 'Clipboard copy failed. Copy the filter link from the address bar.'",
   ];
   for (const snippet of required) {
     assert(js.includes(snippet), `translation map missing snippet: ${snippet}`);

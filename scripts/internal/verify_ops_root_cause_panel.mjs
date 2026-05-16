@@ -55,6 +55,7 @@ check("ops dashboard script interprets runtime root causes", () => {
     "dashboardIncidentShareUrl",
     "copyDashboardIncidentFilterLink",
     "incidentShareUrl",
+    "클립보드 복사 실패. 주소창의 필터 링크를 직접 복사하세요.",
     "incidentQ",
     "incidentSource",
     "dashboardIncidentSourceKey",

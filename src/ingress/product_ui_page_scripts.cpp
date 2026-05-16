@@ -1960,8 +1960,12 @@ void AppendOpsShellScript(std::ostringstream& out,
         const button = document.getElementById('dashIncidentTimelineShare');
         const url = dashboardIncidentShareUrl();
         if (button) button.dataset.incidentShareUrl = url;
-        await opsRulesCopyText(url);
-        showToast('인시던트 필터 링크 복사 완료');
+        try {
+          await opsRulesCopyText(url);
+          showToast('인시던트 필터 링크 복사 완료');
+        } catch (_) {
+          showToast('클립보드 복사 실패. 주소창의 필터 링크를 직접 복사하세요.', true);
+        }
       };
       const dashboardIncidentTimelineItems = (rootItems = [], eventsStatus = {}, diagnosticLog = {}, sourceHealth = {}) => {
         const rootTimeline = (Array.isArray(rootItems) ? rootItems : [])

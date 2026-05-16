@@ -240,6 +240,18 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 - hash parameter 제거 흐름도 기존처럼 확인합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
+### Ops incident share link clipboard fallback E2E 후속 종료 판정
+
+2026-05-16 기준 incident filter 공유 링크 복사 실패 fallback 문구를 E2E에서 고정했습니다.
+
+확인됨:
+
+- clipboard/execCommand 실패 시 `클립보드 복사 실패. 주소창의 필터 링크를 직접 복사하세요.` toast를 표시합니다.
+- 실패해도 `data-incident-share-url`에는 복원 가능한 dashboard hash URL을 남깁니다.
+- `verify-ops-click-e2e`가 clipboard 실패를 주입하고 fallback toast를 확인합니다.
+- `verify-ui-copy-i18n-parity`가 fallback 문구의 English translation을 확인합니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
 ### V120-P1-01 종료 판정
 
 2026-05-16 기준 V120-P1-01은 viewer/client shell polish 범위에서 종료합니다.
