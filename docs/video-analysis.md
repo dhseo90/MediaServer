@@ -538,6 +538,10 @@ Close-object guard의 기본값은 `off`입니다.
 목적은 threshold tuning과 default-on 검토 근거를 모으는 것입니다.
 `field-new-york-driving`은 실차량 주행 구간을 모사한 vehicle-heavy 샘플로,
 synthetic control 샘플 외부에서 실제 환경 흔들림 성격을 확인하기 위한 항목입니다.
+이 fixture는 baseline 자체의 높은 fragmentation/id-switch risk를 허용하는
+fixture 전용 tracker-stability 상한을 사용합니다. 이 상한은 mode 실행
+성공 여부를 분리하기 위한 것이며, close-object guard의 default-on 후보 판정은
+여전히 hard risk non-increasing과 event/scenario stable delta 기준을 따릅니다.
 기본 실행은 mode별 격리 서버를 사용해 guard mode가 실제 서버에 적용됐는지
 확인합니다.
 `verify-close-object-fixture-matrix`는 fixture 누락뿐 아니라
@@ -572,6 +576,8 @@ AppearanceProfile과 IAppearanceExtractor는 향후 Re-ID/attribute 분석을 �
 - 모델 파일이 없거나 ONNX Runtime 빌드가 아니면 NoOp으로 fallback
 - everyNSeconds, onTrackLost, onReacquireCandidate, onLowConfidenceAssociation 같은 policy trigger에서만 실행 후보 생성
 - async queue, per-stream rate limit, global queue 상한, stale job drop으로 media pipeline blocking 방지
+- embedding/crop/model path 같은 Re-ID identity material은 WebRTC/SSE/WS/Event/debug 외부 metadata payload에 직렬화하지 않습니다.
+- `./server.sh verify-reid-advanced-tracking`은 default-off, privacy review, close-object benchmark command boundary를 정적 검증합니다.
 
 Re-ID/attribute 분석은 매 frame 실행 구조가 아닙니다.
 
@@ -1465,7 +1471,7 @@ baseline 비교 기준:
 - Tracker는 여전히 direction-based/lightweight tracker입니다. Kalman Filter, BoT-SORT, ByteTrack은 도입하지 않았습니다.
 - 실제 Re-ID/attribute 분석은 기본 비활성입니다.
   실험용 ONNX Re-ID extractor hook은 있지만,
-  운영 feature로 보려면 모델, 성능, 개인정보 정책 검증이 필요합니다.
+  운영 feature/default-on으로 보려면 모델, 성능, 개인정보 정책 재검토가 별도 review로 필요합니다.
 - EventRecord 저장은 기본 비활성입니다.
 - snapshot/clip hook은 짧은 EventRecord evidence frame 저장용입니다. 장기 녹화, MP4 muxing, VMS/NVR 기능은 포함하지 않습니다.
 - Homography는 optional입니다. 설정이 없거나 실패하면 image 좌표 fallback을 사용합니다.

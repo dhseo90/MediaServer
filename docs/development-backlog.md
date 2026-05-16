@@ -315,6 +315,57 @@ V120-P2-01 범주 안의 잔여 이슈는 남기지 않습니다. runtime/model 
 registry publish, installer 제작은 이 항목의 잔여가 아니라 별도 review가 필요한
 배포 결정입니다.
 
+### V120-P2-02 종료 판정
+
+2026-05-16 기준 V120-P2-02는 Re-ID/advanced tracking experiment 범위에서
+종료합니다.
+
+확인됨:
+
+- `AppearanceProfile`/`IAppearanceExtractor` hook은 기본 비활성이고 기본
+  extractor는 `NoOpAppearanceExtractor`입니다.
+- 실험용 `onnx-reid` extractor는 명시 설정과 모델 파일이 있을 때만 사용하며,
+  모델 파일 누락, ONNX Runtime 미빌드, 시작 실패 시 NoOp으로 fallback합니다.
+- appearance 실행은 async queue, per-stream rate limit, global queue 상한,
+  stale job drop, extractor `try_to_lock`으로 media pipeline blocking risk를
+  기본 경로에 전파하지 않도록 제한합니다.
+- `compare-close-object-tracker`와 `verify-close-object-fixture-matrix`가
+  off/diagnostic/enforce close-object association을 default-off benchmark로
+  비교합니다.
+- `field-new-york-driving` fixture는 vehicle-heavy baseline 난이도와 guard
+  mode delta를 분리하기 위해 fixture 전용 tracker-stability 상한을 사용합니다:
+  maxFragmentation 6.0, maxOverlapFragmentation 6.0, maxIdSwitchRisk 8.0.
+  이 상한은 mode별 tracker-stability 명령 통과 기준일 뿐이고,
+  default-on 후보 판정의 hard risk non-increasing 기준은 완화하지 않습니다.
+- `verify-reid-advanced-tracking`이 Re-ID/advanced tracking privacy review,
+  default-off 기본값, 외부 metadata payload의 embedding/crop/model path 미노출,
+  benchmark command/fixture matrix 연결을 정적 검증합니다.
+- `verify-analysis-state`가 appearance crop 전달, NoOp fallback, missing model
+  fallback, queue/rate-limit budget을 단위 smoke로 검증합니다.
+
+검증 판정:
+
+- `verify-close-object-fixture-matrix`는 fixture별 hard fail 없이 끝나는 것을
+  V120-P2-02 gate로 사용합니다.
+- `tracking-event`, `tracking-event-long`, `field-new-york-driving` 같은
+  warning fixture는 default-on candidate `False`로 남깁니다.
+- `warning`은 live polling observed risk 변동 또는 반복 검증 필요를 뜻하며,
+  V120-P2-02의 default-off 실험 종료를 막지는 않지만 default-on 근거로
+  사용하지 않습니다.
+
+범위 밖:
+
+- Re-ID default-on
+- Kalman/ByteTrack/BoT-SORT 같은 대형 tracker 교체
+- 실제 Re-ID model artifact를 release asset 또는 runtime bundle에 포함
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- client/viewer 화면에 source URL, raw JSON, debug/identity material 노출
+
+V120-P2-02 범주 안의 잔여 이슈는 남기지 않습니다. 실제 모델/현장 샘플 기반
+default-on 결정, 대형 tracker 교체, runtime/model bundle 포함은 이 항목의
+잔여가 아니라 별도 review가 필요한 제품/배포 결정입니다.
+
 ### V120-P1-08 Ops Dashboard incident timeline 종료 판정
 
 2026-05-16 기준 Ops Dashboard incident timeline은 운영자 UI 표시 범위에서 종료합니다.

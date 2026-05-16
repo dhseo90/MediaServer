@@ -61,6 +61,9 @@ FIXTURE_MATRIX = [
         "description": "field-like driving sample for vehicle-heavy close-object drift",
         "classWhitelist": "car,truck,bus,motorcycle",
         "qualityPreset": "control-live",
+        "maxFragmentation": "6.0",
+        "maxOverlapFragmentation": "6.0",
+        "maxIdSwitchRisk": "8.0",
     },
 ]
 STABLE_EVENT_STATE_KEYS = {"activeEventStates"}
@@ -1036,15 +1039,16 @@ def write_matrix_report(matrix: dict[str, Any], path: pathlib.Path) -> None:
         lines.append(f"- history report: `{history.get('indexReportPath')}`")
     lines.extend([
         "",
-        "| fixture | status | preset | file | judgement | default-on candidate | recommendation | report |",
-        "| --- | --- | --- | --- | --- | --- | --- | --- |",
+        "| fixture | status | preset | tracker limits | file | judgement | default-on candidate | recommendation | report |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ])
     for item in matrix.get("fixtures") or []:
         lines.append(
-            "| {fixture} | {status} | {preset} | `{file}` | {judgement} | {candidate} | {recommendation} | `{report}` |".format(
+            "| {fixture} | {status} | {preset} | `{limits}` | `{file}` | {judgement} | {candidate} | {recommendation} | `{report}` |".format(
                 fixture=format_cell(item.get("id")),
                 status=format_cell(item.get("status")),
                 preset=format_cell(item.get("qualityPreset")),
+                limits=format_cell(json.dumps(item.get("trackerLimits") or {}, ensure_ascii=False)),
                 file=format_cell(item.get("file")),
                 judgement=format_cell(item.get("judgement")),
                 candidate=format_cell(item.get("defaultOnCandidate")),
@@ -1181,7 +1185,17 @@ def run_fixture_matrix(args: argparse.Namespace, modes: list[str], output_dir: p
             file=file_token,
             quality_preset=fixture.get("qualityPreset", args.quality_preset),
             class_whitelist=args.class_whitelist or fixture.get("classWhitelist", ""),
+            max_fragmentation=args.max_fragmentation or fixture.get("maxFragmentation", ""),
+            max_overlap_fragmentation=args.max_overlap_fragmentation or fixture.get("maxOverlapFragmentation", ""),
+            max_id_switch_risk=args.max_id_switch_risk or fixture.get("maxIdSwitchRisk", ""),
         )
+        tracker_limits = {
+            key: value for key, value in {
+                "maxFragmentation": fixture_args.max_fragmentation,
+                "maxOverlapFragmentation": fixture_args.max_overlap_fragmentation,
+                "maxIdSwitchRisk": fixture_args.max_id_switch_risk,
+            }.items() if value
+        }
         fixture_output_dir = output_dir / fixture_id
         summary = run_comparison(fixture_args, modes, fixture_output_dir, fixture_id)
         gate = summary.get("qualityGate") or {}
@@ -1200,6 +1214,7 @@ def run_fixture_matrix(args: argparse.Namespace, modes: list[str], output_dir: p
             "file": file_token,
             "path": fixture.get("path"),
             "qualityPreset": summary.get("qualityPreset"),
+            "trackerLimits": tracker_limits,
             "status": status,
             "judgement": judgement,
             "defaultOnCandidate": gate.get("defaultOnCandidate"),

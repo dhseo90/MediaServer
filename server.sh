@@ -228,6 +228,8 @@ Usage:
                  close-object guard off/diagnostic/enforce tracker stability 비교 리포트를 생성합니다.
   verify-close-object-fixture-matrix
                  close-object guard 전체 fixture matrix를 정기 검증용 hard gate로 실행합니다.
+  verify-reid-advanced-tracking
+                 Re-ID/advanced tracking 실험의 default-off/privacy/benchmark gate를 검증합니다.
   verify-yolo-layouts
                  YOLO 모델별 output layout/box/score 조합을 실제 모델로 검증합니다.
   verify-adaptive
@@ -745,6 +747,10 @@ case "${cmd}" in
   verify-close-object-fixture-matrix)
     require_internal compare_close_object_tracker.py
     exec "${INTERNAL_DIR}/compare_close_object_tracker.py" --fixture-matrix --fail-on-missing-fixtures --fail-on-hold "$@"
+    ;;
+  verify-reid-advanced-tracking)
+    require_internal verify_reid_advanced_tracking_experiment.mjs
+    exec "${INTERNAL_DIR}/verify_reid_advanced_tracking_experiment.mjs" "$@"
     ;;
   verify-yolo-layouts)
     require_internal verify_yolo_layouts.sh

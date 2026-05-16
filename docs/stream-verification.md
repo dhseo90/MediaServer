@@ -676,6 +676,10 @@ matrix 실행은 fixture별 `summary.json`/`report.md`와 상위
 `close-object-live`, control sample은 `control-live` 기준으로 observed risk
 허용치를 분리해 판정합니다. 여기에는 실제 주행 데이터 특성을 반영한
 `field-new-york-driving`(vehicle-heavy control-like)도 포함됩니다.
+이 fixture는 baseline 자체의 vehicle-heavy fragmentation 난이도와 guard mode
+delta를 분리하기 위해 fixture 전용 tracker-stability 상한을 전달합니다.
+이 상한은 `verify-tracker-stability` 명령 통과 기준일 뿐이며, matrix의
+hard risk non-increasing/default-on candidate 판정은 완화하지 않습니다.
 필요하면 단일 비교에서
 `--quality-preset strict|close-object-live|control-live`로 같은 기준을
 명시할 수 있습니다.
@@ -731,17 +735,22 @@ count, mean, stdev, variance, min, max를 표시합니다.
 - observed risk가 증가하면 default-on 후보로 쓰지 않고 반복/fixture 검증으로 넘깁니다.
 - replay/event 결과가 흔들려도 default on 전환 금지입니다.
 - default on은 여러 fixture와 현장 샘플에서 ID continuity 개선과 event 결과 무변화가 함께 확인된 뒤에만 검토합니다.
+- privacy/default-off gate는 `verify-reid-advanced-tracking`으로 별도 확인합니다.
 
 비교 리포트 해석:
 
 - command success라도 `judgement: warning`일 수 있습니다.
 - `event/scenario stable delta=False`여도 observed counter delta나 observed risk 차이가 있을 수 있습니다.
 - 이 경우 default-on 근거로 사용하지 않습니다.
+- `matrix-ok=True`와 `default-on candidate=False`는 함께 나올 수 있습니다.
+  이는 default-off experiment gate는 통과했지만 제품 default-on 근거는 아직
+  부족하다는 뜻입니다.
 - `verify-close-object-fixture-matrix`에서 `judgement: hold`는 실패 exit로 처리합니다.
 - close-object guard는 계속 default off로 둡니다.
-- 후속은 threshold tuning 또는 추가 fixture 수집입니다.
+- threshold tuning 또는 추가 fixture 수집은 새 field/model review가 열릴 때 별도 review로 다룹니다.
 
 ```bash
+./server.sh verify-reid-advanced-tracking
 ./server.sh verify-tracker-stability --long --overlap-focus
 ./server.sh verify-va-replay
 ./server.sh verify-analysis-state
