@@ -13,11 +13,14 @@
 
 ## 현재 상태
 
+- 2026-05-16 v1.2.0 결정: YouTube import/source는 lab-only 실험 기능으로 현상 유지합니다.
+- v1.2.0에서는 이 기능의 추가 개발, 별도 `verify-youtube-import` 신설,
+  실제 YouTube URL 다운로드/relay 성공 검증을 진행하지 않습니다.
 - `/lab/import` 화면은 제품 UI에서 제거했습니다. route는 404로 닫고 `/ops/sources`에서 채널을 관리합니다.
 - YouTube import/source는 현재 운영 기본 기능이 아니며 자동 smoke gate에도 포함하지 않습니다.
 - `source=youtube` 직접 표출 실험은 기본 비활성입니다.
-- 다시 살릴 경우 `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1` 같은 명시 opt-in이 필요합니다.
-- 별도 설계 검토도 필요합니다.
+- 로컬 실험으로 직접 표출 경로를 확인할 때만 `MEDIA_SERVER_ENABLE_EXPERIMENTAL_YOUTUBE_SOURCE=1` 같은 명시 opt-in이 필요합니다.
+- 제품 기능으로 다시 다룰 경우 별도 정책/설계 검토가 필요합니다.
 - import/source 모두 core RTSP/WebRTC relay 안정성 기준과 분리해서 봅니다.
 - 접근 제한, 공개 범위 제한, 서비스 정책, rate limit, 서명 URL 만료, 네트워크 장애는 정상적인 실패 조건으로 처리합니다.
 
@@ -73,13 +76,13 @@ Linux에서는 배포판 패키지 또는 프로젝트 운영 기준에 맞는 �
 - import job UI/API가 제품 화면에 노출되지 않음
 - 실험 기능이 꺼져 있을 때 core `/ops`, `/client`, RTSP/WebRTC 경로에 영향이 없음
 
-실제 다운로드 성공 검증은 별도로 수행합니다.
-조건은 사용 권한과 공개 범위가 명확한 URL, 고정된 resolver 버전, 충분한 네트워크입니다.
-공개 외부 URL 성공은 문서나 자동 테스트에서 보장하지 않습니다.
+v1.2.0에서는 실제 YouTube URL 다운로드/relay 성공 검증을 수행하지 않습니다.
+공개 외부 URL 성공은 문서나 자동 테스트에서 보장하지 않으며, 별도 `verify-youtube-import`
+gate도 신설하지 않습니다.
 
 ## 운영 전환 전 조건
 
-- 기능을 운영 기본 기능으로 승격할지, 별도 실험 기능으로만 유지할지 결정
+- 기능을 운영 기본 기능으로 승격할지 다시 판단하는 별도 정책/설계 결정
 - 사용 가능한 테스트 URL과 사용 범위에 대한 내부 정책 확정
 - resolver 설치 방식과 버전 고정 전략 확정
 - 장시간 import job의 timeout, cancel, retry, cleanup 정책 확정
@@ -87,4 +90,4 @@ Linux에서는 배포판 패키지 또는 프로젝트 운영 기준에 맞는 �
 - 실패 메시지와 사용자 안내 문구 점검
 - core RTSP/WebRTC streaming, VA overlay, `vaRule` 경로와 독립적으로 실패하는지 검증
 
-운영 전환 전까지 이 기능은 실험 기능으로 유지하며, core media pipeline 안정성 판단에 포함하지 않습니다.
+v1.2.0에서는 이 기능을 lab-only 실험 기능으로 유지하며, core media pipeline 안정성 판단에 포함하지 않습니다.

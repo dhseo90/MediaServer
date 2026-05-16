@@ -71,7 +71,7 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 | P1 | Account lifecycle policy | invite expiry, password reset 운영 문구, user audit export, account disable/restore 절차 polish | `verify-auth-users`, `verify-auth-routes`, users UI screenshot review |
 | P2 | Release packaging rehearsal | source-only 기준은 유지하되 container/offline/binary bundle 후보를 policy gate 안에서 dry-run | `verify-bundle-policy`, `verify-release-bundle-dry-run` |
 | P2 | Re-ID/advanced tracking experiment | Re-ID extractor hook과 association 보강을 default-off benchmark로만 비교 | `compare-close-object-tracker`, `verify-va-replay`, privacy review |
-| P2 | YouTube experiment decision | YouTube import/source 실험을 유지/축소/제거 중 하나로 결정 | `verify-youtube-import`, docs review |
+| P2 | YouTube experiment decision | YouTube import/source 실험을 lab-only 현상 유지로 결정하고 추가 개발/실제 YouTube 성공 검증은 중단 | docs review |
 
 ## v1.2.0 착수 게이트
 
@@ -115,7 +115,31 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 | V120-P1-04 | P1 | Account lifecycle policy | 완료 | `/ops/users` 계정 라이프사이클 정책 영역, password reset UI/문구, invite expiry 표시, user audit export 안내, disable/restore 절차 polish를 기존 auth/session 계약 안에서 종료 | auth store migration, password/session/token contract 변경 |
 | V120-P2-01 | P2 | Release packaging rehearsal | 완료 | source-only 기준 유지와 container/offline/binary 후보 dry-run 정책 gate 확인 | runtime/model binary를 실제 release asset에 포함 |
 | V120-P2-02 | P2 | Re-ID/advanced tracking experiment | 실험 | default-off benchmark와 privacy review 기준으로 close-object association 비교 | Re-ID default-on, 대형 tracker 교체, media pipeline blocking risk |
-| V120-P2-03 | P2 | YouTube experiment decision | 보류 | 유지/축소/제거 중 하나로 결정하고 docs/test 범위 정리 | 운영 기본 기능 승격, 장시간 import job 정책 도입 |
+| V120-P2-03 | P2 | YouTube experiment decision | 완료(현상 유지) | YouTube import/source는 lab-only 실험 기능으로 현상 유지. v1.2.0에서는 추가 개발, `verify-youtube-import` 신설, 실제 YouTube URL 다운로드/relay 성공 검증을 진행하지 않음. 제품 경계 검증은 `/lab/import` 404, 제품 UI 미노출, 기본 비활성 상태 확인으로 제한 | 운영 기본 기능 승격, 실제 YouTube URL 성공 gate, 장시간 import job 정책 도입 |
+
+### V120-P2-03 종료 판정
+
+2026-05-16 기준 V120-P2-03은 lab-only 현상 유지 결정으로 종료합니다.
+
+확인됨:
+
+- YouTube import/source는 운영 기본 기능으로 승격하지 않습니다.
+- `source=youtube` 직접 표출은 기본 비활성 상태를 유지합니다.
+- `/lab/import` 화면 route는 제품 UI에서 닫힌 상태를 유지합니다.
+- v1.2.0에서는 YouTube 실험 기능의 추가 개발, 별도 `verify-youtube-import`
+  신설, 실제 YouTube URL 다운로드/relay 성공 검증을 진행하지 않습니다.
+
+미확인:
+
+- 실제 YouTube URL 다운로드/relay 성공 여부
+- resolver 최신 버전별 호환성
+- 장시간 import job timeout/cancel/retry/cleanup 정책
+
+후속으로만 다룰 조건:
+
+- 운영 기본 기능 승격
+- YouTube 또는 권리자의 명시 허가/정책 검토에 기반한 실제 URL 검증
+- 장시간 import job과 `video/imports` 보존/삭제/용량 제한 정책
 
 ### V120-P0-01 종료 판정
 
