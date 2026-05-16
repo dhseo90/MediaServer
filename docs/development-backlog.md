@@ -685,6 +685,17 @@ PR template과 정적 verifier를 연결했습니다.
 - `verify-ui-copy-i18n-parity`가 scenario 수, 필수 Korean/English field, Live/Connected/Normal/Stale/Connecting/Failed/Error 상태 번역을 검증합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
+### Client Live 접근성 DOM 추출 snapshot 후속 종료 판정
+
+2026-05-16 기준 Client Live tile 숨김 접근성 문구 snapshot을 실제 DOM smoke와 연결했습니다.
+
+확인됨:
+
+- `client_live_tile_a11y_i18n_snapshot.json`에 `domExtraction` 기준을 추가했습니다.
+- `verify-ops-client-ui --screenshots`의 client live keyboard smoke가 실제 `[data-role="a11y-status"]` DOM 텍스트를 snapshot 기준으로 검사합니다.
+- `verify-ui-copy-i18n-parity`가 snapshot fixture와 UI smoke 연결을 정적으로 검증합니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
 ## v1.2.0 시작 전 체크리스트
 
 - [x] v1.1.0 PR이 `main`에 merge됨

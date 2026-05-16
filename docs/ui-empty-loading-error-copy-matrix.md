@@ -31,6 +31,7 @@ updated: 2026-05-16
 - 언어 parity: `./server.sh verify-ui-copy-i18n-parity`
 - Client Live tile 숨김 접근성 문구 snapshot: `test/fixtures/client_live_tile_a11y_i18n_snapshot.json`
   - 포함 상태: offline empty, live normal, stale reconnecting, error failed
+  - DOM 추출: `verify-ops-client-ui --screenshots`가 실제 `/client/live`의 `[data-role="a11y-status"]` 숨김 문구를 snapshot의 `domExtraction` 기준으로 확인
 - UI smoke: `./server.sh verify-ops-client-ui`
 - 시각 회귀: `./server.sh verify-ops-client-ui --screenshots`
 - 문서 링크: `./server.sh verify-docs-links`

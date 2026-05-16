@@ -67,10 +67,17 @@ check("product translation patterns include repeated live tile labels", () => {
 check("client live tile a11y i18n snapshot is pinned", () => {
   const js = readText("src/ingress/product_ui_js.cpp");
   const clientScript = readText("src/ingress/product_ui_page_scripts.cpp");
+  const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
   const fixture = JSON.parse(readText("test/fixtures/client_live_tile_a11y_i18n_snapshot.json"));
   assert(fixture.schema === "media-server.client-live-tile-a11y-i18n-snapshot.v1", "snapshot schema mismatch");
   assert(clientScript.includes("liveTileA11yStatus"), "client live script missing liveTileA11yStatus");
+  assert(uiSmoke.includes("client_live_tile_a11y_i18n_snapshot.json"), "ops/client UI smoke does not load client live a11y snapshot");
+  assert(uiSmoke.includes("domExtraction.requiredKoreanParts"), "ops/client UI smoke does not use snapshot DOM extraction fields");
   assert(Array.isArray(fixture.scenarios) && fixture.scenarios.length >= 4, "snapshot scenarios must cover at least 4 tile states");
+  assert(fixture.domExtraction?.selector === "[data-role=\"a11y-status\"]", "snapshot DOM extraction selector mismatch");
+  for (const value of ["타일 1:", "상태", "연결", "트랙", "이벤트", "메타데이터", "재시도"]) {
+    assert((fixture.domExtraction?.requiredKoreanParts || []).includes(value), `snapshot DOM extraction missing part: ${value}`);
+  }
   for (const value of fixture.requiredKoreanParts || []) {
     assert(fixture.korean.includes(value), `snapshot Korean text missing part: ${value}`);
   }

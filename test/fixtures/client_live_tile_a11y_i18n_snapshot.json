@@ -25,6 +25,25 @@
       "english": "Tile 4: Sample H264 · Status Error · Connection Failed · Tracks Not provided · Events 1 · Metadata Not provided · Retry 3"
     }
   ],
+  "domExtraction": {
+    "description": "Fields that verify-ops-client-ui --screenshots must extract from the actual /client/live hidden status DOM.",
+    "selector": "[data-role=\"a11y-status\"]",
+    "requiredKoreanParts": [
+      "타일 1:",
+      "상태",
+      "연결",
+      "트랙",
+      "이벤트",
+      "메타데이터",
+      "재시도"
+    ],
+    "requiredAttributes": {
+      "data-role": "a11y-status",
+      "aria-live": "polite",
+      "aria-atomic": "true",
+      "class": "sr-only"
+    }
+  },
   "requiredKoreanParts": [
     "타일 1:",
     "채널 미선택",

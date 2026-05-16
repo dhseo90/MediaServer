@@ -57,6 +57,7 @@ const visualHeight = Number(args.visualHeight || 900);
 const debugPortBase = Number(args.debugPortBase || 9700);
 const runId = `ops-client-ui-${Date.now()}-${process.pid}`;
 const outputDir = args.outputDir || path.join(os.tmpdir(), `media_server_${runId}`);
+const clientLiveA11ySnapshot = JSON.parse(fs.readFileSync(path.join(process.cwd(), "test/fixtures/client_live_tile_a11y_i18n_snapshot.json"), "utf8"));
 
 const productShellMust = [
   'class="product-shell',
@@ -573,7 +574,7 @@ async function runClientLiveTileKeyboardSmoke() {
       outputDir,
     });
     try {
-      const result = await browser.evaluate(clientLiveTileKeyboardExpression(), 10000);
+      const result = await browser.evaluate(clientLiveTileKeyboardExpression(clientLiveA11ySnapshot), 10000);
       if (!result?.ok) {
         const details = Array.isArray(result?.issues) ? result.issues.join("; ") : JSON.stringify(result);
         throw new Error(`${label}: ${details}`);
@@ -602,12 +603,17 @@ async function runClientLiveTileKeyboardSmoke() {
   return { passCount: keyboardPassCount, failCount: keyboardFailCount };
 }
 
-function clientLiveTileKeyboardExpression() {
+function clientLiveTileKeyboardExpression(a11ySnapshot) {
   return `
     (async () => {
+      const a11ySnapshot = ${JSON.stringify(a11ySnapshot)};
       const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
       const issues = [];
       const issue = message => { if (issues.length < 16) issues.push(message); };
+      const domExtraction = a11ySnapshot.domExtraction || {};
+      const requiredStatusParts = Array.isArray(domExtraction.requiredKoreanParts) && domExtraction.requiredKoreanParts.length
+        ? domExtraction.requiredKoreanParts
+        : ['타일 1:', '상태', '연결', '트랙', '이벤트', '메타데이터', '재시도'];
       await wait(350);
       const tiles = Array.from(document.querySelectorAll('.tile'));
       if (tiles.length < 2) issue('expected at least two live tiles, got ' + tiles.length);
@@ -627,7 +633,7 @@ function clientLiveTileKeyboardExpression() {
           if (describedNode.getAttribute('aria-live') !== 'polite') issue('first tile status aria-live missing');
           if (describedNode.getAttribute('aria-atomic') !== 'true') issue('first tile status aria-atomic missing');
           if (!describedNode.classList.contains('sr-only')) issue('first tile status is not visually hidden');
-          for (const expected of ['타일 1:', '상태', '연결', '트랙', '이벤트', '메타데이터', '재시도']) {
+          for (const expected of requiredStatusParts) {
             if (!statusText.includes(expected)) issue('first tile a11y status missing text: ' + expected);
           }
           const style = window.getComputedStyle(describedNode);
