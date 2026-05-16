@@ -291,9 +291,12 @@ check("visual baseline diff preflight artifact is wired", () => {
     "write-ui-visual-baseline-comment",
     "visual-baseline-comment.md",
     "Upload UI visual baseline diff preflight artifact",
+    "id: upload-ui-visual-baseline-diff",
     "media-server-ui-visual-baseline-diff",
     "Publish UI visual baseline PR summary",
     "GITHUB_STEP_SUMMARY",
+    "steps.upload-ui-visual-baseline-diff.outputs.artifact-url",
+    "Artifact download:",
     "visual-baseline-diff.json",
     "visual-baseline-diff.md",
     "actions/upload-artifact@v4",
@@ -304,6 +307,7 @@ check("visual baseline diff preflight artifact is wired", () => {
     "media-server-ui-visual-baseline-diff",
     "visual-baseline-comment.md",
     "GITHUB_STEP_SUMMARY",
+    "artifact download",
     "preflight CI",
   ]) {
     assert(docs.includes(snippet), `docs missing visual baseline diff preflight snippet: ${snippet}`);

@@ -609,6 +609,7 @@ PR template과 정적 verifier를 연결했습니다.
 
 - preflight에 `Publish UI visual baseline PR summary` 단계를 추가했습니다.
 - `visual-baseline-comment.md`가 있으면 `GITHUB_STEP_SUMMARY`에 붙이고, 없으면 미생성 상태를 명시합니다.
+- `actions/upload-artifact@v4`의 `artifact-url` output을 사용해 summary에 artifact download 링크를 함께 표시합니다.
 - workflow 권한은 `contents: read`만 유지하며 `pull-requests: write`를 열지 않았습니다.
 - `verify-ui-visual-artifact-index`와 `verify-actions-security`가 summary 게시 연결과 권한 경계를 검증합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.

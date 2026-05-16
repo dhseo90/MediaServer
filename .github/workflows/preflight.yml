@@ -86,6 +86,7 @@ jobs:
           if-no-files-found: ignore
 
       - name: Upload UI visual baseline diff preflight artifact
+        id: upload-ui-visual-baseline-diff
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -100,6 +101,8 @@ jobs:
         if: always()
         shell: bash
         run: |
+          artifact_name="media-server-ui-visual-baseline-diff"
+          artifact_url="${{ steps.upload-ui-visual-baseline-diff.outputs.artifact-url }}"
           if [ -z "${GITHUB_STEP_SUMMARY:-}" ]; then
             exit 0
           fi
@@ -112,5 +115,9 @@ jobs:
               echo "visual-baseline-comment.md was not generated."
             fi
             echo
-            echo "Artifact: media-server-ui-visual-baseline-diff"
+            if [ -n "${artifact_url}" ]; then
+              echo "Artifact download: [${artifact_name}](${artifact_url})"
+            else
+              echo "Artifact download: ${artifact_name} (not uploaded)"
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
