@@ -58,6 +58,7 @@ check("user-facing JS option parsers reject unknown options", () => {
   const strictScripts = [
     "run_ops_evidence_retention_cleanup.mjs",
     "archive_rc_gate_artifact.mjs",
+    "write_ui_visual_qa_issue_links.mjs",
     "write_rc_release_checklist.mjs",
     "write_dependency_notice.mjs",
     "write_dependency_snapshot.mjs",

@@ -115,6 +115,8 @@ client/source/debug/raw JSON 비노출 검토 전에는 공유 보관소에 올�
 UI visual regression issue는 `.github/ISSUE_TEMPLATE/ui_visual_qa.yml`
 템플릿을 사용해 artifact directory, manifest/index, viewport, client/viewer
 debug/source 비노출 확인, 미실행 검증을 함께 남깁니다.
+`./server.sh write-ui-visual-qa-issue-links --artifact-dir <artifact-dir> --output <artifact-dir>/ui-visual-qa-issue-links.md`
+를 실행하면 issue template의 artifact 영역에 붙일 manifest/index/baseline diff/screenshot 링크를 자동으로 생성합니다.
 
 VA rule/scenario 변경:
 

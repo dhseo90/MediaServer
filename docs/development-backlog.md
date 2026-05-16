@@ -472,6 +472,18 @@ PR template과 정적 verifier를 연결했습니다.
 - `verify-ops-client-ui`가 client live tile 접근성 hook을 정적 smoke 대상으로 확인합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
+### Visual QA issue artifact link helper 후속 종료 판정
+
+2026-05-16 기준 visual screenshot artifact를 GitHub issue template에 붙일 Markdown 링크 블록으로 변환하는 보조 명령을 추가했습니다.
+
+확인됨:
+
+- `./server.sh write-ui-visual-qa-issue-links --artifact-dir <artifact-dir>`가 `visual-regression-manifest.json`과 `index.md`를 읽어 issue용 링크 블록을 생성합니다.
+- baseline diff artifact가 있으면 `visual-baseline-diff.json`과 `visual-baseline-diff.md` 링크를 함께 출력합니다.
+- issue/PR template과 UI 검증 문서에 helper 명령을 연결했습니다.
+- `verify-ui-visual-artifact-index`가 helper wiring과 fixture 출력물을 정적 검증합니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
 ## v1.2.0 시작 전 체크리스트
 
 - [x] v1.1.0 PR이 `main`에 merge됨

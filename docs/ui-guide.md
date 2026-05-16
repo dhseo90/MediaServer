@@ -367,6 +367,9 @@ Ops/Client/Lab API guard를 확인합니다.
   `./server.sh compare-ui-visual-baseline --baseline-dir <baseline-artifact-dir> --candidate-dir <candidate-artifact-dir>`
   를 사용합니다. 결과는 `media-server.ui-visual-baseline-diff.v1` schema의
   `visual-baseline-diff.json`과 `visual-baseline-diff.md`로 남깁니다.
+- visual QA issue에 artifact 링크를 붙일 때는
+  `./server.sh write-ui-visual-qa-issue-links --artifact-dir <artifact-dir> --output <artifact-dir>/ui-visual-qa-issue-links.md`
+  로 manifest/index/baseline diff/screenshot 링크 블록을 생성합니다.
 - `visual-regression-manifest.json`에는
   `media-server.ui-visual-artifact-retention.v1` retention policy를 함께
   기록합니다. PR screenshot artifact 기본 보존은 14 days, release baseline

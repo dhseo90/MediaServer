@@ -56,6 +56,8 @@ Usage:
                  UI screenshot artifact index/manifest 생성을 검증합니다.
   compare-ui-visual-baseline
                  UI screenshot artifact baseline과 candidate의 manifest/pixel diff를 생성합니다.
+  write-ui-visual-qa-issue-links
+                 UI visual QA issue에 붙일 artifact link Markdown을 생성합니다.
   verify-product-ui-token-drift
                  제품 UI CSS가 design token 밖 raw color를 추가하지 않는지 검증합니다.
   verify-product-shell-examples
@@ -391,6 +393,10 @@ case "${cmd}" in
   compare-ui-visual-baseline)
     require_internal compare_ui_visual_baseline.mjs
     exec "${INTERNAL_DIR}/compare_ui_visual_baseline.mjs" "$@"
+    ;;
+  write-ui-visual-qa-issue-links)
+    require_internal write_ui_visual_qa_issue_links.mjs
+    exec "${INTERNAL_DIR}/write_ui_visual_qa_issue_links.mjs" "$@"
     ;;
   verify-product-ui-token-drift)
     require_internal verify_product_ui_token_drift.mjs

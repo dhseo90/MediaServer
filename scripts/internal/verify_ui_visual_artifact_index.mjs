@@ -5,6 +5,7 @@ import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import process from "node:process";
+import childProcess from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
@@ -68,6 +69,7 @@ const docs = [
 const authSmoke = fs.readFileSync(path.join(rootDir, "scripts/internal/verify_auth_ui_smoke.mjs"), "utf8");
 const serverSh = fs.readFileSync(path.join(rootDir, "server.sh"), "utf8");
 const compareScript = fs.readFileSync(path.join(rootDir, "scripts/internal/compare_ui_visual_baseline.mjs"), "utf8");
+const issueLinkScript = fs.readFileSync(path.join(rootDir, "scripts/internal/write_ui_visual_qa_issue_links.mjs"), "utf8");
 
 const checksRun = [];
 check("manifest schema and screenshot rows", () => {
@@ -127,6 +129,7 @@ check("visual QA issue template captures artifact evidence", () => {
     "visual-baseline-diff.json:",
     "./server.sh verify-ops-client-ui --screenshots --output-dir <artifact-dir>",
     "./server.sh compare-ui-visual-baseline --baseline-dir <baseline-artifact-dir> --candidate-dir <candidate-artifact-dir>",
+    "./server.sh write-ui-visual-qa-issue-links --artifact-dir <artifact-dir> --output <artifact-dir>/ui-visual-qa-issue-links.md",
     "MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1 ./server.sh verify-auth-bootstrap",
     "./server.sh verify-ui-visual-artifact-index",
     "source URL",
@@ -171,6 +174,47 @@ check("visual baseline diff tooling is wired and documented", () => {
     "media-server.ui-visual-baseline-diff.v1",
   ]) {
     assert(compareScript.includes(snippet), `compare script missing visual baseline diff snippet: ${snippet}`);
+  }
+});
+
+check("visual QA issue link helper is wired and documented", () => {
+  for (const snippet of [
+    "write-ui-visual-qa-issue-links",
+    "write_ui_visual_qa_issue_links.mjs",
+  ]) {
+    assert(serverSh.includes(snippet), `server.sh missing visual QA issue link helper snippet: ${snippet}`);
+  }
+  for (const snippet of [
+    "write-ui-visual-qa-issue-links",
+    "ui-visual-qa-issue-links.md",
+  ]) {
+    assert(docs.includes(snippet), `docs missing visual QA issue link helper snippet: ${snippet}`);
+  }
+  for (const snippet of [
+    "media-server.ui-visual-artifact-index.v1",
+    "visual-regression-manifest.json",
+    "visual-baseline-diff.json",
+    "Screenshot Links",
+  ]) {
+    assert(issueLinkScript.includes(snippet), `issue link helper missing snippet: ${snippet}`);
+  }
+  const issueOutput = path.join(outputDir, "ui-visual-qa-issue-links.md");
+  childProcess.execFileSync(process.execPath, [
+    path.join(rootDir, "scripts/internal/write_ui_visual_qa_issue_links.mjs"),
+    "--artifact-dir",
+    outputDir,
+    "--output",
+    issueOutput,
+  ], { stdio: "pipe" });
+  const issueMarkdown = fs.readFileSync(issueOutput, "utf8");
+  for (const snippet of [
+    "UI Visual QA Artifact Links",
+    "visual-regression-manifest.json",
+    "index.md",
+    "ops-home-320.png",
+    "source URL, Developer URL, raw JSON/debug counter",
+  ]) {
+    assert(issueMarkdown.includes(snippet), `issue link helper output missing snippet: ${snippet}`);
   }
 });
 
