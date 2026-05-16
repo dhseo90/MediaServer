@@ -1,12 +1,12 @@
 # Development Backlog
 
-이 문서는 `main` 기준의 현재 제품 상태와 다음 minor 개발 후보만 관리합니다.
+이 문서는 `main` 기준의 현재 제품 상태와 release close-out 판정을 관리합니다.
 완료된 상세 개발 이력은 [history/development-history.md](./history/development-history.md),
 검증 이력은 [history/verification-history.md](./history/verification-history.md)를 봅니다.
 
 ## 문서 정리 기준
 
-v1.1.0이 `main`으로 들어가면 v1.1.0 전용 분리 roadmap은 더 이상 별도
+v1.2.0이 `main`으로 들어가면 v1.2.0 개발 브랜치의 상세 작업 목록은 더 이상 별도
 source-of-truth가 아닙니다. 현재 기준은 이 문서와 기능별 상세 문서로 나눕니다.
 
 - 현재 버전/비범위 기준: [versioning-policy.md](./versioning-policy.md)
@@ -27,10 +27,10 @@ source-of-truth가 아닙니다. 현재 기준은 이 문서와 기능별 상세
 
 `완료`는 운영 배포 ready, 장기 안정성 보장, 외부 연동 ready를 뜻하지 않습니다.
 
-## 현재 기준: v1.1.0 Main Baseline
+## 현재 기준: v1.2.0 Source Release Baseline
 
-v1.1.0은 live-only source release입니다. 중심 범위는 live source onboarding,
-live source health, live VA event quality입니다.
+v1.2.0은 v1.1.0 live-only source release 경계를 유지하면서 현장 운영, 제품 UI,
+통합 계약, release guardrail을 보강한 source-only minor release입니다.
 
 완료 범위:
 
@@ -45,6 +45,14 @@ live source health, live VA event quality입니다.
 - [x] Auth setup/login/session, role/scope, admin user console, invite/request approval
 - [x] `/ops`와 `/client` 제품 UI 분리, `/lab` 화면 route 404 유지
 - [x] source-only public readiness, bundle policy, license/artifact guardrail
+- [x] ONVIF Profile S/T no-device suite, local simulator, RTSP/RTSPS draft, redaction policy
+- [x] ERP-style Ops/Client/Auth visual refresh와 visual artifact gate
+- [x] Source health operator next-action과 retryable-only 재검증 경계
+- [x] Client live/dashboard polish, account lifecycle policy, Rule/Scenario field tuning
+- [x] Integrator contract artifact sample/schema bundle
+- [x] source-only release packaging rehearsal과 UI visual artifact maintenance guard
+- [x] Re-ID/advanced tracking default-off 실험 guard와 WARNING 판정
+- [x] YouTube import/source lab-only 현상 유지 결정
 
 비범위:
 
@@ -53,12 +61,13 @@ live source health, live VA event quality입니다.
 - [ ] Re-ID default-on 또는 대형 tracker 교체
 - [ ] binary/runtime/model bundle release
 - [ ] 외부 TURN/WHEP credential 운영 보장
+- [ ] ONVIF 실장비 endpoint 성공 보장, persistent credential store, Digest/WS-Security
+- [ ] YouTube 운영 기능 승격 또는 실제 URL relay 성공 보장
 
-## v1.2.0 Roadmap 후보
+## v1.2.0 Roadmap 종료 판정
 
 v1.2.0은 v1.1.0 live-only 경계를 유지하면서 실제 현장 운영과 제품화 밀도를 높이는
-minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, 실제 v1.2.0 scope는
-이슈화 후 다시 확정합니다.
+minor release로 종료합니다. 아래 항목은 v1.2.0 close-out 기준입니다.
 
 | 우선순위 | 영역 | 목표 | 예상 검증 |
 | --- | --- | --- | --- |
@@ -80,7 +89,7 @@ minor release로 제안합니다. 아래 항목은 PR 전 제안 기준이며, �
 2026-05-15 기준 0번 착수 게이트 결과:
 
 - 기준 브랜치: `v1.2.0`
-- release 기준 tag: local `v1.1.0`
+- 착수 당시 release 기준 tag: local `v1.1.0`
 - baseline gate: `./server.sh test --basic --ffmpeg-free`
   - sandbox 내부 실행은 local port bind 차단으로 실패
   - 권한 밖 재실행 기준 통과

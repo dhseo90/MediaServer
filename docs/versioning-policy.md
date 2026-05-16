@@ -4,38 +4,38 @@
 
 ## 현재 기준
 
-- 현재 기준 버전: `v1.1.0`
-- 다음 minor 개발 목표: `v1.2.0`
+- 현재 기준 버전: `v1.2.0`
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
-- `v1.1.0`은 live-only source release 기준입니다.
-- 현재 제품 경계와 다음 minor 후보는 [development-backlog.md](./development-backlog.md)를 기준으로 합니다.
+- `v1.2.0`은 live-only source release 기준을 유지하면서 현장 운영, UI, 통합 계약, release guardrail을 보강한 source-only minor release입니다.
+- 현재 제품 경계와 v1.2.0 종료 판정은 [development-backlog.md](./development-backlog.md)를 기준으로 합니다.
 
-## `v1.1.0`에 포함되는 범위
+## `v1.2.0`에 포함되는 범위
 
 - Apache-2.0 소스 코드
 - 문서, 설정 예시, 검증 스크립트
 - allowlist된 생성 sample fixture
 - RTSP/WebRTC relay, Ops/Client UI, Auth/Role/Scope, Rule/Profile/Scenario, EventRecord/evidence 1차 기능
 - public readiness, Actions, license/artifact guardrail
-- ONVIF-assisted live source onboarding 1차 구현
-- live source health, reconnect, stale/offline 운영 요약
-- live VA event 품질, scenario timeline/debug, TrackHealth tuning
-- Event POST, WebRTC DataChannel, SSE, WebSocket metadata/event contract 정리
+- ONVIF Profile S/T live source no-device/fixture/simulator 기반 onboarding
+- live source health operator workflow와 retryable-only 재검증 경계
+- ERP-style Ops/Client/Auth visual refresh와 visual regression artifact gate
+- Client live/dashboard polish, account lifecycle policy, Rule/Scenario field tuning
+- Event POST, WebRTC DataChannel, SSE, WebSocket metadata/event contract sample bundle
+- source-only release packaging rehearsal과 bundle policy dry-run
+- Re-ID/advanced tracking default-off 실험 guard
+- YouTube import/source lab-only 현상 유지 결정
 
-## `v1.1.0`에 포함하지 않는 범위
+## `v1.2.0`에 포함하지 않는 범위
 
 - FFmpeg/GStreamer/ONNX Runtime/YOLO model binary bundle
 - container image, offline package, app bundle
 - 고객/현장 영상, 운영 evidence, auth store, log
 - 장기 운영 SLA, 외부 TURN credential 운영 보장, 장기 녹화/VMS/NVR 범위
 - binary/runtime 포함 release의 법무/배포 검토 완료 상태
-
-## `v1.2.0` 개발 준비 범위
-
-- `v1.1.0` release tag/main merge 이후 [development-backlog.md](./development-backlog.md)의
-  v1.2.0 후보를 이슈로 분리해 확정합니다.
-- v1.1.0 live-only 경계를 깨지 않는 운영/현장 고도화, ONVIF Profile S/T live source 현장 연동,
-  source health workflow, client dashboard polish, integrator contract artifact를 우선 검토합니다.
+- ONVIF 실장비 성공 보장, WS-Discovery, Profile G recording/replay
+- ONVIF persistent credential store, HTTP Digest, WS-Security UsernameToken
+- Re-ID default-on 또는 대형 tracker 교체
+- YouTube 운영 기능 승격 또는 실제 URL relay 성공 보장
 
 ## 다음 minor에도 기본 제외되는 범위
 
@@ -52,7 +52,7 @@
 
 ## Tag와 release 기준
 
-- 현재 source-only release tag 기준은 `v1.1.0`입니다.
+- 현재 source-only release tag 기준은 `v1.2.0`입니다.
 - tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만 붙입니다.
 - source-only release에는 sample/model/runtime binary를 추가 업로드하지 않습니다.
 - binary/container/offline bundle은 별도 RC gate와 bundle policy 검토를 통과한 뒤 별도 release로 다룹니다.
