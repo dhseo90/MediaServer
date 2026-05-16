@@ -1,6 +1,7 @@
 # Development Backlog
 
-이 문서는 `main` 기준의 현재 제품 상태와 release close-out 판정을 관리합니다.
+이 문서는 `main` 기준의 현재 제품 상태, release close-out 판정, 후속 patch roadmap을
+관리합니다.
 완료된 상세 개발 이력은 [history/development-history.md](./history/development-history.md),
 검증 이력은 [history/verification-history.md](./history/verification-history.md)를 봅니다.
 
@@ -63,6 +64,35 @@ v1.2.0은 v1.1.0 live-only source release 경계를 유지하면서 현장 운�
 - [ ] 외부 TURN/WHEP credential 운영 보장
 - [ ] ONVIF 실장비 endpoint 성공 보장, persistent credential store, Digest/WS-Security
 - [ ] YouTube 운영 기능 승격 또는 실제 URL relay 성공 보장
+
+## v1.2.1 Patch Roadmap 후보
+
+v1.2.1은 v1.2.0 release 이후 안정화 patch 후보입니다. 새 product scope를 열지 않고
+문서/version drift, release close-out 자동화, flaky 검증, UI 수동 검수 보강을
+우선합니다. schema, Event POST payload, WebRTC DataChannel, SSE/WS metadata,
+RTSP/WebRTC media path, auth/session contract 변경은 별도 review 없이는 포함하지
+않습니다.
+
+| ID | 우선순위 | 영역 | 목표 | 예상 검증 |
+| --- | --- | --- | --- | --- |
+| V121-P0-01 | P0 | Release metadata consistency guard | `VERSION`, `CMakeLists.txt`, README, release/versioning/backlog 문서가 같은 release 기준을 말하는지 자동 점검합니다. v1.2.0에서 발견된 문서 drift를 patch gate로 막습니다. | `git diff --check`, 신규/확장 release metadata verifier, `verify-docs-links` |
+| V121-P0-02 | P0 | Post-release smoke reconciliation | GitHub Actions 결과, 로컬 close-out 검증, 미실행 장시간/실장비 항목을 verification history에 분리 기록합니다. 통과하지 않은 항목을 release PASS처럼 쓰지 않는 보고 형식을 고정합니다. | `verify-public-repo-readiness`, `verify-docs-links`, verification history review |
+| V121-P0-03 | P0 | Manual UI full-test evidence | `/setup`, `/login`, `/ops/*`, `/client/*` 주요 흐름을 스크립트 결과가 아니라 수동 조작 기록으로 남기는 release checklist를 채웁니다. 발견된 작은 UI 문제만 patch 범위로 다룹니다. | `docs/manual-ui-checklist.md`, `docs/manual-ui-result-template.md`, 수동 브라우저 검수 |
+| V121-P1-01 | P1 | Flaky verifier stabilization | Access approval, rule preview save, clipboard fallback, fixture cleanup, browser route smoke의 재현성 문제를 좁은 test/guard 보강으로 정리합니다. | `verify-ops-click-e2e`, `verify-rule-ui`, `verify-fixture-cleanup-contracts` |
+| V121-P1-02 | P1 | Re-ID WARNING guard hardening | `matrix-ok=True`와 제품 default-on 안정 판정을 혼동하지 않도록 docs/script 출력과 fixture candidate 문구를 더 강하게 고정합니다. | `compare-close-object-tracker`, `verify-reid-advanced-tracking`, docs review |
+| V121-P1-03 | P1 | ONVIF field smoke readiness polish | 실장비 성공을 구현 완료로 말하지 않으면서 field smoke redaction template, operator checklist, failure wording을 정리합니다. credential store나 Digest/WS-Security는 열지 않습니다. | `verify-onvif-no-device-suite`, `verify-onvif-field-smoke-redaction`, `verify-onvif-protocol-support-matrix` |
+| V121-P1-04 | P1 | Release close-out helper | release 전 version/doc/check/tag 준비 상태를 한 번에 요약하는 helper를 추가하거나 기존 verifier를 묶습니다. 실제 tag/push는 수동 승인 후에만 수행합니다. | `verify-public-repo-readiness`, `verify-release-bundle-dry-run`, helper dry-run |
+| V121-P2-01 | P2 | Korean/English doc drift cleanup | 통합 영어 index와 한국어 source-of-truth 사이의 링크/용어 차이를 줄이고, obsolete release 문구를 정리합니다. | `verify-docs-links`, `verify-docs-ui-assets`, text search |
+| V121-P2-02 | P2 | UI polish from manual findings | 수동 UI 풀테스트에서 발견된 버튼 문구, overflow, focus, empty/loading/error copy 같은 작은 문제만 수정합니다. 제품 nav나 route 구조는 바꾸지 않습니다. | 수동 브라우저 검수, `verify-ops-client-ui --screenshots`, `verify-ui-copy-i18n-parity` |
+| V121-P2-03 | P2 | Dependency and artifact housekeeping | dependency snapshot, UI visual artifact retention, sample fixture provenance를 release 후 상태에 맞춰 정리합니다. runtime/model/binary bundle은 포함하지 않습니다. | `dependency-snapshot`, `verify-ui-visual-artifact-index`, `verify-bundle-policy` |
+
+v1.2.1 비범위:
+
+- ONVIF Profile G/Recording/Replay, WS-Discovery 자동 검색
+- ONVIF persistent credential store, HTTP Digest, WS-Security UsernameToken
+- Re-ID default-on, 대형 tracker 교체, 모델/runtime bundle 포함
+- YouTube 운영 기능 승격, 실제 YouTube URL 성공 gate
+- 장기 녹화, VMS/NVR archive, playback/search
 
 ## v1.2.0 Roadmap 종료 판정
 
