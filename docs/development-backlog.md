@@ -460,6 +460,18 @@ PR template과 정적 verifier를 연결했습니다.
 - audit filter, preset, toolbar control이 모바일 폭에서 audit panel과 viewport 안에 머무르는지 함께 검사합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
+### Client Live 타일 상태 접근성 문구 후속 종료 판정
+
+2026-05-16 기준 `/client/live` 타일 상태가 키보드/스크린리더 흐름에서도 같은 상태 요약을 읽도록 보강했습니다.
+
+확인됨:
+
+- 각 live tile은 `aria-describedby`로 숨김 상태 요약을 연결합니다.
+- 숨김 상태 요약은 `aria-live="polite"`와 `aria-atomic="true"`로 연결, 트랙, 이벤트, metadata, 재시도 상태 변경을 함께 알립니다.
+- i18n parity 검증이 타일 상태 요약의 반복 문구 패턴을 확인합니다.
+- `verify-ops-client-ui`가 client live tile 접근성 hook을 정적 smoke 대상으로 확인합니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
 ## v1.2.0 시작 전 체크리스트
 
 - [x] v1.1.0 PR이 `main`에 merge됨

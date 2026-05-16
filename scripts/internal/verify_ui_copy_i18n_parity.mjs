@@ -52,6 +52,9 @@ check("product translation patterns include repeated live tile labels", () => {
   const required = [
     "^타일\\s+(\\d+):\\s+(.+)$",
     "^타일\\s+(\\d+)\\s+(시작|재연결|정지|채널|보기 방식)$",
+    "^상태\\s+(.+)$",
+    "^메타데이터\\s+(.+)$",
+    "^재시도\\s+(\\d+)$",
     "Tile ${count}",
     "translatePattern(detail.trim())",
   ];

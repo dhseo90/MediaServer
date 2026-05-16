@@ -715,6 +715,18 @@ void AppendClientShellScript(std::ostringstream& out) {
       if (['unavailable', '미제공'].includes(String(value))) return ' bad';
       return '';
     }
+    function liveTileA11yStatus(tile, view, statusLabel, metadataLabel) {
+      const viewLabel = view?.displayName || view?.viewId || '채널 미선택';
+      return [
+        `타일 ${tile.index + 1}: ${viewLabel}`,
+        `상태 ${statusLabel}`,
+        `연결 ${clientStatusLabel(tile.connectionStatus)}`,
+        `트랙 ${display(tile.trackCount)}`,
+        `이벤트 ${display(tile.eventCount)}`,
+        `메타데이터 ${metadataLabel}`,
+        `재시도 ${tile.restartCount || 0}`
+      ].join(' · ');
+    }
     function updateTileDom(tile) {
       const root = document.querySelector(`[data-tile="${tile.index}"]`);
       if (!root) return;
@@ -730,6 +742,8 @@ void AppendClientShellScript(std::ostringstream& out) {
         error: '오류'
       })[String(status)] || status;
       const viewLabel = view?.displayName || view?.viewId || '채널 미선택';
+      const metadataLabel = stale ? '지연' : (tile.sessionId ? '정상' : '미제공');
+      const a11yStatus = liveTileA11yStatus(tile, view, statusLabel, metadataLabel);
       root.setAttribute('aria-label', `타일 ${tile.index + 1}: ${viewLabel} · ${statusLabel}`);
       root.setAttribute('aria-current', selectedLiveTile === tile.index ? 'true' : 'false');
       root.querySelector('[data-role="status"]').textContent = statusLabel;
@@ -737,9 +751,11 @@ void AppendClientShellScript(std::ostringstream& out) {
       root.querySelector('[data-role="connection"]').textContent = clientStatusLabel(tile.connectionStatus);
       root.querySelector('[data-role="tracks"]').textContent = display(tile.trackCount);
       root.querySelector('[data-role="events"]').textContent = display(tile.eventCount);
-      root.querySelector('[data-role="stale"]').textContent = stale ? '지연' : (tile.sessionId ? '정상' : '미제공');
+      root.querySelector('[data-role="stale"]').textContent = metadataLabel;
       const restarts = root.querySelector('[data-role="restarts"]');
       if (restarts) restarts.textContent = String(tile.restartCount || 0);
+      const a11y = root.querySelector('[data-role="a11y-status"]');
+      if (a11y) a11y.textContent = a11yStatus;
       const placeholder = root.querySelector('[data-role="placeholder"]');
       if (placeholder) placeholder.textContent = tile.lastError || clientStatusLabel(tile.connectionStatus || status);
 	      root.querySelector('[data-role="placeholder"]').hidden = Boolean(tile.sessionId);
@@ -833,7 +849,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	    }
 	    function liveTileHtml(tile) {
 	      return `
-	        <article class="tile${selectedLiveTile === tile.index ? ' selected' : ''}" data-tile="${tile.index}" tabindex="0" role="group" aria-label="타일 ${tile.index + 1}: 라이브" aria-current="${selectedLiveTile === tile.index ? 'true' : 'false'}">
+	        <article class="tile${selectedLiveTile === tile.index ? ' selected' : ''}" data-tile="${tile.index}" tabindex="0" role="group" aria-label="타일 ${tile.index + 1}: 라이브" aria-describedby="liveTileStatus${tile.index}" aria-current="${selectedLiveTile === tile.index ? 'true' : 'false'}">
 	          <div class="tile-head">
 	            <div class="tile-title">
 	              <h3>타일 ${tile.index + 1}</h3>
@@ -866,6 +882,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	            <div class="metric"><span>상태</span><strong data-role="stale">미제공</strong></div>
 	            <div class="metric"><span>재시도</span><strong data-role="restarts">0</strong></div>
 	          </div>
+	          <p id="liveTileStatus${tile.index}" class="sr-only" data-role="a11y-status" aria-live="polite" aria-atomic="true">타일 ${tile.index + 1}: 라이브</p>
 	        </article>
 	      `;
 	    }
