@@ -599,6 +599,18 @@ PR template과 정적 verifier를 연결했습니다.
 - `verify-ui-visual-artifact-index`와 `verify-actions-security`가 summary 게시 연결과 권한 경계를 검증합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
+### Release baseline approval log CI presence 후속 종료 판정
+
+2026-05-16 기준 release baseline approval log template이 CI 정적 gate에서 직접 검증됩니다.
+
+확인됨:
+
+- `./server.sh verify-ui-release-baseline-approval-log` 명령을 추가했습니다.
+- verifier는 approval template의 baseline identity, replacement reason, comparison evidence, manual review, approval, not-run/limitation 필드를 확인합니다.
+- preflight CI가 `UI release baseline approval log presence` 단계에서 verifier를 실행합니다.
+- workflow 권한은 `contents: read`만 유지하며 쓰기 권한을 열지 않았습니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
 ### Release baseline artifact role 후속 종료 판정
 
 2026-05-16 기준 release baseline artifact의 역할을 release/visual review 문서와 PR template에 명시했습니다.

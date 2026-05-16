@@ -409,7 +409,8 @@ Ops/Client/Lab API guard를 확인합니다.
 - baseline을 채택/교체할 때는
   [UI Visual Release Baseline Approval Log](./ui-visual-release-baseline-approval-template.md)
   템플릿에 manifest/index, baseline diff, 수동 비노출 검토, 미실행 field smoke를
-  남깁니다.
+  남깁니다. template presence와 CI 연결은
+  `./server.sh verify-ui-release-baseline-approval-log`로 확인합니다.
 
 ### 2.1 Live VA Event Quality
 

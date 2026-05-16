@@ -53,6 +53,11 @@ jobs:
         run: |
           ./server.sh verify-docs-ui-assets
 
+      - name: UI release baseline approval log presence
+        shell: bash
+        run: |
+          ./server.sh verify-ui-release-baseline-approval-log
+
       - name: UI visual artifact maintenance dry-run
         shell: bash
         run: |

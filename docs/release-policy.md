@@ -30,7 +30,7 @@ runtime을 의도적으로 포함하면 upstream license text, attribution, sour
 - release note에는 commit, 검증 명령, known limitation을 짧게 적습니다.
 - source-only release에는 sample/model/runtime binary를 추가 업로드하지 않습니다.
 - RC longrun 결과는 `rc-release-checklist` 또는 Actions artifact로 보관합니다.
-- UI visual release baseline artifact는 승인된 release/RC 화면 상태를 다음 candidate와 비교하는 approved comparator입니다. public release asset으로 기본 업로드하지 않으며, release note에는 [UI Visual Release Baseline Approval Log](./ui-visual-release-baseline-approval-template.md)를 기준으로 accepted baseline run, baseline diff, 수동 비노출 검토 결과 링크만 남깁니다.
+- UI visual release baseline artifact는 승인된 release/RC 화면 상태를 다음 candidate와 비교하는 approved comparator입니다. public release asset으로 기본 업로드하지 않으며, release note에는 [UI Visual Release Baseline Approval Log](./ui-visual-release-baseline-approval-template.md)를 기준으로 accepted baseline run, baseline diff, 수동 비노출 검토 결과 링크만 남깁니다. template presence와 CI 연결은 `./server.sh verify-ui-release-baseline-approval-log`로 확인합니다.
 - public visibility 전환은 이 문서와 [public-repo-final-review.md](./public-repo-final-review.md) 확인 후 수동으로만 진행합니다.
 
 ## Tag 전략

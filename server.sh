@@ -54,6 +54,8 @@ Usage:
                  /ops와 /client shell selector 및 client debug/source 비노출을 검증합니다.
   verify-ui-visual-artifact-index
                  UI screenshot artifact index/manifest 생성을 검증합니다.
+  verify-ui-release-baseline-approval-log
+                 UI release baseline approval log template과 CI 연결을 검증합니다.
   compare-ui-visual-baseline
                  UI screenshot artifact baseline과 candidate의 manifest/pixel diff를 생성합니다.
   write-ui-visual-qa-issue-links
@@ -393,6 +395,10 @@ case "${cmd}" in
   verify-ui-visual-artifact-index)
     require_internal verify_ui_visual_artifact_index.mjs
     exec "${INTERNAL_DIR}/verify_ui_visual_artifact_index.mjs" "$@"
+    ;;
+  verify-ui-release-baseline-approval-log)
+    require_internal verify_ui_release_baseline_approval_log.mjs
+    exec "${INTERNAL_DIR}/verify_ui_release_baseline_approval_log.mjs" "$@"
     ;;
   compare-ui-visual-baseline)
     require_internal compare_ui_visual_baseline.mjs
