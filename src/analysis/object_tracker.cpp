@@ -80,8 +80,56 @@ float CenterDistance(const RectF& lhs, const RectF& rhs) {
     return std::sqrt(dx * dx + dy * dy);
 }
 
+float PointDistance(float lhs_x, float lhs_y, float rhs_x, float rhs_y) {
+    const float dx = lhs_x - rhs_x;
+    const float dy = lhs_y - rhs_y;
+    return std::sqrt(dx * dx + dy * dy);
+}
+
+float DetectionCenterDistance(float center_x, float center_y, const Detection& detection) {
+    return PointDistance(center_x,
+                         center_y,
+                         detection.box.x + detection.box.width * 0.5F,
+                         detection.box.y + detection.box.height * 0.5F);
+}
+
+float PredictedCenterDistance(const Track& track, const Detection& detection) {
+    constexpr float kPredictionEpsilon = 0.0005F;
+    if (track.trail.size() < 2) {
+        return CenterDistance(track.detection.box, detection.box);
+    }
+
+    const auto& previous = track.trail[track.trail.size() - 2];
+    const auto& current = track.trail.back();
+    const float dx = current.x - previous.x;
+    const float dy = current.y - previous.y;
+    if (std::sqrt(dx * dx + dy * dy) < kPredictionEpsilon) {
+        return CenterDistance(track.detection.box, detection.box);
+    }
+
+    const float steps = static_cast<float>(std::min<std::uint32_t>(track.missed + 1, 3));
+    const float predicted_x = Clamp01(current.x + dx * steps);
+    const float predicted_y = Clamp01(current.y + dy * steps);
+    return DetectionCenterDistance(predicted_x, predicted_y, detection);
+}
+
+float AssociationCenterDistance(const Track& track, const Detection& detection) {
+    return std::min(CenterDistance(track.detection.box, detection.box),
+                    PredictedCenterDistance(track, detection));
+}
+
 bool SameClass(const Detection& lhs, const Detection& rhs) {
     return lhs.class_id == rhs.class_id && lhs.label == rhs.label;
+}
+
+bool VehicleClassCompatible(const Detection& lhs, const Detection& rhs) {
+    const std::string lhs_label = NormalizeClassToken(lhs.label);
+    const std::string rhs_label = NormalizeClassToken(rhs.label);
+    return MatchesCategoryToken("vehicle", lhs_label) && MatchesCategoryToken("vehicle", rhs_label);
+}
+
+bool TrackClassCompatible(const Detection& lhs, const Detection& rhs) {
+    return SameClass(lhs, rhs) || VehicleClassCompatible(lhs, rhs);
 }
 
 // detection이 현재 tracker whitelist에 포함되는지 판단한다.
@@ -114,7 +162,10 @@ Track::TrailPoint CenterPoint(const Detection& detection, std::int64_t pts) {
 }
 
 float ClassConsistencyScore(const Detection& tracked, const Detection& detection) {
-    return SameClass(tracked, detection) ? 1.0F : 0.0F;
+    if (SameClass(tracked, detection)) {
+        return 1.0F;
+    }
+    return VehicleClassCompatible(tracked, detection) ? 0.65F : 0.0F;
 }
 
 float CenterDistanceScore(float center_distance, const ObjectTrackerOptions& options) {
@@ -157,7 +208,7 @@ ObjectAssociationScore BuildAssociationScore(const Track& track,
     ObjectAssociationScore score;
     const Detection& tracked = track.detection;
     score.iou_score = IoU(tracked.box, detection.box);
-    score.center_distance_score = CenterDistanceScore(CenterDistance(tracked.box, detection.box), options);
+    score.center_distance_score = CenterDistanceScore(AssociationCenterDistance(track, detection), options);
     score.direction_score = DirectionScore(track, detection);
     score.class_consistency_score = ClassConsistencyScore(tracked, detection);
     const float total_weight =
@@ -275,12 +326,13 @@ void ObjectTracker::Update(AnalysisResult* result) {
             if (!ShouldTrackDetection(detection, options_)) {
                 continue;
             }
-            if (!SameClass(tracked, detection)) {
+            if (!TrackClassCompatible(tracked, detection)) {
                 continue;
             }
 
             const float iou = IoU(tracked.box, detection.box);
-            const float center_distance = CenterDistance(tracked.box, detection.box);
+            const float center_distance =
+                AssociationCenterDistance(tracks_[track_index].public_track, detection);
             if (iou < options_.min_iou && center_distance > options_.max_center_distance) {
                 continue;
             }
@@ -339,9 +391,10 @@ void ObjectTracker::Update(AnalysisResult* result) {
             }
 
             const float center_jump = CenterDistance(track.public_track.detection.box, detection.box);
+            const float association_jump = AssociationCenterDistance(track.public_track, detection);
             const bool direction_conflict =
                 candidate.score.direction_score < 0.35F &&
-                center_jump > options_.max_center_distance * 0.5F;
+                association_jump > options_.max_center_distance * 0.5F;
             const bool has_nearest = nearest_track_id > 0 &&
                                      nearest_distance < std::numeric_limits<float>::max();
             const float distance_threshold =
@@ -356,7 +409,7 @@ void ObjectTracker::Update(AnalysisResult* result) {
             const float low_margin_component =
                 Clamp01(1.0F - score_margin / options_.close_object_low_margin_threshold);
             const float low_score_component = Clamp01(1.0F - candidate.score.final_score);
-            const float jump_component = Clamp01(center_jump / options_.max_center_distance);
+            const float jump_component = Clamp01(association_jump / options_.max_center_distance);
             const float ambiguity_component = std::max(low_margin_component, low_score_component);
             const float close_object_risk =
                 spatial_component <= 0.0F
@@ -384,7 +437,7 @@ void ObjectTracker::Update(AnalysisResult* result) {
             diagnostic.would_penalize =
                 close_object_risk >= 0.25F &&
                 (direction_conflict ||
-                 center_jump >= options_.max_center_distance ||
+                 association_jump >= options_.max_center_distance ||
                  score_margin <= options_.close_object_low_margin_threshold);
             diagnostic.would_hold_reacquire =
                 track.public_track.missed > 0 &&

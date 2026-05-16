@@ -339,6 +339,18 @@ void VerifyObjectTrackerAssociationScoring() {
     Expect(frame4.detections[0].track_id != 1,
            "class consistency must prevent a different class from stealing an existing track id");
 
+    ObjectTrackerOptions vehicle_label_options;
+    vehicle_label_options.class_labels = {"vehicle"};
+    vehicle_label_options.smoothing_alpha = 0.0F;
+    ObjectTracker vehicle_label_tracker(vehicle_label_options);
+    auto vehicle_label_frame1 = MakeTrackerFrame(5, 1000, {MakeDetection(2, "car", 0.20F, 0.20F)});
+    vehicle_label_tracker.Update(&vehicle_label_frame1);
+    auto vehicle_label_frame2 = MakeTrackerFrame(6, 1100, {MakeDetection(7, "truck", 0.22F, 0.20F)});
+    vehicle_label_tracker.Update(&vehicle_label_frame2);
+    Expect(vehicle_label_frame2.detections[0].track_id == vehicle_label_frame1.detections[0].track_id &&
+               vehicle_label_frame2.detections[0].association_confidence > 0.0F,
+           "ObjectTracker must keep vehicle IDs stable when detector labels jitter within vehicle category");
+
     ObjectTrackerOptions lost_buffer_options;
     lost_buffer_options.class_labels = {"*"};
     lost_buffer_options.smoothing_alpha = 0.0F;
@@ -360,6 +372,28 @@ void VerifyObjectTrackerAssociationScoring() {
     lost_buffer_tracker.Update(&stable_frame);
     Expect(!stable_frame.tracks.empty() && stable_frame.tracks[0].state != "reacquired",
            "ObjectTracker reacquired state must clear after the next stable observation");
+
+    ObjectTrackerOptions prediction_options;
+    prediction_options.class_labels = {"*"};
+    prediction_options.smoothing_alpha = 0.0F;
+    prediction_options.max_missed_frames = 3;
+    prediction_options.min_iou = 0.5F;
+    prediction_options.max_center_distance = 0.12F;
+    ObjectTracker prediction_tracker(prediction_options);
+    auto prediction_frame1 = MakeTrackerFrame(20, 1000, {MakeDetection(2, "car", 0.20F, 0.20F)});
+    prediction_tracker.Update(&prediction_frame1);
+    auto prediction_frame2 = MakeTrackerFrame(21, 1100, {MakeDetection(2, "car", 0.30F, 0.20F)});
+    prediction_tracker.Update(&prediction_frame2);
+    auto prediction_gap_frame = MakeTrackerFrame(22, 1200, {});
+    prediction_tracker.Update(&prediction_gap_frame);
+    auto prediction_reacquired_frame =
+        MakeTrackerFrame(23, 1300, {MakeDetection(2, "car", 0.50F, 0.20F)});
+    prediction_tracker.Update(&prediction_reacquired_frame);
+    Expect(prediction_reacquired_frame.detections[0].track_id ==
+                   prediction_frame1.detections[0].track_id &&
+               !prediction_reacquired_frame.tracks.empty() &&
+               prediction_reacquired_frame.tracks[0].state == "reacquired",
+           "ObjectTracker must use recent motion to reacquire a fast moving track after a short gap");
 
     TrackStateManager manager;
     auto object1 = MakeObject(90, 1, 1000, 0.2F, 0.2F);
