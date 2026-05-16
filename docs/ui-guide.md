@@ -2,6 +2,7 @@
 
 이 문서는 Auth, Ops, Client 제품 UI의 현재 화면 구조와 운영 기준을 설명합니다.
 서버 실행/검증 명령은 [development-guide.md](./development-guide.md),
+브라우저 수동 검수 순서는 [manual-ui-checklist.md](./manual-ui-checklist.md),
 VA 내부 구조는 [video-analysis.md](./video-analysis.md)를 봅니다.
 `/lab` 화면 route는 제품 UI에서 제거했고 개발/검증 API만 유지합니다.
 
