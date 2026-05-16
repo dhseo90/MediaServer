@@ -391,10 +391,12 @@ registry publish, installer 제작은 이 항목의 잔여가 아니라 별도 r
 
 V120-P2-02 범주 안에는 잔여 이슈를 남깁니다. `tracking-event` hold 원인은
 [`reid-tracking-event-hold-analysis.md`](./reid-tracking-event-hold-analysis.md)에
-별도 기록합니다. warning fixture 반복 기준, fixture별 default-on 후보 판정
-문구는 후속으로 추적합니다. 실제 모델/현장 샘플 기반 default-on 결정, 대형
-tracker 교체, runtime/model bundle 포함은 여전히 별도 review가 필요한
-제품/배포 결정입니다.
+별도 기록합니다. matrix warning/gate 기준은
+[`stream-verification.md`](./stream-verification.md)와
+[`video-analysis.md`](./video-analysis.md)에 정의해 warning을 안정 판정으로
+닫지 않도록 고정했습니다. fixture별 default-on 후보 판정 문구는 후속으로
+추적합니다. 실제 모델/현장 샘플 기반 default-on 결정, 대형 tracker 교체,
+runtime/model bundle 포함은 여전히 별도 review가 필요한 제품/배포 결정입니다.
 
 별도 Phase 후보로 기록:
 

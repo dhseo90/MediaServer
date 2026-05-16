@@ -185,6 +185,9 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
     "privacy/default-off gate",
     "verify-reid-advanced-tracking",
     "default-on candidate=False",
+    "Matrix gate 상태 정의",
+    "`warning`은 안정적이라는 뜻이 아니며",
+    "fixture별 후보로만 기록",
     "별도 review",
   ]) {
     assert(stream.includes(snippet), `stream verification missing Re-ID gate snippet: ${snippet}`);
@@ -193,6 +196,9 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
     "embedding/crop/model path",
     "외부 metadata payload에 직렬화하지 않습니다",
     "fixture 전용 tracker-stability 상한",
+    "Matrix gate는 다음처럼 해석합니다",
+    "안정 판정이 아니며 default-on 근거로 사용 금지",
+    "해당 fixture 단독 후보일 뿐 제품 default-on 완료 아님",
     "verify-reid-advanced-tracking",
   ]) {
     assert(video.includes(snippet), `video analysis missing privacy snippet: ${snippet}`);

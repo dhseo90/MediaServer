@@ -701,6 +701,22 @@ stable delta 또는 주요 association risk 증가가 있어 default-on 검토�
 `compare-close-object-tracker --fixture-matrix`를 사용합니다.
 live polling 변동성을 분리하려면 반복 실행 통계를 함께 봅니다.
 
+Matrix gate 상태 정의:
+
+| 상태 | gate 의미 | default-on 해석 |
+| --- | --- | --- |
+| `fail` | mode 실행 실패, mode 미적용, fixture 누락 같은 검증 자체 실패 | 제품 판단 중단 |
+| `hold` | event/scenario stable delta 또는 hard risk 증가 | default-on 검토 중단, guard opt-in 유지 |
+| `warning` | observed risk/counter 변동 또는 반복 검증 필요 | 안정 판정 아님, default-on 근거로 사용 금지 |
+| `pass` + `defaultOnCandidate=false` | hard gate는 통과했지만 후보 조건 부족 | default-off 유지, 추가 sample 필요 |
+| `pass` + `defaultOnCandidate=true` | 해당 fixture 단독으로 후보 조건 충족 | 제품 default-on 완료 아님, fixture별 후보로만 기록 |
+
+`verify-close-object-fixture-matrix`의 성공은 clean gate 확인용입니다.
+`compare-close-object-tracker --fixture-matrix`의 성공은 관찰 리포트 생성 성공일 수
+있으므로 `matrix-ok`, fixture `judgement`, `defaultOnCandidate`를 따로 읽어야 합니다.
+`warning`은 안정적이라는 뜻이 아니며, close-object guard default-on이나 Re-ID
+제품 완료 근거로 쓰지 않습니다.
+
 ```bash
 ./server.sh compare-close-object-tracker \
   --file imports/va_tracking_event_1280x720_30fps_h264.mp4 \
@@ -742,6 +758,8 @@ count, mean, stdev, variance, min, max를 표시합니다.
 - command success라도 `judgement: warning`일 수 있습니다.
 - `event/scenario stable delta=False`여도 observed counter delta나 observed risk 차이가 있을 수 있습니다.
 - 이 경우 default-on 근거로 사용하지 않습니다.
+- `warning` fixture가 남아 있으면 안정 판정으로 닫지 않고 반복 실행 또는
+  field/model review 대상으로 남깁니다.
 - `matrix-ok=True`와 `default-on candidate=False`는 함께 나올 수 있습니다.
   이는 default-off experiment gate는 통과했지만 제품 default-on 근거는 아직
   부족하다는 뜻입니다.

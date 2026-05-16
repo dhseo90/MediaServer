@@ -549,6 +549,16 @@ fixture 전용 tracker-stability 상한을 사용합니다. 이 상한은 mode �
 주요 association risk 증가가 있어 default-on 검토를 중단해야 하는 상태입니다.
 관찰 목적의 hold/warning report 수집은 `compare-close-object-tracker --fixture-matrix`로
 수행합니다.
+Matrix gate는 다음처럼 해석합니다.
+
+| 상태 | 의미 |
+| --- | --- |
+| `fail` | mode 실행이나 fixture 준비가 실패했으므로 제품 판단 중단 |
+| `hold` | event/scenario stable delta 또는 hard risk 증가로 default-on 검토 중단 |
+| `warning` | observed risk/counter 변동 또는 반복 검증 필요. 안정 판정이 아니며 default-on 근거로 사용 금지 |
+| `pass` + `defaultOnCandidate=false` | hard gate는 통과했지만 해당 fixture는 후보 근거 부족 |
+| `pass` + `defaultOnCandidate=true` | 해당 fixture 단독 후보일 뿐 제품 default-on 완료 아님 |
+
 동일 테스트를 `--use-existing-server`로 돌릴 경우 `MEDIA_SERVER_AUTH_MODE`가
 `off`이거나 `/lab` API를 호출 가능한 인증 상태여야 하며, 인증이 걸려 있으면
 `/lab/analysis/taps` 응답이 비정상(리다이렉트/빈 본문)으로 와 파싱이 실패할 수 있습니다.
@@ -561,6 +571,8 @@ close-object guard 비교에서는 tracker association risk와 observed risk를 
 fixture matrix는 sample 성격에 맞춰 `close-object-live` 또는 `control-live`
 quality preset을 적용합니다. preset은 observed risk 허용치를 분리하는 용도이며,
 event/scenario stable delta가 있으면 여전히 default-on 근거로 사용할 수 없습니다.
+`warning` fixture가 남아 있으면 안정적이라고 닫지 않고 반복 실행 또는
+field/model review 대상으로 남깁니다.
 matrix report에 `--history-dir`를 지정하면 회차별 index를 남겨 품질 추세를 비교할 수 있습니다.
 반복 실행에서는 `Repeat Metric Stats`의 mean/stdev/variance로 observed risk 변동성을 확인합니다.
 
