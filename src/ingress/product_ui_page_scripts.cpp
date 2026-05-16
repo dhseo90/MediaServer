@@ -2716,7 +2716,8 @@ void AppendOpsShellScript(std::ostringstream& out,
         iceTimer: null,
         status: 'idle',
         connectionStatus: 'idle',
-        lastError: ''
+        lastError: '',
+        operationInFlight: false
       };
       let opsVaGeometryDragIndex = -1;
       let opsVaGeometryDragPointerId = null;
@@ -4794,9 +4795,12 @@ void AppendOpsShellScript(std::ostringstream& out,
         const currentChannel = opsRulesCurrentVaOutputContext().channel;
         const channelLabel = currentChannel ? opsRulesChannelOptionLabel(currentChannel) : '';
         const hasSession = Boolean(opsVaRulePreviewState.sessionId);
+        const operationInFlight = Boolean(opsVaRulePreviewState.operationInFlight);
         if (summary) {
           if (!viewId) {
             summary.textContent = 'PublishedView가 있는 채널을 골라야 미리보기를 열 수 있습니다.';
+          } else if (operationInFlight) {
+            summary.textContent = `${channelLabel || viewId} 미리보기 연결을 처리하고 있습니다.`;
           } else if (hasSession) {
             summary.textContent = `${channelLabel || viewId} 미리보기를 보고 있습니다. 필요할 때 정지하거나 다시 연결할 수 있습니다.`;
           } else {
@@ -4804,12 +4808,12 @@ void AppendOpsShellScript(std::ostringstream& out,
           }
         }
         if (placeholder) {
-          placeholder.hidden = hasSession;
+          placeholder.hidden = hasSession && !operationInFlight;
           placeholder.textContent = opsVaRulePreviewState.lastError || (viewId ? '재생 버튼으로 채널 영상을 확인하세요.' : '채널을 먼저 고르세요.');
         }
-        if (startBtn) startBtn.disabled = !viewId || hasSession;
-        if (restartBtn) restartBtn.disabled = !viewId;
-        if (stopBtn) stopBtn.disabled = !hasSession;
+        if (startBtn) startBtn.disabled = !viewId || hasSession || operationInFlight;
+        if (restartBtn) restartBtn.disabled = !viewId || operationInFlight;
+        if (stopBtn) stopBtn.disabled = !hasSession || operationInFlight;
       }
       async function stopOpsVaRulePreview(options = {}) {
         if (opsVaRulePreviewState.iceTimer) {
@@ -4883,22 +4887,27 @@ void AppendOpsShellScript(std::ostringstream& out,
         }
       }
       async function startOpsVaRulePreview(options = {}) {
+        if (opsVaRulePreviewState.operationInFlight) {
+          updateOpsVaRulePreviewUi();
+          return;
+        }
         const viewId = opsRulesCurrentVaPreviewViewId();
         if (!viewId) {
           updateOpsVaRulePreviewUi();
           return;
         }
-        if (opsVaRulePreviewState.sessionId && opsVaRulePreviewState.viewId !== viewId) {
-          await stopOpsVaRulePreview({ preserveView: false });
-        } else if (opsVaRulePreviewState.sessionId) {
-          await stopOpsVaRulePreview({ preserveView: true });
-        }
-        opsVaRulePreviewState.viewId = viewId;
-        opsVaRulePreviewState.lastError = '';
-        opsVaRulePreviewState.status = options.restart ? 'reconnecting' : 'connecting';
-        opsVaRulePreviewState.connectionStatus = 'connecting';
-        updateOpsVaRulePreviewUi();
+        opsVaRulePreviewState.operationInFlight = true;
         try {
+          if (opsVaRulePreviewState.sessionId && opsVaRulePreviewState.viewId !== viewId) {
+            await stopOpsVaRulePreview({ preserveView: false });
+          } else if (opsVaRulePreviewState.sessionId) {
+            await stopOpsVaRulePreview({ preserveView: true });
+          }
+          opsVaRulePreviewState.viewId = viewId;
+          opsVaRulePreviewState.lastError = '';
+          opsVaRulePreviewState.status = options.restart ? 'reconnecting' : 'connecting';
+          opsVaRulePreviewState.connectionStatus = 'connecting';
+          updateOpsVaRulePreviewUi();
           const pc = await createOpsVaRulePeerConnection();
           opsVaRulePreviewState.pc = pc;
           pc.onconnectionstatechange = () => {
@@ -4959,6 +4968,9 @@ void AppendOpsShellScript(std::ostringstream& out,
         } catch (error) {
           opsVaRulePreviewState.lastError = error.message || 'preview start failed';
           await stopOpsVaRulePreview({ keepError: true, preserveView: true });
+        } finally {
+          opsVaRulePreviewState.operationInFlight = false;
+          updateOpsVaRulePreviewUi();
         }
       }
       function opsRulesVaOutputUrl(kind, ruleId = '', viewId = '') {
@@ -5404,9 +5416,6 @@ void AppendOpsShellScript(std::ostringstream& out,
           if (!channel?.view) issues.push('선택한 채널에 PublishedView가 없습니다.');
           if (channel?.source?.enabled === false) issues.push('비활성 채널에는 룰을 연결할 수 없습니다.');
           if (channel?.view?.enabled === false) issues.push('비활성 PublishedView에는 룰을 연결할 수 없습니다.');
-          if (channel?.view && !opsRulesViewAllowsVaRuleMode(channel.view)) {
-            issues.push('선택한 PublishedView가 va-rule 모드를 허용하지 않습니다.');
-          }
           if (channel?.view && !opsRulesViewHasClientAccess(channel.view)) {
             issues.push('선택한 PublishedView에 클라이언트 노출 권한이 없습니다.');
           }
