@@ -524,6 +524,18 @@ PR template과 정적 verifier를 연결했습니다.
 - preflight CI가 `--apply` 없이 dry-run report를 만들고 `media-server-ui-visual-maintenance-dry-run` artifact로 업로드합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
+### Visual baseline PR comment generator 후속 종료 판정
+
+2026-05-16 기준 visual baseline diff report를 PR/issue comment용 Markdown으로 요약하는 helper를 추가했습니다.
+
+확인됨:
+
+- `./server.sh write-ui-visual-baseline-comment --diff-report <visual-baseline-diff.json>` 명령을 추가했습니다.
+- comment에는 `decision`, summary metric, policy schema, failed/review-required attention item table을 포함합니다.
+- screenshot artifact URL base가 있으면 attention item 파일명을 link로 출력합니다.
+- `verify-ui-visual-artifact-index`가 review-required fixture에서 comment helper 출력을 검증합니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
 ## v1.2.0 시작 전 체크리스트
 
 - [x] v1.1.0 PR이 `main`에 merge됨

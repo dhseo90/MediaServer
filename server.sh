@@ -58,6 +58,8 @@ Usage:
                  UI screenshot artifact baseline과 candidate의 manifest/pixel diff를 생성합니다.
   write-ui-visual-qa-issue-links
                  UI visual QA issue에 붙일 artifact link Markdown을 생성합니다.
+  write-ui-visual-baseline-comment
+                 UI visual baseline diff report를 PR/issue comment Markdown으로 요약합니다.
   ui-visual-artifact-maintenance
                  UI visual artifact를 retention policy 기준으로 dry-run/보관/정리합니다.
   verify-product-ui-token-drift
@@ -399,6 +401,10 @@ case "${cmd}" in
   write-ui-visual-qa-issue-links)
     require_internal write_ui_visual_qa_issue_links.mjs
     exec "${INTERNAL_DIR}/write_ui_visual_qa_issue_links.mjs" "$@"
+    ;;
+  write-ui-visual-baseline-comment)
+    require_internal write_ui_visual_baseline_comment.mjs
+    exec "${INTERNAL_DIR}/write_ui_visual_baseline_comment.mjs" "$@"
     ;;
   ui-visual-artifact-maintenance)
     require_internal manage_ui_visual_artifacts.mjs

@@ -22,6 +22,7 @@
 - [ ] `./server.sh verify-docs-ui-assets` when README/UI asset references changed
 - [ ] `./server.sh verify-ui-visual-artifact-index` when UI screenshot artifact behavior or docs changed
 - [ ] `./server.sh verify-ops-client-ui --screenshots --output-dir <artifact-dir>` when Auth/Ops/Client UI changed
+- [ ] `./server.sh write-ui-visual-baseline-comment --diff-report <visual-baseline-diff.json> --output <comment.md>` when adding visual baseline diff results to review
 - [ ] `./server.sh write-ui-visual-qa-issue-links --artifact-dir <artifact-dir> --output <artifact-dir>/ui-visual-qa-issue-links.md` when opening a visual QA issue from artifacts
 - [ ] `./server.sh ui-visual-artifact-maintenance --artifact-root <artifact-root> --archive-dir <archive-dir> --report <report.json>` before applying visual artifact cleanup
 - [ ] `MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1 ./server.sh verify-auth-bootstrap` when auth shell UI changed

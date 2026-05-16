@@ -11,6 +11,7 @@ import { fileURLToPath } from "node:url";
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import { compareVisualBaseline } from "./compare_ui_visual_baseline.mjs";
 import { manageUiVisualArtifacts } from "./manage_ui_visual_artifacts.mjs";
+import { buildUiVisualBaselineComment } from "./write_ui_visual_baseline_comment.mjs";
 import { writeVisualArtifactIndex } from "./ui_visual_smoke_lib.mjs";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -70,6 +71,7 @@ const docs = [
 const authSmoke = fs.readFileSync(path.join(rootDir, "scripts/internal/verify_auth_ui_smoke.mjs"), "utf8");
 const serverSh = fs.readFileSync(path.join(rootDir, "server.sh"), "utf8");
 const compareScript = fs.readFileSync(path.join(rootDir, "scripts/internal/compare_ui_visual_baseline.mjs"), "utf8");
+const commentScript = fs.readFileSync(path.join(rootDir, "scripts/internal/write_ui_visual_baseline_comment.mjs"), "utf8");
 const issueLinkScript = fs.readFileSync(path.join(rootDir, "scripts/internal/write_ui_visual_qa_issue_links.mjs"), "utf8");
 const maintenanceScript = fs.readFileSync(path.join(rootDir, "scripts/internal/manage_ui_visual_artifacts.mjs"), "utf8");
 
@@ -111,6 +113,7 @@ check("PR template requires visual review artifact evidence", () => {
     "## UI Visual Review",
     "Artifact directory:",
     "./server.sh verify-ops-client-ui --screenshots --output-dir <artifact-dir>",
+    "./server.sh write-ui-visual-baseline-comment --diff-report <visual-baseline-diff.json> --output <comment.md>",
     "320px, 390px, 760px, and 1180px",
     "source URL, Developer URL, raw JSON",
     "14 days",
@@ -132,6 +135,7 @@ check("visual QA issue template captures artifact evidence", () => {
     "visual-baseline-diff.json:",
     "./server.sh verify-ops-client-ui --screenshots --output-dir <artifact-dir>",
     "./server.sh compare-ui-visual-baseline --baseline-dir <baseline-artifact-dir> --candidate-dir <candidate-artifact-dir>",
+    "./server.sh write-ui-visual-baseline-comment --diff-report <visual-baseline-diff.json> --output <comment.md>",
     "./server.sh write-ui-visual-qa-issue-links --artifact-dir <artifact-dir> --output <artifact-dir>/ui-visual-qa-issue-links.md",
     "./server.sh ui-visual-artifact-maintenance --artifact-root <artifact-root> --archive-dir <archive-dir> --report <report.json>",
     "MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1 ./server.sh verify-auth-bootstrap",
@@ -222,6 +226,32 @@ check("visual QA issue link helper is wired and documented", () => {
     "source URL, Developer URL, raw JSON/debug counter",
   ]) {
     assert(issueMarkdown.includes(snippet), `issue link helper output missing snippet: ${snippet}`);
+  }
+});
+
+check("visual baseline comment helper is wired and documented", () => {
+  const inventory = fs.readFileSync(path.join(rootDir, "scripts/internal/verify_script_inventory.mjs"), "utf8");
+  for (const snippet of [
+    "write-ui-visual-baseline-comment",
+    "write_ui_visual_baseline_comment.mjs",
+  ]) {
+    assert(serverSh.includes(snippet), `server.sh missing visual baseline comment helper snippet: ${snippet}`);
+  }
+  assert(inventory.includes("write_ui_visual_baseline_comment.mjs"), "script inventory missing visual baseline comment helper script");
+  for (const snippet of [
+    "write-ui-visual-baseline-comment",
+    "--diff-report <visual-baseline-diff.json>",
+    "UI Visual Baseline Diff",
+  ]) {
+    assert(docs.includes(snippet), `docs missing visual baseline comment helper snippet: ${snippet}`);
+  }
+  for (const snippet of [
+    "media-server.ui-visual-baseline-diff.v1",
+    "Decision:",
+    "Attention Items",
+    "artifact-url-base",
+  ]) {
+    assert(commentScript.includes(snippet), `comment helper missing snippet: ${snippet}`);
   }
 });
 
@@ -334,6 +364,20 @@ check("visual baseline candidate policy fixture", () => {
   assert(reviewReport.summary.decision === "review", `allow-extra policy decision mismatch: ${reviewReport.summary.decision}`);
   assert(reviewReport.summary.reviewRequired === true, "allow-extra policy should require visual review");
   assert(reviewReport.summary.extraAllowed === 1, `allow-extra policy extraAllowed mismatch: ${reviewReport.summary.extraAllowed}`);
+  const commentPath = path.join(outputDir, "policy-review-comment.md");
+  const comment = buildUiVisualBaselineComment({
+    diffReport: path.join(reviewDir, "visual-baseline-diff.json"),
+    output: commentPath,
+    artifactUrlBase: "https://example.invalid/artifacts",
+  });
+  assert(fs.existsSync(commentPath), "visual baseline comment output missing");
+  for (const snippet of [
+    "Decision:** REVIEW",
+    "client-live-320.png",
+    "Review changed or candidate-only screenshots before merging.",
+  ]) {
+    assert(comment.body.includes(snippet), `visual baseline comment missing snippet: ${snippet}`);
+  }
   const failReport = compareVisualBaseline({
     baselineDir,
     candidateDir,
