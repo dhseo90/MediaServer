@@ -4,6 +4,8 @@
 v1.2.0 제품 UI 체크리스트입니다. 자동 검증 결과를 대체하지 않고,
 `verify-ops-client-ui`, `verify-auth-*`, `verify-rule-ui` 이후 마지막 육안
 검수 기준으로 사용합니다.
+결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를
+사용해 `확인됨`, `미확인`, `건너뜀`을 분리합니다.
 
 ## 1. 공통 준비
 
@@ -53,3 +55,4 @@ v1.2.0 제품 UI 체크리스트입니다. 자동 검증 결과를 대체하지 
 - 미확인: 열지 않은 화면, 실행하지 않은 장시간 테스트, 추정 원인
 - 건너뜀: destructive action을 fixture가 없어 수행하지 않은 경우
 - 푸시: 명시 요청 전에는 수행하지 않고, 푸시 가능 여부만 보고합니다.
+- 템플릿: [manual-ui-result-template.md](./manual-ui-result-template.md)
