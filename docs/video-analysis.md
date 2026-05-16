@@ -559,6 +559,9 @@ Matrix gate는 다음처럼 해석합니다.
 | `pass` + `defaultOnCandidate=false` | hard gate는 통과했지만 해당 fixture는 후보 근거 부족 |
 | `pass` + `defaultOnCandidate=true` | 해당 fixture 단독 후보일 뿐 제품 default-on 완료 아님 |
 
+Fixture별 후보 표는 [Re-ID Fixture Default-on Candidates](reid-fixture-default-on-candidates.md)에
+분리합니다.
+
 동일 테스트를 `--use-existing-server`로 돌릴 경우 `MEDIA_SERVER_AUTH_MODE`가
 `off`이거나 `/lab` API를 호출 가능한 인증 상태여야 하며, 인증이 걸려 있으면
 `/lab/analysis/taps` 응답이 비정상(리다이렉트/빈 본문)으로 와 파싱이 실패할 수 있습니다.

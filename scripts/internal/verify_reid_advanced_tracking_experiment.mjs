@@ -169,12 +169,14 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
   const stream = readText("docs/stream-verification.md");
   const video = readText("docs/video-analysis.md");
   const holdAnalysis = readText("docs/reid-tracking-event-hold-analysis.md");
+  const fixtureCandidates = readText("docs/reid-fixture-default-on-candidates.md");
   for (const snippet of [
     "V120-P2-02 HOLD 판정",
     "verify-reid-advanced-tracking",
     "잔여 이슈를 남깁니다",
     "tracking-event=hold",
     "reid-tracking-event-hold-analysis.md",
+    "reid-fixture-default-on-candidates.md",
     "verify-close-object-fixture-matrix",
   ]) {
     assert(backlog.includes(snippet), `backlog missing Re-ID closure snippet: ${snippet}`);
@@ -188,6 +190,7 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
     "Matrix gate 상태 정의",
     "`warning`은 안정적이라는 뜻이 아니며",
     "fixture별 후보로만 기록",
+    "reid-fixture-default-on-candidates.md",
     "별도 review",
   ]) {
     assert(stream.includes(snippet), `stream verification missing Re-ID gate snippet: ${snippet}`);
@@ -199,6 +202,7 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
     "Matrix gate는 다음처럼 해석합니다",
     "안정 판정이 아니며 default-on 근거로 사용 금지",
     "해당 fixture 단독 후보일 뿐 제품 default-on 완료 아님",
+    "reid-fixture-default-on-candidates.md",
     "verify-reid-advanced-tracking",
   ]) {
     assert(video.includes(snippet), `video analysis missing privacy snippet: ${snippet}`);
@@ -218,12 +222,28 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
   ]) {
     assert(holdAnalysis.includes(snippet), `hold analysis missing snippet: ${snippet}`);
   }
+  for (const snippet of [
+    "Re-ID Fixture Default-on Candidates",
+    "matrix-ok=False",
+    "tracking-event-slow-long",
+    "`pass`",
+    "`True`",
+    "이 fixture 단독 후보. 제품 default-on 완료 근거 아님",
+    "tracking-event-long",
+    "`warning`",
+    "field-new-york-driving",
+    "association risk metric increased",
+    "close-object guard 기본값은 계속 `off`",
+  ]) {
+    assert(fixtureCandidates.includes(snippet), `fixture candidate doc missing snippet: ${snippet}`);
+  }
   return {
     docs: [
       "docs/development-backlog.md",
       "docs/stream-verification.md",
       "docs/video-analysis.md",
       "docs/reid-tracking-event-hold-analysis.md",
+      "docs/reid-fixture-default-on-candidates.md",
     ],
   };
 });

@@ -716,6 +716,9 @@ Matrix gate 상태 정의:
 있으므로 `matrix-ok`, fixture `judgement`, `defaultOnCandidate`를 따로 읽어야 합니다.
 `warning`은 안정적이라는 뜻이 아니며, close-object guard default-on이나 Re-ID
 제품 완료 근거로 쓰지 않습니다.
+2026-05-16 재검토의 fixture별 후보 표는
+[`reid-fixture-default-on-candidates.md`](./reid-fixture-default-on-candidates.md)에
+분리합니다.
 
 ```bash
 ./server.sh compare-close-object-tracker \
