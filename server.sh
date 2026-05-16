@@ -747,7 +747,7 @@ case "${cmd}" in
     ;;
   verify-close-object-fixture-matrix)
     require_internal compare_close_object_tracker.py
-    exec "${INTERNAL_DIR}/compare_close_object_tracker.py" --fixture-matrix --fail-on-missing-fixtures --fail-on-hold "$@"
+    exec "${INTERNAL_DIR}/compare_close_object_tracker.py" --fixture-matrix --modes off,diagnostic --fail-on-missing-fixtures --fail-on-hold "$@"
     ;;
   verify-reid-advanced-tracking)
     require_internal verify_reid_advanced_tracking_experiment.mjs

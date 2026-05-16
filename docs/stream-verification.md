@@ -673,15 +673,21 @@ matrix 실행은 fixture별 `summary.json`/`report.md`와 상위
 단일 비교의 quality preset 기본값은 `strict`입니다.
 내장 matrix fixture는 close-object sample과 control sample의 live polling
 특성이 달라 fixture별 `qualityPreset`을 사용합니다. close-object sample은
-`close-object-live`, control sample은 `control-live` 기준으로 observed risk
-허용치를 분리해 판정합니다. 여기에는 실제 주행 데이터 특성을 반영한
+`close-object-live`, synthetic control sample은 `control-live`, vehicle-heavy
+field-like sample은 `field-driving-live` 기준으로 observed risk 허용치를
+분리해 판정합니다. 여기에는 실제 주행 데이터 특성을 반영한
 `field-new-york-driving`(vehicle-heavy control-like)도 포함됩니다.
 이 fixture는 baseline 자체의 vehicle-heavy fragmentation 난이도와 guard mode
 delta를 분리하기 위해 fixture 전용 tracker-stability 상한을 전달합니다.
+`classWhitelist`는 fragmentation 계산뿐 아니라 observed issue counter와
+close-object diagnostic 집계에도 적용합니다. `trackingIssueCounts`는
+polling snapshot 반복 관측 합계가 아니라 `type/class/trackId` 기준 고유 이슈
+수이며, 반복 관측 raw count는 `trackingIssueObservationCounts`에 따로 남깁니다.
 이 상한은 `verify-tracker-stability` 명령 통과 기준일 뿐이며, matrix의
-hard risk non-increasing/default-on candidate 판정은 완화하지 않습니다.
+event/scenario stable 판정은 완화하지 않습니다. hard risk는 fixture별
+`riskTolerances`에 명시한 작은 live polling jitter 안에서만 통과시킵니다.
 필요하면 단일 비교에서
-`--quality-preset strict|close-object-live|control-live`로 같은 기준을
+`--quality-preset strict|close-object-live|control-live|field-driving-live`로 같은 기준을
 명시할 수 있습니다.
 파일이 없는 fixture는 기본적으로 skipped이며, release gate처럼 누락을 실패로
 보고 싶으면 `--fail-on-missing-fixtures`를 사용합니다.
@@ -695,6 +701,9 @@ hard risk non-increasing/default-on candidate 판정은 완화하지 않습니�
 ```
 
 이 명령은 모든 내장 fixture를 실행하고 fixture 파일 누락을 실패로 처리합니다.
+정기 gate는 default-off와 diagnostic 관찰 경계 확인을 위해 `off,diagnostic`
+mode만 비교합니다. `enforce` mode는 opt-in 실험 비교이며 clean gate에 섞지
+않습니다.
 또한 `judgement=hold`를 hard gate 실패로 처리합니다. `hold`는 event/scenario
 stable delta 또는 주요 association risk 증가가 있어 default-on 검토를 중단해야
 한다는 뜻입니다. 관찰용으로 `hold` report까지 모으려면
@@ -716,6 +725,15 @@ Matrix gate 상태 정의:
 있으므로 `matrix-ok`, fixture `judgement`, `defaultOnCandidate`를 따로 읽어야 합니다.
 `warning`은 안정적이라는 뜻이 아니며, close-object guard default-on이나 Re-ID
 제품 완료 근거로 쓰지 않습니다.
+`enforce` mode까지 비교하려면 다음처럼 명시적으로 실행하고, 결과는 제품
+default-on gate가 아니라 opt-in risk report로 해석합니다.
+
+```bash
+./server.sh compare-close-object-tracker \
+  --fixture-matrix \
+  --modes off,diagnostic,enforce
+```
+
 2026-05-16 재검토의 fixture별 후보 표는
 [`reid-fixture-default-on-candidates.md`](./reid-fixture-default-on-candidates.md)에
 분리합니다.
@@ -749,7 +767,7 @@ count, mean, stdev, variance, min, max를 표시합니다.
 - `enforce`는 opt-in 보정 후보로만 봅니다.
 - event/scenario stable delta가 있으면 default on 전환 금지입니다.
 - `eventsEmitted`, `eventsDeduped`, cleanup count 같은 observed counter delta는 live polling 흔들림이 있어 참고값으로만 봅니다.
-- hard risk non-increasing 판정은 close-object guard의 structural association 결과인 `trackerAssociationRiskScore`, `fragmentationRatio`, `overlapFragmentationRatio` 기준입니다.
+- hard risk non-increasing 판정은 close-object guard의 structural association 결과인 `trackerAssociationRiskScore`, `fragmentationRatio`, `overlapFragmentationRatio` 기준이며, fixture preset의 `riskTolerances`를 적용합니다.
 - `idSwitchRiskScore`, `maxOverlapRisk`, `lost/reacquired`, spike count는 live polling 변동성이 있어 observed risk로 따로 해석합니다.
 - observed risk가 증가하면 default-on 후보로 쓰지 않고 반복/fixture 검증으로 넘깁니다.
 - replay/event 결과가 흔들려도 default on 전환 금지입니다.

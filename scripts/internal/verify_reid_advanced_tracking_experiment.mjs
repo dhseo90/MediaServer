@@ -137,6 +137,7 @@ check("appearance diagnostics expose aggregate status only", () => {
 check("close-object benchmark commands and fixture matrix remain available", () => {
   const server = readText("server.sh");
   const compare = readText("scripts/internal/compare_close_object_tracker.py");
+  const trackerStability = readText("scripts/internal/verify_tracker_stability.sh");
   for (const snippet of [
     "compare-close-object-tracker",
     "verify-close-object-fixture-matrix",
@@ -144,6 +145,10 @@ check("close-object benchmark commands and fixture matrix remain available", () 
   ]) {
     assert(server.includes(snippet), `server.sh missing command: ${snippet}`);
   }
+  assert(
+    server.includes("--fixture-matrix --modes off,diagnostic --fail-on-missing-fixtures --fail-on-hold"),
+    "verify-close-object-fixture-matrix must keep enforce out of the default clean gate"
+  );
   for (const fixture of [
     "tracking-event",
     "tracking-event-long",
@@ -154,9 +159,27 @@ check("close-object benchmark commands and fixture matrix remain available", () 
     assert(compare.includes(`"id": "${fixture}"`), `fixture matrix missing ${fixture}`);
   }
   assert(
-    /"id": "field-new-york-driving"[\s\S]*"maxFragmentation": "6\.0"[\s\S]*"maxOverlapFragmentation": "6\.0"[\s\S]*"maxIdSwitchRisk": "8\.0"/.test(compare),
+    /"id": "field-new-york-driving"[\s\S]*"qualityPreset": "field-driving-live"[\s\S]*"maxFragmentation": "6\.0"[\s\S]*"maxOverlapFragmentation": "6\.0"[\s\S]*"maxIdSwitchRisk": "8\.0"/.test(compare),
     "field-new-york-driving fixture must keep vehicle-heavy tracker-stability limits"
   );
+  assert(compare.includes('"field-driving-live"'), "fixture matrix must define field-driving-live quality preset");
+  for (const snippet of [
+    '"riskTolerances": {',
+    '"trackerAssociationRiskScore": 0.30',
+    '"idSwitchRiskScore": 0.10',
+  ]) {
+    assert(compare.includes(snippet), `fixture matrix must pin live jitter tolerance: ${snippet}`);
+  }
+  for (const snippet of [
+    "issue_observation_counts = collections.Counter()",
+    "issue_keys_by_type = collections.defaultdict(set)",
+    "trackingIssueObservationCounts",
+    "if not class_allowed(label):",
+    "if not class_allowed(diagnostic.get(\"className\")):",
+    "if not class_allowed(issue.get(\"className\")):",
+  ]) {
+    assert(trackerStability.includes(snippet), `tracker stability must class-filter observed counters: ${snippet}`);
+  }
   assert(compare.includes("close-object guard default-on is not changed by this report."), "comparison report must state default-on is unchanged");
   return {
     commands: ["compare-close-object-tracker", "verify-close-object-fixture-matrix", "verify-reid-advanced-tracking"],
@@ -190,6 +213,10 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
     "Matrix gate 상태 정의",
     "`warning`은 안정적이라는 뜻이 아니며",
     "fixture별 후보로만 기록",
+    "field-driving-live",
+    "observed issue counter",
+    "--modes off,diagnostic,enforce",
+    "trackingIssueObservationCounts",
     "reid-fixture-default-on-candidates.md",
     "별도 review",
   ]) {
@@ -202,6 +229,10 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
     "Matrix gate는 다음처럼 해석합니다",
     "안정 판정이 아니며 default-on 근거로 사용 금지",
     "해당 fixture 단독 후보일 뿐 제품 default-on 완료 아님",
+    "field-driving-live",
+    "observed issue/diagnostic",
+    "off,diagnostic",
+    "trackingIssueObservationCounts",
     "reid-fixture-default-on-candidates.md",
     "verify-reid-advanced-tracking",
   ]) {
@@ -233,6 +264,7 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
     "`warning`",
     "field-new-york-driving",
     "association risk metric increased",
+    "field-driving-live",
     "close-object guard 기본값은 계속 `off`",
   ]) {
     assert(fixtureCandidates.includes(snippet), `fixture candidate doc missing snippet: ${snippet}`);

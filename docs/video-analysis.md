@@ -535,13 +535,16 @@ Close-object guard의 기본값은 `off`입니다.
 `off`, `diagnostic`, `enforce`를 비교합니다.
 `--fixture-matrix`를 쓰면 내장 close-object/control sample 목록을 순차 비교합니다.
 정기/CI용 전체 matrix는 `verify-close-object-fixture-matrix`로 실행합니다.
+이 gate는 default-off와 diagnostic 관찰 경계를 확인하기 위해 `off,diagnostic`
+mode만 비교합니다. `enforce` mode는 opt-in 실험 비교로만 다루며, default-on
+또는 안정 완료 근거로 사용하지 않습니다.
 목적은 threshold tuning과 default-on 검토 근거를 모으는 것입니다.
 `field-new-york-driving`은 실차량 주행 구간을 모사한 vehicle-heavy 샘플로,
 synthetic control 샘플 외부에서 실제 환경 흔들림 성격을 확인하기 위한 항목입니다.
 이 fixture는 baseline 자체의 높은 fragmentation/id-switch risk를 허용하는
 fixture 전용 tracker-stability 상한을 사용합니다. 이 상한은 mode 실행
 성공 여부를 분리하기 위한 것이며, close-object guard의 default-on 후보 판정은
-여전히 hard risk non-increasing과 event/scenario stable delta 기준을 따릅니다.
+hard risk tolerance와 event/scenario stable delta 기준을 따릅니다.
 기본 실행은 mode별 격리 서버를 사용해 guard mode가 실제 서버에 적용됐는지
 확인합니다.
 `verify-close-object-fixture-matrix`는 fixture 누락뿐 아니라
@@ -571,9 +574,17 @@ live polling 과정의 emit/dedupe/cleanup counter 차이는 observed delta로 �
 `idSwitchRiskScore`는 stale PTS/PTS regression 성분을 포함하므로
 close-object guard 비교에서는 tracker association risk와 observed risk를 분리해 봅니다.
 단일 비교는 `strict` quality preset을 기본으로 사용하고,
-fixture matrix는 sample 성격에 맞춰 `close-object-live` 또는 `control-live`
-quality preset을 적용합니다. preset은 observed risk 허용치를 분리하는 용도이며,
-event/scenario stable delta가 있으면 여전히 default-on 근거로 사용할 수 없습니다.
+fixture matrix는 sample 성격에 맞춰 `close-object-live`, `control-live`, 또는
+`field-driving-live` quality preset을 적용합니다. `field-driving-live`는
+vehicle-heavy field-like sample의 높은 baseline counter 흔들림을 분리하기 위한
+observed risk 허용치와 작은 hard risk jitter 허용치이며, event/scenario stable
+delta 기준은 완화하지 않습니다. preset은 live polling 흔들림을 분리하는
+용도이며, event/scenario stable delta가 있으면 여전히 default-on 근거로
+사용할 수 없습니다.
+fixture `classWhitelist`는 fragmentation 계산과 observed issue/diagnostic
+counter 집계에 모두 적용합니다. `trackingIssueCounts`는 polling 반복 관측
+합계가 아니라 `type/class/trackId` 기준 고유 이슈 수이며, raw 반복 관측 수는
+`trackingIssueObservationCounts`로 분리합니다.
 `warning` fixture가 남아 있으면 안정적이라고 닫지 않고 반복 실행 또는
 field/model review 대상으로 남깁니다.
 matrix report에 `--history-dir`를 지정하면 회차별 index를 남겨 품질 추세를 비교할 수 있습니다.

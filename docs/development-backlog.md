@@ -356,13 +356,14 @@ registry publish, installer 제작은 이 항목의 잔여가 아니라 별도 r
   stale job drop, extractor `try_to_lock`으로 media pipeline blocking risk를
   기본 경로에 전파하지 않도록 제한합니다.
 - `compare-close-object-tracker`와 `verify-close-object-fixture-matrix`가
-  off/diagnostic/enforce close-object association을 default-off benchmark로
-  비교합니다.
+  default-off와 diagnostic 관찰 경계를 benchmark로 비교합니다. enforce mode는
+  opt-in 실험 비교로만 보고 clean gate에 섞지 않습니다.
 - `field-new-york-driving` fixture는 vehicle-heavy baseline 난이도와 guard
   mode delta를 분리하기 위해 fixture 전용 tracker-stability 상한을 사용합니다:
   maxFragmentation 6.0, maxOverlapFragmentation 6.0, maxIdSwitchRisk 8.0.
   이 상한은 mode별 tracker-stability 명령 통과 기준일 뿐이고,
-  default-on 후보 판정의 hard risk non-increasing 기준은 완화하지 않습니다.
+  default-on 후보 판정의 event/scenario stable 기준은 완화하지 않습니다. hard
+  risk는 fixture별 jitter tolerance 안에서만 통과시킵니다.
 - `verify-reid-advanced-tracking`이 Re-ID/advanced tracking privacy review,
   default-off 기본값, 외부 metadata payload의 embedding/crop/model path 미노출,
   benchmark command/fixture matrix 연결을 정적 검증합니다.

@@ -21,6 +21,11 @@ Fixture별 판정:
 | `four-scene-control` | `warning` | `False` | `observe: live tracking counters changed; repeat and keep guard default off` | control sample에서도 observed 변동이 남음 |
 | `field-new-york-driving` | `warning` | `False` | `observe: association risk metric increased; keep guard default off` | vehicle-heavy field sample 성격상 별도 field/model review 필요 |
 
+2026-05-16 재검증 후속에서는 `field-new-york-driving`을 `field-driving-live`
+quality preset으로 분리했습니다. 이 preset은 high-volume vehicle counter의
+observed risk jitter와 작은 hard risk jitter를 분리하기 위한 것이며,
+event/scenario stable delta와 기본값 `off` 조건은 완화하지 않습니다.
+
 분리 원칙:
 
 - `defaultOnCandidate=True`는 fixture 단위의 후보 표시입니다.

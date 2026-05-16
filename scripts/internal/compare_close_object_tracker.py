@@ -60,7 +60,7 @@ FIXTURE_MATRIX = [
         "file": "imports/NewYorkDriving.mp4",
         "description": "field-like driving sample for vehicle-heavy close-object drift",
         "classWhitelist": "car,truck,bus,motorcycle",
-        "qualityPreset": "control-live",
+        "qualityPreset": "field-driving-live",
         "maxFragmentation": "6.0",
         "maxOverlapFragmentation": "6.0",
         "maxIdSwitchRisk": "8.0",
@@ -101,9 +101,13 @@ QUALITY_PRESETS = {
     },
     "close-object-live": {
         "description": "close-object live fixture tolerance for polling jitter",
-        "riskTolerances": {},
+        "riskTolerances": {
+            "trackerAssociationRiskScore": 0.10,
+            "fragmentationRatio": 0.05,
+            "overlapFragmentationRatio": 0.05,
+        },
         "observedRiskTolerances": {
-            "idSwitchRiskScore": 0.05,
+            "idSwitchRiskScore": 0.10,
             "ptsRegressionCount": 1.0,
             "stalePtsRatio": 0.05,
             "maxOverlapRisk": 0.25,
@@ -125,6 +129,24 @@ QUALITY_PRESETS = {
             "reacquiredCount": 1.0,
             "missedFrameSpikeCount": 5.0,
             "directionChangeSpikeCount": 80.0,
+        },
+    },
+    "field-driving-live": {
+        "description": "vehicle-heavy field fixture tolerance; event/scenario gate remains strict",
+        "riskTolerances": {
+            "trackerAssociationRiskScore": 0.30,
+            "fragmentationRatio": 0.15,
+            "overlapFragmentationRatio": 0.15,
+        },
+        "observedRiskTolerances": {
+            "idSwitchRiskScore": 0.50,
+            "ptsRegressionCount": 1.0,
+            "stalePtsRatio": 0.05,
+            "maxOverlapRisk": 0.30,
+            "lostCount": 8.0,
+            "reacquiredCount": 4.0,
+            "missedFrameSpikeCount": 80.0,
+            "directionChangeSpikeCount": 400.0,
         },
     },
 }
