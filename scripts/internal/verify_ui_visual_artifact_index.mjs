@@ -326,6 +326,8 @@ check("visual artifact maintenance command is wired and documented", () => {
     "media-server-ui-visual-maintenance-dry-run",
     "dry-run",
     "media-server.ui-visual-artifact-maintenance.v1",
+    "media-server.ui-visual-artifact-archive-index.v1",
+    "ui-visual-artifact-archive-index.json",
     "PR Summary",
   ]) {
     assert(docs.includes(snippet), `docs missing visual artifact maintenance snippet: ${snippet}`);
@@ -337,6 +339,9 @@ check("visual artifact maintenance command is wired and documented", () => {
     "visual-regression-manifest.json",
     "## PR Summary",
     "expiredArtifacts",
+    "media-server.ui-visual-artifact-archive-index.v1",
+    "ui-visual-artifact-archive-index.json",
+    "buildArchiveIndexMarkdown",
   ]) {
     assert(maintenanceScript.includes(snippet), `maintenance script missing snippet: ${snippet}`);
   }
@@ -505,13 +510,26 @@ check("visual artifact maintenance fixture", () => {
   assert(applied.summary.archive === 1, `maintenance apply archive mismatch: ${applied.summary.archive}`);
   assert(applied.summary.cleanup === 1, `maintenance apply cleanup mismatch: ${applied.summary.cleanup}`);
   assert(applied.summary.expiredArtifacts === 1, `maintenance apply expired artifacts mismatch: ${applied.summary.expiredArtifacts}`);
+  assert(applied.archiveIndex?.entries === 1, `maintenance archive index count mismatch: ${applied.archiveIndex?.entries}`);
   assert(fs.existsSync(freshDir), "maintenance apply removed fresh artifact");
   assert(!fs.existsSync(expiredDir), "maintenance apply did not remove expired artifact");
   assert(fs.existsSync(path.join(archiveDir, "expired-artifact", "visual-regression-manifest.json")), "maintenance archive copy missing manifest");
+  const archiveIndexPath = path.join(archiveDir, "ui-visual-artifact-archive-index.json");
+  const archiveIndexMarkdownPath = path.join(archiveDir, "ui-visual-artifact-archive-index.md");
+  assert(fs.existsSync(archiveIndexPath), "maintenance archive index JSON missing");
+  assert(fs.existsSync(archiveIndexMarkdownPath), "maintenance archive index Markdown missing");
+  const archiveIndex = JSON.parse(fs.readFileSync(archiveIndexPath, "utf8"));
+  assert(archiveIndex.schema === "media-server.ui-visual-artifact-archive-index.v1", "maintenance archive index schema mismatch");
+  assert(Array.isArray(archiveIndex.entries) && archiveIndex.entries.length === 1, "maintenance archive index entries mismatch");
+  assert(archiveIndex.entries[0].name === "expired-artifact", `maintenance archive index entry mismatch: ${archiveIndex.entries[0]?.name}`);
+  const archiveIndexMarkdown = fs.readFileSync(archiveIndexMarkdownPath, "utf8");
+  assert(archiveIndexMarkdown.includes("UI Visual Artifact Archive Index"), "maintenance archive index Markdown title missing");
+  assert(archiveIndexMarkdown.includes("expired-artifact"), "maintenance archive index Markdown entry missing");
   assert(fs.existsSync(reportPath), "maintenance JSON report missing");
   assert(fs.existsSync(markdownPath), "maintenance Markdown report missing");
   const appliedMarkdown = fs.readFileSync(markdownPath, "utf8");
   assert(appliedMarkdown.includes("Decision: APPLIED"), "maintenance apply Markdown decision missing");
+  assert(appliedMarkdown.includes("ui-visual-artifact-archive-index.json"), "maintenance apply Markdown archive index missing");
 });
 
 let failCount = 0;

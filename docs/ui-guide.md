@@ -394,6 +394,9 @@ Ops/Client/Lab API guard를 확인합니다.
   Markdown report는 PR 본문에 붙일 수 있는 `PR Summary` 섹션을 포함하며
   decision, dry-run/apply mode, expired artifact 수, archive/cleanup 예정 수를
   요약합니다.
+  `--apply`로 archive가 생성되면 archive directory에
+  `media-server.ui-visual-artifact-archive-index.v1` schema의
+  `ui-visual-artifact-archive-index.json`과 Markdown index도 함께 남깁니다.
   CI preflight는 `media-server-ui-visual-maintenance-dry-run` artifact로 dry-run
   JSON/Markdown report를 업로드하며 삭제를 수행하지 않습니다.
 - `visual-regression-manifest.json`에는

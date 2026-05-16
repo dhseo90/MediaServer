@@ -10,6 +10,7 @@ import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg
 
 const ARTIFACT_SCHEMA = "media-server.ui-visual-artifact-index.v1";
 const REPORT_SCHEMA = "media-server.ui-visual-artifact-maintenance.v1";
+const ARCHIVE_INDEX_SCHEMA = "media-server.ui-visual-artifact-archive-index.v1";
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 if (isMainModule()) {
@@ -86,6 +87,8 @@ export function manageUiVisualArtifacts({
     summary: summarize(actions),
     actions,
   };
+  const archiveIndex = writeArchiveIndex(reportPayload);
+  if (archiveIndex) reportPayload.archiveIndex = archiveIndex;
 
   if (report) {
     const reportPath = path.resolve(report);
@@ -220,6 +223,66 @@ function copyDir(source, target) {
   }
 }
 
+function writeArchiveIndex(report) {
+  if (!report.apply || !report.archiveDir) return null;
+  const archiveDirs = findArtifactDirs(report.archiveDir, Math.max(1, Number(report.maxDepth) || 4));
+  const entries = [];
+  for (const dir of archiveDirs) {
+    const manifestPath = path.join(dir, "visual-regression-manifest.json");
+    const manifest = JSON.parse(fs.readFileSync(manifestPath, "utf8"));
+    if (manifest.schema !== ARTIFACT_SCHEMA) continue;
+    const generatedAt = parseDate(manifest.generatedAt || fs.statSync(manifestPath).mtime.toISOString(), `${manifestPath} generatedAt`);
+    const sourceAction = (report.actions || []).find((item) => item.archivePath === dir);
+    entries.push({
+      archiveDir: dir,
+      name: path.basename(dir),
+      manifestPath,
+      sourceArtifactDir: sourceAction?.artifactDir || "",
+      generatedAt: generatedAt.toISOString(),
+      ageDays: round((parseDate(report.now, "report.now").getTime() - generatedAt.getTime()) / DAY_MS),
+      screenshotCount: manifest.screenshotCount ?? 0,
+      retentionPolicy: manifest.retentionPolicy || {},
+    });
+  }
+  if (entries.length === 0) return null;
+  const payload = {
+    schema: ARCHIVE_INDEX_SCHEMA,
+    generatedAt: new Date().toISOString(),
+    maintenanceReportGeneratedAt: report.generatedAt,
+    archiveDir: report.archiveDir,
+    entries: entries.sort((a, b) => a.name.localeCompare(b.name)),
+  };
+  const jsonPath = path.join(report.archiveDir, "ui-visual-artifact-archive-index.json");
+  const markdownPath = path.join(report.archiveDir, "ui-visual-artifact-archive-index.md");
+  fs.writeFileSync(jsonPath, `${JSON.stringify(payload, null, 2)}\n`);
+  fs.writeFileSync(markdownPath, buildArchiveIndexMarkdown(payload));
+  return {
+    schema: ARCHIVE_INDEX_SCHEMA,
+    path: jsonPath,
+    markdownPath,
+    entries: payload.entries.length,
+  };
+}
+
+function buildArchiveIndexMarkdown(index) {
+  const lines = [
+    "# UI Visual Artifact Archive Index",
+    "",
+    `- schema: ${index.schema}`,
+    `- generatedAt: ${index.generatedAt}`,
+    `- archiveDir: ${index.archiveDir}`,
+    `- entries: ${index.entries.length}`,
+    "",
+    "| Archive | Generated At | Age Days | Screenshots | Source Artifact |",
+    "| --- | --- | --- | --- | --- |",
+  ];
+  for (const item of index.entries) {
+    lines.push(`| ${sanitizeMarkdownCell(item.name)} | ${sanitizeMarkdownCell(item.generatedAt)} | ${item.ageDays} | ${item.screenshotCount} | ${sanitizeMarkdownCell(path.basename(item.sourceArtifactDir || ""))} |`);
+  }
+  lines.push("");
+  return `${lines.join("\n")}\n`;
+}
+
 function buildMarkdown(report) {
   const lines = [
     "# UI Visual Artifact Maintenance",
@@ -245,6 +308,7 @@ function buildMarkdown(report) {
     `- keep: ${report.summary.keep}`,
     `- archive: ${report.summary.archive}`,
     `- cleanup: ${report.summary.cleanup}`,
+    `- archiveIndex: ${report.archiveIndex?.path || "(none)"}`,
     "",
     "| Action | Expired | Age Days | Retention Days | Artifact | Reason |",
     "| --- | --- | --- | --- | --- | --- |",
