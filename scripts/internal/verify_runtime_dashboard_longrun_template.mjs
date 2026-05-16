@@ -20,6 +20,7 @@ Usage:
 
 Checks:
   - Runtime Dashboard longrun evidence template 필수 필드
+  - sample-only evidence fixture 필수 필드
   - stream verification guide 연결
   - longrun 실행과 template 검증 분리 문구
   - server.sh command와 script inventory 등록
@@ -87,12 +88,64 @@ check("template separates judgement states and non-execution reporting", () => {
   }
 });
 
+check("sample fixture captures evidence shape without claiming execution", () => {
+  const record = JSON.parse(readText("test/fixtures/runtime_dashboard_longrun_evidence_sample/sample_record.json"));
+  const report = readText("test/fixtures/runtime_dashboard_longrun_evidence_sample/sample_report.md");
+  assert(record.schema === "media-server.runtime-dashboard-longrun-evidence-sample.v1", "sample fixture schema mismatch");
+  assert(record.sampleOnly === true, "sample fixture must be sampleOnly=true");
+  assert(record.longrunExecuted === false, "sample fixture must not claim longrun execution");
+  assert(record.evidenceStatus === "sample-only-not-executed", "sample fixture evidenceStatus mismatch");
+  assert(String(record.run?.command || "").includes("./server.sh verify-va-runtime-console-longrun"), "sample fixture command missing longrun command");
+  assert(String(record.run?.command || "").includes("--duration-minutes 120"), "sample fixture command missing 120m duration");
+  for (const key of [
+    "dashboardPollingCount",
+    "activeSessionsMax",
+    "activeAnalysisTapsMax",
+    "activeSseClientsMax",
+    "activeWebSocketClientsMax",
+    "rtspEgressConsumersMax",
+  ]) {
+    assert(Object.prototype.hasOwnProperty.call(record.runtimeDashboard || {}, key), `sample runtimeDashboard missing ${key}`);
+  }
+  for (const key of [
+    "webRtcDataChannelSent",
+    "webRtcDataChannelDropped",
+    "webRtcDataChannelFailures",
+    "sseMetadataMessages",
+    "webSocketMetadataMessages",
+  ]) {
+    assert(Object.prototype.hasOwnProperty.call(record.metadata || {}, key), `sample metadata missing ${key}`);
+  }
+  for (const key of [
+    "cleanupOk",
+    "activeSessionsAfterCleanup",
+    "activeAnalysisTapsAfterCleanup",
+    "activeSseClientsAfterCleanup",
+    "activeWebSocketClientsAfterCleanup",
+    "rtspEgressConsumersAfterCleanup",
+    "portsClean",
+    "idleJudgement",
+  ]) {
+    assert(Object.prototype.hasOwnProperty.call(record.cleanup || {}, key), `sample cleanup missing ${key}`);
+  }
+  for (const snippet of [
+    "SAMPLE ONLY",
+    "verify-va-runtime-console-longrun",
+    "미실행",
+    "PASS evidence로 쓰지 않습니다",
+  ]) {
+    assert(report.includes(snippet), `sample report missing snippet: ${snippet}`);
+  }
+});
+
 check("verification docs reference the evidence template", () => {
   const stream = readText("docs/stream-verification.md");
   const backlog = readText("docs/development-backlog.md");
   assert(stream.includes("./runtime-dashboard-longrun-evidence-template.md"), "stream verification missing template link");
   assert(stream.includes("이 템플릿은 longrun 실행 증거가 아니며"), "stream verification missing non-execution warning");
+  assert(stream.includes("runtime_dashboard_longrun_evidence_sample"), "stream verification missing sample fixture path");
   assert(backlog.includes("Runtime Dashboard long-run evidence template"), "backlog missing longrun template closure");
+  assert(backlog.includes("Runtime longrun evidence sample fixture"), "backlog missing sample fixture closure");
 });
 
 check("server entrypoint exposes runtime dashboard longrun template verifier", () => {

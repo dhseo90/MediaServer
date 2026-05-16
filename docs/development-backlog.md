@@ -484,6 +484,19 @@ PR template과 정적 verifier를 연결했습니다.
 - `verify-ui-visual-artifact-index`가 helper wiring과 fixture 출력물을 정적 검증합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
+### Runtime longrun evidence sample fixture 후속 종료 판정
+
+2026-05-16 기준 Runtime Dashboard longrun evidence template의 sample-only fixture를 추가했습니다.
+
+확인됨:
+
+- `test/fixtures/runtime_dashboard_longrun_evidence_sample/sample_record.json`은 evidence field shape를 JSON으로 고정합니다.
+- `sample_report.md`는 release checklist나 verification history에 붙일 record 형태를 sample-only로 보여줍니다.
+- fixture는 `sampleOnly=true`, `longrunExecuted=false`, `evidenceStatus=sample-only-not-executed`로 실제 longrun PASS evidence가 아님을 명시합니다.
+- `verify-runtime-dashboard-longrun-template`가 sample fixture와 non-execution 경계를 검증합니다.
+- 장시간 `verify-va-runtime-console-longrun`, `verify-predev`는 실행하지 않았습니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
 ## v1.2.0 시작 전 체크리스트
 
 - [x] v1.1.0 PR이 `main`에 merge됨

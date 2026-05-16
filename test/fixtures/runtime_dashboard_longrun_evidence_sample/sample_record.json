@@ -1,0 +1,81 @@
+{
+  "schema": "media-server.runtime-dashboard-longrun-evidence-sample.v1",
+  "kind": "runtime-dashboard-longrun-evidence-sample",
+  "sampleOnly": true,
+  "longrunExecuted": false,
+  "evidenceStatus": "sample-only-not-executed",
+  "templateJudgementExample": "PASS",
+  "warning": "Synthetic fixture for template validation only. Do not report this file as executed longrun evidence.",
+  "run": {
+    "date": "2026-05-16T00:00:00Z",
+    "operator": "sample-operator",
+    "gitCommit": "0000000000000000000000000000000000000000",
+    "branch": "v1.2.0",
+    "build": "sample-build-id",
+    "osMachine": "sample-macos-arm64",
+    "command": "./server.sh verify-va-runtime-console-longrun --duration-minutes 120 --clients 1 --include-sidechannel --include-dashboard --include-rtsp --idle-after-cleanup-minutes 30",
+    "durationMinutes": 120,
+    "fileSource": "sample_h264.mp4",
+    "clients": 1,
+    "includeDashboard": true,
+    "includeSidechannel": true,
+    "includeRtsp": true,
+    "idleAfterCleanupMinutes": 30
+  },
+  "artifacts": {
+    "summaryJson": "/tmp/media_server_va-runtime-longrun-<run-id>_summary.json",
+    "markdownReport": "/tmp/media_server_va-runtime-longrun-<run-id>_report.md",
+    "serverLog": "/tmp/media_server_va-runtime-longrun-<run-id>_server.log",
+    "webRtcClientLog": "/tmp/media_server_va-runtime-longrun-<run-id>_webrtc-client-1.log",
+    "sseSidechannelLog": "/tmp/media_server_va-runtime-longrun-<run-id>_sse-sidechannel.log",
+    "rtspOverlayLog": "/tmp/media_server_va-runtime-longrun-<run-id>_rtsp-overlay.log",
+    "dashboardScreenshotOrRecording": "/tmp/media_server_va-runtime-longrun-<run-id>_dashboard.png"
+  },
+  "runtimeDashboard": {
+    "dashboardPollingCount": 720,
+    "activeSessionsMax": 1,
+    "activeStreamsMax": 1,
+    "activeAnalysisTapsMax": 1,
+    "activeSseClientsMax": 1,
+    "activeWebSocketClientsMax": 1,
+    "rtspEgressConsumersMax": 1,
+    "latestRuntimeStatusTimestamp": "2026-05-16T02:00:00Z"
+  },
+  "metadata": {
+    "webRtcDataChannelSent": 1200,
+    "webRtcDataChannelDropped": 0,
+    "webRtcDataChannelFailures": 0,
+    "sseMetadataMessages": 1200,
+    "webSocketMetadataMessages": 1200
+  },
+  "cleanup": {
+    "cleanupOk": true,
+    "activeSessionsAfterCleanup": 0,
+    "activeAnalysisTapsAfterCleanup": 0,
+    "activeSseClientsAfterCleanup": 0,
+    "activeWebSocketClientsAfterCleanup": 0,
+    "rtspEgressConsumersAfterCleanup": 0,
+    "portsClean": true,
+    "idleJudgement": "pass"
+  },
+  "rssCpu": {
+    "rssWarmupPolicy": "ignore first 5 minutes",
+    "activeRssStartMb": 315.2,
+    "activeRssPeakMb": 344.8,
+    "activeRssEndMb": 332.1,
+    "idleRssStartMb": 332.4,
+    "idleRssEndMb": 331.8,
+    "idleRssDeltaMb": -0.6,
+    "cpuNotes": "sample-only"
+  },
+  "judgement": {
+    "state": "PASS",
+    "reason": "sample-only example; cleanup counts are zero and idle judgement is pass",
+    "followUp": "replace this fixture with actual summary/report paths after a real RC longrun"
+  },
+  "forbiddenUse": [
+    "Do not claim verify-va-runtime-console-longrun was executed from this fixture.",
+    "Do not use sampleOnly=true as release PASS evidence.",
+    "Do not expose source URL, Developer URL, raw JSON, debug counter, BBox diagnostics, or rule/profile editor in client/viewer screenshots."
+  ]
+}

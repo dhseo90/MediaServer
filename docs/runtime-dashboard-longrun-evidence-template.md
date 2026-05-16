@@ -105,6 +105,12 @@ Judgement:
 - follow-up:
 ```
 
+## Sample Fixture
+
+`test/fixtures/runtime_dashboard_longrun_evidence_sample/sample_record.json`과
+`test/fixtures/runtime_dashboard_longrun_evidence_sample/sample_report.md`는 evidence record 형식만 검증하는 sample-only fixture입니다.
+`sampleOnly=true`, `longrunExecuted=false`, `evidenceStatus=sample-only-not-executed` 상태이므로 실제 longrun PASS evidence로 쓰지 않습니다.
+
 ## 판정 기준
 
 | 판정 | 기준 |
@@ -129,4 +135,3 @@ Judgement:
 - `./server.sh verify-runtime-dashboard-longrun-template`
 - `./server.sh verify-longrun-separation`
 - `./server.sh verify-docs-links`
-

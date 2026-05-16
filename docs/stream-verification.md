@@ -1229,6 +1229,8 @@ consumer connect/disconnect cycle 이후 idle baseline RSS 누적 증가를 확�
 - Runtime Dashboard 장시간 evidence record는
   [runtime-dashboard-longrun-evidence-template.md](./runtime-dashboard-longrun-evidence-template.md)
   형식을 사용합니다. 이 템플릿은 longrun 실행 증거가 아니며, 실제 실행하지 않은 경우 `미실행`으로 보고합니다.
+- `test/fixtures/runtime_dashboard_longrun_evidence_sample/`는 evidence field shape를 고정하는 sample-only fixture입니다.
+  `longrunExecuted=false`이므로 RC/릴리스 PASS 증거로 쓰지 않습니다.
 
 최근 RSS WARNING 해제 후보 검증 결과:
 
