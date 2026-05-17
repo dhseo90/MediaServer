@@ -62,7 +62,7 @@
 
 ## Tag와 release 기준
 
-- 현재 source-only release tag 기준은 `v1.3.0`입니다.
+- 현재 published source-only release tag 기준은 `v1.3.0`입니다.
 - tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만 붙입니다.
 - source-only release에는 sample/model/runtime binary를 추가 업로드하지 않습니다.
 - binary/container/offline bundle은 별도 RC gate와 bundle policy 검토를 통과한 뒤 별도 release로 다룹니다.

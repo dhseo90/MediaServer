@@ -15,7 +15,6 @@ English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en
 v1.3.0 source-only minor close-out과 후속 종료 판정은
 [docs/development-backlog.md](docs/development-backlog.md)와
 [docs/v1.3.0-follow-up-closure.md](docs/v1.3.0-follow-up-closure.md)에 분리해 기록합니다.
-v1.4.0 roadmap 초안은 v1.4.0 branch에서 커밋 전 검토 대상으로 작성합니다.
 
 ## 한눈에 보기
 
@@ -125,11 +124,11 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | 배포 bundle, container image, third-party runtime 포함 정책 | [docs/distribution-policy.md](docs/distribution-policy.md) |
 | release asset 범위와 RC 기준 | [docs/release-policy.md](docs/release-policy.md) |
 | 버전 의미와 tag 기준 | [docs/versioning-policy.md](docs/versioning-policy.md) |
-| public 전환 직전 최종 점검 | [docs/public-repo-final-review.md](docs/public-repo-final-review.md) |
+| public repository와 release readiness 점검 | [docs/public-repo-final-review.md](docs/public-repo-final-review.md) |
 | 운영 백업/복구 대상과 복구 후 검증 | [docs/ops-backup-recovery.md](docs/ops-backup-recovery.md) |
 | Loitering/ZoneOccupancy 현장 시작 threshold | [docs/analysis-threshold-baselines.md](docs/analysis-threshold-baselines.md) |
 | sample 영상/fixture 출처와 공개 기준 | [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) |
-| 현재 제품 경계, v1.3.0 close-out, v1.4.0 roadmap 준비 기준 | [docs/development-backlog.md](docs/development-backlog.md) |
+| 현재 제품 경계, v1.3.0 close-out, 후속 개발 후보 | [docs/development-backlog.md](docs/development-backlog.md) |
 | historical v1.2.1 후속 종료 판정과 수동 UI 검수 증적 | [docs/v1.2.1-follow-up-closure.md](docs/v1.2.1-follow-up-closure.md), [docs/manual-ui-v1.2.1-result.md](docs/manual-ui-v1.2.1-result.md) |
 | v1.3.0 후속 종료 판정 | [docs/v1.3.0-follow-up-closure.md](docs/v1.3.0-follow-up-closure.md) |
 | YouTube import/source 실험 기능 | [docs/youtube-import.md](docs/youtube-import.md) |

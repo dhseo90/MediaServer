@@ -375,19 +375,29 @@ v1.3.0 roadmap 기능 개발 이후 남은 후속 항목은
 [v1.3.0 Follow-up Closure](./v1.3.0-follow-up-closure.md)에 분리합니다.
 `verify-v130-follow-up-closure`는 실제 Re-ID model field review, field sample
 반복 수집 정책, tracker 교체 후보 조사, model/runtime bundle 정책, Re-ID privacy
-threat model을 v1.4.0 별도 Phase gate 또는 release/field/manual approval gate로
+threat model을 별도 Phase gate 또는 release/field/manual approval gate로
 분리하고, v1.3.0 안에 개발 가능한 후속 이슈가 남지 않았는지 정적으로 확인합니다.
 
 2026-05-17 기준 추가 기능 개발로 처리할 v1.3.0 후속 이슈는 남기지 않습니다.
 Re-ID default-on, tracker 교체, runtime/model bundle 포함, field sample scheduler,
-dataset ingest, tag/push/GitHub Release는 이 closure에서 수행하지 않았습니다.
+dataset ingest는 이 closure에서 수행하지 않았습니다. tag/push/GitHub Release는
+기능 개발 closure 범위가 아니라 별도 release 운영 gate로 분리합니다.
 
-## v1.4.0 Minor Roadmap 준비 기준
+## 별도 Phase 후보
 
-v1.4.0 roadmap 초안은 v1.4.0 branch에서 작성하고, main/v1.3.0 release branch에는
-커밋하지 않습니다. v1.4.0 후보도 source-only/live-only 경계를 기본으로 하며,
-Event POST/WebRTC DataChannel/SSE/WS metadata, auth/session contract,
-RTSP/WebRTC media path 변경은 별도 schema/media-path review 뒤에만 다룹니다.
+v1.3.0 release main에는 다음 minor roadmap을 고정하지 않습니다.
+다만 follow-up closure에서 분리한 항목은 이후 별도 Phase gate 후보로 남깁니다.
+각 후보는 source-only/live-only 경계, schema/media-path review, privacy/redaction
+review, release/field/manual approval gate를 통과할 때만 제품 기본값이나 배포
+승격으로 연결합니다.
+
+- 실제 Re-ID model field review
+- field sample history review workflow
+- tracker replacement benchmark harness
+- Re-ID privacy retention guard
+- runtime/model bundle RC policy
+- ONVIF field smoke evidence reconciliation
+- release evidence dashboard cleanup
 
 ## v1.2.0 Roadmap 종료 판정
 

@@ -15,7 +15,7 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 | Architecture | [../media-server-architecture.md](../media-server-architecture.md) |
 | Video analytics | [../video-analysis.md](../video-analysis.md) |
 | Integrator contract artifact | [../integrator-contract-artifact.md](../integrator-contract-artifact.md) |
-| Current product boundary, v1.3.0 close-out, and v1.4.0 roadmap preparation | [../development-backlog.md](../development-backlog.md) |
+| Current product boundary, v1.3.0 close-out, and follow-up candidates | [../development-backlog.md](../development-backlog.md) |
 | Historical v1.2.1 follow-up closure | [../v1.2.1-follow-up-closure.md](../v1.2.1-follow-up-closure.md) |
 | v1.3.0 follow-up closure | [../v1.3.0-follow-up-closure.md](../v1.3.0-follow-up-closure.md) |
 | Verification | [../stream-verification.md](../stream-verification.md) |
@@ -47,20 +47,20 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 - The 2026-05-13 final local release gate completed 120m predev soak,
   120m runtime-console longrun with a 30m cleanup-idle observation, and
   P1 public/bundle/full-smoke review.
-- Release tag, main merge, and GitHub Release are manual release actions.
+- v1.3.0 is published as the current source-only release. Future tag, main merge, and GitHub Release actions remain explicit manual release actions.
 
 ## Current Priority Snapshot
 
 | Area | Status | Notes |
 | --- | --- | --- |
-| v1.3.0 source release | Close-out | Live-only source minor release boundary is preserved; binary/runtime/model bundles are excluded |
+| v1.3.0 source release | Published | Live-only source minor release boundary is preserved; binary/runtime/model bundles are excluded |
 | Runtime distribution policy | Done | Source-first policy and bundle guardrails are in place |
 | Ops UI stability | Done | Channels/Rules/Users responsive table checks exist |
 | v1.1.0 prerequisite roadmap 1-6 | Done | Live-only boundary, ONVIF live source support, source health, VA quality, delivery contract, and multilingual alignment are closed |
 | v1.1.0 RC stabilization | Done | Final local longrun/P1 release-gate evidence is closed without rerunning prerequisite roadmap 1-6 |
 | v1.2.0 roadmap close-out | Done | ONVIF no-device scope, UI refresh, source health workflow, client polish, account lifecycle, release rehearsal, Re-ID warning guard, and YouTube lab-only decision are documented |
 | v1.2.1 patch close-out | Closed locally | Release metadata guard, post-release evidence, manual UI evidence, flaky verifier hardening, Re-ID/ONVIF wording guards, release close-out dry-run, and doc/artifact housekeeping stay inside patch scope; release, external-device, and approval gates remain separate |
-| v1.3.0 close-out | Closed locally | Runtime operations, field integration gates, source health incidents, Client Live accessibility, rule preset quality, audit trail workflow, visual baseline automation, and Re-ID research are closed locally; follow-up closure leaves Re-ID default-on, tracker replacement, runtime/model bundle, and field sampling automation as later phase gates |
+| v1.3.0 close-out | Closed | Runtime operations, field integration gates, source health incidents, Client Live accessibility, rule preset quality, audit trail workflow, visual baseline automation, and Re-ID research are closed; follow-up closure leaves Re-ID default-on, tracker replacement, runtime/model bundle, and field sampling automation as later phase gates |
 | Audit trail operations | Follow-up phase | Server persistence exists; search/export can improve |
 | Short event evidence | Supporting | EventRecord/snapshot/clip cleanup exists, but it is not the main product direction |
 | RC gate operations | Conditional gate | Repeat longrun only for a new release cut or high-risk media/VA fanout change |
@@ -71,7 +71,7 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 - Use [../development-backlog.md](../development-backlog.md) as the source of truth for the current product boundary and v1.3.0 close-out; use version-specific evidence files only as historical close-out records.
 - Close or suppress existing Dependabot major-update PR noise after the policy is documented.
 - Add richer English docs only if the public audience grows beyond this consolidated index.
-- Attach the latest RC artifacts to release notes when cutting the actual tag or GitHub Release.
+- Attach the latest RC artifacts to release notes when cutting a future tag or GitHub Release.
 - Keep signed-token and cleanup checks for evidence bundles scoped to short event evidence.
 - Add operator-facing next-action buttons to root-cause diagnostics in a later operator workflow phase.
 
