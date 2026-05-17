@@ -804,7 +804,7 @@ public:
             << "\"tracker\":[\"none\",\"lite\",\"kalman-lite\",\"bytetrack\"],"
             << "\"reid\":[\"off\",\"assist\"],"
             << "\"default\":{\"tracker\":\"lite\",\"reid\":\"off\"},"
-            << "\"runtimeFallback\":\"kalman-lite/bytetrack remain Lite until their tracker implementations land\"},"
+            << "\"runtimeFallback\":\"bytetrack remains Lite until its tracker implementation lands; kalman-lite runs as an opt-in runtime tracker\"},"
             << "\"vaRules\":";
         AppendDocumentsArray(out, va_rules_);
         out << "}";
@@ -6994,6 +6994,9 @@ bool AnalyzeStaticImage(const std::unordered_map<std::string, std::string>& quer
     if (output->profile.enable_tracking) {
         // 이미지 API는 frame이 한 장뿐이라 일회성 tracker로 trackId 정책만 동일하게 적용한다.
         analysis::ObjectTrackerOptions tracker_options;
+        tracker_options.tracker_kind = output->profile.tracking_policy_effective_tracker == "kalman-lite"
+                                           ? analysis::ObjectTrackerKind::KalmanLite
+                                           : analysis::ObjectTrackerKind::Lite;
         tracker_options.class_labels = output->profile.tracking_class_labels;
         tracker_options.track_all_when_class_labels_empty = !output->profile.tracking_classes_specified;
         const auto& config = app::GetAppConfig();

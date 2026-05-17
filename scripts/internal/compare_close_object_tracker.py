@@ -170,6 +170,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-fragmentation", default="", help="verify-tracker-stability에 전달할 --max-fragmentation입니다.")
     parser.add_argument("--max-overlap-fragmentation", default="", help="verify-tracker-stability에 전달할 --max-overlap-fragmentation입니다.")
     parser.add_argument("--max-id-switch-risk", default="", help="verify-tracker-stability에 전달할 --max-id-switch-risk입니다.")
+    parser.add_argument("--tracker-policy", default="", help="verify-tracker-stability에 전달할 rule-level tracker policy입니다: lite 또는 kalman-lite.")
     parser.add_argument("--no-long-sample", action="store_true", help="verify-tracker-stability에 --no-long-sample을 전달합니다.")
     parser.add_argument("--use-existing-server", action="store_true", help="이미 실행 중인 서버를 사용합니다. 기본은 mode별 격리 서버를 시작합니다.")
     parser.add_argument("--http-base", default="", help="--use-existing-server에서 사용할 HTTP base입니다.")
@@ -301,6 +302,7 @@ def tracker_args(args: argparse.Namespace) -> list[str]:
         ("max_fragmentation", "--max-fragmentation"),
         ("max_overlap_fragmentation", "--max-overlap-fragmentation"),
         ("max_id_switch_risk", "--max-id-switch-risk"),
+        ("tracker_policy", "--tracker-policy"),
     ]:
         value = getattr(args, attr)
         if value:
@@ -861,6 +863,7 @@ def write_report(summary: dict[str, Any], path: pathlib.Path) -> None:
         "# Close-object Tracker Guard Comparison",
         "",
         f"- sample: `{summary['sample']}`",
+        f"- tracker policy: `{summary.get('trackerPolicy') or 'direct-source-default'}`",
         f"- modes: `{', '.join(modes.keys())}`",
         f"- baseline: `{summary.get('baselineMode', 'off')}`",
         f"- quality preset: `{summary.get('qualityPreset', gate.get('qualityPreset', 'strict'))}`",
@@ -1027,6 +1030,7 @@ def run_comparison(args: argparse.Namespace,
         "kind": "close-object-tracker-comparison",
         "ok": judgement != "fail",
         "sample": args.file,
+        "trackerPolicy": args.tracker_policy or "",
         "fixtureId": fixture_id,
         "qualityPreset": preset["id"],
         "baselineMode": baseline_mode,
@@ -1053,6 +1057,7 @@ def write_matrix_report(matrix: dict[str, Any], path: pathlib.Path) -> None:
         "# Close-object Tracker Fixture Matrix",
         "",
         f"- modes: `{', '.join(matrix.get('modes') or [])}`",
+        f"- tracker policy: `{matrix.get('trackerPolicy') or 'direct-source-default'}`",
         f"- ok: `{matrix.get('ok')}`",
         f"- output: `{matrix.get('outputDir')}`",
         "- matrix interpretation: `matrix-ok` is a command/gate result, not product default-on approval.",
@@ -1119,6 +1124,7 @@ def matrix_history_entry(matrix: dict[str, Any], history: dict[str, Any]) -> dic
         "runId": history.get("runId"),
         "createdAt": matrix.get("createdAt"),
         "ok": matrix.get("ok"),
+        "trackerPolicy": matrix.get("trackerPolicy") or "",
         "fixtureCount": len(fixtures),
         "failedCount": sum(1 for item in fixtures if item.get("status") in {"fail", "missing"}),
         "holdCount": sum(1 for item in fixtures if item.get("judgement") == "hold"),
@@ -1166,14 +1172,15 @@ def write_history_index_report(index_payload: dict[str, Any], path: pathlib.Path
         f"- updated: `{index_payload.get('updatedAt')}`",
         f"- history dir: `{index_payload.get('historyDir')}`",
         "",
-        "| run | created | ok | fixtures | failed | hold | warnings | candidates | default-on decision | product default-on | reason | report |",
-        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+        "| run | created | tracker | ok | fixtures | failed | hold | warnings | candidates | default-on decision | product default-on | reason | report |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
     for item in index_payload.get("runs") or []:
         lines.append(
-            "| {run} | {created} | {ok} | {fixtures} | {failed} | {hold} | {warnings} | {candidates} | {decision} | {product} | {reason} | `{report}` |".format(
+            "| {run} | {created} | {tracker} | {ok} | {fixtures} | {failed} | {hold} | {warnings} | {candidates} | {decision} | {product} | {reason} | `{report}` |".format(
                 run=format_cell(item.get("runId")),
                 created=format_cell(item.get("createdAt")),
+                tracker=format_cell(item.get("trackerPolicy") or "direct-source-default"),
                 ok=format_cell(item.get("ok")),
                 fixtures=format_cell(item.get("fixtureCount")),
                 failed=format_cell(item.get("failedCount")),
@@ -1293,6 +1300,7 @@ def run_fixture_matrix(args: argparse.Namespace, modes: list[str], output_dir: p
         "kind": "close-object-tracker-fixture-matrix",
         "ok": not failed,
         "modes": modes,
+        "trackerPolicy": args.tracker_policy or "",
         "outputDir": str(output_dir),
         "fixtures": results,
         "createdAt": dt.datetime.now(dt.timezone.utc).isoformat(),
@@ -1323,6 +1331,11 @@ def run_fixture_matrix(args: argparse.Namespace, modes: list[str], output_dir: p
 
 def main() -> int:
     args = parse_args()
+    args.tracker_policy = str(args.tracker_policy or "").strip().lower()
+    if args.tracker_policy == "default":
+        args.tracker_policy = ""
+    if args.tracker_policy and args.tracker_policy not in {"lite", "kalman-lite"}:
+        raise SystemExit("--tracker-policy must be lite or kalman-lite")
     if args.list_quality_presets:
         print(json.dumps({"qualityPresets": quality_preset_rows()}, ensure_ascii=False, indent=2))
         return 0

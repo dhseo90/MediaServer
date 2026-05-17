@@ -765,8 +765,13 @@ void ApplyRuleTrackingPolicy(const MatchingProfileRule& matched, analysis::Analy
         return;
     }
 
-    if (profile->tracking_policy_tracker == "kalman-lite" ||
-        profile->tracking_policy_tracker == "bytetrack") {
+    if (profile->tracking_policy_tracker == "kalman-lite") {
+        profile->enable_tracking = true;
+        profile->tracking_policy_effective_tracker = "kalman-lite";
+        return;
+    }
+
+    if (profile->tracking_policy_tracker == "bytetrack") {
         profile->enable_tracking = true;
         profile->tracking_policy_effective_tracker = "lite";
         profile->tracking_policy_fallback_reason =

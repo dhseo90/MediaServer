@@ -395,6 +395,32 @@ void VerifyObjectTrackerAssociationScoring() {
                prediction_reacquired_frame.tracks[0].state == "reacquired",
            "ObjectTracker must use recent motion to reacquire a fast moving track after a short gap");
 
+    ObjectTrackerOptions kalman_options;
+    kalman_options.tracker_kind = ObjectTrackerKind::KalmanLite;
+    kalman_options.class_labels = {"*"};
+    kalman_options.smoothing_alpha = 0.0F;
+    kalman_options.max_missed_frames = 3;
+    kalman_options.min_iou = 0.5F;
+    kalman_options.max_center_distance = 0.12F;
+    ObjectTracker kalman_tracker(kalman_options);
+    auto kalman_frame1 = MakeTrackerFrame(30, 1000, {MakeDetection(2, "car", 0.20F, 0.20F)});
+    kalman_tracker.Update(&kalman_frame1);
+    auto kalman_frame2 = MakeTrackerFrame(31, 1100, {MakeDetection(2, "car", 0.30F, 0.20F)});
+    kalman_tracker.Update(&kalman_frame2);
+    auto kalman_gap_frame = MakeTrackerFrame(32, 1200, {});
+    kalman_tracker.Update(&kalman_gap_frame);
+    auto kalman_reacquired_frame =
+        MakeTrackerFrame(33, 1300, {MakeDetection(2, "car", 0.50F, 0.20F)});
+    kalman_tracker.Update(&kalman_reacquired_frame);
+    const float kalman_center_x = kalman_reacquired_frame.detections[0].box.x +
+                                  kalman_reacquired_frame.detections[0].box.width * 0.5F;
+    Expect(kalman_reacquired_frame.detections[0].track_id == kalman_frame1.detections[0].track_id &&
+               !kalman_reacquired_frame.tracks.empty() &&
+               kalman_reacquired_frame.tracks[0].state == "reacquired",
+           "Kalman-lite tracker must reacquire a short-gap motion-predicted track");
+    Expect(kalman_center_x > 0.43F && kalman_center_x < 0.50F,
+           "Kalman-lite tracker must output a filtered bbox center rather than raw jitter");
+
     TrackStateManager manager;
     auto object1 = MakeObject(90, 1, 1000, 0.2F, 0.2F);
     object1.association_confidence = 1.0F;

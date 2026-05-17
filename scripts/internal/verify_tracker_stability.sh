@@ -22,6 +22,8 @@ FAIL_COUNT=0
 SKIP_COUNT=0
 CURRENT_TAP_ID=""
 TAP_IDS=()
+TEMP_RULE_ID=""
+TEMP_VA_RULE_ID=""
 RUN_ID="tracker-stability-$(date +%s)-$$"
 SUMMARY_FILE="/tmp/media_server_${RUN_ID}_summary.ndjson"
 
@@ -68,6 +70,7 @@ Options:
                            overlap 구간 fragmentation ratio 허용 상한. 기본 2.5
   --max-id-switch-risk <v>
                            fragmentation/stale/overlap 기반 ID switch 위험 점수 허용 상한. 기본 2.0
+  --tracker-policy <name>   vaRule 기반 tracker policy를 강제합니다. 허용값: lite, kalman-lite
   --restart-between-iterations
                            반복마다 source idle cleanup을 기다려 파일을 처음부터 다시 검증
   --continuous-source     반복 사이 source를 재시작하지 않고 연속 스트림처럼 검증
@@ -88,6 +91,7 @@ Options:
   MEDIA_SERVER_VERIFY_TRACKER_OVERLAP_FOCUS
   MEDIA_SERVER_VERIFY_TRACKER_OVERLAP_MIN_SIMULTANEOUS
   MEDIA_SERVER_VERIFY_TRACKER_MAX_OVERLAP_FRAGMENTATION_RATIO
+  MEDIA_SERVER_VERIFY_TRACKER_POLICY
   MEDIA_SERVER_VERIFY_TRACKER_RESTART_BETWEEN_ITERATIONS
   MEDIA_SERVER_VERIFY_TRACKER_RESTART_WAIT_S
   MEDIA_SERVER_VERIFY_TRACKER_SEGMENT_AWARE
@@ -179,6 +183,121 @@ file_duration_s() {
   ffprobe -v error -show_entries format=duration -of default=nk=1:nw=1 "${file_path}" 2>/dev/null | head -n1
 }
 
+create_tracker_policy_va_rule() {
+  local tracker_policy="$1"
+  if [[ -z "${tracker_policy}" ]]; then
+    return 0
+  fi
+  TEMP_RULE_ID="9$(date +%s)$((RANDOM % 1000))"
+  TEMP_VA_RULE_ID="$((TEMP_RULE_ID + 1))"
+  local rule_body="/tmp/media_server_${RUN_ID}_rule.json"
+  local va_rule_body="/tmp/media_server_${RUN_ID}_va_rule.json"
+  python3 - "${TEMP_RULE_ID}" > "${rule_body}" <<'PY'
+import json
+import sys
+
+rule_id = sys.argv[1]
+print(json.dumps({
+    "id": rule_id,
+    "enabled": True,
+    "ruleKind": "basic",
+    "analysis": {"classes": ["person", "vehicle"]},
+    "event": {
+        "type": "presence",
+        "region": {
+            "type": "polygon",
+            "points": [
+                {"x": 0.0, "y": 0.0},
+                {"x": 1.0, "y": 0.0},
+                {"x": 1.0, "y": 1.0},
+                {"x": 0.0, "y": 1.0},
+            ],
+        },
+        "minConfidence": 0.10,
+        "minDurationMs": 0,
+    },
+}, separators=(",", ":")))
+PY
+  python3 - "${TEMP_VA_RULE_ID}" "${TEMP_RULE_ID}" "${FILE_TOKEN}" "${tracker_policy}" > "${va_rule_body}" <<'PY'
+import json
+import sys
+
+va_rule_id, template_rule_id, file_token, tracker_policy = sys.argv[1:5]
+print(json.dumps({
+    "id": va_rule_id,
+    "enabled": True,
+    "source": {"kind": "file", "file": file_token},
+    "analysis": {
+        "profileId": "3",
+        "classes": ["person", "vehicle"],
+        "trackingPolicy": {"tracker": tracker_policy, "reid": "off"},
+    },
+    "templateStart": {"ruleId": template_rule_id},
+}, separators=(",", ":")))
+PY
+  curl -fsS -X PUT -H "Content-Type: application/json" \
+    --data-binary "@${rule_body}" \
+    "${HTTP_BASE}/lab/analysis/rules/${TEMP_RULE_ID}" >/dev/null
+  curl -fsS -X PUT -H "Content-Type: application/json" \
+    --data-binary "@${va_rule_body}" \
+    "${HTTP_BASE}/lab/analysis/va-rules/${TEMP_VA_RULE_ID}" >/dev/null
+  log_pass "tracker policy vaRule 준비: tracker=${tracker_policy} vaRule=${TEMP_VA_RULE_ID}"
+}
+
+tap_create_url() {
+  if [[ -n "${TEMP_VA_RULE_ID}" ]]; then
+    printf '%s/lab/analysis/taps?vaRule=%s&fps=8&maxQueue=1&trackIds=1&trackTrails=1' \
+      "${HTTP_BASE}" "${TEMP_VA_RULE_ID}"
+  else
+    printf '%s/lab/analysis/taps?file=%s&va=1&fps=8&maxQueue=1&trackIds=1&trackTrails=1' \
+      "${HTTP_BASE}" "${ENCODED_FILE}"
+  fi
+}
+
+verify_tap_tracker_policy() {
+  local tap_id="$1"
+  local expected="$2"
+  if [[ -z "${expected}" ]]; then
+    return 0
+  fi
+  local snapshot_tmp="/tmp/media_server_${RUN_ID}_${tap_id}_policy.json"
+  local effective=""
+  local requested=""
+  for _ in $(seq 1 10); do
+    if curl -fsS "${HTTP_BASE}/lab/analysis/taps/${tap_id}" > "${snapshot_tmp}"; then
+      effective="$(python3 - "${snapshot_tmp}" <<'PY'
+import json
+import pathlib
+import sys
+
+payload = json.loads(pathlib.Path(sys.argv[1]).read_text() or "{}")
+tap = payload.get("tap") if isinstance(payload, dict) else {}
+policy = (tap or {}).get("trackingPolicy") or {}
+print(policy.get("effectiveTracker") or "")
+PY
+)"
+      requested="$(python3 - "${snapshot_tmp}" <<'PY'
+import json
+import pathlib
+import sys
+
+payload = json.loads(pathlib.Path(sys.argv[1]).read_text() or "{}")
+tap = payload.get("tap") if isinstance(payload, dict) else {}
+policy = (tap or {}).get("trackingPolicy") or {}
+print(policy.get("tracker") or "")
+PY
+)"
+      if [[ "${effective}" == "${expected}" && "${requested}" == "${expected}" ]]; then
+        log_pass "tap tracker policy 적용: tracker=${requested} effective=${effective}"
+        return 0
+      fi
+    fi
+    sleep 0.1
+  done
+  log_fail "tap tracker policy 불일치: expected=${expected} requested=${requested:-none} effective=${effective:-none}"
+  exit 1
+}
+
 prepare_long_tracker_sample() {
   local source_token="$1"
   local target_token="$2"
@@ -226,6 +345,12 @@ cleanup_runtime_documents() {
       curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/taps/${tap_id}" >/dev/null 2>&1 || true
     done
   fi
+  if [[ -n "${TEMP_VA_RULE_ID}" ]]; then
+    curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/va-rules/${TEMP_VA_RULE_ID}" >/dev/null 2>&1 || true
+  fi
+  if [[ -n "${TEMP_RULE_ID}" ]]; then
+    curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/rules/${TEMP_RULE_ID}" >/dev/null 2>&1 || true
+  fi
 }
 trap cleanup_runtime_documents EXIT
 
@@ -250,6 +375,7 @@ CLASS_WHITELIST="${MEDIA_SERVER_VERIFY_TRACKER_CLASS_WHITELIST:-person}"
 MIN_TRACK_SAMPLES="${MEDIA_SERVER_VERIFY_TRACKER_MIN_TRACK_SAMPLES:-3}"
 MAX_STALE_RATIO="${MEDIA_SERVER_VERIFY_TRACKER_MAX_STALE_RATIO:-0.3}"
 MAX_ID_SWITCH_RISK="${MEDIA_SERVER_VERIFY_TRACKER_MAX_ID_SWITCH_RISK:-2.0}"
+TRACKER_POLICY="${MEDIA_SERVER_VERIFY_TRACKER_POLICY:-}"
 OVERLAP_FOCUS="${MEDIA_SERVER_VERIFY_TRACKER_OVERLAP_FOCUS:-0}"
 OVERLAP_MIN_SIMULTANEOUS="${MEDIA_SERVER_VERIFY_TRACKER_OVERLAP_MIN_SIMULTANEOUS:-3}"
 MAX_OVERLAP_FRAGMENTATION_RATIO="${MEDIA_SERVER_VERIFY_TRACKER_MAX_OVERLAP_FRAGMENTATION_RATIO:-2.5}"
@@ -319,6 +445,10 @@ while [[ $# -gt 0 ]]; do
       MAX_ID_SWITCH_RISK="$2"
       shift
       ;;
+    --tracker-policy)
+      TRACKER_POLICY="$2"
+      shift
+      ;;
     --overlap-focus)
       OVERLAP_FOCUS=1
       ;;
@@ -363,6 +493,15 @@ done
 
 require_cmd curl
 require_cmd python3
+
+TRACKER_POLICY="$(printf '%s' "${TRACKER_POLICY}" | tr '[:upper:]' '[:lower:]')"
+if [[ "${TRACKER_POLICY}" == "default" ]]; then
+  TRACKER_POLICY=""
+fi
+if [[ -n "${TRACKER_POLICY}" && "${TRACKER_POLICY}" != "lite" && "${TRACKER_POLICY}" != "kalman-lite" ]]; then
+  log_fail "지원하지 않는 tracker policy입니다: ${TRACKER_POLICY}"
+  exit 1
+fi
 
 if [[ -z "${RESTART_BETWEEN_ITERATIONS}" ]]; then
   if [[ "${LONG_MODE}" == "1" ]]; then
@@ -411,6 +550,7 @@ fi
 
 log_info "http_base=${HTTP_BASE}"
 log_info "file=${FILE_TOKEN}"
+log_info "trackerPolicy=${TRACKER_POLICY:-direct-source-default}"
 log_info "repeat=${REPEAT_COUNT} poll=${POLL_COUNT} interval=${POLL_INTERVAL_S}s duration=${DURATION_S:-auto}"
 log_info "stress=${STRESS_MODE} segmentAware=${SEGMENT_AWARE} classWhitelist=${CLASS_WHITELIST} minTrackSamples=${MIN_TRACK_SAMPLES} maxStaleRatio=${MAX_STALE_RATIO} maxIdSwitchRisk=${MAX_ID_SWITCH_RISK}"
 log_info "overlapFocus=${OVERLAP_FOCUS} overlapMin=${OVERLAP_MIN_SIMULTANEOUS} maxOverlapFragmentation=${MAX_OVERLAP_FRAGMENTATION_RATIO}"
@@ -423,6 +563,8 @@ if ! curl -fsS --max-time 3 "${HTTP_BASE}/health" >/dev/null; then
 fi
 log_pass "HTTP health ok"
 
+create_tracker_policy_va_rule "${TRACKER_POLICY}"
+
 : > "${SUMMARY_FILE}"
 
 for iteration in $(seq 1 "${REPEAT_COUNT}"); do
@@ -432,7 +574,7 @@ for iteration in $(seq 1 "${REPEAT_COUNT}"); do
   METRICS_TMP="/tmp/media_server_${RUN_ID}_iteration_${iteration}_metrics.json"
   log_info "iteration ${iteration}/${REPEAT_COUNT} 시작"
 
-  TAP_RESPONSE="$(curl -fsS -X POST "${HTTP_BASE}/lab/analysis/taps?file=${ENCODED_FILE}&va=1&fps=8&maxQueue=1&trackIds=1&trackTrails=1")"
+  TAP_RESPONSE="$(curl -fsS -X POST "$(tap_create_url)")"
   CURRENT_TAP_ID="$(python3 -c 'import json,sys; print(json.load(sys.stdin).get("tapId",""))' <<<"${TAP_RESPONSE}")"
   if [[ -z "${CURRENT_TAP_ID}" ]]; then
     log_fail "analysis tap 생성 실패"
@@ -441,6 +583,7 @@ for iteration in $(seq 1 "${REPEAT_COUNT}"); do
   fi
   TAP_IDS+=("${CURRENT_TAP_ID}")
   log_pass "analysis tap 생성: ${CURRENT_TAP_ID}"
+  verify_tap_tracker_policy "${CURRENT_TAP_ID}" "${TRACKER_POLICY}"
 
   : > "${SNAPSHOTS_FILE}"
   for _ in $(seq 1 "${POLL_COUNT}"); do

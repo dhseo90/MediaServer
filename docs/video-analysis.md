@@ -113,7 +113,9 @@ YOLO parser는 `YOLOv8/YOLO11` 계열의 `[1, 84, N]` 또는 `[1, N, 84]` 출력
 
 ### Tracking
 
-현재 tracker는 direction-based/lightweight tracker입니다. Kalman Filter, BoT-SORT, ByteTrack, 실제 Re-ID 모델을 기본 tracking id 생성에 사용하지 않습니다.
+기본 tracker는 direction-based/lightweight tracker입니다. Kalman-lite는 v1.4.0
+rule-level opt-in tracker로 제공하며, BoT-SORT, ByteTrack, 실제 Re-ID 모델은
+기본 tracking id 생성에 사용하지 않습니다.
 
 v1.4.0부터 rule/vaRule은 `analysis.trackingPolicy`로 tracker/Re-ID 선택 계약을
 가질 수 있습니다. 기존 저장 rule에 이 필드가 없으면 자동 migration 없이
@@ -125,9 +127,10 @@ v1.4.0부터 rule/vaRule은 `analysis.trackingPolicy`로 tracker/Re-ID 선택 �
 - `reid`: `off`, `assist`
 
 `tracker=none`은 runtime tracking을 끄며 Re-ID는 `off`여야 합니다.
-`kalman-lite`와 `bytetrack`은 저장 계약 후보로 먼저 고정하되, 실제 tracker
-구현이 들어오기 전까지 runtime의 `effectiveTracker`는 Lite(`lite`)로
-fallback합니다. 이 fallback 상태는 내부 runtime status에만 남기고
+`kalman-lite`는 Re-ID/model dependency 없이 motion prediction과 bbox smoothing을
+적용하는 opt-in runtime tracker입니다. `bytetrack`은 저장 계약 후보로 남기되,
+구현 전까지 runtime의 `effectiveTracker`는 Lite(`lite`)로 fallback합니다.
+fallback 상태는 내부 runtime status에만 남기고
 Event POST/WebRTC DataChannel/SSE/WS metadata schema에는 추가하지 않습니다.
 외부 payload의 `source.profileKey` 문자열에도 policy token을 추가하지 않습니다.
 Re-ID `assist`도 외부 metadata에 embedding, crop, model path, checksum,
@@ -149,8 +152,8 @@ unmatched track은 제한된 lost buffer에 남고, 짧은 누락 뒤 같은 cla
 | bbox 좌표는 맞음 | detector보다 tracker association 후보 |
 | association score 저하 | trackId 흔들림 가능 |
 | lost/reacquired 증가 | 짧은 누락 뒤 재연결된 상태 |
-| detector 후처리 변경 필요 | 이번 진단/보강 범위 아님 |
-| Kalman/ByteTrack/BoT-SORT/Re-ID 도입 | 이번 범위 아님 |
+| detector 후처리 변경 필요 | tracker opt-in 범위 밖 |
+| ByteTrack/BoT-SORT/Re-ID 도입 | Kalman-lite 범위 밖 |
 
 Close-object association guard는 이 한계를 관찰하기 위한 opt-in 진단/보정 skeleton입니다.
 
@@ -1540,7 +1543,8 @@ baseline 비교 기준:
 
 ## 19. 제한사항
 
-- Tracker는 여전히 direction-based/lightweight tracker입니다. Kalman Filter, BoT-SORT, ByteTrack은 도입하지 않았습니다.
+- 기본 tracker는 여전히 direction-based/lightweight tracker입니다. Kalman-lite는
+  rule-level opt-in이며, BoT-SORT/ByteTrack은 도입하지 않았습니다.
 - 실제 Re-ID/attribute 분석은 기본 비활성입니다.
   실험용 ONNX Re-ID extractor hook은 있지만,
   운영 feature/default-on으로 보려면 모델, 성능, 개인정보 정책 재검토가 별도 review로 필요합니다.

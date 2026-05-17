@@ -80,6 +80,11 @@ float CenterDistance(const RectF& lhs, const RectF& rhs) {
     return std::sqrt(dx * dx + dy * dy);
 }
 
+float ClampDelta(float value, float limit) {
+    const float clamped_limit = std::max(0.001F, limit);
+    return std::max(-clamped_limit, std::min(clamped_limit, value));
+}
+
 float PointDistance(float lhs_x, float lhs_y, float rhs_x, float rhs_y) {
     const float dx = lhs_x - rhs_x;
     const float dy = lhs_y - rhs_y;
@@ -204,11 +209,13 @@ float DirectionScore(const Track& track, const Detection& detection) {
 
 ObjectAssociationScore BuildAssociationScore(const Track& track,
                                              const Detection& detection,
-                                             const ObjectTrackerOptions& options) {
+                                             const ObjectTrackerOptions& options,
+                                             float association_iou,
+                                             float association_center_distance) {
     ObjectAssociationScore score;
     const Detection& tracked = track.detection;
-    score.iou_score = IoU(tracked.box, detection.box);
-    score.center_distance_score = CenterDistanceScore(AssociationCenterDistance(track, detection), options);
+    score.iou_score = association_iou;
+    score.center_distance_score = CenterDistanceScore(association_center_distance, options);
     score.direction_score = DirectionScore(track, detection);
     score.class_consistency_score = ClassConsistencyScore(tracked, detection);
     const float total_weight =
@@ -274,6 +281,10 @@ ObjectTracker::ObjectTracker(ObjectTrackerOptions options) : options_(options) {
     }
     options_.min_association_score = std::max(0.0F, std::min(1.0F, options_.min_association_score));
     options_.smoothing_alpha = std::max(0.0F, std::min(0.95F, options_.smoothing_alpha));
+    options_.kalman_position_alpha = std::max(0.05F, std::min(1.0F, options_.kalman_position_alpha));
+    options_.kalman_velocity_beta = std::max(0.0F, std::min(1.0F, options_.kalman_velocity_beta));
+    options_.kalman_max_prediction_frames =
+        std::max<std::uint32_t>(1, std::min<std::uint32_t>(16, options_.kalman_max_prediction_frames));
     options_.close_object_distance_ratio =
         std::max(0.01F, std::min(4.0F, options_.close_object_distance_ratio));
     options_.close_object_overlap_threshold =
@@ -309,11 +320,80 @@ void ObjectTracker::Update(AnalysisResult* result) {
     }
     result->close_object_diagnostics.clear();
 
+    const auto initialize_kalman_state = [](ActiveTrack* track) {
+        if (track == nullptr) {
+            return;
+        }
+        track->kalman.initialized = true;
+        track->kalman.box = track->public_track.detection.box;
+        track->kalman.velocity_x = 0.0F;
+        track->kalman.velocity_y = 0.0F;
+        track->kalman.velocity_width = 0.0F;
+        track->kalman.velocity_height = 0.0F;
+    };
+
+    const auto prediction_steps = [this](std::uint32_t missed) {
+        return static_cast<float>(
+            std::min<std::uint32_t>(std::max<std::uint32_t>(1, missed + 1),
+                                    options_.kalman_max_prediction_frames));
+    };
+
+    const auto predict_kalman_box = [this, &prediction_steps, &initialize_kalman_state](
+                                        ActiveTrack* track) {
+        if (track == nullptr) {
+            return RectF{};
+        }
+        if (!track->kalman.initialized) {
+            initialize_kalman_state(track);
+        }
+        const float steps = prediction_steps(track->public_track.missed);
+        return ClampRect(RectF{
+            track->kalman.box.x + track->kalman.velocity_x * steps,
+            track->kalman.box.y + track->kalman.velocity_y * steps,
+            track->kalman.box.width + track->kalman.velocity_width * steps,
+            track->kalman.box.height + track->kalman.velocity_height * steps,
+        });
+    };
+
+    const auto update_kalman_state = [this, &predict_kalman_box](ActiveTrack* track,
+                                                                 const RectF& measured_box) {
+        if (track == nullptr) {
+            return measured_box;
+        }
+        const RectF predicted = predict_kalman_box(track);
+        const RectF measured = ClampRect(measured_box);
+        const float alpha = options_.kalman_position_alpha;
+        const float beta = options_.kalman_velocity_beta;
+        const RectF residual{
+            measured.x - predicted.x,
+            measured.y - predicted.y,
+            measured.width - predicted.width,
+            measured.height - predicted.height,
+        };
+        const RectF corrected = ClampRect(RectF{
+            predicted.x + residual.x * alpha,
+            predicted.y + residual.y * alpha,
+            predicted.width + residual.width * alpha,
+            predicted.height + residual.height * alpha,
+        });
+        const float velocity_limit = options_.max_center_distance;
+        track->kalman.velocity_x = ClampDelta(track->kalman.velocity_x + residual.x * beta, velocity_limit);
+        track->kalman.velocity_y = ClampDelta(track->kalman.velocity_y + residual.y * beta, velocity_limit);
+        track->kalman.velocity_width =
+            ClampDelta(track->kalman.velocity_width + residual.width * beta, velocity_limit);
+        track->kalman.velocity_height =
+            ClampDelta(track->kalman.velocity_height + residual.height * beta, velocity_limit);
+        track->kalman.box = corrected;
+        track->kalman.initialized = true;
+        return corrected;
+    };
+
     struct Candidate {
         std::size_t track_index{0};
         std::size_t detection_index{0};
         ObjectAssociationScore score;
         float ranking_score{0.0F};
+        float association_center_distance{0.0F};
         CloseObjectAssociationDiagnostic diagnostic;
         bool has_diagnostic{false};
     };
@@ -330,20 +410,33 @@ void ObjectTracker::Update(AnalysisResult* result) {
                 continue;
             }
 
-            const float iou = IoU(tracked.box, detection.box);
+            const bool kalman_lite = options_.tracker_kind == ObjectTrackerKind::KalmanLite;
+            const RectF association_box =
+                kalman_lite ? predict_kalman_box(&tracks_[track_index]) : tracked.box;
+            const float iou =
+                kalman_lite ? IoU(association_box, detection.box) : IoU(tracked.box, detection.box);
             const float center_distance =
-                AssociationCenterDistance(tracks_[track_index].public_track, detection);
+                kalman_lite ? CenterDistance(association_box, detection.box)
+                             : AssociationCenterDistance(tracks_[track_index].public_track, detection);
             if (iou < options_.min_iou && center_distance > options_.max_center_distance) {
                 continue;
             }
 
             const ObjectAssociationScore score =
-                BuildAssociationScore(tracks_[track_index].public_track, detection, options_);
+                BuildAssociationScore(tracks_[track_index].public_track,
+                                      detection,
+                                      options_,
+                                      iou,
+                                      center_distance);
             if (score.class_consistency_score <= 0.0F ||
                 score.final_score < options_.min_association_score) {
                 continue;
             }
-            candidates.push_back(Candidate{track_index, detection_index, score, score.final_score});
+            candidates.push_back(Candidate{track_index,
+                                           detection_index,
+                                           score,
+                                           score.final_score,
+                                           center_distance});
         }
     }
 
@@ -391,7 +484,7 @@ void ObjectTracker::Update(AnalysisResult* result) {
             }
 
             const float center_jump = CenterDistance(track.public_track.detection.box, detection.box);
-            const float association_jump = AssociationCenterDistance(track.public_track, detection);
+            const float association_jump = candidate.association_center_distance;
             const bool direction_conflict =
                 candidate.score.direction_score < 0.35F &&
                 association_jump > options_.max_center_distance * 0.5F;
@@ -493,9 +586,18 @@ void ObjectTracker::Update(AnalysisResult* result) {
         ActiveTrack& track = tracks_[candidate.track_index];
         Detection detection = result->detections[candidate.detection_index];
         const bool was_lost_buffer_track = track.public_track.missed > 0;
+        const RectF measured_box = detection.box;
         detection.track_id = track.public_track.track_id;
         detection.association_confidence = candidate.ranking_score;
-        detection.box = SmoothRect(track.public_track.detection.box, detection.box, options_.smoothing_alpha);
+        if (options_.tracker_kind == ObjectTrackerKind::KalmanLite) {
+            if (!detection.detector_box_available) {
+                detection.detector_box_available = true;
+                detection.detector_box = measured_box;
+            }
+            detection.box = update_kalman_state(&track, measured_box);
+        } else {
+            detection.box = SmoothRect(track.public_track.detection.box, detection.box, options_.smoothing_alpha);
+        }
 
         track.public_track.detection = detection;
         ++track.public_track.age;
@@ -566,7 +668,9 @@ void ObjectTracker::Update(AnalysisResult* result) {
         public_track.last_seen_pts = result->pts;
         public_track.state = TrackState(public_track, options_);
         AppendTrailPoint(&public_track, detection, result->pts, options_.max_trail_points);
-        tracks_.push_back(ActiveTrack{public_track});
+        ActiveTrack active_track{public_track};
+        initialize_kalman_state(&active_track);
+        tracks_.push_back(active_track);
         result->detections[detection_index] = detection;
     }
 

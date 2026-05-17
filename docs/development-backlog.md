@@ -447,9 +447,11 @@ v1.4.0 비범위:
   않습니다.
 - `tracker=none`이면 runtime tracking을 끄며 `reid=assist` 조합은 API 저장에서
   거부합니다.
-- `kalman-lite`와 `bytetrack`은 v1.4.0 후보값으로 저장 계약에 포함하지만, 해당
-  tracker 구현 전까지 runtime의 `effectiveTracker`는 `lite`로 남기고
-  fallback reason을 내부 runtime status에만 표시합니다.
+- `kalman-lite`는 v1.4.0 P1 opt-in runtime tracker로 제공하며,
+  `effectiveTracker=kalman-lite`로 표시합니다.
+- `bytetrack`은 v1.4.0 후보값으로 저장 계약에 포함하지만, 구현 전까지 runtime의
+  `effectiveTracker`는 `lite`로 남기고 fallback reason을 내부 runtime status에만
+  표시합니다.
 - Re-ID `assist`는 선택값 계약일 뿐이며 model artifact, embedding, crop, model
   path, checksum/provenance는 외부 Event POST/WebRTC/SSE/WS metadata 또는
   client/viewer 화면에 노출하지 않습니다.
@@ -468,7 +470,7 @@ v1.4.0 비범위:
 이번 항목의 범위 밖:
 
 - `/ops/rules` tracker/Re-ID 선택 control 추가
-- Kalman-lite/ByteTrack tracker 구현
+- ByteTrack tracker 구현
 - Re-ID model/provenance runtime gate 고도화
 - Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
 - RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
@@ -511,6 +513,44 @@ material과 appearance profile을 외부 payload로 내보내지 않고, 실제 
 - Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
 - RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
 - runtime/model bundle RC policy, container/offline/binary package 포함
+
+### V140-P1-01 Kalman-lite tracker 종료 판정
+
+`Kalman-lite tracker`는 기존 Lite tracker를 전역 기본값으로 바꾸지 않고
+저장 rule/vaRule의 `analysis.trackingPolicy.tracker=kalman-lite`에서만 켜는
+opt-in runtime tracker입니다.
+
+확인됨:
+
+- `kalman-lite`는 runtime fallback 없이 `effectiveTracker=kalman-lite`로
+  해석합니다.
+- tracker 내부에 bounded constant-velocity Kalman-lite state를 두고, 짧은
+  missed gap에서는 예측 bbox를 association 후보로 사용합니다.
+- 매칭된 detection bbox는 Kalman-lite correction 결과로 보정해 bbox jitter를
+  줄입니다.
+- Re-ID/model dependency, embedding/crop/model path, 외부 metadata field는
+  추가하지 않습니다.
+- `verify-tracker-stability`와 `compare-close-object-tracker`는
+  `--tracker-policy kalman-lite` 옵션으로 임시 vaRule을 만들어 rule-level opt-in
+  경로를 직접 검증할 수 있습니다.
+
+검증 기준:
+
+- `./server.sh build`
+- `./server.sh verify-analysis-state`
+- `./server.sh verify-tracker-stability --tracker-policy kalman-lite`
+- `./server.sh compare-close-object-tracker --tracker-policy kalman-lite`
+- `./server.sh verify-va-replay`
+- `./server.sh verify-va-events`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- Lite tracker의 전역/default 동작 변경
+- ByteTrack, OC-SORT, BoT-SORT, DeepSORT 구현
+- Re-ID assist 고도화, Re-ID default-on, model/runtime bundle 포함
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
 
 ## 별도 Phase 후보
 

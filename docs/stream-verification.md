@@ -687,6 +687,14 @@ event POST 반복 안정성:
 ./server.sh verify-tracker-stability --long --overlap-focus
 ```
 
+rule-level tracker policy를 직접 태워야 하면 `verify-tracker-stability`가 임시
+event rule/vaRule을 만들고 `?vaRule=<id>` 경로로 tap을 붙입니다. 이 경로는
+file/url/source override와 섞지 않으며, 종료 시 임시 rule을 정리합니다.
+
+```bash
+./server.sh verify-tracker-stability --tracker-policy kalman-lite
+```
+
 Close-object guard 검증은 mode별 목적을 분리합니다.
 
 | 모드 | 확인할 것 | 통과 기준 |
@@ -707,6 +715,9 @@ mode별 tracker summary JSON과 Markdown report는
   --file imports/va_tracking_event_1280x720_30fps_h264.mp4 \
   --modes off,diagnostic,enforce
 ```
+
+Kalman-lite opt-in tracker에서 같은 guard 비교를 보려면 `--tracker-policy
+kalman-lite`를 추가합니다.
 
 이미 실행 중인 서버를 기준으로만 비교해야 하면 `--use-existing-server --http-base <url>`을 사용합니다.
 이 경우 리포트의 `mode effective`가 `yes`인지 확인해야 합니다.
