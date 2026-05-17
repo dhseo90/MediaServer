@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Latest Release](https://img.shields.io/github/v/release/dhseo90/MediaServer?label=release)](https://github.com/dhseo90/MediaServer/releases/latest)
+[![Source Release](https://img.shields.io/badge/source--only%20release-v1.3.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v1.3.0)
 
 RTSP/WebRTC live stream을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 분석
 overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다.
@@ -11,10 +11,11 @@ live source health, live VA event 품질입니다.
 
 English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 
-최신 source-only release: [v1.2.1](https://github.com/dhseo90/MediaServer/releases/tag/v1.2.1)
-v1.2.1 source-only patch close-out과 후속 종료 판정은
+최신 source-only release: [v1.3.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.3.0)
+v1.3.0 source-only minor close-out과 후속 종료 판정은
 [docs/development-backlog.md](docs/development-backlog.md)와
-[docs/v1.2.1-follow-up-closure.md](docs/v1.2.1-follow-up-closure.md)에 분리해 기록합니다.
+[docs/v1.3.0-follow-up-closure.md](docs/v1.3.0-follow-up-closure.md)에 분리해 기록합니다.
+v1.4.0 roadmap 초안은 v1.4.0 branch에서 커밋 전 검토 대상으로 작성합니다.
 
 ## 한눈에 보기
 
@@ -113,7 +114,9 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | Auth/Ops/Client 화면 구조와 사용 흐름 | [docs/ui-guide.md](docs/ui-guide.md) |
 | RTSP/WebRTC pipeline, source/session, VA layer 배치 | [docs/media-server-architecture.md](docs/media-server-architecture.md) |
 | YOLO, tracking, scenario, live event, short evidence 정책 | [docs/video-analysis.md](docs/video-analysis.md) |
+| Re-ID default-off 연구 지속 기준 | [docs/reid-default-off-research-continuation.md](docs/reid-default-off-research-continuation.md) |
 | ONVIF live source 지원과 URL copy parity | [docs/onvif-live-source-support.md](docs/onvif-live-source-support.md) |
+| ONVIF field smoke gate와 redaction artifact 절차 | [docs/onvif-field-smoke-gate.md](docs/onvif-field-smoke-gate.md), [docs/onvif-field-smoke-artifact-redaction.md](docs/onvif-field-smoke-artifact-redaction.md) |
 | Live source health/operator workflow 기준 | [docs/live-source-health.md](docs/live-source-health.md) |
 | Event/WebRTC/SSE/WS metadata contract | [docs/live-event-metadata-contracts.md](docs/live-event-metadata-contracts.md) |
 | Integrator contract artifact sample bundle | [docs/integrator-contract-artifact.md](docs/integrator-contract-artifact.md) |
@@ -126,8 +129,9 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | 운영 백업/복구 대상과 복구 후 검증 | [docs/ops-backup-recovery.md](docs/ops-backup-recovery.md) |
 | Loitering/ZoneOccupancy 현장 시작 threshold | [docs/analysis-threshold-baselines.md](docs/analysis-threshold-baselines.md) |
 | sample 영상/fixture 출처와 공개 기준 | [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) |
-| 현재 제품 경계와 v1.2.1 close-out | [docs/development-backlog.md](docs/development-backlog.md) |
-| v1.2.1 후속 종료 판정과 수동 UI 검수 증적 | [docs/v1.2.1-follow-up-closure.md](docs/v1.2.1-follow-up-closure.md), [docs/manual-ui-v1.2.1-result.md](docs/manual-ui-v1.2.1-result.md) |
+| 현재 제품 경계, v1.3.0 close-out, v1.4.0 roadmap 준비 기준 | [docs/development-backlog.md](docs/development-backlog.md) |
+| historical v1.2.1 후속 종료 판정과 수동 UI 검수 증적 | [docs/v1.2.1-follow-up-closure.md](docs/v1.2.1-follow-up-closure.md), [docs/manual-ui-v1.2.1-result.md](docs/manual-ui-v1.2.1-result.md) |
+| v1.3.0 후속 종료 판정 | [docs/v1.3.0-follow-up-closure.md](docs/v1.3.0-follow-up-closure.md) |
 | YouTube import/source 실험 기능 | [docs/youtube-import.md](docs/youtube-import.md) |
 
 ## 대표 UI 미리보기

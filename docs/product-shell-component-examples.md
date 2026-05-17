@@ -3,8 +3,8 @@
 schema: `media-server.product-shell-component-examples.v1`
 updated: 2026-05-16
 
-이 문서는 v1.2.0 UI visual regression 후속에서 Auth, Ops, Client 화면이 같은 product shell과
-component vocabulary를 쓰도록 고정하는 예시 모음입니다. 새 화면을 만들거나 기존 화면을 다듬을 때
+이 문서는 v1.2.0 UI visual regression 후속에서 도입되어 v1.3.0에서도 유지되는
+Auth, Ops, Client product shell과 component vocabulary 예시 모음입니다. 새 화면을 만들거나 기존 화면을 다듬을 때
 아래 예시를 먼저 확인하고, 새 class나 token을 만들기 전에 기존 helper와 semantic token으로 표현할 수
 있는지 확인합니다.
 
@@ -136,18 +136,26 @@ Debug/raw payload는 펼침 영역에만 두고 기본 화면에는 요약과 �
 ## Client Live Tile
 
 Client shell은 viewer가 실제로 볼 정보만 남깁니다. 타일 control에는 타일 번호가 들어간
-accessible name을 유지하고, keyboard focus와 선택 상태를 볼 수 있어야 합니다.
+accessible name을 유지하고, keyboard focus와 선택 상태 및 숨김 상태 요약을 같은 언어로
+읽을 수 있어야 합니다.
 
 ```html
-<article class="tile" tabindex="0" role="group" aria-label="타일 1: 라이브">
+<article class="tile" tabindex="0" role="group" aria-label="타일 1: 라이브" aria-describedby="liveTileStatus0">
   <div class="tile-stage"></div>
   <div class="tile-controls">
-    <button type="button" aria-label="타일 1 시작">시작</button>
     <select aria-label="타일 1 보기 방식">
       <option>Fit</option>
       <option>Fill</option>
     </select>
   </div>
+  <div class="tile-actions">
+    <button type="button" aria-label="타일 1 시작">시작</button>
+    <button type="button" aria-label="타일 1 재연결">재연결</button>
+    <button type="button" aria-label="타일 1 정지">정지</button>
+  </div>
+  <p id="liveTileStatus0" class="sr-only" data-role="a11y-status" aria-live="polite" aria-atomic="true">
+    타일 1: 채널 미선택 · 상태 오프라인 · 연결 연결 끊김 · 트랙 미제공 · 이벤트 미제공 · 메타데이터 미제공 · 재시도 0
+  </p>
 </article>
 ```
 

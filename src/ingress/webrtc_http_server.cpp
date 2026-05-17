@@ -2349,7 +2349,7 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
           </div>
           <div class="actions incident-timeline-controls">
             <label>인시던트 검색
-              <input id="dashIncidentTimelineSearch" placeholder="제목, 출처, cid 검색" />
+              <input id="dashIncidentTimelineSearch" placeholder="제목, 출처, incident/cid 검색" />
             </label>
             <label>출처
               <select id="dashIncidentTimelineSource">
@@ -2367,6 +2367,19 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
         <p id="dashIncidentTimelineText">불러오는 중</p>
         <div id="dashIncidentTimeline" class="root-cause-list">
           <div class="empty">최근 인시던트 단서를 불러오는 중입니다.</div>
+        </div>
+      </section>
+      <section class="section-card" data-testid="ops-runtime-operations-console">
+        <div class="toolbar">
+          <div>
+            <h3>런타임 운영 판독</h3>
+            <p>선택 tap의 scenario timeline, TrackHealth, recent EventRecord를 원인, 영향, 다음 조치 순서로 봅니다.</p>
+          </div>
+        </div>
+        <div id="dashRuntimeOpsBadges" class="badge-row"><span class="chip">분석 탭 대기</span></div>
+        <p id="dashRuntimeOpsText">활성 분석 탭이 있으면 운영 판독을 표시합니다.</p>
+        <div id="dashRuntimeOpsList" class="root-cause-list">
+          <div class="empty">런타임 운영 판독 대기 중입니다.</div>
         </div>
       </section>
       <section class="section-card">
@@ -2762,10 +2775,11 @@ void AppendOpsRulesPage(std::ostringstream& out) {
             <label>최소 신뢰도
               <input id="opsEventRuleConfidenceInput" type="number" min="0" max="1" step="0.01" placeholder="0.25" />
             </label>
-            <label>최소 지속 시간(ms)
+            <label id="opsEventRuleMinDurationField">최소 지속 시간(ms)
               <input id="opsEventRuleMinDurationInput" type="number" min="0" step="100" placeholder="0" />
             </label>
           </div>
+          <p id="opsEventRulePresetSummary" class="form-note">현장 preset은 시작값입니다. 저장 전 replay/현장 영상 기준으로 geometry와 숫자 조건을 확인하세요.</p>
           <section class="ops-category-section" aria-labelledby="opsEventRuleClassesHeading">
             <div class="ops-category-header">
               <div>
@@ -2875,7 +2889,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
         <div class="toolbar">
           <div>
             <h3>변경 이력</h3>
-            <p>이 브라우저에서 수행한 룰 변경의 작업자, 전/후 값, 시각을 확인합니다.</p>
+            <p>서버 감사 로그에서 룰 변경의 작업자, 전/후 값, 시각을 확인하고 룰 감사 JSON/CSV/Diff JSON export를 내려받습니다.</p>
           </div>
           <button id="opsRulesAuditRefresh" class="button-secondary" type="button">새로고침</button>
         </div>
@@ -4063,7 +4077,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
         <div class="toolbar">
           <div>
             <h3>변경 이력</h3>
-            <p>이 브라우저에서 수행한 채널 변경의 작업자, 전/후 값, 시각을 확인합니다.</p>
+            <p>서버 감사 로그에서 채널 변경의 작업자, 전/후 값, 시각을 확인하고 채널 감사 JSON/CSV/Diff JSON export를 내려받습니다.</p>
           </div>
           <button id="channel-audit-refresh" class="button-secondary" type="button">새로고침</button>
         </div>
@@ -4243,7 +4257,7 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         <div class="toolbar">
           <div>
             <h2>변경 이력</h2>
-            <p>이 브라우저에서 수행한 사용자 변경의 작업자, 전/후 값, 시각을 확인하고 사용자 감사 JSON/CSV/Diff JSON export를 내려받습니다.</p>
+            <p>서버 감사 로그에서 사용자 변경의 작업자, 전/후 값, 시각을 확인하고 사용자 감사 JSON/CSV/Diff JSON export를 내려받습니다.</p>
           </div>
           <button id="user-audit-refresh" class="button-secondary" type="button">새로고침</button>
         </div>
@@ -7839,6 +7853,7 @@ bool AuditSensitiveKey(const std::string& key) {
            lowered.find("token") != std::string::npos ||
            lowered.find("hash") != std::string::npos ||
            lowered.find("secret") != std::string::npos ||
+           lowered.find("credential") != std::string::npos ||
            lowered.find("capability") != std::string::npos;
 }
 
@@ -8167,9 +8182,10 @@ OpsAuditQueryResult QueryOpsAuditEntries(const app::AppConfig& config,
         while (std::getline(in, line)) {
             line = Trim(line);
             ++scanned;
-            if (!line.empty() && line.front() == '{' &&
-                OpsAuditLineMatches(line, area, actor, action, target, user, query_text, from_ms, to_ms)) {
-                lines.push_back(line);
+            const std::string redacted_line = RedactAuditJsonFragment(line);
+            if (!redacted_line.empty() && redacted_line.front() == '{' &&
+                OpsAuditLineMatches(redacted_line, area, actor, action, target, user, query_text, from_ms, to_ms)) {
+                lines.push_back(redacted_line);
             }
         }
     }

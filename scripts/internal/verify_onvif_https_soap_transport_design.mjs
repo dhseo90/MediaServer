@@ -83,7 +83,7 @@ check("HTTPS SOAP design documents TLS requirements", () => {
 check("HTTPS TLS fixture harness design is documented as fixture-only no-device scope", () => {
   for (const term of [
     "# ONVIF HTTPS TLS Fixture Harness Design",
-    "v1.2.0 현재 상태는 fixture-only",
+    "v1.2.0에서 도입된 현재 상태는 fixture-only",
     "trustedFixtureSuccess",
     "ephemeral CA",
     "server private key는 repository와 artifact에 저장하지 않습니다",

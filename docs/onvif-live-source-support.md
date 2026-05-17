@@ -17,6 +17,7 @@ ONVIF protocol/service별 지원 범위는
 - [Config Reference](./config-reference.md)
 - [ONVIF Protocol Support Matrix](./onvif-protocol-support-matrix.md)
 - [ONVIF No-Device Verification](./onvif-no-device-verification.md)
+- [ONVIF Field Smoke Gate](./onvif-field-smoke-gate.md)
 - [ONVIF RTSPS Draft Policy](./onvif-rtsps-draft-policy.md)
 - [ONVIF Unsupported API Guard](./onvif-unsupported-api-guard.md)
 
@@ -141,7 +142,7 @@ test/fixtures/onvif_closed_loopback_failure_matrix.json
 
 ## Media/Media2 Profile Selection Policy
 
-현재 v1.2.0 ONVIF probe는 live source 등록 draft 생성을 위한 최소 profile
+v1.2.0에서 도입되어 현재 유지되는 ONVIF probe는 live source 등록 draft 생성을 위한 최소 profile
 선택만 수행합니다.
 
 선택 순서:
@@ -192,7 +193,9 @@ draft 매핑:
 [ONVIF No-Device Verification](./onvif-no-device-verification.md)에 따라
 synthetic fixture, loopback transport, redaction 검증만 수행하며, 실장비 endpoint
 성공은 미확인으로 보고합니다.
-이번 v1.2.0 ONVIF 현장 연동 개발 과정에서는 실제 ONVIF 카메라 smoke를 수행하지
+이 개발 검증 결과는 [ONVIF Field Smoke Gate](./onvif-field-smoke-gate.md)의
+field smoke gate 결과와 분리합니다.
+2026-05-15 v1.2.0 ONVIF 현장 연동 개발 과정에서는 실제 ONVIF 카메라 smoke를 수행하지
 않았고, 공개 인터넷의 임의 ONVIF endpoint도 실장비 대체로 사용하지 않았습니다.
 실장비 없는 성공 경로 대체 검증은 local simulator fixture smoke로만 구분해
 보고합니다.
@@ -250,6 +253,11 @@ MEDIA_SERVER_ONVIF_FIELD_ENDPOINT='http://<redacted-host>/onvif/device_service' 
 camera: <vendor/model redacted>
 endpoint: <redacted host>/onvif/device_service
 auth: credentialRef present, plaintext omitted
+releaseDevelopmentStatus: procedure-fixed
+gateDecision: not-run|blocked|failed|passed
+playbackStatus: pass|fail|skipped
+redactionArtifactReview: pass|fail
+fieldSmokeReportReview: pass|fail
 services: Device=<yes/no>, Media=<yes/no>, Media2=<yes/no>
 selectedProfile: token=<redacted>, api=<Media|Media2>, encoding=<H264|H265>,
   size=<width>x<height>, fps=<n>, transport=RTSP
@@ -285,6 +293,7 @@ notes: <sanitized operational note>
 ./server.sh verify-onvif-no-device-completion
 ./server.sh verify-onvif-https-tls-fixture
 ./server.sh verify-onvif-auth-injection-loopback
+./server.sh verify-onvif-field-smoke-gate
 ./server.sh verify-onvif-field-smoke-redaction
 ./server.sh verify-onvif-field-smoke-sample-bundle
 ./server.sh verify-onvif-field-http-probe --allow-missing-endpoint

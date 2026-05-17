@@ -5,10 +5,20 @@
 재현하기 위한 참고 자료이며, 제품 API contract나 장비 인증 정보를 대체하지
 않습니다.
 
+관련 기준:
+
+- [ONVIF Field Smoke Gate](./onvif-field-smoke-gate.md)
+- [ONVIF No-Device Verification](./onvif-no-device-verification.md)
+- [ONVIF Live Source Support](./onvif-live-source-support.md)
+
 ## 공유 가능 산출물
 
 - Redacted probe fixture: `test/fixtures/onvif_probe_result_stub.json` 구조를
   따르되 실제 장비 host, credential, raw SOAP는 제외합니다.
+- Gate decision summary: `releaseDevelopmentStatus=procedure-fixed`,
+  `gateDecision=<not-run|blocked|failed|passed>`, `playbackStatus`,
+  `redactionArtifactReview`, `fieldSmokeReportReview`를 field gate 결과와 함께
+  남깁니다.
 - Draft API 결과 요약: `sourceDraft`, `publishedViewDraft`, `selectedProfile`,
   `auth.credentialRefPresent`, `auth.plaintextSecretIncluded=false`만 남깁니다.
 - Field smoke report template: `realDeviceTestPerformed`,
@@ -28,7 +38,7 @@
 
 - 실제 camera IP, hostname, FQDN, MAC address, serial number 원문
 - ONVIF Device service endpoint 원문과 query string
-- RTSP/RTHS/live URI 원문, WHEP/HLS origin URL 원문
+- RTSP/RTSPS/live URI 원문, WHEP/HLS origin URL 원문
 - username, password, token, cookie, Authorization header
 - credentialRef 실제 값 또는 secret store key 원문
 - raw SOAP request/response, XML body dump, raw diagnostic JSON
@@ -53,6 +63,9 @@
   JSON이 보이지 않는 화면만 포함했다.
 - [ ] 실패 문구는 `verify-onvif-probe-error-wording` matrix의 sanitized summary
   형태로만 남겼다.
+- [ ] field gate 결과는 `gateDecision`, `playbackStatus`,
+  `redactionArtifactReview`, `fieldSmokeReportReview`로 분리했고 no-device suite
+  통과를 field smoke gate pass로 쓰지 않았다.
 - [ ] 실장비가 없거나 실행하지 않은 경우 `realDeviceEndpointSuccess=unverified`,
   `realDeviceTestPerformed=false`, skip reason을 명시했다.
 - [ ] `verificationStatus`에는 각 필수 검증 명령의 pass/fail/skipped 상태를
@@ -79,6 +92,21 @@
 - 범위 상태: credential store, Digest, WS-Security, WS-Discovery, Profile G는
   이 field smoke의 완료 조건이 아닙니다.
 
+## Gate Decision
+
+field smoke report는 [ONVIF Field Smoke Gate](./onvif-field-smoke-gate.md)의
+상태값을 따릅니다.
+
+- `releaseDevelopmentStatus=procedure-fixed`: v1.3.0 (2)는 절차와 verifier를
+  고정했다는 뜻이며 실제 장비 성공을 뜻하지 않습니다.
+- `gateDecision=not-run|blocked|failed|passed`: 실제 field gate 판정입니다.
+  no-device suite 통과는 field smoke gate pass가 아닙니다.
+- `playbackStatus=pass|fail|skipped`: 선택 profile의 RTSP/RTSPS playback 결과입니다.
+- `redactionArtifactReview=pass|fail`: 공유 산출물이 endpoint, credential,
+  raw SOAP, stream URI를 제거했는지 검토한 결과입니다.
+- `fieldSmokeReportReview=pass|fail`: 확인/미확인/건너뜀과 skip reason이 보고서에
+  분리되어 있는지 검토한 결과입니다.
+
 ## Failure Wording
 
 실패 문구는 operator가 다음 조치를 알 수 있을 만큼만 남기고 endpoint, host,
@@ -99,6 +127,11 @@ artifact: onvif-field-smoke-<date>-<redacted-site>
 camera: <vendor/model redacted>
 endpoint: <redacted-host>/onvif/device_service
 auth: credentialRef present, plaintext omitted
+releaseDevelopmentStatus: procedure-fixed
+gateDecision: not-run|blocked|failed|passed
+playbackStatus: pass|fail|skipped
+redactionArtifactReview: pass|fail
+fieldSmokeReportReview: pass|fail
 services: Device=<yes/no>, Media=<yes/no>, Media2=<yes/no>
 selectedProfile: token=<redacted-token>, api=<Media|Media2>, encoding=<H264|H265>,
   size=<width>x<height>, fps=<n>, transport=RTSP
@@ -120,6 +153,7 @@ notes: <sanitized operational note>
 ```bash
 ./server.sh verify-onvif-field-smoke-redaction
 ./server.sh verify-onvif-field-smoke-sample-bundle
+./server.sh verify-onvif-field-smoke-gate
 ./server.sh verify-onvif-probe-fixture-contract
 ./server.sh verify-onvif-probe-error-wording
 ./server.sh verify-docs-links

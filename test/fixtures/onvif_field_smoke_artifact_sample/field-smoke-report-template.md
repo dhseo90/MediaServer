@@ -9,6 +9,16 @@
 - endpoint: `<redacted-host>/onvif/device_service`
 - credential: `credentialReferencePresent=<true|false>`, `plaintextSecretIncluded=false`
 
+## Gate Decision
+
+- schema: `media-server.onvif-field-smoke-gate.v1`
+- releaseDevelopmentStatus: `procedure-fixed`
+- gateDecision: `<not-run|blocked|failed|passed>`
+- playbackStatus: `<pass|fail|skipped>`
+- redactionArtifactReview: `<pass|fail>`
+- fieldSmokeReportReview: `<pass|fail>`
+- noDeviceSuiteCountsAsFieldSuccess=false
+
 ## Probe Summary
 
 - services: `Device=<yes|no>`, `Media=<yes|no>`, `Media2=<yes|no>`
@@ -21,6 +31,7 @@
 | command | status | note |
 | --- | --- | --- |
 | `verify-onvif-field-smoke-redaction` | `<pass|fail>` | `<sanitized note>` |
+| `verify-onvif-field-smoke-gate` | `<pass|fail>` | `<sanitized note>` |
 | `verify-onvif-field-http-probe` | `<pass|fail|skipped>` | `<skip reason when skipped>` |
 | `verify-onvif-probe-draft-api` | `<pass|fail>` | `<sanitized note>` |
 | `verify-onvif-ops-sources-ui` | `<pass|fail>` | `<sanitized note>` |

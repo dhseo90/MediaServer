@@ -1,6 +1,6 @@
 # Development Backlog
 
-이 문서는 `main` 기준의 현재 제품 상태, release close-out 판정, 후속 patch roadmap을
+이 문서는 `main` 기준의 현재 제품 상태, release close-out 판정, 현재/차기 roadmap을
 관리합니다.
 완료된 상세 개발 이력은 [history/development-history.md](./history/development-history.md),
 검증 이력은 [history/verification-history.md](./history/verification-history.md)를 봅니다.
@@ -9,6 +9,10 @@
 
 v1.2.0이 `main`으로 들어가면 v1.2.0 개발 브랜치의 상세 작업 목록은 더 이상 별도
 source-of-truth가 아닙니다. 현재 기준은 이 문서와 기능별 상세 문서로 나눕니다.
+새 active roadmap은 기본적으로 `docs/vX.Y.Z-roadmap.md` 같은 단독 버전 파일로
+추가하지 않고 이 문서에 관리합니다. 버전별 수동 검수, follow-up closure, release
+증적 문서는 필요할 때 historical evidence로 남길 수 있지만 active roadmap
+source-of-truth로 쓰지 않습니다.
 
 - 현재 버전/비범위 기준: [versioning-policy.md](./versioning-policy.md)
 - ONVIF live source: [onvif-live-source-support.md](./onvif-live-source-support.md)
@@ -28,13 +32,15 @@ source-of-truth가 아닙니다. 현재 기준은 이 문서와 기능별 상세
 
 `완료`는 운영 배포 ready, 장기 안정성 보장, 외부 연동 ready를 뜻하지 않습니다.
 
-## 현재 기준: v1.2.1 Source Release Baseline
+## 현재 기준: v1.3.0 Source Release Baseline
 
-v1.2.1은 v1.2.0 live-only source release 경계를 유지하면서 release metadata,
-post-release reconciliation, manual UI evidence, flaky verifier, Re-ID/ONVIF wording,
-release close-out, dependency/artifact housekeeping을 닫은 source-only patch release입니다.
-아래 제품 baseline은 v1.2.0에서 닫은 기능 범위를 유지하고, v1.2.1은 새 product
-scope를 열지 않습니다.
+v1.3.0은 v1.2.x의 source-only/live-only 경계를 유지하면서 runtime operations,
+ONVIF field smoke gate, source health incident workflow, Client Live accessibility,
+Rule/Scenario preset quality, audit trail operations, release/visual baseline
+automation, Re-ID default-off research continuation을 닫은 source-only minor
+release입니다. 아래 제품 baseline은 v1.2.x에서 닫은 live product 범위를 유지하고,
+v1.3.0은 recorder/VMS/NVR, Re-ID default-on, runtime/model bundle scope를 열지
+않습니다.
 
 완료 범위:
 
@@ -57,6 +63,14 @@ scope를 열지 않습니다.
 - [x] source-only release packaging rehearsal과 UI visual artifact maintenance guard
 - [x] Re-ID/advanced tracking default-off 실험 guard와 WARNING 판정
 - [x] YouTube import/source lab-only 현상 유지 결정
+- [x] Runtime operations console, scenario timeline, TrackHealth, EventRecord 운영 요약
+- [x] ONVIF field smoke gate와 redaction/sample artifact 절차
+- [x] Source health incident workflow와 retryable-only next action
+- [x] Client Live accessibility/mobile polish와 debug/source 비노출 smoke
+- [x] Rule/Scenario preset quality와 저장 payload 계약 유지
+- [x] Audit trail search/export/review 최소 흐름
+- [x] Release/visual baseline automation과 approval gate 정리
+- [x] Re-ID default-off research continuation과 v1.3.0 follow-up closure
 
 비범위:
 
@@ -67,6 +81,7 @@ scope를 열지 않습니다.
 - [ ] 외부 TURN/WHEP credential 운영 보장
 - [ ] ONVIF 실장비 endpoint 성공 보장, persistent credential store, Digest/WS-Security
 - [ ] YouTube 운영 기능 승격 또는 실제 URL relay 성공 보장
+- [ ] field sample scheduler, dataset ingest, tracker replacement benchmark 실행
 
 ## v1.2.1 Patch Close-out
 
@@ -107,6 +122,272 @@ v1.2.1 비범위:
 - Re-ID default-on, 대형 tracker 교체, 모델/runtime bundle 포함
 - YouTube 운영 기능 승격, 실제 YouTube URL 성공 gate
 - 장기 녹화, VMS/NVR archive, playback/search
+
+## v1.3.0 Minor Close-out
+
+v1.3.0은 v1.2.x의 source-only/live-only 경계를 유지하면서 운영 흐름과 현장
+연동 검증 밀도를 높인 minor release로 닫았습니다. 새 항목은 기존 API/schema,
+Event POST payload, WebRTC DataChannel, SSE/WS metadata, auth/session contract,
+RTSP/WebRTC media path를 기본적으로 유지합니다. 이 계약을 바꾸는 작업은 아래
+범위 안에 있어도 별도 schema/media-path review를 먼저 열어야 합니다.
+
+| ID | 우선순위 | 영역 | 목표 | 예상 검증 |
+| --- | --- | --- | --- | --- |
+| V130-P0-01 | P0 | Runtime operations console | Runtime Dashboard, scenario timeline, TrackHealth, recent EventRecord를 운영자가 한 화면에서 원인/영향/다음 조치 순서로 읽을 수 있게 정리합니다. schema 변경 없이 기존 runtime/state/event buffer를 재구성합니다. | `verify-va-runtime-console`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ops-client-ui --screenshots` |
+| V130-P0-02 | P0 | ONVIF field smoke gate | 실장비 ONVIF camera smoke를 release 개발 완료로 과장하지 않으면서 endpoint, credential, RTSP/RTSPS playback, redaction artifact를 별도 gate로 기록하는 절차를 [ONVIF Field Smoke Gate](./onvif-field-smoke-gate.md)에 고정합니다. persistent credential store와 Digest/WS-Security 구현은 열지 않습니다. | `verify-onvif-no-device-suite`, `verify-onvif-field-smoke-gate`, `verify-onvif-field-smoke-redaction`, field smoke report review |
+| V130-P0-03 | P0 | Source health incident workflow | source health root-cause, retryable-only 재검증, partial failure/rollback 이력을 incident 단위로 추적하고 운영자 next-action을 더 직접적으로 연결합니다. client에는 sanitized summary만 유지합니다. | `verify-ops-source-health-bulk`, `verify-ops-audit-trail`, `verify-ops-client-ui --screenshots` |
+| V130-P1-01 | P1 | Client Live accessibility/mobile polish | viewer Live/Dashboard에서 tile 상태, empty/loading/error 문구, focus, mobile density를 보강합니다. source URL, raw JSON, debug counter, rule/profile editor는 계속 숨깁니다. | `verify-ops-client-ui --screenshots`, client accessibility DOM snapshot, `verify-auth-routes` |
+| V130-P1-02 | P1 | Rule/Scenario preset quality | Loitering/ZoneOccupancy/LineCrossing 시작 preset과 warning copy를 field sample replay 기준으로 정리합니다. ScenarioEngine 판단 로직과 event type/payload는 별도 review 전까지 변경하지 않습니다. | `verify-rule-ui`, `verify-va-replay`, `verify-va-events`, docs review |
+| V130-P1-03 | P1 | Audit trail operations | server audit persistence를 운영자가 검색/export/review할 수 있는 최소 흐름으로 연결합니다. 민감 토큰, passwordHash, credential reference 원문은 UI/API 응답에 노출하지 않습니다. | `verify-auth-users`, `verify-auth-routes`, `verify-ops-audit-trail` |
+| V130-P2-01 | P2 | Release and visual baseline automation | v1.2.x에서 만든 release close-out helper, visual artifact policy, screenshot review 결과를 PR/release 준비 단계에서 누락 없이 요약하도록 묶습니다. tag/push/GitHub Release는 계속 수동 승인 gate입니다. | `verify-release-closeout-helper`, `verify-docs-ui-assets`, `verify-ui-visual-artifact-index`, `git diff --check` |
+| V130-P2-02 | P2 | Re-ID default-off research continuation | close-object tracker 비교와 privacy 문구를 유지하면서 Re-ID default-on 근거가 충분한지 별도 research로만 관찰합니다. 제품 기본 활성화나 대형 tracker 교체는 포함하지 않습니다. | `compare-close-object-tracker`, `verify-reid-advanced-tracking`, privacy/docs review |
+
+v1.3.0 비범위:
+
+- 장기 녹화, MP4 recorder, NVR/VMS archive, playback/search
+- ONVIF Profile G recording/replay, WS-Discovery 자동 검색의 제품 기본 승격
+- ONVIF credential store, Digest, WS-Security 구현 착수
+- Event POST/WebRTC DataChannel/SSE/WS metadata payload의 무심사 변경
+- RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
+- Re-ID default-on, 대형 tracker 교체, runtime/model binary bundle 포함
+- YouTube 운영 기능 승격 또는 실제 YouTube URL relay 성공 gate
+
+### V130-P0-01 Runtime operations console 정리 기준
+
+`Runtime operations console`은 `/ops/dashboard` 안에서 운영자가 같은 화면에서
+원인, 영향, 다음 조치를 읽는 판독 계층으로 유지합니다.
+
+- 새 backend API, metadata schema, Event POST payload, WebRTC DataChannel,
+  SSE/WS schema, RTSP/WebRTC media path는 열지 않습니다.
+- `/ops/api/runtime/status`, `/lab/analysis/taps/{tapId}/state-dump`,
+  `/lab/analysis/taps/{tapId}/metrics`, `/ops/api/events/status`의 기존
+  runtime/state/event buffer를 client-side에서 재구성합니다.
+- 표시 순서는 `원인`(scenario phase, TrackHealth, high-water),
+  `영향`(active track, timeline, recent EventRecord, event failure),
+  `다음 조치`(operator action)입니다.
+- 장시간 안정성 판정은 `verify-va-runtime-console-longrun` 또는
+  `verify-predev` 실행 결과를 별도로 기록할 때만 완료 evidence로 취급합니다.
+
+### V130-P0-02 ONVIF field smoke gate 정리 기준
+
+`ONVIF field smoke gate`는 release 개발 완료와 별도 field gate 결과를 분리하는
+절차입니다. 실제 ONVIF camera endpoint 성공은 field gate report에만 기록하고,
+no-device suite 통과를 실장비 성공으로 승격하지 않습니다.
+
+- 기준 문서: [ONVIF Field Smoke Gate](./onvif-field-smoke-gate.md)
+- 개발 산출물: gate 상태값, 실행 절차, redaction artifact review, field smoke
+  report review, sample bundle gate decision field, 정적 verifier
+- 개발 종료 판정: `verify-onvif-field-smoke-gate`,
+  `verify-onvif-field-smoke-redaction`, `verify-onvif-field-smoke-sample-bundle`,
+  `verify-onvif-no-device-suite`, `git diff --check` 통과
+- 실장비 endpoint 성공 미확인, 실제 credential handshake 미확인, 실제 RTSP/RTSPS
+  playback 미확인은 이 gate report의 `unverified` 상태로 남기며 개발 완료 판정과
+  섞지 않습니다.
+- persistent credential store, Digest/WS-Security, WS-Discovery, Profile G /
+  Recording / Replay는 이 카테고리에서 구현하지 않습니다.
+- 2026-05-17 기준 이 카테고리의 개발 가능한 후속 이슈는 없음으로 판정하려면
+  위 verifier와 no-device suite가 모두 통과해야 합니다.
+
+### V130-P0-03 Source health incident workflow 종료 판정
+
+2026-05-17 기준 V130-P0-03은 기존 source health API/bulk/audit 계약을
+유지하면서 Dashboard incident 단위 추적을 보강하는 범위에서 종료합니다.
+
+확인됨:
+
+- `/ops/dashboard`의 `최근 인시던트 흐름`은 source health 단서를
+  `source-health:<sourceId>:<status>:<reason>` UI incident ID로 표시하고
+  검색 대상에 포함합니다.
+- Source Health 인시던트 항목의 `관련 화면`은 `/ops/sources` 변경 이력의
+  `Source Health 변경` preset, `source-health-state-change` action,
+  `source:<sourceId>` target으로 바로 이동합니다.
+- Dashboard source health next-action은 기존 bulk `check`와
+  `retryBody.sourceIds` 기반 retryable-only 재검증을 유지합니다.
+- partial failure는 실패 source 구성 확인 대상으로 남기며, source health bulk는
+  registry를 변경하지 않는 dry-run이라 rollback 대상이 없다는 경계를 유지합니다.
+- client/viewer에는 incident ID, source locator, raw diagnostics, bulk result를
+  노출하지 않습니다.
+
+검증 기준:
+
+- `./server.sh verify-ops-source-health-bulk`
+- `./server.sh verify-ops-audit-trail`
+- `./server.sh verify-ops-client-ui --screenshots`
+- `./server.sh verify-ops-root-cause-panel`
+- `git diff --check`
+
+범위 밖:
+
+- `/ops/api/source-health`, `/ops/api/source-health/bulk`, Event POST,
+  WebRTC DataChannel, SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
+- `/ops/sources`에 별도 source health bulk panel/table/detail 추가
+- client/viewer source URL, raw diagnostic JSON, debug counter 노출
+
+### V130-P1-02 Rule/Scenario preset quality 정리 기준
+
+`Rule/Scenario preset quality`는 `/ops/rules` 이벤트 템플릿 작성 단계에서
+현장 preset을 확정값이 아니라 field sample replay 기준 시작값으로 설명하고,
+Loitering/ZoneOccupancy/LineCrossing의 저장 payload 계약을 유지하는 범위입니다.
+
+- LineCrossing은 기본 이벤트이므로 preset label을 새 field로 저장하지 않고
+  `event.minConfidence`, direction, 2점 line geometry만 기존 payload에 남깁니다.
+- Loitering preset은 dwell/radius/trajectory/cooldown 시작값과 TrackHealth
+  불안정 시 dwell부터 늘리는 warning copy를 제공합니다.
+- ZoneOccupancy preset은 threshold/min dwell/cooldown 시작값과 polygon 병목 전제,
+  정상 피크 반복 시 threshold를 올리는 warning copy를 제공합니다.
+- 개발 종료 판정은 `verify-rule-ui`, `verify-ops-scenario-presets`,
+  `verify-ops-rules-roundtrip`, `verify-analysis-state`, `verify-va-replay`,
+  `verify-va-events`, `git diff --check` 통과 기준입니다.
+
+범위 밖:
+
+- ScenarioEngine 판단 로직 변경
+- event type 추가/변경
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- 다음 카테고리인 Audit trail operations 개발
+
+### V130-P1-03 Audit trail operations 종료 판정
+
+2026-05-17 기준 V130-P1-03은 서버 감사 로그를 운영자가 검색/export/review하는
+최소 흐름으로 연결하는 범위에서 종료합니다.
+
+확인됨:
+
+- `/ops/api/audit`는 서버 JSONL 감사 로그를 `area`, `actor`, `user`,
+  `target`, `action`, `q`, `fromMs`, `toMs`, `offset`, `limit`으로 조회하고
+  JSON/CSV/Diff JSON export를 제공합니다.
+- `/ops/sources`, `/ops/rules`, `/ops/users` 하단 변경 이력 패널은 서버 감사
+  로그를 기본으로 읽고, 서버 저장/조회 실패 시 브라우저 캐시 기록으로 후퇴합니다.
+- 변경 이력 패널은 작업자/사용자/대상/action/기간/검색 필터, 이전/다음
+  페이지, 상세 diff 모달, JSON/CSV/Diff JSON export를 제공합니다.
+- audit 시간 표시는 서버가 직접 남긴 `receivedAtMs`를 우선 사용해 source health
+  또는 evidence export audit도 `Invalid Date` 없이 검토할 수 있습니다.
+- 비밀번호, token/hash, credential reference, capability 필드는 저장 전과
+  조회/export 응답에서 전/후 값이 다시 마스킹됩니다.
+- audit persistence verifier는 모바일 UI 계약에 맞춰 `YYYY-MM-DD HH:mm` text
+  입력을 검증하며, native `datetime-local`로 되돌리지 않습니다.
+
+검증 기준:
+
+- `./server.sh build`
+- `./server.sh verify-auth-users`
+- `./server.sh verify-auth-routes`
+- `./server.sh verify-ops-audit-trail`
+- `./server.sh verify-ops-audit-persistence`
+- `./server.sh verify-ops-client-ui`
+- `./server.sh verify-ops-client-ui --screenshots`
+- `./server.sh verify-rule-ui`
+- `./server.sh verify-ui-copy-i18n-parity`
+- `git diff --check`
+
+범위 밖:
+
+- audit event payload schema 변경
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- ONVIF credential store, Digest, WS-Security 구현
+- recorder/NVR/VMS archive/search/playback
+- 다음 카테고리인 Release and visual baseline automation 개발
+
+2026-05-17 기준 이 카테고리의 개발 가능한 후속 이슈는 위 검증 통과 시 남기지
+않습니다.
+
+### V130-P2-01 Release and visual baseline automation 정리 기준
+
+2026-05-17 기준 release close-out helper가 PR/release 준비에서 visual baseline
+자동화 누락 여부까지 함께 요약합니다.
+
+확인됨:
+
+- `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>`가 release local verifier, tag/push 수동 gate, visual artifact policy, screenshot review 체크포인트를 한 dry-run report로 묶습니다.
+- JSON report는 `media-server.release-visual-baseline-automation.v1` schema의 visual automation 요약을 포함합니다.
+- preflight CI는 `media-server-release-closeout-helper-dry-run` artifact를 업로드하고, 기존 `media-server-ui-visual-baseline-diff`, `media-server-ui-visual-maintenance-dry-run` artifact와 함께 PR summary에서 확인하게 합니다.
+- PR template의 `Release / Visual Baseline Readiness` 섹션이 release close-out helper report, baseline diff/comment artifact, maintenance dry-run artifact, manual/not-run release action 구분을 요구합니다.
+- tag, push, GitHub Release, accepted baseline 채택, 320/390/760/1180px screenshot review는 실제 실행과 링크가 없으면 pass로 쓰지 않습니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
+검증 기준:
+
+- `./server.sh verify-release-closeout-helper`
+- `./server.sh verify-docs-ui-assets`
+- `./server.sh verify-ui-visual-artifact-index`
+- `./server.sh verify-ui-release-baseline-approval-log`
+- `./server.sh verify-actions-security`
+- `git diff --check`
+
+범위 밖:
+
+- tag 생성, push, GitHub Release 생성
+- release baseline artifact를 public release asset 또는 candidate pass proof로 승격
+- 실제 UI screenshot 수동 승인 없이 baseline 채택 완료로 기록
+- RTSP/WebRTC media path, Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- 다음 카테고리인 Re-ID default-off research continuation 개발
+
+2026-05-17 기준 이 카테고리의 개발 가능한 후속 이슈는 위 검증 통과 시 남기지
+않습니다.
+
+### V130-P2-02 Re-ID default-off research continuation 종료 판정
+
+2026-05-17 기준 V130-P2-02는 close-object tracker 비교와 Re-ID privacy
+boundary를 default-off 연구 산출물로 유지하는 범위에서 종료합니다.
+
+확인됨:
+
+- 기준 문서: [Re-ID Default-off Research Continuation](./reid-default-off-research-continuation.md)
+- `compare-close-object-tracker --fixture-matrix --history-dir <dir>`는 matrix
+  history index에 `defaultOnDecision`, `productDefaultOn`, `candidateCount`,
+  `defaultOnReason`을 남겨 회차별 default-on 판단 흐름을 보존합니다.
+- `productDefaultOn`은 제품 기본 활성화 여부이며, 이 연구 범위에서는 `False`로
+  유지합니다. `review-required`도 제품 default-on 완료가 아니라 별도 review
+  필요 상태입니다.
+- `verify-reid-advanced-tracking`은 v1.3.0 (8) 문서, default-off/privacy,
+  benchmark/history boundary, 외부 metadata identity material 미노출을 정적으로
+  검증합니다.
+- `tracking-event`, `tracking-event-long`, `tracking-event-slow-long`,
+  `four-scene-control` 단독 후보와 `field-new-york-driving=warning` 판정은
+  제품 default-on 근거로 과장하지 않습니다.
+
+검증 기준:
+
+- `./server.sh compare-close-object-tracker --fixture-matrix --history-dir <dir>`
+- `./server.sh verify-close-object-fixture-matrix`
+- `./server.sh verify-reid-advanced-tracking`
+- `git diff --check`
+
+범위 밖:
+
+- Re-ID default-on
+- Kalman/ByteTrack/BoT-SORT 같은 대형 tracker 교체
+- 실제 Re-ID model artifact를 release asset 또는 runtime bundle에 포함
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- client/viewer source URL, raw JSON, debug/identity material 노출
+
+2026-05-17 기준 이 카테고리의 개발 가능한 후속 이슈는 위 검증 통과 시 남기지
+않습니다. 실제 Re-ID model/field sample 기반 default-on 결정, 대형 tracker 교체,
+runtime/model bundle 포함은 별도 Phase 후보이며 이 항목의 잔여가 아닙니다.
+
+### v1.3.0 Follow-up Closure
+
+v1.3.0 roadmap 기능 개발 이후 남은 후속 항목은
+[v1.3.0 Follow-up Closure](./v1.3.0-follow-up-closure.md)에 분리합니다.
+`verify-v130-follow-up-closure`는 실제 Re-ID model field review, field sample
+반복 수집 정책, tracker 교체 후보 조사, model/runtime bundle 정책, Re-ID privacy
+threat model을 v1.4.0 별도 Phase gate 또는 release/field/manual approval gate로
+분리하고, v1.3.0 안에 개발 가능한 후속 이슈가 남지 않았는지 정적으로 확인합니다.
+
+2026-05-17 기준 추가 기능 개발로 처리할 v1.3.0 후속 이슈는 남기지 않습니다.
+Re-ID default-on, tracker 교체, runtime/model bundle 포함, field sample scheduler,
+dataset ingest, tag/push/GitHub Release는 이 closure에서 수행하지 않았습니다.
+
+## v1.4.0 Minor Roadmap 준비 기준
+
+v1.4.0 roadmap 초안은 v1.4.0 branch에서 작성하고, main/v1.3.0 release branch에는
+커밋하지 않습니다. v1.4.0 후보도 source-only/live-only 경계를 기본으로 하며,
+Event POST/WebRTC DataChannel/SSE/WS metadata, auth/session contract,
+RTSP/WebRTC media path 변경은 별도 schema/media-path review 뒤에만 다룹니다.
 
 ## v1.2.0 Roadmap 종료 판정
 
@@ -661,7 +942,7 @@ tracker 교체, runtime/model bundle 포함은 여전히 별도 review가 필요
 
 ### Design token/component inventory 후속 종료 판정
 
-2026-05-16 기준 v1.2.0 UI visual regression 후속에서
+2026-05-16 기준 v1.2.0 UI visual regression 후속에서 도입한
 design token, 공통 컴포넌트, Ops/Client 전용 surface, visual artifact gate의
 문서 inventory를 추가했습니다.
 
@@ -1009,6 +1290,18 @@ PR template과 정적 verifier를 연결했습니다.
 - `verify-ops-client-ui --screenshots`의 client live keyboard smoke가 실제 `[data-role="a11y-status"]` DOM 텍스트를 snapshot 기준으로 검사합니다.
 - `verify-ui-copy-i18n-parity`가 snapshot fixture와 UI smoke 연결을 정적으로 검증합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
+### Client Live aria-live 언어/모바일 touch target 후속 종료 판정
+
+2026-05-17 기준 Client Live tile 숨김 상태 요약과 모바일 타일 조작 밀도를 v1.3.0 (4) 범위에서 보강했습니다.
+
+확인됨:
+
+- tile 숨김 상태 요약은 `translateText`를 통해 현재 UI 언어로 직접 생성되어 English 화면에서 `aria-live` 갱신이 한국어 중간 문자열에 의존하지 않습니다.
+- `client_live_tile_a11y_i18n_snapshot.json`의 `offline-empty` DOM 기대값을 실제 미수집 상태와 맞춰 track/event를 `미제공`/`Not provided`로 고정했습니다.
+- `verify-ops-client-ui --screenshots`의 Client Live keyboard smoke는 한국어/영어 `/client/live?lang=...` DOM을 모두 열고 snapshot과 실제 `[data-role="a11y-status"]` 텍스트를 비교합니다.
+- 560px 이하 모바일 폭에서 tile channel/mode control은 단일 열로 전환되고 start/reconnect/stop button은 44px 이상 touch target을 유지합니다.
+- source URL, raw JSON, debug counter, rule/profile editor, schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
 ## v1.2.0 시작 전 체크리스트
 

@@ -61,6 +61,7 @@ std::string ProductSharedUiScript() {
         '로딩 중': 'Loading',
         '불러오는 중': 'Loading',
         '상태 없음': 'No status',
+        '시각 미제공': 'Time not provided',
         '미제공': 'Not provided',
         '미수신': 'Not received',
         '정상': 'Normal',
@@ -175,10 +176,9 @@ std::string ProductSharedUiScript() {
         '요청/결정': 'Request / decision',
         '공개 회원가입이 아니라, 별도 요청 페이지로 들어온 계정을 관리자가 검토한 뒤 초대 링크를 발급합니다.': 'This is not open self-signup; admins review requests from the request page and issue invite links.',
         '사용자와 권한 범위를 관리합니다.': 'Manage users and scopes.',
-        '이 브라우저에서 수행한 사용자 변경의 작업자, 전/후 값, 시각을 확인합니다.': 'Review actor, before/after values, and time for user changes from this browser.',
-        '이 브라우저에서 수행한 사용자 변경의 작업자, 전/후 값, 시각을 확인하고 사용자 감사 JSON/CSV/Diff JSON export를 내려받습니다.': 'Review actor, before/after values, and time for user changes from this browser, and download user audit JSON/CSV/Diff JSON exports.',
-        '이 브라우저에서 수행한 채널 변경의 작업자, 전/후 값, 시각을 확인합니다.': 'Review actor, before/after values, and time for channel changes from this browser.',
-        '이 브라우저에서 수행한 룰 변경의 작업자, 전/후 값, 시각을 확인합니다.': 'Review actor, before/after values, and time for rule changes from this browser.',
+        '서버 감사 로그에서 사용자 변경의 작업자, 전/후 값, 시각을 확인하고 사용자 감사 JSON/CSV/Diff JSON export를 내려받습니다.': 'Review actor, before/after values, and time for user changes from the server audit log, and download user audit JSON/CSV/Diff JSON exports.',
+        '서버 감사 로그에서 채널 변경의 작업자, 전/후 값, 시각을 확인하고 채널 감사 JSON/CSV/Diff JSON export를 내려받습니다.': 'Review actor, before/after values, and time for channel changes from the server audit log, and download channel audit JSON/CSV/Diff JSON exports.',
+        '서버 감사 로그에서 룰 변경의 작업자, 전/후 값, 시각을 확인하고 룰 감사 JSON/CSV/Diff JSON export를 내려받습니다.': 'Review actor, before/after values, and time for rule changes from the server audit log, and download rule audit JSON/CSV/Diff JSON exports.',
         '변경 이력': 'Change History',
         '채널 관리': 'Channel Management',
         '채널 목록': 'Channels',
@@ -242,7 +242,7 @@ std::string ProductSharedUiScript() {
         '최근 인시던트 흐름': 'Recent Incident Timeline',
         '문제 원인, EventRecord, source health, 로그 단서를 시간순으로 묶어 봅니다.': 'Review root-cause, EventRecord, source health, and log clues as a timeline.',
         '인시던트 검색': 'Search incidents',
-        '제목, 출처, cid 검색': 'Search title, source, or cid',
+        '제목, 출처, incident/cid 검색': 'Search title, source, incident, or cid',
         '전체 출처': 'All sources',
         '최근 인시던트 단서를 불러오는 중입니다.': 'Loading recent incident clues.',
         '최근 인시던트 없음': 'No recent incidents',
@@ -261,6 +261,10 @@ std::string ProductSharedUiScript() {
         'source health 정상': 'source health normal',
         '소스 상태 변경 이력': 'Source status change history',
         '상태 변화 audit은 /ops/sources 변경 이력의 소스 상태 변경 preset에서 확인합니다.': 'Review state-change audits from the source status change preset in /ops/sources change history.',
+        '상태 변경 이력과 retryable-only 재검증을 확인합니다.': 'Review status-change history and retryable-only rechecks.',
+        '소스 상태 변경 이력에서 같은 source incident 흐름을 확인합니다.': 'Review the same source incident flow in source status change history.',
+        'EventRecord 저장/POST 상태와 source health 단서를 함께 확인합니다.': 'Review EventRecord storage/POST status together with source health clues.',
+        '관련 root-cause 또는 source health incident와 같은 cid를 비교합니다.': 'Compare the cid with related root-cause or source health incidents.',
         '스트림 대기': 'Streams waiting',
         '스트림 활성': 'Streams active',
         '분석 대기': 'Analysis waiting',
@@ -339,6 +343,30 @@ std::string ProductSharedUiScript() {
         '정리 상태입니다.': 'Cleanup status.',
         '정리 카운터 없음': 'No cleanup counters.',
         '이동': 'Go',
+        '런타임 운영 판독': 'Runtime Operations Readout',
+        '선택 tap의 scenario timeline, TrackHealth, recent EventRecord를 원인, 영향, 다음 조치 순서로 봅니다.': 'Review the selected tap scenario timeline, TrackHealth, and recent EventRecords in cause, impact, next-action order.',
+        '활성 분석 탭이 있으면 운영 판독을 표시합니다.': 'When an analysis tap is active, the operations readout is shown.',
+        '런타임 운영 판독 대기 중입니다.': 'Waiting for runtime operations readout.',
+        '활성 분석 탭이 있으면 runtime/state/event buffer를 운영 순서로 묶어 표시합니다.': 'When an analysis tap is active, runtime/state/event buffers are grouped in operations order.',
+        '운영 판독 실패': 'Operations readout failed',
+        '런타임 운영 판독을 불러오지 못했습니다.': 'Could not load the runtime operations readout.',
+        'state-dump 또는 metrics 조회 실패로 운영 판독을 표시하지 못했습니다.': 'The readout could not be shown because state-dump or metrics lookup failed.',
+        '원인': 'Cause',
+        '영향': 'Impact',
+        '다음 조치': 'Next action',
+        'TrackHealth 이슈 우선 확인': 'Review TrackHealth issues first',
+        '즉시 원인 없음': 'No immediate cause',
+        'TrackHealth 이슈가 원인 후보입니다.': 'TrackHealth issues are the candidate cause.',
+        '시나리오 phase와 cooldown 상태를 먼저 봅니다.': 'Review scenario phase and cooldown first.',
+        'runtime/state/event buffer에서 즉시 확인할 원인은 없습니다.': 'No immediate cause was found in runtime/state/event buffers.',
+        '영향 범위는 선택 tap의 state-dump와 metrics 범위로 제한됩니다.': 'Impact is limited to the selected tap state-dump and metrics scope.',
+        'EventRecord 실패가 downstream 영향 후보입니다.': 'EventRecord failure is a downstream impact candidate.',
+        '운영자 확인 필요': 'Operator check needed',
+        '관찰 유지': 'Keep observing',
+        'runtime/status, state-dump, metrics, EventRecord를 새 schema 없이 운영 판독 순서로 묶었습니다.': 'runtime/status, state-dump, metrics, and EventRecords were grouped in operations readout order without a new schema.',
+        'TrackHealth 정상': 'TrackHealth normal',
+        'high-water 확인': 'Check high-water',
+        'high-water 관찰': 'Observe high-water',
         '운영 상세': 'Ops Detail',
         '핵심 수치를 바로 봅니다.': 'Review key metrics.',
         '송출': 'Egress',
@@ -437,13 +465,25 @@ std::string ProductSharedUiScript() {
         '시나리오': 'Scenario',
         '현장 preset': 'Site preset',
         '도로': 'Road',
+        '매장 통로': 'Retail aisle',
         '공원': 'Park',
         '실내': 'Indoor',
         '로비': 'Lobby',
         '승강장': 'Platform',
         '출입구': 'Entrance',
+        '문 앞 정체': 'Doorway congestion',
+        '주차장 가장자리': 'Parking edge',
+        '승강기 홀': 'Elevator hall',
         '최소 신뢰도': 'Minimum confidence',
         '최소 지속 시간(ms)': 'Minimum duration (ms)',
+        '현장 preset은 시작값입니다. 저장 전 replay/현장 영상 기준으로 geometry와 숫자 조건을 확인하세요.': 'Site presets are starting values. Before saving, verify geometry and numeric conditions against replay or field video.',
+        '직접 설정은 preset 숫자를 덮어쓰지 않습니다. 저장 전 replay/현장 영상 기준으로 값만 남깁니다.': 'Custom settings do not overwrite preset numbers. Before saving, keep only values verified against replay or field video.',
+        'line 2점': '2 line points',
+        '방향 직접 선택': 'Choose direction manually',
+        '라인 통과 preset은 최소 신뢰도 시작값만 채웁니다. 방향과 2점 line geometry를 현장 영상에서 확인하세요.': 'Line-crossing presets fill only the starting minimum confidence. Verify direction and two-point line geometry against field video.',
+        '배회 preset은 field sample replay 기준 시작값입니다. TrackHealth가 불안정하면 dwell부터 늘리세요.': 'Loitering presets are starting values from field sample replay. If TrackHealth is unstable, increase dwell first.',
+        '점유 preset은 polygon이 병목 구간만 포함한다는 전제입니다. 정상 피크에서 confirmed가 반복되면 threshold를 올리세요.': 'Occupancy presets assume the polygon contains only the bottleneck. If normal peaks repeatedly confirm, raise the threshold.',
+        'Preset은 시작값입니다. 저장 전 현장 영상, geometry, 대상 객체를 확인하세요.': 'Presets are starting values. Before saving, verify field video, geometry, and target objects.',
         '대상 객체': 'Target Objects',
         '템플릿에서 기본으로 제안할 객체를 고릅니다.': 'Choose objects suggested by this template.',
         '사람, 차량': 'Person, vehicle',
@@ -499,6 +539,7 @@ std::string ProductSharedUiScript() {
         '보기 방식': 'View mode',
         '오프라인': 'Offline',
         '메타데이터': 'Metadata',
+        '메타데이터 오류': 'Metadata error',
         '이벤트': 'Events',
         '재시도': 'Retry',
         '확인 필요': 'Needs attention',
@@ -551,7 +592,7 @@ std::string ProductSharedUiScript() {
           [/^view 누락\s+(\d+)$/u, (_match, count) => `Missing views ${count}`],
           [/^입력 미완성\s+(\d+)$/u, (_match, count) => `Incomplete inputs ${count}`],
           [/^타일\s+(\d+):\s+(.+)$/u, (_match, count, detail) => `Tile ${count}: ${koToEn.get(detail.trim()) || translatePattern(detail.trim())}`],
-          [/^타일\s+(\d+)\s+(시작|재연결|정지|채널|보기 방식)$/u, (_match, count, action) => `Tile ${count} ${koToEn.get(action) || action}`],
+          [/^타일\s+(\d+)\s+(시작|재연결|정지|채널 선택|채널|보기 방식)$/u, (_match, count, action) => `Tile ${count} ${koToEn.get(action) || action}`],
           [/^타일\s+(\d+)\s+·\s+(.+)$/u, (_match, count, mode) => `Tile ${count} · ${koToEn.get(mode) || mode}`],
           [/^(\d+)개 범위\s+([\s\S]+)$/u, (_match, count, detail) => `${count} scopes\n${koToEn.get(detail.trim()) || detail}`],
           [/^(\d+)개 범위$/u, (_match, count) => `${count} scopes`],
@@ -896,7 +937,7 @@ std::string ProductSharedUiScript() {
         return principalPromise;
       }
       const auditStoreKey = 'mediaServerOpsAuditTrail.v1';
-      const auditKeyRedacted = key => /(password|token|hash|secret|capability)/i.test(String(key || ''));
+      const auditKeyRedacted = key => /(password|token|hash|secret|credential|capability)/i.test(String(key || ''));
       const compactAuditValue = (value, depth = 0) => {
         if (value === null || value === undefined) return value;
         if (auditKeyRedacted('' + value) && typeof value === 'string' && value.length > 24) return '[redacted]';
@@ -914,6 +955,10 @@ std::string ProductSharedUiScript() {
         return display(value);
       };
       const stableAuditJson = value => JSON.stringify(compactAuditValue(value));
+      const sanitizeOpsAuditEntry = entry => {
+        if (!entry || typeof entry !== 'object') return entry;
+        return { ...entry, before: compactAuditValue(entry.before), after: compactAuditValue(entry.after) };
+      };
       const summarizeAuditChange = (beforeValue, afterValue) => {
         const before = beforeValue && typeof beforeValue === 'object' && !Array.isArray(beforeValue) ? beforeValue : {};
         const after = afterValue && typeof afterValue === 'object' && !Array.isArray(afterValue) ? afterValue : {};
@@ -928,13 +973,13 @@ std::string ProductSharedUiScript() {
       const loadOpsAuditTrail = () => {
         try {
           const parsed = JSON.parse(localStorage.getItem(auditStoreKey) || '[]');
-          return Array.isArray(parsed) ? parsed : [];
+          return Array.isArray(parsed) ? parsed.map(sanitizeOpsAuditEntry) : [];
         } catch {
           return [];
         }
       };
       const saveOpsAuditTrail = entries => {
-        localStorage.setItem(auditStoreKey, JSON.stringify(entries.slice(0, 80)));
+        localStorage.setItem(auditStoreKey, JSON.stringify(entries.map(sanitizeOpsAuditEntry).slice(0, 80)));
       };
       async function persistOpsAuditTrail(entry) {
         const payload = await requestJson('/ops/api/audit', {
@@ -945,6 +990,18 @@ std::string ProductSharedUiScript() {
         return payload.entry || entry;
       }
       const opsAuditViewStates = new Map();
+      const auditEntryTimeMs = entry => {
+        const receivedAt = Number(entry?.receivedAtMs || 0);
+        if (Number.isFinite(receivedAt) && receivedAt > 0) return receivedAt;
+        const numericAt = Number(entry?.at || 0);
+        if (Number.isFinite(numericAt) && numericAt > 0) return numericAt;
+        const parsedAt = Date.parse(entry?.at || '');
+        return Number.isFinite(parsedAt) ? parsedAt : 0;
+      };
+      const auditEntryTimeLabel = entry => {
+        const timeMs = auditEntryTimeMs(entry);
+        return timeMs > 0 ? new Date(timeMs).toLocaleString() : '시각 미제공';
+      };
       const auditFilterEntry = (entry, state = {}) => {
         if (state.actor && !String(entry.actor || '').includes(state.actor)) return false;
         if (state.user) {
@@ -954,7 +1011,7 @@ std::string ProductSharedUiScript() {
         }
         if (state.target && !String(entry.target || '').toLowerCase().includes(String(state.target).toLowerCase())) return false;
         if (state.action && String(entry.action || '') !== state.action) return false;
-        const entryTime = Number(entry.receivedAtMs || (entry.at ? Date.parse(entry.at) : 0));
+        const entryTime = auditEntryTimeMs(entry);
         if (state.fromMs && (!Number.isFinite(entryTime) || entryTime < Number(state.fromMs))) return false;
         if (state.toMs && (!Number.isFinite(entryTime) || entryTime > Number(state.toMs))) return false;
         if (state.q) {
@@ -1028,7 +1085,7 @@ std::string ProductSharedUiScript() {
         const payload = await requestJson(`/ops/api/audit?${params.toString()}`);
         return {
           ...payload,
-          entries: Array.isArray(payload.entries) ? payload.entries : [],
+          entries: Array.isArray(payload.entries) ? payload.entries.map(sanitizeOpsAuditEntry) : [],
           offset: Number(payload.offset || 0),
           limit: Number(payload.limit || filters.limit || 20),
           total: Number(payload.total || 0),
@@ -1095,7 +1152,7 @@ std::string ProductSharedUiScript() {
       function openOpsAuditDetail(entry) {
         const dialog = ensureOpsAuditDetailModal();
         byId('opsAuditDetailTitle').textContent = `${display(entry.area)} ${display(entry.action)} · ${display(entry.target)}`;
-        byId('opsAuditDetailMeta').textContent = `${display(entry.actor)} · ${entry.at ? new Date(entry.at).toLocaleString() : '시각 미제공'} · ${display(entry.summary)}`;
+        byId('opsAuditDetailMeta').textContent = `${display(entry.actor)} · ${auditEntryTimeLabel(entry)} · ${display(entry.summary)}`;
         byId('opsAuditDetailBefore').textContent = JSON.stringify(entry.before ?? null, null, 2);
         byId('opsAuditDetailAfter').textContent = JSON.stringify(entry.after ?? null, null, 2);
         if (typeof dialog.showModal === 'function') dialog.showModal();
@@ -1144,7 +1201,7 @@ std::string ProductSharedUiScript() {
           <article class="audit-entry">
             <div class="audit-entry-head">
               <strong>${escapeHtml(areaLabel(entry.area))} ${escapeHtml(actionLabel(entry.action))}</strong>
-              <span>${escapeHtml(new Date(entry.at).toLocaleString())}</span>
+              <span>${escapeHtml(auditEntryTimeLabel(entry))}</span>
             </div>
             <div class="audit-entry-meta">
               <span>대상 ${escapeHtml(display(entry.target))}</span>

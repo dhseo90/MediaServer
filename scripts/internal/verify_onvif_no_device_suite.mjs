@@ -59,6 +59,7 @@ const suite = [
   ["verify-onvif-soap-fault-matrix"],
   ["verify-onvif-field-smoke-redaction"],
   ["verify-onvif-field-smoke-sample-bundle"],
+  ["verify-onvif-field-smoke-gate"],
   ["verify-onvif-field-http-probe", "--allow-missing-endpoint"],
   ["verify-onvif-closed-loopback-failure-matrix"],
   [

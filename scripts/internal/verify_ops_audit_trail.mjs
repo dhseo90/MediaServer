@@ -29,7 +29,7 @@ check("shared product UI script provides local audit trail helpers", () => {
     "data-audit-export",
     "<option value=\"reset-password\">비밀번호 초기화</option>",
     "auditKeyRedacted",
-    "password|token|hash|secret|capability",
+    "password|token|hash|secret|credential|capability",
     "before",
     "after",
   ];
@@ -47,6 +47,9 @@ check("ops channel/rule/user pages expose audit panels", () => {
     'data-audit-area="rules"',
     'id="user-audit-list"',
     'data-audit-area="users"',
+    "서버 감사 로그에서 채널 변경",
+    "서버 감사 로그에서 룰 변경",
+    "서버 감사 로그에서 사용자 변경",
   ];
   for (const snippet of required) {
     assert(html.includes(snippet), `webrtc_http_server.cpp is missing audit panel snippet: ${snippet}`);

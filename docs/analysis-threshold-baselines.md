@@ -45,24 +45,55 @@ RC 잔여 blocker가 아니라 운영 데이터 기반 확장 후보입니다.
 3. 순간 통과가 잡히면 min dwell ms를 올립니다.
 4. 같은 혼잡이 반복 emit되면 cooldown ms를 올립니다.
 
+## LineCrossing
+
+`line-crossing`은 scenario가 아니라 기본 이벤트입니다.
+Preset은 저장 payload schema를 늘리지 않고 `event.minConfidence` 시작값만 채웁니다.
+`event.minDurationMs`는 0으로 유지하며, 실제 crossing 판단은 2점 line geometry와
+방향(`any`/`forward`/`reverse`)을 현장 영상에서 확인해 정합니다.
+
+| 현장 유형 | min confidence | min duration ms | 비고 |
+| --- | ---: | ---: | --- |
+| default | 0.25 | 0 | 일반 시작값 |
+| road | 0.35 | 0 | 차로/교차부 오탐을 줄이기 위해 신뢰도를 높게 시작 |
+| retail aisle | 0.30 | 0 | 매장 통로 이동을 빠르게 확인 |
+| lobby | 0.32 | 0 | 출입/대기 동선이 섞이는 공간 |
+| platform | 0.35 | 0 | 승강장 경계 line을 보수적으로 시작 |
+| doorway | 0.32 | 0 | 문 앞 병목 line을 빠르게 확인 |
+| parking edge | 0.35 | 0 | 보행/차량 혼재 구간에서 신뢰도를 높게 시작 |
+| elevator hall | 0.32 | 0 | 승강기 대기열 진입/이탈 확인 |
+
+조정 순서:
+
+1. line 두 점이 실제 통과 경계와 맞는지 먼저 확인합니다.
+2. 방향 이벤트가 반대로 나오면 direction을 바꾸고, `any`는 양방향 확인용으로만 둡니다.
+3. 짧은 오탐은 confidence를 올리기 전에 line 위치와 tracker 안정성을 먼저 봅니다.
+
 ## Ops UI preset mapping
 
 `/ops/rules`의 현장 preset은 아래 baseline을 draft payload에 채웁니다.
 Scenario 판단은 preset label이 아니라 저장된 숫자 threshold를 사용합니다.
+LineCrossing은 기본 이벤트이므로 preset label을 별도 field로 저장하지 않고
+기존 `event` 숫자와 line geometry만 저장합니다.
 
-| Preset | Loitering | ZoneOccupancy |
-| --- | --- | --- |
-| `default` | dwell 30000, radius 0.08, min points 4, cooldown 12000 | threshold 4, min dwell 7000, cooldown 12000 |
-| `retail` | dwell 20000, radius 0.06, min points 4, cooldown 10000 | threshold 4, min dwell 7000, cooldown 12000 |
-| `lobby` | dwell 30000, radius 0.08, min points 4, cooldown 12000 | threshold 6, min dwell 10000, cooldown 15000 |
-| `platform` | dwell 45000, radius 0.10, min points 5, cooldown 15000 | threshold 8, min dwell 5000, cooldown 10000 |
-| `doorway` | dwell 15000, radius 0.05, min points 3, cooldown 8000 | threshold 3, min dwell 3000, cooldown 8000 |
-| `parking` | dwell 60000, radius 0.12, min points 5, cooldown 20000 | threshold 5, min dwell 10000, cooldown 15000 |
-| `elevator` | dwell 30000, radius 0.08, min points 4, cooldown 12000 | threshold 5, min dwell 8000, cooldown 12000 |
+| Preset | LineCrossing | Loitering | ZoneOccupancy |
+| --- | --- | --- | --- |
+| `default` | confidence 0.25, duration 0, direction manual | dwell 30000, radius 0.08, min points 4, cooldown 12000 | threshold 4, min dwell 7000, cooldown 12000 |
+| `road` | confidence 0.35, duration 0, direction manual | dwell 60000, radius 0.12, min points 5, cooldown 20000 | threshold 8, min dwell 5000, cooldown 10000 |
+| `retail` | confidence 0.30, duration 0, direction manual | dwell 20000, radius 0.06, min points 4, cooldown 10000 | threshold 4, min dwell 7000, cooldown 12000 |
+| `park` | confidence 0.30, duration 0, direction manual | dwell 60000, radius 0.12, min points 5, cooldown 20000 | threshold 6, min dwell 10000, cooldown 15000 |
+| `indoor` | confidence 0.30, duration 0, direction manual | dwell 20000, radius 0.06, min points 4, cooldown 10000 | threshold 4, min dwell 7000, cooldown 12000 |
+| `lobby` | confidence 0.32, duration 0, direction manual | dwell 30000, radius 0.08, min points 4, cooldown 12000 | threshold 6, min dwell 10000, cooldown 15000 |
+| `platform` | confidence 0.35, duration 0, direction manual | dwell 45000, radius 0.10, min points 5, cooldown 15000 | threshold 8, min dwell 5000, cooldown 10000 |
+| `entrance` | confidence 0.32, duration 0, direction manual | dwell 15000, radius 0.05, min points 3, cooldown 8000 | threshold 3, min dwell 3000, cooldown 8000 |
+| `doorway` | confidence 0.32, duration 0, direction manual | dwell 15000, radius 0.05, min points 3, cooldown 8000 | threshold 3, min dwell 3000, cooldown 8000 |
+| `parking` | confidence 0.35, duration 0, direction manual | dwell 60000, radius 0.12, min points 5, cooldown 20000 | threshold 5, min dwell 10000, cooldown 15000 |
+| `elevator` | confidence 0.32, duration 0, direction manual | dwell 30000, radius 0.08, min points 4, cooldown 12000 | threshold 5, min dwell 8000, cooldown 12000 |
 
-`road`, `park`, `indoor`, `entrance`는 기존 호환 preset으로 유지합니다.
 운영자는 preset 적용 뒤 숫자값을 수정해 저장할 수 있으며,
 저장 payload에는 `scenario.presetId`와 실제 threshold 숫자가 함께 남습니다.
+LineCrossing은 scenario가 아니므로 `scenario.presetId` 없이 기존 event payload만
+저장됩니다.
 
 ## Verification
 
@@ -73,6 +104,7 @@ node --check scripts/internal/verify_ops_rules_embed_smoke.mjs
 ./server.sh verify-analysis-state
 ./server.sh verify-ops-rule-validation-matrix
 ./server.sh verify-ops-scenario-presets
+./server.sh verify-rule-ui
 ./server.sh build
 ```
 

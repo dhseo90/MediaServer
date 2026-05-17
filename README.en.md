@@ -2,15 +2,16 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Latest Release](https://img.shields.io/github/v/release/dhseo90/MediaServer?label=release)](https://github.com/dhseo90/MediaServer/releases/latest)
+[![Source Release](https://img.shields.io/badge/source--only%20release-v1.3.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v1.3.0)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay with optional YOLO/ONNX video analytics overlays and rule/scenario live events. The current main product boundary focuses on live source onboarding, live source health, and live VA event quality rather than long-term recording, VMS, or NVR scope.
 
 Korean documentation: [README.md](README.md)
-Latest source-only release: [v1.2.1](https://github.com/dhseo90/MediaServer/releases/tag/v1.2.1)
-The v1.2.1 source-only patch close-out and follow-up closure are tracked separately in
+Latest source-only release: [v1.3.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.3.0)
+The v1.3.0 source-only minor close-out and follow-up closure are tracked separately in
 [docs/development-backlog.md](docs/development-backlog.md) and
-[docs/v1.2.1-follow-up-closure.md](docs/v1.2.1-follow-up-closure.md).
+[docs/v1.3.0-follow-up-closure.md](docs/v1.3.0-follow-up-closure.md).
+The v1.4.0 roadmap draft is prepared on the v1.4.0 branch before it is committed.
 
 ## At a Glance
 
@@ -97,9 +98,11 @@ See [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) for f
 | Auth, Ops, Client UI flow | [docs/ui-guide.md](docs/ui-guide.md) |
 | RTSP/WebRTC pipeline, source/session, VA layer | [docs/media-server-architecture.md](docs/media-server-architecture.md) |
 | YOLO, tracking, scenarios, live events, short evidence | [docs/video-analysis.md](docs/video-analysis.md) |
+| Re-ID default-off research continuation | [docs/reid-default-off-research-continuation.md](docs/reid-default-off-research-continuation.md) |
 | Integrator Event/WebRTC/SSE/WS sample bundle | [docs/integrator-contract-artifact.md](docs/integrator-contract-artifact.md) |
-| Current product boundary and v1.2.1 close-out | [docs/development-backlog.md](docs/development-backlog.md) |
-| v1.2.1 follow-up closure | [docs/v1.2.1-follow-up-closure.md](docs/v1.2.1-follow-up-closure.md) |
+| Current product boundary, v1.3.0 close-out, and v1.4.0 roadmap preparation | [docs/development-backlog.md](docs/development-backlog.md) |
+| Historical v1.2.1 follow-up closure | [docs/v1.2.1-follow-up-closure.md](docs/v1.2.1-follow-up-closure.md) |
+| v1.3.0 follow-up closure | [docs/v1.3.0-follow-up-closure.md](docs/v1.3.0-follow-up-closure.md) |
 | Verification commands and release checks | [docs/stream-verification.md](docs/stream-verification.md) |
 | Bundle/container/runtime distribution policy | [docs/distribution-policy.md](docs/distribution-policy.md) |
 | Release scope and tag strategy | [docs/release-policy.md](docs/release-policy.md) |
@@ -108,7 +111,7 @@ See [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) for f
 | Backup and restore operations | [docs/ops-backup-recovery.md](docs/ops-backup-recovery.md) |
 | Starting thresholds for field scenarios | [docs/analysis-threshold-baselines.md](docs/analysis-threshold-baselines.md) |
 | YouTube import/source experiment | [docs/youtube-import.md](docs/youtube-import.md) |
-| Manual UI v1.2.1 evidence | [docs/manual-ui-v1.2.1-result.md](docs/manual-ui-v1.2.1-result.md) |
+| Historical manual UI v1.2.1 evidence | [docs/manual-ui-v1.2.1-result.md](docs/manual-ui-v1.2.1-result.md) |
 | ONVIF no-device and field-smoke boundary | [docs/onvif-no-device-verification.md](docs/onvif-no-device-verification.md) |
 | Re-ID warning/default-on boundary | [docs/reid-fixture-default-on-candidates.md](docs/reid-fixture-default-on-candidates.md) |
 

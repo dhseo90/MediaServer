@@ -110,7 +110,7 @@ check("existing closure evidence remains connected", () => {
     assertIncludes(onvif, snippet, "ONVIF field smoke redaction");
   }
   for (const snippet of [
-    "## v1.2.1 Housekeeping Gate",
+    "## Historical v1.2.1 Housekeeping Gate",
     "runtime/model/binary bundle 범위를 열지 않습니다",
     "verify-ui-visual-artifact-index",
   ]) {

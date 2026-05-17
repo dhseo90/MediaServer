@@ -88,6 +88,8 @@ check("no-device command list keeps endpoint-free and sanitized-failure probes",
   assertContains(noDeviceDoc, "verify-onvif-local-simulator", "missing local simulator command");
   assertContains(noDeviceDoc, "verify-onvif-soap-fault-matrix", "missing SOAP fault matrix command");
   assertContains(noDeviceDoc, "SOAP Fault/malformed response matrix", "missing SOAP fault matrix wording");
+  assertContains(noDeviceDoc, "verify-onvif-field-smoke-gate", "missing field smoke gate command");
+  assertContains(noDeviceDoc, "no-device suite 통과는 field smoke gate pass가 아닙니다", "missing field gate caveat");
   assertContains(noDeviceDoc, "verify-onvif-field-http-probe --allow-missing-endpoint", "missing missing-endpoint command");
   assertContains(noDeviceDoc, "--expect-failure", "missing sanitized failure command");
   assertContains(noDeviceDoc, "verify-onvif-closed-loopback-failure-matrix", "missing closed loopback failure matrix command");
@@ -115,6 +117,8 @@ check("live support document links no-device mode without claiming field success
   assertContains(liveSupportDoc, "verify-onvif-local-simulator", "live support verification missing local simulator command");
   assertContains(liveSupportDoc, "verify-onvif-soap-fault-matrix", "live support verification missing SOAP fault matrix command");
   assertContains(liveSupportDoc, "Media fallback, Media-only, non-RTSP GetStreamUri 실패", "live support doc missing local simulator variant wording");
+  assertContains(liveSupportDoc, "verify-onvif-field-smoke-gate", "live support doc missing field smoke gate command");
+  assertContains(liveSupportDoc, "field smoke gate 결과와 분리합니다", "live support doc missing field gate separation wording");
   assertContains(liveSupportDoc, "verify-onvif-field-http-probe --allow-missing-endpoint", "live support doc missing missing-endpoint command");
   assertContains(liveSupportDoc, "--expect-failure", "live support doc missing sanitized loopback failure command");
   assertContains(liveSupportDoc, "verify-onvif-closed-loopback-failure-matrix", "live support doc missing closed loopback matrix command");
@@ -135,6 +139,7 @@ check("no-device suite runner can write summary JSON", () => {
     "verify-onvif-synthetic-vendor-fixtures",
     "verify-onvif-local-simulator",
     "verify-onvif-soap-fault-matrix",
+    "verify-onvif-field-smoke-gate",
     "verify-onvif-no-device-completion",
   ]) {
     assertContains(noDeviceSuiteScript, token, `no-device suite script missing ${token}`);
@@ -176,6 +181,7 @@ check("no-device success summary fixture preserves completed command state", () 
     "./server.sh verify-onvif-local-simulator",
     "./server.sh verify-onvif-auth-injection-loopback",
     "./server.sh verify-onvif-soap-fault-matrix",
+    "./server.sh verify-onvif-field-smoke-gate",
     "./server.sh verify-onvif-no-device-completion",
     "./server.sh verify-onvif-closed-loopback-failure-matrix",
     "./server.sh verify-onvif-field-http-probe --endpoint http://127.0.0.1:9/onvif/device_service --expect-failure --credential-ref-present",

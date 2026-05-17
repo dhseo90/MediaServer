@@ -23,7 +23,7 @@
 | `./server.sh test --external` | `--full` + LAN/external source, WebRTC ICE, 외부 HTTP/HLS URI 선택 검증. 외부 WHEP endpoint는 환경 의존 별도 검증 |
 | `./server.sh test --stable` | 기존 stable 호환 기준 |
 
-외부 RTSP/HLS/HTTP/WHEP source, 운영 TURN relay/auth는 외부 환경 영향을 받으므로 기본 hard gate가 아닙니다. YouTube import/source는 기본 빌드에서 제외한 lab-only 실험 기능이며, v1.2.0 기본 검증에서는 실제 YouTube URL 성공을 확인하지 않습니다. 공개 URL을 사용할 때는 재현 가능한 예시 URL 또는 환경 변수로만 주입하고, 개인 LAN IP, credential, 고객/운영 영상 URL은 문서와 artifact에 남기지 않습니다.
+외부 RTSP/HLS/HTTP/WHEP source, 운영 TURN relay/auth는 외부 환경 영향을 받으므로 기본 hard gate가 아닙니다. YouTube import/source는 기본 빌드에서 제외한 lab-only 실험 기능이며, 현재 기본 검증에서는 실제 YouTube URL 성공을 확인하지 않습니다. 공개 URL을 사용할 때는 재현 가능한 예시 URL 또는 환경 변수로만 주입하고, 개인 LAN IP, credential, 고객/운영 영상 URL은 문서와 artifact에 남기지 않습니다.
 
 문서/UI/Auth/권한/계정처럼 media pipeline 자체를 바꾸지 않은 변경에서는
 `./server.sh test`, `./server.sh test --basic`, `./server.sh test --full`,
@@ -51,6 +51,7 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-code-comments
 ./server.sh verify-release-metadata
 ./server.sh verify-v121-follow-up-closure
+./server.sh verify-v130-follow-up-closure
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-manual-ui-evidence
@@ -59,6 +60,7 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
 ./server.sh verify-post-release-reconciliation
 ./server.sh verify-release-closeout-helper --dry-run --report /tmp/media_server_release_closeout_helper.md
+./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>
 ./server.sh dependency-snapshot --stable --output /tmp/media_server_dependency_snapshot.md --no-linked-libs
 ./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
 ./server.sh verify-release-bundle-dry-run
@@ -197,6 +199,26 @@ archive에 있으면 숫자 suffix를 붙인 뒤 `duplicatePolicy`, `archiveSequ
 preflight CI는 같은 명령을 `--apply` 없이 실행하고
 `media-server-ui-visual-maintenance-dry-run` artifact에 JSON/Markdown report를 업로드합니다.
 
+### Release / Visual Baseline Readiness
+
+release/PR 준비에서는 release close-out helper가 visual artifact policy와
+screenshot review 체크포인트를 함께 요약합니다.
+
+```bash
+./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>
+```
+
+helper JSON report에는 `media-server.release-visual-baseline-automation.v1`
+schema의 visual automation 요약이 포함됩니다. 이 요약은
+`verify-docs-ui-assets`, `verify-ui-visual-artifact-index`,
+`verify-ui-release-baseline-approval-log`, `write-ui-visual-baseline-comment`,
+`ui-visual-artifact-maintenance`를 release 준비 체크리스트로 묶고,
+preflight의 `media-server-release-closeout-helper-dry-run`,
+`media-server-ui-visual-baseline-diff`,
+`media-server-ui-visual-maintenance-dry-run` artifact를 함께 확인하게 합니다.
+tag, push, GitHub Release, accepted baseline adoption, 320/390/760/1180px 수동
+screenshot review는 실제 실행 전까지 pass로 쓰지 않고 manual/not-run 상태로 남깁니다.
+
 VA rule/scenario 변경:
 
 ```bash
@@ -232,7 +254,7 @@ MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1 ./serve
 ```
 
 UI 변경 검증에서는 기본 추가 RTSP/WebRTC source 영상이나 codec matrix를 쓰지 않습니다.
-v1.2.0 UI visual regression gate는 ERP/운영 콘솔형 visual refresh 기준을 함께 봅니다.
+v1.2.0에서 도입되어 v1.3.0에서도 유지되는 UI visual regression gate는 ERP/운영 콘솔형 visual refresh 기준을 함께 봅니다.
 즉, 기능 selector만 통과하면 끝이 아니라 compact product shell, nav/account header,
 metric/card/table/form/badge 밀도, client source/debug 비노출, 모바일 overflow를 같은
 artifact에서 확인합니다.
@@ -708,6 +730,8 @@ matrix 실행은 fixture별 `summary.json`/`report.md`와 상위
 회차별 품질 추세를 남겨야 하면 `--history-dir <dir>`를 함께 지정합니다.
 이 경우 run별 `matrix-summary.json`/`matrix-report.md` 사본과 root
 `index.json`/`index.md`가 갱신됩니다.
+history index는 `defaultOnDecision`, `productDefaultOn`, `candidateCount`,
+`defaultOnReason`을 함께 남겨 `matrix-ok`와 제품 default-on 결정을 분리합니다.
 단일 비교의 quality preset 기본값은 `strict`입니다.
 내장 matrix fixture는 close-object sample과 control sample의 live polling
 특성이 달라 fixture별 `qualityPreset`을 사용합니다. close-object sample은

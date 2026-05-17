@@ -33,11 +33,16 @@ check("product translation map includes recent UI copy", () => {
   const js = readText("src/ingress/product_ui_js.cpp");
   const required = [
     "'최근 인시던트 흐름': 'Recent Incident Timeline'",
+    "'제목, 출처, incident/cid 검색': 'Search title, source, incident, or cid'",
     "'최근 인시던트 없음': 'No recent incidents'",
     "'즉시 인시던트 없음': 'No immediate incidents'",
     "'관련 화면': 'Related screen'",
     "'소스 상태 변경 이력': 'Source status change history'",
     "'상태 변화 audit은 /ops/sources 변경 이력의 소스 상태 변경 preset에서 확인합니다.':",
+    "'상태 변경 이력과 retryable-only 재검증을 확인합니다.':",
+    "'소스 상태 변경 이력에서 같은 source incident 흐름을 확인합니다.':",
+    "'EventRecord 저장/POST 상태와 source health 단서를 함께 확인합니다.':",
+    "'관련 root-cause 또는 source health incident와 같은 cid를 비교합니다.':",
     "'재연결': 'Reconnect'",
     "'정지': 'Stop'",
     "'보기 방식': 'View mode'",
@@ -51,11 +56,15 @@ check("product translation map includes recent UI copy", () => {
     "'계정 라이프사이클 정책': 'Account Lifecycle Policy'",
     "'초대 만료, 비밀번호 초기화, 비활성화/복구, 사용자 감사 export를 같은 운영 절차로 확인합니다.':",
     "'비밀번호 초기화': 'Reset password'",
+    "서버 감사 로그에서 사용자 변경의 작업자",
+    "서버 감사 로그에서 채널 변경의 작업자",
+    "서버 감사 로그에서 룰 변경의 작업자",
     "사용자 감사 JSON/CSV/Diff JSON export를 내려받습니다.",
     "'이벤트 복사': 'Copy events'",
     "'이벤트 요약 복사 완료': 'Event summary copied'",
     "'클립보드 복사 실패': 'Clipboard copy failed'",
     "'클립보드 복사 실패. 주소창의 필터 링크를 직접 복사하세요.': 'Clipboard copy failed. Copy the filter link from the address bar.'",
+    "'메타데이터 오류': 'Metadata error'",
   ];
   for (const snippet of required) {
     assert(js.includes(snippet), `translation map missing snippet: ${snippet}`);
@@ -66,7 +75,7 @@ check("product translation patterns include repeated live tile labels", () => {
   const js = readText("src/ingress/product_ui_js.cpp");
   const required = [
     "^타일\\s+(\\d+):\\s+(.+)$",
-    "^타일\\s+(\\d+)\\s+(시작|재연결|정지|채널|보기 방식)$",
+    "^타일\\s+(\\d+)\\s+(시작|재연결|정지|채널 선택|채널|보기 방식)$",
     "^상태\\s+(.+)$",
     "^메타데이터\\s+(.+)$",
     "^재시도\\s+(\\d+)$",
@@ -85,8 +94,11 @@ check("client live tile a11y i18n snapshot is pinned", () => {
   const fixture = JSON.parse(readText("test/fixtures/client_live_tile_a11y_i18n_snapshot.json"));
   assert(fixture.schema === "media-server.client-live-tile-a11y-i18n-snapshot.v1", "snapshot schema mismatch");
   assert(clientScript.includes("liveTileA11yStatus"), "client live script missing liveTileA11yStatus");
+  assert(clientScript.includes("clientDynamicText"), "client live script must render dynamic a11y copy in the current language");
   assert(uiSmoke.includes("client_live_tile_a11y_i18n_snapshot.json"), "ops/client UI smoke does not load client live a11y snapshot");
   assert(uiSmoke.includes("domExtraction.requiredKoreanParts"), "ops/client UI smoke does not use snapshot DOM extraction fields");
+  assert(uiSmoke.includes("/client/live?lang=en"), "ops/client UI smoke does not verify English client live a11y DOM");
+  assert(uiSmoke.includes("first tile a11y status mismatch"), "ops/client UI smoke does not compare extracted DOM text with snapshot");
   assert(Array.isArray(fixture.scenarios) && fixture.scenarios.length >= 4, "snapshot scenarios must cover at least 4 tile states");
   assert(fixture.domExtraction?.selector === "[data-role=\"a11y-status\"]", "snapshot DOM extraction selector mismatch");
   for (const value of ["타일 1:", "상태", "연결", "트랙", "이벤트", "메타데이터", "재시도"]) {

@@ -8,11 +8,11 @@
 - [ ] User-visible behavior, API schema, event payloads, WebRTC/SSE/WS metadata schema, and RTSP/WebRTC media paths are unchanged unless explicitly requested.
 - [ ] If this is a docs-only PR, it does not claim code/UI/API work was implemented.
 
-## v1.1.0 Live-only Boundary
+## Live-only Source Boundary
 
-- [ ] v1.1.0 live-only wording follows `docs/v1.1.0-roadmap.md`.
+- [ ] Current live-only/source-only wording follows `docs/development-backlog.md`, `docs/versioning-policy.md`, and `docs/release-policy.md`.
 - [ ] VMS/NVR/long-term recording/playback/search/Profile G wording is marked as non-goal, deferred, default-off, debug/developer, or short event evidence.
-- [ ] Live-only alpha.1 boundary work is not mixed with implementation phase work such as ONVIF API skeletons, SourceRegistry schema changes, Ops UI changes, smoke matrix automation, or state-dump extensions.
+- [ ] Release/close-out work is not mixed with new implementation phase work such as schema changes, source registry migrations, media path changes, or default-on Re-ID/tracker replacement.
 - [ ] Follow-up phase docs are labeled as follow-up phase docs, not alpha.1 completion scope.
 
 ## Verification
@@ -20,6 +20,7 @@
 - [ ] `git diff --check`
 - [ ] `./server.sh verify-docs-links` when docs changed
 - [ ] `./server.sh verify-docs-ui-assets` when README/UI asset references changed
+- [ ] `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>` when release/visual baseline readiness changed
 - [ ] `./server.sh verify-ui-visual-artifact-index` when UI screenshot artifact behavior or docs changed
 - [ ] `./server.sh verify-ui-release-baseline-approval-log` when release baseline artifact approval docs or workflow gates changed
 - [ ] `./server.sh verify-ops-client-ui --screenshots --output-dir <artifact-dir>` when Auth/Ops/Client UI changed
@@ -39,6 +40,15 @@
 - [ ] 320px, 390px, 760px, and 1180px screenshots were reviewed for nav/account/header/table/action overflow.
 - [ ] Client/viewer screenshots do not expose source URL, Developer URL, raw JSON, debug counters, BBox diagnostics, or rule/profile editor controls.
 - [ ] If no UI changed, this section is marked not applicable in Summary or Not Run.
+
+## Release / Visual Baseline Readiness
+
+- [ ] Release close-out helper report:
+- [ ] JSON report uses visual automation schema `media-server.release-visual-baseline-automation.v1`.
+- [ ] Preflight artifact `media-server-release-closeout-helper-dry-run` is available or marked not run.
+- [ ] Visual baseline diff/comment artifact `media-server-ui-visual-baseline-diff` is available or marked not run.
+- [ ] Visual maintenance dry-run artifact `media-server-ui-visual-maintenance-dry-run` is available or marked not run.
+- [ ] Manual release actions, tag, push, GitHub Release, accepted baseline adoption, and screenshot review are not claimed as pass unless actually executed and linked.
 
 ## Not Run
 

@@ -85,8 +85,11 @@ check("ops dashboard exposes source health next-action workflow", () => {
     "runSourceHealthBulk",
     "/ops/api/source-health/bulk",
     "sourceHealthRetryIds",
+    "dashboardSourceHealthIncidentId",
+    "sourceHealthAuditHref",
     "data-source-health-retry",
     "재검증 대상만 다시 확인",
+    "상태 변경 이력과 retryable-only 재검증을 확인합니다.",
     "source health bulk는 registry를 변경하지 않아 rollback 대상이 없습니다.",
   ];
   for (const snippet of required) {

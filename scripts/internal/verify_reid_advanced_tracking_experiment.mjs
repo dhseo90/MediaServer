@@ -190,6 +190,12 @@ check("close-object benchmark commands and fixture matrix remain available", () 
     "fixture matrix contains fail/hold/warning rows; keep close-object guard default off",
     "all fixtures are candidates, but product default-on still requires separate review and field evidence",
     "`matrix-ok` is a command/gate result, not product default-on approval",
+    '"candidateCount": decision.get("candidateCount")',
+    '"defaultOnDecision": decision.get("status")',
+    '"productDefaultOn": decision.get("productDefaultOn")',
+    '"defaultOnReason": decision.get("reason")',
+    "default-on decision",
+    "product default-on",
   ]) {
     assert(compare.includes(snippet), `compare matrix output must separate matrix-ok from product default-on: ${snippet}`);
   }
@@ -205,15 +211,26 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
   const video = readText("docs/video-analysis.md");
   const holdAnalysis = readText("docs/reid-tracking-event-hold-analysis.md");
   const fixtureCandidates = readText("docs/reid-fixture-default-on-candidates.md");
+  const researchContinuation = readText("docs/reid-default-off-research-continuation.md");
+  const readme = readText("README.md");
+  const readmeEn = readText("README.en.md");
+  const docsEnReadme = readText("docs/en/README.md");
   for (const snippet of [
     "V120-P2-02 WARNING 판정",
+    "V130-P2-02 Re-ID default-off research continuation 종료 판정",
     "verify-reid-advanced-tracking",
     "잔여 이슈를 남깁니다",
+    "개발 가능한 후속 이슈는 위 검증 통과 시 남기지",
     "tracking-event=pass",
     "field-new-york-driving=warning",
+    "reid-default-off-research-continuation.md",
     "reid-tracking-event-hold-analysis.md",
     "reid-fixture-default-on-candidates.md",
     "verify-close-object-fixture-matrix",
+    "defaultOnDecision",
+    "productDefaultOn",
+    "candidateCount",
+    "defaultOnReason",
   ]) {
     assert(backlog.includes(snippet), `backlog missing Re-ID closure snippet: ${snippet}`);
   }
@@ -233,6 +250,10 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
     "observed issue counter",
     "--modes off,diagnostic,enforce",
     "trackingIssueObservationCounts",
+    "defaultOnDecision",
+    "productDefaultOn",
+    "candidateCount",
+    "defaultOnReason",
     "reid-fixture-default-on-candidates.md",
     "별도 review",
   ]) {
@@ -252,6 +273,11 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
     "observed issue/diagnostic",
     "off,diagnostic",
     "trackingIssueObservationCounts",
+    "reid-default-off-research-continuation.md",
+    "defaultOnDecision",
+    "productDefaultOn",
+    "candidateCount",
+    "defaultOnReason",
     "reid-fixture-default-on-candidates.md",
     "verify-reid-advanced-tracking",
   ]) {
@@ -294,6 +320,29 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
   ]) {
     assert(fixtureCandidates.includes(snippet), `fixture candidate doc missing snippet: ${snippet}`);
   }
+  for (const snippet of [
+    "V130-P2-02 Re-ID default-off research continuation",
+    "defaultOnDecision",
+    "productDefaultOn",
+    "candidateCount",
+    "defaultOnReason",
+    "verify-close-object-fixture-matrix",
+    "verify-reid-advanced-tracking",
+    "제품 기본 활성화 여부. 이 연구 범위에서는 항상 `False`",
+    "Re-ID default-on",
+    "대형 tracker 교체",
+    "RTSP/WebRTC media path 변경",
+    "개발 가능한 후속 이슈는 다음 조건이 모두 통과하면 남기지",
+  ]) {
+    assert(researchContinuation.includes(snippet), `research continuation doc missing snippet: ${snippet}`);
+  }
+  for (const [label, text] of [
+    ["README.md", readme],
+    ["README.en.md", readmeEn],
+    ["docs/en/README.md", docsEnReadme],
+  ]) {
+    assert(text.includes("reid-default-off-research-continuation.md"), `${label} missing Re-ID research doc link`);
+  }
   return {
     docs: [
       "docs/development-backlog.md",
@@ -301,6 +350,7 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
       "docs/video-analysis.md",
       "docs/reid-tracking-event-hold-analysis.md",
       "docs/reid-fixture-default-on-candidates.md",
+      "docs/reid-default-off-research-continuation.md",
     ],
   };
 });

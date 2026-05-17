@@ -71,6 +71,6 @@ Profile S/T 전체 conformance나 ONVIF conformant server 구현이 아닙니다
 
 실장비가 없는 환경에서는 [ONVIF No-Device Verification](./onvif-no-device-verification.md)
 기준에 따라 실장비 endpoint 성공을 미확인으로 남깁니다.
-2026-05-15 기준 이번 v1.2.0 ONVIF 작업은 실제 ONVIF 카메라로 검증하지 않았고,
+2026-05-15 v1.2.0 ONVIF 작업은 실제 ONVIF 카메라로 검증하지 않았고,
 공개 인터넷의 임의 ONVIF endpoint도 사용하지 않았습니다. 실제 장비 성공과
 local simulator fixture 성공은 보고에서 분리합니다.

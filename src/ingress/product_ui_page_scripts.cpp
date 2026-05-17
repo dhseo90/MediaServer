@@ -94,7 +94,7 @@ void AppendClientShellScript(std::ostringstream& out) {
     const clientHashParams = () => new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
     let selectedViewId = clientHashParams().get('view') || views[0]?.viewId || '';
     const isPreviewMode = document.body.dataset.clientPreview === 'true';
-    const { escapeHtml, display, numberValue, requestJson, applyPrincipalVisibility, setSelectOptions, showToast, currentLanguage } = window.MediaServerUi;
+    const { escapeHtml, display, numberValue, requestJson, applyPrincipalVisibility, setSelectOptions, showToast, currentLanguage, translateText } = window.MediaServerUi;
     let clientWebRtcConfigPromise = null;
     const ms = value => value === null || value === undefined ? '미제공' : `${Math.max(0, Math.round(Number(value)))}ms`;
     const formatTime = value => {
@@ -134,6 +134,7 @@ void AppendClientShellScript(std::ostringstream& out) {
       completed: '연결됨',
       live: '라이브',
       metadata: '메타데이터',
+      'metadata-error': '메타데이터 오류',
       disconnected: '연결 끊김',
       failed: '실패',
       error: '오류',
@@ -187,6 +188,14 @@ void AppendClientShellScript(std::ostringstream& out) {
         return currentLanguage && currentLanguage() === 'en' ? en : ko;
       } catch (_) {
         return ko;
+      }
+    };
+    const clientDynamicText = value => {
+      const raw = String(value ?? '');
+      try {
+        return translateText ? translateText(raw) : raw;
+      } catch (_) {
+        return raw;
       }
     };
     function clearClientClipboardFallback(root = detail) {
@@ -848,17 +857,24 @@ void AppendClientShellScript(std::ostringstream& out) {
       if (['unavailable', '미제공'].includes(String(value))) return ' bad';
       return '';
     }
+    function liveTileConnectionLabel(tile) {
+      const value = String(tile?.connectionStatus || '');
+      if (!tile?.sessionId && (!value || ['offline', 'closed', 'disconnected'].includes(value))) return '연결 끊김';
+      if (value === 'offline') return '연결 끊김';
+      if (value === 'metadata') return '연결됨';
+      return clientStatusLabel(value);
+    }
     function liveTileA11yStatus(tile, view, statusLabel, metadataLabel) {
       const viewLabel = view?.displayName || view?.viewId || '채널 미선택';
-      return [
+      return clientDynamicText([
         `타일 ${tile.index + 1}: ${viewLabel}`,
         `상태 ${statusLabel}`,
-        `연결 ${clientStatusLabel(tile.connectionStatus)}`,
+        `연결 ${liveTileConnectionLabel(tile)}`,
         `트랙 ${display(tile.trackCount)}`,
         `이벤트 ${display(tile.eventCount)}`,
         `메타데이터 ${metadataLabel}`,
         `재시도 ${tile.restartCount || 0}`
-      ].join(' · ');
+      ].join(' · '));
     }
     function updateTileDom(tile) {
       const root = document.querySelector(`[data-tile="${tile.index}"]`);
@@ -877,11 +893,11 @@ void AppendClientShellScript(std::ostringstream& out) {
       const viewLabel = view?.displayName || view?.viewId || '채널 미선택';
       const metadataLabel = stale ? '지연' : (tile.sessionId ? '정상' : '미제공');
       const a11yStatus = liveTileA11yStatus(tile, view, statusLabel, metadataLabel);
-      root.setAttribute('aria-label', `타일 ${tile.index + 1}: ${viewLabel} · ${statusLabel}`);
+      root.setAttribute('aria-label', clientDynamicText(`타일 ${tile.index + 1}: ${viewLabel} · ${statusLabel}`));
       root.setAttribute('aria-current', selectedLiveTile === tile.index ? 'true' : 'false');
       root.querySelector('[data-role="status"]').textContent = statusLabel;
       root.querySelector('[data-role="status"]').className = `chip${tileStatusClass(stale ? 'stale' : status)}`;
-      root.querySelector('[data-role="connection"]').textContent = clientStatusLabel(tile.connectionStatus);
+      root.querySelector('[data-role="connection"]').textContent = clientDynamicText(liveTileConnectionLabel(tile));
       root.querySelector('[data-role="tracks"]').textContent = display(tile.trackCount);
       root.querySelector('[data-role="events"]').textContent = display(tile.eventCount);
       root.querySelector('[data-role="stale"]').textContent = metadataLabel;
@@ -990,7 +1006,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	            </div>
 	            <div class="tile-controls">
 	              <label>채널
-		                <select data-role="view" aria-label="타일 ${tile.index + 1} 채널">
+		                <select data-role="view" aria-label="타일 ${tile.index + 1} 채널 선택">
 		                  ${liveViewOptionsHtml(tile)}
 		                </select>
 	              </label>
@@ -1520,7 +1536,7 @@ void AppendClientShellScript(std::ostringstream& out) {
             </div>
           </div>
           <div class="summary">
-            <div class="metric"><span>연결</span><strong>${escapeHtml(clientStatusLabel(tile.connectionStatus))}</strong></div>
+            <div class="metric"><span>연결</span><strong>${escapeHtml(clientDynamicText(liveTileConnectionLabel(tile)))}</strong></div>
             <div class="metric"><span>라이브</span><strong>${escapeHtml(clientStatusLabel(health.status || tile.status))}</strong></div>
             <div class="metric"><span>상태 요약</span><strong>${escapeHtml(clientHealthSummaryLabel(health.summary || health.status))}</strong></div>
             <div class="metric"><span>트랙</span><strong>${escapeHtml(display(tile.trackCount ?? analysis.trackCount))}</strong></div>
@@ -1721,6 +1737,22 @@ void AppendOpsShellScript(std::ostringstream& out,
         const counts = dashboardSourceHealthCounts(sourceHealth);
         return `수신 ${counts.live}/${counts.total} · 연결 중 ${counts.connecting} · 지연 ${counts.stale} · 오프라인 ${counts.offline}`;
       };
+      const dashboardSourceHealthIncidentId = item => {
+        const sourceId = String(item?.sourceId || '').trim() || 'unknown';
+        const status = String(item?.status || 'unknown').trim() || 'unknown';
+        const reason = String(item?.reason || 'not-checked').trim() || 'not-checked';
+        return `source-health:${sourceId}:${status}:${reason}`;
+      };
+      const dashboardRuntimeStreamLabel = value => {
+        const text = String(value || '').trim();
+        if (!text) return '스트림 미제공';
+        if (text.startsWith('file::')) {
+          const token = text.slice(6);
+          const fileName = token.split(/[\\/]/).filter(Boolean).pop();
+          return fileName ? `file::${fileName}` : 'file source';
+        }
+        return text.length > 96 ? `${text.slice(0, 93)}...` : text;
+      };
       const dashboardRootCauseItems = (runtime, principal, eventsStatus = {}, browserConfig = {}, diagnosticLog = {}, sourceHealth = {}) => {
         const counts = runtimeCounts(runtime);
         const lifecycle = runtime?.sourceLifecycle || {};
@@ -1805,7 +1837,7 @@ void AppendOpsShellScript(std::ostringstream& out,
               ? staleTaps.slice(0, 3).map(tap => `${tap.tapId || '탭'} ${Math.round(numberValue(tap.lastUsedAgeMs))}ms`).join(' · ')
               : '5초 초과 미사용 분석 탭이 없습니다.',
             evidence: staleTaps.length > 0
-              ? staleTaps.slice(0, 2).map(tap => `${tap.streamKey || '스트림'} / ${tap.selectedRuleId || '룰 없음'}`).join(' · ')
+              ? staleTaps.slice(0, 2).map(tap => `${dashboardRuntimeStreamLabel(tap.streamKey)} / ${tap.selectedRuleId || '룰 없음'}`).join(' · ')
               : `활성 분석 탭 ${activeTaps.length}`,
             log: staleLog.line,
             correlationId: staleLog.correlationId,
@@ -2128,12 +2160,15 @@ void AppendOpsShellScript(std::ostringstream& out,
         return source ? source.replace(/[^a-z0-9가-힣]+/g, '-') : 'summary';
       };
       const dashboardIncidentSearchText = item => [
+        item?.incidentId,
+        item?.sourceId,
         item?.source,
         item?.time,
         item?.title,
         item?.detail,
         item?.evidence,
         item?.correlationId,
+        item?.nextAction,
         item?.actionHref
       ].map(value => String(value || '').toLowerCase()).join(' ');
       const dashboardIncidentMatchesFilter = (item, filter) => {
@@ -2179,15 +2214,17 @@ void AppendOpsShellScript(std::ostringstream& out,
             source: '문제 원인',
             time: '현재',
             sort: Number.MAX_SAFE_INTEGER - index,
+            incidentId: item.correlationId ? `root-cause:${item.correlationId}` : `root-cause:${item.actionKind || index}`,
             title: item.title,
             detail: item.detail,
             evidence: item.evidence || item.log,
             correlationId: item.correlationId,
+            nextAction: item.action,
             actionHref: item.actionHref
           }));
         const eventTimeline = dashboardIncidentEventRecords(eventsStatus)
           .slice(0, 4)
-          .map(item => {
+          .map((item, index) => {
             const status = String(item?.status || '').toLowerCase();
             const level = ['failed', 'failure', 'error'].includes(status) ? 'warn' : 'info';
             const stream = item?.streamId || item?.channelId || '스트림 미제공';
@@ -2197,27 +2234,41 @@ void AppendOpsShellScript(std::ostringstream& out,
               source: 'EventRecord',
               time: dashboardIncidentTimeLabel(item),
               sort: dashboardIncidentSortValue(item),
+              incidentId: `event:${item?.eventId || item?.trackId || item?.streamId || index}`,
+              sourceId: stream,
               title: `${display(item?.eventType || 'event')} · ${display(item?.status || '상태 미제공')}`,
               detail: `${display(stream)}${item?.trackId ? ` · track ${display(item.trackId)}` : ''}${scenario ? ` · ${scenario}` : ''}`,
               evidence: item?.eventId ? `eventId ${display(item.eventId)}` : 'eventId 미제공',
               correlationId: item?.eventId || item?.trackId || '',
+              nextAction: 'EventRecord 저장/POST 상태와 source health 단서를 함께 확인합니다.',
               actionHref: '/ops/events'
             };
           });
         const sourceTimeline = dashboardSourceHealthItems(sourceHealth)
           .filter(sourceHealthNeedsAction)
           .slice(0, 3)
-          .map((item, index) => ({
-            level: item.status === 'offline' ? 'bad' : 'warn',
-            source: 'Source Health',
-            time: '현재',
-            sort: Number.MAX_SAFE_INTEGER - 100 - index,
-            title: `소스 #${display(item.sourceId || '-')} ${dashboardSourceHealthStatusLabel(item.status)}`,
-            detail: dashboardSourceHealthReason(item.reason),
-            evidence: `프레임 ${dashboardSourceHealthAge(item.lastFrameAgeMs)} / 메타데이터 ${dashboardSourceHealthAge(item.lastMetadataAgeMs)}`,
-            correlationId: item.sourceId ? `source-${item.sourceId}` : '',
-            actionHref: item.sourceId ? `/ops/sources#channel=${encodeURIComponent(item.sourceId)}` : '/ops/sources'
-          }));
+          .map((item, index) => {
+            const sourceId = String(item?.sourceId || '').trim();
+            const incidentId = dashboardSourceHealthIncidentId(item);
+            const auditHref = sourceHealthAuditHref(sourceHealth, {
+              retryBody: sourceId ? { sourceIds: [sourceId] } : { sourceIds: [] },
+              results: sourceId ? [{ sourceId }] : []
+            });
+            return {
+              level: item.status === 'offline' ? 'bad' : 'warn',
+              source: 'Source Health',
+              time: '현재',
+              sort: Number.MAX_SAFE_INTEGER - 100 - index,
+              incidentId,
+              sourceId,
+              title: `소스 #${display(sourceId || '-')} ${dashboardSourceHealthStatusLabel(item.status)}`,
+              detail: `${dashboardSourceHealthReason(item.reason)} · 상태 변경 이력과 retryable-only 재검증을 확인합니다.`,
+              evidence: `프레임 ${dashboardSourceHealthAge(item.lastFrameAgeMs)} / 메타데이터 ${dashboardSourceHealthAge(item.lastMetadataAgeMs)}`,
+              correlationId: sourceId ? `source-${sourceId}` : '',
+              nextAction: '소스 상태 변경 이력에서 같은 source incident 흐름을 확인합니다.',
+              actionHref: auditHref
+            };
+          });
         const logLines = Array.isArray(diagnosticLog?.lines) ? diagnosticLog.lines : [];
         const logTimeline = [...logLines]
           .reverse()
@@ -2228,10 +2279,12 @@ void AppendOpsShellScript(std::ostringstream& out,
             source: 'Log tail',
             time: '최근 로그',
             sort: Number.MAX_SAFE_INTEGER - 200 - index,
+            incidentId: `log-tail:${rootCauseCorrelationId(line, 'source health|cleanup|stale|event post|event storage|auth|ICE|TURN|relay|reconnect|WHIP') || index}`,
             title: '로그 단서',
             detail: String(line || '').slice(0, 160),
             evidence: 'diagnostics log-tail',
             correlationId: rootCauseCorrelationId(line, 'source health|cleanup|stale|event post|event storage|auth|ICE|TURN|relay|reconnect|WHIP'),
+            nextAction: '관련 root-cause 또는 source health incident와 같은 cid를 비교합니다.',
             actionHref: '/ops/dashboard'
           }));
         const items = [...rootTimeline, ...sourceTimeline, ...eventTimeline, ...logTimeline]
@@ -2281,16 +2334,178 @@ void AppendOpsShellScript(std::ostringstream& out,
           window.MediaServerUi?.translatePage?.();
           return items;
         }
-        list.innerHTML = items.map(item => `<article class="root-cause-item ${escapeHtml(item.level)}">
+        list.innerHTML = items.map(item => {
+          const incidentMeta = [
+            item.incidentId ? `incident ${item.incidentId}` : '',
+            item.correlationId ? `cid ${item.correlationId}` : ''
+          ].filter(Boolean).join(' · ');
+          return `<article class="root-cause-item ${escapeHtml(item.level)}">
           <div>
             <strong>${opsHtml(item.title)}</strong>
             <p>${opsHtml(item.detail)}</p>
           </div>
           <span class="chip${item.level === 'warn' ? ' warn' : (item.level === 'bad' ? ' bad' : '')}">${opsHtml(item.time || item.source)}</span>
-          ${item.correlationId ? `<span class="root-cause-correlation">cid ${escapeHtml(item.correlationId)}</span>` : ''}
+          ${incidentMeta ? `<span class="root-cause-correlation">${escapeHtml(incidentMeta)}</span>` : ''}
           ${item.evidence ? `<p class="root-cause-evidence">${opsHtml(item.evidence)}</p>` : ''}
-          <p class="root-cause-action">출처 ${opsHtml(item.source || '대시보드')}</p>
+          <p class="root-cause-action">출처 ${opsHtml(item.source || '대시보드')}${item.nextAction ? ` · 다음 조치 ${opsHtml(item.nextAction)}` : ''}</p>
           ${item.actionHref ? `<a class="btn small root-cause-next-action" href="${escapeHtml(item.actionHref)}">관련 화면</a>` : ''}
+        </article>`;
+        }).join('');
+        window.MediaServerUi?.translatePage?.();
+        return items;
+      };
+      const dashboardRuntimeOpsEventRecords = (eventsStatus = {}, tap = {}, timeline = []) => {
+        const records = dashboardIncidentEventRecords(eventsStatus);
+        const lastEventIds = new Set((Array.isArray(timeline) ? timeline : [])
+          .map(item => String(item?.lastEventId || '').trim())
+          .filter(Boolean));
+        const selectedRuleId = String(tap?.selectedRuleId || '').trim();
+        const streamKey = String(tap?.streamKey || '').trim();
+        const scoped = records.filter(item => {
+          const eventId = String(item?.eventId || '').trim();
+          const ruleId = String(item?.ruleId || item?.vaRuleId || item?.selectedRuleId || '').trim();
+          const stream = String(item?.streamId || item?.channelId || '').trim();
+          return (eventId && lastEventIds.has(eventId)) ||
+            (selectedRuleId && ruleId === selectedRuleId) ||
+            (streamKey && stream === streamKey);
+        });
+        return (scoped.length > 0 ? scoped : records).slice(0, 5);
+      };
+      const dashboardRuntimeOpsEventFailures = records => (Array.isArray(records) ? records : [])
+        .filter(item => ['failed', 'failure', 'error', 'dropped'].includes(String(item?.status || '').toLowerCase()))
+        .length;
+      const dashboardRuntimeOpsTrackHealth = (metricsReport = {}, issueReport = {}) => {
+        const trackHealth = metricsReport?.trackHealth || {};
+        const retainedIssues = numberValue(issueReport?.retainedIssues);
+        const totalIssues = numberValue(issueReport?.totalIssues);
+        const unstable = numberValue(trackHealth.unstableTrackCount);
+        const overlapRisk = numberValue(trackHealth.overlapRiskTrackCount);
+        const missedFrames = numberValue(trackHealth.missedFrameTrackCount);
+        const directionChanges = numberValue(trackHealth.directionChangeTrackCount);
+        const issueText = retainedIssues > 0
+          ? `TrackHealth 이슈 ${retainedIssues}/${totalIssues}`
+          : 'TrackHealth 이슈 없음';
+        return {
+          retainedIssues,
+          totalIssues,
+          unstable,
+          overlapRisk,
+          missedFrames,
+          directionChanges,
+          issueText,
+          detailText: `${issueText} · 불안정 ${unstable} · 겹침위험 ${overlapRisk} · missed ${missedFrames} · 방향변경 ${directionChanges}`
+        };
+      };
+      const dashboardRuntimeOpsHighWater = tapState => {
+        const capacity = numberValue(tapState?.maxQueueSize);
+        const pending = numberValue(tapState?.pendingFrames);
+        const peak = numberValue(tapState?.peakPendingFrames);
+        const maxWait = tapState?.maxQueueWaitMs;
+        const maxInference = tapState?.maxInferenceMs;
+        const pressure = capacity > 0 && Math.max(pending, peak) >= capacity * 0.8;
+        return {
+          pressure,
+          text: `high-water queue ${peak}/${capacity || '미제공'} · wait ${timelineTime(maxWait)} · inference ${timelineTime(maxInference)}`
+        };
+      };
+      const dashboardRuntimeOpsNextAction = ({ tap, activeTimeline, trackHealth, recentEvents, eventFailures, highWater }) => {
+        if (!tap?.tapId) return '활성 tap이 생기면 /ops/rules의 VA 룰 연결과 source 입력을 기준으로 다시 확인합니다.';
+        if (trackHealth.retainedIssues > 0) return '트래킹 이슈 그룹에서 track/class/reason을 확인하고 룰 geometry와 입력 FPS를 함께 점검합니다.';
+        if (eventFailures > 0) return '최근 EventRecord 실패 상태를 /ops/events에서 열어 POST/storage와 evidence 저장 상태를 확인합니다.';
+        if (highWater.pressure) return 'queue high-water가 높습니다. tap metrics의 pending/latency를 보고 입력 FPS 또는 sampling 설정을 점검합니다.';
+        if (activeTimeline.length > 0 && recentEvents.length === 0) return '시나리오가 진행 중이지만 EventRecord가 없습니다. cooldown, duration, threshold 조건을 확인합니다.';
+        return '현 상태는 정상 범위입니다. active 구간 high-water 메모를 유지하며 다음 refresh에서 추세를 봅니다.';
+      };
+      const renderDashboardRuntimeOpsEmpty = message => {
+        renderBadges('dashRuntimeOpsBadges', [{ text: '분석 탭 대기', tone: 'info' }]);
+        setText('dashRuntimeOpsText', message);
+        const list = document.getElementById('dashRuntimeOpsList');
+        if (list) list.innerHTML = '<div class="empty">활성 분석 탭이 있으면 runtime/state/event buffer를 운영 순서로 묶어 표시합니다.</div>';
+      };
+      const renderDashboardRuntimeOpsError = error => {
+        renderBadges('dashRuntimeOpsBadges', [{ text: '운영 판독 실패', tone: 'warn' }]);
+        setText('dashRuntimeOpsText', error?.message || '런타임 운영 판독을 불러오지 못했습니다.');
+        const list = document.getElementById('dashRuntimeOpsList');
+        if (list) list.innerHTML = '<div class="empty">state-dump 또는 metrics 조회 실패로 운영 판독을 표시하지 못했습니다.</div>';
+      };
+      const renderDashboardRuntimeOperations = (tap, stateDump = {}, metricsDump = {}, eventsStatus = {}) => {
+        const list = document.getElementById('dashRuntimeOpsList');
+        if (!list) return [];
+        if (!tap?.tapId) {
+          renderDashboardRuntimeOpsEmpty('활성 분석 탭이 있으면 운영 판독을 표시합니다.');
+          return [];
+        }
+        const debugState = stateDump?.analyticsState?.debugState || {};
+        const timeline = Array.isArray(debugState?.scenarioTimeline) ? debugState.scenarioTimeline : [];
+        const activeTimeline = timeline.filter(item => item?.active !== false);
+        const issueReport = metricsDump?.trackingIssueReport || {};
+        const metricsReport = metricsDump?.metricsReport || stateDump?.analyticsState?.metricsReport || {};
+        const tapState = metricsDump?.tapState || {};
+        const trackState = metricsDump?.trackState || metricsReport?.trackState || {};
+        const recentEvents = dashboardRuntimeOpsEventRecords(eventsStatus, tap, timeline);
+        const eventFailures = dashboardRuntimeOpsEventFailures(recentEvents);
+        const trackHealth = dashboardRuntimeOpsTrackHealth(metricsReport, issueReport);
+        const highWater = dashboardRuntimeOpsHighWater(tapState);
+        const activeTracks = numberValue(trackState?.activeTracks ?? metricsReport?.trackState?.activeTracks);
+        const emittedEvents = numberValue(metricsReport?.eventState?.eventsEmitted);
+        const dedupedEvents = numberValue(metricsReport?.eventState?.eventsDeduped);
+        const leadScenario = activeTimeline[0] || timeline[0] || null;
+        const nextAction = dashboardRuntimeOpsNextAction({ tap, activeTimeline, trackHealth, recentEvents, eventFailures, highWater });
+        const causeLevel = trackHealth.retainedIssues > 0 || eventFailures > 0 || highWater.pressure ? 'warn' : 'info';
+        const impactLevel = trackHealth.retainedIssues > 0 || eventFailures > 0 ? 'warn' : 'info';
+        const items = [
+          {
+            step: '원인',
+            level: causeLevel,
+            title: leadScenario
+              ? `${scenarioPhaseLabel(leadScenario.currentPhase || leadScenario.scenarioPhase)} · ${display(leadScenario.scenarioName || leadScenario.scenarioKey || 'scenario')}`
+              : (trackHealth.retainedIssues > 0 ? 'TrackHealth 이슈 우선 확인' : '즉시 원인 없음'),
+            detail: leadScenario
+              ? `rule ${display(leadScenario.ruleId || tap.selectedRuleId || '미선택')} · track ${display(leadScenario.trackId || '미제공')} · ${trackHealth.issueText}`
+              : `${dashboardRuntimeStreamLabel(tap.streamKey)} · ${trackHealth.issueText}`,
+            evidence: `${highWater.text} · recent EventRecord ${recentEvents.length}`,
+            action: trackHealth.retainedIssues > 0
+              ? 'TrackHealth 이슈가 원인 후보입니다.'
+              : (leadScenario ? '시나리오 phase와 cooldown 상태를 먼저 봅니다.' : 'runtime/state/event buffer에서 즉시 확인할 원인은 없습니다.')
+          },
+          {
+            step: '영향',
+            level: impactLevel,
+            title: `active track ${activeTracks} · timeline ${timeline.length}`,
+            detail: `EventRecord ${recentEvents.length} · 실패 ${eventFailures} · 발행 ${emittedEvents} · 중복제거 ${dedupedEvents}`,
+            evidence: trackHealth.detailText,
+            action: eventFailures > 0
+              ? 'EventRecord 실패가 downstream 영향 후보입니다.'
+              : '영향 범위는 선택 tap의 state-dump와 metrics 범위로 제한됩니다.'
+          },
+          {
+            step: '다음 조치',
+            level: causeLevel,
+            title: trackHealth.retainedIssues > 0 || eventFailures > 0 || highWater.pressure ? '운영자 확인 필요' : '관찰 유지',
+            detail: nextAction,
+            evidence: recentEvents[0]
+              ? `최근 ${display(recentEvents[0].eventType || 'event')} · ${display(recentEvents[0].status || 'status')}`
+              : '최근 EventRecord 없음',
+            action: `선택 tap ${display(tap.tapId)} · ${dashboardRuntimeStreamLabel(tap.streamKey)}`
+          }
+        ];
+        renderBadges('dashRuntimeOpsBadges', [
+          { text: `탭 ${tap.tapId}` },
+          { text: tap.selectedRuleId ? `룰 ${tap.selectedRuleId}` : '룰 미선택', tone: tap.selectedRuleId ? '' : 'info' },
+          { text: `timeline ${timeline.length}` },
+          { text: trackHealth.retainedIssues > 0 ? `TrackHealth ${trackHealth.retainedIssues}` : 'TrackHealth 정상', tone: trackHealth.retainedIssues > 0 ? 'warn' : 'info' },
+          { text: eventFailures > 0 ? `EventRecord 실패 ${eventFailures}` : `EventRecord ${recentEvents.length}`, tone: eventFailures > 0 ? 'warn' : 'info' },
+          { text: highWater.pressure ? 'high-water 확인' : 'high-water 관찰', tone: highWater.pressure ? 'warn' : 'info' }
+        ]);
+        setText('dashRuntimeOpsText', 'runtime/status, state-dump, metrics, EventRecord를 새 schema 없이 운영 판독 순서로 묶었습니다.');
+        list.innerHTML = items.map(item => `<article class="root-cause-item ${escapeHtml(item.level)}">
+          <div>
+            <strong>${opsHtml(item.title)}</strong>
+            <p>${opsHtml(item.detail)}</p>
+          </div>
+          ${badge(item.step, item.level === 'warn' ? 'warn' : 'info')}
+          <p class="root-cause-evidence">${opsHtml(item.evidence)}</p>
+          <p class="root-cause-action">${opsHtml(item.action)}</p>
         </article>`).join('');
         window.MediaServerUi?.translatePage?.();
         return items;
@@ -2477,13 +2692,15 @@ void AppendOpsShellScript(std::ostringstream& out,
         setText('dashVaQualityText', message);
         renderDashboardScenarioTimeline([]);
         renderDashboardTrackingIssues({});
+        renderDashboardRuntimeOpsEmpty(message);
       };
       const renderDashboardVaQualityError = error => {
         bindDashboardVaQualityFilter();
         renderBadges('dashVaQualityBadges', [{ text: '디버그 조회 실패', tone: 'warn' }]);
         setText('dashVaQualityText', error?.message || 'VA 런타임 디버그를 불러오지 못했습니다.');
+        renderDashboardRuntimeOpsError(error);
       };
-      async function refreshDashboardVaQuality(runtime) {
+      async function refreshDashboardVaQuality(runtime, eventsStatus = {}) {
         bindDashboardVaQualityFilter();
         const tap = dashboardPrimaryTap(runtime);
         if (!tap?.tapId) {
@@ -2506,7 +2723,8 @@ void AppendOpsShellScript(std::ostringstream& out,
           { text: `이슈 ${numberValue(issueReport.retainedIssues)}`, tone: numberValue(issueReport.retainedIssues) > 0 ? 'warn' : 'info' }
         ]);
         setText('dashVaQualityText',
-          `${display(tap.streamKey)} · 단계/쿨다운/중복제거는 state-dump 디버그 계층에서만 표시합니다.`);
+          `${dashboardRuntimeStreamLabel(tap.streamKey)} · 단계/쿨다운/중복제거는 state-dump 디버그 계층에서만 표시합니다.`);
+        renderDashboardRuntimeOperations(tap, stateDump, metricsDump, eventsStatus);
         renderDashboardScenarioTimeline(timeline);
         renderDashboardTrackingIssues(issueReport);
       }
@@ -2605,7 +2823,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           `프로파일 ${runtime?.analysisMatching?.profileDocumentCount ?? 0} · 룰 ${runtime?.analysisMatching?.ruleDocumentCount ?? 0} · 발행 ${counts.publish} · 송출 ${counts.egress}`);
         const rootCauseItems = renderDashboardRootCause(runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth);
         renderDashboardIncidentTimeline(rootCauseItems, eventsStatus, diagnosticLog, sourceHealth);
-        await refreshDashboardVaQuality(runtime).catch(renderDashboardVaQualityError);
+        await refreshDashboardVaQuality(runtime, eventsStatus).catch(renderDashboardVaQualityError);
         renderRaw('opsDashboardRaw', 'opsDashboardPretty', runtime);
         window.MediaServerUi?.translatePage?.();
       }
@@ -3012,6 +3230,7 @@ void AppendOpsShellScript(std::ostringstream& out,
       const opsScenarioPresetBaselines = {
         default: {
           all: { minConfidence: 0.25, minDurationMs: 0, cooldownMs: 5000 },
+          'line-crossing': { minDurationMs: 0 },
           'intrusion-dwell': { candidateTimeMs: 2000, dwellTimeMs: 10000 },
           're-entry': { reEntryWindowMs: 10000 },
           'wrong-direction': { cooldownMs: 5000 },
@@ -3029,23 +3248,27 @@ void AppendOpsShellScript(std::ostringstream& out,
         },
         retail: {
           all: { minConfidence: 0.3, cooldownMs: 10000 },
+          'line-crossing': { minDurationMs: 0 },
           loitering: { minDwellTimeMs: 20000, maxMovementRadius: 0.06, minTrajectoryPoints: 4, cooldownMs: 10000 },
           'zone-occupancy': { occupancyThreshold: 4, minDwellTimeMs: 7000, cooldownMs: 12000 }
         },
         park: {
           all: { minConfidence: 0.3, cooldownMs: 15000 },
+          'line-crossing': { minDurationMs: 0 },
           'intrusion-dwell': { candidateTimeMs: 3000, dwellTimeMs: 15000 },
           loitering: { minDwellTimeMs: 60000, maxMovementRadius: 0.12, minTrajectoryPoints: 5, cooldownMs: 20000 },
           'zone-occupancy': { occupancyThreshold: 6, minDwellTimeMs: 10000, cooldownMs: 15000 }
         },
         indoor: {
           all: { minConfidence: 0.3, cooldownMs: 8000 },
+          'line-crossing': { minDurationMs: 0 },
           'intrusion-dwell': { candidateTimeMs: 1500, dwellTimeMs: 5000 },
           loitering: { minDwellTimeMs: 20000, maxMovementRadius: 0.06, minTrajectoryPoints: 4, cooldownMs: 10000 },
           'zone-occupancy': { occupancyThreshold: 4, minDwellTimeMs: 7000, cooldownMs: 12000 }
         },
         lobby: {
           all: { minConfidence: 0.32, cooldownMs: 12000 },
+          'line-crossing': { minDurationMs: 0 },
           'intrusion-dwell': { candidateTimeMs: 1000, dwellTimeMs: 4000 },
           're-entry': { reEntryWindowMs: 12000 },
           loitering: { minDwellTimeMs: 30000, maxMovementRadius: 0.08, minTrajectoryPoints: 4, cooldownMs: 12000 },
@@ -3075,14 +3298,30 @@ void AppendOpsShellScript(std::ostringstream& out,
         },
         parking: {
           all: { minConfidence: 0.35, cooldownMs: 20000 },
+          'line-crossing': { minDurationMs: 0 },
           loitering: { minDwellTimeMs: 60000, maxMovementRadius: 0.12, minTrajectoryPoints: 5, cooldownMs: 20000 },
           'zone-occupancy': { occupancyThreshold: 5, minDwellTimeMs: 10000, cooldownMs: 15000 }
         },
         elevator: {
           all: { minConfidence: 0.32, cooldownMs: 12000 },
+          'line-crossing': { minDurationMs: 0 },
           loitering: { minDwellTimeMs: 30000, maxMovementRadius: 0.08, minTrajectoryPoints: 4, cooldownMs: 12000 },
           'zone-occupancy': { occupancyThreshold: 5, minDwellTimeMs: 8000, cooldownMs: 12000 }
         }
+      };
+      const opsScenarioPresetLabels = {
+        default: '기본',
+        road: '도로',
+        retail: '매장 통로',
+        park: '공원',
+        indoor: '실내',
+        lobby: '로비',
+        platform: '승강장',
+        entrance: '출입구',
+        doorway: '문 앞 정체',
+        parking: '주차장 가장자리',
+        elevator: '승강기 홀',
+        custom: '직접 설정'
       };
       function opsEventRuleModeForType(type) {
         return opsRulesIsScenarioType(type) ? 'scenario' : 'event';
@@ -3098,6 +3337,90 @@ void AppendOpsShellScript(std::ostringstream& out,
           ...(preset.all || {}),
           ...(preset[normalizedType] || {})
         };
+      }
+      function opsRulesPresetNumber(value, digits = 0) {
+        const number = Number(value);
+        if (!Number.isFinite(number)) return '';
+        return digits > 0 ? number.toFixed(digits) : String(Math.round(number));
+      }
+      function opsRulesPresetMs(value) {
+        const text = opsRulesPresetNumber(value);
+        return text ? `${text}ms` : '';
+      }
+      function opsRulesPresetBaselineSummary(type, baseline = {}) {
+        const normalizedType = String(type || '').trim();
+        const parts = [];
+        const confidence = opsRulesPresetNumber(baseline.minConfidence, 2);
+        if (confidence) parts.push(`신뢰도 ${confidence}`);
+        if (normalizedType === 'line-crossing') {
+          parts.push('line 2점');
+          parts.push('방향 직접 선택');
+          return parts.join(' · ');
+        }
+        if (normalizedType === 'loitering') {
+          const dwell = opsRulesPresetMs(baseline.minDwellTimeMs);
+          const radius = opsRulesPresetNumber(baseline.maxMovementRadius, 2);
+          const points = opsRulesPresetNumber(baseline.minTrajectoryPoints);
+          if (dwell) parts.push(`체류 ${dwell}`);
+          if (radius) parts.push(`반경 ${radius}`);
+          if (points) parts.push(`경로점 ${points}`);
+        } else if (normalizedType === 'zone-occupancy') {
+          const threshold = opsRulesPresetNumber(baseline.occupancyThreshold);
+          const dwell = opsRulesPresetMs(baseline.minDwellTimeMs);
+          if (threshold) parts.push(`점유 ${threshold}`);
+          if (dwell) parts.push(`체류 ${dwell}`);
+        } else if (normalizedType === 'intrusion-after-line-crossing') {
+          const delay = opsRulesPresetMs(baseline.maxDelayAfterCrossingMs);
+          const dwell = opsRulesPresetMs(baseline.dwellTimeMs);
+          if (delay) parts.push(`라인 후 ${delay}`);
+          if (dwell) parts.push(`체류 ${dwell}`);
+        } else if (normalizedType === 'intrusion-dwell') {
+          const candidate = opsRulesPresetMs(baseline.candidateTimeMs);
+          const dwell = opsRulesPresetMs(baseline.dwellTimeMs);
+          if (candidate) parts.push(`후보 ${candidate}`);
+          if (dwell) parts.push(`확정 ${dwell}`);
+        } else if (normalizedType === 're-entry') {
+          const windowLabel = opsRulesPresetMs(baseline.reEntryWindowMs);
+          if (windowLabel) parts.push(`재진입 ${windowLabel}`);
+        }
+        const cooldown = opsRulesPresetMs(baseline.cooldownMs);
+        if (cooldown) parts.push(`재알림 ${cooldown}`);
+        return parts.join(' · ');
+      }
+      function opsRulesPresetWarningText(type) {
+        const normalizedType = String(type || '').trim();
+        if (normalizedType === 'line-crossing') {
+          return '라인 통과 preset은 최소 신뢰도 시작값만 채웁니다. 방향과 2점 line geometry를 현장 영상에서 확인하세요.';
+        }
+        if (normalizedType === 'loitering') {
+          return '배회 preset은 field sample replay 기준 시작값입니다. TrackHealth가 불안정하면 dwell부터 늘리세요.';
+        }
+        if (normalizedType === 'zone-occupancy') {
+          return '점유 preset은 polygon이 병목 구간만 포함한다는 전제입니다. 정상 피크에서 confirmed가 반복되면 threshold를 올리세요.';
+        }
+        return 'Preset은 시작값입니다. 저장 전 현장 영상, geometry, 대상 객체를 확인하세요.';
+      }
+      function opsEventRulePresetVisible(mode, type) {
+        return String(mode || '').trim() === 'scenario' || String(type || '').trim() === 'line-crossing';
+      }
+      function opsEventRuleUpdatePresetSummary(type = '', presetId = '', baseline = null) {
+        const summary = document.getElementById('opsEventRulePresetSummary');
+        if (!summary) return;
+        const mode = String(document.getElementById('opsEventRuleModeSelect')?.value || 'scenario');
+        const currentType = String(type || document.getElementById('opsEventRuleTypeSelect')?.value || 'intrusion-dwell');
+        const visible = opsEventRulePresetVisible(mode, currentType);
+        summary.hidden = !visible;
+        if (!visible) return;
+        const currentPreset = String(presetId || document.getElementById('opsEventRulePresetSelect')?.value || 'default');
+        if (currentPreset === 'custom') {
+          summary.textContent = '직접 설정은 preset 숫자를 덮어쓰지 않습니다. 저장 전 replay/현장 영상 기준으로 값만 남깁니다.';
+          return;
+        }
+        const currentBaseline = baseline || opsRulesScenarioBaseline(currentType, currentPreset);
+        const label = opsScenarioPresetLabels[currentPreset] || currentPreset || '기본';
+        const baselineText = opsRulesPresetBaselineSummary(currentType, currentBaseline);
+        const warningText = opsRulesPresetWarningText(currentType);
+        summary.textContent = `${label} preset · ${baselineText || '기본 시작값'} · ${warningText}`;
       }
       function opsRulesClone(value) {
         return JSON.parse(JSON.stringify(value ?? {}));
@@ -3718,10 +4041,13 @@ void AppendOpsShellScript(std::ostringstream& out,
             ? '여러 채널 분석 설정에서 다시 고를 수 있는 공통 시나리오 템플릿입니다.'
             : '여러 채널 분석 설정에서 다시 고를 수 있는 기본 이벤트 템플릿입니다.';
         }
-        opsEventRuleToggleField('opsEventRulePresetField', mode === 'scenario');
+        const presetVisible = opsEventRulePresetVisible(mode, type);
+        opsEventRuleToggleField('opsEventRulePresetField', presetVisible);
+        opsEventRuleToggleField('opsEventRulePresetSummary', presetVisible);
         opsEventRuleToggleField('opsEventRuleLineDirectionField', lineMode);
+        opsEventRuleToggleField('opsEventRuleMinDurationField', !lineMode);
         opsEventRuleToggleField('opsEventRuleCandidateField', dwellMode);
-        opsEventRuleToggleField('opsEventRuleDwellField', dwellMode || lineAfterMode || loiteringMode || zoneOccupancyMode);
+        opsEventRuleToggleField('opsEventRuleDwellField', dwellMode || lineAfterMode || loiteringMode);
         opsEventRuleToggleField('opsEventRuleReEntryWindowField', reEntryMode);
         opsEventRuleToggleField('opsEventRuleReEntryModeField', reEntryMode);
         opsEventRuleToggleField('opsEventRuleLineDelayField', lineAfterMode);
@@ -3730,12 +4056,15 @@ void AppendOpsShellScript(std::ostringstream& out,
         opsEventRuleToggleField('opsEventRuleLoiteringPointsField', loiteringMode);
         opsEventRuleToggleField('opsEventRuleZoneThresholdField', zoneOccupancyMode);
         opsEventRuleToggleField('opsEventRuleZoneDwellField', zoneOccupancyMode);
+        opsEventRuleToggleField('opsEventRuleCooldownField', mode === 'scenario');
+        opsEventRuleUpdatePresetSummary(type, document.getElementById('opsEventRulePresetSelect')?.value || 'default');
       }
       function opsEventRuleApplyPresetToInputs(presetId = '') {
         const type = String(document.getElementById('opsEventRuleTypeSelect')?.value || 'intrusion-dwell');
         const selected = String(presetId || document.getElementById('opsEventRulePresetSelect')?.value || 'default');
-        if (selected === 'custom') return;
         const baseline = opsRulesScenarioBaseline(type, selected);
+        opsEventRuleUpdatePresetSummary(type, selected, baseline);
+        if (selected === 'custom') return;
         const setNumber = (id, value) => {
           const input = document.getElementById(id);
           if (input && value !== undefined) input.value = String(value);

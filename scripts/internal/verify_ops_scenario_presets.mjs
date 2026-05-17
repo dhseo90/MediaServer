@@ -35,6 +35,10 @@ for (const needle of [
   '<option value="doorway">문 앞 정체</option>',
   '<option value="parking">주차장 가장자리</option>',
   '<option value="elevator">승강기 홀</option>',
+  'id="opsEventRulePresetSummary"',
+  'id="opsEventRuleMinDurationField"',
+  '라인 통과 preset은 최소 신뢰도 시작값만 채웁니다.',
+  '점유 preset은 polygon이 병목 구간만 포함한다는 전제입니다.',
   'id="opsEventRuleZoneThresholdInput" type="number" min="1" step="1" placeholder="4"',
   'id="opsEventRuleZoneDwellInput" type="number" min="0" step="1000" placeholder="7000"',
 ]) {
@@ -46,7 +50,7 @@ console.log("[pass] scenario-preset-ui");
 
 const catalog = await requestJson("/ops/api/rules/catalog");
 const usedIds = new Set((Array.isArray(catalog.rules) ? catalog.rules : []).map(item => String(item?.id || "")));
-const ids = nextNumericIds(usedIds, { count: 6, start: 9911, end: 9999, label: "scenario preset id" });
+const ids = nextNumericIds(usedIds, { count: 10, start: 9911, end: 9999, label: "scenario preset id" });
 const fixtures = [
   {
     id: ids[0],
@@ -236,6 +240,134 @@ const fixtures = [
       "scenario.dwellTimeMs": 1000,
       "scenario.cooldownMs": 10000,
       "scenario.triggerLine.direction": "forward",
+    },
+  },
+  {
+    id: ids[6],
+    name: "retail loitering",
+    payload: {
+      id: ids[6],
+      enabled: true,
+      ruleKind: "scenario",
+      analysis: { classes: ["person"] },
+      event: {
+        type: "loitering",
+        region: polygonRegion(),
+        minConfidence: 0.3,
+        minDurationMs: 0,
+      },
+      scenario: {
+        type: "loitering",
+        presetId: "retail",
+        enabled: true,
+        minDwellTimeMs: 20000,
+        maxMovementRadius: 0.06,
+        minTrajectoryPoints: 4,
+        cooldownMs: 10000,
+        targetClasses: ["person"],
+      },
+    },
+    checks: {
+      "scenario.presetId": "retail",
+      "scenario.minDwellTimeMs": 20000,
+      "scenario.maxMovementRadius": 0.06,
+      "scenario.minTrajectoryPoints": 4,
+      "scenario.cooldownMs": 10000,
+    },
+  },
+  {
+    id: ids[7],
+    name: "doorway loitering",
+    payload: {
+      id: ids[7],
+      enabled: true,
+      ruleKind: "scenario",
+      analysis: { classes: ["person"] },
+      event: {
+        type: "loitering",
+        region: polygonRegion(),
+        minConfidence: 0.32,
+        minDurationMs: 0,
+      },
+      scenario: {
+        type: "loitering",
+        presetId: "doorway",
+        enabled: true,
+        minDwellTimeMs: 15000,
+        maxMovementRadius: 0.05,
+        minTrajectoryPoints: 3,
+        cooldownMs: 8000,
+        targetClasses: ["person"],
+      },
+    },
+    checks: {
+      "scenario.presetId": "doorway",
+      "scenario.minDwellTimeMs": 15000,
+      "scenario.maxMovementRadius": 0.05,
+      "scenario.minTrajectoryPoints": 3,
+      "scenario.cooldownMs": 8000,
+    },
+  },
+  {
+    id: ids[8],
+    name: "lobby occupancy",
+    payload: {
+      id: ids[8],
+      enabled: true,
+      ruleKind: "scenario",
+      analysis: { classes: ["person"] },
+      event: {
+        type: "zone-occupancy",
+        region: polygonRegion(),
+        minConfidence: 0.32,
+        minDurationMs: 0,
+      },
+      scenario: {
+        type: "zone-occupancy",
+        presetId: "lobby",
+        enabled: true,
+        occupancyThreshold: 6,
+        minDwellTimeMs: 10000,
+        cooldownMs: 15000,
+        targetClasses: ["person"],
+      },
+    },
+    checks: {
+      "scenario.presetId": "lobby",
+      "scenario.occupancyThreshold": 6,
+      "scenario.minDwellTimeMs": 10000,
+      "scenario.cooldownMs": 15000,
+    },
+  },
+  {
+    id: ids[9],
+    name: "elevator occupancy",
+    payload: {
+      id: ids[9],
+      enabled: true,
+      ruleKind: "scenario",
+      analysis: { classes: ["person"] },
+      event: {
+        type: "zone-occupancy",
+        region: polygonRegion(),
+        minConfidence: 0.32,
+        minDurationMs: 0,
+      },
+      scenario: {
+        type: "zone-occupancy",
+        presetId: "elevator",
+        enabled: true,
+        occupancyThreshold: 5,
+        minDwellTimeMs: 8000,
+        cooldownMs: 12000,
+        targetClasses: ["person"],
+      },
+    },
+    checks: {
+      "scenario.presetId": "elevator",
+      "scenario.occupancyThreshold": 5,
+      "scenario.minDwellTimeMs": 8000,
+      "scenario.cooldownMs": 12000,
     },
   },
 ];

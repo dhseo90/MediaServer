@@ -34,7 +34,7 @@ card, button, form, table, badge는 같은 semantic color 규칙을 공유합니
 제품 shell에 직접 노출하지 않고 API와 검증 명령에서 확인합니다.
 client/viewer shell에는 내부 진단 응답, debug 정보, developer/source URL을 노출하지 않습니다.
 
-v1.2.0 기준 product shell은 ERP/운영 콘솔형 밀도를 따릅니다.
+v1.2.0에서 도입되어 v1.3.0에서도 유지되는 product shell은 ERP/운영 콘솔형 밀도를 따릅니다.
 상단에는 compact brand/nav/account header를 두고,
 본문은 metric card, dense table, form section, right/detail panel을 같은
 8px 이하 radius와 semantic token으로 맞춥니다. 장식용 hero, 큰 카드 나열,
@@ -49,7 +49,7 @@ v1.2.0 기준 product shell은 ERP/운영 콘솔형 밀도를 따릅니다.
 
 ### 1.1 Design token/component inventory
 
-v1.2.0 이후 UI 변경은 아래 inventory를 기준으로 합니다.
+v1.2.0 이후, 현재 v1.3.0까지의 UI 변경은 아래 inventory를 기준으로 합니다.
 새 색상, radius, spacing, shadow, table row, detail panel, client tile을 추가하기 전에
 먼저 같은 계층의 기존 token/class/helper로 표현할 수 있는지 확인합니다.
 
@@ -423,6 +423,13 @@ Ops/Client/Lab API guard를 확인합니다.
   `./server.sh verify-ui-release-baseline-approval-log`로 확인합니다. 작성 형식 예시는
   `test/fixtures/ui_visual_release_baseline_approval_log_sample.md`에 sample-only
   fixture로 고정합니다.
+- Release / Visual Baseline Readiness는
+  `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>`
+  리포트로 묶습니다. JSON report의 visual automation 영역은
+  `media-server.release-visual-baseline-automation.v1` schema를 사용하며,
+  preflight는 `media-server-release-closeout-helper-dry-run`,
+  `media-server-ui-visual-baseline-diff`,
+  `media-server-ui-visual-maintenance-dry-run` artifact를 업로드합니다.
 
 ### 2.1 Live VA Event Quality
 
@@ -500,7 +507,8 @@ UI/API 응답에 노출하지 않습니다.
   `/ops/sources#auditPreset=source-health-state-change`처럼 hash filter를
   붙이면 채널 변경 이력의 source health 상태 변경 preset으로 바로 열립니다.
   작업자 정보는 `/auth/whoami`/서버 principal 기준입니다.
-  비밀번호/token/hash/capability 필드는 전/후 값에서 마스킹합니다.
+  비밀번호/token/hash/credential reference/capability 필드는 저장 전과
+  조회/export 응답에서 전/후 값을 다시 마스킹합니다.
   서버 저장에 실패하면 브라우저 캐시 기록으로 후퇴합니다.
   변경 이력 패널은 검색, 작업자/사용자/대상/action/기간 필터,
   offset 기반 이전/다음 페이지, JSON/CSV export, Diff JSON export,
@@ -658,6 +666,8 @@ Tile별 기능:
 - 선택된 tile만 dashboard/detail을 갱신
 - tile keyboard selection: Enter/Space로 현재 tile 선택, Arrow/Home/End로 tile 간 이동
 - 반복되는 select/button accessible name에는 tile 번호 포함
+- tile 숨김 상태 요약은 현재 UI 언어로 바로 갱신하며, track/event 미수집 값은 `미제공`으로 읽음
+- 560px 이하 모바일 폭에서는 tile control이 한 열로 정리되고 start/reconnect/stop touch target은 44px 이상 유지
 
 Hidden tab, route leave, tile stop 시
 PeerConnection, DataChannel, server WebRTC session을 정리합니다.
@@ -789,6 +799,9 @@ Tracking category가 비어 있으면 profile 저장을 막습니다. 전체 추
 라인 모드에서는 영역/라인 캔버스의 선 중앙에
 현재 설정 방향을 나타내는 작은 화살표를 표시합니다.
 `any`는 양방향, `forward`/`reverse`는 선택한 한 방향만 표시합니다.
+현장 preset은 line-crossing 기본 이벤트에서도 선택할 수 있지만,
+scenario label을 새로 저장하지 않고 최소 신뢰도 시작값만 채웁니다.
+방향과 2점 line geometry는 현장 영상에서 확인해야 합니다.
 
 ## 9. 시나리오 이벤트
 
@@ -852,6 +865,8 @@ Loitering UI 정책:
   [Analysis Threshold Baselines](analysis-threshold-baselines.md)의
   retail/lobby/platform/doorway/parking 기준값에서 고릅니다.
   preset은 dwell/radius/trajectory뿐 아니라 cooldown 시작값도 함께 채웁니다.
+- warning copy는 preset을 확정값이 아니라 field sample replay 기준 시작값으로
+  표시하고, TrackHealth가 불안정하면 dwell부터 늘리도록 안내합니다.
 - Event POST payload schema, WebRTC/SSE/WS metadata schema, ScenarioEngine 판단 로직은 변경하지 않습니다.
 
 Intrusion Dwell UI 항목:
@@ -896,6 +911,8 @@ Loitering UI 항목:
 
 실제 scenario engine 활성화와 기본값은 서버 설정과 함께 동작합니다. 환경변수는 [config-reference.md](./config-reference.md)를 봅니다.
 ZoneOccupancy 현장 시작 threshold도 [Analysis Threshold Baselines](analysis-threshold-baselines.md)에 정리되어 있습니다.
+점유 preset warning copy는 polygon이 병목 구간만 포함한다는 전제와 정상 피크 반복 시
+threshold를 먼저 올리는 조정 순서를 함께 표시합니다.
 
 ## 10. 영역/라인 캔버스
 
@@ -1256,6 +1273,7 @@ active analysis tap 데이터가 들어간 상태에서 구간별로 나눠 캡�
 | Health Summary / Controls | active stream/tap, rule, refresh, stale, cleanup, guard 상태 요약 |
 | Warnings / Trend detail | 최근 sample 수, delta/min/max, warning badge |
 | Metadata / Backpressure | WebRTC/SSE/WS metadata, payload, DataChannel buffer |
+| Runtime Operations Readout | 선택 tap 기준 원인, 영향, 다음 조치 요약 |
 | Runtime Detail / vaRule Debug | 선택 tap/rule/source/profile/event/scenario runtime 관계 |
 | Tracks | track lifecycle, zone/dwell, TrackHealth |
 | Scenarios / Events | scenario phase/timeline, recent event buffer |
@@ -1270,6 +1288,12 @@ source는 문서용으로 상대 표시하며 개인 절대경로를 노출하�
 ### 13.2. Metadata / Backpressure
 
 WebRTC DataChannel, SSE/WS side-channel, payload size, queue/drop/fail counter를 확인합니다. 값이 endpoint에서 제공되지 않으면 `미제공`으로 표시합니다.
+
+### 13.2.1. Runtime Operations Readout
+
+선택된 active analysis tap을 기준으로 scenario timeline, TrackHealth,
+recent EventRecord, tap queue high-water를 한 화면에서 재구성합니다.
+표시는 `원인`, `영향`, `다음 조치` 순서이며 새 backend API나 schema를 추가하지 않습니다.
 
 ### 13.3. Runtime Detail / vaRule Debug
 
@@ -1342,6 +1366,7 @@ drill-down 사용법:
 | Scenario Timeline | phase chip, event emitted, dedup count, recent event 연결 | 판단 로직 변경 없이 읽기 전용 |
 | Events | 선택 tap의 `/events` buffer | 선택 rule이 있으면 해당 rule recent event만 반영 |
 | Event Records | EventRecord 수동 검색과 detail JSON | 영상 재생, snapshot 추출, clip recorder 없음 |
+| Runtime Operations Readout | scenario timeline, TrackHealth, recent EventRecord, high-water를 원인/영향/다음 조치로 표시 | 기존 runtime/state/event buffer만 재구성 |
 | Metadata / Backpressure | DataChannel, SSE/WS client, queue, payload size, RTSP lifecycle | 불균형, cleanup 잔여, failure는 warning badge |
 | Trend / Stale / Cleanup | 최근 60개 dashboard sample의 count/age/delta/min/max/잔류 상태 | 새 backend endpoint 없이 client buffer만 사용 |
 | RSS 표시 | live 보조 관찰 | longrun report를 대체하지 않음 |
@@ -1430,7 +1455,7 @@ Screenshot 관리 정책:
 | 파일명 | 역할 기반 이름 사용 |
 | 기본 theme | dark mode 대표 화면 |
 | 링크 정책 | 새 이미지가 없으면 broken link 대신 “이미지 추가 예정” 문구 사용 |
-| 현재 대표 이미지 | 2026-05-16 v1.2.0 ERP-style product shell 기준 재캡처 |
+| 현재 대표 이미지 | 2026-05-16 v1.2.0 ERP-style product shell 기준 재캡처 후 v1.3.0 문서 재점검에서 유지 |
 | 재캡처 | `node scripts/internal/capture_docs_ui_assets.mjs --http-base http://127.0.0.1:8082` |
 | 기준 검증 | `./server.sh verify-docs-ui-assets` |
 | visual regression 산출물 | `verify-ops-client-ui --screenshots --output-dir <dir>` 실행 후 `<dir>/visual-regression-manifest.json`, `<dir>/index.md` |

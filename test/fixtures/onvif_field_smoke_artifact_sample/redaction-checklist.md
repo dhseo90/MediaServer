@@ -14,6 +14,11 @@
   for this no-device sample.
 - [x] Failure wording uses sanitized values and keeps Digest/WS-Security outside
   the current live source scope.
+- [x] Gate decision is recorded as `gateDecision=not-run`,
+  `releaseDevelopmentStatus=procedure-fixed`, and
+  `noDeviceSuiteCountsAsFieldSuccess=false`.
+- [x] Playback and review states are separated as `playbackStatus=skipped`,
+  `redactionArtifactReview=pass`, and `fieldSmokeReportReview=pass`.
 - [x] Each required verification command has an explicit status or skip reason.
 - [x] Evidence index paths point only to redacted files in this bundle.
 - [x] Screenshot filenames and directory names use redacted site placeholders.

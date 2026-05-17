@@ -162,6 +162,8 @@ Usage:
                  ONVIF 실장비 제외 조건의 종료 판정과 별도 후속 범위 분리를 검증합니다.
   verify-onvif-field-smoke-redaction
                  ONVIF 현장 smoke 산출물 redaction checklist를 검증합니다.
+  verify-onvif-field-smoke-gate
+                 ONVIF 현장 smoke gate 절차와 report/review 상태 분리를 검증합니다.
   verify-onvif-field-http-probe
                  실제 ONVIF HTTP endpoint probe harness와 sanitized 산출물을 검증합니다.
   verify-onvif-closed-loopback-failure-matrix
@@ -199,9 +201,11 @@ Usage:
   verify-post-release-reconciliation
                  post-release smoke 기록이 통과/미실행/미확인을 분리하는지 검증합니다.
   verify-release-closeout-helper
-                 release close-out 전 로컬 검증과 수동 tag/push 경계를 dry-run으로 요약합니다.
+                 release close-out 전 로컬 검증, visual baseline readiness, 수동 tag/push 경계를 dry-run으로 요약합니다.
   verify-v121-follow-up-closure
                  v1.2.1 roadmap 내 개발 가능한 후속 이슈가 남지 않았는지 검증합니다.
+  verify-v130-follow-up-closure
+                 v1.3.0 follow-up closure가 기능 개발 없이 별도 Phase/release gate를 분리하는지 검증합니다.
   verify-server-start-modes
                  foreground/start 실행 모드의 health, route, state file 안정성을 검증합니다.
   verify-auth-bootstrap
@@ -631,6 +635,10 @@ case "${cmd}" in
     require_internal verify_onvif_field_smoke_redaction.mjs
     exec "${INTERNAL_DIR}/verify_onvif_field_smoke_redaction.mjs" "$@"
     ;;
+  verify-onvif-field-smoke-gate)
+    require_internal verify_onvif_field_smoke_gate.mjs
+    exec "${INTERNAL_DIR}/verify_onvif_field_smoke_gate.mjs" "$@"
+    ;;
   verify-onvif-field-http-probe)
     require_internal verify_onvif_field_http_probe.mjs
     exec "${INTERNAL_DIR}/verify_onvif_field_http_probe.mjs" "$@"
@@ -710,6 +718,10 @@ case "${cmd}" in
   verify-v121-follow-up-closure)
     require_internal verify_v121_follow_up_closure.mjs
     exec "${INTERNAL_DIR}/verify_v121_follow_up_closure.mjs" "$@"
+    ;;
+  verify-v130-follow-up-closure)
+    require_internal verify_v130_follow_up_closure.mjs
+    exec "${INTERNAL_DIR}/verify_v130_follow_up_closure.mjs" "$@"
     ;;
   verify-server-start-modes)
     require_internal verify_server_start_modes.sh

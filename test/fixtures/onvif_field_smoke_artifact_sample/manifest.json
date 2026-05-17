@@ -12,8 +12,23 @@
     "realDeviceEndpointSuccess": "unverified",
     "reason": "sample bundle does not include a real ONVIF device"
   },
+  "gate": {
+    "schema": "media-server.onvif-field-smoke-gate.v1",
+    "releaseDevelopmentStatus": "procedure-fixed",
+    "gateDecision": "not-run",
+    "realDeviceEndpointSuccess": "unverified",
+    "noDeviceSuiteCountsAsFieldSuccess": false,
+    "outOfScope": [
+      "persistent credential store",
+      "Digest",
+      "WS-Security",
+      "WS-Discovery",
+      "Profile G / Recording / Replay"
+    ]
+  },
   "requiredVerification": [
     "verify-onvif-field-smoke-redaction",
+    "verify-onvif-field-smoke-gate",
     "verify-onvif-field-http-probe",
     "verify-onvif-probe-draft-api",
     "verify-onvif-ops-sources-ui"
@@ -21,6 +36,10 @@
   "verificationStatusTemplate": [
     {
       "command": "verify-onvif-field-smoke-redaction",
+      "status": "<pass|fail>"
+    },
+    {
+      "command": "verify-onvif-field-smoke-gate",
       "status": "<pass|fail>"
     },
     {

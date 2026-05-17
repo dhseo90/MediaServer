@@ -33,7 +33,7 @@ v1.2.0 (2)에서 제품 persistent credential store를 후속 gate로 분리하�
 
 ## 운영 저장 비범위
 
-아래 항목은 현재 v1.2.0 ONVIF live source draft 범위에 포함하지 않습니다.
+아래 항목은 v1.2.0에서 도입된 현재 ONVIF live source draft 범위에 포함하지 않습니다.
 
 - 제품 persistent secret manager 연동
 - 제품 credential 암호화 저장

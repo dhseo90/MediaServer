@@ -22,7 +22,7 @@ HTTPS SOAP transport 기준은
   제공하지 않습니다.
 - endpoint URL에는 username, password, token, cookie를 넣지 않습니다.
 - field smoke 산출물에는 TLS 실패도 sanitized summary로만 기록합니다.
-- 현재 v1.2.0은 fixture-only TLS harness와 production transport fixture success 및
+- v1.2.0에서 도입되어 현재 유지되는 기준은 fixture-only TLS harness와 production transport fixture success 및
   production transport failure matrix를 실행합니다.
 - `verify-onvif-https-tls-fixture`은 fixture TLS server/client 실행으로 trusted success,
   untrusted CA, hostname mismatch, certificate expired, handshake failure,
