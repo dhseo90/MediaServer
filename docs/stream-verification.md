@@ -49,11 +49,16 @@ release candidate gate를 열 때만 명시적으로 실행합니다.
 git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.md .github config docs scripts src include
 ./server.sh verify-script-inventory
 ./server.sh verify-code-comments
+./server.sh verify-release-metadata
+./server.sh verify-v121-follow-up-closure
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
+./server.sh verify-manual-ui-evidence
 ./server.sh verify-actions-security
 ./server.sh write-dependency-notice --check
 ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
+./server.sh verify-post-release-reconciliation
+./server.sh verify-release-closeout-helper --dry-run --report /tmp/media_server_release_closeout_helper.md
 ./server.sh dependency-snapshot --stable --output /tmp/media_server_dependency_snapshot.md --no-linked-libs
 ./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
 ./server.sh verify-release-bundle-dry-run
@@ -94,6 +99,33 @@ FFmpeg/ffprobe CLI가 없는 공개/CI 환경에서는 codec matrix와 RTSP deco
 서버를 `MEDIA_SERVER_AUTH_USERS_FILE` override로 띄운 경우에는
 `verify-ops-click-e2e --auth-users-file <path>`에도 같은 경로를 넘겨
 접근 요청 fixture cleanup을 같은 users file에 적용합니다.
+
+## Flaky verifier stabilization
+
+아래 항목은 UI 기능 자체보다 브라우저 자동화/fixture 상태에 민감하므로,
+실패 원인을 제품 회귀와 환경 문제로 분리합니다.
+
+- Access approval: `verify-ops-click-e2e`는 실행 전 users file snapshot을 저장하고,
+  승인 fixture를 만든 뒤 `finally`에서 snapshot restore와 server cleanup assertion을
+  수행합니다.
+- rule preview save: `verify-rule-ui`는 shared rule preview fixture helper를 사용하고,
+  저장 전 validation 실패가 실제 write로 이어지지 않는지 확인합니다.
+- clipboard fallback: `verify-ops-click-e2e`는 clipboard 실패와 capture stub을
+  강제로 주입하고 각각 restore합니다. Browser Use clipboard 자체 오류는
+  [browser-use-clipboard-diagnostics.md](./browser-use-clipboard-diagnostics.md) 기준으로
+  제품 fallback 회귀와 분리합니다.
+- fixture cleanup: `verify-fixture-cleanup-contracts`는 access request, EventRecord,
+  audit/evidence fixture가 실행 후 복원/삭제되는지 정적으로 확인합니다.
+- browser route smoke: click E2E는 path wait, scroll idle, browser error collector,
+  overflow assertion을 같이 사용합니다. sandbox local fetch/CDP 제한으로 실패하면
+  같은 명령을 권한 밖에서 재실행해 환경 제한과 제품 회귀를 분리합니다.
+
+정적 guard:
+
+```bash
+./server.sh verify-flaky-verifiers
+./server.sh verify-fixture-cleanup-contracts
+```
 
 `verify-ops-tables-layout`은 채널/룰/사용자 table을
 1180/900/760/560/390/320/760/1180px 순서로 리사이즈하며
@@ -729,6 +761,9 @@ Matrix gate 상태 정의:
 `verify-close-object-fixture-matrix`의 성공은 clean gate 확인용입니다.
 `compare-close-object-tracker --fixture-matrix`의 성공은 관찰 리포트 생성 성공일 수
 있으므로 `matrix-ok`, fixture `judgement`, `defaultOnCandidate`를 따로 읽어야 합니다.
+`matrix-ok`는 명령/gate 결과이며 제품 default-on 승인 값이 아닙니다. matrix 출력의
+`[matrix-default-on-decision]`과 `[matrix-product-default-on]`를 함께 확인해
+`not-promoted` 또는 `review-required`를 구분합니다.
 `warning`은 안정적이라는 뜻이 아니며, close-object guard default-on이나 Re-ID
 제품 완료 근거로 쓰지 않습니다.
 `enforce` mode까지 비교하려면 다음처럼 명시적으로 실행하고, 결과는 제품

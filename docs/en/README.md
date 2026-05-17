@@ -15,7 +15,8 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 | Architecture | [../media-server-architecture.md](../media-server-architecture.md) |
 | Video analytics | [../video-analysis.md](../video-analysis.md) |
 | Integrator contract artifact | [../integrator-contract-artifact.md](../integrator-contract-artifact.md) |
-| Current product boundary and v1.2.0 close-out | [../development-backlog.md](../development-backlog.md) |
+| Current product boundary, v1.2.0 close-out, and v1.2.1 patch candidates | [../development-backlog.md](../development-backlog.md) |
+| v1.2.1 follow-up closure | [../v1.2.1-follow-up-closure.md](../v1.2.1-follow-up-closure.md) |
 | Verification | [../stream-verification.md](../stream-verification.md) |
 | Distribution policy | [../distribution-policy.md](../distribution-policy.md) |
 | Release policy | [../release-policy.md](../release-policy.md) |
@@ -25,6 +26,9 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 | Scenario thresholds | [../analysis-threshold-baselines.md](../analysis-threshold-baselines.md) |
 | Sample fixture provenance | [../sample-fixture-provenance.md](../sample-fixture-provenance.md) |
 | YouTube import experiment | [../youtube-import.md](../youtube-import.md) |
+| Manual UI v1.2.1 evidence | [../manual-ui-v1.2.1-result.md](../manual-ui-v1.2.1-result.md) |
+| ONVIF no-device and field-smoke boundary | [../onvif-no-device-verification.md](../onvif-no-device-verification.md) |
+| Re-ID warning/default-on boundary | [../reid-fixture-default-on-candidates.md](../reid-fixture-default-on-candidates.md) |
 
 ## Public Repository Boundary
 
@@ -53,6 +57,7 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 | v1.1.0 prerequisite roadmap 1-6 | Done | Live-only boundary, ONVIF live source support, source health, VA quality, delivery contract, and multilingual alignment are closed |
 | v1.1.0 RC stabilization | Done | Final local longrun/P1 release-gate evidence is closed without rerunning prerequisite roadmap 1-6 |
 | v1.2.0 roadmap close-out | Done | ONVIF no-device scope, UI refresh, source health workflow, client polish, account lifecycle, release rehearsal, Re-ID warning guard, and YouTube lab-only decision are documented |
+| v1.2.1 patch roadmap | Closed locally | Release metadata guard, post-release evidence, manual UI evidence, flaky verifier hardening, Re-ID/ONVIF wording guards, release close-out dry-run, and doc/artifact housekeeping stay inside patch scope; release, external-device, and approval gates remain separate |
 | Audit trail operations | Follow-up phase | Server persistence exists; search/export can improve |
 | Short event evidence | Supporting | EventRecord/snapshot/clip cleanup exists, but it is not the main product direction |
 | RC gate operations | Conditional gate | Repeat longrun only for a new release cut or high-risk media/VA fanout change |
@@ -60,7 +65,7 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 
 ## General Follow-Ups
 
-- Use [../development-backlog.md](../development-backlog.md) as the source of truth for the v1.2.0 close-out.
+- Use [../development-backlog.md](../development-backlog.md) as the source of truth for the v1.2.0 close-out and v1.2.1 patch candidates; use [../v1.2.1-follow-up-closure.md](../v1.2.1-follow-up-closure.md) for the follow-up closure boundary.
 - Close or suppress existing Dependabot major-update PR noise after the policy is documented.
 - Add richer English docs only if the public audience grows beyond this consolidated index.
 - Attach the latest RC artifacts to release notes when cutting the actual tag or GitHub Release.
@@ -70,7 +75,7 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 ## Close-Out Rules
 
 - RC work should not reopen VMS/NVR, playback/search, long-term recording, or Profile G scope.
-- Real ONVIF network discovery, SOAP probing, credential persistence, and origin metadata migration are field-integration extensions, not RC blockers.
+- Real ONVIF network discovery, persistent credential storage, Digest/WS-Security, Profile G, and origin metadata migration are field-integration extensions, not RC blockers.
 - Source health is closed at the API/UI/sanitized-client smoke boundary; clients must not receive raw diagnostics.
 - Live VA quality is closed at the timeline/debug, TrackHealth grouping, and preset baseline smoke boundary; field-sample retuning is an operational extension.
 - Live delivery is closed at the Event POST/WebRTC/SSE/WS contract and smoke-matrix boundary; the v1.2.0 JSON Schema/sample bundle is an integrator-distribution artifact, not a payload mutation.
@@ -80,10 +85,15 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 
 ```bash
 ./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-release-metadata
+./server.sh verify-post-release-reconciliation
+./server.sh verify-release-closeout-helper --dry-run --report /tmp/media_server_release_closeout_helper.md
 ./server.sh verify-integrator-contract-artifact
 ./server.sh verify-actions-security
 ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
 ./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
+./server.sh verify-release-bundle-dry-run
 ```
 
 ## Consolidation Policy

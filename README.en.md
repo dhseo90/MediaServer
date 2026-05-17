@@ -8,6 +8,9 @@ Media Server is a C++17 RTSP/WebRTC live stream relay with optional YOLO/ONNX vi
 
 Korean documentation: [README.md](README.md)
 Latest source-only release: [v1.2.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.2.0)
+The v1.2.1 patch roadmap and follow-up closure are tracked separately in
+[docs/development-backlog.md](docs/development-backlog.md) and
+[docs/v1.2.1-follow-up-closure.md](docs/v1.2.1-follow-up-closure.md).
 
 ## At a Glance
 
@@ -95,7 +98,8 @@ See [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) for f
 | RTSP/WebRTC pipeline, source/session, VA layer | [docs/media-server-architecture.md](docs/media-server-architecture.md) |
 | YOLO, tracking, scenarios, live events, short evidence | [docs/video-analysis.md](docs/video-analysis.md) |
 | Integrator Event/WebRTC/SSE/WS sample bundle | [docs/integrator-contract-artifact.md](docs/integrator-contract-artifact.md) |
-| Current product boundary and v1.2.0 close-out | [docs/development-backlog.md](docs/development-backlog.md) |
+| Current product boundary, v1.2.0 close-out, and v1.2.1 patch candidates | [docs/development-backlog.md](docs/development-backlog.md) |
+| v1.2.1 follow-up closure | [docs/v1.2.1-follow-up-closure.md](docs/v1.2.1-follow-up-closure.md) |
 | Verification commands and release checks | [docs/stream-verification.md](docs/stream-verification.md) |
 | Bundle/container/runtime distribution policy | [docs/distribution-policy.md](docs/distribution-policy.md) |
 | Release scope and tag strategy | [docs/release-policy.md](docs/release-policy.md) |
@@ -104,6 +108,9 @@ See [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) for f
 | Backup and restore operations | [docs/ops-backup-recovery.md](docs/ops-backup-recovery.md) |
 | Starting thresholds for field scenarios | [docs/analysis-threshold-baselines.md](docs/analysis-threshold-baselines.md) |
 | YouTube import/source experiment | [docs/youtube-import.md](docs/youtube-import.md) |
+| Manual UI v1.2.1 evidence | [docs/manual-ui-v1.2.1-result.md](docs/manual-ui-v1.2.1-result.md) |
+| ONVIF no-device and field-smoke boundary | [docs/onvif-no-device-verification.md](docs/onvif-no-device-verification.md) |
+| Re-ID warning/default-on boundary | [docs/reid-fixture-default-on-candidates.md](docs/reid-fixture-default-on-candidates.md) |
 
 ## UI Preview
 
@@ -153,13 +160,18 @@ Fast public/document/UI/auth checks:
 git diff --check -- README.md README.en.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.md .github config docs scripts src include
 ./server.sh verify-script-inventory
 ./server.sh verify-code-comments
+./server.sh verify-release-metadata
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
+./server.sh verify-manual-ui-evidence
 ./server.sh verify-actions-security
 ./server.sh write-dependency-notice --check
 ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
+./server.sh verify-post-release-reconciliation
+./server.sh verify-release-closeout-helper --dry-run --report /tmp/media_server_release_closeout_helper.md
 ./server.sh dependency-snapshot --stable --output /tmp/media_server_dependency_snapshot.md --no-linked-libs
 ./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
+./server.sh verify-release-bundle-dry-run
 ./server.sh source-offer-checklist --stable --bundle-policy-report /tmp/media_server_bundle_policy.json
 ```
 

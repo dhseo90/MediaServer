@@ -5,6 +5,7 @@
 - artifact: `onvif-field-smoke-<date>-<redacted-site>`
 - realDeviceTestPerformed: `<true|false>`
 - realDeviceEndpointSuccess: `<pass|fail|unverified>`
+- operatorChecklistStatus: `<ready|skipped|incomplete>`
 - endpoint: `<redacted-host>/onvif/device_service`
 - credential: `credentialReferencePresent=<true|false>`, `plaintextSecretIncluded=false`
 
@@ -23,6 +24,12 @@
 | `verify-onvif-field-http-probe` | `<pass|fail|skipped>` | `<skip reason when skipped>` |
 | `verify-onvif-probe-draft-api` | `<pass|fail>` | `<sanitized note>` |
 | `verify-onvif-ops-sources-ui` | `<pass|fail>` | `<sanitized note>` |
+
+## Failure Wording
+
+Use only sanitized wording such as `skipped: real device endpoint not provided;
+no-device suite result only` or `blocked: Digest or WS-Security required; out of
+current live source scope`.
 
 ## Evidence Index
 

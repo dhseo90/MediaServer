@@ -64,6 +64,34 @@
   `verify-onvif-probe-error-wording`, `verify-onvif-probe-draft-api`,
   `verify-onvif-ops-sources-ui`, `verify-docs-links` 결과를 함께 기록했다.
 
+## Operator Checklist
+
+현장 smoke 담당자는 제품 완료 여부를 먼저 판단하지 않고 아래 상태를 분리해
+기록합니다.
+
+- 준비 상태: 실제 장비 owner 승인, endpoint 입력 주체, credential reference 준비
+  여부를 기록하되 host, 계정, secret 원문은 쓰지 않습니다.
+- 실행 상태: `realDeviceTestPerformed=true/false`와 skip reason을 먼저 기록합니다.
+- 성공 상태: `realDeviceEndpointSuccess=pass/fail/unverified`를 `verificationStatus`와
+  분리합니다. no-device suite 통과는 실장비 endpoint 성공으로 쓰지 않습니다.
+- 산출물 상태: redacted summary, checklist, screenshot index만 `evidenceIndex`에
+  포함합니다.
+- 범위 상태: credential store, Digest, WS-Security, WS-Discovery, Profile G는
+  이 field smoke의 완료 조건이 아닙니다.
+
+## Failure Wording
+
+실패 문구는 operator가 다음 조치를 알 수 있을 만큼만 남기고 endpoint, host,
+credential, raw SOAP를 제거합니다.
+
+| 상황 | 기록 문구 |
+| --- | --- |
+| 장비/endpoint 미제공 | `skipped: real device endpoint not provided; no-device suite result only` |
+| credential 미제공 또는 인증 실패 | `failed: credential required or rejected; credential reference only, plaintext omitted` |
+| SOAP/probe 실패 | `failed: ONVIF probe failed with sanitized transport or service error; raw SOAP omitted` |
+| TLS 실패 | `failed: HTTPS/TLS transport failed; certificate and endpoint details omitted` |
+| Digest/WS-Security 필요 | `blocked: Digest or WS-Security required; out of current live source scope` |
+
 ## 기록 템플릿
 
 ```text
@@ -80,6 +108,8 @@ opsCopyParity: pass/fail
 probeErrorWording: pass/fail
 realDeviceTestPerformed: true/false
 realDeviceEndpointSuccess: pass/fail/unverified
+operatorChecklistStatus: ready/skipped/incomplete
+failureWording: <sanitized wording from Failure Wording>
 verificationStatus: <command>=<pass/fail/skipped>
 evidenceIndex: <redacted file list>
 notes: <sanitized operational note>

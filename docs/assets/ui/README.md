@@ -3,6 +3,13 @@
 이 디렉터리는 README와 `docs/ui-guide.md`에서 사용할 제품 UI 스크린샷을 역할 기준 파일명으로 보관합니다.
 
 현재 대표 제품 이미지는 2026-05-16 기준 v1.2.0 ERP-style product shell로 다시 캡처했습니다.
+2026-05-17 v1.2.1 문서/이미지 재점검에서는 기존 대표 캡처를 유지했습니다.
+v1.2.1은 source-only patch이며 대표 화면, media path, VA overlay 예시를
+교체해야 하는 제품 화면 변경은 없습니다. README, README.en, `docs/ui-guide.md`,
+`docs/video-analysis.md`에서 참조하는 UI/VA 이미지를 확인했고, 상하좌우 잘림,
+하단 영상 잘림, 과한 여백, source/debug/raw JSON 노출은 발견하지 않았습니다.
+`ops-rules-preview`는 전체 페이지 캡처가 아니라 Rule preview/editor 대표 구간
+캡처로 유지합니다.
 재캡처는 `scripts/internal/capture_docs_ui_assets.mjs` 기준으로 관리합니다.
 기준 검증은 `./server.sh verify-docs-ui-assets`로 수행합니다.
 `ops-rules-preview` 캡처와 `verify-rule-ui` smoke는

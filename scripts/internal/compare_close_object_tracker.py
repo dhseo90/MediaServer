@@ -1048,12 +1048,17 @@ def run_comparison(args: argparse.Namespace,
 
 
 def write_matrix_report(matrix: dict[str, Any], path: pathlib.Path) -> None:
+    decision = matrix.get("defaultOnDecision") or {}
     lines = [
         "# Close-object Tracker Fixture Matrix",
         "",
         f"- modes: `{', '.join(matrix.get('modes') or [])}`",
         f"- ok: `{matrix.get('ok')}`",
         f"- output: `{matrix.get('outputDir')}`",
+        "- matrix interpretation: `matrix-ok` is a command/gate result, not product default-on approval.",
+        f"- default-on decision: `{decision.get('status') or '-'}`",
+        f"- product default-on: `{decision.get('productDefaultOn')}`",
+        f"- decision reason: {decision.get('reason') or '-'}",
     ]
     history = matrix.get("history") or {}
     if history:
@@ -1119,6 +1124,33 @@ def matrix_history_entry(matrix: dict[str, Any], history: dict[str, Any]) -> dic
         "warningCount": sum(1 for item in fixtures if item.get("judgement") == "warning"),
         "summaryPath": history.get("summaryPath"),
         "reportPath": history.get("reportPath"),
+    }
+
+
+def matrix_default_on_decision(matrix: dict[str, Any]) -> dict[str, Any]:
+    fixtures = matrix.get("fixtures") or []
+    failed_count = sum(1 for item in fixtures if item.get("status") in {"fail", "missing"})
+    hold_count = sum(1 for item in fixtures if item.get("judgement") == "hold")
+    warning_count = sum(1 for item in fixtures if item.get("judgement") == "warning")
+    candidate_count = sum(1 for item in fixtures if item.get("defaultOnCandidate") is True)
+    if failed_count or hold_count or warning_count:
+        status = "not-promoted"
+        reason = "fixture matrix contains fail/hold/warning rows; keep close-object guard default off"
+    elif fixtures and candidate_count == len(fixtures):
+        status = "review-required"
+        reason = "all fixtures are candidates, but product default-on still requires separate review and field evidence"
+    else:
+        status = "not-promoted"
+        reason = "not all fixtures are default-on candidates; keep close-object guard default off"
+    return {
+        "status": status,
+        "productDefaultOn": False,
+        "reason": reason,
+        "fixtureCount": len(fixtures),
+        "failedCount": failed_count,
+        "holdCount": hold_count,
+        "warningCount": warning_count,
+        "candidateCount": candidate_count,
     }
 
 
@@ -1256,6 +1288,7 @@ def run_fixture_matrix(args: argparse.Namespace, modes: list[str], output_dir: p
         "fixtures": results,
         "createdAt": dt.datetime.now(dt.timezone.utc).isoformat(),
     }
+    matrix["defaultOnDecision"] = matrix_default_on_decision(matrix)
     summary_path = output_dir / "matrix-summary.json"
     report_path = output_dir / "matrix-report.md"
     matrix["summaryPath"] = str(summary_path)
@@ -1272,6 +1305,10 @@ def run_fixture_matrix(args: argparse.Namespace, modes: list[str], output_dir: p
     print(f"[matrix-summary-json] {summary_path}")
     print(f"[matrix-report] {report_path}")
     print(f"[matrix-ok] {matrix['ok']}")
+    decision = matrix.get("defaultOnDecision") or {}
+    print(f"[matrix-default-on-decision] {decision.get('status')}")
+    print(f"[matrix-product-default-on] {decision.get('productDefaultOn')}")
+    print(f"[matrix-default-on-reason] {decision.get('reason')}")
     return 0 if matrix["ok"] else 1
 
 

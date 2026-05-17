@@ -11,6 +11,7 @@ close-object guard의 `defaultOnCandidate` 판정을 fixture별로 분리해 기
 - history: `/private/tmp/media_server_reid_full_matrix_20260517`
 - summary: `/tmp/media_server_close_object_tracker_1778947054_1446/matrix-summary.json`
 - matrix result: `matrix-ok=True`
+- script decision fields: `[matrix-default-on-decision]`, `[matrix-product-default-on]`
 - 전체 판정: V120-P2-02는 `WARNING(실험 유지)`
 
 Fixture별 판정:
@@ -35,6 +36,9 @@ event/scenario stable delta와 기본값 `off` 조건은 완화하지 않습니�
   V120-P2-02를 default-on 또는 안정 완료로 닫지 않습니다.
 - `matrix-ok=True`여도 `judgement=warning` fixture가 있으면 제품 default-on 판단을
   진행하지 않습니다.
+- `matrix-ok`는 명령/gate 결과이며 제품 default-on 승인 값이 아닙니다.
+  script 출력의 `[matrix-default-on-decision]`과 `[matrix-product-default-on]`를
+  함께 읽어 후보 상태와 실제 제품 기본값 결정을 분리합니다.
 - 실제 제품 default-on은 여러 fixture와 현장 sample에서 event/scenario stable
   상태, hard risk non-increasing, observed risk 반복 안정성이 함께 확인된 뒤
   별도 review로만 결정합니다.

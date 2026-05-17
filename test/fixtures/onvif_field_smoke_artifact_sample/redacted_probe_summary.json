@@ -4,6 +4,8 @@
   "mode": "field-smoke-template",
   "realDeviceTestPerformed": false,
   "realDeviceEndpointSuccess": "unverified",
+  "operatorChecklistStatus": "skipped",
+  "failureWording": "skipped: real device endpoint not provided; no-device suite result only",
   "camera": "<vendor/model redacted>",
   "endpoint": "<redacted-host>/onvif/device_service",
   "auth": {

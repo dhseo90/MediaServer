@@ -2,6 +2,37 @@
 
 이 문서는 과거 상세 검증 이력을 보존합니다. 현재 실행해야 할 검증 기준은 [../stream-verification.md](../stream-verification.md)를 봅니다.
 
+## 2026-05-17 - v1.2.1 Post-release smoke reconciliation
+
+확인됨:
+
+- `./server.sh verify-public-repo-readiness`: local public-readiness static gate를 실행할 대상 명령으로 기록합니다. 이 기록은 GitHub Actions 상태를 대체하지 않습니다.
+- `./server.sh verify-docs-links`: local Markdown link/image drift gate를 실행할 대상 명령으로 기록합니다.
+- `./server.sh verify-post-release-reconciliation`: 이 section의 통과/미실행/미확인 분리 문구를 정적으로 확인합니다.
+- Verification history는 `확인됨`, `미확인`, `미실행`, `통과로 쓰지 않는 항목`을 분리해 작성합니다.
+
+미확인:
+
+- GitHub Actions: 미확인. 이번 로컬 작업에서는 GitHub Actions API, Actions 화면, status check 결과를 조회하지 않았습니다.
+- 최신 GitHub branch protection/ruleset 적용 상태
+- 최신 release tag/GitHub Release artifact 상태
+
+미실행:
+
+- `verify-predev --soak-minutes 30`: 사용자 명시 요청 없음
+- `verify-predev --soak-minutes 120`: 사용자 명시 요청 없음
+- `verify-va-runtime-console-longrun --duration-minutes 120`: 사용자 명시 요청 없음
+- ONVIF 실장비 field smoke: 실장비 endpoint/credential 미제공
+- YouTube 실제 URL relay: v1.2.1 patch scope 밖이며 실제 URL 성공 gate 미개방
+- 외부 TURN/WHEP credential 운영 검증: 외부 credential/운영 환경 미제공
+
+통과로 쓰지 않는 항목:
+
+- 실행하지 않은 검증은 release PASS로 쓰지 않습니다.
+- GitHub Actions를 조회하지 않은 로컬 reconciliation은 Actions PASS로 쓰지 않습니다.
+- 실장비 field smoke 미실행은 ONVIF 실장비 성공으로 쓰지 않습니다.
+- `matrix-ok=True`만으로 Re-ID default-on 또는 제품 안정 완료로 쓰지 않습니다.
+
 ## 2026-05-16 - v1.2.0 Visual QA artifact sample
 
 통과:

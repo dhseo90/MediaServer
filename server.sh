@@ -94,6 +94,8 @@ Usage:
                  EventRecord가 짧은 증거 기록 범위로 노출되고 /ops/events UI가 이를 표시하는지 검증합니다.
   verify-fixture-cleanup-contracts
                  UI/Event 검증 fixture가 실행 후 복원/삭제 계약을 유지하는지 정적 검증합니다.
+  verify-flaky-verifiers
+                 access approval, rule preview, clipboard, route smoke verifier 안정화 guard를 검증합니다.
   verify-ops-evidence-retention-cleanup
                  Evidence retention cleanup job의 dry-run/apply/audit/report 계약을 검증합니다.
   verify-ops-audit-trail
@@ -116,6 +118,8 @@ Usage:
                  제품 UI 한국어/영어 문구 parity와 반복 UI translation pattern을 검증합니다.
   verify-docs-ui-assets
                  README/UI guide screenshot 자산과 자동 캡처 기준을 검증합니다.
+  verify-manual-ui-evidence
+                 수동 UI 검수 결과가 확인/미확인/건너뜀을 분리해 기록됐는지 검증합니다.
   verify-docs-links
                  README/docs Markdown 링크와 이미지 파일 참조를 검증합니다.
   verify-onvif-live-import-contract
@@ -184,12 +188,20 @@ Usage:
                  v1.1.0 live-only 제품 경계 키워드가 비범위/보류 문맥인지 검증합니다.
   verify-code-comments
                  코드/스크립트 상단 용도 주석과 한글 주석 정책을 검증합니다.
+  verify-release-metadata
+                 VERSION, CMake, README, release/versioning/backlog 문서의 release 기준 drift를 검증합니다.
   verify-script-inventory
                  server.sh 명령, 문서 명령 참조, JS 옵션 검증 적용 범위를 점검합니다.
   verify-actions-security
                  GitHub Actions workflow 권한과 action 사용 정책을 검증합니다.
   verify-public-repo-readiness
                  public 전환 전 secret/history/asset/문서 준비 상태를 검증합니다.
+  verify-post-release-reconciliation
+                 post-release smoke 기록이 통과/미실행/미확인을 분리하는지 검증합니다.
+  verify-release-closeout-helper
+                 release close-out 전 로컬 검증과 수동 tag/push 경계를 dry-run으로 요약합니다.
+  verify-v121-follow-up-closure
+                 v1.2.1 roadmap 내 개발 가능한 후속 이슈가 남지 않았는지 검증합니다.
   verify-server-start-modes
                  foreground/start 실행 모드의 health, route, state file 안정성을 검증합니다.
   verify-auth-bootstrap
@@ -483,6 +495,10 @@ case "${cmd}" in
     require_internal verify_fixture_cleanup_contracts.mjs
     exec "${INTERNAL_DIR}/verify_fixture_cleanup_contracts.mjs" "$@"
     ;;
+  verify-flaky-verifiers)
+    require_internal verify_flaky_verifier_stabilization.mjs
+    exec "${INTERNAL_DIR}/verify_flaky_verifier_stabilization.mjs" "$@"
+    ;;
   verify-ops-evidence-retention-cleanup)
     require_internal verify_ops_evidence_retention_cleanup.mjs
     exec "${INTERNAL_DIR}/verify_ops_evidence_retention_cleanup.mjs" "$@"
@@ -526,6 +542,10 @@ case "${cmd}" in
   verify-docs-ui-assets)
     require_internal verify_docs_ui_assets.mjs
     exec "${INTERNAL_DIR}/verify_docs_ui_assets.mjs" "$@"
+    ;;
+  verify-manual-ui-evidence)
+    require_internal verify_manual_ui_evidence.mjs
+    exec "${INTERNAL_DIR}/verify_manual_ui_evidence.mjs" "$@"
     ;;
   verify-docs-links)
     require_internal verify_docs_links.mjs
@@ -663,6 +683,10 @@ case "${cmd}" in
     require_internal verify_code_comments.mjs
     exec "${INTERNAL_DIR}/verify_code_comments.mjs" "$@"
     ;;
+  verify-release-metadata)
+    require_internal verify_release_metadata_consistency.mjs
+    exec "${INTERNAL_DIR}/verify_release_metadata_consistency.mjs" "$@"
+    ;;
   verify-script-inventory)
     require_internal verify_script_inventory.mjs
     exec "${INTERNAL_DIR}/verify_script_inventory.mjs" "$@"
@@ -674,6 +698,18 @@ case "${cmd}" in
   verify-public-repo-readiness)
     require_internal verify_public_repo_readiness.mjs
     exec "${INTERNAL_DIR}/verify_public_repo_readiness.mjs" "$@"
+    ;;
+  verify-post-release-reconciliation)
+    require_internal verify_post_release_reconciliation.mjs
+    exec "${INTERNAL_DIR}/verify_post_release_reconciliation.mjs" "$@"
+    ;;
+  verify-release-closeout-helper)
+    require_internal verify_release_closeout_helper.mjs
+    exec "${INTERNAL_DIR}/verify_release_closeout_helper.mjs" "$@"
+    ;;
+  verify-v121-follow-up-closure)
+    require_internal verify_v121_follow_up_closure.mjs
+    exec "${INTERNAL_DIR}/verify_v121_follow_up_closure.mjs" "$@"
     ;;
   verify-server-start-modes)
     require_internal verify_server_start_modes.sh
