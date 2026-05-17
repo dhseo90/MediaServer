@@ -61,6 +61,7 @@ std::string ProductSharedUiScript() {
         '로딩 중': 'Loading',
         '불러오는 중': 'Loading',
         '상태 없음': 'No status',
+        '시각 미제공': 'Time not provided',
         '미제공': 'Not provided',
         '미수신': 'Not received',
         '정상': 'Normal',
@@ -175,10 +176,9 @@ std::string ProductSharedUiScript() {
         '요청/결정': 'Request / decision',
         '공개 회원가입이 아니라, 별도 요청 페이지로 들어온 계정을 관리자가 검토한 뒤 초대 링크를 발급합니다.': 'This is not open self-signup; admins review requests from the request page and issue invite links.',
         '사용자와 권한 범위를 관리합니다.': 'Manage users and scopes.',
-        '이 브라우저에서 수행한 사용자 변경의 작업자, 전/후 값, 시각을 확인합니다.': 'Review actor, before/after values, and time for user changes from this browser.',
-        '이 브라우저에서 수행한 사용자 변경의 작업자, 전/후 값, 시각을 확인하고 사용자 감사 JSON/CSV/Diff JSON export를 내려받습니다.': 'Review actor, before/after values, and time for user changes from this browser, and download user audit JSON/CSV/Diff JSON exports.',
-        '이 브라우저에서 수행한 채널 변경의 작업자, 전/후 값, 시각을 확인합니다.': 'Review actor, before/after values, and time for channel changes from this browser.',
-        '이 브라우저에서 수행한 룰 변경의 작업자, 전/후 값, 시각을 확인합니다.': 'Review actor, before/after values, and time for rule changes from this browser.',
+        '서버 감사 로그에서 사용자 변경의 작업자, 전/후 값, 시각을 확인하고 사용자 감사 JSON/CSV/Diff JSON export를 내려받습니다.': 'Review actor, before/after values, and time for user changes from the server audit log, and download user audit JSON/CSV/Diff JSON exports.',
+        '서버 감사 로그에서 채널 변경의 작업자, 전/후 값, 시각을 확인하고 채널 감사 JSON/CSV/Diff JSON export를 내려받습니다.': 'Review actor, before/after values, and time for channel changes from the server audit log, and download channel audit JSON/CSV/Diff JSON exports.',
+        '서버 감사 로그에서 룰 변경의 작업자, 전/후 값, 시각을 확인하고 룰 감사 JSON/CSV/Diff JSON export를 내려받습니다.': 'Review actor, before/after values, and time for rule changes from the server audit log, and download rule audit JSON/CSV/Diff JSON exports.',
         '변경 이력': 'Change History',
         '채널 관리': 'Channel Management',
         '채널 목록': 'Channels',
@@ -937,7 +937,7 @@ std::string ProductSharedUiScript() {
         return principalPromise;
       }
       const auditStoreKey = 'mediaServerOpsAuditTrail.v1';
-      const auditKeyRedacted = key => /(password|token|hash|secret|capability)/i.test(String(key || ''));
+      const auditKeyRedacted = key => /(password|token|hash|secret|credential|capability)/i.test(String(key || ''));
       const compactAuditValue = (value, depth = 0) => {
         if (value === null || value === undefined) return value;
         if (auditKeyRedacted('' + value) && typeof value === 'string' && value.length > 24) return '[redacted]';
@@ -955,6 +955,10 @@ std::string ProductSharedUiScript() {
         return display(value);
       };
       const stableAuditJson = value => JSON.stringify(compactAuditValue(value));
+      const sanitizeOpsAuditEntry = entry => {
+        if (!entry || typeof entry !== 'object') return entry;
+        return { ...entry, before: compactAuditValue(entry.before), after: compactAuditValue(entry.after) };
+      };
       const summarizeAuditChange = (beforeValue, afterValue) => {
         const before = beforeValue && typeof beforeValue === 'object' && !Array.isArray(beforeValue) ? beforeValue : {};
         const after = afterValue && typeof afterValue === 'object' && !Array.isArray(afterValue) ? afterValue : {};
@@ -969,13 +973,13 @@ std::string ProductSharedUiScript() {
       const loadOpsAuditTrail = () => {
         try {
           const parsed = JSON.parse(localStorage.getItem(auditStoreKey) || '[]');
-          return Array.isArray(parsed) ? parsed : [];
+          return Array.isArray(parsed) ? parsed.map(sanitizeOpsAuditEntry) : [];
         } catch {
           return [];
         }
       };
       const saveOpsAuditTrail = entries => {
-        localStorage.setItem(auditStoreKey, JSON.stringify(entries.slice(0, 80)));
+        localStorage.setItem(auditStoreKey, JSON.stringify(entries.map(sanitizeOpsAuditEntry).slice(0, 80)));
       };
       async function persistOpsAuditTrail(entry) {
         const payload = await requestJson('/ops/api/audit', {
@@ -986,6 +990,18 @@ std::string ProductSharedUiScript() {
         return payload.entry || entry;
       }
       const opsAuditViewStates = new Map();
+      const auditEntryTimeMs = entry => {
+        const receivedAt = Number(entry?.receivedAtMs || 0);
+        if (Number.isFinite(receivedAt) && receivedAt > 0) return receivedAt;
+        const numericAt = Number(entry?.at || 0);
+        if (Number.isFinite(numericAt) && numericAt > 0) return numericAt;
+        const parsedAt = Date.parse(entry?.at || '');
+        return Number.isFinite(parsedAt) ? parsedAt : 0;
+      };
+      const auditEntryTimeLabel = entry => {
+        const timeMs = auditEntryTimeMs(entry);
+        return timeMs > 0 ? new Date(timeMs).toLocaleString() : '시각 미제공';
+      };
       const auditFilterEntry = (entry, state = {}) => {
         if (state.actor && !String(entry.actor || '').includes(state.actor)) return false;
         if (state.user) {
@@ -995,7 +1011,7 @@ std::string ProductSharedUiScript() {
         }
         if (state.target && !String(entry.target || '').toLowerCase().includes(String(state.target).toLowerCase())) return false;
         if (state.action && String(entry.action || '') !== state.action) return false;
-        const entryTime = Number(entry.receivedAtMs || (entry.at ? Date.parse(entry.at) : 0));
+        const entryTime = auditEntryTimeMs(entry);
         if (state.fromMs && (!Number.isFinite(entryTime) || entryTime < Number(state.fromMs))) return false;
         if (state.toMs && (!Number.isFinite(entryTime) || entryTime > Number(state.toMs))) return false;
         if (state.q) {
@@ -1069,7 +1085,7 @@ std::string ProductSharedUiScript() {
         const payload = await requestJson(`/ops/api/audit?${params.toString()}`);
         return {
           ...payload,
-          entries: Array.isArray(payload.entries) ? payload.entries : [],
+          entries: Array.isArray(payload.entries) ? payload.entries.map(sanitizeOpsAuditEntry) : [],
           offset: Number(payload.offset || 0),
           limit: Number(payload.limit || filters.limit || 20),
           total: Number(payload.total || 0),
@@ -1136,7 +1152,7 @@ std::string ProductSharedUiScript() {
       function openOpsAuditDetail(entry) {
         const dialog = ensureOpsAuditDetailModal();
         byId('opsAuditDetailTitle').textContent = `${display(entry.area)} ${display(entry.action)} · ${display(entry.target)}`;
-        byId('opsAuditDetailMeta').textContent = `${display(entry.actor)} · ${entry.at ? new Date(entry.at).toLocaleString() : '시각 미제공'} · ${display(entry.summary)}`;
+        byId('opsAuditDetailMeta').textContent = `${display(entry.actor)} · ${auditEntryTimeLabel(entry)} · ${display(entry.summary)}`;
         byId('opsAuditDetailBefore').textContent = JSON.stringify(entry.before ?? null, null, 2);
         byId('opsAuditDetailAfter').textContent = JSON.stringify(entry.after ?? null, null, 2);
         if (typeof dialog.showModal === 'function') dialog.showModal();
@@ -1185,7 +1201,7 @@ std::string ProductSharedUiScript() {
           <article class="audit-entry">
             <div class="audit-entry-head">
               <strong>${escapeHtml(areaLabel(entry.area))} ${escapeHtml(actionLabel(entry.action))}</strong>
-              <span>${escapeHtml(new Date(entry.at).toLocaleString())}</span>
+              <span>${escapeHtml(auditEntryTimeLabel(entry))}</span>
             </div>
             <div class="audit-entry-meta">
               <span>대상 ${escapeHtml(display(entry.target))}</span>

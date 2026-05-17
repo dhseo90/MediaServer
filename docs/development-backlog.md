@@ -237,6 +237,52 @@ Loitering/ZoneOccupancy/LineCrossing의 저장 payload 계약을 유지하는 �
 - RTSP/WebRTC media path 변경
 - 다음 카테고리인 Audit trail operations 개발
 
+### V130-P1-03 Audit trail operations 종료 판정
+
+2026-05-17 기준 V130-P1-03은 서버 감사 로그를 운영자가 검색/export/review하는
+최소 흐름으로 연결하는 범위에서 종료합니다.
+
+확인됨:
+
+- `/ops/api/audit`는 서버 JSONL 감사 로그를 `area`, `actor`, `user`,
+  `target`, `action`, `q`, `fromMs`, `toMs`, `offset`, `limit`으로 조회하고
+  JSON/CSV/Diff JSON export를 제공합니다.
+- `/ops/sources`, `/ops/rules`, `/ops/users` 하단 변경 이력 패널은 서버 감사
+  로그를 기본으로 읽고, 서버 저장/조회 실패 시 브라우저 캐시 기록으로 후퇴합니다.
+- 변경 이력 패널은 작업자/사용자/대상/action/기간/검색 필터, 이전/다음
+  페이지, 상세 diff 모달, JSON/CSV/Diff JSON export를 제공합니다.
+- audit 시간 표시는 서버가 직접 남긴 `receivedAtMs`를 우선 사용해 source health
+  또는 evidence export audit도 `Invalid Date` 없이 검토할 수 있습니다.
+- 비밀번호, token/hash, credential reference, capability 필드는 저장 전과
+  조회/export 응답에서 전/후 값이 다시 마스킹됩니다.
+- audit persistence verifier는 모바일 UI 계약에 맞춰 `YYYY-MM-DD HH:mm` text
+  입력을 검증하며, native `datetime-local`로 되돌리지 않습니다.
+
+검증 기준:
+
+- `./server.sh build`
+- `./server.sh verify-auth-users`
+- `./server.sh verify-auth-routes`
+- `./server.sh verify-ops-audit-trail`
+- `./server.sh verify-ops-audit-persistence`
+- `./server.sh verify-ops-client-ui`
+- `./server.sh verify-ops-client-ui --screenshots`
+- `./server.sh verify-rule-ui`
+- `./server.sh verify-ui-copy-i18n-parity`
+- `git diff --check`
+
+범위 밖:
+
+- audit event payload schema 변경
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- ONVIF credential store, Digest, WS-Security 구현
+- recorder/NVR/VMS archive/search/playback
+- 다음 카테고리인 Release and visual baseline automation 개발
+
+2026-05-17 기준 이 카테고리의 개발 가능한 후속 이슈는 위 검증 통과 시 남기지
+않습니다.
+
 ## v1.2.0 Roadmap 종료 판정
 
 v1.2.0은 v1.1.0 live-only 경계를 유지하면서 실제 현장 운영과 제품화 밀도를 높이는

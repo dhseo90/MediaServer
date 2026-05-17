@@ -500,7 +500,8 @@ UI/API 응답에 노출하지 않습니다.
   `/ops/sources#auditPreset=source-health-state-change`처럼 hash filter를
   붙이면 채널 변경 이력의 source health 상태 변경 preset으로 바로 열립니다.
   작업자 정보는 `/auth/whoami`/서버 principal 기준입니다.
-  비밀번호/token/hash/capability 필드는 전/후 값에서 마스킹합니다.
+  비밀번호/token/hash/credential reference/capability 필드는 저장 전과
+  조회/export 응답에서 전/후 값을 다시 마스킹합니다.
   서버 저장에 실패하면 브라우저 캐시 기록으로 후퇴합니다.
   변경 이력 패널은 검색, 작업자/사용자/대상/action/기간 필터,
   offset 기반 이전/다음 페이지, JSON/CSV export, Diff JSON export,

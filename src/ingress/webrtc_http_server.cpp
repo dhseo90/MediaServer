@@ -2889,7 +2889,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
         <div class="toolbar">
           <div>
             <h3>변경 이력</h3>
-            <p>이 브라우저에서 수행한 룰 변경의 작업자, 전/후 값, 시각을 확인합니다.</p>
+            <p>서버 감사 로그에서 룰 변경의 작업자, 전/후 값, 시각을 확인하고 룰 감사 JSON/CSV/Diff JSON export를 내려받습니다.</p>
           </div>
           <button id="opsRulesAuditRefresh" class="button-secondary" type="button">새로고침</button>
         </div>
@@ -4077,7 +4077,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
         <div class="toolbar">
           <div>
             <h3>변경 이력</h3>
-            <p>이 브라우저에서 수행한 채널 변경의 작업자, 전/후 값, 시각을 확인합니다.</p>
+            <p>서버 감사 로그에서 채널 변경의 작업자, 전/후 값, 시각을 확인하고 채널 감사 JSON/CSV/Diff JSON export를 내려받습니다.</p>
           </div>
           <button id="channel-audit-refresh" class="button-secondary" type="button">새로고침</button>
         </div>
@@ -4257,7 +4257,7 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         <div class="toolbar">
           <div>
             <h2>변경 이력</h2>
-            <p>이 브라우저에서 수행한 사용자 변경의 작업자, 전/후 값, 시각을 확인하고 사용자 감사 JSON/CSV/Diff JSON export를 내려받습니다.</p>
+            <p>서버 감사 로그에서 사용자 변경의 작업자, 전/후 값, 시각을 확인하고 사용자 감사 JSON/CSV/Diff JSON export를 내려받습니다.</p>
           </div>
           <button id="user-audit-refresh" class="button-secondary" type="button">새로고침</button>
         </div>
@@ -7853,6 +7853,7 @@ bool AuditSensitiveKey(const std::string& key) {
            lowered.find("token") != std::string::npos ||
            lowered.find("hash") != std::string::npos ||
            lowered.find("secret") != std::string::npos ||
+           lowered.find("credential") != std::string::npos ||
            lowered.find("capability") != std::string::npos;
 }
 
@@ -8181,9 +8182,10 @@ OpsAuditQueryResult QueryOpsAuditEntries(const app::AppConfig& config,
         while (std::getline(in, line)) {
             line = Trim(line);
             ++scanned;
-            if (!line.empty() && line.front() == '{' &&
-                OpsAuditLineMatches(line, area, actor, action, target, user, query_text, from_ms, to_ms)) {
-                lines.push_back(line);
+            const std::string redacted_line = RedactAuditJsonFragment(line);
+            if (!redacted_line.empty() && redacted_line.front() == '{' &&
+                OpsAuditLineMatches(redacted_line, area, actor, action, target, user, query_text, from_ms, to_ms)) {
+                lines.push_back(redacted_line);
             }
         }
     }
