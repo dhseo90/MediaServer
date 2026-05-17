@@ -104,6 +104,9 @@ See [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) for f
 | Backup and restore operations | [docs/ops-backup-recovery.md](docs/ops-backup-recovery.md) |
 | Starting thresholds for field scenarios | [docs/analysis-threshold-baselines.md](docs/analysis-threshold-baselines.md) |
 | YouTube import/source experiment | [docs/youtube-import.md](docs/youtube-import.md) |
+| Manual UI v1.2.1 evidence | [docs/manual-ui-v1.2.1-result.md](docs/manual-ui-v1.2.1-result.md) |
+| ONVIF no-device and field-smoke boundary | [docs/onvif-no-device-verification.md](docs/onvif-no-device-verification.md) |
+| Re-ID warning/default-on boundary | [docs/reid-fixture-default-on-candidates.md](docs/reid-fixture-default-on-candidates.md) |
 
 ## UI Preview
 
@@ -153,13 +156,18 @@ Fast public/document/UI/auth checks:
 git diff --check -- README.md README.en.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.md .github config docs scripts src include
 ./server.sh verify-script-inventory
 ./server.sh verify-code-comments
+./server.sh verify-release-metadata
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
+./server.sh verify-manual-ui-evidence
 ./server.sh verify-actions-security
 ./server.sh write-dependency-notice --check
 ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
+./server.sh verify-post-release-reconciliation
+./server.sh verify-release-closeout-helper --dry-run --report /tmp/media_server_release_closeout_helper.md
 ./server.sh dependency-snapshot --stable --output /tmp/media_server_dependency_snapshot.md --no-linked-libs
 ./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
+./server.sh verify-release-bundle-dry-run
 ./server.sh source-offer-checklist --stable --bundle-policy-report /tmp/media_server_bundle_policy.json
 ```
 
