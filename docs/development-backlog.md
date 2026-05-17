@@ -383,6 +383,44 @@ Re-ID default-on, tracker 교체, runtime/model bundle 포함, field sample sche
 dataset ingest는 이 closure에서 수행하지 않았습니다. tag/push/GitHub Release는
 기능 개발 closure 범위가 아니라 별도 release 운영 gate로 분리합니다.
 
+## v1.4.0 Minor Roadmap Draft
+
+v1.4.0은 Re-ID와 tracker를 전역 기본값으로 바꾸지 않고, 룰 설정에서 명시적으로
+선택하는 분석 정책으로 엽니다. 기존 룰과 source/profile은 자동 migration하지
+않으며, 선택하지 않은 룰은 현재 lightweight tracker 동작을 유지합니다.
+
+기본 원칙:
+
+- 전체/global 기본 활성화 없음
+- 기존 `lite/default` tracker를 기본 호환 경로로 유지
+- tracker와 Re-ID는 룰별 설정에서 각각 선택
+- Re-ID는 기본 `off`이며, model/provenance/privacy gate가 통과한 경우에만 opt-in
+- Event POST, WebRTC DataChannel, SSE/WS metadata schema와 RTSP/WebRTC media
+  path는 별도 review 전까지 변경하지 않음
+- embedding, crop, model path, track-linked appearance profile은 client/viewer,
+  외부 metadata, release artifact에 노출하지 않음
+
+| ID | 우선순위 | 영역 | 목표 | 예상 검증 |
+| --- | --- | --- | --- | --- |
+| V140-P0-01 | P0 | Rule-level tracking policy contract | 룰 payload와 runtime policy에 tracker/Re-ID 선택값을 추가하되 기존 룰은 `lite/default` tracker와 Re-ID `off`로 해석합니다. tracker 후보는 `none`, `lite/default`, `kalman-lite`, `bytetrack`를 v1.4.0 대상 후보로 둡니다. | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-analysis-state`, metadata schema review |
+| V140-P0-02 | P0 | Ops Rules tracker/Re-ID selection UI | `/ops/rules`에서 Tracker와 Re-ID를 별도 control로 선택하고 저장/불러오기/preview/roundtrip을 검증합니다. `tracker=none`이면 Re-ID 선택은 비활성 또는 `off`로 강제합니다. | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-client-ui --screenshots` |
+| V140-P0-03 | P0 | Privacy and runtime fallback gate | Re-ID model path/checksum/provenance, NoOp fallback, bounded async worker, rate limit, stale drop, 외부 metadata 비노출 guard를 v1.4.0 opt-in gate로 묶습니다. | `verify-reid-advanced-tracking`, privacy/docs review, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel` |
+| V140-P1-01 | P1 | Kalman-lite tracker | 현재 direction-based/lightweight tracker에 motion prediction/lost buffer 보강을 추가해 짧은 누락, bbox jitter, reacquire 후보 선택을 개선합니다. Re-ID/model dependency 없이 룰별 opt-in으로 제공합니다. | `verify-tracker-stability`, `compare-close-object-tracker`, `verify-va-replay`, `verify-va-events` |
+| V140-P1-02 | P1 | ByteTrack tracker | YOLO detection 결과의 high/low confidence association을 분리해 track 끊김을 줄이는 ByteTrack 계열 tracker를 추가 tracker 후보로 구현합니다. low-confidence bbox가 event/zone/line 판단을 흔들지 않도록 quality gate를 둡니다. | `compare-close-object-tracker --fixture-matrix`, `verify-tracker-stability`, `verify-va-replay`, `verify-va-events` |
+| V140-P1-03 | P1 | Re-ID assist 고도화 | Re-ID를 독립 default tracker가 아니라 selected tracker의 association 보조 옵션으로 제한합니다. model artifact는 repo/release asset에 포함하지 않고, missing/invalid model은 NoOp으로 fallback합니다. | `verify-reid-advanced-tracking`, `compare-close-object-tracker`, privacy review |
+| V140-P2-01 | P2 | OC-SORT 후순위 benchmark | OC-SORT는 v1.4.0 필수 구현이 아니라 ByteTrack/Kalman-lite 이후 비교 benchmark 또는 experimental 후보로 낮춥니다. Re-ID 없이 motion/observation 중심 비교를 수행하되 제품 tracker 교체 근거로 과장하지 않습니다. | 별도 benchmark report, `compare-close-object-tracker`, docs review |
+| V140-P2-02 | P2 | BoT-SORT/DeepSORT research boundary | BoT-SORT/DeepSORT 계열은 Re-ID/model/privacy 부담이 커서 v1.4.0 기본 구현 후보가 아니라 research note와 dependency/privacy 검토 대상으로 유지합니다. | privacy review, bundle policy review |
+
+v1.4.0 비범위:
+
+- 전체/global tracker 기본값 변경
+- 기존 룰/source/profile 자동 migration
+- Re-ID 또는 ByteTrack/OC-SORT/BoT-SORT를 선택하지 않은 룰에 자동 적용
+- Event POST/WebRTC DataChannel/SSE/WS metadata payload 무심사 변경
+- RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
+- Re-ID model/runtime binary bundle, release asset 업로드, container/offline package 포함
+- field sample scheduler, dataset ingest, 고객/현장 영상 보존 자동화
+
 ## 별도 Phase 후보
 
 v1.3.0 release main에는 다음 minor roadmap을 고정하지 않습니다.
