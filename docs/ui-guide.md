@@ -1256,6 +1256,7 @@ active analysis tap 데이터가 들어간 상태에서 구간별로 나눠 캡�
 | Health Summary / Controls | active stream/tap, rule, refresh, stale, cleanup, guard 상태 요약 |
 | Warnings / Trend detail | 최근 sample 수, delta/min/max, warning badge |
 | Metadata / Backpressure | WebRTC/SSE/WS metadata, payload, DataChannel buffer |
+| Runtime Operations Readout | 선택 tap 기준 원인, 영향, 다음 조치 요약 |
 | Runtime Detail / vaRule Debug | 선택 tap/rule/source/profile/event/scenario runtime 관계 |
 | Tracks | track lifecycle, zone/dwell, TrackHealth |
 | Scenarios / Events | scenario phase/timeline, recent event buffer |
@@ -1270,6 +1271,12 @@ source는 문서용으로 상대 표시하며 개인 절대경로를 노출하�
 ### 13.2. Metadata / Backpressure
 
 WebRTC DataChannel, SSE/WS side-channel, payload size, queue/drop/fail counter를 확인합니다. 값이 endpoint에서 제공되지 않으면 `미제공`으로 표시합니다.
+
+### 13.2.1. Runtime Operations Readout
+
+선택된 active analysis tap을 기준으로 scenario timeline, TrackHealth,
+recent EventRecord, tap queue high-water를 한 화면에서 재구성합니다.
+표시는 `원인`, `영향`, `다음 조치` 순서이며 새 backend API나 schema를 추가하지 않습니다.
 
 ### 13.3. Runtime Detail / vaRule Debug
 
@@ -1342,6 +1349,7 @@ drill-down 사용법:
 | Scenario Timeline | phase chip, event emitted, dedup count, recent event 연결 | 판단 로직 변경 없이 읽기 전용 |
 | Events | 선택 tap의 `/events` buffer | 선택 rule이 있으면 해당 rule recent event만 반영 |
 | Event Records | EventRecord 수동 검색과 detail JSON | 영상 재생, snapshot 추출, clip recorder 없음 |
+| Runtime Operations Readout | scenario timeline, TrackHealth, recent EventRecord, high-water를 원인/영향/다음 조치로 표시 | 기존 runtime/state/event buffer만 재구성 |
 | Metadata / Backpressure | DataChannel, SSE/WS client, queue, payload size, RTSP lifecycle | 불균형, cleanup 잔여, failure는 warning badge |
 | Trend / Stale / Cleanup | 최근 60개 dashboard sample의 count/age/delta/min/max/잔류 상태 | 새 backend endpoint 없이 client buffer만 사용 |
 | RSS 표시 | live 보조 관찰 | longrun report를 대체하지 않음 |

@@ -1721,6 +1721,16 @@ void AppendOpsShellScript(std::ostringstream& out,
         const counts = dashboardSourceHealthCounts(sourceHealth);
         return `수신 ${counts.live}/${counts.total} · 연결 중 ${counts.connecting} · 지연 ${counts.stale} · 오프라인 ${counts.offline}`;
       };
+      const dashboardRuntimeStreamLabel = value => {
+        const text = String(value || '').trim();
+        if (!text) return '스트림 미제공';
+        if (text.startsWith('file::')) {
+          const token = text.slice(6);
+          const fileName = token.split(/[\\/]/).filter(Boolean).pop();
+          return fileName ? `file::${fileName}` : 'file source';
+        }
+        return text.length > 96 ? `${text.slice(0, 93)}...` : text;
+      };
       const dashboardRootCauseItems = (runtime, principal, eventsStatus = {}, browserConfig = {}, diagnosticLog = {}, sourceHealth = {}) => {
         const counts = runtimeCounts(runtime);
         const lifecycle = runtime?.sourceLifecycle || {};
@@ -1805,7 +1815,7 @@ void AppendOpsShellScript(std::ostringstream& out,
               ? staleTaps.slice(0, 3).map(tap => `${tap.tapId || '탭'} ${Math.round(numberValue(tap.lastUsedAgeMs))}ms`).join(' · ')
               : '5초 초과 미사용 분석 탭이 없습니다.',
             evidence: staleTaps.length > 0
-              ? staleTaps.slice(0, 2).map(tap => `${tap.streamKey || '스트림'} / ${tap.selectedRuleId || '룰 없음'}`).join(' · ')
+              ? staleTaps.slice(0, 2).map(tap => `${dashboardRuntimeStreamLabel(tap.streamKey)} / ${tap.selectedRuleId || '룰 없음'}`).join(' · ')
               : `활성 분석 탭 ${activeTaps.length}`,
             log: staleLog.line,
             correlationId: staleLog.correlationId,
@@ -2295,6 +2305,162 @@ void AppendOpsShellScript(std::ostringstream& out,
         window.MediaServerUi?.translatePage?.();
         return items;
       };
+      const dashboardRuntimeOpsEventRecords = (eventsStatus = {}, tap = {}, timeline = []) => {
+        const records = dashboardIncidentEventRecords(eventsStatus);
+        const lastEventIds = new Set((Array.isArray(timeline) ? timeline : [])
+          .map(item => String(item?.lastEventId || '').trim())
+          .filter(Boolean));
+        const selectedRuleId = String(tap?.selectedRuleId || '').trim();
+        const streamKey = String(tap?.streamKey || '').trim();
+        const scoped = records.filter(item => {
+          const eventId = String(item?.eventId || '').trim();
+          const ruleId = String(item?.ruleId || item?.vaRuleId || item?.selectedRuleId || '').trim();
+          const stream = String(item?.streamId || item?.channelId || '').trim();
+          return (eventId && lastEventIds.has(eventId)) ||
+            (selectedRuleId && ruleId === selectedRuleId) ||
+            (streamKey && stream === streamKey);
+        });
+        return (scoped.length > 0 ? scoped : records).slice(0, 5);
+      };
+      const dashboardRuntimeOpsEventFailures = records => (Array.isArray(records) ? records : [])
+        .filter(item => ['failed', 'failure', 'error', 'dropped'].includes(String(item?.status || '').toLowerCase()))
+        .length;
+      const dashboardRuntimeOpsTrackHealth = (metricsReport = {}, issueReport = {}) => {
+        const trackHealth = metricsReport?.trackHealth || {};
+        const retainedIssues = numberValue(issueReport?.retainedIssues);
+        const totalIssues = numberValue(issueReport?.totalIssues);
+        const unstable = numberValue(trackHealth.unstableTrackCount);
+        const overlapRisk = numberValue(trackHealth.overlapRiskTrackCount);
+        const missedFrames = numberValue(trackHealth.missedFrameTrackCount);
+        const directionChanges = numberValue(trackHealth.directionChangeTrackCount);
+        const issueText = retainedIssues > 0
+          ? `TrackHealth 이슈 ${retainedIssues}/${totalIssues}`
+          : 'TrackHealth 이슈 없음';
+        return {
+          retainedIssues,
+          totalIssues,
+          unstable,
+          overlapRisk,
+          missedFrames,
+          directionChanges,
+          issueText,
+          detailText: `${issueText} · 불안정 ${unstable} · 겹침위험 ${overlapRisk} · missed ${missedFrames} · 방향변경 ${directionChanges}`
+        };
+      };
+      const dashboardRuntimeOpsHighWater = tapState => {
+        const capacity = numberValue(tapState?.maxQueueSize);
+        const pending = numberValue(tapState?.pendingFrames);
+        const peak = numberValue(tapState?.peakPendingFrames);
+        const maxWait = tapState?.maxQueueWaitMs;
+        const maxInference = tapState?.maxInferenceMs;
+        const pressure = capacity > 0 && Math.max(pending, peak) >= capacity * 0.8;
+        return {
+          pressure,
+          text: `high-water queue ${peak}/${capacity || '미제공'} · wait ${timelineTime(maxWait)} · inference ${timelineTime(maxInference)}`
+        };
+      };
+      const dashboardRuntimeOpsNextAction = ({ tap, activeTimeline, trackHealth, recentEvents, eventFailures, highWater }) => {
+        if (!tap?.tapId) return '활성 tap이 생기면 /ops/rules의 VA 룰 연결과 source 입력을 기준으로 다시 확인합니다.';
+        if (trackHealth.retainedIssues > 0) return '트래킹 이슈 그룹에서 track/class/reason을 확인하고 룰 geometry와 입력 FPS를 함께 점검합니다.';
+        if (eventFailures > 0) return '최근 EventRecord 실패 상태를 /ops/events에서 열어 POST/storage와 evidence 저장 상태를 확인합니다.';
+        if (highWater.pressure) return 'queue high-water가 높습니다. tap metrics의 pending/latency를 보고 입력 FPS 또는 sampling 설정을 점검합니다.';
+        if (activeTimeline.length > 0 && recentEvents.length === 0) return '시나리오가 진행 중이지만 EventRecord가 없습니다. cooldown, duration, threshold 조건을 확인합니다.';
+        return '현 상태는 정상 범위입니다. active 구간 high-water 메모를 유지하며 다음 refresh에서 추세를 봅니다.';
+      };
+      const renderDashboardRuntimeOpsEmpty = message => {
+        renderBadges('dashRuntimeOpsBadges', [{ text: '분석 탭 대기', tone: 'info' }]);
+        setText('dashRuntimeOpsText', message);
+        const list = document.getElementById('dashRuntimeOpsList');
+        if (list) list.innerHTML = '<div class="empty">활성 분석 탭이 있으면 runtime/state/event buffer를 운영 순서로 묶어 표시합니다.</div>';
+      };
+      const renderDashboardRuntimeOpsError = error => {
+        renderBadges('dashRuntimeOpsBadges', [{ text: '운영 판독 실패', tone: 'warn' }]);
+        setText('dashRuntimeOpsText', error?.message || '런타임 운영 판독을 불러오지 못했습니다.');
+        const list = document.getElementById('dashRuntimeOpsList');
+        if (list) list.innerHTML = '<div class="empty">state-dump 또는 metrics 조회 실패로 운영 판독을 표시하지 못했습니다.</div>';
+      };
+      const renderDashboardRuntimeOperations = (tap, stateDump = {}, metricsDump = {}, eventsStatus = {}) => {
+        const list = document.getElementById('dashRuntimeOpsList');
+        if (!list) return [];
+        if (!tap?.tapId) {
+          renderDashboardRuntimeOpsEmpty('활성 분석 탭이 있으면 운영 판독을 표시합니다.');
+          return [];
+        }
+        const debugState = stateDump?.analyticsState?.debugState || {};
+        const timeline = Array.isArray(debugState?.scenarioTimeline) ? debugState.scenarioTimeline : [];
+        const activeTimeline = timeline.filter(item => item?.active !== false);
+        const issueReport = metricsDump?.trackingIssueReport || {};
+        const metricsReport = metricsDump?.metricsReport || stateDump?.analyticsState?.metricsReport || {};
+        const tapState = metricsDump?.tapState || {};
+        const trackState = metricsDump?.trackState || metricsReport?.trackState || {};
+        const recentEvents = dashboardRuntimeOpsEventRecords(eventsStatus, tap, timeline);
+        const eventFailures = dashboardRuntimeOpsEventFailures(recentEvents);
+        const trackHealth = dashboardRuntimeOpsTrackHealth(metricsReport, issueReport);
+        const highWater = dashboardRuntimeOpsHighWater(tapState);
+        const activeTracks = numberValue(trackState?.activeTracks ?? metricsReport?.trackState?.activeTracks);
+        const emittedEvents = numberValue(metricsReport?.eventState?.eventsEmitted);
+        const dedupedEvents = numberValue(metricsReport?.eventState?.eventsDeduped);
+        const leadScenario = activeTimeline[0] || timeline[0] || null;
+        const nextAction = dashboardRuntimeOpsNextAction({ tap, activeTimeline, trackHealth, recentEvents, eventFailures, highWater });
+        const causeLevel = trackHealth.retainedIssues > 0 || eventFailures > 0 || highWater.pressure ? 'warn' : 'info';
+        const impactLevel = trackHealth.retainedIssues > 0 || eventFailures > 0 ? 'warn' : 'info';
+        const items = [
+          {
+            step: '원인',
+            level: causeLevel,
+            title: leadScenario
+              ? `${scenarioPhaseLabel(leadScenario.currentPhase || leadScenario.scenarioPhase)} · ${display(leadScenario.scenarioName || leadScenario.scenarioKey || 'scenario')}`
+              : (trackHealth.retainedIssues > 0 ? 'TrackHealth 이슈 우선 확인' : '즉시 원인 없음'),
+            detail: leadScenario
+              ? `rule ${display(leadScenario.ruleId || tap.selectedRuleId || '미선택')} · track ${display(leadScenario.trackId || '미제공')} · ${trackHealth.issueText}`
+              : `${dashboardRuntimeStreamLabel(tap.streamKey)} · ${trackHealth.issueText}`,
+            evidence: `${highWater.text} · recent EventRecord ${recentEvents.length}`,
+            action: trackHealth.retainedIssues > 0
+              ? 'TrackHealth 이슈가 원인 후보입니다.'
+              : (leadScenario ? '시나리오 phase와 cooldown 상태를 먼저 봅니다.' : 'runtime/state/event buffer에서 즉시 확인할 원인은 없습니다.')
+          },
+          {
+            step: '영향',
+            level: impactLevel,
+            title: `active track ${activeTracks} · timeline ${timeline.length}`,
+            detail: `EventRecord ${recentEvents.length} · 실패 ${eventFailures} · 발행 ${emittedEvents} · 중복제거 ${dedupedEvents}`,
+            evidence: trackHealth.detailText,
+            action: eventFailures > 0
+              ? 'EventRecord 실패가 downstream 영향 후보입니다.'
+              : '영향 범위는 선택 tap의 state-dump와 metrics 범위로 제한됩니다.'
+          },
+          {
+            step: '다음 조치',
+            level: causeLevel,
+            title: trackHealth.retainedIssues > 0 || eventFailures > 0 || highWater.pressure ? '운영자 확인 필요' : '관찰 유지',
+            detail: nextAction,
+            evidence: recentEvents[0]
+              ? `최근 ${display(recentEvents[0].eventType || 'event')} · ${display(recentEvents[0].status || 'status')}`
+              : '최근 EventRecord 없음',
+            action: `선택 tap ${display(tap.tapId)} · ${dashboardRuntimeStreamLabel(tap.streamKey)}`
+          }
+        ];
+        renderBadges('dashRuntimeOpsBadges', [
+          { text: `탭 ${tap.tapId}` },
+          { text: tap.selectedRuleId ? `룰 ${tap.selectedRuleId}` : '룰 미선택', tone: tap.selectedRuleId ? '' : 'info' },
+          { text: `timeline ${timeline.length}` },
+          { text: trackHealth.retainedIssues > 0 ? `TrackHealth ${trackHealth.retainedIssues}` : 'TrackHealth 정상', tone: trackHealth.retainedIssues > 0 ? 'warn' : 'info' },
+          { text: eventFailures > 0 ? `EventRecord 실패 ${eventFailures}` : `EventRecord ${recentEvents.length}`, tone: eventFailures > 0 ? 'warn' : 'info' },
+          { text: highWater.pressure ? 'high-water 확인' : 'high-water 관찰', tone: highWater.pressure ? 'warn' : 'info' }
+        ]);
+        setText('dashRuntimeOpsText', 'runtime/status, state-dump, metrics, EventRecord를 새 schema 없이 운영 판독 순서로 묶었습니다.');
+        list.innerHTML = items.map(item => `<article class="root-cause-item ${escapeHtml(item.level)}">
+          <div>
+            <strong>${opsHtml(item.title)}</strong>
+            <p>${opsHtml(item.detail)}</p>
+          </div>
+          ${badge(item.step, item.level === 'warn' ? 'warn' : 'info')}
+          <p class="root-cause-evidence">${opsHtml(item.evidence)}</p>
+          <p class="root-cause-action">${opsHtml(item.action)}</p>
+        </article>`).join('');
+        window.MediaServerUi?.translatePage?.();
+        return items;
+      };
       const scenarioPhaseLabel = phase => ({
         idle: 'Idle',
         'line-crossed': 'LineCrossed',
@@ -2477,13 +2643,15 @@ void AppendOpsShellScript(std::ostringstream& out,
         setText('dashVaQualityText', message);
         renderDashboardScenarioTimeline([]);
         renderDashboardTrackingIssues({});
+        renderDashboardRuntimeOpsEmpty(message);
       };
       const renderDashboardVaQualityError = error => {
         bindDashboardVaQualityFilter();
         renderBadges('dashVaQualityBadges', [{ text: '디버그 조회 실패', tone: 'warn' }]);
         setText('dashVaQualityText', error?.message || 'VA 런타임 디버그를 불러오지 못했습니다.');
+        renderDashboardRuntimeOpsError(error);
       };
-      async function refreshDashboardVaQuality(runtime) {
+      async function refreshDashboardVaQuality(runtime, eventsStatus = {}) {
         bindDashboardVaQualityFilter();
         const tap = dashboardPrimaryTap(runtime);
         if (!tap?.tapId) {
@@ -2506,7 +2674,8 @@ void AppendOpsShellScript(std::ostringstream& out,
           { text: `이슈 ${numberValue(issueReport.retainedIssues)}`, tone: numberValue(issueReport.retainedIssues) > 0 ? 'warn' : 'info' }
         ]);
         setText('dashVaQualityText',
-          `${display(tap.streamKey)} · 단계/쿨다운/중복제거는 state-dump 디버그 계층에서만 표시합니다.`);
+          `${dashboardRuntimeStreamLabel(tap.streamKey)} · 단계/쿨다운/중복제거는 state-dump 디버그 계층에서만 표시합니다.`);
+        renderDashboardRuntimeOperations(tap, stateDump, metricsDump, eventsStatus);
         renderDashboardScenarioTimeline(timeline);
         renderDashboardTrackingIssues(issueReport);
       }
@@ -2605,7 +2774,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           `프로파일 ${runtime?.analysisMatching?.profileDocumentCount ?? 0} · 룰 ${runtime?.analysisMatching?.ruleDocumentCount ?? 0} · 발행 ${counts.publish} · 송출 ${counts.egress}`);
         const rootCauseItems = renderDashboardRootCause(runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth);
         renderDashboardIncidentTimeline(rootCauseItems, eventsStatus, diagnosticLog, sourceHealth);
-        await refreshDashboardVaQuality(runtime).catch(renderDashboardVaQualityError);
+        await refreshDashboardVaQuality(runtime, eventsStatus).catch(renderDashboardVaQualityError);
         renderRaw('opsDashboardRaw', 'opsDashboardPretty', runtime);
         window.MediaServerUi?.translatePage?.();
       }

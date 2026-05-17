@@ -138,6 +138,22 @@ v1.3.0 비범위:
 - Re-ID default-on, 대형 tracker 교체, runtime/model binary bundle 포함
 - YouTube 운영 기능 승격 또는 실제 YouTube URL relay 성공 gate
 
+### V130-P0-01 Runtime operations console 정리 기준
+
+`Runtime operations console`은 `/ops/dashboard` 안에서 운영자가 같은 화면에서
+원인, 영향, 다음 조치를 읽는 판독 계층으로 유지합니다.
+
+- 새 backend API, metadata schema, Event POST payload, WebRTC DataChannel,
+  SSE/WS schema, RTSP/WebRTC media path는 열지 않습니다.
+- `/ops/api/runtime/status`, `/lab/analysis/taps/{tapId}/state-dump`,
+  `/lab/analysis/taps/{tapId}/metrics`, `/ops/api/events/status`의 기존
+  runtime/state/event buffer를 client-side에서 재구성합니다.
+- 표시 순서는 `원인`(scenario phase, TrackHealth, high-water),
+  `영향`(active track, timeline, recent EventRecord, event failure),
+  `다음 조치`(operator action)입니다.
+- 장시간 안정성 판정은 `verify-va-runtime-console-longrun` 또는
+  `verify-predev` 실행 결과를 별도로 기록할 때만 완료 evidence로 취급합니다.
+
 ## v1.2.0 Roadmap 종료 판정
 
 v1.2.0은 v1.1.0 live-only 경계를 유지하면서 실제 현장 운영과 제품화 밀도를 높이는

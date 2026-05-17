@@ -2369,6 +2369,19 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
           <div class="empty">최근 인시던트 단서를 불러오는 중입니다.</div>
         </div>
       </section>
+      <section class="section-card" data-testid="ops-runtime-operations-console">
+        <div class="toolbar">
+          <div>
+            <h3>런타임 운영 판독</h3>
+            <p>선택 tap의 scenario timeline, TrackHealth, recent EventRecord를 원인, 영향, 다음 조치 순서로 봅니다.</p>
+          </div>
+        </div>
+        <div id="dashRuntimeOpsBadges" class="badge-row"><span class="chip">분석 탭 대기</span></div>
+        <p id="dashRuntimeOpsText">활성 분석 탭이 있으면 운영 판독을 표시합니다.</p>
+        <div id="dashRuntimeOpsList" class="root-cause-list">
+          <div class="empty">런타임 운영 판독 대기 중입니다.</div>
+        </div>
+      </section>
       <section class="section-card">
         <div class="toolbar">
           <div>
