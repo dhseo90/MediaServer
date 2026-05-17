@@ -1721,6 +1721,12 @@ void AppendOpsShellScript(std::ostringstream& out,
         const counts = dashboardSourceHealthCounts(sourceHealth);
         return `수신 ${counts.live}/${counts.total} · 연결 중 ${counts.connecting} · 지연 ${counts.stale} · 오프라인 ${counts.offline}`;
       };
+      const dashboardSourceHealthIncidentId = item => {
+        const sourceId = String(item?.sourceId || '').trim() || 'unknown';
+        const status = String(item?.status || 'unknown').trim() || 'unknown';
+        const reason = String(item?.reason || 'not-checked').trim() || 'not-checked';
+        return `source-health:${sourceId}:${status}:${reason}`;
+      };
       const dashboardRuntimeStreamLabel = value => {
         const text = String(value || '').trim();
         if (!text) return '스트림 미제공';
@@ -2138,12 +2144,15 @@ void AppendOpsShellScript(std::ostringstream& out,
         return source ? source.replace(/[^a-z0-9가-힣]+/g, '-') : 'summary';
       };
       const dashboardIncidentSearchText = item => [
+        item?.incidentId,
+        item?.sourceId,
         item?.source,
         item?.time,
         item?.title,
         item?.detail,
         item?.evidence,
         item?.correlationId,
+        item?.nextAction,
         item?.actionHref
       ].map(value => String(value || '').toLowerCase()).join(' ');
       const dashboardIncidentMatchesFilter = (item, filter) => {
@@ -2189,15 +2198,17 @@ void AppendOpsShellScript(std::ostringstream& out,
             source: '문제 원인',
             time: '현재',
             sort: Number.MAX_SAFE_INTEGER - index,
+            incidentId: item.correlationId ? `root-cause:${item.correlationId}` : `root-cause:${item.actionKind || index}`,
             title: item.title,
             detail: item.detail,
             evidence: item.evidence || item.log,
             correlationId: item.correlationId,
+            nextAction: item.action,
             actionHref: item.actionHref
           }));
         const eventTimeline = dashboardIncidentEventRecords(eventsStatus)
           .slice(0, 4)
-          .map(item => {
+          .map((item, index) => {
             const status = String(item?.status || '').toLowerCase();
             const level = ['failed', 'failure', 'error'].includes(status) ? 'warn' : 'info';
             const stream = item?.streamId || item?.channelId || '스트림 미제공';
@@ -2207,27 +2218,41 @@ void AppendOpsShellScript(std::ostringstream& out,
               source: 'EventRecord',
               time: dashboardIncidentTimeLabel(item),
               sort: dashboardIncidentSortValue(item),
+              incidentId: `event:${item?.eventId || item?.trackId || item?.streamId || index}`,
+              sourceId: stream,
               title: `${display(item?.eventType || 'event')} · ${display(item?.status || '상태 미제공')}`,
               detail: `${display(stream)}${item?.trackId ? ` · track ${display(item.trackId)}` : ''}${scenario ? ` · ${scenario}` : ''}`,
               evidence: item?.eventId ? `eventId ${display(item.eventId)}` : 'eventId 미제공',
               correlationId: item?.eventId || item?.trackId || '',
+              nextAction: 'EventRecord 저장/POST 상태와 source health 단서를 함께 확인합니다.',
               actionHref: '/ops/events'
             };
           });
         const sourceTimeline = dashboardSourceHealthItems(sourceHealth)
           .filter(sourceHealthNeedsAction)
           .slice(0, 3)
-          .map((item, index) => ({
-            level: item.status === 'offline' ? 'bad' : 'warn',
-            source: 'Source Health',
-            time: '현재',
-            sort: Number.MAX_SAFE_INTEGER - 100 - index,
-            title: `소스 #${display(item.sourceId || '-')} ${dashboardSourceHealthStatusLabel(item.status)}`,
-            detail: dashboardSourceHealthReason(item.reason),
-            evidence: `프레임 ${dashboardSourceHealthAge(item.lastFrameAgeMs)} / 메타데이터 ${dashboardSourceHealthAge(item.lastMetadataAgeMs)}`,
-            correlationId: item.sourceId ? `source-${item.sourceId}` : '',
-            actionHref: item.sourceId ? `/ops/sources#channel=${encodeURIComponent(item.sourceId)}` : '/ops/sources'
-          }));
+          .map((item, index) => {
+            const sourceId = String(item?.sourceId || '').trim();
+            const incidentId = dashboardSourceHealthIncidentId(item);
+            const auditHref = sourceHealthAuditHref(sourceHealth, {
+              retryBody: sourceId ? { sourceIds: [sourceId] } : { sourceIds: [] },
+              results: sourceId ? [{ sourceId }] : []
+            });
+            return {
+              level: item.status === 'offline' ? 'bad' : 'warn',
+              source: 'Source Health',
+              time: '현재',
+              sort: Number.MAX_SAFE_INTEGER - 100 - index,
+              incidentId,
+              sourceId,
+              title: `소스 #${display(sourceId || '-')} ${dashboardSourceHealthStatusLabel(item.status)}`,
+              detail: `${dashboardSourceHealthReason(item.reason)} · 상태 변경 이력과 retryable-only 재검증을 확인합니다.`,
+              evidence: `프레임 ${dashboardSourceHealthAge(item.lastFrameAgeMs)} / 메타데이터 ${dashboardSourceHealthAge(item.lastMetadataAgeMs)}`,
+              correlationId: sourceId ? `source-${sourceId}` : '',
+              nextAction: '소스 상태 변경 이력에서 같은 source incident 흐름을 확인합니다.',
+              actionHref: auditHref
+            };
+          });
         const logLines = Array.isArray(diagnosticLog?.lines) ? diagnosticLog.lines : [];
         const logTimeline = [...logLines]
           .reverse()
@@ -2238,10 +2263,12 @@ void AppendOpsShellScript(std::ostringstream& out,
             source: 'Log tail',
             time: '최근 로그',
             sort: Number.MAX_SAFE_INTEGER - 200 - index,
+            incidentId: `log-tail:${rootCauseCorrelationId(line, 'source health|cleanup|stale|event post|event storage|auth|ICE|TURN|relay|reconnect|WHIP') || index}`,
             title: '로그 단서',
             detail: String(line || '').slice(0, 160),
             evidence: 'diagnostics log-tail',
             correlationId: rootCauseCorrelationId(line, 'source health|cleanup|stale|event post|event storage|auth|ICE|TURN|relay|reconnect|WHIP'),
+            nextAction: '관련 root-cause 또는 source health incident와 같은 cid를 비교합니다.',
             actionHref: '/ops/dashboard'
           }));
         const items = [...rootTimeline, ...sourceTimeline, ...eventTimeline, ...logTimeline]
@@ -2291,17 +2318,23 @@ void AppendOpsShellScript(std::ostringstream& out,
           window.MediaServerUi?.translatePage?.();
           return items;
         }
-        list.innerHTML = items.map(item => `<article class="root-cause-item ${escapeHtml(item.level)}">
+        list.innerHTML = items.map(item => {
+          const incidentMeta = [
+            item.incidentId ? `incident ${item.incidentId}` : '',
+            item.correlationId ? `cid ${item.correlationId}` : ''
+          ].filter(Boolean).join(' · ');
+          return `<article class="root-cause-item ${escapeHtml(item.level)}">
           <div>
             <strong>${opsHtml(item.title)}</strong>
             <p>${opsHtml(item.detail)}</p>
           </div>
           <span class="chip${item.level === 'warn' ? ' warn' : (item.level === 'bad' ? ' bad' : '')}">${opsHtml(item.time || item.source)}</span>
-          ${item.correlationId ? `<span class="root-cause-correlation">cid ${escapeHtml(item.correlationId)}</span>` : ''}
+          ${incidentMeta ? `<span class="root-cause-correlation">${escapeHtml(incidentMeta)}</span>` : ''}
           ${item.evidence ? `<p class="root-cause-evidence">${opsHtml(item.evidence)}</p>` : ''}
-          <p class="root-cause-action">출처 ${opsHtml(item.source || '대시보드')}</p>
+          <p class="root-cause-action">출처 ${opsHtml(item.source || '대시보드')}${item.nextAction ? ` · 다음 조치 ${opsHtml(item.nextAction)}` : ''}</p>
           ${item.actionHref ? `<a class="btn small root-cause-next-action" href="${escapeHtml(item.actionHref)}">관련 화면</a>` : ''}
-        </article>`).join('');
+        </article>`;
+        }).join('');
         window.MediaServerUi?.translatePage?.();
         return items;
       };

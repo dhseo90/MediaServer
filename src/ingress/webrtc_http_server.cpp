@@ -2349,7 +2349,7 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
           </div>
           <div class="actions incident-timeline-controls">
             <label>인시던트 검색
-              <input id="dashIncidentTimelineSearch" placeholder="제목, 출처, cid 검색" />
+              <input id="dashIncidentTimelineSearch" placeholder="제목, 출처, incident/cid 검색" />
             </label>
             <label>출처
               <select id="dashIncidentTimelineSource">

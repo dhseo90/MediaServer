@@ -211,6 +211,23 @@ Content-Type: application/json
 구성 수정 대상과 단순 재시도 대상을 분리합니다.
 `partialFailure=true`는 일부 sourceId만 실패했음을 의미합니다.
 
+## Source Health Incident Workflow
+
+`/ops/dashboard`의 `최근 인시던트 흐름`은 source health 단서를
+`source-health:<sourceId>:<status>:<reason>` 형태의 클라이언트 측
+incident ID로 묶어 표시합니다. 이 값은 운영자가 같은 source의 root-cause,
+EventRecord, log tail 단서를 검색/공유하기 위한 UI 식별자이며
+`/ops/api/source-health` 또는 `/ops/api/source-health/bulk` schema를
+변경하지 않습니다.
+
+Source Health 인시던트 항목의 `관련 화면`은 `/ops/sources` 변경 이력의
+`Source Health 변경` preset과 `source:<sourceId>` target으로 이어집니다.
+운영자는 같은 source incident에서 상태 변화 audit을 먼저 확인한 뒤,
+Dashboard의 bulk 결과가 제공하는 `retryBody.sourceIds`만 다시 보내
+retryable-only 재검증을 수행합니다. source health bulk는 dry-run이므로
+registry rollback 대상은 없고, partial failure는 실패 source만 구성 수정
+대상으로 남깁니다.
+
 ## Source Health Audit
 
 `GET /ops/api/source-health`와 `POST /ops/api/source-health/bulk`는

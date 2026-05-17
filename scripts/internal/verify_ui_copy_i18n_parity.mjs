@@ -33,11 +33,16 @@ check("product translation map includes recent UI copy", () => {
   const js = readText("src/ingress/product_ui_js.cpp");
   const required = [
     "'최근 인시던트 흐름': 'Recent Incident Timeline'",
+    "'제목, 출처, incident/cid 검색': 'Search title, source, incident, or cid'",
     "'최근 인시던트 없음': 'No recent incidents'",
     "'즉시 인시던트 없음': 'No immediate incidents'",
     "'관련 화면': 'Related screen'",
     "'소스 상태 변경 이력': 'Source status change history'",
     "'상태 변화 audit은 /ops/sources 변경 이력의 소스 상태 변경 preset에서 확인합니다.':",
+    "'상태 변경 이력과 retryable-only 재검증을 확인합니다.':",
+    "'소스 상태 변경 이력에서 같은 source incident 흐름을 확인합니다.':",
+    "'EventRecord 저장/POST 상태와 source health 단서를 함께 확인합니다.':",
+    "'관련 root-cause 또는 source health incident와 같은 cid를 비교합니다.':",
     "'재연결': 'Reconnect'",
     "'정지': 'Stop'",
     "'보기 방식': 'View mode'",

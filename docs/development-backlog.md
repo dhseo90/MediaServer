@@ -174,6 +174,42 @@ no-device suite 통과를 실장비 성공으로 승격하지 않습니다.
 - 2026-05-17 기준 이 카테고리의 개발 가능한 후속 이슈는 없음으로 판정하려면
   위 verifier와 no-device suite가 모두 통과해야 합니다.
 
+### V130-P0-03 Source health incident workflow 종료 판정
+
+2026-05-17 기준 V130-P0-03은 기존 source health API/bulk/audit 계약을
+유지하면서 Dashboard incident 단위 추적을 보강하는 범위에서 종료합니다.
+
+확인됨:
+
+- `/ops/dashboard`의 `최근 인시던트 흐름`은 source health 단서를
+  `source-health:<sourceId>:<status>:<reason>` UI incident ID로 표시하고
+  검색 대상에 포함합니다.
+- Source Health 인시던트 항목의 `관련 화면`은 `/ops/sources` 변경 이력의
+  `Source Health 변경` preset, `source-health-state-change` action,
+  `source:<sourceId>` target으로 바로 이동합니다.
+- Dashboard source health next-action은 기존 bulk `check`와
+  `retryBody.sourceIds` 기반 retryable-only 재검증을 유지합니다.
+- partial failure는 실패 source 구성 확인 대상으로 남기며, source health bulk는
+  registry를 변경하지 않는 dry-run이라 rollback 대상이 없다는 경계를 유지합니다.
+- client/viewer에는 incident ID, source locator, raw diagnostics, bulk result를
+  노출하지 않습니다.
+
+검증 기준:
+
+- `./server.sh verify-ops-source-health-bulk`
+- `./server.sh verify-ops-audit-trail`
+- `./server.sh verify-ops-client-ui --screenshots`
+- `./server.sh verify-ops-root-cause-panel`
+- `git diff --check`
+
+범위 밖:
+
+- `/ops/api/source-health`, `/ops/api/source-health/bulk`, Event POST,
+  WebRTC DataChannel, SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
+- `/ops/sources`에 별도 source health bulk panel/table/detail 추가
+- client/viewer source URL, raw diagnostic JSON, debug counter 노출
+
 ## v1.2.0 Roadmap 종료 판정
 
 v1.2.0은 v1.1.0 live-only 경계를 유지하면서 실제 현장 운영과 제품화 밀도를 높이는
