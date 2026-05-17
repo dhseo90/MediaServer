@@ -94,7 +94,7 @@ void AppendClientShellScript(std::ostringstream& out) {
     const clientHashParams = () => new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
     let selectedViewId = clientHashParams().get('view') || views[0]?.viewId || '';
     const isPreviewMode = document.body.dataset.clientPreview === 'true';
-    const { escapeHtml, display, numberValue, requestJson, applyPrincipalVisibility, setSelectOptions, showToast, currentLanguage } = window.MediaServerUi;
+    const { escapeHtml, display, numberValue, requestJson, applyPrincipalVisibility, setSelectOptions, showToast, currentLanguage, translateText } = window.MediaServerUi;
     let clientWebRtcConfigPromise = null;
     const ms = value => value === null || value === undefined ? '미제공' : `${Math.max(0, Math.round(Number(value)))}ms`;
     const formatTime = value => {
@@ -134,6 +134,7 @@ void AppendClientShellScript(std::ostringstream& out) {
       completed: '연결됨',
       live: '라이브',
       metadata: '메타데이터',
+      'metadata-error': '메타데이터 오류',
       disconnected: '연결 끊김',
       failed: '실패',
       error: '오류',
@@ -187,6 +188,14 @@ void AppendClientShellScript(std::ostringstream& out) {
         return currentLanguage && currentLanguage() === 'en' ? en : ko;
       } catch (_) {
         return ko;
+      }
+    };
+    const clientDynamicText = value => {
+      const raw = String(value ?? '');
+      try {
+        return translateText ? translateText(raw) : raw;
+      } catch (_) {
+        return raw;
       }
     };
     function clearClientClipboardFallback(root = detail) {
@@ -848,17 +857,24 @@ void AppendClientShellScript(std::ostringstream& out) {
       if (['unavailable', '미제공'].includes(String(value))) return ' bad';
       return '';
     }
+    function liveTileConnectionLabel(tile) {
+      const value = String(tile?.connectionStatus || '');
+      if (!tile?.sessionId && (!value || ['offline', 'closed', 'disconnected'].includes(value))) return '연결 끊김';
+      if (value === 'offline') return '연결 끊김';
+      if (value === 'metadata') return '연결됨';
+      return clientStatusLabel(value);
+    }
     function liveTileA11yStatus(tile, view, statusLabel, metadataLabel) {
       const viewLabel = view?.displayName || view?.viewId || '채널 미선택';
-      return [
+      return clientDynamicText([
         `타일 ${tile.index + 1}: ${viewLabel}`,
         `상태 ${statusLabel}`,
-        `연결 ${clientStatusLabel(tile.connectionStatus)}`,
+        `연결 ${liveTileConnectionLabel(tile)}`,
         `트랙 ${display(tile.trackCount)}`,
         `이벤트 ${display(tile.eventCount)}`,
         `메타데이터 ${metadataLabel}`,
         `재시도 ${tile.restartCount || 0}`
-      ].join(' · ');
+      ].join(' · '));
     }
     function updateTileDom(tile) {
       const root = document.querySelector(`[data-tile="${tile.index}"]`);
@@ -877,11 +893,11 @@ void AppendClientShellScript(std::ostringstream& out) {
       const viewLabel = view?.displayName || view?.viewId || '채널 미선택';
       const metadataLabel = stale ? '지연' : (tile.sessionId ? '정상' : '미제공');
       const a11yStatus = liveTileA11yStatus(tile, view, statusLabel, metadataLabel);
-      root.setAttribute('aria-label', `타일 ${tile.index + 1}: ${viewLabel} · ${statusLabel}`);
+      root.setAttribute('aria-label', clientDynamicText(`타일 ${tile.index + 1}: ${viewLabel} · ${statusLabel}`));
       root.setAttribute('aria-current', selectedLiveTile === tile.index ? 'true' : 'false');
       root.querySelector('[data-role="status"]').textContent = statusLabel;
       root.querySelector('[data-role="status"]').className = `chip${tileStatusClass(stale ? 'stale' : status)}`;
-      root.querySelector('[data-role="connection"]').textContent = clientStatusLabel(tile.connectionStatus);
+      root.querySelector('[data-role="connection"]').textContent = clientDynamicText(liveTileConnectionLabel(tile));
       root.querySelector('[data-role="tracks"]').textContent = display(tile.trackCount);
       root.querySelector('[data-role="events"]').textContent = display(tile.eventCount);
       root.querySelector('[data-role="stale"]').textContent = metadataLabel;
@@ -990,7 +1006,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	            </div>
 	            <div class="tile-controls">
 	              <label>채널
-		                <select data-role="view" aria-label="타일 ${tile.index + 1} 채널">
+		                <select data-role="view" aria-label="타일 ${tile.index + 1} 채널 선택">
 		                  ${liveViewOptionsHtml(tile)}
 		                </select>
 	              </label>
@@ -1520,7 +1536,7 @@ void AppendClientShellScript(std::ostringstream& out) {
             </div>
           </div>
           <div class="summary">
-            <div class="metric"><span>연결</span><strong>${escapeHtml(clientStatusLabel(tile.connectionStatus))}</strong></div>
+            <div class="metric"><span>연결</span><strong>${escapeHtml(clientDynamicText(liveTileConnectionLabel(tile)))}</strong></div>
             <div class="metric"><span>라이브</span><strong>${escapeHtml(clientStatusLabel(health.status || tile.status))}</strong></div>
             <div class="metric"><span>상태 요약</span><strong>${escapeHtml(clientHealthSummaryLabel(health.summary || health.status))}</strong></div>
             <div class="metric"><span>트랙</span><strong>${escapeHtml(display(tile.trackCount ?? analysis.trackCount))}</strong></div>

@@ -136,18 +136,26 @@ Debug/raw payload는 펼침 영역에만 두고 기본 화면에는 요약과 �
 ## Client Live Tile
 
 Client shell은 viewer가 실제로 볼 정보만 남깁니다. 타일 control에는 타일 번호가 들어간
-accessible name을 유지하고, keyboard focus와 선택 상태를 볼 수 있어야 합니다.
+accessible name을 유지하고, keyboard focus와 선택 상태 및 숨김 상태 요약을 같은 언어로
+읽을 수 있어야 합니다.
 
 ```html
-<article class="tile" tabindex="0" role="group" aria-label="타일 1: 라이브">
+<article class="tile" tabindex="0" role="group" aria-label="타일 1: 라이브" aria-describedby="liveTileStatus0">
   <div class="tile-stage"></div>
   <div class="tile-controls">
-    <button type="button" aria-label="타일 1 시작">시작</button>
     <select aria-label="타일 1 보기 방식">
       <option>Fit</option>
       <option>Fill</option>
     </select>
   </div>
+  <div class="tile-actions">
+    <button type="button" aria-label="타일 1 시작">시작</button>
+    <button type="button" aria-label="타일 1 재연결">재연결</button>
+    <button type="button" aria-label="타일 1 정지">정지</button>
+  </div>
+  <p id="liveTileStatus0" class="sr-only" data-role="a11y-status" aria-live="polite" aria-atomic="true">
+    타일 1: 채널 미선택 · 상태 오프라인 · 연결 연결 끊김 · 트랙 미제공 · 이벤트 미제공 · 메타데이터 미제공 · 재시도 0
+  </p>
 </article>
 ```
 

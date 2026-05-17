@@ -658,6 +658,8 @@ Tile별 기능:
 - 선택된 tile만 dashboard/detail을 갱신
 - tile keyboard selection: Enter/Space로 현재 tile 선택, Arrow/Home/End로 tile 간 이동
 - 반복되는 select/button accessible name에는 tile 번호 포함
+- tile 숨김 상태 요약은 현재 UI 언어로 바로 갱신하며, track/event 미수집 값은 `미제공`으로 읽음
+- 560px 이하 모바일 폭에서는 tile control이 한 열로 정리되고 start/reconnect/stop touch target은 44px 이상 유지
 
 Hidden tab, route leave, tile stop 시
 PeerConnection, DataChannel, server WebRTC session을 정리합니다.

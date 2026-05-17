@@ -123,7 +123,7 @@ const pageChecks = [
     name: "client-live",
     path: "/client/live",
     visualSelector: '[data-testid="client-shell-page"]',
-    must: ['data-testid="client-shell-page"', 'data-client-active="live"', 'id="views"', 'id="detail"', '/webrtc/config', 'peerConnectionConfig', 'viewMaxTiles', 'maxTiles', 'id="liveDensity"', 'id="liveSummary"', 'id="liveAllStart"', 'startAllLiveTiles', 'data-action="restart"', 'restartLiveTile', 'tabindex="0"', 'focusLiveTile', 'ArrowRight', 'aria-describedby="liveTileStatus${tile.index}"', 'data-role="a11y-status"', 'aria-live="polite"', 'aria-atomic="true"', 'liveTileA11yStatus', 'data-client-copy="status"', 'data-client-copy="events"', '타일 ${tile.index + 1} 시작'],
+    must: ['data-testid="client-shell-page"', 'data-client-active="live"', 'id="views"', 'id="detail"', '/webrtc/config', 'peerConnectionConfig', 'viewMaxTiles', 'maxTiles', 'id="liveDensity"', 'id="liveSummary"', 'id="liveAllStart"', 'startAllLiveTiles', 'data-action="restart"', 'restartLiveTile', 'tabindex="0"', 'focusLiveTile', 'ArrowRight', 'aria-describedby="liveTileStatus${tile.index}"', 'data-role="a11y-status"', 'aria-live="polite"', 'aria-atomic="true"', 'liveTileA11yStatus', 'liveTileConnectionLabel', 'clientDynamicText', 'data-client-copy="status"', 'data-client-copy="events"', '타일 ${tile.index + 1} 시작'],
     shellMust: clientShellMust,
     mustNot: [...clientForbiddenText(), 'new RTCPeerConnection({ iceServers: [] })'],
   },
@@ -561,33 +561,41 @@ async function runClientLiveTileKeyboardSmoke() {
   let keyboardFailCount = 0;
   const keyboardFailures = [];
   const widths = [...new Set([390, 1180].filter((width) => visualWidths.includes(width)))];
-  for (const width of widths.length ? widths : [390]) {
-    const label = `client-live-keyboard-${width}`;
-    const browser = await openBrowserPage({
-      httpBase,
-      pagePath: "/client/live",
-      timeoutMs,
-      chromePath,
-      debugPort: debugPortBase + 260 + keyboardPassCount + keyboardFailCount,
-      width,
-      height: visualHeight,
-      outputDir,
-    });
-    try {
-      const result = await browser.evaluate(clientLiveTileKeyboardExpression(clientLiveA11ySnapshot), 10000);
-      if (!result?.ok) {
-        const details = Array.isArray(result?.issues) ? result.issues.join("; ") : JSON.stringify(result);
-        throw new Error(`${label}: ${details}`);
+  const languageChecks = [
+    { language: "ko", pagePath: "/client/live?lang=ko" },
+    { language: "en", pagePath: "/client/live?lang=en" },
+  ];
+  let checkIndex = 0;
+  for (const check of languageChecks) {
+    for (const width of widths.length ? widths : [390]) {
+      const label = `client-live-keyboard-${check.language}-${width}`;
+      const browser = await openBrowserPage({
+        httpBase,
+        pagePath: check.pagePath,
+        timeoutMs,
+        chromePath,
+        debugPort: debugPortBase + 260 + checkIndex,
+        width,
+        height: visualHeight,
+        outputDir,
+      });
+      checkIndex += 1;
+      try {
+        const result = await browser.evaluate(clientLiveTileKeyboardExpression(clientLiveA11ySnapshot), 10000);
+        if (!result?.ok) {
+          const details = Array.isArray(result?.issues) ? result.issues.join("; ") : JSON.stringify(result);
+          throw new Error(`${label}: ${details}`);
+        }
+        keyboardPassCount += 1;
+        console.log(`[pass] ${label}: tiles=${result.tileCount}, selected=${result.selectedTile}, active=${result.activeTile}`);
+      } catch (error) {
+        keyboardFailCount += 1;
+        const message = error instanceof Error ? error.message : String(error);
+        keyboardFailures.push(`[${label}] ${message}`);
+        console.log(`[fail] ${label}: ${message}`);
+      } finally {
+        await browser.close();
       }
-      keyboardPassCount += 1;
-      console.log(`[pass] ${label}: tiles=${result.tileCount}, selected=${result.selectedTile}, active=${result.activeTile}`);
-    } catch (error) {
-      keyboardFailCount += 1;
-      const message = error instanceof Error ? error.message : String(error);
-      keyboardFailures.push(`[${label}] ${message}`);
-      console.log(`[fail] ${label}: ${message}`);
-    } finally {
-      await browser.close();
     }
   }
   console.log("");
@@ -611,9 +619,15 @@ function clientLiveTileKeyboardExpression(a11ySnapshot) {
       const issues = [];
       const issue = message => { if (issues.length < 16) issues.push(message); };
       const domExtraction = a11ySnapshot.domExtraction || {};
-      const requiredStatusParts = Array.isArray(domExtraction.requiredKoreanParts) && domExtraction.requiredKoreanParts.length
-        ? domExtraction.requiredKoreanParts
-        : ['타일 1:', '상태', '연결', '트랙', '이벤트', '메타데이터', '재시도'];
+      const language = String(document.documentElement.dataset.lang || document.documentElement.lang || 'ko').toLowerCase().startsWith('en')
+        ? 'english'
+        : 'korean';
+      const expectedOfflineStatus = (a11ySnapshot.scenarios || []).find(item => item.id === 'offline-empty')?.[language] || a11ySnapshot[language] || '';
+      const requiredStatusParts = language === 'english'
+        ? ['Tile 1:', 'Status', 'Connection', 'Tracks', 'Events', 'Metadata', 'Retry']
+        : (Array.isArray(domExtraction.requiredKoreanParts) && domExtraction.requiredKoreanParts.length
+          ? domExtraction.requiredKoreanParts
+          : ['타일 1:', '상태', '연결', '트랙', '이벤트', '메타데이터', '재시도']);
       await wait(350);
       const tiles = Array.from(document.querySelectorAll('.tile'));
       if (tiles.length < 2) issue('expected at least two live tiles, got ' + tiles.length);
@@ -622,7 +636,14 @@ function clientLiveTileKeyboardExpression(a11ySnapshot) {
       if (first) {
         if (first.getAttribute('tabindex') !== '0') issue('first tile is not tabbable');
         if (first.getAttribute('role') !== 'group') issue('first tile role is not group');
-        if (!String(first.getAttribute('aria-label') || '').includes('타일 1')) issue('first tile aria-label missing tile number');
+        const expectedTileName = language === 'english' ? 'Tile 1' : '타일 1';
+        if (!String(first.getAttribute('aria-label') || '').includes(expectedTileName)) issue('first tile aria-label missing tile number');
+        const viewSelect = first.querySelector('[data-role="view"]');
+        if (viewSelect && viewSelect.value !== '' && !viewSelect.disabled) {
+          viewSelect.value = '';
+          viewSelect.dispatchEvent(new Event('change', { bubbles: true }));
+          await wait(180);
+        }
         const describedBy = String(first.getAttribute('aria-describedby') || '');
         if (!describedBy) issue('first tile aria-describedby missing');
         const describedNode = describedBy ? document.getElementById(describedBy) : null;
@@ -636,14 +657,32 @@ function clientLiveTileKeyboardExpression(a11ySnapshot) {
           for (const expected of requiredStatusParts) {
             if (!statusText.includes(expected)) issue('first tile a11y status missing text: ' + expected);
           }
+          if (expectedOfflineStatus && statusText !== expectedOfflineStatus) {
+            issue('first tile a11y status mismatch: ' + statusText);
+          }
           const style = window.getComputedStyle(describedNode);
           if (style.position !== 'absolute' || Number.parseFloat(style.width || '0') > 2 || Number.parseFloat(style.height || '0') > 2) {
             issue('first tile sr-only style is not constrained');
           }
         }
         const labels = Array.from(first.querySelectorAll('button, select')).map(node => node.getAttribute('aria-label') || '');
-        for (const expected of ['타일 1 시작', '타일 1 재연결', '타일 1 정지', '타일 1 채널']) {
+        const expectedLabels = language === 'english'
+          ? ['Tile 1 Start', 'Tile 1 Reconnect', 'Tile 1 Stop', 'Tile 1 Select channel']
+          : ['타일 1 시작', '타일 1 재연결', '타일 1 정지', '타일 1 채널 선택'];
+        for (const expected of expectedLabels) {
           if (!labels.some(label => label.includes(expected))) issue('missing control aria-label: ' + expected);
+        }
+        const tileRect = first.getBoundingClientRect();
+        for (const control of first.querySelectorAll('button, select')) {
+          const rect = control.getBoundingClientRect();
+          if (control.closest('[hidden]') || rect.width <= 0 || rect.height <= 0) continue;
+          if (rect.left < tileRect.left - 1 || rect.right > tileRect.right + 1) {
+            issue('first tile control overflows tile bounds');
+            break;
+          }
+          if (window.innerWidth <= 560 && control.matches('button') && rect.height < 44) {
+            issue('first tile mobile button target too small: ' + Math.round(rect.height) + 'px');
+          }
         }
         first.focus();
         await wait(80);

@@ -2550,6 +2550,7 @@ std::string ClientShellCss() {
     .tile-controls { display: grid; grid-template-columns: minmax(0, 1fr) minmax(110px, 150px); gap: 8px; }
     .tile-controls label { display: grid; gap: 4px; color: var(--muted); font-size: 12px; font-weight: 800; }
     .tile-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+    .tile-actions button { flex: 1 1 76px; }
     .tile-stage { position: relative; min-height: 150px; aspect-ratio: 16 / 9; border-radius: 6px; overflow: hidden; background: var(--color-media-bg); display: grid; place-items: center; color: var(--color-code-text); }
     .live-grid[data-density="compact"] .tile-stage { min-height: 108px; }
     .tile-stage video { width: 100%; height: 100%; object-fit: contain; background: var(--color-media-bg); }
@@ -2613,7 +2614,15 @@ std::string ClientShellCss() {
       }
     }
     @media (max-width: 780px) { .workspace, .live-toolbar { grid-template-columns: 1fr; } }
-    @media (max-width: 560px) { .live-grid, .live-grid[data-grid-size] { grid-template-columns: 1fr; } }
+    @media (max-width: 560px) {
+      .live-grid, .live-grid[data-grid-size] { grid-template-columns: 1fr; }
+      .tile-controls { grid-template-columns: 1fr; }
+      .tile-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .tile-actions button { min-height: 44px; padding: 0 8px; }
+    }
+    @media (max-width: 340px) {
+      .tile-actions { grid-template-columns: 1fr; }
+    }
     @media (max-width: 560px) {
       .client-compare-head,
       .client-compare-metrics {

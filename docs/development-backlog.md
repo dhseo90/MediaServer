@@ -1112,6 +1112,18 @@ PR template과 정적 verifier를 연결했습니다.
 - `verify-ui-copy-i18n-parity`가 snapshot fixture와 UI smoke 연결을 정적으로 검증합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
 
+### Client Live aria-live 언어/모바일 touch target 후속 종료 판정
+
+2026-05-17 기준 Client Live tile 숨김 상태 요약과 모바일 타일 조작 밀도를 v1.3.0 (4) 범위에서 보강했습니다.
+
+확인됨:
+
+- tile 숨김 상태 요약은 `translateText`를 통해 현재 UI 언어로 직접 생성되어 English 화면에서 `aria-live` 갱신이 한국어 중간 문자열에 의존하지 않습니다.
+- `client_live_tile_a11y_i18n_snapshot.json`의 `offline-empty` DOM 기대값을 실제 미수집 상태와 맞춰 track/event를 `미제공`/`Not provided`로 고정했습니다.
+- `verify-ops-client-ui --screenshots`의 Client Live keyboard smoke는 한국어/영어 `/client/live?lang=...` DOM을 모두 열고 snapshot과 실제 `[data-role="a11y-status"]` 텍스트를 비교합니다.
+- 560px 이하 모바일 폭에서 tile channel/mode control은 단일 열로 전환되고 start/reconnect/stop button은 44px 이상 touch target을 유지합니다.
+- source URL, raw JSON, debug counter, rule/profile editor, schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
 ## v1.2.0 시작 전 체크리스트
 
 - [x] v1.1.0 PR이 `main`에 merge됨

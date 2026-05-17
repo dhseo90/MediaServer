@@ -61,6 +61,7 @@ check("product translation map includes recent UI copy", () => {
     "'이벤트 요약 복사 완료': 'Event summary copied'",
     "'클립보드 복사 실패': 'Clipboard copy failed'",
     "'클립보드 복사 실패. 주소창의 필터 링크를 직접 복사하세요.': 'Clipboard copy failed. Copy the filter link from the address bar.'",
+    "'메타데이터 오류': 'Metadata error'",
   ];
   for (const snippet of required) {
     assert(js.includes(snippet), `translation map missing snippet: ${snippet}`);
@@ -71,7 +72,7 @@ check("product translation patterns include repeated live tile labels", () => {
   const js = readText("src/ingress/product_ui_js.cpp");
   const required = [
     "^타일\\s+(\\d+):\\s+(.+)$",
-    "^타일\\s+(\\d+)\\s+(시작|재연결|정지|채널|보기 방식)$",
+    "^타일\\s+(\\d+)\\s+(시작|재연결|정지|채널 선택|채널|보기 방식)$",
     "^상태\\s+(.+)$",
     "^메타데이터\\s+(.+)$",
     "^재시도\\s+(\\d+)$",
@@ -90,8 +91,11 @@ check("client live tile a11y i18n snapshot is pinned", () => {
   const fixture = JSON.parse(readText("test/fixtures/client_live_tile_a11y_i18n_snapshot.json"));
   assert(fixture.schema === "media-server.client-live-tile-a11y-i18n-snapshot.v1", "snapshot schema mismatch");
   assert(clientScript.includes("liveTileA11yStatus"), "client live script missing liveTileA11yStatus");
+  assert(clientScript.includes("clientDynamicText"), "client live script must render dynamic a11y copy in the current language");
   assert(uiSmoke.includes("client_live_tile_a11y_i18n_snapshot.json"), "ops/client UI smoke does not load client live a11y snapshot");
   assert(uiSmoke.includes("domExtraction.requiredKoreanParts"), "ops/client UI smoke does not use snapshot DOM extraction fields");
+  assert(uiSmoke.includes("/client/live?lang=en"), "ops/client UI smoke does not verify English client live a11y DOM");
+  assert(uiSmoke.includes("first tile a11y status mismatch"), "ops/client UI smoke does not compare extracted DOM text with snapshot");
   assert(Array.isArray(fixture.scenarios) && fixture.scenarios.length >= 4, "snapshot scenarios must cover at least 4 tile states");
   assert(fixture.domExtraction?.selector === "[data-role=\"a11y-status\"]", "snapshot DOM extraction selector mismatch");
   for (const value of ["타일 1:", "상태", "연결", "트랙", "이벤트", "메타데이터", "재시도"]) {
