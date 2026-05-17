@@ -473,6 +473,45 @@ v1.4.0 비범위:
 - Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
 - RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
 
+### V140-P0-03 Privacy and runtime fallback gate 정리 기준
+
+`Privacy and runtime fallback gate`는 Re-ID `assist`가 선택되더라도 model identity
+material과 appearance profile을 외부 payload로 내보내지 않고, 실제 model runtime은
+명시적인 opt-in gate를 통과할 때만 켜는 경계입니다.
+
+확인됨:
+
+- Re-ID model runtime은 `MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL`,
+  `MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL_SHA256`,
+  `MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL_PROVENANCE`가 모두 있을 때만 실제
+  ONNX extractor 후보가 됩니다.
+- model 파일 없음, checksum 누락/형식 오류/불일치, provenance 누락, OpenSSL 없는
+  checksum 검증 불가, ONNX Runtime 미빌드는 모두 NoOp fallback으로 닫습니다.
+- appearance worker는 bounded async queue, per-stream rate limit, global queue
+  limit, stale job drop을 유지하며 media pipeline을 blocking하지 않습니다.
+- runtime/operator status는 aggregate appearance count와 extractor counter만
+  사용하고 model path, checksum, provenance, embedding, crop, appearance profile은
+  Event POST/WebRTC DataChannel/SSE/WS metadata와 client/viewer 화면에 노출하지
+  않습니다.
+
+검증 기준:
+
+- `./server.sh build`
+- `./server.sh verify-reid-advanced-tracking`
+- `./server.sh verify-analysis-state`
+- `./server.sh verify-webrtc-va-metadata`
+- `./server.sh verify-va-metadata-sidechannel`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- 실제 Re-ID model artifact, model card, dataset provenance를 repo/release asset에 포함
+- Re-ID default-on 제품 결정
+- Kalman-lite/ByteTrack/OC-SORT/BoT-SORT/DeepSORT tracker 구현 또는 benchmark 실행
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
+- runtime/model bundle RC policy, container/offline/binary package 포함
+
 ## 별도 Phase 후보
 
 v1.3.0 release main에는 다음 minor roadmap을 고정하지 않습니다.

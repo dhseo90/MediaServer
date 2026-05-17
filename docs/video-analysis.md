@@ -638,8 +638,8 @@ AppearanceProfile과 IAppearanceExtractor는 향후 Re-ID/attribute 분석을 �
 
 - 기본값은 비활성
 - 기본 extractor는 `NoOpAppearanceExtractor`
-- 실험용 ONNX Re-ID extractor hook은 모델 파일과 설정이 있을 때만 사용
-- 모델 파일이 없거나 ONNX Runtime 빌드가 아니면 NoOp으로 fallback
+- 실험용 ONNX Re-ID extractor hook은 모델 파일, SHA-256 checksum, provenance가 모두 있을 때만 사용
+- 모델 파일이 없거나 checksum/provenance gate가 비어 있거나 불일치하거나 ONNX Runtime 빌드가 아니면 NoOp으로 fallback
 - everyNSeconds, onTrackLost, onReacquireCandidate, onLowConfidenceAssociation 같은 policy trigger에서만 실행 후보 생성
 - async queue, per-stream rate limit, global queue 상한, stale job drop으로 media pipeline blocking 방지
 - embedding/crop/model path 같은 Re-ID identity material은 WebRTC/SSE/WS/Event/debug 외부 metadata payload에 직렬화하지 않습니다.

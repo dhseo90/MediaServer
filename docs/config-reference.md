@@ -551,6 +551,8 @@ close-object guard는 lightweight direction-based tracker 내부의 opt-in 진�
 | `MEDIA_SERVER_ANALYSIS_APPEARANCE_ENABLED` | `0` | appearance extraction 활성화 |
 | `MEDIA_SERVER_ANALYSIS_APPEARANCE_EXTRACTOR` | `noop` | `noop` 또는 실험용 extractor |
 | `MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL` | empty | model path |
+| `MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL_SHA256` | empty | Re-ID model opt-in checksum gate. 비어 있거나 불일치하면 NoOp fallback |
+| `MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL_PROVENANCE` | empty | Re-ID model opt-in provenance gate. 비어 있으면 NoOp fallback |
 | `MEDIA_SERVER_ANALYSIS_APPEARANCE_INPUT_WIDTH` | `128` | crop input width |
 | `MEDIA_SERVER_ANALYSIS_APPEARANCE_INPUT_HEIGHT` | `256` | crop input height |
 | `MEDIA_SERVER_ANALYSIS_APPEARANCE_MAX_EMBEDDING_DIM` | `4096` | embedding 상한 |

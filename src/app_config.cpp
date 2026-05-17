@@ -266,6 +266,10 @@ constexpr const char* kEnvAnalysisTrackingIssueDirectionChangeJumpThreshold =
 constexpr const char* kEnvAnalysisAppearanceEnabled = "MEDIA_SERVER_ANALYSIS_APPEARANCE_ENABLED";
 constexpr const char* kEnvAnalysisAppearanceExtractor = "MEDIA_SERVER_ANALYSIS_APPEARANCE_EXTRACTOR";
 constexpr const char* kEnvAnalysisAppearanceModel = "MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL";
+constexpr const char* kEnvAnalysisAppearanceModelSha256 =
+    "MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL_SHA256";
+constexpr const char* kEnvAnalysisAppearanceModelProvenance =
+    "MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL_PROVENANCE";
 constexpr const char* kEnvAnalysisAppearanceInputWidth =
     "MEDIA_SERVER_ANALYSIS_APPEARANCE_INPUT_WIDTH";
 constexpr const char* kEnvAnalysisAppearanceInputHeight =
@@ -947,6 +951,12 @@ app::AppConfig LoadAppConfig() {
         ReadStringEnv(kEnvAnalysisAppearanceExtractor, config.analysis_appearance_extractor);
     config.analysis_appearance_model_path =
         ReadStringEnv(kEnvAnalysisAppearanceModel, config.analysis_appearance_model_path);
+    config.analysis_appearance_model_sha256 =
+        ReadStringEnv(kEnvAnalysisAppearanceModelSha256,
+                      config.analysis_appearance_model_sha256);
+    config.analysis_appearance_model_provenance =
+        ReadStringEnv(kEnvAnalysisAppearanceModelProvenance,
+                      config.analysis_appearance_model_provenance);
     config.analysis_appearance_input_width =
         ReadIntEnv(kEnvAnalysisAppearanceInputWidth, config.analysis_appearance_input_width);
     config.analysis_appearance_input_height =

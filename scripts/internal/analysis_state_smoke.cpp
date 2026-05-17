@@ -726,6 +726,29 @@ void VerifyTrackStateManagerAndHealth() {
                fallback_extractor->Stats().extractor_name == "noop",
            "missing Re-ID model path must fall back to NoOpAppearanceExtractor");
 
+    const std::filesystem::path reid_gate_model_path =
+        std::filesystem::temp_directory_path() / "media-server-reid-gate-model.onnx";
+    {
+        std::ofstream out(reid_gate_model_path, std::ios::binary);
+        out << "synthetic model bytes";
+    }
+    app::AppConfig checksum_gate_config;
+    checksum_gate_config.analysis_appearance_enabled = true;
+    checksum_gate_config.analysis_appearance_extractor = "onnx-reid";
+    checksum_gate_config.analysis_appearance_model_path = reid_gate_model_path.string();
+    const auto checksum_gate_extractor = CreateAppearanceExtractorFromConfig(checksum_gate_config);
+    Expect(checksum_gate_extractor != nullptr &&
+               checksum_gate_extractor->Stats().extractor_name == "noop",
+           "Re-ID model path without checksum/provenance gate must fall back to NoOpAppearanceExtractor");
+    app::AppConfig invalid_checksum_config = checksum_gate_config;
+    invalid_checksum_config.analysis_appearance_model_sha256 = "not-a-sha256";
+    invalid_checksum_config.analysis_appearance_model_provenance = "synthetic-test";
+    const auto invalid_checksum_extractor = CreateAppearanceExtractorFromConfig(invalid_checksum_config);
+    Expect(invalid_checksum_extractor != nullptr &&
+               invalid_checksum_extractor->Stats().extractor_name == "noop",
+           "invalid Re-ID model checksum must fall back to NoOpAppearanceExtractor");
+    std::filesystem::remove(reid_gate_model_path);
+
     TrackStateManagerOptions speed_options = options;
     speed_options.use_ground_plane_for_speed = true;
     TrackStateManager speed_manager(speed_options);
