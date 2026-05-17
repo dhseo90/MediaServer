@@ -74,12 +74,13 @@ check("README release badges and latest release links point at current tag", () 
   return { files: ["README.md", "README.en.md"], currentTag };
 });
 
-check("versioning policy pins current release and patch semantics", () => {
+check("versioning policy pins current release and semver semantics", () => {
   const doc = readText("docs/versioning-policy.md");
   for (const snippet of [
     `현재 기준 버전: \`${currentTag}\``,
     `\`VERSION\` 파일과 \`CMakeLists.txt\`의 \`project(... VERSION ...)\` 값은 같은 값을 유지합니다.`,
     `현재 source-only release tag 기준은 \`${currentTag}\`입니다.`,
+    "source-only/live-only",
     "`PATCH`: 문서, 테스트, bug fix, UI 문구, guardrail 보강처럼 공개 API/설정 호환성을 깨지 않는 변경",
   ]) {
     assert(doc.includes(snippet), `docs/versioning-policy.md missing snippet: ${snippet}`);
@@ -92,7 +93,7 @@ check("release policy pins source-only tag candidate and release note template",
   const doc = readText("docs/release-policy.md");
   for (const snippet of [
     `현재 source-only tag 후보는 \`${currentTag}\`입니다.`,
-    `\`${currentTag}\`은 live-only source release 기준을 유지한 patch release이며`,
+    `\`${currentTag}\`은 live-only source release 기준을 유지`,
     `# Media Server ${currentTag}`,
     "source-only release에는 sample/model/runtime binary를 추가 업로드하지 않습니다.",
   ]) {
@@ -106,11 +107,11 @@ check("development backlog separates current baseline from next roadmap", () => 
   const doc = readText("docs/development-backlog.md");
   for (const snippet of [
     `## 현재 기준: ${currentTag} Source Release Baseline`,
-    `${currentTag}은 v1.2.0 live-only source release 경계를 유지하면서`,
-    `## ${currentTag} Patch Close-out`,
-    `${currentTag}은 v1.2.0 release 이후 안정화 patch로 닫았습니다.`,
-    `## ${nextRoadmapTag} Minor Roadmap 후보`,
-    `${nextRoadmapTag}은 v1.2.x의 source-only/live-only 경계를 유지하면서`,
+    `${currentTag}은 v1.2.x의 source-only/live-only 경계를 유지하면서`,
+    `## ${currentTag} Minor Close-out`,
+    `${currentTag}은 v1.2.x의 source-only/live-only 경계를 유지하면서 운영 흐름과 현장`,
+    `## ${nextRoadmapTag} Minor Roadmap 준비 기준`,
+    `${nextRoadmapTag} roadmap 초안은 ${nextRoadmapTag} branch에서 작성`,
     "schema, Event POST payload, WebRTC DataChannel, SSE/WS metadata,",
     "RTSP/WebRTC media path, auth/session contract 변경은 별도 review 없이는 포함하지",
   ]) {

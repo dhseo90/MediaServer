@@ -4,7 +4,7 @@
 검증하는 기준을 고정합니다. 이 모드는 실장비 제외 조건으로 진행하며,
 실제 camera endpoint 성공은 검증 완료로 기록하지 않습니다.
 
-2026-05-15 기준 이번 v1.2.0 ONVIF 현장 연동 개발 과정에서는 실제 ONVIF
+2026-05-15 v1.2.0 ONVIF 현장 연동 개발 과정에서는 실제 ONVIF
 카메라를 사용한 field smoke를 수행하지 않았습니다. 공개 인터넷에 노출된 임의
 ONVIF endpoint는 보안/권한/재현성 문제가 있으므로 실장비 대체 검증으로 사용하지
 않습니다. 실장비 없는 대체 검증은 synthetic fixture, closed loopback, local

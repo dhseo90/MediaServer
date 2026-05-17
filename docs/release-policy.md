@@ -64,9 +64,9 @@ screenshot review는 리포트에 manual/not-run으로 남기며, 실제 실행 
 
 ## Tag 전략
 
-- 현재 source-only tag 후보는 `v1.2.1`입니다.
+- 현재 source-only tag 후보는 `v1.3.0`입니다.
 - public-readiness, bundle policy, Actions status check가 모두 통과한 커밋에만 tag를 붙입니다.
-- `v1.2.1`은 live-only source release 기준을 유지한 patch release이며, binary/runtime/model bundle의 운영 배포 완료를 뜻하지 않습니다.
+- `v1.3.0`은 live-only source release 기준을 유지한 minor release이며, binary/runtime/model bundle의 운영 배포 완료를 뜻하지 않습니다.
 - route/API/config/schema migration이 필요한 변경은 `v2.0.0` 후보로 분리합니다.
 - tag release에는 generated sample pack, YOLO model, FFmpeg/GStreamer runtime bundle을 붙이지 않습니다.
 
@@ -80,18 +80,18 @@ major update를 적용하려면 workflow 권한, upstream changelog, pin 전략�
 ## Release Note Template
 
 ```markdown
-# Media Server v1.2.1
+# Media Server v1.3.0
 
 ## Scope
 
-- Live-only source/doc patch release
+- Live-only source/doc minor release
 - Binary/runtime/model bundle: not included
 
 ## Live-only Scope
 
 - Live media relay and live VA event focus
 - ONVIF Profile S/T assisted source onboarding, source health operator workflow, VA event quality, UI refresh, and delivery contract artifact work
-- v1.2.1 patch close-out: release metadata consistency, post-release reconciliation, manual UI evidence, flaky verifier hardening, Re-ID/ONVIF wording guards, release close-out helper, doc/artifact housekeeping
+- v1.3.0 close-out: runtime operations console, ONVIF field smoke gate, source health incident workflow, Client Live accessibility, Rule/Scenario preset quality, audit trail operations, release/visual baseline automation, Re-ID default-off research continuation, and follow-up closure
 - EventRecord/snapshot/clip: short event evidence helper, not the main product message
 
 ## Non-goals
@@ -129,5 +129,5 @@ Do not list an item as pass unless it was actually executed for this release cut
 ## Known Limitations
 
 - 장기 soak/RC 검증은 별도 workflow_dispatch 기준입니다.
-- ONVIF 실장비 field smoke, YouTube 실제 URL relay, Re-ID default-on은 v1.2.1 완료 근거가 아닙니다.
+- ONVIF 실장비 field smoke, YouTube 실제 URL relay, Re-ID default-on은 v1.3.0 완료 근거가 아닙니다.
 ```

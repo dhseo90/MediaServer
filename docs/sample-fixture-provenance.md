@@ -28,9 +28,9 @@
 - YOLO/ONNX model binary와 대형 test media
 - FFmpeg/GStreamer runtime binary, package-manager cache, local auth store, log
 
-## v1.2.1 Housekeeping Gate
+## Historical v1.2.1 Housekeeping Gate
 
-v1.2.1 patch에서는 dependency snapshot, visual artifact, sample fixture provenance를
+Historical `v1.2.1` patch에서는 dependency snapshot, visual artifact, sample fixture provenance를
 release 후 상태로 다시 확인하되 runtime/model/binary bundle 범위를 열지 않습니다.
 
 - Dependency snapshot은 release review 때 `/tmp` 산출물로 재생성해 현재 환경을

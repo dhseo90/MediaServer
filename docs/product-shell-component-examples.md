@@ -3,8 +3,8 @@
 schema: `media-server.product-shell-component-examples.v1`
 updated: 2026-05-16
 
-이 문서는 v1.2.0 UI visual regression 후속에서 Auth, Ops, Client 화면이 같은 product shell과
-component vocabulary를 쓰도록 고정하는 예시 모음입니다. 새 화면을 만들거나 기존 화면을 다듬을 때
+이 문서는 v1.2.0 UI visual regression 후속에서 도입되어 v1.3.0에서도 유지되는
+Auth, Ops, Client product shell과 component vocabulary 예시 모음입니다. 새 화면을 만들거나 기존 화면을 다듬을 때
 아래 예시를 먼저 확인하고, 새 class나 token을 만들기 전에 기존 helper와 semantic token으로 표현할 수
 있는지 확인합니다.
 

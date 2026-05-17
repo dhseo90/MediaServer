@@ -23,7 +23,7 @@
 | `./server.sh test --external` | `--full` + LAN/external source, WebRTC ICE, 외부 HTTP/HLS URI 선택 검증. 외부 WHEP endpoint는 환경 의존 별도 검증 |
 | `./server.sh test --stable` | 기존 stable 호환 기준 |
 
-외부 RTSP/HLS/HTTP/WHEP source, 운영 TURN relay/auth는 외부 환경 영향을 받으므로 기본 hard gate가 아닙니다. YouTube import/source는 기본 빌드에서 제외한 lab-only 실험 기능이며, v1.2.0 기본 검증에서는 실제 YouTube URL 성공을 확인하지 않습니다. 공개 URL을 사용할 때는 재현 가능한 예시 URL 또는 환경 변수로만 주입하고, 개인 LAN IP, credential, 고객/운영 영상 URL은 문서와 artifact에 남기지 않습니다.
+외부 RTSP/HLS/HTTP/WHEP source, 운영 TURN relay/auth는 외부 환경 영향을 받으므로 기본 hard gate가 아닙니다. YouTube import/source는 기본 빌드에서 제외한 lab-only 실험 기능이며, 현재 기본 검증에서는 실제 YouTube URL 성공을 확인하지 않습니다. 공개 URL을 사용할 때는 재현 가능한 예시 URL 또는 환경 변수로만 주입하고, 개인 LAN IP, credential, 고객/운영 영상 URL은 문서와 artifact에 남기지 않습니다.
 
 문서/UI/Auth/권한/계정처럼 media pipeline 자체를 바꾸지 않은 변경에서는
 `./server.sh test`, `./server.sh test --basic`, `./server.sh test --full`,
@@ -254,7 +254,7 @@ MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1 ./serve
 ```
 
 UI 변경 검증에서는 기본 추가 RTSP/WebRTC source 영상이나 codec matrix를 쓰지 않습니다.
-v1.2.0 UI visual regression gate는 ERP/운영 콘솔형 visual refresh 기준을 함께 봅니다.
+v1.2.0에서 도입되어 v1.3.0에서도 유지되는 UI visual regression gate는 ERP/운영 콘솔형 visual refresh 기준을 함께 봅니다.
 즉, 기능 selector만 통과하면 끝이 아니라 compact product shell, nav/account header,
 metric/card/table/form/badge 밀도, client source/debug 비노출, 모바일 overflow를 같은
 artifact에서 확인합니다.

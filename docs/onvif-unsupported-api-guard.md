@@ -22,7 +22,7 @@ draft로 축약할 뿐, 장비 제어, 녹화, replay, 이벤트 구독을 수�
 
 ## 열지 않는 API
 
-아래 route/API/UI는 현재 v1.2.0 범위에 포함하지 않습니다.
+아래 route/API/UI는 v1.2.0에서 도입된 현재 ONVIF live source 범위에 포함하지 않습니다.
 
 ```text
 /ops/api/onvif/discover

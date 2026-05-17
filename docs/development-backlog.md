@@ -32,13 +32,15 @@ source-of-truth로 쓰지 않습니다.
 
 `완료`는 운영 배포 ready, 장기 안정성 보장, 외부 연동 ready를 뜻하지 않습니다.
 
-## 현재 기준: v1.2.1 Source Release Baseline
+## 현재 기준: v1.3.0 Source Release Baseline
 
-v1.2.1은 v1.2.0 live-only source release 경계를 유지하면서 release metadata,
-post-release reconciliation, manual UI evidence, flaky verifier, Re-ID/ONVIF wording,
-release close-out, dependency/artifact housekeeping을 닫은 source-only patch release입니다.
-아래 제품 baseline은 v1.2.0에서 닫은 기능 범위를 유지하고, v1.2.1은 새 product
-scope를 열지 않습니다.
+v1.3.0은 v1.2.x의 source-only/live-only 경계를 유지하면서 runtime operations,
+ONVIF field smoke gate, source health incident workflow, Client Live accessibility,
+Rule/Scenario preset quality, audit trail operations, release/visual baseline
+automation, Re-ID default-off research continuation을 닫은 source-only minor
+release입니다. 아래 제품 baseline은 v1.2.x에서 닫은 live product 범위를 유지하고,
+v1.3.0은 recorder/VMS/NVR, Re-ID default-on, runtime/model bundle scope를 열지
+않습니다.
 
 완료 범위:
 
@@ -61,6 +63,14 @@ scope를 열지 않습니다.
 - [x] source-only release packaging rehearsal과 UI visual artifact maintenance guard
 - [x] Re-ID/advanced tracking default-off 실험 guard와 WARNING 판정
 - [x] YouTube import/source lab-only 현상 유지 결정
+- [x] Runtime operations console, scenario timeline, TrackHealth, EventRecord 운영 요약
+- [x] ONVIF field smoke gate와 redaction/sample artifact 절차
+- [x] Source health incident workflow와 retryable-only next action
+- [x] Client Live accessibility/mobile polish와 debug/source 비노출 smoke
+- [x] Rule/Scenario preset quality와 저장 payload 계약 유지
+- [x] Audit trail search/export/review 최소 흐름
+- [x] Release/visual baseline automation과 approval gate 정리
+- [x] Re-ID default-off research continuation과 v1.3.0 follow-up closure
 
 비범위:
 
@@ -71,6 +81,7 @@ scope를 열지 않습니다.
 - [ ] 외부 TURN/WHEP credential 운영 보장
 - [ ] ONVIF 실장비 endpoint 성공 보장, persistent credential store, Digest/WS-Security
 - [ ] YouTube 운영 기능 승격 또는 실제 URL relay 성공 보장
+- [ ] field sample scheduler, dataset ingest, tracker replacement benchmark 실행
 
 ## v1.2.1 Patch Close-out
 
@@ -112,13 +123,13 @@ v1.2.1 비범위:
 - YouTube 운영 기능 승격, 실제 YouTube URL 성공 gate
 - 장기 녹화, VMS/NVR archive, playback/search
 
-## v1.3.0 Minor Roadmap 후보
+## v1.3.0 Minor Close-out
 
 v1.3.0은 v1.2.x의 source-only/live-only 경계를 유지하면서 운영 흐름과 현장
-연동 검증 밀도를 높이는 minor roadmap 후보입니다. 새 항목은 기존 API/schema,
+연동 검증 밀도를 높인 minor release로 닫았습니다. 새 항목은 기존 API/schema,
 Event POST payload, WebRTC DataChannel, SSE/WS metadata, auth/session contract,
 RTSP/WebRTC media path를 기본적으로 유지합니다. 이 계약을 바꾸는 작업은 아래
-로드맵 안에 있어도 별도 schema/media-path review를 먼저 열어야 합니다.
+범위 안에 있어도 별도 schema/media-path review를 먼저 열어야 합니다.
 
 | ID | 우선순위 | 영역 | 목표 | 예상 검증 |
 | --- | --- | --- | --- | --- |
@@ -370,6 +381,13 @@ threat model을 v1.4.0 별도 Phase gate 또는 release/field/manual approval ga
 2026-05-17 기준 추가 기능 개발로 처리할 v1.3.0 후속 이슈는 남기지 않습니다.
 Re-ID default-on, tracker 교체, runtime/model bundle 포함, field sample scheduler,
 dataset ingest, tag/push/GitHub Release는 이 closure에서 수행하지 않았습니다.
+
+## v1.4.0 Minor Roadmap 준비 기준
+
+v1.4.0 roadmap 초안은 v1.4.0 branch에서 작성하고, main/v1.3.0 release branch에는
+커밋하지 않습니다. v1.4.0 후보도 source-only/live-only 경계를 기본으로 하며,
+Event POST/WebRTC DataChannel/SSE/WS metadata, auth/session contract,
+RTSP/WebRTC media path 변경은 별도 schema/media-path review 뒤에만 다룹니다.
 
 ## v1.2.0 Roadmap 종료 판정
 
@@ -924,7 +942,7 @@ tracker 교체, runtime/model bundle 포함은 여전히 별도 review가 필요
 
 ### Design token/component inventory 후속 종료 판정
 
-2026-05-16 기준 v1.2.0 UI visual regression 후속에서
+2026-05-16 기준 v1.2.0 UI visual regression 후속에서 도입한
 design token, 공통 컴포넌트, Ops/Client 전용 surface, visual artifact gate의
 문서 inventory를 추가했습니다.
 
