@@ -2292,7 +2292,7 @@ std::string AuthLandingPageHtml(const auth::Principal& principal,
 
 void AppendOpsDashboardPage(std::ostringstream& out) {
     out << R"(    <section class="panel" data-ops-panel="dashboard" data-testid="ops-dashboard-page">
-      <div class="toolbar">
+      <div class="toolbar panel-title-toolbar">
         <div>
           <h2>운영 대시보드</h2>
           <p>현재 상태를 한눈에 봅니다.</p>
@@ -2419,7 +2419,7 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
 
 void AppendOpsRulesPage(std::ostringstream& out) {
     out << R"(    <section class="panel" data-ops-panel="rules" data-testid="ops-rules-page">
-      <div class="toolbar">
+      <div class="toolbar panel-title-toolbar">
         <div>
           <h2>룰 설정</h2>
           <p>종류를 고르고 목록을 관리합니다.</p>
@@ -2974,7 +2974,7 @@ void AppendOpsEventsPage(std::ostringstream& out) {
 
 void AppendOpsHomePage(std::ostringstream& out) {
     out << R"(    <section class="panel" data-ops-panel="home" data-testid="ops-home-page">
-      <div class="toolbar">
+      <div class="toolbar panel-title-toolbar">
         <div>
           <h2>운영 홈</h2>
           <p>운영 구성과 현재 상태를 함께 봅니다.</p>
@@ -3904,7 +3904,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     out << R"(
     <section class="workspace" data-testid="client-shell-page">
       <div class="panel">
-        <div class="toolbar">
+        <div class="toolbar panel-title-toolbar">
           <h2>할당 채널</h2>
 	          )" << RefreshIconButtonHtml("refresh", "ghost", "새로고침") << R"(
         </div>

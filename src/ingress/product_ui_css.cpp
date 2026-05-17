@@ -199,6 +199,9 @@ std::string ProductUiCss() {
       display: grid;
       gap: var(--space-4);
     }
+    .product-page > * {
+      min-width: 0;
+    }
     .app-header,
     .auth-card,
     .card,
@@ -689,6 +692,14 @@ std::string ProductUiCss() {
       flex-wrap: wrap;
     }
     .actions { justify-content: flex-start; }
+    .panel-title-toolbar {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: start;
+    }
+    .panel-title-toolbar > .refresh-icon-button {
+      justify-self: end;
+    }
     .badge-row,
     .meta {
       display: flex;
