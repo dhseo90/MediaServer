@@ -51,6 +51,7 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-code-comments
 ./server.sh verify-release-metadata
 ./server.sh verify-v121-follow-up-closure
+./server.sh verify-v130-follow-up-closure
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-manual-ui-evidence

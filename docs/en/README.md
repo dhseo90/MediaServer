@@ -17,6 +17,7 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 | Integrator contract artifact | [../integrator-contract-artifact.md](../integrator-contract-artifact.md) |
 | Current product boundary, v1.2.1 close-out, and v1.3.0 roadmap candidates | [../development-backlog.md](../development-backlog.md) |
 | v1.2.1 follow-up closure | [../v1.2.1-follow-up-closure.md](../v1.2.1-follow-up-closure.md) |
+| v1.3.0 follow-up closure | [../v1.3.0-follow-up-closure.md](../v1.3.0-follow-up-closure.md) |
 | Verification | [../stream-verification.md](../stream-verification.md) |
 | Distribution policy | [../distribution-policy.md](../distribution-policy.md) |
 | Release policy | [../release-policy.md](../release-policy.md) |
@@ -59,7 +60,7 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 | v1.1.0 RC stabilization | Done | Final local longrun/P1 release-gate evidence is closed without rerunning prerequisite roadmap 1-6 |
 | v1.2.0 roadmap close-out | Done | ONVIF no-device scope, UI refresh, source health workflow, client polish, account lifecycle, release rehearsal, Re-ID warning guard, and YouTube lab-only decision are documented |
 | v1.2.1 patch close-out | Closed locally | Release metadata guard, post-release evidence, manual UI evidence, flaky verifier hardening, Re-ID/ONVIF wording guards, release close-out dry-run, and doc/artifact housekeeping stay inside patch scope; release, external-device, and approval gates remain separate |
-| v1.3.0 roadmap | Planned | Runtime operations, field integration gates, source health incidents, Client Live accessibility, rule preset quality, audit trail workflow, visual baseline automation, and Re-ID research are staged without opening recorder/VMS/NVR scope |
+| v1.3.0 roadmap | Closed locally | Runtime operations, field integration gates, source health incidents, Client Live accessibility, rule preset quality, audit trail workflow, visual baseline automation, and Re-ID research are closed locally; follow-up closure leaves Re-ID default-on, tracker replacement, runtime/model bundle, and field sampling automation as later phase gates |
 | Audit trail operations | Follow-up phase | Server persistence exists; search/export can improve |
 | Short event evidence | Supporting | EventRecord/snapshot/clip cleanup exists, but it is not the main product direction |
 | RC gate operations | Conditional gate | Repeat longrun only for a new release cut or high-risk media/VA fanout change |

@@ -132,6 +132,7 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | sample 영상/fixture 출처와 공개 기준 | [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) |
 | 현재 제품 경계, v1.2.1 close-out, v1.3.0 roadmap 후보 | [docs/development-backlog.md](docs/development-backlog.md) |
 | v1.2.1 후속 종료 판정과 수동 UI 검수 증적 | [docs/v1.2.1-follow-up-closure.md](docs/v1.2.1-follow-up-closure.md), [docs/manual-ui-v1.2.1-result.md](docs/manual-ui-v1.2.1-result.md) |
+| v1.3.0 후속 종료 판정 | [docs/v1.3.0-follow-up-closure.md](docs/v1.3.0-follow-up-closure.md) |
 | YouTube import/source 실험 기능 | [docs/youtube-import.md](docs/youtube-import.md) |
 
 ## 대표 UI 미리보기

@@ -204,6 +204,8 @@ Usage:
                  release close-out 전 로컬 검증, visual baseline readiness, 수동 tag/push 경계를 dry-run으로 요약합니다.
   verify-v121-follow-up-closure
                  v1.2.1 roadmap 내 개발 가능한 후속 이슈가 남지 않았는지 검증합니다.
+  verify-v130-follow-up-closure
+                 v1.3.0 follow-up closure가 기능 개발 없이 별도 Phase/release gate를 분리하는지 검증합니다.
   verify-server-start-modes
                  foreground/start 실행 모드의 health, route, state file 안정성을 검증합니다.
   verify-auth-bootstrap
@@ -716,6 +718,10 @@ case "${cmd}" in
   verify-v121-follow-up-closure)
     require_internal verify_v121_follow_up_closure.mjs
     exec "${INTERNAL_DIR}/verify_v121_follow_up_closure.mjs" "$@"
+    ;;
+  verify-v130-follow-up-closure)
+    require_internal verify_v130_follow_up_closure.mjs
+    exec "${INTERNAL_DIR}/verify_v130_follow_up_closure.mjs" "$@"
     ;;
   verify-server-start-modes)
     require_internal verify_server_start_modes.sh

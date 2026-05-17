@@ -358,6 +358,19 @@ boundary를 default-off 연구 산출물로 유지하는 범위에서 종료합�
 않습니다. 실제 Re-ID model/field sample 기반 default-on 결정, 대형 tracker 교체,
 runtime/model bundle 포함은 별도 Phase 후보이며 이 항목의 잔여가 아닙니다.
 
+### v1.3.0 Follow-up Closure
+
+v1.3.0 roadmap 기능 개발 이후 남은 후속 항목은
+[v1.3.0 Follow-up Closure](./v1.3.0-follow-up-closure.md)에 분리합니다.
+`verify-v130-follow-up-closure`는 실제 Re-ID model field review, field sample
+반복 수집 정책, tracker 교체 후보 조사, model/runtime bundle 정책, Re-ID privacy
+threat model을 v1.4.0 별도 Phase gate 또는 release/field/manual approval gate로
+분리하고, v1.3.0 안에 개발 가능한 후속 이슈가 남지 않았는지 정적으로 확인합니다.
+
+2026-05-17 기준 추가 기능 개발로 처리할 v1.3.0 후속 이슈는 남기지 않습니다.
+Re-ID default-on, tracker 교체, runtime/model bundle 포함, field sample scheduler,
+dataset ingest, tag/push/GitHub Release는 이 closure에서 수행하지 않았습니다.
+
 ## v1.2.0 Roadmap 종료 판정
 
 v1.2.0은 v1.1.0 live-only 경계를 유지하면서 실제 현장 운영과 제품화 밀도를 높이는
