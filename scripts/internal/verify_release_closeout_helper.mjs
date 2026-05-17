@@ -29,6 +29,7 @@ Options:
 Checks:
   - release 직전 로컬 verifier 명령 목록이 server.sh에 존재하는지 확인
   - release/version/public readiness 문서가 tag/push 수동 경계를 설명하는지 확인
+  - visual baseline artifact, diff/comment, approval log, preflight artifact 요약이 PR/release 준비 흐름에 연결됐는지 확인
   - dry-run 리포트에 tag, push, GitHub Release 생성이 미수행/수동 항목으로 기록됨
 `);
 }
@@ -44,6 +45,9 @@ const versioningPolicy = readText("docs/versioning-policy.md");
 const publicReview = readText("docs/public-repo-final-review.md");
 const backlog = readText("docs/development-backlog.md");
 const streamVerification = readText("docs/stream-verification.md");
+const uiGuide = readText("docs/ui-guide.md");
+const prTemplate = readText(".github/PULL_REQUEST_TEMPLATE.md");
+const preflight = readText(".github/workflows/preflight.yml");
 
 const localCommands = [
   "./server.sh verify-release-metadata",
@@ -53,11 +57,50 @@ const localCommands = [
   "git diff --check",
 ];
 
+const visualAutomationCommands = [
+  { command: "./server.sh verify-docs-ui-assets", status: "planned-local" },
+  { command: "./server.sh verify-ui-visual-artifact-index", status: "planned-local" },
+  { command: "./server.sh verify-ui-release-baseline-approval-log", status: "planned-local" },
+  {
+    command: "./server.sh verify-ops-client-ui --screenshots --output-dir <artifact-dir>",
+    status: "manual-artifact-required",
+  },
+  {
+    command: "./server.sh compare-ui-visual-baseline --baseline-dir <baseline-artifact-dir> --candidate-dir <candidate-artifact-dir> --output-dir <diff-artifact-dir>",
+    status: "manual-artifact-required",
+  },
+  {
+    command: "./server.sh write-ui-visual-baseline-comment --diff-report <visual-baseline-diff.json> --output <comment.md>",
+    status: "planned-local",
+  },
+  {
+    command: "./server.sh write-ui-visual-qa-issue-links --artifact-dir <artifact-dir> --output <artifact-dir>/ui-visual-qa-issue-links.md",
+    status: "planned-local",
+  },
+  {
+    command: "./server.sh ui-visual-artifact-maintenance --artifact-root <artifact-root> --archive-dir <archive-dir> --report <report.json>",
+    status: "planned-dry-run",
+  },
+];
+
 const manualActions = [
   "GitHub Actions required checks",
   "release tag creation",
   "git push",
   "GitHub Release creation/upload",
+];
+
+const visualManualReviews = [
+  "manual screenshot review at 320/390/760/1180",
+  "client/viewer source URL, Developer URL, raw JSON/debug counter non-exposure review",
+  "release baseline approval log completion when baseline changes",
+  "accepted baseline artifact adoption decision",
+];
+
+const preflightArtifacts = [
+  { name: "media-server-release-closeout-helper-dry-run", status: "planned-ci-artifact" },
+  { name: "media-server-ui-visual-baseline-diff", status: "planned-ci-artifact" },
+  { name: "media-server-ui-visual-maintenance-dry-run", status: "planned-ci-artifact" },
 ];
 
 const checks = [];
@@ -69,11 +112,17 @@ check("release close-out commands are available", () => {
     "verify-release-bundle-dry-run",
     "verify-post-release-reconciliation",
     "verify-release-closeout-helper",
+    "verify-docs-ui-assets",
+    "verify-ui-visual-artifact-index",
+    "verify-ui-release-baseline-approval-log",
+    "write-ui-visual-baseline-comment",
+    "write-ui-visual-qa-issue-links",
+    "ui-visual-artifact-maintenance",
   ]) {
     assert(server.includes(`${command})`) || server.includes(`  ${command}`), `server.sh missing command: ${command}`);
   }
   assert(server.includes("verify_release_closeout_helper.mjs"), "server.sh missing helper dispatch target");
-  return { commands: localCommands };
+  return { commands: localCommands, visualCommands: visualAutomationCommands.map(item => item.command) };
 });
 
 check("release docs keep tag and push manual", () => {
@@ -103,6 +152,33 @@ check("release docs keep tag and push manual", () => {
   return { manualActions };
 });
 
+check("release visual baseline automation is wired for PR and preflight", () => {
+  const docs = [releasePolicy, streamVerification, uiGuide, prTemplate, backlog].join("\n");
+  for (const snippet of [
+    "Release / Visual Baseline Readiness",
+    "media-server.release-visual-baseline-automation.v1",
+    "media-server-release-closeout-helper-dry-run",
+    "./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>",
+    "verify-docs-ui-assets",
+    "verify-ui-visual-artifact-index",
+    "verify-ui-release-baseline-approval-log",
+    "write-ui-visual-baseline-comment",
+    "ui-visual-artifact-maintenance",
+  ]) {
+    assert(docs.includes(snippet), `release visual readiness docs missing snippet: ${snippet}`);
+  }
+  for (const snippet of [
+    "Release close-out helper dry-run",
+    "artifacts/release-closeout-helper",
+    "--json-report artifacts/release-closeout-helper/release-closeout-helper.json",
+    "media-server-release-closeout-helper-dry-run",
+    "Publish release close-out helper summary",
+  ]) {
+    assert(preflight.includes(snippet), `preflight missing release close-out helper snippet: ${snippet}`);
+  }
+  return { preflightArtifacts: preflightArtifacts.map(item => item.name) };
+});
+
 check("dry-run report marks release actions as not executed", () => {
   const report = buildReport();
   for (const action of manualActions) {
@@ -112,10 +188,14 @@ check("dry-run report marks release actions as not executed", () => {
   assert(report.dryRun === true, "helper must stay dry-run");
   assert(report.createdTag === false, "helper must not create tags");
   assert(report.pushed === false, "helper must not push");
+  assert(report.visualBaselineAutomation?.schema === "media-server.release-visual-baseline-automation.v1", "visual baseline automation schema missing");
+  assert(report.visualBaselineAutomation.commands.length === visualAutomationCommands.length, "visual baseline command summary mismatch");
+  assert(report.visualBaselineAutomation.manualReviews.every(item => item.status === "manual-not-run"), "visual manual reviews must be not-run in dry-run");
   return {
     dryRun: report.dryRun,
     createdTag: report.createdTag,
     pushed: report.pushed,
+    visualBaselineAutomation: report.visualBaselineAutomation.schema,
   };
 });
 
@@ -162,6 +242,12 @@ function buildReport() {
     pushed: false,
     localCommands: localCommands.map(command => ({ command, status: "planned-local" })),
     manualActions: manualActions.map(action => ({ action, status: "manual-not-run" })),
+    visualBaselineAutomation: {
+      schema: "media-server.release-visual-baseline-automation.v1",
+      commands: visualAutomationCommands,
+      manualReviews: visualManualReviews.map(action => ({ action, status: "manual-not-run" })),
+      preflightArtifacts,
+    },
     gitStatusLines: gitStatus,
     checks: [],
   };
@@ -187,6 +273,26 @@ function renderMarkdown(data) {
   lines.push("", "## Manual Actions", "", "| action | status |", "| --- | --- |");
   for (const item of data.manualActions) {
     lines.push(`| ${item.action} | ${item.status} |`);
+  }
+  lines.push(
+    "",
+    "## Visual Baseline Automation",
+    "",
+    `- schema: \`${data.visualBaselineAutomation.schema}\``,
+    "",
+    "| command | status |",
+    "| --- | --- |",
+  );
+  for (const item of data.visualBaselineAutomation.commands) {
+    lines.push(`| \`${item.command}\` | ${item.status} |`);
+  }
+  lines.push("", "## Visual Manual Review", "", "| action | status |", "| --- | --- |");
+  for (const item of data.visualBaselineAutomation.manualReviews) {
+    lines.push(`| ${item.action} | ${item.status} |`);
+  }
+  lines.push("", "## Preflight Artifacts", "", "| artifact | status |", "| --- | --- |");
+  for (const item of data.visualBaselineAutomation.preflightArtifacts) {
+    lines.push(`| ${item.name} | ${item.status} |`);
   }
   lines.push("", "## Git Status", "");
   if (data.gitStatusLines.length === 0) {

@@ -53,6 +53,50 @@ jobs:
         run: |
           ./server.sh verify-docs-ui-assets
 
+      - name: Release close-out helper dry-run
+        shell: bash
+        run: |
+          mkdir -p artifacts/release-closeout-helper
+          ./server.sh verify-release-closeout-helper --dry-run \
+            --report artifacts/release-closeout-helper/release-closeout-helper.md \
+            --json-report artifacts/release-closeout-helper/release-closeout-helper.json
+
+      - name: Upload release close-out helper dry-run
+        id: upload-release-closeout-helper
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: media-server-release-closeout-helper-dry-run
+          path: |
+            artifacts/release-closeout-helper/release-closeout-helper.md
+            artifacts/release-closeout-helper/release-closeout-helper.json
+          if-no-files-found: ignore
+
+      - name: Publish release close-out helper summary
+        if: always()
+        shell: bash
+        run: |
+          artifact_name="media-server-release-closeout-helper-dry-run"
+          artifact_url="${{ steps.upload-release-closeout-helper.outputs.artifact-url }}"
+          if [ -z "${GITHUB_STEP_SUMMARY:-}" ]; then
+            exit 0
+          fi
+          {
+            echo "## Release Close-out Helper"
+            echo
+            if [ -f artifacts/release-closeout-helper/release-closeout-helper.md ]; then
+              cat artifacts/release-closeout-helper/release-closeout-helper.md
+            else
+              echo "release-closeout-helper.md was not generated."
+            fi
+            echo
+            if [ -n "${artifact_url}" ]; then
+              echo "Artifact download: [${artifact_name}](${artifact_url})"
+            else
+              echo "Artifact download: ${artifact_name} (not uploaded)"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
       - name: UI release baseline approval log presence
         shell: bash
         run: |

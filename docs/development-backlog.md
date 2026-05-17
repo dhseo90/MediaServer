@@ -283,6 +283,40 @@ Loitering/ZoneOccupancy/LineCrossing의 저장 payload 계약을 유지하는 �
 2026-05-17 기준 이 카테고리의 개발 가능한 후속 이슈는 위 검증 통과 시 남기지
 않습니다.
 
+### V130-P2-01 Release and visual baseline automation 정리 기준
+
+2026-05-17 기준 release close-out helper가 PR/release 준비에서 visual baseline
+자동화 누락 여부까지 함께 요약합니다.
+
+확인됨:
+
+- `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>`가 release local verifier, tag/push 수동 gate, visual artifact policy, screenshot review 체크포인트를 한 dry-run report로 묶습니다.
+- JSON report는 `media-server.release-visual-baseline-automation.v1` schema의 visual automation 요약을 포함합니다.
+- preflight CI는 `media-server-release-closeout-helper-dry-run` artifact를 업로드하고, 기존 `media-server-ui-visual-baseline-diff`, `media-server-ui-visual-maintenance-dry-run` artifact와 함께 PR summary에서 확인하게 합니다.
+- PR template의 `Release / Visual Baseline Readiness` 섹션이 release close-out helper report, baseline diff/comment artifact, maintenance dry-run artifact, manual/not-run release action 구분을 요구합니다.
+- tag, push, GitHub Release, accepted baseline 채택, 320/390/760/1180px screenshot review는 실제 실행과 링크가 없으면 pass로 쓰지 않습니다.
+- schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.
+
+검증 기준:
+
+- `./server.sh verify-release-closeout-helper`
+- `./server.sh verify-docs-ui-assets`
+- `./server.sh verify-ui-visual-artifact-index`
+- `./server.sh verify-ui-release-baseline-approval-log`
+- `./server.sh verify-actions-security`
+- `git diff --check`
+
+범위 밖:
+
+- tag 생성, push, GitHub Release 생성
+- release baseline artifact를 public release asset 또는 candidate pass proof로 승격
+- 실제 UI screenshot 수동 승인 없이 baseline 채택 완료로 기록
+- RTSP/WebRTC media path, Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- 다음 카테고리인 Re-ID default-off research continuation 개발
+
+2026-05-17 기준 이 카테고리의 개발 가능한 후속 이슈는 위 검증 통과 시 남기지
+않습니다.
+
 ## v1.2.0 Roadmap 종료 판정
 
 v1.2.0은 v1.1.0 live-only 경계를 유지하면서 실제 현장 운영과 제품화 밀도를 높이는

@@ -423,6 +423,13 @@ Ops/Client/Lab API guard를 확인합니다.
   `./server.sh verify-ui-release-baseline-approval-log`로 확인합니다. 작성 형식 예시는
   `test/fixtures/ui_visual_release_baseline_approval_log_sample.md`에 sample-only
   fixture로 고정합니다.
+- Release / Visual Baseline Readiness는
+  `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>`
+  리포트로 묶습니다. JSON report의 visual automation 영역은
+  `media-server.release-visual-baseline-automation.v1` schema를 사용하며,
+  preflight는 `media-server-release-closeout-helper-dry-run`,
+  `media-server-ui-visual-baseline-diff`,
+  `media-server-ui-visual-maintenance-dry-run` artifact를 업로드합니다.
 
 ### 2.1 Live VA Event Quality
 

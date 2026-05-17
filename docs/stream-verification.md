@@ -59,6 +59,7 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
 ./server.sh verify-post-release-reconciliation
 ./server.sh verify-release-closeout-helper --dry-run --report /tmp/media_server_release_closeout_helper.md
+./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>
 ./server.sh dependency-snapshot --stable --output /tmp/media_server_dependency_snapshot.md --no-linked-libs
 ./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
 ./server.sh verify-release-bundle-dry-run
@@ -196,6 +197,26 @@ archive에 있으면 숫자 suffix를 붙인 뒤 `duplicatePolicy`, `archiveSequ
 `duplicateOf`로 중복 처리 내역을 남깁니다.
 preflight CI는 같은 명령을 `--apply` 없이 실행하고
 `media-server-ui-visual-maintenance-dry-run` artifact에 JSON/Markdown report를 업로드합니다.
+
+### Release / Visual Baseline Readiness
+
+release/PR 준비에서는 release close-out helper가 visual artifact policy와
+screenshot review 체크포인트를 함께 요약합니다.
+
+```bash
+./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>
+```
+
+helper JSON report에는 `media-server.release-visual-baseline-automation.v1`
+schema의 visual automation 요약이 포함됩니다. 이 요약은
+`verify-docs-ui-assets`, `verify-ui-visual-artifact-index`,
+`verify-ui-release-baseline-approval-log`, `write-ui-visual-baseline-comment`,
+`ui-visual-artifact-maintenance`를 release 준비 체크리스트로 묶고,
+preflight의 `media-server-release-closeout-helper-dry-run`,
+`media-server-ui-visual-baseline-diff`,
+`media-server-ui-visual-maintenance-dry-run` artifact를 함께 확인하게 합니다.
+tag, push, GitHub Release, accepted baseline adoption, 320/390/760/1180px 수동
+screenshot review는 실제 실행 전까지 pass로 쓰지 않고 manual/not-run 상태로 남깁니다.
 
 VA rule/scenario 변경:
 

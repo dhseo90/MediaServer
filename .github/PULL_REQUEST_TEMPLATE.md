@@ -20,6 +20,7 @@
 - [ ] `git diff --check`
 - [ ] `./server.sh verify-docs-links` when docs changed
 - [ ] `./server.sh verify-docs-ui-assets` when README/UI asset references changed
+- [ ] `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>` when release/visual baseline readiness changed
 - [ ] `./server.sh verify-ui-visual-artifact-index` when UI screenshot artifact behavior or docs changed
 - [ ] `./server.sh verify-ui-release-baseline-approval-log` when release baseline artifact approval docs or workflow gates changed
 - [ ] `./server.sh verify-ops-client-ui --screenshots --output-dir <artifact-dir>` when Auth/Ops/Client UI changed
@@ -39,6 +40,15 @@
 - [ ] 320px, 390px, 760px, and 1180px screenshots were reviewed for nav/account/header/table/action overflow.
 - [ ] Client/viewer screenshots do not expose source URL, Developer URL, raw JSON, debug counters, BBox diagnostics, or rule/profile editor controls.
 - [ ] If no UI changed, this section is marked not applicable in Summary or Not Run.
+
+## Release / Visual Baseline Readiness
+
+- [ ] Release close-out helper report:
+- [ ] JSON report uses visual automation schema `media-server.release-visual-baseline-automation.v1`.
+- [ ] Preflight artifact `media-server-release-closeout-helper-dry-run` is available or marked not run.
+- [ ] Visual baseline diff/comment artifact `media-server-ui-visual-baseline-diff` is available or marked not run.
+- [ ] Visual maintenance dry-run artifact `media-server-ui-visual-maintenance-dry-run` is available or marked not run.
+- [ ] Manual release actions, tag, push, GitHub Release, accepted baseline adoption, and screenshot review are not claimed as pass unless actually executed and linked.
 
 ## Not Run
 
