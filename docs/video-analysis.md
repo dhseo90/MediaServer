@@ -604,6 +604,8 @@ counter 집계에 모두 적용합니다. `trackingIssueCounts`는 polling 반�
 `warning` fixture가 남아 있으면 안정적이라고 닫지 않고 반복 실행 또는
 field/model review 대상으로 남깁니다.
 matrix report에 `--history-dir`를 지정하면 회차별 index를 남겨 품질 추세를 비교할 수 있습니다.
+history index는 `defaultOnDecision`, `productDefaultOn`, `candidateCount`,
+`defaultOnReason`도 함께 보존해 `matrix-ok`와 제품 기본 활성화 판단을 분리합니다.
 반복 실행에서는 `Repeat Metric Stats`의 mean/stdev/variance로 observed risk 변동성을 확인합니다.
 
 ## 8. Appearance / Re-ID Hook
@@ -620,6 +622,8 @@ AppearanceProfile과 IAppearanceExtractor는 향후 Re-ID/attribute 분석을 �
 - async queue, per-stream rate limit, global queue 상한, stale job drop으로 media pipeline blocking 방지
 - embedding/crop/model path 같은 Re-ID identity material은 WebRTC/SSE/WS/Event/debug 외부 metadata payload에 직렬화하지 않습니다.
 - `./server.sh verify-reid-advanced-tracking`은 default-off, privacy review, close-object benchmark command boundary를 정적 검증합니다.
+- v1.3.0 연구 지속 기준은 [Re-ID Default-off Research Continuation](reid-default-off-research-continuation.md)에
+  분리하며, 제품 default-on 결정이나 대형 tracker 교체로 해석하지 않습니다.
 
 Re-ID/attribute 분석은 매 frame 실행 구조가 아닙니다.
 

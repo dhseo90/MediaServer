@@ -1114,6 +1114,7 @@ def prepare_matrix_history(matrix: dict[str, Any], raw_history_dir: str) -> dict
 
 def matrix_history_entry(matrix: dict[str, Any], history: dict[str, Any]) -> dict[str, Any]:
     fixtures = matrix.get("fixtures") or []
+    decision = matrix.get("defaultOnDecision") or {}
     return {
         "runId": history.get("runId"),
         "createdAt": matrix.get("createdAt"),
@@ -1122,6 +1123,10 @@ def matrix_history_entry(matrix: dict[str, Any], history: dict[str, Any]) -> dic
         "failedCount": sum(1 for item in fixtures if item.get("status") in {"fail", "missing"}),
         "holdCount": sum(1 for item in fixtures if item.get("judgement") == "hold"),
         "warningCount": sum(1 for item in fixtures if item.get("judgement") == "warning"),
+        "candidateCount": decision.get("candidateCount"),
+        "defaultOnDecision": decision.get("status"),
+        "productDefaultOn": decision.get("productDefaultOn"),
+        "defaultOnReason": decision.get("reason"),
         "summaryPath": history.get("summaryPath"),
         "reportPath": history.get("reportPath"),
     }
@@ -1161,12 +1166,12 @@ def write_history_index_report(index_payload: dict[str, Any], path: pathlib.Path
         f"- updated: `{index_payload.get('updatedAt')}`",
         f"- history dir: `{index_payload.get('historyDir')}`",
         "",
-        "| run | created | ok | fixtures | failed | hold | warnings | report |",
-        "| --- | --- | --- | --- | --- | --- | --- | --- |",
+        "| run | created | ok | fixtures | failed | hold | warnings | candidates | default-on decision | product default-on | reason | report |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
     for item in index_payload.get("runs") or []:
         lines.append(
-            "| {run} | {created} | {ok} | {fixtures} | {failed} | {hold} | {warnings} | `{report}` |".format(
+            "| {run} | {created} | {ok} | {fixtures} | {failed} | {hold} | {warnings} | {candidates} | {decision} | {product} | {reason} | `{report}` |".format(
                 run=format_cell(item.get("runId")),
                 created=format_cell(item.get("createdAt")),
                 ok=format_cell(item.get("ok")),
@@ -1174,6 +1179,10 @@ def write_history_index_report(index_payload: dict[str, Any], path: pathlib.Path
                 failed=format_cell(item.get("failedCount")),
                 hold=format_cell(item.get("holdCount")),
                 warnings=format_cell(item.get("warningCount")),
+                candidates=format_cell(item.get("candidateCount")),
+                decision=format_cell(item.get("defaultOnDecision")),
+                product=format_cell(item.get("productDefaultOn")),
+                reason=format_cell(item.get("defaultOnReason")),
                 report=format_cell(item.get("reportPath")),
             )
         )

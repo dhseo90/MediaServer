@@ -115,6 +115,7 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | Auth/Ops/Client 화면 구조와 사용 흐름 | [docs/ui-guide.md](docs/ui-guide.md) |
 | RTSP/WebRTC pipeline, source/session, VA layer 배치 | [docs/media-server-architecture.md](docs/media-server-architecture.md) |
 | YOLO, tracking, scenario, live event, short evidence 정책 | [docs/video-analysis.md](docs/video-analysis.md) |
+| Re-ID default-off 연구 지속 기준 | [docs/reid-default-off-research-continuation.md](docs/reid-default-off-research-continuation.md) |
 | ONVIF live source 지원과 URL copy parity | [docs/onvif-live-source-support.md](docs/onvif-live-source-support.md) |
 | ONVIF field smoke gate와 redaction artifact 절차 | [docs/onvif-field-smoke-gate.md](docs/onvif-field-smoke-gate.md), [docs/onvif-field-smoke-artifact-redaction.md](docs/onvif-field-smoke-artifact-redaction.md) |
 | Live source health/operator workflow 기준 | [docs/live-source-health.md](docs/live-source-health.md) |

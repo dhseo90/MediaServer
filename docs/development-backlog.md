@@ -317,6 +317,47 @@ Loitering/ZoneOccupancy/LineCrossing의 저장 payload 계약을 유지하는 �
 2026-05-17 기준 이 카테고리의 개발 가능한 후속 이슈는 위 검증 통과 시 남기지
 않습니다.
 
+### V130-P2-02 Re-ID default-off research continuation 종료 판정
+
+2026-05-17 기준 V130-P2-02는 close-object tracker 비교와 Re-ID privacy
+boundary를 default-off 연구 산출물로 유지하는 범위에서 종료합니다.
+
+확인됨:
+
+- 기준 문서: [Re-ID Default-off Research Continuation](./reid-default-off-research-continuation.md)
+- `compare-close-object-tracker --fixture-matrix --history-dir <dir>`는 matrix
+  history index에 `defaultOnDecision`, `productDefaultOn`, `candidateCount`,
+  `defaultOnReason`을 남겨 회차별 default-on 판단 흐름을 보존합니다.
+- `productDefaultOn`은 제품 기본 활성화 여부이며, 이 연구 범위에서는 `False`로
+  유지합니다. `review-required`도 제품 default-on 완료가 아니라 별도 review
+  필요 상태입니다.
+- `verify-reid-advanced-tracking`은 v1.3.0 (8) 문서, default-off/privacy,
+  benchmark/history boundary, 외부 metadata identity material 미노출을 정적으로
+  검증합니다.
+- `tracking-event`, `tracking-event-long`, `tracking-event-slow-long`,
+  `four-scene-control` 단독 후보와 `field-new-york-driving=warning` 판정은
+  제품 default-on 근거로 과장하지 않습니다.
+
+검증 기준:
+
+- `./server.sh compare-close-object-tracker --fixture-matrix --history-dir <dir>`
+- `./server.sh verify-close-object-fixture-matrix`
+- `./server.sh verify-reid-advanced-tracking`
+- `git diff --check`
+
+범위 밖:
+
+- Re-ID default-on
+- Kalman/ByteTrack/BoT-SORT 같은 대형 tracker 교체
+- 실제 Re-ID model artifact를 release asset 또는 runtime bundle에 포함
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- client/viewer source URL, raw JSON, debug/identity material 노출
+
+2026-05-17 기준 이 카테고리의 개발 가능한 후속 이슈는 위 검증 통과 시 남기지
+않습니다. 실제 Re-ID model/field sample 기반 default-on 결정, 대형 tracker 교체,
+runtime/model bundle 포함은 별도 Phase 후보이며 이 항목의 잔여가 아닙니다.
+
 ## v1.2.0 Roadmap 종료 판정
 
 v1.2.0은 v1.1.0 live-only 경계를 유지하면서 실제 현장 운영과 제품화 밀도를 높이는

@@ -25,6 +25,7 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 | Backup and restore | [../ops-backup-recovery.md](../ops-backup-recovery.md) |
 | Scenario thresholds | [../analysis-threshold-baselines.md](../analysis-threshold-baselines.md) |
 | Sample fixture provenance | [../sample-fixture-provenance.md](../sample-fixture-provenance.md) |
+| Re-ID default-off research continuation | [../reid-default-off-research-continuation.md](../reid-default-off-research-continuation.md) |
 | YouTube import experiment | [../youtube-import.md](../youtube-import.md) |
 | Manual UI v1.2.1 evidence | [../manual-ui-v1.2.1-result.md](../manual-ui-v1.2.1-result.md) |
 | ONVIF no-device and field-smoke boundary | [../onvif-no-device-verification.md](../onvif-no-device-verification.md) |

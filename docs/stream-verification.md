@@ -729,6 +729,8 @@ matrix 실행은 fixture별 `summary.json`/`report.md`와 상위
 회차별 품질 추세를 남겨야 하면 `--history-dir <dir>`를 함께 지정합니다.
 이 경우 run별 `matrix-summary.json`/`matrix-report.md` 사본과 root
 `index.json`/`index.md`가 갱신됩니다.
+history index는 `defaultOnDecision`, `productDefaultOn`, `candidateCount`,
+`defaultOnReason`을 함께 남겨 `matrix-ok`와 제품 default-on 결정을 분리합니다.
 단일 비교의 quality preset 기본값은 `strict`입니다.
 내장 matrix fixture는 close-object sample과 control sample의 live polling
 특성이 달라 fixture별 `qualityPreset`을 사용합니다. close-object sample은
