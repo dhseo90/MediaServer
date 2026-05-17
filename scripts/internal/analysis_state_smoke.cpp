@@ -1814,10 +1814,10 @@ void VerifyVaMetadataSubscriptionFilter() {
 
 void VerifyRuleTrackingPolicyProfileContract() {
     AnalysisProfile legacy;
-    Expect(legacy.tracking_policy_tracker == "lite/default" &&
-               legacy.tracking_policy_effective_tracker == "lite/default" &&
+    Expect(legacy.tracking_policy_tracker == "lite" &&
+               legacy.tracking_policy_effective_tracker == "lite" &&
                legacy.tracking_policy_reid == "off",
-           "legacy AnalysisProfile must default to lite/default tracker and Re-ID off");
+           "legacy AnalysisProfile must default to Lite tracker and Re-ID off");
     const std::string legacy_key = BuildProfileKey(legacy);
     Expect(legacy_key.find("trackerPolicy=") == std::string::npos &&
                legacy_key.find("reidPolicy=") == std::string::npos,

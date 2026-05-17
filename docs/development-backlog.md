@@ -392,7 +392,7 @@ v1.4.0은 Re-ID와 tracker를 전역 기본값으로 바꾸지 않고, 룰 설�
 기본 원칙:
 
 - 전체/global 기본 활성화 없음
-- 기존 `lite/default` tracker를 기본 호환 경로로 유지
+- 기존 Lite tracker를 기본 호환 경로로 유지
 - tracker와 Re-ID는 룰별 설정에서 각각 선택
 - Re-ID는 기본 `off`이며, model/provenance/privacy gate가 통과한 경우에만 opt-in
 - Event POST, WebRTC DataChannel, SSE/WS metadata schema와 RTSP/WebRTC media
@@ -402,7 +402,7 @@ v1.4.0은 Re-ID와 tracker를 전역 기본값으로 바꾸지 않고, 룰 설�
 
 | ID | 우선순위 | 영역 | 목표 | 예상 검증 |
 | --- | --- | --- | --- | --- |
-| V140-P0-01 | P0 | Rule-level tracking policy contract | 룰 payload와 runtime policy에 tracker/Re-ID 선택값을 추가하되 기존 룰은 `lite/default` tracker와 Re-ID `off`로 해석합니다. tracker 후보는 `none`, `lite/default`, `kalman-lite`, `bytetrack`를 v1.4.0 대상 후보로 둡니다. | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-analysis-state`, metadata schema review |
+| V140-P0-01 | P0 | Rule-level tracking policy contract | 룰 payload와 runtime policy에 tracker/Re-ID 선택값을 추가하되 기존 룰은 Lite tracker와 Re-ID `off`로 해석합니다. tracker 후보는 `none`, `lite`, `kalman-lite`, `bytetrack`를 v1.4.0 대상 후보로 둡니다. | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-analysis-state`, metadata schema review |
 | V140-P0-02 | P0 | Ops Rules tracker/Re-ID selection UI | `/ops/rules`에서 Tracker와 Re-ID를 별도 control로 선택하고 저장/불러오기/preview/roundtrip을 검증합니다. `tracker=none`이면 Re-ID 선택은 비활성 또는 `off`로 강제합니다. | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-client-ui --screenshots` |
 | V140-P0-03 | P0 | Privacy and runtime fallback gate | Re-ID model path/checksum/provenance, NoOp fallback, bounded async worker, rate limit, stale drop, 외부 metadata 비노출 guard를 v1.4.0 opt-in gate로 묶습니다. | `verify-reid-advanced-tracking`, privacy/docs review, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel` |
 | V140-P1-01 | P1 | Kalman-lite tracker | 현재 direction-based/lightweight tracker에 motion prediction/lost buffer 보강을 추가해 짧은 누락, bbox jitter, reacquire 후보 선택을 개선합니다. Re-ID/model dependency 없이 룰별 opt-in으로 제공합니다. | `verify-tracker-stability`, `compare-close-object-tracker`, `verify-va-replay`, `verify-va-events` |
@@ -433,22 +433,22 @@ v1.4.0 비범위:
   "analysis": {
     "classes": ["person", "vehicle"],
     "trackingPolicy": {
-      "tracker": "lite/default",
+      "tracker": "lite",
       "reid": "off"
     }
   }
 }
 ```
 
-- `tracker` 허용값은 `none`, `lite/default`, `kalman-lite`, `bytetrack`입니다.
+- `tracker` 허용값은 `none`, `lite`, `kalman-lite`, `bytetrack`입니다.
 - `reid` 허용값은 `off`, `assist`입니다.
 - 기존 rule/vaRule처럼 `analysis.trackingPolicy`가 없으면 runtime은
-  `tracker=lite/default`, `reid=off`로 해석하고 저장 문서를 자동 migration하지
+  `tracker=lite`, `reid=off`로 해석하고 저장 문서를 자동 migration하지
   않습니다.
 - `tracker=none`이면 runtime tracking을 끄며 `reid=assist` 조합은 API 저장에서
   거부합니다.
 - `kalman-lite`와 `bytetrack`은 v1.4.0 후보값으로 저장 계약에 포함하지만, 해당
-  tracker 구현 전까지 runtime의 `effectiveTracker`는 `lite/default`로 남기고
+  tracker 구현 전까지 runtime의 `effectiveTracker`는 `lite`로 남기고
   fallback reason을 내부 runtime status에만 표시합니다.
 - Re-ID `assist`는 선택값 계약일 뿐이며 model artifact, embedding, crop, model
   path, checksum/provenance는 외부 Event POST/WebRTC/SSE/WS metadata 또는

@@ -27,7 +27,7 @@ const usedIds = new Set([
   ...(Array.isArray(catalog.rules) ? catalog.rules : []).map((item) => String(item?.id || "")),
   ...(Array.isArray(catalog.vaRules) ? catalog.vaRules : []).map((item) => String(item?.id || "")),
 ]);
-const ids = nextNumericIds(usedIds, { count: 4, start: 9801, end: 9999, label: "ops rules roundtrip id" });
+const ids = nextNumericIds(usedIds, { count: 5, start: 9801, end: 9999, label: "ops rules roundtrip id" });
 
 const fixtures = [
   {
@@ -104,6 +104,24 @@ const fixtures = [
       },
     },
   },
+  {
+    id: ids[3],
+    enabled: true,
+    ruleKind: "basic",
+    analysis: {
+      classes: ["person"],
+      trackingPolicy: { tracker: "lite", reid: "off" },
+    },
+    event: {
+      type: "presence",
+      region: {
+        type: "polygon",
+        points: [{ x: 0.25, y: 0.22 }, { x: 0.76, y: 0.22 }, { x: 0.74, y: 0.76 }, { x: 0.25, y: 0.74 }],
+      },
+      minConfidence: 0.31,
+      minDurationMs: 0,
+    },
+  },
 ];
 
 const created = [];
@@ -119,11 +137,11 @@ try {
     assertRuleRoundTrip(payload, readback.rule);
     console.log(`[pass] roundtrip ${payload.id}: ${payload.event.type}`);
   }
-  await assertRequestFails(`/lab/analysis/rules/${encodeURIComponent(ids[3])}`, {
+  await assertRequestFails(`/lab/analysis/rules/${encodeURIComponent(ids[4])}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      id: ids[3],
+      id: ids[4],
       enabled: true,
       ruleKind: "basic",
       analysis: {

@@ -620,11 +620,11 @@ std::string NormalizeTrackingPolicyToken(std::string value) {
     std::transform(value.begin(), value.end(), value.begin(), [](unsigned char ch) {
         return static_cast<char>(std::tolower(ch));
     });
-    if (value.empty() || value == "default" || value == "lite" || value == "lightweight" ||
-        value == "direction-based") {
-        return "lite/default";
+    if (value.empty() || value == "default" || value == "lite" || value == "lite/default" ||
+        value == "lightweight" || value == "direction-based") {
+        return "lite";
     }
-    if (value == "lite/default" || value == "none" || value == "kalman-lite" || value == "bytetrack") {
+    if (value == "none" || value == "kalman-lite" || value == "bytetrack") {
         return value;
     }
     return {};
@@ -691,7 +691,7 @@ bool ValidateTrackingPolicyContract(const std::string& body,
         FirstStringFieldValue(*policy, {"tracker", "trackerPolicy"}).value_or(""));
     if (tracker.empty()) {
         set_error(document_label +
-                  " analysis.trackingPolicy.tracker must be none, lite/default, kalman-lite, or bytetrack");
+                  " analysis.trackingPolicy.tracker must be none, lite, kalman-lite, or bytetrack");
         return false;
     }
     const std::string reid = NormalizeReidPolicyToken(
@@ -801,10 +801,10 @@ public:
             << "\"scope\":\"저장된 vaRule은 영상 소스, 분석 profile, 이벤트 rule, scenario, geometry를 하나의 ID로 묶는다.\","
             << "\"url\":\"?vaRule=<id>\","
             << "\"trackingPolicyContract\":{\"field\":\"analysis.trackingPolicy\","
-            << "\"tracker\":[\"none\",\"lite/default\",\"kalman-lite\",\"bytetrack\"],"
+            << "\"tracker\":[\"none\",\"lite\",\"kalman-lite\",\"bytetrack\"],"
             << "\"reid\":[\"off\",\"assist\"],"
-            << "\"default\":{\"tracker\":\"lite/default\",\"reid\":\"off\"},"
-            << "\"runtimeFallback\":\"kalman-lite/bytetrack remain lite/default until their tracker implementations land\"},"
+            << "\"default\":{\"tracker\":\"lite\",\"reid\":\"off\"},"
+            << "\"runtimeFallback\":\"kalman-lite/bytetrack remain Lite until their tracker implementations land\"},"
             << "\"vaRules\":";
         AppendDocumentsArray(out, va_rules_);
         out << "}";
@@ -823,7 +823,7 @@ public:
             << "\"clientId\":\"optional\"},\"analysis\":{\"profileId\":\"string\",\"detector\":\"dummy|yolo\","
             << "\"fps\":\"number\",\"maxQueue\":\"number\",\"frameSampleInterval\":\"number\","
             << "\"maxFrameAgeMs\":\"number\","
-            << "\"trackingPolicy\":{\"tracker\":\"none|lite/default|kalman-lite|bytetrack\","
+            << "\"trackingPolicy\":{\"tracker\":\"none|lite|kalman-lite|bytetrack\","
             << "\"reid\":\"off|assist\"}},\"outputs\":{\"metadata\":\"bool\","
             << "\"snapshot\":\"bool\",\"overlay\":\"bool\",\"events\":\"bool\"},"
             << "\"eventActions\":{\"highlight\":{\"enabled\":\"bool\",\"mode\":\"blink\","

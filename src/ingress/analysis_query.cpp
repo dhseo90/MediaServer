@@ -435,11 +435,11 @@ std::string NormalizeYoloScoreMode(std::string value) {
 
 std::string NormalizeTrackerPolicy(std::string value) {
     value = ToLower(TrimToken(std::move(value)));
-    if (value.empty() || value == "default" || value == "lite" || value == "lightweight" ||
-        value == "direction-based") {
-        return "lite/default";
+    if (value.empty() || value == "default" || value == "lite" || value == "lite/default" ||
+        value == "lightweight" || value == "direction-based") {
+        return "lite";
     }
-    if (value == "lite/default" || value == "none" || value == "kalman-lite" || value == "bytetrack") {
+    if (value == "none" || value == "kalman-lite" || value == "bytetrack") {
         return value;
     }
     return {};
@@ -639,7 +639,7 @@ bool ApplyRegisteredProfileById(const std::string& id, analysis::AnalysisProfile
 struct MatchingProfileRule {
     std::string rule_id;
     std::string profile_id;
-    std::string tracker_policy{"lite/default"};
+    std::string tracker_policy{"lite"};
     std::string reid_policy{"off"};
     bool has_tracking_policy{false};
     int priority{0};
@@ -676,7 +676,7 @@ std::optional<MatchingProfileRule> FindMatchingRuleProfile(const analysis::Analy
             continue;
         }
         const std::string profile_id = ParseStringField(*analysis, "profileId").value_or("");
-        std::string tracker_policy = "lite/default";
+        std::string tracker_policy = "lite";
         std::string reid_policy = "off";
         bool has_tracking_policy = false;
         if (const auto policy = TrackingPolicyObjectFromDocument(document, *analysis); policy.has_value()) {
@@ -731,7 +731,7 @@ std::optional<MatchingProfileRule> FindMatchingRuleProfile(const analysis::Analy
         }
         const MatchingProfileRule candidate{rule_id,
                                             profile_id,
-                                            tracker_policy.empty() ? "lite/default" : tracker_policy,
+                                            tracker_policy.empty() ? "lite" : tracker_policy,
                                             reid_policy.empty() ? "off" : reid_policy,
                                             has_tracking_policy,
                                             priority,
@@ -751,7 +751,7 @@ void ApplyRuleTrackingPolicy(const MatchingProfileRule& matched, analysis::Analy
     profile->tracking_policy_source = matched.has_tracking_policy ? "rule" : "rule-default";
     profile->tracking_policy_rule_id = matched.rule_id;
     profile->tracking_policy_tracker =
-        matched.tracker_policy.empty() ? std::string("lite/default") : matched.tracker_policy;
+        matched.tracker_policy.empty() ? std::string("lite") : matched.tracker_policy;
     profile->tracking_policy_reid = matched.reid_policy.empty() ? std::string("off") : matched.reid_policy;
     profile->tracking_policy_fallback_reason.clear();
 
@@ -768,14 +768,14 @@ void ApplyRuleTrackingPolicy(const MatchingProfileRule& matched, analysis::Analy
     if (profile->tracking_policy_tracker == "kalman-lite" ||
         profile->tracking_policy_tracker == "bytetrack") {
         profile->enable_tracking = true;
-        profile->tracking_policy_effective_tracker = "lite/default";
+        profile->tracking_policy_effective_tracker = "lite";
         profile->tracking_policy_fallback_reason =
             profile->tracking_policy_tracker + "-runtime-pending";
         return;
     }
 
     profile->enable_tracking = true;
-    profile->tracking_policy_effective_tracker = "lite/default";
+    profile->tracking_policy_effective_tracker = "lite";
 }
 
 }  // namespace
