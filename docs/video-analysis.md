@@ -562,6 +562,10 @@ Matrix gate는 다음처럼 해석합니다.
 | `pass` + `defaultOnCandidate=false` | hard gate는 통과했지만 해당 fixture는 후보 근거 부족 |
 | `pass` + `defaultOnCandidate=true` | 해당 fixture 단독 후보일 뿐 제품 default-on 완료 아님 |
 
+`matrix-ok`는 명령/gate 결과이며 제품 default-on 승인 값이 아닙니다.
+matrix 출력의 `[matrix-default-on-decision]`과 `[matrix-product-default-on]`를
+함께 확인해 후보 상태와 제품 기본값 전환 여부를 분리합니다.
+
 Fixture별 후보 표는 [Re-ID Fixture Default-on Candidates](reid-fixture-default-on-candidates.md)에
 분리합니다.
 

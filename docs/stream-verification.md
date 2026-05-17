@@ -759,6 +759,9 @@ Matrix gate 상태 정의:
 `verify-close-object-fixture-matrix`의 성공은 clean gate 확인용입니다.
 `compare-close-object-tracker --fixture-matrix`의 성공은 관찰 리포트 생성 성공일 수
 있으므로 `matrix-ok`, fixture `judgement`, `defaultOnCandidate`를 따로 읽어야 합니다.
+`matrix-ok`는 명령/gate 결과이며 제품 default-on 승인 값이 아닙니다. matrix 출력의
+`[matrix-default-on-decision]`과 `[matrix-product-default-on]`를 함께 확인해
+`not-promoted` 또는 `review-required`를 구분합니다.
 `warning`은 안정적이라는 뜻이 아니며, close-object guard default-on이나 Re-ID
 제품 완료 근거로 쓰지 않습니다.
 `enforce` mode까지 비교하려면 다음처럼 명시적으로 실행하고, 결과는 제품

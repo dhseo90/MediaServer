@@ -181,6 +181,18 @@ check("close-object benchmark commands and fixture matrix remain available", () 
     assert(trackerStability.includes(snippet), `tracker stability must class-filter observed counters: ${snippet}`);
   }
   assert(compare.includes("close-object guard default-on is not changed by this report."), "comparison report must state default-on is unchanged");
+  for (const snippet of [
+    "matrix_default_on_decision",
+    '"productDefaultOn": False',
+    '"status": status',
+    "[matrix-default-on-decision]",
+    "[matrix-product-default-on]",
+    "fixture matrix contains fail/hold/warning rows; keep close-object guard default off",
+    "all fixtures are candidates, but product default-on still requires separate review and field evidence",
+    "`matrix-ok` is a command/gate result, not product default-on approval",
+  ]) {
+    assert(compare.includes(snippet), `compare matrix output must separate matrix-ok from product default-on: ${snippet}`);
+  }
   return {
     commands: ["compare-close-object-tracker", "verify-close-object-fixture-matrix", "verify-reid-advanced-tracking"],
     fixtureCount: 5,
@@ -213,6 +225,9 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
     "default-on candidate=False",
     "Matrix gate 상태 정의",
     "`warning`은 안정적이라는 뜻이 아니며",
+    "`matrix-ok`는 명령/gate 결과",
+    "[matrix-default-on-decision]",
+    "[matrix-product-default-on]",
     "fixture별 후보로만 기록",
     "field-driving-live",
     "observed issue counter",
@@ -229,6 +244,9 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
     "fixture 전용 tracker-stability 상한",
     "Matrix gate는 다음처럼 해석합니다",
     "안정 판정이 아니며 default-on 근거로 사용 금지",
+    "`matrix-ok`는 명령/gate 결과",
+    "[matrix-default-on-decision]",
+    "[matrix-product-default-on]",
     "해당 fixture 단독 후보일 뿐 제품 default-on 완료 아님",
     "field-driving-live",
     "observed issue/diagnostic",
@@ -261,6 +279,8 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
   for (const snippet of [
     "Re-ID Fixture Default-on Candidates",
     "matrix-ok=True",
+    "[matrix-default-on-decision]",
+    "[matrix-product-default-on]",
     "tracking-event-slow-long",
     "`pass`",
     "`True`",
