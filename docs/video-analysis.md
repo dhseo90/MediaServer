@@ -115,6 +115,24 @@ YOLO parser는 `YOLOv8/YOLO11` 계열의 `[1, 84, N]` 또는 `[1, N, 84]` 출력
 
 현재 tracker는 direction-based/lightweight tracker입니다. Kalman Filter, BoT-SORT, ByteTrack, 실제 Re-ID 모델을 기본 tracking id 생성에 사용하지 않습니다.
 
+v1.4.0부터 rule/vaRule은 `analysis.trackingPolicy`로 tracker/Re-ID 선택 계약을
+가질 수 있습니다. 기존 저장 rule에 이 필드가 없으면 자동 migration 없이
+`tracker=lite/default`, `reid=off`로 해석합니다.
+
+허용값:
+
+- `tracker`: `none`, `lite/default`, `kalman-lite`, `bytetrack`
+- `reid`: `off`, `assist`
+
+`tracker=none`은 runtime tracking을 끄며 Re-ID는 `off`여야 합니다.
+`kalman-lite`와 `bytetrack`은 저장 계약 후보로 먼저 고정하되, 실제 tracker
+구현이 들어오기 전까지 runtime의 `effectiveTracker`는 기존 `lite/default`로
+fallback합니다. 이 fallback 상태는 내부 runtime status에만 남기고
+Event POST/WebRTC DataChannel/SSE/WS metadata schema에는 추가하지 않습니다.
+외부 payload의 `source.profileKey` 문자열에도 policy token을 추가하지 않습니다.
+Re-ID `assist`도 외부 metadata에 embedding, crop, model path, checksum,
+appearance profile을 노출하지 않는 opt-in 정책값입니다.
+
 matching score는 다음 요소를 조합합니다.
 
 - IoU score
@@ -259,7 +277,11 @@ Profile은 detector와 분석 품질/성능 설정입니다.
   },
   "analysis": {
     "profileId": "1",
-    "classes": ["person", "vehicle"]
+    "classes": ["person", "vehicle"],
+    "trackingPolicy": {
+      "tracker": "lite/default",
+      "reid": "off"
+    }
   },
   "event": {
     "type": "presence",

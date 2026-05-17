@@ -27,14 +27,17 @@ const usedIds = new Set([
   ...(Array.isArray(catalog.rules) ? catalog.rules : []).map((item) => String(item?.id || "")),
   ...(Array.isArray(catalog.vaRules) ? catalog.vaRules : []).map((item) => String(item?.id || "")),
 ]);
-const ids = nextNumericIds(usedIds, { count: 3, start: 9801, end: 9999, label: "ops rules roundtrip id" });
+const ids = nextNumericIds(usedIds, { count: 4, start: 9801, end: 9999, label: "ops rules roundtrip id" });
 
 const fixtures = [
   {
     id: ids[0],
     enabled: true,
     ruleKind: "basic",
-    analysis: { classes: ["person", "vehicle"] },
+    analysis: {
+      classes: ["person", "vehicle"],
+      trackingPolicy: { tracker: "none", reid: "off" },
+    },
     event: {
       type: "line-crossing",
       region: {
@@ -74,7 +77,10 @@ const fixtures = [
     id: ids[2],
     enabled: true,
     ruleKind: "scenario",
-    analysis: { classes: ["person", "vehicle"] },
+    analysis: {
+      classes: ["person", "vehicle"],
+      trackingPolicy: { tracker: "kalman-lite", reid: "off" },
+    },
     event: {
       type: "intrusion-after-line-crossing",
       region: {
@@ -113,10 +119,43 @@ try {
     assertRuleRoundTrip(payload, readback.rule);
     console.log(`[pass] roundtrip ${payload.id}: ${payload.event.type}`);
   }
+  await assertRequestFails(`/lab/analysis/rules/${encodeURIComponent(ids[3])}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id: ids[3],
+      enabled: true,
+      ruleKind: "basic",
+      analysis: {
+        classes: ["person"],
+        trackingPolicy: { tracker: "none", reid: "assist" },
+      },
+      event: { type: "presence", region: fixtures[0].event.region },
+    }),
+  }, "reid must be off when tracker is none");
+  console.log("[pass] trackingPolicy validation rejects tracker=none + reid=assist");
   console.log("[pass] ops-rules-roundtrip");
 } finally {
   for (const id of created.reverse()) {
     await requestJson(`/lab/analysis/rules/${encodeURIComponent(id)}`, { method: "DELETE" }).catch(() => {});
+  }
+}
+
+async function assertRequestFails(path, options, expectedSnippet) {
+  const response = await fetch(`${httpBase}${path}`, options);
+  const text = await response.text();
+  let payload = null;
+  try {
+    payload = text ? JSON.parse(text) : {};
+  } catch {
+    payload = { error: text };
+  }
+  if (response.ok) {
+    throw new Error(`${path} unexpectedly succeeded`);
+  }
+  const message = String(payload?.error || text || "");
+  if (!message.includes(expectedSnippet)) {
+    throw new Error(`${path} failed with unexpected message: ${message}`);
   }
 }
 
@@ -129,6 +168,12 @@ function assertRuleRoundTrip(expected, actual) {
   assertEqual(actual.event?.type, expected.event.type, "event.type");
   assertEqual(actual.event?.region?.type, expected.event.region.type, "event.region.type");
   assertEqual(actual.analysis?.classes, expected.analysis.classes, "analysis.classes");
+  if (expected.analysis?.trackingPolicy) {
+    assertEqual(actual.analysis?.trackingPolicy?.tracker, expected.analysis.trackingPolicy.tracker, "analysis.trackingPolicy.tracker");
+    assertEqual(actual.analysis?.trackingPolicy?.reid, expected.analysis.trackingPolicy.reid, "analysis.trackingPolicy.reid");
+  } else if (actual.analysis?.trackingPolicy !== undefined) {
+    throw new Error(`rule ${expected.id} unexpectedly read back trackingPolicy`);
+  }
   if (expected.scenario) {
     assertEqual(actual.scenario?.type, expected.scenario.type, "scenario.type");
     for (const key of ["reEntryWindowMs", "reEntryMode", "maxDelayAfterCrossingMs", "dwellTimeMs", "cooldownMs"]) {

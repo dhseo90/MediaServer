@@ -139,6 +139,14 @@ struct AnalysisProfile {
     // tracker는 기본적으로 동선 의미가 큰 카테고리 단위로 ID를 붙인다. 명시적 빈 목록은 추적 대상 없음, "*"는 전체 추적이다.
     std::vector<std::string> tracking_class_labels{"person", "vehicle"};
     bool tracking_classes_specified{false};
+    // v1.4.0 rule-level policy contract. Existing rules resolve to lite/default + Re-ID off.
+    std::string tracking_policy_tracker{"lite/default"};
+    std::string tracking_policy_effective_tracker{"lite/default"};
+    std::string tracking_policy_reid{"off"};
+    std::string tracking_policy_source{"default"};
+    std::string tracking_policy_rule_id;
+    std::string tracking_policy_fallback_reason;
+    bool tracking_policy_specified{false};
     bool enable_pose{false};
     bool enable_overlay{false};
     bool enable_debug_state{false};

@@ -421,6 +421,58 @@ v1.4.0 비범위:
 - Re-ID model/runtime binary bundle, release asset 업로드, container/offline package 포함
 - field sample scheduler, dataset ingest, 고객/현장 영상 보존 자동화
 
+### V140-P0-01 Rule-level tracking policy contract 정리 기준
+
+`Rule-level tracking policy contract`는 tracker/Re-ID를 전역 기본값으로 켜지 않고
+저장 rule 또는 vaRule의 `analysis.trackingPolicy`에서만 선택하는 계약입니다.
+
+계약 필드:
+
+```json
+{
+  "analysis": {
+    "classes": ["person", "vehicle"],
+    "trackingPolicy": {
+      "tracker": "lite/default",
+      "reid": "off"
+    }
+  }
+}
+```
+
+- `tracker` 허용값은 `none`, `lite/default`, `kalman-lite`, `bytetrack`입니다.
+- `reid` 허용값은 `off`, `assist`입니다.
+- 기존 rule/vaRule처럼 `analysis.trackingPolicy`가 없으면 runtime은
+  `tracker=lite/default`, `reid=off`로 해석하고 저장 문서를 자동 migration하지
+  않습니다.
+- `tracker=none`이면 runtime tracking을 끄며 `reid=assist` 조합은 API 저장에서
+  거부합니다.
+- `kalman-lite`와 `bytetrack`은 v1.4.0 후보값으로 저장 계약에 포함하지만, 해당
+  tracker 구현 전까지 runtime의 `effectiveTracker`는 `lite/default`로 남기고
+  fallback reason을 내부 runtime status에만 표시합니다.
+- Re-ID `assist`는 선택값 계약일 뿐이며 model artifact, embedding, crop, model
+  path, checksum/provenance는 외부 Event POST/WebRTC/SSE/WS metadata 또는
+  client/viewer 화면에 노출하지 않습니다.
+- 외부 payload의 `source.profileKey` 문자열도 policy token을 추가하지 않고 기존
+  profile 식별 역할을 유지합니다. policy 구분은 internal analysis reuse key와
+  `/ops/api/runtime/status`의 operator runtime status에서만 확인합니다.
+
+검증 기준:
+
+- `./server.sh build`
+- `./server.sh verify-rule-ui`
+- `./server.sh verify-ops-rules-roundtrip`
+- `./server.sh verify-analysis-state`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- `/ops/rules` tracker/Re-ID 선택 control 추가
+- Kalman-lite/ByteTrack tracker 구현
+- Re-ID model/provenance runtime gate 고도화
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
+
 ## 별도 Phase 후보
 
 v1.3.0 release main에는 다음 minor roadmap을 고정하지 않습니다.

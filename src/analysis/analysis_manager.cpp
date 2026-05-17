@@ -65,7 +65,11 @@ std::optional<AnalysisResult> FindResultNearPtsLocked(const std::deque<AnalysisR
 }
 
 std::string BuildFallbackReuseKey(const core::StreamKey& stream_key, const AnalysisProfile& profile) {
-    return "source=" + stream_key + "|profile=" + BuildProfileKey(profile);
+    return "source=" + stream_key + "|profile=" + BuildProfileKey(profile) +
+           "|trackerPolicy=" + profile.tracking_policy_tracker +
+           "|effectiveTracker=" + profile.tracking_policy_effective_tracker +
+           "|reidPolicy=" + profile.tracking_policy_reid +
+           "|policyRule=" + profile.tracking_policy_rule_id;
 }
 
 bool ContainsRuleId(const std::vector<std::string>& rule_ids, const std::string& rule_id) {
@@ -114,6 +118,15 @@ ObjectTrackerOptions BuildTrackerOptions(const AnalysisProfile& profile) {
     options.close_object_min_score_boost = config.analysis_tracking_close_object_min_score_boost;
     options.max_close_object_diagnostics = config.analysis_tracking_close_object_max_diagnostics;
     options.max_missed_frames = config.analysis_tracking_lost_buffer_frames;
+    return options;
+}
+
+TrackStateManagerOptions BuildTrackStateManagerOptionsForProfile(const AnalysisProfile& profile) {
+    auto options = BuildTrackStateManagerOptionsFromConfig(app::GetAppConfig());
+    if (profile.tracking_policy_effective_tracker == "none" ||
+        profile.tracking_policy_reid != "assist") {
+        options.appearance_update_policy.enabled = false;
+    }
     return options;
 }
 
@@ -208,7 +221,7 @@ AnalysisManager::AttachResult AnalysisManager::AttachStream(const core::StreamKe
 
     tap->detector = CreateDetector(tap->profile);
     tap->track_state_manager = TrackStateManager(
-        BuildTrackStateManagerOptionsFromConfig(app::GetAppConfig()),
+        BuildTrackStateManagerOptionsForProfile(tap->profile),
         CreateAppearanceExtractorFromConfig(app::GetAppConfig()));
     if (tap->profile.enable_tracking) {
         tap->tracker = std::make_unique<ObjectTracker>(BuildTrackerOptions(tap->profile));
@@ -855,6 +868,13 @@ AnalysisManager::TapSnapshot AnalysisManager::BuildSnapshotLocked(const std::sha
         .confidence_threshold = tap->profile.confidence_threshold,
         .nms_threshold = tap->profile.nms_threshold,
         .tracking_enabled = tap->profile.enable_tracking,
+        .tracking_policy_tracker = tap->profile.tracking_policy_tracker,
+        .tracking_policy_effective_tracker = tap->profile.tracking_policy_effective_tracker,
+        .tracking_policy_reid = tap->profile.tracking_policy_reid,
+        .tracking_policy_source = tap->profile.tracking_policy_source,
+        .tracking_policy_rule_id = tap->profile.tracking_policy_rule_id,
+        .tracking_policy_fallback_reason = tap->profile.tracking_policy_fallback_reason,
+        .tracking_policy_specified = tap->profile.tracking_policy_specified,
         .tracking_class_labels = tap->profile.tracking_class_labels,
         .track_state_metrics = tap->track_state_manager.Metrics(),
         .adaptive_tuning_enabled = tap->profile.adaptive_tuning_enabled,

@@ -88,7 +88,7 @@ echo "[통과] HTTP health ok"
 
 PROFILE_JSON="{\"id\":\"${PROFILE_ID}\",\"detector\":\"dummy\",\"fps\":5,\"maxQueue\":2,\"confidence\":0.25,\"nms\":0.45,\"adaptive\":false,\"trackingClasses\":[\"person\",\"vehicle\"]}"
 ALT_PROFILE_JSON="{\"id\":\"${ALT_PROFILE_ID}\",\"detector\":\"dummy\",\"fps\":11,\"maxQueue\":1,\"confidence\":0.25,\"nms\":0.45,\"adaptive\":false,\"trackingClasses\":[\"person\",\"vehicle\"]}"
-RULE_JSON="{\"id\":\"${RULE_ID}\",\"priority\":50,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"*\"},\"analysis\":{\"profileId\":\"${PROFILE_ID}\",\"classes\":[\"person\",\"vehicle\"]},\"event\":{\"type\":\"presence\",\"classes\":[\"person\",\"car\"]},\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.05,\"y\":0.05},{\"x\":0.95,\"y\":0.05},{\"x\":0.95,\"y\":0.95},{\"x\":0.05,\"y\":0.95}]},\"outputs\":{\"overlay\":true},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
+RULE_JSON="{\"id\":\"${RULE_ID}\",\"priority\":50,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"*\"},\"analysis\":{\"profileId\":\"${PROFILE_ID}\",\"classes\":[\"person\",\"vehicle\"],\"trackingPolicy\":{\"tracker\":\"none\",\"reid\":\"off\"}},\"event\":{\"type\":\"presence\",\"classes\":[\"person\",\"car\"]},\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.05,\"y\":0.05},{\"x\":0.95,\"y\":0.05},{\"x\":0.95,\"y\":0.95},{\"x\":0.05,\"y\":0.95}]},\"outputs\":{\"overlay\":true},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
 ALT_RULE_JSON="{\"id\":\"${ALT_RULE_ID}\",\"priority\":0,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"http\"},\"analysis\":{\"profileId\":\"${ALT_PROFILE_ID}\",\"classes\":[\"person\",\"vehicle\"]},\"event\":{\"type\":\"presence\",\"classes\":[\"person\",\"car\"]},\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.05,\"y\":0.05},{\"x\":0.95,\"y\":0.05},{\"x\":0.95,\"y\":0.95},{\"x\":0.05,\"y\":0.95}]},\"outputs\":{\"overlay\":true},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
 
 curl -fsS -X PUT "${HTTP_BASE}/lab/analysis/profiles/${PROFILE_ID}" \
@@ -144,6 +144,9 @@ if not payload.get("enabled", False):
 analysis = payload.get("analysis") or {}
 if analysis.get("profileId") != expected_profile:
     raise SystemExit("rule profileId mismatch")
+policy = analysis.get("trackingPolicy") or {}
+if policy.get("tracker") != "none" or policy.get("reid") != "off":
+    raise SystemExit("rule trackingPolicy mismatch")
 event = payload.get("event") or {}
 if event.get("type") != "presence":
     raise SystemExit("rule event type mismatch")

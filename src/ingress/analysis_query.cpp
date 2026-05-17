@@ -433,6 +433,51 @@ std::string NormalizeYoloScoreMode(std::string value) {
     return "auto";
 }
 
+std::string NormalizeTrackerPolicy(std::string value) {
+    value = ToLower(TrimToken(std::move(value)));
+    if (value.empty() || value == "default" || value == "lite" || value == "lightweight" ||
+        value == "direction-based") {
+        return "lite/default";
+    }
+    if (value == "lite/default" || value == "none" || value == "kalman-lite" || value == "bytetrack") {
+        return value;
+    }
+    return {};
+}
+
+std::string NormalizeReidPolicy(std::string value) {
+    value = ToLower(TrimToken(std::move(value)));
+    if (value.empty() || value == "off" || value == "none" || value == "disabled") {
+        return "off";
+    }
+    if (value == "assist" || value == "association-assist" || value == "reid-assist") {
+        return "assist";
+    }
+    return {};
+}
+
+std::optional<std::string> TrackingPolicyObjectFromDocument(const std::string& document,
+                                                            const std::string& analysis) {
+    if (const auto policy = ExtractObjectField(analysis, "trackingPolicy"); policy.has_value()) {
+        return policy;
+    }
+    if (const auto policy = ExtractObjectField(document, "trackingPolicy"); policy.has_value()) {
+        return policy;
+    }
+    return std::nullopt;
+}
+
+std::optional<std::string> FirstStringField(const std::string& document,
+                                            const std::vector<std::string>& fields) {
+    for (const auto& field : fields) {
+        const auto value = ParseStringField(document, field);
+        if (value.has_value()) {
+            return value;
+        }
+    }
+    return std::nullopt;
+}
+
 void ApplyBuiltInProfile(const std::string& id, analysis::AnalysisProfile* profile) {
     if (profile == nullptr || !IsBuiltInAnalysisProfileId(id)) {
         return;
@@ -594,6 +639,9 @@ bool ApplyRegisteredProfileById(const std::string& id, analysis::AnalysisProfile
 struct MatchingProfileRule {
     std::string rule_id;
     std::string profile_id;
+    std::string tracker_policy{"lite/default"};
+    std::string reid_policy{"off"};
+    bool has_tracking_policy{false};
     int priority{0};
     int specificity{0};
 };
@@ -603,6 +651,17 @@ bool IsBetterProfileRule(const MatchingProfileRule& candidate, const MatchingPro
         return candidate.priority > current.priority;
     }
     return candidate.specificity > current.specificity;
+}
+
+bool ContextVaRuleMatches(const std::string& expected, const analysis::AnalysisContext& context) {
+    if (!context.va_rule_ids.empty()) {
+        return std::find(context.va_rule_ids.begin(), context.va_rule_ids.end(), expected) !=
+               context.va_rule_ids.end();
+    }
+    if (!context.va_rule_id.empty()) {
+        return expected == context.va_rule_id;
+    }
+    return expected.empty();
 }
 
 std::optional<MatchingProfileRule> FindMatchingRuleProfile(const analysis::AnalysisContext& context) {
@@ -617,19 +676,37 @@ std::optional<MatchingProfileRule> FindMatchingRuleProfile(const analysis::Analy
             continue;
         }
         const std::string profile_id = ParseStringField(*analysis, "profileId").value_or("");
-        if (profile_id.empty()) {
+        std::string tracker_policy = "lite/default";
+        std::string reid_policy = "off";
+        bool has_tracking_policy = false;
+        if (const auto policy = TrackingPolicyObjectFromDocument(document, *analysis); policy.has_value()) {
+            tracker_policy =
+                NormalizeTrackerPolicy(FirstStringField(*policy, {"tracker", "trackerPolicy"}).value_or(""));
+            reid_policy = NormalizeReidPolicy(
+                FirstStringField(*policy, {"reid", "reId", "reID", "reidPolicy"}).value_or("off"));
+            has_tracking_policy = !tracker_policy.empty() && !reid_policy.empty();
+        }
+        if (profile_id.empty() && !has_tracking_policy) {
             continue;
         }
 
         std::string source_kind = "*";
         std::string route = "*";
         std::string client_id;
+        std::string va_rule_id;
         if (const auto match = ExtractObjectField(document, "match"); match.has_value()) {
             source_kind = ParseStringField(*match, "sourceKind").value_or(source_kind);
             route = ParseStringField(*match, "route").value_or(route);
             client_id = ParseStringField(*match, "clientId").value_or(client_id);
+            va_rule_id =
+                ParseStringField(*match, "vaRule").value_or(ParseStringField(*match, "vaRuleId").value_or(""));
         }
-        if (!ContextValueMatches(source_kind, context.source_kind) ||
+        if (va_rule_id.empty() && ExtractObjectField(document, "source").has_value() &&
+            ExtractObjectField(document, "templateStart").has_value()) {
+            va_rule_id = rule_id;
+        }
+        if (!ContextVaRuleMatches(va_rule_id, context) ||
+            !ContextValueMatches(source_kind, context.source_kind) ||
             !ContextValueMatches(route, context.route) ||
             !ContextClientMatches(client_id, context.client_id)) {
             continue;
@@ -649,12 +726,56 @@ std::optional<MatchingProfileRule> FindMatchingRuleProfile(const analysis::Analy
         if (!client_id.empty() && client_id != "*") {
             specificity += 4;
         }
-        const MatchingProfileRule candidate{rule_id, profile_id, priority, specificity};
+        if (!va_rule_id.empty()) {
+            specificity += 8;
+        }
+        const MatchingProfileRule candidate{rule_id,
+                                            profile_id,
+                                            tracker_policy.empty() ? "lite/default" : tracker_policy,
+                                            reid_policy.empty() ? "off" : reid_policy,
+                                            has_tracking_policy,
+                                            priority,
+                                            specificity};
         if (!best.has_value() || IsBetterProfileRule(candidate, *best)) {
             best = candidate;
         }
     }
     return best;
+}
+
+void ApplyRuleTrackingPolicy(const MatchingProfileRule& matched, analysis::AnalysisProfile* profile) {
+    if (profile == nullptr) {
+        return;
+    }
+    profile->tracking_policy_specified = matched.has_tracking_policy;
+    profile->tracking_policy_source = matched.has_tracking_policy ? "rule" : "rule-default";
+    profile->tracking_policy_rule_id = matched.rule_id;
+    profile->tracking_policy_tracker =
+        matched.tracker_policy.empty() ? std::string("lite/default") : matched.tracker_policy;
+    profile->tracking_policy_reid = matched.reid_policy.empty() ? std::string("off") : matched.reid_policy;
+    profile->tracking_policy_fallback_reason.clear();
+
+    if (profile->tracking_policy_tracker == "none") {
+        profile->enable_tracking = false;
+        profile->tracking_policy_effective_tracker = "none";
+        if (profile->tracking_policy_reid != "off") {
+            profile->tracking_policy_reid = "off";
+            profile->tracking_policy_fallback_reason = "tracker-none-forces-reid-off";
+        }
+        return;
+    }
+
+    if (profile->tracking_policy_tracker == "kalman-lite" ||
+        profile->tracking_policy_tracker == "bytetrack") {
+        profile->enable_tracking = true;
+        profile->tracking_policy_effective_tracker = "lite/default";
+        profile->tracking_policy_fallback_reason =
+            profile->tracking_policy_tracker + "-runtime-pending";
+        return;
+    }
+
+    profile->enable_tracking = true;
+    profile->tracking_policy_effective_tracker = "lite/default";
 }
 
 }  // namespace
@@ -820,22 +941,28 @@ analysis::AnalysisProfile BuildAnalysisProfileFromQuery(const std::unordered_map
 
 analysis::AnalysisProfile ResolveAnalysisProfileForContext(analysis::AnalysisProfile profile,
                                                            const analysis::AnalysisContext& context) {
-    if (!profile.allow_rule_profile_override || profile.explicit_profile_requested) {
-        return profile;
-    }
     const auto matched = FindMatchingRuleProfile(context);
     if (!matched.has_value()) {
         return profile;
     }
     analysis::AnalysisProfile resolved = profile;
-    if (!ApplyRegisteredProfileById(matched->profile_id, &resolved)) {
+    const bool va_rule_context = !context.va_rule_id.empty() || !context.va_rule_ids.empty();
+    const bool can_apply_rule_profile = profile.allow_rule_profile_override &&
+                                        !profile.explicit_profile_requested &&
+                                        !matched->profile_id.empty();
+    if (can_apply_rule_profile && !ApplyRegisteredProfileById(matched->profile_id, &resolved)) {
         return profile;
     }
-    resolved.allow_rule_profile_override = false;
-    resolved.profile_selection_source = "rule";
+    if (can_apply_rule_profile) {
+        resolved.allow_rule_profile_override = false;
+        resolved.profile_selection_source = "rule";
+    } else if (!va_rule_context && (!profile.allow_rule_profile_override || profile.explicit_profile_requested)) {
+        return profile;
+    }
     resolved.selected_by_rule_id = matched->rule_id;
     resolved.selected_rule_priority = matched->priority;
     resolved.selected_rule_specificity = matched->specificity;
+    ApplyRuleTrackingPolicy(*matched, &resolved);
     return resolved;
 }
 

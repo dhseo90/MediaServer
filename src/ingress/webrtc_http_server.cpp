@@ -615,6 +615,98 @@ std::vector<std::string> AnalysisClassesFromDocument(const std::string& body) {
     return {};
 }
 
+std::string NormalizeTrackingPolicyToken(std::string value) {
+    value = Trim(std::move(value));
+    std::transform(value.begin(), value.end(), value.begin(), [](unsigned char ch) {
+        return static_cast<char>(std::tolower(ch));
+    });
+    if (value.empty() || value == "default" || value == "lite" || value == "lightweight" ||
+        value == "direction-based") {
+        return "lite/default";
+    }
+    if (value == "lite/default" || value == "none" || value == "kalman-lite" || value == "bytetrack") {
+        return value;
+    }
+    return {};
+}
+
+std::string NormalizeReidPolicyToken(std::string value) {
+    value = Trim(std::move(value));
+    std::transform(value.begin(), value.end(), value.begin(), [](unsigned char ch) {
+        return static_cast<char>(std::tolower(ch));
+    });
+    if (value.empty() || value == "off" || value == "none" || value == "disabled") {
+        return "off";
+    }
+    if (value == "assist" || value == "association-assist" || value == "reid-assist") {
+        return "assist";
+    }
+    return {};
+}
+
+std::optional<std::string> FirstStringFieldValue(const std::string& body,
+                                                 const std::vector<std::string>& fields) {
+    for (const auto& field : fields) {
+        const auto value = ParseStringField(body, field);
+        if (value.has_value()) {
+            return value;
+        }
+    }
+    return std::nullopt;
+}
+
+std::optional<std::string> TrackingPolicyObjectFromRuleDocument(const std::string& body,
+                                                                const std::string& analysis) {
+    if (const auto policy = ExtractObjectField(analysis, "trackingPolicy"); policy.has_value()) {
+        return policy;
+    }
+    if (const auto policy = ExtractObjectField(body, "trackingPolicy"); policy.has_value()) {
+        return policy;
+    }
+    return std::nullopt;
+}
+
+bool ValidateTrackingPolicyContract(const std::string& body,
+                                    const std::string& analysis,
+                                    const std::string& document_label,
+                                    std::string* error_message) {
+    const auto set_error = [error_message](const std::string& message) {
+        if (error_message != nullptr) {
+            *error_message = message;
+        }
+    };
+    const auto policy = TrackingPolicyObjectFromRuleDocument(body, analysis);
+    if (!policy.has_value()) {
+        return true;
+    }
+    const bool has_tracker_field =
+        FirstStringFieldValue(*policy, {"tracker", "trackerPolicy"}).has_value();
+    const bool has_reid_field =
+        FirstStringFieldValue(*policy, {"reid", "reId", "reID", "reidPolicy"}).has_value();
+    if (!has_tracker_field && !has_reid_field) {
+        set_error(document_label + " analysis.trackingPolicy requires tracker or reid");
+        return false;
+    }
+    const std::string tracker = NormalizeTrackingPolicyToken(
+        FirstStringFieldValue(*policy, {"tracker", "trackerPolicy"}).value_or(""));
+    if (tracker.empty()) {
+        set_error(document_label +
+                  " analysis.trackingPolicy.tracker must be none, lite/default, kalman-lite, or bytetrack");
+        return false;
+    }
+    const std::string reid = NormalizeReidPolicyToken(
+        FirstStringFieldValue(*policy, {"reid", "reId", "reID", "reidPolicy"}).value_or("off"));
+    if (reid.empty()) {
+        set_error(document_label + " analysis.trackingPolicy.reid must be off or assist");
+        return false;
+    }
+    if (tracker == "none" && reid != "off") {
+        set_error(document_label + " analysis.trackingPolicy.reid must be off when tracker is none");
+        return false;
+    }
+    return true;
+}
+
 // object 본문 안의 string array field가 비어 있지 않은지 확인한다.
 bool HasNonEmptyStringArrayField(const std::string& body, const std::string& field) {
     const auto array = ExtractArrayField(body, field);
@@ -707,7 +799,13 @@ public:
         std::ostringstream out;
         out << "{\"status\":\"registry\",\"storagePath\":\"" << JsonEscape(storage_path_.string()) << "\","
             << "\"scope\":\"저장된 vaRule은 영상 소스, 분석 profile, 이벤트 rule, scenario, geometry를 하나의 ID로 묶는다.\","
-            << "\"url\":\"?vaRule=<id>\",\"vaRules\":";
+            << "\"url\":\"?vaRule=<id>\","
+            << "\"trackingPolicyContract\":{\"field\":\"analysis.trackingPolicy\","
+            << "\"tracker\":[\"none\",\"lite/default\",\"kalman-lite\",\"bytetrack\"],"
+            << "\"reid\":[\"off\",\"assist\"],"
+            << "\"default\":{\"tracker\":\"lite/default\",\"reid\":\"off\"},"
+            << "\"runtimeFallback\":\"kalman-lite/bytetrack remain lite/default until their tracker implementations land\"},"
+            << "\"vaRules\":";
         AppendDocumentsArray(out, va_rules_);
         out << "}";
         return out.str();
@@ -724,7 +822,9 @@ public:
             << "\"match\":{\"sourceKind\":\"file|rtsp|webrtc|whep|http|hls|youtube|*\",\"route\":\"http|rtsp|webrtc|*\","
             << "\"clientId\":\"optional\"},\"analysis\":{\"profileId\":\"string\",\"detector\":\"dummy|yolo\","
             << "\"fps\":\"number\",\"maxQueue\":\"number\",\"frameSampleInterval\":\"number\","
-            << "\"maxFrameAgeMs\":\"number\"},\"outputs\":{\"metadata\":\"bool\","
+            << "\"maxFrameAgeMs\":\"number\","
+            << "\"trackingPolicy\":{\"tracker\":\"none|lite/default|kalman-lite|bytetrack\","
+            << "\"reid\":\"off|assist\"}},\"outputs\":{\"metadata\":\"bool\","
             << "\"snapshot\":\"bool\",\"overlay\":\"bool\",\"events\":\"bool\"},"
             << "\"eventActions\":{\"highlight\":{\"enabled\":\"bool\",\"mode\":\"blink\","
             << "\"durationMs\":\"number\",\"color\":\"fixed #ff0000\"},\"post\":{\"enabled\":\"bool\","
@@ -1034,6 +1134,9 @@ private:
                 SetRegistryError(error_message, "rule analysis.classes must include at least one category");
                 return std::nullopt;
             }
+            if (!ValidateTrackingPolicyContract(body, *analysis, "rule", error_message)) {
+                return std::nullopt;
+            }
         }
         return Document{*id, Trim(body)};
     }
@@ -1083,6 +1186,9 @@ private:
         const auto analysis = ExtractObjectField(body, "analysis");
         if (!analysis.has_value() || !HasNonEmptyStringArrayField(*analysis, "classes")) {
             SetRegistryError(error_message, "vaRule analysis.classes must include at least one category");
+            return std::nullopt;
+        }
+        if (!ValidateTrackingPolicyContract(body, *analysis, "vaRule", error_message)) {
             return std::nullopt;
         }
         const std::vector<std::string> va_rule_classes = StringArrayFieldValues(*analysis, "classes");
@@ -4601,7 +4707,16 @@ std::string RuntimeStatusJson(const core::SessionManager::RuntimeStateSnapshot& 
             << "\"profileSelectionSource\":\"" << JsonEscape(tap.profile_selection_source) << "\","
             << "\"selectedRuleId\":\"" << JsonEscape(tap.selected_by_rule_id) << "\","
             << "\"selectedRulePriority\":" << tap.selected_rule_priority << ","
-            << "\"selectedRuleSpecificity\":" << tap.selected_rule_specificity
+            << "\"selectedRuleSpecificity\":" << tap.selected_rule_specificity << ","
+            << "\"trackingPolicy\":{"
+            << "\"tracker\":\"" << JsonEscape(tap.tracking_policy_tracker) << "\","
+            << "\"effectiveTracker\":\"" << JsonEscape(tap.tracking_policy_effective_tracker) << "\","
+            << "\"reid\":\"" << JsonEscape(tap.tracking_policy_reid) << "\","
+            << "\"source\":\"" << JsonEscape(tap.tracking_policy_source) << "\","
+            << "\"ruleId\":\"" << JsonEscape(tap.tracking_policy_rule_id) << "\","
+            << "\"specified\":" << (tap.tracking_policy_specified ? "true" : "false") << ","
+            << "\"fallbackReason\":\"" << JsonEscape(tap.tracking_policy_fallback_reason) << "\""
+            << "}"
             << "}";
     }
     out << "],"
@@ -5186,6 +5301,15 @@ std::string AnalysisTapSnapshotJson(const analysis::AnalysisManager::TapSnapshot
         << "\"confidenceThreshold\":" << snapshot.confidence_threshold << ","
         << "\"nmsThreshold\":" << snapshot.nms_threshold << ","
         << "\"trackingEnabled\":" << (snapshot.tracking_enabled ? "true" : "false") << ","
+        << "\"trackingPolicy\":{"
+        << "\"tracker\":\"" << JsonEscape(snapshot.tracking_policy_tracker) << "\","
+        << "\"effectiveTracker\":\"" << JsonEscape(snapshot.tracking_policy_effective_tracker) << "\","
+        << "\"reid\":\"" << JsonEscape(snapshot.tracking_policy_reid) << "\","
+        << "\"source\":\"" << JsonEscape(snapshot.tracking_policy_source) << "\","
+        << "\"ruleId\":\"" << JsonEscape(snapshot.tracking_policy_rule_id) << "\","
+        << "\"specified\":" << (snapshot.tracking_policy_specified ? "true" : "false") << ","
+        << "\"fallbackReason\":\"" << JsonEscape(snapshot.tracking_policy_fallback_reason) << "\""
+        << "},"
         << "\"trackingClassLabels\":[";
     for (std::size_t i = 0; i < snapshot.tracking_class_labels.size(); ++i) {
         if (i != 0) {

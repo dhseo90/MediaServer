@@ -1812,6 +1812,30 @@ void VerifyVaMetadataSubscriptionFilter() {
     Pass("VaMetadata subscription filters");
 }
 
+void VerifyRuleTrackingPolicyProfileContract() {
+    AnalysisProfile legacy;
+    Expect(legacy.tracking_policy_tracker == "lite/default" &&
+               legacy.tracking_policy_effective_tracker == "lite/default" &&
+               legacy.tracking_policy_reid == "off",
+           "legacy AnalysisProfile must default to lite/default tracker and Re-ID off");
+    const std::string legacy_key = BuildProfileKey(legacy);
+    Expect(legacy_key.find("trackerPolicy=") == std::string::npos &&
+               legacy_key.find("reidPolicy=") == std::string::npos,
+           "external AnalysisProfile key must not expose rule-level tracking policy");
+
+    AnalysisProfile disabled = legacy;
+    disabled.enable_tracking = false;
+    disabled.tracking_policy_tracker = "none";
+    disabled.tracking_policy_effective_tracker = "none";
+    disabled.tracking_policy_rule_id = "17";
+    const std::string disabled_key = BuildProfileKey(disabled);
+    Expect(disabled_key.find("trackerPolicy=") == std::string::npos &&
+               disabled_key.find("policyRule=") == std::string::npos,
+           "tracker policy must remain outside externally visible profile key");
+
+    Pass("Rule-level tracking policy profile contract");
+}
+
 }  // namespace
 
 int main() {
@@ -1831,6 +1855,7 @@ int main() {
         VerifyEventRecorderMediaHooks();
         VerifyVaRuntimeMetadataBuilder();
         VerifyVaMetadataSubscriptionFilter();
+        VerifyRuleTrackingPolicyProfileContract();
         StopEventStorage();
         std::cout << "[summary] pass=" << g_pass_count << " fail=0\n";
         return EXIT_SUCCESS;
