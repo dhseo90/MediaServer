@@ -58,13 +58,13 @@ artifact로 업로드합니다. 같은 release 준비 흐름에서
 `verify-docs-ui-assets`, `verify-ui-visual-artifact-index`,
 `verify-ui-release-baseline-approval-log`, `write-ui-visual-baseline-comment`,
 `ui-visual-artifact-maintenance` 결과를 함께 확인합니다.
-actual tag, push, GitHub Release, accepted baseline 채택, 320/390/760/1180px
+future tag, push, GitHub Release, accepted baseline 채택, 320/390/760/1180px
 screenshot review는 리포트에 manual/not-run으로 남기며, 실제 실행 및 링크가
 없는 항목을 pass로 쓰지 않습니다.
 
 ## Tag 전략
 
-- 현재 source-only tag 후보는 `v1.3.0`입니다.
+- 현재 published source-only release tag는 `v1.3.0`입니다.
 - public-readiness, bundle policy, Actions status check가 모두 통과한 커밋에만 tag를 붙입니다.
 - `v1.3.0`은 live-only source release 기준을 유지한 minor release이며, binary/runtime/model bundle의 운영 배포 완료를 뜻하지 않습니다.
 - route/API/config/schema migration이 필요한 변경은 `v2.0.0` 후보로 분리합니다.

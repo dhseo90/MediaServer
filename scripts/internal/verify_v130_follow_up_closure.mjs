@@ -62,9 +62,10 @@ check("closure doc classifies all requested v1.3.0 follow-up items", () => {
 check("closure doc does not overclaim deferred feature work", () => {
   for (const snippet of [
     "Re-ID default-on, tracker 교체, runtime/model bundle 포함, field sample",
-    "scheduler, dataset ingest는 수행하지 않았습니다",
-    "별도 benchmark: 실행하지 않음, v1.4.0 별도 Phase gate",
-    "actual tag, push, GitHub Release",
+    "dataset ingest는 이 closure에서 수행하지 않았습니다",
+    "별도 benchmark: 실행하지 않음, 별도 Phase gate",
+    "v1.3.0 GitHub Release는",
+    "별도 release publish 단계에서 완료된 현재 release 상태로 봅니다",
     "장시간 `verify-predev` 또는 runtime console longrun은 사용자 명시 요청이",
     "미확인 항목을 통과로 쓰지 않습니다",
   ]) {
