@@ -93,3 +93,25 @@ git diff --check
 - default-on 제품 결정
 - 대형 tracker 교체
 - runtime/model bundle 포함 배포
+
+## Privacy Threat Model 보강
+
+Re-ID/appearance hook은 기본 비활성입니다. 다음 값은 identity material로 취급하며
+외부 metadata, client/viewer 화면, 공유 screenshot, release artifact에 남기지
+않습니다.
+
+- embedding vector와 embedding quality
+- bbox crop, crop tensor, track-linked appearance profile
+- Re-ID model path, checksum, artifact identity
+- field sample provenance, raw frame, camera/source locator
+
+privacy boundary:
+
+- WebRTC DataChannel, SSE/WS metadata, Event POST, debug JSON에는
+  embedding/crop/model path를 직렬화하지 않습니다.
+- client/viewer에는 source URL, raw JSON, BBox diagnostics, rule/profile editor,
+  identity material을 노출하지 않습니다.
+- field sample과 screenshot artifact는 redaction/privacy review 전에는 공유
+  보관소나 release asset에 올리지 않습니다.
+- runtime/model bundle 포함 배포는 source-only release와 분리한 별도 policy
+  review가 열릴 때만 다룹니다.

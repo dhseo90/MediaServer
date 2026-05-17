@@ -624,6 +624,10 @@ AppearanceProfile과 IAppearanceExtractor는 향후 Re-ID/attribute 분석을 �
 - `./server.sh verify-reid-advanced-tracking`은 default-off, privacy review, close-object benchmark command boundary를 정적 검증합니다.
 - v1.3.0 연구 지속 기준은 [Re-ID Default-off Research Continuation](reid-default-off-research-continuation.md)에
   분리하며, 제품 default-on 결정이나 대형 tracker 교체로 해석하지 않습니다.
+- privacy threat model에서는 embedding vector, bbox crop, track-linked
+  appearance profile, Re-ID model path/checksum, field sample provenance를
+  identity material로 취급합니다. redaction/privacy review 전에는 client/viewer,
+  외부 metadata, screenshot artifact, release asset에 남기지 않습니다.
 
 Re-ID/attribute 분석은 매 frame 실행 구조가 아닙니다.
 
