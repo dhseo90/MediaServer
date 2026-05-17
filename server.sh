@@ -116,6 +116,8 @@ Usage:
                  제품 UI 한국어/영어 문구 parity와 반복 UI translation pattern을 검증합니다.
   verify-docs-ui-assets
                  README/UI guide screenshot 자산과 자동 캡처 기준을 검증합니다.
+  verify-manual-ui-evidence
+                 수동 UI 검수 결과가 확인/미확인/건너뜀을 분리해 기록됐는지 검증합니다.
   verify-docs-links
                  README/docs Markdown 링크와 이미지 파일 참조를 검증합니다.
   verify-onvif-live-import-contract
@@ -530,6 +532,10 @@ case "${cmd}" in
   verify-docs-ui-assets)
     require_internal verify_docs_ui_assets.mjs
     exec "${INTERNAL_DIR}/verify_docs_ui_assets.mjs" "$@"
+    ;;
+  verify-manual-ui-evidence)
+    require_internal verify_manual_ui_evidence.mjs
+    exec "${INTERNAL_DIR}/verify_manual_ui_evidence.mjs" "$@"
     ;;
   verify-docs-links)
     require_internal verify_docs_links.mjs

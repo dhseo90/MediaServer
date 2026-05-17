@@ -76,6 +76,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_v1_1_boundary_keywords.mjs",
     "verify_code_comments.mjs",
     "verify_docs_links.mjs",
+    "verify_manual_ui_evidence.mjs",
     "verify_ops_client_ui_smoke.mjs",
     "verify_product_shell_examples.mjs",
     "verify_runtime_dashboard_longrun_template.mjs",

@@ -6,6 +6,8 @@ v1.2.0 제품 UI 체크리스트입니다. 자동 검증 결과를 대체하지 
 검수 기준으로 사용합니다.
 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를
 사용해 `확인됨`, `미확인`, `건너뜀`을 분리합니다.
+v1.2.1 patch evidence 기록은 [manual-ui-v1.2.1-result.md](./manual-ui-v1.2.1-result.md)에
+두며, 문서 구조는 `./server.sh verify-manual-ui-evidence`로 확인합니다.
 
 ## 1. 공통 준비
 
@@ -58,3 +60,4 @@ v1.2.0 제품 UI 체크리스트입니다. 자동 검증 결과를 대체하지 
 - 건너뜀: destructive action을 fixture가 없어 수행하지 않은 경우
 - 푸시: 명시 요청 전에는 수행하지 않고, 푸시 가능 여부만 보고합니다.
 - 템플릿: [manual-ui-result-template.md](./manual-ui-result-template.md)
+- v1.2.1 결과: [manual-ui-v1.2.1-result.md](./manual-ui-v1.2.1-result.md)
