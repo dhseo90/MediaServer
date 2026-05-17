@@ -94,6 +94,8 @@ Usage:
                  EventRecord가 짧은 증거 기록 범위로 노출되고 /ops/events UI가 이를 표시하는지 검증합니다.
   verify-fixture-cleanup-contracts
                  UI/Event 검증 fixture가 실행 후 복원/삭제 계약을 유지하는지 정적 검증합니다.
+  verify-flaky-verifiers
+                 access approval, rule preview, clipboard, route smoke verifier 안정화 guard를 검증합니다.
   verify-ops-evidence-retention-cleanup
                  Evidence retention cleanup job의 dry-run/apply/audit/report 계약을 검증합니다.
   verify-ops-audit-trail
@@ -488,6 +490,10 @@ case "${cmd}" in
   verify-fixture-cleanup-contracts)
     require_internal verify_fixture_cleanup_contracts.mjs
     exec "${INTERNAL_DIR}/verify_fixture_cleanup_contracts.mjs" "$@"
+    ;;
+  verify-flaky-verifiers)
+    require_internal verify_flaky_verifier_stabilization.mjs
+    exec "${INTERNAL_DIR}/verify_flaky_verifier_stabilization.mjs" "$@"
     ;;
   verify-ops-evidence-retention-cleanup)
     require_internal verify_ops_evidence_retention_cleanup.mjs

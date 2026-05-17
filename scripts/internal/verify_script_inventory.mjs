@@ -91,6 +91,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_ops_rule_relationships.mjs",
     "verify_ops_event_records_scope.mjs",
     "verify_fixture_cleanup_contracts.mjs",
+    "verify_flaky_verifier_stabilization.mjs",
     "verify_ops_source_lifecycle.mjs",
     "verify_ops_backup_restore_dry_run.mjs",
     "verify_ops_scenario_presets.mjs",
