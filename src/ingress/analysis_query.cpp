@@ -773,9 +773,7 @@ void ApplyRuleTrackingPolicy(const MatchingProfileRule& matched, analysis::Analy
 
     if (profile->tracking_policy_tracker == "bytetrack") {
         profile->enable_tracking = true;
-        profile->tracking_policy_effective_tracker = "lite";
-        profile->tracking_policy_fallback_reason =
-            profile->tracking_policy_tracker + "-runtime-pending";
+        profile->tracking_policy_effective_tracker = "bytetrack";
         return;
     }
 

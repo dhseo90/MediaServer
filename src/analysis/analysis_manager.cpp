@@ -100,9 +100,13 @@ void MergeReusableContext(AnalysisContext* target, const AnalysisContext& incomi
 ObjectTrackerOptions BuildTrackerOptions(const AnalysisProfile& profile) {
     const auto& config = app::GetAppConfig();
     ObjectTrackerOptions options;
-    options.tracker_kind = profile.tracking_policy_effective_tracker == "kalman-lite"
-                               ? ObjectTrackerKind::KalmanLite
-                               : ObjectTrackerKind::Lite;
+    if (profile.tracking_policy_effective_tracker == "kalman-lite") {
+        options.tracker_kind = ObjectTrackerKind::KalmanLite;
+    } else if (profile.tracking_policy_effective_tracker == "bytetrack") {
+        options.tracker_kind = ObjectTrackerKind::ByteTrack;
+    } else {
+        options.tracker_kind = ObjectTrackerKind::Lite;
+    }
     options.class_labels = profile.tracking_class_labels;
     options.track_all_when_class_labels_empty = !profile.tracking_classes_specified;
     options.iou_weight = config.analysis_tracking_iou_weight;

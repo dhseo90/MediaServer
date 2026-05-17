@@ -24,6 +24,7 @@ enum class CloseObjectGuardMode {
 enum class ObjectTrackerKind {
     Lite,
     KalmanLite,
+    ByteTrack,
 };
 
 CloseObjectGuardMode ParseCloseObjectGuardMode(const std::string& value);
@@ -42,6 +43,12 @@ struct ObjectTrackerOptions {
     float kalman_position_alpha{0.70F};
     float kalman_velocity_beta{0.80F};
     std::uint32_t kalman_max_prediction_frames{4};
+    // ByteTrack-style association keeps low-confidence detections internal and only
+    // publishes event/scene-visible tracks from high-confidence detections.
+    float bytetrack_high_score_threshold{0.50F};
+    float bytetrack_low_score_threshold{0.10F};
+    float bytetrack_low_association_score{0.18F};
+    float bytetrack_low_iou_threshold{0.10F};
     CloseObjectGuardMode close_object_guard_mode{CloseObjectGuardMode::Off};
     float close_object_distance_ratio{
         app_config::kDefaultAnalysisTrackingCloseObjectDistanceRatio};
@@ -85,6 +92,7 @@ private:
     struct ActiveTrack {
         Track public_track;
         KalmanLiteState kalman;
+        bool last_update_low_confidence{false};
     };
 
     ObjectTrackerOptions options_;

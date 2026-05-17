@@ -113,9 +113,9 @@ YOLO parser는 `YOLOv8/YOLO11` 계열의 `[1, 84, N]` 또는 `[1, N, 84]` 출력
 
 ### Tracking
 
-기본 tracker는 direction-based/lightweight tracker입니다. Kalman-lite는 v1.4.0
-rule-level opt-in tracker로 제공하며, BoT-SORT, ByteTrack, 실제 Re-ID 모델은
-기본 tracking id 생성에 사용하지 않습니다.
+기본 tracker는 direction-based/lightweight tracker입니다. Kalman-lite와
+ByteTrack 계열 tracker는 v1.4.0 rule-level opt-in tracker로 제공하며,
+BoT-SORT와 실제 Re-ID 모델은 기본 tracking id 생성에 사용하지 않습니다.
 
 v1.4.0부터 rule/vaRule은 `analysis.trackingPolicy`로 tracker/Re-ID 선택 계약을
 가질 수 있습니다. 기존 저장 rule에 이 필드가 없으면 자동 migration 없이
@@ -128,10 +128,13 @@ v1.4.0부터 rule/vaRule은 `analysis.trackingPolicy`로 tracker/Re-ID 선택 �
 
 `tracker=none`은 runtime tracking을 끄며 Re-ID는 `off`여야 합니다.
 `kalman-lite`는 Re-ID/model dependency 없이 motion prediction과 bbox smoothing을
-적용하는 opt-in runtime tracker입니다. `bytetrack`은 저장 계약 후보로 남기되,
-구현 전까지 runtime의 `effectiveTracker`는 Lite(`lite`)로 fallback합니다.
-fallback 상태는 내부 runtime status에만 남기고
-Event POST/WebRTC DataChannel/SSE/WS metadata schema에는 추가하지 않습니다.
+적용하는 opt-in runtime tracker입니다. `bytetrack`은 YOLO detection 결과를
+high/low confidence association으로 나누는 opt-in runtime tracker입니다.
+low-confidence detection은 기존 track continuity를 내부적으로 보강할 수 있지만
+새 public track을 만들거나 event/zone/line 판단용 track metadata로 승격하지
+않습니다. ByteTrack 상태는 내부 runtime status의 `effectiveTracker=bytetrack`으로
+확인하며 Event POST/WebRTC DataChannel/SSE/WS metadata schema에는 새 필드를
+추가하지 않습니다.
 외부 payload의 `source.profileKey` 문자열에도 policy token을 추가하지 않습니다.
 Re-ID `assist`도 외부 metadata에 embedding, crop, model path, checksum,
 appearance profile을 노출하지 않는 opt-in 정책값입니다.
@@ -153,7 +156,7 @@ unmatched track은 제한된 lost buffer에 남고, 짧은 누락 뒤 같은 cla
 | association score 저하 | trackId 흔들림 가능 |
 | lost/reacquired 증가 | 짧은 누락 뒤 재연결된 상태 |
 | detector 후처리 변경 필요 | tracker opt-in 범위 밖 |
-| ByteTrack/BoT-SORT/Re-ID 도입 | Kalman-lite 범위 밖 |
+| BoT-SORT/Re-ID 도입 | Kalman-lite/ByteTrack opt-in 범위 밖 |
 
 Close-object association guard는 이 한계를 관찰하기 위한 opt-in 진단/보정 skeleton입니다.
 
@@ -1543,8 +1546,8 @@ baseline 비교 기준:
 
 ## 19. 제한사항
 
-- 기본 tracker는 여전히 direction-based/lightweight tracker입니다. Kalman-lite는
-  rule-level opt-in이며, BoT-SORT/ByteTrack은 도입하지 않았습니다.
+- 기본 tracker는 여전히 direction-based/lightweight tracker입니다. Kalman-lite와
+  ByteTrack은 rule-level opt-in이며, BoT-SORT/DeepSORT 계열은 도입하지 않았습니다.
 - 실제 Re-ID/attribute 분석은 기본 비활성입니다.
   실험용 ONNX Re-ID extractor hook은 있지만,
   운영 feature/default-on으로 보려면 모델, 성능, 개인정보 정책 재검토가 별도 review로 필요합니다.

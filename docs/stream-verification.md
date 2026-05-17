@@ -693,6 +693,7 @@ file/url/source override와 섞지 않으며, 종료 시 임시 rule을 정리�
 
 ```bash
 ./server.sh verify-tracker-stability --tracker-policy kalman-lite
+./server.sh verify-tracker-stability --tracker-policy bytetrack
 ```
 
 Close-object guard 검증은 mode별 목적을 분리합니다.
@@ -716,8 +717,8 @@ mode별 tracker summary JSON과 Markdown report는
   --modes off,diagnostic,enforce
 ```
 
-Kalman-lite opt-in tracker에서 같은 guard 비교를 보려면 `--tracker-policy
-kalman-lite`를 추가합니다.
+Kalman-lite 또는 ByteTrack opt-in tracker에서 같은 guard 비교를 보려면
+`--tracker-policy kalman-lite` 또는 `--tracker-policy bytetrack`을 추가합니다.
 
 이미 실행 중인 서버를 기준으로만 비교해야 하면 `--use-existing-server --http-base <url>`을 사용합니다.
 이 경우 리포트의 `mode effective`가 `yes`인지 확인해야 합니다.

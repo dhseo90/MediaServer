@@ -170,7 +170,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-fragmentation", default="", help="verify-tracker-stability에 전달할 --max-fragmentation입니다.")
     parser.add_argument("--max-overlap-fragmentation", default="", help="verify-tracker-stability에 전달할 --max-overlap-fragmentation입니다.")
     parser.add_argument("--max-id-switch-risk", default="", help="verify-tracker-stability에 전달할 --max-id-switch-risk입니다.")
-    parser.add_argument("--tracker-policy", default="", help="verify-tracker-stability에 전달할 rule-level tracker policy입니다: lite 또는 kalman-lite.")
+    parser.add_argument("--tracker-policy", default="", help="verify-tracker-stability에 전달할 rule-level tracker policy입니다: lite, kalman-lite, 또는 bytetrack.")
     parser.add_argument("--no-long-sample", action="store_true", help="verify-tracker-stability에 --no-long-sample을 전달합니다.")
     parser.add_argument("--use-existing-server", action="store_true", help="이미 실행 중인 서버를 사용합니다. 기본은 mode별 격리 서버를 시작합니다.")
     parser.add_argument("--http-base", default="", help="--use-existing-server에서 사용할 HTTP base입니다.")
@@ -1334,8 +1334,8 @@ def main() -> int:
     args.tracker_policy = str(args.tracker_policy or "").strip().lower()
     if args.tracker_policy == "default":
         args.tracker_policy = ""
-    if args.tracker_policy and args.tracker_policy not in {"lite", "kalman-lite"}:
-        raise SystemExit("--tracker-policy must be lite or kalman-lite")
+    if args.tracker_policy and args.tracker_policy not in {"lite", "kalman-lite", "bytetrack"}:
+        raise SystemExit("--tracker-policy must be lite, kalman-lite, or bytetrack")
     if args.list_quality_presets:
         print(json.dumps({"qualityPresets": quality_preset_rows()}, ensure_ascii=False, indent=2))
         return 0

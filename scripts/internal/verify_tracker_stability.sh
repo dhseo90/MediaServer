@@ -70,7 +70,7 @@ Options:
                            overlap 구간 fragmentation ratio 허용 상한. 기본 2.5
   --max-id-switch-risk <v>
                            fragmentation/stale/overlap 기반 ID switch 위험 점수 허용 상한. 기본 2.0
-  --tracker-policy <name>   vaRule 기반 tracker policy를 강제합니다. 허용값: lite, kalman-lite
+  --tracker-policy <name>   vaRule 기반 tracker policy를 강제합니다. 허용값: lite, kalman-lite, bytetrack
   --restart-between-iterations
                            반복마다 source idle cleanup을 기다려 파일을 처음부터 다시 검증
   --continuous-source     반복 사이 source를 재시작하지 않고 연속 스트림처럼 검증
@@ -498,7 +498,7 @@ TRACKER_POLICY="$(printf '%s' "${TRACKER_POLICY}" | tr '[:upper:]' '[:lower:]')"
 if [[ "${TRACKER_POLICY}" == "default" ]]; then
   TRACKER_POLICY=""
 fi
-if [[ -n "${TRACKER_POLICY}" && "${TRACKER_POLICY}" != "lite" && "${TRACKER_POLICY}" != "kalman-lite" ]]; then
+if [[ -n "${TRACKER_POLICY}" && "${TRACKER_POLICY}" != "lite" && "${TRACKER_POLICY}" != "kalman-lite" && "${TRACKER_POLICY}" != "bytetrack" ]]; then
   log_fail "지원하지 않는 tracker policy입니다: ${TRACKER_POLICY}"
   exit 1
 fi

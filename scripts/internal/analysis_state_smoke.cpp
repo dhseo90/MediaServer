@@ -421,6 +421,37 @@ void VerifyObjectTrackerAssociationScoring() {
     Expect(kalman_center_x > 0.43F && kalman_center_x < 0.50F,
            "Kalman-lite tracker must output a filtered bbox center rather than raw jitter");
 
+    ObjectTrackerOptions bytetrack_options;
+    bytetrack_options.tracker_kind = ObjectTrackerKind::ByteTrack;
+    bytetrack_options.class_labels = {"*"};
+    bytetrack_options.smoothing_alpha = 0.0F;
+    bytetrack_options.min_iou = 0.05F;
+    bytetrack_options.max_center_distance = 0.2F;
+    bytetrack_options.bytetrack_high_score_threshold = 0.60F;
+    bytetrack_options.bytetrack_low_score_threshold = 0.20F;
+    bytetrack_options.bytetrack_low_association_score = 0.10F;
+    bytetrack_options.bytetrack_low_iou_threshold = 0.01F;
+    ObjectTracker bytetrack_tracker(bytetrack_options);
+    auto bytetrack_frame1 = MakeTrackerFrame(40, 1000, {MakeDetection(0, "person", 0.20F, 0.20F)});
+    bytetrack_tracker.Update(&bytetrack_frame1);
+    const std::uint64_t bytetrack_id = bytetrack_frame1.detections[0].track_id;
+    auto low_confidence_detection = MakeDetection(0, "person", 0.22F, 0.20F);
+    low_confidence_detection.score = 0.35F;
+    auto bytetrack_low_frame = MakeTrackerFrame(41, 1100, {low_confidence_detection});
+    bytetrack_tracker.Update(&bytetrack_low_frame);
+    Expect(bytetrack_low_frame.detections[0].track_id == 0 && bytetrack_low_frame.tracks.empty(),
+           "ByteTrack low-confidence association must stay out of event/scene-visible metadata");
+    auto bytetrack_frame3 = MakeTrackerFrame(42, 1200, {MakeDetection(0, "person", 0.24F, 0.20F)});
+    bytetrack_tracker.Update(&bytetrack_frame3);
+    Expect(bytetrack_id > 0 && bytetrack_frame3.detections[0].track_id == bytetrack_id,
+           "ByteTrack must use low-confidence association to keep the next high-confidence track id stable");
+    auto low_confidence_new = MakeDetection(0, "person", 0.80F, 0.80F);
+    low_confidence_new.score = 0.35F;
+    auto bytetrack_low_new_frame = MakeTrackerFrame(43, 1300, {low_confidence_new});
+    bytetrack_tracker.Update(&bytetrack_low_new_frame);
+    Expect(bytetrack_low_new_frame.detections[0].track_id == 0,
+           "ByteTrack must not create a new public track from a low-confidence detection");
+
     TrackStateManager manager;
     auto object1 = MakeObject(90, 1, 1000, 0.2F, 0.2F);
     object1.association_confidence = 1.0F;

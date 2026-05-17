@@ -285,6 +285,15 @@ ObjectTracker::ObjectTracker(ObjectTrackerOptions options) : options_(options) {
     options_.kalman_velocity_beta = std::max(0.0F, std::min(1.0F, options_.kalman_velocity_beta));
     options_.kalman_max_prediction_frames =
         std::max<std::uint32_t>(1, std::min<std::uint32_t>(16, options_.kalman_max_prediction_frames));
+    options_.bytetrack_high_score_threshold =
+        std::max(0.0F, std::min(1.0F, options_.bytetrack_high_score_threshold));
+    options_.bytetrack_low_score_threshold =
+        std::max(0.0F,
+                 std::min(options_.bytetrack_high_score_threshold, options_.bytetrack_low_score_threshold));
+    options_.bytetrack_low_association_score =
+        std::max(0.0F, std::min(1.0F, options_.bytetrack_low_association_score));
+    options_.bytetrack_low_iou_threshold =
+        std::max(0.0F, std::min(1.0F, options_.bytetrack_low_iou_threshold));
     options_.close_object_distance_ratio =
         std::max(0.01F, std::min(4.0F, options_.close_object_distance_ratio));
     options_.close_object_overlap_threshold =
@@ -396,8 +405,10 @@ void ObjectTracker::Update(AnalysisResult* result) {
         float association_center_distance{0.0F};
         CloseObjectAssociationDiagnostic diagnostic;
         bool has_diagnostic{false};
+        bool low_confidence{false};
     };
 
+    const bool bytetrack = options_.tracker_kind == ObjectTrackerKind::ByteTrack;
     std::vector<Candidate> candidates;
     for (std::size_t track_index = 0; track_index < tracks_.size(); ++track_index) {
         const Detection& tracked = tracks_[track_index].public_track.detection;
@@ -409,6 +420,14 @@ void ObjectTracker::Update(AnalysisResult* result) {
             if (!TrackClassCompatible(tracked, detection)) {
                 continue;
             }
+            const bool low_confidence_candidate =
+                bytetrack &&
+                detection.score >= options_.bytetrack_low_score_threshold &&
+                detection.score < options_.bytetrack_high_score_threshold;
+            if (bytetrack &&
+                detection.score < options_.bytetrack_low_score_threshold) {
+                continue;
+            }
 
             const bool kalman_lite = options_.tracker_kind == ObjectTrackerKind::KalmanLite;
             const RectF association_box =
@@ -418,8 +437,16 @@ void ObjectTracker::Update(AnalysisResult* result) {
             const float center_distance =
                 kalman_lite ? CenterDistance(association_box, detection.box)
                              : AssociationCenterDistance(tracks_[track_index].public_track, detection);
-            if (iou < options_.min_iou && center_distance > options_.max_center_distance) {
-                continue;
+            if (low_confidence_candidate) {
+                const float low_center_distance_limit = options_.max_center_distance * 0.75F;
+                if (iou < options_.bytetrack_low_iou_threshold &&
+                    center_distance > low_center_distance_limit) {
+                    continue;
+                }
+            } else {
+                if (iou < options_.min_iou && center_distance > options_.max_center_distance) {
+                    continue;
+                }
             }
 
             const ObjectAssociationScore score =
@@ -428,15 +455,24 @@ void ObjectTracker::Update(AnalysisResult* result) {
                                       options_,
                                       iou,
                                       center_distance);
+            const float required_score = low_confidence_candidate
+                                             ? options_.bytetrack_low_association_score
+                                             : options_.min_association_score;
             if (score.class_consistency_score <= 0.0F ||
-                score.final_score < options_.min_association_score) {
+                score.final_score < required_score) {
                 continue;
             }
+            const float ranking_score = low_confidence_candidate
+                                            ? Clamp01(score.final_score * 0.65F + iou * 0.35F)
+                                            : score.final_score;
             candidates.push_back(Candidate{track_index,
                                            detection_index,
                                            score,
-                                           score.final_score,
-                                           center_distance});
+                                           ranking_score,
+                                           center_distance,
+                                           {},
+                                           false,
+                                           low_confidence_candidate});
         }
     }
 
@@ -554,6 +590,9 @@ void ObjectTracker::Update(AnalysisResult* result) {
                         diagnostic.guard_decision = "enforce-continuity-bias";
                     }
                 }
+                if (candidate.low_confidence) {
+                    adjusted_score = std::min(adjusted_score, candidate.ranking_score);
+                }
                 candidate.ranking_score = Clamp01(adjusted_score);
                 diagnostic.ranking_score = candidate.ranking_score;
             } else if (diagnostic.would_hold_reacquire) {
@@ -577,14 +616,15 @@ void ObjectTracker::Update(AnalysisResult* result) {
     std::vector<bool> matched_tracks(tracks_.size(), false);
     std::vector<bool> matched_detections(result->detections.size(), false);
     std::vector<bool> selected_candidates(candidates.size(), false);
-    for (std::size_t candidate_index = 0; candidate_index < candidates.size(); ++candidate_index) {
+    const auto apply_candidate = [&](std::size_t candidate_index) {
         const Candidate& candidate = candidates[candidate_index];
         if (matched_tracks[candidate.track_index] || matched_detections[candidate.detection_index]) {
-            continue;
+            return;
         }
 
         ActiveTrack& track = tracks_[candidate.track_index];
         Detection detection = result->detections[candidate.detection_index];
+        const bool publish_detection = !candidate.low_confidence;
         const bool was_lost_buffer_track = track.public_track.missed > 0;
         const RectF measured_box = detection.box;
         detection.track_id = track.public_track.track_id;
@@ -607,11 +647,36 @@ void ObjectTracker::Update(AnalysisResult* result) {
         track.public_track.state =
             was_lost_buffer_track ? "reacquired" : TrackState(track.public_track, options_);
         AppendTrailPoint(&track.public_track, detection, result->pts, options_.max_trail_points);
+        track.last_update_low_confidence = candidate.low_confidence;
 
-        result->detections[candidate.detection_index] = detection;
+        if (publish_detection) {
+            result->detections[candidate.detection_index] = detection;
+        } else {
+            Detection public_detection = result->detections[candidate.detection_index];
+            public_detection.track_id = 0;
+            public_detection.association_confidence = 0.0F;
+            result->detections[candidate.detection_index] = public_detection;
+        }
         matched_tracks[candidate.track_index] = true;
         matched_detections[candidate.detection_index] = true;
         selected_candidates[candidate_index] = true;
+    };
+
+    if (bytetrack) {
+        for (std::size_t candidate_index = 0; candidate_index < candidates.size(); ++candidate_index) {
+            if (!candidates[candidate_index].low_confidence) {
+                apply_candidate(candidate_index);
+            }
+        }
+        for (std::size_t candidate_index = 0; candidate_index < candidates.size(); ++candidate_index) {
+            if (candidates[candidate_index].low_confidence) {
+                apply_candidate(candidate_index);
+            }
+        }
+    } else {
+        for (std::size_t candidate_index = 0; candidate_index < candidates.size(); ++candidate_index) {
+            apply_candidate(candidate_index);
+        }
     }
 
     if (close_object_diagnostics_enabled) {
@@ -656,6 +721,12 @@ void ObjectTracker::Update(AnalysisResult* result) {
             result->detections[detection_index] = detection;
             continue;
         }
+        if (bytetrack && detection.score < options_.bytetrack_high_score_threshold) {
+            detection.track_id = 0;
+            detection.association_confidence = 0.0F;
+            result->detections[detection_index] = detection;
+            continue;
+        }
         detection.track_id = next_track_id_++;
         detection.association_confidence = 1.0F;
         Track public_track;
@@ -682,6 +753,7 @@ void ObjectTracker::Update(AnalysisResult* result) {
         ++tracks_[track_index].public_track.age;
         ++tracks_[track_index].public_track.missed;
         tracks_[track_index].public_track.state = TrackState(tracks_[track_index].public_track, options_);
+        tracks_[track_index].last_update_low_confidence = false;
     }
 
     tracks_.erase(std::remove_if(tracks_.begin(),
@@ -694,7 +766,7 @@ void ObjectTracker::Update(AnalysisResult* result) {
     result->tracks.clear();
     result->tracks.reserve(tracks_.size());
     for (const auto& track : tracks_) {
-        if (track.public_track.missed == 0) {
+        if (track.public_track.missed == 0 && !track.last_update_low_confidence) {
             result->tracks.push_back(track.public_track);
         }
     }

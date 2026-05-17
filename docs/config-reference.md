@@ -505,7 +505,9 @@ close-object guard는 lightweight direction-based tracker 내부의 opt-in 진�
 | `diagnostic` | `closeObjectRisk`, `scoreMargin`, `centerJump`, `guardDecision` 후보 진단만 수집 | tracking 결과 변경 없음 |
 | `enforce` | center jump penalty와 continuity boost 후보를 ranking에 반영 가능 | 실험적 opt-in, default on 보류 |
 
-이 설정은 Kalman, ByteTrack, BoT-SORT, Re-ID 모델 도입이 아닙니다.
+이 설정은 tracker 종류를 바꾸는 설정이 아닙니다. Kalman-lite와 ByteTrack은
+rule-level `analysis.trackingPolicy.tracker` opt-in으로만 선택하며, BoT-SORT와
+Re-ID 모델 도입은 별도 review 범위입니다.
 
 ### TrackState/cleanup
 

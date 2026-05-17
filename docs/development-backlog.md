@@ -449,9 +449,10 @@ v1.4.0 비범위:
   거부합니다.
 - `kalman-lite`는 v1.4.0 P1 opt-in runtime tracker로 제공하며,
   `effectiveTracker=kalman-lite`로 표시합니다.
-- `bytetrack`은 v1.4.0 후보값으로 저장 계약에 포함하지만, 구현 전까지 runtime의
-  `effectiveTracker`는 `lite`로 남기고 fallback reason을 내부 runtime status에만
-  표시합니다.
+- `bytetrack`은 v1.4.0 P1 opt-in runtime tracker로 제공하며,
+  `effectiveTracker=bytetrack`으로 표시합니다. low-confidence association은
+  internal continuity 보강에만 사용하고 event/zone/line 판단용 public track으로
+  승격하지 않습니다.
 - Re-ID `assist`는 선택값 계약일 뿐이며 model artifact, embedding, crop, model
   path, checksum/provenance는 외부 Event POST/WebRTC/SSE/WS metadata 또는
   client/viewer 화면에 노출하지 않습니다.
@@ -548,6 +549,46 @@ opt-in runtime tracker입니다.
 
 - Lite tracker의 전역/default 동작 변경
 - ByteTrack, OC-SORT, BoT-SORT, DeepSORT 구현
+- Re-ID assist 고도화, Re-ID default-on, model/runtime bundle 포함
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
+
+### V140-P1-02 ByteTrack tracker 종료 판정
+
+`ByteTrack tracker`는 기존 Lite tracker를 전역 기본값으로 바꾸지 않고
+저장 rule/vaRule의 `analysis.trackingPolicy.tracker=bytetrack`에서만 켜는
+opt-in runtime tracker입니다.
+
+확인됨:
+
+- `bytetrack`은 runtime fallback 없이 `effectiveTracker=bytetrack`으로
+  해석합니다.
+- tracker 내부에서 high-confidence detection을 먼저 association하고,
+  unmatched track에 한해서 low-confidence detection을 2차 association 후보로
+  사용합니다.
+- low-confidence detection은 기존 track continuity를 내부적으로 이어줄 수 있지만
+  새 public track을 만들지 않고, event/zone/line 판단용 track metadata로도
+  승격하지 않습니다.
+- Re-ID/model dependency, embedding/crop/model path, 외부 metadata field는
+  추가하지 않습니다.
+- `verify-tracker-stability`와 `compare-close-object-tracker`는
+  `--tracker-policy bytetrack` 옵션으로 임시 vaRule을 만들어 rule-level opt-in
+  경로를 직접 검증할 수 있습니다.
+
+검증 기준:
+
+- `./server.sh build`
+- `./server.sh verify-analysis-state`
+- `./server.sh compare-close-object-tracker --fixture-matrix --tracker-policy bytetrack`
+- `./server.sh verify-tracker-stability --tracker-policy bytetrack`
+- `./server.sh verify-va-replay`
+- `./server.sh verify-va-events`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- Lite tracker의 전역/default 동작 변경
+- OC-SORT, BoT-SORT, DeepSORT 구현 또는 benchmark 실행
 - Re-ID assist 고도화, Re-ID default-on, model/runtime bundle 포함
 - Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
 - RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
