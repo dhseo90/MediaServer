@@ -7,7 +7,7 @@
 
 - 기본 release는 source archive와 문서 중심입니다.
 - GitHub가 자동 생성하는 source archive 외 binary bundle은 기본 제공하지 않습니다.
-- FFmpeg, FFprobe, libav*, x264/x265, GStreamer GPL-risk plugin, ONNX Runtime package, YOLO model binary는 release asset에 넣지 않습니다.
+- FFmpeg, FFprobe, libav*, x264/x265, GStreamer GPL-risk plugin, ONNX Runtime package, YOLO/Re-ID model binary는 release asset에 넣지 않습니다.
 - 운영 auth store, log, snapshot, evidence bundle, 고객/현장 영상은 release asset에 넣지 않습니다.
 
 ## Binary/Container release 기준
@@ -31,7 +31,7 @@ container-root 후보를 임시로 만들고, FFmpeg/GStreamer GPL-risk runtime,
 ONNX Runtime package, model binary가 policy gate에서 차단되는지 negative fixture로
 함께 확인합니다.
 runtime/model을 의도적으로 포함하면 upstream license text, attribution,
-source offer, checksum manifest를 release note에 연결합니다.
+source offer, model provenance, checksum manifest를 release note에 연결합니다.
 
 ## GitHub Releases 운영
 
