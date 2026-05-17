@@ -200,6 +200,8 @@ Usage:
                  post-release smoke 기록이 통과/미실행/미확인을 분리하는지 검증합니다.
   verify-release-closeout-helper
                  release close-out 전 로컬 검증과 수동 tag/push 경계를 dry-run으로 요약합니다.
+  verify-v121-follow-up-closure
+                 v1.2.1 roadmap 내 개발 가능한 후속 이슈가 남지 않았는지 검증합니다.
   verify-server-start-modes
                  foreground/start 실행 모드의 health, route, state file 안정성을 검증합니다.
   verify-auth-bootstrap
@@ -704,6 +706,10 @@ case "${cmd}" in
   verify-release-closeout-helper)
     require_internal verify_release_closeout_helper.mjs
     exec "${INTERNAL_DIR}/verify_release_closeout_helper.mjs" "$@"
+    ;;
+  verify-v121-follow-up-closure)
+    require_internal verify_v121_follow_up_closure.mjs
+    exec "${INTERNAL_DIR}/verify_v121_follow_up_closure.mjs" "$@"
     ;;
   verify-server-start-modes)
     require_internal verify_server_start_modes.sh

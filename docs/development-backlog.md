@@ -86,6 +86,14 @@ RTSP/WebRTC media path, auth/session contract 변경은 별도 review 없이는 
 | V121-P2-02 | P2 | UI polish from manual findings | 수동 UI 풀테스트에서 발견된 버튼 문구, overflow, focus, empty/loading/error copy 같은 작은 문제만 수정합니다. 제품 nav나 route 구조는 바꾸지 않습니다. | 수동 브라우저 검수, `verify-ops-client-ui --screenshots`, `verify-ui-copy-i18n-parity` |
 | V121-P2-03 | P2 | Dependency and artifact housekeeping | dependency snapshot, UI visual artifact retention, sample fixture provenance를 release 후 상태에 맞춰 정리합니다. runtime/model/binary bundle은 포함하지 않습니다. | `dependency-snapshot`, `verify-ui-visual-artifact-index`, `verify-bundle-policy` |
 
+### v1.2.1 Follow-up Closure
+
+v1.2.1 roadmap 완료 뒤 남은 후속 항목은
+[v1.2.1 Follow-up Closure](./v1.2.1-follow-up-closure.md)에 분리합니다.
+`verify-v121-follow-up-closure`는 release 운영 gate, 외부 장비/credential gate,
+수동 승인 gate를 개발 완료로 과장하지 않으면서 로드맵 내 개발 가능한 후속 이슈가
+남지 않았는지 확인합니다.
+
 v1.2.1 비범위:
 
 - ONVIF Profile G/Recording/Replay, WS-Discovery 자동 검색
