@@ -26,7 +26,7 @@ Options:
 Checks:
   - VERSION과 CMake project VERSION 값이 같은 semantic version인지 확인
   - README/English README의 latest source-only release link가 현재 tag를 가리키는지 확인
-  - versioning/release/backlog 문서가 같은 current release baseline과 next patch roadmap을 말하는지 확인
+  - versioning/release/backlog 문서가 같은 current release baseline과 patch close-out을 말하는지 확인
 `);
 }
 
@@ -42,17 +42,14 @@ const report = {
   status: "pass",
   currentVersion: "",
   currentTag: "",
-  nextPatchTag: "",
   checks: [],
 };
 
 const version = readText("VERSION").trim();
 assert(/^\d+\.\d+\.\d+$/.test(version), `VERSION must be semver, got ${version}`);
 const currentTag = `v${version}`;
-const nextPatchTag = nextPatch(version);
 report.currentVersion = version;
 report.currentTag = currentTag;
-report.nextPatchTag = nextPatchTag;
 
 check("VERSION matches CMake project VERSION", () => {
   const cmake = readText("CMakeLists.txt");
@@ -92,7 +89,7 @@ check("release policy pins source-only tag candidate and release note template",
   const doc = readText("docs/release-policy.md");
   for (const snippet of [
     `현재 source-only tag 후보는 \`${currentTag}\`입니다.`,
-    `\`${currentTag}\`은 live-only source release 기준을 유지한 minor release이며`,
+    `\`${currentTag}\`은 live-only source release 기준을 유지한 patch release이며`,
     `# Media Server ${currentTag}`,
     "source-only release에는 sample/model/runtime binary를 추가 업로드하지 않습니다.",
   ]) {
@@ -102,19 +99,19 @@ check("release policy pins source-only tag candidate and release note template",
   return { file: "docs/release-policy.md" };
 });
 
-check("development backlog separates current baseline from next patch roadmap", () => {
+check("development backlog pins current baseline and patch close-out", () => {
   const doc = readText("docs/development-backlog.md");
   for (const snippet of [
     `## 현재 기준: ${currentTag} Source Release Baseline`,
-    `${currentTag}은 v1.1.0 live-only source release 경계를 유지하면서`,
-    `## ${nextPatchTag} Patch Roadmap 후보`,
-    `${nextPatchTag}은 ${currentTag} release 이후 안정화 patch 후보입니다.`,
+    `${currentTag}은 v1.2.0 live-only source release 경계를 유지하면서`,
+    `## ${currentTag} Patch Close-out`,
+    `${currentTag}은 v1.2.0 release 이후 안정화 patch로 닫았습니다.`,
     "schema, Event POST payload, WebRTC DataChannel, SSE/WS metadata,",
     "RTSP/WebRTC media path, auth/session contract 변경은 별도 review 없이는 포함하지",
   ]) {
     assert(doc.includes(snippet), `docs/development-backlog.md missing snippet: ${snippet}`);
   }
-  return { file: "docs/development-backlog.md", currentTag, nextPatchTag };
+  return { file: "docs/development-backlog.md", currentTag };
 });
 
 check("docs index points to backlog as current release source of truth", () => {
@@ -127,7 +124,7 @@ check("docs index points to backlog as current release source of truth", () => {
     ["docs/en/README.md", docsEn],
   ]) {
     assert(text.includes("docs/development-backlog.md") || text.includes("../development-backlog.md"), `${label} missing development backlog link`);
-    assert(text.includes(`${currentTag} close-out`) || text.includes(`${currentTag} 종료 판정`) || text.includes(`${currentTag} patch candidates`) || text.includes(`${nextPatchTag} patch candidates`) || text.includes(`${nextPatchTag} patch 후보`), `${label} missing current/patch roadmap wording`);
+    assert(text.includes(`${currentTag} close-out`) || text.includes(`${currentTag} 종료 판정`) || text.includes(`${currentTag} patch close-out`), `${label} missing current release wording`);
   }
   return { files: ["README.md", "README.en.md", "docs/en/README.md"] };
 });
@@ -153,7 +150,6 @@ console.log("");
 console.log("== Release metadata consistency summary ==");
 console.log(`- current version: ${version}`);
 console.log(`- current tag: ${currentTag}`);
-console.log(`- next patch roadmap: ${nextPatchTag}`);
 console.log(`- pass: ${pass}`);
 console.log(`- fail: ${fail}`);
 
@@ -183,11 +179,6 @@ function assertNoOtherCurrentTag(text, label, expectedTag) {
   assert(unexpected.length === 0, `${label} has current tag other than ${expectedTag}: ${unexpected.join(", ")}`);
 }
 
-function nextPatch(value) {
-  const [major, minor, patch] = value.split(".").map(Number);
-  return `v${major}.${minor}.${patch + 1}`;
-}
-
 function readText(relativePath) {
   return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
 }
@@ -206,7 +197,6 @@ function renderMarkdown(payload) {
     `- status: ${payload.status}`,
     `- currentVersion: ${payload.currentVersion}`,
     `- currentTag: ${payload.currentTag}`,
-    `- nextPatchTag: ${payload.nextPatchTag}`,
     "",
     "| 결과 | 검사 | 상세 |",
     "| --- | --- | --- |",

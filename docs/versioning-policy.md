@@ -4,12 +4,15 @@
 
 ## 현재 기준
 
-- 현재 기준 버전: `v1.2.0`
+- 현재 기준 버전: `v1.2.1`
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
-- `v1.2.0`은 live-only source release 기준을 유지하면서 현장 운영, UI, 통합 계약, release guardrail을 보강한 source-only minor release입니다.
-- 현재 제품 경계와 v1.2.0 종료 판정은 [development-backlog.md](./development-backlog.md)를 기준으로 합니다.
+- `v1.2.1`은 `v1.2.0`의 live-only source release 경계를 유지하면서 release metadata,
+  post-release reconciliation, manual UI evidence, flaky verifier, Re-ID/ONVIF wording,
+  release close-out, dependency/artifact housekeeping을 닫은 source-only patch release입니다.
+- 현재 제품 경계와 v1.2.1 종료 판정은 [development-backlog.md](./development-backlog.md)와
+  [v1.2.1-follow-up-closure.md](./v1.2.1-follow-up-closure.md)를 기준으로 합니다.
 
-## `v1.2.0`에 포함되는 범위
+## `v1.2.1`에 포함되는 범위
 
 - Apache-2.0 소스 코드
 - 문서, 설정 예시, 검증 스크립트
@@ -24,8 +27,11 @@
 - source-only release packaging rehearsal과 bundle policy dry-run
 - Re-ID/advanced tracking default-off 실험 guard
 - YouTube import/source lab-only 현상 유지 결정
+- v1.2.1 patch guard: release metadata consistency, post-release reconciliation, manual UI evidence,
+  flaky verifier stabilization, Re-ID/ONVIF wording hardening, release close-out helper,
+  Korean/English doc drift cleanup, UI polish from manual findings, dependency/artifact housekeeping
 
-## `v1.2.0`에 포함하지 않는 범위
+## `v1.2.1`에 포함하지 않는 범위
 
 - FFmpeg/GStreamer/ONNX Runtime/YOLO model binary bundle
 - container image, offline package, app bundle
@@ -52,7 +58,7 @@
 
 ## Tag와 release 기준
 
-- 현재 source-only release tag 기준은 `v1.2.0`입니다.
+- 현재 source-only release tag 기준은 `v1.2.1`입니다.
 - tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만 붙입니다.
 - source-only release에는 sample/model/runtime binary를 추가 업로드하지 않습니다.
 - binary/container/offline bundle은 별도 RC gate와 bundle policy 검토를 통과한 뒤 별도 release로 다룹니다.
