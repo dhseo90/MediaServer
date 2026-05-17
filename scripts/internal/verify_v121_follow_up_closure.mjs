@@ -88,7 +88,9 @@ check("roadmap and verification docs link the closure guard", () => {
 check("existing closure evidence remains connected", () => {
   for (const snippet of [
     "## V121-P2-02 UI Polish Follow-up",
-    "UI 코드 수정: 수행하지 않음",
+    "보강 반응형 polish fix",
+    "UI 코드 수정: 수행함",
+    "제품 nav/route/API/schema 변경: 없음",
     "verify-ui-copy-i18n-parity",
   ]) {
     assertIncludes(manualUi, snippet, "manual UI result");

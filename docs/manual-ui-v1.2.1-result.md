@@ -6,22 +6,24 @@
 ## 검수 메타데이터
 
 - run id: `v121-manual-ui-20260517-kst`
-- 검수자: Codex, Chrome + Computer Use
+- 검수자: Codex, Chrome + Computer Use, 보강 검수는 Codex in-app browser와 screenshot smoke
 - 날짜/시간: 2026-05-17 KST
-- 브랜치/커밋: `v1.2.1`, 기록 작성 직전 HEAD `7bd9713`
+- 브랜치/커밋: `v1.2.1`, 초기 수동 기록 HEAD `7bd9713`, 보강 반응형 polish 커밋 `ee62709`
 - 서버 URL: `http://127.0.0.1:8081`
 - auth mode: 제품 UI 수동 확인 서버는 `MEDIA_SERVER_AUTH_MODE=off`
 - users/source/view fixture: 기본 seed 구성, request-access form submit 없음, destructive action 없음
 - 브라우저: Google Chrome local window
-- viewport: desktop Chrome window, screenshot smoke는 `320,390,760,1180`
-- screenshot artifact: `/tmp/media_server_v121_manual_ui_20260517/screenshots`
+- viewport: desktop Chrome window, screenshot smoke와 보강 검수는 `320,390,760,1180`
+- screenshot artifact: 초기 `/tmp/media_server_v121_manual_ui_20260517/screenshots`, 보강 `/tmp/media_server_ui_review_stage1_final`
 
 ## 관련 자동 검증
 
 | 명령 | 결과 | 비고 |
 | --- | --- | --- |
 | `./server.sh verify-ops-client-ui --http-base http://127.0.0.1:8081 --screenshots --output-dir /tmp/media_server_v121_manual_ui_20260517/screenshots` | PASS | sandbox 내부 첫 실행은 local fetch/CDP 제한으로 실패, 권한 밖 재실행 기준 route/API `16/0`, screenshot `28/0`, mobile/header/keyboard/audit/ONVIF smoke 모두 `0` 실패 |
+| `./server.sh verify-ops-client-ui --http-base http://127.0.0.1:8081 --screenshots --output-dir /tmp/media_server_ui_review_stage1_final` | PASS | 보강 반응형 검수 기준 route/API `16/0`, screenshot `28/0`, client mobile header `4/0`, keyboard `2/0`, audit `4/0`, ONVIF hint `4/0`, ONVIF preview `2/0` |
 | `./server.sh verify-rule-ui --http-base http://127.0.0.1:8081 --output-dir /tmp/media_server_v121_manual_ui_20260517/rule-ui` | PASS | pre-save validation, nav round-trip, mobile geometry 통과 |
+| `./server.sh verify-ops-tables-layout --http-base http://127.0.0.1:8081` | PASS | channels/rules/users 1180/900/760/560/390/320 responsive table overflow `0`, 총 `48/0` |
 | `./server.sh verify-docs-ui-assets` | PASS | README/UI guide screenshot asset policy 통과 |
 | `./server.sh verify-auth-bootstrap` | PASS | isolated auth server 기준 `14/0` |
 | `./server.sh verify-auth-users` | PASS | isolated auth server 기준 `57/0` |
@@ -72,10 +74,10 @@ client/viewer 화면 기준입니다. Ops 화면의 운영자용 source/copy 정
 
 | viewport | theme | 확인 화면 | overflow/겹침 | 판정 |
 | --- | --- | --- | --- | --- |
-| 320px | light | automated screenshots: ops home/dashboard/rules/sources/users, client live/dashboard | overflow `0` | PASS |
-| 390px | light | automated screenshots: ops home/dashboard/rules/sources/users, client live/dashboard | overflow `0` | PASS |
-| 760px | light | automated screenshots: ops home/dashboard/rules/sources/users, client live/dashboard | overflow `0` | PASS |
-| 1180px | light | automated screenshots: ops home/dashboard/rules/sources/users, client live/dashboard | overflow `0` | PASS |
+| 320px | active theme | automated screenshots: ops home/dashboard/rules/sources/users, client live/dashboard | overflow `0`, nav 마지막 row 외톨이 없음 | PASS |
+| 390px | active theme | automated screenshots: ops home/dashboard/rules/sources/users, client live/dashboard | overflow `0`, nav 마지막 row 외톨이 없음 | PASS |
+| 760px | active theme | automated screenshots: ops home/dashboard/rules/sources/users, client live/dashboard | overflow `0`, nav 마지막 row 외톨이 없음 | PASS |
+| 1180px | active theme | automated screenshots: ops home/dashboard/rules/sources/users, client live/dashboard | overflow `0`, nav 마지막 row 외톨이 없음 | PASS |
 | desktop | dark | `/ops/events` manual toggle | text/card/table contrast maintained at observed viewport | PASS |
 
 ## 실패
@@ -112,11 +114,15 @@ client/viewer 화면 기준입니다. Ops 화면의 운영자용 source/copy 정
 
 ## V121-P2-02 UI Polish Follow-up
 
-- 처리 방식: no-op polish closure.
-- 근거: manual findings 표의 실패 항목이 `없음`이고, overflow/겹침은
-  320/390/760/1180 screenshot smoke에서 `0`으로 기록됐습니다.
-- UI 코드 수정: 수행하지 않음.
-- 이유: 버튼 문구, overflow, focus, empty/loading/error copy 관련 확인된 회귀가
-  없어 제품 nav나 route 구조를 건드리지 않습니다.
+- 처리 방식: 보강 반응형 polish fix.
+- 근거: manual findings 표의 실패 항목이 `없음`이었지만, 2026-05-17
+  보강 검수에서 320px viewport의 product page grid child min-width와
+  제목/단일 새로고침 툴바 정렬이 작은 overflow/가시성 risk로 확인됐습니다.
+- UI 코드 수정: 수행함. `src/ingress/product_ui_css.cpp`에서 product page
+  child 수축과 `.panel-title-toolbar` 정렬을 고정하고,
+  `src/ingress/webrtc_http_server.cpp`에서 단일 새로고침 툴바에만 해당 class를
+  적용했습니다.
+- 제품 nav/route/API/schema 변경: 없음.
 - 재확인 명령: `verify-ops-client-ui --screenshots`,
-  `verify-ui-copy-i18n-parity`, `verify-manual-ui-evidence`.
+  `verify-ops-tables-layout`, `verify-ui-copy-i18n-parity`,
+  `verify-manual-ui-evidence`.

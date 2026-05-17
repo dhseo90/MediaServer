@@ -93,6 +93,9 @@ v1.2.1 roadmap 완료 뒤 남은 후속 항목은
 `verify-v121-follow-up-closure`는 release 운영 gate, 외부 장비/credential gate,
 수동 승인 gate를 개발 완료로 과장하지 않으면서 로드맵 내 개발 가능한 후속 이슈가
 남지 않았는지 확인합니다.
+2026-05-17 보강 UI 점검에서 확인한 320px product shell overflow/toolbar 정렬
+risk는 v1.2.1 UI polish 범위 안에서 닫았고, 제품 nav/route/API/schema는
+변경하지 않았습니다.
 
 v1.2.1 비범위:
 

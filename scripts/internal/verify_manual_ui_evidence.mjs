@@ -101,11 +101,13 @@ check("manual result lists not-run and skipped items explicitly", () => {
 check("manual result closes V121-P2-02 without expanding UI scope", () => {
   assertIncludes(result, [
     "## V121-P2-02 UI Polish Follow-up",
-    "no-op polish closure",
+    "보강 반응형 polish fix",
     "manual findings 표의 실패 항목이 `없음`",
-    "UI 코드 수정: 수행하지 않음",
-    "제품 nav나 route 구조를 건드리지 않습니다",
+    "320px viewport의 product page grid child min-width",
+    "UI 코드 수정: 수행함",
+    "제품 nav/route/API/schema 변경: 없음",
     "verify-ops-client-ui --screenshots",
+    "verify-ops-tables-layout",
     "verify-ui-copy-i18n-parity",
   ], "docs/manual-ui-v1.2.1-result.md");
 });

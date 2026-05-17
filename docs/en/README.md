@@ -16,6 +16,7 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 | Video analytics | [../video-analysis.md](../video-analysis.md) |
 | Integrator contract artifact | [../integrator-contract-artifact.md](../integrator-contract-artifact.md) |
 | Current product boundary, v1.2.0 close-out, and v1.2.1 patch candidates | [../development-backlog.md](../development-backlog.md) |
+| v1.2.1 follow-up closure | [../v1.2.1-follow-up-closure.md](../v1.2.1-follow-up-closure.md) |
 | Verification | [../stream-verification.md](../stream-verification.md) |
 | Distribution policy | [../distribution-policy.md](../distribution-policy.md) |
 | Release policy | [../release-policy.md](../release-policy.md) |
@@ -56,7 +57,7 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 | v1.1.0 prerequisite roadmap 1-6 | Done | Live-only boundary, ONVIF live source support, source health, VA quality, delivery contract, and multilingual alignment are closed |
 | v1.1.0 RC stabilization | Done | Final local longrun/P1 release-gate evidence is closed without rerunning prerequisite roadmap 1-6 |
 | v1.2.0 roadmap close-out | Done | ONVIF no-device scope, UI refresh, source health workflow, client polish, account lifecycle, release rehearsal, Re-ID warning guard, and YouTube lab-only decision are documented |
-| v1.2.1 patch roadmap | Stabilization | Release metadata guard, post-release evidence, manual UI evidence, flaky verifier hardening, Re-ID/ONVIF wording guards, release close-out dry-run, and doc/artifact housekeeping stay inside patch scope |
+| v1.2.1 patch roadmap | Closed locally | Release metadata guard, post-release evidence, manual UI evidence, flaky verifier hardening, Re-ID/ONVIF wording guards, release close-out dry-run, and doc/artifact housekeeping stay inside patch scope; release, external-device, and approval gates remain separate |
 | Audit trail operations | Follow-up phase | Server persistence exists; search/export can improve |
 | Short event evidence | Supporting | EventRecord/snapshot/clip cleanup exists, but it is not the main product direction |
 | RC gate operations | Conditional gate | Repeat longrun only for a new release cut or high-risk media/VA fanout change |
@@ -64,7 +65,7 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 
 ## General Follow-Ups
 
-- Use [../development-backlog.md](../development-backlog.md) as the source of truth for the v1.2.0 close-out and v1.2.1 patch candidates.
+- Use [../development-backlog.md](../development-backlog.md) as the source of truth for the v1.2.0 close-out and v1.2.1 patch candidates; use [../v1.2.1-follow-up-closure.md](../v1.2.1-follow-up-closure.md) for the follow-up closure boundary.
 - Close or suppress existing Dependabot major-update PR noise after the policy is documented.
 - Add richer English docs only if the public audience grows beyond this consolidated index.
 - Attach the latest RC artifacts to release notes when cutting the actual tag or GitHub Release.
