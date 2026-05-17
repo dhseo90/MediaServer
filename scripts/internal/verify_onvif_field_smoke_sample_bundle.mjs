@@ -59,6 +59,8 @@ assert(manifest.fieldDevice?.realDeviceEndpointSuccess === "unverified", "manife
 assert(summary.mode === "field-smoke-template", "summary mode mismatch");
 assert(summary.realDeviceTestPerformed === false, "summary realDeviceTestPerformed must be false for sample");
 assert(summary.realDeviceEndpointSuccess === "unverified", "summary realDeviceEndpointSuccess must be unverified");
+assert(summary.operatorChecklistStatus === "skipped", "summary operatorChecklistStatus must be skipped for sample");
+assert(summary.failureWording === "skipped: real device endpoint not provided; no-device suite result only", "summary failureWording must be sanitized skip wording");
 assert(summary.endpoint === "<redacted-host>/onvif/device_service", "summary endpoint must be redacted placeholder");
 assert(summary.auth?.credentialReferencePresent === true, "summary credentialReferencePresent must be true");
 assert(summary.auth?.plaintextSecretIncluded === false, "summary plaintextSecretIncluded must be false");
@@ -88,6 +90,10 @@ for (const term of [
   "streamUriRedacted=true",
   "realDeviceEndpointSuccess=unverified",
   "realDeviceTestPerformed=false",
+  "operatorChecklistStatus=skipped",
+  "Failure Wording",
+  "skipped: real device endpoint not provided",
+  "blocked: Digest or WS-Security required; out of",
   "field-smoke-report-template.md",
   "Evidence Index",
 ]) {
