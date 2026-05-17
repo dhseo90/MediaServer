@@ -791,6 +791,9 @@ Tracking category가 비어 있으면 profile 저장을 막습니다. 전체 추
 라인 모드에서는 영역/라인 캔버스의 선 중앙에
 현재 설정 방향을 나타내는 작은 화살표를 표시합니다.
 `any`는 양방향, `forward`/`reverse`는 선택한 한 방향만 표시합니다.
+현장 preset은 line-crossing 기본 이벤트에서도 선택할 수 있지만,
+scenario label을 새로 저장하지 않고 최소 신뢰도 시작값만 채웁니다.
+방향과 2점 line geometry는 현장 영상에서 확인해야 합니다.
 
 ## 9. 시나리오 이벤트
 
@@ -854,6 +857,8 @@ Loitering UI 정책:
   [Analysis Threshold Baselines](analysis-threshold-baselines.md)의
   retail/lobby/platform/doorway/parking 기준값에서 고릅니다.
   preset은 dwell/radius/trajectory뿐 아니라 cooldown 시작값도 함께 채웁니다.
+- warning copy는 preset을 확정값이 아니라 field sample replay 기준 시작값으로
+  표시하고, TrackHealth가 불안정하면 dwell부터 늘리도록 안내합니다.
 - Event POST payload schema, WebRTC/SSE/WS metadata schema, ScenarioEngine 판단 로직은 변경하지 않습니다.
 
 Intrusion Dwell UI 항목:
@@ -898,6 +903,8 @@ Loitering UI 항목:
 
 실제 scenario engine 활성화와 기본값은 서버 설정과 함께 동작합니다. 환경변수는 [config-reference.md](./config-reference.md)를 봅니다.
 ZoneOccupancy 현장 시작 threshold도 [Analysis Threshold Baselines](analysis-threshold-baselines.md)에 정리되어 있습니다.
+점유 preset warning copy는 polygon이 병목 구간만 포함한다는 전제와 정상 피크 반복 시
+threshold를 먼저 올리는 조정 순서를 함께 표시합니다.
 
 ## 10. 영역/라인 캔버스
 

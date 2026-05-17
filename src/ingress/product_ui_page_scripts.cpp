@@ -3230,6 +3230,7 @@ void AppendOpsShellScript(std::ostringstream& out,
       const opsScenarioPresetBaselines = {
         default: {
           all: { minConfidence: 0.25, minDurationMs: 0, cooldownMs: 5000 },
+          'line-crossing': { minDurationMs: 0 },
           'intrusion-dwell': { candidateTimeMs: 2000, dwellTimeMs: 10000 },
           're-entry': { reEntryWindowMs: 10000 },
           'wrong-direction': { cooldownMs: 5000 },
@@ -3247,23 +3248,27 @@ void AppendOpsShellScript(std::ostringstream& out,
         },
         retail: {
           all: { minConfidence: 0.3, cooldownMs: 10000 },
+          'line-crossing': { minDurationMs: 0 },
           loitering: { minDwellTimeMs: 20000, maxMovementRadius: 0.06, minTrajectoryPoints: 4, cooldownMs: 10000 },
           'zone-occupancy': { occupancyThreshold: 4, minDwellTimeMs: 7000, cooldownMs: 12000 }
         },
         park: {
           all: { minConfidence: 0.3, cooldownMs: 15000 },
+          'line-crossing': { minDurationMs: 0 },
           'intrusion-dwell': { candidateTimeMs: 3000, dwellTimeMs: 15000 },
           loitering: { minDwellTimeMs: 60000, maxMovementRadius: 0.12, minTrajectoryPoints: 5, cooldownMs: 20000 },
           'zone-occupancy': { occupancyThreshold: 6, minDwellTimeMs: 10000, cooldownMs: 15000 }
         },
         indoor: {
           all: { minConfidence: 0.3, cooldownMs: 8000 },
+          'line-crossing': { minDurationMs: 0 },
           'intrusion-dwell': { candidateTimeMs: 1500, dwellTimeMs: 5000 },
           loitering: { minDwellTimeMs: 20000, maxMovementRadius: 0.06, minTrajectoryPoints: 4, cooldownMs: 10000 },
           'zone-occupancy': { occupancyThreshold: 4, minDwellTimeMs: 7000, cooldownMs: 12000 }
         },
         lobby: {
           all: { minConfidence: 0.32, cooldownMs: 12000 },
+          'line-crossing': { minDurationMs: 0 },
           'intrusion-dwell': { candidateTimeMs: 1000, dwellTimeMs: 4000 },
           're-entry': { reEntryWindowMs: 12000 },
           loitering: { minDwellTimeMs: 30000, maxMovementRadius: 0.08, minTrajectoryPoints: 4, cooldownMs: 12000 },
@@ -3293,14 +3298,30 @@ void AppendOpsShellScript(std::ostringstream& out,
         },
         parking: {
           all: { minConfidence: 0.35, cooldownMs: 20000 },
+          'line-crossing': { minDurationMs: 0 },
           loitering: { minDwellTimeMs: 60000, maxMovementRadius: 0.12, minTrajectoryPoints: 5, cooldownMs: 20000 },
           'zone-occupancy': { occupancyThreshold: 5, minDwellTimeMs: 10000, cooldownMs: 15000 }
         },
         elevator: {
           all: { minConfidence: 0.32, cooldownMs: 12000 },
+          'line-crossing': { minDurationMs: 0 },
           loitering: { minDwellTimeMs: 30000, maxMovementRadius: 0.08, minTrajectoryPoints: 4, cooldownMs: 12000 },
           'zone-occupancy': { occupancyThreshold: 5, minDwellTimeMs: 8000, cooldownMs: 12000 }
         }
+      };
+      const opsScenarioPresetLabels = {
+        default: '기본',
+        road: '도로',
+        retail: '매장 통로',
+        park: '공원',
+        indoor: '실내',
+        lobby: '로비',
+        platform: '승강장',
+        entrance: '출입구',
+        doorway: '문 앞 정체',
+        parking: '주차장 가장자리',
+        elevator: '승강기 홀',
+        custom: '직접 설정'
       };
       function opsEventRuleModeForType(type) {
         return opsRulesIsScenarioType(type) ? 'scenario' : 'event';
@@ -3316,6 +3337,90 @@ void AppendOpsShellScript(std::ostringstream& out,
           ...(preset.all || {}),
           ...(preset[normalizedType] || {})
         };
+      }
+      function opsRulesPresetNumber(value, digits = 0) {
+        const number = Number(value);
+        if (!Number.isFinite(number)) return '';
+        return digits > 0 ? number.toFixed(digits) : String(Math.round(number));
+      }
+      function opsRulesPresetMs(value) {
+        const text = opsRulesPresetNumber(value);
+        return text ? `${text}ms` : '';
+      }
+      function opsRulesPresetBaselineSummary(type, baseline = {}) {
+        const normalizedType = String(type || '').trim();
+        const parts = [];
+        const confidence = opsRulesPresetNumber(baseline.minConfidence, 2);
+        if (confidence) parts.push(`신뢰도 ${confidence}`);
+        if (normalizedType === 'line-crossing') {
+          parts.push('line 2점');
+          parts.push('방향 직접 선택');
+          return parts.join(' · ');
+        }
+        if (normalizedType === 'loitering') {
+          const dwell = opsRulesPresetMs(baseline.minDwellTimeMs);
+          const radius = opsRulesPresetNumber(baseline.maxMovementRadius, 2);
+          const points = opsRulesPresetNumber(baseline.minTrajectoryPoints);
+          if (dwell) parts.push(`체류 ${dwell}`);
+          if (radius) parts.push(`반경 ${radius}`);
+          if (points) parts.push(`경로점 ${points}`);
+        } else if (normalizedType === 'zone-occupancy') {
+          const threshold = opsRulesPresetNumber(baseline.occupancyThreshold);
+          const dwell = opsRulesPresetMs(baseline.minDwellTimeMs);
+          if (threshold) parts.push(`점유 ${threshold}`);
+          if (dwell) parts.push(`체류 ${dwell}`);
+        } else if (normalizedType === 'intrusion-after-line-crossing') {
+          const delay = opsRulesPresetMs(baseline.maxDelayAfterCrossingMs);
+          const dwell = opsRulesPresetMs(baseline.dwellTimeMs);
+          if (delay) parts.push(`라인 후 ${delay}`);
+          if (dwell) parts.push(`체류 ${dwell}`);
+        } else if (normalizedType === 'intrusion-dwell') {
+          const candidate = opsRulesPresetMs(baseline.candidateTimeMs);
+          const dwell = opsRulesPresetMs(baseline.dwellTimeMs);
+          if (candidate) parts.push(`후보 ${candidate}`);
+          if (dwell) parts.push(`확정 ${dwell}`);
+        } else if (normalizedType === 're-entry') {
+          const windowLabel = opsRulesPresetMs(baseline.reEntryWindowMs);
+          if (windowLabel) parts.push(`재진입 ${windowLabel}`);
+        }
+        const cooldown = opsRulesPresetMs(baseline.cooldownMs);
+        if (cooldown) parts.push(`재알림 ${cooldown}`);
+        return parts.join(' · ');
+      }
+      function opsRulesPresetWarningText(type) {
+        const normalizedType = String(type || '').trim();
+        if (normalizedType === 'line-crossing') {
+          return '라인 통과 preset은 최소 신뢰도 시작값만 채웁니다. 방향과 2점 line geometry를 현장 영상에서 확인하세요.';
+        }
+        if (normalizedType === 'loitering') {
+          return '배회 preset은 field sample replay 기준 시작값입니다. TrackHealth가 불안정하면 dwell부터 늘리세요.';
+        }
+        if (normalizedType === 'zone-occupancy') {
+          return '점유 preset은 polygon이 병목 구간만 포함한다는 전제입니다. 정상 피크에서 confirmed가 반복되면 threshold를 올리세요.';
+        }
+        return 'Preset은 시작값입니다. 저장 전 현장 영상, geometry, 대상 객체를 확인하세요.';
+      }
+      function opsEventRulePresetVisible(mode, type) {
+        return String(mode || '').trim() === 'scenario' || String(type || '').trim() === 'line-crossing';
+      }
+      function opsEventRuleUpdatePresetSummary(type = '', presetId = '', baseline = null) {
+        const summary = document.getElementById('opsEventRulePresetSummary');
+        if (!summary) return;
+        const mode = String(document.getElementById('opsEventRuleModeSelect')?.value || 'scenario');
+        const currentType = String(type || document.getElementById('opsEventRuleTypeSelect')?.value || 'intrusion-dwell');
+        const visible = opsEventRulePresetVisible(mode, currentType);
+        summary.hidden = !visible;
+        if (!visible) return;
+        const currentPreset = String(presetId || document.getElementById('opsEventRulePresetSelect')?.value || 'default');
+        if (currentPreset === 'custom') {
+          summary.textContent = '직접 설정은 preset 숫자를 덮어쓰지 않습니다. 저장 전 replay/현장 영상 기준으로 값만 남깁니다.';
+          return;
+        }
+        const currentBaseline = baseline || opsRulesScenarioBaseline(currentType, currentPreset);
+        const label = opsScenarioPresetLabels[currentPreset] || currentPreset || '기본';
+        const baselineText = opsRulesPresetBaselineSummary(currentType, currentBaseline);
+        const warningText = opsRulesPresetWarningText(currentType);
+        summary.textContent = `${label} preset · ${baselineText || '기본 시작값'} · ${warningText}`;
       }
       function opsRulesClone(value) {
         return JSON.parse(JSON.stringify(value ?? {}));
@@ -3936,10 +4041,13 @@ void AppendOpsShellScript(std::ostringstream& out,
             ? '여러 채널 분석 설정에서 다시 고를 수 있는 공통 시나리오 템플릿입니다.'
             : '여러 채널 분석 설정에서 다시 고를 수 있는 기본 이벤트 템플릿입니다.';
         }
-        opsEventRuleToggleField('opsEventRulePresetField', mode === 'scenario');
+        const presetVisible = opsEventRulePresetVisible(mode, type);
+        opsEventRuleToggleField('opsEventRulePresetField', presetVisible);
+        opsEventRuleToggleField('opsEventRulePresetSummary', presetVisible);
         opsEventRuleToggleField('opsEventRuleLineDirectionField', lineMode);
+        opsEventRuleToggleField('opsEventRuleMinDurationField', !lineMode);
         opsEventRuleToggleField('opsEventRuleCandidateField', dwellMode);
-        opsEventRuleToggleField('opsEventRuleDwellField', dwellMode || lineAfterMode || loiteringMode || zoneOccupancyMode);
+        opsEventRuleToggleField('opsEventRuleDwellField', dwellMode || lineAfterMode || loiteringMode);
         opsEventRuleToggleField('opsEventRuleReEntryWindowField', reEntryMode);
         opsEventRuleToggleField('opsEventRuleReEntryModeField', reEntryMode);
         opsEventRuleToggleField('opsEventRuleLineDelayField', lineAfterMode);
@@ -3948,12 +4056,15 @@ void AppendOpsShellScript(std::ostringstream& out,
         opsEventRuleToggleField('opsEventRuleLoiteringPointsField', loiteringMode);
         opsEventRuleToggleField('opsEventRuleZoneThresholdField', zoneOccupancyMode);
         opsEventRuleToggleField('opsEventRuleZoneDwellField', zoneOccupancyMode);
+        opsEventRuleToggleField('opsEventRuleCooldownField', mode === 'scenario');
+        opsEventRuleUpdatePresetSummary(type, document.getElementById('opsEventRulePresetSelect')?.value || 'default');
       }
       function opsEventRuleApplyPresetToInputs(presetId = '') {
         const type = String(document.getElementById('opsEventRuleTypeSelect')?.value || 'intrusion-dwell');
         const selected = String(presetId || document.getElementById('opsEventRulePresetSelect')?.value || 'default');
-        if (selected === 'custom') return;
         const baseline = opsRulesScenarioBaseline(type, selected);
+        opsEventRuleUpdatePresetSummary(type, selected, baseline);
+        if (selected === 'custom') return;
         const setNumber = (id, value) => {
           const input = document.getElementById(id);
           if (input && value !== undefined) input.value = String(value);

@@ -623,6 +623,12 @@ WrongDirection 상태:
 - WrongDirection은 별도 `wrong-direction` scenario event로 발생
 - Event POST payload schema, WebRTC/SSE/WS metadata schema, ScenarioEngine 판단 로직 변경 없음
 
+LineCrossing preset 상태:
+
+- `line-crossing`은 scenario env 없이 기본 이벤트 룰로 동작함
+- Ops UI 현장 preset은 `event.minConfidence` 시작값만 채우고 direction/2점 line geometry는 운영자가 현장 영상에서 확인함
+- preset label을 새 payload field로 저장하지 않으며 Event POST payload schema, WebRTC/SSE/WS metadata schema 변경 없음
+
 ### IntrusionAfterLineCrossing
 
 | 환경변수 | 기본값 |

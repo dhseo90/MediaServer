@@ -213,6 +213,30 @@ no-device suite 통과를 실장비 성공으로 승격하지 않습니다.
 - `/ops/sources`에 별도 source health bulk panel/table/detail 추가
 - client/viewer source URL, raw diagnostic JSON, debug counter 노출
 
+### V130-P1-02 Rule/Scenario preset quality 정리 기준
+
+`Rule/Scenario preset quality`는 `/ops/rules` 이벤트 템플릿 작성 단계에서
+현장 preset을 확정값이 아니라 field sample replay 기준 시작값으로 설명하고,
+Loitering/ZoneOccupancy/LineCrossing의 저장 payload 계약을 유지하는 범위입니다.
+
+- LineCrossing은 기본 이벤트이므로 preset label을 새 field로 저장하지 않고
+  `event.minConfidence`, direction, 2점 line geometry만 기존 payload에 남깁니다.
+- Loitering preset은 dwell/radius/trajectory/cooldown 시작값과 TrackHealth
+  불안정 시 dwell부터 늘리는 warning copy를 제공합니다.
+- ZoneOccupancy preset은 threshold/min dwell/cooldown 시작값과 polygon 병목 전제,
+  정상 피크 반복 시 threshold를 올리는 warning copy를 제공합니다.
+- 개발 종료 판정은 `verify-rule-ui`, `verify-ops-scenario-presets`,
+  `verify-ops-rules-roundtrip`, `verify-analysis-state`, `verify-va-replay`,
+  `verify-va-events`, `git diff --check` 통과 기준입니다.
+
+범위 밖:
+
+- ScenarioEngine 판단 로직 변경
+- event type 추가/변경
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- 다음 카테고리인 Audit trail operations 개발
+
 ## v1.2.0 Roadmap 종료 판정
 
 v1.2.0은 v1.1.0 live-only 경계를 유지하면서 실제 현장 운영과 제품화 밀도를 높이는

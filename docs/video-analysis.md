@@ -57,6 +57,8 @@ Ops 룰 UI의 이벤트 템플릿은 `default`, `road`, `park`, `indoor`,
 `elevator`, `custom` preset을 저장할 수 있습니다.
 Preset은 `scenario.presetId`로 남기고,
 실제 판단에는 저장된 threshold 숫자값을 사용합니다.
+`line-crossing`은 기본 이벤트이므로 preset label을 별도 payload field로 저장하지
+않고 `event.minConfidence`, line geometry, direction만 저장합니다.
 
 | Preset | 주 대상 | 기본 튜닝 방향 |
 | --- | --- | --- |
@@ -70,6 +72,12 @@ Preset은 `scenario.presetId`로 남기고,
 | `doorway` | 문 앞 정체 | 짧은 dwell과 낮은 occupancy threshold로 병목을 빨리 표시 |
 | `parking` | 주차장 가장자리 | 보행/차량 혼재 구간에서 loitering dwell과 반경을 보수적으로 유지 |
 | `elevator` | 승강기 홀 | 대기 오탐을 줄이기 위해 occupancy dwell을 중간값으로 유지 |
+
+LineCrossing preset 주의:
+
+- preset은 최소 신뢰도 시작값만 채웁니다.
+- 방향(`any`/`forward`/`reverse`)과 2점 line geometry는 운영자가 현장 영상에서 확인합니다.
+- Event POST payload schema, WebRTC/SSE/WS metadata schema, ScenarioEngine 판단 로직은 변경하지 않습니다.
 
 ## 2. VA Pipeline
 
@@ -440,6 +448,8 @@ target zone 내부 dwell time과 downsampled trajectory movement radius를 조�
 standalone rule 저장 round-trip을 검증합니다.
 현장 시작 threshold는 [Analysis Threshold Baselines](analysis-threshold-baselines.md)에 정리합니다.
 Preset은 dwell/radius/trajectory point와 함께 cooldown 시작값도 채웁니다.
+UI warning copy는 preset을 확정값이 아닌 field sample replay 시작값으로 설명하고,
+TrackHealth가 불안정한 경우 dwell부터 늘리도록 안내합니다.
 Event POST payload, WebRTC/SSE/WS metadata schema,
 기존 Scenario 판단 로직 변경으로 표현하지 않습니다.
 
@@ -455,6 +465,8 @@ per-track ScenarioEngine 구조 위에서 같은 zone의 대표 track만 event�
 출입구 정체, 승강기 홀 preset을 제공합니다.
 Preset은 `occupancyThreshold`, `minDwellTimeMs`, `cooldownMs` 시작값만 채웁니다.
 저장 payload에는 `scenario.presetId`와 실제 숫자 조건이 함께 남습니다.
+UI warning copy는 polygon이 병목 구간만 포함한다는 전제를 먼저 확인하고,
+정상 피크에서 confirmed가 반복되면 threshold를 올리도록 안내합니다.
 현장별 시작값과 조정 순서는
 [Analysis Threshold Baselines](analysis-threshold-baselines.md)를 기준으로 삼습니다.
 

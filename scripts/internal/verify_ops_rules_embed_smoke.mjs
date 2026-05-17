@@ -268,11 +268,97 @@ function buildRulesOpenExpression() {
       if (visible(eventChannelSelect) && !document.getElementById('opsVaRuleForm')?.hidden) {
         return fail('va rule form should stay hidden in event template mode');
       }
+      const presetQuality = await (async () => {
+        const setSelect = (id, value) => {
+          const select = document.getElementById(id);
+          if (!select) return null;
+          select.value = value;
+          select.dispatchEvent(new Event('change', { bubbles: true }));
+          return select;
+        };
+        const valueOf = (id) => String(document.getElementById(id)?.value || '');
+        const textOf = (id) => String(document.getElementById(id)?.textContent || '');
+        setSelect('opsEventRuleModeSelect', 'event');
+        await wait(80);
+        setSelect('opsEventRuleTypeSelect', 'line-crossing');
+        await wait(80);
+        setSelect('opsEventRulePresetSelect', 'road');
+        await wait(80);
+        const lineSummary = textOf('opsEventRulePresetSummary');
+        const lineOk = visible(document.getElementById('opsEventRulePresetField')) &&
+          !visible(document.getElementById('opsEventRuleMinDurationField')) &&
+          !visible(document.getElementById('opsEventRuleCooldownField')) &&
+          valueOf('opsEventRuleConfidenceInput') === '0.35' &&
+          valueOf('opsEventRuleMinDurationInput') === '0' &&
+          lineSummary.includes('라인 통과 preset') &&
+          lineSummary.includes('방향과 2점 line geometry');
+        if (!lineOk) {
+          return {
+            ok: false,
+            message: 'line-crossing preset quality copy or values mismatch',
+            lineSummary,
+            confidence: valueOf('opsEventRuleConfidenceInput'),
+            minDuration: valueOf('opsEventRuleMinDurationInput'),
+            presetVisible: visible(document.getElementById('opsEventRulePresetField')),
+            minDurationVisible: visible(document.getElementById('opsEventRuleMinDurationField')),
+            cooldownVisible: visible(document.getElementById('opsEventRuleCooldownField'))
+          };
+        }
+        setSelect('opsEventRuleModeSelect', 'scenario');
+        await wait(80);
+        setSelect('opsEventRuleTypeSelect', 'loitering');
+        await wait(80);
+        setSelect('opsEventRulePresetSelect', 'doorway');
+        await wait(80);
+        const loiteringSummary = textOf('opsEventRulePresetSummary');
+        const loiteringOk = valueOf('opsEventRuleDwellInput') === '15000' &&
+          valueOf('opsEventRuleLoiteringRadiusInput') === '0.05' &&
+          valueOf('opsEventRuleLoiteringPointsInput') === '3' &&
+          valueOf('opsEventRuleCooldownInput') === '8000' &&
+          loiteringSummary.includes('배회 preset');
+        if (!loiteringOk) {
+          return {
+            ok: false,
+            message: 'loitering preset quality copy or values mismatch',
+            loiteringSummary,
+            dwell: valueOf('opsEventRuleDwellInput'),
+            radius: valueOf('opsEventRuleLoiteringRadiusInput'),
+            points: valueOf('opsEventRuleLoiteringPointsInput'),
+            cooldown: valueOf('opsEventRuleCooldownInput')
+          };
+        }
+        setSelect('opsEventRuleTypeSelect', 'zone-occupancy');
+        await wait(80);
+        setSelect('opsEventRulePresetSelect', 'elevator');
+        await wait(80);
+        const occupancySummary = textOf('opsEventRulePresetSummary');
+        const occupancyOk = !visible(document.getElementById('opsEventRuleDwellField')) &&
+          valueOf('opsEventRuleZoneThresholdInput') === '5' &&
+          valueOf('opsEventRuleZoneDwellInput') === '8000' &&
+          valueOf('opsEventRuleCooldownInput') === '12000' &&
+          occupancySummary.includes('점유 preset');
+        if (!occupancyOk) {
+          return {
+            ok: false,
+            message: 'zone occupancy preset quality copy or values mismatch',
+            occupancySummary,
+            dwellVisible: visible(document.getElementById('opsEventRuleDwellField')),
+            threshold: valueOf('opsEventRuleZoneThresholdInput'),
+            zoneDwell: valueOf('opsEventRuleZoneDwellInput'),
+            cooldown: valueOf('opsEventRuleCooldownInput')
+          };
+        }
+        return { ok: true, lineSummary, loiteringSummary, occupancySummary };
+      })();
+      if (!presetQuality.ok) {
+        return fail('scenario preset quality smoke failed', presetQuality);
+      }
 
       return {
         ok: true,
         optionTexts,
         preSaveValidation,
+        presetQuality,
         navHref: Array.from(document.querySelectorAll('a[href="/ops/users"]')).find(node => visible(node))?.getAttribute('href') || '',
         statusText: status?.textContent || ''
       };
