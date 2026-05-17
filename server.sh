@@ -162,6 +162,8 @@ Usage:
                  ONVIF 실장비 제외 조건의 종료 판정과 별도 후속 범위 분리를 검증합니다.
   verify-onvif-field-smoke-redaction
                  ONVIF 현장 smoke 산출물 redaction checklist를 검증합니다.
+  verify-onvif-field-smoke-gate
+                 ONVIF 현장 smoke gate 절차와 report/review 상태 분리를 검증합니다.
   verify-onvif-field-http-probe
                  실제 ONVIF HTTP endpoint probe harness와 sanitized 산출물을 검증합니다.
   verify-onvif-closed-loopback-failure-matrix
@@ -630,6 +632,10 @@ case "${cmd}" in
   verify-onvif-field-smoke-redaction)
     require_internal verify_onvif_field_smoke_redaction.mjs
     exec "${INTERNAL_DIR}/verify_onvif_field_smoke_redaction.mjs" "$@"
+    ;;
+  verify-onvif-field-smoke-gate)
+    require_internal verify_onvif_field_smoke_gate.mjs
+    exec "${INTERNAL_DIR}/verify_onvif_field_smoke_gate.mjs" "$@"
     ;;
   verify-onvif-field-http-probe)
     require_internal verify_onvif_field_http_probe.mjs

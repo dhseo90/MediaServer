@@ -120,7 +120,7 @@ RTSP/WebRTC media path를 기본적으로 유지합니다. 이 계약을 바꾸�
 | ID | 우선순위 | 영역 | 목표 | 예상 검증 |
 | --- | --- | --- | --- | --- |
 | V130-P0-01 | P0 | Runtime operations console | Runtime Dashboard, scenario timeline, TrackHealth, recent EventRecord를 운영자가 한 화면에서 원인/영향/다음 조치 순서로 읽을 수 있게 정리합니다. schema 변경 없이 기존 runtime/state/event buffer를 재구성합니다. | `verify-va-runtime-console`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ops-client-ui --screenshots` |
-| V130-P0-02 | P0 | ONVIF field smoke gate | 실장비 ONVIF camera smoke를 release 개발 완료로 과장하지 않으면서 endpoint, credential, RTSP/RTSPS playback, redaction artifact를 별도 gate로 기록하는 절차를 고정합니다. persistent credential store와 Digest/WS-Security 구현은 열지 않습니다. | `verify-onvif-no-device-suite`, `verify-onvif-field-smoke-redaction`, field smoke report review |
+| V130-P0-02 | P0 | ONVIF field smoke gate | 실장비 ONVIF camera smoke를 release 개발 완료로 과장하지 않으면서 endpoint, credential, RTSP/RTSPS playback, redaction artifact를 별도 gate로 기록하는 절차를 [ONVIF Field Smoke Gate](./onvif-field-smoke-gate.md)에 고정합니다. persistent credential store와 Digest/WS-Security 구현은 열지 않습니다. | `verify-onvif-no-device-suite`, `verify-onvif-field-smoke-gate`, `verify-onvif-field-smoke-redaction`, field smoke report review |
 | V130-P0-03 | P0 | Source health incident workflow | source health root-cause, retryable-only 재검증, partial failure/rollback 이력을 incident 단위로 추적하고 운영자 next-action을 더 직접적으로 연결합니다. client에는 sanitized summary만 유지합니다. | `verify-ops-source-health-bulk`, `verify-ops-audit-trail`, `verify-ops-client-ui --screenshots` |
 | V130-P1-01 | P1 | Client Live accessibility/mobile polish | viewer Live/Dashboard에서 tile 상태, empty/loading/error 문구, focus, mobile density를 보강합니다. source URL, raw JSON, debug counter, rule/profile editor는 계속 숨깁니다. | `verify-ops-client-ui --screenshots`, client accessibility DOM snapshot, `verify-auth-routes` |
 | V130-P1-02 | P1 | Rule/Scenario preset quality | Loitering/ZoneOccupancy/LineCrossing 시작 preset과 warning copy를 field sample replay 기준으로 정리합니다. ScenarioEngine 판단 로직과 event type/payload는 별도 review 전까지 변경하지 않습니다. | `verify-rule-ui`, `verify-va-replay`, `verify-va-events`, docs review |
@@ -153,6 +153,26 @@ v1.3.0 비범위:
   `다음 조치`(operator action)입니다.
 - 장시간 안정성 판정은 `verify-va-runtime-console-longrun` 또는
   `verify-predev` 실행 결과를 별도로 기록할 때만 완료 evidence로 취급합니다.
+
+### V130-P0-02 ONVIF field smoke gate 정리 기준
+
+`ONVIF field smoke gate`는 release 개발 완료와 별도 field gate 결과를 분리하는
+절차입니다. 실제 ONVIF camera endpoint 성공은 field gate report에만 기록하고,
+no-device suite 통과를 실장비 성공으로 승격하지 않습니다.
+
+- 기준 문서: [ONVIF Field Smoke Gate](./onvif-field-smoke-gate.md)
+- 개발 산출물: gate 상태값, 실행 절차, redaction artifact review, field smoke
+  report review, sample bundle gate decision field, 정적 verifier
+- 개발 종료 판정: `verify-onvif-field-smoke-gate`,
+  `verify-onvif-field-smoke-redaction`, `verify-onvif-field-smoke-sample-bundle`,
+  `verify-onvif-no-device-suite`, `git diff --check` 통과
+- 실장비 endpoint 성공 미확인, 실제 credential handshake 미확인, 실제 RTSP/RTSPS
+  playback 미확인은 이 gate report의 `unverified` 상태로 남기며 개발 완료 판정과
+  섞지 않습니다.
+- persistent credential store, Digest/WS-Security, WS-Discovery, Profile G /
+  Recording / Replay는 이 카테고리에서 구현하지 않습니다.
+- 2026-05-17 기준 이 카테고리의 개발 가능한 후속 이슈는 없음으로 판정하려면
+  위 verifier와 no-device suite가 모두 통과해야 합니다.
 
 ## v1.2.0 Roadmap 종료 판정
 

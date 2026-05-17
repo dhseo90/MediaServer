@@ -50,17 +50,34 @@ const checklist = fs.readFileSync(checklistPath, "utf8");
 const readme = fs.readFileSync(readmePath, "utf8");
 const reportTemplate = fs.readFileSync(reportTemplatePath, "utf8");
 const combined = [JSON.stringify(manifest), JSON.stringify(summary), checklist, readme, reportTemplate].join("\n");
+const gateSchema = "media-server.onvif-field-smoke-gate.v1";
 
 assert(manifest.schema === "media-server.onvif-field-smoke-artifact-sample-manifest.v1", "manifest schema mismatch");
 assert(summary.schema === "media-server.onvif-field-smoke-artifact-sample.v1", "summary schema mismatch");
 assert(manifest.files?.includes("field-smoke-report-template.md"), "manifest missing report template file");
 assert(manifest.fieldDevice?.realDeviceTestPerformed === false, "manifest realDeviceTestPerformed must be false for sample");
 assert(manifest.fieldDevice?.realDeviceEndpointSuccess === "unverified", "manifest realDeviceEndpointSuccess must be unverified");
+assert(manifest.gate?.schema === gateSchema, "manifest gate schema mismatch");
+assert(manifest.gate?.releaseDevelopmentStatus === "procedure-fixed", "manifest releaseDevelopmentStatus must be procedure-fixed");
+assert(manifest.gate?.gateDecision === "not-run", "manifest gateDecision must be not-run for sample");
+assert(manifest.gate?.noDeviceSuiteCountsAsFieldSuccess === false, "manifest noDeviceSuiteCountsAsFieldSuccess must be false");
 assert(summary.mode === "field-smoke-template", "summary mode mismatch");
 assert(summary.realDeviceTestPerformed === false, "summary realDeviceTestPerformed must be false for sample");
 assert(summary.realDeviceEndpointSuccess === "unverified", "summary realDeviceEndpointSuccess must be unverified");
 assert(summary.operatorChecklistStatus === "skipped", "summary operatorChecklistStatus must be skipped for sample");
 assert(summary.failureWording === "skipped: real device endpoint not provided; no-device suite result only", "summary failureWording must be sanitized skip wording");
+assert(summary.gateDecision?.schema === gateSchema, "summary gate schema mismatch");
+assert(summary.gateDecision?.releaseDevelopmentStatus === "procedure-fixed", "summary releaseDevelopmentStatus must be procedure-fixed");
+assert(summary.gateDecision?.gateDecision === "not-run", "summary gateDecision must be not-run");
+assert(summary.gateDecision?.realDeviceEndpointSuccess === "unverified", "summary gate realDeviceEndpointSuccess must be unverified");
+assert(summary.gateDecision?.playbackStatus === "skipped", "summary playbackStatus must be skipped");
+assert(summary.gateDecision?.redactionArtifactReview === "pass", "summary redactionArtifactReview must be pass");
+assert(summary.gateDecision?.fieldSmokeReportReview === "pass", "summary fieldSmokeReportReview must be pass");
+assert(summary.gateDecision?.endpointRedacted === true, "summary endpointRedacted must be true");
+assert(summary.gateDecision?.streamUriRedacted === true, "summary gate streamUriRedacted must be true");
+assert(summary.gateDecision?.rawSoapIncluded === false, "summary rawSoapIncluded must be false");
+assert(summary.gateDecision?.plaintextSecretIncluded === false, "summary gate plaintextSecretIncluded must be false");
+assert(summary.gateDecision?.noDeviceSuiteCountsAsFieldSuccess === false, "summary noDeviceSuiteCountsAsFieldSuccess must be false");
 assert(summary.endpoint === "<redacted-host>/onvif/device_service", "summary endpoint must be redacted placeholder");
 assert(summary.auth?.credentialReferencePresent === true, "summary credentialReferencePresent must be true");
 assert(summary.auth?.plaintextSecretIncluded === false, "summary plaintextSecretIncluded must be false");
@@ -75,6 +92,7 @@ assert(summary.evidenceIndex.some(item => item?.path === "field-smoke-report-tem
 
 for (const command of [
   "verify-onvif-field-smoke-redaction",
+  "verify-onvif-field-smoke-gate",
   "verify-onvif-field-http-probe",
   "verify-onvif-probe-draft-api",
   "verify-onvif-ops-sources-ui",
@@ -91,6 +109,13 @@ for (const term of [
   "realDeviceEndpointSuccess=unverified",
   "realDeviceTestPerformed=false",
   "operatorChecklistStatus=skipped",
+  "media-server.onvif-field-smoke-gate.v1",
+  "releaseDevelopmentStatus=procedure-fixed",
+  "gateDecision=not-run",
+  "playbackStatus=skipped",
+  "redactionArtifactReview=pass",
+  "fieldSmokeReportReview=pass",
+  "noDeviceSuiteCountsAsFieldSuccess=false",
   "Failure Wording",
   "skipped: real device endpoint not provided",
   "blocked: Digest or WS-Security required; out of",

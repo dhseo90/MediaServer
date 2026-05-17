@@ -3,8 +3,8 @@
   "generatedAt": "2026-05-15T00:00:00.000Z",
   "mode": "실장비 제외",
   "realDeviceEndpointSuccess": "미확인",
-  "total": 27,
-  "completed": 27,
+  "total": 28,
+  "completed": 28,
   "failed": null,
   "results": [
     {
@@ -135,36 +135,42 @@
     },
     {
       "index": 22,
-      "command": "./server.sh verify-onvif-field-http-probe --allow-missing-endpoint",
+      "command": "./server.sh verify-onvif-field-smoke-gate",
       "ok": true,
       "status": 0
     },
     {
       "index": 23,
-      "command": "./server.sh verify-onvif-closed-loopback-failure-matrix",
+      "command": "./server.sh verify-onvif-field-http-probe --allow-missing-endpoint",
       "ok": true,
       "status": 0
     },
     {
       "index": 24,
-      "command": "./server.sh verify-onvif-field-http-probe --endpoint http://127.0.0.1:9/onvif/device_service --expect-failure --credential-ref-present",
+      "command": "./server.sh verify-onvif-closed-loopback-failure-matrix",
       "ok": true,
       "status": 0
     },
     {
       "index": 25,
-      "command": "./server.sh verify-onvif-tls-transport-policy",
+      "command": "./server.sh verify-onvif-field-http-probe --endpoint http://127.0.0.1:9/onvif/device_service --expect-failure --credential-ref-present",
       "ok": true,
       "status": 0
     },
     {
       "index": 26,
-      "command": "./server.sh verify-onvif-credential-reference-policy",
+      "command": "./server.sh verify-onvif-tls-transport-policy",
       "ok": true,
       "status": 0
     },
     {
       "index": 27,
+      "command": "./server.sh verify-onvif-credential-reference-policy",
+      "ok": true,
+      "status": 0
+    },
+    {
+      "index": 28,
       "command": "./server.sh verify-onvif-no-device-completion",
       "ok": true,
       "status": 0

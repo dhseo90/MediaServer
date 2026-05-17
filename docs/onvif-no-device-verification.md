@@ -14,6 +14,7 @@ simulator fixture smoke로만 보고합니다.
 
 - [ONVIF Live Source Support](./onvif-live-source-support.md)
 - [ONVIF Protocol Support Matrix](./onvif-protocol-support-matrix.md)
+- [ONVIF Field Smoke Gate](./onvif-field-smoke-gate.md)
 - [ONVIF Field Smoke Artifact Redaction Checklist](./onvif-field-smoke-artifact-redaction.md)
 - [ONVIF TLS Transport Policy](./onvif-tls-transport-policy.md)
 - [ONVIF Credential Reference Policy](./onvif-credential-reference-policy.md)
@@ -36,6 +37,7 @@ simulator fixture smoke로만 보고합니다.
 - closed loopback failure matrix의 query string credential/token sentinel과
   `--output JSON artifact redaction` 동작
 - 현장 smoke 산출물 redaction 기준
+- field smoke gate 절차와 no-device/result 분리 기준
 - credential reference 원문 미저장 기준
 - HTTPS/TLS endpoint fixture success와 TLS failure redaction 정책
 - SourceRegistry/PublishedView draft 매핑과 client redaction 계약
@@ -70,6 +72,7 @@ simulator fixture smoke로만 보고합니다.
 ./server.sh verify-onvif-local-simulator
 ./server.sh verify-onvif-probe-error-wording
 ./server.sh verify-onvif-soap-fault-matrix
+./server.sh verify-onvif-field-smoke-gate
 ./server.sh verify-onvif-field-smoke-redaction
 ./server.sh verify-onvif-field-smoke-sample-bundle
 ./server.sh verify-onvif-field-http-probe --allow-missing-endpoint
@@ -115,6 +118,7 @@ path case를 no-device 범위에서만 다룹니다.
 - verify-onvif-field-http-probe --allow-missing-endpoint
 - closed loopback endpoint --expect-failure sanitized failure
 - verify-onvif-closed-loopback-failure-matrix
+- verify-onvif-field-smoke-gate
 - SourceRegistry/PublishedView draft redaction 계약
 - persistent credential store는
   `test/fixtures/onvif_credential_store_policy_decision.json` 기준 후속 gate로 분리
@@ -123,6 +127,7 @@ path case를 no-device 범위에서만 다룹니다.
 - 실장비 endpoint 성공
 - 실제 camera 인증 및 Media/Media2 호환성
 - 실제 camera RTSP/RTSPS 재생 성공
+- field smoke gate pass. no-device suite 통과는 field smoke gate pass가 아닙니다.
 ```
 
 ## 종료 판정

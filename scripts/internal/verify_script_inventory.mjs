@@ -106,6 +106,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_onvif_ws_discovery_ux.mjs",
     "verify_onvif_unsupported_api_guard.mjs",
     "verify_onvif_field_smoke_redaction.mjs",
+    "verify_onvif_field_smoke_gate.mjs",
     "verify_onvif_field_http_probe.mjs",
     "verify_onvif_closed_loopback_failure_matrix.mjs",
     "verify_onvif_probe_profile_variants.mjs",

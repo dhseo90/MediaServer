@@ -16,3 +16,6 @@ Use this bundle as a layout reference only. A real field smoke artifact must be
 reviewed against `docs/onvif-field-smoke-artifact-redaction.md` before sharing.
 For this sample, `realDeviceEndpointSuccess=unverified` and
 `realDeviceTestPerformed=false` are intentional.
+The sample also records `gateDecision=not-run`,
+`releaseDevelopmentStatus=procedure-fixed`, and
+`noDeviceSuiteCountsAsFieldSuccess=false`; it is not field smoke pass evidence.

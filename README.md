@@ -116,6 +116,7 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | RTSP/WebRTC pipeline, source/session, VA layer 배치 | [docs/media-server-architecture.md](docs/media-server-architecture.md) |
 | YOLO, tracking, scenario, live event, short evidence 정책 | [docs/video-analysis.md](docs/video-analysis.md) |
 | ONVIF live source 지원과 URL copy parity | [docs/onvif-live-source-support.md](docs/onvif-live-source-support.md) |
+| ONVIF field smoke gate와 redaction artifact 절차 | [docs/onvif-field-smoke-gate.md](docs/onvif-field-smoke-gate.md), [docs/onvif-field-smoke-artifact-redaction.md](docs/onvif-field-smoke-artifact-redaction.md) |
 | Live source health/operator workflow 기준 | [docs/live-source-health.md](docs/live-source-health.md) |
 | Event/WebRTC/SSE/WS metadata contract | [docs/live-event-metadata-contracts.md](docs/live-event-metadata-contracts.md) |
 | Integrator contract artifact sample bundle | [docs/integrator-contract-artifact.md](docs/integrator-contract-artifact.md) |

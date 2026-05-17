@@ -78,6 +78,7 @@ check("live support verification includes no-device completion guard", () => {
 check("no-device suite includes completion guard and local simulator variants", () => {
   assertContains(suiteScript, "verify-onvif-local-simulator", "suite missing local simulator smoke");
   assertContains(suiteScript, "verify-onvif-synthetic-vendor-fixtures", "suite missing synthetic vendor fixture smoke");
+  assertContains(suiteScript, "verify-onvif-field-smoke-gate", "suite missing field smoke gate verifier");
   assertContains(suiteScript, "verify-onvif-no-device-completion", "suite missing completion guard");
 });
 
@@ -90,6 +91,7 @@ check("success summary fixture preserves completed no-device closure", () => {
   const commands = successSummary.results.map(result => result.command);
   assert(commands.includes("./server.sh verify-onvif-local-simulator"), "success summary missing local simulator command");
   assert(commands.includes("./server.sh verify-onvif-synthetic-vendor-fixtures"), "success summary missing synthetic vendor fixture command");
+  assert(commands.includes("./server.sh verify-onvif-field-smoke-gate"), "success summary missing field smoke gate command");
   assert(commands.includes("./server.sh verify-onvif-no-device-completion"), "success summary missing completion command");
   assert(successSummary.results.length === successSummary.total, "success summary results length mismatch");
 });

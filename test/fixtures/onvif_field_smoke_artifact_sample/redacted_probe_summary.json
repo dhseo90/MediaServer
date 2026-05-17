@@ -6,6 +6,21 @@
   "realDeviceEndpointSuccess": "unverified",
   "operatorChecklistStatus": "skipped",
   "failureWording": "skipped: real device endpoint not provided; no-device suite result only",
+  "gateDecision": {
+    "schema": "media-server.onvif-field-smoke-gate.v1",
+    "releaseDevelopmentStatus": "procedure-fixed",
+    "gateDecision": "not-run",
+    "realDeviceTestPerformed": false,
+    "realDeviceEndpointSuccess": "unverified",
+    "playbackStatus": "skipped",
+    "redactionArtifactReview": "pass",
+    "fieldSmokeReportReview": "pass",
+    "endpointRedacted": true,
+    "streamUriRedacted": true,
+    "rawSoapIncluded": false,
+    "plaintextSecretIncluded": false,
+    "noDeviceSuiteCountsAsFieldSuccess": false
+  },
   "camera": "<vendor/model redacted>",
   "endpoint": "<redacted-host>/onvif/device_service",
   "auth": {
@@ -41,6 +56,10 @@
   "verificationStatus": [
     {
       "command": "verify-onvif-field-smoke-redaction",
+      "status": "pass"
+    },
+    {
+      "command": "verify-onvif-field-smoke-gate",
       "status": "pass"
     },
     {
