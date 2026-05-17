@@ -7,8 +7,8 @@
 Media Server is a C++17 RTSP/WebRTC live stream relay with optional YOLO/ONNX video analytics overlays and rule/scenario live events. The current main product boundary focuses on live source onboarding, live source health, and live VA event quality rather than long-term recording, VMS, or NVR scope.
 
 Korean documentation: [README.md](README.md)
-Latest source-only release: [v1.2.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.2.0)
-The v1.2.1 patch roadmap and follow-up closure are tracked separately in
+Latest source-only release: [v1.2.1](https://github.com/dhseo90/MediaServer/releases/tag/v1.2.1)
+The v1.2.1 source-only patch close-out and follow-up closure are tracked separately in
 [docs/development-backlog.md](docs/development-backlog.md) and
 [docs/v1.2.1-follow-up-closure.md](docs/v1.2.1-follow-up-closure.md).
 The v1.3.0 roadmap candidates stay in
@@ -101,7 +101,7 @@ See [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) for f
 | RTSP/WebRTC pipeline, source/session, VA layer | [docs/media-server-architecture.md](docs/media-server-architecture.md) |
 | YOLO, tracking, scenarios, live events, short evidence | [docs/video-analysis.md](docs/video-analysis.md) |
 | Integrator Event/WebRTC/SSE/WS sample bundle | [docs/integrator-contract-artifact.md](docs/integrator-contract-artifact.md) |
-| Current product boundary, v1.2.1 patch candidates, and v1.3.0 roadmap candidates | [docs/development-backlog.md](docs/development-backlog.md) |
+| Current product boundary, v1.2.1 close-out, and v1.3.0 roadmap candidates | [docs/development-backlog.md](docs/development-backlog.md) |
 | v1.2.1 follow-up closure | [docs/v1.2.1-follow-up-closure.md](docs/v1.2.1-follow-up-closure.md) |
 | Verification commands and release checks | [docs/stream-verification.md](docs/stream-verification.md) |
 | Bundle/container/runtime distribution policy | [docs/distribution-policy.md](docs/distribution-policy.md) |

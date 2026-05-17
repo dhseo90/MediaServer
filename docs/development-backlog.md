@@ -32,10 +32,13 @@ source-of-truth로 쓰지 않습니다.
 
 `완료`는 운영 배포 ready, 장기 안정성 보장, 외부 연동 ready를 뜻하지 않습니다.
 
-## 현재 기준: v1.2.0 Source Release Baseline
+## 현재 기준: v1.2.1 Source Release Baseline
 
-v1.2.0은 v1.1.0 live-only source release 경계를 유지하면서 현장 운영, 제품 UI,
-통합 계약, release guardrail을 보강한 source-only minor release입니다.
+v1.2.1은 v1.2.0 live-only source release 경계를 유지하면서 release metadata,
+post-release reconciliation, manual UI evidence, flaky verifier, Re-ID/ONVIF wording,
+release close-out, dependency/artifact housekeeping을 닫은 source-only patch release입니다.
+아래 제품 baseline은 v1.2.0에서 닫은 기능 범위를 유지하고, v1.2.1은 새 product
+scope를 열지 않습니다.
 
 완료 범위:
 
@@ -69,9 +72,9 @@ v1.2.0은 v1.1.0 live-only source release 경계를 유지하면서 현장 운�
 - [ ] ONVIF 실장비 endpoint 성공 보장, persistent credential store, Digest/WS-Security
 - [ ] YouTube 운영 기능 승격 또는 실제 URL relay 성공 보장
 
-## v1.2.1 Patch Roadmap 후보
+## v1.2.1 Patch Close-out
 
-v1.2.1은 v1.2.0 release 이후 안정화 patch 후보입니다. 새 product scope를 열지 않고
+v1.2.1은 v1.2.0 release 이후 안정화 patch로 닫았습니다. 새 product scope를 열지 않고
 문서/version drift, release close-out 자동화, flaky 검증, UI 수동 검수 보강을
 우선합니다. schema, Event POST payload, WebRTC DataChannel, SSE/WS metadata,
 RTSP/WebRTC media path, auth/session contract 변경은 별도 review 없이는 포함하지
