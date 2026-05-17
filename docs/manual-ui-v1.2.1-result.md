@@ -109,3 +109,14 @@ client/viewer 화면 기준입니다. Ops 화면의 운영자용 source/copy 정
 - 커밋: 단계 완료 커밋에서 보고.
 - 푸시 가능: 전체 v1.2.1 단계 종료 후 판정.
 - 푸시 수행 여부: 수행하지 않음.
+
+## V121-P2-02 UI Polish Follow-up
+
+- 처리 방식: no-op polish closure.
+- 근거: manual findings 표의 실패 항목이 `없음`이고, overflow/겹침은
+  320/390/760/1180 screenshot smoke에서 `0`으로 기록됐습니다.
+- UI 코드 수정: 수행하지 않음.
+- 이유: 버튼 문구, overflow, focus, empty/loading/error copy 관련 확인된 회귀가
+  없어 제품 nav나 route 구조를 건드리지 않습니다.
+- 재확인 명령: `verify-ops-client-ui --screenshots`,
+  `verify-ui-copy-i18n-parity`, `verify-manual-ui-evidence`.

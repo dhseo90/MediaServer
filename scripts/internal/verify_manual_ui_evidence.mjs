@@ -98,6 +98,18 @@ check("manual result lists not-run and skipped items explicitly", () => {
   ], "docs/manual-ui-v1.2.1-result.md");
 });
 
+check("manual result closes V121-P2-02 without expanding UI scope", () => {
+  assertIncludes(result, [
+    "## V121-P2-02 UI Polish Follow-up",
+    "no-op polish closure",
+    "manual findings 표의 실패 항목이 `없음`",
+    "UI 코드 수정: 수행하지 않음",
+    "제품 nav나 route 구조를 건드리지 않습니다",
+    "verify-ops-client-ui --screenshots",
+    "verify-ui-copy-i18n-parity",
+  ], "docs/manual-ui-v1.2.1-result.md");
+});
+
 check("checklist and roadmap link the v1.2.1 evidence verifier", () => {
   assertIncludes(checklist, [
     "manual-ui-v1.2.1-result.md",
