@@ -1,6 +1,6 @@
 # Development Backlog
 
-이 문서는 `main` 기준의 현재 제품 상태, release close-out 판정, 후속 patch roadmap을
+이 문서는 `main` 기준의 현재 제품 상태, release close-out 판정, 현재/차기 roadmap을
 관리합니다.
 완료된 상세 개발 이력은 [history/development-history.md](./history/development-history.md),
 검증 이력은 [history/verification-history.md](./history/verification-history.md)를 봅니다.
@@ -9,6 +9,10 @@
 
 v1.2.0이 `main`으로 들어가면 v1.2.0 개발 브랜치의 상세 작업 목록은 더 이상 별도
 source-of-truth가 아닙니다. 현재 기준은 이 문서와 기능별 상세 문서로 나눕니다.
+새 active roadmap은 기본적으로 `docs/vX.Y.Z-roadmap.md` 같은 단독 버전 파일로
+추가하지 않고 이 문서에 관리합니다. 버전별 수동 검수, follow-up closure, release
+증적 문서는 필요할 때 historical evidence로 남길 수 있지만 active roadmap
+source-of-truth로 쓰지 않습니다.
 
 - 현재 버전/비범위 기준: [versioning-policy.md](./versioning-policy.md)
 - ONVIF live source: [onvif-live-source-support.md](./onvif-live-source-support.md)
@@ -104,6 +108,35 @@ v1.2.1 비범위:
 - Re-ID default-on, 대형 tracker 교체, 모델/runtime bundle 포함
 - YouTube 운영 기능 승격, 실제 YouTube URL 성공 gate
 - 장기 녹화, VMS/NVR archive, playback/search
+
+## v1.3.0 Minor Roadmap 후보
+
+v1.3.0은 v1.2.x의 source-only/live-only 경계를 유지하면서 운영 흐름과 현장
+연동 검증 밀도를 높이는 minor roadmap 후보입니다. 새 항목은 기존 API/schema,
+Event POST payload, WebRTC DataChannel, SSE/WS metadata, auth/session contract,
+RTSP/WebRTC media path를 기본적으로 유지합니다. 이 계약을 바꾸는 작업은 아래
+로드맵 안에 있어도 별도 schema/media-path review를 먼저 열어야 합니다.
+
+| ID | 우선순위 | 영역 | 목표 | 예상 검증 |
+| --- | --- | --- | --- | --- |
+| V130-P0-01 | P0 | Runtime operations console | Runtime Dashboard, scenario timeline, TrackHealth, recent EventRecord를 운영자가 한 화면에서 원인/영향/다음 조치 순서로 읽을 수 있게 정리합니다. schema 변경 없이 기존 runtime/state/event buffer를 재구성합니다. | `verify-va-runtime-console`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ops-client-ui --screenshots` |
+| V130-P0-02 | P0 | ONVIF field smoke gate | 실장비 ONVIF camera smoke를 release 개발 완료로 과장하지 않으면서 endpoint, credential, RTSP/RTSPS playback, redaction artifact를 별도 gate로 기록하는 절차를 고정합니다. persistent credential store와 Digest/WS-Security 구현은 열지 않습니다. | `verify-onvif-no-device-suite`, `verify-onvif-field-smoke-redaction`, field smoke report review |
+| V130-P0-03 | P0 | Source health incident workflow | source health root-cause, retryable-only 재검증, partial failure/rollback 이력을 incident 단위로 추적하고 운영자 next-action을 더 직접적으로 연결합니다. client에는 sanitized summary만 유지합니다. | `verify-ops-source-health-bulk`, `verify-ops-audit-trail`, `verify-ops-client-ui --screenshots` |
+| V130-P1-01 | P1 | Client Live accessibility/mobile polish | viewer Live/Dashboard에서 tile 상태, empty/loading/error 문구, focus, mobile density를 보강합니다. source URL, raw JSON, debug counter, rule/profile editor는 계속 숨깁니다. | `verify-ops-client-ui --screenshots`, client accessibility DOM snapshot, `verify-auth-routes` |
+| V130-P1-02 | P1 | Rule/Scenario preset quality | Loitering/ZoneOccupancy/LineCrossing 시작 preset과 warning copy를 field sample replay 기준으로 정리합니다. ScenarioEngine 판단 로직과 event type/payload는 별도 review 전까지 변경하지 않습니다. | `verify-rule-ui`, `verify-va-replay`, `verify-va-events`, docs review |
+| V130-P1-03 | P1 | Audit trail operations | server audit persistence를 운영자가 검색/export/review할 수 있는 최소 흐름으로 연결합니다. 민감 토큰, passwordHash, credential reference 원문은 UI/API 응답에 노출하지 않습니다. | `verify-auth-users`, `verify-auth-routes`, `verify-ops-audit-trail` |
+| V130-P2-01 | P2 | Release and visual baseline automation | v1.2.x에서 만든 release close-out helper, visual artifact policy, screenshot review 결과를 PR/release 준비 단계에서 누락 없이 요약하도록 묶습니다. tag/push/GitHub Release는 계속 수동 승인 gate입니다. | `verify-release-closeout-helper`, `verify-docs-ui-assets`, `verify-ui-visual-artifact-index`, `git diff --check` |
+| V130-P2-02 | P2 | Re-ID default-off research continuation | close-object tracker 비교와 privacy 문구를 유지하면서 Re-ID default-on 근거가 충분한지 별도 research로만 관찰합니다. 제품 기본 활성화나 대형 tracker 교체는 포함하지 않습니다. | `compare-close-object-tracker`, `verify-reid-advanced-tracking`, privacy/docs review |
+
+v1.3.0 비범위:
+
+- 장기 녹화, MP4 recorder, NVR/VMS archive, playback/search
+- ONVIF Profile G recording/replay, WS-Discovery 자동 검색의 제품 기본 승격
+- ONVIF credential store, Digest, WS-Security 구현 착수
+- Event POST/WebRTC DataChannel/SSE/WS metadata payload의 무심사 변경
+- RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
+- Re-ID default-on, 대형 tracker 교체, runtime/model binary bundle 포함
+- YouTube 운영 기능 승격 또는 실제 YouTube URL relay 성공 gate
 
 ## v1.2.0 Roadmap 종료 판정
 

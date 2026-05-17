@@ -15,6 +15,8 @@ English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en
 v1.2.1 patch roadmap과 후속 종료 판정은
 [docs/development-backlog.md](docs/development-backlog.md)와
 [docs/v1.2.1-follow-up-closure.md](docs/v1.2.1-follow-up-closure.md)에 분리해 기록합니다.
+v1.3.0 roadmap 후보는 별도 버전별 roadmap 파일을 만들지 않고
+[docs/development-backlog.md](docs/development-backlog.md)의 현재 로드맵 섹션에서 관리합니다.
 
 ## 한눈에 보기
 
@@ -126,7 +128,7 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | 운영 백업/복구 대상과 복구 후 검증 | [docs/ops-backup-recovery.md](docs/ops-backup-recovery.md) |
 | Loitering/ZoneOccupancy 현장 시작 threshold | [docs/analysis-threshold-baselines.md](docs/analysis-threshold-baselines.md) |
 | sample 영상/fixture 출처와 공개 기준 | [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) |
-| 현재 제품 경계, v1.2.0 종료 판정, v1.2.1 patch 후보 | [docs/development-backlog.md](docs/development-backlog.md) |
+| 현재 제품 경계, v1.2.1 patch 후보, v1.3.0 roadmap 후보 | [docs/development-backlog.md](docs/development-backlog.md) |
 | v1.2.1 후속 종료 판정과 수동 UI 검수 증적 | [docs/v1.2.1-follow-up-closure.md](docs/v1.2.1-follow-up-closure.md), [docs/manual-ui-v1.2.1-result.md](docs/manual-ui-v1.2.1-result.md) |
 | YouTube import/source 실험 기능 | [docs/youtube-import.md](docs/youtube-import.md) |
 
