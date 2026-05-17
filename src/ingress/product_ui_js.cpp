@@ -105,6 +105,7 @@ std::string ProductSharedUiScript() {
         '복제': 'Clone',
         '라이브 보기': 'Live view',
         '없음': 'None',
+        '사용 안 함': 'Disabled',
         '아니요': 'No',
         '아니오': 'No',
         '예': 'Yes',

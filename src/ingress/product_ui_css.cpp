@@ -1566,8 +1566,9 @@ std::string ProductUiCss() {
     .ops-rules-col-source { width: auto; }
     .ops-rules-col-template { width: 140px; }
     .ops-rules-col-profile { width: 140px; }
+    .ops-rules-col-tracking { width: 128px; }
     .ops-rules-col-geometry { width: 92px; }
-    .ops-rules-col-output { width: 228px; }
+    .ops-rules-col-output { width: 200px; }
     .ops-rules-col-target { width: 148px; }
     .ops-rules-col-status { width: 84px; }
     .ops-rules-col-actions { width: 148px; }

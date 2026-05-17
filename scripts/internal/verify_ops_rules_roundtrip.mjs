@@ -110,7 +110,7 @@ const fixtures = [
     ruleKind: "basic",
     analysis: {
       classes: ["person"],
-      trackingPolicy: { tracker: "lite", reid: "off" },
+      trackingPolicy: { tracker: "bytetrack", reid: "assist" },
     },
     event: {
       type: "presence",

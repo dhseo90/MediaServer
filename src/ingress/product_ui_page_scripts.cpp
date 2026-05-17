@@ -3794,6 +3794,86 @@ void AppendOpsShellScript(std::ostringstream& out,
           }
         };
       }
+      function opsRulesNormalizeTrackerPolicy(value = '') {
+        const token = String(value || '').trim().toLowerCase();
+        if (token === 'none' || token === 'off' || token === 'disabled') return 'none';
+        if (token === 'kalman-lite' || token === 'kalman' || token === 'kalmanlite') return 'kalman-lite';
+        if (token === 'bytetrack' || token === 'byte-track' || token === 'byte track') return 'bytetrack';
+        return 'lite';
+      }
+      function opsRulesNormalizeReidPolicy(value = '') {
+        const token = String(value || '').trim().toLowerCase();
+        if (token === 'assist' || token === 'association-assist' || token === 'reid-assist') return 'assist';
+        return 'off';
+      }
+      function opsRulesTrackingPolicyFromItem(item = {}) {
+        const policy = item?.analysis?.trackingPolicy || item?.trackingPolicy || {};
+        const tracker = opsRulesNormalizeTrackerPolicy(policy.tracker || policy.trackerPolicy || '');
+        const reid = tracker === 'none'
+          ? 'off'
+          : opsRulesNormalizeReidPolicy(policy.reid || policy.reId || policy.reID || policy.reidPolicy || '');
+        return { tracker, reid };
+      }
+      function opsRulesTrackerPolicyLabel(value = '') {
+        const tracker = opsRulesNormalizeTrackerPolicy(value);
+        if (tracker === 'none') return 'Tracking off';
+        if (tracker === 'kalman-lite') return 'Kalman-lite';
+        if (tracker === 'bytetrack') return 'ByteTrack';
+        return 'Lite tracker';
+      }
+      function opsRulesReidPolicyLabel(value = '') {
+        return opsRulesNormalizeReidPolicy(value) === 'assist' ? 'Re-ID assist' : 'Re-ID off';
+      }
+      function opsRulesTrackingPolicySummary(policy = {}) {
+        const normalized = opsRulesTrackingPolicyFromItem({ analysis: { trackingPolicy: policy } });
+        return `${opsRulesTrackerPolicyLabel(normalized.tracker)} · ${opsRulesReidPolicyLabel(normalized.reid)}`;
+      }
+      function opsRulesSelectHasValue(select, value) {
+        return Array.from(select?.options || []).some(option => String(option.value || '') === String(value || ''));
+      }
+      function opsRulesSetTrackingPolicyControls(policy = {}) {
+        const trackerSelect = document.getElementById('opsVaRuleTrackerSelect');
+        const reidSelect = document.getElementById('opsVaRuleReidSelect');
+        const normalized = opsRulesTrackingPolicyFromItem({ analysis: { trackingPolicy: policy } });
+        if (trackerSelect) {
+          trackerSelect.value = opsRulesSelectHasValue(trackerSelect, normalized.tracker) ? normalized.tracker : 'lite';
+        }
+        if (reidSelect) {
+          reidSelect.value = opsRulesSelectHasValue(reidSelect, normalized.reid) ? normalized.reid : 'off';
+        }
+        opsRulesUpdateTrackingPolicyUi();
+      }
+      function opsRulesCurrentTrackingPolicy() {
+        const tracker = opsRulesNormalizeTrackerPolicy(document.getElementById('opsVaRuleTrackerSelect')?.value || 'lite');
+        const reid = tracker === 'none'
+          ? 'off'
+          : opsRulesNormalizeReidPolicy(document.getElementById('opsVaRuleReidSelect')?.value || 'off');
+        return { tracker, reid };
+      }
+      function opsRulesUpdateTrackingPolicyUi() {
+        const trackerSelect = document.getElementById('opsVaRuleTrackerSelect');
+        const reidSelect = document.getElementById('opsVaRuleReidSelect');
+        const summary = document.getElementById('opsVaRuleTrackingSummary');
+        if (!trackerSelect || !reidSelect) return;
+        const tracker = opsRulesNormalizeTrackerPolicy(trackerSelect.value || 'lite');
+        trackerSelect.value = opsRulesSelectHasValue(trackerSelect, tracker) ? tracker : 'lite';
+        if (tracker === 'none') {
+          reidSelect.value = 'off';
+        } else {
+          const reid = opsRulesNormalizeReidPolicy(reidSelect.value || 'off');
+          reidSelect.value = opsRulesSelectHasValue(reidSelect, reid) ? reid : 'off';
+        }
+        const readOnly = trackerSelect.disabled === true;
+        reidSelect.disabled = readOnly || trackerSelect.value === 'none';
+        if (summary) summary.textContent = opsRulesTrackingPolicySummary(opsRulesCurrentTrackingPolicy());
+      }
+      function opsRulesTrackingPolicyHtml(item = {}) {
+        const policy = opsRulesTrackingPolicyFromItem(item);
+        return `<div class="ops-rule-value-stack">
+          <strong>${escapeHtml(opsRulesTrackerPolicyLabel(policy.tracker))}</strong>
+          <span class="ops-rule-note">${escapeHtml(opsRulesReidPolicyLabel(policy.reid))}</span>
+        </div>`;
+      }
       function opsRulesEventTemplateSkeleton(id = opsRulesNextNumericId(opsCatalogEventTemplates, 1)) {
         const type = 'intrusion-dwell';
         const classes = ['person', 'vehicle'];
@@ -3819,7 +3899,8 @@ void AppendOpsShellScript(std::ostringstream& out,
           source: channel ? opsRulesSourcePayload(channel.source) : { kind: 'file', file: 'sample_h264.mp4' },
           analysis: {
             ...(base.analysis || {}),
-            profileId: opsRulesPreferredProfileId()
+            profileId: opsRulesPreferredProfileId(),
+            trackingPolicy: opsRulesTrackingPolicyFromItem(base)
           },
           match: { sourceKind: '*', route: '*', vaRule: String(id) },
           binding: {
@@ -4160,6 +4241,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             templateSummary.textContent = `${prefix} ${display(templateId)} · ${opsRuleEventTypeLabel(eventType)} · ${classes}`;
           }
         }
+        opsRulesUpdateTrackingPolicyUi();
       }
       function opsRulesVaGeometryTypeFromItem(item = {}) {
         const templateId = String(document.getElementById('opsVaRuleTemplateSeedSelect')?.value || item?.templateStart?.ruleId || '').trim();
@@ -4690,6 +4772,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         document.getElementById('opsVaRuleProfileSelect').value = String(analysis.profileId || item?.profileId || opsRulesPreferredProfileId());
         document.getElementById('opsVaRuleTemplateSeedSelect').value = templateRuleId;
         opsVaRuleTemplateId = templateRuleId;
+        opsRulesSetTrackingPolicyControls(opsRulesTrackingPolicyFromItem(item));
         opsRulesSetFormDisabled('va-rule', detailMode === 'view');
         opsRulesUpdateVaRuleFormSummary();
         opsRulesFillVaGeometryForm(item);
@@ -4839,7 +4922,8 @@ void AppendOpsShellScript(std::ostringstream& out,
           source: channel ? opsRulesSourcePayload(channel.source) : opsRulesClone(base.source || opsRulesVaRuleSkeleton(id).source),
           analysis: {
             ...(base.analysis || {}),
-            profileId: String(document.getElementById('opsVaRuleProfileSelect')?.value || opsRulesPreferredProfileId())
+            profileId: String(document.getElementById('opsVaRuleProfileSelect')?.value || opsRulesPreferredProfileId()),
+            trackingPolicy: opsRulesCurrentTrackingPolicy()
           },
           binding: {
             ...(base.binding || {}),
@@ -5102,6 +5186,8 @@ void AppendOpsShellScript(std::ostringstream& out,
           item?.templateStart?.ruleId,
           analysis?.profileId,
           analysis?.detector,
+          analysis?.trackingPolicy?.tracker,
+          analysis?.trackingPolicy?.reid,
           eventName,
           ...(Array.isArray(analysis?.classes) ? analysis.classes : [])
         ].filter(Boolean).join(' ').toLowerCase();
@@ -5606,7 +5692,7 @@ void AppendOpsShellScript(std::ostringstream& out,
       function renderOpsVaRules(items) {
         const body = document.getElementById('opsVaRuleRows');
         if (!Array.isArray(items) || items.length === 0) {
-          setTableEmpty(body, 8, '저장된 채널 분석 설정이 없습니다.');
+          setTableEmpty(body, 9, '저장된 채널 분석 설정이 없습니다.');
           return;
         }
         body.innerHTML = items.map(item => {
@@ -5622,6 +5708,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             tableCellHtml('채널', opsRulesVaRuleChannelHtml(item)),
             tableCellHtml('이벤트 템플릿', opsRulesVaRuleTemplateHtml(item)),
             tableCellHtml('프로파일', opsRulesVaRuleProfileHtml(item)),
+            tableCellHtml('Tracker/Re-ID', opsRulesTrackingPolicyHtml(item)),
             tableCellHtml('영역/라인', opsRulesGeometryHtml(item)),
             tableCellHtml('출력', opsRulesVaOutputButtonsHtml(item)),
             tableCellHtml('상태', statusCellHtml, 'table-cell-nowrap table-cell-status'),
@@ -5776,6 +5863,11 @@ void AppendOpsShellScript(std::ostringstream& out,
           if (channel?.view && id !== '(미지정)' && !opsRulesViewAllowsRuleId(channel.view, id)) {
             issues.push(opsRulesIssue('view-rule-not-allowed', `va-rule:${id}`, `PublishedView 허용 룰 목록에 ${id}가 없습니다.`, '채널 탭에서 defaultRuleId/allowedRuleIds를 맞추거나 룰을 다시 연결하세요.'));
           }
+          const rawPolicy = rule?.analysis?.trackingPolicy || {};
+          if (opsRulesNormalizeTrackerPolicy(rawPolicy.tracker || rawPolicy.trackerPolicy || '') === 'none' &&
+              opsRulesNormalizeReidPolicy(rawPolicy.reid || rawPolicy.reId || rawPolicy.reID || rawPolicy.reidPolicy || '') !== 'off') {
+            issues.push(opsRulesIssue('tracking-policy-conflict', `va-rule:${id}`, `채널 분석 설정 ${id}의 Re-ID 조합이 유효하지 않습니다.`, 'Tracker를 사용 안 함으로 선택하면 Re-ID는 off여야 합니다.'));
+          }
           for (const message of opsRulesClassConflictMessages(rule, template, profile)) {
             issues.push(opsRulesIssue('template-profile-conflict', `va-rule:${id}`, `채널 분석 설정 ${id}의 대상 클래스가 충돌합니다.`, message));
           }
@@ -5861,6 +5953,11 @@ void AppendOpsShellScript(std::ostringstream& out,
           issues.push(...opsRulesClassConflictMessages(payload, template, profile));
           if (channel?.source && payload?.source && !opsRulesSourceMatches(channel.source, payload.source)) {
             issues.push('선택한 채널 source와 룰 source가 일치하지 않습니다.');
+          }
+          const policy = payload?.analysis?.trackingPolicy || {};
+          if (opsRulesNormalizeTrackerPolicy(policy.tracker || policy.trackerPolicy || '') === 'none' &&
+              opsRulesNormalizeReidPolicy(policy.reid || policy.reId || policy.reID || policy.reidPolicy || '') !== 'off') {
+            issues.push('Tracker를 사용 안 함으로 선택하면 Re-ID는 off여야 합니다.');
           }
           const priority = opsRulesRulePriority(payload);
           const conflictingRule = opsCatalogVaRules.find(rule => {
@@ -6076,6 +6173,8 @@ void AppendOpsShellScript(std::ostringstream& out,
         document.getElementById('opsVaRuleIdInput')?.addEventListener('input', () => {
           opsRulesUpdateVaRuleFormSummary();
         });
+        document.getElementById('opsVaRuleTrackerSelect')?.addEventListener('change', () => opsRulesUpdateTrackingPolicyUi());
+        document.getElementById('opsVaRuleReidSelect')?.addEventListener('change', () => opsRulesUpdateTrackingPolicyUi());
         document.getElementById('opsVaRuleGeometryPointsInput')?.addEventListener('input', () => opsRulesRenderVaGeometryPreview());
         document.getElementById('opsVaRuleGeometryDefaultBtn')?.addEventListener('click', () => {
           opsRulesPushGeometryUndo();

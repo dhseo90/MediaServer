@@ -2648,6 +2648,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
               <col class="ops-rules-col-source" />
               <col class="ops-rules-col-template" />
               <col class="ops-rules-col-profile" />
+              <col class="ops-rules-col-tracking" />
               <col class="ops-rules-col-geometry" />
               <col class="ops-rules-col-output" />
               <col class="ops-rules-col-status" />
@@ -2659,13 +2660,14 @@ void AppendOpsRulesPage(std::ostringstream& out) {
                 <th>채널</th>
                 <th>이벤트 템플릿</th>
                 <th>분석 프로파일</th>
+                <th>Tracker/Re-ID</th>
                 <th>영역/라인</th>
                 <th>URL 복사</th>
                 <th>상태</th>
                 <th>작업</th>
               </tr>
             </thead>
-            <tbody id="opsVaRuleRows"><tr><td colspan="8">로딩 중</td></tr></tbody>
+            <tbody id="opsVaRuleRows"><tr><td colspan="9">로딩 중</td></tr></tbody>
           </table>
         </div>
       </section>
@@ -2774,6 +2776,28 @@ void AppendOpsRulesPage(std::ostringstream& out) {
             </label>
           </div>
           <p id="opsVaRuleBindingSummary" class="form-note">이벤트 템플릿과 프로파일을 고른 뒤 선택한 채널의 source와 PublishedView에 연결합니다.</p>
+          <section class="ops-selection-review" aria-labelledby="opsVaRuleTrackingHeading">
+            <div>
+              <strong id="opsVaRuleTrackingHeading">Tracker / Re-ID</strong>
+              <p id="opsVaRuleTrackingSummary" class="form-note">Lite tracker · Re-ID off</p>
+            </div>
+            <div class="row">
+              <label>Tracker
+                <select id="opsVaRuleTrackerSelect">
+                  <option value="lite">Lite</option>
+                  <option value="none">사용 안 함</option>
+                  <option value="kalman-lite">Kalman-lite</option>
+                  <option value="bytetrack">ByteTrack</option>
+                </select>
+              </label>
+              <label>Re-ID
+                <select id="opsVaRuleReidSelect">
+                  <option value="off">Off</option>
+                  <option value="assist">Assist</option>
+                </select>
+              </label>
+            </div>
+          </section>
           <section class="ops-selection-review" aria-labelledby="opsVaRuleTemplateSummaryHeading">
             <div>
               <strong id="opsVaRuleTemplateSummaryHeading">선택한 템플릿 요약</strong>
