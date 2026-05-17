@@ -28,9 +28,30 @@
 - YOLO/ONNX model binary와 대형 test media
 - FFmpeg/GStreamer runtime binary, package-manager cache, local auth store, log
 
+## v1.2.1 Housekeeping Gate
+
+v1.2.1 patch에서는 dependency snapshot, visual artifact, sample fixture provenance를
+release 후 상태로 다시 확인하되 runtime/model/binary bundle 범위를 열지 않습니다.
+
+- Dependency snapshot은 release review 때 `/tmp` 산출물로 재생성해 현재 환경을
+  확인합니다. `DEPENDENCY_SNAPSHOT.md`는 의도한 release 기준 변경이 있을 때만
+  커밋합니다.
+- UI visual artifact는 `media-server.ui-visual-artifact-retention.v1` 기준으로
+  PR artifact 14 days, release baseline 45 days 보존 정책을 유지합니다. screenshot
+  artifact는 검증 산출물이며 public release asset이 아닙니다.
+- Sample fixture provenance는 위 표의 allowlist 안에서만 공개 가능으로 봅니다.
+  새 fixture를 추가하면 실제 장비/credential/customer media가 아닌지 먼저 이
+  문서에 기록합니다.
+- Bundle policy는 source/doc 기본 release 경계를 확인하는 guard입니다. FFmpeg,
+  GStreamer runtime package, ONNX Runtime package, YOLO model binary를 patch
+  release asset에 포함하지 않습니다.
+
 ## 검증
 
 ```bash
+./server.sh dependency-snapshot --stable --output /tmp/media_server_dependency_snapshot.md --json-output /tmp/media_server_dependency_snapshot.json --no-linked-libs
+./server.sh verify-ui-visual-artifact-index
+./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
 ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
 ```
 
