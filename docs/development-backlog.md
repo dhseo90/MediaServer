@@ -758,17 +758,66 @@ research note와 dependency/privacy 검토 대상으로만 남기는 범위입�
 - camera motion compensation 및 dataset benchmark report
 - runtime/model bundle RC policy와 source-offer 검토
 
+## v1.5.0 Minor Roadmap Draft
+
+v1.5.0은 v1.4.0의 rule-level tracker/Re-ID opt-in 경계를 유지하면서 사용자가
+명시적으로 선택한 tracker/Re-ID 조합의 테스트, 안정화, 운영 피드백을 보강하는
+minor release 후보입니다. 제품 기본 tracker/Re-ID를 바꾸지 않고, global
+default-on, 자동 migration, 암묵적 Re-ID 활성화는 열지 않습니다.
+
+기본 원칙:
+
+- tracker와 Re-ID는 사용자가 룰별 설정에서 명시적으로 선택한 경우에만 적용
+- `analysis.trackingPolicy`가 없는 기존 rule/vaRule은 계속 `tracker=lite`,
+  `reid=off`로 해석
+- global/default-on, 자동 migration, field evidence 기반 기본값 승격은 비범위
+- Re-ID는 사용자가 켠 경우에도 model provenance, checksum, privacy, retention,
+  NoOp fallback gate가 통과한 범위에서만 보조 association으로 사용
+- Tracker/Re-ID 안정화는 반복 fixture, warning drift, VA event replay, runtime
+  fallback, metadata 비노출 검증까지 포함
+- Event POST, WebRTC DataChannel, SSE/WS metadata schema와 RTSP/WebRTC media
+  path는 별도 review 전까지 변경하지 않음
+
+공통 완료 조건:
+
+- Tracker/Re-ID off 기본 경로가 기존 rule과 client/viewer 노출 계약을 깨지 않음
+- `lite`, `kalman-lite`, `bytetrack`, Re-ID assist 조합별 반복 테스트 결과를 기록
+- missing/invalid Re-ID model은 실패 전파 없이 NoOp/fallback으로 수렴
+- warning은 기본값 승격 근거가 아니라 사용자 설정/튜닝 참고로만 표시
+- raw media, crop, embedding, model path, auth/source material은 public docs,
+  release asset, client/viewer metadata에 노출하지 않음
+- 각 항목은 해당 verifier와 `git diff --check` 통과 후에만 완료로 처리
+
+| ID | 우선순위 | 영역 | 목표 | 예상 검증 |
+| --- | --- | --- | --- | --- |
+| V150-P0-01 | P0 | Explicit opt-in tracker/Re-ID policy guard | 사용자가 룰별로 선택한 tracker/Re-ID만 적용되고 global/default-on/자동 migration이 생기지 않도록 저장, runtime, UI, docs guard를 고정합니다. | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-analysis-state`, tracker/Re-ID off 기본 회귀 테스트 |
+| V150-P0-02 | P0 | Tracker/Re-ID stability matrix | `lite`, `kalman-lite`, `bytetrack`, Re-ID assist 조합별 반복 fixture와 warning drift를 안정화합니다. close-object/field-driving 결과는 사용자 opt-in 품질 참고로만 기록합니다. | `verify-tracker-stability`, `compare-close-object-tracker --fixture-matrix`, `verify-va-replay`, `verify-va-events` |
+| V150-P0-03 | P0 | Re-ID opt-in model provenance and fallback approval | 사용자가 Re-ID를 켤 때만 model provenance/checksum/privacy/retention 조건을 확인하고, missing/invalid model은 NoOp fallback으로 처리합니다. | `verify-reid-advanced-tracking`, invalid/missing model fixture, metadata 비노출 guard |
+| V150-P1-01 | P1 | Ops Dashboard tracker warning next-action refinement | tracker/Re-ID warning을 기본값 승격 근거가 아니라 사용자 설정/튜닝 참고로 표시하고, 운영자가 다음 조치를 고를 수 있게 summary와 action copy를 정리합니다. | `verify-ops-client-ui --screenshots`, tracker warning fixture smoke, `verify-va-runtime-console` |
+| V150-P1-02 | P1 | Audit export review hardening | tracker/Re-ID 설정 변경, model/fallback 상태, export masking 흐름을 운영 감사 UX에서 검토 가능하게 강화합니다. 민감정보와 model/source material은 조회/export 응답에 노출하지 않습니다. | `verify-ops-audit-trail`, `verify-auth-users`, 민감정보 masking regression |
+| V150-P1-03 | P1 | Field smoke summary evidence boundary | raw media 없이 tracker/Re-ID summary/report/history index evidence만 보존하는 절차를 정리하고, release 문서에서 완료/미확인/비범위를 분리합니다. | docs guard, report archive policy verifier, `compare-close-object-tracker --history-dir` |
+| V150-P2-01 | P2 | OC-SORT experimental sandbox | OC-SORT는 제품 기본 tracker 후보가 아니라 사용자가 명시 선택하는 실험/비교 sandbox로만 검토합니다. runtime tracker 승격과 schema/media path 변경은 별도 review로 분리합니다. | experimental fixture, `compare-close-object-tracker`, runtime tracker boundary verifier |
+
+v1.5.0 비범위:
+
+- tracker/Re-ID global default-on 또는 제품 기본값 변경
+- 기존 rule/source/profile 자동 migration
+- tracker warning, fixture matrix, field evidence를 기본값 승격 근거로 표시
+- Re-ID model/runtime binary bundle, release asset 업로드, container/offline package 포함
+- raw field media, crop, embedding, auth/source material 저장 또는 public archive
+- OC-SORT/BoT-SORT/DeepSORT를 기본 runtime tracker로 승격
+- Event POST/WebRTC DataChannel/SSE/WS metadata payload 무심사 변경
+- RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
+
 ## 별도 Phase 후보
 
-v1.3.0 release main에는 다음 minor roadmap을 고정하지 않습니다.
-다만 follow-up closure에서 분리한 항목은 이후 별도 Phase gate 후보로 남깁니다.
+v1.5.0 roadmap에 포함하지 않은 항목은 이후 별도 Phase gate 후보로 남깁니다.
 각 후보는 source-only/live-only 경계, schema/media-path review, privacy/redaction
-review, release/field/manual approval gate를 통과할 때만 제품 기본값이나 배포
-승격으로 연결합니다.
+review, release/field/manual approval gate를 통과할 때만 명시적 opt-in 기능이나
+배포 범위 검토로 연결합니다.
 
-- 실제 Re-ID model field review
 - field sample history review workflow
-- tracker replacement benchmark harness
+- tracker experimental benchmark harness
 - Re-ID privacy retention guard
 - runtime/model bundle RC policy
 - ONVIF field smoke evidence reconciliation
