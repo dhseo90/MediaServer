@@ -52,6 +52,7 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-release-metadata
 ./server.sh verify-v121-follow-up-closure
 ./server.sh verify-v130-follow-up-closure
+./server.sh verify-v140-report-archive-policy
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-manual-ui-evidence
@@ -738,6 +739,9 @@ Re-ID assist opt-in까지 같이 태우는 경우에는 `--reid-policy assist`�
 단일 비교에 `--history-dir`를 지정하면 summary/report 사본과 Markdown/JSON index가
 누적됩니다. 이 index는 warning reason count와 recommendation 추세를 보기 위한
 것이며, 제품 default-on 승인 또는 Re-ID assist 기본 활성화 근거가 아닙니다.
+보존할 수 있는 report/index 파일과 보존하지 않는 raw media/image 범위는
+[Close-object Report Archive Policy](./close-object-report-archive-policy.md)를
+따릅니다.
 
 OC-SORT 후순위 benchmark boundary는 별도 정적 verifier로 확인합니다. 이 검증은
 OC-SORT가 `analysis.trackingPolicy.tracker`, `/ops/rules` UI,

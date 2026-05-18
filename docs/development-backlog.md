@@ -421,6 +421,11 @@ v1.4.0 비범위:
 - Re-ID model/runtime binary bundle, release asset 업로드, container/offline package 포함
 - field sample scheduler, dataset ingest, 고객/현장 영상 보존 자동화
 
+v1.4.0 close-object/field-driving report 보존 기준은
+[Close-object Report Archive Policy](./close-object-report-archive-policy.md)에 둡니다.
+이 정책은 summary/report/history index를 검증 evidence로 보존하는 범위이며,
+제품 default-on 승격이나 raw media/image archive를 열지 않습니다.
+
 ### V140-P0-01 Rule-level tracking policy contract 정리 기준
 
 `Rule-level tracking policy contract`는 tracker/Re-ID를 전역 기본값으로 켜지 않고

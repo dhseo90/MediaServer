@@ -656,6 +656,8 @@ history index는 `defaultOnDecision`, `productDefaultOn`, `candidateCount`,
 회차별로 보존해 `--tracker-policy bytetrack --reid-policy assist` 같은 opt-in
 조합의 counter drift 추세를 추적합니다. 단일 비교 history도 관찰 evidence일 뿐
 Re-ID assist 또는 close-object guard default-on 완료 근거로 사용하지 않습니다.
+report/history 보존 범위는 [Close-object Report Archive Policy](close-object-report-archive-policy.md)를
+따르며, raw media image, crop, embedding, source URL, credential은 포함하지 않습니다.
 반복 실행에서는 `Repeat Metric Stats`의 mean/stdev/variance로 observed risk 변동성을 확인합니다.
 
 ## 8. Appearance / Re-ID Hook
