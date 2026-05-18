@@ -1013,6 +1013,10 @@ def emit_summary(summary: dict[str, Any]) -> None:
     print(f"[judgement] {summary.get('overallJudgement')}")
     print(f"[default-on-candidate] {gate.get('defaultOnCandidate')}")
     print(f"[recommendation] {gate.get('recommendation')}")
+    history = summary.get("history") or {}
+    if history:
+        print(f"[history-index] {history.get('indexPath')}")
+        print(f"[history-report] {history.get('indexReportPath')}")
     for reason in summary.get("reasons") or []:
         print(f"[reason] {reason}")
 
@@ -1050,8 +1054,12 @@ def run_comparison(args: argparse.Namespace,
     report_path = output_dir / "report.md"
     summary["summaryPath"] = str(summary_path)
     summary["reportPath"] = str(report_path)
+    if args.history_dir and not fixture_id:
+        summary["history"] = prepare_comparison_history(summary, args.history_dir)
     write_report(summary, report_path)
     summary_path.write_text(json.dumps(summary, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    if summary.get("history"):
+        archive_comparison_history(summary, summary_path, report_path)
     return summary
 
 
@@ -1122,6 +1130,22 @@ def prepare_matrix_history(matrix: dict[str, Any], raw_history_dir: str) -> dict
     }
 
 
+def prepare_comparison_history(summary: dict[str, Any], raw_history_dir: str) -> dict[str, Any]:
+    root = resolve_output_path(raw_history_dir)
+    run_id = history_run_id(str(summary.get("createdAt") or dt.datetime.now(dt.timezone.utc).isoformat()))
+    run_dir = root / run_id
+    run_dir.mkdir(parents=True, exist_ok=True)
+    return {
+        "runId": run_id,
+        "historyDir": str(root),
+        "runDir": str(run_dir),
+        "summaryPath": str(run_dir / "summary.json"),
+        "reportPath": str(run_dir / "report.md"),
+        "indexPath": str(root / "index.json"),
+        "indexReportPath": str(root / "index.md"),
+    }
+
+
 def matrix_history_entry(matrix: dict[str, Any], history: dict[str, Any]) -> dict[str, Any]:
     fixtures = matrix.get("fixtures") or []
     decision = matrix.get("defaultOnDecision") or {}
@@ -1139,6 +1163,33 @@ def matrix_history_entry(matrix: dict[str, Any], history: dict[str, Any]) -> dic
         "defaultOnDecision": decision.get("status"),
         "productDefaultOn": decision.get("productDefaultOn"),
         "defaultOnReason": decision.get("reason"),
+        "summaryPath": history.get("summaryPath"),
+        "reportPath": history.get("reportPath"),
+    }
+
+
+def comparison_history_entry(summary: dict[str, Any], history: dict[str, Any]) -> dict[str, Any]:
+    gate = summary.get("qualityGate") or {}
+    reasons = summary.get("reasons") or []
+    warning_reasons = [
+        reason for reason in reasons
+        if "observed" in str(reason).lower() or "warning" in str(reason).lower()
+    ]
+    return {
+        "runId": history.get("runId"),
+        "createdAt": summary.get("createdAt"),
+        "ok": summary.get("ok"),
+        "sample": summary.get("sample"),
+        "trackerPolicy": summary.get("trackerPolicy") or "",
+        "reidPolicy": summary.get("reidPolicy") or "",
+        "qualityPreset": summary.get("qualityPreset") or "",
+        "baselineMode": summary.get("baselineMode") or "",
+        "modes": summary.get("modes") if isinstance(summary.get("modes"), list) else list((summary.get("modes") or {}).keys()),
+        "judgement": summary.get("overallJudgement") or "",
+        "warningReasonCount": len(warning_reasons),
+        "reasonCount": len(reasons),
+        "defaultOnCandidate": gate.get("defaultOnCandidate"),
+        "recommendation": gate.get("recommendation"),
         "summaryPath": history.get("summaryPath"),
         "reportPath": history.get("reportPath"),
     }
@@ -1201,6 +1252,70 @@ def write_history_index_report(index_payload: dict[str, Any], path: pathlib.Path
             )
         )
     path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def write_comparison_history_index_report(index_payload: dict[str, Any], path: pathlib.Path) -> None:
+    lines = [
+        "# Close-object Tracker Comparison History",
+        "",
+        f"- updated: `{index_payload.get('updatedAt')}`",
+        f"- history dir: `{index_payload.get('historyDir')}`",
+        "- interpretation: warning/counter drift trend evidence only; product default-on remains a separate review.",
+        "",
+        "| run | created | sample | tracker | Re-ID | judgement | warning reasons | default-on candidate | recommendation | report |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+    ]
+    for item in index_payload.get("runs") or []:
+        lines.append(
+            "| {run} | {created} | `{sample}` | {tracker} | {reid} | {judgement} | {warnings} | {candidate} | {recommendation} | `{report}` |".format(
+                run=format_cell(item.get("runId")),
+                created=format_cell(item.get("createdAt")),
+                sample=format_cell(item.get("sample")),
+                tracker=format_cell(item.get("trackerPolicy") or "direct-source-default"),
+                reid=format_cell(item.get("reidPolicy") or "direct-source-default"),
+                judgement=format_cell(item.get("judgement")),
+                warnings=format_cell(item.get("warningReasonCount")),
+                candidate=format_cell(item.get("defaultOnCandidate")),
+                recommendation=format_cell(item.get("recommendation")),
+                report=format_cell(item.get("reportPath")),
+            )
+        )
+    path.write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+def archive_comparison_history(summary: dict[str, Any],
+                               summary_path: pathlib.Path,
+                               report_path: pathlib.Path) -> None:
+    history = summary.get("history") or {}
+    if not history:
+        return
+    summary_copy = pathlib.Path(str(history["summaryPath"]))
+    report_copy = pathlib.Path(str(history["reportPath"]))
+    index_path = pathlib.Path(str(history["indexPath"]))
+    index_report_path = pathlib.Path(str(history["indexReportPath"]))
+    shutil.copy2(summary_path, summary_copy)
+    shutil.copy2(report_path, report_copy)
+
+    existing_runs: list[dict[str, Any]] = []
+    if index_path.exists():
+        try:
+            existing = json.loads(index_path.read_text(encoding="utf-8"))
+            if isinstance(existing.get("runs"), list):
+                existing_runs = [item for item in existing["runs"] if isinstance(item, dict)]
+        except json.JSONDecodeError:
+            existing_runs = []
+    entry = comparison_history_entry(summary, history)
+    runs = [item for item in existing_runs if item.get("runId") != entry.get("runId")]
+    runs.append(entry)
+    runs.sort(key=lambda item: str(item.get("createdAt") or ""), reverse=True)
+    index_payload = {
+        "kind": "close-object-tracker-comparison-history",
+        "historyDir": history.get("historyDir"),
+        "updatedAt": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "runs": runs,
+    }
+    index_path.write_text(json.dumps(index_payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    write_comparison_history_index_report(index_payload, index_report_path)
 
 
 def archive_matrix_history(matrix: dict[str, Any], summary_path: pathlib.Path, report_path: pathlib.Path) -> None:

@@ -650,6 +650,12 @@ field/model review 대상으로 남깁니다.
 matrix report에 `--history-dir`를 지정하면 회차별 index를 남겨 품질 추세를 비교할 수 있습니다.
 history index는 `defaultOnDecision`, `productDefaultOn`, `candidateCount`,
 `defaultOnReason`도 함께 보존해 `matrix-ok`와 제품 기본 활성화 판단을 분리합니다.
+단일 close-object 비교에서도 `--history-dir`를 지정하면 summary/report 사본과
+`close-object-tracker-comparison-history` index를 남깁니다. 이 index는
+`judgement`, warning reason count, recommendation, `defaultOnCandidate`를
+회차별로 보존해 `--tracker-policy bytetrack --reid-policy assist` 같은 opt-in
+조합의 counter drift 추세를 추적합니다. 단일 비교 history도 관찰 evidence일 뿐
+Re-ID assist 또는 close-object guard default-on 완료 근거로 사용하지 않습니다.
 반복 실행에서는 `Repeat Metric Stats`의 mean/stdev/variance로 observed risk 변동성을 확인합니다.
 
 ## 8. Appearance / Re-ID Hook

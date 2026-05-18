@@ -616,6 +616,9 @@ opt-in runtime tracker입니다.
 - `verify-tracker-stability`와 `compare-close-object-tracker`는
   `--reid-policy assist` 옵션으로 임시 vaRule을 만들고 tap runtime의
   `trackingPolicy.reid=assist` 적용을 확인할 수 있습니다.
+- 단일 close-object 비교의 `--history-dir`는 Re-ID assist warning/counter drift
+  추세를 summary/report/index로 남깁니다. 이 history는 관찰 evidence이며
+  Re-ID assist default-on 또는 제품 tracker 교체 완료 근거로 사용하지 않습니다.
 - Re-ID model artifact는 repo/release asset에 포함하지 않습니다. model missing,
   checksum/provenance 누락 또는 불일치, ONNX Runtime 미빌드는 NoOp fallback으로
   닫습니다.
@@ -628,7 +631,7 @@ opt-in runtime tracker입니다.
 - `./server.sh build`
 - `./server.sh verify-reid-advanced-tracking`
 - `./server.sh verify-analysis-state`
-- `./server.sh compare-close-object-tracker --tracker-policy bytetrack --reid-policy assist`
+- `./server.sh compare-close-object-tracker --tracker-policy bytetrack --reid-policy assist --history-dir /private/tmp/media_server_v140_reid_assist_warning_trend`
 - `git diff --check`
 
 이번 항목의 범위 밖:

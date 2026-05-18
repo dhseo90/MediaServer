@@ -729,8 +729,15 @@ Re-ID assist opt-in까지 같이 태우는 경우에는 `--reid-policy assist`�
 
 ```bash
 ./server.sh verify-tracker-stability --tracker-policy bytetrack --reid-policy assist
-./server.sh compare-close-object-tracker --tracker-policy bytetrack --reid-policy assist
+./server.sh compare-close-object-tracker \
+  --tracker-policy bytetrack \
+  --reid-policy assist \
+  --history-dir /private/tmp/media_server_v140_reid_assist_warning_trend
 ```
+
+단일 비교에 `--history-dir`를 지정하면 summary/report 사본과 Markdown/JSON index가
+누적됩니다. 이 index는 warning reason count와 recommendation 추세를 보기 위한
+것이며, 제품 default-on 승인 또는 Re-ID assist 기본 활성화 근거가 아닙니다.
 
 OC-SORT 후순위 benchmark boundary는 별도 정적 verifier로 확인합니다. 이 검증은
 OC-SORT가 `analysis.trackingPolicy.tracker`, `/ops/rules` UI,
