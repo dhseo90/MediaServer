@@ -63,8 +63,11 @@ check("default-off Re-ID and close-object guard settings are pinned", () => {
 });
 
 check("appearance execution stays bounded and off the media hot path", () => {
+  const analysisManager = readText("src/analysis/analysis_manager.cpp");
   const manager = readText("src/analysis/track_state_manager.cpp");
   const extractor = readText("src/analysis/appearance_extractor.cpp");
+  assert(analysisManager.includes("!profile.enable_tracking"), "Re-ID assist must require an enabled selected tracker");
+  assert(analysisManager.includes('profile.tracking_policy_reid != "assist"'), "Re-ID appearance policy must stay gated by reid=assist");
   for (const snippet of [
     "appearance_worker_ = std::thread",
     "max_queue_size",
@@ -223,6 +226,12 @@ check("close-object benchmark commands and fixture matrix remain available", () 
     /"id": "field-new-york-driving"[\s\S]*"qualityPreset": "field-driving-live"[\s\S]*"maxFragmentation": "6\.0"[\s\S]*"maxOverlapFragmentation": "6\.0"[\s\S]*"maxIdSwitchRisk": "8\.0"/.test(compare),
     "field-new-york-driving fixture must keep vehicle-heavy tracker-stability limits"
   );
+  for (const snippet of [
+    "--reid-policy",
+    "reidPolicy",
+  ]) {
+    assert(compare.includes(snippet), `compare tracker report must carry Re-ID policy: ${snippet}`);
+  }
   assert(compare.includes('"field-driving-live"'), "fixture matrix must define field-driving-live quality preset");
   for (const snippet of [
     '"riskTolerances": {',
@@ -240,6 +249,14 @@ check("close-object benchmark commands and fixture matrix remain available", () 
     "if not class_allowed(issue.get(\"className\")):",
   ]) {
     assert(trackerStability.includes(snippet), `tracker stability must class-filter observed counters: ${snippet}`);
+  }
+  for (const snippet of [
+    "--reid-policy",
+    "MEDIA_SERVER_VERIFY_TRACKER_REID_POLICY",
+    "\"trackingPolicy\": {\"tracker\": tracker_policy, \"reid\": reid_policy}",
+    "tap tracking policy 적용",
+  ]) {
+    assert(trackerStability.includes(snippet), `tracker stability must verify Re-ID assist opt-in policy: ${snippet}`);
   }
   assert(compare.includes("close-object guard default-on is not changed by this report."), "comparison report must state default-on is unchanged");
   for (const snippet of [
@@ -278,6 +295,8 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
   const docsEnReadme = readText("docs/en/README.md");
   for (const snippet of [
     "V140-P0-03",
+    "V140-P1-03 Re-ID assist 고도화 종료 판정",
+    "--reid-policy assist",
     "MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL_SHA256",
     "MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL_PROVENANCE",
     "checksum 누락/형식 오류/불일치",
@@ -305,6 +324,7 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
   assert(!backlog.includes("V120-P2-02 범주 안의 잔여 이슈는 남기지 않습니다"), "backlog must not claim V120-P2-02 has no residual issues");
   for (const snippet of [
     "privacy/default-off gate",
+    "--reid-policy assist",
     "verify-reid-advanced-tracking",
     "default-on candidate=False",
     "Matrix gate 상태 정의",
@@ -328,6 +348,8 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
   }
   for (const snippet of [
     "embedding/crop/model path",
+    "--reid-policy assist",
+    "selected tracker의 association 보조 hook",
     "checksum/provenance gate",
     "외부 metadata payload에 직렬화하지 않습니다",
     "fixture 전용 tracker-stability 상한",

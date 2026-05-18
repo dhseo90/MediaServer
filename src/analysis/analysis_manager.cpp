@@ -130,7 +130,7 @@ ObjectTrackerOptions BuildTrackerOptions(const AnalysisProfile& profile) {
 
 TrackStateManagerOptions BuildTrackStateManagerOptionsForProfile(const AnalysisProfile& profile) {
     auto options = BuildTrackStateManagerOptionsFromConfig(app::GetAppConfig());
-    if (profile.tracking_policy_effective_tracker == "none" ||
+    if (!profile.enable_tracking || profile.tracking_policy_effective_tracker == "none" ||
         profile.tracking_policy_reid != "assist") {
         options.appearance_update_policy.enabled = false;
     }

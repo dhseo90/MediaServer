@@ -719,6 +719,15 @@ mode별 tracker summary JSON과 Markdown report는
 
 Kalman-lite 또는 ByteTrack opt-in tracker에서 같은 guard 비교를 보려면
 `--tracker-policy kalman-lite` 또는 `--tracker-policy bytetrack`을 추가합니다.
+Re-ID assist opt-in까지 같이 태우는 경우에는 `--reid-policy assist`를 함께
+지정합니다. 이 옵션은 임시 vaRule의 `analysis.trackingPolicy.reid=assist`를
+검증하기 위한 것이며, Re-ID를 default tracker나 default-on 제품 판단으로
+승격하지 않습니다.
+
+```bash
+./server.sh verify-tracker-stability --tracker-policy bytetrack --reid-policy assist
+./server.sh compare-close-object-tracker --tracker-policy bytetrack --reid-policy assist
+```
 
 이미 실행 중인 서버를 기준으로만 비교해야 하면 `--use-existing-server --http-base <url>`을 사용합니다.
 이 경우 리포트의 `mode effective`가 `yes`인지 확인해야 합니다.

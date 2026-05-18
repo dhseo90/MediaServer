@@ -138,6 +138,10 @@ low-confidence detection은 기존 track continuity를 내부적으로 보강할
 외부 payload의 `source.profileKey` 문자열에도 policy token을 추가하지 않습니다.
 Re-ID `assist`도 외부 metadata에 embedding, crop, model path, checksum,
 appearance profile을 노출하지 않는 opt-in 정책값입니다.
+Re-ID assist는 독립 tracker가 아니라 selected tracker의 association 보조 hook으로만
+해석합니다. `tracker=none`에서는 `reid=assist` 조합을 저장하지 않으며,
+검증 하네스는 `--reid-policy assist`로 임시 vaRule을 만들어 runtime 적용 여부를
+확인할 수 있습니다.
 
 matching score는 다음 요소를 조합합니다.
 
@@ -647,6 +651,8 @@ AppearanceProfile과 IAppearanceExtractor는 향후 Re-ID/attribute 분석을 �
 - 실험용 ONNX Re-ID extractor hook은 모델 파일, SHA-256 checksum, provenance가 모두 있을 때만 사용
 - 모델 파일이 없거나 checksum/provenance gate가 비어 있거나 불일치하거나 ONNX Runtime 빌드가 아니면 NoOp으로 fallback
 - everyNSeconds, onTrackLost, onReacquireCandidate, onLowConfidenceAssociation 같은 policy trigger에서만 실행 후보 생성
+- rule/vaRule의 `analysis.trackingPolicy.reid=assist`가 선택된 tracker와 함께 적용된
+  경우에만 association 보조 hook으로 사용
 - async queue, per-stream rate limit, global queue 상한, stale job drop으로 media pipeline blocking 방지
 - embedding/crop/model path 같은 Re-ID identity material은 WebRTC/SSE/WS/Event/debug 외부 metadata payload에 직렬화하지 않습니다.
 - `./server.sh verify-reid-advanced-tracking`은 default-off, privacy review, close-object benchmark command boundary를 정적 검증합니다.

@@ -593,6 +593,49 @@ opt-in runtime tracker입니다.
 - Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
 - RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
 
+### V140-P1-03 Re-ID assist 고도화 종료 판정
+
+`Re-ID assist 고도화`는 Re-ID를 독립 tracker나 제품 기본값으로 승격하지 않고,
+저장 rule/vaRule의 `analysis.trackingPolicy.reid=assist`가 명시된 경우에만
+선택된 tracker의 association 보조 hook으로 제한하는 범위입니다.
+
+확인됨:
+
+- Re-ID assist는 `tracker=lite`, `tracker=kalman-lite`, `tracker=bytetrack` 같은
+  selected tracker가 있는 rule-level opt-in에서만 의미가 있습니다.
+- `tracker=none` 조합에서는 API 저장 단계에서 `reid=assist`를 거부하고 runtime은
+  `reid=off` fallback 경계를 유지합니다.
+- appearance hook은 TrackStateManager의 TrackCreated, ReacquireCandidate,
+  LowConfidenceAssociation, 제한적 Periodic trigger에서만 실행 후보를 만들며
+  track id를 독립 생성하거나 selected tracker의 public event/scene-visible
+  metadata를 대체하지 않습니다.
+- `verify-tracker-stability`와 `compare-close-object-tracker`는
+  `--reid-policy assist` 옵션으로 임시 vaRule을 만들고 tap runtime의
+  `trackingPolicy.reid=assist` 적용을 확인할 수 있습니다.
+- Re-ID model artifact는 repo/release asset에 포함하지 않습니다. model missing,
+  checksum/provenance 누락 또는 불일치, ONNX Runtime 미빌드는 NoOp fallback으로
+  닫습니다.
+- embedding, crop, model path, checksum/provenance, track-linked appearance profile은
+  Event POST/WebRTC DataChannel/SSE/WS metadata와 client/viewer 화면에 노출하지
+  않습니다.
+
+검증 기준:
+
+- `./server.sh build`
+- `./server.sh verify-reid-advanced-tracking`
+- `./server.sh verify-analysis-state`
+- `./server.sh compare-close-object-tracker --tracker-policy bytetrack --reid-policy assist`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- Re-ID default-on 제품 결정
+- 실제 Re-ID model artifact, model card, dataset provenance를 repo/release asset에 포함
+- Re-ID embedding similarity로 ObjectTracker association score를 직접 변경
+- OC-SORT, BoT-SORT, DeepSORT 구현 또는 benchmark 실행
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
+
 ## 별도 Phase 후보
 
 v1.3.0 release main에는 다음 minor roadmap을 고정하지 않습니다.
