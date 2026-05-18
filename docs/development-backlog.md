@@ -636,6 +636,54 @@ opt-in runtime tracker입니다.
 - Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
 - RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
 
+### V140-P2-01 OC-SORT 후순위 benchmark 종료 판정
+
+`OC-SORT 후순위 benchmark`는 OC-SORT를 v1.4.0 runtime tracker나
+rule-level 선택값으로 추가하지 않고, Kalman-lite/ByteTrack opt-in 결과 이후의
+비교 benchmark 후보로만 남기는 범위입니다.
+
+확인됨:
+
+- `analysis.trackingPolicy.tracker` 허용값에 추가하지 않습니다. 현재 허용값은
+  `none`, `lite`, `kalman-lite`, `bytetrack`입니다.
+- `/ops/rules` UI, rule validation, `AnalysisProfile` runtime policy,
+  `ObjectTrackerKind`, `verify-tracker-stability`, `compare-close-object-tracker`는
+  OC-SORT/ocsort token을 제품 tracker로 받지 않습니다.
+- OC-SORT 비교를 열 때도 Re-ID 없이 motion/observation 중심으로만 비교하며,
+  embedding/crop/model path, appearance profile, model/runtime bundle을 함께
+  열지 않습니다.
+- ByteTrack/Kalman-lite 이후 benchmark report는 기존
+  `compare-close-object-tracker` fixture matrix와 `defaultOnDecision`,
+  `productDefaultOn`, `candidateCount`, `defaultOnReason` 필드를 사용해
+  `matrix-ok`와 제품 default-on/교체 판단을 분리해야 합니다.
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema, Event POST payload,
+  RTSP/WebRTC media path, client/viewer 노출 정보는 이 항목에서 변경하지
+  않습니다.
+- 미분류 P0~P1 후속 이슈: 없음.
+
+검증 기준:
+
+- `./server.sh verify-oc-sort-benchmark-boundary`
+- `./server.sh verify-reid-advanced-tracking`
+- `./server.sh verify-script-inventory`
+- `./server.sh verify-docs-links`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- 실제 OC-SORT algorithm 구현 또는 runtime tracker 선택값 추가
+- OC-SORT benchmark 실행 결과를 제품 tracker 교체 근거로 과장
+- OC-SORT와 Re-ID/BoT-SORT/DeepSORT/model artifact/privacy review를 한 작업으로
+  묶기
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
+
+별도 Phase 후보로 기록:
+
+- 실제 OC-SORT algorithm adapter와 dataset benchmark report
+- ByteTrack/Kalman-lite/OC-SORT fixture matrix 비교 history
+- field sample 기반 tracker replacement product review
+
 ## 별도 Phase 후보
 
 v1.3.0 release main에는 다음 minor roadmap을 고정하지 않습니다.

@@ -248,6 +248,8 @@ Usage:
                  close-object guard 전체 fixture matrix를 정기 검증용 hard gate로 실행합니다.
   verify-reid-advanced-tracking
                  Re-ID/advanced tracking 실험의 default-off/privacy/benchmark gate를 검증합니다.
+  verify-oc-sort-benchmark-boundary
+                 OC-SORT 후순위 benchmark가 runtime tracker로 승격되지 않았는지 검증합니다.
   verify-yolo-layouts
                  YOLO 모델별 output layout/box/score 조합을 실제 모델로 검증합니다.
   verify-adaptive
@@ -806,6 +808,10 @@ case "${cmd}" in
   verify-reid-advanced-tracking)
     require_internal verify_reid_advanced_tracking_experiment.mjs
     exec "${INTERNAL_DIR}/verify_reid_advanced_tracking_experiment.mjs" "$@"
+    ;;
+  verify-oc-sort-benchmark-boundary)
+    require_internal verify_oc_sort_benchmark_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_oc_sort_benchmark_boundary.mjs" "$@"
     ;;
   verify-yolo-layouts)
     require_internal verify_yolo_layouts.sh

@@ -508,6 +508,8 @@ close-object guard는 lightweight direction-based tracker 내부의 opt-in 진�
 이 설정은 tracker 종류를 바꾸는 설정이 아닙니다. Kalman-lite와 ByteTrack은
 rule-level `analysis.trackingPolicy.tracker` opt-in으로만 선택하며, BoT-SORT와
 Re-ID 모델 도입은 별도 review 범위입니다.
+OC-SORT도 현재 환경변수나 rule-level tracker 허용값이 아니며, 후순위 benchmark
+경계는 [OC-SORT Benchmark Boundary](./oc-sort-benchmark-boundary.md)에 둡니다.
 
 ### TrackState/cleanup
 

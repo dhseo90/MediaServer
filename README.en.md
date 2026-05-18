@@ -98,6 +98,7 @@ See [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) for f
 | RTSP/WebRTC pipeline, source/session, VA layer | [docs/media-server-architecture.md](docs/media-server-architecture.md) |
 | YOLO, tracking, scenarios, live events, short evidence | [docs/video-analysis.md](docs/video-analysis.md) |
 | Re-ID default-off research continuation | [docs/reid-default-off-research-continuation.md](docs/reid-default-off-research-continuation.md) |
+| OC-SORT benchmark boundary | [docs/oc-sort-benchmark-boundary.md](docs/oc-sort-benchmark-boundary.md) |
 | Integrator Event/WebRTC/SSE/WS sample bundle | [docs/integrator-contract-artifact.md](docs/integrator-contract-artifact.md) |
 | Current product boundary, v1.3.0 close-out, and follow-up candidates | [docs/development-backlog.md](docs/development-backlog.md) |
 | Historical v1.2.1 follow-up closure | [docs/v1.2.1-follow-up-closure.md](docs/v1.2.1-follow-up-closure.md) |

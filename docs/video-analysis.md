@@ -135,6 +135,10 @@ low-confidence detection은 기존 track continuity를 내부적으로 보강할
 않습니다. ByteTrack 상태는 내부 runtime status의 `effectiveTracker=bytetrack`으로
 확인하며 Event POST/WebRTC DataChannel/SSE/WS metadata schema에는 새 필드를
 추가하지 않습니다.
+OC-SORT는 v1.4.0 runtime tracker 허용값이 아닙니다. 후속 benchmark가 열리더라도
+Kalman-lite/ByteTrack 이후 별도 report에서 Re-ID 없이 motion/observation 중심으로
+비교하며, Event POST/WebRTC DataChannel/SSE/WS metadata schema에는 새 필드를
+추가하지 않습니다.
 외부 payload의 `source.profileKey` 문자열에도 policy token을 추가하지 않습니다.
 Re-ID `assist`도 외부 metadata에 embedding, crop, model path, checksum,
 appearance profile을 노출하지 않는 opt-in 정책값입니다.
@@ -1553,7 +1557,8 @@ baseline 비교 기준:
 ## 19. 제한사항
 
 - 기본 tracker는 여전히 direction-based/lightweight tracker입니다. Kalman-lite와
-  ByteTrack은 rule-level opt-in이며, BoT-SORT/DeepSORT 계열은 도입하지 않았습니다.
+  ByteTrack은 rule-level opt-in이며, OC-SORT/BoT-SORT/DeepSORT 계열은 도입하지
+  않았습니다.
 - 실제 Re-ID/attribute 분석은 기본 비활성입니다.
   실험용 ONNX Re-ID extractor hook은 있지만,
   운영 feature/default-on으로 보려면 모델, 성능, 개인정보 정책 재검토가 별도 review로 필요합니다.

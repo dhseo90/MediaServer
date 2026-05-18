@@ -729,6 +729,16 @@ Re-ID assist opt-in까지 같이 태우는 경우에는 `--reid-policy assist`�
 ./server.sh compare-close-object-tracker --tracker-policy bytetrack --reid-policy assist
 ```
 
+OC-SORT 후순위 benchmark boundary는 별도 정적 verifier로 확인합니다. 이 검증은
+OC-SORT가 `analysis.trackingPolicy.tracker`, `/ops/rules` UI,
+`ObjectTrackerKind`, tracker stability/compare harness에 runtime tracker로
+추가되지 않았고, 실제 OC-SORT algorithm 구현 또는 benchmark 실행이 후속 Phase
+후보로만 남아 있는지 확인합니다.
+
+```bash
+./server.sh verify-oc-sort-benchmark-boundary
+```
+
 이미 실행 중인 서버를 기준으로만 비교해야 하면 `--use-existing-server --http-base <url>`을 사용합니다.
 이 경우 리포트의 `mode effective`가 `yes`인지 확인해야 합니다.
 
