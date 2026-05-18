@@ -218,8 +218,8 @@ std::string ProductUiCss() {
       padding: var(--space-4);
     }
     .app-chrome {
-      position: sticky;
-      top: 10px;
+      position: relative;
+      top: auto;
       z-index: 20;
       display: grid;
       gap: var(--space-3);
@@ -237,14 +237,14 @@ std::string ProductUiCss() {
       width: 100%;
       display: grid;
       grid-template-columns: minmax(0, 1fr) minmax(280px, 300px);
-      align-items: stretch;
+      align-items: center;
       gap: var(--space-3);
     }
     .app-nav-cluster {
       min-width: 0;
       display: grid;
       grid-template-columns: minmax(180px, 185px) minmax(0, 1fr);
-      align-items: stretch;
+      align-items: center;
       gap: var(--space-3);
     }
     .app-brand {
@@ -320,14 +320,15 @@ std::string ProductUiCss() {
       min-width: 0;
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(98px, 1fr));
-      grid-auto-rows: minmax(44px, 1fr);
+      grid-auto-rows: 44px;
       height: auto;
       gap: 6px;
       align-items: stretch;
+      align-self: center;
     }
     .image-nav {
       min-height: 44px;
-      height: 100%;
+      height: 44px;
       display: inline-grid;
       grid-template-columns: auto auto;
       align-content: center;
@@ -367,7 +368,7 @@ std::string ProductUiCss() {
     }
     .account-menu {
       flex: 0 0 auto;
-      min-height: 58px;
+      min-height: 54px;
       height: 100%;
       min-width: 0;
       display: flex;
@@ -515,6 +516,28 @@ std::string ProductUiCss() {
       background: var(--color-primary);
       border-color: var(--color-primary);
       color: var(--color-on-primary);
+    }
+    button:disabled,
+    .button-primary:disabled,
+    .button-secondary:disabled,
+    button[aria-disabled="true"],
+    .button-primary[aria-disabled="true"],
+    .button-secondary[aria-disabled="true"] {
+      opacity: 0.58;
+      cursor: not-allowed;
+      box-shadow: none;
+      filter: saturate(0.72);
+    }
+    button[aria-disabled="true"],
+    .button-primary[aria-disabled="true"],
+    .button-secondary[aria-disabled="true"] {
+      cursor: help;
+    }
+    .button-primary.is-blocked,
+    button.primary.is-blocked {
+      background: var(--color-warning-bg);
+      border-color: color-mix(in srgb, var(--color-warning) 62%, var(--color-border));
+      color: var(--color-warning);
     }
     .button-danger,
     button.danger {
@@ -1036,15 +1059,19 @@ std::string ProductUiCss() {
     .ops-geometry-overlay .ops-geometry-point.is-active {
       cursor: grabbing;
     }
-    .ops-geometry-overlay .ops-geometry-point circle {
+    .ops-geometry-overlay .ops-geometry-point circle:not(.ops-geometry-touch-target) {
       fill: var(--overlay-point-fill);
       stroke: var(--overlay-point-text);
       stroke-width: 0.4;
       vector-effect: non-scaling-stroke;
     }
-    .ops-geometry-overlay .ops-geometry-point.is-active circle {
+    .ops-geometry-overlay .ops-geometry-point.is-active circle:not(.ops-geometry-touch-target) {
       fill: var(--overlay-box-selected);
       stroke-width: 0.6;
+    }
+    .ops-geometry-overlay .ops-geometry-point .ops-geometry-touch-target {
+      fill: transparent;
+      stroke: transparent;
     }
     .ops-geometry-overlay .ops-geometry-point text {
       fill: var(--overlay-point-text);
@@ -1523,18 +1550,21 @@ std::string ProductUiCss() {
       gap: var(--space-3);
     }
     .rules-prereq-card {
-      min-height: 168px;
+      min-height: 136px;
       display: grid;
       align-content: start;
-      gap: var(--space-3);
-      padding: var(--space-4);
+      gap: 10px;
+      padding: 14px 16px;
       border: 1px solid var(--color-border);
       border-radius: var(--radius-lg);
       background: var(--color-surface-muted);
     }
+    .rules-prereq-card .actions {
+      margin-top: auto;
+    }
     .rules-prereq-card strong {
       color: var(--color-text);
-      font-size: 24px;
+      font-size: 22px;
       font-variant-numeric: tabular-nums;
     }
     .rules-prereq-card p {
@@ -1750,12 +1780,19 @@ std::string ProductUiCss() {
     .user-id-cell > strong,
     .user-value-stack > strong {
       display: block;
+      min-width: 0;
+      max-width: 100%;
       font-size: 13px;
       color: var(--color-text);
       line-height: 1.45;
       white-space: normal;
-      word-break: keep-all;
-      overflow-wrap: break-word;
+      word-break: break-word;
+      overflow-wrap: anywhere;
+    }
+    .ops-rule-value-stack > *,
+    .user-value-stack > * {
+      min-width: 0;
+      max-width: 100%;
     }
     .ops-rule-note,
     .user-note {
@@ -1763,8 +1800,8 @@ std::string ProductUiCss() {
       color: var(--color-text-muted);
       font-size: 12px;
       line-height: 1.4;
-      overflow-wrap: break-word;
-      word-break: normal;
+      overflow-wrap: anywhere;
+      word-break: break-word;
     }
     .table-identity-pill {
       display: inline-flex;

@@ -650,6 +650,7 @@ std::string ProductSharedUiScript() {
           [/^(\d+)초 초과 미사용 분석 탭이 없습니다\.$/u, (_match, seconds) => `No unused analysis taps older than ${seconds}s.`],
           [/^트래킹 이슈 없음\s+·\s+유지\s+(\d+)\/(\d+)\s+·\s+제한\s+(\d+)$/u, (_match, retained, total, limited) => `No tracking issues · retained ${retained}/${total} · limited ${limited}`],
           [/^VA 룰\s+(\d+)개\s+·\s+이벤트 템플릿\s+(\d+)개\s+·\s+프로파일\s+(\d+)개$/u, (_match, vaRules, templates, profiles) => `VA rules ${vaRules} · Event templates ${templates} · Profiles ${profiles}`],
+          [/^채널 분석 설정을 만들 수 없습니다\.\s+먼저\s+(.+)을\(를\)\s+준비하세요\.$/u, (_match, missing) => `Cannot create a channel analysis rule yet. Prepare ${String(missing).split(',').map(part => koToEn.get(part.trim()) || translatePattern(part.trim())).join(', ')} first.`],
           [/^우선순위\s+(.+)$/u, (_match, value) => `Priority ${koToEn.get(String(value).trim()) || String(value).trim()}`],
           [/^현장\s+(.+)$/u, (_match, value) => `Site ${koToEn.get(String(value).trim()) || translatePattern(String(value).trim())}`],
           [/^요약\s+(.+)$/u, (_match, value) => `Summary ${koToEn.get(String(value).trim()) || translatePattern(String(value).trim())}`],

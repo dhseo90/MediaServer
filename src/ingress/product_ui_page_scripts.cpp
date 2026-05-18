@@ -4513,8 +4513,8 @@ void AppendOpsShellScript(std::ostringstream& out,
           const y = opsRulesGeometrySvgY(point);
           const activeClass = index === opsVaGeometryDragIndex ? ' is-active' : '';
           return `<g class="ops-geometry-point${activeClass}" data-index="${index}">
-            <circle class="ops-geometry-touch-target" cx="${x}" cy="${y}" r="3.5"></circle>
-            <circle cx="${x}" cy="${y}" r="1.25"></circle>
+            <circle class="ops-geometry-touch-target" cx="${x}" cy="${y}" r="2.8"></circle>
+            <circle cx="${x}" cy="${y}" r="0.95"></circle>
             <text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central">${index + 1}</text>
           </g>`;
         }).join('');
@@ -4727,6 +4727,19 @@ void AppendOpsShellScript(std::ostringstream& out,
           templatesReady: templateCount > 0
         };
       }
+      function opsRulesVaRuleReadiness(state = opsRulesPrereqState()) {
+        const missing = [];
+        if (!state.channelsReady) missing.push('채널');
+        if (!state.profilesReady) missing.push('분석 프로파일');
+        if (!state.templatesReady) missing.push('이벤트 템플릿');
+        return {
+          ready: missing.length === 0,
+          missing,
+          message: missing.length
+            ? `채널 분석 설정을 만들 수 없습니다. 먼저 ${missing.join(', ')}을(를) 준비하세요.`
+            : '채널, 프로파일, 템플릿이 준비되었습니다. 이제 채널 분석 설정을 만들 수 있습니다.'
+        };
+      }
       function opsRulesSetPrereqChip(id, ready, readyLabel = '준비됨', pendingLabel = '필요') {
         const chip = document.getElementById(id);
         if (!chip) return;
@@ -4743,19 +4756,12 @@ void AppendOpsShellScript(std::ostringstream& out,
         opsRulesSetPrereqChip('opsRulesPrereqChannelsState', state.channelsReady);
         opsRulesSetPrereqChip('opsRulesPrereqProfilesState', state.profilesReady);
         opsRulesSetPrereqChip('opsRulesPrereqTemplatesState', state.templatesReady);
-        const readyForVaRule = state.channelsReady && state.profilesReady && state.templatesReady;
+        const readiness = opsRulesVaRuleReadiness(state);
+        const readyForVaRule = readiness.ready;
         opsRulesSetPrereqChip('opsRulesPrereqVaRulesState', readyForVaRule, '시작 가능', '준비 필요');
         const summary = document.getElementById('opsRulesPrereqSummary');
         if (summary) {
-          if (readyForVaRule) {
-            summary.textContent = '채널, 프로파일, 템플릿이 준비되었습니다. 이제 채널 분석 설정을 만들 수 있습니다.';
-          } else {
-            const missing = [];
-            if (!state.channelsReady) missing.push('채널');
-            if (!state.profilesReady) missing.push('분석 프로파일');
-            if (!state.templatesReady) missing.push('이벤트 템플릿');
-            summary.textContent = `${missing.join(', ')}을(를) 먼저 준비한 뒤 채널 분석 설정을 만듭니다.`;
-          }
+          summary.textContent = readiness.message;
         }
         const createVaButtons = [
           document.getElementById('opsCreateVaRuleBtn'),
@@ -4763,8 +4769,11 @@ void AppendOpsShellScript(std::ostringstream& out,
         ];
         createVaButtons.forEach((button) => {
           if (!button) return;
-          button.disabled = !readyForVaRule;
-          button.title = readyForVaRule ? '' : '채널, 프로파일, 이벤트 템플릿이 먼저 필요합니다.';
+          button.disabled = false;
+          button.setAttribute('aria-disabled', readyForVaRule ? 'false' : 'true');
+          button.classList.toggle('is-blocked', !readyForVaRule);
+          button.title = readyForVaRule ? '' : readiness.message;
+          button.dataset.blockReason = readyForVaRule ? '' : readiness.message;
         });
       }
       function setOpsRulesComposer(mode, detailMode = opsRulesDetailMode, recordId = opsRulesDetailRecordId) {
@@ -5134,10 +5143,21 @@ void AppendOpsShellScript(std::ostringstream& out,
           opsRulesFillNativeForm(mode, opsRulesCurrentRecord.item, detailMode);
           setOpsRulesComposer(mode, detailMode, item.id || recordId);
           opsRulesEditorStatus('', false);
+          document.getElementById('opsRulesDetailPanel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         } catch (error) {
           closeOpsRulesEditor();
           opsRulesEditorStatus(`룰 편집기 로드 실패: ${error.message}`, true);
         }
+      }
+      async function openOpsVaRuleCreateWhenReady() {
+        const readiness = opsRulesVaRuleReadiness();
+        if (!readiness.ready) {
+          opsRulesEditorStatus(readiness.message, true);
+          showToast(readiness.message, true);
+          document.getElementById('opsRulesPrereqSummary')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+        await openOpsRulesEditor('va-rule', 'new');
       }
       async function selectOpsRulesMode(mode) {
         const nextMode = opsRulesModeConfig(mode) ? mode : 'va-rule';
@@ -6188,12 +6208,12 @@ void AppendOpsShellScript(std::ostringstream& out,
         document.getElementById('opsAddVaRuleBtn')?.addEventListener('click', () => selectOpsRulesMode('va-rule').catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsAddEventRuleBtn')?.addEventListener('click', () => selectOpsRulesMode('event-rule').catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsAddProfileBtn')?.addEventListener('click', () => selectOpsRulesMode('profile').catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
-        document.getElementById('opsCreateVaRuleBtn')?.addEventListener('click', () => openOpsRulesEditor('va-rule', 'new').catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
+        document.getElementById('opsCreateVaRuleBtn')?.addEventListener('click', () => openOpsVaRuleCreateWhenReady().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsCreateEventRuleBtn')?.addEventListener('click', () => openOpsRulesEditor('event-rule', 'new').catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsCreateProfileBtn')?.addEventListener('click', () => openOpsRulesEditor('profile', 'new').catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsRulesPrereqProfilesAction')?.addEventListener('click', () => selectOpsRulesMode('profile').then(() => openOpsRulesEditor('profile', 'new')).catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsRulesPrereqTemplatesAction')?.addEventListener('click', () => selectOpsRulesMode('event-rule').then(() => openOpsRulesEditor('event-rule', 'new')).catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
-        document.getElementById('opsRulesPrereqVaRulesAction')?.addEventListener('click', () => selectOpsRulesMode('va-rule').then(() => openOpsRulesEditor('va-rule', 'new')).catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
+        document.getElementById('opsRulesPrereqVaRulesAction')?.addEventListener('click', () => selectOpsRulesMode('va-rule').then(() => openOpsVaRuleCreateWhenReady()).catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsVaRuleTemplateSeedSelect')?.addEventListener('change', (event) => opsRulesApplyVaRuleTemplateSeed(event.target.value || ''));
         document.getElementById('opsVaRuleChannelSelect')?.addEventListener('change', () => {
           opsRulesUpdateVaRuleFormSummary();
