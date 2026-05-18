@@ -52,6 +52,8 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-release-metadata
 ./server.sh verify-v121-follow-up-closure
 ./server.sh verify-v130-follow-up-closure
+./server.sh verify-v140-follow-up-closure
+./server.sh verify-v140-report-archive-policy
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-manual-ui-evidence
@@ -73,6 +75,9 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-ops-rules-roundtrip
 ./server.sh verify-analysis-state
 ```
+
+v1.4.0 tracker/Re-ID opt-in 이후 남은 후속 항목 분류와 종료 판정은
+[v1.4.0 Follow-up Closure](./v1.4.0-follow-up-closure.md)를 기준으로 확인합니다.
 
 위 전용 기준은 느린 기본 추가 RTSP/WebRTC source 영상, codec matrix, multichannel media soak를 사용하지 않습니다.
 기본 smoke와 longrun gate가 섞이지 않았는지는 다음 명령으로 정적으로 확인합니다.
@@ -687,6 +692,15 @@ event POST 반복 안정성:
 ./server.sh verify-tracker-stability --long --overlap-focus
 ```
 
+rule-level tracker policy를 직접 태워야 하면 `verify-tracker-stability`가 임시
+event rule/vaRule을 만들고 `?vaRule=<id>` 경로로 tap을 붙입니다. 이 경로는
+file/url/source override와 섞지 않으며, 종료 시 임시 rule을 정리합니다.
+
+```bash
+./server.sh verify-tracker-stability --tracker-policy kalman-lite
+./server.sh verify-tracker-stability --tracker-policy bytetrack
+```
+
 Close-object guard 검증은 mode별 목적을 분리합니다.
 
 | 모드 | 확인할 것 | 통과 기준 |
@@ -706,6 +720,51 @@ mode별 tracker summary JSON과 Markdown report는
 ./server.sh compare-close-object-tracker \
   --file imports/va_tracking_event_1280x720_30fps_h264.mp4 \
   --modes off,diagnostic,enforce
+```
+
+Kalman-lite 또는 ByteTrack opt-in tracker에서 같은 guard 비교를 보려면
+`--tracker-policy kalman-lite` 또는 `--tracker-policy bytetrack`을 추가합니다.
+ByteTrack fixture matrix는 field-driving sample의 짧은 detection gap을 내부
+lost buffer floor로 흡수할 수 있지만, matrix 통과 또는 warning 결과를 제품
+default-on 승격으로 해석하지 않습니다.
+Re-ID assist opt-in까지 같이 태우는 경우에는 `--reid-policy assist`를 함께
+지정합니다. 이 옵션은 임시 vaRule의 `analysis.trackingPolicy.reid=assist`를
+검증하기 위한 것이며, Re-ID를 default tracker나 default-on 제품 판단으로
+승격하지 않습니다.
+
+```bash
+./server.sh verify-tracker-stability --tracker-policy bytetrack --reid-policy assist
+./server.sh compare-close-object-tracker \
+  --tracker-policy bytetrack \
+  --reid-policy assist \
+  --history-dir /private/tmp/media_server_v140_reid_assist_warning_trend
+```
+
+단일 비교에 `--history-dir`를 지정하면 summary/report 사본과 Markdown/JSON index가
+누적됩니다. 이 index는 warning reason count와 recommendation 추세를 보기 위한
+것이며, 제품 default-on 승인 또는 Re-ID assist 기본 활성화 근거가 아닙니다.
+보존할 수 있는 report/index 파일과 보존하지 않는 raw media/image 범위는
+[Close-object Report Archive Policy](./close-object-report-archive-policy.md)를
+따릅니다.
+
+OC-SORT 후순위 benchmark boundary는 별도 정적 verifier로 확인합니다. 이 검증은
+OC-SORT가 `analysis.trackingPolicy.tracker`, `/ops/rules` UI,
+`ObjectTrackerKind`, tracker stability/compare harness에 runtime tracker로
+추가되지 않았고, 실제 OC-SORT algorithm 구현 또는 benchmark 실행이 후속 Phase
+후보로만 남아 있는지 확인합니다.
+
+```bash
+./server.sh verify-oc-sort-benchmark-boundary
+```
+
+BoT-SORT/DeepSORT research boundary도 별도 정적 verifier로 확인합니다. 이 검증은
+BoT-SORT/DeepSORT가 `analysis.trackingPolicy.tracker`, `/ops/rules` UI,
+`ObjectTrackerKind`, tracker stability/compare harness에 runtime tracker로
+추가되지 않았고, Re-ID/model/privacy/bundle 검토가 후속 Phase 후보로만 남아
+있는지 확인합니다.
+
+```bash
+./server.sh verify-bot-sort-deepsort-research-boundary
 ```
 
 이미 실행 중인 서버를 기준으로만 비교해야 하면 `--use-existing-server --http-base <url>`을 사용합니다.

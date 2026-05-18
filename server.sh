@@ -206,6 +206,10 @@ Usage:
                  v1.2.1 roadmap 내 개발 가능한 후속 이슈가 남지 않았는지 검증합니다.
   verify-v130-follow-up-closure
                  v1.3.0 follow-up closure가 기능 개발 없이 별도 Phase/release gate를 분리하는지 검증합니다.
+  verify-v140-follow-up-closure
+                 v1.4.0 follow-up closure가 범위 안 후속 이슈를 모두 닫았는지 검증합니다.
+  verify-v140-report-archive-policy
+                 v1.4.0 close-object report archive가 raw media/image 보존으로 확장되지 않는지 검증합니다.
   verify-server-start-modes
                  foreground/start 실행 모드의 health, route, state file 안정성을 검증합니다.
   verify-auth-bootstrap
@@ -248,6 +252,10 @@ Usage:
                  close-object guard 전체 fixture matrix를 정기 검증용 hard gate로 실행합니다.
   verify-reid-advanced-tracking
                  Re-ID/advanced tracking 실험의 default-off/privacy/benchmark gate를 검증합니다.
+  verify-oc-sort-benchmark-boundary
+                 OC-SORT 후순위 benchmark가 runtime tracker로 승격되지 않았는지 검증합니다.
+  verify-bot-sort-deepsort-research-boundary
+                 BoT-SORT/DeepSORT research boundary가 runtime tracker로 승격되지 않았는지 검증합니다.
   verify-yolo-layouts
                  YOLO 모델별 output layout/box/score 조합을 실제 모델로 검증합니다.
   verify-adaptive
@@ -723,6 +731,14 @@ case "${cmd}" in
     require_internal verify_v130_follow_up_closure.mjs
     exec "${INTERNAL_DIR}/verify_v130_follow_up_closure.mjs" "$@"
     ;;
+  verify-v140-follow-up-closure)
+    require_internal verify_v140_follow_up_closure.mjs
+    exec "${INTERNAL_DIR}/verify_v140_follow_up_closure.mjs" "$@"
+    ;;
+  verify-v140-report-archive-policy)
+    require_internal verify_v140_report_archive_policy.mjs
+    exec "${INTERNAL_DIR}/verify_v140_report_archive_policy.mjs" "$@"
+    ;;
   verify-server-start-modes)
     require_internal verify_server_start_modes.sh
     exec "${INTERNAL_DIR}/verify_server_start_modes.sh" "$@"
@@ -806,6 +822,14 @@ case "${cmd}" in
   verify-reid-advanced-tracking)
     require_internal verify_reid_advanced_tracking_experiment.mjs
     exec "${INTERNAL_DIR}/verify_reid_advanced_tracking_experiment.mjs" "$@"
+    ;;
+  verify-oc-sort-benchmark-boundary)
+    require_internal verify_oc_sort_benchmark_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_oc_sort_benchmark_boundary.mjs" "$@"
+    ;;
+  verify-bot-sort-deepsort-research-boundary)
+    require_internal verify_bot_sort_deepsort_research_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_bot_sort_deepsort_research_boundary.mjs" "$@"
     ;;
   verify-yolo-layouts)
     require_internal verify_yolo_layouts.sh

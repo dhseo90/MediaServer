@@ -77,6 +77,10 @@ std::string BuildAnalysisReuseKey(const StreamKey& stream_key, const analysis::A
         << "|scoreMode=" << profile.yolo_score_mode
         << "|objectDetection=" << (profile.enable_object_detection ? 1 : 0)
         << "|tracking=" << (profile.enable_tracking ? 1 : 0)
+        << "|trackerPolicy=" << profile.tracking_policy_tracker
+        << "|effectiveTracker=" << profile.tracking_policy_effective_tracker
+        << "|reidPolicy=" << profile.tracking_policy_reid
+        << "|policyRule=" << profile.tracking_policy_rule_id
         << "|trackingSpecified=" << (profile.tracking_classes_specified ? 1 : 0)
         << "|trackingClasses=";
     for (std::size_t i = 0; i < tracking_classes.size(); ++i) {

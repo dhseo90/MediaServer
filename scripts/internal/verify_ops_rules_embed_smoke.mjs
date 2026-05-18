@@ -202,6 +202,38 @@ function buildRulesOpenExpression() {
       if (!optionTexts.some(text => text.includes('Sample H264'))) {
         return fail('channel options missing expected source', { optionTexts });
       }
+      const trackerSelect = document.getElementById('opsVaRuleTrackerSelect');
+      const reidSelect = document.getElementById('opsVaRuleReidSelect');
+      const trackingSummary = document.getElementById('opsVaRuleTrackingSummary');
+      if (!trackerSelect || !reidSelect || !trackingSummary) {
+        return fail('tracking policy controls missing', {
+          hasTracker: Boolean(trackerSelect),
+          hasReid: Boolean(reidSelect),
+          hasSummary: Boolean(trackingSummary)
+        });
+      }
+      trackerSelect.value = 'none';
+      trackerSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      if (reidSelect.value !== 'off' || reidSelect.disabled !== true) {
+        return fail('tracker none did not force Re-ID off', {
+          tracker: trackerSelect.value,
+          reid: reidSelect.value,
+          reidDisabled: reidSelect.disabled,
+          summaryText: trackingSummary.textContent || ''
+        });
+      }
+      trackerSelect.value = 'bytetrack';
+      trackerSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      reidSelect.value = 'assist';
+      reidSelect.dispatchEvent(new Event('change', { bubbles: true }));
+      if (reidSelect.disabled || !trackingSummary.textContent.includes('ByteTrack') || !trackingSummary.textContent.includes('Re-ID assist')) {
+        return fail('tracker/Re-ID assist selection did not update summary', {
+          tracker: trackerSelect.value,
+          reid: reidSelect.value,
+          reidDisabled: reidSelect.disabled,
+          summaryText: trackingSummary.textContent || ''
+        });
+      }
 
       const preSaveValidation = await (async () => {
         const profileSelect = document.getElementById('opsVaRuleProfileSelect');

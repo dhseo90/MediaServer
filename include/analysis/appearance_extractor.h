@@ -55,6 +55,8 @@ struct AppearanceExtractorOptions {
     bool enabled{app_config::kDefaultAnalysisAppearanceEnabled};
     std::string extractor_name{app_config::kDefaultAnalysisAppearanceExtractor};
     std::string model_path{app_config::kDefaultAnalysisAppearanceModelPath};
+    std::string model_sha256{app_config::kDefaultAnalysisAppearanceModelSha256};
+    std::string model_provenance{app_config::kDefaultAnalysisAppearanceModelProvenance};
     int input_width{app_config::kDefaultAnalysisAppearanceInputWidth};
     int input_height{app_config::kDefaultAnalysisAppearanceInputHeight};
     std::size_t max_embedding_dim{app_config::kDefaultAnalysisAppearanceMaxEmbeddingDim};

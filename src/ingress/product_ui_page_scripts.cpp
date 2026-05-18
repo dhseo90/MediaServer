@@ -2644,6 +2644,32 @@ void AppendOpsShellScript(std::ostringstream& out,
           return b.count - a.count;
         });
       };
+      const trackingIssueMetric = value => {
+        const n = Number(value);
+        if (!Number.isFinite(n)) return '미제공';
+        if (Math.abs(n) >= 10) return String(Math.round(n));
+        return n.toFixed(2).replace(/\.?0+$/u, '');
+      };
+      const trackingIssueGroupSummary = group => {
+        const samples = Array.isArray(group?.samples) ? group.samples : [];
+        const sample = samples.find(issue => String(issue?.severity || '') === 'warning') || samples[0] || {};
+        const classes = Array.from(new Set(samples
+          .map(issue => String(issue?.className || '').trim())
+          .filter(Boolean))).slice(0, 3);
+        const health = sample?.trackHealth || {};
+        const metrics = [
+          `class ${classes.join(', ') || '미제공'}`,
+          `assoc ${trackingIssueMetric(health.associationConfidence)}`,
+          `overlap ${trackingIssueMetric(health.overlapRisk)}`,
+          `missed ${trackingIssueMetric(health.missedFrameCount)}`,
+          `direction ${trackingIssueMetric(health.directionChangeCount)}`
+        ].join(' · ');
+        const message = String(sample?.message || '').trim() || '샘플 메시지 없음';
+        const boundary = group?.severity === 'warning'
+          ? '관찰 warning · default-on 근거 아님'
+          : '정보성 추적 상태';
+        return { metrics, message, boundary };
+      };
       const trackingIssueSearchParts = group => [
         group?.type,
         group?.severity,
@@ -2675,14 +2701,18 @@ void AppendOpsShellScript(std::ostringstream& out,
             : `<div class="empty">트래킹 이슈 없음 · 유지 ${totals.retained}/${totals.total} · 제한 ${totals.rateLimited}</div>`;
           return;
         }
-        root.innerHTML = groups.slice(0, 8).map(group => `<article class="root-cause-item ${group.severity === 'warning' ? 'warn' : 'info'}">
-          <div>
-            <strong>${escapeHtml(group.type)}</strong>
-            <p>트랙 ${escapeHtml(Array.from(group.tracks).slice(0, 6).join(', ') || '미제공')}</p>
-          </div>
-          ${badge(`${group.count}건`, group.severity === 'warning' ? 'warn' : 'info')}
-          <p class="root-cause-evidence">유지 ${totals.retained}/${totals.total} · 제한 ${totals.rateLimited}</p>
-        </article>`).join('');
+        root.innerHTML = groups.slice(0, 8).map(group => {
+          const summary = trackingIssueGroupSummary(group);
+          return `<article class="root-cause-item ${group.severity === 'warning' ? 'warn' : 'info'}">
+            <div>
+              <strong>${escapeHtml(group.type)}</strong>
+              <p>트랙 ${escapeHtml(Array.from(group.tracks).slice(0, 6).join(', ') || '미제공')}</p>
+            </div>
+            ${badge(`${group.count}건`, group.severity === 'warning' ? 'warn' : 'info')}
+            <p class="root-cause-evidence">${opsHtml(summary.metrics)} · 유지 ${totals.retained}/${totals.total} · 제한 ${totals.rateLimited}</p>
+            <p class="root-cause-action">${opsHtml(summary.boundary)} · ${opsHtml(summary.message)}</p>
+          </article>`;
+        }).join('');
       };
       const renderDashboardVaQualityEmpty = message => {
         bindDashboardVaQualityFilter();
@@ -3794,6 +3824,86 @@ void AppendOpsShellScript(std::ostringstream& out,
           }
         };
       }
+      function opsRulesNormalizeTrackerPolicy(value = '') {
+        const token = String(value || '').trim().toLowerCase();
+        if (token === 'none' || token === 'off' || token === 'disabled') return 'none';
+        if (token === 'kalman-lite' || token === 'kalman' || token === 'kalmanlite') return 'kalman-lite';
+        if (token === 'bytetrack' || token === 'byte-track' || token === 'byte track') return 'bytetrack';
+        return 'lite';
+      }
+      function opsRulesNormalizeReidPolicy(value = '') {
+        const token = String(value || '').trim().toLowerCase();
+        if (token === 'assist' || token === 'association-assist' || token === 'reid-assist') return 'assist';
+        return 'off';
+      }
+      function opsRulesTrackingPolicyFromItem(item = {}) {
+        const policy = item?.analysis?.trackingPolicy || item?.trackingPolicy || {};
+        const tracker = opsRulesNormalizeTrackerPolicy(policy.tracker || policy.trackerPolicy || '');
+        const reid = tracker === 'none'
+          ? 'off'
+          : opsRulesNormalizeReidPolicy(policy.reid || policy.reId || policy.reID || policy.reidPolicy || '');
+        return { tracker, reid };
+      }
+      function opsRulesTrackerPolicyLabel(value = '') {
+        const tracker = opsRulesNormalizeTrackerPolicy(value);
+        if (tracker === 'none') return 'Tracking off';
+        if (tracker === 'kalman-lite') return 'Kalman-lite';
+        if (tracker === 'bytetrack') return 'ByteTrack';
+        return 'Lite tracker';
+      }
+      function opsRulesReidPolicyLabel(value = '') {
+        return opsRulesNormalizeReidPolicy(value) === 'assist' ? 'Re-ID assist' : 'Re-ID off';
+      }
+      function opsRulesTrackingPolicySummary(policy = {}) {
+        const normalized = opsRulesTrackingPolicyFromItem({ analysis: { trackingPolicy: policy } });
+        return `${opsRulesTrackerPolicyLabel(normalized.tracker)} · ${opsRulesReidPolicyLabel(normalized.reid)}`;
+      }
+      function opsRulesSelectHasValue(select, value) {
+        return Array.from(select?.options || []).some(option => String(option.value || '') === String(value || ''));
+      }
+      function opsRulesSetTrackingPolicyControls(policy = {}) {
+        const trackerSelect = document.getElementById('opsVaRuleTrackerSelect');
+        const reidSelect = document.getElementById('opsVaRuleReidSelect');
+        const normalized = opsRulesTrackingPolicyFromItem({ analysis: { trackingPolicy: policy } });
+        if (trackerSelect) {
+          trackerSelect.value = opsRulesSelectHasValue(trackerSelect, normalized.tracker) ? normalized.tracker : 'lite';
+        }
+        if (reidSelect) {
+          reidSelect.value = opsRulesSelectHasValue(reidSelect, normalized.reid) ? normalized.reid : 'off';
+        }
+        opsRulesUpdateTrackingPolicyUi();
+      }
+      function opsRulesCurrentTrackingPolicy() {
+        const tracker = opsRulesNormalizeTrackerPolicy(document.getElementById('opsVaRuleTrackerSelect')?.value || 'lite');
+        const reid = tracker === 'none'
+          ? 'off'
+          : opsRulesNormalizeReidPolicy(document.getElementById('opsVaRuleReidSelect')?.value || 'off');
+        return { tracker, reid };
+      }
+      function opsRulesUpdateTrackingPolicyUi() {
+        const trackerSelect = document.getElementById('opsVaRuleTrackerSelect');
+        const reidSelect = document.getElementById('opsVaRuleReidSelect');
+        const summary = document.getElementById('opsVaRuleTrackingSummary');
+        if (!trackerSelect || !reidSelect) return;
+        const tracker = opsRulesNormalizeTrackerPolicy(trackerSelect.value || 'lite');
+        trackerSelect.value = opsRulesSelectHasValue(trackerSelect, tracker) ? tracker : 'lite';
+        if (tracker === 'none') {
+          reidSelect.value = 'off';
+        } else {
+          const reid = opsRulesNormalizeReidPolicy(reidSelect.value || 'off');
+          reidSelect.value = opsRulesSelectHasValue(reidSelect, reid) ? reid : 'off';
+        }
+        const readOnly = trackerSelect.disabled === true;
+        reidSelect.disabled = readOnly || trackerSelect.value === 'none';
+        if (summary) summary.textContent = opsRulesTrackingPolicySummary(opsRulesCurrentTrackingPolicy());
+      }
+      function opsRulesTrackingPolicyHtml(item = {}) {
+        const policy = opsRulesTrackingPolicyFromItem(item);
+        return `<div class="ops-rule-value-stack">
+          <strong>${escapeHtml(opsRulesTrackerPolicyLabel(policy.tracker))}</strong>
+          <span class="ops-rule-note">${escapeHtml(opsRulesReidPolicyLabel(policy.reid))}</span>
+        </div>`;
+      }
       function opsRulesEventTemplateSkeleton(id = opsRulesNextNumericId(opsCatalogEventTemplates, 1)) {
         const type = 'intrusion-dwell';
         const classes = ['person', 'vehicle'];
@@ -3819,7 +3929,8 @@ void AppendOpsShellScript(std::ostringstream& out,
           source: channel ? opsRulesSourcePayload(channel.source) : { kind: 'file', file: 'sample_h264.mp4' },
           analysis: {
             ...(base.analysis || {}),
-            profileId: opsRulesPreferredProfileId()
+            profileId: opsRulesPreferredProfileId(),
+            trackingPolicy: opsRulesTrackingPolicyFromItem(base)
           },
           match: { sourceKind: '*', route: '*', vaRule: String(id) },
           binding: {
@@ -4160,6 +4271,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             templateSummary.textContent = `${prefix} ${display(templateId)} · ${opsRuleEventTypeLabel(eventType)} · ${classes}`;
           }
         }
+        opsRulesUpdateTrackingPolicyUi();
       }
       function opsRulesVaGeometryTypeFromItem(item = {}) {
         const templateId = String(document.getElementById('opsVaRuleTemplateSeedSelect')?.value || item?.templateStart?.ruleId || '').trim();
@@ -4401,8 +4513,8 @@ void AppendOpsShellScript(std::ostringstream& out,
           const y = opsRulesGeometrySvgY(point);
           const activeClass = index === opsVaGeometryDragIndex ? ' is-active' : '';
           return `<g class="ops-geometry-point${activeClass}" data-index="${index}">
-            <circle class="ops-geometry-touch-target" cx="${x}" cy="${y}" r="3.5"></circle>
-            <circle cx="${x}" cy="${y}" r="1.25"></circle>
+            <circle class="ops-geometry-touch-target" cx="${x}" cy="${y}" r="2.8"></circle>
+            <circle cx="${x}" cy="${y}" r="0.95"></circle>
             <text x="${x}" y="${y}" text-anchor="middle" dominant-baseline="central">${index + 1}</text>
           </g>`;
         }).join('');
@@ -4615,6 +4727,19 @@ void AppendOpsShellScript(std::ostringstream& out,
           templatesReady: templateCount > 0
         };
       }
+      function opsRulesVaRuleReadiness(state = opsRulesPrereqState()) {
+        const missing = [];
+        if (!state.channelsReady) missing.push('채널');
+        if (!state.profilesReady) missing.push('분석 프로파일');
+        if (!state.templatesReady) missing.push('이벤트 템플릿');
+        return {
+          ready: missing.length === 0,
+          missing,
+          message: missing.length
+            ? `채널 분석 설정을 만들 수 없습니다. 먼저 ${missing.join(', ')}을(를) 준비하세요.`
+            : '채널, 프로파일, 템플릿이 준비되었습니다. 이제 채널 분석 설정을 만들 수 있습니다.'
+        };
+      }
       function opsRulesSetPrereqChip(id, ready, readyLabel = '준비됨', pendingLabel = '필요') {
         const chip = document.getElementById(id);
         if (!chip) return;
@@ -4631,19 +4756,12 @@ void AppendOpsShellScript(std::ostringstream& out,
         opsRulesSetPrereqChip('opsRulesPrereqChannelsState', state.channelsReady);
         opsRulesSetPrereqChip('opsRulesPrereqProfilesState', state.profilesReady);
         opsRulesSetPrereqChip('opsRulesPrereqTemplatesState', state.templatesReady);
-        const readyForVaRule = state.channelsReady && state.profilesReady && state.templatesReady;
+        const readiness = opsRulesVaRuleReadiness(state);
+        const readyForVaRule = readiness.ready;
         opsRulesSetPrereqChip('opsRulesPrereqVaRulesState', readyForVaRule, '시작 가능', '준비 필요');
         const summary = document.getElementById('opsRulesPrereqSummary');
         if (summary) {
-          if (readyForVaRule) {
-            summary.textContent = '채널, 프로파일, 템플릿이 준비되었습니다. 이제 채널 분석 설정을 만들 수 있습니다.';
-          } else {
-            const missing = [];
-            if (!state.channelsReady) missing.push('채널');
-            if (!state.profilesReady) missing.push('분석 프로파일');
-            if (!state.templatesReady) missing.push('이벤트 템플릿');
-            summary.textContent = `${missing.join(', ')}을(를) 먼저 준비한 뒤 채널 분석 설정을 만듭니다.`;
-          }
+          summary.textContent = readiness.message;
         }
         const createVaButtons = [
           document.getElementById('opsCreateVaRuleBtn'),
@@ -4651,8 +4769,11 @@ void AppendOpsShellScript(std::ostringstream& out,
         ];
         createVaButtons.forEach((button) => {
           if (!button) return;
-          button.disabled = !readyForVaRule;
-          button.title = readyForVaRule ? '' : '채널, 프로파일, 이벤트 템플릿이 먼저 필요합니다.';
+          button.disabled = false;
+          button.setAttribute('aria-disabled', readyForVaRule ? 'false' : 'true');
+          button.classList.toggle('is-blocked', !readyForVaRule);
+          button.title = readyForVaRule ? '' : readiness.message;
+          button.dataset.blockReason = readyForVaRule ? '' : readiness.message;
         });
       }
       function setOpsRulesComposer(mode, detailMode = opsRulesDetailMode, recordId = opsRulesDetailRecordId) {
@@ -4690,6 +4811,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         document.getElementById('opsVaRuleProfileSelect').value = String(analysis.profileId || item?.profileId || opsRulesPreferredProfileId());
         document.getElementById('opsVaRuleTemplateSeedSelect').value = templateRuleId;
         opsVaRuleTemplateId = templateRuleId;
+        opsRulesSetTrackingPolicyControls(opsRulesTrackingPolicyFromItem(item));
         opsRulesSetFormDisabled('va-rule', detailMode === 'view');
         opsRulesUpdateVaRuleFormSummary();
         opsRulesFillVaGeometryForm(item);
@@ -4839,7 +4961,8 @@ void AppendOpsShellScript(std::ostringstream& out,
           source: channel ? opsRulesSourcePayload(channel.source) : opsRulesClone(base.source || opsRulesVaRuleSkeleton(id).source),
           analysis: {
             ...(base.analysis || {}),
-            profileId: String(document.getElementById('opsVaRuleProfileSelect')?.value || opsRulesPreferredProfileId())
+            profileId: String(document.getElementById('opsVaRuleProfileSelect')?.value || opsRulesPreferredProfileId()),
+            trackingPolicy: opsRulesCurrentTrackingPolicy()
           },
           binding: {
             ...(base.binding || {}),
@@ -5020,10 +5143,21 @@ void AppendOpsShellScript(std::ostringstream& out,
           opsRulesFillNativeForm(mode, opsRulesCurrentRecord.item, detailMode);
           setOpsRulesComposer(mode, detailMode, item.id || recordId);
           opsRulesEditorStatus('', false);
+          document.getElementById('opsRulesDetailPanel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
         } catch (error) {
           closeOpsRulesEditor();
           opsRulesEditorStatus(`룰 편집기 로드 실패: ${error.message}`, true);
         }
+      }
+      async function openOpsVaRuleCreateWhenReady() {
+        const readiness = opsRulesVaRuleReadiness();
+        if (!readiness.ready) {
+          opsRulesEditorStatus(readiness.message, true);
+          showToast(readiness.message, true);
+          document.getElementById('opsRulesPrereqSummary')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+        await openOpsRulesEditor('va-rule', 'new');
       }
       async function selectOpsRulesMode(mode) {
         const nextMode = opsRulesModeConfig(mode) ? mode : 'va-rule';
@@ -5102,6 +5236,8 @@ void AppendOpsShellScript(std::ostringstream& out,
           item?.templateStart?.ruleId,
           analysis?.profileId,
           analysis?.detector,
+          analysis?.trackingPolicy?.tracker,
+          analysis?.trackingPolicy?.reid,
           eventName,
           ...(Array.isArray(analysis?.classes) ? analysis.classes : [])
         ].filter(Boolean).join(' ').toLowerCase();
@@ -5606,7 +5742,7 @@ void AppendOpsShellScript(std::ostringstream& out,
       function renderOpsVaRules(items) {
         const body = document.getElementById('opsVaRuleRows');
         if (!Array.isArray(items) || items.length === 0) {
-          setTableEmpty(body, 8, '저장된 채널 분석 설정이 없습니다.');
+          setTableEmpty(body, 9, '저장된 채널 분석 설정이 없습니다.');
           return;
         }
         body.innerHTML = items.map(item => {
@@ -5622,6 +5758,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             tableCellHtml('채널', opsRulesVaRuleChannelHtml(item)),
             tableCellHtml('이벤트 템플릿', opsRulesVaRuleTemplateHtml(item)),
             tableCellHtml('프로파일', opsRulesVaRuleProfileHtml(item)),
+            tableCellHtml('Tracker/Re-ID', opsRulesTrackingPolicyHtml(item)),
             tableCellHtml('영역/라인', opsRulesGeometryHtml(item)),
             tableCellHtml('출력', opsRulesVaOutputButtonsHtml(item)),
             tableCellHtml('상태', statusCellHtml, 'table-cell-nowrap table-cell-status'),
@@ -5776,6 +5913,11 @@ void AppendOpsShellScript(std::ostringstream& out,
           if (channel?.view && id !== '(미지정)' && !opsRulesViewAllowsRuleId(channel.view, id)) {
             issues.push(opsRulesIssue('view-rule-not-allowed', `va-rule:${id}`, `PublishedView 허용 룰 목록에 ${id}가 없습니다.`, '채널 탭에서 defaultRuleId/allowedRuleIds를 맞추거나 룰을 다시 연결하세요.'));
           }
+          const rawPolicy = rule?.analysis?.trackingPolicy || {};
+          if (opsRulesNormalizeTrackerPolicy(rawPolicy.tracker || rawPolicy.trackerPolicy || '') === 'none' &&
+              opsRulesNormalizeReidPolicy(rawPolicy.reid || rawPolicy.reId || rawPolicy.reID || rawPolicy.reidPolicy || '') !== 'off') {
+            issues.push(opsRulesIssue('tracking-policy-conflict', `va-rule:${id}`, `채널 분석 설정 ${id}의 Re-ID 조합이 유효하지 않습니다.`, 'Tracker를 사용 안 함으로 선택하면 Re-ID는 off여야 합니다.'));
+          }
           for (const message of opsRulesClassConflictMessages(rule, template, profile)) {
             issues.push(opsRulesIssue('template-profile-conflict', `va-rule:${id}`, `채널 분석 설정 ${id}의 대상 클래스가 충돌합니다.`, message));
           }
@@ -5861,6 +6003,11 @@ void AppendOpsShellScript(std::ostringstream& out,
           issues.push(...opsRulesClassConflictMessages(payload, template, profile));
           if (channel?.source && payload?.source && !opsRulesSourceMatches(channel.source, payload.source)) {
             issues.push('선택한 채널 source와 룰 source가 일치하지 않습니다.');
+          }
+          const policy = payload?.analysis?.trackingPolicy || {};
+          if (opsRulesNormalizeTrackerPolicy(policy.tracker || policy.trackerPolicy || '') === 'none' &&
+              opsRulesNormalizeReidPolicy(policy.reid || policy.reId || policy.reID || policy.reidPolicy || '') !== 'off') {
+            issues.push('Tracker를 사용 안 함으로 선택하면 Re-ID는 off여야 합니다.');
           }
           const priority = opsRulesRulePriority(payload);
           const conflictingRule = opsCatalogVaRules.find(rule => {
@@ -6061,12 +6208,12 @@ void AppendOpsShellScript(std::ostringstream& out,
         document.getElementById('opsAddVaRuleBtn')?.addEventListener('click', () => selectOpsRulesMode('va-rule').catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsAddEventRuleBtn')?.addEventListener('click', () => selectOpsRulesMode('event-rule').catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsAddProfileBtn')?.addEventListener('click', () => selectOpsRulesMode('profile').catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
-        document.getElementById('opsCreateVaRuleBtn')?.addEventListener('click', () => openOpsRulesEditor('va-rule', 'new').catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
+        document.getElementById('opsCreateVaRuleBtn')?.addEventListener('click', () => openOpsVaRuleCreateWhenReady().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsCreateEventRuleBtn')?.addEventListener('click', () => openOpsRulesEditor('event-rule', 'new').catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsCreateProfileBtn')?.addEventListener('click', () => openOpsRulesEditor('profile', 'new').catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsRulesPrereqProfilesAction')?.addEventListener('click', () => selectOpsRulesMode('profile').then(() => openOpsRulesEditor('profile', 'new')).catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsRulesPrereqTemplatesAction')?.addEventListener('click', () => selectOpsRulesMode('event-rule').then(() => openOpsRulesEditor('event-rule', 'new')).catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
-        document.getElementById('opsRulesPrereqVaRulesAction')?.addEventListener('click', () => selectOpsRulesMode('va-rule').then(() => openOpsRulesEditor('va-rule', 'new')).catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
+        document.getElementById('opsRulesPrereqVaRulesAction')?.addEventListener('click', () => selectOpsRulesMode('va-rule').then(() => openOpsVaRuleCreateWhenReady()).catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsVaRuleTemplateSeedSelect')?.addEventListener('change', (event) => opsRulesApplyVaRuleTemplateSeed(event.target.value || ''));
         document.getElementById('opsVaRuleChannelSelect')?.addEventListener('change', () => {
           opsRulesUpdateVaRuleFormSummary();
@@ -6076,6 +6223,8 @@ void AppendOpsShellScript(std::ostringstream& out,
         document.getElementById('opsVaRuleIdInput')?.addEventListener('input', () => {
           opsRulesUpdateVaRuleFormSummary();
         });
+        document.getElementById('opsVaRuleTrackerSelect')?.addEventListener('change', () => opsRulesUpdateTrackingPolicyUi());
+        document.getElementById('opsVaRuleReidSelect')?.addEventListener('change', () => opsRulesUpdateTrackingPolicyUi());
         document.getElementById('opsVaRuleGeometryPointsInput')?.addEventListener('input', () => opsRulesRenderVaGeometryPreview());
         document.getElementById('opsVaRuleGeometryDefaultBtn')?.addEventListener('click', () => {
           opsRulesPushGeometryUndo();

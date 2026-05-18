@@ -395,6 +395,82 @@ void VerifyObjectTrackerAssociationScoring() {
                prediction_reacquired_frame.tracks[0].state == "reacquired",
            "ObjectTracker must use recent motion to reacquire a fast moving track after a short gap");
 
+    ObjectTrackerOptions kalman_options;
+    kalman_options.tracker_kind = ObjectTrackerKind::KalmanLite;
+    kalman_options.class_labels = {"*"};
+    kalman_options.smoothing_alpha = 0.0F;
+    kalman_options.max_missed_frames = 3;
+    kalman_options.min_iou = 0.5F;
+    kalman_options.max_center_distance = 0.12F;
+    ObjectTracker kalman_tracker(kalman_options);
+    auto kalman_frame1 = MakeTrackerFrame(30, 1000, {MakeDetection(2, "car", 0.20F, 0.20F)});
+    kalman_tracker.Update(&kalman_frame1);
+    auto kalman_frame2 = MakeTrackerFrame(31, 1100, {MakeDetection(2, "car", 0.30F, 0.20F)});
+    kalman_tracker.Update(&kalman_frame2);
+    auto kalman_gap_frame = MakeTrackerFrame(32, 1200, {});
+    kalman_tracker.Update(&kalman_gap_frame);
+    auto kalman_reacquired_frame =
+        MakeTrackerFrame(33, 1300, {MakeDetection(2, "car", 0.50F, 0.20F)});
+    kalman_tracker.Update(&kalman_reacquired_frame);
+    const float kalman_center_x = kalman_reacquired_frame.detections[0].box.x +
+                                  kalman_reacquired_frame.detections[0].box.width * 0.5F;
+    Expect(kalman_reacquired_frame.detections[0].track_id == kalman_frame1.detections[0].track_id &&
+               !kalman_reacquired_frame.tracks.empty() &&
+               kalman_reacquired_frame.tracks[0].state == "reacquired",
+           "Kalman-lite tracker must reacquire a short-gap motion-predicted track");
+    Expect(kalman_center_x > 0.43F && kalman_center_x < 0.50F,
+           "Kalman-lite tracker must output a filtered bbox center rather than raw jitter");
+
+    ObjectTrackerOptions bytetrack_options;
+    bytetrack_options.tracker_kind = ObjectTrackerKind::ByteTrack;
+    bytetrack_options.class_labels = {"*"};
+    bytetrack_options.smoothing_alpha = 0.0F;
+    bytetrack_options.min_iou = 0.05F;
+    bytetrack_options.max_center_distance = 0.2F;
+    bytetrack_options.bytetrack_high_score_threshold = 0.60F;
+    bytetrack_options.bytetrack_low_score_threshold = 0.20F;
+    bytetrack_options.bytetrack_low_association_score = 0.10F;
+    bytetrack_options.bytetrack_low_iou_threshold = 0.01F;
+    ObjectTracker bytetrack_tracker(bytetrack_options);
+    auto bytetrack_frame1 = MakeTrackerFrame(40, 1000, {MakeDetection(0, "person", 0.20F, 0.20F)});
+    bytetrack_tracker.Update(&bytetrack_frame1);
+    const std::uint64_t bytetrack_id = bytetrack_frame1.detections[0].track_id;
+    auto low_confidence_detection = MakeDetection(0, "person", 0.22F, 0.20F);
+    low_confidence_detection.score = 0.35F;
+    auto bytetrack_low_frame = MakeTrackerFrame(41, 1100, {low_confidence_detection});
+    bytetrack_tracker.Update(&bytetrack_low_frame);
+    Expect(bytetrack_low_frame.detections[0].track_id == 0 && bytetrack_low_frame.tracks.empty(),
+           "ByteTrack low-confidence association must stay out of event/scene-visible metadata");
+    auto bytetrack_frame3 = MakeTrackerFrame(42, 1200, {MakeDetection(0, "person", 0.24F, 0.20F)});
+    bytetrack_tracker.Update(&bytetrack_frame3);
+    Expect(bytetrack_id > 0 && bytetrack_frame3.detections[0].track_id == bytetrack_id,
+           "ByteTrack must use low-confidence association to keep the next high-confidence track id stable");
+    auto low_confidence_new = MakeDetection(0, "person", 0.80F, 0.80F);
+    low_confidence_new.score = 0.35F;
+    auto bytetrack_low_new_frame = MakeTrackerFrame(43, 1300, {low_confidence_new});
+    bytetrack_tracker.Update(&bytetrack_low_new_frame);
+    Expect(bytetrack_low_new_frame.detections[0].track_id == 0,
+           "ByteTrack must not create a new public track from a low-confidence detection");
+
+    ObjectTrackerOptions bytetrack_gap_options = bytetrack_options;
+    bytetrack_gap_options.max_missed_frames = 1;
+    bytetrack_gap_options.bytetrack_min_lost_buffer_frames = 3;
+    ObjectTracker bytetrack_gap_tracker(bytetrack_gap_options);
+    auto bytetrack_gap_frame1 = MakeTrackerFrame(44, 1400, {MakeDetection(0, "person", 0.20F, 0.20F)});
+    bytetrack_gap_tracker.Update(&bytetrack_gap_frame1);
+    const std::uint64_t bytetrack_gap_id = bytetrack_gap_frame1.detections[0].track_id;
+    auto bytetrack_gap_empty1 = MakeTrackerFrame(45, 1500, {});
+    bytetrack_gap_tracker.Update(&bytetrack_gap_empty1);
+    auto bytetrack_gap_empty2 = MakeTrackerFrame(46, 1600, {});
+    bytetrack_gap_tracker.Update(&bytetrack_gap_empty2);
+    auto bytetrack_gap_reacquired =
+        MakeTrackerFrame(47, 1700, {MakeDetection(0, "person", 0.21F, 0.20F)});
+    bytetrack_gap_tracker.Update(&bytetrack_gap_reacquired);
+    Expect(bytetrack_gap_id > 0 && bytetrack_gap_reacquired.detections[0].track_id == bytetrack_gap_id &&
+               !bytetrack_gap_reacquired.tracks.empty() &&
+               bytetrack_gap_reacquired.tracks[0].state == "reacquired",
+           "ByteTrack must honor its bounded lost buffer floor for short detection gaps");
+
     TrackStateManager manager;
     auto object1 = MakeObject(90, 1, 1000, 0.2F, 0.2F);
     object1.association_confidence = 1.0F;
@@ -725,6 +801,29 @@ void VerifyTrackStateManagerAndHealth() {
     Expect(fallback_extractor != nullptr &&
                fallback_extractor->Stats().extractor_name == "noop",
            "missing Re-ID model path must fall back to NoOpAppearanceExtractor");
+
+    const std::filesystem::path reid_gate_model_path =
+        std::filesystem::temp_directory_path() / "media-server-reid-gate-model.onnx";
+    {
+        std::ofstream out(reid_gate_model_path, std::ios::binary);
+        out << "synthetic model bytes";
+    }
+    app::AppConfig checksum_gate_config;
+    checksum_gate_config.analysis_appearance_enabled = true;
+    checksum_gate_config.analysis_appearance_extractor = "onnx-reid";
+    checksum_gate_config.analysis_appearance_model_path = reid_gate_model_path.string();
+    const auto checksum_gate_extractor = CreateAppearanceExtractorFromConfig(checksum_gate_config);
+    Expect(checksum_gate_extractor != nullptr &&
+               checksum_gate_extractor->Stats().extractor_name == "noop",
+           "Re-ID model path without checksum/provenance gate must fall back to NoOpAppearanceExtractor");
+    app::AppConfig invalid_checksum_config = checksum_gate_config;
+    invalid_checksum_config.analysis_appearance_model_sha256 = "not-a-sha256";
+    invalid_checksum_config.analysis_appearance_model_provenance = "synthetic-test";
+    const auto invalid_checksum_extractor = CreateAppearanceExtractorFromConfig(invalid_checksum_config);
+    Expect(invalid_checksum_extractor != nullptr &&
+               invalid_checksum_extractor->Stats().extractor_name == "noop",
+           "invalid Re-ID model checksum must fall back to NoOpAppearanceExtractor");
+    std::filesystem::remove(reid_gate_model_path);
 
     TrackStateManagerOptions speed_options = options;
     speed_options.use_ground_plane_for_speed = true;
@@ -1812,6 +1911,30 @@ void VerifyVaMetadataSubscriptionFilter() {
     Pass("VaMetadata subscription filters");
 }
 
+void VerifyRuleTrackingPolicyProfileContract() {
+    AnalysisProfile legacy;
+    Expect(legacy.tracking_policy_tracker == "lite" &&
+               legacy.tracking_policy_effective_tracker == "lite" &&
+               legacy.tracking_policy_reid == "off",
+           "legacy AnalysisProfile must default to Lite tracker and Re-ID off");
+    const std::string legacy_key = BuildProfileKey(legacy);
+    Expect(legacy_key.find("trackerPolicy=") == std::string::npos &&
+               legacy_key.find("reidPolicy=") == std::string::npos,
+           "external AnalysisProfile key must not expose rule-level tracking policy");
+
+    AnalysisProfile disabled = legacy;
+    disabled.enable_tracking = false;
+    disabled.tracking_policy_tracker = "none";
+    disabled.tracking_policy_effective_tracker = "none";
+    disabled.tracking_policy_rule_id = "17";
+    const std::string disabled_key = BuildProfileKey(disabled);
+    Expect(disabled_key.find("trackerPolicy=") == std::string::npos &&
+               disabled_key.find("policyRule=") == std::string::npos,
+           "tracker policy must remain outside externally visible profile key");
+
+    Pass("Rule-level tracking policy profile contract");
+}
+
 }  // namespace
 
 int main() {
@@ -1831,6 +1954,7 @@ int main() {
         VerifyEventRecorderMediaHooks();
         VerifyVaRuntimeMetadataBuilder();
         VerifyVaMetadataSubscriptionFilter();
+        VerifyRuleTrackingPolicyProfileContract();
         StopEventStorage();
         std::cout << "[summary] pass=" << g_pass_count << " fail=0\n";
         return EXIT_SUCCESS;

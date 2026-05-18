@@ -236,6 +236,10 @@ struct AppConfig {
     bool analysis_appearance_enabled{app_config::kDefaultAnalysisAppearanceEnabled};
     std::string analysis_appearance_extractor{app_config::kDefaultAnalysisAppearanceExtractor};
     std::string analysis_appearance_model_path{app_config::kDefaultAnalysisAppearanceModelPath};
+    std::string analysis_appearance_model_sha256{
+        app_config::kDefaultAnalysisAppearanceModelSha256};
+    std::string analysis_appearance_model_provenance{
+        app_config::kDefaultAnalysisAppearanceModelProvenance};
     int analysis_appearance_input_width{app_config::kDefaultAnalysisAppearanceInputWidth};
     int analysis_appearance_input_height{app_config::kDefaultAnalysisAppearanceInputHeight};
     std::size_t analysis_appearance_max_embedding_dim{

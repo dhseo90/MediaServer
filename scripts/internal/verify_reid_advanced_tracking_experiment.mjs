@@ -51,23 +51,30 @@ check("default-off Re-ID and close-object guard settings are pinned", () => {
   assert(stdafx.includes('kDefaultAnalysisAppearanceEnabled = false'), "Re-ID appearance hook must stay default disabled");
   assert(stdafx.includes('kDefaultAnalysisAppearanceExtractor = "noop"'), "default appearance extractor must stay noop");
   assert(stdafx.includes('kDefaultAnalysisAppearanceModelPath = ""'), "default Re-ID model path must stay empty");
+  assert(stdafx.includes('kDefaultAnalysisAppearanceModelSha256 = ""'), "default Re-ID model checksum must stay empty");
+  assert(stdafx.includes('kDefaultAnalysisAppearanceModelProvenance = ""'), "default Re-ID model provenance must stay empty");
   assert(stdafx.includes('kDefaultAnalysisTrackingCloseObjectGuardMode = "off"'), "close-object guard must stay default off");
   return {
     appearanceDefault: "disabled",
     extractorDefault: "noop",
+    modelGateDefault: "empty",
     closeObjectGuardDefault: "off",
   };
 });
 
 check("appearance execution stays bounded and off the media hot path", () => {
+  const analysisManager = readText("src/analysis/analysis_manager.cpp");
   const manager = readText("src/analysis/track_state_manager.cpp");
   const extractor = readText("src/analysis/appearance_extractor.cpp");
+  assert(analysisManager.includes("!profile.enable_tracking"), "Re-ID assist must require an enabled selected tracker");
+  assert(analysisManager.includes('profile.tracking_policy_reid != "assist"'), "Re-ID appearance policy must stay gated by reid=assist");
   for (const snippet of [
     "appearance_worker_ = std::thread",
     "max_queue_size",
     "global_max_queue_size",
     "per_stream_rate_limit_ms",
     "max_job_age_ms",
+    "g_appearance_pending_jobs",
     'RecordAppearanceDrop("stale")',
     'RecordAppearanceDrop("rate-limited")',
     'RecordAppearanceDrop("global-queue-full")',
@@ -76,10 +83,21 @@ check("appearance execution stays bounded and off the media hot path", () => {
   }
   assert(extractor.includes("std::try_to_lock"), "ONNX Re-ID extractor must avoid blocking on concurrent inference");
   assert(extractor.includes("falling back to NoOp"), "ONNX Re-ID extractor must keep NoOp fallback paths");
+  for (const snippet of [
+    "model_sha256",
+    "model_provenance",
+    "ComputeFileSha256",
+    "ONNX Re-ID model checksum is missing",
+    "ONNX Re-ID model checksum mismatch",
+    "ONNX Re-ID model provenance is missing",
+  ]) {
+    assert(extractor.includes(snippet), `ONNX Re-ID extractor missing model opt-in gate snippet: ${snippet}`);
+  }
   return {
     worker: "async bounded",
     concurrency: "try_to_lock",
     fallback: "noop",
+    modelGate: "path+sha256+provenance",
   };
 });
 
@@ -103,6 +121,10 @@ check("external metadata serializers do not expose appearance identity material"
     "glasses",
     "modelPath",
     "model_path",
+    "modelSha256",
+    "modelChecksum",
+    "modelProvenance",
+    "provenance",
   ];
   const hits = [];
   for (const file of files) {
@@ -127,10 +149,52 @@ check("appearance diagnostics expose aggregate status only", () => {
   assert(hasJsonFieldLiteral(server, "appearanceProfiles"), "runtime status should keep aggregate appearance profile count");
   assert(hasJsonFieldLiteral(server, "appearanceExtractor"), "runtime status should keep aggregate extractor stats");
   assert(!hasJsonFieldLiteral(server, "modelPath") && !hasJsonFieldLiteral(server, "model_path"), "runtime status must not expose Re-ID model path");
+  assert(!hasJsonFieldLiteral(server, "modelSha256") && !hasJsonFieldLiteral(server, "modelChecksum"), "runtime status must not expose Re-ID model checksum");
+  assert(!hasJsonFieldLiteral(server, "modelProvenance") && !hasJsonFieldLiteral(server, "provenance"), "runtime status must not expose Re-ID model provenance");
   assert(!hasJsonFieldLiteral(server, "embedding") && !hasJsonFieldLiteral(server, "appearanceProfile"), "runtime status must not expose appearance vectors/profiles");
   return {
     allowed: ["appearanceProfiles", "appearanceExtractor"],
-    denied: ["modelPath", "embedding", "appearanceProfile"],
+    denied: ["modelPath", "modelSha256", "modelProvenance", "embedding", "appearanceProfile"],
+  };
+});
+
+check("model checksum and provenance opt-in gate is wired through config and smoke tests", () => {
+  const stdafx = readText("include/stdafx.h");
+  const appConfigHeader = readText("include/app_config.h");
+  const appConfig = readText("src/app_config.cpp");
+  const configReference = readText("docs/config-reference.md");
+  const smoke = readText("scripts/internal/analysis_state_smoke.cpp");
+  for (const snippet of [
+    'kDefaultAnalysisAppearanceModelSha256 = ""',
+    'kDefaultAnalysisAppearanceModelProvenance = ""',
+  ]) {
+    assert(stdafx.includes(snippet), `default config missing Re-ID model gate snippet: ${snippet}`);
+  }
+  for (const snippet of [
+    "analysis_appearance_model_sha256",
+    "analysis_appearance_model_provenance",
+  ]) {
+    assert(appConfigHeader.includes(snippet), `AppConfig missing Re-ID model gate field: ${snippet}`);
+    assert(appConfig.includes(snippet), `app_config reader missing Re-ID model gate field: ${snippet}`);
+  }
+  for (const snippet of [
+    "MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL_SHA256",
+    "MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL_PROVENANCE",
+  ]) {
+    assert(appConfig.includes(snippet), `app_config reader missing env var: ${snippet}`);
+    assert(configReference.includes(snippet), `config reference missing env var: ${snippet}`);
+  }
+  for (const snippet of [
+    "Re-ID model path without checksum/provenance gate must fall back",
+    "invalid Re-ID model checksum must fall back",
+  ]) {
+    assert(smoke.includes(snippet), `analysis state smoke missing Re-ID model gate assertion: ${snippet}`);
+  }
+  return {
+    env: [
+      "MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL_SHA256",
+      "MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL_PROVENANCE",
+    ],
   };
 });
 
@@ -162,6 +226,12 @@ check("close-object benchmark commands and fixture matrix remain available", () 
     /"id": "field-new-york-driving"[\s\S]*"qualityPreset": "field-driving-live"[\s\S]*"maxFragmentation": "6\.0"[\s\S]*"maxOverlapFragmentation": "6\.0"[\s\S]*"maxIdSwitchRisk": "8\.0"/.test(compare),
     "field-new-york-driving fixture must keep vehicle-heavy tracker-stability limits"
   );
+  for (const snippet of [
+    "--reid-policy",
+    "reidPolicy",
+  ]) {
+    assert(compare.includes(snippet), `compare tracker report must carry Re-ID policy: ${snippet}`);
+  }
   assert(compare.includes('"field-driving-live"'), "fixture matrix must define field-driving-live quality preset");
   for (const snippet of [
     '"riskTolerances": {',
@@ -179,6 +249,14 @@ check("close-object benchmark commands and fixture matrix remain available", () 
     "if not class_allowed(issue.get(\"className\")):",
   ]) {
     assert(trackerStability.includes(snippet), `tracker stability must class-filter observed counters: ${snippet}`);
+  }
+  for (const snippet of [
+    "--reid-policy",
+    "MEDIA_SERVER_VERIFY_TRACKER_REID_POLICY",
+    "\"trackingPolicy\": {\"tracker\": tracker_policy, \"reid\": reid_policy}",
+    "tap tracking policy 적용",
+  ]) {
+    assert(trackerStability.includes(snippet), `tracker stability must verify Re-ID assist opt-in policy: ${snippet}`);
   }
   assert(compare.includes("close-object guard default-on is not changed by this report."), "comparison report must state default-on is unchanged");
   for (const snippet of [
@@ -216,6 +294,14 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
   const readmeEn = readText("README.en.md");
   const docsEnReadme = readText("docs/en/README.md");
   for (const snippet of [
+    "V140-P0-03",
+    "V140-P1-03 Re-ID assist 고도화 종료 판정",
+    "--reid-policy assist",
+    "MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL_SHA256",
+    "MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL_PROVENANCE",
+    "checksum 누락/형식 오류/불일치",
+    "OpenSSL 없는",
+    "verify-va-metadata-sidechannel",
     "V120-P2-02 WARNING 판정",
     "V130-P2-02 Re-ID default-off research continuation 종료 판정",
     "verify-reid-advanced-tracking",
@@ -238,6 +324,7 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
   assert(!backlog.includes("V120-P2-02 범주 안의 잔여 이슈는 남기지 않습니다"), "backlog must not claim V120-P2-02 has no residual issues");
   for (const snippet of [
     "privacy/default-off gate",
+    "--reid-policy assist",
     "verify-reid-advanced-tracking",
     "default-on candidate=False",
     "Matrix gate 상태 정의",
@@ -261,6 +348,9 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
   }
   for (const snippet of [
     "embedding/crop/model path",
+    "--reid-policy assist",
+    "selected tracker의 association 보조 hook",
+    "checksum/provenance gate",
     "외부 metadata payload에 직렬화하지 않습니다",
     "fixture 전용 tracker-stability 상한",
     "Matrix gate는 다음처럼 해석합니다",

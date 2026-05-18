@@ -11,12 +11,19 @@
 #include <cmath>
 #include <cctype>
 #include <filesystem>
+#include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <mutex>
 #include <numeric>
+#include <sstream>
 
 #if MEDIA_SERVER_USE_ONNXRUNTIME
 #include <onnxruntime_cxx_api.h>
+#endif
+
+#if MEDIA_SERVER_USE_OPENSSL
+#include <openssl/evp.h>
 #endif
 
 namespace analysis {
@@ -33,6 +40,76 @@ std::string ToLower(std::string value) {
     });
     return value;
 }
+
+std::string TrimCopy(std::string value) {
+    const auto not_space = [](unsigned char ch) { return !std::isspace(ch); };
+    value.erase(value.begin(), std::find_if(value.begin(), value.end(), not_space));
+    value.erase(std::find_if(value.rbegin(), value.rend(), not_space).base(), value.end());
+    return value;
+}
+
+bool IsSha256Hex(const std::string& value) {
+    if (value.size() != 64) {
+        return false;
+    }
+    return std::all_of(value.begin(), value.end(), [](unsigned char ch) {
+        return std::isxdigit(ch) != 0;
+    });
+}
+
+#if MEDIA_SERVER_USE_OPENSSL
+std::optional<std::string> ComputeFileSha256(const std::string& path) {
+    std::ifstream input(path, std::ios::binary);
+    if (!input.is_open()) {
+        return std::nullopt;
+    }
+
+    EVP_MD_CTX* ctx = EVP_MD_CTX_new();
+    if (ctx == nullptr) {
+        return std::nullopt;
+    }
+    auto cleanup = [&ctx] {
+        if (ctx != nullptr) {
+            EVP_MD_CTX_free(ctx);
+            ctx = nullptr;
+        }
+    };
+    if (EVP_DigestInit_ex(ctx, EVP_sha256(), nullptr) != 1) {
+        cleanup();
+        return std::nullopt;
+    }
+
+    std::array<char, 8192> buffer{};
+    while (input.good()) {
+        input.read(buffer.data(), static_cast<std::streamsize>(buffer.size()));
+        const std::streamsize count = input.gcount();
+        if (count > 0 &&
+            EVP_DigestUpdate(ctx, buffer.data(), static_cast<std::size_t>(count)) != 1) {
+            cleanup();
+            return std::nullopt;
+        }
+    }
+    if (input.bad()) {
+        cleanup();
+        return std::nullopt;
+    }
+
+    std::array<unsigned char, EVP_MAX_MD_SIZE> digest{};
+    unsigned int digest_len = 0;
+    if (EVP_DigestFinal_ex(ctx, digest.data(), &digest_len) != 1) {
+        cleanup();
+        return std::nullopt;
+    }
+    cleanup();
+
+    std::ostringstream out;
+    out << std::hex << std::setfill('0');
+    for (unsigned int i = 0; i < digest_len; ++i) {
+        out << std::setw(2) << static_cast<unsigned int>(digest[i]);
+    }
+    return out.str();
+}
+#endif
 
 std::int64_t TimestampMs(std::int64_t timestamp_ns) {
     return timestamp_ns / 1000000LL;
@@ -375,6 +452,8 @@ AppearanceExtractorOptions BuildAppearanceExtractorOptionsFromConfig(const app::
     options.enabled = config.analysis_appearance_enabled;
     options.extractor_name = ToLower(config.analysis_appearance_extractor);
     options.model_path = config.analysis_appearance_model_path;
+    options.model_sha256 = ToLower(TrimCopy(config.analysis_appearance_model_sha256));
+    options.model_provenance = TrimCopy(config.analysis_appearance_model_provenance);
     options.input_width = std::max(1, config.analysis_appearance_input_width);
     options.input_height = std::max(1, config.analysis_appearance_input_height);
     options.max_embedding_dim = std::max<std::size_t>(1, config.analysis_appearance_max_embedding_dim);
@@ -404,6 +483,34 @@ std::shared_ptr<IAppearanceExtractor> CreateAppearanceExtractorFromConfig(const 
                   << options.model_path << "\n";
         return std::make_shared<NoOpAppearanceExtractor>();
     }
+    if (options.model_sha256.empty()) {
+        std::cerr << "[analysis][appearance] ONNX Re-ID model checksum is missing, falling back to NoOp\n";
+        return std::make_shared<NoOpAppearanceExtractor>();
+    }
+    if (!IsSha256Hex(options.model_sha256)) {
+        std::cerr << "[analysis][appearance] ONNX Re-ID model checksum is invalid, falling back to NoOp\n";
+        return std::make_shared<NoOpAppearanceExtractor>();
+    }
+    if (options.model_provenance.empty()) {
+        std::cerr << "[analysis][appearance] ONNX Re-ID model provenance is missing, falling back to NoOp\n";
+        return std::make_shared<NoOpAppearanceExtractor>();
+    }
+
+#if MEDIA_SERVER_USE_OPENSSL
+    const auto actual_sha256 = ComputeFileSha256(options.model_path);
+    if (!actual_sha256.has_value()) {
+        std::cerr << "[analysis][appearance] ONNX Re-ID model checksum could not be read, falling back to NoOp\n";
+        return std::make_shared<NoOpAppearanceExtractor>();
+    }
+    if (*actual_sha256 != options.model_sha256) {
+        std::cerr << "[analysis][appearance] ONNX Re-ID model checksum mismatch, falling back to NoOp\n";
+        return std::make_shared<NoOpAppearanceExtractor>();
+    }
+#else
+    std::cerr << "[analysis][appearance] ONNX Re-ID model checksum verification requires OpenSSL, "
+                 "falling back to NoOp\n";
+    return std::make_shared<NoOpAppearanceExtractor>();
+#endif
 
 #if MEDIA_SERVER_USE_ONNXRUNTIME
     auto extractor = std::make_shared<ExperimentalOnnxReidExtractor>(options);

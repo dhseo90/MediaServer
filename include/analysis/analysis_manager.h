@@ -83,6 +83,13 @@ public:
         float confidence_threshold{0.0F};
         float nms_threshold{0.0F};
         bool tracking_enabled{false};
+        std::string tracking_policy_tracker{"lite"};
+        std::string tracking_policy_effective_tracker{"lite"};
+        std::string tracking_policy_reid{"off"};
+        std::string tracking_policy_source{"default"};
+        std::string tracking_policy_rule_id;
+        std::string tracking_policy_fallback_reason;
+        bool tracking_policy_specified{false};
         std::vector<std::string> tracking_class_labels;
         TrackStateMetrics track_state_metrics;
         bool adaptive_tuning_enabled{false};

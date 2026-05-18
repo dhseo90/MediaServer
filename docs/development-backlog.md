@@ -32,15 +32,15 @@ source-of-truth로 쓰지 않습니다.
 
 `완료`는 운영 배포 ready, 장기 안정성 보장, 외부 연동 ready를 뜻하지 않습니다.
 
-## 현재 기준: v1.3.0 Source Release Baseline
+## 현재 기준: v1.4.0 Source Release Baseline
 
-v1.3.0은 v1.2.x의 source-only/live-only 경계를 유지하면서 runtime operations,
-ONVIF field smoke gate, source health incident workflow, Client Live accessibility,
-Rule/Scenario preset quality, audit trail operations, release/visual baseline
-automation, Re-ID default-off research continuation을 닫은 source-only minor
-release입니다. 아래 제품 baseline은 v1.2.x에서 닫은 live product 범위를 유지하고,
-v1.3.0은 recorder/VMS/NVR, Re-ID default-on, runtime/model bundle scope를 열지
-않습니다.
+v1.4.0은 v1.2.x의 source-only/live-only 경계를 유지하면서 v1.3.0의 runtime
+operations, ONVIF field smoke gate, source health incident workflow, Client Live
+accessibility, Rule/Scenario preset quality, audit trail operations, release/visual
+baseline automation, Re-ID default-off research continuation 위에 rule-level
+tracker/Re-ID opt-in을 닫은 source-only minor release입니다. 아래 제품 baseline은
+v1.2.x에서 닫은 live product 범위를 유지하고, v1.4.0은 recorder/VMS/NVR,
+Re-ID default-on, tracker default-on, runtime/model bundle scope를 열지 않습니다.
 
 완료 범위:
 
@@ -71,12 +71,17 @@ v1.3.0은 recorder/VMS/NVR, Re-ID default-on, runtime/model bundle scope를 열�
 - [x] Audit trail search/export/review 최소 흐름
 - [x] Release/visual baseline automation과 approval gate 정리
 - [x] Re-ID default-off research continuation과 v1.3.0 follow-up closure
+- [x] Rule-level `analysis.trackingPolicy`와 Ops Rules tracker/Re-ID 선택 UI
+- [x] Kalman-lite/ByteTrack rule-level opt-in tracker와 fixture matrix 비교
+- [x] Re-ID assist default-off runtime fallback, privacy guard, warning history
+- [x] close-object report archive policy와 tracker warning dashboard summary
+- [x] v1.4.0 follow-up closure와 release close-out 기준 정리
 
 비범위:
 
 - [ ] 장기 녹화, MP4 recorder, NVR/VMS archive, playback timeline, 영상 검색
 - [ ] ONVIF Profile G recording/replay
-- [ ] Re-ID default-on 또는 대형 tracker 교체
+- [ ] Re-ID default-on, ByteTrack default-on, OC-SORT/BoT-SORT/DeepSORT runtime tracker 승격
 - [ ] binary/runtime/model bundle release
 - [ ] 외부 TURN/WHEP credential 운영 보장
 - [ ] ONVIF 실장비 endpoint 성공 보장, persistent credential store, Digest/WS-Security
@@ -382,6 +387,376 @@ threat model을 별도 Phase gate 또는 release/field/manual approval gate로
 Re-ID default-on, tracker 교체, runtime/model bundle 포함, field sample scheduler,
 dataset ingest는 이 closure에서 수행하지 않았습니다. tag/push/GitHub Release는
 기능 개발 closure 범위가 아니라 별도 release 운영 gate로 분리합니다.
+
+## v1.4.0 Minor Close-out
+
+v1.4.0은 v1.2.x의 source-only/live-only 경계를 유지하면서 운영 흐름과 현장
+검증 밀도를 닫은 v1.3.0 위에 rule-level tracker/Re-ID opt-in을 추가한 minor
+release로 닫았습니다. Re-ID와 tracker를 전역 기본값으로 바꾸지 않고, 룰 설정에서
+명시적으로 선택하는 분석 정책으로만 엽니다. 기존 룰과 source/profile은 자동
+migration하지 않으며, 선택하지 않은 룰은 현재 lightweight tracker 동작을
+유지합니다.
+
+기본 원칙:
+
+- 전체/global 기본 활성화 없음
+- 기존 Lite tracker를 기본 호환 경로로 유지
+- tracker와 Re-ID는 룰별 설정에서 각각 선택
+- Re-ID는 기본 `off`이며, model/provenance/privacy gate가 통과한 경우에만 opt-in
+- Event POST, WebRTC DataChannel, SSE/WS metadata schema와 RTSP/WebRTC media
+  path는 별도 review 전까지 변경하지 않음
+- embedding, crop, model path, track-linked appearance profile은 client/viewer,
+  외부 metadata, release artifact에 노출하지 않음
+
+| ID | 우선순위 | 영역 | 목표 | 예상 검증 |
+| --- | --- | --- | --- | --- |
+| V140-P0-01 | P0 | Rule-level tracking policy contract | 룰 payload와 runtime policy에 tracker/Re-ID 선택값을 추가하되 기존 룰은 Lite tracker와 Re-ID `off`로 해석합니다. tracker 후보는 `none`, `lite`, `kalman-lite`, `bytetrack`를 v1.4.0 대상 후보로 둡니다. | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-analysis-state`, metadata schema review |
+| V140-P0-02 | P0 | Ops Rules tracker/Re-ID selection UI | `/ops/rules`에서 Tracker와 Re-ID를 별도 control로 선택하고 저장/불러오기/preview/roundtrip을 검증합니다. `tracker=none`이면 Re-ID 선택은 비활성 또는 `off`로 강제합니다. | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-client-ui --screenshots` |
+| V140-P0-03 | P0 | Privacy and runtime fallback gate | Re-ID model path/checksum/provenance, NoOp fallback, bounded async worker, rate limit, stale drop, 외부 metadata 비노출 guard를 v1.4.0 opt-in gate로 묶습니다. | `verify-reid-advanced-tracking`, privacy/docs review, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel` |
+| V140-P1-01 | P1 | Kalman-lite tracker | 현재 direction-based/lightweight tracker에 motion prediction/lost buffer 보강을 추가해 짧은 누락, bbox jitter, reacquire 후보 선택을 개선합니다. Re-ID/model dependency 없이 룰별 opt-in으로 제공합니다. | `verify-tracker-stability`, `compare-close-object-tracker`, `verify-va-replay`, `verify-va-events` |
+| V140-P1-02 | P1 | ByteTrack tracker | YOLO detection 결과의 high/low confidence association을 분리해 track 끊김을 줄이는 ByteTrack 계열 tracker를 추가 tracker 후보로 구현합니다. low-confidence bbox가 event/zone/line 판단을 흔들지 않도록 quality gate를 둡니다. | `compare-close-object-tracker --fixture-matrix`, `verify-tracker-stability`, `verify-va-replay`, `verify-va-events` |
+| V140-P1-03 | P1 | Re-ID assist 고도화 | Re-ID를 독립 default tracker가 아니라 selected tracker의 association 보조 옵션으로 제한합니다. model artifact는 repo/release asset에 포함하지 않고, missing/invalid model은 NoOp으로 fallback합니다. | `verify-reid-advanced-tracking`, `compare-close-object-tracker`, privacy review |
+| V140-P2-01 | P2 | OC-SORT 후순위 benchmark | OC-SORT는 v1.4.0 필수 구현이 아니라 ByteTrack/Kalman-lite 이후 비교 benchmark 또는 experimental 후보로 낮춥니다. Re-ID 없이 motion/observation 중심 비교를 수행하되 제품 tracker 교체 근거로 과장하지 않습니다. | 별도 benchmark report, `compare-close-object-tracker`, docs review |
+| V140-P2-02 | P2 | BoT-SORT/DeepSORT research boundary | BoT-SORT/DeepSORT 계열은 Re-ID/model/privacy 부담이 커서 v1.4.0 기본 구현 후보가 아니라 research note와 dependency/privacy 검토 대상으로 유지합니다. | `verify-bot-sort-deepsort-research-boundary`, `verify-reid-advanced-tracking`, privacy/bundle docs review |
+
+v1.4.0 비범위:
+
+- 전체/global tracker 기본값 변경
+- 기존 룰/source/profile 자동 migration
+- Re-ID 또는 ByteTrack/OC-SORT/BoT-SORT/DeepSORT를 선택하지 않은 룰에 자동 적용
+- Event POST/WebRTC DataChannel/SSE/WS metadata payload 무심사 변경
+- RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
+- Re-ID model/runtime binary bundle, release asset 업로드, container/offline package 포함
+- field sample scheduler, dataset ingest, 고객/현장 영상 보존 자동화
+
+v1.4.0 close-object/field-driving report 보존 기준은
+[Close-object Report Archive Policy](./close-object-report-archive-policy.md)에 둡니다.
+이 정책은 summary/report/history index를 검증 evidence로 보존하는 범위이며,
+제품 default-on 승격이나 raw media/image archive를 열지 않습니다.
+Ops Dashboard의 트래킹 이슈 그룹은 warning을 default-on 근거로 과장하지 않도록
+샘플 message와 association/overlap/missed/direction 요약을 함께 표시합니다.
+v1.4.0 범위 안 후속 이슈 종료 판정은
+[v1.4.0 Follow-up Closure](./v1.4.0-follow-up-closure.md)에 분리합니다.
+`verify-v140-follow-up-closure`는 Re-ID warning history, report archive policy,
+tracker warning dashboard summary가 닫혔고 default-on/benchmark gate가 별도
+Phase로 남는지 확인합니다.
+
+### V140-P0-01 Rule-level tracking policy contract 정리 기준
+
+`Rule-level tracking policy contract`는 tracker/Re-ID를 전역 기본값으로 켜지 않고
+저장 rule 또는 vaRule의 `analysis.trackingPolicy`에서만 선택하는 계약입니다.
+
+계약 필드:
+
+```json
+{
+  "analysis": {
+    "classes": ["person", "vehicle"],
+    "trackingPolicy": {
+      "tracker": "lite",
+      "reid": "off"
+    }
+  }
+}
+```
+
+- `tracker` 허용값은 `none`, `lite`, `kalman-lite`, `bytetrack`입니다.
+- `reid` 허용값은 `off`, `assist`입니다.
+- 기존 rule/vaRule처럼 `analysis.trackingPolicy`가 없으면 runtime은
+  `tracker=lite`, `reid=off`로 해석하고 저장 문서를 자동 migration하지
+  않습니다.
+- `tracker=none`이면 runtime tracking을 끄며 `reid=assist` 조합은 API 저장에서
+  거부합니다.
+- `kalman-lite`는 v1.4.0 P1 opt-in runtime tracker로 제공하며,
+  `effectiveTracker=kalman-lite`로 표시합니다.
+- `bytetrack`은 v1.4.0 P1 opt-in runtime tracker로 제공하며,
+  `effectiveTracker=bytetrack`으로 표시합니다. low-confidence association은
+  internal continuity 보강에만 사용하고 event/zone/line 판단용 public track으로
+  승격하지 않습니다.
+- Re-ID `assist`는 선택값 계약일 뿐이며 model artifact, embedding, crop, model
+  path, checksum/provenance는 외부 Event POST/WebRTC/SSE/WS metadata 또는
+  client/viewer 화면에 노출하지 않습니다.
+- 외부 payload의 `source.profileKey` 문자열도 policy token을 추가하지 않고 기존
+  profile 식별 역할을 유지합니다. policy 구분은 internal analysis reuse key와
+  `/ops/api/runtime/status`의 operator runtime status에서만 확인합니다.
+
+검증 기준:
+
+- `./server.sh build`
+- `./server.sh verify-rule-ui`
+- `./server.sh verify-ops-rules-roundtrip`
+- `./server.sh verify-analysis-state`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- `/ops/rules` tracker/Re-ID 선택 control 추가
+- ByteTrack tracker 구현
+- Re-ID model/provenance runtime gate 고도화
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
+
+### V140-P0-03 Privacy and runtime fallback gate 정리 기준
+
+`Privacy and runtime fallback gate`는 Re-ID `assist`가 선택되더라도 model identity
+material과 appearance profile을 외부 payload로 내보내지 않고, 실제 model runtime은
+명시적인 opt-in gate를 통과할 때만 켜는 경계입니다.
+
+확인됨:
+
+- Re-ID model runtime은 `MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL`,
+  `MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL_SHA256`,
+  `MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL_PROVENANCE`가 모두 있을 때만 실제
+  ONNX extractor 후보가 됩니다.
+- model 파일 없음, checksum 누락/형식 오류/불일치, provenance 누락, OpenSSL 없는
+  checksum 검증 불가, ONNX Runtime 미빌드는 모두 NoOp fallback으로 닫습니다.
+- appearance worker는 bounded async queue, per-stream rate limit, global queue
+  limit, stale job drop을 유지하며 media pipeline을 blocking하지 않습니다.
+- runtime/operator status는 aggregate appearance count와 extractor counter만
+  사용하고 model path, checksum, provenance, embedding, crop, appearance profile은
+  Event POST/WebRTC DataChannel/SSE/WS metadata와 client/viewer 화면에 노출하지
+  않습니다.
+
+검증 기준:
+
+- `./server.sh build`
+- `./server.sh verify-reid-advanced-tracking`
+- `./server.sh verify-analysis-state`
+- `./server.sh verify-webrtc-va-metadata`
+- `./server.sh verify-va-metadata-sidechannel`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- 실제 Re-ID model artifact, model card, dataset provenance를 repo/release asset에 포함
+- Re-ID default-on 제품 결정
+- Kalman-lite/ByteTrack/OC-SORT/BoT-SORT/DeepSORT tracker 구현 또는 benchmark 실행
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
+- runtime/model bundle RC policy, container/offline/binary package 포함
+
+### V140-P1-01 Kalman-lite tracker 종료 판정
+
+`Kalman-lite tracker`는 기존 Lite tracker를 전역 기본값으로 바꾸지 않고
+저장 rule/vaRule의 `analysis.trackingPolicy.tracker=kalman-lite`에서만 켜는
+opt-in runtime tracker입니다.
+
+확인됨:
+
+- `kalman-lite`는 runtime fallback 없이 `effectiveTracker=kalman-lite`로
+  해석합니다.
+- tracker 내부에 bounded constant-velocity Kalman-lite state를 두고, 짧은
+  missed gap에서는 예측 bbox를 association 후보로 사용합니다.
+- 매칭된 detection bbox는 Kalman-lite correction 결과로 보정해 bbox jitter를
+  줄입니다.
+- Re-ID/model dependency, embedding/crop/model path, 외부 metadata field는
+  추가하지 않습니다.
+- `verify-tracker-stability`와 `compare-close-object-tracker`는
+  `--tracker-policy kalman-lite` 옵션으로 임시 vaRule을 만들어 rule-level opt-in
+  경로를 직접 검증할 수 있습니다.
+
+검증 기준:
+
+- `./server.sh build`
+- `./server.sh verify-analysis-state`
+- `./server.sh verify-tracker-stability --tracker-policy kalman-lite`
+- `./server.sh compare-close-object-tracker --tracker-policy kalman-lite`
+- `./server.sh verify-va-replay`
+- `./server.sh verify-va-events`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- Lite tracker의 전역/default 동작 변경
+- ByteTrack, OC-SORT, BoT-SORT, DeepSORT 구현
+- Re-ID assist 고도화, Re-ID default-on, model/runtime bundle 포함
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
+
+### V140-P1-02 ByteTrack tracker 종료 판정
+
+`ByteTrack tracker`는 기존 Lite tracker를 전역 기본값으로 바꾸지 않고
+저장 rule/vaRule의 `analysis.trackingPolicy.tracker=bytetrack`에서만 켜는
+opt-in runtime tracker입니다.
+
+확인됨:
+
+- `bytetrack`은 runtime fallback 없이 `effectiveTracker=bytetrack`으로
+  해석합니다.
+- tracker 내부에서 high-confidence detection을 먼저 association하고,
+  unmatched track에 한해서 low-confidence detection을 2차 association 후보로
+  사용합니다.
+- low-confidence detection은 기존 track continuity를 내부적으로 이어줄 수 있지만
+  새 public track을 만들지 않고, event/zone/line 판단용 track metadata로도
+  승격하지 않습니다.
+- ByteTrack은 vehicle-heavy/field-driving fixture에서 짧은 detection gap을
+  흡수하도록 bounded lost buffer floor를 내부적으로 적용하지만, 이 설정은
+  `tracker=bytetrack` opt-in rule에만 적용하며 제품 default-on 승격 근거로
+  사용하지 않습니다.
+- Re-ID/model dependency, embedding/crop/model path, 외부 metadata field는
+  추가하지 않습니다.
+- `verify-tracker-stability`와 `compare-close-object-tracker`는
+  `--tracker-policy bytetrack` 옵션으로 임시 vaRule을 만들어 rule-level opt-in
+  경로를 직접 검증할 수 있습니다.
+
+검증 기준:
+
+- `./server.sh build`
+- `./server.sh verify-analysis-state`
+- `./server.sh compare-close-object-tracker --fixture-matrix --tracker-policy bytetrack`
+- `./server.sh verify-tracker-stability --tracker-policy bytetrack`
+- `./server.sh verify-va-replay`
+- `./server.sh verify-va-events`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- Lite tracker의 전역/default 동작 변경
+- OC-SORT, BoT-SORT, DeepSORT 구현 또는 benchmark 실행
+- Re-ID assist 고도화, Re-ID default-on, model/runtime bundle 포함
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
+
+### V140-P1-03 Re-ID assist 고도화 종료 판정
+
+`Re-ID assist 고도화`는 Re-ID를 독립 tracker나 제품 기본값으로 승격하지 않고,
+저장 rule/vaRule의 `analysis.trackingPolicy.reid=assist`가 명시된 경우에만
+선택된 tracker의 association 보조 hook으로 제한하는 범위입니다.
+
+확인됨:
+
+- Re-ID assist는 `tracker=lite`, `tracker=kalman-lite`, `tracker=bytetrack` 같은
+  selected tracker가 있는 rule-level opt-in에서만 의미가 있습니다.
+- `tracker=none` 조합에서는 API 저장 단계에서 `reid=assist`를 거부하고 runtime은
+  `reid=off` fallback 경계를 유지합니다.
+- appearance hook은 TrackStateManager의 TrackCreated, ReacquireCandidate,
+  LowConfidenceAssociation, 제한적 Periodic trigger에서만 실행 후보를 만들며
+  track id를 독립 생성하거나 selected tracker의 public event/scene-visible
+  metadata를 대체하지 않습니다.
+- `verify-tracker-stability`와 `compare-close-object-tracker`는
+  `--reid-policy assist` 옵션으로 임시 vaRule을 만들고 tap runtime의
+  `trackingPolicy.reid=assist` 적용을 확인할 수 있습니다.
+- 단일 close-object 비교의 `--history-dir`는 Re-ID assist warning/counter drift
+  추세를 summary/report/index로 남깁니다. 이 history는 관찰 evidence이며
+  Re-ID assist default-on 또는 제품 tracker 교체 완료 근거로 사용하지 않습니다.
+- Re-ID model artifact는 repo/release asset에 포함하지 않습니다. model missing,
+  checksum/provenance 누락 또는 불일치, ONNX Runtime 미빌드는 NoOp fallback으로
+  닫습니다.
+- embedding, crop, model path, checksum/provenance, track-linked appearance profile은
+  Event POST/WebRTC DataChannel/SSE/WS metadata와 client/viewer 화면에 노출하지
+  않습니다.
+
+검증 기준:
+
+- `./server.sh build`
+- `./server.sh verify-reid-advanced-tracking`
+- `./server.sh verify-analysis-state`
+- `./server.sh compare-close-object-tracker --tracker-policy bytetrack --reid-policy assist --history-dir /private/tmp/media_server_v140_reid_assist_warning_trend`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- Re-ID default-on 제품 결정
+- 실제 Re-ID model artifact, model card, dataset provenance를 repo/release asset에 포함
+- Re-ID embedding similarity로 ObjectTracker association score를 직접 변경
+- OC-SORT, BoT-SORT, DeepSORT 구현 또는 benchmark 실행
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
+
+### V140-P2-01 OC-SORT 후순위 benchmark 종료 판정
+
+`OC-SORT 후순위 benchmark`는 OC-SORT를 v1.4.0 runtime tracker나
+rule-level 선택값으로 추가하지 않고, Kalman-lite/ByteTrack opt-in 결과 이후의
+비교 benchmark 후보로만 남기는 범위입니다.
+
+확인됨:
+
+- `analysis.trackingPolicy.tracker` 허용값에 추가하지 않습니다. 현재 허용값은
+  `none`, `lite`, `kalman-lite`, `bytetrack`입니다.
+- `/ops/rules` UI, rule validation, `AnalysisProfile` runtime policy,
+  `ObjectTrackerKind`, `verify-tracker-stability`, `compare-close-object-tracker`는
+  OC-SORT/ocsort token을 제품 tracker로 받지 않습니다.
+- OC-SORT 비교를 열 때도 Re-ID 없이 motion/observation 중심으로만 비교하며,
+  embedding/crop/model path, appearance profile, model/runtime bundle을 함께
+  열지 않습니다.
+- ByteTrack/Kalman-lite 이후 benchmark report는 기존
+  `compare-close-object-tracker` fixture matrix와 `defaultOnDecision`,
+  `productDefaultOn`, `candidateCount`, `defaultOnReason` 필드를 사용해
+  `matrix-ok`와 제품 default-on/교체 판단을 분리해야 합니다.
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema, Event POST payload,
+  RTSP/WebRTC media path, client/viewer 노출 정보는 이 항목에서 변경하지
+  않습니다.
+- 미분류 P0~P1 후속 이슈: 없음.
+
+검증 기준:
+
+- `./server.sh verify-oc-sort-benchmark-boundary`
+- `./server.sh verify-reid-advanced-tracking`
+- `./server.sh verify-script-inventory`
+- `./server.sh verify-docs-links`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- 실제 OC-SORT algorithm 구현 또는 runtime tracker 선택값 추가
+- OC-SORT benchmark 실행 결과를 제품 tracker 교체 근거로 과장
+- OC-SORT와 Re-ID/BoT-SORT/DeepSORT/model artifact/privacy review를 한 작업으로
+  묶기
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
+
+별도 Phase 후보로 기록:
+
+- 실제 OC-SORT algorithm adapter와 dataset benchmark report
+- ByteTrack/Kalman-lite/OC-SORT fixture matrix 비교 history
+- field sample 기반 tracker replacement product review
+
+### V140-P2-02 BoT-SORT/DeepSORT research boundary 종료 판정
+
+`BoT-SORT/DeepSORT research boundary`는 appearance/Re-ID 의존성이 큰 tracker를
+v1.4.0 runtime tracker, rule-level 선택값, 제품 default-on 후보로 승격하지 않고
+research note와 dependency/privacy 검토 대상으로만 남기는 범위입니다.
+
+확인됨:
+
+- `analysis.trackingPolicy.tracker` 허용값에 BoT-SORT/DeepSORT를 추가하지
+  않습니다. 현재 허용값은 `none`, `lite`, `kalman-lite`, `bytetrack`입니다.
+- `/ops/rules` UI, rule validation, `AnalysisProfile` runtime policy,
+  `ObjectTrackerKind`, `verify-tracker-stability`, `compare-close-object-tracker`는
+  BoT-SORT/botsort/DeepSORT/deepsort token을 제품 tracker로 받지 않습니다.
+- BoT-SORT/DeepSORT 연구는 appearance/Re-ID model, embedding/crop,
+  camera motion compensation, dataset provenance, model/runtime bundle policy,
+  retention/redaction policy를 별도 privacy/dependency review로 분리합니다.
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema, Event POST payload,
+  RTSP/WebRTC media path, client/viewer 노출 정보는 이 항목에서 변경하지
+  않습니다.
+- 미분류 P0~P1 후속 이슈: 없음.
+
+검증 기준:
+
+- `./server.sh verify-bot-sort-deepsort-research-boundary`
+- `./server.sh verify-reid-advanced-tracking`
+- `./server.sh verify-script-inventory`
+- `./server.sh verify-docs-links`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- 실제 BoT-SORT/DeepSORT algorithm 구현 또는 runtime tracker 선택값 추가
+- BoT-SORT/DeepSORT benchmark 실행 결과를 제품 tracker 교체 근거로 과장
+- Re-ID model artifact, embedding store, crop retention, model/runtime bundle 포함
+- OC-SORT benchmark와 BoT-SORT/DeepSORT privacy/dependency review를 한 작업으로
+  묶기
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
+
+별도 Phase 후보로 기록:
+
+- BoT-SORT/DeepSORT dependency/privacy threat model
+- Re-ID model card/license/checksum/provenance review
+- appearance embedding/crop retention and redaction policy
+- camera motion compensation 및 dataset benchmark report
+- runtime/model bundle RC policy와 source-offer 검토
 
 ## 별도 Phase 후보
 

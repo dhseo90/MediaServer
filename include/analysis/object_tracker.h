@@ -21,10 +21,17 @@ enum class CloseObjectGuardMode {
     Enforce,
 };
 
+enum class ObjectTrackerKind {
+    Lite,
+    KalmanLite,
+    ByteTrack,
+};
+
 CloseObjectGuardMode ParseCloseObjectGuardMode(const std::string& value);
 std::string CloseObjectGuardModeToString(CloseObjectGuardMode mode);
 
 struct ObjectTrackerOptions {
+    ObjectTrackerKind tracker_kind{ObjectTrackerKind::Lite};
     float min_iou{0.30F};
     float max_center_distance{0.18F};
     float iou_weight{app_config::kDefaultAnalysisTrackingIouWeight};
@@ -33,6 +40,17 @@ struct ObjectTrackerOptions {
     float class_weight{app_config::kDefaultAnalysisTrackingClassWeight};
     float min_association_score{app_config::kDefaultAnalysisTrackingMinAssociationScore};
     float smoothing_alpha{app_config::kDefaultAnalysisTrackingSmoothingAlpha};
+    float kalman_position_alpha{0.70F};
+    float kalman_velocity_beta{0.80F};
+    std::uint32_t kalman_max_prediction_frames{4};
+    // ByteTrack 계열 association은 low-confidence detection과 짧은 lost buffer를
+    // 내부 continuity 보강에만 쓰고 event/scene-visible track은 high-confidence
+    // detection에서만 공개한다.
+    float bytetrack_high_score_threshold{0.50F};
+    float bytetrack_low_score_threshold{0.10F};
+    float bytetrack_low_association_score{0.18F};
+    float bytetrack_low_iou_threshold{0.10F};
+    std::uint32_t bytetrack_min_lost_buffer_frames{16};
     CloseObjectGuardMode close_object_guard_mode{CloseObjectGuardMode::Off};
     float close_object_distance_ratio{
         app_config::kDefaultAnalysisTrackingCloseObjectDistanceRatio};
@@ -64,8 +82,19 @@ public:
     void Reset();
 
 private:
+    struct KalmanLiteState {
+        bool initialized{false};
+        RectF box;
+        float velocity_x{0.0F};
+        float velocity_y{0.0F};
+        float velocity_width{0.0F};
+        float velocity_height{0.0F};
+    };
+
     struct ActiveTrack {
         Track public_track;
+        KalmanLiteState kalman;
+        bool last_update_low_confidence{false};
     };
 
     ObjectTrackerOptions options_;

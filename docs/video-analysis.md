@@ -113,7 +113,47 @@ YOLO parser는 `YOLOv8/YOLO11` 계열의 `[1, 84, N]` 또는 `[1, N, 84]` 출력
 
 ### Tracking
 
-현재 tracker는 direction-based/lightweight tracker입니다. Kalman Filter, BoT-SORT, ByteTrack, 실제 Re-ID 모델을 기본 tracking id 생성에 사용하지 않습니다.
+기본 tracker는 direction-based/lightweight tracker입니다. Kalman-lite와
+ByteTrack 계열 tracker는 v1.4.0 rule-level opt-in tracker로 제공하며,
+BoT-SORT/DeepSORT와 실제 Re-ID 모델은 기본 tracking id 생성에 사용하지 않습니다.
+
+v1.4.0부터 rule/vaRule은 `analysis.trackingPolicy`로 tracker/Re-ID 선택 계약을
+가질 수 있습니다. 기존 저장 rule에 이 필드가 없으면 자동 migration 없이
+`tracker=lite`, `reid=off`로 해석합니다.
+
+허용값:
+
+- `tracker`: `none`, `lite`, `kalman-lite`, `bytetrack`
+- `reid`: `off`, `assist`
+
+`tracker=none`은 runtime tracking을 끄며 Re-ID는 `off`여야 합니다.
+`kalman-lite`는 Re-ID/model dependency 없이 motion prediction과 bbox smoothing을
+적용하는 opt-in runtime tracker입니다. `bytetrack`은 YOLO detection 결과를
+high/low confidence association으로 나누는 opt-in runtime tracker입니다.
+low-confidence detection은 기존 track continuity를 내부적으로 보강할 수 있지만
+새 public track을 만들거나 event/zone/line 판단용 track metadata로 승격하지
+않습니다. ByteTrack은 짧은 detection gap을 흡수하는 bounded lost buffer floor도
+내부 continuity에만 사용하며 제품 기본 tracker로 승격하지 않습니다. ByteTrack
+상태는 내부 runtime status의 `effectiveTracker=bytetrack`으로
+확인하며 Event POST/WebRTC DataChannel/SSE/WS metadata schema에는 새 필드를
+추가하지 않습니다.
+OC-SORT는 v1.4.0 runtime tracker 허용값이 아닙니다. 후속 benchmark가 열리더라도
+Kalman-lite/ByteTrack 이후 별도 report에서 Re-ID 없이 motion/observation 중심으로
+비교하며, Event POST/WebRTC DataChannel/SSE/WS metadata schema에는 새 필드를
+추가하지 않습니다.
+BoT-SORT/DeepSORT도 v1.4.0 runtime tracker 허용값이 아닙니다. 이 계열은
+appearance/Re-ID model, embedding/crop, camera motion compensation,
+dataset provenance, runtime/model bundle, retention/redaction policy 검토가
+필요하므로 별도 research boundary와 privacy/dependency review가 열릴 때만
+다룹니다. 이 research note는 Event POST/WebRTC DataChannel/SSE/WS metadata schema
+또는 RTSP/WebRTC media path 변경 근거가 아닙니다.
+외부 payload의 `source.profileKey` 문자열에도 policy token을 추가하지 않습니다.
+Re-ID `assist`도 외부 metadata에 embedding, crop, model path, checksum,
+appearance profile을 노출하지 않는 opt-in 정책값입니다.
+Re-ID assist는 독립 tracker가 아니라 selected tracker의 association 보조 hook으로만
+해석합니다. `tracker=none`에서는 `reid=assist` 조합을 저장하지 않으며,
+검증 하네스는 `--reid-policy assist`로 임시 vaRule을 만들어 runtime 적용 여부를
+확인할 수 있습니다.
 
 matching score는 다음 요소를 조합합니다.
 
@@ -131,8 +171,8 @@ unmatched track은 제한된 lost buffer에 남고, 짧은 누락 뒤 같은 cla
 | bbox 좌표는 맞음 | detector보다 tracker association 후보 |
 | association score 저하 | trackId 흔들림 가능 |
 | lost/reacquired 증가 | 짧은 누락 뒤 재연결된 상태 |
-| detector 후처리 변경 필요 | 이번 진단/보강 범위 아님 |
-| Kalman/ByteTrack/BoT-SORT/Re-ID 도입 | 이번 범위 아님 |
+| detector 후처리 변경 필요 | tracker opt-in 범위 밖 |
+| BoT-SORT/DeepSORT/Re-ID 도입 | Kalman-lite/ByteTrack opt-in 범위 밖 |
 
 Close-object association guard는 이 한계를 관찰하기 위한 opt-in 진단/보정 skeleton입니다.
 
@@ -259,7 +299,11 @@ Profile은 detector와 분석 품질/성능 설정입니다.
   },
   "analysis": {
     "profileId": "1",
-    "classes": ["person", "vehicle"]
+    "classes": ["person", "vehicle"],
+    "trackingPolicy": {
+      "tracker": "lite",
+      "reid": "off"
+    }
   },
   "event": {
     "type": "presence",
@@ -516,6 +560,9 @@ TrackingIssueReport는 stream/channel별로 다음 issue를 제한 수집합니�
 이 기능은 진단용이며 tracking id 생성 결과를 변경하지 않습니다.
 issue `message`는 raw counter 나열이 아니라 운영자가 다음 확인 지점을 고를 수 있는
 문장과 핵심 metric 요약을 함께 제공합니다.
+Ops Dashboard의 트래킹 이슈 그룹은 issue type, track list, class, association,
+overlap, missed, direction count와 샘플 message를 함께 보여줍니다. warning은
+관찰 대상이며 제품 default-on 근거가 아니라는 문구를 같이 표시합니다.
 
 Close-object association 문제를 볼 때 함께 보는 값:
 
@@ -606,6 +653,14 @@ field/model review 대상으로 남깁니다.
 matrix report에 `--history-dir`를 지정하면 회차별 index를 남겨 품질 추세를 비교할 수 있습니다.
 history index는 `defaultOnDecision`, `productDefaultOn`, `candidateCount`,
 `defaultOnReason`도 함께 보존해 `matrix-ok`와 제품 기본 활성화 판단을 분리합니다.
+단일 close-object 비교에서도 `--history-dir`를 지정하면 summary/report 사본과
+`close-object-tracker-comparison-history` index를 남깁니다. 이 index는
+`judgement`, warning reason count, recommendation, `defaultOnCandidate`를
+회차별로 보존해 `--tracker-policy bytetrack --reid-policy assist` 같은 opt-in
+조합의 counter drift 추세를 추적합니다. 단일 비교 history도 관찰 evidence일 뿐
+Re-ID assist 또는 close-object guard default-on 완료 근거로 사용하지 않습니다.
+report/history 보존 범위는 [Close-object Report Archive Policy](close-object-report-archive-policy.md)를
+따르며, raw media image, crop, embedding, source URL, credential은 포함하지 않습니다.
 반복 실행에서는 `Repeat Metric Stats`의 mean/stdev/variance로 observed risk 변동성을 확인합니다.
 
 ## 8. Appearance / Re-ID Hook
@@ -616,9 +671,11 @@ AppearanceProfile과 IAppearanceExtractor는 향후 Re-ID/attribute 분석을 �
 
 - 기본값은 비활성
 - 기본 extractor는 `NoOpAppearanceExtractor`
-- 실험용 ONNX Re-ID extractor hook은 모델 파일과 설정이 있을 때만 사용
-- 모델 파일이 없거나 ONNX Runtime 빌드가 아니면 NoOp으로 fallback
+- 실험용 ONNX Re-ID extractor hook은 모델 파일, SHA-256 checksum, provenance가 모두 있을 때만 사용
+- 모델 파일이 없거나 checksum/provenance gate가 비어 있거나 불일치하거나 ONNX Runtime 빌드가 아니면 NoOp으로 fallback
 - everyNSeconds, onTrackLost, onReacquireCandidate, onLowConfidenceAssociation 같은 policy trigger에서만 실행 후보 생성
+- rule/vaRule의 `analysis.trackingPolicy.reid=assist`가 선택된 tracker와 함께 적용된
+  경우에만 association 보조 hook으로 사용
 - async queue, per-stream rate limit, global queue 상한, stale job drop으로 media pipeline blocking 방지
 - embedding/crop/model path 같은 Re-ID identity material은 WebRTC/SSE/WS/Event/debug 외부 metadata payload에 직렬화하지 않습니다.
 - `./server.sh verify-reid-advanced-tracking`은 default-off, privacy review, close-object benchmark command boundary를 정적 검증합니다.
@@ -1518,7 +1575,9 @@ baseline 비교 기준:
 
 ## 19. 제한사항
 
-- Tracker는 여전히 direction-based/lightweight tracker입니다. Kalman Filter, BoT-SORT, ByteTrack은 도입하지 않았습니다.
+- 기본 tracker는 여전히 direction-based/lightweight tracker입니다. Kalman-lite와
+  ByteTrack은 rule-level opt-in이며, OC-SORT/BoT-SORT/DeepSORT 계열은 도입하지
+  않았습니다.
 - 실제 Re-ID/attribute 분석은 기본 비활성입니다.
   실험용 ONNX Re-ID extractor hook은 있지만,
   운영 feature/default-on으로 보려면 모델, 성능, 개인정보 정책 재검토가 별도 review로 필요합니다.
