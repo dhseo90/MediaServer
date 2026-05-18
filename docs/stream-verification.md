@@ -719,6 +719,9 @@ mode별 tracker summary JSON과 Markdown report는
 
 Kalman-lite 또는 ByteTrack opt-in tracker에서 같은 guard 비교를 보려면
 `--tracker-policy kalman-lite` 또는 `--tracker-policy bytetrack`을 추가합니다.
+ByteTrack fixture matrix는 field-driving sample의 짧은 detection gap을 내부
+lost buffer floor로 흡수할 수 있지만, matrix 통과 또는 warning 결과를 제품
+default-on 승격으로 해석하지 않습니다.
 Re-ID assist opt-in까지 같이 태우는 경우에는 `--reid-policy assist`를 함께
 지정합니다. 이 옵션은 임시 vaRule의 `analysis.trackingPolicy.reid=assist`를
 검증하기 위한 것이며, Re-ID를 default tracker나 default-on 제품 판단으로

@@ -569,6 +569,10 @@ opt-in runtime tracker입니다.
 - low-confidence detection은 기존 track continuity를 내부적으로 이어줄 수 있지만
   새 public track을 만들지 않고, event/zone/line 판단용 track metadata로도
   승격하지 않습니다.
+- ByteTrack은 vehicle-heavy/field-driving fixture에서 짧은 detection gap을
+  흡수하도록 bounded lost buffer floor를 내부적으로 적용하지만, 이 설정은
+  `tracker=bytetrack` opt-in rule에만 적용하며 제품 default-on 승격 근거로
+  사용하지 않습니다.
 - Re-ID/model dependency, embedding/crop/model path, 외부 metadata field는
   추가하지 않습니다.
 - `verify-tracker-stability`와 `compare-close-object-tracker`는

@@ -294,6 +294,9 @@ ObjectTracker::ObjectTracker(ObjectTrackerOptions options) : options_(options) {
         std::max(0.0F, std::min(1.0F, options_.bytetrack_low_association_score));
     options_.bytetrack_low_iou_threshold =
         std::max(0.0F, std::min(1.0F, options_.bytetrack_low_iou_threshold));
+    options_.bytetrack_min_lost_buffer_frames =
+        std::max<std::uint32_t>(1,
+                                std::min<std::uint32_t>(64, options_.bytetrack_min_lost_buffer_frames));
     options_.close_object_distance_ratio =
         std::max(0.01F, std::min(4.0F, options_.close_object_distance_ratio));
     options_.close_object_overlap_threshold =
@@ -308,6 +311,10 @@ ObjectTracker::ObjectTracker(ObjectTrackerOptions options) : options_(options) {
         std::max<std::size_t>(1, std::min<std::size_t>(256, options_.max_close_object_diagnostics));
     options_.min_confirmed_hits = std::max<std::uint32_t>(1, options_.min_confirmed_hits);
     options_.max_missed_frames = std::max<std::uint32_t>(1, options_.max_missed_frames);
+    if (options_.tracker_kind == ObjectTrackerKind::ByteTrack) {
+        options_.max_missed_frames =
+            std::max(options_.max_missed_frames, options_.bytetrack_min_lost_buffer_frames);
+    }
     options_.max_trail_points = std::max<std::size_t>(2, std::min<std::size_t>(256, options_.max_trail_points));
     for (auto& label : options_.class_labels) {
         label = NormalizeClassToken(label);

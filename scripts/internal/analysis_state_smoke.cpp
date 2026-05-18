@@ -452,6 +452,25 @@ void VerifyObjectTrackerAssociationScoring() {
     Expect(bytetrack_low_new_frame.detections[0].track_id == 0,
            "ByteTrack must not create a new public track from a low-confidence detection");
 
+    ObjectTrackerOptions bytetrack_gap_options = bytetrack_options;
+    bytetrack_gap_options.max_missed_frames = 1;
+    bytetrack_gap_options.bytetrack_min_lost_buffer_frames = 3;
+    ObjectTracker bytetrack_gap_tracker(bytetrack_gap_options);
+    auto bytetrack_gap_frame1 = MakeTrackerFrame(44, 1400, {MakeDetection(0, "person", 0.20F, 0.20F)});
+    bytetrack_gap_tracker.Update(&bytetrack_gap_frame1);
+    const std::uint64_t bytetrack_gap_id = bytetrack_gap_frame1.detections[0].track_id;
+    auto bytetrack_gap_empty1 = MakeTrackerFrame(45, 1500, {});
+    bytetrack_gap_tracker.Update(&bytetrack_gap_empty1);
+    auto bytetrack_gap_empty2 = MakeTrackerFrame(46, 1600, {});
+    bytetrack_gap_tracker.Update(&bytetrack_gap_empty2);
+    auto bytetrack_gap_reacquired =
+        MakeTrackerFrame(47, 1700, {MakeDetection(0, "person", 0.21F, 0.20F)});
+    bytetrack_gap_tracker.Update(&bytetrack_gap_reacquired);
+    Expect(bytetrack_gap_id > 0 && bytetrack_gap_reacquired.detections[0].track_id == bytetrack_gap_id &&
+               !bytetrack_gap_reacquired.tracks.empty() &&
+               bytetrack_gap_reacquired.tracks[0].state == "reacquired",
+           "ByteTrack must honor its bounded lost buffer floor for short detection gaps");
+
     TrackStateManager manager;
     auto object1 = MakeObject(90, 1, 1000, 0.2F, 0.2F);
     object1.association_confidence = 1.0F;

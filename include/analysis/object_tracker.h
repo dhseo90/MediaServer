@@ -43,12 +43,14 @@ struct ObjectTrackerOptions {
     float kalman_position_alpha{0.70F};
     float kalman_velocity_beta{0.80F};
     std::uint32_t kalman_max_prediction_frames{4};
-    // ByteTrack 계열 association은 low-confidence detection을 내부 continuity 보강에만 쓰고
-    // event/scene-visible track은 high-confidence detection에서만 공개한다.
+    // ByteTrack 계열 association은 low-confidence detection과 짧은 lost buffer를
+    // 내부 continuity 보강에만 쓰고 event/scene-visible track은 high-confidence
+    // detection에서만 공개한다.
     float bytetrack_high_score_threshold{0.50F};
     float bytetrack_low_score_threshold{0.10F};
     float bytetrack_low_association_score{0.18F};
     float bytetrack_low_iou_threshold{0.10F};
+    std::uint32_t bytetrack_min_lost_buffer_frames{16};
     CloseObjectGuardMode close_object_guard_mode{CloseObjectGuardMode::Off};
     float close_object_distance_ratio{
         app_config::kDefaultAnalysisTrackingCloseObjectDistanceRatio};

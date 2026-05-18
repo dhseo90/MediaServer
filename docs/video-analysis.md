@@ -132,7 +132,9 @@ v1.4.0부터 rule/vaRule은 `analysis.trackingPolicy`로 tracker/Re-ID 선택 �
 high/low confidence association으로 나누는 opt-in runtime tracker입니다.
 low-confidence detection은 기존 track continuity를 내부적으로 보강할 수 있지만
 새 public track을 만들거나 event/zone/line 판단용 track metadata로 승격하지
-않습니다. ByteTrack 상태는 내부 runtime status의 `effectiveTracker=bytetrack`으로
+않습니다. ByteTrack은 짧은 detection gap을 흡수하는 bounded lost buffer floor도
+내부 continuity에만 사용하며 제품 기본 tracker로 승격하지 않습니다. ByteTrack
+상태는 내부 runtime status의 `effectiveTracker=bytetrack`으로
 확인하며 Event POST/WebRTC DataChannel/SSE/WS metadata schema에는 새 필드를
 추가하지 않습니다.
 OC-SORT는 v1.4.0 runtime tracker 허용값이 아닙니다. 후속 benchmark가 열리더라도
