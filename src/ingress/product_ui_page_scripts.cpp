@@ -2644,6 +2644,32 @@ void AppendOpsShellScript(std::ostringstream& out,
           return b.count - a.count;
         });
       };
+      const trackingIssueMetric = value => {
+        const n = Number(value);
+        if (!Number.isFinite(n)) return '미제공';
+        if (Math.abs(n) >= 10) return String(Math.round(n));
+        return n.toFixed(2).replace(/\.?0+$/u, '');
+      };
+      const trackingIssueGroupSummary = group => {
+        const samples = Array.isArray(group?.samples) ? group.samples : [];
+        const sample = samples.find(issue => String(issue?.severity || '') === 'warning') || samples[0] || {};
+        const classes = Array.from(new Set(samples
+          .map(issue => String(issue?.className || '').trim())
+          .filter(Boolean))).slice(0, 3);
+        const health = sample?.trackHealth || {};
+        const metrics = [
+          `class ${classes.join(', ') || '미제공'}`,
+          `assoc ${trackingIssueMetric(health.associationConfidence)}`,
+          `overlap ${trackingIssueMetric(health.overlapRisk)}`,
+          `missed ${trackingIssueMetric(health.missedFrameCount)}`,
+          `direction ${trackingIssueMetric(health.directionChangeCount)}`
+        ].join(' · ');
+        const message = String(sample?.message || '').trim() || '샘플 메시지 없음';
+        const boundary = group?.severity === 'warning'
+          ? '관찰 warning · default-on 근거 아님'
+          : '정보성 추적 상태';
+        return { metrics, message, boundary };
+      };
       const trackingIssueSearchParts = group => [
         group?.type,
         group?.severity,
@@ -2675,14 +2701,18 @@ void AppendOpsShellScript(std::ostringstream& out,
             : `<div class="empty">트래킹 이슈 없음 · 유지 ${totals.retained}/${totals.total} · 제한 ${totals.rateLimited}</div>`;
           return;
         }
-        root.innerHTML = groups.slice(0, 8).map(group => `<article class="root-cause-item ${group.severity === 'warning' ? 'warn' : 'info'}">
-          <div>
-            <strong>${escapeHtml(group.type)}</strong>
-            <p>트랙 ${escapeHtml(Array.from(group.tracks).slice(0, 6).join(', ') || '미제공')}</p>
-          </div>
-          ${badge(`${group.count}건`, group.severity === 'warning' ? 'warn' : 'info')}
-          <p class="root-cause-evidence">유지 ${totals.retained}/${totals.total} · 제한 ${totals.rateLimited}</p>
-        </article>`).join('');
+        root.innerHTML = groups.slice(0, 8).map(group => {
+          const summary = trackingIssueGroupSummary(group);
+          return `<article class="root-cause-item ${group.severity === 'warning' ? 'warn' : 'info'}">
+            <div>
+              <strong>${escapeHtml(group.type)}</strong>
+              <p>트랙 ${escapeHtml(Array.from(group.tracks).slice(0, 6).join(', ') || '미제공')}</p>
+            </div>
+            ${badge(`${group.count}건`, group.severity === 'warning' ? 'warn' : 'info')}
+            <p class="root-cause-evidence">${opsHtml(summary.metrics)} · 유지 ${totals.retained}/${totals.total} · 제한 ${totals.rateLimited}</p>
+            <p class="root-cause-action">${opsHtml(summary.boundary)} · ${opsHtml(summary.message)}</p>
+          </article>`;
+        }).join('');
       };
       const renderDashboardVaQualityEmpty = message => {
         bindDashboardVaQualityFilter();

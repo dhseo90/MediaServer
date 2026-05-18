@@ -425,6 +425,8 @@ v1.4.0 close-object/field-driving report 보존 기준은
 [Close-object Report Archive Policy](./close-object-report-archive-policy.md)에 둡니다.
 이 정책은 summary/report/history index를 검증 evidence로 보존하는 범위이며,
 제품 default-on 승격이나 raw media/image archive를 열지 않습니다.
+Ops Dashboard의 트래킹 이슈 그룹은 warning을 default-on 근거로 과장하지 않도록
+샘플 message와 association/overlap/missed/direction 요약을 함께 표시합니다.
 
 ### V140-P0-01 Rule-level tracking policy contract 정리 기준
 

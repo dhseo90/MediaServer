@@ -560,6 +560,9 @@ TrackingIssueReport는 stream/channel별로 다음 issue를 제한 수집합니�
 이 기능은 진단용이며 tracking id 생성 결과를 변경하지 않습니다.
 issue `message`는 raw counter 나열이 아니라 운영자가 다음 확인 지점을 고를 수 있는
 문장과 핵심 metric 요약을 함께 제공합니다.
+Ops Dashboard의 트래킹 이슈 그룹은 issue type, track list, class, association,
+overlap, missed, direction count와 샘플 message를 함께 보여줍니다. warning은
+관찰 대상이며 제품 default-on 근거가 아니라는 문구를 같이 표시합니다.
 
 Close-object association 문제를 볼 때 함께 보는 값:
 
