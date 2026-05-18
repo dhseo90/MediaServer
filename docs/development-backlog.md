@@ -427,6 +427,11 @@ v1.4.0 close-object/field-driving report 보존 기준은
 제품 default-on 승격이나 raw media/image archive를 열지 않습니다.
 Ops Dashboard의 트래킹 이슈 그룹은 warning을 default-on 근거로 과장하지 않도록
 샘플 message와 association/overlap/missed/direction 요약을 함께 표시합니다.
+v1.4.0 범위 안 후속 이슈 종료 판정은
+[v1.4.0 Follow-up Closure](./v1.4.0-follow-up-closure.md)에 분리합니다.
+`verify-v140-follow-up-closure`는 Re-ID warning history, report archive policy,
+tracker warning dashboard summary가 닫혔고 default-on/benchmark gate가 별도
+Phase로 남는지 확인합니다.
 
 ### V140-P0-01 Rule-level tracking policy contract 정리 기준
 

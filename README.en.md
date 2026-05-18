@@ -11,6 +11,8 @@ Latest source-only release: [v1.3.0](https://github.com/dhseo90/MediaServer/rele
 The v1.3.0 source-only minor close-out and follow-up closure are tracked separately in
 [docs/development-backlog.md](docs/development-backlog.md) and
 [docs/v1.3.0-follow-up-closure.md](docs/v1.3.0-follow-up-closure.md).
+The v1.4.0 tracker/Re-ID opt-in follow-up closure is tracked in
+[docs/v1.4.0-follow-up-closure.md](docs/v1.4.0-follow-up-closure.md).
 
 ## At a Glance
 

@@ -52,6 +52,7 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-release-metadata
 ./server.sh verify-v121-follow-up-closure
 ./server.sh verify-v130-follow-up-closure
+./server.sh verify-v140-follow-up-closure
 ./server.sh verify-v140-report-archive-policy
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
@@ -74,6 +75,9 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-ops-rules-roundtrip
 ./server.sh verify-analysis-state
 ```
+
+v1.4.0 tracker/Re-ID opt-in 이후 남은 후속 항목 분류와 종료 판정은
+[v1.4.0 Follow-up Closure](./v1.4.0-follow-up-closure.md)를 기준으로 확인합니다.
 
 위 전용 기준은 느린 기본 추가 RTSP/WebRTC source 영상, codec matrix, multichannel media soak를 사용하지 않습니다.
 기본 smoke와 longrun gate가 섞이지 않았는지는 다음 명령으로 정적으로 확인합니다.

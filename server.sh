@@ -206,6 +206,8 @@ Usage:
                  v1.2.1 roadmap 내 개발 가능한 후속 이슈가 남지 않았는지 검증합니다.
   verify-v130-follow-up-closure
                  v1.3.0 follow-up closure가 기능 개발 없이 별도 Phase/release gate를 분리하는지 검증합니다.
+  verify-v140-follow-up-closure
+                 v1.4.0 follow-up closure가 범위 안 후속 이슈를 모두 닫았는지 검증합니다.
   verify-v140-report-archive-policy
                  v1.4.0 close-object report archive가 raw media/image 보존으로 확장되지 않는지 검증합니다.
   verify-server-start-modes
@@ -728,6 +730,10 @@ case "${cmd}" in
   verify-v130-follow-up-closure)
     require_internal verify_v130_follow_up_closure.mjs
     exec "${INTERNAL_DIR}/verify_v130_follow_up_closure.mjs" "$@"
+    ;;
+  verify-v140-follow-up-closure)
+    require_internal verify_v140_follow_up_closure.mjs
+    exec "${INTERNAL_DIR}/verify_v140_follow_up_closure.mjs" "$@"
     ;;
   verify-v140-report-archive-policy)
     require_internal verify_v140_report_archive_policy.mjs

@@ -15,6 +15,8 @@ English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en
 v1.3.0 source-only minor close-out과 후속 종료 판정은
 [docs/development-backlog.md](docs/development-backlog.md)와
 [docs/v1.3.0-follow-up-closure.md](docs/v1.3.0-follow-up-closure.md)에 분리해 기록합니다.
+v1.4.0 tracker/Re-ID opt-in 후속 종료 판정은
+[docs/v1.4.0-follow-up-closure.md](docs/v1.4.0-follow-up-closure.md)에 기록합니다.
 
 ## 한눈에 보기
 

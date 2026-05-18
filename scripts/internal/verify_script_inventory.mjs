@@ -71,6 +71,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_release_closeout_helper.mjs",
     "verify_v121_follow_up_closure.mjs",
     "verify_v130_follow_up_closure.mjs",
+    "verify_v140_follow_up_closure.mjs",
     "verify_v140_report_archive_policy.mjs",
     "verify_actions_security.mjs",
     "verify_release_bundle_dry_run.mjs",
