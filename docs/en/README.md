@@ -15,6 +15,7 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 | Architecture | [../media-server-architecture.md](../media-server-architecture.md) |
 | Video analytics | [../video-analysis.md](../video-analysis.md) |
 | OC-SORT benchmark boundary | [../oc-sort-benchmark-boundary.md](../oc-sort-benchmark-boundary.md) |
+| BoT-SORT/DeepSORT research boundary | [../bot-sort-deepsort-research-boundary.md](../bot-sort-deepsort-research-boundary.md) |
 | Integrator contract artifact | [../integrator-contract-artifact.md](../integrator-contract-artifact.md) |
 | Current product boundary, v1.3.0 close-out, and follow-up candidates | [../development-backlog.md](../development-backlog.md) |
 | Historical v1.2.1 follow-up closure | [../v1.2.1-follow-up-closure.md](../v1.2.1-follow-up-closure.md) |

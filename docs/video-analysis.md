@@ -115,7 +115,7 @@ YOLO parser는 `YOLOv8/YOLO11` 계열의 `[1, 84, N]` 또는 `[1, N, 84]` 출력
 
 기본 tracker는 direction-based/lightweight tracker입니다. Kalman-lite와
 ByteTrack 계열 tracker는 v1.4.0 rule-level opt-in tracker로 제공하며,
-BoT-SORT와 실제 Re-ID 모델은 기본 tracking id 생성에 사용하지 않습니다.
+BoT-SORT/DeepSORT와 실제 Re-ID 모델은 기본 tracking id 생성에 사용하지 않습니다.
 
 v1.4.0부터 rule/vaRule은 `analysis.trackingPolicy`로 tracker/Re-ID 선택 계약을
 가질 수 있습니다. 기존 저장 rule에 이 필드가 없으면 자동 migration 없이
@@ -139,6 +139,12 @@ OC-SORT는 v1.4.0 runtime tracker 허용값이 아닙니다. 후속 benchmark가
 Kalman-lite/ByteTrack 이후 별도 report에서 Re-ID 없이 motion/observation 중심으로
 비교하며, Event POST/WebRTC DataChannel/SSE/WS metadata schema에는 새 필드를
 추가하지 않습니다.
+BoT-SORT/DeepSORT도 v1.4.0 runtime tracker 허용값이 아닙니다. 이 계열은
+appearance/Re-ID model, embedding/crop, camera motion compensation,
+dataset provenance, runtime/model bundle, retention/redaction policy 검토가
+필요하므로 별도 research boundary와 privacy/dependency review가 열릴 때만
+다룹니다. 이 research note는 Event POST/WebRTC DataChannel/SSE/WS metadata schema
+또는 RTSP/WebRTC media path 변경 근거가 아닙니다.
 외부 payload의 `source.profileKey` 문자열에도 policy token을 추가하지 않습니다.
 Re-ID `assist`도 외부 metadata에 embedding, crop, model path, checksum,
 appearance profile을 노출하지 않는 opt-in 정책값입니다.
@@ -164,7 +170,7 @@ unmatched track은 제한된 lost buffer에 남고, 짧은 누락 뒤 같은 cla
 | association score 저하 | trackId 흔들림 가능 |
 | lost/reacquired 증가 | 짧은 누락 뒤 재연결된 상태 |
 | detector 후처리 변경 필요 | tracker opt-in 범위 밖 |
-| BoT-SORT/Re-ID 도입 | Kalman-lite/ByteTrack opt-in 범위 밖 |
+| BoT-SORT/DeepSORT/Re-ID 도입 | Kalman-lite/ByteTrack opt-in 범위 밖 |
 
 Close-object association guard는 이 한계를 관찰하기 위한 opt-in 진단/보정 skeleton입니다.
 

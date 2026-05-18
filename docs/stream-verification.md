@@ -739,6 +739,16 @@ OC-SORT가 `analysis.trackingPolicy.tracker`, `/ops/rules` UI,
 ./server.sh verify-oc-sort-benchmark-boundary
 ```
 
+BoT-SORT/DeepSORT research boundary도 별도 정적 verifier로 확인합니다. 이 검증은
+BoT-SORT/DeepSORT가 `analysis.trackingPolicy.tracker`, `/ops/rules` UI,
+`ObjectTrackerKind`, tracker stability/compare harness에 runtime tracker로
+추가되지 않았고, Re-ID/model/privacy/bundle 검토가 후속 Phase 후보로만 남아
+있는지 확인합니다.
+
+```bash
+./server.sh verify-bot-sort-deepsort-research-boundary
+```
+
 이미 실행 중인 서버를 기준으로만 비교해야 하면 `--use-existing-server --http-base <url>`을 사용합니다.
 이 경우 리포트의 `mode effective`가 `yes`인지 확인해야 합니다.
 

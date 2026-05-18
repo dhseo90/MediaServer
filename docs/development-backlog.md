@@ -409,13 +409,13 @@ v1.4.0은 Re-ID와 tracker를 전역 기본값으로 바꾸지 않고, 룰 설�
 | V140-P1-02 | P1 | ByteTrack tracker | YOLO detection 결과의 high/low confidence association을 분리해 track 끊김을 줄이는 ByteTrack 계열 tracker를 추가 tracker 후보로 구현합니다. low-confidence bbox가 event/zone/line 판단을 흔들지 않도록 quality gate를 둡니다. | `compare-close-object-tracker --fixture-matrix`, `verify-tracker-stability`, `verify-va-replay`, `verify-va-events` |
 | V140-P1-03 | P1 | Re-ID assist 고도화 | Re-ID를 독립 default tracker가 아니라 selected tracker의 association 보조 옵션으로 제한합니다. model artifact는 repo/release asset에 포함하지 않고, missing/invalid model은 NoOp으로 fallback합니다. | `verify-reid-advanced-tracking`, `compare-close-object-tracker`, privacy review |
 | V140-P2-01 | P2 | OC-SORT 후순위 benchmark | OC-SORT는 v1.4.0 필수 구현이 아니라 ByteTrack/Kalman-lite 이후 비교 benchmark 또는 experimental 후보로 낮춥니다. Re-ID 없이 motion/observation 중심 비교를 수행하되 제품 tracker 교체 근거로 과장하지 않습니다. | 별도 benchmark report, `compare-close-object-tracker`, docs review |
-| V140-P2-02 | P2 | BoT-SORT/DeepSORT research boundary | BoT-SORT/DeepSORT 계열은 Re-ID/model/privacy 부담이 커서 v1.4.0 기본 구현 후보가 아니라 research note와 dependency/privacy 검토 대상으로 유지합니다. | privacy review, bundle policy review |
+| V140-P2-02 | P2 | BoT-SORT/DeepSORT research boundary | BoT-SORT/DeepSORT 계열은 Re-ID/model/privacy 부담이 커서 v1.4.0 기본 구현 후보가 아니라 research note와 dependency/privacy 검토 대상으로 유지합니다. | `verify-bot-sort-deepsort-research-boundary`, `verify-reid-advanced-tracking`, privacy/bundle docs review |
 
 v1.4.0 비범위:
 
 - 전체/global tracker 기본값 변경
 - 기존 룰/source/profile 자동 migration
-- Re-ID 또는 ByteTrack/OC-SORT/BoT-SORT를 선택하지 않은 룰에 자동 적용
+- Re-ID 또는 ByteTrack/OC-SORT/BoT-SORT/DeepSORT를 선택하지 않은 룰에 자동 적용
 - Event POST/WebRTC DataChannel/SSE/WS metadata payload 무심사 변경
 - RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
 - Re-ID model/runtime binary bundle, release asset 업로드, container/offline package 포함
@@ -683,6 +683,53 @@ rule-level 선택값으로 추가하지 않고, Kalman-lite/ByteTrack opt-in 결
 - 실제 OC-SORT algorithm adapter와 dataset benchmark report
 - ByteTrack/Kalman-lite/OC-SORT fixture matrix 비교 history
 - field sample 기반 tracker replacement product review
+
+### V140-P2-02 BoT-SORT/DeepSORT research boundary 종료 판정
+
+`BoT-SORT/DeepSORT research boundary`는 appearance/Re-ID 의존성이 큰 tracker를
+v1.4.0 runtime tracker, rule-level 선택값, 제품 default-on 후보로 승격하지 않고
+research note와 dependency/privacy 검토 대상으로만 남기는 범위입니다.
+
+확인됨:
+
+- `analysis.trackingPolicy.tracker` 허용값에 BoT-SORT/DeepSORT를 추가하지
+  않습니다. 현재 허용값은 `none`, `lite`, `kalman-lite`, `bytetrack`입니다.
+- `/ops/rules` UI, rule validation, `AnalysisProfile` runtime policy,
+  `ObjectTrackerKind`, `verify-tracker-stability`, `compare-close-object-tracker`는
+  BoT-SORT/botsort/DeepSORT/deepsort token을 제품 tracker로 받지 않습니다.
+- BoT-SORT/DeepSORT 연구는 appearance/Re-ID model, embedding/crop,
+  camera motion compensation, dataset provenance, model/runtime bundle policy,
+  retention/redaction policy를 별도 privacy/dependency review로 분리합니다.
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema, Event POST payload,
+  RTSP/WebRTC media path, client/viewer 노출 정보는 이 항목에서 변경하지
+  않습니다.
+- 미분류 P0~P1 후속 이슈: 없음.
+
+검증 기준:
+
+- `./server.sh verify-bot-sort-deepsort-research-boundary`
+- `./server.sh verify-reid-advanced-tracking`
+- `./server.sh verify-script-inventory`
+- `./server.sh verify-docs-links`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- 실제 BoT-SORT/DeepSORT algorithm 구현 또는 runtime tracker 선택값 추가
+- BoT-SORT/DeepSORT benchmark 실행 결과를 제품 tracker 교체 근거로 과장
+- Re-ID model artifact, embedding store, crop retention, model/runtime bundle 포함
+- OC-SORT benchmark와 BoT-SORT/DeepSORT privacy/dependency review를 한 작업으로
+  묶기
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
+
+별도 Phase 후보로 기록:
+
+- BoT-SORT/DeepSORT dependency/privacy threat model
+- Re-ID model card/license/checksum/provenance review
+- appearance embedding/crop retention and redaction policy
+- camera motion compensation 및 dataset benchmark report
+- runtime/model bundle RC policy와 source-offer 검토
 
 ## 별도 Phase 후보
 
