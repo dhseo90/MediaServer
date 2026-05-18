@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Source Release](https://img.shields.io/badge/source--only%20release-v1.3.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v1.3.0)
+[![Source Release](https://img.shields.io/badge/source--only%20release-v1.4.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v1.4.0)
 
 RTSP/WebRTC live stream을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 분석
 overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다.
@@ -11,12 +11,10 @@ live source health, live VA event 품질입니다.
 
 English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 
-최신 source-only release: [v1.3.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.3.0)
-v1.3.0 source-only minor close-out과 후속 종료 판정은
+최신 source-only release: [v1.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.4.0)
+v1.4.0 source-only minor close-out과 tracker/Re-ID opt-in 후속 종료 판정은
 [docs/development-backlog.md](docs/development-backlog.md)와
-[docs/v1.3.0-follow-up-closure.md](docs/v1.3.0-follow-up-closure.md)에 분리해 기록합니다.
-v1.4.0 tracker/Re-ID opt-in 후속 종료 판정은
-[docs/v1.4.0-follow-up-closure.md](docs/v1.4.0-follow-up-closure.md)에 기록합니다.
+[docs/v1.4.0-follow-up-closure.md](docs/v1.4.0-follow-up-closure.md)에 분리해 기록합니다.
 
 ## 한눈에 보기
 
@@ -132,9 +130,10 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | 운영 백업/복구 대상과 복구 후 검증 | [docs/ops-backup-recovery.md](docs/ops-backup-recovery.md) |
 | Loitering/ZoneOccupancy 현장 시작 threshold | [docs/analysis-threshold-baselines.md](docs/analysis-threshold-baselines.md) |
 | sample 영상/fixture 출처와 공개 기준 | [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) |
-| 현재 제품 경계, v1.3.0 close-out, 후속 개발 후보 | [docs/development-backlog.md](docs/development-backlog.md) |
+| 현재 제품 경계, v1.4.0 close-out, 후속 개발 후보 | [docs/development-backlog.md](docs/development-backlog.md) |
 | historical v1.2.1 후속 종료 판정과 수동 UI 검수 증적 | [docs/v1.2.1-follow-up-closure.md](docs/v1.2.1-follow-up-closure.md), [docs/manual-ui-v1.2.1-result.md](docs/manual-ui-v1.2.1-result.md) |
 | v1.3.0 후속 종료 판정 | [docs/v1.3.0-follow-up-closure.md](docs/v1.3.0-follow-up-closure.md) |
+| v1.4.0 후속 종료 판정 | [docs/v1.4.0-follow-up-closure.md](docs/v1.4.0-follow-up-closure.md) |
 | YouTube import/source 실험 기능 | [docs/youtube-import.md](docs/youtube-import.md) |
 
 ## 대표 UI 미리보기

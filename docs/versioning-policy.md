@@ -4,17 +4,16 @@
 
 ## 현재 기준
 
-- 현재 기준 버전: `v1.3.0`
+- 현재 기준 버전: `v1.4.0`
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
-- `v1.3.0`은 v1.2.x의 source-only/live-only release 경계를 유지하면서 runtime
-  operations, ONVIF field smoke gate, source health incident workflow, Client Live
-  accessibility, Rule/Scenario preset quality, audit trail operations, release/visual
-  baseline automation, Re-ID default-off research continuation을 닫은 source-only
+- `v1.4.0`은 v1.2.x의 source-only/live-only release 경계를 유지하면서 v1.3.0
+  운영 안정화 위에 rule-level tracker/Re-ID opt-in, Kalman-lite/ByteTrack 선택,
+  Re-ID assist fallback, tracker warning summary와 후속 closure를 닫은 source-only
   minor release입니다.
-- 현재 제품 경계와 v1.3.0 종료 판정은 [development-backlog.md](./development-backlog.md)와
-  [v1.3.0-follow-up-closure.md](./v1.3.0-follow-up-closure.md)를 기준으로 합니다.
+- 현재 제품 경계와 v1.4.0 종료 판정은 [development-backlog.md](./development-backlog.md)와
+  [v1.4.0-follow-up-closure.md](./v1.4.0-follow-up-closure.md)를 기준으로 합니다.
 
-## `v1.3.0`에 포함되는 범위
+## `v1.4.0`에 포함되는 범위
 
 - Apache-2.0 소스 코드
 - 문서, 설정 예시, 검증 스크립트
@@ -33,8 +32,13 @@
   workflow, Client Live accessibility/mobile polish, Rule/Scenario preset quality,
   audit trail operations, release/visual baseline automation, Re-ID default-off
   research continuation과 follow-up closure
+- rule-level `analysis.trackingPolicy`와 Ops Rules tracker/Re-ID 선택 UI
+- Kalman-lite/ByteTrack rule-level opt-in tracker
+- Re-ID assist default-off runtime fallback, warning history, privacy/release guard
+- close-object report archive policy와 tracker warning dashboard summary
+- v1.4.0 follow-up closure
 
-## `v1.3.0`에 포함하지 않는 범위
+## `v1.4.0`에 포함하지 않는 범위
 
 - FFmpeg/GStreamer/ONNX Runtime/YOLO model binary bundle
 - container image, offline package, app bundle
@@ -43,7 +47,7 @@
 - binary/runtime 포함 release의 법무/배포 검토 완료 상태
 - ONVIF 실장비 성공 보장, WS-Discovery, Profile G recording/replay
 - ONVIF persistent credential store, HTTP Digest, WS-Security UsernameToken
-- Re-ID default-on 또는 대형 tracker 교체
+- Re-ID default-on, ByteTrack default-on, OC-SORT/BoT-SORT/DeepSORT runtime tracker 승격
 - YouTube 운영 기능 승격 또는 실제 URL relay 성공 보장
 - field sample scheduler, dataset ingest, tracker replacement benchmark 실행
 
@@ -62,7 +66,7 @@
 
 ## Tag와 release 기준
 
-- 현재 published source-only release tag 기준은 `v1.3.0`입니다.
+- 현재 published source-only release tag 기준은 `v1.4.0`입니다.
 - tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만 붙입니다.
 - source-only release에는 sample/model/runtime binary를 추가 업로드하지 않습니다.
 - binary/container/offline bundle은 별도 RC gate와 bundle policy 검토를 통과한 뒤 별도 release로 다룹니다.

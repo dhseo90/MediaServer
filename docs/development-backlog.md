@@ -32,15 +32,15 @@ source-of-truth로 쓰지 않습니다.
 
 `완료`는 운영 배포 ready, 장기 안정성 보장, 외부 연동 ready를 뜻하지 않습니다.
 
-## 현재 기준: v1.3.0 Source Release Baseline
+## 현재 기준: v1.4.0 Source Release Baseline
 
-v1.3.0은 v1.2.x의 source-only/live-only 경계를 유지하면서 runtime operations,
-ONVIF field smoke gate, source health incident workflow, Client Live accessibility,
-Rule/Scenario preset quality, audit trail operations, release/visual baseline
-automation, Re-ID default-off research continuation을 닫은 source-only minor
-release입니다. 아래 제품 baseline은 v1.2.x에서 닫은 live product 범위를 유지하고,
-v1.3.0은 recorder/VMS/NVR, Re-ID default-on, runtime/model bundle scope를 열지
-않습니다.
+v1.4.0은 v1.2.x의 source-only/live-only 경계를 유지하면서 v1.3.0의 runtime
+operations, ONVIF field smoke gate, source health incident workflow, Client Live
+accessibility, Rule/Scenario preset quality, audit trail operations, release/visual
+baseline automation, Re-ID default-off research continuation 위에 rule-level
+tracker/Re-ID opt-in을 닫은 source-only minor release입니다. 아래 제품 baseline은
+v1.2.x에서 닫은 live product 범위를 유지하고, v1.4.0은 recorder/VMS/NVR,
+Re-ID default-on, tracker default-on, runtime/model bundle scope를 열지 않습니다.
 
 완료 범위:
 
@@ -71,12 +71,17 @@ v1.3.0은 recorder/VMS/NVR, Re-ID default-on, runtime/model bundle scope를 열�
 - [x] Audit trail search/export/review 최소 흐름
 - [x] Release/visual baseline automation과 approval gate 정리
 - [x] Re-ID default-off research continuation과 v1.3.0 follow-up closure
+- [x] Rule-level `analysis.trackingPolicy`와 Ops Rules tracker/Re-ID 선택 UI
+- [x] Kalman-lite/ByteTrack rule-level opt-in tracker와 fixture matrix 비교
+- [x] Re-ID assist default-off runtime fallback, privacy guard, warning history
+- [x] close-object report archive policy와 tracker warning dashboard summary
+- [x] v1.4.0 follow-up closure와 release close-out 기준 정리
 
 비범위:
 
 - [ ] 장기 녹화, MP4 recorder, NVR/VMS archive, playback timeline, 영상 검색
 - [ ] ONVIF Profile G recording/replay
-- [ ] Re-ID default-on 또는 대형 tracker 교체
+- [ ] Re-ID default-on, ByteTrack default-on, OC-SORT/BoT-SORT/DeepSORT runtime tracker 승격
 - [ ] binary/runtime/model bundle release
 - [ ] 외부 TURN/WHEP credential 운영 보장
 - [ ] ONVIF 실장비 endpoint 성공 보장, persistent credential store, Digest/WS-Security
@@ -383,11 +388,14 @@ Re-ID default-on, tracker 교체, runtime/model bundle 포함, field sample sche
 dataset ingest는 이 closure에서 수행하지 않았습니다. tag/push/GitHub Release는
 기능 개발 closure 범위가 아니라 별도 release 운영 gate로 분리합니다.
 
-## v1.4.0 Minor Roadmap Draft
+## v1.4.0 Minor Close-out
 
-v1.4.0은 Re-ID와 tracker를 전역 기본값으로 바꾸지 않고, 룰 설정에서 명시적으로
-선택하는 분석 정책으로 엽니다. 기존 룰과 source/profile은 자동 migration하지
-않으며, 선택하지 않은 룰은 현재 lightweight tracker 동작을 유지합니다.
+v1.4.0은 v1.2.x의 source-only/live-only 경계를 유지하면서 운영 흐름과 현장
+검증 밀도를 닫은 v1.3.0 위에 rule-level tracker/Re-ID opt-in을 추가한 minor
+release로 닫았습니다. Re-ID와 tracker를 전역 기본값으로 바꾸지 않고, 룰 설정에서
+명시적으로 선택하는 분석 정책으로만 엽니다. 기존 룰과 source/profile은 자동
+migration하지 않으며, 선택하지 않은 룰은 현재 lightweight tracker 동작을
+유지합니다.
 
 기본 원칙:
 
