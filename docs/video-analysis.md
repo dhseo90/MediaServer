@@ -673,6 +673,14 @@ history index는 `defaultOnDecision`, `productDefaultOn`, `candidateCount`,
 회차별로 보존해 `--tracker-policy bytetrack --reid-policy assist` 같은 opt-in
 조합의 counter drift 추세를 추적합니다. 단일 비교 history도 관찰 evidence일 뿐
 Re-ID assist 또는 close-object guard default-on 완료 근거로 사용하지 않습니다.
+v1.5.0 Field smoke summary evidence boundary는
+`./server.sh verify-v150-field-smoke-summary-evidence-boundary`로 확인합니다.
+이 경계는 summary/report/history index evidence만 보존하고 raw media, raw frame,
+crop, embedding, model path/checksum/provenance, source URL/URI/file,
+credential/auth/session material을 archive하지 않는다는 뜻입니다. release 문서에서는
+완료/미확인/비범위를 분리하며, 이 summary evidence를 제품 default-on 승인,
+실장비 ONVIF field smoke 성공, 장기 field sample workflow 완료로 해석하지
+않습니다.
 report/history 보존 범위는 [Close-object Report Archive Policy](close-object-report-archive-policy.md)를
 따르며, raw media image, crop, embedding, source URL, credential은 포함하지 않습니다.
 반복 실행에서는 `Repeat Metric Stats`의 mean/stdev/variance로 observed risk 변동성을 확인합니다.

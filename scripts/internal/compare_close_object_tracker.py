@@ -152,6 +152,33 @@ QUALITY_PRESETS = {
 }
 
 
+def summary_evidence_boundary() -> dict[str, Any]:
+    return {
+        "scope": "field-smoke-summary-evidence",
+        "retained": [
+            "summary.json",
+            "report.md",
+            "matrix-summary.json",
+            "matrix-report.md",
+            "index.json",
+            "index.md",
+        ],
+        "excluded": [
+            "raw media",
+            "raw frame",
+            "crop",
+            "embedding",
+            "model path/checksum/provenance",
+            "source URL/URI/file",
+            "credential/auth/session material",
+        ],
+        "interpretation": (
+            "summary/report/history index evidence only; not product default-on approval "
+            "or real field endpoint success"
+        ),
+    }
+
+
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="close-object guard off/diagnostic/enforce mode의 tracker 안정성 리포트를 비교합니다."
@@ -861,6 +888,7 @@ def append_metric_stats(lines: list[str], stats: dict[str, Any]) -> None:
 def write_report(summary: dict[str, Any], path: pathlib.Path) -> None:
     modes = summary["modes"]
     gate = summary.get("qualityGate") or {}
+    boundary = summary.get("evidenceBoundary") or summary_evidence_boundary()
     lines = [
         "# Close-object Tracker Guard Comparison",
         "",
@@ -873,6 +901,10 @@ def write_report(summary: dict[str, Any], path: pathlib.Path) -> None:
         f"- judgement: `{summary['overallJudgement']}`",
         f"- default-on candidate: `{gate.get('defaultOnCandidate')}`",
         f"- recommendation: {gate.get('recommendation') or '-'}",
+        f"- evidence boundary: `{boundary.get('scope')}`",
+        f"- retained evidence: {', '.join(boundary.get('retained') or [])}",
+        f"- excluded evidence: {', '.join(boundary.get('excluded') or [])}",
+        f"- interpretation: {boundary.get('interpretation')}",
         "",
         "## Mode Summary",
         "",
@@ -1049,6 +1081,7 @@ def run_comparison(args: argparse.Namespace,
         "qualityGate": gate,
         "defaultOnCandidate": gate["defaultOnCandidate"],
         "createdAt": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "evidenceBoundary": summary_evidence_boundary(),
     }
     summary_path = output_dir / "summary.json"
     report_path = output_dir / "report.md"
@@ -1065,6 +1098,7 @@ def run_comparison(args: argparse.Namespace,
 
 def write_matrix_report(matrix: dict[str, Any], path: pathlib.Path) -> None:
     decision = matrix.get("defaultOnDecision") or {}
+    boundary = matrix.get("evidenceBoundary") or summary_evidence_boundary()
     lines = [
         "# Close-object Tracker Fixture Matrix",
         "",
@@ -1077,6 +1111,10 @@ def write_matrix_report(matrix: dict[str, Any], path: pathlib.Path) -> None:
         f"- default-on decision: `{decision.get('status') or '-'}`",
         f"- product default-on: `{decision.get('productDefaultOn')}`",
         f"- decision reason: {decision.get('reason') or '-'}",
+        f"- evidence boundary: `{boundary.get('scope')}`",
+        f"- retained evidence: {', '.join(boundary.get('retained') or [])}",
+        f"- excluded evidence: {', '.join(boundary.get('excluded') or [])}",
+        f"- interpretation: {boundary.get('interpretation')}",
     ]
     history = matrix.get("history") or {}
     if history:
@@ -1223,11 +1261,16 @@ def matrix_default_on_decision(matrix: dict[str, Any]) -> dict[str, Any]:
 
 
 def write_history_index_report(index_payload: dict[str, Any], path: pathlib.Path) -> None:
+    boundary = index_payload.get("evidenceBoundary") or summary_evidence_boundary()
     lines = [
         "# Close-object Tracker Fixture Matrix History",
         "",
         f"- updated: `{index_payload.get('updatedAt')}`",
         f"- history dir: `{index_payload.get('historyDir')}`",
+        f"- evidence boundary: `{boundary.get('scope')}`",
+        f"- retained evidence: {', '.join(boundary.get('retained') or [])}",
+        f"- excluded evidence: {', '.join(boundary.get('excluded') or [])}",
+        f"- interpretation: {boundary.get('interpretation')}",
         "",
         "| run | created | tracker | Re-ID | ok | fixtures | failed | hold | warnings | candidates | default-on decision | product default-on | reason | report |",
         "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
@@ -1255,12 +1298,17 @@ def write_history_index_report(index_payload: dict[str, Any], path: pathlib.Path
 
 
 def write_comparison_history_index_report(index_payload: dict[str, Any], path: pathlib.Path) -> None:
+    boundary = index_payload.get("evidenceBoundary") or summary_evidence_boundary()
     lines = [
         "# Close-object Tracker Comparison History",
         "",
         f"- updated: `{index_payload.get('updatedAt')}`",
         f"- history dir: `{index_payload.get('historyDir')}`",
         "- interpretation: warning/counter drift trend evidence only; product default-on remains a separate review.",
+        f"- evidence boundary: `{boundary.get('scope')}`",
+        f"- retained evidence: {', '.join(boundary.get('retained') or [])}",
+        f"- excluded evidence: {', '.join(boundary.get('excluded') or [])}",
+        f"- evidence interpretation: {boundary.get('interpretation')}",
         "",
         "| run | created | sample | tracker | Re-ID | judgement | warning reasons | default-on candidate | recommendation | report |",
         "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
@@ -1312,6 +1360,7 @@ def archive_comparison_history(summary: dict[str, Any],
         "kind": "close-object-tracker-comparison-history",
         "historyDir": history.get("historyDir"),
         "updatedAt": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "evidenceBoundary": summary_evidence_boundary(),
         "runs": runs,
     }
     index_path.write_text(json.dumps(index_payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -1345,6 +1394,7 @@ def archive_matrix_history(matrix: dict[str, Any], summary_path: pathlib.Path, r
         "kind": "close-object-tracker-fixture-matrix-history",
         "historyDir": history.get("historyDir"),
         "updatedAt": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "evidenceBoundary": summary_evidence_boundary(),
         "runs": runs,
     }
     index_path.write_text(json.dumps(index_payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
@@ -1427,6 +1477,7 @@ def run_fixture_matrix(args: argparse.Namespace, modes: list[str], output_dir: p
         "outputDir": str(output_dir),
         "fixtures": results,
         "createdAt": dt.datetime.now(dt.timezone.utc).isoformat(),
+        "evidenceBoundary": summary_evidence_boundary(),
     }
     matrix["defaultOnDecision"] = matrix_default_on_decision(matrix)
     summary_path = output_dir / "matrix-summary.json"

@@ -922,6 +922,13 @@ count, mean, stdev, variance, min, max를 표시합니다.
   설정 변경 review chip, model/fallback status-only 표시 경계를 고정합니다.
   이 guard는 audit export UX를 강화하되 Event POST/WebRTC/SSE/WS metadata schema나
   RTSP/WebRTC media path 변경으로 해석하지 않습니다.
+- v1.5.0 Field smoke summary evidence boundary는
+  `verify-v150-field-smoke-summary-evidence-boundary`로
+  `compare-close-object-tracker --history-dir`가 summary/report/history index evidence만
+  보존하고 raw media, crop, embedding, model/source/auth material을 archive하지
+  않는지 확인합니다. 이 guard는 release 문서에서 완료/미확인/비범위를 분리하며,
+  제품 default-on 승인, 실장비 ONVIF field smoke 성공, 장기 field sample workflow
+  완료로 해석하지 않습니다.
 
 비교 리포트 해석:
 
@@ -942,6 +949,8 @@ count, mean, stdev, variance, min, max를 표시합니다.
 ./server.sh verify-v150-tracker-reid-stability-matrix
 ./server.sh verify-v150-reid-provenance-fallback-approval
 ./server.sh verify-v150-ops-tracker-warning-next-action
+./server.sh verify-v150-audit-export-review-hardening
+./server.sh verify-v150-field-smoke-summary-evidence-boundary
 ./server.sh verify-reid-advanced-tracking
 ./server.sh verify-tracker-stability --long --overlap-focus
 ./server.sh verify-va-replay

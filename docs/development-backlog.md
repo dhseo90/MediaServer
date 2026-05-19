@@ -1088,6 +1088,65 @@ model/source material을 조회/JSON/CSV/Diff JSON export 응답에 노출하지
 - OC-SORT sandbox, field sample history review workflow, runtime/model bundle RC
   policy는 아래 별도 Phase 후보이며 V150-P1-02의 즉시 후속으로 끌어오지 않습니다.
 
+### V150-P1-03 Field smoke summary evidence boundary 정리 기준
+
+`Field smoke summary evidence boundary`는 v1.5.0 Tracker/Re-ID field-like sample
+관찰 결과를 release evidence로 남길 때 raw media를 보존하지 않고
+summary/report/history index evidence만 남기는 경계 작업입니다. 목표는
+`compare-close-object-tracker --history-dir` 산출물을 tracker/Re-ID opt-in 튜닝
+참고로 보존하되, 제품 default-on, 실장비 ONVIF field smoke 성공, 고객 영상 보관,
+release asset 업로드로 해석하지 않게 하는 것입니다.
+
+확인됨:
+
+- `compare-close-object-tracker` 단일 비교와 fixture matrix history는
+  `summary.json`, `report.md`, `matrix-summary.json`, `matrix-report.md`,
+  `index.json`, `index.md`만 retained evidence로 표시합니다.
+- history archive는 `field-smoke-summary-evidence` boundary를 함께 기록하고,
+  summary/report/history index evidence만 보존합니다.
+- raw media, crop, embedding, model path/checksum/provenance, source URL/URI/file,
+  credential/auth/session material은 report/history evidence 범위에서 제외합니다.
+- `matrix-ok`, `defaultOnCandidate`, `productDefaultOn`, `defaultOnDecision`은
+  제품 default tracker/Re-ID 변경 근거가 아니라 사용자 opt-in 튜닝 참고와
+  후보 상태를 분리하기 위한 필드입니다.
+- release 문서에서 완료/미확인/비범위를 분리합니다. v1.5.0 P1-03은 evidence
+  archive 절차와 verifier 경계를 고정하지만, 실제 field endpoint 성공,
+  ONVIF field smoke reconciliation, 장기 field sample workflow는 완료로 쓰지
+  않습니다.
+
+검증 기준:
+
+- `./server.sh build`
+- `./server.sh verify-v150-field-smoke-summary-evidence-boundary`
+- `./server.sh verify-v140-report-archive-policy`
+- `./server.sh verify-v150-tracker-reid-stability-matrix`
+- `./server.sh verify-script-inventory`
+- `./server.sh verify-docs-links`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- V150-P2-01 OC-SORT experimental sandbox
+- field sample history review workflow
+- ONVIF field smoke evidence reconciliation
+- release evidence dashboard cleanup
+- tracker/Re-ID global/default-on, Re-ID default-on, tracker default-on, 기존
+  rule/source/profile 자동 migration
+- raw field media, crop, embedding, auth/source material 저장 또는 public archive
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경 또는 pipeline blocking 정책 변경
+
+후속 분류:
+
+- 미분류 P0~P1 후속 이슈: 없음. 이번 항목에서 발견한 P1 빈칸은
+  `field-smoke-summary-evidence` metadata, report/index copy, 문서화된
+  완료/미확인/비범위 분리, 전용 verifier로 닫습니다.
+- field sample history review workflow, ONVIF field smoke evidence reconciliation,
+  release evidence dashboard cleanup은 아래 별도 Phase 후보이며 V150-P1-03의
+  즉시 후속으로 끌어오지 않습니다.
+- P2 이상 tracker experimental benchmark harness와 OC-SORT sandbox는 roadmap
+  후속 Phase 후보로 유지합니다.
+
 v1.5.0 비범위:
 
 - tracker/Re-ID global default-on 또는 제품 기본값 변경
