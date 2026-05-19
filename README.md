@@ -19,6 +19,10 @@ v1.6.0 stabilization release evidence는
 [docs/v1.6.0-release-evidence-dashboard.md](docs/v1.6.0-release-evidence-dashboard.md)와
 `./server.sh verify-v160-release-evidence-dashboard`로 확인됨/미실행/미확인을
 분리합니다.
+stability gate 분류는
+[docs/v1.6.0-stability-verification-gates.md](docs/v1.6.0-stability-verification-gates.md)와
+`./server.sh verify-v160-stability-verification-gate`로 smoke/flaky/longrun 경계를
+확인합니다.
 
 ## 한눈에 보기
 
@@ -140,6 +144,7 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | v1.4.0 후속 종료 판정 | [docs/v1.4.0-follow-up-closure.md](docs/v1.4.0-follow-up-closure.md) |
 | v1.5.0 후속 종료 판정 | [docs/v1.5.0-follow-up-closure.md](docs/v1.5.0-follow-up-closure.md) |
 | v1.6.0 release evidence dashboard | [docs/v1.6.0-release-evidence-dashboard.md](docs/v1.6.0-release-evidence-dashboard.md) |
+| v1.6.0 stability verification gates | [docs/v1.6.0-stability-verification-gates.md](docs/v1.6.0-stability-verification-gates.md) |
 | YouTube import/source 실험 기능 | [docs/youtube-import.md](docs/youtube-import.md) |
 
 ## 대표 UI 미리보기

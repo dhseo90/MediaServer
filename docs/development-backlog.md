@@ -1333,6 +1333,52 @@ report, PR/Actions 결과, 미실행 항목을 [v1.6.0 Release Evidence Dashboar
   완료로 판정하지 않습니다.
 - P1/P2 및 별도 Phase 후보는 V160-P0-01의 즉시 후속 이슈로 끌어오지 않습니다.
 
+### V160-P0-02 Stability verification gate cleanup 정리 기준
+
+`Stability verification gate cleanup`은 현재 기능 기준 smoke 묶음과
+flaky/attached/longrun/external gate를
+[v1.6.0 Stability Verification Gates](./v1.6.0-stability-verification-gates.md)에
+분리하는 안정화 작업입니다. 목표는 실패/미실행/환경 의존 항목이 release pass처럼
+보이지 않도록 verifier와 문서 기준을 정리하는 것입니다.
+
+확인됨:
+
+- static/docs gate, P0 stabilization gate, attached UI/Auth gate, Runtime/VA metadata
+  gate, Tracker/Re-ID carry-over gate, flaky/cleanup isolation gate, longrun/external
+  gate를 분리합니다.
+- `verify-script-inventory`는 documented command, dispatch target, executable bit,
+  사용자 노출 JS option validation을 확인하는 gate로 유지합니다.
+- `verify-ops-client-ui --screenshots`, `verify-ops-click-e2e`,
+  `verify-ops-tables-layout`처럼 브라우저/attached 환경이 필요한 smoke는 실행 URL,
+  screenshot 여부, cleanup 결과를 따로 기록합니다.
+- `verify-predev`, 장시간 soak, 실장비 ONVIF field smoke, 외부 TURN/WHEP credential
+  운영 검증은 사용자 명시 요청 없이 실행하지 않고 `NOT RUN`으로 분리합니다.
+
+검증 기준:
+
+- `./server.sh verify-v160-stability-verification-gate`
+- `./server.sh verify-script-inventory`
+- `./server.sh verify-docs-links`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- V160-P0-03 Client/Ops debug exposure regression guard
+- V160-P0-04 Tracker/Re-ID opt-in stabilization close-out
+- V160-P1-01~V160-P1-04, V160-P2-01~V160-P2-02
+- 장시간 테스트 실행, 실장비 field smoke 성공 보장, flaky verifier를 제품 PASS로
+  임의 승격
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경 또는 media pipeline blocking 정책 변경
+
+후속 분류:
+
+- 미분류 P0~P1 후속 이슈: 없음. 이번 항목에서 발견한 gate drift 위험은 stability
+  gate 문서와 verifier로 닫습니다.
+- V160-P0-03과 V160-P0-04는 같은 P0 안정화 페이즈의 별도 항목이므로 이 작업에서
+  완료로 판정하지 않습니다.
+- P1/P2 및 별도 Phase 후보는 V160-P0-02의 즉시 후속 이슈로 끌어오지 않습니다.
+
 ### v1.6.0 비범위
 
 - 새 제품 기능 추가

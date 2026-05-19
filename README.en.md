@@ -15,6 +15,10 @@ The v1.6.0 stabilization release evidence dashboard separates confirmed,
 not-run, and unverified checks in
 [docs/v1.6.0-release-evidence-dashboard.md](docs/v1.6.0-release-evidence-dashboard.md);
 verify it with `./server.sh verify-v160-release-evidence-dashboard`.
+The v1.6.0 stability gate map separates smoke, flaky, attached, and longrun
+checks in
+[docs/v1.6.0-stability-verification-gates.md](docs/v1.6.0-stability-verification-gates.md);
+verify it with `./server.sh verify-v160-stability-verification-gate`.
 
 ## At a Glance
 
@@ -111,6 +115,7 @@ See [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) for f
 | v1.4.0 follow-up closure | [docs/v1.4.0-follow-up-closure.md](docs/v1.4.0-follow-up-closure.md) |
 | v1.5.0 follow-up closure | [docs/v1.5.0-follow-up-closure.md](docs/v1.5.0-follow-up-closure.md) |
 | v1.6.0 release evidence dashboard | [docs/v1.6.0-release-evidence-dashboard.md](docs/v1.6.0-release-evidence-dashboard.md) |
+| v1.6.0 stability verification gates | [docs/v1.6.0-stability-verification-gates.md](docs/v1.6.0-stability-verification-gates.md) |
 | Verification commands and release checks | [docs/stream-verification.md](docs/stream-verification.md) |
 | Bundle/container/runtime distribution policy | [docs/distribution-policy.md](docs/distribution-policy.md) |
 | Release scope and tag strategy | [docs/release-policy.md](docs/release-policy.md) |

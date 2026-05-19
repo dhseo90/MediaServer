@@ -20,6 +20,7 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 | Integrator contract artifact | [../integrator-contract-artifact.md](../integrator-contract-artifact.md) |
 | Current product boundary, v1.5.0 close-out, v1.6.0 stabilization roadmap, and separate phase candidates | [../development-backlog.md](../development-backlog.md) |
 | v1.6.0 release evidence dashboard and `verify-v160-release-evidence-dashboard` status separation | [../v1.6.0-release-evidence-dashboard.md](../v1.6.0-release-evidence-dashboard.md) |
+| v1.6.0 stability gate map and `verify-v160-stability-verification-gate` smoke/flaky/longrun separation | [../v1.6.0-stability-verification-gates.md](../v1.6.0-stability-verification-gates.md) |
 | Historical v1.2.1 follow-up closure | [../v1.2.1-follow-up-closure.md](../v1.2.1-follow-up-closure.md) |
 | v1.3.0 follow-up closure | [../v1.3.0-follow-up-closure.md](../v1.3.0-follow-up-closure.md) |
 | v1.4.0 follow-up closure | [../v1.4.0-follow-up-closure.md](../v1.4.0-follow-up-closure.md) |

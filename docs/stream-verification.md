@@ -88,7 +88,14 @@ v1.6.0 stabilization release evidence는
 
 ```bash
 ./server.sh verify-v160-release-evidence-dashboard
+./server.sh verify-v160-stability-verification-gate
 ```
+
+Stability gate 분류는
+[v1.6.0 Stability Verification Gates](./v1.6.0-stability-verification-gates.md)에
+고정합니다. static/docs gate, attached UI/Auth gate, Runtime/VA metadata gate,
+Tracker/Re-ID carry-over gate, flaky/cleanup isolation gate, longrun/external gate를
+분리하고, 실행하지 않은 gate를 release pass처럼 쓰지 않습니다.
 
 위 전용 기준은 느린 기본 추가 RTSP/WebRTC source 영상, codec matrix, multichannel media soak를 사용하지 않습니다.
 기본 smoke와 longrun gate가 섞이지 않았는지는 다음 명령으로 정적으로 확인합니다.
