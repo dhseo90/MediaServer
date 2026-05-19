@@ -49,7 +49,7 @@ v1.2.0에서 도입되어 v1.3.0에서도 유지되는 product shell은 ERP/운�
 
 ### 1.1 Design token/component inventory
 
-v1.2.0 이후, 현재 v1.4.0까지의 UI 변경은 아래 inventory를 기준으로 합니다.
+v1.2.0 이후, 현재 v1.5.0까지의 UI 변경은 아래 inventory를 기준으로 합니다.
 새 색상, radius, spacing, shadow, table row, detail panel, client tile을 추가하기 전에
 먼저 같은 계층의 기존 token/class/helper로 표현할 수 있는지 확인합니다.
 

@@ -5,10 +5,11 @@
 현재 대표 제품 이미지는 2026-05-16 기준 v1.2.0 ERP-style product shell로 다시 캡처했습니다.
 2026-05-17 v1.3.0 release 문서/이미지 재점검에서는 기존 대표 캡처를 유지했습니다.
 2026-05-18 v1.4.0 release 문서/이미지 재점검에서도 README 대표 캡처는 유지합니다.
-v1.4.0은 source-only minor release이며 대표 화면, media path, VA overlay 예시를
+2026-05-19 v1.5.0 release 문서/이미지 정적 검증에서도 README 대표 캡처는 유지합니다.
+v1.5.0은 source-only minor release이며 대표 화면, media path, VA overlay 예시를
 교체해야 하는 제품 화면 변경은 없습니다. README, README.en, `docs/ui-guide.md`,
-`docs/video-analysis.md`에서 참조하는 UI/VA 이미지를 확인했고, 상하좌우 잘림,
-하단 영상 잘림, 과한 여백, source/debug/raw JSON 노출은 발견하지 않았습니다.
+`docs/video-analysis.md`에서 참조하는 UI/VA 이미지는 `verify-docs-ui-assets`
+정적 gate로 관리하며, 수동 브라우저 재검수 없이 완료로 과장하지 않습니다.
 `ops-rules-preview`는 전체 페이지 캡처가 아니라 Rule preview/editor 대표 구간
 캡처로 유지합니다.
 재캡처는 `scripts/internal/capture_docs_ui_assets.mjs` 기준으로 관리합니다.

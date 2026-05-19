@@ -32,15 +32,16 @@ source-of-truth로 쓰지 않습니다.
 
 `완료`는 운영 배포 ready, 장기 안정성 보장, 외부 연동 ready를 뜻하지 않습니다.
 
-## 현재 기준: v1.4.0 Source Release Baseline
+## 현재 기준: v1.5.0 Source Release Baseline
 
-v1.4.0은 v1.2.x의 source-only/live-only 경계를 유지하면서 v1.3.0의 runtime
-operations, ONVIF field smoke gate, source health incident workflow, Client Live
-accessibility, Rule/Scenario preset quality, audit trail operations, release/visual
-baseline automation, Re-ID default-off research continuation 위에 rule-level
-tracker/Re-ID opt-in을 닫은 source-only minor release입니다. 아래 제품 baseline은
-v1.2.x에서 닫은 live product 범위를 유지하고, v1.4.0은 recorder/VMS/NVR,
-Re-ID default-on, tracker default-on, runtime/model bundle scope를 열지 않습니다.
+v1.5.0은 v1.2.x의 source-only/live-only 경계를 유지하면서 운영 흐름과 현장
+검증 밀도를 닫은 v1.3.0, rule-level tracker/Re-ID opt-in을 닫은 v1.4.0 위에
+명시 opt-in guard, Tracker/Re-ID stability matrix, Re-ID provenance/fallback
+approval, Ops tracker warning next-action, audit export masking, field smoke summary
+evidence boundary, OC-SORT manifest-only sandbox와 follow-up closure를 닫은
+source-only minor release입니다. 아래 제품 baseline은 v1.2.x에서 닫은 live
+product 범위를 유지하고, v1.5.0은 recorder/VMS/NVR, Re-ID default-on, tracker
+default-on, OC-SORT runtime tracker, runtime/model bundle scope를 열지 않습니다.
 
 완료 범위:
 
@@ -76,6 +77,14 @@ Re-ID default-on, tracker default-on, runtime/model bundle scope를 열지 않�
 - [x] Re-ID assist default-off runtime fallback, privacy guard, warning history
 - [x] close-object report archive policy와 tracker warning dashboard summary
 - [x] v1.4.0 follow-up closure와 release close-out 기준 정리
+- [x] v1.5.0 explicit tracker/Re-ID opt-in guard와 implicit Re-ID 차단
+- [x] Tracker/Re-ID stability matrix와 warning/default-on 분리
+- [x] Re-ID model provenance/checksum/fallback approval gate
+- [x] Ops Dashboard tracker warning next-action refinement
+- [x] Audit export review hardening과 model/source material masking
+- [x] Field smoke summary evidence boundary와 summary/report/history index 보존 경계
+- [x] OC-SORT manifest-only experimental sandbox
+- [x] v1.5.0 follow-up closure와 release close-out 기준 정리
 
 비범위:
 
@@ -87,6 +96,7 @@ Re-ID default-on, tracker default-on, runtime/model bundle scope를 열지 않�
 - [ ] ONVIF 실장비 endpoint 성공 보장, persistent credential store, Digest/WS-Security
 - [ ] YouTube 운영 기능 승격 또는 실제 URL relay 성공 보장
 - [ ] field sample scheduler, dataset ingest, tracker replacement benchmark 실행
+- [ ] ONVIF field smoke evidence reconciliation, release evidence dashboard cleanup
 
 ## v1.2.1 Patch Close-out
 
@@ -758,11 +768,11 @@ research note와 dependency/privacy 검토 대상으로만 남기는 범위입�
 - camera motion compensation 및 dataset benchmark report
 - runtime/model bundle RC policy와 source-offer 검토
 
-## v1.5.0 Minor Roadmap Draft
+## v1.5.0 Minor Close-out
 
 v1.5.0은 v1.4.0의 rule-level tracker/Re-ID opt-in 경계를 유지하면서 사용자가
 명시적으로 선택한 tracker/Re-ID 조합의 테스트, 안정화, 운영 피드백을 보강하는
-minor release 후보입니다. 제품 기본 tracker/Re-ID를 바꾸지 않고, global
+minor release로 닫았습니다. 제품 기본 tracker/Re-ID를 바꾸지 않고, global
 default-on, 자동 migration, 암묵적 Re-ID 활성화는 열지 않습니다.
 
 기본 원칙:
