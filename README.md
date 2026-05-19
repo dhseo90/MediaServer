@@ -41,6 +41,10 @@ Runtime/model bundle RC policy는
 [docs/v1.6.0-runtime-model-bundle-rc-policy.md](docs/v1.6.0-runtime-model-bundle-rc-policy.md)와
 `./server.sh verify-v160-runtime-model-bundle-rc-policy`로 기본 release 미포함 경계와
 향후 RC 승인 조건을 확인합니다.
+Manual UI release checklist closure는
+[docs/v1.6.0-manual-ui-release-checklist-closure.md](docs/v1.6.0-manual-ui-release-checklist-closure.md)와
+`./server.sh verify-v160-manual-ui-release-checklist-closure`로 수동 클릭 검수와
+screenshot artifact, 미실행/미확인 경계를 분리합니다.
 
 ## 한눈에 보기
 
@@ -168,6 +172,7 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | v1.6.0 ONVIF field smoke evidence reconciliation | [docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md](docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md) |
 | v1.6.0 audit/export masking regression hardening | [docs/v1.6.0-audit-export-masking-regression-hardening.md](docs/v1.6.0-audit-export-masking-regression-hardening.md) |
 | v1.6.0 runtime/model bundle RC policy | [docs/v1.6.0-runtime-model-bundle-rc-policy.md](docs/v1.6.0-runtime-model-bundle-rc-policy.md) |
+| v1.6.0 manual UI release checklist closure | [docs/v1.6.0-manual-ui-release-checklist-closure.md](docs/v1.6.0-manual-ui-release-checklist-closure.md) |
 | YouTube import/source 실험 기능 | [docs/youtube-import.md](docs/youtube-import.md) |
 
 ## 대표 UI 미리보기

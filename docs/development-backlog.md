@@ -1621,6 +1621,54 @@ JSON/CSV/Diff JSON export에서 source/model/auth/raw material이 다시 노출�
   판정하지 않습니다.
 - P2 및 별도 Phase 후보는 V160-P1-03의 즉시 구현 후속으로 끌어오지 않습니다.
 
+### V160-P1-04 Manual UI release checklist closure 정리 기준
+
+`Manual UI release checklist closure`는 실제 수동 UI 검수를 수행했다고 기록하는
+작업이 아니라, v1.6.0 현재 제품 화면 기준으로 수동 검수 템플릿과 evidence 경계를
+[v1.6.0 Manual UI Release Checklist Closure](./v1.6.0-manual-ui-release-checklist-closure.md)에
+고정하는 작업입니다.
+
+확인됨:
+
+- 수동 검수 대상은 `/setup`, `/login`, `/password/change`, `/ops/home`,
+  `/ops/dashboard`, `/ops/sources`, `/ops/rules`, `/ops/users`, `/ops/events`,
+  `/client/live`, `/client/dashboard`, `/client/request-access`입니다.
+- `/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test`는 제품 UI로 되살리지 않고 닫힌
+  route 상태를 확인 대상으로만 둡니다.
+- Client 화면은 Live/Dashboard primary nav만 허용하며 Ops/Lab primary navigation,
+  source URL, Developer URL, raw JSON, debug counter, BBox diagnostics,
+  rule/profile editor를 노출하지 않습니다.
+- screenshot, 수동 검수 결과, GitHub Actions/link는 실제 실행하거나 확보한
+  artifact/link만 기록합니다.
+- 자동 smoke, raw JSON 확인, screenshot 생성만으로 수동 클릭 검수를 완료했다고 쓰지
+  않습니다.
+
+검증 기준:
+
+- `./server.sh verify-v160-manual-ui-release-checklist-closure`
+- `./server.sh verify-manual-ui-evidence`
+- `./server.sh verify-docs-ui-assets`
+- `./server.sh verify-docs-links`
+- `./server.sh verify-script-inventory`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- 실제 브라우저 수동 검수 실행 또는 screenshot 재생성
+- V160-P2-01 Public docs consistency polish
+- V160-P2-02 Tracker benchmark harness planning only
+- 새 UI route/nav 추가, `/lab` 화면 route 재개방
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경 또는 media pipeline blocking 정책 변경
+
+후속 분류:
+
+- 미분류 P0~P1 후속 이슈: 없음. 이번 항목의 manual UI evidence drift 위험은
+  전용 verifier와 기존 manual UI/docs UI asset guard로 닫습니다.
+- V160-P2-01~V160-P2-02는 같은 v1.6.0 안정화 페이즈의 별도 항목이므로 이 작업에서
+  완료로 판정하지 않습니다.
+- 별도 Phase 후보는 V160-P1-04의 즉시 구현 후속으로 끌어오지 않습니다.
+
 ### v1.6.0 비범위
 
 - 새 제품 기능 추가

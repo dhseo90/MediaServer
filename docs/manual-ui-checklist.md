@@ -8,6 +8,10 @@
 사용해 `확인됨`, `미확인`, `건너뜀`을 분리합니다.
 historical v1.2.1 patch evidence 기록은 [manual-ui-v1.2.1-result.md](./manual-ui-v1.2.1-result.md)에
 두며, 문서 구조는 `./server.sh verify-manual-ui-evidence`로 확인합니다.
+v1.6.0 manual UI release checklist closure는
+[v1.6.0 Manual UI Release Checklist Closure](./v1.6.0-manual-ui-release-checklist-closure.md)와
+`./server.sh verify-v160-manual-ui-release-checklist-closure`로 현재 제품 화면,
+미실행/미확인, screenshot artifact 경계를 확인합니다.
 
 ## 1. 공통 준비
 
@@ -26,6 +30,7 @@ historical v1.2.1 patch evidence 기록은 [manual-ui-v1.2.1-result.md](./manual
 - `/login`: admin 로그인은 `/ops/home`, viewer 로그인은 `/client/live`로 이동합니다.
 - `/password/change`: reset 또는 must-change 계정에서 새 비밀번호 설정 flow가 보입니다.
 - `/lab`, `/lab/rules`, `/lab/import`: 제품 화면으로 열리지 않고 404 상태를 유지합니다.
+- `/webrtc/test`: 제품 화면으로 다시 열지 않고 닫힌 route 상태를 유지합니다.
 
 ## 3. Ops
 

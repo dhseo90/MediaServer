@@ -21,6 +21,7 @@
   - `./server.sh verify-auth-bootstrap`:
   - `./server.sh verify-auth-users`:
   - `./server.sh verify-auth-routes`:
+  - `./server.sh verify-v160-manual-ui-release-checklist-closure`:
 
 ## 확인됨
 
@@ -61,6 +62,7 @@ client/viewer 화면에서 보이지 않아야 하는 항목입니다.
 - debug counter:
 - BBox diagnostics:
 - rule/profile editor:
+- model/source/auth material:
 - Ops/Lab primary navigation:
 
 ## 반응형/테마 확인
@@ -85,6 +87,8 @@ client/viewer 화면에서 보이지 않아야 하는 항목입니다.
 - 장시간 테스트:
 - `verify-predev`:
 - 실장비/외부 네트워크:
+- screenshot artifact/link 미확인:
+- GitHub Actions/link 미확인:
 - destructive action:
 - 기타:
 

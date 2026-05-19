@@ -77,6 +77,10 @@ Runtime/model bundle RC policy는
 [v1.6.0 Runtime/Model Bundle RC Policy](./v1.6.0-runtime-model-bundle-rc-policy.md)와
 `./server.sh verify-v160-runtime-model-bundle-rc-policy` 기준으로 기본 release
 미포함 경계와 향후 RC 승인 조건을 분리합니다.
+Manual UI release checklist closure는
+[v1.6.0 Manual UI Release Checklist Closure](./v1.6.0-manual-ui-release-checklist-closure.md)와
+`./server.sh verify-v160-manual-ui-release-checklist-closure` 기준으로 실제 수동 클릭
+검수, screenshot artifact, 미실행/미확인 항목을 분리합니다.
 
 ## Tag 전략
 

@@ -94,6 +94,7 @@ v1.6.0 stabilization release evidence는
 ./server.sh verify-v160-onvif-field-smoke-evidence-reconciliation
 ./server.sh verify-v160-audit-export-masking-regression-hardening
 ./server.sh verify-v160-runtime-model-bundle-rc-policy
+./server.sh verify-v160-manual-ui-release-checklist-closure
 ```
 
 Stability gate 분류는
@@ -128,6 +129,11 @@ Runtime/model bundle RC policy는
 포함하지 않고, 향후 별도 RC의 bundle policy, source offer, model provenance,
 privacy/redaction review 조건만 `verify-v160-runtime-model-bundle-rc-policy`로
 확인합니다.
+Manual UI release checklist closure는
+[v1.6.0 Manual UI Release Checklist Closure](./v1.6.0-manual-ui-release-checklist-closure.md)에
+고정합니다. 자동 smoke나 screenshot 생성만으로 수동 클릭 검수를 완료했다고 쓰지
+않고, 실제 실행 artifact/link와 미실행/미확인 항목을
+`verify-v160-manual-ui-release-checklist-closure`로 분리합니다.
 
 위 전용 기준은 느린 기본 추가 RTSP/WebRTC source 영상, codec matrix, multichannel media soak를 사용하지 않습니다.
 기본 smoke와 longrun gate가 섞이지 않았는지는 다음 명령으로 정적으로 확인합니다.
