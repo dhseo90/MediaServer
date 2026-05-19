@@ -26,6 +26,10 @@ verify it with `./server.sh verify-v160-debug-exposure-regression-guard`.
 The v1.6.0 tracker/Re-ID opt-in close-out keeps rule-level opt-in default-off in
 [docs/v1.6.0-tracker-reid-opt-in-closeout.md](docs/v1.6.0-tracker-reid-opt-in-closeout.md);
 verify it with `./server.sh verify-v160-tracker-reid-opt-in-closeout`.
+The v1.6.0 ONVIF field smoke evidence reconciliation separates no-device suite
+results, not-run real-device smoke, and redacted artifact review in
+[docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md](docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md);
+verify it with `./server.sh verify-v160-onvif-field-smoke-evidence-reconciliation`.
 
 ## At a Glance
 
@@ -125,6 +129,7 @@ See [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) for f
 | v1.6.0 stability verification gates | [docs/v1.6.0-stability-verification-gates.md](docs/v1.6.0-stability-verification-gates.md) |
 | v1.6.0 client debug exposure guard | [docs/v1.6.0-debug-exposure-regression-guard.md](docs/v1.6.0-debug-exposure-regression-guard.md) |
 | v1.6.0 tracker/Re-ID opt-in close-out | [docs/v1.6.0-tracker-reid-opt-in-closeout.md](docs/v1.6.0-tracker-reid-opt-in-closeout.md) |
+| v1.6.0 ONVIF field smoke evidence reconciliation | [docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md](docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md) |
 | Verification commands and release checks | [docs/stream-verification.md](docs/stream-verification.md) |
 | Bundle/container/runtime distribution policy | [docs/distribution-policy.md](docs/distribution-policy.md) |
 | Release scope and tag strategy | [docs/release-policy.md](docs/release-policy.md) |

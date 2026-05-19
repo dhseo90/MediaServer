@@ -91,6 +91,7 @@ v1.6.0 stabilization release evidence는
 ./server.sh verify-v160-stability-verification-gate
 ./server.sh verify-v160-debug-exposure-regression-guard
 ./server.sh verify-v160-tracker-reid-opt-in-closeout
+./server.sh verify-v160-onvif-field-smoke-evidence-reconciliation
 ```
 
 Stability gate 분류는
@@ -108,6 +109,12 @@ Tracker/Re-ID opt-in close-out은
 고정합니다. v1.5.0 follow-up closure, stability matrix, Re-ID provenance/fallback
 approval verifier를 carry-over gate로 연결하되, default-on이나 runtime/model bundle
 승격은 P0 완료로 쓰지 않습니다.
+ONVIF field smoke evidence reconciliation은
+[v1.6.0 ONVIF Field Smoke Evidence Reconciliation](./v1.6.0-onvif-field-smoke-evidence-reconciliation.md)에
+고정합니다. 실장비 field smoke를 실행하지 않았으면 `NOT RUN`과
+`realDeviceEndpointSuccess=unverified`로 유지하고, no-device suite 결과를 field
+smoke pass로 쓰지 않는지 `verify-v160-onvif-field-smoke-evidence-reconciliation`로
+확인합니다.
 
 위 전용 기준은 느린 기본 추가 RTSP/WebRTC source 영상, codec matrix, multichannel media soak를 사용하지 않습니다.
 기본 smoke와 longrun gate가 섞이지 않았는지는 다음 명령으로 정적으로 확인합니다.

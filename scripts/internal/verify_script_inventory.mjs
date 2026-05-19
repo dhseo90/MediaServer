@@ -85,6 +85,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_v160_stability_verification_gate.mjs",
     "verify_v160_debug_exposure_regression_guard.mjs",
     "verify_v160_tracker_reid_opt_in_closeout.mjs",
+    "verify_v160_onvif_field_smoke_evidence_reconciliation.mjs",
     "verify_actions_security.mjs",
     "verify_release_bundle_dry_run.mjs",
     "verify_reid_advanced_tracking_experiment.mjs",

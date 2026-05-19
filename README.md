@@ -29,6 +29,10 @@ client/viewer debug/source/model/auth material 비노출 guard는
 tracker/Re-ID opt-in default-off close-out은
 [docs/v1.6.0-tracker-reid-opt-in-closeout.md](docs/v1.6.0-tracker-reid-opt-in-closeout.md)와
 `./server.sh verify-v160-tracker-reid-opt-in-closeout`로 확인합니다.
+ONVIF field smoke evidence reconciliation은
+[docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md](docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md)와
+`./server.sh verify-v160-onvif-field-smoke-evidence-reconciliation`로 no-device suite,
+실장비 미실행, redacted artifact review를 분리합니다.
 
 ## 한눈에 보기
 
@@ -153,6 +157,7 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | v1.6.0 stability verification gates | [docs/v1.6.0-stability-verification-gates.md](docs/v1.6.0-stability-verification-gates.md) |
 | v1.6.0 client debug exposure guard | [docs/v1.6.0-debug-exposure-regression-guard.md](docs/v1.6.0-debug-exposure-regression-guard.md) |
 | v1.6.0 tracker/Re-ID opt-in close-out | [docs/v1.6.0-tracker-reid-opt-in-closeout.md](docs/v1.6.0-tracker-reid-opt-in-closeout.md) |
+| v1.6.0 ONVIF field smoke evidence reconciliation | [docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md](docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md) |
 | YouTube import/source 실험 기능 | [docs/youtube-import.md](docs/youtube-import.md) |
 
 ## 대표 UI 미리보기

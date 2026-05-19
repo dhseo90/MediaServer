@@ -1472,6 +1472,60 @@ runtime tracker 승격, model/runtime bundle release와 P0 안정화 완료를 �
 - V160-P1-01~V160-P1-04, V160-P2-01~V160-P2-02, 별도 Phase 후보는 이번 P0
   close-out의 즉시 구현 후속으로 끌어오지 않습니다.
 
+### V160-P1-01 ONVIF field smoke evidence reconciliation 정리 기준
+
+`ONVIF field smoke evidence reconciliation`은 실장비 ONVIF 성공을 보장하는 기능
+개발이 아니라, 기존 field smoke gate와 release evidence dashboard가 같은 상태
+언어로 실행/미실행/미확인 결과를 기록하게 만드는 안정화 작업입니다.
+[v1.6.0 ONVIF Field Smoke Evidence Reconciliation](./v1.6.0-onvif-field-smoke-evidence-reconciliation.md)
+기준으로 field smoke summary/report/history boundary와 redacted sample bundle
+review를 연결합니다.
+
+확인됨:
+
+- `verify-onvif-no-device-suite` 통과는 fixture/parser/loopback/redaction 개발
+  검증이며 실제 field smoke `PASS` 또는 `realDeviceEndpointSuccess=pass`가 아닙니다.
+- 실제 장비를 사용하지 않았으면 `gateDecision=not-run`,
+  `realDeviceTestPerformed=false`, `realDeviceEndpointSuccess=unverified`,
+  `playbackStatus=skipped`로 release evidence에 기록합니다.
+- field smoke 공유 evidence는 sanitized summary/report/history index와
+  `redactionArtifactReview`, `fieldSmokeReportReview` 상태만 보존합니다.
+- endpoint URL, source URL/URI/file, RTSP/RTSPS stream URI, credential/auth/session
+  material, raw SOAP/header/diagnostic JSON, raw media/frame, crop, embedding,
+  model path/checksum/provenance는 공유 evidence와 release dashboard에 남기지
+  않습니다.
+- 외부 승인 링크, GitHub Actions, tag/push/GitHub Release가 없으면 `UNVERIFIED`,
+  실제 field smoke를 실행하지 않았으면 `NOT RUN`으로 유지합니다.
+
+검증 기준:
+
+- `./server.sh verify-v160-onvif-field-smoke-evidence-reconciliation`
+- `./server.sh verify-onvif-field-smoke-gate`
+- `./server.sh verify-onvif-field-smoke-sample-bundle`
+- `./server.sh verify-docs-links`
+- `./server.sh verify-script-inventory`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- 실제 ONVIF camera endpoint 성공 보장 또는 field smoke 실행
+- persistent credential store, Digest, WS-Security, WS-Discovery 자동 검색,
+  Profile G / Recording / Replay 구현
+- V160-P1-02 Audit/export masking regression hardening
+- V160-P1-03 Runtime/model bundle RC policy
+- V160-P1-04 Manual UI release checklist closure
+- V160-P2-01~V160-P2-02, 별도 Phase 후보
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경 또는 media pipeline blocking 정책 변경
+
+후속 분류:
+
+- 미분류 P0~P1 후속 이슈: 없음. 이번 항목의 field evidence drift 위험은
+  reconciliation 문서와 전용 verifier로 닫습니다.
+- V160-P1-02~V160-P1-04는 같은 v1.6.0 안정화 페이즈의 별도 항목이므로 이 작업에서
+  완료로 판정하지 않습니다.
+- P2 및 별도 Phase 후보는 V160-P1-01의 즉시 구현 후속으로 끌어오지 않습니다.
+
 ### v1.6.0 비범위
 
 - 새 제품 기능 추가

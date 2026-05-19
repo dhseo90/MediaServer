@@ -65,6 +65,10 @@ v1.6.0 stabilization release에서는
 [v1.6.0 Release Evidence Dashboard](./v1.6.0-release-evidence-dashboard.md)와
 `./server.sh verify-v160-release-evidence-dashboard`로 release evidence의
 확인됨/미실행/미확인 상태를 분리합니다.
+ONVIF field smoke evidence는
+[v1.6.0 ONVIF Field Smoke Evidence Reconciliation](./v1.6.0-onvif-field-smoke-evidence-reconciliation.md)와
+`./server.sh verify-v160-onvif-field-smoke-evidence-reconciliation` 기준으로
+no-device suite, 실장비 미실행, redacted artifact review를 분리합니다.
 
 ## Tag 전략
 
