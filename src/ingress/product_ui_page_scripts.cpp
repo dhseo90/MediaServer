@@ -2410,7 +2410,7 @@ void AppendOpsShellScript(std::ostringstream& out,
       };
       const dashboardRuntimeOpsNextAction = ({ tap, activeTimeline, trackHealth, recentEvents, eventFailures, highWater }) => {
         if (!tap?.tapId) return '활성 tap이 생기면 /ops/rules의 VA 룰 연결과 source 입력을 기준으로 다시 확인합니다.';
-        if (trackHealth.retainedIssues > 0) return '트래킹 이슈 그룹에서 track/class/reason을 확인하고 룰 geometry와 입력 FPS를 함께 점검합니다.';
+        if (trackHealth.retainedIssues > 0) return '트래킹 이슈 그룹에서 type/class/track을 확인하고 /ops/rules에서 선택 룰의 Tracker/Re-ID opt-in 조합, geometry, 입력 FPS를 함께 조정합니다. 이 warning은 default-on 근거가 아닙니다.';
         if (eventFailures > 0) return '최근 EventRecord 실패 상태를 /ops/events에서 열어 POST/storage와 evidence 저장 상태를 확인합니다.';
         if (highWater.pressure) return 'queue high-water가 높습니다. tap metrics의 pending/latency를 보고 입력 FPS 또는 sampling 설정을 점검합니다.';
         if (activeTimeline.length > 0 && recentEvents.length === 0) return '시나리오가 진행 중이지만 EventRecord가 없습니다. cooldown, duration, threshold 조건을 확인합니다.';
@@ -2438,7 +2438,10 @@ void AppendOpsShellScript(std::ostringstream& out,
         const debugState = stateDump?.analyticsState?.debugState || {};
         const timeline = Array.isArray(debugState?.scenarioTimeline) ? debugState.scenarioTimeline : [];
         const activeTimeline = timeline.filter(item => item?.active !== false);
-        const issueReport = metricsDump?.trackingIssueReport || {};
+        const issueReport = {
+          ...(metricsDump?.trackingIssueReport || {}),
+          trackingPolicy: tap?.trackingPolicy || metricsDump?.trackingIssueReport?.trackingPolicy || {}
+        };
         const metricsReport = metricsDump?.metricsReport || stateDump?.analyticsState?.metricsReport || {};
         const tapState = metricsDump?.tapState || {};
         const trackState = metricsDump?.trackState || metricsReport?.trackState || {};
@@ -2650,7 +2653,31 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (Math.abs(n) >= 10) return String(Math.round(n));
         return n.toFixed(2).replace(/\.?0+$/u, '');
       };
-      const trackingIssueGroupSummary = group => {
+      const dashboardTrackingPolicySummary = report => {
+        const policy = report?.trackingPolicy || {};
+        const tracker = String(policy.tracker || report?.trackerPolicy || report?.effectiveTracker || '').trim();
+        const effectiveTracker = String(policy.effectiveTracker || report?.effectiveTracker || '').trim();
+        const reid = String(policy.reid || report?.reidPolicy || '').trim();
+        const parts = [];
+        if (tracker) parts.push(`tracker ${tracker}`);
+        if (effectiveTracker && effectiveTracker !== tracker) parts.push(`effective ${effectiveTracker}`);
+        if (reid) parts.push(`Re-ID ${reid}`);
+        return parts.join(' · ') || 'Tracker/Re-ID 정책 미제공';
+      };
+      const dashboardTrackerWarningNextAction = group => {
+        const type = String(group?.type || '').toLowerCase();
+        if (type === 'overlap-risk') {
+          return '다음 조치: /ops/rules에서 선택 룰의 region/line geometry와 class 범위를 좁혀 재검증합니다.';
+        }
+        if (type === 'missed-frame-spike' || type === 'lost' || type === 'reacquired') {
+          return '다음 조치: source frame continuity, FPS, lost-buffer 조건을 먼저 확인한 뒤 룰 단위 Tracker/Re-ID 조합을 비교합니다.';
+        }
+        if (type === 'direction-change-spike' || type === 'low-association-confidence' || type === 'unstable-track') {
+          return '다음 조치: Tracker/Re-ID 조합은 룰 단위 opt-in으로만 비교하고 geometry/FPS 튜닝 결과와 함께 기록합니다.';
+        }
+        return '다음 조치: type/class/track을 기준으로 /ops/rules의 선택 룰 튜닝 후보를 좁힙니다.';
+      };
+      const trackingIssueGroupSummary = (group, report = {}) => {
         const samples = Array.isArray(group?.samples) ? group.samples : [];
         const sample = samples.find(issue => String(issue?.severity || '') === 'warning') || samples[0] || {};
         const classes = Array.from(new Set(samples
@@ -2666,9 +2693,11 @@ void AppendOpsShellScript(std::ostringstream& out,
         ].join(' · ');
         const message = String(sample?.message || '').trim() || '샘플 메시지 없음';
         const boundary = group?.severity === 'warning'
-          ? '관찰 warning · default-on 근거 아님'
+          ? '사용자 opt-in 튜닝 참고 · default-on 근거 아님'
           : '정보성 추적 상태';
-        return { metrics, message, boundary };
+        const nextAction = dashboardTrackerWarningNextAction(group);
+        const policy = dashboardTrackingPolicySummary(report);
+        return { metrics, message, boundary, nextAction, policy };
       };
       const trackingIssueSearchParts = group => [
         group?.type,
@@ -2702,15 +2731,16 @@ void AppendOpsShellScript(std::ostringstream& out,
           return;
         }
         root.innerHTML = groups.slice(0, 8).map(group => {
-          const summary = trackingIssueGroupSummary(group);
+          const summary = trackingIssueGroupSummary(group, report);
           return `<article class="root-cause-item ${group.severity === 'warning' ? 'warn' : 'info'}">
             <div>
               <strong>${escapeHtml(group.type)}</strong>
               <p>트랙 ${escapeHtml(Array.from(group.tracks).slice(0, 6).join(', ') || '미제공')}</p>
             </div>
             ${badge(`${group.count}건`, group.severity === 'warning' ? 'warn' : 'info')}
-            <p class="root-cause-evidence">${opsHtml(summary.metrics)} · 유지 ${totals.retained}/${totals.total} · 제한 ${totals.rateLimited}</p>
-            <p class="root-cause-action">${opsHtml(summary.boundary)} · ${opsHtml(summary.message)}</p>
+            <p class="root-cause-evidence">${opsHtml(summary.metrics)} · 정책 ${opsHtml(summary.policy)} · 유지 ${totals.retained}/${totals.total} · 제한 ${totals.rateLimited}</p>
+            <p class="root-cause-action">${opsHtml(summary.boundary)}</p>
+            <p class="root-cause-action">${opsHtml(summary.nextAction)} · ${opsHtml(summary.message)}</p>
           </article>`;
         }).join('');
       };
@@ -2743,7 +2773,10 @@ void AppendOpsShellScript(std::ostringstream& out,
         ]);
         const debugState = stateDump?.analyticsState?.debugState || {};
         const timeline = Array.isArray(debugState?.scenarioTimeline) ? debugState.scenarioTimeline : [];
-        const issueReport = metricsDump?.trackingIssueReport || {};
+        const issueReport = {
+          ...(metricsDump?.trackingIssueReport || {}),
+          trackingPolicy: tap?.trackingPolicy || metricsDump?.trackingIssueReport?.trackingPolicy || {}
+        };
         dashboardVaQualityLastTimeline = timeline;
         dashboardVaQualityLastIssueReport = issueReport;
         renderBadges('dashVaQualityBadges', [
@@ -3836,10 +3869,15 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (token === 'assist' || token === 'association-assist' || token === 'reid-assist') return 'assist';
         return 'off';
       }
+      function opsRulesTrackingPolicyHasExplicitTracker(policy = {}) {
+        return Object.prototype.hasOwnProperty.call(policy, 'tracker') ||
+          Object.prototype.hasOwnProperty.call(policy, 'trackerPolicy');
+      }
       function opsRulesTrackingPolicyFromItem(item = {}) {
         const policy = item?.analysis?.trackingPolicy || item?.trackingPolicy || {};
-        const tracker = opsRulesNormalizeTrackerPolicy(policy.tracker || policy.trackerPolicy || '');
-        const reid = tracker === 'none'
+        const hasTracker = opsRulesTrackingPolicyHasExplicitTracker(policy);
+        const tracker = hasTracker ? opsRulesNormalizeTrackerPolicy(policy.tracker || policy.trackerPolicy || '') : 'lite';
+        const reid = !hasTracker || tracker === 'none'
           ? 'off'
           : opsRulesNormalizeReidPolicy(policy.reid || policy.reId || policy.reID || policy.reidPolicy || '');
         return { tracker, reid };
@@ -5914,8 +5952,12 @@ void AppendOpsShellScript(std::ostringstream& out,
             issues.push(opsRulesIssue('view-rule-not-allowed', `va-rule:${id}`, `PublishedView 허용 룰 목록에 ${id}가 없습니다.`, '채널 탭에서 defaultRuleId/allowedRuleIds를 맞추거나 룰을 다시 연결하세요.'));
           }
           const rawPolicy = rule?.analysis?.trackingPolicy || {};
-          if (opsRulesNormalizeTrackerPolicy(rawPolicy.tracker || rawPolicy.trackerPolicy || '') === 'none' &&
-              opsRulesNormalizeReidPolicy(rawPolicy.reid || rawPolicy.reId || rawPolicy.reID || rawPolicy.reidPolicy || '') !== 'off') {
+          const rawPolicyHasTracker = opsRulesTrackingPolicyHasExplicitTracker(rawPolicy);
+          const rawTracker = rawPolicyHasTracker ? opsRulesNormalizeTrackerPolicy(rawPolicy.tracker || rawPolicy.trackerPolicy || '') : 'lite';
+          const rawReid = opsRulesNormalizeReidPolicy(rawPolicy.reid || rawPolicy.reId || rawPolicy.reID || rawPolicy.reidPolicy || '');
+          if (!rawPolicyHasTracker && rawReid !== 'off') {
+            issues.push(opsRulesIssue('tracking-policy-conflict', `va-rule:${id}`, `채널 분석 설정 ${id}의 Re-ID 조합이 유효하지 않습니다.`, 'Re-ID assist는 명시적으로 선택한 Tracker와 함께 저장해야 합니다.'));
+          } else if (rawTracker === 'none' && rawReid !== 'off') {
             issues.push(opsRulesIssue('tracking-policy-conflict', `va-rule:${id}`, `채널 분석 설정 ${id}의 Re-ID 조합이 유효하지 않습니다.`, 'Tracker를 사용 안 함으로 선택하면 Re-ID는 off여야 합니다.'));
           }
           for (const message of opsRulesClassConflictMessages(rule, template, profile)) {
@@ -6005,8 +6047,12 @@ void AppendOpsShellScript(std::ostringstream& out,
             issues.push('선택한 채널 source와 룰 source가 일치하지 않습니다.');
           }
           const policy = payload?.analysis?.trackingPolicy || {};
-          if (opsRulesNormalizeTrackerPolicy(policy.tracker || policy.trackerPolicy || '') === 'none' &&
-              opsRulesNormalizeReidPolicy(policy.reid || policy.reId || policy.reID || policy.reidPolicy || '') !== 'off') {
+          const policyHasTracker = opsRulesTrackingPolicyHasExplicitTracker(policy);
+          const tracker = policyHasTracker ? opsRulesNormalizeTrackerPolicy(policy.tracker || policy.trackerPolicy || '') : 'lite';
+          const reid = opsRulesNormalizeReidPolicy(policy.reid || policy.reId || policy.reID || policy.reidPolicy || '');
+          if (!policyHasTracker && reid !== 'off') {
+            issues.push('Re-ID assist는 명시적으로 선택한 Tracker와 함께 저장해야 합니다.');
+          } else if (tracker === 'none' && reid !== 'off') {
             issues.push('Tracker를 사용 안 함으로 선택하면 Re-ID는 off여야 합니다.');
           }
           const priority = opsRulesRulePriority(payload);

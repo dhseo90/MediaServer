@@ -54,6 +54,7 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-v130-follow-up-closure
 ./server.sh verify-v140-follow-up-closure
 ./server.sh verify-v140-report-archive-policy
+./server.sh verify-v150-follow-up-closure
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-manual-ui-evidence
@@ -78,6 +79,8 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 
 v1.4.0 tracker/Re-ID opt-in 이후 남은 후속 항목 분류와 종료 판정은
 [v1.4.0 Follow-up Closure](./v1.4.0-follow-up-closure.md)를 기준으로 확인합니다.
+v1.5.0 Tracker/Re-ID opt-in 안정화 이후 남은 후속 항목 분류와 종료 판정은
+[v1.5.0 Follow-up Closure](./v1.5.0-follow-up-closure.md)를 기준으로 확인합니다.
 
 위 전용 기준은 느린 기본 추가 RTSP/WebRTC source 영상, codec matrix, multichannel media soak를 사용하지 않습니다.
 기본 smoke와 longrun gate가 섞이지 않았는지는 다음 명령으로 정적으로 확인합니다.
@@ -757,6 +760,17 @@ OC-SORT가 `analysis.trackingPolicy.tracker`, `/ops/rules` UI,
 ./server.sh verify-oc-sort-benchmark-boundary
 ```
 
+v1.5.0 OC-SORT experimental sandbox는 같은 runtime 승격 금지 경계를 유지하면서
+`compare-close-object-tracker` report에 `manifest-only` sandbox metadata만 남깁니다.
+이 sandbox는 OC-SORT를 실행하지 않고, `--tracker-policy` 허용값도
+`lite`, `kalman-lite`, `bytetrack`에 머뭅니다.
+
+```bash
+./server.sh verify-v150-oc-sort-experimental-sandbox
+./server.sh compare-close-object-tracker --list-experimental-sandboxes
+./server.sh compare-close-object-tracker --fixture-matrix --experimental-sandbox oc-sort --tracker-policy bytetrack --max-fixtures 1
+```
+
 BoT-SORT/DeepSORT research boundary도 별도 정적 verifier로 확인합니다. 이 검증은
 BoT-SORT/DeepSORT가 `analysis.trackingPolicy.tracker`, `/ops/rules` UI,
 `ObjectTrackerKind`, tracker stability/compare harness에 runtime tracker로
@@ -897,6 +911,38 @@ count, mean, stdev, variance, min, max를 표시합니다.
 - replay/event 결과가 흔들려도 default on 전환 금지입니다.
 - default on은 여러 fixture와 현장 샘플에서 ID continuity 개선과 event 결과 무변화가 함께 확인된 뒤에만 검토합니다.
 - privacy/default-off gate는 `verify-reid-advanced-tracking`으로 별도 확인합니다.
+- v1.5.0 명시 opt-in guard는 `verify-v150-opt-in-tracking-policy`로 확인합니다.
+  이 검증은 tracker 없는 `reid=assist` fixture를 저장 거부하고, runtime/UI/docs가
+  자동 migration 또는 default-on 승격 근거가 아닙니다 라는 경계를 유지하는지
+  점검합니다.
+- v1.5.0 Tracker/Re-ID stability matrix는
+  `verify-v150-tracker-reid-stability-matrix`로 문서/entrypoint/fixture-history
+  경계를 먼저 고정합니다. 이 정적 guard는 runtime matrix를 직접 실행하지 않으며,
+  `lite/off`, `kalman-lite/off`, `bytetrack/off`, `lite/assist`,
+  `kalman-lite/assist`, `bytetrack/assist` 조합이 warning drift 관찰 대상이고
+  `matrix-ok`가 제품 default-on 승인 값이 아닙니다 라는 해석을 확인합니다.
+- v1.5.0 Re-ID model provenance/fallback approval은
+  `verify-v150-reid-provenance-fallback-approval`로 문서/entrypoint/smoke fixture
+  경계를 고정합니다. 이 guard는 missing/invalid/mismatched model을 NoOp fallback으로
+  닫고, privacy/retention approval을 제품 default-on 승인이나 model bundle 승인으로
+  해석하지 않습니다.
+- v1.5.0 Ops Dashboard tracker warning next-action은
+  `verify-v150-ops-tracker-warning-next-action`으로 UI copy, tracker warning fixture
+  smoke, docs 경계를 고정합니다. 이 guard는 warning을 사용자 opt-in 튜닝 참고와
+  다음 조치로 표시하되 default-on 근거가 아닙니다 라는 해석을 확인합니다.
+- v1.5.0 Audit export review hardening은
+  `verify-v150-audit-export-review-hardening`으로 Ops audit 조회와
+  JSON/CSV/Diff JSON export의 model/source material 마스킹, Tracker/Re-ID
+  설정 변경 review chip, model/fallback status-only 표시 경계를 고정합니다.
+  이 guard는 audit export UX를 강화하되 Event POST/WebRTC/SSE/WS metadata schema나
+  RTSP/WebRTC media path 변경으로 해석하지 않습니다.
+- v1.5.0 Field smoke summary evidence boundary는
+  `verify-v150-field-smoke-summary-evidence-boundary`로
+  `compare-close-object-tracker --history-dir`가 summary/report/history index evidence만
+  보존하고 raw media, crop, embedding, model/source/auth material을 archive하지
+  않는지 확인합니다. 이 guard는 release 문서에서 완료/미확인/비범위를 분리하며,
+  제품 default-on 승인, 실장비 ONVIF field smoke 성공, 장기 field sample workflow
+  완료로 해석하지 않습니다.
 
 비교 리포트 해석:
 
@@ -913,6 +959,14 @@ count, mean, stdev, variance, min, max를 표시합니다.
 - threshold tuning 또는 추가 fixture 수집은 새 field/model review가 열릴 때 별도 review로 다룹니다.
 
 ```bash
+./server.sh verify-v150-opt-in-tracking-policy
+./server.sh verify-v150-tracker-reid-stability-matrix
+./server.sh verify-v150-reid-provenance-fallback-approval
+./server.sh verify-v150-ops-tracker-warning-next-action
+./server.sh verify-v150-audit-export-review-hardening
+./server.sh verify-v150-field-smoke-summary-evidence-boundary
+./server.sh verify-v150-oc-sort-experimental-sandbox
+./server.sh verify-v150-follow-up-closure
 ./server.sh verify-reid-advanced-tracking
 ./server.sh verify-tracker-stability --long --overlap-focus
 ./server.sh verify-va-replay

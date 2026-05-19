@@ -137,10 +137,11 @@ low-confidence detection은 기존 track continuity를 내부적으로 보강할
 상태는 내부 runtime status의 `effectiveTracker=bytetrack`으로
 확인하며 Event POST/WebRTC DataChannel/SSE/WS metadata schema에는 새 필드를
 추가하지 않습니다.
-OC-SORT는 v1.4.0 runtime tracker 허용값이 아닙니다. 후속 benchmark가 열리더라도
-Kalman-lite/ByteTrack 이후 별도 report에서 Re-ID 없이 motion/observation 중심으로
-비교하며, Event POST/WebRTC DataChannel/SSE/WS metadata schema에는 새 필드를
-추가하지 않습니다.
+OC-SORT는 v1.4.0 runtime tracker 허용값이 아닙니다. v1.5.0 OC-SORT experimental sandbox가 열려도 `compare-close-object-tracker --experimental-sandbox oc-sort`의
+manifest-only report metadata로만 기록하며 runtime tracker 허용값에 추가하지
+않습니다. 후속 benchmark가 열리더라도 Kalman-lite/ByteTrack 이후 별도 report에서
+Re-ID 없이 motion/observation 중심으로 비교하며, Event POST/WebRTC DataChannel/SSE/WS
+metadata schema에는 새 필드를 추가하지 않습니다.
 BoT-SORT/DeepSORT도 v1.4.0 runtime tracker 허용값이 아닙니다. 이 계열은
 appearance/Re-ID model, embedding/crop, camera motion compensation,
 dataset provenance, runtime/model bundle, retention/redaction policy 검토가
@@ -154,6 +155,14 @@ Re-ID assist는 독립 tracker가 아니라 selected tracker의 association 보�
 해석합니다. `tracker=none`에서는 `reid=assist` 조합을 저장하지 않으며,
 검증 하네스는 `--reid-policy assist`로 임시 vaRule을 만들어 runtime 적용 여부를
 확인할 수 있습니다.
+Re-ID assist는 `tracker` field가 함께 있는 `analysis.trackingPolicy`에서만 유효합니다.
+tracker 없는 `reid=assist`는 저장 검증에서 거부하고 runtime에서도 opt-in으로 해석하지 않습니다.
+
+v1.5.0 Tracker/Re-ID stability matrix는 `lite/off`, `kalman-lite/off`,
+`bytetrack/off`, `lite/assist`, `kalman-lite/assist`, `bytetrack/assist`
+조합의 반복 fixture와 warning drift를 같은 기준으로 읽기 위한 guard입니다.
+이 matrix와 close-object/field-driving report는 사용자 opt-in 품질 참고이며,
+제품 default tracker/Re-ID 변경 근거가 아닙니다.
 
 matching score는 다음 요소를 조합합니다.
 
@@ -563,6 +572,12 @@ issue `message`는 raw counter 나열이 아니라 운영자가 다음 확인 �
 Ops Dashboard의 트래킹 이슈 그룹은 issue type, track list, class, association,
 overlap, missed, direction count와 샘플 message를 함께 보여줍니다. warning은
 관찰 대상이며 제품 default-on 근거가 아니라는 문구를 같이 표시합니다.
+v1.5.0 tracker warning next-action refinement 이후 이 영역은 선택 tap의
+Tracker/Re-ID policy도 함께 읽고 `사용자 opt-in 튜닝 참고`로 표시합니다.
+next action은 overlap-risk, missed/lost/reacquired, direction/association
+instability를 나누어 `/ops/rules`의 룰 단위 Tracker/Re-ID 조합, geometry/FPS,
+source frame continuity, FPS, lost-buffer 확인으로 연결하며 default-on 근거가
+아닙니다.
 
 Close-object association 문제를 볼 때 함께 보는 값:
 
@@ -659,6 +674,14 @@ history index는 `defaultOnDecision`, `productDefaultOn`, `candidateCount`,
 회차별로 보존해 `--tracker-policy bytetrack --reid-policy assist` 같은 opt-in
 조합의 counter drift 추세를 추적합니다. 단일 비교 history도 관찰 evidence일 뿐
 Re-ID assist 또는 close-object guard default-on 완료 근거로 사용하지 않습니다.
+v1.5.0 Field smoke summary evidence boundary는
+`./server.sh verify-v150-field-smoke-summary-evidence-boundary`로 확인합니다.
+이 경계는 summary/report/history index evidence만 보존하고 raw media, raw frame,
+crop, embedding, model path/checksum/provenance, source URL/URI/file,
+credential/auth/session material을 archive하지 않는다는 뜻입니다. release 문서에서는
+완료/미확인/비범위를 분리하며, 이 summary evidence를 제품 default-on 승인,
+실장비 ONVIF field smoke 성공, 장기 field sample workflow 완료로 해석하지
+않습니다.
 report/history 보존 범위는 [Close-object Report Archive Policy](close-object-report-archive-policy.md)를
 따르며, raw media image, crop, embedding, source URL, credential은 포함하지 않습니다.
 반복 실행에서는 `Repeat Metric Stats`의 mean/stdev/variance로 observed risk 변동성을 확인합니다.
@@ -679,6 +702,12 @@ AppearanceProfile과 IAppearanceExtractor는 향후 Re-ID/attribute 분석을 �
 - async queue, per-stream rate limit, global queue 상한, stale job drop으로 media pipeline blocking 방지
 - embedding/crop/model path 같은 Re-ID identity material은 WebRTC/SSE/WS/Event/debug 외부 metadata payload에 직렬화하지 않습니다.
 - `./server.sh verify-reid-advanced-tracking`은 default-off, privacy review, close-object benchmark command boundary를 정적 검증합니다.
+- v1.5.0 Re-ID opt-in model provenance/fallback approval은 model path/checksum/provenance
+  gate와 privacy/retention approval을 함께 확인합니다. missing/invalid/mismatched model은
+  NoOp fallback으로 닫고, 이 승인 경계를 제품 default-on 또는 model bundle 승인으로
+  해석하지 않습니다.
+- `./server.sh verify-v150-reid-provenance-fallback-approval`은 위 approval gate,
+  invalid/missing model fixture, metadata 비노출 경계를 정적으로 검증합니다.
 - v1.3.0 연구 지속 기준은 [Re-ID Default-off Research Continuation](reid-default-off-research-continuation.md)에
   분리하며, 제품 default-on 결정이나 대형 tracker 교체로 해석하지 않습니다.
 - privacy threat model에서는 embedding vector, bbox crop, track-linked
@@ -894,6 +923,12 @@ rotated archive 조회 대상에는 compacted snapshot을 포함하지 않습니
   - clip manifest
   - clip frame 파일
 - Export는 Ops audit trail에 `export-bundle`로 남깁니다.
+- v1.5.0 `Audit export review hardening` 이후 Ops audit review/export는
+  Tracker/Re-ID 설정 변경과 model/fallback status-only 값을 검토 대상으로
+  표시하되, model/source material, source URL/URI/file, model path/checksum/
+  provenance, raw media/crop/embedding은 JSON/CSV/Diff JSON export에서
+  `[redacted]`로 유지합니다. 이 경계는
+  `verify-v150-audit-export-review-hardening`으로 확인합니다.
 - Bundle 링크는 `signed-token-expiresAtMs` 기반 24시간 만료 정책을 사용합니다.
 - 만료/변조된 token은 서버가 거절합니다.
 - 만료 bundle은 서버에 별도 파일을 남기지 않습니다.

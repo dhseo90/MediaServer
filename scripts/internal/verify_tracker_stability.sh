@@ -229,6 +229,7 @@ va_rule_id, template_rule_id, file_token, tracker_policy, reid_policy = sys.argv
 print(json.dumps({
     "id": va_rule_id,
     "enabled": True,
+    "priority": 900000 + (int(va_rule_id) % 1000),
     "source": {"kind": "file", "file": file_token},
     "analysis": {
         "profileId": "3",

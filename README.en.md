@@ -2,15 +2,15 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Source Release](https://img.shields.io/badge/source--only%20release-v1.4.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v1.4.0)
+[![Source Release](https://img.shields.io/badge/source--only%20release-v1.5.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v1.5.0)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay with optional YOLO/ONNX video analytics overlays and rule/scenario live events. The current main product boundary focuses on live source onboarding, live source health, and live VA event quality rather than long-term recording, VMS, or NVR scope.
 
 Korean documentation: [README.md](README.md)
-Latest source-only release: [v1.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.4.0)
-The v1.4.0 source-only minor close-out and tracker/Re-ID opt-in follow-up closure are tracked separately in
+Latest source-only release: [v1.5.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.5.0)
+The v1.5.0 source-only minor close-out and tracker/Re-ID opt-in stabilization follow-up closure are tracked separately in
 [docs/development-backlog.md](docs/development-backlog.md) and
-[docs/v1.4.0-follow-up-closure.md](docs/v1.4.0-follow-up-closure.md).
+[docs/v1.5.0-follow-up-closure.md](docs/v1.5.0-follow-up-closure.md).
 
 ## At a Glance
 
@@ -98,13 +98,14 @@ See [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) for f
 | RTSP/WebRTC pipeline, source/session, VA layer | [docs/media-server-architecture.md](docs/media-server-architecture.md) |
 | YOLO, tracking, scenarios, live events, short evidence | [docs/video-analysis.md](docs/video-analysis.md) |
 | Re-ID default-off research continuation | [docs/reid-default-off-research-continuation.md](docs/reid-default-off-research-continuation.md) |
-| OC-SORT benchmark boundary | [docs/oc-sort-benchmark-boundary.md](docs/oc-sort-benchmark-boundary.md) |
+| OC-SORT benchmark/sandbox boundary | [docs/oc-sort-benchmark-boundary.md](docs/oc-sort-benchmark-boundary.md) |
 | BoT-SORT/DeepSORT research boundary | [docs/bot-sort-deepsort-research-boundary.md](docs/bot-sort-deepsort-research-boundary.md) |
 | Integrator Event/WebRTC/SSE/WS sample bundle | [docs/integrator-contract-artifact.md](docs/integrator-contract-artifact.md) |
-| Current product boundary, v1.4.0 close-out, and follow-up candidates | [docs/development-backlog.md](docs/development-backlog.md) |
+| Current product boundary, v1.5.0 close-out, and separate phase candidates | [docs/development-backlog.md](docs/development-backlog.md) |
 | Historical v1.2.1 follow-up closure | [docs/v1.2.1-follow-up-closure.md](docs/v1.2.1-follow-up-closure.md) |
 | v1.3.0 follow-up closure | [docs/v1.3.0-follow-up-closure.md](docs/v1.3.0-follow-up-closure.md) |
 | v1.4.0 follow-up closure | [docs/v1.4.0-follow-up-closure.md](docs/v1.4.0-follow-up-closure.md) |
+| v1.5.0 follow-up closure | [docs/v1.5.0-follow-up-closure.md](docs/v1.5.0-follow-up-closure.md) |
 | Verification commands and release checks | [docs/stream-verification.md](docs/stream-verification.md) |
 | Bundle/container/runtime distribution policy | [docs/distribution-policy.md](docs/distribution-policy.md) |
 | Release scope and tag strategy | [docs/release-policy.md](docs/release-policy.md) |

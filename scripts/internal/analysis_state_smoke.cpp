@@ -823,6 +823,21 @@ void VerifyTrackStateManagerAndHealth() {
     Expect(invalid_checksum_extractor != nullptr &&
                invalid_checksum_extractor->Stats().extractor_name == "noop",
            "invalid Re-ID model checksum must fall back to NoOpAppearanceExtractor");
+    app::AppConfig provenance_gate_config = checksum_gate_config;
+    provenance_gate_config.analysis_appearance_model_sha256 =
+        "daa8eac9dcb9959a436b35d5dedd9a516690af96a3db00ca8125c52ef9652358";
+    const auto provenance_gate_extractor = CreateAppearanceExtractorFromConfig(provenance_gate_config);
+    Expect(provenance_gate_extractor != nullptr &&
+               provenance_gate_extractor->Stats().extractor_name == "noop",
+           "missing Re-ID model provenance gate must fall back to NoOpAppearanceExtractor");
+    app::AppConfig mismatch_checksum_config = provenance_gate_config;
+    mismatch_checksum_config.analysis_appearance_model_sha256 =
+        "0000000000000000000000000000000000000000000000000000000000000000";
+    mismatch_checksum_config.analysis_appearance_model_provenance = "synthetic-test";
+    const auto mismatch_checksum_extractor = CreateAppearanceExtractorFromConfig(mismatch_checksum_config);
+    Expect(mismatch_checksum_extractor != nullptr &&
+               mismatch_checksum_extractor->Stats().extractor_name == "noop",
+           "mismatched Re-ID model checksum must fall back to NoOpAppearanceExtractor");
     std::filesystem::remove(reid_gate_model_path);
 
     TrackStateManagerOptions speed_options = options;

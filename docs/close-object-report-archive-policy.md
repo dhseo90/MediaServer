@@ -47,6 +47,35 @@ history dir에는 summary/report/index만 둡니다.
 - 제품 default-on 승격 검토는 별도 Phase gate입니다.
 - push, tag, GitHub Release, release asset 업로드는 명시 요청 전까지 수행하지 않습니다.
 
+## v1.5.0 Field Smoke Summary Evidence Boundary
+
+v1.5.0 `V150-P1-03 Field smoke summary evidence boundary`는 이 archive
+정책을 Tracker/Re-ID opt-in field-like smoke 결과 해석까지 확장합니다.
+`field-smoke-summary-evidence`는 summary/report/history index evidence만
+retained evidence로 보존한다는 표시입니다.
+
+보존 대상:
+
+- `summary.json`, `report.md`
+- `matrix-summary.json`, `matrix-report.md`
+- history `index.json`, `index.md`
+- `productDefaultOn`, `defaultOnDecision`, `defaultOnCandidate`, warning/hold/fail
+  count처럼 제품 default-on이 아니라 후보/관찰 상태를 분리하는 summary field
+
+보존 금지:
+
+- raw media, raw frame, crop, embedding
+- model path/checksum/provenance
+- source URL/URI/file
+- credential/auth/session material
+- 실장비 ONVIF field smoke 성공을 대체하는 문구
+- release asset 업로드 또는 고객/현장 영상 archive
+
+이 boundary는 완료/미확인/비범위를 분리하기 위한 evidence 경계입니다.
+`compare-close-object-tracker --history-dir`가 만드는 history는 사용자 opt-in
+튜닝 참고용이며, 제품 default-on 승인, 실장비 ONVIF field smoke 성공, 장기
+field sample history review workflow 완료로 해석하지 않습니다.
+
 ## 권장 명령
 
 ```bash

@@ -210,6 +210,22 @@ Usage:
                  v1.4.0 follow-up closure가 범위 안 후속 이슈를 모두 닫았는지 검증합니다.
   verify-v140-report-archive-policy
                  v1.4.0 close-object report archive가 raw media/image 보존으로 확장되지 않는지 검증합니다.
+  verify-v150-follow-up-closure
+                 v1.5.0 follow-up closure가 범위 안 후속 이슈를 모두 닫았는지 검증합니다.
+  verify-v150-opt-in-tracking-policy
+                 v1.5.0 tracker/Re-ID 명시 opt-in 저장/runtime/UI/docs guard를 검증합니다.
+  verify-v150-tracker-reid-stability-matrix
+                 v1.5.0 Tracker/Re-ID stability matrix와 warning/default-on 경계를 검증합니다.
+  verify-v150-reid-provenance-fallback-approval
+                 v1.5.0 Re-ID model provenance/checksum/privacy/fallback approval 경계를 검증합니다.
+  verify-v150-ops-tracker-warning-next-action
+                 v1.5.0 Ops Dashboard tracker warning next-action과 default-on 비승격 경계를 검증합니다.
+  verify-v150-audit-export-review-hardening
+                 v1.5.0 audit export review와 model/source material masking 경계를 검증합니다.
+  verify-v150-field-smoke-summary-evidence-boundary
+                 v1.5.0 field smoke summary/report/history evidence와 raw media 비보존 경계를 검증합니다.
+  verify-v150-oc-sort-experimental-sandbox
+                 v1.5.0 OC-SORT experimental sandbox가 runtime tracker 승격 없이 연결됐는지 검증합니다.
   verify-server-start-modes
                  foreground/start 실행 모드의 health, route, state file 안정성을 검증합니다.
   verify-auth-bootstrap
@@ -738,6 +754,38 @@ case "${cmd}" in
   verify-v140-report-archive-policy)
     require_internal verify_v140_report_archive_policy.mjs
     exec "${INTERNAL_DIR}/verify_v140_report_archive_policy.mjs" "$@"
+    ;;
+  verify-v150-follow-up-closure)
+    require_internal verify_v150_follow_up_closure.mjs
+    exec "${INTERNAL_DIR}/verify_v150_follow_up_closure.mjs" "$@"
+    ;;
+  verify-v150-opt-in-tracking-policy)
+    require_internal verify_v150_opt_in_tracking_policy_guard.mjs
+    exec "${INTERNAL_DIR}/verify_v150_opt_in_tracking_policy_guard.mjs" "$@"
+    ;;
+  verify-v150-tracker-reid-stability-matrix)
+    require_internal verify_v150_tracker_reid_stability_matrix.mjs
+    exec "${INTERNAL_DIR}/verify_v150_tracker_reid_stability_matrix.mjs" "$@"
+    ;;
+  verify-v150-reid-provenance-fallback-approval)
+    require_internal verify_v150_reid_provenance_fallback_approval.mjs
+    exec "${INTERNAL_DIR}/verify_v150_reid_provenance_fallback_approval.mjs" "$@"
+    ;;
+  verify-v150-ops-tracker-warning-next-action)
+    require_internal verify_v150_ops_tracker_warning_next_action.mjs
+    exec "${INTERNAL_DIR}/verify_v150_ops_tracker_warning_next_action.mjs" "$@"
+    ;;
+  verify-v150-audit-export-review-hardening)
+    require_internal verify_v150_audit_export_review_hardening.mjs
+    exec "${INTERNAL_DIR}/verify_v150_audit_export_review_hardening.mjs" "$@"
+    ;;
+  verify-v150-field-smoke-summary-evidence-boundary)
+    require_internal verify_v150_field_smoke_summary_evidence_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v150_field_smoke_summary_evidence_boundary.mjs" "$@"
+    ;;
+  verify-v150-oc-sort-experimental-sandbox)
+    require_internal verify_v150_oc_sort_experimental_sandbox.mjs
+    exec "${INTERNAL_DIR}/verify_v150_oc_sort_experimental_sandbox.mjs" "$@"
     ;;
   verify-server-start-modes)
     require_internal verify_server_start_modes.sh

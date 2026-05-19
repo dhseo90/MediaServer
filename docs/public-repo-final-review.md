@@ -21,7 +21,7 @@ GitHub Settings 화면에서 직접 눌러야 하는 항목은 자동화하지 �
   - Description: `RTSP/WebRTC media server with optional YOLO-based video analytics`
   - Topics: `rtsp`, `gstreamer`, `cpp`, `webrtc`, `media-server`, `yolo`, `video-analytics`
 - Visibility: public
-- 현재 published source-only release: `v1.4.0`
+- 현재 published source-only release: `v1.5.0`
 
 `Restrict deletions`와 `Block force pushes`는 GitHub Actions check가 아니라 ruleset branch rule입니다.
 Required status check에는 추가하지 않고, checkbox enabled 상태만 확인합니다.

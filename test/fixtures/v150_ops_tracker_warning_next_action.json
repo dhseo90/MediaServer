@@ -1,0 +1,112 @@
+{
+  "schema": "media-server.v150.ops-tracker-warning-next-action-fixture.v1",
+  "description": "Representative Ops Dashboard tracking issue report used to pin v1.5.0 tracker warning next-action copy without changing runtime metadata schemas.",
+  "issueReport": {
+    "schema": "media-server.va.tracking-issue-report.v1",
+    "enabled": true,
+    "totalIssues": 2,
+    "retainedIssues": 2,
+    "rateLimitedCount": 0,
+    "maxEntries": 32,
+    "trackingPolicy": {
+      "tracker": "bytetrack",
+      "effectiveTracker": "bytetrack",
+      "reid": "assist",
+      "source": "rule",
+      "ruleId": "v150-tracker-warning-fixture",
+      "specified": true,
+      "fallbackReason": ""
+    },
+    "channels": [
+      {
+        "streamId": "fixture-stream",
+        "channelId": "1",
+        "totalIssues": 2,
+        "unstableIssues": 0,
+        "overlapRiskIssues": 1,
+        "missedFrameIssues": 0,
+        "directionChangeIssues": 1,
+        "reacquiredIssues": 0,
+        "lostIssues": 0
+      }
+    ],
+    "issues": [
+      {
+        "streamId": "fixture-stream",
+        "channelId": "1",
+        "trackId": 20,
+        "classId": 1,
+        "className": "vehicle",
+        "timestampMs": 1779187200000,
+        "type": "overlap-risk",
+        "severity": "warning",
+        "message": "Track overlap risk is high; check close-object separation, camera angle, or zone geometry. Metrics: association 0.42, missed frames 0, overlap risk 0.87, direction changes 1, lost 0, reacquired 0.",
+        "bbox": {
+          "x": 0.2,
+          "y": 0.3,
+          "width": 0.2,
+          "height": 0.2
+        },
+        "center": {
+          "x": 0.3,
+          "y": 0.4
+        },
+        "trackHealth": {
+          "associationConfidence": 0.42,
+          "missedFrameCount": 0,
+          "overlapRisk": 0.87,
+          "directionChangeCount": 1,
+          "lastStableTimeMs": 1779187199000,
+          "unstable": true,
+          "lastHealthEvent": "overlap-risk",
+          "lastHealthEventTimeMs": 1779187200000,
+          "lostCount": 0,
+          "reacquiredCount": 0
+        }
+      },
+      {
+        "streamId": "fixture-stream",
+        "channelId": "1",
+        "trackId": 21,
+        "classId": 1,
+        "className": "vehicle",
+        "timestampMs": 1779187200500,
+        "type": "direction-change-spike",
+        "severity": "warning",
+        "message": "Track direction changed repeatedly; verify association stability before trusting scenario timing. Metrics: association 0.51, missed frames 0, overlap risk 0.38, direction changes 4, lost 0, reacquired 0.",
+        "bbox": {
+          "x": 0.45,
+          "y": 0.32,
+          "width": 0.18,
+          "height": 0.2
+        },
+        "center": {
+          "x": 0.54,
+          "y": 0.42
+        },
+        "trackHealth": {
+          "associationConfidence": 0.51,
+          "missedFrameCount": 0,
+          "overlapRisk": 0.38,
+          "directionChangeCount": 4,
+          "lastStableTimeMs": 1779187199500,
+          "unstable": true,
+          "lastHealthEvent": "direction-change-spike",
+          "lastHealthEventTimeMs": 1779187200500,
+          "lostCount": 0,
+          "reacquiredCount": 0
+        }
+      }
+    ]
+  },
+  "expectedUiCopy": [
+    "사용자 opt-in 튜닝 참고 · default-on 근거 아님",
+    "다음 조치: Tracker/Re-ID 조합은 룰 단위 opt-in으로만 비교하고 geometry/FPS 튜닝 결과와 함께 기록합니다.",
+    "다음 조치: /ops/rules에서 선택 룰의 region/line geometry와 class 범위를 좁혀 재검증합니다."
+  ],
+  "nonGoals": [
+    "product default-on approval",
+    "runtime metadata schema change",
+    "raw media or identity material archive"
+  ]
+}

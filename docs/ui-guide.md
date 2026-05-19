@@ -49,7 +49,7 @@ v1.2.0에서 도입되어 v1.3.0에서도 유지되는 product shell은 ERP/운�
 
 ### 1.1 Design token/component inventory
 
-v1.2.0 이후, 현재 v1.4.0까지의 UI 변경은 아래 inventory를 기준으로 합니다.
+v1.2.0 이후, 현재 v1.5.0까지의 UI 변경은 아래 inventory를 기준으로 합니다.
 새 색상, radius, spacing, shadow, table row, detail panel, client tile을 추가하기 전에
 먼저 같은 계층의 기존 token/class/helper로 표현할 수 있는지 확인합니다.
 
@@ -513,6 +513,12 @@ UI/API 응답에 노출하지 않습니다.
   변경 이력 패널은 검색, 작업자/사용자/대상/action/기간 필터,
   offset 기반 이전/다음 페이지, JSON/CSV export, Diff JSON export,
   전/후 diff 상세 모달을 공통으로 제공합니다.
+  v1.5.0 `Audit export review hardening` 이후 룰 감사 항목은 Tracker/Re-ID
+  전/후 설정과 model/fallback status-only 값을 review chip으로 표시합니다.
+  model/source material, source URL/URI/file, model path/checksum/provenance,
+  raw media/crop/embedding은 서버 조회와 JSON/CSV/Diff JSON export, 브라우저
+  fallback cache에서 `[redacted]`로 유지합니다.
+  이 경계는 `verify-v150-audit-export-review-hardening`으로 확인합니다.
   채널/사용자 변경 이력 필터는 작은 화면에서 table/action 영역을
   침범하지 않는 별도 responsive contract입니다. 320/390px 기준으로
   시작/종료 input은 `min-width: 0` 흐름 안에서 한 줄 또는 다음 줄로
@@ -1339,6 +1345,11 @@ Event Records는 자동 polling하지 않습니다.
 
 tracking issue report와 close-object diagnostics를 분리해 봅니다.
 이 영역은 진단 비중이 높아 대표 제품 화면보다는 운영/분석 보조 자료에 가깝습니다.
+tracker warning next-action은 warning을 `사용자 opt-in 튜닝 참고`로 표시하고
+default-on 근거가 아닙니다 라는 경계를 유지합니다. 운영자는 issue type,
+class, track, association/overlap/missed/direction metric을 본 뒤 `/ops/rules`에서
+룰 단위 Tracker/Re-ID 조합, geometry/FPS를 비교하거나 source frame continuity,
+FPS, lost-buffer 조건을 먼저 확인합니다.
 
 표시 항목:
 
