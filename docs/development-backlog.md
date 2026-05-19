@@ -1241,12 +1241,81 @@ actual OC-SORT algorithm adapter and dataset benchmark report, runtime/model bun
 RC policy, ONVIF field smoke evidence reconciliation, release evidence dashboard
 cleanup은 v1.5.0 잔여가 아니라 별도 Phase gate입니다.
 
+## v1.6.0 Stabilization Close-out
+
+v1.6.0은 새 제품 기능을 여는 minor release가 아니라, v1.5.0까지 닫은 현재 기능을
+다음 기능 개발 사이클 전에 안정화하고 release-grade 증적, verifier, 문서 경계를
+정리하는 stabilization release입니다. 기능 방향은 v1.7.0부터 다시 결정합니다.
+
+기본 원칙:
+
+- v1.5.0까지 구현된 live-only/source-only 제품 범위와 rule-level tracker/Re-ID
+  opt-in 경계를 유지합니다.
+- 새 runtime tracker, Re-ID default-on, tracker default-on, recorder/VMS/NVR,
+  model/runtime/binary bundle release를 열지 않습니다.
+- 현재 기능의 smoke, release evidence, docs drift, client/viewer debug 비노출,
+  audit/export masking, field evidence boundary를 안정화합니다.
+- 실제 field evidence, model bundle, tracker benchmark는 제품 승격 근거가 아니라
+  review gate와 report boundary로만 정리합니다.
+- v1.7.0 기능 후보는 이 문서에서 확정하지 않습니다. v1.6.0은 후보를 정리하더라도
+  implementation roadmap으로 승격하지 않습니다.
+
+공통 완료 조건:
+
+- 현재 기능 기준 release metadata, README, versioning, release policy, backlog,
+  English docs 사이에 drift가 없어야 합니다.
+- client/viewer 화면과 API 응답에서 source URL, raw JSON, debug counter,
+  credential/auth/session material, model path/checksum/provenance, crop, embedding이
+  노출되지 않아야 합니다.
+- 장시간 soak, 실장비 field smoke, YouTube real URL relay, 외부 TURN/WHEP credential
+  운영 검증은 실행한 경우에만 pass로 기록하고, 미실행이면 release evidence에서
+  명확히 분리합니다.
+- Event POST, WebRTC DataChannel, SSE/WS metadata schema, RTSP/WebRTC media path,
+  auth/session contract는 별도 review 없이는 변경하지 않습니다.
+- 각 항목은 해당 verifier와 `git diff --check` 통과 후에만 완료로 처리합니다.
+
+| ID | 우선순위 | 영역 | 목표 | 예상 검증 |
+| --- | --- | --- | --- | --- |
+| V160-P0-01 | P0 | Release evidence dashboard cleanup | v1.5.0까지 흩어진 release 증적, verifier report, 미실행 항목, PR/Actions 결과를 한곳에서 추적 가능하게 정리합니다. | `verify-docs-links`, release evidence checks, `git diff --check` |
+| V160-P0-02 | P0 | Stability verification gate cleanup | 현재 기능 기준 smoke 묶음을 정리하고 flaky, 중복, 미사용 verifier를 분리합니다. 실패/미실행 항목을 release pass처럼 보이지 않게 합니다. | `verify-script-inventory`, 주요 smoke suite, `git diff --check` |
+| V160-P0-03 | P0 | Client/Ops debug exposure regression guard | viewer/client에 source URL, raw JSON, debug counter, rule/profile editor, model/source/auth material이 노출되지 않도록 회귀 guard를 강화합니다. | `verify-ops-client-ui`, `verify-auth-routes`, client redaction checks |
+| V160-P0-04 | P0 | Tracker/Re-ID opt-in stabilization close-out | rule-level tracker/Re-ID opt-in, warning, fallback, privacy guard를 default-off 안정화 상태로 닫고 default-on 승격과 분리합니다. | `verify-v150-follow-up-closure`, tracker/Re-ID stability matrix verifier |
+| V160-P1-01 | P1 | ONVIF field smoke evidence reconciliation | 실장비 성공 보장이 아니라 field smoke summary/report/history boundary와 release evidence 연결 기준을 정리합니다. | field smoke summary verifier, docs guard |
+| V160-P1-02 | P1 | Audit/export masking regression hardening | audit 조회, CSV/JSON/Diff export에서 model/source/auth/raw material masking 회귀를 막습니다. | audit export verifier, `verify-ops-audit-trail` |
+| V160-P1-03 | P1 | Runtime/model bundle RC policy | v1.6.0에는 bundle을 포함하지 않고, 향후 RC에서 model/runtime을 올릴 수 있는 조건과 차단 기준만 확정합니다. | provenance/fallback verifier, privacy verifier, bundle policy checks |
+| V160-P1-04 | P1 | Manual UI release checklist closure | `/setup`, `/login`, `/ops`, `/client` 주요 화면 수동 검수 템플릿과 evidence 경계를 현재 기능 기준으로 정리합니다. | manual UI checklist, screenshots when run, `verify-docs-ui-assets` |
+| V160-P2-01 | P2 | Public docs consistency polish | README, versioning, release policy, backlog, English docs 사이의 현재 기능/비범위 표현을 정리합니다. | `verify-release-metadata`, `verify-docs-links`, `git diff --check` |
+| V160-P2-02 | P2 | Tracker benchmark harness planning only | OC-SORT 등 실제 adapter 비교는 v1.7.0 이후 기능 후보로 넘기고, v1.6.0에서는 harness 요구사항과 비승격 경계만 정리합니다. | docs guard, no runtime adapter change, `git diff --check` |
+
+### v1.6.0 비범위
+
+- 새 제품 기능 추가
+- Re-ID default-on 또는 tracker default-on
+- OC-SORT, BoT-SORT, DeepSORT runtime tracker 승격
+- 실제 Re-ID model/runtime/binary bundle release
+- 장기 녹화, MP4 recorder, VMS/NVR archive, playback/search
+- ONVIF Profile G recording/replay
+- YouTube 운영 기능 승격 또는 실제 URL relay 성공 보장
+- Event POST, WebRTC DataChannel, SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 또는 media pipeline blocking 정책 변경
+
+### v1.6.0 완료 기준
+
+v1.6.0은 기능 확장보다 현재 기능 마무리를 완료 기준으로 둡니다.
+
+- v1.5.0까지의 기능/문서/검증 drift 정리
+- 현재 기능 smoke와 release evidence guard 안정화
+- 미실행 장시간/실장비/외부 credential 검증의 release note 분리
+- client/viewer debug/source/raw/model/auth material 비노출 회귀 방지
+- Tracker/Re-ID opt-in을 default-off 안정화 상태로 닫기
+- v1.7.0 기능 후보를 확정 roadmap으로 쓰지 않고 별도 후보 목록으로만 유지
+
 ## 별도 Phase 후보
 
-v1.5.0 roadmap에 포함하지 않은 항목은 이후 별도 Phase gate 후보로 남깁니다.
-각 후보는 source-only/live-only 경계, schema/media-path review, privacy/redaction
-review, release/field/manual approval gate를 통과할 때만 명시적 opt-in 기능이나
-배포 범위 검토로 연결합니다.
+v1.6.0 stabilization 이후에도 기능 개발로 확정하지 않은 항목은 v1.7.0 이후 별도
+Phase gate 후보로 남깁니다. 각 후보는 source-only/live-only 경계,
+schema/media-path review, privacy/redaction review, release/field/manual approval
+gate를 통과할 때만 명시적 opt-in 기능이나 배포 범위 검토로 연결합니다.
 
 - field sample history review workflow
 - tracker experimental benchmark harness

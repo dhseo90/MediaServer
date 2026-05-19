@@ -18,7 +18,7 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 | BoT-SORT/DeepSORT research boundary | [../bot-sort-deepsort-research-boundary.md](../bot-sort-deepsort-research-boundary.md) |
 | Close-object report archive policy | [../close-object-report-archive-policy.md](../close-object-report-archive-policy.md) |
 | Integrator contract artifact | [../integrator-contract-artifact.md](../integrator-contract-artifact.md) |
-| Current product boundary, v1.5.0 close-out, and separate phase candidates | [../development-backlog.md](../development-backlog.md) |
+| Current product boundary, v1.5.0 close-out, v1.6.0 stabilization roadmap, and separate phase candidates | [../development-backlog.md](../development-backlog.md) |
 | Historical v1.2.1 follow-up closure | [../v1.2.1-follow-up-closure.md](../v1.2.1-follow-up-closure.md) |
 | v1.3.0 follow-up closure | [../v1.3.0-follow-up-closure.md](../v1.3.0-follow-up-closure.md) |
 | v1.4.0 follow-up closure | [../v1.4.0-follow-up-closure.md](../v1.4.0-follow-up-closure.md) |

@@ -101,7 +101,7 @@ See [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) for f
 | OC-SORT benchmark/sandbox boundary | [docs/oc-sort-benchmark-boundary.md](docs/oc-sort-benchmark-boundary.md) |
 | BoT-SORT/DeepSORT research boundary | [docs/bot-sort-deepsort-research-boundary.md](docs/bot-sort-deepsort-research-boundary.md) |
 | Integrator Event/WebRTC/SSE/WS sample bundle | [docs/integrator-contract-artifact.md](docs/integrator-contract-artifact.md) |
-| Current product boundary, v1.5.0 close-out, and separate phase candidates | [docs/development-backlog.md](docs/development-backlog.md) |
+| Current product boundary, v1.5.0 close-out, v1.6.0 stabilization roadmap, and separate phase candidates | [docs/development-backlog.md](docs/development-backlog.md) |
 | Historical v1.2.1 follow-up closure | [docs/v1.2.1-follow-up-closure.md](docs/v1.2.1-follow-up-closure.md) |
 | v1.3.0 follow-up closure | [docs/v1.3.0-follow-up-closure.md](docs/v1.3.0-follow-up-closure.md) |
 | v1.4.0 follow-up closure | [docs/v1.4.0-follow-up-closure.md](docs/v1.4.0-follow-up-closure.md) |
