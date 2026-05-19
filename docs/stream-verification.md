@@ -912,6 +912,10 @@ count, mean, stdev, variance, min, max를 표시합니다.
   경계를 고정합니다. 이 guard는 missing/invalid/mismatched model을 NoOp fallback으로
   닫고, privacy/retention approval을 제품 default-on 승인이나 model bundle 승인으로
   해석하지 않습니다.
+- v1.5.0 Ops Dashboard tracker warning next-action은
+  `verify-v150-ops-tracker-warning-next-action`으로 UI copy, tracker warning fixture
+  smoke, docs 경계를 고정합니다. 이 guard는 warning을 사용자 opt-in 튜닝 참고와
+  다음 조치로 표시하되 default-on 근거가 아닙니다 라는 해석을 확인합니다.
 
 비교 리포트 해석:
 
@@ -931,6 +935,7 @@ count, mean, stdev, variance, min, max를 표시합니다.
 ./server.sh verify-v150-opt-in-tracking-policy
 ./server.sh verify-v150-tracker-reid-stability-matrix
 ./server.sh verify-v150-reid-provenance-fallback-approval
+./server.sh verify-v150-ops-tracker-warning-next-action
 ./server.sh verify-reid-advanced-tracking
 ./server.sh verify-tracker-stability --long --overlap-focus
 ./server.sh verify-va-replay

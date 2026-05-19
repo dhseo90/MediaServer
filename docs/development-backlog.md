@@ -974,6 +974,62 @@ gate입니다. 목표는 missing/invalid/mismatched model을 제품 오류나 me
 - Re-ID privacy retention guard와 runtime/model bundle RC policy
 - OC-SORT/BoT-SORT/DeepSORT algorithm adapter 또는 benchmark report
 
+### V150-P1-01 Ops Dashboard tracker warning next-action refinement 정리 기준
+
+`Ops Dashboard tracker warning next-action refinement`는 Runtime Operations
+Readout과 Tracking Issues 영역에서 tracker/Re-ID warning을 제품 기본값 승격
+근거가 아니라 사용자 opt-in 튜닝 참고로 읽게 하는 UI 안정화 작업입니다. 목표는
+운영자가 다음 조치를 고를 수 있게 type/class/track,
+association/overlap/missed/direction 값을 보여주되, 새 backend API나 metadata
+schema를 추가하지 않는 것입니다.
+
+확인됨:
+
+- Runtime Operations Readout의 TrackHealth next action은 type/class/track을
+  먼저 확인하고 `/ops/rules`에서 선택 룰의 Tracker/Re-ID opt-in 조합, geometry,
+  입력 FPS를 함께 조정하라고 안내합니다. 이 warning은 default-on 근거가 아닙니다.
+- Tracking Issues 그룹은 issue type, track list, class, association, overlap,
+  missed, direction count, 선택 tap의 trackingPolicy를 함께 보여주고
+  `사용자 opt-in 튜닝 참고 · default-on 근거 아님` 경계를 표시합니다.
+- issue type별 next action은 overlap-risk, missed/lost/reacquired,
+  direction/association instability를 나누어 `/ops/rules` 튜닝, source frame
+  continuity, FPS, lost-buffer, 룰 단위 Tracker/Re-ID 조합 비교로 연결합니다.
+- `test/fixtures/v150_ops_tracker_warning_next_action.json`은 tracker warning fixture
+  smoke로 유지하며 raw media, source URL, crop, embedding, model path, credential
+  material을 포함하지 않습니다.
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema, RTSP/WebRTC media path,
+  ScenarioEngine 판단 로직, tracker/Re-ID runtime 선택 계약은 변경하지 않습니다.
+
+검증 기준:
+
+- `./server.sh build`
+- `./server.sh verify-v150-ops-tracker-warning-next-action`
+- `./server.sh verify-ops-root-cause-panel`
+- `./server.sh verify-ops-client-ui --screenshots`
+- `./server.sh verify-va-runtime-console`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- V150-P1-02 Audit export review hardening
+- V150-P1-03 Field smoke summary evidence boundary
+- V150-P2-01 OC-SORT experimental sandbox
+- audit export 응답/마스킹 UX 강화, field smoke summary evidence 절차 정리
+- tracker/Re-ID global/default-on, Re-ID default-on, tracker default-on, 기존
+  rule/source/profile 자동 migration
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경 또는 media pipeline blocking 정책 변경
+
+후속 분류:
+
+- 미분류 P0~P1 후속 이슈: 없음. 이번 항목에서 발견한 P1 빈칸은 Dashboard
+  next-action copy, tracker warning fixture smoke, 전용 verifier로 닫습니다.
+- V150-P1-02와 V150-P1-03은 같은 v1.5.0 minor roadmap의 별도 항목이므로 이
+  작업에서 구현 완료로 판정하지 않습니다.
+- P2 이상 OC-SORT sandbox, tracker experimental benchmark harness, field sample
+  history review workflow는 아래 별도 Phase 후보이며 V150-P1-01의 즉시 후속으로
+  끌어오지 않습니다.
+
 v1.5.0 비범위:
 
 - tracker/Re-ID global default-on 또는 제품 기본값 변경

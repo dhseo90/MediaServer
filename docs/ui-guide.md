@@ -1339,6 +1339,11 @@ Event Records는 자동 polling하지 않습니다.
 
 tracking issue report와 close-object diagnostics를 분리해 봅니다.
 이 영역은 진단 비중이 높아 대표 제품 화면보다는 운영/분석 보조 자료에 가깝습니다.
+tracker warning next-action은 warning을 `사용자 opt-in 튜닝 참고`로 표시하고
+default-on 근거가 아닙니다 라는 경계를 유지합니다. 운영자는 issue type,
+class, track, association/overlap/missed/direction metric을 본 뒤 `/ops/rules`에서
+룰 단위 Tracker/Re-ID 조합, geometry/FPS를 비교하거나 source frame continuity,
+FPS, lost-buffer 조건을 먼저 확인합니다.
 
 표시 항목:
 

@@ -571,6 +571,12 @@ issue `message`는 raw counter 나열이 아니라 운영자가 다음 확인 �
 Ops Dashboard의 트래킹 이슈 그룹은 issue type, track list, class, association,
 overlap, missed, direction count와 샘플 message를 함께 보여줍니다. warning은
 관찰 대상이며 제품 default-on 근거가 아니라는 문구를 같이 표시합니다.
+v1.5.0 tracker warning next-action refinement 이후 이 영역은 선택 tap의
+Tracker/Re-ID policy도 함께 읽고 `사용자 opt-in 튜닝 참고`로 표시합니다.
+next action은 overlap-risk, missed/lost/reacquired, direction/association
+instability를 나누어 `/ops/rules`의 룰 단위 Tracker/Re-ID 조합, geometry/FPS,
+source frame continuity, FPS, lost-buffer 확인으로 연결하며 default-on 근거가
+아닙니다.
 
 Close-object association 문제를 볼 때 함께 보는 값:
 

@@ -118,7 +118,6 @@ check("in-scope Ops dashboard warning summary is implemented", () => {
   for (const snippet of [
     "trackingIssueGroupSummary",
     "trackingIssueMetric",
-    "관찰 warning · default-on 근거 아님",
     "associationConfidence",
     "overlapRisk",
     "missedFrameCount",
@@ -126,6 +125,11 @@ check("in-scope Ops dashboard warning summary is implemented", () => {
   ]) {
     assertIncludes(dashboard, snippet, "Ops dashboard warning summary");
   }
+  assert(
+    dashboard.includes("관찰 warning · default-on 근거 아님") ||
+      dashboard.includes("사용자 opt-in 튜닝 참고 · default-on 근거 아님"),
+    "Ops dashboard warning summary missing default-on boundary copy"
+  );
   assertIncludes(translations, "Observation warning · not default-on evidence", "translation map");
   assertIncludes(video, "Ops Dashboard의 트래킹 이슈 그룹", "video analysis docs");
 });

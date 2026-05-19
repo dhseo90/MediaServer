@@ -216,6 +216,8 @@ Usage:
                  v1.5.0 Tracker/Re-ID stability matrix와 warning/default-on 경계를 검증합니다.
   verify-v150-reid-provenance-fallback-approval
                  v1.5.0 Re-ID model provenance/checksum/privacy/fallback approval 경계를 검증합니다.
+  verify-v150-ops-tracker-warning-next-action
+                 v1.5.0 Ops Dashboard tracker warning next-action과 default-on 비승격 경계를 검증합니다.
   verify-server-start-modes
                  foreground/start 실행 모드의 health, route, state file 안정성을 검증합니다.
   verify-auth-bootstrap
@@ -756,6 +758,10 @@ case "${cmd}" in
   verify-v150-reid-provenance-fallback-approval)
     require_internal verify_v150_reid_provenance_fallback_approval.mjs
     exec "${INTERNAL_DIR}/verify_v150_reid_provenance_fallback_approval.mjs" "$@"
+    ;;
+  verify-v150-ops-tracker-warning-next-action)
+    require_internal verify_v150_ops_tracker_warning_next_action.mjs
+    exec "${INTERNAL_DIR}/verify_v150_ops_tracker_warning_next_action.mjs" "$@"
     ;;
   verify-server-start-modes)
     require_internal verify_server_start_modes.sh
