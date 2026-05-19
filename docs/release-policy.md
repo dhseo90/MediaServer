@@ -61,6 +61,10 @@ artifact로 업로드합니다. 같은 release 준비 흐름에서
 future tag, push, GitHub Release, accepted baseline 채택, 320/390/760/1180px
 screenshot review는 리포트에 manual/not-run으로 남기며, 실제 실행 및 링크가
 없는 항목을 pass로 쓰지 않습니다.
+v1.6.0 stabilization release에서는
+[v1.6.0 Release Evidence Dashboard](./v1.6.0-release-evidence-dashboard.md)와
+`./server.sh verify-v160-release-evidence-dashboard`로 release evidence의
+확인됨/미실행/미확인 상태를 분리합니다.
 
 ## Tag 전략
 

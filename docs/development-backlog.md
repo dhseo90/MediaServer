@@ -1287,6 +1287,52 @@ v1.6.0은 새 제품 기능을 여는 minor release가 아니라, v1.5.0까지 �
 | V160-P2-01 | P2 | Public docs consistency polish | README, versioning, release policy, backlog, English docs 사이의 현재 기능/비범위 표현을 정리합니다. | `verify-release-metadata`, `verify-docs-links`, `git diff --check` |
 | V160-P2-02 | P2 | Tracker benchmark harness planning only | OC-SORT 등 실제 adapter 비교는 v1.7.0 이후 기능 후보로 넘기고, v1.6.0에서는 harness 요구사항과 비승격 경계만 정리합니다. | docs guard, no runtime adapter change, `git diff --check` |
 
+### V160-P0-01 Release evidence dashboard cleanup 정리 기준
+
+`Release evidence dashboard cleanup`은 v1.5.0까지 흩어진 release 증적, verifier
+report, PR/Actions 결과, 미실행 항목을 [v1.6.0 Release Evidence Dashboard](./v1.6.0-release-evidence-dashboard.md)
+한곳에서 추적하게 만드는 안정화 작업입니다. 목표는 실제 실행한 검증과
+장시간/실장비/외부 credential/Actions 미확인 항목을 release pass처럼 섞어 쓰지
+않는 것입니다.
+
+확인됨:
+
+- release evidence는 `확인됨`, `미실행`, `미확인`을 분리해 기록합니다.
+- 장시간 soak, `verify-predev`, ONVIF 실장비 field smoke, YouTube real URL relay,
+  외부 TURN/WHEP credential 운영 검증은 실행한 경우에만 pass로 기록하고,
+  미실행이면 `NOT RUN`으로 유지합니다.
+- PR/Actions, tag, push, GitHub Release는 로컬 검증과 분리하고 링크가 없으면
+  `UNVERIFIED`로 남깁니다.
+- evidence dashboard에는 source URL, credential, auth/session material, raw media,
+  raw diagnostic JSON, crop, embedding, model path/checksum/provenance를 포함하지
+  않습니다.
+
+검증 기준:
+
+- `./server.sh verify-v160-release-evidence-dashboard`
+- `./server.sh verify-docs-links`
+- `./server.sh verify-script-inventory`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- V160-P0-02 Stability verification gate cleanup
+- V160-P0-03 Client/Ops debug exposure regression guard
+- V160-P0-04 Tracker/Re-ID opt-in stabilization close-out
+- V160-P1-01~V160-P1-04, V160-P2-01~V160-P2-02
+- 새 제품 기능, 장시간 테스트 실행, 실장비 field smoke 성공 보장, tag/push/GitHub
+  Release 생성
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경 또는 media pipeline blocking 정책 변경
+
+후속 분류:
+
+- 미분류 P0~P1 후속 이슈: 없음. 이번 항목에서 발견한 release evidence drift
+  위험은 dashboard 문서와 verifier로 닫습니다.
+- 같은 P0 안정화 페이즈의 V160-P0-02~V160-P0-04는 별도 순서 항목이므로 이 작업에서
+  완료로 판정하지 않습니다.
+- P1/P2 및 별도 Phase 후보는 V160-P0-01의 즉시 후속 이슈로 끌어오지 않습니다.
+
 ### v1.6.0 비범위
 
 - 새 제품 기능 추가

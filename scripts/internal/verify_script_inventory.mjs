@@ -81,6 +81,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_v150_audit_export_review_hardening.mjs",
     "verify_v150_field_smoke_summary_evidence_boundary.mjs",
     "verify_v150_oc_sort_experimental_sandbox.mjs",
+    "verify_v160_release_evidence_dashboard.mjs",
     "verify_actions_security.mjs",
     "verify_release_bundle_dry_run.mjs",
     "verify_reid_advanced_tracking_experiment.mjs",

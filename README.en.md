@@ -11,6 +11,10 @@ Latest source-only release: [v1.5.0](https://github.com/dhseo90/MediaServer/rele
 The v1.5.0 source-only minor close-out and tracker/Re-ID opt-in stabilization follow-up closure are tracked separately in
 [docs/development-backlog.md](docs/development-backlog.md) and
 [docs/v1.5.0-follow-up-closure.md](docs/v1.5.0-follow-up-closure.md).
+The v1.6.0 stabilization release evidence dashboard separates confirmed,
+not-run, and unverified checks in
+[docs/v1.6.0-release-evidence-dashboard.md](docs/v1.6.0-release-evidence-dashboard.md);
+verify it with `./server.sh verify-v160-release-evidence-dashboard`.
 
 ## At a Glance
 
@@ -106,6 +110,7 @@ See [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) for f
 | v1.3.0 follow-up closure | [docs/v1.3.0-follow-up-closure.md](docs/v1.3.0-follow-up-closure.md) |
 | v1.4.0 follow-up closure | [docs/v1.4.0-follow-up-closure.md](docs/v1.4.0-follow-up-closure.md) |
 | v1.5.0 follow-up closure | [docs/v1.5.0-follow-up-closure.md](docs/v1.5.0-follow-up-closure.md) |
+| v1.6.0 release evidence dashboard | [docs/v1.6.0-release-evidence-dashboard.md](docs/v1.6.0-release-evidence-dashboard.md) |
 | Verification commands and release checks | [docs/stream-verification.md](docs/stream-verification.md) |
 | Bundle/container/runtime distribution policy | [docs/distribution-policy.md](docs/distribution-policy.md) |
 | Release scope and tag strategy | [docs/release-policy.md](docs/release-policy.md) |

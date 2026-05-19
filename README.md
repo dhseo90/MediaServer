@@ -15,6 +15,10 @@ English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en
 v1.5.0 source-only minor close-out과 tracker/Re-ID opt-in 안정화 후속 종료 판정은
 [docs/development-backlog.md](docs/development-backlog.md)와
 [docs/v1.5.0-follow-up-closure.md](docs/v1.5.0-follow-up-closure.md)에 분리해 기록합니다.
+v1.6.0 stabilization release evidence는
+[docs/v1.6.0-release-evidence-dashboard.md](docs/v1.6.0-release-evidence-dashboard.md)와
+`./server.sh verify-v160-release-evidence-dashboard`로 확인됨/미실행/미확인을
+분리합니다.
 
 ## 한눈에 보기
 
@@ -135,6 +139,7 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | v1.3.0 후속 종료 판정 | [docs/v1.3.0-follow-up-closure.md](docs/v1.3.0-follow-up-closure.md) |
 | v1.4.0 후속 종료 판정 | [docs/v1.4.0-follow-up-closure.md](docs/v1.4.0-follow-up-closure.md) |
 | v1.5.0 후속 종료 판정 | [docs/v1.5.0-follow-up-closure.md](docs/v1.5.0-follow-up-closure.md) |
+| v1.6.0 release evidence dashboard | [docs/v1.6.0-release-evidence-dashboard.md](docs/v1.6.0-release-evidence-dashboard.md) |
 | YouTube import/source 실험 기능 | [docs/youtube-import.md](docs/youtube-import.md) |
 
 ## 대표 UI 미리보기

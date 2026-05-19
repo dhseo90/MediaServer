@@ -81,6 +81,14 @@ v1.4.0 tracker/Re-ID opt-in 이후 남은 후속 항목 분류와 종료 판정�
 [v1.4.0 Follow-up Closure](./v1.4.0-follow-up-closure.md)를 기준으로 확인합니다.
 v1.5.0 Tracker/Re-ID opt-in 안정화 이후 남은 후속 항목 분류와 종료 판정은
 [v1.5.0 Follow-up Closure](./v1.5.0-follow-up-closure.md)를 기준으로 확인합니다.
+v1.6.0 stabilization release evidence는
+[v1.6.0 Release Evidence Dashboard](./v1.6.0-release-evidence-dashboard.md)를
+기준으로 확인하며, 실행한 검증과 미실행 장시간/실장비/외부 credential gate를
+분리합니다.
+
+```bash
+./server.sh verify-v160-release-evidence-dashboard
+```
 
 위 전용 기준은 느린 기본 추가 RTSP/WebRTC source 영상, codec matrix, multichannel media soak를 사용하지 않습니다.
 기본 smoke와 longrun gate가 섞이지 않았는지는 다음 명령으로 정적으로 확인합니다.
