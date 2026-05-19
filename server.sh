@@ -238,6 +238,8 @@ Usage:
                  v1.6.0 ONVIF field smoke evidence의 미실행/미확인/redaction 경계를 검증합니다.
   verify-v160-audit-export-masking-regression-hardening
                  v1.6.0 audit 조회/export의 source/model/auth/raw material masking guard를 검증합니다.
+  verify-v160-runtime-model-bundle-rc-policy
+                 v1.6.0 runtime/model bundle 미포함 기본값과 RC 승인 조건을 검증합니다.
   verify-server-start-modes
                  foreground/start 실행 모드의 health, route, state file 안정성을 검증합니다.
   verify-auth-bootstrap
@@ -822,6 +824,10 @@ case "${cmd}" in
   verify-v160-audit-export-masking-regression-hardening)
     require_internal verify_v160_audit_export_masking_regression_hardening.mjs
     exec "${INTERNAL_DIR}/verify_v160_audit_export_masking_regression_hardening.mjs" "$@"
+    ;;
+  verify-v160-runtime-model-bundle-rc-policy)
+    require_internal verify_v160_runtime_model_bundle_rc_policy.mjs
+    exec "${INTERNAL_DIR}/verify_v160_runtime_model_bundle_rc_policy.mjs" "$@"
     ;;
   verify-server-start-modes)
     require_internal verify_server_start_modes.sh

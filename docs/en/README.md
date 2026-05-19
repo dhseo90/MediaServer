@@ -25,6 +25,7 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 | v1.6.0 tracker/Re-ID opt-in close-out and `verify-v160-tracker-reid-opt-in-closeout` default-off guard | [../v1.6.0-tracker-reid-opt-in-closeout.md](../v1.6.0-tracker-reid-opt-in-closeout.md) |
 | v1.6.0 ONVIF field smoke evidence reconciliation and `verify-v160-onvif-field-smoke-evidence-reconciliation` not-run/redaction guard | [../v1.6.0-onvif-field-smoke-evidence-reconciliation.md](../v1.6.0-onvif-field-smoke-evidence-reconciliation.md) |
 | v1.6.0 audit/export masking regression hardening and `verify-v160-audit-export-masking-regression-hardening` export redaction guard | [../v1.6.0-audit-export-masking-regression-hardening.md](../v1.6.0-audit-export-masking-regression-hardening.md) |
+| v1.6.0 runtime/model bundle RC policy and `verify-v160-runtime-model-bundle-rc-policy` default-exclusion guard | [../v1.6.0-runtime-model-bundle-rc-policy.md](../v1.6.0-runtime-model-bundle-rc-policy.md) |
 | Historical v1.2.1 follow-up closure | [../v1.2.1-follow-up-closure.md](../v1.2.1-follow-up-closure.md) |
 | v1.3.0 follow-up closure | [../v1.3.0-follow-up-closure.md](../v1.3.0-follow-up-closure.md) |
 | v1.4.0 follow-up closure | [../v1.4.0-follow-up-closure.md](../v1.4.0-follow-up-closure.md) |

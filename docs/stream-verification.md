@@ -93,6 +93,7 @@ v1.6.0 stabilization release evidence는
 ./server.sh verify-v160-tracker-reid-opt-in-closeout
 ./server.sh verify-v160-onvif-field-smoke-evidence-reconciliation
 ./server.sh verify-v160-audit-export-masking-regression-hardening
+./server.sh verify-v160-runtime-model-bundle-rc-policy
 ```
 
 Stability gate 분류는
@@ -120,6 +121,12 @@ Audit/export masking regression hardening은
 [v1.6.0 Audit Export Masking Regression Hardening](./v1.6.0-audit-export-masking-regression-hardening.md)에
 고정합니다. `/ops/api/audit` 조회와 JSON/CSV/Diff JSON export가 source/model/auth/raw
 material을 다시 노출하지 않는지 `verify-v160-audit-export-masking-regression-hardening`로
+확인합니다.
+Runtime/model bundle RC policy는
+[v1.6.0 Runtime/Model Bundle RC Policy](./v1.6.0-runtime-model-bundle-rc-policy.md)에
+고정합니다. v1.6.0 기본 release에 ONNX Runtime package나 YOLO/Re-ID/model binary를
+포함하지 않고, 향후 별도 RC의 bundle policy, source offer, model provenance,
+privacy/redaction review 조건만 `verify-v160-runtime-model-bundle-rc-policy`로
 확인합니다.
 
 위 전용 기준은 느린 기본 추가 RTSP/WebRTC source 영상, codec matrix, multichannel media soak를 사용하지 않습니다.

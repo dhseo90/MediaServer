@@ -73,6 +73,10 @@ Audit/export masking evidence는
 [v1.6.0 Audit Export Masking Regression Hardening](./v1.6.0-audit-export-masking-regression-hardening.md)와
 `./server.sh verify-v160-audit-export-masking-regression-hardening` 기준으로
 JSON/CSV/Diff JSON export의 source/model/auth/raw material 비노출을 확인합니다.
+Runtime/model bundle RC policy는
+[v1.6.0 Runtime/Model Bundle RC Policy](./v1.6.0-runtime-model-bundle-rc-policy.md)와
+`./server.sh verify-v160-runtime-model-bundle-rc-policy` 기준으로 기본 release
+미포함 경계와 향후 RC 승인 조건을 분리합니다.
 
 ## Tag 전략
 

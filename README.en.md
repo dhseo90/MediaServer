@@ -34,6 +34,10 @@ The v1.6.0 audit/export masking regression guard keeps source, model, auth, and
 raw material out of audit query and JSON/CSV/Diff JSON exports in
 [docs/v1.6.0-audit-export-masking-regression-hardening.md](docs/v1.6.0-audit-export-masking-regression-hardening.md);
 verify it with `./server.sh verify-v160-audit-export-masking-regression-hardening`.
+The v1.6.0 runtime/model bundle RC policy keeps runtime/model bundles out of the
+default release and records future RC approval criteria in
+[docs/v1.6.0-runtime-model-bundle-rc-policy.md](docs/v1.6.0-runtime-model-bundle-rc-policy.md);
+verify it with `./server.sh verify-v160-runtime-model-bundle-rc-policy`.
 
 ## At a Glance
 
@@ -135,6 +139,7 @@ See [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) for f
 | v1.6.0 tracker/Re-ID opt-in close-out | [docs/v1.6.0-tracker-reid-opt-in-closeout.md](docs/v1.6.0-tracker-reid-opt-in-closeout.md) |
 | v1.6.0 ONVIF field smoke evidence reconciliation | [docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md](docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md) |
 | v1.6.0 audit/export masking regression hardening | [docs/v1.6.0-audit-export-masking-regression-hardening.md](docs/v1.6.0-audit-export-masking-regression-hardening.md) |
+| v1.6.0 runtime/model bundle RC policy | [docs/v1.6.0-runtime-model-bundle-rc-policy.md](docs/v1.6.0-runtime-model-bundle-rc-policy.md) |
 | Verification commands and release checks | [docs/stream-verification.md](docs/stream-verification.md) |
 | Bundle/container/runtime distribution policy | [docs/distribution-policy.md](docs/distribution-policy.md) |
 | Release scope and tag strategy | [docs/release-policy.md](docs/release-policy.md) |

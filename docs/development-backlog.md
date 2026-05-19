@@ -1572,6 +1572,55 @@ JSON/CSV/Diff JSON export에서 source/model/auth/raw material이 다시 노출�
   완료로 판정하지 않습니다.
 - P2 및 별도 Phase 후보는 V160-P1-02의 즉시 구현 후속으로 끌어오지 않습니다.
 
+### V160-P1-03 Runtime/model bundle RC policy 정리 기준
+
+`Runtime/model bundle RC policy`는 v1.6.0 기본 release에 runtime/model bundle을
+추가하는 작업이 아니라, 향후 별도 RC에서 포함 배포를 검토할 때 필요한 승인 조건과
+차단 기준을 [v1.6.0 Runtime/Model Bundle RC Policy](./v1.6.0-runtime-model-bundle-rc-policy.md)에
+고정하는 작업입니다.
+
+확인됨:
+
+- v1.6.0 기본 release는 source/doc 중심이며 FFmpeg, FFprobe, libav*, x264/x265,
+  GStreamer GPL-risk plugin, ONNX Runtime package, YOLO/Re-ID/model binary를 release
+  asset에 포함하지 않습니다.
+- Re-ID opt-in model은 model path/checksum/provenance가 명시되고 검증을 통과할 때만
+  runtime 사용 후보가 되며, missing/invalid/mismatched model은 NoOp fallback으로
+  닫습니다.
+- model path/checksum/provenance, crop, embedding, appearance profile은 Event POST,
+  WebRTC DataChannel, SSE/WS metadata, client/viewer surface에 노출하지 않습니다.
+- 향후 runtime/model bundle RC는 `verify-bundle-policy`, `verify-release-bundle-dry-run`,
+  `source-offer-checklist`, upstream license text, attribution, model card/license,
+  checksum manifest, privacy/redaction review를 evidence로 요구합니다.
+- tag, push, GitHub Release, binary upload는 수동 승인 전까지 수행하지 않습니다.
+
+검증 기준:
+
+- `./server.sh verify-v160-runtime-model-bundle-rc-policy`
+- `./server.sh verify-v150-reid-provenance-fallback-approval`
+- `./server.sh verify-bundle-policy`
+- `./server.sh verify-docs-links`
+- `./server.sh verify-script-inventory`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- 실제 runtime/model/binary bundle 생성 또는 release asset 업로드
+- ONNX Runtime package, YOLO/Re-ID/model binary repo 포함
+- V160-P1-04 Manual UI release checklist closure
+- V160-P2-01~V160-P2-02, 별도 Phase 후보
+- Re-ID default-on, tracker default-on, product default tracker 변경
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경 또는 media pipeline blocking 정책 변경
+
+후속 분류:
+
+- 미분류 P0~P1 후속 이슈: 없음. 이번 항목의 runtime/model bundle RC drift 위험은
+  전용 verifier와 기존 Re-ID provenance/fallback, bundle policy guard로 닫습니다.
+- V160-P1-04는 같은 v1.6.0 안정화 페이즈의 별도 항목이므로 이 작업에서 완료로
+  판정하지 않습니다.
+- P2 및 별도 Phase 후보는 V160-P1-03의 즉시 구현 후속으로 끌어오지 않습니다.
+
 ### v1.6.0 비범위
 
 - 새 제품 기능 추가
