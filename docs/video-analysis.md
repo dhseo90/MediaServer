@@ -154,6 +154,8 @@ Re-ID assist는 독립 tracker가 아니라 selected tracker의 association 보�
 해석합니다. `tracker=none`에서는 `reid=assist` 조합을 저장하지 않으며,
 검증 하네스는 `--reid-policy assist`로 임시 vaRule을 만들어 runtime 적용 여부를
 확인할 수 있습니다.
+Re-ID assist는 `tracker` field가 함께 있는 `analysis.trackingPolicy`에서만 유효합니다.
+tracker 없는 `reid=assist`는 저장 검증에서 거부하고 runtime에서도 opt-in으로 해석하지 않습니다.
 
 matching score는 다음 요소를 조합합니다.
 

@@ -680,11 +680,13 @@ std::optional<MatchingProfileRule> FindMatchingRuleProfile(const analysis::Analy
         std::string reid_policy = "off";
         bool has_tracking_policy = false;
         if (const auto policy = TrackingPolicyObjectFromDocument(document, *analysis); policy.has_value()) {
-            tracker_policy =
-                NormalizeTrackerPolicy(FirstStringField(*policy, {"tracker", "trackerPolicy"}).value_or(""));
-            reid_policy = NormalizeReidPolicy(
-                FirstStringField(*policy, {"reid", "reId", "reID", "reidPolicy"}).value_or("off"));
-            has_tracking_policy = !tracker_policy.empty() && !reid_policy.empty();
+            const auto tracker_field = FirstStringField(*policy, {"tracker", "trackerPolicy"});
+            const auto reid_field = FirstStringField(*policy, {"reid", "reId", "reID", "reidPolicy"});
+            if (tracker_field.has_value()) {
+                tracker_policy = NormalizeTrackerPolicy(*tracker_field);
+                reid_policy = NormalizeReidPolicy(reid_field.value_or("off"));
+                has_tracking_policy = !tracker_policy.empty() && !reid_policy.empty();
+            }
         }
         if (profile_id.empty() && !has_tracking_policy) {
             continue;

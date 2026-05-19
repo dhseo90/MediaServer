@@ -897,6 +897,10 @@ count, mean, stdev, variance, min, max를 표시합니다.
 - replay/event 결과가 흔들려도 default on 전환 금지입니다.
 - default on은 여러 fixture와 현장 샘플에서 ID continuity 개선과 event 결과 무변화가 함께 확인된 뒤에만 검토합니다.
 - privacy/default-off gate는 `verify-reid-advanced-tracking`으로 별도 확인합니다.
+- v1.5.0 명시 opt-in guard는 `verify-v150-opt-in-tracking-policy`로 확인합니다.
+  이 검증은 tracker 없는 `reid=assist` fixture를 저장 거부하고, runtime/UI/docs가
+  자동 migration 또는 default-on 승격 근거가 아닙니다 라는 경계를 유지하는지
+  점검합니다.
 
 비교 리포트 해석:
 
@@ -913,6 +917,7 @@ count, mean, stdev, variance, min, max를 표시합니다.
 - threshold tuning 또는 추가 fixture 수집은 새 field/model review가 열릴 때 별도 review로 다룹니다.
 
 ```bash
+./server.sh verify-v150-opt-in-tracking-policy
 ./server.sh verify-reid-advanced-tracking
 ./server.sh verify-tracker-stability --long --overlap-focus
 ./server.sh verify-va-replay

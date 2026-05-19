@@ -683,8 +683,8 @@ bool ValidateTrackingPolicyContract(const std::string& body,
         FirstStringFieldValue(*policy, {"tracker", "trackerPolicy"}).has_value();
     const bool has_reid_field =
         FirstStringFieldValue(*policy, {"reid", "reId", "reID", "reidPolicy"}).has_value();
-    if (!has_tracker_field && !has_reid_field) {
-        set_error(document_label + " analysis.trackingPolicy requires tracker or reid");
+    if (!has_tracker_field) {
+        set_error(document_label + " analysis.trackingPolicy.tracker is required for explicit opt-in policy");
         return false;
     }
     const std::string tracker = NormalizeTrackingPolicyToken(

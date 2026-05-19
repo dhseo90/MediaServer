@@ -210,6 +210,8 @@ Usage:
                  v1.4.0 follow-up closure가 범위 안 후속 이슈를 모두 닫았는지 검증합니다.
   verify-v140-report-archive-policy
                  v1.4.0 close-object report archive가 raw media/image 보존으로 확장되지 않는지 검증합니다.
+  verify-v150-opt-in-tracking-policy
+                 v1.5.0 tracker/Re-ID 명시 opt-in 저장/runtime/UI/docs guard를 검증합니다.
   verify-server-start-modes
                  foreground/start 실행 모드의 health, route, state file 안정성을 검증합니다.
   verify-auth-bootstrap
@@ -738,6 +740,10 @@ case "${cmd}" in
   verify-v140-report-archive-policy)
     require_internal verify_v140_report_archive_policy.mjs
     exec "${INTERNAL_DIR}/verify_v140_report_archive_policy.mjs" "$@"
+    ;;
+  verify-v150-opt-in-tracking-policy)
+    require_internal verify_v150_opt_in_tracking_policy_guard.mjs
+    exec "${INTERNAL_DIR}/verify_v150_opt_in_tracking_policy_guard.mjs" "$@"
     ;;
   verify-server-start-modes)
     require_internal verify_server_start_modes.sh

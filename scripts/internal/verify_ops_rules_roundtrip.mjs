@@ -152,6 +152,21 @@ try {
     }),
   }, "reid must be off when tracker is none");
   console.log("[pass] trackingPolicy validation rejects tracker=none + reid=assist");
+  await assertRequestFails(`/lab/analysis/rules/${encodeURIComponent(ids[4])}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      id: ids[4],
+      enabled: true,
+      ruleKind: "basic",
+      analysis: {
+        classes: ["person"],
+        trackingPolicy: { reid: "assist" },
+      },
+      event: { type: "presence", region: fixtures[0].event.region },
+    }),
+  }, "trackingPolicy.tracker is required for explicit opt-in policy");
+  console.log("[pass] trackingPolicy validation rejects reid=assist without explicit tracker");
   console.log("[pass] ops-rules-roundtrip");
 } finally {
   for (const id of created.reverse()) {

@@ -3836,10 +3836,15 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (token === 'assist' || token === 'association-assist' || token === 'reid-assist') return 'assist';
         return 'off';
       }
+      function opsRulesTrackingPolicyHasExplicitTracker(policy = {}) {
+        return Object.prototype.hasOwnProperty.call(policy, 'tracker') ||
+          Object.prototype.hasOwnProperty.call(policy, 'trackerPolicy');
+      }
       function opsRulesTrackingPolicyFromItem(item = {}) {
         const policy = item?.analysis?.trackingPolicy || item?.trackingPolicy || {};
-        const tracker = opsRulesNormalizeTrackerPolicy(policy.tracker || policy.trackerPolicy || '');
-        const reid = tracker === 'none'
+        const hasTracker = opsRulesTrackingPolicyHasExplicitTracker(policy);
+        const tracker = hasTracker ? opsRulesNormalizeTrackerPolicy(policy.tracker || policy.trackerPolicy || '') : 'lite';
+        const reid = !hasTracker || tracker === 'none'
           ? 'off'
           : opsRulesNormalizeReidPolicy(policy.reid || policy.reId || policy.reID || policy.reidPolicy || '');
         return { tracker, reid };
@@ -5914,8 +5919,12 @@ void AppendOpsShellScript(std::ostringstream& out,
             issues.push(opsRulesIssue('view-rule-not-allowed', `va-rule:${id}`, `PublishedView 허용 룰 목록에 ${id}가 없습니다.`, '채널 탭에서 defaultRuleId/allowedRuleIds를 맞추거나 룰을 다시 연결하세요.'));
           }
           const rawPolicy = rule?.analysis?.trackingPolicy || {};
-          if (opsRulesNormalizeTrackerPolicy(rawPolicy.tracker || rawPolicy.trackerPolicy || '') === 'none' &&
-              opsRulesNormalizeReidPolicy(rawPolicy.reid || rawPolicy.reId || rawPolicy.reID || rawPolicy.reidPolicy || '') !== 'off') {
+          const rawPolicyHasTracker = opsRulesTrackingPolicyHasExplicitTracker(rawPolicy);
+          const rawTracker = rawPolicyHasTracker ? opsRulesNormalizeTrackerPolicy(rawPolicy.tracker || rawPolicy.trackerPolicy || '') : 'lite';
+          const rawReid = opsRulesNormalizeReidPolicy(rawPolicy.reid || rawPolicy.reId || rawPolicy.reID || rawPolicy.reidPolicy || '');
+          if (!rawPolicyHasTracker && rawReid !== 'off') {
+            issues.push(opsRulesIssue('tracking-policy-conflict', `va-rule:${id}`, `채널 분석 설정 ${id}의 Re-ID 조합이 유효하지 않습니다.`, 'Re-ID assist는 명시적으로 선택한 Tracker와 함께 저장해야 합니다.'));
+          } else if (rawTracker === 'none' && rawReid !== 'off') {
             issues.push(opsRulesIssue('tracking-policy-conflict', `va-rule:${id}`, `채널 분석 설정 ${id}의 Re-ID 조합이 유효하지 않습니다.`, 'Tracker를 사용 안 함으로 선택하면 Re-ID는 off여야 합니다.'));
           }
           for (const message of opsRulesClassConflictMessages(rule, template, profile)) {
@@ -6005,8 +6014,12 @@ void AppendOpsShellScript(std::ostringstream& out,
             issues.push('선택한 채널 source와 룰 source가 일치하지 않습니다.');
           }
           const policy = payload?.analysis?.trackingPolicy || {};
-          if (opsRulesNormalizeTrackerPolicy(policy.tracker || policy.trackerPolicy || '') === 'none' &&
-              opsRulesNormalizeReidPolicy(policy.reid || policy.reId || policy.reID || policy.reidPolicy || '') !== 'off') {
+          const policyHasTracker = opsRulesTrackingPolicyHasExplicitTracker(policy);
+          const tracker = policyHasTracker ? opsRulesNormalizeTrackerPolicy(policy.tracker || policy.trackerPolicy || '') : 'lite';
+          const reid = opsRulesNormalizeReidPolicy(policy.reid || policy.reId || policy.reID || policy.reidPolicy || '');
+          if (!policyHasTracker && reid !== 'off') {
+            issues.push('Re-ID assist는 명시적으로 선택한 Tracker와 함께 저장해야 합니다.');
+          } else if (tracker === 'none' && reid !== 'off') {
             issues.push('Tracker를 사용 안 함으로 선택하면 Re-ID는 off여야 합니다.');
           }
           const priority = opsRulesRulePriority(payload);

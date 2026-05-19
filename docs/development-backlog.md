@@ -798,6 +798,58 @@ default-on, 자동 migration, 암묵적 Re-ID 활성화는 열지 않습니다.
 | V150-P1-03 | P1 | Field smoke summary evidence boundary | raw media 없이 tracker/Re-ID summary/report/history index evidence만 보존하는 절차를 정리하고, release 문서에서 완료/미확인/비범위를 분리합니다. | docs guard, report archive policy verifier, `compare-close-object-tracker --history-dir` |
 | V150-P2-01 | P2 | OC-SORT experimental sandbox | OC-SORT는 제품 기본 tracker 후보가 아니라 사용자가 명시 선택하는 실험/비교 sandbox로만 검토합니다. runtime tracker 승격과 schema/media path 변경은 별도 review로 분리합니다. | experimental fixture, `compare-close-object-tracker`, runtime tracker boundary verifier |
 
+### V150-P0-01 Explicit opt-in tracker/Re-ID policy guard 정리 기준
+
+`Explicit opt-in tracker/Re-ID policy guard`는 v1.4.0에서 열린
+rule-level `analysis.trackingPolicy` 경계를 더 엄격히 고정하는 작업입니다.
+목표는 사용자가 rule/vaRule에서 명시적으로 선택한 tracker/Re-ID 조합만 적용하고,
+global default-on, 자동 migration, tracker 없는 Re-ID assist 활성화를 막는
+것입니다.
+
+확인됨:
+
+- `analysis.trackingPolicy`가 없는 기존 rule/vaRule은 저장 문서를 자동 migration하지
+  않고 runtime에서 `tracker=lite`, `reid=off`, `source=rule-default`로 해석합니다.
+- tracker 없는 `reid=assist` 저장 요청은 거부합니다. Re-ID assist는
+  `tracker=lite`, `tracker=kalman-lite`, `tracker=bytetrack`처럼 명시적으로 선택된
+  tracker field와 함께 있을 때만 유효합니다.
+- runtime은 tracker field가 없는 `trackingPolicy`를 rule-level opt-in으로 해석하지
+  않음으로써 legacy/hand-edited 문서가 Re-ID assist를 암묵 활성화하지 않게 합니다.
+- `/ops/rules` UI는 tracker/Re-ID select를 통해 `trackingPolicy.tracker`와
+  `trackingPolicy.reid`를 함께 저장하고, `tracker=none`이면 Re-ID를 `off`로
+  고정합니다.
+- internal analysis reuse key는 tracker/Re-ID policy를 포함해 tap을 분리하지만,
+  외부 Event POST/WebRTC/SSE/WS metadata의 `profileKey`에는 policy token을 추가하지
+  않습니다.
+
+검증 기준:
+
+- `./server.sh build`
+- `./server.sh verify-v150-opt-in-tracking-policy`
+- `./server.sh verify-rule-ui`
+- `./server.sh verify-ops-rules-roundtrip`
+- `./server.sh verify-analysis-state`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- V150-P0-02 Tracker/Re-ID stability matrix
+- V150-P0-03 Re-ID opt-in model provenance and fallback approval
+- V150-P1-01 Ops Dashboard tracker warning next-action refinement
+- V150-P1-02 Audit export review hardening
+- V150-P1-03 Field smoke summary evidence boundary
+- tracker/Re-ID global default-on, 기존 rule/source/profile 자동 migration,
+  Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경, RTSP/WebRTC media path 변경
+
+후속 분류:
+
+- 미분류 P0~P1 후속 이슈: 없음. 이번 guard에서 발견한 tracker 없는 Re-ID assist
+  암묵 활성화 위험은 저장 검증, runtime fallback, UI validation, verifier로 닫습니다.
+- V150-P0-02~V150-P1-03은 같은 v1.5.0 minor roadmap의 별도 항목이므로 이 작업에서
+  구현 완료로 판정하지 않습니다.
+- OC-SORT experimental sandbox와 별도 Phase 후보는 아래 roadmap 경계를 따르며,
+  V150-P0-01의 후속 이슈로 끌어오지 않습니다.
+
 v1.5.0 비범위:
 
 - tracker/Re-ID global default-on 또는 제품 기본값 변경
