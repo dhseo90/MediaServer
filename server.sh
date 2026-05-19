@@ -242,6 +242,8 @@ Usage:
                  v1.6.0 runtime/model bundle 미포함 기본값과 RC 승인 조건을 검증합니다.
   verify-v160-manual-ui-release-checklist-closure
                  v1.6.0 수동 UI release checklist와 evidence 경계를 검증합니다.
+  verify-v160-public-docs-consistency-polish
+                 v1.6.0 public docs의 current tag/stabilization evidence 표현을 검증합니다.
   verify-server-start-modes
                  foreground/start 실행 모드의 health, route, state file 안정성을 검증합니다.
   verify-auth-bootstrap
@@ -834,6 +836,10 @@ case "${cmd}" in
   verify-v160-manual-ui-release-checklist-closure)
     require_internal verify_v160_manual_ui_release_checklist_closure.mjs
     exec "${INTERNAL_DIR}/verify_v160_manual_ui_release_checklist_closure.mjs" "$@"
+    ;;
+  verify-v160-public-docs-consistency-polish)
+    require_internal verify_v160_public_docs_consistency_polish.mjs
+    exec "${INTERNAL_DIR}/verify_v160_public_docs_consistency_polish.mjs" "$@"
     ;;
   verify-server-start-modes)
     require_internal verify_server_start_modes.sh

@@ -42,6 +42,10 @@ The v1.6.0 manual UI release checklist closure separates actual manual clicks,
 screenshot artifacts, and not-run/unverified items in
 [docs/v1.6.0-manual-ui-release-checklist-closure.md](docs/v1.6.0-manual-ui-release-checklist-closure.md);
 verify it with `./server.sh verify-v160-manual-ui-release-checklist-closure`.
+The v1.6.0 public docs consistency polish keeps the published `v1.5.0` tag
+separate from v1.6.0 stabilization evidence in
+[docs/v1.6.0-public-docs-consistency-polish.md](docs/v1.6.0-public-docs-consistency-polish.md);
+verify it with `./server.sh verify-v160-public-docs-consistency-polish`.
 
 ## At a Glance
 
@@ -145,6 +149,7 @@ See [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) for f
 | v1.6.0 audit/export masking regression hardening | [docs/v1.6.0-audit-export-masking-regression-hardening.md](docs/v1.6.0-audit-export-masking-regression-hardening.md) |
 | v1.6.0 runtime/model bundle RC policy | [docs/v1.6.0-runtime-model-bundle-rc-policy.md](docs/v1.6.0-runtime-model-bundle-rc-policy.md) |
 | v1.6.0 manual UI release checklist closure | [docs/v1.6.0-manual-ui-release-checklist-closure.md](docs/v1.6.0-manual-ui-release-checklist-closure.md) |
+| v1.6.0 public docs consistency polish | [docs/v1.6.0-public-docs-consistency-polish.md](docs/v1.6.0-public-docs-consistency-polish.md) |
 | Verification commands and release checks | [docs/stream-verification.md](docs/stream-verification.md) |
 | Bundle/container/runtime distribution policy | [docs/distribution-policy.md](docs/distribution-policy.md) |
 | Release scope and tag strategy | [docs/release-policy.md](docs/release-policy.md) |

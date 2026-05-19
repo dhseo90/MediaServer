@@ -62,6 +62,10 @@
 - OC-SORT actual algorithm adapter, dataset benchmark report, tracker replacement product review
 - field sample history review workflow, ONVIF field smoke evidence reconciliation,
   release evidence dashboard cleanup
+- v1.6.0 stabilization은 published release tag가 아니라 release evidence, stability
+  gate, debug exposure, tracker/Re-ID opt-in close-out, ONVIF field evidence,
+  audit/export masking, runtime/model bundle RC policy, manual UI checklist, public
+  docs consistency guard를 분리한 roadmap/evidence 묶음입니다.
 
 ## 다음 minor에도 기본 제외되는 범위
 

@@ -81,6 +81,10 @@ Manual UI release checklist closure는
 [v1.6.0 Manual UI Release Checklist Closure](./v1.6.0-manual-ui-release-checklist-closure.md)와
 `./server.sh verify-v160-manual-ui-release-checklist-closure` 기준으로 실제 수동 클릭
 검수, screenshot artifact, 미실행/미확인 항목을 분리합니다.
+Public docs consistency polish는
+[v1.6.0 Public Docs Consistency Polish](./v1.6.0-public-docs-consistency-polish.md)와
+`./server.sh verify-v160-public-docs-consistency-polish` 기준으로 현재 published tag와
+v1.6.0 stabilization evidence 표현을 분리합니다.
 
 ## Tag 전략
 

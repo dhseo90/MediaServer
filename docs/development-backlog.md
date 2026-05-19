@@ -1669,6 +1669,51 @@ JSON/CSV/Diff JSON export에서 source/model/auth/raw material이 다시 노출�
   완료로 판정하지 않습니다.
 - 별도 Phase 후보는 V160-P1-04의 즉시 구현 후속으로 끌어오지 않습니다.
 
+### V160-P2-01 Public docs consistency polish 정리 기준
+
+`Public docs consistency polish`는 v1.6.0을 published release처럼 과장하지 않고,
+README, README.en, docs/en/README, versioning policy, release policy, development
+backlog가 현재 published tag와 v1.6.0 stabilization evidence를 분리해 말하도록
+[v1.6.0 Public Docs Consistency Polish](./v1.6.0-public-docs-consistency-polish.md)에
+고정하는 작업입니다.
+
+확인됨:
+
+- 현재 published source-only release tag는 계속 `v1.5.0`입니다.
+- v1.6.0은 published release가 아니라 stabilization roadmap/evidence 문서 묶음입니다.
+- public docs는 v1.6.0 P0/P1/P2 guard 문서를 링크하되 tag, push, GitHub Release,
+  Actions pass를 완료로 쓰지 않습니다.
+- release/versioning 정책은 source-only/live-only 경계, binary/runtime/model bundle
+  제외, 실장비/장시간/외부 credential gate 미실행 분리를 유지합니다.
+- VMS/NVR, long-term recording/playback/search, ONVIF Profile G recording/replay,
+  Re-ID/tracker default-on, OC-SORT/BoT-SORT/DeepSORT runtime promotion을 현재 제품
+  범위로 쓰지 않습니다.
+
+검증 기준:
+
+- `./server.sh verify-v160-public-docs-consistency-polish`
+- `./server.sh verify-release-metadata`
+- `./server.sh verify-docs-links`
+- `./server.sh verify-script-inventory`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- VERSION/CMake release version 변경
+- tag, push, GitHub Release 생성
+- V160-P2-02 Tracker benchmark harness planning only
+- 별도 Phase 후보 구현
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경 또는 media pipeline blocking 정책 변경
+
+후속 분류:
+
+- 미분류 P0~P1 후속 이슈: 없음. 이번 항목의 public docs drift 위험은 전용 verifier와
+  release metadata/docs links guard로 닫습니다.
+- V160-P2-02는 같은 v1.6.0 안정화 페이즈의 별도 항목이므로 이 작업에서 완료로
+  판정하지 않습니다.
+- 별도 Phase 후보는 V160-P2-01의 즉시 구현 후속으로 끌어오지 않습니다.
+
 ### v1.6.0 비범위
 
 - 새 제품 기능 추가
