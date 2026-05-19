@@ -687,6 +687,12 @@ AppearanceProfile과 IAppearanceExtractor는 향후 Re-ID/attribute 분석을 �
 - async queue, per-stream rate limit, global queue 상한, stale job drop으로 media pipeline blocking 방지
 - embedding/crop/model path 같은 Re-ID identity material은 WebRTC/SSE/WS/Event/debug 외부 metadata payload에 직렬화하지 않습니다.
 - `./server.sh verify-reid-advanced-tracking`은 default-off, privacy review, close-object benchmark command boundary를 정적 검증합니다.
+- v1.5.0 Re-ID opt-in model provenance/fallback approval은 model path/checksum/provenance
+  gate와 privacy/retention approval을 함께 확인합니다. missing/invalid/mismatched model은
+  NoOp fallback으로 닫고, 이 승인 경계를 제품 default-on 또는 model bundle 승인으로
+  해석하지 않습니다.
+- `./server.sh verify-v150-reid-provenance-fallback-approval`은 위 approval gate,
+  invalid/missing model fixture, metadata 비노출 경계를 정적으로 검증합니다.
 - v1.3.0 연구 지속 기준은 [Re-ID Default-off Research Continuation](reid-default-off-research-continuation.md)에
   분리하며, 제품 default-on 결정이나 대형 tracker 교체로 해석하지 않습니다.
 - privacy threat model에서는 embedding vector, bbox crop, track-linked

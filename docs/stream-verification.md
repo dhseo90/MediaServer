@@ -907,6 +907,11 @@ count, mean, stdev, variance, min, max를 표시합니다.
   `lite/off`, `kalman-lite/off`, `bytetrack/off`, `lite/assist`,
   `kalman-lite/assist`, `bytetrack/assist` 조합이 warning drift 관찰 대상이고
   `matrix-ok`가 제품 default-on 승인 값이 아닙니다 라는 해석을 확인합니다.
+- v1.5.0 Re-ID model provenance/fallback approval은
+  `verify-v150-reid-provenance-fallback-approval`로 문서/entrypoint/smoke fixture
+  경계를 고정합니다. 이 guard는 missing/invalid/mismatched model을 NoOp fallback으로
+  닫고, privacy/retention approval을 제품 default-on 승인이나 model bundle 승인으로
+  해석하지 않습니다.
 
 비교 리포트 해석:
 
@@ -925,6 +930,7 @@ count, mean, stdev, variance, min, max를 표시합니다.
 ```bash
 ./server.sh verify-v150-opt-in-tracking-policy
 ./server.sh verify-v150-tracker-reid-stability-matrix
+./server.sh verify-v150-reid-provenance-fallback-approval
 ./server.sh verify-reid-advanced-tracking
 ./server.sh verify-tracker-stability --long --overlap-focus
 ./server.sh verify-va-replay

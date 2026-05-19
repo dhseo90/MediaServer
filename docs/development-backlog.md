@@ -907,6 +907,67 @@ fixture 결과와 warning drift를 같은 기준으로 읽게 하는 안정화 �
 - Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
 - RTSP/WebRTC media path 변경 또는 media pipeline blocking 정책 변경
 
+### V150-P0-03 Re-ID opt-in model provenance and fallback approval 정리 기준
+
+`Re-ID opt-in model provenance and fallback approval`은 Re-ID assist가 명시적으로
+선택된 룰에서도 실제 ONNX Re-ID extractor를 무조건 켜지 않고, model provenance,
+checksum, privacy/retention approval 조건이 통과한 경우에만 후보로 보는
+gate입니다. 목표는 missing/invalid/mismatched model을 제품 오류나 media path
+실패로 전파하지 않고 `NoOp fallback`으로 닫는 것입니다.
+
+확인됨:
+
+- Re-ID assist는 rule/vaRule의 `analysis.trackingPolicy.reid=assist`와 선택된
+  tracker가 함께 있을 때만 association 보조 hook 후보가 됩니다.
+- 실제 ONNX extractor 후보는 `MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL`,
+  `MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL_SHA256`,
+  `MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL_PROVENANCE`가 모두 채워지고, model path
+  존재, SHA-256 형식, checksum 일치, OpenSSL checksum 검증, ONNX Runtime 빌드가
+  통과한 경우로 제한합니다.
+- missing/invalid/mismatched model, checksum 누락/형식 오류/불일치, provenance
+  누락, OpenSSL 또는 ONNX Runtime 미지원은 모두 `NoOp fallback`으로 닫습니다.
+- privacy/retention approval은 bounded async queue, per-stream rate limit, global
+  queue limit, stale job drop, raw crop/embedding/model path/checksum/provenance
+  외부 비노출을 통과해야 합니다.
+- `analysis_state_smoke`는 missing model, checksum/provenance 누락, invalid
+  checksum, missing provenance, checksum mismatch fixture를 NoOp fallback으로
+  고정합니다.
+- Event POST/WebRTC DataChannel/SSE/WS metadata와 client/viewer 화면에는 embedding,
+  crop, model path, checksum, provenance, track-linked appearance profile을
+  노출하지 않습니다.
+
+검증 기준:
+
+- `./server.sh build`
+- `./server.sh verify-v150-reid-provenance-fallback-approval`
+- `./server.sh verify-reid-advanced-tracking`
+- `./server.sh verify-analysis-state`
+- `./server.sh verify-webrtc-va-metadata`
+- `./server.sh verify-va-metadata-sidechannel`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- V150-P1-01 Ops Dashboard tracker warning next-action refinement
+- V150-P1-02 Audit export review hardening
+- V150-P1-03 Field smoke summary evidence boundary
+- V150-P2-01 OC-SORT experimental sandbox
+- Re-ID default-on 제품 결정, tracker default-on, 기존 rule/source/profile 자동
+  migration
+- 실제 Re-ID model artifact, model card, dataset provenance, Re-ID model/runtime binary
+  bundle, release asset 업로드, container/offline package 포함
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경 또는 media pipeline blocking 정책 변경
+
+후속 분류:
+
+- 미분류 P0~P1 후속 이슈: 없음. 이번 항목에서 발견한 P0 빈칸은 전용 verifier,
+  문서화된 approval gate, invalid/missing model fixture 보강으로 닫습니다.
+- V150-P1-01~V150-P1-03은 같은 v1.5.0 minor roadmap의 별도 항목이므로 이 작업에서
+  구현 완료로 판정하지 않습니다.
+- Re-ID privacy retention guard와 runtime/model bundle RC policy는 아래 별도 Phase
+  후보이며, V150-P0-03의 즉시 후속 이슈로 끌어오지 않습니다.
+
 별도 Phase 후보로 기록:
 
 - P2 이상 tracker experimental benchmark harness와 field sample history review workflow
