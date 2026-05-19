@@ -916,6 +916,12 @@ count, mean, stdev, variance, min, max를 표시합니다.
   `verify-v150-ops-tracker-warning-next-action`으로 UI copy, tracker warning fixture
   smoke, docs 경계를 고정합니다. 이 guard는 warning을 사용자 opt-in 튜닝 참고와
   다음 조치로 표시하되 default-on 근거가 아닙니다 라는 해석을 확인합니다.
+- v1.5.0 Audit export review hardening은
+  `verify-v150-audit-export-review-hardening`으로 Ops audit 조회와
+  JSON/CSV/Diff JSON export의 model/source material 마스킹, Tracker/Re-ID
+  설정 변경 review chip, model/fallback status-only 표시 경계를 고정합니다.
+  이 guard는 audit export UX를 강화하되 Event POST/WebRTC/SSE/WS metadata schema나
+  RTSP/WebRTC media path 변경으로 해석하지 않습니다.
 
 비교 리포트 해석:
 

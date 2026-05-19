@@ -914,6 +914,12 @@ rotated archive 조회 대상에는 compacted snapshot을 포함하지 않습니
   - clip manifest
   - clip frame 파일
 - Export는 Ops audit trail에 `export-bundle`로 남깁니다.
+- v1.5.0 `Audit export review hardening` 이후 Ops audit review/export는
+  Tracker/Re-ID 설정 변경과 model/fallback status-only 값을 검토 대상으로
+  표시하되, model/source material, source URL/URI/file, model path/checksum/
+  provenance, raw media/crop/embedding은 JSON/CSV/Diff JSON export에서
+  `[redacted]`로 유지합니다. 이 경계는
+  `verify-v150-audit-export-review-hardening`으로 확인합니다.
 - Bundle 링크는 `signed-token-expiresAtMs` 기반 24시간 만료 정책을 사용합니다.
 - 만료/변조된 token은 서버가 거절합니다.
 - 만료 bundle은 서버에 별도 파일을 남기지 않습니다.

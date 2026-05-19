@@ -142,6 +142,7 @@ std::string ProductSharedUiScript() {
         '로그인/세션 차단': 'Login/session blocked',
         '감사': 'Audit',
         'JSON/CSV/Diff JSON export': 'JSON/CSV/Diff JSON export',
+        'export masking 적용': 'export masking applied',
         '초대 링크는 기본 24시간 동안만 유효하며, 만료 후에는 새 초대를 발급합니다. 비밀번호 초기화는 임시 비밀번호를 설정하고 기존 세션을 회수합니다. 복구 시 로그인 잠금과 실패 횟수는 초기화됩니다.': 'Invite links are valid for 24 hours by default; issue a new invite after expiry. Password reset sets a temporary password and revokes existing sessions. Restore clears login lockout and failed attempts.',
         '사용자 관리': 'User Management',
         '사용자 목록': 'Users',
@@ -667,6 +668,8 @@ std::string ProductSharedUiScript() {
           [/^이벤트\s+(.+)$/u, (_match, value) => `Events ${koToEn.get(String(value).trim()) || String(value).trim()}`],
           [/^상태\s+(.+)$/u, (_match, value) => `Status ${koToEn.get(String(value).trim()) || translatePattern(String(value).trim())}`],
           [/^정책\s+(.+)$/u, (_match, value) => `Policy ${String(value).trim()}`],
+          [/^Tracker\/Re-ID\s+(.+)\s+->\s+(.+)$/u, (_match, before, after) => `Tracker/Re-ID ${before} -> ${after}`],
+          [/^model\/fallback\s+(.+)\s+->\s+(.+)$/u, (_match, before, after) => `model/fallback ${before} -> ${after}`],
           [/^메타데이터\s+(.+)$/u, (_match, value) => `Metadata ${koToEn.get(String(value).trim()) || translatePattern(String(value).trim())}`],
           [/^재시도\s+(\d+)$/u, (_match, count) => `Retry ${count}`],
           [/^(.+)\s+·\s+최대\s+(\d+)개$/u, (_match, name, count) => `${koToEn.get(String(name).trim()) || translatePattern(String(name).trim())} · up to ${count}`],
@@ -950,10 +953,37 @@ std::string ProductSharedUiScript() {
         return principalPromise;
       }
       const auditStoreKey = 'mediaServerOpsAuditTrail.v1';
-      const auditKeyRedacted = key => /(password|token|hash|secret|credential|capability)/i.test(String(key || ''));
+      const auditMaterialKeys = new Set([
+        'checksum', 'crop', 'debugurl', 'developerurl', 'deviceendpoint', 'embedding', 'endpoint',
+        'file', 'labels', 'labelspath', 'mediafile', 'model', 'modelchecksum', 'modellabels',
+        'modelpath', 'modelprovenance', 'modelsha256', 'modeluri', 'modelurl', 'provenance',
+        'rawframe', 'rawmedia', 'rtspurl', 'rtspsurl', 'samplemedia', 'sha256', 'sourcefile',
+        'sourceuri', 'sourceurl', 'streamuri', 'streamurl', 'uri', 'url', 'whepurl', 'xaddr'
+      ]);
+      const auditMaterialKeyNeedles = [
+        'appearancecrop', 'appearanceembedding', 'debugurl', 'developerurl', 'deviceendpoint',
+        'labelspath', 'mediafile', 'modelchecksum', 'modelpath', 'modelprovenance',
+        'modelsha256', 'modeluri', 'modelurl', 'rawframe', 'rawmedia', 'rtspurl', 'rtspsurl',
+        'samplemedia', 'sourcefile', 'sourceuri', 'sourceurl', 'streamuri', 'streamurl', 'whepurl'
+      ];
+      const auditKeyRedacted = key => {
+        const lowered = String(key || '').toLowerCase();
+        return /(password|token|hash|secret|credential|capability)/i.test(lowered) ||
+          auditMaterialKeys.has(lowered) ||
+          auditMaterialKeyNeedles.some(needle => lowered.includes(needle));
+      };
+      const auditMaterialValueRedacted = value => {
+        if (typeof value !== 'string') return false;
+        const lowered = value.trim().toLowerCase();
+        if (!lowered) return false;
+        if (/^(?:file|https?|rtsps?|wheps?):\/\//i.test(lowered)) return true;
+        if (/\.(onnx|engine|pt)(?:$|[?#])/i.test(lowered)) return true;
+        if (/(^|[/\\])(models|media-assets|samples)[/\\]/i.test(lowered)) return true;
+        return /^[a-f0-9]{64}$/i.test(lowered);
+      };
       const compactAuditValue = (value, depth = 0) => {
         if (value === null || value === undefined) return value;
-        if (auditKeyRedacted('' + value) && typeof value === 'string' && value.length > 24) return '[redacted]';
+        if (typeof value === 'string' && (auditMaterialValueRedacted(value) || (auditKeyRedacted('' + value) && value.length > 24))) return '[redacted]';
         if (typeof value === 'string') return value.length > 180 ? `${value.slice(0, 177)}...` : value;
         if (typeof value === 'number' || typeof value === 'boolean') return value;
         if (depth >= 3) return '[nested]';
@@ -982,6 +1012,67 @@ std::string ProductSharedUiScript() {
           if (stableAuditJson(before[key]) !== stableAuditJson(after[key])) changed.push(key);
         }
         return changed.slice(0, 6).join(', ') || '상태';
+      };
+      const auditTrackingPolicyFromValue = value => {
+        const policy = value?.analysis?.trackingPolicy || value?.trackingPolicy || {};
+        const hasPolicy = Object.prototype.hasOwnProperty.call(policy, 'tracker') ||
+          Object.prototype.hasOwnProperty.call(policy, 'trackerPolicy') ||
+          Object.prototype.hasOwnProperty.call(policy, 'reid') ||
+          Object.prototype.hasOwnProperty.call(policy, 'reidPolicy') ||
+          Object.prototype.hasOwnProperty.call(policy, 'reId') ||
+          Object.prototype.hasOwnProperty.call(policy, 'reID');
+        if (!hasPolicy) return null;
+        return {
+          tracker: String(policy.tracker || policy.trackerPolicy || 'lite'),
+          reid: String(policy.reid || policy.reidPolicy || policy.reId || policy.reID || 'off')
+        };
+      };
+      const auditModelFallbackStatusFromValue = value => {
+        const candidates = [
+          value?.analysis?.appearanceModelStatus,
+          value?.analysis?.reidModelStatus,
+          value?.analysis?.reidFallbackStatus,
+          value?.runtime?.appearanceModelStatus,
+          value?.runtime?.reidModelStatus,
+          value?.runtime?.reidFallbackStatus,
+          value?.appearanceModelStatus,
+          value?.reidModelStatus,
+          value?.reidFallbackStatus,
+          value?.fallbackStatus
+        ];
+        const picked = candidates.find(item => item !== null && item !== undefined && item !== '');
+        if (!picked) return '';
+        if (typeof picked === 'string') return picked;
+        if (typeof picked === 'object') {
+          const status = picked.status || picked.mode || picked.reason || picked.fallback || '';
+          return status ? String(status) : 'status';
+        }
+        return String(picked);
+      };
+      const auditReviewFlags = entry => {
+        const flags = [];
+        const beforePolicy = auditTrackingPolicyFromValue(entry?.before);
+        const afterPolicy = auditTrackingPolicyFromValue(entry?.after);
+        if (beforePolicy || afterPolicy) {
+          const beforeText = beforePolicy ? `${beforePolicy.tracker}/${beforePolicy.reid}` : 'new';
+          const afterText = afterPolicy ? `${afterPolicy.tracker}/${afterPolicy.reid}` : 'deleted';
+          flags.push({ text: `Tracker/Re-ID ${beforeText} -> ${afterText}`, tone: beforeText === afterText ? 'info' : 'warn' });
+        }
+        const beforeFallback = auditModelFallbackStatusFromValue(entry?.before);
+        const afterFallback = auditModelFallbackStatusFromValue(entry?.after);
+        if (beforeFallback || afterFallback) {
+          flags.push({ text: `model/fallback ${beforeFallback || 'none'} -> ${afterFallback || 'none'}`, tone: 'info' });
+        }
+        const serialized = JSON.stringify({ before: entry?.before ?? null, after: entry?.after ?? null });
+        if (serialized.includes('[redacted]')) {
+          flags.push({ text: 'export masking 적용', tone: 'info' });
+        }
+        return flags;
+      };
+      const auditReviewFlagsHtml = entry => {
+        const flags = auditReviewFlags(entry);
+        if (flags.length === 0) return '';
+        return `<div class="audit-review-flags">${flags.map(item => chip(item.text, item.tone)).join('')}</div>`;
       };
       const loadOpsAuditTrail = () => {
         try {
@@ -1221,6 +1312,7 @@ std::string ProductSharedUiScript() {
               <span>작업자 ${escapeHtml(display(entry.actor))}${entry.role ? ` · ${escapeHtml(entry.role)}` : ''}</span>
               <span>변경 ${escapeHtml(display(entry.summary))}</span>
             </div>
+            ${auditReviewFlagsHtml(entry)}
             <div class="audit-entry-actions">
               <button type="button" class="btn small" data-audit-detail="${index}">상세</button>
             </div>

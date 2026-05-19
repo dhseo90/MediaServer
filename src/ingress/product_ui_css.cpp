@@ -1287,6 +1287,12 @@ std::string ProductUiCss() {
     .audit-entry-meta span {
       overflow-wrap: anywhere;
     }
+    .audit-review-flags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-width: 0;
+    }
     .audit-entry details summary {
       cursor: pointer;
       color: var(--color-text-muted);
@@ -2346,6 +2352,7 @@ std::string ProductUiCss() {
       .audit-toolbar,
       .audit-entry-head,
       .audit-entry-meta,
+      .audit-review-flags,
       .audit-diff-grid,
       .audit-detail-head,
       .validation-item,

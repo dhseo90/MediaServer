@@ -1030,6 +1030,64 @@ schema를 추가하지 않는 것입니다.
   history review workflow는 아래 별도 Phase 후보이며 V150-P1-01의 즉시 후속으로
   끌어오지 않습니다.
 
+### V150-P1-02 Audit export review hardening 정리 기준
+
+`Audit export review hardening`은 V130-P1-03에서 만든 서버 감사 로그
+조회/export 흐름을 v1.5.0 tracker/Re-ID opt-in 운영 검토에 맞게 더 단단히
+잠그는 작업입니다. 목표는 tracker/Re-ID 설정 변경, Re-ID model/fallback 상태,
+export masking 흐름을 운영자가 같은 감사 UX에서 검토하되, 민감정보와
+model/source material을 조회/JSON/CSV/Diff JSON export 응답에 노출하지 않는
+것입니다.
+
+확인됨:
+
+- `/ops/api/audit`는 저장 시점의 redaction에 더해 조회/export 시점에도
+  `password`, token/hash/secret/credential/capability와 model path/checksum/
+  provenance, source URL/URI/file, raw media/crop/embedding 값을 다시 마스킹합니다.
+  즉 조회/JSON/CSV/Diff JSON export 응답에서 다시 마스킹하는 것을 완료 조건으로
+  둡니다.
+- `/ops/rules` 변경 이력은 `analysis.trackingPolicy.tracker`와
+  `analysis.trackingPolicy.reid`의 전/후 값을 review chip으로 표시해
+  tracker/Re-ID 설정 변경을 감사 화면에서 바로 확인할 수 있게 합니다.
+- model/fallback 상태는 status-only 값만 review chip에 표시합니다. model path,
+  checksum, provenance, crop, embedding, raw source material은 audit detail,
+  JSON/CSV/Diff JSON export, 브라우저 fallback cache에 남기지 않습니다.
+- `test/fixtures/v150_audit_export_review_hardening.json`은 raw sample과 sanitized
+  export 기대값을 분리해 민감정보 masking regression을 고정합니다.
+- 이 항목은 audit export review와 마스킹 강화만 다루며 Event POST/WebRTC
+  DataChannel/SSE/WS metadata schema, RTSP/WebRTC media path, tracker runtime
+  선택 계약은 변경하지 않습니다.
+
+검증 기준:
+
+- `./server.sh build`
+- `./server.sh verify-v150-audit-export-review-hardening`
+- `./server.sh verify-ops-audit-trail`
+- `./server.sh verify-ops-audit-persistence`
+- `./server.sh verify-auth-users`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- V150-P1-03 Field smoke summary evidence boundary
+- V150-P2-01 OC-SORT experimental sandbox
+- raw media/history archive 절차, field smoke summary evidence 보존 정책 정리
+- tracker/Re-ID global/default-on, Re-ID default-on, tracker default-on, 기존
+  rule/source/profile 자동 migration
+- Re-ID model/runtime binary, model card, release asset, container/offline package 포함
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경 또는 pipeline blocking 정책 변경
+
+후속 분류:
+
+- 미분류 P0~P1 후속 이슈: 없음. 이번 항목에서 발견한 audit export의
+  model/source material 마스킹 빈칸은 서버 redaction, UI fallback cache redaction,
+  review chip, 전용 verifier/fixture로 닫습니다.
+- V150-P1-03은 같은 v1.5.0 minor roadmap의 별도 항목이므로 이 작업에서 구현
+  완료로 판정하지 않습니다.
+- OC-SORT sandbox, field sample history review workflow, runtime/model bundle RC
+  policy는 아래 별도 Phase 후보이며 V150-P1-02의 즉시 후속으로 끌어오지 않습니다.
+
 v1.5.0 비범위:
 
 - tracker/Re-ID global default-on 또는 제품 기본값 변경

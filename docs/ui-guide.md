@@ -513,6 +513,12 @@ UI/API 응답에 노출하지 않습니다.
   변경 이력 패널은 검색, 작업자/사용자/대상/action/기간 필터,
   offset 기반 이전/다음 페이지, JSON/CSV export, Diff JSON export,
   전/후 diff 상세 모달을 공통으로 제공합니다.
+  v1.5.0 `Audit export review hardening` 이후 룰 감사 항목은 Tracker/Re-ID
+  전/후 설정과 model/fallback status-only 값을 review chip으로 표시합니다.
+  model/source material, source URL/URI/file, model path/checksum/provenance,
+  raw media/crop/embedding은 서버 조회와 JSON/CSV/Diff JSON export, 브라우저
+  fallback cache에서 `[redacted]`로 유지합니다.
+  이 경계는 `verify-v150-audit-export-review-hardening`으로 확인합니다.
   채널/사용자 변경 이력 필터는 작은 화면에서 table/action 영역을
   침범하지 않는 별도 responsive contract입니다. 320/390px 기준으로
   시작/종료 input은 `min-width: 0` 흐름 안에서 한 줄 또는 다음 줄로

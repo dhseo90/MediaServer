@@ -33,6 +33,7 @@
 #include <string>
 #include <thread>
 #include <unordered_map>
+#include <unordered_set>
 #include <utility>
 #include <vector>
 
@@ -7999,17 +8000,153 @@ OpsAuditRetentionSummary EnforceOpsAuditRetention(const app::AppConfig& config,
 }
 
 bool AuditSensitiveKey(const std::string& key) {
-    std::string lowered;
-    lowered.reserve(key.size());
-    for (const char ch : key) {
-        lowered.push_back(static_cast<char>(std::tolower(static_cast<unsigned char>(ch))));
-    }
+    const std::string lowered = LowerAscii(key);
+    static const std::unordered_set<std::string> kExactMaterialKeys = {
+        "checksum",
+        "crop",
+        "debugurl",
+        "developerurl",
+        "deviceendpoint",
+        "embedding",
+        "endpoint",
+        "file",
+        "labels",
+        "labelspath",
+        "mediafile",
+        "model",
+        "modelchecksum",
+        "modellabels",
+        "modelpath",
+        "modelprovenance",
+        "modelsha256",
+        "modeluri",
+        "modelurl",
+        "provenance",
+        "rawframe",
+        "rawmedia",
+        "rtspurl",
+        "rtspsurl",
+        "samplemedia",
+        "sha256",
+        "sourcefile",
+        "sourceuri",
+        "sourceurl",
+        "streamuri",
+        "streamurl",
+        "uri",
+        "url",
+        "whepurl",
+        "xaddr",
+    };
+    static const std::vector<std::string> kMaterialKeyNeedles = {
+        "appearancecrop",
+        "appearanceembedding",
+        "debugurl",
+        "developerurl",
+        "deviceendpoint",
+        "labelspath",
+        "mediafile",
+        "modelchecksum",
+        "modelpath",
+        "modelprovenance",
+        "modelsha256",
+        "modeluri",
+        "modelurl",
+        "rawframe",
+        "rawmedia",
+        "rtspurl",
+        "rtspsurl",
+        "samplemedia",
+        "sourcefile",
+        "sourceuri",
+        "sourceurl",
+        "streamuri",
+        "streamurl",
+        "whepurl",
+    };
     return lowered.find("password") != std::string::npos ||
            lowered.find("token") != std::string::npos ||
            lowered.find("hash") != std::string::npos ||
            lowered.find("secret") != std::string::npos ||
            lowered.find("credential") != std::string::npos ||
-           lowered.find("capability") != std::string::npos;
+           lowered.find("capability") != std::string::npos ||
+           kExactMaterialKeys.count(lowered) != 0 ||
+           std::any_of(kMaterialKeyNeedles.begin(),
+                       kMaterialKeyNeedles.end(),
+                       [&](const std::string& needle) {
+                           return lowered.find(needle) != std::string::npos;
+                       });
+}
+
+std::optional<std::pair<std::string, std::size_t>> AuditJsonStringLiteralAt(
+    const std::string& json,
+    std::size_t value_start) {
+    if (value_start >= json.size() || json[value_start] != '"') {
+        return std::nullopt;
+    }
+    std::string value;
+    bool escaped = false;
+    for (std::size_t pos = value_start + 1; pos < json.size(); ++pos) {
+        const char ch = json[pos];
+        if (escaped) {
+            value.push_back(ch);
+            escaped = false;
+            continue;
+        }
+        if (ch == '\\') {
+            escaped = true;
+            continue;
+        }
+        if (ch == '"') {
+            return std::make_pair(value, pos + 1);
+        }
+        value.push_back(ch);
+    }
+    return std::nullopt;
+}
+
+bool AuditSensitiveStringValue(const std::string& value) {
+    const std::string lowered = LowerAscii(Trim(value));
+    if (lowered.empty()) {
+        return false;
+    }
+    static const std::vector<std::string> kSensitivePrefixes = {
+        "file://",
+        "http://",
+        "https://",
+        "rtsp://",
+        "rtsps://",
+        "whep://",
+        "wheps://",
+    };
+    for (const std::string& prefix : kSensitivePrefixes) {
+        if (lowered.rfind(prefix, 0) == 0) {
+            return true;
+        }
+    }
+    static const std::vector<std::string> kSensitiveNeedles = {
+        ".engine",
+        ".onnx",
+        ".pt",
+        "/media-assets/",
+        "/models/",
+        "/samples/",
+        "\\media-assets\\",
+        "\\models\\",
+        "\\samples\\",
+    };
+    for (const std::string& needle : kSensitiveNeedles) {
+        if (lowered.find(needle) != std::string::npos) {
+            return true;
+        }
+    }
+    if (lowered.size() == 64 &&
+        std::all_of(lowered.begin(), lowered.end(), [](const char ch) {
+            return std::isxdigit(static_cast<unsigned char>(ch)) != 0;
+        })) {
+        return true;
+    }
+    return false;
 }
 
 std::string RedactAuditJsonFragment(std::string json) {
@@ -8053,12 +8190,18 @@ std::string RedactAuditJsonFragment(std::string json) {
                std::isspace(static_cast<unsigned char>(json[value_start])) != 0) {
             ++value_start;
         }
-        if (!AuditSensitiveKey(key) || value_start >= json.size()) {
+        const bool redact_by_key = AuditSensitiveKey(key);
+        const auto string_literal = AuditJsonStringLiteralAt(json, value_start);
+        const bool redact_by_value =
+            string_literal.has_value() && AuditSensitiveStringValue(string_literal->first);
+        if ((!redact_by_key && !redact_by_value) || value_start >= json.size()) {
             pos = value_start;
             continue;
         }
         std::size_t value_end = value_start;
-        if (json[value_start] == '{') {
+        if (!redact_by_key && string_literal.has_value()) {
+            value_end = string_literal->second;
+        } else if (json[value_start] == '{') {
             value_end = ExtractDelimitedValueAt(json, value_start, '{', '}').has_value()
                             ? value_start + ExtractDelimitedValueAt(json, value_start, '{', '}')->size()
                             : value_start + 1;
