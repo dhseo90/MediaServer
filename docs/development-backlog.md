@@ -1526,6 +1526,52 @@ review를 연결합니다.
   완료로 판정하지 않습니다.
 - P2 및 별도 Phase 후보는 V160-P1-01의 즉시 구현 후속으로 끌어오지 않습니다.
 
+### V160-P1-02 Audit/export masking regression hardening 정리 기준
+
+`Audit/export masking regression hardening`은 `/ops/api/audit` 조회와
+JSON/CSV/Diff JSON export에서 source/model/auth/raw material이 다시 노출되지 않도록
+[v1.6.0 Audit Export Masking Regression Hardening](./v1.6.0-audit-export-masking-regression-hardening.md)
+기준으로 기존 audit redaction guard를 release gate에 연결하는 작업입니다.
+
+확인됨:
+
+- `RedactAuditJsonFragment`는 저장된 audit body와 조회/export record에 다시 적용됩니다.
+- JSON export, CSV export, Diff JSON export는 같은 redacted entry set을 사용합니다.
+- `AuditSensitiveKey`와 `AuditSensitiveStringValue`는 source URL/URI/file,
+  endpoint/stream URI, model path/checksum/provenance, raw media/frame, crop,
+  embedding, password/token/hash/secret/credential/capability material을 masking
+  대상으로 유지합니다.
+- Ops UI는 Tracker/Re-ID 설정 변경과 model/fallback status-only review chip을
+  표시하되 model/source/auth/raw material 원문을 표시하지 않습니다.
+- client/viewer surface에는 audit export controls, raw JSON, source/debug/model/auth
+  material을 노출하지 않습니다.
+
+검증 기준:
+
+- `./server.sh verify-v160-audit-export-masking-regression-hardening`
+- `./server.sh verify-v150-audit-export-review-hardening`
+- `./server.sh verify-ops-audit-trail`
+- `./server.sh verify-docs-links`
+- `./server.sh verify-script-inventory`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- V160-P1-03 Runtime/model bundle RC policy
+- V160-P1-04 Manual UI release checklist closure
+- V160-P2-01~V160-P2-02, 별도 Phase 후보
+- 새 Ops debug 화면 추가, client/viewer audit export 기능 추가
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경 또는 media pipeline blocking 정책 변경
+
+후속 분류:
+
+- 미분류 P0~P1 후속 이슈: 없음. 이번 항목의 audit/export masking drift 위험은
+  전용 verifier와 기존 audit export/ops audit trail guard로 닫습니다.
+- V160-P1-03~V160-P1-04는 같은 v1.6.0 안정화 페이즈의 별도 항목이므로 이 작업에서
+  완료로 판정하지 않습니다.
+- P2 및 별도 Phase 후보는 V160-P1-02의 즉시 구현 후속으로 끌어오지 않습니다.
+
 ### v1.6.0 비범위
 
 - 새 제품 기능 추가

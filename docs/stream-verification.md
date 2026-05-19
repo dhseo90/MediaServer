@@ -92,6 +92,7 @@ v1.6.0 stabilization release evidence는
 ./server.sh verify-v160-debug-exposure-regression-guard
 ./server.sh verify-v160-tracker-reid-opt-in-closeout
 ./server.sh verify-v160-onvif-field-smoke-evidence-reconciliation
+./server.sh verify-v160-audit-export-masking-regression-hardening
 ```
 
 Stability gate 분류는
@@ -114,6 +115,11 @@ ONVIF field smoke evidence reconciliation은
 고정합니다. 실장비 field smoke를 실행하지 않았으면 `NOT RUN`과
 `realDeviceEndpointSuccess=unverified`로 유지하고, no-device suite 결과를 field
 smoke pass로 쓰지 않는지 `verify-v160-onvif-field-smoke-evidence-reconciliation`로
+확인합니다.
+Audit/export masking regression hardening은
+[v1.6.0 Audit Export Masking Regression Hardening](./v1.6.0-audit-export-masking-regression-hardening.md)에
+고정합니다. `/ops/api/audit` 조회와 JSON/CSV/Diff JSON export가 source/model/auth/raw
+material을 다시 노출하지 않는지 `verify-v160-audit-export-masking-regression-hardening`로
 확인합니다.
 
 위 전용 기준은 느린 기본 추가 RTSP/WebRTC source 영상, codec matrix, multichannel media soak를 사용하지 않습니다.

@@ -30,6 +30,10 @@ The v1.6.0 ONVIF field smoke evidence reconciliation separates no-device suite
 results, not-run real-device smoke, and redacted artifact review in
 [docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md](docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md);
 verify it with `./server.sh verify-v160-onvif-field-smoke-evidence-reconciliation`.
+The v1.6.0 audit/export masking regression guard keeps source, model, auth, and
+raw material out of audit query and JSON/CSV/Diff JSON exports in
+[docs/v1.6.0-audit-export-masking-regression-hardening.md](docs/v1.6.0-audit-export-masking-regression-hardening.md);
+verify it with `./server.sh verify-v160-audit-export-masking-regression-hardening`.
 
 ## At a Glance
 
@@ -130,6 +134,7 @@ See [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) for f
 | v1.6.0 client debug exposure guard | [docs/v1.6.0-debug-exposure-regression-guard.md](docs/v1.6.0-debug-exposure-regression-guard.md) |
 | v1.6.0 tracker/Re-ID opt-in close-out | [docs/v1.6.0-tracker-reid-opt-in-closeout.md](docs/v1.6.0-tracker-reid-opt-in-closeout.md) |
 | v1.6.0 ONVIF field smoke evidence reconciliation | [docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md](docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md) |
+| v1.6.0 audit/export masking regression hardening | [docs/v1.6.0-audit-export-masking-regression-hardening.md](docs/v1.6.0-audit-export-masking-regression-hardening.md) |
 | Verification commands and release checks | [docs/stream-verification.md](docs/stream-verification.md) |
 | Bundle/container/runtime distribution policy | [docs/distribution-policy.md](docs/distribution-policy.md) |
 | Release scope and tag strategy | [docs/release-policy.md](docs/release-policy.md) |

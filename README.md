@@ -33,6 +33,10 @@ ONVIF field smoke evidence reconciliation은
 [docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md](docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md)와
 `./server.sh verify-v160-onvif-field-smoke-evidence-reconciliation`로 no-device suite,
 실장비 미실행, redacted artifact review를 분리합니다.
+Audit/export masking regression guard는
+[docs/v1.6.0-audit-export-masking-regression-hardening.md](docs/v1.6.0-audit-export-masking-regression-hardening.md)와
+`./server.sh verify-v160-audit-export-masking-regression-hardening`로 audit 조회와
+JSON/CSV/Diff JSON export의 source/model/auth/raw material 비노출을 확인합니다.
 
 ## 한눈에 보기
 
@@ -158,6 +162,7 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | v1.6.0 client debug exposure guard | [docs/v1.6.0-debug-exposure-regression-guard.md](docs/v1.6.0-debug-exposure-regression-guard.md) |
 | v1.6.0 tracker/Re-ID opt-in close-out | [docs/v1.6.0-tracker-reid-opt-in-closeout.md](docs/v1.6.0-tracker-reid-opt-in-closeout.md) |
 | v1.6.0 ONVIF field smoke evidence reconciliation | [docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md](docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md) |
+| v1.6.0 audit/export masking regression hardening | [docs/v1.6.0-audit-export-masking-regression-hardening.md](docs/v1.6.0-audit-export-masking-regression-hardening.md) |
 | YouTube import/source 실험 기능 | [docs/youtube-import.md](docs/youtube-import.md) |
 
 ## 대표 UI 미리보기

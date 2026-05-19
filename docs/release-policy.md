@@ -69,6 +69,10 @@ ONVIF field smoke evidence는
 [v1.6.0 ONVIF Field Smoke Evidence Reconciliation](./v1.6.0-onvif-field-smoke-evidence-reconciliation.md)와
 `./server.sh verify-v160-onvif-field-smoke-evidence-reconciliation` 기준으로
 no-device suite, 실장비 미실행, redacted artifact review를 분리합니다.
+Audit/export masking evidence는
+[v1.6.0 Audit Export Masking Regression Hardening](./v1.6.0-audit-export-masking-regression-hardening.md)와
+`./server.sh verify-v160-audit-export-masking-regression-hardening` 기준으로
+JSON/CSV/Diff JSON export의 source/model/auth/raw material 비노출을 확인합니다.
 
 ## Tag 전략
 
