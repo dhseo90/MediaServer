@@ -1216,6 +1216,21 @@ v1.5.0 비범위:
 - Event POST/WebRTC DataChannel/SSE/WS metadata payload 무심사 변경
 - RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
 
+### v1.5.0 Follow-up Closure
+
+v1.5.0 roadmap 구현 뒤 남은 후속 항목은
+[v1.5.0 Follow-up Closure](./v1.5.0-follow-up-closure.md)에 분리합니다.
+`verify-v150-follow-up-closure`는 명시 opt-in guard, stability matrix,
+Re-ID provenance/fallback approval, Ops warning next-action, audit export review,
+field smoke summary evidence boundary, OC-SORT experimental sandbox가 각각 닫은
+항목과 별도 Phase gate를 구분합니다.
+
+2026-05-19 KST 기준 추가 기능 개발로 처리할 v1.5.0 후속 이슈는 남기지 않습니다.
+field sample history review workflow, tracker experimental benchmark harness,
+actual OC-SORT algorithm adapter and dataset benchmark report, runtime/model bundle
+RC policy, ONVIF field smoke evidence reconciliation, release evidence dashboard
+cleanup은 v1.5.0 잔여가 아니라 별도 Phase gate입니다.
+
 ## 별도 Phase 후보
 
 v1.5.0 roadmap에 포함하지 않은 항목은 이후 별도 Phase gate 후보로 남깁니다.

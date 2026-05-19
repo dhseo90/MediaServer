@@ -73,6 +73,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_v130_follow_up_closure.mjs",
     "verify_v140_follow_up_closure.mjs",
     "verify_v140_report_archive_policy.mjs",
+    "verify_v150_follow_up_closure.mjs",
     "verify_v150_opt_in_tracking_policy_guard.mjs",
     "verify_v150_tracker_reid_stability_matrix.mjs",
     "verify_v150_reid_provenance_fallback_approval.mjs",

@@ -22,6 +22,7 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 | Historical v1.2.1 follow-up closure | [../v1.2.1-follow-up-closure.md](../v1.2.1-follow-up-closure.md) |
 | v1.3.0 follow-up closure | [../v1.3.0-follow-up-closure.md](../v1.3.0-follow-up-closure.md) |
 | v1.4.0 follow-up closure | [../v1.4.0-follow-up-closure.md](../v1.4.0-follow-up-closure.md) |
+| v1.5.0 follow-up closure | [../v1.5.0-follow-up-closure.md](../v1.5.0-follow-up-closure.md) |
 | Verification | [../stream-verification.md](../stream-verification.md) |
 | Distribution policy | [../distribution-policy.md](../distribution-policy.md) |
 | Release policy | [../release-policy.md](../release-policy.md) |
