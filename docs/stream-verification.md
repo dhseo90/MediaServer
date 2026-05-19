@@ -90,6 +90,7 @@ v1.6.0 stabilization release evidence는
 ./server.sh verify-v160-release-evidence-dashboard
 ./server.sh verify-v160-stability-verification-gate
 ./server.sh verify-v160-debug-exposure-regression-guard
+./server.sh verify-v160-tracker-reid-opt-in-closeout
 ```
 
 Stability gate 분류는
@@ -102,6 +103,11 @@ Client/Ops debug exposure guard는
 고정합니다. `verify-ops-client-ui`의 client forbidden text/key matrix가 source URL,
 raw JSON, debug counter, rule/profile editor, model/source/auth material을 검사하는지
 `verify-v160-debug-exposure-regression-guard`로 확인합니다.
+Tracker/Re-ID opt-in close-out은
+[v1.6.0 Tracker/Re-ID Opt-in Stabilization Close-out](./v1.6.0-tracker-reid-opt-in-closeout.md)에
+고정합니다. v1.5.0 follow-up closure, stability matrix, Re-ID provenance/fallback
+approval verifier를 carry-over gate로 연결하되, default-on이나 runtime/model bundle
+승격은 P0 완료로 쓰지 않습니다.
 
 위 전용 기준은 느린 기본 추가 RTSP/WebRTC source 영상, codec matrix, multichannel media soak를 사용하지 않습니다.
 기본 smoke와 longrun gate가 섞이지 않았는지는 다음 명령으로 정적으로 확인합니다.

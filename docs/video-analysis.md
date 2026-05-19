@@ -708,6 +708,10 @@ AppearanceProfile과 IAppearanceExtractor는 향후 Re-ID/attribute 분석을 �
   해석하지 않습니다.
 - `./server.sh verify-v150-reid-provenance-fallback-approval`은 위 approval gate,
   invalid/missing model fixture, metadata 비노출 경계를 정적으로 검증합니다.
+- v1.6.0 Tracker/Re-ID opt-in close-out은
+  [v1.6.0 Tracker/Re-ID Opt-in Stabilization Close-out](v1.6.0-tracker-reid-opt-in-closeout.md)과
+  `./server.sh verify-v160-tracker-reid-opt-in-closeout`로 default-off 안정화와
+  default-on 비승격을 확인합니다.
 - v1.3.0 연구 지속 기준은 [Re-ID Default-off Research Continuation](reid-default-off-research-continuation.md)에
   분리하며, 제품 default-on 결정이나 대형 tracker 교체로 해석하지 않습니다.
 - privacy threat model에서는 embedding vector, bbox crop, track-linked

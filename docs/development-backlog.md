@@ -1425,6 +1425,53 @@ source URL, raw JSON, debug counter, rule/profile editor, model/source/auth mate
   않습니다.
 - P1/P2 및 별도 Phase 후보는 V160-P0-03의 즉시 후속 이슈로 끌어오지 않습니다.
 
+### V160-P0-04 Tracker/Re-ID opt-in stabilization close-out 정리 기준
+
+`Tracker/Re-ID opt-in stabilization close-out`은 v1.5.0까지 닫은 rule-level
+tracker/Re-ID opt-in, warning, fallback, privacy guard를
+[v1.6.0 Tracker/Re-ID Opt-in Stabilization Close-out](./v1.6.0-tracker-reid-opt-in-closeout.md)
+기준으로 default-off 안정화 상태에 묶는 작업입니다. 목표는 default-on 승격,
+runtime tracker 승격, model/runtime bundle release와 P0 안정화 완료를 분리하는
+것입니다.
+
+확인됨:
+
+- 사용자가 rule/vaRule에서 명시 선택한 `analysis.trackingPolicy.tracker`와
+  `analysis.trackingPolicy.reid`만 적용합니다.
+- `trackingPolicy`가 없는 기존 rule은 runtime에서 `tracker=lite`, `reid=off`,
+  `source=rule-default`로 해석하며 저장 문서를 자동 migration하지 않습니다.
+- tracker/Re-ID matrix는 사용자 opt-in 품질 참고이며 default-on 승인 근거가
+  아닙니다.
+- Re-ID model provenance/checksum/fallback gate는 missing/invalid/mismatched model을
+  `NoOp fallback`으로 닫고, crop/embedding/model path/checksum/provenance를 외부
+  metadata나 client/viewer 화면에 노출하지 않습니다.
+- v1.6.0 P0 안정화 페이즈의 미분류 P0~P1 후속 이슈는 없음으로 분류합니다.
+
+검증 기준:
+
+- `./server.sh verify-v160-tracker-reid-opt-in-closeout`
+- `./server.sh verify-v150-follow-up-closure`
+- `./server.sh verify-v150-tracker-reid-stability-matrix`
+- `./server.sh verify-v150-reid-provenance-fallback-approval`
+- `./server.sh verify-script-inventory`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- V160-P1-01~V160-P1-04, V160-P2-01~V160-P2-02
+- Re-ID default-on, tracker default-on, product default tracker 변경
+- OC-SORT, BoT-SORT, DeepSORT runtime tracker 승격
+- 실제 Re-ID model artifact, model card, dataset provenance, model/runtime/binary bundle
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경 또는 media pipeline blocking 정책 변경
+
+후속 분류:
+
+- 미분류 P0~P1 후속 이슈: 없음. 이번 P0 안정화 페이즈에서 발견한 P0/P1 빈칸은
+  V160-P0-01~V160-P0-04 verifier와 문서 guard로 닫습니다.
+- V160-P1-01~V160-P1-04, V160-P2-01~V160-P2-02, 별도 Phase 후보는 이번 P0
+  close-out의 즉시 구현 후속으로 끌어오지 않습니다.
+
 ### v1.6.0 비범위
 
 - 새 제품 기능 추가

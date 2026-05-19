@@ -232,6 +232,8 @@ Usage:
                  v1.6.0 stability verification gate가 smoke/flaky/longrun을 분리하는지 검증합니다.
   verify-v160-debug-exposure-regression-guard
                  v1.6.0 client/ops debug/source/model/auth 비노출 guard를 검증합니다.
+  verify-v160-tracker-reid-opt-in-closeout
+                 v1.6.0 tracker/Re-ID opt-in default-off close-out을 검증합니다.
   verify-server-start-modes
                  foreground/start 실행 모드의 health, route, state file 안정성을 검증합니다.
   verify-auth-bootstrap
@@ -804,6 +806,10 @@ case "${cmd}" in
   verify-v160-debug-exposure-regression-guard)
     require_internal verify_v160_debug_exposure_regression_guard.mjs
     exec "${INTERNAL_DIR}/verify_v160_debug_exposure_regression_guard.mjs" "$@"
+    ;;
+  verify-v160-tracker-reid-opt-in-closeout)
+    require_internal verify_v160_tracker_reid_opt_in_closeout.mjs
+    exec "${INTERNAL_DIR}/verify_v160_tracker_reid_opt_in_closeout.mjs" "$@"
     ;;
   verify-server-start-modes)
     require_internal verify_server_start_modes.sh

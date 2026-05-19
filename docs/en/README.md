@@ -22,6 +22,7 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 | v1.6.0 release evidence dashboard and `verify-v160-release-evidence-dashboard` status separation | [../v1.6.0-release-evidence-dashboard.md](../v1.6.0-release-evidence-dashboard.md) |
 | v1.6.0 stability gate map and `verify-v160-stability-verification-gate` smoke/flaky/longrun separation | [../v1.6.0-stability-verification-gates.md](../v1.6.0-stability-verification-gates.md) |
 | v1.6.0 client debug exposure guard and `verify-v160-debug-exposure-regression-guard` redaction checks | [../v1.6.0-debug-exposure-regression-guard.md](../v1.6.0-debug-exposure-regression-guard.md) |
+| v1.6.0 tracker/Re-ID opt-in close-out and `verify-v160-tracker-reid-opt-in-closeout` default-off guard | [../v1.6.0-tracker-reid-opt-in-closeout.md](../v1.6.0-tracker-reid-opt-in-closeout.md) |
 | Historical v1.2.1 follow-up closure | [../v1.2.1-follow-up-closure.md](../v1.2.1-follow-up-closure.md) |
 | v1.3.0 follow-up closure | [../v1.3.0-follow-up-closure.md](../v1.3.0-follow-up-closure.md) |
 | v1.4.0 follow-up closure | [../v1.4.0-follow-up-closure.md](../v1.4.0-follow-up-closure.md) |
