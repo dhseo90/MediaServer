@@ -157,6 +157,12 @@ Re-ID assist는 독립 tracker가 아니라 selected tracker의 association 보�
 Re-ID assist는 `tracker` field가 함께 있는 `analysis.trackingPolicy`에서만 유효합니다.
 tracker 없는 `reid=assist`는 저장 검증에서 거부하고 runtime에서도 opt-in으로 해석하지 않습니다.
 
+v1.5.0 Tracker/Re-ID stability matrix는 `lite/off`, `kalman-lite/off`,
+`bytetrack/off`, `lite/assist`, `kalman-lite/assist`, `bytetrack/assist`
+조합의 반복 fixture와 warning drift를 같은 기준으로 읽기 위한 guard입니다.
+이 matrix와 close-object/field-driving report는 사용자 opt-in 품질 참고이며,
+제품 default tracker/Re-ID 변경 근거가 아닙니다.
+
 matching score는 다음 요소를 조합합니다.
 
 - IoU score

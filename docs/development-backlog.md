@@ -850,6 +850,69 @@ global default-on, 자동 migration, tracker 없는 Re-ID assist 활성화를 �
 - OC-SORT experimental sandbox와 별도 Phase 후보는 아래 roadmap 경계를 따르며,
   V150-P0-01의 후속 이슈로 끌어오지 않습니다.
 
+### V150-P0-02 Tracker/Re-ID stability matrix 정리 기준
+
+`Tracker/Re-ID stability matrix`는 v1.4.0에서 열린 rule-level tracker/Re-ID
+opt-in 후보를 제품 기본값으로 승격하지 않고, 사용자가 명시 선택한 조합의 반복
+fixture 결과와 warning drift를 같은 기준으로 읽게 하는 안정화 작업입니다.
+
+확인됨:
+
+- 최소 matrix 조합은 `lite/off`, `kalman-lite/off`, `bytetrack/off`,
+  `lite/assist`, `kalman-lite/assist`, `bytetrack/assist`입니다.
+  `tracker=none/reid=off`는 opt-in guard 회귀로 다루며 tracker stability 품질
+  matrix의 ID continuity 후보로 보지 않습니다.
+- `verify-tracker-stability`는 `--tracker-policy`와 `--reid-policy`로 임시
+  vaRule을 만들고 tap의 `trackingPolicy.tracker`, `trackingPolicy.reid`,
+  `effectiveTracker`가 요청한 rule-level opt-in 값과 맞는지 확인합니다.
+- `compare-close-object-tracker --fixture-matrix`는 각 fixture row에
+  `trackerPolicy`, `reidPolicy`, `warningCount`, `defaultOnDecision`,
+  `productDefaultOn`, `defaultOnReason`을 남겨 `matrix-ok`와 제품 default-on
+  판단을 분리합니다.
+- `--history-dir`는 summary/report/index만 보존하며 raw media, crop, embedding,
+  model path, auth/source material을 archive 범위에 포함하지 않습니다.
+- close-object/field-driving 결과는 사용자 opt-in 품질 참고와 threshold 튜닝
+  후보일 뿐이며, 제품 default tracker/Re-ID 변경 근거가 아닙니다.
+- Re-ID assist model provenance/checksum/fallback 승인 자체는 V150-P0-03에서
+  다루며, 이 matrix는 policy 조합 적용과 warning drift 판독 경계만 닫습니다.
+- 미분류 P0~P1 후속 이슈: 없음. 이번 항목에서 발견한 빈칸은 전용 verifier와
+  문서화된 조합 matrix로 닫습니다.
+
+검증 기준:
+
+- `./server.sh build`
+- `./server.sh verify-v150-tracker-reid-stability-matrix`
+- `./server.sh verify-tracker-stability --tracker-policy lite --reid-policy off`
+- `./server.sh verify-tracker-stability --tracker-policy kalman-lite --reid-policy off`
+- `./server.sh verify-tracker-stability --tracker-policy bytetrack --reid-policy off`
+- `./server.sh verify-tracker-stability --tracker-policy lite --reid-policy assist`
+- `./server.sh verify-tracker-stability --tracker-policy kalman-lite --reid-policy assist`
+- `./server.sh verify-tracker-stability --tracker-policy bytetrack --reid-policy assist`
+- `./server.sh compare-close-object-tracker --fixture-matrix --tracker-policy bytetrack --reid-policy assist --history-dir /private/tmp/media_server_v150_tracker_reid_stability_matrix`
+- `./server.sh verify-va-replay`
+- `./server.sh verify-va-events`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- V150-P0-03 Re-ID opt-in model provenance and fallback approval
+- V150-P1-01 Ops Dashboard tracker warning next-action refinement
+- V150-P1-02 Audit export review hardening
+- V150-P1-03 Field smoke summary evidence boundary
+- V150-P2-01 OC-SORT experimental sandbox
+- 제품 default tracker/Re-ID 변경, global/default-on, 기존 rule/source/profile 자동
+  migration
+- 실제 Re-ID model artifact, model card, dataset provenance, runtime/model bundle
+  release asset 포함
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경 또는 media pipeline blocking 정책 변경
+
+별도 Phase 후보로 기록:
+
+- P2 이상 tracker experimental benchmark harness와 field sample history review workflow
+- Re-ID privacy retention guard와 runtime/model bundle RC policy
+- OC-SORT/BoT-SORT/DeepSORT algorithm adapter 또는 benchmark report
+
 v1.5.0 비범위:
 
 - tracker/Re-ID global default-on 또는 제품 기본값 변경

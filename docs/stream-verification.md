@@ -901,6 +901,12 @@ count, mean, stdev, variance, min, max를 표시합니다.
   이 검증은 tracker 없는 `reid=assist` fixture를 저장 거부하고, runtime/UI/docs가
   자동 migration 또는 default-on 승격 근거가 아닙니다 라는 경계를 유지하는지
   점검합니다.
+- v1.5.0 Tracker/Re-ID stability matrix는
+  `verify-v150-tracker-reid-stability-matrix`로 문서/entrypoint/fixture-history
+  경계를 먼저 고정합니다. 이 정적 guard는 runtime matrix를 직접 실행하지 않으며,
+  `lite/off`, `kalman-lite/off`, `bytetrack/off`, `lite/assist`,
+  `kalman-lite/assist`, `bytetrack/assist` 조합이 warning drift 관찰 대상이고
+  `matrix-ok`가 제품 default-on 승인 값이 아닙니다 라는 해석을 확인합니다.
 
 비교 리포트 해석:
 
@@ -918,6 +924,7 @@ count, mean, stdev, variance, min, max를 표시합니다.
 
 ```bash
 ./server.sh verify-v150-opt-in-tracking-policy
+./server.sh verify-v150-tracker-reid-stability-matrix
 ./server.sh verify-reid-advanced-tracking
 ./server.sh verify-tracker-stability --long --overlap-focus
 ./server.sh verify-va-replay
