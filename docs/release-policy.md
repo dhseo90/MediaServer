@@ -85,6 +85,10 @@ Public docs consistency polish는
 [v1.6.0 Public Docs Consistency Polish](./v1.6.0-public-docs-consistency-polish.md)와
 `./server.sh verify-v160-public-docs-consistency-polish` 기준으로 현재 published tag와
 v1.6.0 stabilization evidence 표현을 분리합니다.
+Tracker benchmark harness planning only는
+[v1.6.0 Tracker Benchmark Harness Planning](./v1.6.0-tracker-benchmark-harness-planning.md)와
+`./server.sh verify-v160-tracker-benchmark-harness-planning` 기준으로 runtime tracker
+승격 없이 별도 benchmark 요구사항만 분리합니다.
 
 ## Tag 전략
 

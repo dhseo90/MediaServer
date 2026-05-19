@@ -244,6 +244,8 @@ Usage:
                  v1.6.0 수동 UI release checklist와 evidence 경계를 검증합니다.
   verify-v160-public-docs-consistency-polish
                  v1.6.0 public docs의 current tag/stabilization evidence 표현을 검증합니다.
+  verify-v160-tracker-benchmark-harness-planning
+                 v1.6.0 tracker benchmark harness planning-only 경계를 검증합니다.
   verify-server-start-modes
                  foreground/start 실행 모드의 health, route, state file 안정성을 검증합니다.
   verify-auth-bootstrap
@@ -840,6 +842,10 @@ case "${cmd}" in
   verify-v160-public-docs-consistency-polish)
     require_internal verify_v160_public_docs_consistency_polish.mjs
     exec "${INTERNAL_DIR}/verify_v160_public_docs_consistency_polish.mjs" "$@"
+    ;;
+  verify-v160-tracker-benchmark-harness-planning)
+    require_internal verify_v160_tracker_benchmark_harness_planning.mjs
+    exec "${INTERNAL_DIR}/verify_v160_tracker_benchmark_harness_planning.mjs" "$@"
     ;;
   verify-server-start-modes)
     require_internal verify_server_start_modes.sh

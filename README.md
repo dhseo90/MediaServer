@@ -49,6 +49,10 @@ Public docs consistency polish는
 [docs/v1.6.0-public-docs-consistency-polish.md](docs/v1.6.0-public-docs-consistency-polish.md)와
 `./server.sh verify-v160-public-docs-consistency-polish`로 현재 published tag와
 v1.6.0 stabilization evidence 표현을 분리합니다.
+Tracker benchmark harness planning only는
+[docs/v1.6.0-tracker-benchmark-harness-planning.md](docs/v1.6.0-tracker-benchmark-harness-planning.md)와
+`./server.sh verify-v160-tracker-benchmark-harness-planning`으로 새 runtime tracker
+승격 없이 benchmark 요구사항만 분리합니다.
 
 ## 한눈에 보기
 
@@ -178,6 +182,7 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | v1.6.0 runtime/model bundle RC policy | [docs/v1.6.0-runtime-model-bundle-rc-policy.md](docs/v1.6.0-runtime-model-bundle-rc-policy.md) |
 | v1.6.0 manual UI release checklist closure | [docs/v1.6.0-manual-ui-release-checklist-closure.md](docs/v1.6.0-manual-ui-release-checklist-closure.md) |
 | v1.6.0 public docs consistency polish | [docs/v1.6.0-public-docs-consistency-polish.md](docs/v1.6.0-public-docs-consistency-polish.md) |
+| v1.6.0 tracker benchmark harness planning | [docs/v1.6.0-tracker-benchmark-harness-planning.md](docs/v1.6.0-tracker-benchmark-harness-planning.md) |
 | YouTube import/source 실험 기능 | [docs/youtube-import.md](docs/youtube-import.md) |
 
 ## 대표 UI 미리보기

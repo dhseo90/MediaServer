@@ -1714,6 +1714,55 @@ backlog가 현재 published tag와 v1.6.0 stabilization evidence를 분리해 �
   판정하지 않습니다.
 - 별도 Phase 후보는 V160-P2-01의 즉시 구현 후속으로 끌어오지 않습니다.
 
+### V160-P2-02 Tracker benchmark harness planning only 정리 기준
+
+`Tracker benchmark harness planning only`는 실제 OC-SORT adapter나 새 runtime
+tracker를 구현하는 작업이 아니라, v1.7.0 이후 별도 benchmark를 열 때 필요한
+harness 요구사항과 비승격 경계를
+[v1.6.0 Tracker Benchmark Harness Planning](./v1.6.0-tracker-benchmark-harness-planning.md)에
+고정하는 작업입니다.
+
+확인됨:
+
+- `analysis.trackingPolicy.tracker` 허용값은 `none`, `lite`, `kalman-lite`,
+  `bytetrack`에 머뭅니다.
+- `/ops/rules` tracker selector, rule validation, `AnalysisProfile`,
+  `ObjectTrackerKind`, `verify-tracker-stability`, `compare-close-object-tracker`에
+  OC-SORT, BoT-SORT, DeepSORT runtime tracker 선택값을 추가하지 않습니다.
+- `compare-close-object-tracker --experimental-sandbox oc-sort`는 metadata-only sandbox
+  manifest를 남길 수 있지만 tracker stability 실행 인자로 전달하지 않습니다.
+- benchmark planning은 Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경이나
+  RTSP/WebRTC media path 변경의 근거가 아닙니다.
+- tracker/Re-ID default-on, product default tracker 변경, model/runtime bundle 포함
+  결정을 이 항목에서 내리지 않습니다.
+
+검증 기준:
+
+- `./server.sh verify-v160-tracker-benchmark-harness-planning`
+- `./server.sh verify-oc-sort-benchmark-boundary`
+- `./server.sh verify-bot-sort-deepsort-research-boundary`
+- `./server.sh verify-docs-links`
+- `./server.sh verify-script-inventory`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- 실제 OC-SORT algorithm adapter 구현
+- BoT-SORT/DeepSORT adapter 구현
+- dataset benchmark report 실행 또는 field sample benchmark 수행
+- tracker replacement product review
+- Re-ID default-on, tracker default-on, product default tracker 변경
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경 또는 media pipeline blocking 정책 변경
+
+후속 분류:
+
+- 미분류 P0~P1 후속 이슈: 없음. 이번 항목의 tracker benchmark planning drift 위험은
+  전용 verifier와 기존 OC-SORT/BoT-SORT/DeepSORT boundary guard로 닫습니다.
+- 실제 adapter, dataset benchmark report, tracker replacement product review는
+  별도 Phase 후보로 남깁니다.
+- 별도 Phase 후보는 V160-P2-02의 즉시 구현 후속으로 끌어오지 않습니다.
+
 ### v1.6.0 비범위
 
 - 새 제품 기능 추가

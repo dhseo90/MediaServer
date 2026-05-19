@@ -90,6 +90,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_v160_runtime_model_bundle_rc_policy.mjs",
     "verify_v160_manual_ui_release_checklist_closure.mjs",
     "verify_v160_public_docs_consistency_polish.mjs",
+    "verify_v160_tracker_benchmark_harness_planning.mjs",
     "verify_actions_security.mjs",
     "verify_release_bundle_dry_run.mjs",
     "verify_reid_advanced_tracking_experiment.mjs",

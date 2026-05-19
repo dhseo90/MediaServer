@@ -28,6 +28,7 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 | v1.6.0 runtime/model bundle RC policy and `verify-v160-runtime-model-bundle-rc-policy` default-exclusion guard | [../v1.6.0-runtime-model-bundle-rc-policy.md](../v1.6.0-runtime-model-bundle-rc-policy.md) |
 | v1.6.0 manual UI release checklist closure and `verify-v160-manual-ui-release-checklist-closure` not-run/manual evidence guard | [../v1.6.0-manual-ui-release-checklist-closure.md](../v1.6.0-manual-ui-release-checklist-closure.md) |
 | v1.6.0 public docs consistency polish and `verify-v160-public-docs-consistency-polish` current-tag/evidence guard | [../v1.6.0-public-docs-consistency-polish.md](../v1.6.0-public-docs-consistency-polish.md) |
+| v1.6.0 tracker benchmark harness planning and `verify-v160-tracker-benchmark-harness-planning` planning-only guard | [../v1.6.0-tracker-benchmark-harness-planning.md](../v1.6.0-tracker-benchmark-harness-planning.md) |
 | Historical v1.2.1 follow-up closure | [../v1.2.1-follow-up-closure.md](../v1.2.1-follow-up-closure.md) |
 | v1.3.0 follow-up closure | [../v1.3.0-follow-up-closure.md](../v1.3.0-follow-up-closure.md) |
 | v1.4.0 follow-up closure | [../v1.4.0-follow-up-closure.md](../v1.4.0-follow-up-closure.md) |

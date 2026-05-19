@@ -96,6 +96,7 @@ v1.6.0 stabilization release evidence는
 ./server.sh verify-v160-runtime-model-bundle-rc-policy
 ./server.sh verify-v160-manual-ui-release-checklist-closure
 ./server.sh verify-v160-public-docs-consistency-polish
+./server.sh verify-v160-tracker-benchmark-harness-planning
 ```
 
 Stability gate 분류는
@@ -142,6 +143,11 @@ Public docs consistency polish는
 쓰지 않는지 `verify-v160-public-docs-consistency-polish`로 확인합니다.
 V160-P2-01 Public docs consistency polish는 public docs current tag와
 stabilization evidence 표현을 정리하는 항목입니다.
+Tracker benchmark harness planning only는
+[v1.6.0 Tracker Benchmark Harness Planning](./v1.6.0-tracker-benchmark-harness-planning.md)에
+고정합니다. OC-SORT/BoT-SORT/DeepSORT를 runtime tracker로 승격하지 않고,
+metadata-only sandbox와 별도 Phase benchmark 요구사항만
+`verify-v160-tracker-benchmark-harness-planning`으로 확인합니다.
 
 위 전용 기준은 느린 기본 추가 RTSP/WebRTC source 영상, codec matrix, multichannel media soak를 사용하지 않습니다.
 기본 smoke와 longrun gate가 섞이지 않았는지는 다음 명령으로 정적으로 확인합니다.
