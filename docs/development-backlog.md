@@ -1379,6 +1379,52 @@ flaky/attached/longrun/external gate를
   완료로 판정하지 않습니다.
 - P1/P2 및 별도 Phase 후보는 V160-P0-02의 즉시 후속 이슈로 끌어오지 않습니다.
 
+### V160-P0-03 Client/Ops debug exposure regression guard 정리 기준
+
+`Client/Ops debug exposure regression guard`는 viewer/client 화면과 scoped API에
+source URL, raw JSON, debug counter, rule/profile editor, model/source/auth material이
+노출되지 않도록 [v1.6.0 Client/Ops Debug Exposure Regression Guard](./v1.6.0-debug-exposure-regression-guard.md)
+문서와 `verify-ops-client-ui` forbidden matrix를 강화하는 작업입니다.
+
+확인됨:
+
+- client page HTML, rendered DOM, clipboard text, client scoped API JSON key traversal에서
+  source/debug/rule/model/auth material을 금지합니다.
+- `verify-ops-client-ui`의 client forbidden text/key matrix에 `modelPath`,
+  `modelSha256`, `modelChecksum`, `modelProvenance`, `modelUrl`, `crop`, `embedding`,
+  `appearanceCrop`, `appearanceEmbedding`, `passwordHistory`, `credentialRef`,
+  capability material을 추가합니다.
+- Ops 화면의 운영자 debug/details와 client/viewer surface를 분리하고, raw JSON은
+  운영자 debug details 접힘 영역에만 둡니다.
+- removed UI route(`/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test`)는 닫힌 상태를
+  유지합니다.
+
+검증 기준:
+
+- `./server.sh verify-v160-debug-exposure-regression-guard`
+- `./server.sh verify-auth-routes`
+- `./server.sh verify-ops-client-ui`
+- `./server.sh verify-script-inventory`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- V160-P0-04 Tracker/Re-ID opt-in stabilization close-out
+- V160-P1-02 Audit/export masking regression hardening
+- V160-P1-01, V160-P1-03~V160-P1-04, V160-P2-01~V160-P2-02
+- audit/export CSV/JSON/Diff hardening 전체 재작업, 새 Ops debug 화면 추가,
+  client/viewer 기능 추가
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경 또는 media pipeline blocking 정책 변경
+
+후속 분류:
+
+- 미분류 P0~P1 후속 이슈: 없음. 이번 항목에서 발견한 client redaction guard 빈칸은
+  forbidden matrix와 전용 verifier로 닫습니다.
+- V160-P0-04는 같은 P0 안정화 페이즈의 별도 항목이므로 이 작업에서 완료로 판정하지
+  않습니다.
+- P1/P2 및 별도 Phase 후보는 V160-P0-03의 즉시 후속 이슈로 끌어오지 않습니다.
+
 ### v1.6.0 비범위
 
 - 새 제품 기능 추가

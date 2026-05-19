@@ -23,6 +23,9 @@ stability gate 분류는
 [docs/v1.6.0-stability-verification-gates.md](docs/v1.6.0-stability-verification-gates.md)와
 `./server.sh verify-v160-stability-verification-gate`로 smoke/flaky/longrun 경계를
 확인합니다.
+client/viewer debug/source/model/auth material 비노출 guard는
+[docs/v1.6.0-debug-exposure-regression-guard.md](docs/v1.6.0-debug-exposure-regression-guard.md)와
+`./server.sh verify-v160-debug-exposure-regression-guard`로 확인합니다.
 
 ## 한눈에 보기
 
@@ -145,6 +148,7 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | v1.5.0 후속 종료 판정 | [docs/v1.5.0-follow-up-closure.md](docs/v1.5.0-follow-up-closure.md) |
 | v1.6.0 release evidence dashboard | [docs/v1.6.0-release-evidence-dashboard.md](docs/v1.6.0-release-evidence-dashboard.md) |
 | v1.6.0 stability verification gates | [docs/v1.6.0-stability-verification-gates.md](docs/v1.6.0-stability-verification-gates.md) |
+| v1.6.0 client debug exposure guard | [docs/v1.6.0-debug-exposure-regression-guard.md](docs/v1.6.0-debug-exposure-regression-guard.md) |
 | YouTube import/source 실험 기능 | [docs/youtube-import.md](docs/youtube-import.md) |
 
 ## 대표 UI 미리보기

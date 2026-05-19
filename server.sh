@@ -230,6 +230,8 @@ Usage:
                  v1.6.0 release evidence dashboard가 실행/미실행/미확인을 분리하는지 검증합니다.
   verify-v160-stability-verification-gate
                  v1.6.0 stability verification gate가 smoke/flaky/longrun을 분리하는지 검증합니다.
+  verify-v160-debug-exposure-regression-guard
+                 v1.6.0 client/ops debug/source/model/auth 비노출 guard를 검증합니다.
   verify-server-start-modes
                  foreground/start 실행 모드의 health, route, state file 안정성을 검증합니다.
   verify-auth-bootstrap
@@ -798,6 +800,10 @@ case "${cmd}" in
   verify-v160-stability-verification-gate)
     require_internal verify_v160_stability_verification_gate.mjs
     exec "${INTERNAL_DIR}/verify_v160_stability_verification_gate.mjs" "$@"
+    ;;
+  verify-v160-debug-exposure-regression-guard)
+    require_internal verify_v160_debug_exposure_regression_guard.mjs
+    exec "${INTERNAL_DIR}/verify_v160_debug_exposure_regression_guard.mjs" "$@"
     ;;
   verify-server-start-modes)
     require_internal verify_server_start_modes.sh

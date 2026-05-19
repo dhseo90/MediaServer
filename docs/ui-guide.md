@@ -453,6 +453,9 @@ client/viewer shell과 client API에는 source URL, raw JSON, debug counter,
 `analysisTapId`, Scenario Timeline debug object를 노출하지 않습니다.
 raw JSON이 필요한 경우에도 운영자 debug details 접힘 영역 또는
 개발/검증 API에서만 확인합니다.
+v1.6.0 client debug/source/model/auth material 비노출 guard는
+[v1.6.0 Client/Ops Debug Exposure Regression Guard](./v1.6.0-debug-exposure-regression-guard.md)와
+`./server.sh verify-v160-debug-exposure-regression-guard`로 확인합니다.
 
 ## 3. Admin User Management
 
