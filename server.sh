@@ -222,6 +222,8 @@ Usage:
                  v1.5.0 audit export review와 model/source material masking 경계를 검증합니다.
   verify-v150-field-smoke-summary-evidence-boundary
                  v1.5.0 field smoke summary/report/history evidence와 raw media 비보존 경계를 검증합니다.
+  verify-v150-oc-sort-experimental-sandbox
+                 v1.5.0 OC-SORT experimental sandbox가 runtime tracker 승격 없이 연결됐는지 검증합니다.
   verify-server-start-modes
                  foreground/start 실행 모드의 health, route, state file 안정성을 검증합니다.
   verify-auth-bootstrap
@@ -774,6 +776,10 @@ case "${cmd}" in
   verify-v150-field-smoke-summary-evidence-boundary)
     require_internal verify_v150_field_smoke_summary_evidence_boundary.mjs
     exec "${INTERNAL_DIR}/verify_v150_field_smoke_summary_evidence_boundary.mjs" "$@"
+    ;;
+  verify-v150-oc-sort-experimental-sandbox)
+    require_internal verify_v150_oc_sort_experimental_sandbox.mjs
+    exec "${INTERNAL_DIR}/verify_v150_oc_sort_experimental_sandbox.mjs" "$@"
     ;;
   verify-server-start-modes)
     require_internal verify_server_start_modes.sh

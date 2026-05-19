@@ -111,12 +111,7 @@ check("ObjectTracker implementation remains limited to Lite, Kalman-lite, and By
 check("benchmark harness accepts only current v1.4.0 tracker policies", () => {
   const stability = readText("scripts/internal/verify_tracker_stability.sh");
   const compare = readText("scripts/internal/compare_close_object_tracker.py");
-  for (const [label, text] of [
-    ["verify_tracker_stability.sh", stability],
-    ["compare_close_object_tracker.py", compare],
-  ]) {
-    assertNoRuntimeToken(label, text);
-  }
+  assertNoRuntimeToken("verify_tracker_stability.sh", stability);
   for (const snippet of [
     'TRACKER_POLICY}" != "lite" && "${TRACKER_POLICY}" != "kalman-lite" && "${TRACKER_POLICY}" != "bytetrack"',
     'args.tracker_policy not in {"lite", "kalman-lite", "bytetrack"}',
@@ -129,9 +124,22 @@ check("benchmark harness accepts only current v1.4.0 tracker policies", () => {
       `benchmark harness missing boundary snippet: ${snippet}`
     );
   }
+  for (const snippet of [
+    "--experimental-sandbox",
+    "runtimeTrackerPolicy",
+    "records an explicit OC-SORT comparison sandbox boundary",
+  ]) {
+    assert(
+      compare.includes(snippet),
+      `OC-SORT sandbox metadata must stay explicit and non-runtime in compare harness: ${snippet}`
+    );
+  }
+  const trackerArgs = extractBetween(compare, "def tracker_args", "def find_available_port");
+  assert(!trackerArgs.includes("experimental_sandbox"), "OC-SORT sandbox flag must not be forwarded to tracker stability");
   return {
     commands: ["verify-tracker-stability", "compare-close-object-tracker"],
     trackerPolicies: ["lite", "kalman-lite", "bytetrack"],
+    experimentalSandbox: "metadata-only",
   };
 });
 
@@ -263,6 +271,13 @@ function readText(file) {
 function includesText(text, snippet) {
   const normalize = value => String(value).replace(/\s+/g, " ").trim();
   return normalize(text).includes(normalize(snippet));
+}
+
+function extractBetween(text, startMarker, endMarker) {
+  const start = text.indexOf(startMarker);
+  if (start < 0) return "";
+  const end = text.indexOf(endMarker, start + startMarker.length);
+  return end < 0 ? text.slice(start) : text.slice(start, end);
 }
 
 function writeText(filePath, text) {

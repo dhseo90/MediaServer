@@ -137,10 +137,11 @@ low-confidence detection은 기존 track continuity를 내부적으로 보강할
 상태는 내부 runtime status의 `effectiveTracker=bytetrack`으로
 확인하며 Event POST/WebRTC DataChannel/SSE/WS metadata schema에는 새 필드를
 추가하지 않습니다.
-OC-SORT는 v1.4.0 runtime tracker 허용값이 아닙니다. 후속 benchmark가 열리더라도
-Kalman-lite/ByteTrack 이후 별도 report에서 Re-ID 없이 motion/observation 중심으로
-비교하며, Event POST/WebRTC DataChannel/SSE/WS metadata schema에는 새 필드를
-추가하지 않습니다.
+OC-SORT는 v1.4.0 runtime tracker 허용값이 아닙니다. v1.5.0 OC-SORT experimental sandbox가 열려도 `compare-close-object-tracker --experimental-sandbox oc-sort`의
+manifest-only report metadata로만 기록하며 runtime tracker 허용값에 추가하지
+않습니다. 후속 benchmark가 열리더라도 Kalman-lite/ByteTrack 이후 별도 report에서
+Re-ID 없이 motion/observation 중심으로 비교하며, Event POST/WebRTC DataChannel/SSE/WS
+metadata schema에는 새 필드를 추가하지 않습니다.
 BoT-SORT/DeepSORT도 v1.4.0 runtime tracker 허용값이 아닙니다. 이 계열은
 appearance/Re-ID model, embedding/crop, camera motion compensation,
 dataset provenance, runtime/model bundle, retention/redaction policy 검토가

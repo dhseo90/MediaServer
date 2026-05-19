@@ -14,7 +14,7 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 | UI and account views | [../ui-guide.md](../ui-guide.md) |
 | Architecture | [../media-server-architecture.md](../media-server-architecture.md) |
 | Video analytics | [../video-analysis.md](../video-analysis.md) |
-| OC-SORT benchmark boundary | [../oc-sort-benchmark-boundary.md](../oc-sort-benchmark-boundary.md) |
+| OC-SORT benchmark/sandbox boundary | [../oc-sort-benchmark-boundary.md](../oc-sort-benchmark-boundary.md) |
 | BoT-SORT/DeepSORT research boundary | [../bot-sort-deepsort-research-boundary.md](../bot-sort-deepsort-research-boundary.md) |
 | Close-object report archive policy | [../close-object-report-archive-policy.md](../close-object-report-archive-policy.md) |
 | Integrator contract artifact | [../integrator-contract-artifact.md](../integrator-contract-artifact.md) |

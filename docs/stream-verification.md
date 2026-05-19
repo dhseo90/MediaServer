@@ -757,6 +757,17 @@ OC-SORT가 `analysis.trackingPolicy.tracker`, `/ops/rules` UI,
 ./server.sh verify-oc-sort-benchmark-boundary
 ```
 
+v1.5.0 OC-SORT experimental sandbox는 같은 runtime 승격 금지 경계를 유지하면서
+`compare-close-object-tracker` report에 `manifest-only` sandbox metadata만 남깁니다.
+이 sandbox는 OC-SORT를 실행하지 않고, `--tracker-policy` 허용값도
+`lite`, `kalman-lite`, `bytetrack`에 머뭅니다.
+
+```bash
+./server.sh verify-v150-oc-sort-experimental-sandbox
+./server.sh compare-close-object-tracker --list-experimental-sandboxes
+./server.sh compare-close-object-tracker --fixture-matrix --experimental-sandbox oc-sort --tracker-policy bytetrack --max-fixtures 1
+```
+
 BoT-SORT/DeepSORT research boundary도 별도 정적 verifier로 확인합니다. 이 검증은
 BoT-SORT/DeepSORT가 `analysis.trackingPolicy.tracker`, `/ops/rules` UI,
 `ObjectTrackerKind`, tracker stability/compare harness에 runtime tracker로
@@ -951,6 +962,7 @@ count, mean, stdev, variance, min, max를 표시합니다.
 ./server.sh verify-v150-ops-tracker-warning-next-action
 ./server.sh verify-v150-audit-export-review-hardening
 ./server.sh verify-v150-field-smoke-summary-evidence-boundary
+./server.sh verify-v150-oc-sort-experimental-sandbox
 ./server.sh verify-reid-advanced-tracking
 ./server.sh verify-tracker-stability --long --overlap-focus
 ./server.sh verify-va-replay

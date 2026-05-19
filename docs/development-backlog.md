@@ -1147,6 +1147,64 @@ release asset 업로드로 해석하지 않게 하는 것입니다.
 - P2 이상 tracker experimental benchmark harness와 OC-SORT sandbox는 roadmap
   후속 Phase 후보로 유지합니다.
 
+### V150-P2-01 OC-SORT experimental sandbox 정리 기준
+
+`OC-SORT experimental sandbox`는 OC-SORT를 제품 runtime tracker로 승격하지 않고,
+명시적 비교 sandbox metadata로만 추적하는 v1.5.0 P2 작업입니다. 목표는 사용자가
+실험을 열 때 `compare-close-object-tracker --experimental-sandbox oc-sort`처럼
+명시적으로 sandbox를 선택하게 하고, 실제 runtime tracker policy와 제품 UI/API
+계약은 계속 `none`, `lite`, `kalman-lite`, `bytetrack` 경계 안에 두는 것입니다.
+
+확인됨:
+
+- `compare-close-object-tracker`는 `--experimental-sandbox oc-sort`와
+  `--list-experimental-sandboxes`를 제공해 report/matrix/history에
+  `experimentalSandbox` manifest를 남깁니다. 이 manifest는 `manifest-only`,
+  `algorithmAdapter=false`, `runtimeTrackerPolicy=""`, `productDefaultOn=false`
+  상태입니다.
+- sandbox flag는 `verify-tracker-stability`로 전달되지 않습니다. 실제 비교는
+  현재 허용된 runtime tracker policy(`lite`, `kalman-lite`, `bytetrack`) 중
+  사용자가 명시한 값으로만 실행합니다.
+- `--tracker-policy oc-sort`, `analysis.trackingPolicy.tracker=oc-sort`,
+  `/ops/rules` tracker option, `ObjectTrackerKind` enum 추가는 모두 이 항목의
+  완료 조건이 아니라 금지/별도 review 조건입니다.
+- `test/fixtures/v150_oc_sort_experimental_sandbox.json`은 allowed/rejected tracker,
+  retained/excluded evidence, 후속 분류를 manifest fixture로 고정합니다.
+- report/history evidence는 summary/report/index와 sandbox manifest만 보존하며,
+  raw media, crop, embedding, model/source/auth material은 보존하지 않습니다.
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema, RTSP/WebRTC media path,
+  ScenarioEngine 판단 로직, tracker/Re-ID runtime 선택 계약은 변경하지 않습니다.
+
+검증 기준:
+
+- `./server.sh build`
+- `./server.sh verify-v150-oc-sort-experimental-sandbox`
+- `./server.sh verify-oc-sort-benchmark-boundary`
+- `./server.sh compare-close-object-tracker --list-experimental-sandboxes`
+- 필요 시
+  `./server.sh compare-close-object-tracker --fixture-matrix --experimental-sandbox oc-sort --tracker-policy bytetrack --max-fixtures 1`
+- `./server.sh verify-script-inventory`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- 실제 OC-SORT algorithm adapter와 dataset benchmark report
+- OC-SORT를 `analysis.trackingPolicy.tracker` 허용값 또는 `/ops/rules` 선택값으로 추가
+- OC-SORT 결과를 제품 tracker 교체, tracker default-on, Re-ID default-on 근거로 사용
+- ByteTrack/Kalman-lite/OC-SORT 장기 fixture matrix history를 제품 review로 승격
+- BoT-SORT/DeepSORT/Re-ID model artifact/privacy/bundle review와 결합
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경 또는 media pipeline blocking 정책 변경
+
+후속 분류:
+
+- 미분류 P0~P1 후속 이슈: 없음. 이번 항목에서 발견한 빈칸은 명시적 sandbox
+  manifest, compare harness metadata, 전용 verifier, fixture로 닫습니다.
+- 실제 OC-SORT algorithm adapter, dataset benchmark report,
+  ByteTrack/Kalman-lite/OC-SORT fixture matrix comparison history, field sample 기반
+  tracker replacement product review는 아래 별도 Phase 후보이며 V150-P2-01의
+  즉시 후속으로 끌어오지 않습니다.
+
 v1.5.0 비범위:
 
 - tracker/Re-ID global default-on 또는 제품 기본값 변경
@@ -1167,6 +1225,9 @@ review, release/field/manual approval gate를 통과할 때만 명시적 opt-in 
 
 - field sample history review workflow
 - tracker experimental benchmark harness
+- actual OC-SORT algorithm adapter and dataset benchmark report
+- ByteTrack/Kalman-lite/OC-SORT fixture matrix comparison history
+- field sample based tracker replacement product review
 - Re-ID privacy retention guard
 - runtime/model bundle RC policy
 - ONVIF field smoke evidence reconciliation

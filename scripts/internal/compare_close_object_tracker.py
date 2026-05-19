@@ -150,6 +150,30 @@ QUALITY_PRESETS = {
         },
     },
 }
+EXPERIMENTAL_SANDBOXES = {
+    "oc-sort": {
+        "id": "oc-sort",
+        "title": "OC-SORT experimental sandbox",
+        "status": "manifest-only",
+        "algorithmAdapter": False,
+        "runtimeTrackerPolicy": "",
+        "allowedRuntimeTrackerPolicies": ["lite", "kalman-lite", "bytetrack"],
+        "requiresExplicitFlag": True,
+        "defaultOnCandidate": False,
+        "productDefaultOn": False,
+        "interpretation": (
+            "records an explicit OC-SORT comparison sandbox boundary without adding "
+            "OC-SORT as a runtime tracker policy or changing media/metadata schemas"
+        ),
+        "excluded": [
+            "OC-SORT runtime tracker policy",
+            "OC-SORT algorithm adapter",
+            "Ops Rules tracker option",
+            "Event POST/WebRTC/SSE/WS metadata schema change",
+            "RTSP/WebRTC media path change",
+        ],
+    },
+}
 
 
 def summary_evidence_boundary() -> dict[str, Any]:
@@ -199,6 +223,8 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--max-id-switch-risk", default="", help="verify-tracker-stability에 전달할 --max-id-switch-risk입니다.")
     parser.add_argument("--tracker-policy", default="", help="verify-tracker-stability에 전달할 rule-level tracker policy입니다: lite, kalman-lite, 또는 bytetrack.")
     parser.add_argument("--reid-policy", default="", help="verify-tracker-stability에 전달할 rule-level Re-ID policy입니다: off 또는 assist.")
+    parser.add_argument("--experimental-sandbox", default="", help="명시적 실험 sandbox metadata를 report에 기록합니다. 현재 허용값: oc-sort.")
+    parser.add_argument("--list-experimental-sandboxes", action="store_true", help="지원하는 실험 sandbox manifest를 JSON으로 출력합니다.")
     parser.add_argument("--no-long-sample", action="store_true", help="verify-tracker-stability에 --no-long-sample을 전달합니다.")
     parser.add_argument("--use-existing-server", action="store_true", help="이미 실행 중인 서버를 사용합니다. 기본은 mode별 격리 서버를 시작합니다.")
     parser.add_argument("--http-base", default="", help="--use-existing-server에서 사용할 HTTP base입니다.")
@@ -268,6 +294,10 @@ def quality_preset_rows() -> list[dict[str, Any]]:
     return rows
 
 
+def experimental_sandbox_rows() -> list[dict[str, Any]]:
+    return [dict(payload) for _, payload in sorted(EXPERIMENTAL_SANDBOXES.items())]
+
+
 def quality_preset(name: str) -> dict[str, Any]:
     preset = QUALITY_PRESETS.get(name)
     if preset is None:
@@ -278,6 +308,15 @@ def quality_preset(name: str) -> dict[str, Any]:
         "riskTolerances": dict(preset.get("riskTolerances") or {}),
         "observedRiskTolerances": dict(preset.get("observedRiskTolerances") or {}),
     }
+
+
+def experimental_sandbox(name: str) -> dict[str, Any] | None:
+    if not name:
+        return None
+    payload = EXPERIMENTAL_SANDBOXES.get(name)
+    if payload is None:
+        raise SystemExit(f"unknown experimental sandbox: {name}")
+    return dict(payload)
 
 
 def positive_delta_map(delta: dict[str, Any], keys: set[str], tolerances: dict[str, Any]) -> dict[str, float]:
@@ -889,6 +928,7 @@ def write_report(summary: dict[str, Any], path: pathlib.Path) -> None:
     modes = summary["modes"]
     gate = summary.get("qualityGate") or {}
     boundary = summary.get("evidenceBoundary") or summary_evidence_boundary()
+    sandbox = summary.get("experimentalSandbox") or {}
     lines = [
         "# Close-object Tracker Guard Comparison",
         "",
@@ -905,12 +945,22 @@ def write_report(summary: dict[str, Any], path: pathlib.Path) -> None:
         f"- retained evidence: {', '.join(boundary.get('retained') or [])}",
         f"- excluded evidence: {', '.join(boundary.get('excluded') or [])}",
         f"- interpretation: {boundary.get('interpretation')}",
+    ]
+    if sandbox:
+        lines.extend([
+            f"- experimental sandbox: `{sandbox.get('id')}`",
+            f"- sandbox status: `{sandbox.get('status')}`",
+            f"- sandbox runtime tracker policy: `{sandbox.get('runtimeTrackerPolicy') or 'not-added'}`",
+            f"- sandbox product default-on: `{sandbox.get('productDefaultOn')}`",
+            f"- sandbox interpretation: {sandbox.get('interpretation')}",
+        ])
+    lines.extend([
         "",
         "## Mode Summary",
         "",
         "| mode | ok | mode effective | association risk | idSwitchRisk | pts regression/stale | fragmentation | overlap fragmentation | min assoc | max overlap | max centerJump | lost/reacq | guard applied/rejected |",
         "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
-    ]
+    ])
     for mode, payload in modes.items():
         lines.append(
             "| {mode} | {ok} | {effective} | {assoc_risk} | {risk} | {pts}/{stale} | {frag} | {overlap_frag} | {assoc} | {overlap} | {jump} | {lost}/{reacq} | {applied}/{rejected} |".format(
@@ -1040,11 +1090,14 @@ def format_cell(value: Any) -> str:
 
 def emit_summary(summary: dict[str, Any]) -> None:
     gate = summary.get("qualityGate") or {}
+    sandbox = summary.get("experimentalSandbox") or {}
     print(f"[summary-json] {summary.get('summaryPath')}")
     print(f"[report] {summary.get('reportPath')}")
     print(f"[judgement] {summary.get('overallJudgement')}")
     print(f"[default-on-candidate] {gate.get('defaultOnCandidate')}")
     print(f"[recommendation] {gate.get('recommendation')}")
+    if sandbox:
+        print(f"[experimental-sandbox] {sandbox.get('id')}")
     history = summary.get("history") or {}
     if history:
         print(f"[history-index] {history.get('indexPath')}")
@@ -1063,6 +1116,7 @@ def run_comparison(args: argparse.Namespace,
     baseline_mode = "off" if "off" in mode_payloads else modes[0]
     deltas = compute_deltas(mode_payloads, baseline_mode)
     preset = quality_preset(args.quality_preset)
+    sandbox = experimental_sandbox(args.experimental_sandbox)
     judgement, reasons = overall_judgement(mode_payloads, deltas, preset)
     gate = quality_gate(judgement, deltas, preset)
     summary = {
@@ -1083,6 +1137,8 @@ def run_comparison(args: argparse.Namespace,
         "createdAt": dt.datetime.now(dt.timezone.utc).isoformat(),
         "evidenceBoundary": summary_evidence_boundary(),
     }
+    if sandbox:
+        summary["experimentalSandbox"] = sandbox
     summary_path = output_dir / "summary.json"
     report_path = output_dir / "report.md"
     summary["summaryPath"] = str(summary_path)
@@ -1099,6 +1155,7 @@ def run_comparison(args: argparse.Namespace,
 def write_matrix_report(matrix: dict[str, Any], path: pathlib.Path) -> None:
     decision = matrix.get("defaultOnDecision") or {}
     boundary = matrix.get("evidenceBoundary") or summary_evidence_boundary()
+    sandbox = matrix.get("experimentalSandbox") or {}
     lines = [
         "# Close-object Tracker Fixture Matrix",
         "",
@@ -1116,6 +1173,14 @@ def write_matrix_report(matrix: dict[str, Any], path: pathlib.Path) -> None:
         f"- excluded evidence: {', '.join(boundary.get('excluded') or [])}",
         f"- interpretation: {boundary.get('interpretation')}",
     ]
+    if sandbox:
+        lines.extend([
+            f"- experimental sandbox: `{sandbox.get('id')}`",
+            f"- sandbox status: `{sandbox.get('status')}`",
+            f"- sandbox runtime tracker policy: `{sandbox.get('runtimeTrackerPolicy') or 'not-added'}`",
+            f"- sandbox product default-on: `{sandbox.get('productDefaultOn')}`",
+            f"- sandbox interpretation: {sandbox.get('interpretation')}",
+        ])
     history = matrix.get("history") or {}
     if history:
         lines.append(f"- history index: `{history.get('indexPath')}`")
@@ -1187,12 +1252,14 @@ def prepare_comparison_history(summary: dict[str, Any], raw_history_dir: str) ->
 def matrix_history_entry(matrix: dict[str, Any], history: dict[str, Any]) -> dict[str, Any]:
     fixtures = matrix.get("fixtures") or []
     decision = matrix.get("defaultOnDecision") or {}
+    sandbox = matrix.get("experimentalSandbox") or {}
     return {
         "runId": history.get("runId"),
         "createdAt": matrix.get("createdAt"),
         "ok": matrix.get("ok"),
         "trackerPolicy": matrix.get("trackerPolicy") or "",
         "reidPolicy": matrix.get("reidPolicy") or "",
+        "experimentalSandbox": sandbox.get("id") or "",
         "fixtureCount": len(fixtures),
         "failedCount": sum(1 for item in fixtures if item.get("status") in {"fail", "missing"}),
         "holdCount": sum(1 for item in fixtures if item.get("judgement") == "hold"),
@@ -1208,6 +1275,7 @@ def matrix_history_entry(matrix: dict[str, Any], history: dict[str, Any]) -> dic
 
 def comparison_history_entry(summary: dict[str, Any], history: dict[str, Any]) -> dict[str, Any]:
     gate = summary.get("qualityGate") or {}
+    sandbox = summary.get("experimentalSandbox") or {}
     reasons = summary.get("reasons") or []
     warning_reasons = [
         reason for reason in reasons
@@ -1220,6 +1288,7 @@ def comparison_history_entry(summary: dict[str, Any], history: dict[str, Any]) -
         "sample": summary.get("sample"),
         "trackerPolicy": summary.get("trackerPolicy") or "",
         "reidPolicy": summary.get("reidPolicy") or "",
+        "experimentalSandbox": sandbox.get("id") or "",
         "qualityPreset": summary.get("qualityPreset") or "",
         "baselineMode": summary.get("baselineMode") or "",
         "modes": summary.get("modes") if isinstance(summary.get("modes"), list) else list((summary.get("modes") or {}).keys()),
@@ -1272,16 +1341,17 @@ def write_history_index_report(index_payload: dict[str, Any], path: pathlib.Path
         f"- excluded evidence: {', '.join(boundary.get('excluded') or [])}",
         f"- interpretation: {boundary.get('interpretation')}",
         "",
-        "| run | created | tracker | Re-ID | ok | fixtures | failed | hold | warnings | candidates | default-on decision | product default-on | reason | report |",
-        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+        "| run | created | tracker | Re-ID | sandbox | ok | fixtures | failed | hold | warnings | candidates | default-on decision | product default-on | reason | report |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
     for item in index_payload.get("runs") or []:
         lines.append(
-            "| {run} | {created} | {tracker} | {reid} | {ok} | {fixtures} | {failed} | {hold} | {warnings} | {candidates} | {decision} | {product} | {reason} | `{report}` |".format(
+            "| {run} | {created} | {tracker} | {reid} | {sandbox} | {ok} | {fixtures} | {failed} | {hold} | {warnings} | {candidates} | {decision} | {product} | {reason} | `{report}` |".format(
                 run=format_cell(item.get("runId")),
                 created=format_cell(item.get("createdAt")),
                 tracker=format_cell(item.get("trackerPolicy") or "direct-source-default"),
                 reid=format_cell(item.get("reidPolicy") or "direct-source-default"),
+                sandbox=format_cell(item.get("experimentalSandbox") or "-"),
                 ok=format_cell(item.get("ok")),
                 fixtures=format_cell(item.get("fixtureCount")),
                 failed=format_cell(item.get("failedCount")),
@@ -1310,17 +1380,18 @@ def write_comparison_history_index_report(index_payload: dict[str, Any], path: p
         f"- excluded evidence: {', '.join(boundary.get('excluded') or [])}",
         f"- evidence interpretation: {boundary.get('interpretation')}",
         "",
-        "| run | created | sample | tracker | Re-ID | judgement | warning reasons | default-on candidate | recommendation | report |",
-        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
+        "| run | created | sample | tracker | Re-ID | sandbox | judgement | warning reasons | default-on candidate | recommendation | report |",
+        "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
     ]
     for item in index_payload.get("runs") or []:
         lines.append(
-            "| {run} | {created} | `{sample}` | {tracker} | {reid} | {judgement} | {warnings} | {candidate} | {recommendation} | `{report}` |".format(
+            "| {run} | {created} | `{sample}` | {tracker} | {reid} | {sandbox} | {judgement} | {warnings} | {candidate} | {recommendation} | `{report}` |".format(
                 run=format_cell(item.get("runId")),
                 created=format_cell(item.get("createdAt")),
                 sample=format_cell(item.get("sample")),
                 tracker=format_cell(item.get("trackerPolicy") or "direct-source-default"),
                 reid=format_cell(item.get("reidPolicy") or "direct-source-default"),
+                sandbox=format_cell(item.get("experimentalSandbox") or "-"),
                 judgement=format_cell(item.get("judgement")),
                 warnings=format_cell(item.get("warningReasonCount")),
                 candidate=format_cell(item.get("defaultOnCandidate")),
@@ -1479,6 +1550,9 @@ def run_fixture_matrix(args: argparse.Namespace, modes: list[str], output_dir: p
         "createdAt": dt.datetime.now(dt.timezone.utc).isoformat(),
         "evidenceBoundary": summary_evidence_boundary(),
     }
+    sandbox = experimental_sandbox(args.experimental_sandbox)
+    if sandbox:
+        matrix["experimentalSandbox"] = sandbox
     matrix["defaultOnDecision"] = matrix_default_on_decision(matrix)
     summary_path = output_dir / "matrix-summary.json"
     report_path = output_dir / "matrix-report.md"
@@ -1505,6 +1579,11 @@ def run_fixture_matrix(args: argparse.Namespace, modes: list[str], output_dir: p
 
 def main() -> int:
     args = parse_args()
+    args.experimental_sandbox = str(args.experimental_sandbox or "").strip().lower()
+    if args.experimental_sandbox == "none":
+        args.experimental_sandbox = ""
+    if args.experimental_sandbox and args.experimental_sandbox not in EXPERIMENTAL_SANDBOXES:
+        raise SystemExit("--experimental-sandbox must be oc-sort")
     args.tracker_policy = str(args.tracker_policy or "").strip().lower()
     if args.tracker_policy == "default":
         args.tracker_policy = ""
@@ -1517,6 +1596,9 @@ def main() -> int:
         raise SystemExit("--reid-policy must be off or assist")
     if args.list_quality_presets:
         print(json.dumps({"qualityPresets": quality_preset_rows()}, ensure_ascii=False, indent=2))
+        return 0
+    if args.list_experimental_sandboxes:
+        print(json.dumps({"experimentalSandboxes": experimental_sandbox_rows()}, ensure_ascii=False, indent=2))
         return 0
     if args.list_fixtures:
         print(json.dumps({"fixtures": fixture_rows()}, ensure_ascii=False, indent=2))
