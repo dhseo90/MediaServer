@@ -32,6 +32,7 @@ const failures = [];
 let linkCount = 0;
 let imageCount = 0;
 let anchorCount = 0;
+const anchorCache = new Map();
 
 for (const file of markdownFiles) {
   const text = fs.readFileSync(file, "utf8");
@@ -174,8 +175,6 @@ function resolveLocalTarget(fromFile, target) {
 function isMarkdownFile(filePath) {
   return /\.md$/i.test(filePath);
 }
-
-const anchorCache = new Map();
 
 function markdownAnchors(filePath) {
   if (anchorCache.has(filePath)) return anchorCache.get(filePath);

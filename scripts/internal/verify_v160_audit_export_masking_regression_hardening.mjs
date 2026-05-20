@@ -41,6 +41,7 @@ const uiGuide = readText("docs/ui-guide.md");
 const readme = readText("README.md");
 const readmeEn = readText("README.en.md");
 const docsIndex = readText("docs/en/README.md");
+const docsRootIndex = readText("docs/README.md");
 const serverSource = readText("src/ingress/webrtc_http_server.cpp");
 const sharedUi = readText("src/ingress/product_ui_js.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
@@ -194,12 +195,17 @@ check("release and UI docs expose the v1.6 audit/export guard", () => {
     ["stream verification", stream],
     ["release policy", releasePolicy],
     ["UI guide", uiGuide],
+    ["docs README", docsRootIndex],
+  ]) {
+    assertIncludes(text, "v1.6.0-audit-export-masking-regression-hardening.md", label);
+    assertIncludes(text, "verify-v160-audit-export-masking-regression-hardening", label);
+  }
+  for (const [label, text] of [
     ["README.md", readme],
     ["README.en.md", readmeEn],
     ["docs/en README", docsIndex],
   ]) {
-    assertIncludes(text, "v1.6.0-audit-export-masking-regression-hardening.md", label);
-    assertIncludes(text, "verify-v160-audit-export-masking-regression-hardening", label);
+    assertIncludes(text, "docs/README.md", label);
   }
 });
 

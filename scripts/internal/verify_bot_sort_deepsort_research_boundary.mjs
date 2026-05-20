@@ -146,6 +146,7 @@ check("BoT-SORT/DeepSORT research boundary is documented without product-scope e
   const video = readText("docs/video-analysis.md");
   const stream = readText("docs/stream-verification.md");
   const boundary = readText("docs/bot-sort-deepsort-research-boundary.md");
+  const docsIndex = readText("docs/README.md");
   const config = readText("docs/config-reference.md");
   const readme = readText("README.md");
   const readmeEn = readText("README.en.md");
@@ -191,14 +192,20 @@ check("BoT-SORT/DeepSORT research boundary is documented without product-scope e
 
   for (const [label, text] of [
     ["docs/config-reference.md", config],
-    ["README.md", readme],
-    ["README.en.md", readmeEn],
-    ["docs/en/README.md", docsEn],
+    ["docs/README.md", docsIndex],
   ]) {
     assert(
       text.includes("bot-sort-deepsort-research-boundary.md"),
       `${label} missing BoT-SORT/DeepSORT boundary doc link`
     );
+  }
+
+  for (const [label, text, snippet] of [
+    ["README.md", readme, "docs/README.md"],
+    ["README.en.md", readmeEn, "docs/README.md"],
+    ["docs/en/README.md", docsEn, "../README.md"],
+  ]) {
+    assert(text.includes(snippet), `${label} missing documentation index link`);
   }
 
   return {
@@ -207,6 +214,7 @@ check("BoT-SORT/DeepSORT research boundary is documented without product-scope e
       "docs/video-analysis.md",
       "docs/stream-verification.md",
       "docs/bot-sort-deepsort-research-boundary.md",
+      "docs/README.md",
       "docs/config-reference.md",
     ],
   };

@@ -39,6 +39,7 @@ const uiGuide = readText("docs/ui-guide.md");
 const readme = readText("README.md");
 const readmeEn = readText("README.en.md");
 const docsIndex = readText("docs/en/README.md");
+const docsRootIndex = readText("docs/README.md");
 const opsClientSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
 const sharedUi = readText("src/ingress/product_ui_js.cpp");
 const server = readText("server.sh");
@@ -172,12 +173,17 @@ check("docs and entrypoints link the debug exposure verifier", () => {
   for (const [label, text] of [
     ["stream verification", stream],
     ["UI guide", uiGuide],
+    ["docs README", docsRootIndex],
+  ]) {
+    assertIncludes(text, "v1.6.0-debug-exposure-regression-guard.md", label);
+    assertIncludes(text, "verify-v160-debug-exposure-regression-guard", label);
+  }
+  for (const [label, text] of [
     ["README.md", readme],
     ["README.en.md", readmeEn],
     ["docs/en README", docsIndex],
   ]) {
-    assertIncludes(text, "v1.6.0-debug-exposure-regression-guard.md", label);
-    assertIncludes(text, "verify-v160-debug-exposure-regression-guard", label);
+    assertIncludes(text, "docs/README.md", label);
   }
   for (const snippet of [
     "verify-v160-debug-exposure-regression-guard",

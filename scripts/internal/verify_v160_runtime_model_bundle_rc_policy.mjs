@@ -41,6 +41,7 @@ const distributionPolicy = readText("docs/distribution-policy.md");
 const readme = readText("README.md");
 const readmeEn = readText("README.en.md");
 const docsIndex = readText("docs/en/README.md");
+const docsRootIndex = readText("docs/README.md");
 const bundlePolicy = readText("config/bundle_distribution_policy.json");
 const dryRun = readText("scripts/internal/verify_release_bundle_dry_run.mjs");
 const v150ReidVerifier = readText("scripts/internal/verify_v150_reid_provenance_fallback_approval.mjs");
@@ -138,12 +139,17 @@ check("release and distribution docs link the v1.6 RC policy", () => {
     ["stream verification", stream],
     ["release policy", releasePolicy],
     ["distribution policy", distributionPolicy],
+    ["docs README", docsRootIndex],
+  ]) {
+    assertIncludes(text, "v1.6.0-runtime-model-bundle-rc-policy.md", label);
+    assertIncludes(text, "verify-v160-runtime-model-bundle-rc-policy", label);
+  }
+  for (const [label, text] of [
     ["README.md", readme],
     ["README.en.md", readmeEn],
     ["docs/en README", docsIndex],
   ]) {
-    assertIncludes(text, "v1.6.0-runtime-model-bundle-rc-policy.md", label);
-    assertIncludes(text, "verify-v160-runtime-model-bundle-rc-policy", label);
+    assertIncludes(text, "docs/README.md", label);
   }
 });
 

@@ -40,6 +40,7 @@ const releasePolicy = readText("docs/release-policy.md");
 const readme = readText("README.md");
 const readmeEn = readText("README.en.md");
 const docsIndex = readText("docs/en/README.md");
+const docsRootIndex = readText("docs/README.md");
 const ocSortBoundary = readText("docs/oc-sort-benchmark-boundary.md");
 const botBoundary = readText("docs/bot-sort-deepsort-research-boundary.md");
 const compare = readText("scripts/internal/compare_close_object_tracker.py");
@@ -211,12 +212,17 @@ check("release docs and entrypoints expose the v1.6 planning guard", () => {
     ["release dashboard", dashboard],
     ["stream verification", stream],
     ["release policy", releasePolicy],
+    ["docs README", docsRootIndex],
+  ]) {
+    assertIncludes(text, "v1.6.0-tracker-benchmark-harness-planning.md", label);
+    assertIncludes(text, "verify-v160-tracker-benchmark-harness-planning", label);
+  }
+  for (const [label, text] of [
     ["README.md", readme],
     ["README.en.md", readmeEn],
     ["docs/en README", docsIndex],
   ]) {
-    assertIncludes(text, "v1.6.0-tracker-benchmark-harness-planning.md", label);
-    assertIncludes(text, "verify-v160-tracker-benchmark-harness-planning", label);
+    assertIncludes(text, "docs/README.md", label);
   }
   for (const snippet of [
     "verify-v160-tracker-benchmark-harness-planning",

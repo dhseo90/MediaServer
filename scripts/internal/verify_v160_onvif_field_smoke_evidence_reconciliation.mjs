@@ -41,6 +41,7 @@ const stream = readText("docs/stream-verification.md");
 const readme = readText("README.md");
 const readmeEn = readText("README.en.md");
 const docsIndex = readText("docs/en/README.md");
+const docsRootIndex = readText("docs/README.md");
 const server = readText("server.sh");
 const inventory = readText("scripts/internal/verify_script_inventory.mjs");
 const section = extractSection(
@@ -153,12 +154,17 @@ check("ONVIF field smoke gate and docs expose the reconciliation command", () =>
   for (const [label, text] of [
     ["ONVIF field smoke gate", onvifGate],
     ["stream verification", stream],
+    ["docs README", docsRootIndex],
+  ]) {
+    assertIncludes(text, "v1.6.0-onvif-field-smoke-evidence-reconciliation.md", label);
+    assertIncludes(text, "verify-v160-onvif-field-smoke-evidence-reconciliation", label);
+  }
+  for (const [label, text] of [
     ["README.md", readme],
     ["README.en.md", readmeEn],
     ["docs/en README", docsIndex],
   ]) {
-    assertIncludes(text, "v1.6.0-onvif-field-smoke-evidence-reconciliation.md", label);
-    assertIncludes(text, "verify-v160-onvif-field-smoke-evidence-reconciliation", label);
+    assertIncludes(text, "docs/README.md", label);
   }
   for (const snippet of [
     "verify-onvif-field-smoke-gate",
