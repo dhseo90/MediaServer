@@ -37,6 +37,7 @@ const stream = readText("docs/stream-verification.md");
 const readme = readText("README.md");
 const readmeEn = readText("README.en.md");
 const docsIndex = readText("docs/en/README.md");
+const docsRootIndex = readText("docs/README.md");
 const server = readText("server.sh");
 const inventory = readText("scripts/internal/verify_script_inventory.mjs");
 const section = extractSection(
@@ -139,12 +140,17 @@ check("roadmap keeps later P0/P1/P2 items outside P0-02 completion", () => {
 check("docs and entrypoints link the stability verifier", () => {
   for (const [label, text] of [
     ["stream verification", stream],
+    ["docs README", docsRootIndex],
+  ]) {
+    assertIncludes(text, "v1.6.0-stability-verification-gates.md", label);
+    assertIncludes(text, "verify-v160-stability-verification-gate", label);
+  }
+  for (const [label, text] of [
     ["README.md", readme],
     ["README.en.md", readmeEn],
     ["docs/en README", docsIndex],
   ]) {
-    assertIncludes(text, "v1.6.0-stability-verification-gates.md", label);
-    assertIncludes(text, "verify-v160-stability-verification-gate", label);
+    assertIncludes(text, "docs/README.md", label);
   }
   assertIncludes(stream, "skip count와 step reason", "stream verification predev skip review");
   assertIncludes(stream, "외부 TURN `NOT RUN`", "stream verification predev skip review");

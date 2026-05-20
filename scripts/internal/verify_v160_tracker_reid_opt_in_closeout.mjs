@@ -41,6 +41,7 @@ const reid = readText("docs/reid-default-off-research-continuation.md");
 const readme = readText("README.md");
 const readmeEn = readText("README.en.md");
 const docsIndex = readText("docs/en/README.md");
+const docsRootIndex = readText("docs/README.md");
 const server = readText("server.sh");
 const inventory = readText("scripts/internal/verify_script_inventory.mjs");
 const section = extractSection(
@@ -154,12 +155,17 @@ check("docs and entrypoints link the v1.6 tracker/Re-ID close-out verifier", () 
     ["stream verification", stream],
     ["video analysis", video],
     ["Re-ID continuation", reid],
+    ["docs README", docsRootIndex],
+  ]) {
+    assertIncludes(text, "v1.6.0-tracker-reid-opt-in-closeout.md", label);
+    assertIncludes(text, "verify-v160-tracker-reid-opt-in-closeout", label);
+  }
+  for (const [label, text] of [
     ["README.md", readme],
     ["README.en.md", readmeEn],
     ["docs/en README", docsIndex],
   ]) {
-    assertIncludes(text, "v1.6.0-tracker-reid-opt-in-closeout.md", label);
-    assertIncludes(text, "verify-v160-tracker-reid-opt-in-closeout", label);
+    assertIncludes(text, "docs/README.md", label);
   }
   for (const snippet of [
     "verify-v160-tracker-reid-opt-in-closeout",

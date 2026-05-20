@@ -35,78 +35,33 @@ source-of-truth로 쓰지 않습니다.
 ## 현재 기준: v1.6.0 Source Release Baseline
 
 v1.6.0은 v1.5.0까지 닫은 source-only/live-only 제품 범위를 유지하면서 release
-evidence dashboard, stability gate cleanup, debug exposure guard, tracker/Re-ID
-opt-in close-out, ONVIF field evidence reconciliation, audit/export masking,
-runtime/model bundle RC policy, manual UI checklist, public docs consistency,
-tracker benchmark planning-only boundary를 닫은 source-only stabilization release입니다.
-아래 제품 baseline은 v1.2.x에서 닫은 live product 범위를 유지하고, v1.6.0은
-recorder/VMS/NVR, Re-ID default-on, tracker default-on, OC-SORT runtime tracker,
-runtime/model bundle scope를 열지 않습니다.
+증적, 안정화 gate, debug/source 비노출 guard, tracker/Re-ID opt-in close-out,
+ONVIF field evidence 경계, audit/export masking, runtime/model bundle RC policy,
+manual UI evidence, public docs consistency, tracker benchmark planning-only 경계를
+정리한 source-only stabilization release입니다.
 
-완료 범위:
+핵심 완료 범위:
 
-- [x] file, RTSP pull, HTTP/HLS URI, WHEP pull, WHIP publish source를 RTSP/WebRTC/WHEP output으로 제공
-- [x] ONVIF live source를 일반 채널 source type으로 취급하고 `/ops/sources`에서 등록
-- [x] 기본 seed 채널에 `Public ONVIF Stream Sample` 제공
-- [x] 채널/룰 URL copy UI의 ONVIF RTSP/WHEP/WebRTC parity
-- [x] SourceRegistry/PublishedView 기반 Ops 채널 관리와 client redaction
-- [x] Rule/Profile/Scenario, `vaRule=<id>`, live Event POST, runtime metadata
-- [x] Live Source Health API, Ops Dashboard root-cause panel, client sanitized health summary
-- [x] Scenario timeline/debug, TrackHealth issue grouping, live VA event quality panel
-- [x] Auth setup/login/session, role/scope, admin user console, invite/request approval
-- [x] `/ops`와 `/client` 제품 UI 분리, `/lab` 화면 route 404 유지
-- [x] source-only public readiness, bundle policy, license/artifact guardrail
-- [x] ONVIF Profile S/T no-device suite, local simulator, RTSP/RTSPS draft, redaction policy
-- [x] ERP-style Ops/Client/Auth visual refresh와 visual artifact gate
-- [x] Source health operator next-action과 retryable-only 재검증 경계
-- [x] Client live/dashboard polish, account lifecycle policy, Rule/Scenario field tuning
-- [x] Integrator contract artifact sample/schema bundle
-- [x] source-only release packaging rehearsal과 UI visual artifact maintenance guard
-- [x] Re-ID/advanced tracking default-off 실험 guard와 WARNING 판정
-- [x] YouTube import/source lab-only 현상 유지 결정
-- [x] Runtime operations console, scenario timeline, TrackHealth, EventRecord 운영 요약
-- [x] ONVIF field smoke gate와 redaction/sample artifact 절차
-- [x] Source health incident workflow와 retryable-only next action
-- [x] Client Live accessibility/mobile polish와 debug/source 비노출 smoke
-- [x] Rule/Scenario preset quality와 저장 payload 계약 유지
-- [x] Audit trail search/export/review 최소 흐름
-- [x] Release/visual baseline automation과 approval gate 정리
-- [x] Re-ID default-off research continuation과 v1.3.0 follow-up closure
-- [x] Rule-level `analysis.trackingPolicy`와 Ops Rules tracker/Re-ID 선택 UI
-- [x] Kalman-lite/ByteTrack rule-level opt-in tracker와 fixture matrix 비교
-- [x] Re-ID assist default-off runtime fallback, privacy guard, warning history
-- [x] close-object report archive policy와 tracker warning dashboard summary
-- [x] v1.4.0 follow-up closure와 release close-out 기준 정리
-- [x] v1.5.0 explicit tracker/Re-ID opt-in guard와 implicit Re-ID 차단
-- [x] Tracker/Re-ID stability matrix와 warning/default-on 분리
-- [x] Re-ID model provenance/checksum/fallback approval gate
-- [x] Ops Dashboard tracker warning next-action refinement
-- [x] Audit export review hardening과 model/source material masking
-- [x] Field smoke summary evidence boundary와 summary/report/history index 보존 경계
-- [x] OC-SORT manifest-only experimental sandbox
-- [x] v1.5.0 follow-up closure와 release close-out 기준 정리
-- [x] v1.6.0 release evidence dashboard와 stability gate cleanup
-- [x] Client/Ops debug exposure regression guard
-- [x] Tracker/Re-ID opt-in stabilization close-out
-- [x] ONVIF field smoke evidence reconciliation
-- [x] Audit/export masking regression hardening
-- [x] Runtime/model bundle RC policy
-- [x] Manual UI release checklist closure
-- [x] Public docs consistency polish
-- [x] Tracker benchmark harness planning-only boundary
+- live source: file, RTSP pull, HTTP/HLS URI, WHEP pull, WHIP publish, ONVIF live source
+- output: RTSP, WebRTC/WHEP, URL copy parity, SourceRegistry/PublishedView 기반 redaction
+- VA: `va=1`, `vaRule=<id>`, Rule/Profile/Scenario, live Event POST, runtime metadata
+- Ops/Client: source health, runtime console, tracker warning summary, viewer debug/source 비노출
+- Auth: setup/login/session, role/scope, admin user console, invite/request approval
+- Release: source-only readiness, bundle/license guardrail, release evidence, manual UI evidence
+- Research boundary: Re-ID/tracker default-off, OC-SORT manifest-only sandbox, YouTube lab-only 유지
 
-비범위:
+명시적 비범위:
 
-- [ ] 장기 녹화, MP4 recorder, NVR/VMS archive, playback timeline, 영상 검색
-- [ ] ONVIF Profile G recording/replay
-- [ ] Re-ID default-on, ByteTrack default-on, OC-SORT/BoT-SORT/DeepSORT runtime tracker 승격
-- [ ] binary/runtime/model bundle release
-- [ ] 외부 TURN/WHEP credential 운영 보장
-- [ ] ONVIF 실장비 endpoint 성공 보장, persistent credential store, Digest/WS-Security
-- [ ] YouTube 운영 기능 승격 또는 실제 URL relay 성공 보장
-- [ ] field sample scheduler, dataset ingest, tracker replacement benchmark 실행
-- [ ] 실장비 ONVIF field smoke 성공 보장, runtime/model bundle 배포 승인
-- [ ] 별도 Phase의 실제 기능 개발, tracker replacement product review
+- 장기 녹화, MP4 recorder, VMS/NVR archive, playback/search
+- ONVIF Profile G recording/replay, persistent credential store, Digest/WS-Security 운영 보장
+- Re-ID default-on, tracker default-on, OC-SORT/BoT-SORT/DeepSORT runtime tracker 승격
+- binary/runtime/model bundle release
+- 외부 TURN/WHEP credential 운영 보장, 실장비 ONVIF 성공 보장
+- field sample scheduler, dataset ingest, tracker replacement benchmark 실행
+- 별도 Phase의 실제 기능 개발, tracker replacement product review
+
+세부 종료 증적은 아래 v1.6.0 Stabilization Close-out 섹션과
+[v1.6.0 Release Evidence Dashboard](./v1.6.0-release-evidence-dashboard.md)를 봅니다.
 
 ## v1.2.1 Patch Close-out
 
@@ -726,10 +681,11 @@ rule-level 선택값으로 추가하지 않고, Kalman-lite/ByteTrack opt-in 결
 - RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
 
 별도 Phase 후보로 기록:
-
-- 실제 OC-SORT algorithm adapter와 dataset benchmark report
-- ByteTrack/Kalman-lite/OC-SORT fixture matrix 비교 history
-- field sample 기반 tracker replacement product review
+세부 후보의 source-of-truth는
+[OC-SORT Benchmark Boundary](oc-sort-benchmark-boundary.md#후속-분류)입니다.
+이 backlog에서는 `실제 OC-SORT algorithm adapter와 dataset benchmark report`를
+대표 후보로만 참조하고, fixture history와 field product review 목록은 전용 문서에서
+관리합니다.
 
 ### V140-P2-02 BoT-SORT/DeepSORT research boundary 종료 판정
 
@@ -771,12 +727,11 @@ research note와 dependency/privacy 검토 대상으로만 남기는 범위입�
 - RTSP/WebRTC media path 또는 pipeline blocking 정책 변경
 
 별도 Phase 후보로 기록:
-
-- BoT-SORT/DeepSORT dependency/privacy threat model
-- Re-ID model card/license/checksum/provenance review
-- appearance embedding/crop retention and redaction policy
-- camera motion compensation 및 dataset benchmark report
-- runtime/model bundle RC policy와 source-offer 검토
+세부 후보의 source-of-truth는
+[BoT-SORT/DeepSORT Research Boundary](bot-sort-deepsort-research-boundary.md#후속-분류)입니다.
+이 backlog에서는 `BoT-SORT/DeepSORT dependency/privacy threat model`과
+`runtime/model bundle RC policy`를 대표 후보로만 참조하고, model card, crop
+retention, dataset benchmark 세부 목록은 전용 문서에서 관리합니다.
 
 ## v1.5.0 Minor Close-out
 
@@ -1691,7 +1646,8 @@ backlog에서 같은 방식으로 보이도록
 
 - 현재 published source-only release tag는 `v1.6.0`입니다.
 - v1.6.0은 source-only stabilization release이며 runtime/model/binary bundle release가 아닙니다.
-- public docs는 v1.6.0 P0/P1/P2 guard 문서를 링크하고 latest source-only release를
+- public 첫 진입점은 세부 v1.6.0 guard 문서를 전부 나열하지 않고, `docs/README.md`
+  및 release evidence 대표 링크로 연결합니다. latest source-only release는
   `v1.6.0`으로 표시합니다.
 - release/versioning 정책은 source-only/live-only 경계, binary/runtime/model bundle
   제외, 실장비/장시간/외부 credential gate 미실행 분리를 유지합니다.

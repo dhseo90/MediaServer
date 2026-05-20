@@ -41,6 +41,7 @@ const stream = readText("docs/stream-verification.md");
 const readme = readText("README.md");
 const readmeEn = readText("README.en.md");
 const docsIndex = readText("docs/en/README.md");
+const docsRootIndex = readText("docs/README.md");
 const server = readText("server.sh");
 const inventory = readText("scripts/internal/verify_script_inventory.mjs");
 const section = extractSection(
@@ -119,13 +120,13 @@ check("public docs keep v1.6.0 as current published tag while linking v1.6 evide
     ["docs/en README", docsIndex],
   ]) {
     assertIncludes(text, "v1.6.0", `${label} current tag`);
-    assertIncludes(text, "v1.6.0", `${label} stabilization docs`);
-    assertIncludes(text, "v1.6.0-public-docs-consistency-polish.md", label);
-    assertIncludes(text, "verify-v160-public-docs-consistency-polish", label);
-    for (const item of v160Docs.slice(0, -1)) {
-      assertIncludes(text, item, `${label} v1.6 doc link`);
-    }
+    assertIncludes(text, "docs/README.md", `${label} root docs index link`);
+    assertIncludes(text, "v1.6.0-release-evidence-dashboard.md", `${label} release evidence link`);
   }
+  for (const item of v160Docs) {
+    assertIncludes(docsRootIndex, item, "docs README v1.6 evidence index");
+  }
+  assertIncludes(docsRootIndex, "verify-v160-public-docs-consistency-polish", "docs README verifier index");
   assertIncludes(docsIndex, "v1.6.0 is published as the current source-only release.", "docs/en current boundary");
 });
 

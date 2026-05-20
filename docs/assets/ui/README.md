@@ -6,10 +6,12 @@
 2026-05-17 v1.3.0 release 문서/이미지 재점검에서는 기존 대표 캡처를 유지했습니다.
 2026-05-18 v1.4.0 release 문서/이미지 재점검에서도 README 대표 캡처는 유지합니다.
 2026-05-20 v1.6.0 release 문서/이미지 정적 검증에서도 README 대표 캡처는 유지합니다.
-v1.6.0은 source-only stabilization release이며 대표 화면, media path, VA overlay 예시를
-교체해야 하는 제품 화면 변경은 없습니다. README, README.en, `docs/ui-guide.md`,
-`docs/video-analysis.md`에서 참조하는 UI/VA 이미지는 `verify-docs-ui-assets`
-정적 gate로 관리하며, 수동 브라우저 재검수 없이 완료로 과장하지 않습니다.
+v1.6.0은 source-only stabilization release이며 대표 화면, media path, VA overlay
+예시를 교체해야 하는 제품 화면 변경은 없습니다.
+
+README, README.en, `docs/ui-guide.md`, `docs/video-analysis.md`에서 참조하는 UI/VA
+이미지는 `verify-docs-ui-assets` 정적 gate로 관리합니다. 정적 gate만 실행하고
+수동 브라우저 재검수까지 완료했다고 과장하지 않습니다.
 `ops-rules-preview`는 전체 페이지 캡처가 아니라 Rule preview/editor 대표 구간
 캡처로 유지합니다.
 재캡처는 `scripts/internal/capture_docs_ui_assets.mjs` 기준으로 관리합니다.
@@ -40,8 +42,11 @@ node scripts/internal/capture_docs_ui_assets.mjs --lang=en
 - Do not use client screenshots where source URLs, ONVIF endpoints, raw
   diagnostic JSON, or rule/profile editors are visible.
 - 영상이 보이는 화면은 `va_four_scene_sample.mp4` 4신 영상 기준으로 캡처한다.
-- VA overlay가 가능한 화면은 객체 bbox/label이 실제로 표출된 상태를 캡처한다.
-- 영상이 보이는 화면은 실제 출력 프레임이 보이고 하단이 잘리지 않는 상태로 캡처한다.
+- VA overlay가 가능한 화면은 overlay를 켜고 객체 bbox/label이 실제로 표출된 상태를
+  캡처한다.
+- 영상이 보이는 화면은 실제 출력 프레임 전체가 보여야 한다. 상단, 하단, 좌우가
+  잘린 이미지는 문서용으로 쓰지 않는다.
+- 특히 video viewport 하단 control/status/overlay 영역이 잘린 스크린샷은 금지한다.
 - 상하좌우 공백이 과하게 크거나 주요 UI/영상이 한쪽으로 치우친 이미지는 다시 캡처한다.
 - 운영/개발 진단 화면은 대표 제품 화면과 섞지 않는다.
 

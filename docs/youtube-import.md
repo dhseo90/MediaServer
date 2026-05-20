@@ -1,9 +1,9 @@
+# YouTube Import / Source
+
 <!--
 이 파일은 YouTube source/import 실험 기능의 현재 상태를 정리한다.
 활성화 방법, 실패 유형, 검증 방법, 운영 전환 전 조건을 분리해 둔다.
 -->
-
-# YouTube Import / Source
 
 > 실험 기능입니다. YouTube import/source는 기본 스트리밍 안정 기능이 아니며, `./server.sh test`의 기본 hard gate에도 포함하지 않습니다.
 

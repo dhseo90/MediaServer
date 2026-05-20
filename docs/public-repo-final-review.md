@@ -21,7 +21,7 @@ GitHub Settings 화면에서 직접 눌러야 하는 항목은 자동화하지 �
   - Description: `RTSP/WebRTC media server with optional YOLO-based video analytics`
   - Topics: `rtsp`, `gstreamer`, `cpp`, `webrtc`, `media-server`, `yolo`, `video-analytics`
 - Visibility: public
-- 현재 published source-only release: `v1.5.0`
+- 현재 published source-only release: `v1.6.0`
 
 `Restrict deletions`와 `Block force pushes`는 GitHub Actions check가 아니라 ruleset branch rule입니다.
 Required status check에는 추가하지 않고, checkbox enabled 상태만 확인합니다.
@@ -106,7 +106,7 @@ Public/release 상태 확인:
 
 Public/release UI 리허설:
 
-- Repository 첫 화면에서 badge, 한글/영문 README 링크, 문서 지도, 대표 이미지가 첫 사용자에게 이해 가능한 순서로 보이는지 확인합니다.
+- Repository 첫 화면에서 badge, 한글/영문 README 링크, 문서 길잡이, 대표 이미지가 첫 사용자에게 이해 가능한 순서로 보이는지 확인합니다.
 - Repository description과 topics가 실제 지원 범위와 맞는지 확인합니다.
 - `Settings`나 visibility 전환은 owner가 직접 판단합니다.
 
@@ -125,7 +125,7 @@ Public/release UI 리허설:
 - [x] secret, token, password, auth store, 개인 local path가 문서/코드/history에 없습니다.
 - [x] `verify-public-repo-readiness`가 통과했습니다.
 - [ ] 최신 `main` HEAD의 `Preflight`, `Licensing and Artifact Guardrails`가 통과했습니다.
-- [x] README 첫 화면이 실행 환경, 접속 주소, 문서 로드맵을 명확히 보여줍니다.
+- [x] README 첫 화면이 제품 경계, 빠른 시작, 문서 길잡이를 명확히 보여줍니다.
 - [x] README 영문판과 README-linked 영문 문서가 준비되어 있습니다.
 - [x] `VERSION`, `CMakeLists.txt`, [versioning-policy.md](./versioning-policy.md)의 기준 버전이 맞습니다.
 - [x] LICENSE는 Apache-2.0이고 NOTICE/THIRD_PARTY_NOTICES가 있습니다.

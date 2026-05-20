@@ -84,11 +84,7 @@ adapter, runtime tracker policy, `/ops/rules` 선택값을 추가하지 않습�
 
 미분류 P0~P1 후속: 없음.
 
-후속 Phase:
-
-- 실제 OC-SORT algorithm adapter와 dataset benchmark report
-- ByteTrack/Kalman-lite/OC-SORT fixture matrix 비교 history
-- field sample 기반 tracker replacement product review
+세부 후속 Phase 분류는 아래 `후속 분류` 섹션 하나를 source-of-truth로 둡니다.
 
 ## 후속 분류
 

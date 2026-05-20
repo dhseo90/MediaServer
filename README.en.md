@@ -4,62 +4,37 @@
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
 [![Source Release](https://img.shields.io/badge/source--only%20release-v1.6.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v1.6.0)
 
-Media Server is a C++17 RTSP/WebRTC live stream relay with optional YOLO/ONNX video analytics overlays and rule/scenario live events. The current main product boundary focuses on live source onboarding, live source health, and live VA event quality rather than long-term recording, VMS, or NVR scope.
+Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
+video analytics overlays and rule/scenario live events when analytics are enabled.
 
-Korean documentation: [README.md](README.md)
-Latest source-only release: [v1.6.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.6.0)
-The v1.6.0 source-only release close-out and stabilization evidence are tracked in
-[docs/development-backlog.md](docs/development-backlog.md),
-[docs/versioning-policy.md](docs/versioning-policy.md), and
-[docs/release-policy.md](docs/release-policy.md).
-The v1.6.0 release evidence dashboard separates confirmed,
-not-run, and unverified checks in
-[docs/v1.6.0-release-evidence-dashboard.md](docs/v1.6.0-release-evidence-dashboard.md);
-verify it with `./server.sh verify-v160-release-evidence-dashboard`.
-The v1.6.0 stability gate map separates smoke, flaky, attached, and longrun
-checks in
-[docs/v1.6.0-stability-verification-gates.md](docs/v1.6.0-stability-verification-gates.md);
-verify it with `./server.sh verify-v160-stability-verification-gate`.
-The v1.6.0 client debug exposure guard keeps source, raw debug, model, and auth
-material out of viewer/client surfaces in
-[docs/v1.6.0-debug-exposure-regression-guard.md](docs/v1.6.0-debug-exposure-regression-guard.md);
-verify it with `./server.sh verify-v160-debug-exposure-regression-guard`.
-The v1.6.0 tracker/Re-ID opt-in close-out keeps rule-level opt-in default-off in
-[docs/v1.6.0-tracker-reid-opt-in-closeout.md](docs/v1.6.0-tracker-reid-opt-in-closeout.md);
-verify it with `./server.sh verify-v160-tracker-reid-opt-in-closeout`.
-The v1.6.0 ONVIF field smoke evidence reconciliation separates no-device suite
-results, not-run real-device smoke, and redacted artifact review in
-[docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md](docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md);
-verify it with `./server.sh verify-v160-onvif-field-smoke-evidence-reconciliation`.
-The v1.6.0 audit/export masking regression guard keeps source, model, auth, and
-raw material out of audit query and JSON/CSV/Diff JSON exports in
-[docs/v1.6.0-audit-export-masking-regression-hardening.md](docs/v1.6.0-audit-export-masking-regression-hardening.md);
-verify it with `./server.sh verify-v160-audit-export-masking-regression-hardening`.
-The v1.6.0 runtime/model bundle RC policy keeps runtime/model bundles out of the
-default release and records future RC approval criteria in
-[docs/v1.6.0-runtime-model-bundle-rc-policy.md](docs/v1.6.0-runtime-model-bundle-rc-policy.md);
-verify it with `./server.sh verify-v160-runtime-model-bundle-rc-policy`.
-The v1.6.0 manual UI release checklist closure separates actual manual clicks,
-screenshot artifacts, and not-run/unverified items in
-[docs/v1.6.0-manual-ui-release-checklist-closure.md](docs/v1.6.0-manual-ui-release-checklist-closure.md);
-verify it with `./server.sh verify-v160-manual-ui-release-checklist-closure`.
-The v1.6.0 public docs consistency polish keeps the published `v1.6.0` tag
-aligned with v1.6.0 release evidence in
-[docs/v1.6.0-public-docs-consistency-polish.md](docs/v1.6.0-public-docs-consistency-polish.md);
-verify it with `./server.sh verify-v160-public-docs-consistency-polish`.
-The v1.6.0 tracker benchmark harness planning note keeps OC-SORT, BoT-SORT, and
-DeepSORT out of runtime tracker policy while documenting future benchmark
-requirements in [docs/v1.6.0-tracker-benchmark-harness-planning.md](docs/v1.6.0-tracker-benchmark-harness-planning.md);
-verify it with `./server.sh verify-v160-tracker-benchmark-harness-planning`.
+The current product boundary is **live source onboarding, live source health, and
+live VA event quality**. Long-term recording, VMS/NVR, playback/search, and
+runtime/model bundle distribution are outside the default release scope.
+
+- Korean documentation: [README.md](README.md)
+- Documentation index: [docs/README.md](docs/README.md)
+- Latest source-only release: [v1.6.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.6.0)
+- v1.6.0 release close-out evidence: [docs/development-backlog.md](docs/development-backlog.md),
+  [docs/v1.6.0-release-evidence-dashboard.md](docs/v1.6.0-release-evidence-dashboard.md)
 
 ## At a Glance
 
-- **Streaming**: exposes file, RTSP pull, WHEP pull, WHIP publish, and HTTP/HLS sources through RTSP and WebRTC/WHEP outputs.
-- **Video analytics**: supports `va=1` overlays, saved rules through `vaRule=<id>`, Rule/Profile/Scenario models, live Event POST, and runtime metadata. EventRecord, snapshot, and clip hooks are short event evidence helpers, not the central product message.
-- **Product UI**: the main URL routes users to Ops or Client views based on account permissions. `/lab` UI routes stay disabled; lab endpoints remain available for API and verification workflows.
-- **Auth and scopes**: supports first-admin setup, session login, role/scope, admin user management, and viewer invite/request approval.
-- **Verification**: `./server.sh` provides UI/Auth smoke tests, VA replay checks, runtime state checks, backup/restore rehearsal, and RC gate artifact checks.
-- **Distribution boundary**: the default public release contains source code and documentation. Binary, runtime, and model bundles are not published unless separate guardrails pass.
+- **Streaming**: exposes file, RTSP pull, WHEP pull, WHIP publish, and HTTP/HLS
+  sources through RTSP and WebRTC/WHEP outputs.
+- **Video analytics**: supports `va=1` overlays, saved rules through
+  `vaRule=<id>`, Rule/Profile/Scenario models, live Event POST, and runtime
+  metadata. EventRecord, snapshot, and clip hooks are short event evidence
+  helpers, not the central product message.
+- **Product UI**: routes users to Ops or Client views based on account
+  permissions. `/lab` UI routes stay disabled; lab endpoints remain available
+  for API and verification workflows.
+- **Auth and scopes**: supports first-admin setup, session login, role/scope,
+  admin user management, and viewer invite/request approval.
+- **Verification**: `./server.sh` provides UI/Auth smoke tests, VA replay checks,
+  runtime state checks, backup/restore rehearsal, and RC gate artifact checks.
+- **Distribution boundary**: the default public release contains source code and
+  documentation. Binary, runtime, and model bundles are not published unless
+  separate guardrails pass.
 
 ## Runtime Requirements
 
@@ -120,53 +95,38 @@ If you only need the streaming path without AI:
 MEDIA_SERVER_ENABLE_AI=0 ./server.sh build
 ```
 
-The default auth mode is `MEDIA_SERVER_AUTH_MODE=auto`. If no users file or `admin.passwordHash` exists, the first browser visit redirects to `/setup`. There is no default production admin password.
+The default auth mode is `MEDIA_SERVER_AUTH_MODE=auto`. If no users file or
+`admin.passwordHash` exists, the first browser visit redirects to `/setup`.
+There is no default production admin password.
 
 ## Sample and Asset Scope
 
-Tracked `video/*.mp4` files and the allowlisted `video/imports/va_tracking_event_1280x720_30fps_h264.mp4` are generated verification fixtures. Customer media, operations evidence, YOLO model binaries, FFmpeg/GStreamer runtime binaries, logs, and auth stores are not public repository content.
+Tracked `video/*.mp4` files and the allowlisted
+`video/imports/va_tracking_event_1280x720_30fps_h264.mp4` are generated
+verification fixtures. Customer media, operations evidence, YOLO model binaries,
+FFmpeg/GStreamer runtime binaries, logs, and auth stores are not public
+repository content.
 
-See [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) for fixture provenance and public-release decisions. English readers should start from the consolidated [docs/en/README.md](docs/en/README.md).
+See [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) for
+fixture provenance and public-release decisions. English readers should start
+from the consolidated [docs/en/README.md](docs/en/README.md).
 
-## Documentation Map
+## Documentation Guide
 
-| Need | Document |
-| --- | --- |
-| English documentation index | [docs/en/README.md](docs/en/README.md) |
-| Setup, build, foreground/background execution | [docs/development-guide.md](docs/development-guide.md) |
-| Auth, Ops, Client UI flow | [docs/ui-guide.md](docs/ui-guide.md) |
-| RTSP/WebRTC pipeline, source/session, VA layer | [docs/media-server-architecture.md](docs/media-server-architecture.md) |
-| YOLO, tracking, scenarios, live events, short evidence | [docs/video-analysis.md](docs/video-analysis.md) |
-| Re-ID default-off research continuation | [docs/reid-default-off-research-continuation.md](docs/reid-default-off-research-continuation.md) |
-| OC-SORT benchmark/sandbox boundary | [docs/oc-sort-benchmark-boundary.md](docs/oc-sort-benchmark-boundary.md) |
-| BoT-SORT/DeepSORT research boundary | [docs/bot-sort-deepsort-research-boundary.md](docs/bot-sort-deepsort-research-boundary.md) |
-| Integrator Event/WebRTC/SSE/WS sample bundle | [docs/integrator-contract-artifact.md](docs/integrator-contract-artifact.md) |
-| Current product boundary, v1.6.0 release close-out, and separate phase candidates | [docs/development-backlog.md](docs/development-backlog.md) |
-| Historical v1.2.1 follow-up closure | [docs/v1.2.1-follow-up-closure.md](docs/v1.2.1-follow-up-closure.md) |
-| v1.3.0 follow-up closure | [docs/v1.3.0-follow-up-closure.md](docs/v1.3.0-follow-up-closure.md) |
-| v1.4.0 follow-up closure | [docs/v1.4.0-follow-up-closure.md](docs/v1.4.0-follow-up-closure.md) |
-| v1.5.0 follow-up closure | [docs/v1.5.0-follow-up-closure.md](docs/v1.5.0-follow-up-closure.md) |
-| v1.6.0 release evidence dashboard | [docs/v1.6.0-release-evidence-dashboard.md](docs/v1.6.0-release-evidence-dashboard.md) |
-| v1.6.0 stability verification gates | [docs/v1.6.0-stability-verification-gates.md](docs/v1.6.0-stability-verification-gates.md) |
-| v1.6.0 client debug exposure guard | [docs/v1.6.0-debug-exposure-regression-guard.md](docs/v1.6.0-debug-exposure-regression-guard.md) |
-| v1.6.0 tracker/Re-ID opt-in close-out | [docs/v1.6.0-tracker-reid-opt-in-closeout.md](docs/v1.6.0-tracker-reid-opt-in-closeout.md) |
-| v1.6.0 ONVIF field smoke evidence reconciliation | [docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md](docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md) |
-| v1.6.0 audit/export masking regression hardening | [docs/v1.6.0-audit-export-masking-regression-hardening.md](docs/v1.6.0-audit-export-masking-regression-hardening.md) |
-| v1.6.0 runtime/model bundle RC policy | [docs/v1.6.0-runtime-model-bundle-rc-policy.md](docs/v1.6.0-runtime-model-bundle-rc-policy.md) |
-| v1.6.0 manual UI release checklist closure | [docs/v1.6.0-manual-ui-release-checklist-closure.md](docs/v1.6.0-manual-ui-release-checklist-closure.md) |
-| v1.6.0 public docs consistency polish | [docs/v1.6.0-public-docs-consistency-polish.md](docs/v1.6.0-public-docs-consistency-polish.md) |
-| v1.6.0 tracker benchmark harness planning | [docs/v1.6.0-tracker-benchmark-harness-planning.md](docs/v1.6.0-tracker-benchmark-harness-planning.md) |
-| Verification commands and release checks | [docs/stream-verification.md](docs/stream-verification.md) |
-| Bundle/container/runtime distribution policy | [docs/distribution-policy.md](docs/distribution-policy.md) |
-| Release scope and tag strategy | [docs/release-policy.md](docs/release-policy.md) |
-| Version meaning and tag rules | [docs/versioning-policy.md](docs/versioning-policy.md) |
-| Final private-to-public checklist | [docs/public-repo-final-review.md](docs/public-repo-final-review.md) |
-| Backup and restore operations | [docs/ops-backup-recovery.md](docs/ops-backup-recovery.md) |
-| Starting thresholds for field scenarios | [docs/analysis-threshold-baselines.md](docs/analysis-threshold-baselines.md) |
-| YouTube import/source experiment | [docs/youtube-import.md](docs/youtube-import.md) |
-| Historical manual UI v1.2.1 evidence | [docs/manual-ui-v1.2.1-result.md](docs/manual-ui-v1.2.1-result.md) |
-| ONVIF no-device and field-smoke boundary | [docs/onvif-no-device-verification.md](docs/onvif-no-device-verification.md) |
-| Re-ID warning/default-on boundary | [docs/reid-fixture-default-on-candidates.md](docs/reid-fixture-default-on-candidates.md) |
+This README is the product overview. Detailed policies, verification history, and
+release evidence live in dedicated docs.
+
+- Full index: [docs/README.md](docs/README.md)
+- Setup, build, and run: [docs/development-guide.md](docs/development-guide.md)
+- Ops and Client UI: [docs/ui-guide.md](docs/ui-guide.md)
+- RTSP/WebRTC/VA architecture:
+  [docs/media-server-architecture.md](docs/media-server-architecture.md)
+- Video analytics and scenarios: [docs/video-analysis.md](docs/video-analysis.md)
+- Verification commands: [docs/stream-verification.md](docs/stream-verification.md)
+- Release/version policy: [docs/release-policy.md](docs/release-policy.md),
+  [docs/versioning-policy.md](docs/versioning-policy.md)
+- v1.6.0 close-out evidence: [docs/development-backlog.md](docs/development-backlog.md),
+  [docs/v1.6.0-release-evidence-dashboard.md](docs/v1.6.0-release-evidence-dashboard.md)
 
 ## UI Preview
 
@@ -203,44 +163,29 @@ See [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) for f
 
 ## Testing Summary
 
-Default regression:
+Broad default regression:
 
 ```bash
 ./server.sh test
 ```
 
-Fast public/document/UI/auth checks:
+For documentation or release metadata changes, start with the fast checks:
 
 ```bash
-./server.sh build
-git diff --check -- README.md README.en.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.md .github config docs scripts src include
-./server.sh verify-script-inventory
-./server.sh verify-code-comments
+git diff --check
 ./server.sh verify-release-metadata
 ./server.sh verify-docs-links
-./server.sh verify-docs-ui-assets
-./server.sh verify-manual-ui-evidence
-./server.sh verify-actions-security
-./server.sh write-dependency-notice --check
-./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
-./server.sh verify-post-release-reconciliation
-./server.sh verify-release-closeout-helper --dry-run --report /tmp/media_server_release_closeout_helper.md
-./server.sh dependency-snapshot --stable --output /tmp/media_server_dependency_snapshot.md --no-linked-libs
-./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
-./server.sh verify-release-bundle-dry-run
-./server.sh source-offer-checklist --stable --bundle-policy-report /tmp/media_server_bundle_policy.json
 ```
 
-UI smoke commands that attach to a running server:
+Release-local baseline:
 
 ```bash
-MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground
-./server.sh verify-ops-client-ui
-./server.sh verify-ops-click-e2e
-./server.sh verify-ops-tables-layout
-./server.sh verify-rule-ui
-./server.sh verify-ops-rules-roundtrip
+./server.sh test --full
 ```
+
+See [docs/stream-verification.md](docs/stream-verification.md) for UI/Auth/VA,
+longrun, and release gate commands. Do not put real customer URLs, credentials,
+or operation media paths into docs or artifacts.
 
 ## Pipeline
 

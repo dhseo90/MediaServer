@@ -4,56 +4,18 @@
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
 [![Source Release](https://img.shields.io/badge/source--only%20release-v1.6.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v1.6.0)
 
-RTSP/WebRTC live stream을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 분석
+RTSP/WebRTC live stream을 받아 다시 내보내고, 필요할 때 YOLO/ONNX 영상 분석
 overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다.
-현재 main 기준 제품 경계는 장기 녹화/VMS/NVR이 아니라 live source onboarding,
-live source health, live VA event 품질입니다.
 
-English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
+현재 제품 경계는 **live source onboarding, live source health, live VA event 품질**입니다.
+장기 녹화, VMS/NVR, playback/search, runtime/model bundle 배포는 기본 release 범위가
+아닙니다.
 
-최신 source-only release: [v1.6.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.6.0)
-v1.6.0 source-only release close-out과 안정화 증적은
-[docs/development-backlog.md](docs/development-backlog.md),
-[docs/versioning-policy.md](docs/versioning-policy.md),
-[docs/release-policy.md](docs/release-policy.md)에 기록합니다.
-v1.6.0 release evidence는
-[docs/v1.6.0-release-evidence-dashboard.md](docs/v1.6.0-release-evidence-dashboard.md)와
-`./server.sh verify-v160-release-evidence-dashboard`로 확인됨/미실행/미확인을
-분리합니다.
-stability gate 분류는
-[docs/v1.6.0-stability-verification-gates.md](docs/v1.6.0-stability-verification-gates.md)와
-`./server.sh verify-v160-stability-verification-gate`로 smoke/flaky/longrun 경계를
-확인합니다.
-client/viewer debug/source/model/auth material 비노출 guard는
-[docs/v1.6.0-debug-exposure-regression-guard.md](docs/v1.6.0-debug-exposure-regression-guard.md)와
-`./server.sh verify-v160-debug-exposure-regression-guard`로 확인합니다.
-tracker/Re-ID opt-in default-off close-out은
-[docs/v1.6.0-tracker-reid-opt-in-closeout.md](docs/v1.6.0-tracker-reid-opt-in-closeout.md)와
-`./server.sh verify-v160-tracker-reid-opt-in-closeout`로 확인합니다.
-ONVIF field smoke evidence reconciliation은
-[docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md](docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md)와
-`./server.sh verify-v160-onvif-field-smoke-evidence-reconciliation`로 no-device suite,
-실장비 미실행, redacted artifact review를 분리합니다.
-Audit/export masking regression guard는
-[docs/v1.6.0-audit-export-masking-regression-hardening.md](docs/v1.6.0-audit-export-masking-regression-hardening.md)와
-`./server.sh verify-v160-audit-export-masking-regression-hardening`로 audit 조회와
-JSON/CSV/Diff JSON export의 source/model/auth/raw material 비노출을 확인합니다.
-Runtime/model bundle RC policy는
-[docs/v1.6.0-runtime-model-bundle-rc-policy.md](docs/v1.6.0-runtime-model-bundle-rc-policy.md)와
-`./server.sh verify-v160-runtime-model-bundle-rc-policy`로 기본 release 미포함 경계와
-향후 RC 승인 조건을 확인합니다.
-Manual UI release checklist closure는
-[docs/v1.6.0-manual-ui-release-checklist-closure.md](docs/v1.6.0-manual-ui-release-checklist-closure.md)와
-`./server.sh verify-v160-manual-ui-release-checklist-closure`로 수동 클릭 검수와
-screenshot artifact, 미실행/미확인 경계를 분리합니다.
-Public docs consistency polish는
-[docs/v1.6.0-public-docs-consistency-polish.md](docs/v1.6.0-public-docs-consistency-polish.md)와
-`./server.sh verify-v160-public-docs-consistency-polish`로 현재 published tag와
-v1.6.0 release evidence 표현을 맞춥니다.
-Tracker benchmark harness planning only는
-[docs/v1.6.0-tracker-benchmark-harness-planning.md](docs/v1.6.0-tracker-benchmark-harness-planning.md)와
-`./server.sh verify-v160-tracker-benchmark-harness-planning`으로 새 runtime tracker
-승격 없이 benchmark 요구사항만 분리합니다.
+- English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
+- 전체 문서 색인: [docs/README.md](docs/README.md)
+- 최신 source-only release: [v1.6.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.6.0)
+- v1.6.0 release close-out: [docs/development-backlog.md](docs/development-backlog.md),
+  [docs/v1.6.0-release-evidence-dashboard.md](docs/v1.6.0-release-evidence-dashboard.md)
 
 ## 한눈에 보기
 
@@ -143,48 +105,21 @@ http://127.0.0.1:8081/
 FFmpeg/GStreamer runtime binary는 public repo 또는 기본 release asset에 포함하지 않습니다.
 fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md)에 기록합니다.
 
-## 문서 로드맵
+## 문서 길잡이
 
-| 먼저 보고 싶은 것 | 문서 |
-| --- | --- |
-| 실행 환경, 설치, 빌드, foreground/background 실행 | [docs/development-guide.md](docs/development-guide.md) |
-| 영어 문서 진입점 | [docs/en/README.md](docs/en/README.md) |
-| Auth/Ops/Client 화면 구조와 사용 흐름 | [docs/ui-guide.md](docs/ui-guide.md) |
-| RTSP/WebRTC pipeline, source/session, VA layer 배치 | [docs/media-server-architecture.md](docs/media-server-architecture.md) |
-| YOLO, tracking, scenario, live event, short evidence 정책 | [docs/video-analysis.md](docs/video-analysis.md) |
-| Re-ID default-off 연구 지속 기준 | [docs/reid-default-off-research-continuation.md](docs/reid-default-off-research-continuation.md) |
-| OC-SORT 후순위 benchmark/sandbox 경계 | [docs/oc-sort-benchmark-boundary.md](docs/oc-sort-benchmark-boundary.md) |
-| BoT-SORT/DeepSORT research 경계 | [docs/bot-sort-deepsort-research-boundary.md](docs/bot-sort-deepsort-research-boundary.md) |
-| ONVIF live source 지원과 URL copy parity | [docs/onvif-live-source-support.md](docs/onvif-live-source-support.md) |
-| ONVIF field smoke gate와 redaction artifact 절차 | [docs/onvif-field-smoke-gate.md](docs/onvif-field-smoke-gate.md), [docs/onvif-field-smoke-artifact-redaction.md](docs/onvif-field-smoke-artifact-redaction.md) |
-| Live source health/operator workflow 기준 | [docs/live-source-health.md](docs/live-source-health.md) |
-| Event/WebRTC/SSE/WS metadata contract | [docs/live-event-metadata-contracts.md](docs/live-event-metadata-contracts.md) |
-| Integrator contract artifact sample bundle | [docs/integrator-contract-artifact.md](docs/integrator-contract-artifact.md) |
-| Scenario timeline/debug 필드 설계 | [docs/scenario-timeline-debug.md](docs/scenario-timeline-debug.md) |
-| 현재 검증 기준과 실행 명령 | [docs/stream-verification.md](docs/stream-verification.md) |
-| 배포 bundle, container image, third-party runtime 포함 정책 | [docs/distribution-policy.md](docs/distribution-policy.md) |
-| release asset 범위와 RC 기준 | [docs/release-policy.md](docs/release-policy.md) |
-| 버전 의미와 tag 기준 | [docs/versioning-policy.md](docs/versioning-policy.md) |
-| public repository와 release readiness 점검 | [docs/public-repo-final-review.md](docs/public-repo-final-review.md) |
-| 운영 백업/복구 대상과 복구 후 검증 | [docs/ops-backup-recovery.md](docs/ops-backup-recovery.md) |
-| Loitering/ZoneOccupancy 현장 시작 threshold | [docs/analysis-threshold-baselines.md](docs/analysis-threshold-baselines.md) |
-| sample 영상/fixture 출처와 공개 기준 | [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) |
-| 현재 제품 경계, v1.6.0 release close-out, 별도 Phase 후보 | [docs/development-backlog.md](docs/development-backlog.md) |
-| historical v1.2.1 후속 종료 판정과 수동 UI 검수 증적 | [docs/v1.2.1-follow-up-closure.md](docs/v1.2.1-follow-up-closure.md), [docs/manual-ui-v1.2.1-result.md](docs/manual-ui-v1.2.1-result.md) |
-| v1.3.0 후속 종료 판정 | [docs/v1.3.0-follow-up-closure.md](docs/v1.3.0-follow-up-closure.md) |
-| v1.4.0 후속 종료 판정 | [docs/v1.4.0-follow-up-closure.md](docs/v1.4.0-follow-up-closure.md) |
-| v1.5.0 후속 종료 판정 | [docs/v1.5.0-follow-up-closure.md](docs/v1.5.0-follow-up-closure.md) |
-| v1.6.0 release evidence dashboard | [docs/v1.6.0-release-evidence-dashboard.md](docs/v1.6.0-release-evidence-dashboard.md) |
-| v1.6.0 stability verification gates | [docs/v1.6.0-stability-verification-gates.md](docs/v1.6.0-stability-verification-gates.md) |
-| v1.6.0 client debug exposure guard | [docs/v1.6.0-debug-exposure-regression-guard.md](docs/v1.6.0-debug-exposure-regression-guard.md) |
-| v1.6.0 tracker/Re-ID opt-in close-out | [docs/v1.6.0-tracker-reid-opt-in-closeout.md](docs/v1.6.0-tracker-reid-opt-in-closeout.md) |
-| v1.6.0 ONVIF field smoke evidence reconciliation | [docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md](docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md) |
-| v1.6.0 audit/export masking regression hardening | [docs/v1.6.0-audit-export-masking-regression-hardening.md](docs/v1.6.0-audit-export-masking-regression-hardening.md) |
-| v1.6.0 runtime/model bundle RC policy | [docs/v1.6.0-runtime-model-bundle-rc-policy.md](docs/v1.6.0-runtime-model-bundle-rc-policy.md) |
-| v1.6.0 manual UI release checklist closure | [docs/v1.6.0-manual-ui-release-checklist-closure.md](docs/v1.6.0-manual-ui-release-checklist-closure.md) |
-| v1.6.0 public docs consistency polish | [docs/v1.6.0-public-docs-consistency-polish.md](docs/v1.6.0-public-docs-consistency-polish.md) |
-| v1.6.0 tracker benchmark harness planning | [docs/v1.6.0-tracker-benchmark-harness-planning.md](docs/v1.6.0-tracker-benchmark-harness-planning.md) |
-| YouTube import/source 실험 기능 | [docs/youtube-import.md](docs/youtube-import.md) |
+README는 제품을 빠르게 파악하기 위한 문서입니다. 세부 정책, 검증 이력, release 증적은
+전용 문서로 분리합니다.
+
+- 전체 색인: [docs/README.md](docs/README.md)
+- 설치/빌드/실행: [docs/development-guide.md](docs/development-guide.md)
+- 운영자/클라이언트 UI: [docs/ui-guide.md](docs/ui-guide.md)
+- RTSP/WebRTC/VA 구조: [docs/media-server-architecture.md](docs/media-server-architecture.md)
+- 영상 분석과 scenario: [docs/video-analysis.md](docs/video-analysis.md)
+- 검증 명령: [docs/stream-verification.md](docs/stream-verification.md)
+- release/version 기준: [docs/release-policy.md](docs/release-policy.md),
+  [docs/versioning-policy.md](docs/versioning-policy.md)
+- v1.6.0 종료 판정: [docs/development-backlog.md](docs/development-backlog.md),
+  [docs/v1.6.0-release-evidence-dashboard.md](docs/v1.6.0-release-evidence-dashboard.md)
 
 ## 대표 UI 미리보기
 
@@ -252,97 +187,35 @@ YOLO Detection
 
 ## 테스트 요약
 
-기본 회귀:
+가장 넓은 기본 회귀:
 
 ```bash
 ./server.sh test
 ```
 
-`./server.sh test`, `./server.sh test --basic`,
-`./server.sh test --full`, `./server.sh verify-predev --quick`는
-기본 추가 RTSP/WebRTC source 영상과 codec matrix를 사용하므로 느립니다.
-기본 테스트 환경에는 ONVIF/RTSP/WebRTC 원본 영상을 제공할 실물 장비가 없으므로,
-장비 의존 검증은 공개 URL, 로컬 fixture/simulator, loopback publisher, no-device
-suite 같은 대체 테스트로 수행하고 실장비 field smoke는 별도 후속으로 기록합니다.
-개인 LAN IP, credential, 고객/운영 영상 URL은 문서와 artifact에 남기지 않습니다.
-
-문서/UI/Auth/권한처럼 media pipeline 자체를 바꾸지 않은 변경에서는
-위 명령을 기본으로 돌리지 않고, 아래 전용 smoke를 사용합니다.
-
-문서/UI/Auth/권한 전용 빠른 검증:
+문서나 release metadata만 바꾼 경우에는 빠른 검증을 우선합니다.
 
 ```bash
-./server.sh build
-git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.md .github config docs scripts src include
-./server.sh verify-script-inventory
-./server.sh verify-code-comments
+git diff --check
+./server.sh verify-release-metadata
 ./server.sh verify-docs-links
-./server.sh verify-integrator-contract-artifact
-./server.sh verify-docs-ui-assets
-./server.sh verify-actions-security
-./server.sh write-dependency-notice --check
-./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
-./server.sh dependency-snapshot --stable --output /tmp/media_server_dependency_snapshot.md --no-linked-libs
-./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
-./server.sh source-offer-checklist --stable --bundle-policy-report /tmp/media_server_bundle_policy.json
-./server.sh verify-auth-routes
-./server.sh verify-ops-client-ui
-./server.sh verify-ops-click-e2e
-./server.sh verify-ops-tables-layout
-./server.sh verify-rule-ui
-./server.sh verify-ops-rules-roundtrip
-./server.sh verify-analysis-state
 ```
 
-`verify-auth-routes`는 격리 서버를 직접 띄웁니다.
-`verify-ops-client-ui`, `verify-rule-ui`는 실행 중인 HTTP 서버에 붙는 UI smoke이고,
-`verify-ops-click-e2e`, `verify-ops-tables-layout`, `verify-ops-rules-roundtrip`은
-같은 서버에 붙는 실제 클릭/반응형 테이블/API round-trip smoke입니다.
-
-UI만 확인할 때는 별도 터미널에서
-`MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground`로 서버를 띄운 뒤
-필요하면 `--http-base`를 지정합니다.
-
-로컬 풀 검증:
+release 전 로컬 기준선:
 
 ```bash
 ./server.sh test --full
 ```
 
-`--full`은 release 전 로컬 기준선입니다. 기본 codec/VA 검증에 더해
-Product UI smoke, 실제 클릭 E2E, 테이블 반응형 검증, Rule UI,
-event POST schema/recovery smoke, redaction까지 함께 실행합니다.
-
-기능 개발 전후 안정화 묶음:
+기능 개발 전후 안정화 묶음은 별도 명시 후 실행합니다.
 
 ```bash
 ./server.sh verify-predev --quick
 ```
 
-VA replay/상태 검증:
-
-```bash
-./server.sh verify-analysis-state
-./server.sh verify-va-replay
-```
-
-VA/Auth 주요 검증:
-
-```bash
-./server.sh verify-webrtc-va-metadata
-./server.sh verify-va-runtime-console
-./server.sh verify-auth-bootstrap
-./server.sh verify-auth-users
-./server.sh verify-auth-routes
-./server.sh verify-ops-backup-restore-dry-run
-./server.sh verify-ops-evidence-retention-cleanup
-./server.sh verify-rc-release-gate
-```
-
-로컬 QA, 수동 smoke, 자동 auth smoke의 표준 테스트 계정 비밀번호는 `qweasd0-`로 통일합니다.
-이 값은 테스트 재현성을 위한 규칙이며, 제품 기본 admin 비밀번호를 의미하지 않습니다.
-
-현재 검증 기준과 장기 soak/부하 검증 분리 기준은 [docs/stream-verification.md](docs/stream-verification.md)에 정리되어 있습니다.
+UI/Auth/VA/장기 soak 검증의 전체 명령과 실행 조건은
+[docs/stream-verification.md](docs/stream-verification.md)에 정리되어 있습니다.
+실장비 endpoint, 외부 credential, 고객/운영 영상 URL은 문서와 artifact에 남기지 않습니다.
 
 ## 라이선스
 

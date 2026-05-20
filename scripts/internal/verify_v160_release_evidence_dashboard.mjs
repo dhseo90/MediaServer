@@ -39,6 +39,7 @@ const releasePolicy = readText("docs/release-policy.md");
 const readme = readText("README.md");
 const readmeEn = readText("README.en.md");
 const docsIndex = readText("docs/en/README.md");
+const docsRootIndex = readText("docs/README.md");
 const server = readText("server.sh");
 const inventory = readText("scripts/internal/verify_script_inventory.mjs");
 const section = extractSection(
@@ -138,12 +139,17 @@ check("docs and entrypoints link the release evidence dashboard verifier", () =>
   for (const [label, text] of [
     ["stream verification", stream],
     ["release policy", releasePolicy],
+    ["docs README", docsRootIndex],
+  ]) {
+    assertIncludes(text, "v1.6.0-release-evidence-dashboard.md", label);
+    assertIncludes(text, "verify-v160-release-evidence-dashboard", label);
+  }
+  for (const [label, text] of [
     ["README.md", readme],
     ["README.en.md", readmeEn],
     ["docs/en README", docsIndex],
   ]) {
     assertIncludes(text, "v1.6.0-release-evidence-dashboard.md", label);
-    assertIncludes(text, "verify-v160-release-evidence-dashboard", label);
   }
   for (const snippet of [
     "verify-v160-release-evidence-dashboard",
