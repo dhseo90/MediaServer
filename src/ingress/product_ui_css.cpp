@@ -2575,7 +2575,7 @@ std::string ClientShellCss() {
     .live-monitor { display: grid; gap: 12px; }
     .live-toolbar {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto auto auto;
+      grid-template-columns: minmax(0, 1fr) auto auto auto auto;
       gap: 10px;
       align-items: end;
     }
@@ -2615,6 +2615,11 @@ std::string ClientShellCss() {
       gap: 12px;
       align-items: start;
     }
+    .live-workspace-layout[data-dock-side="right"] {
+      grid-template-columns: minmax(0, 1fr) minmax(220px, 280px);
+    }
+    .live-workspace-layout[data-dock-side="right"] .live-source-dock { order: 2; }
+    .live-workspace-layout[data-dock-side="right"] .live-workspace-main { order: 1; }
     .live-source-dock {
       display: grid;
       gap: 10px;
@@ -2640,6 +2645,39 @@ std::string ClientShellCss() {
       max-height: min(64vh, 680px);
       overflow: auto;
       padding-right: 2px;
+    }
+    .live-source-group {
+      display: grid;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 8px;
+      background: var(--panel);
+    }
+    .live-source-group summary {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-height: 30px;
+      cursor: pointer;
+      color: var(--text);
+      font-size: 12px;
+      font-weight: 900;
+      list-style-position: inside;
+    }
+    .live-source-group summary span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 900;
+    }
+    .live-source-floor {
+      background: var(--bg);
+      padding: 6px;
+    }
+    .live-source-leaves {
+      display: grid;
+      gap: 8px;
     }
     .live-source-node {
       width: 100%;
@@ -2680,6 +2718,51 @@ std::string ClientShellCss() {
       display: grid;
       gap: 12px;
       min-width: 0;
+    }
+    .live-dock-event-feed {
+      display: grid;
+      gap: 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: var(--panel);
+    }
+    .live-dock-event-head,
+    .live-dock-event-summary {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      justify-content: space-between;
+      min-width: 0;
+    }
+    .live-dock-event-head h3 { margin: 0; font-size: 16px; }
+    .live-dock-event-summary strong,
+    .live-dock-event-summary span {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .live-dock-event-summary span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+    }
+    .live-dock-events { display: grid; gap: 8px; }
+    .live-dock-event {
+      display: grid;
+      gap: 5px;
+      border-top: 1px solid var(--line);
+      padding-top: 8px;
+    }
+    .live-dock-event:first-child { border-top: 0; padding-top: 0; }
+    .live-dock-event strong,
+    .live-dock-event span {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .live-dock-event > span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
     }
     .live-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     .live-grid[data-grid-size="1"] { grid-template-columns: 1fr; }
@@ -2819,6 +2902,9 @@ std::string ClientShellCss() {
     }
     @media (max-width: 780px) {
       .workspace, .live-toolbar, .live-workspace-layout { grid-template-columns: 1fr; }
+      .live-workspace-layout[data-dock-side] { grid-template-columns: 1fr; }
+      .live-workspace-layout[data-dock-side] .live-source-dock,
+      .live-workspace-layout[data-dock-side] .live-workspace-main { order: initial; }
       .live-source-dock { position: static; }
       .live-source-tree {
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));

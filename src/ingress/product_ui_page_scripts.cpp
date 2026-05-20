@@ -772,6 +772,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	    const initialLiveTileCount = Math.min(maxLiveTiles, Math.max(1, Number(localStorage.getItem('mediaServerClientLiveGrid') || 4) || 4));
 	    let liveTileCount = initialLiveTileCount;
 	    let liveDensity = localStorage.getItem('mediaServerClientLiveDensity') === 'compact' ? 'compact' : 'comfortable';
+	    let liveDockSide = localStorage.getItem('mediaServerClientLiveDockSide') === 'right' ? 'right' : 'left';
 	    const liveTiles = Array.from({ length: maxLiveTiles }, (_, index) => ({
 	      index,
 	      viewId: defaultLiveViewIdList[index] || '',
@@ -793,6 +794,8 @@ void AppendClientShellScript(std::ostringstream& out) {
     let selectedLiveTile = views.length > 0 ? 0 : null;
     let liveStatusTimer = null;
     let liveDashboardTimer = null;
+    let liveDockEventsTimer = null;
+    let liveDockEventsNonce = 0;
     let liveBulkNonce = 0;
     let liveDragViewId = '';
 	    function tileView(tile) {
@@ -1031,7 +1034,41 @@ void AppendClientShellScript(std::ostringstream& out) {
 	        .map(count => `<option value="${count}"${count === liveTileCount ? ' selected' : ''}>${liveGridOptionLabel(count)}</option>`)
 	        .join('');
 	    }
+	    function liveTreeLabel(view, candidates, fallback) {
+	      for (const key of candidates) {
+	        const value = String(view?.[key] || '').trim();
+	        if (value) return value;
+	      }
+	      return fallback;
+	    }
+	    function liveSourceTreeGroups() {
+	      const siteMap = new Map();
+	      for (const view of views) {
+	        const site = liveTreeLabel(view, ['site', 'siteName', 'group', 'groupName', 'locationName'], '기본 사이트');
+	        const floor = liveTreeLabel(view, ['floor', 'floorName', 'zone', 'zoneName'], sourceKindLabel(view.sourceKind, view));
+	        if (!siteMap.has(site)) siteMap.set(site, new Map());
+	        const floorMap = siteMap.get(site);
+	        if (!floorMap.has(floor)) floorMap.set(floor, []);
+	        floorMap.get(floor).push(view);
+	      }
+	      return Array.from(siteMap.entries()).map(([site, floorMap]) => ({
+	        site,
+	        floors: Array.from(floorMap.entries()).map(([floor, items]) => ({ floor, items }))
+	      }));
+	    }
+	    function liveSourceNodesHtml(items) {
+	      return items.map(view => `
+	        <button class="live-source-node${view.viewId === selectedViewId ? ' active' : ''}" type="button" role="treeitem" draggable="true" data-source-view="${escapeHtml(view.viewId)}" aria-selected="${view.viewId === selectedViewId ? 'true' : 'false'}">
+	          <span class="live-source-title">${escapeHtml(view.displayName || view.viewId)}</span>
+	          <span class="live-source-meta">
+	            <span>${escapeHtml(sourceKindLabel(view.sourceKind, view))}</span>
+	            <span data-role="assigned-count">0/${viewMaxTiles(view)}</span>
+	          </span>
+	        </button>
+	      `).join('');
+	    }
 	    function liveSourceTreeHtml() {
+	      const groups = liveSourceTreeGroups();
 	      return `
 	        <aside class="live-source-dock" data-testid="client-live-source-tree" aria-label="라이브 소스 트리">
 	          <div class="live-source-dock-head">
@@ -1041,17 +1078,28 @@ void AppendClientShellScript(std::ostringstream& out) {
 	            </div>
 	            <span class="chip">${views.length}</span>
 	          </div>
-	          <div class="live-source-tree" role="tree">
-	            ${views.map(view => `
-	              <button class="live-source-node${view.viewId === selectedViewId ? ' active' : ''}" type="button" role="treeitem" draggable="true" data-source-view="${escapeHtml(view.viewId)}" aria-selected="${view.viewId === selectedViewId ? 'true' : 'false'}">
-	                <span class="live-source-title">${escapeHtml(view.displayName || view.viewId)}</span>
-	                <span class="live-source-meta">
-	                  <span>${escapeHtml(sourceKindLabel(view.sourceKind, view))}</span>
-	                  <span data-role="assigned-count">0/${viewMaxTiles(view)}</span>
-	                </span>
-	              </button>
+	          <div class="live-source-tree" role="tree" data-tree-model="group/site/floor/source">
+	            ${groups.map(group => `
+	              <details class="live-source-group" data-tree-level="site" open>
+	                <summary>${escapeHtml(group.site)} <span>${group.floors.reduce((sum, floor) => sum + floor.items.length, 0)}</span></summary>
+	                ${group.floors.map(floor => `
+	                  <details class="live-source-group live-source-floor" data-tree-level="floor" open>
+	                    <summary>${escapeHtml(floor.floor)} <span>${floor.items.length}</span></summary>
+	                    <div class="live-source-leaves" role="group">
+	                      ${liveSourceNodesHtml(floor.items)}
+	                    </div>
+	                  </details>
+	                `).join('')}
+	              </details>
 	            `).join('')}
 	          </div>
+	          <section class="live-dock-event-feed" data-testid="client-live-dock-event-feed" data-redaction="viewer-safe-events" aria-live="polite">
+	            <div class="live-dock-event-head">
+	              <h3>이벤트</h3>
+	              <span class="chip" data-role="event-feed-status">대기</span>
+	            </div>
+	            <div id="liveDockEvents">${emptyState('최근 이벤트 없음', '선택한 소스의 viewer-safe 이벤트만 표시됩니다.')}</div>
+	          </section>
 	        </aside>
 	      `;
 	    }
@@ -1136,6 +1184,12 @@ void AppendClientShellScript(std::ostringstream& out) {
 	                <option value="compact"${liveDensity === 'compact' ? ' selected' : ''}>고밀도</option>
 	              </select>
 	            </label>
+	            <label>Dock
+	              <select id="liveDockSide" aria-label="소스 dock 위치">
+	                <option value="left"${liveDockSide === 'left' ? ' selected' : ''}>왼쪽</option>
+	                <option value="right"${liveDockSide === 'right' ? ' selected' : ''}>오른쪽</option>
+	              </select>
+	            </label>
 	            <details class="workspace-actions">
 	              <summary aria-label="워크스페이스 작업">작업</summary>
 	              <button id="liveAllStop" class="ghost danger" type="button">전체 정지</button>
@@ -1148,7 +1202,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	            <div class="metric"><span>지연</span><strong data-summary="stale">0</strong></div>
 	            <div class="metric"><span>오프라인</span><strong data-summary="offline">0</strong></div>
 	          </div>
-	          <div class="live-workspace-layout" data-testid="client-live-workspace" data-workspace-model="source-tree,drag-drop-grid,multi-source">
+	          <div class="live-workspace-layout" data-testid="client-live-workspace" data-workspace-model="source-tree,drag-drop-grid,multi-source" data-dock-side="${escapeHtml(liveDockSide)}">
 	            ${liveSourceTreeHtml()}
 	            <section class="live-workspace-main" aria-label="라이브 워크스페이스">
 	              <section class="detail-box" id="liveSelectedDetail">${emptyState('타일을 선택하세요', '선택한 타일의 연결, 메타데이터, 이벤트 상태가 여기에 표시됩니다.')}</section>
@@ -1300,6 +1354,12 @@ void AppendClientShellScript(std::ostringstream& out) {
 	        const grid = document.querySelector('.live-grid');
 	        if (grid) grid.dataset.density = liveDensity;
 	      });
+	      document.querySelector('#liveDockSide')?.addEventListener('change', event => {
+	        liveDockSide = event.target.value === 'right' ? 'right' : 'left';
+	        localStorage.setItem('mediaServerClientLiveDockSide', liveDockSide);
+	        const layout = document.querySelector('.live-workspace-layout');
+	        if (layout) layout.dataset.dockSide = liveDockSide;
+	      });
 	      document.querySelector('#liveGridSize')?.addEventListener('change', async event => {
 	        const next = Math.min(maxLiveTiles, Math.max(1, Number(event.target.value || 4)));
 	        for (const tile of liveTiles.slice(next)) {
@@ -1312,6 +1372,69 @@ void AppendClientShellScript(std::ostringstream& out) {
 	        localStorage.setItem('mediaServerClientLiveGrid', String(liveTileCount));
 	        renderLiveMonitor();
 	      });
+	    }
+	    function liveDockEventItemsHtml(items) {
+	      if (!Array.isArray(items) || items.length === 0) {
+	        return emptyState('최근 이벤트 없음', '선택한 소스에서 표시할 이벤트가 없습니다.');
+	      }
+	      return items.slice(0, 6).map(item => `
+	        <article class="live-dock-event">
+	          <div class="meta">
+	            <span class="chip">${escapeHtml(item.eventType || 'event')}</span>
+	            ${statusChip(item.status || '미제공')}
+	          </div>
+	          <strong>${escapeHtml(item.scenarioName || item.className || item.eventId || '이벤트')}</strong>
+	          <span>${escapeHtml(formatTime(item.updateTime || item.startTime))}</span>
+	        </article>
+	      `).join('');
+	    }
+	    function renderLiveDockEvents(view, payload = {}) {
+	      const container = document.querySelector('#liveDockEvents');
+	      const status = document.querySelector('[data-role="event-feed-status"]');
+	      if (!container || !status) return;
+	      const events = payload.events || {};
+	      status.textContent = events.warning ? '경고' : (events.provided === false ? '꺼짐' : '표시');
+	      status.className = `chip${events.warning ? ' warn' : ''}`;
+	      container.innerHTML = `
+	        <div class="live-dock-event-summary">
+	          <strong>${escapeHtml(view?.displayName || view?.viewId || '선택 소스')}</strong>
+	          <span>${events.provided === false ? '이벤트 권한 꺼짐' : 'viewer-safe feed'}</span>
+	        </div>
+	        <div class="meta">
+	          ${(events.countsByType || []).map(item => `<span class="chip">${escapeHtml(item.eventType || '이벤트')} ${escapeHtml(item.count)}</span>`).join('') || '<span class="chip info">이벤트 없음</span>'}
+	        </div>
+	        <section class="live-dock-events">${liveDockEventItemsHtml(events.recent || [])}</section>
+	      `;
+	    }
+	    async function refreshLiveDockEventFeed() {
+	      if (activePage !== 'live') return;
+	      const container = document.querySelector('#liveDockEvents');
+	      const status = document.querySelector('[data-role="event-feed-status"]');
+	      if (!container || !status) return;
+	      const tile = selectedLiveTile === null ? null : liveTiles[selectedLiveTile];
+	      const view = tileView(tile) || viewById(selectedViewId);
+	      if (!view) {
+	        status.textContent = '대기';
+	        container.innerHTML = emptyState('소스 선택 필요', '이벤트 feed를 보려면 타일 또는 소스를 선택하세요.');
+	        return;
+	      }
+	      if (view.showEvents === false) {
+	        renderLiveDockEvents(view, { events: { provided: false, recent: [], countsByType: [] } });
+	        return;
+	      }
+	      const nonce = (liveDockEventsNonce || 0) + 1;
+	      liveDockEventsNonce = nonce;
+	      status.textContent = '갱신';
+	      try {
+	        const payload = await requestJson(`/client/api/views/${encodeURIComponent(view.viewId)}/events?limit=6`);
+	        if (nonce !== liveDockEventsNonce) return;
+	        renderLiveDockEvents(view, payload);
+	      } catch (error) {
+	        if (nonce !== liveDockEventsNonce) return;
+	        status.textContent = '오류';
+	        status.className = 'chip warn';
+	        container.innerHTML = emptyState('이벤트를 불러오지 못했습니다', error.message || '미제공');
+	      }
 	    }
 	    function renderLiveMonitor() {
 	      workspace?.classList.add('live-workspace');
@@ -1341,7 +1464,11 @@ void AppendClientShellScript(std::ostringstream& out) {
       if (!liveDashboardTimer) {
         liveDashboardTimer = setInterval(() => refreshSelectedTileDetail(), 3000);
       }
+      if (!liveDockEventsTimer) {
+        liveDockEventsTimer = setInterval(() => refreshLiveDockEventFeed(), 5000);
+      }
       refreshSelectedTileDetail();
+      refreshLiveDockEventFeed();
     }
     function selectLiveTile(index) {
       selectedLiveTile = index;
@@ -1352,6 +1479,7 @@ void AppendClientShellScript(std::ostringstream& out) {
       });
       updateAllTileDom();
       refreshSelectedTileDetail();
+      refreshLiveDockEventFeed();
     }
     function focusLiveTile(index) {
       if (liveTileCount <= 0) return;
