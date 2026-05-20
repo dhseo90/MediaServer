@@ -104,12 +104,12 @@ check("development backlog separates current baseline from deferred phase gates"
   const doc = readText("docs/development-backlog.md");
   for (const snippet of [
     `## 현재 기준: ${currentTag} Source Release Baseline`,
-    `${currentTag}은 v1.2.x의 source-only/live-only 경계를 유지하면서`,
-    `## ${currentTag} Minor Close-out`,
-    `${currentTag}은 v1.2.x의 source-only/live-only 경계를 유지하면서 운영 흐름과 현장`,
+    `${currentTag}은 v1.5.0까지 닫은 source-only/live-only 제품 범위를 유지하면서`,
+    `## ${currentTag} Stabilization Close-out`,
+    `${currentTag}은 기능 확장보다 현재 기능 마무리를 완료 기준으로 둡니다.`,
     "별도 Phase gate 또는 release/field/manual approval gate",
-    "추가 기능 개발로 처리할 v1.3.0 후속 이슈는 남기지 않습니다",
-    "기능 개발 closure 범위가 아니라 별도 release 운영 gate로 분리합니다",
+    "후속 기능 후보를 확정 roadmap으로 쓰지 않고 별도 후보 목록으로만 유지",
+    "기능 개발로 확정하지 않은 항목은 별도 기능 개발",
   ]) {
     assert(doc.includes(snippet), `docs/development-backlog.md missing snippet: ${snippet}`);
   }
@@ -126,7 +126,7 @@ check("docs index points to backlog as current release source of truth", () => {
     ["docs/en/README.md", docsEn],
   ]) {
     assert(text.includes("docs/development-backlog.md") || text.includes("../development-backlog.md"), `${label} missing development backlog link`);
-    assert(text.includes(`${currentTag} close-out`) || text.includes(`${currentTag} 종료 판정`) || text.includes(`${currentTag} patch close-out`), `${label} missing current release wording`);
+    assert(text.includes(`${currentTag} release close-out`) || text.includes(`${currentTag} 종료 판정`) || text.includes(`${currentTag} patch close-out`), `${label} missing current release wording`);
   }
   return { files: ["README.md", "README.en.md", "docs/en/README.md"] };
 });

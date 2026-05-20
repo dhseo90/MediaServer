@@ -88,7 +88,7 @@ check("close-out doc keeps later phase candidates out of P0 completion", () => {
     "V160-P1-04 Manual UI release checklist closure",
     "V160-P2-01 Public docs consistency polish",
     "V160-P2-02 Tracker benchmark harness planning only",
-    "v1.7.0 이후 별도 Phase 후보",
+    "별도 기능 개발 Phase 후보",
   ]) {
     assertIncludes(closeout, snippet, "later phase classification");
   }

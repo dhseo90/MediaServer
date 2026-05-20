@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // 파일 용도: v1.6.0 public docs consistency polish 경계를 정적으로 검증한다.
-// 동작 요약: current published tag와 v1.6.0 stabilization evidence 표현이 public docs에서 분리됐는지 확인한다.
+// 동작 요약: current published tag와 v1.6.0 release evidence 표현이 public docs에서 일치하는지 확인한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -23,8 +23,8 @@ Options:
   -h, --help  도움말 출력
 
 Checks:
-  - current published source-only release tag가 v1.5.0으로 유지되는지 확인
-  - README, English index, versioning/release/backlog 문서가 v1.6.0 stabilization evidence를 published release로 과장하지 않는지 확인
+  - current published source-only release tag가 v1.6.0인지 확인
+  - README, English index, versioning/release/backlog 문서가 v1.6.0 source-only release와 bundle 비범위를 함께 말하는지 확인
   - v1.6.0 P0/P1/P2 docs 링크와 비범위 표현을 확인
   - server.sh와 script inventory가 전용 verifier를 노출하는지 확인
 `);
@@ -66,9 +66,9 @@ check("dedicated doc defines public docs current tag and stabilization evidence 
   for (const snippet of [
     "# v1.6.0 Public Docs Consistency Polish",
     "V160-P2-01",
-    "현재 published source-only release tag는 계속 `v1.5.0`",
-    "v1.6.0은 published release가 아니라 stabilization roadmap/evidence 문서 묶음",
-    "tag, push, GitHub Release, Actions pass를 완료로 쓰지 않습니다",
+    "현재 published source-only release tag는 `v1.6.0`",
+    "v1.6.0은 source-only stabilization release이며 runtime/model/binary bundle",
+    "latest source-only release를 `v1.6.0`으로 표시합니다",
     "source-only/live-only 경계",
     "binary/runtime/model bundle 제외",
     "실장비/장시간/외부 credential gate 미실행",
@@ -89,8 +89,8 @@ check("roadmap defines V160-P2-01 scope and keeps tracker planning separate", ()
   for (const snippet of [
     "V160-P2-01 Public docs consistency polish",
     "v1.6.0 Public Docs Consistency Polish",
-    "현재 published source-only release tag는 계속 `v1.5.0`",
-    "v1.6.0은 published release가 아니라 stabilization roadmap/evidence",
+    "현재 published source-only release tag는 `v1.6.0`",
+    "v1.6.0은 source-only stabilization release",
     "verify-v160-public-docs-consistency-polish",
     "verify-release-metadata",
     "verify-docs-links",
@@ -105,7 +105,6 @@ check("roadmap defines V160-P2-01 scope and keeps tracker planning separate", ()
   }
   for (const forbidden of [
     "V160-P2-02 완료",
-    "v1.6.0 published release 완료",
     "GitHub Release 생성 완료",
     "VERSION/CMake release version 변경 완료",
   ]) {
@@ -113,13 +112,13 @@ check("roadmap defines V160-P2-01 scope and keeps tracker planning separate", ()
   }
 });
 
-check("public docs keep v1.5.0 as current published tag while linking v1.6 evidence", () => {
+check("public docs keep v1.6.0 as current published tag while linking v1.6 evidence", () => {
   for (const [label, text] of [
     ["README.md", readme],
     ["README.en.md", readmeEn],
     ["docs/en README", docsIndex],
   ]) {
-    assertIncludes(text, "v1.5.0", `${label} current tag`);
+    assertIncludes(text, "v1.6.0", `${label} current tag`);
     assertIncludes(text, "v1.6.0", `${label} stabilization docs`);
     assertIncludes(text, "v1.6.0-public-docs-consistency-polish.md", label);
     assertIncludes(text, "verify-v160-public-docs-consistency-polish", label);
@@ -127,19 +126,19 @@ check("public docs keep v1.5.0 as current published tag while linking v1.6 evide
       assertIncludes(text, item, `${label} v1.6 doc link`);
     }
   }
-  assertIncludes(docsIndex, "v1.6.0 is tracked as stabilization roadmap/evidence, not as the current published tag.", "docs/en current boundary");
+  assertIncludes(docsIndex, "v1.6.0 is published as the current source-only release.", "docs/en current boundary");
 });
 
-check("versioning and release policy separate v1.6 stabilization from published release", () => {
+check("versioning and release policy pin v1.6 source-only release", () => {
   for (const snippet of [
-    "현재 기준 버전: `v1.5.0`",
-    "현재 published source-only release tag 기준은 `v1.5.0`",
-    "v1.6.0 stabilization은 published release tag가 아니라 release evidence",
+    "현재 기준 버전: `v1.6.0`",
+    "현재 published source-only release tag 기준은 `v1.6.0`",
+    "source-only stabilization release",
   ]) {
     assertIncludes(versioning, snippet, "versioning policy");
   }
   for (const snippet of [
-    "현재 published source-only release tag는 `v1.5.0`",
+    "현재 published source-only release tag는 `v1.6.0`",
     "source-only release에는 sample/model/runtime binary를 추가 업로드하지 않습니다",
     "v1.6.0 Public Docs Consistency Polish",
     "verify-v160-public-docs-consistency-polish",

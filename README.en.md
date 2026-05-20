@@ -2,16 +2,17 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Source Release](https://img.shields.io/badge/source--only%20release-v1.5.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v1.5.0)
+[![Source Release](https://img.shields.io/badge/source--only%20release-v1.6.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v1.6.0)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay with optional YOLO/ONNX video analytics overlays and rule/scenario live events. The current main product boundary focuses on live source onboarding, live source health, and live VA event quality rather than long-term recording, VMS, or NVR scope.
 
 Korean documentation: [README.md](README.md)
-Latest source-only release: [v1.5.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.5.0)
-The v1.5.0 source-only minor close-out and tracker/Re-ID opt-in stabilization follow-up closure are tracked separately in
-[docs/development-backlog.md](docs/development-backlog.md) and
-[docs/v1.5.0-follow-up-closure.md](docs/v1.5.0-follow-up-closure.md).
-The v1.6.0 stabilization release evidence dashboard separates confirmed,
+Latest source-only release: [v1.6.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.6.0)
+The v1.6.0 source-only release close-out and stabilization evidence are tracked in
+[docs/development-backlog.md](docs/development-backlog.md),
+[docs/versioning-policy.md](docs/versioning-policy.md), and
+[docs/release-policy.md](docs/release-policy.md).
+The v1.6.0 release evidence dashboard separates confirmed,
 not-run, and unverified checks in
 [docs/v1.6.0-release-evidence-dashboard.md](docs/v1.6.0-release-evidence-dashboard.md);
 verify it with `./server.sh verify-v160-release-evidence-dashboard`.
@@ -42,8 +43,8 @@ The v1.6.0 manual UI release checklist closure separates actual manual clicks,
 screenshot artifacts, and not-run/unverified items in
 [docs/v1.6.0-manual-ui-release-checklist-closure.md](docs/v1.6.0-manual-ui-release-checklist-closure.md);
 verify it with `./server.sh verify-v160-manual-ui-release-checklist-closure`.
-The v1.6.0 public docs consistency polish keeps the published `v1.5.0` tag
-separate from v1.6.0 stabilization evidence in
+The v1.6.0 public docs consistency polish keeps the published `v1.6.0` tag
+aligned with v1.6.0 release evidence in
 [docs/v1.6.0-public-docs-consistency-polish.md](docs/v1.6.0-public-docs-consistency-polish.md);
 verify it with `./server.sh verify-v160-public-docs-consistency-polish`.
 The v1.6.0 tracker benchmark harness planning note keeps OC-SORT, BoT-SORT, and
@@ -140,7 +141,7 @@ See [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) for f
 | OC-SORT benchmark/sandbox boundary | [docs/oc-sort-benchmark-boundary.md](docs/oc-sort-benchmark-boundary.md) |
 | BoT-SORT/DeepSORT research boundary | [docs/bot-sort-deepsort-research-boundary.md](docs/bot-sort-deepsort-research-boundary.md) |
 | Integrator Event/WebRTC/SSE/WS sample bundle | [docs/integrator-contract-artifact.md](docs/integrator-contract-artifact.md) |
-| Current product boundary, v1.5.0 close-out, v1.6.0 stabilization roadmap, and separate phase candidates | [docs/development-backlog.md](docs/development-backlog.md) |
+| Current product boundary, v1.6.0 release close-out, and separate phase candidates | [docs/development-backlog.md](docs/development-backlog.md) |
 | Historical v1.2.1 follow-up closure | [docs/v1.2.1-follow-up-closure.md](docs/v1.2.1-follow-up-closure.md) |
 | v1.3.0 follow-up closure | [docs/v1.3.0-follow-up-closure.md](docs/v1.3.0-follow-up-closure.md) |
 | v1.4.0 follow-up closure | [docs/v1.4.0-follow-up-closure.md](docs/v1.4.0-follow-up-closure.md) |

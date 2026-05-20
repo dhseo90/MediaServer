@@ -32,16 +32,16 @@ source-of-truth로 쓰지 않습니다.
 
 `완료`는 운영 배포 ready, 장기 안정성 보장, 외부 연동 ready를 뜻하지 않습니다.
 
-## 현재 기준: v1.5.0 Source Release Baseline
+## 현재 기준: v1.6.0 Source Release Baseline
 
-v1.5.0은 v1.2.x의 source-only/live-only 경계를 유지하면서 운영 흐름과 현장
-검증 밀도를 닫은 v1.3.0, rule-level tracker/Re-ID opt-in을 닫은 v1.4.0 위에
-명시 opt-in guard, Tracker/Re-ID stability matrix, Re-ID provenance/fallback
-approval, Ops tracker warning next-action, audit export masking, field smoke summary
-evidence boundary, OC-SORT manifest-only sandbox와 follow-up closure를 닫은
-source-only minor release입니다. 아래 제품 baseline은 v1.2.x에서 닫은 live
-product 범위를 유지하고, v1.5.0은 recorder/VMS/NVR, Re-ID default-on, tracker
-default-on, OC-SORT runtime tracker, runtime/model bundle scope를 열지 않습니다.
+v1.6.0은 v1.5.0까지 닫은 source-only/live-only 제품 범위를 유지하면서 release
+evidence dashboard, stability gate cleanup, debug exposure guard, tracker/Re-ID
+opt-in close-out, ONVIF field evidence reconciliation, audit/export masking,
+runtime/model bundle RC policy, manual UI checklist, public docs consistency,
+tracker benchmark planning-only boundary를 닫은 source-only stabilization release입니다.
+아래 제품 baseline은 v1.2.x에서 닫은 live product 범위를 유지하고, v1.6.0은
+recorder/VMS/NVR, Re-ID default-on, tracker default-on, OC-SORT runtime tracker,
+runtime/model bundle scope를 열지 않습니다.
 
 완료 범위:
 
@@ -85,6 +85,15 @@ default-on, OC-SORT runtime tracker, runtime/model bundle scope를 열지 않습
 - [x] Field smoke summary evidence boundary와 summary/report/history index 보존 경계
 - [x] OC-SORT manifest-only experimental sandbox
 - [x] v1.5.0 follow-up closure와 release close-out 기준 정리
+- [x] v1.6.0 release evidence dashboard와 stability gate cleanup
+- [x] Client/Ops debug exposure regression guard
+- [x] Tracker/Re-ID opt-in stabilization close-out
+- [x] ONVIF field smoke evidence reconciliation
+- [x] Audit/export masking regression hardening
+- [x] Runtime/model bundle RC policy
+- [x] Manual UI release checklist closure
+- [x] Public docs consistency polish
+- [x] Tracker benchmark harness planning-only boundary
 
 비범위:
 
@@ -96,7 +105,8 @@ default-on, OC-SORT runtime tracker, runtime/model bundle scope를 열지 않습
 - [ ] ONVIF 실장비 endpoint 성공 보장, persistent credential store, Digest/WS-Security
 - [ ] YouTube 운영 기능 승격 또는 실제 URL relay 성공 보장
 - [ ] field sample scheduler, dataset ingest, tracker replacement benchmark 실행
-- [ ] ONVIF field smoke evidence reconciliation, release evidence dashboard cleanup
+- [ ] 실장비 ONVIF field smoke 성공 보장, runtime/model bundle 배포 승인
+- [ ] 별도 Phase의 실제 기능 개발, tracker replacement product review
 
 ## v1.2.1 Patch Close-out
 
@@ -1245,7 +1255,7 @@ cleanup은 v1.5.0 잔여가 아니라 별도 Phase gate입니다.
 
 v1.6.0은 새 제품 기능을 여는 minor release가 아니라, v1.5.0까지 닫은 현재 기능을
 다음 기능 개발 사이클 전에 안정화하고 release-grade 증적, verifier, 문서 경계를
-정리하는 stabilization release입니다. 기능 방향은 v1.7.0부터 다시 결정합니다.
+정리하는 stabilization release입니다. 기능 방향은 후속 기능 개발 브랜치에서 다시 결정합니다.
 
 기본 원칙:
 
@@ -1257,7 +1267,7 @@ v1.6.0은 새 제품 기능을 여는 minor release가 아니라, v1.5.0까지 �
   audit/export masking, field evidence boundary를 안정화합니다.
 - 실제 field evidence, model bundle, tracker benchmark는 제품 승격 근거가 아니라
   review gate와 report boundary로만 정리합니다.
-- v1.7.0 기능 후보는 이 문서에서 확정하지 않습니다. v1.6.0은 후보를 정리하더라도
+- 후속 기능 후보는 이 문서에서 확정하지 않습니다. v1.6.0은 후보를 정리하더라도
   implementation roadmap으로 승격하지 않습니다.
 
 공통 완료 조건:
@@ -1285,7 +1295,7 @@ v1.6.0은 새 제품 기능을 여는 minor release가 아니라, v1.5.0까지 �
 | V160-P1-03 | P1 | Runtime/model bundle RC policy | v1.6.0에는 bundle을 포함하지 않고, 향후 RC에서 model/runtime을 올릴 수 있는 조건과 차단 기준만 확정합니다. | provenance/fallback verifier, privacy verifier, bundle policy checks |
 | V160-P1-04 | P1 | Manual UI release checklist closure | `/setup`, `/login`, `/ops`, `/client` 주요 화면 수동 검수 템플릿과 evidence 경계를 현재 기능 기준으로 정리합니다. | manual UI checklist, screenshots when run, `verify-docs-ui-assets` |
 | V160-P2-01 | P2 | Public docs consistency polish | README, versioning, release policy, backlog, English docs 사이의 현재 기능/비범위 표현을 정리합니다. | `verify-release-metadata`, `verify-docs-links`, `git diff --check` |
-| V160-P2-02 | P2 | Tracker benchmark harness planning only | OC-SORT 등 실제 adapter 비교는 v1.7.0 이후 기능 후보로 넘기고, v1.6.0에서는 harness 요구사항과 비승격 경계만 정리합니다. | docs guard, no runtime adapter change, `git diff --check` |
+| V160-P2-02 | P2 | Tracker benchmark harness planning only | OC-SORT 등 실제 adapter 비교는 별도 기능 개발 Phase 후보로 넘기고, v1.6.0에서는 harness 요구사항과 비승격 경계만 정리합니다. | docs guard, no runtime adapter change, `git diff --check` |
 
 ### V160-P0-01 Release evidence dashboard cleanup 정리 기준
 
@@ -1671,18 +1681,18 @@ JSON/CSV/Diff JSON export에서 source/model/auth/raw material이 다시 노출�
 
 ### V160-P2-01 Public docs consistency polish 정리 기준
 
-`Public docs consistency polish`는 v1.6.0을 published release처럼 과장하지 않고,
+`Public docs consistency polish`는 v1.6.0 source-only release 기준이 public
 README, README.en, docs/en/README, versioning policy, release policy, development
-backlog가 현재 published tag와 v1.6.0 stabilization evidence를 분리해 말하도록
+backlog에서 같은 방식으로 보이도록
 [v1.6.0 Public Docs Consistency Polish](./v1.6.0-public-docs-consistency-polish.md)에
 고정하는 작업입니다.
 
 확인됨:
 
-- 현재 published source-only release tag는 계속 `v1.5.0`입니다.
-- v1.6.0은 published release가 아니라 stabilization roadmap/evidence 문서 묶음입니다.
-- public docs는 v1.6.0 P0/P1/P2 guard 문서를 링크하되 tag, push, GitHub Release,
-  Actions pass를 완료로 쓰지 않습니다.
+- 현재 published source-only release tag는 `v1.6.0`입니다.
+- v1.6.0은 source-only stabilization release이며 runtime/model/binary bundle release가 아닙니다.
+- public docs는 v1.6.0 P0/P1/P2 guard 문서를 링크하고 latest source-only release를
+  `v1.6.0`으로 표시합니다.
 - release/versioning 정책은 source-only/live-only 경계, binary/runtime/model bundle
   제외, 실장비/장시간/외부 credential gate 미실행 분리를 유지합니다.
 - VMS/NVR, long-term recording/playback/search, ONVIF Profile G recording/replay,
@@ -1717,7 +1727,7 @@ backlog가 현재 published tag와 v1.6.0 stabilization evidence를 분리해 �
 ### V160-P2-02 Tracker benchmark harness planning only 정리 기준
 
 `Tracker benchmark harness planning only`는 실제 OC-SORT adapter나 새 runtime
-tracker를 구현하는 작업이 아니라, v1.7.0 이후 별도 benchmark를 열 때 필요한
+tracker를 구현하는 작업이 아니라, 별도 기능 개발 Phase에서 benchmark를 열 때 필요한
 harness 요구사항과 비승격 경계를
 [v1.6.0 Tracker Benchmark Harness Planning](./v1.6.0-tracker-benchmark-harness-planning.md)에
 고정하는 작업입니다.
@@ -1784,11 +1794,11 @@ v1.6.0은 기능 확장보다 현재 기능 마무리를 완료 기준으로 둡
 - 미실행 장시간/실장비/외부 credential 검증의 release note 분리
 - client/viewer debug/source/raw/model/auth material 비노출 회귀 방지
 - Tracker/Re-ID opt-in을 default-off 안정화 상태로 닫기
-- v1.7.0 기능 후보를 확정 roadmap으로 쓰지 않고 별도 후보 목록으로만 유지
+- 후속 기능 후보를 확정 roadmap으로 쓰지 않고 별도 후보 목록으로만 유지
 
 ## 별도 Phase 후보
 
-v1.6.0 stabilization 이후에도 기능 개발로 확정하지 않은 항목은 v1.7.0 이후 별도
+v1.6.0 stabilization 이후에도 기능 개발로 확정하지 않은 항목은 별도 기능 개발
 Phase gate 후보로 남깁니다. 각 후보는 source-only/live-only 경계,
 schema/media-path review, privacy/redaction review, release/field/manual approval
 gate를 통과할 때만 명시적 opt-in 기능이나 배포 범위 검토로 연결합니다.
