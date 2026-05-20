@@ -2731,5 +2731,7 @@ PR template과 정적 verifier를 연결했습니다.
 - 기능별 상세는 `docs/*.md` 한 곳에 둡니다.
 - 완료된 장문 close-out 내역은 history 문서로만 보관합니다.
 - 장시간 테스트는 새 RC 또는 고위험 변경에서만 명시적으로 실행합니다.
+- `./server.sh verify-predev --soak-minutes 120`은 상시 실행하지 않고 release candidate 또는 고위험 변경 gate로만 실행합니다.
+- `./server.sh verify-va-runtime-console-longrun --duration-minutes 120`도 release candidate 또는 고위험 Runtime Console 변경 gate로만 실행합니다.
 - client/viewer 문서에는 source URL, ONVIF endpoint, raw diagnostic JSON 노출을
   제품 기능처럼 쓰지 않습니다.

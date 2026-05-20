@@ -61,6 +61,8 @@ check("dashboard separates confirmed, not-run, and unverified evidence", () => {
     "tag/push/GitHub Release",
     "실행하지 않은 장시간 soak",
     "외부 TURN/WHEP credential 운영 검증",
+    "장기 테스트 report는 보존 위치와 retention days를 함께 기록",
+    "`/tmp` 경로만 있으면 local-only 또는 `NOT PRESERVED`",
   ]) {
     assertIncludes(dashboard, snippet, "v1.6 evidence dashboard");
   }

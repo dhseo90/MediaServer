@@ -30,9 +30,37 @@ check("stream verification guide defines the RC-only release gate", () => {
     "./server.sh rc-release-checklist",
     "--history-dir",
     "index.md",
+    "보존 위치 정책",
+    "`/tmp` 경로는 local-only staging evidence",
+    "`artifacts/rc-gate/`",
+    "`media-server-rc-gate` GitHub Actions artifact",
+    "`rc-artifact-archive`",
+    "`external-artifact-manifest.json`",
+    "`SHA256SUMS`",
+    "`NOT PRESERVED`",
   ];
   for (const snippet of requiredSnippets) {
     assert(docs.includes(snippet), `docs/stream-verification.md is missing RC gate snippet: ${snippet}`);
+  }
+});
+
+check("release policy fixes longrun report retention locations", () => {
+  const releasePolicy = readText("docs/release-policy.md");
+  const dashboard = readText("docs/v1.6.0-release-evidence-dashboard.md");
+  for (const snippet of [
+    "`rc-release-checklist`",
+    "`media-server-rc-gate` GitHub",
+    "`rc-artifact-archive` 외부 archive",
+    "임시 `/tmp` 경로는 staging/local-only evidence",
+    "release-grade 보존 완료",
+  ]) {
+    assert(releasePolicy.includes(snippet), `docs/release-policy.md missing retention snippet: ${snippet}`);
+  }
+  for (const snippet of [
+    "장기 테스트 report는 보존 위치와 retention days를 함께 기록",
+    "`/tmp` 경로만 있으면 local-only 또는 `NOT PRESERVED`",
+  ]) {
+    assert(dashboard.includes(snippet), `docs/v1.6.0-release-evidence-dashboard.md missing retention snippet: ${snippet}`);
   }
 });
 

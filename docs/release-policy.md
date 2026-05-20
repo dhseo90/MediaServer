@@ -38,7 +38,10 @@ source offer, model provenance, checksum manifest를 release note에 연결합�
 - release note에는 commit, 검증 명령, known limitation을 짧게 적습니다.
 - source-only release에는 sample/model/runtime binary를 추가 업로드하지 않습니다.
 - `verify-release-closeout-helper`는 dry-run summary만 생성하며 tag, push, GitHub Release 생성을 수행하지 않습니다.
-- RC longrun 결과는 `rc-release-checklist` 또는 Actions artifact로 보관합니다.
+- RC longrun 결과는 `rc-release-checklist`와 `media-server-rc-gate` GitHub
+  Actions artifact, 또는 `rc-artifact-archive` 외부 archive로 보관합니다.
+  임시 `/tmp` 경로는 staging/local-only evidence이며, release-grade 보존 완료로
+  쓰지 않습니다.
 - UI visual release baseline artifact는 승인된 release/RC 화면 상태를 다음 candidate와 비교하는 approved comparator입니다. public release asset으로 기본 업로드하지 않으며, release note에는 [UI Visual Release Baseline Approval Log](./ui-visual-release-baseline-approval-template.md)를 기준으로 accepted baseline run, baseline diff, 수동 비노출 검토 결과 링크만 남깁니다. template presence와 CI 연결은 `./server.sh verify-ui-release-baseline-approval-log`로 확인합니다.
 - public visibility 전환은 이 문서와 [public-repo-final-review.md](./public-repo-final-review.md) 확인 후 수동으로만 진행합니다.
 

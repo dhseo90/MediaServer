@@ -694,6 +694,20 @@ SharedStream/VA metadata/dashboard/SSE/WS fanout 변경 후,
   --history-dir /tmp/media_server_rc_gate_history
 ```
 
+보존 위치 정책:
+
+- `/tmp` 경로는 local-only staging evidence입니다. release report에는 실행 경로로
+  남길 수 있지만, 보존 완료로 쓰지 않습니다.
+- release-grade 보존 위치는 `artifacts/rc-gate/`를 업로드한
+  `media-server-rc-gate` GitHub Actions artifact이거나, `rc-artifact-archive`로
+  생성한 외부 S3/NAS archive입니다.
+- 보존 완료 evidence에는 summary JSON, Markdown report, checklist Markdown/HTML,
+  history index, artifact retention days를 함께 남깁니다.
+- 외부 archive를 쓰면 `external-artifact-manifest.json`, `SHA256SUMS`, root
+  `index.json`, `index.md`를 보존 evidence로 연결합니다.
+- 장기 테스트가 통과했더라도 durable artifact가 없으면 release checklist에는
+  `local-only` 또는 `NOT PRESERVED`로 기록합니다.
+
 CI에서는 `.github/workflows/rc-release-gate.yml`을 수동 실행합니다.
 기본 입력값은 긴 검증을 실행하지 않고 `CHECK` checklist만 생성합니다.
 RC 판정 시 `run_predev_120=true`, `run_va_runtime_120=true`로 실행하면
