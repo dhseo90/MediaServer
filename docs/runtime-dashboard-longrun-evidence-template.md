@@ -1,7 +1,7 @@
 # Runtime Dashboard Longrun Evidence Template
 
 schema: `media-server.runtime-dashboard-longrun-evidence-template.v1`
-updated: 2026-05-16
+updated: 2026-05-20
 
 이 문서는 Runtime Dashboard와 VA metadata side-channel 장시간 검증 결과를 RC 또는 고위험 media/VA fanout 변경에서
 같은 형식으로 남기기 위한 evidence template입니다. 이 문서와 `verify-runtime-dashboard-longrun-template` 검증은
@@ -20,6 +20,32 @@ updated: 2026-05-16
   --include-rtsp \
   --idle-after-cleanup-minutes 30
 ```
+
+### Runtime Console 120분 longrun 실행 기준
+
+120분 Runtime Console longrun은 별도 실행 gate입니다. 아래 조건 중 하나가 있을 때만
+실행합니다.
+
+- release candidate에서 `run_va_runtime_120=true`로 RC gate를 연 경우
+- 사용자가 `verify-va-runtime-console-longrun --duration-minutes 120` 실행을
+  명시한 경우
+- Runtime Console, SharedStream, VA metadata fanout, SSE/WS side-channel,
+  RTSP/WebRTC media path, cleanup lifecycle, idle RSS 판정 로직을 바꾼 고위험 변경
+- 30분 predev 또는 30분 Runtime Console longrun에서 active RSS high-water,
+  cleanup count, metadata side-channel, dashboard polling에 release 판단 보류가
+  남은 경우
+
+다음 변경만 있을 때는 실행하지 않고 `NOT RUN`으로 남깁니다.
+
+- 문서, checklist, verifier wording만 바꾼 경우
+- UI/Auth/Ops 문구 또는 layout만 바꾸고 runtime fanout/media path를 건드리지 않은 경우
+- sample-only fixture 또는 template만 갱신한 경우
+- 사용자가 장시간 테스트 실행을 명시하지 않은 안정화 문서 정리
+
+30분 longrun, cycle 검증, sample fixture는 120분 Runtime Console PASS evidence를
+대체하지 않습니다. 실행하지 않은 경우에는
+`Runtime Console 120분 longrun: NOT RUN (사용자 명시 요청 없음 또는 해당 변경 범위 아님)`으로
+보고합니다.
 
 cycle형 증거가 필요할 때:
 
@@ -49,6 +75,8 @@ Run:
 - build:
 - OS / machine:
 - command:
+- execution trigger:
+- not-run reason:
 - duration minutes:
 - file/source:
 - clients:
@@ -60,6 +88,8 @@ Run:
 Artifacts:
 - summary JSON:
 - markdown report:
+- retention location:
+- artifact retention days:
 - server log:
 - WebRTC client log:
 - SSE side-channel log:
@@ -119,6 +149,7 @@ Judgement:
 | WARNING | active 중 RSS가 증가했지만 cleanup 후 active count가 0이고 idle RSS가 유지/하락합니다. allocator high-water 또는 buffer pool retention 후보로 남깁니다. |
 | HOLD | cleanup count가 0으로 정리되지 않거나 idle 중 active count가 다시 증가합니다. 원인 확인 전 release gate 통과로 보지 않습니다. |
 | FAIL | longrun 명령 실패, port cleanup failure, dashboard polling 중단, metadata side-channel 지속 실패, RTSP/WebRTC media path 회귀가 확인됩니다. |
+| NOT RUN | 실행 기준에 해당하지 않거나 사용자가 명시하지 않아 longrun을 실행하지 않은 상태입니다. sample fixture, 30분 longrun, cycle 검증을 120분 PASS evidence로 대체하지 않습니다. |
 
 ## 확인 항목
 
@@ -128,6 +159,7 @@ Judgement:
 - SSE/WS metadata schema, WebRTC DataChannel schema, Event POST payload schema는 변경하지 않습니다.
 - viewer/client 화면에는 source URL, Developer URL, raw JSON, debug counter를 longrun evidence로 노출하지 않습니다.
 - longrun summary JSON과 Markdown report 경로를 evidence record에 실제 파일 경로로 남깁니다.
+- release 판단에 쓰는 120분 longrun report는 RC artifact 또는 외부 archive 보존 위치와 retention days를 함께 남깁니다.
 - 실행하지 않은 longrun은 `미실행`으로 보고하고 PASS evidence로 쓰지 않습니다.
 
 검증:

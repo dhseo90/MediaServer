@@ -115,3 +115,6 @@ privacy boundary:
   보관소나 release asset에 올리지 않습니다.
 - runtime/model bundle 포함 배포는 source-only release와 분리한 별도 policy
   review가 열릴 때만 다룹니다.
+- v1.6.0에서는 [Tracker/Re-ID Opt-in Stabilization Close-out](v1.6.0-tracker-reid-opt-in-closeout.md)과
+  `./server.sh verify-v160-tracker-reid-opt-in-closeout`로 default-off 안정화 상태를
+  확인하며, Re-ID default-on이나 model/runtime bundle 승격으로 해석하지 않습니다.

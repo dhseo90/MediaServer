@@ -81,6 +81,78 @@ v1.4.0 tracker/Re-ID opt-in 이후 남은 후속 항목 분류와 종료 판정�
 [v1.4.0 Follow-up Closure](./v1.4.0-follow-up-closure.md)를 기준으로 확인합니다.
 v1.5.0 Tracker/Re-ID opt-in 안정화 이후 남은 후속 항목 분류와 종료 판정은
 [v1.5.0 Follow-up Closure](./v1.5.0-follow-up-closure.md)를 기준으로 확인합니다.
+v1.6.0 stabilization release evidence는
+[v1.6.0 Release Evidence Dashboard](./v1.6.0-release-evidence-dashboard.md)를
+기준으로 확인하며, 실행한 검증과 미실행 장시간/실장비/외부 credential gate를
+분리합니다.
+`verify-predev` report에 `건너뜀`이 있으면 skip count와 step reason을 같이
+검토합니다. 사용자가 요청하지 않은 optional external TURN 같은 선택 gate만
+건너뛴 경우에는 predev 결과와 외부 TURN `NOT RUN`을 분리해 기록합니다.
+요청한 hard gate가 건너뛰어진 경우에는 release PASS가 아니라 HOLD 또는 NOT RUN으로
+남깁니다.
+
+```bash
+./server.sh verify-v160-release-evidence-dashboard
+./server.sh verify-v160-stability-verification-gate
+./server.sh verify-v160-debug-exposure-regression-guard
+./server.sh verify-v160-tracker-reid-opt-in-closeout
+./server.sh verify-v160-onvif-field-smoke-evidence-reconciliation
+./server.sh verify-v160-audit-export-masking-regression-hardening
+./server.sh verify-v160-runtime-model-bundle-rc-policy
+./server.sh verify-v160-manual-ui-release-checklist-closure
+./server.sh verify-v160-public-docs-consistency-polish
+./server.sh verify-v160-tracker-benchmark-harness-planning
+```
+
+Stability gate 분류는
+[v1.6.0 Stability Verification Gates](./v1.6.0-stability-verification-gates.md)에
+고정합니다. static/docs gate, attached UI/Auth gate, Runtime/VA metadata gate,
+Tracker/Re-ID carry-over gate, flaky/cleanup isolation gate, longrun/external gate를
+분리하고, 실행하지 않은 gate를 release pass처럼 쓰지 않습니다.
+Client/Ops debug exposure guard는
+[v1.6.0 Client/Ops Debug Exposure Regression Guard](./v1.6.0-debug-exposure-regression-guard.md)에
+고정합니다. `verify-ops-client-ui`의 client forbidden text/key matrix가 source URL,
+raw JSON, debug counter, rule/profile editor, model/source/auth material을 검사하는지
+`verify-v160-debug-exposure-regression-guard`로 확인합니다.
+Tracker/Re-ID opt-in close-out은
+[v1.6.0 Tracker/Re-ID Opt-in Stabilization Close-out](./v1.6.0-tracker-reid-opt-in-closeout.md)에
+고정합니다. v1.5.0 follow-up closure, stability matrix, Re-ID provenance/fallback
+approval verifier를 carry-over gate로 연결하되, default-on이나 runtime/model bundle
+승격은 P0 완료로 쓰지 않습니다.
+ONVIF field smoke evidence reconciliation은
+[v1.6.0 ONVIF Field Smoke Evidence Reconciliation](./v1.6.0-onvif-field-smoke-evidence-reconciliation.md)에
+고정합니다. 실장비 field smoke를 실행하지 않았으면 `NOT RUN`과
+`realDeviceEndpointSuccess=unverified`로 유지하고, no-device suite 결과를 field
+smoke pass로 쓰지 않는지 `verify-v160-onvif-field-smoke-evidence-reconciliation`로
+확인합니다.
+Audit/export masking regression hardening은
+[v1.6.0 Audit Export Masking Regression Hardening](./v1.6.0-audit-export-masking-regression-hardening.md)에
+고정합니다. `/ops/api/audit` 조회와 JSON/CSV/Diff JSON export가 source/model/auth/raw
+material을 다시 노출하지 않는지 `verify-v160-audit-export-masking-regression-hardening`로
+확인합니다.
+Runtime/model bundle RC policy는
+[v1.6.0 Runtime/Model Bundle RC Policy](./v1.6.0-runtime-model-bundle-rc-policy.md)에
+고정합니다. v1.6.0 기본 release에 ONNX Runtime package나 YOLO/Re-ID/model binary를
+포함하지 않고, 향후 별도 RC의 bundle policy, source offer, model provenance,
+privacy/redaction review 조건만 `verify-v160-runtime-model-bundle-rc-policy`로
+확인합니다.
+Manual UI release checklist closure는
+[v1.6.0 Manual UI Release Checklist Closure](./v1.6.0-manual-ui-release-checklist-closure.md)에
+고정합니다. 자동 smoke나 screenshot 생성만으로 수동 클릭 검수를 완료했다고 쓰지
+않고, 실제 실행 artifact/link와 미실행/미확인 항목을
+`verify-v160-manual-ui-release-checklist-closure`로 분리합니다.
+Public docs consistency polish는
+[v1.6.0 Public Docs Consistency Polish](./v1.6.0-public-docs-consistency-polish.md)에
+고정합니다. 현재 published tag `v1.5.0`과 v1.6.0 stabilization roadmap/evidence를
+분리하고, public docs가 tag/push/GitHub Release나 후속 Phase 후보를 완료로
+쓰지 않는지 `verify-v160-public-docs-consistency-polish`로 확인합니다.
+V160-P2-01 Public docs consistency polish는 public docs current tag와
+stabilization evidence 표현을 정리하는 항목입니다.
+Tracker benchmark harness planning only는
+[v1.6.0 Tracker Benchmark Harness Planning](./v1.6.0-tracker-benchmark-harness-planning.md)에
+고정합니다. OC-SORT/BoT-SORT/DeepSORT를 runtime tracker로 승격하지 않고,
+metadata-only sandbox와 별도 Phase benchmark 요구사항만
+`verify-v160-tracker-benchmark-harness-planning`으로 확인합니다.
 
 위 전용 기준은 느린 기본 추가 RTSP/WebRTC source 영상, codec matrix, multichannel media soak를 사용하지 않습니다.
 기본 smoke와 longrun gate가 섞이지 않았는지는 다음 명령으로 정적으로 확인합니다.
@@ -124,6 +196,9 @@ FFmpeg/ffprobe CLI가 없는 공개/CI 환경에서는 codec matrix와 RTSP deco
   강제로 주입하고 각각 restore합니다. Browser Use clipboard 자체 오류는
   [browser-use-clipboard-diagnostics.md](./browser-use-clipboard-diagnostics.md) 기준으로
   제품 fallback 회귀와 분리합니다.
+- Browser/Computer Use fallback: 수동 UI evidence는 Browser Use 직접 조작,
+  Chrome 직접 조작, Computer Use visible UI 조작 순서로 시도하고, raw JSON/API-only
+  확인을 수동 클릭 evidence로 쓰지 않습니다.
 - fixture cleanup: `verify-fixture-cleanup-contracts`는 access request, EventRecord,
   audit/evidence fixture가 실행 후 복원/삭제되는지 정적으로 확인합니다.
 - browser route smoke: click E2E는 path wait, scroll idle, browser error collector,
@@ -621,6 +696,20 @@ SharedStream/VA metadata/dashboard/SSE/WS fanout 변경 후,
   --artifact-name media-server-rc-gate \
   --history-dir /tmp/media_server_rc_gate_history
 ```
+
+보존 위치 정책:
+
+- `/tmp` 경로는 local-only staging evidence입니다. release report에는 실행 경로로
+  남길 수 있지만, 보존 완료로 쓰지 않습니다.
+- release-grade 보존 위치는 `artifacts/rc-gate/`를 업로드한
+  `media-server-rc-gate` GitHub Actions artifact이거나, `rc-artifact-archive`로
+  생성한 외부 S3/NAS archive입니다.
+- 보존 완료 evidence에는 summary JSON, Markdown report, checklist Markdown/HTML,
+  history index, artifact retention days를 함께 남깁니다.
+- 외부 archive를 쓰면 `external-artifact-manifest.json`, `SHA256SUMS`, root
+  `index.json`, `index.md`를 보존 evidence로 연결합니다.
+- 장기 테스트가 통과했더라도 durable artifact가 없으면 release checklist에는
+  `local-only` 또는 `NOT PRESERVED`로 기록합니다.
 
 CI에서는 `.github/workflows/rc-release-gate.yml`을 수동 실행합니다.
 기본 입력값은 긴 검증을 실행하지 않고 `CHECK` checklist만 생성합니다.
@@ -1546,6 +1635,9 @@ Runtime Console 검증 정책:
 | 기본 test 포함 여부 | `./server.sh test`에는 포함하지 않음 |
 | 실행 성격 | 30분 이상 실행하는 선택 검증 |
 | 120분 실행 | release candidate 또는 고위험 RTSP/GStreamer/WebRTC/VA fanout 변경 gate |
+| 120분 미실행 기록 | 사용자 명시 요청 없음 또는 변경 범위가 runtime fanout/media path가 아니면 `NOT RUN` |
+| 대체 불가 | 30분 longrun, cycle 검증, sample fixture를 120분 PASS evidence로 쓰지 않음 |
+| report 보존 | RC artifact 또는 외부 archive 보존 위치와 retention days를 기록 |
 | trace env | 검증용 subprocess env에서 `MEDIA_SERVER_WEBRTC_TRACE=1` 사용 |
 | 집계 | DataChannel sent/drop/failure count를 로그에서 집계 |
 | 영구 설정 | `scripts/.media_server.env` 같은 파일은 수정하지 않음 |

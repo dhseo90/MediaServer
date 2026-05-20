@@ -4,17 +4,19 @@
 
 ## 현재 기준
 
-- 현재 기준 버전: `v1.5.0`
+- 현재 기준 버전: `v1.6.0`
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
-- `v1.5.0`은 v1.2.x의 source-only/live-only release 경계를 유지하면서 v1.4.0
-  rule-level tracker/Re-ID opt-in 위에 명시 opt-in guard, Tracker/Re-ID stability
-  matrix, Re-ID provenance/fallback approval, Ops warning next action, audit export
-  masking, field smoke summary evidence boundary, OC-SORT manifest-only sandbox와
-  후속 closure를 닫은 source-only minor release입니다.
-- 현재 제품 경계와 v1.5.0 종료 판정은 [development-backlog.md](./development-backlog.md)와
-  [v1.5.0-follow-up-closure.md](./v1.5.0-follow-up-closure.md)를 기준으로 합니다.
+- `v1.6.0`은 v1.5.0까지 닫은 source-only/live-only 제품 경계를 유지하면서 release
+  evidence dashboard, stability gate, debug exposure guard, tracker/Re-ID opt-in
+  close-out, ONVIF field evidence reconciliation, audit/export masking, runtime/model
+  bundle RC policy, manual UI checklist, public docs consistency, tracker benchmark
+  planning-only guard를 닫은 source-only stabilization release입니다.
+- 현재 제품 경계와 v1.6.0 종료 판정은 [development-backlog.md](./development-backlog.md),
+  [v1.6.0-release-evidence-dashboard.md](./v1.6.0-release-evidence-dashboard.md),
+  [v1.6.0-stability-verification-gates.md](./v1.6.0-stability-verification-gates.md)를
+  기준으로 합니다.
 
-## `v1.5.0`에 포함되는 범위
+## `v1.6.0`에 포함되는 범위
 
 - Apache-2.0 소스 코드
 - 문서, 설정 예시, 검증 스크립트
@@ -46,8 +48,17 @@
 - Field smoke summary evidence boundary
 - OC-SORT manifest-only experimental sandbox
 - v1.5.0 follow-up closure
+- v1.6.0 release evidence dashboard와 stability gate cleanup
+- Client/Ops debug exposure regression guard
+- Tracker/Re-ID opt-in stabilization close-out
+- ONVIF field smoke evidence reconciliation
+- Audit/export masking regression hardening
+- Runtime/model bundle RC policy
+- Manual UI release checklist closure
+- Public docs consistency polish
+- Tracker benchmark harness planning-only boundary
 
-## `v1.5.0`에 포함하지 않는 범위
+## `v1.6.0`에 포함하지 않는 범위
 
 - FFmpeg/GStreamer/ONNX Runtime/YOLO model binary bundle
 - container image, offline package, app bundle
@@ -60,8 +71,9 @@
 - YouTube 운영 기능 승격 또는 실제 URL relay 성공 보장
 - field sample scheduler, dataset ingest, tracker replacement benchmark 실행
 - OC-SORT actual algorithm adapter, dataset benchmark report, tracker replacement product review
-- field sample history review workflow, ONVIF field smoke evidence reconciliation,
-  release evidence dashboard cleanup
+- field sample history review workflow
+- 별도 Phase의 실제 기능 개발, tracker replacement product review, runtime/model
+  bundle 배포 승인
 
 ## 다음 minor에도 기본 제외되는 범위
 
@@ -78,7 +90,7 @@
 
 ## Tag와 release 기준
 
-- 현재 published source-only release tag 기준은 `v1.5.0`입니다.
+- 현재 published source-only release tag 기준은 `v1.6.0`입니다.
 - tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만 붙입니다.
 - source-only release에는 sample/model/runtime binary를 추가 업로드하지 않습니다.
 - binary/container/offline bundle은 별도 RC gate와 bundle policy 검토를 통과한 뒤 별도 release로 다룹니다.

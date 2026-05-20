@@ -2,15 +2,55 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Source Release](https://img.shields.io/badge/source--only%20release-v1.5.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v1.5.0)
+[![Source Release](https://img.shields.io/badge/source--only%20release-v1.6.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v1.6.0)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay with optional YOLO/ONNX video analytics overlays and rule/scenario live events. The current main product boundary focuses on live source onboarding, live source health, and live VA event quality rather than long-term recording, VMS, or NVR scope.
 
 Korean documentation: [README.md](README.md)
-Latest source-only release: [v1.5.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.5.0)
-The v1.5.0 source-only minor close-out and tracker/Re-ID opt-in stabilization follow-up closure are tracked separately in
-[docs/development-backlog.md](docs/development-backlog.md) and
-[docs/v1.5.0-follow-up-closure.md](docs/v1.5.0-follow-up-closure.md).
+Latest source-only release: [v1.6.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.6.0)
+The v1.6.0 source-only release close-out and stabilization evidence are tracked in
+[docs/development-backlog.md](docs/development-backlog.md),
+[docs/versioning-policy.md](docs/versioning-policy.md), and
+[docs/release-policy.md](docs/release-policy.md).
+The v1.6.0 release evidence dashboard separates confirmed,
+not-run, and unverified checks in
+[docs/v1.6.0-release-evidence-dashboard.md](docs/v1.6.0-release-evidence-dashboard.md);
+verify it with `./server.sh verify-v160-release-evidence-dashboard`.
+The v1.6.0 stability gate map separates smoke, flaky, attached, and longrun
+checks in
+[docs/v1.6.0-stability-verification-gates.md](docs/v1.6.0-stability-verification-gates.md);
+verify it with `./server.sh verify-v160-stability-verification-gate`.
+The v1.6.0 client debug exposure guard keeps source, raw debug, model, and auth
+material out of viewer/client surfaces in
+[docs/v1.6.0-debug-exposure-regression-guard.md](docs/v1.6.0-debug-exposure-regression-guard.md);
+verify it with `./server.sh verify-v160-debug-exposure-regression-guard`.
+The v1.6.0 tracker/Re-ID opt-in close-out keeps rule-level opt-in default-off in
+[docs/v1.6.0-tracker-reid-opt-in-closeout.md](docs/v1.6.0-tracker-reid-opt-in-closeout.md);
+verify it with `./server.sh verify-v160-tracker-reid-opt-in-closeout`.
+The v1.6.0 ONVIF field smoke evidence reconciliation separates no-device suite
+results, not-run real-device smoke, and redacted artifact review in
+[docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md](docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md);
+verify it with `./server.sh verify-v160-onvif-field-smoke-evidence-reconciliation`.
+The v1.6.0 audit/export masking regression guard keeps source, model, auth, and
+raw material out of audit query and JSON/CSV/Diff JSON exports in
+[docs/v1.6.0-audit-export-masking-regression-hardening.md](docs/v1.6.0-audit-export-masking-regression-hardening.md);
+verify it with `./server.sh verify-v160-audit-export-masking-regression-hardening`.
+The v1.6.0 runtime/model bundle RC policy keeps runtime/model bundles out of the
+default release and records future RC approval criteria in
+[docs/v1.6.0-runtime-model-bundle-rc-policy.md](docs/v1.6.0-runtime-model-bundle-rc-policy.md);
+verify it with `./server.sh verify-v160-runtime-model-bundle-rc-policy`.
+The v1.6.0 manual UI release checklist closure separates actual manual clicks,
+screenshot artifacts, and not-run/unverified items in
+[docs/v1.6.0-manual-ui-release-checklist-closure.md](docs/v1.6.0-manual-ui-release-checklist-closure.md);
+verify it with `./server.sh verify-v160-manual-ui-release-checklist-closure`.
+The v1.6.0 public docs consistency polish keeps the published `v1.6.0` tag
+aligned with v1.6.0 release evidence in
+[docs/v1.6.0-public-docs-consistency-polish.md](docs/v1.6.0-public-docs-consistency-polish.md);
+verify it with `./server.sh verify-v160-public-docs-consistency-polish`.
+The v1.6.0 tracker benchmark harness planning note keeps OC-SORT, BoT-SORT, and
+DeepSORT out of runtime tracker policy while documenting future benchmark
+requirements in [docs/v1.6.0-tracker-benchmark-harness-planning.md](docs/v1.6.0-tracker-benchmark-harness-planning.md);
+verify it with `./server.sh verify-v160-tracker-benchmark-harness-planning`.
 
 ## At a Glance
 
@@ -101,11 +141,21 @@ See [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) for f
 | OC-SORT benchmark/sandbox boundary | [docs/oc-sort-benchmark-boundary.md](docs/oc-sort-benchmark-boundary.md) |
 | BoT-SORT/DeepSORT research boundary | [docs/bot-sort-deepsort-research-boundary.md](docs/bot-sort-deepsort-research-boundary.md) |
 | Integrator Event/WebRTC/SSE/WS sample bundle | [docs/integrator-contract-artifact.md](docs/integrator-contract-artifact.md) |
-| Current product boundary, v1.5.0 close-out, and separate phase candidates | [docs/development-backlog.md](docs/development-backlog.md) |
+| Current product boundary, v1.6.0 release close-out, and separate phase candidates | [docs/development-backlog.md](docs/development-backlog.md) |
 | Historical v1.2.1 follow-up closure | [docs/v1.2.1-follow-up-closure.md](docs/v1.2.1-follow-up-closure.md) |
 | v1.3.0 follow-up closure | [docs/v1.3.0-follow-up-closure.md](docs/v1.3.0-follow-up-closure.md) |
 | v1.4.0 follow-up closure | [docs/v1.4.0-follow-up-closure.md](docs/v1.4.0-follow-up-closure.md) |
 | v1.5.0 follow-up closure | [docs/v1.5.0-follow-up-closure.md](docs/v1.5.0-follow-up-closure.md) |
+| v1.6.0 release evidence dashboard | [docs/v1.6.0-release-evidence-dashboard.md](docs/v1.6.0-release-evidence-dashboard.md) |
+| v1.6.0 stability verification gates | [docs/v1.6.0-stability-verification-gates.md](docs/v1.6.0-stability-verification-gates.md) |
+| v1.6.0 client debug exposure guard | [docs/v1.6.0-debug-exposure-regression-guard.md](docs/v1.6.0-debug-exposure-regression-guard.md) |
+| v1.6.0 tracker/Re-ID opt-in close-out | [docs/v1.6.0-tracker-reid-opt-in-closeout.md](docs/v1.6.0-tracker-reid-opt-in-closeout.md) |
+| v1.6.0 ONVIF field smoke evidence reconciliation | [docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md](docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md) |
+| v1.6.0 audit/export masking regression hardening | [docs/v1.6.0-audit-export-masking-regression-hardening.md](docs/v1.6.0-audit-export-masking-regression-hardening.md) |
+| v1.6.0 runtime/model bundle RC policy | [docs/v1.6.0-runtime-model-bundle-rc-policy.md](docs/v1.6.0-runtime-model-bundle-rc-policy.md) |
+| v1.6.0 manual UI release checklist closure | [docs/v1.6.0-manual-ui-release-checklist-closure.md](docs/v1.6.0-manual-ui-release-checklist-closure.md) |
+| v1.6.0 public docs consistency polish | [docs/v1.6.0-public-docs-consistency-polish.md](docs/v1.6.0-public-docs-consistency-polish.md) |
+| v1.6.0 tracker benchmark harness planning | [docs/v1.6.0-tracker-benchmark-harness-planning.md](docs/v1.6.0-tracker-benchmark-harness-planning.md) |
 | Verification commands and release checks | [docs/stream-verification.md](docs/stream-verification.md) |
 | Bundle/container/runtime distribution policy | [docs/distribution-policy.md](docs/distribution-policy.md) |
 | Release scope and tag strategy | [docs/release-policy.md](docs/release-policy.md) |

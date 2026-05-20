@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Source Release](https://img.shields.io/badge/source--only%20release-v1.5.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v1.5.0)
+[![Source Release](https://img.shields.io/badge/source--only%20release-v1.6.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v1.6.0)
 
 RTSP/WebRTC live stream을 중계하고, 선택적으로 YOLO/ONNX 기반 영상 분석
 overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다.
@@ -11,10 +11,49 @@ live source health, live VA event 품질입니다.
 
 English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 
-최신 source-only release: [v1.5.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.5.0)
-v1.5.0 source-only minor close-out과 tracker/Re-ID opt-in 안정화 후속 종료 판정은
-[docs/development-backlog.md](docs/development-backlog.md)와
-[docs/v1.5.0-follow-up-closure.md](docs/v1.5.0-follow-up-closure.md)에 분리해 기록합니다.
+최신 source-only release: [v1.6.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.6.0)
+v1.6.0 source-only release close-out과 안정화 증적은
+[docs/development-backlog.md](docs/development-backlog.md),
+[docs/versioning-policy.md](docs/versioning-policy.md),
+[docs/release-policy.md](docs/release-policy.md)에 기록합니다.
+v1.6.0 release evidence는
+[docs/v1.6.0-release-evidence-dashboard.md](docs/v1.6.0-release-evidence-dashboard.md)와
+`./server.sh verify-v160-release-evidence-dashboard`로 확인됨/미실행/미확인을
+분리합니다.
+stability gate 분류는
+[docs/v1.6.0-stability-verification-gates.md](docs/v1.6.0-stability-verification-gates.md)와
+`./server.sh verify-v160-stability-verification-gate`로 smoke/flaky/longrun 경계를
+확인합니다.
+client/viewer debug/source/model/auth material 비노출 guard는
+[docs/v1.6.0-debug-exposure-regression-guard.md](docs/v1.6.0-debug-exposure-regression-guard.md)와
+`./server.sh verify-v160-debug-exposure-regression-guard`로 확인합니다.
+tracker/Re-ID opt-in default-off close-out은
+[docs/v1.6.0-tracker-reid-opt-in-closeout.md](docs/v1.6.0-tracker-reid-opt-in-closeout.md)와
+`./server.sh verify-v160-tracker-reid-opt-in-closeout`로 확인합니다.
+ONVIF field smoke evidence reconciliation은
+[docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md](docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md)와
+`./server.sh verify-v160-onvif-field-smoke-evidence-reconciliation`로 no-device suite,
+실장비 미실행, redacted artifact review를 분리합니다.
+Audit/export masking regression guard는
+[docs/v1.6.0-audit-export-masking-regression-hardening.md](docs/v1.6.0-audit-export-masking-regression-hardening.md)와
+`./server.sh verify-v160-audit-export-masking-regression-hardening`로 audit 조회와
+JSON/CSV/Diff JSON export의 source/model/auth/raw material 비노출을 확인합니다.
+Runtime/model bundle RC policy는
+[docs/v1.6.0-runtime-model-bundle-rc-policy.md](docs/v1.6.0-runtime-model-bundle-rc-policy.md)와
+`./server.sh verify-v160-runtime-model-bundle-rc-policy`로 기본 release 미포함 경계와
+향후 RC 승인 조건을 확인합니다.
+Manual UI release checklist closure는
+[docs/v1.6.0-manual-ui-release-checklist-closure.md](docs/v1.6.0-manual-ui-release-checklist-closure.md)와
+`./server.sh verify-v160-manual-ui-release-checklist-closure`로 수동 클릭 검수와
+screenshot artifact, 미실행/미확인 경계를 분리합니다.
+Public docs consistency polish는
+[docs/v1.6.0-public-docs-consistency-polish.md](docs/v1.6.0-public-docs-consistency-polish.md)와
+`./server.sh verify-v160-public-docs-consistency-polish`로 현재 published tag와
+v1.6.0 release evidence 표현을 맞춥니다.
+Tracker benchmark harness planning only는
+[docs/v1.6.0-tracker-benchmark-harness-planning.md](docs/v1.6.0-tracker-benchmark-harness-planning.md)와
+`./server.sh verify-v160-tracker-benchmark-harness-planning`으로 새 runtime tracker
+승격 없이 benchmark 요구사항만 분리합니다.
 
 ## 한눈에 보기
 
@@ -130,11 +169,21 @@ fixture별 공개 판단은 [docs/sample-fixture-provenance.md](docs/sample-fixt
 | 운영 백업/복구 대상과 복구 후 검증 | [docs/ops-backup-recovery.md](docs/ops-backup-recovery.md) |
 | Loitering/ZoneOccupancy 현장 시작 threshold | [docs/analysis-threshold-baselines.md](docs/analysis-threshold-baselines.md) |
 | sample 영상/fixture 출처와 공개 기준 | [docs/sample-fixture-provenance.md](docs/sample-fixture-provenance.md) |
-| 현재 제품 경계, v1.5.0 close-out, 별도 Phase 후보 | [docs/development-backlog.md](docs/development-backlog.md) |
+| 현재 제품 경계, v1.6.0 release close-out, 별도 Phase 후보 | [docs/development-backlog.md](docs/development-backlog.md) |
 | historical v1.2.1 후속 종료 판정과 수동 UI 검수 증적 | [docs/v1.2.1-follow-up-closure.md](docs/v1.2.1-follow-up-closure.md), [docs/manual-ui-v1.2.1-result.md](docs/manual-ui-v1.2.1-result.md) |
 | v1.3.0 후속 종료 판정 | [docs/v1.3.0-follow-up-closure.md](docs/v1.3.0-follow-up-closure.md) |
 | v1.4.0 후속 종료 판정 | [docs/v1.4.0-follow-up-closure.md](docs/v1.4.0-follow-up-closure.md) |
 | v1.5.0 후속 종료 판정 | [docs/v1.5.0-follow-up-closure.md](docs/v1.5.0-follow-up-closure.md) |
+| v1.6.0 release evidence dashboard | [docs/v1.6.0-release-evidence-dashboard.md](docs/v1.6.0-release-evidence-dashboard.md) |
+| v1.6.0 stability verification gates | [docs/v1.6.0-stability-verification-gates.md](docs/v1.6.0-stability-verification-gates.md) |
+| v1.6.0 client debug exposure guard | [docs/v1.6.0-debug-exposure-regression-guard.md](docs/v1.6.0-debug-exposure-regression-guard.md) |
+| v1.6.0 tracker/Re-ID opt-in close-out | [docs/v1.6.0-tracker-reid-opt-in-closeout.md](docs/v1.6.0-tracker-reid-opt-in-closeout.md) |
+| v1.6.0 ONVIF field smoke evidence reconciliation | [docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md](docs/v1.6.0-onvif-field-smoke-evidence-reconciliation.md) |
+| v1.6.0 audit/export masking regression hardening | [docs/v1.6.0-audit-export-masking-regression-hardening.md](docs/v1.6.0-audit-export-masking-regression-hardening.md) |
+| v1.6.0 runtime/model bundle RC policy | [docs/v1.6.0-runtime-model-bundle-rc-policy.md](docs/v1.6.0-runtime-model-bundle-rc-policy.md) |
+| v1.6.0 manual UI release checklist closure | [docs/v1.6.0-manual-ui-release-checklist-closure.md](docs/v1.6.0-manual-ui-release-checklist-closure.md) |
+| v1.6.0 public docs consistency polish | [docs/v1.6.0-public-docs-consistency-polish.md](docs/v1.6.0-public-docs-consistency-polish.md) |
+| v1.6.0 tracker benchmark harness planning | [docs/v1.6.0-tracker-benchmark-harness-planning.md](docs/v1.6.0-tracker-benchmark-harness-planning.md) |
 | YouTube import/source 실험 기능 | [docs/youtube-import.md](docs/youtube-import.md) |
 
 ## 대표 UI 미리보기

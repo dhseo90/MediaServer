@@ -13,6 +13,7 @@ endpoint, credential, RTSP/RTSPS playback, redaction artifact, report review를
 - [ONVIF Field Smoke Artifact Redaction Checklist](./onvif-field-smoke-artifact-redaction.md)
 - [ONVIF Credential Reference Policy](./onvif-credential-reference-policy.md)
 - [ONVIF TLS Transport Policy](./onvif-tls-transport-policy.md)
+- [v1.6.0 ONVIF Field Smoke Evidence Reconciliation](./v1.6.0-onvif-field-smoke-evidence-reconciliation.md)
 
 ## Gate 원칙
 
@@ -76,6 +77,7 @@ field smoke report는 아래 상태를 분리해 기록합니다.
 실장비 endpoint가 없는 로컬/CI에서는 아래처럼 skip/failure boundary만 검증합니다.
 
 ```bash
+./server.sh verify-v160-onvif-field-smoke-evidence-reconciliation
 ./server.sh verify-onvif-no-device-suite
 ./server.sh verify-onvif-field-smoke-gate
 ./server.sh verify-onvif-field-smoke-redaction

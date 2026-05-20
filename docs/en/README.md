@@ -18,7 +18,17 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 | BoT-SORT/DeepSORT research boundary | [../bot-sort-deepsort-research-boundary.md](../bot-sort-deepsort-research-boundary.md) |
 | Close-object report archive policy | [../close-object-report-archive-policy.md](../close-object-report-archive-policy.md) |
 | Integrator contract artifact | [../integrator-contract-artifact.md](../integrator-contract-artifact.md) |
-| Current product boundary, v1.5.0 close-out, and separate phase candidates | [../development-backlog.md](../development-backlog.md) |
+| Current product boundary, v1.6.0 release close-out, and separate phase candidates | [../development-backlog.md](../development-backlog.md) |
+| v1.6.0 release evidence dashboard and `verify-v160-release-evidence-dashboard` status separation | [../v1.6.0-release-evidence-dashboard.md](../v1.6.0-release-evidence-dashboard.md) |
+| v1.6.0 stability gate map and `verify-v160-stability-verification-gate` smoke/flaky/longrun separation | [../v1.6.0-stability-verification-gates.md](../v1.6.0-stability-verification-gates.md) |
+| v1.6.0 client debug exposure guard and `verify-v160-debug-exposure-regression-guard` redaction checks | [../v1.6.0-debug-exposure-regression-guard.md](../v1.6.0-debug-exposure-regression-guard.md) |
+| v1.6.0 tracker/Re-ID opt-in close-out and `verify-v160-tracker-reid-opt-in-closeout` default-off guard | [../v1.6.0-tracker-reid-opt-in-closeout.md](../v1.6.0-tracker-reid-opt-in-closeout.md) |
+| v1.6.0 ONVIF field smoke evidence reconciliation and `verify-v160-onvif-field-smoke-evidence-reconciliation` not-run/redaction guard | [../v1.6.0-onvif-field-smoke-evidence-reconciliation.md](../v1.6.0-onvif-field-smoke-evidence-reconciliation.md) |
+| v1.6.0 audit/export masking regression hardening and `verify-v160-audit-export-masking-regression-hardening` export redaction guard | [../v1.6.0-audit-export-masking-regression-hardening.md](../v1.6.0-audit-export-masking-regression-hardening.md) |
+| v1.6.0 runtime/model bundle RC policy and `verify-v160-runtime-model-bundle-rc-policy` default-exclusion guard | [../v1.6.0-runtime-model-bundle-rc-policy.md](../v1.6.0-runtime-model-bundle-rc-policy.md) |
+| v1.6.0 manual UI release checklist closure and `verify-v160-manual-ui-release-checklist-closure` not-run/manual evidence guard | [../v1.6.0-manual-ui-release-checklist-closure.md](../v1.6.0-manual-ui-release-checklist-closure.md) |
+| v1.6.0 public docs consistency polish and `verify-v160-public-docs-consistency-polish` current-tag/evidence guard | [../v1.6.0-public-docs-consistency-polish.md](../v1.6.0-public-docs-consistency-polish.md) |
+| v1.6.0 tracker benchmark harness planning and `verify-v160-tracker-benchmark-harness-planning` planning-only guard | [../v1.6.0-tracker-benchmark-harness-planning.md](../v1.6.0-tracker-benchmark-harness-planning.md) |
 | Historical v1.2.1 follow-up closure | [../v1.2.1-follow-up-closure.md](../v1.2.1-follow-up-closure.md) |
 | v1.3.0 follow-up closure | [../v1.3.0-follow-up-closure.md](../v1.3.0-follow-up-closure.md) |
 | v1.4.0 follow-up closure | [../v1.4.0-follow-up-closure.md](../v1.4.0-follow-up-closure.md) |
@@ -52,13 +62,13 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 - The 2026-05-13 final local release gate completed 120m predev soak,
   120m runtime-console longrun with a 30m cleanup-idle observation, and
   P1 public/bundle/full-smoke review.
-- v1.5.0 is published as the current source-only release. Binary/runtime/model bundles remain excluded from the default release.
+- v1.6.0 is published as the current source-only release. Binary/runtime/model bundles remain excluded from the default release.
 
 ## Current Priority Snapshot
 
 | Area | Status | Notes |
 | --- | --- | --- |
-| v1.5.0 source release | Published | Live-only source minor release boundary is preserved; explicit tracker/Re-ID opt-in stabilization, warning/default-on separation, and follow-up closure are closed; binary/runtime/model bundles are excluded |
+| v1.6.0 source release | Published | Live-only source release boundary is preserved; release evidence, stability gates, debug exposure guards, tracker/Re-ID opt-in close-out, field evidence boundaries, manual UI evidence, and planning-only benchmark boundaries are closed; binary/runtime/model bundles are excluded |
 | Runtime distribution policy | Done | Source-first policy and bundle guardrails are in place |
 | Ops UI stability | Done | Channels/Rules/Users responsive table checks exist |
 | v1.1.0 prerequisite roadmap 1-6 | Done | Live-only boundary, ONVIF live source support, source health, VA quality, delivery contract, and multilingual alignment are closed |
@@ -75,7 +85,7 @@ sprawl; use the table below to jump to the detailed source-of-truth page.
 
 ## General Follow-Ups
 
-- Use [../development-backlog.md](../development-backlog.md) as the source of truth for the current product boundary and v1.5.0 close-out; use version-specific evidence files only as historical close-out records.
+- Use [../development-backlog.md](../development-backlog.md) as the source of truth for the current product boundary and v1.6.0 close-out; use version-specific evidence files only as historical close-out records.
 - Close or suppress existing Dependabot major-update PR noise after the policy is documented.
 - Add richer English docs only if the public audience grows beyond this consolidated index.
 - Attach the latest RC artifacts to release notes when cutting a future tag or GitHub Release.

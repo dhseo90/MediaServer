@@ -38,7 +38,10 @@ source offer, model provenance, checksum manifest를 release note에 연결합�
 - release note에는 commit, 검증 명령, known limitation을 짧게 적습니다.
 - source-only release에는 sample/model/runtime binary를 추가 업로드하지 않습니다.
 - `verify-release-closeout-helper`는 dry-run summary만 생성하며 tag, push, GitHub Release 생성을 수행하지 않습니다.
-- RC longrun 결과는 `rc-release-checklist` 또는 Actions artifact로 보관합니다.
+- RC longrun 결과는 `rc-release-checklist`와 `media-server-rc-gate` GitHub
+  Actions artifact, 또는 `rc-artifact-archive` 외부 archive로 보관합니다.
+  임시 `/tmp` 경로는 staging/local-only evidence이며, release-grade 보존 완료로
+  쓰지 않습니다.
 - UI visual release baseline artifact는 승인된 release/RC 화면 상태를 다음 candidate와 비교하는 approved comparator입니다. public release asset으로 기본 업로드하지 않으며, release note에는 [UI Visual Release Baseline Approval Log](./ui-visual-release-baseline-approval-template.md)를 기준으로 accepted baseline run, baseline diff, 수동 비노출 검토 결과 링크만 남깁니다. template presence와 CI 연결은 `./server.sh verify-ui-release-baseline-approval-log`로 확인합니다.
 - public visibility 전환은 이 문서와 [public-repo-final-review.md](./public-repo-final-review.md) 확인 후 수동으로만 진행합니다.
 
@@ -61,12 +64,40 @@ artifact로 업로드합니다. 같은 release 준비 흐름에서
 future tag, push, GitHub Release, accepted baseline 채택, 320/390/760/1180px
 screenshot review는 리포트에 manual/not-run으로 남기며, 실제 실행 및 링크가
 없는 항목을 pass로 쓰지 않습니다.
+v1.6.0 source-only release에서는
+[v1.6.0 Release Evidence Dashboard](./v1.6.0-release-evidence-dashboard.md)와
+`./server.sh verify-v160-release-evidence-dashboard`로 release evidence의
+확인됨/미실행/미확인 상태를 분리합니다.
+ONVIF field smoke evidence는
+[v1.6.0 ONVIF Field Smoke Evidence Reconciliation](./v1.6.0-onvif-field-smoke-evidence-reconciliation.md)와
+`./server.sh verify-v160-onvif-field-smoke-evidence-reconciliation` 기준으로
+no-device suite, 실장비 미실행, redacted artifact review를 분리합니다.
+Audit/export masking evidence는
+[v1.6.0 Audit Export Masking Regression Hardening](./v1.6.0-audit-export-masking-regression-hardening.md)와
+`./server.sh verify-v160-audit-export-masking-regression-hardening` 기준으로
+JSON/CSV/Diff JSON export의 source/model/auth/raw material 비노출을 확인합니다.
+Runtime/model bundle RC policy는
+[v1.6.0 Runtime/Model Bundle RC Policy](./v1.6.0-runtime-model-bundle-rc-policy.md)와
+`./server.sh verify-v160-runtime-model-bundle-rc-policy` 기준으로 기본 release
+미포함 경계와 향후 RC 승인 조건을 분리합니다.
+Manual UI release checklist closure는
+[v1.6.0 Manual UI Release Checklist Closure](./v1.6.0-manual-ui-release-checklist-closure.md)와
+`./server.sh verify-v160-manual-ui-release-checklist-closure` 기준으로 실제 수동 클릭
+검수, screenshot artifact, 미실행/미확인 항목을 분리합니다.
+Public docs consistency polish는
+[v1.6.0 Public Docs Consistency Polish](./v1.6.0-public-docs-consistency-polish.md)와
+`./server.sh verify-v160-public-docs-consistency-polish` 기준으로 현재 published tag와
+v1.6.0 release evidence 표현을 맞춥니다.
+Tracker benchmark harness planning only는
+[v1.6.0 Tracker Benchmark Harness Planning](./v1.6.0-tracker-benchmark-harness-planning.md)와
+`./server.sh verify-v160-tracker-benchmark-harness-planning` 기준으로 runtime tracker
+승격 없이 별도 benchmark 요구사항만 분리합니다.
 
 ## Tag 전략
 
-- 현재 published source-only release tag는 `v1.5.0`입니다.
+- 현재 published source-only release tag는 `v1.6.0`입니다.
 - public-readiness, bundle policy, Actions status check가 모두 통과한 커밋에만 tag를 붙입니다.
-- `v1.5.0`은 live-only source release 기준을 유지한 minor release이며, binary/runtime/model bundle의 운영 배포 완료를 뜻하지 않습니다.
+- `v1.6.0`은 live-only source release 기준을 유지한 stabilization release이며, binary/runtime/model bundle의 운영 배포 완료를 뜻하지 않습니다.
 - route/API/config/schema migration이 필요한 변경은 `v2.0.0` 후보로 분리합니다.
 - tag release에는 generated sample pack, YOLO model, FFmpeg/GStreamer runtime bundle을 붙이지 않습니다.
 
@@ -80,7 +111,7 @@ major update를 적용하려면 workflow 권한, upstream changelog, pin 전략�
 ## Release Note Template
 
 ```markdown
-# Media Server v1.5.0
+# Media Server v1.6.0
 
 ## Scope
 
@@ -91,7 +122,7 @@ major update를 적용하려면 workflow 권한, upstream changelog, pin 전략�
 
 - Live media relay and live VA event focus
 - ONVIF Profile S/T assisted source onboarding, source health operator workflow, VA event quality, UI refresh, delivery contract artifact work, and rule-level tracker/Re-ID opt-in work
-- v1.5.0 close-out: explicit tracker/Re-ID opt-in guard, stability matrix, Re-ID provenance/fallback approval, tracker warning next-action copy, audit export masking hardening, field smoke summary evidence boundary, OC-SORT manifest-only sandbox, and follow-up closure
+- v1.6.0 close-out: release evidence dashboard, stability gate cleanup, debug exposure guard, tracker/Re-ID opt-in close-out, ONVIF field evidence reconciliation, audit/export masking, runtime/model bundle RC policy, manual UI checklist, public docs consistency, and tracker benchmark planning-only boundary
 - EventRecord/snapshot/clip: short event evidence helper, not the main product message
 
 ## Non-goals
@@ -129,5 +160,5 @@ Do not list an item as pass unless it was actually executed for this release cut
 ## Known Limitations
 
 - 장기 soak/RC 검증은 별도 workflow_dispatch 기준입니다.
-- ONVIF 실장비 field smoke, YouTube 실제 URL relay, Re-ID default-on, tracker default-on, OC-SORT runtime promotion은 v1.5.0 완료 근거가 아닙니다.
+- ONVIF 실장비 field smoke, YouTube 실제 URL relay, Re-ID default-on, tracker default-on, OC-SORT runtime promotion은 v1.6.0 완료 근거가 아닙니다.
 ```

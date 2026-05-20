@@ -21,6 +21,7 @@
   - `./server.sh verify-auth-bootstrap`:
   - `./server.sh verify-auth-users`:
   - `./server.sh verify-auth-routes`:
+  - `./server.sh verify-v160-manual-ui-release-checklist-closure`:
 
 ## 확인됨
 
@@ -51,6 +52,39 @@
 - invite setup 후 `/ops/home` 결과:
 - 거절 flow 실행 여부:
 
+## Chrome Auth 입력 Evidence
+
+비밀번호 원문, invite token 원문, session cookie, 브라우저 generated password
+suggestion은 기록하지 않습니다.
+
+| 화면 | fixture/users file | 직접 입력/제출 | 기대 결과 | artifact/screenshot | 대체 검증 | 판정 |
+| --- | --- | --- | --- | --- | --- | --- |
+| `/setup` | throwaway | weak password 제출 | 400/rejection copy |  | `./server.sh verify-auth-bootstrap` | PASS/FAIL/BLOCKED |
+| `/setup` | throwaway | strong admin password 제출 | `/login` redirect |  | `./server.sh verify-auth-bootstrap` | PASS/FAIL/BLOCKED |
+| `/login` | throwaway | admin 로그인 | `/ops/home` redirect |  | `./server.sh verify-auth-bootstrap` | PASS/FAIL/BLOCKED |
+| `/password/change` | throwaway | reset/must-change 계정 변경 | history reuse 거부 또는 성공 redirect |  | `./server.sh verify-auth-users` | PASS/FAIL/BLOCKED |
+| `/invite/setup` | throwaway | invite password setup | viewer login 가능, ops forbidden |  | `./server.sh verify-auth-users` | PASS/FAIL/BLOCKED |
+
+- Chrome/Computer Use/Browser Use 실패 지점:
+- 직접 확인한 마지막 화면/필드:
+- 자동 smoke로 대체 확인한 항목:
+- 수동 auth 입력 미완료 항목:
+
+## Browser/Computer Use Fallback
+
+raw JSON/API-only 확인은 수동 UI 클릭 evidence로 쓰지 않습니다.
+
+| 항목 | 1차 Browser Use | 2차 Chrome | 3차 Computer Use | 마지막 직접 확인 상태 | 대체 smoke | 판정 |
+| --- | --- | --- | --- | --- | --- | --- |
+| auth 입력 |  |  |  |  |  | PASS/FAIL/BLOCKED/미확인 |
+| copy fallback |  |  |  |  |  | PASS/FAIL/BLOCKED/미확인 |
+| route navigation |  |  |  |  |  | PASS/FAIL/BLOCKED/미확인 |
+
+- Browser/Chrome/Computer Use 실패 지점:
+- 환경/sandbox/tool 제한:
+- 제품 회귀 후보로 본 근거:
+- 자동 smoke로만 대체한 항목:
+
 ## 비노출 확인
 
 client/viewer 화면에서 보이지 않아야 하는 항목입니다.
@@ -61,6 +95,7 @@ client/viewer 화면에서 보이지 않아야 하는 항목입니다.
 - debug counter:
 - BBox diagnostics:
 - rule/profile editor:
+- model/source/auth material:
 - Ops/Lab primary navigation:
 
 ## 반응형/테마 확인
@@ -85,6 +120,8 @@ client/viewer 화면에서 보이지 않아야 하는 항목입니다.
 - 장시간 테스트:
 - `verify-predev`:
 - 실장비/외부 네트워크:
+- screenshot artifact/link 미확인:
+- GitHub Actions/link 미확인:
 - destructive action:
 - 기타:
 

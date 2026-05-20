@@ -32,16 +32,16 @@ source-of-truth로 쓰지 않습니다.
 
 `완료`는 운영 배포 ready, 장기 안정성 보장, 외부 연동 ready를 뜻하지 않습니다.
 
-## 현재 기준: v1.5.0 Source Release Baseline
+## 현재 기준: v1.6.0 Source Release Baseline
 
-v1.5.0은 v1.2.x의 source-only/live-only 경계를 유지하면서 운영 흐름과 현장
-검증 밀도를 닫은 v1.3.0, rule-level tracker/Re-ID opt-in을 닫은 v1.4.0 위에
-명시 opt-in guard, Tracker/Re-ID stability matrix, Re-ID provenance/fallback
-approval, Ops tracker warning next-action, audit export masking, field smoke summary
-evidence boundary, OC-SORT manifest-only sandbox와 follow-up closure를 닫은
-source-only minor release입니다. 아래 제품 baseline은 v1.2.x에서 닫은 live
-product 범위를 유지하고, v1.5.0은 recorder/VMS/NVR, Re-ID default-on, tracker
-default-on, OC-SORT runtime tracker, runtime/model bundle scope를 열지 않습니다.
+v1.6.0은 v1.5.0까지 닫은 source-only/live-only 제품 범위를 유지하면서 release
+evidence dashboard, stability gate cleanup, debug exposure guard, tracker/Re-ID
+opt-in close-out, ONVIF field evidence reconciliation, audit/export masking,
+runtime/model bundle RC policy, manual UI checklist, public docs consistency,
+tracker benchmark planning-only boundary를 닫은 source-only stabilization release입니다.
+아래 제품 baseline은 v1.2.x에서 닫은 live product 범위를 유지하고, v1.6.0은
+recorder/VMS/NVR, Re-ID default-on, tracker default-on, OC-SORT runtime tracker,
+runtime/model bundle scope를 열지 않습니다.
 
 완료 범위:
 
@@ -85,6 +85,15 @@ default-on, OC-SORT runtime tracker, runtime/model bundle scope를 열지 않습
 - [x] Field smoke summary evidence boundary와 summary/report/history index 보존 경계
 - [x] OC-SORT manifest-only experimental sandbox
 - [x] v1.5.0 follow-up closure와 release close-out 기준 정리
+- [x] v1.6.0 release evidence dashboard와 stability gate cleanup
+- [x] Client/Ops debug exposure regression guard
+- [x] Tracker/Re-ID opt-in stabilization close-out
+- [x] ONVIF field smoke evidence reconciliation
+- [x] Audit/export masking regression hardening
+- [x] Runtime/model bundle RC policy
+- [x] Manual UI release checklist closure
+- [x] Public docs consistency polish
+- [x] Tracker benchmark harness planning-only boundary
 
 비범위:
 
@@ -96,7 +105,8 @@ default-on, OC-SORT runtime tracker, runtime/model bundle scope를 열지 않습
 - [ ] ONVIF 실장비 endpoint 성공 보장, persistent credential store, Digest/WS-Security
 - [ ] YouTube 운영 기능 승격 또는 실제 URL relay 성공 보장
 - [ ] field sample scheduler, dataset ingest, tracker replacement benchmark 실행
-- [ ] ONVIF field smoke evidence reconciliation, release evidence dashboard cleanup
+- [ ] 실장비 ONVIF field smoke 성공 보장, runtime/model bundle 배포 승인
+- [ ] 별도 Phase의 실제 기능 개발, tracker replacement product review
 
 ## v1.2.1 Patch Close-out
 
@@ -1241,12 +1251,557 @@ actual OC-SORT algorithm adapter and dataset benchmark report, runtime/model bun
 RC policy, ONVIF field smoke evidence reconciliation, release evidence dashboard
 cleanup은 v1.5.0 잔여가 아니라 별도 Phase gate입니다.
 
+## v1.6.0 Stabilization Close-out
+
+v1.6.0은 새 제품 기능을 여는 minor release가 아니라, v1.5.0까지 닫은 현재 기능을
+다음 기능 개발 사이클 전에 안정화하고 release-grade 증적, verifier, 문서 경계를
+정리하는 stabilization release입니다. 기능 방향은 후속 기능 개발 브랜치에서 다시 결정합니다.
+
+기본 원칙:
+
+- v1.5.0까지 구현된 live-only/source-only 제품 범위와 rule-level tracker/Re-ID
+  opt-in 경계를 유지합니다.
+- 새 runtime tracker, Re-ID default-on, tracker default-on, recorder/VMS/NVR,
+  model/runtime/binary bundle release를 열지 않습니다.
+- 현재 기능의 smoke, release evidence, docs drift, client/viewer debug 비노출,
+  audit/export masking, field evidence boundary를 안정화합니다.
+- 실제 field evidence, model bundle, tracker benchmark는 제품 승격 근거가 아니라
+  review gate와 report boundary로만 정리합니다.
+- 후속 기능 후보는 이 문서에서 확정하지 않습니다. v1.6.0은 후보를 정리하더라도
+  implementation roadmap으로 승격하지 않습니다.
+
+공통 완료 조건:
+
+- 현재 기능 기준 release metadata, README, versioning, release policy, backlog,
+  English docs 사이에 drift가 없어야 합니다.
+- client/viewer 화면과 API 응답에서 source URL, raw JSON, debug counter,
+  credential/auth/session material, model path/checksum/provenance, crop, embedding이
+  노출되지 않아야 합니다.
+- 장시간 soak, 실장비 field smoke, YouTube real URL relay, 외부 TURN/WHEP credential
+  운영 검증은 실행한 경우에만 pass로 기록하고, 미실행이면 release evidence에서
+  명확히 분리합니다.
+- Event POST, WebRTC DataChannel, SSE/WS metadata schema, RTSP/WebRTC media path,
+  auth/session contract는 별도 review 없이는 변경하지 않습니다.
+- 각 항목은 해당 verifier와 `git diff --check` 통과 후에만 완료로 처리합니다.
+
+| ID | 우선순위 | 영역 | 목표 | 예상 검증 |
+| --- | --- | --- | --- | --- |
+| V160-P0-01 | P0 | Release evidence dashboard cleanup | v1.5.0까지 흩어진 release 증적, verifier report, 미실행 항목, PR/Actions 결과를 한곳에서 추적 가능하게 정리합니다. | `verify-docs-links`, release evidence checks, `git diff --check` |
+| V160-P0-02 | P0 | Stability verification gate cleanup | 현재 기능 기준 smoke 묶음을 정리하고 flaky, 중복, 미사용 verifier를 분리합니다. 실패/미실행 항목을 release pass처럼 보이지 않게 합니다. | `verify-script-inventory`, 주요 smoke suite, `git diff --check` |
+| V160-P0-03 | P0 | Client/Ops debug exposure regression guard | viewer/client에 source URL, raw JSON, debug counter, rule/profile editor, model/source/auth material이 노출되지 않도록 회귀 guard를 강화합니다. | `verify-ops-client-ui`, `verify-auth-routes`, client redaction checks |
+| V160-P0-04 | P0 | Tracker/Re-ID opt-in stabilization close-out | rule-level tracker/Re-ID opt-in, warning, fallback, privacy guard를 default-off 안정화 상태로 닫고 default-on 승격과 분리합니다. | `verify-v150-follow-up-closure`, tracker/Re-ID stability matrix verifier |
+| V160-P1-01 | P1 | ONVIF field smoke evidence reconciliation | 실장비 성공 보장이 아니라 field smoke summary/report/history boundary와 release evidence 연결 기준을 정리합니다. | field smoke summary verifier, docs guard |
+| V160-P1-02 | P1 | Audit/export masking regression hardening | audit 조회, CSV/JSON/Diff export에서 model/source/auth/raw material masking 회귀를 막습니다. | audit export verifier, `verify-ops-audit-trail` |
+| V160-P1-03 | P1 | Runtime/model bundle RC policy | v1.6.0에는 bundle을 포함하지 않고, 향후 RC에서 model/runtime을 올릴 수 있는 조건과 차단 기준만 확정합니다. | provenance/fallback verifier, privacy verifier, bundle policy checks |
+| V160-P1-04 | P1 | Manual UI release checklist closure | `/setup`, `/login`, `/ops`, `/client` 주요 화면 수동 검수 템플릿과 evidence 경계를 현재 기능 기준으로 정리합니다. | manual UI checklist, screenshots when run, `verify-docs-ui-assets` |
+| V160-P2-01 | P2 | Public docs consistency polish | README, versioning, release policy, backlog, English docs 사이의 현재 기능/비범위 표현을 정리합니다. | `verify-release-metadata`, `verify-docs-links`, `git diff --check` |
+| V160-P2-02 | P2 | Tracker benchmark harness planning only | OC-SORT 등 실제 adapter 비교는 별도 기능 개발 Phase 후보로 넘기고, v1.6.0에서는 harness 요구사항과 비승격 경계만 정리합니다. | docs guard, no runtime adapter change, `git diff --check` |
+
+### V160-P0-01 Release evidence dashboard cleanup 정리 기준
+
+`Release evidence dashboard cleanup`은 v1.5.0까지 흩어진 release 증적, verifier
+report, PR/Actions 결과, 미실행 항목을 [v1.6.0 Release Evidence Dashboard](./v1.6.0-release-evidence-dashboard.md)
+한곳에서 추적하게 만드는 안정화 작업입니다. 목표는 실제 실행한 검증과
+장시간/실장비/외부 credential/Actions 미확인 항목을 release pass처럼 섞어 쓰지
+않는 것입니다.
+
+확인됨:
+
+- release evidence는 `확인됨`, `미실행`, `미확인`을 분리해 기록합니다.
+- 장시간 soak, `verify-predev`, ONVIF 실장비 field smoke, YouTube real URL relay,
+  외부 TURN/WHEP credential 운영 검증은 실행한 경우에만 pass로 기록하고,
+  미실행이면 `NOT RUN`으로 유지합니다.
+- PR/Actions, tag, push, GitHub Release는 로컬 검증과 분리하고 링크가 없으면
+  `UNVERIFIED`로 남깁니다.
+- evidence dashboard에는 source URL, credential, auth/session material, raw media,
+  raw diagnostic JSON, crop, embedding, model path/checksum/provenance를 포함하지
+  않습니다.
+
+검증 기준:
+
+- `./server.sh verify-v160-release-evidence-dashboard`
+- `./server.sh verify-docs-links`
+- `./server.sh verify-script-inventory`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- V160-P0-02 Stability verification gate cleanup
+- V160-P0-03 Client/Ops debug exposure regression guard
+- V160-P0-04 Tracker/Re-ID opt-in stabilization close-out
+- V160-P1-01~V160-P1-04, V160-P2-01~V160-P2-02
+- 새 제품 기능, 장시간 테스트 실행, 실장비 field smoke 성공 보장, tag/push/GitHub
+  Release 생성
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경 또는 media pipeline blocking 정책 변경
+
+후속 분류:
+
+- 미분류 P0~P1 후속 이슈: 없음. 이번 항목에서 발견한 release evidence drift
+  위험은 dashboard 문서와 verifier로 닫습니다.
+- 같은 P0 안정화 페이즈의 V160-P0-02~V160-P0-04는 별도 순서 항목이므로 이 작업에서
+  완료로 판정하지 않습니다.
+- P1/P2 및 별도 Phase 후보는 V160-P0-01의 즉시 후속 이슈로 끌어오지 않습니다.
+
+### V160-P0-02 Stability verification gate cleanup 정리 기준
+
+`Stability verification gate cleanup`은 현재 기능 기준 smoke 묶음과
+flaky/attached/longrun/external gate를
+[v1.6.0 Stability Verification Gates](./v1.6.0-stability-verification-gates.md)에
+분리하는 안정화 작업입니다. 목표는 실패/미실행/환경 의존 항목이 release pass처럼
+보이지 않도록 verifier와 문서 기준을 정리하는 것입니다.
+
+확인됨:
+
+- static/docs gate, P0 stabilization gate, attached UI/Auth gate, Runtime/VA metadata
+  gate, Tracker/Re-ID carry-over gate, flaky/cleanup isolation gate, longrun/external
+  gate를 분리합니다.
+- `verify-script-inventory`는 documented command, dispatch target, executable bit,
+  사용자 노출 JS option validation을 확인하는 gate로 유지합니다.
+- `verify-ops-client-ui --screenshots`, `verify-ops-click-e2e`,
+  `verify-ops-tables-layout`처럼 브라우저/attached 환경이 필요한 smoke는 실행 URL,
+  screenshot 여부, cleanup 결과를 따로 기록합니다.
+- `verify-predev`, 장시간 soak, 실장비 ONVIF field smoke, 외부 TURN/WHEP credential
+  운영 검증은 사용자 명시 요청 없이 실행하지 않고 `NOT RUN`으로 분리합니다.
+
+검증 기준:
+
+- `./server.sh verify-v160-stability-verification-gate`
+- `./server.sh verify-script-inventory`
+- `./server.sh verify-docs-links`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- V160-P0-03 Client/Ops debug exposure regression guard
+- V160-P0-04 Tracker/Re-ID opt-in stabilization close-out
+- V160-P1-01~V160-P1-04, V160-P2-01~V160-P2-02
+- 장시간 테스트 실행, 실장비 field smoke 성공 보장, flaky verifier를 제품 PASS로
+  임의 승격
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경 또는 media pipeline blocking 정책 변경
+
+후속 분류:
+
+- 미분류 P0~P1 후속 이슈: 없음. 이번 항목에서 발견한 gate drift 위험은 stability
+  gate 문서와 verifier로 닫습니다.
+- V160-P0-03과 V160-P0-04는 같은 P0 안정화 페이즈의 별도 항목이므로 이 작업에서
+  완료로 판정하지 않습니다.
+- P1/P2 및 별도 Phase 후보는 V160-P0-02의 즉시 후속 이슈로 끌어오지 않습니다.
+
+### V160-P0-03 Client/Ops debug exposure regression guard 정리 기준
+
+`Client/Ops debug exposure regression guard`는 viewer/client 화면과 scoped API에
+source URL, raw JSON, debug counter, rule/profile editor, model/source/auth material이
+노출되지 않도록 [v1.6.0 Client/Ops Debug Exposure Regression Guard](./v1.6.0-debug-exposure-regression-guard.md)
+문서와 `verify-ops-client-ui` forbidden matrix를 강화하는 작업입니다.
+
+확인됨:
+
+- client page HTML, rendered DOM, clipboard text, client scoped API JSON key traversal에서
+  source/debug/rule/model/auth material을 금지합니다.
+- `verify-ops-client-ui`의 client forbidden text/key matrix에 `modelPath`,
+  `modelSha256`, `modelChecksum`, `modelProvenance`, `modelUrl`, `crop`, `embedding`,
+  `appearanceCrop`, `appearanceEmbedding`, `passwordHistory`, `credentialRef`,
+  capability material을 추가합니다.
+- Ops 화면의 운영자 debug/details와 client/viewer surface를 분리하고, raw JSON은
+  운영자 debug details 접힘 영역에만 둡니다.
+- removed UI route(`/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test`)는 닫힌 상태를
+  유지합니다.
+
+검증 기준:
+
+- `./server.sh verify-v160-debug-exposure-regression-guard`
+- `./server.sh verify-auth-routes`
+- `./server.sh verify-ops-client-ui`
+- `./server.sh verify-script-inventory`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- V160-P0-04 Tracker/Re-ID opt-in stabilization close-out
+- V160-P1-02 Audit/export masking regression hardening
+- V160-P1-01, V160-P1-03~V160-P1-04, V160-P2-01~V160-P2-02
+- audit/export CSV/JSON/Diff hardening 전체 재작업, 새 Ops debug 화면 추가,
+  client/viewer 기능 추가
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경 또는 media pipeline blocking 정책 변경
+
+후속 분류:
+
+- 미분류 P0~P1 후속 이슈: 없음. 이번 항목에서 발견한 client redaction guard 빈칸은
+  forbidden matrix와 전용 verifier로 닫습니다.
+- V160-P0-04는 같은 P0 안정화 페이즈의 별도 항목이므로 이 작업에서 완료로 판정하지
+  않습니다.
+- P1/P2 및 별도 Phase 후보는 V160-P0-03의 즉시 후속 이슈로 끌어오지 않습니다.
+
+### V160-P0-04 Tracker/Re-ID opt-in stabilization close-out 정리 기준
+
+`Tracker/Re-ID opt-in stabilization close-out`은 v1.5.0까지 닫은 rule-level
+tracker/Re-ID opt-in, warning, fallback, privacy guard를
+[v1.6.0 Tracker/Re-ID Opt-in Stabilization Close-out](./v1.6.0-tracker-reid-opt-in-closeout.md)
+기준으로 default-off 안정화 상태에 묶는 작업입니다. 목표는 default-on 승격,
+runtime tracker 승격, model/runtime bundle release와 P0 안정화 완료를 분리하는
+것입니다.
+
+확인됨:
+
+- 사용자가 rule/vaRule에서 명시 선택한 `analysis.trackingPolicy.tracker`와
+  `analysis.trackingPolicy.reid`만 적용합니다.
+- `trackingPolicy`가 없는 기존 rule은 runtime에서 `tracker=lite`, `reid=off`,
+  `source=rule-default`로 해석하며 저장 문서를 자동 migration하지 않습니다.
+- tracker/Re-ID matrix는 사용자 opt-in 품질 참고이며 default-on 승인 근거가
+  아닙니다.
+- Re-ID model provenance/checksum/fallback gate는 missing/invalid/mismatched model을
+  `NoOp fallback`으로 닫고, crop/embedding/model path/checksum/provenance를 외부
+  metadata나 client/viewer 화면에 노출하지 않습니다.
+- v1.6.0 P0 안정화 페이즈의 미분류 P0~P1 후속 이슈는 없음으로 분류합니다.
+
+검증 기준:
+
+- `./server.sh verify-v160-tracker-reid-opt-in-closeout`
+- `./server.sh verify-v150-follow-up-closure`
+- `./server.sh verify-v150-tracker-reid-stability-matrix`
+- `./server.sh verify-v150-reid-provenance-fallback-approval`
+- `./server.sh verify-script-inventory`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- V160-P1-01~V160-P1-04, V160-P2-01~V160-P2-02
+- Re-ID default-on, tracker default-on, product default tracker 변경
+- OC-SORT, BoT-SORT, DeepSORT runtime tracker 승격
+- 실제 Re-ID model artifact, model card, dataset provenance, model/runtime/binary bundle
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경 또는 media pipeline blocking 정책 변경
+
+후속 분류:
+
+- 미분류 P0~P1 후속 이슈: 없음. 이번 P0 안정화 페이즈에서 발견한 P0/P1 빈칸은
+  V160-P0-01~V160-P0-04 verifier와 문서 guard로 닫습니다.
+- V160-P1-01~V160-P1-04, V160-P2-01~V160-P2-02, 별도 Phase 후보는 이번 P0
+  close-out의 즉시 구현 후속으로 끌어오지 않습니다.
+
+### V160-P1-01 ONVIF field smoke evidence reconciliation 정리 기준
+
+`ONVIF field smoke evidence reconciliation`은 실장비 ONVIF 성공을 보장하는 기능
+개발이 아니라, 기존 field smoke gate와 release evidence dashboard가 같은 상태
+언어로 실행/미실행/미확인 결과를 기록하게 만드는 안정화 작업입니다.
+[v1.6.0 ONVIF Field Smoke Evidence Reconciliation](./v1.6.0-onvif-field-smoke-evidence-reconciliation.md)
+기준으로 field smoke summary/report/history boundary와 redacted sample bundle
+review를 연결합니다.
+
+확인됨:
+
+- `verify-onvif-no-device-suite` 통과는 fixture/parser/loopback/redaction 개발
+  검증이며 실제 field smoke `PASS` 또는 `realDeviceEndpointSuccess=pass`가 아닙니다.
+- 실제 장비를 사용하지 않았으면 `gateDecision=not-run`,
+  `realDeviceTestPerformed=false`, `realDeviceEndpointSuccess=unverified`,
+  `playbackStatus=skipped`로 release evidence에 기록합니다.
+- field smoke 공유 evidence는 sanitized summary/report/history index와
+  `redactionArtifactReview`, `fieldSmokeReportReview` 상태만 보존합니다.
+- endpoint URL, source URL/URI/file, RTSP/RTSPS stream URI, credential/auth/session
+  material, raw SOAP/header/diagnostic JSON, raw media/frame, crop, embedding,
+  model path/checksum/provenance는 공유 evidence와 release dashboard에 남기지
+  않습니다.
+- 외부 승인 링크, GitHub Actions, tag/push/GitHub Release가 없으면 `UNVERIFIED`,
+  실제 field smoke를 실행하지 않았으면 `NOT RUN`으로 유지합니다.
+
+검증 기준:
+
+- `./server.sh verify-v160-onvif-field-smoke-evidence-reconciliation`
+- `./server.sh verify-onvif-field-smoke-gate`
+- `./server.sh verify-onvif-field-smoke-sample-bundle`
+- `./server.sh verify-docs-links`
+- `./server.sh verify-script-inventory`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- 실제 ONVIF camera endpoint 성공 보장 또는 field smoke 실행
+- persistent credential store, Digest, WS-Security, WS-Discovery 자동 검색,
+  Profile G / Recording / Replay 구현
+- V160-P1-02 Audit/export masking regression hardening
+- V160-P1-03 Runtime/model bundle RC policy
+- V160-P1-04 Manual UI release checklist closure
+- V160-P2-01~V160-P2-02, 별도 Phase 후보
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경 또는 media pipeline blocking 정책 변경
+
+후속 분류:
+
+- 미분류 P0~P1 후속 이슈: 없음. 이번 항목의 field evidence drift 위험은
+  reconciliation 문서와 전용 verifier로 닫습니다.
+- V160-P1-02~V160-P1-04는 같은 v1.6.0 안정화 페이즈의 별도 항목이므로 이 작업에서
+  완료로 판정하지 않습니다.
+- P2 및 별도 Phase 후보는 V160-P1-01의 즉시 구현 후속으로 끌어오지 않습니다.
+
+### V160-P1-02 Audit/export masking regression hardening 정리 기준
+
+`Audit/export masking regression hardening`은 `/ops/api/audit` 조회와
+JSON/CSV/Diff JSON export에서 source/model/auth/raw material이 다시 노출되지 않도록
+[v1.6.0 Audit Export Masking Regression Hardening](./v1.6.0-audit-export-masking-regression-hardening.md)
+기준으로 기존 audit redaction guard를 release gate에 연결하는 작업입니다.
+
+확인됨:
+
+- `RedactAuditJsonFragment`는 저장된 audit body와 조회/export record에 다시 적용됩니다.
+- JSON export, CSV export, Diff JSON export는 같은 redacted entry set을 사용합니다.
+- `AuditSensitiveKey`와 `AuditSensitiveStringValue`는 source URL/URI/file,
+  endpoint/stream URI, model path/checksum/provenance, raw media/frame, crop,
+  embedding, password/token/hash/secret/credential/capability material을 masking
+  대상으로 유지합니다.
+- Ops UI는 Tracker/Re-ID 설정 변경과 model/fallback status-only review chip을
+  표시하되 model/source/auth/raw material 원문을 표시하지 않습니다.
+- client/viewer surface에는 audit export controls, raw JSON, source/debug/model/auth
+  material을 노출하지 않습니다.
+
+검증 기준:
+
+- `./server.sh verify-v160-audit-export-masking-regression-hardening`
+- `./server.sh verify-v150-audit-export-review-hardening`
+- `./server.sh verify-ops-audit-trail`
+- `./server.sh verify-docs-links`
+- `./server.sh verify-script-inventory`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- V160-P1-03 Runtime/model bundle RC policy
+- V160-P1-04 Manual UI release checklist closure
+- V160-P2-01~V160-P2-02, 별도 Phase 후보
+- 새 Ops debug 화면 추가, client/viewer audit export 기능 추가
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경 또는 media pipeline blocking 정책 변경
+
+후속 분류:
+
+- 미분류 P0~P1 후속 이슈: 없음. 이번 항목의 audit/export masking drift 위험은
+  전용 verifier와 기존 audit export/ops audit trail guard로 닫습니다.
+- V160-P1-03~V160-P1-04는 같은 v1.6.0 안정화 페이즈의 별도 항목이므로 이 작업에서
+  완료로 판정하지 않습니다.
+- P2 및 별도 Phase 후보는 V160-P1-02의 즉시 구현 후속으로 끌어오지 않습니다.
+
+### V160-P1-03 Runtime/model bundle RC policy 정리 기준
+
+`Runtime/model bundle RC policy`는 v1.6.0 기본 release에 runtime/model bundle을
+추가하는 작업이 아니라, 향후 별도 RC에서 포함 배포를 검토할 때 필요한 승인 조건과
+차단 기준을 [v1.6.0 Runtime/Model Bundle RC Policy](./v1.6.0-runtime-model-bundle-rc-policy.md)에
+고정하는 작업입니다.
+
+확인됨:
+
+- v1.6.0 기본 release는 source/doc 중심이며 FFmpeg, FFprobe, libav*, x264/x265,
+  GStreamer GPL-risk plugin, ONNX Runtime package, YOLO/Re-ID/model binary를 release
+  asset에 포함하지 않습니다.
+- Re-ID opt-in model은 model path/checksum/provenance가 명시되고 검증을 통과할 때만
+  runtime 사용 후보가 되며, missing/invalid/mismatched model은 NoOp fallback으로
+  닫습니다.
+- model path/checksum/provenance, crop, embedding, appearance profile은 Event POST,
+  WebRTC DataChannel, SSE/WS metadata, client/viewer surface에 노출하지 않습니다.
+- 향후 runtime/model bundle RC는 `verify-bundle-policy`, `verify-release-bundle-dry-run`,
+  `source-offer-checklist`, upstream license text, attribution, model card/license,
+  checksum manifest, privacy/redaction review를 evidence로 요구합니다.
+- tag, push, GitHub Release, binary upload는 수동 승인 전까지 수행하지 않습니다.
+
+검증 기준:
+
+- `./server.sh verify-v160-runtime-model-bundle-rc-policy`
+- `./server.sh verify-v150-reid-provenance-fallback-approval`
+- `./server.sh verify-bundle-policy`
+- `./server.sh verify-docs-links`
+- `./server.sh verify-script-inventory`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- 실제 runtime/model/binary bundle 생성 또는 release asset 업로드
+- ONNX Runtime package, YOLO/Re-ID/model binary repo 포함
+- V160-P1-04 Manual UI release checklist closure
+- V160-P2-01~V160-P2-02, 별도 Phase 후보
+- Re-ID default-on, tracker default-on, product default tracker 변경
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경 또는 media pipeline blocking 정책 변경
+
+후속 분류:
+
+- 미분류 P0~P1 후속 이슈: 없음. 이번 항목의 runtime/model bundle RC drift 위험은
+  전용 verifier와 기존 Re-ID provenance/fallback, bundle policy guard로 닫습니다.
+- V160-P1-04는 같은 v1.6.0 안정화 페이즈의 별도 항목이므로 이 작업에서 완료로
+  판정하지 않습니다.
+- P2 및 별도 Phase 후보는 V160-P1-03의 즉시 구현 후속으로 끌어오지 않습니다.
+
+### V160-P1-04 Manual UI release checklist closure 정리 기준
+
+`Manual UI release checklist closure`는 실제 수동 UI 검수를 수행했다고 기록하는
+작업이 아니라, v1.6.0 현재 제품 화면 기준으로 수동 검수 템플릿과 evidence 경계를
+[v1.6.0 Manual UI Release Checklist Closure](./v1.6.0-manual-ui-release-checklist-closure.md)에
+고정하는 작업입니다.
+
+확인됨:
+
+- 수동 검수 대상은 `/setup`, `/login`, `/password/change`, `/ops/home`,
+  `/ops/dashboard`, `/ops/sources`, `/ops/rules`, `/ops/users`, `/ops/events`,
+  `/client/live`, `/client/dashboard`, `/client/request-access`입니다.
+- `/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test`는 제품 UI로 되살리지 않고 닫힌
+  route 상태를 확인 대상으로만 둡니다.
+- Client 화면은 Live/Dashboard primary nav만 허용하며 Ops/Lab primary navigation,
+  source URL, Developer URL, raw JSON, debug counter, BBox diagnostics,
+  rule/profile editor를 노출하지 않습니다.
+- screenshot, 수동 검수 결과, GitHub Actions/link는 실제 실행하거나 확보한
+  artifact/link만 기록합니다.
+- 자동 smoke, raw JSON 확인, screenshot 생성만으로 수동 클릭 검수를 완료했다고 쓰지
+  않습니다.
+
+검증 기준:
+
+- `./server.sh verify-v160-manual-ui-release-checklist-closure`
+- `./server.sh verify-manual-ui-evidence`
+- `./server.sh verify-docs-ui-assets`
+- `./server.sh verify-docs-links`
+- `./server.sh verify-script-inventory`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- 실제 브라우저 수동 검수 실행 또는 screenshot 재생성
+- V160-P2-01 Public docs consistency polish
+- V160-P2-02 Tracker benchmark harness planning only
+- 새 UI route/nav 추가, `/lab` 화면 route 재개방
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경 또는 media pipeline blocking 정책 변경
+
+후속 분류:
+
+- 미분류 P0~P1 후속 이슈: 없음. 이번 항목의 manual UI evidence drift 위험은
+  전용 verifier와 기존 manual UI/docs UI asset guard로 닫습니다.
+- V160-P2-01~V160-P2-02는 같은 v1.6.0 안정화 페이즈의 별도 항목이므로 이 작업에서
+  완료로 판정하지 않습니다.
+- 별도 Phase 후보는 V160-P1-04의 즉시 구현 후속으로 끌어오지 않습니다.
+
+### V160-P2-01 Public docs consistency polish 정리 기준
+
+`Public docs consistency polish`는 v1.6.0 source-only release 기준이 public
+README, README.en, docs/en/README, versioning policy, release policy, development
+backlog에서 같은 방식으로 보이도록
+[v1.6.0 Public Docs Consistency Polish](./v1.6.0-public-docs-consistency-polish.md)에
+고정하는 작업입니다.
+
+확인됨:
+
+- 현재 published source-only release tag는 `v1.6.0`입니다.
+- v1.6.0은 source-only stabilization release이며 runtime/model/binary bundle release가 아닙니다.
+- public docs는 v1.6.0 P0/P1/P2 guard 문서를 링크하고 latest source-only release를
+  `v1.6.0`으로 표시합니다.
+- release/versioning 정책은 source-only/live-only 경계, binary/runtime/model bundle
+  제외, 실장비/장시간/외부 credential gate 미실행 분리를 유지합니다.
+- VMS/NVR, long-term recording/playback/search, ONVIF Profile G recording/replay,
+  Re-ID/tracker default-on, OC-SORT/BoT-SORT/DeepSORT runtime promotion을 현재 제품
+  범위로 쓰지 않습니다.
+
+검증 기준:
+
+- `./server.sh verify-v160-public-docs-consistency-polish`
+- `./server.sh verify-release-metadata`
+- `./server.sh verify-docs-links`
+- `./server.sh verify-script-inventory`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- VERSION/CMake release version 변경
+- tag, push, GitHub Release 생성
+- V160-P2-02 Tracker benchmark harness planning only
+- 별도 Phase 후보 구현
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경 또는 media pipeline blocking 정책 변경
+
+후속 분류:
+
+- 미분류 P0~P1 후속 이슈: 없음. 이번 항목의 public docs drift 위험은 전용 verifier와
+  release metadata/docs links guard로 닫습니다.
+- V160-P2-02는 같은 v1.6.0 안정화 페이즈의 별도 항목이므로 이 작업에서 완료로
+  판정하지 않습니다.
+- 별도 Phase 후보는 V160-P2-01의 즉시 구현 후속으로 끌어오지 않습니다.
+
+### V160-P2-02 Tracker benchmark harness planning only 정리 기준
+
+`Tracker benchmark harness planning only`는 실제 OC-SORT adapter나 새 runtime
+tracker를 구현하는 작업이 아니라, 별도 기능 개발 Phase에서 benchmark를 열 때 필요한
+harness 요구사항과 비승격 경계를
+[v1.6.0 Tracker Benchmark Harness Planning](./v1.6.0-tracker-benchmark-harness-planning.md)에
+고정하는 작업입니다.
+
+확인됨:
+
+- `analysis.trackingPolicy.tracker` 허용값은 `none`, `lite`, `kalman-lite`,
+  `bytetrack`에 머뭅니다.
+- `/ops/rules` tracker selector, rule validation, `AnalysisProfile`,
+  `ObjectTrackerKind`, `verify-tracker-stability`, `compare-close-object-tracker`에
+  OC-SORT, BoT-SORT, DeepSORT runtime tracker 선택값을 추가하지 않습니다.
+- `compare-close-object-tracker --experimental-sandbox oc-sort`는 metadata-only sandbox
+  manifest를 남길 수 있지만 tracker stability 실행 인자로 전달하지 않습니다.
+- benchmark planning은 Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경이나
+  RTSP/WebRTC media path 변경의 근거가 아닙니다.
+- tracker/Re-ID default-on, product default tracker 변경, model/runtime bundle 포함
+  결정을 이 항목에서 내리지 않습니다.
+
+검증 기준:
+
+- `./server.sh verify-v160-tracker-benchmark-harness-planning`
+- `./server.sh verify-oc-sort-benchmark-boundary`
+- `./server.sh verify-bot-sort-deepsort-research-boundary`
+- `./server.sh verify-docs-links`
+- `./server.sh verify-script-inventory`
+- `git diff --check`
+
+이번 항목의 범위 밖:
+
+- 실제 OC-SORT algorithm adapter 구현
+- BoT-SORT/DeepSORT adapter 구현
+- dataset benchmark report 실행 또는 field sample benchmark 수행
+- tracker replacement product review
+- Re-ID default-on, tracker default-on, product default tracker 변경
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경 또는 media pipeline blocking 정책 변경
+
+후속 분류:
+
+- 미분류 P0~P1 후속 이슈: 없음. 이번 항목의 tracker benchmark planning drift 위험은
+  전용 verifier와 기존 OC-SORT/BoT-SORT/DeepSORT boundary guard로 닫습니다.
+- 실제 adapter, dataset benchmark report, tracker replacement product review는
+  별도 Phase 후보로 남깁니다.
+- 별도 Phase 후보는 V160-P2-02의 즉시 구현 후속으로 끌어오지 않습니다.
+
+### v1.6.0 비범위
+
+- 새 제품 기능 추가
+- Re-ID default-on 또는 tracker default-on
+- OC-SORT, BoT-SORT, DeepSORT runtime tracker 승격
+- 실제 Re-ID model/runtime/binary bundle release
+- 장기 녹화, MP4 recorder, VMS/NVR archive, playback/search
+- ONVIF Profile G recording/replay
+- YouTube 운영 기능 승격 또는 실제 URL relay 성공 보장
+- Event POST, WebRTC DataChannel, SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 또는 media pipeline blocking 정책 변경
+
+### v1.6.0 완료 기준
+
+v1.6.0은 기능 확장보다 현재 기능 마무리를 완료 기준으로 둡니다.
+
+- v1.5.0까지의 기능/문서/검증 drift 정리
+- 현재 기능 smoke와 release evidence guard 안정화
+- 미실행 장시간/실장비/외부 credential 검증의 release note 분리
+- client/viewer debug/source/raw/model/auth material 비노출 회귀 방지
+- Tracker/Re-ID opt-in을 default-off 안정화 상태로 닫기
+- 후속 기능 후보를 확정 roadmap으로 쓰지 않고 별도 후보 목록으로만 유지
+
 ## 별도 Phase 후보
 
-v1.5.0 roadmap에 포함하지 않은 항목은 이후 별도 Phase gate 후보로 남깁니다.
-각 후보는 source-only/live-only 경계, schema/media-path review, privacy/redaction
-review, release/field/manual approval gate를 통과할 때만 명시적 opt-in 기능이나
-배포 범위 검토로 연결합니다.
+v1.6.0 stabilization 이후에도 기능 개발로 확정하지 않은 항목은 별도 기능 개발
+Phase gate 후보로 남깁니다. 각 후보는 source-only/live-only 경계,
+schema/media-path review, privacy/redaction review, release/field/manual approval
+gate를 통과할 때만 명시적 opt-in 기능이나 배포 범위 검토로 연결합니다.
 
 - field sample history review workflow
 - tracker experimental benchmark harness
@@ -2186,5 +2741,7 @@ PR template과 정적 verifier를 연결했습니다.
 - 기능별 상세는 `docs/*.md` 한 곳에 둡니다.
 - 완료된 장문 close-out 내역은 history 문서로만 보관합니다.
 - 장시간 테스트는 새 RC 또는 고위험 변경에서만 명시적으로 실행합니다.
+- `./server.sh verify-predev --soak-minutes 120`은 상시 실행하지 않고 release candidate 또는 고위험 변경 gate로만 실행합니다.
+- `./server.sh verify-va-runtime-console-longrun --duration-minutes 120`도 release candidate 또는 고위험 Runtime Console 변경 gate로만 실행합니다.
 - client/viewer 문서에는 source URL, ONVIF endpoint, raw diagnostic JSON 노출을
   제품 기능처럼 쓰지 않습니다.

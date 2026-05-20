@@ -226,6 +226,26 @@ Usage:
                  v1.5.0 field smoke summary/report/history evidence와 raw media 비보존 경계를 검증합니다.
   verify-v150-oc-sort-experimental-sandbox
                  v1.5.0 OC-SORT experimental sandbox가 runtime tracker 승격 없이 연결됐는지 검증합니다.
+  verify-v160-release-evidence-dashboard
+                 v1.6.0 release evidence dashboard가 실행/미실행/미확인을 분리하는지 검증합니다.
+  verify-v160-stability-verification-gate
+                 v1.6.0 stability verification gate가 smoke/flaky/longrun을 분리하는지 검증합니다.
+  verify-v160-debug-exposure-regression-guard
+                 v1.6.0 client/ops debug/source/model/auth 비노출 guard를 검증합니다.
+  verify-v160-tracker-reid-opt-in-closeout
+                 v1.6.0 tracker/Re-ID opt-in default-off close-out을 검증합니다.
+  verify-v160-onvif-field-smoke-evidence-reconciliation
+                 v1.6.0 ONVIF field smoke evidence의 미실행/미확인/redaction 경계를 검증합니다.
+  verify-v160-audit-export-masking-regression-hardening
+                 v1.6.0 audit 조회/export의 source/model/auth/raw material masking guard를 검증합니다.
+  verify-v160-runtime-model-bundle-rc-policy
+                 v1.6.0 runtime/model bundle 미포함 기본값과 RC 승인 조건을 검증합니다.
+  verify-v160-manual-ui-release-checklist-closure
+                 v1.6.0 수동 UI release checklist와 evidence 경계를 검증합니다.
+  verify-v160-public-docs-consistency-polish
+                 v1.6.0 public docs의 current tag/stabilization evidence 표현을 검증합니다.
+  verify-v160-tracker-benchmark-harness-planning
+                 v1.6.0 tracker benchmark harness planning-only 경계를 검증합니다.
   verify-server-start-modes
                  foreground/start 실행 모드의 health, route, state file 안정성을 검증합니다.
   verify-auth-bootstrap
@@ -786,6 +806,46 @@ case "${cmd}" in
   verify-v150-oc-sort-experimental-sandbox)
     require_internal verify_v150_oc_sort_experimental_sandbox.mjs
     exec "${INTERNAL_DIR}/verify_v150_oc_sort_experimental_sandbox.mjs" "$@"
+    ;;
+  verify-v160-release-evidence-dashboard)
+    require_internal verify_v160_release_evidence_dashboard.mjs
+    exec "${INTERNAL_DIR}/verify_v160_release_evidence_dashboard.mjs" "$@"
+    ;;
+  verify-v160-stability-verification-gate)
+    require_internal verify_v160_stability_verification_gate.mjs
+    exec "${INTERNAL_DIR}/verify_v160_stability_verification_gate.mjs" "$@"
+    ;;
+  verify-v160-debug-exposure-regression-guard)
+    require_internal verify_v160_debug_exposure_regression_guard.mjs
+    exec "${INTERNAL_DIR}/verify_v160_debug_exposure_regression_guard.mjs" "$@"
+    ;;
+  verify-v160-tracker-reid-opt-in-closeout)
+    require_internal verify_v160_tracker_reid_opt_in_closeout.mjs
+    exec "${INTERNAL_DIR}/verify_v160_tracker_reid_opt_in_closeout.mjs" "$@"
+    ;;
+  verify-v160-onvif-field-smoke-evidence-reconciliation)
+    require_internal verify_v160_onvif_field_smoke_evidence_reconciliation.mjs
+    exec "${INTERNAL_DIR}/verify_v160_onvif_field_smoke_evidence_reconciliation.mjs" "$@"
+    ;;
+  verify-v160-audit-export-masking-regression-hardening)
+    require_internal verify_v160_audit_export_masking_regression_hardening.mjs
+    exec "${INTERNAL_DIR}/verify_v160_audit_export_masking_regression_hardening.mjs" "$@"
+    ;;
+  verify-v160-runtime-model-bundle-rc-policy)
+    require_internal verify_v160_runtime_model_bundle_rc_policy.mjs
+    exec "${INTERNAL_DIR}/verify_v160_runtime_model_bundle_rc_policy.mjs" "$@"
+    ;;
+  verify-v160-manual-ui-release-checklist-closure)
+    require_internal verify_v160_manual_ui_release_checklist_closure.mjs
+    exec "${INTERNAL_DIR}/verify_v160_manual_ui_release_checklist_closure.mjs" "$@"
+    ;;
+  verify-v160-public-docs-consistency-polish)
+    require_internal verify_v160_public_docs_consistency_polish.mjs
+    exec "${INTERNAL_DIR}/verify_v160_public_docs_consistency_polish.mjs" "$@"
+    ;;
+  verify-v160-tracker-benchmark-harness-planning)
+    require_internal verify_v160_tracker_benchmark_harness_planning.mjs
+    exec "${INTERNAL_DIR}/verify_v160_tracker_benchmark_harness_planning.mjs" "$@"
     ;;
   verify-server-start-modes)
     require_internal verify_server_start_modes.sh
