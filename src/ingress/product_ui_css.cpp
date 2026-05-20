@@ -2609,6 +2609,78 @@ std::string ClientShellCss() {
       width: 100%;
       white-space: nowrap;
     }
+    .live-workspace-layout {
+      display: grid;
+      grid-template-columns: minmax(220px, 280px) minmax(0, 1fr);
+      gap: 12px;
+      align-items: start;
+    }
+    .live-source-dock {
+      display: grid;
+      gap: 10px;
+      position: sticky;
+      top: 12px;
+      min-width: 0;
+    }
+    .live-source-dock-head {
+      display: flex;
+      gap: 8px;
+      align-items: start;
+      justify-content: space-between;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: var(--panel);
+    }
+    .live-source-dock-head h3 { margin: 0; font-size: 16px; }
+    .live-source-dock-head p { margin: 4px 0 0; color: var(--muted); font-size: 12px; font-weight: 800; }
+    .live-source-tree {
+      display: grid;
+      gap: 8px;
+      max-height: min(64vh, 680px);
+      overflow: auto;
+      padding-right: 2px;
+    }
+    .live-source-node {
+      width: 100%;
+      min-width: 0;
+      min-height: 64px;
+      display: grid;
+      gap: 6px;
+      text-align: left;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 10px;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .live-source-node.active,
+    .live-source-node:focus-visible {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px var(--color-selection-ring);
+    }
+    .live-source-node.assigned { background: var(--panel-soft); }
+    .live-source-node.limit-reached { opacity: 0.62; }
+    .live-source-node.dragging { border-style: dashed; }
+    .live-source-title {
+      min-width: 0;
+      overflow-wrap: anywhere;
+      font-size: 14px;
+      font-weight: 900;
+    }
+    .live-source-meta {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+    }
+    .live-workspace-main {
+      display: grid;
+      gap: 12px;
+      min-width: 0;
+    }
     .live-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     .live-grid[data-grid-size="1"] { grid-template-columns: 1fr; }
     .live-grid[data-grid-size="2"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -2624,6 +2696,36 @@ std::string ClientShellCss() {
     .tile-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .tile-controls { display: grid; grid-template-columns: minmax(0, 1fr) minmax(110px, 150px); gap: 8px; }
     .tile-controls label { display: grid; gap: 4px; color: var(--muted); font-size: 12px; font-weight: 800; }
+    .tile-assignment {
+      min-width: 0;
+      display: grid;
+      gap: 3px;
+      border: 1px dashed var(--line);
+      border-radius: 6px;
+      padding: 8px;
+      background: var(--panel-soft);
+    }
+    .tile-assignment span,
+    .tile-assignment small {
+      min-width: 0;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
+    .tile-assignment strong {
+      min-width: 0;
+      font-size: 14px;
+      overflow-wrap: anywhere;
+    }
+    .live-drop-tile[data-drop-state="over"] {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px var(--color-selection-ring);
+    }
+    .live-drop-tile[data-drop-state="over"] .tile-assignment {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+    }
     .tile-actions {
       display: flex;
       gap: 6px;
@@ -2715,7 +2817,15 @@ std::string ClientShellCss() {
         align-self: center;
       }
     }
-    @media (max-width: 780px) { .workspace, .live-toolbar { grid-template-columns: 1fr; } }
+    @media (max-width: 780px) {
+      .workspace, .live-toolbar, .live-workspace-layout { grid-template-columns: 1fr; }
+      .live-source-dock { position: static; }
+      .live-source-tree {
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        max-height: none;
+        overflow: visible;
+      }
+    }
     @media (max-width: 560px) {
       .live-grid, .live-grid[data-grid-size] { grid-template-columns: 1fr; }
       .tile-controls { grid-template-columns: 1fr; }

@@ -794,6 +794,7 @@ void AppendClientShellScript(std::ostringstream& out) {
     let liveStatusTimer = null;
     let liveDashboardTimer = null;
     let liveBulkNonce = 0;
+    let liveDragViewId = '';
 	    function tileView(tile) {
 	      return viewById(tile?.viewId || '');
 	    }
@@ -827,10 +828,28 @@ void AppendClientShellScript(std::ostringstream& out) {
 	    function updateTileViewSelect(tile) {
 	      const root = document.querySelector(`[data-tile="${tile.index}"]`);
 	      const select = root?.querySelector('[data-role="view"]');
-	      if (!select) return;
-	      select.innerHTML = liveViewOptionsHtml(tile);
-	      select.value = tile.viewId || '';
-	      select.disabled = Boolean(tile.sessionId);
+	      if (select) {
+	        select.innerHTML = liveViewOptionsHtml(tile);
+	        select.value = tile.viewId || '';
+	        select.disabled = Boolean(tile.sessionId);
+	      }
+	      updateLiveSourceTreeState();
+	    }
+	    function updateLiveSourceTreeState() {
+	      const selectedTile = selectedLiveTile === null ? null : liveTiles[selectedLiveTile];
+	      document.querySelectorAll('[data-source-view]').forEach(node => {
+	        const viewId = node.dataset.sourceView || '';
+	        const view = viewById(viewId);
+	        const assigned = assignedTileCountForView(viewId);
+	        const max = viewMaxTiles(view);
+	        node.classList.toggle('active', viewId === selectedViewId);
+	        node.classList.toggle('assigned', assigned > 0);
+	        node.classList.toggle('limit-reached', Boolean(view) && assigned >= max && selectedTile?.viewId !== viewId);
+	        node.setAttribute('aria-selected', viewId === selectedViewId ? 'true' : 'false');
+	        node.setAttribute('aria-disabled', Boolean(view) && assigned >= max && selectedTile?.viewId !== viewId ? 'true' : 'false');
+	        const count = node.querySelector('[data-role="assigned-count"]');
+	        if (count) count.textContent = `${assigned}/${max}`;
+	      });
 	    }
 	    function updateVisibleLiveTileControls() {
 	      for (const tile of visibleLiveTiles()) {
@@ -893,10 +912,15 @@ void AppendClientShellScript(std::ostringstream& out) {
       const viewLabel = view?.displayName || view?.viewId || '채널 미선택';
       const metadataLabel = stale ? '지연' : (tile.sessionId ? '정상' : '미제공');
       const a11yStatus = liveTileA11yStatus(tile, view, statusLabel, metadataLabel);
+      root.dataset.viewId = tile.viewId || '';
       root.setAttribute('aria-label', clientDynamicText(`타일 ${tile.index + 1}: ${viewLabel} · ${statusLabel}`));
       root.setAttribute('aria-current', selectedLiveTile === tile.index ? 'true' : 'false');
       root.querySelector('[data-role="status"]').textContent = statusLabel;
       root.querySelector('[data-role="status"]').className = `chip${tileStatusClass(stale ? 'stale' : status)}`;
+      const viewLabelNode = root.querySelector('[data-role="view-label"]');
+      if (viewLabelNode) viewLabelNode.textContent = viewLabel;
+      const sourceMetaNode = root.querySelector('[data-role="source-meta"]');
+      if (sourceMetaNode) sourceMetaNode.textContent = view ? `${sourceKindLabel(view.sourceKind, view)} · 최대 ${viewMaxTiles(view)}개` : '소스를 타일에 드롭';
       root.querySelector('[data-role="connection"]').textContent = clientDynamicText(liveTileConnectionLabel(tile));
       root.querySelector('[data-role="tracks"]').textContent = display(tile.trackCount);
       root.querySelector('[data-role="events"]').textContent = display(tile.eventCount);
@@ -918,6 +942,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	      }
 	      if (stopBtn) stopBtn.disabled = !tile.sessionId;
 	      if (restartBtn) restartBtn.disabled = !view;
+	      updateLiveSourceTreeState();
 	      updateLiveSummary();
 	    }
     function updateAllTileDom() {
@@ -940,28 +965,62 @@ void AppendClientShellScript(std::ostringstream& out) {
         if (wrap) wrap.hidden = modes.length <= 1;
       }
     }
-	    function setTileView(index, viewId) {
+	    function resetTileSignal(tile) {
+	      tile.trackCount = null;
+	      tile.eventCount = null;
+	      tile.lastMetadataAt = 0;
+	      tile.lastError = '';
+	      tile.status = 'offline';
+	      tile.connectionStatus = 'offline';
+	      tile.stale = false;
+	    }
+	    async function assignViewToTile(index, viewId, options = {}) {
 	      const tile = liveTiles[index];
-	      if (!tile || tile.sessionId) return;
 	      const nextView = viewById(viewId || '');
-	      if (nextView && viewAssignmentLimitReached(nextView, index)) {
+	      if (!tile || !nextView) return false;
+	      if (viewAssignmentLimitReached(nextView, index) && tile.viewId !== nextView.viewId) {
 	        tile.status = 'error';
 	        tile.connectionStatus = `최대 ${viewMaxTiles(nextView)}개`;
 	        updateTileViewSelect(tile);
 	        updateTileDom(tile);
 	        refreshSelectedTileDetail();
-	        return;
+	        return false;
 	      }
-	      tile.viewId = viewId || '';
-	      const root = document.querySelector(`[data-tile="${index}"]`);
-	      if (root) {
-        const viewSelect = root.querySelector('[data-role="view"]');
-        if (viewSelect) viewSelect.value = tile.viewId;
+	      if (tile.sessionId) {
+	        await stopLiveTile(index, { keepError: true });
 	      }
+	      tile.viewId = nextView.viewId || '';
+	      tile.overlayMode = defaultOverlayModeForView(nextView);
+	      resetTileSignal(tile);
+	      selectedViewId = tile.viewId || selectedViewId;
+	      selectLiveTile(index);
 	      applyTileModeOptions(tile);
 	      updateTileDom(tile);
 	      updateVisibleLiveTileControls();
 	      refreshSelectedTileDetail();
+	      if (options.start !== false) {
+	        await startLiveTile(index);
+	      }
+	      return true;
+	    }
+	    function setTileView(index, viewId) {
+	      assignViewToTile(index, viewId, { start: false }).catch(error => {
+	        const tile = liveTiles[index];
+	        if (!tile) return;
+	        tile.status = 'error';
+	        tile.connectionStatus = error.message || 'error';
+	        tile.lastError = error.message || 'error';
+	        updateTileDom(tile);
+	      });
+	    }
+	    function selectedAssignmentTileIndex() {
+	      if (selectedLiveTile !== null && selectedLiveTile < liveTileCount) return selectedLiveTile;
+	      return liveTileCount > 0 ? 0 : null;
+	    }
+	    async function assignSourceToSelectedTile(viewId) {
+	      const index = selectedAssignmentTileIndex();
+	      if (index === null) return false;
+	      return assignViewToTile(index, viewId, { start: true });
 	    }
 	    function liveGridOptionLabel(count) {
 	      return count === 1 ? '1개' : count === 2 ? '1x2' : count === 4 ? '2x2' : count === 6 ? '2x3' : '3x3';
@@ -971,6 +1030,30 @@ void AppendClientShellScript(std::ostringstream& out) {
 	        .filter(count => count <= maxLiveTiles)
 	        .map(count => `<option value="${count}"${count === liveTileCount ? ' selected' : ''}>${liveGridOptionLabel(count)}</option>`)
 	        .join('');
+	    }
+	    function liveSourceTreeHtml() {
+	      return `
+	        <aside class="live-source-dock" data-testid="client-live-source-tree" aria-label="라이브 소스 트리">
+	          <div class="live-source-dock-head">
+	            <div>
+	              <h3>소스</h3>
+	              <p>타일에 드롭해 바로 배치합니다.</p>
+	            </div>
+	            <span class="chip">${views.length}</span>
+	          </div>
+	          <div class="live-source-tree" role="tree">
+	            ${views.map(view => `
+	              <button class="live-source-node${view.viewId === selectedViewId ? ' active' : ''}" type="button" role="treeitem" draggable="true" data-source-view="${escapeHtml(view.viewId)}" aria-selected="${view.viewId === selectedViewId ? 'true' : 'false'}">
+	                <span class="live-source-title">${escapeHtml(view.displayName || view.viewId)}</span>
+	                <span class="live-source-meta">
+	                  <span>${escapeHtml(sourceKindLabel(view.sourceKind, view))}</span>
+	                  <span data-role="assigned-count">0/${viewMaxTiles(view)}</span>
+	                </span>
+	              </button>
+	            `).join('')}
+	          </div>
+	        </aside>
+	      `;
 	    }
 	    function liveSummaryCounts() {
 	      const tiles = visibleLiveTiles();
@@ -998,18 +1081,18 @@ void AppendClientShellScript(std::ostringstream& out) {
 	    }
 	    function liveTileHtml(tile) {
 	      return `
-	        <article class="tile${selectedLiveTile === tile.index ? ' selected' : ''}" data-tile="${tile.index}" tabindex="0" role="group" aria-label="타일 ${tile.index + 1}: 라이브" aria-describedby="liveTileStatus${tile.index}" aria-current="${selectedLiveTile === tile.index ? 'true' : 'false'}">
+	        <article class="tile live-drop-tile${selectedLiveTile === tile.index ? ' selected' : ''}" data-tile="${tile.index}" data-view-id="${escapeHtml(tile.viewId || '')}" data-drop-state="idle" tabindex="0" role="group" aria-label="타일 ${tile.index + 1}: 라이브" aria-describedby="liveTileStatus${tile.index}" aria-current="${selectedLiveTile === tile.index ? 'true' : 'false'}">
 	          <div class="tile-head">
 	            <div class="tile-title">
 	              <h3>타일 ${tile.index + 1}</h3>
 	              <span class="chip" data-role="status">offline</span>
 	            </div>
 	            <div class="tile-controls">
-	              <label>채널
-		                <select data-role="view" aria-label="타일 ${tile.index + 1} 채널 선택">
-		                  ${liveViewOptionsHtml(tile)}
-		                </select>
-	              </label>
+	              <div class="tile-assignment" data-role="assignment">
+	                <span>배치 소스</span>
+	                <strong data-role="view-label">${escapeHtml(tileView(tile)?.displayName || tile.viewId || '소스 없음')}</strong>
+	                <small data-role="source-meta">${tile.viewId ? escapeHtml(sourceKindLabel(tileView(tile)?.sourceKind, tileView(tile))) : '소스를 타일에 드롭'}</small>
+	              </div>
 	              <label data-role="mode-wrap">보기 방식
 	                <select data-role="mode" aria-label="타일 ${tile.index + 1} 보기 방식"></select>
 	              </label>
@@ -1065,9 +1148,14 @@ void AppendClientShellScript(std::ostringstream& out) {
 	            <div class="metric"><span>지연</span><strong data-summary="stale">0</strong></div>
 	            <div class="metric"><span>오프라인</span><strong data-summary="offline">0</strong></div>
 	          </div>
-	          <section class="detail-box" id="liveSelectedDetail">${emptyState('타일을 선택하세요', '선택한 타일의 연결, 메타데이터, 이벤트 상태가 여기에 표시됩니다.')}</section>
-	          <div class="live-grid" data-grid-size="${liveTileCount}" data-density="${escapeHtml(liveDensity)}">
-	            ${liveTiles.slice(0, liveTileCount).map(liveTileHtml).join('')}
+	          <div class="live-workspace-layout" data-testid="client-live-workspace" data-workspace-model="source-tree,drag-drop-grid,multi-source">
+	            ${liveSourceTreeHtml()}
+	            <section class="live-workspace-main" aria-label="라이브 워크스페이스">
+	              <section class="detail-box" id="liveSelectedDetail">${emptyState('타일을 선택하세요', '선택한 타일의 연결, 메타데이터, 이벤트 상태가 여기에 표시됩니다.')}</section>
+	              <div class="live-grid" data-testid="client-live-drop-grid" data-grid-size="${liveTileCount}" data-density="${escapeHtml(liveDensity)}">
+	                ${liveTiles.slice(0, liveTileCount).map(liveTileHtml).join('')}
+	              </div>
+	            </section>
 	          </div>
 	        </div>
 	      `;
@@ -1089,6 +1177,35 @@ void AppendClientShellScript(std::ostringstream& out) {
 	      root.querySelector('[data-action="start"]')?.addEventListener('click', () => startLiveTile(tile.index));
 	      root.querySelector('[data-action="restart"]')?.addEventListener('click', () => restartLiveTile(tile.index));
 	      root.querySelector('[data-action="stop"]')?.addEventListener('click', () => stopLiveTile(tile.index));
+	      root.addEventListener('dragenter', event => {
+	        const viewId = event.dataTransfer?.getData('text/plain') || liveDragViewId;
+	        if (!viewId || !viewById(viewId)) return;
+	        event.preventDefault();
+	        root.dataset.dropState = 'over';
+	      });
+	      root.addEventListener('dragover', event => {
+	        const viewId = event.dataTransfer?.getData('text/plain') || liveDragViewId;
+	        if (!viewId || !viewById(viewId)) return;
+	        event.preventDefault();
+	        if (event.dataTransfer) event.dataTransfer.dropEffect = 'copy';
+	        root.dataset.dropState = 'over';
+	      });
+	      root.addEventListener('dragleave', event => {
+	        if (root.contains(event.relatedTarget)) return;
+	        root.dataset.dropState = 'idle';
+	      });
+	      root.addEventListener('drop', event => {
+	        const viewId = event.dataTransfer?.getData('text/plain') || liveDragViewId;
+	        if (!viewId || !viewById(viewId)) return;
+	        event.preventDefault();
+	        root.dataset.dropState = 'idle';
+	        assignViewToTile(tile.index, viewId, { start: true }).catch(error => {
+	          tile.status = 'error';
+	          tile.connectionStatus = error.message || 'error';
+	          tile.lastError = error.message || 'error';
+	          updateTileDom(tile);
+	        });
+	      });
 	      root.addEventListener('keydown', event => {
 	        if (event.target !== root) return;
 	        if (event.key === 'Enter' || event.key === ' ') {
@@ -1139,6 +1256,40 @@ void AppendClientShellScript(std::ostringstream& out) {
 	      applyTileModeOptions(tile);
 	      updateTileDom(tile);
 	    }
+	    function bindLiveSourceTree() {
+	      document.querySelectorAll('[data-source-view]').forEach(node => {
+	        const viewId = node.dataset.sourceView || '';
+	        node.addEventListener('click', () => {
+	          assignSourceToSelectedTile(viewId).catch(error => {
+	            showToast?.(error.message || '소스를 배치하지 못했습니다.', { tone: 'danger' });
+	          });
+	        });
+	        node.addEventListener('keydown', event => {
+	          if (event.key !== 'Enter' && event.key !== ' ') return;
+	          event.preventDefault();
+	          assignSourceToSelectedTile(viewId).catch(error => {
+	            showToast?.(error.message || '소스를 배치하지 못했습니다.', { tone: 'danger' });
+	          });
+	        });
+	        node.addEventListener('dragstart', event => {
+	          liveDragViewId = viewId;
+	          node.classList.add('dragging');
+	          if (event.dataTransfer) {
+	            event.dataTransfer.effectAllowed = 'copy';
+	            event.dataTransfer.setData('text/plain', viewId);
+	            event.dataTransfer.setData('application/x-media-server-view', viewId);
+	          }
+	        });
+	        node.addEventListener('dragend', () => {
+	          liveDragViewId = '';
+	          node.classList.remove('dragging');
+	          document.querySelectorAll('.live-drop-tile[data-drop-state="over"]').forEach(tileNode => {
+	            tileNode.dataset.dropState = 'idle';
+	          });
+	        });
+	      });
+	      updateLiveSourceTreeState();
+	    }
 	    function bindLiveGridControls() {
 	      document.querySelector('#liveAllStart')?.addEventListener('click', () => startAllLiveTiles());
 	      document.querySelector('#liveAllStop')?.addEventListener('click', () => stopAllLiveTiles());
@@ -1176,6 +1327,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	        return;
 	      }
 	      detail.innerHTML = liveMonitorHtml();
+	      bindLiveSourceTree();
 	      for (const tile of liveTiles.slice(0, liveTileCount)) {
 	        bindLiveTile(tile);
 	      }

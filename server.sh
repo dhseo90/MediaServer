@@ -248,6 +248,8 @@ Usage:
                  v1.6.0 tracker benchmark harness planning-only 경계를 검증합니다.
   verify-v170-client-action-reduction
                  v1.7.0 Client Live 버튼/CTA 축소 baseline과 UI smoke 연결을 검증합니다.
+  verify-v170-client-live-workspace
+                 v1.7.0 Client Live source tree/drag-drop workspace 계약을 검증합니다.
   verify-server-start-modes
                  foreground/start 실행 모드의 health, route, state file 안정성을 검증합니다.
   verify-auth-bootstrap
@@ -852,6 +854,10 @@ case "${cmd}" in
   verify-v170-client-action-reduction)
     require_internal verify_v170_client_action_reduction.mjs
     exec "${INTERNAL_DIR}/verify_v170_client_action_reduction.mjs" "$@"
+    ;;
+  verify-v170-client-live-workspace)
+    require_internal verify_v170_client_live_workspace.mjs
+    exec "${INTERNAL_DIR}/verify_v170_client_live_workspace.mjs" "$@"
     ;;
   verify-server-start-modes)
     require_internal verify_server_start_modes.sh

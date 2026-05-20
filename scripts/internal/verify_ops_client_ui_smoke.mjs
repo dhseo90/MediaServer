@@ -123,7 +123,7 @@ const pageChecks = [
     name: "client-live",
     path: "/client/live",
     visualSelector: '[data-testid="client-shell-page"]',
-    must: ['data-testid="client-shell-page"', 'data-client-active="live"', 'id="views"', 'id="detail"', '/webrtc/config', 'peerConnectionConfig', 'viewMaxTiles', 'maxTiles', 'id="liveDensity"', 'id="liveSummary"', 'data-testid="client-live-action-reduction"', 'data-action-model="source-drag,tile-selection,icon-actions,keyboard-shortcuts"', 'class="workspace-actions"', 'class="icon-button tile-action-primary"', 'data-action="restart"', 'restartLiveTile', "event.key === 's'", "event.key === 'Delete'", 'tabindex="0"', 'focusLiveTile', 'ArrowRight', 'aria-describedby="liveTileStatus${tile.index}"', 'data-role="a11y-status"', 'aria-live="polite"', 'aria-atomic="true"', 'liveTileA11yStatus', 'liveTileConnectionLabel', 'clientDynamicText', 'data-client-copy="status"', 'data-client-copy="events"', '타일 ${tile.index + 1} 시작'],
+    must: ['data-testid="client-shell-page"', 'data-client-active="live"', 'id="views"', 'id="detail"', '/webrtc/config', 'peerConnectionConfig', 'viewMaxTiles', 'maxTiles', 'id="liveDensity"', 'id="liveSummary"', 'data-testid="client-live-action-reduction"', 'data-action-model="source-drag,tile-selection,icon-actions,keyboard-shortcuts"', 'data-testid="client-live-workspace"', 'data-workspace-model="source-tree,drag-drop-grid,multi-source"', 'data-testid="client-live-source-tree"', 'data-source-view="${escapeHtml(view.viewId)}"', 'draggable="true"', 'assignViewToTile', 'assignSourceToSelectedTile', 'data-drop-state="idle"', 'dataTransfer.setData', "root.addEventListener('drop'", "root.addEventListener('dragover'", 'class="workspace-actions"', 'class="icon-button tile-action-primary"', 'data-action="restart"', 'restartLiveTile', "event.key === 's'", "event.key === 'Delete'", 'tabindex="0"', 'focusLiveTile', 'ArrowRight', 'aria-describedby="liveTileStatus${tile.index}"', 'data-role="a11y-status"', 'aria-live="polite"', 'aria-atomic="true"', 'liveTileA11yStatus', 'liveTileConnectionLabel', 'clientDynamicText', 'data-client-copy="status"', 'data-client-copy="events"', '타일 ${tile.index + 1} 시작'],
     shellMust: clientShellMust,
     mustNot: [...clientForbiddenText(), 'new RTCPeerConnection({ iceServers: [] })', 'id="liveAllStart"', 'id="liveAllRestart"'],
   },
@@ -655,6 +655,8 @@ function clientLiveTileKeyboardExpression(a11ySnapshot) {
           viewSelect.dispatchEvent(new Event('change', { bubbles: true }));
           await wait(180);
         }
+        if (!first.querySelector('[data-role="assignment"]')) issue('first tile assignment summary missing');
+        if (!document.querySelector('[data-testid="client-live-source-tree"] [data-source-view]')) issue('client live source tree node missing');
         const describedBy = String(first.getAttribute('aria-describedby') || '');
         if (!describedBy) issue('first tile aria-describedby missing');
         const describedNode = describedBy ? document.getElementById(describedBy) : null;
@@ -668,7 +670,7 @@ function clientLiveTileKeyboardExpression(a11ySnapshot) {
           for (const expected of requiredStatusParts) {
             if (!statusText.includes(expected)) issue('first tile a11y status missing text: ' + expected);
           }
-          if (expectedOfflineStatus && statusText !== expectedOfflineStatus) {
+          if (viewSelect && expectedOfflineStatus && statusText !== expectedOfflineStatus) {
             issue('first tile a11y status mismatch: ' + statusText);
           }
           const style = window.getComputedStyle(describedNode);
@@ -678,8 +680,8 @@ function clientLiveTileKeyboardExpression(a11ySnapshot) {
         }
         const labels = Array.from(first.querySelectorAll('button, select')).map(node => node.getAttribute('aria-label') || '');
         const expectedLabels = language === 'english'
-          ? ['Tile 1 Start', 'Tile 1 Reconnect', 'Tile 1 Stop', 'Tile 1 Select channel']
-          : ['타일 1 시작', '타일 1 재연결', '타일 1 정지', '타일 1 채널 선택'];
+          ? ['Tile 1 Start', 'Tile 1 Reconnect', 'Tile 1 Stop']
+          : ['타일 1 시작', '타일 1 재연결', '타일 1 정지'];
         for (const expected of expectedLabels) {
           if (!labels.some(label => label.includes(expected))) issue('missing control aria-label: ' + expected);
         }
