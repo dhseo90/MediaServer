@@ -58,6 +58,11 @@ check("dedicated doc defines manual UI target screens and not-run evidence bound
     "`/setup`",
     "`/login`",
     "`/password/change`",
+    "Chrome auth input evidence",
+    "weak password rejection",
+    "자동 smoke 통과만으로 Chrome 수동 auth 입력을 완료했다고 쓰지 않습니다",
+    "plaintext password",
+    "generated password suggestion",
     "`/ops/home`",
     "`/ops/dashboard`",
     "`/ops/sources`",
@@ -143,6 +148,9 @@ check("manual checklist and template include current release evidence fields", (
   }
   for (const snippet of [
     "verify-v160-manual-ui-release-checklist-closure",
+    "Chrome Auth 입력 Evidence",
+    "PASS/FAIL/BLOCKED",
+    "Chrome/Computer Use/Browser Use 실패 지점",
     "source URL",
     "Developer URL",
     "raw JSON",

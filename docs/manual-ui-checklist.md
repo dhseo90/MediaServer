@@ -29,6 +29,16 @@ v1.6.0 manual UI release checklist closure는
 - `/setup`: 약한 비밀번호가 거절되고, 강한 admin 비밀번호 설정 후 `/login`으로 이동합니다.
 - `/login`: admin 로그인은 `/ops/home`, viewer 로그인은 `/client/live`로 이동합니다.
 - `/password/change`: reset 또는 must-change 계정에서 새 비밀번호 설정 flow가 보입니다.
+- Chrome auth input evidence는 throwaway users file에서만 수행합니다. `/setup`,
+  `/login`, `/password/change`, `/invite/setup`의 비밀번호 입력/제출을 직접
+  수행했다면 weak password rejection, 성공 redirect, screenshot/artifact 경로,
+  실행한 `verify-auth-bootstrap` 또는 `verify-auth-users` 결과를 함께 남깁니다.
+- Chrome/Computer Use/Browser Use가 비밀번호 필드나 clipboard permission 때문에
+  입력을 끝까지 수행하지 못한 경우에는 `BLOCKED` 또는 `건너뜀`으로 기록하고,
+  어떤 단계까지 직접 확인했는지와 대체로 통과한 auth smoke 명령을 분리합니다.
+  자동 smoke 통과만으로 Chrome 수동 auth 입력을 완료했다고 쓰지 않습니다.
+- Auth evidence에는 plaintext password, invite token 원문, session cookie,
+  generated password suggestion을 남기지 않습니다.
 - `/lab`, `/lab/rules`, `/lab/import`: 제품 화면으로 열리지 않고 404 상태를 유지합니다.
 - `/webrtc/test`: 제품 화면으로 다시 열지 않고 닫힌 route 상태를 유지합니다.
 
