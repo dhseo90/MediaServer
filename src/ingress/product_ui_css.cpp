@@ -2575,9 +2575,39 @@ std::string ClientShellCss() {
     .live-monitor { display: grid; gap: 12px; }
     .live-toolbar {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto auto auto auto auto;
+      grid-template-columns: minmax(0, 1fr) auto auto auto;
       gap: 10px;
       align-items: end;
+    }
+    .workspace-actions {
+      position: relative;
+      align-self: end;
+    }
+    .workspace-actions summary {
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 0 12px;
+      background: var(--color-bg-elevated);
+      color: var(--color-text);
+      font-weight: 850;
+      cursor: pointer;
+      list-style: none;
+    }
+    .workspace-actions summary::-webkit-details-marker { display: none; }
+    .workspace-actions summary::after { content: "⋯"; font-weight: 950; }
+    .workspace-actions[open] summary {
+      border-color: var(--color-border-strong);
+      background: var(--color-surface-hover);
+    }
+    .workspace-actions button {
+      margin-top: 6px;
+      width: 100%;
+      white-space: nowrap;
     }
     .live-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
     .live-grid[data-grid-size="1"] { grid-template-columns: 1fr; }
@@ -2594,8 +2624,35 @@ std::string ClientShellCss() {
     .tile-title { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
     .tile-controls { display: grid; grid-template-columns: minmax(0, 1fr) minmax(110px, 150px); gap: 8px; }
     .tile-controls label { display: grid; gap: 4px; color: var(--muted); font-size: 12px; font-weight: 800; }
-    .tile-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-    .tile-actions button { flex: 1 1 76px; }
+    .tile-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 120ms ease;
+    }
+    .tile:hover .tile-actions,
+    .tile:focus-within .tile-actions,
+    .tile.selected .tile-actions {
+      opacity: 1;
+      pointer-events: auto;
+    }
+    .icon-button {
+      width: 38px;
+      min-width: 38px;
+      height: 38px;
+      min-height: 38px;
+      display: inline-grid;
+      place-items: center;
+      padding: 0;
+      border-radius: 999px;
+      font-size: 15px;
+      line-height: 1;
+    }
+    .icon-button[disabled] { opacity: 0.48; cursor: not-allowed; }
+    .tile-action-primary { background: var(--color-primary); color: var(--color-on-primary); border-color: var(--color-primary); }
     .tile-stage { position: relative; min-height: 150px; aspect-ratio: 16 / 9; border-radius: 6px; overflow: hidden; background: var(--color-media-bg); display: grid; place-items: center; color: var(--color-code-text); }
     .live-grid[data-density="compact"] .tile-stage { min-height: 108px; }
     .tile-stage video { width: 100%; height: 100%; object-fit: contain; background: var(--color-media-bg); }
@@ -2662,11 +2719,11 @@ std::string ClientShellCss() {
     @media (max-width: 560px) {
       .live-grid, .live-grid[data-grid-size] { grid-template-columns: 1fr; }
       .tile-controls { grid-template-columns: 1fr; }
-      .tile-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); }
-      .tile-actions button { min-height: 44px; padding: 0 8px; }
+      .tile-actions { opacity: 1; pointer-events: auto; }
+      .tile-actions .icon-button { width: 44px; min-width: 44px; height: 44px; min-height: 44px; }
     }
     @media (max-width: 340px) {
-      .tile-actions { grid-template-columns: 1fr; }
+      .tile-actions { justify-content: flex-start; }
     }
     @media (max-width: 560px) {
       .client-compare-head,

@@ -914,7 +914,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	      if (startBtn) {
 	        const limitReached = viewActiveLimitReached(view, tile.index);
 	        startBtn.disabled = !view || Boolean(tile.sessionId) || limitReached;
-	        startBtn.title = limitReached ? `이 채널은 최대 ${viewMaxTiles(view)}개 타일까지만 동시에 재생할 수 있습니다.` : '';
+	        startBtn.title = limitReached ? `이 채널은 최대 ${viewMaxTiles(view)}개 타일까지만 동시에 재생할 수 있습니다.` : `타일 ${tile.index + 1} 시작`;
 	      }
 	      if (stopBtn) stopBtn.disabled = !tile.sessionId;
 	      if (restartBtn) restartBtn.disabled = !view;
@@ -1014,10 +1014,10 @@ void AppendClientShellScript(std::ostringstream& out) {
 	                <select data-role="mode" aria-label="타일 ${tile.index + 1} 보기 방식"></select>
 	              </label>
 	            </div>
-	            <div class="tile-actions">
-	              <button type="button" data-action="start" aria-label="타일 ${tile.index + 1} 시작">시작</button>
-	              <button type="button" data-action="restart" class="ghost" aria-label="타일 ${tile.index + 1} 재연결">재연결</button>
-	              <button type="button" data-action="stop" class="ghost" aria-label="타일 ${tile.index + 1} 정지" disabled>정지</button>
+	            <div class="tile-actions" aria-label="타일 ${tile.index + 1} 작업">
+	              <button type="button" class="icon-button tile-action-primary" data-action="start" title="타일 ${tile.index + 1} 시작" aria-label="타일 ${tile.index + 1} 시작"><span aria-hidden="true">▶</span></button>
+	              <button type="button" class="icon-button" data-action="restart" title="타일 ${tile.index + 1} 재연결" aria-label="타일 ${tile.index + 1} 재연결"><span aria-hidden="true">↻</span></button>
+	              <button type="button" class="icon-button" data-action="stop" title="타일 ${tile.index + 1} 정지" aria-label="타일 ${tile.index + 1} 정지" disabled><span aria-hidden="true">■</span></button>
 	            </div>
 	          </div>
 	          <div class="tile-stage">
@@ -1037,7 +1037,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	    }
 	    function liveMonitorHtml() {
 	      return `
-	        <div class="live-monitor">
+	        <div class="live-monitor" data-testid="client-live-action-reduction" data-action-model="source-drag,tile-selection,icon-actions,keyboard-shortcuts">
 	          <div class="live-toolbar">
 	            <div>
 	              <h2>라이브</h2>
@@ -1053,9 +1053,10 @@ void AppendClientShellScript(std::ostringstream& out) {
 	                <option value="compact"${liveDensity === 'compact' ? ' selected' : ''}>고밀도</option>
 	              </select>
 	            </label>
-	            <button id="liveAllStart" class="ghost" type="button">전체 시작</button>
-	            <button id="liveAllRestart" class="ghost" type="button">전체 재연결</button>
-	            <button id="liveAllStop" class="ghost" type="button">전체 정지</button>
+	            <details class="workspace-actions">
+	              <summary aria-label="워크스페이스 작업">작업</summary>
+	              <button id="liveAllStop" class="ghost danger" type="button">전체 정지</button>
+	            </details>
 	          </div>
 	          <div class="summary" id="liveSummary">
 	            <div class="metric"><span>타일</span><strong data-summary="total">0</strong></div>
@@ -1093,6 +1094,21 @@ void AppendClientShellScript(std::ostringstream& out) {
 	        if (event.key === 'Enter' || event.key === ' ') {
 	          event.preventDefault();
 	          selectLiveTile(tile.index);
+	          return;
+	        }
+	        if (event.key === 's' || event.key === 'S') {
+	          event.preventDefault();
+	          startLiveTile(tile.index);
+	          return;
+	        }
+	        if (event.key === 'r' || event.key === 'R') {
+	          event.preventDefault();
+	          restartLiveTile(tile.index);
+	          return;
+	        }
+	        if (event.key === 'Delete' || event.key === 'Backspace') {
+	          event.preventDefault();
+	          stopLiveTile(tile.index);
 	          return;
 	        }
 	        if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
