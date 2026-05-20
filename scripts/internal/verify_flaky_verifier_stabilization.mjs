@@ -71,6 +71,11 @@ check("clipboard fallback and capture stubs restore browser state", () => {
     "Browser Use virtual clipboard is not installed",
     "`verify-ops-click-e2e` clipboard 실패 주입",
     "제품 fallback 검증은 Browser Use clipboard 성공 여부가 아니라 UI toast",
+    "Browser/Computer Use fallback 절차",
+    "Browser Use, Chrome",
+    "Computer Use",
+    "raw JSON/API-only 확인은",
+    "자동 smoke 결과를 `대체 검증`으로만 기록",
   ], "docs/browser-use-clipboard-diagnostics.md");
 });
 
@@ -127,6 +132,8 @@ check("fixture cleanup verifier and docs expose the stabilization contract", () 
     "Access approval",
     "rule preview save",
     "clipboard fallback",
+    "Browser/Computer Use fallback",
+    "raw JSON/API-only",
     "fixture cleanup",
     "browser route smoke",
     "sandbox local fetch/CDP 제한",

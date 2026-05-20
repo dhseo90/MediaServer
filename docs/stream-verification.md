@@ -196,6 +196,9 @@ FFmpeg/ffprobe CLI가 없는 공개/CI 환경에서는 codec matrix와 RTSP deco
   강제로 주입하고 각각 restore합니다. Browser Use clipboard 자체 오류는
   [browser-use-clipboard-diagnostics.md](./browser-use-clipboard-diagnostics.md) 기준으로
   제품 fallback 회귀와 분리합니다.
+- Browser/Computer Use fallback: 수동 UI evidence는 Browser Use 직접 조작,
+  Chrome 직접 조작, Computer Use visible UI 조작 순서로 시도하고, raw JSON/API-only
+  확인을 수동 클릭 evidence로 쓰지 않습니다.
 - fixture cleanup: `verify-fixture-cleanup-contracts`는 access request, EventRecord,
   audit/evidence fixture가 실행 후 복원/삭제되는지 정적으로 확인합니다.
 - browser route smoke: click E2E는 path wait, scroll idle, browser error collector,

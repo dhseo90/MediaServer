@@ -23,6 +23,9 @@ v1.6.0 manual UI release checklist closure는
 - 실행하지 않은 화면, 건너뛴 destructive action, 실패한 테스트는 완료로 표시하지 않습니다.
 - Browser Use clipboard 오류는 [browser-use-clipboard-diagnostics.md](./browser-use-clipboard-diagnostics.md)
   기준으로 제품 회귀와 환경 문제를 분리합니다.
+- Browser/Computer Use fallback은 Browser Use 직접 조작, Chrome 직접 조작,
+  Computer Use visible UI 조작 순서로 시도하고 실패 지점과 대체 smoke를 분리해
+  기록합니다. raw JSON/API-only 확인은 수동 UI 클릭 evidence로 쓰지 않습니다.
 
 ## 2. Auth Shell
 

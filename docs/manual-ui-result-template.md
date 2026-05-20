@@ -70,6 +70,21 @@ suggestion은 기록하지 않습니다.
 - 자동 smoke로 대체 확인한 항목:
 - 수동 auth 입력 미완료 항목:
 
+## Browser/Computer Use Fallback
+
+raw JSON/API-only 확인은 수동 UI 클릭 evidence로 쓰지 않습니다.
+
+| 항목 | 1차 Browser Use | 2차 Chrome | 3차 Computer Use | 마지막 직접 확인 상태 | 대체 smoke | 판정 |
+| --- | --- | --- | --- | --- | --- | --- |
+| auth 입력 |  |  |  |  |  | PASS/FAIL/BLOCKED/미확인 |
+| copy fallback |  |  |  |  |  | PASS/FAIL/BLOCKED/미확인 |
+| route navigation |  |  |  |  |  | PASS/FAIL/BLOCKED/미확인 |
+
+- Browser/Chrome/Computer Use 실패 지점:
+- 환경/sandbox/tool 제한:
+- 제품 회귀 후보로 본 근거:
+- 자동 smoke로만 대체한 항목:
+
 ## 비노출 확인
 
 client/viewer 화면에서 보이지 않아야 하는 항목입니다.

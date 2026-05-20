@@ -39,6 +39,28 @@ Rule WebRTC 링크 복사를 제품 회귀로 판정하지 않습니다.
 - 제품 fallback 검증은 Browser Use clipboard 성공 여부가 아니라 UI toast, fallback textarea, copy payload 비노출 기준으로 판단합니다.
 - Browser Use 환경 문제로 실행하지 못한 항목은 `미확인` 또는 `건너뜀`으로 보고합니다.
 
+## Browser/Computer Use fallback 절차
+
+수동 UI evidence는 실제 화면 조작을 기준으로 남깁니다. Browser Use, Chrome,
+Computer Use가 같은 화면을 서로 대체할 수는 있지만, raw JSON/API-only 확인은
+수동 UI 클릭 evidence가 아닙니다.
+
+1. Codex 인앱 Browser Use로 대상 route를 열고 직접 click/type을 시도합니다.
+2. password field, clipboard, local fetch/CDP, focus, permission 오류가 나면
+   tool 이름, route, selector 또는 화면 영역, 마지막으로 직접 확인한 상태를 기록합니다.
+3. 같은 throwaway fixture에서 Chrome 직접 조작을 시도합니다. 로그인/session이 다른
+   프로필에 묶이면 그 상태를 `BLOCKED` 또는 `미확인`으로 남깁니다.
+4. Browser/Chrome이 field 입력이나 클릭을 완료하지 못할 때만 Computer Use로 보이는
+   화면을 클릭/입력합니다. 비밀번호 원문, invite token 원문, session cookie,
+   OS clipboard 내용은 기록하지 않습니다.
+5. Computer Use도 완료하지 못하면 자동 smoke 결과를 `대체 검증`으로만 기록하고,
+   수동 UI 항목은 `BLOCKED`, `건너뜀`, 또는 `미확인`으로 닫습니다.
+6. 수동 UI 완료 보고에는 실제 클릭한 화면과 자동 smoke로 대체 확인한 항목을 분리합니다.
+
+fallback 후에도 제품 회귀로 볼 수 있는 경우는 같은 fixture에서 실제 화면 클릭이
+가능했는데도 UI toast/fallback, redirect, 비노출 기준이 깨진 경우입니다.
+도구가 화면을 조작하지 못한 것만으로 제품 회귀라고 단정하지 않습니다.
+
 ## 보고 형식
 
 ```text
@@ -50,6 +72,8 @@ Rule WebRTC 링크 복사를 제품 회귀로 판정하지 않습니다.
 미확인:
 - Browser Use clipboard 자체 성공 여부:
 - 실제 OS clipboard 내용:
+- Browser/Chrome/Computer Use 실패 지점:
+- raw JSON/API-only 대체 여부:
 
 판정:
 - 제품 회귀: 예/아니오
