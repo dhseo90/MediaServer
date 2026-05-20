@@ -41,6 +41,11 @@ check("template defines runtime dashboard evidence schema and commands", () => {
     "--include-dashboard",
     "--include-rtsp",
     "--idle-after-cleanup-minutes 30",
+    "Runtime Console 120분 longrun 실행 기준",
+    "run_va_runtime_120=true",
+    "사용자가 `verify-va-runtime-console-longrun --duration-minutes 120` 실행을",
+    "문서, checklist, verifier wording만 바꾼 경우",
+    "Runtime Console 120분 longrun: NOT RUN",
     "./server.sh verify-va-runtime-console-cycles",
   ];
   for (const snippet of required) {
@@ -53,6 +58,10 @@ check("template captures required evidence fields", () => {
   const required = [
     "summary JSON:",
     "markdown report:",
+    "execution trigger:",
+    "not-run reason:",
+    "retention location:",
+    "artifact retention days:",
     "server log:",
     "dashboard polling count:",
     "WebRTC DataChannel sent:",
@@ -79,8 +88,11 @@ check("template separates judgement states and non-execution reporting", () => {
     "| WARNING |",
     "| HOLD |",
     "| FAIL |",
+    "| NOT RUN |",
     "장시간 테스트를 실행하지 않습니다",
     "실제 longrun은 사용자가 명시하거나 RC gate에서 요구할 때만 실행합니다",
+    "30분 longrun, cycle 검증, sample fixture는 120분 Runtime Console PASS evidence를",
+    "release 판단에 쓰는 120분 longrun report는 RC artifact 또는 외부 archive 보존 위치와 retention days",
     "실행하지 않은 longrun은 `미실행`으로 보고하고 PASS evidence로 쓰지 않습니다",
   ];
   for (const snippet of required) {
@@ -143,6 +155,9 @@ check("verification docs reference the evidence template", () => {
   const backlog = readText("docs/development-backlog.md");
   assert(stream.includes("./runtime-dashboard-longrun-evidence-template.md"), "stream verification missing template link");
   assert(stream.includes("이 템플릿은 longrun 실행 증거가 아니며"), "stream verification missing non-execution warning");
+  assert(stream.includes("120분 미실행 기록"), "stream verification missing 120m not-run policy");
+  assert(stream.includes("30분 longrun, cycle 검증, sample fixture를 120분 PASS evidence로 쓰지 않음"), "stream verification missing no-substitution policy");
+  assert(stream.includes("RC artifact 또는 외부 archive 보존 위치와 retention days"), "stream verification missing retention location policy");
   assert(stream.includes("runtime_dashboard_longrun_evidence_sample"), "stream verification missing sample fixture path");
   assert(backlog.includes("Runtime Dashboard long-run evidence template"), "backlog missing longrun template closure");
   assert(backlog.includes("Runtime longrun evidence sample fixture"), "backlog missing sample fixture closure");

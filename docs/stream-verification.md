@@ -1632,6 +1632,9 @@ Runtime Console 검증 정책:
 | 기본 test 포함 여부 | `./server.sh test`에는 포함하지 않음 |
 | 실행 성격 | 30분 이상 실행하는 선택 검증 |
 | 120분 실행 | release candidate 또는 고위험 RTSP/GStreamer/WebRTC/VA fanout 변경 gate |
+| 120분 미실행 기록 | 사용자 명시 요청 없음 또는 변경 범위가 runtime fanout/media path가 아니면 `NOT RUN` |
+| 대체 불가 | 30분 longrun, cycle 검증, sample fixture를 120분 PASS evidence로 쓰지 않음 |
+| report 보존 | RC artifact 또는 외부 archive 보존 위치와 retention days를 기록 |
 | trace env | 검증용 subprocess env에서 `MEDIA_SERVER_WEBRTC_TRACE=1` 사용 |
 | 집계 | DataChannel sent/drop/failure count를 로그에서 집계 |
 | 영구 설정 | `scripts/.media_server.env` 같은 파일은 수정하지 않음 |
