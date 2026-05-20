@@ -887,7 +887,7 @@ void AppendClientShellScript(std::ostringstream& out) {
       return clientStatusLabel(value);
     }
     function liveTileA11yStatus(tile, view, statusLabel, metadataLabel) {
-      const viewLabel = view?.displayName || view?.viewId || '채널 미선택';
+      const viewLabel = view?.displayName || view?.viewId || '소스 없음';
       return clientDynamicText([
         `타일 ${tile.index + 1}: ${viewLabel}`,
         `상태 ${statusLabel}`,
@@ -912,7 +912,7 @@ void AppendClientShellScript(std::ostringstream& out) {
         live: '라이브',
         error: '오류'
       })[String(status)] || status;
-      const viewLabel = view?.displayName || view?.viewId || '채널 미선택';
+      const viewLabel = view?.displayName || view?.viewId || '소스 없음';
       const metadataLabel = stale ? '지연' : (tile.sessionId ? '정상' : '미제공');
       const a11yStatus = liveTileA11yStatus(tile, view, statusLabel, metadataLabel);
       root.dataset.viewId = tile.viewId || '';
@@ -943,7 +943,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	        startBtn.disabled = !view || Boolean(tile.sessionId) || limitReached;
 	        startBtn.title = limitReached ? `이 채널은 최대 ${viewMaxTiles(view)}개 타일까지만 동시에 재생할 수 있습니다.` : `타일 ${tile.index + 1} 시작`;
 	      }
-	      if (stopBtn) stopBtn.disabled = !tile.sessionId;
+	      if (stopBtn) stopBtn.disabled = !tile.sessionId && !tile.viewId;
 	      if (restartBtn) restartBtn.disabled = !view;
 	      updateLiveSourceTreeState();
 	      updateLiveSummary();
@@ -976,6 +976,12 @@ void AppendClientShellScript(std::ostringstream& out) {
 	      tile.status = 'offline';
 	      tile.connectionStatus = 'offline';
 	      tile.stale = false;
+	    }
+	    function clearLiveTileSlot(tile) {
+	      if (!tile) return;
+	      tile.viewId = '';
+	      tile.overlayMode = '';
+	      resetTileSignal(tile);
 	    }
 	    async function assignViewToTile(index, viewId, options = {}) {
 	      const tile = liveTiles[index];
@@ -1148,7 +1154,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	            <div class="tile-actions" aria-label="타일 ${tile.index + 1} 작업">
 	              <button type="button" class="icon-button tile-action-primary" data-action="start" title="타일 ${tile.index + 1} 시작" aria-label="타일 ${tile.index + 1} 시작"><span aria-hidden="true">▶</span></button>
 	              <button type="button" class="icon-button" data-action="restart" title="타일 ${tile.index + 1} 재연결" aria-label="타일 ${tile.index + 1} 재연결"><span aria-hidden="true">↻</span></button>
-	              <button type="button" class="icon-button" data-action="stop" title="타일 ${tile.index + 1} 정지" aria-label="타일 ${tile.index + 1} 정지" disabled><span aria-hidden="true">■</span></button>
+	              <button type="button" class="icon-button" data-action="stop" data-disconnect-scope="tile" title="타일 ${tile.index + 1} 연결 해제" aria-label="타일 ${tile.index + 1} 연결 해제" disabled><span aria-hidden="true">■</span></button>
 	            </div>
 	          </div>
 	          <div class="tile-stage">
@@ -1168,7 +1174,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	    }
 	    function liveMonitorHtml() {
 	      return `
-	        <div class="live-monitor" data-testid="client-live-action-reduction" data-action-model="source-drag,tile-selection,icon-actions,keyboard-shortcuts">
+	        <div class="live-monitor" data-testid="client-live-action-reduction" data-action-model="source-drag,tile-selection,icon-actions,keyboard-shortcuts" data-disconnect-contract="tile-disconnect-clears-slot,workspace-disconnect-keeps-layout">
 	          <div class="live-toolbar">
 	            <div>
 	              <h2>라이브</h2>
@@ -1192,7 +1198,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	            </label>
 	            <details class="workspace-actions">
 	              <summary aria-label="워크스페이스 작업">작업</summary>
-	              <button id="liveAllStop" class="ghost danger" type="button">전체 정지</button>
+	              <button id="liveAllStop" class="ghost danger" type="button">전체 연결 해제</button>
 	            </details>
 	          </div>
 	          <div class="summary" id="liveSummary">
@@ -1230,7 +1236,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	      }
 	      root.querySelector('[data-action="start"]')?.addEventListener('click', () => startLiveTile(tile.index));
 	      root.querySelector('[data-action="restart"]')?.addEventListener('click', () => restartLiveTile(tile.index));
-	      root.querySelector('[data-action="stop"]')?.addEventListener('click', () => stopLiveTile(tile.index));
+	      root.querySelector('[data-action="stop"]')?.addEventListener('click', () => disconnectLiveTile(tile.index));
 	      root.addEventListener('dragenter', event => {
 	        const viewId = event.dataTransfer?.getData('text/plain') || liveDragViewId;
 	        if (!viewId || !viewById(viewId)) return;
@@ -1279,7 +1285,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	        }
 	        if (event.key === 'Delete' || event.key === 'Backspace') {
 	          event.preventDefault();
-	          stopLiveTile(tile.index);
+	          disconnectLiveTile(tile.index);
 	          return;
 	        }
 	        if (event.key === 'ArrowRight' || event.key === 'ArrowDown') {
@@ -1766,6 +1772,16 @@ void AppendClientShellScript(std::ostringstream& out) {
 	      updateVisibleLiveTileControls();
 	      refreshSelectedTileDetail();
 	    }
+    async function disconnectLiveTile(index) {
+      const tile = liveTiles[index];
+      if (!tile) return;
+      await stopLiveTile(index);
+      clearLiveTileSlot(tile);
+      if (selectedLiveTile === index) selectedViewId = '';
+      updateVisibleLiveTileControls();
+      refreshSelectedTileDetail();
+      refreshLiveDockEventFeed();
+    }
     async function stopAllLiveTiles() {
       liveBulkNonce += 1;
       await Promise.all(liveTiles.map(tile => stopLiveTile(tile.index)));

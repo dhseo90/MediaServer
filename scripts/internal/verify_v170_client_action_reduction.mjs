@@ -35,12 +35,12 @@ check(
 );
 check(
   "keyboard shortcuts cover start reconnect stop",
-  script.includes("event.key === 's'") &&
+    script.includes("event.key === 's'") &&
     script.includes("event.key === 'R'") &&
     script.includes("event.key === 'Delete'") &&
     script.includes("startLiveTile(tile.index)") &&
     script.includes("restartLiveTile(tile.index)") &&
-    script.includes("stopLiveTile(tile.index)"),
+    script.includes("disconnectLiveTile(tile.index)"),
 );
 check(
   "bulk start/reconnect are not always-visible toolbar buttons",
