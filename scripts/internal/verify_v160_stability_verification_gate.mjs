@@ -77,6 +77,10 @@ check("gate document keeps longrun and flaky evidence separate", () => {
     "verify-fixture-cleanup-contracts",
     "verify-predev --soak-minutes 30",
     "verify-va-runtime-console-longrun --duration-minutes 120",
+    "`verify-predev` 건너뜀 판정",
+    "skip count와 각 skipped step의 reason",
+    "--include-external-turn not requested",
+    "장기 predev 자체는 통과, 외부 TURN은 NOT RUN",
     "명시 요청 없이 실행하지 않습니다",
     "첫 실패",
     "수정/재실행 사실",
@@ -142,6 +146,8 @@ check("docs and entrypoints link the stability verifier", () => {
     assertIncludes(text, "v1.6.0-stability-verification-gates.md", label);
     assertIncludes(text, "verify-v160-stability-verification-gate", label);
   }
+  assertIncludes(stream, "skip count와 step reason", "stream verification predev skip review");
+  assertIncludes(stream, "외부 TURN `NOT RUN`", "stream verification predev skip review");
   for (const snippet of [
     "verify-v160-stability-verification-gate",
     "verify_v160_stability_verification_gate.mjs",

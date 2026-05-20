@@ -85,6 +85,11 @@ v1.6.0 stabilization release evidence는
 [v1.6.0 Release Evidence Dashboard](./v1.6.0-release-evidence-dashboard.md)를
 기준으로 확인하며, 실행한 검증과 미실행 장시간/실장비/외부 credential gate를
 분리합니다.
+`verify-predev` report에 `건너뜀`이 있으면 skip count와 step reason을 같이
+검토합니다. 사용자가 요청하지 않은 optional external TURN 같은 선택 gate만
+건너뛴 경우에는 predev 결과와 외부 TURN `NOT RUN`을 분리해 기록합니다.
+요청한 hard gate가 건너뛰어진 경우에는 release PASS가 아니라 HOLD 또는 NOT RUN으로
+남깁니다.
 
 ```bash
 ./server.sh verify-v160-release-evidence-dashboard
