@@ -260,6 +260,8 @@ Usage:
                  v1.7.0 Alert Delivery Integration의 payload 분리/retry/audit 계약을 검증합니다.
   verify-v170-scenario-builder-ui
                  v1.7.0 Scenario Builder UI의 Event Rule 폼 적용과 engine 비변경 계약을 검증합니다.
+  verify-v170-ops-client-shared-declutter
+                 v1.7.0 Ops/Client shared action declutter와 context action 계약을 검증합니다.
   verify-v170-source-group-site-management
                  v1.7.0 Source Group/Site Management의 registry/API/UI/scope 계약을 검증합니다.
   verify-v170-tile-info-overlay-health
@@ -896,6 +898,10 @@ case "${cmd}" in
   verify-v170-scenario-builder-ui)
     require_internal verify_v170_scenario_builder_ui.mjs
     exec "${INTERNAL_DIR}/verify_v170_scenario_builder_ui.mjs" "$@"
+    ;;
+  verify-v170-ops-client-shared-declutter)
+    require_internal verify_v170_ops_client_shared_declutter.mjs
+    exec "${INTERNAL_DIR}/verify_v170_ops_client_shared_declutter.mjs" "$@"
     ;;
   verify-v170-source-group-site-management)
     require_internal verify_v170_source_group_site_management.mjs

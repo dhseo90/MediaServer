@@ -2264,6 +2264,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         setTableEmpty,
         tableCellHtml,
         opsRowActionsHtml,
+        opsContextActionsHtml,
         opsTableRowHtml,
         setOpsDetailPanelOpen,
         chip: badge,
@@ -6324,7 +6325,8 @@ void AppendOpsShellScript(std::ostringstream& out,
         return `<button type="button" class="${classes}" data-ops-rule-action="${escapeHtml(action)}" data-ops-rule-id="${escapeHtml(String(id || ''))}">${escapeHtml(label)}</button>`;
       }
       function opsRuleActionButtons(actions) {
-        return opsRowActionsHtml(actions.join(''), 'ops-rule-row-actions');
+        const normalized = actions.map(action => String(action || '').trim()).filter(Boolean);
+        return opsContextActionsHtml(normalized[0] || '', normalized.slice(1).join(''), 'ops-rule-row-actions', '추가 작업');
       }
       function opsRulesMsLabel(value) {
         const numeric = Number(value);
@@ -7456,6 +7458,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       setTableEmpty,
       tableCellHtml,
       opsRowActionsHtml,
+      opsContextActionsHtml,
       opsTableRowHtml,
       setOpsDetailPanelOpen,
       setSelectOptions,
@@ -7766,12 +7769,14 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
           <span class="token">${escapeHtml(inputText)}</span>
           ${source.sourceId ? '' : '<span class="channel-source-note">PublishedView 연결 전</span>'}
         </div>`;
-        const actionsCellHtml = opsRowActionsHtml(`
-          <button type="button" class="secondary" data-view-channel="${escapeHtml(row.id || '')}">상세</button>
-          <button type="button" class="secondary" data-clone-channel="${escapeHtml(row.id || '')}">복제</button>
+        const actionsCellHtml = opsContextActionsHtml(
+          `<button type="button" class="secondary" data-view-channel="${escapeHtml(row.id || '')}">상세</button>`,
+          `<button type="button" class="secondary" data-clone-channel="${escapeHtml(row.id || '')}">복제</button>
           <button type="button" class="secondary" data-open-client-live="${escapeHtml(row.id || '')}" ${view?.enabled === false ? 'disabled' : ''}>라이브 보기</button>
-          <button type="button" class="danger" data-delete-channel="${escapeHtml(row.id || '')}">삭제</button>
-        `, 'channel-row-actions');
+          <button type="button" class="danger" data-delete-channel="${escapeHtml(row.id || '')}">삭제</button>`,
+          'channel-row-actions',
+          '추가 작업'
+        );
         return opsTableRowHtml([
           tableCellHtml('ID', idCellHtml),
           tableCellHtml('이름', `<div class="channel-name-stack"><strong>${escapeHtml(channelName)}</strong>${locationText ? `<span>${escapeHtml(locationText)}</span>` : ''}</div>`),
@@ -8280,6 +8285,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       setRequired,
       setTableEmpty,
       opsRowActionsHtml,
+      opsContextActionsHtml,
       setOpsDetailPanelOpen,
       appendTableCell,
       recordOpsAudit,
@@ -8622,11 +8628,13 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         const nextEnabled = user.enabled ? 'false' : 'true';
         const lifecycleAction = user.enabled ? '비활성화' : '복구';
         const lifecycleClass = user.enabled ? 'danger' : 'secondary';
-        const actionsHtml = opsRowActionsHtml(`
-          <button type="button" class="secondary" data-user-view="${escapeHtml(displayValue(user.username))}">상세</button>
-          <button type="button" class="secondary" data-user-reset-password="${escapeHtml(displayValue(user.username))}">초기화</button>
-          <button type="button" class="${lifecycleClass}" data-user-set-enabled="${nextEnabled}" data-user-action-username="${escapeHtml(displayValue(user.username))}">${lifecycleAction}</button>
-        `, 'user-row-actions');
+        const actionsHtml = opsContextActionsHtml(
+          `<button type="button" class="secondary" data-user-view="${escapeHtml(displayValue(user.username))}">상세</button>`,
+          `<button type="button" class="secondary" data-user-reset-password="${escapeHtml(displayValue(user.username))}">초기화</button>
+          <button type="button" class="${lifecycleClass}" data-user-set-enabled="${nextEnabled}" data-user-action-username="${escapeHtml(displayValue(user.username))}">${lifecycleAction}</button>`,
+          'user-row-actions',
+          '추가 작업'
+        );
         appendLabeledCell(tr, '작업', actionsHtml, 'table-cell-actions');
         usersBody.appendChild(tr);
       }

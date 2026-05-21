@@ -871,6 +871,17 @@ std::string ProductSharedUiScript() {
         .join(' ');
       const opsRowActionsHtml = (html, className = '') =>
         `<div class="${escapeHtml(opsClassNames('table-actions', 'ops-row-actions', className))}">${html}</div>`;
+      const opsContextActionsHtml = (primaryHtml, contextHtml = '', className = '', summary = '더보기') => {
+        const primary = String(primaryHtml || '').trim();
+        const context = String(contextHtml || '').trim();
+        const menu = context
+          ? `<details class="ops-context-actions" data-testid="ops-context-actions" data-action-density="primary-context">
+              <summary aria-label="${escapeHtml(summary)}">${escapeHtml(summary)}</summary>
+              <div class="ops-context-actions-menu">${context}</div>
+            </details>`
+          : '';
+        return opsRowActionsHtml(`${primary}${menu}`, opsClassNames('ops-context-row-actions', className));
+      };
       const opsTableRowHtml = (cells = [], className = '') => {
         const classText = opsClassNames(className);
         const classAttr = classText ? ` class="${escapeHtml(classText)}"` : '';
@@ -1476,6 +1487,7 @@ std::string ProductSharedUiScript() {
         setTableEmpty,
         tableCellHtml,
         opsRowActionsHtml,
+        opsContextActionsHtml,
         opsTableRowHtml,
         appendTableCell,
         setOpsDetailPanelOpen,

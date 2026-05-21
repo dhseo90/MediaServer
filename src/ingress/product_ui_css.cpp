@@ -1715,6 +1715,60 @@ std::string ProductUiCss() {
       max-width: 100%;
       min-width: 0;
     }
+    .ops-context-row-actions {
+      display: flex;
+      align-items: center;
+      gap: var(--space-2);
+      flex-wrap: nowrap;
+    }
+    .ops-context-actions {
+      position: relative;
+      flex: 0 0 auto;
+    }
+    .ops-context-actions > summary {
+      min-height: 32px;
+      padding: 6px 9px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-muted);
+      color: var(--color-text);
+      cursor: pointer;
+      font-size: 11px;
+      font-weight: 850;
+      line-height: 1.2;
+      list-style: none;
+      white-space: nowrap;
+      user-select: none;
+    }
+    .ops-context-actions > summary::-webkit-details-marker {
+      display: none;
+    }
+    .ops-context-actions[open] > summary {
+      border-color: var(--color-primary);
+      background: var(--color-primary-weak-bg);
+      color: var(--color-primary);
+    }
+    .ops-context-actions-menu {
+      position: absolute;
+      top: calc(100% + 6px);
+      right: 0;
+      z-index: 20;
+      display: grid;
+      gap: var(--space-2);
+      min-width: 132px;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-bg-elevated);
+      box-shadow: var(--shadow-lg);
+    }
+    .ops-context-actions-menu button,
+    .ops-context-actions-menu .button,
+    .ops-context-actions-menu .button-secondary {
+      width: 100%;
+      justify-content: flex-start;
+      text-align: left;
+    }
     .ops-status-actions,
     .ops-stream-actions {
       display: grid;
@@ -1930,6 +1984,15 @@ std::string ProductUiCss() {
       gap: var(--space-2);
       min-width: 0;
     }
+    .ops-rule-row-actions.ops-context-row-actions,
+    .channel-row-actions.ops-context-row-actions,
+    .user-row-actions.ops-context-row-actions {
+      display: grid;
+      grid-template-columns: none;
+      width: 100%;
+      align-items: stretch;
+      justify-content: stretch;
+    }
     .ops-rule-row-actions button,
     .user-row-actions button,
     .user-status-actions button {
@@ -2003,6 +2066,21 @@ std::string ProductUiCss() {
       gap: var(--space-2);
     }
     .channel-row-actions button {
+      width: 100%;
+      min-width: 0;
+    }
+    .channel-row-actions.ops-context-row-actions button,
+    .user-row-actions.ops-context-row-actions button {
+      width: 100%;
+      min-width: 0;
+    }
+    .ops-rule-row-actions.ops-context-row-actions button,
+    .ops-rule-row-actions.ops-context-row-actions .ops-context-actions,
+    .ops-rule-row-actions.ops-context-row-actions .ops-context-actions > summary,
+    .channel-row-actions.ops-context-row-actions .ops-context-actions,
+    .channel-row-actions.ops-context-row-actions .ops-context-actions > summary,
+    .user-row-actions.ops-context-row-actions .ops-context-actions,
+    .user-row-actions.ops-context-row-actions .ops-context-actions > summary {
       width: 100%;
       min-width: 0;
     }
@@ -2447,6 +2525,23 @@ std::string ProductUiCss() {
       .ops-geometry-toolbar .actions > button {
         width: 100%;
         min-width: 0;
+      }
+      .ops-context-row-actions,
+      .ops-rule-row-actions.ops-context-row-actions,
+      .channel-row-actions.ops-context-row-actions,
+      .user-row-actions.ops-context-row-actions {
+        display: grid;
+        grid-template-columns: 1fr;
+        width: 100%;
+      }
+      .ops-context-actions,
+      .ops-context-actions > summary {
+        width: 100%;
+      }
+      .ops-context-actions-menu {
+        position: static;
+        margin-top: var(--space-2);
+        box-shadow: none;
       }
       .channel-table td {
         grid-template-columns: 1fr;
