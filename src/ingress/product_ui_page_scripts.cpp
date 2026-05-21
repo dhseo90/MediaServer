@@ -1101,7 +1101,16 @@ void AppendClientShellScript(std::ostringstream& out) {
       ].join(' · '));
     }
     function tileInfoOverlayVisible(tile) {
-      return Boolean(tile) && (liveInfoOverlayEnabled || selectedLiveTile === tile.index);
+      return Boolean(tile) && liveInfoOverlayEnabled;
+    }
+    function syncLiveInfoOverlayToggle() {
+      const toggle = document.querySelector('#liveInfoOverlayToggle');
+      const wrapper = toggle?.closest('.live-info-toggle');
+      if (!toggle || !wrapper) return;
+      toggle.checked = liveInfoOverlayEnabled;
+      const label = liveInfoOverlayEnabled ? '정보 오버레이 숨김' : '정보 오버레이 표시';
+      toggle.setAttribute('aria-label', label);
+      wrapper.title = label;
     }
     function playbackNumber(value, suffix = '') {
       const numeric = Number(value);
@@ -1414,7 +1423,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	              </label>
 	            </div>
 	            <span data-role="placeholder">오프라인</span>
-	            <div class="tile-info-overlay" data-testid="client-live-tile-info-overlay" data-role="info-overlay" data-overlay-trigger="tile-selected-or-info-enabled" hidden>
+	            <div class="tile-info-overlay" data-testid="client-live-tile-info-overlay" data-role="info-overlay" data-overlay-trigger="info-toggle" hidden>
 	              <div class="tile-info-overlay-head">
 	                <strong data-overlay="title">소스 없음</strong>
 	                <span data-overlay="connection">연결 끊김</span>
@@ -1467,7 +1476,10 @@ void AppendClientShellScript(std::ostringstream& out) {
 	                <option value="right"${liveDockSide === 'right' ? ' selected' : ''}>오른쪽</option>
 	              </select>
 	            </label>
-	            <label class="live-info-toggle"><input id="liveInfoOverlayToggle" type="checkbox"${liveInfoOverlayEnabled ? ' checked' : ''} /> 정보 오버레이</label>
+	            <label class="live-info-toggle" title="${liveInfoOverlayEnabled ? '정보 오버레이 숨김' : '정보 오버레이 표시'}">
+	              <input id="liveInfoOverlayToggle" type="checkbox" aria-label="${liveInfoOverlayEnabled ? '정보 오버레이 숨김' : '정보 오버레이 표시'}"${liveInfoOverlayEnabled ? ' checked' : ''} />
+	              <span aria-hidden="true">i</span>
+	            </label>
 	            <div id="liveCopyActions" class="client-copy-actions live-copy-actions" data-live-copy-actions>
 	              <button type="button" class="ghost" data-client-copy="status">상태 복사</button>
 	              <button type="button" class="ghost" data-client-copy="events">이벤트 복사</button>
@@ -1664,6 +1676,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	      document.querySelector('#liveInfoOverlayToggle')?.addEventListener('change', event => {
 	        liveInfoOverlayEnabled = Boolean(event.target.checked);
 	        localStorage.setItem('mediaServerClientLiveInfoOverlay', liveInfoOverlayEnabled ? 'on' : 'off');
+	        syncLiveInfoOverlayToggle();
 	        updateAllTileDom();
           markLivePreferenceDirty();
 	      });
@@ -1763,6 +1776,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	        bindLiveTile(tile);
 	      }
 	      bindLiveGridControls();
+      syncLiveInfoOverlayToggle();
       updateLiveLayoutPresetStatus();
       if (!liveStatusTimer) {
         liveStatusTimer = setInterval(() => {

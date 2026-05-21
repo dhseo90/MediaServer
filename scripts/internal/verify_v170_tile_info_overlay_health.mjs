@@ -22,18 +22,19 @@ const overlayBlock = script.slice(
   script.indexOf("function updateAllTileDom()"),
 );
 
-check("tile info overlay is conditional on tile selection or info toggle", () => {
+check("tile info overlay is controlled only by the info toggle", () => {
   for (const snippet of [
     'id="liveInfoOverlayToggle"',
     "mediaServerClientLiveInfoOverlay",
     "function tileInfoOverlayVisible",
-    "liveInfoOverlayEnabled || selectedLiveTile === tile.index",
+    "return Boolean(tile) && liveInfoOverlayEnabled",
     'data-testid="client-live-tile-info-overlay"',
-    'data-overlay-trigger="tile-selected-or-info-enabled"',
+    'data-overlay-trigger="info-toggle"',
     "root.dataset.infoOverlay",
   ]) {
     assertIncludes(script, snippet, "tile info overlay");
   }
+  assert(!script.includes("liveInfoOverlayEnabled || selectedLiveTile === tile.index"), "tile selection must not force the info overlay");
 });
 
 check("overlay reports playback health from WebRTC stats without media path changes", () => {
@@ -166,26 +167,51 @@ async function runBrowserSmoke() {
           const toggle = document.querySelector('#liveInfoOverlayToggle');
           const firstOverlay = first?.querySelector('[data-testid="client-live-tile-info-overlay"]');
           const secondOverlay = second?.querySelector('[data-testid="client-live-tile-info-overlay"]');
+          if (toggle && toggle.checked) {
+            toggle.click();
+            await wait(150);
+          }
           first?.click();
           await wait(150);
-          const selectedVisible = firstOverlay && !firstOverlay.hidden;
+          const selectedHidden = firstOverlay && firstOverlay.hidden;
           const adjacentHidden = secondOverlay && secondOverlay.hidden;
           if (toggle && !toggle.checked) {
             toggle.click();
             await wait(150);
           }
+          const toggleShowsSelected = firstOverlay && !firstOverlay.hidden;
           const toggleShowsAdjacent = secondOverlay && !secondOverlay.hidden;
+          const tileRect = first?.getBoundingClientRect();
+          const overlayRect = firstOverlay?.getBoundingClientRect();
+          const overlayInsetLeft = overlayRect && tileRect ? Math.round(overlayRect.left - tileRect.left) : null;
+          const overlayInsetRight = overlayRect && tileRect ? Math.round(tileRect.right - overlayRect.right) : null;
+          const overlayInsetAligned = Number.isFinite(overlayInsetLeft) &&
+            Number.isFinite(overlayInsetRight) &&
+            Math.abs(overlayInsetLeft - overlayInsetRight) <= 1;
+          const toolbarItems = Array.from(document.querySelectorAll('.live-toolbar select, .live-info-toggle, .live-copy-actions button, .workspace-actions summary'));
+          const bottoms = toolbarItems.map(item => Math.round(item.getBoundingClientRect().bottom));
+          const toolbarAligned = bottoms.length > 0 && bottoms.every(bottom => bottom === bottoms[0]);
+          const infoToggleWidth = Math.round(document.querySelector('.live-info-toggle')?.getBoundingClientRect().width || 0);
+          const infoToggleCompact = infoToggleWidth > 0 && infoToggleWidth <= 44;
           const text = document.body.innerText || '';
           const forbidden = ['rtsp://', 'source URL', 'Developer URL', 'raw JSON', 'debugCounters', 'BBox diagnostics', 'SDP', 'ICE detail']
             .filter(item => text.includes(item));
           const fields = ['FPS', 'Bitrate', 'Dropped', 'Freeze', 'Reconnect', 'VA/Event'];
           return {
-            ok: Boolean(selectedVisible && adjacentHidden && toggleShowsAdjacent) &&
+            ok: Boolean(selectedHidden && adjacentHidden && toggleShowsSelected && toggleShowsAdjacent && overlayInsetAligned && toolbarAligned && infoToggleCompact) &&
               fields.every(field => firstOverlay?.innerText.includes(field)) &&
               forbidden.length === 0,
-            selectedVisible: Boolean(selectedVisible),
+            selectedHidden: Boolean(selectedHidden),
             adjacentHidden: Boolean(adjacentHidden),
+            toggleShowsSelected: Boolean(toggleShowsSelected),
             toggleShowsAdjacent: Boolean(toggleShowsAdjacent),
+            overlayInsetLeft,
+            overlayInsetRight,
+            overlayInsetAligned,
+            toolbarBottoms: bottoms,
+            toolbarAligned,
+            infoToggleWidth,
+            infoToggleCompact,
             overlayText: firstOverlay?.innerText || '',
             forbidden,
             overflowX: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),

@@ -3803,7 +3803,7 @@ std::string ClientShellCss() {
       right: 22px;
       z-index: 30;
       display: flex;
-      align-items: center;
+      align-items: flex-end;
       justify-content: flex-end;
       gap: 10px;
       padding: 0;
@@ -3814,28 +3814,68 @@ std::string ClientShellCss() {
     }
     body.client-shell .live-toolbar label {
       min-width: 78px;
+      display: grid;
+      gap: 3px;
       color: var(--muted);
       font-size: 11px;
       font-weight: 850;
+      line-height: 1;
     }
     body.client-shell .live-toolbar label select {
-      min-height: 34px;
+      min-height: 36px;
       border-radius: 7px;
       background: var(--panel);
       font-size: 12px;
     }
-    body.client-shell .live-info-toggle {
-      min-height: 34px;
+    body.client-shell .live-toolbar .live-info-toggle {
+      position: relative;
+      min-width: 42px;
+      width: 42px;
+      max-width: 42px;
+      flex: 0 0 42px;
+      min-height: 36px;
+      height: 36px;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
-      padding: 0 8px;
+      justify-content: center;
+      padding: 0;
       border: 1px solid var(--line);
       border-radius: 7px;
       background: var(--panel);
+      color: var(--text);
+      cursor: pointer;
       white-space: nowrap;
-      width: 112px;
+    }
+    body.client-shell .live-toolbar .live-info-toggle input {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      opacity: 0;
+      cursor: pointer;
+    }
+    body.client-shell .live-toolbar .live-info-toggle span {
+      width: 20px;
+      height: 20px;
+      display: inline-flex;
+      align-items: center;
       justify-content: center;
+      border-radius: 999px;
+      border: 1px solid currentColor;
+      font-size: 13px;
+      font-weight: 950;
+      line-height: 1;
+      pointer-events: none;
+    }
+    body.client-shell .live-toolbar .live-info-toggle:has(input:checked) {
+      border-color: var(--accent);
+      background: var(--accent-soft);
+      color: var(--accent);
+    }
+    body.client-shell .live-toolbar .live-info-toggle:has(input:focus-visible) {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
     }
     body.client-shell .live-copy-actions {
       display: flex;
@@ -3843,7 +3883,7 @@ std::string ClientShellCss() {
       gap: 8px;
     }
     body.client-shell .live-copy-actions button {
-      min-height: 34px;
+      min-height: 36px;
       width: 84px;
       padding: 0 10px;
       border-radius: 7px;
@@ -3852,7 +3892,7 @@ std::string ClientShellCss() {
       white-space: nowrap;
     }
     body.client-shell .workspace-actions {
-      align-self: center;
+      align-self: flex-end;
     }
     body.client-shell .workspace-actions summary {
       min-height: 36px;
@@ -4205,22 +4245,27 @@ std::string ClientShellCss() {
       display: none;
     }
     body.client-shell .tile-info-overlay {
-      inset: 76px auto auto 14px;
-      width: min(278px, calc(100% - 28px));
-      padding: 14px;
+      inset: auto 14px 14px 14px;
+      width: auto;
+      padding: 12px;
       border-radius: 7px;
       background: color-mix(in srgb, var(--color-code-bg) 72%, transparent);
       backdrop-filter: blur(12px);
     }
     body.client-shell .tile-info-overlay-grid {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 8px 12px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 8px 10px;
     }
     body.client-shell .tile-info-overlay-grid span {
       font-size: 12px;
     }
     body.client-shell .tile-info-overlay-grid strong {
       font-size: 13px;
+    }
+    @media (max-width: 520px) {
+      body.client-shell .tile-info-overlay-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
     }
     @media (max-width: 900px) { .live-grid, .live-grid[data-grid-size] { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 860px) {
