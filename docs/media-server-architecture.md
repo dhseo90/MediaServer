@@ -275,7 +275,10 @@ Ops/Client 화면 동작을 media signaling 구현과 물리적으로 섞지 않
   내부 진단 JSON은 제품 화면에 직접 노출하지 않고 API/검증 명령에서 확인합니다.
 - `/client`:
   viewer/client 포털입니다.
-  `/client/live`는 PublishedView 기반 2x2 live monitor입니다.
+  `/client/live`는 PublishedView 기반 source tree와 live workspace입니다.
+  viewer는 기본 최대 4 tile, Ops preview는 최대 9 tile을 사용하며,
+  tile별 시작/재연결/연결 해제, source 재배정, 정보 overlay,
+  dock 좌/우 전환과 workspace layout 저장/복원을 제공합니다.
   `/client/dashboard`는 scoped summary와 sanitized event summary를 표시합니다.
   Client Events tab은 primary nav에서 제거했습니다.
   client shell과 client API는 source 원본 locator, Developer URL,

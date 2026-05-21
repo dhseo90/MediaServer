@@ -25,6 +25,8 @@ check("ops rules page exposes scenario builder as UI-only composer", () => {
     'id="opsScenarioBuilderClasses"',
     'id="opsScenarioBuilderApply"',
     'data-scenario-builder-action="apply-event-template"',
+    'class="scenario-builder-draft-details"',
+    '초안 payload 보기',
     'id="opsScenarioBuilderDraft"',
   ]) {
     assertIncludes(server, snippet, "scenario builder HTML");
@@ -52,6 +54,7 @@ check("scenario builder styling stays inside ops rules surface", () => {
     ".ops-scenario-builder",
     ".scenario-builder-grid",
     ".scenario-builder-review",
+    ".scenario-builder-draft-details",
     ".scenario-builder-draft",
     "data-redaction=\"no-source-or-raw-debug\"",
   ]) {
@@ -177,6 +180,10 @@ async function runBrowserSmoke() {
           classesInput.value = 'person, vehicle';
           classesInput.dispatchEvent(new Event('input', { bubbles: true }));
           await wait(150);
+          const draftDetails = document.querySelector('.scenario-builder-draft-details');
+          const draftFoldedByDefault = draftDetails && !draftDetails.open;
+          if (draftDetails && !draftDetails.open) draftDetails.open = true;
+          await wait(50);
           const draftText = document.querySelector('#opsScenarioBuilderDraft')?.innerText || '';
           apply.click();
           await wait(350);
@@ -192,6 +199,7 @@ async function runBrowserSmoke() {
               document.querySelector('#opsEventRulePresetSelect')?.value === 'doorway' &&
               document.querySelector('#opsEventRuleDwellInput')?.value === '15000' &&
               document.querySelector('#opsEventRuleLoiteringRadiusInput')?.value === '0.05' &&
+              draftFoldedByDefault &&
               checkedClasses.includes('person') &&
               checkedClasses.includes('vehicle') &&
               draftText.includes('"ruleKind": "scenario"') &&
@@ -202,6 +210,7 @@ async function runBrowserSmoke() {
             preset: document.querySelector('#opsEventRulePresetSelect')?.value,
             dwell: document.querySelector('#opsEventRuleDwellInput')?.value,
             radius: document.querySelector('#opsEventRuleLoiteringRadiusInput')?.value,
+            draftFoldedByDefault: Boolean(draftFoldedByDefault),
             checkedClasses,
             draftText,
             forbidden,

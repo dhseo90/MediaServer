@@ -7,6 +7,7 @@ import process from "node:process";
 import { findChrome, openBrowserPage } from "./ui_visual_smoke_lib.mjs";
 
 const script = fs.readFileSync("src/ingress/product_ui_page_scripts.cpp", "utf8");
+const css = fs.readFileSync("src/ingress/product_ui_css.cpp", "utf8");
 const i18n = fs.readFileSync("src/ingress/product_ui_js.cpp", "utf8");
 const uiSmoke = fs.readFileSync("scripts/internal/verify_ops_client_ui_smoke.mjs", "utf8");
 const args = parseArgs(process.argv.slice(2));
@@ -42,6 +43,14 @@ check(
     script.includes("async function stopAllLiveTiles()") &&
     script.includes("Promise.all(liveTiles.map(tile => stopLiveTile(tile.index)))") &&
     !script.includes("Promise.all(liveTiles.map(tile => disconnectLiveTile(tile.index)))"),
+);
+check(
+  "workspace action menu stays inside narrow client viewport",
+  css.includes("body.client-shell .workspace-actions[open]::after") &&
+    css.includes("left: 0;") &&
+    css.includes("body.client-shell .live-layout-presets,") &&
+    css.includes("body.client-shell #liveAllStop") &&
+    css.includes("max-width: calc(100vw - 20px);"),
 );
 check(
   "disconnect labels are localized",
@@ -165,5 +174,60 @@ async function runBrowserDisconnectSmoke() {
     if (!result?.ok) console.log(JSON.stringify(result, null, 2));
   } finally {
     await browser.close();
+  }
+
+  const mobileBrowser = await openBrowserPage({
+    httpBase: args.httpBase,
+    pagePath: "/client/live",
+    timeoutMs: args.timeoutMs,
+    chromePath: args.chromePath || findChrome(),
+    debugPort: args.debugPort + 1,
+    width: 320,
+    height: 900,
+  });
+  try {
+    const mobileResult = await mobileBrowser.evaluate(
+      `
+        (async () => {
+          const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+          await wait(400);
+          const details = document.querySelector('.workspace-actions');
+          const summary = details?.querySelector('summary');
+          summary?.click();
+          await wait(150);
+          const viewportWidth = window.innerWidth;
+          const menuItems = Array.from(document.querySelectorAll('.live-layout-presets, .live-layout-presets *, #liveAllStop'))
+            .filter(item => {
+              const rect = item.getBoundingClientRect();
+              const style = getComputedStyle(item);
+              return rect.width > 0 && rect.height > 0 && style.visibility !== 'hidden' && style.display !== 'none';
+            })
+            .map(item => {
+              const rect = item.getBoundingClientRect();
+              return {
+                tag: item.tagName.toLowerCase(),
+                id: item.id || '',
+                text: (item.innerText || item.getAttribute('aria-label') || '').trim(),
+                left: Math.round(rect.left),
+                right: Math.round(rect.right),
+                width: Math.round(rect.width),
+              };
+            });
+          const clipped = menuItems.filter(item => item.left < -1 || item.right > viewportWidth + 1);
+          return {
+            ok: Boolean(details?.open) && menuItems.length >= 4 && clipped.length === 0,
+            open: Boolean(details?.open),
+            viewportWidth,
+            menuItems,
+            clipped,
+          };
+        })()
+      `,
+      args.timeoutMs,
+    );
+    check("browser mobile workspace action menu is not clipped", Boolean(mobileResult?.ok));
+    if (!mobileResult?.ok) console.log(JSON.stringify(mobileResult, null, 2));
+  } finally {
+    await mobileBrowser.close();
   }
 }

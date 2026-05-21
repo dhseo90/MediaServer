@@ -1695,7 +1695,7 @@ curl -fsS 'http://127.0.0.1:8080/client/api/views/{viewId}/metadata'
 - 숨길 설정: rule/profile editor, Event POST 설정, SSE/WS 전체 endpoint
 - Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema는 변경하지 않습니다.
 
-Client Live Monitor smoke 기준:
+Client Live Workspace smoke 기준:
 
 ```bash
 curl -fsS 'http://127.0.0.1:8080/client/api/views'
@@ -1707,8 +1707,10 @@ curl -fsS -X POST \
 
 확인 기준:
 
-- `/client/live`는 2x2 grid, 최대 4 tile만 표시하며 PublishedView별 `maxTiles`를 UI 채널 배정/시작과 client wrapper API에서 함께 강제합니다.
-- `/client/live`는 `전체 시작`, `전체 재연결`, `전체 정지`를 제공하고 빈 PublishedView 상태에서는 viewer에게 `/client/request-access` 접근 요청 CTA를 제공합니다.
+- `/client/live`는 source tree + live workspace로 표시하며 viewer는 기본 최대 4 tile, Ops preview는 최대 9 tile을 사용합니다.
+- `/client/live`는 source tree 선택/drag-drop, tile별 시작/재연결/연결 해제, workspace 작업 메뉴의 layout 저장/복원/전체 연결 해제를 제공합니다.
+- 320px 모바일 폭에서도 workspace 작업 메뉴의 layout 저장/복원/전체 연결 해제 항목은 viewport 안에 열려야 합니다.
+- 빈 PublishedView 상태에서는 viewer에게 `/client/request-access` 접근 요청 CTA를 제공합니다.
 - viewer는 assigned PublishedView만 tile에 선택할 수 있습니다.
 - client WebRTC wrapper는 viewId만 허용하고 `file`, `url`, `source`, `rtspUrl`, `httpUrl`, `webrtcSourceId`, `whepUrl` override 요청을 400으로 거부합니다.
 - 같은 principal+view의 활성 client session이 `maxTiles`에 도달하면 추가 session 생성은 `409`로 거부됩니다.
@@ -1722,7 +1724,7 @@ curl -fsS -X POST \
 - wrapper: `/client/api/views/{viewId}/webrtc/session/{clientSessionId}`
 - client alias는 generic `/webrtc/session/{id}` route에서 사용할 수 없어야 합니다.
 - tile stop은 PeerConnection/DataChannel을 닫고 client wrapper DELETE를 호출합니다.
-- all stop 또는 hidden tab/route leave 후 `activeSessions`가 감소하고 media stream track이 정리됩니다.
+- workspace-level all stop 또는 hidden tab/route leave 후 `activeSessions`가 감소하고 media stream track이 정리됩니다.
 - tile status는 live/offline, stale, track count, event count, connection status를 표시합니다.
 - 선택 tile detail의 `상태 복사`, `이벤트 복사`는 source URL이나 내부 진단
   정보 없이 sanitized 요약만 복사합니다.

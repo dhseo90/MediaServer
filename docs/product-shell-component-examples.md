@@ -17,7 +17,7 @@ Auth, Ops, Client product shell과 component vocabulary 예시 모음입니다. 
 | Actions | `ProductSharedUiScript()` | `button-primary`, `button-secondary`, `ghost`, `danger` | 위험 작업만 danger를 사용합니다. |
 | Tables | `ProductSharedUiScript()` route helpers | `ops-responsive-table`, `ops-row-actions`, `data-label` | 320/390px에서 row action과 date/time input이 부모 폭을 넘지 않아야 합니다. |
 | Detail panels | `ProductSharedUiScript()` | `ops-detail-panel`, `ops-audit-panel`, `root-cause-*` | raw JSON은 운영자 debug details 접힘 영역에만 둡니다. |
-| Client live | `ClientShellCss()`, `AppendClientShellScript()` | `live-monitor`, `live-toolbar`, `live-grid`, `tile`, `tile-*` | viewer에게 source URL, Developer URL, raw JSON, debug counter를 노출하지 않습니다. |
+| Client live | `ClientShellCss()`, `AppendClientShellScript()` | `live-monitor`, `live-source-tree`, `live-workspace`, `tile`, `tile-*` | source tree/workspace/dock/menu를 같은 shell 안에서 구성하고, viewer에게 source URL, Developer URL, raw JSON, debug counter를 노출하지 않습니다. |
 
 ## Product Shell
 

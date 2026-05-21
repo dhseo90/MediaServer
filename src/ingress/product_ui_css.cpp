@@ -1933,10 +1933,29 @@ std::string ProductUiCss() {
       color: var(--color-text);
       font-size: 14px;
     }
+    .scenario-builder-draft-details {
+      min-width: 0;
+    }
+    .scenario-builder-draft-details summary {
+      min-height: 36px;
+      display: inline-flex;
+      align-items: center;
+      padding: 0 12px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-bg-elevated);
+      color: var(--color-text);
+      font-weight: 850;
+      cursor: pointer;
+      list-style: none;
+    }
+    .scenario-builder-draft-details summary::-webkit-details-marker {
+      display: none;
+    }
     .scenario-builder-draft {
       min-height: 128px;
       max-height: 260px;
-      margin: 0;
+      margin: 8px 0 0;
       padding: 12px;
       border: 1px solid var(--color-border);
       border-radius: var(--radius-md);
@@ -3941,7 +3960,9 @@ std::string ClientShellCss() {
       right: 0;
       z-index: 55;
       min-width: 190px;
-      background: var(--panel);
+      border-color: color-mix(in srgb, var(--color-danger) 64%, var(--color-border));
+      background: var(--color-danger-weak-bg);
+      color: var(--color-danger);
       box-shadow: var(--shadow-md);
     }
     body.client-shell .live-summary-rail,
@@ -4424,6 +4445,18 @@ std::string ClientShellCss() {
         min-width: 44px;
         height: 44px;
         min-height: 44px;
+      }
+      body.client-shell .workspace-actions[open]::after {
+        right: auto;
+        left: 0;
+        width: min(180px, calc(100vw - 20px));
+      }
+      body.client-shell .live-layout-presets,
+      body.client-shell #liveAllStop {
+        right: auto;
+        left: 0;
+        min-width: min(190px, calc(100vw - 20px));
+        max-width: calc(100vw - 20px);
       }
     }
     @media (max-width: 340px) {

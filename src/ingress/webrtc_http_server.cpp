@@ -2670,7 +2670,10 @@ void AppendOpsRulesPage(std::ostringstream& out) {
             <strong id="opsScenarioBuilderBaselineTitle">초안 요약</strong>
             <p id="opsScenarioBuilderBaseline" class="form-note">시나리오와 preset을 고르면 시작값을 표시합니다.</p>
           </div>
-          <pre id="opsScenarioBuilderDraft" class="scenario-builder-draft" data-redaction="no-source-or-raw-debug"></pre>
+          <details class="scenario-builder-draft-details">
+            <summary>초안 payload 보기</summary>
+            <pre id="opsScenarioBuilderDraft" class="scenario-builder-draft" data-redaction="no-source-or-raw-debug"></pre>
+          </details>
         </div>
       </section>
       <section class="section-card">

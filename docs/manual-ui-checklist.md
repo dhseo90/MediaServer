@@ -58,14 +58,14 @@ v1.6.0 manual UI release checklist closure는
 ## 4. Client
 
 - `/client/live`: Live/Dashboard nav만 보이고 Ops/Lab nav, source URL, raw JSON, debug counter가 보이지 않습니다.
-- `/client/live`: tile start/reconnect/stop, density, copy fallback, keyboard focus 이동을 확인합니다.
+- `/client/live`: source tree 선택/drag-drop, tile start/reconnect/stop, density, dock 좌/우 전환, 정보 overlay, workspace 작업 메뉴, copy fallback, keyboard focus 이동을 확인합니다.
 - `/client/dashboard`: 상태/이벤트 비교, 정렬, copy action이 viewer 범위 안에서 동작합니다.
 - `/client/request-access`: 요청 제출 후 승인 전 로그인/채널 접근이 열리지 않는다는 문구가 보입니다.
 - 승인된 요청은 invite setup 전 로그인 401, invite setup 후 `/client/live` 접근 200, `/ops/home` 접근 403을 확인합니다.
 
 ## 5. 반응형/테마
 
-- 320px, 390px, 760px, 1180px에서 nav, table row action, form input, button text가 부모 폭을 넘지 않습니다.
+- 320px, 390px, 760px, 1180px에서 nav, table row action, form input, button text, `/client/live` workspace 작업 메뉴가 부모 폭과 viewport를 넘지 않습니다.
 - light/dark 전환 후 shell, card, table, form, badge contrast가 유지됩니다.
 - client/viewer 화면에는 운영자 debug details 또는 raw JSON이 노출되지 않습니다.
 
