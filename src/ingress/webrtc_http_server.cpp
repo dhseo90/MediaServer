@@ -2138,13 +2138,7 @@ void AppendOpsShellStart(std::ostringstream& out,
                          const auth::Principal& principal,
                          const std::string& active,
                          const std::string& subtitle) {
-    const std::string ops_workspace_title =
-        active == "dashboard" ? "Ops Console · Dashboard" :
-        active == "sources" ? "Ops Console · Channels" :
-        active == "rules" ? "Ops Console · Rules" :
-        active == "users" ? "Ops Console · Users" :
-        active == "events" ? "Ops Console · Events" :
-        "Ops Console · Home";
+    (void)active;
     (void)subtitle;
     out << R"(<!doctype html>
 <html lang="ko">
@@ -2161,8 +2155,8 @@ void AppendOpsShellStart(std::ostringstream& out,
           <div class="app-brand sketch-brand">
             <span class="brand-mark" aria-hidden="true">MS</span>
             <div class="brand-copy">
-              <strong>Media Server v1.7.0 Ops</strong>
-              <span>)" << HtmlEscape(ops_workspace_title) << R"(</span>
+              <strong>Media Server</strong>
+              <span>Ops</span>
             </div>
           </div>
           <nav class="image-nav-tabs" aria-label="운영 메뉴">
@@ -4156,10 +4150,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     const bool preview_mode =
         (auth::IsAdmin(principal) || auth::IsOperator(principal)) &&
         auth::RequireScope(principal, "ops:read");
-    const std::string client_workspace_title = active == "dashboard" ? "Dashboard" : "Live Workspace";
-    const std::string client_subtitle =
-        client_workspace_title + " · " +
-        (preview_mode ? "Client Preview as admin" : "할당된 live view와 상태만 봅니다.");
+    const std::string client_subtitle = preview_mode ? "Client Preview as admin" : "Client";
     std::ostringstream out;
     out << R"(<!doctype html>
 <html lang="ko">
@@ -4177,7 +4168,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
           <div class="app-brand sketch-brand">
             <span class="brand-mark" aria-hidden="true">MS</span>
             <div class="brand-copy">
-              <strong>Media Server v1.7.0 Client</strong>
+              <strong>Media Server</strong>
               <span>)" << HtmlEscape(client_subtitle) << R"(</span>
             </div>
           </div>

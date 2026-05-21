@@ -213,27 +213,11 @@ std::string ProductUiCss() {
       box-shadow: var(--shadow-sm);
     }
     body.product-shell {
-      --color-bg: #f5f7fb;
-      --color-bg-elevated: #ffffff;
-      --color-surface: #ffffff;
-      --color-surface-raised: #ffffff;
-      --color-surface-muted: #f0f3f7;
-      --color-surface-subtle: #f8fafc;
-      --color-surface-hover: #eef5ff;
-      --color-border: #d8e0ea;
-      --color-border-strong: #aeb9c7;
-      --color-text: #152033;
-      --color-text-muted: #667386;
       --color-primary: #3b82f6;
       --color-primary-hover: #2563eb;
-      --color-primary-weak-bg: #e8f1ff;
-      --color-primary-weak-text: #2563eb;
-      --color-link: #2563eb;
-      --color-table-header-bg: #f3f6fa;
-      --color-table-row-hover: #f7fbff;
-      --color-table-border: #e3e9f1;
-      --color-input-bg: #ffffff;
-      --color-input-border: #cfd8e5;
+      --color-primary-weak-bg: color-mix(in srgb, var(--color-primary) 14%, var(--color-surface-raised));
+      --color-primary-weak-text: color-mix(in srgb, var(--color-primary) 82%, var(--color-text));
+      --color-link: var(--color-primary);
       background: var(--color-bg);
       overflow-x: hidden;
     }
@@ -256,8 +240,8 @@ std::string ProductUiCss() {
       padding: 0 22px;
       border-width: 0 0 1px;
       border-radius: 0;
-      background: rgba(255, 255, 255, 0.96);
-      box-shadow: 0 1px 0 rgba(15, 23, 42, 0.05);
+      background: color-mix(in srgb, var(--color-surface-raised) 96%, transparent);
+      box-shadow: 0 1px 0 color-mix(in srgb, var(--color-border) 64%, transparent);
       backdrop-filter: blur(18px);
       overflow: clip;
     }
@@ -326,7 +310,7 @@ std::string ProductUiCss() {
       width: auto;
       grid-template-columns: none;
       grid-auto-flow: column;
-      grid-auto-columns: max-content;
+      grid-auto-columns: minmax(78px, 92px);
       grid-auto-rows: 60px;
       gap: 2px;
       align-items: stretch;
@@ -347,7 +331,7 @@ std::string ProductUiCss() {
       position: relative;
     }
     body.product-shell .image-nav:hover {
-      background: #f3f7fc;
+      background: var(--color-surface-hover);
       color: var(--color-text);
     }
     body.product-shell .image-nav.active {
@@ -391,15 +375,17 @@ std::string ProductUiCss() {
     }
     body.product-shell .sketch-status-chip {
       flex: 0 0 auto;
+      width: 106px;
       min-height: 26px;
       display: inline-flex;
       align-items: center;
+      justify-content: center;
       gap: 6px;
-      padding: 0 9px;
-      border: 1px solid #cfe2ff;
+      padding: 0 8px;
+      border: 1px solid color-mix(in srgb, var(--color-primary) 28%, var(--color-border));
       border-radius: 999px;
-      background: #eef6ff;
-      color: #2563eb;
+      background: var(--color-primary-weak-bg);
+      color: var(--color-primary-weak-text);
       font-size: 12px;
       font-weight: 900;
       white-space: nowrap;
@@ -418,7 +404,7 @@ std::string ProductUiCss() {
     body.product-shell .account-avatar {
       width: 26px;
       height: 26px;
-      color: #172033;
+      color: var(--color-text);
     }
     body.product-shell .account-copy {
       min-width: 0;
@@ -458,7 +444,15 @@ std::string ProductUiCss() {
       min-height: 34px;
       height: 34px;
       border-radius: 7px;
-      background: #ffffff;
+      background: var(--color-bg-elevated);
+    }
+    body.product-shell .account-shortcut {
+      width: 62px;
+      justify-content: center;
+    }
+    body.product-shell .account-menu > form > button {
+      width: 72px;
+      justify-content: center;
     }
     body.product-shell .panel,
     body.product-shell .section-card,
@@ -466,8 +460,8 @@ std::string ProductUiCss() {
     body.product-shell .metric-card {
       border-color: var(--color-border);
       border-radius: 8px;
-      background: rgba(255, 255, 255, 0.92);
-      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+      background: color-mix(in srgb, var(--color-surface-raised) 94%, transparent);
+      box-shadow: var(--shadow-sm);
     }
     body.product-shell .section-card {
       padding: 16px;
@@ -479,19 +473,19 @@ std::string ProductUiCss() {
     body.product-shell .ops-selection-review,
     body.product-shell .ops-template-settings {
       border-radius: 8px;
-      background: #f8fafc;
+      background: var(--color-surface-subtle);
     }
     body.product-shell table {
-      background: #ffffff;
+      background: var(--color-surface-raised);
     }
     body.product-shell th {
       background: var(--color-table-header-bg);
-      color: #3f4b5f;
+      color: var(--color-text-muted);
       font-size: 12px;
       font-weight: 850;
     }
     body.product-shell td {
-      background: #ffffff;
+      background: var(--color-surface-raised);
     }
     body.ops-shell .product-page > .panel {
       display: grid;
@@ -507,8 +501,8 @@ std::string ProductUiCss() {
       padding: 16px 18px;
       border: 1px solid var(--color-border);
       border-radius: 8px;
-      background: rgba(255, 255, 255, 0.96);
-      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+      background: color-mix(in srgb, var(--color-surface-raised) 96%, transparent);
+      box-shadow: var(--shadow-sm);
     }
     body.ops-shell [data-ops-panel] > .panel-title-toolbar h2 {
       font-size: 19px;
@@ -524,7 +518,7 @@ std::string ProductUiCss() {
     body.ops-shell [data-ops-panel] .status-stat {
       min-width: 0;
       border-radius: 8px;
-      background: rgba(255, 255, 255, 0.94);
+      background: color-mix(in srgb, var(--color-surface-raised) 94%, transparent);
     }
     body.ops-shell .toolbar,
     body.ops-shell .actions,
@@ -3665,14 +3659,14 @@ std::string ClientShellCss() {
     :root[data-theme="dark"] .chip.bad { color: var(--color-danger); }
     :root[data-theme="dark"] a.nav.active { background: var(--color-primary); color: var(--color-on-primary); }
     body.client-shell {
-      --bg: #f5f7fb;
-      --panel: #ffffff;
-      --panel-soft: #f1f4f8;
-      --line: #d8e0ea;
-      --text: #152033;
-      --muted: #667386;
+      --bg: var(--color-bg);
+      --panel: var(--color-surface-raised);
+      --panel-soft: var(--color-surface-muted);
+      --line: var(--color-border);
+      --text: var(--color-text);
+      --muted: var(--color-text-muted);
       --accent: #3b82f6;
-      --accent-soft: #e8f1ff;
+      --accent-soft: color-mix(in srgb, var(--accent) 14%, var(--color-surface-raised));
       background: var(--bg);
       color: var(--text);
     }
@@ -3691,8 +3685,8 @@ std::string ClientShellCss() {
       padding: 0 22px;
       border-width: 0 0 1px;
       border-radius: 0;
-      background: rgba(255, 255, 255, 0.97);
-      box-shadow: 0 1px 0 rgba(15, 23, 42, 0.06);
+      background: color-mix(in srgb, var(--panel) 97%, transparent);
+      box-shadow: 0 1px 0 color-mix(in srgb, var(--line) 70%, transparent);
     }
     body.client-shell header.app-chrome .app-header-top {
       grid-template-columns: minmax(0, 1fr) minmax(0, max-content);
@@ -3713,7 +3707,7 @@ std::string ClientShellCss() {
       min-width: 0;
       grid-template-columns: none;
       grid-auto-flow: column;
-      grid-auto-columns: max-content;
+      grid-auto-columns: minmax(118px, 132px);
       overflow-x: auto;
       scrollbar-width: none;
     }
@@ -3721,7 +3715,7 @@ std::string ClientShellCss() {
       display: none;
     }
     body.client-shell .account-menu {
-      max-width: min(38vw, 390px);
+      max-width: min(34vw, 340px);
       min-height: 44px;
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
@@ -3732,7 +3726,7 @@ std::string ClientShellCss() {
     }
     body.client-shell .workspace.live-workspace {
       min-height: calc(100vh - 60px);
-      background: #f5f7fb;
+      background: var(--bg);
     }
     body.client-shell #detail.panel {
       width: 100%;
@@ -3765,7 +3759,7 @@ std::string ClientShellCss() {
       max-height: calc(100vh - 92px);
       overflow: auto;
       border-radius: 8px;
-      background: #ffffff;
+      background: var(--panel);
     }
     body.client-shell .client-dashboard-shell {
       min-width: 0;
@@ -3779,8 +3773,8 @@ std::string ClientShellCss() {
       padding: 16px;
       border: 1px solid var(--line);
       border-radius: 8px;
-      background: #ffffff;
-      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+      background: var(--panel);
+      box-shadow: var(--shadow-sm);
     }
     body.client-shell .client-dashboard-head {
       align-items: start;
@@ -3801,7 +3795,7 @@ std::string ClientShellCss() {
       position: relative;
       min-height: calc(100vh - 60px);
       gap: 0;
-      background: #f5f7fb;
+      background: var(--bg);
     }
     body.client-shell .live-toolbar {
       position: absolute;
@@ -3827,7 +3821,7 @@ std::string ClientShellCss() {
     body.client-shell .live-toolbar label select {
       min-height: 34px;
       border-radius: 7px;
-      background: #ffffff;
+      background: var(--panel);
       font-size: 12px;
     }
     body.client-shell .live-info-toggle {
@@ -3838,8 +3832,10 @@ std::string ClientShellCss() {
       padding: 0 8px;
       border: 1px solid var(--line);
       border-radius: 7px;
-      background: #ffffff;
+      background: var(--panel);
       white-space: nowrap;
+      width: 112px;
+      justify-content: center;
     }
     body.client-shell .live-copy-actions {
       display: flex;
@@ -3848,9 +3844,10 @@ std::string ClientShellCss() {
     }
     body.client-shell .live-copy-actions button {
       min-height: 34px;
+      width: 84px;
       padding: 0 10px;
       border-radius: 7px;
-      background: #ffffff;
+      background: var(--panel);
       font-size: 12px;
       white-space: nowrap;
     }
@@ -3895,8 +3892,8 @@ std::string ClientShellCss() {
       min-width: 190px;
       padding: 10px;
       border-radius: 8px;
-      background: #ffffff;
-      box-shadow: 0 14px 32px rgba(15, 23, 42, 0.16);
+      background: var(--panel);
+      box-shadow: var(--shadow-md);
     }
     body.client-shell #liveAllStop {
       position: absolute;
@@ -3904,8 +3901,8 @@ std::string ClientShellCss() {
       right: 0;
       z-index: 55;
       min-width: 190px;
-      background: #ffffff;
-      box-shadow: 0 14px 32px rgba(15, 23, 42, 0.16);
+      background: var(--panel);
+      box-shadow: var(--shadow-md);
     }
     body.client-shell .live-summary-rail,
     body.client-shell .live-selected-detail {
@@ -3931,7 +3928,7 @@ std::string ClientShellCss() {
       gap: 0;
       padding: 0;
       border-right: 1px solid var(--line);
-      background: #ffffff;
+      background: var(--panel);
       overflow: hidden;
     }
     body.client-shell .live-workspace-layout[data-dock-side="right"] .live-source-dock {
@@ -3943,7 +3940,7 @@ std::string ClientShellCss() {
       padding: 16px 22px 10px;
       border: 0;
       border-radius: 0;
-      background: #ffffff;
+      background: var(--panel);
     }
     body.client-shell .live-source-dock-head h3 {
       font-size: 16px;
@@ -3962,7 +3959,7 @@ std::string ClientShellCss() {
       padding: 0 38px 0 12px;
       border: 1px solid var(--line);
       border-radius: 7px;
-      background: #ffffff;
+      background: var(--panel);
       color: var(--text);
       font: inherit;
       font-size: 13px;
@@ -3993,13 +3990,13 @@ std::string ClientShellCss() {
     body.client-shell .live-source-group summary {
       min-height: 30px;
       padding: 0 4px;
-      color: #1f2a3d;
+      color: var(--text);
       font-size: 13px;
       font-weight: 800;
     }
     body.client-shell .live-source-floor summary {
       padding-left: 20px;
-      color: #3f4b5f;
+      color: var(--muted);
     }
     body.client-shell .live-source-leaves {
       gap: 6px;
@@ -4012,11 +4009,11 @@ std::string ClientShellCss() {
       gap: 4px 8px;
       padding: 8px 10px;
       border-radius: 7px;
-      background: #ffffff;
+      background: var(--panel);
     }
     body.client-shell .live-source-node.active {
-      background: #e8f1ff;
-      border-color: #b7d3ff;
+      background: var(--accent-soft);
+      border-color: color-mix(in srgb, var(--accent) 38%, var(--line));
       box-shadow: none;
     }
     body.client-shell .live-source-title {
@@ -4032,7 +4029,7 @@ std::string ClientShellCss() {
       padding: 14px 12px 18px;
       border-width: 1px 0 0;
       border-radius: 0;
-      background: #ffffff;
+      background: var(--panel);
       overflow: auto;
     }
     body.client-shell .live-dock-event-head {
@@ -4044,14 +4041,14 @@ std::string ClientShellCss() {
     body.client-shell .live-dock-event {
       min-height: 54px;
       padding: 10px;
-      border: 1px solid #edf1f6;
+      border: 1px solid var(--line);
       border-radius: 7px;
-      background: #ffffff;
+      background: var(--panel);
     }
     body.client-shell .live-workspace-main {
       min-height: calc(100vh - 60px);
       padding: 70px 8px 22px 16px;
-      background: #f5f7fb;
+      background: var(--bg);
     }
     body.client-shell .live-grid,
     body.client-shell .live-grid[data-grid-size] {
@@ -4083,7 +4080,7 @@ std::string ClientShellCss() {
       border-radius: 8px;
       overflow: hidden;
       background: #161b22;
-      border: 1px solid #cfd8e5;
+      border: 1px solid var(--line);
       box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
     }
     body.client-shell .tile.selected {
@@ -4126,6 +4123,8 @@ std::string ClientShellCss() {
     }
     body.client-shell .tile-title h3 {
       min-width: 0;
+      max-width: 100%;
+      min-height: 18px;
       font-size: 15px;
       font-weight: 850;
       overflow: hidden;
@@ -4135,10 +4134,15 @@ std::string ClientShellCss() {
     body.client-shell .tile-title .chip {
       flex: 0 0 auto;
       max-width: 100%;
+      width: 66px;
       min-height: 22px;
       padding: 2px 7px;
       background: rgba(59, 130, 246, 0.9);
       color: #ffffff;
+      justify-content: center;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
     body.client-shell .tile-controls {
       display: none;
@@ -4187,7 +4191,7 @@ std::string ClientShellCss() {
     }
     body.client-shell .tile-stage video {
       object-fit: cover;
-      filter: grayscale(0.85) brightness(0.72) contrast(1.05);
+      filter: none;
     }
     body.client-shell .tile-stage > span[data-role="placeholder"] {
       inset: 50% 22px auto 22px;
