@@ -73,6 +73,7 @@ std::atomic<std::uint64_t> g_web_rtc_metadata_sequence{0};
 std::atomic<std::uint64_t> g_ops_audit_sequence{0};
 std::mutex g_ops_audit_mu;
 std::mutex g_ops_event_review_mu;
+std::mutex g_client_live_preference_mu;
 std::mutex g_source_health_audit_mu;
 std::unordered_map<std::string, std::string> g_source_health_audit_state;
 std::mutex g_source_health_warning_mu;
@@ -8627,6 +8628,276 @@ bool OpsEventReviewMatchesFilters(const OpsEventReviewState& state,
     return true;
 }
 
+std::filesystem::path ClientLiveLayoutPreferenceStoragePath(const app::AppConfig& config) {
+    std::filesystem::path base = config.source_registry_path.empty()
+                                     ? std::filesystem::path(".")
+                                     : std::filesystem::path(config.source_registry_path).parent_path();
+    if (base.empty()) {
+        base = ".";
+    }
+    return base / ".media_server.client_live_layout_preferences.jsonl";
+}
+
+std::string ClientLivePreferencePrincipalKey(const auth::Principal& principal) {
+    std::string key = Trim(principal.username);
+    if (key.empty()) {
+        key = Trim(principal.display_name);
+    }
+    if (key.empty()) {
+        key = Trim(principal.role);
+    }
+    if (key.empty()) {
+        key = "anonymous";
+    }
+    return principal.auth_mode + ":" + principal.role + ":" + key;
+}
+
+bool ClientLiveLayoutPreferenceContainsForbiddenMaterial(const std::string& body) {
+    const std::string lowered = LowerAscii(body);
+    static const std::vector<std::string> kForbidden = {
+        "rtsp://",
+        "rtsps://",
+        "whep://",
+        "wheps://",
+        "sourceurl",
+        "developerurl",
+        "debugurl",
+        "raw json",
+        "rawjson",
+        "debugcounters",
+        "bbox diagnostics",
+        "modelpath",
+        "modelchecksum",
+        "password",
+        "passwordhash",
+        "token",
+        "tokenhash",
+        "credential",
+        "secret",
+    };
+    return std::any_of(kForbidden.begin(), kForbidden.end(), [&](const std::string& needle) {
+        return lowered.find(needle) != std::string::npos;
+    });
+}
+
+bool NormalizeClientLiveLayoutPreferenceBody(const std::string& body,
+                                             std::string* normalized,
+                                             std::string* error_message) {
+    std::string value = Trim(body);
+    constexpr std::size_t kClientLiveLayoutPreferenceMaxBodyBytes = 24 * 1024;
+    if (value.empty()) {
+        if (error_message != nullptr) {
+            *error_message = "invalid live layout preference: body is required";
+        }
+        return false;
+    }
+    if (value.size() > kClientLiveLayoutPreferenceMaxBodyBytes) {
+        if (error_message != nullptr) {
+            *error_message = "invalid live layout preference: body is too large";
+        }
+        return false;
+    }
+    if (value.front() != '{' || value.back() != '}') {
+        if (error_message != nullptr) {
+            *error_message = "invalid live layout preference: JSON object required";
+        }
+        return false;
+    }
+    if (!ExtractObjectField(value, "workspaceLayout").has_value() ||
+        !ExtractObjectField(value, "filters").has_value() ||
+        !ExtractObjectField(value, "overlayDefaults").has_value()) {
+        if (error_message != nullptr) {
+            *error_message =
+                "invalid live layout preference: workspaceLayout, filters, overlayDefaults required";
+        }
+        return false;
+    }
+    const std::string schema =
+        Trim(ParseStringField(value, "schema").value_or("media-server.client-live-layout.v1"));
+    if (schema != "media-server.client-live-layout.v1") {
+        if (error_message != nullptr) {
+            *error_message = "invalid live layout preference: unsupported schema";
+        }
+        return false;
+    }
+    if (ClientLiveLayoutPreferenceContainsForbiddenMaterial(value)) {
+        if (error_message != nullptr) {
+            *error_message =
+                "invalid live layout preference: debug, credential, or source URL material is not allowed";
+        }
+        return false;
+    }
+    if (normalized != nullptr) {
+        *normalized = std::move(value);
+    }
+    return true;
+}
+
+std::string ClientLiveRoleLayoutPresetJson(const auth::Principal& principal) {
+    const std::string role = principal.role.empty() ? "viewer" : principal.role;
+    const bool operator_like = role == "admin" || role == "operator";
+    const bool integrator = role == "integrator";
+    const int grid_size = integrator ? 1 : 4;
+    const std::string density = operator_like ? "compact" : "comfortable";
+    const std::string dock_side = operator_like ? "left" : "right";
+    const bool info_overlay = operator_like;
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.client-live-layout.v1\","
+        << "\"presetType\":\"role\","
+        << "\"role\":\"" << JsonEscape(role) << "\","
+        << "\"workspaceLayout\":{\"gridSize\":" << grid_size
+        << ",\"density\":\"" << density << "\","
+        << "\"dockSide\":\"" << dock_side << "\"},"
+        << "\"filters\":{\"eventFeed\":\"selected-tile\",\"selectedViewId\":\"\"},"
+        << "\"overlayDefaults\":{\"infoOverlayEnabled\":"
+        << (info_overlay ? "true" : "false") << "},"
+        << "\"selectedSources\":[],"
+        << "\"tiles\":[]"
+        << "}";
+    return out.str();
+}
+
+bool LoadClientLiveLayoutPreferenceLocked(const std::filesystem::path& path,
+                                          const std::string& key,
+                                          std::string* preference_json,
+                                          std::int64_t* updated_at_ms,
+                                          std::string* error_message) {
+    if (preference_json != nullptr) {
+        preference_json->clear();
+    }
+    if (updated_at_ms != nullptr) {
+        *updated_at_ms = 0;
+    }
+    if (!std::filesystem::exists(path)) {
+        return true;
+    }
+    std::ifstream in(path);
+    if (!in) {
+        if (error_message != nullptr) {
+            *error_message = "failed to open client live layout preference state: " + path.string();
+        }
+        return false;
+    }
+    std::string line;
+    while (std::getline(in, line)) {
+        line = Trim(std::move(line));
+        if (line.empty() || ParseStringField(line, "key").value_or("") != key) {
+            continue;
+        }
+        const auto preference = ExtractObjectField(line, "userPreference");
+        if (!preference.has_value()) {
+            continue;
+        }
+        if (preference_json != nullptr) {
+            *preference_json = *preference;
+        }
+        if (updated_at_ms != nullptr) {
+            *updated_at_ms = ParseInt64Field(line, "updatedAtMs").value_or(0);
+        }
+    }
+    return true;
+}
+
+bool LoadClientLiveLayoutPreference(const app::AppConfig& config,
+                                    const auth::Principal& principal,
+                                    std::string* preference_json,
+                                    std::int64_t* updated_at_ms,
+                                    std::string* error_message) {
+    const std::filesystem::path path = ClientLiveLayoutPreferenceStoragePath(config);
+    const std::string key = ClientLivePreferencePrincipalKey(principal);
+    std::lock_guard lock(g_client_live_preference_mu);
+    return LoadClientLiveLayoutPreferenceLocked(
+        path, key, preference_json, updated_at_ms, error_message);
+}
+
+std::string ClientLiveLayoutPreferenceRecordJson(const auth::Principal& principal,
+                                                 const std::string& preference_json,
+                                                 std::int64_t updated_at_ms) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.client-live-layout-preference.v1\","
+        << "\"key\":\"" << JsonEscape(ClientLivePreferencePrincipalKey(principal)) << "\","
+        << "\"actor\":\"" << JsonEscape(principal.username.empty()
+                                             ? principal.display_name
+                                             : principal.username)
+        << "\","
+        << "\"role\":\"" << JsonEscape(principal.role) << "\","
+        << "\"updatedAtMs\":" << updated_at_ms << ","
+        << "\"userPreference\":" << preference_json
+        << "}";
+    return out.str();
+}
+
+bool UpsertClientLiveLayoutPreference(const app::AppConfig& config,
+                                      const auth::Principal& principal,
+                                      const std::string& body,
+                                      std::string* error_message) {
+    std::string normalized;
+    if (!NormalizeClientLiveLayoutPreferenceBody(body, &normalized, error_message)) {
+        return false;
+    }
+    const std::filesystem::path path = ClientLiveLayoutPreferenceStoragePath(config);
+    std::error_code ec;
+    std::filesystem::create_directories(path.parent_path(), ec);
+    if (ec) {
+        if (error_message != nullptr) {
+            *error_message = "failed to create client live layout preference directory: " + ec.message();
+        }
+        return false;
+    }
+    std::lock_guard lock(g_client_live_preference_mu);
+    std::ofstream out(path, std::ios::app);
+    if (!out) {
+        if (error_message != nullptr) {
+            *error_message = "failed to open client live layout preference state: " + path.string();
+        }
+        return false;
+    }
+    out << ClientLiveLayoutPreferenceRecordJson(principal, normalized, NowUnixMs()) << "\n";
+    out.flush();
+    if (!out) {
+        if (error_message != nullptr) {
+            *error_message = "failed to write client live layout preference state: " + path.string();
+        }
+        return false;
+    }
+    return true;
+}
+
+std::string ClientLiveLayoutPreferencesJson(const app::AppConfig& config,
+                                            const auth::Principal& principal,
+                                            bool saved) {
+    std::string preference_json;
+    std::int64_t updated_at_ms = 0;
+    std::string error_message;
+    const bool loaded = LoadClientLiveLayoutPreference(
+        config, principal, &preference_json, &updated_at_ms, &error_message);
+    std::ostringstream out;
+    out << "{"
+        << "\"status\":\"client-live-layout-preferences\","
+        << "\"schema\":\"media-server.client-live-layout-preferences.v1\","
+        << "\"saved\":" << (saved ? "true" : "false") << ","
+        << "\"contract\":{\"userPreferenceSeparateFromRolePreset\":true,"
+        << "\"rolePresetSeparateFromUserPreference\":true,"
+        << "\"authScopeChanged\":false,"
+        << "\"mediaPathChanged\":false},"
+        << "\"principal\":{\"role\":\"" << JsonEscape(principal.role) << "\"},"
+        << "\"rolePreset\":" << ClientLiveRoleLayoutPresetJson(principal) << ","
+        << "\"userPreference\":";
+    if (!preference_json.empty()) {
+        out << preference_json;
+    } else {
+        out << "null";
+    }
+    out << ",\"updatedAtMs\":" << updated_at_ms;
+    if (!loaded) {
+        out << ",\"warning\":\"" << JsonEscape(error_message) << "\"";
+    }
+    out << "}";
+    return out.str();
+}
+
 std::pair<std::string, std::string> SourceHealthAuditStateParts(const std::string& state) {
     const std::size_t sep = state.find('\n');
     if (sep == std::string::npos) {
@@ -12135,6 +12406,53 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 return RegistryHttpResponse(
                                     SourceViewRegistry::Instance().DisableView(view_id));
                             }
+                        }
+
+                        if (request.path == "/client/api/preferences/live-layout") {
+                            if (const auto auth_response = require_client_api_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    ClientLiveLayoutPreferencesJson(
+                                        config, principal_result.principal, false));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                            if (request.method == "PUT" || request.method == "POST") {
+                                constexpr std::size_t kClientLiveLayoutPreferenceMaxBodyBytes = 24 * 1024;
+                                if (request.body.size() > kClientLiveLayoutPreferenceMaxBodyBytes) {
+                                    return JsonResponse(
+                                        413,
+                                        "Payload Too Large",
+                                        "{\"error\":\"client live layout preference body is too large\"}");
+                                }
+                                std::string error_message;
+                                if (!UpsertClientLiveLayoutPreference(
+                                        config,
+                                        principal_result.principal,
+                                        request.body,
+                                        &error_message)) {
+                                    const bool invalid =
+                                        error_message.rfind("invalid live layout preference", 0) == 0;
+                                    return JsonResponse(
+                                        invalid ? 400 : 500,
+                                        invalid ? "Bad Request" : "Internal Server Error",
+                                        "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                                }
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    ClientLiveLayoutPreferencesJson(
+                                        config, principal_result.principal, true));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                            return JsonResponse(405,
+                                                "Method Not Allowed",
+                                                "{\"error\":\"method not allowed\"}");
                         }
 
                         if (request.path == "/client/api/views") {

@@ -2621,7 +2621,7 @@ std::string ClientShellCss() {
     .live-monitor { display: grid; gap: 12px; }
     .live-toolbar {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto auto auto auto;
+      grid-template-columns: minmax(0, 1fr) auto auto auto auto auto;
       gap: 10px;
       align-items: end;
     }
@@ -2654,6 +2654,24 @@ std::string ClientShellCss() {
       margin-top: 6px;
       width: 100%;
       white-space: nowrap;
+    }
+    .live-layout-presets {
+      display: grid;
+      gap: 6px;
+      min-width: 180px;
+      margin-top: 6px;
+      padding: 8px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-soft);
+    }
+    .live-layout-presets .chip {
+      justify-self: start;
+      max-width: 100%;
+      overflow-wrap: anywhere;
+    }
+    .live-layout-presets button {
+      margin-top: 0;
     }
     .live-workspace-layout {
       display: grid;

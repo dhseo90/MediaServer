@@ -727,10 +727,11 @@ run_routes() {
   esac
   expect_eq "$(http_code -b "${INTEGRATOR_COOKIE}" "${BASE}/client")" "403" "integrator client shell denied"
   expect_eq "$(http_code "${BASE}/client/api/views")" "401" "unauth client views API denied"
+  expect_eq "$(http_code "${BASE}/client/api/preferences/live-layout")" "401" "unauth client live layout preference API denied"
   expect_eq "$(http_code "${BASE}/client/api/views/1/dashboard")" "401" "unauth client dashboard API denied"
   expect_eq "$(http_code -H 'Content-Type: application/json' \
     -X POST --data '{"overlayMode":"raw"}' "${BASE}/client/api/views/1/webrtc/session")" "401" "unauth client WebRTC wrapper denied"
-  local public_request_code client_views_json integrator_views_json
+  local public_request_code client_views_json client_layout_json integrator_views_json
   public_request_code="$(http_code -H 'Content-Type: application/json' \
     -X POST --data '{"username":"route-public-request","displayName":"Route Public","contact":"route@example.test","viewId":"1","reason":"route smoke"}' "${BASE}/client/api/access-requests")"
   expect_eq "${public_request_code}" "201" "public access request API remains unauthenticated"
@@ -743,6 +744,17 @@ run_routes() {
     *'"viewId":"2"'*) fail "viewer unassigned view leaked in client API: ${client_views_json}" ;;
     *) pass "viewer unassigned view hidden from client API" ;;
   esac
+  client_layout_json="$(curl -fsS -b "${VIEWER_COOKIE}" "${BASE}/client/api/preferences/live-layout")"
+  case "${client_layout_json}" in
+    *'"userPreferenceSeparateFromRolePreset":true'*'"rolePreset"'*) pass "viewer client live layout preference separates user and role presets" ;;
+    *) fail "viewer client live layout preference contract missing: ${client_layout_json}" ;;
+  esac
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" -H 'Content-Type: application/json' \
+    -X PUT --data '{"schema":"media-server.client-live-layout.v1","workspaceLayout":{"gridSize":2,"density":"compact","dockSide":"right"},"filters":{"eventFeed":"selected-tile","selectedTileIndex":0,"selectedViewId":"1"},"overlayDefaults":{"infoOverlayEnabled":true},"selectedSources":[{"slot":0,"viewId":"1","overlayMode":"raw"}],"tiles":[{"slot":0,"viewId":"1","overlayMode":"raw","selected":true}]}' \
+    "${BASE}/client/api/preferences/live-layout")" "200" "viewer client live layout preference save allowed"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" -H 'Content-Type: application/json' \
+    -X PUT --data '{"schema":"media-server.client-live-layout.v1","workspaceLayout":{"gridSize":1,"density":"comfortable","dockSide":"left"},"filters":{"eventFeed":"selected-tile"},"overlayDefaults":{"infoOverlayEnabled":false},"sourceUrl":"rtsp://192.0.2.10/live"}' \
+    "${BASE}/client/api/preferences/live-layout")" "400" "viewer client live layout preference rejects source URL material"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/client/api/views/2/dashboard")" "403" "viewer cross-view dashboard denied"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" -H 'Content-Type: application/json' \
     -X POST --data '{"overlayMode":"raw"}' "${BASE}/client/api/views/2/webrtc/session")" "403" "viewer cross-view WebRTC wrapper denied"

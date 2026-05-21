@@ -809,6 +809,193 @@ void AppendClientShellScript(std::ostringstream& out) {
     let liveDockEventsNonce = 0;
     let liveBulkNonce = 0;
     let liveDragViewId = '';
+    const liveLayoutPreferenceEndpoint = '/client/api/preferences/live-layout';
+    const liveLayoutPreferenceSchema = 'media-server.client-live-layout.v1';
+    const livePreferenceState = {
+      loaded: false,
+      saving: false,
+      dirty: false,
+      userPreference: null,
+      rolePreset: null,
+      error: ''
+    };
+    function clampLiveTileCount(value) {
+      const parsed = Number(value);
+      return Math.min(maxLiveTiles, Math.max(1, Number.isFinite(parsed) ? Math.floor(parsed) : 4));
+    }
+    function normalizeLiveLayoutPreference(value) {
+      if (!value || typeof value !== 'object') return null;
+      if (value.schema && value.schema !== liveLayoutPreferenceSchema) return null;
+      return value;
+    }
+    function markLivePreferenceDirty() {
+      livePreferenceState.dirty = true;
+      updateLiveLayoutPresetStatus();
+    }
+    function liveLayoutAssignments(preference) {
+      if (Array.isArray(preference?.tiles)) return preference.tiles;
+      if (Array.isArray(preference?.selectedSources)) {
+        return preference.selectedSources.map((item, index) => ({
+          slot: Number(item?.slot ?? item?.index ?? index),
+          viewId: item?.viewId || item,
+          overlayMode: item?.overlayMode || ''
+        }));
+      }
+      return [];
+    }
+    function applyLiveLayoutPreference(preference, options = {}) {
+      const next = normalizeLiveLayoutPreference(preference);
+      if (!next) return false;
+      const layout = next.workspaceLayout || {};
+      const filters = next.filters || {};
+      const overlayDefaults = next.overlayDefaults || {};
+      const assignments = liveLayoutAssignments(next);
+      const bySlot = new Map();
+      for (const item of assignments) {
+        const slot = Number(item?.slot ?? item?.index);
+        if (Number.isFinite(slot) && slot >= 0 && slot < maxLiveTiles) bySlot.set(Math.floor(slot), item);
+      }
+      const nextCount = clampLiveTileCount(layout.gridSize ?? next.gridSize ?? liveTileCount);
+      const nextDensity = layout.density === 'compact' ? 'compact' : 'comfortable';
+      const nextDockSide = layout.dockSide === 'right' ? 'right' : 'left';
+      const useRoleDefaults = options.useRoleDefaults === true || assignments.length === 0;
+      const assignedCounts = new Map();
+      liveTileCount = nextCount;
+      liveDensity = nextDensity;
+      liveDockSide = nextDockSide;
+      liveInfoOverlayEnabled = Boolean(overlayDefaults.infoOverlayEnabled);
+      for (const tile of liveTiles) {
+        const saved = bySlot.get(tile.index);
+        const wantedViewId = String(saved?.viewId || (useRoleDefaults ? defaultLiveViewIdList[tile.index] : '') || '');
+        const view = viewById(wantedViewId);
+        let nextViewId = '';
+        if (view) {
+          const count = assignedCounts.get(view.viewId) || 0;
+          if (count < viewMaxTiles(view)) {
+            nextViewId = view.viewId;
+            assignedCounts.set(view.viewId, count + 1);
+          }
+        }
+        tile.viewId = nextViewId;
+        const modes = allowedOverlayModes(viewById(nextViewId));
+        const savedMode = normalizeOverlayMode(saved?.overlayMode || '');
+        tile.overlayMode = savedMode && modes.includes(savedMode)
+          ? savedMode
+          : defaultOverlayModeForView(viewById(nextViewId));
+        if (!tile.sessionId) resetTileSignal(tile);
+      }
+      const nextSelectedTile = Number(filters.selectedTileIndex ?? filters.selectedTile ?? selectedLiveTile ?? 0);
+      selectedLiveTile = Math.max(0, Math.min(liveTileCount - 1, Number.isFinite(nextSelectedTile) ? Math.floor(nextSelectedTile) : 0));
+      const wantedSelectedView = String(filters.selectedViewId || liveTiles[selectedLiveTile]?.viewId || '');
+      selectedViewId = viewById(wantedSelectedView)?.viewId || liveTiles[selectedLiveTile]?.viewId || views[0]?.viewId || '';
+      localStorage.setItem('mediaServerClientLiveGrid', String(liveTileCount));
+      localStorage.setItem('mediaServerClientLiveDensity', liveDensity);
+      localStorage.setItem('mediaServerClientLiveDockSide', liveDockSide);
+      localStorage.setItem('mediaServerClientLiveInfoOverlay', liveInfoOverlayEnabled ? 'on' : 'off');
+      livePreferenceState.dirty = false;
+      return true;
+    }
+    function liveCurrentLayoutSnapshot() {
+      return {
+        schema: liveLayoutPreferenceSchema,
+        presetType: 'user',
+        workspaceLayout: {
+          gridSize: liveTileCount,
+          density: liveDensity,
+          dockSide: liveDockSide
+        },
+        filters: {
+          eventFeed: 'selected-tile',
+          selectedTileIndex: selectedLiveTile === null ? 0 : selectedLiveTile,
+          selectedViewId: selectedViewId || ''
+        },
+        overlayDefaults: {
+          infoOverlayEnabled: liveInfoOverlayEnabled
+        },
+        selectedSources: visibleLiveTiles().map(tile => ({
+          slot: tile.index,
+          viewId: tile.viewId || '',
+          overlayMode: tile.overlayMode || ''
+        })),
+        tiles: visibleLiveTiles().map(tile => ({
+          slot: tile.index,
+          viewId: tile.viewId || '',
+          overlayMode: tile.overlayMode || '',
+          selected: selectedLiveTile === tile.index
+        }))
+      };
+    }
+    async function loadLiveLayoutPreferences() {
+      const payload = await requestJson(liveLayoutPreferenceEndpoint);
+      livePreferenceState.loaded = true;
+      livePreferenceState.error = '';
+      livePreferenceState.rolePreset = normalizeLiveLayoutPreference(payload.rolePreset);
+      livePreferenceState.userPreference = normalizeLiveLayoutPreference(payload.userPreference);
+      if (livePreferenceState.userPreference) {
+        applyLiveLayoutPreference(livePreferenceState.userPreference);
+      } else if (livePreferenceState.rolePreset) {
+        applyLiveLayoutPreference(livePreferenceState.rolePreset, { useRoleDefaults: true });
+      }
+      return payload;
+    }
+    function updateLiveLayoutPresetStatus(text = '') {
+      const status = document.querySelector('[data-role="layout-preset-status"]');
+      if (!status) return;
+      if (text) {
+        status.textContent = text;
+        return;
+      }
+      if (livePreferenceState.saving) {
+        status.textContent = '저장 중';
+      } else if (livePreferenceState.error) {
+        status.textContent = '로컬 설정';
+      } else if (livePreferenceState.dirty) {
+        status.textContent = '저장 안 됨';
+      } else if (livePreferenceState.userPreference) {
+        status.textContent = '사용자 저장값';
+      } else if (livePreferenceState.rolePreset) {
+        status.textContent = '권한 기본값';
+      } else {
+        status.textContent = '브라우저 기본값';
+      }
+    }
+    async function saveLiveLayoutPreference() {
+      const button = document.querySelector('#liveSaveLayoutPreference');
+      const snapshot = liveCurrentLayoutSnapshot();
+      livePreferenceState.saving = true;
+      if (button) button.disabled = true;
+      updateLiveLayoutPresetStatus();
+      try {
+        const payload = await requestJson(liveLayoutPreferenceEndpoint, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(snapshot)
+        });
+        livePreferenceState.loaded = true;
+        livePreferenceState.error = '';
+        livePreferenceState.rolePreset = normalizeLiveLayoutPreference(payload.rolePreset) || livePreferenceState.rolePreset;
+        livePreferenceState.userPreference = normalizeLiveLayoutPreference(payload.userPreference) || snapshot;
+        livePreferenceState.dirty = false;
+        updateLiveLayoutPresetStatus('저장됨');
+        showToast?.('라이브 레이아웃을 저장했습니다.');
+      } catch (error) {
+        livePreferenceState.error = error.message || 'layout preference save failed';
+        updateLiveLayoutPresetStatus('저장 실패');
+        showToast?.(error.message || '레이아웃을 저장하지 못했습니다.', true);
+      } finally {
+        livePreferenceState.saving = false;
+        if (button) button.disabled = false;
+        setTimeout(() => updateLiveLayoutPresetStatus(), 1200);
+      }
+    }
+    async function applyStoredLiveLayout(kind) {
+      const preference = kind === 'role' ? livePreferenceState.rolePreset : livePreferenceState.userPreference;
+      if (!preference) return;
+      await stopAllLiveTiles();
+      applyLiveLayoutPreference(preference, { useRoleDefaults: kind === 'role' });
+      renderLiveMonitor();
+      updateLiveLayoutPresetStatus(kind === 'role' ? '권한 기본값' : '사용자 저장값');
+    }
 	    function tileView(tile) {
 	      return viewById(tile?.viewId || '');
 	    }
@@ -1064,6 +1251,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	      updateTileDom(tile);
 	      updateVisibleLiveTileControls();
 	      refreshSelectedTileDetail();
+	      markLivePreferenceDirty();
 	      if (options.start !== false) {
 	        await startLiveTile(index);
 	      }
@@ -1270,6 +1458,12 @@ void AppendClientShellScript(std::ostringstream& out) {
 	            <label class="live-info-toggle"><input id="liveInfoOverlayToggle" type="checkbox"${liveInfoOverlayEnabled ? ' checked' : ''} /> 정보 오버레이</label>
 	            <details class="workspace-actions">
 	              <summary aria-label="워크스페이스 작업">작업</summary>
+                <div class="live-layout-presets" data-testid="client-live-layout-presets" data-preset-contract="user-preference,role-preset" data-preference-endpoint="${liveLayoutPreferenceEndpoint}">
+                  <span class="chip" data-role="layout-preset-status">확인 중</span>
+                  <button id="liveSaveLayoutPreference" class="ghost" type="button">레이아웃 저장</button>
+                  <button id="liveApplyUserLayoutPreference" class="ghost" type="button"${livePreferenceState.userPreference ? '' : ' disabled'}>저장 복원</button>
+                  <button id="liveApplyRoleLayoutPreset" class="ghost" type="button"${livePreferenceState.rolePreset ? '' : ' disabled'}>권한 기본</button>
+                </div>
 	              <button id="liveAllStop" class="ghost danger" type="button">전체 연결 해제</button>
 	            </details>
 	          </div>
@@ -1303,7 +1497,10 @@ void AppendClientShellScript(std::ostringstream& out) {
 	      const modeSelect = root.querySelector('[data-role="mode"]');
 	      if (modeSelect) {
 	        modeSelect.addEventListener('change', () => {
-	          if (!tile.sessionId) tile.overlayMode = modeSelect.value;
+	          if (!tile.sessionId) {
+              tile.overlayMode = modeSelect.value;
+              markLivePreferenceDirty();
+            }
 	        });
 	      }
 	      root.querySelector('[data-action="start"]')?.addEventListener('click', () => startLiveTile(tile.index));
@@ -1426,22 +1623,28 @@ void AppendClientShellScript(std::ostringstream& out) {
 	      document.querySelector('#liveAllStart')?.addEventListener('click', () => startAllLiveTiles());
 	      document.querySelector('#liveAllStop')?.addEventListener('click', () => stopAllLiveTiles());
 	      document.querySelector('#liveAllRestart')?.addEventListener('click', () => restartAllLiveTiles());
+        document.querySelector('#liveSaveLayoutPreference')?.addEventListener('click', () => saveLiveLayoutPreference());
+        document.querySelector('#liveApplyUserLayoutPreference')?.addEventListener('click', () => applyStoredLiveLayout('user'));
+        document.querySelector('#liveApplyRoleLayoutPreset')?.addEventListener('click', () => applyStoredLiveLayout('role'));
 	      document.querySelector('#liveDensity')?.addEventListener('change', event => {
 	        liveDensity = event.target.value === 'compact' ? 'compact' : 'comfortable';
 	        localStorage.setItem('mediaServerClientLiveDensity', liveDensity);
 	        const grid = document.querySelector('.live-grid');
 	        if (grid) grid.dataset.density = liveDensity;
+          markLivePreferenceDirty();
 	      });
 	      document.querySelector('#liveDockSide')?.addEventListener('change', event => {
 	        liveDockSide = event.target.value === 'right' ? 'right' : 'left';
 	        localStorage.setItem('mediaServerClientLiveDockSide', liveDockSide);
 	        const layout = document.querySelector('.live-workspace-layout');
 	        if (layout) layout.dataset.dockSide = liveDockSide;
+          markLivePreferenceDirty();
 	      });
 	      document.querySelector('#liveInfoOverlayToggle')?.addEventListener('change', event => {
 	        liveInfoOverlayEnabled = Boolean(event.target.checked);
 	        localStorage.setItem('mediaServerClientLiveInfoOverlay', liveInfoOverlayEnabled ? 'on' : 'off');
 	        updateAllTileDom();
+          markLivePreferenceDirty();
 	      });
 	      document.querySelector('#liveGridSize')?.addEventListener('change', async event => {
 	        const next = Math.min(maxLiveTiles, Math.max(1, Number(event.target.value || 4)));
@@ -1453,6 +1656,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	          selectedLiveTile = liveTileCount > 0 ? 0 : null;
 	        }
 	        localStorage.setItem('mediaServerClientLiveGrid', String(liveTileCount));
+          markLivePreferenceDirty();
 	        renderLiveMonitor();
 	      });
 	    }
@@ -1538,6 +1742,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	        bindLiveTile(tile);
 	      }
 	      bindLiveGridControls();
+      updateLiveLayoutPresetStatus();
       if (!liveStatusTimer) {
         liveStatusTimer = setInterval(() => {
           for (const tile of visibleLiveTiles()) {
@@ -1889,6 +2094,7 @@ void AppendClientShellScript(std::ostringstream& out) {
       await stopLiveTile(index);
       clearLiveTileSlot(tile);
       if (selectedLiveTile === index) selectedViewId = '';
+      markLivePreferenceDirty();
       updateVisibleLiveTileControls();
       refreshSelectedTileDetail();
       refreshLiveDockEventFeed();
@@ -2013,7 +2219,13 @@ void AppendClientShellScript(std::ostringstream& out) {
       }
     });
     if (activePage === 'live') {
-      renderLiveMonitor();
+      detail.innerHTML = emptyState('라이브 레이아웃 불러오는 중', '저장된 레이아웃과 권한 기본값을 확인합니다.');
+      loadLiveLayoutPreferences()
+        .catch(error => {
+          livePreferenceState.loaded = false;
+          livePreferenceState.error = error.message || 'layout preference load failed';
+        })
+        .finally(() => renderLiveMonitor());
       document.addEventListener('visibilitychange', () => {
         if (document.hidden) stopAllLiveTiles().catch(() => {});
       });
