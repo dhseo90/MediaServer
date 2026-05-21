@@ -64,7 +64,12 @@ artifact로 업로드합니다. 같은 release 준비 흐름에서
 future tag, push, GitHub Release, accepted baseline 채택, 320/390/760/1180px
 screenshot review는 리포트에 manual/not-run으로 남기며, 실제 실행 및 링크가
 없는 항목을 pass로 쓰지 않습니다.
-v1.6.0 source-only release에서는
+v1.7.0 source-only release에서는
+[development-backlog.md](./development-backlog.md)의 `v1.7.0 UI-first Close-out`
+기준으로 Client Live workspace, source tree/dock, tile disconnect, event review,
+source group/site, saved layout, incident timeline, alert delivery, scenario builder,
+Ops/Client declutter의 확인됨/미실행/미확인 상태를 분리합니다.
+v1.6.0 source-only release evidence는 historical evidence로 유지하며,
 [v1.6.0 Release Evidence Dashboard](./v1.6.0-release-evidence-dashboard.md)와
 `./server.sh verify-v160-release-evidence-dashboard`로 release evidence의
 확인됨/미실행/미확인 상태를 분리합니다.
@@ -95,9 +100,9 @@ Tracker benchmark harness planning only는
 
 ## Tag 전략
 
-- 현재 published source-only release tag는 `v1.6.0`입니다.
+- 현재 published source-only release tag는 `v1.7.0`입니다.
 - public-readiness, bundle policy, Actions status check가 모두 통과한 커밋에만 tag를 붙입니다.
-- `v1.6.0`은 live-only source release 기준을 유지한 stabilization release이며, binary/runtime/model bundle의 운영 배포 완료를 뜻하지 않습니다.
+- `v1.7.0`은 live-only source release 기준을 유지한 UI-first release이며, binary/runtime/model bundle의 운영 배포 완료를 뜻하지 않습니다.
 - route/API/config/schema migration이 필요한 변경은 `v2.0.0` 후보로 분리합니다.
 - tag release에는 generated sample pack, YOLO model, FFmpeg/GStreamer runtime bundle을 붙이지 않습니다.
 
@@ -111,7 +116,7 @@ major update를 적용하려면 workflow 권한, upstream changelog, pin 전략�
 ## Release Note Template
 
 ```markdown
-# Media Server v1.6.0
+# Media Server v1.7.0
 
 ## Scope
 
@@ -121,8 +126,8 @@ major update를 적용하려면 workflow 권한, upstream changelog, pin 전략�
 ## Live-only Scope
 
 - Live media relay and live VA event focus
-- ONVIF Profile S/T assisted source onboarding, source health operator workflow, VA event quality, UI refresh, delivery contract artifact work, and rule-level tracker/Re-ID opt-in work
-- v1.6.0 close-out: release evidence dashboard, stability gate cleanup, debug exposure guard, tracker/Re-ID opt-in close-out, ONVIF field evidence reconciliation, audit/export masking, runtime/model bundle RC policy, manual UI checklist, public docs consistency, and tracker benchmark planning-only boundary
+- ONVIF Profile S/T assisted source onboarding, source health operator workflow, VA event quality, UI refresh, delivery contract artifact work, rule-level tracker/Re-ID opt-in work, and v1.7.0 Client/Ops UI-first workflow work
+- v1.7.0 close-out: Client Live workspace, source tree/dock event feed, tile disconnect, event review, source group/site, tile info overlay, saved layout, incident timeline, alert delivery, scenario builder, and Ops/Client declutter
 - EventRecord/snapshot/clip: short event evidence helper, not the main product message
 
 ## Non-goals

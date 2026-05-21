@@ -35,20 +35,21 @@ source-of-truth로 쓰지 않습니다.
 
 `완료`는 운영 배포 ready, 장기 안정성 보장, 외부 연동 ready를 뜻하지 않습니다.
 
-## 현재 기준: v1.6.0 Source Release Baseline
+## 현재 기준: v1.7.0 Source Release Baseline
 
-v1.6.0은 v1.5.0까지 닫은 source-only/live-only 제품 범위를 유지하면서 release
-증적, 안정화 gate, debug/source 비노출 guard, tracker/Re-ID opt-in close-out,
-ONVIF field evidence 경계, audit/export masking, runtime/model bundle RC policy,
-manual UI evidence, public docs consistency, tracker benchmark planning-only 경계를
-정리한 source-only stabilization release입니다.
+v1.7.0은 v1.6.0까지 닫은 source-only/live-only 제품 범위를 유지하면서 Client Live
+workspace, source tree/dock event feed, tile disconnect, event review, source
+group/site, tile info overlay, saved layout, incident timeline, alert delivery,
+scenario builder, Ops/Client declutter를 닫은 source-only UI-first release입니다.
 
 핵심 완료 범위:
 
 - live source: file, RTSP pull, HTTP/HLS URI, WHEP pull, WHIP publish, ONVIF live source
 - output: RTSP, WebRTC/WHEP, URL copy parity, SourceRegistry/PublishedView 기반 redaction
 - VA: `va=1`, `vaRule=<id>`, Rule/Profile/Scenario, live Event POST, runtime metadata
-- Ops/Client: source health, runtime console, tracker warning summary, viewer debug/source 비노출
+- Ops/Client: source health, runtime console, tracker warning summary, Client Live
+  workspace, source tree/dock, event review, source group/site, saved layout,
+  incident timeline, viewer debug/source 비노출
 - Auth: setup/login/session, role/scope, admin user console, invite/request approval
 - Release: source-only readiness, bundle/license guardrail, release evidence, manual UI evidence
 - Research boundary: Re-ID/tracker default-off, OC-SORT manifest-only sandbox, YouTube lab-only 유지
@@ -63,13 +64,13 @@ manual UI evidence, public docs consistency, tracker benchmark planning-only 경
 - field sample scheduler, dataset ingest, tracker replacement benchmark 실행
 - 별도 Phase의 실제 기능 개발, tracker replacement product review
 
-세부 종료 증적은 아래 v1.6.0 Stabilization Close-out 섹션과
-[v1.6.0 Release Evidence Dashboard](./v1.6.0-release-evidence-dashboard.md)를 봅니다.
+세부 종료 증적은 아래 v1.7.0 UI-first Close-out 섹션을 봅니다. v1.6.0 release
+evidence 문서는 historical evidence로 유지합니다.
 
-## v1.7.0 UI-first Feature Roadmap
+## v1.7.0 UI-first Close-out
 
-v1.7.0은 기존 Client 화면을 먼저 갈아엎고, 그 위에 운영자가 실제로 쓸 신규 기능을
-얹는 버전입니다. 시작점은 “라이브 월 추가”가 아니라 `/client/live` 대체입니다.
+v1.7.0은 Client Live workspace와 Ops workflow 보강을 완료 기준으로 둡니다.
+기존 Client 화면을 “라이브 월 추가”가 아니라 `/client/live` 대체로 정리했고,
 버튼을 늘리는 대신 source tree, drag/drop, 선택 상태, hover/focus context action,
 overlay, saved layout으로 조작합니다.
 
@@ -98,11 +99,11 @@ UI 원칙:
   drag/drop video workspace, tile별 최소 context action, 선택 시에만 보이는 영상 정보
   overlay입니다.
 
-진행 순서:
+완료 범위:
 
-1. Client 화면 대체와 버튼 축소 기준을 먼저 닫습니다.
-2. 이벤트 검토, source group/site, layout 저장을 붙여 실제 운영 흐름을 만듭니다.
-3. 알림 연동, Scenario Builder, Incident Timeline은 기본 UI가 안정된 뒤 확장합니다.
+1. Client 화면 대체와 버튼 축소 기준을 닫았습니다.
+2. 이벤트 검토, source group/site, layout 저장을 붙여 실제 운영 흐름을 닫았습니다.
+3. 알림 연동, Scenario Builder, Incident Timeline을 기본 UI 위에 확장했습니다.
 
 | ID | 우선순위 | 영역 | 목표 | 예상 검증 |
 | --- | --- | --- | --- | --- |

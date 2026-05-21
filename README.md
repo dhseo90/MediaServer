@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Source Release](https://img.shields.io/badge/source--only%20release-v1.6.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v1.6.0)
+[![Source Release](https://img.shields.io/badge/source--only%20release-v1.7.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v1.7.0)
 
 RTSP/WebRTC live stream을 받아 다시 내보내고, 필요할 때 YOLO/ONNX 영상 분석
 overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다.
@@ -13,9 +13,8 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 
 - English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 - 전체 문서 색인: [docs/README.md](docs/README.md)
-- 최신 source-only release: [v1.6.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.6.0)
-- v1.6.0 release close-out: [docs/development-backlog.md](docs/development-backlog.md),
-  [docs/v1.6.0-release-evidence-dashboard.md](docs/v1.6.0-release-evidence-dashboard.md)
+- 최신 source-only release: [v1.7.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.7.0)
+- v1.7.0 release close-out: [docs/development-backlog.md](docs/development-backlog.md)
 
 ## 한눈에 보기
 
@@ -118,8 +117,7 @@ README는 제품을 빠르게 파악하기 위한 문서입니다. 세부 정책
 - 검증 명령: [docs/stream-verification.md](docs/stream-verification.md)
 - release/version 기준: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
-- v1.6.0 종료 판정: [docs/development-backlog.md](docs/development-backlog.md),
-  [docs/v1.6.0-release-evidence-dashboard.md](docs/v1.6.0-release-evidence-dashboard.md)
+- v1.7.0 종료 판정: [docs/development-backlog.md](docs/development-backlog.md)
 
 ## 대표 UI 미리보기
 

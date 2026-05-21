@@ -19,15 +19,14 @@ path short enough to scan. The full index is `docs/README.md`.
 
 ## Current Boundary
 
-- v1.6.0 is published as the current source-only release.
+- v1.7.0 is published as the current source-only release.
 - The main product boundary is live source onboarding, live source health, and
   live VA event quality.
 - Binary, runtime, and model bundles are excluded from the default release.
 - Long-term recording, VMS/NVR, playback/search, ONVIF Profile G
   recording/replay, Re-ID default-on, and tracker default-on remain out of scope.
 
-v1.6.0 release close-out details are in [../development-backlog.md](../development-backlog.md)
-and [../v1.6.0-release-evidence-dashboard.md](../v1.6.0-release-evidence-dashboard.md).
+v1.7.0 release close-out details are in [../development-backlog.md](../development-backlog.md).
 
 ## Public Repository Boundary
 

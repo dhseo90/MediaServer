@@ -4,19 +4,17 @@
 
 ## 현재 기준
 
-- 현재 기준 버전: `v1.6.0`
+- 현재 기준 버전: `v1.7.0`
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
-- `v1.6.0`은 v1.5.0까지 닫은 source-only/live-only 제품 경계를 유지하면서 release
-  evidence dashboard, stability gate, debug exposure guard, tracker/Re-ID opt-in
-  close-out, ONVIF field evidence reconciliation, audit/export masking, runtime/model
-  bundle RC policy, manual UI checklist, public docs consistency, tracker benchmark
-  planning-only guard를 닫은 source-only stabilization release입니다.
-- 현재 제품 경계와 v1.6.0 종료 판정은 [development-backlog.md](./development-backlog.md),
-  [v1.6.0-release-evidence-dashboard.md](./v1.6.0-release-evidence-dashboard.md),
-  [v1.6.0-stability-verification-gates.md](./v1.6.0-stability-verification-gates.md)를
-  기준으로 합니다.
+- `v1.7.0`은 v1.6.0까지 닫은 source-only/live-only 제품 경계를 유지하면서
+  Client Live workspace, source tree/dock event feed, tile disconnect,
+  event review, source group/site, tile info overlay, saved layout,
+  incident timeline, alert delivery, scenario builder, Ops/Client declutter를
+  닫은 source-only UI-first release입니다.
+- 현재 제품 경계와 v1.7.0 종료 판정은 [development-backlog.md](./development-backlog.md)를
+  기준으로 합니다. v1.6.0 release evidence 문서는 historical evidence로 유지합니다.
 
-## `v1.6.0`에 포함되는 범위
+## `v1.7.0`에 포함되는 범위
 
 - Apache-2.0 소스 코드
 - 문서, 설정 예시, 검증 스크립트
@@ -57,8 +55,19 @@
 - Manual UI release checklist closure
 - Public docs consistency polish
 - Tracker benchmark harness planning-only boundary
+- Client Live source tree + drag/drop workspace
+- Client source dock event feed와 dock 좌/우 전환
+- Tile disconnect와 workspace-level disconnect 계약
+- Rule Event Review Inbox
+- Source Group / Site Management
+- Tile info overlay and playback health 표시
+- Saved Views / Layout Presets
+- Operator Incident Timeline
+- Alert Delivery Integrations
+- Scenario Builder UI
+- Ops/Client shared UI declutter
 
-## `v1.6.0`에 포함하지 않는 범위
+## `v1.7.0`에 포함하지 않는 범위
 
 - FFmpeg/GStreamer/ONNX Runtime/YOLO model binary bundle
 - container image, offline package, app bundle
@@ -90,7 +99,7 @@
 
 ## Tag와 release 기준
 
-- 현재 published source-only release tag 기준은 `v1.6.0`입니다.
+- 현재 published source-only release tag 기준은 `v1.7.0`입니다.
 - tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만 붙입니다.
 - source-only release에는 sample/model/runtime binary를 추가 업로드하지 않습니다.
 - binary/container/offline bundle은 별도 RC gate와 bundle policy 검토를 통과한 뒤 별도 release로 다룹니다.
