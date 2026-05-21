@@ -4218,6 +4218,12 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
               </select>
             </label>
           </div>
+          <div class="row" data-testid="source-group-site-management" data-scope-contract="view-read-scopes-unchanged">
+            <label>사이트<input name="site" placeholder="예: 본사" /></label>
+            <label>그룹<input name="group" placeholder="예: 주차장" /></label>
+            <label>층<input name="floor" placeholder="예: B1" /></label>
+            <label>구역<input name="zone" placeholder="예: 출입구" /></label>
+          </div>
           <label data-source-kind="file">파일
             <select name="file" id="channel-file-select">
               <option value="sample_h264.mp4">sample_h264.mp4</option>
@@ -4398,7 +4404,8 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
               </label>
             </div>
             <div id="view-assignment">
-              <label>채널 ID<input name="viewId" placeholder="1" /></label>
+              <label>채널 ID<input name="viewId" list="view-assignment-options" placeholder="1" /></label>
+              <datalist id="view-assignment-options"></datalist>
               <p class="hint">시청자/연동 계정에는 선택한 채널의 라이브, 대시보드, 이벤트, 메타데이터 조회 권한만 부여합니다. 운영, 개발, 소스, 룰 관리 권한은 허용하지 않습니다.</p>
             </div>
             <div class="scope-template-actions">

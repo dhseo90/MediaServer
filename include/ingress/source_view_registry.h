@@ -32,6 +32,10 @@ public:
         bool enabled{true};
         std::vector<std::string> tags;
         std::string owner_group;
+        std::string site;
+        std::string group;
+        std::string floor;
+        std::string zone;
     };
 
     struct PublishedViewRecord {

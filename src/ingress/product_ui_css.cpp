@@ -1892,12 +1892,27 @@ std::string ProductUiCss() {
     .channel-col-va-url { width: 172px; }
     .channel-col-actions { width: 150px; }
     .channel-id-cell,
+    .channel-name-stack,
     .channel-kind-cell,
     .channel-input-stack {
       min-width: 0;
       max-width: 100%;
       overflow-wrap: anywhere;
       word-break: break-word;
+    }
+    .channel-name-stack {
+      display: grid;
+      gap: 3px;
+    }
+    .channel-name-stack strong,
+    .channel-name-stack span {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .channel-name-stack span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 800;
     }
     .channel-status-actions {
       display: grid;

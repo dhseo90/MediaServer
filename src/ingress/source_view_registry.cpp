@@ -646,7 +646,15 @@ std::vector<SourceViewRegistry::SourceRecord> DefaultSourceRecords() {
     onvif_source.tags = {"onvif", "live", "public-stream"};
     onvif_source.canonical_source_key = CanonicalSourceKey(onvif_source);
 
-    return {file_source, va_source, rtsp_source, http_source, onvif_source};
+    std::vector<SourceViewRegistry::SourceRecord> defaults = {
+        file_source, va_source, rtsp_source, http_source, onvif_source};
+    for (std::size_t i = 0; i < defaults.size(); ++i) {
+        defaults[i].site = "Demo Site";
+        defaults[i].group = i < 2 ? "Samples" : "External";
+        defaults[i].floor = i < 2 ? "Lab Floor" : "Public Feeds";
+        defaults[i].zone = defaults[i].tags.empty() ? "General" : "Live";
+    }
+    return defaults;
 }
 
 SourceViewRegistry::PublishedViewRecord DefaultPublishedViewRecord(
@@ -744,6 +752,14 @@ std::optional<SourceViewRegistry::SourceRecord> ParseSourceRecord(const std::str
     source.enabled = ParseBoolField(body, "enabled").value_or(true);
     source.tags = ParseStringArrayField(body, "tags");
     source.owner_group = Trim(ParseStringField(body, "ownerGroup").value_or(""));
+    source.site = Trim(ParseStringField(body, "site").value_or(
+        ParseStringField(body, "siteName").value_or("")));
+    source.group = Trim(ParseStringField(body, "group").value_or(
+        ParseStringField(body, "groupName").value_or(source.owner_group)));
+    source.floor = Trim(ParseStringField(body, "floor").value_or(
+        ParseStringField(body, "floorName").value_or("")));
+    source.zone = Trim(ParseStringField(body, "zone").value_or(
+        ParseStringField(body, "zoneName").value_or("")));
     source.canonical_source_key = CanonicalSourceKey(source);
     if (source.kind.empty() || source.canonical_source_key.empty()) {
         if (error_message != nullptr) {
@@ -831,6 +847,10 @@ std::string SourceJson(const SourceViewRegistry::SourceRecord& source, bool incl
         << "\"tags\":";
     AppendStringArray(out, source.tags);
     out << ",\"ownerGroup\":\"" << JsonEscape(source.owner_group) << "\"";
+    out << ",\"site\":\"" << JsonEscape(source.site) << "\""
+        << ",\"group\":\"" << JsonEscape(source.group) << "\""
+        << ",\"floor\":\"" << JsonEscape(source.floor) << "\""
+        << ",\"zone\":\"" << JsonEscape(source.zone) << "\"";
     if (include_sensitive) {
         bool first = false;
         out << ",\"canonicalSourceKey\":\"" << JsonEscape(source.canonical_source_key) << "\"";
@@ -929,6 +949,11 @@ std::string ClientPublishedViewJson(const SourceViewRegistry::PublishedViewRecor
     out << ",\"showDashboard\":" << (view.show_dashboard ? "true" : "false")
         << ",\"showEvents\":" << (view.show_events ? "true" : "false")
         << ",\"showMetadataSummary\":" << (view.show_metadata_summary ? "true" : "false")
+        << ",\"site\":\"" << JsonEscape(source.site) << "\""
+        << ",\"group\":\"" << JsonEscape(source.group.empty() ? source.owner_group : source.group)
+        << "\""
+        << ",\"floor\":\"" << JsonEscape(source.floor) << "\""
+        << ",\"zone\":\"" << JsonEscape(source.zone) << "\""
         << ",\"maxTiles\":" << view.max_tiles
         << "}";
     return out.str();

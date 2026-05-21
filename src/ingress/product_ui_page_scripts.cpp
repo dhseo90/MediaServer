@@ -6838,6 +6838,13 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       if (source.whepUrl) return `외부 WHEP URL: ${source.whepUrl}`;
       return source.file || source.rtspUrl || source.httpUrl || '미제공';
     };
+    const sourceLocationParts = source => [
+      source?.site,
+      source?.group || source?.ownerGroup,
+      source?.floor,
+      source?.zone
+    ].map(item => String(item || '').trim()).filter(Boolean);
+    const sourceLocationLabel = source => sourceLocationParts(source).join(' / ');
     const streamTransportLabel = type => ({
       rtsp: 'RTSP',
       whep: 'WHEP'
@@ -7091,6 +7098,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         const liveButtons = source.sourceId ? streamButtonsForChannel(source, 'raw') : '<span class="hint">소스 미등록</span>';
         const vaButtons = source.sourceId ? streamButtonsForChannel(source, 'va') : '<span class="hint">소스 미등록</span>';
         const channelName = view.displayName || source.displayName || '';
+        const locationText = sourceLocationLabel(source);
         const inputText = source.sourceId ? locatorForSource(source) : '소스 미등록';
         const idCellHtml = `<div class="channel-id-cell">
           <span class="table-identity-pill table-identity-id">${escapeHtml(row.id || '-')}</span>
@@ -7114,7 +7122,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         `, 'channel-row-actions');
         return opsTableRowHtml([
           tableCellHtml('ID', idCellHtml),
-          tableCellHtml('이름', escapeHtml(channelName)),
+          tableCellHtml('이름', `<div class="channel-name-stack"><strong>${escapeHtml(channelName)}</strong>${locationText ? `<span>${escapeHtml(locationText)}</span>` : ''}</div>`),
           tableCellHtml('종류', kindCellHtml),
           tableCellHtml('상태', statusCellHtml, 'table-cell-status'),
           tableCellHtml('입력', inputCellHtml),
@@ -7170,7 +7178,11 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         kind: source.kind || 'file',
         enabled,
         tags: Array.isArray(source.tags) ? source.tags : [],
-        ownerGroup: source.ownerGroup || ''
+        ownerGroup: source.ownerGroup || '',
+        site: source.site || '',
+        group: source.group || '',
+        floor: source.floor || '',
+        zone: source.zone || ''
       };
       if (source.file) payload.file = source.file;
       if (source.rtspUrl) payload.rtspUrl = source.rtspUrl;
@@ -7221,6 +7233,10 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       channelForm.elements.webrtcSourceId.value = source.webrtcSourceId || '';
       channelForm.elements.whepUrl.value = source.whepUrl || '';
       channelForm.elements.httpUrl.value = source.httpUrl || '';
+      channelForm.elements.site.value = source.site || '';
+      channelForm.elements.group.value = source.group || source.ownerGroup || '';
+      channelForm.elements.floor.value = source.floor || '';
+      channelForm.elements.zone.value = source.zone || '';
       currentChannelEnabled = isClone ? false : (source.enabled !== false && view.enabled !== false);
       if (isClone && channelForm.elements.displayName.value) {
         channelForm.elements.displayName.value = `${channelForm.elements.displayName.value} 복제`;
@@ -7400,7 +7416,11 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         kind: storedKind,
         enabled: currentChannelEnabled,
         tags: formKind === 'onvif' ? ['onvif', 'live'] : [],
-        ownerGroup: ''
+        ownerGroup: (data.group || '').trim(),
+        site: (data.site || '').trim(),
+        group: (data.group || '').trim(),
+        floor: (data.floor || '').trim(),
+        zone: (data.zone || '').trim()
       };
       if (formKind === 'file') sourcePayload.file = (data.file || '').trim();
       if (formKind === 'onvif' && onvifTransport?.rtspUrl) sourcePayload.rtspUrl = onvifTransport.rtspUrl;
@@ -7580,6 +7600,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     const saveSelectedButton = document.querySelector('#user-save-selected');
     const closeUserButton = document.querySelector('#user-close');
     const assignment = document.querySelector('#view-assignment');
+    const assignmentOptions = document.querySelector('#view-assignment-options');
     const passwordFields = document.querySelector('#password-fields');
     const scopePreview = document.querySelector('#scope-template-preview');
     const lifecycleSummary = document.querySelector('#user-lifecycle-summary');
@@ -7595,6 +7616,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     ];
     let loadedUsers = [];
     let loadedRequests = [];
+    let loadedClientViews = [];
     let editorMode = 'view';
     const {
       escapeHtml,
@@ -7667,6 +7689,27 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       updateScopeTemplatePreview();
     }
     const scopedRoleTarget = viewId => String(viewId || '').trim() || '__unassigned__';
+    const clientViewLocationParts = view => [
+      view?.site,
+      view?.group,
+      view?.floor,
+      view?.zone
+    ].map(item => String(item || '').trim()).filter(Boolean);
+    const clientViewLocationLabel = view => clientViewLocationParts(view).join(' / ');
+    function findClientView(viewId) {
+      return (loadedClientViews || []).find(view => String(view.viewId || '') === String(viewId || '')) || null;
+    }
+    function renderAssignmentOptions() {
+      if (!assignmentOptions) return;
+      assignmentOptions.innerHTML = (loadedClientViews || []).map(view => {
+        const location = clientViewLocationLabel(view);
+        const label = [
+          view.displayName || view.viewId,
+          location
+        ].filter(Boolean).join(' - ');
+        return `<option value="${escapeHtml(view.viewId || '')}" label="${escapeHtml(label)}"></option>`;
+      }).join('');
+    }
     function scopeTemplateForRole(role, viewId = '') {
       const normalizedRole = String(role || '').trim().toLowerCase();
       const target = scopedRoleTarget(viewId);
@@ -7701,8 +7744,11 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       const suffix = scopedRole && !viewId
         ? '채널 ID가 비어 있어 미배정 범위로 계산됩니다.'
         : `적용 예정 ${scopes.length}개`;
+      const selectedView = scopedRole ? findClientView(viewId) : null;
+      const location = selectedView ? clientViewLocationLabel(selectedView) : '';
+      const locationText = location ? ` · 사이트/그룹: ${location}` : '';
       scopePreview.textContent = scopes.length
-        ? `${suffix}: ${scopes.join(', ')}`
+        ? `${suffix}${locationText}: ${scopes.join(', ')}`
         : '이 역할에는 적용할 권한 템플릿이 없습니다.';
     }
     function applyScopeTemplate(useRoleDefault = false) {
@@ -8001,7 +8047,13 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       renderAccessRequests(loadedRequests);
     }
       async function loadAll({ clearMessages = true } = {}) {
-      await Promise.all([loadUsers(), loadAccessRequests()]);
+      const [clientViewsPayload] = await Promise.all([
+        requestJson('/client/api/views').catch(() => ({ views: [] })),
+        loadUsers(),
+        loadAccessRequests()
+      ]);
+      loadedClientViews = Array.isArray(clientViewsPayload.views) ? clientViewsPayload.views : [];
+      renderAssignmentOptions();
       if (clearMessages) {
         setStatus('');
         setRequestStatus('');
