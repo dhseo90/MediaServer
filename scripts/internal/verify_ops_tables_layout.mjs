@@ -81,6 +81,7 @@ const checks = [
     tableSelectors: [".user-table.ops-responsive-table"],
     detailSelectors: ["#user-detail-panel.ops-detail-panel"],
     detailOpenSelector: "[data-user-view]",
+    detailFallbackOpenSelector: "#add-user-btn",
     auditSelector: "#user-audit-list",
   },
 ];
@@ -307,9 +308,13 @@ function detailAndAuditCheckExpression(check) {
 
       let detailChecked = false;
       const openSelector = ${JSON.stringify(check.detailOpenSelector || "")};
+      const fallbackOpenSelector = ${JSON.stringify(check.detailFallbackOpenSelector || "")};
       const detailSelectors = ${JSON.stringify(check.detailSelectors || [])};
       if (openSelector) {
-        const opener = Array.from(document.querySelectorAll(openSelector)).find(isVisible);
+        let opener = Array.from(document.querySelectorAll(openSelector)).find(isVisible);
+        if (!opener && fallbackOpenSelector) {
+          opener = Array.from(document.querySelectorAll(fallbackOpenSelector)).find(isVisible);
+        }
         if (opener) {
           opener.click();
           await new Promise(resolve => setTimeout(resolve, 350));

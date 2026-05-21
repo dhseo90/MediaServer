@@ -8314,9 +8314,16 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       recordOpsAudit,
       renderOpsAuditTrail
     } = window.MediaServerUi;
-    const setStatus = (message, failed = false) => setFeedback(statusEl, message, failed);
-    const setRequestStatus = (message, failed = false) => setFeedback(requestStatusEl, message, failed);
-    const setResetPasswordStatus = (message, failed = false) => setFeedback(resetPasswordStatus, message, failed);
+    const setStatus = (message, failed = false) => setFeedback(statusEl, message, failed, { collapseEmpty: true });
+    const setRequestStatus = (message, failed = false) => setFeedback(requestStatusEl, message, failed, { collapseEmpty: true });
+    const setResetPasswordStatus = (message, failed = false) => setFeedback(resetPasswordStatus, message, failed, { collapseEmpty: true });
+    function compactUserStoreError(error) {
+      const message = String(error?.message || error || '').trim();
+      if (message.includes('auth users file not found') || message.includes('auth users file is missing')) {
+        return '사용자 저장소 없음. 사용자 추가로 초기화하세요.';
+      }
+      return message.replace(/\/Users\/[^\s"']+/g, '사용자 저장소 경로');
+    }
     function hideUserEditor() {
       setOpsDetailPanelOpen(userDetailPanel, false);
       editorMode = 'view';
@@ -8726,15 +8733,28 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       }
     }
     async function loadUsers() {
-      const json = await requestJson('/ops/api/users');
-      loadedUsers = Array.isArray(json.users) ? json.users : [];
-      renderUsers(loadedUsers);
-      renderOpsAuditTrail('user-audit-list', 'users');
+      try {
+        const json = await requestJson('/ops/api/users');
+        loadedUsers = Array.isArray(json.users) ? json.users : [];
+        renderUsers(loadedUsers);
+        renderOpsAuditTrail('user-audit-list', 'users');
+      } catch (error) {
+        loadedUsers = [];
+        setTableEmpty(usersBody, 9, '사용자 저장소가 아직 없습니다. 사용자 추가로 계정을 생성하세요.');
+        renderOpsAuditTrail('user-audit-list', 'users');
+        setStatus(compactUserStoreError(error), true);
+      }
     }
     async function loadAccessRequests() {
-      const json = await requestJson('/ops/api/access-requests');
-      loadedRequests = Array.isArray(json.accessRequests) ? json.accessRequests : [];
-      renderAccessRequests(loadedRequests);
+      try {
+        const json = await requestJson('/ops/api/access-requests');
+        loadedRequests = Array.isArray(json.accessRequests) ? json.accessRequests : [];
+        renderAccessRequests(loadedRequests);
+      } catch (error) {
+        loadedRequests = [];
+        setTableEmpty(requestsBody, 8, '승인 대기 요청이 없습니다.');
+        setRequestStatus(compactUserStoreError(error), true);
+      }
     }
       async function loadAll({ clearMessages = true } = {}) {
       const [clientViewsPayload] = await Promise.all([

@@ -165,8 +165,19 @@ async function runBrowserSmoke() {
   const users = await inspectContextPage("/ops/users", `
     const primary = document.querySelector('[data-user-view]');
     const context = document.querySelector('.user-row-actions [data-testid="ops-context-actions"]');
+    const addButton = document.querySelector('#add-user-btn');
+    const usersText = document.querySelector('#users-body')?.textContent || '';
+    const resetEmpty = !primary && /사용자 저장소|등록된 사용자가 없습니다/.test(usersText);
     context?.querySelector('summary')?.click();
     await wait(120);
+    if (resetEmpty) {
+      return {
+        ok: visible(addButton),
+        primary: false,
+        context: '',
+        resetEmpty: true,
+      };
+    }
     return {
       ok: visible(primary) &&
         context?.dataset?.actionDensity === 'primary-context' &&

@@ -213,8 +213,8 @@ std::string ProductUiCss() {
       box-shadow: var(--shadow-sm);
     }
     body.product-shell {
-      --color-primary: #3b82f6;
-      --color-primary-hover: #2563eb;
+      --color-primary: var(--color-info);
+      --color-primary-hover: color-mix(in srgb, var(--color-info) 84%, var(--color-text));
       --color-primary-weak-bg: color-mix(in srgb, var(--color-primary) 14%, var(--color-surface-raised));
       --color-primary-weak-text: color-mix(in srgb, var(--color-primary) 82%, var(--color-text));
       --color-link: var(--color-primary);
@@ -268,13 +268,13 @@ std::string ProductUiCss() {
       height: 32px;
       border-radius: 9px;
       font-size: 0;
-      background: #3b82f6;
-      box-shadow: 0 6px 18px rgba(59, 130, 246, 0.22);
+      background: var(--color-primary);
+      box-shadow: 0 6px 18px color-mix(in srgb, var(--color-primary) 22%, transparent);
     }
     body.product-shell .brand-mark::before {
       content: "▶";
       margin-left: 2px;
-      color: #ffffff;
+      color: var(--overlay-label-text);
       font-size: 15px;
       line-height: 1;
     }
@@ -394,8 +394,8 @@ std::string ProductUiCss() {
       width: 7px;
       height: 7px;
       border-radius: 999px;
-      background: #22c55e;
-      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.16);
+      background: var(--color-success);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-success) 16%, transparent);
     }
     body.product-shell .account-identity {
       min-width: 0;
@@ -3587,11 +3587,11 @@ std::string ClientShellCss() {
       display: grid;
       gap: 6px;
       padding: 8px;
-      border: 1px solid rgba(255, 255, 255, 0.18);
+      border: 1px solid color-mix(in srgb, var(--overlay-label-text) 18%, transparent);
       border-radius: 6px;
-      background: rgba(2, 6, 23, 0.78);
-      color: #ffffff;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+      background: var(--overlay-label-bg);
+      color: var(--overlay-label-text);
+      box-shadow: 0 10px 30px color-mix(in srgb, var(--color-code-bg) 28%, transparent);
       pointer-events: none;
     }
     .tile-info-overlay[hidden] { display: none; }
@@ -3611,7 +3611,7 @@ std::string ClientShellCss() {
       font-size: 12px;
       position: static;
       inset: auto;
-      color: #ffffff;
+      color: var(--overlay-label-text);
     }
     .tile-info-overlay-grid {
       display: grid;
@@ -3624,7 +3624,7 @@ std::string ClientShellCss() {
       display: grid;
       gap: 2px;
       min-width: 0;
-      color: rgba(255, 255, 255, 0.72);
+      color: color-mix(in srgb, var(--overlay-label-text) 72%, transparent);
       font-size: 10px;
       line-height: 1.1;
     }
@@ -3633,7 +3633,7 @@ std::string ClientShellCss() {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
-      color: #ffffff;
+      color: var(--overlay-label-text);
       font-size: 11px;
     }
     .tile-status { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
@@ -3665,7 +3665,7 @@ std::string ClientShellCss() {
       --line: var(--color-border);
       --text: var(--color-text);
       --muted: var(--color-text-muted);
-      --accent: #3b82f6;
+      --accent: var(--color-info);
       --accent-soft: color-mix(in srgb, var(--accent) 14%, var(--color-surface-raised));
       background: var(--bg);
       color: var(--text);
@@ -3857,9 +3857,9 @@ std::string ClientShellCss() {
     body.client-shell .workspace-actions summary {
       min-height: 36px;
       border-radius: 7px;
-      background: #2f3540;
-      color: #ffffff;
-      border-color: #2f3540;
+      background: var(--color-code-bg);
+      color: var(--color-code-text);
+      border-color: var(--color-code-bg);
       font-size: 0;
       width: 42px;
       padding: 0;
@@ -3873,8 +3873,8 @@ std::string ClientShellCss() {
       z-index: 50;
     }
     body.client-shell .workspace-actions[open] summary {
-      background: #2f3540;
-      color: #ffffff;
+      background: var(--color-code-bg);
+      color: var(--color-code-text);
     }
     body.client-shell .workspace-actions[open]::after {
       content: "";
@@ -4079,13 +4079,13 @@ std::string ClientShellCss() {
       padding: 0;
       border-radius: 8px;
       overflow: hidden;
-      background: #161b22;
+      background: var(--color-media-bg);
       border: 1px solid var(--line);
-      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+      box-shadow: 0 1px 2px color-mix(in srgb, var(--color-code-bg) 8%, transparent);
     }
     body.client-shell .tile.selected {
       border-color: var(--accent);
-      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.35);
+      box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 35%, transparent);
     }
     body.client-shell .tile-head {
       position: absolute;
@@ -4105,8 +4105,8 @@ std::string ClientShellCss() {
       align-items: flex-start;
       justify-content: flex-start;
       overflow: hidden;
-      color: #ffffff;
-      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+      color: var(--overlay-label-text);
+      text-shadow: 0 1px 3px color-mix(in srgb, var(--color-code-bg) 55%, transparent);
     }
     body.client-shell .tile-title span,
     body.client-shell .tile-actions span {
@@ -4118,8 +4118,8 @@ std::string ClientShellCss() {
       height: 7px;
       flex: 0 0 auto;
       border-radius: 999px;
-      background: #facc15;
-      box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.18);
+      background: var(--overlay-point-fill);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--overlay-point-fill) 18%, transparent);
     }
     body.client-shell .tile-title h3 {
       min-width: 0;
@@ -4137,8 +4137,8 @@ std::string ClientShellCss() {
       width: 66px;
       min-height: 22px;
       padding: 2px 7px;
-      background: rgba(59, 130, 246, 0.9);
-      color: #ffffff;
+      background: color-mix(in srgb, var(--accent) 90%, transparent);
+      color: var(--overlay-label-text);
       justify-content: center;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -4162,14 +4162,14 @@ std::string ClientShellCss() {
       height: 40px;
       min-height: 40px;
       border-radius: 8px;
-      border-color: rgba(255, 255, 255, 0.38);
-      background: rgba(12, 18, 28, 0.66);
-      color: #ffffff;
+      border-color: color-mix(in srgb, var(--overlay-label-text) 38%, transparent);
+      background: color-mix(in srgb, var(--color-code-bg) 66%, transparent);
+      color: var(--overlay-label-text);
       backdrop-filter: blur(12px);
     }
     body.client-shell .tile-actions .tile-action-primary {
-      background: rgba(59, 130, 246, 0.92);
-      border-color: rgba(255, 255, 255, 0.46);
+      background: color-mix(in srgb, var(--accent) 92%, transparent);
+      border-color: color-mix(in srgb, var(--overlay-label-text) 46%, transparent);
     }
     body.client-shell .tile-stage,
     body.client-shell .live-grid[data-density="compact"] .tile-stage {
@@ -4179,15 +4179,15 @@ std::string ClientShellCss() {
       aspect-ratio: auto;
       border-radius: 0;
       background:
-        linear-gradient(180deg, rgba(15, 23, 42, 0.20), rgba(15, 23, 42, 0.78)),
-        radial-gradient(circle at 50% 35%, rgba(148, 163, 184, 0.25), transparent 34%),
-        #151a22;
+        linear-gradient(180deg, color-mix(in srgb, var(--color-code-bg) 20%, transparent), color-mix(in srgb, var(--color-code-bg) 78%, transparent)),
+        radial-gradient(circle at 50% 35%, color-mix(in srgb, var(--color-neutral) 25%, transparent), transparent 34%),
+        var(--color-media-bg);
     }
     body.client-shell .tile[data-view-id=""] .tile-stage {
-      border: 1px dashed rgba(255, 255, 255, 0.34);
+      border: 1px dashed color-mix(in srgb, var(--overlay-label-text) 34%, transparent);
       background:
-        linear-gradient(180deg, rgba(15, 23, 42, 0.15), rgba(15, 23, 42, 0.70)),
-        #20252d;
+        linear-gradient(180deg, color-mix(in srgb, var(--color-code-bg) 15%, transparent), color-mix(in srgb, var(--color-code-bg) 70%, transparent)),
+        var(--color-media-bg);
     }
     body.client-shell .tile-stage video {
       object-fit: cover;
@@ -4196,7 +4196,7 @@ std::string ClientShellCss() {
     body.client-shell .tile-stage > span[data-role="placeholder"] {
       inset: 50% 22px auto 22px;
       transform: translateY(-50%);
-      color: rgba(255, 255, 255, 0.82);
+      color: color-mix(in srgb, var(--overlay-label-text) 82%, transparent);
       text-align: center;
       font-size: 18px;
       font-weight: 700;
@@ -4209,7 +4209,7 @@ std::string ClientShellCss() {
       width: min(278px, calc(100% - 28px));
       padding: 14px;
       border-radius: 7px;
-      background: rgba(14, 19, 28, 0.72);
+      background: color-mix(in srgb, var(--color-code-bg) 72%, transparent);
       backdrop-filter: blur(12px);
     }
     body.client-shell .tile-info-overlay-grid {
@@ -4288,8 +4288,8 @@ std::string ClientShellCss() {
     @media (max-width: 780px) {
       .workspace, .live-toolbar, .live-workspace-layout { grid-template-columns: 1fr; }
       .live-workspace-layout[data-dock-side] { grid-template-columns: 1fr; }
-      .live-workspace-layout[data-dock-side] .live-source-dock,
-      .live-workspace-layout[data-dock-side] .live-workspace-main { order: initial; }
+      .live-workspace-layout[data-dock-side] .live-source-dock { order: 2; }
+      .live-workspace-layout[data-dock-side] .live-workspace-main { order: 1; }
       .live-source-dock { position: static; }
       .live-source-tree {
         grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
@@ -4302,10 +4302,8 @@ std::string ClientShellCss() {
         min-height: auto;
         grid-template-columns: 1fr;
       }
-      body.client-shell .live-workspace-layout[data-dock-side="right"] .live-source-dock,
-      body.client-shell .live-workspace-layout[data-dock-side="right"] .live-workspace-main {
-        order: initial;
-      }
+      body.client-shell .live-workspace-layout[data-dock-side="right"] .live-source-dock { order: 2; }
+      body.client-shell .live-workspace-layout[data-dock-side="right"] .live-workspace-main { order: 1; }
       body.client-shell .live-source-dock,
       body.client-shell .live-workspace-layout[data-dock-side="right"] .live-source-dock {
         position: static;
