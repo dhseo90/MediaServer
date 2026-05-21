@@ -1577,6 +1577,44 @@ std::string ProductUiCss() {
       font-size: 13px;
       line-height: 1.5;
     }
+    .ops-scenario-builder {
+      gap: var(--space-4);
+    }
+    .scenario-builder-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: var(--space-3);
+      align-items: end;
+    }
+    .scenario-builder-review {
+      display: grid;
+      grid-template-columns: minmax(220px, 0.7fr) minmax(260px, 1.3fr);
+      gap: var(--space-3);
+      align-items: stretch;
+      padding: var(--space-4);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface-muted);
+    }
+    .scenario-builder-review strong {
+      color: var(--color-text);
+      font-size: 14px;
+    }
+    .scenario-builder-draft {
+      min-height: 128px;
+      max-height: 260px;
+      margin: 0;
+      padding: 12px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-bg-elevated);
+      color: var(--color-text);
+      overflow: auto;
+      font-size: 12px;
+      line-height: 1.45;
+      white-space: pre-wrap;
+      overflow-wrap: anywhere;
+    }
     .rule-mode-grid {
       display: flex;
       flex-wrap: wrap;
@@ -2383,6 +2421,9 @@ std::string ProductUiCss() {
         grid-template-columns: 1fr;
       }
       .ops-va-stage-grid {
+        grid-template-columns: 1fr;
+      }
+      .scenario-builder-review {
         grid-template-columns: 1fr;
       }
       .ops-geometry-status-grid {

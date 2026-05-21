@@ -4421,6 +4421,111 @@ void AppendOpsShellScript(std::ostringstream& out,
           .map(item => item.trim())
           .filter(Boolean);
       }
+      function opsScenarioBuilderState() {
+        const typeSelect = document.getElementById('opsScenarioBuilderType');
+        const presetSelect = document.getElementById('opsScenarioBuilderPreset');
+        const classesInput = document.getElementById('opsScenarioBuilderClasses');
+        const type = opsScenarioEventTypes.includes(String(typeSelect?.value || '').trim())
+          ? String(typeSelect.value || '').trim()
+          : 'intrusion-dwell';
+        const presetId = Object.prototype.hasOwnProperty.call(opsScenarioPresetBaselines, String(presetSelect?.value || 'default').trim())
+          || String(presetSelect?.value || '').trim() === 'custom'
+          ? String(presetSelect?.value || 'default').trim()
+          : 'default';
+        const parsedClasses = opsRulesNormalizeCategories(opsRulesSplitList(classesInput?.value || 'person, vehicle'));
+        const classes = parsedClasses.length > 0 ? parsedClasses : ['person', 'vehicle'];
+        return { type, presetId, classes, baseline: opsRulesScenarioBaseline(type, presetId) };
+      }
+      function opsScenarioBuilderDraft() {
+        const { type, presetId, classes, baseline } = opsScenarioBuilderState();
+        const lineMode = opsRulesIsLineEventType(type);
+        const event = {
+          type,
+          region: {
+            type: lineMode ? 'line' : 'polygon',
+            direction: lineMode ? 'any' : undefined,
+            points: lineMode ? opsRulesDefaultLinePoints() : opsRulesDefaultPolygonPoints()
+          },
+          minConfidence: Number(baseline.minConfidence ?? 0.25),
+          minDurationMs: Number(baseline.minDurationMs ?? 0)
+        };
+        if (!lineMode) delete event.region.direction;
+        const scenario = {
+          type,
+          presetId,
+          enabled: true,
+          cooldownMs: Number(baseline.cooldownMs ?? 5000)
+        };
+        if (type === 'intrusion-dwell') {
+          scenario.candidateTimeMs = Number(baseline.candidateTimeMs ?? 2000);
+          scenario.dwellTimeMs = Number(baseline.dwellTimeMs ?? 10000);
+          scenario.targetClasses = classes;
+          scenario.restrictedZoneIds = [];
+        } else if (type === 're-entry') {
+          scenario.reEntryWindowMs = Number(baseline.reEntryWindowMs ?? 10000);
+          scenario.targetClasses = classes;
+          scenario.reEntryMode = 'same-zone';
+          scenario.reEntryZoneIds = [];
+          scenario.restrictedZoneIds = [];
+        } else if (type === 'wrong-direction') {
+          scenario.targetClasses = classes;
+        } else if (type === 'intrusion-after-line-crossing') {
+          scenario.maxDelayAfterCrossingMs = Number(baseline.maxDelayAfterCrossingMs ?? 10000);
+          scenario.dwellTimeMs = Number(baseline.dwellTimeMs ?? 3000);
+          scenario.targetZoneIds = [];
+          scenario.triggerLine = { id: 'line-1', direction: 'any', points: opsRulesDefaultLinePoints() };
+        } else if (type === 'loitering') {
+          scenario.minDwellTimeMs = Number(baseline.minDwellTimeMs ?? 30000);
+          scenario.maxMovementRadius = Number(baseline.maxMovementRadius ?? 0.08);
+          scenario.minTrajectoryPoints = Number(baseline.minTrajectoryPoints ?? 4);
+          scenario.targetClasses = classes;
+          scenario.restrictedZoneIds = [];
+        } else if (type === 'zone-occupancy') {
+          scenario.occupancyThreshold = Number(baseline.occupancyThreshold ?? 4);
+          scenario.minDwellTimeMs = Number(baseline.minDwellTimeMs ?? 7000);
+          scenario.targetClasses = classes;
+          scenario.restrictedZoneIds = [];
+        }
+        return {
+          ruleKind: 'scenario',
+          analysis: { classes },
+          event,
+          scenario
+        };
+      }
+      function renderOpsScenarioBuilder() {
+        const root = document.querySelector('[data-testid="ops-scenario-builder"]');
+        if (!root) return;
+        const state = opsScenarioBuilderState();
+        const typeSelect = document.getElementById('opsScenarioBuilderType');
+        const presetSelect = document.getElementById('opsScenarioBuilderPreset');
+        const classesInput = document.getElementById('opsScenarioBuilderClasses');
+        if (typeSelect) typeSelect.value = state.type;
+        if (presetSelect) presetSelect.value = state.presetId;
+        if (classesInput && !String(classesInput.value || '').trim()) classesInput.value = state.classes.join(', ');
+        const label = opsScenarioPresetLabels[state.presetId] || state.presetId || '기본';
+        const baselineText = opsRulesPresetBaselineSummary(state.type, state.baseline) || '기본 시작값';
+        const warningText = opsRulesPresetWarningText(state.type);
+        setText('opsScenarioBuilderBaseline', `${opsRuleEventTypeLabel(state.type)} · ${label} preset · ${baselineText} · 대상 ${opsRulesCategorySummaryText(state.classes)} · ${warningText}`);
+        const draft = document.getElementById('opsScenarioBuilderDraft');
+        if (draft) draft.textContent = JSON.stringify(opsScenarioBuilderDraft(), null, 2);
+      }
+      async function applyOpsScenarioBuilderToEventRule() {
+        const state = opsScenarioBuilderState();
+        await openOpsRulesEditor('event-rule', 'new');
+        const modeSelect = document.getElementById('opsEventRuleModeSelect');
+        if (modeSelect) modeSelect.value = 'scenario';
+        opsEventRuleRefreshTypeOptions(state.type);
+        const typeSelect = document.getElementById('opsEventRuleTypeSelect');
+        if (typeSelect) typeSelect.value = state.type;
+        const presetSelect = document.getElementById('opsEventRulePresetSelect');
+        if (presetSelect) presetSelect.value = state.presetId;
+        opsEventRuleUpdateModeUi();
+        opsEventRuleApplyPresetToInputs(state.presetId);
+        opsRulesSetSelectedCategories('opsEventRuleClassChecks', state.classes, 'opsEventRuleClassesSummary', '객체를 선택하세요.');
+        opsRulesEditorStatus('시나리오 빌더 초안을 이벤트 템플릿 폼에 적용했습니다. 저장 전 채널 영상 기준으로 geometry와 숫자 조건을 확인하세요.', false);
+        document.getElementById('opsRulesDetailPanel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
       function opsRulesIsScenarioType(type) {
         return opsScenarioTypes.has(String(type || '').trim());
       }
@@ -7170,6 +7275,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         setText('opsEventRuleSummary', `총 ${filteredRules.length}/${rules.length}개`);
         setText('opsProfileSummary', `총 ${filteredProfiles.length}/${allProfiles.length}개`);
         refreshOpsVaTemplateAssistOptions();
+        renderOpsScenarioBuilder();
         renderOpsVaRules(filteredVaRules);
         renderOpsEventRules(filteredRules);
         renderOpsProfiles(filteredProfiles);
@@ -7187,6 +7293,10 @@ void AppendOpsShellScript(std::ostringstream& out,
         document.getElementById('opsRulesPrereqProfilesAction')?.addEventListener('click', () => selectOpsRulesMode('profile').then(() => openOpsRulesEditor('profile', 'new')).catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsRulesPrereqTemplatesAction')?.addEventListener('click', () => selectOpsRulesMode('event-rule').then(() => openOpsRulesEditor('event-rule', 'new')).catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsRulesPrereqVaRulesAction')?.addEventListener('click', () => selectOpsRulesMode('va-rule').then(() => openOpsVaRuleCreateWhenReady()).catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
+        document.getElementById('opsScenarioBuilderType')?.addEventListener('change', () => renderOpsScenarioBuilder());
+        document.getElementById('opsScenarioBuilderPreset')?.addEventListener('change', () => renderOpsScenarioBuilder());
+        document.getElementById('opsScenarioBuilderClasses')?.addEventListener('input', () => renderOpsScenarioBuilder());
+        document.getElementById('opsScenarioBuilderApply')?.addEventListener('click', () => applyOpsScenarioBuilderToEventRule().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
         document.getElementById('opsVaRuleTemplateSeedSelect')?.addEventListener('change', (event) => opsRulesApplyVaRuleTemplateSeed(event.target.value || ''));
         document.getElementById('opsVaRuleChannelSelect')?.addEventListener('change', () => {
           opsRulesUpdateVaRuleFormSummary();

@@ -2621,6 +2621,55 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           </article>
         </div>
       </section>
+      <section class="section-card ops-scenario-builder" data-testid="ops-scenario-builder" data-scenario-builder-contract="ui-only-no-engine-change">
+        <div class="toolbar">
+          <div>
+            <h3>시나리오 빌더</h3>
+            <p id="opsScenarioBuilderSummary">현장 preset과 대상 객체를 골라 이벤트 템플릿 초안을 만듭니다. 판단 엔진과 저장 payload 계약은 변경하지 않습니다.</p>
+          </div>
+          <div class="actions">
+            <button id="opsScenarioBuilderApply" class="button-primary" type="button" data-scenario-builder-action="apply-event-template">템플릿 폼에 적용</button>
+          </div>
+        </div>
+        <div class="scenario-builder-grid">
+          <label>시나리오
+            <select id="opsScenarioBuilderType">
+              <option value="intrusion-dwell">침입 체류</option>
+              <option value="re-entry">재진입</option>
+              <option value="wrong-direction">역방향 이동</option>
+              <option value="intrusion-after-line-crossing">라인 통과 후 침입</option>
+              <option value="loitering">배회</option>
+              <option value="zone-occupancy">구역 점유</option>
+            </select>
+          </label>
+          <label>현장 preset
+            <select id="opsScenarioBuilderPreset">
+              <option value="default">기본</option>
+              <option value="road">도로</option>
+              <option value="retail">매장 통로</option>
+              <option value="park">공원</option>
+              <option value="indoor">실내</option>
+              <option value="lobby">로비</option>
+              <option value="platform">승강장</option>
+              <option value="entrance">출입구</option>
+              <option value="doorway">문 앞 정체</option>
+              <option value="parking">주차장 가장자리</option>
+              <option value="elevator">승강기 홀</option>
+              <option value="custom">직접 설정</option>
+            </select>
+          </label>
+          <label>대상 객체
+            <input id="opsScenarioBuilderClasses" type="text" value="person, vehicle" placeholder="person, vehicle" />
+          </label>
+        </div>
+        <div class="scenario-builder-review" aria-live="polite">
+          <div>
+            <strong id="opsScenarioBuilderBaselineTitle">초안 요약</strong>
+            <p id="opsScenarioBuilderBaseline" class="form-note">시나리오와 preset을 고르면 시작값을 표시합니다.</p>
+          </div>
+          <pre id="opsScenarioBuilderDraft" class="scenario-builder-draft" data-redaction="no-source-or-raw-debug"></pre>
+        </div>
+      </section>
       <section class="section-card">
         <div class="toolbar">
           <div>
