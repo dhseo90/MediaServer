@@ -256,6 +256,8 @@ Usage:
                  v1.7.0 Client Live tile/workspace disconnect 계약을 검증합니다.
   verify-v170-event-review-inbox
                  v1.7.0 Rule Event Review Inbox의 별도 review state/audit/redaction 계약을 검증합니다.
+  verify-v170-alert-delivery-integrations
+                 v1.7.0 Alert Delivery Integration의 payload 분리/retry/audit 계약을 검증합니다.
   verify-v170-source-group-site-management
                  v1.7.0 Source Group/Site Management의 registry/API/UI/scope 계약을 검증합니다.
   verify-v170-tile-info-overlay-health
@@ -884,6 +886,10 @@ case "${cmd}" in
   verify-v170-event-review-inbox)
     require_internal verify_v170_event_review_inbox.mjs
     exec "${INTERNAL_DIR}/verify_v170_event_review_inbox.mjs" "$@"
+    ;;
+  verify-v170-alert-delivery-integrations)
+    require_internal verify_v170_alert_delivery_integrations.mjs
+    exec "${INTERNAL_DIR}/verify_v170_alert_delivery_integrations.mjs" "$@"
     ;;
   verify-v170-source-group-site-management)
     require_internal verify_v170_source_group_site_management.mjs

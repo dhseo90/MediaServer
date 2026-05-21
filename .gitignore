@@ -25,6 +25,8 @@
 /.media_server.va_events.jsonl
 /.media_server.ops_audit.jsonl
 /.media_server.event_reviews.jsonl
+/.media_server.alert_deliveries.jsonl
+/.media_server.alert_delivery_attempts.jsonl
 /.media_server.client_live_layout_preferences.jsonl
 /.media_server.test/
 /scripts/.media_server.env

@@ -3798,9 +3798,113 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (classification) reviewParams.set('classification', classification);
         return reviewParams;
       }
+      function alertDeliveryBodyFromForm() {
+        const kind = String(document.getElementById('alertDeliveryKind')?.value || 'webhook').trim();
+        const endpoint = String(document.getElementById('alertDeliveryEndpoint')?.value || '').trim();
+        const body = {
+          id: String(document.getElementById('alertDeliveryId')?.value || '').trim(),
+          kind,
+          label: String(document.getElementById('alertDeliveryLabel')?.value || '').trim(),
+          enabled: Boolean(document.getElementById('alertDeliveryEnabled')?.checked),
+          endpoint,
+          retryMax: numberValue(document.getElementById('alertDeliveryRetryMax')?.value || 3),
+          retryBackoffMs: numberValue(document.getElementById('alertDeliveryRetryBackoff')?.value || 2000)
+        };
+        if (kind === 'webhook') body.webhookUrl = endpoint;
+        if (kind === 'email') body.emailTo = endpoint;
+        if (kind === 'slack') body.slackChannel = endpoint;
+        return body;
+      }
+      function renderAlertDeliveryRows(payload = {}) {
+        const tbody = document.getElementById('alertDeliveryRows');
+        if (!tbody) return;
+        const integrations = Array.isArray(payload.integrations) ? payload.integrations : [];
+        const attempts = Array.isArray(payload.attempts) ? payload.attempts : [];
+        const latestById = new Map();
+        for (const attempt of attempts) {
+          const id = String(attempt?.deliveryId || '');
+          if (id && !latestById.has(id)) latestById.set(id, attempt);
+        }
+        if (integrations.length === 0) {
+          setTableEmpty(tbody, 4, '등록된 alert delivery integration이 없습니다.');
+          return;
+        }
+        tbody.innerHTML = integrations.map(item => {
+          const attempt = latestById.get(String(item?.id || '')) || {};
+          const retry = item?.retryPolicy || {};
+          return `<tr>
+            ${tableCellHtml('Integration', `
+              <div class="table-cell-main">
+                <strong>${escapeHtml(display(item?.label || item?.id))}</strong>
+                <span>${escapeHtml(display(item?.kind))} · ${escapeHtml(display(item?.endpointMasked || 'redacted'))}</span>
+              </div>`)}
+            ${tableCellHtml('상태', badge(item?.enabled ? '활성' : '비활성', item?.enabled ? '' : 'warn'), 'status')}
+            ${tableCellHtml('Retry', escapeHtml(`${display(retry.maxAttempts)}회 · ${display(retry.backoffMs)}ms`))}
+            ${tableCellHtml('최근 시도', `
+              <div class="table-cell-note">${escapeHtml(display(attempt?.status || '미제공'))}${attempt?.transport ? ` · ${escapeHtml(display(attempt.transport))}` : ''}</div>
+              ${opsRowActionsHtml(`<button class="button-secondary" type="button" data-alert-delivery-test="${escapeHtml(item?.id || '')}">Fixture</button>`, 'table-actions')}`, 'actions')}
+          </tr>`;
+        }).join('');
+        bindAlertDeliveryRowActions();
+      }
+      function renderAlertDelivery(payload = {}) {
+        const integrations = Array.isArray(payload.integrations) ? payload.integrations : [];
+        const attempts = Array.isArray(payload.attempts) ? payload.attempts : [];
+        const enabledCount = integrations.filter(item => item?.enabled).length;
+        renderBadges('alertDeliveryBadges', [
+          { text: `등록 ${integrations.length}` },
+          { text: `활성 ${enabledCount}`, tone: enabledCount > 0 ? '' : 'warn' },
+          { text: `시도 ${attempts.length}` },
+          { text: payload?.contract?.eventPostPayloadChanged === false ? 'Event POST 변경 없음' : '계약 확인 필요', tone: payload?.contract?.eventPostPayloadChanged === false ? 'info' : 'warn' },
+          { text: payload?.contract?.auditMasking ? 'audit masking' : 'audit 확인 필요', tone: payload?.contract?.auditMasking ? 'info' : 'warn' }
+        ]);
+        setText(
+          'alertDeliverySummary',
+          payload.error
+            ? `alert delivery 조회 실패: ${payload.error}`
+            : `transports webhook/email/slack · bounded retry · fixture smoke · Event POST payload 변경 없음`
+        );
+        renderAlertDeliveryRows(payload);
+      }
+      async function saveAlertDeliveryIntegration() {
+        const payload = await requestJson('/ops/api/alerts/deliveries', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(alertDeliveryBodyFromForm())
+        });
+        showToast?.('Alert delivery 저장 완료');
+        return payload;
+      }
+      async function testAlertDeliveryIntegration(id = '') {
+        const body = id ? { deliveryId: id } : { deliveryId: alertDeliveryBodyFromForm().id };
+        const payload = await requestJson('/ops/api/alerts/deliveries/test', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        showToast?.('Alert delivery fixture 전송 완료');
+        return payload;
+      }
+      function bindAlertDeliveryRowActions() {
+        document.querySelectorAll('[data-alert-delivery-test]').forEach(button => {
+          if (button.dataset.boundAlertDeliveryTest === '1') return;
+          button.dataset.boundAlertDeliveryTest = '1';
+          button.addEventListener('click', async () => {
+            try {
+              await testAlertDeliveryIntegration(button.dataset.alertDeliveryTest || '');
+              await refreshEvents();
+            } catch (error) {
+              setText('alertDeliverySummary', `fixture 전송 실패: ${error.message}`);
+            }
+          });
+        });
+      }
       async function refreshEvents() {
         const { eventParams, channelFilter, evidence } = eventRecordQueryParams();
-        const payload = await requestJson(`/ops/api/events/status?${eventParams.toString()}`);
+        const [payload, alertPayload] = await Promise.all([
+          requestJson(`/ops/api/events/status?${eventParams.toString()}`),
+          requestJson('/ops/api/alerts/deliveries').catch(error => ({ error: error.message, integrations: [], attempts: [] }))
+        ]);
         const reviewParams = eventReviewQueryParams(eventParams);
         const reviewPayload = await requestJson(`/ops/api/events/reviews?${reviewParams.toString()}`)
           .catch(error => ({ error: error.message, records: [] }));
@@ -3843,6 +3947,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         ]);
         setText('eventExportPolicyText',
           `보존 ${retentionPolicy.archiveRetention || 'oldest-rotated-only'} · bundle ${retentionPolicy.bundleExpiry || 'signed-token-expiresAtMs'} · audit ${exportPolicy.auditAction || 'export-bundle'} · evidence 파일 직접 삭제 ${deletePolicy.evidenceFileDelete ? '허용' : '불가'}`);
+        renderAlertDelivery(alertPayload);
         const eventItems = Array.isArray(records.records) ? records.records : [];
         setText(
           'eventRecordSummary',
@@ -3864,7 +3969,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (prevButton) prevButton.disabled = opsEventRecordsOffset <= 0;
         if (nextButton) nextButton.disabled = !records.hasMore;
         if (records.nextOffset != null) nextButton?.setAttribute('data-next-offset', String(records.nextOffset));
-        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, records, reviews: reviewPayload });
+        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload });
       }
       const itemId = item => display(item?.id || item?.ruleId || item?.profileId || '-');
       const opsRulesIdText = value => {
@@ -7145,6 +7250,22 @@ void AppendOpsShellScript(std::ostringstream& out,
         document.getElementById('eventReviewClassFilter')?.addEventListener('change', () => {
           opsEventRecordsOffset = 0;
           refreshEvents().catch(error => setText('eventReviewSummary', error.message));
+        });
+        document.getElementById('alertDeliverySave')?.addEventListener('click', async () => {
+          try {
+            await saveAlertDeliveryIntegration();
+            await refreshEvents();
+          } catch (error) {
+            setText('alertDeliverySummary', `저장 실패: ${error.message}`);
+          }
+        });
+        document.getElementById('alertDeliveryTest')?.addEventListener('click', async () => {
+          try {
+            await testAlertDeliveryIntegration();
+            await refreshEvents();
+          } catch (error) {
+            setText('alertDeliverySummary', `fixture 전송 실패: ${error.message}`);
+          }
         });
         document.getElementById('eventRecordsPrev')?.addEventListener('click', () => {
           opsEventRecordsOffset = Math.max(0, opsEventRecordsOffset - OPS_EVENT_RECORD_LIMIT);

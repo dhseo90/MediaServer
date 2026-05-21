@@ -1714,6 +1714,20 @@ std::string ProductUiCss() {
       gap: var(--space-2);
       justify-items: start;
     }
+    .ops-alert-delivery-form {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: var(--space-3);
+      align-items: end;
+    }
+    .ops-alert-delivery-form .actions {
+      display: flex;
+      gap: var(--space-2);
+      flex-wrap: wrap;
+    }
+    .alert-delivery-table .table-cell-note {
+      overflow-wrap: anywhere;
+    }
     .incident-timeline-controls {
       align-items: end;
     }
@@ -2236,12 +2250,16 @@ std::string ProductUiCss() {
       .ops-rules-table td,
       .event-record-table,
       .event-review-table,
+      .alert-delivery-table,
       .event-record-table tbody,
       .event-review-table tbody,
+      .alert-delivery-table tbody,
       .event-record-table tr,
       .event-review-table tr,
+      .alert-delivery-table tr,
       .event-record-table td,
       .event-review-table td,
+      .alert-delivery-table td,
       .user-table,
       .user-table tbody,
       .user-table tr,
@@ -2252,6 +2270,7 @@ std::string ProductUiCss() {
       .ops-rules-table,
       .event-record-table,
       .event-review-table,
+      .alert-delivery-table,
       .user-table {
         min-width: 0;
         table-layout: auto;
@@ -2262,6 +2281,8 @@ std::string ProductUiCss() {
       .event-record-table thead,
       .event-review-table colgroup,
       .event-review-table thead,
+      .alert-delivery-table colgroup,
+      .alert-delivery-table thead,
       .user-table colgroup,
       .user-table thead {
         display: none;
@@ -2269,6 +2290,7 @@ std::string ProductUiCss() {
       .ops-rules-table tr,
       .event-record-table tr,
       .event-review-table tr,
+      .alert-delivery-table tr,
       .user-table tr {
         padding: var(--space-2) 0;
         border-bottom: 1px solid var(--color-table-border);
@@ -2276,6 +2298,7 @@ std::string ProductUiCss() {
       .ops-rules-table tr:last-child,
       .event-record-table tr:last-child,
       .event-review-table tr:last-child,
+      .alert-delivery-table tr:last-child,
       .user-table tr:last-child {
         border-bottom: 0;
       }
@@ -2285,6 +2308,8 @@ std::string ProductUiCss() {
       .event-record-table td,
       .event-review-table th,
       .event-review-table td,
+      .alert-delivery-table th,
+      .alert-delivery-table td,
       .user-table th,
       .user-table td {
         width: 100% !important;
@@ -2294,6 +2319,7 @@ std::string ProductUiCss() {
       .ops-rules-table td,
       .event-record-table td,
       .event-review-table td,
+      .alert-delivery-table td,
       .user-table td {
         min-height: 42px;
         display: grid;
@@ -2307,6 +2333,7 @@ std::string ProductUiCss() {
       .ops-rules-table td::before,
       .event-record-table td::before,
       .event-review-table td::before,
+      .alert-delivery-table td::before,
       .user-table td::before {
         content: attr(data-label);
         color: var(--color-text-muted);
@@ -2320,6 +2347,8 @@ std::string ProductUiCss() {
       .event-record-table .table-cell-actions,
       .event-review-table .table-cell-status,
       .event-review-table .table-cell-actions,
+      .alert-delivery-table .table-cell-status,
+      .alert-delivery-table .table-cell-actions,
       .user-table .table-cell-status,
       .user-table .table-cell-actions {
         min-width: 0;
@@ -2391,6 +2420,7 @@ std::string ProductUiCss() {
       }
       .ops-rules-table td,
       .event-record-table td,
+      .alert-delivery-table td,
       .user-table td {
         grid-template-columns: 1fr;
         gap: 8px;
@@ -2399,6 +2429,7 @@ std::string ProductUiCss() {
       .ops-responsive-table td::before,
       .ops-rules-table td::before,
       .event-record-table td::before,
+      .alert-delivery-table td::before,
       .user-table td::before {
         line-height: 1.35;
       }

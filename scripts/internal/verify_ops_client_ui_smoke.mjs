@@ -96,7 +96,7 @@ const pageChecks = [
   {
     name: "ops-events",
     path: "/ops/events",
-    must: ['data-testid="ops-events-page"', 'data-route-scope="direct-diagnostic"', 'Primary nav에는 표시하지 않는 direct/diagnostic route', 'id="opsEventsRefresh"', '/ops/api/events/status', 'data-testid="ops-event-review-inbox"', 'data-review-state="separate-from-event-post-payload"', 'id="eventReviewStatusFilter"', '/ops/api/events/reviews'],
+    must: ['data-testid="ops-events-page"', 'data-route-scope="direct-diagnostic"', 'Primary nav에는 표시하지 않는 direct/diagnostic route', 'id="opsEventsRefresh"', '/ops/api/events/status', 'data-testid="ops-alert-delivery-integrations"', 'data-alert-contract="separate-from-event-post-payload"', 'id="alertDeliverySave"', 'id="alertDeliveryTest"', '/ops/api/alerts/deliveries', '/ops/api/alerts/deliveries/test', 'data-testid="ops-event-review-inbox"', 'data-review-state="separate-from-event-post-payload"', 'id="eventReviewStatusFilter"', '/ops/api/events/reviews'],
     mustNot: ['<iframe', 'href="/lab', 'src="/lab', 'href="/webrtc/test"', 'href="/ops/events"'],
   },
   {

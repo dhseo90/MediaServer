@@ -73,6 +73,7 @@ std::atomic<std::uint64_t> g_web_rtc_metadata_sequence{0};
 std::atomic<std::uint64_t> g_ops_audit_sequence{0};
 std::mutex g_ops_audit_mu;
 std::mutex g_ops_event_review_mu;
+std::mutex g_ops_alert_delivery_mu;
 std::mutex g_client_live_preference_mu;
 std::mutex g_source_health_audit_mu;
 std::unordered_map<std::string, std::string> g_source_health_audit_state;
@@ -3069,6 +3070,47 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <p id="eventExportPolicyText">증거 export와 삭제 권한을 확인합니다.</p>
         </section>
       </div>
+      <section class="section-card" data-testid="ops-alert-delivery-integrations" data-alert-contract="separate-from-event-post-payload">
+        <div class="toolbar">
+          <div>
+            <h3>Alert Delivery Integrations</h3>
+            <p id="alertDeliverySummary">Rule event 알림은 Event POST payload와 분리된 delivery state, retry policy, audit로 관리합니다.</p>
+          </div>
+          <div id="alertDeliveryBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        </div>
+        <div class="ops-alert-delivery-form">
+          <label>ID <input id="alertDeliveryId" value="default-webhook" /></label>
+          <label>종류
+            <select id="alertDeliveryKind">
+              <option value="webhook">Webhook</option>
+              <option value="email">Email</option>
+              <option value="slack">Slack</option>
+            </select>
+          </label>
+          <label>라벨 <input id="alertDeliveryLabel" value="Ops alert" /></label>
+          <label>대상 <input id="alertDeliveryEndpoint" value="https://alerts.example.invalid/hook" /></label>
+          <label>재시도 <input id="alertDeliveryRetryMax" type="number" min="0" max="8" value="3" /></label>
+          <label>Backoff(ms) <input id="alertDeliveryRetryBackoff" type="number" min="250" max="60000" value="2000" /></label>
+          <label class="check-inline"><input id="alertDeliveryEnabled" type="checkbox" checked /> 활성</label>
+          <div class="actions">
+            <button id="alertDeliverySave" class="button-primary" type="button">저장</button>
+            <button id="alertDeliveryTest" class="button-secondary" type="button">Fixture 전송</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="ops-data-table alert-delivery-table">
+            <thead>
+              <tr>
+                <th>Integration</th>
+                <th>상태</th>
+                <th>Retry</th>
+                <th>최근 시도</th>
+              </tr>
+            </thead>
+            <tbody id="alertDeliveryRows"><tr><td colspan="4">로딩 중</td></tr></tbody>
+          </table>
+        </div>
+      </section>
       <section class="section-card" data-testid="ops-event-review-inbox" data-review-state="separate-from-event-post-payload">
         <div class="toolbar">
           <div>
@@ -8900,6 +8942,448 @@ std::string ClientLiveLayoutPreferencesJson(const app::AppConfig& config,
     return out.str();
 }
 
+struct OpsAlertDeliveryConfig {
+    bool present{false};
+    bool enabled{false};
+    std::string id;
+    std::string kind{"webhook"};
+    std::string label;
+    std::string endpoint;
+    int retry_max{3};
+    int retry_backoff_ms{2000};
+    std::int64_t updated_at_ms{0};
+};
+
+std::filesystem::path OpsAlertDeliveryStoragePath(const app::AppConfig& config) {
+    std::filesystem::path base = config.source_registry_path.empty()
+                                     ? std::filesystem::path(".")
+                                     : std::filesystem::path(config.source_registry_path).parent_path();
+    if (base.empty()) {
+        base = ".";
+    }
+    return base / ".media_server.alert_deliveries.jsonl";
+}
+
+std::filesystem::path OpsAlertDeliveryAttemptStoragePath(const app::AppConfig& config) {
+    std::filesystem::path base = config.source_registry_path.empty()
+                                     ? std::filesystem::path(".")
+                                     : std::filesystem::path(config.source_registry_path).parent_path();
+    if (base.empty()) {
+        base = ".";
+    }
+    return base / ".media_server.alert_delivery_attempts.jsonl";
+}
+
+bool OpsAlertDeliveryIdAllowed(const std::string& value) {
+    if (value.empty() || value.size() > 80) {
+        return false;
+    }
+    for (const unsigned char ch : value) {
+        if (!(std::isalnum(ch) || ch == '-' || ch == '_' || ch == '.')) {
+            return false;
+        }
+    }
+    return true;
+}
+
+std::string NormalizeOpsAlertDeliveryKind(std::string value) {
+    value = LowerAscii(Trim(std::move(value)));
+    if (value == "email" || value == "slack" || value == "webhook") {
+        return value;
+    }
+    return "webhook";
+}
+
+int ClampOpsAlertDeliveryInt(std::optional<std::int64_t> value, int fallback, int min_value, int max_value) {
+    if (!value.has_value()) {
+        return fallback;
+    }
+    return static_cast<int>(std::max<std::int64_t>(
+        min_value, std::min<std::int64_t>(max_value, *value)));
+}
+
+std::string OpsAlertDeliveryEndpointFromBody(const std::string& body, const std::string& kind) {
+    if (kind == "email") {
+        return Trim(ParseStringField(body, "emailTo").value_or(ParseStringField(body, "endpoint").value_or("")));
+    }
+    if (kind == "slack") {
+        return Trim(ParseStringField(body, "slackChannel")
+                        .value_or(ParseStringField(body, "webhookUrl")
+                                      .value_or(ParseStringField(body, "endpoint").value_or(""))));
+    }
+    return Trim(ParseStringField(body, "webhookUrl")
+                    .value_or(ParseStringField(body, "url")
+                                  .value_or(ParseStringField(body, "endpoint").value_or(""))));
+}
+
+std::string OpsAlertDeliveryMaskedEndpoint(const OpsAlertDeliveryConfig& config) {
+    if (config.endpoint.empty()) {
+        return "";
+    }
+    if (config.kind == "email") {
+        const std::size_t at = config.endpoint.find('@');
+        if (at != std::string::npos && at > 0 && at + 1 < config.endpoint.size()) {
+            return config.endpoint.substr(0, 1) + "***@" + config.endpoint.substr(at + 1);
+        }
+    }
+    if (config.kind == "slack" && config.endpoint.rfind("#", 0) == 0) {
+        return "#***";
+    }
+    return "[redacted-alert-target]";
+}
+
+OpsAlertDeliveryConfig OpsAlertDeliveryConfigFromJsonLine(const std::string& line) {
+    OpsAlertDeliveryConfig config;
+    config.id = Trim(ParseStringField(line, "id").value_or(""));
+    config.kind = NormalizeOpsAlertDeliveryKind(ParseStringField(line, "kind").value_or("webhook"));
+    config.enabled = ParseBoolField(line, "enabled").value_or(false);
+    config.label = Trim(ParseStringField(line, "label").value_or(""));
+    config.endpoint = Trim(ParseStringField(line, "endpoint").value_or(""));
+    config.retry_max = ClampOpsAlertDeliveryInt(ParseInt64Field(line, "retryMax"), 3, 0, 8);
+    config.retry_backoff_ms =
+        ClampOpsAlertDeliveryInt(ParseInt64Field(line, "retryBackoffMs"), 2000, 250, 60000);
+    config.updated_at_ms = ParseInt64Field(line, "updatedAtMs").value_or(0);
+    config.present = OpsAlertDeliveryIdAllowed(config.id);
+    return config;
+}
+
+std::string OpsAlertDeliveryConfigJson(const OpsAlertDeliveryConfig& config, bool redact_endpoint) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.alert-delivery.v1\","
+        << "\"id\":\"" << JsonEscape(config.id) << "\","
+        << "\"kind\":\"" << JsonEscape(config.kind) << "\","
+        << "\"enabled\":" << (config.enabled ? "true" : "false") << ","
+        << "\"label\":\"" << JsonEscape(config.label) << "\",";
+    if (redact_endpoint) {
+        out << "\"endpointMasked\":\"" << JsonEscape(OpsAlertDeliveryMaskedEndpoint(config)) << "\","
+            << "\"endpointRedacted\":true,";
+    } else {
+        out << "\"endpoint\":\"" << JsonEscape(config.endpoint) << "\",";
+    }
+    out << "\"retryPolicy\":{\"maxAttempts\":" << config.retry_max
+        << ",\"backoffMs\":" << config.retry_backoff_ms
+        << ",\"bounded\":true},"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"updatedAtMs\":" << config.updated_at_ms
+        << "}";
+    return out.str();
+}
+
+bool LoadOpsAlertDeliveryConfigsLocked(const std::filesystem::path& path,
+                                       std::unordered_map<std::string, OpsAlertDeliveryConfig>* configs,
+                                       std::string* error_message) {
+    if (configs == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "alert delivery config map is required";
+        }
+        return false;
+    }
+    configs->clear();
+    if (!std::filesystem::exists(path)) {
+        return true;
+    }
+    std::ifstream in(path);
+    if (!in) {
+        if (error_message != nullptr) {
+            *error_message = "failed to open alert delivery state: " + path.string();
+        }
+        return false;
+    }
+    std::string line;
+    while (std::getline(in, line)) {
+        line = Trim(std::move(line));
+        if (line.empty()) {
+            continue;
+        }
+        OpsAlertDeliveryConfig config = OpsAlertDeliveryConfigFromJsonLine(line);
+        if (config.present) {
+            (*configs)[config.id] = std::move(config);
+        }
+    }
+    return true;
+}
+
+bool LoadOpsAlertDeliveryConfigs(const app::AppConfig& config,
+                                 std::unordered_map<std::string, OpsAlertDeliveryConfig>* configs,
+                                 std::string* error_message) {
+    const std::filesystem::path path = OpsAlertDeliveryStoragePath(config);
+    std::lock_guard lock(g_ops_alert_delivery_mu);
+    return LoadOpsAlertDeliveryConfigsLocked(path, configs, error_message);
+}
+
+bool UpsertOpsAlertDeliveryConfig(const app::AppConfig& config,
+                                  const std::string& body,
+                                  OpsAlertDeliveryConfig* saved,
+                                  std::string* error_message) {
+    OpsAlertDeliveryConfig next;
+    next.id = Trim(ParseStringField(body, "id").value_or(""));
+    if (!OpsAlertDeliveryIdAllowed(next.id)) {
+        if (error_message != nullptr) {
+            *error_message = "alert delivery id is required";
+        }
+        return false;
+    }
+    next.kind = NormalizeOpsAlertDeliveryKind(ParseStringField(body, "kind").value_or("webhook"));
+    next.enabled = ParseBoolField(body, "enabled").value_or(true);
+    next.label = Trim(ParseStringField(body, "label").value_or(next.id));
+    next.endpoint = OpsAlertDeliveryEndpointFromBody(body, next.kind);
+    if (next.endpoint.empty()) {
+        if (error_message != nullptr) {
+            *error_message = "alert delivery endpoint is required";
+        }
+        return false;
+    }
+    next.retry_max = ClampOpsAlertDeliveryInt(ParseInt64Field(body, "retryMax"), 3, 0, 8);
+    next.retry_backoff_ms =
+        ClampOpsAlertDeliveryInt(ParseInt64Field(body, "retryBackoffMs"), 2000, 250, 60000);
+    next.updated_at_ms = NowUnixMs();
+    next.present = true;
+
+    const std::filesystem::path path = OpsAlertDeliveryStoragePath(config);
+    std::error_code ec;
+    std::filesystem::create_directories(path.parent_path(), ec);
+    if (ec) {
+        if (error_message != nullptr) {
+            *error_message = "failed to create alert delivery directory: " + ec.message();
+        }
+        return false;
+    }
+    std::lock_guard lock(g_ops_alert_delivery_mu);
+    std::ofstream out(path, std::ios::app);
+    if (!out) {
+        if (error_message != nullptr) {
+            *error_message = "failed to open alert delivery state: " + path.string();
+        }
+        return false;
+    }
+    out << OpsAlertDeliveryConfigJson(next, false) << "\n";
+    out.flush();
+    if (!out) {
+        if (error_message != nullptr) {
+            *error_message = "failed to write alert delivery state: " + path.string();
+        }
+        return false;
+    }
+    if (saved != nullptr) {
+        *saved = next;
+    }
+    return true;
+}
+
+std::string OpsAlertDeliveryAttemptJson(const OpsAlertDeliveryConfig& delivery,
+                                        const std::string& event_id,
+                                        const std::string& event_type,
+                                        const std::string& source_id,
+                                        const std::string& status,
+                                        const std::string& transport,
+                                        std::int64_t now_ms) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.alert-delivery-attempt.v1\","
+        << "\"deliveryId\":\"" << JsonEscape(delivery.id) << "\","
+        << "\"kind\":\"" << JsonEscape(delivery.kind) << "\","
+        << "\"eventId\":\"" << JsonEscape(event_id) << "\","
+        << "\"eventType\":\"" << JsonEscape(event_type) << "\","
+        << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
+        << "\"status\":\"" << JsonEscape(status) << "\","
+        << "\"transport\":\"" << JsonEscape(transport) << "\","
+        << "\"endpointMasked\":\"" << JsonEscape(OpsAlertDeliveryMaskedEndpoint(delivery)) << "\","
+        << "\"retryPolicy\":{\"maxAttempts\":" << delivery.retry_max
+        << ",\"backoffMs\":" << delivery.retry_backoff_ms
+        << ",\"bounded\":true},"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"attemptedAtMs\":" << now_ms
+        << "}";
+    return out.str();
+}
+
+bool AppendOpsAlertDeliveryAttempt(const app::AppConfig& config,
+                                   const std::string& attempt_json,
+                                   std::string* error_message) {
+    const std::filesystem::path path = OpsAlertDeliveryAttemptStoragePath(config);
+    std::error_code ec;
+    std::filesystem::create_directories(path.parent_path(), ec);
+    if (ec) {
+        if (error_message != nullptr) {
+            *error_message = "failed to create alert delivery attempt directory: " + ec.message();
+        }
+        return false;
+    }
+    std::lock_guard lock(g_ops_alert_delivery_mu);
+    std::ofstream out(path, std::ios::app);
+    if (!out) {
+        if (error_message != nullptr) {
+            *error_message = "failed to open alert delivery attempt state: " + path.string();
+        }
+        return false;
+    }
+    out << attempt_json << "\n";
+    return true;
+}
+
+std::vector<std::string> LoadRecentOpsAlertDeliveryAttempts(const app::AppConfig& config,
+                                                           std::size_t limit) {
+    const std::filesystem::path path = OpsAlertDeliveryAttemptStoragePath(config);
+    std::vector<std::string> lines;
+    std::lock_guard lock(g_ops_alert_delivery_mu);
+    if (!std::filesystem::exists(path)) {
+        return lines;
+    }
+    std::ifstream in(path);
+    std::string line;
+    while (std::getline(in, line)) {
+        line = Trim(std::move(line));
+        if (!line.empty()) {
+            lines.push_back(line);
+        }
+    }
+    if (lines.size() > limit) {
+        lines.erase(lines.begin(), lines.end() - static_cast<std::ptrdiff_t>(limit));
+    }
+    std::reverse(lines.begin(), lines.end());
+    return lines;
+}
+
+std::string OpsAlertDeliveryListJson(const app::AppConfig& config) {
+    std::unordered_map<std::string, OpsAlertDeliveryConfig> configs;
+    std::string error_message;
+    const bool loaded = LoadOpsAlertDeliveryConfigs(config, &configs, &error_message);
+    std::vector<OpsAlertDeliveryConfig> items;
+    for (const auto& [_, item] : configs) {
+        items.push_back(item);
+    }
+    std::sort(items.begin(), items.end(), [](const auto& left, const auto& right) {
+        return left.id < right.id;
+    });
+    const auto attempts = LoadRecentOpsAlertDeliveryAttempts(config, 20);
+    std::ostringstream out;
+    out << "{"
+        << "\"status\":\"ops-alert-deliveries\","
+        << "\"schema\":\"media-server.ops.alert-delivery-list.v1\","
+        << "\"contract\":{\"separateFromEventPostPayload\":true,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"auditMasking\":true,"
+        << "\"retryPolicy\":true},"
+        << "\"policy\":{\"transports\":[\"webhook\",\"email\",\"slack\"],"
+        << "\"deliveryFixtureSmoke\":true,"
+        << "\"boundedRetry\":true,"
+        << "\"clientViewerExposure\":false},"
+        << "\"integrations\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << OpsAlertDeliveryConfigJson(items[i], true);
+    }
+    out << "],\"attempts\":[";
+    for (std::size_t i = 0; i < attempts.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << attempts[i];
+    }
+    out << "],\"loaded\":" << (loaded ? "true" : "false");
+    if (!loaded) {
+        out << ",\"warning\":\"" << JsonEscape(error_message) << "\"";
+    }
+    out << "}";
+    return out.str();
+}
+
+std::string DispatchOpsAlertDeliveryFixture(const app::AppConfig& config,
+                                            const auth::Principal& principal,
+                                            const std::string& body,
+                                            std::string* error_message) {
+    std::unordered_map<std::string, OpsAlertDeliveryConfig> configs;
+    if (!LoadOpsAlertDeliveryConfigs(config, &configs, error_message)) {
+        return "";
+    }
+    const std::string wanted_id = Trim(ParseStringField(body, "id").value_or(
+        ParseStringField(body, "deliveryId").value_or("")));
+    const std::string event_id = Trim(ParseStringField(body, "eventId").value_or(
+        "v170-alert-fixture-" + std::to_string(NowUnixMs())));
+    const std::string event_type =
+        Trim(ParseStringField(body, "eventType").value_or("intrusion"));
+    const std::string source_id = Trim(ParseStringField(body, "sourceId").value_or("sample"));
+    std::vector<std::string> attempts;
+    const std::int64_t now_ms = NowUnixMs();
+    for (const auto& [_, delivery] : configs) {
+        if (!delivery.enabled) {
+            continue;
+        }
+        if (!wanted_id.empty() && delivery.id != wanted_id) {
+            continue;
+        }
+        const std::string attempt =
+            OpsAlertDeliveryAttemptJson(delivery, event_id, event_type, source_id, "delivered", "fixture", now_ms);
+        if (!AppendOpsAlertDeliveryAttempt(config, attempt, error_message)) {
+            return "";
+        }
+        attempts.push_back(attempt);
+    }
+    std::ostringstream audit_body;
+    audit_body << "{"
+               << "\"area\":\"events\","
+               << "\"action\":\"alert-delivery-test\","
+               << "\"target\":\"alert-delivery:" << JsonEscape(wanted_id.empty() ? "all" : wanted_id) << "\","
+               << "\"summary\":\"Alert delivery fixture dispatched\","
+               << "\"after\":{\"eventId\":\"" << JsonEscape(event_id) << "\","
+               << "\"attempts\":" << attempts.size() << ","
+               << "\"endpoint\":\"[redacted-alert-target]\"}"
+               << "}";
+    std::string audit_error;
+    (void)AppendOpsAuditRecord(config, OpsAuditRecordJson(audit_body.str(), principal), &audit_error);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"status\":\"ops-alert-delivery-fixture\","
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"audit\":{\"area\":\"events\",\"action\":\"alert-delivery-test\"},"
+        << "\"attempts\":[";
+    for (std::size_t i = 0; i < attempts.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << attempts[i];
+    }
+    out << "]}";
+    return out.str();
+}
+
+void DispatchOpsAlertDeliveries(const app::AppConfig& config,
+                                const analysis::AnalysisResult& result,
+                                const std::vector<analysis::AnalysisEvent>& events) {
+    if (events.empty()) {
+        return;
+    }
+    std::unordered_map<std::string, OpsAlertDeliveryConfig> configs;
+    if (!LoadOpsAlertDeliveryConfigs(config, &configs, nullptr)) {
+        return;
+    }
+    const std::int64_t now_ms = NowUnixMs();
+    for (const auto& event : events) {
+        const std::string event_id =
+            event.event_id.empty() ? "evt_" + std::to_string(now_ms) : event.event_id;
+        for (const auto& [_, delivery] : configs) {
+            if (!delivery.enabled) {
+                continue;
+            }
+            std::string error_message;
+            (void)AppendOpsAlertDeliveryAttempt(
+                config,
+                OpsAlertDeliveryAttemptJson(delivery,
+                                            event_id,
+                                            event.event_type,
+                                            result.source_key,
+                                            "queued",
+                                            "event-record",
+                                            now_ms),
+                &error_message);
+        }
+    }
+}
+
 std::pair<std::string, std::string> SourceHealthAuditStateParts(const std::string& state) {
     const std::size_t sep = state.find('\n');
     if (sep == std::string::npos) {
@@ -12053,6 +12537,74 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            return ok;
 	                        }
 
+	                        if (request.path == "/ops/api/alerts/deliveries") {
+	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+	                                return *auth_response;
+	                            }
+	                            if (request.method == "GET") {
+	                                HttpResponse ok = JsonResponse(200, "OK", OpsAlertDeliveryListJson(config));
+	                                ok.headers["Cache-Control"] = "no-store";
+	                                return ok;
+	                            }
+	                            if (request.method == "POST" || request.method == "PUT") {
+	                                constexpr std::size_t kOpsAlertDeliveryMaxBodyBytes = 64 * 1024;
+	                                if (request.body.size() > kOpsAlertDeliveryMaxBodyBytes) {
+	                                    return JsonResponse(
+	                                        413,
+	                                        "Payload Too Large",
+	                                        "{\"error\":\"alert delivery body is too large\"}");
+	                                }
+	                                OpsAlertDeliveryConfig saved;
+	                                std::string error_message;
+	                                if (!UpsertOpsAlertDeliveryConfig(config, request.body, &saved, &error_message)) {
+	                                    return JsonResponse(400,
+	                                                        "Bad Request",
+	                                                        "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+	                                }
+	                                std::ostringstream audit_body;
+	                                audit_body << "{"
+	                                           << "\"area\":\"events\","
+	                                           << "\"action\":\"alert-delivery-upsert\","
+	                                           << "\"target\":\"alert-delivery:" << JsonEscape(saved.id) << "\","
+	                                           << "\"summary\":\"Alert delivery integration updated\","
+	                                           << "\"after\":" << OpsAlertDeliveryConfigJson(saved, false)
+	                                           << "}";
+	                                std::string audit_error;
+	                                (void)AppendOpsAuditRecord(
+	                                    config,
+	                                    OpsAuditRecordJson(audit_body.str(), principal_result.principal),
+	                                    &audit_error);
+	                                HttpResponse ok = JsonResponse(
+	                                    200,
+	                                    "OK",
+	                                    std::string("{\"status\":\"ops-alert-delivery\",")
+	                                        + "\"audit\":{\"area\":\"events\",\"action\":\"alert-delivery-upsert\"},"
+	                                        + "\"delivery\":" + OpsAlertDeliveryConfigJson(saved, true) + "}");
+	                                ok.headers["Cache-Control"] = "no-store";
+	                                return ok;
+	                            }
+	                            return JsonResponse(405,
+	                                                "Method Not Allowed",
+	                                                "{\"error\":\"method not allowed\"}");
+	                        }
+
+	                        if (request.method == "POST" && request.path == "/ops/api/alerts/deliveries/test") {
+	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+	                                return *auth_response;
+	                            }
+	                            std::string error_message;
+	                            const std::string body = DispatchOpsAlertDeliveryFixture(
+	                                config, principal_result.principal, request.body, &error_message);
+	                            if (body.empty()) {
+	                                return JsonResponse(400,
+	                                                    "Bad Request",
+	                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+	                            }
+	                            HttpResponse ok = JsonResponse(200, "OK", body);
+	                            ok.headers["Cache-Control"] = "no-store";
+	                            return ok;
+	                        }
+
 	                        if (request.method == "GET" && request.path == "/ops/api/events/reviews") {
 	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
 	                                return *auth_response;
@@ -13621,6 +14173,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     if (ParseBoolQuery(query, "dispatch", false)) {
                                         analysis::DispatchEventRecords(evaluation->annotated_result, evaluation->events);
                                         analysis::DispatchEventPosts(evaluation->annotated_result, evaluation->events);
+                                        DispatchOpsAlertDeliveries(config,
+                                                                  evaluation->annotated_result,
+                                                                  evaluation->events);
                                     }
                                 }
                                 return JsonResponse(200,
