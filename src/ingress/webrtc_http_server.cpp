@@ -2082,8 +2082,9 @@ void AppendProductAccountMenu(std::ostringstream& out,
                              const auth::Principal& principal,
                              const std::string& secondary_action_href = std::string(),
                              const std::string& secondary_action_label = std::string()) {
-    out << R"(        <div class="account-menu" aria-label="현재 계정">
+    out << R"(        <div class="account-menu" data-sketch-account-menu="true" aria-label="현재 계정">
           <div class="account-menu-top">
+            <span class="sketch-status-chip" aria-label="연결 상태"><span aria-hidden="true"></span>Connected</span>
             <div class="account-identity">
               )" << ProductAccountAvatarSvg() << R"(
               <div class="account-copy">
@@ -2144,15 +2145,15 @@ void AppendOpsShellStart(std::ostringstream& out,
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>운영 콘솔</title>
 )" << ProductThemeBootScript() << ProductUiCss() << ProductSharedUiScript() << R"(</head>
-<body class="product-shell">
+<body class="product-shell ops-shell sketch-shell">
   <main class="product-page">
-    <header class="app-chrome">
+    <header class="app-chrome sketch-topbar">
       <div class="app-header-top">
-        <div class="app-nav-cluster">
-          <div class="app-brand">
+        <div class="app-nav-cluster sketch-nav-cluster">
+          <div class="app-brand sketch-brand">
             <span class="brand-mark" aria-hidden="true">MS</span>
             <div class="brand-copy">
-              <strong>MediaServer Ops</strong>
+              <strong>Media Server v1.7.0 Ops</strong>
               <span>)" << HtmlEscape(subtitle) << R"(</span>
             </div>
           </div>
@@ -4147,8 +4148,10 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     const bool preview_mode =
         (auth::IsAdmin(principal) || auth::IsOperator(principal)) &&
         auth::RequireScope(principal, "ops:read");
+    const std::string client_workspace_title = active == "dashboard" ? "Dashboard" : "Live Workspace";
     const std::string client_subtitle =
-        preview_mode ? "Client Preview as admin" : "할당된 live view와 상태만 봅니다.";
+        client_workspace_title + " · " +
+        (preview_mode ? "Client Preview as admin" : "할당된 live view와 상태만 봅니다.");
     std::ostringstream out;
     out << R"(<!doctype html>
 <html lang="ko">
@@ -4158,19 +4161,19 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
   <title>클라이언트 포털</title>
 )" << ProductThemeBootScript() << ProductUiCss() << ProductSharedUiScript() << ClientShellCss() << R"(
 </head>
-<body class="product-shell client-shell" data-client-preview=")" << (preview_mode ? "true" : "false") << R"(" data-client-active=")" << HtmlEscape(active) << R"(">
+<body class="product-shell client-shell sketch-shell" data-client-preview=")" << (preview_mode ? "true" : "false") << R"(" data-client-active=")" << HtmlEscape(active) << R"(">
   <main class="product-page">
-    <header class="app-chrome">
+    <header class="app-chrome sketch-topbar">
       <div class="app-header-top">
-        <div class="app-nav-cluster">
-          <div class="app-brand">
+        <div class="app-nav-cluster sketch-nav-cluster">
+          <div class="app-brand sketch-brand">
             <span class="brand-mark" aria-hidden="true">MS</span>
             <div class="brand-copy">
-              <strong>Client Portal</strong>
+              <strong>Media Server v1.7.0 Client</strong>
               <span>)" << HtmlEscape(client_subtitle) << R"(</span>
             </div>
           </div>
-          <nav class="image-nav-tabs client-image-nav-tabs" aria-label="클라이언트 메뉴">
+          <nav class="image-nav-tabs sketch-primary-nav client-image-nav-tabs" aria-label="클라이언트 메뉴">
 )";
     AppendImageNavLink(out, "/client/live", "live", "라이브", active == "live");
     AppendImageNavLink(out, "/client/dashboard", "dashboard", "대시보드", active == "dashboard");
@@ -4186,15 +4189,15 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
 )";
 
     out << R"(
-    <section class="workspace" data-testid="client-shell-page">
-      <div class="panel">
+    <section class="workspace client-workspace-shell" data-testid="client-shell-page">
+      <div class="panel client-channel-dock">
         <div class="toolbar panel-title-toolbar">
           <h2>할당 채널</h2>
 	          )" << RefreshIconButtonHtml("refresh", "ghost", "새로고침") << R"(
         </div>
         <div id="views" class="views"></div>
       </div>
-      <div class="panel" id="detail">
+      <div class="panel client-detail-panel" id="detail">
         <div class="empty"><h3>채널을 선택하세요</h3><p>허용된 채널을 선택하면 이 영역에 상태가 표시됩니다.</p></div>
       </div>
     </section>

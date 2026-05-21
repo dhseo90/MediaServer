@@ -212,6 +212,346 @@ std::string ProductUiCss() {
       border-radius: var(--radius-lg);
       box-shadow: var(--shadow-sm);
     }
+    body.product-shell {
+      --color-bg: #f5f7fb;
+      --color-bg-elevated: #ffffff;
+      --color-surface: #ffffff;
+      --color-surface-raised: #ffffff;
+      --color-surface-muted: #f0f3f7;
+      --color-surface-subtle: #f8fafc;
+      --color-surface-hover: #eef5ff;
+      --color-border: #d8e0ea;
+      --color-border-strong: #aeb9c7;
+      --color-text: #152033;
+      --color-text-muted: #667386;
+      --color-primary: #3b82f6;
+      --color-primary-hover: #2563eb;
+      --color-primary-weak-bg: #e8f1ff;
+      --color-primary-weak-text: #2563eb;
+      --color-link: #2563eb;
+      --color-table-header-bg: #f3f6fa;
+      --color-table-row-hover: #f7fbff;
+      --color-table-border: #e3e9f1;
+      --color-input-bg: #ffffff;
+      --color-input-border: #cfd8e5;
+      background: var(--color-bg);
+      overflow-x: hidden;
+    }
+    body.product-shell .product-page {
+      width: 100%;
+      max-width: none;
+      padding: 0;
+      gap: 0;
+    }
+    body.product-shell .product-page > .panel,
+    body.product-shell .product-page > .workspace {
+      width: min(1480px, calc(100% - 32px));
+      max-width: calc(100vw - 32px);
+      margin: 16px auto 48px;
+    }
+    body.product-shell .app-chrome {
+      width: 100%;
+      max-width: 100vw;
+      min-height: 60px;
+      padding: 0 22px;
+      border-width: 0 0 1px;
+      border-radius: 0;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 1px 0 rgba(15, 23, 42, 0.05);
+      backdrop-filter: blur(18px);
+      overflow: clip;
+    }
+    body.product-shell .app-header-top {
+      grid-template-columns: minmax(0, 1fr) minmax(0, max-content);
+      min-height: 60px;
+      gap: 14px;
+    }
+    body.product-shell .app-nav-cluster {
+      min-width: 0;
+      grid-template-columns: minmax(220px, max-content) minmax(0, 1fr);
+      gap: 16px;
+    }
+    body.product-shell .app-brand {
+      min-width: 0;
+      min-height: 48px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      grid-template-columns: 34px minmax(0, 1fr);
+    }
+    body.product-shell .brand-mark {
+      width: 32px;
+      height: 32px;
+      border-radius: 9px;
+      font-size: 0;
+      background: #3b82f6;
+      box-shadow: 0 6px 18px rgba(59, 130, 246, 0.22);
+    }
+    body.product-shell .brand-mark::before {
+      content: "▶";
+      margin-left: 2px;
+      color: #ffffff;
+      font-size: 15px;
+      line-height: 1;
+    }
+    body.product-shell .brand-copy {
+      min-width: 0;
+      max-width: min(42vw, 520px);
+      display: flex;
+      align-items: baseline;
+      gap: 10px;
+    }
+    body.product-shell .brand-copy strong {
+      flex: 0 0 auto;
+      font-size: 15px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    body.product-shell .brand-copy span {
+      min-width: 0;
+      display: inline;
+      color: var(--color-text);
+      font-size: 15px;
+      font-weight: 650;
+      line-height: 1;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      -webkit-line-clamp: initial;
+    }
+    body.product-shell .image-nav-tabs {
+      min-width: 0;
+      overflow-x: auto;
+      overflow-y: hidden;
+      scrollbar-width: none;
+      width: auto;
+      grid-template-columns: none;
+      grid-auto-flow: column;
+      grid-auto-columns: max-content;
+      grid-auto-rows: 60px;
+      gap: 2px;
+      align-items: stretch;
+      justify-content: start;
+    }
+    body.product-shell .image-nav-tabs::-webkit-scrollbar {
+      display: none;
+    }
+    body.product-shell .image-nav {
+      height: 60px;
+      min-height: 60px;
+      padding: 0 10px;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      color: var(--color-text-muted);
+      font-size: 13px;
+      position: relative;
+    }
+    body.product-shell .image-nav:hover {
+      background: #f3f7fc;
+      color: var(--color-text);
+    }
+    body.product-shell .image-nav.active {
+      background: transparent;
+      color: var(--color-primary);
+    }
+    body.product-shell .image-nav.active::after {
+      content: "";
+      position: absolute;
+      left: 12px;
+      right: 12px;
+      bottom: 0;
+      height: 3px;
+      border-radius: 999px 999px 0 0;
+      background: var(--color-primary);
+    }
+    body.product-shell .image-nav svg {
+      width: 15px;
+      height: 15px;
+    }
+    body.product-shell .account-menu {
+      width: auto;
+      max-width: min(38vw, 390px);
+      min-width: 0;
+      min-height: 44px;
+      height: auto;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 8px;
+    }
+    body.product-shell .account-menu-top {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    body.product-shell .sketch-status-chip {
+      flex: 0 0 auto;
+      min-height: 26px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 9px;
+      border: 1px solid #cfe2ff;
+      border-radius: 999px;
+      background: #eef6ff;
+      color: #2563eb;
+      font-size: 12px;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+    body.product-shell .sketch-status-chip span {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 3px rgba(34, 197, 94, 0.16);
+    }
+    body.product-shell .account-identity {
+      min-width: 0;
+      gap: 8px;
+    }
+    body.product-shell .account-avatar {
+      width: 26px;
+      height: 26px;
+      color: #172033;
+    }
+    body.product-shell .account-copy {
+      min-width: 0;
+      max-width: 132px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    body.product-shell .account-name {
+      min-width: 0;
+      font-size: 13px;
+      font-weight: 800;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    body.product-shell .account-meta {
+      min-width: 0;
+      color: var(--color-text-muted);
+      font-size: 12px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    body.product-shell .account-controls {
+      flex: 0 0 auto;
+      flex-wrap: nowrap;
+      gap: 8px;
+    }
+    body.product-shell .account-menu > form {
+      flex: 0 0 auto;
+    }
+    body.product-shell .theme-toggle,
+    body.product-shell .language-select,
+    body.product-shell .account-shortcut,
+    body.product-shell .account-menu > form > button {
+      min-height: 34px;
+      height: 34px;
+      border-radius: 7px;
+      background: #ffffff;
+    }
+    body.product-shell .panel,
+    body.product-shell .section-card,
+    body.product-shell .card,
+    body.product-shell .metric-card {
+      border-color: var(--color-border);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.92);
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+    body.product-shell .section-card {
+      padding: 16px;
+    }
+    body.product-shell .metric,
+    body.product-shell .metric-card,
+    body.product-shell .rules-prereq-card,
+    body.product-shell .ops-category-section,
+    body.product-shell .ops-selection-review,
+    body.product-shell .ops-template-settings {
+      border-radius: 8px;
+      background: #f8fafc;
+    }
+    body.product-shell table {
+      background: #ffffff;
+    }
+    body.product-shell th {
+      background: var(--color-table-header-bg);
+      color: #3f4b5f;
+      font-size: 12px;
+      font-weight: 850;
+    }
+    body.product-shell td {
+      background: #ffffff;
+    }
+    body.ops-shell .product-page > .panel {
+      display: grid;
+      gap: 16px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+    body.ops-shell [data-ops-panel] > .panel-title-toolbar {
+      min-width: 0;
+      min-height: 68px;
+      padding: 16px 18px;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+    body.ops-shell [data-ops-panel] > .panel-title-toolbar h2 {
+      font-size: 19px;
+      line-height: 1.1;
+    }
+    body.ops-shell [data-ops-panel] > .panel-title-toolbar p {
+      margin-top: 5px;
+      font-size: 13px;
+    }
+    body.ops-shell [data-ops-panel] > .section-card,
+    body.ops-shell [data-ops-panel] > .grid > .section-card,
+    body.ops-shell [data-ops-panel] .metric-card,
+    body.ops-shell [data-ops-panel] .status-stat {
+      min-width: 0;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.94);
+    }
+    body.ops-shell .toolbar,
+    body.ops-shell .actions,
+    body.ops-shell .badge-row,
+    body.ops-shell .meta {
+      min-width: 0;
+    }
+    body.ops-shell .toolbar > *,
+    body.ops-shell .actions > *,
+    body.ops-shell .badge-row > *,
+    body.ops-shell .meta > * {
+      min-width: 0;
+    }
+    body.ops-shell .ops-data-table {
+      width: 100%;
+      max-width: 100%;
+    }
+    body.ops-shell .ops-data-table th,
+    body.ops-shell .ops-data-table td {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    body.ops-shell .ops-dashboard-card-grid,
+    body.ops-shell .ops-metric-grid {
+      gap: 12px;
+    }
     .app-header {
       display: grid;
       gap: var(--space-3);
@@ -2181,8 +2521,33 @@ std::string ProductUiCss() {
       .app-nav-cluster { grid-template-columns: 1fr; }
       .header-utilities { justify-content: flex-start; }
       .account-menu { width: 100%; }
-      .account-menu-top { justify-content: flex-start; }
-      .image-nav-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      body.product-shell .account-menu {
+        width: 100%;
+        max-width: 100%;
+        grid-template-columns: 1fr;
+        justify-content: stretch;
+        align-items: start;
+        gap: 8px;
+        padding: 0 0 10px;
+      }
+      .account-menu-top,
+      body.product-shell .account-menu-top {
+        justify-content: flex-start;
+        flex-wrap: wrap;
+      }
+      body.product-shell .account-controls {
+        flex-wrap: wrap;
+      }
+      body.product-shell .account-menu > form {
+        justify-self: start;
+      }
+      .image-nav-tabs {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-auto-flow: row;
+        grid-auto-columns: auto;
+        justify-content: stretch;
+      }
+      .image-nav { width: 100%; min-width: 0; }
       .nav-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .nav { width: 100%; }
       .audit-controls {
@@ -2207,6 +2572,57 @@ std::string ProductUiCss() {
       }
     }
     @media (max-width: 1180px) and (min-width: 861px) {
+      body.product-shell .app-header-top,
+      body.client-shell .app-header-top {
+        grid-template-columns: minmax(0, 1fr) minmax(0, max-content);
+        align-items: center;
+      }
+      body.product-shell .app-nav-cluster,
+      body.client-shell .app-nav-cluster {
+        grid-template-columns: minmax(190px, max-content) minmax(0, 1fr);
+        gap: 10px;
+      }
+      body.product-shell .brand-copy,
+      body.client-shell .brand-copy {
+        max-width: min(34vw, 390px);
+      }
+      body.product-shell .image-nav-tabs,
+      body.client-shell .image-nav-tabs {
+        grid-template-columns: none;
+        grid-auto-flow: column;
+        grid-auto-columns: max-content;
+      }
+      body.product-shell .image-nav,
+      body.client-shell .image-nav {
+        padding: 0 8px;
+      }
+      body.product-shell .account-menu,
+      body.client-shell .account-menu {
+        max-width: 340px;
+        min-height: 44px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 6px;
+        padding: 0;
+      }
+      body.product-shell .account-menu-top,
+      body.client-shell .account-menu-top {
+        min-width: 0;
+        height: auto;
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        gap: 8px;
+      }
+      body.product-shell .account-copy,
+      body.client-shell .account-copy {
+        max-width: 104px;
+      }
+      body.product-shell .sketch-status-chip,
+      body.client-shell .sketch-status-chip {
+        padding: 0 7px;
+      }
       .app-header-top {
         grid-template-columns: minmax(0, 1fr) minmax(280px, 300px);
         align-items: stretch;
@@ -2229,21 +2645,24 @@ std::string ProductUiCss() {
         align-items: center;
       }
       body.client-shell .app-header-top {
-        grid-template-columns: minmax(0, 1fr) minmax(280px, 300px);
-        align-items: stretch;
+        grid-template-columns: minmax(0, 1fr) minmax(0, max-content);
+        align-items: center;
       }
       body.client-shell .account-menu {
-        min-height: 64px;
-        display: flex;
-        align-items: stretch;
+        max-width: 340px;
+        min-height: 44px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: center;
         justify-content: flex-end;
         gap: 6px;
-        padding: 6px;
+        padding: 0;
       }
       body.client-shell .account-menu-top {
         min-width: 0;
-        justify-content: stretch;
-        gap: 6px;
+        height: auto;
+        justify-content: flex-end;
+        gap: 8px;
       }
       body.client-shell .account-identity {
         display: flex;
@@ -2626,9 +3045,9 @@ std::string ClientShellCss() {
     }
     header.app-chrome .app-header-top {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) minmax(280px, 300px);
+      grid-template-columns: minmax(0, 1fr) minmax(0, max-content);
       width: 100%;
-      align-items: stretch;
+      align-items: center;
       gap: var(--space-3);
     }
     header.app-chrome .image-nav-tabs {
@@ -2644,14 +3063,18 @@ std::string ClientShellCss() {
       grid-template-columns: repeat(2, minmax(104px, 1fr));
     }
     body.client-shell header.app-chrome .app-header-top {
-      grid-template-columns: minmax(0, 1fr) minmax(280px, 300px);
-      align-items: stretch;
+      grid-template-columns: minmax(0, 1fr) minmax(0, max-content);
+      align-items: center;
     }
     body.client-shell .account-menu {
-      min-height: 64px;
+      max-width: min(38vw, 390px);
+      min-height: 44px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
       justify-content: flex-end;
       gap: 6px;
-      padding: 6px;
+      padding: 0;
     }
     body.client-shell .account-identity {
       display: flex;
@@ -2660,8 +3083,9 @@ std::string ClientShellCss() {
       min-width: 64px;
     }
     body.client-shell .account-menu-top {
-      justify-content: stretch;
-      gap: 6px;
+      min-width: 0;
+      justify-content: flex-end;
+      gap: 8px;
     }
     body.client-shell .account-menu > form > button {
       min-width: 52px;
@@ -3164,21 +3588,602 @@ std::string ClientShellCss() {
     :root[data-theme="dark"] .chip.warn { color: var(--color-warning); }
     :root[data-theme="dark"] .chip.bad { color: var(--color-danger); }
     :root[data-theme="dark"] a.nav.active { background: var(--color-primary); color: var(--color-on-primary); }
+    body.client-shell {
+      --bg: #f5f7fb;
+      --panel: #ffffff;
+      --panel-soft: #f1f4f8;
+      --line: #d8e0ea;
+      --text: #152033;
+      --muted: #667386;
+      --accent: #3b82f6;
+      --accent-soft: #e8f1ff;
+      background: var(--bg);
+      color: var(--text);
+    }
+    body.client-shell main.product-page {
+      width: 100%;
+      max-width: none;
+      padding: 0;
+      gap: 0;
+    }
+    body.client-shell .product-page > .workspace {
+      width: 100%;
+      margin: 0;
+    }
+    body.client-shell header.app-chrome {
+      min-height: 60px;
+      padding: 0 22px;
+      border-width: 0 0 1px;
+      border-radius: 0;
+      background: rgba(255, 255, 255, 0.97);
+      box-shadow: 0 1px 0 rgba(15, 23, 42, 0.06);
+    }
+    body.client-shell header.app-chrome .app-header-top {
+      grid-template-columns: minmax(0, 1fr) minmax(0, max-content);
+      min-height: 60px;
+      align-items: center;
+      gap: 14px;
+    }
+    body.client-shell .app-nav-cluster {
+      min-width: 0;
+      grid-template-columns: minmax(220px, max-content) minmax(0, 1fr);
+      gap: 16px;
+    }
+    body.client-shell .brand-copy {
+      max-width: min(42vw, 520px);
+    }
+    body.client-shell .client-image-nav-tabs {
+      width: auto;
+      min-width: 0;
+      grid-template-columns: none;
+      grid-auto-flow: column;
+      grid-auto-columns: max-content;
+      overflow-x: auto;
+      scrollbar-width: none;
+    }
+    body.client-shell .client-image-nav-tabs::-webkit-scrollbar {
+      display: none;
+    }
+    body.client-shell .account-menu {
+      max-width: min(38vw, 390px);
+      min-height: 44px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      padding: 0;
+      border: 0;
+      background: transparent;
+    }
+    body.client-shell .workspace.live-workspace {
+      min-height: calc(100vh - 60px);
+      background: #f5f7fb;
+    }
+    body.client-shell #detail.panel {
+      width: 100%;
+      min-height: calc(100vh - 60px);
+      margin: 0;
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      box-shadow: none;
+    }
+    body.client-shell .client-workspace-shell:not(.live-workspace) {
+      width: min(1480px, calc(100% - 32px));
+      max-width: calc(100vw - 32px);
+      margin: 16px auto 48px;
+      display: grid;
+      grid-template-columns: 345px minmax(0, 1fr);
+      gap: 14px;
+      align-items: stretch;
+    }
+    body.client-shell .client-workspace-shell:not(.live-workspace) #detail.panel {
+      min-height: calc(100vh - 92px);
+      padding: 0;
+    }
+    body.client-shell .client-channel-dock {
+      position: sticky;
+      top: 76px;
+      min-width: 0;
+      align-self: start;
+      max-height: calc(100vh - 92px);
+      overflow: auto;
+      border-radius: 8px;
+      background: #ffffff;
+    }
+    body.client-shell .client-dashboard-shell {
+      min-width: 0;
+      display: grid;
+      gap: 14px;
+    }
+    body.client-shell .client-dashboard-head,
+    body.client-shell .client-dashboard-shell > .summary,
+    body.client-shell .client-dashboard-shell > .events {
+      min-width: 0;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ffffff;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+    }
+    body.client-shell .client-dashboard-head {
+      align-items: start;
+      gap: 12px;
+    }
+    body.client-shell .client-dashboard-head h2 {
+      font-size: 20px;
+      line-height: 1.1;
+    }
+    body.client-shell .client-dashboard-head .meta,
+    body.client-shell .client-copy-actions {
+      justify-content: flex-end;
+    }
+    body.client-shell .client-dashboard-shell .summary {
+      grid-template-columns: repeat(auto-fit, minmax(164px, 1fr));
+    }
+    body.client-shell .live-monitor {
+      position: relative;
+      min-height: calc(100vh - 60px);
+      gap: 0;
+      background: #f5f7fb;
+    }
+    body.client-shell .live-toolbar {
+      position: absolute;
+      top: 14px;
+      right: 22px;
+      z-index: 30;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 10px;
+      padding: 0;
+      pointer-events: auto;
+    }
+    body.client-shell .live-toolbar > .live-workspace-title {
+      display: none;
+    }
+    body.client-shell .live-toolbar label {
+      min-width: 78px;
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 850;
+    }
+    body.client-shell .live-toolbar label select {
+      min-height: 34px;
+      border-radius: 7px;
+      background: #ffffff;
+      font-size: 12px;
+    }
+    body.client-shell .live-info-toggle {
+      min-height: 34px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 0 8px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #ffffff;
+      white-space: nowrap;
+    }
+    body.client-shell .live-copy-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    body.client-shell .live-copy-actions button {
+      min-height: 34px;
+      padding: 0 10px;
+      border-radius: 7px;
+      background: #ffffff;
+      font-size: 12px;
+      white-space: nowrap;
+    }
+    body.client-shell .workspace-actions {
+      align-self: center;
+    }
+    body.client-shell .workspace-actions summary {
+      min-height: 36px;
+      border-radius: 7px;
+      background: #2f3540;
+      color: #ffffff;
+      border-color: #2f3540;
+      font-size: 0;
+      width: 42px;
+      padding: 0;
+    }
+    body.client-shell .workspace-actions summary::after {
+      content: "⋮";
+      font-size: 22px;
+      line-height: 1;
+    }
+    body.client-shell .workspace-actions[open] {
+      z-index: 50;
+    }
+    body.client-shell .workspace-actions[open] summary {
+      background: #2f3540;
+      color: #ffffff;
+    }
+    body.client-shell .workspace-actions[open]::after {
+      content: "";
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      width: 180px;
+      height: 0;
+    }
+    body.client-shell .live-layout-presets {
+      position: absolute;
+      top: calc(100% + 8px);
+      right: 0;
+      z-index: 55;
+      min-width: 190px;
+      padding: 10px;
+      border-radius: 8px;
+      background: #ffffff;
+      box-shadow: 0 14px 32px rgba(15, 23, 42, 0.16);
+    }
+    body.client-shell #liveAllStop {
+      position: absolute;
+      top: calc(100% + 178px);
+      right: 0;
+      z-index: 55;
+      min-width: 190px;
+      background: #ffffff;
+      box-shadow: 0 14px 32px rgba(15, 23, 42, 0.16);
+    }
+    body.client-shell .summary,
+    body.client-shell .detail-box {
+      display: none;
+    }
+    body.client-shell .live-workspace-layout,
+    body.client-shell .live-workspace-layout[data-dock-side],
+    body.client-shell .live-workspace-layout[data-dock-side="right"] {
+      min-height: calc(100vh - 60px);
+      display: grid;
+      grid-template-columns: 365px minmax(0, 1fr);
+      gap: 0;
+      align-items: stretch;
+    }
+    body.client-shell .live-workspace-layout[data-dock-side="right"] {
+      grid-template-columns: minmax(0, 1fr) 365px;
+    }
+    body.client-shell .live-source-dock {
+      position: sticky;
+      top: 60px;
+      align-self: stretch;
+      height: calc(100vh - 60px);
+      gap: 0;
+      padding: 0;
+      border-right: 1px solid var(--line);
+      background: #ffffff;
+      overflow: hidden;
+    }
+    body.client-shell .live-workspace-layout[data-dock-side="right"] .live-source-dock {
+      border-right: 0;
+      border-left: 1px solid var(--line);
+    }
+    body.client-shell .live-source-dock-head {
+      min-height: 54px;
+      padding: 16px 22px 10px;
+      border: 0;
+      border-radius: 0;
+      background: #ffffff;
+    }
+    body.client-shell .live-source-dock-head h3 {
+      font-size: 16px;
+      letter-spacing: 0;
+    }
+    body.client-shell .live-source-dock-head p {
+      display: none;
+    }
+    body.client-shell .live-source-search {
+      position: relative;
+      margin: 8px 22px 14px;
+    }
+    body.client-shell .live-source-search input {
+      width: 100%;
+      min-height: 36px;
+      padding: 0 38px 0 12px;
+      border: 1px solid var(--line);
+      border-radius: 7px;
+      background: #ffffff;
+      color: var(--text);
+      font: inherit;
+      font-size: 13px;
+      font-weight: 700;
+    }
+    body.client-shell .live-source-search span {
+      position: absolute;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 18px;
+      line-height: 1;
+    }
+    body.client-shell .live-source-tree {
+      max-height: calc(100vh - 386px);
+      padding: 0 18px 12px;
+      gap: 6px;
+      overflow: auto;
+    }
+    body.client-shell .live-source-group {
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      gap: 4px;
+    }
+    body.client-shell .live-source-group summary {
+      min-height: 30px;
+      padding: 0 4px;
+      color: #1f2a3d;
+      font-size: 13px;
+      font-weight: 800;
+    }
+    body.client-shell .live-source-floor summary {
+      padding-left: 20px;
+      color: #3f4b5f;
+    }
+    body.client-shell .live-source-leaves {
+      gap: 6px;
+      padding-left: 28px;
+    }
+    body.client-shell .live-source-node {
+      min-height: 42px;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 4px 8px;
+      padding: 8px 10px;
+      border-radius: 7px;
+      background: #ffffff;
+    }
+    body.client-shell .live-source-node.active {
+      background: #e8f1ff;
+      border-color: #b7d3ff;
+      box-shadow: none;
+    }
+    body.client-shell .live-source-title {
+      font-size: 13px;
+    }
+    body.client-shell .live-source-meta {
+      grid-column: 1 / -1;
+      font-size: 11px;
+    }
+    body.client-shell .live-dock-event-feed {
+      margin-top: auto;
+      max-height: 330px;
+      padding: 14px 12px 18px;
+      border-width: 1px 0 0;
+      border-radius: 0;
+      background: #ffffff;
+      overflow: auto;
+    }
+    body.client-shell .live-dock-event-head {
+      padding: 0 10px 8px;
+    }
+    body.client-shell .live-dock-event-head h3 {
+      font-size: 16px;
+    }
+    body.client-shell .live-dock-event {
+      min-height: 54px;
+      padding: 10px;
+      border: 1px solid #edf1f6;
+      border-radius: 7px;
+      background: #ffffff;
+    }
+    body.client-shell .live-workspace-main {
+      min-height: calc(100vh - 60px);
+      padding: 70px 8px 22px 16px;
+      background: #f5f7fb;
+    }
+    body.client-shell .live-grid,
+    body.client-shell .live-grid[data-grid-size] {
+      height: calc(100vh - 92px);
+      display: grid;
+      gap: 8px;
+      grid-auto-rows: minmax(0, 1fr);
+    }
+    body.client-shell .live-grid[data-grid-size="1"] {
+      grid-template-columns: 1fr;
+    }
+    body.client-shell .live-grid[data-grid-size="2"] {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    body.client-shell .live-grid[data-grid-size="4"] {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-rows: repeat(2, minmax(0, 1fr));
+    }
+    body.client-shell .live-grid[data-grid-size="6"],
+    body.client-shell .live-grid[data-grid-size="9"] {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+    body.client-shell .tile,
+    body.client-shell .live-grid[data-density="compact"] .tile {
+      position: relative;
+      min-height: 0;
+      display: block;
+      padding: 0;
+      border-radius: 8px;
+      overflow: hidden;
+      background: #161b22;
+      border: 1px solid #cfd8e5;
+      box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+    }
+    body.client-shell .tile.selected {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.35);
+    }
+    body.client-shell .tile-head {
+      position: absolute;
+      inset: 12px 12px auto 12px;
+      z-index: 12;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 136px;
+      align-items: flex-start;
+      gap: 12px;
+      pointer-events: none;
+    }
+    body.client-shell .tile-title {
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-start;
+      justify-content: flex-start;
+      overflow: hidden;
+      color: #ffffff;
+      text-shadow: 0 1px 3px rgba(0, 0, 0, 0.55);
+    }
+    body.client-shell .tile-title span,
+    body.client-shell .tile-actions span {
+      position: static;
+      inset: auto;
+    }
+    body.client-shell .tile-presence-dot {
+      width: 7px;
+      height: 7px;
+      flex: 0 0 auto;
+      border-radius: 999px;
+      background: #facc15;
+      box-shadow: 0 0 0 3px rgba(250, 204, 21, 0.18);
+    }
+    body.client-shell .tile-title h3 {
+      min-width: 0;
+      font-size: 15px;
+      font-weight: 850;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    body.client-shell .tile-title .chip {
+      flex: 0 0 auto;
+      max-width: 100%;
+      min-height: 22px;
+      padding: 2px 7px;
+      background: rgba(59, 130, 246, 0.9);
+      color: #ffffff;
+    }
+    body.client-shell .tile-controls {
+      display: none;
+    }
+    body.client-shell .tile-actions {
+      position: static;
+      opacity: 1;
+      pointer-events: auto;
+      display: flex;
+      flex-wrap: nowrap;
+      gap: 6px;
+      justify-self: end;
+    }
+    body.client-shell .tile-actions .icon-button {
+      width: 40px;
+      min-width: 40px;
+      height: 40px;
+      min-height: 40px;
+      border-radius: 8px;
+      border-color: rgba(255, 255, 255, 0.38);
+      background: rgba(12, 18, 28, 0.66);
+      color: #ffffff;
+      backdrop-filter: blur(12px);
+    }
+    body.client-shell .tile-actions .tile-action-primary {
+      background: rgba(59, 130, 246, 0.92);
+      border-color: rgba(255, 255, 255, 0.46);
+    }
+    body.client-shell .tile-stage,
+    body.client-shell .live-grid[data-density="compact"] .tile-stage {
+      width: 100%;
+      height: 100%;
+      min-height: 100%;
+      aspect-ratio: auto;
+      border-radius: 0;
+      background:
+        linear-gradient(180deg, rgba(15, 23, 42, 0.20), rgba(15, 23, 42, 0.78)),
+        radial-gradient(circle at 50% 35%, rgba(148, 163, 184, 0.25), transparent 34%),
+        #151a22;
+    }
+    body.client-shell .tile[data-view-id=""] .tile-stage {
+      border: 1px dashed rgba(255, 255, 255, 0.34);
+      background:
+        linear-gradient(180deg, rgba(15, 23, 42, 0.15), rgba(15, 23, 42, 0.70)),
+        #20252d;
+    }
+    body.client-shell .tile-stage video {
+      object-fit: cover;
+      filter: grayscale(0.85) brightness(0.72) contrast(1.05);
+    }
+    body.client-shell .tile-stage > span[data-role="placeholder"] {
+      inset: 50% 22px auto 22px;
+      transform: translateY(-50%);
+      color: rgba(255, 255, 255, 0.82);
+      text-align: center;
+      font-size: 18px;
+      font-weight: 700;
+    }
+    body.client-shell .tile-status {
+      display: none;
+    }
+    body.client-shell .tile-info-overlay {
+      inset: 76px auto auto 14px;
+      width: min(278px, calc(100% - 28px));
+      padding: 14px;
+      border-radius: 7px;
+      background: rgba(14, 19, 28, 0.72);
+      backdrop-filter: blur(12px);
+    }
+    body.client-shell .tile-info-overlay-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px 12px;
+    }
+    body.client-shell .tile-info-overlay-grid span {
+      font-size: 12px;
+    }
+    body.client-shell .tile-info-overlay-grid strong {
+      font-size: 13px;
+    }
     @media (max-width: 900px) { .live-grid, .live-grid[data-grid-size] { grid-template-columns: 1fr 1fr; } }
     @media (max-width: 860px) {
       body.client-shell header.app-chrome .app-header-top {
         grid-template-columns: 1fr;
         gap: var(--space-3);
       }
+      body.client-shell .app-nav-cluster {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+      body.client-shell .brand-copy {
+        max-width: 100%;
+      }
       body.client-shell header.app-chrome .image-nav-tabs,
       body.client-shell header.app-chrome .client-image-nav-tabs {
+        grid-column: 1 / -1;
         width: 100%;
         min-width: 0;
         grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-auto-flow: row;
+        grid-auto-columns: auto;
+        justify-content: stretch;
+      }
+      body.client-shell header.app-chrome .image-nav {
+        width: 100%;
+        min-width: 0;
       }
       body.client-shell .account-menu {
         width: 100%;
+        max-width: 100%;
+        grid-template-columns: 1fr;
         justify-content: space-between;
+        align-items: start;
+        gap: 8px;
+      }
+      body.client-shell .account-menu-top,
+      body.client-shell .account-controls {
+        flex-wrap: wrap;
+        justify-content: flex-start;
+      }
+      body.client-shell .account-menu > form {
+        justify-self: start;
       }
     }
     @media (max-width: 430px) {
@@ -3211,12 +4216,92 @@ std::string ClientShellCss() {
         max-height: none;
         overflow: visible;
       }
+      body.client-shell .live-workspace-layout,
+      body.client-shell .live-workspace-layout[data-dock-side],
+      body.client-shell .live-workspace-layout[data-dock-side="right"] {
+        min-height: auto;
+        grid-template-columns: 1fr;
+      }
+      body.client-shell .live-workspace-layout[data-dock-side="right"] .live-source-dock,
+      body.client-shell .live-workspace-layout[data-dock-side="right"] .live-workspace-main {
+        order: initial;
+      }
+      body.client-shell .live-source-dock,
+      body.client-shell .live-workspace-layout[data-dock-side="right"] .live-source-dock {
+        position: static;
+        height: auto;
+        max-height: none;
+        border-right: 0;
+        border-left: 0;
+        border-bottom: 1px solid var(--line);
+      }
+      body.client-shell .live-source-tree {
+        max-height: 260px;
+        overflow: auto;
+      }
+      body.client-shell .live-dock-event-feed {
+        max-height: 220px;
+      }
+      body.client-shell .live-workspace-main {
+        min-height: auto;
+        padding: 14px 10px 24px;
+      }
+      body.client-shell .live-toolbar {
+        position: static;
+        justify-content: flex-start;
+        flex-wrap: wrap;
+        margin-bottom: 12px;
+      }
+      body.client-shell .live-grid,
+      body.client-shell .live-grid[data-grid-size],
+      body.client-shell .live-grid[data-grid-size="2"],
+      body.client-shell .live-grid[data-grid-size="4"],
+      body.client-shell .live-grid[data-grid-size="6"],
+      body.client-shell .live-grid[data-grid-size="9"] {
+        height: auto;
+        min-height: auto;
+        grid-template-columns: 1fr;
+        grid-template-rows: none;
+      }
+      body.client-shell .tile,
+      body.client-shell .live-grid[data-density="compact"] .tile {
+        min-height: 282px;
+      }
+      body.client-shell .client-workspace-shell:not(.live-workspace) {
+        grid-template-columns: 1fr;
+      }
+      body.client-shell .client-channel-dock {
+        position: static;
+        max-height: none;
+      }
+      body.client-shell .client-dashboard-head {
+        display: grid;
+        grid-template-columns: 1fr;
+        align-items: start;
+      }
+      body.client-shell .client-dashboard-head .meta,
+      body.client-shell .client-dashboard-head .client-copy-actions {
+        width: 100%;
+        justify-content: flex-start;
+      }
+      body.client-shell .client-dashboard-head .client-copy-actions button {
+        min-width: 0;
+      }
     }
     @media (max-width: 560px) {
       .live-grid, .live-grid[data-grid-size] { grid-template-columns: 1fr; }
       .tile-controls { grid-template-columns: 1fr; }
       .tile-actions { opacity: 1; pointer-events: auto; }
       .tile-actions .icon-button { width: 44px; min-width: 44px; height: 44px; min-height: 44px; }
+      body.client-shell .tile-head {
+        grid-template-columns: minmax(0, 1fr) 150px;
+      }
+      body.client-shell .tile-actions .icon-button {
+        width: 44px;
+        min-width: 44px;
+        height: 44px;
+        min-height: 44px;
+      }
     }
     @media (max-width: 340px) {
       .tile-actions { justify-content: flex-start; }

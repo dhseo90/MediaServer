@@ -270,9 +270,11 @@ void AppendClientShellScript(std::ostringstream& out) {
     };
     function bindClientCopyButtons(payload, root = detail) {
       root?.querySelectorAll('[data-client-copy]').forEach(button => {
-        button.addEventListener('click', async () => {
+        button.__clientCopyPayload = payload;
+        button.onclick = async () => {
           const mode = String(button.dataset.clientCopy || '');
-          const copyText = mode === 'events' ? clientEventSummaryText(payload.events || {}) : clientStatusSummaryText(payload);
+          const activePayload = button.__clientCopyPayload || payload;
+          const copyText = mode === 'events' ? clientEventSummaryText(activePayload.events || {}) : clientStatusSummaryText(activePayload);
           button.disabled = true;
           try {
             await copyClientText(copyText);
@@ -288,7 +290,7 @@ void AppendClientShellScript(std::ostringstream& out) {
           } finally {
             button.disabled = false;
           }
-        });
+        };
       });
     }
     applyPrincipalVisibility().catch(() => {});
@@ -596,7 +598,8 @@ void AppendClientShellScript(std::ostringstream& out) {
 	      const dashboardRuleId = tileRuleId(assignedView);
         const fieldState = dashboardFieldState(health, events);
 	      detail.innerHTML = `
-	        <div class="toolbar">
+	        <div class="client-dashboard-shell" data-testid="client-dashboard-shell">
+	        <div class="toolbar client-dashboard-head">
           <div>
             <h2>${escapeHtml(view.displayName || view.viewId || '대시보드')}</h2>
             <p>${escapeHtml(view.sourceDisplayName || '미제공')}</p>
@@ -679,8 +682,9 @@ void AppendClientShellScript(std::ostringstream& out) {
             ${(events.countsByType || []).map(item => `<span class="chip">${escapeHtml(item.eventType || '이벤트')} ${escapeHtml(item.count)}</span>`).join('') || '<span class="chip info">이벤트 없음</span>'}
           </div>
           ${renderEvents(events.recent || [])}
-        </section>
-      `;
+	        </section>
+	        </div>
+	      `;
       const filterSelect = document.getElementById('clientDashboardCompareFilter');
       const sortSelect = document.getElementById('clientDashboardCompareSort');
       if (filterSelect) {
@@ -1324,11 +1328,15 @@ void AppendClientShellScript(std::ostringstream& out) {
 	        <aside class="live-source-dock" data-testid="client-live-source-tree" aria-label="라이브 소스 트리">
 	          <div class="live-source-dock-head">
 	            <div>
-	              <h3>소스</h3>
+	              <h3>카메라</h3>
 	              <p>타일에 드롭해 바로 배치합니다.</p>
 	            </div>
 	            <span class="chip">${views.length}</span>
 	          </div>
+            <div class="live-source-search" role="search">
+              <input id="liveSourceSearch" type="search" placeholder="카메라 검색" aria-label="카메라 검색" />
+              <span aria-hidden="true">⌕</span>
+            </div>
 	          <div class="live-source-tree" role="tree" data-tree-model="group/site/floor/source">
 	            ${groups.map(group => `
 	              <details class="live-source-group" data-tree-level="site" open>
@@ -1380,30 +1388,31 @@ void AppendClientShellScript(std::ostringstream& out) {
 	    }
 	    function liveTileHtml(tile) {
 	      return `
-	        <article class="tile live-drop-tile${selectedLiveTile === tile.index ? ' selected' : ''}" data-tile="${tile.index}" data-view-id="${escapeHtml(tile.viewId || '')}" data-drop-state="idle" tabindex="0" role="group" aria-label="타일 ${tile.index + 1}: 라이브" aria-describedby="liveTileStatus${tile.index}" aria-current="${selectedLiveTile === tile.index ? 'true' : 'false'}">
-	          <div class="tile-head">
-	            <div class="tile-title">
-	              <h3>타일 ${tile.index + 1}</h3>
-	              <span class="chip" data-role="status">offline</span>
+	        <article class="tile live-sketch-tile live-drop-tile${selectedLiveTile === tile.index ? ' selected' : ''}" data-tile="${tile.index}" data-view-id="${escapeHtml(tile.viewId || '')}" data-drop-state="idle" tabindex="0" role="group" aria-label="타일 ${tile.index + 1}: 라이브" aria-describedby="liveTileStatus${tile.index}" aria-current="${selectedLiveTile === tile.index ? 'true' : 'false'}">
+	          <div class="tile-stage">
+	            <video playsinline muted autoplay></video>
+	            <div class="tile-head">
+	              <div class="tile-title">
+	                <span class="tile-presence-dot" aria-hidden="true"></span>
+	                <h3 data-role="view-label">${escapeHtml(tileView(tile)?.displayName || tile.viewId || `타일 ${tile.index + 1}`)}</h3>
+	                <span class="chip" data-role="status">offline</span>
+	              </div>
+	              <div class="tile-actions" aria-label="타일 ${tile.index + 1} 작업">
+	                <button type="button" class="icon-button tile-action-primary" data-action="start" title="타일 ${tile.index + 1} 시작" aria-label="타일 ${tile.index + 1} 시작"><span aria-hidden="true">▶</span></button>
+	                <button type="button" class="icon-button" data-action="restart" title="타일 ${tile.index + 1} 재연결" aria-label="타일 ${tile.index + 1} 재연결"><span aria-hidden="true">↻</span></button>
+	                <button type="button" class="icon-button" data-action="stop" data-disconnect-scope="tile" title="타일 ${tile.index + 1} 연결 해제" aria-label="타일 ${tile.index + 1} 연결 해제" disabled><span aria-hidden="true">■</span></button>
+	              </div>
 	            </div>
 	            <div class="tile-controls">
 	              <div class="tile-assignment" data-role="assignment">
 	                <span>배치 소스</span>
-	                <strong data-role="view-label">${escapeHtml(tileView(tile)?.displayName || tile.viewId || '소스 없음')}</strong>
+	                <strong>${escapeHtml(tileView(tile)?.displayName || tile.viewId || '소스 없음')}</strong>
 	                <small data-role="source-meta">${tile.viewId ? escapeHtml(sourceKindLabel(tileView(tile)?.sourceKind, tileView(tile))) : '소스를 타일에 드롭'}</small>
 	              </div>
 	              <label data-role="mode-wrap">보기 방식
 	                <select data-role="mode" aria-label="타일 ${tile.index + 1} 보기 방식"></select>
 	              </label>
 	            </div>
-	            <div class="tile-actions" aria-label="타일 ${tile.index + 1} 작업">
-	              <button type="button" class="icon-button tile-action-primary" data-action="start" title="타일 ${tile.index + 1} 시작" aria-label="타일 ${tile.index + 1} 시작"><span aria-hidden="true">▶</span></button>
-	              <button type="button" class="icon-button" data-action="restart" title="타일 ${tile.index + 1} 재연결" aria-label="타일 ${tile.index + 1} 재연결"><span aria-hidden="true">↻</span></button>
-	              <button type="button" class="icon-button" data-action="stop" data-disconnect-scope="tile" title="타일 ${tile.index + 1} 연결 해제" aria-label="타일 ${tile.index + 1} 연결 해제" disabled><span aria-hidden="true">■</span></button>
-	            </div>
-	          </div>
-	          <div class="tile-stage">
-	            <video playsinline muted autoplay></video>
 	            <span data-role="placeholder">오프라인</span>
 	            <div class="tile-info-overlay" data-testid="client-live-tile-info-overlay" data-role="info-overlay" data-overlay-trigger="tile-selected-or-info-enabled" hidden>
 	              <div class="tile-info-overlay-head">
@@ -1433,10 +1442,13 @@ void AppendClientShellScript(std::ostringstream& out) {
 	    }
 	    function liveMonitorHtml() {
 	      return `
-	        <div class="live-monitor" data-testid="client-live-action-reduction" data-action-model="source-drag,tile-selection,icon-actions,keyboard-shortcuts" data-disconnect-contract="tile-disconnect-clears-slot,workspace-disconnect-keeps-layout">
-	          <div class="live-toolbar">
-	            <div>
-	              <h2>라이브</h2>
+	        <div class="live-monitor live-sketch-monitor" data-testid="client-live-action-reduction" data-action-model="source-drag,tile-selection,icon-actions,keyboard-shortcuts" data-disconnect-contract="tile-disconnect-clears-slot,workspace-disconnect-keeps-layout">
+	          <div class="live-workspace-layout live-sketch-layout" data-testid="client-live-workspace" data-workspace-model="source-tree,drag-drop-grid,multi-source" data-dock-side="${escapeHtml(liveDockSide)}">
+	            ${liveSourceTreeHtml()}
+	            <section class="live-workspace-main live-sketch-workspace" aria-label="라이브 워크스페이스">
+	          <div class="live-toolbar live-sketch-toolbar">
+	            <div class="live-workspace-title">
+	              <h2>Live Workspace</h2>
 	            </div>
 	            <label>그리드
 	              <select id="liveGridSize">
@@ -1456,6 +1468,10 @@ void AppendClientShellScript(std::ostringstream& out) {
 	              </select>
 	            </label>
 	            <label class="live-info-toggle"><input id="liveInfoOverlayToggle" type="checkbox"${liveInfoOverlayEnabled ? ' checked' : ''} /> 정보 오버레이</label>
+	            <div id="liveCopyActions" class="client-copy-actions live-copy-actions" data-live-copy-actions>
+	              <button type="button" class="ghost" data-client-copy="status">상태 복사</button>
+	              <button type="button" class="ghost" data-client-copy="events">이벤트 복사</button>
+	            </div>
 	            <details class="workspace-actions">
 	              <summary aria-label="워크스페이스 작업">작업</summary>
                 <div class="live-layout-presets" data-testid="client-live-layout-presets" data-preset-contract="user-preference,role-preset" data-preference-endpoint="${liveLayoutPreferenceEndpoint}">
@@ -1467,17 +1483,14 @@ void AppendClientShellScript(std::ostringstream& out) {
 	              <button id="liveAllStop" class="ghost danger" type="button">전체 연결 해제</button>
 	            </details>
 	          </div>
-	          <div class="summary" id="liveSummary">
+	          <div class="summary live-summary-rail" id="liveSummary">
 	            <div class="metric"><span>타일</span><strong data-summary="total">0</strong></div>
 	            <div class="metric"><span>라이브</span><strong data-summary="live">0</strong></div>
 	            <div class="metric"><span>연결 중</span><strong data-summary="connecting">0</strong></div>
 	            <div class="metric"><span>지연</span><strong data-summary="stale">0</strong></div>
 	            <div class="metric"><span>오프라인</span><strong data-summary="offline">0</strong></div>
 	          </div>
-	          <div class="live-workspace-layout" data-testid="client-live-workspace" data-workspace-model="source-tree,drag-drop-grid,multi-source" data-dock-side="${escapeHtml(liveDockSide)}">
-	            ${liveSourceTreeHtml()}
-	            <section class="live-workspace-main" aria-label="라이브 워크스페이스">
-	              <section class="detail-box" id="liveSelectedDetail">${emptyState('타일을 선택하세요', '선택한 타일의 연결, 메타데이터, 이벤트 상태가 여기에 표시됩니다.')}</section>
+	              <section class="detail-box live-selected-detail" id="liveSelectedDetail">${emptyState('타일을 선택하세요', '선택한 타일의 연결, 메타데이터, 이벤트 상태가 여기에 표시됩니다.')}</section>
 	              <div class="live-grid" data-testid="client-live-drop-grid" data-grid-size="${liveTileCount}" data-density="${escapeHtml(liveDensity)}">
 	                ${liveTiles.slice(0, liveTileCount).map(liveTileHtml).join('')}
 	              </div>
@@ -1586,6 +1599,14 @@ void AppendClientShellScript(std::ostringstream& out) {
 	      updateTileDom(tile);
 	    }
 	    function bindLiveSourceTree() {
+	      const searchInput = document.getElementById('liveSourceSearch');
+	      searchInput?.addEventListener('input', () => {
+	        const term = String(searchInput.value || '').trim().toLowerCase();
+	        document.querySelectorAll('.live-source-node').forEach(node => {
+	          const text = String(node.textContent || '').toLowerCase();
+	          node.hidden = Boolean(term) && !text.includes(term);
+	        });
+	      });
 	      document.querySelectorAll('[data-source-view]').forEach(node => {
 	        const viewId = node.dataset.sourceView || '';
 	        node.addEventListener('click', () => {
@@ -2177,6 +2198,8 @@ void AppendClientShellScript(std::ostringstream& out) {
           </div>
         `;
         bindClientCopyButtons(payload, container);
+        const liveCopyActions = document.querySelector('#liveCopyActions');
+        if (liveCopyActions) bindClientCopyButtons(payload, liveCopyActions);
         updateTileDom(tile);
       } catch (error) {
         container.innerHTML = `<div class="empty"><p>${escapeHtml(error.message || '미제공')}</p></div>`;
