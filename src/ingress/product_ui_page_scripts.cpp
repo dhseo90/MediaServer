@@ -3270,6 +3270,76 @@ void AppendOpsShellScript(std::ostringstream& out,
         }).join('');
         bindEvidenceBundleActions();
       }
+      const EVENT_REVIEW_STATUSES = ['new', 'reviewing', 'confirmed', 'dismissed', 'needs-follow-up'];
+      const EVENT_REVIEW_CLASSES = ['unclassified', 'true-positive', 'false-positive', 'duplicate', 'needs-tuning'];
+      const eventReviewSelectHtml = (name, values, selected) => {
+        const value = String(selected || values[0] || '').trim();
+        return `<select data-event-review-field="${escapeHtml(name)}">
+          ${values.map(item => `<option value="${escapeHtml(item)}"${item === value ? ' selected' : ''}>${escapeHtml(item)}</option>`).join('')}
+        </select>`;
+      };
+      function renderEventReviewRows(items) {
+        const tbody = document.getElementById('eventReviewRows');
+        if (!tbody) return;
+        if (!Array.isArray(items) || items.length === 0) {
+          setTableEmpty(tbody, 5, '검토할 Rule/Scenario 이벤트가 없습니다.');
+          return;
+        }
+        tbody.innerHTML = items.map(entry => {
+          const event = entry?.event || {};
+          const review = entry?.review || {};
+          const eventId = String(review.eventId || event.eventId || '').trim();
+          const scenarioParts = [event?.scenarioName, event?.scenarioPhase]
+            .filter(Boolean)
+            .map(display);
+          const eventHtml = `<div class="ops-rule-value-stack">
+            <span class="table-identity-pill table-identity-id">${escapeHtml(display(eventId || '-'))}</span>
+            <span class="ops-rule-note">${escapeHtml(display(event?.eventType || event?.className || 'event'))}${scenarioParts.length ? ` · ${escapeHtml(scenarioParts.join(' · '))}` : ''}</span>
+          </div>`;
+          const note = String(review.note || '');
+          const noteHtml = `<input class="event-review-note-input" data-event-review-field="note" maxlength="500" value="${escapeHtml(note)}" placeholder="운영자 메모" />`;
+          const updated = review.updatedAtMs ? `${eventRecordTime(review.updatedAtMs)} · ${display(review.actor || '-')}` : '미검토';
+          return `<tr data-event-review-row data-event-id="${escapeHtml(eventId)}">
+            ${tableCellHtml('이벤트', eventHtml)}
+            ${tableCellHtml('리뷰', eventReviewSelectHtml('reviewStatus', EVENT_REVIEW_STATUSES, review.reviewStatus || 'new'))}
+            ${tableCellHtml('분류', eventReviewSelectHtml('classification', EVENT_REVIEW_CLASSES, review.classification || 'unclassified'))}
+            ${tableCellHtml('메모', noteHtml)}
+            ${tableCellHtml('업데이트', `<div class="event-review-actions"><span>${escapeHtml(updated)}</span><button type="button" class="button button-secondary button-compact" data-event-review-save ${eventId ? '' : 'disabled'}>저장</button></div>`)}
+          </tr>`;
+        }).join('');
+        bindEventReviewActions();
+      }
+      function bindEventReviewActions() {
+        document.querySelectorAll('[data-event-review-save]').forEach(button => {
+          button.addEventListener('click', async () => {
+            const row = button.closest('[data-event-review-row]');
+            const eventId = String(row?.dataset.eventId || '').trim();
+            if (!eventId) {
+              setText('eventReviewSummary', 'eventId가 없어 review를 저장할 수 없습니다.');
+              return;
+            }
+            const payload = {
+              reviewStatus: row.querySelector('[data-event-review-field="reviewStatus"]')?.value || 'reviewing',
+              classification: row.querySelector('[data-event-review-field="classification"]')?.value || 'unclassified',
+              note: row.querySelector('[data-event-review-field="note"]')?.value || ''
+            };
+            button.disabled = true;
+            try {
+              const result = await requestJson(`/ops/api/events/reviews/${encodeURIComponent(eventId)}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+              });
+              setText('eventReviewSummary', `${eventId} review 저장됨 · ${result.review?.reviewStatus || payload.reviewStatus}`);
+              await refreshEvents();
+            } catch (error) {
+              setText('eventReviewSummary', `review 저장 실패: ${error.message}`);
+            } finally {
+              button.disabled = false;
+            }
+          });
+        });
+      }
       function bindEvidenceBundleActions() {
         document.querySelectorAll('[data-evidence-bundle]').forEach(button => {
           button.addEventListener('click', async () => {
@@ -3299,9 +3369,20 @@ void AppendOpsShellScript(std::ostringstream& out,
         }
         return { eventParams, channelFilter, evidence };
       }
+      function eventReviewQueryParams(eventParams) {
+        const reviewParams = new URLSearchParams(eventParams.toString());
+        const reviewStatus = String(document.getElementById('eventReviewStatusFilter')?.value || '').trim();
+        const classification = String(document.getElementById('eventReviewClassFilter')?.value || '').trim();
+        if (reviewStatus) reviewParams.set('reviewStatus', reviewStatus);
+        if (classification) reviewParams.set('classification', classification);
+        return reviewParams;
+      }
       async function refreshEvents() {
         const { eventParams, channelFilter, evidence } = eventRecordQueryParams();
         const payload = await requestJson(`/ops/api/events/status?${eventParams.toString()}`);
+        const reviewParams = eventReviewQueryParams(eventParams);
+        const reviewPayload = await requestJson(`/ops/api/events/reviews?${reviewParams.toString()}`)
+          .catch(error => ({ error: error.message, records: [] }));
         const storage = payload.storage || {};
         const post = payload.post || {};
         const records = payload.records || { records: [] };
@@ -3349,12 +3430,20 @@ void AppendOpsShellScript(std::ostringstream& out,
             : `records ${eventItems.length}/${records.matchedRecords ?? eventItems.length} · offset ${records.offset ?? opsEventRecordsOffset} · hasMore ${records.hasMore ? 'yes' : 'no'}${channelFilter ? ` · channel ${channelFilter}` : ''}${evidence ? ` · evidence ${evidence}` : ''}`
         );
         renderEventRows(eventItems);
+        const reviewItems = Array.isArray(reviewPayload.records) ? reviewPayload.records : [];
+        setText(
+          'eventReviewSummary',
+          reviewPayload.error
+            ? `review 조회 실패: ${reviewPayload.error}`
+            : `review ${reviewItems.length}개 · Event POST payload 변경 없음 · audit action event-review-update`
+        );
+        renderEventReviewRows(reviewItems);
         const prevButton = document.getElementById('eventRecordsPrev');
         const nextButton = document.getElementById('eventRecordsNext');
         if (prevButton) prevButton.disabled = opsEventRecordsOffset <= 0;
         if (nextButton) nextButton.disabled = !records.hasMore;
         if (records.nextOffset != null) nextButton?.setAttribute('data-next-offset', String(records.nextOffset));
-        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, records });
+        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, records, reviews: reviewPayload });
       }
       const itemId = item => display(item?.id || item?.ruleId || item?.profileId || '-');
       const opsRulesIdText = value => {
@@ -6627,6 +6716,14 @@ void AppendOpsShellScript(std::ostringstream& out,
         document.getElementById('eventRecordsIncludeArchives')?.addEventListener('change', () => {
           opsEventRecordsOffset = 0;
           refreshEvents().catch(error => setText('eventRecordSummary', error.message));
+        });
+        document.getElementById('eventReviewStatusFilter')?.addEventListener('change', () => {
+          opsEventRecordsOffset = 0;
+          refreshEvents().catch(error => setText('eventReviewSummary', error.message));
+        });
+        document.getElementById('eventReviewClassFilter')?.addEventListener('change', () => {
+          opsEventRecordsOffset = 0;
+          refreshEvents().catch(error => setText('eventReviewSummary', error.message));
         });
         document.getElementById('eventRecordsPrev')?.addEventListener('click', () => {
           opsEventRecordsOffset = Math.max(0, opsEventRecordsOffset - OPS_EVENT_RECORD_LIMIT);

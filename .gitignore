@@ -23,6 +23,8 @@
 /.media_server.views.json
 /.media_server.users.json
 /.media_server.va_events.jsonl
+/.media_server.ops_audit.jsonl
+/.media_server.event_reviews.jsonl
 /.media_server.test/
 /scripts/.media_server.env
 /video/imports/*

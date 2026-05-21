@@ -1701,6 +1701,19 @@ std::string ProductUiCss() {
     .event-record-controls label {
       min-width: 128px;
     }
+    .event-review-controls label {
+      min-width: 142px;
+    }
+    .event-review-table select,
+    .event-review-note-input {
+      width: 100%;
+      min-width: 0;
+    }
+    .event-review-actions {
+      display: grid;
+      gap: var(--space-2);
+      justify-items: start;
+    }
     .incident-timeline-controls {
       align-items: end;
     }
@@ -2193,9 +2206,13 @@ std::string ProductUiCss() {
       .ops-rules-table tr,
       .ops-rules-table td,
       .event-record-table,
+      .event-review-table,
       .event-record-table tbody,
+      .event-review-table tbody,
       .event-record-table tr,
+      .event-review-table tr,
       .event-record-table td,
+      .event-review-table td,
       .user-table,
       .user-table tbody,
       .user-table tr,
@@ -2205,6 +2222,7 @@ std::string ProductUiCss() {
       }
       .ops-rules-table,
       .event-record-table,
+      .event-review-table,
       .user-table {
         min-width: 0;
         table-layout: auto;
@@ -2213,18 +2231,22 @@ std::string ProductUiCss() {
       .ops-rules-table thead,
       .event-record-table colgroup,
       .event-record-table thead,
+      .event-review-table colgroup,
+      .event-review-table thead,
       .user-table colgroup,
       .user-table thead {
         display: none;
       }
       .ops-rules-table tr,
       .event-record-table tr,
+      .event-review-table tr,
       .user-table tr {
         padding: var(--space-2) 0;
         border-bottom: 1px solid var(--color-table-border);
       }
       .ops-rules-table tr:last-child,
       .event-record-table tr:last-child,
+      .event-review-table tr:last-child,
       .user-table tr:last-child {
         border-bottom: 0;
       }
@@ -2232,6 +2254,8 @@ std::string ProductUiCss() {
       .ops-rules-table td,
       .event-record-table th,
       .event-record-table td,
+      .event-review-table th,
+      .event-review-table td,
       .user-table th,
       .user-table td {
         width: 100% !important;
@@ -2240,6 +2264,7 @@ std::string ProductUiCss() {
       }
       .ops-rules-table td,
       .event-record-table td,
+      .event-review-table td,
       .user-table td {
         min-height: 42px;
         display: grid;
@@ -2252,6 +2277,7 @@ std::string ProductUiCss() {
       }
       .ops-rules-table td::before,
       .event-record-table td::before,
+      .event-review-table td::before,
       .user-table td::before {
         content: attr(data-label);
         color: var(--color-text-muted);
@@ -2263,6 +2289,8 @@ std::string ProductUiCss() {
       .ops-rules-table .table-cell-actions,
       .event-record-table .table-cell-status,
       .event-record-table .table-cell-actions,
+      .event-review-table .table-cell-status,
+      .event-review-table .table-cell-actions,
       .user-table .table-cell-status,
       .user-table .table-cell-actions {
         min-width: 0;
@@ -2272,6 +2300,9 @@ std::string ProductUiCss() {
         justify-content: flex-start;
       }
       .event-record-controls {
+        width: 100%;
+      }
+      .event-review-controls {
         width: 100%;
       }
       .incident-timeline-controls {

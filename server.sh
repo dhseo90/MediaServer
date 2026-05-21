@@ -254,6 +254,8 @@ Usage:
                  v1.7.0 Client Live source tree/dock event feed redaction 계약을 검증합니다.
   verify-v170-client-tile-disconnect
                  v1.7.0 Client Live tile/workspace disconnect 계약을 검증합니다.
+  verify-v170-event-review-inbox
+                 v1.7.0 Rule Event Review Inbox의 별도 review state/audit/redaction 계약을 검증합니다.
   verify-server-start-modes
                  foreground/start 실행 모드의 health, route, state file 안정성을 검증합니다.
   verify-auth-bootstrap
@@ -870,6 +872,10 @@ case "${cmd}" in
   verify-v170-client-tile-disconnect)
     require_internal verify_v170_client_tile_disconnect_contract.mjs
     exec "${INTERNAL_DIR}/verify_v170_client_tile_disconnect_contract.mjs" "$@"
+    ;;
+  verify-v170-event-review-inbox)
+    require_internal verify_v170_event_review_inbox.mjs
+    exec "${INTERNAL_DIR}/verify_v170_event_review_inbox.mjs" "$@"
     ;;
   verify-server-start-modes)
     require_internal verify_server_start_modes.sh

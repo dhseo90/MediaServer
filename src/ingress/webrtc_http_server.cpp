@@ -72,6 +72,7 @@ namespace {
 std::atomic<std::uint64_t> g_web_rtc_metadata_sequence{0};
 std::atomic<std::uint64_t> g_ops_audit_sequence{0};
 std::mutex g_ops_audit_mu;
+std::mutex g_ops_event_review_mu;
 std::mutex g_source_health_audit_mu;
 std::unordered_map<std::string, std::string> g_source_health_audit_state;
 std::mutex g_source_health_warning_mu;
@@ -3065,6 +3066,50 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <p id="eventExportPolicyText">증거 export와 삭제 권한을 확인합니다.</p>
         </section>
       </div>
+      <section class="section-card" data-testid="ops-event-review-inbox" data-review-state="separate-from-event-post-payload">
+        <div class="toolbar">
+          <div>
+            <h3>Rule Event Review Inbox</h3>
+            <p id="eventReviewSummary">Rule/Scenario 이벤트의 확인, 분류, 메모, 상태를 별도 review state로 관리합니다.</p>
+          </div>
+          <div class="actions event-review-controls">
+            <label>Review 상태
+              <select id="eventReviewStatusFilter">
+                <option value="">전체</option>
+                <option value="new">new</option>
+                <option value="reviewing">reviewing</option>
+                <option value="confirmed">confirmed</option>
+                <option value="dismissed">dismissed</option>
+                <option value="needs-follow-up">needs-follow-up</option>
+              </select>
+            </label>
+            <label>분류
+              <select id="eventReviewClassFilter">
+                <option value="">전체</option>
+                <option value="unclassified">unclassified</option>
+                <option value="true-positive">true-positive</option>
+                <option value="false-positive">false-positive</option>
+                <option value="duplicate">duplicate</option>
+                <option value="needs-tuning">needs-tuning</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="ops-data-table event-review-table">
+            <thead>
+              <tr>
+                <th>이벤트</th>
+                <th>리뷰</th>
+                <th>분류</th>
+                <th>메모</th>
+                <th>업데이트</th>
+              </tr>
+            </thead>
+            <tbody id="eventReviewRows"><tr><td colspan="5">로딩 중</td></tr></tbody>
+          </table>
+        </div>
+      </section>
       <section class="section-card">
         <div class="toolbar">
           <div>
@@ -8303,6 +8348,278 @@ bool AppendOpsAuditRecord(const app::AppConfig& config,
     return true;
 }
 
+struct OpsEventReviewState {
+    bool present{false};
+    std::string event_id;
+    std::string review_status{"new"};
+    std::string classification{"unclassified"};
+    std::string note;
+    std::int64_t updated_at_ms{0};
+    std::string actor;
+    std::string role;
+};
+
+std::filesystem::path OpsEventReviewStoragePath(const app::AppConfig& config) {
+    std::filesystem::path base = config.source_registry_path.empty()
+                                     ? std::filesystem::path(".")
+                                     : std::filesystem::path(config.source_registry_path).parent_path();
+    if (base.empty()) {
+        base = ".";
+    }
+    return base / ".media_server.event_reviews.jsonl";
+}
+
+bool OpsEventReviewEventIdAllowed(const std::string& value) {
+    if (value.empty() || value.size() > 160) {
+        return false;
+    }
+    for (const unsigned char ch : value) {
+        if (ch <= 0x20 || ch == '"' || ch == '\'' || ch == '\\' || ch == '/' || ch == '?' ||
+            ch == '#' || ch == '&') {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool OpsEventReviewStatusAllowed(const std::string& value) {
+    static const std::unordered_set<std::string> kAllowed = {
+        "new",
+        "reviewing",
+        "confirmed",
+        "dismissed",
+        "needs-follow-up",
+    };
+    return kAllowed.count(value) != 0;
+}
+
+bool OpsEventReviewClassificationAllowed(const std::string& value) {
+    static const std::unordered_set<std::string> kAllowed = {
+        "unclassified",
+        "true-positive",
+        "false-positive",
+        "duplicate",
+        "needs-tuning",
+    };
+    return kAllowed.count(value) != 0;
+}
+
+std::string NormalizeOpsEventReviewStatus(std::string value) {
+    value = LowerAscii(Trim(std::move(value)));
+    return OpsEventReviewStatusAllowed(value) ? value : "new";
+}
+
+std::string NormalizeOpsEventReviewClassification(std::string value) {
+    value = LowerAscii(Trim(std::move(value)));
+    return OpsEventReviewClassificationAllowed(value) ? value : "unclassified";
+}
+
+bool OpsEventReviewNoteContainsSensitiveMaterial(const std::string& value) {
+    const std::string lowered = LowerAscii(value);
+    static const std::vector<std::string> kNeedles = {
+        "rtsp://",
+        "rtsps://",
+        "whep://",
+        "wheps://",
+        "sourceurl",
+        "developerurl",
+        "debugurl",
+        "password",
+        "token",
+        "secret",
+        "credential",
+        "passwordhash",
+        "tokenhash",
+        "modelpath",
+        "modelchecksum",
+        "raw json",
+        "debugcounters",
+        "bbox diagnostics",
+    };
+    return std::any_of(kNeedles.begin(), kNeedles.end(), [&](const std::string& needle) {
+        return lowered.find(needle) != std::string::npos;
+    });
+}
+
+std::string NormalizeOpsEventReviewNote(std::string value) {
+    value = Trim(std::move(value));
+    for (char& ch : value) {
+        if (ch == '\r' || ch == '\n' || ch == '\t' ||
+            static_cast<unsigned char>(ch) < 0x20) {
+            ch = ' ';
+        }
+    }
+    value = Trim(std::move(value));
+    constexpr std::size_t kMaxReviewNoteBytes = 500;
+    if (value.size() > kMaxReviewNoteBytes) {
+        value.resize(kMaxReviewNoteBytes);
+        value = Trim(std::move(value));
+    }
+    if (OpsEventReviewNoteContainsSensitiveMaterial(value)) {
+        return "[redacted-review-note]";
+    }
+    return value;
+}
+
+OpsEventReviewState OpsEventReviewStateFromJsonLine(const std::string& line) {
+    OpsEventReviewState state;
+    state.event_id = Trim(ParseStringField(line, "eventId").value_or(""));
+    state.review_status = NormalizeOpsEventReviewStatus(
+        ParseStringField(line, "reviewStatus").value_or("new"));
+    state.classification = NormalizeOpsEventReviewClassification(
+        ParseStringField(line, "classification").value_or("unclassified"));
+    state.note = NormalizeOpsEventReviewNote(ParseStringField(line, "note").value_or(""));
+    state.updated_at_ms = ParseInt64Field(line, "updatedAtMs").value_or(0);
+    state.actor = Trim(ParseStringField(line, "actor").value_or(""));
+    state.role = Trim(ParseStringField(line, "role").value_or(""));
+    state.present = OpsEventReviewEventIdAllowed(state.event_id);
+    return state;
+}
+
+std::string OpsEventReviewStateJson(const OpsEventReviewState& state) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.event-review-state.v1\","
+        << "\"present\":" << (state.present ? "true" : "false") << ","
+        << "\"eventId\":\"" << JsonEscape(state.event_id) << "\","
+        << "\"reviewStatus\":\"" << JsonEscape(state.review_status.empty() ? "new"
+                                                                            : state.review_status)
+        << "\","
+        << "\"classification\":\"" << JsonEscape(state.classification.empty()
+                                                     ? "unclassified"
+                                                     : state.classification)
+        << "\","
+        << "\"note\":\"" << JsonEscape(state.note) << "\","
+        << "\"updatedAtMs\":" << state.updated_at_ms << ","
+        << "\"actor\":\"" << JsonEscape(state.actor) << "\","
+        << "\"role\":\"" << JsonEscape(state.role) << "\""
+        << "}";
+    return out.str();
+}
+
+OpsEventReviewState DefaultOpsEventReviewState(std::string event_id) {
+    OpsEventReviewState state;
+    state.event_id = std::move(event_id);
+    state.present = false;
+    state.review_status = "new";
+    state.classification = "unclassified";
+    return state;
+}
+
+bool LoadOpsEventReviewStatesLocked(const std::filesystem::path& path,
+                                    std::unordered_map<std::string, OpsEventReviewState>* states,
+                                    std::string* error_message) {
+    if (states == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "review state map is required";
+        }
+        return false;
+    }
+    states->clear();
+    if (!std::filesystem::exists(path)) {
+        return true;
+    }
+    std::ifstream in(path);
+    if (!in) {
+        if (error_message != nullptr) {
+            *error_message = "failed to open event review state: " + path.string();
+        }
+        return false;
+    }
+    std::string line;
+    while (std::getline(in, line)) {
+        line = Trim(std::move(line));
+        if (line.empty()) {
+            continue;
+        }
+        OpsEventReviewState state = OpsEventReviewStateFromJsonLine(line);
+        if (state.present) {
+            (*states)[state.event_id] = std::move(state);
+        }
+    }
+    return true;
+}
+
+bool LoadOpsEventReviewStates(const app::AppConfig& config,
+                              std::unordered_map<std::string, OpsEventReviewState>* states,
+                              std::string* error_message) {
+    const std::filesystem::path path = OpsEventReviewStoragePath(config);
+    std::lock_guard lock(g_ops_event_review_mu);
+    return LoadOpsEventReviewStatesLocked(path, states, error_message);
+}
+
+bool UpsertOpsEventReviewState(const app::AppConfig& config,
+                               OpsEventReviewState next,
+                               OpsEventReviewState* previous,
+                               std::string* error_message) {
+    if (!OpsEventReviewEventIdAllowed(next.event_id)) {
+        if (error_message != nullptr) {
+            *error_message = "eventId is required";
+        }
+        return false;
+    }
+    next.present = true;
+    next.review_status = NormalizeOpsEventReviewStatus(next.review_status);
+    next.classification = NormalizeOpsEventReviewClassification(next.classification);
+    next.note = NormalizeOpsEventReviewNote(next.note);
+    next.updated_at_ms = NowUnixMs();
+    const std::filesystem::path path = OpsEventReviewStoragePath(config);
+    std::error_code ec;
+    std::filesystem::create_directories(path.parent_path(), ec);
+    if (ec) {
+        if (error_message != nullptr) {
+            *error_message = "failed to create event review directory: " + ec.message();
+        }
+        return false;
+    }
+    std::lock_guard lock(g_ops_event_review_mu);
+    std::unordered_map<std::string, OpsEventReviewState> states;
+    if (!LoadOpsEventReviewStatesLocked(path, &states, error_message)) {
+        return false;
+    }
+    if (previous != nullptr) {
+        const auto it = states.find(next.event_id);
+        *previous = it == states.end() ? DefaultOpsEventReviewState(next.event_id) : it->second;
+    }
+    std::ofstream out(path, std::ios::app);
+    if (!out) {
+        if (error_message != nullptr) {
+            *error_message = "failed to open event review state: " + path.string();
+        }
+        return false;
+    }
+    out << OpsEventReviewStateJson(next) << "\n";
+    out.flush();
+    if (!out) {
+        if (error_message != nullptr) {
+            *error_message = "failed to write event review state: " + path.string();
+        }
+        return false;
+    }
+    return true;
+}
+
+std::string OpsEventReviewCatalogJson() {
+    return "{\"reviewStatuses\":[\"new\",\"reviewing\",\"confirmed\",\"dismissed\","
+           "\"needs-follow-up\"],\"classifications\":[\"unclassified\",\"true-positive\","
+           "\"false-positive\",\"duplicate\",\"needs-tuning\"]}";
+}
+
+bool OpsEventReviewMatchesFilters(const OpsEventReviewState& state,
+                                  const std::string& review_status,
+                                  const std::string& classification) {
+    const std::string wanted_status = NormalizeOpsEventReviewStatus(review_status);
+    const std::string wanted_classification =
+        NormalizeOpsEventReviewClassification(classification);
+    if (!Trim(review_status).empty() && state.review_status != wanted_status) {
+        return false;
+    }
+    if (!Trim(classification).empty() && state.classification != wanted_classification) {
+        return false;
+    }
+    return true;
+}
+
 std::pair<std::string, std::string> SourceHealthAuditStateParts(const std::string& state) {
     const std::size_t sep = state.find('\n');
     if (sep == std::string::npos) {
@@ -9271,6 +9588,112 @@ std::string AnalysisEventRecordsJson(const analysis::EventRecordQueryResult& res
         << "}"
         << "}";
     return out.str();
+}
+
+std::string OpsEventReviewInboxItemJson(const std::string& event_json,
+                                        const OpsEventReviewState& review) {
+    std::ostringstream out;
+    out << "{"
+        << "\"event\":";
+    if (event_json.empty()) {
+        out << "null";
+    } else {
+        out << event_json;
+    }
+    out << ",\"review\":" << OpsEventReviewStateJson(review)
+        << "}";
+    return out.str();
+}
+
+bool OpsEventReviewInboxJson(const app::AppConfig& config,
+                             const std::unordered_map<std::string, std::string>& query,
+                             std::string* body,
+                             std::string* error_message) {
+    if (body == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "response body is required";
+        }
+        return false;
+    }
+    analysis::EventRecordQueryOptions options;
+    if (!BuildEventRecordQueryOptions(query, &options, error_message)) {
+        return false;
+    }
+    if (query.find("limit") == query.end()) {
+        options.limit = 25;
+    }
+    analysis::EventRecordQueryResult event_result;
+    if (!analysis::QueryEventRecords(options, &event_result, error_message)) {
+        return false;
+    }
+    std::unordered_map<std::string, OpsEventReviewState> reviews;
+    if (!LoadOpsEventReviewStates(config, &reviews, error_message)) {
+        return false;
+    }
+
+    const std::string review_status_filter =
+        query.count("reviewStatus") != 0 ? Trim(query.at("reviewStatus")) : std::string();
+    const std::string classification_filter =
+        query.count("classification") != 0 ? Trim(query.at("classification")) : std::string();
+    const std::string requested_event_id =
+        query.count("eventId") != 0 ? Trim(query.at("eventId")) : std::string();
+
+    std::vector<std::string> items;
+    std::set<std::string> included_event_ids;
+    for (const std::string& raw_event : event_result.records_json) {
+        const std::string event_id = Trim(ParseStringField(raw_event, "eventId").value_or(""));
+        if (!OpsEventReviewEventIdAllowed(event_id)) {
+            continue;
+        }
+        auto review_it = reviews.find(event_id);
+        OpsEventReviewState review =
+            review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
+        if (!OpsEventReviewMatchesFilters(review, review_status_filter, classification_filter)) {
+            continue;
+        }
+        included_event_ids.insert(event_id);
+        items.push_back(OpsEventReviewInboxItemJson(raw_event, review));
+    }
+    if (OpsEventReviewEventIdAllowed(requested_event_id) &&
+        included_event_ids.count(requested_event_id) == 0) {
+        const auto review_it = reviews.find(requested_event_id);
+        if (review_it != reviews.end() &&
+            OpsEventReviewMatchesFilters(review_it->second, review_status_filter, classification_filter)) {
+            items.push_back(OpsEventReviewInboxItemJson("", review_it->second));
+        }
+    }
+
+    std::ostringstream out;
+    out << "{"
+        << "\"status\":\"ops-event-review-inbox\","
+        << "\"schema\":\"media-server.ops.event-review-inbox.v1\","
+        << "\"storage\":{"
+        << "\"persistent\":true,"
+        << "\"separateFromEventRecords\":true,"
+        << "\"separateFromEventPostPayload\":true,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"auditArea\":\"events\","
+        << "\"auditAction\":\"event-review-update\""
+        << "},"
+        << "\"catalog\":" << OpsEventReviewCatalogJson() << ","
+        << "\"records\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << items[i];
+    }
+    out << "],"
+        << "\"recordCount\":" << items.size() << ","
+        << "\"eventRecordOffset\":" << event_result.offset << ","
+        << "\"eventRecordLimit\":" << event_result.limit << ","
+        << "\"eventRecordHasMore\":" << (event_result.has_more ? "true" : "false")
+        << "}";
+    *body = out.str();
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
 }
 
 std::string AnalysisEventRecordCompactionJson(
@@ -11348,6 +11771,111 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                    AnalysisEventRecordsJson(result) + "}");
 	                            ok.headers["Cache-Control"] = "no-store";
 	                            return ok;
+	                        }
+
+	                        if (request.method == "GET" && request.path == "/ops/api/events/reviews") {
+	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+	                                return *auth_response;
+	                            }
+	                            std::string body;
+	                            std::string error_message;
+	                            if (!OpsEventReviewInboxJson(config, query, &body, &error_message)) {
+	                                return JsonResponse(400,
+	                                                    "Bad Request",
+	                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+	                            }
+	                            HttpResponse ok = JsonResponse(200, "OK", body);
+	                            ok.headers["Cache-Control"] = "no-store";
+	                            return ok;
+	                        }
+
+	                        if (request.path.rfind("/ops/api/events/reviews/", 0) == 0) {
+	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+	                                return *auth_response;
+	                            }
+	                            const std::string event_id = UrlDecode(
+	                                request.path.substr(std::string("/ops/api/events/reviews/").size()));
+	                            if (!OpsEventReviewEventIdAllowed(event_id)) {
+	                                return JsonResponse(400,
+	                                                    "Bad Request",
+	                                                    "{\"error\":\"eventId is required\"}");
+	                            }
+	                            if (request.method == "GET") {
+	                                std::unordered_map<std::string, std::string> review_query = query;
+	                                review_query["eventId"] = event_id;
+	                                std::string body;
+	                                std::string error_message;
+	                                if (!OpsEventReviewInboxJson(config, review_query, &body, &error_message)) {
+	                                    return JsonResponse(400,
+	                                                        "Bad Request",
+	                                                        "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+	                                }
+	                                HttpResponse ok = JsonResponse(200, "OK", body);
+	                                ok.headers["Cache-Control"] = "no-store";
+	                                return ok;
+	                            }
+	                            if (request.method == "PUT" || request.method == "POST") {
+	                                constexpr std::size_t kOpsEventReviewMaxBodyBytes = 32 * 1024;
+	                                if (request.body.size() > kOpsEventReviewMaxBodyBytes) {
+	                                    return JsonResponse(
+	                                        413,
+	                                        "Payload Too Large",
+	                                        "{\"error\":\"event review body is too large\"}");
+	                                }
+	                                OpsEventReviewState next;
+	                                next.event_id = event_id;
+	                                next.review_status = ParseStringField(request.body, "reviewStatus")
+	                                                         .value_or(ParseStringField(request.body, "status")
+	                                                                       .value_or("reviewing"));
+	                                next.classification = ParseStringField(request.body, "classification")
+	                                                          .value_or("unclassified");
+	                                next.note = ParseStringField(request.body, "note").value_or("");
+	                                next.actor = principal_result.principal.username.empty()
+	                                                 ? principal_result.principal.display_name
+	                                                 : principal_result.principal.username;
+	                                next.role = principal_result.principal.role;
+	                                OpsEventReviewState previous;
+	                                std::string error_message;
+	                                if (!UpsertOpsEventReviewState(config, next, &previous, &error_message)) {
+	                                    return JsonResponse(400,
+	                                                        "Bad Request",
+	                                                        "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+	                                }
+	                                std::unordered_map<std::string, OpsEventReviewState> reviews;
+	                                (void)LoadOpsEventReviewStates(config, &reviews, nullptr);
+	                                const auto review_it = reviews.find(event_id);
+	                                const OpsEventReviewState saved =
+	                                    review_it == reviews.end() ? DefaultOpsEventReviewState(event_id)
+	                                                               : review_it->second;
+	                                std::ostringstream audit_body;
+	                                audit_body << "{"
+	                                           << "\"area\":\"events\","
+	                                           << "\"action\":\"event-review-update\","
+	                                           << "\"target\":\"event:" << JsonEscape(event_id) << "\","
+	                                           << "\"summary\":\"Rule event review updated\","
+	                                           << "\"before\":" << (previous.present
+	                                                                   ? OpsEventReviewStateJson(previous)
+	                                                                   : std::string("null"))
+	                                           << ",\"after\":" << OpsEventReviewStateJson(saved)
+	                                           << "}";
+	                                std::string audit_error;
+	                                (void)AppendOpsAuditRecord(
+	                                    config,
+	                                    OpsAuditRecordJson(audit_body.str(), principal_result.principal),
+	                                    &audit_error);
+	                                HttpResponse ok = JsonResponse(
+	                                    200,
+	                                    "OK",
+	                                    std::string("{\"status\":\"ops-event-review\",\"persistent\":true,")
+	                                        + "\"audit\":{\"area\":\"events\",\"action\":\"event-review-update\"},"
+	                                        + "\"review\":" +
+	                                        OpsEventReviewStateJson(saved) + "}");
+	                                ok.headers["Cache-Control"] = "no-store";
+	                                return ok;
+	                            }
+	                            return JsonResponse(405,
+	                                                "Method Not Allowed",
+	                                                "{\"error\":\"method not allowed\"}");
 	                        }
 
 	                        if (request.path == "/ops/api/audit") {
