@@ -8742,7 +8742,7 @@ std::string ClientLiveRoleLayoutPresetJson(const auth::Principal& principal) {
     const int grid_size = integrator ? 1 : 4;
     const std::string density = operator_like ? "compact" : "comfortable";
     const std::string dock_side = operator_like ? "left" : "right";
-    const bool info_overlay = operator_like;
+    const bool info_overlay = false;
     std::ostringstream out;
     out << "{"
         << "\"schema\":\"media-server.client-live-layout.v1\","
