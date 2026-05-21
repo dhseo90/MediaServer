@@ -2888,6 +2888,61 @@ std::string ClientShellCss() {
     .live-grid[data-density="compact"] .tile-stage { min-height: 108px; }
     .tile-stage video { width: 100%; height: 100%; object-fit: contain; background: var(--color-media-bg); }
     .tile-stage span { position: absolute; inset: auto 10px 10px 10px; font-size: 12px; font-weight: 800; color: var(--color-code-text); }
+    .tile-info-overlay {
+      position: absolute;
+      inset: auto 8px 8px 8px;
+      display: grid;
+      gap: 6px;
+      padding: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 6px;
+      background: rgba(2, 6, 23, 0.78);
+      color: #ffffff;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.28);
+      pointer-events: none;
+    }
+    .tile-info-overlay[hidden] { display: none; }
+    .tile-info-overlay-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      min-width: 0;
+    }
+    .tile-info-overlay-head strong,
+    .tile-info-overlay-head span {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      font-size: 12px;
+      position: static;
+      inset: auto;
+      color: #ffffff;
+    }
+    .tile-info-overlay-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 4px;
+    }
+    .tile-info-overlay-grid span {
+      position: static;
+      inset: auto;
+      display: grid;
+      gap: 2px;
+      min-width: 0;
+      color: rgba(255, 255, 255, 0.72);
+      font-size: 10px;
+      line-height: 1.1;
+    }
+    .tile-info-overlay-grid strong {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #ffffff;
+      font-size: 11px;
+    }
     .tile-status { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
     .live-grid[data-density="compact"] .tile-status { grid-template-columns: repeat(3, minmax(0, 1fr)); }
     .tile-status .metric { min-height: 54px; padding: 8px; }

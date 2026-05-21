@@ -773,6 +773,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	    let liveTileCount = initialLiveTileCount;
 	    let liveDensity = localStorage.getItem('mediaServerClientLiveDensity') === 'compact' ? 'compact' : 'comfortable';
 	    let liveDockSide = localStorage.getItem('mediaServerClientLiveDockSide') === 'right' ? 'right' : 'left';
+	    let liveInfoOverlayEnabled = localStorage.getItem('mediaServerClientLiveInfoOverlay') === 'on';
 	    const liveTiles = Array.from({ length: maxLiveTiles }, (_, index) => ({
 	      index,
 	      viewId: defaultLiveViewIdList[index] || '',
@@ -789,7 +790,17 @@ void AppendClientShellScript(std::ostringstream& out) {
       lastMetadataAt: 0,
       lastError: '',
       restartCount: 0,
-      stale: false
+      stale: false,
+      staleNotified: false,
+      playbackStats: {
+        fps: null,
+        bitrateKbps: null,
+        droppedFrames: null,
+        freezeCount: 0,
+        lastBytesReceived: null,
+        lastFramesDecoded: null,
+        lastTimestamp: null
+      }
     }));
     let selectedLiveTile = views.length > 0 ? 0 : null;
     let liveStatusTimer = null;
@@ -898,6 +909,19 @@ void AppendClientShellScript(std::ostringstream& out) {
         `재시도 ${tile.restartCount || 0}`
       ].join(' · '));
     }
+    function tileInfoOverlayVisible(tile) {
+      return Boolean(tile) && (liveInfoOverlayEnabled || selectedLiveTile === tile.index);
+    }
+    function playbackNumber(value, suffix = '') {
+      const numeric = Number(value);
+      if (!Number.isFinite(numeric)) return '미제공';
+      return `${Math.max(0, Math.round(numeric))}${suffix}`;
+    }
+    function playbackBadge(tile, events) {
+      if (events?.warning || Number(tile?.eventCount || 0) > 0) return 'event';
+      if (Number(tile?.trackCount || 0) > 0) return 'VA';
+      return '대기';
+    }
     function updateTileDom(tile) {
       const root = document.querySelector(`[data-tile="${tile.index}"]`);
       if (!root) return;
@@ -905,6 +929,10 @@ void AppendClientShellScript(std::ostringstream& out) {
       const view = tileView(tile);
       const status = tile.status || 'offline';
       const stale = tile.lastMetadataAt && Date.now() - tile.lastMetadataAt > 5000;
+      if (stale && !tile.staleNotified) {
+        tile.playbackStats.freezeCount = Number(tile.playbackStats.freezeCount || 0) + 1;
+      }
+      tile.staleNotified = Boolean(stale);
       tile.stale = Boolean(stale);
       const statusLabel = stale ? '지연' : ({
         offline: '오프라인',
@@ -934,6 +962,25 @@ void AppendClientShellScript(std::ostringstream& out) {
       if (a11y) a11y.textContent = a11yStatus;
       const placeholder = root.querySelector('[data-role="placeholder"]');
       if (placeholder) placeholder.textContent = tile.lastError || clientStatusLabel(tile.connectionStatus || status);
+      const infoOverlay = root.querySelector('[data-role="info-overlay"]');
+      if (infoOverlay) {
+        const visible = tileInfoOverlayVisible(tile);
+        infoOverlay.hidden = !visible;
+        root.dataset.infoOverlay = visible ? 'visible' : 'hidden';
+        const stats = tile.playbackStats || {};
+        const setOverlayText = (role, value) => {
+          const node = infoOverlay.querySelector(`[data-overlay="${role}"]`);
+          if (node) node.textContent = value;
+        };
+        setOverlayText('title', viewLabel);
+        setOverlayText('connection', clientDynamicText(liveTileConnectionLabel(tile)));
+        setOverlayText('fps', playbackNumber(stats.fps, ' fps'));
+        setOverlayText('bitrate', playbackNumber(stats.bitrateKbps, ' kbps'));
+        setOverlayText('dropped', playbackNumber(stats.droppedFrames));
+        setOverlayText('freeze', tile.stale ? '지연' : playbackNumber(stats.freezeCount));
+        setOverlayText('reconnect', playbackNumber(tile.restartCount || 0));
+        setOverlayText('badge', playbackBadge(tile, { warning: Number(tile.eventCount || 0) > 0 }));
+      }
 	      root.querySelector('[data-role="placeholder"]').hidden = Boolean(tile.sessionId);
 	      const startBtn = root.querySelector('[data-action="start"]');
 	      const stopBtn = root.querySelector('[data-action="stop"]');
@@ -976,6 +1023,16 @@ void AppendClientShellScript(std::ostringstream& out) {
 	      tile.status = 'offline';
 	      tile.connectionStatus = 'offline';
 	      tile.stale = false;
+	      tile.staleNotified = false;
+	      tile.playbackStats = {
+	        fps: null,
+	        bitrateKbps: null,
+	        droppedFrames: null,
+	        freezeCount: 0,
+	        lastBytesReceived: null,
+	        lastFramesDecoded: null,
+	        lastTimestamp: null
+	      };
 	    }
 	    function clearLiveTileSlot(tile) {
 	      if (!tile) return;
@@ -1160,6 +1217,20 @@ void AppendClientShellScript(std::ostringstream& out) {
 	          <div class="tile-stage">
 	            <video playsinline muted autoplay></video>
 	            <span data-role="placeholder">오프라인</span>
+	            <div class="tile-info-overlay" data-testid="client-live-tile-info-overlay" data-role="info-overlay" data-overlay-trigger="tile-selected-or-info-enabled" hidden>
+	              <div class="tile-info-overlay-head">
+	                <strong data-overlay="title">소스 없음</strong>
+	                <span data-overlay="connection">연결 끊김</span>
+	              </div>
+	              <div class="tile-info-overlay-grid">
+	                <span>FPS <strong data-overlay="fps">미제공</strong></span>
+	                <span>Bitrate <strong data-overlay="bitrate">미제공</strong></span>
+	                <span>Dropped <strong data-overlay="dropped">미제공</strong></span>
+	                <span>Freeze <strong data-overlay="freeze">미제공</strong></span>
+	                <span>Reconnect <strong data-overlay="reconnect">0</strong></span>
+	                <span>VA/Event <strong data-overlay="badge">대기</strong></span>
+	              </div>
+	            </div>
 	          </div>
 	          <div class="tile-status">
 	            <div class="metric"><span>연결</span><strong data-role="connection">offline</strong></div>
@@ -1196,6 +1267,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	                <option value="right"${liveDockSide === 'right' ? ' selected' : ''}>오른쪽</option>
 	              </select>
 	            </label>
+	            <label class="live-info-toggle"><input id="liveInfoOverlayToggle" type="checkbox"${liveInfoOverlayEnabled ? ' checked' : ''} /> 정보 오버레이</label>
 	            <details class="workspace-actions">
 	              <summary aria-label="워크스페이스 작업">작업</summary>
 	              <button id="liveAllStop" class="ghost danger" type="button">전체 연결 해제</button>
@@ -1366,6 +1438,11 @@ void AppendClientShellScript(std::ostringstream& out) {
 	        const layout = document.querySelector('.live-workspace-layout');
 	        if (layout) layout.dataset.dockSide = liveDockSide;
 	      });
+	      document.querySelector('#liveInfoOverlayToggle')?.addEventListener('change', event => {
+	        liveInfoOverlayEnabled = Boolean(event.target.checked);
+	        localStorage.setItem('mediaServerClientLiveInfoOverlay', liveInfoOverlayEnabled ? 'on' : 'off');
+	        updateAllTileDom();
+	      });
 	      document.querySelector('#liveGridSize')?.addEventListener('change', async event => {
 	        const next = Math.min(maxLiveTiles, Math.max(1, Number(event.target.value || 4)));
 	        for (const tile of liveTiles.slice(next)) {
@@ -1463,6 +1540,9 @@ void AppendClientShellScript(std::ostringstream& out) {
 	      bindLiveGridControls();
       if (!liveStatusTimer) {
         liveStatusTimer = setInterval(() => {
+          for (const tile of visibleLiveTiles()) {
+            refreshTilePlaybackStats(tile).catch(() => {});
+          }
           updateAllTileDom();
           updateSelectedTileStatusText();
         }, 1000);
@@ -1519,6 +1599,37 @@ void AppendClientShellScript(std::ostringstream& out) {
       tile.eventCount = metrics.activeEventStateCount ?? events.length ?? tile.eventCount;
       updateTileDom(tile);
       if (selectedLiveTile === tile.index) refreshSelectedTileDetail();
+    }
+    async function refreshTilePlaybackStats(tile) {
+      if (!tile?.sessionId || !tile.pc || typeof tile.pc.getStats !== 'function') return;
+      const report = await tile.pc.getStats();
+      let videoInbound = null;
+      report.forEach(stat => {
+        if (!videoInbound && stat && stat.type === 'inbound-rtp' && (stat.kind === 'video' || stat.mediaType === 'video')) {
+          videoInbound = stat;
+        }
+      });
+      if (!videoInbound) return;
+      const stats = tile.playbackStats || {};
+      const timestamp = Number(videoInbound.timestamp || 0);
+      const bytesReceived = Number(videoInbound.bytesReceived || 0);
+      const framesDecoded = Number(videoInbound.framesDecoded || 0);
+      if (Number.isFinite(videoInbound.framesPerSecond)) {
+        stats.fps = videoInbound.framesPerSecond;
+      } else if (Number.isFinite(framesDecoded) && Number.isFinite(stats.lastFramesDecoded) && Number.isFinite(timestamp) && Number.isFinite(stats.lastTimestamp) && timestamp > stats.lastTimestamp) {
+        stats.fps = ((framesDecoded - stats.lastFramesDecoded) * 1000) / (timestamp - stats.lastTimestamp);
+      }
+      if (Number.isFinite(bytesReceived) && Number.isFinite(stats.lastBytesReceived) && Number.isFinite(timestamp) && Number.isFinite(stats.lastTimestamp) && timestamp > stats.lastTimestamp) {
+        stats.bitrateKbps = ((bytesReceived - stats.lastBytesReceived) * 8) / (timestamp - stats.lastTimestamp);
+      }
+      if (Number.isFinite(videoInbound.framesDropped)) {
+        stats.droppedFrames = videoInbound.framesDropped;
+      }
+      stats.lastBytesReceived = Number.isFinite(bytesReceived) ? bytesReceived : stats.lastBytesReceived;
+      stats.lastFramesDecoded = Number.isFinite(framesDecoded) ? framesDecoded : stats.lastFramesDecoded;
+      stats.lastTimestamp = Number.isFinite(timestamp) ? timestamp : stats.lastTimestamp;
+      tile.playbackStats = stats;
+      updateTileDom(tile);
     }
     function attachTileDataChannel(tile, channel) {
       tile.dataChannel = channel;

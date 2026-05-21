@@ -258,6 +258,8 @@ Usage:
                  v1.7.0 Rule Event Review Inbox의 별도 review state/audit/redaction 계약을 검증합니다.
   verify-v170-source-group-site-management
                  v1.7.0 Source Group/Site Management의 registry/API/UI/scope 계약을 검증합니다.
+  verify-v170-tile-info-overlay-health
+                 v1.7.0 Client Live tile info overlay와 playback health UI 계약을 검증합니다.
   verify-server-start-modes
                  foreground/start 실행 모드의 health, route, state file 안정성을 검증합니다.
   verify-auth-bootstrap
@@ -882,6 +884,10 @@ case "${cmd}" in
   verify-v170-source-group-site-management)
     require_internal verify_v170_source_group_site_management.mjs
     exec "${INTERNAL_DIR}/verify_v170_source_group_site_management.mjs" "$@"
+    ;;
+  verify-v170-tile-info-overlay-health)
+    require_internal verify_v170_tile_info_overlay_health.mjs
+    exec "${INTERNAL_DIR}/verify_v170_tile_info_overlay_health.mjs" "$@"
     ;;
   verify-server-start-modes)
     require_internal verify_server_start_modes.sh
