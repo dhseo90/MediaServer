@@ -2735,7 +2735,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         const numeric = Number(value);
         return Number.isFinite(numeric) ? numeric : 0;
       };
-      let dashboardIncidentTimelineCache = { rootItems: [], eventsStatus: {}, diagnosticLog: {}, sourceHealth: {} };
+      let dashboardIncidentTimelineCache = { rootItems: [], eventsStatus: {}, diagnosticLog: {}, sourceHealth: {}, runtime: {}, catalog: {} };
       const dashboardIncidentHashKeys = { query: 'incidentQ', source: 'incidentSource' };
       const dashboardIncidentHashState = () => {
         const params = opsHashParams();
@@ -2790,9 +2790,86 @@ void AppendOpsShellScript(std::ostringstream& out,
         const source = String(item?.source || '').toLowerCase();
         if (source.includes('eventrecord')) return 'event-record';
         if (source.includes('source health')) return 'source-health';
+        if (source.includes('rule warning')) return 'rule-warning';
+        if (source.includes('runtime status')) return 'runtime-status';
         if (source.includes('log tail')) return 'log-tail';
         if (source.includes('문제 원인')) return 'root-cause';
         return source ? source.replace(/[^a-z0-9가-힣]+/g, '-') : 'summary';
+      };
+      const dashboardRuleWarningItems = (catalog = {}, runtime = {}) => {
+        const vaRules = Array.isArray(catalog?.vaRules) ? catalog.vaRules : [];
+        const eventRules = Array.isArray(catalog?.rules) ? catalog.rules : [];
+        const profiles = Array.isArray(catalog?.profiles) ? catalog.profiles : [];
+        const activeTaps = Array.isArray(runtime?.analysisMatching?.activeTaps) ? runtime.analysisMatching.activeTaps : [];
+        const activeRuleIds = new Set(activeTaps.map(tap => String(tap?.selectedRuleId || '').trim()).filter(Boolean));
+        const profileIds = new Set(profiles.map(profile => String(profile?.profileId || profile?.id || '').trim()).filter(Boolean));
+        const eventRuleIds = new Set(eventRules.map(rule => String(rule?.ruleId || rule?.id || '').trim()).filter(Boolean));
+        return vaRules.map((rule, index) => {
+          const id = String(rule?.id || rule?.ruleId || rule?.vaRuleId || `rule-${index}`).trim();
+          const sourceId = String(rule?.sourceId || rule?.source?.sourceId || rule?.match?.sourceId || '').trim();
+          const profileId = String(rule?.profileId || rule?.analysis?.profileId || '').trim();
+          const eventRuleId = String(rule?.eventRuleId || rule?.templateRuleId || rule?.templateStart?.ruleId || '').trim();
+          const issues = [];
+          if (!sourceId) issues.push('source 미연결');
+          if (profileId && !profileIds.has(profileId)) issues.push(`profile ${profileId} 없음`);
+          if (eventRuleId && !eventRuleIds.has(eventRuleId)) issues.push(`event rule ${eventRuleId} 없음`);
+          if (id && !activeRuleIds.has(id)) issues.push('runtime tap 미활성');
+          if (issues.length === 0) return null;
+          const missingReference = issues.some(item => item.includes('없음') || item.includes('미연결'));
+          return {
+            level: missingReference ? 'warn' : 'info',
+            source: 'Rule Warning',
+            time: '현재',
+            sort: Number.MAX_SAFE_INTEGER - 150 - index,
+            incidentId: `rule-warning:${id || index}`,
+            sourceId,
+            title: `룰 ${display(id || '-')} 확인`,
+            detail: issues.join(' · '),
+            evidence: `profile ${display(profileId || '미제공')} · event rule ${display(eventRuleId || '미제공')} · active tap ${activeRuleIds.has(id) ? '있음' : '없음'}`,
+            correlationId: id ? `rule-${id}` : '',
+            cause: issues.join(' · '),
+            impact: missingReference
+              ? '해당 룰은 runtime tap 또는 EventRecord 연결에서 누락될 수 있습니다.'
+              : '룰은 저장되어 있지만 현재 runtime에서 관찰되지 않습니다.',
+            nextAction: 'Ops Rules에서 source/profile/event template 연결과 PublishedView allowedRuleIds를 확인합니다.',
+            actionHref: '/ops/rules'
+          };
+        }).filter(Boolean).slice(0, 3);
+      };
+      const dashboardRuntimeStatusIncidentItems = (runtime = {}) => {
+        const counts = runtimeCounts(runtime);
+        const activeTaps = counts.activeTaps;
+        const staleTaps = activeTaps.filter(tap => numberValue(tap?.lastUsedAgeMs) > 5000);
+        const cleanupRequests = numberValue(counts.debugCounters.cleanupRequests);
+        const cleanupCompleted = numberValue(counts.debugCounters.cleanupCompleted);
+        const cleanupBacklog = cleanupRequests > cleanupCompleted;
+        const metadataChannels = Array.isArray(runtime?.webrtcHttp?.metadataDataChannel?.channels)
+          ? runtime.webrtcHttp.metadataDataChannel.channels
+          : [];
+        const disconnectedMetadata = metadataChannels.filter(channel =>
+          ['failed', 'closed', 'disconnected'].includes(String(channel?.state || channel?.readyState || '').toLowerCase()));
+        const issues = [];
+        if (staleTaps.length > 0) issues.push(`stale tap ${staleTaps.length}`);
+        if (cleanupBacklog) issues.push(`cleanup ${cleanupCompleted}/${cleanupRequests}`);
+        if (disconnectedMetadata.length > 0) issues.push(`metadata channel ${disconnectedMetadata.length}`);
+        const level = issues.length > 0 ? 'warn' : 'info';
+        return [{
+          level,
+          source: 'Runtime Status',
+          time: '현재',
+          sort: issues.length > 0 ? Number.MAX_SAFE_INTEGER - 160 : 10,
+          incidentId: `runtime-status:${issues.length > 0 ? issues.join('-').replace(/[^a-z0-9]+/gi, '-') : 'normal'}`,
+          title: issues.length > 0 ? '런타임 상태 확인 필요' : '런타임 상태 정상 범위',
+          detail: issues.length > 0 ? issues.join(' · ') : `세션 ${counts.sessions} · 스트림 ${counts.streams} · 분석 ${counts.taps}`,
+          evidence: `송출 ${counts.egress} · 발행 ${counts.publish} · metadata channel ${metadataChannels.length}`,
+          correlationId: issues.length > 0 ? rootCauseCorrelationId(issues.join('|'), 'runtime-status') : '',
+          cause: issues.length > 0 ? issues.join(' · ') : 'runtime/status에서 즉시 확인할 warning이 없습니다.',
+          impact: issues.length > 0 ? '영상/메타데이터 갱신 또는 cleanup 완료가 지연될 수 있습니다.' : '영향 없음',
+          nextAction: issues.length > 0
+            ? 'Runtime 운영 판독과 관련 source/rule incident를 같은 시간대에서 확인합니다.'
+            : '현재 상태를 유지하며 다음 refresh에서 추세를 봅니다.',
+          actionHref: '/ops/dashboard'
+        }];
       };
       const dashboardIncidentSearchText = item => [
         item?.incidentId,
@@ -2802,6 +2879,8 @@ void AppendOpsShellScript(std::ostringstream& out,
         item?.title,
         item?.detail,
         item?.evidence,
+        item?.cause,
+        item?.impact,
         item?.correlationId,
         item?.nextAction,
         item?.actionHref
@@ -2814,7 +2893,7 @@ void AppendOpsShellScript(std::ostringstream& out,
       const dashboardIncidentFiltersActive = filter => Boolean(filter.query || filter.source);
       const rerenderDashboardIncidentTimelineFromCache = () => {
         const cache = dashboardIncidentTimelineCache || {};
-        renderDashboardIncidentTimeline(cache.rootItems, cache.eventsStatus, cache.diagnosticLog, cache.sourceHealth, { preserveCache: true });
+        renderDashboardIncidentTimeline(cache.rootItems, cache.eventsStatus, cache.diagnosticLog, cache.sourceHealth, cache.runtime, cache.catalog, { preserveCache: true });
       };
       const handleDashboardIncidentFilterChange = () => {
         writeDashboardIncidentFilterHash();
@@ -2840,7 +2919,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           showToast('클립보드 복사 실패. 주소창의 필터 링크를 직접 복사하세요.', true);
         }
       };
-      const dashboardIncidentTimelineItems = (rootItems = [], eventsStatus = {}, diagnosticLog = {}, sourceHealth = {}) => {
+      const dashboardIncidentTimelineItems = (rootItems = [], eventsStatus = {}, diagnosticLog = {}, sourceHealth = {}, runtime = {}, catalog = {}) => {
         const rootTimeline = (Array.isArray(rootItems) ? rootItems : [])
           .filter(item => item && (item.level === 'warn' || item.level === 'bad'))
           .slice(0, 3)
@@ -2854,6 +2933,8 @@ void AppendOpsShellScript(std::ostringstream& out,
             detail: item.detail,
             evidence: item.evidence || item.log,
             correlationId: item.correlationId,
+            cause: item.detail,
+            impact: item.evidence || item.log || '영향 범위 미제공',
             nextAction: item.action,
             actionHref: item.actionHref
           }));
@@ -2875,6 +2956,8 @@ void AppendOpsShellScript(std::ostringstream& out,
               detail: `${display(stream)}${item?.trackId ? ` · track ${display(item.trackId)}` : ''}${scenario ? ` · ${scenario}` : ''}`,
               evidence: item?.eventId ? `eventId ${display(item.eventId)}` : 'eventId 미제공',
               correlationId: item?.eventId || item?.trackId || '',
+              cause: `EventRecord status ${display(item?.status || '미제공')}`,
+              impact: `${display(stream)}${item?.trackId ? ` · track ${display(item.trackId)}` : ''}`,
               nextAction: 'EventRecord 저장/POST 상태와 source health 단서를 함께 확인합니다.',
               actionHref: '/ops/events'
             };
@@ -2900,10 +2983,14 @@ void AppendOpsShellScript(std::ostringstream& out,
               detail: `${dashboardSourceHealthReason(item.reason)} · 상태 변경 이력과 retryable-only 재검증을 확인합니다.`,
               evidence: `프레임 ${dashboardSourceHealthAge(item.lastFrameAgeMs)} / 메타데이터 ${dashboardSourceHealthAge(item.lastMetadataAgeMs)}`,
               correlationId: sourceId ? `source-${sourceId}` : '',
+              cause: dashboardSourceHealthReason(item.reason),
+              impact: `소스 #${display(sourceId || '-')} ${dashboardSourceHealthStatusLabel(item.status)}`,
               nextAction: '소스 상태 변경 이력에서 같은 source incident 흐름을 확인합니다.',
               actionHref: auditHref
             };
           });
+        const ruleTimeline = dashboardRuleWarningItems(catalog, runtime);
+        const runtimeTimeline = dashboardRuntimeStatusIncidentItems(runtime);
         const logLines = Array.isArray(diagnosticLog?.lines) ? diagnosticLog.lines : [];
         const logTimeline = [...logLines]
           .reverse()
@@ -2919,10 +3006,12 @@ void AppendOpsShellScript(std::ostringstream& out,
             detail: String(line || '').slice(0, 160),
             evidence: 'diagnostics log-tail',
             correlationId: rootCauseCorrelationId(line, 'source health|cleanup|stale|event post|event storage|auth|ICE|TURN|relay|reconnect|WHIP'),
+            cause: '로그 패턴 매칭',
+            impact: '관련 인시던트와 correlation id를 대조해야 합니다.',
             nextAction: '관련 root-cause 또는 source health incident와 같은 cid를 비교합니다.',
             actionHref: '/ops/dashboard'
           }));
-        const items = [...rootTimeline, ...sourceTimeline, ...eventTimeline, ...logTimeline]
+        const items = [...rootTimeline, ...sourceTimeline, ...ruleTimeline, ...runtimeTimeline, ...eventTimeline, ...logTimeline]
           .sort((a, b) => numberValue(b.sort) - numberValue(a.sort))
           .slice(0, 8);
         if (items.length > 0) return items;
@@ -2935,26 +3024,33 @@ void AppendOpsShellScript(std::ostringstream& out,
           detail: '문제 원인, EventRecord, source health, 로그 tail에서 즉시 확인할 단서가 없습니다.',
           evidence: dashboardSourceHealthStatusText(sourceHealth),
           correlationId: '',
+          cause: '즉시 원인 없음',
+          impact: '영향 없음',
+          nextAction: '다음 refresh에서 runtime/source/event 상태 추세를 확인합니다.',
           actionHref: '/ops/dashboard'
         }];
       };
-      const renderDashboardIncidentTimeline = (rootItems = [], eventsStatus = {}, diagnosticLog = {}, sourceHealth = {}, options = {}) => {
+      const renderDashboardIncidentTimeline = (rootItems = [], eventsStatus = {}, diagnosticLog = {}, sourceHealth = {}, runtime = {}, catalog = {}, options = {}) => {
         if (!options.preserveCache) {
-          dashboardIncidentTimelineCache = { rootItems, eventsStatus, diagnosticLog, sourceHealth };
+          dashboardIncidentTimelineCache = { rootItems, eventsStatus, diagnosticLog, sourceHealth, runtime, catalog };
         }
         syncDashboardIncidentFilterFromHash();
-        const allItems = dashboardIncidentTimelineItems(rootItems, eventsStatus, diagnosticLog, sourceHealth);
+        const allItems = dashboardIncidentTimelineItems(rootItems, eventsStatus, diagnosticLog, sourceHealth, runtime, catalog);
         const filter = dashboardIncidentFilterState();
         const items = allItems.filter(item => dashboardIncidentMatchesFilter(item, filter));
         const filtersActive = dashboardIncidentFiltersActive(filter);
         const warnCount = items.filter(item => item.level === 'warn' || item.level === 'bad').length;
         const eventCount = dashboardIncidentEventRecords(eventsStatus).length;
         const sourceIssueCount = dashboardSourceHealthItems(sourceHealth).filter(sourceHealthNeedsAction).length;
+        const ruleWarningCount = dashboardRuleWarningItems(catalog, runtime).filter(item => item.level === 'warn').length;
+        const runtimeWarningCount = dashboardRuntimeStatusIncidentItems(runtime).filter(item => item.level === 'warn').length;
         renderBadges('dashIncidentTimelineBadges', [
           { text: warnCount > 0 ? `${warnCount}개 확인 필요` : '즉시 인시던트 없음', tone: warnCount > 0 ? 'warn' : '' },
           { text: filtersActive ? `필터 결과 ${items.length}/${allItems.length}` : `전체 ${allItems.length}` },
           { text: `EventRecord ${eventCount}` },
           { text: sourceIssueCount > 0 ? `source health ${sourceIssueCount}` : 'source health 정상', tone: sourceIssueCount > 0 ? 'warn' : '' },
+          { text: ruleWarningCount > 0 ? `rule warning ${ruleWarningCount}` : 'rule warning 정상', tone: ruleWarningCount > 0 ? 'warn' : 'info' },
+          { text: runtimeWarningCount > 0 ? `runtime status ${runtimeWarningCount}` : 'runtime status 정상', tone: runtimeWarningCount > 0 ? 'warn' : 'info' },
           { text: diagnosticLog?.available === false ? 'log tail 없음' : 'log tail' }
         ]);
         setText('dashIncidentTimelineText', filtersActive && items.length === 0
@@ -2974,7 +3070,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             item.incidentId ? `incident ${item.incidentId}` : '',
             item.correlationId ? `cid ${item.correlationId}` : ''
           ].filter(Boolean).join(' · ');
-          return `<article class="root-cause-item ${escapeHtml(item.level)}">
+          return `<article class="root-cause-item ${escapeHtml(item.level)}" data-incident-unit="${escapeHtml(dashboardIncidentSourceKey(item))}" data-incident-workflow="cause-impact-next-action">
           <div>
             <strong>${opsHtml(item.title)}</strong>
             <p>${opsHtml(item.detail)}</p>
@@ -2982,6 +3078,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           <span class="chip${item.level === 'warn' ? ' warn' : (item.level === 'bad' ? ' bad' : '')}">${opsHtml(item.time || item.source)}</span>
           ${incidentMeta ? `<span class="root-cause-correlation">${escapeHtml(incidentMeta)}</span>` : ''}
           ${item.evidence ? `<p class="root-cause-evidence">${opsHtml(item.evidence)}</p>` : ''}
+          <p class="incident-workflow"><span><strong>원인</strong> ${opsHtml(item.cause || item.detail || '미제공')}</span><span><strong>영향</strong> ${opsHtml(item.impact || item.evidence || '미제공')}</span><span><strong>다음</strong> ${opsHtml(item.nextAction || '상태 추세를 확인합니다.')}</span></p>
           <p class="root-cause-action">출처 ${opsHtml(item.source || '대시보드')}${item.nextAction ? ` · 다음 조치 ${opsHtml(item.nextAction)}` : ''}</p>
           ${item.actionHref ? `<a class="btn small root-cause-next-action" href="${escapeHtml(item.actionHref)}">관련 화면</a>` : ''}
         </article>`;
@@ -3469,13 +3566,14 @@ void AppendOpsShellScript(std::ostringstream& out,
         renderRaw('opsHomeRaw', 'opsHomePretty', { sources, views, catalog, runtime, events, users });
       }
       async function refreshDashboard() {
-        const [runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth] = await Promise.all([
+        const [runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth, catalog] = await Promise.all([
           requestJson('/ops/api/runtime/status'),
           applyPrincipalVisibility().catch(() => null),
           requestJson('/ops/api/events/status?limit=5&includeArchives=1').catch(error => ({ error: error.message, records: { records: [] } })),
           requestJson('/webrtc/config').catch(error => ({ error: error.message })),
           requestJson('/ops/api/diagnostics/log-tail?limit=80').catch(error => ({ error: error.message, available: false, lines: [] })),
-          requestJson('/ops/api/source-health').catch(error => ({ error: error.message, sourceHealth: [], summary: {} }))
+          requestJson('/ops/api/source-health').catch(error => ({ error: error.message, sourceHealth: [], summary: {} })),
+          requestJson('/ops/api/rules/catalog').catch(error => ({ error: error.message, rules: [], vaRules: [], profiles: [] }))
         ]);
         const counts = runtimeCounts(runtime);
         const sourceHealthCounts = dashboardSourceHealthCounts(sourceHealth);
@@ -3520,7 +3618,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         setText('dashDetailText',
           `프로파일 ${runtime?.analysisMatching?.profileDocumentCount ?? 0} · 룰 ${runtime?.analysisMatching?.ruleDocumentCount ?? 0} · 발행 ${counts.publish} · 송출 ${counts.egress}`);
         const rootCauseItems = renderDashboardRootCause(runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth);
-        renderDashboardIncidentTimeline(rootCauseItems, eventsStatus, diagnosticLog, sourceHealth);
+        renderDashboardIncidentTimeline(rootCauseItems, eventsStatus, diagnosticLog, sourceHealth, runtime, catalog);
         await refreshDashboardVaQuality(runtime, eventsStatus).catch(renderDashboardVaQualityError);
         renderRaw('opsDashboardRaw', 'opsDashboardPretty', runtime);
         window.MediaServerUi?.translatePage?.();

@@ -262,6 +262,8 @@ Usage:
                  v1.7.0 Client Live tile info overlay와 playback health UI 계약을 검증합니다.
   verify-v170-saved-views-layout-presets
                  v1.7.0 Saved Views/Layout Presets preference API와 UI 계약을 검증합니다.
+  verify-v170-operator-incident-timeline
+                 v1.7.0 Operator Incident Timeline workflow/UI 계약을 검증합니다.
   verify-server-start-modes
                  foreground/start 실행 모드의 health, route, state file 안정성을 검증합니다.
   verify-auth-bootstrap
@@ -894,6 +896,10 @@ case "${cmd}" in
   verify-v170-saved-views-layout-presets)
     require_internal verify_v170_saved_views_layout_presets.mjs
     exec "${INTERNAL_DIR}/verify_v170_saved_views_layout_presets.mjs" "$@"
+    ;;
+  verify-v170-operator-incident-timeline)
+    require_internal verify_v170_operator_incident_timeline.mjs
+    exec "${INTERNAL_DIR}/verify_v170_operator_incident_timeline.mjs" "$@"
     ;;
   verify-server-start-modes)
     require_internal verify_server_start_modes.sh

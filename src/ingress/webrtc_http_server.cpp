@@ -2466,6 +2466,8 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
                 <option value="root-cause">문제 원인</option>
                 <option value="event-record">EventRecord</option>
                 <option value="source-health">Source Health</option>
+                <option value="rule-warning">Rule Warning</option>
+                <option value="runtime-status">Runtime Status</option>
                 <option value="log-tail">Log tail</option>
               </select>
             </label>

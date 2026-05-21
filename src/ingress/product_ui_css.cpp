@@ -1729,6 +1729,20 @@ std::string ProductUiCss() {
       min-height: 38px;
       white-space: nowrap;
     }
+    .incident-workflow {
+      display: grid;
+      gap: 4px;
+      color: var(--color-text-muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .incident-workflow span {
+      overflow-wrap: anywhere;
+    }
+    .incident-workflow strong {
+      color: var(--color-text);
+      margin-right: 4px;
+    }
     .event-record-controls .check-inline {
       min-width: auto;
       display: inline-flex;
