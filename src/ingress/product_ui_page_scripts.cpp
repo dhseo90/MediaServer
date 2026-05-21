@@ -8502,6 +8502,13 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       notes.push(user.mustChangePassword ? '다음 로그인 시 비밀번호 변경 필요' : '다음 로그인 비밀번호 변경 요구 없음');
       return notes.join(' · ');
     }
+    function userLifecycleTableText(user = {}) {
+      const notes = [];
+      notes.push(user.enabled === false ? '로그인 차단' : '로그인 가능');
+      if (user.lockedUntil) notes.push('잠금 중');
+      notes.push(user.mustChangePassword ? '변경 필요' : '변경 없음');
+      return notes.join(' · ');
+    }
     function updateLifecycleSummary(user = null) {
       if (!lifecycleSummary) return;
       const candidate = user || {
@@ -8639,7 +8646,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
           tr,
           '상태',
           opsRowActionsHtml(
-            `${chip(user.enabled ? '활성' : '비활성', user.enabled ? '' : 'warn')}<span class="user-note">${escapeHtml(userLifecycleText(user))}</span>`,
+            `${chip(user.enabled ? '활성' : '비활성', user.enabled ? '' : 'warn')}<span class="user-note">${escapeHtml(userLifecycleTableText(user))}</span>`,
             'ops-status-actions user-status-actions'
           ),
           'table-cell-status'

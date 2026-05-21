@@ -268,7 +268,7 @@ std::string ProductUiCss() {
     }
     body.product-shell .app-nav-cluster {
       min-width: 0;
-      grid-template-columns: minmax(220px, max-content) minmax(0, 1fr);
+      grid-template-columns: minmax(214px, 240px) minmax(0, 1fr);
       gap: 16px;
     }
     body.product-shell .app-brand {
@@ -297,12 +297,11 @@ std::string ProductUiCss() {
     body.product-shell .brand-copy {
       min-width: 0;
       max-width: min(42vw, 520px);
-      display: flex;
-      align-items: baseline;
-      gap: 10px;
+      display: grid;
+      gap: 3px;
+      align-items: center;
     }
     body.product-shell .brand-copy strong {
-      flex: 0 0 auto;
       font-size: 15px;
       line-height: 1;
       white-space: nowrap;
@@ -310,9 +309,9 @@ std::string ProductUiCss() {
     body.product-shell .brand-copy span {
       min-width: 0;
       display: inline;
-      color: var(--color-text);
-      font-size: 15px;
-      font-weight: 650;
+      color: var(--color-text-muted);
+      font-size: 12px;
+      font-weight: 750;
       line-height: 1;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -339,12 +338,12 @@ std::string ProductUiCss() {
     body.product-shell .image-nav {
       height: 60px;
       min-height: 60px;
-      padding: 0 10px;
+      padding: 0 8px;
       border: 0;
       border-radius: 0;
       background: transparent;
       color: var(--color-text-muted);
-      font-size: 13px;
+      font-size: 12px;
       position: relative;
     }
     body.product-shell .image-nav:hover {
@@ -371,7 +370,7 @@ std::string ProductUiCss() {
     }
     body.product-shell .account-menu {
       width: auto;
-      max-width: min(38vw, 390px);
+      max-width: min(34vw, 340px);
       min-width: 0;
       min-height: 44px;
       height: auto;
@@ -388,7 +387,7 @@ std::string ProductUiCss() {
       min-width: 0;
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 8px;
     }
     body.product-shell .sketch-status-chip {
       flex: 0 0 auto;
@@ -447,7 +446,7 @@ std::string ProductUiCss() {
     body.product-shell .account-controls {
       flex: 0 0 auto;
       flex-wrap: nowrap;
-      gap: 8px;
+      gap: 6px;
     }
     body.product-shell .account-menu > form {
       flex: 0 0 auto;
@@ -2006,14 +2005,14 @@ std::string ProductUiCss() {
     .event-record-col-evidence { width: 156px; }
     .event-record-col-time { width: 156px; }
     .user-col-username { width: 136px; }
-    .user-col-name { width: 118px; }
-    .user-col-role { width: 96px; }
-    .user-col-status { width: 84px; }
+    .user-col-name { width: 108px; }
+    .user-col-role { width: 86px; }
+    .user-col-status { width: 150px; }
     .user-col-scopes { width: auto; }
     .user-col-last-login { width: 132px; }
-    .user-col-locked-until { width: 108px; }
-    .user-col-password { width: 84px; }
-    .user-col-actions { width: 166px; }
+    .user-col-locked-until { width: 96px; }
+    .user-col-password { width: 92px; }
+    .user-col-actions { width: 154px; }
     .request-col-username { width: 136px; }
     .request-col-name { width: 124px; }
     .request-col-contact { width: 136px; }
@@ -2317,6 +2316,17 @@ std::string ProductUiCss() {
       gap: var(--space-2);
       min-width: 0;
     }
+    .user-status-actions .user-note {
+      display: block;
+      flex: 1 1 100%;
+      min-width: 0;
+      color: var(--color-text-muted);
+      font-size: 11px;
+      font-weight: 800;
+      line-height: 1.35;
+      overflow-wrap: normal;
+      word-break: keep-all;
+    }
     .ops-rule-row-actions {
       display: flex;
       flex-wrap: wrap;
@@ -2488,6 +2498,12 @@ std::string ProductUiCss() {
       overflow-wrap: anywhere;
       word-break: break-word;
     }
+    .channel-input-stack .token {
+      display: -webkit-box;
+      -webkit-line-clamp: 3;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
     .auth-shell {
       display: grid;
       place-items: center;
@@ -2519,6 +2535,37 @@ std::string ProductUiCss() {
       .shell-summary-row { align-items: stretch; }
       .app-header-top { grid-template-columns: 1fr; }
       .app-nav-cluster { grid-template-columns: 1fr; }
+      body.product-shell .app-chrome {
+        overflow: visible;
+      }
+      body.product-shell .app-header-top {
+        grid-template-columns: 1fr;
+        align-items: stretch;
+        gap: 8px;
+        padding: 10px 0;
+      }
+      body.product-shell .app-nav-cluster {
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+      body.product-shell .brand-copy {
+        max-width: 100%;
+      }
+      body.product-shell .image-nav-tabs {
+        width: 100%;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-auto-flow: row;
+        grid-auto-columns: auto;
+        grid-auto-rows: 44px;
+        overflow: visible;
+        justify-content: stretch;
+      }
+      body.product-shell .image-nav {
+        width: 100%;
+        min-width: 0;
+        height: 44px;
+        min-height: 44px;
+      }
       .header-utilities { justify-content: flex-start; }
       .account-menu { width: 100%; }
       body.product-shell .account-menu {
@@ -2571,6 +2618,26 @@ std::string ProductUiCss() {
         grid-template-columns: repeat(2, minmax(0, 1fr));
       }
     }
+    @media (max-width: 430px) {
+      body.product-shell .account-menu {
+        grid-template-columns: minmax(0, 1fr) auto;
+        align-items: start;
+      }
+      body.product-shell .account-menu-top {
+        min-width: 0;
+      }
+      body.product-shell .account-copy {
+        display: none;
+      }
+      body.product-shell .account-controls {
+        flex: 1 1 100%;
+        order: 2;
+      }
+      body.product-shell .account-menu > form {
+        justify-self: end;
+        align-self: start;
+      }
+    }
     @media (max-width: 1180px) and (min-width: 861px) {
       body.product-shell .app-header-top,
       body.client-shell .app-header-top {
@@ -2598,7 +2665,7 @@ std::string ProductUiCss() {
       }
       body.product-shell .account-menu,
       body.client-shell .account-menu {
-        max-width: 340px;
+        max-width: 300px;
         min-height: 44px;
         display: grid;
         grid-template-columns: minmax(0, 1fr) auto;
@@ -2617,7 +2684,11 @@ std::string ProductUiCss() {
       }
       body.product-shell .account-copy,
       body.client-shell .account-copy {
-        max-width: 104px;
+        display: none;
+      }
+      body.product-shell .account-identity,
+      body.client-shell .account-identity {
+        display: none;
       }
       body.product-shell .sketch-status-chip,
       body.client-shell .sketch-status-chip {
@@ -3109,6 +3180,11 @@ std::string ClientShellCss() {
     .panel { display: grid; gap: 12px; padding: 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel); }
     .views { display: grid; gap: 10px; }
     .view { width: 100%; text-align: left; display: grid; gap: 8px; border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: var(--bg); color: var(--text); cursor: pointer; }
+    .view h3,
+    .view .meta {
+      justify-self: start;
+      text-align: left;
+    }
     .view.active { border-color: var(--accent); box-shadow: 0 0 0 2px var(--color-selection-ring); }
     .meta { display: flex; gap: 6px; flex-wrap: wrap; }
     .chip { padding: 5px 8px; border-radius: 999px; background: var(--accent-soft); color: var(--color-primary-weak-text); font-size: 12px; font-weight: 900; }
@@ -3831,8 +3907,8 @@ std::string ClientShellCss() {
       background: #ffffff;
       box-shadow: 0 14px 32px rgba(15, 23, 42, 0.16);
     }
-    body.client-shell .summary,
-    body.client-shell .detail-box {
+    body.client-shell .live-summary-rail,
+    body.client-shell .live-selected-detail {
       display: none;
     }
     body.client-shell .live-workspace-layout,

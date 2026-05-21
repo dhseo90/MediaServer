@@ -2138,6 +2138,14 @@ void AppendOpsShellStart(std::ostringstream& out,
                          const auth::Principal& principal,
                          const std::string& active,
                          const std::string& subtitle) {
+    const std::string ops_workspace_title =
+        active == "dashboard" ? "Ops Console · Dashboard" :
+        active == "sources" ? "Ops Console · Channels" :
+        active == "rules" ? "Ops Console · Rules" :
+        active == "users" ? "Ops Console · Users" :
+        active == "events" ? "Ops Console · Events" :
+        "Ops Console · Home";
+    (void)subtitle;
     out << R"(<!doctype html>
 <html lang="ko">
 <head>
@@ -2154,7 +2162,7 @@ void AppendOpsShellStart(std::ostringstream& out,
             <span class="brand-mark" aria-hidden="true">MS</span>
             <div class="brand-copy">
               <strong>Media Server v1.7.0 Ops</strong>
-              <span>)" << HtmlEscape(subtitle) << R"(</span>
+              <span>)" << HtmlEscape(ops_workspace_title) << R"(</span>
             </div>
           </div>
           <nav class="image-nav-tabs" aria-label="운영 메뉴">
@@ -2166,7 +2174,7 @@ void AppendOpsShellStart(std::ostringstream& out,
     if (auth::IsAdmin(principal)) {
         AppendImageNavLink(out, "/ops/users", "users", "사용자", active == "users", "data-admin-only");
     }
-    AppendImageNavLink(out, "/client/live", "client", "클라이언트", false);
+    AppendImageNavLink(out, "/client/live", "client", "미리보기", false, R"(aria-label="Client Preview")");
     out << R"(          </nav>
         </div>
 )";
