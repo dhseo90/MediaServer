@@ -1,0 +1,88 @@
+{
+  "schema": "media-server.docs-ui-assets.v1",
+  "baseline": {
+    "release": "v1.7.0",
+    "capturedAt": "2026-05-23",
+    "theme": "dark",
+    "sampleVideo": "va_four_scene_sample.mp4",
+    "manualReviewRequired": true
+  },
+  "captureScript": "scripts/internal/capture_docs_ui_assets.mjs",
+  "verificationCommand": "./server.sh verify-docs-ui-assets",
+  "directReviewChecklist": [
+    "Open every Korean and English PNG after recapture.",
+    "Confirm the visible UI matches the current v1.7.0 UI-first baseline.",
+    "Confirm video screenshots show the full video viewport, controls, status, and VA overlay when available.",
+    "Confirm client/viewer screenshots do not expose source URLs, Developer URLs, raw JSON, debug counters, BBox diagnostics, model paths, credentials, or session material.",
+    "Record any screen that was not opened as unverified rather than pass."
+  ],
+  "assets": [
+    {
+      "file": "ops-home.png",
+      "captureTask": "ops-home",
+      "readme": true,
+      "uiGuide": true,
+      "minimum": { "width": 700, "height": 400 }
+    },
+    {
+      "file": "ops-channels.png",
+      "captureTask": "ops-channels",
+      "readme": true,
+      "uiGuide": true,
+      "minimum": { "width": 700, "height": 400 }
+    },
+    {
+      "file": "ops-rules.png",
+      "captureTask": "ops-rules",
+      "readme": true,
+      "uiGuide": true,
+      "minimum": { "width": 700, "height": 400 }
+    },
+    {
+      "file": "ops-rules-preview.png",
+      "captureTask": "ops-rules-preview",
+      "readme": true,
+      "uiGuide": true,
+      "video": true,
+      "minimum": { "width": 1000, "height": 850 }
+    },
+    {
+      "file": "ops-users.png",
+      "captureTask": "ops-users",
+      "readme": true,
+      "uiGuide": true,
+      "minimum": { "width": 700, "height": 400 }
+    },
+    {
+      "file": "client-live.png",
+      "captureTask": "client-live",
+      "readme": true,
+      "uiGuide": true,
+      "clientSafe": true,
+      "video": true,
+      "minimum": { "width": 1000, "height": 900 }
+    },
+    {
+      "file": "ops-dashboard.png",
+      "captureTask": "ops-dashboard",
+      "readme": false,
+      "uiGuide": true,
+      "minimum": { "width": 700, "height": 400 }
+    },
+    {
+      "file": "client-dashboard.png",
+      "captureTask": "client-dashboard",
+      "readme": false,
+      "uiGuide": true,
+      "clientSafe": true,
+      "minimum": { "width": 700, "height": 400 }
+    },
+    {
+      "file": "auth-login.png",
+      "captureTask": "auth-login",
+      "readme": false,
+      "uiGuide": true,
+      "minimum": { "width": 700, "height": 400 }
+    }
+  ]
+}

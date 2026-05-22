@@ -11,21 +11,10 @@ const rootDir = path.resolve(scriptDir, "../..");
 const docsAssetDir = path.join(rootDir, "docs/assets/ui");
 const docsAssetEnDir = path.join(docsAssetDir, "en");
 
-const readmeAssets = [
-  "ops-home.png",
-  "ops-channels.png",
-  "ops-rules.png",
-  "ops-rules-preview.png",
-  "ops-users.png",
-  "client-live.png",
-];
-
-const uiGuideAssets = [
-  ...readmeAssets,
-  "ops-dashboard.png",
-  "client-dashboard.png",
-  "auth-login.png",
-];
+const manifest = JSON.parse(readText("config/docs_ui_assets.json"));
+const readmeAssets = manifest.assets.filter((asset) => asset.readme).map((asset) => asset.file);
+const uiGuideAssets = manifest.assets.filter((asset) => asset.uiGuide).map((asset) => asset.file);
+const assetByFile = new Map(manifest.assets.map((asset) => [asset.file, asset]));
 
 const checks = [];
 
@@ -73,6 +62,9 @@ check("UI guide keeps product screenshots in the shared asset set", () => {
 check("docs/assets/ui policy documents dark mode and VA overlay capture rules", () => {
   const policy = readText("docs/assets/ui/README.md");
   const requiredSnippets = [
+    "config/docs_ui_assets.json",
+    "managed asset list",
+    "직접 이미지 검수 checklist",
     "dark mode",
     "va_four_scene_sample.mp4",
     "bbox/label",
@@ -82,6 +74,41 @@ check("docs/assets/ui policy documents dark mode and VA overlay capture rules", 
   ];
   for (const snippet of requiredSnippets) {
     assert(policy.includes(snippet), `docs/assets/ui/README.md is missing policy snippet: ${snippet}`);
+  }
+});
+
+check("managed UI asset manifest and direct review checklist stay complete", () => {
+  assert(manifest.schema === "media-server.docs-ui-assets.v1", "docs UI asset manifest schema mismatch");
+  assert(manifest.baseline?.release === "v1.7.0", "docs UI asset manifest baseline release drifted");
+  assert(manifest.baseline?.capturedAt === "2026-05-23", "docs UI asset manifest capture date drifted");
+  assert(manifest.baseline?.theme === "dark", "docs UI asset manifest theme drifted");
+  assert(manifest.baseline?.sampleVideo === "va_four_scene_sample.mp4", "docs UI asset manifest sample video drifted");
+  assert(manifest.baseline?.manualReviewRequired === true, "docs UI asset manifest must require direct manual image review");
+  assert(manifest.captureScript === "scripts/internal/capture_docs_ui_assets.mjs", "docs UI asset manifest capture script drifted");
+  assert(manifest.verificationCommand === "./server.sh verify-docs-ui-assets", "docs UI asset manifest verification command drifted");
+  assert(Array.isArray(manifest.directReviewChecklist) && manifest.directReviewChecklist.length >= 5, "direct review checklist is too small");
+  for (const snippet of [
+    "Open every Korean and English PNG",
+    "current v1.7.0 UI-first baseline",
+    "full video viewport",
+    "source URLs",
+    "unverified rather than pass",
+  ]) {
+    assert(
+      manifest.directReviewChecklist.some((item) => String(item).includes(snippet)),
+      `direct review checklist missing snippet: ${snippet}`,
+    );
+  }
+  const files = new Set();
+  for (const asset of manifest.assets) {
+    assert(asset.file && asset.captureTask, `manifest asset missing file/captureTask: ${JSON.stringify(asset)}`);
+    assert(!files.has(asset.file), `duplicate managed UI asset: ${asset.file}`);
+    files.add(asset.file);
+    assert(asset.minimum?.width >= 700, `${asset.file} minimum width is too small`);
+    assert(asset.minimum?.height >= 400, `${asset.file} minimum height is too small`);
+  }
+  for (const asset of readmeAssets) {
+    assert(uiGuideAssets.includes(asset), `README asset must also be in UI guide set: ${asset}`);
   }
 });
 
@@ -110,8 +137,9 @@ check("capture script owns every documented UI asset", () => {
   assert(sharedFixture.includes("rulePreviewProfilePayload"), "shared rule preview fixture helper is missing profile payload");
   assert(sharedFixture.includes("rulePreviewEventTemplatePayload"), "shared rule preview fixture helper is missing event template payload");
   assert(sharedFixture.includes("rulePreviewVaRulePayload"), "shared rule preview fixture helper is missing VA rule payload");
-  for (const asset of uiGuideAssets) {
-    assert(script.includes(`file: "${asset}"`), `capture_docs_ui_assets.mjs does not manage ${asset}`);
+  for (const asset of manifest.assets) {
+    assert(script.includes(`name: "${asset.captureTask}"`), `capture_docs_ui_assets.mjs does not manage task ${asset.captureTask}`);
+    assert(script.includes(`file: "${asset.file}"`), `capture_docs_ui_assets.mjs does not manage ${asset.file}`);
   }
 });
 
@@ -143,12 +171,27 @@ check("docs capture and English UI copy cover v1.7.0 screenshots", () => {
   assert(policy.includes("v1.7.0 UI-first close-out"), "docs/assets/ui/README.md does not state the v1.7.0 screenshot baseline");
 });
 
+check("representative screenshot docs do not point at stale visual baselines", () => {
+  const scopedDocs = [
+    ["README.md", readText("README.md")],
+    ["README.en.md", readText("README.en.md")],
+    ["docs/ui-guide.md", readText("docs/ui-guide.md")],
+    ["docs/assets/ui/README.md", readText("docs/assets/ui/README.md")],
+  ];
+  const stalePatterns = [
+    /v1\.[0-6]\.0[^.\n]*(?:screenshot|스크린샷|대표 이미지)/i,
+    /2026-05-(?:0[1-9]|1[0-9]|2[0-2])[^.\n]*(?:screenshot|스크린샷|대표 이미지)/i,
+    /legacy tile view select/i,
+  ];
+  for (const [label, text] of scopedDocs) {
+    for (const pattern of stalePatterns) {
+      assert(!pattern.test(text), `${label} still references stale screenshot baseline pattern: ${pattern}`);
+    }
+  }
+});
+
 check("docs/assets/ui contains only managed PNG files with valid dimensions", () => {
   const allowed = new Set(uiGuideAssets);
-  const videoUiMinimums = new Map([
-    ["client-live.png", { width: 1000, height: 900 }],
-    ["ops-rules-preview.png", { width: 1000, height: 850 }],
-  ]);
   const entries = fs.readdirSync(docsAssetDir).filter((entry) => entry.endsWith(".png"));
   for (const entry of entries) {
     assert(allowed.has(entry), `unexpected unmanaged UI PNG asset: ${entry}`);
@@ -159,13 +202,7 @@ check("docs/assets/ui contains only managed PNG files with valid dimensions", ()
     const size = fs.statSync(filePath).size;
     assert(size > 1024, `${asset} is too small to be a valid screenshot (${size} bytes)`);
     const dimensions = readPngDimensions(filePath);
-    assert(dimensions.width >= 700, `${asset} width is too small: ${dimensions.width}`);
-    assert(dimensions.height >= 400, `${asset} height is too small: ${dimensions.height}`);
-    const minimum = videoUiMinimums.get(asset);
-    if (minimum) {
-      assert(dimensions.width >= minimum.width, `${asset} video capture width is too small: ${dimensions.width}`);
-      assert(dimensions.height >= minimum.height, `${asset} video capture height is too small; lower video/overlay area may be cropped: ${dimensions.height}`);
-    }
+    assertMeetsManifestMinimum(asset, dimensions, "");
   }
   assert(fs.existsSync(docsAssetEnDir), "missing English UI screenshot asset directory: docs/assets/ui/en");
   const englishEntries = fs.readdirSync(docsAssetEnDir).filter((entry) => entry.endsWith(".png"));
@@ -178,13 +215,7 @@ check("docs/assets/ui contains only managed PNG files with valid dimensions", ()
     const size = fs.statSync(filePath).size;
     assert(size > 1024, `${asset} English screenshot is too small (${size} bytes)`);
     const dimensions = readPngDimensions(filePath);
-    assert(dimensions.width >= 700, `${asset} English width is too small: ${dimensions.width}`);
-    assert(dimensions.height >= 400, `${asset} English height is too small: ${dimensions.height}`);
-    const minimum = videoUiMinimums.get(asset);
-    if (minimum) {
-      assert(dimensions.width >= minimum.width, `${asset} English video capture width is too small: ${dimensions.width}`);
-      assert(dimensions.height >= minimum.height, `${asset} English video capture height is too small; lower video/overlay area may be cropped: ${dimensions.height}`);
-    }
+    assertMeetsManifestMinimum(asset, dimensions, "English ");
   }
 });
 
@@ -284,6 +315,15 @@ function readJpegDimensions(filePath) {
     offset += length;
   }
   throw new Error(`${path.basename(filePath)} is missing a JPEG SOF dimension marker`);
+}
+
+function assertMeetsManifestMinimum(asset, dimensions, prefix) {
+  const managed = assetByFile.get(asset);
+  assert(managed, `${asset} is missing from docs UI asset manifest`);
+  const minimum = managed.minimum || { width: 700, height: 400 };
+  assert(dimensions.width >= minimum.width, `${asset} ${prefix}width is too small: ${dimensions.width}`);
+  const videoHint = managed.video ? "; lower video/control/status/overlay area may be cropped" : "";
+  assert(dimensions.height >= minimum.height, `${asset} ${prefix}height is too small: ${dimensions.height}${videoHint}`);
 }
 
 function isJpegStartOfFrame(marker) {

@@ -10,6 +10,8 @@ workspace preset, tile-level disconnect/action, VA overlay tile이 보이는 현
 README, README.en, `docs/ui-guide.md`, `docs/video-analysis.md`에서 참조하는 UI/VA
 이미지는 `verify-docs-ui-assets` 정적 gate로 관리합니다. 정적 gate만 실행하고
 수동 브라우저 재검수까지 완료했다고 과장하지 않습니다.
+관리 대상 파일, 캡처 task, 최소 크기, 직접 이미지 검수 요구사항은
+`config/docs_ui_assets.json`의 managed asset list에서 단일 관리합니다.
 `ops-rules-preview`는 전체 페이지 캡처가 아니라 Rule preview/editor 대표 구간
 캡처로 유지합니다.
 재캡처는 `scripts/internal/capture_docs_ui_assets.mjs` 기준으로 관리합니다.
@@ -17,6 +19,15 @@ README, README.en, `docs/ui-guide.md`, `docs/video-analysis.md`에서 참조하�
 `ops-rules-preview` 캡처와 `verify-rule-ui` smoke는
 `scripts/internal/rule_preview_fixture_helpers.mjs`의 공통 profile/event/VA rule
 fixture를 사용해 preview prerequisite drift를 막습니다.
+
+직접 이미지 검수 checklist:
+
+- 재캡처 뒤 한국어/영어 PNG를 모두 직접 엽니다.
+- 현재 v1.7.0 UI-first baseline과 화면 구조가 맞는지 확인합니다.
+- 영상 screenshot은 video viewport, control, status, VA overlay가 잘리지 않는지 확인합니다.
+- client/viewer screenshot에 source URL, Developer URL, raw JSON, debug counter,
+  BBox diagnostics, model path, credential, session material이 보이지 않는지 확인합니다.
+- 열지 않은 이미지는 PASS가 아니라 `미확인`으로 기록합니다.
 
 재캡처 예시:
 
