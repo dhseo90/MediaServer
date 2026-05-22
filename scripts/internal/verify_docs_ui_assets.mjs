@@ -115,6 +115,34 @@ check("capture script owns every documented UI asset", () => {
   }
 });
 
+check("docs capture and English UI copy cover v1.7.0 screenshots", () => {
+  const script = readText("scripts/internal/capture_docs_ui_assets.mjs");
+  const i18n = readText("src/ingress/product_ui_js.cpp");
+  const policy = readText("docs/assets/ui/README.md");
+  const requiredScriptSnippets = [
+    'data-testid="client-live-source-tree"',
+    'data-testid="client-live-workspace"',
+    "liveInfoOverlayToggle",
+    "VA Test File",
+  ];
+  for (const snippet of requiredScriptSnippets) {
+    assert(script.includes(snippet), `capture_docs_ui_assets.mjs is missing v1.7 capture snippet: ${snippet}`);
+  }
+  assert(!script.includes('[data-tile="0"] [data-role="view"]'), "client-live docs capture still waits for legacy tile view select");
+  const requiredTranslations = [
+    "'미리보기': 'Client Preview'",
+    "'카메라': 'Cameras'",
+    "'시나리오 빌더': 'Scenario Builder'",
+    "'현장 preset과 대상 객체를 골라 이벤트 템플릿 초안을 만듭니다. 판단 엔진과 저장 payload 계약은 변경하지 않습니다.':",
+    "'사용자 비공개': 'Users hidden'",
+    "'채널 생성': 'Channel created'",
+  ];
+  for (const snippet of requiredTranslations) {
+    assert(i18n.includes(snippet), `product English i18n is missing screenshot-visible copy: ${snippet}`);
+  }
+  assert(policy.includes("v1.7.0 UI-first close-out"), "docs/assets/ui/README.md does not state the v1.7.0 screenshot baseline");
+});
+
 check("docs/assets/ui contains only managed PNG files with valid dimensions", () => {
   const allowed = new Set(uiGuideAssets);
   const videoUiMinimums = new Map([

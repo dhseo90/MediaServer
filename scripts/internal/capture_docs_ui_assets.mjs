@@ -50,8 +50,8 @@ const tasks = [
     clip: {
       selectors: [
         'header',
-        '[data-testid="client-shell-page"] h2',
-        '[data-tile="0"]'
+        '[data-testid="client-live-source-tree"]',
+        '[data-testid="client-live-workspace"]'
       ],
       fitMainWidth: true,
       margin: 18,
@@ -237,8 +237,10 @@ async function setupClientLive(browser) {
   await applyDarkTheme(browser);
   await waitFor(browser, `(() => {
     const grid = document.getElementById('liveGridSize');
-    const view = document.querySelector('[data-tile="0"] [data-role="view"]');
-    return Boolean(grid && view && (view.options?.length || 0) > 1);
+    const sourceTree = document.querySelector('[data-testid="client-live-source-tree"] [data-source-view]');
+    const workspace = document.querySelector('[data-testid="client-live-workspace"]');
+    const dropGrid = document.querySelector('[data-testid="client-live-drop-grid"]');
+    return Boolean(grid && sourceTree && workspace && dropGrid);
   })()`, 12000);
   await evaluate(browser, `(() => {
     document.querySelector('#liveAllStop')?.click();
@@ -255,56 +257,52 @@ async function setupClientLive(browser) {
       return true;
     };
     const grid = document.getElementById('liveGridSize');
-    selectByValue(grid, '1');
+    selectByValue(grid, '4');
     const density = document.getElementById('liveDensity');
-    selectByValue(density, 'comfortable');
+    selectByValue(density, 'compact');
+    const dock = document.getElementById('liveDockSide');
+    selectByValue(dock, 'left');
     return true;
   })()`);
   await delay(700);
   await waitFor(browser, `(() => {
     const tiles = Array.from(document.querySelectorAll('[data-tile]'));
-    const view = document.querySelector('[data-tile="0"] [data-role="view"]');
-    return tiles.length === 1 && Boolean(view) && (view.options?.length || 0) > 1;
+    const vaTile = tiles.find((tile) => (tile.textContent || '').includes('VA Test File'));
+    return tiles.length >= 4 && Boolean(vaTile);
   })()`, 8000);
   await evaluate(browser, `(() => {
     const tiles = Array.from(document.querySelectorAll('[data-tile]'));
-    for (const [index, tile] of tiles.entries()) {
-      const view = tile.querySelector('[data-role="view"]');
-      if (!view) continue;
-      if (index === 0) {
-        const sample = Array.from(view.options || []).find((option) =>
-          option.textContent.includes('VA Test File') ||
-          option.textContent.includes('va_four_scene_sample'));
-        if (sample) {
-          view.value = sample.value;
-          view.dispatchEvent(new Event('change', { bubbles: true }));
-        }
-      } else {
-        view.value = '';
-        view.dispatchEvent(new Event('change', { bubbles: true }));
-      }
-    }
+    const vaTile = tiles.find((tile) => (tile.textContent || '').includes('VA Test File')) || tiles[0];
+    vaTile?.focus?.();
     return true;
   })()`);
   await delay(700);
   await waitFor(browser, `(() => {
-    const mode = document.querySelector('[data-tile="0"] [data-role="mode"]');
+    const tiles = Array.from(document.querySelectorAll('[data-tile]'));
+    const vaTile = tiles.find((tile) => (tile.textContent || '').includes('VA Test File')) || tiles[0];
+    const mode = vaTile?.querySelector('[data-role="mode"]');
     return Boolean(mode) && (mode.options?.length || 0) > 1;
   })()`, 8000);
   await evaluate(browser, `(() => {
-    const tile = document.querySelector('[data-tile="0"]');
+    const tiles = Array.from(document.querySelectorAll('[data-tile]'));
+    const tile = tiles.find((item) => (item.textContent || '').includes('VA Test File')) || tiles[0];
     const mode = tile?.querySelector('[data-role="mode"]');
     if (mode) {
       const canOverlay = Array.from(mode.options || []).some((option) => option.value === 'va-overlay');
       mode.value = canOverlay ? 'va-overlay' : 'raw';
       mode.dispatchEvent(new Event('change', { bubbles: true }));
     }
-    const start = document.querySelector('[data-action="start"]');
+    const infoToggle = document.getElementById('liveInfoOverlayToggle');
+    if (infoToggle && !infoToggle.checked) {
+      infoToggle.click();
+    }
+    const start = tile?.querySelector('[data-action="start"]');
     if (start) start.click();
     return !!start;
   })()`, 8000);
   await waitFor(browser, `(() => {
-    const root = document.querySelector('[data-tile="0"]');
+    const tiles = Array.from(document.querySelectorAll('[data-tile]'));
+    const root = tiles.find((tile) => (tile.textContent || '').includes('VA Test File')) || tiles[0];
     const video = root?.querySelector('video');
     const placeholder = root?.querySelector('[data-role="placeholder"]');
     return Boolean(video && video.readyState >= 2 && placeholder?.hidden);
@@ -376,8 +374,8 @@ async function setupOpsRulesOverview(browser) {
 async function setupOpsUsers(browser) {
   await applyDarkTheme(browser);
   await waitFor(browser, `(() => {
-    const bodyText = document.body?.textContent || '';
-    if (bodyText.includes('auth users file not found')) {
+    const visibleText = document.body?.innerText || '';
+    if (visibleText.includes('auth users file not found')) {
       throw new Error('auth users file not found');
     }
     const usersBody = document.querySelector('#users-body');
