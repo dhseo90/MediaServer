@@ -578,11 +578,14 @@ backlog에서 같은 방식으로 보이도록
 
 확인됨:
 
-- 현재 published source-only release tag는 `v1.6.0`입니다.
+- 이 절의 확인 항목은 v1.6.0 close-out historical evidence입니다. 현재 published
+  source-only release tag 판정은 상단 v1.7.0 기준을 따릅니다.
+- v1.6.0 close-out 당시 public docs는 source-only release tag를 `v1.6.0`으로
+  맞추도록 정리했습니다.
 - v1.6.0은 source-only stabilization release이며 runtime/model/binary bundle release가 아닙니다.
 - public 첫 진입점은 세부 v1.6.0 guard 문서를 전부 나열하지 않고, `docs/README.md`
-  및 release evidence 대표 링크로 연결합니다. latest source-only release는
-  `v1.6.0`으로 표시합니다.
+  및 release evidence 대표 링크로 연결했습니다. v1.6.0 close-out 당시 latest
+  source-only release는 `v1.6.0`으로 표시했습니다.
 - release/versioning 정책은 source-only/live-only 경계, binary/runtime/model bundle
   제외, 실장비/장시간/외부 credential gate 미실행 분리를 유지합니다.
 - VMS/NVR, long-term recording/playback/search, ONVIF Profile G recording/replay,

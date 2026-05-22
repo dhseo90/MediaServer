@@ -143,9 +143,10 @@ Manual UI release checklist closure는
 `verify-v160-manual-ui-release-checklist-closure`로 분리합니다.
 Public docs consistency polish는
 [v1.6.0 Public Docs Consistency Polish](./v1.6.0-public-docs-consistency-polish.md)에
-고정합니다. 현재 published tag `v1.5.0`과 v1.6.0 stabilization roadmap/evidence를
-분리하고, public docs가 tag/push/GitHub Release나 후속 Phase 후보를 완료로
-쓰지 않는지 `verify-v160-public-docs-consistency-polish`로 확인합니다.
+고정합니다. 이 historical gate는 v1.6.0 close-out 당시의 public tag/evidence drift와
+v1.6.0 stabilization roadmap/evidence를 분리하고, public docs가 tag/push/GitHub
+Release나 후속 Phase 후보를 완료로 쓰지 않는지
+`verify-v160-public-docs-consistency-polish`로 확인합니다.
 V160-P2-01 Public docs consistency polish는 public docs current tag와
 stabilization evidence 표현을 정리하는 항목입니다.
 Tracker benchmark harness planning only는

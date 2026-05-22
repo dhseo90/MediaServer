@@ -91,8 +91,8 @@ Manual UI release checklist closure는
 검수, screenshot artifact, 미실행/미확인 항목을 분리합니다.
 Public docs consistency polish는
 [v1.6.0 Public Docs Consistency Polish](./v1.6.0-public-docs-consistency-polish.md)와
-`./server.sh verify-v160-public-docs-consistency-polish` 기준으로 현재 published tag와
-v1.6.0 release evidence 표현을 맞춥니다.
+`./server.sh verify-v160-public-docs-consistency-polish` 기준으로 v1.6.0 close-out
+당시의 public tag/evidence drift와 v1.6.0 release evidence 표현을 맞춥니다.
 Tracker benchmark harness planning only는
 [v1.6.0 Tracker Benchmark Harness Planning](./v1.6.0-tracker-benchmark-harness-planning.md)와
 `./server.sh verify-v160-tracker-benchmark-harness-planning` 기준으로 runtime tracker

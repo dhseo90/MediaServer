@@ -5,7 +5,7 @@ GitHub Settings 화면에서 직접 눌러야 하는 항목은 자동화하지 �
 
 ## 현재 수동 설정 기록
 
-2026-05-18 기준 확인 상태:
+2026-05-22 기준 확인 상태:
 
 - 최신 public readiness commit: `main` HEAD
 - Actions 성공 확인 대상:
@@ -21,7 +21,7 @@ GitHub Settings 화면에서 직접 눌러야 하는 항목은 자동화하지 �
   - Description: `RTSP/WebRTC media server with optional YOLO-based video analytics`
   - Topics: `rtsp`, `gstreamer`, `cpp`, `webrtc`, `media-server`, `yolo`, `video-analytics`
 - Visibility: public
-- 현재 published source-only release: `v1.6.0`
+- 현재 published source-only release: `v1.7.0`
 
 `Restrict deletions`와 `Block force pushes`는 GitHub Actions check가 아니라 ruleset branch rule입니다.
 Required status check에는 추가하지 않고, checkbox enabled 상태만 확인합니다.

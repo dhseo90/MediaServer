@@ -26,7 +26,7 @@ Options:
 Checks:
   - VERSION과 CMake project VERSION 값이 같은 semantic version인지 확인
   - README/English README의 latest source-only release link가 현재 tag를 가리키는지 확인
-  - versioning/release/backlog 문서가 같은 current release baseline과 deferred phase gate를 말하는지 확인
+  - versioning/release/backlog/public review/UI guide 문서가 같은 current release baseline과 deferred phase gate를 말하는지 확인
 `);
 }
 
@@ -129,6 +129,16 @@ check("docs index points to backlog as current release source of truth", () => {
     assert(text.includes(`${currentTag} release close-out`) || text.includes(`${currentTag} 종료 판정`) || text.includes(`${currentTag} patch close-out`), `${label} missing current release wording`);
   }
   return { files: ["README.md", "README.en.md", "docs/en/README.md"] };
+});
+
+check("public review and UI guide do not expose stale current release wording", () => {
+  const publicReview = readText("docs/public-repo-final-review.md");
+  const uiGuide = readText("docs/ui-guide.md");
+  assert(publicReview.includes(`현재 published source-only release: \`${currentTag}\``), "docs/public-repo-final-review.md current release drifted");
+  assert(uiGuide.includes(`현재 ${currentTag}까지의 UI 변경`), "docs/ui-guide.md UI inventory current version drifted");
+  assertNoOtherCurrentTag(publicReview, "docs/public-repo-final-review.md", currentTag);
+  assertNoOtherCurrentTag(uiGuide, "docs/ui-guide.md", currentTag);
+  return { files: ["docs/public-repo-final-review.md", "docs/ui-guide.md"], currentTag };
 });
 
 let pass = 0;
