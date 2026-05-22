@@ -67,6 +67,60 @@ scenario builder, Ops/Client declutter를 닫은 source-only UI-first release입
 세부 종료 증적은 아래 v1.7.0 UI-first Close-out 섹션을 봅니다. v1.6.0 release
 evidence 문서는 historical evidence로 유지합니다.
 
+## 활성 차기 로드맵: v1.8.0 Release Trust Hardening
+
+v1.8.0의 1차 목표는 새 제품 기능 확장이 아니라 v1.7.0 close-out에서 드러난
+release/latest/docs evidence drift를 재발하지 않게 막는 것입니다. 현재 제품
+baseline은 계속 v1.7.0이며, `VERSION`, CMake project version, GitHub Release
+전환은 별도 release 전환 지시와 검증이 있을 때만 진행합니다.
+
+범위 원칙:
+
+- GitHub에 보이는 Latest Release는 로컬 metadata verifier만으로 통과 처리하지
+  않습니다. 실제 GitHub release/tag/API 결과를 release close-out gate에 포함합니다.
+- README, README.en, UI guide, screenshot asset은 같은 UI baseline을 말해야 합니다.
+  문서 screenshot은 캡처 스크립트와 직접 이미지 검수 둘 다 통과해야 합니다.
+- UI 완료 판정은 스크립트만으로 대체하지 않습니다. `/setup`, `/login`, `/ops`,
+  `/client`, `/ops/rules`, `/client/live`를 브라우저에서 직접 눌러 확인한 evidence를
+  남깁니다.
+- v1.8.0 P0/P1에서는 WebRTC DataChannel, Event POST, SSE/WS metadata schema,
+  auth/session contract, RTSP/WebRTC media path를 변경하지 않습니다.
+- 장시간 검증과 `verify-predev`는 명시 지시가 있을 때만 실행하고, 미실행이면
+  release evidence와 최종 보고에 그대로 남깁니다.
+
+| ID | 우선순위 | 영역 | 목표 | 예상 검증 |
+| --- | --- | --- | --- | --- |
+| V180-P0-01 | P0 | GitHub Latest Release verification gate | `verify-release-metadata`가 로컬 문서/버전만 보지 않고 GitHub Releases latest, remote tag, release URL을 실제로 확인하는 gate를 추가합니다. | `gh release list`, GitHub API `/releases/latest`, remote tag check, `verify-release-metadata`, `git diff --check` |
+| V180-P0-02 | P0 | Docs screenshot freshness gate | 문서 대표 screenshot이 현재 UI baseline과 맞는지 자동 캡처 script, managed asset list, 직접 이미지 검수 checklist를 하나의 gate로 묶습니다. | `capture_docs_ui_assets.mjs --lang=ko/en`, `verify-docs-ui-assets`, direct image review, stale baseline search |
+| V180-P0-03 | P0 | Manual UI evidence checklist hardening | release close-out 전에 `/setup`, `/login`, `/ops`, `/client`, `/ops/rules`, `/client/live` 흐름을 직접 클릭하고 미확인 화면을 남기지 않는 checklist를 정리합니다. | 브라우저 수동 검수, `verify-ops-client-ui --screenshots`, `verify-rule-ui`, evidence index |
+| V180-P0-04 | P0 | Release close-out runbook | branch close, PR merge, main fast-forward, tag, GitHub Release 생성, Latest 확인, next branch sync 순서를 단일 runbook으로 고정합니다. | dry-run checklist, real close-out checklist, `verify-docs-links`, `verify-release-metadata` |
+| V180-P1-01 | P1 | Docs source-of-truth dedupe | README, docs index, backlog, release policy, evidence 문서가 같은 목록을 반복하지 않도록 source-of-truth와 대표 링크를 분리합니다. | stale/current wording search, `verify-docs-links`, `verify-release-metadata` |
+| V180-P1-02 | P1 | English UI visual copy QA | English screenshot-visible copy, nav/card/table wrapping, Korean residue를 별도 QA 항목으로 고정합니다. | English browser review, `verify-ui-copy-i18n-parity`, `verify-ops-client-ui --screenshots` |
+| V180-P1-03 | P1 | Release evidence index | longrun, UI evidence, PR checks, release notes, skipped tests를 한곳에서 확인하되 README 첫 화면을 과밀하게 만들지 않는 evidence index를 정리합니다. | evidence index review, `verify-docs-links`, skipped-test wording review |
+| V180-P2-01 | P2 | Feature scope decision gate | v1.8.0 안정화 gate가 닫히기 전 새 기능 후보를 구현으로 승격하지 않도록 기능 후보 결정 절차를 문서화합니다. | roadmap review, non-scope review, `git diff --check` |
+
+v1.8.0 완료 기준:
+
+- GitHub Latest Release가 `v1.7.0` 또는 해당 release cut의 목표 버전으로 실제 표시되는지
+  GitHub API/CLI 결과로 확인합니다.
+- 문서 대표 screenshot은 현재 제품 UI 기준으로 재캡처되고, 한국어/영어 이미지 모두
+  직접 열어 이상 유무를 확인합니다.
+- manual UI evidence는 스크립트 결과와 분리해 열어본 화면, 누른 action, 미확인 항목을
+  명시합니다.
+- release close-out 순서는 runbook으로 재현 가능해야 하며, next branch가 main 최신
+  release fix를 놓치지 않아야 합니다.
+
+v1.8.0 비범위:
+
+- 장기 녹화, MP4 recorder, VMS/NVR archive, playback/search 기능
+- WebRTC DataChannel, Event POST, SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- auth/session/role/scope contract 변경
+- Re-ID/tracker default-on, OC-SORT/BoT-SORT/DeepSORT runtime tracker 승격
+- binary/runtime/model bundle release
+- 새 제품 기능 구현 착수. 단, release trust gate를 만들기 위해 필요한 verifier,
+  문서, screenshot capture, UI copy/layout 보정은 허용합니다.
+
 ## v1.7.0 UI-first Close-out
 
 v1.7.0은 Client Live workspace와 Ops workflow 보강을 완료 기준으로 둡니다.

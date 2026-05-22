@@ -27,6 +27,12 @@
 [versioning-policy.md](versioning-policy.md),
 [release-policy.md](release-policy.md)를 봅니다.
 
+## Active Roadmap
+
+v1.8.0의 활성 차기 로드맵은 [development-backlog.md](development-backlog.md)의
+`v1.8.0 Release Trust Hardening` 섹션에서 관리합니다. 이 로드맵은 새 제품 기능
+확장이 아니라 release/latest/docs evidence drift를 막는 검증 체계 보강입니다.
+
 ## 기능별 문서
 
 | 영역 | 문서 |
