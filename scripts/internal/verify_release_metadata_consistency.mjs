@@ -4,6 +4,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
@@ -26,6 +27,7 @@ Options:
 Checks:
   - VERSION과 CMake project VERSION 값이 같은 semantic version인지 확인
   - README/English README의 latest source-only release link가 현재 tag를 가리키는지 확인
+  - GitHub Releases latest/list/view, GitHub API /releases/latest, 원격 tag가 현재 tag를 가리키는지 확인
   - versioning/release/backlog/public review/UI guide 문서가 같은 current release baseline과 deferred phase gate를 말하는지 확인
 `);
 }
@@ -49,8 +51,17 @@ const version = readText("VERSION").trim();
 assert(/^\d+\.\d+\.\d+$/.test(version), `VERSION must be semver, got ${version}`);
 const currentTag = `v${version}`;
 const previousMinorTag = previousMinorReleaseTag(version);
+const githubRepository = resolveGithubRepository();
+const expectedReleaseUrl = `https://github.com/${githubRepository}/releases/tag/${currentTag}`;
 report.currentVersion = version;
 report.currentTag = currentTag;
+report.github = {
+  repository: githubRepository,
+  expectedReleaseUrl,
+  latestRelease: null,
+  releaseListLatest: null,
+  remoteTag: null,
+};
 
 check("VERSION matches CMake project VERSION", () => {
   const cmake = readText("CMakeLists.txt");
@@ -70,6 +81,66 @@ check("README release badges and latest release links point at current tag", () 
   assertSingleReleaseLink(readme, "README.md");
   assertSingleReleaseLink(readmeEn, "README.en.md");
   return { files: ["README.md", "README.en.md"], currentTag };
+});
+
+check("GitHub latest release and remote tag match current tag", () => {
+  const releaseList = runJsonCommand("gh", [
+    "release",
+    "list",
+    "--repo",
+    githubRepository,
+    "--limit",
+    "20",
+    "--json",
+    "tagName,isLatest,publishedAt,isDraft,isPrerelease",
+  ]);
+  assert(Array.isArray(releaseList), "gh release list did not return an array");
+  const listedLatest = releaseList.find((item) => item?.isLatest === true);
+  assert(listedLatest, "gh release list did not mark any release as latest");
+  assert(listedLatest.tagName === currentTag, `GitHub latest release list tag ${listedLatest.tagName} does not match ${currentTag}`);
+  assert(listedLatest.isDraft === false, "GitHub latest release list entry is draft");
+  assert(listedLatest.isPrerelease === false, "GitHub latest release list entry is prerelease");
+
+  const latestApi = runJsonCommand("gh", [
+    "api",
+    `repos/${githubRepository}/releases/latest`,
+  ]);
+  assert(latestApi?.tag_name === currentTag, `GitHub API latest release tag ${latestApi?.tag_name || "-"} does not match ${currentTag}`);
+  assert(latestApi?.html_url === expectedReleaseUrl, `GitHub API latest release URL ${latestApi?.html_url || "-"} does not match ${expectedReleaseUrl}`);
+  assert(latestApi?.draft === false, "GitHub API latest release is draft");
+  assert(latestApi?.prerelease === false, "GitHub API latest release is prerelease");
+
+  const releaseView = runJsonCommand("gh", [
+    "release",
+    "view",
+    "--repo",
+    githubRepository,
+    "--json",
+    "tagName,url,publishedAt,isDraft,isPrerelease,targetCommitish",
+  ]);
+  assert(releaseView?.tagName === currentTag, `gh release view tag ${releaseView?.tagName || "-"} does not match ${currentTag}`);
+  assert(releaseView?.url === expectedReleaseUrl, `gh release view URL ${releaseView?.url || "-"} does not match ${expectedReleaseUrl}`);
+  assert(releaseView?.isDraft === false, "gh release view reports a draft release");
+  assert(releaseView?.isPrerelease === false, "gh release view reports a prerelease");
+
+  const remoteTag = runTextCommand("git", ["ls-remote", "--tags", "origin", currentTag]);
+  const remoteLines = remoteTag.split("\n").map(line => line.trim()).filter(Boolean);
+  const exactTagLine = remoteLines.find(line => line.endsWith(`refs/tags/${currentTag}`));
+  assert(exactTagLine, `remote origin does not expose refs/tags/${currentTag}`);
+  const [sha] = exactTagLine.split(/\s+/);
+  assert(/^[0-9a-f]{40}$/.test(sha), `remote tag ${currentTag} did not return a commit SHA`);
+
+  report.github.latestRelease = latestApi;
+  report.github.releaseListLatest = listedLatest;
+  report.github.remoteTag = { tag: currentTag, sha };
+  return {
+    repository: githubRepository,
+    releaseListTag: listedLatest.tagName,
+    apiTag: latestApi.tag_name,
+    releaseUrl: latestApi.html_url,
+    remoteTag: currentTag,
+    remoteSha: sha,
+  };
 });
 
 check("versioning policy pins current release and semver semantics", () => {
@@ -254,4 +325,46 @@ function previousMinorReleaseTag(semver) {
 
 function toCamel(value) {
   return value.replace(/-([a-z])/g, (_match, chr) => chr.toUpperCase());
+}
+
+function resolveGithubRepository() {
+  const fromEnv = process.env.MEDIA_SERVER_GITHUB_REPOSITORY || process.env.GITHUB_REPOSITORY || "";
+  if (fromEnv && /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(fromEnv)) {
+    return fromEnv;
+  }
+  const remoteUrl = runTextCommand("git", ["config", "--get", "remote.origin.url"]).trim();
+  const match = (
+    /^git@github\.com:([^/]+\/[^.]+)(?:\.git)?$/.exec(remoteUrl) ||
+    /^https:\/\/github\.com\/([^/]+\/[^.]+)(?:\.git)?$/.exec(remoteUrl) ||
+    /^ssh:\/\/git@github\.com\/([^/]+\/[^.]+)(?:\.git)?$/.exec(remoteUrl)
+  );
+  assert(match, `cannot resolve GitHub repository from remote.origin.url: ${remoteUrl}`);
+  return match[1];
+}
+
+function runJsonCommand(command, args) {
+  const output = runTextCommand(command, args);
+  try {
+    return JSON.parse(output);
+  } catch (error) {
+    throw new Error(`${formatCommand(command, args)} returned invalid JSON: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+function runTextCommand(command, args) {
+  const result = spawnSync(command, args, {
+    cwd: rootDir,
+    encoding: "utf8",
+    env: process.env,
+  });
+  if (result.status !== 0) {
+    const stderr = String(result.stderr || "").trim();
+    const stdout = String(result.stdout || "").trim();
+    throw new Error(`${formatCommand(command, args)} failed with exit ${result.status}: ${stderr || stdout || "no output"}`);
+  }
+  return String(result.stdout || "");
+}
+
+function formatCommand(command, args) {
+  return [command, ...args].join(" ");
 }

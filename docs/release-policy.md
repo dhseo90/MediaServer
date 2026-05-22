@@ -38,6 +38,9 @@ source offer, model provenance, checksum manifest를 release note에 연결합�
 - release note에는 commit, 검증 명령, known limitation을 짧게 적습니다.
 - source-only release에는 sample/model/runtime binary를 추가 업로드하지 않습니다.
 - `verify-release-closeout-helper`는 dry-run summary만 생성하며 tag, push, GitHub Release 생성을 수행하지 않습니다.
+- `verify-release-metadata`는 로컬 문서/버전뿐 아니라 GitHub Releases latest/list/view,
+  GitHub API `/releases/latest`, 원격 tag를 실제로 확인합니다. 네트워크나 GitHub CLI
+  접근 실패는 release metadata gate 실패로 기록하고 PASS evidence로 대체하지 않습니다.
 - RC longrun 결과는 `rc-release-checklist`와 `media-server-rc-gate` GitHub
   Actions artifact, 또는 `rc-artifact-archive` 외부 archive로 보관합니다.
   임시 `/tmp` 경로는 staging/local-only evidence이며, release-grade 보존 완료로

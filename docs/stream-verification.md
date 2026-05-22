@@ -77,6 +77,13 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-analysis-state
 ```
 
+`verify-release-metadata`는 v1.8.0부터 로컬 VERSION/문서 일치만으로 통과하지
+않습니다. 기본 실행은 `gh release list`, `gh release view`, GitHub API
+`/releases/latest`, `git ls-remote --tags origin <tag>`를 실제로 호출해 GitHub Latest
+Release와 원격 tag가 현재 published source-only tag를 가리키는지 확인합니다. 네트워크,
+GitHub CLI, origin 접근이 준비되지 않았으면 실패로 보고하고 release close-out PASS로
+대체하지 않습니다.
+
 v1.4.0 tracker/Re-ID opt-in 이후 남은 후속 항목 분류와 종료 판정은
 [v1.4.0 Follow-up Closure](./v1.4.0-follow-up-closure.md)를 기준으로 확인합니다.
 v1.5.0 Tracker/Re-ID opt-in 안정화 이후 남은 후속 항목 분류와 종료 판정은
