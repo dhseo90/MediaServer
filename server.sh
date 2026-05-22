@@ -194,6 +194,8 @@ Usage:
                  VERSION, CMake, README, release/versioning/backlog 문서의 release 기준 drift를 검증합니다.
   verify-release-evidence-index
                  release evidence index가 실행/미실행/미확인 항목을 분리하는지 검증합니다.
+  verify-feature-scope-gate
+                 v1.8.0 안정화 범위에서 새 기능 후보를 구현으로 승격하지 않는 decision gate를 검증합니다.
   verify-script-inventory
                  server.sh 명령, 문서 명령 참조, JS 옵션 검증 적용 범위를 점검합니다.
   verify-actions-security
@@ -768,6 +770,10 @@ case "${cmd}" in
   verify-release-evidence-index)
     require_internal verify_release_evidence_index.mjs
     exec "${INTERNAL_DIR}/verify_release_evidence_index.mjs" "$@"
+    ;;
+  verify-feature-scope-gate)
+    require_internal verify_feature_scope_decision_gate.mjs
+    exec "${INTERNAL_DIR}/verify_feature_scope_decision_gate.mjs" "$@"
     ;;
   verify-script-inventory)
     require_internal verify_script_inventory.mjs

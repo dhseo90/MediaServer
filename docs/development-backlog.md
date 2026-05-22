@@ -121,6 +121,31 @@ v1.8.0 비범위:
 - 새 제품 기능 구현 착수. 단, release trust gate를 만들기 위해 필요한 verifier,
   문서, screenshot capture, UI copy/layout 보정은 허용합니다.
 
+v1.8.0 Feature Scope Decision Gate:
+
+1. v1.8.0 P0/P1 release trust gate가 모두 닫히기 전에는 새 기능 후보를 구현으로
+   승격하지 않습니다.
+2. 기능 후보는 `candidate-only` 상태로만 기록하고, 코드/API/schema/media/auth 계약
+   변경을 동반하지 않습니다.
+3. 구현 승격은 owner가 다음 roadmap 범위를 명시 승인한 뒤 `approved-next-roadmap`
+   상태로 이동할 때만 가능합니다.
+4. 검토 시 WebRTC DataChannel, Event POST, SSE/WS metadata schema, auth/session
+   contract, RTSP/WebRTC media path 영향 여부를 반드시 적습니다.
+5. v1.8.0 안에서 허용되는 작업은 release trust gate를 위한 verifier, 문서,
+   screenshot capture, manual evidence, UI copy/layout 보정뿐입니다.
+6. 보류 또는 비범위 후보는 `deferred-non-scope`로 남기고 완료/구현으로 보고하지
+   않습니다.
+
+Decision record 최소 필드:
+
+| 필드 | 값 |
+| --- | --- |
+| candidate | 기능 후보 이름 |
+| status | `candidate-only` / `approved-next-roadmap` / `deferred-non-scope` |
+| owner approval | 승인자와 승인 일시, 없으면 `not approved` |
+| contract impact | schema, auth/session, media path, release evidence 영향 |
+| verification | roadmap review, non-scope review, `./server.sh verify-feature-scope-gate` |
+
 ## v1.7.0 UI-first Close-out
 
 v1.7.0은 Client Live workspace와 Ops workflow 보강을 완료 기준으로 둡니다.

@@ -65,6 +65,7 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-release-closeout-helper --dry-run --report /tmp/media_server_release_closeout_helper.md
 ./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>
 ./server.sh verify-release-evidence-index
+./server.sh verify-feature-scope-gate
 ./server.sh dependency-snapshot --stable --output /tmp/media_server_dependency_snapshot.md --no-linked-libs
 ./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
 ./server.sh verify-release-bundle-dry-run
