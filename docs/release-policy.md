@@ -67,6 +67,32 @@ artifact로 업로드합니다. 같은 release 준비 흐름에서
 future tag, push, GitHub Release, accepted baseline 채택, 320/390/760/1180px
 screenshot review는 리포트에 manual/not-run으로 남기며, 실제 실행 및 링크가
 없는 항목을 pass로 쓰지 않습니다.
+
+## v1.8.0 Release Close-out Runbook
+
+이 runbook은 순서가 evidence입니다. dry-run에서는 실행 가능 여부와 수동 gate만
+점검하고, real close-out에서는 아래 순서를 건너뛰지 않습니다.
+
+Dry-run checklist:
+
+1. Current branch close 준비: `git status --short`, 단계별 커밋, 미실행/미확인 테스트 기록을 확인합니다.
+2. Local release gates: `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-manual-ui-evidence`, `verify-release-closeout-helper --dry-run` 결과를 모읍니다.
+3. UI evidence readiness: screenshot manifest, direct image review checklist, manual UI evidence index의 `확인됨/미확인/건너뜀` 구분을 확인합니다.
+4. Manual-only actions: PR merge, main fast-forward, tag, push, GitHub Release 생성, Latest Release 확인, next branch sync는 dry-run에서 `manual-not-run`으로 남깁니다.
+
+Real close-out checklist:
+
+1. Branch close: release branch의 모든 단계 커밋과 최종 검증 결과를 확인합니다.
+2. PR merge: required checks와 review 상태를 확인하고 main으로 merge합니다.
+3. Main fast-forward/sync: 로컬 main을 원격 main 최신 commit으로 맞추고 release commit을 다시 확인합니다.
+4. Tag: 검증된 main commit에만 annotated release tag를 생성합니다.
+5. Push: tag와 필요한 branch를 명시 승인 후 push합니다.
+6. GitHub Release: source-only release note를 만들고 sample/model/runtime binary를 업로드하지 않습니다.
+7. Latest 확인: GitHub Releases latest, `/releases/latest`, remote tag, README release URL을 `verify-release-metadata`로 확인합니다.
+8. Next branch sync: 다음 작업 branch를 main 최신 release fix 위로 동기화한 뒤 미커밋 변경이 없는지 확인합니다.
+
+위 순서 중 실행하지 않은 항목은 release evidence에 `NOT RUN` 또는 `manual-not-run`으로
+남기며, 실행하지 않은 tag/push/GitHub Release를 완료로 쓰지 않습니다.
 v1.7.0 source-only release에서는
 [development-backlog.md](./development-backlog.md)의 `v1.7.0 UI-first Close-out`
 기준으로 Client Live workspace, source tree/dock, tile disconnect, event review,

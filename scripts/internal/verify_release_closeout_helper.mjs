@@ -84,10 +84,26 @@ const visualAutomationCommands = [
 ];
 
 const manualActions = [
+  "release branch close confirmation",
+  "pull request merge",
+  "main fast-forward sync",
   "GitHub Actions required checks",
   "release tag creation",
   "git push",
   "GitHub Release creation/upload",
+  "GitHub Latest Release confirmation after publish",
+  "next branch sync from main",
+];
+
+const releaseRunbook = [
+  { order: 1, action: "Branch close", status: "manual-not-run" },
+  { order: 2, action: "PR merge", status: "manual-not-run" },
+  { order: 3, action: "Main fast-forward/sync", status: "manual-not-run" },
+  { order: 4, action: "Tag verified main commit", status: "manual-not-run" },
+  { order: 5, action: "Push approved branch/tag refs", status: "manual-not-run" },
+  { order: 6, action: "Create source-only GitHub Release", status: "manual-not-run" },
+  { order: 7, action: "Verify GitHub Latest Release", status: "planned-local" },
+  { order: 8, action: "Sync next branch from main", status: "manual-not-run" },
 ];
 
 const visualManualReviews = [
@@ -128,6 +144,15 @@ check("release close-out commands are available", () => {
 check("release docs keep tag and push manual", () => {
   for (const snippet of [
     "GitHub Releases 운영",
+    "v1.8.0 Release Close-out Runbook",
+    "Dry-run checklist",
+    "Real close-out checklist",
+    "Branch close",
+    "PR merge",
+    "Main fast-forward/sync",
+    "GitHub Release",
+    "Latest 확인",
+    "Next branch sync",
     "Tag 전략",
     "수동으로만 진행",
     "public-readiness, bundle policy, Actions status check",
@@ -188,6 +213,9 @@ check("dry-run report marks release actions as not executed", () => {
   assert(report.dryRun === true, "helper must stay dry-run");
   assert(report.createdTag === false, "helper must not create tags");
   assert(report.pushed === false, "helper must not push");
+  assert(report.releaseRunbook.length === releaseRunbook.length, "release runbook summary mismatch");
+  assert(report.releaseRunbook.find(item => item.action === "Verify GitHub Latest Release")?.status === "planned-local", "Latest Release verification must stay planned-local in dry-run");
+  assert(report.releaseRunbook.filter(item => item.status === "manual-not-run").length >= 7, "release runbook manual gates must remain not-run in dry-run");
   assert(report.visualBaselineAutomation?.schema === "media-server.release-visual-baseline-automation.v1", "visual baseline automation schema missing");
   assert(report.visualBaselineAutomation.commands.length === visualAutomationCommands.length, "visual baseline command summary mismatch");
   assert(report.visualBaselineAutomation.manualReviews.every(item => item.status === "manual-not-run"), "visual manual reviews must be not-run in dry-run");
@@ -242,6 +270,7 @@ function buildReport() {
     pushed: false,
     localCommands: localCommands.map(command => ({ command, status: "planned-local" })),
     manualActions: manualActions.map(action => ({ action, status: "manual-not-run" })),
+    releaseRunbook,
     visualBaselineAutomation: {
       schema: "media-server.release-visual-baseline-automation.v1",
       commands: visualAutomationCommands,
@@ -273,6 +302,10 @@ function renderMarkdown(data) {
   lines.push("", "## Manual Actions", "", "| action | status |", "| --- | --- |");
   for (const item of data.manualActions) {
     lines.push(`| ${item.action} | ${item.status} |`);
+  }
+  lines.push("", "## Release Runbook", "", "| order | action | status |", "| --- | --- | --- |");
+  for (const item of data.releaseRunbook) {
+    lines.push(`| ${item.order} | ${item.action} | ${item.status} |`);
   }
   lines.push(
     "",
