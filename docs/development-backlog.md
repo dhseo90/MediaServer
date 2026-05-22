@@ -92,9 +92,8 @@ UI 원칙:
 
 비추적 참고 스케치:
 
-- 생성 이미지:
-  `/Users/dhseo/.codex/generated_images/019e420b-cef3-7f61-b1ea-21871970833c/ig_0bb74733c1b2305d016a0e2cda80408191a587085340d69179.png`
-- 이 PNG는 roadmap 방향 참고용이며 git에 포함하지 않습니다.
+- 초기 UI 방향 스케치는 roadmap 작성 시점의 참고용이며 git/release asset에
+  포함하지 않습니다. 공개 문서에는 개인 로컬 생성 이미지 경로를 보존하지 않습니다.
 - 구현 시 참고할 구조는 compact top bar, 좌/우 전환 가능한 source/event dock,
   drag/drop video workspace, tile별 최소 context action, 선택 시에만 보이는 영상 정보
   overlay입니다.
@@ -104,6 +103,9 @@ UI 원칙:
 1. Client 화면 대체와 버튼 축소 기준을 닫았습니다.
 2. 이벤트 검토, source group/site, layout 저장을 붙여 실제 운영 흐름을 닫았습니다.
 3. 알림 연동, Scenario Builder, Incident Timeline을 기본 UI 위에 확장했습니다.
+4. README/UI guide 대표 screenshot asset을 2026-05-23 기준 v1.7.0 UI-first
+   화면으로 한국어/영어 모두 재캡처했습니다. Client Live 대표 이미지는 source tree,
+   dock event feed, workspace preset, tile action/VA overlay 구조를 포함합니다.
 
 | ID | 우선순위 | 영역 | 목표 | 예상 검증 |
 | --- | --- | --- | --- | --- |

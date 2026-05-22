@@ -310,7 +310,7 @@ std::string ProductUiCss() {
       width: auto;
       grid-template-columns: none;
       grid-auto-flow: column;
-      grid-auto-columns: minmax(78px, 92px);
+      grid-auto-columns: max-content;
       grid-auto-rows: 60px;
       gap: 2px;
       align-items: stretch;
@@ -351,6 +351,11 @@ std::string ProductUiCss() {
     body.product-shell .image-nav svg {
       width: 15px;
       height: 15px;
+    }
+    body.product-shell .image-nav span {
+      overflow-wrap: normal;
+      white-space: nowrap;
+      word-break: normal;
     }
     body.product-shell .account-menu {
       width: auto;
@@ -696,7 +701,8 @@ std::string ProductUiCss() {
       color: currentColor;
     }
     .image-nav span {
-      overflow-wrap: anywhere;
+      overflow-wrap: break-word;
+      word-break: normal;
       line-height: 1.12;
     }
     .account-menu {
@@ -2579,6 +2585,10 @@ std::string ProductUiCss() {
         height: 44px;
         min-height: 44px;
       }
+      body.product-shell .image-nav span {
+        overflow-wrap: break-word;
+        white-space: normal;
+      }
       .header-utilities { justify-content: flex-start; }
       .account-menu { width: 100%; }
       body.product-shell .account-menu {
@@ -3252,7 +3262,7 @@ std::string ClientShellCss() {
     }
     .client-compare-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
       gap: 10px;
     }
     .client-compare-card {
@@ -3268,13 +3278,17 @@ std::string ClientShellCss() {
     .client-compare-card.bad { border-color: color-mix(in srgb, var(--bad) 52%, var(--line)); }
     .client-compare-head {
       display: grid;
-      grid-template-columns: minmax(0, 1fr) auto;
+      grid-template-columns: minmax(0, 1fr);
       align-items: start;
       gap: 8px;
     }
+    .client-compare-head .chip {
+      justify-self: start;
+    }
     .client-compare-head strong,
     .client-compare-card p {
-      overflow-wrap: anywhere;
+      overflow-wrap: break-word;
+      word-break: normal;
     }
     .client-compare-preset {
       margin: 0;
