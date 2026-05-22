@@ -202,6 +202,41 @@ check("docs index points to backlog as current release source of truth", () => {
   return { files: ["README.md", "README.en.md", "docs/en/README.md"] };
 });
 
+check("public entry docs keep release evidence source-of-truth deduped", () => {
+  const readme = readText("README.md");
+  const readmeEn = readText("README.en.md");
+  const docsIndex = readText("docs/README.md");
+  const releasePolicy = readText("docs/release-policy.md");
+  const backlog = readText("docs/development-backlog.md");
+  const forbiddenPublicDetails = [
+    "v1.6.0 Historical Release Evidence",
+    "verify-v160-release-evidence-dashboard",
+    "Dry-run checklist",
+    "Real close-out checklist",
+    "media-server.release-visual-baseline-automation.v1",
+  ];
+  for (const [label, text] of [["README.md", readme], ["README.en.md", readmeEn]]) {
+    for (const snippet of forbiddenPublicDetails) {
+      assert(!text.includes(snippet), `${label} repeats detailed release evidence/runbook content: ${snippet}`);
+    }
+  }
+  for (const snippet of [
+    "Active Roadmap",
+    "v1.8.0 Release Trust Hardening",
+    "release/latest/docs evidence drift",
+    "v1.8.0 Release Close-out Runbook",
+    "release-policy.md",
+  ]) {
+    assert(docsIndex.includes(snippet), `docs/README.md missing source-of-truth link snippet: ${snippet}`);
+  }
+  assert(releasePolicy.includes("## v1.8.0 Release Close-out Runbook"), "release policy must own the v1.8.0 close-out runbook");
+  assert(backlog.includes("## 활성 차기 로드맵: v1.8.0 Release Trust Hardening"), "development backlog must own the active v1.8.0 roadmap");
+  return {
+    publicEntrypoints: ["README.md", "README.en.md"],
+    sourceOfTruth: ["docs/README.md", "docs/development-backlog.md", "docs/release-policy.md"],
+  };
+});
+
 check("public review and UI guide do not expose stale current release wording", () => {
   const publicReview = readText("docs/public-repo-final-review.md");
   const uiGuide = readText("docs/ui-guide.md");
