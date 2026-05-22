@@ -192,6 +192,8 @@ Usage:
                  코드/스크립트 상단 용도 주석과 한글 주석 정책을 검증합니다.
   verify-release-metadata
                  VERSION, CMake, README, release/versioning/backlog 문서의 release 기준 drift를 검증합니다.
+  verify-release-evidence-index
+                 release evidence index가 실행/미실행/미확인 항목을 분리하는지 검증합니다.
   verify-script-inventory
                  server.sh 명령, 문서 명령 참조, JS 옵션 검증 적용 범위를 점검합니다.
   verify-actions-security
@@ -762,6 +764,10 @@ case "${cmd}" in
   verify-release-metadata)
     require_internal verify_release_metadata_consistency.mjs
     exec "${INTERNAL_DIR}/verify_release_metadata_consistency.mjs" "$@"
+    ;;
+  verify-release-evidence-index)
+    require_internal verify_release_evidence_index.mjs
+    exec "${INTERNAL_DIR}/verify_release_evidence_index.mjs" "$@"
     ;;
   verify-script-inventory)
     require_internal verify_script_inventory.mjs

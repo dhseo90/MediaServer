@@ -52,6 +52,8 @@ source offer, model provenance, checksum manifest를 release note에 연결합�
 
 `verify-release-closeout-helper`는 release local verifier, tag/push 수동 gate,
 visual artifact policy, screenshot review 체크포인트를 한 dry-run report로 묶습니다.
+실행/미실행/미확인 evidence 색인은 [release-evidence-index.md](./release-evidence-index.md)에
+두고, README 첫 화면에는 세부 matrix를 반복하지 않습니다.
 JSON report의 visual 자동화 영역은
 `media-server.release-visual-baseline-automation.v1` schema를 사용합니다.
 

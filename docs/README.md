@@ -12,7 +12,7 @@
 | RTSP/WebRTC/VA 구조 | [media-server-architecture.md](media-server-architecture.md) |
 | 영상 분석, tracking, scenario | [video-analysis.md](video-analysis.md) |
 | 검증 명령과 release gate | [stream-verification.md](stream-verification.md) |
-| release/version 기준 | [release-policy.md](release-policy.md), [versioning-policy.md](versioning-policy.md) |
+| release/version 기준 | [release-policy.md](release-policy.md), [versioning-policy.md](versioning-policy.md), [release-evidence-index.md](release-evidence-index.md) |
 | 영어 문서 진입점 | [en/README.md](en/README.md) |
 
 ## 현재 제품 경계
@@ -35,6 +35,8 @@ v1.8.0의 활성 차기 로드맵은 [development-backlog.md](development-backlo
 Release close-out runbook과 tag/push 수동 gate는
 [release-policy.md](release-policy.md)의 `v1.8.0 Release Close-out Runbook`에만
 세부 순서를 둡니다.
+Release evidence의 실행/미실행/미확인 색인은
+[release-evidence-index.md](release-evidence-index.md)에 둡니다.
 
 ## 기능별 문서
 
