@@ -126,6 +126,41 @@ check("checklist and roadmap link the v1.2.1 evidence verifier", () => {
   ], "docs/development-backlog.md");
 });
 
+check("v1.8.0 release trust checklist requires direct UI evidence index", () => {
+  assertIncludes(checklist, [
+    "v1.8.0 release trust hardening gate",
+    "`/setup`",
+    "`/login`",
+    "`/ops`",
+    "`/client`",
+    "`/ops/rules`",
+    "`/client/live`",
+    "Evidence index",
+    "열지 않은 화면을 PASS로 쓰지 않고",
+    "raw JSON/API-only 확인만",
+  ], "docs/manual-ui-checklist.md");
+  assertIncludes(template, [
+    "evidence index:",
+    "## v1.8.0 Release Evidence Index",
+    "자동 smoke나 raw JSON 확인만으로 채우지 않습니다.",
+    "| `/setup` |",
+    "| `/login` |",
+    "| `/ops` |",
+    "| `/client` |",
+    "| `/ops/rules` |",
+    "| `/client/live` |",
+    "직접 열어보지 않은 화면",
+    "실패 후 재검수한 화면",
+    "client/viewer 비노출 재확인",
+  ], "docs/manual-ui-result-template.md");
+  assertIncludes(backlog, [
+    "| V180-P0-03 |",
+    "Manual UI evidence checklist hardening",
+    "`/setup`, `/login`, `/ops`, `/client`, `/ops/rules`, `/client/live`",
+    "evidence index",
+  ], "docs/development-backlog.md");
+});
+
 let pass = 0;
 let fail = 0;
 for (const item of checks) {

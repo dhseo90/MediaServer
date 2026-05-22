@@ -27,6 +27,23 @@ v1.6.0 manual UI release checklist closure는
   Computer Use visible UI 조작 순서로 시도하고 실패 지점과 대체 smoke를 분리해
   기록합니다. raw JSON/API-only 확인은 수동 UI 클릭 evidence로 쓰지 않습니다.
 
+### v1.8.0 release trust hardening gate
+
+v1.8.0 release close-out에서는 자동 smoke와 별도로 아래 화면을 브라우저에서 직접
+열고 클릭한 evidence index를 남깁니다. 자동 screenshot 생성이나 raw JSON/API-only 확인만
+있으면 해당 화면은 `미확인`입니다.
+
+- `/setup`: setup 필요/불필요 상태와 weak password 거절 또는 auth smoke 대체 범위를 분리합니다.
+- `/login`: 직접 로그인 또는 auth smoke 대체 범위를 분리하고 session/cookie 값은 남기지 않습니다.
+- `/ops`: primary nav(Home, Dashboard, Channels, Rules, Users, Client Preview) 이동을 직접 확인합니다.
+- `/client`: viewer/admin preview에서 Live/Dashboard nav만 보이는지 확인합니다.
+- `/ops/rules`: Rule/Profile/Scenario 저장 전 validation, preview 시작, `vaRule` 저장 flow를 직접 확인합니다.
+- `/client/live`: source tree, drag/drop 또는 선택, tile start/reconnect/stop, dock 좌/우 전환, 정보 overlay, viewer-safe 비노출을 직접 확인합니다.
+
+Evidence index에는 route, 계정/권한, 직접 조작, screenshot/artifact, 자동 검증 연결,
+판정, 미확인/건너뜀 사유를 한 줄씩 기록합니다. 열지 않은 화면을 PASS로 쓰지 않고,
+실패 후 재검수한 경우 최초 실패와 재확인 결과를 함께 남깁니다.
+
 ## 2. Auth Shell
 
 - `/setup`: 약한 비밀번호가 거절되고, 강한 admin 비밀번호 설정 후 `/login`으로 이동합니다.

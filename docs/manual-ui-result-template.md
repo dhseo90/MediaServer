@@ -15,6 +15,7 @@
 - users/source/view fixture:
 - 브라우저:
 - viewport:
+- evidence index:
 - 관련 자동 검증:
   - `./server.sh verify-ops-client-ui --screenshots`:
   - `./server.sh verify-rule-ui`:
@@ -40,6 +41,25 @@
 | `/client/live` | viewer/admin preview |  |  |  | PASS/FAIL |
 | `/client/dashboard` | viewer/admin preview |  |  |  | PASS/FAIL |
 | `/client/request-access` | public |  |  |  | PASS/FAIL |
+
+## v1.8.0 Release Evidence Index
+
+자동 smoke나 raw JSON 확인만으로 채우지 않습니다. 실제로 열고 클릭한 화면만
+`확인됨`으로 기록하고, 열지 않은 화면은 `미확인` 또는 `건너뜀`으로 남깁니다.
+
+| route | 계정/권한 | 직접 조작 | screenshot/artifact | 연결 자동 검증 | 판정 | 미확인/건너뜀 사유 |
+| --- | --- | --- | --- | --- | --- | --- |
+| `/setup` | unauth |  |  | `verify-auth-bootstrap` | PASS/FAIL/미확인/건너뜀 |  |
+| `/login` | unauth |  |  | `verify-auth-bootstrap` | PASS/FAIL/미확인/건너뜀 |  |
+| `/ops` | admin/operator | Home, Dashboard, Channels, Rules, Users, Client Preview nav 클릭 |  | `verify-ops-client-ui --screenshots` | PASS/FAIL/미확인/건너뜀 |  |
+| `/client` | viewer/admin preview | Live/Dashboard nav 클릭 |  | `verify-ops-client-ui --screenshots` | PASS/FAIL/미확인/건너뜀 |  |
+| `/ops/rules` | admin/operator | validation, preview, save flow 확인 |  | `verify-rule-ui` | PASS/FAIL/미확인/건너뜀 |  |
+| `/client/live` | viewer/admin preview | source 선택/drag-drop, tile action, dock, overlay 확인 |  | `verify-ops-client-ui --screenshots` | PASS/FAIL/미확인/건너뜀 |  |
+
+- 직접 열어보지 않은 화면:
+- 실패 후 재검수한 화면:
+- raw JSON/API-only로만 확인한 항목:
+- client/viewer 비노출 재확인:
 
 ## 접근 요청 검수
 
