@@ -29,6 +29,14 @@ fixture를 사용해 preview prerequisite drift를 막습니다.
   BBox diagnostics, model path, credential, session material이 보이지 않는지 확인합니다.
 - 열지 않은 이미지는 PASS가 아니라 `미확인`으로 기록합니다.
 
+English visual copy QA checklist:
+
+- English 캡처는 `?lang=en` 또는 language selector로 실제 제품 English UI를 띄운 상태에서만 사용합니다.
+- Ops primary nav는 Home, Dashboard, Channels, Rules, Users, Client Preview로 보이는지 확인합니다.
+- Client primary nav는 Live, Dashboard만 보이는지 확인합니다.
+- nav, card title, table header, table action, tile control text가 부모 폭을 넘거나 줄바꿈으로 겹치지 않는지 확인합니다.
+- English PNG에 Korean residue가 보이면 screenshot은 `FAIL`로 기록하고 translation map 또는 capture flow를 수정합니다.
+
 재캡처 예시:
 
 ```bash

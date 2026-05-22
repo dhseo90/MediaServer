@@ -32,6 +32,16 @@ const checks = [];
 check("product translation map includes recent UI copy", () => {
   const js = readText("src/ingress/product_ui_js.cpp");
   const required = [
+    "'홈': 'Home'",
+    "'대시보드': 'Dashboard'",
+    "'채널': 'Channels'",
+    "'룰': 'Rules'",
+    "'사용자': 'Users'",
+    "'미리보기': 'Client Preview'",
+    "'라이브': 'Live'",
+    "'채널 목록': 'Channels'",
+    "'사용자 목록': 'Users'",
+    "'작업': 'Actions'",
     "'최근 인시던트 흐름': 'Recent Incident Timeline'",
     "'제목, 출처, incident/cid 검색': 'Search title, source, incident, or cid'",
     "'최근 인시던트 없음': 'No recent incidents'",
@@ -68,6 +78,47 @@ check("product translation map includes recent UI copy", () => {
   ];
   for (const snippet of required) {
     assert(js.includes(snippet), `translation map missing snippet: ${snippet}`);
+  }
+});
+
+check("English screenshot-visible copy QA is pinned", () => {
+  const policy = readText("docs/assets/ui/README.md");
+  const capture = readText("scripts/internal/capture_docs_ui_assets.mjs");
+  const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
+  const manifest = readText("config/docs_ui_assets.json");
+  for (const snippet of [
+    "English visual copy QA checklist",
+    "Home, Dashboard, Channels, Rules, Users, Client Preview",
+    "Live, Dashboard",
+    "nav, card title, table header, table action, tile control text",
+    "Korean residue",
+    "translation map",
+  ]) {
+    assert(policy.includes(snippet), `docs/assets/ui/README.md missing English visual QA snippet: ${snippet}`);
+  }
+  for (const snippet of [
+    "withLanguageParam",
+    "lang=${encodeURIComponent(language)}",
+    "localStorage.setItem('mediaServerLanguage'",
+    "locale: language === \"en\" ? \"en-US\" : \"ko-KR\"",
+    "docs/assets/ui/en",
+  ]) {
+    assert(capture.includes(snippet), `capture_docs_ui_assets.mjs missing English capture snippet: ${snippet}`);
+  }
+  for (const snippet of [
+    "/client/live?lang=en",
+    "overflowX",
+    "first tile a11y status mismatch",
+    "document horizontal overflow",
+  ]) {
+    assert(uiSmoke.includes(snippet), `verify_ops_client_ui_smoke.mjs missing English visual smoke snippet: ${snippet}`);
+  }
+  for (const snippet of [
+    "\"clientSafe\": true",
+    "\"client-live.png\"",
+    "\"client-dashboard.png\"",
+  ]) {
+    assert(manifest.includes(snippet), `docs UI asset manifest missing English client-safe snippet: ${snippet}`);
   }
 });
 
