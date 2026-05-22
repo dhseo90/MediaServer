@@ -504,6 +504,20 @@ PY
   echo "[info] predev summary=${SUMMARY_FILE}"
 }
 
+refresh_summary_report() {
+  local command="./server.sh summarize-reports /tmp/media_server_*summary*.json --output ${REPORT_FILE} --html-output ${REPORT_HTML_FILE}"
+  local log_file="${WORK_DIR}/summary_report_refresh.log"
+  if (cd "${ROOT_DIR}" && bash -lc "${command}") >"${log_file}" 2>&1; then
+    echo "[info] summary-report refreshed log=${log_file}"
+    return 0
+  fi
+  FAIL_COUNT=$((FAIL_COUNT + 1))
+  append_step "summary-report-refresh" "fail" "${command}" "${log_file}" 0
+  echo "[fail] summary-report-refresh log=${log_file}"
+  tail -n 80 "${log_file}" || true
+  return 1
+}
+
 # 종료 시 남은 서버를 반드시 정리한다.
 cleanup() {
   stop_server
@@ -563,6 +577,8 @@ main() {
   write_summary "$((SECONDS - started_at))"
   run_step "summary-report" \
     "./server.sh summarize-reports /tmp/media_server_*summary*.json --output ${REPORT_FILE} --html-output ${REPORT_HTML_FILE}" || true
+  write_summary "$((SECONDS - started_at))"
+  refresh_summary_report || true
   write_summary "$((SECONDS - started_at))"
 
   echo
