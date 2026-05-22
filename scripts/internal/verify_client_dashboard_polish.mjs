@@ -83,12 +83,13 @@ check("client dashboard has loading empty error wording", () => {
   }
 });
 
-check("client live empty state and bulk start controls are present", () => {
+check("client live empty state and reduced workspace controls are present", () => {
   const script = readText("src/ingress/product_ui_page_scripts.cpp");
   const required = [
-    'id="liveAllStart"',
-    "startAllLiveTiles",
-    "전체 시작",
+    'data-testid="client-live-action-reduction"',
+    "workspace-actions",
+    'id="liveAllStop"',
+    "전체 연결 해제",
     "Live view가 없습니다",
     "할당된 PublishedView가 없습니다",
     "/client/request-access",

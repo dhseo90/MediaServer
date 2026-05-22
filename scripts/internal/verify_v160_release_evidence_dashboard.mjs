@@ -149,7 +149,8 @@ check("docs and entrypoints link the release evidence dashboard verifier", () =>
     ["README.en.md", readmeEn],
     ["docs/en README", docsIndex],
   ]) {
-    assertIncludes(text, "v1.6.0-release-evidence-dashboard.md", label);
+    assertIncludes(text, "v1.7.0", `${label} current release`);
+    assertIncludes(text, "docs/README.md", `${label} root docs index link`);
   }
   for (const snippet of [
     "verify-v160-release-evidence-dashboard",

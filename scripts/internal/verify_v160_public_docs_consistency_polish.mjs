@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 // 파일 용도: v1.6.0 public docs consistency polish 경계를 정적으로 검증한다.
-// 동작 요약: current published tag와 v1.6.0 release evidence 표현이 public docs에서 일치하는지 확인한다.
+// 동작 요약: v1.6.0 close-out 당시 public tag/evidence drift와 historical evidence 표현을 확인한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -23,8 +23,8 @@ Options:
   -h, --help  도움말 출력
 
 Checks:
-  - current published source-only release tag가 v1.6.0인지 확인
-  - README, English index, versioning/release/backlog 문서가 v1.6.0 source-only release와 bundle 비범위를 함께 말하는지 확인
+  - v1.6.0 close-out 당시 public docs의 tag/evidence drift 정리 기준을 확인
+  - current release 문서가 v1.6.0을 현재 release로 되살리지 않는지 확인
   - v1.6.0 P0/P1/P2 docs 링크와 비범위 표현을 확인
   - server.sh와 script inventory가 전용 verifier를 노출하는지 확인
 `);
@@ -63,13 +63,15 @@ const v160Docs = [
   "v1.6.0-public-docs-consistency-polish.md",
 ];
 
-check("dedicated doc defines public docs current tag and stabilization evidence boundary", () => {
+check("dedicated doc defines historical public docs tag and stabilization evidence boundary", () => {
   for (const snippet of [
     "# v1.6.0 Public Docs Consistency Polish",
     "V160-P2-01",
-    "현재 published source-only release tag는 `v1.6.0`",
+    "v1.6.0 close-out historical evidence",
+    "현재 published source-only",
+    "v1.6.0 close-out 당시 public docs는 source-only release tag를 `v1.6.0`",
     "v1.6.0은 source-only stabilization release이며 runtime/model/binary bundle",
-    "latest source-only release를 `v1.6.0`으로 표시합니다",
+    "v1.6.0 close-out 당시 latest source-only release를 `v1.6.0`으로 표시했습니다",
     "source-only/live-only 경계",
     "binary/runtime/model bundle 제외",
     "실장비/장시간/외부 credential gate 미실행",
@@ -90,7 +92,9 @@ check("roadmap defines V160-P2-01 scope and keeps tracker planning separate", ()
   for (const snippet of [
     "V160-P2-01 Public docs consistency polish",
     "v1.6.0 Public Docs Consistency Polish",
-    "현재 published source-only release tag는 `v1.6.0`",
+    "v1.6.0 close-out historical evidence",
+    "현재 published",
+    "v1.6.0 close-out 당시 public docs는 source-only release tag를 `v1.6.0`",
     "v1.6.0은 source-only stabilization release",
     "verify-v160-public-docs-consistency-polish",
     "verify-release-metadata",
@@ -113,36 +117,36 @@ check("roadmap defines V160-P2-01 scope and keeps tracker planning separate", ()
   }
 });
 
-check("public docs keep v1.6.0 as current published tag while linking v1.6 evidence", () => {
+check("public docs keep current tag on latest release while linking v1.6 evidence as history", () => {
   for (const [label, text] of [
     ["README.md", readme],
     ["README.en.md", readmeEn],
     ["docs/en README", docsIndex],
   ]) {
-    assertIncludes(text, "v1.6.0", `${label} current tag`);
+    assertIncludes(text, "v1.7.0", `${label} current tag`);
     assertIncludes(text, "docs/README.md", `${label} root docs index link`);
-    assertIncludes(text, "v1.6.0-release-evidence-dashboard.md", `${label} release evidence link`);
   }
   for (const item of v160Docs) {
     assertIncludes(docsRootIndex, item, "docs README v1.6 evidence index");
   }
   assertIncludes(docsRootIndex, "verify-v160-public-docs-consistency-polish", "docs README verifier index");
-  assertIncludes(docsIndex, "v1.6.0 is published as the current source-only release.", "docs/en current boundary");
+  assertIncludes(docsIndex, "v1.7.0 is published as the current source-only release.", "docs/en current boundary");
 });
 
-check("versioning and release policy pin v1.6 source-only release", () => {
+check("versioning and release policy pin current release while preserving v1.6 history", () => {
   for (const snippet of [
-    "현재 기준 버전: `v1.6.0`",
-    "현재 published source-only release tag 기준은 `v1.6.0`",
-    "source-only stabilization release",
+    "현재 기준 버전: `v1.7.0`",
+    "현재 published source-only release tag 기준은 `v1.7.0`",
+    "v1.6.0 release evidence 문서는 historical evidence로 유지합니다",
   ]) {
     assertIncludes(versioning, snippet, "versioning policy");
   }
   for (const snippet of [
-    "현재 published source-only release tag는 `v1.6.0`",
+    "현재 published source-only release tag는 `v1.7.0`",
     "source-only release에는 sample/model/runtime binary를 추가 업로드하지 않습니다",
     "v1.6.0 Public Docs Consistency Polish",
     "verify-v160-public-docs-consistency-polish",
+    "v1.6.0 close-out",
   ]) {
     assertIncludes(releasePolicy, snippet, "release policy");
   }

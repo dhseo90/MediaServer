@@ -17,7 +17,7 @@
 
 ## 현재 제품 경계
 
-- 현재 main 기준 release: `v1.6.0`
+- 현재 main 기준 release: `v1.7.0`
 - 중심 범위: live source onboarding, live source health, live VA event 품질
 - 기본 release 형태: source-only
 - 명시적 비범위: 장기 녹화, VMS/NVR, playback/search, ONVIF Profile G
@@ -53,7 +53,13 @@
 | BoT-SORT/DeepSORT research | [bot-sort-deepsort-research-boundary.md](bot-sort-deepsort-research-boundary.md) |
 | YouTube import/source experiment | [youtube-import.md](youtube-import.md) |
 
-## v1.6.0 Release Evidence
+## v1.7.0 Release Close-out
+
+v1.7.0의 현재 release close-out 기준은 [development-backlog.md](development-backlog.md)의
+`v1.7.0 UI-first Close-out` 섹션입니다. 세부 historical evidence는 아래 v1.6.0
+섹션에 보존합니다.
+
+## v1.6.0 Historical Release Evidence
 
 아래 문서는 release close-out 증적입니다. README나 일반 색인에 모든 세부 검증을
 풀어 쓰지 않고, 이 섹션에서만 모아 둡니다.

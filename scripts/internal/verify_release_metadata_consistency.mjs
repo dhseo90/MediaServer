@@ -26,7 +26,7 @@ Options:
 Checks:
   - VERSION과 CMake project VERSION 값이 같은 semantic version인지 확인
   - README/English README의 latest source-only release link가 현재 tag를 가리키는지 확인
-  - versioning/release/backlog 문서가 같은 current release baseline과 deferred phase gate를 말하는지 확인
+  - versioning/release/backlog/public review/UI guide 문서가 같은 current release baseline과 deferred phase gate를 말하는지 확인
 `);
 }
 
@@ -48,6 +48,7 @@ const report = {
 const version = readText("VERSION").trim();
 assert(/^\d+\.\d+\.\d+$/.test(version), `VERSION must be semver, got ${version}`);
 const currentTag = `v${version}`;
+const previousMinorTag = previousMinorReleaseTag(version);
 report.currentVersion = version;
 report.currentTag = currentTag;
 
@@ -104,11 +105,10 @@ check("development backlog separates current baseline from deferred phase gates"
   const doc = readText("docs/development-backlog.md");
   for (const snippet of [
     `## 현재 기준: ${currentTag} Source Release Baseline`,
-    `${currentTag}은 v1.5.0까지 닫은 source-only/live-only 제품 범위를 유지하면서`,
-    `## ${currentTag} Stabilization Close-out`,
-    `${currentTag}은 기능 확장보다 현재 기능 마무리를 완료 기준으로 둡니다.`,
+    `${currentTag}은 ${previousMinorTag}까지 닫은 source-only/live-only 제품 범위를 유지하면서`,
+    `## ${currentTag} UI-first Close-out`,
+    `${currentTag}은 Client Live workspace와 Ops workflow 보강을 완료 기준으로 둡니다.`,
     "별도 Phase gate 또는 release/field/manual approval gate",
-    "후속 기능 후보를 확정 roadmap으로 쓰지 않고 별도 후보 목록으로만 유지",
     "기능 개발로 확정하지 않은 항목은 별도 기능 개발",
   ]) {
     assert(doc.includes(snippet), `docs/development-backlog.md missing snippet: ${snippet}`);
@@ -129,6 +129,16 @@ check("docs index points to backlog as current release source of truth", () => {
     assert(text.includes(`${currentTag} release close-out`) || text.includes(`${currentTag} 종료 판정`) || text.includes(`${currentTag} patch close-out`), `${label} missing current release wording`);
   }
   return { files: ["README.md", "README.en.md", "docs/en/README.md"] };
+});
+
+check("public review and UI guide do not expose stale current release wording", () => {
+  const publicReview = readText("docs/public-repo-final-review.md");
+  const uiGuide = readText("docs/ui-guide.md");
+  assert(publicReview.includes(`현재 published source-only release: \`${currentTag}\``), "docs/public-repo-final-review.md current release drifted");
+  assert(uiGuide.includes(`현재 ${currentTag}까지의 UI 변경`), "docs/ui-guide.md UI inventory current version drifted");
+  assertNoOtherCurrentTag(publicReview, "docs/public-repo-final-review.md", currentTag);
+  assertNoOtherCurrentTag(uiGuide, "docs/ui-guide.md", currentTag);
+  return { files: ["docs/public-repo-final-review.md", "docs/ui-guide.md"], currentTag };
 });
 
 let pass = 0;
@@ -234,6 +244,12 @@ function parseArgs(argv) {
     }
   }
   return parsed;
+}
+
+function previousMinorReleaseTag(semver) {
+  const [major, minor] = semver.split(".").map(Number);
+  if (minor <= 0) return `v${Math.max(0, major - 1)}.0.0`;
+  return `v${major}.${minor - 1}.0`;
 }
 
 function toCamel(value) {

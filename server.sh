@@ -246,6 +246,30 @@ Usage:
                  v1.6.0 public docs의 current tag/stabilization evidence 표현을 검증합니다.
   verify-v160-tracker-benchmark-harness-planning
                  v1.6.0 tracker benchmark harness planning-only 경계를 검증합니다.
+  verify-v170-client-action-reduction
+                 v1.7.0 Client Live 버튼/CTA 축소 baseline과 UI smoke 연결을 검증합니다.
+  verify-v170-client-live-workspace
+                 v1.7.0 Client Live source tree/drag-drop workspace 계약을 검증합니다.
+  verify-v170-client-source-dock-events
+                 v1.7.0 Client Live source tree/dock event feed redaction 계약을 검증합니다.
+  verify-v170-client-tile-disconnect
+                 v1.7.0 Client Live tile/workspace disconnect 계약을 검증합니다.
+  verify-v170-event-review-inbox
+                 v1.7.0 Rule Event Review Inbox의 별도 review state/audit/redaction 계약을 검증합니다.
+  verify-v170-alert-delivery-integrations
+                 v1.7.0 Alert Delivery Integration의 payload 분리/retry/audit 계약을 검증합니다.
+  verify-v170-scenario-builder-ui
+                 v1.7.0 Scenario Builder UI의 Event Rule 폼 적용과 engine 비변경 계약을 검증합니다.
+  verify-v170-ops-client-shared-declutter
+                 v1.7.0 Ops/Client shared action declutter와 context action 계약을 검증합니다.
+  verify-v170-source-group-site-management
+                 v1.7.0 Source Group/Site Management의 registry/API/UI/scope 계약을 검증합니다.
+  verify-v170-tile-info-overlay-health
+                 v1.7.0 Client Live tile info overlay와 playback health UI 계약을 검증합니다.
+  verify-v170-saved-views-layout-presets
+                 v1.7.0 Saved Views/Layout Presets preference API와 UI 계약을 검증합니다.
+  verify-v170-operator-incident-timeline
+                 v1.7.0 Operator Incident Timeline workflow/UI 계약을 검증합니다.
   verify-server-start-modes
                  foreground/start 실행 모드의 health, route, state file 안정성을 검증합니다.
   verify-auth-bootstrap
@@ -846,6 +870,54 @@ case "${cmd}" in
   verify-v160-tracker-benchmark-harness-planning)
     require_internal verify_v160_tracker_benchmark_harness_planning.mjs
     exec "${INTERNAL_DIR}/verify_v160_tracker_benchmark_harness_planning.mjs" "$@"
+    ;;
+  verify-v170-client-action-reduction)
+    require_internal verify_v170_client_action_reduction.mjs
+    exec "${INTERNAL_DIR}/verify_v170_client_action_reduction.mjs" "$@"
+    ;;
+  verify-v170-client-live-workspace)
+    require_internal verify_v170_client_live_workspace.mjs
+    exec "${INTERNAL_DIR}/verify_v170_client_live_workspace.mjs" "$@"
+    ;;
+  verify-v170-client-source-dock-events)
+    require_internal verify_v170_client_source_dock_events.mjs
+    exec "${INTERNAL_DIR}/verify_v170_client_source_dock_events.mjs" "$@"
+    ;;
+  verify-v170-client-tile-disconnect)
+    require_internal verify_v170_client_tile_disconnect_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v170_client_tile_disconnect_contract.mjs" "$@"
+    ;;
+  verify-v170-event-review-inbox)
+    require_internal verify_v170_event_review_inbox.mjs
+    exec "${INTERNAL_DIR}/verify_v170_event_review_inbox.mjs" "$@"
+    ;;
+  verify-v170-alert-delivery-integrations)
+    require_internal verify_v170_alert_delivery_integrations.mjs
+    exec "${INTERNAL_DIR}/verify_v170_alert_delivery_integrations.mjs" "$@"
+    ;;
+  verify-v170-scenario-builder-ui)
+    require_internal verify_v170_scenario_builder_ui.mjs
+    exec "${INTERNAL_DIR}/verify_v170_scenario_builder_ui.mjs" "$@"
+    ;;
+  verify-v170-ops-client-shared-declutter)
+    require_internal verify_v170_ops_client_shared_declutter.mjs
+    exec "${INTERNAL_DIR}/verify_v170_ops_client_shared_declutter.mjs" "$@"
+    ;;
+  verify-v170-source-group-site-management)
+    require_internal verify_v170_source_group_site_management.mjs
+    exec "${INTERNAL_DIR}/verify_v170_source_group_site_management.mjs" "$@"
+    ;;
+  verify-v170-tile-info-overlay-health)
+    require_internal verify_v170_tile_info_overlay_health.mjs
+    exec "${INTERNAL_DIR}/verify_v170_tile_info_overlay_health.mjs" "$@"
+    ;;
+  verify-v170-saved-views-layout-presets)
+    require_internal verify_v170_saved_views_layout_presets.mjs
+    exec "${INTERNAL_DIR}/verify_v170_saved_views_layout_presets.mjs" "$@"
+    ;;
+  verify-v170-operator-incident-timeline)
+    require_internal verify_v170_operator_incident_timeline.mjs
+    exec "${INTERNAL_DIR}/verify_v170_operator_incident_timeline.mjs" "$@"
     ;;
   verify-server-start-modes)
     require_internal verify_server_start_modes.sh

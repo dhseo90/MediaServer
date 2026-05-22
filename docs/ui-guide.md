@@ -19,7 +19,7 @@ VA 내부 구조는 [video-analysis.md](./video-analysis.md)를 봅니다.
 | 운영 Events 직접 route | `http://127.0.0.1:8080/ops/events` | primary nav에서 숨긴 후속/진단 route |
 | 채널 관리 | `http://127.0.0.1:8080/ops/sources` | admin/operator용 숫자 채널 목록과 SourceRegistry/PublishedView 연결 관리 |
 | 계정 관리 | `http://127.0.0.1:8080/ops/users` | admin 전용 사용자 목록, 상세, 상태 관리 |
-| 클라이언트 포털 | `http://127.0.0.1:8080/client` 또는 `/client/live` | viewer/operator/admin용 client 화면과 2x2 live monitor |
+| 클라이언트 포털 | `http://127.0.0.1:8080/client` 또는 `/client/live` | viewer/operator/admin용 source tree + live workspace |
 | 클라이언트 Dashboard | `http://127.0.0.1:8080/client/dashboard` | scoped PublishedView 상태 요약 |
 | 접근 요청 | `http://127.0.0.1:8080/client/request-access` | pending client access request 제출 |
 | 룰 관리 | `http://127.0.0.1:8080/ops/rules` | 채널 분석 설정, 이벤트 템플릿, 분석 프로파일 관리 |
@@ -49,7 +49,7 @@ v1.2.0에서 도입되어 v1.3.0에서도 유지되는 product shell은 ERP/운�
 
 ### 1.1 Design token/component inventory
 
-v1.2.0 이후, 현재 v1.5.0까지의 UI 변경은 아래 inventory를 기준으로 합니다.
+v1.2.0 이후, 현재 v1.7.0까지의 UI 변경은 아래 inventory를 기준으로 합니다.
 새 색상, radius, spacing, shadow, table row, detail panel, client tile을 추가하기 전에
 먼저 같은 계층의 기존 token/class/helper로 표현할 수 있는지 확인합니다.
 
@@ -642,13 +642,14 @@ Event POST 설정, SSE/WS 전체 endpoint를 노출하지 않습니다.
 운영자용 세부 runtime/debug 확인은
 `/ops/dashboard` 요약과 `/lab/runtime/status` API에서 수행합니다.
 
-### 4.2 Client Live Monitor
+### 4.2 Client Live Workspace
 
 `/client/live`는 viewer가 접근 가능한 PublishedView만
-live monitor grid에 배치합니다.
+source tree와 live workspace tile에 배치합니다.
 Tile은 viewer 기본 최대 4개, Ops preview 최대 9개이며,
 표준/고밀도 density와 live/connecting/stale/offline summary,
-타일별 시작/정지/재연결과 전체 시작/재연결/정지 control을 제공합니다.
+타일별 시작/정지/재연결, source 재배정, 정보 overlay, dock 좌/우 전환,
+workspace 작업 메뉴 안의 layout 저장/복원과 전체 연결 해제를 제공합니다.
 PublishedView가 없으면 viewer에게 `/client/request-access` 접근 요청 CTA를,
 admin preview에게 `/ops/sources` 채널 관리 CTA를 보여줍니다.
 
@@ -674,7 +675,9 @@ Tile별 기능:
 
 - assigned view 선택
 - PublishedView의 `allowedOverlayModes` 안에서 `raw`, `va-overlay`, `va-rule` 선택
-- tile start / tile stop / tile restart / all start / all restart / all stop
+- source tree 선택 또는 drag/drop으로 tile에 PublishedView 배정
+- tile start / tile stop / tile restart / workspace-level all stop
+- workspace 작업 메뉴의 layout 저장 / 저장 복원 / 권한 기본 preset 적용
 - PublishedView `maxTiles` 초과 시 tile 선택/시작을 막고 wrapper API는 `409`를 반환
 - live/offline, stale, track count, event count, connection status 표시
 - 선택 tile의 sanitized 상태/이벤트 요약 복사
@@ -683,6 +686,7 @@ Tile별 기능:
 - 반복되는 select/button accessible name에는 tile 번호 포함
 - tile 숨김 상태 요약은 현재 UI 언어로 바로 갱신하며, track/event 미수집 값은 `미제공`으로 읽음
 - 560px 이하 모바일 폭에서는 tile control이 한 열로 정리되고 start/reconnect/stop touch target은 44px 이상 유지
+- 320px 모바일 폭에서도 workspace 작업 메뉴의 layout 저장/복원/전체 연결 해제 항목은 viewport 안에 열려야 함
 
 Hidden tab, route leave, tile stop 시
 PeerConnection, DataChannel, server WebRTC session을 정리합니다.

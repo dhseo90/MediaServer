@@ -90,42 +90,42 @@ const pageChecks = [
     name: "ops-dashboard",
     path: "/ops/dashboard",
     visualSelector: '[data-testid="ops-dashboard-page"]',
-    must: ['data-testid="ops-dashboard-page"', 'data-testid="ops-root-cause-panel"', 'data-testid="ops-incident-timeline-panel"', 'data-testid="ops-runtime-operations-console"', 'data-testid="ops-va-quality-panel"', 'id="dashActiveSessions"', 'id="dashHealthBadges"', 'id="dashRootCauseList"', 'id="dashIncidentTimelineSearch"', 'id="dashIncidentTimelineSource"', 'id="dashIncidentTimeline"', 'id="dashRuntimeOpsBadges"', 'id="dashRuntimeOpsList"', 'id="dashVaQualityFilterInput"', 'id="dashScenarioTimeline"', 'id="dashTrackingIssueGroups"', '/ops/api/runtime/status', '/ops/api/source-health', '라이브 소스 상태', '최근 인시던트 흐름', '런타임 운영 판독', '라이브 VA 이벤트 품질'],
+    must: ['data-testid="ops-dashboard-page"', 'data-testid="ops-root-cause-panel"', 'data-testid="ops-incident-timeline-panel"', 'data-testid="ops-runtime-operations-console"', 'data-testid="ops-va-quality-panel"', 'id="dashActiveSessions"', 'id="dashHealthBadges"', 'id="dashRootCauseList"', 'id="dashIncidentTimelineSearch"', 'id="dashIncidentTimelineSource"', 'id="dashIncidentTimeline"', 'option value="rule-warning"', 'option value="runtime-status"', 'dashboardRuleWarningItems', 'dashboardRuntimeStatusIncidentItems', 'data-incident-workflow', 'id="dashRuntimeOpsBadges"', 'id="dashRuntimeOpsList"', 'id="dashVaQualityFilterInput"', 'id="dashScenarioTimeline"', 'id="dashTrackingIssueGroups"', '/ops/api/runtime/status', '/ops/api/source-health', '/ops/api/rules/catalog', '라이브 소스 상태', '최근 인시던트 흐름', '런타임 운영 판독', '라이브 VA 이벤트 품질'],
     mustNot: ['<iframe', 'opsDashboardFrame', '/lab/rules?embed=1', '/lab/runtime/status'],
   },
   {
     name: "ops-events",
     path: "/ops/events",
-    must: ['data-testid="ops-events-page"', 'data-route-scope="direct-diagnostic"', 'Primary nav에는 표시하지 않는 direct/diagnostic route', 'id="opsEventsRefresh"', '/ops/api/events/status'],
+    must: ['data-testid="ops-events-page"', 'data-route-scope="direct-diagnostic"', 'Primary nav에는 표시하지 않는 direct/diagnostic route', 'id="opsEventsRefresh"', '/ops/api/events/status', 'data-testid="ops-alert-delivery-integrations"', 'data-alert-contract="separate-from-event-post-payload"', 'id="alertDeliverySave"', 'id="alertDeliveryTest"', '/ops/api/alerts/deliveries', '/ops/api/alerts/deliveries/test', 'data-testid="ops-event-review-inbox"', 'data-review-state="separate-from-event-post-payload"', 'id="eventReviewStatusFilter"', '/ops/api/events/reviews'],
     mustNot: ['<iframe', 'href="/lab', 'src="/lab', 'href="/webrtc/test"', 'href="/ops/events"'],
   },
   {
     name: "ops-rules",
     path: "/ops/rules",
     visualSelector: '[data-testid="ops-rules-page"]',
-    must: ['data-testid="ops-rules-page"', 'id="opsRulesFilterInput"', 'id="opsVaRuleRows"', 'id="opsEventRuleRows"', 'id="opsProfileRows"', 'id="opsAddVaRuleBtn"', 'id="opsAddEventRuleBtn"', 'id="opsAddProfileBtn"', 'id="opsRulesDetailPanel"', 'id="opsVaRuleForm"', 'id="opsEventRuleForm"', 'id="opsProfileForm"', 'id="opsVaRulePreviewVideo"', 'id="opsVaRuleGeometryPreview"', 'id="opsVaRuleTemplateSeedSelect"', 'id="opsVaRuleProfileSelect"', 'id="opsVaRuleChannelSelect"', '/ops/api/rules/catalog'],
+    must: ['data-testid="ops-rules-page"', 'data-testid="ops-scenario-builder"', 'data-scenario-builder-contract="ui-only-no-engine-change"', 'id="opsScenarioBuilderApply"', 'opsContextActionsHtml', 'data-testid="ops-context-actions"', 'data-action-density="primary-context"', 'id="opsRulesFilterInput"', 'id="opsVaRuleRows"', 'id="opsEventRuleRows"', 'id="opsProfileRows"', 'id="opsAddVaRuleBtn"', 'id="opsAddEventRuleBtn"', 'id="opsAddProfileBtn"', 'id="opsRulesDetailPanel"', 'id="opsVaRuleForm"', 'id="opsEventRuleForm"', 'id="opsProfileForm"', 'id="opsVaRulePreviewVideo"', 'id="opsVaRuleGeometryPreview"', 'id="opsVaRuleTemplateSeedSelect"', 'id="opsVaRuleProfileSelect"', 'id="opsVaRuleChannelSelect"', '/ops/api/rules/catalog'],
     mustNot: ['<iframe', 'opsRulesFrame', 'id="opsRulesEditorComponent"', '/lab/rules?embed=1'],
   },
   {
     name: "ops-sources",
     path: "/ops/sources",
     visualSelector: '[data-testid="ops-sources-page"]',
-    must: ['data-testid="ops-sources-page"', 'id="channels-body"', 'id="channel-detail-panel"', 'name="kind"', 'value="onvif"', 'data-source-kind="onvif"', 'data-testid="onvif-probe-draft-tool"', 'id="onvifProbeDraftInput"', 'id="onvifProbeProfileSelect"', 'id="onvifProbeDraftApply"', 'name="onvifStreamUrl"', 'name="whepUrl"', "ONVIF 카메라", "ONVIF 스트림 URI", "ONVIF probe fixture", "ONVIF profile", "Probe draft 적용", "외부 WHEP URL", "Published WebRTC 소스", "발행 sourceId", "라이브 URL", "VA URL"],
+    must: ['data-testid="ops-sources-page"', 'id="channels-body"', 'id="channel-detail-panel"', 'name="kind"', 'value="onvif"', 'data-source-kind="onvif"', 'data-testid="source-group-site-management"', 'data-scope-contract="view-read-scopes-unchanged"', 'name="site"', 'name="group"', 'name="floor"', 'name="zone"', 'data-testid="onvif-probe-draft-tool"', 'id="onvifProbeDraftInput"', 'id="onvifProbeProfileSelect"', 'id="onvifProbeDraftApply"', 'name="onvifStreamUrl"', 'name="whepUrl"', "ONVIF 카메라", "ONVIF 스트림 URI", "ONVIF probe fixture", "ONVIF profile", "Probe draft 적용", "외부 WHEP URL", "Published WebRTC 소스", "발행 sourceId", "라이브 URL", "VA URL"],
     mustNot: ['AppendTableHead(', 'R"OPS(', 'WHIP Published Source ID', "Registry raw JSON", 'sources-json', 'views-json', 'client-views-json', 'data-testid="onvif-import-panel"', 'id="onvif-import-stub"', 'id="onvifImportSummary"', "ONVIF Live Source import", 'data-testid="channel-bulk-panel"', 'id="channel-bulk-select-all"', 'id="channelBulkDiagnostics"', 'data-testid="source-health-panel"', 'id="channelHealthSummary"', 'id="channelHealthDiagnostics"', 'id="channel-detail-health"'],
   },
   {
     name: "ops-users",
     path: "/ops/users",
     visualSelector: '[data-testid="ops-users-page"]',
-    must: ['data-testid="ops-users-page"', 'data-testid="user-lifecycle-policy"', 'id="users-body"', 'id="access-requests-body"', 'id="request-invite-output"', 'id="user-detail-panel"', 'id="user-edit-selected"', 'id="user-save-selected"', 'id="user-close"', 'id="view-assignment"', 'id="user-lifecycle-summary"', 'id="user-reset-password-panel"', 'id="user-reset-password-button"', 'data-user-reset-password', 'data-user-set-enabled', '초대 링크는 기본 24시간 동안만 유효', '사용자 감사 JSON/CSV/Diff JSON export', '승인 전: 로그인/세션/채널 권한 없음', '초대 링크 만료', '/ops/api/access-requests'],
+    must: ['data-testid="ops-users-page"', 'data-testid="user-lifecycle-policy"', 'id="users-body"', 'id="access-requests-body"', 'id="request-invite-output"', 'id="user-detail-panel"', 'id="user-edit-selected"', 'id="user-save-selected"', 'id="user-close"', 'id="view-assignment"', 'id="view-assignment-options"', 'clientViewLocationLabel', '사이트/그룹', 'id="user-lifecycle-summary"', 'id="user-reset-password-panel"', 'id="user-reset-password-button"', 'data-user-reset-password', 'data-user-set-enabled', '초대 링크는 기본 24시간 동안만 유효', '사용자 감사 JSON/CSV/Diff JSON export', '승인 전: 로그인/세션/채널 권한 없음', '초대 링크 만료', '/ops/api/access-requests'],
   },
   {
     name: "client-live",
     path: "/client/live",
     visualSelector: '[data-testid="client-shell-page"]',
-    must: ['data-testid="client-shell-page"', 'data-client-active="live"', 'id="views"', 'id="detail"', '/webrtc/config', 'peerConnectionConfig', 'viewMaxTiles', 'maxTiles', 'id="liveDensity"', 'id="liveSummary"', 'id="liveAllStart"', 'startAllLiveTiles', 'data-action="restart"', 'restartLiveTile', 'tabindex="0"', 'focusLiveTile', 'ArrowRight', 'aria-describedby="liveTileStatus${tile.index}"', 'data-role="a11y-status"', 'aria-live="polite"', 'aria-atomic="true"', 'liveTileA11yStatus', 'liveTileConnectionLabel', 'clientDynamicText', 'data-client-copy="status"', 'data-client-copy="events"', '타일 ${tile.index + 1} 시작'],
+    must: ['data-testid="client-shell-page"', 'data-client-active="live"', 'id="views"', 'id="detail"', '/webrtc/config', 'peerConnectionConfig', 'viewMaxTiles', 'maxTiles', 'id="liveDensity"', 'id="liveSummary"', 'data-testid="client-live-action-reduction"', 'data-action-model="source-drag,tile-selection,icon-actions,keyboard-shortcuts"', 'data-disconnect-contract="tile-disconnect-clears-slot,workspace-disconnect-keeps-layout"', 'disconnectLiveTile', 'clearLiveTileSlot', 'data-disconnect-scope="tile"', '전체 연결 해제', 'data-testid="client-live-workspace"', 'data-workspace-model="source-tree,drag-drop-grid,multi-source"', 'data-testid="client-live-source-tree"', 'data-tree-model="group/site/floor/source"', 'data-tree-level="site"', 'data-tree-level="floor"', 'data-testid="client-live-dock-event-feed"', 'data-redaction="viewer-safe-events"', 'id="liveDockSide"', 'mediaServerClientLiveDockSide', 'id="liveInfoOverlayToggle"', 'mediaServerClientLiveInfoOverlay', 'data-testid="client-live-tile-info-overlay"', 'data-overlay-trigger="info-toggle"', 'data-testid="client-live-layout-presets"', 'data-preset-contract="user-preference,role-preset"', 'liveLayoutPreferenceEndpoint', '/client/api/preferences/live-layout', 'liveCurrentLayoutSnapshot', 'applyLiveLayoutPreference', 'selectedSources', 'overlayDefaults', 'refreshTilePlaybackStats', 'framesPerSecond', 'bytesReceived', 'framesDropped', 'refreshLiveDockEventFeed', '/events?limit=6', 'data-source-view="${escapeHtml(view.viewId)}"', 'draggable="true"', 'assignViewToTile', 'assignSourceToSelectedTile', 'data-drop-state="idle"', 'dataTransfer.setData', "root.addEventListener('drop'", "root.addEventListener('dragover'", 'class="workspace-actions"', 'class="icon-button tile-action-primary"', 'data-action="restart"', 'restartLiveTile', "event.key === 's'", "event.key === 'Delete'", 'tabindex="0"', 'focusLiveTile', 'ArrowRight', 'aria-describedby="liveTileStatus${tile.index}"', 'data-role="a11y-status"', 'aria-live="polite"', 'aria-atomic="true"', 'liveTileA11yStatus', 'liveTileConnectionLabel', 'clientDynamicText', 'data-client-copy="status"', 'data-client-copy="events"', '타일 ${tile.index + 1} 시작'],
     shellMust: clientShellMust,
-    mustNot: [...clientForbiddenText(), 'new RTCPeerConnection({ iceServers: [] })'],
+    mustNot: [...clientForbiddenText(), 'new RTCPeerConnection({ iceServers: [] })', 'id="liveAllStart"', 'id="liveAllRestart"'],
   },
   {
     name: "client-dashboard",
@@ -655,6 +655,11 @@ function clientLiveTileKeyboardExpression(a11ySnapshot) {
           viewSelect.dispatchEvent(new Event('change', { bubbles: true }));
           await wait(180);
         }
+        if (!first.querySelector('[data-role="assignment"]')) issue('first tile assignment summary missing');
+        if (!document.querySelector('[data-testid="client-live-source-tree"] [data-source-view]')) issue('client live source tree node missing');
+        if (!document.querySelector('[data-testid="client-live-source-tree"] [data-tree-level="site"]')) issue('client live source site group missing');
+        if (!document.querySelector('[data-testid="client-live-source-tree"] [data-tree-level="floor"]')) issue('client live source floor group missing');
+        if (!document.querySelector('[data-testid="client-live-dock-event-feed"][data-redaction="viewer-safe-events"]')) issue('client live dock event feed missing');
         const describedBy = String(first.getAttribute('aria-describedby') || '');
         if (!describedBy) issue('first tile aria-describedby missing');
         const describedNode = describedBy ? document.getElementById(describedBy) : null;
@@ -668,7 +673,7 @@ function clientLiveTileKeyboardExpression(a11ySnapshot) {
           for (const expected of requiredStatusParts) {
             if (!statusText.includes(expected)) issue('first tile a11y status missing text: ' + expected);
           }
-          if (expectedOfflineStatus && statusText !== expectedOfflineStatus) {
+          if (viewSelect && expectedOfflineStatus && statusText !== expectedOfflineStatus) {
             issue('first tile a11y status mismatch: ' + statusText);
           }
           const style = window.getComputedStyle(describedNode);
@@ -678,8 +683,8 @@ function clientLiveTileKeyboardExpression(a11ySnapshot) {
         }
         const labels = Array.from(first.querySelectorAll('button, select')).map(node => node.getAttribute('aria-label') || '');
         const expectedLabels = language === 'english'
-          ? ['Tile 1 Start', 'Tile 1 Reconnect', 'Tile 1 Stop', 'Tile 1 Select channel']
-          : ['타일 1 시작', '타일 1 재연결', '타일 1 정지', '타일 1 채널 선택'];
+          ? ['Tile 1 Start', 'Tile 1 Reconnect', 'Tile 1 Disconnect']
+          : ['타일 1 시작', '타일 1 재연결', '타일 1 연결 해제'];
         for (const expected of expectedLabels) {
           if (!labels.some(label => label.includes(expected))) issue('missing control aria-label: ' + expected);
         }

@@ -72,6 +72,9 @@ namespace {
 std::atomic<std::uint64_t> g_web_rtc_metadata_sequence{0};
 std::atomic<std::uint64_t> g_ops_audit_sequence{0};
 std::mutex g_ops_audit_mu;
+std::mutex g_ops_event_review_mu;
+std::mutex g_ops_alert_delivery_mu;
+std::mutex g_client_live_preference_mu;
 std::mutex g_source_health_audit_mu;
 std::unordered_map<std::string, std::string> g_source_health_audit_state;
 std::mutex g_source_health_warning_mu;
@@ -2079,8 +2082,9 @@ void AppendProductAccountMenu(std::ostringstream& out,
                              const auth::Principal& principal,
                              const std::string& secondary_action_href = std::string(),
                              const std::string& secondary_action_label = std::string()) {
-    out << R"(        <div class="account-menu" aria-label="현재 계정">
+    out << R"(        <div class="account-menu" data-sketch-account-menu="true" aria-label="현재 계정">
           <div class="account-menu-top">
+            <span class="sketch-status-chip" aria-label="연결 상태"><span aria-hidden="true"></span>Connected</span>
             <div class="account-identity">
               )" << ProductAccountAvatarSvg() << R"(
               <div class="account-copy">
@@ -2134,6 +2138,8 @@ void AppendOpsShellStart(std::ostringstream& out,
                          const auth::Principal& principal,
                          const std::string& active,
                          const std::string& subtitle) {
+    (void)active;
+    (void)subtitle;
     out << R"(<!doctype html>
 <html lang="ko">
 <head>
@@ -2141,16 +2147,16 @@ void AppendOpsShellStart(std::ostringstream& out,
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>운영 콘솔</title>
 )" << ProductThemeBootScript() << ProductUiCss() << ProductSharedUiScript() << R"(</head>
-<body class="product-shell">
+<body class="product-shell ops-shell sketch-shell">
   <main class="product-page">
-    <header class="app-chrome">
+    <header class="app-chrome sketch-topbar">
       <div class="app-header-top">
-        <div class="app-nav-cluster">
-          <div class="app-brand">
+        <div class="app-nav-cluster sketch-nav-cluster">
+          <div class="app-brand sketch-brand">
             <span class="brand-mark" aria-hidden="true">MS</span>
             <div class="brand-copy">
-              <strong>MediaServer Ops</strong>
-              <span>)" << HtmlEscape(subtitle) << R"(</span>
+              <strong>Media Server</strong>
+              <span>Ops</span>
             </div>
           </div>
           <nav class="image-nav-tabs" aria-label="운영 메뉴">
@@ -2162,7 +2168,7 @@ void AppendOpsShellStart(std::ostringstream& out,
     if (auth::IsAdmin(principal)) {
         AppendImageNavLink(out, "/ops/users", "users", "사용자", active == "users", "data-admin-only");
     }
-    AppendImageNavLink(out, "/client/live", "client", "클라이언트", false);
+    AppendImageNavLink(out, "/client/live", "client", "미리보기", false, R"(aria-label="Client Preview")");
     out << R"(          </nav>
         </div>
 )";
@@ -2464,6 +2470,8 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
                 <option value="root-cause">문제 원인</option>
                 <option value="event-record">EventRecord</option>
                 <option value="source-health">Source Health</option>
+                <option value="rule-warning">Rule Warning</option>
+                <option value="runtime-status">Runtime Status</option>
                 <option value="log-tail">Log tail</option>
               </select>
             </label>
@@ -2614,6 +2622,58 @@ void AppendOpsRulesPage(std::ostringstream& out) {
               <button id="opsRulesPrereqVaRulesAction" class="button-primary" type="button">채널 분석 설정 추가</button>
             </div>
           </article>
+        </div>
+      </section>
+      <section class="section-card ops-scenario-builder" data-testid="ops-scenario-builder" data-scenario-builder-contract="ui-only-no-engine-change">
+        <div class="toolbar">
+          <div>
+            <h3>시나리오 빌더</h3>
+            <p id="opsScenarioBuilderSummary">현장 preset과 대상 객체를 골라 이벤트 템플릿 초안을 만듭니다. 판단 엔진과 저장 payload 계약은 변경하지 않습니다.</p>
+          </div>
+          <div class="actions">
+            <button id="opsScenarioBuilderApply" class="button-primary" type="button" data-scenario-builder-action="apply-event-template">템플릿 폼에 적용</button>
+          </div>
+        </div>
+        <div class="scenario-builder-grid">
+          <label>시나리오
+            <select id="opsScenarioBuilderType">
+              <option value="intrusion-dwell">침입 체류</option>
+              <option value="re-entry">재진입</option>
+              <option value="wrong-direction">역방향 이동</option>
+              <option value="intrusion-after-line-crossing">라인 통과 후 침입</option>
+              <option value="loitering">배회</option>
+              <option value="zone-occupancy">구역 점유</option>
+            </select>
+          </label>
+          <label>현장 preset
+            <select id="opsScenarioBuilderPreset">
+              <option value="default">기본</option>
+              <option value="road">도로</option>
+              <option value="retail">매장 통로</option>
+              <option value="park">공원</option>
+              <option value="indoor">실내</option>
+              <option value="lobby">로비</option>
+              <option value="platform">승강장</option>
+              <option value="entrance">출입구</option>
+              <option value="doorway">문 앞 정체</option>
+              <option value="parking">주차장 가장자리</option>
+              <option value="elevator">승강기 홀</option>
+              <option value="custom">직접 설정</option>
+            </select>
+          </label>
+          <label>대상 객체
+            <input id="opsScenarioBuilderClasses" type="text" value="person, vehicle" placeholder="person, vehicle" />
+          </label>
+        </div>
+        <div class="scenario-builder-review" aria-live="polite">
+          <div>
+            <strong id="opsScenarioBuilderBaselineTitle">초안 요약</strong>
+            <p id="opsScenarioBuilderBaseline" class="form-note">시나리오와 preset을 고르면 시작값을 표시합니다.</p>
+          </div>
+          <details class="scenario-builder-draft-details">
+            <summary>초안 payload 보기</summary>
+            <pre id="opsScenarioBuilderDraft" class="scenario-builder-draft" data-redaction="no-source-or-raw-debug"></pre>
+          </details>
         </div>
       </section>
       <section class="section-card">
@@ -3065,6 +3125,91 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <p id="eventExportPolicyText">증거 export와 삭제 권한을 확인합니다.</p>
         </section>
       </div>
+      <section class="section-card" data-testid="ops-alert-delivery-integrations" data-alert-contract="separate-from-event-post-payload">
+        <div class="toolbar">
+          <div>
+            <h3>Alert Delivery Integrations</h3>
+            <p id="alertDeliverySummary">Rule event 알림은 Event POST payload와 분리된 delivery state, retry policy, audit로 관리합니다.</p>
+          </div>
+          <div id="alertDeliveryBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        </div>
+        <div class="ops-alert-delivery-form">
+          <label>ID <input id="alertDeliveryId" value="default-webhook" /></label>
+          <label>종류
+            <select id="alertDeliveryKind">
+              <option value="webhook">Webhook</option>
+              <option value="email">Email</option>
+              <option value="slack">Slack</option>
+            </select>
+          </label>
+          <label>라벨 <input id="alertDeliveryLabel" value="Ops alert" /></label>
+          <label>대상 <input id="alertDeliveryEndpoint" value="https://alerts.example.invalid/hook" /></label>
+          <label>재시도 <input id="alertDeliveryRetryMax" type="number" min="0" max="8" value="3" /></label>
+          <label>Backoff(ms) <input id="alertDeliveryRetryBackoff" type="number" min="250" max="60000" value="2000" /></label>
+          <label class="check-inline"><input id="alertDeliveryEnabled" type="checkbox" checked /> 활성</label>
+          <div class="actions">
+            <button id="alertDeliverySave" class="button-primary" type="button">저장</button>
+            <button id="alertDeliveryTest" class="button-secondary" type="button">Fixture 전송</button>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="ops-data-table alert-delivery-table">
+            <thead>
+              <tr>
+                <th>Integration</th>
+                <th>상태</th>
+                <th>Retry</th>
+                <th>최근 시도</th>
+              </tr>
+            </thead>
+            <tbody id="alertDeliveryRows"><tr><td colspan="4">로딩 중</td></tr></tbody>
+          </table>
+        </div>
+      </section>
+      <section class="section-card" data-testid="ops-event-review-inbox" data-review-state="separate-from-event-post-payload">
+        <div class="toolbar">
+          <div>
+            <h3>Rule Event Review Inbox</h3>
+            <p id="eventReviewSummary">Rule/Scenario 이벤트의 확인, 분류, 메모, 상태를 별도 review state로 관리합니다.</p>
+          </div>
+          <div class="actions event-review-controls">
+            <label>Review 상태
+              <select id="eventReviewStatusFilter">
+                <option value="">전체</option>
+                <option value="new">new</option>
+                <option value="reviewing">reviewing</option>
+                <option value="confirmed">confirmed</option>
+                <option value="dismissed">dismissed</option>
+                <option value="needs-follow-up">needs-follow-up</option>
+              </select>
+            </label>
+            <label>분류
+              <select id="eventReviewClassFilter">
+                <option value="">전체</option>
+                <option value="unclassified">unclassified</option>
+                <option value="true-positive">true-positive</option>
+                <option value="false-positive">false-positive</option>
+                <option value="duplicate">duplicate</option>
+                <option value="needs-tuning">needs-tuning</option>
+              </select>
+            </label>
+          </div>
+        </div>
+        <div class="table-wrap">
+          <table class="ops-data-table event-review-table">
+            <thead>
+              <tr>
+                <th>이벤트</th>
+                <th>리뷰</th>
+                <th>분류</th>
+                <th>메모</th>
+                <th>업데이트</th>
+              </tr>
+            </thead>
+            <tbody id="eventReviewRows"><tr><td colspan="5">로딩 중</td></tr></tbody>
+          </table>
+        </div>
+      </section>
       <section class="section-card">
         <div class="toolbar">
           <div>
@@ -4008,8 +4153,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     const bool preview_mode =
         (auth::IsAdmin(principal) || auth::IsOperator(principal)) &&
         auth::RequireScope(principal, "ops:read");
-    const std::string client_subtitle =
-        preview_mode ? "Client Preview as admin" : "할당된 live view와 상태만 봅니다.";
+    const std::string client_subtitle = preview_mode ? "Client Preview as admin" : "Client";
     std::ostringstream out;
     out << R"(<!doctype html>
 <html lang="ko">
@@ -4019,19 +4163,19 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
   <title>클라이언트 포털</title>
 )" << ProductThemeBootScript() << ProductUiCss() << ProductSharedUiScript() << ClientShellCss() << R"(
 </head>
-<body class="product-shell client-shell" data-client-preview=")" << (preview_mode ? "true" : "false") << R"(" data-client-active=")" << HtmlEscape(active) << R"(">
+<body class="product-shell client-shell sketch-shell" data-client-preview=")" << (preview_mode ? "true" : "false") << R"(" data-client-active=")" << HtmlEscape(active) << R"(">
   <main class="product-page">
-    <header class="app-chrome">
+    <header class="app-chrome sketch-topbar">
       <div class="app-header-top">
-        <div class="app-nav-cluster">
-          <div class="app-brand">
+        <div class="app-nav-cluster sketch-nav-cluster">
+          <div class="app-brand sketch-brand">
             <span class="brand-mark" aria-hidden="true">MS</span>
             <div class="brand-copy">
-              <strong>Client Portal</strong>
+              <strong>Media Server</strong>
               <span>)" << HtmlEscape(client_subtitle) << R"(</span>
             </div>
           </div>
-          <nav class="image-nav-tabs client-image-nav-tabs" aria-label="클라이언트 메뉴">
+          <nav class="image-nav-tabs sketch-primary-nav client-image-nav-tabs" aria-label="클라이언트 메뉴">
 )";
     AppendImageNavLink(out, "/client/live", "live", "라이브", active == "live");
     AppendImageNavLink(out, "/client/dashboard", "dashboard", "대시보드", active == "dashboard");
@@ -4047,15 +4191,15 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
 )";
 
     out << R"(
-    <section class="workspace" data-testid="client-shell-page">
-      <div class="panel">
+    <section class="workspace client-workspace-shell" data-testid="client-shell-page">
+      <div class="panel client-channel-dock">
         <div class="toolbar panel-title-toolbar">
           <h2>할당 채널</h2>
 	          )" << RefreshIconButtonHtml("refresh", "ghost", "새로고침") << R"(
         </div>
         <div id="views" class="views"></div>
       </div>
-      <div class="panel" id="detail">
+      <div class="panel client-detail-panel" id="detail">
         <div class="empty"><h3>채널을 선택하세요</h3><p>허용된 채널을 선택하면 이 영역에 상태가 표시됩니다.</p></div>
       </div>
     </section>
@@ -4173,13 +4317,19 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
               </select>
             </label>
           </div>
+          <div class="row" data-testid="source-group-site-management" data-scope-contract="view-read-scopes-unchanged">
+            <label>사이트<input name="site" placeholder="예: 본사" /></label>
+            <label>그룹<input name="group" placeholder="예: 주차장" /></label>
+            <label>층<input name="floor" placeholder="예: B1" /></label>
+            <label>구역<input name="zone" placeholder="예: 출입구" /></label>
+          </div>
           <label data-source-kind="file">파일
             <select name="file" id="channel-file-select">
               <option value="sample_h264.mp4">sample_h264.mp4</option>
             </select>
           </label>
           <label data-source-kind="onvif">ONVIF 스트림 URI<input name="onvifStreamUrl" placeholder="rtsp://camera/live 또는 https://camera/live.m3u8" /></label>
-          <p data-source-kind="onvif" class="hint">ONVIF 장치의 라이브 프로파일에서 선택한 재생 URI를 입력합니다. WS-Discovery 자동 검색, PTZ 제어, ONVIF Events/PullPoint, Profile G/Recording/Replay는 제공하지 않습니다. 운영자가 확인한 live URI 또는 probe fixture를 사용합니다. 저장 후에는 ONVIF 채널로 표시하고, 서버의 RTSP/WHEP 출력 URL을 같은 방식으로 복사합니다.</p>
+          <p data-source-kind="onvif" class="hint">지원 제외: WS-Discovery 자동 검색, PTZ 제어, ONVIF Events/PullPoint, Profile G/Recording/Replay는 제공하지 않습니다. 운영자가 확인한 live URI 또는 probe fixture를 사용합니다.</p>
           <div data-source-kind="onvif" class="form-grid" data-testid="onvif-probe-draft-tool">
             <label>ONVIF probe fixture
               <textarea id="onvifProbeDraftInput" rows="5" spellcheck="false" autocomplete="off" placeholder="test/fixtures/onvif_probe_result_stub.json 내용을 붙여넣기"></textarea>
@@ -4353,7 +4503,8 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
               </label>
             </div>
             <div id="view-assignment">
-              <label>채널 ID<input name="viewId" placeholder="1" /></label>
+              <label>채널 ID<input name="viewId" list="view-assignment-options" placeholder="1" /></label>
+              <datalist id="view-assignment-options"></datalist>
               <p class="hint">시청자/연동 계정에는 선택한 채널의 라이브, 대시보드, 이벤트, 메타데이터 조회 권한만 부여합니다. 운영, 개발, 소스, 룰 관리 권한은 허용하지 않습니다.</p>
             </div>
             <div class="scope-template-actions">
@@ -8303,6 +8454,990 @@ bool AppendOpsAuditRecord(const app::AppConfig& config,
     return true;
 }
 
+struct OpsEventReviewState {
+    bool present{false};
+    std::string event_id;
+    std::string review_status{"new"};
+    std::string classification{"unclassified"};
+    std::string note;
+    std::int64_t updated_at_ms{0};
+    std::string actor;
+    std::string role;
+};
+
+std::filesystem::path OpsEventReviewStoragePath(const app::AppConfig& config) {
+    std::filesystem::path base = config.source_registry_path.empty()
+                                     ? std::filesystem::path(".")
+                                     : std::filesystem::path(config.source_registry_path).parent_path();
+    if (base.empty()) {
+        base = ".";
+    }
+    return base / ".media_server.event_reviews.jsonl";
+}
+
+bool OpsEventReviewEventIdAllowed(const std::string& value) {
+    if (value.empty() || value.size() > 160) {
+        return false;
+    }
+    for (const unsigned char ch : value) {
+        if (ch <= 0x20 || ch == '"' || ch == '\'' || ch == '\\' || ch == '/' || ch == '?' ||
+            ch == '#' || ch == '&') {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool OpsEventReviewStatusAllowed(const std::string& value) {
+    static const std::unordered_set<std::string> kAllowed = {
+        "new",
+        "reviewing",
+        "confirmed",
+        "dismissed",
+        "needs-follow-up",
+    };
+    return kAllowed.count(value) != 0;
+}
+
+bool OpsEventReviewClassificationAllowed(const std::string& value) {
+    static const std::unordered_set<std::string> kAllowed = {
+        "unclassified",
+        "true-positive",
+        "false-positive",
+        "duplicate",
+        "needs-tuning",
+    };
+    return kAllowed.count(value) != 0;
+}
+
+std::string NormalizeOpsEventReviewStatus(std::string value) {
+    value = LowerAscii(Trim(std::move(value)));
+    return OpsEventReviewStatusAllowed(value) ? value : "new";
+}
+
+std::string NormalizeOpsEventReviewClassification(std::string value) {
+    value = LowerAscii(Trim(std::move(value)));
+    return OpsEventReviewClassificationAllowed(value) ? value : "unclassified";
+}
+
+bool OpsEventReviewNoteContainsSensitiveMaterial(const std::string& value) {
+    const std::string lowered = LowerAscii(value);
+    static const std::vector<std::string> kNeedles = {
+        "rtsp://",
+        "rtsps://",
+        "whep://",
+        "wheps://",
+        "sourceurl",
+        "developerurl",
+        "debugurl",
+        "password",
+        "token",
+        "secret",
+        "credential",
+        "passwordhash",
+        "tokenhash",
+        "modelpath",
+        "modelchecksum",
+        "raw json",
+        "debugcounters",
+        "bbox diagnostics",
+    };
+    return std::any_of(kNeedles.begin(), kNeedles.end(), [&](const std::string& needle) {
+        return lowered.find(needle) != std::string::npos;
+    });
+}
+
+std::string NormalizeOpsEventReviewNote(std::string value) {
+    value = Trim(std::move(value));
+    for (char& ch : value) {
+        if (ch == '\r' || ch == '\n' || ch == '\t' ||
+            static_cast<unsigned char>(ch) < 0x20) {
+            ch = ' ';
+        }
+    }
+    value = Trim(std::move(value));
+    constexpr std::size_t kMaxReviewNoteBytes = 500;
+    if (value.size() > kMaxReviewNoteBytes) {
+        value.resize(kMaxReviewNoteBytes);
+        value = Trim(std::move(value));
+    }
+    if (OpsEventReviewNoteContainsSensitiveMaterial(value)) {
+        return "[redacted-review-note]";
+    }
+    return value;
+}
+
+OpsEventReviewState OpsEventReviewStateFromJsonLine(const std::string& line) {
+    OpsEventReviewState state;
+    state.event_id = Trim(ParseStringField(line, "eventId").value_or(""));
+    state.review_status = NormalizeOpsEventReviewStatus(
+        ParseStringField(line, "reviewStatus").value_or("new"));
+    state.classification = NormalizeOpsEventReviewClassification(
+        ParseStringField(line, "classification").value_or("unclassified"));
+    state.note = NormalizeOpsEventReviewNote(ParseStringField(line, "note").value_or(""));
+    state.updated_at_ms = ParseInt64Field(line, "updatedAtMs").value_or(0);
+    state.actor = Trim(ParseStringField(line, "actor").value_or(""));
+    state.role = Trim(ParseStringField(line, "role").value_or(""));
+    state.present = OpsEventReviewEventIdAllowed(state.event_id);
+    return state;
+}
+
+std::string OpsEventReviewStateJson(const OpsEventReviewState& state) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.event-review-state.v1\","
+        << "\"present\":" << (state.present ? "true" : "false") << ","
+        << "\"eventId\":\"" << JsonEscape(state.event_id) << "\","
+        << "\"reviewStatus\":\"" << JsonEscape(state.review_status.empty() ? "new"
+                                                                            : state.review_status)
+        << "\","
+        << "\"classification\":\"" << JsonEscape(state.classification.empty()
+                                                     ? "unclassified"
+                                                     : state.classification)
+        << "\","
+        << "\"note\":\"" << JsonEscape(state.note) << "\","
+        << "\"updatedAtMs\":" << state.updated_at_ms << ","
+        << "\"actor\":\"" << JsonEscape(state.actor) << "\","
+        << "\"role\":\"" << JsonEscape(state.role) << "\""
+        << "}";
+    return out.str();
+}
+
+OpsEventReviewState DefaultOpsEventReviewState(std::string event_id) {
+    OpsEventReviewState state;
+    state.event_id = std::move(event_id);
+    state.present = false;
+    state.review_status = "new";
+    state.classification = "unclassified";
+    return state;
+}
+
+bool LoadOpsEventReviewStatesLocked(const std::filesystem::path& path,
+                                    std::unordered_map<std::string, OpsEventReviewState>* states,
+                                    std::string* error_message) {
+    if (states == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "review state map is required";
+        }
+        return false;
+    }
+    states->clear();
+    if (!std::filesystem::exists(path)) {
+        return true;
+    }
+    std::ifstream in(path);
+    if (!in) {
+        if (error_message != nullptr) {
+            *error_message = "failed to open event review state: " + path.string();
+        }
+        return false;
+    }
+    std::string line;
+    while (std::getline(in, line)) {
+        line = Trim(std::move(line));
+        if (line.empty()) {
+            continue;
+        }
+        OpsEventReviewState state = OpsEventReviewStateFromJsonLine(line);
+        if (state.present) {
+            (*states)[state.event_id] = std::move(state);
+        }
+    }
+    return true;
+}
+
+bool LoadOpsEventReviewStates(const app::AppConfig& config,
+                              std::unordered_map<std::string, OpsEventReviewState>* states,
+                              std::string* error_message) {
+    const std::filesystem::path path = OpsEventReviewStoragePath(config);
+    std::lock_guard lock(g_ops_event_review_mu);
+    return LoadOpsEventReviewStatesLocked(path, states, error_message);
+}
+
+bool UpsertOpsEventReviewState(const app::AppConfig& config,
+                               OpsEventReviewState next,
+                               OpsEventReviewState* previous,
+                               std::string* error_message) {
+    if (!OpsEventReviewEventIdAllowed(next.event_id)) {
+        if (error_message != nullptr) {
+            *error_message = "eventId is required";
+        }
+        return false;
+    }
+    next.present = true;
+    next.review_status = NormalizeOpsEventReviewStatus(next.review_status);
+    next.classification = NormalizeOpsEventReviewClassification(next.classification);
+    next.note = NormalizeOpsEventReviewNote(next.note);
+    next.updated_at_ms = NowUnixMs();
+    const std::filesystem::path path = OpsEventReviewStoragePath(config);
+    std::error_code ec;
+    std::filesystem::create_directories(path.parent_path(), ec);
+    if (ec) {
+        if (error_message != nullptr) {
+            *error_message = "failed to create event review directory: " + ec.message();
+        }
+        return false;
+    }
+    std::lock_guard lock(g_ops_event_review_mu);
+    std::unordered_map<std::string, OpsEventReviewState> states;
+    if (!LoadOpsEventReviewStatesLocked(path, &states, error_message)) {
+        return false;
+    }
+    if (previous != nullptr) {
+        const auto it = states.find(next.event_id);
+        *previous = it == states.end() ? DefaultOpsEventReviewState(next.event_id) : it->second;
+    }
+    std::ofstream out(path, std::ios::app);
+    if (!out) {
+        if (error_message != nullptr) {
+            *error_message = "failed to open event review state: " + path.string();
+        }
+        return false;
+    }
+    out << OpsEventReviewStateJson(next) << "\n";
+    out.flush();
+    if (!out) {
+        if (error_message != nullptr) {
+            *error_message = "failed to write event review state: " + path.string();
+        }
+        return false;
+    }
+    return true;
+}
+
+std::string OpsEventReviewCatalogJson() {
+    return "{\"reviewStatuses\":[\"new\",\"reviewing\",\"confirmed\",\"dismissed\","
+           "\"needs-follow-up\"],\"classifications\":[\"unclassified\",\"true-positive\","
+           "\"false-positive\",\"duplicate\",\"needs-tuning\"]}";
+}
+
+bool OpsEventReviewMatchesFilters(const OpsEventReviewState& state,
+                                  const std::string& review_status,
+                                  const std::string& classification) {
+    const std::string wanted_status = NormalizeOpsEventReviewStatus(review_status);
+    const std::string wanted_classification =
+        NormalizeOpsEventReviewClassification(classification);
+    if (!Trim(review_status).empty() && state.review_status != wanted_status) {
+        return false;
+    }
+    if (!Trim(classification).empty() && state.classification != wanted_classification) {
+        return false;
+    }
+    return true;
+}
+
+std::filesystem::path ClientLiveLayoutPreferenceStoragePath(const app::AppConfig& config) {
+    std::filesystem::path base = config.source_registry_path.empty()
+                                     ? std::filesystem::path(".")
+                                     : std::filesystem::path(config.source_registry_path).parent_path();
+    if (base.empty()) {
+        base = ".";
+    }
+    return base / ".media_server.client_live_layout_preferences.jsonl";
+}
+
+std::string ClientLivePreferencePrincipalKey(const auth::Principal& principal) {
+    std::string key = Trim(principal.username);
+    if (key.empty()) {
+        key = Trim(principal.display_name);
+    }
+    if (key.empty()) {
+        key = Trim(principal.role);
+    }
+    if (key.empty()) {
+        key = "anonymous";
+    }
+    return principal.auth_mode + ":" + principal.role + ":" + key;
+}
+
+bool ClientLiveLayoutPreferenceContainsForbiddenMaterial(const std::string& body) {
+    const std::string lowered = LowerAscii(body);
+    static const std::vector<std::string> kForbidden = {
+        "rtsp://",
+        "rtsps://",
+        "whep://",
+        "wheps://",
+        "sourceurl",
+        "developerurl",
+        "debugurl",
+        "raw json",
+        "rawjson",
+        "debugcounters",
+        "bbox diagnostics",
+        "modelpath",
+        "modelchecksum",
+        "password",
+        "passwordhash",
+        "token",
+        "tokenhash",
+        "credential",
+        "secret",
+    };
+    return std::any_of(kForbidden.begin(), kForbidden.end(), [&](const std::string& needle) {
+        return lowered.find(needle) != std::string::npos;
+    });
+}
+
+bool NormalizeClientLiveLayoutPreferenceBody(const std::string& body,
+                                             std::string* normalized,
+                                             std::string* error_message) {
+    std::string value = Trim(body);
+    constexpr std::size_t kClientLiveLayoutPreferenceMaxBodyBytes = 24 * 1024;
+    if (value.empty()) {
+        if (error_message != nullptr) {
+            *error_message = "invalid live layout preference: body is required";
+        }
+        return false;
+    }
+    if (value.size() > kClientLiveLayoutPreferenceMaxBodyBytes) {
+        if (error_message != nullptr) {
+            *error_message = "invalid live layout preference: body is too large";
+        }
+        return false;
+    }
+    if (value.front() != '{' || value.back() != '}') {
+        if (error_message != nullptr) {
+            *error_message = "invalid live layout preference: JSON object required";
+        }
+        return false;
+    }
+    if (!ExtractObjectField(value, "workspaceLayout").has_value() ||
+        !ExtractObjectField(value, "filters").has_value() ||
+        !ExtractObjectField(value, "overlayDefaults").has_value()) {
+        if (error_message != nullptr) {
+            *error_message =
+                "invalid live layout preference: workspaceLayout, filters, overlayDefaults required";
+        }
+        return false;
+    }
+    const std::string schema =
+        Trim(ParseStringField(value, "schema").value_or("media-server.client-live-layout.v1"));
+    if (schema != "media-server.client-live-layout.v1") {
+        if (error_message != nullptr) {
+            *error_message = "invalid live layout preference: unsupported schema";
+        }
+        return false;
+    }
+    if (ClientLiveLayoutPreferenceContainsForbiddenMaterial(value)) {
+        if (error_message != nullptr) {
+            *error_message =
+                "invalid live layout preference: debug, credential, or source URL material is not allowed";
+        }
+        return false;
+    }
+    if (normalized != nullptr) {
+        *normalized = std::move(value);
+    }
+    return true;
+}
+
+std::string ClientLiveRoleLayoutPresetJson(const auth::Principal& principal) {
+    const std::string role = principal.role.empty() ? "viewer" : principal.role;
+    const bool operator_like = role == "admin" || role == "operator";
+    const bool integrator = role == "integrator";
+    const int grid_size = integrator ? 1 : 4;
+    const std::string density = operator_like ? "compact" : "comfortable";
+    const std::string dock_side = operator_like ? "left" : "right";
+    const bool info_overlay = false;
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.client-live-layout.v1\","
+        << "\"presetType\":\"role\","
+        << "\"role\":\"" << JsonEscape(role) << "\","
+        << "\"workspaceLayout\":{\"gridSize\":" << grid_size
+        << ",\"density\":\"" << density << "\","
+        << "\"dockSide\":\"" << dock_side << "\"},"
+        << "\"filters\":{\"eventFeed\":\"selected-tile\",\"selectedViewId\":\"\"},"
+        << "\"overlayDefaults\":{\"infoOverlayEnabled\":"
+        << (info_overlay ? "true" : "false") << "},"
+        << "\"selectedSources\":[],"
+        << "\"tiles\":[]"
+        << "}";
+    return out.str();
+}
+
+bool LoadClientLiveLayoutPreferenceLocked(const std::filesystem::path& path,
+                                          const std::string& key,
+                                          std::string* preference_json,
+                                          std::int64_t* updated_at_ms,
+                                          std::string* error_message) {
+    if (preference_json != nullptr) {
+        preference_json->clear();
+    }
+    if (updated_at_ms != nullptr) {
+        *updated_at_ms = 0;
+    }
+    if (!std::filesystem::exists(path)) {
+        return true;
+    }
+    std::ifstream in(path);
+    if (!in) {
+        if (error_message != nullptr) {
+            *error_message = "failed to open client live layout preference state: " + path.string();
+        }
+        return false;
+    }
+    std::string line;
+    while (std::getline(in, line)) {
+        line = Trim(std::move(line));
+        if (line.empty() || ParseStringField(line, "key").value_or("") != key) {
+            continue;
+        }
+        const auto preference = ExtractObjectField(line, "userPreference");
+        if (!preference.has_value()) {
+            continue;
+        }
+        if (preference_json != nullptr) {
+            *preference_json = *preference;
+        }
+        if (updated_at_ms != nullptr) {
+            *updated_at_ms = ParseInt64Field(line, "updatedAtMs").value_or(0);
+        }
+    }
+    return true;
+}
+
+bool LoadClientLiveLayoutPreference(const app::AppConfig& config,
+                                    const auth::Principal& principal,
+                                    std::string* preference_json,
+                                    std::int64_t* updated_at_ms,
+                                    std::string* error_message) {
+    const std::filesystem::path path = ClientLiveLayoutPreferenceStoragePath(config);
+    const std::string key = ClientLivePreferencePrincipalKey(principal);
+    std::lock_guard lock(g_client_live_preference_mu);
+    return LoadClientLiveLayoutPreferenceLocked(
+        path, key, preference_json, updated_at_ms, error_message);
+}
+
+std::string ClientLiveLayoutPreferenceRecordJson(const auth::Principal& principal,
+                                                 const std::string& preference_json,
+                                                 std::int64_t updated_at_ms) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.client-live-layout-preference.v1\","
+        << "\"key\":\"" << JsonEscape(ClientLivePreferencePrincipalKey(principal)) << "\","
+        << "\"actor\":\"" << JsonEscape(principal.username.empty()
+                                             ? principal.display_name
+                                             : principal.username)
+        << "\","
+        << "\"role\":\"" << JsonEscape(principal.role) << "\","
+        << "\"updatedAtMs\":" << updated_at_ms << ","
+        << "\"userPreference\":" << preference_json
+        << "}";
+    return out.str();
+}
+
+bool UpsertClientLiveLayoutPreference(const app::AppConfig& config,
+                                      const auth::Principal& principal,
+                                      const std::string& body,
+                                      std::string* error_message) {
+    std::string normalized;
+    if (!NormalizeClientLiveLayoutPreferenceBody(body, &normalized, error_message)) {
+        return false;
+    }
+    const std::filesystem::path path = ClientLiveLayoutPreferenceStoragePath(config);
+    std::error_code ec;
+    std::filesystem::create_directories(path.parent_path(), ec);
+    if (ec) {
+        if (error_message != nullptr) {
+            *error_message = "failed to create client live layout preference directory: " + ec.message();
+        }
+        return false;
+    }
+    std::lock_guard lock(g_client_live_preference_mu);
+    std::ofstream out(path, std::ios::app);
+    if (!out) {
+        if (error_message != nullptr) {
+            *error_message = "failed to open client live layout preference state: " + path.string();
+        }
+        return false;
+    }
+    out << ClientLiveLayoutPreferenceRecordJson(principal, normalized, NowUnixMs()) << "\n";
+    out.flush();
+    if (!out) {
+        if (error_message != nullptr) {
+            *error_message = "failed to write client live layout preference state: " + path.string();
+        }
+        return false;
+    }
+    return true;
+}
+
+std::string ClientLiveLayoutPreferencesJson(const app::AppConfig& config,
+                                            const auth::Principal& principal,
+                                            bool saved) {
+    std::string preference_json;
+    std::int64_t updated_at_ms = 0;
+    std::string error_message;
+    const bool loaded = LoadClientLiveLayoutPreference(
+        config, principal, &preference_json, &updated_at_ms, &error_message);
+    std::ostringstream out;
+    out << "{"
+        << "\"status\":\"client-live-layout-preferences\","
+        << "\"schema\":\"media-server.client-live-layout-preferences.v1\","
+        << "\"saved\":" << (saved ? "true" : "false") << ","
+        << "\"contract\":{\"userPreferenceSeparateFromRolePreset\":true,"
+        << "\"rolePresetSeparateFromUserPreference\":true,"
+        << "\"authScopeChanged\":false,"
+        << "\"mediaPathChanged\":false},"
+        << "\"principal\":{\"role\":\"" << JsonEscape(principal.role) << "\"},"
+        << "\"rolePreset\":" << ClientLiveRoleLayoutPresetJson(principal) << ","
+        << "\"userPreference\":";
+    if (!preference_json.empty()) {
+        out << preference_json;
+    } else {
+        out << "null";
+    }
+    out << ",\"updatedAtMs\":" << updated_at_ms;
+    if (!loaded) {
+        out << ",\"warning\":\"" << JsonEscape(error_message) << "\"";
+    }
+    out << "}";
+    return out.str();
+}
+
+struct OpsAlertDeliveryConfig {
+    bool present{false};
+    bool enabled{false};
+    std::string id;
+    std::string kind{"webhook"};
+    std::string label;
+    std::string endpoint;
+    int retry_max{3};
+    int retry_backoff_ms{2000};
+    std::int64_t updated_at_ms{0};
+};
+
+std::filesystem::path OpsAlertDeliveryStoragePath(const app::AppConfig& config) {
+    std::filesystem::path base = config.source_registry_path.empty()
+                                     ? std::filesystem::path(".")
+                                     : std::filesystem::path(config.source_registry_path).parent_path();
+    if (base.empty()) {
+        base = ".";
+    }
+    return base / ".media_server.alert_deliveries.jsonl";
+}
+
+std::filesystem::path OpsAlertDeliveryAttemptStoragePath(const app::AppConfig& config) {
+    std::filesystem::path base = config.source_registry_path.empty()
+                                     ? std::filesystem::path(".")
+                                     : std::filesystem::path(config.source_registry_path).parent_path();
+    if (base.empty()) {
+        base = ".";
+    }
+    return base / ".media_server.alert_delivery_attempts.jsonl";
+}
+
+bool OpsAlertDeliveryIdAllowed(const std::string& value) {
+    if (value.empty() || value.size() > 80) {
+        return false;
+    }
+    for (const unsigned char ch : value) {
+        if (!(std::isalnum(ch) || ch == '-' || ch == '_' || ch == '.')) {
+            return false;
+        }
+    }
+    return true;
+}
+
+std::string NormalizeOpsAlertDeliveryKind(std::string value) {
+    value = LowerAscii(Trim(std::move(value)));
+    if (value == "email" || value == "slack" || value == "webhook") {
+        return value;
+    }
+    return "webhook";
+}
+
+int ClampOpsAlertDeliveryInt(std::optional<std::int64_t> value, int fallback, int min_value, int max_value) {
+    if (!value.has_value()) {
+        return fallback;
+    }
+    return static_cast<int>(std::max<std::int64_t>(
+        min_value, std::min<std::int64_t>(max_value, *value)));
+}
+
+std::string OpsAlertDeliveryEndpointFromBody(const std::string& body, const std::string& kind) {
+    if (kind == "email") {
+        return Trim(ParseStringField(body, "emailTo").value_or(ParseStringField(body, "endpoint").value_or("")));
+    }
+    if (kind == "slack") {
+        return Trim(ParseStringField(body, "slackChannel")
+                        .value_or(ParseStringField(body, "webhookUrl")
+                                      .value_or(ParseStringField(body, "endpoint").value_or(""))));
+    }
+    return Trim(ParseStringField(body, "webhookUrl")
+                    .value_or(ParseStringField(body, "url")
+                                  .value_or(ParseStringField(body, "endpoint").value_or(""))));
+}
+
+std::string OpsAlertDeliveryMaskedEndpoint(const OpsAlertDeliveryConfig& config) {
+    if (config.endpoint.empty()) {
+        return "";
+    }
+    if (config.kind == "email") {
+        const std::size_t at = config.endpoint.find('@');
+        if (at != std::string::npos && at > 0 && at + 1 < config.endpoint.size()) {
+            return config.endpoint.substr(0, 1) + "***@" + config.endpoint.substr(at + 1);
+        }
+    }
+    if (config.kind == "slack" && config.endpoint.rfind("#", 0) == 0) {
+        return "#***";
+    }
+    return "[redacted-alert-target]";
+}
+
+OpsAlertDeliveryConfig OpsAlertDeliveryConfigFromJsonLine(const std::string& line) {
+    OpsAlertDeliveryConfig config;
+    config.id = Trim(ParseStringField(line, "id").value_or(""));
+    config.kind = NormalizeOpsAlertDeliveryKind(ParseStringField(line, "kind").value_or("webhook"));
+    config.enabled = ParseBoolField(line, "enabled").value_or(false);
+    config.label = Trim(ParseStringField(line, "label").value_or(""));
+    config.endpoint = Trim(ParseStringField(line, "endpoint").value_or(""));
+    config.retry_max = ClampOpsAlertDeliveryInt(ParseInt64Field(line, "retryMax"), 3, 0, 8);
+    config.retry_backoff_ms =
+        ClampOpsAlertDeliveryInt(ParseInt64Field(line, "retryBackoffMs"), 2000, 250, 60000);
+    config.updated_at_ms = ParseInt64Field(line, "updatedAtMs").value_or(0);
+    config.present = OpsAlertDeliveryIdAllowed(config.id);
+    return config;
+}
+
+std::string OpsAlertDeliveryConfigJson(const OpsAlertDeliveryConfig& config, bool redact_endpoint) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.alert-delivery.v1\","
+        << "\"id\":\"" << JsonEscape(config.id) << "\","
+        << "\"kind\":\"" << JsonEscape(config.kind) << "\","
+        << "\"enabled\":" << (config.enabled ? "true" : "false") << ","
+        << "\"label\":\"" << JsonEscape(config.label) << "\",";
+    if (redact_endpoint) {
+        out << "\"endpointMasked\":\"" << JsonEscape(OpsAlertDeliveryMaskedEndpoint(config)) << "\","
+            << "\"endpointRedacted\":true,";
+    } else {
+        out << "\"endpoint\":\"" << JsonEscape(config.endpoint) << "\",";
+    }
+    out << "\"retryPolicy\":{\"maxAttempts\":" << config.retry_max
+        << ",\"backoffMs\":" << config.retry_backoff_ms
+        << ",\"bounded\":true},"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"updatedAtMs\":" << config.updated_at_ms
+        << "}";
+    return out.str();
+}
+
+bool LoadOpsAlertDeliveryConfigsLocked(const std::filesystem::path& path,
+                                       std::unordered_map<std::string, OpsAlertDeliveryConfig>* configs,
+                                       std::string* error_message) {
+    if (configs == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "alert delivery config map is required";
+        }
+        return false;
+    }
+    configs->clear();
+    if (!std::filesystem::exists(path)) {
+        return true;
+    }
+    std::ifstream in(path);
+    if (!in) {
+        if (error_message != nullptr) {
+            *error_message = "failed to open alert delivery state: " + path.string();
+        }
+        return false;
+    }
+    std::string line;
+    while (std::getline(in, line)) {
+        line = Trim(std::move(line));
+        if (line.empty()) {
+            continue;
+        }
+        OpsAlertDeliveryConfig config = OpsAlertDeliveryConfigFromJsonLine(line);
+        if (config.present) {
+            (*configs)[config.id] = std::move(config);
+        }
+    }
+    return true;
+}
+
+bool LoadOpsAlertDeliveryConfigs(const app::AppConfig& config,
+                                 std::unordered_map<std::string, OpsAlertDeliveryConfig>* configs,
+                                 std::string* error_message) {
+    const std::filesystem::path path = OpsAlertDeliveryStoragePath(config);
+    std::lock_guard lock(g_ops_alert_delivery_mu);
+    return LoadOpsAlertDeliveryConfigsLocked(path, configs, error_message);
+}
+
+bool UpsertOpsAlertDeliveryConfig(const app::AppConfig& config,
+                                  const std::string& body,
+                                  OpsAlertDeliveryConfig* saved,
+                                  std::string* error_message) {
+    OpsAlertDeliveryConfig next;
+    next.id = Trim(ParseStringField(body, "id").value_or(""));
+    if (!OpsAlertDeliveryIdAllowed(next.id)) {
+        if (error_message != nullptr) {
+            *error_message = "alert delivery id is required";
+        }
+        return false;
+    }
+    next.kind = NormalizeOpsAlertDeliveryKind(ParseStringField(body, "kind").value_or("webhook"));
+    next.enabled = ParseBoolField(body, "enabled").value_or(true);
+    next.label = Trim(ParseStringField(body, "label").value_or(next.id));
+    next.endpoint = OpsAlertDeliveryEndpointFromBody(body, next.kind);
+    if (next.endpoint.empty()) {
+        if (error_message != nullptr) {
+            *error_message = "alert delivery endpoint is required";
+        }
+        return false;
+    }
+    next.retry_max = ClampOpsAlertDeliveryInt(ParseInt64Field(body, "retryMax"), 3, 0, 8);
+    next.retry_backoff_ms =
+        ClampOpsAlertDeliveryInt(ParseInt64Field(body, "retryBackoffMs"), 2000, 250, 60000);
+    next.updated_at_ms = NowUnixMs();
+    next.present = true;
+
+    const std::filesystem::path path = OpsAlertDeliveryStoragePath(config);
+    std::error_code ec;
+    std::filesystem::create_directories(path.parent_path(), ec);
+    if (ec) {
+        if (error_message != nullptr) {
+            *error_message = "failed to create alert delivery directory: " + ec.message();
+        }
+        return false;
+    }
+    std::lock_guard lock(g_ops_alert_delivery_mu);
+    std::ofstream out(path, std::ios::app);
+    if (!out) {
+        if (error_message != nullptr) {
+            *error_message = "failed to open alert delivery state: " + path.string();
+        }
+        return false;
+    }
+    out << OpsAlertDeliveryConfigJson(next, false) << "\n";
+    out.flush();
+    if (!out) {
+        if (error_message != nullptr) {
+            *error_message = "failed to write alert delivery state: " + path.string();
+        }
+        return false;
+    }
+    if (saved != nullptr) {
+        *saved = next;
+    }
+    return true;
+}
+
+std::string OpsAlertDeliveryAttemptJson(const OpsAlertDeliveryConfig& delivery,
+                                        const std::string& event_id,
+                                        const std::string& event_type,
+                                        const std::string& source_id,
+                                        const std::string& status,
+                                        const std::string& transport,
+                                        std::int64_t now_ms) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.alert-delivery-attempt.v1\","
+        << "\"deliveryId\":\"" << JsonEscape(delivery.id) << "\","
+        << "\"kind\":\"" << JsonEscape(delivery.kind) << "\","
+        << "\"eventId\":\"" << JsonEscape(event_id) << "\","
+        << "\"eventType\":\"" << JsonEscape(event_type) << "\","
+        << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
+        << "\"status\":\"" << JsonEscape(status) << "\","
+        << "\"transport\":\"" << JsonEscape(transport) << "\","
+        << "\"endpointMasked\":\"" << JsonEscape(OpsAlertDeliveryMaskedEndpoint(delivery)) << "\","
+        << "\"retryPolicy\":{\"maxAttempts\":" << delivery.retry_max
+        << ",\"backoffMs\":" << delivery.retry_backoff_ms
+        << ",\"bounded\":true},"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"attemptedAtMs\":" << now_ms
+        << "}";
+    return out.str();
+}
+
+bool AppendOpsAlertDeliveryAttempt(const app::AppConfig& config,
+                                   const std::string& attempt_json,
+                                   std::string* error_message) {
+    const std::filesystem::path path = OpsAlertDeliveryAttemptStoragePath(config);
+    std::error_code ec;
+    std::filesystem::create_directories(path.parent_path(), ec);
+    if (ec) {
+        if (error_message != nullptr) {
+            *error_message = "failed to create alert delivery attempt directory: " + ec.message();
+        }
+        return false;
+    }
+    std::lock_guard lock(g_ops_alert_delivery_mu);
+    std::ofstream out(path, std::ios::app);
+    if (!out) {
+        if (error_message != nullptr) {
+            *error_message = "failed to open alert delivery attempt state: " + path.string();
+        }
+        return false;
+    }
+    out << attempt_json << "\n";
+    return true;
+}
+
+std::vector<std::string> LoadRecentOpsAlertDeliveryAttempts(const app::AppConfig& config,
+                                                           std::size_t limit) {
+    const std::filesystem::path path = OpsAlertDeliveryAttemptStoragePath(config);
+    std::vector<std::string> lines;
+    std::lock_guard lock(g_ops_alert_delivery_mu);
+    if (!std::filesystem::exists(path)) {
+        return lines;
+    }
+    std::ifstream in(path);
+    std::string line;
+    while (std::getline(in, line)) {
+        line = Trim(std::move(line));
+        if (!line.empty()) {
+            lines.push_back(line);
+        }
+    }
+    if (lines.size() > limit) {
+        lines.erase(lines.begin(), lines.end() - static_cast<std::ptrdiff_t>(limit));
+    }
+    std::reverse(lines.begin(), lines.end());
+    return lines;
+}
+
+std::string OpsAlertDeliveryListJson(const app::AppConfig& config) {
+    std::unordered_map<std::string, OpsAlertDeliveryConfig> configs;
+    std::string error_message;
+    const bool loaded = LoadOpsAlertDeliveryConfigs(config, &configs, &error_message);
+    std::vector<OpsAlertDeliveryConfig> items;
+    for (const auto& [_, item] : configs) {
+        items.push_back(item);
+    }
+    std::sort(items.begin(), items.end(), [](const auto& left, const auto& right) {
+        return left.id < right.id;
+    });
+    const auto attempts = LoadRecentOpsAlertDeliveryAttempts(config, 20);
+    std::ostringstream out;
+    out << "{"
+        << "\"status\":\"ops-alert-deliveries\","
+        << "\"schema\":\"media-server.ops.alert-delivery-list.v1\","
+        << "\"contract\":{\"separateFromEventPostPayload\":true,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"auditMasking\":true,"
+        << "\"retryPolicy\":true},"
+        << "\"policy\":{\"transports\":[\"webhook\",\"email\",\"slack\"],"
+        << "\"deliveryFixtureSmoke\":true,"
+        << "\"boundedRetry\":true,"
+        << "\"clientViewerExposure\":false},"
+        << "\"integrations\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << OpsAlertDeliveryConfigJson(items[i], true);
+    }
+    out << "],\"attempts\":[";
+    for (std::size_t i = 0; i < attempts.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << attempts[i];
+    }
+    out << "],\"loaded\":" << (loaded ? "true" : "false");
+    if (!loaded) {
+        out << ",\"warning\":\"" << JsonEscape(error_message) << "\"";
+    }
+    out << "}";
+    return out.str();
+}
+
+std::string DispatchOpsAlertDeliveryFixture(const app::AppConfig& config,
+                                            const auth::Principal& principal,
+                                            const std::string& body,
+                                            std::string* error_message) {
+    std::unordered_map<std::string, OpsAlertDeliveryConfig> configs;
+    if (!LoadOpsAlertDeliveryConfigs(config, &configs, error_message)) {
+        return "";
+    }
+    const std::string wanted_id = Trim(ParseStringField(body, "id").value_or(
+        ParseStringField(body, "deliveryId").value_or("")));
+    const std::string event_id = Trim(ParseStringField(body, "eventId").value_or(
+        "v170-alert-fixture-" + std::to_string(NowUnixMs())));
+    const std::string event_type =
+        Trim(ParseStringField(body, "eventType").value_or("intrusion"));
+    const std::string source_id = Trim(ParseStringField(body, "sourceId").value_or("sample"));
+    std::vector<std::string> attempts;
+    const std::int64_t now_ms = NowUnixMs();
+    for (const auto& [_, delivery] : configs) {
+        if (!delivery.enabled) {
+            continue;
+        }
+        if (!wanted_id.empty() && delivery.id != wanted_id) {
+            continue;
+        }
+        const std::string attempt =
+            OpsAlertDeliveryAttemptJson(delivery, event_id, event_type, source_id, "delivered", "fixture", now_ms);
+        if (!AppendOpsAlertDeliveryAttempt(config, attempt, error_message)) {
+            return "";
+        }
+        attempts.push_back(attempt);
+    }
+    std::ostringstream audit_body;
+    audit_body << "{"
+               << "\"area\":\"events\","
+               << "\"action\":\"alert-delivery-test\","
+               << "\"target\":\"alert-delivery:" << JsonEscape(wanted_id.empty() ? "all" : wanted_id) << "\","
+               << "\"summary\":\"Alert delivery fixture dispatched\","
+               << "\"after\":{\"eventId\":\"" << JsonEscape(event_id) << "\","
+               << "\"attempts\":" << attempts.size() << ","
+               << "\"endpoint\":\"[redacted-alert-target]\"}"
+               << "}";
+    std::string audit_error;
+    (void)AppendOpsAuditRecord(config, OpsAuditRecordJson(audit_body.str(), principal), &audit_error);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"status\":\"ops-alert-delivery-fixture\","
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"audit\":{\"area\":\"events\",\"action\":\"alert-delivery-test\"},"
+        << "\"attempts\":[";
+    for (std::size_t i = 0; i < attempts.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << attempts[i];
+    }
+    out << "]}";
+    return out.str();
+}
+
+void DispatchOpsAlertDeliveries(const app::AppConfig& config,
+                                const analysis::AnalysisResult& result,
+                                const std::vector<analysis::AnalysisEvent>& events) {
+    if (events.empty()) {
+        return;
+    }
+    std::unordered_map<std::string, OpsAlertDeliveryConfig> configs;
+    if (!LoadOpsAlertDeliveryConfigs(config, &configs, nullptr)) {
+        return;
+    }
+    const std::int64_t now_ms = NowUnixMs();
+    for (const auto& event : events) {
+        const std::string event_id =
+            event.event_id.empty() ? "evt_" + std::to_string(now_ms) : event.event_id;
+        for (const auto& [_, delivery] : configs) {
+            if (!delivery.enabled) {
+                continue;
+            }
+            std::string error_message;
+            (void)AppendOpsAlertDeliveryAttempt(
+                config,
+                OpsAlertDeliveryAttemptJson(delivery,
+                                            event_id,
+                                            event.event_type,
+                                            result.source_key,
+                                            "queued",
+                                            "event-record",
+                                            now_ms),
+                &error_message);
+        }
+    }
+}
+
 std::pair<std::string, std::string> SourceHealthAuditStateParts(const std::string& state) {
     const std::size_t sep = state.find('\n');
     if (sep == std::string::npos) {
@@ -9271,6 +10406,112 @@ std::string AnalysisEventRecordsJson(const analysis::EventRecordQueryResult& res
         << "}"
         << "}";
     return out.str();
+}
+
+std::string OpsEventReviewInboxItemJson(const std::string& event_json,
+                                        const OpsEventReviewState& review) {
+    std::ostringstream out;
+    out << "{"
+        << "\"event\":";
+    if (event_json.empty()) {
+        out << "null";
+    } else {
+        out << event_json;
+    }
+    out << ",\"review\":" << OpsEventReviewStateJson(review)
+        << "}";
+    return out.str();
+}
+
+bool OpsEventReviewInboxJson(const app::AppConfig& config,
+                             const std::unordered_map<std::string, std::string>& query,
+                             std::string* body,
+                             std::string* error_message) {
+    if (body == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "response body is required";
+        }
+        return false;
+    }
+    analysis::EventRecordQueryOptions options;
+    if (!BuildEventRecordQueryOptions(query, &options, error_message)) {
+        return false;
+    }
+    if (query.find("limit") == query.end()) {
+        options.limit = 25;
+    }
+    analysis::EventRecordQueryResult event_result;
+    if (!analysis::QueryEventRecords(options, &event_result, error_message)) {
+        return false;
+    }
+    std::unordered_map<std::string, OpsEventReviewState> reviews;
+    if (!LoadOpsEventReviewStates(config, &reviews, error_message)) {
+        return false;
+    }
+
+    const std::string review_status_filter =
+        query.count("reviewStatus") != 0 ? Trim(query.at("reviewStatus")) : std::string();
+    const std::string classification_filter =
+        query.count("classification") != 0 ? Trim(query.at("classification")) : std::string();
+    const std::string requested_event_id =
+        query.count("eventId") != 0 ? Trim(query.at("eventId")) : std::string();
+
+    std::vector<std::string> items;
+    std::set<std::string> included_event_ids;
+    for (const std::string& raw_event : event_result.records_json) {
+        const std::string event_id = Trim(ParseStringField(raw_event, "eventId").value_or(""));
+        if (!OpsEventReviewEventIdAllowed(event_id)) {
+            continue;
+        }
+        auto review_it = reviews.find(event_id);
+        OpsEventReviewState review =
+            review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
+        if (!OpsEventReviewMatchesFilters(review, review_status_filter, classification_filter)) {
+            continue;
+        }
+        included_event_ids.insert(event_id);
+        items.push_back(OpsEventReviewInboxItemJson(raw_event, review));
+    }
+    if (OpsEventReviewEventIdAllowed(requested_event_id) &&
+        included_event_ids.count(requested_event_id) == 0) {
+        const auto review_it = reviews.find(requested_event_id);
+        if (review_it != reviews.end() &&
+            OpsEventReviewMatchesFilters(review_it->second, review_status_filter, classification_filter)) {
+            items.push_back(OpsEventReviewInboxItemJson("", review_it->second));
+        }
+    }
+
+    std::ostringstream out;
+    out << "{"
+        << "\"status\":\"ops-event-review-inbox\","
+        << "\"schema\":\"media-server.ops.event-review-inbox.v1\","
+        << "\"storage\":{"
+        << "\"persistent\":true,"
+        << "\"separateFromEventRecords\":true,"
+        << "\"separateFromEventPostPayload\":true,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"auditArea\":\"events\","
+        << "\"auditAction\":\"event-review-update\""
+        << "},"
+        << "\"catalog\":" << OpsEventReviewCatalogJson() << ","
+        << "\"records\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << items[i];
+    }
+    out << "],"
+        << "\"recordCount\":" << items.size() << ","
+        << "\"eventRecordOffset\":" << event_result.offset << ","
+        << "\"eventRecordLimit\":" << event_result.limit << ","
+        << "\"eventRecordHasMore\":" << (event_result.has_more ? "true" : "false")
+        << "}";
+    *body = out.str();
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
 }
 
 std::string AnalysisEventRecordCompactionJson(
@@ -11350,6 +12591,179 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            return ok;
 	                        }
 
+	                        if (request.path == "/ops/api/alerts/deliveries") {
+	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+	                                return *auth_response;
+	                            }
+	                            if (request.method == "GET") {
+	                                HttpResponse ok = JsonResponse(200, "OK", OpsAlertDeliveryListJson(config));
+	                                ok.headers["Cache-Control"] = "no-store";
+	                                return ok;
+	                            }
+	                            if (request.method == "POST" || request.method == "PUT") {
+	                                constexpr std::size_t kOpsAlertDeliveryMaxBodyBytes = 64 * 1024;
+	                                if (request.body.size() > kOpsAlertDeliveryMaxBodyBytes) {
+	                                    return JsonResponse(
+	                                        413,
+	                                        "Payload Too Large",
+	                                        "{\"error\":\"alert delivery body is too large\"}");
+	                                }
+	                                OpsAlertDeliveryConfig saved;
+	                                std::string error_message;
+	                                if (!UpsertOpsAlertDeliveryConfig(config, request.body, &saved, &error_message)) {
+	                                    return JsonResponse(400,
+	                                                        "Bad Request",
+	                                                        "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+	                                }
+	                                std::ostringstream audit_body;
+	                                audit_body << "{"
+	                                           << "\"area\":\"events\","
+	                                           << "\"action\":\"alert-delivery-upsert\","
+	                                           << "\"target\":\"alert-delivery:" << JsonEscape(saved.id) << "\","
+	                                           << "\"summary\":\"Alert delivery integration updated\","
+	                                           << "\"after\":" << OpsAlertDeliveryConfigJson(saved, false)
+	                                           << "}";
+	                                std::string audit_error;
+	                                (void)AppendOpsAuditRecord(
+	                                    config,
+	                                    OpsAuditRecordJson(audit_body.str(), principal_result.principal),
+	                                    &audit_error);
+	                                HttpResponse ok = JsonResponse(
+	                                    200,
+	                                    "OK",
+	                                    std::string("{\"status\":\"ops-alert-delivery\",")
+	                                        + "\"audit\":{\"area\":\"events\",\"action\":\"alert-delivery-upsert\"},"
+	                                        + "\"delivery\":" + OpsAlertDeliveryConfigJson(saved, true) + "}");
+	                                ok.headers["Cache-Control"] = "no-store";
+	                                return ok;
+	                            }
+	                            return JsonResponse(405,
+	                                                "Method Not Allowed",
+	                                                "{\"error\":\"method not allowed\"}");
+	                        }
+
+	                        if (request.method == "POST" && request.path == "/ops/api/alerts/deliveries/test") {
+	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+	                                return *auth_response;
+	                            }
+	                            std::string error_message;
+	                            const std::string body = DispatchOpsAlertDeliveryFixture(
+	                                config, principal_result.principal, request.body, &error_message);
+	                            if (body.empty()) {
+	                                return JsonResponse(400,
+	                                                    "Bad Request",
+	                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+	                            }
+	                            HttpResponse ok = JsonResponse(200, "OK", body);
+	                            ok.headers["Cache-Control"] = "no-store";
+	                            return ok;
+	                        }
+
+	                        if (request.method == "GET" && request.path == "/ops/api/events/reviews") {
+	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+	                                return *auth_response;
+	                            }
+	                            std::string body;
+	                            std::string error_message;
+	                            if (!OpsEventReviewInboxJson(config, query, &body, &error_message)) {
+	                                return JsonResponse(400,
+	                                                    "Bad Request",
+	                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+	                            }
+	                            HttpResponse ok = JsonResponse(200, "OK", body);
+	                            ok.headers["Cache-Control"] = "no-store";
+	                            return ok;
+	                        }
+
+	                        if (request.path.rfind("/ops/api/events/reviews/", 0) == 0) {
+	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+	                                return *auth_response;
+	                            }
+	                            const std::string event_id = UrlDecode(
+	                                request.path.substr(std::string("/ops/api/events/reviews/").size()));
+	                            if (!OpsEventReviewEventIdAllowed(event_id)) {
+	                                return JsonResponse(400,
+	                                                    "Bad Request",
+	                                                    "{\"error\":\"eventId is required\"}");
+	                            }
+	                            if (request.method == "GET") {
+	                                std::unordered_map<std::string, std::string> review_query = query;
+	                                review_query["eventId"] = event_id;
+	                                std::string body;
+	                                std::string error_message;
+	                                if (!OpsEventReviewInboxJson(config, review_query, &body, &error_message)) {
+	                                    return JsonResponse(400,
+	                                                        "Bad Request",
+	                                                        "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+	                                }
+	                                HttpResponse ok = JsonResponse(200, "OK", body);
+	                                ok.headers["Cache-Control"] = "no-store";
+	                                return ok;
+	                            }
+	                            if (request.method == "PUT" || request.method == "POST") {
+	                                constexpr std::size_t kOpsEventReviewMaxBodyBytes = 32 * 1024;
+	                                if (request.body.size() > kOpsEventReviewMaxBodyBytes) {
+	                                    return JsonResponse(
+	                                        413,
+	                                        "Payload Too Large",
+	                                        "{\"error\":\"event review body is too large\"}");
+	                                }
+	                                OpsEventReviewState next;
+	                                next.event_id = event_id;
+	                                next.review_status = ParseStringField(request.body, "reviewStatus")
+	                                                         .value_or(ParseStringField(request.body, "status")
+	                                                                       .value_or("reviewing"));
+	                                next.classification = ParseStringField(request.body, "classification")
+	                                                          .value_or("unclassified");
+	                                next.note = ParseStringField(request.body, "note").value_or("");
+	                                next.actor = principal_result.principal.username.empty()
+	                                                 ? principal_result.principal.display_name
+	                                                 : principal_result.principal.username;
+	                                next.role = principal_result.principal.role;
+	                                OpsEventReviewState previous;
+	                                std::string error_message;
+	                                if (!UpsertOpsEventReviewState(config, next, &previous, &error_message)) {
+	                                    return JsonResponse(400,
+	                                                        "Bad Request",
+	                                                        "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+	                                }
+	                                std::unordered_map<std::string, OpsEventReviewState> reviews;
+	                                (void)LoadOpsEventReviewStates(config, &reviews, nullptr);
+	                                const auto review_it = reviews.find(event_id);
+	                                const OpsEventReviewState saved =
+	                                    review_it == reviews.end() ? DefaultOpsEventReviewState(event_id)
+	                                                               : review_it->second;
+	                                std::ostringstream audit_body;
+	                                audit_body << "{"
+	                                           << "\"area\":\"events\","
+	                                           << "\"action\":\"event-review-update\","
+	                                           << "\"target\":\"event:" << JsonEscape(event_id) << "\","
+	                                           << "\"summary\":\"Rule event review updated\","
+	                                           << "\"before\":" << (previous.present
+	                                                                   ? OpsEventReviewStateJson(previous)
+	                                                                   : std::string("null"))
+	                                           << ",\"after\":" << OpsEventReviewStateJson(saved)
+	                                           << "}";
+	                                std::string audit_error;
+	                                (void)AppendOpsAuditRecord(
+	                                    config,
+	                                    OpsAuditRecordJson(audit_body.str(), principal_result.principal),
+	                                    &audit_error);
+	                                HttpResponse ok = JsonResponse(
+	                                    200,
+	                                    "OK",
+	                                    std::string("{\"status\":\"ops-event-review\",\"persistent\":true,")
+	                                        + "\"audit\":{\"area\":\"events\",\"action\":\"event-review-update\"},"
+	                                        + "\"review\":" +
+	                                        OpsEventReviewStateJson(saved) + "}");
+	                                ok.headers["Cache-Control"] = "no-store";
+	                                return ok;
+	                            }
+	                            return JsonResponse(405,
+	                                                "Method Not Allowed",
+	                                                "{\"error\":\"method not allowed\"}");
+	                        }
+
 	                        if (request.path == "/ops/api/audit") {
 	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
 	                                return *auth_response;
@@ -11600,6 +13014,53 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 return RegistryHttpResponse(
                                     SourceViewRegistry::Instance().DisableView(view_id));
                             }
+                        }
+
+                        if (request.path == "/client/api/preferences/live-layout") {
+                            if (const auto auth_response = require_client_api_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    ClientLiveLayoutPreferencesJson(
+                                        config, principal_result.principal, false));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                            if (request.method == "PUT" || request.method == "POST") {
+                                constexpr std::size_t kClientLiveLayoutPreferenceMaxBodyBytes = 24 * 1024;
+                                if (request.body.size() > kClientLiveLayoutPreferenceMaxBodyBytes) {
+                                    return JsonResponse(
+                                        413,
+                                        "Payload Too Large",
+                                        "{\"error\":\"client live layout preference body is too large\"}");
+                                }
+                                std::string error_message;
+                                if (!UpsertClientLiveLayoutPreference(
+                                        config,
+                                        principal_result.principal,
+                                        request.body,
+                                        &error_message)) {
+                                    const bool invalid =
+                                        error_message.rfind("invalid live layout preference", 0) == 0;
+                                    return JsonResponse(
+                                        invalid ? 400 : 500,
+                                        invalid ? "Bad Request" : "Internal Server Error",
+                                        "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                                }
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    ClientLiveLayoutPreferencesJson(
+                                        config, principal_result.principal, true));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                            return JsonResponse(405,
+                                                "Method Not Allowed",
+                                                "{\"error\":\"method not allowed\"}");
                         }
 
                         if (request.path == "/client/api/views") {
@@ -12766,6 +14227,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     if (ParseBoolQuery(query, "dispatch", false)) {
                                         analysis::DispatchEventRecords(evaluation->annotated_result, evaluation->events);
                                         analysis::DispatchEventPosts(evaluation->annotated_result, evaluation->events);
+                                        DispatchOpsAlertDeliveries(config,
+                                                                  evaluation->annotated_result,
+                                                                  evaluation->events);
                                     }
                                 }
                                 return JsonResponse(200,

@@ -123,6 +123,7 @@ std::string ProductSharedUiScript() {
         '시작': 'Start',
         '재연결': 'Reconnect',
         '정지': 'Stop',
+        '연결 해제': 'Disconnect',
         '보기 방식': 'View mode',
         '종료': 'End',
         '페이지 크기': 'Page size',
@@ -210,7 +211,7 @@ std::string ProductSharedUiScript() {
         '전체 이력': 'Full history',
         '외부 WHEP pull': 'External WHEP pull',
         'ONVIF 카메라는 ONVIF 프로파일에서 선택한 라이브 스트림 URI를 연결합니다. 외부 WHEP는 URL 입력, Published WebRTC 소스는 저장된 sourceId 연결입니다.': 'ONVIF camera connects the live stream URI selected from an ONVIF profile. External WHEP takes a URL. Published WebRTC source connects a saved sourceId.',
-        'ONVIF 장치의 라이브 프로파일에서 선택한 재생 URI를 입력합니다. WS-Discovery 자동 검색, PTZ 제어, ONVIF Events/PullPoint, Profile G/Recording/Replay는 제공하지 않습니다. 운영자가 확인한 live URI 또는 probe fixture를 사용합니다. 저장 후에는 ONVIF 채널로 표시하고, 서버의 RTSP/WHEP 출력 URL을 같은 방식으로 복사합니다.': 'Enter the playback URI selected from the ONVIF device live profile. WS-Discovery auto discovery, PTZ control, ONVIF Events/PullPoint, and Profile G/Recording/Replay are not provided. Use an operator-verified live URI or probe fixture. After saving, it is shown as an ONVIF channel and uses the same RTSP/WHEP output URL copy flow.',
+        '지원 제외: WS-Discovery 자동 검색, PTZ 제어, ONVIF Events/PullPoint, Profile G/Recording/Replay는 제공하지 않습니다. 운영자가 확인한 live URI 또는 probe fixture를 사용합니다.': 'Not included: WS-Discovery auto discovery, PTZ control, ONVIF Events/PullPoint, and Profile G/Recording/Replay are not provided. Use an operator-verified live URI or probe fixture.',
         'RTSP/WHEP는 운영 확인용입니다. 브라우저 재생은 /client/live에서 확인합니다.': 'RTSP/WHEP is for operations checks. Use /client/live for browser playback.',
         '외부 WebRTC playback endpoint를 서버가 WHEP pull source로 연결합니다. URL 자체가 입력값입니다.': 'The server connects an external WebRTC playback endpoint as a WHEP pull source. The URL itself is the input.',
         '외부 URL을 넣는 항목이 아닙니다. 이 서버의 WHIP publish endpoint로 이미 등록된 sourceId를 연결합니다.': 'This is not an external URL field. Connect a sourceId already registered through this server WHIP publish endpoint.',
@@ -452,6 +453,7 @@ std::string ProductSharedUiScript() {
         '재생': 'Play',
         '재연결': 'Reconnect',
         '정지': 'Stop',
+        '연결 해제': 'Disconnect',
         '영역 편집 상태': 'Geometry edit status',
         '편집 모드': 'Edit mode',
         '영역': 'Zone',
@@ -535,12 +537,14 @@ std::string ProductSharedUiScript() {
         '대시보드': 'Dashboard',
         '채널 선택': 'Select channel',
         '채널 미선택': 'No channel selected',
+        '소스 없음': 'No source',
         '표준': 'Standard',
         '고밀도': 'Compact',
         '그리드': 'Grid',
         '밀도': 'Density',
         '전체 재연결': 'Reconnect all',
         '전체 정지': 'Stop all',
+        '전체 연결 해제': 'Disconnect all',
         '타일': 'Tiles',
         '타일 1': 'Tile 1',
         '연결': 'Connection',
@@ -604,7 +608,7 @@ std::string ProductSharedUiScript() {
           [/^view 누락\s+(\d+)$/u, (_match, count) => `Missing views ${count}`],
           [/^입력 미완성\s+(\d+)$/u, (_match, count) => `Incomplete inputs ${count}`],
           [/^타일\s+(\d+):\s+(.+)$/u, (_match, count, detail) => `Tile ${count}: ${koToEn.get(detail.trim()) || translatePattern(detail.trim())}`],
-          [/^타일\s+(\d+)\s+(시작|재연결|정지|채널 선택|채널|보기 방식)$/u, (_match, count, action) => `Tile ${count} ${koToEn.get(action) || action}`],
+          [/^타일\s+(\d+)\s+(시작|재연결|정지|연결 해제|채널 선택|채널|보기 방식)$/u, (_match, count, action) => `Tile ${count} ${koToEn.get(action) || action}`],
           [/^타일\s+(\d+)\s+·\s+(.+)$/u, (_match, count, mode) => `Tile ${count} · ${koToEn.get(mode) || mode}`],
           [/^(\d+)개 범위\s+([\s\S]+)$/u, (_match, count, detail) => `${count} scopes\n${koToEn.get(detail.trim()) || detail}`],
           [/^(\d+)개 범위$/u, (_match, count) => `${count} scopes`],
@@ -867,6 +871,17 @@ std::string ProductSharedUiScript() {
         .join(' ');
       const opsRowActionsHtml = (html, className = '') =>
         `<div class="${escapeHtml(opsClassNames('table-actions', 'ops-row-actions', className))}">${html}</div>`;
+      const opsContextActionsHtml = (primaryHtml, contextHtml = '', className = '', summary = '더보기') => {
+        const primary = String(primaryHtml || '').trim();
+        const context = String(contextHtml || '').trim();
+        const menu = context
+          ? `<details class="ops-context-actions" data-testid="ops-context-actions" data-action-density="primary-context">
+              <summary aria-label="${escapeHtml(summary)}">${escapeHtml(summary)}</summary>
+              <div class="ops-context-actions-menu">${context}</div>
+            </details>`
+          : '';
+        return opsRowActionsHtml(`${primary}${menu}`, opsClassNames('ops-context-row-actions', className));
+      };
       const opsTableRowHtml = (cells = [], className = '') => {
         const classText = opsClassNames(className);
         const classAttr = classText ? ` class="${escapeHtml(classText)}"` : '';
@@ -1472,6 +1487,7 @@ std::string ProductSharedUiScript() {
         setTableEmpty,
         tableCellHtml,
         opsRowActionsHtml,
+        opsContextActionsHtml,
         opsTableRowHtml,
         appendTableCell,
         setOpsDetailPanelOpen,

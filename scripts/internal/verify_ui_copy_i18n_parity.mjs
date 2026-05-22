@@ -75,7 +75,7 @@ check("product translation patterns include repeated live tile labels", () => {
   const js = readText("src/ingress/product_ui_js.cpp");
   const required = [
     "^타일\\s+(\\d+):\\s+(.+)$",
-    "^타일\\s+(\\d+)\\s+(시작|재연결|정지|채널 선택|채널|보기 방식)$",
+    "^타일\\s+(\\d+)\\s+(시작|재연결|정지|연결 해제|채널 선택|채널|보기 방식)$",
     "^상태\\s+(.+)$",
     "^메타데이터\\s+(.+)$",
     "^재시도\\s+(\\d+)$",
