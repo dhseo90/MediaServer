@@ -42,6 +42,7 @@ const cmake = readText(path.join(rootDir, "CMakeLists.txt"));
 const gitignore = readText(path.join(rootDir, ".gitignore"));
 const routeSource = [
   readText(path.join(rootDir, "src/ingress/webrtc_http_server.cpp")),
+  readText(path.join(rootDir, "src/ingress/product_ui_js.cpp")),
   readText(path.join(rootDir, "src/ingress/product_ui_page_scripts.cpp")),
 ].join("\n");
 
@@ -57,6 +58,7 @@ check("inventory has required feature/UI/test/comparison sections", () => {
     "## Code Feature Inventory",
     "## Source Module Inventory Audit",
     "## UI-Accessible Feature Inventory",
+    "## UI Action Inventory Audit",
     "## Route/API Surface Audit",
     "## Current Verification Inventory",
     "## Fixture And Test Artifact Inventory Audit",
@@ -179,6 +181,222 @@ check("inventory covers required product UI and closed routes", () => {
   ]) {
     requireText(inventory, boundary, `inventory missing boundary phrase: ${boundary}`);
   }
+});
+
+check("inventory covers current product UI action surfaces", () => {
+  const actionGroups = [
+    {
+      name: "Auth shell",
+      sourceNeedles: [
+        'action="/setup"',
+        'action="/login"',
+        'action="/password/change"',
+        'action="/invite/setup"',
+        'id="request-form"',
+        'request.path == "/client/api/access-requests"',
+      ],
+      inventoryNeedles: [
+        "Auth shell",
+        "`/setup` 관리자 비밀번호 설정",
+        "`/client/request-access` 계정/표시명/연락처/채널/사유 입력 후 요청 제출",
+        "`id=\"request-form\"`",
+      ],
+    },
+    {
+      name: "Ops Home",
+      sourceNeedles: [
+        'data-testid="ops-home-page"',
+        "opsHomeRefresh",
+      ],
+      inventoryNeedles: [
+        "Ops Home",
+        "`data-testid=\"ops-home-page\"`",
+        "`id=\"opsHomeRefresh\"`",
+      ],
+    },
+    {
+      name: "Ops Dashboard",
+      sourceNeedles: [
+        'data-testid="ops-dashboard-page"',
+        "opsDashboardRefresh",
+        "dashIncidentTimelineSearch",
+        "dashIncidentTimelineSource",
+        "dashIncidentTimelineShare",
+        "dashVaQualityFilterInput",
+      ],
+      inventoryNeedles: [
+        "Ops Dashboard",
+        "incident 검색/출처 필터/링크 복사",
+        "`id=\"dashIncidentTimelineSearch\"`",
+        "`id=\"dashVaQualityFilterInput\"`",
+      ],
+    },
+    {
+      name: "Ops Channels/Sources",
+      sourceNeedles: [
+        'data-testid="ops-sources-page"',
+        'id="add-channel"',
+        'id="channel-save-selected"',
+        'data-testid="source-group-site-management"',
+        'name="rtspUrl"',
+        'name="whepUrl"',
+        'name="webrtcSourceId"',
+        'data-testid="onvif-probe-draft-tool"',
+        "onvifProbeDraftApply",
+        "channel-audit-refresh",
+      ],
+      inventoryNeedles: [
+        "Ops Channels/Sources",
+        "ONVIF probe draft 적용/초기화/profile 선택",
+        "`data-testid=\"source-group-site-management\"`",
+        "`id=\"onvifProbeDraftApply\"`",
+      ],
+    },
+    {
+      name: "Ops Rules",
+      sourceNeedles: [
+        'data-testid="ops-rules-page"',
+        'data-testid="ops-rules-validation-panel"',
+        'data-testid="ops-scenario-builder"',
+        "opsScenarioBuilderApply",
+        "opsRulesFilterInput",
+        "opsAddVaRuleBtn",
+        "opsCreateVaRuleBtn",
+        "opsRulesComposerSave",
+        "opsVaRulePreviewStartBtn",
+        "opsVaRuleGeometryPreview",
+        "opsEventRuleClassesAllBtn",
+        "opsProfileAdaptiveToggle",
+        "opsRulesAuditRefresh",
+      ],
+      inventoryNeedles: [
+        "Ops Rules",
+        "scenario builder preset/type/classes 입력 후 템플릿 적용",
+        "preview 재생/재연결/정지",
+        "geometry 기본/되돌리기/마지막 점 삭제/비우기/포인터 편집",
+        "모든 VA scenario가 실제 영상에서 실제 이벤트 발생까지 확인됐다는 evidence는 없음",
+      ],
+    },
+    {
+      name: "Ops Users",
+      sourceNeedles: [
+        'data-testid="ops-users-page"',
+        'id="add-user-btn"',
+        'id="user-save-selected"',
+        'data-testid="user-channel-assignment-list"',
+        "apply-view-scope-template",
+        "clear-custom-scopes",
+        "user-reset-password-button",
+        'href="/client/request-access"',
+        "user-audit-refresh",
+      ],
+      inventoryNeedles: [
+        "Ops Users",
+        "역할 선택, 채널 assignment 선택",
+        "`data-testid=\"user-channel-assignment-list\"`",
+        "`id=\"user-reset-password-button\"`",
+        "role별 전수 수동 evidence는 없음",
+      ],
+    },
+    {
+      name: "Ops Events",
+      sourceNeedles: [
+        'data-testid="ops-events-page"',
+        "opsEventsRefresh",
+        'data-testid="ops-alert-delivery-integrations"',
+        "alertDeliverySave",
+        "alertDeliveryTest",
+        'data-testid="ops-event-review-inbox"',
+        "eventReviewStatusFilter",
+        "eventRecordsEvidenceSelect",
+        "eventRecordsIncludeArchives",
+        "eventRecordsPrev",
+        "eventRecordsNext",
+        "data-event-review-save",
+        "data-evidence-bundle",
+      ],
+      inventoryNeedles: [
+        "Ops Events",
+        "alert delivery ID/kind/label/endpoint/retry/enabled 입력 후 저장/fixture 전송",
+        "review status/class/note 저장",
+        "`data-evidence-bundle`",
+        "실제 이벤트 발생부터 review/export까지 수동 evidence는 없음",
+      ],
+    },
+    {
+      name: "Client Live",
+      sourceNeedles: [
+        'data-testid="client-live-workspace"',
+        'data-testid="client-live-drop-grid"',
+        "data-source-view",
+        'data-role="view"',
+        'data-role="mode"',
+        'data-mode-action="va-overlay"',
+        'data-action="toggle-playback"',
+        'data-action="restart"',
+        'data-action="stop"',
+        "liveGridSize",
+        "liveInfoOverlayToggle",
+        "liveSaveLayoutPreference",
+        "liveApplyRoleLayoutPreset",
+      ],
+      inventoryNeedles: [
+        "Client Live",
+        "source tree 클릭/drag/drop",
+        "타일 재생/재시작/연결 해제",
+        "`id=\"liveSaveLayoutPreference\"`",
+        "실제 다중 권한/다중 채널 영상 전수 evidence는 없음",
+      ],
+    },
+    {
+      name: "Client Dashboard",
+      sourceNeedles: [
+        'data-testid="client-dashboard-shell"',
+        'data-client-copy="status"',
+        'data-client-copy="events"',
+        'data-testid="client-dashboard-compare"',
+        "clientDashboardCompareFilter",
+        "clientDashboardCompareSort",
+        'data-testid="client-dashboard-preset-config"',
+        "clientDashboardPresetApply",
+        "clientDashboardPresetReset",
+      ],
+      inventoryNeedles: [
+        "Client Dashboard",
+        "상태 복사, 이벤트 복사",
+        "compare filter/sort 선택",
+        "`id=\"clientDashboardPresetApply\"`",
+      ],
+    },
+    {
+      name: "Closed product UI routes",
+      sourceNeedles: [
+        'request.path == "/lab"',
+        'request.path == "/lab/rules"',
+        'request.path == "/lab/import"',
+        'request.path == "/webrtc/test"',
+      ],
+      inventoryNeedles: [
+        "Closed product UI routes",
+        "`/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test`는 제품 화면 action target이 아니며 열리면 실패",
+      ],
+    },
+  ];
+
+  const missing = [];
+  for (const group of actionGroups) {
+    for (const needle of group.sourceNeedles) {
+      if (!routeSource.includes(needle)) {
+        missing.push(`${group.name}: source missing ${needle}`);
+      }
+    }
+    for (const needle of group.inventoryNeedles) {
+      if (!inventory.includes(needle)) {
+        missing.push(`${group.name}: inventory missing ${needle}`);
+      }
+    }
+  }
+  assert(missing.length === 0, `UI action inventory mismatch:\n${missing.join("\n")}`);
 });
 
 check("inventory covers current v1.8 route/API surface families", () => {
