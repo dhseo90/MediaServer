@@ -1214,6 +1214,33 @@ void AppendClientShellScript(std::ostringstream& out) {
         const wrap = root.querySelector('[data-role="mode-wrap"]');
         if (wrap) wrap.hidden = modes.length <= 1;
       }
+      const modeButtons = Array.from(root.querySelectorAll('[data-mode-action]'));
+      const buttonWrap = root.querySelector('[data-role="mode-buttons"]');
+      if (buttonWrap) buttonWrap.hidden = modes.length <= 1;
+      for (const button of modeButtons) {
+        const mode = normalizeOverlayMode(button.dataset.modeAction || '');
+        const available = modes.includes(mode);
+        button.hidden = !available;
+        button.disabled = !available;
+        button.setAttribute('aria-pressed', tile.overlayMode === mode ? 'true' : 'false');
+      }
+    }
+    async function setTileOverlayMode(index, mode) {
+      const tile = liveTiles[index];
+      const view = tileView(tile);
+      const nextMode = normalizeOverlayMode(mode);
+      if (!tile || !view || !nextMode) return;
+      const modes = allowedOverlayModes(view);
+      if (!modes.includes(nextMode) || tile.overlayMode === nextMode) return;
+      tile.overlayMode = nextMode;
+      markLivePreferenceDirty();
+      applyTileModeOptions(tile);
+      refreshSelectedTileDetail();
+      if (tile.sessionId) {
+        await restartLiveTile(index);
+      } else {
+        updateTileDom(tile);
+      }
     }
 	    function resetTileSignal(tile) {
 	      tile.trackCount = null;
@@ -1405,6 +1432,11 @@ void AppendClientShellScript(std::ostringstream& out) {
 	                <span class="tile-presence-dot" aria-hidden="true"></span>
 	                <h3 data-role="view-label">${escapeHtml(tileView(tile)?.displayName || tile.viewId || `타일 ${tile.index + 1}`)}</h3>
 	                <span class="chip" data-role="status">offline</span>
+	                <div class="tile-mode-controls" data-testid="client-live-va-overlay-toggle" data-role="mode-buttons" aria-label="타일 ${tile.index + 1} VA 오버레이" hidden>
+	                  <button type="button" class="tile-mode-button" data-mode-action="raw" aria-pressed="false" title="원본">원본</button>
+	                  <button type="button" class="tile-mode-button" data-mode-action="va-overlay" aria-pressed="false" title="VA 오버레이">VA</button>
+	                  <button type="button" class="tile-mode-button" data-mode-action="va-rule" aria-pressed="false" title="VA 룰">VA 룰</button>
+	                </div>
 	              </div>
 	              <div class="tile-actions" aria-label="타일 ${tile.index + 1} 작업">
 	                <button type="button" class="icon-button tile-action-primary" data-action="start" title="타일 ${tile.index + 1} 시작" aria-label="타일 ${tile.index + 1} 시작"><span aria-hidden="true">▶</span></button>
@@ -1430,11 +1462,11 @@ void AppendClientShellScript(std::ostringstream& out) {
 	              </div>
 	              <div class="tile-info-overlay-grid">
 	                <span>FPS <strong data-overlay="fps">미제공</strong></span>
-	                <span>Bitrate <strong data-overlay="bitrate">미제공</strong></span>
-	                <span>Dropped <strong data-overlay="dropped">미제공</strong></span>
-	                <span>Freeze <strong data-overlay="freeze">미제공</strong></span>
-	                <span>Reconnect <strong data-overlay="reconnect">0</strong></span>
-	                <span>VA/Event <strong data-overlay="badge">대기</strong></span>
+	                <span>비트레이트 <strong data-overlay="bitrate">미제공</strong></span>
+	                <span>드롭 <strong data-overlay="dropped">미제공</strong></span>
+	                <span>프리즈 <strong data-overlay="freeze">미제공</strong></span>
+	                <span>재연결 <strong data-overlay="reconnect">0</strong></span>
+	                <span>VA/이벤트 <strong data-overlay="badge">대기</strong></span>
 	              </div>
 	            </div>
 	          </div>
@@ -1457,7 +1489,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	            <section class="live-workspace-main live-sketch-workspace" aria-label="라이브 워크스페이스">
 	          <div class="live-toolbar live-sketch-toolbar">
 	            <div class="live-workspace-title">
-	              <h2>Live Workspace</h2>
+	              <h2>라이브 워크스페이스</h2>
 	            </div>
 	            <label>그리드
 	              <select id="liveGridSize">
@@ -1470,8 +1502,8 @@ void AppendClientShellScript(std::ostringstream& out) {
 	                <option value="compact"${liveDensity === 'compact' ? ' selected' : ''}>고밀도</option>
 	              </select>
 	            </label>
-	            <label>Dock
-	              <select id="liveDockSide" aria-label="소스 dock 위치">
+	            <label>도크
+	              <select id="liveDockSide" aria-label="소스 도크 위치">
 	                <option value="left"${liveDockSide === 'left' ? ' selected' : ''}>왼쪽</option>
 	                <option value="right"${liveDockSide === 'right' ? ' selected' : ''}>오른쪽</option>
 	              </select>
@@ -1522,12 +1554,24 @@ void AppendClientShellScript(std::ostringstream& out) {
 	      const modeSelect = root.querySelector('[data-role="mode"]');
 	      if (modeSelect) {
 	        modeSelect.addEventListener('change', () => {
-	          if (!tile.sessionId) {
-              tile.overlayMode = modeSelect.value;
-              markLivePreferenceDirty();
-            }
+	          setTileOverlayMode(tile.index, modeSelect.value).catch(error => {
+	            tile.status = 'error';
+	            tile.connectionStatus = error.message || 'error';
+	            tile.lastError = error.message || 'error';
+	            updateTileDom(tile);
+	          });
 	        });
 	      }
+	      root.querySelectorAll('[data-mode-action]').forEach(button => {
+	        button.addEventListener('click', () => {
+	          setTileOverlayMode(tile.index, button.dataset.modeAction || '').catch(error => {
+	            tile.status = 'error';
+	            tile.connectionStatus = error.message || 'error';
+	            tile.lastError = error.message || 'error';
+	            updateTileDom(tile);
+	          });
+	        });
+	      });
 	      root.querySelector('[data-action="start"]')?.addEventListener('click', () => startLiveTile(tile.index));
 	      root.querySelector('[data-action="restart"]')?.addEventListener('click', () => restartLiveTile(tile.index));
 	      root.querySelector('[data-action="stop"]')?.addEventListener('click', () => disconnectLiveTile(tile.index));
@@ -1956,6 +2000,8 @@ void AppendClientShellScript(std::ostringstream& out) {
         updateTileDom(tile);
         return;
       }
+      tile.overlayMode = mode;
+      applyTileModeOptions(tile);
       selectLiveTile(index);
       const startNonce = (tile.startNonce || 0) + 1;
       tile.startNonce = startNonce;

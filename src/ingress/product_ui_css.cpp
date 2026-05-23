@@ -2761,6 +2761,9 @@ std::string ProductUiCss() {
       body.client-shell .account-identity {
         display: flex;
       }
+      body.client-shell .sketch-status-chip {
+        display: none;
+      }
       body.client-shell .account-menu > form {
         width: auto;
       }
@@ -3161,7 +3164,7 @@ std::string ClientShellCss() {
       align-items: center;
     }
     body.client-shell .account-menu {
-      max-width: min(38vw, 390px);
+      max-width: min(42vw, 430px);
       min-height: 44px;
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
@@ -3172,14 +3175,23 @@ std::string ClientShellCss() {
     }
     body.client-shell .account-identity {
       display: flex;
+      flex: 0 0 auto;
+    }
+    body.client-shell .account-copy {
+      display: none;
     }
     body.client-shell .language-control {
       min-width: 64px;
     }
     body.client-shell .account-menu-top {
       min-width: 0;
+      overflow: hidden;
       justify-content: flex-end;
       gap: 8px;
+    }
+    body.client-shell .account-controls {
+      flex: 0 0 auto;
+      flex-wrap: nowrap;
     }
     body.client-shell .account-menu > form > button {
       min-width: 52px;
@@ -3748,7 +3760,7 @@ std::string ClientShellCss() {
       display: none;
     }
     body.client-shell .account-menu {
-      max-width: min(34vw, 340px);
+      max-width: min(42vw, 430px);
       min-height: 44px;
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
@@ -4127,10 +4139,12 @@ std::string ClientShellCss() {
     }
     body.client-shell .live-grid,
     body.client-shell .live-grid[data-grid-size] {
-      height: calc(100vh - 92px);
+      height: auto;
+      min-height: 0;
       display: grid;
       gap: 8px;
-      grid-auto-rows: minmax(0, 1fr);
+      grid-auto-rows: auto;
+      align-content: start;
     }
     body.client-shell .live-grid[data-grid-size="1"] {
       grid-template-columns: 1fr;
@@ -4140,7 +4154,7 @@ std::string ClientShellCss() {
     }
     body.client-shell .live-grid[data-grid-size="4"] {
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      grid-template-rows: repeat(2, minmax(0, 1fr));
+      grid-template-rows: none;
     }
     body.client-shell .live-grid[data-grid-size="6"],
     body.client-shell .live-grid[data-grid-size="9"] {
@@ -4150,6 +4164,7 @@ std::string ClientShellCss() {
     body.client-shell .live-grid[data-density="compact"] .tile {
       position: relative;
       min-height: 0;
+      aspect-ratio: 16 / 9;
       display: block;
       padding: 0;
       border-radius: 8px;
@@ -4219,6 +4234,45 @@ std::string ClientShellCss() {
       text-overflow: ellipsis;
       white-space: nowrap;
     }
+    body.client-shell .tile-mode-controls {
+      max-width: 100%;
+      display: inline-flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 3px;
+      padding: 3px;
+      border: 1px solid color-mix(in srgb, var(--overlay-label-text) 34%, transparent);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--color-code-bg) 64%, transparent);
+      backdrop-filter: blur(12px);
+      pointer-events: auto;
+    }
+    body.client-shell .tile-mode-controls[hidden],
+    body.client-shell .tile-mode-button[hidden] {
+      display: none;
+    }
+    body.client-shell .tile-mode-button {
+      min-width: 42px;
+      min-height: 26px;
+      padding: 3px 8px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: color-mix(in srgb, var(--overlay-label-text) 86%, transparent);
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1;
+      white-space: nowrap;
+      box-shadow: none;
+    }
+    body.client-shell .tile-mode-button[aria-pressed="true"] {
+      background: color-mix(in srgb, var(--accent) 92%, transparent);
+      color: var(--overlay-label-text);
+    }
+    body.client-shell .tile-mode-button:focus-visible {
+      outline: 2px solid var(--overlay-label-text);
+      outline-offset: 2px;
+    }
     body.client-shell .tile-controls {
       display: none;
     }
@@ -4248,9 +4302,11 @@ std::string ClientShellCss() {
     }
     body.client-shell .tile-stage,
     body.client-shell .live-grid[data-density="compact"] .tile-stage {
-      width: 100%;
-      height: 100%;
-      min-height: 100%;
+      position: absolute;
+      inset: 0;
+      width: auto;
+      height: auto;
+      min-height: 0;
       aspect-ratio: auto;
       border-radius: 0;
       background:
@@ -4265,7 +4321,9 @@ std::string ClientShellCss() {
         var(--color-media-bg);
     }
     body.client-shell .tile-stage video {
-      object-fit: cover;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
       filter: none;
     }
     body.client-shell .tile-stage > span[data-role="placeholder"] {
@@ -4341,6 +4399,7 @@ std::string ClientShellCss() {
       body.client-shell .account-controls {
         flex-wrap: wrap;
         justify-content: flex-start;
+        overflow: visible;
       }
       body.client-shell .account-menu > form {
         justify-self: start;
@@ -4423,7 +4482,8 @@ std::string ClientShellCss() {
       }
       body.client-shell .tile,
       body.client-shell .live-grid[data-density="compact"] .tile {
-        min-height: 282px;
+        min-height: 0;
+        aspect-ratio: 16 / 9;
       }
       body.client-shell .client-workspace-shell:not(.live-workspace) {
         grid-template-columns: 1fr;
@@ -4458,6 +4518,10 @@ std::string ClientShellCss() {
         width: 44px;
         min-width: 44px;
         height: 44px;
+        min-height: 44px;
+      }
+      body.client-shell .tile-mode-button {
+        min-width: 48px;
         min-height: 44px;
       }
       body.client-shell .workspace-actions[open]::after {

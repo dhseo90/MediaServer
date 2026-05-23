@@ -33,11 +33,13 @@ check("product translation map includes recent UI copy", () => {
   const js = readText("src/ingress/product_ui_js.cpp");
   const required = [
     "'홈': 'Home'",
+    "'운영': 'Ops'",
     "'대시보드': 'Dashboard'",
     "'채널': 'Channels'",
     "'룰': 'Rules'",
     "'사용자': 'Users'",
     "'미리보기': 'Client Preview'",
+    "'관리자 클라이언트 미리보기': 'Client Preview as admin'",
     "'라이브': 'Live'",
     "'채널 목록': 'Channels'",
     "'사용자 목록': 'Users'",
@@ -55,6 +57,11 @@ check("product translation map includes recent UI copy", () => {
     "'관련 root-cause 또는 source health incident와 같은 cid를 비교합니다.':",
     "'재연결': 'Reconnect'",
     "'정지': 'Stop'",
+    "'도크': 'Dock'",
+    "'비트레이트': 'Bitrate'",
+    "'드롭': 'Dropped'",
+    "'프리즈': 'Freeze'",
+    "'VA/이벤트': 'VA/Event'",
     "'보기 방식': 'View mode'",
     "'채널 미선택': 'No channel selected'",
     "'상태 복사': 'Copy status'",
@@ -126,7 +133,7 @@ check("product translation patterns include repeated live tile labels", () => {
   const js = readText("src/ingress/product_ui_js.cpp");
   const required = [
     "^타일\\s+(\\d+):\\s+(.+)$",
-    "^타일\\s+(\\d+)\\s+(시작|재연결|정지|연결 해제|채널 선택|채널|보기 방식)$",
+    "^타일\\s+(\\d+)\\s+(시작|재연결|정지|연결 해제|채널 선택|채널|보기 방식|VA 오버레이|VA 룰)$",
     "^상태\\s+(.+)$",
     "^메타데이터\\s+(.+)$",
     "^재시도\\s+(\\d+)$",

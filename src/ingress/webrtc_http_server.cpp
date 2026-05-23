@@ -2084,7 +2084,7 @@ void AppendProductAccountMenu(std::ostringstream& out,
                              const std::string& secondary_action_label = std::string()) {
     out << R"(        <div class="account-menu" data-sketch-account-menu="true" aria-label="현재 계정">
           <div class="account-menu-top">
-            <span class="sketch-status-chip" aria-label="연결 상태"><span aria-hidden="true"></span>Connected</span>
+            <span class="sketch-status-chip" aria-label="연결 상태"><span aria-hidden="true"></span>연결됨</span>
             <div class="account-identity">
               )" << ProductAccountAvatarSvg() << R"(
               <div class="account-copy">
@@ -4153,7 +4153,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     const bool preview_mode =
         (auth::IsAdmin(principal) || auth::IsOperator(principal)) &&
         auth::RequireScope(principal, "ops:read");
-    const std::string client_subtitle = preview_mode ? "Client Preview as admin" : "Client";
+    const std::string client_subtitle = preview_mode ? "관리자 클라이언트 미리보기" : "클라이언트";
     std::ostringstream out;
     out << R"(<!doctype html>
 <html lang="ko">
@@ -4185,7 +4185,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     AppendProductAccountMenu(out,
                              principal,
                              preview_mode ? "/ops/home" : std::string(),
-                             preview_mode ? "Ops" : std::string());
+                             preview_mode ? "운영" : std::string());
     out << R"(      </div>
     </header>
 )";

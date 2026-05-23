@@ -123,7 +123,7 @@ const pageChecks = [
     name: "client-live",
     path: "/client/live",
     visualSelector: '[data-testid="client-shell-page"]',
-    must: ['data-testid="client-shell-page"', 'data-client-active="live"', 'id="views"', 'id="detail"', '/webrtc/config', 'peerConnectionConfig', 'viewMaxTiles', 'maxTiles', 'id="liveDensity"', 'id="liveSummary"', 'data-testid="client-live-action-reduction"', 'data-action-model="source-drag,tile-selection,icon-actions,keyboard-shortcuts"', 'data-disconnect-contract="tile-disconnect-clears-slot,workspace-disconnect-keeps-layout"', 'disconnectLiveTile', 'clearLiveTileSlot', 'data-disconnect-scope="tile"', '전체 연결 해제', 'data-testid="client-live-workspace"', 'data-workspace-model="source-tree,drag-drop-grid,multi-source"', 'data-testid="client-live-source-tree"', 'data-tree-model="group/site/floor/source"', 'data-tree-level="site"', 'data-tree-level="floor"', 'data-testid="client-live-dock-event-feed"', 'data-redaction="viewer-safe-events"', 'id="liveDockSide"', 'mediaServerClientLiveDockSide', 'id="liveInfoOverlayToggle"', 'mediaServerClientLiveInfoOverlay', 'data-testid="client-live-tile-info-overlay"', 'data-overlay-trigger="info-toggle"', 'data-testid="client-live-layout-presets"', 'data-preset-contract="user-preference,role-preset"', 'liveLayoutPreferenceEndpoint', '/client/api/preferences/live-layout', 'liveCurrentLayoutSnapshot', 'applyLiveLayoutPreference', 'selectedSources', 'overlayDefaults', 'refreshTilePlaybackStats', 'framesPerSecond', 'bytesReceived', 'framesDropped', 'refreshLiveDockEventFeed', '/events?limit=6', 'data-source-view="${escapeHtml(view.viewId)}"', 'draggable="true"', 'assignViewToTile', 'assignSourceToSelectedTile', 'data-drop-state="idle"', 'dataTransfer.setData', "root.addEventListener('drop'", "root.addEventListener('dragover'", 'class="workspace-actions"', 'class="icon-button tile-action-primary"', 'data-action="restart"', 'restartLiveTile', "event.key === 's'", "event.key === 'Delete'", 'tabindex="0"', 'focusLiveTile', 'ArrowRight', 'aria-describedby="liveTileStatus${tile.index}"', 'data-role="a11y-status"', 'aria-live="polite"', 'aria-atomic="true"', 'liveTileA11yStatus', 'liveTileConnectionLabel', 'clientDynamicText', 'data-client-copy="status"', 'data-client-copy="events"', '타일 ${tile.index + 1} 시작'],
+    must: ['data-testid="client-shell-page"', 'data-client-active="live"', 'id="views"', 'id="detail"', '/webrtc/config', 'peerConnectionConfig', 'viewMaxTiles', 'maxTiles', 'id="liveDensity"', 'id="liveSummary"', 'data-testid="client-live-action-reduction"', 'data-action-model="source-drag,tile-selection,icon-actions,keyboard-shortcuts"', 'data-disconnect-contract="tile-disconnect-clears-slot,workspace-disconnect-keeps-layout"', 'disconnectLiveTile', 'clearLiveTileSlot', 'data-disconnect-scope="tile"', '전체 연결 해제', 'data-testid="client-live-workspace"', 'data-workspace-model="source-tree,drag-drop-grid,multi-source"', 'data-testid="client-live-source-tree"', 'data-tree-model="group/site/floor/source"', 'data-tree-level="site"', 'data-tree-level="floor"', 'data-testid="client-live-dock-event-feed"', 'data-redaction="viewer-safe-events"', 'id="liveDockSide"', 'mediaServerClientLiveDockSide', 'id="liveInfoOverlayToggle"', 'mediaServerClientLiveInfoOverlay', 'data-testid="client-live-tile-info-overlay"', 'data-overlay-trigger="info-toggle"', 'data-testid="client-live-va-overlay-toggle"', 'data-role="mode-buttons"', 'data-mode-action="raw"', 'data-mode-action="va-overlay"', 'setTileOverlayMode', 'data-testid="client-live-layout-presets"', 'data-preset-contract="user-preference,role-preset"', 'liveLayoutPreferenceEndpoint', '/client/api/preferences/live-layout', 'liveCurrentLayoutSnapshot', 'applyLiveLayoutPreference', 'selectedSources', 'overlayDefaults', 'refreshTilePlaybackStats', 'framesPerSecond', 'bytesReceived', 'framesDropped', 'refreshLiveDockEventFeed', '/events?limit=6', 'data-source-view="${escapeHtml(view.viewId)}"', 'draggable="true"', 'assignViewToTile', 'assignSourceToSelectedTile', 'data-drop-state="idle"', 'dataTransfer.setData', "root.addEventListener('drop'", "root.addEventListener('dragover'", 'class="workspace-actions"', 'class="icon-button tile-action-primary"', 'data-action="restart"', 'restartLiveTile', "event.key === 's'", "event.key === 'Delete'", 'tabindex="0"', 'focusLiveTile', 'ArrowRight', 'aria-describedby="liveTileStatus${tile.index}"', 'data-role="a11y-status"', 'aria-live="polite"', 'aria-atomic="true"', 'liveTileA11yStatus', 'liveTileConnectionLabel', 'clientDynamicText', 'data-client-copy="status"', 'data-client-copy="events"', '타일 ${tile.index + 1} 시작'],
     shellMust: clientShellMust,
     mustNot: [...clientForbiddenText(), 'new RTCPeerConnection({ iceServers: [] })', 'id="liveAllStart"', 'id="liveAllRestart"'],
   },
@@ -467,7 +467,6 @@ async function runClientHeaderResponsiveSmoke() {
   let checkIndex = 0;
   for (const check of clientPaths) {
     for (const width of visualWidths) {
-      if (width > 560) continue;
       const browser = await openBrowserPage({
         httpBase,
         pagePath: check.path,
@@ -499,7 +498,7 @@ async function runClientHeaderResponsiveSmoke() {
     }
   }
   console.log("");
-  console.log("== Client mobile header smoke 요약 ==");
+  console.log("== Client header smoke 요약 ==");
   console.log(`- 통과: ${headerPassCount}`);
   console.log(`- 실패: ${headerFailCount}`);
   if (headerFailures.length > 0) {
@@ -536,11 +535,43 @@ function clientHeaderResponsiveExpression() {
       if (intersects) {
         issues.push('client nav/account boxes overlap');
       }
-      if (navRect.width < headerRect.width - 2) {
-        issues.push('client nav does not fill the mobile header row');
+      if (window.innerWidth <= 860) {
+        if (navRect.width < headerRect.width - 2) {
+          issues.push('client nav does not fill the mobile header row');
+        }
+        if (accountRect.top < navRect.bottom + 8) {
+          issues.push('client account menu is not stacked below nav');
+        }
       }
-      if (accountRect.top < navRect.bottom + 8) {
-        issues.push('client account menu is not stacked below nav');
+      const visibleRect = element => {
+        if (!element) return null;
+        const style = window.getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        if (style.display === 'none' || style.visibility === 'hidden' || rect.width <= 0 || rect.height <= 0) return null;
+        return rect;
+      };
+      const accountItems = [
+        ['status', visibleRect(account.querySelector('.sketch-status-chip'))],
+        ['avatar', visibleRect(account.querySelector('.account-avatar'))],
+        ['theme', visibleRect(account.querySelector('#themeToggleBtn'))],
+        ['language', visibleRect(account.querySelector('.language-select'))],
+        ['logout', visibleRect(account.querySelector('form button'))],
+      ].filter(([, rect]) => rect);
+      for (let index = 0; index < accountItems.length; index += 1) {
+        const [name, rect] = accountItems[index];
+        if (rect.left < accountRect.left - 1 || rect.right > accountRect.right + 1) {
+          issues.push('client account item outside menu: ' + name);
+        }
+        for (let next = index + 1; next < accountItems.length; next += 1) {
+          const [otherName, otherRect] = accountItems[next];
+          const overlaps = rect.left < otherRect.right &&
+            rect.right > otherRect.left &&
+            rect.top < otherRect.bottom &&
+            rect.bottom > otherRect.top;
+          if (overlaps) {
+            issues.push('client account controls overlap: ' + name + '/' + otherName);
+          }
+        }
       }
       for (const item of navItems) {
         const rect = item.getBoundingClientRect();
@@ -561,6 +592,7 @@ function clientHeaderResponsiveExpression() {
         headerWidth: headerRect.width,
         accountTop: accountRect.top,
         navBottom: navRect.bottom,
+        accountItemCount: accountItems.length,
         overflowX,
       };
     })()
@@ -660,6 +692,21 @@ function clientLiveTileKeyboardExpression(a11ySnapshot) {
         if (!document.querySelector('[data-testid="client-live-source-tree"] [data-tree-level="site"]')) issue('client live source site group missing');
         if (!document.querySelector('[data-testid="client-live-source-tree"] [data-tree-level="floor"]')) issue('client live source floor group missing');
         if (!document.querySelector('[data-testid="client-live-dock-event-feed"][data-redaction="viewer-safe-events"]')) issue('client live dock event feed missing');
+        const modeToggle = first.querySelector('[data-testid="client-live-va-overlay-toggle"]');
+        if (!modeToggle) issue('first tile VA overlay toggle missing');
+        const rawModeButton = modeToggle?.querySelector('[data-mode-action="raw"]');
+        const vaModeButton = modeToggle?.querySelector('[data-mode-action="va-overlay"]');
+        if (modeToggle && modeToggle.hidden) issue('first tile VA overlay toggle is hidden');
+        if (modeToggle && !rawModeButton) issue('first tile raw mode action missing');
+        if (modeToggle && !vaModeButton) issue('first tile VA overlay mode action missing');
+        if (rawModeButton && vaModeButton) {
+          vaModeButton.click();
+          await wait(180);
+          if (vaModeButton.getAttribute('aria-pressed') !== 'true') issue('VA overlay mode did not become active after click');
+          rawModeButton.click();
+          await wait(180);
+          if (rawModeButton.getAttribute('aria-pressed') !== 'true') issue('raw mode did not become active after click');
+        }
         const describedBy = String(first.getAttribute('aria-describedby') || '');
         if (!describedBy) issue('first tile aria-describedby missing');
         const describedNode = describedBy ? document.getElementById(describedBy) : null;
@@ -689,6 +736,10 @@ function clientLiveTileKeyboardExpression(a11ySnapshot) {
           if (!labels.some(label => label.includes(expected))) issue('missing control aria-label: ' + expected);
         }
         const tileRect = first.getBoundingClientRect();
+        const tileRatio = tileRect.width / Math.max(1, tileRect.height);
+        if (tileRatio < 1.72 || tileRatio > 1.84) {
+          issue('first tile video frame is not 16:9: ' + tileRect.width.toFixed(1) + 'x' + tileRect.height.toFixed(1));
+        }
         for (const control of first.querySelectorAll('button, select')) {
           const rect = control.getBoundingClientRect();
           if (control.closest('[hidden]') || rect.width <= 0 || rect.height <= 0) continue;

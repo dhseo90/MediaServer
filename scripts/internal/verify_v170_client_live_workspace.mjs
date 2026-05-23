@@ -70,6 +70,31 @@ check(
     css.includes("@media (max-width: 780px)"),
 );
 check(
+  "client shell keeps live video tiles at 16:9 without cover-cropping",
+  css.includes("body.client-shell .tile,") &&
+    css.includes("aspect-ratio: 16 / 9;") &&
+    css.includes("body.client-shell .tile-stage video") &&
+    css.includes("object-fit: contain;") &&
+    !css.includes("body.client-shell .tile-stage video {\n      object-fit: cover;"),
+);
+check(
+  "client shell exposes viewer-safe VA overlay mode controls",
+  script.includes('data-testid="client-live-va-overlay-toggle"') &&
+    script.includes('data-mode-action="raw"') &&
+    script.includes('data-mode-action="va-overlay"') &&
+    script.includes("async function setTileOverlayMode") &&
+    script.includes("await restartLiveTile(index)") &&
+    css.includes("body.client-shell .tile-mode-controls") &&
+    uiSmoke.includes('data-testid="client-live-va-overlay-toggle"'),
+);
+check(
+  "client header account controls are covered by screenshot overlap smoke",
+  uiSmoke.includes("client account controls overlap") &&
+    uiSmoke.includes("client account item outside menu") &&
+    css.includes("body.client-shell .account-copy") &&
+    css.includes("body.client-shell .account-controls"),
+);
+check(
   "ops/client UI smoke tracks the workspace replacement contract",
   uiSmoke.includes('data-testid="client-live-workspace"') &&
     uiSmoke.includes('data-workspace-model="source-tree,drag-drop-grid,multi-source"') &&
