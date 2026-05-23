@@ -51,15 +51,19 @@ Release evidence의 실행/미실행/미확인 색인은
 | --- | --- |
 | ONVIF live source | [onvif-live-source-support.md](onvif-live-source-support.md) |
 | ONVIF no-device/field smoke | [onvif-no-device-verification.md](onvif-no-device-verification.md), [onvif-field-smoke-gate.md](onvif-field-smoke-gate.md) |
+| ONVIF protocol/security policy | [onvif-protocol-support-matrix.md](onvif-protocol-support-matrix.md), [onvif-auth-injection-design.md](onvif-auth-injection-design.md), [onvif-credential-reference-policy.md](onvif-credential-reference-policy.md), [onvif-unsupported-api-guard.md](onvif-unsupported-api-guard.md) |
+| ONVIF credential/TLS/RTSPS details | [onvif-credential-store-integration-design.md](onvif-credential-store-integration-design.md), [onvif-https-soap-transport-design.md](onvif-https-soap-transport-design.md), [onvif-https-tls-fixture-harness-design.md](onvif-https-tls-fixture-harness-design.md), [onvif-tls-transport-policy.md](onvif-tls-transport-policy.md), [onvif-rtsps-draft-policy.md](onvif-rtsps-draft-policy.md), [onvif-field-smoke-artifact-redaction.md](onvif-field-smoke-artifact-redaction.md) |
 | Live source health | [live-source-health.md](live-source-health.md) |
 | Event/WebRTC/SSE/WS metadata contract | [live-event-metadata-contracts.md](live-event-metadata-contracts.md) |
+| VA threshold/event/report details | [analysis-threshold-baselines.md](analysis-threshold-baselines.md), [webrtc-metadata-client.md](webrtc-metadata-client.md), [close-object-report-archive-policy.md](close-object-report-archive-policy.md) |
 | Integrator sample bundle | [integrator-contract-artifact.md](integrator-contract-artifact.md) |
-| Runtime dashboard/scenario timeline | [scenario-timeline-debug.md](scenario-timeline-debug.md) |
+| Runtime dashboard/scenario timeline | [scenario-timeline-debug.md](scenario-timeline-debug.md), [runtime-dashboard-longrun-evidence-template.md](runtime-dashboard-longrun-evidence-template.md) |
 | Backup and restore | [ops-backup-recovery.md](ops-backup-recovery.md) |
 | Config reference | [config-reference.md](config-reference.md) |
 | Public repo/release readiness | [public-repo-final-review.md](public-repo-final-review.md) |
 | Distribution boundary | [distribution-policy.md](distribution-policy.md) |
 | Sample fixture provenance | [sample-fixture-provenance.md](sample-fixture-provenance.md) |
+| UI assets/copy/visual baselines | [assets/ui/README.md](assets/ui/README.md), [product-shell-component-examples.md](product-shell-component-examples.md), [ui-empty-loading-error-copy-matrix.md](ui-empty-loading-error-copy-matrix.md), [ui-visual-release-baseline-approval-template.md](ui-visual-release-baseline-approval-template.md), [browser-use-clipboard-diagnostics.md](browser-use-clipboard-diagnostics.md) |
 
 ## Research / Experimental Boundaries
 
@@ -67,6 +71,7 @@ Release evidence의 실행/미실행/미확인 색인은
 | --- | --- |
 | Re-ID default-off research | [reid-default-off-research-continuation.md](reid-default-off-research-continuation.md) |
 | Re-ID fixture default-on candidates | [reid-fixture-default-on-candidates.md](reid-fixture-default-on-candidates.md) |
+| Re-ID event hold analysis | [reid-tracking-event-hold-analysis.md](reid-tracking-event-hold-analysis.md) |
 | OC-SORT benchmark/sandbox | [oc-sort-benchmark-boundary.md](oc-sort-benchmark-boundary.md) |
 | BoT-SORT/DeepSORT research | [bot-sort-deepsort-research-boundary.md](bot-sort-deepsort-research-boundary.md) |
 | YouTube import/source experiment | [youtube-import.md](youtube-import.md) |

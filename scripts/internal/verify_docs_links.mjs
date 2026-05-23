@@ -4,6 +4,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
@@ -22,6 +23,7 @@ Checks:
   - repository root의 *.md와 docs/**/*.md의 로컬 Markdown 링크가 존재하는 파일을 가리킴
   - 로컬 이미지 참조가 존재하고 확장자가 이미지 형식임
   - 로컬 Markdown anchor가 실제 heading anchor와 일치함
+  - docs/README.md가 tracked docs Markdown 문서를 모두 색인함
   - 외부 URL, mailto 링크는 파일 존재 검사에서 제외
 `);
 }
@@ -32,6 +34,7 @@ const failures = [];
 let linkCount = 0;
 let imageCount = 0;
 let anchorCount = 0;
+let docsIndexCount = 0;
 const anchorCache = new Map();
 
 for (const file of markdownFiles) {
@@ -71,6 +74,10 @@ for (const file of markdownFiles) {
   }
 }
 
+for (const failure of checkDocsIndexCoverage()) {
+  failures.push(failure);
+}
+
 if (failures.length > 0) {
   console.log("[fail] 문서 로컬 링크/이미지 참조 오류");
   for (const failure of failures) console.log(`  - ${failure}`);
@@ -82,6 +89,7 @@ console.log(`- markdown files: ${markdownFiles.length}`);
 console.log(`- local links: ${linkCount}`);
 console.log(`- local images: ${imageCount}`);
 console.log(`- local anchors: ${anchorCount}`);
+console.log(`- indexed docs: ${docsIndexCount}`);
 console.log(`- failures: ${failures.length}`);
 
 if (failures.length > 0) process.exit(1);
@@ -99,6 +107,38 @@ function collectMarkdownFiles() {
     else result.push(candidate);
   }
   return result.sort((a, b) => toRelative(a).localeCompare(toRelative(b)));
+}
+
+function checkDocsIndexCoverage() {
+  const docsIndexPath = path.join(rootDir, "docs", "README.md");
+  if (!fs.existsSync(docsIndexPath)) return ["docs/README.md: 문서 색인 파일이 없음"];
+  const docsIndex = fs.readFileSync(docsIndexPath, "utf8");
+  const trackedDocs = gitLsFiles(["docs"])
+    .filter((file) => file.endsWith(".md"))
+    .filter((file) => file !== "docs/README.md");
+  docsIndexCount = trackedDocs.length;
+  const missing = [];
+  for (const file of trackedDocs) {
+    const rel = file.slice("docs/".length);
+    const linkPattern = new RegExp(`\\]\\(${escapeRegex(rel)}(?:#[^)]+)?\\)`);
+    if (!linkPattern.test(docsIndex)) missing.push(file);
+  }
+  return missing.map((file) => `docs/README.md: 전체 문서 색인 누락: ${file}`);
+}
+
+function gitLsFiles(args) {
+  const result = spawnSync("git", ["ls-files", ...args], {
+    cwd: rootDir,
+    encoding: "utf8",
+  });
+  if (result.status !== 0) {
+    const message = (result.stderr || result.stdout || "").trim();
+    throw new Error(`git ls-files failed: ${message}`);
+  }
+  return result.stdout
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
 }
 
 function walkMarkdown(dir) {
@@ -209,6 +249,10 @@ function normalizeAnchor(value) {
     .toLowerCase()
     .replace(/[!"#$%&'()*+,./:;<=>?@[\\\]^`{|}~]/g, "")
     .replace(/\s+/g, "-");
+}
+
+function escapeRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function toRelative(file) {
