@@ -105,21 +105,21 @@ const pageChecks = [
     name: "ops-rules",
     path: "/ops/rules",
     visualSelector: '[data-testid="ops-rules-page"]',
-    must: ['data-testid="ops-rules-page"', 'data-testid="ops-scenario-builder"', 'data-scenario-builder-contract="ui-only-no-engine-change"', 'id="opsScenarioBuilderApply"', 'opsContextActionsHtml', 'data-testid="ops-context-actions"', 'data-action-density="primary-context"', 'id="opsRulesFilterInput"', 'id="opsVaRuleRows"', 'id="opsEventRuleRows"', 'id="opsProfileRows"', 'id="opsAddVaRuleBtn"', 'id="opsAddEventRuleBtn"', 'id="opsAddProfileBtn"', 'id="opsRulesDetailPanel"', 'id="opsVaRuleForm"', 'id="opsEventRuleForm"', 'id="opsProfileForm"', 'id="opsVaRulePreviewVideo"', 'id="opsVaRuleGeometryPreview"', 'id="opsVaRuleTemplateSeedSelect"', 'id="opsVaRuleProfileSelect"', 'id="opsVaRuleChannelSelect"', '/ops/api/rules/catalog'],
-    mustNot: ['<iframe', 'opsRulesFrame', 'id="opsRulesEditorComponent"', '/lab/rules?embed=1'],
+    must: ['data-testid="ops-rules-page"', 'data-testid="ops-scenario-builder"', 'data-scenario-builder-contract="ui-only-no-engine-change"', 'id="opsScenarioBuilderApply"', 'opsContextActionsHtml', 'data-testid="ops-context-actions"', 'data-action-density="primary-context"', 'id="opsRulesFilterInput"', 'id="opsVaRuleRows"', 'id="opsEventRuleRows"', 'id="opsProfileRows"', 'id="opsAddVaRuleBtn"', 'id="opsAddEventRuleBtn"', 'id="opsAddProfileBtn"', 'id="opsRulesDetailPanel"', 'id="opsVaRuleForm"', 'id="opsEventRuleForm"', 'id="opsProfileForm"', 'id="opsVaRulePreviewVideo"', 'id="opsVaRuleGeometryPreview"', 'id="opsVaRuleTemplateSeedSelect"', 'id="opsVaRuleProfileSelect"', 'id="opsVaRuleChannelSelect"', 'id="opsVaRuleIdDisplay"', 'id="opsEventRuleIdDisplay"', 'id="opsProfileIdDisplay"', 'data-generated-id="va-rule"', 'data-generated-id="event-rule"', 'data-generated-id="profile"', '/ops/api/rules/catalog'],
+    mustNot: ['<iframe', 'opsRulesFrame', 'id="opsRulesEditorComponent"', '/lab/rules?embed=1', 'id="opsVaRuleIdInput" type="text"', 'id="opsEventRuleIdInput" type="text"', 'id="opsProfileIdInput" type="text"'],
   },
   {
     name: "ops-sources",
     path: "/ops/sources",
     visualSelector: '[data-testid="ops-sources-page"]',
-    must: ['data-testid="ops-sources-page"', 'id="channels-body"', 'id="channel-detail-panel"', 'name="kind"', 'value="onvif"', 'data-source-kind="onvif"', 'data-testid="source-group-site-management"', 'data-scope-contract="view-read-scopes-unchanged"', 'name="site"', 'name="group"', 'name="floor"', 'name="zone"', 'data-testid="onvif-probe-draft-tool"', 'id="onvifProbeDraftInput"', 'id="onvifProbeProfileSelect"', 'id="onvifProbeDraftApply"', 'name="onvifStreamUrl"', 'name="whepUrl"', "ONVIF 카메라", "ONVIF 스트림 URI", "ONVIF probe fixture", "ONVIF profile", "Probe draft 적용", "외부 WHEP URL", "Published WebRTC 소스", "발행 sourceId", "라이브 URL", "VA URL"],
-    mustNot: ['AppendTableHead(', 'R"OPS(', 'WHIP Published Source ID', "Registry raw JSON", 'sources-json', 'views-json', 'client-views-json', 'data-testid="onvif-import-panel"', 'id="onvif-import-stub"', 'id="onvifImportSummary"', "ONVIF Live Source import", 'data-testid="channel-bulk-panel"', 'id="channel-bulk-select-all"', 'id="channelBulkDiagnostics"', 'data-testid="source-health-panel"', 'id="channelHealthSummary"', 'id="channelHealthDiagnostics"', 'id="channel-detail-health"'],
+    must: ['data-testid="ops-sources-page"', 'id="channels-body"', 'id="channel-detail-panel"', 'id="channel-id-display"', 'data-generated-id="channel"', 'name="channelId" type="hidden"', 'name="kind"', 'value="onvif"', 'data-source-kind="onvif"', 'data-testid="source-group-site-management"', 'data-scope-contract="view-read-scopes-unchanged"', 'name="site"', 'name="group"', 'name="floor"', 'name="zone"', 'data-testid="onvif-probe-draft-tool"', 'id="onvifProbeDraftInput"', 'id="onvifProbeProfileSelect"', 'id="onvifProbeDraftApply"', 'name="onvifStreamUrl"', 'name="whepUrl"', "ONVIF 카메라", "ONVIF 스트림 URI", "ONVIF probe fixture", "ONVIF profile", "Probe draft 적용", "외부 WHEP URL", "Published WebRTC 소스", "발행 sourceId", "라이브 URL", "VA URL"],
+    mustNot: ['AppendTableHead(', 'R"OPS(', 'WHIP Published Source ID', "Registry raw JSON", 'sources-json', 'views-json', 'client-views-json', 'data-testid="onvif-import-panel"', 'id="onvif-import-stub"', 'id="onvifImportSummary"', "ONVIF Live Source import", 'data-testid="channel-bulk-panel"', 'id="channel-bulk-select-all"', 'id="channelBulkDiagnostics"', 'data-testid="source-health-panel"', 'id="channelHealthSummary"', 'id="channelHealthDiagnostics"', 'id="channel-detail-health"', 'name="channelId" type="number"', 'inputmode="numeric" placeholder="1" required'],
   },
   {
     name: "ops-users",
     path: "/ops/users",
     visualSelector: '[data-testid="ops-users-page"]',
-    must: ['data-testid="ops-users-page"', 'data-testid="user-lifecycle-policy"', 'id="users-body"', 'id="access-requests-body"', 'id="request-invite-output"', 'id="user-detail-panel"', 'id="user-edit-selected"', 'id="user-save-selected"', 'id="user-close"', 'id="view-assignment"', 'id="view-assignment-options"', 'clientViewLocationLabel', '사이트/그룹', 'id="user-lifecycle-summary"', 'id="user-reset-password-panel"', 'id="user-reset-password-button"', 'data-user-reset-password', 'data-user-set-enabled', '초대 링크는 기본 24시간 동안만 유효', '사용자 감사 JSON/CSV/Diff JSON export', '승인 전: 로그인/세션/채널 권한 없음', '초대 링크 만료', '/ops/api/access-requests'],
+    must: ['data-testid="ops-users-page"', 'data-testid="user-lifecycle-policy"', 'id="users-body"', 'id="access-requests-body"', 'id="request-invite-output"', 'id="user-detail-panel"', 'id="user-edit-selected"', 'id="user-save-selected"', 'id="user-close"', 'id="view-assignment"', 'id="view-assignment-options"', 'data-testid="user-channel-assignment-list"', 'data-assignment-view', 'selectedAssignmentViewIds', 'viewId: selectedViewIds[0] ||', 'scopeTemplateForRole(role, selectedViewIds)', 'clientViewLocationLabel', '사이트/그룹', 'id="user-lifecycle-summary"', 'id="user-reset-password-panel"', 'id="user-reset-password-button"', 'data-user-reset-password', 'data-user-set-enabled', '초대 링크는 기본 24시간 동안만 유효', '사용자 감사 JSON/CSV/Diff JSON export', '승인 전: 로그인/세션/채널 권한 없음', '초대 링크 만료', '/ops/api/access-requests'],
   },
   {
     name: "client-live",
@@ -227,6 +227,18 @@ try {
   const message = error instanceof Error ? error.message : String(error);
   failures.push(`[client-rendered-leak] ${message}`);
   console.log(`[fail] client-rendered-leak: ${message}`);
+}
+
+try {
+  const opsFormResult = await runOpsAdminFormRegressionSmoke();
+  passCount += opsFormResult.passCount;
+  failCount += opsFormResult.failCount;
+  failures.push(...opsFormResult.failures);
+} catch (error) {
+  failCount += 1;
+  const message = error instanceof Error ? error.message : String(error);
+  failures.push(`[ops-admin-form-regression] ${message}`);
+  console.log(`[fail] ops-admin-form-regression: ${message}`);
 }
 
 try {
@@ -779,6 +791,166 @@ async function runClientLiveTileKeyboardSmoke() {
     }
   }
   return { passCount: keyboardPassCount, failCount: keyboardFailCount };
+}
+
+async function runOpsAdminFormRegressionSmoke() {
+  if (!chromePath) {
+    return { passCount: 0, failCount: 1, failures: ["[ops-admin-form-regression] Chrome executable not found"] };
+  }
+  const cases = [
+    {
+      name: "ops-sources-generated-channel-id",
+      pagePath: "/ops/sources",
+      expression: opsSourcesGeneratedIdExpression(),
+    },
+    {
+      name: "ops-rules-generated-id-displays",
+      pagePath: "/ops/rules",
+      expression: opsRulesGeneratedIdExpression(),
+    },
+    {
+      name: "ops-users-multi-channel-assignment",
+      pagePath: "/ops/users",
+      expression: opsUsersMultiChannelAssignmentExpression(),
+    },
+  ];
+  let localPass = 0;
+  let localFail = 0;
+  const localFailures = [];
+  let index = 0;
+  for (const item of cases) {
+    const browser = await openBrowserPage({
+      httpBase,
+      pagePath: item.pagePath,
+      timeoutMs,
+      chromePath,
+      debugPort: debugPortBase + 420 + index,
+      width: 1180,
+      height: 900,
+      outputDir,
+    });
+    index += 1;
+    try {
+      const result = await browser.evaluate(item.expression, 10000);
+      if (!result?.ok) {
+        const details = Array.isArray(result?.issues) ? result.issues.join("; ") : JSON.stringify(result);
+        throw new Error(details);
+      }
+      localPass += 1;
+      console.log(`[pass] ${item.name}`);
+    } catch (error) {
+      localFail += 1;
+      const message = error instanceof Error ? error.message : String(error);
+      localFailures.push(`[${item.name}] ${message}`);
+      console.log(`[fail] ${item.name}: ${message}`);
+    } finally {
+      await browser.close();
+    }
+  }
+  return { passCount: localPass, failCount: localFail, failures: localFailures };
+}
+
+function opsSourcesGeneratedIdExpression() {
+  return `
+    (async () => {
+      const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+      const issues = [];
+      const issue = message => { if (issues.length < 12) issues.push(message); };
+      await wait(500);
+      document.querySelector('#add-channel')?.click();
+      await wait(250);
+      const form = document.querySelector('#channel-form');
+      const hiddenId = form?.elements?.channelId;
+      const display = document.querySelector('#channel-id-display');
+      if (!form) issue('channel form missing');
+      if (!hiddenId) issue('channel hidden id missing');
+      if (hiddenId && hiddenId.type !== 'hidden') issue('channel id is not hidden: ' + hiddenId.type);
+      if (document.querySelector('#channel-form input[name="channelId"][type="number"]')) issue('editable channel numeric id input remains');
+      if (!display) issue('channel generated id display missing');
+      const idText = String(display?.textContent || '').trim();
+      if (!/^\\d+$/.test(idText)) issue('generated channel id is not numeric: ' + idText);
+      if (String(hiddenId?.value || '') !== idText) issue('hidden channel id does not match display');
+      const active = document.activeElement;
+      if (active?.name === 'channelId') issue('channel id can receive edit focus');
+      return { ok: issues.length === 0, issues, idText };
+    })()
+  `;
+}
+
+function opsRulesGeneratedIdExpression() {
+  return `
+    (async () => {
+      const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+      const issues = [];
+      const issue = message => { if (issues.length < 16) issues.push(message); };
+      await wait(600);
+      for (const [inputId, displayId] of [
+        ['opsVaRuleIdInput', 'opsVaRuleIdDisplay'],
+        ['opsEventRuleIdInput', 'opsEventRuleIdDisplay'],
+        ['opsProfileIdInput', 'opsProfileIdDisplay']
+      ]) {
+        const input = document.getElementById(inputId);
+        const display = document.getElementById(displayId);
+        if (!input) issue(inputId + ' missing');
+        if (input && input.type !== 'hidden') issue(inputId + ' is not hidden: ' + input.type);
+        if (!display) issue(displayId + ' missing');
+        if (display && display.matches('input, textarea, select')) issue(displayId + ' is editable control');
+      }
+      if (document.querySelector('#opsVaRuleIdInput[type="text"], #opsEventRuleIdInput[type="text"], #opsProfileIdInput[type="text"]')) {
+        issue('editable rule/profile id input remains');
+      }
+      document.querySelector('#opsAddEventRuleBtn')?.click();
+      await wait(120);
+      document.querySelector('#opsCreateEventRuleBtn')?.click();
+      await wait(250);
+      const eventDisplay = document.getElementById('opsEventRuleIdDisplay');
+      const eventHidden = document.getElementById('opsEventRuleIdInput');
+      const eventText = String(eventDisplay?.textContent || '').trim();
+      if (!/^\\d+$/.test(eventText)) issue('event rule generated id display is not numeric: ' + eventText);
+      if (String(eventHidden?.value || '') !== eventText) issue('event rule hidden id does not match display');
+      return { ok: issues.length === 0, issues, eventText };
+    })()
+  `;
+}
+
+function opsUsersMultiChannelAssignmentExpression() {
+  return `
+    (async () => {
+      const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+      const issues = [];
+      const issue = message => { if (issues.length < 16) issues.push(message); };
+      await wait(600);
+      document.querySelector('#add-user-btn')?.click();
+      await wait(250);
+      const list = document.querySelector('[data-testid="user-channel-assignment-list"]');
+      const hidden = document.querySelector('#user-form input[name="viewId"][type="hidden"]');
+      const options = Array.from(list?.querySelectorAll('[data-assignment-view]') || []);
+      if (!list) issue('multi-channel assignment list missing');
+      if (!hidden) issue('hidden viewId field missing');
+      if (document.querySelector('#user-form input[name="viewId"][list]')) issue('single datalist channel input remains');
+      if (document.querySelector('#view-assignment-options option')) issue('datalist option UI remains');
+      if (options.length < 2) issue('expected multiple selectable channel checkboxes, got ' + options.length);
+      for (const option of options.slice(0, 3)) {
+        if (!option.checked) option.click();
+      }
+      await wait(120);
+      document.querySelector('#apply-view-scope-template')?.click();
+      await wait(120);
+      const selected = options.slice(0, 3).map(input => String(input.value || '').trim()).filter(Boolean);
+      const scopes = String(document.querySelector('#user-scopes-input')?.value || '');
+      for (const viewId of selected) {
+        if (!scopes.includes('view:read:' + viewId)) issue('missing view scope for ' + viewId);
+        if (!scopes.includes('dashboard:read:' + viewId)) issue('missing dashboard scope for ' + viewId);
+        if (!scopes.includes('event:read:' + viewId)) issue('missing event scope for ' + viewId);
+        if (!scopes.includes('metadata:read:' + viewId)) issue('missing metadata scope for ' + viewId);
+      }
+      const hiddenValue = String(hidden?.value || '');
+      for (const viewId of selected) {
+        if (!hiddenValue.split(',').includes(viewId)) issue('hidden assignment missing ' + viewId);
+      }
+      return { ok: issues.length === 0, issues, optionCount: options.length, selected, hiddenValue };
+    })()
+  `;
 }
 
 function clientLiveTileKeyboardExpression(a11ySnapshot) {

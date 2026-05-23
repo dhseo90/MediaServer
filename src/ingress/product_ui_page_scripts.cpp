@@ -5379,6 +5379,16 @@ void AppendOpsShellScript(std::ostringstream& out,
           if (form) form.hidden = entryMode !== mode;
         });
       }
+      function setOpsGeneratedId(inputId, displayId, value, emptyLabel = '자동 배정') {
+        const normalized = String(value || '').trim();
+        const input = document.getElementById(inputId);
+        const display = document.getElementById(displayId);
+        if (input) input.value = normalized;
+        if (display) {
+          display.textContent = normalized || emptyLabel;
+          display.dataset.empty = normalized ? 'false' : 'true';
+        }
+      }
       function opsRulesSetFormDisabled(mode, disabled) {
         const form = opsRulesCurrentForm(mode);
         if (!form) return;
@@ -5978,7 +5988,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         const channel = opsRulesFindChannelForVaRule(item);
         const templateMeta = opsVaRuleStartMeta(item);
         const templateRuleId = templateMeta.templateRuleId;
-        document.getElementById('opsVaRuleIdInput').value = String(item?.id || '');
+        setOpsGeneratedId('opsVaRuleIdInput', 'opsVaRuleIdDisplay', item?.id || '');
         document.getElementById('opsVaRuleNameInput').value = String(item?.name || `채널 분석 설정 ${item?.id || ''}`).trim();
         document.getElementById('opsVaRuleEnabledInput').value = item?.enabled === false ? 'false' : 'true';
         document.getElementById('opsVaRuleChannelSelect').value = channel?.id || '';
@@ -6007,7 +6017,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (presetSelect) {
           presetSelect.value = opsScenarioPresetBaselines[presetId] ? presetId : 'custom';
         }
-        document.getElementById('opsEventRuleIdInput').value = String(item?.id || '');
+        setOpsGeneratedId('opsEventRuleIdInput', 'opsEventRuleIdDisplay', item?.id || '');
         document.getElementById('opsEventRuleTypeSelect').value = eventType;
         document.getElementById('opsEventRuleConfidenceInput').value = String(event?.minConfidence ?? baseline.minConfidence ?? 0.25);
         document.getElementById('opsEventRuleMinDurationInput').value = String(event?.minDurationMs ?? baseline.minDurationMs ?? 0);
@@ -6028,7 +6038,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         opsEventRuleUpdateModeUi();
       }
       function opsRulesFillProfileForm(item, detailMode) {
-        document.getElementById('opsProfileIdInput').value = String(item?.id || item?.profileId || '');
+        setOpsGeneratedId('opsProfileIdInput', 'opsProfileIdDisplay', item?.id || item?.profileId || '');
         document.getElementById('opsProfileDetectorSelect').value = String(item?.detector || 'yolo');
         document.getElementById('opsProfileFpsInput').value = String(item?.fps ?? 6);
         document.getElementById('opsProfileQueueInput').value = String(item?.maxQueue ?? 1);
@@ -6212,7 +6222,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         const current = opsRulesCurrentRecord?.item || {};
         if (mode === 'va-rule') {
           const forcedId = String(document.getElementById('opsVaRuleIdInput')?.value || '').trim() || opsRulesNextNumericId(opsCatalogVaRules, 1);
-          document.getElementById('opsVaRuleIdInput').value = forcedId;
+          setOpsGeneratedId('opsVaRuleIdInput', 'opsVaRuleIdDisplay', forcedId);
           const { payload, channel } = opsRulesReadVaRuleForm(current, forcedId);
           const payloadTemplateId = String(payload?.templateStart?.ruleId || '').trim();
           const geometryPoints = Array.isArray(payload?.event?.region?.points) ? payload.event.region.points : [];
@@ -6248,7 +6258,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         }
         if (mode === 'event-rule') {
           const forcedId = String(document.getElementById('opsEventRuleIdInput')?.value || '').trim() || opsRulesNextNumericId(opsCatalogEventTemplates, 1);
-          document.getElementById('opsEventRuleIdInput').value = forcedId;
+          setOpsGeneratedId('opsEventRuleIdInput', 'opsEventRuleIdDisplay', forcedId);
           const payload = opsRulesReadEventTemplateForm(current, forcedId);
           if (!payload.id) throw new Error('이벤트 템플릿 ID가 필요합니다.');
           if (!opsRulesEventTypeForItem(payload)) throw new Error('이벤트/시나리오 종류를 선택하세요.');
@@ -6276,8 +6286,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           const payload = opsRulesReadProfileForm(current);
           if (!payload.id) {
             payload.id = opsRulesNextProfileId();
-            const idInput = document.getElementById('opsProfileIdInput');
-            if (idInput) idInput.value = payload.id;
+            setOpsGeneratedId('opsProfileIdInput', 'opsProfileIdDisplay', payload.id);
           }
           if (!payload.id) throw new Error('분석 프로파일 ID가 필요합니다.');
           if (!Number.isFinite(payload.fps) || payload.fps <= 0) throw new Error('분석 FPS는 1 이상이어야 합니다.');
@@ -7816,6 +7825,16 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       saveButton.hidden = disabled;
       editSelectedButton.hidden = !disabled || !currentChannelId;
     }
+    function setGeneratedChannelId(value) {
+      const normalized = String(value || '').trim();
+      channelForm.elements.channelId.value = normalized;
+      const display = document.querySelector('#channel-id-display');
+      if (display) {
+        display.textContent = normalized || '자동 배정';
+        display.dataset.empty = normalized ? 'false' : 'true';
+      }
+      channelIdBadge.textContent = normalized || '-';
+    }
     function updateKindFields() {
       const kind = channelForm.elements.kind.value || 'file';
       document.querySelectorAll('[data-source-kind]').forEach(field => {
@@ -7831,6 +7850,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       const isNew = mode === 'new' || isClone;
       channelMode.textContent = isClone ? '복제' : (isNew ? '새 채널' : (isView ? '상세' : '수정 중'));
       const visibleId = channelForm.elements.channelId.value || id || currentChannelId;
+      setGeneratedChannelId(visibleId);
       channelIdBadge.textContent = visibleId || '-';
       channelTitle.textContent = isNew
         ? (isClone ? '채널 복제' : '채널 추가')
@@ -7970,7 +7990,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     }
     function resetChannelForm(mode = 'new') {
       channelForm.reset();
-      channelForm.elements.channelId.value = nextChannelId();
+      setGeneratedChannelId(nextChannelId());
       currentChannelEnabled = true;
       setChannelValidation('');
       updateKindFields();
@@ -7978,13 +7998,13 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       setOpsDetailPanelOpen(channelPanel, true);
       syncEditorChrome(mode, '');
       setOpsDetailPanelOpen(channelPanel, true, { scroll: true });
-      channelForm.elements.channelId.focus();
+      channelForm.elements.displayName.focus();
     }
     function fillChannel(id, mode = 'view') {
       const source = findSource(id) || {};
       const view = findChannelView(id) || {};
       const isClone = mode === 'clone';
-      channelForm.elements.channelId.value = isClone ? nextChannelId(id) : id;
+      setGeneratedChannelId(isClone ? nextChannelId(id) : id);
       channelForm.elements.displayName.value = view.displayName || source.displayName || '';
       channelForm.elements.kind.value = isOnvifSource(source) ? 'onvif' : (source.kind || 'file');
       loadFileOptions(source.file || '');
@@ -8079,16 +8099,13 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     function applyOnvifDraftToChannelForm(payload) {
       const sourceDraft = payload?.sourceDraft || {};
       const viewDraft = payload?.publishedViewDraft || {};
-      const channelId = String(sourceDraft.sourceId || viewDraft.viewId || viewDraft.sourceId || '').trim();
+      const channelId = String(channelForm.elements.channelId.value || currentChannelId || nextChannelId()).trim();
       const displayName = String(viewDraft.displayName || sourceDraft.displayName || channelId).trim();
       const streamUri = String(sourceDraft.rtspUrl || sourceDraft.httpUrl || sourceDraft.whepUrl || '').trim();
-      if (!isNumericChannelId(channelId)) {
-        throw new Error('Probe draft의 sourceId는 현재 채널 ID 규칙에 맞는 숫자여야 합니다.');
-      }
       if (!onvifTransportFromUri(streamUri)) {
         throw new Error('Probe draft에서 저장 가능한 ONVIF 스트림 URI를 찾을 수 없습니다.');
       }
-      channelForm.elements.channelId.value = channelId;
+      setGeneratedChannelId(channelId);
       channelForm.elements.displayName.value = displayName;
       channelForm.elements.kind.value = 'onvif';
       channelForm.elements.onvifStreamUrl.value = streamUri;
@@ -8456,7 +8473,35 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       assignment.style.display = (role === 'viewer' || role === 'integrator') ? 'grid' : 'none';
       updateScopeTemplatePreview();
     }
-    const scopedRoleTarget = viewId => String(viewId || '').trim() || '__unassigned__';
+    function normalizeAssignmentViewIds(value) {
+      const raw = Array.isArray(value)
+        ? value
+        : String(value || '').split(/[\s,]+/);
+      return Array.from(new Set(raw
+        .map(item => String(item || '').trim())
+        .filter(Boolean)));
+    }
+    function selectedAssignmentViewIds() {
+      return Array.from(assignmentOptions?.querySelectorAll('[data-assignment-view]:checked') || [])
+        .map(input => String(input.value || '').trim())
+        .filter(Boolean);
+    }
+    function syncAssignmentHiddenField() {
+      if (form.elements.viewId) {
+        form.elements.viewId.value = selectedAssignmentViewIds().join(',');
+      }
+    }
+    function setAssignmentSelection(viewIds = []) {
+      const wanted = new Set(normalizeAssignmentViewIds(viewIds));
+      for (const input of Array.from(assignmentOptions?.querySelectorAll('[data-assignment-view]') || [])) {
+        input.checked = wanted.has(String(input.value || '').trim());
+      }
+      syncAssignmentHiddenField();
+    }
+    const scopedRoleTargets = viewIds => {
+      const normalized = normalizeAssignmentViewIds(viewIds);
+      return normalized.length ? normalized : ['__unassigned__'];
+    };
     const clientViewLocationParts = view => [
       view?.site,
       view?.group,
@@ -8469,31 +8514,49 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     }
     function renderAssignmentOptions() {
       if (!assignmentOptions) return;
-      assignmentOptions.innerHTML = (loadedClientViews || []).map(view => {
+      const selected = selectedAssignmentViewIds();
+      if (!Array.isArray(loadedClientViews) || loadedClientViews.length === 0) {
+        assignmentOptions.innerHTML = '<span class="channel-assignment-empty">선택 가능한 채널이 없습니다.</span>';
+        syncAssignmentHiddenField();
+        return;
+      }
+      assignmentOptions.innerHTML = loadedClientViews.map(view => {
         const location = clientViewLocationLabel(view);
         const label = [
           view.displayName || view.viewId,
           location
         ].filter(Boolean).join(' - ');
-        return `<option value="${escapeHtml(view.viewId || '')}" label="${escapeHtml(label)}"></option>`;
+        const value = String(view.viewId || '').trim();
+        return `<label class="channel-assignment-option">
+          <input type="checkbox" data-assignment-view value="${escapeHtml(value)}" />
+          <span title="${escapeHtml(label)}">${escapeHtml(label || value)}</span>
+        </label>`;
       }).join('');
+      setAssignmentSelection(selected);
     }
-    function scopeTemplateForRole(role, viewId = '') {
+    function scopeTemplateForRole(role, viewIds = []) {
       const normalizedRole = String(role || '').trim().toLowerCase();
-      const target = scopedRoleTarget(viewId);
       if (normalizedRole === 'admin') return ['*'];
       if (normalizedRole === 'operator') {
         return ['ops:read', 'rule:write', 'source:write', 'dashboard:read:*', 'event:read:*'];
       }
       if (normalizedRole === 'viewer') {
-        return [`view:read:${target}`, `dashboard:read:${target}`, `event:read:${target}`, `metadata:read:${target}`];
+        return scopedRoleTargets(viewIds).flatMap(target => [
+          `view:read:${target}`,
+          `dashboard:read:${target}`,
+          `event:read:${target}`,
+          `metadata:read:${target}`
+        ]);
       }
       if (normalizedRole === 'integrator') {
-        return [`metadata:read:${target}`, `event:read:${target}`];
+        return scopedRoleTargets(viewIds).flatMap(target => [
+          `metadata:read:${target}`,
+          `event:read:${target}`
+        ]);
       }
       return [];
     }
-    function viewIdFromScopes(scopes) {
+    function viewIdsFromScopes(scopes) {
       const targets = new Set();
       for (const scope of Array.isArray(scopes) ? scopes : []) {
         const match = String(scope || '').trim().match(/^(view|dashboard|event|metadata):read:(.+)$/);
@@ -8501,28 +8564,34 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
           targets.add(match[2]);
         }
       }
-      return targets.size === 1 ? Array.from(targets)[0] : '';
+      return Array.from(targets);
     }
     function updateScopeTemplatePreview() {
       if (!scopePreview) return;
       const role = form.elements.role.value;
-      const viewId = String(form.elements.viewId.value || '').trim();
-      const scopes = scopeTemplateForRole(role, viewId);
+      const viewIds = selectedAssignmentViewIds();
+      syncAssignmentHiddenField();
+      const scopes = scopeTemplateForRole(role, viewIds);
       const scopedRole = role === 'viewer' || role === 'integrator';
-      const suffix = scopedRole && !viewId
+      const suffix = scopedRole && viewIds.length === 0
         ? '채널 ID가 비어 있어 미배정 범위로 계산됩니다.'
         : `적용 예정 ${scopes.length}개`;
-      const selectedView = scopedRole ? findClientView(viewId) : null;
-      const location = selectedView ? clientViewLocationLabel(selectedView) : '';
-      const locationText = location ? ` · 사이트/그룹: ${location}` : '';
+      const selectedLabels = scopedRole
+        ? viewIds.map(id => {
+            const view = findClientView(id);
+            const location = view ? clientViewLocationLabel(view) : '';
+            return [view?.displayName || id, location].filter(Boolean).join(' / ');
+          })
+        : [];
+      const locationText = selectedLabels.length ? ` · 채널: ${selectedLabels.join(', ')}` : '';
       scopePreview.textContent = scopes.length
         ? `${suffix}${locationText}: ${scopes.join(', ')}`
         : '이 역할에는 적용할 권한 템플릿이 없습니다.';
     }
     function applyScopeTemplate(useRoleDefault = false) {
       const role = form.elements.role.value;
-      const viewId = useRoleDefault ? '' : form.elements.viewId.value;
-      const scopes = scopeTemplateForRole(role, viewId);
+      const viewIds = useRoleDefault ? [] : selectedAssignmentViewIds();
+      const scopes = scopeTemplateForRole(role, viewIds);
       form.elements.scopes.value = scopes.join('\n');
       updateScopeTemplatePreview();
     }
@@ -8534,12 +8603,15 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     }
     function formPayload() {
       const data = formDataObject(form);
+      const selectedViewIds = selectedAssignmentViewIds();
+      const explicitScopes = splitList(formValue(data, 'scopes'));
+      const role = formValue(data, 'role');
       return {
         username: formValue(data, 'username').trim(),
         displayName: formValue(data, 'displayName').trim(),
-        role: formValue(data, 'role'),
-        viewId: formValue(data, 'viewId').trim(),
-        scopes: splitList(formValue(data, 'scopes')),
+        role,
+        viewId: selectedViewIds[0] || '',
+        scopes: explicitScopes.length ? explicitScopes : scopeTemplateForRole(role, selectedViewIds),
         password: data.password || '',
         confirmPassword: data.confirmPassword || '',
         enabled: form.elements.enabled.checked,
@@ -8610,7 +8682,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       form.elements.username.value = user.username;
       form.elements.displayName.value = user.displayName || '';
       form.elements.role.value = user.role || 'viewer';
-      form.elements.viewId.value = viewIdFromScopes(user.scopes || []);
+      setAssignmentSelection(viewIdsFromScopes(user.scopes || []));
       form.elements.scopes.value = (user.scopes || []).join('\n');
       form.elements.password.value = '';
       form.elements.confirmPassword.value = '';
@@ -8623,6 +8695,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     function resetUserForm() {
       form.reset();
       form.elements.role.value = 'viewer';
+      setAssignmentSelection([]);
       form.elements.enabled.checked = true;
       form.elements.mustChangePassword.checked = true;
       setEditorMode('new', '사용자 추가');
@@ -8711,6 +8784,12 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         }
         const targets = Array.from(new Set(parsed.map(item => item.target).filter(Boolean)));
         const labels = Array.from(new Set(parsed.map(item => item.label).filter(Boolean)));
+        if (targets.length > 1) {
+          const previewTargets = targets.slice(0, 4).join(', ');
+          const suffix = targets.length > 4 ? ` 외 ${targets.length - 4}개` : '';
+          const featureText = labels.length > 0 ? labels.join(', ') : '조회';
+          return userValueHtml(`${targets.length}개 채널`, `${previewTargets}${suffix} / ${featureText}`);
+        }
         if (targets.length === 1 && labels.length > 0) {
           const primary = labels.length <= 2 ? labels.join(', ') : `${labels.length}개 범위`;
           const note = labels.length <= 2
@@ -9081,6 +9160,10 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     });
     document.querySelector('#add-user-btn').onclick = resetUserForm;
     form.elements.role.addEventListener('change', updateAssignmentVisibility);
+    assignmentOptions?.addEventListener('change', () => {
+      syncAssignmentHiddenField();
+      updateScopeTemplatePreview();
+    });
     form.elements.viewId.addEventListener('input', updateScopeTemplatePreview);
     form.elements.scopes.addEventListener('input', updateScopeTemplatePreview);
     form.elements.enabled.addEventListener('change', () => updateLifecycleSummary());

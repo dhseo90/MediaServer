@@ -23,7 +23,7 @@ Usage:
 
 Options:
   --http-base <url>          실행 중인 서버 HTTP base입니다. 기본 http://127.0.0.1:8081.
-  --source-id <id>           저장 검증에 사용할 임시 source/view id입니다. 기본은 비어 있는 90번대 이후 id.
+  --source-id <id>           생성될 임시 source/view id를 검증합니다. 기본은 UI 자동 생성값을 사용합니다.
   --timeout-ms <ms>          브라우저/API 대기 시간입니다. 기본 15000.
   --chrome-path <path>       Chrome/Chromium 실행 파일 경로입니다.
   --debug-port <port>        Chrome CDP port입니다. 기본 9765.
@@ -36,7 +36,7 @@ Checks:
   - /ops/sources 채널 폼에서 ONVIF camera 타입을 선택하고 ONVIF stream URI를 입력
   - /ops/sources 채널 목록의 Live/VA URL 복사 버튼이 ONVIF RTSP/WHEP로 표시됨
   - /ops/rules에서 ONVIF 소스에 연결된 채널 분석 설정 URL 복사 버튼이 ONVIF RTSP/WHEP로 표시됨
-  - operator가 channelId를 바꿔도 ONVIF tags/view 옵션이 저장 payload에 유지됨
+  - channelId가 표시 전용 자동 생성값으로 저장되고 ONVIF tags/view 옵션이 유지됨
   - 기존 source/view API로 저장된 뒤 client API에 RTSP URL, ONVIF endpoint, credential이 노출되지 않음
   - smoke 종료 시 만든 vaRule/source/view를 삭제
 `);
@@ -75,12 +75,14 @@ const viewsBefore = await requestJson("/ops/api/views");
 assertTempRegistry(sourcesBefore.storagePath, "source registry");
 assertTempRegistry(viewsBefore.storagePath, "published view registry");
 
-const sourceId = String(args.sourceId || findFreeNumericId(sourcesBefore.sources, viewsBefore.views, 90));
-assert(/^[1-9]\d*$/.test(sourceId), "--source-id must be numeric");
-assert(!hasRecord(sourcesBefore.sources, "sourceId", sourceId), `sourceId ${sourceId} already exists`);
-assert(!hasRecord(viewsBefore.views, "viewId", sourceId), `viewId ${sourceId} already exists`);
-
-const displayName = `ONVIF UI Roundtrip ${sourceId}`;
+const requestedSourceId = args.sourceId ? String(args.sourceId) : "";
+if (requestedSourceId) {
+  assert(/^[1-9]\d*$/.test(requestedSourceId), "--source-id must be numeric");
+  assert(!hasRecord(sourcesBefore.sources, "sourceId", requestedSourceId), `sourceId ${requestedSourceId} already exists`);
+  assert(!hasRecord(viewsBefore.views, "viewId", requestedSourceId), `viewId ${requestedSourceId} already exists`);
+}
+let sourceId = "";
+let displayName = "";
 let savedRtspUrl = "";
 let savedEventRuleId = "";
 let savedVaRuleId = "";
@@ -109,8 +111,16 @@ try {
   await assertText(browser, "#onvifProbeDraftStatus", "Probe draft 적용", "ONVIF probe draft status");
   const draftedRtspUrl = await readInputValue(browser, '[name="onvifStreamUrl"]', "drafted ONVIF stream URI");
   assert(draftedRtspUrl === "rtsp://192.0.2.20/live/sub", `drafted ONVIF stream URI mismatch: ${draftedRtspUrl}`);
+  sourceId = await readInputValue(browser, '[name="channelId"]', "generated channelId");
+  assert(/^[1-9]\d*$/.test(sourceId), `generated channelId must be numeric: ${sourceId}`);
+  assert(!hasRecord(sourcesBefore.sources, "sourceId", sourceId), `generated sourceId ${sourceId} already exists`);
+  assert(!hasRecord(viewsBefore.views, "viewId", sourceId), `generated viewId ${sourceId} already exists`);
+  if (requestedSourceId) {
+    assert(sourceId === requestedSourceId, `generated sourceId mismatch: expected ${requestedSourceId}, got ${sourceId}`);
+  }
+  await assertGeneratedChannelIdDisplay(browser, sourceId);
+  displayName = `ONVIF UI Roundtrip ${sourceId}`;
   savedRtspUrl = `rtsp://192.0.2.10/live/main-${sourceId}`;
-  await setInputValue(browser, '[name="channelId"]', sourceId, "channelId");
   await setInputValue(browser, '[name="displayName"]', displayName, "displayName");
   await setInputValue(browser, '[name="onvifStreamUrl"]', savedRtspUrl, "ONVIF Stream URI");
   await clickSelector(browser, "#channel-save-selected", "ONVIF channel save");
@@ -348,6 +358,35 @@ async function assertText(browserInstance, selector, expected, description) {
     item => item?.ok === true,
     description,
   );
+}
+
+async function assertGeneratedChannelIdDisplay(browserInstance, expectedId) {
+  const result = await waitForResult(
+    browserInstance,
+    `
+      (() => {
+        const hidden = document.querySelector('[name="channelId"]');
+        const display = document.querySelector('#channel-id-display');
+        const legacyEditable = document.querySelector('input[name="channelId"][type="number"]');
+        const text = (display?.textContent || '').trim();
+        return {
+          ok: Boolean(hidden)
+            && hidden.type === 'hidden'
+            && hidden.value === ${JSON.stringify(expectedId)}
+            && Boolean(display)
+            && text.includes(${JSON.stringify(expectedId)})
+            && !legacyEditable,
+          hiddenType: hidden?.type || '',
+          hiddenValue: hidden?.value || '',
+          displayText: text,
+          legacyEditable: Boolean(legacyEditable),
+        };
+      })()
+    `,
+    item => item?.ok === true,
+    "generated channelId display",
+  );
+  console.log(`[pass] channelId 자동 생성 표시: ${result.displayText}`);
 }
 
 async function readInputValue(browserInstance, selector, description) {

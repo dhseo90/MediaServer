@@ -1091,6 +1091,35 @@ std::string ProductUiCss() {
       font-size: 13px;
       font-weight: 850;
     }
+    .form-label {
+      color: var(--color-text-muted);
+      font-size: 13px;
+      font-weight: 850;
+    }
+    .generated-id-control {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+    .generated-id-field {
+      display: inline-flex;
+      align-items: center;
+      min-height: 38px;
+      width: 100%;
+      min-width: 0;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 8px 10px;
+      background: var(--color-surface-subtle);
+      color: var(--color-text);
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+      overflow-wrap: anywhere;
+    }
+    .generated-id-field[data-empty="true"] {
+      color: var(--color-text-muted);
+      font-weight: 800;
+    }
     input,
     select,
     textarea {
@@ -2221,6 +2250,51 @@ std::string ProductUiCss() {
     }
     .scope-template-actions button {
       max-width: 100%;
+    }
+    .channel-assignment-field {
+      display: grid;
+      gap: 8px;
+    }
+    .channel-assignment-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px;
+      max-height: 220px;
+      overflow: auto;
+      padding: 8px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-subtle);
+    }
+    .channel-assignment-option {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      gap: 8px;
+      min-height: 36px;
+      padding: 7px 8px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: var(--color-surface);
+      color: var(--color-text);
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .channel-assignment-option input {
+      width: auto;
+      min-height: auto;
+      margin: 0;
+    }
+    .channel-assignment-option span {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .channel-assignment-empty {
+      color: var(--color-text-muted);
+      font-size: 13px;
+      font-weight: 800;
     }
     .user-lifecycle-policy .status-stat strong {
       font-size: 16px;

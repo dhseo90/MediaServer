@@ -2816,7 +2816,11 @@ void AppendOpsRulesPage(std::ostringstream& out) {
         <div id="opsRulesComposerSteps" class="rule-step-strip" aria-label="현재 작성 단계" hidden></div>
         <form id="opsVaRuleForm" hidden>
           <div class="row">
-            <label>ID<input id="opsVaRuleIdInput" type="text" inputmode="numeric" readonly /></label>
+            <div class="generated-id-control">
+              <span class="form-label">ID</span>
+              <input id="opsVaRuleIdInput" type="hidden" />
+              <span id="opsVaRuleIdDisplay" class="generated-id-field" data-generated-id="va-rule">자동 배정</span>
+            </div>
             <label>이름<input id="opsVaRuleNameInput" type="text" placeholder="채널 분석 설정 이름" /></label>
             <label>상태
               <select id="opsVaRuleEnabledInput">
@@ -2935,7 +2939,11 @@ void AppendOpsRulesPage(std::ostringstream& out) {
         </form>
         <form id="opsEventRuleForm" hidden>
           <div class="row">
-            <label>ID<input id="opsEventRuleIdInput" type="text" inputmode="numeric" readonly /></label>
+            <div class="generated-id-control">
+              <span class="form-label">ID</span>
+              <input id="opsEventRuleIdInput" type="hidden" />
+              <span id="opsEventRuleIdDisplay" class="generated-id-field" data-generated-id="event-rule">자동 배정</span>
+            </div>
           </div>
           <div class="row">
             <label>구성
@@ -3051,7 +3059,11 @@ void AppendOpsRulesPage(std::ostringstream& out) {
         </form>
         <form id="opsProfileForm" hidden>
           <div class="row">
-            <label>ID<input id="opsProfileIdInput" type="text" inputmode="numeric" readonly /></label>
+            <div class="generated-id-control">
+              <span class="form-label">ID</span>
+              <input id="opsProfileIdInput" type="hidden" />
+              <span id="opsProfileIdDisplay" class="generated-id-field" data-generated-id="profile">자동 배정</span>
+            </div>
             <label>검출기
               <select id="opsProfileDetectorSelect">
                 <option value="yolo">yolo</option>
@@ -4304,7 +4316,11 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
             <p><strong>ONVIF 카메라</strong>는 ONVIF 프로파일에서 선택한 라이브 스트림 URI를 연결합니다. <strong>외부 WHEP</strong>는 URL 입력, <strong>Published WebRTC 소스</strong>는 저장된 <code>sourceId</code> 연결입니다.</p>
           </div>
           <div class="row">
-            <label>채널 ID<input name="channelId" type="number" min="1" step="1" inputmode="numeric" placeholder="1" required /></label>
+            <div class="generated-id-control">
+              <span class="form-label">채널 ID</span>
+              <input name="channelId" type="hidden" required />
+              <span id="channel-id-display" class="generated-id-field" data-generated-id="channel">자동 배정</span>
+            </div>
             <label>이름<input name="displayName" /></label>
             <label>종류
               <select name="kind">
@@ -4503,9 +4519,12 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
               </label>
             </div>
             <div id="view-assignment">
-              <label>채널 ID<input name="viewId" list="view-assignment-options" placeholder="1" /></label>
-              <datalist id="view-assignment-options"></datalist>
-              <p class="hint">시청자/연동 계정에는 선택한 채널의 라이브, 대시보드, 이벤트, 메타데이터 조회 권한만 부여합니다. 운영, 개발, 소스, 룰 관리 권한은 허용하지 않습니다.</p>
+              <div class="channel-assignment-field">
+                <span class="form-label">채널</span>
+                <input name="viewId" type="hidden" />
+                <div id="view-assignment-options" class="channel-assignment-list" data-testid="user-channel-assignment-list"></div>
+              </div>
+              <p class="hint">채널명과 사이트/그룹 위치를 확인해 여러 채널을 선택합니다. 시청자/연동 계정에는 선택한 채널들의 라이브, 대시보드, 이벤트, 메타데이터 조회 권한만 부여합니다. 운영, 개발, 소스, 룰 관리 권한은 허용하지 않습니다.</p>
             </div>
             <div class="scope-template-actions">
               <button id="apply-view-scope-template" class="button-secondary" type="button">채널 범위 적용</button>

@@ -40,11 +40,14 @@ export async function ensureRulePreviewPrerequisites({
       : catalog;
     const profileId = created.profileId || findFirstProfileId(nextCatalog) || "1";
     const ruleId = created.ruleId || findFirstRuleId(nextCatalog) || "1";
+    const template = (Array.isArray(nextCatalog.rules) ? nextCatalog.rules : [])
+      .find(item => String(item?.id || item?.ruleId || "").trim() === ruleId);
+    const templateClasses = classesFromRuleTemplate(template);
     created.vaRuleId = findFreeNumericId([nextCatalog.profiles, nextCatalog.rules, nextCatalog.vaRules], vaRuleStart);
     await requestJson(httpBase, `/lab/analysis/va-rules/${encodeURIComponent(created.vaRuleId)}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(rulePreviewVaRulePayload(created.vaRuleId, profileId, ruleId)),
+      body: JSON.stringify(rulePreviewVaRulePayload(created.vaRuleId, profileId, ruleId, templateClasses)),
     });
   }
   return created.profileId || created.ruleId || created.vaRuleId ? created : null;
@@ -88,6 +91,18 @@ function findFirstRuleId(catalog) {
   return (Array.isArray(catalog?.rules) ? catalog.rules : [])
     .map(item => String(item?.id || item?.ruleId || "").trim())
     .find(Boolean) || "";
+}
+
+function classesFromRuleTemplate(rule) {
+  const candidates = [
+    rule?.analysis?.classes,
+    rule?.scenario?.targetClasses,
+  ];
+  const classes = candidates
+    .find(value => Array.isArray(value) && value.length > 0)
+    ?.map(item => String(item || "").trim())
+    .filter(Boolean) || [];
+  return classes.length ? Array.from(new Set(classes)) : ["person"];
 }
 
 function findFreeNumericId(groups, start) {
@@ -149,13 +164,14 @@ function rulePreviewEventTemplatePayload(id, profileId) {
   };
 }
 
-function rulePreviewVaRulePayload(id, profileId, ruleId) {
+function rulePreviewVaRulePayload(id, profileId, ruleId, classes = ["person"]) {
+  const normalizedClasses = Array.isArray(classes) && classes.length > 0 ? classes : ["person"];
   return {
     id,
     name: "VA Test File preview",
     enabled: true,
     source: { kind: "file", file: "va_four_scene_sample.mp4" },
-    analysis: { profileId, classes: ["person"] },
+    analysis: { profileId, classes: normalizedClasses },
     templateStart: { ruleId },
     priority: 0,
     outputs: { overlay: true, metadata: true, events: true },

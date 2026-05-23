@@ -412,8 +412,12 @@ async function assertClientPreviewAdminAffordance(browser, label) {
           }));
         const issues = [];
         if (body?.dataset?.clientPreview !== 'true') issues.push('missing client preview flag');
-        if (!previewCopy || !(previewCopy.textContent || '').includes('Client Preview as admin')) issues.push('missing admin preview copy');
-        if (!shortcut || !(shortcut.textContent || '').includes('Ops')) issues.push('missing Ops shortcut');
+        const previewText = previewCopy?.textContent || '';
+        const shortcutText = shortcut?.textContent || '';
+        if (!previewCopy || !(/Client Preview as admin|관리자 클라이언트 미리보기/.test(previewText))) {
+          issues.push('missing admin preview copy');
+        }
+        if (!shortcut || !(/Ops|운영/.test(shortcutText))) issues.push('missing Ops shortcut');
         if (!accountName || !(accountName.textContent || '').trim()) issues.push('missing account name');
         if (!accountMeta || !(accountMeta.textContent || '').includes('admin')) issues.push('missing admin role');
         if (!navLinks.some(link => link.href === '/client/live')) issues.push('missing client live nav');
