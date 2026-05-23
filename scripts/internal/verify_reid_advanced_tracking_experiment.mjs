@@ -321,9 +321,9 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
   ]) {
     assert(backlog.includes(snippet), `backlog missing Re-ID closure snippet: ${snippet}`);
   }
-  const legacyReidWarningId = ["V", "120", "-P2-02"].join("");
-  assert(backlog.includes("종료하지 않고 WARNING(실험 유지)"), "backlog must keep the legacy Re-ID experiment in a warning/default-off state");
-  assert(!backlog.includes(`${legacyReidWarningId} 범주 안의 잔여 이슈는 남기지 않습니다`), "backlog must not claim the legacy Re-ID experiment has no residual issues");
+  const reidWarningId = ["V", "120", "-P2-02"].join("");
+  assert(backlog.includes("종료하지 않고 WARNING(실험 유지)"), "backlog must keep the Re-ID experiment in a warning/default-off state");
+  assert(!backlog.includes(`${reidWarningId} 범주 안의 잔여 이슈는 남기지 않습니다`), "backlog must not claim the Re-ID experiment has no residual issues");
   for (const snippet of [
     "privacy/default-off gate",
     "--reid-policy assist",

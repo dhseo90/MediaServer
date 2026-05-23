@@ -282,7 +282,7 @@ v1.6.0 close-out 당시에는 새 제품 기능을 여는 minor release가 아�
 ### V160-P0-01 Release evidence dashboard cleanup 정리 기준
 
 `Release evidence dashboard cleanup`은 v1.5.0까지 흩어진 release 증적, verifier
-report, PR/Actions 결과, 미실행 항목을 구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)
+report, PR/Actions 결과, 미실행 항목을 release evidence index
 한곳에서 추적하게 만드는 안정화 작업입니다. 목표는 실제 실행한 검증과
 장시간/실장비/외부 credential/Actions 미확인 항목을 release pass처럼 섞어 쓰지
 않는 것입니다.
@@ -329,7 +329,7 @@ report, PR/Actions 결과, 미실행 항목을 구버전 전용 close-out 문서
 
 `Stability verification gate cleanup`은 현재 기능 기준 smoke 묶음과
 flaky/attached/longrun/external gate를
-구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)에
+release evidence index에
 분리하는 안정화 작업입니다. 목표는 실패/미실행/환경 의존 항목이 release pass처럼
 보이지 않도록 verifier와 문서 기준을 정리하는 것입니다.
 
@@ -375,7 +375,7 @@ flaky/attached/longrun/external gate를
 
 `Client/Ops debug exposure regression guard`는 viewer/client 화면과 scoped API에
 source URL, raw JSON, debug counter, rule/profile editor, model/source/auth material이
-노출되지 않도록 구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)
+노출되지 않도록 release evidence index
 문서와 `verify-ops-client-ui` forbidden matrix를 강화하는 작업입니다.
 
 확인됨:
@@ -388,8 +388,7 @@ source URL, raw JSON, debug counter, rule/profile editor, model/source/auth mate
   capability material을 추가합니다.
 - Ops 화면의 운영자 debug/details와 client/viewer surface를 분리하고, raw JSON은
   운영자 debug details 접힘 영역에만 둡니다.
-- removed UI route(`/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test`)는 닫힌 상태를
-  유지합니다.
+- 제품 UI는 Ops/Client shell 기준으로 유지하고 개발/검증 화면을 되살리지 않습니다.
 
 검증 기준:
 
@@ -421,7 +420,7 @@ source URL, raw JSON, debug counter, rule/profile editor, model/source/auth mate
 
 `Tracker/Re-ID opt-in stabilization close-out`은 v1.5.0까지 닫은 rule-level
 tracker/Re-ID opt-in, warning, fallback, privacy guard를
-구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)
+release evidence index
 기준으로 default-off 안정화 상태에 묶는 작업입니다. 목표는 default-on 승격,
 runtime tracker 승격, model/runtime bundle release와 P0 안정화 완료를 분리하는
 것입니다.
@@ -469,7 +468,7 @@ runtime tracker 승격, model/runtime bundle release와 P0 안정화 완료를 �
 `ONVIF field smoke evidence reconciliation`은 실장비 ONVIF 성공을 보장하는 기능
 개발이 아니라, 기존 field smoke gate와 release evidence dashboard가 같은 상태
 언어로 실행/미실행/미확인 결과를 기록하게 만드는 안정화 작업입니다.
-구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)
+release evidence index
 기준으로 field smoke summary/report/history boundary와 redacted sample bundle
 review를 연결합니다.
 
@@ -522,7 +521,7 @@ review를 연결합니다.
 
 `Audit/export masking regression hardening`은 `/ops/api/audit` 조회와
 JSON/CSV/Diff JSON export에서 source/model/auth/raw material이 다시 노출되지 않도록
-구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)
+release evidence index
 기준으로 기존 audit redaction guard를 release gate에 연결하는 작업입니다.
 
 확인됨:
@@ -568,7 +567,7 @@ JSON/CSV/Diff JSON export에서 source/model/auth/raw material이 다시 노출�
 
 `Runtime/model bundle RC policy`는 v1.6.0 기본 release에 runtime/model bundle을
 추가하는 작업이 아니라, 향후 별도 RC에서 포함 배포를 검토할 때 필요한 승인 조건과
-차단 기준을 구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)에
+차단 기준을 release evidence index에
 고정하는 작업입니다.
 
 확인됨:
@@ -617,7 +616,7 @@ JSON/CSV/Diff JSON export에서 source/model/auth/raw material이 다시 노출�
 
 `Manual UI release checklist closure`는 실제 수동 UI 검수를 수행했다고 기록하는
 작업이 아니라, v1.6.0 close-out 당시 제품 화면 기준으로 수동 검수 템플릿과 evidence 경계를
-구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)에
+release evidence index에
 고정하는 작업입니다.
 
 확인됨:
@@ -625,8 +624,7 @@ JSON/CSV/Diff JSON export에서 source/model/auth/raw material이 다시 노출�
 - 수동 검수 대상은 `/setup`, `/login`, `/password/change`, `/ops/home`,
   `/ops/dashboard`, `/ops/sources`, `/ops/rules`, `/ops/users`, `/ops/events`,
   `/client/live`, `/client/dashboard`, `/client/request-access`입니다.
-- `/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test`는 제품 UI로 되살리지 않고 닫힌
-  route 상태를 확인 대상으로만 둡니다.
+- 개발/검증 화면은 제품 UI로 되살리지 않고 Ops/Client 화면만 수동 검수 대상으로 둡니다.
 - Client 화면은 Live/Dashboard primary nav만 허용하며 Ops/Lab primary navigation,
   source URL, Developer URL, raw JSON, debug counter, BBox diagnostics,
   rule/profile editor를 노출하지 않습니다.
@@ -649,7 +647,7 @@ JSON/CSV/Diff JSON export에서 source/model/auth/raw material이 다시 노출�
 - 실제 브라우저 수동 검수 실행 또는 screenshot 재생성
 - V160-P2-01 Public docs consistency polish
 - V160-P2-02 Tracker benchmark harness planning only
-- 새 UI route/nav 추가, `/lab` 화면 route 재개방
+- 새 UI route/nav 추가, 제품 화면 추가
 - Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
 - RTSP/WebRTC media path 변경 또는 media pipeline blocking 정책 변경
 
@@ -666,7 +664,7 @@ JSON/CSV/Diff JSON export에서 source/model/auth/raw material이 다시 노출�
 `Public docs consistency polish`는 v1.6.0 source-only release 기준이 public
 README, README.en, docs/en/README, versioning policy, release policy, development
 backlog에서 같은 방식으로 보이도록
-구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)에
+release evidence index에
 고정하는 작업입니다.
 
 확인됨:
@@ -715,7 +713,7 @@ backlog에서 같은 방식으로 보이도록
 `Tracker benchmark harness planning only`는 실제 OC-SORT adapter나 새 runtime
 tracker를 구현하는 작업이 아니라, 별도 기능 개발 Phase에서 benchmark를 열 때 필요한
 harness 요구사항과 비승격 경계를
-구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)에
+release evidence index에
 고정하는 작업입니다.
 
 확인됨:
@@ -855,7 +853,7 @@ global default-on, 자동 migration, tracker 없는 Re-ID assist 활성화를 �
   `tracker=lite`, `tracker=kalman-lite`, `tracker=bytetrack`처럼 명시적으로 선택된
   tracker field와 함께 있을 때만 유효합니다.
 - runtime은 tracker field가 없는 `trackingPolicy`를 rule-level opt-in으로 해석하지
-  않음으로써 legacy/hand-edited 문서가 Re-ID assist를 암묵 활성화하지 않게 합니다.
+  않음으로써 hand-edited 문서가 Re-ID assist를 암묵 활성화하지 않게 합니다.
 - `/ops/rules` UI는 tracker/Re-ID select를 통해 `trackingPolicy.tracker`와
   `trackingPolicy.reid`를 함께 저장하고, `tracker=none`이면 Re-ID를 `off`로
   고정합니다.
@@ -1260,7 +1258,7 @@ v1.5.0 비범위:
 ### v1.5.0 Follow-up Closure
 
 v1.5.0 roadmap 구현 뒤 남은 후속 항목은
-구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)에 분리합니다.
+release evidence index에 분리합니다.
 `현재 command set에서 제거된 historical verifier`는 명시 opt-in guard, stability matrix,
 Re-ID provenance/fallback approval, Ops warning next-action, audit export review,
 field smoke summary evidence boundary, OC-SORT experimental sandbox가 각각 닫은
@@ -1320,7 +1318,7 @@ v1.4.0 close-object/field-driving report 보존 기준은
 Ops Dashboard의 트래킹 이슈 그룹은 warning을 default-on 근거로 과장하지 않도록
 샘플 message와 association/overlap/missed/direction 요약을 함께 표시합니다.
 v1.4.0 범위 안 후속 이슈 종료 판정은
-구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)에 분리합니다.
+release evidence index에 분리합니다.
 `현재 command set에서 제거된 historical verifier`는 Re-ID warning history, report archive policy,
 tracker warning dashboard summary가 닫혔고 default-on/benchmark gate가 별도
 Phase로 남는지 확인합니다.
@@ -1891,7 +1889,7 @@ runtime/model bundle 포함은 별도 Phase 후보이며 이 항목의 잔여가
 ### v1.3.0 Follow-up Closure
 
 v1.3.0 roadmap 기능 개발 이후 남은 후속 항목은
-구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)에 분리합니다.
+release evidence index에 분리합니다.
 `현재 command set에서 제거된 historical verifier`는 실제 Re-ID model field review, field sample
 반복 수집 정책, tracker 교체 후보 조사, model/runtime bundle 정책, Re-ID privacy
 threat model을 별도 Phase gate 또는 release/field/manual approval gate로
@@ -1926,7 +1924,7 @@ RTSP/WebRTC media path, auth/session contract 변경은 별도 review 없이는 
 ### v1.2.1 Follow-up Closure
 
 v1.2.1 roadmap 완료 뒤 남은 후속 항목은
-구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)에 분리합니다.
+release evidence index에 분리합니다.
 `현재 command set에서 제거된 historical verifier`는 release 운영 gate, 외부 장비/credential gate,
 수동 승인 gate를 개발 완료로 과장하지 않으면서 로드맵 내 개발 가능한 후속 이슈가
 남지 않았는지 확인합니다.
@@ -1994,7 +1992,7 @@ minor release로 종료합니다. 아래 항목은 v1.2.0 close-out 기준입니
 | ID | 우선순위 | 영역 | 상태 | 1차 완료 조건 | 별도 review 필요 조건 |
 | --- | --- | --- | --- | --- | --- |
 | V120-P0-01 | P0 | ONVIF Profile S/T live source 현장 연동 | 완료(실장비 제외) | 수동 입력 Device service endpoint 기반 HTTP SOAP probe, Media/Media2 profile 조회, RTSP/RTSPS source draft, credential reference/redaction 정책을 `/ops/sources` 등록 draft와 연결. 2026-05-15 기준 no-device suite, local simulator, fixture/loopback/redaction, Ops UI draft/round-trip 검증으로 종료 | WS-Discovery 자동 검색, Profile G/Recording/Replay, SourceRegistry/PublishedView 저장 schema 변경, client ONVIF endpoint 노출, 실장비 camera smoke 성공 증적 |
-| V120-P0-02 | P0 | UI visual regression + ERP-style visual refresh | 완료 | Ops/Client/Auth 주요 화면 320/390/760/1180 screenshot artifact와 수동 review 기준 고정. 공통 product shell, nav/account header, metric/card/table/form/badge 밀도를 운영 콘솔형으로 정리 | 제품 nav 구조 변경, `/lab` 화면 route 재개방 |
+| V120-P0-02 | P0 | UI visual regression + ERP-style visual refresh | 완료 | Ops/Client/Auth 주요 화면 320/390/760/1180 screenshot artifact와 수동 review 기준 고정. 공통 product shell, nav/account header, metric/card/table/form/badge 밀도를 운영 콘솔형으로 정리 | 제품 nav 구조 변경, 제품 화면 추가 |
 | V120-P0-03 | P0 | Source health operator workflow | 완료 | 상태 변화 이력, retryable-only 재검증, Dashboard next action, source health bulk dry-run/partial failure/rollback 경계 정리 | top-level health 상태 모델 추가, client raw diagnostic 노출 |
 | V120-P1-01 | P1 | Client live/dashboard polish | 완료 | multi-view 비교, event/status copy, empty/error/loading 문구, mobile tile 조작 개선 | client wrapper API schema 변경, viewer source locator 노출 |
 | V120-P1-02 | P1 | Rule/Scenario field tuning | 완료 | 현장 샘플 기반 threshold preset, Loitering/ZoneOccupancy 기본값, scenario issue wording 정리 | ScenarioEngine 판단 로직, event type, payload schema 변경 |
@@ -2002,7 +2000,7 @@ minor release로 종료합니다. 아래 항목은 v1.2.0 close-out 기준입니
 | V120-P1-04 | P1 | Account lifecycle policy | 완료 | `/ops/users` 계정 라이프사이클 정책 영역, password reset UI/문구, invite expiry 표시, user audit export 안내, disable/restore 절차 polish를 기존 auth/session 계약 안에서 종료 | auth store migration, password/session/token contract 변경 |
 | V120-P2-01 | P2 | Release packaging rehearsal | 완료 | source-only 기준 유지와 container/offline/binary 후보 dry-run 정책 gate 확인 | runtime/model binary를 실제 release asset에 포함 |
 | V120-P2-02 | P2 | Re-ID/advanced tracking experiment | WARNING(실험 유지) | default-off/privacy/static guard는 유지. 2026-05-17 KST 재검증에서 close-object fixture matrix는 `matrix-ok=True`이나 `field-new-york-driving=warning/defaultOnCandidate=false`가 남아 제품 default-on 근거로 닫지 않음 | Re-ID default-on, 대형 tracker 교체, media pipeline blocking risk |
-| V120-P2-03 | P2 | YouTube experiment decision | 완료(현상 유지) | YouTube import/source는 lab-only 실험 기능으로 현상 유지하되 기본 빌드에서는 제외. v1.2.0에서는 추가 개발, `verify-youtube-import` 신설, 실제 YouTube URL 다운로드/relay 성공 검증을 진행하지 않음. 제품 경계 검증은 `/lab/import` 404, 제품 UI 미노출, 기본 빌드 비활성 상태 확인으로 제한 | 운영 기본 기능 승격, 실제 YouTube URL 성공 gate, 장시간 import job 정책 도입 |
+| V120-P2-03 | P2 | YouTube experiment decision | 완료(현상 유지) | YouTube import/source는 lab-only 실험 기능으로 현상 유지하되 기본 빌드에서는 제외. v1.2.0에서는 추가 개발, `verify-youtube-import` 신설, 실제 YouTube URL 다운로드/relay 성공 검증을 진행하지 않음. 제품 경계 검증은 제품 UI 미노출과 기본 빌드 비활성 상태 확인으로 제한 | 운영 기본 기능 승격, 실제 YouTube URL 성공 gate, 장시간 import job 정책 도입 |
 
 ### V120-P2-03 종료 판정
 
@@ -2012,7 +2010,7 @@ minor release로 종료합니다. 아래 항목은 v1.2.0 close-out 기준입니
 
 - YouTube import/source는 운영 기본 기능으로 승격하지 않습니다.
 - `source=youtube` 직접 표출은 기본 빌드에서 제외하고, opt-in 빌드에서도 runtime 기본 비활성 상태를 유지합니다.
-- `/lab/import` 화면 route는 제품 UI에서 닫힌 상태를 유지합니다.
+- YouTube import/source는 제품 UI에 노출하지 않습니다.
 - v1.2.0에서는 YouTube 실험 기능의 추가 개발, 별도 `verify-youtube-import`
   신설, 실제 YouTube URL 다운로드/relay 성공 검증을 진행하지 않습니다.
 - 운영 기능 승격, 실제 URL 검증, resolver 운영, import job 정책은
@@ -2066,12 +2064,12 @@ minor release로 종료합니다. 아래 항목은 v1.2.0 close-out 기준입니
 - visual regression artifact 기준 경로는 `verify-ops-client-ui --screenshots --visual-widths 320,390,760,1180 --output-dir <artifact-dir>`입니다.
 - visual regression artifact는 `<artifact-dir>/visual-regression-manifest.json`과 `<artifact-dir>/index.md`로 screenshot 목록, viewport, page mapping을 함께 고정합니다.
 - 2026-05-16 로컬 검증에서 `/ops/home`, `/ops/dashboard`, `/ops/rules`, `/ops/sources`, `/ops/users`, `/client/live`, `/client/dashboard` screenshot smoke가 overflow 0으로 통과했습니다.
-- `/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test` 화면 route는 계속 닫힌 상태로 검증했습니다.
+- 개발/검증 화면은 제품 UI에 포함하지 않는 기준으로 검증했습니다.
 
 범위 밖:
 
 - 제품 nav 정보 구조 변경
-- `/lab` 화면 route 재개방
+- 제품 화면 추가
 - Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
 - RTSP/WebRTC media path 변경
 - viewer/client source URL, ONVIF endpoint, raw diagnostic JSON 노출

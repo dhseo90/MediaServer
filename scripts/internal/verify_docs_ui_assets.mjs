@@ -156,7 +156,6 @@ check("docs capture and English UI copy cover v1.8.0 screenshots", () => {
   for (const snippet of requiredScriptSnippets) {
     assert(script.includes(snippet), `capture_docs_ui_assets.mjs is missing current capture snippet: ${snippet}`);
   }
-  assert(!script.includes('[data-tile="0"] [data-role="view"]'), "client-live docs capture still waits for legacy tile view select");
   const requiredTranslations = [
     "'미리보기': 'Client Preview'",
     "'카메라': 'Cameras'",
@@ -181,7 +180,6 @@ check("representative screenshot docs do not point at stale visual baselines", (
   const stalePatterns = [
     /v1\.[0-6]\.0[^.\n]*(?:screenshot|스크린샷|대표 이미지)/i,
     /2026-05-(?:0[1-9]|1[0-9]|2[0-2])[^.\n]*(?:screenshot|스크린샷|대표 이미지)/i,
-    /legacy tile view select/i,
   ];
   for (const [label, text] of scopedDocs) {
     for (const pattern of stalePatterns) {

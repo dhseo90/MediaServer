@@ -61,7 +61,7 @@ Auth users file 내용과 plaintext secret은 포함하지 않습니다.
 | `MEDIA_SERVER_AUTH_COOKIE_NAME` | `media_server_session` | session cookie 이름 |
 | `MEDIA_SERVER_AUTH_COOKIE_SECURE` | `0` | `1`이면 session cookie에 `Secure` attribute 추가 |
 | `MEDIA_SERVER_UI_DEFAULT_HOME` | `ops` | auth off에서 `/`가 이동할 home. `ops`, `client`; `lab`은 이전 설정 호환값이며 `/ops/home`으로 fallback |
-| `MEDIA_SERVER_ENABLE_LAB` | `1` | `/lab/analysis/*`, `/lab/runtime/status` 같은 개발/검증 API 노출. `/lab` 화면 route는 열지 않음 |
+| `MEDIA_SERVER_ENABLE_LAB` | `1` | `/lab/analysis/*`, `/lab/runtime/status` 같은 개발/검증 API 노출. 제품 화면은 별도 제공하지 않음 |
 | `MEDIA_SERVER_ENABLE_OPS` | `1` | `/ops` 운영 shell/API route 노출 |
 | `MEDIA_SERVER_ENABLE_CLIENT` | `1` | `/client` client shell/API route 노출 |
 | `MEDIA_SERVER_SUBSCRIBER_QUEUE_SIZE` | `256` | subscriber queue 상한 |

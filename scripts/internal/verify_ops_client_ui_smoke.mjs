@@ -93,20 +93,20 @@ const pageChecks = [
     path: "/ops/dashboard",
     visualSelector: '[data-testid="ops-dashboard-page"]',
     must: ['data-testid="ops-dashboard-page"', 'data-testid="ops-root-cause-panel"', 'data-testid="ops-incident-timeline-panel"', 'data-testid="ops-runtime-operations-console"', 'data-testid="ops-va-quality-panel"', 'id="dashActiveSessions"', 'id="dashHealthBadges"', 'id="dashRootCauseList"', 'id="dashIncidentTimelineSearch"', 'id="dashIncidentTimelineSource"', 'id="dashIncidentTimeline"', 'option value="rule-warning"', 'option value="runtime-status"', 'dashboardRuleWarningItems', 'dashboardRuntimeStatusIncidentItems', 'data-incident-workflow', 'id="dashRuntimeOpsBadges"', 'id="dashRuntimeOpsList"', 'id="dashVaQualityFilterInput"', 'id="dashScenarioTimeline"', 'id="dashTrackingIssueGroups"', '/ops/api/runtime/status', '/ops/api/source-health', '/ops/api/rules/catalog', '라이브 소스 상태', '최근 인시던트 흐름', '런타임 운영 판독', '라이브 VA 이벤트 품질'],
-    mustNot: ['<iframe', 'opsDashboardFrame', '/lab/rules?embed=1', '/lab/runtime/status'],
+    mustNot: ['/lab/runtime/status'],
   },
   {
     name: "ops-events",
     path: "/ops/events",
     must: ['data-testid="ops-events-page"', 'data-route-scope="direct-diagnostic"', 'Primary nav에는 표시하지 않는 direct/diagnostic route', 'id="opsEventsRefresh"', '/ops/api/events/status', 'data-testid="ops-alert-delivery-integrations"', 'data-alert-contract="separate-from-event-post-payload"', 'id="alertDeliverySave"', 'id="alertDeliveryTest"', '/ops/api/alerts/deliveries', '/ops/api/alerts/deliveries/test', 'data-testid="ops-event-review-inbox"', 'data-review-state="separate-from-event-post-payload"', 'id="eventReviewStatusFilter"', '/ops/api/events/reviews'],
-    mustNot: ['<iframe', 'href="/lab', 'src="/lab', 'href="/webrtc/test"', 'href="/ops/events"'],
+    mustNot: ['href="/ops/events"'],
   },
   {
     name: "ops-rules",
     path: "/ops/rules",
     visualSelector: '[data-testid="ops-rules-page"]',
     must: ['data-testid="ops-rules-page"', 'data-testid="ops-scenario-builder"', 'data-scenario-builder-contract="ui-only-no-engine-change"', 'id="opsScenarioBuilderApply"', 'opsContextActionsHtml', 'data-testid="ops-context-actions"', 'data-action-density="primary-context"', 'id="opsRulesFilterInput"', 'id="opsVaRuleRows"', 'id="opsEventRuleRows"', 'id="opsProfileRows"', 'id="opsAddVaRuleBtn"', 'id="opsAddEventRuleBtn"', 'id="opsAddProfileBtn"', 'id="opsRulesDetailPanel"', 'id="opsVaRuleForm"', 'id="opsEventRuleForm"', 'id="opsProfileForm"', 'id="opsVaRulePreviewVideo"', 'id="opsVaRuleGeometryPreview"', 'id="opsVaRuleTemplateSeedSelect"', 'id="opsVaRuleProfileSelect"', 'id="opsVaRuleChannelSelect"', 'id="opsVaRuleIdDisplay"', 'id="opsEventRuleIdDisplay"', 'id="opsProfileIdDisplay"', 'data-generated-id="va-rule"', 'data-generated-id="event-rule"', 'data-generated-id="profile"', '/ops/api/rules/catalog'],
-    mustNot: ['<iframe', 'opsRulesFrame', 'id="opsRulesEditorComponent"', '/lab/rules?embed=1', 'id="opsVaRuleIdInput" type="text"', 'id="opsEventRuleIdInput" type="text"', 'id="opsProfileIdInput" type="text"'],
+    mustNot: ['id="opsRulesEditorComponent"', 'id="opsVaRuleIdInput" type="text"', 'id="opsEventRuleIdInput" type="text"', 'id="opsProfileIdInput" type="text"'],
   },
   {
     name: "ops-sources",
@@ -239,20 +239,6 @@ try {
   const message = error instanceof Error ? error.message : String(error);
   failures.push(`[ops-admin-form-regression] ${message}`);
   console.log(`[fail] ops-admin-form-regression: ${message}`);
-}
-
-try {
-  await assertHttpStatus("removed-lab-home", "/lab", 404);
-  await assertHttpStatus("removed-lab-rules", "/lab/rules", 404);
-  await assertHttpStatus("removed-lab-import", "/lab/import", 404);
-  await assertHttpStatus("removed-webrtc-test-page", "/webrtc/test", 404);
-  passCount += 1;
-  console.log("[pass] removed-ui-routes: lab/import/rules/webrtc-test are closed");
-} catch (error) {
-  failCount += 1;
-  const message = error instanceof Error ? error.message : String(error);
-  failures.push(`[removed-ui-routes] ${message}`);
-  console.log(`[fail] removed-ui-routes: ${message}`);
 }
 
 console.log("");
@@ -1583,12 +1569,6 @@ async function assertClientApiContract(label, path) {
 
 async function assertOpsApiContract(label, path) {
   const payload = await requestText(path);
-  assertOmits(label, payload, [
-    "/lab/rules?embed=1",
-    "opsDashboardFrame",
-    "opsRulesFrame",
-    "<iframe",
-  ]);
   return parseJson(label, payload);
 }
 

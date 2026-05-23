@@ -17,8 +17,7 @@
 - v1.8.0에서는 이 기능의 추가 개발, 별도 `verify-youtube-import` 신설,
   실제 YouTube URL 다운로드/relay 성공 검증을 진행하지 않습니다.
 - 기본 빌드는 YouTube resolver/source worker를 포함하지 않습니다.
-- `/lab/import` 화면은 제품 UI에서 제거했습니다. 해당 legacy route는 404 회귀 방지
-  대상으로만 확인하고 `/ops/sources`에서 채널을 관리합니다.
+- YouTube import 화면은 제품 UI에 포함하지 않고 `/ops/sources`에서 채널을 관리합니다.
 - YouTube import/source는 현재 운영 기본 기능이 아니며 자동 smoke gate에도 포함하지 않습니다.
 - `source=youtube` 직접 표출 실험은 기본 비활성입니다.
 - 로컬 실험으로 직접 표출 경로를 확인할 때만 opt-in 빌드와 runtime env를 함께 사용합니다.
@@ -83,7 +82,7 @@ Linux에서는 배포판 패키지 또는 프로젝트 운영 기준에 맞는 �
 
 검증 기준:
 
-- `/lab/import` legacy route는 404 회귀 방지 상태이고 `/ops/sources`에서 채널을 관리함
+- YouTube import UI/API가 운영 제품 화면에 노출되지 않고 `/ops/sources`에서 채널을 관리함
 - import job UI/API가 제품 화면에 노출되지 않음
 - 실험 기능이 꺼져 있을 때 core `/ops`, `/client`, RTSP/WebRTC 경로에 영향이 없음
 - 기본 빌드에서 `source=youtube`는 runtime env를 켜도 거부됨

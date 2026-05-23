@@ -41,10 +41,10 @@ const backlog = readText("docs/development-backlog.md");
 
 const checks = [];
 
-check("manual UI docs are current v1.8.0 baseline, not old-version evidence", () => {
+check("manual UI docs are current v1.8.0 baseline", () => {
   assertIncludes(checklist, [
     "현재 release 목표는 `v1.8.0`",
-    "구버전 전용 UI closure 명령은 현재 완료 판정에 포함하지 않습니다.",
+    "현재 제품 UI 직접 조작 evidence 없이 완료 판정에 포함하지 않습니다.",
     "v1.8.0 release trust hardening gate",
     "`/setup`",
     "`/login`",
@@ -56,6 +56,8 @@ check("manual UI docs are current v1.8.0 baseline, not old-version evidence", ()
   assertIncludes(fulltest, [
     "현재 제품 UI 기준",
     "지원 가능한 모든 기능을 실제 UI 조작으로 확인",
+    "테스트 영역 역할 분리",
+    "UI 풀테스트는 `스크립트 테스트`와 별도 영역입니다.",
     "열지 않은 화면",
     "미확인",
   ], "docs/manual-ui-fulltest.md");
@@ -78,12 +80,18 @@ check("manual result template covers required screens", () => {
     "`/client/live`",
     "`/client/dashboard`",
     "`/client/request-access`",
-    "`/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test`",
   ], "docs/manual-ui-result-template.md");
 });
 
 check("manual result template separates automation from direct browser evidence", () => {
   assertIncludes(template, [
+    "## 테스트 영역별 판정",
+    "스크립트 테스트와 UI 풀테스트는 서로 대체하지 않습니다.",
+    "안정화 테스트",
+    "30분 테스트",
+    "120분 테스트",
+    "## 스크립트 테스트 기록",
+    "## UI 풀테스트 기록",
     "관련 자동 검증",
     "## 확인됨",
     "실제로 열고 클릭한 화면만 적습니다.",
@@ -93,6 +101,26 @@ check("manual result template separates automation from direct browser evidence"
     "## 건너뜀",
     "## 실패",
   ], "docs/manual-ui-result-template.md");
+});
+
+check("manual UI docs separate script stability tests from UI full test", () => {
+  assertIncludes(checklist, [
+    "스크립트 테스트, 30분 안정화, 120분 장시간 테스트",
+    "UI 풀테스트와",
+    "스크립트 안정화 테스트는 서로 대체하지 않으며",
+    "verify-predev --soak-minutes 30",
+    "verify-predev --soak-minutes 120",
+    "verify-va-runtime-console-longrun --duration-minutes 120",
+  ], "docs/manual-ui-checklist.md");
+  assertIncludes(fulltest, [
+    "30분 테스트",
+    "120분 테스트",
+    "로드맵 각 스텝 종료 시 먼저 수행합니다",
+    "장기간 테스트 지시 시 기본으로 수행",
+    "메모리 릭",
+    "UI 풀테스트 PASS를 대체하지 않습니다.",
+    "30분/120분 안정화 PASS를 대체하지 않습니다.",
+  ], "docs/manual-ui-fulltest.md");
 });
 
 check("manual result template pins client redaction and admin preview boundary", () => {

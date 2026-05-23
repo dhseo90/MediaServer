@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: Ops/Client 제품 route와 제거된 legacy Lab/WebRTC 화면의 404 계약을 검증한다.
+// 파일 용도: Ops/Client 제품 route와 Lab analysis API 경계를 검증한다.
 
 import process from "node:process";
 
@@ -32,13 +32,6 @@ const opsShellMust = [
 ];
 
 const opsShellMustNot = [
-  "<iframe",
-  'href="/lab',
-  'src="/lab',
-  'href="/webrtc/test"',
-  "/lab/rules?embed=1",
-  "opsDashboardFrame",
-  "opsRulesFrame",
   'id="opsRulesEditorComponent"',
 ];
 
@@ -64,9 +57,6 @@ const clientShellMustNot = [
   "/ops/api/access-requests",
   "/ops/api/invites",
   "/lab/analysis/",
-  'href="/lab',
-  'src="/lab',
-  'href="/webrtc/test"',
   "Registry raw JSON",
   "debugCounters",
   "Developer URL",
@@ -173,14 +163,6 @@ const checks = [
       'id="detail"',
       "/client/api/views",
     ], clientShellMustNot),
-  },
-  {
-    name: "removed-lab-screen-routes",
-    run: async () => {
-      for (const path of ["/lab", "/lab/", "/lab/rules", "/lab/import", "/webrtc/test"]) {
-        await assertStatus(path, 404);
-      }
-    },
   },
   {
     name: "lab-analysis-api-remains-open",

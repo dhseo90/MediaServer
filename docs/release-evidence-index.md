@@ -12,6 +12,8 @@
 - 열지 않은 화면, 직접 클릭하지 않은 UI, 확인하지 않은 screenshot은 `미확인`으로 기록합니다.
 - 자동 smoke, raw JSON, API 응답만으로 manual UI evidence를 완료했다고 쓰지 않습니다.
 - 30분 soak와 120분 longrun은 서로 대체하지 않습니다.
+- 스크립트 테스트와 UI 풀테스트는 별도 evidence 영역입니다. 30분/120분 안정화 PASS는
+  UI 풀테스트 PASS가 아니고, UI 풀테스트 PASS도 30분/120분 안정화 PASS가 아닙니다.
 - tag, push, GitHub Release 생성은 사용자 명시 승인 전에는 완료로 기록하지 않습니다.
 
 ## Evidence Matrix
@@ -27,6 +29,7 @@
 | Feature scope decision gate | 새 기능 후보를 v1.8 안정화 gate 안에서 구현으로 승격하지 않는 절차 | `./server.sh verify-feature-scope-gate` | PASS/FAIL |
 | PR checks | Preflight, licensing/artifact guardrails, required checks | GitHub Actions UI/API | PASS/FAIL/미확인 |
 | Release notes | source-only scope, non-goals, verification, not-run/unverified | [release-policy.md](./release-policy.md) | PASS/FAIL/미확인 |
+| Script smoke/stability | build/static/auth/API/media verifier, short smoke, skip reason | `./server.sh build`, 범위별 `verify-*` 명령 | PASS/FAIL/NOT RUN |
 | 30분 soak | 사용자 명시 요청 시 30분 안정성 테스트 | `./server.sh verify-predev --soak-minutes 30` | PASS/FAIL/NOT RUN |
 | 장시간/외부 gate | 120분 longrun, real ONVIF, external TURN/WHEP, YouTube real URL | release runbook/manual report | PASS/FAIL/NOT RUN/미확인 |
 

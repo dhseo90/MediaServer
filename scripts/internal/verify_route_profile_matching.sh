@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 파일 용도: 실제 RTSP/WebRTC overlay 세션에서 route별 profile/rule matching이 적용되는지 검증한다.
+# 파일 용도: 실제 RTSP overlay 세션에서 route별 profile/rule matching이 적용되는지 검증한다.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -23,19 +23,12 @@ SKIP_COUNT=0
 RUN_ID="route-profile-$(date +%s)-$$"
 BASE_ID=$(( (($(date +%s) % 1000000) * 1000) + ($$ % 1000) ))
 PROFILE_RTSP="$((BASE_ID + 11))"
-PROFILE_WEBRTC="$((BASE_ID + 12))"
 RULE_RTSP="$((BASE_ID + 21))"
-RULE_WEBRTC="$((BASE_ID + 22))"
 RTSP_FFMPEG_PID=""
-WEBRTC_NODE_PID=""
 RTSP_LOG="/tmp/media_server_${RUN_ID}_rtsp.log"
-WEBRTC_LOG="/tmp/media_server_${RUN_ID}_webrtc.json"
 TAPS_FILE="/tmp/media_server_${RUN_ID}_taps.json"
 PROFILE_RTSP_READ_FILE="/tmp/media_server_${RUN_ID}_profile_rtsp.json"
-PROFILE_WEBRTC_READ_FILE="/tmp/media_server_${RUN_ID}_profile_webrtc.json"
 RULE_RTSP_READ_FILE="/tmp/media_server_${RUN_ID}_rule_rtsp.json"
-RULE_WEBRTC_READ_FILE="/tmp/media_server_${RUN_ID}_rule_webrtc.json"
-BROWSER_WEBRTC_HARNESS="${SCRIPT_DIR}/browser_webrtc_publish_consume_check.mjs"
 
 log_info() {
   echo "[info] $*"
@@ -61,11 +54,6 @@ require_cmd() {
     log_fail "필수 도구가 없습니다: $1"
     exit 1
   fi
-}
-
-browser_webrtc_harness_available() {
-  [[ -f "${BROWSER_WEBRTC_HARNESS}" ]] || return 1
-  ! grep -Fq "removed: legacy WebRTC test page" "${BROWSER_WEBRTC_HARNESS}"
 }
 
 resolve_port() {
@@ -103,13 +91,8 @@ cleanup_runtime_documents() {
   if [[ -n "${RTSP_FFMPEG_PID}" ]] && kill -0 "${RTSP_FFMPEG_PID}" >/dev/null 2>&1; then
     kill "${RTSP_FFMPEG_PID}" >/dev/null 2>&1 || true
   fi
-  if [[ -n "${WEBRTC_NODE_PID}" ]] && kill -0 "${WEBRTC_NODE_PID}" >/dev/null 2>&1; then
-    kill "${WEBRTC_NODE_PID}" >/dev/null 2>&1 || true
-  fi
   curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/rules/${RULE_RTSP}" >/dev/null 2>&1 || true
-  curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/rules/${RULE_WEBRTC}" >/dev/null 2>&1 || true
   curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/profiles/${PROFILE_RTSP}" >/dev/null 2>&1 || true
-  curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/profiles/${PROFILE_WEBRTC}" >/dev/null 2>&1 || true
 }
 trap cleanup_runtime_documents EXIT
 
@@ -168,7 +151,6 @@ PY
 require_cmd curl
 require_cmd python3
 require_cmd ffmpeg
-require_cmd node
 
 HTTP_PORT="$(resolve_port "${MEDIA_SERVER_HTTP_LISTEN_PORT:-}" "kHttpListenPort" "8080")"
 RTSP_PORT="$(resolve_port "${MEDIA_SERVER_LISTEN_PORT:-}" "kRtspListenPort" "8554")"
@@ -181,7 +163,6 @@ ROUTE="${MEDIA_SERVER_VERIFY_ROUTE_NAME:-$(media_server_read_const_charp "${STD_
 ROUTE="${ROUTE:-dhseo}"
 FILE_TOKEN="${MEDIA_SERVER_VERIFY_ROUTE_FILE:-va_four_scene_sample.mp4}"
 RTSP_DURATION_S="${MEDIA_SERVER_VERIFY_ROUTE_RTSP_DURATION_S:-14}"
-WEBRTC_HOLD_MS="${MEDIA_SERVER_VERIFY_ROUTE_WEBRTC_HOLD_MS:-12000}"
 WAIT_TIMEOUT_S="${MEDIA_SERVER_VERIFY_ROUTE_WAIT_TIMEOUT_S:-20}"
 ENCODED_FILE="$(urlencode_file_token "${FILE_TOKEN}")"
 
@@ -196,51 +177,35 @@ fi
 log_pass "HTTP health ok"
 
 PROFILE_RTSP_JSON="{\"id\":\"${PROFILE_RTSP}\",\"detector\":\"dummy\",\"fps\":3,\"maxQueue\":1,\"confidence\":0.25,\"nms\":0.45,\"tracking\":false,\"adaptive\":false,\"trackingClasses\":[\"person\",\"vehicle\",\"animal\",\"food\"]}"
-PROFILE_WEBRTC_JSON="{\"id\":\"${PROFILE_WEBRTC}\",\"detector\":\"dummy\",\"fps\":6,\"maxQueue\":2,\"confidence\":0.25,\"nms\":0.45,\"tracking\":false,\"adaptive\":false,\"trackingClasses\":[\"road\",\"sports\",\"tableware\",\"furniture\",\"device\",\"object\"]}"
 RULE_RTSP_JSON="{\"id\":\"${RULE_RTSP}\",\"priority\":120,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"rtsp\"},\"analysis\":{\"profileId\":\"${PROFILE_RTSP}\",\"classes\":[\"person\",\"vehicle\",\"animal\",\"food\"]},\"event\":{\"type\":\"presence\",\"minConfidence\":0.1,\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.0,\"y\":0.0},{\"x\":1.0,\"y\":0.0},{\"x\":1.0,\"y\":1.0},{\"x\":0.0,\"y\":1.0}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
-RULE_WEBRTC_JSON="{\"id\":\"${RULE_WEBRTC}\",\"priority\":120,\"enabled\":true,\"match\":{\"sourceKind\":\"file\",\"route\":\"webrtc\"},\"analysis\":{\"profileId\":\"${PROFILE_WEBRTC}\",\"classes\":[\"road\",\"sports\",\"tableware\",\"furniture\",\"device\",\"object\"]},\"event\":{\"type\":\"presence\",\"minConfidence\":0.1,\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.0,\"y\":0.0},{\"x\":1.0,\"y\":0.0},{\"x\":1.0,\"y\":1.0},{\"x\":0.0,\"y\":1.0}]}},\"eventActions\":{\"highlight\":{\"enabled\":true,\"mode\":\"blink\",\"target\":\"matched-object\"},\"post\":{\"enabled\":false,\"method\":\"POST\",\"url\":\"\",\"payloadFormat\":\"media-server.va.event.v1\"}}}"
 
 curl -fsS -X PUT "${HTTP_BASE}/lab/analysis/profiles/${PROFILE_RTSP}" \
   -H 'Content-Type: application/json' --data "${PROFILE_RTSP_JSON}" >/dev/null
-curl -fsS -X PUT "${HTTP_BASE}/lab/analysis/profiles/${PROFILE_WEBRTC}" \
-  -H 'Content-Type: application/json' --data "${PROFILE_WEBRTC_JSON}" >/dev/null
 curl -fsS -X PUT "${HTTP_BASE}/lab/analysis/rules/${RULE_RTSP}" \
   -H 'Content-Type: application/json' --data "${RULE_RTSP_JSON}" >/dev/null
-curl -fsS -X PUT "${HTTP_BASE}/lab/analysis/rules/${RULE_WEBRTC}" \
-  -H 'Content-Type: application/json' --data "${RULE_WEBRTC_JSON}" >/dev/null
-log_pass "route별 profile/rule 저장"
+log_pass "RTSP route profile/rule 저장"
 
 if curl -fsS "${HTTP_BASE}/lab/analysis/profiles/${PROFILE_RTSP}" > "${PROFILE_RTSP_READ_FILE}" &&
-   curl -fsS "${HTTP_BASE}/lab/analysis/profiles/${PROFILE_WEBRTC}" > "${PROFILE_WEBRTC_READ_FILE}" &&
-   curl -fsS "${HTTP_BASE}/lab/analysis/rules/${RULE_RTSP}" > "${RULE_RTSP_READ_FILE}" &&
-   curl -fsS "${HTTP_BASE}/lab/analysis/rules/${RULE_WEBRTC}" > "${RULE_WEBRTC_READ_FILE}"; then
+   curl -fsS "${HTTP_BASE}/lab/analysis/rules/${RULE_RTSP}" > "${RULE_RTSP_READ_FILE}"; then
   if python3 - \
     "${PROFILE_RTSP_READ_FILE}" \
-    "${PROFILE_WEBRTC_READ_FILE}" \
-    "${RULE_RTSP_READ_FILE}" \
-    "${RULE_WEBRTC_READ_FILE}" <<'PY'
+    "${RULE_RTSP_READ_FILE}" <<'PY'
 import json
 import pathlib
 import sys
 
 profile_rtsp = json.loads(pathlib.Path(sys.argv[1]).read_text()).get("profile") or {}
-profile_webrtc = json.loads(pathlib.Path(sys.argv[2]).read_text()).get("profile") or {}
-rule_rtsp = json.loads(pathlib.Path(sys.argv[3]).read_text()).get("rule") or {}
-rule_webrtc = json.loads(pathlib.Path(sys.argv[4]).read_text()).get("rule") or {}
+rule_rtsp = json.loads(pathlib.Path(sys.argv[2]).read_text()).get("rule") or {}
 
 expected_profile_rtsp = ["person", "vehicle", "animal", "food"]
-expected_profile_webrtc = ["road", "sports", "tableware", "furniture", "device", "object"]
 expected_rule_rtsp = ["person", "vehicle", "animal", "food"]
-expected_rule_webrtc = ["road", "sports", "tableware", "furniture", "device", "object"]
 
 def require_exact_list(name, value, expected):
     if value != expected:
         raise SystemExit(f"{name} mismatch: {value} != {expected}")
 
 require_exact_list("profile rtsp trackingClasses", profile_rtsp.get("trackingClasses"), expected_profile_rtsp)
-require_exact_list("profile webrtc trackingClasses", profile_webrtc.get("trackingClasses"), expected_profile_webrtc)
 require_exact_list("rule rtsp classes", (rule_rtsp.get("analysis") or {}).get("classes"), expected_rule_rtsp)
-require_exact_list("rule webrtc classes", (rule_webrtc.get("analysis") or {}).get("classes"), expected_rule_webrtc)
 PY
   then
     log_pass "Profile/Rule 카테고리 저장·복원 확인"
@@ -272,45 +237,12 @@ else
 fi
 RTSP_FFMPEG_PID=""
 
-if browser_webrtc_harness_available; then
-  node "${BROWSER_WEBRTC_HARNESS}" \
-    --http-base "${HTTP_BASE}" \
-    --mode simple \
-    --file "${FILE_TOKEN}" \
-    --va 1 \
-    --post-playback-hold-ms "${WEBRTC_HOLD_MS}" \
-    --consumer-playback-timeout-ms 45000 \
-    --timeout-ms 60000 \
-    --debug-port 9235 \
-    >"${WEBRTC_LOG}" 2>&1 &
-  WEBRTC_NODE_PID=$!
-
-  if wait_for_route_tap "webrtc" "${PROFILE_WEBRTC}" "${RULE_WEBRTC}" "6" "${WAIT_TIMEOUT_S}"; then
-    log_pass "WebRTC overlay route=webrtc profile/rule matching 확인"
-  else
-    log_fail "WebRTC overlay route=webrtc profile/rule matching 실패"
-    sed -n '1,120p' "${WEBRTC_LOG}" | sed 's/^/[webrtc] /'
-  fi
-
-  if wait "${WEBRTC_NODE_PID}"; then
-    log_pass "WebRTC overlay playback ok"
-    sed -n '1,40p' "${WEBRTC_LOG}" | sed 's/^/[webrtc] /'
-  else
-    log_fail "WebRTC overlay playback failed"
-    sed -n '1,120p' "${WEBRTC_LOG}" | sed 's/^/[webrtc] /'
-  fi
-  WEBRTC_NODE_PID=""
-else
-  log_skip "WebRTC route profile matching skipped: product WebRTC browser harness is not available"
-fi
-
 echo
 echo "== route profile matching 검증 요약 =="
 echo "- 통과: ${PASS_COUNT}"
 echo "- 실패: ${FAIL_COUNT}"
 echo "- 건너뜀: ${SKIP_COUNT}"
 echo "- RTSP 로그: ${RTSP_LOG}"
-echo "- WebRTC 로그: ${WEBRTC_LOG}"
 
 if (( FAIL_COUNT > 0 )); then
   exit 1

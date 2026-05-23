@@ -20,6 +20,21 @@
 - theme:
 - evidence index:
 - 문서 파악 범위:
+
+## 테스트 영역별 판정
+
+스크립트 테스트와 UI 풀테스트는 서로 대체하지 않습니다. 한쪽이 PASS여도 다른
+쪽을 실행하지 않았으면 다른 쪽은 `NOT RUN` 또는 `미확인`으로 남깁니다.
+
+| 영역 | 실행 범위 | evidence | 판정 |
+| --- | --- | --- | --- |
+| 안정화 테스트 | 로드맵 스텝 종료 및 30분/120분/UI 테스트 전 선수 확인 | 명령, exit code, summary/report | PASS/FAIL/NOT RUN |
+| 30분 테스트 | `verify-predev --soak-minutes 30`, 장기간 테스트 기본값/버전 완료 soak | summary/report/log | PASS/FAIL/NOT RUN |
+| 120분 테스트 | `verify-predev --soak-minutes 120`, `verify-va-runtime-console-longrun --duration-minutes 120`, 메모리 릭 감시 필요 시 | summary/report/log | PASS/FAIL/NOT RUN |
+| UI 풀테스트 | 버전 완료 후 인앱 브라우저 직접 조작, 반응형, 시각 품질 | route별 직접 조작, screenshot/artifact, 재검수 결과 | PASS/FAIL/BLOCKED/미확인 |
+
+## 스크립트 테스트 기록
+
 - 관련 자동 검증:
   - `./server.sh build`:
   - `./server.sh verify-auth-bootstrap`:
@@ -30,6 +45,18 @@
   - `./server.sh verify-rule-ui`:
   - `./server.sh verify-manual-ui-evidence`:
   - `git diff --check`:
+- 안정화/장시간:
+  - `./server.sh verify-predev --soak-minutes 30`:
+  - `./server.sh verify-predev --soak-minutes 120`:
+  - `./server.sh verify-va-runtime-console-longrun --duration-minutes 120`:
+
+## UI 풀테스트 기록
+
+- 인앱 브라우저:
+- 직접 조작 범위:
+- 반응형/테마 범위:
+- 시각 품질 확인:
+- UI 미확인/건너뜀:
 
 ## 확인됨
 
@@ -50,7 +77,6 @@
 | `/client/live` | viewer/admin preview |  |  |  |  | PASS/FAIL |
 | `/client/dashboard` | viewer/admin preview |  |  |  |  | PASS/FAIL |
 | `/client/request-access` | public |  |  |  |  | PASS/FAIL |
-| `/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test` | any |  | removed legacy route, 404-only |  |  | PASS/FAIL |
 
 ## v1.8.0 Release Evidence Index
 
@@ -85,7 +111,7 @@
 | Events | filter, archive toggle, pagination, export |  |  |
 | Client Live | source select/drag, tile start/reconnect/stop, dock, overlay, copy |  |  |
 | Client Dashboard | filter, sort, status/event copy |  |  |
-| Route guard | viewer ops forbidden, removed lab/webrtc legacy route 404 |  |  |
+| Route guard | viewer ops forbidden, client debug/source/raw 비노출 |  |  |
 
 ## 접근 요청 검수
 

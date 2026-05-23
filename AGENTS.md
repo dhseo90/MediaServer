@@ -279,7 +279,6 @@ git diff --check
 ./server.sh build
 ./server.sh verify-codecs
 ./server.sh verify-webrtc-ice
-./server.sh verify-multichannel
 ./server.sh verify-webrtc-va-metadata
 git diff --check
 ```
@@ -295,7 +294,42 @@ git diff --check
 git diff --check
 ```
 
-### 7.6 장시간 테스트
+### 7.6 테스트 영역 역할 분리
+
+테스트 보고와 완료 판정은 `스크립트 테스트`와 `UI 풀테스트`를 반드시 분리한다.
+두 영역은 서로 보완 evidence일 뿐, 서로를 대체하지 않는다.
+
+| 영역 | 역할 | 완료로 인정되는 evidence | 완료로 인정하지 않는 것 |
+| --- | --- | --- | --- |
+| 안정화 테스트 | build, static, API/schema, auth route, media path, verifier 중심의 선수 테스트. 30분/120분/UI 테스트 전에 먼저 통과해야 하며, 로드맵 각 스텝 종료 시 수행 | 실제 실행한 명령, exit code, summary/report, 로그, 실패/skip 사유 | 30분/120분 장시간 PASS, 브라우저 UI 직접 조작 주장 |
+| 30분 테스트 | 장기간 테스트 지시 시 기본으로 수행하는 soak. 각 버전별 로드맵 개발 완료 시 수행 | `verify-predev --soak-minutes 30` summary/report/log | 안정화 테스트, 120분 메모리 감시, UI 풀테스트 |
+| 120분 테스트 | 메모리 릭, 장시간 누수, runtime drift 감시용. 무조건 실행하지 않고 필요 시 사용자에게 먼저 말한다 | `verify-predev --soak-minutes 120`, `verify-va-runtime-console-longrun --duration-minutes 120` summary/report/log | 안정화 테스트, 30분 기본 soak, UI 풀테스트 |
+| UI 풀테스트 | 인앱 브라우저에서 제품 화면을 직접 열고 클릭/타이핑/선택/반응형/시각 품질/role guard 확인 | 실제 조작한 route, 계정/권한, viewport/theme, screenshot/artifact, 재검수 결과 | 30분/120분 안정화 통과, raw JSON/API-only 확인, 자동 screenshot만 생성 |
+
+보고 시에는 아래 항목을 별도 섹션으로 나눈다.
+
+```text
+스크립트 테스트:
+- 단기 smoke:
+- 30분 안정화:
+- 120분 장시간:
+- 미실행:
+
+UI 풀테스트:
+- 직접 확인한 화면:
+- 직접 조작한 기능:
+- 반응형/시각 품질:
+- 미확인:
+```
+
+안정화 테스트가 실패하면 30분/120분/UI 테스트로 넘어가지 않는다.
+30분 테스트는 장기간 테스트 지시의 기본값이며, 버전별 로드맵 개발 완료 시 수행한다.
+120분 테스트는 메모리 릭/장시간 누수 감시가 필요할 때 사용자에게 먼저 말하고 지시를 받은 뒤 수행한다.
+UI 풀테스트도 버전별 로드맵 개발 완료 시 수행한다.
+30분/120분 테스트를 통과해도 UI 풀테스트 완료가 아니며, UI 풀테스트를 모두 수행해도
+30분/120분 안정화 테스트 완료가 아니다. 실행하지 않은 영역은 `NOT RUN` 또는 `미확인`으로 보고한다.
+
+### 7.7 장시간 테스트
 
 아래 테스트는 명시 요청이 있을 때만 실행한다.
 
@@ -313,7 +347,7 @@ verify-predev: 실행하지 않음
 이유: 사용자 명시 요청 없음
 ```
 
-### 7.7 버전 로드맵 완료 후 UI 풀테스트
+### 7.8 버전 로드맵 완료 후 UI 풀테스트
 
 해당 버전의 로드맵에 명시된 개발 내용을 모두 마친 경우, 완료 판정은 스크립트만으로
 대체하지 않는다.
@@ -389,7 +423,7 @@ UI 작업은 현재 화면의 사용 흐름과 기존 design token을 유지하�
 3. raw JSON은 운영자 debug details 접힘 영역에만 둔다.
 4. client/viewer 화면에는 source URL, Developer URL, raw JSON, debugCounters, BBox diagnostics, rule/profile editor를 노출하지 않는다.
 5. `/ops/rules` smoke selector와 Rule/Profile 저장 흐름을 깨지 않는다.
-6. `/lab`, `/lab/rules`, `/lab/import` 화면 route를 다시 열거나 이전 Lab 3탭 UI를 되살리지 않는다.
+6. 개발/검증 editor를 제품 화면에 되살리거나 embed하지 않는다.
 7. UI 화면을 보지 않았으면 수동 확인했다고 쓰지 않는다.
 
 ### 9.2 Ops 화면
@@ -421,12 +455,11 @@ admin이 client 화면을 보면 `Client Preview as admin` 상태를 명확히 �
 
 ### 9.4 Lab / 개발 API 경계
 
-`/lab`, `/lab/rules`, `/lab/import` 화면 route는 404로 닫힌 상태를 유지한다.
 개발/검증 기능은 `/lab/analysis/*`, `/lab/runtime/status`, `/ws/va-metadata`
 같은 API와 전용 검증 명령으로 다룬다.
 운영자가 사용하는 Rule/Profile 화면은 `/ops/rules`이다.
 
-이전 Lab 3탭 구조를 제품 화면에 embed하지 않는다.
+개발/검증 editor 구조를 제품 화면에 embed하지 않는다.
 
 ---
 

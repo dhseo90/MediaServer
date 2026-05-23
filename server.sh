@@ -35,19 +35,17 @@ Usage:
   verify-codecs  file/RTSP/WebRTC source와 codec route matrix를 자동 검증합니다.
   verify-webrtc-ice
                  WebRTC STUN/TURN/ICE policy와 candidate 수집 상태를 검증합니다.
-  verify-multichannel
-                 제거된 legacy browser harness 대신 현재는 명시적으로 skip합니다. 제품 UI smoke를 사용하세요.
   verify-uri-longrun
                  HTTP/HLS URI source의 로컬 반복 검증과 선택 외부 URL 반복 검증을 수행합니다.
-  verify-va      YOLO/VA overlay의 lab/RTSP 검증과 사용 가능한 WebRTC browser harness 검증을 수행합니다.
+  verify-va      YOLO/VA overlay의 lab/RTSP 검증을 수행합니다.
   verify-redaction
-                 사람 객체 자동 모자이크(redaction)의 image/live 검증을 수행합니다. multichannel은 현재 skip입니다.
+                 사람 객체 자동 모자이크(redaction)의 image/live 검증을 수행합니다.
   verify-va-events
                  이동 테스트 영상으로 tracker 기반 presence/enter/exit/line-crossing을 검증합니다.
   verify-va-category-samples
                  실제 영상 샘플에서 VA 카테고리별 presence 이벤트를 검증합니다.
   verify-route-profiles
-                 실제 RTSP overlay와 사용 가능한 WebRTC browser harness에서 route별 profile/rule matching을 검증합니다.
+                 실제 RTSP overlay에서 route별 profile/rule matching을 검증합니다.
   verify-rule-ui
                  /ops/rules Rule/Profile 카테고리 버튼과 저장 payload를 검증합니다.
   verify-ops-client-ui
@@ -69,7 +67,7 @@ Usage:
   verify-product-shell-examples
                  제품 shell/component 예시 문서와 UI guide 연결을 검증합니다.
   verify-ops-route-boundaries
-                 /ops, /client와 제거된 legacy Lab/WebRTC 화면의 404 회귀 방지 계약을 검증합니다.
+                 /ops, /client shell과 Lab 분석 API 경계를 검증합니다.
   verify-ops-click-e2e
                  /ops 채널/룰/사용자 주요 패널과 탭 이동을 실제 브라우저 클릭으로 검증합니다.
   verify-ops-tables-layout
@@ -306,7 +304,7 @@ Usage:
                  저장된 detection/tracking metadata를 media pipeline 없이 VA rule/scenario 계층에 replay합니다.
   verify-va-replay
                  VA metadata replay baseline fixture와 expected event JSON을 비교 검증합니다.
-  verify-predev  기능 개발 재개 전 smoke, 다채널, event POST, cleanup, report를 묶어 검증합니다.
+  verify-predev  기능 개발 재개 전 smoke, VA event, event POST, cleanup, report를 묶어 검증합니다.
   summarize-reports
                  /tmp의 검증 summary JSON/NDJSON을 짧은 Markdown 리포트로 변환합니다.
 
@@ -408,10 +406,6 @@ case "${cmd}" in
   verify-webrtc-ice)
     require_internal verify_webrtc_ice_config.sh
     exec "${INTERNAL_DIR}/verify_webrtc_ice_config.sh" "$@"
-    ;;
-  verify-multichannel)
-    require_internal verify_multichannel_webrtc.sh
-    exec "${INTERNAL_DIR}/verify_multichannel_webrtc.sh" "$@"
     ;;
   verify-uri-longrun)
     require_internal verify_uri_source_longrun.sh

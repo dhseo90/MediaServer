@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: 현재 v1.8 기준 기능/UI/검증 inventory 문서가 실제 command/route 범위를 덮는지 점검한다.
+// 파일 용도: 현재 v1.8 기준 기능/UI/검증 inventory 문서가 단일 개별 기능 표로 유지되는지 점검한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -21,14 +21,12 @@ Usage:
 
 Checks:
   - docs/project-feature-test-inventory.md exists and is linked from docs/README.md
-  - inventory lists required current sections, UI routes, removed legacy UI routes, and comparison/gap states
-  - inventory classifies every tracked include/src C++ source module
-  - inventory classifies tracked support artifacts in root/config/.github/video
-  - inventory lists every tracked test fixture and docs asset used by verifiers
-  - inventory covers current v1.8 route/API surface families from the HTTP server and product UI scripts
-  - every current server.sh command appears in the inventory
-  - current-facing docs outside backlog/history do not mention pre-v1.8 baselines
-  - current command set has no version-specific verify-v*/verify_v* release verifier
+  - inventory is scoped to current v1.8.0 and explicitly separates unverified manual UI evidence
+  - grouped inventory tables were deleted
+  - the single Individual Function Code UI Test Matrix has one feature/action/route/command per row
+  - each row separates stability, 30-minute, 120-minute, and UI test scope
+  - required product UI, route/API, auth, VA scenario, client, ONVIF, metadata, release, and server command rows exist
+  - every current server.sh command has its own row
 `);
 }
 
@@ -40,24 +38,33 @@ const inventoryPath = path.join(rootDir, "docs/project-feature-test-inventory.md
 const inventory = readText(inventoryPath);
 const docsIndex = readText(path.join(rootDir, "docs/README.md"));
 const server = readText(path.join(rootDir, "server.sh"));
-const cmake = readText(path.join(rootDir, "CMakeLists.txt"));
-const gitignore = readText(path.join(rootDir, ".gitignore"));
-const routeSource = [
-  readText(path.join(rootDir, "src/ingress/webrtc_http_server.cpp")),
-  readText(path.join(rootDir, "src/ingress/product_ui_js.cpp")),
-  readText(path.join(rootDir, "src/ingress/product_ui_page_scripts.cpp")),
-].join("\n");
 
 check("inventory document is indexed and scoped to current v1.8.0", () => {
-  assert(docsIndex.includes("project-feature-test-inventory.md"), "docs index does not link project inventory");
+  requireText(docsIndex, "project-feature-test-inventory.md", "docs index does not link project inventory");
   requireText(inventory, "현재 release 목표 `v1.8.0`", "inventory does not pin v1.8.0 release target");
-  requireText(inventory, "인앱 브라우저에서 모든 기능을 직접 클릭하고", "inventory does not separate manual UI full-test evidence");
+  requireText(
+    inventory,
+    "인앱 브라우저에서 모든 기능을 직접 클릭하고 타이핑한 full manual UI evidence",
+    "inventory does not separate manual UI full-test evidence"
+  );
   requireText(inventory, "이 문서는 현재 제품 기준만 다룹니다", "inventory does not separate archive history");
+  for (const phrase of [
+    "테스트 단계 역할",
+    "안정화 테스트 | 30분/120분/UI 테스트의 선수 테스트",
+    "기능 개발 중 로드맵의 각 스텝이 끝날 때 수행",
+    "30분 테스트 | 장기간 테스트를 지시받았을 때 기본으로 수행",
+    "각 버전별 로드맵 개발이 끝나면 수행합니다",
+    "120분 테스트 | 메모리 릭",
+    "필요하다고 판단하면 사용자에게 먼저 알리고 승인/지시를 받습니다",
+    "UI 테스트 | 인앱 브라우저에서 직접 클릭/타이핑/반응형/시각 품질",
+  ]) {
+    requireText(inventory, phrase, `inventory missing test phase rule: ${phrase}`);
+  }
 });
 
-check("inventory has required feature/UI/test/comparison sections", () => {
+check("grouped table sections are deleted", () => {
   for (const heading of [
-    "## Code Logic / UI / Test Matrix",
+    "## Atomic Code Logic / UI / Test Matrix",
     "## Code Feature Inventory",
     "## Source Module Inventory Audit",
     "## Support Artifact Inventory Audit",
@@ -69,837 +76,353 @@ check("inventory has required feature/UI/test/comparison sections", () => {
     "## Script Inventory Audit",
     "### Tracked Script File Detail",
     "## Comparison Result",
+  ]) {
+    assert(!inventory.includes(heading), `grouped section remains: ${heading}`);
+  }
+
+  for (const heading of [
+    "# Project Feature Test Inventory",
+    "## Individual Function Code UI Test Matrix",
     "## Current Gaps",
     "## Maintenance Rules",
   ]) {
-    requireText(inventory, heading, `inventory missing section ${heading}`);
+    requireText(inventory, heading, `inventory missing required section ${heading}`);
   }
 });
 
-check("inventory has unified code/UI/test matrix for every feature class", () => {
-  for (const snippet of [
-    "| 기능 | 코드상 로직 | UI 존재 | 테스트 | 결론 |",
-    "| Server lifecycle/config | 있음:",
-    "| Source ingest: file/RTSP/HTTP-HLS/WHEP/Published WebRTC | 있음:",
-    "| WHIP publish ingest | 있음:",
-    "직접 publish UI 없음",
-    "`whip_publish_test.py`가 `verify-codecs`/`verify-webrtc-ice`에서 소비",
-    "| RTSP output | 있음:",
-    "| WebRTC output/WHEP | 있음:",
-    "| Auth/session | 있음:",
-    "| Role/scope | 있음:",
-    "| Client access request | 있음:",
-    "| Ops shell/nav | 있음:",
-    "| Ops dashboard/runtime status | 있음:",
-    "| Source/channel management | 있음:",
-    "| Rule/profile/scenario management | 있음:",
-    "| User management | 있음:",
-    "| Event review/evidence | 있음:",
-    "| Alert delivery | 있음:",
-    "| Client live workspace | 있음:",
-    "| Client dashboard/events summary | 있음:",
-    "| VA detector/runtime | 있음:",
-    "full Lab UI 없음",
-    "| Tracking/scenarios | 있음:",
-    "실제 이벤트 전수 evidence 없음",
-    "| Runtime metadata: DataChannel/SSE/WS/state/metrics | 있음:",
-    "raw stream 제품 UI 없음",
-    "| Event POST/storage/cleanup | 있음:",
-    "| ONVIF support | 있음:",
-    "실장비 성공은 field gate",
-    "| Integrator contract | 있음:",
-    "제품 UI 없음",
-    "| Release/public repo readiness | 있음:",
-    "| Research boundaries: Re-ID/OC-SORT/BoT-SORT/DeepSORT/YouTube | 있음:",
-    "| Removed legacy product UI routes | 있음:",
-    "legacy HTML 없음",
-    "| Support/release/config/sample artifacts | 있음:",
-    "sample video 전체 이벤트 수동 evidence는 없음",
-  ]) {
-    requireText(inventory, snippet, `unified matrix missing snippet: ${snippet}`);
-  }
-});
+check("single matrix has individual feature rows", () => {
+  const { rows, byFeature } = parseMatrix();
+  assert(rows.length >= 560, `individual matrix is too small: ${rows.length} row(s)`);
+  assert(byFeature.size === rows.length, "individual matrix has duplicate feature names");
 
-check("inventory lists every tracked support artifact", () => {
-  for (const heading of [
-    "### Root Governance And Release Metadata",
-    "### GitHub Policy, Templates, And Workflows",
-    "### Config And Policy Inputs",
-    "### Tracked Sample Media",
-  ]) {
-    requireText(inventory, heading, `inventory missing support artifact group ${heading}`);
-  }
-
-  const supportFiles = trackedSupportFiles();
-  const missing = supportFiles.filter(file => !inventory.includes(`\`${file}\``));
-  assert(missing.length === 0, `support artifact inventory missing file(s):\n${missing.join("\n")}`);
-
-  for (const phrase of [
-    "source release, public repo, config, CI, sample media 검증 범위",
-    "verify-actions-security",
-    "verify-bundle-policy",
-    "verify-docs-ui-assets",
-    "모든 sample video의 모든 이벤트를 브라우저에서 전수 확인했다는 evidence는 아직 없습니다",
-  ]) {
-    requireText(inventory, phrase, `support artifact inventory missing phrase: ${phrase}`);
-  }
-});
-
-check("inventory lists every tracked script file", () => {
-  const missing = [];
-  for (const file of gitLsFiles(["scripts"])) {
-    if (!inventory.includes(`\`${file}\``)) {
-      missing.push(file);
+  for (const row of rows) {
+    assert(row.feature.trim(), "matrix row has empty feature");
+    assert(row.code.trim(), `matrix row has empty code logic: ${row.feature}`);
+    assert(row.uiNeed.trim(), `matrix row has empty UI requirement: ${row.feature}`);
+    assert(row.ui.trim(), `matrix row has empty UI state: ${row.feature}`);
+    assert(row.test.trim(), `matrix row has empty test evidence: ${row.feature}`);
+    assert(row.pass.trim(), `matrix row has empty PASS output/judgement: ${row.feature}`);
+    assert(row.stability.trim(), `matrix row has empty stability scope: ${row.feature}`);
+    assert(row.soak30.trim(), `matrix row has empty 30-minute scope: ${row.feature}`);
+    assert(row.soak120.trim(), `matrix row has empty 120-minute scope: ${row.feature}`);
+    assert(row.uiTest.trim(), `matrix row has empty UI test scope: ${row.feature}`);
+    const isTestExcluded = row.ui.startsWith("제외:") ||
+      row.stability.startsWith("제외:") ||
+      row.soak30.startsWith("제외:") ||
+      row.soak120.startsWith("제외:") ||
+      row.uiTest.startsWith("제외:");
+    if (isTestExcluded) {
+      assert(row.uiNeed.startsWith("제외:"), `excluded row must mark UI requirement as excluded: ${row.feature}`);
+      assert(row.ui.startsWith("제외:"), `excluded row must mark UI state as excluded: ${row.feature}`);
+      assert(row.test.includes("테스트 항목 제외"), `excluded row must explicitly state test exclusion: ${row.feature}`);
+      assert(row.pass.includes("PASS 없음"), `excluded row must not claim PASS output: ${row.feature}`);
+      for (const [label, value] of [
+        ["stability", row.stability],
+        ["30-minute", row.soak30],
+        ["120-minute", row.soak120],
+        ["UI test", row.uiTest],
+      ]) {
+        assert(value.startsWith("제외:"), `excluded row ${label} scope must start with 제외: ${row.feature}`);
+        assert(value.includes("실기기") && value.includes("테스트 항목 제외"), `excluded row ${label} scope must name real-device test exclusion: ${row.feature}`);
+      }
+      continue;
+    }
+    assert(
+      row.uiNeed.startsWith("필수:") || row.uiNeed.startsWith("비대상:"),
+      `matrix row UI requirement must be 필수 or 비대상: ${row.feature}`
+    );
+    assert(
+      row.stability.startsWith("존재:") || row.stability.startsWith("조건부:") || row.stability.startsWith("없음:"),
+      `matrix row stability scope must state test existence: ${row.feature}`
+    );
+    assert(row.soak30.includes("verify-predev --soak-minutes 30"), `matrix row 30-minute scope must name 30-minute predev command: ${row.feature}`);
+    assert(row.soak120.includes("120분") && row.soak120.includes("사용자"), `matrix row 120-minute scope must state user-confirmed 120-minute rule: ${row.feature}`);
+    if (row.ui.startsWith("있음")) {
+      assert(row.uiNeed.startsWith("필수:"), `UI-present row must mark UI as required: ${row.feature}`);
+      assert(row.pass.startsWith("PASS 출력:"), `UI-present row must state PASS output: ${row.feature}`);
+      assert(row.pass.includes("exit 0") && row.pass.includes("summary fail 0"), `UI-present row PASS must require exit 0 and fail 0: ${row.feature}`);
+      assert(row.uiTest.startsWith("존재:"), `UI-present row must record UI test existence: ${row.feature}`);
+    } else if (row.ui.startsWith("부분")) {
+      assert(row.uiNeed.startsWith("필수:"), `partial UI row must mark UI as required: ${row.feature}`);
+      assert(row.pass.startsWith("ISSUE:"), `partial UI row must not claim PASS: ${row.feature}`);
+      assert(row.uiTest.startsWith("ISSUE:"), `partial UI row must record partial UI issue: ${row.feature}`);
+    } else if (row.ui.startsWith("없음")) {
+      assert(row.uiNeed.startsWith("비대상:"), `non-UI row must be marked UI not required: ${row.feature}`);
+      assert(row.pass.startsWith("PASS 출력:"), `UI-not-required row must state PASS output: ${row.feature}`);
+      assert(row.uiTest.startsWith("비대상:"), `non-UI row must record UI-not-required status: ${row.feature}`);
     }
   }
-  assert(missing.length === 0, `script inventory missing file(s):\n${missing.join("\n")}`);
-  for (const phrase of [
-    "ignored runtime 생성물",
-    "`scripts/.media_server.env`",
-    "`scripts/**/__pycache__/`",
-    "`*.pyc`",
-    "#### server-command",
-    "#### sub-verifier",
-    "#### test-entry",
+
+  for (const forbidden of [
+    "source update/delete",
+    "view create/update/delete",
+    "event template create/edit/delete",
+    "analysis profile create/edit/delete",
+    "user disable/restore",
+    "profile detector/FPS/queue/confidence/NMS/input/adaptive fields",
+    "preview reconnect/stop",
+    "geometry reset/undo/last/clear",
+    "client tile play/restart/stop",
+    "dashboard compare filter/sort",
+    "copy status/events",
+    "preset JSON apply/reset",
   ]) {
-    requireText(inventory, phrase, `script inventory missing phrase: ${phrase}`);
+    assert(!byFeature.has(forbidden), `grouped feature row remains: ${forbidden}`);
   }
 });
 
-check("inventory classifies every current include/src C++ module", () => {
-  for (const heading of [
-    "### Entry, Config, Shared Types",
-    "### Core Stream And Source Runtime",
-    "### Core Helpers And Lab-Only Resolver",
-    "### Ingress HTTP, Auth, Product UI, Source View",
-    "### Ingress Media, RTSP, WebRTC, GStreamer",
-    "### Ingress ONVIF",
-    "### Analysis Runtime, Detectors, Frame IO",
-    "### Analysis Tracking And Metadata",
-    "### Analysis Events And Scenarios",
-    "### Build Target Wiring",
+check("matrix splits formerly grouped source, rule, user, client, and event actions", () => {
+  const { byFeature } = parseMatrix();
+  for (const feature of [
+    "source create API",
+    "source update API",
+    "source delete API",
+    "view create API",
+    "view update API",
+    "view delete API",
+    "VA preview start",
+    "VA preview restart",
+    "VA preview stop",
+    "VA geometry default coordinates",
+    "VA geometry undo",
+    "VA geometry delete last point",
+    "VA geometry clear points",
+    "event template create API",
+    "event template save API",
+    "event template delete API",
+    "analysis profile create API",
+    "analysis profile save API",
+    "analysis profile delete API",
+    "analysis profile detector select",
+    "analysis profile FPS input",
+    "analysis profile queue input",
+    "analysis profile confidence input",
+    "analysis profile NMS input",
+    "analysis profile input width",
+    "analysis profile input height",
+    "analysis profile adaptive toggle",
+    "ops user enable API",
+    "ops user disable API",
+    "event review status filter",
+    "event review class filter",
+    "event review status edit",
+    "event review class edit",
+    "event review note edit",
+    "client live tile playback toggle",
+    "client live tile restart",
+    "client live tile disconnect",
+    "client dashboard status copy",
+    "client dashboard events copy",
+    "client dashboard compare filter",
+    "client dashboard compare sort",
+    "client dashboard preset apply",
+    "client dashboard preset reset",
   ]) {
-    requireText(inventory, heading, `inventory missing source module group ${heading}`);
+    assert(byFeature.has(feature), `missing individual feature row: ${feature}`);
   }
-
-  const sourceFiles = [
-    ...walk(path.join(rootDir, "include")),
-    ...walk(path.join(rootDir, "src")),
-  ]
-    .map(file => path.relative(rootDir, file))
-    .filter(file => file.endsWith(".cpp") || file.endsWith(".h"))
-    .sort();
-  const missing = sourceFiles.filter(file => !inventory.includes(`\`${file}\``));
-  assert(missing.length === 0, `source module inventory missing file(s):\n${missing.join("\n")}`);
 });
 
-check("all current src C++ modules are wired into the media_server build target", () => {
-  const cppFiles = walk(path.join(rootDir, "src"))
-    .map(file => path.relative(rootDir, file))
-    .filter(file => file.endsWith(".cpp"))
-    .sort();
-  const missing = cppFiles.filter(file => !cmake.includes(file));
-  assert(missing.length === 0, `src C++ file(s) not wired in CMakeLists.txt:\n${missing.join("\n")}`);
-  requireText(
-    cmake,
-    "target_sources(media_server PRIVATE src/core/youtube_resolver.cpp)",
-    "YouTube resolver optional source is no longer explicitly wired"
-  );
-  requireText(
-    inventory,
-    "`src/core/youtube_resolver.cpp`는 `MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=ON`일 때만",
-    "inventory does not document YouTube resolver optional build boundary"
-  );
-});
-
-check("inventory lists every current test fixture and docs asset", () => {
-  for (const heading of [
-    "### UI And Docs Visual Assets",
-    "### UI Copy Snapshot Fixtures",
-    "### Integrator Contract Artifact Fixtures",
-    "### ONVIF Fixture Matrix",
-    "### ONVIF Field Smoke Sample Bundle",
-    "### Runtime, UI Baseline, And Research Boundary Fixtures",
-    "### VA Metadata And Scenario Replay Fixtures",
+check("matrix covers auth roles, scopes, and account flows individually", () => {
+  const { byFeature } = parseMatrix();
+  for (const feature of [
+    "admin bearer token auth",
+    "operator bearer token auth",
+    "viewer bearer token auth",
+    "integrator bearer token auth",
+    "admin role scope template",
+    "operator role scope template",
+    "viewer role scope template",
+    "integrator role scope template",
+    "scope validation for admin",
+    "scope validation for operator",
+    "scope validation for viewer",
+    "scope validation for integrator",
+    "client access request username input",
+    "client access request display-name input",
+    "client access request contact input",
+    "client access request channel input",
+    "client access request reason input",
+    "client access request submit",
+    "ops access request approve",
+    "ops access request reject",
+    "ops invite create",
+    "ops invite list",
+    "ops user reset password API",
+    "last active admin disable guard",
+    "last active admin role-change guard",
   ]) {
-    requireText(inventory, heading, `inventory missing fixture group ${heading}`);
+    assert(byFeature.has(feature), `missing auth/account row: ${feature}`);
   }
-
-  const fixtureFiles = [
-    ...walk(path.join(rootDir, "test/fixtures")),
-    ...walk(path.join(rootDir, "docs/assets")),
-  ]
-    .map(file => path.relative(rootDir, file))
-    .sort();
-  const missing = fixtureFiles.filter(file => !inventory.includes(`\`${file}\``));
-  assert(missing.length === 0, `fixture/artifact inventory missing file(s):\n${missing.join("\n")}`);
-  requireText(gitignore, "/models/", "models/ is no longer ignored by source release policy");
-  requireText(
-    inventory,
-    "로컬 `models/`는 `.gitignore` 대상",
-    "inventory does not separate local ignored models from tracked fixture inventory"
-  );
 });
 
-check("inventory covers required product UI and removed legacy UI routes", () => {
+check("matrix covers product UI routes and active Lab API boundaries", () => {
   for (const route of [
-    "/",
-    "/setup",
-    "/login",
-    "/password/change",
-    "/invite/setup",
-    "/client/request-access",
-    "/ops",
-    "/ops/home",
-    "/ops/dashboard",
-    "/ops/sources",
-    "/ops/rules",
-    "/ops/users",
-    "/ops/events",
-    "/client",
-    "/client/live",
-    "/client/dashboard",
-    "/client/events",
-    "/lab",
-    "/lab/rules",
-    "/lab/import",
-    "/webrtc/test",
+    "`/`",
+    "`/setup`",
+    "`/login`",
+    "`/logout`",
+    "`/password/change`",
+    "`/invite/setup`",
+    "`/client/request-access`",
+    "`/ops`",
+    "`/ops/home`",
+    "`/ops/dashboard`",
+    "`/ops/sources`",
+    "`/ops/rules`",
+    "`/ops/users`",
+    "`/ops/events`",
+    "`/client`",
+    "`/client/live`",
+    "`/client/dashboard`",
+    "`/client/events`",
+    "`/lab/files`",
+    "`/lab/reports`",
+    "`/lab/reports/content`",
+    "`/lab/runtime/status`",
   ]) {
-    requireText(inventory, `\`${route}\``, `inventory missing route ${route}`);
-  }
-
-  for (const boundary of [
-    "200/HTML로 열리면 실패",
-    "직접 제품 UI 없음",
-    "제품 UI 없음",
-    "UI 풀테스트 evidence는 별도 수행 필요",
-    "이 문서 기준 미수행",
-  ]) {
-    requireText(inventory, boundary, `inventory missing boundary phrase: ${boundary}`);
+    requireText(inventory, route, `inventory missing route ${route}`);
   }
 });
 
-check("inventory covers current product UI action surfaces", () => {
-  const actionGroups = [
-    {
-      name: "Auth shell",
-      sourceNeedles: [
-        'action="/setup"',
-        'action="/login"',
-        'action="/password/change"',
-        'action="/invite/setup"',
-        'id="request-form"',
-        'request.path == "/client/api/access-requests"',
-      ],
-      inventoryNeedles: [
-        "Auth shell",
-        "`/setup` 관리자 비밀번호 설정",
-        "`/client/request-access` 계정/표시명/연락처/채널/사유 입력 후 요청 제출",
-        "`id=\"request-form\"`",
-      ],
-    },
-    {
-      name: "Ops Home",
-      sourceNeedles: [
-        'data-testid="ops-home-page"',
-        "opsHomeRefresh",
-      ],
-      inventoryNeedles: [
-        "Ops Home",
-        "`data-testid=\"ops-home-page\"`",
-        "`id=\"opsHomeRefresh\"`",
-      ],
-    },
-    {
-      name: "Ops Dashboard",
-      sourceNeedles: [
-        'data-testid="ops-dashboard-page"',
-        "opsDashboardRefresh",
-        "dashIncidentTimelineSearch",
-        "dashIncidentTimelineSource",
-        "dashIncidentTimelineShare",
-        "dashVaQualityFilterInput",
-      ],
-      inventoryNeedles: [
-        "Ops Dashboard",
-        "incident 검색/출처 필터/링크 복사",
-        "`id=\"dashIncidentTimelineSearch\"`",
-        "`id=\"dashVaQualityFilterInput\"`",
-      ],
-    },
-    {
-      name: "Ops Channels/Sources",
-      sourceNeedles: [
-        'data-testid="ops-sources-page"',
-        'id="add-channel"',
-        'id="channel-save-selected"',
-        'data-testid="source-group-site-management"',
-        'name="rtspUrl"',
-        'name="whepUrl"',
-        'name="webrtcSourceId"',
-        'data-testid="onvif-probe-draft-tool"',
-        "onvifProbeDraftApply",
-        "channel-audit-refresh",
-      ],
-      inventoryNeedles: [
-        "Ops Channels/Sources",
-        "ONVIF probe draft 적용/초기화/profile 선택",
-        "`data-testid=\"source-group-site-management\"`",
-        "`id=\"onvifProbeDraftApply\"`",
-      ],
-    },
-    {
-      name: "Ops Rules",
-      sourceNeedles: [
-        'data-testid="ops-rules-page"',
-        'data-testid="ops-rules-validation-panel"',
-        'data-testid="ops-scenario-builder"',
-        "opsScenarioBuilderApply",
-        "opsRulesFilterInput",
-        "opsAddVaRuleBtn",
-        "opsCreateVaRuleBtn",
-        "opsRulesComposerSave",
-        "opsVaRulePreviewStartBtn",
-        "opsVaRuleGeometryPreview",
-        "opsEventRuleClassesAllBtn",
-        "opsProfileAdaptiveToggle",
-        "opsRulesAuditRefresh",
-      ],
-      inventoryNeedles: [
-        "Ops Rules",
-        "scenario builder preset/type/classes 입력 후 템플릿 적용",
-        "preview 재생/재연결/정지",
-        "geometry 기본/되돌리기/마지막 점 삭제/비우기/포인터 편집",
-        "모든 VA scenario가 실제 영상에서 실제 이벤트 발생까지 확인됐다는 evidence는 없음",
-      ],
-    },
-    {
-      name: "Ops Users",
-      sourceNeedles: [
-        'data-testid="ops-users-page"',
-        'id="add-user-btn"',
-        'id="user-save-selected"',
-        'data-testid="user-channel-assignment-list"',
-        "apply-view-scope-template",
-        "clear-custom-scopes",
-        "user-reset-password-button",
-        'href="/client/request-access"',
-        "user-audit-refresh",
-      ],
-      inventoryNeedles: [
-        "Ops Users",
-        "역할 선택, 채널 assignment 선택",
-        "`data-testid=\"user-channel-assignment-list\"`",
-        "`id=\"user-reset-password-button\"`",
-        "role별 전수 수동 evidence는 없음",
-      ],
-    },
-    {
-      name: "Ops Events",
-      sourceNeedles: [
-        'data-testid="ops-events-page"',
-        "opsEventsRefresh",
-        'data-testid="ops-alert-delivery-integrations"',
-        "alertDeliverySave",
-        "alertDeliveryTest",
-        'data-testid="ops-event-review-inbox"',
-        "eventReviewStatusFilter",
-        "eventRecordsEvidenceSelect",
-        "eventRecordsIncludeArchives",
-        "eventRecordsPrev",
-        "eventRecordsNext",
-        "data-event-review-save",
-        "data-evidence-bundle",
-      ],
-      inventoryNeedles: [
-        "Ops Events",
-        "alert delivery ID/kind/label/endpoint/retry/enabled 입력 후 저장/fixture 전송",
-        "review status/class/note 저장",
-        "`data-evidence-bundle`",
-        "실제 이벤트 발생부터 review/export까지 수동 evidence는 없음",
-      ],
-    },
-    {
-      name: "Client Live",
-      sourceNeedles: [
-        'data-testid="client-live-workspace"',
-        'data-testid="client-live-drop-grid"',
-        "data-source-view",
-        'data-role="view"',
-        'data-role="mode"',
-        'data-mode-action="va-overlay"',
-        'data-action="toggle-playback"',
-        'data-action="restart"',
-        'data-action="stop"',
-        "liveGridSize",
-        "liveInfoOverlayToggle",
-        "liveSaveLayoutPreference",
-        "liveApplyRoleLayoutPreset",
-      ],
-      inventoryNeedles: [
-        "Client Live",
-        "source tree 클릭/drag/drop",
-        "타일 재생/재시작/연결 해제",
-        "`id=\"liveSaveLayoutPreference\"`",
-        "실제 다중 권한/다중 채널 영상 전수 evidence는 없음",
-      ],
-    },
-    {
-      name: "Client Dashboard",
-      sourceNeedles: [
-        'data-testid="client-dashboard-shell"',
-        'data-client-copy="status"',
-        'data-client-copy="events"',
-        'data-testid="client-dashboard-compare"',
-        "clientDashboardCompareFilter",
-        "clientDashboardCompareSort",
-        'data-testid="client-dashboard-preset-config"',
-        "clientDashboardPresetApply",
-        "clientDashboardPresetReset",
-      ],
-      inventoryNeedles: [
-        "Client Dashboard",
-        "상태 복사, 이벤트 복사",
-        "compare filter/sort 선택",
-        "`id=\"clientDashboardPresetApply\"`",
-      ],
-    },
-    {
-      name: "Removed legacy product UI routes",
-      sourceNeedles: [
-        'request.path == "/lab"',
-        'request.path == "/lab/rules"',
-        'request.path == "/lab/import"',
-        'request.path == "/webrtc/test"',
-      ],
-      inventoryNeedles: [
-        "Removed legacy product UI routes",
-        "`/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test`는 제품 화면 action target이 아니며 legacy HTML이 없어야 함",
-      ],
-    },
+check("matrix covers VA scenario functions as partial where manual event evidence is absent", () => {
+  const { byFeature } = parseMatrix();
+  for (const feature of [
+    "intrusion event rule",
+    "line crossing event rule",
+    "intrusion dwell candidate phase",
+    "intrusion dwell confirmed phase",
+    "intrusion dwell ended event",
+    "wrong direction scenario",
+    "re-entry scenario",
+    "intrusion after line crossing trigger",
+    "intrusion after line crossing dwell",
+    "loitering dwell check",
+    "loitering movement-radius check",
+    "loitering trajectory-points check",
+    "zone occupancy threshold check",
+    "zone occupancy dwell check",
+    "scene zone membership calculation",
+    "scene line side calculation",
+    "scenario stable-track requirement",
+    "scenario cooldown enforcement",
+  ]) {
+    const row = byFeature.get(feature);
+    assert(row, `missing VA scenario row: ${feature}`);
+    assert(
+      row.test.includes("브라우저 실제 이벤트 전수 evidence 없음") ||
+        row.test.includes("브라우저 전수 evidence 없음") ||
+        row.test.includes("backend"),
+      `VA scenario row does not state limited/manual evidence boundary: ${feature}`
+    );
+  }
+});
+
+check("matrix covers media, metadata, analysis, ONVIF, release, and sample boundaries", () => {
+  const { byFeature } = parseMatrix();
+  for (const feature of [
+    "RTSP egress session create",
+    "RTSP VA overlay render",
+    "generic WebRTC session create",
+    "generic WebRTC session answer",
+    "generic WebRTC session ICE",
+    "generic WebRTC session delete",
+    "WHEP session create",
+    "WHEP session answer",
+    "WHEP session ICE",
+    "WHEP session delete",
+    "WHIP publish session create",
+    "WHIP publish session ICE",
+    "WHIP publish session delete",
+    "client WebRTC session create",
+    "client WebRTC session answer",
+    "client WebRTC session ICE",
+    "client WebRTC session delete",
+    "WebRTC DataChannel metadata",
+    "SSE metadata side-channel",
+    "WS metadata side-channel",
+    "analysis tap bbox diagnostics API",
+    "analysis tap metrics API",
+    "runtime metadata builder",
+    "ONVIF probe draft apply",
+    "ONVIF profile variant select",
+    "ONVIF field smoke gate",
+    "integrator event-post schema artifact",
+    "public repo readiness check",
+    "manual UI evidence verifier",
+    "sample H264 media fixture",
+    "sample MP4 media fixture",
+    "predev release gate",
+  ]) {
+    assert(byFeature.has(feature), `missing media/metadata/boundary row: ${feature}`);
+  }
+
+  requireText(inventory, "모든 이벤트 수동 evidence 아님", "sample media rows do not reject all-event manual evidence");
+  requireText(inventory, "schema 변경 금지", "metadata schema boundary is not documented");
+});
+
+check("real-device field smoke rows are excluded from current test items", () => {
+  const { byFeature } = parseMatrix();
+  const excludedFeatures = [
+    "ONVIF field smoke gate",
+    "server command: verify-onvif-field-http-probe",
+    "script file: scripts/internal/onvif_field_http_probe_smoke.cpp",
+    "script file: scripts/internal/verify_onvif_field_http_probe.mjs",
   ];
+  const excludedSectionStart = inventory.indexOf("### 실기기 필요 테스트 항목 제외");
+  const issueSectionStart = inventory.indexOf("### 기능-UI-테스트 필수 누락 항목");
+  assert(excludedSectionStart >= 0, "missing real-device test exclusion section");
+  assert(issueSectionStart > excludedSectionStart, "real-device exclusion section must precede stability issue list");
+  const excludedSection = inventory.slice(excludedSectionStart, issueSectionStart);
+  const issueSection = inventory.slice(issueSectionStart);
 
-  const missing = [];
-  for (const group of actionGroups) {
-    for (const needle of group.sourceNeedles) {
-      if (!routeSource.includes(needle)) {
-        missing.push(`${group.name}: source missing ${needle}`);
-      }
-    }
-    for (const needle of group.inventoryNeedles) {
-      if (!inventory.includes(needle)) {
-        missing.push(`${group.name}: inventory missing ${needle}`);
-      }
-    }
+  for (const feature of excludedFeatures) {
+    const row = byFeature.get(feature);
+    assert(row, `missing real-device excluded matrix row: ${feature}`);
+    assert(row.uiNeed.startsWith("제외:"), `real-device row must be excluded from UI requirement: ${feature}`);
+    assert(row.ui.startsWith("제외:"), `real-device row must be excluded from UI requirement: ${feature}`);
+    assert(row.test.includes("테스트 항목 제외"), `real-device row must state test exclusion: ${feature}`);
+    assert(row.pass.includes("PASS 없음"), `real-device row must not claim pass output: ${feature}`);
+    assert(row.stability.startsWith("제외:"), `real-device row must be excluded from stability tests: ${feature}`);
+    assert(row.soak30.startsWith("제외:"), `real-device row must be excluded from 30-minute tests: ${feature}`);
+    assert(row.soak120.startsWith("제외:"), `real-device row must be excluded from 120-minute tests: ${feature}`);
+    assert(row.uiTest.startsWith("제외:"), `real-device row must be excluded from UI tests: ${feature}`);
+    assert(excludedSection.includes(`| ${feature} |`), `real-device exclusion table missing feature: ${feature}`);
+    assert(!issueSection.includes(`| ${feature} |`), `real-device excluded feature remains in stability issue list: ${feature}`);
   }
-  assert(missing.length === 0, `UI action inventory mismatch:\n${missing.join("\n")}`);
 });
 
-check("inventory covers current v1.8 route/API surface families", () => {
-  const routeFamilies = [
-    {
-      name: "Auth/session",
-      sourceNeedles: [
-        'request.path == "/setup"',
-        'request.path == "/login"',
-        'request.path == "/logout"',
-        'request.path == "/password/change"',
-        'request.path == "/invite/setup"',
-        'request.path == "/auth/whoami"',
-        'request.path == "/client/request-access"',
-        'request.path == "/client/api/access-requests"',
-      ],
-      inventoryNeedles: [
-        "Auth/session",
-        "/logout",
-        "/auth/whoami",
-        "/client/api/access-requests",
-      ],
-    },
-    {
-      name: "Ops shell",
-      sourceNeedles: [
-        'path == "/ops"',
-        '"/ops/home"',
-        '"/ops/dashboard"',
-        '"/ops/events"',
-        'request.path == "/ops/sources"',
-        'request.path == "/ops/users"',
-        'request.path == "/ops/rules"',
-      ],
-      inventoryNeedles: [
-        "Ops shell",
-        "/ops",
-        "/ops/home",
-        "/ops/events",
-        "primary nav 기준은 Home/Dashboard/Channels/Rules/Users/Client Preview",
-      ],
-    },
-    {
-      name: "Client shell",
-      sourceNeedles: [
-        'path == "/client"',
-        '"/client/live"',
-        '"/client/dashboard"',
-        '"/client/events"',
-      ],
-      inventoryNeedles: [
-        "Client shell",
-        "/client",
-        "/client/events",
-        "primary nav 기준은 Live/Dashboard",
-      ],
-    },
-    {
-      name: "Ops source/view/channel APIs",
-      sourceNeedles: [
-        'request.path == "/ops/api/sources"',
-        'request.path == "/ops/api/views"',
-        'request.path == "/ops/api/channels/bulk"',
-        'request.path == "/ops/api/onvif/import-draft"',
-      ],
-      inventoryNeedles: [
-        "Ops source/view/channel APIs",
-        "/ops/api/sources/{sourceId}",
-        "/ops/api/views/{viewId}",
-        "/ops/api/onvif/import-draft",
-      ],
-    },
-    {
-      name: "Ops rule/config APIs",
-      sourceNeedles: [
-        'request.path == "/ops/api/rules/catalog"',
-        'request.path == "/lab/analysis/profiles"',
-        'request.path == "/lab/analysis/rules"',
-        'request.path == "/lab/analysis/va-rules"',
-        'std::string("/lab/analysis/profiles/")',
-        'std::string("/lab/analysis/rules/")',
-        'std::string("/lab/analysis/va-rules/")',
-      ],
-      inventoryNeedles: [
-        "Ops rule/config APIs",
-        "/lab/analysis/profiles/{profileId}",
-        "/lab/analysis/rules/{ruleId}",
-        "/lab/analysis/va-rules/{ruleId}",
-      ],
-    },
-    {
-      name: "Ops runtime/diagnostics APIs",
-      sourceNeedles: [
-        'request.path == "/ops/api/runtime/status"',
-        'request.path == "/ops/api/source-health"',
-        'request.path == "/ops/api/source-health/bulk"',
-        'request.path == "/ops/api/diagnostics/log-tail"',
-      ],
-      inventoryNeedles: [
-        "Ops runtime/diagnostics APIs",
-        "/ops/api/runtime/status",
-        "/ops/api/source-health/bulk",
-        "/ops/api/diagnostics/log-tail",
-      ],
-    },
-    {
-      name: "Ops events/reviews/alerts/audit APIs",
-      sourceNeedles: [
-        'request.path == "/ops/api/events/status"',
-        'request.path == "/ops/api/events/reviews"',
-        'request.path.rfind("/ops/api/events/reviews/", 0) == 0',
-        'request.path == "/ops/api/alerts/deliveries"',
-        'request.path == "/ops/api/alerts/deliveries/test"',
-        'request.path == "/ops/api/audit"',
-      ],
-      inventoryNeedles: [
-        "Ops events/reviews/alerts/audit APIs",
-        "/ops/api/events/reviews/{eventId}",
-        "/ops/api/alerts/deliveries/test",
-        "/ops/api/audit",
-      ],
-    },
-    {
-      name: "Ops users/access/invites APIs",
-      sourceNeedles: [
-        'request.path == "/ops/api/users"',
-        'request.path.rfind("/ops/api/users/", 0) == 0',
-        'request.path == "/ops/api/access-requests"',
-        'request.path.rfind("/ops/api/access-requests/", 0) == 0',
-        'request.path == "/ops/api/invites"',
-      ],
-      inventoryNeedles: [
-        "Ops users/access/invites APIs",
-        "/ops/api/users/{username}",
-        "/ops/api/users/{username}/enable",
-        "/ops/api/users/{username}/disable",
-        "/ops/api/users/{username}/reset-password",
-        "/ops/api/access-requests/{requestId}/approve",
-        "/ops/api/access-requests/{requestId}/reject",
-      ],
-    },
-    {
-      name: "Lab utility/report APIs",
-      sourceNeedles: [
-        'request.path == "/lab/files"',
-        'request.path == "/lab/reports"',
-        'request.path == "/lab/reports/content"',
-        "requestJson('/lab/files')",
-      ],
-      inventoryNeedles: [
-        "Lab utility/report APIs",
-        "/lab/files",
-        "/lab/reports",
-        "/lab/reports/content",
-        "`/ops/sources` file selector가 `/lab/files`를 소비",
-      ],
-    },
-    {
-      name: "Client scoped APIs",
-      sourceNeedles: [
-        'request.path == "/client/api/views"',
-        'request.path.rfind("/client/api/views/", 0) == 0',
-        'request.path == "/client/api/preferences/live-layout"',
-        'subresource == "dashboard"',
-        'subresource == "events"',
-        'subresource == "metadata"',
-      ],
-      inventoryNeedles: [
-        "Client scoped APIs",
-        "/client/api/views/{viewId}/dashboard",
-        "/client/api/views/{viewId}/events",
-        "/client/api/views/{viewId}/metadata",
-        "/client/api/preferences/live-layout",
-      ],
-    },
-    {
-      name: "Client WebRTC proxy APIs",
-      sourceNeedles: [
-        'subresource == "webrtc/session"',
-        'client_session_prefix = "webrtc/session/"',
-        'session_suffix == "/answer"',
-        'session_suffix == "/ice"',
-      ],
-      inventoryNeedles: [
-        "Client WebRTC proxy APIs",
-        "/client/api/views/{viewId}/webrtc/session",
-        "/client/api/views/{viewId}/webrtc/session/{sessionId}/answer",
-        "/client/api/views/{viewId}/webrtc/session/{sessionId}/ice",
-      ],
-    },
-    {
-      name: "Lab analysis runtime APIs",
-      sourceNeedles: [
-        'request.path == "/lab/analysis/capabilities"',
-        'std::string("/lab/analysis/image")',
-        'request.path == "/lab/analysis/metadata/stream"',
-        'request.path == "/lab/analysis/taps"',
-        'std::string("/lab/analysis/taps/")',
-        'request.path == "/ws/va-metadata"',
-        'suffix == "/bbox-diagnostics"',
-        'suffix == "/events"',
-      ],
-      inventoryNeedles: [
-        "Lab analysis runtime APIs",
-        "/lab/analysis/image/metadata",
-        "/lab/analysis/image/snapshot",
-        "/lab/analysis/image/overlay.jpg",
-        "/lab/analysis/taps/{tapId}/bbox-diagnostics",
-        "/lab/analysis/taps/{tapId}/state-dump",
-        "/lab/analysis/taps/{tapId}/metrics-dump",
-        "/lab/analysis/taps/{tapId}/snapshot",
-        "/lab/analysis/taps/{tapId}/overlay",
-        "/ws/va-metadata",
-      ],
-    },
-    {
-      name: "Event storage/evidence APIs",
-      sourceNeedles: [
-        'request.path == "/lab/analysis/event-post/status"',
-        'request.path == "/lab/analysis/event-storage/status"',
-        'request.path == "/lab/analysis/events/records"',
-        'request.path == "/lab/analysis/events/records/compact"',
-        'request.path == "/lab/analysis/events/records/compactions"',
-        'request.path == "/lab/analysis/events/records/compactions/cleanup"',
-        'std::string("/lab/analysis/events/records/compactions/")',
-        'request.path == "/lab/analysis/events/evidence"',
-        'request.path == "/lab/analysis/events/evidence/bundle-token"',
-        'request.path == "/lab/analysis/events/evidence/bundle"',
-      ],
-      inventoryNeedles: [
-        "Event storage/evidence APIs",
-        "/lab/analysis/events/records/compactions/{file}",
-        "/lab/analysis/events/evidence/bundle-token",
-        "/lab/analysis/events/evidence/bundle",
-      ],
-    },
-    {
-      name: "Generic WebRTC/WHEP/WHIP signaling",
-      sourceNeedles: [
-        'request.path == "/webrtc/config"',
-        'request.path == "/webrtc/session"',
-        'request.path == "/whep"',
-        'request.path == "/whip/publish"',
-        'std::string("/webrtc/session/")',
-        'std::string("/whep/session/")',
-        'std::string("/whip/publish/session/")',
-      ],
-      inventoryNeedles: [
-        "Generic WebRTC/WHEP/WHIP signaling",
-        "/webrtc/session/{sessionId}/answer",
-        "/webrtc/session/{sessionId}/ice",
-        "/whep/session/{sessionId}",
-        "/whep/session/{sessionId}/answer",
-        "/whep/session/{sessionId}/ice",
-        "/whip/publish/session/{sessionId}",
-        "/whip/publish/session/{sessionId}/ice",
-      ],
-    },
-    {
-      name: "Runtime utility and removed legacy UI boundaries",
-      sourceNeedles: [
-        'request.path == "/health"',
-        'request.path == "/favicon.ico"',
-        'request.path == "/lab/runtime/status"',
-        'request.path == "/webrtc/test"',
-        'request.path == "/lab"',
-        'request.path == "/lab/rules"',
-        'request.path == "/lab/import"',
-      ],
-      inventoryNeedles: [
-        "Runtime utility and removed legacy UI boundaries",
-        "/lab/runtime/status",
-        "removed legacy `/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test`",
-      ],
-    },
-  ];
-
-  const missing = [];
-  for (const family of routeFamilies) {
-    for (const needle of family.sourceNeedles) {
-      if (!routeSource.includes(needle)) {
-        missing.push(`${family.name}: source missing ${needle}`);
-      }
-    }
-    for (const needle of family.inventoryNeedles) {
-      if (!inventory.includes(needle)) {
-        missing.push(`${family.name}: inventory missing ${needle}`);
-      }
-    }
-  }
-  assert(missing.length === 0, `route/API surface audit mismatch:\n${missing.join("\n")}`);
+check("every current server.sh command has its own row", () => {
+  const { byFeature } = parseMatrix();
+  const missing = parseServerCommands()
+    .map(command => `server command: ${command}`)
+    .filter(feature => !byFeature.has(feature));
+  assert(missing.length === 0, `missing server command row(s):\n${missing.join("\n")}`);
 });
 
-check("inventory covers current server.sh command set", () => {
-  const commands = parseServerCommands();
-  const inventoryCommandDetails = parseInventoryCommandDetails();
-  const detailMissing = [];
-  const missing = [];
-  for (const command of commands) {
-    if (!inventory.includes(`\`${command}\``)) {
-      missing.push(command);
-    }
-    if (!inventoryCommandDetails.has(command)) {
-      detailMissing.push(command);
-    }
-  }
-  assert(missing.length === 0, `inventory missing server.sh command(s):\n${missing.join("\n")}`);
-  assert(
-    detailMissing.length === 0,
-    `tracked script command detail missing server.sh command(s):\n${detailMissing.join("\n")}`
-  );
-  requireText(
-    inventory,
-    "command-to-script dispatch matrix",
-    "inventory does not define server-command detail as the command-to-script dispatch matrix"
-  );
-});
-
-check("inventory documents non-server CMake and test-entry boundaries", () => {
-  const cmakeTestMatches = [...cmake.matchAll(/\b(enable_testing|add_test|CTest)\b/g)].map(match => match[0]);
-  assert(
-    cmakeTestMatches.length === 0,
-    `CMake test registry exists but inventory does not enumerate it:\n${[...new Set(cmakeTestMatches)].join("\n")}`
-  );
-  const testAll = readText(path.join(rootDir, "scripts/internal/test_all.sh"));
-  for (const entry of [
-    "scripts/internal/test_external_access.sh",
-    "scripts/internal/test_external_source_reachability.sh",
-    "scripts/internal/test_rule_registry.sh",
-  ]) {
-    requireText(testAll, entry, `test_all.sh does not reference ${entry}`);
-    requireText(inventory, `\`${entry}\``, `inventory missing test-entry ${entry}`);
-  }
+check("explicit gaps and maintenance rules prevent completion overstatement", () => {
   for (const phrase of [
-    "CMakeLists.txt에는 `enable_testing`, `add_test`, `CTest` 기반 별도 test registry가",
-    "현재 테스트 source-of-truth는 `server.sh` dispatch와",
-    "`test-entry` script는 `scripts/internal/test_all.sh`에서 호출되는 하위 entry",
-  ]) {
-    requireText(inventory, phrase, `inventory missing non-server test boundary phrase: ${phrase}`);
-  }
-});
-
-check("inventory comparison reports code/UI/test mismatch classes", () => {
-  for (const phrase of [
-    "Code + UI + automated tests 있음",
-    "Code + tests 있음, 제품 UI 없음",
-    "Code + tests 있음, UI 노출 제한",
-    "UI + tests 있음, 실제 full manual evidence 없음",
-    "Tests 있음, 현재 제품 기능 아님",
-    "Tests 있음, 환경/field gate",
-  ]) {
-    requireText(inventory, phrase, `inventory missing comparison class: ${phrase}`);
-  }
-
-  for (const gap of [
     "Manual UI full test evidence는 아직 없음",
-    "모든 VA scenario가 실제 브라우저 UI에서 실제 이벤트 발생까지 확인됐다는 증거는",
-    "실장비 ONVIF, 외부 WHEP/TURN, 장시간 soak",
+    "모든 VA scenario가 실제 브라우저 UI에서 실제 이벤트 발생까지 확인됐다는 증거는 아직 없습니다",
+    "실장비 ONVIF, 외부 WHEP/TURN, 30분/120분 soak",
     "Integrator role은 API/scope 중심",
+    "sample_h264 같은 sample media 재생은 영상 표시 evidence일 뿐",
+    "기능을 묶어서 쓰지 않습니다",
+    "create, save, delete, filter, sort, copy, start, restart, stop은 각각 행을 분리합니다",
+    "안정화 테스트`, `30분 테스트`, `120분 테스트`, `UI 테스트` 칸을 함께 채웁니다",
+    "## Current Required Triad Count",
+    "정상 기준은 먼저 `UI 필요` 여부를 분리해서 봅니다",
+    "| 전체 기능 row | 754 |",
+    "| 기능-UI-테스트 모두 존재 row | 294 |",
+    "| UI 없어야 정상 row | 407 |",
+    "| 기능-UI-테스트 필수 누락 row | 49 |",
+    "| 테스트 없음 | 0 |",
+    "| 실기기 필요로 테스트 항목 제외 | 4 |",
+    "| UI 필수인데 UI 부분 존재 | 49 |",
+    "### 실기기 필요 테스트 항목 제외",
+    "### 기능-UI-테스트 필수 누락 항목",
   ]) {
-    requireText(inventory, gap, `inventory missing explicit gap: ${gap}`);
+    requireText(inventory, phrase, `inventory missing gap/rule phrase: ${phrase}`);
   }
-});
-
-check("current command set excludes version-specific release verifiers", () => {
-  const commands = parseServerCommands().filter(command => /^verify-v[0-9]/.test(command));
-  assert(commands.length === 0, `version-specific verify-v command(s) remain:\n${commands.join("\n")}`);
-
-  const versionScripts = fs
-    .readdirSync(path.join(rootDir, "scripts/internal"))
-    .filter(name => /^verify_v[0-9]/.test(name));
-  assert(versionScripts.length === 0, `version-specific verify_v script(s) remain:\n${versionScripts.join("\n")}`);
-
-  assert(!/verify-v[0-9]/.test(server), "server.sh still documents version-specific verify-v command");
-  assert(!/verify_v[0-9]/.test(server), "server.sh still references version-specific verify_v script");
-});
-
-check("current-facing markdown outside the backlog archive does not carry pre-v1.8 baselines", () => {
-  const offenders = [];
-  const markdownFiles = [
-    ...rootMarkdownFiles(),
-    ...walkIfExists(path.join(rootDir, ".github")).filter(file => file.endsWith(".md")),
-    ...walk(path.join(rootDir, "docs")).filter(file => file.endsWith(".md")),
-    ...walk(path.join(rootDir, "test/fixtures")).filter(file => file.endsWith(".md")),
-  ];
-  for (const file of markdownFiles) {
-    const relative = path.relative(rootDir, file);
-    if (relative === "docs/development-backlog.md") continue;
-    const text = readText(file);
-    const matches = oldVersionBaselineMentions(text);
-    if (matches.length > 0) {
-      offenders.push(`${relative}: ${[...new Set(matches)].join(", ")}`);
-    }
-  }
-  assert(offenders.length === 0, `old version baseline mention(s) remain outside archive:\n${offenders.join("\n")}`);
-  const remainingHistoryDocs = walkIfExists(path.join(rootDir, "docs/history")).filter(file => file.endsWith(".md"));
-  assert(remainingHistoryDocs.length === 0, `standalone history markdown remains:\n${remainingHistoryDocs.join("\n")}`);
-  requireText(
-    inventory,
-    "standalone close-out/history 문서는 제거",
-    "inventory does not state standalone history docs were removed"
-  );
-  requireText(
-    inventory,
-    "`v1.x`/`v1.x.y`처럼 `v`가 붙은 표기, `1.x.y`처럼 `v`가 없는 bare semantic",
-    "inventory does not state v-prefixed, bare semantic, and context bare old versions are blocked"
-  );
 });
 
 let pass = 0;
@@ -933,52 +456,69 @@ function requireText(text, needle, message) {
   assert(text.includes(needle), message);
 }
 
-function oldVersionBaselineMentions(text) {
-  const matches = [
-    ...text.matchAll(/\bv1\.(?:1|2|3|4|5|6|7)(?:\.(?:0|1))?\b/g),
-    ...text.matchAll(/\b1\.(?:1|2|3|4|5|6|7)\.(?:0|1)\b/g),
-    ...text.matchAll(/(?:release|version|baseline|current|기준|버전|릴리즈|현재)[^\n]{0,40}\b1\.(?:1|2|3|4|5|6|7)\b/g),
-    ...text.matchAll(/\b1\.(?:1|2|3|4|5|6|7)\b[^\n]{0,40}(?:release|version|baseline|current|기준|버전|릴리즈|현재)/g),
-  ];
-  return matches.map(match => match[0]);
-}
-
 function readText(filePath) {
   return fs.readFileSync(filePath, "utf8");
 }
 
-function gitLsFiles(args) {
-  return execFileSync("git", ["ls-files", ...args], {
-    cwd: rootDir,
-    encoding: "utf8",
-  })
-    .trim()
-    .split("\n")
-    .filter(Boolean);
+function parseMatrix() {
+  const startHeading = "## Individual Function Code UI Test Matrix";
+  const endHeading = "## Current Gaps";
+  const start = inventory.indexOf(startHeading);
+  assert(start >= 0, `missing section ${startHeading}`);
+  const end = inventory.indexOf(endHeading, start + startHeading.length);
+  assert(end >= 0, `missing section end ${endHeading}`);
+  const section = inventory.slice(start, end);
+  requireText(section, "| 기능 | 코드상 로직 | UI 필요 | UI 존재 | 테스트 | PASS 출력/판정 | 안정화 테스트 | 30분 테스트 | 120분 테스트 | UI 테스트 |", "matrix header changed");
+
+  const rows = [];
+  for (const line of section.split("\n")) {
+    if (!line.startsWith("| ")) continue;
+    if (line.startsWith("| 기능 ") || line.startsWith("| ---")) continue;
+    const cells = splitMarkdownRow(line);
+    assert(cells.length === 10, `matrix row must have 10 cells: ${line}`);
+    rows.push({
+      feature: cells[0],
+      code: cells[1],
+      uiNeed: cells[2],
+      ui: cells[3],
+      test: cells[4],
+      pass: cells[5],
+      stability: cells[6],
+      soak30: cells[7],
+      soak120: cells[8],
+      uiTest: cells[9],
+    });
+  }
+  const byFeature = new Map(rows.map(row => [row.feature, row]));
+  return { rows, byFeature };
 }
 
-function trackedSupportFiles() {
-  const rootSupport = new Set([
-    ".gitignore",
-    "AGENTS.md",
-    "CMakeLists.txt",
-    "CONTRIBUTING.md",
-    "DEPENDENCY_SNAPSHOT.md",
-    "LICENSE",
-    "NOTICE",
-    "README.en.md",
-    "README.md",
-    "SECURITY.md",
-    "THIRD_PARTY_NOTICES.md",
-    "VERSION",
-    "server.sh",
-  ]);
-  return gitLsFiles([]).filter(file =>
-    rootSupport.has(file) ||
-    file.startsWith(".github/") ||
-    file.startsWith("config/") ||
-    file.startsWith("video/")
-  );
+function splitMarkdownRow(line) {
+  const cells = [];
+  let current = "";
+  let escaped = false;
+  const trimmed = line.trim();
+  for (let i = 1; i < trimmed.length - 1; i += 1) {
+    const ch = trimmed[i];
+    if (escaped) {
+      current += ch;
+      escaped = false;
+      continue;
+    }
+    if (ch === "\\") {
+      escaped = true;
+      current += ch;
+      continue;
+    }
+    if (ch === "|") {
+      cells.push(current.trim().replace(/\\\|/g, "|"));
+      current = "";
+      continue;
+    }
+    current += ch;
+  }
+  cells.push(current.trim().replace(/\\\|/g, "|"));
+  return cells;
 }
 
 function parseServerCommands() {
@@ -987,19 +527,7 @@ function parseServerCommands() {
   let match;
   while ((match = regex.exec(server)) !== null) {
     for (const command of match[1].split("|")) {
-      if (!commands.includes(command)) commands.push(command);
-    }
-  }
-  return commands.filter(command => command !== "*");
-}
-
-function parseInventoryCommandDetails() {
-  const commands = new Set();
-  const regex = /^- `scripts\/internal\/[^`]+` - commands: (.+)$/gm;
-  let match;
-  while ((match = regex.exec(inventory)) !== null) {
-    for (const commandMatch of match[1].matchAll(/`([^`]+)`/g)) {
-      commands.add(commandMatch[1]);
+      if (command !== "*" && !commands.includes(command)) commands.push(command);
     }
   }
   return commands;

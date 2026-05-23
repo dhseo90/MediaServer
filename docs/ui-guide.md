@@ -6,7 +6,7 @@ UI 풀테스트 기준은 [manual-ui-fulltest.md](./manual-ui-fulltest.md),
 브라우저 수동 검수 순서는 [manual-ui-checklist.md](./manual-ui-checklist.md),
 수동 검수 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md),
 VA 내부 구조는 [video-analysis.md](./video-analysis.md)를 봅니다.
-`/lab` legacy 화면 route는 제품 UI에서 제거했고, 개발/검증 API만 유지합니다.
+제품 화면은 Ops/Client 기준으로 두고, 개발/검증 API는 별도로 유지합니다.
 
 ## 1. UI 개요
 
@@ -56,7 +56,7 @@ v1.8.0 이후, 현재 v1.8.0까지의 UI 변경은 아래 inventory를 기준으
 
 | 계층 | 소스 | 현재 계약 | 회귀 guard |
 | --- | --- | --- | --- |
-| Design tokens | `ProductDesignTokensCss()` | `--color-*`, `--space-*`, `--radius-*`, `--shadow-*`, overlay token, legacy alias(`--bg`, `--panel`, `--ink`)를 light/dark 양쪽에서 정의합니다. page-specific hex/rgb color는 `ProductDesignTokensCss()` 밖에 추가하지 않습니다. | `verify-product-ui-token-drift`, `verify-ops-client-ui --screenshots`, `verify-docs-ui-assets` |
+| Design tokens | `ProductDesignTokensCss()` | `--color-*`, `--space-*`, `--radius-*`, `--shadow-*`, overlay token, short alias(`--bg`, `--panel`, `--ink`)를 light/dark 양쪽에서 정의합니다. page-specific hex/rgb color는 `ProductDesignTokensCss()` 밖에 추가하지 않습니다. | `verify-product-ui-token-drift`, `verify-ops-client-ui --screenshots`, `verify-docs-ui-assets` |
 | Product shell | `ProductUiCss()`, `AppendOpsShellStart/End`, `AppendAuthShellStart/End` | compact app chrome, image nav, account menu, `section-card`, `metric-card`, `button`, `status-badge`, form/grid, empty/table-empty 상태를 Auth/Ops/Client가 공유합니다. | `verify-auth-bootstrap`, `verify-ops-client-ui` |
 | Ops data surfaces | `ProductSharedUiScript()`, `AppendOpsShellScript()`, route별 page script | `ops-responsive-table`, `ops-row-actions`, `ops-detail-panel`, `ops-audit-panel`, `root-cause-*`를 표준 표/상세/감사/진단 surface로 유지합니다. | `verify-ops-client-ui`, `verify-ops-click-e2e`, `verify-rule-ui` |
 | Client surfaces | `ClientShellCss()`, `AppendClientShellScript()` | `client-compare-*`, `client-loading-state`, `live-monitor`, `live-toolbar`, `live-grid`, `tile-*`로 viewer live/dashboard를 구성합니다. source URL, raw JSON, debug counter, rule/profile editor는 노출하지 않습니다. | `verify-client-dashboard-polish`, `verify-ops-client-ui --screenshots` |
@@ -123,7 +123,7 @@ UI ownership 기준:
   - 책임: design token, product shell CSS, client shell CSS
   - 주의: 색상/spacing/radius는 semantic token 우선으로 유지합니다.
 - Product JS: `product_ui_js.*`
-  - 책임: `MediaServerUi` helper, theme persistence, iframe theme sync
+  - 책임: `MediaServerUi` helper, theme persistence
   - 주의: API schema나 route별 payload를 넣지 않습니다.
 - Product page scripts: `product_ui_page_scripts.*`
   - 책임: route별 Ops/Client form/table/live monitor script
@@ -147,7 +147,7 @@ UI ownership 기준:
 
 `/ops/rules`는 채널 분석 설정, 이벤트 템플릿,
 분석 프로파일을 제품 운영 화면에서 직접 관리합니다.
-`/lab/rules` iframe이나 이전 Lab 3탭을 embed하지 않습니다.
+개발/검증 editor를 iframe으로 embed하지 않습니다.
 
 룰 화면의 저장 전 검증 패널은 다음 오류를 표시합니다.
 
@@ -226,8 +226,7 @@ Password policy 기본값은 `kr-privacy`입니다.
 `mustChangePassword=true` 계정은 로그인 후 `/password/change`로 이동합니다.
 
 `MEDIA_SERVER_AUTH_MODE=off`는 기존 개발 자동화를 위한 명시 모드입니다.
-이 모드에서도 `/lab`, `/lab/rules`, `/lab/import` legacy 화면 route는 제거된 상태를
-유지하며 404 회귀 방지 대상으로만 확인합니다.
+이 모드에서도 제품 화면은 Ops/Client 기준으로 검증하고,
 개발/검증 API만 `/lab/analysis/*` 아래에서 유지합니다.
 
 Role별 이동:
@@ -324,11 +323,6 @@ Route 역할:
   admin/operator 또는 `lab:read` scope용 개발/검증 API입니다.
   viewer/client 기본 계정은 접근할 수 없고,
   rule/profile/vaRule 변경 API는 `rule:write` scope를 추가로 요구합니다.
-  `/lab`, `/lab/rules`, `/lab/import` legacy 화면 route는 제거된 상태를
-  유지하며 404 회귀 방지 대상으로만 확인합니다.
-- `/webrtc/test`:
-  legacy browser harness 화면은 제거된 상태를 유지하며 404 회귀 방지 대상으로만
-  확인합니다.
 
 ![운영 대시보드](assets/ui/ops-dashboard.png)
 

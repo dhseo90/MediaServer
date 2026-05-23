@@ -25,7 +25,7 @@ runtime/model bundle distribution are outside the default release scope.
   metadata. EventRecord, snapshot, and clip hooks are short event evidence
   helpers, not the central product message.
 - **Product UI**: routes users to Ops or Client views based on account
-  permissions. `/lab` UI routes stay disabled; lab endpoints remain available
+  permissions. There is no Lab product screen; lab endpoints remain available
   for API and verification workflows.
 - **Auth and scopes**: supports first-admin setup, session login, role/scope,
   admin user management, and viewer invite/request approval.

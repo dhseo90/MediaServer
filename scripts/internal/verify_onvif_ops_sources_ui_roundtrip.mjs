@@ -367,7 +367,7 @@ async function assertGeneratedChannelIdDisplay(browserInstance, expectedId) {
       (() => {
         const hidden = document.querySelector('[name="channelId"]');
         const display = document.querySelector('#channel-id-display');
-        const legacyEditable = document.querySelector('input[name="channelId"][type="number"]');
+        const editableChannelIdInput = document.querySelector('input[name="channelId"][type="number"]');
         const text = (display?.textContent || '').trim();
         return {
           ok: Boolean(hidden)
@@ -375,11 +375,11 @@ async function assertGeneratedChannelIdDisplay(browserInstance, expectedId) {
             && hidden.value === ${JSON.stringify(expectedId)}
             && Boolean(display)
             && text.includes(${JSON.stringify(expectedId)})
-            && !legacyEditable,
+            && !editableChannelIdInput,
           hiddenType: hidden?.type || '',
           hiddenValue: hidden?.value || '',
           displayText: text,
-          legacyEditable: Boolean(legacyEditable),
+          editableChannelIdInput: Boolean(editableChannelIdInput),
         };
       })()
     `,

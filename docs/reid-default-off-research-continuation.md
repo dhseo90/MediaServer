@@ -116,6 +116,5 @@ privacy boundary:
 - runtime/model bundle 포함 배포는 source-only release와 분리한 별도 policy
   review가 열릴 때만 다룹니다.
 - 현재 v1.8.0 기준 default-off 안정화 상태는 [video-analysis.md](video-analysis.md)의
-  tracker/Re-ID 정책과 `verify-reid-advanced-tracking`으로 확인합니다. 구버전 전용
-  close-out 문서와 verifier는 현재 command set에서 제거했으며, Re-ID default-on이나
-  model/runtime bundle 승격으로 해석하지 않습니다.
+  tracker/Re-ID 정책과 `verify-reid-advanced-tracking`으로 확인합니다. 이 기준은
+  Re-ID default-on이나 model/runtime bundle 승격으로 해석하지 않습니다.

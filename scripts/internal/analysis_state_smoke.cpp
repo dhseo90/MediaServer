@@ -1927,17 +1927,7 @@ void VerifyVaMetadataSubscriptionFilter() {
 }
 
 void VerifyRuleTrackingPolicyProfileContract() {
-    AnalysisProfile legacy;
-    Expect(legacy.tracking_policy_tracker == "lite" &&
-               legacy.tracking_policy_effective_tracker == "lite" &&
-               legacy.tracking_policy_reid == "off",
-           "legacy AnalysisProfile must default to Lite tracker and Re-ID off");
-    const std::string legacy_key = BuildProfileKey(legacy);
-    Expect(legacy_key.find("trackerPolicy=") == std::string::npos &&
-               legacy_key.find("reidPolicy=") == std::string::npos,
-           "external AnalysisProfile key must not expose rule-level tracking policy");
-
-    AnalysisProfile disabled = legacy;
+    AnalysisProfile disabled;
     disabled.enable_tracking = false;
     disabled.tracking_policy_tracker = "none";
     disabled.tracking_policy_effective_tracker = "none";

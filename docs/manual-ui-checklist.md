@@ -6,11 +6,18 @@ source-of-truth로 삼고, 결과 기록은 [manual-ui-result-template.md](./man
 사용합니다. 현재 release 목표는 `v1.8.0`이며, UI 풀테스트 기준도 이 버전의
 제품 route, 권한, 기능 baseline만 대상으로 합니다.
 문서 구조와 evidence 경계는 `./server.sh verify-manual-ui-evidence`로 확인합니다.
-구버전 전용 UI closure 명령은 현재 완료 판정에 포함하지 않습니다.
+현재 제품 UI 직접 조작 evidence 없이 완료 판정에 포함하지 않습니다.
 
 UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라우저에서 제품
 화면을 직접 열고 클릭과 타이핑으로 수행하는 end-to-end 검수입니다. API-only
 확인, screenshot 생성만 있는 항목, 열지 않은 화면은 `확인됨`으로 적지 않습니다.
+스크립트 테스트, 30분 안정화, 120분 장시간 테스트는
+[stream-verification.md](./stream-verification.md)의 별도 영역입니다. UI 풀테스트와
+스크립트 안정화 테스트는 서로 대체하지 않으며 결과 문서에서 판정을 분리합니다.
+안정화 테스트는 30분/120분/UI 테스트의 선수 테스트이며, 로드맵 각 스텝 종료 시
+수행합니다. 30분 테스트는 장기간 테스트 지시의 기본값이고 버전 로드맵 완료 시
+수행합니다. 120분 테스트는 메모리 릭/장시간 누수 감시가 필요할 때 사용자에게
+먼저 말한 뒤 수행합니다. UI 풀테스트도 버전 로드맵 완료 시 수행합니다.
 
 ## 1. 사전 파악
 
@@ -54,6 +61,9 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
   실제 UI 조작으로 확인합니다.
 - 자동 스크립트는 보조 evidence입니다. 자동 smoke 통과만으로 화면을 확인했다고
   쓰지 않습니다.
+- `verify-predev --soak-minutes 30`, `verify-predev --soak-minutes 120`,
+  `verify-va-runtime-console-longrun --duration-minutes 120`은 스크립트 안정화
+  테스트입니다. 실행 여부와 PASS/FAIL은 UI 풀테스트 판정과 별도 섹션에 기록합니다.
 - UI 풀테스트에는 기능 동작뿐 아니라 시각 품질을 포함합니다. 텍스트박스 간격,
   table/action 정렬, 버튼 text overflow, badge clipping, modal/menu 위치, focus
   visible, empty/loading/error copy, contrast, responsive overflow를 함께 확인합니다.
@@ -101,9 +111,6 @@ Evidence index에는 route, 계정/권한, 직접 조작, screenshot/artifact, �
   자동 smoke 통과만으로 Chrome 수동 auth 입력을 완료했다고 쓰지 않습니다.
 - Auth evidence에는 plaintext password, invite token 원문, session cookie,
   generated password suggestion을 남기지 않습니다.
-- `/lab`, `/lab/rules`, `/lab/import`: 제품 화면으로 열리지 않고 404 상태를 유지합니다.
-- `/webrtc/test`: 제거된 legacy browser harness가 제품 화면으로 다시 열리지 않고
-  404 회귀 방지 상태를 유지합니다.
 
 ## 5. Ops 화면
 

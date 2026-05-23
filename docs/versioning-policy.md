@@ -13,7 +13,7 @@
   incident timeline, alert delivery, scenario builder, Ops/Client declutter는
   현재 UI-first 제품 baseline으로 유지합니다.
 - 현재 제품 경계와 v1.8.0 종료 판정은 [development-backlog.md](./development-backlog.md)를
-  기준으로 합니다. 구버전 release evidence는 현재 release pass/fail 기준으로
+  기준으로 합니다. 이전 release evidence는 현재 release pass/fail 기준으로
   재사용하지 않습니다.
 
 ## `v1.8.0`에 포함되는 범위

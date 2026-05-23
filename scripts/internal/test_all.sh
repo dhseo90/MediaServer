@@ -18,7 +18,7 @@ elif [[ "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" == "1" ]]; then
   echo "[env] skipped local override: ${ENV_FILE}"
 fi
 
-# Basic/full regression suite는 Lab/WebRTC 개발 화면을 검증한다.
+# Basic/full regression suite는 제품 UI와 현재 API를 검증한다.
 # 다른 auth 구성을 의도적으로 검증하는 경우가 아니면 명시적으로 auth-off mode를 유지한다.
 export MEDIA_SERVER_AUTH_MODE="${MEDIA_SERVER_AUTH_MODE:-off}"
 
@@ -38,7 +38,6 @@ INCLUDE_WEBRTC_ICE=0
 INCLUDE_URI_LONGRUN=0
 INCLUDE_EVENT_POST=0
 INCLUDE_PRODUCT_UI_SMOKE=0
-INCLUDE_MULTICHANNEL=0
 INCLUDE_REDACTION=0
 INCLUDE_REPORT_SUMMARY=0
 URI_LONGRUN_EXTERNAL=0
@@ -73,7 +72,6 @@ basic 기준:
   - adaptive tuner 장시간 검증
   - Product UI smoke, 룰/이벤트/POST smoke, 정적 이미지 분석 API는 full 또는 선택 검증으로 실행
   - event POST longrun과 runtime longrun/cycle은 별도 verify-*longrun 명령으로만 실행
-  - 다채널 fan-out은 legacy browser harness 제거 후 별도 제품 UI harness 준비 전까지 skip
 
 Options:
   --quick             정적 검사, start, status, diagnose, LAN IP 외부 접근성까지만 실행
@@ -93,8 +91,6 @@ Options:
   --include-event-post 선택 검증: event POST schema/recovery smoke test를 추가
   --include-product-ui-smoke
                        선택 검증: /ops와 /client shell, 실제 클릭, 테이블, rules round-trip smoke를 추가
-  --include-multichannel
-                       현재 skip: legacy browser harness 제거 후 별도 제품 UI harness 필요
   --include-redaction 선택 검증: 사람 객체 자동 모자이크 image/live 검증을 추가
   --include-report-summary
                        선택 검증: /tmp summary Markdown/HTML 리포트 생성 smoke를 추가
@@ -155,9 +151,6 @@ while [[ $# -gt 0 ]]; do
       ;;
     --include-product-ui-smoke)
       INCLUDE_PRODUCT_UI_SMOKE=1
-      ;;
-    --include-multichannel)
-      INCLUDE_MULTICHANNEL=1
       ;;
     --include-redaction)
       INCLUDE_REDACTION=1
@@ -289,7 +282,7 @@ MediaServer 통합 테스트 시작
   룰 registry는 --include-rules, Rule UI는 --include-rule-ui, 이동 이벤트는 --include-va-events,
   이미지 분석은 --include-image-analysis, WebRTC ICE는 --include-webrtc-ice,
   URI 장기 검증은 --include-uri-longrun, event POST smoke는 --include-event-post,
-  다채널 fan-out은 현재 skip, 사람 모자이크는 --include-redaction으로 선택 실행 가능
+  사람 모자이크는 --include-redaction으로 선택 실행 가능
 
 EOF_HEADER
 }
@@ -608,12 +601,6 @@ if [[ "${INCLUDE_EVENT_POST}" == "1" ]]; then
   fi
 else
   skip_step "event POST 선택 검증" "event POST worker smoke는 full/predev 기준입니다. 장기 반복은 전용 longrun 명령으로 분리합니다."
-fi
-
-if [[ "${INCLUDE_MULTICHANNEL}" == "1" ]]; then
-  skip_step "다채널 WebRTC 선택 검증" "초기 /webrtc/test 브라우저 harness 제거 후 별도 제품 UI harness가 아직 없어 명시적으로 생략합니다."
-else
-  skip_step "다채널 WebRTC 선택 검증" "초기 /webrtc/test 브라우저 harness 제거 후 별도 제품 UI harness가 아직 없습니다."
 fi
 
 if [[ "${INCLUDE_REDACTION}" == "1" ]]; then

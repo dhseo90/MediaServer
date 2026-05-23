@@ -11212,9 +11212,6 @@ std::string LabReportKindFromName(const std::string& name) {
     if (name.find("predev") != std::string::npos) {
         return "predev";
     }
-    if (name.find("multichannel") != std::string::npos) {
-        return "multichannel";
-    }
     if (name.find("evtpost-longrun") != std::string::npos) {
         return "event-post-longrun";
     }
@@ -11279,7 +11276,7 @@ std::string LabReportsJson() {
     return out.str();
 }
 
-// 큰 로그가 Lab 화면을 잠그지 않도록 앞부분만 읽고 truncation 여부를 같이 내려준다.
+// 큰 로그 응답은 앞부분만 읽고 truncation 여부를 같이 내려준다.
 bool BuildLabReportContentJson(const std::string& requested_path,
                                std::string* response_body,
                                std::string* error_message) {
@@ -13442,44 +13439,21 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             return no_content;
                         }
 
-                        if (request.method == "GET" && request.path == "/webrtc/test") {
-                            return HttpResponse{404, "Not Found", "text/plain; charset=utf-8", {}, "not found"};
-                        }
-
                         if (request.method == "GET" && request.path == "/webrtc/config") {
                             HttpResponse ok = JsonResponse(200, "OK", WebRtcBrowserConfigJson());
                             ok.headers["Cache-Control"] = "no-store";
                             return ok;
                         }
 
-                        if (request.method == "GET" && (request.path == "/lab" || request.path == "/lab/")) {
-                            return HttpResponse{404, "Not Found", "text/plain; charset=utf-8", {}, "not found"};
-                        }
-
-                        if (request.method == "GET" &&
-                            (request.path == "/lab/rules" || request.path == "/lab/rules/")) {
-                            return HttpResponse{404, "Not Found", "text/plain; charset=utf-8", {}, "not found"};
-                        }
-
-                        if (request.method == "GET" &&
-                            (request.path == "/lab/import" || request.path == "/lab/import/")) {
-                            return HttpResponse{404, "Not Found", "text/plain; charset=utf-8", {}, "not found"};
-                        }
-
-                        if (request.path == "/lab" || request.path.rfind("/lab/", 0) == 0) {
+                        const auto is_lab_api_route = [](const std::string& path) {
+                            return path == "/lab/files" ||
+                                   path == "/lab/reports" ||
+                                   path == "/lab/reports/content" ||
+                                   path == "/lab/runtime/status" ||
+                                   path.rfind("/lab/analysis/", 0) == 0;
+                        };
+                        if (is_lab_api_route(request.path)) {
                             if (const auto auth_response = require_lab_principal(); auth_response.has_value()) {
-                                if (!principal_result.ok && session_auth_mode && config.enable_lab) {
-                                    return RedirectResponse("/login");
-                                }
-                                const bool lab_page_get =
-                                    request.method == "GET" &&
-                                    false;
-                                if (lab_page_get && !principal_result.ok) {
-                                    return UnauthorizedPageResponse();
-                                }
-                                if (lab_page_get && auth_response->status == 403) {
-                                    return ForbiddenPageResponse("Lab은 admin/operator 또는 lab:read scope가 필요합니다.");
-                                }
                                 return *auth_response;
                             }
                         }

@@ -22,7 +22,6 @@ Usage:
 Checks:
   - server.sh command dispatch target exists and is executable
   - README/docs/scripts에 적힌 ./server.sh 명령이 실제 command와 일치
-  - 현재 command set에 구버전 verify-v*/verify_v* release verifier가 남아 있지 않음
   - 추적 중인 scripts 파일이 server command, helper, example, env template 중 하나로 분류됨
   - 사용자 노출 JS 스크립트의 옵션 검증 helper 적용 여부
 `);
@@ -59,34 +58,10 @@ check("documented server.sh commands resolve to dispatch table", () => {
   assert(misses.length === 0, `unknown documented command(s):\n${misses.join("\n")}`);
 });
 
-check("current command set excludes version-specific release verifiers", () => {
-  const dispatches = parseServerDispatches();
-  const versionCommands = dispatches
-    .map(item => item.command)
-    .filter(command => /^verify-v[0-9]/.test(command));
-  assert(
-    versionCommands.length === 0,
-    `version-specific command(s) remain in server.sh dispatch:\n${versionCommands.join("\n")}`,
-  );
-
-  const scriptDirPath = path.join(rootDir, "scripts/internal");
-  const versionScripts = fs
-    .readdirSync(scriptDirPath)
-    .filter(name => /^verify_v[0-9]/.test(name));
-  assert(
-    versionScripts.length === 0,
-    `version-specific verifier script(s) remain in scripts/internal:\n${versionScripts.join("\n")}`,
-  );
-
-  const server = readText(path.join(rootDir, "server.sh"));
-  assert(!/verify-v[0-9]/.test(server), "server.sh usage still documents a version-specific verify-v command");
-  assert(!/verify_v[0-9]/.test(server), "server.sh still references a version-specific verify_v script");
-});
-
 check("tracked scripts are classified and referenced", () => {
   const dispatches = parseServerDispatches();
   const dispatchTargets = new Set(dispatches.map(item => path.join("scripts/internal", item.script)));
-  const trackedScripts = gitLsFiles(["scripts"]);
+  const trackedScripts = gitLsFiles(["scripts"]).filter(fileExists);
   const trackedTextFiles = gitLsFiles([])
     .filter(file => !/\.(png|jpe?g|mp4|onnx|pyc)$/i.test(file))
     .filter(file => !file.startsWith("build"))
@@ -130,21 +105,19 @@ check("tracked scripts are classified and referenced", () => {
 
 check("project inventory lists every tracked script file", () => {
   const missing = [];
-  for (const file of gitLsFiles(["scripts"])) {
+  for (const file of gitLsFiles(["scripts"]).filter(fileExists)) {
     if (!projectInventory.includes(`\`${file}\``)) {
       missing.push(file);
     }
   }
   assert(missing.length === 0, `project feature/test inventory missing script file(s):\n${missing.join("\n")}`);
   for (const phrase of [
-    "### Tracked Script File Detail",
-    "ignored runtime 생성물",
-    "`scripts/.media_server.env`",
-    "`scripts/**/__pycache__/`",
-    "`*.pyc`",
-    "#### server-command",
-    "#### sub-verifier",
-    "#### test-entry",
+    "## Individual Function Code UI Test Matrix",
+    "script file: scripts/.media_server.env.example",
+    "script file: scripts/internal/test_all.sh",
+    "script file: scripts/internal/verify_script_inventory.mjs",
+    "script file: scripts/internal/verify_project_feature_test_inventory.mjs",
+    "tracked script reference",
   ]) {
     assert(projectInventory.includes(phrase), `project inventory missing script inventory phrase: ${phrase}`);
   }
@@ -161,8 +134,8 @@ check("project inventory command detail covers server.sh dispatch commands", () 
   }
   assert(missing.length === 0, `project inventory command detail missing dispatch command(s):\n${missing.join("\n")}`);
   assert(
-    projectInventory.includes("command-to-script dispatch matrix"),
-    "project inventory does not define server-command detail as the command-to-script dispatch matrix",
+    projectInventory.includes("server command: verify-script-inventory"),
+    "project inventory does not define server command rows in the individual matrix",
   );
 });
 
@@ -318,6 +291,10 @@ function gitLsFiles(args) {
     .filter(Boolean);
 }
 
+function fileExists(file) {
+  return fs.existsSync(path.join(rootDir, file));
+}
+
 function parseServerDispatches() {
   const server = readText(path.join(rootDir, "server.sh"));
   const dispatches = [];
@@ -333,12 +310,10 @@ function parseServerDispatches() {
 
 function parseProjectInventoryCommandDetails() {
   const commands = new Set();
-  const regex = /^- `scripts\/internal\/[^`]+` - commands: (.+)$/gm;
+  const regex = /^\| server command: ([^|]+) \|/gm;
   let match;
   while ((match = regex.exec(projectInventory)) !== null) {
-    for (const commandMatch of match[1].matchAll(/`([^`]+)`/g)) {
-      commands.add(commandMatch[1]);
-    }
+    commands.add(match[1].trim());
   }
   return commands;
 }

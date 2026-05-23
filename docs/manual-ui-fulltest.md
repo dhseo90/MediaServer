@@ -12,11 +12,27 @@ UI 풀테스트는 자동 smoke가 아니라 인앱 브라우저에서 제품 �
 API 응답, raw JSON, screenshot 생성, 스크립트 통과만으로는 UI 풀테스트를 완료했다고
 기록하지 않습니다.
 
+## 2. 테스트 영역 역할 분리
+
+UI 풀테스트는 `스크립트 테스트`와 별도 영역입니다. 스크립트 테스트의 기준은
+[stream-verification.md](./stream-verification.md)에 둡니다.
+
+| 영역 | UI 풀테스트에서의 취급 |
+| --- | --- |
+| 안정화 테스트 | 30분/120분/UI 테스트의 선수 테스트입니다. 로드맵 각 스텝 종료 시 먼저 수행합니다. 실패하면 UI 풀테스트로 넘어가지 않습니다. |
+| 30분 테스트 | 장기간 테스트 지시 시 기본으로 수행하고, 각 버전별 로드맵 개발이 끝나면 수행합니다. UI 클릭/타이핑 evidence를 대체하지 않습니다. |
+| 120분 테스트 | 메모리 릭, 장시간 누수, runtime drift 감시용입니다. 무조건 실행하지 않고 필요하면 사용자에게 먼저 알립니다. UI 풀테스트 PASS를 대체하지 않습니다. |
+| UI 풀테스트 | 인앱 브라우저 직접 조작, role별 화면, 반응형, 시각 품질 evidence입니다. 30분/120분 안정화 PASS를 대체하지 않습니다. |
+
+따라서 결과 문서에는 `스크립트 테스트`와 `UI 풀테스트` 판정을 따로 적습니다.
+한쪽이 PASS여도 다른 쪽을 실행하지 않았다면 다른 쪽은 `NOT RUN`, `미확인`,
+`건너뜀`, 또는 `BLOCKED`로 남깁니다.
+
 포함 범위:
 
 - 프로젝트 문서 파악
 - 데이터 리셋과 throwaway fixture 준비
-- Auth, Ops, Client, 접근 요청, 제거된 legacy route의 404 회귀 방지 직접 확인
+- Auth, Ops, Client, 접근 요청, 제품 UI/현재 API 경계 직접 확인
 - 문서에 나온 웹페이지 UI 기능의 클릭/타이핑 검수
 - 320px, 390px, 760px, 1180px 반응형 확인
 - light/dark theme 확인
@@ -24,7 +40,7 @@ API 응답, raw JSON, screenshot 생성, 스크립트 통과만으로는 UI 풀�
 - 발견 이슈 수정 후 같은 화면 재검수
 - 수동 결과 문서와 자동 검증 결과의 분리 기록
 
-## 2. 문서 파악
+## 3. 문서 파악
 
 테스트 전에는 프로젝트 내 문서를 먼저 읽고 UI 기능, release boundary, 비노출 정책,
 검증 명령을 파악합니다. 최소 기준은 아래 문서입니다.
@@ -41,7 +57,7 @@ API 응답, raw JSON, screenshot 생성, 스크립트 통과만으로는 UI 풀�
 문서에 기능이 설명되어 있지만 UI에서 열지 못한 경우, 완료로 쓰지 않고 `미확인`,
 `건너뜀`, 또는 `BLOCKED`로 분리합니다.
 
-## 3. 데이터 리셋
+## 4. 데이터 리셋
 
 UI 풀테스트는 운영 데이터가 아닌 throwaway data reset 상태에서 시작합니다.
 
@@ -56,7 +72,7 @@ UI 풀테스트는 운영 데이터가 아닌 throwaway data reset 상태에서 
 데이터 리셋 후 `/setup`에서 admin을 직접 만들고, 결과 문서에는 비밀번호 원문,
 invite token 원문, session cookie, generated password suggestion을 남기지 않습니다.
 
-## 4. 인앱 브라우저 직접 조작
+## 5. 인앱 브라우저 직접 조작
 
 모든 수동 확인은 인앱 브라우저에서 수행합니다. 다음 행위가 있어야 `확인됨`입니다.
 
@@ -77,7 +93,7 @@ invite token 원문, session cookie, generated password suggestion을 남기지 
 - 실패한 화면을 재검수하지 않음
 - 브라우저가 아닌 문서/코드만 확인
 
-## 5. 필수 화면 범위
+## 6. 필수 화면 범위
 
 Auth:
 
@@ -102,13 +118,6 @@ Client:
 - `/client/dashboard`
 - `/client/request-access`
 
-제거된 legacy route 404 회귀 방지:
-
-- `/lab`
-- `/lab/rules`
-- `/lab/import`
-- `/webrtc/test`
-
 Role/scope:
 
 - admin/operator의 Ops 접근
@@ -117,7 +126,7 @@ Role/scope:
 - 승인 전 접근 요청이 로그인/채널 권한을 만들지 않는 경계
 - invite setup 전후 접근 경계
 
-## 6. 기능별 필수 조작
+## 7. 기능별 필수 조작
 
 - Auth: weak password rejection, strong setup, login, must-change password,
   password history reuse rejection, invite setup
@@ -134,7 +143,7 @@ Role/scope:
 - Client Dashboard: filter, sort, status copy, event copy
 - Request Access: public submit, pending copy, approval before/after boundary
 
-## 7. 시각 품질과 반응형
+## 8. 시각 품질과 반응형
 
 UI 풀테스트는 기능 검수와 같은 비중으로 시각 품질을 봅니다.
 
@@ -149,9 +158,9 @@ UI 풀테스트는 기능 검수와 같은 비중으로 시각 품질을 봅니�
   BBox diagnostics, rule/profile editor, model/source/auth material, Ops/Lab primary
   navigation이 노출되지 않는지 확인합니다.
 
-## 8. 자동 검증과 중단
+## 9. 자동 검증과 중단
 
-자동 검증은 수동 UI evidence를 보강하는 증거입니다. UI/Auth/Ops/Client 변경이
+자동 검증은 수동 UI evidence를 보강하는 `스크립트 테스트` 증거입니다. UI/Auth/Ops/Client 변경이
 있으면 최소 아래 명령을 검토하고, 실행하지 않은 항목은 이유를 적습니다.
 
 - `./server.sh build`
@@ -171,9 +180,9 @@ UI 풀테스트는 기능 검수와 같은 비중으로 시각 품질을 봅니�
 - `./server.sh verify-manual-ui-evidence`
 
 장시간 테스트와 `verify-predev`는 사용자가 명시 요청하지 않으면 실행하지 않고
-`미실행`으로 적습니다.
+`미실행`으로 적습니다. 실행했더라도 UI 풀테스트의 직접 조작 evidence로 쓰지 않습니다.
 
-## 9. 보고 원칙
+## 10. 보고 원칙
 
 보고는 확인된 사실과 추정을 분리합니다.
 
@@ -182,11 +191,12 @@ UI 풀테스트는 기능 검수와 같은 비중으로 시각 품질을 봅니�
 - 미확인: 열지 않은 화면, 실행하지 않은 테스트, 추정 원인, 외부 환경
 - 건너뜀: destructive action, 실장비/외부 credential, scope 밖 항목
 - 실패: 실패 명령, 실패 화면, 영향 범위, 수정 여부, 재검수 결과
+- 스크립트 테스트와 UI 풀테스트: 각각 PASS/FAIL/NOT RUN/미확인을 별도 판정
 
 푸시는 사용자가 명시 요청하기 전까지 수행하지 않고, 마지막에는 푸시 가능 여부와
 푸시 수행 여부를 분리해서 보고합니다.
 
-## 10. 문서 비교/병합 결과
+## 11. 문서 비교/병합 결과
 
 이번 재작성에서는 기존 [manual-ui-checklist.md](./manual-ui-checklist.md)를 실행
 runbook으로 전면 정리하고, 이 문서를 UI 풀테스트 기준 source-of-truth로 새로

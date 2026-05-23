@@ -709,7 +709,7 @@ AppearanceProfile과 IAppearanceExtractor는 향후 Re-ID/attribute 분석을 �
   해석하지 않습니다.
 - 현재 v1.8.0 기준 model approval, invalid/missing model fixture, metadata 비노출,
   default-off 안정화와 default-on 비승격은 `verify-reid-advanced-tracking`으로
-  확인합니다. 구버전 전용 close-out 문서와 verifier는 현재 command set에서 제거했습니다.
+  확인합니다. 현재 v1.8.0 검증은 통합 command set과 release evidence index로 확인합니다.
 - v1.8.0 연구 지속 기준은 [Re-ID Default-off Research Continuation](reid-default-off-research-continuation.md)에
   분리하며, 제품 default-on 결정이나 대형 tracker 교체로 해석하지 않습니다.
 - privacy threat model에서는 embedding vector, bbox crop, track-linked
@@ -1607,8 +1607,6 @@ baseline 비교 기준:
 - 동일 trackId 다채널 분리
 
 현재 검증 명령과 기준은 [stream-verification.md](./stream-verification.md)에 둡니다.
-과거 버전별 이력은 [development-backlog.md](./development-backlog.md)의 archive
-섹션에만 둡니다.
 
 ## 19. 제한사항
 
@@ -1624,4 +1622,3 @@ baseline 비교 기준:
 - ScenarioEngine은 기존 RuleEventEngine과 별도입니다. 기존 Intrusion/LineCrossing event를 끄거나 바꾸지 않습니다.
 - UI 상세 사용법은 [ui-guide.md](./ui-guide.md)에 있습니다. 이 문서는 UI 조작법을 길게 다루지 않습니다.
 - 긴 환경변수 표는 [config-reference.md](./config-reference.md)에 있습니다.
-- 과거 버전별 검증 이력은 [development-backlog.md](./development-backlog.md)의 archive 섹션에 있습니다.

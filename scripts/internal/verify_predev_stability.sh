@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# 파일 용도: 기능 개발 재개 전 smoke, 다채널, VA/event POST, cleanup, summary report를 한 번에 검증한다.
+# 파일 용도: 기능 개발 재개 전 smoke, VA/event POST, cleanup, summary report를 한 번에 검증한다.
 # 동작 요약: 테스트 서버를 직접 시작/종료하며 30~60분 단위 안정화 검증과 리포트 생성을 수행한다.
 set -euo pipefail
 
@@ -13,9 +13,6 @@ RTSP_LISTEN_ADDRESS="${MEDIA_SERVER_VERIFY_PREDEV_RTSP_LISTEN_ADDRESS:-}"
 HTTP_LISTEN_ADDRESS="${MEDIA_SERVER_VERIFY_PREDEV_HTTP_LISTEN_ADDRESS:-}"
 HTTP_BASE="${MEDIA_SERVER_VERIFY_PREDEV_HTTP_BASE:-http://127.0.0.1:${HTTP_PORT}}"
 SOAK_MINUTES="${MEDIA_SERVER_VERIFY_PREDEV_SOAK_MINUTES:-30}"
-MULTICHANNEL_HOLD_MS="${MEDIA_SERVER_VERIFY_PREDEV_MULTICHANNEL_HOLD_MS:-7000}"
-MULTICHANNEL_SINGLE_CLIENTS="${MEDIA_SERVER_VERIFY_PREDEV_SINGLE_CLIENTS:-2}"
-MULTICHANNEL_CLIENTS_PER_SOURCE="${MEDIA_SERVER_VERIFY_PREDEV_CLIENTS_PER_SOURCE:-2}"
 VA_EVENT_DURATION_S="${MEDIA_SERVER_VERIFY_PREDEV_VA_EVENT_DURATION_S:-30}"
 REDACTION_DURATION_S="${MEDIA_SERVER_VERIFY_PREDEV_REDACTION_DURATION_S:-12}"
 HEARTBEAT_INTERVAL_S="${MEDIA_SERVER_VERIFY_PREDEV_HEARTBEAT_INTERVAL_S:-30}"
@@ -48,7 +45,7 @@ Usage:
   ./server.sh verify-predev [options]
 
 Options:
-  --soak-minutes <n>       다채널/VA/event POST 반복 안정화 시간. 기본 ${SOAK_MINUTES}
+  --soak-minutes <n>       VA/event POST 반복 안정화 시간. 기본 ${SOAK_MINUTES}
   --quick                  개발 중 빠른 확인. soak=1분, VA event duration=30초
   --skip-build             cmake build 단계를 생략
   --rtsp-port <port>       테스트 RTSP port. 기본 ${RTSP_PORT}
@@ -69,7 +66,7 @@ Options:
   -h, --help               도움말 출력
 
 기준:
-  - 통합 smoke, 다채널 WebRTC, VA event, redaction, event POST schema/recovery/queue를 확인합니다.
+  - 통합 smoke, VA event, redaction, event POST schema/recovery/queue를 확인합니다.
   - predev 테스트 서버는 기본 `MEDIA_SERVER_AUTH_MODE=off`로 시작합니다.
     다른 auth mode를 의도적으로 검증하려면 `MEDIA_SERVER_VERIFY_PREDEV_AUTH_MODE`를 지정합니다.
   - 종료 시 runtime session/stream/tap cleanup과 8080/8081/8554/8555 listener 정리를 hard check합니다.
@@ -91,7 +88,6 @@ parse_args() {
         SOAK_MINUTES=1
         VA_EVENT_DURATION_S=30
         REDACTION_DURATION_S=10
-        MULTICHANNEL_HOLD_MS=3500
         shift
         ;;
       --skip-build)
@@ -433,7 +429,7 @@ restart_server_with_queue() {
   start_server "${queue_size}"
 }
 
-# 지정 시간 동안 다채널, VA event, event POST schema/recovery를 반복 실행한다.
+# 지정 시간 동안 VA event, event POST schema/recovery를 반복 실행한다.
 run_soak_loop() {
   local deadline=$((SECONDS + SOAK_MINUTES * 60))
   local iteration=1
@@ -445,8 +441,6 @@ run_soak_loop() {
   fi
   while (( SECONDS < deadline || iteration == 1 )); do
     log_info "soak iteration ${iteration} 시작"
-    run_step "soak-${iteration}-multichannel" \
-      "MEDIA_SERVER_LISTEN_PORT=${RTSP_PORT} MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} MEDIA_SERVER_VERIFY_MULTICHANNEL_TIMEOUT_MS=90000 MEDIA_SERVER_VERIFY_MULTICHANNEL_CONSUMER_TIMEOUT_MS=60000 ./server.sh verify-multichannel --http-base ${HTTP_BASE} --include-va --repeat 1 --single-clients ${MULTICHANNEL_SINGLE_CLIENTS} --clients-per-source ${MULTICHANNEL_CLIENTS_PER_SOURCE} --hold-ms ${MULTICHANNEL_HOLD_MS}" || true
     run_step "soak-${iteration}-va-events" \
       "MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=${VA_EVENT_DURATION_S} ./server.sh verify-va-events --duration ${VA_EVENT_DURATION_S}" || true
     run_step "soak-${iteration}-event-post-schema" \

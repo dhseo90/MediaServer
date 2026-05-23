@@ -62,8 +62,7 @@ ONVIF protocol/service별 지원 범위는
 5. 해당 ONVIF 채널에 VA rule이 연결되면 `/ops/rules`의 URL 복사 영역에도
    `ONVIF RTSP`, `ONVIF WHEP`, `WebRTC` 버튼을 같은 테이블 UI 규칙으로 표시합니다.
 
-`/lab/import` 화면 route는 닫힌 상태를 유지합니다. ONVIF는 `/ops/sources`의
-일반 채널 관리 흐름 안에서만 제품 UI에 노출합니다.
+ONVIF는 `/ops/sources`의 일반 채널 관리 흐름 안에서만 제품 UI에 노출합니다.
 
 ## 저장 계약
 

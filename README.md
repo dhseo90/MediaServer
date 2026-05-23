@@ -22,9 +22,10 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 - **영상 분석**: `va=1` overlay, 저장 룰 `vaRule=<id>`, Rule/Profile/Scenario, live Event POST와 runtime metadata를 제공합니다.
   EventRecord와 snapshot/clip은 short event evidence 보조 기능이며 현재 중심 제품 메시지는 아닙니다.
 - **제품 화면**: 같은 메인 주소에서 계정 권한에 따라 운영자 화면 또는 클라이언트 화면으로 이동합니다.
-  `/lab` 화면 route는 닫고 검증/연동 API만 유지합니다.
+  검증/연동 API는 제품 화면과 분리해 유지합니다.
 - **계정/권한**: 최초 관리자 설정, session 로그인, role/scope, admin 사용자 관리, viewer invite/request 승인 흐름을 사용합니다.
 - **검증**: UI/Auth smoke, VA replay, runtime state, 백업/복구 리허설, RC gate artifact 검증 명령을 `./server.sh`에서 제공합니다.
+  장기 soak/부하 검증은 기본 smoke와 분리해 [docs/stream-verification.md](docs/stream-verification.md)의 longrun gate 기준으로만 다룹니다.
 - **배포 경계**: source/doc 중심 공개가 기본이며, binary/runtime/model bundle은 별도 guardrail 통과 전까지 제공하지 않습니다.
 
 ## 실행 환경

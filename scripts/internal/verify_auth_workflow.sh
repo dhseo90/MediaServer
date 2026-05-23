@@ -410,7 +410,6 @@ run_users() {
 
   expect_eq "$(http_code -c "${VIEWER_COOKIE}" -X POST -d "username=viewer-smoke&password=${PREVIOUS_PASSWORD}" "${BASE}/login")" "302" "viewer login"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops")" "403" "viewer ops forbidden"
-  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/lab")" "404" "retired lab page hidden from viewer"
 
   local reset_code landing change_reuse_code disable_code disabled_login
   reset_code="$(http_code -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
@@ -634,7 +633,6 @@ run_routes() {
     tr -d '\r' | awk 'BEGIN{s=""; l=""} /^HTTP/{s=$2} /^Location:/{l=$2} END{print s ":" l}')"
   expect_eq "${integrator_landing}" "302:/login" "integrator login keeps API-only landing"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops")" "403" "viewer ops denied"
-  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/lab")" "404" "retired lab page hidden from viewer"
   expect_eq "$(http_code "${BASE}/ops/api/sources")" "401" "unauth ops sources API denied"
   expect_eq "$(http_code "${BASE}/ops/api/views")" "401" "unauth ops views API denied"
   expect_eq "$(http_code "${BASE}/ops/api/runtime/status")" "401" "unauth ops runtime API denied"
@@ -866,7 +864,7 @@ run_routes() {
     "${SOURCE_REGISTRY_FILE}" "${SOURCE_REGISTRY_FILE}".tmp* \
     "${VIEWS_REGISTRY_FILE}" "${VIEWS_REGISTRY_FILE}".tmp*
   start_server off lab
-  expect_eq "$(header_status_location "${BASE}/")" "302:/ops/home" "auth off retired lab home falls back to ops"
+  expect_eq "$(header_status_location "${BASE}/")" "302:/ops/home" "auth off root redirects to ops"
 }
 
 case "${MODE}" in

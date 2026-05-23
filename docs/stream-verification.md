@@ -1,8 +1,6 @@
 # Stream Verification
 
 이 문서는 현재 기준의 스트리밍/VA 검증 명령을 관리합니다.
-과거 버전별 검증 이력은 [development-backlog.md](./development-backlog.md)의
-archive 섹션에만 보관합니다.
 
 ## 목적
 
@@ -24,6 +22,26 @@ archive 섹션에만 보관합니다.
 | `./server.sh test --stable` | 기존 stable 호환 기준 |
 
 외부 RTSP/HLS/HTTP/WHEP source, 운영 TURN relay/auth는 외부 환경 영향을 받으므로 기본 hard gate가 아닙니다. YouTube import/source는 기본 빌드에서 제외한 lab-only 실험 기능이며, 현재 기본 검증에서는 실제 YouTube URL 성공을 확인하지 않습니다. 공개 URL을 사용할 때는 재현 가능한 예시 URL 또는 환경 변수로만 주입하고, 개인 LAN IP, credential, 고객/운영 영상 URL은 문서와 artifact에 남기지 않습니다.
+
+## 테스트 영역 역할 분리
+
+이 문서는 `스크립트 테스트`의 source-of-truth입니다. UI 풀테스트 기준은
+[manual-ui-fulltest.md](./manual-ui-fulltest.md)와
+[manual-ui-checklist.md](./manual-ui-checklist.md)에 둡니다.
+
+| 영역 | 역할 | 대표 evidence | 대체 불가 항목 |
+| --- | --- | --- | --- |
+| 안정화 테스트 | 30분/120분/UI 테스트의 선수 테스트입니다. 로드맵 각 스텝 종료 시 build/static/API/schema/auth/media/verifier 회귀를 먼저 확인합니다. | 명령, exit code, summary/report, 로그 | 30분/120분 장시간 PASS, 인앱 브라우저 직접 조작 evidence |
+| 30분 테스트 | 장기간 테스트 지시 시 기본으로 수행하는 soak입니다. 각 버전별 로드맵 개발이 끝나면 수행합니다. | `verify-predev --soak-minutes 30` summary/report | 안정화 테스트, 120분 메모리 감시, UI 풀테스트 |
+| 120분 테스트 | 메모리 릭, 장시간 누수, runtime drift 감시용입니다. 무조건 실행하지 않으며 필요하면 사용자에게 먼저 알립니다. | `verify-predev --soak-minutes 120`, `verify-va-runtime-console-longrun --duration-minutes 120` report | 안정화 테스트, 30분 기본 soak, UI 풀테스트 |
+| UI 풀테스트 | 제품 화면을 인앱 브라우저에서 직접 클릭/타이핑/반응형 확인 | manual UI result, route별 직접 조작, screenshot/artifact | 스크립트 smoke, raw JSON/API-only 확인 |
+
+안정화 테스트가 실패하면 30분/120분/UI 테스트로 넘어가지 않습니다.
+스크립트 테스트는 제품 내부 계약과 장시간 안정성을 확인하지만, 화면을 사람이 직접
+열고 조작했다는 증거가 아닙니다. UI 풀테스트는 실제 사용자 경험을 확인하지만,
+30분/120분 안정화나 media path 장시간 안정성을 통과시킨 증거가 아닙니다.
+보고서에는 두 영역을 별도 섹션으로 나누고, 실행하지 않은 영역은 `NOT RUN` 또는
+`미확인`으로 기록합니다.
 
 문서/UI/Auth/권한/계정처럼 media pipeline 자체를 바꾸지 않은 변경에서는
 `./server.sh test`, `./server.sh test --basic`, `./server.sh test --full`,
@@ -85,9 +103,8 @@ release prep 단계에서 tag/GitHub Release가 아직 수동 생성 전이면
 `./server.sh verify-release-metadata --allow-unpublished`로 로컬 v1.8.0 기준만 확인하고,
 GitHub Latest Release 확인은 publish 뒤 기본 실행으로 다시 닫습니다.
 
-구버전 전용 `verify-v*` 명령은 현재 command set에서 제거했습니다. 현재 v1.8.0
-제품 회귀 gate, UI 풀테스트 gate, release trust hardening gate는 이전 버전별
-close-out 문구가 아니라 아래 버전 중립 명령으로만 확인합니다.
+현재 v1.8.0 제품 회귀 gate, UI 풀테스트 gate, release trust hardening gate는 아래
+통합 명령으로만 확인합니다.
 
 ```bash
 ./server.sh verify-auth-bootstrap
@@ -120,7 +137,7 @@ close-out 문구가 아니라 아래 버전 중립 명령으로만 확인합니�
 Historical v1.x close-out 정보는 standalone verifier가 아니라 backlog archive로
 보존합니다. archive 정합성 확인은 현재 제품 regression 결과와 섞지 않습니다.
 
-위 전용 기준은 느린 기본 추가 RTSP/WebRTC source 영상, codec matrix, multichannel media soak를 사용하지 않습니다.
+위 전용 기준은 느린 기본 추가 RTSP/WebRTC source 영상과 codec matrix를 사용하지 않습니다.
 기본 smoke와 longrun gate가 섞이지 않았는지는 다음 명령으로 정적으로 확인합니다.
 
 ```bash
@@ -410,8 +427,7 @@ fi
 - `/ops/events`는 primary nav에서 숨긴 직접/진단 route입니다.
   독립 제품 탭으로 취급하지 않습니다.
   이벤트 조건은 룰에서 설정하고 운영 요약은 대시보드에서 확인합니다.
-- `/ops/dashboard`와 `/ops/rules`는 Lab iframe이나
-  `/lab/rules?embed=1`을 포함하지 않습니다.
+- `/ops/dashboard`와 `/ops/rules`는 개발/검증 iframe을 포함하지 않습니다.
   대시보드는 `/ops/api/runtime/status`,
   룰 화면은 `/ops/api/rules/catalog`,
   숨김 이벤트 상태는 `/ops/api/events/status`를 사용합니다.
@@ -446,8 +462,7 @@ fi
   source URL, Developer URL, BBox diagnostics, 내부 진단 JSON,
   rule/profile editor를 노출하지 않습니다.
   Client Events tab은 primary nav에서 제거합니다.
-- `/lab`, `/lab/rules`, `/lab/import` legacy 화면 route는 제거된 상태를 유지하며
-  404 회귀 방지 대상으로만 확인하고, 개발/검증 API는 `/lab/analysis/*`에서만 유지합니다.
+- 개발/검증 API는 `/lab/analysis/*`에서만 유지하고 제품 UI는 Ops/Client shell을 기준으로 확인합니다.
 
 WebRTC/stream 변경:
 
@@ -465,10 +480,6 @@ event/scenario side effect를 함께 확인합니다.
 
 리포트의 `Quality Gate` 섹션은 risk 증가, event/scenario 불변,
 default-on 후보 여부, 권고를 요약합니다.
-
-legacy `/webrtc/test` 화면에 의존하던 다채널 브라우저 harness는 제품 UI 정리 후
-실행하지 않습니다. 긴 RTSP/WebRTC 다채널 재생 검증은 별도 제품 UI harness가
-준비될 때까지 기본 안정성 테스트에서 제외합니다.
 
 Auth 변경:
 
@@ -611,7 +622,6 @@ Root/route 확인 기준:
 - Viewer token: `/ -> /client/live`
 - 미인증 auth-on 요청: `/ -> /login`
 - Viewer의 `/ops` 접근: `403`
-- `/lab` 화면 route: `404`
 
 Ops 권한 기준:
 
@@ -966,7 +976,7 @@ count, mean, stdev, variance, min, max를 표시합니다.
 - replay/event 결과가 흔들려도 default on 전환 금지입니다.
 - default on은 여러 fixture와 현장 샘플에서 ID continuity 개선과 event 결과 무변화가 함께 확인된 뒤에만 검토합니다.
 - privacy/default-off gate는 `verify-reid-advanced-tracking`으로 별도 확인합니다.
-- 과거 version-specific close-out guard는 현재 command set에서 제거했습니다. 현재 회귀에서는
+- 현재 회귀에서는
   `verify-reid-advanced-tracking`, `verify-tracker-stability`,
   `compare-close-object-tracker`, `verify-va-replay`, `verify-analysis-state`,
   `verify-va-events`로 runtime/default-off/metadata/event 안정성을 확인합니다.
@@ -1006,9 +1016,6 @@ MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=enforce ./server.sh verif
 특정 mode 재현이 필요할 때 사용합니다.
 report judgement가 `hold`이면 event/scenario delta 또는 주요 회귀가 있다는 뜻입니다.
 이 경우 default on 검토를 중단하고 fixture와 summary log를 먼저 확인합니다.
-
-반복 다채널 VA 브라우저 검증은 제거된 초기 harness가 아니라 별도 제품 UI
-harness가 준비된 뒤 장기 테스트로만 실행합니다.
 
 외부 source 장시간 검증은 사용할 source가 준비된 경우에만 실행합니다.
 
@@ -1672,9 +1679,7 @@ curl -fsS -X POST \
 ./server.sh verify-va
 ```
 
-현재 `verify-va`의 WebRTC browser playback 구간은 legacy `/webrtc/test` harness 제거 후
-별도 제품 UI harness가 준비될 때까지 skip됩니다. 기본 자동 기준은 lab API와 RTSP
-server-side overlay를 확인합니다.
+현재 `verify-va`의 기본 자동 기준은 lab API와 RTSP server-side overlay를 확인합니다.
 
 수동 RTSP overlay URL:
 
@@ -1860,9 +1865,8 @@ baseline fixture 전체 검증:
 
 ## 다채널 검증
 
-legacy `/webrtc/test` 기반 다채널 브라우저 harness는 제거되었습니다.
 현재 quick 안정성 범위에서는 느린 RTSP/WebRTC 다채널 재생을 실행하지 않고,
-제품 UI smoke, rule UI round-trip, route 404 smoke, API 계약 검증으로 대체합니다.
+제품 UI smoke, rule UI round-trip, API 계약 검증을 사용합니다.
 
 단계별 수동 기준:
 

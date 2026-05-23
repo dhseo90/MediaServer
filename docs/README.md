@@ -39,8 +39,7 @@ Release close-out runbook과 tag/push 수동 gate는
 세부 순서를 둡니다.
 Release evidence의 실행/미실행/미확인 색인은
 [release-evidence-index.md](release-evidence-index.md)에 둡니다.
-구버전 전용 `verify-v*` 명령과 standalone close-out 문서는 현재 command set에서
-제거했습니다. 현재 v1.8.0 제품 회귀와 UI 풀테스트 gate는
+현재 v1.8.0 제품 회귀와 UI 풀테스트 gate는
 [stream-verification.md](stream-verification.md)와
 [manual-ui-checklist.md](manual-ui-checklist.md)의 버전 중립 명령만 기준으로
 확인합니다.

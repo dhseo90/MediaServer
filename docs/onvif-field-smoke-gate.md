@@ -13,7 +13,7 @@ endpoint, credential, RTSP/RTSPS playback, redaction artifact, report review를
 - [ONVIF Field Smoke Artifact Redaction Checklist](./onvif-field-smoke-artifact-redaction.md)
 - [ONVIF Credential Reference Policy](./onvif-credential-reference-policy.md)
 - [ONVIF TLS Transport Policy](./onvif-tls-transport-policy.md)
-- 구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)
+- release evidence index
 
 ## Gate 원칙
 

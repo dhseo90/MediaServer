@@ -1605,21 +1605,6 @@ void AppendProductThemeScript(std::ostringstream& out) {
 	      (() => {
 	        const button = document.getElementById('themeToggleBtn');
 	        const currentTheme = () => document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
-	        const syncFrames = (theme = currentTheme()) => {
-	          document.querySelectorAll('iframe').forEach(frame => {
-	            try {
-	              frame.contentWindow?.postMessage({ type: 'mediaServer.theme', theme }, window.location.origin);
-	            } catch {}
-	          });
-	        };
-	        const bindFrameThemeSync = () => {
-	          document.querySelectorAll('iframe').forEach(frame => {
-	            if (frame.dataset.themeSyncBound === '1') return;
-	            frame.dataset.themeSyncBound = '1';
-	            frame.addEventListener('load', () => syncFrames());
-	          });
-	          syncFrames();
-	        };
 	        const sync = () => {
 	          const theme = currentTheme();
 	          const label = theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환';
@@ -1627,7 +1612,6 @@ void AppendProductThemeScript(std::ostringstream& out) {
 	            button.setAttribute('aria-label', label);
 	            button.setAttribute('title', label);
 	          }
-	          bindFrameThemeSync();
 	          window.MediaServerUi?.translatePage?.();
 	        };
 	        sync();
@@ -1637,12 +1621,9 @@ void AppendProductThemeScript(std::ostringstream& out) {
 	            const next = currentTheme() === 'dark' ? 'light' : 'dark';
 	            document.documentElement.dataset.theme = next;
 	            localStorage.setItem('mediaServerTheme', next);
-	            syncFrames(next);
 	            sync();
 	          });
 	        }
-	        window.addEventListener('load', bindFrameThemeSync);
-	        setTimeout(bindFrameThemeSync, 0);
 	      })();
 	    </script>
 )SCRIPT";
