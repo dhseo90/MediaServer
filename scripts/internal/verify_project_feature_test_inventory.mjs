@@ -739,6 +739,30 @@ check("inventory covers current server.sh command set", () => {
   );
 });
 
+check("inventory documents non-server CMake and test-entry boundaries", () => {
+  const cmakeTestMatches = [...cmake.matchAll(/\b(enable_testing|add_test|CTest)\b/g)].map(match => match[0]);
+  assert(
+    cmakeTestMatches.length === 0,
+    `CMake test registry exists but inventory does not enumerate it:\n${[...new Set(cmakeTestMatches)].join("\n")}`
+  );
+  const testAll = readText(path.join(rootDir, "scripts/internal/test_all.sh"));
+  for (const entry of [
+    "scripts/internal/test_external_access.sh",
+    "scripts/internal/test_external_source_reachability.sh",
+    "scripts/internal/test_rule_registry.sh",
+  ]) {
+    requireText(testAll, entry, `test_all.sh does not reference ${entry}`);
+    requireText(inventory, `\`${entry}\``, `inventory missing test-entry ${entry}`);
+  }
+  for (const phrase of [
+    "CMakeLists.txt에는 `enable_testing`, `add_test`, `CTest` 기반 별도 test registry가",
+    "현재 테스트 source-of-truth는 `server.sh` dispatch와",
+    "`test-entry` script는 `scripts/internal/test_all.sh`에서 호출되는 하위 entry",
+  ]) {
+    requireText(inventory, phrase, `inventory missing non-server test boundary phrase: ${phrase}`);
+  }
+});
+
 check("inventory comparison reports code/UI/test mismatch classes", () => {
   for (const phrase of [
     "Code + UI + automated tests 있음",

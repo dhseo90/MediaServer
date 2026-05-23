@@ -30,6 +30,7 @@ Checks:
 
 const checks = [];
 const projectInventory = readText(path.join(rootDir, "docs/project-feature-test-inventory.md"));
+const cmake = readText(path.join(rootDir, "CMakeLists.txt"));
 
 check("server.sh dispatch targets exist and are executable", () => {
   const dispatches = parseServerDispatches();
@@ -162,6 +163,39 @@ check("project inventory command detail covers server.sh dispatch commands", () 
   assert(
     projectInventory.includes("command-to-script dispatch matrix"),
     "project inventory does not define server-command detail as the command-to-script dispatch matrix",
+  );
+});
+
+check("CMake does not define a separate untracked CTest registry", () => {
+  const forbidden = /\b(enable_testing|add_test|CTest)\b/g;
+  const matches = [...cmake.matchAll(forbidden)].map(match => match[0]);
+  assert(matches.length === 0, `CMake test registry exists but is not inventoried:\n${[...new Set(matches)].join("\n")}`);
+  for (const phrase of [
+    "CMakeLists.txt에는 `enable_testing`, `add_test`, `CTest` 기반 별도 test registry가",
+    "현재 테스트 source-of-truth는 `server.sh` dispatch와",
+    "CMake/CTest 별도 test registry가 생기면",
+  ]) {
+    assert(projectInventory.includes(phrase), `project inventory missing CMake/CTest boundary phrase: ${phrase}`);
+  }
+});
+
+check("test entry scripts are reachable from test_all", () => {
+  const testAll = readText(path.join(rootDir, "scripts/internal/test_all.sh"));
+  const entries = [
+    "scripts/internal/test_external_access.sh",
+    "scripts/internal/test_external_source_reachability.sh",
+    "scripts/internal/test_rule_registry.sh",
+  ];
+  const missing = [];
+  for (const entry of entries) {
+    if (!testAll.includes(entry) || !projectInventory.includes(`\`${entry}\``)) {
+      missing.push(entry);
+    }
+  }
+  assert(missing.length === 0, `test entry script(s) are not reachable from test_all or inventory:\n${missing.join("\n")}`);
+  assert(
+    projectInventory.includes("`test-entry` script는 `scripts/internal/test_all.sh`에서 호출되는 하위 entry"),
+    "project inventory does not define test-entry reachability",
   );
 });
 

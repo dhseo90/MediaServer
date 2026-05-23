@@ -199,6 +199,9 @@ dev/integrator API, 닫힌 UI route를 섞어 완료로 보지 않습니다.
 - `status`, `check`, `diagnose`, `urls`, `external-urls`
 - `ops-bundle`, `ops-evidence-cleanup`, `auth-user`
 - `test`, `test --basic`, `test --full`, `test --external`, `test --stable`
+- CMakeLists.txt에는 `enable_testing`, `add_test`, `CTest` 기반 별도 test registry가
+  없습니다. 현재 테스트 source-of-truth는 `server.sh` dispatch와
+  `scripts/internal/test_all.sh`가 호출하는 하위 test entry입니다.
 
 ### UI/Auth/Ops/Client 검증
 
@@ -435,10 +438,14 @@ inventory에서 제외합니다.
 
 - 모든 `server.sh` dispatch target은 존재하고 실행 가능해야 합니다.
 - 모든 문서의 `./server.sh <command>` 참조는 실제 dispatch command여야 합니다.
+- CMake/CTest 별도 test registry가 생기면 이 문서의 Current Verification Inventory와
+  verifier가 함께 갱신되어야 합니다.
 - 아래 `server-command` 목록은 현재 `server.sh` command-to-script dispatch matrix로
   취급하며, 모든 dispatch command는 반드시 해당 script의 `commands:` 항목에
   나타나야 합니다.
 - 모든 추적 중인 `scripts/` 파일은 위 분류 중 하나로 설명 가능해야 합니다.
+- `test-entry` script는 `scripts/internal/test_all.sh`에서 호출되는 하위 entry여야
+  합니다.
 - 구버전 전용 `verify-v*`/`verify_v*` verifier는 현재 command set에 없어야 합니다.
 - `scripts/internal/auto_start_server.sh`는 추적 파일 내 참조가 없고 현재
   `start`/`restart`/`foreground` 흐름과 중복되어 제거했습니다.
