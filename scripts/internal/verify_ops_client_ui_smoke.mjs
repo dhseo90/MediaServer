@@ -826,6 +826,9 @@ function clientLiveTileKeyboardExpression(a11ySnapshot) {
         if (modeToggle && modeToggle.hidden) issue('first tile VA overlay toggle is hidden');
         if (modeToggle && !rawModeButton) issue('first tile raw mode action missing');
         if (modeToggle && !vaModeButton) issue('first tile VA overlay mode action missing');
+        if (vaModeButton && vaModeButton.getAttribute('aria-pressed') !== 'true') {
+          issue('first tile default VA overlay mode is not active');
+        }
         if (rawModeButton && vaModeButton) {
           vaModeButton.click();
           await wait(180);

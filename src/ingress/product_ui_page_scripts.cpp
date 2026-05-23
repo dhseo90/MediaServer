@@ -301,7 +301,10 @@ void AppendClientShellScript(std::ostringstream& out) {
       if (['va-rule', 'rule', 'varule'].includes(raw)) return 'va-rule';
       return '';
     };
-    let requestedClientOverlayMode = normalizeOverlayMode(clientHashParams().get('mode') || '');
+    const requestedClientModeParam = clientHashParams().get('mode');
+    let requestedClientOverlayMode = requestedClientModeParam === null
+      ? ''
+      : normalizeOverlayMode(requestedClientModeParam);
     let requestedClientRuleId = String(clientHashParams().get('rule') || '').trim();
     const overlayLabel = mode => ({
       raw: '원본',
@@ -882,7 +885,8 @@ void AppendClientShellScript(std::ostringstream& out) {
         }
         tile.viewId = nextViewId;
         const modes = allowedOverlayModes(viewById(nextViewId));
-        const savedMode = normalizeOverlayMode(saved?.overlayMode || '');
+        const savedModeValue = String(saved?.overlayMode || '').trim();
+        const savedMode = savedModeValue ? normalizeOverlayMode(savedModeValue) : '';
         tile.overlayMode = savedMode && modes.includes(savedMode)
           ? savedMode
           : defaultOverlayModeForView(viewById(nextViewId));
@@ -1071,7 +1075,7 @@ void AppendClientShellScript(std::ostringstream& out) {
       if (requestedClientOverlayMode && String(view?.viewId || '') === String(selectedViewId || '') && modes.includes(requestedClientOverlayMode)) {
         return requestedClientOverlayMode;
       }
-      return modes.includes('raw') ? 'raw' : (modes[0] || '');
+      return modes.includes('va-overlay') ? 'va-overlay' : (modes.includes('raw') ? 'raw' : (modes[0] || ''));
     }
     function tileRuleId(view) {
       return requestedRuleIdForView(view);

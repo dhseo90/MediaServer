@@ -87,9 +87,13 @@ check(
     script.includes('data-action="toggle-playback"') &&
     script.includes("async function toggleLiveTilePlayback") &&
     script.includes('data-role="tile-playback-icon"') &&
+    script.includes("requestedClientModeParam === null") &&
+    script.includes("modes.includes('va-overlay') ? 'va-overlay'") &&
+    script.includes("const savedModeValue = String(saved?.overlayMode || '').trim()") &&
     css.includes("body.client-shell .tile-mode-controls") &&
     css.includes(".tile-status-pill") &&
-    uiSmoke.includes('data-testid="client-live-va-overlay-toggle"'),
+    uiSmoke.includes('data-testid="client-live-va-overlay-toggle"') &&
+    uiSmoke.includes("first tile default VA overlay mode is not active"),
 );
 check(
   "client header account controls are covered by screenshot overlap smoke",

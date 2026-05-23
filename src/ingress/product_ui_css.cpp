@@ -377,7 +377,7 @@ std::string ProductUiCss() {
       flex: 0 0 auto;
       width: 106px;
       min-height: 26px;
-      display: inline-flex;
+      display: none;
       align-items: center;
       justify-content: center;
       gap: 6px;
@@ -409,7 +409,7 @@ std::string ProductUiCss() {
     body.product-shell .account-copy {
       min-width: 0;
       max-width: 132px;
-      display: flex;
+      display: none;
       align-items: center;
       gap: 6px;
     }
