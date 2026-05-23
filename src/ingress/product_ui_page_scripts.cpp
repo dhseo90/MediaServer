@@ -1137,7 +1137,7 @@ void AppendClientShellScript(std::ostringstream& out) {
       const statusLabel = stale ? '지연' : ({
         offline: '오프라인',
         connecting: '연결 중',
-        live: '라이브',
+        live: '온라인',
         error: '오류'
       })[String(status)] || status;
       const viewLabel = view?.displayName || view?.viewId || '소스 없음';
@@ -1146,8 +1146,8 @@ void AppendClientShellScript(std::ostringstream& out) {
       root.dataset.viewId = tile.viewId || '';
       root.setAttribute('aria-label', clientDynamicText(`타일 ${tile.index + 1}: ${viewLabel} · ${statusLabel}`));
       root.setAttribute('aria-current', selectedLiveTile === tile.index ? 'true' : 'false');
-      root.querySelector('[data-role="status"]').textContent = statusLabel;
-      root.querySelector('[data-role="status"]').className = `chip${tileStatusClass(stale ? 'stale' : status)}`;
+      root.querySelector('[data-role="status"]').textContent = clientDynamicText(statusLabel);
+      root.querySelector('[data-role="status"]').className = `chip tile-status-pill${tileStatusClass(stale ? 'stale' : status)}`;
       const viewLabelNode = root.querySelector('[data-role="view-label"]');
       if (viewLabelNode) viewLabelNode.textContent = viewLabel;
       const sourceMetaNode = root.querySelector('[data-role="source-meta"]');
@@ -1182,15 +1182,17 @@ void AppendClientShellScript(std::ostringstream& out) {
         setOverlayText('badge', playbackBadge(tile, { warning: Number(tile.eventCount || 0) > 0 }));
       }
 	      root.querySelector('[data-role="placeholder"]').hidden = Boolean(tile.sessionId);
-	      const startBtn = root.querySelector('[data-action="start"]');
-	      const stopBtn = root.querySelector('[data-action="stop"]');
+	      const playbackBtn = root.querySelector('[data-action="toggle-playback"]');
 	      const restartBtn = root.querySelector('[data-action="restart"]');
-	      if (startBtn) {
+	      if (playbackBtn) {
 	        const limitReached = viewActiveLimitReached(view, tile.index);
-	        startBtn.disabled = !view || Boolean(tile.sessionId) || limitReached;
-	        startBtn.title = limitReached ? `이 채널은 최대 ${viewMaxTiles(view)}개 타일까지만 동시에 재생할 수 있습니다.` : `타일 ${tile.index + 1} 시작`;
+	        const playing = Boolean(tile.sessionId);
+	        const actionLabel = playing ? `타일 ${tile.index + 1} 정지` : `타일 ${tile.index + 1} 재생`;
+	        playbackBtn.disabled = !view || (!playing && limitReached);
+	        playbackBtn.title = clientDynamicText(limitReached && !playing ? `이 채널은 최대 ${viewMaxTiles(view)}개 타일까지만 동시에 재생할 수 있습니다.` : actionLabel);
+	        playbackBtn.setAttribute('aria-label', clientDynamicText(actionLabel));
+	        playbackBtn.querySelector('[data-role="tile-playback-icon"]').textContent = playing ? '■' : '▶';
 	      }
-	      if (stopBtn) stopBtn.disabled = !tile.sessionId && !tile.viewId;
 	      if (restartBtn) restartBtn.disabled = !view;
 	      updateLiveSourceTreeState();
 	      updateLiveSummary();
@@ -1241,6 +1243,15 @@ void AppendClientShellScript(std::ostringstream& out) {
       } else {
         updateTileDom(tile);
       }
+    }
+    async function toggleLiveTilePlayback(index) {
+      const tile = liveTiles[index];
+      if (!tile) return;
+      if (tile.sessionId) {
+        await stopLiveTile(index);
+        return;
+      }
+      await startLiveTile(index);
     }
 	    function resetTileSignal(tile) {
 	      tile.trackCount = null;
@@ -1431,17 +1442,16 @@ void AppendClientShellScript(std::ostringstream& out) {
 	              <div class="tile-title">
 	                <span class="tile-presence-dot" aria-hidden="true"></span>
 	                <h3 data-role="view-label">${escapeHtml(tileView(tile)?.displayName || tile.viewId || `타일 ${tile.index + 1}`)}</h3>
-	                <span class="chip" data-role="status">offline</span>
+	              </div>
+	              <div class="tile-actions" aria-label="타일 ${tile.index + 1} 작업">
+	                <span class="chip tile-status-pill" data-role="status">오프라인</span>
 	                <div class="tile-mode-controls" data-testid="client-live-va-overlay-toggle" data-role="mode-buttons" aria-label="타일 ${tile.index + 1} VA 오버레이" hidden>
 	                  <button type="button" class="tile-mode-button" data-mode-action="raw" aria-pressed="false" title="원본">원본</button>
 	                  <button type="button" class="tile-mode-button" data-mode-action="va-overlay" aria-pressed="false" title="VA 오버레이">VA</button>
 	                  <button type="button" class="tile-mode-button" data-mode-action="va-rule" aria-pressed="false" title="VA 룰">VA 룰</button>
 	                </div>
-	              </div>
-	              <div class="tile-actions" aria-label="타일 ${tile.index + 1} 작업">
-	                <button type="button" class="icon-button tile-action-primary" data-action="start" title="타일 ${tile.index + 1} 시작" aria-label="타일 ${tile.index + 1} 시작"><span aria-hidden="true">▶</span></button>
-	                <button type="button" class="icon-button" data-action="restart" title="타일 ${tile.index + 1} 재연결" aria-label="타일 ${tile.index + 1} 재연결"><span aria-hidden="true">↻</span></button>
-	                <button type="button" class="icon-button" data-action="stop" data-disconnect-scope="tile" title="타일 ${tile.index + 1} 연결 해제" aria-label="타일 ${tile.index + 1} 연결 해제" disabled><span aria-hidden="true">■</span></button>
+	                <button type="button" class="icon-button tile-action-primary" data-action="toggle-playback" title="타일 ${tile.index + 1} 재생" aria-label="타일 ${tile.index + 1} 재생"><span data-role="tile-playback-icon" aria-hidden="true">▶</span></button>
+	                <button type="button" class="icon-button" data-action="restart" title="타일 ${tile.index + 1} 새로고침" aria-label="타일 ${tile.index + 1} 새로고침"><span aria-hidden="true">↻</span></button>
 	              </div>
 	            </div>
 	            <div class="tile-controls">
@@ -1572,9 +1582,15 @@ void AppendClientShellScript(std::ostringstream& out) {
 	          });
 	        });
 	      });
-	      root.querySelector('[data-action="start"]')?.addEventListener('click', () => startLiveTile(tile.index));
+	      root.querySelector('[data-action="toggle-playback"]')?.addEventListener('click', () => {
+	        toggleLiveTilePlayback(tile.index).catch(error => {
+	          tile.status = 'error';
+	          tile.connectionStatus = error.message || 'error';
+	          tile.lastError = error.message || 'error';
+	          updateTileDom(tile);
+	        });
+	      });
 	      root.querySelector('[data-action="restart"]')?.addEventListener('click', () => restartLiveTile(tile.index));
-	      root.querySelector('[data-action="stop"]')?.addEventListener('click', () => disconnectLiveTile(tile.index));
 	      root.addEventListener('dragenter', event => {
 	        const viewId = event.dataTransfer?.getData('text/plain') || liveDragViewId;
 	        if (!viewId || !viewById(viewId)) return;
@@ -1613,7 +1629,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	        }
 	        if (event.key === 's' || event.key === 'S') {
 	          event.preventDefault();
-	          startLiveTile(tile.index);
+	          toggleLiveTilePlayback(tile.index);
 	          return;
 	        }
 	        if (event.key === 'r' || event.key === 'R') {

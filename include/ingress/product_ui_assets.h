@@ -7,6 +7,7 @@ namespace ingress {
 
 std::string ProductThemeToggleButtonHtml();
 std::string ProductLanguageSelectHtml();
+std::string ProductBrandMarkSvg();
 std::string ProductNavIconSvg(const std::string& key);
 std::string ProductAccountAvatarSvg();
 

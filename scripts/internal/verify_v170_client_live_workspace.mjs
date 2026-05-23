@@ -84,15 +84,30 @@ check(
     script.includes('data-mode-action="va-overlay"') &&
     script.includes("async function setTileOverlayMode") &&
     script.includes("await restartLiveTile(index)") &&
+    script.includes('data-action="toggle-playback"') &&
+    script.includes("async function toggleLiveTilePlayback") &&
+    script.includes('data-role="tile-playback-icon"') &&
     css.includes("body.client-shell .tile-mode-controls") &&
+    css.includes(".tile-status-pill") &&
     uiSmoke.includes('data-testid="client-live-va-overlay-toggle"'),
 );
 check(
   "client header account controls are covered by screenshot overlap smoke",
   uiSmoke.includes("client account controls overlap") &&
     uiSmoke.includes("client account item outside menu") &&
+    uiSmoke.includes("account controls overlap") &&
+    uiSmoke.includes("Shell account header smoke") &&
+    uiSmoke.includes("client header is not stable while scrolling") &&
     css.includes("body.client-shell .account-copy") &&
-    css.includes("body.client-shell .account-controls"),
+    css.includes("body.client-shell .account-controls") &&
+    css.includes("position: sticky;"),
+);
+check(
+  "product shell uses formal brand mark and client nav label",
+  uiSmoke.includes('class="brand-mark"') &&
+    uiSmoke.includes("'클라이언트'") &&
+    css.includes("body.product-shell .brand-mark") &&
+    !css.includes('body.product-shell .brand-mark::before'),
 );
 check(
   "ops/client UI smoke tracks the workspace replacement contract",

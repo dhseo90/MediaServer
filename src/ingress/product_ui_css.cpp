@@ -248,7 +248,7 @@ std::string ProductUiCss() {
     body.product-shell .app-header-top {
       grid-template-columns: minmax(0, 1fr) minmax(0, max-content);
       min-height: 60px;
-      gap: 14px;
+      gap: 20px;
     }
     body.product-shell .app-nav-cluster {
       min-width: 0;
@@ -266,17 +266,12 @@ std::string ProductUiCss() {
     body.product-shell .brand-mark {
       width: 32px;
       height: 32px;
+      display: block;
       border-radius: 9px;
       font-size: 0;
       background: var(--color-primary);
+      color: var(--color-on-primary);
       box-shadow: 0 6px 18px color-mix(in srgb, var(--color-primary) 22%, transparent);
-    }
-    body.product-shell .brand-mark::before {
-      content: "▶";
-      margin-left: 2px;
-      color: var(--overlay-label-text);
-      font-size: 15px;
-      line-height: 1;
     }
     body.product-shell .brand-copy {
       min-width: 0;
@@ -359,7 +354,7 @@ std::string ProductUiCss() {
     }
     body.product-shell .account-menu {
       width: auto;
-      max-width: min(34vw, 340px);
+      max-width: min(42vw, 460px);
       min-width: 0;
       min-height: 44px;
       height: auto;
@@ -370,13 +365,13 @@ std::string ProductUiCss() {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
-      gap: 8px;
+      gap: 16px;
     }
     body.product-shell .account-menu-top {
       min-width: 0;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 16px;
     }
     body.product-shell .sketch-status-chip {
       flex: 0 0 auto;
@@ -404,11 +399,11 @@ std::string ProductUiCss() {
     }
     body.product-shell .account-identity {
       min-width: 0;
-      gap: 8px;
+      gap: 10px;
     }
     body.product-shell .account-avatar {
-      width: 26px;
-      height: 26px;
+      width: 30px;
+      height: 30px;
       color: var(--color-text);
     }
     body.product-shell .account-copy {
@@ -437,7 +432,7 @@ std::string ProductUiCss() {
     body.product-shell .account-controls {
       flex: 0 0 auto;
       flex-wrap: nowrap;
-      gap: 6px;
+      gap: 12px;
     }
     body.product-shell .account-menu > form {
       flex: 0 0 auto;
@@ -446,8 +441,8 @@ std::string ProductUiCss() {
     body.product-shell .language-select,
     body.product-shell .account-shortcut,
     body.product-shell .account-menu > form > button {
-      min-height: 34px;
-      height: 34px;
+      min-height: 36px;
+      height: 36px;
       border-radius: 7px;
       background: var(--color-bg-elevated);
     }
@@ -599,14 +594,10 @@ std::string ProductUiCss() {
     .brand-mark {
       width: 34px;
       height: 34px;
-      display: inline-grid;
-      place-items: center;
+      display: block;
       border-radius: 8px;
       background: var(--color-primary);
       color: var(--color-on-primary);
-      font-size: 12px;
-      font-weight: 950;
-      letter-spacing: 0;
     }
     .brand-copy {
       min-width: 0;
@@ -2693,7 +2684,7 @@ std::string ProductUiCss() {
         display: grid;
         grid-template-columns: minmax(0, 1fr) auto;
         align-items: center;
-        gap: 6px;
+        gap: 10px;
         padding: 0;
       }
       body.product-shell .account-menu-top,
@@ -2703,7 +2694,7 @@ std::string ProductUiCss() {
         display: flex;
         justify-content: flex-end;
         align-items: center;
-        gap: 8px;
+        gap: 12px;
       }
       body.product-shell .account-copy,
       body.client-shell .account-copy {
@@ -2715,7 +2706,7 @@ std::string ProductUiCss() {
       }
       body.product-shell .sketch-status-chip,
       body.client-shell .sketch-status-chip {
-        padding: 0 7px;
+        display: none;
       }
       .app-header-top {
         grid-template-columns: minmax(0, 1fr) minmax(280px, 300px);
@@ -2749,20 +2740,17 @@ std::string ProductUiCss() {
         grid-template-columns: minmax(0, 1fr) auto;
         align-items: center;
         justify-content: flex-end;
-        gap: 6px;
+        gap: 10px;
         padding: 0;
       }
       body.client-shell .account-menu-top {
         min-width: 0;
         height: auto;
         justify-content: flex-end;
-        gap: 8px;
+        gap: 12px;
       }
       body.client-shell .account-identity {
         display: flex;
-      }
-      body.client-shell .sketch-status-chip {
-        display: none;
       }
       body.client-shell .account-menu > form {
         width: auto;
@@ -3170,7 +3158,7 @@ std::string ClientShellCss() {
       grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
       justify-content: flex-end;
-      gap: 6px;
+      gap: 10px;
       padding: 0;
     }
     body.client-shell .account-identity {
@@ -3187,11 +3175,12 @@ std::string ClientShellCss() {
       min-width: 0;
       overflow: hidden;
       justify-content: flex-end;
-      gap: 8px;
+      gap: 12px;
     }
     body.client-shell .account-controls {
       flex: 0 0 auto;
       flex-wrap: nowrap;
+      gap: 10px;
     }
     body.client-shell .account-menu > form > button {
       min-width: 52px;
@@ -3726,12 +3715,16 @@ std::string ClientShellCss() {
       margin: 0;
     }
     body.client-shell header.app-chrome {
+      position: sticky;
+      top: 0;
+      z-index: 80;
       min-height: 60px;
       padding: 0 22px;
       border-width: 0 0 1px;
       border-radius: 0;
       background: color-mix(in srgb, var(--panel) 97%, transparent);
       box-shadow: 0 1px 0 color-mix(in srgb, var(--line) 70%, transparent);
+      overflow: visible;
     }
     body.client-shell header.app-chrome .app-header-top {
       grid-template-columns: minmax(0, 1fr) minmax(0, max-content);
@@ -4182,12 +4175,14 @@ std::string ClientShellCss() {
       inset: 12px 12px auto 12px;
       z-index: 12;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 136px;
+      grid-template-columns: minmax(0, 1fr);
       align-items: flex-start;
-      gap: 12px;
+      gap: 8px;
       pointer-events: none;
     }
     body.client-shell .tile-title {
+      grid-column: 1;
+      grid-row: 2;
       min-width: 0;
       display: flex;
       flex-direction: column;
@@ -4221,18 +4216,30 @@ std::string ClientShellCss() {
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    body.client-shell .tile-title .chip {
+    body.client-shell .tile-status-pill {
       flex: 0 0 auto;
-      max-width: 100%;
-      width: 66px;
-      min-height: 22px;
-      padding: 2px 7px;
-      background: color-mix(in srgb, var(--accent) 90%, transparent);
-      color: var(--overlay-label-text);
+      width: auto;
+      min-width: 66px;
+      max-width: 84px;
+      min-height: 28px;
+      padding: 3px 9px;
+      border: 1px solid color-mix(in srgb, var(--color-primary) 28%, var(--line));
+      background: var(--accent-soft);
+      color: var(--color-primary-weak-text);
       justify-content: center;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+    body.client-shell .tile-status-pill.warn {
+      border-color: color-mix(in srgb, var(--warn) 30%, var(--line));
+      background: var(--warn-soft);
+      color: var(--warn);
+    }
+    body.client-shell .tile-status-pill.bad {
+      border-color: color-mix(in srgb, var(--bad) 30%, var(--line));
+      background: var(--bad-soft);
+      color: var(--bad);
     }
     body.client-shell .tile-mode-controls {
       max-width: 100%;
@@ -4282,7 +4289,10 @@ std::string ClientShellCss() {
       pointer-events: auto;
       display: flex;
       flex-wrap: nowrap;
-      gap: 6px;
+      align-items: center;
+      gap: 7px;
+      grid-column: 1;
+      grid-row: 1;
       justify-self: end;
     }
     body.client-shell .tile-actions .icon-button {
@@ -4327,12 +4337,16 @@ std::string ClientShellCss() {
       filter: none;
     }
     body.client-shell .tile-stage > span[data-role="placeholder"] {
+      display: none;
       inset: 50% 22px auto 22px;
       transform: translateY(-50%);
       color: color-mix(in srgb, var(--overlay-label-text) 82%, transparent);
       text-align: center;
       font-size: 18px;
       font-weight: 700;
+    }
+    body.client-shell .tile[data-view-id=""] .tile-stage > span[data-role="placeholder"] {
+      display: block;
     }
     body.client-shell .tile-status {
       display: none;
@@ -4512,7 +4526,20 @@ std::string ClientShellCss() {
       .tile-actions { opacity: 1; pointer-events: auto; }
       .tile-actions .icon-button { width: 44px; min-width: 44px; height: 44px; min-height: 44px; }
       body.client-shell .tile-head {
-        grid-template-columns: minmax(0, 1fr) 150px;
+        grid-template-columns: minmax(0, 1fr);
+      }
+      body.client-shell .tile-title {
+        grid-column: 1;
+        grid-row: 2;
+      }
+      body.client-shell .tile-actions {
+        grid-column: 1;
+        grid-row: 1;
+        justify-self: end;
+      }
+      body.client-shell .tile-status-pill {
+        min-height: 44px;
+        max-width: 90px;
       }
       body.client-shell .tile-actions .icon-button {
         width: 44px;

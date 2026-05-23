@@ -13,6 +13,11 @@ std::string ProductLanguageSelectHtml() {
     return R"(<label class="language-control"><span>언어</span><select class="language-select" aria-label="언어 선택" title="언어 선택"><option value="ko">한국어</option><option value="en">English</option></select></label>)";
 }
 
+// 주요 동작: 제품 헤더에서 쓰는 정식 브랜드 마크 SVG를 제공한다.
+std::string ProductBrandMarkSvg() {
+    return R"(<svg class="brand-mark" viewBox="0 0 48 48" role="img" aria-hidden="true" focusable="false"><rect x="7" y="10" width="34" height="24" rx="7" fill="none" stroke="currentColor" stroke-width="3"/><path d="M21 17.5 31 24 21 30.5V17.5Z" fill="currentColor"/><path d="M18 39h12" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></svg>)";
+}
+
 // 주요 동작: 네비게이션 key에 맞는 inline SVG를 반환하고, 알 수 없는 key는 기본 아이콘으로 대체한다.
 std::string ProductNavIconSvg(const std::string& key) {
     if (key == "home") {

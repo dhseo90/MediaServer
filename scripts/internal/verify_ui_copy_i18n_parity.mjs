@@ -55,7 +55,9 @@ check("product translation map includes recent UI copy", () => {
     "'소스 상태 변경 이력에서 같은 source incident 흐름을 확인합니다.':",
     "'EventRecord 저장/POST 상태와 source health 단서를 함께 확인합니다.':",
     "'관련 root-cause 또는 source health incident와 같은 cid를 비교합니다.':",
+    "'재생': 'Play'",
     "'재연결': 'Reconnect'",
+    "'새로고침': 'Refresh'",
     "'정지': 'Stop'",
     "'도크': 'Dock'",
     "'비트레이트': 'Bitrate'",
@@ -133,7 +135,7 @@ check("product translation patterns include repeated live tile labels", () => {
   const js = readText("src/ingress/product_ui_js.cpp");
   const required = [
     "^타일\\s+(\\d+):\\s+(.+)$",
-    "^타일\\s+(\\d+)\\s+(시작|재연결|정지|연결 해제|채널 선택|채널|보기 방식|VA 오버레이|VA 룰)$",
+    "^타일\\s+(\\d+)\\s+(시작|재생|재연결|새로고침|정지|연결 해제|채널 선택|채널|보기 방식|VA 오버레이|VA 룰)$",
     "^상태\\s+(.+)$",
     "^메타데이터\\s+(.+)$",
     "^재시도\\s+(\\d+)$",
@@ -195,6 +197,7 @@ check("client live tile a11y i18n snapshot is pinned", () => {
     "'연결됨': 'Connected'",
     "'연결 중': 'Connecting'",
     "'연결 끊김': 'Disconnected'",
+    "'온라인': 'Online'",
     "'실패': 'Failed'",
     "'정상': 'Normal'",
     "'지연': 'Stale'",

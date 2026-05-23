@@ -61,6 +61,7 @@ const clientLiveA11ySnapshot = JSON.parse(fs.readFileSync(path.join(process.cwd(
 
 const productShellMust = [
   'class="product-shell',
+  'class="brand-mark"',
   'id="themeToggleBtn"',
   'class="account-menu"',
   "window.MediaServerUi",
@@ -70,6 +71,7 @@ const opsShellMust = [
   'aria-label="운영 메뉴"',
   'href="/ops/home"',
   'href="/client/live"',
+  '클라이언트',
 ];
 
 const clientShellMust = [
@@ -123,7 +125,7 @@ const pageChecks = [
     name: "client-live",
     path: "/client/live",
     visualSelector: '[data-testid="client-shell-page"]',
-    must: ['data-testid="client-shell-page"', 'data-client-active="live"', 'id="views"', 'id="detail"', '/webrtc/config', 'peerConnectionConfig', 'viewMaxTiles', 'maxTiles', 'id="liveDensity"', 'id="liveSummary"', 'data-testid="client-live-action-reduction"', 'data-action-model="source-drag,tile-selection,icon-actions,keyboard-shortcuts"', 'data-disconnect-contract="tile-disconnect-clears-slot,workspace-disconnect-keeps-layout"', 'disconnectLiveTile', 'clearLiveTileSlot', 'data-disconnect-scope="tile"', '전체 연결 해제', 'data-testid="client-live-workspace"', 'data-workspace-model="source-tree,drag-drop-grid,multi-source"', 'data-testid="client-live-source-tree"', 'data-tree-model="group/site/floor/source"', 'data-tree-level="site"', 'data-tree-level="floor"', 'data-testid="client-live-dock-event-feed"', 'data-redaction="viewer-safe-events"', 'id="liveDockSide"', 'mediaServerClientLiveDockSide', 'id="liveInfoOverlayToggle"', 'mediaServerClientLiveInfoOverlay', 'data-testid="client-live-tile-info-overlay"', 'data-overlay-trigger="info-toggle"', 'data-testid="client-live-va-overlay-toggle"', 'data-role="mode-buttons"', 'data-mode-action="raw"', 'data-mode-action="va-overlay"', 'setTileOverlayMode', 'data-testid="client-live-layout-presets"', 'data-preset-contract="user-preference,role-preset"', 'liveLayoutPreferenceEndpoint', '/client/api/preferences/live-layout', 'liveCurrentLayoutSnapshot', 'applyLiveLayoutPreference', 'selectedSources', 'overlayDefaults', 'refreshTilePlaybackStats', 'framesPerSecond', 'bytesReceived', 'framesDropped', 'refreshLiveDockEventFeed', '/events?limit=6', 'data-source-view="${escapeHtml(view.viewId)}"', 'draggable="true"', 'assignViewToTile', 'assignSourceToSelectedTile', 'data-drop-state="idle"', 'dataTransfer.setData', "root.addEventListener('drop'", "root.addEventListener('dragover'", 'class="workspace-actions"', 'class="icon-button tile-action-primary"', 'data-action="restart"', 'restartLiveTile', "event.key === 's'", "event.key === 'Delete'", 'tabindex="0"', 'focusLiveTile', 'ArrowRight', 'aria-describedby="liveTileStatus${tile.index}"', 'data-role="a11y-status"', 'aria-live="polite"', 'aria-atomic="true"', 'liveTileA11yStatus', 'liveTileConnectionLabel', 'clientDynamicText', 'data-client-copy="status"', 'data-client-copy="events"', '타일 ${tile.index + 1} 시작'],
+    must: ['data-testid="client-shell-page"', 'data-client-active="live"', 'id="views"', 'id="detail"', '/webrtc/config', 'peerConnectionConfig', 'viewMaxTiles', 'maxTiles', 'id="liveDensity"', 'id="liveSummary"', 'data-testid="client-live-action-reduction"', 'data-action-model="source-drag,tile-selection,icon-actions,keyboard-shortcuts"', 'data-disconnect-contract="tile-disconnect-clears-slot,workspace-disconnect-keeps-layout"', 'disconnectLiveTile', 'clearLiveTileSlot', '전체 연결 해제', 'data-testid="client-live-workspace"', 'data-workspace-model="source-tree,drag-drop-grid,multi-source"', 'data-testid="client-live-source-tree"', 'data-tree-model="group/site/floor/source"', 'data-tree-level="site"', 'data-tree-level="floor"', 'data-testid="client-live-dock-event-feed"', 'data-redaction="viewer-safe-events"', 'id="liveDockSide"', 'mediaServerClientLiveDockSide', 'id="liveInfoOverlayToggle"', 'mediaServerClientLiveInfoOverlay', 'data-testid="client-live-tile-info-overlay"', 'data-overlay-trigger="info-toggle"', 'data-testid="client-live-va-overlay-toggle"', 'data-role="mode-buttons"', 'data-mode-action="raw"', 'data-mode-action="va-overlay"', 'setTileOverlayMode', 'toggleLiveTilePlayback', 'data-action="toggle-playback"', 'data-role="tile-playback-icon"', 'data-role="status"', 'data-testid="client-live-layout-presets"', 'data-preset-contract="user-preference,role-preset"', 'liveLayoutPreferenceEndpoint', '/client/api/preferences/live-layout', 'liveCurrentLayoutSnapshot', 'applyLiveLayoutPreference', 'selectedSources', 'overlayDefaults', 'refreshTilePlaybackStats', 'framesPerSecond', 'bytesReceived', 'framesDropped', 'refreshLiveDockEventFeed', '/events?limit=6', 'data-source-view="${escapeHtml(view.viewId)}"', 'draggable="true"', 'assignViewToTile', 'assignSourceToSelectedTile', 'data-drop-state="idle"', 'dataTransfer.setData', "root.addEventListener('drop'", "root.addEventListener('dragover'", 'class="workspace-actions"', 'class="icon-button tile-action-primary"', 'data-action="restart"', 'restartLiveTile', "event.key === 's'", "event.key === 'Delete'", 'tabindex="0"', 'focusLiveTile', 'ArrowRight', 'aria-describedby="liveTileStatus${tile.index}"', 'data-role="a11y-status"', 'aria-live="polite"', 'aria-atomic="true"', 'liveTileA11yStatus', 'liveTileConnectionLabel', 'clientDynamicText', 'data-client-copy="status"', 'data-client-copy="events"', '타일 ${tile.index + 1} 재생'],
     shellMust: clientShellMust,
     mustNot: [...clientForbiddenText(), 'new RTCPeerConnection({ iceServers: [] })', 'id="liveAllStart"', 'id="liveAllRestart"'],
   },
@@ -277,6 +279,8 @@ if (screenshotEnabled) {
     summaryTitle: "Ops/Client screenshot smoke 요약",
   });
   if (result.failCount > 0) process.exit(1);
+  const shellHeaderResult = await runShellHeaderAccountSmoke();
+  if (shellHeaderResult.failCount > 0) process.exit(1);
   const clientHeaderResult = await runClientHeaderResponsiveSmoke();
   if (clientHeaderResult.failCount > 0) process.exit(1);
   const clientLiveKeyboardResult = await runClientLiveTileKeyboardSmoke();
@@ -456,6 +460,120 @@ function clientRenderedLeakExpression() {
   `;
 }
 
+async function runShellHeaderAccountSmoke() {
+  let passCount = 0;
+  let failCount = 0;
+  const failures = [];
+  const checks = [
+    { name: "ops-home-account-header", path: "/ops/home" },
+    { name: "ops-dashboard-account-header", path: "/ops/dashboard" },
+    { name: "client-live-account-header", path: "/client/live" },
+  ];
+  let checkIndex = 0;
+  for (const check of checks) {
+    for (const width of visualWidths) {
+      const browser = await openBrowserPage({
+        httpBase,
+        pagePath: check.path,
+        timeoutMs,
+        chromePath,
+        debugPort: debugPortBase + 160 + checkIndex,
+        width,
+        height: visualHeight,
+        outputDir,
+      });
+      checkIndex += 1;
+      try {
+        const result = await browser.evaluate(shellHeaderAccountExpression(), 10000);
+        const label = `${check.name}-${width}`;
+        if (!result?.ok) {
+          const details = Array.isArray(result?.issues) ? result.issues.join("; ") : JSON.stringify(result);
+          throw new Error(`${label}: ${details}`);
+        }
+        passCount += 1;
+        console.log(`[pass] ${label}: accountItems=${result.accountItemCount}, brand=${Math.round(result.brandWidth)}x${Math.round(result.brandHeight)}`);
+      } catch (error) {
+        failCount += 1;
+        const message = error instanceof Error ? error.message : String(error);
+        failures.push(`[${check.name}] ${message}`);
+        console.log(`[fail] ${check.name}: ${message}`);
+      } finally {
+        await browser.close();
+      }
+    }
+  }
+  console.log("");
+  console.log("== Shell account header smoke 요약 ==");
+  console.log(`- 통과: ${passCount}`);
+  console.log(`- 실패: ${failCount}`);
+  if (failures.length > 0) {
+    console.log("- 실패 상세:");
+    for (const failure of failures) {
+      console.log(`  - ${failure}`);
+    }
+  }
+  return { passCount, failCount };
+}
+
+function shellHeaderAccountExpression() {
+  return `
+    (() => {
+      const issues = [];
+      const account = document.querySelector('body.product-shell header.app-chrome .account-menu');
+      const brand = document.querySelector('body.product-shell header.app-chrome .brand-mark');
+      if (!account) issues.push('account menu missing');
+      if (!brand) issues.push('formal brand mark missing');
+      if (!account || !brand) return { ok: false, issues };
+      const visibleRect = element => {
+        if (!element) return null;
+        const style = window.getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        if (style.display === 'none' || style.visibility === 'hidden' || rect.width <= 0 || rect.height <= 0) return null;
+        return rect;
+      };
+      const accountRect = account.getBoundingClientRect();
+      const brandRect = brand.getBoundingClientRect();
+      if (brandRect.width < 30 || brandRect.height < 30) {
+        issues.push('brand mark too small: ' + Math.round(brandRect.width) + 'x' + Math.round(brandRect.height));
+      }
+      const accountItems = [
+        ['status', visibleRect(account.querySelector('.sketch-status-chip'))],
+        ['avatar', visibleRect(account.querySelector('.account-avatar'))],
+        ['theme', visibleRect(account.querySelector('#themeToggleBtn'))],
+        ['language', visibleRect(account.querySelector('.language-select'))],
+        ['shortcut', visibleRect(account.querySelector('.account-shortcut'))],
+        ['logout', visibleRect(account.querySelector('form button'))],
+      ].filter(([, rect]) => rect);
+      for (let index = 0; index < accountItems.length; index += 1) {
+        const [name, rect] = accountItems[index];
+        if (rect.left < accountRect.left - 1 || rect.right > accountRect.right + 1) {
+          issues.push('account item outside menu: ' + name);
+        }
+        for (let next = index + 1; next < accountItems.length; next += 1) {
+          const [otherName, otherRect] = accountItems[next];
+          const overlaps = rect.left < otherRect.right &&
+            rect.right > otherRect.left &&
+            rect.top < otherRect.bottom &&
+            rect.bottom > otherRect.top;
+          if (overlaps) issues.push('account controls overlap: ' + name + '/' + otherName);
+        }
+      }
+      const doc = document.documentElement;
+      const body = document.body;
+      const overflowX = Math.max(0, Math.max(doc.scrollWidth, body.scrollWidth) - window.innerWidth);
+      if (overflowX > 2) issues.push('document horizontal overflow ' + overflowX + 'px');
+      return {
+        ok: issues.length === 0,
+        issues,
+        accountItemCount: accountItems.length,
+        brandWidth: brandRect.width,
+        brandHeight: brandRect.height,
+        overflowX,
+      };
+    })()
+  `;
+}
+
 async function runClientHeaderResponsiveSmoke() {
   let headerPassCount = 0;
   let headerFailCount = 0;
@@ -585,6 +703,14 @@ function clientHeaderResponsiveExpression() {
       if (overflowX > 2) {
         issues.push('document horizontal overflow ' + overflowX + 'px');
       }
+      const header = headerTop.closest('header.app-chrome');
+      const originalScrollY = window.scrollY;
+      window.scrollTo(0, 220);
+      const scrolledHeaderRect = header?.getBoundingClientRect();
+      if (!scrolledHeaderRect || Math.abs(scrolledHeaderRect.top) > 1) {
+        issues.push('client header is not stable while scrolling');
+      }
+      window.scrollTo(0, originalScrollY);
       return {
         ok: issues.length === 0,
         issues,
@@ -593,6 +719,7 @@ function clientHeaderResponsiveExpression() {
         accountTop: accountRect.top,
         navBottom: navRect.bottom,
         accountItemCount: accountItems.length,
+        scrolledHeaderTop: scrolledHeaderRect?.top ?? null,
         overflowX,
       };
     })()
@@ -730,8 +857,8 @@ function clientLiveTileKeyboardExpression(a11ySnapshot) {
         }
         const labels = Array.from(first.querySelectorAll('button, select')).map(node => node.getAttribute('aria-label') || '');
         const expectedLabels = language === 'english'
-          ? ['Tile 1 Start', 'Tile 1 Reconnect', 'Tile 1 Disconnect']
-          : ['타일 1 시작', '타일 1 재연결', '타일 1 연결 해제'];
+          ? ['Tile 1 Play', 'Tile 1 Refresh']
+          : ['타일 1 재생', '타일 1 새로고침'];
         for (const expected of expectedLabels) {
           if (!labels.some(label => label.includes(expected))) issue('missing control aria-label: ' + expected);
         }

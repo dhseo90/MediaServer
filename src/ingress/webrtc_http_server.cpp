@@ -2153,7 +2153,7 @@ void AppendOpsShellStart(std::ostringstream& out,
       <div class="app-header-top">
         <div class="app-nav-cluster sketch-nav-cluster">
           <div class="app-brand sketch-brand">
-            <span class="brand-mark" aria-hidden="true">MS</span>
+            )" << ProductBrandMarkSvg() << R"(
             <div class="brand-copy">
               <strong>Media Server</strong>
               <span>Ops</span>
@@ -2168,7 +2168,7 @@ void AppendOpsShellStart(std::ostringstream& out,
     if (auth::IsAdmin(principal)) {
         AppendImageNavLink(out, "/ops/users", "users", "사용자", active == "users", "data-admin-only");
     }
-    AppendImageNavLink(out, "/client/live", "client", "미리보기", false, R"(aria-label="Client Preview")");
+    AppendImageNavLink(out, "/client/live", "client", "클라이언트", false, R"(aria-label="클라이언트")");
     out << R"(          </nav>
         </div>
 )";
@@ -4169,7 +4169,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
       <div class="app-header-top">
         <div class="app-nav-cluster sketch-nav-cluster">
           <div class="app-brand sketch-brand">
-            <span class="brand-mark" aria-hidden="true">MS</span>
+            )" << ProductBrandMarkSvg() << R"(
             <div class="brand-copy">
               <strong>Media Server</strong>
               <span>)" << HtmlEscape(client_subtitle) << R"(</span>
