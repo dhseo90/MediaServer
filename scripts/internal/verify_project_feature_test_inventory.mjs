@@ -4,6 +4,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
@@ -62,11 +63,34 @@ check("inventory has required feature/UI/test/comparison sections", () => {
     "## Route/API Surface Audit",
     "## Current Verification Inventory",
     "## Fixture And Test Artifact Inventory Audit",
+    "## Script Inventory Audit",
+    "### Tracked Script File Detail",
     "## Comparison Result",
     "## Current Gaps",
     "## Maintenance Rules",
   ]) {
     requireText(inventory, heading, `inventory missing section ${heading}`);
+  }
+});
+
+check("inventory lists every tracked script file", () => {
+  const missing = [];
+  for (const file of gitLsFiles(["scripts"])) {
+    if (!inventory.includes(`\`${file}\``)) {
+      missing.push(file);
+    }
+  }
+  assert(missing.length === 0, `script inventory missing file(s):\n${missing.join("\n")}`);
+  for (const phrase of [
+    "ignored runtime 생성물",
+    "`scripts/.media_server.env`",
+    "`scripts/**/__pycache__/`",
+    "`*.pyc`",
+    "#### server-command",
+    "#### sub-verifier",
+    "#### test-entry",
+  ]) {
+    requireText(inventory, phrase, `script inventory missing phrase: ${phrase}`);
   }
 });
 
@@ -772,6 +796,16 @@ function requireText(text, needle, message) {
 
 function readText(filePath) {
   return fs.readFileSync(filePath, "utf8");
+}
+
+function gitLsFiles(args) {
+  return execFileSync("git", ["ls-files", ...args], {
+    cwd: rootDir,
+    encoding: "utf8",
+  })
+    .trim()
+    .split("\n")
+    .filter(Boolean);
 }
 
 function parseServerCommands() {

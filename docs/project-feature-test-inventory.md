@@ -425,6 +425,8 @@ inventory에서 제외합니다.
 - `helper-library`: 공통 shell/Node helper로 다른 스크립트가 import/source/call
 - `helper-smoke`: 상위 verifier가 호출하는 보조 smoke, test fixture runner, browser helper
 - `compiled-smoke`: 상위 verifier가 빌드/실행하는 C++ smoke source
+- `sub-verifier`: 상위 verifier 또는 server command가 호출하는 하위 verifier
+- `test-entry`: `test` 계열 흐름이 호출하는 하위 test entry
 - `example`: integrator/client example
 - `env-template`: 로컬 env 예시 template
 
@@ -438,6 +440,219 @@ inventory에서 제외합니다.
   `start`/`restart`/`foreground` 흐름과 중복되어 제거했습니다.
 
 이 기준은 `./server.sh verify-script-inventory`가 검사합니다.
+
+### Tracked Script File Detail
+
+이 목록은 `git ls-files scripts` 기준의 현재 `v1.8.0` tracked script inventory입니다.
+ignored runtime 생성물인 `scripts/.media_server.env`, `scripts/**/__pycache__/`,
+`*.pyc`는 제품 source inventory가 아닙니다.
+
+#### compiled-smoke
+
+- `scripts/internal/analysis_state_smoke.cpp`
+- `scripts/internal/onvif_auth_injection_loopback_smoke.cpp`
+- `scripts/internal/onvif_credential_provider_smoke.cpp`
+- `scripts/internal/onvif_field_http_probe_smoke.cpp`
+- `scripts/internal/onvif_http_transport_smoke.cpp`
+- `scripts/internal/onvif_local_simulator_smoke.cpp`
+- `scripts/internal/onvif_probe_adapter_smoke.cpp`
+- `scripts/internal/onvif_probe_error_wording_smoke.cpp`
+- `scripts/internal/onvif_probe_parser_smoke.cpp`
+- `scripts/internal/onvif_rtsps_import_draft_smoke.cpp`
+- `scripts/internal/onvif_soap_fault_matrix_smoke.cpp`
+- `scripts/internal/va_metadata_replay.cpp`
+
+#### env-template
+
+- `scripts/.media_server.env.example`
+
+#### example
+
+- `scripts/examples/va_metadata_sse_client.py`
+- `scripts/examples/va_rtsp_sse_overlay_client.py`
+- `scripts/examples/va_rtsp_ws_overlay_client.py`
+- `scripts/examples/webrtc_va_metadata_client.html`
+
+#### helper-library
+
+- `scripts/internal/env_common.sh`
+- `scripts/internal/numeric_id_helpers.mjs`
+- `scripts/internal/numeric_id_helpers.sh`
+- `scripts/internal/rule_preview_fixture_helpers.mjs`
+- `scripts/internal/script_arg_utils.mjs`
+- `scripts/internal/ui_visual_smoke_lib.mjs`
+
+#### helper-smoke
+
+- `scripts/internal/browser_webrtc_publish_consume_check.mjs`
+- `scripts/internal/capture_docs_ui_assets.mjs`
+- `scripts/internal/serve_test_rtsp_source.py`
+- `scripts/internal/whip_publish_test.py`
+
+#### server-command
+
+- `scripts/internal/archive_rc_gate_artifact.mjs` - commands: `rc-artifact-archive`
+- `scripts/internal/auth_user_cli.sh` - commands: `auth-user`
+- `scripts/internal/build_server.sh` - commands: `build`
+- `scripts/internal/check_server.sh` - commands: `status`, `check`
+- `scripts/internal/collect_ops_bundle.sh` - commands: `ops-bundle`
+- `scripts/internal/compare_close_object_tracker.py` - commands: `compare-close-object-tracker`, `verify-close-object-fixture-matrix`
+- `scripts/internal/compare_ui_visual_baseline.mjs` - commands: `compare-ui-visual-baseline`
+- `scripts/internal/diagnose_media_server.sh` - commands: `diagnose`
+- `scripts/internal/install_deps.sh` - commands: `install`
+- `scripts/internal/manage_ui_visual_artifacts.mjs` - commands: `ui-visual-artifact-maintenance`
+- `scripts/internal/print_external_test_urls.sh` - commands: `urls`, `external-urls`
+- `scripts/internal/replay_va_metadata.sh` - commands: `replay-va-metadata`
+- `scripts/internal/restart_server.sh` - commands: `restart`
+- `scripts/internal/run_ops_evidence_retention_cleanup.mjs` - commands: `ops-evidence-cleanup`
+- `scripts/internal/run_server_foreground.sh` - commands: `foreground`, `run`
+- `scripts/internal/start_server.sh` - commands: `start`
+- `scripts/internal/stop_server.sh` - commands: `stop`
+- `scripts/internal/summarize_verification_reports.py` - commands: `summarize-reports`
+- `scripts/internal/test_all.sh` - commands: `test`
+- `scripts/internal/va_metadata_stream_smoke.py` - commands: `verify-sse-metadata`, `verify-va-metadata-sidechannel`
+- `scripts/internal/verify_actions_security.mjs` - commands: `verify-actions-security`
+- `scripts/internal/verify_adaptive_tuner.sh` - commands: `verify-adaptive`
+- `scripts/internal/verify_analysis_state_smoke.sh` - commands: `verify-analysis-state`
+- `scripts/internal/verify_auth_bootstrap.sh` - commands: `verify-auth-bootstrap`
+- `scripts/internal/verify_auth_routes.sh` - commands: `verify-auth-routes`
+- `scripts/internal/verify_auth_users.sh` - commands: `verify-auth-users`
+- `scripts/internal/verify_bot_sort_deepsort_research_boundary.mjs` - commands: `verify-bot-sort-deepsort-research-boundary`
+- `scripts/internal/verify_bundle_distribution_policy.mjs` - commands: `verify-bundle-policy`
+- `scripts/internal/verify_client_action_reduction.mjs` - commands: `verify-client-action-reduction`
+- `scripts/internal/verify_client_dashboard_polish.mjs` - commands: `verify-client-dashboard-polish`
+- `scripts/internal/verify_client_live_workspace.mjs` - commands: `verify-client-live-workspace`
+- `scripts/internal/verify_client_saved_views_layout_presets.mjs` - commands: `verify-client-saved-views-layout-presets`
+- `scripts/internal/verify_client_source_dock_events.mjs` - commands: `verify-client-source-dock-events`
+- `scripts/internal/verify_client_tile_disconnect_contract.mjs` - commands: `verify-client-tile-disconnect`
+- `scripts/internal/verify_client_tile_info_overlay_health.mjs` - commands: `verify-client-tile-info-overlay-health`
+- `scripts/internal/verify_code_comments.mjs` - commands: `verify-code-comments`
+- `scripts/internal/verify_codec_matrix.sh` - commands: `verify-codecs`
+- `scripts/internal/verify_docs_links.mjs` - commands: `verify-docs-links`
+- `scripts/internal/verify_docs_ui_assets.mjs` - commands: `verify-docs-ui-assets`
+- `scripts/internal/verify_event_post_dispatch.sh` - commands: `verify-event-post`
+- `scripts/internal/verify_event_post_longrun.sh` - commands: `verify-event-post-longrun`
+- `scripts/internal/verify_feature_scope_decision_gate.mjs` - commands: `verify-feature-scope-gate`
+- `scripts/internal/verify_fixture_cleanup_contracts.mjs` - commands: `verify-fixture-cleanup-contracts`
+- `scripts/internal/verify_flaky_verifier_stabilization.mjs` - commands: `verify-flaky-verifiers`
+- `scripts/internal/verify_image_analysis.sh` - commands: `verify-image-analysis`
+- `scripts/internal/verify_integrator_contract_artifact.mjs` - commands: `verify-integrator-contract-artifact`
+- `scripts/internal/verify_longrun_separation.mjs` - commands: `verify-longrun-separation`
+- `scripts/internal/verify_manual_ui_evidence.mjs` - commands: `verify-manual-ui-evidence`
+- `scripts/internal/verify_multichannel_webrtc.sh` - commands: `verify-multichannel`
+- `scripts/internal/verify_oc_sort_benchmark_boundary.mjs` - commands: `verify-oc-sort-benchmark-boundary`
+- `scripts/internal/verify_onvif_auth_injection_design.mjs` - commands: `verify-onvif-auth-injection-design`
+- `scripts/internal/verify_onvif_auth_injection_loopback.sh` - commands: `verify-onvif-auth-injection-loopback`
+- `scripts/internal/verify_onvif_closed_loopback_failure_matrix.mjs` - commands: `verify-onvif-closed-loopback-failure-matrix`
+- `scripts/internal/verify_onvif_credential_reference_policy.mjs` - commands: `verify-onvif-credential-reference-policy`
+- `scripts/internal/verify_onvif_field_http_probe.mjs` - commands: `verify-onvif-field-http-probe`
+- `scripts/internal/verify_onvif_field_smoke_gate.mjs` - commands: `verify-onvif-field-smoke-gate`
+- `scripts/internal/verify_onvif_field_smoke_redaction.mjs` - commands: `verify-onvif-field-smoke-redaction`
+- `scripts/internal/verify_onvif_field_smoke_sample_bundle.mjs` - commands: `verify-onvif-field-smoke-sample-bundle`
+- `scripts/internal/verify_onvif_http_transport.sh` - commands: `verify-onvif-http-transport`
+- `scripts/internal/verify_onvif_https_soap_transport_design.mjs` - commands: `verify-onvif-https-soap-transport-design`
+- `scripts/internal/verify_onvif_https_tls_fixture.mjs` - commands: `verify-onvif-https-tls-fixture`
+- `scripts/internal/verify_onvif_import_draft_api.mjs` - commands: `verify-onvif-import-draft-api`
+- `scripts/internal/verify_onvif_live_import_contract.mjs` - commands: `verify-onvif-live-import-contract`
+- `scripts/internal/verify_onvif_local_simulator.sh` - commands: `verify-onvif-local-simulator`
+- `scripts/internal/verify_onvif_no_device_completion.mjs` - commands: `verify-onvif-no-device-completion`
+- `scripts/internal/verify_onvif_no_device_mode.mjs` - commands: `verify-onvif-no-device-mode`
+- `scripts/internal/verify_onvif_no_device_suite.mjs` - commands: `verify-onvif-no-device-suite`
+- `scripts/internal/verify_onvif_ops_sources_ui_roundtrip.mjs` - commands: `verify-onvif-ops-sources-ui`
+- `scripts/internal/verify_onvif_probe_adapter.sh` - commands: `verify-onvif-probe-adapter`
+- `scripts/internal/verify_onvif_probe_draft_api.mjs` - commands: `verify-onvif-probe-draft-api`
+- `scripts/internal/verify_onvif_probe_error_wording_matrix.mjs` - commands: `verify-onvif-probe-error-wording`
+- `scripts/internal/verify_onvif_probe_fixture_contract.mjs` - commands: `verify-onvif-probe-fixture-contract`
+- `scripts/internal/verify_onvif_probe_parser.sh` - commands: `verify-onvif-probe-parser`
+- `scripts/internal/verify_onvif_probe_profile_variants.mjs` - commands: `verify-onvif-probe-profile-variants`
+- `scripts/internal/verify_onvif_protocol_support_matrix.mjs` - commands: `verify-onvif-protocol-support-matrix`
+- `scripts/internal/verify_onvif_rtsp_downstream.mjs` - commands: `verify-onvif-rtsp-downstream`
+- `scripts/internal/verify_onvif_rtsps_draft_policy.mjs` - commands: `verify-onvif-rtsps-draft-policy`
+- `scripts/internal/verify_onvif_soap_fault_matrix.mjs` - commands: `verify-onvif-soap-fault-matrix`
+- `scripts/internal/verify_onvif_synthetic_vendor_fixture_pack.mjs` - commands: `verify-onvif-synthetic-vendor-fixtures`
+- `scripts/internal/verify_onvif_tls_transport_policy.mjs` - commands: `verify-onvif-tls-transport-policy`
+- `scripts/internal/verify_onvif_unsupported_api_guard.mjs` - commands: `verify-onvif-unsupported-api-guard`
+- `scripts/internal/verify_onvif_ws_discovery_ux.mjs` - commands: `verify-onvif-ws-discovery-ux`
+- `scripts/internal/verify_ops_alert_delivery_integrations.mjs` - commands: `verify-ops-alert-delivery-integrations`
+- `scripts/internal/verify_ops_audit_persistence.mjs` - commands: `verify-ops-audit-persistence`
+- `scripts/internal/verify_ops_audit_trail.mjs` - commands: `verify-ops-audit-trail`
+- `scripts/internal/verify_ops_backup_recovery_guide.mjs` - commands: `verify-ops-backup-recovery-guide`
+- `scripts/internal/verify_ops_backup_restore_dry_run.mjs` - commands: `verify-ops-backup-restore-dry-run`
+- `scripts/internal/verify_ops_channel_bulk.mjs` - commands: `verify-ops-channel-bulk`
+- `scripts/internal/verify_ops_client_shared_declutter.mjs` - commands: `verify-ops-client-shared-declutter`
+- `scripts/internal/verify_ops_client_ui_smoke.mjs` - commands: `verify-ops-client-ui`
+- `scripts/internal/verify_ops_diagnostics_bundle.sh` - commands: `verify-ops-diagnostics-bundle`
+- `scripts/internal/verify_ops_event_records_scope.mjs` - commands: `verify-ops-event-records-scope`
+- `scripts/internal/verify_ops_event_review_inbox.mjs` - commands: `verify-ops-event-review-inbox`
+- `scripts/internal/verify_ops_evidence_retention_cleanup.mjs` - commands: `verify-ops-evidence-retention-cleanup`
+- `scripts/internal/verify_ops_operator_incident_timeline.mjs` - commands: `verify-ops-operator-incident-timeline`
+- `scripts/internal/verify_ops_root_cause_panel.mjs` - commands: `verify-ops-root-cause-panel`
+- `scripts/internal/verify_ops_route_boundaries.mjs` - commands: `verify-ops-route-boundaries`
+- `scripts/internal/verify_ops_rule_conflict_ui.mjs` - commands: `verify-ops-rule-conflict-ui`
+- `scripts/internal/verify_ops_rule_relationships.mjs` - commands: `verify-ops-rule-relationships`
+- `scripts/internal/verify_ops_rule_validation_matrix.mjs` - commands: `verify-ops-rule-validation-matrix`
+- `scripts/internal/verify_ops_rules_embed_smoke.mjs` - commands: `verify-rule-ui`
+- `scripts/internal/verify_ops_rules_roundtrip.mjs` - commands: `verify-ops-rules-roundtrip`
+- `scripts/internal/verify_ops_scenario_builder_ui.mjs` - commands: `verify-ops-scenario-builder-ui`
+- `scripts/internal/verify_ops_scenario_presets.mjs` - commands: `verify-ops-scenario-presets`
+- `scripts/internal/verify_ops_source_group_site_management.mjs` - commands: `verify-ops-source-group-site-management`
+- `scripts/internal/verify_ops_source_health_bulk.mjs` - commands: `verify-ops-source-health-bulk`
+- `scripts/internal/verify_ops_source_lifecycle.mjs` - commands: `verify-ops-source-lifecycle`
+- `scripts/internal/verify_ops_tables_layout.mjs` - commands: `verify-ops-tables-layout`
+- `scripts/internal/verify_ops_ui_click_e2e.mjs` - commands: `verify-ops-click-e2e`
+- `scripts/internal/verify_post_release_reconciliation.mjs` - commands: `verify-post-release-reconciliation`
+- `scripts/internal/verify_predev_stability.sh` - commands: `verify-predev`
+- `scripts/internal/verify_product_shell_examples.mjs` - commands: `verify-product-shell-examples`
+- `scripts/internal/verify_product_ui_token_drift.mjs` - commands: `verify-product-ui-token-drift`
+- `scripts/internal/verify_project_feature_test_inventory.mjs` - commands: `verify-project-inventory`
+- `scripts/internal/verify_public_repo_readiness.mjs` - commands: `verify-public-repo-readiness`
+- `scripts/internal/verify_rc_release_gate.mjs` - commands: `verify-rc-release-gate`
+- `scripts/internal/verify_redaction.sh` - commands: `verify-redaction`
+- `scripts/internal/verify_reid_advanced_tracking_experiment.mjs` - commands: `verify-reid-advanced-tracking`
+- `scripts/internal/verify_release_bundle_dry_run.mjs` - commands: `verify-release-bundle-dry-run`
+- `scripts/internal/verify_release_closeout_helper.mjs` - commands: `verify-release-closeout-helper`
+- `scripts/internal/verify_release_evidence_index.mjs` - commands: `verify-release-evidence-index`
+- `scripts/internal/verify_release_metadata_consistency.mjs` - commands: `verify-release-metadata`
+- `scripts/internal/verify_route_profile_matching.sh` - commands: `verify-route-profiles`
+- `scripts/internal/verify_rtsp_va_overlay_policy.sh` - commands: `verify-rtsp-va-overlay-policy`
+- `scripts/internal/verify_runtime_dashboard_longrun_template.mjs` - commands: `verify-runtime-dashboard-longrun-template`
+- `scripts/internal/verify_script_inventory.mjs` - commands: `verify-script-inventory`
+- `scripts/internal/verify_server_start_modes.sh` - commands: `verify-server-start-modes`
+- `scripts/internal/verify_tracker_stability.sh` - commands: `verify-tracker-stability`
+- `scripts/internal/verify_ui_copy_i18n_parity.mjs` - commands: `verify-ui-copy-i18n-parity`
+- `scripts/internal/verify_ui_copy_matrix.mjs` - commands: `verify-ui-copy-matrix`
+- `scripts/internal/verify_ui_release_baseline_approval_log.mjs` - commands: `verify-ui-release-baseline-approval-log`
+- `scripts/internal/verify_ui_visual_artifact_index.mjs` - commands: `verify-ui-visual-artifact-index`
+- `scripts/internal/verify_uri_source_longrun.sh` - commands: `verify-uri-longrun`
+- `scripts/internal/verify_va_category_samples.sh` - commands: `verify-va-category-samples`
+- `scripts/internal/verify_va_overlay.sh` - commands: `verify-va`
+- `scripts/internal/verify_va_replay_baselines.sh` - commands: `verify-va-replay`
+- `scripts/internal/verify_va_runtime_console.py` - commands: `verify-va-runtime-console`
+- `scripts/internal/verify_va_runtime_console_cycles.py` - commands: `verify-va-runtime-console-cycles`
+- `scripts/internal/verify_va_runtime_console_longrun.py` - commands: `verify-va-runtime-console-longrun`
+- `scripts/internal/verify_va_tracking_events.sh` - commands: `verify-va-events`
+- `scripts/internal/verify_webrtc_ice_config.sh` - commands: `verify-webrtc-ice`
+- `scripts/internal/verify_webrtc_va_metadata.mjs` - commands: `verify-webrtc-va-metadata`
+- `scripts/internal/verify_ws_va_metadata.mjs` - commands: `verify-ws-metadata`
+- `scripts/internal/verify_yolo_layouts.sh` - commands: `verify-yolo-layouts`
+- `scripts/internal/write_dependency_notice.mjs` - commands: `write-dependency-notice`
+- `scripts/internal/write_dependency_snapshot.mjs` - commands: `dependency-snapshot`
+- `scripts/internal/write_rc_release_checklist.mjs` - commands: `rc-release-checklist`
+- `scripts/internal/write_source_offer_checklist.mjs` - commands: `source-offer-checklist`
+- `scripts/internal/write_ui_visual_baseline_comment.mjs` - commands: `write-ui-visual-baseline-comment`
+- `scripts/internal/write_ui_visual_qa_issue_links.mjs` - commands: `write-ui-visual-qa-issue-links`
+
+#### test-entry
+
+- `scripts/internal/test_external_access.sh`
+- `scripts/internal/test_external_source_reachability.sh`
+- `scripts/internal/test_rule_registry.sh`
+
+#### sub-verifier
+
+- `scripts/internal/verify_auth_scope_picker.mjs`
+- `scripts/internal/verify_auth_ui_smoke.mjs`
+- `scripts/internal/verify_auth_workflow.sh`
 
 ## Comparison Result
 

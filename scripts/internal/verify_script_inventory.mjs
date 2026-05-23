@@ -29,6 +29,7 @@ Checks:
 }
 
 const checks = [];
+const projectInventory = readText(path.join(rootDir, "docs/project-feature-test-inventory.md"));
 
 check("server.sh dispatch targets exist and are executable", () => {
   const dispatches = parseServerDispatches();
@@ -124,6 +125,28 @@ check("tracked scripts are classified and referenced", () => {
     }
   }
   assert(unclassified.length === 0, `unclassified or unreferenced script(s):\n${unclassified.join("\n")}`);
+});
+
+check("project inventory lists every tracked script file", () => {
+  const missing = [];
+  for (const file of gitLsFiles(["scripts"])) {
+    if (!projectInventory.includes(`\`${file}\``)) {
+      missing.push(file);
+    }
+  }
+  assert(missing.length === 0, `project feature/test inventory missing script file(s):\n${missing.join("\n")}`);
+  for (const phrase of [
+    "### Tracked Script File Detail",
+    "ignored runtime 생성물",
+    "`scripts/.media_server.env`",
+    "`scripts/**/__pycache__/`",
+    "`*.pyc`",
+    "#### server-command",
+    "#### sub-verifier",
+    "#### test-entry",
+  ]) {
+    assert(projectInventory.includes(phrase), `project inventory missing script inventory phrase: ${phrase}`);
+  }
 });
 
 check("user-facing JS option parsers reject unknown options", () => {
