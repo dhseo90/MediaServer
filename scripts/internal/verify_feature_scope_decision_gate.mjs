@@ -32,7 +32,7 @@ const checks = [];
 check("v1.8.0 roadmap keeps feature candidates out of hardening scope", () => {
   const backlog = readText("docs/development-backlog.md");
   for (const snippet of [
-    "## 활성 차기 로드맵: v1.8.0 Release Trust Hardening",
+    "## v1.8.0 Release Trust Hardening Close-out",
     "새 제품 기능 확장이 아니라",
     "v1.8.0 비범위:",
     "새 제품 기능 구현 착수",

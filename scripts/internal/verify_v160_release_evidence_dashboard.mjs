@@ -139,17 +139,19 @@ check("docs and entrypoints link the release evidence dashboard verifier", () =>
   for (const [label, text] of [
     ["stream verification", stream],
     ["release policy", releasePolicy],
-    ["docs README", docsRootIndex],
   ]) {
     assertIncludes(text, "v1.6.0-release-evidence-dashboard.md", label);
     assertIncludes(text, "verify-v160-release-evidence-dashboard", label);
   }
+  assertIncludes(docsRootIndex, "## Archive", "docs README archive section");
+  assertIncludes(docsRootIndex, "과거 version-named close-out 문서는 증적 보존용 archive", "docs README archive boundary");
+  assert(!docsRootIndex.includes("v1.6.0 Historical Release Evidence"), "docs README must not foreground v1.6 release evidence details");
   for (const [label, text] of [
     ["README.md", readme],
     ["README.en.md", readmeEn],
     ["docs/en README", docsIndex],
   ]) {
-    assertIncludes(text, "v1.7.0", `${label} current release`);
+    assertIncludes(text, "v1.8.0", `${label} current release`);
     assertIncludes(text, "docs/README.md", `${label} root docs index link`);
   }
   for (const snippet of [

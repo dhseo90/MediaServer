@@ -5,7 +5,7 @@
 현재 남은 작업은 [../development-backlog.md](../development-backlog.md)를 봅니다.
 현재 실행/검증 기준은 [../stream-verification.md](../stream-verification.md)를 봅니다.
 
-현재 기준:
+v1.8.0 기준:
 
 - 제품 UI는 `/ops`와 `/client`입니다.
 - `/lab`, `/lab/rules`, `/lab/import` 화면 route는 404로 닫혔습니다.
@@ -15,10 +15,10 @@
 
 완료:
 
-- v1.1.0 전용 roadmap 문서를 제거하고 현재 기준은 `development-backlog.md`와
+- v1.1.0 전용 roadmap 문서를 제거하고 기준 문서는 `development-backlog.md`와
   기능별 상세 문서로 통합했습니다.
 - README/English index의 문서 지도에서 v1.1.0 전용 roadmap 링크를 제거했습니다.
-- `development-backlog.md`를 현재 main baseline과 v1.2.0 roadmap 후보 중심으로
+- `development-backlog.md`를 당시 main baseline과 v1.2.0 roadmap 후보 중심으로
   축소했습니다.
 - ONVIF, source health, live event/metadata, scenario timeline 문서는 버전별
   분리 문서가 아니라 현재 기능 기준 문서로 정리했습니다.

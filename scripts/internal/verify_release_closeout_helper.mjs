@@ -50,7 +50,7 @@ const prTemplate = readText(".github/PULL_REQUEST_TEMPLATE.md");
 const preflight = readText(".github/workflows/preflight.yml");
 
 const localCommands = [
-  "./server.sh verify-release-metadata",
+  "./server.sh verify-release-metadata --allow-unpublished",
   "./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md",
   "./server.sh verify-release-bundle-dry-run",
   "./server.sh verify-post-release-reconciliation",
@@ -162,7 +162,7 @@ check("release docs keep tag and push manual", () => {
   }
   for (const snippet of [
     "tag는 `main`의 public readiness",
-    "release tag 기준",
+    "source-only release 기준 tag",
   ]) {
     assert(versioningPolicy.includes(snippet), `versioning policy missing snippet: ${snippet}`);
   }

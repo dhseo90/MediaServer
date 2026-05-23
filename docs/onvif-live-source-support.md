@@ -142,8 +142,8 @@ test/fixtures/onvif_closed_loopback_failure_matrix.json
 
 ## Media/Media2 Profile Selection Policy
 
-v1.2.0에서 도입되어 현재 유지되는 ONVIF probe는 live source 등록 draft 생성을 위한 최소 profile
-선택만 수행합니다.
+v1.2.0에서 도입된 ONVIF probe는 v1.8.0 기준에도 live source 등록 draft 생성을 위한
+최소 profile 선택만 수행합니다.
 
 선택 순서:
 

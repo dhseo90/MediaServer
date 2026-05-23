@@ -26,7 +26,7 @@ Options:
 
 Checks:
   - BoT-SORT/DeepSORT가 analysis.trackingPolicy.tracker 허용값, UI option, runtime tracker enum에 추가되지 않았는지 확인
-  - verify-tracker-stability / compare-close-object-tracker가 현재 v1.4.0 tracker 후보만 받는지 확인
+  - verify-tracker-stability / compare-close-object-tracker가 v1.4.0에서 도입된 tracker 후보만 받는지 확인
   - BoT-SORT/DeepSORT 연구가 privacy/dependency/bundle 후속 Phase 후보이며 schema/media path 변경 근거가 아닌지 문서화됐는지 확인
   - 이번 페이즈의 미분류 P0~P1 후속 이슈가 남지 않았는지 확인
 `);
@@ -114,7 +114,7 @@ check("ObjectTracker implementation remains limited to Lite, Kalman-lite, and By
   };
 });
 
-check("benchmark harness accepts only current v1.4.0 tracker policies", () => {
+check("benchmark harness accepts only v1.4.0 tracker policies", () => {
   const stability = readText("scripts/internal/verify_tracker_stability.sh");
   const compare = readText("scripts/internal/compare_close_object_tracker.py");
   for (const [label, text] of [

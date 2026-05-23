@@ -1,8 +1,8 @@
 # ONVIF Unsupported API Guard
 
 이 문서는 v1.2.0 ONVIF 범위 밖 protocol이 제품 API/UI로 열리지 않도록 하는
-guard 기준입니다. 현재 ONVIF 관련 제품 흐름은 live source 등록 draft와
-`/ops/sources` 수동 URI 저장에 한정합니다.
+guard 기준을 v1.8.0 release baseline에서도 유지합니다. 현재 ONVIF 관련 제품 흐름은
+live source 등록 draft와 `/ops/sources` 수동 URI 저장에 한정합니다.
 
 관련 기준:
 
@@ -22,7 +22,8 @@ draft로 축약할 뿐, 장비 제어, 녹화, replay, 이벤트 구독을 수�
 
 ## 열지 않는 API
 
-아래 route/API/UI는 v1.2.0에서 도입된 현재 ONVIF live source 범위에 포함하지 않습니다.
+아래 route/API/UI는 v1.2.0에서 제외했고 v1.8.0 기준 ONVIF live source 범위에도
+포함하지 않습니다.
 
 ```text
 /ops/api/onvif/discover

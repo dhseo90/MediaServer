@@ -35,12 +35,14 @@ source-of-truth로 쓰지 않습니다.
 
 `완료`는 운영 배포 ready, 장기 안정성 보장, 외부 연동 ready를 뜻하지 않습니다.
 
-## 현재 기준: v1.7.0 Source Release Baseline
+## 현재 기준: v1.8.0 Source Release Baseline
 
-v1.7.0은 v1.6.0까지 닫은 source-only/live-only 제품 범위를 유지하면서 Client Live
-workspace, source tree/dock event feed, tile disconnect, event review, source
-group/site, tile info overlay, saved layout, incident timeline, alert delivery,
-scenario builder, Ops/Client declutter를 닫은 source-only UI-first release입니다.
+v1.8.0은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서
+release/latest/docs evidence drift를 막는 trust hardening을 닫은 source-only
+release입니다. Client Live workspace, source tree/dock event feed, tile disconnect,
+event review, source group/site, tile info overlay, saved layout, incident timeline,
+alert delivery, scenario builder, Ops/Client declutter는 이전 UI-first close-out에서 닫은
+제품 baseline으로 유지합니다.
 
 핵심 완료 범위:
 
@@ -51,7 +53,8 @@ scenario builder, Ops/Client declutter를 닫은 source-only UI-first release입
   workspace, source tree/dock, event review, source group/site, saved layout,
   incident timeline, viewer debug/source 비노출
 - Auth: setup/login/session, role/scope, admin user console, invite/request approval
-- Release: source-only readiness, bundle/license guardrail, release evidence, manual UI evidence
+- Release: source-only readiness, bundle/license guardrail, release evidence, manual UI evidence,
+  GitHub Latest Release 확인 gate, docs screenshot freshness, release close-out runbook
 - Research boundary: Re-ID/tracker default-off, OC-SORT manifest-only sandbox, YouTube lab-only 유지
 
 명시적 비범위:
@@ -64,15 +67,17 @@ scenario builder, Ops/Client declutter를 닫은 source-only UI-first release입
 - field sample scheduler, dataset ingest, tracker replacement benchmark 실행
 - 별도 Phase의 실제 기능 개발, tracker replacement product review
 
-세부 종료 증적은 아래 v1.7.0 UI-first Close-out 섹션을 봅니다. v1.6.0 release
-evidence 문서는 historical evidence로 유지합니다.
+세부 종료 증적은 아래 v1.8.0 Release Trust Hardening Close-out 섹션을 봅니다.
+과거 release evidence 문서는 archive로 유지합니다.
 
-## 활성 차기 로드맵: v1.8.0 Release Trust Hardening
+## v1.8.0 Release Trust Hardening Close-out
 
-v1.8.0의 1차 목표는 새 제품 기능 확장이 아니라 v1.7.0 close-out에서 드러난
+v1.8.0의 목표는 새 제품 기능 확장이 아니라 이전 close-out에서 드러난
 release/latest/docs evidence drift를 재발하지 않게 막는 것입니다. 현재 제품
-baseline은 계속 v1.7.0이며, `VERSION`, CMake project version, GitHub Release
-전환은 별도 release 전환 지시와 검증이 있을 때만 진행합니다.
+baseline은 기존 UI-first 제품 범위에 v1.8.0 release trust gate를 더한
+source-only release 기준입니다. `VERSION`과 CMake project version은 v1.8.0으로
+맞추며, tag/push/GitHub Release 생성은 release close-out runbook의 수동 gate로만
+진행합니다.
 
 범위 원칙:
 
@@ -101,8 +106,9 @@ baseline은 계속 v1.7.0이며, `VERSION`, CMake project version, GitHub Releas
 
 v1.8.0 완료 기준:
 
-- GitHub Latest Release가 `v1.7.0` 또는 해당 release cut의 목표 버전으로 실제 표시되는지
-  GitHub API/CLI 결과로 확인합니다.
+- release prep 단계에서는 README, VERSION, CMake, release/version 문서가 v1.8.0
+  기준을 말하고, GitHub Latest Release hard gate는 publish 이후
+  `verify-release-metadata`로 실제 GitHub API/CLI 결과를 확인합니다.
 - 문서 대표 screenshot은 현재 제품 UI 기준으로 재캡처되고, 한국어/영어 이미지 모두
   직접 열어 이상 유무를 확인합니다.
 - manual UI evidence는 스크립트 결과와 분리해 열어본 화면, 누른 action, 미확인 항목을
@@ -146,9 +152,12 @@ Decision record 최소 필드:
 | contract impact | schema, auth/session, media path, release evidence 영향 |
 | verification | roadmap review, non-scope review, `./server.sh verify-feature-scope-gate` |
 
-## v1.7.0 UI-first Close-out
+## Archived: v1.7.0 UI-first Close-out
 
-v1.7.0은 Client Live workspace와 Ops workflow 보강을 완료 기준으로 둡니다.
+이 섹션은 v1.7.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v1.8.0
+Release Trust Hardening Close-out입니다.
+
+v1.7.0 close-out 당시에는 Client Live workspace와 Ops workflow 보강을 완료 기준으로 둡니다.
 기존 Client 화면을 “라이브 월 추가”가 아니라 `/client/live` 대체로 정리했고,
 버튼을 늘리는 대신 source tree, drag/drop, 선택 상태, hover/focus context action,
 overlay, saved layout으로 조작합니다.
@@ -182,9 +191,9 @@ UI 원칙:
 1. Client 화면 대체와 버튼 축소 기준을 닫았습니다.
 2. 이벤트 검토, source group/site, layout 저장을 붙여 실제 운영 흐름을 닫았습니다.
 3. 알림 연동, Scenario Builder, Incident Timeline을 기본 UI 위에 확장했습니다.
-4. README/UI guide 대표 screenshot asset을 2026-05-23 기준 v1.7.0 UI-first
-   화면으로 한국어/영어 모두 재캡처했습니다. Client Live 대표 이미지는 source tree,
-   dock event feed, workspace preset, tile action/VA overlay 구조를 포함합니다.
+4. v1.7.0 close-out 당시 README/UI guide 대표 screenshot asset을 UI-first
+   화면으로 한국어/영어 모두 재캡처했습니다. 현재 문서 대표 이미지는 상단 v1.8.0
+   release 기준에서 다시 관리합니다.
 
 | ID | 우선순위 | 영역 | 목표 | 예상 검증 |
 | --- | --- | --- | --- | --- |
@@ -221,9 +230,12 @@ v1.7.0 비범위:
 - alert delivery를 Event POST payload 변경으로 구현
 - ScenarioEngine 판단 로직 변경을 builder UI와 같은 단계에 포함
 
-## v1.6.0 Stabilization Close-out
+## Archived: v1.6.0 Stabilization Close-out
 
-v1.6.0은 새 제품 기능을 여는 minor release가 아니라, v1.5.0까지 닫은 현재 기능을
+이 섹션은 v1.6.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v1.8.0
+Release Trust Hardening Close-out입니다.
+
+v1.6.0 close-out 당시에는 새 제품 기능을 여는 minor release가 아니라, v1.5.0까지 닫은 기능을
 다음 기능 개발 사이클 전에 안정화하고 release-grade 증적, verifier, 문서 경계를
 정리하는 stabilization release입니다. 기능 방향은 후속 기능 개발 브랜치에서 다시 결정합니다.
 
@@ -604,7 +616,7 @@ JSON/CSV/Diff JSON export에서 source/model/auth/raw material이 다시 노출�
 ### V160-P1-04 Manual UI release checklist closure 정리 기준
 
 `Manual UI release checklist closure`는 실제 수동 UI 검수를 수행했다고 기록하는
-작업이 아니라, v1.6.0 현재 제품 화면 기준으로 수동 검수 템플릿과 evidence 경계를
+작업이 아니라, v1.6.0 close-out 당시 제품 화면 기준으로 수동 검수 템플릿과 evidence 경계를
 [v1.6.0 Manual UI Release Checklist Closure](./v1.6.0-manual-ui-release-checklist-closure.md)에
 고정하는 작업입니다.
 
@@ -659,8 +671,8 @@ backlog에서 같은 방식으로 보이도록
 
 확인됨:
 
-- 이 절의 확인 항목은 v1.6.0 close-out historical evidence입니다. 현재 published
-  source-only release tag 판정은 상단 v1.7.0 기준을 따릅니다.
+- 이 절의 확인 항목은 v1.6.0 close-out historical evidence입니다. 최신
+  source-only release 기준 tag 판정은 상단 v1.8.0 기준을 따릅니다.
 - v1.6.0 close-out 당시 public docs는 source-only release tag를 `v1.6.0`으로
   맞추도록 정리했습니다.
 - v1.6.0은 source-only stabilization release이며 runtime/model/binary bundle release가 아닙니다.
@@ -761,7 +773,7 @@ harness 요구사항과 비승격 경계를
 
 ### v1.6.0 완료 기준
 
-v1.6.0은 기능 확장보다 현재 기능 마무리를 완료 기준으로 둡니다.
+v1.6.0은 기능 확장보다 당시 기능 마무리를 완료 기준으로 둡니다.
 
 - v1.5.0까지의 기능/문서/검증 drift 정리
 - 현재 기능 smoke와 release evidence guard 안정화

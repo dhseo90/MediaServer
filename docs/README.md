@@ -17,7 +17,7 @@
 
 ## 현재 제품 경계
 
-- 현재 main 기준 release: `v1.7.0`
+- 현재 main 기준 release: `v1.8.0`
 - 중심 범위: live source onboarding, live source health, live VA event 품질
 - 기본 release 형태: source-only
 - 명시적 비범위: 장기 녹화, VMS/NVR, playback/search, ONVIF Profile G
@@ -27,11 +27,11 @@
 [versioning-policy.md](versioning-policy.md),
 [release-policy.md](release-policy.md)를 봅니다.
 
-## Active Roadmap
+## Current Release Close-Out
 
-v1.8.0의 활성 차기 로드맵은 [development-backlog.md](development-backlog.md)의
-`v1.8.0 Release Trust Hardening` 섹션에서 관리합니다. 이 로드맵은 새 제품 기능
-확장이 아니라 release/latest/docs evidence drift를 막는 검증 체계 보강입니다.
+v1.8.0의 현재 release close-out 기준은 [development-backlog.md](development-backlog.md)의
+`v1.8.0 Release Trust Hardening Close-out` 섹션에서 관리합니다. 이 release는 새 제품
+기능 확장이 아니라 release/latest/docs evidence drift를 막는 검증 체계 보강입니다.
 Release close-out runbook과 tag/push 수동 gate는
 [release-policy.md](release-policy.md)의 `v1.8.0 Release Close-out Runbook`에만
 세부 순서를 둡니다.
@@ -64,56 +64,9 @@ Release evidence의 실행/미실행/미확인 색인은
 | BoT-SORT/DeepSORT research | [bot-sort-deepsort-research-boundary.md](bot-sort-deepsort-research-boundary.md) |
 | YouTube import/source experiment | [youtube-import.md](youtube-import.md) |
 
-## v1.7.0 Release Close-out
+## Archive
 
-v1.7.0의 현재 release close-out 기준은 [development-backlog.md](development-backlog.md)의
-`v1.7.0 UI-first Close-out` 섹션입니다. 세부 historical evidence는 아래 v1.6.0
-섹션에 보존합니다.
-
-## v1.6.0 Historical Release Evidence
-
-아래 문서는 release close-out 증적입니다. README나 일반 색인에 모든 세부 검증을
-풀어 쓰지 않고, 이 섹션에서만 모아 둡니다.
-
-- Release evidence dashboard:
-  [v1.6.0-release-evidence-dashboard.md](v1.6.0-release-evidence-dashboard.md),
-  `verify-v160-release-evidence-dashboard`
-- Stability gate 분리:
-  [v1.6.0-stability-verification-gates.md](v1.6.0-stability-verification-gates.md),
-  `verify-v160-stability-verification-gate`
-- Client/debug 비노출 guard:
-  [v1.6.0-debug-exposure-regression-guard.md](v1.6.0-debug-exposure-regression-guard.md),
-  `verify-v160-debug-exposure-regression-guard`
-- Tracker/Re-ID opt-in close-out:
-  [v1.6.0-tracker-reid-opt-in-closeout.md](v1.6.0-tracker-reid-opt-in-closeout.md),
-  `verify-v160-tracker-reid-opt-in-closeout`
-- ONVIF field evidence reconciliation:
-  [v1.6.0-onvif-field-smoke-evidence-reconciliation.md](v1.6.0-onvif-field-smoke-evidence-reconciliation.md),
-  `verify-v160-onvif-field-smoke-evidence-reconciliation`
-- Audit/export masking guard:
-  [v1.6.0-audit-export-masking-regression-hardening.md](v1.6.0-audit-export-masking-regression-hardening.md),
-  `verify-v160-audit-export-masking-regression-hardening`
-- Runtime/model bundle RC policy:
-  [v1.6.0-runtime-model-bundle-rc-policy.md](v1.6.0-runtime-model-bundle-rc-policy.md),
-  `verify-v160-runtime-model-bundle-rc-policy`
-- Manual UI checklist closure:
-  [v1.6.0-manual-ui-release-checklist-closure.md](v1.6.0-manual-ui-release-checklist-closure.md),
-  `verify-v160-manual-ui-release-checklist-closure`
-- Public docs consistency:
-  [v1.6.0-public-docs-consistency-polish.md](v1.6.0-public-docs-consistency-polish.md),
-  `verify-v160-public-docs-consistency-polish`
-- Tracker benchmark planning only:
-  [v1.6.0-tracker-benchmark-harness-planning.md](v1.6.0-tracker-benchmark-harness-planning.md),
-  `verify-v160-tracker-benchmark-harness-planning`
-
-## Historical Close-Out
-
-| Version | 문서 |
-| --- | --- |
-| v1.2.1 | [v1.2.1-follow-up-closure.md](v1.2.1-follow-up-closure.md) |
-| v1.3.0 | [v1.3.0-follow-up-closure.md](v1.3.0-follow-up-closure.md) |
-| v1.4.0 | [v1.4.0-follow-up-closure.md](v1.4.0-follow-up-closure.md) |
-| v1.5.0 | [v1.5.0-follow-up-closure.md](v1.5.0-follow-up-closure.md) |
-
-긴 개발/검증 이력은 [history/development-history.md](history/development-history.md),
+과거 version-named close-out 문서는 증적 보존용 archive입니다. 현재 release 기준이나
+새 작업 source-of-truth로 쓰지 않습니다. 긴 개발/검증 이력은
+[history/development-history.md](history/development-history.md),
 [history/verification-history.md](history/verification-history.md)에 보관합니다.

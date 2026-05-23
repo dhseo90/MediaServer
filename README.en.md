@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Source Release](https://img.shields.io/badge/source--only%20release-v1.7.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v1.7.0)
+[![Source Release](https://img.shields.io/badge/source--only%20release-v1.8.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v1.8.0)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
 video analytics overlays and rule/scenario live events when analytics are enabled.
@@ -13,8 +13,8 @@ runtime/model bundle distribution are outside the default release scope.
 
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
-- Latest source-only release: [v1.7.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.7.0)
-- v1.7.0 release close-out evidence: [docs/development-backlog.md](docs/development-backlog.md)
+- Source-only release baseline: [v1.8.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.8.0)
+- v1.8.0 release close-out preparation: [docs/development-backlog.md](docs/development-backlog.md)
 
 ## At a Glance
 
@@ -124,7 +124,7 @@ release evidence live in dedicated docs.
 - Verification commands: [docs/stream-verification.md](docs/stream-verification.md)
 - Release/version policy: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
-- v1.7.0 close-out evidence: [docs/development-backlog.md](docs/development-backlog.md)
+- v1.8.0 close-out preparation: [docs/development-backlog.md](docs/development-backlog.md)
 
 ## UI Preview
 

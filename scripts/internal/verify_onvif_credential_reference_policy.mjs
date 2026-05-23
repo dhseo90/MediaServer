@@ -91,7 +91,8 @@ for (const term of [
 
 for (const term of [
   "# ONVIF Credential Store Integration Design",
-  "제품 API/UI에 persistent secret",
+  "제품 API/UI에",
+  "persistent secret 저장소를 열지 않지만",
   "in-memory credential store",
   "CredentialSecretProvider",
   "CredentialBindingStore",

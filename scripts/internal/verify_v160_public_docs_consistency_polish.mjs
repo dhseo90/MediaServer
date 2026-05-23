@@ -68,7 +68,7 @@ check("dedicated doc defines historical public docs tag and stabilization eviden
     "# v1.6.0 Public Docs Consistency Polish",
     "V160-P2-01",
     "v1.6.0 close-out historical evidence",
-    "현재 published source-only",
+    "최신 published source-only",
     "v1.6.0 close-out 당시 public docs는 source-only release tag를 `v1.6.0`",
     "v1.6.0은 source-only stabilization release이며 runtime/model/binary bundle",
     "v1.6.0 close-out 당시 latest source-only release를 `v1.6.0`으로 표시했습니다",
@@ -93,7 +93,7 @@ check("roadmap defines V160-P2-01 scope and keeps tracker planning separate", ()
     "V160-P2-01 Public docs consistency polish",
     "v1.6.0 Public Docs Consistency Polish",
     "v1.6.0 close-out historical evidence",
-    "현재 published",
+    "source-only release 기준 tag 판정은 상단 v1.8.0 기준",
     "v1.6.0 close-out 당시 public docs는 source-only release tag를 `v1.6.0`",
     "v1.6.0은 source-only stabilization release",
     "verify-v160-public-docs-consistency-polish",
@@ -123,26 +123,25 @@ check("public docs keep current tag on latest release while linking v1.6 evidenc
     ["README.en.md", readmeEn],
     ["docs/en README", docsIndex],
   ]) {
-    assertIncludes(text, "v1.7.0", `${label} current tag`);
+    assertIncludes(text, "v1.8.0", `${label} current tag`);
     assertIncludes(text, "docs/README.md", `${label} root docs index link`);
   }
-  for (const item of v160Docs) {
-    assertIncludes(docsRootIndex, item, "docs README v1.6 evidence index");
-  }
-  assertIncludes(docsRootIndex, "verify-v160-public-docs-consistency-polish", "docs README verifier index");
-  assertIncludes(docsIndex, "v1.7.0 is published as the current source-only release.", "docs/en current boundary");
+  assertIncludes(docsRootIndex, "## Archive", "docs README archive section");
+  assertIncludes(docsRootIndex, "과거 version-named close-out 문서는 증적 보존용 archive", "docs README archive boundary");
+  assert(!docsRootIndex.includes("v1.6.0 Historical Release Evidence"), "docs README must not foreground old release evidence as current navigation");
+  assertIncludes(docsIndex, "v1.8.0 is the current source-only release baseline for release preparation.", "docs/en current boundary");
 });
 
 check("versioning and release policy pin current release while preserving v1.6 history", () => {
   for (const snippet of [
-    "현재 기준 버전: `v1.7.0`",
-    "현재 published source-only release tag 기준은 `v1.7.0`",
+    "현재 기준 버전: `v1.8.0`",
+    "현재 source-only release 기준 tag는 `v1.8.0`",
     "v1.6.0 release evidence 문서는 historical evidence로 유지합니다",
   ]) {
     assertIncludes(versioning, snippet, "versioning policy");
   }
   for (const snippet of [
-    "현재 published source-only release tag는 `v1.7.0`",
+    "현재 source-only release 기준 tag는 `v1.8.0`",
     "source-only release에는 sample/model/runtime binary를 추가 업로드하지 않습니다",
     "v1.6.0 Public Docs Consistency Polish",
     "verify-v160-public-docs-consistency-polish",
