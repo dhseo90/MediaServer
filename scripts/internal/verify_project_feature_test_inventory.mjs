@@ -57,6 +57,7 @@ check("inventory document is indexed and scoped to current v1.8.0", () => {
 
 check("inventory has required feature/UI/test/comparison sections", () => {
   for (const heading of [
+    "## Code Logic / UI / Test Matrix",
     "## Code Feature Inventory",
     "## Source Module Inventory Audit",
     "## Support Artifact Inventory Audit",
@@ -72,6 +73,50 @@ check("inventory has required feature/UI/test/comparison sections", () => {
     "## Maintenance Rules",
   ]) {
     requireText(inventory, heading, `inventory missing section ${heading}`);
+  }
+});
+
+check("inventory has unified code/UI/test matrix for every feature class", () => {
+  for (const snippet of [
+    "| 기능 | 코드상 로직 | UI 존재 | 테스트 | 결론 |",
+    "| Server lifecycle/config | 있음:",
+    "| Source ingest: file/RTSP/HTTP-HLS/WHEP/Published WebRTC | 있음:",
+    "| WHIP publish ingest | 있음:",
+    "직접 publish UI 없음",
+    "`whip_publish_test.py`가 `verify-codecs`/`verify-webrtc-ice`에서 소비",
+    "| RTSP output | 있음:",
+    "| WebRTC output/WHEP | 있음:",
+    "| Auth/session | 있음:",
+    "| Role/scope | 있음:",
+    "| Client access request | 있음:",
+    "| Ops shell/nav | 있음:",
+    "| Ops dashboard/runtime status | 있음:",
+    "| Source/channel management | 있음:",
+    "| Rule/profile/scenario management | 있음:",
+    "| User management | 있음:",
+    "| Event review/evidence | 있음:",
+    "| Alert delivery | 있음:",
+    "| Client live workspace | 있음:",
+    "| Client dashboard/events summary | 있음:",
+    "| VA detector/runtime | 있음:",
+    "full Lab UI 없음",
+    "| Tracking/scenarios | 있음:",
+    "실제 이벤트 전수 수동 evidence 없음",
+    "| Runtime metadata: DataChannel/SSE/WS/state/metrics | 있음:",
+    "raw stream 제품 UI 없음",
+    "| Event POST/storage/cleanup | 있음:",
+    "| ONVIF support | 있음:",
+    "실장비 성공은 field gate",
+    "| Integrator contract | 있음:",
+    "제품 UI 없음",
+    "| Release/public repo readiness | 있음:",
+    "| Research boundaries: Re-ID/OC-SORT/BoT-SORT/DeepSORT/YouTube | 있음:",
+    "| Removed legacy product UI routes | 있음:",
+    "legacy HTML 없음",
+    "| Support/release/config/sample artifacts | 있음:",
+    "sample video 전체 이벤트 수동 evidence는 없음",
+  ]) {
+    requireText(inventory, snippet, `unified matrix missing snippet: ${snippet}`);
   }
 });
 
