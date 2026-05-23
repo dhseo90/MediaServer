@@ -13,6 +13,7 @@
 
 ## Evidence Sources
 
+- Code modules: `include/`, `src/`
 - Code routes: `src/ingress/webrtc_http_server.cpp`,
   `src/ingress/product_ui_page_scripts.cpp`
 - UI ownership: [ui-guide.md](./ui-guide.md)
@@ -52,6 +53,66 @@
 | Release/public repo | source-only release, dependency notice/snapshot, bundle policy, public readiness, actions security | docs/config/scripts | 직접 UI 없음 | `verify-release-metadata`, `verify-actions-security`, `verify-public-repo-readiness`, `verify-release-closeout-helper` |
 | Research boundaries | Re-ID default-off, OC-SORT sandbox, BoT-SORT/DeepSORT research, YouTube lab-only import/source | analysis hooks, docs, fixtures | Re-ID/tracker options in rules; YouTube UI 없음 | `verify-reid-advanced-tracking`, `verify-oc-sort-benchmark-boundary`, `verify-bot-sort-deepsort-research-boundary` |
 | Closed product routes | `/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test` product UI closure | route guard/404 | 열리면 안 됨 | `verify-auth-routes`, `verify-ops-route-boundaries`, `verify-multichannel` skip notice |
+
+## Source Module Inventory Audit
+
+이 섹션은 현재 추적 중인 `include/`와 `src/` C++ source/header 파일을 기능
+그룹으로 분류합니다. 파일이 여기에 없으면 코드상 기능 inventory가 불완전한 것으로
+봅니다.
+
+### Entry, Config, Shared Types
+
+- Files: `src/main.cpp`, `src/app_config.cpp`, `include/app_config.h`, `include/media_types.h`, `include/stdafx.h`
+- 기능: 프로세스 진입점, server/runtime config, 공통 media packet/source type, platform include boundary.
+- UI/Test 비교: 직접 UI 없음. `build`, `verify-release-metadata`, `verify-server-start-modes`, config/docs verifier로 간접 확인합니다.
+
+### Core Stream And Source Runtime
+
+- Files: `src/core/session_manager.cpp`, `src/core/shared_stream.cpp`, `src/core/stream_registry.cpp`, `src/core/source_factory.cpp`, `src/core/stream_key.cpp`, `src/core/resource_guard.cpp`, `include/core/session_manager.h`, `include/core/shared_stream.h`, `include/core/stream_registry.h`, `include/core/source_factory.h`, `include/core/stream_key.h`, `include/core/resource_guard.h`, `include/core/egress_session.h`, `include/core/source_worker.h`, `include/core/runtime_debug_counters.h`
+- 기능: ingest session lifecycle, shared stream fan-out, source registry, source factory, stream key parsing, cleanup guard, egress/source worker contracts.
+- UI/Test 비교: `/ops/sources`, `/client/live`, RTSP/WebRTC route가 소비합니다. `verify-codecs`, `verify-uri-longrun`, `verify-ops-source-lifecycle`, `verify-ops-client-ui`, `verify-webrtc-ice`가 일부 확인합니다.
+
+### Core Helpers And Lab-Only Resolver
+
+- Files: `src/core/command_runner.cpp`, `src/core/youtube_resolver.cpp`, `include/core/command_runner.h`, `include/core/youtube_resolver.h`
+- 기능: 외부 command 실행 helper, lab-only experimental YouTube resolver compile boundary.
+- UI/Test 비교: 현재 제품 UI 없음. YouTube import/source는 v1.8.0 기준 lab-only 실험 유지이며 제품 완료 근거가 아닙니다.
+
+### Ingress HTTP, Auth, Product UI, Source View
+
+- Files: `src/ingress/request_parser.cpp`, `src/ingress/http_auth.cpp`, `src/ingress/webrtc_http_server.cpp`, `src/ingress/product_ui_assets.cpp`, `src/ingress/product_ui_css.cpp`, `src/ingress/product_ui_js.cpp`, `src/ingress/product_ui_page_scripts.cpp`, `src/ingress/source_view_registry.cpp`, `include/ingress/request_parser.h`, `include/ingress/http_auth.h`, `include/ingress/webrtc_http_server.h`, `include/ingress/product_ui_assets.h`, `include/ingress/product_ui_css.h`, `include/ingress/product_ui_js.h`, `include/ingress/product_ui_page_scripts.h`, `include/ingress/source_view_registry.h`, `include/ingress/analysis_rule_registry.h`
+- 기능: HTTP parser/server, auth/session/role/scope guard, product UI HTML/CSS/JS, source/view registry, rule catalog bridge.
+- UI/Test 비교: `/setup`, `/login`, `/ops/*`, `/client/*` 전체가 여기에 걸립니다. `verify-auth-*`, `verify-ops-client-ui`, `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-click-e2e`가 자동 확인하지만 수동 UI 풀테스트 evidence는 별도입니다.
+
+### Ingress Media, RTSP, WebRTC, GStreamer
+
+- Files: `src/ingress/gst_pipeline_builder.cpp`, `src/ingress/gstreamer_rtsp_server.cpp`, `src/ingress/rtsp_adapter.cpp`, `src/ingress/rtsp_egress_session.cpp`, `src/ingress/rtsp_request_context.cpp`, `src/ingress/webrtc_egress_session.cpp`, `src/ingress/webrtc_gst_utils.cpp`, `src/ingress/webrtc_source_registry.cpp`, `src/ingress/webrtc_source_session.cpp`, `src/ingress/analysis_overlay_probe.cpp`, `src/ingress/analysis_query.cpp`, `include/ingress/gst_pipeline_builder.h`, `include/ingress/gstreamer_rtsp_server.h`, `include/ingress/rtsp_adapter.h`, `include/ingress/rtsp_egress_session.h`, `include/ingress/rtsp_request_context.h`, `include/ingress/webrtc_egress_session.h`, `include/ingress/webrtc_gst_utils.h`, `include/ingress/webrtc_source_registry.h`, `include/ingress/webrtc_source_session.h`, `include/ingress/analysis_overlay_probe.h`, `include/ingress/analysis_query.h`
+- 기능: GStreamer pipeline, RTSP adapter/egress, WebRTC egress/source session, WHEP/WHIP support, analysis overlay probe, VA query parsing.
+- UI/Test 비교: `/client/live`, `/ops/rules` preview, RTSP URL copy와 direct WebRTC/WHEP/WHIP APIs가 소비합니다. `verify-codecs`, `verify-webrtc-ice`, `verify-webrtc-va-metadata`, `verify-rtsp-va-overlay-policy`, `browser_webrtc_publish_consume_check.mjs`가 일부 확인합니다.
+
+### Ingress ONVIF
+
+- Files: `src/ingress/onvif_live_import.cpp`, `src/ingress/onvif_credential_provider.cpp`, `include/ingress/onvif_live_import.h`, `include/ingress/onvif_credential_provider.h`
+- 기능: ONVIF probe/import draft, SOAP/profile parsing, TLS/credential provider boundary.
+- UI/Test 비교: `/ops/sources` ONVIF draft flow가 소비합니다. `verify-onvif-*`, `verify-onvif-ops-sources-ui`, `verify-onvif-no-device-suite`가 fixture/no-device 중심으로 확인하며 실장비 성공은 미확인 field gate입니다.
+
+### Analysis Runtime, Detectors, Frame IO
+
+- Files: `src/analysis/analysis_manager.cpp`, `src/analysis/detector_factory.cpp`, `src/analysis/dummy_detector.cpp`, `src/analysis/yolo_onnx_detector.cpp`, `src/analysis/raw_video_decoder.cpp`, `src/analysis/image_frame_loader.cpp`, `src/analysis/snapshot_encoder.cpp`, `src/analysis/overlay_renderer.cpp`, `src/analysis/category_tokens.cpp`, `include/analysis/analysis_manager.h`, `include/analysis/detector.h`, `include/analysis/analysis_types.h`, `include/analysis/raw_video_decoder.h`, `include/analysis/image_frame_loader.h`, `include/analysis/snapshot_encoder.h`, `include/analysis/overlay_renderer.h`, `include/analysis/category_tokens.h`
+- 기능: analysis tap runtime, detector selection, dummy/YOLO detector, raw/static image decode, snapshot/overlay encode, category token normalization.
+- UI/Test 비교: 제품 UI는 Ops Rules preview와 Dashboard summary 일부만 소비합니다. `verify-va`, `verify-yolo-layouts`, `verify-image-analysis`, `verify-redaction`, `verify-adaptive`가 fixture 중심으로 확인합니다.
+
+### Analysis Tracking And Metadata
+
+- Files: `src/analysis/object_tracker.cpp`, `src/analysis/track_state_manager.cpp`, `src/analysis/appearance_extractor.cpp`, `src/analysis/scene_context_builder.cpp`, `src/analysis/tracked_object_metadata.cpp`, `src/analysis/metadata_subscription_filter.cpp`, `src/analysis/va_runtime_metadata.cpp`, `include/analysis/object_tracker.h`, `include/analysis/track_state_manager.h`, `include/analysis/appearance_extractor.h`, `include/analysis/scene_context_builder.h`, `include/analysis/tracked_object_metadata.h`, `include/analysis/metadata_subscription_filter.h`, `include/analysis/va_runtime_metadata.h`
+- 기능: tracker/Re-ID opt-in, track state, appearance vector extraction, scene context, runtime metadata serialization/filtering.
+- UI/Test 비교: `/ops/rules`의 tracker/Re-ID 옵션과 metadata channels가 소비합니다. `verify-tracker-stability`, `verify-reid-advanced-tracking`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`가 확인합니다.
+
+### Analysis Events And Scenarios
+
+- Files: `src/analysis/event_rule_engine.cpp`, `src/analysis/scenario_engine.cpp`, `src/analysis/intrusion_dwell_scenario.cpp`, `src/analysis/intrusion_after_line_crossing_scenario.cpp`, `src/analysis/zone_occupancy_scenario.cpp`, `src/analysis/re_entry_scenario.cpp`, `src/analysis/loitering_scenario.cpp`, `src/analysis/wrong_direction_scenario.cpp`, `src/analysis/event_manager.cpp`, `src/analysis/event_post_dispatcher.cpp`, `src/analysis/event_storage.cpp`, `include/analysis/event_rule_engine.h`, `include/analysis/scenario_engine.h`, `include/analysis/intrusion_dwell_scenario.h`, `include/analysis/intrusion_after_line_crossing_scenario.h`, `include/analysis/zone_occupancy_scenario.h`, `include/analysis/re_entry_scenario.h`, `include/analysis/loitering_scenario.h`, `include/analysis/wrong_direction_scenario.h`, `include/analysis/event_manager.h`, `include/analysis/event_post_dispatcher.h`, `include/analysis/event_storage.h`
+- 기능: rule evaluation, scenario engine, intrusion/dwell/line crossing/zone occupancy/re-entry/loitering/wrong-direction scenarios, event dispatch/storage.
+- UI/Test 비교: `/ops/rules`, `/ops/events`, `/ops/dashboard`가 설정/요약을 소비합니다. `verify-analysis-state`, `verify-va-events`, `verify-va-replay`, `verify-event-post`, `verify-ops-event-review-inbox`가 fixture/replay 중심으로 확인합니다. 실제 브라우저에서 모든 scenario event가 발생했다는 evidence는 아직 없습니다.
 
 ## UI-Accessible Feature Inventory
 

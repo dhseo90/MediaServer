@@ -21,6 +21,7 @@ Usage:
 Checks:
   - docs/project-feature-test-inventory.md exists and is linked from docs/README.md
   - inventory lists required current sections, UI routes, closed routes, and comparison/gap states
+  - inventory classifies every tracked include/src C++ source module
   - inventory covers current v1.8 route/API surface families from the HTTP server and product UI scripts
   - every current server.sh command appears in the inventory
   - current-facing docs outside backlog/history do not mention pre-v1.8 baselines
@@ -51,6 +52,7 @@ check("inventory document is indexed and scoped to current v1.8.0", () => {
 check("inventory has required feature/UI/test/comparison sections", () => {
   for (const heading of [
     "## Code Feature Inventory",
+    "## Source Module Inventory Audit",
     "## UI-Accessible Feature Inventory",
     "## Route/API Surface Audit",
     "## Current Verification Inventory",
@@ -60,6 +62,32 @@ check("inventory has required feature/UI/test/comparison sections", () => {
   ]) {
     requireText(inventory, heading, `inventory missing section ${heading}`);
   }
+});
+
+check("inventory classifies every current include/src C++ module", () => {
+  for (const heading of [
+    "### Entry, Config, Shared Types",
+    "### Core Stream And Source Runtime",
+    "### Core Helpers And Lab-Only Resolver",
+    "### Ingress HTTP, Auth, Product UI, Source View",
+    "### Ingress Media, RTSP, WebRTC, GStreamer",
+    "### Ingress ONVIF",
+    "### Analysis Runtime, Detectors, Frame IO",
+    "### Analysis Tracking And Metadata",
+    "### Analysis Events And Scenarios",
+  ]) {
+    requireText(inventory, heading, `inventory missing source module group ${heading}`);
+  }
+
+  const sourceFiles = [
+    ...walk(path.join(rootDir, "include")),
+    ...walk(path.join(rootDir, "src")),
+  ]
+    .map(file => path.relative(rootDir, file))
+    .filter(file => file.endsWith(".cpp") || file.endsWith(".h"))
+    .sort();
+  const missing = sourceFiles.filter(file => !inventory.includes(`\`${file}\``));
+  assert(missing.length === 0, `source module inventory missing file(s):\n${missing.join("\n")}`);
 });
 
 check("inventory covers required product UI and closed routes", () => {
