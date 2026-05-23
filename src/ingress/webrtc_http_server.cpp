@@ -13452,15 +13452,17 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             return ok;
                         }
 
-                        if (request.method == "GET" && request.path == "/lab") {
+                        if (request.method == "GET" && (request.path == "/lab" || request.path == "/lab/")) {
                             return HttpResponse{404, "Not Found", "text/plain; charset=utf-8", {}, "not found"};
                         }
 
-                        if (request.method == "GET" && request.path == "/lab/rules") {
+                        if (request.method == "GET" &&
+                            (request.path == "/lab/rules" || request.path == "/lab/rules/")) {
                             return HttpResponse{404, "Not Found", "text/plain; charset=utf-8", {}, "not found"};
                         }
 
-                        if (request.method == "GET" && request.path == "/lab/import") {
+                        if (request.method == "GET" &&
+                            (request.path == "/lab/import" || request.path == "/lab/import/")) {
                             return HttpResponse{404, "Not Found", "text/plain; charset=utf-8", {}, "not found"};
                         }
 

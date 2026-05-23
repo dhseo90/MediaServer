@@ -67,7 +67,7 @@ Options:
   --redaction-classes <csv>  모자이크 대상 category/class. 기본 ${REDACTION_CLASSES}
   --block-size <n>           mosaic block size. 기본 ${REDACTION_BLOCK_SIZE}
   --margin-ratio <n>         bbox 확장 비율. 기본 ${REDACTION_MARGIN_RATIO}
-  --include-multichannel     현재 skip: 초기 브라우저 harness 제거 후 별도 제품 UI harness 필요
+  --include-multichannel     현재 skip: legacy browser harness 제거 후 별도 제품 UI harness 필요
   --include-events           VA event 검증을 함께 실행해 redaction과 event 동시 사용성을 확인
   --include-tracker          tracker 안정성 검증을 함께 실행
   --include-uri              URI/HLS source 장기 검증 준비 상태를 summary에 포함
@@ -446,7 +446,7 @@ run_live_redaction() {
     "MEDIA_SERVER_VERIFY_VA_FILE='${FILE_TOKEN}' MEDIA_SERVER_VERIFY_VA_DURATION_S=${DURATION_S} MEDIA_SERVER_VERIFY_VA_WEBRTC_HOLD_MS=${HOLD_MS} MEDIA_SERVER_VERIFY_VA_EXTRA_QUERY='${query}' MEDIA_SERVER_VERIFY_VA_REDACTION=person-mosaic MEDIA_SERVER_VERIFY_VA_REDACTION_CLASSES='${REDACTION_CLASSES}' MEDIA_SERVER_VERIFY_VA_REDACTION_BLOCK_SIZE=${REDACTION_BLOCK_SIZE} MEDIA_SERVER_VERIFY_VA_REDACTION_MARGIN_RATIO=${REDACTION_MARGIN_RATIO} ./server.sh verify-va" || true
 }
 
-# 제거된 초기 브라우저 harness를 대체할 제품 UI harness가 생길 때까지 다채널 redaction은 skip한다.
+# 제거된 legacy browser harness를 대체할 제품 UI harness가 생길 때까지 다채널 redaction은 skip한다.
 run_multichannel_redaction() {
   if [[ "${RUN_MULTICHANNEL}" != "1" ]]; then
     skip_step "multichannel-redaction" "--include-multichannel 미지정"

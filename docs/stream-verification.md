@@ -446,7 +446,8 @@ fi
   source URL, Developer URL, BBox diagnostics, 내부 진단 JSON,
   rule/profile editor를 노출하지 않습니다.
   Client Events tab은 primary nav에서 제거합니다.
-- `/lab`, `/lab/rules`, `/lab/import` 화면 route는 404로 닫고, 개발/검증 API는 `/lab/analysis/*`에서만 유지합니다.
+- `/lab`, `/lab/rules`, `/lab/import` legacy 화면 route는 제거된 상태를 유지하며
+  404 회귀 방지 대상으로만 확인하고, 개발/검증 API는 `/lab/analysis/*`에서만 유지합니다.
 
 WebRTC/stream 변경:
 
@@ -465,7 +466,7 @@ event/scenario side effect를 함께 확인합니다.
 리포트의 `Quality Gate` 섹션은 risk 증가, event/scenario 불변,
 default-on 후보 여부, 권고를 요약합니다.
 
-초기 `/webrtc/test` 화면에 의존하던 다채널 브라우저 harness는 제품 UI 정리 후
+legacy `/webrtc/test` 화면에 의존하던 다채널 브라우저 harness는 제품 UI 정리 후
 실행하지 않습니다. 긴 RTSP/WebRTC 다채널 재생 검증은 별도 제품 UI harness가
 준비될 때까지 기본 안정성 테스트에서 제외합니다.
 
@@ -1671,7 +1672,7 @@ curl -fsS -X POST \
 ./server.sh verify-va
 ```
 
-현재 `verify-va`의 WebRTC browser playback 구간은 초기 `/webrtc/test` harness 제거 후
+현재 `verify-va`의 WebRTC browser playback 구간은 legacy `/webrtc/test` harness 제거 후
 별도 제품 UI harness가 준비될 때까지 skip됩니다. 기본 자동 기준은 lab API와 RTSP
 server-side overlay를 확인합니다.
 
@@ -1859,7 +1860,7 @@ baseline fixture 전체 검증:
 
 ## 다채널 검증
 
-초기 `/webrtc/test` 기반 다채널 브라우저 harness는 제거되었습니다.
+legacy `/webrtc/test` 기반 다채널 브라우저 harness는 제거되었습니다.
 현재 quick 안정성 범위에서는 느린 RTSP/WebRTC 다채널 재생을 실행하지 않고,
 제품 UI smoke, rule UI round-trip, route 404 smoke, API 계약 검증으로 대체합니다.
 

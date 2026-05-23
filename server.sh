@@ -36,7 +36,7 @@ Usage:
   verify-webrtc-ice
                  WebRTC STUN/TURN/ICE policy와 candidate 수집 상태를 검증합니다.
   verify-multichannel
-                 제거된 초기 브라우저 harness 대신 현재는 명시적으로 skip합니다. 제품 UI smoke를 사용하세요.
+                 제거된 legacy browser harness 대신 현재는 명시적으로 skip합니다. 제품 UI smoke를 사용하세요.
   verify-uri-longrun
                  HTTP/HLS URI source의 로컬 반복 검증과 선택 외부 URL 반복 검증을 수행합니다.
   verify-va      YOLO/VA overlay의 lab/RTSP 검증과 사용 가능한 WebRTC browser harness 검증을 수행합니다.
@@ -69,7 +69,7 @@ Usage:
   verify-product-shell-examples
                  제품 shell/component 예시 문서와 UI guide 연결을 검증합니다.
   verify-ops-route-boundaries
-                 /ops, /client, /lab 화면/API route 경계 계약을 검증합니다.
+                 /ops, /client와 제거된 legacy Lab/WebRTC 화면의 404 회귀 방지 계약을 검증합니다.
   verify-ops-click-e2e
                  /ops 채널/룰/사용자 주요 패널과 탭 이동을 실제 브라우저 클릭으로 검증합니다.
   verify-ops-tables-layout
@@ -239,7 +239,7 @@ Usage:
   verify-auth-users
                  admin 계정 관리, viewer scope 제한, lockout, invite/request를 검증합니다.
   verify-auth-routes
-                 root/login/ops/client/lab role 기반 route 정책을 검증합니다.
+                 root/login/ops/client와 Lab API role 기반 route 정책을 검증합니다.
   verify-event-post
                  VA event POST payload, 실패/cooldown/queue 상태를 검증합니다.
   verify-integrator-contract-artifact

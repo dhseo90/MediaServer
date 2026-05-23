@@ -286,7 +286,8 @@ Ops/Client 화면 동작을 media signaling 구현과 물리적으로 섞지 않
   Integrator는 이 shell에 진입하지 않고 scoped client API만 사용합니다.
 - `/lab/analysis/*`:
   개발/검증 API입니다.
-  `/lab`, `/lab/rules`, `/lab/import` 화면 route는 404로 닫습니다.
+  `/lab`, `/lab/rules`, `/lab/import` legacy 화면 route는 제거된 상태를 유지하며
+  404 회귀 방지 대상으로만 확인합니다.
   Runtime/metadata/event storage API만 권한 gate 뒤에 유지합니다.
   운영 화면은 Lab editor를 embed하지 않고,
   채널/룰 상태를 Ops 전용 API와 제품 컴포넌트로 표시합니다.

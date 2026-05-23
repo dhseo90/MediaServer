@@ -21,7 +21,7 @@ Usage:
 
 Checks:
   - docs/project-feature-test-inventory.md exists and is linked from docs/README.md
-  - inventory lists required current sections, UI routes, closed routes, and comparison/gap states
+  - inventory lists required current sections, UI routes, removed legacy UI routes, and comparison/gap states
   - inventory classifies every tracked include/src C++ source module
   - inventory classifies tracked support artifacts in root/config/.github/video
   - inventory lists every tracked test fixture and docs asset used by verifiers
@@ -196,7 +196,7 @@ check("inventory lists every current test fixture and docs asset", () => {
   );
 });
 
-check("inventory covers required product UI and closed routes", () => {
+check("inventory covers required product UI and removed legacy UI routes", () => {
   for (const route of [
     "/",
     "/setup",
@@ -224,7 +224,7 @@ check("inventory covers required product UI and closed routes", () => {
   }
 
   for (const boundary of [
-    "열리면 실패",
+    "200/HTML로 열리면 실패",
     "직접 제품 UI 없음",
     "제품 UI 없음",
     "UI 풀테스트 evidence는 별도 수행 필요",
@@ -420,7 +420,7 @@ check("inventory covers current product UI action surfaces", () => {
       ],
     },
     {
-      name: "Closed product UI routes",
+      name: "Removed legacy product UI routes",
       sourceNeedles: [
         'request.path == "/lab"',
         'request.path == "/lab/rules"',
@@ -428,8 +428,8 @@ check("inventory covers current product UI action surfaces", () => {
         'request.path == "/webrtc/test"',
       ],
       inventoryNeedles: [
-        "Closed product UI routes",
-        "`/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test`는 제품 화면 action target이 아니며 열리면 실패",
+        "Removed legacy product UI routes",
+        "`/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test`는 제품 화면 action target이 아니며 legacy HTML이 없어야 함",
       ],
     },
   ];
@@ -707,7 +707,7 @@ check("inventory covers current v1.8 route/API surface families", () => {
       ],
     },
     {
-      name: "Runtime utility and closed UI boundaries",
+      name: "Runtime utility and removed legacy UI boundaries",
       sourceNeedles: [
         'request.path == "/health"',
         'request.path == "/favicon.ico"',
@@ -718,9 +718,9 @@ check("inventory covers current v1.8 route/API surface families", () => {
         'request.path == "/lab/import"',
       ],
       inventoryNeedles: [
-        "Runtime utility and closed UI boundaries",
+        "Runtime utility and removed legacy UI boundaries",
         "/lab/runtime/status",
-        "closed `/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test`",
+        "removed legacy `/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test`",
       ],
     },
   ];

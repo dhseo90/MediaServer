@@ -73,7 +73,7 @@ basic 기준:
   - adaptive tuner 장시간 검증
   - Product UI smoke, 룰/이벤트/POST smoke, 정적 이미지 분석 API는 full 또는 선택 검증으로 실행
   - event POST longrun과 runtime longrun/cycle은 별도 verify-*longrun 명령으로만 실행
-  - 다채널 fan-out은 초기 브라우저 harness 제거 후 별도 제품 UI harness 준비 전까지 skip
+  - 다채널 fan-out은 legacy browser harness 제거 후 별도 제품 UI harness 준비 전까지 skip
 
 Options:
   --quick             정적 검사, start, status, diagnose, LAN IP 외부 접근성까지만 실행
@@ -94,7 +94,7 @@ Options:
   --include-product-ui-smoke
                        선택 검증: /ops와 /client shell, 실제 클릭, 테이블, rules round-trip smoke를 추가
   --include-multichannel
-                       현재 skip: 초기 브라우저 harness 제거 후 별도 제품 UI harness 필요
+                       현재 skip: legacy browser harness 제거 후 별도 제품 UI harness 필요
   --include-redaction 선택 검증: 사람 객체 자동 모자이크 image/live 검증을 추가
   --include-report-summary
                        선택 검증: /tmp summary Markdown/HTML 리포트 생성 smoke를 추가

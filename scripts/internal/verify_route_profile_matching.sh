@@ -65,7 +65,7 @@ require_cmd() {
 
 browser_webrtc_harness_available() {
   [[ -f "${BROWSER_WEBRTC_HARNESS}" ]] || return 1
-  ! grep -Fq "removed: 초기 WebRTC 테스트 페이지" "${BROWSER_WEBRTC_HARNESS}"
+  ! grep -Fq "removed: legacy WebRTC test page" "${BROWSER_WEBRTC_HARNESS}"
 }
 
 resolve_port() {

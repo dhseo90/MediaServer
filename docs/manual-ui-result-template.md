@@ -50,7 +50,7 @@
 | `/client/live` | viewer/admin preview |  |  |  |  | PASS/FAIL |
 | `/client/dashboard` | viewer/admin preview |  |  |  |  | PASS/FAIL |
 | `/client/request-access` | public |  |  |  |  | PASS/FAIL |
-| `/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test` | any |  | 404/closed route |  |  | PASS/FAIL |
+| `/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test` | any |  | removed legacy route, 404-only |  |  | PASS/FAIL |
 
 ## v1.8.0 Release Evidence Index
 
@@ -85,7 +85,7 @@
 | Events | filter, archive toggle, pagination, export |  |  |
 | Client Live | source select/drag, tile start/reconnect/stop, dock, overlay, copy |  |  |
 | Client Dashboard | filter, sort, status/event copy |  |  |
-| Route guard | viewer ops forbidden, lab/webrtc closed route |  |  |
+| Route guard | viewer ops forbidden, removed lab/webrtc legacy route 404 |  |  |
 
 ## 접근 요청 검수
 

@@ -264,7 +264,7 @@ gst-inspect-1.0 uridecodebin
 ./server.sh verify-predev --quick
 ```
 
-초기 WebRTC 브라우저 테스트 화면에 의존하던 `verify-multichannel`은 현재 제품 UI 기준에서 skip됩니다.
+legacy WebRTC browser harness에 의존하던 `verify-multichannel`은 현재 제품 UI 기준에서 skip됩니다.
 느린 RTSP/WebRTC 다채널 재생 검증은 별도 제품 UI harness가 준비될 때 장기 검증으로만 다룹니다.
 
 `verify-predev --quick`와 `./server.sh test*` 계열은 느립니다.
@@ -341,7 +341,8 @@ MEDIA_SERVER_AUTH_USERS_FILE=/tmp/media-server-bootstrap-users.json \
 - CLI는 `./server.sh auth-user list`, `add`, `reset-password`, `disable`, `enable`을 사용하고 비밀번호는 기본 prompt로 입력
 
 제품 UI 검증은 명시적으로 auth off 서버에서 실행합니다.
-`/lab`, `/lab/rules`, `/lab/import` 화면 route는 404로 닫혀 있습니다.
+`/lab`, `/lab/rules`, `/lab/import` legacy 화면 route는 제거된 상태이며 404 회귀
+방지 대상으로만 확인합니다.
 새 검증은 Ops 화면을 기준으로 합니다.
 
 ```bash

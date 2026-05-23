@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: Ops/Client/Lab 제품 route 경계가 화면/API 계약대로 유지되는지 검증한다.
+// 파일 용도: Ops/Client 제품 route와 제거된 legacy Lab/WebRTC 화면의 404 계약을 검증한다.
 
 import process from "node:process";
 

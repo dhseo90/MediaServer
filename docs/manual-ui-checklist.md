@@ -102,7 +102,8 @@ Evidence index에는 route, 계정/권한, 직접 조작, screenshot/artifact, �
 - Auth evidence에는 plaintext password, invite token 원문, session cookie,
   generated password suggestion을 남기지 않습니다.
 - `/lab`, `/lab/rules`, `/lab/import`: 제품 화면으로 열리지 않고 404 상태를 유지합니다.
-- `/webrtc/test`: 제품 화면으로 다시 열지 않고 닫힌 route 상태를 유지합니다.
+- `/webrtc/test`: 제거된 legacy browser harness가 제품 화면으로 다시 열리지 않고
+  404 회귀 방지 상태를 유지합니다.
 
 ## 5. Ops 화면
 

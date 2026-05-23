@@ -6,7 +6,7 @@ UI 풀테스트 기준은 [manual-ui-fulltest.md](./manual-ui-fulltest.md),
 브라우저 수동 검수 순서는 [manual-ui-checklist.md](./manual-ui-checklist.md),
 수동 검수 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md),
 VA 내부 구조는 [video-analysis.md](./video-analysis.md)를 봅니다.
-`/lab` 화면 route는 제품 UI에서 제거했고 개발/검증 API만 유지합니다.
+`/lab` legacy 화면 route는 제품 UI에서 제거했고, 개발/검증 API만 유지합니다.
 
 ## 1. UI 개요
 
@@ -226,7 +226,8 @@ Password policy 기본값은 `kr-privacy`입니다.
 `mustChangePassword=true` 계정은 로그인 후 `/password/change`로 이동합니다.
 
 `MEDIA_SERVER_AUTH_MODE=off`는 기존 개발 자동화를 위한 명시 모드입니다.
-이 모드에서도 `/lab`, `/lab/rules`, `/lab/import` 화면 route는 404로 닫습니다.
+이 모드에서도 `/lab`, `/lab/rules`, `/lab/import` legacy 화면 route는 제거된 상태를
+유지하며 404 회귀 방지 대상으로만 확인합니다.
 개발/검증 API만 `/lab/analysis/*` 아래에서 유지합니다.
 
 Role별 이동:
@@ -323,9 +324,11 @@ Route 역할:
   admin/operator 또는 `lab:read` scope용 개발/검증 API입니다.
   viewer/client 기본 계정은 접근할 수 없고,
   rule/profile/vaRule 변경 API는 `rule:write` scope를 추가로 요구합니다.
-  `/lab`, `/lab/rules`, `/lab/import` 화면 route는 404로 닫습니다.
+  `/lab`, `/lab/rules`, `/lab/import` legacy 화면 route는 제거된 상태를
+  유지하며 404 회귀 방지 대상으로만 확인합니다.
 - `/webrtc/test`:
-  초기 브라우저 테스트 화면은 404로 닫고 제품 UI 진입점으로 사용하지 않습니다.
+  legacy browser harness 화면은 제거된 상태를 유지하며 404 회귀 방지 대상으로만
+  확인합니다.
 
 ![운영 대시보드](assets/ui/ops-dashboard.png)
 

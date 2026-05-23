@@ -52,7 +52,7 @@
 | Integrator contract | Event POST/WebRTC/SSE/WS schema samples and redaction contract | `test/fixtures/integrator_contract_artifact/*` | 직접 UI 없음 | `verify-integrator-contract-artifact`, metadata/event verifiers |
 | Release/public repo | source-only release, dependency notice/snapshot, bundle policy, public readiness, actions security | docs/config/scripts | 직접 UI 없음 | `verify-release-metadata`, `verify-actions-security`, `verify-public-repo-readiness`, `verify-release-closeout-helper` |
 | Research boundaries | Re-ID default-off, OC-SORT sandbox, BoT-SORT/DeepSORT research, YouTube lab-only import/source | analysis hooks, docs, fixtures | Re-ID/tracker options in rules; YouTube UI 없음 | `verify-reid-advanced-tracking`, `verify-oc-sort-benchmark-boundary`, `verify-bot-sort-deepsort-research-boundary` |
-| Closed product routes | `/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test` product UI closure | route guard/404 | 열리면 안 됨 | `verify-auth-routes`, `verify-ops-route-boundaries`, `verify-multichannel` skip notice |
+| Removed legacy product UI routes | `/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test` legacy 화면 제거 확인 | 404-only regression guard. 제품 UI HTML 없음 | 200/HTML로 열리면 실패 | `verify-auth-routes`, `verify-ops-route-boundaries`, `verify-multichannel` skip notice |
 
 ## Source Module Inventory Audit
 
@@ -174,8 +174,8 @@ source release, public repo, config, CI, sample media 검증 범위가 불완전
 | `/client/live` | viewer/operator/admin preview | source tree, live workspace, tile controls, dock event feed, saved layout, viewer-safe redaction | `verify-ops-client-ui`, `verify-client-live-workspace`, `verify-client-tile-disconnect` | 이 문서 기준 미수행 |
 | `/client/dashboard` | viewer/operator/admin preview | assigned view dashboard, filter/sort/copy, multi-view comparison | `verify-client-dashboard-polish`, `verify-ops-client-ui` | 이 문서 기준 미수행 |
 | `/client/events` | viewer/operator/admin preview | Dashboard shell alias for event-focused direct links | `verify-client-dashboard-polish`, `verify-ops-client-ui` | 이 문서 기준 미수행 |
-| `/lab`, `/lab/rules`, `/lab/import` | none as product UI | closed route boundary | `verify-auth-routes`, `verify-ops-route-boundaries` | 열리면 실패 |
-| `/webrtc/test` | none as product UI | removed browser harness boundary | `verify-multichannel`, `verify-ops-route-boundaries` | 열리면 실패 |
+| `/lab`, `/lab/rules`, `/lab/import` | none as product UI | legacy Lab 화면 제거 확인용 404-only guard. 제품 UI HTML 없음 | `verify-auth-routes`, `verify-ops-route-boundaries` | 200/HTML로 열리면 실패 |
+| `/webrtc/test` | none as product UI | legacy browser harness 제거 확인용 404-only guard. 제품 UI HTML 없음 | `verify-multichannel`, `verify-ops-route-boundaries` | 200/HTML로 열리면 실패 |
 
 ## UI Action Inventory Audit
 
@@ -195,14 +195,14 @@ handler를 화면별로 묶은 정적 inventory입니다. 실제 인앱 브라�
 | Ops Events | 이벤트 상태 새로고침, Dashboard/Rules 이동, alert delivery ID/kind/label/endpoint/retry/enabled 입력 후 저장/fixture 전송, review status/class filter, review status/class/note 저장, evidence type 선택, archive 포함 toggle, records 이전/다음, snapshot/clip/signed bundle export | `data-testid="ops-events-page"`, `id="opsEventsRefresh"`, `data-testid="ops-alert-delivery-integrations"`, `id="alertDeliverySave"`, `id="alertDeliveryTest"`, `data-testid="ops-event-review-inbox"`, `id="eventReviewStatusFilter"`, `id="eventRecordsEvidenceSelect"`, `id="eventRecordsIncludeArchives"`, `id="eventRecordsPrev"`, `id="eventRecordsNext"`, `data-event-review-save`, `data-evidence-bundle` | `/ops/api/events/status`, `/ops/api/events/reviews`, `/ops/api/events/reviews/{eventId}`, `/ops/api/alerts/deliveries`, `/ops/api/alerts/deliveries/test`, `/lab/analysis/events/evidence*` | `verify-ops-event-records-scope`, `verify-ops-event-review-inbox`, `verify-ops-alert-delivery-integrations`, `verify-event-post` | 이 문서 기준 미수행. 실제 이벤트 발생부터 review/export까지 수동 evidence는 없음 |
 | Client Live | source tree 클릭/drag/drop, 타일 channel select, overlay mode select/button, 타일 재생/재시작/연결 해제, 전체 시작/재시작/정지, grid size/density/dock side 변경, 정보 overlay toggle, 레이아웃 저장/저장 복원/권한 기본 적용, selected tile dashboard/event dock 확인 | `data-testid="client-live-workspace"`, `data-testid="client-live-drop-grid"`, `data-source-view`, `data-role="view"`, `data-role="mode"`, `data-mode-action="va-overlay"`, `data-action="toggle-playback"`, `data-action="restart"`, `data-action="stop"`, `id="liveGridSize"`, `id="liveInfoOverlayToggle"`, `id="liveSaveLayoutPreference"`, `id="liveApplyRoleLayoutPreset"` | `/client/api/views`, `/client/api/views/{viewId}/dashboard`, `/client/api/views/{viewId}/events`, `/client/api/preferences/live-layout`, `/client/api/views/{viewId}/webrtc/session*`, `/webrtc/config` | `verify-client-live-workspace`, `verify-client-source-dock-events`, `verify-client-tile-disconnect`, `verify-client-tile-info-overlay-health`, `verify-client-saved-views-layout-presets`, `verify-webrtc-ice` | 이 문서 기준 미수행. 실제 다중 권한/다중 채널 영상 전수 evidence는 없음 |
 | Client Dashboard | 상태 복사, 이벤트 복사, compare filter/sort 선택, preset config textarea JSON 적용/초기화, event-focused direct alias 확인 | `data-testid="client-dashboard-shell"`, `data-client-copy="status"`, `data-client-copy="events"`, `data-testid="client-dashboard-compare"`, `id="clientDashboardCompareFilter"`, `id="clientDashboardCompareSort"`, `data-testid="client-dashboard-preset-config"`, `id="clientDashboardPresetApply"`, `id="clientDashboardPresetReset"` | `/client/api/views/{viewId}/dashboard`, `/client/api/views/{viewId}/events` | `verify-client-dashboard-polish`, `verify-ops-client-ui` | 이 문서 기준 미수행 |
-| Closed product UI routes | `/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test`는 제품 화면 action target이 아니며 열리면 실패 | route guard/404 source branch | closed route boundary | `verify-auth-routes`, `verify-ops-route-boundaries`, `verify-multichannel` | 열리면 실패 |
+| Removed legacy product UI routes | `/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test`는 제품 화면 action target이 아니며 legacy HTML이 없어야 함 | 404-only regression guard branch | removed legacy UI boundary | `verify-auth-routes`, `verify-ops-route-boundaries`, `verify-multichannel` | 200/HTML로 열리면 실패 |
 
 ## Route/API Surface Audit
 
 이 표는 `src/ingress/webrtc_http_server.cpp`의 `request.path` 분기와
 `src/ingress/product_ui_page_scripts.cpp`의 UI fetch endpoint를 현재 `v1.8.0`
 기준으로 묶은 route family 점검입니다. 제품 UI route, 제품 UI가 소비하는 API,
-dev/integrator API, 닫힌 UI route를 섞어 완료로 보지 않습니다.
+dev/integrator API, 제거된 legacy UI route를 섞어 완료로 보지 않습니다.
 
 | Route family | 코드상 route/API surface | UI 노출 | 현재 검증 | 판정 |
 | --- | --- | --- | --- | --- |
@@ -220,7 +220,7 @@ dev/integrator API, 닫힌 UI route를 섞어 완료로 보지 않습니다.
 | Lab analysis runtime APIs | `/lab/analysis/capabilities`, `/lab/analysis/image`, `/lab/analysis/image/metadata`, `/lab/analysis/image/snapshot`, `/lab/analysis/image/snapshot.jpg`, `/lab/analysis/image/overlay`, `/lab/analysis/image/overlay.jpg`, `/lab/analysis/metadata/stream`, `/lab/analysis/taps`, `/lab/analysis/taps/{tapId}`, `/lab/analysis/taps/{tapId}/metadata`, `/lab/analysis/taps/{tapId}/metadata/stream`, `/lab/analysis/taps/{tapId}/bbox-diagnostics`, `/lab/analysis/taps/{tapId}/state`, `/lab/analysis/taps/{tapId}/state-dump`, `/lab/analysis/taps/{tapId}/metrics`, `/lab/analysis/taps/{tapId}/metrics-dump`, `/lab/analysis/taps/{tapId}/events`, `/lab/analysis/taps/{tapId}/snapshot`, `/lab/analysis/taps/{tapId}/snapshot.jpg`, `/lab/analysis/taps/{tapId}/overlay`, `/lab/analysis/taps/{tapId}/overlay.jpg`, `/ws/va-metadata` | 제품 Lab UI 없음. Ops Rules/Dashboard가 summary와 preview를 소비 | `verify-image-analysis`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-va-runtime-console` | Code + tests 있음, 제품 UI 없음 또는 제한 소비 |
 | Event storage/evidence APIs | `/lab/analysis/event-post/status`, `/lab/analysis/event-storage/status`, `/lab/analysis/events/records`, `/lab/analysis/events/records/compact`, `/lab/analysis/events/records/compactions`, `/lab/analysis/events/records/compactions/cleanup`, `/lab/analysis/events/records/compactions/{file}`, `/lab/analysis/events/evidence`, `/lab/analysis/events/evidence/bundle-token`, `/lab/analysis/events/evidence/bundle` | `/ops/events`, Dashboard event panels | `verify-event-post`, `verify-ops-event-records-scope`, `verify-ops-evidence-retention-cleanup` | UI 소비와 tests 있음. 실제 이벤트 발생 수동 evidence는 미수행 |
 | Generic WebRTC/WHEP/WHIP signaling | `/webrtc/config`, `/webrtc/session`, `/webrtc/session/{sessionId}`, `/webrtc/session/{sessionId}/answer`, `/webrtc/session/{sessionId}/ice`, `/whep`, `/whep/session/{sessionId}`, `/whep/session/{sessionId}/answer`, `/whep/session/{sessionId}/ice`, `/whip/publish`, `/whip/publish/session/{sessionId}`, `/whip/publish/session/{sessionId}/ice` | Direct API 중심. 제품 UI는 client scoped proxy 또는 Ops preview로 소비 | `verify-webrtc-ice`, `verify-codecs`, `browser_webrtc_publish_consume_check.mjs` | Code + tests 있음, 직접 제품 UI는 제한 |
-| Runtime utility and closed UI boundaries | `/health`, `/favicon.ico`, `/lab/runtime/status`, closed `/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test` | utility 또는 닫힌 route | `verify-auth-routes`, `verify-ops-route-boundaries`, `verify-multichannel` | 닫힌 route가 열리면 실패 |
+| Runtime utility and removed legacy UI boundaries | `/health`, `/favicon.ico`, `/lab/runtime/status`, removed legacy `/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test` | utility 또는 404-only regression guard | `verify-auth-routes`, `verify-ops-route-boundaries`, `verify-multichannel` | legacy 화면이 200/HTML로 열리면 실패 |
 
 ## Current Verification Inventory
 
@@ -705,7 +705,7 @@ ignored runtime 생성물인 `scripts/.media_server.env`, `scripts/**/__pycache_
 | Code + UI + automated tests 있음 | Ops Event review/alert delivery/evidence export | `/ops/events`, `/ops/api/events/*`, alert APIs와 verifier 존재 | 실제 이벤트 발생부터 review/export까지 수동 evidence 필요 |
 | Code + UI + automated tests 있음 | ONVIF import draft and source save flow | `/ops/sources` ONVIF flow와 no-device/ops-sources verifiers 존재 | 실장비 ONVIF 성공은 미확인/field smoke 범위 |
 | Code + tests 있음, 제품 UI 없음 | WHIP publish ingest | `/whip/publish` API와 publisher test 존재 | 제품 UI 직접 publish 화면은 없음. Published source 연결만 UI 제공 |
-| Code + tests 있음, 제품 UI 없음 | `/lab/analysis/*` tap/image/rule/profile/event APIs | dev/integrator API와 verifier 존재 | `/lab` 제품 화면은 닫힌 route가 정상 |
+| Code + tests 있음, 제품 UI 없음 | `/lab/analysis/*` tap/image/rule/profile/event APIs | dev/integrator API와 verifier 존재 | `/lab` legacy 제품 화면은 제거되어 404인 것이 정상 |
 | Code + tests 있음, 제품 UI 없음 | SSE/WS metadata side-channel | `/lab/analysis/metadata/stream`, `/ws/va-metadata`와 verifier 존재 | Ops dashboard는 summary만 소비. raw stream UI 없음 |
 | Code + tests 있음, 제품 UI 없음 | Release/bundle/public readiness | release/docs scripts 존재 | 제품 웹 UI 대상 아님 |
 | Code + tests 있음, UI 노출 제한 | Re-ID/advanced tracker, OC-SORT/BoT-SORT/DeepSORT | default-off/research boundary verifier 존재 | 제품 default-on 또는 runtime tracker 승격은 비범위 |

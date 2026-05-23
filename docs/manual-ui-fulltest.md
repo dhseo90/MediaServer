@@ -16,7 +16,7 @@ API 응답, raw JSON, screenshot 생성, 스크립트 통과만으로는 UI 풀�
 
 - 프로젝트 문서 파악
 - 데이터 리셋과 throwaway fixture 준비
-- Auth, Ops, Client, 접근 요청, 닫힌 route 직접 확인
+- Auth, Ops, Client, 접근 요청, 제거된 legacy route의 404 회귀 방지 직접 확인
 - 문서에 나온 웹페이지 UI 기능의 클릭/타이핑 검수
 - 320px, 390px, 760px, 1180px 반응형 확인
 - light/dark theme 확인
@@ -102,7 +102,7 @@ Client:
 - `/client/dashboard`
 - `/client/request-access`
 
-닫힌 route:
+제거된 legacy route 404 회귀 방지:
 
 - `/lab`
 - `/lab/rules`
