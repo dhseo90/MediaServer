@@ -234,6 +234,32 @@
 - `source-offer-checklist`
 - `summarize-reports`
 
+## Script Inventory Audit
+
+Script review 기준은 추적 중인 `scripts/` 파일입니다. ignored 생성물인
+`scripts/**/__pycache__/`, `*.pyc`, 로컬 `scripts/.media_server.env`는 source
+inventory에서 제외합니다.
+
+분류 기준:
+
+- `server-command`: `server.sh` dispatch에 직접 연결된 실행 스크립트
+- `helper-library`: 공통 shell/Node helper로 다른 스크립트가 import/source/call
+- `helper-smoke`: 상위 verifier가 호출하는 보조 smoke, test fixture runner, browser helper
+- `compiled-smoke`: 상위 verifier가 빌드/실행하는 C++ smoke source
+- `example`: integrator/client example
+- `env-template`: 로컬 env 예시 template
+
+현재 스크립트 전면 재검토 결과:
+
+- 모든 `server.sh` dispatch target은 존재하고 실행 가능해야 합니다.
+- 모든 문서의 `./server.sh <command>` 참조는 실제 dispatch command여야 합니다.
+- 모든 추적 중인 `scripts/` 파일은 위 분류 중 하나로 설명 가능해야 합니다.
+- 구버전 전용 `verify-v*`/`verify_v*` verifier는 현재 command set에 없어야 합니다.
+- `scripts/internal/auto_start_server.sh`는 추적 파일 내 참조가 없고 현재
+  `start`/`restart`/`foreground` 흐름과 중복되어 제거했습니다.
+
+이 기준은 `./server.sh verify-script-inventory`가 검사합니다.
+
 ## Comparison Result
 
 | 판정 | 항목 | 근거 | 필요한 후속 |

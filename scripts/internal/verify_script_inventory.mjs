@@ -4,6 +4,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
@@ -22,6 +23,7 @@ Checks:
   - server.sh command dispatch target exists and is executable
   - README/docs/scripts에 적힌 ./server.sh 명령이 실제 command와 일치
   - 현재 command set에 구버전 verify-v*/verify_v* release verifier가 남아 있지 않음
+  - 추적 중인 scripts 파일이 server command, helper, example, env template 중 하나로 분류됨
   - 사용자 노출 JS 스크립트의 옵션 검증 helper 적용 여부
 `);
 }
@@ -77,6 +79,51 @@ check("current command set excludes version-specific release verifiers", () => {
   const server = readText(path.join(rootDir, "server.sh"));
   assert(!/verify-v[0-9]/.test(server), "server.sh usage still documents a version-specific verify-v command");
   assert(!/verify_v[0-9]/.test(server), "server.sh still references a version-specific verify_v script");
+});
+
+check("tracked scripts are classified and referenced", () => {
+  const dispatches = parseServerDispatches();
+  const dispatchTargets = new Set(dispatches.map(item => path.join("scripts/internal", item.script)));
+  const trackedScripts = gitLsFiles(["scripts"]);
+  const trackedTextFiles = gitLsFiles([])
+    .filter(file => !/\.(png|jpe?g|mp4|onnx|pyc)$/i.test(file))
+    .filter(file => !file.startsWith("build"))
+    .filter(file => !file.startsWith("docs/assets/"));
+  const texts = new Map();
+  for (const file of trackedTextFiles) {
+    try {
+      texts.set(file, readText(path.join(rootDir, file)));
+    } catch {
+      // 바이너리나 플랫폼별 인코딩 파일은 텍스트 참조 스캔에서 제외한다.
+    }
+  }
+
+  const unclassified = [];
+  for (const file of trackedScripts) {
+    const basename = path.basename(file);
+    const references = [];
+    for (const [candidate, text] of texts.entries()) {
+      if (candidate === file) continue;
+      if (text.includes(file) || text.includes(basename)) {
+        references.push(candidate);
+      }
+    }
+
+    const classified =
+      dispatchTargets.has(file) ||
+      file === "scripts/.media_server.env.example" ||
+      file.startsWith("scripts/examples/") ||
+      basename === "env_common.sh" ||
+      basename === "script_arg_utils.mjs" ||
+      basename.endsWith("_helpers.mjs") ||
+      basename.endsWith("_helpers.sh") ||
+      basename.endsWith("_lib.mjs") ||
+      references.length > 0;
+    if (!classified) {
+      unclassified.push(file);
+    }
+  }
+  assert(unclassified.length === 0, `unclassified or unreferenced script(s):\n${unclassified.join("\n")}`);
 });
 
 check("user-facing JS option parsers reject unknown options", () => {
@@ -186,6 +233,16 @@ function assert(condition, message) {
 
 function readText(filePath) {
   return fs.readFileSync(filePath, "utf8");
+}
+
+function gitLsFiles(args) {
+  return execFileSync("git", ["ls-files", ...args], {
+    cwd: rootDir,
+    encoding: "utf8",
+  })
+    .trim()
+    .split("\n")
+    .filter(Boolean);
 }
 
 function parseServerDispatches() {
