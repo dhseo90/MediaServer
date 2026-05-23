@@ -94,7 +94,7 @@ field sample history review workflow 완료로 해석하지 않습니다.
 ## 검증
 
 ```bash
-`구버전 전용 verifier는 현재 command set에서 제거됨`
+./server.sh verify-reid-advanced-tracking
 ./server.sh verify-docs-links
 git diff --check
 ```

@@ -454,12 +454,10 @@ client/viewer shell과 client API에는 source URL, raw JSON, debug counter,
 `analysisTapId`, Scenario Timeline debug object를 노출하지 않습니다.
 raw JSON이 필요한 경우에도 운영자 debug details 접힘 영역 또는
 개발/검증 API에서만 확인합니다.
-v1.8.0 client debug/source/model/auth material 비노출 guard는
-구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)와
-`구버전 전용 verifier는 현재 command set에서 제거됨`로 확인합니다.
-v1.8.0 audit/export masking regression guard는
-구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)와
-`구버전 전용 verifier는 현재 command set에서 제거됨`로 확인합니다.
+client debug/source/model/auth material 비노출 guard는 `verify-ops-client-ui`,
+`verify-ops-client-ui --screenshots`, `verify-auth-routes`로 확인합니다.
+audit/export masking regression guard는 `verify-ops-audit-trail`,
+`verify-ops-audit-persistence`, `verify-ops-event-records-scope`로 확인합니다.
 
 ## 3. Admin User Management
 
@@ -525,10 +523,12 @@ UI/API 응답에 노출하지 않습니다.
   model/source material, source URL/URI/file, model path/checksum/provenance,
   raw media/crop/embedding은 서버 조회와 JSON/CSV/Diff JSON export, 브라우저
   fallback cache에서 `[redacted]`로 유지합니다.
-  이 경계는 `구버전 전용 verifier는 현재 command set에서 제거됨`으로 확인합니다.
+  이 경계는 `verify-ops-audit-trail`, `verify-ops-audit-persistence`,
+  `verify-reid-advanced-tracking`으로 확인합니다.
   v1.8.0 `Audit Export Masking Regression Hardening`은 여기에 auth/session,
   password/token/hash/secret/credential/capability material 비노출 guard를 더해
-  `구버전 전용 verifier는 현재 command set에서 제거됨`으로 확인합니다.
+  `verify-auth-users`, `verify-auth-routes`, `verify-ops-audit-persistence`로
+  확인합니다.
   채널/사용자 변경 이력 필터는 작은 화면에서 table/action 영역을
   침범하지 않는 별도 responsive contract입니다. 320/390px 기준으로
   시작/종료 input은 `min-width: 0` 흐름 안에서 한 줄 또는 다음 줄로

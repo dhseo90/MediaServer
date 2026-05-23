@@ -10,6 +10,7 @@
 | 설치, 빌드, 실행 | [development-guide.md](development-guide.md) |
 | 운영자/클라이언트 UI | [ui-guide.md](ui-guide.md) |
 | UI 풀테스트 기준/체크리스트 | [manual-ui-fulltest.md](manual-ui-fulltest.md), [manual-ui-checklist.md](manual-ui-checklist.md), [manual-ui-result-template.md](manual-ui-result-template.md) |
+| 기능/UI/테스트 전면 inventory | [project-feature-test-inventory.md](project-feature-test-inventory.md) |
 | RTSP/WebRTC/VA 구조 | [media-server-architecture.md](media-server-architecture.md) |
 | 영상 분석, tracking, scenario | [video-analysis.md](video-analysis.md) |
 | 검증 명령과 release gate | [stream-verification.md](stream-verification.md) |
@@ -38,9 +39,10 @@ Release close-out runbook과 tag/push 수동 gate는
 세부 순서를 둡니다.
 Release evidence의 실행/미실행/미확인 색인은
 [release-evidence-index.md](release-evidence-index.md)에 둡니다.
-`verify-v*` 계열은 historical release archive 보존용입니다. 현재 v1.8.0 제품
-회귀와 UI 풀테스트 gate는 [stream-verification.md](stream-verification.md)와
-[manual-ui-checklist.md](manual-ui-checklist.md)의 버전 중립 명령을 기준으로
+구버전 전용 `verify-v*` 명령과 standalone close-out 문서는 현재 command set에서
+제거했습니다. 현재 v1.8.0 제품 회귀와 UI 풀테스트 gate는
+[stream-verification.md](stream-verification.md)와
+[manual-ui-checklist.md](manual-ui-checklist.md)의 버전 중립 명령만 기준으로
 확인합니다.
 
 ## 기능별 문서
@@ -71,7 +73,8 @@ Release evidence의 실행/미실행/미확인 색인은
 
 ## Archive
 
-과거 version-named close-out 문서는 증적 보존용 archive입니다. 현재 release 기준이나
-새 작업 source-of-truth로 쓰지 않습니다. 긴 개발/검증 이력은
-[history/development-history.md](history/development-history.md),
-[history/verification-history.md](history/verification-history.md)에 보관합니다.
+과거 version-named standalone close-out 문서는 현재 문서 세트에서 제거했습니다.
+긴 개발/검증 이력은 [history/development-history.md](history/development-history.md),
+[history/verification-history.md](history/verification-history.md)와
+[development-backlog.md](development-backlog.md)의 archive 섹션에만 보관하며,
+현재 release 기준이나 새 작업 source-of-truth로 쓰지 않습니다.

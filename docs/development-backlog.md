@@ -68,7 +68,8 @@ alert delivery, scenario builder, Ops/Client declutter는 이전 UI-first close-
 - 별도 Phase의 실제 기능 개발, tracker replacement product review
 
 세부 종료 증적은 아래 v1.8.0 Release Trust Hardening Close-out 섹션을 봅니다.
-과거 release evidence 문서는 archive로 유지합니다.
+과거 release evidence는 standalone current 문서가 아니라 이 문서의 archive 섹션과
+`docs/history/` 아래 이력 문서에만 보존합니다.
 
 ## v1.8.0 Release Trust Hardening Close-out
 
@@ -271,7 +272,7 @@ v1.6.0 close-out 당시에는 새 제품 기능을 여는 minor release가 아�
 | V160-P0-01 | P0 | Release evidence dashboard cleanup | v1.5.0까지 흩어진 release 증적, verifier report, 미실행 항목, PR/Actions 결과를 한곳에서 추적 가능하게 정리합니다. | `verify-docs-links`, release evidence checks, `git diff --check` |
 | V160-P0-02 | P0 | Stability verification gate cleanup | 현재 기능 기준 smoke 묶음을 정리하고 flaky, 중복, 미사용 verifier를 분리합니다. 실패/미실행 항목을 release pass처럼 보이지 않게 합니다. | `verify-script-inventory`, 주요 smoke suite, `git diff --check` |
 | V160-P0-03 | P0 | Client/Ops debug exposure regression guard | viewer/client에 source URL, raw JSON, debug counter, rule/profile editor, model/source/auth material이 노출되지 않도록 회귀 guard를 강화합니다. | `verify-ops-client-ui`, `verify-auth-routes`, client redaction checks |
-| V160-P0-04 | P0 | Tracker/Re-ID opt-in stabilization close-out | rule-level tracker/Re-ID opt-in, warning, fallback, privacy guard를 default-off 안정화 상태로 닫고 default-on 승격과 분리합니다. | `구버전 전용 verifier는 현재 command set에서 제거됨`, tracker/Re-ID stability matrix verifier |
+| V160-P0-04 | P0 | Tracker/Re-ID opt-in stabilization close-out | rule-level tracker/Re-ID opt-in, warning, fallback, privacy guard를 default-off 안정화 상태로 닫고 default-on 승격과 분리합니다. | `현재 command set에서 제거된 historical verifier`, tracker/Re-ID stability matrix verifier |
 | V160-P1-01 | P1 | ONVIF field smoke evidence reconciliation | 실장비 성공 보장이 아니라 field smoke summary/report/history boundary와 release evidence 연결 기준을 정리합니다. | field smoke summary verifier, docs guard |
 | V160-P1-02 | P1 | Audit/export masking regression hardening | audit 조회, CSV/JSON/Diff export에서 model/source/auth/raw material masking 회귀를 막습니다. | audit export verifier, `verify-ops-audit-trail` |
 | V160-P1-03 | P1 | Runtime/model bundle RC policy | v1.6.0에는 bundle을 포함하지 않고, 향후 RC에서 model/runtime을 올릴 수 있는 조건과 차단 기준만 확정합니다. | provenance/fallback verifier, privacy verifier, bundle policy checks |
@@ -301,7 +302,7 @@ report, PR/Actions 결과, 미실행 항목을 구버전 전용 close-out 문서
 
 검증 기준:
 
-- `구버전 전용 verifier는 현재 command set에서 제거됨`
+- `현재 command set에서 제거된 historical verifier`
 - `./server.sh verify-docs-links`
 - `./server.sh verify-script-inventory`
 - `git diff --check`
@@ -348,7 +349,7 @@ flaky/attached/longrun/external gate를
 
 검증 기준:
 
-- `구버전 전용 verifier는 현재 command set에서 제거됨`
+- `현재 command set에서 제거된 historical verifier`
 - `./server.sh verify-script-inventory`
 - `./server.sh verify-docs-links`
 - `git diff --check`
@@ -393,7 +394,7 @@ source URL, raw JSON, debug counter, rule/profile editor, model/source/auth mate
 
 검증 기준:
 
-- `구버전 전용 verifier는 현재 command set에서 제거됨`
+- `현재 command set에서 제거된 historical verifier`
 - `./server.sh verify-auth-routes`
 - `./server.sh verify-ops-client-ui`
 - `./server.sh verify-script-inventory`
@@ -441,10 +442,10 @@ runtime tracker 승격, model/runtime bundle release와 P0 안정화 완료를 �
 
 검증 기준:
 
-- `구버전 전용 verifier는 현재 command set에서 제거됨`
-- `구버전 전용 verifier는 현재 command set에서 제거됨`
-- `구버전 전용 verifier는 현재 command set에서 제거됨`
-- `구버전 전용 verifier는 현재 command set에서 제거됨`
+- `현재 command set에서 제거된 historical verifier`
+- `현재 command set에서 제거된 historical verifier`
+- `현재 command set에서 제거된 historical verifier`
+- `현재 command set에서 제거된 historical verifier`
 - `./server.sh verify-script-inventory`
 - `git diff --check`
 
@@ -491,7 +492,7 @@ review를 연결합니다.
 
 검증 기준:
 
-- `구버전 전용 verifier는 현재 command set에서 제거됨`
+- `현재 command set에서 제거된 historical verifier`
 - `./server.sh verify-onvif-field-smoke-gate`
 - `./server.sh verify-onvif-field-smoke-sample-bundle`
 - `./server.sh verify-docs-links`
@@ -540,8 +541,8 @@ JSON/CSV/Diff JSON export에서 source/model/auth/raw material이 다시 노출�
 
 검증 기준:
 
-- `구버전 전용 verifier는 현재 command set에서 제거됨`
-- `구버전 전용 verifier는 현재 command set에서 제거됨`
+- `현재 command set에서 제거된 historical verifier`
+- `현재 command set에서 제거된 historical verifier`
 - `./server.sh verify-ops-audit-trail`
 - `./server.sh verify-docs-links`
 - `./server.sh verify-script-inventory`
@@ -588,8 +589,8 @@ JSON/CSV/Diff JSON export에서 source/model/auth/raw material이 다시 노출�
 
 검증 기준:
 
-- `구버전 전용 verifier는 현재 command set에서 제거됨`
-- `구버전 전용 verifier는 현재 command set에서 제거됨`
+- `현재 command set에서 제거된 historical verifier`
+- `현재 command set에서 제거된 historical verifier`
 - `./server.sh verify-bundle-policy`
 - `./server.sh verify-docs-links`
 - `./server.sh verify-script-inventory`
@@ -637,7 +638,7 @@ JSON/CSV/Diff JSON export에서 source/model/auth/raw material이 다시 노출�
 
 검증 기준:
 
-- `구버전 전용 verifier는 현재 command set에서 제거됨`
+- `현재 command set에서 제거된 historical verifier`
 - `./server.sh verify-manual-ui-evidence`
 - `./server.sh verify-docs-ui-assets`
 - `./server.sh verify-docs-links`
@@ -687,7 +688,7 @@ backlog에서 같은 방식으로 보이도록
 
 검증 기준:
 
-- `구버전 전용 verifier는 현재 command set에서 제거됨`
+- `현재 command set에서 제거된 historical verifier`
 - `./server.sh verify-release-metadata`
 - `./server.sh verify-docs-links`
 - `./server.sh verify-script-inventory`
@@ -734,7 +735,7 @@ harness 요구사항과 비승격 경계를
 
 검증 기준:
 
-- `구버전 전용 verifier는 현재 command set에서 제거됨`
+- `현재 command set에서 제거된 historical verifier`
 - `./server.sh verify-oc-sort-benchmark-boundary`
 - `./server.sh verify-bot-sort-deepsort-research-boundary`
 - `./server.sh verify-docs-links`
@@ -866,7 +867,7 @@ global default-on, 자동 migration, tracker 없는 Re-ID assist 활성화를 �
 검증 기준:
 
 - `./server.sh build`
-- `구버전 전용 verifier는 현재 command set에서 제거됨`
+- `현재 command set에서 제거된 historical verifier`
 - `./server.sh verify-rule-ui`
 - `./server.sh verify-ops-rules-roundtrip`
 - `./server.sh verify-analysis-state`
@@ -922,7 +923,7 @@ fixture 결과와 warning drift를 같은 기준으로 읽게 하는 안정화 �
 검증 기준:
 
 - `./server.sh build`
-- `구버전 전용 verifier는 현재 command set에서 제거됨`
+- `현재 command set에서 제거된 historical verifier`
 - `./server.sh verify-tracker-stability --tracker-policy lite --reid-policy off`
 - `./server.sh verify-tracker-stability --tracker-policy kalman-lite --reid-policy off`
 - `./server.sh verify-tracker-stability --tracker-policy bytetrack --reid-policy off`
@@ -980,7 +981,7 @@ gate입니다. 목표는 missing/invalid/mismatched model을 제품 오류나 me
 검증 기준:
 
 - `./server.sh build`
-- `구버전 전용 verifier는 현재 command set에서 제거됨`
+- `현재 command set에서 제거된 historical verifier`
 - `./server.sh verify-reid-advanced-tracking`
 - `./server.sh verify-analysis-state`
 - `./server.sh verify-webrtc-va-metadata`
@@ -1044,7 +1045,7 @@ schema를 추가하지 않는 것입니다.
 검증 기준:
 
 - `./server.sh build`
-- `구버전 전용 verifier는 현재 command set에서 제거됨`
+- `현재 command set에서 제거된 historical verifier`
 - `./server.sh verify-ops-root-cause-panel`
 - `./server.sh verify-ops-client-ui --screenshots`
 - `./server.sh verify-va-runtime-console`
@@ -1102,7 +1103,7 @@ model/source material을 조회/JSON/CSV/Diff JSON export 응답에 노출하지
 검증 기준:
 
 - `./server.sh build`
-- `구버전 전용 verifier는 현재 command set에서 제거됨`
+- `현재 command set에서 제거된 historical verifier`
 - `./server.sh verify-ops-audit-trail`
 - `./server.sh verify-ops-audit-persistence`
 - `./server.sh verify-auth-users`
@@ -1158,9 +1159,9 @@ release asset 업로드로 해석하지 않게 하는 것입니다.
 검증 기준:
 
 - `./server.sh build`
-- `구버전 전용 verifier는 현재 command set에서 제거됨`
-- `구버전 전용 verifier는 현재 command set에서 제거됨`
-- `구버전 전용 verifier는 현재 command set에서 제거됨`
+- `현재 command set에서 제거된 historical verifier`
+- `현재 command set에서 제거된 historical verifier`
+- `현재 command set에서 제거된 historical verifier`
 - `./server.sh verify-script-inventory`
 - `./server.sh verify-docs-links`
 - `git diff --check`
@@ -1219,7 +1220,7 @@ release asset 업로드로 해석하지 않게 하는 것입니다.
 검증 기준:
 
 - `./server.sh build`
-- `구버전 전용 verifier는 현재 command set에서 제거됨`
+- `현재 command set에서 제거된 historical verifier`
 - `./server.sh verify-oc-sort-benchmark-boundary`
 - `./server.sh compare-close-object-tracker --list-experimental-sandboxes`
 - 필요 시
@@ -1261,7 +1262,7 @@ v1.5.0 비범위:
 
 v1.5.0 roadmap 구현 뒤 남은 후속 항목은
 구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)에 분리합니다.
-`구버전 전용 verifier는 현재 command set에서 제거됨`는 명시 opt-in guard, stability matrix,
+`현재 command set에서 제거된 historical verifier`는 명시 opt-in guard, stability matrix,
 Re-ID provenance/fallback approval, Ops warning next-action, audit export review,
 field smoke summary evidence boundary, OC-SORT experimental sandbox가 각각 닫은
 항목과 별도 Phase gate를 구분합니다.
@@ -1321,7 +1322,7 @@ Ops Dashboard의 트래킹 이슈 그룹은 warning을 default-on 근거로 과�
 샘플 message와 association/overlap/missed/direction 요약을 함께 표시합니다.
 v1.4.0 범위 안 후속 이슈 종료 판정은
 구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)에 분리합니다.
-`구버전 전용 verifier는 현재 command set에서 제거됨`는 Re-ID warning history, report archive policy,
+`현재 command set에서 제거된 historical verifier`는 Re-ID warning history, report archive policy,
 tracker warning dashboard summary가 닫혔고 default-on/benchmark gate가 별도
 Phase로 남는지 확인합니다.
 
@@ -1892,7 +1893,7 @@ runtime/model bundle 포함은 별도 Phase 후보이며 이 항목의 잔여가
 
 v1.3.0 roadmap 기능 개발 이후 남은 후속 항목은
 구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)에 분리합니다.
-`구버전 전용 verifier는 현재 command set에서 제거됨`는 실제 Re-ID model field review, field sample
+`현재 command set에서 제거된 historical verifier`는 실제 Re-ID model field review, field sample
 반복 수집 정책, tracker 교체 후보 조사, model/runtime bundle 정책, Re-ID privacy
 threat model을 별도 Phase gate 또는 release/field/manual approval gate로
 분리하고, v1.3.0 안에 개발 가능한 후속 이슈가 남지 않았는지 정적으로 확인합니다.
@@ -1927,7 +1928,7 @@ RTSP/WebRTC media path, auth/session contract 변경은 별도 review 없이는 
 
 v1.2.1 roadmap 완료 뒤 남은 후속 항목은
 구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)에 분리합니다.
-`구버전 전용 verifier는 현재 command set에서 제거됨`는 release 운영 gate, 외부 장비/credential gate,
+`현재 command set에서 제거된 historical verifier`는 release 운영 gate, 외부 장비/credential gate,
 수동 승인 gate를 개발 완료로 과장하지 않으면서 로드맵 내 개발 가능한 후속 이슈가
 남지 않았는지 확인합니다.
 2026-05-17 보강 UI 점검에서 확인한 320px product shell overflow/toolbar 정렬

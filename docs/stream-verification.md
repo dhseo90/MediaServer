@@ -84,11 +84,9 @@ release prep 단계에서 tag/GitHub Release가 아직 수동 생성 전이면
 `./server.sh verify-release-metadata --allow-unpublished`로 로컬 v1.8.0 기준만 확인하고,
 GitHub Latest Release 확인은 publish 뒤 기본 실행으로 다시 닫습니다.
 
-`verify-v*` 명령은 과거 release evidence와 close-out 문서 보존용 archive
-verifier입니다. 현재 v1.8.0 제품 회귀 gate, UI 풀테스트 gate, release trust
-hardening gate에는 직접 포함하지 않습니다. 이전 버전에 있었던 문구나 close-out
-상태가 현재 제품 기준과 달라졌다는 이유로 현재 release를 실패 처리하지 않기
-위해, 동일 기능의 현재 회귀는 아래 버전 중립 명령으로 통합 확인합니다.
+구버전 전용 `verify-v*` 명령은 현재 command set에서 제거했습니다. 현재 v1.8.0
+제품 회귀 gate, UI 풀테스트 gate, release trust hardening gate는 이전 버전별
+close-out 문구가 아니라 아래 버전 중립 명령으로만 확인합니다.
 
 ```bash
 ./server.sh verify-auth-bootstrap
@@ -108,10 +106,10 @@ hardening gate에는 직접 포함하지 않습니다. 이전 버전에 있었�
 ./server.sh verify-ws-metadata
 ```
 
-과거 release 문서 자체의 링크, 문구, evidence 보존 상태를 점검해야 할 때만
-`구버전 전용 verifier는 현재 command set에서 제거됨`, `구버전 전용 verifier는 현재 command set에서 제거됨`, `구버전 전용 verifier는 현재 command set에서 제거됨`, `구버전 전용 verifier는 현재 command set에서 제거됨` 같은 archive
-명령을 명시적으로 실행하고, 결과는 현재 제품 PASS/FAIL이 아니라 historical
-archive PASS/FAIL로 기록합니다.
+과거 release 문구나 evidence 보존 상태는 현재 gate가 아닙니다. 필요한 경우에는
+[history/verification-history.md](./history/verification-history.md)와
+[development-backlog.md](./development-backlog.md)의 archive 섹션을 사람이
+검토하고, 결과는 현재 제품 PASS/FAIL이 아니라 historical review로 기록합니다.
 
 `verify-predev` report에 `건너뜀`이 있으면 skip count와 step reason을 같이
 검토합니다. 사용자가 요청하지 않은 optional external TURN 같은 선택 gate만
@@ -119,9 +117,8 @@ archive PASS/FAIL로 기록합니다.
 요청한 hard gate가 건너뛰어진 경우에는 release PASS가 아니라 HOLD 또는 NOT RUN으로
 남깁니다.
 
-Historical v1.x close-out 문서는 release archive로 보존합니다. archive 문서의
-정합성 검증이 필요하면 해당 문서에 적힌 `verify-v*` 명령을 따로 실행하되, 현재
-제품 regression 결과와 섞지 않습니다.
+Historical v1.x close-out 정보는 standalone verifier가 아니라 history/backlog archive로
+보존합니다. archive 정합성 확인은 현재 제품 regression 결과와 섞지 않습니다.
 
 위 전용 기준은 느린 기본 추가 RTSP/WebRTC source 영상, codec matrix, multichannel media soak를 사용하지 않습니다.
 기본 smoke와 longrun gate가 섞이지 않았는지는 다음 명령으로 정적으로 확인합니다.
@@ -968,7 +965,7 @@ count, mean, stdev, variance, min, max를 표시합니다.
 - replay/event 결과가 흔들려도 default on 전환 금지입니다.
 - default on은 여러 fixture와 현장 샘플에서 ID continuity 개선과 event 결과 무변화가 함께 확인된 뒤에만 검토합니다.
 - privacy/default-off gate는 `verify-reid-advanced-tracking`으로 별도 확인합니다.
-- v1.8.0 `구버전 전용 verifier는 현재 command set에서 제거됨` guard는 release archive 전용입니다. 현재 회귀에서는
+- 과거 version-specific close-out guard는 현재 command set에서 제거했습니다. 현재 회귀에서는
   `verify-reid-advanced-tracking`, `verify-tracker-stability`,
   `compare-close-object-tracker`, `verify-va-replay`, `verify-analysis-state`,
   `verify-va-events`로 runtime/default-off/metadata/event 안정성을 확인합니다.

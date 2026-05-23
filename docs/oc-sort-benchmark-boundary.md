@@ -78,7 +78,7 @@ adapter, runtime tracker policy, `/ops/rules` 선택값을 추가하지 않습�
 검증:
 
 ```bash
-`구버전 전용 verifier는 현재 command set에서 제거됨`
+./server.sh verify-oc-sort-benchmark-boundary
 ./server.sh compare-close-object-tracker --list-experimental-sandboxes
 ```
 

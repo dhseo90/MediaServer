@@ -674,8 +674,9 @@ history index는 `defaultOnDecision`, `productDefaultOn`, `candidateCount`,
 회차별로 보존해 `--tracker-policy bytetrack --reid-policy assist` 같은 opt-in
 조합의 counter drift 추세를 추적합니다. 단일 비교 history도 관찰 evidence일 뿐
 Re-ID assist 또는 close-object guard default-on 완료 근거로 사용하지 않습니다.
-v1.8.0 Field smoke summary evidence boundary는
-`구버전 전용 verifier는 현재 command set에서 제거됨`로 확인합니다.
+Field smoke summary evidence boundary는 `verify-reid-advanced-tracking`,
+`compare-close-object-tracker --fixture-matrix`, `verify-docs-links`를 함께
+검토해 확인합니다.
 이 경계는 summary/report/history index evidence만 보존하고 raw media, raw frame,
 crop, embedding, model path/checksum/provenance, source URL/URI/file,
 credential/auth/session material을 archive하지 않는다는 뜻입니다. release 문서에서는
@@ -928,8 +929,8 @@ rotated archive 조회 대상에는 compacted snapshot을 포함하지 않습니
   Tracker/Re-ID 설정 변경과 model/fallback status-only 값을 검토 대상으로
   표시하되, model/source material, source URL/URI/file, model path/checksum/
   provenance, raw media/crop/embedding은 JSON/CSV/Diff JSON export에서
-  `[redacted]`로 유지합니다. 이 경계는
-  `구버전 전용 verifier는 현재 command set에서 제거됨`으로 확인합니다.
+  `[redacted]`로 유지합니다. 이 경계는 `verify-ops-audit-trail`,
+  `verify-ops-audit-persistence`, `verify-reid-advanced-tracking`으로 확인합니다.
 - Bundle 링크는 `signed-token-expiresAtMs` 기반 24시간 만료 정책을 사용합니다.
 - 만료/변조된 token은 서버가 거절합니다.
 - 만료 bundle은 서버에 별도 파일을 남기지 않습니다.

@@ -21,6 +21,7 @@ Usage:
 Checks:
   - server.sh command dispatch target exists and is executable
   - README/docs/scripts에 적힌 ./server.sh 명령이 실제 command와 일치
+  - 현재 command set에 구버전 verify-v*/verify_v* release verifier가 남아 있지 않음
   - 사용자 노출 JS 스크립트의 옵션 검증 helper 적용 여부
 `);
 }
@@ -52,6 +53,30 @@ check("documented server.sh commands resolve to dispatch table", () => {
     }
   }
   assert(misses.length === 0, `unknown documented command(s):\n${misses.join("\n")}`);
+});
+
+check("current command set excludes version-specific release verifiers", () => {
+  const dispatches = parseServerDispatches();
+  const versionCommands = dispatches
+    .map(item => item.command)
+    .filter(command => /^verify-v[0-9]/.test(command));
+  assert(
+    versionCommands.length === 0,
+    `version-specific command(s) remain in server.sh dispatch:\n${versionCommands.join("\n")}`,
+  );
+
+  const scriptDirPath = path.join(rootDir, "scripts/internal");
+  const versionScripts = fs
+    .readdirSync(scriptDirPath)
+    .filter(name => /^verify_v[0-9]/.test(name));
+  assert(
+    versionScripts.length === 0,
+    `version-specific verifier script(s) remain in scripts/internal:\n${versionScripts.join("\n")}`,
+  );
+
+  const server = readText(path.join(rootDir, "server.sh"));
+  assert(!/verify-v[0-9]/.test(server), "server.sh usage still documents a version-specific verify-v command");
+  assert(!/verify_v[0-9]/.test(server), "server.sh still references a version-specific verify_v script");
 });
 
 check("user-facing JS option parsers reject unknown options", () => {

@@ -77,7 +77,6 @@ field smoke report는 아래 상태를 분리해 기록합니다.
 실장비 endpoint가 없는 로컬/CI에서는 아래처럼 skip/failure boundary만 검증합니다.
 
 ```bash
-`구버전 전용 verifier는 현재 command set에서 제거됨`
 ./server.sh verify-onvif-no-device-suite
 ./server.sh verify-onvif-field-smoke-gate
 ./server.sh verify-onvif-field-smoke-redaction
