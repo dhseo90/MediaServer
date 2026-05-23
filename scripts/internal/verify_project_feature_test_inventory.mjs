@@ -494,13 +494,17 @@ check("current command set excludes version-specific release verifiers", () => {
   assert(!/verify_v[0-9]/.test(server), "server.sh still references version-specific verify_v script");
 });
 
-check("current-facing docs outside backlog/history do not carry pre-v1.8 baselines", () => {
+check("current-facing markdown outside the backlog archive does not carry pre-v1.8 baselines", () => {
   const offenders = [];
-  for (const file of walk(path.join(rootDir, "docs"))) {
+  const markdownFiles = [
+    ...rootMarkdownFiles(),
+    ...walkIfExists(path.join(rootDir, ".github")).filter(file => file.endsWith(".md")),
+    ...walk(path.join(rootDir, "docs")).filter(file => file.endsWith(".md")),
+    ...walk(path.join(rootDir, "test/fixtures")).filter(file => file.endsWith(".md")),
+  ];
+  for (const file of markdownFiles) {
     const relative = path.relative(rootDir, file);
-    if (!relative.endsWith(".md")) continue;
     if (relative === "docs/development-backlog.md") continue;
-    if (relative.startsWith("docs/history/")) continue;
     const text = readText(file);
     const matches = [...text.matchAll(/v1\.(?:1|2|3|4|5|6|7)(?:\.0|\.1)?/g)].map(match => match[0]);
     if (matches.length > 0) {
@@ -508,6 +512,13 @@ check("current-facing docs outside backlog/history do not carry pre-v1.8 baselin
     }
   }
   assert(offenders.length === 0, `old version baseline mention(s) remain outside archive:\n${offenders.join("\n")}`);
+  const remainingHistoryDocs = walkIfExists(path.join(rootDir, "docs/history")).filter(file => file.endsWith(".md"));
+  assert(remainingHistoryDocs.length === 0, `standalone history markdown remains:\n${remainingHistoryDocs.join("\n")}`);
+  requireText(
+    inventory,
+    "standalone close-out/history 문서는 제거",
+    "inventory does not state standalone history docs were removed"
+  );
 });
 
 let pass = 0;
@@ -566,4 +577,16 @@ function walk(dir) {
     else result.push(current);
   }
   return result;
+}
+
+function walkIfExists(dir) {
+  if (!fs.existsSync(dir)) return [];
+  return walk(dir);
+}
+
+function rootMarkdownFiles() {
+  return fs
+    .readdirSync(rootDir)
+    .filter(name => name.endsWith(".md"))
+    .map(name => path.join(rootDir, name));
 }

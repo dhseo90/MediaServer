@@ -4,7 +4,7 @@
 API, event payload를 설명합니다.
 UI 화면 사용법은 [ui-guide.md](./ui-guide.md),
 환경변수 전체 목록은 [config-reference.md](./config-reference.md),
-검증 이력은 [history/verification-history.md](./history/verification-history.md)를 봅니다.
+현재 검증 기준은 [stream-verification.md](./stream-verification.md)를 봅니다.
 Event POST, WebRTC DataChannel, SSE, WebSocket live metadata contract의
 기준 schema와 변경 금지 기준은
 [live-event-metadata-contracts.md](./live-event-metadata-contracts.md)에
@@ -1607,8 +1607,8 @@ baseline 비교 기준:
 - 동일 trackId 다채널 분리
 
 현재 검증 명령과 기준은 [stream-verification.md](./stream-verification.md)에 둡니다.
-과거 날짜별 이력은
-[history/verification-history.md](./history/verification-history.md)를 봅니다.
+과거 버전별 이력은 [development-backlog.md](./development-backlog.md)의 archive
+섹션에만 둡니다.
 
 ## 19. 제한사항
 
@@ -1624,4 +1624,4 @@ baseline 비교 기준:
 - ScenarioEngine은 기존 RuleEventEngine과 별도입니다. 기존 Intrusion/LineCrossing event를 끄거나 바꾸지 않습니다.
 - UI 상세 사용법은 [ui-guide.md](./ui-guide.md)에 있습니다. 이 문서는 UI 조작법을 길게 다루지 않습니다.
 - 긴 환경변수 표는 [config-reference.md](./config-reference.md)에 있습니다.
-- 긴 검증 이력은 [history/verification-history.md](./history/verification-history.md)에 있습니다.
+- 과거 버전별 검증 이력은 [development-backlog.md](./development-backlog.md)의 archive 섹션에 있습니다.

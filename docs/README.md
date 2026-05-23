@@ -1,7 +1,7 @@
 # Documentation Index
 
 이 문서는 Media Server 문서의 길잡이입니다. README에는 제품 개요와 빠른 시작만
-두고, 세부 정책과 검증 이력은 아래 문서에서 관리합니다.
+두고, 세부 정책과 release 기준은 아래 문서에서 관리합니다.
 
 ## 먼저 볼 문서
 
@@ -74,7 +74,5 @@ Release evidence의 실행/미실행/미확인 색인은
 ## Archive
 
 과거 version-named standalone close-out 문서는 현재 문서 세트에서 제거했습니다.
-긴 개발/검증 이력은 [history/development-history.md](history/development-history.md),
-[history/verification-history.md](history/verification-history.md)와
-[development-backlog.md](development-backlog.md)의 archive 섹션에만 보관하며,
-현재 release 기준이나 새 작업 source-of-truth로 쓰지 않습니다.
+긴 개발/검증 이력은 [development-backlog.md](development-backlog.md)의 archive
+섹션에만 보관하며, 현재 release 기준이나 새 작업 source-of-truth로 쓰지 않습니다.

@@ -2,8 +2,7 @@
 
 이 문서는 `main` 기준의 현재 제품 상태, release close-out 판정, 현재/차기 roadmap을
 관리합니다.
-완료된 상세 개발 이력은 [history/development-history.md](./history/development-history.md),
-검증 이력은 [history/verification-history.md](./history/verification-history.md)를 봅니다.
+완료된 버전별 개발/검증 이력은 이 문서의 archive 섹션에만 보존합니다.
 
 ## 문서 정리 기준
 
@@ -11,8 +10,8 @@ v1.2.0이 `main`으로 들어가면 v1.2.0 개발 브랜치의 상세 작업 목
 source-of-truth가 아닙니다. 현재 기준은 이 문서와 기능별 상세 문서로 나눕니다.
 새 active roadmap은 기본적으로 `docs/vX.Y.Z-roadmap.md` 같은 단독 버전 파일로
 추가하지 않고 이 문서에 관리합니다. 버전별 수동 검수, follow-up closure, release
-증적 문서는 필요할 때 historical evidence로 남길 수 있지만 active roadmap
-source-of-truth로 쓰지 않습니다.
+증적은 이 문서의 archive 섹션에 남길 수 있지만 active roadmap source-of-truth로
+쓰지 않습니다.
 로드맵 표기 순서는 현재 기준, 활성 차기 버전, 완료 버전 최신순, 과거 준비/체크리스트
 순서로 둡니다. 새 버전 내용은 상단의 활성 roadmap에 두고, 완료된 버전 close-out은
 최신 버전부터 과거 버전으로 내려갑니다.
@@ -68,8 +67,8 @@ alert delivery, scenario builder, Ops/Client declutter는 이전 UI-first close-
 - 별도 Phase의 실제 기능 개발, tracker replacement product review
 
 세부 종료 증적은 아래 v1.8.0 Release Trust Hardening Close-out 섹션을 봅니다.
-과거 release evidence는 standalone current 문서가 아니라 이 문서의 archive 섹션과
-`docs/history/` 아래 이력 문서에만 보존합니다.
+과거 release evidence는 standalone current 문서가 아니라 이 문서의 archive 섹션에만
+보존합니다.
 
 ## v1.8.0 Release Trust Hardening Close-out
 
@@ -2869,7 +2868,7 @@ PR template과 정적 verifier를 연결했습니다.
 
 - README는 진입점과 현재 제품 범위만 유지합니다.
 - 기능별 상세는 `docs/*.md` 한 곳에 둡니다.
-- 완료된 장문 close-out 내역은 history 문서로만 보관합니다.
+- 완료된 장문 close-out 내역은 이 문서의 archive 섹션에만 보관합니다.
 - 장시간 테스트는 새 RC 또는 고위험 변경에서만 명시적으로 실행합니다.
 - `./server.sh verify-predev --soak-minutes 120`은 상시 실행하지 않고 release candidate 또는 고위험 변경 gate로만 실행합니다.
 - `./server.sh verify-va-runtime-console-longrun --duration-minutes 120`도 release candidate 또는 고위험 Runtime Console 변경 gate로만 실행합니다.

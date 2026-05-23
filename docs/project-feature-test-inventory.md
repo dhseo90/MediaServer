@@ -2,8 +2,8 @@
 
 이 문서는 현재 release 목표 `v1.8.0` 기준으로 코드상 존재하는 기능, 제품 UI에서
 접근 가능한 기능, 현재 검증 명령이 확인하는 사항을 비교한 전면 재검토 기록입니다.
-버전별 과거 변경 이력은 [development-backlog.md](./development-backlog.md)와
-[history/](./history/)에만 두며, 이 문서는 현재 제품 기준만 다룹니다.
+버전별 과거 변경 이력은 [development-backlog.md](./development-backlog.md)에만
+두며, 이 문서는 현재 제품 기준만 다룹니다.
 
 이 문서는 자동/정적 inventory입니다. 인앱 브라우저에서 모든 기능을 직접 클릭하고
 타이핑한 UI 풀테스트 완료 evidence가 아닙니다. UI 풀테스트 완료 여부는
@@ -450,9 +450,8 @@ inventory에서 제외합니다.
 5. `/lab/analysis/*`, metadata side-channel, WHIP publish처럼 code/test는 있으나
    제품 UI가 없는 기능은 UI 풀테스트 대상이 아니라 API/integrator 검증 대상으로
    분리해야 합니다.
-6. 과거 version-named standalone close-out 문서는 제거했고, 남은 과거 버전 언급은
-   [development-backlog.md](./development-backlog.md) archive와 [history/](./history/)
-   문서에만 둡니다.
+6. 과거 version-named standalone close-out/history 문서는 제거했고, 남은 과거 버전
+   언급은 [development-backlog.md](./development-backlog.md) archive에만 둡니다.
 
 ## Maintenance Rules
 

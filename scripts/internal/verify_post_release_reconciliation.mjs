@@ -19,7 +19,7 @@ Usage:
   ./server.sh verify-post-release-reconciliation [options]
 
 Options:
-  --history <path>  선택 verification history 문서입니다. 지정하면 기본 section 경계도 확인합니다.
+  --history <path>  선택 evidence log 경로입니다. 지정하면 기본 section 경계도 확인합니다.
   -h, --help        도움말 출력
 
 Checks:

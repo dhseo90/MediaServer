@@ -1,8 +1,8 @@
 # Stream Verification
 
 이 문서는 현재 기준의 스트리밍/VA 검증 명령을 관리합니다.
-과거 날짜별 상세 검증 이력은
-[history/verification-history.md](./history/verification-history.md)에 보관합니다.
+과거 버전별 검증 이력은 [development-backlog.md](./development-backlog.md)의
+archive 섹션에만 보관합니다.
 
 ## 목적
 
@@ -108,9 +108,8 @@ close-out 문구가 아니라 아래 버전 중립 명령으로만 확인합니�
 ```
 
 과거 release 문구나 evidence 보존 상태는 현재 gate가 아닙니다. 필요한 경우에는
-[history/verification-history.md](./history/verification-history.md)와
-[development-backlog.md](./development-backlog.md)의 archive 섹션을 사람이
-검토하고, 결과는 현재 제품 PASS/FAIL이 아니라 historical review로 기록합니다.
+[development-backlog.md](./development-backlog.md)의 archive 섹션을 사람이 검토하고,
+결과는 현재 제품 PASS/FAIL이 아니라 historical review로 기록합니다.
 
 `verify-predev` report에 `건너뜀`이 있으면 skip count와 step reason을 같이
 검토합니다. 사용자가 요청하지 않은 optional external TURN 같은 선택 gate만
@@ -118,7 +117,7 @@ close-out 문구가 아니라 아래 버전 중립 명령으로만 확인합니�
 요청한 hard gate가 건너뛰어진 경우에는 release PASS가 아니라 HOLD 또는 NOT RUN으로
 남깁니다.
 
-Historical v1.x close-out 정보는 standalone verifier가 아니라 history/backlog archive로
+Historical v1.x close-out 정보는 standalone verifier가 아니라 backlog archive로
 보존합니다. archive 정합성 확인은 현재 제품 regression 결과와 섞지 않습니다.
 
 위 전용 기준은 느린 기본 추가 RTSP/WebRTC source 영상, codec matrix, multichannel media soak를 사용하지 않습니다.
@@ -2002,6 +2001,7 @@ Replay 결과 차이는 누락/초과/불일치 이벤트를 먼저 확인합니
 
 ## 과거 이력 링크
 
-날짜별 상세 검증 이력은 [history/verification-history.md](./history/verification-history.md)에 보관합니다.
+날짜별 상세 검증 이력은 [development-backlog.md](./development-backlog.md)의 archive 섹션에 보관합니다.
 
-현재 문서에는 지금 실행할 명령과 최신 통과 기준만 남깁니다. 과거 이력은 삭제하지 않고 history 문서에 누적합니다.
+현재 문서에는 지금 실행할 명령과 최신 통과 기준만 남깁니다. 과거 이력은 별도
+이력 문서가 아니라 backlog archive에만 보존합니다.
