@@ -149,6 +149,22 @@ check("project inventory lists every tracked script file", () => {
   }
 });
 
+check("project inventory command detail covers server.sh dispatch commands", () => {
+  const dispatches = parseServerDispatches();
+  const documentedCommands = parseProjectInventoryCommandDetails();
+  const missing = [];
+  for (const item of dispatches) {
+    if (!documentedCommands.has(item.command)) {
+      missing.push(item.command);
+    }
+  }
+  assert(missing.length === 0, `project inventory command detail missing dispatch command(s):\n${missing.join("\n")}`);
+  assert(
+    projectInventory.includes("command-to-script dispatch matrix"),
+    "project inventory does not define server-command detail as the command-to-script dispatch matrix",
+  );
+});
+
 check("user-facing JS option parsers reject unknown options", () => {
   const strictScripts = [
     "run_ops_evidence_retention_cleanup.mjs",
@@ -279,6 +295,18 @@ function parseServerDispatches() {
     }
   }
   return dispatches;
+}
+
+function parseProjectInventoryCommandDetails() {
+  const commands = new Set();
+  const regex = /^- `scripts\/internal\/[^`]+` - commands: (.+)$/gm;
+  let match;
+  while ((match = regex.exec(projectInventory)) !== null) {
+    for (const commandMatch of match[1].matchAll(/`([^`]+)`/g)) {
+      commands.add(commandMatch[1]);
+    }
+  }
+  return commands;
 }
 
 function walkDocsAndScripts() {

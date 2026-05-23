@@ -716,13 +716,27 @@ check("inventory covers current v1.8 route/API surface families", () => {
 
 check("inventory covers current server.sh command set", () => {
   const commands = parseServerCommands();
+  const inventoryCommandDetails = parseInventoryCommandDetails();
+  const detailMissing = [];
   const missing = [];
   for (const command of commands) {
     if (!inventory.includes(`\`${command}\``)) {
       missing.push(command);
     }
+    if (!inventoryCommandDetails.has(command)) {
+      detailMissing.push(command);
+    }
   }
   assert(missing.length === 0, `inventory missing server.sh command(s):\n${missing.join("\n")}`);
+  assert(
+    detailMissing.length === 0,
+    `tracked script command detail missing server.sh command(s):\n${detailMissing.join("\n")}`
+  );
+  requireText(
+    inventory,
+    "command-to-script dispatch matrix",
+    "inventory does not define server-command detail as the command-to-script dispatch matrix"
+  );
 });
 
 check("inventory comparison reports code/UI/test mismatch classes", () => {
@@ -857,6 +871,18 @@ function parseServerCommands() {
     }
   }
   return commands.filter(command => command !== "*");
+}
+
+function parseInventoryCommandDetails() {
+  const commands = new Set();
+  const regex = /^- `scripts\/internal\/[^`]+` - commands: (.+)$/gm;
+  let match;
+  while ((match = regex.exec(inventory)) !== null) {
+    for (const commandMatch of match[1].matchAll(/`([^`]+)`/g)) {
+      commands.add(commandMatch[1]);
+    }
+  }
+  return commands;
 }
 
 function walk(dir) {

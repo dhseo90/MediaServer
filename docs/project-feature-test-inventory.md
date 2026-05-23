@@ -435,6 +435,9 @@ inventory에서 제외합니다.
 
 - 모든 `server.sh` dispatch target은 존재하고 실행 가능해야 합니다.
 - 모든 문서의 `./server.sh <command>` 참조는 실제 dispatch command여야 합니다.
+- 아래 `server-command` 목록은 현재 `server.sh` command-to-script dispatch matrix로
+  취급하며, 모든 dispatch command는 반드시 해당 script의 `commands:` 항목에
+  나타나야 합니다.
 - 모든 추적 중인 `scripts/` 파일은 위 분류 중 하나로 설명 가능해야 합니다.
 - 구버전 전용 `verify-v*`/`verify_v*` verifier는 현재 command set에 없어야 합니다.
 - `scripts/internal/auto_start_server.sh`는 추적 파일 내 참조가 없고 현재
