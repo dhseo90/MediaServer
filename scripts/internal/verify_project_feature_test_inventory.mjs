@@ -772,7 +772,7 @@ check("current-facing markdown outside the backlog archive does not carry pre-v1
     const relative = path.relative(rootDir, file);
     if (relative === "docs/development-backlog.md") continue;
     const text = readText(file);
-    const matches = [...text.matchAll(/\b(?:v)?1\.(?:1|2|3|4|5|6|7)\.(?:0|1)\b/g)].map(match => match[0]);
+    const matches = oldVersionBaselineMentions(text);
     if (matches.length > 0) {
       offenders.push(`${relative}: ${[...new Set(matches)].join(", ")}`);
     }
@@ -787,8 +787,8 @@ check("current-facing markdown outside the backlog archive does not carry pre-v1
   );
   requireText(
     inventory,
-    "`v1.x.y`처럼 `v`가 붙은 표기와 `1.x.y`처럼 `v`가 없는 bare semantic 구버전",
-    "inventory does not state both v-prefixed and bare old semantic versions are blocked"
+    "`v1.x`/`v1.x.y`처럼 `v`가 붙은 표기, `1.x.y`처럼 `v`가 없는 bare semantic",
+    "inventory does not state v-prefixed, bare semantic, and context bare old versions are blocked"
   );
 });
 
@@ -821,6 +821,16 @@ function assert(condition, message) {
 
 function requireText(text, needle, message) {
   assert(text.includes(needle), message);
+}
+
+function oldVersionBaselineMentions(text) {
+  const matches = [
+    ...text.matchAll(/\bv1\.(?:1|2|3|4|5|6|7)(?:\.(?:0|1))?\b/g),
+    ...text.matchAll(/\b1\.(?:1|2|3|4|5|6|7)\.(?:0|1)\b/g),
+    ...text.matchAll(/(?:release|version|baseline|current|기준|버전|릴리즈|현재)[^\n]{0,40}\b1\.(?:1|2|3|4|5|6|7)\b/g),
+    ...text.matchAll(/\b1\.(?:1|2|3|4|5|6|7)\b[^\n]{0,40}(?:release|version|baseline|current|기준|버전|릴리즈|현재)/g),
+  ];
+  return matches.map(match => match[0]);
 }
 
 function readText(filePath) {
