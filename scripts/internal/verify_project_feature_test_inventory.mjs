@@ -101,7 +101,7 @@ check("inventory has unified code/UI/test matrix for every feature class", () =>
     "| VA detector/runtime | 있음:",
     "full Lab UI 없음",
     "| Tracking/scenarios | 있음:",
-    "실제 이벤트 전수 수동 evidence 없음",
+    "실제 이벤트 전수 evidence 없음",
     "| Runtime metadata: DataChannel/SSE/WS/state/metrics | 있음:",
     "raw stream 제품 UI 없음",
     "| Event POST/storage/cleanup | 있음:",
