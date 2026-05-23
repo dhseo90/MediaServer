@@ -330,6 +330,69 @@ dev/integrator API, 닫힌 UI route를 섞어 완료로 보지 않습니다.
 - `source-offer-checklist`
 - `summarize-reports`
 
+## Fixture And Test Artifact Inventory Audit
+
+이 섹션은 현재 source release에 추적되는 test fixture와 문서 UI asset이 어떤 검증
+증거로 쓰이는지 분류합니다. 로컬 `models/`는 `.gitignore` 대상이므로 source release
+fixture inventory가 아니며, 모델 필요 여부는 `verify-yolo-layouts`,
+`verify-release-bundle-dry-run`, bundle policy에서 별도 확인합니다.
+
+### UI And Docs Visual Assets
+
+- `docs/assets/va-four-scene-sample.png`, `docs/assets/va-four-scene-overlay-ko.jpg`
+- `docs/assets/ui/README.md`
+- `docs/assets/ui/auth-login.png`, `docs/assets/ui/client-dashboard.png`, `docs/assets/ui/client-live.png`
+- `docs/assets/ui/ops-channels.png`, `docs/assets/ui/ops-dashboard.png`, `docs/assets/ui/ops-home.png`, `docs/assets/ui/ops-rules.png`, `docs/assets/ui/ops-rules-preview.png`, `docs/assets/ui/ops-users.png`
+- `docs/assets/ui/en/auth-login.png`, `docs/assets/ui/en/client-dashboard.png`, `docs/assets/ui/en/client-live.png`
+- `docs/assets/ui/en/ops-channels.png`, `docs/assets/ui/en/ops-dashboard.png`, `docs/assets/ui/en/ops-home.png`, `docs/assets/ui/en/ops-rules.png`, `docs/assets/ui/en/ops-rules-preview.png`, `docs/assets/ui/en/ops-users.png`
+- 검증: `verify-docs-ui-assets`, `verify-ui-copy-i18n-parity`, `verify-ui-visual-artifact-index`, `verify-image-analysis`, `verify-redaction`
+
+### UI Copy Snapshot Fixtures
+
+- `test/fixtures/client_live_tile_a11y_i18n_snapshot.json`
+- 검증: `verify-ops-client-ui`, `verify-ui-copy-i18n-parity`
+
+### Integrator Contract Artifact Fixtures
+
+- `test/fixtures/integrator_contract_artifact/README.md`, `test/fixtures/integrator_contract_artifact/CHANGELOG.md`, `test/fixtures/integrator_contract_artifact/manifest.json`, `test/fixtures/integrator_contract_artifact/field-index.json`, `test/fixtures/integrator_contract_artifact/schema-review-checklist.md`
+- `test/fixtures/integrator_contract_artifact/samples/event-post.json`, `test/fixtures/integrator_contract_artifact/samples/webrtc-va-metadata.json`, `test/fixtures/integrator_contract_artifact/samples/runtime-metadata-sse.json`, `test/fixtures/integrator_contract_artifact/samples/runtime-metadata-ws.json`, `test/fixtures/integrator_contract_artifact/samples/metadata-control-subscribe-ack.json`
+- `test/fixtures/integrator_contract_artifact/schemas/common.json`, `test/fixtures/integrator_contract_artifact/schemas/event-post.schema.json`, `test/fixtures/integrator_contract_artifact/schemas/webrtc-va-metadata.schema.json`, `test/fixtures/integrator_contract_artifact/schemas/runtime-metadata.schema.json`, `test/fixtures/integrator_contract_artifact/schemas/metadata-control.schema.json`
+- 검증: `verify-integrator-contract-artifact`, `verify-event-post`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`
+
+### ONVIF Fixture Matrix
+
+- `test/fixtures/onvif_live_import_stub.json`, `test/fixtures/onvif_probe_result_stub.json`, `test/fixtures/onvif_probe_result_rtsps_stub.json`, `test/fixtures/onvif_probe_profile_variants.json`
+- `test/fixtures/onvif_synthetic_vendor_fixture_pack.json`, `test/fixtures/onvif_probe_error_wording_matrix.json`, `test/fixtures/onvif_soap_fault_malformed_matrix.json`, `test/fixtures/onvif_unsupported_api_negative_routes.json`
+- `test/fixtures/onvif_auth_method_design_matrix.json`, `test/fixtures/onvif_credential_store_policy_decision.json`, `test/fixtures/onvif_closed_loopback_failure_matrix.json`
+- `test/fixtures/onvif_no_device_suite_success_summary.json`, `test/fixtures/onvif_no_device_suite_failure_summary.json`
+- 검증: `verify-onvif-*`, 특히 `verify-onvif-live-import-contract`, `verify-onvif-probe-draft-api`, `verify-onvif-import-draft-api`, `verify-onvif-no-device-suite`, `verify-onvif-unsupported-api-guard`
+
+### ONVIF Field Smoke Sample Bundle
+
+- `test/fixtures/onvif_field_smoke_artifact_sample/README.md`, `test/fixtures/onvif_field_smoke_artifact_sample/manifest.json`, `test/fixtures/onvif_field_smoke_artifact_sample/redacted_probe_summary.json`, `test/fixtures/onvif_field_smoke_artifact_sample/redaction-checklist.md`, `test/fixtures/onvif_field_smoke_artifact_sample/field-smoke-report-template.md`
+- 검증: `verify-onvif-field-smoke-sample-bundle`, `verify-onvif-field-smoke-redaction`, `verify-onvif-field-smoke-gate`
+
+### Runtime, UI Baseline, And Research Boundary Fixtures
+
+- `test/fixtures/runtime_dashboard_longrun_evidence_sample/sample_record.json`, `test/fixtures/runtime_dashboard_longrun_evidence_sample/sample_report.md`
+- `test/fixtures/ui_visual_release_baseline_approval_log_sample.md`
+- `test/fixtures/v180_audit_export_review_hardening.json`, `test/fixtures/v180_ops_tracker_warning_next_action.json`, `test/fixtures/v180_oc_sort_experimental_sandbox.json`
+- 검증: `verify-runtime-dashboard-longrun-template`, `verify-ui-release-baseline-approval-log`, `verify-ops-audit-trail`, `verify-oc-sort-benchmark-boundary`
+
+### VA Metadata And Scenario Replay Fixtures
+
+- `test/fixtures/va_metadata_replay_basic.json`, `test/fixtures/va_metadata_replay_basic.csv`
+- `test/fixtures/va_replay/intrusion_metadata.json`, `test/fixtures/va_replay/intrusion_expected.json`
+- `test/fixtures/va_replay/line_crossing_metadata.json`, `test/fixtures/va_replay/line_crossing_expected.json`
+- `test/fixtures/va_replay/intrusion_dwell_metadata.json`, `test/fixtures/va_replay/intrusion_dwell_expected.json`, `test/fixtures/va_replay/intrusion_dwell_rule_override_expected.json`, `test/fixtures/va_replay/intrusion_dwell_rule_override_rules.json`
+- `test/fixtures/va_replay/intrusion_after_line_crossing_metadata.json`, `test/fixtures/va_replay/intrusion_after_line_crossing_expected.json`, `test/fixtures/va_replay/intrusion_after_line_crossing_rules.json`
+- `test/fixtures/va_replay/loitering_metadata.json`, `test/fixtures/va_replay/loitering_expected.json`, `test/fixtures/va_replay/loitering_rules.json`, `test/fixtures/va_replay/loitering_under_threshold_metadata.json`, `test/fixtures/va_replay/loitering_under_threshold_expected.json`
+- `test/fixtures/va_replay/re_entry_metadata.json`, `test/fixtures/va_replay/re_entry_expected.json`, `test/fixtures/va_replay/re_entry_rules.json`, `test/fixtures/va_replay/reacquire_metadata.json`, `test/fixtures/va_replay/reacquire_expected.json`
+- `test/fixtures/va_replay/wrong_direction_metadata.json`, `test/fixtures/va_replay/wrong_direction_expected.json`, `test/fixtures/va_replay/wrong_direction_rules.json`
+- `test/fixtures/va_replay/zone_occupancy_metadata.json`, `test/fixtures/va_replay/zone_occupancy_expected.json`, `test/fixtures/va_replay/zone_occupancy_rules.json`, `test/fixtures/va_replay/zone_occupancy_delayed_trigger_metadata.json`, `test/fixtures/va_replay/zone_occupancy_delayed_trigger_expected.json`
+- `test/fixtures/va_replay/multichannel_metadata.json`, `test/fixtures/va_replay/multichannel_expected.json`, `test/fixtures/va_replay/cleanup_metadata.json`, `test/fixtures/va_replay/cleanup_expected.json`
+- 검증: `replay-va-metadata`, `verify-va-replay`, `verify-va-events`, `verify-analysis-state`
+
 ## Script Inventory Audit
 
 Script review 기준은 추적 중인 `scripts/` 파일입니다. ignored 생성물인

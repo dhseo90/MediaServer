@@ -22,6 +22,7 @@ Checks:
   - docs/project-feature-test-inventory.md exists and is linked from docs/README.md
   - inventory lists required current sections, UI routes, closed routes, and comparison/gap states
   - inventory classifies every tracked include/src C++ source module
+  - inventory lists every tracked test fixture and docs asset used by verifiers
   - inventory covers current v1.8 route/API surface families from the HTTP server and product UI scripts
   - every current server.sh command appears in the inventory
   - current-facing docs outside backlog/history do not mention pre-v1.8 baselines
@@ -38,6 +39,7 @@ const inventory = readText(inventoryPath);
 const docsIndex = readText(path.join(rootDir, "docs/README.md"));
 const server = readText(path.join(rootDir, "server.sh"));
 const cmake = readText(path.join(rootDir, "CMakeLists.txt"));
+const gitignore = readText(path.join(rootDir, ".gitignore"));
 const routeSource = [
   readText(path.join(rootDir, "src/ingress/webrtc_http_server.cpp")),
   readText(path.join(rootDir, "src/ingress/product_ui_page_scripts.cpp")),
@@ -57,6 +59,7 @@ check("inventory has required feature/UI/test/comparison sections", () => {
     "## UI-Accessible Feature Inventory",
     "## Route/API Surface Audit",
     "## Current Verification Inventory",
+    "## Fixture And Test Artifact Inventory Audit",
     "## Comparison Result",
     "## Current Gaps",
     "## Maintenance Rules",
@@ -108,6 +111,35 @@ check("all current src C++ modules are wired into the media_server build target"
     inventory,
     "`src/core/youtube_resolver.cpp`는 `MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=ON`일 때만",
     "inventory does not document YouTube resolver optional build boundary"
+  );
+});
+
+check("inventory lists every current test fixture and docs asset", () => {
+  for (const heading of [
+    "### UI And Docs Visual Assets",
+    "### UI Copy Snapshot Fixtures",
+    "### Integrator Contract Artifact Fixtures",
+    "### ONVIF Fixture Matrix",
+    "### ONVIF Field Smoke Sample Bundle",
+    "### Runtime, UI Baseline, And Research Boundary Fixtures",
+    "### VA Metadata And Scenario Replay Fixtures",
+  ]) {
+    requireText(inventory, heading, `inventory missing fixture group ${heading}`);
+  }
+
+  const fixtureFiles = [
+    ...walk(path.join(rootDir, "test/fixtures")),
+    ...walk(path.join(rootDir, "docs/assets")),
+  ]
+    .map(file => path.relative(rootDir, file))
+    .sort();
+  const missing = fixtureFiles.filter(file => !inventory.includes(`\`${file}\``));
+  assert(missing.length === 0, `fixture/artifact inventory missing file(s):\n${missing.join("\n")}`);
+  requireText(gitignore, "/models/", "models/ is no longer ignored by source release policy");
+  requireText(
+    inventory,
+    "로컬 `models/`는 `.gitignore` 대상",
+    "inventory does not separate local ignored models from tracked fixture inventory"
   );
 });
 
