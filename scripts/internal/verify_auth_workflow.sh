@@ -379,6 +379,8 @@ run_users() {
     'id="apply-view-scope-template"' 'id="scope-template-preview"' 'id="user-scopes-input"' \
     'id="user-lifecycle-summary"' 'data-user-set-enabled' '다음 로그인 시 비밀번호 변경 필요' \
     'data-testid="user-lifecycle-policy"' '초대 링크는 기본 24시간 동안만 유효' \
+    'data-testid="ops-invites-panel"' 'id="invite-create-form"' 'id="invite-list-body"' \
+    '/ops/api/invites' '토큰/토큰 해시를 노출하지 않습니다' \
     'id="user-reset-password-panel"' 'id="user-reset-password-button"' 'data-user-reset-password' \
     '사용자 감사 JSON/CSV/Diff JSON export' '승인 전: 로그인/세션/채널 권한 없음' \
     '초대 설정 완료 전까지는 로그인/세션/채널 권한이 열리지 않습니다'
@@ -455,6 +457,16 @@ run_users() {
   case "${invite_json}" in
     *"\"expiresAt\":\"20"*"\"setupUrl\":\"/invite/setup"*) pass "invite expiry and setup URL visible once" ;;
     *) fail "invite expiry/setup URL missing: ${invite_json}" ;;
+  esac
+  local invite_list_json
+  invite_list_json="$(curl -fsS -b "${ADMIN_COOKIE}" "${BASE}/ops/api/invites")"
+  case "${invite_list_json}" in
+    *"\"inviteId\":\"${invite_id}\""*'"username":"invite-smoke"'*) pass "invite list API exposes issued invite summary" ;;
+    *) fail "invite list API missing issued invite: ${invite_list_json}" ;;
+  esac
+  case "${invite_list_json}" in
+    *'"token"'*|*'"tokenHash"'*|*'/invite/setup?token='*) fail "invite list API exposed token material: ${invite_list_json}" ;;
+    *) pass "invite list API redacts token material" ;;
   esac
   preserve_reset="$(http_code -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
     -X POST --data "{\"password\":\"${PREVIOUS_PASSWORD}\"}" "${BASE}/ops/api/users/lockout-smoke/reset-password")"
@@ -647,6 +659,7 @@ run_routes() {
   expect_eq "$(http_code -H 'Content-Type: application/json' \
     -X POST --data "${onvif_probe_fixture_payload}" "${BASE}/ops/api/onvif/import-draft")" "401" "unauth ops ONVIF probe draft API denied"
   expect_eq "$(http_code "${BASE}/ops/api/users")" "401" "unauth ops users API denied"
+  expect_eq "$(http_code "${BASE}/ops/api/invites")" "401" "unauth ops invites API denied"
   expect_eq "$(http_code "${BASE}/ops/api/access-requests")" "401" "unauth ops access requests API denied"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops/api/sources")" "403" "viewer ops sources API denied"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops/api/views")" "403" "viewer ops views API denied"
@@ -656,6 +669,7 @@ run_routes() {
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" -H 'Content-Type: application/json' \
     -X POST --data "${onvif_probe_fixture_payload}" "${BASE}/ops/api/onvif/import-draft")" "403" "viewer ops ONVIF probe draft API denied"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops/api/users")" "403" "viewer ops users API denied"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops/api/invites")" "403" "viewer ops invites API denied"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops/api/access-requests")" "403" "viewer ops access requests API denied"
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" "${BASE}/ops/api/sources")" "200" "readonly operator ops read allowed"
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" "${BASE}/ops/api/runtime/status")" "200" "ops runtime API read allowed"
@@ -664,6 +678,7 @@ run_routes() {
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" "${BASE}/ops/api/users")" "403" "readonly operator admin users API denied"
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" -H 'Content-Type: application/json' \
     -X POST --data '{"username":"readonly-invite","role":"viewer","viewId":"1"}' "${BASE}/ops/api/invites")" "403" "readonly operator invite API denied"
+  expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" "${BASE}/ops/api/invites")" "403" "readonly operator invite list API denied"
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" "${BASE}/ops/api/access-requests")" "403" "readonly operator access requests API denied"
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" -H 'Content-Type: application/json' \
     -X POST --data '{"viewId":"99"}' "${BASE}/ops/api/views")" "403" "source write scope required for view create"

@@ -8369,6 +8369,10 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     const usersBody = document.querySelector('#users-body');
     const requestsBody = document.querySelector('#access-requests-body');
     const inviteOutput = document.querySelector('#request-invite-output');
+    const invitesBody = document.querySelector('#invite-list-body');
+    const inviteCreateForm = document.querySelector('#invite-create-form');
+    const inviteCreateOutput = document.querySelector('#invite-create-output');
+    const inviteStatusEl = document.querySelector('#invite-status');
     const form = document.querySelector('#user-form');
     const userDetailPanel = document.querySelector('#user-detail-panel');
     const userEditorTitle = document.querySelector('#user-editor-title');
@@ -8395,6 +8399,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     ];
     let loadedUsers = [];
     let loadedRequests = [];
+    let loadedInvites = [];
     let loadedClientViews = [];
     let editorMode = 'view';
     const {
@@ -8415,6 +8420,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     } = window.MediaServerUi;
     const setStatus = (message, failed = false) => setFeedback(statusEl, message, failed, { collapseEmpty: true });
     const setRequestStatus = (message, failed = false) => setFeedback(requestStatusEl, message, failed, { collapseEmpty: true });
+    const setInviteStatus = (message, failed = false) => setFeedback(inviteStatusEl, message, failed, { collapseEmpty: true });
     const setResetPasswordStatus = (message, failed = false) => setFeedback(resetPasswordStatus, message, failed, { collapseEmpty: true });
     function compactUserStoreError(error) {
       const message = String(error?.message || error || '').trim();
@@ -8431,6 +8437,11 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     function setInviteOutput(text = '') {
       inviteOutput.textContent = text;
       inviteOutput.hidden = !text;
+    }
+    function setInviteCreateOutput(text = '') {
+      if (!inviteCreateOutput) return;
+      inviteCreateOutput.textContent = text;
+      inviteCreateOutput.hidden = !text;
     }
     function setPasswordFieldsVisible(visible) {
       setHidden(passwordFields, !visible);
@@ -8893,6 +8904,41 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         appendRequestRow(request);
       }
     }
+      function inviteStatusText(invite = {}) {
+        if (invite.used) return '사용 완료';
+        if (invite.expiresAt && Date.parse(invite.expiresAt) <= Date.now()) return '만료';
+        return '대기';
+      }
+      function inviteStatusTone(status) {
+        if (status === '대기') return 'warn';
+        if (status === '만료') return 'bad';
+        return '';
+      }
+      function appendInviteRow(invite) {
+        if (!invitesBody) return;
+        const tr = document.createElement('tr');
+        const status = inviteStatusText(invite);
+        appendLabeledCell(tr, '계정명', `<div class="user-id-cell"><span class="table-identity-pill table-identity-user">${escapeHtml(displayValue(invite.username))}</span></div>`);
+        appendLabeledCell(tr, '이름', userValueHtml(invite.displayName || '미제공', invite.inviteId || ''));
+        appendLabeledCell(tr, '권한', userValueHtml(roleLabel(invite.role)));
+        appendLabeledCell(tr, '채널', userValueHtml(invite.viewId || '미지정'));
+        appendLabeledCell(tr, '상태', chip(status, inviteStatusTone(status)), 'table-cell-status');
+        appendLabeledCell(tr, '만료', userValueHtml(invite.expiresAt || '미제공'));
+        appendLabeledCell(tr, '발급/사용', userValueHtml(invite.createdAt || '미제공', invite.usedAt ? `사용: ${invite.usedAt}` : `발급자: ${invite.createdBy || '미제공'}`));
+        invitesBody.appendChild(tr);
+      }
+      function renderInvites(invites) {
+        if (!invitesBody) return;
+        invitesBody.textContent = '';
+        if (!Array.isArray(invites) || invites.length === 0) {
+          setTableEmpty(invitesBody, 7, '발급된 초대가 없습니다.');
+          return;
+        }
+        const sorted = invites.slice().sort((a, b) => String(b.createdAt || '').localeCompare(String(a.createdAt || '')));
+        for (const invite of sorted) {
+          appendInviteRow(invite);
+        }
+      }
     async function loadUsers() {
       try {
         const json = await requestJson('/ops/api/users');
@@ -8917,17 +8963,31 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         setRequestStatus(compactUserStoreError(error), true);
       }
     }
+    async function loadInvites() {
+      if (!invitesBody) return;
+      try {
+        const json = await requestJson('/ops/api/invites');
+        loadedInvites = Array.isArray(json.invites) ? json.invites : [];
+        renderInvites(loadedInvites);
+      } catch (error) {
+        loadedInvites = [];
+        setTableEmpty(invitesBody, 7, '초대 목록을 불러오지 못했습니다.');
+        setInviteStatus(compactUserStoreError(error), true);
+      }
+    }
       async function loadAll({ clearMessages = true } = {}) {
       const [clientViewsPayload] = await Promise.all([
         requestJson('/client/api/views').catch(() => ({ views: [] })),
         loadUsers(),
-        loadAccessRequests()
+        loadAccessRequests(),
+        loadInvites()
       ]);
       loadedClientViews = Array.isArray(clientViewsPayload.views) ? clientViewsPayload.views : [];
       renderAssignmentOptions();
       if (clearMessages) {
         setStatus('');
         setRequestStatus('');
+        setInviteStatus('');
       }
     }
     async function setEnabled(username, enabled) {
@@ -9053,6 +9113,49 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         setRequestStatus(error.message, true);
       }
     }
+    async function createInviteFromForm(event) {
+      event.preventDefault();
+      if (!inviteCreateForm) return;
+      try {
+        const data = formDataObject(inviteCreateForm);
+        const payload = {
+          username: String(data.username || '').trim(),
+          displayName: String(data.displayName || '').trim(),
+          role: String(data.role || 'viewer').trim(),
+          viewId: String(data.viewId || '').trim(),
+          ttlSeconds: Number.parseInt(String(data.ttlSeconds || '86400'), 10)
+        };
+        if (!payload.username) throw new Error('초대할 계정명을 입력하세요.');
+        const result = await requestJson('/ops/api/invites', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const invite = result.invite || {};
+        setInviteCreateOutput([
+          `계정: ${payload.username}`,
+          invite.setupUrl ? `초대 링크: ${invite.setupUrl}` : '',
+          invite.expiresAt ? `초대 링크 만료: ${invite.expiresAt}` : '',
+          invite.token ? `토큰: ${invite.token}` : '',
+          '이 목록에는 토큰/토큰 해시를 저장하거나 다시 표시하지 않습니다.'
+        ].filter(Boolean).join('\n'));
+        await loadInvites();
+        await recordOpsAudit({
+          area: 'users',
+          action: 'invite-create',
+          target: `invite:${payload.username}`,
+          before: null,
+          after: { ...invite, token: undefined, setupUrl: invite.setupUrl ? 'issued-once' : '' }
+        });
+        renderOpsAuditTrail('user-audit-list', 'users');
+        setInviteStatus('초대 발급 완료');
+        inviteCreateForm.reset();
+        inviteCreateForm.elements.role.value = 'viewer';
+        inviteCreateForm.elements.ttlSeconds.value = '86400';
+      } catch (error) {
+        setInviteStatus(error.message, true);
+      }
+    }
     form.addEventListener('submit', async event => {
       event.preventDefault();
       try {
@@ -9107,6 +9210,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         setStatus(error.message, true);
       }
     });
+    inviteCreateForm?.addEventListener('submit', createInviteFromForm);
     editSelectedButton.onclick = () => {
       const username = String(form.elements.username.value || '').trim();
       if (!username) return;
@@ -9178,6 +9282,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     };
     document.querySelector('#refresh-btn').onclick = () => {
       setInviteOutput('');
+      setInviteCreateOutput('');
       loadAll().catch(error => setStatus(error.message, true));
     };
     updateAssignmentVisibility();

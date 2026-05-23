@@ -886,6 +886,24 @@ void AppendPublicInviteJson(std::ostringstream& out,
     out << "}";
 }
 
+void AppendInviteSummaryJson(std::ostringstream& out, const InviteRecord& invite) {
+    out << "{"
+        << "\"inviteId\":\"" << JsonEscapeLocal(invite.invite_id) << "\","
+        << "\"username\":\"" << JsonEscapeLocal(invite.username) << "\","
+        << "\"displayName\":\"" << JsonEscapeLocal(invite.display_name) << "\","
+        << "\"role\":\"" << JsonEscapeLocal(invite.role) << "\","
+        << "\"viewId\":\"" << JsonEscapeLocal(invite.view_id) << "\","
+        << "\"scopes\":";
+    AppendJsonStringArray(out, invite.scopes);
+    out << ","
+        << "\"expiresAt\":\"" << JsonEscapeLocal(invite.expires_at) << "\","
+        << "\"used\":" << (invite.used ? "true" : "false") << ","
+        << "\"usedAt\":\"" << JsonEscapeLocal(invite.used_at) << "\","
+        << "\"createdAt\":\"" << JsonEscapeLocal(invite.created_at) << "\","
+        << "\"createdBy\":\"" << JsonEscapeLocal(invite.created_by) << "\""
+        << "}";
+}
+
 void AppendPublicAccessRequestJson(std::ostringstream& out, const AccessRequestRecord& request) {
     out << "{"
         << "\"requestId\":\"" << JsonEscapeLocal(request.request_id) << "\","
@@ -910,6 +928,19 @@ std::string UsersJson(const std::vector<UserRecord>& users) {
             out << ",";
         }
         AppendPublicUserJson(out, users[i]);
+    }
+    out << "]}";
+    return out.str();
+}
+
+std::string InvitesJson(const std::vector<InviteRecord>& invites) {
+    std::ostringstream out;
+    out << "{\"invites\":[";
+    for (std::size_t i = 0; i < invites.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendInviteSummaryJson(out, invites[i]);
     }
     out << "]}";
     return out.str();
@@ -2219,6 +2250,15 @@ AuthUserResult CreateInviteFromJson(const app::AppConfig& config,
     AppendPublicInviteJson(out, invite, *raw_token);
     out << "}";
     return UserJsonResult(201, "Created", out.str());
+}
+
+AuthUserResult ListInvites(const app::AppConfig& config) {
+    std::string load_error;
+    AuthStore store = LoadAuthStoreOrEmpty(config.auth_users_file, &load_error);
+    if (!load_error.empty()) {
+        return UserError(500, "Internal Server Error", load_error);
+    }
+    return UserJsonResult(200, "OK", InvitesJson(store.invites));
 }
 
 AuthUserResult CompleteInvitePasswordSetup(const app::AppConfig& config,

@@ -4486,6 +4486,49 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         </div>
       </section>
 
+      <section class="section-card" data-testid="ops-invites-panel">
+        <div class="toolbar">
+          <div>
+            <h2>초대 발급</h2>
+            <p>관리자가 직접 초대 링크를 발급하고, 사용 전/사용 완료 초대 상태를 확인합니다.</p>
+          </div>
+          <span id="invite-status" class="status"></span>
+        </div>
+        <form id="invite-create-form" class="inline-form">
+          <label>계정명<input name="username" required /></label>
+          <label>표시 이름<input name="displayName" /></label>
+          <label>권한
+            <select name="role">
+              <option value="viewer">시청자</option>
+              <option value="operator">운영자</option>
+              <option value="integrator">연동</option>
+              <option value="admin">관리자</option>
+            </select>
+          </label>
+          <label>채널 ID<input name="viewId" placeholder="viewer/integrator 범위" /></label>
+          <label>유효 시간(초)<input name="ttlSeconds" type="number" min="60" step="60" value="86400" /></label>
+          <button class="button-primary" type="submit">초대 발급</button>
+        </form>
+        <p class="hint">발급 직후에만 토큰과 설정 링크를 표시합니다. 목록에는 토큰/토큰 해시를 노출하지 않습니다.</p>
+        <pre id="invite-create-output" hidden></pre>
+        <div class="table-wrap">
+          <table class="ops-data-table ops-responsive-table user-table">
+            <colgroup>
+              <col class="request-col-username" />
+              <col class="request-col-name" />
+              <col class="user-col-role" />
+              <col class="request-col-channel" />
+              <col class="request-col-status" />
+              <col class="request-col-decision" />
+              <col class="request-col-decision" />
+            </colgroup>
+)USERS";
+    AppendTableHead(out, {"계정명", "이름", "권한", "채널", "상태", "만료", "발급/사용"});
+    out << R"USERS(            <tbody id="invite-list-body"></tbody>
+          </table>
+        </div>
+      </section>
+
       <section id="user-detail-panel" class="section-card ops-detail-panel" hidden>
         <div class="toolbar">
           <div>
@@ -12840,6 +12883,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            if (const auto auth_response = require_admin_principal(); auth_response.has_value()) {
 	                                return *auth_response;
 	                            }
+                            if (request.method == "GET") {
+                                return AuthUserHttpResponse(auth::ListInvites(config));
+                            }
                             if (request.method == "POST") {
                                 const auth::AuthUserResult result =
                                     auth::CreateInviteFromJson(config, request.body);

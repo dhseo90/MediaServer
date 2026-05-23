@@ -222,6 +222,18 @@ check("matrix splits formerly grouped source, rule, user, client, and event acti
   }
 });
 
+check("required feature UI/test triad issues are closed", () => {
+  const { rows } = parseMatrix();
+  const missing = rows.filter((row) =>
+    row.uiNeed.startsWith("필수:") &&
+    (row.ui.startsWith("없음") || row.ui.startsWith("부분") || row.pass.startsWith("ISSUE:") || row.uiTest.startsWith("ISSUE:"))
+  );
+  assert(missing.length === 0, `required feature UI/test issue row(s) remain:\n${missing.map((row) => row.feature).join("\n")}`);
+  requireText(inventory, "| UI가 있어야 하는데 없음 | 0 | 없음 |", "issue closure table missing UI-missing zero count");
+  requireText(inventory, "| 테스트가 있어야 하는데 없음 | 0 | 없음 |", "issue closure table missing test-missing zero count");
+  requireText(inventory, "| UI와 테스트가 둘 다 없음 | 0 | 없음 |", "issue closure table missing both-missing zero count");
+});
+
 check("matrix covers auth roles, scopes, and account flows individually", () => {
   const { byFeature } = parseMatrix();
   for (const feature of [
@@ -284,7 +296,7 @@ check("matrix covers product UI routes and active Lab API boundaries", () => {
   }
 });
 
-check("matrix covers VA scenario functions as partial where manual event evidence is absent", () => {
+check("matrix covers VA scenario functions and keeps manual event evidence boundary", () => {
   const { byFeature } = parseMatrix();
   for (const feature of [
     "intrusion event rule",
@@ -308,13 +320,17 @@ check("matrix covers VA scenario functions as partial where manual event evidenc
   ]) {
     const row = byFeature.get(feature);
     assert(row, `missing VA scenario row: ${feature}`);
-    assert(
-      row.test.includes("브라우저 실제 이벤트 전수 evidence 없음") ||
-        row.test.includes("브라우저 전수 evidence 없음") ||
-        row.test.includes("backend"),
-      `VA scenario row does not state limited/manual evidence boundary: ${feature}`
-    );
+    assert(row.test.includes("verify-va") || row.test.includes("backend"), `VA scenario row missing verifier/backend boundary: ${feature}`);
+    if (row.uiNeed.startsWith("필수:")) {
+      assert(row.ui.startsWith("있음:"), `VA scenario UI-required row must have product UI: ${feature}`);
+      assert(row.pass.startsWith("PASS 출력:"), `VA scenario UI-required row must have PASS judgement: ${feature}`);
+    }
   }
+  requireText(
+    inventory,
+    "모든 VA scenario가 실제 브라우저 UI에서 실제 이벤트 발생까지 확인됐다는 증거는 아직 없습니다",
+    "inventory must keep manual VA event evidence boundary separate"
+  );
 });
 
 check("matrix covers media, metadata, analysis, ONVIF, release, and sample boundaries", () => {
@@ -412,12 +428,15 @@ check("explicit gaps and maintenance rules prevent completion overstatement", ()
     "## Current Required Triad Count",
     "정상 기준은 먼저 `UI 필요` 여부를 분리해서 봅니다",
     "| 전체 기능 row | 754 |",
-    "| 기능-UI-테스트 모두 존재 row | 294 |",
-    "| UI 없어야 정상 row | 407 |",
-    "| 기능-UI-테스트 필수 누락 row | 49 |",
+    "| 기능-UI-테스트 모두 존재 row | 341 |",
+    "| UI 없어야 정상 row | 409 |",
+    "| 기능-UI-테스트 필수 누락 row | 0 |",
     "| 테스트 없음 | 0 |",
     "| 실기기 필요로 테스트 항목 제외 | 4 |",
-    "| UI 필수인데 UI 부분 존재 | 49 |",
+    "| UI 필수인데 UI 부분 존재 | 0 |",
+    "| UI가 있어야 하는데 없음 | 0 | 없음 |",
+    "| 테스트가 있어야 하는데 없음 | 0 | 없음 |",
+    "| UI와 테스트가 둘 다 없음 | 0 | 없음 |",
     "### 실기기 필요 테스트 항목 제외",
     "### 기능-UI-테스트 필수 누락 항목",
   ]) {
