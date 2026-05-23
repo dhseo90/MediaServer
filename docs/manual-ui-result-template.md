@@ -28,7 +28,6 @@
   - `./server.sh verify-ops-client-ui`:
   - `./server.sh verify-ops-client-ui --screenshots`:
   - `./server.sh verify-rule-ui`:
-  - `./server.sh verify-v160-manual-ui-release-checklist-closure`:
   - `./server.sh verify-manual-ui-evidence`:
   - `git diff --check`:
 

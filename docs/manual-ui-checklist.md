@@ -6,10 +6,9 @@ source-of-truth로 삼고, 결과 기록은 [manual-ui-result-template.md](./man
 사용합니다. historical v1.2.1 patch evidence 기록은
 [manual-ui-v1.2.1-result.md](./manual-ui-v1.2.1-result.md)에 둡니다.
 문서 구조와 evidence 경계는 `./server.sh verify-manual-ui-evidence`로 확인합니다.
-v1.6.0 manual UI release checklist closure는
-[v1.6.0 Manual UI Release Checklist Closure](./v1.6.0-manual-ui-release-checklist-closure.md)와
-`./server.sh verify-v160-manual-ui-release-checklist-closure`로 현재 제품 화면,
-미실행/미확인, screenshot artifact 경계를 확인합니다.
+과거 `verify-v*` manual UI closure 명령은 release archive 보존용입니다. 현재 UI
+풀테스트 완료 판정에는 직접 포함하지 않고, 현재 제품 화면/권한/기능 기준은 이
+체크리스트와 `verify-manual-ui-evidence`로 통합 확인합니다.
 
 UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라우저에서 제품
 화면을 직접 열고 클릭과 타이핑으로 수행하는 end-to-end 검수입니다. API-only

@@ -38,9 +38,10 @@ Release close-out runbook과 tag/push 수동 gate는
 세부 순서를 둡니다.
 Release evidence의 실행/미실행/미확인 색인은
 [release-evidence-index.md](release-evidence-index.md)에 둡니다.
-Archived manual UI closure guard는
-[v1.6.0-manual-ui-release-checklist-closure.md](v1.6.0-manual-ui-release-checklist-closure.md)와
-`verify-v160-manual-ui-release-checklist-closure`로 보존합니다.
+`verify-v*` 계열은 historical release archive 보존용입니다. 현재 v1.8.0 제품
+회귀와 UI 풀테스트 gate는 [stream-verification.md](stream-verification.md)와
+[manual-ui-checklist.md](manual-ui-checklist.md)의 버전 중립 명령을 기준으로
+확인합니다.
 
 ## 기능별 문서
 

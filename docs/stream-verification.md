@@ -50,11 +50,6 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-script-inventory
 ./server.sh verify-code-comments
 ./server.sh verify-release-metadata
-./server.sh verify-v121-follow-up-closure
-./server.sh verify-v130-follow-up-closure
-./server.sh verify-v140-follow-up-closure
-./server.sh verify-v140-report-archive-policy
-./server.sh verify-v150-follow-up-closure
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-manual-ui-evidence
@@ -89,83 +84,44 @@ release prep 단계에서 tag/GitHub Release가 아직 수동 생성 전이면
 `./server.sh verify-release-metadata --allow-unpublished`로 로컬 v1.8.0 기준만 확인하고,
 GitHub Latest Release 확인은 publish 뒤 기본 실행으로 다시 닫습니다.
 
-v1.4.0 tracker/Re-ID opt-in 이후 남은 후속 항목 분류와 종료 판정은
-[v1.4.0 Follow-up Closure](./v1.4.0-follow-up-closure.md)를 기준으로 확인합니다.
-v1.5.0 Tracker/Re-ID opt-in 안정화 이후 남은 후속 항목 분류와 종료 판정은
-[v1.5.0 Follow-up Closure](./v1.5.0-follow-up-closure.md)를 기준으로 확인합니다.
-v1.6.0 stabilization release evidence는
-[v1.6.0 Release Evidence Dashboard](./v1.6.0-release-evidence-dashboard.md)를
-기준으로 확인하며, 실행한 검증과 미실행 장시간/실장비/외부 credential gate를
-분리합니다.
+`verify-v*` 명령은 과거 release evidence와 close-out 문서 보존용 archive
+verifier입니다. 현재 v1.8.0 제품 회귀 gate, UI 풀테스트 gate, release trust
+hardening gate에는 직접 포함하지 않습니다. 이전 버전에 있었던 문구나 close-out
+상태가 현재 제품 기준과 달라졌다는 이유로 현재 release를 실패 처리하지 않기
+위해, 동일 기능의 현재 회귀는 아래 버전 중립 명령으로 통합 확인합니다.
+
+```bash
+./server.sh verify-auth-bootstrap
+./server.sh verify-auth-users
+./server.sh verify-auth-routes
+./server.sh verify-ops-client-ui
+./server.sh verify-ops-client-ui --screenshots
+./server.sh verify-ops-click-e2e
+./server.sh verify-ops-tables-layout
+./server.sh verify-rule-ui
+./server.sh verify-ops-rules-roundtrip
+./server.sh verify-analysis-state
+./server.sh verify-va-events
+./server.sh verify-va-replay
+./server.sh verify-webrtc-va-metadata
+./server.sh verify-va-metadata-sidechannel
+./server.sh verify-ws-metadata
+```
+
+과거 release 문서 자체의 링크, 문구, evidence 보존 상태를 점검해야 할 때만
+`verify-v121-*`, `verify-v150-*`, `verify-v160-*`, `verify-v170-*` 같은 archive
+명령을 명시적으로 실행하고, 결과는 현재 제품 PASS/FAIL이 아니라 historical
+archive PASS/FAIL로 기록합니다.
+
 `verify-predev` report에 `건너뜀`이 있으면 skip count와 step reason을 같이
 검토합니다. 사용자가 요청하지 않은 optional external TURN 같은 선택 gate만
 건너뛴 경우에는 predev 결과와 외부 TURN `NOT RUN`을 분리해 기록합니다.
 요청한 hard gate가 건너뛰어진 경우에는 release PASS가 아니라 HOLD 또는 NOT RUN으로
 남깁니다.
 
-```bash
-./server.sh verify-v160-release-evidence-dashboard
-./server.sh verify-v160-stability-verification-gate
-./server.sh verify-v160-debug-exposure-regression-guard
-./server.sh verify-v160-tracker-reid-opt-in-closeout
-./server.sh verify-v160-onvif-field-smoke-evidence-reconciliation
-./server.sh verify-v160-audit-export-masking-regression-hardening
-./server.sh verify-v160-runtime-model-bundle-rc-policy
-./server.sh verify-v160-manual-ui-release-checklist-closure
-./server.sh verify-v160-public-docs-consistency-polish
-./server.sh verify-v160-tracker-benchmark-harness-planning
-```
-
-Stability gate 분류는
-[v1.6.0 Stability Verification Gates](./v1.6.0-stability-verification-gates.md)에
-고정합니다. static/docs gate, attached UI/Auth gate, Runtime/VA metadata gate,
-Tracker/Re-ID carry-over gate, flaky/cleanup isolation gate, longrun/external gate를
-분리하고, 실행하지 않은 gate를 release pass처럼 쓰지 않습니다.
-Client/Ops debug exposure guard는
-[v1.6.0 Client/Ops Debug Exposure Regression Guard](./v1.6.0-debug-exposure-regression-guard.md)에
-고정합니다. `verify-ops-client-ui`의 client forbidden text/key matrix가 source URL,
-raw JSON, debug counter, rule/profile editor, model/source/auth material을 검사하는지
-`verify-v160-debug-exposure-regression-guard`로 확인합니다.
-Tracker/Re-ID opt-in close-out은
-[v1.6.0 Tracker/Re-ID Opt-in Stabilization Close-out](./v1.6.0-tracker-reid-opt-in-closeout.md)에
-고정합니다. v1.5.0 follow-up closure, stability matrix, Re-ID provenance/fallback
-approval verifier를 carry-over gate로 연결하되, default-on이나 runtime/model bundle
-승격은 P0 완료로 쓰지 않습니다.
-ONVIF field smoke evidence reconciliation은
-[v1.6.0 ONVIF Field Smoke Evidence Reconciliation](./v1.6.0-onvif-field-smoke-evidence-reconciliation.md)에
-고정합니다. 실장비 field smoke를 실행하지 않았으면 `NOT RUN`과
-`realDeviceEndpointSuccess=unverified`로 유지하고, no-device suite 결과를 field
-smoke pass로 쓰지 않는지 `verify-v160-onvif-field-smoke-evidence-reconciliation`로
-확인합니다.
-Audit/export masking regression hardening은
-[v1.6.0 Audit Export Masking Regression Hardening](./v1.6.0-audit-export-masking-regression-hardening.md)에
-고정합니다. `/ops/api/audit` 조회와 JSON/CSV/Diff JSON export가 source/model/auth/raw
-material을 다시 노출하지 않는지 `verify-v160-audit-export-masking-regression-hardening`로
-확인합니다.
-Runtime/model bundle RC policy는
-[v1.6.0 Runtime/Model Bundle RC Policy](./v1.6.0-runtime-model-bundle-rc-policy.md)에
-고정합니다. v1.6.0 기본 release에 ONNX Runtime package나 YOLO/Re-ID/model binary를
-포함하지 않고, 향후 별도 RC의 bundle policy, source offer, model provenance,
-privacy/redaction review 조건만 `verify-v160-runtime-model-bundle-rc-policy`로
-확인합니다.
-Manual UI release checklist closure는
-[v1.6.0 Manual UI Release Checklist Closure](./v1.6.0-manual-ui-release-checklist-closure.md)에
-고정합니다. 자동 smoke나 screenshot 생성만으로 수동 클릭 검수를 완료했다고 쓰지
-않고, 실제 실행 artifact/link와 미실행/미확인 항목을
-`verify-v160-manual-ui-release-checklist-closure`로 분리합니다.
-Public docs consistency polish는
-[v1.6.0 Public Docs Consistency Polish](./v1.6.0-public-docs-consistency-polish.md)에
-고정합니다. 이 historical gate는 v1.6.0 close-out 당시의 public tag/evidence drift와
-v1.6.0 stabilization roadmap/evidence를 분리하고, public docs가 tag/push/GitHub
-Release나 후속 Phase 후보를 완료로 쓰지 않는지
-`verify-v160-public-docs-consistency-polish`로 확인합니다.
-V160-P2-01 Public docs consistency polish는 public docs current tag와
-stabilization evidence 표현을 정리하는 항목입니다.
-Tracker benchmark harness planning only는
-[v1.6.0 Tracker Benchmark Harness Planning](./v1.6.0-tracker-benchmark-harness-planning.md)에
-고정합니다. OC-SORT/BoT-SORT/DeepSORT를 runtime tracker로 승격하지 않고,
-metadata-only sandbox와 별도 Phase benchmark 요구사항만
-`verify-v160-tracker-benchmark-harness-planning`으로 확인합니다.
+Historical v1.x close-out 문서는 release archive로 보존합니다. archive 문서의
+정합성 검증이 필요하면 해당 문서에 적힌 `verify-v*` 명령을 따로 실행하되, 현재
+제품 regression 결과와 섞지 않습니다.
 
 위 전용 기준은 느린 기본 추가 RTSP/WebRTC source 영상, codec matrix, multichannel media soak를 사용하지 않습니다.
 기본 smoke와 longrun gate가 섞이지 않았는지는 다음 명령으로 정적으로 확인합니다.
@@ -862,13 +818,12 @@ OC-SORT가 `analysis.trackingPolicy.tracker`, `/ops/rules` UI,
 ./server.sh verify-oc-sort-benchmark-boundary
 ```
 
-v1.5.0 OC-SORT experimental sandbox는 같은 runtime 승격 금지 경계를 유지하면서
-`compare-close-object-tracker` report에 `manifest-only` sandbox metadata만 남깁니다.
-이 sandbox는 OC-SORT를 실행하지 않고, `--tracker-policy` 허용값도
-`lite`, `kalman-lite`, `bytetrack`에 머뭅니다.
+v1.5.0 OC-SORT experimental sandbox 검증은 release archive 전용입니다. 현재
+제품 회귀에서는 같은 runtime 승격 금지 경계를 `verify-oc-sort-benchmark-boundary`와
+`compare-close-object-tracker`의 현재 fixture 옵션으로 확인하고, archive 명령을
+현재 PASS/FAIL에 섞지 않습니다.
 
 ```bash
-./server.sh verify-v150-oc-sort-experimental-sandbox
 ./server.sh compare-close-object-tracker --list-experimental-sandboxes
 ./server.sh compare-close-object-tracker --fixture-matrix --experimental-sandbox oc-sort --tracker-policy bytetrack --max-fixtures 1
 ```
@@ -1013,38 +968,10 @@ count, mean, stdev, variance, min, max를 표시합니다.
 - replay/event 결과가 흔들려도 default on 전환 금지입니다.
 - default on은 여러 fixture와 현장 샘플에서 ID continuity 개선과 event 결과 무변화가 함께 확인된 뒤에만 검토합니다.
 - privacy/default-off gate는 `verify-reid-advanced-tracking`으로 별도 확인합니다.
-- v1.5.0 명시 opt-in guard는 `verify-v150-opt-in-tracking-policy`로 확인합니다.
-  이 검증은 tracker 없는 `reid=assist` fixture를 저장 거부하고, runtime/UI/docs가
-  자동 migration 또는 default-on 승격 근거가 아닙니다 라는 경계를 유지하는지
-  점검합니다.
-- v1.5.0 Tracker/Re-ID stability matrix는
-  `verify-v150-tracker-reid-stability-matrix`로 문서/entrypoint/fixture-history
-  경계를 먼저 고정합니다. 이 정적 guard는 runtime matrix를 직접 실행하지 않으며,
-  `lite/off`, `kalman-lite/off`, `bytetrack/off`, `lite/assist`,
-  `kalman-lite/assist`, `bytetrack/assist` 조합이 warning drift 관찰 대상이고
-  `matrix-ok`가 제품 default-on 승인 값이 아닙니다 라는 해석을 확인합니다.
-- v1.5.0 Re-ID model provenance/fallback approval은
-  `verify-v150-reid-provenance-fallback-approval`로 문서/entrypoint/smoke fixture
-  경계를 고정합니다. 이 guard는 missing/invalid/mismatched model을 NoOp fallback으로
-  닫고, privacy/retention approval을 제품 default-on 승인이나 model bundle 승인으로
-  해석하지 않습니다.
-- v1.5.0 Ops Dashboard tracker warning next-action은
-  `verify-v150-ops-tracker-warning-next-action`으로 UI copy, tracker warning fixture
-  smoke, docs 경계를 고정합니다. 이 guard는 warning을 사용자 opt-in 튜닝 참고와
-  다음 조치로 표시하되 default-on 근거가 아닙니다 라는 해석을 확인합니다.
-- v1.5.0 Audit export review hardening은
-  `verify-v150-audit-export-review-hardening`으로 Ops audit 조회와
-  JSON/CSV/Diff JSON export의 model/source material 마스킹, Tracker/Re-ID
-  설정 변경 review chip, model/fallback status-only 표시 경계를 고정합니다.
-  이 guard는 audit export UX를 강화하되 Event POST/WebRTC/SSE/WS metadata schema나
-  RTSP/WebRTC media path 변경으로 해석하지 않습니다.
-- v1.5.0 Field smoke summary evidence boundary는
-  `verify-v150-field-smoke-summary-evidence-boundary`로
-  `compare-close-object-tracker --history-dir`가 summary/report/history index evidence만
-  보존하고 raw media, crop, embedding, model/source/auth material을 archive하지
-  않는지 확인합니다. 이 guard는 release 문서에서 완료/미확인/비범위를 분리하며,
-  제품 default-on 승인, 실장비 ONVIF field smoke 성공, 장기 field sample workflow
-  완료로 해석하지 않습니다.
+- v1.5.0 `verify-v150-*` guard는 release archive 전용입니다. 현재 회귀에서는
+  `verify-reid-advanced-tracking`, `verify-tracker-stability`,
+  `compare-close-object-tracker`, `verify-va-replay`, `verify-analysis-state`,
+  `verify-va-events`로 runtime/default-off/metadata/event 안정성을 확인합니다.
 
 비교 리포트 해석:
 
@@ -1061,14 +988,6 @@ count, mean, stdev, variance, min, max를 표시합니다.
 - threshold tuning 또는 추가 fixture 수집은 새 field/model review가 열릴 때 별도 review로 다룹니다.
 
 ```bash
-./server.sh verify-v150-opt-in-tracking-policy
-./server.sh verify-v150-tracker-reid-stability-matrix
-./server.sh verify-v150-reid-provenance-fallback-approval
-./server.sh verify-v150-ops-tracker-warning-next-action
-./server.sh verify-v150-audit-export-review-hardening
-./server.sh verify-v150-field-smoke-summary-evidence-boundary
-./server.sh verify-v150-oc-sort-experimental-sandbox
-./server.sh verify-v150-follow-up-closure
 ./server.sh verify-reid-advanced-tracking
 ./server.sh verify-tracker-stability --long --overlap-focus
 ./server.sh verify-va-replay

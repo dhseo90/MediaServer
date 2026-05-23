@@ -186,8 +186,17 @@ Usage:
                  ONVIF import draft의 공개 RTSP URL이 기존 source/view/client redaction 경로를 통과하는지 검증합니다.
   verify-onvif-ops-sources-ui
                  /ops/sources ONVIF import UI가 source/view 저장 round-trip까지 연결되는지 검증합니다.
+
+릴리스 아카이브 전용 명령:
+  아래 verify-v* 명령은 과거 release evidence와 close-out 문서 보존용입니다.
+  현재 제품 회귀 gate나 v1.8.0 통합 검증 기준으로 묶어 실행하지 않습니다.
+  동일 기능의 현재 회귀는 verify-auth-*, verify-ops-*, verify-va-*,
+  verify-docs-* 같은 버전 중립 명령으로 확인합니다.
+
   verify-v1.1-boundary-keywords
                  v1.1.0 live-only 제품 경계 키워드가 비범위/보류 문맥인지 검증합니다.
+
+일반 정적/release 검증 명령:
   verify-code-comments
                  코드/스크립트 상단 용도 주석과 한글 주석 정책을 검증합니다.
   verify-release-metadata
@@ -206,6 +215,8 @@ Usage:
                  post-release smoke 기록이 통과/미실행/미확인을 분리하는지 검증합니다.
   verify-release-closeout-helper
                  release close-out 전 로컬 검증, visual baseline readiness, 수동 tag/push 경계를 dry-run으로 요약합니다.
+
+릴리스 아카이브 전용 명령 계속:
   verify-v121-follow-up-closure
                  v1.2.1 roadmap 내 개발 가능한 후속 이슈가 남지 않았는지 검증합니다.
   verify-v130-follow-up-closure
