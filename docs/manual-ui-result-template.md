@@ -1,8 +1,9 @@
 # Manual UI Result Template
 
-이 템플릿은 사람이 브라우저에서 직접 눌러 확인한 UI 검수 결과를 남길 때
-사용합니다. 자동 smoke, screenshot artifact, raw JSON 확인만으로 이 문서를
-채우지 않습니다.
+이 템플릿은 사람이 인앱 브라우저에서 직접 눌러 확인한 UI 풀테스트 결과를
+남길 때 사용합니다. 자동 smoke, screenshot artifact, raw JSON 확인만으로 이
+문서를 채우지 않습니다. 기준 정의는 [manual-ui-fulltest.md](./manual-ui-fulltest.md),
+실행 순서는 [manual-ui-checklist.md](./manual-ui-checklist.md)를 봅니다.
 
 ## 검수 메타데이터
 
@@ -12,35 +13,45 @@
 - 브랜치/커밋:
 - 서버 URL:
 - auth mode:
-- users/source/view fixture:
-- 브라우저:
+- users/source/view/analysis fixture:
+- 데이터 리셋 방법:
+- 브라우저: 인앱 브라우저
 - viewport:
+- theme:
 - evidence index:
+- 문서 파악 범위:
 - 관련 자동 검증:
-  - `./server.sh verify-ops-client-ui --screenshots`:
-  - `./server.sh verify-rule-ui`:
+  - `./server.sh build`:
   - `./server.sh verify-auth-bootstrap`:
   - `./server.sh verify-auth-users`:
   - `./server.sh verify-auth-routes`:
+  - `./server.sh verify-ops-client-ui`:
+  - `./server.sh verify-ops-client-ui --screenshots`:
+  - `./server.sh verify-rule-ui`:
   - `./server.sh verify-v160-manual-ui-release-checklist-closure`:
+  - `./server.sh verify-manual-ui-evidence`:
+  - `git diff --check`:
 
 ## 확인됨
 
 실제로 열고 클릭한 화면만 적습니다.
 
-| 화면 | 계정/권한 | 직접 조작 | 기대 결과 | 실제 결과 | 판정 |
-| --- | --- | --- | --- | --- | --- |
-| `/setup` | unauth |  |  |  | PASS/FAIL |
-| `/login` | unauth |  |  |  | PASS/FAIL |
-| `/ops/home` | admin |  |  |  | PASS/FAIL |
-| `/ops/dashboard` | admin |  |  |  | PASS/FAIL |
-| `/ops/sources` | admin |  |  |  | PASS/FAIL |
-| `/ops/rules` | admin |  |  |  | PASS/FAIL |
-| `/ops/users` | admin |  |  |  | PASS/FAIL |
-| `/ops/events` | admin |  |  |  | PASS/FAIL |
-| `/client/live` | viewer/admin preview |  |  |  | PASS/FAIL |
-| `/client/dashboard` | viewer/admin preview |  |  |  | PASS/FAIL |
-| `/client/request-access` | public |  |  |  | PASS/FAIL |
+| 화면 | 계정/권한 | 직접 조작 | 기대 결과 | 실제 결과 | screenshot/artifact | 판정 |
+| --- | --- | --- | --- | --- | --- | --- |
+| `/setup` | unauth |  |  |  |  | PASS/FAIL |
+| `/login` | unauth |  |  |  |  | PASS/FAIL |
+| `/password/change` | must-change/reset |  |  |  |  | PASS/FAIL |
+| `/invite/setup` | invite |  |  |  |  | PASS/FAIL |
+| `/ops/home` | admin/operator |  |  |  |  | PASS/FAIL |
+| `/ops/dashboard` | admin/operator |  |  |  |  | PASS/FAIL |
+| `/ops/sources` | admin/operator |  |  |  |  | PASS/FAIL |
+| `/ops/rules` | admin/operator |  |  |  |  | PASS/FAIL |
+| `/ops/users` | admin |  |  |  |  | PASS/FAIL |
+| `/ops/events` | admin/operator |  |  |  |  | PASS/FAIL |
+| `/client/live` | viewer/admin preview |  |  |  |  | PASS/FAIL |
+| `/client/dashboard` | viewer/admin preview |  |  |  |  | PASS/FAIL |
+| `/client/request-access` | public |  |  |  |  | PASS/FAIL |
+| `/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test` | any |  | 404/closed route |  |  | PASS/FAIL |
 
 ## v1.8.0 Release Evidence Index
 
@@ -60,6 +71,22 @@
 - 실패 후 재검수한 화면:
 - raw JSON/API-only로만 확인한 항목:
 - client/viewer 비노출 재확인:
+
+## 기능별 직접 조작 기록
+
+| 영역 | 클릭/타이핑으로 확인한 항목 | PASS/FAIL/BLOCKED | 비고 |
+| --- | --- | --- | --- |
+| 문서 파악 | README/docs/ui/auth/verification 문서 확인 |  |  |
+| 데이터 리셋 | throwaway users/source/view/analysis/event path 사용 |  |  |
+| Auth | setup, login, password change, invite setup |  |  |
+| Ops Dashboard | search, filter select, copy/share, refresh |  |  |
+| Channels | add/edit, validation, file/RTSP/ONVIF/WHEP input, copy |  |  |
+| Rules | scenario/template/profile, preview, geometry, save |  |  |
+| Users | create/update, scope, pending request approve/reject |  |  |
+| Events | filter, archive toggle, pagination, export |  |  |
+| Client Live | source select/drag, tile start/reconnect/stop, dock, overlay, copy |  |  |
+| Client Dashboard | filter, sort, status/event copy |  |  |
+| Route guard | viewer ops forbidden, lab/webrtc closed route |  |  |
 
 ## 접근 요청 검수
 
@@ -118,20 +145,24 @@ client/viewer 화면에서 보이지 않아야 하는 항목입니다.
 - model/source/auth material:
 - Ops/Lab primary navigation:
 
-## 반응형/테마 확인
+## 반응형/테마/시각 품질 확인
 
-| viewport | theme | 확인 화면 | overflow/겹침 | 판정 |
-| --- | --- | --- | --- | --- |
-| 320px | light |  |  | PASS/FAIL |
-| 390px | dark |  |  | PASS/FAIL |
-| 760px | light |  |  | PASS/FAIL |
-| 1180px | dark |  |  | PASS/FAIL |
+| viewport | theme | 확인 화면 | overflow/겹침 | 시각 품질 메모 | 판정 |
+| --- | --- | --- | --- | --- | --- |
+| 320px | light |  |  |  | PASS/FAIL |
+| 320px | dark |  |  |  | PASS/FAIL |
+| 390px | light |  |  |  | PASS/FAIL |
+| 390px | dark |  |  |  | PASS/FAIL |
+| 760px | light |  |  |  | PASS/FAIL |
+| 760px | dark |  |  |  | PASS/FAIL |
+| 1180px | light |  |  |  | PASS/FAIL |
+| 1180px | dark |  |  |  | PASS/FAIL |
 
 ## 실패
 
-| 화면 | 재현 조작 | 기대 결과 | 실제 결과 | 로그/스크린샷 | 영향 범위 |
-| --- | --- | --- | --- | --- | --- |
-|  |  |  |  |  |  |
+| 화면 | 재현 조작 | 기대 결과 | 실제 결과 | 로그/스크린샷 | 영향 범위 | 재검수 |
+| --- | --- | --- | --- | --- | --- | --- |
+|  |  |  |  |  |  |  |
 
 ## 미확인
 
@@ -140,6 +171,9 @@ client/viewer 화면에서 보이지 않아야 하는 항목입니다.
 - 장시간 테스트:
 - `verify-predev`:
 - 실장비/외부 네트워크:
+- ONVIF 실장비:
+- 외부 TURN/WHEP credential:
+- YouTube 실제 URL relay:
 - screenshot artifact/link 미확인:
 - GitHub Actions/link 미확인:
 - destructive action:
@@ -150,6 +184,14 @@ client/viewer 화면에서 보이지 않아야 하는 항목입니다.
 | 항목 | 이유 | 후속 확인 조건 |
 | --- | --- | --- |
 |  |  |  |
+
+## 문서 재작성/신규 작성/비교 병합
+
+- 재작성한 UI 풀테스트 관련 문서:
+- 새로 작성한 UI 풀테스트 문서:
+- 비교 결과:
+- 병합 결과:
+- 남은 중복/미확인:
 
 ## 최종 판정
 

@@ -2465,7 +2465,7 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
               <input id="dashIncidentTimelineSearch" placeholder="제목, 출처, incident/cid 검색" />
             </label>
             <label>출처
-              <select id="dashIncidentTimelineSource">
+              <select id="dashIncidentTimelineSource" aria-label="출처">
                 <option value="">전체 출처</option>
                 <option value="root-cause">문제 원인</option>
                 <option value="event-record">EventRecord</option>
@@ -4340,7 +4340,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
             <label>구역<input name="zone" placeholder="예: 출입구" /></label>
           </div>
           <label data-source-kind="file">파일
-            <select name="file" id="channel-file-select">
+            <select name="file" id="channel-file-select" aria-label="파일">
               <option value="sample_h264.mp4">sample_h264.mp4</option>
             </select>
           </label>

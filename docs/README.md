@@ -9,6 +9,7 @@
 | --- | --- |
 | 설치, 빌드, 실행 | [development-guide.md](development-guide.md) |
 | 운영자/클라이언트 UI | [ui-guide.md](ui-guide.md) |
+| UI 풀테스트 기준/체크리스트 | [manual-ui-fulltest.md](manual-ui-fulltest.md), [manual-ui-checklist.md](manual-ui-checklist.md), [manual-ui-result-template.md](manual-ui-result-template.md) |
 | RTSP/WebRTC/VA 구조 | [media-server-architecture.md](media-server-architecture.md) |
 | 영상 분석, tracking, scenario | [video-analysis.md](video-analysis.md) |
 | 검증 명령과 release gate | [stream-verification.md](stream-verification.md) |
@@ -37,6 +38,9 @@ Release close-out runbook과 tag/push 수동 gate는
 세부 순서를 둡니다.
 Release evidence의 실행/미실행/미확인 색인은
 [release-evidence-index.md](release-evidence-index.md)에 둡니다.
+Archived manual UI closure guard는
+[v1.6.0-manual-ui-release-checklist-closure.md](v1.6.0-manual-ui-release-checklist-closure.md)와
+`verify-v160-manual-ui-release-checklist-closure`로 보존합니다.
 
 ## 기능별 문서
 

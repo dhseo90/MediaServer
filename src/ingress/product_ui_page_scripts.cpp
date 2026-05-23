@@ -653,7 +653,7 @@ void AppendClientShellScript(std::ostringstream& out) {
           <h3>채널 비교</h3>
           <div class="client-compare-toolbar">
             <label>필터
-              <select id="clientDashboardCompareFilter">
+              <select id="clientDashboardCompareFilter" aria-label="필터">
                 <option value="all">전체</option>
                 <option value="warnings">확인 필요</option>
                 <option value="events">이벤트 있음</option>
@@ -661,7 +661,7 @@ void AppendClientShellScript(std::ostringstream& out) {
               </select>
             </label>
             <label>정렬
-              <select id="clientDashboardCompareSort">
+              <select id="clientDashboardCompareSort" aria-label="정렬">
                 <option value="priority">경고 우선</option>
                 <option value="events">이벤트 많은 순</option>
                 <option value="name">이름순</option>
@@ -1506,12 +1506,12 @@ void AppendClientShellScript(std::ostringstream& out) {
 	              <h2>라이브 워크스페이스</h2>
 	            </div>
 	            <label>그리드
-	              <select id="liveGridSize">
+	              <select id="liveGridSize" aria-label="그리드">
 	                ${liveGridOptionsHtml()}
 	              </select>
 	            </label>
 	            <label>밀도
-	              <select id="liveDensity">
+	              <select id="liveDensity" aria-label="밀도">
 	                <option value="comfortable"${liveDensity === 'comfortable' ? ' selected' : ''}>표준</option>
 	                <option value="compact"${liveDensity === 'compact' ? ' selected' : ''}>고밀도</option>
 	              </select>

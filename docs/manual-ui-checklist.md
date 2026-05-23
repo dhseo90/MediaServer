@@ -1,36 +1,75 @@
 # Manual UI Checklist
 
-이 문서는 자동 smoke가 아니라 사람이 브라우저에서 직접 눌러 확인하는
-현재 제품 UI 체크리스트입니다. 자동 검증 결과를 대체하지 않고,
-`verify-ops-client-ui`, `verify-auth-*`, `verify-rule-ui` 이후 마지막 육안
-검수 기준으로 사용합니다.
-결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를
-사용해 `확인됨`, `미확인`, `건너뜀`을 분리합니다.
-historical v1.2.1 patch evidence 기록은 [manual-ui-v1.2.1-result.md](./manual-ui-v1.2.1-result.md)에
-두며, 문서 구조는 `./server.sh verify-manual-ui-evidence`로 확인합니다.
+이 문서는 앞으로 "UI 풀테스트"라고 부르는 작업의 실행 체크리스트입니다.
+기준 정의와 범위는 [manual-ui-fulltest.md](./manual-ui-fulltest.md)를
+source-of-truth로 삼고, 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를
+사용합니다. historical v1.2.1 patch evidence 기록은
+[manual-ui-v1.2.1-result.md](./manual-ui-v1.2.1-result.md)에 둡니다.
+문서 구조와 evidence 경계는 `./server.sh verify-manual-ui-evidence`로 확인합니다.
 v1.6.0 manual UI release checklist closure는
 [v1.6.0 Manual UI Release Checklist Closure](./v1.6.0-manual-ui-release-checklist-closure.md)와
 `./server.sh verify-v160-manual-ui-release-checklist-closure`로 현재 제품 화면,
 미실행/미확인, screenshot artifact 경계를 확인합니다.
 
-## 1. 공통 준비
+UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라우저에서 제품
+화면을 직접 열고 클릭과 타이핑으로 수행하는 end-to-end 검수입니다. API-only
+확인, screenshot 생성만 있는 항목, 열지 않은 화면은 `확인됨`으로 적지 않습니다.
 
-- 서버는 검증 전용 포트와 임시 users/source/view 파일로 띄웁니다.
+## 1. 사전 파악
+
+- 프로젝트 내 문서를 먼저 훑어 현재 release, 제품 경계, UI route, 비노출
+  정책, 검증 명령을 파악합니다.
+- 최소 확인 문서:
+  - [README.md](../README.md)
+  - [docs/README.md](./README.md)
+  - [ui-guide.md](./ui-guide.md)
+  - [development-guide.md](./development-guide.md)
+  - [stream-verification.md](./stream-verification.md)
+  - [config-reference.md](./config-reference.md)
+  - [manual-ui-fulltest.md](./manual-ui-fulltest.md)
+  - [manual-ui-result-template.md](./manual-ui-result-template.md)
+- 기능 설명이 있는 문서에 나온 웹 UI 흐름은 모두 검수 후보로 적습니다. 문서에
+  나온 기능을 열지 못하면 `미확인` 또는 `건너뜀`으로 남깁니다.
+- 현재 scope 밖 기능, release 비범위, 실장비/외부 credential이 필요한 흐름은
+  임의로 확장하지 않습니다.
+
+## 2. 데이터 리셋과 서버 준비
+
+- 운영 데이터가 아닌 throwaway fixture만 사용합니다.
+- 서버는 검증 전용 포트와 임시 users/source/view/analysis/event 경로로 띄웁니다.
 - auth on 검증은 `MEDIA_SERVER_AUTH_MODE=auto`에서 admin을 직접 생성합니다.
-- UI smoke 전용 HTML selector 검증은 `MEDIA_SERVER_AUTH_MODE=off` 서버에서
-  `./server.sh verify-ops-client-ui --screenshots`를 별도로 실행합니다.
-- destructive action은 운영 데이터가 아닌 throwaway fixture 계정과 요청만 사용합니다.
-- 실행하지 않은 화면, 건너뛴 destructive action, 실패한 테스트는 완료로 표시하지 않습니다.
+- destructive action은 throwaway 계정, 채널, 접근 요청으로만 수행합니다.
+- UI smoke 전용 HTML selector 검증은 필요 시 별도 서버에서
+  `./server.sh verify-ops-client-ui --screenshots`로 실행하되, 이 결과만으로
+  수동 UI 풀테스트 완료라고 쓰지 않습니다.
+- plaintext password, invite token 원문, session cookie, generated password
+  suggestion은 결과 문서나 screenshot에 남기지 않습니다.
 - Browser Use clipboard 오류는 [browser-use-clipboard-diagnostics.md](./browser-use-clipboard-diagnostics.md)
   기준으로 제품 회귀와 환경 문제를 분리합니다.
 - Browser/Computer Use fallback은 Browser Use 직접 조작, Chrome 직접 조작,
   Computer Use visible UI 조작 순서로 시도하고 실패 지점과 대체 smoke를 분리해
   기록합니다. raw JSON/API-only 확인은 수동 UI 클릭 evidence로 쓰지 않습니다.
 
+## 3. 실행 원칙
+
+- 모든 웹 UI 검수는 인앱 브라우저에서 수행합니다.
+- 클릭, 타이핑, select 변경, checkbox/toggle, copy button, nav 이동, route guard를
+  실제 UI 조작으로 확인합니다.
+- 자동 스크립트는 보조 evidence입니다. 자동 smoke 통과만으로 화면을 확인했다고
+  쓰지 않습니다.
+- UI 풀테스트에는 기능 동작뿐 아니라 시각 품질을 포함합니다. 텍스트박스 간격,
+  table/action 정렬, 버튼 text overflow, badge clipping, modal/menu 위치, focus
+  visible, empty/loading/error copy, contrast, responsive overflow를 함께 확인합니다.
+- 발견한 UI 문제는 현재 UI 풀테스트 범위 안에서만 수정합니다. schema, payload,
+  WebRTC/SSE/WS metadata, RTSP/WebRTC media path, auth/scope 계약은 요청 없이
+  변경하지 않습니다.
+- 실패 후 고친 화면은 같은 조작으로 재검수하고, 최초 실패와 재확인 결과를 모두
+  남깁니다.
+
 ### v1.8.0 release trust hardening gate
 
 v1.8.0 release close-out에서는 자동 smoke와 별도로 아래 화면을 브라우저에서 직접
-열고 클릭한 evidence index를 남깁니다. 자동 screenshot 생성이나 raw JSON/API-only 확인만
+열고 클릭한 Evidence index를 남깁니다. 자동 screenshot 생성이나 raw JSON/API-only 확인만
 있으면 해당 화면은 `미확인`입니다.
 
 - `/setup`: setup 필요/불필요 상태와 weak password 거절 또는 auth smoke 대체 범위를 분리합니다.
@@ -44,11 +83,17 @@ Evidence index에는 route, 계정/권한, 직접 조작, screenshot/artifact, �
 판정, 미확인/건너뜀 사유를 한 줄씩 기록합니다. 열지 않은 화면을 PASS로 쓰지 않고,
 실패 후 재검수한 경우 최초 실패와 재확인 결과를 함께 남깁니다.
 
-## 2. Auth Shell
+## 4. Auth Shell
 
-- `/setup`: 약한 비밀번호가 거절되고, 강한 admin 비밀번호 설정 후 `/login`으로 이동합니다.
-- `/login`: admin 로그인은 `/ops/home`, viewer 로그인은 `/client/live`로 이동합니다.
-- `/password/change`: reset 또는 must-change 계정에서 새 비밀번호 설정 flow가 보입니다.
+- `/`: setup 필요 상태에서는 `/setup`, 로그인 필요 상태에서는 `/login`, 로그인 후에는
+  role landing으로 이동하는지 확인합니다.
+- `/setup`: weak password rejection, strong admin password 설정, `/login` redirect를
+  확인합니다.
+- `/login`: admin/operator는 `/ops/home`, viewer는 `/client/live`로 이동하는지 확인합니다.
+- `/password/change`: reset 또는 must-change 계정에서 이전 비밀번호 재사용 거부와
+  새 비밀번호 설정 flow를 확인합니다.
+- `/invite/setup`: 승인된 접근 요청의 초대 설정 전후 경계를 확인하되 token 원문은
+  결과에 남기지 않습니다.
 - Chrome auth input evidence는 throwaway users file에서만 수행합니다. `/setup`,
   `/login`, `/password/change`, `/invite/setup`의 비밀번호 입력/제출을 직접
   수행했다면 weak password rejection, 성공 redirect, screenshot/artifact 경로,
@@ -62,37 +107,59 @@ Evidence index에는 route, 계정/권한, 직접 조작, screenshot/artifact, �
 - `/lab`, `/lab/rules`, `/lab/import`: 제품 화면으로 열리지 않고 404 상태를 유지합니다.
 - `/webrtc/test`: 제품 화면으로 다시 열지 않고 닫힌 route 상태를 유지합니다.
 
-## 3. Ops
+## 5. Ops 화면
 
-- `/ops/home`: 운영 구성, 실시간 상태, 최근 이벤트 요약이 겹침 없이 보입니다.
-- `/ops/dashboard`: root cause, incident timeline, VA quality, scenario timeline panel이 열립니다.
-- `/ops/sources`: source/PubishedView 목록, ONVIF/WHEP 입력, detail panel, audit export가 동작합니다.
-- `/ops/rules`: VA/Event/Profile tab, 저장 전 validation, preview geometry가 동작합니다.
-- `/ops/users`: 사용자 상세, 저장, reset password, disable/restore, 마지막 admin 보호를 확인합니다.
-- `/ops/users`: 접근 요청 table에서 pending 요청, 승인 채널 ID, 승인 invite 출력, 거절 상태를 확인합니다.
-- `/ops/events`: evidence policy, evidence filter, include archives, prev/next, signed bundle export를 확인합니다.
+- `/ops/home`: 운영 구성, 실시간 상태, 최근 이벤트 요약, primary nav가 겹침 없이
+  보이는지 확인합니다.
+- `/ops/dashboard`: root cause, incident timeline, VA quality, scenario timeline,
+  filter/search/select/copy action을 직접 조작합니다.
+- `/ops/sources`: source/PublishedView 목록, 채널 추가/수정 validation, file/RTSP/ONVIF/WHEP
+  입력, detail panel, copy/audit export UI를 확인합니다.
+- `/ops/rules`: VA rule, Event template, Profile 화면을 확인하고 저장 전 validation,
+  preview 재생/정지, geometry 기본 좌표/비우기, 저장 flow를 직접 조작합니다.
+- `/ops/users`: 사용자 추가/수정, viewer scope 적용, reset password, disable/restore,
+  마지막 admin 보호, pending access request 승인/거절 flow를 확인합니다.
+- `/ops/events`: evidence policy, evidence filter, include archives, prev/next,
+  signed bundle export를 확인합니다.
+- `/ops/events`는 primary nav가 아니라 진단/직접 route 또는 Dashboard 내부 섹션으로
+  취급합니다.
 
-## 4. Client
+## 6. Client 화면
 
-- `/client/live`: Live/Dashboard nav만 보이고 Ops/Lab nav, source URL, raw JSON, debug counter가 보이지 않습니다.
-- `/client/live`: source tree 선택/drag-drop, tile start/reconnect/stop, density, dock 좌/우 전환, 정보 overlay, workspace 작업 메뉴, copy fallback, keyboard focus 이동을 확인합니다.
-- `/client/dashboard`: 상태/이벤트 비교, 정렬, copy action이 viewer 범위 안에서 동작합니다.
-- `/client/request-access`: 요청 제출 후 승인 전 로그인/채널 접근이 열리지 않는다는 문구가 보입니다.
-- 승인된 요청은 invite setup 전 로그인 401, invite setup 후 `/client/live` 접근 200, `/ops/home` 접근 403을 확인합니다.
+- `/client/live`: Live/Dashboard nav만 보이고 Ops/Lab nav, source URL, Developer URL,
+  raw JSON, debug counter, BBox diagnostics, rule/profile editor가 보이지 않아야 합니다.
+- `/client/live`: source tree 선택 또는 drag/drop, tile start/reconnect/stop, grid,
+  density, dock 좌/우 전환, 정보 overlay, workspace 작업 메뉴, copy fallback,
+  keyboard focus 이동을 확인합니다.
+- `/client/dashboard`: assigned channel, status/event summary, comparison filter,
+  sort, copy action이 viewer scope 안에서 동작하는지 확인합니다.
+- `/client/request-access`: 요청 제출 후 승인 전 로그인/채널 접근이 열리지 않는다는
+  문구가 보이는지 확인합니다.
+- 승인된 요청은 invite setup 전 로그인 401, invite setup 후 `/client/live` 접근 200,
+  `/ops/home` 접근 403 또는 Access Denied를 확인합니다.
+- admin이 client 화면을 보면 `Client Preview as admin` 상태가 명확해야 합니다.
 
-## 5. 반응형/테마
+## 7. 반응형/테마/시각 품질
 
-- 320px, 390px, 760px, 1180px에서 nav, table row action, form input, button text, `/client/live` workspace 작업 메뉴가 부모 폭과 viewport를 넘지 않습니다.
-- light/dark 전환 후 shell, card, table, form, badge contrast가 유지됩니다.
-- client/viewer 화면에는 운영자 debug details 또는 raw JSON이 노출되지 않습니다.
+- 320px, 390px, 760px, 1180px에서 `/setup`, `/login`, `/ops/home`,
+  `/ops/dashboard`, `/ops/sources`, `/ops/rules`, `/ops/users`, `/ops/events`,
+  `/client/live`, `/client/dashboard`, `/client/request-access`를 확인합니다.
+- nav, table row action, form input, select, button text, badge, tile, modal/menu,
+  workspace 작업 메뉴가 부모 폭과 viewport를 넘지 않아야 합니다.
+- light/dark 전환 후 shell, card, table, form, badge, video tile contrast가 유지됩니다.
+- 영상 화면은 video viewport, control, status, overlay가 잘리지 않아야 합니다.
+- client/viewer screenshot에는 source URL, Developer URL, raw JSON, debug counter,
+  BBox diagnostics, model path/checksum/provenance, auth/session material이 보이면
+  안 됩니다.
 
-## 6. 종료 보고
+## 8. 종료 보고와 문서 병합
 
-수동 검수 보고에는 다음 항목을 분리합니다.
-
+- 결과는 [manual-ui-result-template.md](./manual-ui-result-template.md)에 기록합니다.
 - 확인됨: 실제 클릭한 화면, 통과한 명령, 생성한 fixture, 수정/커밋 파일
 - 미확인: 열지 않은 화면, 실행하지 않은 장시간 테스트, 추정 원인
 - 건너뜀: destructive action을 fixture가 없어 수행하지 않은 경우
+- 실패: 실패 명령, 원인, 영향 범위, 재검수 여부
 - 푸시: 명시 요청 전에는 수행하지 않고, 푸시 가능 여부만 보고합니다.
-- 템플릿: [manual-ui-result-template.md](./manual-ui-result-template.md)
-- historical result for `v1.2.1`: [manual-ui-v1.2.1-result.md](./manual-ui-v1.2.1-result.md)
+- UI 풀테스트 문서를 재작성하거나 새 문서를 추가한 경우에는 중복된 기준을
+  [manual-ui-fulltest.md](./manual-ui-fulltest.md)에 병합하고, 이 체크리스트에는
+  실행 순서와 route별 확인 항목만 남깁니다.

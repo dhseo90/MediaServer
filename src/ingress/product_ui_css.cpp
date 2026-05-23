@@ -4609,11 +4609,19 @@ std::string ClientShellCss() {
       body.client-shell .tile-actions {
         grid-column: 1;
         grid-row: 1;
-        justify-self: end;
+        justify-self: stretch;
+        max-width: 100%;
+        min-width: 0;
+        flex-wrap: wrap;
+        justify-content: flex-start;
       }
       body.client-shell .tile-status-pill {
+        flex: 0 1 auto;
         min-height: 44px;
         max-width: 90px;
+      }
+      body.client-shell .tile-mode-controls {
+        flex: 0 1 auto;
       }
       body.client-shell .tile-actions .icon-button {
         width: 44px;
@@ -4640,6 +4648,11 @@ std::string ClientShellCss() {
     }
     @media (max-width: 340px) {
       .tile-actions { justify-content: flex-start; }
+      body.client-shell .tile,
+      body.client-shell .live-grid[data-density="compact"] .tile {
+        aspect-ratio: auto;
+        min-height: 176px;
+      }
     }
     @media (max-width: 560px) {
       .client-compare-head,
