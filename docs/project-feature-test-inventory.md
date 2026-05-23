@@ -114,6 +114,14 @@
 - 기능: rule evaluation, scenario engine, intrusion/dwell/line crossing/zone occupancy/re-entry/loitering/wrong-direction scenarios, event dispatch/storage.
 - UI/Test 비교: `/ops/rules`, `/ops/events`, `/ops/dashboard`가 설정/요약을 소비합니다. `verify-analysis-state`, `verify-va-events`, `verify-va-replay`, `verify-event-post`, `verify-ops-event-review-inbox`가 fixture/replay 중심으로 확인합니다. 실제 브라우저에서 모든 scenario event가 발생했다는 evidence는 아직 없습니다.
 
+### Build Target Wiring
+
+- `CMakeLists.txt`의 `media_server` target에는 현재 `src/*.cpp`가 모두 연결되어야 합니다.
+- `src/core/youtube_resolver.cpp`는 `MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=ON`일 때만
+  `target_sources(media_server PRIVATE src/core/youtube_resolver.cpp)`로 붙는 lab-only
+  optional source입니다. 기본 `v1.8.0` 제품 빌드 완료 근거로 보지 않습니다.
+- 이 기준은 `./server.sh verify-project-inventory`가 검사합니다.
+
 ## UI-Accessible Feature Inventory
 
 | UI route | 접근 role | 기능 | 자동 검증 | 수동 풀테스트 상태 |

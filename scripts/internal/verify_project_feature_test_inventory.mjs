@@ -37,6 +37,7 @@ const inventoryPath = path.join(rootDir, "docs/project-feature-test-inventory.md
 const inventory = readText(inventoryPath);
 const docsIndex = readText(path.join(rootDir, "docs/README.md"));
 const server = readText(path.join(rootDir, "server.sh"));
+const cmake = readText(path.join(rootDir, "CMakeLists.txt"));
 const routeSource = [
   readText(path.join(rootDir, "src/ingress/webrtc_http_server.cpp")),
   readText(path.join(rootDir, "src/ingress/product_ui_page_scripts.cpp")),
@@ -75,6 +76,7 @@ check("inventory classifies every current include/src C++ module", () => {
     "### Analysis Runtime, Detectors, Frame IO",
     "### Analysis Tracking And Metadata",
     "### Analysis Events And Scenarios",
+    "### Build Target Wiring",
   ]) {
     requireText(inventory, heading, `inventory missing source module group ${heading}`);
   }
@@ -88,6 +90,25 @@ check("inventory classifies every current include/src C++ module", () => {
     .sort();
   const missing = sourceFiles.filter(file => !inventory.includes(`\`${file}\``));
   assert(missing.length === 0, `source module inventory missing file(s):\n${missing.join("\n")}`);
+});
+
+check("all current src C++ modules are wired into the media_server build target", () => {
+  const cppFiles = walk(path.join(rootDir, "src"))
+    .map(file => path.relative(rootDir, file))
+    .filter(file => file.endsWith(".cpp"))
+    .sort();
+  const missing = cppFiles.filter(file => !cmake.includes(file));
+  assert(missing.length === 0, `src C++ file(s) not wired in CMakeLists.txt:\n${missing.join("\n")}`);
+  requireText(
+    cmake,
+    "target_sources(media_server PRIVATE src/core/youtube_resolver.cpp)",
+    "YouTube resolver optional source is no longer explicitly wired"
+  );
+  requireText(
+    inventory,
+    "`src/core/youtube_resolver.cpp`는 `MEDIA_SERVER_ENABLE_YOUTUBE_SOURCE=ON`일 때만",
+    "inventory does not document YouTube resolver optional build boundary"
+  );
 });
 
 check("inventory covers required product UI and closed routes", () => {
