@@ -1456,6 +1456,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	                </div>
 	                <button type="button" class="icon-button tile-action-primary" data-action="toggle-playback" title="타일 ${tile.index + 1} 재생" aria-label="타일 ${tile.index + 1} 재생"><span data-role="tile-playback-icon" aria-hidden="true">▶</span></button>
 	                <button type="button" class="icon-button" data-action="restart" title="타일 ${tile.index + 1} 새로고침" aria-label="타일 ${tile.index + 1} 새로고침"><span aria-hidden="true">↻</span></button>
+	                <button type="button" class="icon-button" data-action="stop" data-disconnect-scope="tile" title="타일 ${tile.index + 1} 연결 해제" aria-label="타일 ${tile.index + 1} 연결 해제"><span aria-hidden="true">⏹</span></button>
 	              </div>
 	            </div>
 	            <div class="tile-controls">
@@ -1595,6 +1596,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	        });
 	      });
 	      root.querySelector('[data-action="restart"]')?.addEventListener('click', () => restartLiveTile(tile.index));
+	      root.querySelector('[data-action="stop"]')?.addEventListener('click', () => disconnectLiveTile(tile.index));
 	      root.addEventListener('dragenter', event => {
 	        const viewId = event.dataTransfer?.getData('text/plain') || liveDragViewId;
 	        if (!viewId || !viewById(viewId)) return;

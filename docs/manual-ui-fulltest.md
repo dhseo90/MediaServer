@@ -3,6 +3,7 @@
 이 문서는 MediaServer에서 "UI 풀테스트"라고 요청받았을 때 반드시 포함해야 하는
 기준입니다. 실행 순서는 [manual-ui-checklist.md](./manual-ui-checklist.md), 결과
 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를 사용합니다.
+현재 제품 UI 기준은 release 목표 `v1.8.0`입니다. 지원 가능한 모든 기능을 실제 UI 조작으로 확인하지 않은 경우에는 완료로 쓰지 않습니다.
 
 ## 1. 정의
 

@@ -1,5 +1,5 @@
 {
-  "schema": "media-server.v150.audit-export-review-hardening-fixture.v1",
+  "schema": "media-server.v180.audit-export-review-hardening-fixture.v1",
   "rawAuditSample": {
     "area": "rules",
     "action": "update",

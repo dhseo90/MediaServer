@@ -1,6 +1,6 @@
 # Re-ID Default-off Research Continuation
 
-이 문서는 v1.3.0 `V130-P2-02 Re-ID default-off research continuation`
+이 문서는 v1.8.0 `V180-current-P2-02 Re-ID default-off research continuation`
 범위의 연구 지속 기준입니다. 목표는 close-object tracker 비교와 Re-ID privacy
 문구를 유지하면서 default-on 근거가 충분한지 별도 research로만 관찰하는 것입니다.
 
@@ -76,12 +76,12 @@ git diff --check
 `field-new-york-driving`은 `warning/defaultOnCandidate=false`입니다.
 따라서 close-object guard와 Re-ID hook은 계속 default-off/opt-in 상태로 둡니다.
 
-`V130-P2-02`에서 개발 가능한 후속 이슈는 다음 조건이 모두 통과하면 남기지
+`V180-current-P2-02`에서 개발 가능한 후속 이슈는 다음 조건이 모두 통과하면 남기지
 않습니다.
 
 - matrix history가 `defaultOnDecision`, `productDefaultOn`, `candidateCount`,
   `defaultOnReason`을 보존
-- `verify-reid-advanced-tracking`이 v1.3.0 (8) 문서, privacy/default-off,
+- `verify-reid-advanced-tracking`이 v1.8.0 (8) 문서, privacy/default-off,
   benchmark/history boundary를 검증
 - `compare-close-object-tracker` 또는 `verify-close-object-fixture-matrix` 결과를
   제품 default-on 완료 근거로 과장하지 않음
@@ -115,6 +115,7 @@ privacy boundary:
   보관소나 release asset에 올리지 않습니다.
 - runtime/model bundle 포함 배포는 source-only release와 분리한 별도 policy
   review가 열릴 때만 다룹니다.
-- v1.6.0에서는 [Tracker/Re-ID Opt-in Stabilization Close-out](v1.6.0-tracker-reid-opt-in-closeout.md)과
-  `./server.sh verify-v160-tracker-reid-opt-in-closeout`로 default-off 안정화 상태를
-  확인하며, Re-ID default-on이나 model/runtime bundle 승격으로 해석하지 않습니다.
+- 현재 v1.8.0 기준 default-off 안정화 상태는 [video-analysis.md](video-analysis.md)의
+  tracker/Re-ID 정책과 `verify-reid-advanced-tracking`으로 확인합니다. 구버전 전용
+  close-out 문서와 verifier는 현재 command set에서 제거했으며, Re-ID default-on이나
+  model/runtime bundle 승격으로 해석하지 않습니다.

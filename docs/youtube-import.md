@@ -13,8 +13,8 @@
 
 ## 현재 상태
 
-- 2026-05-16 v1.2.0 결정: YouTube import/source는 lab-only 실험 기능으로 현상 유지합니다.
-- v1.2.0에서는 이 기능의 추가 개발, 별도 `verify-youtube-import` 신설,
+- 2026-05-16 v1.8.0 결정: YouTube import/source는 lab-only 실험 기능으로 현상 유지합니다.
+- v1.8.0에서는 이 기능의 추가 개발, 별도 `verify-youtube-import` 신설,
   실제 YouTube URL 다운로드/relay 성공 검증을 진행하지 않습니다.
 - 기본 빌드는 YouTube resolver/source worker를 포함하지 않습니다.
 - `/lab/import` 화면은 제품 UI에서 제거했습니다. route는 404로 닫고 `/ops/sources`에서 채널을 관리합니다.
@@ -87,17 +87,17 @@ Linux에서는 배포판 패키지 또는 프로젝트 운영 기준에 맞는 �
 - 실험 기능이 꺼져 있을 때 core `/ops`, `/client`, RTSP/WebRTC 경로에 영향이 없음
 - 기본 빌드에서 `source=youtube`는 runtime env를 켜도 거부됨
 
-v1.2.0에서는 실제 YouTube URL 다운로드/relay 성공 검증을 수행하지 않습니다.
+v1.8.0에서는 실제 YouTube URL 다운로드/relay 성공 검증을 수행하지 않습니다.
 공개 외부 URL 성공은 문서나 자동 테스트에서 보장하지 않으며, 별도 `verify-youtube-import`
 gate도 신설하지 않습니다.
 
 ## 운영 전환 전 조건
 
-v1.2.0 현상 유지 결정을 바꾸려면 아래 승인 gate를 별도 이슈로 먼저 열어야 합니다.
+v1.8.0 현상 유지 결정을 바꾸려면 아래 승인 gate를 별도 이슈로 먼저 열어야 합니다.
 이 gate가 열리기 전에는 YouTube import/source를 운영 기본 기능, core media
 안정성 gate, release blocking 검증으로 취급하지 않습니다.
 
-| gate | 필요 조건 | v1.2.0 상태 |
+| gate | 필요 조건 | v1.8.0 상태 |
 | --- | --- | --- |
 | 제품 승인 | lab-only에서 운영 기능으로 승격할지 결정 | 미승인 |
 | 정책/권리 검토 | YouTube 또는 권리자 정책, 테스트 URL 사용 범위, artifact 보관 범위 확정 | 미승인 |
@@ -115,4 +115,4 @@ v1.2.0 현상 유지 결정을 바꾸려면 아래 승인 gate를 별도 이슈�
 - 실패 메시지와 사용자 안내 문구 점검
 - core RTSP/WebRTC streaming, VA overlay, `vaRule` 경로와 독립적으로 실패하는지 검증
 
-v1.2.0에서는 이 기능을 lab-only 실험 기능으로 유지하며, core media pipeline 안정성 판단에 포함하지 않습니다.
+v1.8.0에서는 이 기능을 lab-only 실험 기능으로 유지하며, core media pipeline 안정성 판단에 포함하지 않습니다.

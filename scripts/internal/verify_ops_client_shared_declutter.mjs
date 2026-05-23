@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v1.7.0 Ops/Client shared UI declutter가 row action을 대표 작업 + context action으로 정리했는지 검증한다.
+// 파일 용도: Ops/Client shared UI declutter가 row action을 대표 작업 + context action으로 정리했는지 검증한다.
 
 import fs from "node:fs";
 import process from "node:process";
@@ -13,7 +13,7 @@ const sharedUi = readText("src/ingress/product_ui_js.cpp");
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
-const clientReduction = readText("scripts/internal/verify_v170_client_action_reduction.mjs");
+const clientReduction = readText("scripts/internal/verify_client_action_reduction.mjs");
 const serverSh = readText("server.sh");
 
 check("shared UI helper renders primary action plus context actions", () => {
@@ -72,8 +72,8 @@ check("client action reduction baseline remains tracked", () => {
 
 check("ops/client smoke and server command include shared declutter verifier", () => {
   for (const snippet of [
-    "verify-v170-ops-client-shared-declutter",
-    "verify_v170_ops_client_shared_declutter.mjs",
+    "verify-ops-client-shared-declutter",
+    "verify_ops_client_shared_declutter.mjs",
     "opsContextActionsHtml",
     'data-testid="ops-context-actions"',
     'data-action-density="primary-context"',
@@ -88,13 +88,13 @@ if (args.browserSmoke) {
 
 if (failures.length > 0) {
   console.log("");
-  console.log("== v1.7.0 Ops/Client shared UI declutter 실패 ==");
+  console.log("== Ops/Client shared UI declutter 실패 ==");
   for (const failure of failures) console.log(`- ${failure}`);
   process.exit(1);
 }
 
 console.log("");
-console.log("== v1.7.0 Ops/Client shared UI declutter 통과 ==");
+console.log("== Ops/Client shared UI declutter 통과 ==");
 
 function readText(filePath) {
   return fs.readFileSync(filePath, "utf8");

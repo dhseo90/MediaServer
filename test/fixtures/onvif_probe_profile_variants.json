@@ -1,6 +1,6 @@
 {
   "schema": "media-server.onvif-probe-profile-variants.v1",
-  "description": "Synthetic ONVIF Media/Media2 profile selection variants for no-device v1.2.0 verification. This is not a product API contract.",
+  "description": "Synthetic ONVIF Media/Media2 profile selection variants for no-device v1.8.0 verification. This is not a product API contract.",
   "variants": [
     {
       "id": "media2-preferred-live-rtsp",
@@ -160,7 +160,7 @@
         }
       ],
       "expectedSelectedProfileToken": "variant-media2-h265",
-      "expectedSelectionReason": "H265 live RTSP profile remains within v1.2.0 live source scope"
+      "expectedSelectionReason": "H265 live RTSP profile remains within v1.8.0 live source scope"
     },
     {
       "id": "media2-rtsps-live-rtsp",

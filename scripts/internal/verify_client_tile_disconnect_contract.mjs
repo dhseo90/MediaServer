@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v1.7.0 Client Live 타일/워크스페이스 연결 해제 계약을 검증한다.
+// 파일 용도: Client Live 타일/워크스페이스 연결 해제 계약을 검증한다.
 
 import fs from "node:fs";
 import process from "node:process";
@@ -61,9 +61,10 @@ check(
 check(
   "ops/client UI smoke tracks tile disconnect contract",
   uiSmoke.includes('data-disconnect-contract="tile-disconnect-clears-slot,workspace-disconnect-keeps-layout"') &&
+    uiSmoke.includes('data-disconnect-scope="tile"') &&
     uiSmoke.includes("disconnectLiveTile") &&
-    uiSmoke.includes("타일 1 연결 해제") &&
-    uiSmoke.includes("Tile 1 Disconnect"),
+    uiSmoke.includes("타일 ${tile.index + 1} 연결 해제") &&
+    i18n.includes("'연결 해제': 'Disconnect'"),
 );
 
 if (args.browserSmoke) {
@@ -72,13 +73,13 @@ if (args.browserSmoke) {
 
 if (failures.length > 0) {
   console.log("");
-  console.log("== v1.7.0 Client tile disconnect 실패 ==");
+  console.log("== Client tile disconnect 실패 ==");
   for (const failure of failures) console.log(`- ${failure}`);
   process.exit(1);
 }
 
 console.log("");
-console.log("== v1.7.0 Client tile disconnect 통과 ==");
+console.log("== Client tile disconnect 통과 ==");
 
 function parseArgs(rawArgs) {
   const parsed = {

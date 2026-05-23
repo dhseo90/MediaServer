@@ -221,8 +221,8 @@ check("public entry docs keep release evidence source-of-truth deduped", () => {
   const releasePolicy = readText("docs/release-policy.md");
   const backlog = readText("docs/development-backlog.md");
   const forbiddenPublicDetails = [
-    "v1.6.0 Historical Release Evidence",
-    "verify-v160-release-evidence-dashboard",
+    "Historical Release Evidence verifier matrix",
+    "archived release evidence dashboard command",
     "Dry-run checklist",
     "Real close-out checklist",
     "media-server.release-visual-baseline-automation.v1",
@@ -234,15 +234,15 @@ check("public entry docs keep release evidence source-of-truth deduped", () => {
   }
   for (const snippet of [
     "Current Release Close-Out",
-    "v1.8.0 Release Trust Hardening Close-out",
+    `${currentTag} Release Trust Hardening Close-out`,
     "release/latest/docs evidence drift",
-    "v1.8.0 Release Close-out Runbook",
+    `${currentTag} Release Close-out Runbook`,
     "release-policy.md",
   ]) {
     assert(docsIndex.includes(snippet), `docs/README.md missing source-of-truth link snippet: ${snippet}`);
   }
-  assert(releasePolicy.includes("## v1.8.0 Release Close-out Runbook"), "release policy must own the v1.8.0 close-out runbook");
-  assert(backlog.includes("## v1.8.0 Release Trust Hardening Close-out"), "development backlog must own the v1.8.0 release trust close-out");
+  assert(releasePolicy.includes(`## ${currentTag} Release Close-out Runbook`), `release policy must own the ${currentTag} close-out runbook`);
+  assert(backlog.includes(`## ${currentTag} Release Trust Hardening Close-out`), `development backlog must own the ${currentTag} release trust close-out`);
   return {
     publicEntrypoints: ["README.md", "README.en.md"],
     sourceOfTruth: ["docs/README.md", "docs/development-backlog.md", "docs/release-policy.md"],

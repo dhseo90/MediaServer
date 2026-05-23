@@ -9,7 +9,7 @@ Run:
 - date: 2026-05-16T00:00:00Z
 - operator: sample-operator
 - git commit: 0000000000000000000000000000000000000000
-- branch: v1.2.0
+- branch: v1.8.0
 - build: sample-build-id
 - OS / machine: sample-macos-arm64
 - command: ./server.sh verify-va-runtime-console-longrun --duration-minutes 120 --clients 1 --include-sidechannel --include-dashboard --include-rtsp --idle-after-cleanup-minutes 30

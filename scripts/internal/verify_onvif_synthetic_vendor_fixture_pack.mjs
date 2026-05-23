@@ -101,7 +101,7 @@ check("each fixture uses documentation endpoints and synthetic device identity",
     const supported = arrayAt(device, "profilesSupported");
     assert(supported.length > 0, `${item.id}: profilesSupported must not be empty`);
     for (const profile of supported) {
-      assert(["S", "T"].includes(profile), `${item.id}: only Profile S/T are in v1.2.0 synthetic vendor scope`);
+      assert(["S", "T"].includes(profile), `${item.id}: only Profile S/T are in v1.8.0 synthetic vendor scope`);
     }
     assert(!supported.includes("G"), `${item.id}: Profile G must not be listed`);
 

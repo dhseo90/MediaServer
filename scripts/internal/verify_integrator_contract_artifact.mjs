@@ -38,7 +38,7 @@ const checks = [];
 check("manifest and contract files are present", () => {
   const manifest = readJson(manifestPath);
   assert(manifest.schema === "media-server.integrator-contract-artifact.v1", "manifest schema mismatch");
-  assert(manifest.artifactVersion === "v1.2.0-integrator-contract-artifact.1", "artifact version mismatch");
+  assert(manifest.artifactVersion === "v1.8.0-integrator-contract-artifact.1", "artifact version mismatch");
   assert(Array.isArray(manifest.files) && manifest.files.length >= 15, "manifest files list is incomplete");
   for (const file of manifest.files) {
     assert(fs.existsSync(path.join(artifactDir, file)), `manifest-listed file missing: ${file}`);
@@ -165,7 +165,7 @@ check("samples and support docs avoid operational secret and source locator leak
 check("documentation and entrypoints reference the artifact", () => {
   const doc = readText("docs/integrator-contract-artifact.md");
   const liveContract = readText("docs/live-event-metadata-contracts.md");
-  const backlog = readText("docs/development-backlog.md");
+  const docsIndex = readText("docs/README.md");
   const readme = readText("README.md");
   const server = readText("server.sh");
   const inventory = readText("scripts/internal/verify_script_inventory.mjs");
@@ -180,9 +180,8 @@ check("documentation and entrypoints reference the artifact", () => {
     assert(doc.includes(snippet), `integrator doc missing snippet: ${snippet}`);
   }
   assert(liveContract.includes("./integrator-contract-artifact.md"), "live contract doc missing artifact link");
-  assert(backlog.includes("V120-P1-03은 Integrator contract artifact"), "backlog missing V120-P1-03 closure note");
-  assert(backlog.includes("V120-P1-03 범주 안의 잔여 이슈는 남기지 않습니다"), "backlog missing in-scope no-residual statement");
-  assert(readme.includes("Integrator contract artifact"), "README missing integrator contract artifact roadmap link");
+  assert(docsIndex.includes("integrator-contract-artifact.md"), "docs index missing integrator contract artifact link");
+  assert(readme.includes("docs/README.md"), "README missing documentation index link");
   assert(server.includes("verify-integrator-contract-artifact"), "server.sh missing verifier command");
   assert(server.includes("verify_integrator_contract_artifact.mjs"), "server.sh missing verifier script target");
   assert(inventory.includes("verify_integrator_contract_artifact.mjs"), "script inventory missing verifier script");

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v1.4.0 OC-SORT 후순위 benchmark 경계가 runtime tracker로 승격되지 않았는지 검증한다.
+// 파일 용도: 현재 v1.8.0 OC-SORT benchmark 경계가 runtime tracker로 승격되지 않았는지 검증한다.
 // 동작 요약: OC-SORT를 제품 tracker 허용값에서 배제하고, benchmark/report 문서와 기존 비교 harness만 열려 있는지 정적 점검한다.
 
 import fs from "node:fs";
@@ -26,7 +26,7 @@ Options:
 
 Checks:
   - OC-SORT가 analysis.trackingPolicy.tracker 허용값, UI option, runtime tracker enum에 추가되지 않았는지 확인
-  - verify-tracker-stability / compare-close-object-tracker가 v1.4.0에서 도입된 tracker 후보만 받는지 확인
+  - verify-tracker-stability / compare-close-object-tracker가 현재 tracker 후보만 받는지 확인
   - OC-SORT benchmark가 Kalman-lite/ByteTrack 이후 별도 report 후보이며 schema/media path 변경 근거가 아닌지 문서화됐는지 확인
   - 이번 페이즈의 미분류 P0~P1 후속 이슈가 남지 않았는지 확인
 `);
@@ -74,7 +74,7 @@ check("OC-SORT is not a runtime tracker policy value", () => {
   ]) {
     assert(
       analysisQuery.includes(snippet) || server.includes(snippet),
-      `tracking policy contract missing expected v1.4.0 snippet: ${snippet}`
+      `tracking policy contract missing expected current snippet: ${snippet}`
     );
   }
 
@@ -108,7 +108,7 @@ check("ObjectTracker implementation remains limited to Lite, Kalman-lite, and By
   };
 });
 
-check("benchmark harness accepts only v1.4.0 tracker policies", () => {
+check("benchmark harness accepts only current tracker policies", () => {
   const stability = readText("scripts/internal/verify_tracker_stability.sh");
   const compare = readText("scripts/internal/compare_close_object_tracker.py");
   assertNoRuntimeToken("verify_tracker_stability.sh", stability);
@@ -155,7 +155,6 @@ check("OC-SORT benchmark boundary is documented without product-scope expansion"
   const docsEn = readText("docs/en/README.md");
 
   for (const snippet of [
-    "V140-P2-01",
     "OC-SORT 후순위 benchmark",
     "analysis.trackingPolicy.tracker` 허용값에 추가하지 않습니다",
     "ByteTrack/Kalman-lite 이후",
@@ -167,7 +166,7 @@ check("OC-SORT benchmark boundary is documented without product-scope expansion"
   }
 
   for (const snippet of [
-    "OC-SORT는 v1.4.0 runtime tracker 허용값이 아닙니다",
+    "OC-SORT는 v1.8.0 runtime tracker 허용값이 아닙니다",
     "Event POST/WebRTC DataChannel/SSE/WS metadata schema에는 새 필드를 추가하지 않습니다",
   ]) {
     assert(includesText(video, snippet), `video-analysis missing OC-SORT snippet: ${snippet}`);
@@ -183,7 +182,7 @@ check("OC-SORT benchmark boundary is documented without product-scope expansion"
 
   for (const snippet of [
     "OC-SORT Benchmark Boundary",
-    "이번 v1.4.0 (7) 범위",
+    "이번 v1.8.0 (7) 범위",
     "미분류 P0~P1 후속",
     "후속 Phase",
   ]) {

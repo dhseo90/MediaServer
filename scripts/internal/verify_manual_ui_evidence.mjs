@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v1.2.1 수동 UI 검수 결과 문서가 실제 확인/미확인/건너뜀을 분리하는지 검증한다.
+// 파일 용도: 현재 release 수동 UI 풀테스트 문서가 실제 확인/미확인/건너뜀을 분리하는지 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -19,11 +19,11 @@ Usage:
   ./server.sh verify-manual-ui-evidence [options]
 
 Options:
-  --result <path>  manual UI result 문서입니다. 기본 docs/manual-ui-v1.2.1-result.md.
+  --result <path>  실제 manual UI result 문서입니다. 지정한 경우 template 구조도 함께 검증합니다.
   -h, --help       도움말 출력
 
 Checks:
-  - 수동으로 연 화면, 자동 smoke, 미확인/건너뜀 항목을 분리해 기록했는지 확인
+  - v1.8.0 기준 수동으로 연 화면, 자동 smoke, 미확인/건너뜀 항목을 분리해 기록하는지 확인
   - client/viewer 비노출 항목과 admin preview 경계가 명시됐는지 확인
   - destructive/manual submit 미실행을 통과처럼 쓰지 않는지 확인
 `);
@@ -32,20 +32,43 @@ Checks:
 assertKnownOptions(rawArgs, ["result", "h", "help"]);
 
 const args = parseArgs(rawArgs);
-const resultPath = path.resolve(rootDir, args.result || "docs/manual-ui-v1.2.1-result.md");
-const result = fs.readFileSync(resultPath, "utf8");
+const resultPath = args.result ? path.resolve(rootDir, args.result) : "";
+const result = resultPath ? fs.readFileSync(resultPath, "utf8") : "";
 const checklist = readText("docs/manual-ui-checklist.md");
 const template = readText("docs/manual-ui-result-template.md");
+const fulltest = readText("docs/manual-ui-fulltest.md");
 const backlog = readText("docs/development-backlog.md");
 
 const checks = [];
 
-check("manual result covers required screens", () => {
-  assertIncludes(result, [
-    "# Manual UI Result - v1.2.1 Patch Evidence",
-    "Chrome + Computer Use",
+check("manual UI docs are current v1.8.0 baseline, not old-version evidence", () => {
+  assertIncludes(checklist, [
+    "현재 release 목표는 `v1.8.0`",
+    "구버전 전용 UI closure 명령은 현재 완료 판정에 포함하지 않습니다.",
+    "v1.8.0 release trust hardening gate",
     "`/setup`",
     "`/login`",
+    "`/ops/rules`",
+    "`/client/live`",
+    "Evidence index",
+    "raw JSON/API-only 확인",
+  ], "docs/manual-ui-checklist.md");
+  assertIncludes(fulltest, [
+    "현재 제품 UI 기준",
+    "지원 가능한 모든 기능을 실제 UI 조작으로 확인",
+    "열지 않은 화면",
+    "미확인",
+  ], "docs/manual-ui-fulltest.md");
+});
+
+check("manual result template covers required screens", () => {
+  assertIncludes(template, [
+    "# Manual UI Result Template",
+    "브라우저: 인앱 브라우저",
+    "`/setup`",
+    "`/login`",
+    "`/password/change`",
+    "`/invite/setup`",
     "`/ops/home`",
     "`/ops/dashboard`",
     "`/ops/sources`",
@@ -55,73 +78,72 @@ check("manual result covers required screens", () => {
     "`/client/live`",
     "`/client/dashboard`",
     "`/client/request-access`",
-  ], "docs/manual-ui-v1.2.1-result.md");
+    "`/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test`",
+  ], "docs/manual-ui-result-template.md");
 });
 
-check("manual result separates automation from direct browser evidence", () => {
-  assertIncludes(result, [
-    "## 관련 자동 검증",
+check("manual result template separates automation from direct browser evidence", () => {
+  assertIncludes(template, [
+    "관련 자동 검증",
     "## 확인됨",
-    "실제로 Chrome에서 열고 클릭한 화면만 적습니다.",
-    "sandbox 내부 첫 실행은 local fetch/CDP 제한으로 실패",
-    "권한 밖 재실행 기준",
-    "request-access form submit 없음",
-    "destructive action 없음",
-  ], "docs/manual-ui-v1.2.1-result.md");
+    "실제로 열고 클릭한 화면만 적습니다.",
+    "자동 smoke나 raw JSON 확인만으로 채우지 않습니다.",
+    "raw JSON/API-only로만 확인한 항목",
+    "## 미확인",
+    "## 건너뜀",
+    "## 실패",
+  ], "docs/manual-ui-result-template.md");
 });
 
-check("manual result pins client redaction and admin preview boundary", () => {
-  assertIncludes(result, [
+check("manual result template pins client redaction and admin preview boundary", () => {
+  assertIncludes(template, [
     "Client Preview as admin",
-    "client primary nav 자체는 Live/Dashboard만 표시",
-    "source URL: PASS",
-    "Developer URL: PASS",
-    "raw JSON: PASS",
-    "debug counter: PASS",
-    "BBox diagnostics: PASS",
-    "rule/profile editor: PASS",
-    "Ops/Lab primary navigation: PASS",
-  ], "docs/manual-ui-v1.2.1-result.md");
+    "client/viewer 화면에서 보이지 않아야 하는 항목입니다.",
+    "source URL:",
+    "Developer URL:",
+    "raw JSON:",
+    "debug counter:",
+    "BBox diagnostics:",
+    "rule/profile editor:",
+    "Ops/Lab primary navigation:",
+  ], "docs/manual-ui-result-template.md");
 });
 
-check("manual result lists not-run and skipped items explicitly", () => {
-  assertIncludes(result, [
-    "장시간 테스트: 실행하지 않음",
-    "`verify-predev`: 실행하지 않음",
-    "ONVIF 실장비",
-    "외부 TURN/WHEP credential",
-    "YouTube 실제 URL relay",
-    "실제 viewer credential을 브라우저에 입력하는 수동 로그인: 수행하지 않음",
-    "`/setup` 실제 admin 생성 manual submit",
-    "request-access form submit",
-    "destructive admin actions",
-  ], "docs/manual-ui-v1.2.1-result.md");
+check("manual result template lists not-run and skipped items explicitly", () => {
+  assertIncludes(template, [
+    "장시간 테스트:",
+    "`verify-predev`:",
+    "실장비/외부 네트워크:",
+    "ONVIF 실장비:",
+    "외부 TURN/WHEP credential:",
+    "YouTube 실제 URL relay:",
+    "destructive action:",
+  ], "docs/manual-ui-result-template.md");
 });
 
-check("manual result closes V121-P2-02 without expanding UI scope", () => {
-  assertIncludes(result, [
-    "## V121-P2-02 UI Polish Follow-up",
-    "보강 반응형 polish fix",
-    "manual findings 표의 실패 항목이 `없음`",
-    "320px viewport의 product page grid child min-width",
-    "UI 코드 수정: 수행함",
-    "제품 nav/route/API/schema 변경: 없음",
-    "verify-ops-client-ui --screenshots",
-    "verify-ops-tables-layout",
-    "verify-ui-copy-i18n-parity",
-  ], "docs/manual-ui-v1.2.1-result.md");
-});
-
-check("checklist and roadmap link the v1.2.1 evidence verifier", () => {
+check("manual UI docs keep rewrite/new/merge requirements", () => {
+  assertIncludes(template, [
+    "## 문서 재작성/신규 작성/비교 병합",
+    "재작성한 UI 풀테스트 관련 문서:",
+    "새로 작성한 UI 풀테스트 문서:",
+    "비교 결과:",
+    "병합 결과:",
+  ], "docs/manual-ui-result-template.md");
   assertIncludes(checklist, [
-    "manual-ui-v1.2.1-result.md",
+    "UI 풀테스트 문서를 재작성하거나 새 문서를 추가한 경우",
+    "manual-ui-fulltest.md",
+  ], "docs/manual-ui-checklist.md");
+});
+
+check("checklist, template, and roadmap link the current evidence verifier", () => {
+  assertIncludes(checklist, [
     "verify-manual-ui-evidence",
   ], "docs/manual-ui-checklist.md");
   assertIncludes(template, [
     "verify-manual-ui-evidence",
   ], "docs/manual-ui-result-template.md");
   assertIncludes(backlog, [
-    "| V121-P0-03 |",
+    "| V180-P0-03 |",
     "verify-manual-ui-evidence",
   ], "docs/development-backlog.md");
 });
@@ -161,6 +183,19 @@ check("v1.8.0 release trust checklist requires direct UI evidence index", () => 
   ], "docs/development-backlog.md");
 });
 
+if (resultPath) {
+  check("provided manual result follows current evidence structure", () => {
+    assertIncludes(result, [
+      "## 검수 메타데이터",
+      "## 확인됨",
+      "## 미확인",
+      "## 건너뜀",
+      "## 실패",
+      "푸시 수행 여부",
+    ], path.relative(rootDir, resultPath).replaceAll(path.sep, "/"));
+  });
+}
+
 let pass = 0;
 let fail = 0;
 for (const item of checks) {
@@ -176,7 +211,7 @@ for (const item of checks) {
 
 console.log("");
 console.log("== Manual UI evidence verification summary ==");
-console.log(`- result: ${path.relative(rootDir, resultPath).replaceAll(path.sep, "/")}`);
+console.log(`- result: ${resultPath ? path.relative(rootDir, resultPath).replaceAll(path.sep, "/") : "not provided; template/checklist only"}`);
 console.log(`- pass: ${pass}`);
 console.log(`- fail: ${fail}`);
 if (fail > 0) process.exit(1);

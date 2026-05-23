@@ -509,7 +509,7 @@ close-object guard는 lightweight direction-based tracker 내부의 opt-in 진�
 rule-level `analysis.trackingPolicy.tracker` opt-in으로만 선택하며, BoT-SORT,
 DeepSORT, Re-ID 모델 도입은 별도 review 범위입니다.
 OC-SORT도 현재 환경변수나 rule-level tracker 허용값이 아니며, 후순위 benchmark와
-v1.5.0 experimental sandbox 경계는
+v1.8.0 experimental sandbox 경계는
 [OC-SORT Benchmark Boundary](./oc-sort-benchmark-boundary.md)에 둡니다.
 BoT-SORT/DeepSORT의 dependency/privacy/bundle research 경계는
 [BoT-SORT/DeepSORT Research Boundary](./bot-sort-deepsort-research-boundary.md)에

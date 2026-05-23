@@ -187,15 +187,6 @@ Usage:
   verify-onvif-ops-sources-ui
                  /ops/sources ONVIF import UI가 source/view 저장 round-trip까지 연결되는지 검증합니다.
 
-릴리스 아카이브 전용 명령:
-  아래 verify-v* 명령은 과거 release evidence와 close-out 문서 보존용입니다.
-  현재 제품 회귀 gate나 v1.8.0 통합 검증 기준으로 묶어 실행하지 않습니다.
-  동일 기능의 현재 회귀는 verify-auth-*, verify-ops-*, verify-va-*,
-  verify-docs-* 같은 버전 중립 명령으로 확인합니다.
-
-  verify-v1.1-boundary-keywords
-                 v1.1.0 live-only 제품 경계 키워드가 비범위/보류 문맥인지 검증합니다.
-
 일반 정적/release 검증 명령:
   verify-code-comments
                  코드/스크립트 상단 용도 주석과 한글 주석 정책을 검증합니다.
@@ -215,76 +206,30 @@ Usage:
                  post-release smoke 기록이 통과/미실행/미확인을 분리하는지 검증합니다.
   verify-release-closeout-helper
                  release close-out 전 로컬 검증, visual baseline readiness, 수동 tag/push 경계를 dry-run으로 요약합니다.
-
-릴리스 아카이브 전용 명령 계속:
-  verify-v121-follow-up-closure
-                 v1.2.1 roadmap 내 개발 가능한 후속 이슈가 남지 않았는지 검증합니다.
-  verify-v130-follow-up-closure
-                 v1.3.0 follow-up closure가 기능 개발 없이 별도 Phase/release gate를 분리하는지 검증합니다.
-  verify-v140-follow-up-closure
-                 v1.4.0 follow-up closure가 범위 안 후속 이슈를 모두 닫았는지 검증합니다.
-  verify-v140-report-archive-policy
-                 v1.4.0 close-object report archive가 raw media/image 보존으로 확장되지 않는지 검증합니다.
-  verify-v150-follow-up-closure
-                 v1.5.0 follow-up closure가 범위 안 후속 이슈를 모두 닫았는지 검증합니다.
-  verify-v150-opt-in-tracking-policy
-                 v1.5.0 tracker/Re-ID 명시 opt-in 저장/runtime/UI/docs guard를 검증합니다.
-  verify-v150-tracker-reid-stability-matrix
-                 v1.5.0 Tracker/Re-ID stability matrix와 warning/default-on 경계를 검증합니다.
-  verify-v150-reid-provenance-fallback-approval
-                 v1.5.0 Re-ID model provenance/checksum/privacy/fallback approval 경계를 검증합니다.
-  verify-v150-ops-tracker-warning-next-action
-                 v1.5.0 Ops Dashboard tracker warning next-action과 default-on 비승격 경계를 검증합니다.
-  verify-v150-audit-export-review-hardening
-                 v1.5.0 audit export review와 model/source material masking 경계를 검증합니다.
-  verify-v150-field-smoke-summary-evidence-boundary
-                 v1.5.0 field smoke summary/report/history evidence와 raw media 비보존 경계를 검증합니다.
-  verify-v150-oc-sort-experimental-sandbox
-                 v1.5.0 OC-SORT experimental sandbox가 runtime tracker 승격 없이 연결됐는지 검증합니다.
-  verify-v160-release-evidence-dashboard
-                 v1.6.0 release evidence dashboard가 실행/미실행/미확인을 분리하는지 검증합니다.
-  verify-v160-stability-verification-gate
-                 v1.6.0 stability verification gate가 smoke/flaky/longrun을 분리하는지 검증합니다.
-  verify-v160-debug-exposure-regression-guard
-                 v1.6.0 client/ops debug/source/model/auth 비노출 guard를 검증합니다.
-  verify-v160-tracker-reid-opt-in-closeout
-                 v1.6.0 tracker/Re-ID opt-in default-off close-out을 검증합니다.
-  verify-v160-onvif-field-smoke-evidence-reconciliation
-                 v1.6.0 ONVIF field smoke evidence의 미실행/미확인/redaction 경계를 검증합니다.
-  verify-v160-audit-export-masking-regression-hardening
-                 v1.6.0 audit 조회/export의 source/model/auth/raw material masking guard를 검증합니다.
-  verify-v160-runtime-model-bundle-rc-policy
-                 v1.6.0 runtime/model bundle 미포함 기본값과 RC 승인 조건을 검증합니다.
-  verify-v160-manual-ui-release-checklist-closure
-                 v1.6.0 수동 UI release checklist와 evidence 경계를 검증합니다.
-  verify-v160-public-docs-consistency-polish
-                 v1.6.0 public docs의 current tag/stabilization evidence 표현을 검증합니다.
-  verify-v160-tracker-benchmark-harness-planning
-                 v1.6.0 tracker benchmark harness planning-only 경계를 검증합니다.
-  verify-v170-client-action-reduction
-                 v1.7.0 Client Live 버튼/CTA 축소 baseline과 UI smoke 연결을 검증합니다.
-  verify-v170-client-live-workspace
-                 v1.7.0 Client Live source tree/drag-drop workspace 계약을 검증합니다.
-  verify-v170-client-source-dock-events
-                 v1.7.0 Client Live source tree/dock event feed redaction 계약을 검증합니다.
-  verify-v170-client-tile-disconnect
-                 v1.7.0 Client Live tile/workspace disconnect 계약을 검증합니다.
-  verify-v170-event-review-inbox
-                 v1.7.0 Rule Event Review Inbox의 별도 review state/audit/redaction 계약을 검증합니다.
-  verify-v170-alert-delivery-integrations
-                 v1.7.0 Alert Delivery Integration의 payload 분리/retry/audit 계약을 검증합니다.
-  verify-v170-scenario-builder-ui
-                 v1.7.0 Scenario Builder UI의 Event Rule 폼 적용과 engine 비변경 계약을 검증합니다.
-  verify-v170-ops-client-shared-declutter
-                 v1.7.0 Ops/Client shared action declutter와 context action 계약을 검증합니다.
-  verify-v170-source-group-site-management
-                 v1.7.0 Source Group/Site Management의 registry/API/UI/scope 계약을 검증합니다.
-  verify-v170-tile-info-overlay-health
-                 v1.7.0 Client Live tile info overlay와 playback health UI 계약을 검증합니다.
-  verify-v170-saved-views-layout-presets
-                 v1.7.0 Saved Views/Layout Presets preference API와 UI 계약을 검증합니다.
-  verify-v170-operator-incident-timeline
-                 v1.7.0 Operator Incident Timeline workflow/UI 계약을 검증합니다.
+  verify-client-action-reduction
+                 Client Live 버튼/CTA 축소 baseline과 UI smoke 연결을 검증합니다.
+  verify-client-live-workspace
+                 Client Live source tree/drag-drop workspace 계약을 검증합니다.
+  verify-client-source-dock-events
+                 Client Live source tree/dock event feed redaction 계약을 검증합니다.
+  verify-client-tile-disconnect
+                 Client Live tile/workspace disconnect 계약을 검증합니다.
+  verify-ops-event-review-inbox
+                 Rule Event Review Inbox의 별도 review state/audit/redaction 계약을 검증합니다.
+  verify-ops-alert-delivery-integrations
+                 Alert Delivery Integration의 payload 분리/retry/audit 계약을 검증합니다.
+  verify-ops-scenario-builder-ui
+                 Scenario Builder UI의 Event Rule 폼 적용과 engine 비변경 계약을 검증합니다.
+  verify-ops-client-shared-declutter
+                 Ops/Client shared action declutter와 context action 계약을 검증합니다.
+  verify-ops-source-group-site-management
+                 Source Group/Site Management의 registry/API/UI/scope 계약을 검증합니다.
+  verify-client-tile-info-overlay-health
+                 Client Live tile info overlay와 playback health UI 계약을 검증합니다.
+  verify-client-saved-views-layout-presets
+                 Saved Views/Layout Presets preference API와 UI 계약을 검증합니다.
+  verify-ops-operator-incident-timeline
+                 Operator Incident Timeline workflow/UI 계약을 검증합니다.
   verify-server-start-modes
                  foreground/start 실행 모드의 health, route, state file 안정성을 검증합니다.
   verify-auth-bootstrap
@@ -766,10 +711,6 @@ case "${cmd}" in
     require_internal verify_onvif_ops_sources_ui_roundtrip.mjs
     exec "${INTERNAL_DIR}/verify_onvif_ops_sources_ui_roundtrip.mjs" "$@"
     ;;
-  verify-v1.1-boundary-keywords)
-    require_internal verify_v1_1_boundary_keywords.mjs
-    exec "${INTERNAL_DIR}/verify_v1_1_boundary_keywords.mjs" "$@"
-    ;;
   verify-code-comments)
     require_internal verify_code_comments.mjs
     exec "${INTERNAL_DIR}/verify_code_comments.mjs" "$@"
@@ -806,141 +747,53 @@ case "${cmd}" in
     require_internal verify_release_closeout_helper.mjs
     exec "${INTERNAL_DIR}/verify_release_closeout_helper.mjs" "$@"
     ;;
-  verify-v121-follow-up-closure)
-    require_internal verify_v121_follow_up_closure.mjs
-    exec "${INTERNAL_DIR}/verify_v121_follow_up_closure.mjs" "$@"
+  verify-client-action-reduction)
+    require_internal verify_client_action_reduction.mjs
+    exec "${INTERNAL_DIR}/verify_client_action_reduction.mjs" "$@"
     ;;
-  verify-v130-follow-up-closure)
-    require_internal verify_v130_follow_up_closure.mjs
-    exec "${INTERNAL_DIR}/verify_v130_follow_up_closure.mjs" "$@"
+  verify-client-live-workspace)
+    require_internal verify_client_live_workspace.mjs
+    exec "${INTERNAL_DIR}/verify_client_live_workspace.mjs" "$@"
     ;;
-  verify-v140-follow-up-closure)
-    require_internal verify_v140_follow_up_closure.mjs
-    exec "${INTERNAL_DIR}/verify_v140_follow_up_closure.mjs" "$@"
+  verify-client-source-dock-events)
+    require_internal verify_client_source_dock_events.mjs
+    exec "${INTERNAL_DIR}/verify_client_source_dock_events.mjs" "$@"
     ;;
-  verify-v140-report-archive-policy)
-    require_internal verify_v140_report_archive_policy.mjs
-    exec "${INTERNAL_DIR}/verify_v140_report_archive_policy.mjs" "$@"
+  verify-client-tile-disconnect)
+    require_internal verify_client_tile_disconnect_contract.mjs
+    exec "${INTERNAL_DIR}/verify_client_tile_disconnect_contract.mjs" "$@"
     ;;
-  verify-v150-follow-up-closure)
-    require_internal verify_v150_follow_up_closure.mjs
-    exec "${INTERNAL_DIR}/verify_v150_follow_up_closure.mjs" "$@"
+  verify-ops-event-review-inbox)
+    require_internal verify_ops_event_review_inbox.mjs
+    exec "${INTERNAL_DIR}/verify_ops_event_review_inbox.mjs" "$@"
     ;;
-  verify-v150-opt-in-tracking-policy)
-    require_internal verify_v150_opt_in_tracking_policy_guard.mjs
-    exec "${INTERNAL_DIR}/verify_v150_opt_in_tracking_policy_guard.mjs" "$@"
+  verify-ops-alert-delivery-integrations)
+    require_internal verify_ops_alert_delivery_integrations.mjs
+    exec "${INTERNAL_DIR}/verify_ops_alert_delivery_integrations.mjs" "$@"
     ;;
-  verify-v150-tracker-reid-stability-matrix)
-    require_internal verify_v150_tracker_reid_stability_matrix.mjs
-    exec "${INTERNAL_DIR}/verify_v150_tracker_reid_stability_matrix.mjs" "$@"
+  verify-ops-scenario-builder-ui)
+    require_internal verify_ops_scenario_builder_ui.mjs
+    exec "${INTERNAL_DIR}/verify_ops_scenario_builder_ui.mjs" "$@"
     ;;
-  verify-v150-reid-provenance-fallback-approval)
-    require_internal verify_v150_reid_provenance_fallback_approval.mjs
-    exec "${INTERNAL_DIR}/verify_v150_reid_provenance_fallback_approval.mjs" "$@"
+  verify-ops-client-shared-declutter)
+    require_internal verify_ops_client_shared_declutter.mjs
+    exec "${INTERNAL_DIR}/verify_ops_client_shared_declutter.mjs" "$@"
     ;;
-  verify-v150-ops-tracker-warning-next-action)
-    require_internal verify_v150_ops_tracker_warning_next_action.mjs
-    exec "${INTERNAL_DIR}/verify_v150_ops_tracker_warning_next_action.mjs" "$@"
+  verify-ops-source-group-site-management)
+    require_internal verify_ops_source_group_site_management.mjs
+    exec "${INTERNAL_DIR}/verify_ops_source_group_site_management.mjs" "$@"
     ;;
-  verify-v150-audit-export-review-hardening)
-    require_internal verify_v150_audit_export_review_hardening.mjs
-    exec "${INTERNAL_DIR}/verify_v150_audit_export_review_hardening.mjs" "$@"
+  verify-client-tile-info-overlay-health)
+    require_internal verify_client_tile_info_overlay_health.mjs
+    exec "${INTERNAL_DIR}/verify_client_tile_info_overlay_health.mjs" "$@"
     ;;
-  verify-v150-field-smoke-summary-evidence-boundary)
-    require_internal verify_v150_field_smoke_summary_evidence_boundary.mjs
-    exec "${INTERNAL_DIR}/verify_v150_field_smoke_summary_evidence_boundary.mjs" "$@"
+  verify-client-saved-views-layout-presets)
+    require_internal verify_client_saved_views_layout_presets.mjs
+    exec "${INTERNAL_DIR}/verify_client_saved_views_layout_presets.mjs" "$@"
     ;;
-  verify-v150-oc-sort-experimental-sandbox)
-    require_internal verify_v150_oc_sort_experimental_sandbox.mjs
-    exec "${INTERNAL_DIR}/verify_v150_oc_sort_experimental_sandbox.mjs" "$@"
-    ;;
-  verify-v160-release-evidence-dashboard)
-    require_internal verify_v160_release_evidence_dashboard.mjs
-    exec "${INTERNAL_DIR}/verify_v160_release_evidence_dashboard.mjs" "$@"
-    ;;
-  verify-v160-stability-verification-gate)
-    require_internal verify_v160_stability_verification_gate.mjs
-    exec "${INTERNAL_DIR}/verify_v160_stability_verification_gate.mjs" "$@"
-    ;;
-  verify-v160-debug-exposure-regression-guard)
-    require_internal verify_v160_debug_exposure_regression_guard.mjs
-    exec "${INTERNAL_DIR}/verify_v160_debug_exposure_regression_guard.mjs" "$@"
-    ;;
-  verify-v160-tracker-reid-opt-in-closeout)
-    require_internal verify_v160_tracker_reid_opt_in_closeout.mjs
-    exec "${INTERNAL_DIR}/verify_v160_tracker_reid_opt_in_closeout.mjs" "$@"
-    ;;
-  verify-v160-onvif-field-smoke-evidence-reconciliation)
-    require_internal verify_v160_onvif_field_smoke_evidence_reconciliation.mjs
-    exec "${INTERNAL_DIR}/verify_v160_onvif_field_smoke_evidence_reconciliation.mjs" "$@"
-    ;;
-  verify-v160-audit-export-masking-regression-hardening)
-    require_internal verify_v160_audit_export_masking_regression_hardening.mjs
-    exec "${INTERNAL_DIR}/verify_v160_audit_export_masking_regression_hardening.mjs" "$@"
-    ;;
-  verify-v160-runtime-model-bundle-rc-policy)
-    require_internal verify_v160_runtime_model_bundle_rc_policy.mjs
-    exec "${INTERNAL_DIR}/verify_v160_runtime_model_bundle_rc_policy.mjs" "$@"
-    ;;
-  verify-v160-manual-ui-release-checklist-closure)
-    require_internal verify_v160_manual_ui_release_checklist_closure.mjs
-    exec "${INTERNAL_DIR}/verify_v160_manual_ui_release_checklist_closure.mjs" "$@"
-    ;;
-  verify-v160-public-docs-consistency-polish)
-    require_internal verify_v160_public_docs_consistency_polish.mjs
-    exec "${INTERNAL_DIR}/verify_v160_public_docs_consistency_polish.mjs" "$@"
-    ;;
-  verify-v160-tracker-benchmark-harness-planning)
-    require_internal verify_v160_tracker_benchmark_harness_planning.mjs
-    exec "${INTERNAL_DIR}/verify_v160_tracker_benchmark_harness_planning.mjs" "$@"
-    ;;
-  verify-v170-client-action-reduction)
-    require_internal verify_v170_client_action_reduction.mjs
-    exec "${INTERNAL_DIR}/verify_v170_client_action_reduction.mjs" "$@"
-    ;;
-  verify-v170-client-live-workspace)
-    require_internal verify_v170_client_live_workspace.mjs
-    exec "${INTERNAL_DIR}/verify_v170_client_live_workspace.mjs" "$@"
-    ;;
-  verify-v170-client-source-dock-events)
-    require_internal verify_v170_client_source_dock_events.mjs
-    exec "${INTERNAL_DIR}/verify_v170_client_source_dock_events.mjs" "$@"
-    ;;
-  verify-v170-client-tile-disconnect)
-    require_internal verify_v170_client_tile_disconnect_contract.mjs
-    exec "${INTERNAL_DIR}/verify_v170_client_tile_disconnect_contract.mjs" "$@"
-    ;;
-  verify-v170-event-review-inbox)
-    require_internal verify_v170_event_review_inbox.mjs
-    exec "${INTERNAL_DIR}/verify_v170_event_review_inbox.mjs" "$@"
-    ;;
-  verify-v170-alert-delivery-integrations)
-    require_internal verify_v170_alert_delivery_integrations.mjs
-    exec "${INTERNAL_DIR}/verify_v170_alert_delivery_integrations.mjs" "$@"
-    ;;
-  verify-v170-scenario-builder-ui)
-    require_internal verify_v170_scenario_builder_ui.mjs
-    exec "${INTERNAL_DIR}/verify_v170_scenario_builder_ui.mjs" "$@"
-    ;;
-  verify-v170-ops-client-shared-declutter)
-    require_internal verify_v170_ops_client_shared_declutter.mjs
-    exec "${INTERNAL_DIR}/verify_v170_ops_client_shared_declutter.mjs" "$@"
-    ;;
-  verify-v170-source-group-site-management)
-    require_internal verify_v170_source_group_site_management.mjs
-    exec "${INTERNAL_DIR}/verify_v170_source_group_site_management.mjs" "$@"
-    ;;
-  verify-v170-tile-info-overlay-health)
-    require_internal verify_v170_tile_info_overlay_health.mjs
-    exec "${INTERNAL_DIR}/verify_v170_tile_info_overlay_health.mjs" "$@"
-    ;;
-  verify-v170-saved-views-layout-presets)
-    require_internal verify_v170_saved_views_layout_presets.mjs
-    exec "${INTERNAL_DIR}/verify_v170_saved_views_layout_presets.mjs" "$@"
-    ;;
-  verify-v170-operator-incident-timeline)
-    require_internal verify_v170_operator_incident_timeline.mjs
-    exec "${INTERNAL_DIR}/verify_v170_operator_incident_timeline.mjs" "$@"
+  verify-ops-operator-incident-timeline)
+    require_internal verify_ops_operator_incident_timeline.mjs
+    exec "${INTERNAL_DIR}/verify_ops_operator_incident_timeline.mjs" "$@"
     ;;
   verify-server-start-modes)
     require_internal verify_server_start_modes.sh

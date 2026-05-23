@@ -154,7 +154,7 @@ check("docs capture and English UI copy cover v1.8.0 screenshots", () => {
     "VA Test File",
   ];
   for (const snippet of requiredScriptSnippets) {
-    assert(script.includes(snippet), `capture_docs_ui_assets.mjs is missing v1.7 capture snippet: ${snippet}`);
+    assert(script.includes(snippet), `capture_docs_ui_assets.mjs is missing current capture snippet: ${snippet}`);
   }
   assert(!script.includes('[data-tile="0"] [data-role="view"]'), "client-live docs capture still waits for legacy tile view select");
   const requiredTranslations = [

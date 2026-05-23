@@ -78,7 +78,7 @@ Contract 기준선에서 허용되는 변경은 문서, 검증 명령, 운영 �
 
 ### Integrator Distribution Artifact
 
-v1.2.0 integrator 배포용 sample bundle은
+v1.8.0 integrator 배포용 sample bundle은
 `test/fixtures/integrator_contract_artifact/`에 둡니다. bundle은 JSON Schema와
 synthetic sample payload만 포함하며, 기준 serializer나 runtime payload를 바꾸지
 않습니다. artifact 자체 검증은 아래 명령으로 분리합니다.
@@ -277,7 +277,7 @@ runtime smoke를 실행하지 않았다면 live delivery 자체를 재검증했�
 | --- | --- | --- | --- |
 | 문서만 변경 | `git diff --check -- README.md README.en.md docs`, `./server.sh verify-docs-links` | trailing whitespace 없음, local link 실패 없음 | 명령 없음/실행 불가는 중단 후 보고 |
 | Integrator contract artifact | `./server.sh verify-integrator-contract-artifact`, `./server.sh verify-docs-links` | manifest/schema/sample 일치, 금지 노출 후보 없음, 문서/entrypoint 연결 유지 | runtime smoke 미실행이면 delivery 재검증으로 보고하지 않음 |
-| live-only 문구 | `./server.sh verify-v1.1-boundary-keywords` | failure 후보 없음 | review 후보는 사람이 문맥 확인 후 기록 |
+| live-only 문구 | `구버전 전용 verifier는 현재 command set에서 제거됨` | failure 후보 없음 | review 후보는 사람이 문맥 확인 후 기록 |
 | Event POST disabled/default | `./server.sh verify-event-post --mode disabled` | 기본 서버의 dispatcher disabled 상태 분리 보고 | enabled 상태면 disabled smoke 실패 |
 | Event POST contract | `./server.sh verify-event-post --mode schema` | `media-server.va.event.v1` payload와 `payloadFormat` 유지 | disabled는 enabled smoke 사전 조건 실패이며 보정 서버로 재확인 |
 | Event POST recovery | `./server.sh verify-event-post --mode recovery` | dispatcher recovery와 storage recovery 결과가 분리 보고됨 | EventStorage disabled skip은 skip으로 기록 |

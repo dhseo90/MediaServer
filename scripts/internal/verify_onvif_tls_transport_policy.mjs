@@ -71,7 +71,7 @@ for (const term of [
 
 for (const term of [
   "# ONVIF HTTPS TLS Fixture Harness Design",
-  "v1.2.0에서 도입된 상태는 v1.8.0 기준에도 fixture-only",
+  "v1.8.0에서 도입된 상태는 v1.8.0 기준에도 fixture-only",
   "trustedFixtureSuccess",
   "ephemeral CA",
   "fixture CA bundle",

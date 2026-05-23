@@ -1,6 +1,6 @@
 # ONVIF Field Smoke Gate
 
-이 문서는 v1.3.0 `V130-P0-02 ONVIF field smoke gate`의 절차 기준입니다.
+이 문서는 v1.8.0 `V180-current-P0-02 ONVIF field smoke gate`의 절차 기준입니다.
 목표는 실제 ONVIF 카메라 smoke 결과를 release 개발 완료와 섞지 않고,
 endpoint, credential, RTSP/RTSPS playback, redaction artifact, report review를
 별도 gate로 기록하는 것입니다.
@@ -13,7 +13,7 @@ endpoint, credential, RTSP/RTSPS playback, redaction artifact, report review를
 - [ONVIF Field Smoke Artifact Redaction Checklist](./onvif-field-smoke-artifact-redaction.md)
 - [ONVIF Credential Reference Policy](./onvif-credential-reference-policy.md)
 - [ONVIF TLS Transport Policy](./onvif-tls-transport-policy.md)
-- [v1.6.0 ONVIF Field Smoke Evidence Reconciliation](./v1.6.0-onvif-field-smoke-evidence-reconciliation.md)
+- 구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)
 
 ## Gate 원칙
 
@@ -35,7 +35,7 @@ field smoke report는 아래 상태를 분리해 기록합니다.
 
 | Field | 허용 값 | 의미 |
 | --- | --- | --- |
-| `releaseDevelopmentStatus` | `procedure-fixed` | v1.3.0 (2)의 개발 산출물은 gate 절차와 verifier를 고정했다는 뜻입니다. |
+| `releaseDevelopmentStatus` | `procedure-fixed` | v1.8.0 (2)의 개발 산출물은 gate 절차와 verifier를 고정했다는 뜻입니다. |
 | `gateDecision` | `not-run`, `blocked`, `failed`, `passed` | 실제 장비 gate의 최종 판정입니다. no-device suite만으로는 `passed`가 될 수 없습니다. |
 | `realDeviceTestPerformed` | `true`, `false` | 실제 ONVIF camera를 사용했는지 여부입니다. |
 | `realDeviceEndpointSuccess` | `pass`, `fail`, `unverified` | 실제 endpoint 성공 여부입니다. `realDeviceTestPerformed=false`이면 `unverified`만 사용합니다. |
@@ -77,7 +77,7 @@ field smoke report는 아래 상태를 분리해 기록합니다.
 실장비 endpoint가 없는 로컬/CI에서는 아래처럼 skip/failure boundary만 검증합니다.
 
 ```bash
-./server.sh verify-v160-onvif-field-smoke-evidence-reconciliation
+`구버전 전용 verifier는 현재 command set에서 제거됨`
 ./server.sh verify-onvif-no-device-suite
 ./server.sh verify-onvif-field-smoke-gate
 ./server.sh verify-onvif-field-smoke-redaction
@@ -118,13 +118,13 @@ field smoke report는 아래 상태를 분리해 기록합니다.
 
 ## 개발 종료 판정
 
-v1.3.0 (2)의 개발 범위는 실제 장비 성공을 만드는 것이 아니라 gate 절차를
+v1.8.0 (2)의 개발 범위는 실제 장비 성공을 만드는 것이 아니라 gate 절차를
 고정하는 것입니다. 따라서 아래가 모두 통과하면 이 카테고리의 개발 가능한
 후속 이슈는 남기지 않습니다.
 
 - `docs/onvif-field-smoke-gate.md`가 gate 상태, 실행 절차, 산출물 review,
   개발 종료 판정을 명시합니다.
-- `docs/development-backlog.md`의 `V130-P0-02`가 이 문서와
+- `docs/development-backlog.md`의 `V180-current-P0-02`가 이 문서와
   `verify-onvif-field-smoke-gate`를 연결합니다.
 - `docs/onvif-field-smoke-artifact-redaction.md`와 sample bundle이
   `gateDecision`, `playbackStatus`, `redactionArtifactReview`,
@@ -133,7 +133,7 @@ v1.3.0 (2)의 개발 범위는 실제 장비 성공을 만드는 것이 아니�
   `verify-onvif-field-smoke-sample-bundle`, `verify-onvif-no-device-suite`가 통과합니다.
 - `git diff --check`가 통과합니다.
 
-아래 항목은 이 카테고리의 개발 잔여가 아니라 별도 gate 또는 v1.3.0 비범위입니다.
+아래 항목은 이 카테고리의 개발 잔여가 아니라 별도 gate 또는 v1.8.0 비범위입니다.
 
 - 실제 ONVIF camera endpoint 성공 미확인
 - 실제 credential handshake 현장 성공 미확인

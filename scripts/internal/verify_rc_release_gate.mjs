@@ -46,7 +46,7 @@ check("stream verification guide defines the RC-only release gate", () => {
 
 check("release policy fixes longrun report retention locations", () => {
   const releasePolicy = readText("docs/release-policy.md");
-  const dashboard = readText("docs/v1.6.0-release-evidence-dashboard.md");
+  const evidenceIndex = readText("docs/release-evidence-index.md");
   for (const snippet of [
     "`rc-release-checklist`",
     "`media-server-rc-gate` GitHub",
@@ -57,10 +57,11 @@ check("release policy fixes longrun report retention locations", () => {
     assert(releasePolicy.includes(snippet), `docs/release-policy.md missing retention snippet: ${snippet}`);
   }
   for (const snippet of [
-    "장기 테스트 report는 보존 위치와 retention days를 함께 기록",
-    "`/tmp` 경로만 있으면 local-only 또는 `NOT PRESERVED`",
+    "30분 soak와 120분 longrun은 서로 대체하지 않습니다.",
+    "장시간/외부 gate",
+    "PASS/FAIL/NOT RUN/미확인",
   ]) {
-    assert(dashboard.includes(snippet), `docs/v1.6.0-release-evidence-dashboard.md missing retention snippet: ${snippet}`);
+    assert(evidenceIndex.includes(snippet), `docs/release-evidence-index.md missing retention snippet: ${snippet}`);
   }
 });
 

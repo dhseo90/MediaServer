@@ -109,7 +109,7 @@ hardening gate에는 직접 포함하지 않습니다. 이전 버전에 있었�
 ```
 
 과거 release 문서 자체의 링크, 문구, evidence 보존 상태를 점검해야 할 때만
-`verify-v121-*`, `verify-v150-*`, `verify-v160-*`, `verify-v170-*` 같은 archive
+`구버전 전용 verifier는 현재 command set에서 제거됨`, `구버전 전용 verifier는 현재 command set에서 제거됨`, `구버전 전용 verifier는 현재 command set에서 제거됨`, `구버전 전용 verifier는 현재 command set에서 제거됨` 같은 archive
 명령을 명시적으로 실행하고, 결과는 현재 제품 PASS/FAIL이 아니라 historical
 archive PASS/FAIL로 기록합니다.
 
@@ -306,7 +306,7 @@ MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1 ./serve
 ```
 
 UI 변경 검증에서는 기본 추가 RTSP/WebRTC source 영상이나 codec matrix를 쓰지 않습니다.
-v1.2.0에서 도입되어 v1.3.0에서도 유지되는 UI visual regression gate는 ERP/운영 콘솔형 visual refresh 기준을 함께 봅니다.
+v1.8.0에서 도입되어 v1.8.0에서도 유지되는 UI visual regression gate는 ERP/운영 콘솔형 visual refresh 기준을 함께 봅니다.
 즉, 기능 selector만 통과하면 끝이 아니라 compact product shell, nav/account header,
 metric/card/table/form/badge 밀도, client source/debug 비노출, 모바일 overflow를 같은
 artifact에서 확인합니다.
@@ -341,7 +341,7 @@ Ops/Client shell 변경 확인 포인트:
   `/ops/sources`, `/ops/users`, `/client/live`, `/client/dashboard`를
   기본 320/390/760/1180px 폭으로 열어 overflow와 screenshot을 남깁니다.
   release gate나 단계 종료 보고에서는 `--output-dir`로 artifact 경로를 고정합니다.
-  예: `--output-dir /tmp/media_server_v120_p0_02_screenshots`
+  예: `--output-dir /tmp/media_server_v180_p0_02_screenshots`
   통과 시 같은 디렉터리에 `visual-regression-manifest.json`과 `index.md`를
   생성합니다. manifest schema는 `media-server.ui-visual-artifact-index.v1`이며
   page/selector가 있는 기본 screenshot과 ONVIF hint/preview 같은 보조 screenshot을
@@ -798,7 +798,7 @@ Re-ID assist opt-in까지 같이 태우는 경우에는 `--reid-policy assist`�
 ./server.sh compare-close-object-tracker \
   --tracker-policy bytetrack \
   --reid-policy assist \
-  --history-dir /private/tmp/media_server_v140_reid_assist_warning_trend
+  --history-dir /private/tmp/media_server_v180_reid_assist_warning_trend
 ```
 
 단일 비교에 `--history-dir`를 지정하면 summary/report 사본과 Markdown/JSON index가
@@ -818,7 +818,7 @@ OC-SORT가 `analysis.trackingPolicy.tracker`, `/ops/rules` UI,
 ./server.sh verify-oc-sort-benchmark-boundary
 ```
 
-v1.5.0 OC-SORT experimental sandbox 검증은 release archive 전용입니다. 현재
+v1.8.0 OC-SORT experimental sandbox 검증은 release archive 전용입니다. 현재
 제품 회귀에서는 같은 runtime 승격 금지 경계를 `verify-oc-sort-benchmark-boundary`와
 `compare-close-object-tracker`의 현재 fixture 옵션으로 확인하고, archive 명령을
 현재 PASS/FAIL에 섞지 않습니다.
@@ -968,7 +968,7 @@ count, mean, stdev, variance, min, max를 표시합니다.
 - replay/event 결과가 흔들려도 default on 전환 금지입니다.
 - default on은 여러 fixture와 현장 샘플에서 ID continuity 개선과 event 결과 무변화가 함께 확인된 뒤에만 검토합니다.
 - privacy/default-off gate는 `verify-reid-advanced-tracking`으로 별도 확인합니다.
-- v1.5.0 `verify-v150-*` guard는 release archive 전용입니다. 현재 회귀에서는
+- v1.8.0 `구버전 전용 verifier는 현재 command set에서 제거됨` guard는 release archive 전용입니다. 현재 회귀에서는
   `verify-reid-advanced-tracking`, `verify-tracker-stability`,
   `compare-close-object-tracker`, `verify-va-replay`, `verify-analysis-state`,
   `verify-va-events`로 runtime/default-off/metadata/event 안정성을 확인합니다.

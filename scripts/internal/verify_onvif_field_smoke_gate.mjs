@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v1.3.0 ONVIF field smoke gate 절차와 sample artifact 기준을 정적으로 검증한다.
+// 파일 용도: v1.8.0 ONVIF field smoke gate 절차와 sample artifact 기준을 정적으로 검증한다.
 // 동작 요약: 실제 장비 성공을 개발 완료로 과장하지 않고 gate/report/redaction 상태를 분리했는지 확인한다.
 
 import fs from "node:fs";
@@ -27,7 +27,7 @@ Options:
   -h, --help              도움말 출력
 
 Checks:
-  - V130-P0-02가 별도 field smoke gate 절차와 verifier를 연결함
+  - V180-current-P0-02가 별도 field smoke gate 절차와 verifier를 연결함
   - 실제 장비 성공과 release 개발 완료 상태를 분리함
   - sample bundle/report template이 gateDecision, playbackStatus, review status를 포함함
   - credential store, Digest/WS-Security, WS-Discovery, Profile G를 이 gate에서 열지 않음
@@ -64,10 +64,10 @@ const combinedSample = [
 
 const checks = [];
 
-check("gate document fixes V130-P0-02 procedure boundaries", () => {
+check("gate document fixes V180-current-P0-02 procedure boundaries", () => {
   for (const term of [
     "# ONVIF Field Smoke Gate",
-    "v1.3.0 `V130-P0-02 ONVIF field smoke gate`",
+    "v1.8.0 `V180-current-P0-02 ONVIF field smoke gate`",
     "## Gate 원칙",
     "## Gate 상태",
     "## 실행 절차",
@@ -113,12 +113,16 @@ check("gate document keeps unsupported ONVIF expansions out of scope", () => {
   }
 });
 
-check("roadmap links V130-P0-02 to the fixed gate verifier", () => {
+check("current docs link the fixed field smoke gate verifier", () => {
+  const docsIndex = readText("docs/README.md");
   for (const term of [
-    "V130-P0-02",
     "ONVIF field smoke gate",
-    "[ONVIF Field Smoke Gate](./onvif-field-smoke-gate.md)",
+    "onvif-field-smoke-gate.md",
     "verify-onvif-field-smoke-gate",
+  ]) {
+    assertContains(docsIndex + gateDoc, term, `current docs missing gate term: ${term}`);
+  }
+  for (const term of [
     "release 개발 완료와 별도 field gate 결과를 분리",
     "실장비 endpoint 성공 미확인",
     "이 카테고리의 개발 가능한 후속 이슈는 없음",

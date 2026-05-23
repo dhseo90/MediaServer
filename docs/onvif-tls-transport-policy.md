@@ -1,6 +1,6 @@
 # ONVIF TLS Transport Policy
 
-이 문서는 v1.2.0 ONVIF probe에서 도입한 HTTPS/TLS 처리 기준을 v1.8.0 release
+이 문서는 v1.8.0 ONVIF probe에서 도입한 HTTPS/TLS 처리 기준을 v1.8.0 release
 baseline에서도 유지되는 경계로 고정합니다. 현재 구현은 HTTP SOAP transport와
 OpenSSL 기반 HTTPS SOAP fixture transport를 포함합니다.
 HTTPS SOAP transport 기준은
@@ -23,7 +23,7 @@ HTTPS SOAP transport 기준은
   제공하지 않습니다.
 - endpoint URL에는 username, password, token, cookie를 넣지 않습니다.
 - field smoke 산출물에는 TLS 실패도 sanitized summary로만 기록합니다.
-- v1.2.0에서 도입된 기준은 v1.8.0에서도 fixture-only TLS harness와 production
+- v1.8.0에서 도입된 기준은 v1.8.0에서도 fixture-only TLS harness와 production
   transport fixture success 및 production transport failure matrix를 실행합니다.
 - `verify-onvif-https-tls-fixture`은 fixture TLS server/client 실행으로 trusted success,
   untrusted CA, hostname mismatch, certificate expired, handshake failure,

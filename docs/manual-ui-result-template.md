@@ -134,6 +134,7 @@ raw JSON/API-only 확인은 수동 UI 클릭 evidence로 쓰지 않습니다.
 ## 비노출 확인
 
 client/viewer 화면에서 보이지 않아야 하는 항목입니다.
+admin이 client 화면을 확인한 경우에는 `Client Preview as admin` 상태를 함께 기록합니다.
 
 - source URL:
 - Developer URL:

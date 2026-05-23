@@ -106,34 +106,12 @@ verification gate, docs screenshot freshness, manual UI evidence checklist,
 release close-out runbook, docs source-of-truth dedupe, English UI visual copy QA,
 release evidence index, feature scope decision gate의 확인됨/미실행/미확인 상태를
 분리합니다. Client/Ops UI-first workflow는 제품 baseline으로 유지합니다.
-v1.6.0 source-only release evidence는 historical evidence로 유지하며,
-[v1.6.0 Release Evidence Dashboard](./v1.6.0-release-evidence-dashboard.md)와
-`./server.sh verify-v160-release-evidence-dashboard`로 release evidence의
-확인됨/미실행/미확인 상태를 분리합니다.
-ONVIF field smoke evidence는
-[v1.6.0 ONVIF Field Smoke Evidence Reconciliation](./v1.6.0-onvif-field-smoke-evidence-reconciliation.md)와
-`./server.sh verify-v160-onvif-field-smoke-evidence-reconciliation` 기준으로
-no-device suite, 실장비 미실행, redacted artifact review를 분리합니다.
-Audit/export masking evidence는
-[v1.6.0 Audit Export Masking Regression Hardening](./v1.6.0-audit-export-masking-regression-hardening.md)와
-`./server.sh verify-v160-audit-export-masking-regression-hardening` 기준으로
-JSON/CSV/Diff JSON export의 source/model/auth/raw material 비노출을 확인합니다.
-Runtime/model bundle RC policy는
-[v1.6.0 Runtime/Model Bundle RC Policy](./v1.6.0-runtime-model-bundle-rc-policy.md)와
-`./server.sh verify-v160-runtime-model-bundle-rc-policy` 기준으로 기본 release
-미포함 경계와 향후 RC 승인 조건을 분리합니다.
-Manual UI release checklist closure는
-[v1.6.0 Manual UI Release Checklist Closure](./v1.6.0-manual-ui-release-checklist-closure.md)와
-`./server.sh verify-v160-manual-ui-release-checklist-closure` 기준으로 실제 수동 클릭
-검수, screenshot artifact, 미실행/미확인 항목을 분리합니다.
-Public docs consistency polish는
-[v1.6.0 Public Docs Consistency Polish](./v1.6.0-public-docs-consistency-polish.md)와
-`./server.sh verify-v160-public-docs-consistency-polish` 기준으로 v1.6.0 close-out
-당시의 public tag/evidence drift와 v1.6.0 release evidence 표현을 맞춥니다.
-Tracker benchmark harness planning only는
-[v1.6.0 Tracker Benchmark Harness Planning](./v1.6.0-tracker-benchmark-harness-planning.md)와
-`./server.sh verify-v160-tracker-benchmark-harness-planning` 기준으로 runtime tracker
-승격 없이 별도 benchmark 요구사항만 분리합니다.
+현재 release evidence는 [release-evidence-index.md](./release-evidence-index.md),
+[manual-ui-checklist.md](./manual-ui-checklist.md),
+[manual-ui-result-template.md](./manual-ui-result-template.md),
+[ui-visual-release-baseline-approval-template.md](./ui-visual-release-baseline-approval-template.md)를
+source-of-truth로 삼습니다. 구버전 전용 close-out 문서나 명령은
+현재 `v1.8.0` release pass/fail 기준으로 쓰지 않습니다.
 
 ## Tag 전략
 

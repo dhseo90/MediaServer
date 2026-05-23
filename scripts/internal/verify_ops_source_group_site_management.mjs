@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v1.7.0 Source Group/Site Management의 registry/API/UI/scope 경계를 검증한다.
+// 파일 용도: Source Group/Site Management의 registry/API/UI/scope 경계를 검증한다.
 
 import fs from "node:fs";
 import os from "node:os";
@@ -86,8 +86,8 @@ check("ops/client UI smoke and server command track the P1 source grouping contr
   for (const snippet of [
     'data-testid="source-group-site-management"',
     "view-assignment-options",
-    "verify-v170-source-group-site-management",
-    "verify_v170_source_group_site_management.mjs",
+    "verify-ops-source-group-site-management",
+    "verify_ops_source_group_site_management.mjs",
   ]) {
     assertIncludes(uiSmoke + serverSh, snippet, "source grouping smoke wiring");
   }
@@ -99,13 +99,13 @@ if (args.roundtripSmoke) {
 
 if (failures.length > 0) {
   console.log("");
-  console.log("== v1.7.0 Source Group/Site Management 실패 ==");
+  console.log("== Source Group/Site Management 실패 ==");
   for (const failure of failures) console.log(`- ${failure}`);
   process.exit(1);
 }
 
 console.log("");
-console.log("== v1.7.0 Source Group/Site Management 통과 ==");
+console.log("== Source Group/Site Management 통과 ==");
 
 function readText(filePath) {
   return fs.readFileSync(filePath, "utf8");
@@ -202,7 +202,7 @@ async function waitForHealth(base, child) {
 
 async function runRoundtripSmoke() {
   await checkAsync("source group roundtrip smoke", async () => {
-    const runId = `v170-source-group-${Date.now()}-${process.pid}`;
+    const runId = `source-group-${Date.now()}-${process.pid}`;
     const tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), `${runId}-`));
     const httpPort = await findFreePort(18170 + (process.pid % 400));
     const rtspPort = await findFreePort(httpPort + 1000);

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v1.7.0 Alert Delivery Integrations의 payload 분리, retry, audit masking 계약을 검증한다.
+// 파일 용도: Alert Delivery Integrations의 payload 분리, retry, audit masking 계약을 검증한다.
 
 import fs from "node:fs";
 import process from "node:process";
@@ -75,8 +75,8 @@ check("ops events UI exposes alert delivery controls without client/debug materi
 
 check("ops/client UI smoke, gitignore, and server command track alert delivery", () => {
   for (const snippet of [
-    "verify-v170-alert-delivery-integrations",
-    "verify_v170_alert_delivery_integrations.mjs",
+    "verify-ops-alert-delivery-integrations",
+    "verify_ops_alert_delivery_integrations.mjs",
     'data-testid="ops-alert-delivery-integrations"',
     "/ops/api/alerts/deliveries",
     "/.media_server.alert_deliveries.jsonl",
@@ -92,13 +92,13 @@ if (args.roundtripSmoke) {
 
 if (failures.length > 0) {
   console.log("");
-  console.log("== v1.7.0 Alert Delivery Integrations 실패 ==");
+  console.log("== Alert Delivery Integrations 실패 ==");
   for (const failure of failures) console.log(`- ${failure}`);
   process.exit(1);
 }
 
 console.log("");
-console.log("== v1.7.0 Alert Delivery Integrations 통과 ==");
+console.log("== Alert Delivery Integrations 통과 ==");
 
 function readText(filePath) {
   return fs.readFileSync(filePath, "utf8");
@@ -181,14 +181,14 @@ async function requestJson(path, options = {}) {
 
 async function runRoundtripSmoke() {
   await checkAsync("alert delivery config/test roundtrip redacts endpoints", async () => {
-    const runId = `v170-alert-${Date.now()}-${process.pid}`;
+    const runId = `alert-delivery-${Date.now()}-${process.pid}`;
     const saved = await requestJson("/ops/api/alerts/deliveries", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         id: runId,
         kind: "webhook",
-        label: "v1.7.0 alert smoke",
+        label: "alert smoke",
         webhookUrl: "https://example.invalid/secret-token",
         enabled: true,
         retryMax: 2,

@@ -3,12 +3,10 @@
 이 문서는 앞으로 "UI 풀테스트"라고 부르는 작업의 실행 체크리스트입니다.
 기준 정의와 범위는 [manual-ui-fulltest.md](./manual-ui-fulltest.md)를
 source-of-truth로 삼고, 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를
-사용합니다. historical v1.2.1 patch evidence 기록은
-[manual-ui-v1.2.1-result.md](./manual-ui-v1.2.1-result.md)에 둡니다.
+사용합니다. 현재 release 목표는 `v1.8.0`이며, UI 풀테스트 기준도 이 버전의
+제품 route, 권한, 기능 baseline만 대상으로 합니다.
 문서 구조와 evidence 경계는 `./server.sh verify-manual-ui-evidence`로 확인합니다.
-과거 `verify-v*` manual UI closure 명령은 release archive 보존용입니다. 현재 UI
-풀테스트 완료 판정에는 직접 포함하지 않고, 현재 제품 화면/권한/기능 기준은 이
-체크리스트와 `verify-manual-ui-evidence`로 통합 확인합니다.
+구버전 전용 UI closure 명령은 현재 완료 판정에 포함하지 않습니다.
 
 UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라우저에서 제품
 화면을 직접 열고 클릭과 타이핑으로 수행하는 end-to-end 검수입니다. API-only

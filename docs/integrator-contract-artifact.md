@@ -1,6 +1,6 @@
 # Integrator Contract Artifact
 
-이 문서는 v1.2.0 `Integrator contract artifact` 범위에서 외부 연동자가 받을 수
+이 문서는 v1.8.0 `Integrator contract artifact` 범위에서 외부 연동자가 받을 수
 있는 배포 산출물의 위치와 검증 기준을 고정합니다. 기준 payload는
 [Live Event and Metadata Contracts](./live-event-metadata-contracts.md)를 따르며,
 이 산출물은 기존 Event POST, WebRTC DataChannel, SSE, WebSocket payload field를

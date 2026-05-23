@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v1.7.0 Client Live가 source tree와 drag/drop workspace 계약을 유지하는지 정적으로 검증한다.
+// 파일 용도: Client Live가 source tree와 drag/drop workspace 계약을 유지하는지 정적으로 검증한다.
 
 import fs from "node:fs";
 import process from "node:process";
@@ -123,7 +123,7 @@ check(
 
 if (failures.length > 0) {
   console.log("");
-  console.log("== v1.7.0 Client Live workspace 실패 ==");
+  console.log("== Client Live workspace 실패 ==");
   for (const failure of failures) {
     console.log(`- ${failure}`);
   }
@@ -136,7 +136,7 @@ if (args.browserSmoke) {
 
 if (failures.length > 0) {
   console.log("");
-  console.log("== v1.7.0 Client Live workspace 실패 ==");
+  console.log("== Client Live workspace 실패 ==");
   for (const failure of failures) {
     console.log(`- ${failure}`);
   }
@@ -144,7 +144,7 @@ if (failures.length > 0) {
 }
 
 console.log("");
-console.log("== v1.7.0 Client Live workspace 통과 ==");
+console.log("== Client Live workspace 통과 ==");
 
 function parseArgs(rawArgs) {
   const parsed = {

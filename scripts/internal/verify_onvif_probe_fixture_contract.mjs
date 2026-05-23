@@ -34,7 +34,7 @@ const fixture = JSON.parse(fixtureText);
 const onvifSupportDoc = fs.readFileSync(onvifSupportDocPath, "utf8");
 const checks = [];
 
-check("fixture schema is pinned for v1.2.0 probe contract", () => {
+check("fixture schema is pinned for v1.8.0 probe contract", () => {
   assert(fixture.schema === "media-server.onvif-probe-result-stub.v1", "unexpected fixture schema");
   assert(String(fixture.description || "").includes("not a product API contract"), "description must avoid product API contract wording");
 });

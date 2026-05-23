@@ -119,7 +119,7 @@ for (const term of [
   "schema version 변경",
   "provider path를 포함하지",
   "제품 persistent secret 저장소 구현 완료 선언",
-  "v1.2.0 (2) 정책 결정",
+  "v1.8.0 (2) 정책 결정",
   "defer-product-persistent-store",
   "이번 스텝 잔여로 보지 않는 항목",
   "실장비 credential smoke redacted artifact",
@@ -175,7 +175,7 @@ for (const gate of [
          `credential store decision missing opening gate: ${gate}`);
 }
 assert(storeDecision.handoffIssue?.priority === "P1", "credential store handoff issue priority mismatch");
-assert(storeDecision.handoffIssue?.phase === "after v1.2.0 (2) no-device closure",
+assert(storeDecision.handoffIssue?.phase === "after v1.8.0 (2) no-device closure",
        "credential store handoff phase mismatch");
 
 for (const term of [

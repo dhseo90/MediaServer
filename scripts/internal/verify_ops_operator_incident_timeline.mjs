@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v1.7.0 Operator Incident Timeline이 event/source/rule/runtime 단서를 workflow로 묶는지 검증한다.
+// 파일 용도: Operator Incident Timeline이 event/source/rule/runtime 단서를 workflow로 묶는지 검증한다.
 
 import fs from "node:fs";
 import process from "node:process";
@@ -66,8 +66,8 @@ check("incident workflow is styled for responsive ops review", () => {
 
 check("ops/client UI smoke and server command track operator incident timeline", () => {
   for (const snippet of [
-    "verify-v170-operator-incident-timeline",
-    "verify_v170_operator_incident_timeline.mjs",
+    "verify-ops-operator-incident-timeline",
+    "verify_ops_operator_incident_timeline.mjs",
     'option value="rule-warning"',
     'option value="runtime-status"',
     "dashboardRuleWarningItems",
@@ -84,13 +84,13 @@ if (args.browserSmoke) {
 
 if (failures.length > 0) {
   console.log("");
-  console.log("== v1.7.0 Operator Incident Timeline 실패 ==");
+  console.log("== Operator Incident Timeline 실패 ==");
   for (const failure of failures) console.log(`- ${failure}`);
   process.exit(1);
 }
 
 console.log("");
-console.log("== v1.7.0 Operator Incident Timeline 통과 ==");
+console.log("== Operator Incident Timeline 통과 ==");
 
 function readText(filePath) {
   return fs.readFileSync(filePath, "utf8");

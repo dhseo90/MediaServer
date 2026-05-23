@@ -1,6 +1,6 @@
 {
   "schema": "media-server.integrator-contract-field-index.v1",
-  "artifactVersion": "v1.2.0-integrator-contract-artifact.1",
+  "artifactVersion": "v1.8.0-integrator-contract-artifact.1",
   "contracts": [
     {
       "id": "event-post",

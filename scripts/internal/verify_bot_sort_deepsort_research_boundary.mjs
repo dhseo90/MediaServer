@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v1.4.0 BoT-SORT/DeepSORT research boundary가 runtime tracker로 승격되지 않았는지 검증한다.
+// 파일 용도: 현재 v1.8.0 BoT-SORT/DeepSORT research boundary가 runtime tracker로 승격되지 않았는지 검증한다.
 // 동작 요약: BoT-SORT/DeepSORT를 제품 tracker 허용값에서 배제하고, privacy/dependency/bundle review만 남아 있는지 정적 점검한다.
 
 import fs from "node:fs";
@@ -26,7 +26,7 @@ Options:
 
 Checks:
   - BoT-SORT/DeepSORT가 analysis.trackingPolicy.tracker 허용값, UI option, runtime tracker enum에 추가되지 않았는지 확인
-  - verify-tracker-stability / compare-close-object-tracker가 v1.4.0에서 도입된 tracker 후보만 받는지 확인
+  - verify-tracker-stability / compare-close-object-tracker가 현재 tracker 후보만 받는지 확인
   - BoT-SORT/DeepSORT 연구가 privacy/dependency/bundle 후속 Phase 후보이며 schema/media path 변경 근거가 아닌지 문서화됐는지 확인
   - 이번 페이즈의 미분류 P0~P1 후속 이슈가 남지 않았는지 확인
 `);
@@ -80,7 +80,7 @@ check("BoT-SORT and DeepSORT are not runtime tracker policy values", () => {
   ]) {
     assert(
       analysisQuery.includes(snippet) || server.includes(snippet),
-      `tracking policy contract missing expected v1.4.0 snippet: ${snippet}`
+      `tracking policy contract missing expected current snippet: ${snippet}`
     );
   }
 
@@ -114,7 +114,7 @@ check("ObjectTracker implementation remains limited to Lite, Kalman-lite, and By
   };
 });
 
-check("benchmark harness accepts only v1.4.0 tracker policies", () => {
+check("benchmark harness accepts only current tracker policies", () => {
   const stability = readText("scripts/internal/verify_tracker_stability.sh");
   const compare = readText("scripts/internal/compare_close_object_tracker.py");
   for (const [label, text] of [
@@ -153,7 +153,6 @@ check("BoT-SORT/DeepSORT research boundary is documented without product-scope e
   const docsEn = readText("docs/en/README.md");
 
   for (const snippet of [
-    "V140-P2-02",
     "BoT-SORT/DeepSORT research boundary",
     "BoT-SORT/botsort/DeepSORT/deepsort token을 제품 tracker로 받지 않습니다",
     "미분류 P0~P1 후속 이슈: 없음",
@@ -165,7 +164,7 @@ check("BoT-SORT/DeepSORT research boundary is documented without product-scope e
   }
 
   for (const snippet of [
-    "BoT-SORT/DeepSORT도 v1.4.0 runtime tracker 허용값이 아닙니다",
+    "BoT-SORT/DeepSORT도 v1.8.0 runtime tracker 허용값이 아닙니다",
     "Event POST/WebRTC DataChannel/SSE/WS metadata schema",
     "RTSP/WebRTC media path 변경 근거가 아닙니다",
   ]) {
@@ -182,7 +181,7 @@ check("BoT-SORT/DeepSORT research boundary is documented without product-scope e
 
   for (const snippet of [
     "BoT-SORT/DeepSORT Research Boundary",
-    "이번 v1.4.0 (8) 범위",
+    "이번 v1.8.0 (8) 범위",
     "미분류 P0~P1 후속",
     "후속 Phase",
     "실제 BoT-SORT 또는 DeepSORT algorithm 구현",

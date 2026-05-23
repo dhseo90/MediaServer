@@ -1,6 +1,6 @@
 {
   "schema": "media-server.onvif-live-import-stub.v1",
-  "description": "Synthetic ONVIF import fixture for v1.1.0 live source onboarding design. It fixes the internal import-draft contract and is not a product API contract.",
+  "description": "Synthetic ONVIF import fixture for v1.8.0 live source onboarding fixture design. It fixes the internal import-draft contract and is not a product API contract.",
   "device": {
     "endpoint": "http://192.0.2.10/onvif/device_service",
     "manufacturer": "ExampleCam",

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v1.7.0 Saved Views/Layout Presets의 preference API/UI/권한 preset 분리 계약을 검증한다.
+// 파일 용도: Saved Views/Layout Presets의 preference API/UI/권한 preset 분리 계약을 검증한다.
 
 import fs from "node:fs";
 import process from "node:process";
@@ -81,8 +81,8 @@ check("saved layout UI is styled and avoids viewer debug/source exposure", () =>
 
 check("ops/client UI smoke and server command track saved layout presets", () => {
   for (const snippet of [
-    "verify-v170-saved-views-layout-presets",
-    "verify_v170_saved_views_layout_presets.mjs",
+    "verify-client-saved-views-layout-presets",
+    "verify_client_saved_views_layout_presets.mjs",
     "data-testid=\"client-live-layout-presets\"",
     "liveLayoutPreferenceEndpoint",
     "/client/api/preferences/live-layout",
@@ -100,13 +100,13 @@ if (args.browserSmoke) {
 
 if (failures.length > 0) {
   console.log("");
-  console.log("== v1.7.0 Saved Views/Layout Presets 실패 ==");
+  console.log("== Saved Views/Layout Presets 실패 ==");
   for (const failure of failures) console.log(`- ${failure}`);
   process.exit(1);
 }
 
 console.log("");
-console.log("== v1.7.0 Saved Views/Layout Presets 통과 ==");
+console.log("== Saved Views/Layout Presets 통과 ==");
 
 function readText(filePath) {
   return fs.readFileSync(filePath, "utf8");

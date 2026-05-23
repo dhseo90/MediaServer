@@ -1,6 +1,6 @@
 # ONVIF Credential Reference Policy
 
-이 문서는 v1.2.0 ONVIF field integration에서 도입한 credential reference 기준을
+이 문서는 v1.8.0 ONVIF field integration에서 도입한 credential reference 기준을
 v1.8.0 release baseline에서 유지되는 경계로 고정합니다. 현재 구현은 제품 persistent
 credential 저장소가 아니라 live source 등록 draft, provider 기반 HTTP Basic 주입 경계,
 fixture-grade in-memory store, redaction 검증을 제공하는 범위입니다.
@@ -9,7 +9,7 @@ credential 주입 설계 기준은
 저장소/secret manager 연동 설계 기준은
 [ONVIF Credential Store Integration Design](./onvif-credential-store-integration-design.md)을
 따릅니다.
-v1.2.0 (2)에서 제품 persistent credential store를 후속 gate로 분리하는 결정은
+v1.8.0 (2)에서 제품 persistent credential store를 후속 gate로 분리하는 결정은
 `test/fixtures/onvif_credential_store_policy_decision.json`에 고정합니다.
 
 ## 현재 정책
@@ -33,7 +33,7 @@ v1.2.0 (2)에서 제품 persistent credential store를 후속 gate로 분리하�
 
 ## 운영 저장 비범위
 
-아래 항목은 v1.2.0에서 분리했고 v1.8.0 기준 ONVIF live source draft 범위에도
+아래 항목은 v1.8.0에서 분리했고 v1.8.0 기준 ONVIF live source draft 범위에도
 포함하지 않습니다.
 
 - 제품 persistent secret manager 연동

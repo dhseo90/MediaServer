@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v1.7.0 Client Live tile info overlay와 playback health UI 계약을 검증한다.
+// 파일 용도: Client Live tile info overlay와 playback health UI 계약을 검증한다.
 
 import fs from "node:fs";
 import process from "node:process";
@@ -61,10 +61,10 @@ check("overlay is a DOM layer over native video and avoids raw/debug material", 
     ".tile-stage video",
     "pointer-events: none",
     "FPS <strong",
-    "Bitrate <strong",
-    "Dropped <strong",
-    "Freeze <strong",
-    "VA/Event <strong",
+    "비트레이트 <strong",
+    "드롭 <strong",
+    "프리즈 <strong",
+    "VA/이벤트 <strong",
   ]) {
     assertIncludes(css + script, snippet, "tile overlay DOM/CSS");
   }
@@ -78,8 +78,8 @@ check("ops/client UI smoke and server command track tile info overlay contract",
     'id="liveInfoOverlayToggle"',
     'data-testid="client-live-tile-info-overlay"',
     "refreshTilePlaybackStats",
-    "verify-v170-tile-info-overlay-health",
-    "verify_v170_tile_info_overlay_health.mjs",
+    "verify-client-tile-info-overlay-health",
+    "verify_client_tile_info_overlay_health.mjs",
   ]) {
     assertIncludes(uiSmoke + serverSh, snippet, "tile info overlay smoke wiring");
   }
@@ -91,13 +91,13 @@ if (args.browserSmoke) {
 
 if (failures.length > 0) {
   console.log("");
-  console.log("== v1.7.0 Tile info overlay/playback health 실패 ==");
+  console.log("== Tile info overlay/playback health 실패 ==");
   for (const failure of failures) console.log(`- ${failure}`);
   process.exit(1);
 }
 
 console.log("");
-console.log("== v1.7.0 Tile info overlay/playback health 통과 ==");
+console.log("== Tile info overlay/playback health 통과 ==");
 
 function parseArgs(rawArgs) {
   const parsed = {

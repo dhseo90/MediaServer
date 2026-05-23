@@ -1,11 +1,11 @@
 # OC-SORT Benchmark Boundary
 
-이 문서는 v1.4.0 (7) `OC-SORT 후순위 benchmark`의 범위와 후속 분류를
+이 문서는 v1.8.0 (7) `OC-SORT 후순위 benchmark`의 범위와 후속 분류를
 고정합니다. 목표는 OC-SORT를 제품 tracker로 조용히 승격하지 않고,
 Kalman-lite/ByteTrack 이후 별도 benchmark report가 열릴 때 필요한 기준만
 남기는 것입니다.
 
-## 이번 v1.4.0 (7) 범위
+## 이번 v1.8.0 (7) 범위
 
 포함:
 
@@ -50,9 +50,9 @@ matrix와 현재 runtime tracker 후보를 먼저 비교합니다. OC-SORT 구�
 ./server.sh compare-close-object-tracker --fixture-matrix --tracker-policy bytetrack
 ```
 
-## v1.5.0 (7) OC-SORT experimental sandbox
+## v1.8.0 (7) OC-SORT experimental sandbox
 
-v1.5.0 (7)은 v1.4.0 boundary를 유지하면서 OC-SORT를 명시적 비교 sandbox로만
+v1.8.0 (7)은 v1.8.0 boundary를 유지하면서 OC-SORT를 명시적 비교 sandbox로만
 열어 둡니다. 이 sandbox는 `manifest-only` 상태이며 실제 OC-SORT algorithm
 adapter, runtime tracker policy, `/ops/rules` 선택값을 추가하지 않습니다.
 
@@ -63,7 +63,7 @@ adapter, runtime tracker policy, `/ops/rules` 선택값을 추가하지 않습�
 - `compare-close-object-tracker --list-experimental-sandboxes`로 sandbox 목록과
   `runtimeTrackerPolicy=""`, `algorithmAdapter=false`, `productDefaultOn=false`
   상태를 확인
-- `test/fixtures/v150_oc_sort_experimental_sandbox.json`으로 allowed/rejected
+- `test/fixtures/v180_oc_sort_experimental_sandbox.json`으로 allowed/rejected
   tracker policy, retained/excluded evidence, 후속 분류를 고정
 - 기존 runtime tracker 후보(`lite`, `kalman-lite`, `bytetrack`) 중 사용자가
   명시한 값으로만 close-object 비교 실행
@@ -78,7 +78,7 @@ adapter, runtime tracker policy, `/ops/rules` 선택값을 추가하지 않습�
 검증:
 
 ```bash
-./server.sh verify-v150-oc-sort-experimental-sandbox
+`구버전 전용 verifier는 현재 command set에서 제거됨`
 ./server.sh compare-close-object-tracker --list-experimental-sandboxes
 ```
 
@@ -96,5 +96,5 @@ adapter, runtime tracker policy, `/ops/rules` 선택값을 추가하지 않습�
 - ByteTrack/Kalman-lite/OC-SORT fixture matrix 비교 history
 - field sample 기반 tracker replacement product review
 
-위 항목은 v1.4.0 (7)의 잔여가 아니라, 별도 benchmark 또는 product review가
+위 항목은 v1.8.0 (7)의 잔여가 아니라, 별도 benchmark 또는 product review가
 열릴 때만 다룹니다.

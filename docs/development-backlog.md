@@ -271,7 +271,7 @@ v1.6.0 close-out 당시에는 새 제품 기능을 여는 minor release가 아�
 | V160-P0-01 | P0 | Release evidence dashboard cleanup | v1.5.0까지 흩어진 release 증적, verifier report, 미실행 항목, PR/Actions 결과를 한곳에서 추적 가능하게 정리합니다. | `verify-docs-links`, release evidence checks, `git diff --check` |
 | V160-P0-02 | P0 | Stability verification gate cleanup | 현재 기능 기준 smoke 묶음을 정리하고 flaky, 중복, 미사용 verifier를 분리합니다. 실패/미실행 항목을 release pass처럼 보이지 않게 합니다. | `verify-script-inventory`, 주요 smoke suite, `git diff --check` |
 | V160-P0-03 | P0 | Client/Ops debug exposure regression guard | viewer/client에 source URL, raw JSON, debug counter, rule/profile editor, model/source/auth material이 노출되지 않도록 회귀 guard를 강화합니다. | `verify-ops-client-ui`, `verify-auth-routes`, client redaction checks |
-| V160-P0-04 | P0 | Tracker/Re-ID opt-in stabilization close-out | rule-level tracker/Re-ID opt-in, warning, fallback, privacy guard를 default-off 안정화 상태로 닫고 default-on 승격과 분리합니다. | `verify-v150-follow-up-closure`, tracker/Re-ID stability matrix verifier |
+| V160-P0-04 | P0 | Tracker/Re-ID opt-in stabilization close-out | rule-level tracker/Re-ID opt-in, warning, fallback, privacy guard를 default-off 안정화 상태로 닫고 default-on 승격과 분리합니다. | `구버전 전용 verifier는 현재 command set에서 제거됨`, tracker/Re-ID stability matrix verifier |
 | V160-P1-01 | P1 | ONVIF field smoke evidence reconciliation | 실장비 성공 보장이 아니라 field smoke summary/report/history boundary와 release evidence 연결 기준을 정리합니다. | field smoke summary verifier, docs guard |
 | V160-P1-02 | P1 | Audit/export masking regression hardening | audit 조회, CSV/JSON/Diff export에서 model/source/auth/raw material masking 회귀를 막습니다. | audit export verifier, `verify-ops-audit-trail` |
 | V160-P1-03 | P1 | Runtime/model bundle RC policy | v1.6.0에는 bundle을 포함하지 않고, 향후 RC에서 model/runtime을 올릴 수 있는 조건과 차단 기준만 확정합니다. | provenance/fallback verifier, privacy verifier, bundle policy checks |
@@ -282,7 +282,7 @@ v1.6.0 close-out 당시에는 새 제품 기능을 여는 minor release가 아�
 ### V160-P0-01 Release evidence dashboard cleanup 정리 기준
 
 `Release evidence dashboard cleanup`은 v1.5.0까지 흩어진 release 증적, verifier
-report, PR/Actions 결과, 미실행 항목을 [v1.6.0 Release Evidence Dashboard](./v1.6.0-release-evidence-dashboard.md)
+report, PR/Actions 결과, 미실행 항목을 구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)
 한곳에서 추적하게 만드는 안정화 작업입니다. 목표는 실제 실행한 검증과
 장시간/실장비/외부 credential/Actions 미확인 항목을 release pass처럼 섞어 쓰지
 않는 것입니다.
@@ -301,7 +301,7 @@ report, PR/Actions 결과, 미실행 항목을 [v1.6.0 Release Evidence Dashboar
 
 검증 기준:
 
-- `./server.sh verify-v160-release-evidence-dashboard`
+- `구버전 전용 verifier는 현재 command set에서 제거됨`
 - `./server.sh verify-docs-links`
 - `./server.sh verify-script-inventory`
 - `git diff --check`
@@ -329,7 +329,7 @@ report, PR/Actions 결과, 미실행 항목을 [v1.6.0 Release Evidence Dashboar
 
 `Stability verification gate cleanup`은 현재 기능 기준 smoke 묶음과
 flaky/attached/longrun/external gate를
-[v1.6.0 Stability Verification Gates](./v1.6.0-stability-verification-gates.md)에
+구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)에
 분리하는 안정화 작업입니다. 목표는 실패/미실행/환경 의존 항목이 release pass처럼
 보이지 않도록 verifier와 문서 기준을 정리하는 것입니다.
 
@@ -348,7 +348,7 @@ flaky/attached/longrun/external gate를
 
 검증 기준:
 
-- `./server.sh verify-v160-stability-verification-gate`
+- `구버전 전용 verifier는 현재 command set에서 제거됨`
 - `./server.sh verify-script-inventory`
 - `./server.sh verify-docs-links`
 - `git diff --check`
@@ -375,7 +375,7 @@ flaky/attached/longrun/external gate를
 
 `Client/Ops debug exposure regression guard`는 viewer/client 화면과 scoped API에
 source URL, raw JSON, debug counter, rule/profile editor, model/source/auth material이
-노출되지 않도록 [v1.6.0 Client/Ops Debug Exposure Regression Guard](./v1.6.0-debug-exposure-regression-guard.md)
+노출되지 않도록 구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)
 문서와 `verify-ops-client-ui` forbidden matrix를 강화하는 작업입니다.
 
 확인됨:
@@ -393,7 +393,7 @@ source URL, raw JSON, debug counter, rule/profile editor, model/source/auth mate
 
 검증 기준:
 
-- `./server.sh verify-v160-debug-exposure-regression-guard`
+- `구버전 전용 verifier는 현재 command set에서 제거됨`
 - `./server.sh verify-auth-routes`
 - `./server.sh verify-ops-client-ui`
 - `./server.sh verify-script-inventory`
@@ -421,7 +421,7 @@ source URL, raw JSON, debug counter, rule/profile editor, model/source/auth mate
 
 `Tracker/Re-ID opt-in stabilization close-out`은 v1.5.0까지 닫은 rule-level
 tracker/Re-ID opt-in, warning, fallback, privacy guard를
-[v1.6.0 Tracker/Re-ID Opt-in Stabilization Close-out](./v1.6.0-tracker-reid-opt-in-closeout.md)
+구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)
 기준으로 default-off 안정화 상태에 묶는 작업입니다. 목표는 default-on 승격,
 runtime tracker 승격, model/runtime bundle release와 P0 안정화 완료를 분리하는
 것입니다.
@@ -441,10 +441,10 @@ runtime tracker 승격, model/runtime bundle release와 P0 안정화 완료를 �
 
 검증 기준:
 
-- `./server.sh verify-v160-tracker-reid-opt-in-closeout`
-- `./server.sh verify-v150-follow-up-closure`
-- `./server.sh verify-v150-tracker-reid-stability-matrix`
-- `./server.sh verify-v150-reid-provenance-fallback-approval`
+- `구버전 전용 verifier는 현재 command set에서 제거됨`
+- `구버전 전용 verifier는 현재 command set에서 제거됨`
+- `구버전 전용 verifier는 현재 command set에서 제거됨`
+- `구버전 전용 verifier는 현재 command set에서 제거됨`
 - `./server.sh verify-script-inventory`
 - `git diff --check`
 
@@ -469,7 +469,7 @@ runtime tracker 승격, model/runtime bundle release와 P0 안정화 완료를 �
 `ONVIF field smoke evidence reconciliation`은 실장비 ONVIF 성공을 보장하는 기능
 개발이 아니라, 기존 field smoke gate와 release evidence dashboard가 같은 상태
 언어로 실행/미실행/미확인 결과를 기록하게 만드는 안정화 작업입니다.
-[v1.6.0 ONVIF Field Smoke Evidence Reconciliation](./v1.6.0-onvif-field-smoke-evidence-reconciliation.md)
+구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)
 기준으로 field smoke summary/report/history boundary와 redacted sample bundle
 review를 연결합니다.
 
@@ -491,7 +491,7 @@ review를 연결합니다.
 
 검증 기준:
 
-- `./server.sh verify-v160-onvif-field-smoke-evidence-reconciliation`
+- `구버전 전용 verifier는 현재 command set에서 제거됨`
 - `./server.sh verify-onvif-field-smoke-gate`
 - `./server.sh verify-onvif-field-smoke-sample-bundle`
 - `./server.sh verify-docs-links`
@@ -522,7 +522,7 @@ review를 연결합니다.
 
 `Audit/export masking regression hardening`은 `/ops/api/audit` 조회와
 JSON/CSV/Diff JSON export에서 source/model/auth/raw material이 다시 노출되지 않도록
-[v1.6.0 Audit Export Masking Regression Hardening](./v1.6.0-audit-export-masking-regression-hardening.md)
+구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)
 기준으로 기존 audit redaction guard를 release gate에 연결하는 작업입니다.
 
 확인됨:
@@ -540,8 +540,8 @@ JSON/CSV/Diff JSON export에서 source/model/auth/raw material이 다시 노출�
 
 검증 기준:
 
-- `./server.sh verify-v160-audit-export-masking-regression-hardening`
-- `./server.sh verify-v150-audit-export-review-hardening`
+- `구버전 전용 verifier는 현재 command set에서 제거됨`
+- `구버전 전용 verifier는 현재 command set에서 제거됨`
 - `./server.sh verify-ops-audit-trail`
 - `./server.sh verify-docs-links`
 - `./server.sh verify-script-inventory`
@@ -568,7 +568,7 @@ JSON/CSV/Diff JSON export에서 source/model/auth/raw material이 다시 노출�
 
 `Runtime/model bundle RC policy`는 v1.6.0 기본 release에 runtime/model bundle을
 추가하는 작업이 아니라, 향후 별도 RC에서 포함 배포를 검토할 때 필요한 승인 조건과
-차단 기준을 [v1.6.0 Runtime/Model Bundle RC Policy](./v1.6.0-runtime-model-bundle-rc-policy.md)에
+차단 기준을 구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)에
 고정하는 작업입니다.
 
 확인됨:
@@ -588,8 +588,8 @@ JSON/CSV/Diff JSON export에서 source/model/auth/raw material이 다시 노출�
 
 검증 기준:
 
-- `./server.sh verify-v160-runtime-model-bundle-rc-policy`
-- `./server.sh verify-v150-reid-provenance-fallback-approval`
+- `구버전 전용 verifier는 현재 command set에서 제거됨`
+- `구버전 전용 verifier는 현재 command set에서 제거됨`
 - `./server.sh verify-bundle-policy`
 - `./server.sh verify-docs-links`
 - `./server.sh verify-script-inventory`
@@ -617,7 +617,7 @@ JSON/CSV/Diff JSON export에서 source/model/auth/raw material이 다시 노출�
 
 `Manual UI release checklist closure`는 실제 수동 UI 검수를 수행했다고 기록하는
 작업이 아니라, v1.6.0 close-out 당시 제품 화면 기준으로 수동 검수 템플릿과 evidence 경계를
-[v1.6.0 Manual UI Release Checklist Closure](./v1.6.0-manual-ui-release-checklist-closure.md)에
+구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)에
 고정하는 작업입니다.
 
 확인됨:
@@ -637,7 +637,7 @@ JSON/CSV/Diff JSON export에서 source/model/auth/raw material이 다시 노출�
 
 검증 기준:
 
-- `./server.sh verify-v160-manual-ui-release-checklist-closure`
+- `구버전 전용 verifier는 현재 command set에서 제거됨`
 - `./server.sh verify-manual-ui-evidence`
 - `./server.sh verify-docs-ui-assets`
 - `./server.sh verify-docs-links`
@@ -666,7 +666,7 @@ JSON/CSV/Diff JSON export에서 source/model/auth/raw material이 다시 노출�
 `Public docs consistency polish`는 v1.6.0 source-only release 기준이 public
 README, README.en, docs/en/README, versioning policy, release policy, development
 backlog에서 같은 방식으로 보이도록
-[v1.6.0 Public Docs Consistency Polish](./v1.6.0-public-docs-consistency-polish.md)에
+구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)에
 고정하는 작업입니다.
 
 확인됨:
@@ -687,7 +687,7 @@ backlog에서 같은 방식으로 보이도록
 
 검증 기준:
 
-- `./server.sh verify-v160-public-docs-consistency-polish`
+- `구버전 전용 verifier는 현재 command set에서 제거됨`
 - `./server.sh verify-release-metadata`
 - `./server.sh verify-docs-links`
 - `./server.sh verify-script-inventory`
@@ -715,7 +715,7 @@ backlog에서 같은 방식으로 보이도록
 `Tracker benchmark harness planning only`는 실제 OC-SORT adapter나 새 runtime
 tracker를 구현하는 작업이 아니라, 별도 기능 개발 Phase에서 benchmark를 열 때 필요한
 harness 요구사항과 비승격 경계를
-[v1.6.0 Tracker Benchmark Harness Planning](./v1.6.0-tracker-benchmark-harness-planning.md)에
+구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)에
 고정하는 작업입니다.
 
 확인됨:
@@ -734,7 +734,7 @@ harness 요구사항과 비승격 경계를
 
 검증 기준:
 
-- `./server.sh verify-v160-tracker-benchmark-harness-planning`
+- `구버전 전용 verifier는 현재 command set에서 제거됨`
 - `./server.sh verify-oc-sort-benchmark-boundary`
 - `./server.sh verify-bot-sort-deepsort-research-boundary`
 - `./server.sh verify-docs-links`
@@ -866,7 +866,7 @@ global default-on, 자동 migration, tracker 없는 Re-ID assist 활성화를 �
 검증 기준:
 
 - `./server.sh build`
-- `./server.sh verify-v150-opt-in-tracking-policy`
+- `구버전 전용 verifier는 현재 command set에서 제거됨`
 - `./server.sh verify-rule-ui`
 - `./server.sh verify-ops-rules-roundtrip`
 - `./server.sh verify-analysis-state`
@@ -922,7 +922,7 @@ fixture 결과와 warning drift를 같은 기준으로 읽게 하는 안정화 �
 검증 기준:
 
 - `./server.sh build`
-- `./server.sh verify-v150-tracker-reid-stability-matrix`
+- `구버전 전용 verifier는 현재 command set에서 제거됨`
 - `./server.sh verify-tracker-stability --tracker-policy lite --reid-policy off`
 - `./server.sh verify-tracker-stability --tracker-policy kalman-lite --reid-policy off`
 - `./server.sh verify-tracker-stability --tracker-policy bytetrack --reid-policy off`
@@ -980,7 +980,7 @@ gate입니다. 목표는 missing/invalid/mismatched model을 제품 오류나 me
 검증 기준:
 
 - `./server.sh build`
-- `./server.sh verify-v150-reid-provenance-fallback-approval`
+- `구버전 전용 verifier는 현재 command set에서 제거됨`
 - `./server.sh verify-reid-advanced-tracking`
 - `./server.sh verify-analysis-state`
 - `./server.sh verify-webrtc-va-metadata`
@@ -1044,7 +1044,7 @@ schema를 추가하지 않는 것입니다.
 검증 기준:
 
 - `./server.sh build`
-- `./server.sh verify-v150-ops-tracker-warning-next-action`
+- `구버전 전용 verifier는 현재 command set에서 제거됨`
 - `./server.sh verify-ops-root-cause-panel`
 - `./server.sh verify-ops-client-ui --screenshots`
 - `./server.sh verify-va-runtime-console`
@@ -1102,7 +1102,7 @@ model/source material을 조회/JSON/CSV/Diff JSON export 응답에 노출하지
 검증 기준:
 
 - `./server.sh build`
-- `./server.sh verify-v150-audit-export-review-hardening`
+- `구버전 전용 verifier는 현재 command set에서 제거됨`
 - `./server.sh verify-ops-audit-trail`
 - `./server.sh verify-ops-audit-persistence`
 - `./server.sh verify-auth-users`
@@ -1158,9 +1158,9 @@ release asset 업로드로 해석하지 않게 하는 것입니다.
 검증 기준:
 
 - `./server.sh build`
-- `./server.sh verify-v150-field-smoke-summary-evidence-boundary`
-- `./server.sh verify-v140-report-archive-policy`
-- `./server.sh verify-v150-tracker-reid-stability-matrix`
+- `구버전 전용 verifier는 현재 command set에서 제거됨`
+- `구버전 전용 verifier는 현재 command set에서 제거됨`
+- `구버전 전용 verifier는 현재 command set에서 제거됨`
 - `./server.sh verify-script-inventory`
 - `./server.sh verify-docs-links`
 - `git diff --check`
@@ -1219,7 +1219,7 @@ release asset 업로드로 해석하지 않게 하는 것입니다.
 검증 기준:
 
 - `./server.sh build`
-- `./server.sh verify-v150-oc-sort-experimental-sandbox`
+- `구버전 전용 verifier는 현재 command set에서 제거됨`
 - `./server.sh verify-oc-sort-benchmark-boundary`
 - `./server.sh compare-close-object-tracker --list-experimental-sandboxes`
 - 필요 시
@@ -1260,8 +1260,8 @@ v1.5.0 비범위:
 ### v1.5.0 Follow-up Closure
 
 v1.5.0 roadmap 구현 뒤 남은 후속 항목은
-[v1.5.0 Follow-up Closure](./v1.5.0-follow-up-closure.md)에 분리합니다.
-`verify-v150-follow-up-closure`는 명시 opt-in guard, stability matrix,
+구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)에 분리합니다.
+`구버전 전용 verifier는 현재 command set에서 제거됨`는 명시 opt-in guard, stability matrix,
 Re-ID provenance/fallback approval, Ops warning next-action, audit export review,
 field smoke summary evidence boundary, OC-SORT experimental sandbox가 각각 닫은
 항목과 별도 Phase gate를 구분합니다.
@@ -1320,8 +1320,8 @@ v1.4.0 close-object/field-driving report 보존 기준은
 Ops Dashboard의 트래킹 이슈 그룹은 warning을 default-on 근거로 과장하지 않도록
 샘플 message와 association/overlap/missed/direction 요약을 함께 표시합니다.
 v1.4.0 범위 안 후속 이슈 종료 판정은
-[v1.4.0 Follow-up Closure](./v1.4.0-follow-up-closure.md)에 분리합니다.
-`verify-v140-follow-up-closure`는 Re-ID warning history, report archive policy,
+구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)에 분리합니다.
+`구버전 전용 verifier는 현재 command set에서 제거됨`는 Re-ID warning history, report archive policy,
 tracker warning dashboard summary가 닫혔고 default-on/benchmark gate가 별도
 Phase로 남는지 확인합니다.
 
@@ -1891,8 +1891,8 @@ runtime/model bundle 포함은 별도 Phase 후보이며 이 항목의 잔여가
 ### v1.3.0 Follow-up Closure
 
 v1.3.0 roadmap 기능 개발 이후 남은 후속 항목은
-[v1.3.0 Follow-up Closure](./v1.3.0-follow-up-closure.md)에 분리합니다.
-`verify-v130-follow-up-closure`는 실제 Re-ID model field review, field sample
+구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)에 분리합니다.
+`구버전 전용 verifier는 현재 command set에서 제거됨`는 실제 Re-ID model field review, field sample
 반복 수집 정책, tracker 교체 후보 조사, model/runtime bundle 정책, Re-ID privacy
 threat model을 별도 Phase gate 또는 release/field/manual approval gate로
 분리하고, v1.3.0 안에 개발 가능한 후속 이슈가 남지 않았는지 정적으로 확인합니다.
@@ -1926,8 +1926,8 @@ RTSP/WebRTC media path, auth/session contract 변경은 별도 review 없이는 
 ### v1.2.1 Follow-up Closure
 
 v1.2.1 roadmap 완료 뒤 남은 후속 항목은
-[v1.2.1 Follow-up Closure](./v1.2.1-follow-up-closure.md)에 분리합니다.
-`verify-v121-follow-up-closure`는 release 운영 gate, 외부 장비/credential gate,
+구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)에 분리합니다.
+`구버전 전용 verifier는 현재 command set에서 제거됨`는 release 운영 gate, 외부 장비/credential gate,
 수동 승인 gate를 개발 완료로 과장하지 않으면서 로드맵 내 개발 가능한 후속 이슈가
 남지 않았는지 확인합니다.
 2026-05-17 보강 UI 점검에서 확인한 320px product shell overflow/toolbar 정렬

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v1.7.0 Rule Event Review Inbox의 state/API/UI/audit 경계를 검증한다.
+// 파일 용도: Rule Event Review Inbox의 state/API/UI/audit 경계를 검증한다.
 
 import fs from "node:fs";
 import process from "node:process";
@@ -56,8 +56,8 @@ check("ops/client UI smoke tracks event review inbox", () => {
 });
 
 check("server command is registered", () => {
-  assertIncludes(serverSh, "verify-v170-event-review-inbox", "server.sh command");
-  assertIncludes(serverSh, "verify_v170_event_review_inbox.mjs", "server.sh script target");
+  assertIncludes(serverSh, "verify-ops-event-review-inbox", "server.sh command");
+  assertIncludes(serverSh, "verify_ops_event_review_inbox.mjs", "server.sh script target");
 });
 
 if (args.roundtripSmoke) {
@@ -70,13 +70,13 @@ if (args.browserSmoke) {
 
 if (failures.length > 0) {
   console.log("");
-  console.log("== v1.7.0 Event Review Inbox 실패 ==");
+  console.log("== Event Review Inbox 실패 ==");
   for (const failure of failures) console.log(`- ${failure}`);
   process.exit(1);
 }
 
 console.log("");
-console.log("== v1.7.0 Event Review Inbox 통과 ==");
+console.log("== Event Review Inbox 통과 ==");
 
 function readText(path) {
   return fs.readFileSync(path, "utf8");
@@ -160,7 +160,7 @@ async function runRoundtripSmoke() {
   await checkAsync("roundtrip smoke health is reachable", async () => {
     await requestJson("/health");
   });
-  const eventId = `v170-review-${Date.now()}-${process.pid}`;
+  const eventId = `event-review-${Date.now()}-${process.pid}`;
   await checkAsync("review state update redacts sensitive note", async () => {
     const { json, text } = await requestJson(`/ops/api/events/reviews/${encodeURIComponent(eventId)}`, {
       method: "PUT",

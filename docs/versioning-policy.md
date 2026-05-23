@@ -13,7 +13,8 @@
   incident timeline, alert delivery, scenario builder, Ops/Client declutter는
   현재 UI-first 제품 baseline으로 유지합니다.
 - 현재 제품 경계와 v1.8.0 종료 판정은 [development-backlog.md](./development-backlog.md)를
-  기준으로 합니다. v1.6.0 release evidence 문서는 historical evidence로 유지합니다.
+  기준으로 합니다. 구버전 release evidence는 현재 release pass/fail 기준으로
+  재사용하지 않습니다.
 
 ## `v1.8.0`에 포함되는 범위
 
@@ -30,24 +31,24 @@
 - source-only release packaging rehearsal과 bundle policy dry-run
 - Re-ID/advanced tracking default-off 실험 guard
 - YouTube import/source lab-only 현상 유지 결정
-- v1.3.0 runtime operations console, ONVIF field smoke gate, source health incident
-  workflow, Client Live accessibility/mobile polish, Rule/Scenario preset quality,
-  audit trail operations, release/visual baseline automation, Re-ID default-off
-  research continuation과 follow-up closure
+- runtime operations console, ONVIF field smoke gate, source health incident workflow,
+  Client Live accessibility/mobile polish, Rule/Scenario preset quality, audit trail
+  operations, release/visual baseline automation, Re-ID default-off research
+  continuation과 follow-up closure
 - rule-level `analysis.trackingPolicy`와 Ops Rules tracker/Re-ID 선택 UI
 - Kalman-lite/ByteTrack rule-level opt-in tracker
 - Re-ID assist default-off runtime fallback, warning history, privacy/release guard
 - close-object report archive policy와 tracker warning dashboard summary
-- v1.4.0 follow-up closure
-- v1.5.0 explicit tracker/Re-ID opt-in guard
+- rule-level tracker/Re-ID follow-up closure
+- explicit tracker/Re-ID opt-in guard
 - Tracker/Re-ID stability matrix와 default-on 비승격 경계
 - Re-ID opt-in model provenance/checksum/fallback approval
 - Ops Dashboard tracker warning next-action refinement
 - Audit export review hardening과 model/source material masking
 - Field smoke summary evidence boundary
 - OC-SORT manifest-only experimental sandbox
-- v1.5.0 follow-up closure
-- v1.6.0 release evidence dashboard와 stability gate cleanup
+- tracker/Re-ID follow-up closure
+- release evidence dashboard와 stability gate cleanup
 - Client/Ops debug exposure regression guard
 - Tracker/Re-ID opt-in stabilization close-out
 - ONVIF field smoke evidence reconciliation

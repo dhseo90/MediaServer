@@ -35,7 +35,7 @@ card, button, form, table, badge는 같은 semantic color 규칙을 공유합니
 제품 shell에 직접 노출하지 않고 API와 검증 명령에서 확인합니다.
 client/viewer shell에는 내부 진단 응답, debug 정보, developer/source URL을 노출하지 않습니다.
 
-v1.2.0에서 도입되어 v1.3.0에서도 유지되는 product shell은 ERP/운영 콘솔형 밀도를 따릅니다.
+v1.8.0에서 도입되어 v1.8.0에서도 유지되는 product shell은 ERP/운영 콘솔형 밀도를 따릅니다.
 상단에는 compact brand/nav/account header를 두고,
 본문은 metric card, dense table, form section, right/detail panel을 같은
 8px 이하 radius와 semantic token으로 맞춥니다. 장식용 hero, 큰 카드 나열,
@@ -50,7 +50,7 @@ v1.2.0에서 도입되어 v1.3.0에서도 유지되는 product shell은 ERP/운�
 
 ### 1.1 Design token/component inventory
 
-v1.2.0 이후, 현재 v1.8.0까지의 UI 변경은 아래 inventory를 기준으로 합니다.
+v1.8.0 이후, 현재 v1.8.0까지의 UI 변경은 아래 inventory를 기준으로 합니다.
 새 색상, radius, spacing, shadow, table row, detail panel, client tile을 추가하기 전에
 먼저 같은 계층의 기존 token/class/helper로 표현할 수 있는지 확인합니다.
 
@@ -454,12 +454,12 @@ client/viewer shell과 client API에는 source URL, raw JSON, debug counter,
 `analysisTapId`, Scenario Timeline debug object를 노출하지 않습니다.
 raw JSON이 필요한 경우에도 운영자 debug details 접힘 영역 또는
 개발/검증 API에서만 확인합니다.
-v1.6.0 client debug/source/model/auth material 비노출 guard는
-[v1.6.0 Client/Ops Debug Exposure Regression Guard](./v1.6.0-debug-exposure-regression-guard.md)와
-`./server.sh verify-v160-debug-exposure-regression-guard`로 확인합니다.
-v1.6.0 audit/export masking regression guard는
-[v1.6.0 Audit Export Masking Regression Hardening](./v1.6.0-audit-export-masking-regression-hardening.md)와
-`./server.sh verify-v160-audit-export-masking-regression-hardening`로 확인합니다.
+v1.8.0 client debug/source/model/auth material 비노출 guard는
+구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)와
+`구버전 전용 verifier는 현재 command set에서 제거됨`로 확인합니다.
+v1.8.0 audit/export masking regression guard는
+구버전 전용 close-out 문서(현재 v1.8.0 문서 세트에서 제거됨)와
+`구버전 전용 verifier는 현재 command set에서 제거됨`로 확인합니다.
 
 ## 3. Admin User Management
 
@@ -520,15 +520,15 @@ UI/API 응답에 노출하지 않습니다.
   변경 이력 패널은 검색, 작업자/사용자/대상/action/기간 필터,
   offset 기반 이전/다음 페이지, JSON/CSV export, Diff JSON export,
   전/후 diff 상세 모달을 공통으로 제공합니다.
-  v1.5.0 `Audit export review hardening` 이후 룰 감사 항목은 Tracker/Re-ID
+  v1.8.0 `Audit export review hardening` 이후 룰 감사 항목은 Tracker/Re-ID
   전/후 설정과 model/fallback status-only 값을 review chip으로 표시합니다.
   model/source material, source URL/URI/file, model path/checksum/provenance,
   raw media/crop/embedding은 서버 조회와 JSON/CSV/Diff JSON export, 브라우저
   fallback cache에서 `[redacted]`로 유지합니다.
-  이 경계는 `verify-v150-audit-export-review-hardening`으로 확인합니다.
-  v1.6.0 `Audit Export Masking Regression Hardening`은 여기에 auth/session,
+  이 경계는 `구버전 전용 verifier는 현재 command set에서 제거됨`으로 확인합니다.
+  v1.8.0 `Audit Export Masking Regression Hardening`은 여기에 auth/session,
   password/token/hash/secret/credential/capability material 비노출 guard를 더해
-  `verify-v160-audit-export-masking-regression-hardening`으로 확인합니다.
+  `구버전 전용 verifier는 현재 command set에서 제거됨`으로 확인합니다.
   채널/사용자 변경 이력 필터는 작은 화면에서 table/action 영역을
   침범하지 않는 별도 responsive contract입니다. 320/390px 기준으로
   시작/종료 input은 `min-width: 0` 흐름 안에서 한 줄 또는 다음 줄로

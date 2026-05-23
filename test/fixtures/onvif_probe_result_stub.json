@@ -1,6 +1,6 @@
 {
   "schema": "media-server.onvif-probe-result-stub.v1",
-  "description": "Synthetic ONVIF field probe result fixture for v1.2.0 live source integration. It fixes an internal probe-to-draft contract and is not a product API contract.",
+  "description": "Synthetic ONVIF field probe result fixture for v1.8.0 live source integration. It fixes an internal probe-to-draft contract and is not a product API contract.",
   "probe": {
     "mode": "manual-endpoint",
     "endpoint": "http://192.0.2.20/onvif/device_service",

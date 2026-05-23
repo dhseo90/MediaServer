@@ -43,7 +43,7 @@ check("protocol support matrix names supported ONVIF live-source scope", () => {
     "제한 지원",
     "Profile S/T 전체 conformance",
     "ONVIF Device service SOAP",
-    "v1.2.0 Profile S/T live source 제한 지원",
+    "v1.8.0 Profile S/T live source 제한 지원",
     "`http://` 또는 OpenSSL 빌드의 `https://` Device service endpoint",
     "`GetServices`",
     "ONVIF Media2 service SOAP",

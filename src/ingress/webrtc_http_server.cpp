@@ -9375,7 +9375,7 @@ std::string DispatchOpsAlertDeliveryFixture(const app::AppConfig& config,
     const std::string wanted_id = Trim(ParseStringField(body, "id").value_or(
         ParseStringField(body, "deliveryId").value_or("")));
     const std::string event_id = Trim(ParseStringField(body, "eventId").value_or(
-        "v170-alert-fixture-" + std::to_string(NowUnixMs())));
+        "alert-fixture-" + std::to_string(NowUnixMs())));
     const std::string event_type =
         Trim(ParseStringField(body, "eventType").value_or("intrusion"));
     const std::string source_id = Trim(ParseStringField(body, "sourceId").value_or("sample"));

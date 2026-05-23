@@ -1,6 +1,6 @@
 # Re-ID Tracking Event Hold Analysis
 
-이 문서는 V120-P2-02 Re-ID/advanced tracking experiment의
+이 문서는 V180-current-P2-02 Re-ID/advanced tracking experiment의
 `tracking-event` fixture HOLD 원인을 추적하기 위한 산출물입니다.
 
 확인 기준:
@@ -37,7 +37,7 @@
 해석:
 
 - `tracking-event` historical HOLD는 이번 재검증에서 해소됐습니다.
-- 하지만 전체 V120-P2-02는 `field-new-york-driving=warning`이 남아 있어
+- 하지만 전체 V180-current-P2-02는 `field-new-york-driving=warning`이 남아 있어
   close-object guard default-on 또는 제품 안정 완료 근거로 쓰지 않습니다.
 - 이 문서는 historical HOLD 원인과 해소 재검증을 함께 보관하는 산출물입니다.
 

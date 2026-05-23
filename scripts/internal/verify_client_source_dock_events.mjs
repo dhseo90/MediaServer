@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v1.7.0 Client Live source tree/dock event feed와 viewer-safe redaction 계약을 검증한다.
+// 파일 용도: Client Live source tree/dock event feed와 viewer-safe redaction 계약을 검증한다.
 
 import fs from "node:fs";
 import process from "node:process";
@@ -75,13 +75,13 @@ if (args.browserSmoke) {
 
 if (failures.length > 0) {
   console.log("");
-  console.log("== v1.7.0 Client source dock/events 실패 ==");
+  console.log("== Client source dock/events 실패 ==");
   for (const failure of failures) console.log(`- ${failure}`);
   process.exit(1);
 }
 
 console.log("");
-console.log("== v1.7.0 Client source dock/events 통과 ==");
+console.log("== Client source dock/events 통과 ==");
 
 function parseArgs(rawArgs) {
   const parsed = {

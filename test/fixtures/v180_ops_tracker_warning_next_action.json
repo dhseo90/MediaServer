@@ -1,6 +1,6 @@
 {
-  "schema": "media-server.v150.ops-tracker-warning-next-action-fixture.v1",
-  "description": "Representative Ops Dashboard tracking issue report used to pin v1.5.0 tracker warning next-action copy without changing runtime metadata schemas.",
+  "schema": "media-server.v180.ops-tracker-warning-next-action-fixture.v1",
+  "description": "Representative Ops Dashboard tracking issue report used to pin v1.8.0 tracker warning next-action copy without changing runtime metadata schemas.",
   "issueReport": {
     "schema": "media-server.va.tracking-issue-report.v1",
     "enabled": true,
@@ -13,7 +13,7 @@
       "effectiveTracker": "bytetrack",
       "reid": "assist",
       "source": "rule",
-      "ruleId": "v150-tracker-warning-fixture",
+      "ruleId": "v180-tracker-warning-fixture",
       "specified": true,
       "fallbackReason": ""
     },

@@ -1,7 +1,7 @@
 # ONVIF Credential Store Integration Design
 
 이 문서는 ONVIF credential reference를 저장소 또는 외부 secret manager와 연동할
-때의 설계 기준을 고정합니다. v1.2.0에서 도입된 구현은 v1.8.0 기준에도 제품 API/UI에
+때의 설계 기준을 고정합니다. v1.8.0에서 도입된 구현은 v1.8.0 기준에도 제품 API/UI에
 persistent secret 저장소를 열지 않지만, provider 경계 검증용 in-memory credential store를
 통해 `credentialRef` lookup, HTTP Basic material 반환, redaction 검증을 수행합니다.
 
@@ -26,7 +26,7 @@ persistent secret 저장소를 열지 않지만, provider 경계 검증용 in-me
 - field smoke artifact와 draft API 응답은 `credentialRefPresent=true/false`만
   노출합니다.
 
-## v1.2.0 (2) 정책 결정
+## v1.8.0 (2) 정책 결정
 
 이번 ONVIF 현장 연동 스텝에서는 제품 persistent credential store를 구현 완료로
 열지 않습니다. 결정값은

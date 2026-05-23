@@ -1,7 +1,7 @@
 # ONVIF HTTPS TLS Fixture Harness Design
 
 이 문서는 ONVIF `https://` Device service SOAP transport의 no-device TLS fixture
-harness 기준을 고정합니다. v1.2.0에서 도입된 상태는 v1.8.0 기준에도 fixture-only
+harness 기준을 고정합니다. v1.8.0에서 도입된 상태는 v1.8.0 기준에도 fixture-only
 검증이며, 실장비 HTTPS endpoint 성공으로 보지 않습니다.
 
 관련 기준:
@@ -13,7 +13,7 @@ harness 기준을 고정합니다. v1.2.0에서 도입된 상태는 v1.8.0 기�
 
 ## 현재 경계
 
-- v1.2.0에서 도입된 구현은 v1.8.0 기준에도 loopback fixture TLS server/client를
+- v1.8.0에서 도입된 구현은 v1.8.0 기준에도 loopback fixture TLS server/client를
   실행해 trustedFixtureSuccess와 TLS failure redaction을 검증합니다.
 - production `SendOnvifSoapHttp`의 HTTPS fixture success는
   `verify-onvif-http-transport`에서 OpenSSL 빌드 기준으로 검증합니다.
