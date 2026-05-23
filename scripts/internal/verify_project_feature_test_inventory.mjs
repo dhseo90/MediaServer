@@ -23,6 +23,7 @@ Checks:
   - docs/project-feature-test-inventory.md exists and is linked from docs/README.md
   - inventory lists required current sections, UI routes, closed routes, and comparison/gap states
   - inventory classifies every tracked include/src C++ source module
+  - inventory classifies tracked support artifacts in root/config/.github/video
   - inventory lists every tracked test fixture and docs asset used by verifiers
   - inventory covers current v1.8 route/API surface families from the HTTP server and product UI scripts
   - every current server.sh command appears in the inventory
@@ -58,6 +59,7 @@ check("inventory has required feature/UI/test/comparison sections", () => {
   for (const heading of [
     "## Code Feature Inventory",
     "## Source Module Inventory Audit",
+    "## Support Artifact Inventory Audit",
     "## UI-Accessible Feature Inventory",
     "## UI Action Inventory Audit",
     "## Route/API Surface Audit",
@@ -70,6 +72,31 @@ check("inventory has required feature/UI/test/comparison sections", () => {
     "## Maintenance Rules",
   ]) {
     requireText(inventory, heading, `inventory missing section ${heading}`);
+  }
+});
+
+check("inventory lists every tracked support artifact", () => {
+  for (const heading of [
+    "### Root Governance And Release Metadata",
+    "### GitHub Policy, Templates, And Workflows",
+    "### Config And Policy Inputs",
+    "### Tracked Sample Media",
+  ]) {
+    requireText(inventory, heading, `inventory missing support artifact group ${heading}`);
+  }
+
+  const supportFiles = trackedSupportFiles();
+  const missing = supportFiles.filter(file => !inventory.includes(`\`${file}\``));
+  assert(missing.length === 0, `support artifact inventory missing file(s):\n${missing.join("\n")}`);
+
+  for (const phrase of [
+    "source release, public repo, config, CI, sample media 검증 범위",
+    "verify-actions-security",
+    "verify-bundle-policy",
+    "verify-docs-ui-assets",
+    "모든 sample video의 모든 이벤트를 브라우저에서 전수 확인했다는 evidence는 아직 없습니다",
+  ]) {
+    requireText(inventory, phrase, `support artifact inventory missing phrase: ${phrase}`);
   }
 });
 
@@ -883,6 +910,30 @@ function gitLsFiles(args) {
     .trim()
     .split("\n")
     .filter(Boolean);
+}
+
+function trackedSupportFiles() {
+  const rootSupport = new Set([
+    ".gitignore",
+    "AGENTS.md",
+    "CMakeLists.txt",
+    "CONTRIBUTING.md",
+    "DEPENDENCY_SNAPSHOT.md",
+    "LICENSE",
+    "NOTICE",
+    "README.en.md",
+    "README.md",
+    "SECURITY.md",
+    "THIRD_PARTY_NOTICES.md",
+    "VERSION",
+    "server.sh",
+  ]);
+  return gitLsFiles([]).filter(file =>
+    rootSupport.has(file) ||
+    file.startsWith(".github/") ||
+    file.startsWith("config/") ||
+    file.startsWith("video/")
+  );
 }
 
 function parseServerCommands() {

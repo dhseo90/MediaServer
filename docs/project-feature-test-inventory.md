@@ -122,6 +122,37 @@
   optional source입니다. 기본 `v1.8.0` 제품 빌드 완료 근거로 보지 않습니다.
 - 이 기준은 `./server.sh verify-project-inventory`가 검사합니다.
 
+## Support Artifact Inventory Audit
+
+이 섹션은 `include/`, `src/`, `scripts/`, `test/fixtures`, `docs/assets`가 아닌
+tracked 지원 artifact를 현재 `v1.8.0` 기준으로 분류합니다. 파일이 여기에 없으면
+source release, public repo, config, CI, sample media 검증 범위가 불완전한 것으로
+봅니다.
+
+### Root Governance And Release Metadata
+
+- Files: `.gitignore`, `AGENTS.md`, `CMakeLists.txt`, `CONTRIBUTING.md`, `DEPENDENCY_SNAPSHOT.md`, `LICENSE`, `NOTICE`, `README.md`, `README.en.md`, `SECURITY.md`, `THIRD_PARTY_NOTICES.md`, `VERSION`, `server.sh`
+- 기능: contributor/agent policy, source-only release metadata, license/security/public docs, build target definition, command dispatch entrypoint, ignored runtime/model boundary.
+- UI/Test 비교: 직접 제품 UI 없음. `verify-release-metadata`, `verify-public-repo-readiness`, `verify-actions-security`, `verify-bundle-policy`, `verify-script-inventory`, `verify-project-inventory`가 확인합니다.
+
+### GitHub Policy, Templates, And Workflows
+
+- Files: `.github/CODEOWNERS`, `.github/ISSUE_TEMPLATE/bug_report.yml`, `.github/ISSUE_TEMPLATE/config.yml`, `.github/ISSUE_TEMPLATE/feature_request.yml`, `.github/ISSUE_TEMPLATE/question.yml`, `.github/ISSUE_TEMPLATE/ui_visual_qa.yml`, `.github/PULL_REQUEST_TEMPLATE.md`, `.github/dependabot.yml`, `.github/workflows/licensing-artifact-guardrails.yml`, `.github/workflows/preflight.yml`, `.github/workflows/rc-release-gate.yml`
+- 기능: public repo ownership, issue/PR intake, dependency update policy, preflight/release/security workflow guardrails.
+- UI/Test 비교: 제품 UI 없음. `verify-actions-security`, `verify-public-repo-readiness`, `verify-release-metadata`, `verify-rc-release-gate`가 일부 확인합니다.
+
+### Config And Policy Inputs
+
+- Files: `config/bundle_distribution_policy.json`, `config/code_comment_policy.json`, `config/codec_test_sources.json`, `config/docs_ui_assets.json`, `config/external_uri_sources.example.json`, `config/presets/dev.env.example`, `config/presets/production.env.example`, `config/presets/staging.env.example`, `config/public_repo_policy.json`, `config/third_party_attribution.json`
+- 기능: bundle/source release policy, code comment policy, codec matrix source list, docs UI asset manifest, external source example, environment preset examples, public repo policy, third-party attribution source.
+- UI/Test 비교: 직접 제품 UI 없음. `verify-bundle-policy`, `verify-code-comments`, `verify-codecs`, `verify-docs-ui-assets`, `verify-public-repo-readiness`, `verify-release-metadata`, `write-dependency-notice`, `dependency-snapshot`이 소비합니다.
+
+### Tracked Sample Media
+
+- Files: `video/sample.mp4`, `video/sample_h264.mp4`, `video/sample_h264_video_only.mp4`, `video/sample_h265.mp4`, `video/va_four_scene_sample.mp4`, `video/va_sports_sample.mp4`, `video/imports/va_tracking_event_1280x720_30fps_h264.mp4`
+- 기능: codec/RTSP/WebRTC/VA smoke input, docs screenshot/sample provenance, VA tracking/event replay 보조 media.
+- UI/Test 비교: `/ops/sources`, `/client/live`, `/ops/rules` preview가 file source로 간접 소비합니다. `verify-codecs`, `verify-va`, `verify-redaction`, `verify-va-events`, `verify-rtsp-va-overlay-policy`, `verify-ops-client-ui`가 일부 확인합니다. 모든 sample video의 모든 이벤트를 브라우저에서 전수 확인했다는 evidence는 아직 없습니다.
+
 ## UI-Accessible Feature Inventory
 
 | UI route | 접근 role | 기능 | 자동 검증 | 수동 풀테스트 상태 |
