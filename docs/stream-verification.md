@@ -48,6 +48,7 @@ release candidate gate를 열 때만 명시적으로 실행합니다.
 ./server.sh build
 git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.md .github config docs scripts src include
 ./server.sh verify-script-inventory
+./server.sh verify-project-inventory
 ./server.sh verify-code-comments
 ./server.sh verify-release-metadata
 ./server.sh verify-docs-links

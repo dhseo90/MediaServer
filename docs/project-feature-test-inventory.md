@@ -78,8 +78,8 @@
 
 ### 운영/점검/개발 진입 명령
 
-- `install`, `build`, `start`, `stop`, `restart`, `foreground`
-- `status`, `check`, `diagnose`, `urls`
+- `install`, `build`, `start`, `stop`, `restart`, `foreground`, `run`
+- `status`, `check`, `diagnose`, `urls`, `external-urls`
 - `ops-bundle`, `ops-evidence-cleanup`, `auth-user`
 - `test`, `test --basic`, `test --full`, `test --external`, `test --stable`
 
@@ -103,6 +103,8 @@
 - `verify-ops-source-health-bulk`
 - `verify-ops-channel-bulk`
 - `verify-ops-event-records-scope`
+- `verify-fixture-cleanup-contracts`
+- `verify-flaky-verifiers`
 - `verify-ops-event-review-inbox`
 - `verify-ops-alert-delivery-integrations`
 - `verify-ops-scenario-builder-ui`
@@ -211,6 +213,7 @@
 
 - `verify-code-comments`
 - `verify-script-inventory`
+- `verify-project-inventory`
 - `verify-docs-links`
 - `verify-docs-ui-assets`
 - `verify-manual-ui-evidence`
@@ -275,3 +278,5 @@
   이 문서의 Verification Inventory를 함께 갱신합니다.
 - 구버전 전용 `verify-v*` / `verify_v*` 명령과 script는 현재 command set에 다시
   추가하지 않습니다. `./server.sh verify-script-inventory`가 이를 막아야 합니다.
+- 이 문서 자체의 route/command coverage는 `./server.sh verify-project-inventory`로
+  확인합니다.

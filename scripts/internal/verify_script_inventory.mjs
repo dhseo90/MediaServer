@@ -105,6 +105,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_integrator_contract_artifact.mjs",
     "verify_code_comments.mjs",
     "verify_docs_links.mjs",
+    "verify_project_feature_test_inventory.mjs",
     "verify_manual_ui_evidence.mjs",
     "verify_ops_client_ui_smoke.mjs",
     "verify_product_shell_examples.mjs",
