@@ -772,7 +772,7 @@ check("current-facing markdown outside the backlog archive does not carry pre-v1
     const relative = path.relative(rootDir, file);
     if (relative === "docs/development-backlog.md") continue;
     const text = readText(file);
-    const matches = [...text.matchAll(/v1\.(?:1|2|3|4|5|6|7)(?:\.0|\.1)?/g)].map(match => match[0]);
+    const matches = [...text.matchAll(/\b(?:v)?1\.(?:1|2|3|4|5|6|7)\.(?:0|1)\b/g)].map(match => match[0]);
     if (matches.length > 0) {
       offenders.push(`${relative}: ${[...new Set(matches)].join(", ")}`);
     }
@@ -784,6 +784,11 @@ check("current-facing markdown outside the backlog archive does not carry pre-v1
     inventory,
     "standalone close-out/history 문서는 제거",
     "inventory does not state standalone history docs were removed"
+  );
+  requireText(
+    inventory,
+    "`v1.x.y`처럼 `v`가 붙은 표기와 `1.x.y`처럼 `v`가 없는 bare semantic 구버전",
+    "inventory does not state both v-prefixed and bare old semantic versions are blocked"
   );
 });
 

@@ -698,5 +698,8 @@ ignored runtime 생성물인 `scripts/.media_server.env`, `scripts/**/__pycache_
   이 문서의 Verification Inventory를 함께 갱신합니다.
 - 구버전 전용 `verify-v*` / `verify_v*` 명령과 script는 현재 command set에 다시
   추가하지 않습니다. `./server.sh verify-script-inventory`가 이를 막아야 합니다.
+- [development-backlog.md](./development-backlog.md) archive 밖의 현재-facing 문서에는
+  `v1.x.y`처럼 `v`가 붙은 표기와 `1.x.y`처럼 `v`가 없는 bare semantic 구버전
+  baseline을 모두 쓰지 않습니다.
 - 이 문서 자체의 route family/command coverage는 `./server.sh verify-project-inventory`로
   확인합니다.
