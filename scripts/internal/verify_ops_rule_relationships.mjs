@@ -30,16 +30,18 @@ const usedIds = new Set([
   ...initial.vaRules.map(item => String(item?.id || "")),
   ...initial.profiles.map(item => String(item?.id || item?.profileId || "")),
 ]);
-const ids = nextNumericIds(usedIds, { count: 5, start: 9901, end: 9999, label: "ops rule relationship id" });
+const ids = nextNumericIds(usedIds, { count: 6, start: 9901, end: 9999, label: "ops rule relationship id" });
 const inactiveProfileId = ids[0];
 const inactiveEventRuleId = ids[1];
 const eventRuleId = ids[2];
 const validVaRuleId = ids[3];
 const invalidVaRuleId = ids[4];
+const mismatchedVaRuleId = ids[5];
 const created = [];
 
 try {
-  const source = pickSource(initial.sources);
+  const { ruleSource: source, view: mismatchedView } = pickSourcePair(initial.sources, initial.views);
+  const mismatchedViewId = String(mismatchedView?.viewId || "");
   await requestJson(`/lab/analysis/profiles/${encodeURIComponent(inactiveProfileId)}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -112,6 +114,44 @@ try {
   );
   console.log("[pass] inactive-template rejected");
 
+  await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(mismatchedVaRuleId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(vaRulePayload(mismatchedVaRuleId, eventRuleId, "1", source)),
+  });
+  created.push({ type: "vaRule", id: mismatchedVaRuleId });
+  console.log(`[pass] relationship-fixture mismatched-source va-rule ${mismatchedVaRuleId}`);
+
+  await requestJson(`/ops/api/views/${encodeURIComponent(mismatchedViewId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(viewPayloadWithRule(mismatchedView, mismatchedVaRuleId)),
+  });
+  created.push({ type: "viewRestore", id: mismatchedViewId, payload: viewRestorePayload(mismatchedView) });
+  console.log(`[pass] relationship-fixture mismatched-source view ${mismatchedViewId}`);
+
+  const sourceMismatchGraph = await loadGraph();
+  expectRelationshipIssue(
+    "source-mismatch",
+    sourceMismatchGraph,
+    `PublishedView ${mismatchedViewId} vaRule ${mismatchedVaRuleId} source mismatch`,
+  );
+
+  await expectHttpError(
+    `/client/api/views/${encodeURIComponent(mismatchedViewId)}/webrtc/session`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ overlayMode: "va-rule", ruleId: mismatchedVaRuleId }),
+    },
+    400,
+    "vaRule source must match PublishedView source",
+  );
+  console.log("[pass] source-mismatch client va-rule session rejected");
+
+  await deleteCreatedItem({ type: "viewRestore", id: mismatchedViewId, payload: viewRestorePayload(mismatchedView) });
+  await deleteCreatedItem({ type: "vaRule", id: mismatchedVaRuleId });
+
   await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(validVaRuleId)}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -125,12 +165,7 @@ try {
   console.log("[summary] ops-rule-relationships complete");
 } finally {
   for (const item of created.reverse()) {
-    const path = item.type === "vaRule"
-      ? `/lab/analysis/va-rules/${encodeURIComponent(item.id)}`
-      : item.type === "profile"
-        ? `/lab/analysis/profiles/${encodeURIComponent(item.id)}`
-      : `/lab/analysis/rules/${encodeURIComponent(item.id)}`;
-    await requestJson(path, { method: "DELETE" }).catch(() => {});
+    await deleteCreatedItem(item);
   }
 }
 
@@ -169,6 +204,14 @@ function assertCleanGraph(label, graph) {
   console.log(`[pass] ${label} published-view default rule belongs to allowed set checked=${stats.viewDefaultRules}`);
   console.log(`[pass] ${label} published-view va-rule references exist checked=${stats.viewRuleRefs}`);
   console.log(`[pass] ${label} published-view va-rule source matches view source checked=${stats.viewRuleSourceMatches}`);
+}
+
+function expectRelationshipIssue(label, graph, expected) {
+  const { issues } = relationshipIssues(graph);
+  if (!issues.some(issue => issue.includes(expected))) {
+    throw new Error(`${label} relationship issue missing: ${expected}\n- ${issues.join("\n- ")}`);
+  }
+  console.log(`[pass] ${label} relationship issue detected`);
 }
 
 function relationshipIssues(graph) {
@@ -246,12 +289,21 @@ function relationshipIssues(graph) {
   return { issues, stats };
 }
 
-function pickSource(sources) {
-  const source = sources.find(item => item?.enabled !== false && sourcePayload(item));
-  if (!source) {
-    throw new Error("no source available for relationship fixture");
+function pickSourcePair(sources, views) {
+  const candidates = sources.filter(item => item?.enabled !== false && sourcePayload(item));
+  const viewsBySourceId = new Map((Array.isArray(views) ? views : [])
+    .filter(view => view?.enabled !== false && String(view?.sourceId || "").trim())
+    .map(view => [String(view.sourceId), view]));
+  for (let leftIndex = 0; leftIndex < candidates.length; leftIndex += 1) {
+    for (let rightIndex = 0; rightIndex < candidates.length; rightIndex += 1) {
+      if (leftIndex === rightIndex) continue;
+      const view = viewsBySourceId.get(String(candidates[rightIndex]?.sourceId || ""));
+      if (view && sourceKeyForSource(candidates[leftIndex]) !== sourceKeyForSource(candidates[rightIndex])) {
+        return { ruleSource: candidates[leftIndex], viewSource: candidates[rightIndex], view };
+      }
+    }
   }
-  return source;
+  throw new Error("two distinct sources with an enabled PublishedView are required for source mismatch fixture");
 }
 
 function profilePayload(id, { enabled = true } = {}) {
@@ -322,6 +374,60 @@ function vaRulePayload(id, templateRuleId, profileId, source) {
     },
     templateStart: { ruleId: templateRuleId },
   };
+}
+
+function viewPayloadWithRule(view, ruleId) {
+  const allowedOverlayModes = new Set([
+    ...(Array.isArray(view?.allowedOverlayModes) ? view.allowedOverlayModes.map(String) : []),
+    "va-rule",
+  ].filter(Boolean));
+  const allowedRuleIds = new Set([
+    ...(Array.isArray(view?.allowedRuleIds) ? view.allowedRuleIds.map(String) : []),
+    String(ruleId),
+  ].filter(Boolean));
+  return {
+    ...viewRestorePayload(view),
+    enabled: true,
+    allowedOverlayModes: Array.from(allowedOverlayModes),
+    defaultRuleId: ruleId,
+    allowedRuleIds: Array.from(allowedRuleIds),
+  };
+}
+
+function viewRestorePayload(view) {
+  return {
+    viewId: String(view?.viewId || ""),
+    sourceId: String(view?.sourceId || ""),
+    displayName: String(view?.displayName || view?.viewId || ""),
+    enabled: view?.enabled !== false,
+    showDashboard: view?.showDashboard !== false,
+    showEvents: view?.showEvents !== false,
+    showMetadataSummary: view?.showMetadataSummary !== false,
+    allowedOverlayModes: Array.isArray(view?.allowedOverlayModes) ? view.allowedOverlayModes.map(String) : [],
+    defaultRuleId: String(view?.defaultRuleId || ""),
+    allowedRuleIds: Array.isArray(view?.allowedRuleIds) ? view.allowedRuleIds.map(String) : [],
+    clientGroups: Array.isArray(view?.clientGroups) ? view.clientGroups.map(String) : [],
+    maxTiles: Number(view?.maxTiles || 1),
+  };
+}
+
+async function deleteCreatedItem(item) {
+  const path = item.type === "vaRule"
+    ? `/lab/analysis/va-rules/${encodeURIComponent(item.id)}`
+    : item.type === "profile"
+      ? `/lab/analysis/profiles/${encodeURIComponent(item.id)}`
+      : item.type === "viewRestore"
+        ? `/ops/api/views/${encodeURIComponent(item.id)}`
+        : `/lab/analysis/rules/${encodeURIComponent(item.id)}`;
+  if (item.type === "viewRestore") {
+    await requestJson(path, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(item.payload),
+    }).catch(() => {});
+    return;
+  }
+  await requestJson(path, { method: "DELETE" }).catch(() => {});
 }
 
 function sourcePayload(source) {

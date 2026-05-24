@@ -117,13 +117,13 @@ const ruleValidationMatrixFixtures = [
   },
   {
     id: "source-mismatch",
-    owner: "ui",
+    owner: "server-ui",
     fixture: {
       view: { viewId: "1", sourceId: "1" },
       vaRule: { id: "10", source: { kind: "file", file: "other.mp4" } },
     },
     uiSnippets: ["source-mismatch"],
-    serverSnippets: [],
+    serverSnippets: ["vaRule source must match PublishedView source"],
     docSnippets: ["source mismatch"],
   },
 ];
