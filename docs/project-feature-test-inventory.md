@@ -329,7 +329,7 @@ Rule scenario/event 발생 검수는 분리합니다.
 | RULE-091 | zone-occupancy cooldown 설정 | 필요 | 필요 | 안정화, UI | cooldown validation과 저장 |
 | RULE-092 | duplicate id 검증 | 필요 | 필요 | 안정화, UI | `/ops/rules` validation panel이 VA rule/event template/profile 중복 ID를 표시하고, 서버 create API가 기존 event template/VA rule ID 재생성을 거부 |
 | RULE-093 | missing template/profile 검증 | 필요 | 필요 | 안정화, UI | `/ops/rules` 저장 전 missing profile과 missing template을 각각 차단하고, 서버가 `analysis.profileId`/`templateStart.ruleId` missing reference 저장을 거부 |
-| RULE-094 | inactive template/profile 검증 | 필요 | 필요 | 안정화, UI | inactive reference가 적용되지 않음 |
+| RULE-094 | inactive template/profile 검증 | 필요 | 필요 | 안정화, UI | `/ops/rules` 저장 전 inactive profile과 inactive template을 각각 차단하고, 서버가 inactive `analysis.profileId`/`templateStart.ruleId` 저장을 거부 |
 | RULE-095 | source mismatch 검증 | 필요 | 필요 | 안정화, UI | source mismatch가 저장/apply 단계에서 거부 |
 | RULE-096 | inactive channel/View 검증 | 필요 | 필요 | 안정화, UI | inactive source/view로 session/rule 적용 불가 |
 | RULE-097 | client view 권한 없음 검증 | 필요 | 필요 | 안정화, UI | viewer가 권한 없는 rule/view를 보지 못함 |

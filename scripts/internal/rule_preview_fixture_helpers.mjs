@@ -4,12 +4,13 @@
 export async function ensureRulePreviewPrerequisites({
   httpBase,
   includeVaRule = false,
+  includeInactiveReferences = false,
   profileStart = 9901,
   ruleStart = 9911,
   vaRuleStart = 9921,
 } = {}) {
   if (!httpBase) throw new Error("httpBase is required");
-  const created = { profileId: "", ruleId: "", vaRuleId: "" };
+  const created = { profileId: "", ruleId: "", vaRuleId: "", inactiveProfileId: "", inactiveRuleId: "" };
   const catalog = await requestJson(httpBase, "/ops/api/rules/catalog");
   const profiles = Array.isArray(catalog.profiles) ? catalog.profiles : [];
   const rules = Array.isArray(catalog.rules) ? catalog.rules : [];
@@ -50,7 +51,35 @@ export async function ensureRulePreviewPrerequisites({
       body: JSON.stringify(rulePreviewVaRulePayload(created.vaRuleId, profileId, ruleId, templateClasses)),
     });
   }
-  return created.profileId || created.ruleId || created.vaRuleId ? created : null;
+  if (includeInactiveReferences) {
+    const inactiveProfileCatalog = await requestJson(httpBase, "/ops/api/rules/catalog");
+    created.inactiveProfileId = findFreeNumericId(
+      [inactiveProfileCatalog.profiles, inactiveProfileCatalog.rules, inactiveProfileCatalog.vaRules],
+      profileStart + 100,
+    );
+    await requestJson(httpBase, `/lab/analysis/profiles/${encodeURIComponent(created.inactiveProfileId)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(rulePreviewProfilePayload(created.inactiveProfileId, { enabled: false })),
+    });
+    const inactiveRuleCatalog = await requestJson(httpBase, "/ops/api/rules/catalog");
+    created.inactiveRuleId = findFreeNumericId(
+      [inactiveRuleCatalog.profiles, inactiveRuleCatalog.rules, inactiveRuleCatalog.vaRules],
+      ruleStart + 100,
+    );
+    await requestJson(httpBase, `/lab/analysis/rules/${encodeURIComponent(created.inactiveRuleId)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(rulePreviewEventTemplatePayload(
+        created.inactiveRuleId,
+        findFirstProfileId(inactiveRuleCatalog) || "1",
+        { enabled: false },
+      )),
+    });
+  }
+  return created.profileId || created.ruleId || created.vaRuleId || created.inactiveProfileId || created.inactiveRuleId
+    ? created
+    : null;
 }
 
 export async function cleanupRulePreviewPrerequisites({ httpBase, created } = {}) {
@@ -58,8 +87,14 @@ export async function cleanupRulePreviewPrerequisites({ httpBase, created } = {}
   if (created.vaRuleId) {
     await requestJson(httpBase, `/lab/analysis/va-rules/${encodeURIComponent(created.vaRuleId)}`, { method: "DELETE" }).catch(() => {});
   }
+  if (created.inactiveRuleId) {
+    await requestJson(httpBase, `/lab/analysis/rules/${encodeURIComponent(created.inactiveRuleId)}`, { method: "DELETE" }).catch(() => {});
+  }
   if (created.ruleId) {
     await requestJson(httpBase, `/lab/analysis/rules/${encodeURIComponent(created.ruleId)}`, { method: "DELETE" }).catch(() => {});
+  }
+  if (created.inactiveProfileId) {
+    await requestJson(httpBase, `/lab/analysis/profiles/${encodeURIComponent(created.inactiveProfileId)}`, { method: "DELETE" }).catch(() => {});
   }
   if (created.profileId) {
     await requestJson(httpBase, `/lab/analysis/profiles/${encodeURIComponent(created.profileId)}`, { method: "DELETE" }).catch(() => {});
@@ -122,9 +157,10 @@ function findFreeNumericId(groups, start) {
   throw new Error(`failed to allocate temporary rule preview id from ${start}`);
 }
 
-function rulePreviewProfilePayload(id) {
+function rulePreviewProfilePayload(id, { enabled = true } = {}) {
   return {
     id,
+    enabled,
     detector: "yolo",
     fps: 6,
     maxQueue: 1,
@@ -136,10 +172,10 @@ function rulePreviewProfilePayload(id) {
   };
 }
 
-function rulePreviewEventTemplatePayload(id, profileId) {
+function rulePreviewEventTemplatePayload(id, profileId, { enabled = true } = {}) {
   return {
     id,
-    enabled: true,
+    enabled,
     match: { sourceKind: "*", route: "*" },
     analysis: { profileId, classes: ["person"] },
     event: {

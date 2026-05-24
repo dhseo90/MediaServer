@@ -48,7 +48,7 @@ if (!chromePath) {
   process.exit(1);
 }
 
-const seededPrereqs = await ensureRulePreviewPrerequisites({ httpBase });
+const seededPrereqs = await ensureRulePreviewPrerequisites({ httpBase, includeInactiveReferences: true });
 const browser = await openBrowserPage({
   httpBase,
   pagePath: "/ops/rules",
@@ -61,7 +61,7 @@ const browser = await openBrowserPage({
 });
 
 try {
-  const result = await browser.evaluate(buildRulesOpenExpression(), timeoutMs);
+  const result = await browser.evaluate(buildRulesOpenExpression(seededPrereqs), timeoutMs);
   if (!result?.ok) {
     throw new Error(JSON.stringify(result));
   }
@@ -161,9 +161,13 @@ async function assertMobileGeometryPreview(browser, timeoutMs) {
   return result;
 }
 
-function buildRulesOpenExpression() {
+function buildRulesOpenExpression(seededPrereqs = {}) {
+  const inactiveProfileId = JSON.stringify(seededPrereqs?.inactiveProfileId || "");
+  const inactiveRuleId = JSON.stringify(seededPrereqs?.inactiveRuleId || "");
   return `
     (async () => {
+      const inactiveProfileId = ${inactiveProfileId};
+      const inactiveRuleId = ${inactiveRuleId};
       const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
       const fail = (message, extra = {}) => ({ ok: false, message, ...extra });
       const visible = (node) => Boolean(node) && !node.hidden && getComputedStyle(node).display !== 'none';
@@ -331,6 +335,98 @@ function buildRulesOpenExpression() {
         return fail('pre-save validation did not block invalid template', preSaveMissingTemplateValidation);
       }
 
+      const preSaveInactiveProfileValidation = await (async () => {
+        if (!inactiveProfileId) return { ok: false, message: 'missing inactive profile fixture id' };
+        const profileSelect = document.getElementById('opsVaRuleProfileSelect');
+        const templateSelect = document.getElementById('opsVaRuleTemplateSeedSelect');
+        const saveButton = document.getElementById('opsRulesComposerSave');
+        if (!profileSelect || !templateSelect || !saveButton) {
+          return { ok: false, message: 'missing profile select, template select, or save button' };
+        }
+        const validTemplateOption = Array.from(templateSelect.options).find(item => item.value && item.value !== inactiveRuleId);
+        if (validTemplateOption) {
+          templateSelect.value = validTemplateOption.value;
+          templateSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        const originalProfileValue = profileSelect.value;
+        profileSelect.value = inactiveProfileId;
+        profileSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        const attemptedWrites = [];
+        const originalFetch = window.fetch.bind(window);
+        window.fetch = (input, init = {}) => {
+          const url = String(typeof input === 'string' ? input : (input?.url || ''));
+          const method = String(init?.method || input?.method || 'GET').toUpperCase();
+          if (method !== 'GET' && url.includes('/lab/analysis/va-rules/')) {
+            attemptedWrites.push(method + ' ' + url);
+            return Promise.reject(new Error('blocked test va-rule write'));
+          }
+          return originalFetch(input, init);
+        };
+        try {
+          saveButton.click();
+          await wait(700);
+        } finally {
+          window.fetch = originalFetch;
+          profileSelect.value = originalProfileValue || '1';
+          profileSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        const statusText = status?.textContent || '';
+        const ok = attemptedWrites.length === 0 &&
+          statusText.includes('저장 전 검증 실패') &&
+          statusText.includes('분석 프로파일') &&
+          statusText.includes('비활성');
+        return { ok, attemptedWrites, statusText, inactiveProfileId };
+      })();
+      if (!preSaveInactiveProfileValidation.ok) {
+        return fail('pre-save validation did not block inactive profile', preSaveInactiveProfileValidation);
+      }
+
+      const preSaveInactiveTemplateValidation = await (async () => {
+        if (!inactiveRuleId) return { ok: false, message: 'missing inactive template fixture id' };
+        const profileSelect = document.getElementById('opsVaRuleProfileSelect');
+        const templateSelect = document.getElementById('opsVaRuleTemplateSeedSelect');
+        const saveButton = document.getElementById('opsRulesComposerSave');
+        if (!profileSelect || !templateSelect || !saveButton) {
+          return { ok: false, message: 'missing profile select, template select, or save button' };
+        }
+        const validProfileOption = Array.from(profileSelect.options).find(item => item.value && item.value !== inactiveProfileId);
+        if (validProfileOption) {
+          profileSelect.value = validProfileOption.value;
+          profileSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        const originalTemplateValue = templateSelect.value;
+        templateSelect.value = inactiveRuleId;
+        templateSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        const attemptedWrites = [];
+        const originalFetch = window.fetch.bind(window);
+        window.fetch = (input, init = {}) => {
+          const url = String(typeof input === 'string' ? input : (input?.url || ''));
+          const method = String(init?.method || input?.method || 'GET').toUpperCase();
+          if (method !== 'GET' && url.includes('/lab/analysis/va-rules/')) {
+            attemptedWrites.push(method + ' ' + url);
+            return Promise.reject(new Error('blocked test va-rule write'));
+          }
+          return originalFetch(input, init);
+        };
+        try {
+          saveButton.click();
+          await wait(700);
+        } finally {
+          window.fetch = originalFetch;
+          templateSelect.value = originalTemplateValue;
+          templateSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        const statusText = status?.textContent || '';
+        const ok = attemptedWrites.length === 0 &&
+          statusText.includes('저장 전 검증 실패') &&
+          statusText.includes('이벤트 템플릿') &&
+          statusText.includes('비활성');
+        return { ok, attemptedWrites, statusText, inactiveRuleId };
+      })();
+      if (!preSaveInactiveTemplateValidation.ok) {
+        return fail('pre-save validation did not block inactive template', preSaveInactiveTemplateValidation);
+      }
+
       click('opsAddEventRuleBtn');
       await wait(400);
       if (!visible(eventSection) || visible(vaSection) || visible(detailPanel)) {
@@ -445,6 +541,8 @@ function buildRulesOpenExpression() {
         optionTexts,
         preSaveValidation,
         preSaveMissingTemplateValidation,
+        preSaveInactiveProfileValidation,
+        preSaveInactiveTemplateValidation,
         presetQuality,
         navHref: Array.from(document.querySelectorAll('a[href="/ops/users"]')).find(node => visible(node))?.getAttribute('href') || '',
         statusText: status?.textContent || ''

@@ -30,14 +30,32 @@ const usedIds = new Set([
   ...initial.vaRules.map(item => String(item?.id || "")),
   ...initial.profiles.map(item => String(item?.id || item?.profileId || "")),
 ]);
-const ids = nextNumericIds(usedIds, { count: 3, start: 9901, end: 9999, label: "ops rule relationship id" });
-const eventRuleId = ids[0];
-const validVaRuleId = ids[1];
-const invalidVaRuleId = ids[2];
+const ids = nextNumericIds(usedIds, { count: 5, start: 9901, end: 9999, label: "ops rule relationship id" });
+const inactiveProfileId = ids[0];
+const inactiveEventRuleId = ids[1];
+const eventRuleId = ids[2];
+const validVaRuleId = ids[3];
+const invalidVaRuleId = ids[4];
 const created = [];
 
 try {
   const source = pickSource(initial.sources);
+  await requestJson(`/lab/analysis/profiles/${encodeURIComponent(inactiveProfileId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(profilePayload(inactiveProfileId, { enabled: false })),
+  });
+  created.push({ type: "profile", id: inactiveProfileId });
+  console.log(`[pass] relationship-fixture inactive-profile ${inactiveProfileId}`);
+
+  await requestJson(`/lab/analysis/rules/${encodeURIComponent(inactiveEventRuleId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(eventTemplatePayload(inactiveEventRuleId, { enabled: false })),
+  });
+  created.push({ type: "rule", id: inactiveEventRuleId });
+  console.log(`[pass] relationship-fixture inactive-template ${inactiveEventRuleId}`);
+
   await requestJson(`/lab/analysis/rules/${encodeURIComponent(eventRuleId)}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -70,6 +88,30 @@ try {
   );
   console.log("[pass] missing-template rejected");
 
+  await expectHttpError(
+    `/lab/analysis/va-rules/${encodeURIComponent(invalidVaRuleId)}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(vaRulePayload(invalidVaRuleId, eventRuleId, inactiveProfileId, source)),
+    },
+    400,
+    "vaRule analysis.profileId is inactive",
+  );
+  console.log("[pass] inactive-profile rejected");
+
+  await expectHttpError(
+    `/lab/analysis/va-rules/${encodeURIComponent(invalidVaRuleId)}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(vaRulePayload(invalidVaRuleId, inactiveEventRuleId, "1", source)),
+    },
+    400,
+    "vaRule templateStart.ruleId is inactive",
+  );
+  console.log("[pass] inactive-template rejected");
+
   await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(validVaRuleId)}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -85,6 +127,8 @@ try {
   for (const item of created.reverse()) {
     const path = item.type === "vaRule"
       ? `/lab/analysis/va-rules/${encodeURIComponent(item.id)}`
+      : item.type === "profile"
+        ? `/lab/analysis/profiles/${encodeURIComponent(item.id)}`
       : `/lab/analysis/rules/${encodeURIComponent(item.id)}`;
     await requestJson(path, { method: "DELETE" }).catch(() => {});
   }
@@ -210,10 +254,24 @@ function pickSource(sources) {
   return source;
 }
 
-function eventTemplatePayload(id) {
+function profilePayload(id, { enabled = true } = {}) {
   return {
     id,
-    enabled: true,
+    enabled,
+    detector: "yolo",
+    fps: 6,
+    maxQueue: 1,
+    confidence: 0.25,
+    nms: 0.45,
+    trackingClasses: ["person"],
+    analysis: { classes: ["person"] },
+  };
+}
+
+function eventTemplatePayload(id, { enabled = true } = {}) {
+  return {
+    id,
+    enabled,
     ruleKind: "scenario",
     analysis: { classes: ["person"] },
     event: {
