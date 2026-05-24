@@ -41,6 +41,8 @@ const uiNeedles = [
   ["zone occupancy preset helper copy", '점유 preset은 polygon이 병목 구간만 포함한다는 전제입니다.'],
   ["zone occupancy threshold input", 'id="opsEventRuleZoneThresholdInput" type="number" min="1" step="1" placeholder="4"'],
   ["zone occupancy dwell input", 'id="opsEventRuleZoneDwellInput" type="number" min="0" step="1000" placeholder="7000"'],
+  ["loitering ground-plane field", 'id="opsEventRuleLoiteringGroundPlaneField"'],
+  ["loitering ground-plane toggle", 'id="opsEventRuleLoiteringGroundPlaneToggle" type="checkbox"'],
 ];
 for (const [label, needle] of uiNeedles) {
   if (!rulesHtml.includes(needle)) {
@@ -74,6 +76,7 @@ const fixtures = [
         minDwellTimeMs: 30000,
         maxMovementRadius: 0.08,
         minTrajectoryPoints: 4,
+        useGroundPlaneMovementRadius: true,
         cooldownMs: 12000,
         targetClasses: ["person"],
       },
@@ -83,6 +86,7 @@ const fixtures = [
       "scenario.minDwellTimeMs": 30000,
       "scenario.maxMovementRadius": 0.08,
       "scenario.minTrajectoryPoints": 4,
+      "scenario.useGroundPlaneMovementRadius": true,
       "scenario.cooldownMs": 12000,
     },
   },

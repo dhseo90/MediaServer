@@ -322,7 +322,7 @@ Rule scenario/event 발생 검수는 분리합니다.
 | RULE-084 | loitering movement radius 설정 | 필요 | 필요 | 안정화, UI | radius validation과 저장 |
 | RULE-085 | loitering trajectory points 설정 | 필요 | 필요 | 안정화, UI | min points validation과 저장 |
 | RULE-086 | loitering cooldown 설정 | 필요 | 필요 | 안정화, UI | cooldown validation과 저장 |
-| RULE-087 | loitering ground-plane 옵션 | 필요 | 필요 | 안정화, UI | option 표시/저장 또는 비지원 상태 명확화 |
+| RULE-087 | loitering ground-plane 옵션 | 필요 | 필요 | 안정화, UI | `/ops/rules` loitering form의 ground-plane toggle이 표시되고 `scenario.useGroundPlaneMovementRadius` 저장/재조회에 반영 |
 | RULE-088 | zone-occupancy target zone 설정 | 필요 | 필요 | 안정화, UI | target zone 저장 |
 | RULE-089 | zone-occupancy threshold 설정 | 필요 | 필요 | 안정화, UI | threshold validation과 저장 |
 | RULE-090 | zone-occupancy min dwell 설정 | 필요 | 필요 | 안정화, UI | min dwell validation과 저장 |

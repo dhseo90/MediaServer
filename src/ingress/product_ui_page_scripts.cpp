@@ -4462,6 +4462,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           if (dwell) parts.push(`체류 ${dwell}`);
           if (radius) parts.push(`반경 ${radius}`);
           if (points) parts.push(`경로점 ${points}`);
+          if (baseline.useGroundPlaneMovementRadius) parts.push('ground-plane');
         } else if (normalizedType === 'zone-occupancy') {
           const threshold = opsRulesPresetNumber(baseline.occupancyThreshold);
           const dwell = opsRulesPresetMs(baseline.minDwellTimeMs);
@@ -4586,6 +4587,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           scenario.minDwellTimeMs = Number(baseline.minDwellTimeMs ?? 30000);
           scenario.maxMovementRadius = Number(baseline.maxMovementRadius ?? 0.08);
           scenario.minTrajectoryPoints = Number(baseline.minTrajectoryPoints ?? 4);
+          scenario.useGroundPlaneMovementRadius = Boolean(baseline.useGroundPlaneMovementRadius ?? false);
           scenario.targetClasses = classes;
           scenario.restrictedZoneIds = [];
         } else if (type === 'zone-occupancy') {
@@ -4947,6 +4949,7 @@ void AppendOpsShellScript(std::ostringstream& out,
               minDwellTimeMs: Number(scenario.minDwellTimeMs ?? scenario.dwellTimeMs ?? baseline.minDwellTimeMs ?? 30000),
               maxMovementRadius: Number(scenario.maxMovementRadius ?? baseline.maxMovementRadius ?? 0.08),
               minTrajectoryPoints: Number(scenario.minTrajectoryPoints ?? baseline.minTrajectoryPoints ?? 4),
+              useGroundPlaneMovementRadius: Boolean(scenario.useGroundPlaneMovementRadius ?? baseline.useGroundPlaneMovementRadius ?? false),
               cooldownMs: Number(scenario.cooldownMs ?? baseline.cooldownMs ?? 12000),
               targetClasses: Array.isArray(scenario.targetClasses) && scenario.targetClasses.length > 0 ? scenario.targetClasses : classes,
               restrictedZoneIds: Array.isArray(scenario.restrictedZoneIds) ? scenario.restrictedZoneIds : []
@@ -5343,6 +5346,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         opsEventRuleToggleField('opsEventRuleTriggerDirectionField', lineAfterMode);
         opsEventRuleToggleField('opsEventRuleLoiteringRadiusField', loiteringMode);
         opsEventRuleToggleField('opsEventRuleLoiteringPointsField', loiteringMode);
+        opsEventRuleToggleField('opsEventRuleLoiteringGroundPlaneField', loiteringMode);
         opsEventRuleToggleField('opsEventRuleZoneThresholdField', zoneOccupancyMode);
         opsEventRuleToggleField('opsEventRuleZoneDwellField', zoneOccupancyMode);
         opsEventRuleToggleField('opsEventRuleCooldownField', mode === 'scenario');
@@ -5358,6 +5362,10 @@ void AppendOpsShellScript(std::ostringstream& out,
           const input = document.getElementById(id);
           if (input && value !== undefined) input.value = String(value);
         };
+        const setChecked = (id, value) => {
+          const input = document.getElementById(id);
+          if (input) input.checked = Boolean(value);
+        };
         setNumber('opsEventRuleConfidenceInput', baseline.minConfidence);
         setNumber('opsEventRuleMinDurationInput', baseline.minDurationMs);
         setNumber('opsEventRuleCooldownInput', baseline.cooldownMs);
@@ -5367,6 +5375,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         setNumber('opsEventRuleLineDelayInput', baseline.maxDelayAfterCrossingMs);
         setNumber('opsEventRuleLoiteringRadiusInput', baseline.maxMovementRadius);
         setNumber('opsEventRuleLoiteringPointsInput', baseline.minTrajectoryPoints);
+        setChecked('opsEventRuleLoiteringGroundPlaneToggle', baseline.useGroundPlaneMovementRadius);
         setNumber('opsEventRuleZoneThresholdInput', baseline.occupancyThreshold);
         setNumber('opsEventRuleZoneDwellInput', baseline.minDwellTimeMs);
       }
@@ -6035,6 +6044,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         document.getElementById('opsEventRuleTriggerDirectionSelect').value = String(scenario?.triggerLine?.direction || 'any');
         document.getElementById('opsEventRuleLoiteringRadiusInput').value = String(scenario?.maxMovementRadius ?? baseline.maxMovementRadius ?? 0.08);
         document.getElementById('opsEventRuleLoiteringPointsInput').value = String(scenario?.minTrajectoryPoints ?? baseline.minTrajectoryPoints ?? 4);
+        document.getElementById('opsEventRuleLoiteringGroundPlaneToggle').checked = Boolean(scenario?.useGroundPlaneMovementRadius ?? baseline.useGroundPlaneMovementRadius ?? false);
         document.getElementById('opsEventRuleZoneThresholdInput').value = String(scenario?.occupancyThreshold ?? baseline.occupancyThreshold ?? 4);
         document.getElementById('opsEventRuleZoneDwellInput').value = String(scenario?.minDwellTimeMs ?? baseline.minDwellTimeMs ?? 7000);
         document.getElementById('opsEventRuleCooldownInput').value = String(scenario?.cooldownMs ?? baseline.cooldownMs ?? 5000);
@@ -6107,6 +6117,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             scenario.minDwellTimeMs = Number(document.getElementById('opsEventRuleDwellInput')?.value || scenario.minDwellTimeMs || 30000);
             scenario.maxMovementRadius = Number(document.getElementById('opsEventRuleLoiteringRadiusInput')?.value || scenario.maxMovementRadius || 0.08);
             scenario.minTrajectoryPoints = Number(document.getElementById('opsEventRuleLoiteringPointsInput')?.value || scenario.minTrajectoryPoints || 4);
+            scenario.useGroundPlaneMovementRadius = Boolean(document.getElementById('opsEventRuleLoiteringGroundPlaneToggle')?.checked);
           } else if (type === 'zone-occupancy') {
             scenario.occupancyThreshold = Number(document.getElementById('opsEventRuleZoneThresholdInput')?.value || scenario.occupancyThreshold || 4);
             scenario.minDwellTimeMs = Number(document.getElementById('opsEventRuleZoneDwellInput')?.value || scenario.minDwellTimeMs || 7000);
@@ -6909,6 +6920,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           if (Number.isFinite(Number(scenario?.maxMovementRadius))) {
             details.push(`반경 ${Number(scenario.maxMovementRadius).toFixed(2)}`);
           }
+          if (scenario?.useGroundPlaneMovementRadius) details.push('ground-plane');
         } else if (type === 'zone-occupancy') {
           if (Number.isFinite(Number(scenario?.occupancyThreshold))) {
             details.push(`임계 ${Number(scenario.occupancyThreshold)}`);

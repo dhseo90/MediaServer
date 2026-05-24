@@ -3045,6 +3045,9 @@ void AppendOpsRulesPage(std::ostringstream& out) {
               <label id="opsEventRuleLoiteringPointsField" hidden>최소 이동 경로 점수
                 <input id="opsEventRuleLoiteringPointsInput" type="number" min="2" step="1" placeholder="4" />
               </label>
+              <label id="opsEventRuleLoiteringGroundPlaneField" hidden>Ground-plane 반경
+                <input id="opsEventRuleLoiteringGroundPlaneToggle" type="checkbox" />
+              </label>
             </div>
             <div class="row">
               <label id="opsEventRuleZoneThresholdField" hidden>점유 임계값

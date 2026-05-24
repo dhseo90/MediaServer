@@ -65,6 +65,18 @@ check("scenario builder applies existing class checks", () => {
   assertIncludes(script, "opsRulesSetSelectedCategories('opsEventRuleClassChecks'", "scenario builder script");
 });
 
+check("loitering ground-plane option is wired through event rule UI", () => {
+  for (const snippet of [
+    'id="opsEventRuleLoiteringGroundPlaneField"',
+    'id="opsEventRuleLoiteringGroundPlaneToggle"',
+    "opsEventRuleToggleField('opsEventRuleLoiteringGroundPlaneField', loiteringMode)",
+    "scenario.useGroundPlaneMovementRadius",
+    "opsEventRuleLoiteringGroundPlaneToggle",
+  ]) {
+    assertIncludes(server + script, snippet, "loitering ground-plane UI");
+  }
+});
+
 check("scenario builder opens existing event rule editor", () => {
   assertIncludes(script, "openOpsRulesEditor('event-rule', 'new')", "scenario builder script");
 });
