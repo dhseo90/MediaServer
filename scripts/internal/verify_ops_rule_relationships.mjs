@@ -30,7 +30,7 @@ const usedIds = new Set([
   ...initial.vaRules.map(item => String(item?.id || "")),
   ...initial.profiles.map(item => String(item?.id || item?.profileId || "")),
 ]);
-const ids = nextNumericIds(usedIds, { count: 9, start: 9901, end: 9999, label: "ops rule relationship id" });
+const ids = nextNumericIds(usedIds, { count: 10, start: 9901, end: 9999, label: "ops rule relationship id" });
 const inactiveProfileId = ids[0];
 const inactiveEventRuleId = ids[1];
 const eventRuleId = ids[2];
@@ -40,6 +40,7 @@ const mismatchedVaRuleId = ids[5];
 const inactiveViewVaRuleId = ids[6];
 const inactiveChannelVaRuleId = ids[7];
 const notAllowedVaRuleId = ids[8];
+const existingConnectionVaRuleId = ids[9];
 const created = [];
 
 try {
@@ -248,6 +249,63 @@ try {
   );
   console.log("[pass] va-rule-not-allowed client session rejected");
   await deleteCreatedItem({ type: "vaRule", id: notAllowedVaRuleId });
+
+  await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(existingConnectionVaRuleId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(vaRulePayload(existingConnectionVaRuleId, eventRuleId, "1", inactiveFixture.source)),
+  });
+  created.push({ type: "vaRule", id: existingConnectionVaRuleId });
+  await requestJson(`/ops/api/views/${encodeURIComponent(inactiveFixtureViewId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(viewPayloadWithRule(inactiveFixture.view, existingConnectionVaRuleId)),
+  });
+  created.push({ type: "viewRestore", id: inactiveFixtureViewId, payload: viewRestorePayload(inactiveFixture.view) });
+  const existingSession = await requestJson(
+    `/client/api/views/${encodeURIComponent(inactiveFixtureViewId)}/webrtc/session`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ overlayMode: "va-rule", ruleId: existingConnectionVaRuleId }),
+    },
+  );
+  const existingSessionId = String(existingSession?.sessionId || "");
+  if (!existingSessionId) {
+    throw new Error("existing-connection-allowed-rule sessionId missing");
+  }
+  created.push({ type: "clientSession", viewId: inactiveFixtureViewId, id: existingSessionId });
+  console.log("[pass] existing-connection-allowed-rule client session created");
+  await requestJson(`/ops/api/views/${encodeURIComponent(inactiveFixtureViewId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(viewRestorePayload(inactiveFixture.view)),
+  });
+  await expectHttpStatus(
+    `/client/api/views/${encodeURIComponent(inactiveFixtureViewId)}/webrtc/session/${encodeURIComponent(existingSessionId)}/ice`,
+    { method: "GET" },
+    200,
+  );
+  console.log("[pass] existing-connection-allowed-rule existing session ICE remains reachable after allowedRuleIds removal");
+  await expectHttpStatus(
+    `/client/api/views/${encodeURIComponent(inactiveFixtureViewId)}/webrtc/session/${encodeURIComponent(existingSessionId)}`,
+    { method: "DELETE" },
+    200,
+  );
+  console.log("[pass] existing-connection-allowed-rule existing session delete allowed after allowedRuleIds removal");
+  await expectHttpError(
+    `/client/api/views/${encodeURIComponent(inactiveFixtureViewId)}/webrtc/session`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ overlayMode: "va-rule", ruleId: existingConnectionVaRuleId }),
+    },
+    400,
+    "allowed vaRule is required for va-rule mode",
+  );
+  console.log("[pass] existing-connection-allowed-rule new session rejected after allowedRuleIds removal");
+  await deleteCreatedItem({ type: "viewRestore", id: inactiveFixtureViewId, payload: viewRestorePayload(inactiveFixture.view) });
+  await deleteCreatedItem({ type: "vaRule", id: existingConnectionVaRuleId });
 
   await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(validVaRuleId)}`, {
     method: "PUT",
@@ -586,13 +644,19 @@ async function deleteCreatedItem(item) {
         ? `/ops/api/views/${encodeURIComponent(item.id)}`
         : item.type === "sourceRestore"
           ? `/ops/api/sources/${encodeURIComponent(item.id)}`
-        : `/lab/analysis/rules/${encodeURIComponent(item.id)}`;
+        : item.type === "clientSession"
+          ? `/client/api/views/${encodeURIComponent(item.viewId)}/webrtc/session/${encodeURIComponent(item.id)}`
+          : `/lab/analysis/rules/${encodeURIComponent(item.id)}`;
   if (item.type === "viewRestore" || item.type === "sourceRestore") {
     await requestJson(path, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(item.payload),
     }).catch(() => {});
+    return;
+  }
+  if (item.type === "clientSession") {
+    await requestJson(path, { method: "DELETE" }).catch(() => {});
     return;
   }
   await requestJson(path, { method: "DELETE" }).catch(() => {});
@@ -661,6 +725,15 @@ async function expectHttpError(path, options, status, errorNeedle) {
     throw new Error(`${path} error did not include ${errorNeedle}: ${message}`);
   }
   return payload;
+}
+
+async function expectHttpStatus(path, options, status) {
+  const response = await fetch(`${httpBase}${path}`, options);
+  const text = await response.text();
+  if (response.status !== status) {
+    throw new Error(`${path} expected HTTP ${status}, got ${response.status}: ${text.slice(0, 160)}`);
+  }
+  return text;
 }
 
 async function requestJson(path, options = {}) {

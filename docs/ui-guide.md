@@ -671,6 +671,10 @@ source 원본 URL, file/url/source override,
 내부 진단 응답, rule/profile 수정 UI는 노출하지 않습니다.
 `va-rule` mode는 PublishedView의 `allowedRuleIds`와
 rule source 일치 검증을 모두 통과해야 합니다.
+검증은 새 client session 생성 시점에 수행하며, 이미 생성된 client session은
+이후 `allowedRuleIds`가 변경되어도 자신의 session alias로 ICE/DELETE를
+마칠 수 있습니다. 같은 rule을 새로 적용하는 요청은 변경된 `allowedRuleIds`를
+다시 검사합니다.
 viewer/client 계정은 직접 `/webrtc/session`, `/whep`, `/whip/publish`
 생성 route를 호출할 수 없습니다.
 
