@@ -696,6 +696,9 @@ run_routes() {
     -X PUT --data "{\"id\":\"13\",\"source\":{${mismatched_rule_source}},\"analysis\":{\"classes\":[\"person\"],\"profileId\":\"1\"},\"templateStart\":{\"ruleId\":\"11\"},\"event\":{\"type\":\"intrusion-dwell\",\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.1,\"y\":0.1},{\"x\":0.9,\"y\":0.1},{\"x\":0.9,\"y\":0.9},{\"x\":0.1,\"y\":0.9}]},\"minConfidence\":0.25,\"minDurationMs\":0}}" \
     "${BASE}/lab/analysis/va-rules/13" >/dev/null
   curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
+    -X PUT --data "{\"id\":\"14\",\"priority\":14,\"source\":{${matching_rule_source}},\"analysis\":{\"classes\":[\"person\"],\"profileId\":\"1\"},\"templateStart\":{\"ruleId\":\"11\"},\"event\":{\"type\":\"intrusion-dwell\",\"region\":{\"type\":\"polygon\",\"points\":[{\"x\":0.1,\"y\":0.1},{\"x\":0.9,\"y\":0.1},{\"x\":0.9,\"y\":0.9},{\"x\":0.1,\"y\":0.9}]},\"minConfidence\":0.25,\"minDurationMs\":0}}" \
+    "${BASE}/lab/analysis/va-rules/14" >/dev/null
+  curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
     -X PUT --data "{\"viewId\":\"1\",\"sourceId\":\"${source_id}\",\"displayName\":\"View 1\",\"defaultRuleId\":\"12\",\"allowedRuleIds\":[\"12\",\"13\"],\"allowedOverlayModes\":[\"raw\",\"va-rule\"],\"enabled\":true}" \
     "${BASE}/ops/api/views/1" >/dev/null
   curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
@@ -834,7 +837,7 @@ run_routes() {
   expect_eq "$(http_code "${BASE}/client/api/views/1/dashboard")" "401" "unauth client dashboard API denied"
   expect_eq "$(http_code -H 'Content-Type: application/json' \
     -X POST --data '{"overlayMode":"raw"}' "${BASE}/client/api/views/1/webrtc/session")" "401" "unauth client WebRTC wrapper denied"
-  local public_request_code client_views_json client_layout_json integrator_views_json
+  local public_request_code client_views_json client_view_detail_json client_layout_json integrator_views_json
   public_request_code="$(http_code -H 'Content-Type: application/json' \
     -X POST --data '{"username":"route-public-request","displayName":"Route Public","contact":"route@example.test","viewId":"1","reason":"route smoke"}' "${BASE}/client/api/access-requests")"
   expect_eq "${public_request_code}" "201" "public access request API remains unauthenticated"
@@ -842,6 +845,19 @@ run_routes() {
   case "${client_views_json}" in
     *'"viewId":"1"'*) pass "viewer assigned view visible in client API" ;;
     *) fail "viewer assigned view missing from client API: ${client_views_json}" ;;
+  esac
+  case "${client_views_json}" in
+    *'"viewId":"1"'*'"defaultRuleId":"12"'*'"allowedRuleIds":["12","13"]'*) pass "SRC-022 viewer client API keeps PublishedView allowedRuleIds list" ;;
+    *) fail "SRC-022 viewer client API allowedRuleIds mismatch: ${client_views_json}" ;;
+  esac
+  case "${client_views_json}" in
+    *'"allowedRuleIds"'*'"14"'*) fail "SRC-022 viewer client API leaked unassigned vaRule 14: ${client_views_json}" ;;
+    *) pass "SRC-022 viewer client API omits unassigned vaRule from allowedRuleIds" ;;
+  esac
+  client_view_detail_json="$(curl -fsS -b "${VIEWER_COOKIE}" "${BASE}/client/api/views/1")"
+  case "${client_view_detail_json}" in
+    *'"viewId":"1"'*'"defaultRuleId":"12"'*'"allowedRuleIds":["12","13"]'*) pass "SRC-022 viewer client detail API keeps PublishedView allowedRuleIds list" ;;
+    *) fail "SRC-022 viewer client detail API allowedRuleIds mismatch: ${client_view_detail_json}" ;;
   esac
   case "${client_views_json}" in
     *'"viewId":"2"'*) fail "viewer unassigned view leaked in client API: ${client_views_json}" ;;

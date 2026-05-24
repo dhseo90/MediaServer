@@ -222,7 +222,7 @@ Rule scenario/event 발생 검수는 분리합니다.
 | SRC-019 | PublishedView 삭제 | 필요 | 필요 | 안정화, UI | 삭제 후 client view와 session 접근 차단 |
 | SRC-020 | PublishedView 활성/비활성 | 필요 | 필요 | 안정화, UI | inactive view가 client/rule/session에서 차단 |
 | SRC-021 | View별 source 연결 | 필요 | 필요 | 안정화, UI | view-source mapping이 client live에 반영 |
-| SRC-022 | View별 allowed rule list | 필요 | 필요 | 안정화, UI | 허용 rule만 client/session metadata에 반영 |
+| SRC-022 | View별 allowed rule list | 필요 | 필요 | 안정화, UI | PublishedView `allowedRuleIds`가 client list/detail API에 유지되고 허용 rule만 client session/metadata에 반영 |
 | SRC-023 | View별 viewer 접근 범위 | 필요 | 필요 | 안정화, UI | viewer별 assigned view만 노출 |
 | SRC-024 | View별 WebRTC client wrapper | 간접 | 필요 | 안정화, UI, 30분 | wrapper session 생성/종료와 media path 확인 |
 | SRC-025 | View별 dashboard | 필요 | 필요 | 안정화, UI | view-scoped dashboard가 assigned data만 표시 |
