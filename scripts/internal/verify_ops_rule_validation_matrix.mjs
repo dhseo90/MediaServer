@@ -94,6 +94,17 @@ const ruleValidationMatrixFixtures = [
     docSnippets: ["unauthorized view"],
   },
   {
+    id: "va-rule-not-allowed",
+    owner: "server-ui",
+    fixture: {
+      view: { viewId: "1", allowedOverlayModes: ["raw", "va-rule"], allowedRuleIds: [] },
+      vaRule: { id: "10", source: { kind: "file", file: "sample_h264.mp4" } },
+    },
+    uiSnippets: ["view-rule-not-allowed", "PublishedView 허용 룰 목록"],
+    serverSnippets: ["allowed vaRule is required for va-rule mode"],
+    docSnippets: ["허용 룰 목록"],
+  },
+  {
     id: "template-class-mismatch",
     owner: "server-ui",
     fixture: {
@@ -162,7 +173,7 @@ check("rule validation matrix has required fixtures", () => {
     assert(Array.isArray(fixture.uiSnippets), `fixture ${fixture.id} has no uiSnippets`);
     assert(Array.isArray(fixture.serverSnippets), `fixture ${fixture.id} has no serverSnippets`);
   }
-  for (const required of ["duplicate-id", "inactive-profile", "missing-profile", "inactive-template", "missing-template", "priority-conflict", "unauthorized-view", "template-class-mismatch", "profile-template-class-mismatch", "inactive-channel", "inactive-view"]) {
+  for (const required of ["duplicate-id", "inactive-profile", "missing-profile", "inactive-template", "missing-template", "priority-conflict", "unauthorized-view", "va-rule-not-allowed", "template-class-mismatch", "profile-template-class-mismatch", "inactive-channel", "inactive-view"]) {
     assert(ids.has(required), `required fixture missing: ${required}`);
   }
 });

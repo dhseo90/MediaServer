@@ -333,7 +333,7 @@ Rule scenario/event 발생 검수는 분리합니다.
 | RULE-095 | source mismatch 검증 | 필요 | 필요 | 안정화, UI | `/ops/rules` validation matrix가 source mismatch를 표시하고, mismatched PublishedView `va-rule` session apply가 `vaRule source must match PublishedView source`로 거부 |
 | RULE-096 | inactive channel/View 검증 | 필요 | 필요 | 안정화, UI | `/ops/rules` validation matrix가 inactive channel/view를 표시하고, inactive PublishedView와 inactive source의 `va-rule` session apply가 각각 404로 거부 |
 | RULE-097 | client view 권한 없음 검증 | 필요 | 필요 | 안정화, UI | viewer가 권한 없는 rule/view를 보지 못함 |
-| RULE-098 | va-rule not allowed 검증 | 필요 | 필요 | 안정화, UI | allowed list 밖 vaRule session이 거부 |
+| RULE-098 | va-rule not allowed 검증 | 필요 | 필요 | 안정화, UI | source는 일치하지만 PublishedView `allowedRuleIds` 밖인 VA rule이 `/ops/rules`에서 표시되고 client `va-rule` session이 `allowed vaRule is required for va-rule mode`로 거부 |
 | RULE-099 | existing connection allowed rule 검증 | 간접 | 필요 | 안정화, 30분 | 연결 중 allowed rule 변경 시 정책대로 유지/차단 |
 | RULE-100 | same channel/priority conflict 검증 | 필요 | 필요 | 안정화, UI | conflict save/apply가 거부됨 |
 | RULE-101 | class mismatch 검증 | 필요 | 필요 | 안정화, UI | class mismatch 상태가 저장/적용 단계에서 차단 |

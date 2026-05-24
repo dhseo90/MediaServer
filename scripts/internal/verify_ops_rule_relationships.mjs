@@ -30,7 +30,7 @@ const usedIds = new Set([
   ...initial.vaRules.map(item => String(item?.id || "")),
   ...initial.profiles.map(item => String(item?.id || item?.profileId || "")),
 ]);
-const ids = nextNumericIds(usedIds, { count: 8, start: 9901, end: 9999, label: "ops rule relationship id" });
+const ids = nextNumericIds(usedIds, { count: 9, start: 9901, end: 9999, label: "ops rule relationship id" });
 const inactiveProfileId = ids[0];
 const inactiveEventRuleId = ids[1];
 const eventRuleId = ids[2];
@@ -39,6 +39,7 @@ const invalidVaRuleId = ids[4];
 const mismatchedVaRuleId = ids[5];
 const inactiveViewVaRuleId = ids[6];
 const inactiveChannelVaRuleId = ids[7];
+const notAllowedVaRuleId = ids[8];
 const created = [];
 
 try {
@@ -227,6 +228,27 @@ try {
   await deleteCreatedItem({ type: "viewRestore", id: inactiveFixtureViewId, payload: viewRestorePayload(inactiveFixture.view) });
   await deleteCreatedItem({ type: "vaRule", id: inactiveChannelVaRuleId });
 
+  await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(notAllowedVaRuleId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(vaRulePayload(notAllowedVaRuleId, eventRuleId, "1", inactiveFixture.source)),
+  });
+  created.push({ type: "vaRule", id: notAllowedVaRuleId });
+  const notAllowedGraph = await loadGraph();
+  expectVaRuleNotAllowed(notAllowedGraph, notAllowedVaRuleId, inactiveFixtureViewId);
+  await expectHttpError(
+    `/client/api/views/${encodeURIComponent(inactiveFixtureViewId)}/webrtc/session`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ overlayMode: "va-rule", ruleId: notAllowedVaRuleId }),
+    },
+    400,
+    "allowed vaRule is required for va-rule mode",
+  );
+  console.log("[pass] va-rule-not-allowed client session rejected");
+  await deleteCreatedItem({ type: "vaRule", id: notAllowedVaRuleId });
+
   await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(validVaRuleId)}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -287,6 +309,27 @@ function expectRelationshipIssue(label, graph, expected) {
     throw new Error(`${label} relationship issue missing: ${expected}\n- ${issues.join("\n- ")}`);
   }
   console.log(`[pass] ${label} relationship issue detected`);
+}
+
+function expectVaRuleNotAllowed(graph, ruleId, viewId) {
+  const rule = graph.vaRules.find(item => String(item?.id || "") === String(ruleId));
+  const view = graph.views.find(item => String(item?.viewId || "") === String(viewId));
+  const source = graph.sources.find(item => String(item?.sourceId || "") === String(view?.sourceId || ""));
+  if (!rule || !view || !source) {
+    throw new Error(`va-rule-not-allowed fixture missing rule/view/source: rule=${ruleId} view=${viewId}`);
+  }
+  const ruleKey = sourceKeyForVaRule(rule.source || {});
+  const viewKey = sourceKeyForSource(source);
+  const allowed = new Set((Array.isArray(view.allowedRuleIds) ? view.allowedRuleIds : []).map(String).filter(Boolean));
+  const defaultRuleId = String(view.defaultRuleId || "").trim();
+  if (defaultRuleId) allowed.add(defaultRuleId);
+  if (ruleKey !== viewKey) {
+    throw new Error(`va-rule-not-allowed fixture source mismatch: ${ruleKey} !== ${viewKey}`);
+  }
+  if (allowed.has(String(ruleId))) {
+    throw new Error(`va-rule-not-allowed fixture unexpectedly allowed rule ${ruleId} on view ${viewId}`);
+  }
+  console.log("[pass] va-rule-not-allowed relationship fixture detected");
 }
 
 function relationshipIssues(graph) {
