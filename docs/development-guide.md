@@ -297,7 +297,9 @@ VA Metadata Runtime Console 계열 검증은 선택 검증입니다.
 - 단기 명령은 summary JSON 경로를 출력합니다.
 - `verify-va-runtime-console-longrun`은 summary JSON과 Markdown report를 함께 생성합니다.
 - 120분 Runtime Console longrun은 release candidate, 사용자 명시 요청, 또는 Runtime Console/VA metadata fanout/media path 고위험 변경에서만 실행합니다.
-- 문서/checklist/template 정리만 했으면 120분 longrun은 `NOT RUN`으로 보고하고 30분 longrun이나 sample fixture를 120분 PASS evidence로 대체하지 않습니다.
+- 문서/checklist/template 정리만 했으면 120분 longrun은 테스트 결과 행을 만들지 않고
+  별도 `미실행`으로만 기록하며, 30분 longrun이나 sample fixture를 120분 PASS
+  evidence로 대체하지 않습니다.
 
 ## Auth Bootstrap 개발 확인
 

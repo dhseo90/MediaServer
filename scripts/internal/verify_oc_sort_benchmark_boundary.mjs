@@ -84,18 +84,29 @@ check("OC-SORT is not a runtime tracker policy value", () => {
   };
 });
 
-check("ObjectTracker implementation remains limited to Lite, Kalman-lite, and ByteTrack", () => {
+check("ObjectTracker runtime kind Lite exists", () => {
+  const header = readText("include/analysis/object_tracker.h");
+  assert(header.includes("enum class ObjectTrackerKind"), "ObjectTrackerKind enum missing");
+  assert(header.includes("Lite"), "ObjectTrackerKind missing current tracker: Lite");
+  return { runtimeKind: "Lite" };
+});
+
+check("ObjectTracker runtime kind KalmanLite exists", () => {
+  const header = readText("include/analysis/object_tracker.h");
+  assert(header.includes("KalmanLite"), "ObjectTrackerKind missing current tracker: KalmanLite");
+  return { runtimeKind: "KalmanLite" };
+});
+
+check("ObjectTracker runtime kind ByteTrack exists", () => {
+  const header = readText("include/analysis/object_tracker.h");
+  assert(header.includes("ByteTrack"), "ObjectTrackerKind missing current tracker: ByteTrack");
+  return { runtimeKind: "ByteTrack" };
+});
+
+check("ObjectTracker implementation rejects OC-SORT tokens", () => {
   const header = readText("include/analysis/object_tracker.h");
   const manager = readText("src/analysis/analysis_manager.cpp");
   const tracker = readText("src/analysis/object_tracker.cpp");
-  assert(header.includes("enum class ObjectTrackerKind"), "ObjectTrackerKind enum missing");
-  for (const snippet of [
-    "Lite",
-    "KalmanLite",
-    "ByteTrack",
-  ]) {
-    assert(header.includes(snippet), `ObjectTrackerKind missing current tracker: ${snippet}`);
-  }
   for (const [label, text] of [
     ["object_tracker.h", header],
     ["analysis_manager.cpp", manager],
@@ -104,7 +115,7 @@ check("ObjectTracker implementation remains limited to Lite, Kalman-lite, and By
     assertNoRuntimeToken(label, text);
   }
   return {
-    runtimeKinds: ["Lite", "KalmanLite", "ByteTrack"],
+    rejected: ["oc-sort", "ocsort"],
   };
 });
 
@@ -216,18 +227,27 @@ check("OC-SORT benchmark boundary is documented without product-scope expansion"
   };
 });
 
-check("server command and script inventory expose the boundary verifier", () => {
+check("server command exposes OC-SORT boundary verifier command", () => {
   const server = readText("server.sh");
-  const inventory = readText("scripts/internal/verify_script_inventory.mjs");
-  for (const snippet of [
-    "verify-oc-sort-benchmark-boundary",
-    "verify_oc_sort_benchmark_boundary.mjs",
-  ]) {
-    assert(server.includes(snippet), `server.sh missing ${snippet}`);
-    assert(inventory.includes("verify_oc_sort_benchmark_boundary.mjs"), "script inventory missing verifier");
-  }
+  assert(server.includes("verify-oc-sort-benchmark-boundary"), "server.sh missing verify-oc-sort-benchmark-boundary");
   return {
     command: "verify-oc-sort-benchmark-boundary",
+  };
+});
+
+check("server command exposes OC-SORT boundary verifier script", () => {
+  const server = readText("server.sh");
+  assert(server.includes("verify_oc_sort_benchmark_boundary.mjs"), "server.sh missing verify_oc_sort_benchmark_boundary.mjs");
+  return {
+    script: "verify_oc_sort_benchmark_boundary.mjs",
+  };
+});
+
+check("script inventory exposes OC-SORT boundary verifier script", () => {
+  const inventory = readText("scripts/internal/verify_script_inventory.mjs");
+  assert(inventory.includes("verify_oc_sort_benchmark_boundary.mjs"), "script inventory missing verifier");
+  return {
+    script: "verify_oc_sort_benchmark_boundary.mjs",
   };
 });
 

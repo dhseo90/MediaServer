@@ -16,79 +16,119 @@ const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
 const auth = readText("src/ingress/http_auth.cpp");
 const serverSh = readText("server.sh");
 
-check("client live layout preference API is separate from media/session schemas", () => {
-  for (const snippet of [
-    "/client/api/preferences/live-layout",
-    ".media_server.client_live_layout_preferences.jsonl",
-    "ClientLiveLayoutPreferencesJson",
-    "UpsertClientLiveLayoutPreference",
-    "userPreferenceSeparateFromRolePreset",
-    "rolePresetSeparateFromUserPreference",
-    "authScopeChanged",
-    "mediaPathChanged",
-  ]) {
-    assertIncludes(server, snippet, "client live layout preference API");
-  }
-  for (const forbidden of ["layout:read", "layout:write", "preference:read", "preference:write"]) {
-    assert(!auth.includes(forbidden), `auth scopes must not add ${forbidden}`);
-  }
-});
-
-check("client live UI saves grid, dock, filter, selected sources, and overlay defaults", () => {
-  for (const snippet of [
-    "liveLayoutPreferenceEndpoint",
-    "media-server.client-live-layout.v1",
-    "liveCurrentLayoutSnapshot",
-    "applyLiveLayoutPreference",
-    "workspaceLayout",
-    "selectedSources",
-    "overlayDefaults",
-    "eventFeed: 'selected-tile'",
-    "id=\"liveSaveLayoutPreference\"",
-    "id=\"liveApplyUserLayoutPreference\"",
-    "id=\"liveApplyRoleLayoutPreset\"",
-    "data-testid=\"client-live-layout-presets\"",
-    "data-preset-contract=\"user-preference,role-preset\"",
-  ]) {
+for (const [label, snippet] of [
+  ["client live UI defines layout preference endpoint", "liveLayoutPreferenceEndpoint"],
+  ["client live UI defines layout preference schema", "media-server.client-live-layout.v1"],
+  ["client live UI captures current layout snapshot", "liveCurrentLayoutSnapshot"],
+  ["client live UI applies saved layout preference", "applyLiveLayoutPreference"],
+  ["client live UI persists workspace layout", "workspaceLayout"],
+  ["client live UI persists selected sources", "selectedSources"],
+  ["client live UI persists overlay defaults", "overlayDefaults"],
+  ["client live UI persists selected tile event feed", "eventFeed: 'selected-tile'"],
+  ["client live UI exposes save layout control", "id=\"liveSaveLayoutPreference\""],
+  ["client live UI exposes apply user layout control", "id=\"liveApplyUserLayoutPreference\""],
+  ["client live UI exposes apply role preset control", "id=\"liveApplyRoleLayoutPreset\""],
+  ["client live UI exposes layout presets panel", "data-testid=\"client-live-layout-presets\""],
+  ["client live UI marks user preference role preset contract", "data-preset-contract=\"user-preference,role-preset\""],
+]) {
+  check(label, () => {
     assertIncludes(script, snippet, "client live layout UI");
-  }
+  });
+}
+
+check("saved layout UI styles layout preset panel", () => {
+  assertIncludes(css, ".live-layout-presets", "client live layout preset styles");
 });
 
-check("saved layout UI is styled and avoids viewer debug/source exposure", () => {
-  for (const snippet of [
-    ".live-layout-presets",
-    "grid-template-columns: minmax(0, 1fr) auto auto auto auto auto",
-  ]) {
-    assertIncludes(css, snippet, "client live layout preset styles");
-  }
-  const layoutBlock = script.slice(
-    script.indexOf("const liveLayoutPreferenceEndpoint"),
-    script.indexOf("function tileView"),
-  );
-  for (const forbidden of [
-    "rtspUrl",
-    "sourceUrl",
-    "Developer URL",
-    "raw JSON",
-    "debugCounters",
-    "BBox diagnostics",
-    "passwordHash",
-    "tokenHash",
-  ]) {
+check("saved layout UI styles stable preset grid", () => {
+  assertIncludes(css, "grid-template-columns: minmax(0, 1fr) auto auto auto auto auto", "client live layout preset styles");
+});
+
+for (const [label, forbidden] of [
+  ["saved layout UI hides RTSP URL", "rtspUrl"],
+  ["saved layout UI hides source URL", "sourceUrl"],
+  ["saved layout UI hides developer URL", "Developer URL"],
+  ["saved layout UI hides raw JSON", "raw JSON"],
+  ["saved layout UI hides debug counters", "debugCounters"],
+  ["saved layout UI hides BBox diagnostics", "BBox diagnostics"],
+  ["saved layout UI hides password hash", "passwordHash"],
+  ["saved layout UI hides token hash", "tokenHash"],
+]) {
+  check(label, () => {
+    const layoutBlock = script.slice(
+      script.indexOf("const liveLayoutPreferenceEndpoint"),
+      script.indexOf("function tileView"),
+    );
     assert(!layoutBlock.includes(forbidden), `layout UI must not expose ${forbidden}`);
-  }
+  });
+}
+
+check("server command exposes saved layout verifier command", () => {
+  assertIncludes(uiSmoke + serverSh, "verify-client-saved-views-layout-presets", "saved layout smoke wiring");
 });
 
-check("ops/client UI smoke and server command track saved layout presets", () => {
-  for (const snippet of [
-    "verify-client-saved-views-layout-presets",
-    "verify_client_saved_views_layout_presets.mjs",
-    "data-testid=\"client-live-layout-presets\"",
-    "liveLayoutPreferenceEndpoint",
-    "/client/api/preferences/live-layout",
-  ]) {
-    assertIncludes(uiSmoke + serverSh, snippet, "saved layout smoke wiring");
-  }
+check("server command exposes saved layout verifier script", () => {
+  assertIncludes(uiSmoke + serverSh, "verify_client_saved_views_layout_presets.mjs", "saved layout smoke wiring");
+});
+
+check("client UI smoke tracks saved layout presets panel", () => {
+  assertIncludes(uiSmoke + serverSh, "data-testid=\"client-live-layout-presets\"", "saved layout smoke wiring");
+});
+
+check("client UI smoke tracks layout preference endpoint", () => {
+  assertIncludes(uiSmoke + serverSh, "liveLayoutPreferenceEndpoint", "saved layout smoke wiring");
+});
+
+check("client UI smoke tracks layout preference API route", () => {
+  assertIncludes(uiSmoke + serverSh, "/client/api/preferences/live-layout", "saved layout smoke wiring");
+});
+
+check("saved layout preference API does not add layout read scope", () => {
+  assert(!auth.includes("layout:read"), "auth scopes must not add layout:read");
+});
+
+check("saved layout preference API does not add layout write scope", () => {
+  assert(!auth.includes("layout:write"), "auth scopes must not add layout:write");
+});
+
+check("saved layout preference API does not add preference read scope", () => {
+  assert(!auth.includes("preference:read"), "auth scopes must not add preference:read");
+});
+
+check("saved layout preference API does not add preference write scope", () => {
+  assert(!auth.includes("preference:write"), "auth scopes must not add preference:write");
+});
+
+check("client live layout preference endpoint exists", () => {
+  assertIncludes(server, "/client/api/preferences/live-layout", "client live layout preference API");
+});
+
+check("client live layout preference storage exists", () => {
+  assertIncludes(server, ".media_server.client_live_layout_preferences.jsonl", "client live layout preference API");
+});
+
+check("client live layout preference JSON serializer exists", () => {
+  assertIncludes(server, "ClientLiveLayoutPreferencesJson", "client live layout preference API");
+});
+
+check("client live layout preference upsert exists", () => {
+  assertIncludes(server, "UpsertClientLiveLayoutPreference", "client live layout preference API");
+});
+
+check("client live layout preference stays separate from role preset", () => {
+  assertIncludes(server, "userPreferenceSeparateFromRolePreset", "client live layout preference API");
+});
+
+check("client live role preset stays separate from user preference", () => {
+  assertIncludes(server, "rolePresetSeparateFromUserPreference", "client live layout preference API");
+});
+
+check("client live layout preference does not change auth scope", () => {
+  assertIncludes(server, "authScopeChanged", "client live layout preference API");
+});
+
+check("client live layout preference does not change media path", () => {
+  assertIncludes(server, "mediaPathChanged", "client live layout preference API");
 });
 
 if (args.roundtripSmoke) {

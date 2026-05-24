@@ -10,11 +10,13 @@ source "${SCRIPT_DIR}/env_common.sh"
 media_server_apply_homebrew_gst_env
 
 ENV_FILE="${SCRIPTS_DIR}/.media_server.env"
-if [[ -f "${ENV_FILE}" ]]; then
+if [[ -f "${ENV_FILE}" && "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" != "1" ]]; then
   # shellcheck disable=SC1090
   set -a
   source "${ENV_FILE}"
   set +a
+elif [[ "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" == "1" ]]; then
+  echo "[env] skipped local override: ${ENV_FILE}"
 fi
 
 STD_AFX="${ROOT_DIR}/include/stdafx.h"
@@ -440,7 +442,7 @@ run_live_redaction() {
   local query
   query="$(redaction_query)"
   run_step "live-va-redaction" \
-    "MEDIA_SERVER_VERIFY_VA_FILE='${FILE_TOKEN}' MEDIA_SERVER_VERIFY_VA_DURATION_S=${DURATION_S} MEDIA_SERVER_VERIFY_VA_EXTRA_QUERY='${query}' MEDIA_SERVER_VERIFY_VA_REDACTION=person-mosaic MEDIA_SERVER_VERIFY_VA_REDACTION_CLASSES='${REDACTION_CLASSES}' MEDIA_SERVER_VERIFY_VA_REDACTION_BLOCK_SIZE=${REDACTION_BLOCK_SIZE} MEDIA_SERVER_VERIFY_VA_REDACTION_MARGIN_RATIO=${REDACTION_MARGIN_RATIO} ./server.sh verify-va" || true
+    "MEDIA_SERVER_SKIP_LOCAL_ENV=${MEDIA_SERVER_SKIP_LOCAL_ENV:-0} MEDIA_SERVER_LISTEN_PORT=${MEDIA_SERVER_LISTEN_PORT:-} MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} MEDIA_SERVER_VERIFY_VA_HTTP_BASE='${HTTP_BASE}' MEDIA_SERVER_VERIFY_VA_FILE='${FILE_TOKEN}' MEDIA_SERVER_VERIFY_VA_DURATION_S=${DURATION_S} MEDIA_SERVER_VERIFY_VA_EXTRA_QUERY='${query}' MEDIA_SERVER_VERIFY_VA_REDACTION=person-mosaic MEDIA_SERVER_VERIFY_VA_REDACTION_CLASSES='${REDACTION_CLASSES}' MEDIA_SERVER_VERIFY_VA_REDACTION_BLOCK_SIZE=${REDACTION_BLOCK_SIZE} MEDIA_SERVER_VERIFY_VA_REDACTION_MARGIN_RATIO=${REDACTION_MARGIN_RATIO} ./server.sh verify-va" || true
 }
 
 # redaction과 event rule을 함께 켰을 때 event 산출 경로가 깨지지 않는지 확인한다.
@@ -454,7 +456,7 @@ run_event_compatibility() {
     event_duration=30
   fi
   run_step "event-redaction-compatibility" \
-    "MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=${event_duration} ./server.sh verify-va-events --duration ${event_duration}" || true
+    "MEDIA_SERVER_SKIP_LOCAL_ENV=${MEDIA_SERVER_SKIP_LOCAL_ENV:-0} MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} MEDIA_SERVER_VERIFY_VA_HTTP_BASE='${HTTP_BASE}' MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=${event_duration} ./server.sh verify-va-events --duration ${event_duration}" || true
 }
 
 # redaction 승격 중 tracker 자체의 ID 유지 통계가 악화되지 않는지 별도 smoke로 확인한다.

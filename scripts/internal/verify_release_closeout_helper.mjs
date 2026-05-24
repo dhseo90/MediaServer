@@ -141,7 +141,7 @@ check("release close-out commands are available", () => {
   return { commands: localCommands, visualCommands: visualAutomationCommands.map(item => item.command) };
 });
 
-check("release docs keep tag and push manual", () => {
+check("release docs keep publish gates manual", () => {
   for (const snippet of [
     "GitHub Releases 운영",
     "v1.8.0 Release Close-out Runbook",
@@ -177,7 +177,7 @@ check("release docs keep tag and push manual", () => {
   return { manualActions };
 });
 
-check("release visual baseline automation is wired for PR and preflight", () => {
+check("release visual baseline automation is wired for release workflow", () => {
   const docs = [releasePolicy, streamVerification, uiGuide, prTemplate, backlog].join("\n");
   for (const snippet of [
     "Release / Visual Baseline Readiness",

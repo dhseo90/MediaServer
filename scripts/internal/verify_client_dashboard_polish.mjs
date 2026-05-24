@@ -10,11 +10,25 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const checks = [];
 
-check("client dashboard script renders field summary and comparison", () => {
+check("client dashboard script renders field summary", () => {
   const script = readText("src/ingress/product_ui_page_scripts.cpp");
   const required = [
     "dashboardFieldState",
     "clientHealthSummaryLabel",
+    'data-testid="client-dashboard-field-summary"',
+    "현장 요약",
+    "정상 관제 중",
+    "신호 확인 중",
+    "상태 요약",
+  ];
+  for (const snippet of required) {
+    assert(script.includes(snippet), `client dashboard field summary is missing snippet: ${snippet}`);
+  }
+});
+
+check("client dashboard script renders comparison", () => {
+  const script = readText("src/ingress/product_ui_page_scripts.cpp");
+  const required = [
     "renderDashboardCompare",
     "loadClientDashboardCompare",
     "clientDashboardCompareFilter",
@@ -31,7 +45,6 @@ check("client dashboard script renders field summary and comparison", () => {
     "clientDashboardEventPreset",
     "sourceTags",
     "ownerGroup",
-    'data-testid="client-dashboard-field-summary"',
     'data-testid="client-dashboard-compare"',
     'data-testid="client-dashboard-preset-config"',
     'id="clientDashboardCompareFilter"',
@@ -48,9 +61,15 @@ check("client dashboard script renders field summary and comparison", () => {
     "모니터링",
     "라인 통과",
     "출입구",
-    "정상 관제 중",
-    "신호 확인 중",
-    "상태 요약",
+  ];
+  for (const snippet of required) {
+    assert(script.includes(snippet), `client dashboard comparison is missing snippet: ${snippet}`);
+  }
+});
+
+check("client dashboard script renders copy controls", () => {
+  const script = readText("src/ingress/product_ui_page_scripts.cpp");
+  const required = [
     "copyClientText",
     "clientStatusSummaryText",
     "clientEventSummaryText",
@@ -62,7 +81,7 @@ check("client dashboard script renders field summary and comparison", () => {
     "이벤트 요약 복사 완료",
   ];
   for (const snippet of required) {
-    assert(script.includes(snippet), `client dashboard script is missing snippet: ${snippet}`);
+    assert(script.includes(snippet), `client dashboard copy control is missing snippet: ${snippet}`);
   }
 });
 
@@ -83,21 +102,30 @@ check("client dashboard has loading empty error wording", () => {
   }
 });
 
-check("client live empty state and reduced workspace controls are present", () => {
+check("client live empty state is present", () => {
+  const script = readText("src/ingress/product_ui_page_scripts.cpp");
+  const required = [
+    "Live view가 없습니다",
+    "할당된 PublishedView가 없습니다",
+    "/client/request-access",
+  ];
+  for (const snippet of required) {
+    assert(script.includes(snippet), `client live empty state is missing snippet: ${snippet}`);
+  }
+});
+
+check("client live reduced workspace controls are present", () => {
   const script = readText("src/ingress/product_ui_page_scripts.cpp");
   const required = [
     'data-testid="client-live-action-reduction"',
     "workspace-actions",
     'id="liveAllStop"',
     "전체 연결 해제",
-    "Live view가 없습니다",
-    "할당된 PublishedView가 없습니다",
-    "/client/request-access",
     'tabindex="0"',
     'role="group"',
     "focusLiveTile",
     "ArrowRight",
-    "타일 ${tile.index + 1} 시작",
+    "타일 ${tile.index + 1} 재생",
   ];
   for (const snippet of required) {
     assert(script.includes(snippet), `client live polish is missing snippet: ${snippet}`);

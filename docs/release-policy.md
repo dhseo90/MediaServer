@@ -97,8 +97,9 @@ Real close-out checklist:
 7. Latest 확인: GitHub Releases latest, `/releases/latest`, remote tag, README release URL을 `verify-release-metadata`로 확인합니다. 이 단계에서는 `--allow-unpublished`를 쓰지 않습니다.
 8. Next branch sync: 다음 작업 branch를 main 최신 release fix 위로 동기화한 뒤 미커밋 변경이 없는지 확인합니다.
 
-위 순서 중 실행하지 않은 항목은 release evidence에 `NOT RUN` 또는 `manual-not-run`으로
-남기며, 실행하지 않은 tag/push/GitHub Release를 완료로 쓰지 않습니다.
+위 순서 중 실행하지 않은 항목은 테스트 결과 행을 만들지 않고 release evidence 실행
+상태에 `미실행` 또는 `manual-not-run`으로 남기며, 실행하지 않은
+tag/push/GitHub Release를 완료로 쓰지 않습니다.
 v1.8.0 source-only release에서는
 [development-backlog.md](./development-backlog.md)의
 `v1.8.0 Release Trust Hardening Close-out` 기준으로 GitHub Latest Release

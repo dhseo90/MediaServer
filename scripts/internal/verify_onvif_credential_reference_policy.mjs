@@ -87,6 +87,7 @@ for (const term of [
   "verify-onvif-probe-draft-api",
 ]) {
   assert(doc.includes(term), `credential policy doc missing required term: ${term}`);
+  console.log(`[pass] ONVIF credential policy doc contains ${JSON.stringify(term)}`);
 }
 
 for (const term of [
@@ -125,14 +126,18 @@ for (const term of [
   "실장비 credential smoke redacted artifact",
 ]) {
   assert(storeDesign.includes(term), `credential store design missing required term: ${term}`);
+  console.log(`[pass] ONVIF credential store design contains ${JSON.stringify(term)}`);
 }
 
 assert(storeDecision.schema === "media-server.onvif-credential-store-policy-decision.v1",
        "credential store policy decision schema mismatch");
+console.log("[pass] ONVIF credential store decision schema is media-server.onvif-credential-store-policy-decision.v1");
 assert(storeDecision.decision === "defer-product-persistent-store",
        "credential store policy decision must defer product persistent store");
+console.log("[pass] ONVIF credential store decision defers product persistent store");
 assert(storeDecision.realDeviceEndpointSuccess === "미확인",
        "credential store policy decision must keep real device success unverified");
+console.log("[pass] ONVIF credential store decision keeps real device endpoint success unverified");
 const currentScope = storeDecision.currentScope || {};
 for (const enabled of [
   "noneProvider",
@@ -141,6 +146,7 @@ for (const enabled of [
   "credentialRefPresentSummary",
 ]) {
   assert(currentScope[enabled] === true, `credential store decision must keep current scope enabled: ${enabled}`);
+  console.log(`[pass] ONVIF credential store decision currentScope.${enabled} is true`);
 }
 for (const disabled of [
   "sourceRegistrySecretStorage",
@@ -151,6 +157,7 @@ for (const disabled of [
   "credentialBindingStore",
 ]) {
   assert(currentScope[disabled] === false, `credential store decision must keep scope disabled: ${disabled}`);
+  console.log(`[pass] ONVIF credential store decision currentScope.${disabled} is false`);
 }
 for (const residual of [
   "local encrypted credential store",
@@ -162,6 +169,7 @@ for (const residual of [
 ]) {
   assert(storeDecision.notResidualForStep2?.includes(residual),
          `credential store decision missing non-residual item: ${residual}`);
+  console.log(`[pass] ONVIF credential store decision marks non-residual item ${JSON.stringify(residual)}`);
 }
 for (const gate of [
   "schema review for provider status exposure",
@@ -173,10 +181,13 @@ for (const gate of [
 ]) {
   assert(storeDecision.requiredBeforeOpening?.includes(gate),
          `credential store decision missing opening gate: ${gate}`);
+  console.log(`[pass] ONVIF credential store decision requires opening gate ${JSON.stringify(gate)}`);
 }
 assert(storeDecision.handoffIssue?.priority === "P1", "credential store handoff issue priority mismatch");
+console.log("[pass] ONVIF credential store decision handoff priority is P1");
 assert(storeDecision.handoffIssue?.phase === "after v1.8.0 (2) no-device closure",
        "credential store handoff phase mismatch");
+console.log("[pass] ONVIF credential store decision handoff phase is after v1.8.0 no-device closure");
 
 for (const term of [
   "class CredentialSecretProvider",
@@ -194,6 +205,7 @@ for (const term of [
   "CredentialAuthSchemeCode",
 ]) {
   assert(providerHeader.includes(term), `credential provider header missing required term: ${term}`);
+  console.log(`[pass] ONVIF credential provider header contains ${JSON.stringify(term)}`);
 }
 
 for (const term of [
@@ -212,6 +224,7 @@ for (const term of [
   "CredentialLookupStatus::kExpired",
 ]) {
   assert(providerImpl.includes(term), `credential provider implementation missing required term: ${term}`);
+  console.log(`[pass] ONVIF credential provider implementation contains ${JSON.stringify(term)}`);
 }
 
 for (const term of [
@@ -227,6 +240,7 @@ for (const term of [
   "credential_material_rejected",
 ]) {
   assert(providerSmoke.includes(term), `credential provider smoke missing required term: ${term}`);
+  console.log(`[pass] ONVIF credential provider smoke contains ${JSON.stringify(term)}`);
 }
 
 for (const term of [
@@ -236,6 +250,7 @@ for (const term of [
   "const CredentialSecretProvider& credential_provider",
 ]) {
   assert(liveImportHeader.includes(term), `ONVIF live import header missing credential summary term: ${term}`);
+  console.log(`[pass] ONVIF live import header contains credential term ${JSON.stringify(term)}`);
 }
 
 for (const term of [
@@ -247,6 +262,7 @@ for (const term of [
   "Base64Encode",
 ]) {
   assert(liveImportImpl.includes(term), `probe adapter implementation missing provider auth term: ${term}`);
+  console.log(`[pass] ONVIF live import implementation contains auth term ${JSON.stringify(term)}`);
 }
 
 for (const forbidden of [
@@ -257,30 +273,42 @@ for (const forbidden of [
   "Cookie:",
 ]) {
   assert(!doc.includes(forbidden), `credential policy doc includes forbidden literal: ${forbidden}`);
+  console.log(`[pass] ONVIF credential policy doc omits forbidden literal ${JSON.stringify(forbidden)}`);
 }
 
 assert(supportDoc.includes("./onvif-credential-reference-policy.md"), "ONVIF support doc must link credential policy");
+console.log("[pass] ONVIF support doc links credential reference policy");
 assert(authDesign.includes("./onvif-credential-store-integration-design.md"), "auth design must link credential store design");
+console.log("[pass] ONVIF auth design links credential store design");
 assert(authDesign.includes("verify-onvif-auth-injection-loopback"), "auth design must mention auth injection loopback smoke");
+console.log("[pass] ONVIF auth design mentions auth injection loopback verifier");
 assert(authDesign.includes("InMemoryCredentialSecretProvider"), "auth design must mention in-memory fixture store provider");
+console.log("[pass] ONVIF auth design mentions in-memory fixture store provider");
 assert(storeDesign.includes("InMemoryCredentialSecretProvider"), "credential store design must mention in-memory provider");
+console.log("[pass] ONVIF credential store design mentions in-memory provider");
 assert(storeDesign.includes("fixture store"), "credential store design must limit in-memory provider to fixture store");
+console.log("[pass] ONVIF credential store design limits in-memory provider to fixture store");
 assert(matrixDoc.includes("./onvif-credential-store-integration-design.md"), "protocol matrix must link credential store design");
+console.log("[pass] ONVIF protocol matrix links credential store design");
 assert(matrixDoc.includes("verify-onvif-auth-injection-loopback"), "protocol matrix must mention auth loopback smoke");
+console.log("[pass] ONVIF protocol matrix mentions auth loopback verifier");
 assert(probeFixture.auth?.credentialRef === "operator-entered-secret", "probe fixture should keep synthetic credentialRef sentinel");
+console.log("[pass] ONVIF probe fixture keeps synthetic credentialRef sentinel");
 assert(probeFixture.auth?.plaintextSecretIncluded === false, "probe fixture must mark plaintextSecretIncluded=false");
+console.log("[pass] ONVIF probe fixture marks plaintextSecretIncluded false");
 assert(fixtureContract.includes("credentialRef is required instead of plaintext secret"), "fixture contract must check credential reference policy");
+console.log("[pass] ONVIF fixture contract requires credentialRef");
+console.log("[pass] ONVIF fixture contract rejects plaintext secret");
 assert(draftApiSmoke.includes("\"credentialRef\""), "draft API smoke must forbid credentialRef in response text");
+console.log("[pass] ONVIF draft API smoke checks credentialRef response omission");
 assert(draftApiSmoke.includes("operator-entered-secret"), "draft API smoke must forbid synthetic credential value");
+console.log("[pass] ONVIF draft API smoke checks synthetic credential value omission");
 assert(fieldProbeHarness.includes("credentialReferencePresent"), "field probe harness must expose boolean credential reference summary only");
+console.log("[pass] ONVIF field probe harness exposes credential reference boolean only");
 assert(fieldProbeHarness.includes("endpoint URL must not include credentials"), "field probe harness must reject credentials in endpoint URL");
+console.log("[pass] ONVIF field probe harness rejects credentials embedded in endpoint URL");
 runCredentialProviderSmoke();
 
-console.log("[pass] ONVIF credential reference policy document");
-console.log("[pass] ONVIF credential store integration design");
-console.log("[pass] ONVIF credential provider interface skeleton");
-console.log("[pass] ONVIF credential reference redaction coverage");
-console.log("[pass] ONVIF persistent credential store policy decision");
 console.log("");
 console.log("== ONVIF credential reference policy summary ==");
 console.log(`- doc: ${path.relative(rootDir, docPath)}`);

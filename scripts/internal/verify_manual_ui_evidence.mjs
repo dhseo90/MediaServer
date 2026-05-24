@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: 현재 release 수동 UI 풀테스트 문서가 실제 확인/미확인/건너뜀을 분리하는지 검증한다.
+// 파일 용도: 현재 release 수동 UI 풀테스트 문서가 PASS/FAIL 이원화와 개별 기능 증거를 강제하는지 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -23,9 +23,9 @@ Options:
   -h, --help       도움말 출력
 
 Checks:
-  - v1.8.0 기준 수동으로 연 화면, 자동 smoke, 미확인/건너뜀 항목을 분리해 기록하는지 확인
+  - v1.8.0 기준 UI 풀테스트 판정이 PASS/FAIL만 쓰고 개별 기능 결과를 기록하는지 확인
   - client/viewer 비노출 항목과 admin preview 경계가 명시됐는지 확인
-  - destructive/manual submit 미실행을 통과처럼 쓰지 않는지 확인
+  - 사용자 명시 제외 항목은 판정표 밖 제외 기록으로 남기는지 확인
 `);
 }
 
@@ -59,7 +59,9 @@ check("manual UI docs are current v1.8.0 baseline", () => {
     "테스트 영역 역할 분리",
     "UI 풀테스트는 `스크립트 테스트`와 별도 영역입니다.",
     "열지 않은 화면",
-    "미확인",
+    "UI 풀테스트 판정값은 `PASS`와 `FAIL`만 사용합니다.",
+    "카테고리 묶음 판정은 금지합니다.",
+    "제외 기록",
   ], "docs/manual-ui-fulltest.md");
 });
 
@@ -83,6 +85,57 @@ check("manual result template covers required screens", () => {
   ], "docs/manual-ui-result-template.md");
 });
 
+check("manual result template splits tracker policy results", () => {
+  assertIncludes(template, [
+    "profile: tracker `none` + Re-ID `off`",
+    "profile: tracker `lite` + Re-ID `off`",
+    "profile: tracker `kalman-lite` + Re-ID `off`",
+    "profile: tracker `bytetrack` + Re-ID `off`",
+    "profile: tracker `lite` + Re-ID `assist`",
+    "profile: tracker `kalman-lite` + Re-ID `assist`",
+    "profile: tracker `bytetrack` + Re-ID `assist`",
+    "invalid policy: tracker `none` + Re-ID `assist`",
+  ], "docs/manual-ui-result-template.md");
+});
+
+check("manual result template splits event template results", () => {
+  assertIncludes(template, [
+    "event template: line-crossing any",
+    "event template: line-crossing forward",
+    "event template: line-crossing reverse",
+  ], "docs/manual-ui-result-template.md");
+});
+
+check("manual result template splits scenario preset results", () => {
+  assertIncludes(template, [
+    "scenario preset: default",
+    "scenario preset: custom",
+  ], "docs/manual-ui-result-template.md");
+});
+
+check("manual result template splits vaRule results", () => {
+  assertIncludes(template, [
+    "vaRule: line-crossing any",
+    "vaRule: line-crossing forward",
+    "vaRule: line-crossing reverse",
+  ], "docs/manual-ui-result-template.md");
+});
+
+check("manual result template splits event record keys", () => {
+  assertIncludes(template, [
+    "`line-crossing:any`",
+    "`line-crossing:forward`",
+    "`line-crossing:reverse`",
+  ], "docs/manual-ui-result-template.md");
+  assertNotIncludes(template, [
+    "tracker/Re-ID 조합 7개",
+    "basic 6개 + scenario 6개",
+    "basic/scenario 최종 12개 이상",
+    "| `/ops` |",
+    "| `/client` |",
+  ], "docs/manual-ui-result-template.md");
+});
+
 check("manual result template separates automation from direct browser evidence", () => {
   assertIncludes(template, [
     "## 테스트 영역별 판정",
@@ -97,9 +150,16 @@ check("manual result template separates automation from direct browser evidence"
     "실제로 열고 클릭한 화면만 적습니다.",
     "자동 smoke나 raw JSON 확인만으로 채우지 않습니다.",
     "raw JSON/API-only로만 확인한 항목",
+    "## 제외 기록",
+    "## 실패",
+  ], "docs/manual-ui-result-template.md");
+  assertNotIncludes(template, [
+    "PASS/FAIL/BLOCKED",
+    "PASS/FAIL/미확인",
+    "PASS/FAIL/BLOCKED/미확인",
     "## 미확인",
     "## 건너뜀",
-    "## 실패",
+    "NOT RUN",
   ], "docs/manual-ui-result-template.md");
 });
 
@@ -123,10 +183,15 @@ check("manual UI docs separate script stability tests from UI full test", () => 
   ], "docs/manual-ui-fulltest.md");
 });
 
-check("manual result template pins client redaction and admin preview boundary", () => {
+check("manual result template pins admin preview boundary", () => {
   assertIncludes(template, [
     "Client Preview as admin",
     "client/viewer 화면에서 보이지 않아야 하는 항목입니다.",
+  ], "docs/manual-ui-result-template.md");
+});
+
+check("manual result template pins client redaction boundary", () => {
+  assertIncludes(template, [
     "source URL:",
     "Developer URL:",
     "raw JSON:",
@@ -137,39 +202,80 @@ check("manual result template pins client redaction and admin preview boundary",
   ], "docs/manual-ui-result-template.md");
 });
 
-check("manual result template lists not-run and skipped items explicitly", () => {
+check("manual UI docs require operator-provided auth verifier passwords", () => {
+  for (const envName of [
+    "MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD",
+    "MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD",
+    "MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD",
+    "MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE",
+    "MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO",
+  ]) {
+    assertIncludes(checklist, [envName], "docs/manual-ui-checklist.md");
+    assertIncludes(template, [envName], "docs/manual-ui-result-template.md");
+  }
+  assertIncludes(checklist, [
+    "값이 없으면 auth 테스트를 시작하지 않고",
+  ], "docs/manual-ui-checklist.md");
   assertIncludes(template, [
-    "장시간 테스트:",
-    "`verify-predev`:",
-    "실장비/외부 네트워크:",
-    "ONVIF 실장비:",
-    "외부 TURN/WHEP credential:",
-    "YouTube 실제 URL relay:",
-    "destructive action:",
+    "Auth verifier 선수 조건",
+    "SET / MISSING",
   ], "docs/manual-ui-result-template.md");
 });
 
-check("manual UI docs keep rewrite/new/merge requirements", () => {
+check("manual result template records explicit exclusions outside UI verdict", () => {
+  assertIncludes(template, [
+    "## 제외 기록",
+    "사용자가 의도적으로 UI 풀테스트 기준에서 제외하라고 한 항목만 적습니다.",
+    "여기에 있는 항목은 PASS/FAIL 판정표에 넣지 않습니다.",
+    "제외 이유",
+    "후속 확인 조건",
+  ], "docs/manual-ui-result-template.md");
+});
+
+check("manual UI docs keep rewrite requirements", () => {
   assertIncludes(template, [
     "## 문서 재작성/신규 작성/비교 병합",
     "재작성한 UI 풀테스트 관련 문서:",
+  ], "docs/manual-ui-result-template.md");
+});
+
+check("manual UI docs keep new document requirements", () => {
+  assertIncludes(template, [
     "새로 작성한 UI 풀테스트 문서:",
+  ], "docs/manual-ui-result-template.md");
+});
+
+check("manual UI docs keep merge requirements", () => {
+  assertIncludes(template, [
     "비교 결과:",
     "병합 결과:",
   ], "docs/manual-ui-result-template.md");
+});
+
+check("manual checklist references UI fulltest document", () => {
   assertIncludes(checklist, [
     "UI 풀테스트 문서를 재작성하거나 새 문서를 추가한 경우",
     "manual-ui-fulltest.md",
   ], "docs/manual-ui-checklist.md");
 });
 
-check("checklist, template, and roadmap link the current evidence verifier", () => {
+check("manual checklist links evidence verifier", () => {
   assertIncludes(checklist, [
     "verify-manual-ui-evidence",
   ], "docs/manual-ui-checklist.md");
+  assertIncludes(checklist, [
+    "--emit-registry-dir <dir>",
+  ], "docs/manual-ui-checklist.md");
+});
+
+check("manual template links evidence verifier", () => {
   assertIncludes(template, [
     "verify-manual-ui-evidence",
+    "seed registry dir",
   ], "docs/manual-ui-result-template.md");
+});
+
+check("roadmap links evidence verifier", () => {
   assertIncludes(backlog, [
     "| V180-P0-03 |",
     "verify-manual-ui-evidence",
@@ -186,8 +292,9 @@ check("v1.8.0 release trust checklist requires direct UI evidence index", () => 
     "`/ops/rules`",
     "`/client/live`",
     "Evidence index",
-    "열지 않은 화면을 PASS로 쓰지 않고",
+    "열지 않은 화면은 `FAIL`",
     "raw JSON/API-only 확인만",
+    "판정은 `PASS` 또는 `FAIL`만 사용합니다.",
   ], "docs/manual-ui-checklist.md");
   assertIncludes(template, [
     "evidence index:",
@@ -195,13 +302,18 @@ check("v1.8.0 release trust checklist requires direct UI evidence index", () => 
     "자동 smoke나 raw JSON 확인만으로 채우지 않습니다.",
     "| `/setup` |",
     "| `/login` |",
-    "| `/ops` |",
-    "| `/client` |",
+    "| `/ops/home` |",
+    "| `/ops/dashboard` |",
+    "| `/ops/sources` |",
+    "| `/ops/users` |",
+    "| `/ops/events` |",
     "| `/ops/rules` |",
     "| `/client/live` |",
+    "| `/client/dashboard` |",
     "직접 열어보지 않은 화면",
     "실패 후 재검수한 화면",
     "client/viewer 비노출 재확인",
+    "카테고리 묶음 판정은 금지합니다.",
   ], "docs/manual-ui-result-template.md");
   assertIncludes(backlog, [
     "| V180-P0-03 |",
@@ -216,10 +328,17 @@ if (resultPath) {
     assertIncludes(result, [
       "## 검수 메타데이터",
       "## 확인됨",
-      "## 미확인",
-      "## 건너뜀",
+      "## 제외 기록",
       "## 실패",
       "푸시 수행 여부",
+    ], path.relative(rootDir, resultPath).replaceAll(path.sep, "/"));
+    assertNotIncludes(result, [
+      "PASS/FAIL/BLOCKED",
+      "PASS/FAIL/미확인",
+      "PASS/FAIL/BLOCKED/미확인",
+      "## 미확인",
+      "## 건너뜀",
+      "NOT RUN",
     ], path.relative(rootDir, resultPath).replaceAll(path.sep, "/"));
   });
 }
@@ -256,6 +375,13 @@ function assertIncludes(text, terms, label) {
   const missing = terms.filter(term => !text.includes(term));
   if (missing.length > 0) {
     throw new Error(`${label} missing required wording: ${missing.join(", ")}`);
+  }
+}
+
+function assertNotIncludes(text, terms, label) {
+  const present = terms.filter(term => text.includes(term));
+  if (present.length > 0) {
+    throw new Error(`${label} contains forbidden wording: ${present.join(", ")}`);
   }
 }
 

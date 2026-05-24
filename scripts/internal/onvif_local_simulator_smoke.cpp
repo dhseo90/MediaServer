@@ -446,6 +446,6 @@ int main() {
         RunScenario(scenario);
     }
 
-    std::cout << "[pass] ONVIF local simulator fixture smoke (no real device endpoint used)\n";
+    std::cout << "[summary] ONVIF local simulator fixture smoke complete: no real device endpoint used\n";
     return 0;
 }

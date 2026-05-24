@@ -391,12 +391,15 @@ stop_server() {
   sleep 1
 }
 
-# 검증 종료 후 대표 port listener가 남지 않았는지 확인한다.
+# 검증 종료 후 이번 predev run이 사용한 port listener가 남지 않았는지 확인한다.
 assert_ports_clean() {
   local log_file="${WORK_DIR}/ports-clean.log"
   : >"${log_file}"
   local busy=0
-  local ports=(8080 8081 8554 8555 "${RTSP_PORT}" "${HTTP_PORT}")
+  local ports=("${RTSP_PORT}" "${HTTP_PORT}")
+  if [[ "${MEDIA_SERVER_VERIFY_PREDEV_CHECK_REPRESENTATIVE_PORTS:-0}" == "1" ]]; then
+    ports=(8080 8081 8554 8555 "${ports[@]}")
+  fi
   local seen_ports=()
   local port
   for port in "${ports[@]}"; do
@@ -411,12 +414,12 @@ assert_ports_clean() {
   done
   if [[ "${busy}" -eq 0 ]]; then
     PASS_COUNT=$((PASS_COUNT + 1))
-    append_step "ports-clean" "pass" "lsof representative ports" "${log_file}" 0
+    append_step "ports-clean" "pass" "lsof predev ports" "${log_file}" 0
     echo "[pass] ports-clean"
     return 0
   fi
   FAIL_COUNT=$((FAIL_COUNT + 1))
-  append_step "ports-clean" "fail" "lsof representative ports" "${log_file}" 0
+  append_step "ports-clean" "fail" "lsof predev ports" "${log_file}" 0
   echo "[fail] ports-clean log=${log_file}"
   cat "${log_file}"
   return 1
@@ -440,16 +443,17 @@ run_soak_loop() {
     return 0
   fi
   while (( SECONDS < deadline || iteration == 1 )); do
+    local child_env="MEDIA_SERVER_SKIP_LOCAL_ENV=${MEDIA_SERVER_VERIFY_PREDEV_SKIP_LOCAL_ENV:-1} MEDIA_SERVER_LISTEN_PORT=${RTSP_PORT} MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} MEDIA_SERVER_LISTEN_ADDRESS=${RTSP_LISTEN_ADDRESS} MEDIA_SERVER_HTTP_LISTEN_ADDRESS=${HTTP_LISTEN_ADDRESS}"
     log_info "soak iteration ${iteration} 시작"
     run_step "soak-${iteration}-va-events" \
-      "MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=${VA_EVENT_DURATION_S} ./server.sh verify-va-events --duration ${VA_EVENT_DURATION_S}" || true
+      "${child_env} MEDIA_SERVER_VERIFY_VA_HTTP_BASE=${HTTP_BASE} MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=${VA_EVENT_DURATION_S} ./server.sh verify-va-events --duration ${VA_EVENT_DURATION_S}" || true
     run_step "soak-${iteration}-event-post-schema" \
-      "MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=${HTTP_BASE} ./server.sh verify-event-post --mode schema" || true
+      "${child_env} MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=${HTTP_BASE} ./server.sh verify-event-post --mode schema" || true
     run_step "soak-${iteration}-event-post-recovery" \
-      "MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=${HTTP_BASE} ./server.sh verify-event-post --mode recovery" || true
+      "${child_env} MEDIA_SERVER_VERIFY_EVENT_POST_HTTP_BASE=${HTTP_BASE} ./server.sh verify-event-post --mode recovery" || true
     if [[ "${INCLUDE_REDACTION}" == "1" ]]; then
       run_step "soak-${iteration}-redaction" \
-        "MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE=${HTTP_BASE} ./server.sh verify-redaction --live-only --duration ${REDACTION_DURATION_S}" || true
+        "${child_env} MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE=${HTTP_BASE} MEDIA_SERVER_VERIFY_VA_HTTP_BASE=${HTTP_BASE} ./server.sh verify-redaction --live-only --duration ${REDACTION_DURATION_S}" || true
     else
       SKIP_COUNT=$((SKIP_COUNT + 1))
       append_step "soak-${iteration}-redaction" "skip" "--skip-redaction" "" 0

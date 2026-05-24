@@ -44,14 +44,26 @@ check("ops click E2E restores access request fixture", () => {
   ], "verify_ops_ui_click_e2e.mjs");
 });
 
-check("ops event records smoke restores storage, audit, and evidence fixtures", () => {
+check("ops event records smoke restores storage fixture", () => {
   const script = readText("scripts/internal/verify_ops_event_records_scope.mjs");
   assertIncludes(script, [
     "seedPopulatedEventRecordFixture",
     "cleanupPopulatedEventRecordFixture",
+    "restoreFileSnapshot(fixture.eventSnapshot)",
+  ], "verify_ops_event_records_scope.mjs");
+});
+
+check("ops event records smoke restores audit fixture", () => {
+  const script = readText("scripts/internal/verify_ops_event_records_scope.mjs");
+  assertIncludes(script, [
     "const auditSnapshot = snapshotFile(path.resolve(\".media_server.ops_audit.jsonl\"))",
     "restoreFileSnapshot(auditSnapshot)",
-    "restoreFileSnapshot(fixture.eventSnapshot)",
+  ], "verify_ops_event_records_scope.mjs");
+});
+
+check("ops event records smoke removes evidence fixtures", () => {
+  const script = readText("scripts/internal/verify_ops_event_records_scope.mjs");
+  assertIncludes(script, [
     "fs.rmSync(fixture.snapshotPath",
     "fs.rmSync(fixture.clipBundleDir",
     "ops-events-populated-${visualWidth}.png",

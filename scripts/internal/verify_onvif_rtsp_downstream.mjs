@@ -122,10 +122,13 @@ try {
   assertNoClientForbiddenText(`client-api-view-${sourceId}`, clientViewText);
   const clientView = JSON.parse(clientViewText).view;
   assert(clientView?.viewId === sourceId, "client view detail missing imported view");
+  console.log("[pass] client view detail returns sanitized imported viewId");
   assert(clientView.sourceKind === "rtsp", "client view sourceKind should remain downstream rtsp");
+  console.log("[pass] client view detail preserves downstream rtsp sourceKind");
   assert(Array.isArray(clientView.sourceTags) && clientView.sourceTags.includes("onvif"), "client view should expose sanitized ONVIF tag");
+  console.log("[pass] client view detail exposes sanitized ONVIF tag");
   assert(!("rtspUrl" in clientView), "client view must not include rtspUrl");
-  console.log("[pass] client view detail redacts RTSP locator and ONVIF details");
+  console.log("[pass] client view detail omits RTSP locator field");
 } finally {
   if (wroteView) {
     await requestText(`/ops/api/views/${encodeURIComponent(sourceId)}`, {

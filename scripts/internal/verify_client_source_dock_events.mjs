@@ -26,7 +26,7 @@ function check(name, condition) {
 }
 
 check(
-  "source tree is grouped by site/floor/source without API schema changes",
+  "source tree keeps site floor source grouping",
   script.includes("function liveSourceTreeGroups()") &&
     script.includes('data-tree-model="group/site/floor/source"') &&
     script.includes('data-tree-level="site"') &&
@@ -34,7 +34,7 @@ check(
     script.includes('data-source-view="${escapeHtml(view.viewId)}"'),
 );
 check(
-  "dock side is user switchable and persisted",
+  "dock side user setting persists",
   script.includes("let liveDockSide") &&
     script.includes('id="liveDockSide"') &&
     script.includes("mediaServerClientLiveDockSide") &&
@@ -61,7 +61,7 @@ check(
     !clientLiveBlock.includes("rtspUrl"),
 );
 check(
-  "UI smoke tracks source tree and dock event feed contract",
+  "UI smoke tracks source dock event feed contract",
   uiSmoke.includes('data-tree-model="group/site/floor/source"') &&
     uiSmoke.includes('data-testid="client-live-dock-event-feed"') &&
     uiSmoke.includes('data-redaction="viewer-safe-events"') &&
@@ -153,7 +153,11 @@ async function runBrowserRedactionSmoke() {
       `,
       args.timeoutMs,
     );
-    check("browser source tree/dock event feed redaction smoke", Boolean(result?.ok));
+    check("browser source tree renders site groups", Number(result?.siteGroups || 0) > 0);
+    check("browser source tree renders floor groups", Number(result?.floorGroups || 0) > 0);
+    check("browser dock side persists right setting", result?.dockSide === "right");
+    check("browser dock event feed is visible", Boolean(result?.feedText));
+    check("browser source dock hides restricted viewer material", Boolean(result?.forbidden?.length === 0));
     if (!result?.ok) console.log(JSON.stringify(result, null, 2));
   } finally {
     await browser.close();

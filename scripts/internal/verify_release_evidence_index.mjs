@@ -21,7 +21,7 @@ Usage:
 Checks:
   - release evidence index가 longrun, UI evidence, PR checks, release notes, skipped tests를 분리하는지 확인
   - README 첫 화면이 evidence matrix를 반복하지 않고 docs index로 연결하는지 확인
-  - NOT RUN, manual-not-run, 미확인, 건너뜀을 PASS와 구분하는 문구가 유지되는지 확인
+  - 미실행, manual-not-run, 미확인, 제외를 기능별 PASS/FAIL 판정과 구분하는 문구가 유지되는지 확인
 `);
 }
 
@@ -44,22 +44,37 @@ check("release evidence index owns required evidence categories", () => {
     "Release notes",
     "30분 soak",
     "장시간/외부 gate",
+    "`PASS` 또는 `FAIL`",
     "./server.sh verify-release-evidence-index",
   ]) {
     assert(doc.includes(snippet), `release evidence index missing snippet: ${snippet}`);
   }
 });
 
-check("skipped and unverified wording stays distinct from pass", () => {
+check("skipped wording stays distinct from pass", () => {
   const doc = readText("docs/release-evidence-index.md");
   for (const snippet of [
+    "기능별 테스트 결과 행은 `PASS` 또는 `FAIL`만 기록합니다.",
+    "해당 기능 결과를 `FAIL`로 기록합니다.",
+    "별도 `제외 기록`에만 남깁니다.",
+    "기능별 테스트 결과 행에는 쓰지 않습니다.",
     "`PASS` | 해당 release cut에서 실제 실행했고 통과",
     "`FAIL` | 해당 release cut에서 실제 실행했고 실패",
-    "`NOT RUN` | 실행 조건이 아니거나 명시 요청이 없어 실행하지 않음",
+    "`미실행` | 실행 조건이 아니거나 명시 요청이 없어 실행하지 않음",
     "`manual-not-run` | tag, push, PR merge, GitHub Release처럼 수동 승인 전이라 실행하지 않음",
+  ]) {
+    assert(doc.includes(snippet), `release evidence index missing skipped-test wording: ${snippet}`);
+  }
+});
+
+check("unverified wording stays distinct from pass", () => {
+  const doc = readText("docs/release-evidence-index.md");
+  for (const snippet of [
     "`미확인` | 화면, screenshot, 외부 UI/API를 직접 열어 확인하지 않음",
-    "`건너뜀` | destructive action 또는 fixture 조건 때문에 의도적으로 생략",
-    "`NOT RUN`, `manual-not-run`, `미확인`, `건너뜀`은 PASS가 아닙니다.",
+    "`제외` | 사용자 지시 또는 실기기/외부 credential 조건 때문에 테스트 기준에서 뺌",
+    "`미실행`, `manual-not-run`, `미확인`, `제외`는 PASS가 아닙니다.",
+    "UI 풀테스트 대상",
+    "기능별 결과 행에서는 `FAIL`",
   ]) {
     assert(doc.includes(snippet), `release evidence index missing skipped-test wording: ${snippet}`);
   }

@@ -181,9 +181,10 @@ RULE_RTSP_JSON="{\"id\":\"${RULE_RTSP}\",\"priority\":120,\"enabled\":true,\"mat
 
 curl -fsS -X PUT "${HTTP_BASE}/lab/analysis/profiles/${PROFILE_RTSP}" \
   -H 'Content-Type: application/json' --data "${PROFILE_RTSP_JSON}" >/dev/null
+log_pass "RTSP route analysis profile 저장"
 curl -fsS -X PUT "${HTTP_BASE}/lab/analysis/rules/${RULE_RTSP}" \
   -H 'Content-Type: application/json' --data "${RULE_RTSP_JSON}" >/dev/null
-log_pass "RTSP route profile/rule 저장"
+log_pass "RTSP route analysis rule 저장"
 
 if curl -fsS "${HTTP_BASE}/lab/analysis/profiles/${PROFILE_RTSP}" > "${PROFILE_RTSP_READ_FILE}" &&
    curl -fsS "${HTTP_BASE}/lab/analysis/rules/${RULE_RTSP}" > "${RULE_RTSP_READ_FILE}"; then
@@ -208,12 +209,13 @@ require_exact_list("profile rtsp trackingClasses", profile_rtsp.get("trackingCla
 require_exact_list("rule rtsp classes", (rule_rtsp.get("analysis") or {}).get("classes"), expected_rule_rtsp)
 PY
   then
-    log_pass "Profile/Rule 카테고리 저장·복원 확인"
+    log_pass "analysis profile trackingClasses 저장·복원 확인"
+    log_pass "analysis rule classes 저장·복원 확인"
   else
-    log_fail "Profile/Rule 카테고리 저장·복원 검증 실패"
+    log_fail "analysis profile 또는 rule category 저장·복원 검증 실패"
   fi
 else
-  log_fail "Profile/Rule 카테고리 저장·복원 endpoint 호출 실패"
+  log_fail "analysis profile 또는 rule category endpoint 호출 실패"
 fi
 
 RTSP_URL="rtsp://${RTSP_HOST}:${RTSP_PORT}/${ROUTE}?file=${ENCODED_FILE}&va=1"
@@ -223,7 +225,8 @@ ffmpeg -hide_banner -loglevel warning -rtsp_transport tcp -i "${RTSP_URL}" -t "$
 RTSP_FFMPEG_PID=$!
 
 if wait_for_route_tap "rtsp" "${PROFILE_RTSP}" "${RULE_RTSP}" "3" "${WAIT_TIMEOUT_S}"; then
-  log_pass "RTSP overlay route=rtsp profile/rule matching 확인"
+  log_pass "RTSP overlay route=rtsp profile selection 확인"
+  log_pass "RTSP overlay route=rtsp rule selection 확인"
 else
   log_fail "RTSP overlay route=rtsp profile/rule matching 실패"
   sed -n '1,120p' "${RTSP_LOG}" | sed 's/^/[rtsp] /'

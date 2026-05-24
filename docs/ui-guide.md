@@ -210,10 +210,13 @@ role/scope snapshot을 담은 HttpOnly session cookie를 받습니다.
 
 ![로그인 화면](assets/ui/auth-login.png)
 
-로컬 QA, 수동 smoke, 자동 auth smoke의 표준 테스트 계정 비밀번호는
-`qweasd0-`로 통일합니다.
-이는 검증 중 계정 상태를 일관되게 맞추기 위한 테스트 규칙이며,
-운영 배포나 제품 기본 비밀번호로 사용하지 않습니다.
+로컬 QA, 수동 smoke, 자동 auth smoke의 계정 비밀번호는 테스트 실행자가
+명시적으로 지정합니다. auth verifier는 `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`,
+`MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD`,
+`MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD`,
+`MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE`,
+`MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO`가 없으면 시작 전에 실패해야 합니다.
+문서, 스크립트, fixture에 고정 기본 비밀번호를 두지 않습니다.
 
 Password policy 기본값은 `kr-privacy`입니다.
 `/setup`과 `/password/change`는 동일한 정책을 적용합니다.

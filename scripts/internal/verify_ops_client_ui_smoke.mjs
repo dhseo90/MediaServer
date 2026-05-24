@@ -171,10 +171,14 @@ for (const check of pageChecks) {
 
 try {
   await assertOpsApiContract("ops-api-runtime-status", "/ops/api/runtime/status");
+  passCount += 1;
+  console.log("[pass] ops-api-runtime-status product endpoint available");
   await assertOpsApiContract("ops-api-rules-catalog", "/ops/api/rules/catalog");
+  passCount += 1;
+  console.log("[pass] ops-api-rules-catalog product endpoint available");
   await assertOpsApiContract("ops-api-events-status", "/ops/api/events/status?limit=5");
   passCount += 1;
-  console.log("[pass] ops-api-contract: runtime/rules/events product endpoints available");
+  console.log("[pass] ops-api-events-status product endpoint available");
 } catch (error) {
   failCount += 1;
   const message = error instanceof Error ? error.message : String(error);
@@ -184,8 +188,11 @@ try {
 
 try {
   const payload = await assertClientApiContract("client-api-views", "/client/api/views");
-  passCount += 1;
-  console.log("[pass] client-api-views: sensitive source/debug fields omitted");
+  passCount += 4;
+  console.log("[pass] client-api-views source locator fields omitted");
+  console.log("[pass] client-api-views debug fields omitted");
+  console.log("[pass] client-api-views model provenance fields omitted");
+  console.log("[pass] client-api-views auth material fields omitted");
   const views = Array.isArray(payload.views) ? payload.views : [];
   if (views.length === 0) {
     passCount += 1;
@@ -399,7 +406,8 @@ async function runClientRenderedLeakSmoke() {
         throw new Error(`${check.name}: ${details}`);
       }
       result.passCount += 1;
-      console.log(`[pass] ${check.name}: forbidden=0, textLength=${leakResult.textLength}`);
+      console.log(`[pass] ${check.name} rendered forbidden text count 0`);
+      console.log(`[pass] ${check.name} rendered text length ${leakResult.textLength}`);
     } catch (error) {
       result.failCount += 1;
       const message = error instanceof Error ? error.message : String(error);
@@ -489,7 +497,9 @@ async function runShellHeaderAccountSmoke() {
           throw new Error(`${label}: ${details}`);
         }
         passCount += 1;
-        console.log(`[pass] ${label}: accountItems=${result.accountItemCount}, brand=${Math.round(result.brandWidth)}x${Math.round(result.brandHeight)}`);
+        console.log(`[pass] ${label} account item count ${result.accountItemCount}`);
+        console.log(`[pass] ${label} brand width ${Math.round(result.brandWidth)}`);
+        console.log(`[pass] ${label} brand height ${Math.round(result.brandHeight)}`);
       } catch (error) {
         failCount += 1;
         const message = error instanceof Error ? error.message : String(error);
@@ -602,7 +612,8 @@ async function runClientHeaderResponsiveSmoke() {
           throw new Error(`${label}: ${details}`);
         }
         headerPassCount += 1;
-        console.log(`[pass] ${label}: navWidth=${Math.round(result.navWidth)}, accountTop=${Math.round(result.accountTop)}`);
+        console.log(`[pass] ${label} nav width ${Math.round(result.navWidth)}`);
+        console.log(`[pass] ${label} account top ${Math.round(result.accountTop)}`);
       } catch (error) {
         headerFailCount += 1;
         const message = error instanceof Error ? error.message : String(error);
@@ -755,7 +766,9 @@ async function runClientLiveTileKeyboardSmoke() {
           throw new Error(`${label}: ${details}`);
         }
         keyboardPassCount += 1;
-        console.log(`[pass] ${label}: tiles=${result.tileCount}, selected=${result.selectedTile}, active=${result.activeTile}`);
+        console.log(`[pass] ${label} tile count ${result.tileCount}`);
+        console.log(`[pass] ${label} selected tile ${result.selectedTile}`);
+        console.log(`[pass] ${label} active tile ${result.activeTile}`);
       } catch (error) {
         keyboardFailCount += 1;
         const message = error instanceof Error ? error.message : String(error);
@@ -1103,7 +1116,8 @@ async function runOpsAuditResponsiveSmoke() {
           throw new Error(`${label}: ${details}`);
         }
         auditPassCount += 1;
-        console.log(`[pass] ${label}: overflow=${result.overflowX}, controls=${result.controlCount}`);
+        console.log(`[pass] ${label} overflowX ${result.overflowX}`);
+        console.log(`[pass] ${label} control count ${result.controlCount}`);
       } catch (error) {
         auditFailCount += 1;
         const message = error instanceof Error ? error.message : String(error);
@@ -1155,7 +1169,8 @@ async function runOpsSourcesOnvifUnsupportedHintSmoke() {
         throw new Error(`${label}: ${details}`);
       }
       hintPassCount += 1;
-      console.log(`[pass] ${label}: hintHeight=${Math.round(result.hintHeight)}, overflow=${result.overflowX}`);
+      console.log(`[pass] ${label} hint height ${Math.round(result.hintHeight)}`);
+      console.log(`[pass] ${label} overflowX ${result.overflowX}`);
     } catch (error) {
       hintFailCount += 1;
       const message = error instanceof Error ? error.message : String(error);
@@ -1208,7 +1223,8 @@ async function runOpsSourcesOnvifPreviewToolSmoke() {
         throw new Error(`${label}: ${details}`);
       }
       previewPassCount += 1;
-      console.log(`[pass] ${label}: toolHeight=${Math.round(result.toolHeight)}, overflow=${result.overflowX}`);
+      console.log(`[pass] ${label} tool height ${Math.round(result.toolHeight)}`);
+      console.log(`[pass] ${label} overflowX ${result.overflowX}`);
     } catch (error) {
       previewFailCount += 1;
       const message = error instanceof Error ? error.message : String(error);

@@ -6139,6 +6139,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         const points = opsRulesNormalizeNearRectanglePoints(
           opsRulesParseGeometryPoints(document.getElementById('opsVaRuleGeometryPointsInput')?.value || '')
         );
+        const existingPriority = Number(baseRecord?.priority ?? baseRecord?.match?.priority);
         const payload = {
           ...base,
           id,
@@ -6162,6 +6163,9 @@ void AppendOpsShellScript(std::ostringstream& out,
             vaRule: id
           }
         };
+        if (Number.isFinite(existingPriority)) {
+          payload.priority = existingPriority;
+        }
         payload.templateStart = { ruleId: selectedTemplateId };
         payload.event = {
           ...(base.event || {}),
@@ -7800,7 +7804,8 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       const used = new Set(channelRows(loadedSources, loadedViews)
         .map(row => String(row.id || ''))
         .filter(id => isNumericChannelId(id) && id !== String(except || '')));
-      let next = 1;
+      const maxId = Array.from(used).reduce((max, id) => Math.max(max, Number(id)), 0);
+      let next = maxId + 1;
       while (used.has(String(next))) next += 1;
       return String(next);
     }
@@ -7940,7 +7945,24 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
 	        button.addEventListener('click', () => deleteChannel(button.dataset.deleteChannel || ''));
 	      });
 	    }
-    async function loadFileOptions(selected = '') {
+    function sourceUsesFile(file, exceptSourceId = '') {
+      const normalized = String(file || '').trim();
+      if (!normalized) return false;
+      const except = String(exceptSourceId || '').trim();
+      return loadedSources.some(source => (
+        String(source?.sourceId || '') !== except &&
+        String(source?.kind || 'file') === 'file' &&
+        String(source?.file || '').trim() === normalized
+      ));
+    }
+    function preferredUnusedFile(files, preferred = '', exceptSourceId = '') {
+      const preferredValue = String(preferred || '').trim();
+      if (preferredValue && files.includes(preferredValue) && !sourceUsesFile(preferredValue, exceptSourceId)) {
+        return preferredValue;
+      }
+      return files.find(file => !sourceUsesFile(file, exceptSourceId)) || preferredValue || files[0] || '';
+    }
+    async function loadFileOptions(selected = '', options = {}) {
       const select = channelForm.elements.file;
       try {
         const payload = await requestJson('/lab/files');
@@ -7948,7 +7970,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         if (files.length === 0) return;
         const previous = selected || select.value || payload.defaultFile || files[0];
         setSelectOptions(select, files);
-        select.value = files.includes(previous) ? previous : files[0];
+        select.value = preferredUnusedFile(files, previous, options.exceptSourceId || '');
       } catch (error) {
         setStatus(`파일 목록 로드 실패: ${error.message}`, true);
       }
@@ -8009,7 +8031,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       setGeneratedChannelId(isClone ? nextChannelId(id) : id);
       channelForm.elements.displayName.value = view.displayName || source.displayName || '';
       channelForm.elements.kind.value = isOnvifSource(source) ? 'onvif' : (source.kind || 'file');
-      loadFileOptions(source.file || '');
+      loadFileOptions(source.file || '', { exceptSourceId: isClone ? '' : id });
       channelForm.elements.onvifStreamUrl.value = onvifStreamUriForSource(source);
       channelForm.elements.rtspUrl.value = source.rtspUrl || '';
       channelForm.elements.webrtcSourceId.value = source.webrtcSourceId || '';

@@ -111,7 +111,7 @@ check("related ONVIF docs link the protocol support matrix", () => {
   assertContains(noDeviceDoc, "실제 ONVIF 카메라를 사용한 field smoke를 수행하지 않았습니다", "no-device doc missing no real camera statement");
 });
 
-check("implementation still matches documented probe transport and service scope", () => {
+check("implementation matches documented probe transport scope", () => {
   for (const term of [
     "services_request.action = \"GetServices\"",
     "const std::vector<std::string> media_apis = {\"Media2\", \"Media\"}",
@@ -130,10 +130,13 @@ check("implementation still matches documented probe transport and service scope
   }
 });
 
-check("TLS and credential policy docs keep HTTPS/auth scope explicit", () => {
+check("TLS policy doc keeps HTTPS scope explicit", () => {
   assertContains(tlsDoc, "HTTP SOAP transport와 OpenSSL 기반 HTTPS SOAP fixture transport를 포함", "TLS doc must state HTTPS transport scope");
   assertContains(tlsDoc, "`https://` endpoint는 OpenSSL 빌드에서 TCP connect", "TLS doc must state HTTPS OpenSSL transport");
   assertContains(tlsDoc, "OpenSSL이 없는 빌드는 `https transport requires OpenSSL support`로 fail-closed", "TLS doc must keep OpenSSL fallback explicit");
+});
+
+check("credential policy doc keeps auth scope explicit", () => {
   assertContains(credentialDoc, "ONVIF WS-Security UsernameToken 생성", "credential doc must keep WS-Security unsupported");
   assertContains(credentialDoc, "./onvif-credential-store-integration-design.md", "credential doc must link credential store design");
   assertContains(credentialDoc, "HTTP Digest 인증 주입", "credential doc must keep Digest auth unsupported");

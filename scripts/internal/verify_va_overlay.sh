@@ -9,11 +9,13 @@ source "${SCRIPT_DIR}/env_common.sh"
 media_server_apply_homebrew_gst_env
 
 ENV_FILE="${SCRIPTS_DIR}/.media_server.env"
-if [[ -f "${ENV_FILE}" ]]; then
+if [[ -f "${ENV_FILE}" && "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" != "1" ]]; then
   # shellcheck disable=SC1090
   set -a
   source "${ENV_FILE}"
   set +a
+elif [[ "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" == "1" ]]; then
+  echo "[env] skipped local override: ${ENV_FILE}"
 fi
 
 STD_AFX="${ROOT_DIR}/include/stdafx.h"

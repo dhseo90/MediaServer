@@ -23,6 +23,7 @@ Options:
   --dry-run                    Explicit dry-run flag. This is also the default.
   --fixture <path>             Seed fixture path. Default: test/fixtures/manual_ui_fulltest_va_seed_matrix.json
   --emit-plan <path>           Write the validated ordered seed plan as JSON.
+  --emit-registry-dir <dir>    Write throwaway sources/views/analysis/preconditions files. Sends 0 HTTP requests.
   --apply                      Apply the seed to a running throwaway server. Not a default action.
   --http-base <url>            Server HTTP base for --apply. Default: http://127.0.0.1:8081
   --cookie-file <path>         Optional file containing the Cookie header value for --apply.
@@ -32,7 +33,7 @@ Options:
 Boundaries:
   - dry-run sends 0 HTTP requests and is not manual UI test evidence
   - --apply mutates throwaway profile/rule/vaRule registry data only after explicit confirmation
-  - browser clicking, event occurrence, screenshots, and event log review remain NOT RUN here
+  - browser clicking, event occurrence, screenshots, and event log review are not produced by this seed helper
 `);
 }
 
@@ -40,6 +41,7 @@ assertKnownOptions(rawArgs, [
   "dry-run",
   "fixture",
   "emit-plan",
+  "emit-registry-dir",
   "apply",
   "http-base",
   "cookie-file",
@@ -64,6 +66,10 @@ if (args.emitPlan) {
   const outputPath = path.resolve(rootDir, args.emitPlan);
   fs.mkdirSync(path.dirname(outputPath), { recursive: true });
   fs.writeFileSync(outputPath, `${JSON.stringify(plan, null, 2)}\n`);
+}
+if (args.emitRegistryDir) {
+  const outputDir = path.resolve(rootDir, args.emitRegistryDir);
+  writeRegistryFiles(outputDir, fixture, plan);
 }
 
 if (args.apply) {
@@ -220,9 +226,9 @@ function buildValidatedPlan(seed, fixtureLabel) {
     httpRequests: 0,
     boundaries: {
       notExecutionEvidence: true,
-      browserUiTest: "NOT RUN",
-      eventOccurrenceReview: "NOT RUN",
-      longRun: "NOT RUN",
+      browserUiTestEvidenceProduced: false,
+      eventOccurrenceReviewEvidenceProduced: false,
+      longRunEvidenceProduced: false,
     },
     counts: {
       accounts: accounts.length,
@@ -276,11 +282,16 @@ async function applySeedPlan(plan, { httpBase, cookieFile }) {
     await expectPutReject(httpBase, `${pathPrefix}/${encodeURIComponent(item.id)}`, item.payload, headers, item.expectedErrorSnippet);
     requests += 1;
   }
-  console.log("[pass] manual UI full-test seed applied to throwaway registry");
+  console.log("[pass] manual UI full-test seed applied account fixtures to throwaway registry");
+  console.log("[pass] manual UI full-test seed applied source fixtures to throwaway registry");
+  console.log("[pass] manual UI full-test seed applied profile fixtures to throwaway registry");
+  console.log("[pass] manual UI full-test seed applied event-template fixtures to throwaway registry");
+  console.log("[pass] manual UI full-test seed applied va-rule fixtures to throwaway registry");
+  console.log("[pass] manual UI full-test seed rejected invalid policy fixtures");
   console.log(`- httpBase: ${httpBase}`);
   console.log(`- httpRequests: ${requests}`);
-  console.log(`- browserUiTest: NOT RUN`);
-  console.log(`- eventOccurrenceReview: NOT RUN`);
+  console.log(`- not-ui-test-evidence: browser click evidence is not produced by this seed helper`);
+  console.log(`- not-event-evidence: event occurrence review is not produced by this seed helper`);
 }
 
 async function putJson(httpBase, urlPath, payload, headers) {
@@ -311,7 +322,8 @@ async function expectPutReject(httpBase, urlPath, payload, headers, expectedSnip
 }
 
 function printDryRun(plan, emittedPlan) {
-  console.log("[pass] manual UI full-test seed dry-run");
+  console.log("[pass] manual UI seed dry-run mode selected for full-test fixture");
+  console.log("[pass] manual UI seed dry-run emitted no HTTP requests");
   console.log(`- fixture: ${plan.fixture}`);
   console.log(`- mode: dry-run`);
   console.log(`- httpRequests: 0`);
@@ -323,11 +335,108 @@ function printDryRun(plan, emittedPlan) {
   console.log(`- invalidPolicyCases: ${plan.counts.invalidPolicyCases}`);
   console.log(`- trackerPairs: ${plan.coverage.trackerPairs.join(", ")}`);
   console.log(`- eventTypes: ${plan.coverage.eventTypes.join(", ")}`);
-  console.log(`- browserUiTest: NOT RUN`);
-  console.log(`- eventOccurrenceReview: NOT RUN`);
+  console.log(`- not-ui-test-evidence: browser click evidence is not produced by this seed helper`);
+  console.log(`- not-event-evidence: event occurrence review is not produced by this seed helper`);
   if (emittedPlan) {
     console.log(`- emitPlan: written`);
   }
+  if (args.emitRegistryDir) {
+    console.log(`- emitRegistryDir: written`);
+  }
+}
+
+function writeRegistryFiles(outputDir, seed, plan) {
+  const fileSources = seed.sources.filter(source => source.kind === "file" && source.file);
+  assert(fileSources.length >= 2, "seed fixture must include at least two file sources for registry materialization");
+  fs.mkdirSync(outputDir, { recursive: true });
+
+  const sourceIdBySeedId = new Map();
+  const sources = fileSources.map((source, index) => {
+    const sourceId = String(9001 + index);
+    sourceIdBySeedId.set(source.id, sourceId);
+    return {
+      sourceId,
+      displayName: source.id === "ui-file-va-four-scene" ? "UI Fulltest VA Four Scene" : "UI Fulltest Sample H264",
+      kind: "file",
+      enabled: true,
+      tags: ["manual-ui-fulltest", "throwaway"],
+      ownerGroup: "Manual UI Fulltest",
+      site: "QA Seed",
+      group: "Manual UI",
+      floor: "Fixture",
+      zone: source.id === "ui-file-va-four-scene" ? "VA Matrix" : "Playback",
+      canonicalSourceKey: `file:${source.file}`,
+      file: source.file,
+    };
+  });
+
+  const views = fileSources.map((source, index) => {
+    const sourceId = sourceIdBySeedId.get(source.id);
+    const allowedRuleIds = plan.applyOrder.vaRules
+      .filter(rule => seed.vaRules.find(item => item.id === rule.id)?.sourceId === source.id)
+      .map(rule => rule.id);
+    return {
+      viewId: String(9001 + index),
+      displayName: source.id === "ui-file-va-four-scene" ? "UI Fulltest VA Matrix" : "UI Fulltest Playback",
+      sourceId,
+      defaultRuleId: allowedRuleIds[0] || "",
+      allowedRuleIds,
+      allowedOverlayModes: ["raw", "va-overlay", "va-rule"],
+      showDashboard: true,
+      showEvents: true,
+      showMetadataSummary: true,
+      clientGroups: ["manual-ui-fulltest"],
+      maxTiles: source.id === "ui-file-va-four-scene" ? 4 : 1,
+      enabled: true,
+    };
+  });
+
+  const analysis = {
+    profiles: plan.applyOrder.profiles,
+    rules: plan.applyOrder.eventTemplates,
+    vaRules: plan.applyOrder.vaRules,
+  };
+  const preconditions = {
+    schema: "media-server.manual-ui-fulltest-registry-preconditions.v1",
+    releaseTarget: plan.releaseTarget,
+    fixture: plan.fixture,
+    notExecutionEvidence: true,
+    browserUiTestEvidenceProduced: false,
+    eventOccurrenceReviewEvidenceProduced: false,
+    authUsersFile: {
+      status: "required-separately",
+      reason: "password hashes must be created with operator-provided password values; this script does not invent or store default passwords",
+      requiredEnv: [
+        "MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD",
+        "MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD",
+        "MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD",
+        "MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE",
+        "MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO",
+      ],
+      accounts: seed.accounts,
+    },
+    files: {
+      sourceRegistry: "sources.json",
+      publishedViews: "views.json",
+      analysisRegistry: "analysis.json",
+    },
+    counts: {
+      sources: sources.length,
+      views: views.length,
+      profiles: analysis.profiles.length,
+      eventTemplates: analysis.rules.length,
+      vaRules: analysis.vaRules.length,
+    },
+  };
+
+  writeJson(path.join(outputDir, "sources.json"), { sources });
+  writeJson(path.join(outputDir, "views.json"), { views });
+  writeJson(path.join(outputDir, "analysis.json"), analysis);
+  writeJson(path.join(outputDir, "preconditions.json"), preconditions);
+}
+
+function writeJson(filePath, value) {
+  fs.writeFileSync(filePath, `${JSON.stringify(value, null, 2)}\n`);
 }
 
 function trackerPairFromPayload(payload, label) {
@@ -388,6 +497,10 @@ function parseArgs(argv) {
       result.emitPlan = token.slice("--emit-plan=".length);
     } else if (token === "--emit-plan") {
       result.emitPlan = requireOptionValue(argv, ++index, token);
+    } else if (token.startsWith("--emit-registry-dir=")) {
+      result.emitRegistryDir = token.slice("--emit-registry-dir=".length);
+    } else if (token === "--emit-registry-dir") {
+      result.emitRegistryDir = requireOptionValue(argv, ++index, token);
     } else if (token.startsWith("--http-base=")) {
       result.httpBase = token.slice("--http-base=".length);
     } else if (token === "--http-base") {

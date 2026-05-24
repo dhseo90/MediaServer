@@ -38,14 +38,18 @@ const checklist = readText("docs/manual-ui-checklist.md");
 const template = readText("docs/manual-ui-result-template.md");
 const streamVerification = readText("docs/stream-verification.md");
 const releaseEvidence = readText("docs/release-evidence-index.md");
+const agents = readText("AGENTS.md");
 const seedFixturePath = "test/fixtures/manual_ui_fulltest_va_seed_matrix.json";
 const seedFixtureText = readText(seedFixturePath);
 const seedFixture = JSON.parse(seedFixtureText);
 
 const checks = [];
 
-check("inventory is indexed and scoped", () => {
+check("docs index references feature inventory", () => {
   requireText(docsIndex, "project-feature-test-inventory.md", "docs index missing inventory link");
+});
+
+check("feature inventory pins v1.8.0 scope", () => {
   requireText(inventory, "현재 release 목표 `v1.8.0`", "inventory does not pin v1.8.0");
   requireText(inventory, "테스트 실행 결과 문서가 아닙니다", "inventory must reject execution-evidence wording");
   requireText(inventory, "현재 테스트가 존재한다는 증거가 아닙니다", "inventory must reject test-exists wording");
@@ -110,6 +114,7 @@ check("summary counts match current feature IDs", () => {
   ];
   for (const [label, count] of expected) {
     requireText(inventory, `| ${label} | ${count} |`, `summary count mismatch for ${label}: ${count}`);
+    console.log(`[pass] inventory summary count ${label} ${count}`);
   }
 });
 
@@ -121,26 +126,31 @@ check("feature rows have required matrix columns", () => {
     assert(row.testNeed === "필요", `feature row ${row.id} must mark test need as 필요`);
     assert(row.area, `feature row ${row.id} missing test area`);
     assert(row.pass, `feature row ${row.id} missing PASS criteria`);
+    console.log(`[pass] feature ${row.id} name present`);
+    console.log(`[pass] feature ${row.id} UI need ${row.uiNeed}`);
+    console.log(`[pass] feature ${row.id} test need ${row.testNeed}`);
+    console.log(`[pass] feature ${row.id} test area assigned`);
+    console.log(`[pass] feature ${row.id} pass criteria present`);
   }
 });
 
-check("coverage and verifier wording separates mapping from execution", () => {
+check("coverage wording separates mapping from execution", () => {
   for (const phrase of [
     "실제 안정화 테스트,",
     "UI 풀테스트를 실행했다는 뜻이 아닙니다.",
     "| 제품 UI 위치 |",
     "| UI 풀테스트 evidence |",
     "| VA seed 데이터 |",
-    "dry-run 준비 가능, 서버 적용 NOT RUN",
+    "dry-run 준비 가능, 서버 적용 evidence 없음",
     "Verifier Coverage Map",
-    "실제 UI 이벤트 발생 전수는 아직 NOT RUN",
-    "직접 조작 NOT RUN",
+    "실제 UI 이벤트 발생 전수 evidence 없음",
+    "직접 조작 evidence 없음",
   ]) {
     requireText(inventory, phrase, `inventory missing coverage boundary wording: ${phrase}`);
   }
 });
 
-check("manual UI docs reference inventory and seed fixture", () => {
+check("manual UI docs reference inventory", () => {
   for (const [label, text] of [
     ["manual-ui-fulltest.md", fulltest],
     ["manual-ui-checklist.md", checklist],
@@ -150,11 +160,32 @@ check("manual UI docs reference inventory and seed fixture", () => {
   ]) {
     requireText(text, "project-feature-test-inventory.md", `${label} missing inventory reference`);
   }
+});
+
+check("manual checklist references seed fixture", () => {
   requireText(checklist, seedFixturePath, "manual checklist missing VA seed fixture path");
-  requireText(template, seedFixturePath, "manual result template missing VA seed fixture path");
   requireText(checklist, "prepare-manual-ui-fulltest-seed --dry-run", "manual checklist missing seed dry-run command");
+  requireText(checklist, "--emit-registry-dir <dir>", "manual checklist missing seed registry dir command");
+});
+
+check("manual result template references seed fixture", () => {
+  requireText(template, seedFixturePath, "manual result template missing VA seed fixture path");
   requireText(template, "prepare-manual-ui-fulltest-seed --dry-run", "manual result template missing seed dry-run command");
+  requireText(template, "seed registry dir", "manual result template missing seed registry dir field");
   requireText(template, "## VA Seed / 최종 룰 상태", "manual result template missing VA seed result section");
+});
+
+check("AGENTS requires individual future feature test rows", () => {
+  for (const phrase of [
+    "VA rule, scenario, tracker, Re-ID처럼 기능 축이 늘어나는 경우",
+    "각 event type, scenario type, line direction",
+    "tracker policy, Re-ID policy, invalid 조합",
+    "각각 독립 기능 ID/결과 행으로 추가한다.",
+    "기능별 테스트 결과 행의 판정값은 `PASS`와 `FAIL`만 쓴다.",
+    "`제외 기록`에만 남긴다.",
+  ]) {
+    requireText(agents, phrase, `AGENTS.md missing future feature test rule: ${phrase}`);
+  }
 });
 
 check("manual UI VA seed matrix covers required v1.8.0 cases", () => {
@@ -167,6 +198,7 @@ check("manual UI VA seed matrix covers required v1.8.0 cases", () => {
   const accounts = new Set(arrayAt(seedFixture, "accounts").map(item => item.role));
   for (const role of ["admin", "operator", "viewer", "integrator"]) {
     assert(accounts.has(role), `seed fixture missing account role: ${role}`);
+    console.log(`[pass] manual UI seed account role ${role}`);
   }
 
   const profileIds = new Set();
@@ -177,11 +209,14 @@ check("manual UI VA seed matrix covers required v1.8.0 cases", () => {
     assert(Array.isArray(profile.payload?.trackingClasses) && profile.payload.trackingClasses.length > 0, `seed fixture profile missing trackingClasses: ${profile.id}`);
     assert(profile.payload?.analysis?.trackingPolicy === undefined, `seed fixture profile must not place trackingPolicy in profile payload: ${profile.id}`);
     profileIds.add(String(profile.id));
+    console.log(`[pass] manual UI seed profile ${profile.id} numeric id`);
+    console.log(`[pass] manual UI seed profile ${profile.id} tracking classes present`);
   }
 
   const eventTypes = new Set(arrayAt(seedFixture, "eventTemplates").map(item => item.type));
   for (const type of ["presence", "enter", "exit", "line-crossing", "intrusion-dwell", "re-entry", "wrong-direction", "intrusion-after-line-crossing", "loitering", "zone-occupancy"]) {
     assert(eventTypes.has(type), `seed fixture missing event/scenario type: ${type}`);
+    console.log(`[pass] manual UI seed event type ${type}`);
   }
   const eventTemplateIds = new Set();
   const trackerPairs = new Set();
@@ -192,6 +227,9 @@ check("manual UI VA seed matrix covers required v1.8.0 cases", () => {
     assert(profileIds.has(String(item.payload?.analysis?.profileId || "")), `seed fixture event template missing profile reference: ${item.id}`);
     trackerPairs.add(trackerPairFromPayload(item.payload, `event template ${item.id}`));
     eventTemplateIds.add(String(item.id));
+    console.log(`[pass] manual UI seed event template ${item.id} numeric id`);
+    console.log(`[pass] manual UI seed event template ${item.id} event type ${item.type}`);
+    console.log(`[pass] manual UI seed event template ${item.id} profile reference`);
   }
 
   const directions = new Set(arrayAt(seedFixture, "eventTemplates")
@@ -199,11 +237,13 @@ check("manual UI VA seed matrix covers required v1.8.0 cases", () => {
     .map(item => item.direction || item.payload?.event?.region?.direction));
   for (const direction of ["any", "forward", "reverse"]) {
     assert(directions.has(direction), `seed fixture missing line direction: ${direction}`);
+    console.log(`[pass] manual UI seed line direction ${direction}`);
   }
 
   const presets = new Set(arrayAt(seedFixture, "scenarioPresets"));
   for (const preset of ["default", "road", "retail", "park", "indoor", "lobby", "platform", "entrance", "doorway", "parking", "elevator", "custom"]) {
     assert(presets.has(preset), `seed fixture missing scenario preset: ${preset}`);
+    console.log(`[pass] manual UI seed scenario preset ${preset}`);
   }
 
   for (const item of arrayAt(seedFixture, "vaRules")) {
@@ -214,12 +254,20 @@ check("manual UI VA seed matrix covers required v1.8.0 cases", () => {
     assert(item.payload?.analysis?.profileId === item.profileId, `seed fixture vaRule profile payload mismatch: ${item.id}`);
     assert(item.payload?.templateStart?.ruleId === item.eventTemplateId, `seed fixture vaRule template payload mismatch: ${item.id}`);
     trackerPairs.add(trackerPairFromPayload(item.payload, `vaRule ${item.id}`));
+    console.log(`[pass] manual UI seed vaRule ${item.id} numeric id`);
+    console.log(`[pass] manual UI seed vaRule ${item.id} profile reference`);
+    console.log(`[pass] manual UI seed vaRule ${item.id} event template reference`);
   }
   for (const pair of ["none/off", "lite/off", "kalman-lite/off", "bytetrack/off", "lite/assist", "kalman-lite/assist", "bytetrack/assist"]) {
     assert(trackerPairs.has(pair), `seed fixture missing tracker/Re-ID pair: ${pair}`);
+    console.log(`[pass] manual UI seed tracker Re-ID pair ${pair}`);
   }
   assert(arrayAt(seedFixture, "invalidPolicyCases").some(item => item.payload?.analysis?.trackingPolicy?.tracker === "none" && item.payload?.analysis?.trackingPolicy?.reid === "assist" && item.expected === "reject"), "seed fixture missing tracker=none + reid=assist invalid case");
+  console.log("[pass] manual UI seed invalid policy tracker none Re-ID assist");
   assert(seedFixture.finalStateMinimums?.vaRules >= 12, "seed fixture must require at least 12 final VA rules");
+  console.log("[pass] manual UI seed final state minimum vaRules");
+  requireText(inventory, "registry 파일 준비", "inventory missing registry materialization row");
+  requireText(inventory, "preconditions.json", "inventory missing registry preconditions file");
 });
 
 runChecks();

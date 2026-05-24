@@ -12,7 +12,7 @@ close-object guard의 `defaultOnCandidate` 판정을 fixture별로 분리해 기
 - summary: `/tmp/media_server_close_object_tracker_1778947054_1446/matrix-summary.json`
 - matrix result: `matrix-ok=True`
 - script decision fields: `[matrix-default-on-decision]`, `[matrix-product-default-on]`
-- 전체 판정: V180-current-P2-02는 `WARNING(실험 유지)`
+- 실험 결론: V180-current-P2-02는 `WARNING(실험 유지)`
 
 Fixture별 판정:
 

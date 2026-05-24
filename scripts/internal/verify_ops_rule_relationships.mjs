@@ -80,7 +80,7 @@ try {
 
   const withFixture = await loadGraph();
   assertCleanGraph("with-fixture", withFixture);
-  console.log("[pass] ops-rule-relationships");
+  console.log("[summary] ops-rule-relationships complete");
 } finally {
   for (const item of created.reverse()) {
     const path = item.type === "vaRule"
@@ -110,15 +110,33 @@ async function loadGraph() {
 }
 
 function assertCleanGraph(label, graph) {
-  const issues = relationshipIssues(graph);
+  const { issues, stats } = relationshipIssues(graph);
   if (issues.length > 0) {
     throw new Error(`${label} relationship issues:\n- ${issues.join("\n- ")}`);
   }
-  console.log(`[pass] ${label} relationship graph: profiles=${graph.profiles.length}, eventTemplates=${graph.eventTemplates.length}, vaRules=${graph.vaRules.length}, views=${graph.views.length}`);
+  console.log(`[pass] ${label} relationship profile index count ${graph.profiles.length}`);
+  console.log(`[pass] ${label} relationship event-template index count ${graph.eventTemplates.length}`);
+  console.log(`[pass] ${label} relationship va-rule index count ${graph.vaRules.length}`);
+  console.log(`[pass] ${label} relationship source index count ${graph.sources.length}`);
+  console.log(`[pass] ${label} relationship published-view index count ${graph.views.length}`);
+  console.log(`[pass] ${label} va-rule profile references valid checked=${stats.vaRuleProfileRefs}`);
+  console.log(`[pass] ${label} va-rule event-template references valid checked=${stats.vaRuleTemplateRefs}`);
+  console.log(`[pass] ${label} va-rule source references registered checked=${stats.vaRuleSourceRefs}`);
+  console.log(`[pass] ${label} published-view default rule belongs to allowed set checked=${stats.viewDefaultRules}`);
+  console.log(`[pass] ${label} published-view va-rule references exist checked=${stats.viewRuleRefs}`);
+  console.log(`[pass] ${label} published-view va-rule source matches view source checked=${stats.viewRuleSourceMatches}`);
 }
 
 function relationshipIssues(graph) {
   const issues = [];
+  const stats = {
+    vaRuleProfileRefs: 0,
+    vaRuleTemplateRefs: 0,
+    vaRuleSourceRefs: 0,
+    viewDefaultRules: 0,
+    viewRuleRefs: 0,
+    viewRuleSourceMatches: 0,
+  };
   const profileIds = new Set(graph.profiles.map(item => String(item?.id || item?.profileId || "")).filter(Boolean));
   const eventTemplateIds = new Set(graph.eventTemplates.map(item => String(item?.id || "")).filter(Boolean));
   const vaRulesById = new Map(graph.vaRules.map(item => [String(item?.id || ""), item]).filter(([id]) => id));
@@ -128,11 +146,13 @@ function relationshipIssues(graph) {
     const id = String(rule?.id || "");
     const profileId = String(rule?.analysis?.profileId || "").trim();
     const templateId = String(rule?.templateStart?.ruleId || "").trim();
+    stats.vaRuleProfileRefs += 1;
     if (!profileId) {
       issues.push(`vaRule ${id || "(unknown)"} missing analysis.profileId`);
     } else if (!profileIds.has(profileId)) {
       issues.push(`vaRule ${id || "(unknown)"} references missing profile ${profileId}`);
     }
+    stats.vaRuleTemplateRefs += 1;
     if (!templateId) {
       issues.push(`vaRule ${id || "(unknown)"} missing templateStart.ruleId`);
     } else if (!eventTemplateIds.has(templateId)) {
@@ -142,6 +162,9 @@ function relationshipIssues(graph) {
     if (sourceKey && !graph.sources.some(source => sourceKeyForSource(source) === sourceKey)) {
       issues.push(`vaRule ${id || "(unknown)"} source is not registered as a channel source`);
     }
+    if (sourceKey) {
+      stats.vaRuleSourceRefs += 1;
+    }
   }
 
   for (const view of graph.views) {
@@ -149,10 +172,14 @@ function relationshipIssues(graph) {
     const viewSource = sourcesById.get(String(view?.sourceId || ""));
     const allowed = new Set((Array.isArray(view?.allowedRuleIds) ? view.allowedRuleIds : []).map(String).filter(Boolean));
     const defaultRuleId = String(view?.defaultRuleId || "").trim();
+    if (defaultRuleId) {
+      stats.viewDefaultRules += 1;
+    }
     if (defaultRuleId && !allowed.has(defaultRuleId)) {
       issues.push(`PublishedView ${viewId} defaultRuleId ${defaultRuleId} is not included in allowedRuleIds`);
     }
     for (const ruleId of new Set([...allowed, defaultRuleId].filter(Boolean))) {
+      stats.viewRuleRefs += 1;
       const rule = vaRulesById.get(ruleId);
       if (!rule) {
         issues.push(`PublishedView ${viewId} references missing vaRule ${ruleId}`);
@@ -164,12 +191,15 @@ function relationshipIssues(graph) {
       }
       const viewKey = sourceKeyForSource(viewSource);
       const ruleKey = sourceKeyForVaRule(rule.source || {});
+      if (viewKey && ruleKey) {
+        stats.viewRuleSourceMatches += 1;
+      }
       if (viewKey && ruleKey && viewKey !== ruleKey) {
         issues.push(`PublishedView ${viewId} vaRule ${ruleId} source mismatch`);
       }
     }
   }
-  return issues;
+  return { issues, stats };
 }
 
 function pickSource(sources) {
@@ -210,6 +240,7 @@ function vaRulePayload(id, templateRuleId, profileId, source) {
     id,
     name: `관계 검증 ${id}`,
     enabled: true,
+    priority: Number(id),
     source: sourcePayload(source),
     analysis: {
       profileId,

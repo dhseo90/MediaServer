@@ -23,7 +23,7 @@ function check(name, condition) {
 }
 
 check(
-  "tile disconnect contract marker is declared",
+  "tile disconnect contract marker exists",
   script.includes('data-disconnect-contract="tile-disconnect-clears-slot,workspace-disconnect-keeps-layout"') &&
     script.includes('data-disconnect-scope="tile"'),
 );
@@ -45,7 +45,7 @@ check(
     !script.includes("Promise.all(liveTiles.map(tile => disconnectLiveTile(tile.index)))"),
 );
 check(
-  "workspace action menu stays inside narrow client viewport",
+  "workspace action menu fits narrow client viewport",
   css.includes("body.client-shell .workspace-actions[open]::after") &&
     css.includes("left: 0;") &&
     css.includes("body.client-shell .live-layout-presets,") &&
@@ -59,7 +59,7 @@ check(
     i18n.includes("연결 해제|채널 선택"),
 );
 check(
-  "ops/client UI smoke tracks tile disconnect contract",
+  "ops client UI smoke tracks tile disconnect contract",
   uiSmoke.includes('data-disconnect-contract="tile-disconnect-clears-slot,workspace-disconnect-keeps-layout"') &&
     uiSmoke.includes('data-disconnect-scope="tile"') &&
     uiSmoke.includes("disconnectLiveTile") &&
@@ -171,7 +171,11 @@ async function runBrowserDisconnectSmoke() {
       `,
       args.timeoutMs,
     );
-    check("browser tile disconnect clears one slot and preserves adjacent tiles", Boolean(result?.ok));
+    check("browser tile disconnect clears selected slot", Boolean(result?.after?.firstView === "" && result?.after?.firstAssignment?.includes("소스 없음")));
+    check("browser tile disconnect preserves adjacent tile", Boolean(result?.before?.secondView === result?.after?.secondView && result?.before?.secondAssignment === result?.after?.secondAssignment));
+    check("browser workspace disconnect preserves tile assignments", Boolean(result?.before?.firstView === result?.afterWorkspace?.firstView && result?.before?.secondView === result?.afterWorkspace?.secondView));
+    check("browser tile disconnect hides restricted viewer material", Boolean(result?.after?.forbidden?.length === 0));
+    check("browser tile disconnect avoids horizontal overflow", Boolean(Number(result?.after?.overflowX || 0) <= 2));
     if (!result?.ok) console.log(JSON.stringify(result, null, 2));
   } finally {
     await browser.close();

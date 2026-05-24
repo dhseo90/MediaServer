@@ -37,7 +37,7 @@ check("tile info overlay is controlled only by the info toggle", () => {
   assert(!script.includes("liveInfoOverlayEnabled || selectedLiveTile === tile.index"), "tile selection must not force the info overlay");
 });
 
-check("overlay reports playback health from WebRTC stats without media path changes", () => {
+check("overlay reports playback health from WebRTC stats", () => {
   for (const snippet of [
     "async function refreshTilePlaybackStats",
     "tile.pc.getStats",
@@ -55,7 +55,7 @@ check("overlay reports playback health from WebRTC stats without media path chan
   assert(!clientLiveBlock.includes("renderVideoOverlay") || clientLiveBlock.includes("overlayMode"), "overlay must not force server overlay");
 });
 
-check("overlay is a DOM layer over native video and avoids raw/debug material", () => {
+check("overlay DOM layer avoids restricted material", () => {
   for (const snippet of [
     ".tile-info-overlay",
     ".tile-stage video",
@@ -73,7 +73,7 @@ check("overlay is a DOM layer over native video and avoids raw/debug material", 
   }
 });
 
-check("ops/client UI smoke and server command track tile info overlay contract", () => {
+check("ops client UI smoke tracks tile info overlay contract", () => {
   for (const snippet of [
     'id="liveInfoOverlayToggle"',
     'data-testid="client-live-tile-info-overlay"',
@@ -220,7 +220,7 @@ async function runBrowserSmoke() {
       `,
       args.timeoutMs,
     );
-    check("browser tile info overlay visibility/redaction smoke", () => {
+    check("browser tile info overlay visibility smoke", () => {
       assert(Boolean(result?.ok), "browser result was not ok");
     });
     if (!result?.ok) console.log(JSON.stringify(result, null, 2));

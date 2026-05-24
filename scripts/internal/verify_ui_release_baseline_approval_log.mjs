@@ -79,7 +79,7 @@ check("release baseline approval template has required fields", () => {
   }
 });
 
-check("release baseline approval sample fixture is complete and non-evidence", () => {
+check("release baseline approval sample fixture is complete", () => {
   const sample = readText("test/fixtures/ui_visual_release_baseline_approval_log_sample.md");
   for (const snippet of [
     "UI Visual Release Baseline Approval Log Sample",
@@ -110,20 +110,31 @@ check("release baseline approval sample fixture is complete and non-evidence", (
   }
 });
 
-check("PR and release docs require approval log evidence", () => {
+check("PR docs require approval log evidence", () => {
+  const docs = readText(".github/PULL_REQUEST_TEMPLATE.md");
+  for (const snippet of [
+    "docs/ui-visual-release-baseline-approval-template.md",
+    "accepted baseline run",
+    "approved comparator",
+    "not a public release asset",
+    "candidate pass proof",
+    "./server.sh verify-ui-release-baseline-approval-log",
+  ]) {
+    assert(docs.includes(snippet), `PR template missing approval log snippet: ${snippet}`);
+  }
+});
+
+check("release docs require approval log evidence", () => {
   const docs = [
-    readText(".github/PULL_REQUEST_TEMPLATE.md"),
     readText("docs/release-policy.md"),
     readText("docs/stream-verification.md"),
     readText("docs/ui-guide.md"),
   ].join("\n");
   for (const snippet of [
-    "docs/ui-visual-release-baseline-approval-template.md",
+    "ui-visual-release-baseline-approval-template.md",
     "test/fixtures/ui_visual_release_baseline_approval_log_sample.md",
     "accepted baseline run",
     "approved comparator",
-    "not a public release asset",
-    "candidate pass proof",
     "./server.sh verify-ui-release-baseline-approval-log",
   ]) {
     assert(docs.includes(snippet), `release baseline docs missing snippet: ${snippet}`);

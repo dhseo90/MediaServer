@@ -48,7 +48,7 @@ check("examples document defines product shell component contract", () => {
   }
 });
 
-check("examples document keeps route and viewer boundaries explicit", () => {
+check("examples document keeps route boundaries explicit", () => {
   const doc = readText("docs/product-shell-component-examples.md");
   const required = [
     "`Home`, `Dashboard`, `Channels`, `Rules`, `Users`, `Client Preview`",

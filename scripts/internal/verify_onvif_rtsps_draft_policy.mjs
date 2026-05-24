@@ -50,29 +50,53 @@ const rtspsProbeFixture = JSON.parse(readText("test/fixtures/onvif_probe_result_
 const profileVariants = JSON.parse(readText("test/fixtures/onvif_probe_profile_variants.json"));
 const checks = [];
 
-check("RTSPS policy document separates candidate, draft, and manual registration", () => {
+check("RTSPS policy document pins parser candidate scope", () => {
+  assertContains(policyDoc, "automatic probe candidate", "policy doc missing automatic probe candidate scope");
+  assertContains(policyDoc, "parser/probe candidate", "policy doc missing parser probe candidate scope");
+});
+
+check("RTSPS policy document pins automatic draft scope", () => {
+  assertContains(policyDoc, "automatic import draft", "policy doc missing automatic import draft scope");
+  assertContains(policyDoc, "Automatic import draft API fixture contract", "policy doc missing automatic draft API fixture contract");
+  assertContains(policyDoc, "`rtsps://` source draft를 기존 `kind=rtsp` draft로 생성할 수 있습니다", "policy doc missing kind=rtsp draft rule");
+});
+
+check("RTSPS policy document pins manual registration scope", () => {
   for (const term of [
-    "automatic probe candidate",
-    "automatic import draft",
     "manual source registration",
-    "parser/probe candidate",
-    "Automatic import draft API fixture contract",
     "허용",
     "`/ops/sources` manual ONVIF stream URI registration",
-    "`rtsps://` source draft를 기존 `kind=rtsp` draft로 생성할 수 있습니다",
     "실제 camera 재생 성공은 미확인",
   ]) {
     assertContains(policyDoc, term, `policy doc missing term: ${term}`);
   }
 });
 
-check("protocol and live support docs link RTSPS policy", () => {
+check("protocol matrix links RTSPS policy", () => {
   assertContains(matrixDoc, "./onvif-rtsps-draft-policy.md", "protocol matrix missing RTSPS policy link");
+});
+
+check("live support doc links RTSPS policy", () => {
   assertContains(liveSupportDoc, "./onvif-rtsps-draft-policy.md", "live support doc missing RTSPS policy link");
+});
+
+check("live support doc lists RTSPS verifier", () => {
   assertContains(liveSupportDoc, "verify-onvif-rtsps-draft-policy", "live support verification missing RTSPS policy command");
+});
+
+check("live support doc lists RTSPS fixture", () => {
   assertContains(liveSupportDoc, "test/fixtures/onvif_probe_result_rtsps_stub.json", "live support doc missing RTSPS probe fixture");
+});
+
+check("live support doc lists RTSPS API smoke", () => {
   assertContains(liveSupportDoc, "verify-onvif-probe-draft-api --fixture test/fixtures/onvif_probe_result_rtsps_stub.json", "live support doc missing RTSPS API smoke command");
+});
+
+check("live support doc lists RTSPS profile variant smoke", () => {
   assertContains(liveSupportDoc, "verify-onvif-probe-draft-api --profile-variant media-rtsps-fallback-when-media2-non-rtsp", "live support doc missing RTSPS profile variant API smoke command");
+});
+
+check("policy doc lists RTSPS profile variant smoke", () => {
   assertContains(policyDoc, "verify-onvif-probe-draft-api --profile-variant media-rtsps-fallback-when-media2-non-rtsp", "policy doc missing RTSPS profile variant API smoke command");
 });
 
@@ -93,19 +117,26 @@ check("RTSPS probe fixture maps to existing API draft contract", () => {
   assert(rtspsProbeFixture.auth?.plaintextSecretIncluded === false, "RTSPS fixture must exclude plaintext credentials");
 });
 
-check("profile variant fixture includes direct and fallback RTSPS draft cases", () => {
+check("profile variant fixture includes direct RTSPS draft case", () => {
   const byId = Object.fromEntries(arrayAt(profileVariants, "variants").map(variant => [variant.id, variant]));
-  for (const id of [
-    "media2-rtsps-live-rtsp",
-    "media-rtsps-fallback-when-media2-non-rtsp",
-  ]) {
-    const variant = byId[id];
-    assert(variant, `missing RTSPS profile variant: ${id}`);
-    const selected = selectedProfile(variant);
-    assert(String(selected.streamUri || "").startsWith("rtsps://"), `${id}: selected streamUri must be rtsps://`);
-    assert(selected.transport === "RTSP", `${id}: selected transport must remain RTSP`);
-    assert(String(variant.expectedSelectionReason || "").includes("kind=rtsp"), `${id}: expected reason must pin kind=rtsp mapping`);
-  }
+  const id = "media2-rtsps-live-rtsp";
+  const variant = byId[id];
+  assert(variant, `missing RTSPS profile variant: ${id}`);
+  const selected = selectedProfile(variant);
+  assert(String(selected.streamUri || "").startsWith("rtsps://"), `${id}: selected streamUri must be rtsps://`);
+  assert(selected.transport === "RTSP", `${id}: selected transport must remain RTSP`);
+  assert(String(variant.expectedSelectionReason || "").includes("kind=rtsp"), `${id}: expected reason must pin kind=rtsp mapping`);
+});
+
+check("profile variant fixture includes RTSPS fallback draft case", () => {
+  const byId = Object.fromEntries(arrayAt(profileVariants, "variants").map(variant => [variant.id, variant]));
+  const id = "media-rtsps-fallback-when-media2-non-rtsp";
+  const variant = byId[id];
+  assert(variant, `missing RTSPS profile variant: ${id}`);
+  const selected = selectedProfile(variant);
+  assert(String(selected.streamUri || "").startsWith("rtsps://"), `${id}: selected streamUri must be rtsps://`);
+  assert(selected.transport === "RTSP", `${id}: selected transport must remain RTSP`);
+  assert(String(variant.expectedSelectionReason || "").includes("kind=rtsp"), `${id}: expected reason must pin kind=rtsp mapping`);
   const fallback = byId["media-rtsps-fallback-when-media2-non-rtsp"];
   assert(selectedProfile(fallback).mediaApi === "Media", "RTSPS fallback variant must select Media");
   assert(arrayAt(fallback, "mediaProfiles").some(profile => profile.mediaApi === "Media2" && !/^rtsps?:\/\//i.test(String(profile.streamUri || ""))), "RTSPS fallback variant must keep a non-RTSP/RTSPS Media2 profile");
@@ -118,10 +149,16 @@ check("RTSPS profile variant can be routed through probe draft API smoke", () =>
   assertContains(probeDraftApiSmoke, "\"probe-variant\"", "profile variant route payload must tag source draft");
 });
 
-check("implementation keeps rtsps parser candidate and automatic draft support", () => {
+check("implementation keeps rtsps URL helper", () => {
   assertContains(onvifCode, "bool IsRtspOrRtspsUri", "implementation must centralize rtsp/rtsps URL checks");
   assertContains(onvifCode, "value.rfind(\"rtsp://\", 0) == 0 || value.rfind(\"rtsps://\", 0) == 0", "URL helper must accept rtsps");
+});
+
+check("implementation keeps rtsps parser candidate recognition", () => {
   assertContains(onvifCode, "profile->transport = IsRtspOrRtspsUri(uri) ? \"RTSP\" : \"\"", "parser must keep rtsps candidate recognition");
+});
+
+check("implementation keeps rtsps automatic draft support", () => {
   assertContains(onvifCode, "transport != \"RTSP\" || !IsRtspOrRtspsUri(stream_uri)", "automatic draft must accept rtsp and rtsps");
 });
 

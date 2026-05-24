@@ -167,7 +167,7 @@ try {
     }),
   }, "trackingPolicy.tracker is required for explicit opt-in policy");
   console.log("[pass] trackingPolicy validation rejects reid=assist without explicit tracker");
-  console.log("[pass] ops-rules-roundtrip");
+  console.log("[summary] ops-rules-roundtrip complete");
 } finally {
   for (const id of created.reverse()) {
     await requestJson(`/lab/analysis/rules/${encodeURIComponent(id)}`, { method: "DELETE" }).catch(() => {});

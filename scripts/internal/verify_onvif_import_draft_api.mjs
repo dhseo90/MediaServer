@@ -45,18 +45,27 @@ const responseText = await requestText("/ops/api/onvif/import-draft", {
 });
 const payload = JSON.parse(responseText);
 assert(payload.ok === true, "response ok must be true");
+console.log("[pass] onvif-import-draft response ok is true");
 assert(payload.status === "onvifImportDraft", "unexpected response status");
+console.log("[pass] onvif-import-draft response status is onvifImportDraft");
 assert(payload.notSaved === true, "draft API must declare notSaved=true");
+console.log("[pass] onvif-import-draft response declares notSaved");
 
 const expectedSource = fixture.importDecision.expectedSourceDraft;
 const expectedView = fixture.importDecision.expectedPublishedViewDraft;
 assertDraftSource(payload.sourceDraft, expectedSource);
+console.log("[pass] onvif-import-draft sourceDraft matches fixture decision");
 assertDraftView(payload.publishedViewDraft, expectedView, expectedSource);
+console.log("[pass] onvif-import-draft publishedViewDraft matches fixture decision");
 assertPreviewContract(payload.previewContract, fixture.previewContract);
+console.log("[pass] onvif-import-draft previewContract matches fixture decision");
 assertSelectedProfile(payload.selectedProfile, fixture);
+console.log("[pass] onvif-import-draft selectedProfile matches fixture decision");
 assertAuth(payload.auth);
-assertNoForbiddenResponseText(responseText);
-console.log("[pass] onvif-import-draft response contract");
+console.log("[pass] onvif-import-draft auth summary exposes credential reference state only");
+for (const forbidden of assertNoForbiddenResponseText(responseText)) {
+  console.log(`[pass] onvif-import-draft response omits forbidden text ${JSON.stringify(forbidden)}`);
+}
 
 const after = await requestJson("/ops/api/sources");
 assert(JSON.stringify(before.sources || []) === JSON.stringify(after.sources || []), "draft API must not mutate sources");
@@ -88,7 +97,6 @@ await expectBadDraft("non-RTSP selected profile", mutateFixture((next) => {
 await expectBadDraft("plaintext credential rejected", mutateFixture((next) => {
   next.auth.plaintextSecretIncluded = true;
 }), "plaintext credentials are not allowed");
-console.log("[pass] onvif-import-draft rejects malformed and unsafe route payloads");
 
 const final = await requestJson("/ops/api/sources");
 assert(JSON.stringify(before.sources || []) === JSON.stringify(final.sources || []), "negative draft API cases must not mutate sources");
@@ -127,6 +135,7 @@ async function expectBadDraft(label, body, expectedText) {
     expectedStatus: 400,
   });
   assert(text.includes(expectedText), `${label} should include: ${expectedText}`);
+  console.log(`[pass] onvif-import-draft rejects ${label}`);
 }
 
 function mutateFixture(mutator) {
@@ -179,15 +188,17 @@ function assertAuth(actual) {
 }
 
 function assertNoForbiddenResponseText(text) {
-  for (const forbidden of [
+  const forbiddenItems = [
     "\"credentialRef\"",
     "operator-entered-secret",
     "/onvif/device_service",
     "raw diagnostic JSON",
     "\"password\"",
-  ]) {
+  ];
+  for (const forbidden of forbiddenItems) {
     assert(!text.includes(forbidden), `response leaked forbidden text: ${forbidden}`);
   }
+  return forbiddenItems;
 }
 
 function assert(condition, message) {

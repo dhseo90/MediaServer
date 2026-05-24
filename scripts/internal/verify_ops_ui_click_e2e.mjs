@@ -82,7 +82,9 @@ try {
     try {
       const result = await runOpsClickFlow(browser, { width, label });
       passCount += 1;
-      console.log(`[pass] ${label}: ${result.steps.join(", ")}`);
+      for (const step of result.steps) {
+        console.log(`[pass] ${label} click step ${step}`);
+      }
     } catch (error) {
       failCount += 1;
       const message = error instanceof Error ? error.message : String(error);

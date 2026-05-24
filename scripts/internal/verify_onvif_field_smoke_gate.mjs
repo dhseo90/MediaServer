@@ -131,19 +131,23 @@ check("current docs link the fixed field smoke gate verifier", () => {
   }
 });
 
-check("redaction and live docs point at the gate procedure", () => {
-  for (const [label, text] of [
-    ["redaction doc", redactionDoc],
-    ["live support doc", liveSupportDoc],
-    ["no-device doc", noDeviceDoc],
-  ]) {
-    assertContains(text, "./onvif-field-smoke-gate.md", `${label} missing gate doc link`);
-    assertContains(text, "verify-onvif-field-smoke-gate", `${label} missing gate verifier command`);
-  }
+check("redaction doc points at the gate procedure", () => {
+  assertContains(redactionDoc, "./onvif-field-smoke-gate.md", "redaction doc missing gate doc link");
+  assertContains(redactionDoc, "verify-onvif-field-smoke-gate", "redaction doc missing gate verifier command");
   assertContains(redactionDoc, "gateDecision", "redaction doc missing gateDecision");
   assertContains(redactionDoc, "playbackStatus", "redaction doc missing playbackStatus");
   assertContains(redactionDoc, "redactionArtifactReview", "redaction doc missing redactionArtifactReview");
   assertContains(redactionDoc, "fieldSmokeReportReview", "redaction doc missing fieldSmokeReportReview");
+});
+
+check("live support doc points at the gate procedure", () => {
+  assertContains(liveSupportDoc, "./onvif-field-smoke-gate.md", "live support doc missing gate doc link");
+  assertContains(liveSupportDoc, "verify-onvif-field-smoke-gate", "live support doc missing gate verifier command");
+});
+
+check("no-device doc points at the gate procedure", () => {
+  assertContains(noDeviceDoc, "./onvif-field-smoke-gate.md", "no-device doc missing gate doc link");
+  assertContains(noDeviceDoc, "verify-onvif-field-smoke-gate", "no-device doc missing gate verifier command");
 });
 
 check("sample bundle preserves gate decision fields", () => {
@@ -167,7 +171,7 @@ check("sample bundle preserves gate decision fields", () => {
   assert(summary.verificationStatus?.some(item => item?.command === "verify-onvif-field-smoke-gate"), "summary missing gate verifier status");
 });
 
-check("sample report/checklist include gate review status", () => {
+check("sample report includes gate review status", () => {
   for (const term of [
     "Gate Decision",
     "releaseDevelopmentStatus",

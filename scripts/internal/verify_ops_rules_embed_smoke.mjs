@@ -82,7 +82,7 @@ try {
   if (!sourcesNav?.ok) {
     throw new Error(JSON.stringify(sourcesNav));
   }
-  console.log("[pass] ops-rules-native-smoke");
+  console.log("[summary] ops-rules-native-smoke complete");
   console.log(JSON.stringify({ ...result, mobileGeometry, returned, usersNav, rulesNav, sourcesNav }, null, 2));
 } finally {
   await browser.close();

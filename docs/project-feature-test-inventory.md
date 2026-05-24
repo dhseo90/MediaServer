@@ -48,13 +48,13 @@ source-of-truth입니다.
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
 | 기능 ID 목록 | 316개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`로 분리 | 기준표 작성 완료 |
-| 코드 로직 위치 | ID prefix별 owner source를 지정했지만, 각 행의 line-level 증적은 별도 대조 필요 | partial |
-| 제품 UI 위치 | UI 필요/간접/비대상을 분리했지만, 브라우저 직접 조작 evidence는 없음 | NOT RUN |
-| 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료, 실행 NOT RUN |
-| 30분 테스트 매핑 | 30분 대상 기능을 media/session/runtime 중심으로 분리 | 기준표 작성 완료, 실행 NOT RUN |
-| 120분 테스트 매핑 | memory leak/runtime drift 조건부 대상 7개 분리 | 기준표 작성 완료, 실행 NOT RUN |
-| VA seed 데이터 | `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`로 numeric ID/API payload 기준 full UI seed matrix를 고정 | dry-run 준비 가능, 서버 적용 NOT RUN |
-| UI 풀테스트 evidence | 기능 ID별 result template 기록란 추가 | 직접 조작 NOT RUN |
+| 코드 로직 위치 | ID prefix별 owner source를 지정했지만, 각 행의 line-level 증적은 별도 대조 필요 | 실행 증거 아님 |
+| 제품 UI 위치 | UI 필요/간접/비대상을 분리했지만, 브라우저 직접 조작 evidence는 없음 | UI 풀테스트 판정 시 FAIL |
+| 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
+| 30분 테스트 매핑 | 30분 대상 기능을 media/session/runtime 중심으로 분리 | 기준표 작성 완료 |
+| 120분 테스트 매핑 | memory leak/runtime drift 조건부 대상 7개 분리 | 기준표 작성 완료 |
+| VA seed 데이터 | `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`로 numeric ID/API payload 기준 full UI seed matrix를 고정 | 준비 기준일 뿐 실행 증거 아님 |
+| UI 풀테스트 evidence | 기능 ID별 result template 기록란 추가 | 직접 조작 evidence 없음. UI 풀테스트 판정 시 evidence 없으면 FAIL |
 
 ## Owner Source Map
 
@@ -78,7 +78,7 @@ source-of-truth입니다.
 | `UI-019`~`UI-021` | `verify-ops-client-ui --screenshots`, `verify-docs-ui-assets`, `verify-product-ui-token-drift` | 시각 품질은 수동 UI evidence 필요 |
 | `AUTH-001`~`AUTH-042` | `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
 | `SRC-001`~`SRC-030` | `verify-ops-source-lifecycle`, `verify-ops-source-health-bulk`, `verify-ops-channel-bulk`, `verify-onvif-*`, `verify-ops-client-ui` | ONVIF field success는 제외 |
-| `RULE-001`~`RULE-101` | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-rule-validation-matrix`, `verify-ops-scenario-builder-ui`, `verify-ops-scenario-presets`, `verify-va-replay`, `verify-analysis-state`, `verify-reid-advanced-tracking`, `verify-tracker-stability` | 실제 UI 이벤트 발생 전수는 아직 NOT RUN |
+| `RULE-001`~`RULE-101` | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-rule-validation-matrix`, `verify-ops-scenario-builder-ui`, `verify-ops-scenario-presets`, `verify-va-replay`, `verify-analysis-state`, `verify-reid-advanced-tracking`, `verify-tracker-stability` | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
 | `EVT-001`~`EVT-026` | `verify-va-events`, `verify-ops-event-review-inbox`, `verify-ops-event-records-scope`, `verify-ops-alert-delivery-integrations`, `verify-va-runtime-console` | event log 육안 확인은 UI 풀테스트 |
 | `CLIENT-001`~`CLIENT-022` | `verify-client-live-workspace`, `verify-client-dashboard-polish`, `verify-client-source-dock-events`, `verify-client-tile-disconnect-contract`, `verify-client-tile-info-overlay-health`, `verify-ops-client-ui` | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-020` | `verify-codecs`, `verify-webrtc-ice`, `verify-webrtc-va-metadata`, `verify-uri-source-longrun`, `verify-predev` | 30분/120분은 실행 지시 필요 |
@@ -94,7 +94,8 @@ Rule scenario/event 발생 검수는 분리합니다.
 | 항목 | 기준 |
 | --- | --- |
 | fixture | `test/fixtures/manual_ui_fulltest_va_seed_matrix.json` |
-| dry-run 준비 | `./server.sh prepare-manual-ui-fulltest-seed --dry-run`은 HTTP 요청 없이 numeric ID, payload 참조, media file 존재, coverage를 확인합니다. 이 결과는 UI/event evidence가 아닙니다. |
+| dry-run 준비 | `./server.sh prepare-manual-ui-fulltest-seed --dry-run`은 HTTP 요청 없이 numeric ID, payload 참조, media file 존재, coverage를 확인합니다. 이 결과는 UI/event evidence가 아닙니다. 상태 표기는 `dry-run 준비 가능, 서버 적용 evidence 없음`으로 남깁니다. |
+| registry 파일 준비 | `./server.sh prepare-manual-ui-fulltest-seed --dry-run --emit-registry-dir <dir>`은 `sources.json`, `views.json`, `analysis.json`, `preconditions.json`을 같은 throwaway 디렉터리에 생성합니다. 이 결과도 UI/event evidence가 아닙니다. |
 | apply 경계 | 실제 서버 적용은 사용자 지시 후 `--apply --confirm-throwaway-data --http-base <url>`로만 수행하며, 적용 후에도 인앱 브라우저 확인 전에는 UI PASS가 아닙니다. |
 | ID 정책 | profile/rule/vaRule registry id는 numeric string만 사용하며 built-in profile `1`~`5`는 쓰지 않습니다. |
 | 기본 event template | `presence`, `enter`, `exit`, `line-crossing:any`, `line-crossing:forward`, `line-crossing:reverse` |
@@ -130,7 +131,7 @@ Rule scenario/event 발생 검수는 분리합니다.
 | UI-001 | `/` 진입 후 제품 시작 route로 이동 | 필요 | 필요 | 안정화, UI | auth/setup 상태별 redirect가 실제 route와 브라우저 화면에서 일치 |
 | UI-002 | `/setup` 최초 관리자 설정 화면 | 필요 | 필요 | 안정화, UI | setup form 표시, weak/strong password flow 직접 확인 |
 | UI-003 | `/login` 로그인 화면 | 필요 | 필요 | 안정화, UI | credential 입력 후 role landing 확인 |
-| UI-004 | `/password/change` 비밀번호 변경 화면 | 필요 | 필요 | 안정화, UI | current/new/confirm 입력과 성공/거부 copy 확인 |
+| UI-004 | `/password/change` 비밀번호 변경 화면 | 필요 | 필요 | 안정화, UI | 사용자 지정 테스트 pw -> 임시 pw 변경 성공, 임시 pw 로그인, 즉시 원래 pw 재사용 거부, history count 기준 복원 후 최종 로그인 확인 |
 | UI-005 | `/logout` 세션 종료 | 간접 | 필요 | 안정화, UI | logout action 후 세션 종료와 보호 route 재접근 차단 확인 |
 | UI-006 | `/auth/whoami` 현재 세션 확인 | 간접 | 필요 | 안정화 | principal/schema가 role/scope와 일치 |
 | UI-007 | `/invite/setup` 초대 기반 계정 설정 | 필요 | 필요 | 안정화, UI | invite setup 전후 login/client 접근 경계 확인 |
@@ -174,7 +175,7 @@ Rule scenario/event 발생 검수는 분리합니다.
 | AUTH-019 | 사용자 수정 | 필요 | 필요 | 안정화, UI | role/scope/status 수정 후 목록/detail 반영 |
 | AUTH-020 | 사용자 삭제 또는 비활성화 | 필요 | 필요 | 안정화, UI | disable/delete action 후 login/access 차단 |
 | AUTH-021 | 사용자 활성화 | 필요 | 필요 | 안정화, UI | disabled user restore 후 의도된 접근 복구 |
-| AUTH-022 | 사용자 비밀번호 초기화 | 필요 | 필요 | 안정화, UI | reset 후 must-change/password flow 확인 |
+| AUTH-022 | 사용자 비밀번호 초기화 | 필요 | 필요 | 안정화, UI | reset은 password history 우회가 아님을 확인하고, reset 성공 시 must-change/password flow와 session revoke 확인 |
 | AUTH-023 | 마지막 admin 비활성화 방지 | 필요 | 필요 | 안정화, UI | 마지막 admin disable/role change가 거부 copy를 표시 |
 | AUTH-024 | role: admin | 필요 | 필요 | 안정화, UI | ops/users/rules/sources 접근과 admin action 허용 |
 | AUTH-025 | role: operator | 필요 | 필요 | 안정화, UI | ops 운영 범위 접근과 admin-only action 차단 |
@@ -275,19 +276,19 @@ Rule scenario/event 발생 검수는 분리합니다.
 | RULE-038 | Re-ID `off` | 필요 | 필요 | 안정화, UI | Re-ID off 저장과 metadata policy 확인 |
 | RULE-039 | Re-ID `assist` | 필요 | 필요 | 안정화, UI, 30분 | assist 저장과 tracker 조합 정책 확인 |
 | RULE-040 | `tracker=none`이면 Re-ID off 강제 또는 거부 | 필요 | 필요 | 안정화, UI | invalid 조합이 저장되지 않거나 off로 정규화 |
-| RULE-041 | basic event: presence | 필요 | 필요 | 안정화, UI | template 생성과 event/replay 판정 기준 확인 |
-| RULE-042 | basic event: enter | 필요 | 필요 | 안정화, UI | template 생성과 event/replay 판정 기준 확인 |
-| RULE-043 | basic event: exit | 필요 | 필요 | 안정화, UI | template 생성과 event/replay 판정 기준 확인 |
-| RULE-044 | basic event: line-crossing | 필요 | 필요 | 안정화, UI | line geometry/direction과 event/replay 판정 기준 확인 |
+| RULE-041 | basic event: presence | 필요 | 필요 | 안정화, UI | template 생성과 최종 EventRecord `presence` 발생 이력 확인 |
+| RULE-042 | basic event: enter | 필요 | 필요 | 안정화, UI | template 생성과 최종 EventRecord `enter` 발생 이력 확인 |
+| RULE-043 | basic event: exit | 필요 | 필요 | 안정화, UI | template 생성과 최종 EventRecord `exit` 발생 이력 확인 |
+| RULE-044 | basic event: line-crossing | 필요 | 필요 | 안정화, UI | line geometry/direction 저장과 최종 EventRecord `line-crossing` 발생 이력 확인 |
 | RULE-045 | line direction: any | 필요 | 필요 | 안정화, UI | any direction 저장과 적용 확인 |
 | RULE-046 | line direction: forward | 필요 | 필요 | 안정화, UI | forward 저장과 적용 확인 |
 | RULE-047 | line direction: reverse | 필요 | 필요 | 안정화, UI | reverse 저장과 적용 확인 |
-| RULE-048 | scenario: intrusion-dwell | 필요 | 필요 | 안정화, UI | scenario UI 저장과 replay/event 조건 확인 |
-| RULE-049 | scenario: re-entry | 필요 | 필요 | 안정화, UI | scenario UI 저장과 replay/event 조건 확인 |
-| RULE-050 | scenario: wrong-direction | 필요 | 필요 | 안정화, UI | scenario UI 저장과 replay/event 조건 확인 |
-| RULE-051 | scenario: intrusion-after-line-crossing | 필요 | 필요 | 안정화, UI | scenario UI 저장과 replay/event 조건 확인 |
-| RULE-052 | scenario: loitering | 필요 | 필요 | 안정화, UI | scenario UI 저장과 replay/event 조건 확인 |
-| RULE-053 | scenario: zone-occupancy | 필요 | 필요 | 안정화, UI | scenario UI 저장과 replay/event 조건 확인 |
+| RULE-048 | scenario: intrusion-dwell | 필요 | 필요 | 안정화, UI | scenario UI 저장과 최종 EventRecord `intrusion-dwell` 발생 이력 확인 |
+| RULE-049 | scenario: re-entry | 필요 | 필요 | 안정화, UI | scenario UI 저장과 최종 EventRecord `re-entry` 발생 이력 확인 |
+| RULE-050 | scenario: wrong-direction | 필요 | 필요 | 안정화, UI | scenario UI 저장과 최종 EventRecord `wrong-direction` 발생 이력 확인 |
+| RULE-051 | scenario: intrusion-after-line-crossing | 필요 | 필요 | 안정화, UI | scenario UI 저장과 최종 EventRecord `intrusion-after-line-crossing` 발생 이력 확인 |
+| RULE-052 | scenario: loitering | 필요 | 필요 | 안정화, UI | scenario UI 저장과 최종 EventRecord `loitering` 발생 이력 확인 |
+| RULE-053 | scenario: zone-occupancy | 필요 | 필요 | 안정화, UI | scenario UI 저장과 최종 EventRecord `zone-occupancy` 발생 이력 확인 |
 | RULE-054 | scenario preset: default | 필요 | 필요 | 안정화, UI | preset 선택 후 condition 값 반영 |
 | RULE-055 | scenario preset: road | 필요 | 필요 | 안정화, UI | preset 선택 후 condition 값 반영 |
 | RULE-056 | scenario preset: retail | 필요 | 필요 | 안정화, UI | preset 선택 후 condition 값 반영 |
@@ -347,7 +348,7 @@ Rule scenario/event 발생 검수는 분리합니다.
 | EVT-004 | ops diagnostics log tail | 필요 | 필요 | 안정화, UI | log tail 표시와 redaction 확인 |
 | EVT-005 | event post status | 간접 | 필요 | 안정화 | event POST status schema와 실패/성공 상태 확인 |
 | EVT-006 | event storage status | 간접 | 필요 | 안정화, 30분 | storage status/counters 안정성 확인 |
-| EVT-007 | event records 조회 | 필요 | 필요 | 안정화, UI | event list/filter/detail이 표시 |
+| EVT-007 | event records 조회 | 필요 | 필요 | 안정화, UI | `/ops/events` rows/filter/pagination/archive 상태가 표시되고 최종 rule/scenario별 EventRecord 발생 이력과 대조됨 |
 | EVT-008 | event records compact | 비대상 | 필요 | 안정화 | compaction command/API 결과와 artifact 확인 |
 | EVT-009 | event records compaction 목록 | 비대상 | 필요 | 안정화 | compaction list schema 확인 |
 | EVT-010 | event records compaction cleanup | 비대상 | 필요 | 안정화 | cleanup 정책과 삭제 결과 확인 |

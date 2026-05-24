@@ -195,6 +195,10 @@ void RunHttpsTransportSmoke(const std::string& request_body) {
     Assert(Contains(captured_request, "POST /onvif/device_service HTTP/1.1"), "HTTPS request line mismatch");
     Assert(Contains(captured_request, "SOAPAction: \"GetServices\""), "HTTPS SOAPAction missing");
     Assert(Contains(captured_request, request.body), "HTTPS SOAP request body missing");
+    std::cout << "[pass] ONVIF HTTPS SOAP transport returns 200 response body\n";
+    std::cout << "[pass] ONVIF HTTPS SOAP transport sends service request line\n";
+    std::cout << "[pass] ONVIF HTTPS SOAP transport sends SOAPAction header\n";
+    std::cout << "[pass] ONVIF HTTPS SOAP transport sends request body\n";
 
     ingress::OnvifSoapRequest https_userinfo_request;
     https_userinfo_request.action = "GetServices";
@@ -208,6 +212,8 @@ void RunHttpsTransportSmoke(const std::string& request_body) {
     Assert(!Contains(https_userinfo_response.error, "pass"), "transport error leaked URL password");
     Assert(!Contains(https_userinfo_response.error, "localhost"), "transport error leaked HTTPS host");
     Assert(!Contains(https_userinfo_response.error, "GetServices"), "transport error leaked SOAP action");
+    std::cout << "[pass] ONVIF HTTPS SOAP transport rejects URL userinfo\n";
+    std::cout << "[pass] ONVIF HTTPS SOAP transport redacts userinfo rejection details\n";
 }
 
 void AssertSanitizedTlsError(const ingress::OnvifSoapResponse& response,
@@ -261,6 +267,7 @@ void RunHttpsTlsServerFailure(const std::string& label,
     server_thread.join();
     close(listen_fd);
     AssertSanitizedTlsError(response, expected_error, label);
+    std::cout << "[pass] ONVIF " << label << " reports sanitized TLS error\n";
 }
 
 void RunHttpsHandshakeFailure(const std::string& request_body) {
@@ -285,6 +292,7 @@ void RunHttpsHandshakeFailure(const std::string& request_body) {
     server_thread.join();
     close(listen_fd);
     AssertSanitizedTlsError(response, "TLS handshake failed", "HTTPS handshake failure");
+    std::cout << "[pass] ONVIF HTTPS handshake failure reports sanitized TLS error\n";
 }
 
 void RunHttpsConnectionRefused(const std::string& request_body) {
@@ -299,6 +307,7 @@ void RunHttpsConnectionRefused(const std::string& request_body) {
     request.timeout_ms = 500;
     const auto response = ingress::SendOnvifSoapHttp(request);
     AssertSanitizedTlsError(response, "connect failed", "HTTPS connection refused");
+    std::cout << "[pass] ONVIF HTTPS connection refused reports sanitized TLS error\n";
 }
 
 void RunHttpsTransportFailureMatrix(const std::string& request_body) {
@@ -356,6 +365,11 @@ int main() {
     Assert(Contains(captured_request, "Content-Type: application/soap+xml"), "content-type missing");
     Assert(Contains(captured_request, "SOAPAction: \"GetServices\""), "SOAPAction missing");
     Assert(Contains(captured_request, request.body), "SOAP request body missing");
+    std::cout << "[pass] ONVIF HTTP SOAP transport returns 200 response body\n";
+    std::cout << "[pass] ONVIF HTTP SOAP transport sends service request line\n";
+    std::cout << "[pass] ONVIF HTTP SOAP transport sends application/soap+xml content type\n";
+    std::cout << "[pass] ONVIF HTTP SOAP transport sends SOAPAction header\n";
+    std::cout << "[pass] ONVIF HTTP SOAP transport sends request body\n";
 
 #if MEDIA_SERVER_USE_OPENSSL
     RunHttpsTransportSmoke(request.body);
@@ -371,11 +385,13 @@ int main() {
     Assert(Contains(https_response.error, "https transport requires OpenSSL support"),
            "HTTPS unsupported wording mismatch");
     Assert(!Contains(https_response.error, "192.0.2.40"), "transport error leaked endpoint");
+    std::cout << "[pass] ONVIF HTTPS SOAP transport fails closed without OpenSSL\n";
+    std::cout << "[pass] ONVIF HTTPS SOAP transport redacts endpoint without OpenSSL\n";
 #endif
 
-    std::cout << "[pass] ONVIF HTTP/HTTPS SOAP transport smoke\n";
+    std::cout << "[summary] ONVIF HTTP/HTTPS SOAP transport smoke complete\n";
 #if MEDIA_SERVER_USE_OPENSSL
-    std::cout << "[pass] ONVIF HTTPS transport failure matrix\n";
+    std::cout << "[summary] ONVIF HTTPS transport failure matrix complete\n";
 #endif
     return 0;
 }

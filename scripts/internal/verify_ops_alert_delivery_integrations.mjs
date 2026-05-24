@@ -33,57 +33,118 @@ check("alert delivery state is separate from Event POST payload", () => {
   assert(!eventPost.includes("OpsAlertDelivery"), "Event POST dispatcher must not change for alert delivery");
 });
 
-check("alert delivery retry, fixture, and audit masking are declared", () => {
-  for (const snippet of [
-    "retryPolicy",
-    "boundedRetry",
-    "deliveryFixtureSmoke",
-    "alert-delivery-upsert",
-    "alert-delivery-test",
-    "OpsAlertDeliveryMaskedEndpoint",
-    "[redacted-alert-target]",
-    "OpsAuditRecordJson(audit_body.str(), principal_result.principal)",
-  ]) {
-    assertIncludes(server, snippet, "alert delivery policy/audit contract");
-  }
+check("alert delivery retry policy is declared", () => {
+  assertIncludes(server, "retryPolicy", "alert delivery policy/audit contract");
 });
 
-check("ops events UI exposes alert delivery controls without client/debug material", () => {
-  for (const snippet of [
-    'data-testid="ops-alert-delivery-integrations"',
-    'data-alert-contract="separate-from-event-post-payload"',
-    'id="alertDeliverySave"',
-    'id="alertDeliveryTest"',
-    "renderAlertDelivery",
-    "saveAlertDeliveryIntegration",
-    "testAlertDeliveryIntegration",
-    "/ops/api/alerts/deliveries",
-    "/ops/api/alerts/deliveries/test",
-    ".ops-alert-delivery-form",
-    ".alert-delivery-table",
-  ]) {
+check("alert delivery bounded retry is declared", () => {
+  assertIncludes(server, "boundedRetry", "alert delivery policy/audit contract");
+});
+
+check("alert delivery fixture smoke is declared", () => {
+  assertIncludes(server, "deliveryFixtureSmoke", "alert delivery policy/audit contract");
+});
+
+check("alert delivery upsert audit action is declared", () => {
+  assertIncludes(server, "alert-delivery-upsert", "alert delivery policy/audit contract");
+});
+
+check("alert delivery test audit action is declared", () => {
+  assertIncludes(server, "alert-delivery-test", "alert delivery policy/audit contract");
+});
+
+check("alert delivery masked endpoint helper is declared", () => {
+  assertIncludes(server, "OpsAlertDeliveryMaskedEndpoint", "alert delivery policy/audit contract");
+});
+
+check("alert delivery redacted target marker is declared", () => {
+  assertIncludes(server, "[redacted-alert-target]", "alert delivery policy/audit contract");
+});
+
+check("alert delivery audit record writer is declared", () => {
+  assertIncludes(server, "OpsAuditRecordJson(audit_body.str(), principal_result.principal)", "alert delivery policy/audit contract");
+});
+
+for (const [label, snippet] of [
+  ["ops events UI exposes alert delivery panel", 'data-testid="ops-alert-delivery-integrations"'],
+  ["ops events UI exposes alert delivery contract marker", 'data-alert-contract="separate-from-event-post-payload"'],
+  ["ops events UI exposes alert delivery save control", 'id="alertDeliverySave"'],
+  ["ops events UI exposes alert delivery test control", 'id="alertDeliveryTest"'],
+  ["ops events UI renders alert delivery function", "renderAlertDelivery"],
+  ["ops events UI saves alert delivery function", "saveAlertDeliveryIntegration"],
+  ["ops events UI tests alert delivery function", "testAlertDeliveryIntegration"],
+  ["ops events UI uses alert delivery list endpoint", "/ops/api/alerts/deliveries"],
+  ["ops events UI uses alert delivery test endpoint", "/ops/api/alerts/deliveries/test"],
+  ["ops events UI styles alert delivery form", ".ops-alert-delivery-form"],
+  ["ops events UI styles alert delivery table", ".alert-delivery-table"],
+]) {
+  check(label, () => {
     assertIncludes(server + script + css, snippet, "alert delivery UI");
-  }
+  });
+}
+
+check("alert delivery UI block hides source URL", () => {
   const uiBlock = script.slice(
     script.indexOf("function alertDeliveryBodyFromForm"),
     script.indexOf("async function refreshEvents"),
   );
-  for (const forbidden of ["sourceUrl", "raw JSON", "debugCounters", "passwordHash", "tokenHash"]) {
-    assert(!uiBlock.includes(forbidden), `alert delivery UI block must not expose ${forbidden}`);
-  }
+  assert(!uiBlock.includes("sourceUrl"), "alert delivery UI block must not expose sourceUrl");
 });
 
-check("ops/client UI smoke, gitignore, and server command track alert delivery", () => {
-  for (const snippet of [
-    "verify-ops-alert-delivery-integrations",
-    "verify_ops_alert_delivery_integrations.mjs",
-    'data-testid="ops-alert-delivery-integrations"',
-    "/ops/api/alerts/deliveries",
-    "/.media_server.alert_deliveries.jsonl",
-    "/.media_server.alert_delivery_attempts.jsonl",
-  ]) {
-    assertIncludes(uiSmoke + serverSh + gitignore, snippet, "alert delivery smoke wiring");
-  }
+check("alert delivery UI block hides raw JSON", () => {
+  const uiBlock = script.slice(
+    script.indexOf("function alertDeliveryBodyFromForm"),
+    script.indexOf("async function refreshEvents"),
+  );
+  assert(!uiBlock.includes("raw JSON"), "alert delivery UI block must not expose raw JSON");
+});
+
+check("alert delivery UI block hides debug counters", () => {
+  const uiBlock = script.slice(
+    script.indexOf("function alertDeliveryBodyFromForm"),
+    script.indexOf("async function refreshEvents"),
+  );
+  assert(!uiBlock.includes("debugCounters"), "alert delivery UI block must not expose debugCounters");
+});
+
+check("alert delivery UI block hides password hash", () => {
+  const uiBlock = script.slice(
+    script.indexOf("function alertDeliveryBodyFromForm"),
+    script.indexOf("async function refreshEvents"),
+  );
+  assert(!uiBlock.includes("passwordHash"), "alert delivery UI block must not expose passwordHash");
+});
+
+check("alert delivery UI block hides token hash", () => {
+  const uiBlock = script.slice(
+    script.indexOf("function alertDeliveryBodyFromForm"),
+    script.indexOf("async function refreshEvents"),
+  );
+  assert(!uiBlock.includes("tokenHash"), "alert delivery UI block must not expose tokenHash");
+});
+
+check("server command exposes alert delivery verifier command", () => {
+  assertIncludes(uiSmoke + serverSh + gitignore, "verify-ops-alert-delivery-integrations", "alert delivery smoke wiring");
+});
+
+check("server command exposes alert delivery verifier script", () => {
+  assertIncludes(uiSmoke + serverSh + gitignore, "verify_ops_alert_delivery_integrations.mjs", "alert delivery smoke wiring");
+});
+
+check("ops UI smoke tracks alert delivery panel", () => {
+  assertIncludes(uiSmoke + serverSh + gitignore, 'data-testid="ops-alert-delivery-integrations"', "alert delivery smoke wiring");
+});
+
+check("ops UI smoke tracks alert delivery API route", () => {
+  assertIncludes(uiSmoke + serverSh + gitignore, "/ops/api/alerts/deliveries", "alert delivery smoke wiring");
+});
+
+check("gitignore tracks alert delivery config store", () => {
+  assertIncludes(uiSmoke + serverSh + gitignore, "/.media_server.alert_deliveries.jsonl", "alert delivery smoke wiring");
+});
+
+check("gitignore tracks alert delivery attempts store", () => {
+  assertIncludes(uiSmoke + serverSh + gitignore, "/.media_server.alert_delivery_attempts.jsonl", "alert delivery smoke wiring");
 });
 
 if (args.roundtripSmoke) {

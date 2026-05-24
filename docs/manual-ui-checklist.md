@@ -12,7 +12,7 @@ source-of-truth로 삼고, 기능별 UI 필요 여부와 테스트 영역은
 
 UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라우저에서 제품
 화면을 직접 열고 클릭과 타이핑으로 수행하는 end-to-end 검수입니다. API-only
-확인, screenshot 생성만 있는 항목, 열지 않은 화면은 `확인됨`으로 적지 않습니다.
+확인, screenshot 생성만 있는 항목, 열지 않은 화면은 `FAIL`입니다.
 스크립트 테스트, 30분 안정화, 120분 장시간 테스트는
 [stream-verification.md](./stream-verification.md)의 별도 영역입니다. UI 풀테스트와
 스크립트 안정화 테스트는 서로 대체하지 않으며 결과 문서에서 판정을 분리합니다.
@@ -36,7 +36,9 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
   - [manual-ui-fulltest.md](./manual-ui-fulltest.md)
   - [manual-ui-result-template.md](./manual-ui-result-template.md)
 - 기능 설명이 있는 문서에 나온 웹 UI 흐름은 모두 검수 후보로 적습니다. 문서에
-  나온 기능을 열지 못하면 `미확인` 또는 `건너뜀`으로 남깁니다.
+  나온 기능을 열지 못하면 해당 개별 기능은 `FAIL`입니다.
+- 사용자가 실기기 없음, 외부 credential 없음, 현재 scope 밖 같은 이유로 명시 제외한
+  항목은 UI 풀테스트 기준에서 제외하고 별도 `제외 기록`에만 남깁니다.
 - 기능 단위 누락을 막기 위해 [project-feature-test-inventory.md](./project-feature-test-inventory.md)의
   ID별 `UI 필요`와 `테스트 영역`을 먼저 확인합니다. 이 inventory는 실행 evidence가
   아니므로, 행이 있다는 이유만으로 완료 처리하지 않습니다.
@@ -47,6 +49,10 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
 
 - 운영 데이터가 아닌 throwaway fixture만 사용합니다.
 - 서버는 검증 전용 포트와 임시 users/source/view/analysis/event 경로로 띄웁니다.
+- 현재 제품 baseline은 내부 DB가 아니라 파일 기반 throwaway state를 사용합니다.
+  검수 run에는 users JSON, source registry JSON, published views JSON,
+  analysis registry JSON, EventRecord JSON Lines, snapshot/clip 디렉터리 경로를
+  기록합니다.
 - auth on 검증은 `MEDIA_SERVER_AUTH_MODE=auto`에서 admin을 직접 생성합니다.
 - VA seed는 [project-feature-test-inventory.md](./project-feature-test-inventory.md)의
   `VA Manual UI Seed Matrix`와
@@ -58,11 +64,17 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
   numeric ID, API payload 참조, tracker/Re-ID, scenario/preset coverage, media file
   존재를 확인합니다. 이 dry-run은 HTTP 요청 0건인 준비 검증이며 UI/event PASS
   evidence가 아닙니다.
+- 외부 확인 서버나 수동 UI 테스트용 throwaway 디렉터리는
+  `./server.sh prepare-manual-ui-fulltest-seed --dry-run --emit-registry-dir <dir>`로
+  `sources.json`, `views.json`, `analysis.json`, `preconditions.json`을 한 디렉터리에
+  생성합니다. auth users file은 비밀번호 hash가 필요하므로 실행자가 지정한
+  비밀번호로 별도 생성하고, seed 스크립트가 기본 비밀번호를 만들지 않습니다.
 - seed를 서버에 넣는 동작은 실제 테스트 지시 후에만
   `./server.sh prepare-manual-ui-fulltest-seed --apply --confirm-throwaway-data --http-base <url>`
   형태로 수행합니다.
 - Rule/Profile/Channel 추가·수정·삭제 검수 뒤에는 모든 basic event, scenario,
-  preset, tracker/Re-ID 조합이 남아 있는 최종 상태를 유지하고 event log를 확인합니다.
+  preset, tracker/Re-ID 개별 조합이 남아 있는 최종 상태를 유지하고 event log를
+  각 기능별로 확인합니다.
 - destructive action은 throwaway 계정, 채널, 접근 요청으로만 수행합니다.
 - UI smoke 전용 HTML selector 검증은 필요 시 별도 서버에서
   `./server.sh verify-ops-client-ui --screenshots`로 실행하되, 이 결과만으로
@@ -80,6 +92,12 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
 - 모든 웹 UI 검수는 인앱 브라우저에서 수행합니다.
 - 클릭, 타이핑, select 변경, checkbox/toggle, copy button, nav 이동, route guard를
   실제 UI 조작으로 확인합니다.
+- 모든 결과는 개별 기능, route, control, action 단위로 기록합니다. 카테고리 묶음
+  판정은 금지합니다. `Auth PASS`, `Rules FAIL`처럼 묶지 않고 기능 ID별 개별 행으로
+  `PASS` 또는 `FAIL`만 적습니다.
+- 개별 기능은 인앱 브라우저에서 실행하고, 실제 수행 결과가 제품 상태에 반영됐는지
+  확인하고, 관련 로그 또는 이벤트 이력을 확인해야 `PASS`입니다. 하나라도 빠지면
+  `FAIL`입니다.
 - 자동 스크립트는 보조 evidence입니다. 자동 smoke 통과만으로 화면을 확인했다고
   쓰지 않습니다.
 - `verify-predev --soak-minutes 30`, `verify-predev --soak-minutes 120`,
@@ -98,7 +116,7 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
 
 v1.8.0 release close-out에서는 자동 smoke와 별도로 아래 화면을 브라우저에서 직접
 열고 클릭한 Evidence index를 남깁니다. 자동 screenshot 생성이나 raw JSON/API-only 확인만
-있으면 해당 화면은 `미확인`입니다.
+있으면 해당 개별 기능은 `FAIL`입니다.
 
 - `/setup`: setup 필요/불필요 상태와 weak password 거절 또는 auth smoke 대체 범위를 분리합니다.
 - `/login`: 직접 로그인 또는 auth smoke 대체 범위를 분리하고 session/cookie 값은 남기지 않습니다.
@@ -108,8 +126,10 @@ v1.8.0 release close-out에서는 자동 smoke와 별도로 아래 화면을 브
 - `/client/live`: source tree, drag/drop 또는 선택, tile start/reconnect/stop, dock 좌/우 전환, 정보 overlay, viewer-safe 비노출을 직접 확인합니다.
 
 Evidence index에는 route, 계정/권한, 직접 조작, screenshot/artifact, 자동 검증 연결,
-판정, 미확인/건너뜀 사유를 한 줄씩 기록합니다. 열지 않은 화면을 PASS로 쓰지 않고,
-실패 후 재검수한 경우 최초 실패와 재확인 결과를 함께 남깁니다.
+판정을 개별 기능 단위로 한 줄씩 기록합니다. 판정은 `PASS` 또는 `FAIL`만 사용합니다.
+열지 않은 화면은 `FAIL`이고, 실패 후 재검수한 경우 최초 실패와 재확인 결과를 함께
+남깁니다. 사용자가 의도적으로 제외한 항목은 Evidence index가 아니라 `제외 기록`에
+남깁니다.
 
 ## 4. Auth Shell
 
@@ -120,15 +140,30 @@ Evidence index에는 route, 계정/권한, 직접 조작, screenshot/artifact, �
 - `/login`: admin/operator는 `/ops/home`, viewer는 `/client/live`로 이동하는지 확인합니다.
 - `/password/change`: reset 또는 must-change 계정에서 이전 비밀번호 재사용 거부와
   새 비밀번호 설정 flow를 확인합니다.
+- `/password/change`: 성공 flow는 사용자 지정 테스트 비밀번호에서 임의의 강한
+  임시 비밀번호로 변경한 뒤, 임시 비밀번호 로그인 성공까지 확인합니다. 이후
+  사용자 지정 테스트 비밀번호로 되돌릴 때는 `MEDIA_SERVER_AUTH_PASSWORD_HISTORY_COUNT`
+  기본값 `5`를 고려해 원래 비밀번호가 history 밖으로 밀려날 만큼 서로 다른 임시
+  비밀번호를 거쳐야 합니다. `원래 -> 임의1 -> 임의2 -> 원래`는 기본 정책에서
+  복원 성공 조건이 아니며, 즉시 재사용 거부는 PASS로 기록합니다.
+- 관리자 reset password는 history 정책 우회가 아닙니다. reset 성공/실패, 다음 로그인
+  변경 요구 상태, 최종 사용자 지정 테스트 비밀번호 로그인 성공, 이전 임시 비밀번호
+  로그인 거부를 각각 분리해 기록합니다.
 - `/invite/setup`: 승인된 접근 요청의 초대 설정 전후 경계를 확인하되 token 원문은
   결과에 남기지 않습니다.
 - Chrome auth input evidence는 throwaway users file에서만 수행합니다. `/setup`,
   `/login`, `/password/change`, `/invite/setup`의 비밀번호 입력/제출을 직접
   수행했다면 weak password rejection, 성공 redirect, screenshot/artifact 경로,
   실행한 `verify-auth-bootstrap` 또는 `verify-auth-users` 결과를 함께 남깁니다.
+- Auth verifier 실행 전 `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`,
+  `MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD`,
+  `MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD`,
+  `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE`,
+  `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO`를 테스트 실행자가 지정합니다.
+  값이 없으면 auth 테스트를 시작하지 않고 해당 개별 기능을 `FAIL`로 기록합니다.
 - Chrome/Computer Use/Browser Use가 비밀번호 필드나 clipboard permission 때문에
-  입력을 끝까지 수행하지 못한 경우에는 `BLOCKED` 또는 `건너뜀`으로 기록하고,
-  어떤 단계까지 직접 확인했는지와 대체로 통과한 auth smoke 명령을 분리합니다.
+  입력을 끝까지 수행하지 못한 경우에는 해당 개별 기능을 `FAIL`로 기록하고,
+  어떤 단계까지 직접 확인했는지와 보조로 통과한 auth smoke 명령을 분리합니다.
   자동 smoke 통과만으로 Chrome 수동 auth 입력을 완료했다고 쓰지 않습니다.
 - Auth evidence에는 plaintext password, invite token 원문, session cookie,
   generated password suggestion을 남기지 않습니다.
@@ -143,6 +178,12 @@ Evidence index에는 route, 계정/권한, 직접 조작, screenshot/artifact, �
   입력, detail panel, copy/audit export UI를 확인합니다.
 - `/ops/rules`: VA rule, Event template, Profile 화면을 확인하고 저장 전 validation,
   preview 재생/정지, geometry 기본 좌표/비우기, 저장 flow를 직접 조작합니다.
+- `/ops/rules`와 `/ops/events`: 최종 enabled event template/vaRule 기준으로
+  `presence`, `enter`, `exit`, `line-crossing`, `intrusion-dwell`, `re-entry`,
+  `wrong-direction`, `intrusion-after-line-crossing`, `loitering`, `zone-occupancy`
+  발생 이력을 모두 대조합니다. `/ops/events`에서 visible EventRecord row와
+  pagination/filter/archive 상태를 직접 확인하고, JSON Lines/API 대조는 보조
+  evidence로만 사용합니다. 하나라도 없으면 VA 이벤트 커버리지는 PASS가 아닙니다.
 - `/ops/users`: 사용자 추가/수정, viewer scope 적용, reset password, disable/restore,
   마지막 admin 보호, pending access request 승인/거절 flow를 확인합니다.
 - `/ops/events`: evidence policy, evidence filter, include archives, prev/next,
@@ -184,9 +225,10 @@ Evidence index에는 route, 계정/권한, 직접 조작, screenshot/artifact, �
 - 기능별 조작 결과는 [project-feature-test-inventory.md](./project-feature-test-inventory.md)의
   ID를 함께 적어, route 단위 PASS가 기능 단위 PASS로 과장되지 않게 합니다.
 - 확인됨: 실제 클릭한 화면, 통과한 명령, 생성한 fixture, 수정/커밋 파일
-- 미확인: 열지 않은 화면, 실행하지 않은 장시간 테스트, 추정 원인
-- 건너뜀: destructive action을 fixture가 없어 수행하지 않은 경우
-- 실패: 실패 명령, 원인, 영향 범위, 재검수 여부
+- 개별 UI 결과: 모든 기능 ID/route/control/action을 묶지 않고 `PASS` 또는 `FAIL`로 기록
+- 제외 기록: 사용자가 명시 제외한 실기기/외부 credential/scope 밖 항목만 별도 기록
+- 실패: PASS 조건을 충족하지 못한 모든 개별 UI 기능, 실패 명령, 원인, 영향 범위,
+  재검수 여부
 - 푸시: 명시 요청 전에는 수행하지 않고, 푸시 가능 여부만 보고합니다.
 - UI 풀테스트 문서를 재작성하거나 새 문서를 추가한 경우에는 중복된 기준을
   [manual-ui-fulltest.md](./manual-ui-fulltest.md)에 병합하고, 이 체크리스트에는

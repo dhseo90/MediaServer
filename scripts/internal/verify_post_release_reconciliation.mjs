@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: 현재 release evidence가 통과/미실행/미확인을 분리하는지 검증한다.
+// 파일 용도: 현재 release evidence가 기능별 PASS/FAIL 결과와 실행/미실행 상태를 분리하는지 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -23,7 +23,7 @@ Options:
   -h, --help        도움말 출력
 
 Checks:
-  - 현재 v1.8.0 release evidence index가 PASS/FAIL/NOT RUN/manual-not-run/미확인을 분리함
+  - 현재 v1.8.0 release evidence index가 기능별 PASS/FAIL 결과와 release 실행 상태를 분리함
   - 실행하지 않은 장시간/실장비/외부 검증을 release PASS로 쓰지 않는 문구가 있음
   - release note template에도 Not Run / Unverified 섹션이 있음
 `);
@@ -40,40 +40,93 @@ const backlog = readText("docs/development-backlog.md");
 
 const checks = [];
 
-check("release evidence index separates executed, not-run, skipped, and unverified items", () => {
+check("release evidence index separates feature result rows from release execution states", () => {
   assertIncludes(evidenceIndex, [
     "이 문서는 v1.8.0 release trust hardening 이후 release close-out evidence를 한곳에서",
-    "실행한 항목만 `PASS` 또는 `FAIL`로 기록합니다.",
-    "실행하지 않은 항목은 `NOT RUN`, 수동 승인 전 항목은 `manual-not-run`으로 기록합니다.",
-    "열지 않은 화면, 직접 클릭하지 않은 UI, 확인하지 않은 screenshot은 `미확인`으로 기록합니다.",
+    "기능별 테스트 결과 행은 `PASS` 또는 `FAIL`만 기록합니다.",
+    "UI 풀테스트 대상인데 열지 않은 화면, 직접 클릭하지 않은 기능, 확인하지 않은 screenshot은",
+    "사용자가 실기기/외부 credential 같은 이유로 명시 제외한 항목은 기능 결과 행에서 빼고",
+    "실행하지 않은 스크립트/수동 승인 gate는 기능 결과 행을 만들지 않고 release evidence",
     "자동 smoke, raw JSON, API 응답만으로 manual UI evidence를 완료했다고 쓰지 않습니다.",
-    "`NOT RUN`, `manual-not-run`, `미확인`, `건너뜀`은 PASS가 아닙니다.",
+    "release evidence 실행 상태 또는 별도 제외/미확인 기록에만 쓰고",
+    "기능별 테스트 결과 행에는 쓰지 않습니다.",
+    "기능이 이 상태라면 기능별 결과 행에서는 `FAIL`입니다.",
   ], "docs/release-evidence-index.md");
 });
 
-check("longrun and external gates are explicit not-run candidates", () => {
+check("30 minute soak is listed as not-run candidate", () => {
   assertIncludes(evidenceIndex, [
     "30분 soak",
-    "120분 longrun",
-    "real ONVIF",
-    "external TURN/WHEP",
-    "YouTube real URL",
-    "PASS/FAIL/NOT RUN/미확인",
   ], "docs/release-evidence-index.md");
 });
 
-check("release note template separates not-run and unverified items", () => {
+check("120 minute longrun is listed as not-run candidate", () => {
+  assertIncludes(evidenceIndex, [
+    "120분 longrun",
+  ], "docs/release-evidence-index.md");
+});
+
+check("real ONVIF gate is listed as not-run candidate", () => {
+  assertIncludes(evidenceIndex, [
+    "real ONVIF",
+  ], "docs/release-evidence-index.md");
+});
+
+check("external TURN gate is listed as not-run candidate", () => {
+  assertIncludes(evidenceIndex, [
+    "external TURN/WHEP",
+  ], "docs/release-evidence-index.md");
+});
+
+check("YouTube real URL gate is listed as not-run candidate", () => {
+  assertIncludes(evidenceIndex, [
+    "YouTube real URL",
+  ], "docs/release-evidence-index.md");
+});
+
+check("release evidence index pins result row status vocabulary", () => {
+  assertIncludes(evidenceIndex, [
+    "실행한 테스트 행은 `PASS` 또는 `FAIL`; 제외/미실행/미확인은 별도 기록",
+  ], "docs/release-evidence-index.md");
+});
+
+check("release note template has not-run section", () => {
   assertIncludes(releasePolicy, [
     "## Not Run / Unverified",
+  ], "docs/release-policy.md");
+});
+
+check("release note template has GitHub status line", () => {
+  assertIncludes(releasePolicy, [
     "GitHub Actions status check:",
+  ], "docs/release-policy.md");
+});
+
+check("release note template has longrun line", () => {
+  assertIncludes(releasePolicy, [
     "Longrun / soak:",
+  ], "docs/release-policy.md");
+});
+
+check("release note template has real ONVIF line", () => {
+  assertIncludes(releasePolicy, [
     "Real ONVIF device field smoke:",
+  ], "docs/release-policy.md");
+});
+
+check("release note template has YouTube line", () => {
+  assertIncludes(releasePolicy, [
     "YouTube real URL relay:",
+  ], "docs/release-policy.md");
+});
+
+check("release note template forbids unexecuted pass", () => {
+  assertIncludes(releasePolicy, [
     "Do not list an item as pass unless it was actually executed for this release cut.",
   ], "docs/release-policy.md");
 });
 
-check("current roadmap points at the release evidence index, not old post-release criteria", () => {
+check("current roadmap points at the release evidence index", () => {
   assertIncludes(backlog, [
     "| V180-P1-03 |",
     "Release evidence index",
@@ -83,10 +136,20 @@ check("current roadmap points at the release evidence index, not old post-releas
 });
 
 if (historyPath) {
-  check("provided history separates confirmed, unverified, and not-run sections", () => {
+  check("provided history includes confirmed section", () => {
     assertIncludes(history, [
       "확인됨:",
+    ], path.relative(rootDir, historyPath).replaceAll(path.sep, "/"));
+  });
+
+  check("provided history includes unverified section", () => {
+    assertIncludes(history, [
       "미확인:",
+    ], path.relative(rootDir, historyPath).replaceAll(path.sep, "/"));
+  });
+
+  check("provided history includes not-run section", () => {
+    assertIncludes(history, [
       "미실행:",
     ], path.relative(rootDir, historyPath).replaceAll(path.sep, "/"));
   });

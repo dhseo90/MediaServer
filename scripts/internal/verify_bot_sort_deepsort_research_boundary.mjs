@@ -45,22 +45,27 @@ const report = {
   checks: [],
 };
 
-const researchRuntimeTokens = [
+const botSortTokens = [
   "bot-sort",
   "botsort",
   "bot_sort",
   "BoTSORT",
   "BotSort",
+  "ObjectTrackerKind::BoT",
+];
+
+const deepSortTokens = [
   "deep-sort",
   "deepsort",
   "deep_sort",
   "DeepSORT",
   "DeepSort",
-  "ObjectTrackerKind::BoT",
   "ObjectTrackerKind::Deep",
 ];
 
-check("BoT-SORT and DeepSORT are not runtime tracker policy values", () => {
+const researchRuntimeTokens = [...botSortTokens, ...deepSortTokens];
+
+check("runtime tracker policy rejects BoT-SORT tokens", () => {
   const analysisQuery = readText("src/ingress/analysis_query.cpp");
   const server = readText("src/ingress/webrtc_http_server.cpp");
   const ui = readText("src/ingress/product_ui_page_scripts.cpp");
@@ -70,8 +75,29 @@ check("BoT-SORT and DeepSORT are not runtime tracker policy values", () => {
     ["webrtc_http_server.cpp", server],
     ["product_ui_page_scripts.cpp", ui],
   ]) {
-    assertNoRuntimeToken(label, text);
+    assertNoRuntimeTokenGroup(label, text, botSortTokens, "BoT-SORT");
   }
+  return { rejected: ["bot-sort", "botsort"] };
+});
+
+check("runtime tracker policy rejects DeepSORT tokens", () => {
+  const analysisQuery = readText("src/ingress/analysis_query.cpp");
+  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const ui = readText("src/ingress/product_ui_page_scripts.cpp");
+
+  for (const [label, text] of [
+    ["analysis_query.cpp", analysisQuery],
+    ["webrtc_http_server.cpp", server],
+    ["product_ui_page_scripts.cpp", ui],
+  ]) {
+    assertNoRuntimeTokenGroup(label, text, deepSortTokens, "DeepSORT");
+  }
+  return { rejected: ["deep-sort", "deepsort"] };
+});
+
+check("runtime tracker policy keeps current allowed values", () => {
+  const analysisQuery = readText("src/ingress/analysis_query.cpp");
+  const server = readText("src/ingress/webrtc_http_server.cpp");
 
   for (const snippet of [
     'value == "none" || value == "kalman-lite" || value == "bytetrack"',
@@ -86,22 +112,32 @@ check("BoT-SORT and DeepSORT are not runtime tracker policy values", () => {
 
   return {
     allowedTrackers: ["none", "lite", "kalman-lite", "bytetrack"],
-    rejected: ["bot-sort", "botsort", "deep-sort", "deepsort"],
   };
 });
 
-check("ObjectTracker implementation remains limited to Lite, Kalman-lite, and ByteTrack", () => {
+check("ObjectTracker runtime kind Lite exists", () => {
+  const header = readText("include/analysis/object_tracker.h");
+  assert(header.includes("enum class ObjectTrackerKind"), "ObjectTrackerKind enum missing");
+  assert(header.includes("Lite"), "ObjectTrackerKind missing current tracker: Lite");
+  return { runtimeKind: "Lite" };
+});
+
+check("ObjectTracker runtime kind KalmanLite exists", () => {
+  const header = readText("include/analysis/object_tracker.h");
+  assert(header.includes("KalmanLite"), "ObjectTrackerKind missing current tracker: KalmanLite");
+  return { runtimeKind: "KalmanLite" };
+});
+
+check("ObjectTracker runtime kind ByteTrack exists", () => {
+  const header = readText("include/analysis/object_tracker.h");
+  assert(header.includes("ByteTrack"), "ObjectTrackerKind missing current tracker: ByteTrack");
+  return { runtimeKind: "ByteTrack" };
+});
+
+check("ObjectTracker implementation rejects research tracker tokens", () => {
   const header = readText("include/analysis/object_tracker.h");
   const manager = readText("src/analysis/analysis_manager.cpp");
   const tracker = readText("src/analysis/object_tracker.cpp");
-  assert(header.includes("enum class ObjectTrackerKind"), "ObjectTrackerKind enum missing");
-  for (const snippet of [
-    "Lite",
-    "KalmanLite",
-    "ByteTrack",
-  ]) {
-    assert(header.includes(snippet), `ObjectTrackerKind missing current tracker: ${snippet}`);
-  }
   for (const [label, text] of [
     ["object_tracker.h", header],
     ["analysis_manager.cpp", manager],
@@ -110,7 +146,7 @@ check("ObjectTracker implementation remains limited to Lite, Kalman-lite, and By
     assertNoRuntimeToken(label, text);
   }
   return {
-    runtimeKinds: ["Lite", "KalmanLite", "ByteTrack"],
+    rejected: ["bot-sort", "botsort", "deep-sort", "deepsort"],
   };
 });
 
@@ -141,7 +177,7 @@ check("benchmark harness accepts only current tracker policies", () => {
   };
 });
 
-check("BoT-SORT/DeepSORT research boundary is documented without product-scope expansion", () => {
+check("research boundary docs block tracker product scope expansion", () => {
   const backlog = readText("docs/development-backlog.md");
   const video = readText("docs/video-analysis.md");
   const stream = readText("docs/stream-verification.md");
@@ -219,21 +255,30 @@ check("BoT-SORT/DeepSORT research boundary is documented without product-scope e
   };
 });
 
-check("server command and script inventory expose the boundary verifier", () => {
+check("server command exposes research boundary verifier command", () => {
   const server = readText("server.sh");
+  assert(server.includes("verify-bot-sort-deepsort-research-boundary"), "server.sh missing verify-bot-sort-deepsort-research-boundary");
+  return {
+    command: "verify-bot-sort-deepsort-research-boundary",
+  };
+});
+
+check("server command exposes research boundary verifier script", () => {
+  const server = readText("server.sh");
+  assert(server.includes("verify_bot_sort_deepsort_research_boundary.mjs"), "server.sh missing verify_bot_sort_deepsort_research_boundary.mjs");
+  return {
+    script: "verify_bot_sort_deepsort_research_boundary.mjs",
+  };
+});
+
+check("script inventory exposes research boundary verifier script", () => {
   const inventory = readText("scripts/internal/verify_script_inventory.mjs");
-  for (const snippet of [
-    "verify-bot-sort-deepsort-research-boundary",
-    "verify_bot_sort_deepsort_research_boundary.mjs",
-  ]) {
-    assert(server.includes(snippet), `server.sh missing ${snippet}`);
-  }
   assert(
     inventory.includes("verify_bot_sort_deepsort_research_boundary.mjs"),
     "script inventory missing verifier"
   );
   return {
-    command: "verify-bot-sort-deepsort-research-boundary",
+    script: "verify_bot_sort_deepsort_research_boundary.mjs",
   };
 });
 
@@ -273,10 +318,14 @@ function assert(condition, message) {
 }
 
 function assertNoRuntimeToken(label, text) {
-  const hits = researchRuntimeTokens.filter(token => text.includes(token));
+  assertNoRuntimeTokenGroup(label, text, researchRuntimeTokens, "BoT-SORT/DeepSORT");
+}
+
+function assertNoRuntimeTokenGroup(label, text, tokens, displayName) {
+  const hits = tokens.filter(token => text.includes(token));
   assert(
     hits.length === 0,
-    `${label} unexpectedly contains BoT-SORT/DeepSORT runtime token(s): ${hits.join(", ")}`
+    `${label} unexpectedly contains ${displayName} runtime token(s): ${hits.join(", ")}`
   );
 }
 

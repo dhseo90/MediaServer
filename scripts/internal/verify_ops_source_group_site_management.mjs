@@ -19,24 +19,17 @@ const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
 const auth = readText("src/ingress/http_auth.cpp");
 const serverSh = readText("server.sh");
 
-check("source registry stores site/group/floor/zone metadata", () => {
-  for (const snippet of [
-    "std::string site;",
-    "std::string group;",
-    "std::string floor;",
-    "std::string zone;",
-    'ParseStringField(body, "site")',
-    'ParseStringField(body, "group")',
-    'ParseStringField(body, "floor")',
-    'ParseStringField(body, "zone")',
-    '\\"site\\":\\"',
-    '\\"group\\":\\"',
-    '\\"floor\\":\\"',
-    '\\"zone\\":\\"',
-  ]) {
-    assertIncludes(header + registry, snippet, "source group registry");
-  }
-});
+for (const field of ["site", "group", "floor", "zone"]) {
+  check(`source registry stores ${field} metadata field`, () => {
+    assertIncludes(header + registry, `std::string ${field};`, "source group registry");
+  });
+  check(`source registry parses ${field} metadata field`, () => {
+    assertIncludes(header + registry, `ParseStringField(body, "${field}")`, "source group registry");
+  });
+  check(`source registry serializes ${field} metadata field`, () => {
+    assertIncludes(header + registry, `\\"${field}\\":\\"`, "source group registry");
+  });
+}
 
 check("client view JSON exposes only safe grouping metadata", () => {
   const clientBlock = registry.slice(
@@ -66,31 +59,56 @@ check("ops sources UI manages grouping metadata", () => {
   }
 });
 
-check("client source tree and user scope chooser consume grouping metadata without new scopes", () => {
-  for (const snippet of [
-    "liveSourceTreeGroups",
-    "['site', 'siteName', 'group', 'groupName', 'locationName']",
-    "['floor', 'floorName', 'zone', 'zoneName']",
-    "clientViewLocationLabel",
-    "view-assignment-options",
-    "사이트/그룹",
-  ]) {
-    assertIncludes(server + pageScript, snippet, "client grouping consumers");
-  }
+check("client source tree consumes location group metadata", () => {
+  assertIncludes(server + pageScript, "liveSourceTreeGroups", "client grouping consumers");
+});
+
+check("client source tree consumes site group aliases", () => {
+  assertIncludes(server + pageScript, "['site', 'siteName', 'group', 'groupName', 'locationName']", "client grouping consumers");
+});
+
+check("client source tree consumes floor zone aliases", () => {
+  assertIncludes(server + pageScript, "['floor', 'floorName', 'zone', 'zoneName']", "client grouping consumers");
+});
+
+check("client source tree renders location label", () => {
+  assertIncludes(server + pageScript, "clientViewLocationLabel", "client grouping consumers");
+});
+
+check("user scope chooser renders assignment options", () => {
+  assertIncludes(server + pageScript, "view-assignment-options", "client grouping consumers");
+});
+
+check("user scope chooser renders site group copy", () => {
+  assertIncludes(server + pageScript, "사이트/그룹", "client grouping consumers");
+});
+
+check("source group UI does not add source group read scope", () => {
   assert(!pageScript.includes("source-group:read"), "UI must not introduce source-group scopes");
+});
+
+check("auth contract does not add source group read scope", () => {
   assert(!auth.includes("source-group:read"), "auth contract must not introduce source-group scopes");
+});
+
+check("auth contract does not add site read scope", () => {
   assert(!auth.includes("site:read:"), "auth contract must not introduce site scopes");
 });
 
-check("ops/client UI smoke and server command track the P1 source grouping contract", () => {
-  for (const snippet of [
-    'data-testid="source-group-site-management"',
-    "view-assignment-options",
-    "verify-ops-source-group-site-management",
-    "verify_ops_source_group_site_management.mjs",
-  ]) {
-    assertIncludes(uiSmoke + serverSh, snippet, "source grouping smoke wiring");
-  }
+check("ops UI smoke tracks source grouping panel", () => {
+  assertIncludes(uiSmoke + serverSh, 'data-testid="source-group-site-management"', "source grouping smoke wiring");
+});
+
+check("ops UI smoke tracks source assignment options", () => {
+  assertIncludes(uiSmoke + serverSh, "view-assignment-options", "source grouping smoke wiring");
+});
+
+check("server command exposes source grouping verifier command", () => {
+  assertIncludes(uiSmoke + serverSh, "verify-ops-source-group-site-management", "source grouping smoke wiring");
+});
+
+check("server command exposes source grouping verifier script", () => {
+  assertIncludes(uiSmoke + serverSh, "verify_ops_source_group_site_management.mjs", "source grouping smoke wiring");
 });
 
 if (args.roundtripSmoke) {

@@ -75,11 +75,14 @@ check("live support verification includes no-device completion guard", () => {
   assertContains(liveSupportDoc, "실장비 endpoint 성공은 미확인", "live support doc must keep real device success unverified");
 });
 
-check("no-device suite includes completion guard and local simulator variants", () => {
+check("no-device suite includes completion guard", () => {
+  assertContains(suiteScript, "verify-onvif-no-device-completion", "suite missing completion guard");
+});
+
+check("no-device suite includes local simulator variants", () => {
   assertContains(suiteScript, "verify-onvif-local-simulator", "suite missing local simulator smoke");
   assertContains(suiteScript, "verify-onvif-synthetic-vendor-fixtures", "suite missing synthetic vendor fixture smoke");
   assertContains(suiteScript, "verify-onvif-field-smoke-gate", "suite missing field smoke gate verifier");
-  assertContains(suiteScript, "verify-onvif-no-device-completion", "suite missing completion guard");
 });
 
 check("success summary fixture preserves completed no-device closure", () => {

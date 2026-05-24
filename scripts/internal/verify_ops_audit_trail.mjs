@@ -38,7 +38,7 @@ check("shared product UI script provides local audit trail helpers", () => {
   }
 });
 
-check("ops channel/rule/user pages expose audit panels", () => {
+check("ops pages expose audit panels", () => {
   const html = readText("src/ingress/webrtc_http_server.cpp");
   const required = [
     'id="channel-audit-list"',
@@ -56,7 +56,7 @@ check("ops channel/rule/user pages expose audit panels", () => {
   }
 });
 
-check("ops page scripts record channel/rule/user mutations", () => {
+check("ops page scripts record audited mutations", () => {
   const script = readText("src/ingress/product_ui_page_scripts.cpp");
   const required = [
     "area: 'channels'",

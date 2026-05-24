@@ -28,21 +28,35 @@ check("shared UI helper renders primary action plus context actions", () => {
   }
 });
 
-check("Ops rules, channels, and users use context action rows", () => {
+check("Ops rules use context action rows", () => {
   for (const snippet of [
+    "'ops-rule-row-actions'",
     "opsContextActionsHtml(normalized[0] || ''",
+  ]) {
+    assertIncludes(script, snippet, "Ops rules context action usage");
+  }
+});
+
+check("Ops channels use context action rows", () => {
+  for (const snippet of [
     "data-view-channel=",
     "data-clone-channel=",
     "data-open-client-live=",
     "data-delete-channel=",
+    "'channel-row-actions'",
+  ]) {
+    assertIncludes(script, snippet, "Ops channel context action usage");
+  }
+});
+
+check("Ops users use context action rows", () => {
+  for (const snippet of [
     "data-user-view=",
     "data-user-reset-password=",
     "data-user-set-enabled=",
-    "'channel-row-actions'",
     "'user-row-actions'",
-    "'ops-rule-row-actions'",
   ]) {
-    assertIncludes(script, snippet, "Ops context action usage");
+    assertIncludes(script, snippet, "Ops user context action usage");
   }
 });
 
@@ -70,15 +84,22 @@ check("client action reduction baseline remains tracked", () => {
   }
 });
 
-check("ops/client smoke and server command include shared declutter verifier", () => {
+check("ops client smoke includes shared declutter verifier", () => {
   for (const snippet of [
-    "verify-ops-client-shared-declutter",
-    "verify_ops_client_shared_declutter.mjs",
     "opsContextActionsHtml",
     'data-testid="ops-context-actions"',
     'data-action-density="primary-context"',
   ]) {
-    assertIncludes(uiSmoke + serverSh, snippet, "shared declutter wiring");
+    assertIncludes(uiSmoke, snippet, "shared declutter UI smoke wiring");
+  }
+});
+
+check("server command includes shared declutter verifier", () => {
+  for (const snippet of [
+    "verify-ops-client-shared-declutter",
+    "verify_ops_client_shared_declutter.mjs",
+  ]) {
+    assertIncludes(serverSh, snippet, "shared declutter server wiring");
   }
 });
 
@@ -208,7 +229,12 @@ async function runBrowserSmoke() {
     users,
     rules,
   };
-  check("browser context actions keep primary visible and secondary contextual", () => {
+  check("browser context actions keep primary visible", () => {
+    assert(Boolean(source.primary), "source primary action missing");
+    assert(Boolean(users.primary) || users.resetEmpty, "users primary action missing");
+    assert(Boolean(rules.primary), "rules primary action missing");
+  });
+  check("browser context actions keep secondary contextual", () => {
     assert(Boolean(result?.ok), "browser result was not ok");
   });
   if (!result?.ok) console.log(JSON.stringify(result, null, 2));

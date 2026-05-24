@@ -10,7 +10,7 @@ const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const checks = [];
 
-check("basic/full test modes do not invoke longrun harnesses", () => {
+check("basic test mode does not invoke longrun harnesses", () => {
   const testAll = readText("scripts/internal/test_all.sh");
   assert(!testAll.includes("verify-event-post-longrun"), "test_all.sh must use verify-event-post smoke, not verify-event-post-longrun");
 
@@ -18,12 +18,18 @@ check("basic/full test modes do not invoke longrun harnesses", () => {
   assert(!basicBlock.includes("INCLUDE_URI_LONGRUN=1"), "basic mode must not enable URI longrun");
   assert(!basicBlock.includes("INCLUDE_WEBRTC_ICE=1"), "basic mode must not enable external ICE checks");
   assert(!basicBlock.includes("INCLUDE_EVENT_POST=1"), "basic mode must not enable event POST checks");
+});
 
+check("full test mode does not invoke longrun harnesses", () => {
+  const testAll = readText("scripts/internal/test_all.sh");
   const fullBlock = shellIfBlock(testAll, 'if [[ "${MODE}" == "full" ]]');
   assert(!fullBlock.includes("INCLUDE_URI_LONGRUN=1"), "full mode must not enable URI longrun");
   assert(!fullBlock.includes("INCLUDE_WEBRTC_ICE=1"), "full mode must not enable external ICE checks");
   assert(fullBlock.includes("INCLUDE_EVENT_POST=1"), "full mode should keep event POST smoke");
+});
 
+check("test modes keep event POST smoke commands", () => {
+  const testAll = readText("scripts/internal/test_all.sh");
   assert(testAll.includes("./server.sh verify-event-post --mode schema"), "test_all.sh must run event POST schema smoke");
   assert(testAll.includes("./server.sh verify-event-post --mode recovery"), "test_all.sh must run event POST recovery smoke");
 });
@@ -43,11 +49,20 @@ check("longrun commands remain explicit server.sh entrypoints", () => {
   }
 });
 
-check("stream verification docs keep short and long gates separated", () => {
+check("stream verification docs keep short gates documented", () => {
   const docs = readText("docs/stream-verification.md");
   const requiredSnippets = [
     "`./server.sh test --full` | Product UI smoke, Rule/Profile UI, VA event, image analysis, event POST smoke, redaction 포함",
     "외부 source/TURN/장시간 테스트는 별도 gate로 분리합니다",
+  ];
+  for (const snippet of requiredSnippets) {
+    assert(docs.includes(snippet), `docs/stream-verification.md is missing: ${snippet}`);
+  }
+});
+
+check("stream verification docs keep long gates documented", () => {
+  const docs = readText("docs/stream-verification.md");
+  const requiredSnippets = [
     "## 장기 테스트 명령",
     "./server.sh verify-uri-longrun",
     "./server.sh verify-event-post-longrun",

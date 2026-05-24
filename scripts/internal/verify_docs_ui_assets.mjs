@@ -59,7 +59,7 @@ check("UI guide keeps product screenshots in the shared asset set", () => {
   assert(guide.includes("./server.sh verify-docs-ui-assets"), "docs/ui-guide.md does not document verify-docs-ui-assets");
 });
 
-check("docs/assets/ui policy documents dark mode and VA overlay capture rules", () => {
+check("docs UI asset policy documents capture rules", () => {
   const policy = readText("docs/assets/ui/README.md");
   const requiredSnippets = [
     "config/docs_ui_assets.json",
@@ -77,7 +77,7 @@ check("docs/assets/ui policy documents dark mode and VA overlay capture rules", 
   }
 });
 
-check("managed UI asset manifest and direct review checklist stay complete", () => {
+check("managed UI asset manifest stays complete", () => {
   assert(manifest.schema === "media-server.docs-ui-assets.v1", "docs UI asset manifest schema mismatch");
   assert(manifest.baseline?.release === "v1.8.0", "docs UI asset manifest baseline release drifted");
   assert(manifest.baseline?.capturedAt === "2026-05-23", "docs UI asset manifest capture date drifted");
@@ -143,7 +143,7 @@ check("capture script owns every documented UI asset", () => {
   }
 });
 
-check("docs capture and English UI copy cover v1.8.0 screenshots", () => {
+check("docs capture covers current screenshots", () => {
   const script = readText("scripts/internal/capture_docs_ui_assets.mjs");
   const i18n = readText("src/ingress/product_ui_js.cpp");
   const policy = readText("docs/assets/ui/README.md");
@@ -188,7 +188,7 @@ check("representative screenshot docs do not point at stale visual baselines", (
   }
 });
 
-check("docs/assets/ui contains only managed PNG files with valid dimensions", () => {
+check("docs UI asset directory contains managed PNG files", () => {
   const allowed = new Set(uiGuideAssets);
   const entries = fs.readdirSync(docsAssetDir).filter((entry) => entry.endsWith(".png"));
   for (const entry of entries) {
@@ -217,7 +217,7 @@ check("docs/assets/ui contains only managed PNG files with valid dimensions", ()
   }
 });
 
-check("VA sample and overlay documentation images keep full video frame bounds", () => {
+check("VA documentation images keep full video frame bounds", () => {
   const sample = readPngDimensions(path.join(rootDir, "docs/assets/va-four-scene-sample.png"));
   const overlay = readJpegDimensions(path.join(rootDir, "docs/assets/va-four-scene-overlay-ko.jpg"));
   assert(sample.width >= 1280, `va-four-scene-sample.png width is too small: ${sample.width}`);

@@ -46,23 +46,43 @@ const report = {
   checks: [],
 };
 
-check("default-off Re-ID and close-object guard settings are pinned", () => {
+check("Re-ID appearance hook default is disabled", () => {
   const stdafx = readText("include/stdafx.h");
   assert(stdafx.includes('kDefaultAnalysisAppearanceEnabled = false'), "Re-ID appearance hook must stay default disabled");
-  assert(stdafx.includes('kDefaultAnalysisAppearanceExtractor = "noop"'), "default appearance extractor must stay noop");
-  assert(stdafx.includes('kDefaultAnalysisAppearanceModelPath = ""'), "default Re-ID model path must stay empty");
-  assert(stdafx.includes('kDefaultAnalysisAppearanceModelSha256 = ""'), "default Re-ID model checksum must stay empty");
-  assert(stdafx.includes('kDefaultAnalysisAppearanceModelProvenance = ""'), "default Re-ID model provenance must stay empty");
-  assert(stdafx.includes('kDefaultAnalysisTrackingCloseObjectGuardMode = "off"'), "close-object guard must stay default off");
-  return {
-    appearanceDefault: "disabled",
-    extractorDefault: "noop",
-    modelGateDefault: "empty",
-    closeObjectGuardDefault: "off",
-  };
+  return { appearanceDefault: "disabled" };
 });
 
-check("appearance execution stays bounded and off the media hot path", () => {
+check("Re-ID default appearance extractor is noop", () => {
+  const stdafx = readText("include/stdafx.h");
+  assert(stdafx.includes('kDefaultAnalysisAppearanceExtractor = "noop"'), "default appearance extractor must stay noop");
+  return { extractorDefault: "noop" };
+});
+
+check("Re-ID default model path is empty", () => {
+  const stdafx = readText("include/stdafx.h");
+  assert(stdafx.includes('kDefaultAnalysisAppearanceModelPath = ""'), "default Re-ID model path must stay empty");
+  return { modelPathDefault: "empty" };
+});
+
+check("Re-ID default model checksum is empty", () => {
+  const stdafx = readText("include/stdafx.h");
+  assert(stdafx.includes('kDefaultAnalysisAppearanceModelSha256 = ""'), "default Re-ID model checksum must stay empty");
+  return { modelChecksumDefault: "empty" };
+});
+
+check("Re-ID default model provenance is empty", () => {
+  const stdafx = readText("include/stdafx.h");
+  assert(stdafx.includes('kDefaultAnalysisAppearanceModelProvenance = ""'), "default Re-ID model provenance must stay empty");
+  return { modelProvenanceDefault: "empty" };
+});
+
+check("close object guard default is off", () => {
+  const stdafx = readText("include/stdafx.h");
+  assert(stdafx.includes('kDefaultAnalysisTrackingCloseObjectGuardMode = "off"'), "close-object guard must stay default off");
+  return { closeObjectGuardDefault: "off" };
+});
+
+check("appearance execution stays bounded outside media hot path", () => {
   const analysisManager = readText("src/analysis/analysis_manager.cpp");
   const manager = readText("src/analysis/track_state_manager.cpp");
   const extractor = readText("src/analysis/appearance_extractor.cpp");
@@ -158,7 +178,7 @@ check("appearance diagnostics expose aggregate status only", () => {
   };
 });
 
-check("model checksum and provenance opt-in gate is wired through config and smoke tests", () => {
+check("model checksum provenance opt-in gate is wired", () => {
   const stdafx = readText("include/stdafx.h");
   const appConfigHeader = readText("include/app_config.h");
   const appConfig = readText("src/app_config.cpp");
@@ -198,7 +218,7 @@ check("model checksum and provenance opt-in gate is wired through config and smo
   };
 });
 
-check("close-object benchmark commands and fixture matrix remain available", () => {
+check("close object benchmark boundary remains available", () => {
   const server = readText("server.sh");
   const compare = readText("scripts/internal/compare_close_object_tracker.py");
   const trackerStability = readText("scripts/internal/verify_tracker_stability.sh");
@@ -283,7 +303,7 @@ check("close-object benchmark commands and fixture matrix remain available", () 
   };
 });
 
-check("docs pin privacy review and separate default-on review boundaries", () => {
+check("docs pin privacy review boundaries", () => {
   const backlog = readText("docs/development-backlog.md");
   const stream = readText("docs/stream-verification.md");
   const video = readText("docs/video-analysis.md");

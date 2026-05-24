@@ -49,7 +49,7 @@ const outputDir = args.outputDir || path.join(os.tmpdir(), `media_server_event_r
 fs.mkdirSync(outputDir, { recursive: true });
 
 const opsEventsHtml = await requestText("/ops/events");
-assertContains("ops-events-html", opsEventsHtml, [
+const opsEventsControls = [
   'data-testid="ops-events-page"',
   'id="eventEvidencePolicyBadges"',
   'id="eventExportPolicyBadges"',
@@ -59,38 +59,49 @@ assertContains("ops-events-html", opsEventsHtml, [
   'id="eventRecordsPrev"',
   'id="eventRecordsNext"',
   'class="ops-data-table event-record-table"',
-]);
-console.log("[pass] ops-events evidence controls rendered");
+];
+assertContains("ops-events-html", opsEventsHtml, opsEventsControls);
+for (const control of opsEventsControls) {
+  console.log(`[pass] ops-events html contains ${control}`);
+}
 
 const storageStatus = await requestJson("/lab/analysis/event-storage/status");
 assertEvidencePolicy("lab-storage-status", storageStatus.evidencePolicy);
 if (storageStatus.enabled !== true) {
   throw new Error("event storage must be enabled for populated ops-events fixture smoke");
 }
-console.log("[pass] lab event-storage evidence policy");
+console.log("[pass] lab event-storage status is enabled");
 const auditSnapshot = snapshotFile(path.resolve(".media_server.ops_audit.jsonl"));
 const fixture = seedPopulatedEventRecordFixture(storageStatus);
 try {
   await verifyEvidenceBundleDownload(storageStatus);
-  console.log("[pass] lab event evidence zip bundle");
 
   const populatedRecords = await requestJson("/lab/analysis/events/records?limit=5&evidence=any&includeArchives=1");
   assertRecordList("lab-records-evidence-any", populatedRecords);
+  console.log("[pass] lab event-records evidence-any schema is event-record-list");
+  console.log("[pass] lab event-records evidence-any records is array");
+  console.log("[pass] lab event-records evidence-any includes storage summary");
   assertRecordListContains("lab-records-evidence-any", populatedRecords, fixture.eventId);
-  console.log("[pass] lab event-records populated fixture");
+  console.log("[pass] lab event-records evidence-any includes populated fixture event");
 
   const records = await requestJson("/lab/analysis/events/records?limit=5&evidence=missing&includeArchives=1");
   assertRecordList("lab-records-evidence-missing", records);
-  console.log("[pass] lab event-records evidence filter");
+  console.log("[pass] lab event-records evidence-missing schema is event-record-list");
+  console.log("[pass] lab event-records evidence-missing records is array");
+  console.log("[pass] lab event-records evidence-missing includes storage summary");
 
   const opsStatus = await requestJson("/ops/api/events/status?limit=5&evidence=any&includeArchives=1");
   if (opsStatus?.status !== "ops-events") {
     throw new Error(`ops events status mismatch: ${JSON.stringify(opsStatus).slice(0, 160)}`);
   }
+  console.log("[pass] ops events API status is ops-events");
   assertEvidencePolicy("ops-events-status", opsStatus?.storage?.evidencePolicy);
   assertRecordList("ops-events-records", opsStatus?.records);
+  console.log("[pass] ops events API records schema is event-record-list");
+  console.log("[pass] ops events API records is array");
+  console.log("[pass] ops events API records includes storage summary");
   assertRecordListContains("ops-events-records", opsStatus?.records, fixture.eventId);
-  console.log("[pass] ops events API includes populated record and evidence policy");
+  console.log("[pass] ops events API records include populated fixture event");
 
   await expectHttpError(
     "/lab/analysis/events/records?evidence=video",
@@ -100,7 +111,7 @@ try {
   console.log("[pass] invalid evidence query rejected");
 
   await verifyBrowserUi(fixture);
-  console.log("[pass] ops-event-records-scope");
+  console.log("[summary] ops-event-records-scope complete");
 } finally {
   cleanupPopulatedEventRecordFixture(fixture);
   restoreFileSnapshot(auditSnapshot);
@@ -173,9 +184,29 @@ async function verifyBrowserUi(fixture) {
     if (!initial?.ok) {
       throw new Error(`browser populated UI check failed: ${JSON.stringify(initial)}`);
     }
+    for (const selector of [
+      "#eventEvidencePolicyBadges",
+      "#eventEvidencePolicyText",
+      "#eventExportPolicyBadges",
+      "#eventExportPolicyText",
+      "#eventRecordsEvidenceSelect",
+      "#eventRecordsIncludeArchives",
+      "#eventRecordsPrev",
+      "#eventRecordsNext",
+      "#eventRecordRows",
+      ".event-record-table",
+    ]) {
+      console.log(`[pass] browser ops-events contains selector ${selector}`);
+    }
+    console.log("[pass] browser ops-events evidence policy text shows short evidence scope");
+    console.log("[pass] browser ops-events row contains populated fixture eventId");
+    console.log("[pass] browser ops-events row contains snapshot evidence label");
+    console.log("[pass] browser ops-events row contains clip evidence label");
+    console.log("[pass] browser ops-events row contains signed bundle zip label");
+    console.log(`[pass] browser ops-events populated viewport overflowX=${initial.overflowX}`);
     const screenshotPath = path.join(outputDir, `ops-events-populated-${visualWidth}.png`);
     await browser.screenshot(screenshotPath);
-    console.log(`[pass] browser ops-events populated screenshot: ${screenshotPath}`);
+    console.log(`[pass] browser ops-events populated screenshot written ${screenshotPath}`);
 
     const result = await browser.evaluate(
       `
@@ -220,7 +251,13 @@ async function verifyBrowserUi(fixture) {
     if (!result?.ok) {
       throw new Error(`browser UI check failed: ${JSON.stringify(result)}`);
     }
-    console.log(`[pass] browser ops-events controls width=${visualWidth} overflow=${result.overflowX}`);
+    console.log("[pass] browser ops-events evidence filter selects missing");
+    console.log("[pass] browser ops-events archive checkbox toggles on");
+    console.log("[pass] browser ops-events prev button click completes");
+    console.log("[pass] browser ops-events next button click completes");
+    console.log(`[pass] browser ops-events filtered row count ${result.rows}`);
+    console.log(`[pass] browser ops-events controls viewport width=${visualWidth}`);
+    console.log(`[pass] browser ops-events controls overflowX=${result.overflowX}`);
   } finally {
     await browser.close();
   }
@@ -333,10 +370,13 @@ function assertEvidencePolicy(label, policy) {
     if (policy[key] !== value) {
       throw new Error(`${label}: evidencePolicy.${key} expected ${JSON.stringify(value)} got ${JSON.stringify(policy[key])}`);
     }
+    console.log(`[pass] ${label} evidencePolicy.${key} is ${JSON.stringify(value)}`);
   }
   if (!Array.isArray(policy.snapshotFormats) || !policy.snapshotFormats.includes("jpg") || !policy.snapshotFormats.includes("ppm")) {
     throw new Error(`${label}: evidencePolicy.snapshotFormats missing jpg/ppm`);
   }
+  console.log(`[pass] ${label} evidencePolicy.snapshotFormats includes jpg`);
+  console.log(`[pass] ${label} evidencePolicy.snapshotFormats includes ppm`);
   const exportPolicy = policy.exportPolicy || {};
   if (exportPolicy.snapshotDownload !== true ||
       exportPolicy.clipManifestDownload !== true ||
@@ -351,6 +391,21 @@ function assertEvidencePolicy(label, policy) {
       exportPolicy.longVideoExport !== false) {
     throw new Error(`${label}: exportPolicy mismatch ${JSON.stringify(exportPolicy)}`);
   }
+  for (const [key, value] of Object.entries({
+    snapshotDownload: true,
+    clipManifestDownload: true,
+    bundleArchiveDownload: true,
+    bundleFormat: "zip",
+    bundleMaxAgeMs: 86400000,
+    bundleSignedToken: true,
+    bundleTokenParam: "token",
+    bundleTokenIssuer: "/lab/analysis/events/evidence/bundle-token",
+    auditAction: "export-bundle",
+    exportAudit: true,
+    longVideoExport: false,
+  })) {
+    console.log(`[pass] ${label} exportPolicy.${key} is ${JSON.stringify(value)}`);
+  }
   const retentionPolicy = policy.retentionPolicy || {};
   if (retentionPolicy.activeFileProtected !== true ||
       retentionPolicy.archiveRetention !== "oldest-rotated-only" ||
@@ -358,11 +413,26 @@ function assertEvidencePolicy(label, policy) {
       retentionPolicy.expiredBundleCleanup !== "token-expiry-no-server-file") {
     throw new Error(`${label}: retentionPolicy mismatch ${JSON.stringify(retentionPolicy)}`);
   }
+  for (const [key, value] of Object.entries({
+    activeFileProtected: true,
+    archiveRetention: "oldest-rotated-only",
+    bundleExpiry: "signed-token-expiresAtMs",
+    expiredBundleCleanup: "token-expiry-no-server-file",
+  })) {
+    console.log(`[pass] ${label} retentionPolicy.${key} is ${JSON.stringify(value)}`);
+  }
   const deletePolicy = policy.deletePolicy || {};
   if (deletePolicy.compactionDelete !== true ||
       deletePolicy.evidenceFileDelete !== false ||
       deletePolicy.evidenceFileDeletePermission !== "blocked-for-all-roles") {
     throw new Error(`${label}: deletePolicy mismatch ${JSON.stringify(deletePolicy)}`);
+  }
+  for (const [key, value] of Object.entries({
+    compactionDelete: true,
+    evidenceFileDelete: false,
+    evidenceFileDeletePermission: "blocked-for-all-roles",
+  })) {
+    console.log(`[pass] ${label} deletePolicy.${key} is ${JSON.stringify(value)}`);
   }
 }
 
@@ -396,23 +466,45 @@ async function verifyEvidenceBundleDownload(storageStatus) {
     if (!tokenPayload?.token || !String(tokenPayload?.bundleUrl || "").includes("token=")) {
       throw new Error(`bundle token payload mismatch: ${JSON.stringify(tokenPayload).slice(0, 240)}`);
     }
+    console.log("[pass] lab event evidence bundle token payload includes token");
+    console.log("[pass] lab event evidence bundle token payload includes signed bundle URL");
     const response = await fetch(`${httpBase}${tokenPayload.bundleUrl}`);
     const body = Buffer.from(await response.arrayBuffer());
     const disposition = response.headers.get("content-disposition") || "";
-    if (response.status !== 200 ||
-        !String(response.headers.get("content-type") || "").includes("application/zip") ||
-        !disposition.includes("event-evidence-") ||
-        body.subarray(0, 2).toString("utf8") !== "PK" ||
-        !body.includes(Buffer.from("manifest.json")) ||
-        !body.includes(Buffer.from(path.basename(snapshotPath))) ||
-        !body.includes(Buffer.from(path.basename(framePath)))) {
-      throw new Error(`bundle response mismatch status=${response.status} type=${response.headers.get("content-type")} disposition=${disposition} bytes=${body.length}`);
+    if (response.status !== 200) {
+      throw new Error(`bundle response status mismatch status=${response.status}`);
     }
+    console.log("[pass] lab event evidence bundle download returns HTTP 200");
+    if (!String(response.headers.get("content-type") || "").includes("application/zip")) {
+      throw new Error(`bundle response content-type mismatch type=${response.headers.get("content-type")}`);
+    }
+    console.log("[pass] lab event evidence bundle download content-type is application/zip");
+    if (!disposition.includes("event-evidence-")) {
+      throw new Error(`bundle response disposition mismatch disposition=${disposition}`);
+    }
+    console.log("[pass] lab event evidence bundle download disposition names event-evidence archive");
+    if (body.subarray(0, 2).toString("utf8") !== "PK") {
+      throw new Error(`bundle response zip signature mismatch bytes=${body.length}`);
+    }
+    console.log("[pass] lab event evidence bundle download has ZIP signature");
+    if (!body.includes(Buffer.from("manifest.json"))) {
+      throw new Error(`bundle response missing manifest.json bytes=${body.length}`);
+    }
+    console.log("[pass] lab event evidence bundle contains manifest.json");
+    if (!body.includes(Buffer.from(path.basename(snapshotPath)))) {
+      throw new Error(`bundle response missing snapshot ${path.basename(snapshotPath)} bytes=${body.length}`);
+    }
+    console.log("[pass] lab event evidence bundle contains snapshot file");
+    if (!body.includes(Buffer.from(path.basename(framePath)))) {
+      throw new Error(`bundle response missing frame ${path.basename(framePath)} bytes=${body.length}`);
+    }
+    console.log("[pass] lab event evidence bundle contains clip frame file");
     const audit = await requestJson("/ops/api/audit?area=events&limit=5");
     const entries = Array.isArray(audit?.entries) ? audit.entries : [];
     if (!entries.some(item => item?.action === "export-bundle" && String(item?.target || "").includes(eventId))) {
       throw new Error(`missing export-bundle audit entry: ${JSON.stringify(entries).slice(0, 240)}`);
     }
+    console.log("[pass] lab event evidence bundle download records export-bundle audit entry");
     const expiredParams = new URLSearchParams({
       eventId,
       snapshotPath,
@@ -424,6 +516,7 @@ async function verifyEvidenceBundleDownload(storageStatus) {
       400,
       "evidence bundle link has expired",
     );
+    console.log("[pass] lab event evidence bundle rejects expired token");
     const tamperedParams = new URLSearchParams({
       eventId,
       snapshotPath,
@@ -436,12 +529,14 @@ async function verifyEvidenceBundleDownload(storageStatus) {
       400,
       "evidence bundle token is invalid",
     );
+    console.log("[pass] lab event evidence bundle rejects tampered token");
     await expectHttpError(
       `/lab/analysis/events/evidence?path=${encodeURIComponent(snapshotPath)}`,
       403,
       "evidence file deletion is disabled by policy",
       { method: "DELETE" },
     );
+    console.log("[pass] lab event evidence file deletion is blocked by policy");
   } finally {
     fs.rmSync(snapshotPath, { force: true });
     fs.rmSync(clipBundleDir, { recursive: true, force: true });

@@ -40,7 +40,7 @@ const inventory = readText("scripts/internal/verify_script_inventory.mjs");
 
 const checks = [];
 
-check("access approval fixture restore and cleanup are enforced", () => {
+check("access approval fixture restore is enforced", () => {
   assertIncludes(click, [
     "--auth-users-file <path>",
     "snapshotAuthStore",
@@ -54,7 +54,7 @@ check("access approval fixture restore and cleanup are enforced", () => {
   ], "verify_ops_ui_click_e2e.mjs");
 });
 
-check("clipboard fallback and capture stubs restore browser state", () => {
+check("clipboard stubs restore browser state", () => {
   assertIncludes(click, [
     "installClipboardFailureStub",
     "restoreClipboardFailureStub",
@@ -79,7 +79,7 @@ check("clipboard fallback and capture stubs restore browser state", () => {
   ], "docs/browser-use-clipboard-diagnostics.md");
 });
 
-check("browser route smoke keeps deterministic waits and error collection", () => {
+check("browser route smoke keeps deterministic waits", () => {
   assertIncludes(click, [
     "waitForPath",
     "waitForResult",
@@ -98,7 +98,7 @@ check("browser route smoke keeps deterministic waits and error collection", () =
   ], "verify_ops_ui_click_e2e.mjs");
 });
 
-check("rule preview smoke uses shared fixture helper and blocks invalid save writes", () => {
+check("rule preview smoke uses shared fixture helper", () => {
   assertIncludes(rule, [
     "ensureRulePreviewPrerequisites",
     "cleanupRulePreviewPrerequisites",
@@ -121,7 +121,7 @@ check("rule preview smoke uses shared fixture helper and blocks invalid save wri
   ], "rule_preview_fixture_helpers.mjs");
 });
 
-check("fixture cleanup verifier and docs expose the stabilization contract", () => {
+check("fixture cleanup verifier exposes stabilization contract", () => {
   assertIncludes(cleanup, [
     "ops click E2E restores access request fixture",
     "ops event records smoke restores storage, audit, and evidence fixtures",
@@ -141,7 +141,7 @@ check("fixture cleanup verifier and docs expose the stabilization contract", () 
   ], "docs/stream-verification.md");
 });
 
-check("server entrypoint and inventory expose flaky verifier guard", () => {
+check("server entrypoint exposes flaky verifier guard", () => {
   assertIncludes(server, [
     "verify-flaky-verifiers",
     "verify_flaky_verifier_stabilization.mjs",

@@ -39,7 +39,7 @@ export async function runVisualSmoke({
           outputDir,
         });
         passCount += 1;
-        console.log(`[pass] ${labelPrefix}-${label}: overflow=${result.overflowX}`);
+        console.log(`[pass] ${labelPrefix}-${label} overflowX ${result.overflowX}`);
       } catch (error) {
         failCount += 1;
         const message = error instanceof Error ? error.message : String(error);

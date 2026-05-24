@@ -46,7 +46,7 @@ check(
     !liveSourceTreeBlock.includes("sourceUrl"),
 );
 check(
-  "workspace tiles accept drag/drop assignment without new route",
+  "workspace tiles accept drag drop assignment without new route",
   script.includes("async function assignViewToTile") &&
     script.includes("assignSourceToSelectedTile") &&
     script.includes("root.addEventListener('dragover'") &&
@@ -62,7 +62,7 @@ check(
     !script.includes('aria-label="타일 ${tile.index + 1} 채널 선택"'),
 );
 check(
-  "workspace has responsive source dock and drop state styling",
+  "workspace has responsive source dock drop state styling",
   css.includes(".live-workspace-layout") &&
     css.includes(".live-source-dock") &&
     css.includes(".live-source-node") &&
@@ -78,7 +78,7 @@ check(
     !css.includes("body.client-shell .tile-stage video {\n      object-fit: cover;"),
 );
 check(
-  "client shell exposes viewer-safe VA overlay mode controls",
+  "client shell exposes viewer safe VA overlay mode controls",
   script.includes('data-testid="client-live-va-overlay-toggle"') &&
     script.includes('data-mode-action="raw"') &&
     script.includes('data-mode-action="va-overlay"') &&
@@ -96,7 +96,7 @@ check(
     uiSmoke.includes("first tile default VA overlay mode is not active"),
 );
 check(
-  "client header account controls are covered by screenshot overlap smoke",
+  "client header account controls have screenshot overlap smoke",
   uiSmoke.includes("client account controls overlap") &&
     uiSmoke.includes("client account item outside menu") &&
     uiSmoke.includes("account controls overlap") &&
@@ -107,14 +107,14 @@ check(
     css.includes("position: sticky;"),
 );
 check(
-  "product shell uses formal brand mark and client nav label",
+  "product shell uses formal brand mark with client nav label",
   uiSmoke.includes('class="brand-mark"') &&
     uiSmoke.includes("'클라이언트'") &&
     css.includes("body.product-shell .brand-mark") &&
     !css.includes('body.product-shell .brand-mark::before'),
 );
 check(
-  "ops/client UI smoke tracks the workspace replacement contract",
+  "ops client UI smoke tracks the workspace replacement contract",
   uiSmoke.includes('data-testid="client-live-workspace"') &&
     uiSmoke.includes('data-workspace-model="source-tree,drag-drop-grid,multi-source"') &&
     uiSmoke.includes("root.addEventListener('drop'") &&
@@ -224,7 +224,10 @@ async function runBrowserDragDropSmoke() {
       `,
       args.timeoutMs,
     );
-    check("browser drag/drop assigns a source to a workspace tile", Boolean(result?.ok));
+    check("browser drag drop assigns selected source", result?.afterView === result?.nextView);
+    check("browser drag drop changes target tile", Boolean(result?.beforeView !== result?.afterView));
+    check("browser drag drop hides restricted viewer material", Boolean(result?.forbidden?.length === 0));
+    check("browser drag drop avoids horizontal overflow", Boolean(Number(result?.overflowX || 0) <= 2));
     if (!result?.ok) {
       console.log(JSON.stringify(result, null, 2));
     }

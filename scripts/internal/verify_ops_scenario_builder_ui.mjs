@@ -33,20 +33,40 @@ check("ops rules page exposes scenario builder as UI-only composer", () => {
   }
 });
 
-check("scenario builder reuses existing event template/preset controls", () => {
-  for (const snippet of [
-    "function opsScenarioBuilderState",
-    "function opsScenarioBuilderDraft",
-    "function renderOpsScenarioBuilder",
-    "async function applyOpsScenarioBuilderToEventRule",
-    "baseline: opsRulesScenarioBaseline(type, presetId)",
-    "opsEventRuleRefreshTypeOptions(state.type)",
-    "opsEventRuleApplyPresetToInputs(state.presetId)",
-    "opsRulesSetSelectedCategories('opsEventRuleClassChecks'",
-    "openOpsRulesEditor('event-rule', 'new')",
-  ]) {
-    assertIncludes(script, snippet, "scenario builder script");
-  }
+check("scenario builder state helper exists", () => {
+  assertIncludes(script, "function opsScenarioBuilderState", "scenario builder script");
+});
+
+check("scenario builder draft helper exists", () => {
+  assertIncludes(script, "function opsScenarioBuilderDraft", "scenario builder script");
+});
+
+check("scenario builder render helper exists", () => {
+  assertIncludes(script, "function renderOpsScenarioBuilder", "scenario builder script");
+});
+
+check("scenario builder apply action exists", () => {
+  assertIncludes(script, "async function applyOpsScenarioBuilderToEventRule", "scenario builder script");
+});
+
+check("scenario builder uses existing preset baseline", () => {
+  assertIncludes(script, "baseline: opsRulesScenarioBaseline(type, presetId)", "scenario builder script");
+});
+
+check("scenario builder refreshes existing event type options", () => {
+  assertIncludes(script, "opsEventRuleRefreshTypeOptions(state.type)", "scenario builder script");
+});
+
+check("scenario builder applies existing preset inputs", () => {
+  assertIncludes(script, "opsEventRuleApplyPresetToInputs(state.presetId)", "scenario builder script");
+});
+
+check("scenario builder applies existing class checks", () => {
+  assertIncludes(script, "opsRulesSetSelectedCategories('opsEventRuleClassChecks'", "scenario builder script");
+});
+
+check("scenario builder opens existing event rule editor", () => {
+  assertIncludes(script, "openOpsRulesEditor('event-rule', 'new')", "scenario builder script");
 });
 
 check("scenario builder styling stays inside ops rules surface", () => {
@@ -62,28 +82,72 @@ check("scenario builder styling stays inside ops rules surface", () => {
   }
 });
 
-check("scenario engine and event post contracts are not edited for builder UI", () => {
+check("scenario engine stays independent from builder UI symbol", () => {
   assert(!scenarioEngine.includes("opsScenarioBuilder"), "ScenarioEngine must not know about Scenario Builder UI");
+});
+
+check("scenario engine stays independent from builder UI wording", () => {
   assert(!scenarioEngine.includes("Scenario Builder"), "ScenarioEngine must not include UI wording");
+});
+
+check("scenario builder block hides source URL", () => {
   const builderBlock = script.slice(
     script.indexOf("function opsScenarioBuilderState"),
     script.indexOf("function opsRulesIsScenarioType"),
   );
-  for (const forbidden of ["sourceUrl", "rtsp://", "debugCounters", "passwordHash", "tokenHash"]) {
-    assert(!builderBlock.includes(forbidden), `scenario builder UI must not expose ${forbidden}`);
-  }
+  assert(!builderBlock.includes("sourceUrl"), "scenario builder UI must not expose sourceUrl");
 });
 
-check("ops/client UI smoke and server command track scenario builder", () => {
-  for (const snippet of [
-    "verify-ops-scenario-builder-ui",
-    "verify_ops_scenario_builder_ui.mjs",
-    'data-testid="ops-scenario-builder"',
-    'id="opsScenarioBuilderApply"',
-    'data-scenario-builder-contract="ui-only-no-engine-change"',
-  ]) {
-    assertIncludes(uiSmoke + serverSh, snippet, "scenario builder smoke wiring");
-  }
+check("scenario builder block hides RTSP locator", () => {
+  const builderBlock = script.slice(
+    script.indexOf("function opsScenarioBuilderState"),
+    script.indexOf("function opsRulesIsScenarioType"),
+  );
+  assert(!builderBlock.includes("rtsp://"), "scenario builder UI must not expose rtsp://");
+});
+
+check("scenario builder block hides debug counters", () => {
+  const builderBlock = script.slice(
+    script.indexOf("function opsScenarioBuilderState"),
+    script.indexOf("function opsRulesIsScenarioType"),
+  );
+  assert(!builderBlock.includes("debugCounters"), "scenario builder UI must not expose debugCounters");
+});
+
+check("scenario builder block hides password hash", () => {
+  const builderBlock = script.slice(
+    script.indexOf("function opsScenarioBuilderState"),
+    script.indexOf("function opsRulesIsScenarioType"),
+  );
+  assert(!builderBlock.includes("passwordHash"), "scenario builder UI must not expose passwordHash");
+});
+
+check("scenario builder block hides token hash", () => {
+  const builderBlock = script.slice(
+    script.indexOf("function opsScenarioBuilderState"),
+    script.indexOf("function opsRulesIsScenarioType"),
+  );
+  assert(!builderBlock.includes("tokenHash"), "scenario builder UI must not expose tokenHash");
+});
+
+check("server command exposes scenario builder verifier command", () => {
+  assertIncludes(uiSmoke + serverSh, "verify-ops-scenario-builder-ui", "scenario builder smoke wiring");
+});
+
+check("server command exposes scenario builder verifier script", () => {
+  assertIncludes(uiSmoke + serverSh, "verify_ops_scenario_builder_ui.mjs", "scenario builder smoke wiring");
+});
+
+check("ops UI smoke tracks scenario builder panel", () => {
+  assertIncludes(uiSmoke + serverSh, 'data-testid="ops-scenario-builder"', "scenario builder smoke wiring");
+});
+
+check("ops UI smoke tracks scenario builder apply control", () => {
+  assertIncludes(uiSmoke + serverSh, 'id="opsScenarioBuilderApply"', "scenario builder smoke wiring");
+});
+
+check("ops UI smoke tracks scenario builder UI only contract", () => {
+  assertIncludes(uiSmoke + serverSh, 'data-scenario-builder-contract="ui-only-no-engine-change"', "scenario builder smoke wiring");
 });
 
 if (args.browserSmoke) {

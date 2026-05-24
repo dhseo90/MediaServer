@@ -49,8 +49,7 @@ compileSmoke();
 const actual = runSmoke();
 validateActual(actual, fixture);
 
-console.log("[pass] ONVIF probe error wording fixture matrix");
-console.log("[pass] ONVIF probe error wording redaction");
+console.log("[summary] ONVIF probe error wording matrix complete");
 console.log("");
 console.log("== ONVIF probe error wording matrix summary ==");
 console.log(`- fixture: ${path.relative(rootDir, fixturePath)}`);
@@ -134,6 +133,8 @@ function validateActual(actual, matrix) {
     for (const term of [...defaultForbiddenTerms, ...expected.forbiddenTerms]) {
       assert(!result.error.includes(term), `${scenario.id}: error leaked forbidden term ${term}`);
     }
+    console.log(`[pass] ONVIF probe error wording scenario ${scenario.id}`);
+    console.log(`[pass] ONVIF probe error redaction scenario ${scenario.id}`);
   }
 }
 

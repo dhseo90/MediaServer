@@ -193,20 +193,30 @@ int main() {
     close(auth_listen_fd);
 
     Assert(!auth_result.ok, "basic auth fixture should stop after device-only service response");
+    std::cout << "[pass] ONVIF auth loopback rejects incomplete device-only service response\n";
     Assert(auth_result.credential_ref_present, "auth credential reference presence was not preserved");
+    std::cout << "[pass] ONVIF auth loopback preserves credential reference presence flag\n";
     Assert(auth_result.plaintext_secret_included == false, "auth plaintext credential flag must remain false");
+    std::cout << "[pass] ONVIF auth loopback keeps plaintext credential flag false\n";
     Assert(auth_result.error == "ONVIF probe failed at GetServices: Media or Media2 service is required",
            "auth sanitized service summary mismatch");
+    std::cout << "[pass] ONVIF auth loopback reports sanitized GetServices failure\n";
     Assert(Contains(captured_auth_request,
                     "Authorization: Basic Zml4dHVyZS11c2VyOmZpeHR1cmUtcGFzc3dvcmQ="),
            "HTTP Basic Authorization header missing");
+    std::cout << "[pass] ONVIF auth loopback injects HTTP Basic authorization header\n";
     Assert(!Contains(captured_auth_request, "fixture-user:fixture-password"),
            "auth request leaked unencoded basic credential");
+    std::cout << "[pass] ONVIF auth loopback does not leak raw basic credential in request\n";
     Assert(!Contains(captured_auth_request, "UsernameToken"), "unexpected UsernameToken was injected");
+    std::cout << "[pass] ONVIF auth loopback does not inject UsernameToken\n";
     Assert(!Contains(auth_result.error, "fixture-user"), "auth failure summary leaked username");
+    std::cout << "[pass] ONVIF auth loopback redacts username from failure summary\n";
     Assert(!Contains(auth_result.error, "fixture-password"), "auth failure summary leaked password");
+    std::cout << "[pass] ONVIF auth loopback redacts password from failure summary\n";
     Assert(!Contains(auth_result.error, "redacted-reference"), "auth failure summary leaked credential reference");
+    std::cout << "[pass] ONVIF auth loopback redacts credential reference from failure summary\n";
 
-    std::cout << "[pass] ONVIF auth injection loopback smoke (default reference-only and provider Basic)\n";
+    std::cout << "[summary] ONVIF auth injection loopback smoke complete\n";
     return 0;
 }

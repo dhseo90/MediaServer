@@ -292,7 +292,7 @@ report, PR/Actions 결과, 미실행 항목을 release evidence index
 - release evidence는 `확인됨`, `미실행`, `미확인`을 분리해 기록합니다.
 - 장시간 soak, `verify-predev`, ONVIF 실장비 field smoke, YouTube real URL relay,
   외부 TURN/WHEP credential 운영 검증은 실행한 경우에만 pass로 기록하고,
-  미실행이면 `NOT RUN`으로 유지합니다.
+  미실행이면 기능별 PASS/FAIL 판정표 밖의 `미실행` 상태로 유지합니다.
 - PR/Actions, tag, push, GitHub Release는 로컬 검증과 분리하고 링크가 없으면
   `UNVERIFIED`로 남깁니다.
 - evidence dashboard에는 source URL, credential, auth/session material, raw media,
@@ -344,7 +344,8 @@ release evidence index에
   `verify-ops-tables-layout`처럼 브라우저/attached 환경이 필요한 smoke는 실행 URL,
   screenshot 여부, cleanup 결과를 따로 기록합니다.
 - `verify-predev`, 장시간 soak, 실장비 ONVIF field smoke, 외부 TURN/WHEP credential
-  운영 검증은 사용자 명시 요청 없이 실행하지 않고 `NOT RUN`으로 분리합니다.
+  운영 검증은 사용자 명시 요청 없이 실행하지 않고 기능별 PASS/FAIL 판정표 밖의
+  `미실행` 상태로 분리합니다.
 
 검증 기준:
 
@@ -485,8 +486,9 @@ review를 연결합니다.
   material, raw SOAP/header/diagnostic JSON, raw media/frame, crop, embedding,
   model path/checksum/provenance는 공유 evidence와 release dashboard에 남기지
   않습니다.
-- 외부 승인 링크, GitHub Actions, tag/push/GitHub Release가 없으면 `UNVERIFIED`,
-  실제 field smoke를 실행하지 않았으면 `NOT RUN`으로 유지합니다.
+- 외부 승인 링크, GitHub Actions, tag/push/GitHub Release가 없으면 기능별 PASS/FAIL
+  판정표 밖의 `미확인` 상태로, 실제 field smoke를 실행하지 않았으면 `미실행`
+  상태로 유지합니다.
 
 검증 기준:
 

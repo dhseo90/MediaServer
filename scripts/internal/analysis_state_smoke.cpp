@@ -483,7 +483,22 @@ void VerifyObjectTrackerAssociationScoring() {
     Expect(track != nullptr && std::fabs(track->health.association_confidence - 0.42F) < 0.001F,
            "TrackHealth must use tracker associationConfidence when metadata provides it");
 
-    Pass("ObjectTracker IoU/distance/direction/class association scoring");
+    Pass("ObjectTracker creates first track id");
+    Pass("ObjectTracker preserves immature direction-history track");
+    Pass("ObjectTracker direction score selects continuing movement");
+    Pass("ObjectTracker association confidence is exposed");
+    Pass("ObjectTracker class consistency blocks id stealing");
+    Pass("ObjectTracker vehicle category keeps jittered labels stable");
+    Pass("ObjectTracker lost buffer reacquires short gap");
+    Pass("ObjectTracker reacquired state clears after stable observation");
+    Pass("ObjectTracker motion prediction reacquires fast moving track");
+    Pass("Kalman-lite tracker reacquires short-gap predicted track");
+    Pass("Kalman-lite tracker filters bbox center");
+    Pass("ByteTrack hides low-confidence association from public metadata");
+    Pass("ByteTrack preserves id through low-confidence association");
+    Pass("ByteTrack blocks new public id from low-confidence detection");
+    Pass("ByteTrack lost buffer floor reacquires short detection gap");
+    Pass("TrackHealth uses tracker associationConfidence metadata");
 }
 
 SceneZoneDefinition MakeZone(const std::string& zone_id = "restricted-a",
@@ -857,7 +872,50 @@ void VerifyTrackStateManagerAndHealth() {
                speed_track->latest_speed_units == "meters_per_second",
            "TrackStateManager must calculate optional ground-plane speed from metadata ground points");
 
-    Pass("TrackStateManager, TrackHealth, Appearance extractor/fallback, cleanup limits");
+    Pass("TrackStateManager keeps same numeric track id per channel");
+    Pass("TrackStateManager preserves stream channel separation");
+    Pass("TrackStateManager caps observation history");
+    Pass("TrackStateManager caps trajectory history");
+    Pass("TrackStateManager retains first seen timestamp");
+    Pass("TrackStateManager retains last seen timestamp");
+    Pass("TrackStateManager transitions active track to lost");
+    Pass("TrackStateManager records lost since timestamp");
+    Pass("TrackHealth records missed frame state");
+    Pass("TrackHealth records lost state");
+    Pass("TrackingIssueReport records missed-frame spike");
+    Pass("TrackingIssueReport records lost track issue");
+    Pass("TrackingIssueReport explains lost-track scenario impact");
+    Pass("TrackStateManager transitions lost track to terminated");
+    Pass("TrackStateManager cleans expired terminated tracks");
+    Pass("TrackStateManager preserves other channel active tracks during cleanup");
+    Pass("TrackStateManager enforces max active tracks per stream");
+    Pass("TrackHealth flags overlap risk");
+    Pass("TrackHealth marks overlap risk as unstable");
+    Pass("TrackingIssueReport records overlap risk");
+    Pass("TrackingIssueReport explains overlap operator action");
+    Pass("TrackHealth records direction instability");
+    Pass("TrackingIssueReport records instability issue");
+    Pass("TrackingIssueReport explains instability impact");
+    Pass("TrackStateManager exposes lost to reacquired lifecycle");
+    Pass("TrackStateManager metrics count reacquired tracks");
+    Pass("TrackingIssueReport records reacquired transition");
+    Pass("TrackingIssueReport explains reacquired review action");
+    Pass("TrackingIssueReport serializes v1 schema");
+    Pass("TrackingIssueReport omits raw counter-only wording");
+    Pass("NoOpAppearanceExtractor leaves appearance profile absent");
+    Pass("NoOpAppearanceExtractor is callable when policy enables hooks");
+    Pass("NoOpAppearanceExtractor does not call real model");
+    Pass("TrackStateManager passes bounded RGB bbox crop");
+    Pass("TrackStateManager attaches appearance embedding");
+    Pass("TrackStateManager records appearance extractor completion");
+    Pass("Appearance policy enforces per stream Re-ID rate limit");
+    Pass("Missing Re-ID model path falls back to NoOp");
+    Pass("Re-ID model without checksum gate falls back to NoOp");
+    Pass("Invalid Re-ID model checksum falls back to NoOp");
+    Pass("Missing Re-ID model provenance falls back to NoOp");
+    Pass("Mismatched Re-ID model checksum falls back to NoOp");
+    Pass("TrackStateManager calculates ground plane speed");
+    Pass("TrackStateManager records ground plane speed units");
 }
 
 void VerifySceneContextBuilder() {
@@ -951,7 +1009,18 @@ void VerifySceneContextBuilder() {
     Expect(scoped_geometry.zones.size() == 1 && scoped_geometry.zones[0].zone_id == "7",
            "vaRule context must use only matching vaRule geometry");
 
-    Pass("SceneContextBuilder zone/line/dwell/channel/vaRule scoping");
+    Pass("SceneContextBuilder includes active track");
+    Pass("SceneContextBuilder calculates current zone");
+    Pass("SceneContextBuilder detects restricted zone membership");
+    Pass("SceneContextBuilder calculates dwell time");
+    Pass("SceneContextBuilder uses bbox bottom center foot point");
+    Pass("SceneContextBuilder projects foot point to ground plane");
+    Pass("SceneContextBuilder projects trajectory ground points");
+    Pass("SceneContextBuilder calculates ground plane speed");
+    Pass("SceneContextBuilder falls back when homography is unavailable");
+    Pass("SceneContextBuilder calculates line crossing state");
+    Pass("SceneContextBuilder keeps channel scoped geometry");
+    Pass("SceneContextBuilder keeps vaRule scoped geometry");
 }
 
 void VerifyEventManager() {
@@ -997,7 +1066,13 @@ void VerifyEventManager() {
     Expect(manager.Metrics().cleanup_runs > 0 && manager.Metrics().states_removed_by_cleanup > 0,
            "EventManager must cleanup expired event state");
 
-    Pass("EventManager lifecycle/cooldown/dedup/cleanup");
+    Pass("EventManager emits confirmed active candidate");
+    Pass("EventManager suppresses duplicate candidate during cooldown");
+    Pass("EventManager emits candidate after cooldown");
+    Pass("EventManager records emitted lifecycle counter");
+    Pass("EventManager records suppressed lifecycle counter");
+    Pass("EventManager clears inactive candidate state");
+    Pass("EventManager cleans expired lifecycle state");
 }
 
 void VerifyScenarioEngineAndIntrusionDwell() {
@@ -1066,7 +1141,13 @@ void VerifyScenarioEngineAndIntrusionDwell() {
     Expect(cleanup_engine.Metrics().instances_removed_by_cleanup > 0,
            "ScenarioEngine must cleanup expired ended scenario instances");
 
-    Pass("ScenarioEngine and IntrusionDwellScenario phase/dedup/re-entry/cleanup");
+    Pass("ScenarioEngine emits intrusion dwell candidate");
+    Pass("IntrusionDwellScenario emits enter phase");
+    Pass("IntrusionDwellScenario emits dwell phase");
+    Pass("IntrusionDwellScenario suppresses duplicate dwell event");
+    Pass("IntrusionDwellScenario emits re-entry phase");
+    Pass("IntrusionDwellScenario cleans stale track state");
+    Pass("ScenarioEngine keeps scenario output stable");
 }
 
 void VerifyReEntryScenario() {
@@ -1132,7 +1213,10 @@ void VerifyReEntryScenario() {
                              &event_manager);
     Expect(events.empty(), "ReEntry must not emit when re-entry window expired");
 
-    Pass("ReEntryScenario exit/re-entry/cooldown/window");
+    Pass("ReEntryScenario records exit observation");
+    Pass("ReEntryScenario emits re-entry candidate");
+    Pass("ReEntryScenario enforces cooldown");
+    Pass("ReEntryScenario enforces re-entry window");
 }
 
 LineCrossState MakeLineState(const std::string& line_id,
@@ -1207,7 +1291,10 @@ void VerifyWrongDirectionScenario() {
     Expect(events.size() == 1 && events[0].line_id == "line-b",
            "WrongDirection must support lineId-specific allowedDirection overrides");
 
-    Pass("WrongDirectionScenario allowed/raw direction/cooldown");
+    Pass("WrongDirectionScenario accepts allowed direction");
+    Pass("WrongDirectionScenario emits wrong direction candidate");
+    Pass("WrongDirectionScenario records raw direction");
+    Pass("WrongDirectionScenario enforces cooldown");
 }
 
 void VerifyIntrusionAfterLineCrossingScenario() {
@@ -1274,7 +1361,11 @@ void VerifyIntrusionAfterLineCrossingScenario() {
                              &event_manager);
     Expect(events.empty(), "IntrusionAfterLineCrossing must respect maxDelayAfterCrossingMs");
 
-    Pass("IntrusionAfterLineCrossingScenario line/zone/dwell/dedup/window");
+    Pass("IntrusionAfterLineCrossingScenario records line crossing");
+    Pass("IntrusionAfterLineCrossingScenario requires zone entry");
+    Pass("IntrusionAfterLineCrossingScenario requires dwell time");
+    Pass("IntrusionAfterLineCrossingScenario suppresses duplicate event");
+    Pass("IntrusionAfterLineCrossingScenario enforces crossing window");
 }
 
 void VerifyLoiteringScenario() {
@@ -1375,7 +1466,11 @@ void VerifyLoiteringScenario() {
                events[0].metadata_json.find("\"usesGroundPlane\":true") != std::string::npos,
            "Loitering must optionally use ground-plane trajectory radius when available");
 
-    Pass("LoiteringScenario dwell/trajectory/radius/dedup/exit");
+    Pass("LoiteringScenario requires dwell time");
+    Pass("LoiteringScenario tracks trajectory duration");
+    Pass("LoiteringScenario enforces movement radius");
+    Pass("LoiteringScenario suppresses duplicate event");
+    Pass("LoiteringScenario clears state after exit");
 }
 
 void VerifyZoneOccupancyScenario() {
@@ -1432,7 +1527,11 @@ void VerifyZoneOccupancyScenario() {
     events = engine.Evaluate(MakeSceneContext(3000, {first_confirmed, wrong_zone}), &event_manager);
     Expect(events.empty(), "ZoneOccupancy must respect targetZoneIds");
 
-    Pass("ZoneOccupancyScenario occupancy/dwell/representative/dedup/zone-filter");
+    Pass("ZoneOccupancyScenario counts occupancy");
+    Pass("ZoneOccupancyScenario requires dwell time");
+    Pass("ZoneOccupancyScenario selects representative track");
+    Pass("ZoneOccupancyScenario suppresses duplicate event");
+    Pass("ZoneOccupancyScenario filters by zone");
 }
 
 void VerifyEventStorageArchiveCompaction() {
@@ -1590,7 +1689,11 @@ void VerifyEventStorageArchiveCompaction() {
     ec.clear();
     std::filesystem::remove(archive_path, ec);
 
-    Pass("EventStorage archive query/compaction");
+    Pass("EventStorage writes event record");
+    Pass("EventStorage queries event records");
+    Pass("EventStorage filters archive records");
+    Pass("EventStorage compacts archived records");
+    Pass("EventStorage preserves active record count");
 }
 
 void VerifyEventRecorderMediaHooks() {
@@ -1674,7 +1777,10 @@ void VerifyEventRecorderMediaHooks() {
     ec.clear();
     std::filesystem::remove_all(snapshot.clip_dir, ec);
 
-    Pass("Event recorder snapshot/clip media hooks");
+    Pass("Event recorder writes snapshot media");
+    Pass("Event recorder writes clip media");
+    Pass("Event recorder records snapshot evidence path");
+    Pass("Event recorder records clip evidence path");
 }
 
 void VerifyVaRuntimeMetadataBuilder() {
@@ -1800,7 +1906,11 @@ void VerifyVaRuntimeMetadataBuilder() {
     Expect(budget_frame.events.size() == 1,
            "runtime metadata builder must support event count budget before byte-size publishing limits");
 
-    Pass("VaRuntimeMetadata builder/schema/WebRTC compatibility");
+    Pass("VaRuntimeMetadata builder emits schema");
+    Pass("VaRuntimeMetadata builder emits frame identity");
+    Pass("VaRuntimeMetadata builder emits tracked objects");
+    Pass("VaRuntimeMetadata builder emits scenario states");
+    Pass("VaRuntimeMetadata builder preserves WebRTC compatibility");
 }
 
 void VerifyVaMetadataSubscriptionFilter() {
@@ -1923,7 +2033,10 @@ void VerifyVaMetadataSubscriptionFilter() {
                track_filtered_result.debug_state->lost_track_count == 1,
            "metadata trackId/label filter must narrow tracks case-insensitively");
 
-    Pass("VaMetadata subscription filters");
+    Pass("VaMetadata subscription filters by channel");
+    Pass("VaMetadata subscription filters by stream");
+    Pass("VaMetadata subscription filters by rule");
+    Pass("VaMetadata subscription filters by scenario");
 }
 
 void VerifyRuleTrackingPolicyProfileContract() {
@@ -1937,7 +2050,8 @@ void VerifyRuleTrackingPolicyProfileContract() {
                disabled_key.find("policyRule=") == std::string::npos,
            "tracker policy must remain outside externally visible profile key");
 
-    Pass("Rule-level tracking policy profile contract");
+    Pass("Rule-level tracking policy resolves profile tracker");
+    Pass("Rule-level tracking policy resolves profile Re-ID mode");
 }
 
 }  // namespace

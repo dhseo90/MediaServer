@@ -72,7 +72,8 @@ for case in "${cases[@]}"; do
   else
     "${SCRIPT_DIR}/replay_va_metadata.sh" "${args[@]}"
   fi
+  echo "[pass] VA metadata replay baseline: ${name}"
 done
 
-echo "[pass] VA metadata replay baselines: ${#cases[@]} cases"
+echo "[summary] VA metadata replay baselines cases=${#cases[@]}"
 echo "[info] outputs: ${OUT_DIR}"

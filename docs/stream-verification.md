@@ -44,8 +44,9 @@
 스크립트 테스트는 제품 내부 계약과 장시간 안정성을 확인하지만, 화면을 사람이 직접
 열고 조작했다는 증거가 아닙니다. UI 풀테스트는 실제 사용자 경험을 확인하지만,
 30분/120분 안정화나 media path 장시간 안정성을 통과시킨 증거가 아닙니다.
-보고서에는 두 영역을 별도 섹션으로 나누고, 실행하지 않은 영역은 `NOT RUN` 또는
-`미확인`으로 기록합니다.
+보고서에는 두 영역을 별도 섹션으로 나눕니다. 실행한 테스트 결과 행의 판정값은
+`PASS` 또는 `FAIL`만 쓰고, 실행하지 않은 영역은 기능 결과 행 밖의 `미실행`,
+`미확인`, `제외 기록`에만 남깁니다.
 
 문서/UI/Auth/권한/계정처럼 media pipeline 자체를 바꾸지 않은 변경에서는
 `./server.sh test`, `./server.sh test --basic`, `./server.sh test --full`,
@@ -134,9 +135,9 @@ GitHub Latest Release 확인은 publish 뒤 기본 실행으로 다시 닫습니
 
 `verify-predev` report에 `건너뜀`이 있으면 skip count와 step reason을 같이
 검토합니다. 사용자가 요청하지 않은 optional external TURN 같은 선택 gate만
-건너뛴 경우에는 predev 결과와 외부 TURN `NOT RUN`을 분리해 기록합니다.
-요청한 hard gate가 건너뛰어진 경우에는 release PASS가 아니라 HOLD 또는 NOT RUN으로
-남깁니다.
+건너뛴 경우에는 predev 결과와 외부 TURN `미실행` 상태를 기능 결과 행 밖에
+분리해 기록합니다. 요청한 hard gate가 건너뛰어진 경우에는 release PASS가 아니라
+해당 gate 기능 결과를 `FAIL`로 남기고 원인을 별도 기록합니다.
 
 Historical v1.x close-out 정보는 standalone verifier가 아니라 backlog archive로
 보존합니다. archive 정합성 확인은 현재 제품 regression 결과와 섞지 않습니다.
@@ -495,9 +496,18 @@ Auth 변경:
 
 위 세 명령은 임시 users file과 격리 포트에서 auth 서버를 띄워
 setup/login/session/user/route smoke를 자동으로 확인합니다.
-자동 auth smoke, 로컬 QA, 수동 smoke의 표준 테스트 계정 비밀번호는
-`qweasd0-`로 통일합니다.
-이 규칙은 검증 재현성을 위한 것이며, 제품 기본 admin 비밀번호가 아닙니다.
+자동 auth smoke, 로컬 QA, 수동 smoke의 계정 비밀번호는 테스트 실행자가
+아래 환경변수로 명시합니다. 값이 없으면 auth verifier는 서버를 띄우기 전에
+실패해야 하며, 문서나 스크립트에 고정 기본 비밀번호를 두지 않습니다.
+
+```bash
+export MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD='<operator-provided-current-password>'
+export MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD='<operator-provided-previous-password>'
+export MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD='<operator-provided-second-previous-password>'
+export MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE='<operator-provided-wrong-password-one>'
+export MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO='<operator-provided-wrong-password-two>'
+```
+
 수동으로 세부 상태를 확인할 때는 아래 curl 흐름을 사용합니다.
 
 ```bash
@@ -522,7 +532,8 @@ MEDIA_SERVER_AUTH_LOGIN_LOCKOUT_SECONDS=300 \
   ./server.sh foreground
 curl -fsS 'http://127.0.0.1:8080/login'
 curl -fsS -c /tmp/media-server.cookies \
-  -d 'username=operator1&password=qweasd0-' \
+  --data-urlencode 'username=operator1' \
+  --data-urlencode "password=${MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD}" \
   'http://127.0.0.1:8080/login'
 curl -fsS -b /tmp/media-server.cookies 'http://127.0.0.1:8080/auth/whoami'
 curl -fsS -b /tmp/media-server.cookies -X POST 'http://127.0.0.1:8080/logout'
@@ -1576,7 +1587,7 @@ Runtime Console 검증 정책:
 | 기본 test 포함 여부 | `./server.sh test`에는 포함하지 않음 |
 | 실행 성격 | 30분 이상 실행하는 선택 검증 |
 | 120분 실행 | release candidate 또는 고위험 RTSP/GStreamer/WebRTC/VA fanout 변경 gate |
-| 120분 미실행 기록 | 사용자 명시 요청 없음 또는 변경 범위가 runtime fanout/media path가 아니면 `NOT RUN` |
+| 120분 미실행 기록 | 사용자 명시 요청 없음 또는 변경 범위가 runtime fanout/media path가 아니면 기능 결과 행 밖에 `미실행` |
 | 대체 불가 | 30분 longrun, cycle 검증, sample fixture를 120분 PASS evidence로 쓰지 않음 |
 | report 보존 | RC artifact 또는 외부 archive 보존 위치와 retention days를 기록 |
 | trace env | 검증용 subprocess env에서 `MEDIA_SERVER_WEBRTC_TRACE=1` 사용 |

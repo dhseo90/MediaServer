@@ -101,7 +101,7 @@ async function runLifecycleSmoke() {
   const idle = await waitForLifecycle(item => item.sourceLifecycle.idle === true, "idle cleanup");
   assertZeroLifecycle(idle.sourceLifecycle);
   console.log("[pass] source-lifecycle cleanup idle");
-  console.log("[pass] ops-source-lifecycle");
+  console.log("[summary] ops-source-lifecycle complete");
 }
 
 async function runtimeStatus() {

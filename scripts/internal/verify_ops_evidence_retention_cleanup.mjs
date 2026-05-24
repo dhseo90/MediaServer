@@ -29,7 +29,7 @@ check("cleanup job script exposes evidence retention policy", () => {
   }
 });
 
-check("cleanup job dry-run and apply preserve fresh evidence", () => {
+check("cleanup job dry-run preserves fresh evidence", () => {
   const workDir = fs.mkdtempSync(path.join(os.tmpdir(), "media-server-evidence-cleanup-verify-"));
   const dryRunReport = path.join(workDir, "dry-run.json");
   execFileSync(process.execPath, [
@@ -45,7 +45,21 @@ check("cleanup job dry-run and apply preserve fresh evidence", () => {
   assert(dryRun.snapshotPlan.expired.length === 1, "dry-run must find one expired snapshot");
   assert(dryRun.clipPlan.expired.length === 1, "dry-run must find one expired clip");
   assert(fs.existsSync(path.join(workDir, ".media_server.va_snapshots/expired.ppm")), "dry-run deleted expired snapshot");
+  assert(fs.existsSync(path.join(workDir, ".media_server.va_snapshots/fresh.ppm")), "dry-run deleted fresh snapshot");
+  assert(fs.existsSync(path.join(workDir, ".media_server.va_clips/fresh.clip/manifest.json")), "dry-run deleted fresh clip");
+});
 
+check("cleanup job apply preserves fresh evidence", () => {
+  const workDir = fs.mkdtempSync(path.join(os.tmpdir(), "media-server-evidence-cleanup-verify-"));
+  const dryRunReport = path.join(workDir, "dry-run.json");
+  execFileSync(process.execPath, [
+    path.join(rootDir, "scripts/internal/run_ops_evidence_retention_cleanup.mjs"),
+    "--fixture",
+    "--fixture-root", workDir,
+    "--max-age-days", "1",
+    "--report-file", dryRunReport,
+    "--audit-file", path.join(workDir, "dry-run-audit.json"),
+  ], { cwd: rootDir, stdio: "pipe" });
   const applyReport = path.join(workDir, "apply.json");
   const auditFile = path.join(workDir, "apply-audit.json");
   execFileSync(process.execPath, [

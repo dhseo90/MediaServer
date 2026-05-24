@@ -449,9 +449,17 @@ if policy == "relay" and counts.get("host", 0) > 0:
     raise SystemExit("relay policy에서 host candidate가 수집되었습니다. 서버가 relay policy로 시작됐는지 확인하세요")
 PY
   then
-    log_pass "ICE candidate 수집/정책 확인"
+    log_pass "ICE candidate 수집 확인"
+    if [[ "${REQUIRE_RELAY_CANDIDATE}" == "1" ]]; then
+      log_pass "ICE relay candidate 확인"
+    fi
+    if [[ "${ICE_TRANSPORT_POLICY}" == "relay" ]]; then
+      log_pass "ICE relay policy host candidate 차단 확인"
+    else
+      log_pass "ICE transport policy 확인: ${ICE_TRANSPORT_POLICY}"
+    fi
   else
-    log_fail "ICE candidate 수집/정책 검증 실패"
+    log_fail "ICE candidate 검증 실패"
     print_turn_failure_hints
   fi
 fi

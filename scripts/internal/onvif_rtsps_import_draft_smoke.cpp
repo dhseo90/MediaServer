@@ -85,12 +85,16 @@ int main() {
            "preview contract must pin source registry no-mutation");
     Assert(Contains(result.body, "\"publishedViewMutation\":false"),
            "preview contract must pin published view no-mutation");
+    std::cout << "[pass] ONVIF RTSPS import draft returns no-mutation preview contract\n";
     Assert(Contains(result.body, "\"kind\":\"rtsp\""), "source draft kind must remain rtsp");
     Assert(Contains(result.body, "\"rtspUrl\":\"rtsps://192.0.2.35/live/secure-main\""),
            "source draft must preserve rtsps URL in rtspUrl");
+    std::cout << "[pass] ONVIF RTSPS import draft preserves RTSPS URL as downstream rtsp source\n";
     Assert(!Contains(result.body, "\"credentialRef\""), "draft response must not expose credentialRef");
+    std::cout << "[pass] ONVIF RTSPS import draft response omits credential reference\n";
     Assert(!Contains(result.body, "\"streamUri\""), "selectedProfile must not duplicate streamUri");
+    std::cout << "[pass] ONVIF RTSPS import draft response omits duplicate stream URI\n";
 
-    std::cout << "[pass] ONVIF RTSPS import draft smoke\n";
+    std::cout << "[summary] ONVIF RTSPS import draft smoke complete\n";
     return 0;
 }

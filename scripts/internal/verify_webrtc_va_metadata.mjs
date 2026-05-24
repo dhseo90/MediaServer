@@ -95,7 +95,15 @@ try {
   const result = await browser.evaluate(buildBrowserVerificationExpression(), timeoutMs + holdMs + 5000);
   validateResult(result);
   Object.assign(summary, result, { ok: true, pass: 8, fail: 0 });
-  logPass("WebRTC video track / ICE connected / DataChannel metadata sync 진단 확인");
+  logPass("WebRTC video track 수신 확인");
+  logPass("WebRTC ICE connected 확인");
+  logPass("WebRTC DataChannel open 확인");
+  logPass("WebRTC DataChannel label va-metadata 확인");
+  logPass("WebRTC metadata message 수신 확인");
+  logPass("WebRTC metadata schema 확인");
+  logPass("WebRTC metadata tracks array 확인");
+  logPass("WebRTC metadata events array 확인");
+  logPass("WebRTC metadata sync diagnostics 확인");
   console.log("[summary] pass=8 fail=0");
   process.exitCode = 0;
 } catch (error) {

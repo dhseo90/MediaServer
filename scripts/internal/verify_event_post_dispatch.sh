@@ -328,7 +328,9 @@ if errors:
 print("status=", status)
 print("payload_sample=", posts[0])
 PY
-  log_pass "POST payload schema, 실패 카운터, cooldown 검증"
+  log_pass "POST payload schema 검증"
+  log_pass "POST 실패 카운터 검증"
+  log_pass "POST cooldown 검증"
 }
 
 validate_queue_mode() {
@@ -388,7 +390,8 @@ if status.get("failedCount", 0) < 1 or status.get("sentCount", 0) < 1:
 print("recovery_status=", status)
 print("flaky_received=", len(flaky_hits))
 PY
-  log_pass "POST endpoint recovery 후 실패/성공 counter 검증"
+  log_pass "POST endpoint recovery 실패 counter 검증"
+  log_pass "POST endpoint recovery 성공 counter 검증"
 }
 
 validate_event_storage_recovery_policy() {
@@ -495,7 +498,9 @@ if status_payload.get("lastRecoveryStatus") != "recovered":
 print("event_storage_recovery_records=", records_payload)
 print("event_storage_recovery_status=", status_payload)
 PY
-  log_pass "EventStorage corrupt/partial JSON Lines recovery policy 검증"
+  log_pass "EventStorage corrupt JSON Lines skip 검증"
+  log_pass "EventStorage partial JSON Lines count 검증"
+  log_pass "EventStorage recovery status 검증"
 }
 
 write_summary() {

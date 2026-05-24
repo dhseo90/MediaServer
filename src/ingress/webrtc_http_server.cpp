@@ -7308,7 +7308,7 @@ bool DetachAnalysisTapAndReleaseRuntimes(core::SessionManager& session_manager, 
 analysis::EventRuleEvaluation EvaluateStoredEventRules(
     const analysis::AnalysisResult& result,
     const std::shared_ptr<analysis::EventRuleRuntime>& runtime) {
-    return analysis::ApplyEventRulesToResult(result, AnalysisRegistry().RuleDocuments(), runtime);
+    return analysis::ApplyEventRulesToResult(result, AnalysisRuleDocumentsSnapshot(), runtime);
 }
 
 std::string AnalysisEventJson(const analysis::AnalysisEvent& event) {

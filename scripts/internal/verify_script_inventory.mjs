@@ -119,7 +119,8 @@ check("project inventory maps verifier families without duplicating dispatch det
   for (const phrase of [
     "## Verifier Coverage Map",
     "verify-script-inventory",
-    "기준표 작성 완료, 실행 NOT RUN",
+    "기준표 작성 완료",
+    "실행 증거 아님",
     "coverage 대조 전에는 `테스트 있음`, `UI 있음`, `완료`라고 보고하지 않습니다.",
   ]) {
     assert(projectInventory.includes(phrase), `project inventory missing verifier coverage phrase: ${phrase}`);
@@ -146,6 +147,212 @@ check("test entry scripts are reachable from test_all", () => {
     }
   }
   assert(missing.length === 0, `test entry script(s) are not reachable from test_all:\n${missing.join("\n")}`);
+});
+
+check("auth verifier has no hardcoded test password defaults", () => {
+  const authWorkflow = readText(path.join(rootDir, "scripts/internal/verify_auth_workflow.sh"));
+  const streamVerification = readText(path.join(rootDir, "docs/stream-verification.md"));
+  const uiGuide = readText(path.join(rootDir, "docs/ui-guide.md"));
+  const agents = readText(path.join(rootDir, "AGENTS.md"));
+  for (const [label, text] of [
+    ["verify_auth_workflow.sh", authWorkflow],
+    ["docs/stream-verification.md", streamVerification],
+    ["docs/ui-guide.md", uiGuide],
+    ["AGENTS.md", agents],
+  ]) {
+    assert(!/qweasd0-|wrong-qweasd/i.test(text), `${label}: hardcoded auth verifier password remains`);
+  }
+  for (const envName of [
+    "MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD",
+    "MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD",
+    "MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD",
+    "MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE",
+    "MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO",
+  ]) {
+    assert(authWorkflow.includes(`require_auth_secret_env ${envName}`), `auth workflow does not require ${envName}`);
+    assert(streamVerification.includes(envName), `stream verification docs missing ${envName}`);
+    assert(agents.includes(envName), `AGENTS.md missing ${envName}`);
+  }
+  assert(authWorkflow.includes("Auth verifier passwords must be provided by the test operator"), "auth workflow missing explicit no-default failure message");
+});
+
+check("critical verifier pass output avoids grouped feature-result wording", () => {
+  const forbiddenSnippets = [
+    "adaptive input-size downshift/fallback 검증",
+    "SSE metadata schema/tracks/events/scenarios 확인",
+    "ICE candidate 수집/정책 확인",
+    "trackingClasses category/all/mixed/direct/alias 정책 확인",
+    "카테고리별 presence 이벤트 확인",
+    "Profile/Rule 카테고리 저장·복원 확인",
+    "ObjectTracker IoU/distance/direction/class association scoring",
+    "TrackStateManager, TrackHealth, Appearance extractor/fallback, cleanup limits",
+    "SceneContextBuilder zone/line/dwell/channel/vaRule scoping",
+    "EventManager lifecycle/cooldown/dedup/cleanup",
+    "ScenarioEngine and IntrusionDwellScenario phase/dedup/re-entry/cleanup",
+    "ReEntryScenario exit/re-entry/cooldown/window",
+    "WrongDirectionScenario allowed/raw direction/cooldown",
+    "IntrusionAfterLineCrossingScenario line/zone/dwell/dedup/window",
+    "LoiteringScenario dwell/trajectory/radius/dedup/exit",
+    "ZoneOccupancyScenario occupancy/dwell/representative/dedup/zone-filter",
+    "EventStorage archive query/compaction",
+    "Event recorder snapshot/clip media hooks",
+    "VaRuntimeMetadata builder/schema/WebRTC compatibility",
+    "Pass(\"VaMetadata subscription filters\")",
+    "POST payload schema, 실패 카운터, cooldown 검증",
+    "POST endpoint recovery 후 실패/성공 counter 검증",
+    "EventStorage corrupt/partial JSON Lines recovery policy 검증",
+    "line-crossing forward/reverse 분할",
+    "PASS/FAIL/NOT RUN/미확인",
+    "NO_EVIDENCE",
+    "browserUiTest: NOT RUN",
+    "eventOccurrenceReview: NOT RUN",
+    "[pass] ops-rules-roundtrip",
+    "[pass] ops-scenario-presets",
+    "[pass] scenario-preset-ui",
+    "[pass] ops-rule-relationships",
+    "[pass] ops-rules-native-smoke",
+    "[pass] auth-scope-picker",
+    "[pass] ops-event-records-scope",
+    "[pass] ops-events evidence controls rendered",
+    "[pass] lab event-storage evidence policy",
+    "[pass] lab event evidence zip bundle",
+    "[pass] lab event-records populated fixture",
+    "[pass] lab event-records evidence filter",
+    "[pass] ops events API includes populated record and evidence policy",
+    "[pass] ops-source-lifecycle",
+    "[pass] VA metadata replay baselines:",
+    "[pass] ops-api-contract: runtime/rules/events product endpoints available",
+    "[pass] client-api-views: sensitive source/debug fields omitted",
+    "[pass] WebRTC video track / ICE connected / DataChannel metadata sync 진단 확인",
+    "WebRTC metadata tracks/events arrays 확인",
+    "WebSocket handshake/open 확인",
+    "WebSocket unsubscribe/status control ack 확인",
+    "WebSocket reset control ack 및 기본값 복원 확인",
+    "[pass] tracker stability 반복 요약 생성",
+    "[pass] initial relationship graph:",
+    "[pass] with-fixture relationship graph:",
+    "[pass] negative route matrix HTTP status smoke",
+    "[pass] ONVIF probe error wording fixture matrix",
+    "[pass] ONVIF probe error wording redaction",
+    "[pass] ONVIF SOAP Fault/malformed fixture matrix",
+    "[pass] ONVIF SOAP Fault/malformed redaction",
+    "[pass] ONVIF SOAP fault/malformed scenario",
+    "[pass] ONVIF SOAP fault/malformed redaction scenario",
+    "[pass] ONVIF auth injection loopback smoke",
+    "[pass] ONVIF credential provider skeleton smoke",
+    "[pass] ONVIF SOAP parser service/profile/stream smoke",
+    "[pass] ONVIF RTSPS import draft smoke",
+    "[pass] ONVIF probe adapter action/sanitization smoke",
+    "[pass] ONVIF local simulator fixture smoke",
+    "[pass] ONVIF HTTP/HTTPS SOAP transport smoke",
+    "[pass] ONVIF HTTPS transport failure matrix",
+    "[pass] ops sources UI renders and copies ONVIF URLs",
+    "[pass] ops sources UI renders ONVIF channel copy controls",
+    "[pass] ops sources UI copies ONVIF source URL to clipboard",
+    "[pass] ops sources API preserved ONVIF source fields",
+    "[pass] ops views API preserved ONVIF PublishedView fields",
+    "[pass] ops rules UI renders and copies ONVIF URLs",
+    "[pass] ops rules UI renders ONVIF VA rule copy controls",
+    "[pass] ops rules UI copies ONVIF VA rule URL to clipboard",
+    "[pass] client API redacts ONVIF source locator",
+    "[pass] onvif-probe-draft response omits credential, endpoint, raw SOAP, and raw diagnostics",
+    "[pass] onvif-probe-draft rejects malformed and unsafe route payloads",
+    "[pass] onvif-import-draft response omits credential, endpoint, and raw diagnostics",
+    "[pass] onvif-import-draft rejects malformed and unsafe route payloads",
+    "[pass] ONVIF TLS fixture smoke coverage",
+    "[pass] ONVIF credential reference redaction coverage",
+    "[pass] onvif-probe-draft response contract",
+    "[pass] onvif-import-draft response contract",
+    "[pass] ONVIF field smoke redaction checklist content",
+    "[pass] ONVIF field smoke redaction forbidden literals absent",
+    "[pass] ONVIF field smoke sample bundle content",
+    "[pass] ONVIF field smoke sample bundle redaction",
+    "[pass] client view detail redacts RTSP locator and ONVIF details",
+    "[pass] ONVIF field smoke redaction checklist has required document sections",
+    "[pass] ONVIF field smoke redaction checklist defines shareable and forbidden artifact values",
+    "[pass] ONVIF field smoke redaction checklist defines operator and artifact checklist fields",
+    "[pass] ONVIF field smoke redaction checklist defines gate decision fields",
+    "[pass] ONVIF field smoke redaction checklist defines sanitized failure wording",
+    "[pass] ONVIF field smoke redaction checklist names required verification commands",
+    "[pass] ONVIF field smoke redaction checklist has at least 10 actionable items",
+    "[pass] ONVIF field smoke sample bundle manifest and summary schemas match",
+    "[pass] ONVIF field smoke sample bundle required wording terms are present",
+    "[pass] ONVIF field smoke sample bundle omits synthetic credential sentinel",
+    "[pass] ONVIF field smoke sample bundle omits documentation endpoint literals",
+    "[pass] ONVIF field smoke sample bundle omits RTSP locator literals",
+    "[pass] ONVIF field smoke sample bundle omits RTSPS locator literals",
+    "[pass] ONVIF field smoke sample bundle omits HTTP endpoint literals",
+    "[pass] ONVIF field smoke sample bundle omits HTTPS endpoint literals",
+    "[pass] ONVIF field smoke sample bundle omits auth header and cookie literals",
+    "[pass] ONVIF field smoke sample bundle omits raw SOAP and diagnostic JSON literals",
+    "[pass] browser ops-events populated screenshot:",
+    "[pass] browser ops-events controls width=",
+    "[pass] ONVIF TLS transport policy document",
+    "[pass] ONVIF TLS fixture harness design document",
+    "[pass] ONVIF TLS policy links support matrix entry",
+    "[pass] ONVIF credential reference policy document",
+    "[pass] ONVIF credential store integration design",
+    "[pass] ONVIF credential provider interface skeleton",
+    "[pass] ONVIF credential policy is linked from live support document",
+    "[pass] ONVIF auth design references auth injection loopback verifier",
+    "[pass] ONVIF auth design references in-memory fixture provider",
+    "[pass] ONVIF protocol matrix references auth loopback verifier",
+    "[pass] ONVIF draft API smoke forbids credentialRef in response",
+    "[pass] ONVIF draft API smoke forbids synthetic credential value in response",
+    "[pass] ONVIF field probe exposes credential reference boolean only",
+    "[pass] ONVIF persistent credential store policy decision",
+    "[pass] ONVIF credential provider status and auth scheme codes are stable",
+    "[pass] ONVIF RTSPS import draft response redacts credential reference and duplicate stream URI",
+    "[pass] ONVIF probe adapter performs GetServices before profile and stream URI actions",
+    "[pass] ONVIF probe adapter redacts credential reference and endpoint from failure summary",
+    "[pass] ONVIF HTTPS SOAP transport sends service request line and SOAPAction",
+    "[pass] ONVIF fixture contract requires credentialRef instead of plaintext secret",
+    "[pass] ONVIF SOAP parser extracts Media2 profile token/name/api",
+    "[pass] ONVIF SOAP parser extracts Media2 profile encoding/resolution/fps",
+    "[pass] ONVIF SOAP parser extracts Media profile resolution/fps",
+    "no TensorRT/OpenVINO references",
+    ": tables=",
+    "-detail-audit: detail=",
+    "forbidden=0, textLength=",
+    "accountItems=",
+    "brand=${",
+    "navWidth=",
+    "accountTop=",
+    "tiles=${",
+    "selected=${",
+    "active=${",
+    ", overflow=",
+    ": overflow=",
+    "hintHeight=",
+    "toolHeight=",
+    "[pass] ops users scope picker controls rendered",
+    "[pass] browser auth scope picker width=",
+    "[pass] release bundle dry-run:",
+    "[pass] release bundle candidates:",
+    "[pass] release bundle dry-run summary:",
+    "[pass] release bundle dry-run cleanup complete",
+    "[pass] UI visual artifact maintenance:",
+    "[pass] manual UI full-test seed applied to throwaway registry",
+    "[pass] manual UI full-test seed dry-run",
+  ];
+  const files = [
+    ...gitLsFiles(["scripts/internal"]).filter(fileExists),
+    ...gitLsFiles(["docs"]).filter(fileExists),
+    "AGENTS.md",
+  ].filter(file => !/\.(png|jpe?g|mp4|onnx|pyc)$/i.test(file));
+  const violations = [];
+  for (const file of files) {
+    if (file === "scripts/internal/verify_script_inventory.mjs") {
+      continue;
+    }
+    const text = readText(path.join(rootDir, file));
+    for (const snippet of forbiddenSnippets) {
+      if (text.includes(snippet)) {
+        violations.push(`${file}: ${snippet}`);
+      }
+    }
+  }
+  assert(violations.length === 0, `grouped feature-result wording remains:\n${violations.join("\n")}`);
 });
 
 check("user-facing JS option parsers reject unknown options", () => {

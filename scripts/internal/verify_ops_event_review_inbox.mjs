@@ -17,7 +17,7 @@ const eventStorage = readText("src/analysis/event_storage.cpp");
 const eventPost = readText("src/analysis/event_post_dispatcher.cpp");
 const serverSh = readText("server.sh");
 
-check("server keeps review state separate from EventRecord/Event POST payload", () => {
+check("server stores review state outside event payloads", () => {
   assertIncludes(server, ".media_server.event_reviews.jsonl", "review state storage");
   assertIncludes(server, "separateFromEventRecords", "review storage contract");
   assertIncludes(server, "separateFromEventPostPayload", "review storage contract");
@@ -29,7 +29,7 @@ check("server keeps review state separate from EventRecord/Event POST payload", 
   assertIncludes(server, "event-review-update", "review audit action");
 });
 
-check("event POST and EventRecord storage do not gain review fields", () => {
+check("event payload storage excludes review fields", () => {
   assert(!eventStorage.includes("reviewStatus"), "EventRecord storage must not include reviewStatus");
   assert(!eventStorage.includes("classification\""), "EventRecord storage must not include review classification");
   assert(!eventPost.includes("reviewStatus"), "Event POST dispatcher must not include reviewStatus");
@@ -49,7 +49,7 @@ check("ops events UI exposes review inbox controls", () => {
   assertIncludes(css, ".event-review-table", "review table CSS");
 });
 
-check("ops/client UI smoke tracks event review inbox", () => {
+check("ops client UI smoke tracks event review inbox", () => {
   assertIncludes(uiSmoke, 'data-testid="ops-event-review-inbox"', "ops events smoke marker");
   assertIncludes(uiSmoke, 'data-review-state="separate-from-event-post-payload"', "ops events smoke state marker");
   assertIncludes(uiSmoke, "/ops/api/events/reviews", "ops events smoke endpoint");

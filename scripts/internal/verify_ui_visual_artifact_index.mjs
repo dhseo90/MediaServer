@@ -78,7 +78,7 @@ const maintenanceScript = fs.readFileSync(path.join(rootDir, "scripts/internal/m
 const releaseBaselineTemplate = fs.readFileSync(path.join(rootDir, "docs/ui-visual-release-baseline-approval-template.md"), "utf8");
 
 const checksRun = [];
-check("manifest schema and screenshot rows", () => {
+check("visual artifact manifest schema is valid", () => {
   assert(parsed.schema === "media-server.ui-visual-artifact-index.v1", "manifest schema mismatch");
   assert(parsed.screenshotCount === 5, `expected 5 screenshots, got ${parsed.screenshotCount}`);
   assert(Array.isArray(parsed.screenshots), "manifest screenshots must be an array");
@@ -191,7 +191,7 @@ check("auth screenshot smoke writes indexed visual artifacts", () => {
   }
 });
 
-check("visual baseline diff tooling is wired and documented", () => {
+check("visual baseline diff tooling is wired", () => {
   for (const snippet of [
     "compare-ui-visual-baseline",
     "compare_ui_visual_baseline.mjs",
@@ -217,7 +217,7 @@ check("visual baseline diff tooling is wired and documented", () => {
   }
 });
 
-check("visual QA issue link helper is wired and documented", () => {
+check("visual QA issue link helper is wired", () => {
   for (const snippet of [
     "write-ui-visual-qa-issue-links",
     "write_ui_visual_qa_issue_links.mjs",
@@ -258,7 +258,7 @@ check("visual QA issue link helper is wired and documented", () => {
   }
 });
 
-check("visual baseline comment helper is wired and documented", () => {
+check("visual baseline comment helper is wired", () => {
   const inventory = fs.readFileSync(path.join(rootDir, "scripts/internal/verify_script_inventory.mjs"), "utf8");
   for (const snippet of [
     "write-ui-visual-baseline-comment",
@@ -314,7 +314,7 @@ check("visual baseline diff preflight artifact is wired", () => {
   }
 });
 
-check("visual artifact maintenance command is wired and documented", () => {
+check("visual artifact maintenance command is wired", () => {
   const inventory = fs.readFileSync(path.join(rootDir, "scripts/internal/verify_script_inventory.mjs"), "utf8");
   const preflight = fs.readFileSync(path.join(rootDir, ".github/workflows/preflight.yml"), "utf8");
   for (const snippet of [

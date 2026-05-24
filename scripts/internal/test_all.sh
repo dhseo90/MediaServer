@@ -45,6 +45,19 @@ FAIL_FAST=0
 REQUIRE_EXTERNAL_SOURCE=0
 FULL_TARGET_SECONDS="${MEDIA_SERVER_TEST_FULL_TARGET_SECONDS:-1800}"
 
+test_client_host() {
+  local value="$1"
+  if [[ -z "${value}" || "${value}" == "0.0.0.0" || "${value}" == "::" ]]; then
+    printf '127.0.0.1'
+  else
+    printf '%s' "${value}"
+  fi
+}
+
+TEST_HTTP_PORT="${MEDIA_SERVER_HTTP_LISTEN_PORT:-8080}"
+TEST_HTTP_HOST="$(test_client_host "${MEDIA_SERVER_TEST_HTTP_HOST:-${MEDIA_SERVER_VERIFY_HOST:-${MEDIA_SERVER_HTTP_LISTEN_ADDRESS:-127.0.0.1}}}")"
+TEST_HTTP_BASE="${MEDIA_SERVER_TEST_HTTP_BASE:-http://${TEST_HTTP_HOST}:${TEST_HTTP_PORT}}"
+
 usage() {
   cat <<'EOF_USAGE'
 MediaServer 통합 테스트
@@ -581,7 +594,7 @@ else
     "va-overlay" \
     "YOLO/VA overlay 검증" \
     "VA overlay 검증 실패입니다. ONNX Runtime, YOLO 모델/라벨, detector 성능, RTSP overlay를 확인하세요." \
-    "./server.sh verify-va" || true
+    "MEDIA_SERVER_VERIFY_VA_HTTP_BASE='${TEST_HTTP_BASE}' ./server.sh verify-va" || true
 fi
 
 if [[ "${INCLUDE_EVENT_POST}" == "1" ]]; then
@@ -592,12 +605,12 @@ if [[ "${INCLUDE_EVENT_POST}" == "1" ]]; then
       "event-post-schema" \
       "선택 검증: event POST enabled schema smoke" \
       "event POST enabled schema 검증 실패입니다. 서버가 MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1로 실행됐는지와 POST worker counter를 확인하세요." \
-      "./server.sh verify-event-post --mode schema" || true
+      "./server.sh verify-event-post --mode schema --http-base '${TEST_HTTP_BASE}'" || true
     run_step \
       "event-post-recovery" \
       "선택 검증: event POST enabled recovery smoke" \
       "event POST enabled recovery 검증 실패입니다. 실패 endpoint 복구 counter와 POST worker 상태를 확인하세요." \
-      "./server.sh verify-event-post --mode recovery" || true
+      "./server.sh verify-event-post --mode recovery --http-base '${TEST_HTTP_BASE}'" || true
   fi
 else
   skip_step "event POST 선택 검증" "event POST worker smoke는 full/predev 기준입니다. 장기 반복은 전용 longrun 명령으로 분리합니다."
@@ -613,7 +626,7 @@ if [[ "${INCLUDE_REDACTION}" == "1" ]]; then
       "redaction" \
       "선택 검증: 사람 객체 자동 모자이크 image/live" \
       "redaction 검증 실패입니다. 정적 이미지 pixel diff, RTSP overlay query, VA 제어를 확인하세요." \
-      "./server.sh verify-redaction --duration 10" || true
+      "MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE='${TEST_HTTP_BASE}' ./server.sh verify-redaction --duration 10" || true
   fi
 else
   skip_step "사람 객체 자동 모자이크 선택 검증" "redaction 승격 검증은 full/predev 또는 --include-redaction 기준입니다."
@@ -627,7 +640,7 @@ if [[ "${INCLUDE_WEBRTC_ICE}" == "1" ]]; then
       "webrtc-ice" \
       "선택 검증: WebRTC STUN/TURN/ICE policy" \
       "WebRTC ICE 검증 실패입니다. STUN/TURN URI, relay policy, TURN 계정, candidate 수집 상태를 확인하세요." \
-      "./server.sh verify-webrtc-ice" || true
+      "MEDIA_SERVER_VERIFY_WEBRTC_ICE_HTTP_BASE='${TEST_HTTP_BASE}' ./server.sh verify-webrtc-ice" || true
   fi
 else
   skip_step "WebRTC ICE 선택 검증" "실제 TURN/auth/ICE policy 검증은 환경 의존 항목이라 기본 테스트에서 제외합니다. 필요하면 --include-webrtc-ice를 사용하세요."
@@ -641,7 +654,7 @@ if [[ "${INCLUDE_RULES}" == "1" ]]; then
       "rules-registry" \
       "선택 검증: profile/rule registry API" \
       "profile/rule registry API 검증 실패입니다. /lab/analysis/profiles, /lab/analysis/rules 응답과 registry 파일 권한을 확인하세요." \
-      "bash scripts/internal/test_rule_registry.sh" || true
+      "MEDIA_SERVER_TEST_HTTP_BASE='${TEST_HTTP_BASE}' bash scripts/internal/test_rule_registry.sh" || true
   fi
 else
   skip_step "profile/rule registry 선택 검증" "아직 안정 기능으로 승격하지 않아 기본 테스트에서 제외합니다. 필요하면 --include-rules를 사용하세요."
@@ -655,7 +668,7 @@ if [[ "${INCLUDE_RULE_UI}" == "1" ]]; then
       "rule-ui-smoke" \
       "선택 검증: Rule/Profile 카테고리 UI" \
       "Rule/Profile UI 검증 실패입니다. /ops/rules DOM, 탭 이동, 카테고리 payload를 확인하세요." \
-      "./server.sh verify-rule-ui" || true
+      "./server.sh verify-rule-ui --http-base '${TEST_HTTP_BASE}'" || true
   fi
 else
   skip_step "Rule/Profile UI 선택 검증" "브라우저 자동화가 필요한 항목이라 기본 테스트에서 제외합니다. 필요하면 --include-rule-ui를 사용하세요."
@@ -700,7 +713,7 @@ if [[ "${INCLUDE_VA_EVENTS}" == "1" ]]; then
       "va-tracking-events" \
       "선택 검증: VA tracking 이벤트" \
       "VA tracking 이벤트 검증 실패입니다. 테스트 영상, YOLO 검출, trackId 유지, event rule 영역/라인을 확인하세요." \
-      "./server.sh verify-va-events" || true
+      "MEDIA_SERVER_VERIFY_VA_HTTP_BASE='${TEST_HTTP_BASE}' ./server.sh verify-va-events" || true
   fi
 else
   skip_step "VA tracking 이벤트 선택 검증" "실제 이동 영상 기반 검증은 아직 기본 기준이 아닙니다. 필요하면 --include-va-events를 사용하세요."
@@ -716,7 +729,7 @@ if [[ "${INCLUDE_IMAGE_ANALYSIS}" == "1" ]]; then
       "image-analysis" \
       "선택 검증: 정적 이미지 분석 API + tracking category" \
       "정적 이미지 분석 API 검증 실패입니다. 이미지 decode, ONNX Runtime, YOLO 모델/라벨, overlay JPEG 인코딩, trackingClasses category/all 정책을 확인하세요." \
-      "./server.sh verify-image-analysis" || true
+      "MEDIA_SERVER_VERIFY_IMAGE_HTTP_BASE='${TEST_HTTP_BASE}' ./server.sh verify-image-analysis" || true
   fi
 else
   skip_step "정적 이미지 분석 선택 검증" "개발용 endpoint라 기본 테스트에서 제외합니다. 필요하면 --include-image-analysis를 사용하세요."

@@ -10,17 +10,18 @@ source "${SCRIPT_DIR}/numeric_id_helpers.sh"
 media_server_apply_homebrew_gst_env
 
 ENV_FILE="${SCRIPTS_DIR}/.media_server.env"
-if [[ -f "${ENV_FILE}" ]]; then
+if [[ -f "${ENV_FILE}" && "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" != "1" ]]; then
   # shellcheck disable=SC1090
   set -a
   source "${ENV_FILE}"
   set +a
+elif [[ "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" == "1" ]]; then
+  echo "[env] skipped local override: ${ENV_FILE}"
 fi
 
 STD_AFX="${ROOT_DIR}/include/stdafx.h"
 PASS_COUNT=0
 FAIL_COUNT=0
-SKIP_COUNT=0
 TAP_ID=""
 RULE_IDS=()
 LONG_MODE=0
@@ -37,11 +38,6 @@ log_pass() {
 log_fail() {
   echo "[fail] $*"
   FAIL_COUNT=$((FAIL_COUNT + 1))
-}
-
-log_skip() {
-  echo "[skip] $*"
-  SKIP_COUNT=$((SKIP_COUNT + 1))
 }
 
 require_cmd() {
@@ -64,6 +60,7 @@ Options:
   --poll-count <count>   polling 횟수. 기본 180
   --interval <seconds>   polling 간격. 기본 0.2
   --file <token>         video root 기준 이동 테스트 파일 token
+  --cookie-file <path>   auth-on 서버 검증용 curl cookie jar
   -h, --help             도움말 출력
 
 환경 변수:
@@ -71,6 +68,7 @@ Options:
   MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S
   MEDIA_SERVER_VERIFY_VA_EVENTS_POLL_COUNT
   MEDIA_SERVER_VERIFY_VA_EVENTS_POLL_INTERVAL_S
+  MEDIA_SERVER_VERIFY_VA_COOKIE_FILE
 EOF_USAGE
 }
 
@@ -108,11 +106,11 @@ PY
 cleanup_runtime_documents() {
   # 파일은 삭제하지 않는다. 테스트 중 서버 registry에 만든 runtime 문서/tap만 API로 정리한다.
   if [[ -n "${TAP_ID}" ]]; then
-    curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/taps/${TAP_ID}" >/dev/null 2>&1 || true
+    curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} -X DELETE "${HTTP_BASE}/lab/analysis/taps/${TAP_ID}" >/dev/null 2>&1 || true
   fi
   for rule_id in "${RULE_IDS[@]:-}"; do
     [[ -n "${rule_id}" ]] || continue
-    curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/rules/${rule_id}" >/dev/null 2>&1 || true
+    curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} -X DELETE "${HTTP_BASE}/lab/analysis/rules/${rule_id}" >/dev/null 2>&1 || true
   done
 }
 trap cleanup_runtime_documents EXIT
@@ -125,6 +123,7 @@ HTTP_ADDRESS="${MEDIA_SERVER_HTTP_LISTEN_ADDRESS:-$(media_server_read_const_char
 HTTP_HOST="$(client_host "${MEDIA_SERVER_VERIFY_VA_HTTP_HOST:-${MEDIA_SERVER_VERIFY_HOST:-${HTTP_ADDRESS}}}")"
 HTTP_BASE="${MEDIA_SERVER_VERIFY_VA_HTTP_BASE:-http://${HTTP_HOST}:${HTTP_PORT}}"
 FILE_TOKEN="${MEDIA_SERVER_VERIFY_VA_EVENTS_FILE:-imports/va_tracking_event_1280x720_30fps_h264.mp4}"
+COOKIE_FILE="${MEDIA_SERVER_VERIFY_VA_COOKIE_FILE:-}"
 FILE_ROOT="${MEDIA_SERVER_FILE_ROOT:-$(media_server_read_const_charp "${STD_AFX}" "kFileRootPath" || true)}"
 FILE_ROOT="$(media_server_resolve_project_path "${ROOT_DIR}" "${FILE_ROOT:-video}")"
 LOCAL_FILE="${FILE_ROOT}/${FILE_TOKEN}"
@@ -169,6 +168,10 @@ while [[ $# -gt 0 ]]; do
       FILE_TOKEN="$2"
       shift
       ;;
+    --cookie-file)
+      COOKIE_FILE="$2"
+      shift
+      ;;
     -h|--help)
       usage
       exit 0
@@ -202,6 +205,14 @@ PY
 )"
 fi
 LOCAL_FILE="${FILE_ROOT}/${FILE_TOKEN}"
+CURL_AUTH_ARGS=()
+if [[ -n "${COOKIE_FILE}" ]]; then
+  if [[ ! -f "${COOKIE_FILE}" ]]; then
+    log_fail "cookie file이 없습니다: ${COOKIE_FILE}"
+    exit 1
+  fi
+  CURL_AUTH_ARGS=(-b "${COOKIE_FILE}")
+fi
 
 log_info "http_base=${HTTP_BASE}"
 log_info "file=${FILE_TOKEN}"
@@ -214,7 +225,7 @@ if [[ ! -f "${LOCAL_FILE}" ]]; then
   exit 1
 fi
 
-if ! curl -fsS --max-time 3 "${HTTP_BASE}/health" >/dev/null; then
+if ! curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} --max-time 3 "${HTTP_BASE}/health" >/dev/null; then
   log_fail "HTTP health check 실패: ${HTTP_BASE}/health"
   exit 1
 fi
@@ -232,7 +243,7 @@ create_rule() {
   RULE_IDS+=("${rule_id}")
   printf '%s\t%s\n' "${alias}" "${rule_id}" >> "${RULE_MAP_FILE}"
   printf '%s' "${body}" > "/tmp/media_server_${RUN_ID}_${rule_id}.json"
-  curl -fsS -X PUT "${HTTP_BASE}/lab/analysis/rules/${rule_id}" \
+  curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} -X PUT "${HTTP_BASE}/lab/analysis/rules/${rule_id}" \
     -H 'Content-Type: application/json' \
     --data-binary "@/tmp/media_server_${RUN_ID}_${rule_id}.json" >/dev/null
   log_pass "rule 저장: ${rule_id}"
@@ -289,7 +300,7 @@ create_rule "${exit_rule_id}" \
   "exit-center"
 
 ENCODED_FILE="$(urlencode_file_token "${FILE_TOKEN}")"
-TAP_RESPONSE="$(curl -fsS -X POST "${HTTP_BASE}/lab/analysis/taps?file=${ENCODED_FILE}&va=1&fps=8&maxQueue=1&trackIds=1&trackTrails=1")"
+TAP_RESPONSE="$(curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} -X POST "${HTTP_BASE}/lab/analysis/taps?file=${ENCODED_FILE}&va=1&fps=8&maxQueue=1&trackIds=1&trackTrails=1")"
 TAP_ID="$(python3 -c 'import json,sys; print(json.load(sys.stdin).get("tapId",""))' <<<"${TAP_RESPONSE}")"
 if [[ -z "${TAP_ID}" ]]; then
   log_fail "analysis tap 생성 실패"
@@ -301,12 +312,12 @@ log_pass "analysis tap 생성: ${TAP_ID}"
 : > "${EVENTS_FILE}"
 for _ in $(seq 1 "${POLL_COUNT}"); do
   sleep "${POLL_INTERVAL_S}"
-  curl -fsS "${HTTP_BASE}/lab/analysis/taps/${TAP_ID}/events" >> "${EVENTS_FILE}"
+  curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} "${HTTP_BASE}/lab/analysis/taps/${TAP_ID}/events" >> "${EVENTS_FILE}"
   printf '\n' >> "${EVENTS_FILE}"
 done
-curl -fsS "${HTTP_BASE}/lab/analysis/taps/${TAP_ID}" > "${SNAPSHOT_FILE}"
-curl -fsS "${HTTP_BASE}/lab/analysis/taps" > "${TAPS_FILE}"
-curl -fsS "${HTTP_BASE}/lab/analysis/taps/${TAP_ID}/overlay.jpg?quality=88&thickness=4&drawLabels=1&labelLang=ko&trackIds=1&trackTrails=1" \
+curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} "${HTTP_BASE}/lab/analysis/taps/${TAP_ID}" > "${SNAPSHOT_FILE}"
+curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} "${HTTP_BASE}/lab/analysis/taps" > "${TAPS_FILE}"
+curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} "${HTTP_BASE}/lab/analysis/taps/${TAP_ID}/overlay.jpg?quality=88&thickness=4&drawLabels=1&labelLang=ko&trackIds=1&trackTrails=1" \
   -o "${OVERLAY_FILE}"
 
 python3 - \
@@ -438,6 +449,12 @@ for side in ("left", "right"):
     forward_count = rule_count(f"line-{side}-forward")
     reverse_count = rule_count(f"line-{side}-reverse")
     directed_line_total += forward_count + reverse_count
+    if any_count <= 0:
+        errors.append(f"line-{side} any 이벤트가 없습니다")
+    if forward_count <= 0:
+        errors.append(f"line-{side} forward 이벤트가 없습니다")
+    if reverse_count <= 0:
+        errors.append(f"line-{side} reverse 이벤트가 없습니다")
     if any_count > 0 and forward_count + reverse_count != any_count:
         errors.append(
             f"line-{side} direction 분할 불일치: any={any_count}, "
@@ -473,10 +490,24 @@ if errors:
         print("[fail]", error)
     raise SystemExit(1)
 PY
-log_pass "presence/enter/exit/line-crossing 이벤트 검증"
-log_pass "trackId 기반 이벤트 및 active tap 목록 검증"
-log_pass "다중 카테고리 presence 이벤트 검증"
-log_pass "이벤트 blink highlight 색상/시간 검증"
+log_pass "presence 이벤트 발생"
+log_pass "presence minDuration 이벤트 발생"
+log_pass "multi-category presence 이벤트 발생"
+log_pass "enter 이벤트 발생"
+log_pass "exit 이벤트 발생"
+log_pass "line-left any 이벤트 발생"
+log_pass "line-left forward 이벤트 발생"
+log_pass "line-left reverse 이벤트 발생"
+log_pass "line-right any 이벤트 발생"
+log_pass "line-right forward 이벤트 발생"
+log_pass "line-right reverse 이벤트 발생"
+log_pass "enter-center rule 이벤트 발생"
+log_pass "exit-center rule 이벤트 발생"
+log_pass "trackId 기반 이벤트 검증"
+log_pass "active tap 목록 검증"
+log_pass "snapshot trackCount 검증"
+log_pass "이벤트 blink highlight 색상 검증"
+log_pass "이벤트 blink highlight 시간 검증"
 log_info "overlay=${OVERLAY_FILE}"
 log_info "events_log=${EVENTS_FILE}"
 
@@ -484,7 +515,6 @@ echo
 echo "== VA tracking event 검증 요약 =="
 echo "- 통과: ${PASS_COUNT}"
 echo "- 실패: ${FAIL_COUNT}"
-echo "- 건너뜀: ${SKIP_COUNT}"
 if [[ ${FAIL_COUNT} -gt 0 ]]; then
   exit 1
 fi

@@ -48,8 +48,7 @@ compileSmoke();
 const actual = runSmoke();
 validateActual(actual, fixture);
 
-console.log("[pass] ONVIF SOAP Fault/malformed fixture matrix");
-console.log("[pass] ONVIF SOAP Fault/malformed redaction");
+console.log("[summary] ONVIF SOAP Fault/malformed matrix complete");
 console.log("");
 console.log("== ONVIF SOAP Fault/malformed matrix summary ==");
 console.log(`- fixture: ${path.relative(rootDir, fixturePath)}`);
@@ -134,6 +133,8 @@ function validateActual(actual, matrix) {
     for (const term of [...defaultForbiddenTerms, ...expected.forbiddenTerms]) {
       assert(!result.error.includes(term), `${scenario.id}: error leaked forbidden term ${term}`);
     }
+    console.log(`[pass] ONVIF SOAP negative scenario ${scenario.id}`);
+    console.log(`[pass] ONVIF SOAP negative redaction scenario ${scenario.id}`);
   }
 }
 

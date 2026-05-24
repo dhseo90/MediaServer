@@ -59,7 +59,7 @@ check("release policy fixes longrun report retention locations", () => {
   for (const snippet of [
     "30분 soak와 120분 longrun은 서로 대체하지 않습니다.",
     "장시간/외부 gate",
-    "PASS/FAIL/NOT RUN/미확인",
+    "실행한 테스트 행은 `PASS` 또는 `FAIL`; 제외/미실행/미확인은 별도 기록",
   ]) {
     assert(evidenceIndex.includes(snippet), `docs/release-evidence-index.md missing retention snippet: ${snippet}`);
   }
@@ -121,7 +121,7 @@ check("GitHub Actions workflow uploads RC gate artifacts", () => {
   }
 });
 
-check("release checklist generator writes Markdown and HTML", () => {
+check("release checklist generator writes Markdown output", () => {
   const workDir = fs.mkdtempSync(path.join(os.tmpdir(), "media-server-rc-checklist-"));
   const predevSummary = path.join(workDir, "predev-summary.json");
   const runtimeSummary = path.join(workDir, "runtime-summary.json");
@@ -183,6 +183,59 @@ check("release checklist generator writes Markdown and HTML", () => {
   assert(markdown.includes("runner: self-hosted-macos-va"), "release checklist missing runner label");
   assert(markdown.includes("assetStatus: PASS"), "release checklist missing asset status");
   assert(markdown.includes("https://github.com/example/mediaServer/actions/runs/12345"), "release checklist missing CI run URL");
+});
+
+check("release checklist generator writes HTML output", () => {
+  const workDir = fs.mkdtempSync(path.join(os.tmpdir(), "media-server-rc-checklist-"));
+  const predevSummary = path.join(workDir, "predev-summary.json");
+  const runtimeSummary = path.join(workDir, "runtime-summary.json");
+  const predevReport = path.join(workDir, "predev-report.md");
+  const runtimeReport = path.join(workDir, "runtime-report.md");
+  const assetManifest = path.join(workDir, "asset-manifest.json");
+  const historyDir = path.join(workDir, "history");
+  const output = path.join(workDir, "release-checklist.md");
+  const htmlOutput = path.join(workDir, "release-checklist.html");
+  fs.writeFileSync(predevSummary, JSON.stringify({ status: "pass", passCount: 69, failCount: 0 }), "utf8");
+  fs.writeFileSync(runtimeSummary, JSON.stringify({ ok: true, passCount: 12, failCount: 0 }), "utf8");
+  fs.writeFileSync(predevReport, "# predev\n", "utf8");
+  fs.writeFileSync(runtimeReport, "# runtime\n", "utf8");
+  fs.writeFileSync(assetManifest, JSON.stringify({
+    schema: "media-server.rc-gate-assets.v1",
+    runnerLabel: "self-hosted-macos-va",
+    artifactRetentionDays: "45",
+    samples: [{ path: "video/sample_h264.mp4", status: "ok" }],
+    model: { path: "models/yolo11n.onnx", status: "ok" },
+    labels: { path: "models/coco.names", status: "ok" },
+  }), "utf8");
+  execFileSync(process.execPath, [
+    path.join(rootDir, "scripts/internal/write_rc_release_checklist.mjs"),
+    "--predev-summary", predevSummary,
+    "--predev-report", predevReport,
+    "--runtime-summary", runtimeSummary,
+    "--runtime-report", runtimeReport,
+    "--output", output,
+    "--html-output", htmlOutput,
+    "--artifact-name", "media-server-rc-gate",
+    "--asset-manifest", assetManifest,
+    "--runner-label", "self-hosted-macos-va",
+    "--artifact-retention-days", "45",
+    "--history-dir", historyDir,
+  ], {
+    cwd: rootDir,
+    stdio: "pipe",
+    env: {
+      ...process.env,
+      GITHUB_SERVER_URL: "https://github.com",
+      GITHUB_REPOSITORY: "example/mediaServer",
+      GITHUB_RUN_ID: "12345",
+      GITHUB_REF_NAME: "main",
+      GITHUB_SHA: "abcdef1234567890",
+    },
+  });
+  const html = fs.readFileSync(htmlOutput, "utf8");
+  const historyJson = fs.readFileSync(path.join(historyDir, "index.json"), "utf8");
+  const historyMarkdown = fs.readFileSync(path.join(historyDir, "index.md"), "utf8");
+  const historyHtml = fs.readFileSync(path.join(historyDir, "index.html"), "utf8");
   assert(html.includes("RC Release Checklist"), "release checklist HTML missing title");
   assert(historyJson.includes("media-server.rc-soak-history.v1"), "history index JSON missing schema");
   assert(historyMarkdown.includes("# RC Soak Report History"), "history index Markdown missing title");
@@ -191,7 +244,7 @@ check("release checklist generator writes Markdown and HTML", () => {
   assert(historyHtml.includes("RC Soak Report History"), "history index HTML missing title");
 });
 
-check("external RC artifact archive writes checksums and index", () => {
+check("external RC artifact archive writes checksums", () => {
   const workDir = fs.mkdtempSync(path.join(os.tmpdir(), "media-server-rc-external-"));
   const sourceDir = path.join(workDir, "source");
   const destinationDir = path.join(workDir, "external");
@@ -213,6 +266,24 @@ check("external RC artifact archive writes checksums and index", () => {
   assert(manifest.schema === "media-server.rc-external-artifact.v1", "external artifact manifest schema mismatch");
   assert(manifest.files.some(file => file.path === "rc-release-checklist.md"), "manifest missing checklist");
   assert(fs.readFileSync(checksumsPath, "utf8").includes("rc-release-checklist.md"), "SHA256SUMS missing checklist");
+});
+
+check("external RC artifact archive writes index", () => {
+  const workDir = fs.mkdtempSync(path.join(os.tmpdir(), "media-server-rc-external-"));
+  const sourceDir = path.join(workDir, "source");
+  const destinationDir = path.join(workDir, "external");
+  fs.mkdirSync(path.join(sourceDir, "history"), { recursive: true });
+  fs.writeFileSync(path.join(sourceDir, "rc-release-checklist.md"), "# checklist\n", "utf8");
+  fs.writeFileSync(path.join(sourceDir, "history", "index.md"), "# history\n", "utf8");
+  execFileSync(process.execPath, [
+    path.join(rootDir, "scripts/internal/archive_rc_gate_artifact.mjs"),
+    "--source-dir", sourceDir,
+    "--destination-dir", destinationDir,
+    "--run-id", "12345",
+    "--retention-days", "30",
+  ], { cwd: rootDir, stdio: "pipe" });
+  const indexJsonPath = path.join(destinationDir, "index.json");
+  const indexMdPath = path.join(destinationDir, "index.md");
   assert(fs.readFileSync(indexJsonPath, "utf8").includes("media-server.rc-external-artifact-index.v1"), "external artifact index missing schema");
   assert(fs.readFileSync(indexMdPath, "utf8").includes("RC External Artifact Index"), "external artifact index markdown missing title");
 });

@@ -45,12 +45,20 @@ check("v1.8.0 roadmap keeps feature candidates out of hardening scope", () => {
   }
 });
 
-check("decision statuses and approval fields are explicit", () => {
+check("decision statuses are explicit", () => {
   const backlog = readText("docs/development-backlog.md");
   for (const snippet of [
     "`candidate-only`",
     "`approved-next-roadmap`",
     "`deferred-non-scope`",
+  ]) {
+    assert(backlog.includes(snippet), `development backlog missing decision status snippet: ${snippet}`);
+  }
+});
+
+check("approval fields are explicit", () => {
+  const backlog = readText("docs/development-backlog.md");
+  for (const snippet of [
     "owner approval",
     "not approved",
     "contract impact",

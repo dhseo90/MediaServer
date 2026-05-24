@@ -39,7 +39,7 @@ check("fixture schema is pinned for v1.8.0 probe contract", () => {
   assert(String(fixture.description || "").includes("not a product API contract"), "description must avoid product API contract wording");
 });
 
-check("probe summary uses documentation endpoint and excludes raw SOAP", () => {
+check("probe summary endpoint policy is documented", () => {
   const probe = objectAt(fixture, "probe");
   assert(probe.mode === "manual-endpoint", "probe.mode must be manual-endpoint");
   assert(hasHttpUrl(probe.endpoint), "probe.endpoint must be http(s)");
@@ -59,11 +59,11 @@ check("credential policy keeps plaintext secrets out of the probe fixture", () =
   assert(secretFields.length === 0, `disallowed secret fields found: ${secretFields.join(", ")}`);
 });
 
-check("preview contract is explicit before source/view storage", () => {
+check("preview contract is explicit before source view storage", () => {
   assertPreviewContract(objectAt(fixture, "previewContract"));
 });
 
-check("Device, Media, and Media2 services are present without recording/replay enablement", () => {
+check("required live ONVIF services are present", () => {
   const services = arrayAt(fixture, "services");
   assert(serviceAvailable(services, "Device"), "Device service must be available");
   assert(serviceAvailable(services, "Media"), "Media service must be available");
@@ -72,7 +72,7 @@ check("Device, Media, and Media2 services are present without recording/replay e
   assert(serviceAvailable(services, "Replay") === false, "Replay service must remain unavailable");
 });
 
-check("device identity remains synthetic and live-only profile families are declared", () => {
+check("device identity remains synthetic", () => {
   const device = objectAt(fixture, "device");
   for (const field of ["manufacturer", "model", "firmwareVersion", "serialNumber"]) {
     assert(nonEmptyString(device[field]), `device.${field} is required`);
@@ -83,7 +83,7 @@ check("device identity remains synthetic and live-only profile families are decl
   assert(!profilesSupported.includes("G"), "Profile G must not be listed as supported import target");
 });
 
-check("selected Media/Media2 profile is live RTSP/RTSPS and points at documentation address space", () => {
+check("selected ONVIF profile is live documentation stream", () => {
   const profiles = arrayAt(fixture, "mediaProfiles");
   assert(profiles.length > 0, "mediaProfiles must not be empty");
   assert(profiles.filter(profile => profile.selected === true).length === 1, "exactly one profile should be selected");
@@ -96,7 +96,7 @@ check("selected Media/Media2 profile is live RTSP/RTSPS and points at documentat
   }
 });
 
-check("draft decision maps selected profile to existing source/view payloads only", () => {
+check("draft decision maps selected profile to existing payloads only", () => {
   const decision = objectAt(fixture, "draftDecision");
   const selected = selectedProfile();
   assert(decision.selectedProfileToken === selected.token, "selectedProfileToken mismatch");
@@ -137,7 +137,7 @@ check("draft decision maps selected profile to existing source/view payloads onl
   ], "expectedPublishedViewDraft");
 });
 
-check("origin metadata remains proposed diagnostic context outside source/view payloads", () => {
+check("origin metadata remains diagnostic context only", () => {
   const decision = objectAt(fixture, "draftDecision");
   const origin = objectAt(decision, "proposedOriginMetadata");
   const selected = selectedProfile();
@@ -150,7 +150,7 @@ check("origin metadata remains proposed diagnostic context outside source/view p
   assert(!Object.hasOwn(decision.expectedPublishedViewDraft, "origin"), "view draft must not include origin metadata");
 });
 
-check("raw SOAP, recording, replay, and Profile G remain outside the probe contract", () => {
+check("probe contract excludes non live ONVIF scope", () => {
   const nonGoals = arrayAt(fixture, "nonGoals");
   for (const required of [
     "ONVIF Profile G recording/replay",
@@ -166,7 +166,7 @@ check("raw SOAP, recording, replay, and Profile G remain outside the probe contr
   }
 });
 
-check("Media/Media2 profile selection policy is documented", () => {
+check("ONVIF media profile selection policy is documented", () => {
   for (const term of [
     "## Media/Media2 Profile Selection Policy",
     "Media2.GetProfiles",

@@ -69,7 +69,7 @@ check("no-device document defines field-device exclusion boundary", () => {
   assertContains(noDeviceDoc, "SourceRegistry/PublishedView", "missing draft contract scope");
 });
 
-check("no-device command list keeps endpoint-free and sanitized-failure probes", () => {
+check("no-device command list keeps endpoint-free probes", () => {
   assertContains(noDeviceDoc, "./server.sh verify-onvif-no-device-suite", "missing no-device suite command");
   assertContains(noDeviceDoc, "verify-onvif-no-device-suite --json-output", "missing no-device suite JSON command");
   assertContains(noDeviceDoc, expectedSummarySchema, "missing no-device summary schema");
@@ -94,6 +94,11 @@ check("no-device command list keeps endpoint-free and sanitized-failure probes",
   assertContains(noDeviceDoc, "--expect-failure", "missing sanitized failure command");
   assertContains(noDeviceDoc, "verify-onvif-closed-loopback-failure-matrix", "missing closed loopback failure matrix command");
   assertContains(noDeviceDoc, "http://127.0.0.1:9/onvif/device_service", "missing closed loopback endpoint");
+});
+
+check("no-device command list keeps sanitized failure probes", () => {
+  assertContains(noDeviceDoc, "verify-onvif-field-http-probe --allow-missing-endpoint", "missing missing-endpoint command");
+  assertContains(noDeviceDoc, "--expect-failure", "missing sanitized failure command");
   assertContains(noDeviceDoc, "--credential-ref-present", "missing credential reference flag");
   assertContains(noDeviceDoc, "verify-onvif-field-smoke-redaction", "missing redaction verification");
   assertContains(noDeviceDoc, "verify-onvif-field-smoke-sample-bundle", "missing sample bundle verification");
@@ -242,11 +247,18 @@ check("closed loopback failure matrix pins summary artifact redaction sentinels"
   }
 });
 
-check("field HTTP probe harness retains no-device options and credential redaction", () => {
+check("field HTTP probe harness retains no-device options", () => {
   for (const token of [
     "allow-missing-endpoint",
     "expect-failure",
     "credential-ref-present",
+  ]) {
+    assertContains(fieldProbeScript, token, `field HTTP probe script missing ${token}`);
+  }
+});
+
+check("field HTTP probe harness retains credential redaction", () => {
+  for (const token of [
     "endpoint URL must not include credentials",
     "assertRedacted",
   ]) {

@@ -28,7 +28,7 @@ check("ops dashboard exposes operator incident source filters", () => {
   }
 });
 
-check("incident timeline groups event source health rule warning and runtime status", () => {
+check("incident timeline renders supported incident source types", () => {
   for (const snippet of [
     "dashboardIncidentTimelineItems",
     "dashboardIncidentEventRecords",
@@ -64,7 +64,7 @@ check("incident workflow is styled for responsive ops review", () => {
   }
 });
 
-check("ops/client UI smoke and server command track operator incident timeline", () => {
+check("ops client UI smoke tracks operator incident timeline", () => {
   for (const snippet of [
     "verify-ops-operator-incident-timeline",
     "verify_ops_operator_incident_timeline.mjs",

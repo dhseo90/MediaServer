@@ -29,6 +29,7 @@ int main() {
     Assert(missing.material.scheme == ingress::CredentialAuthScheme::kNone, "missing auth scheme mismatch");
     Assert(std::string(ingress::CredentialLookupStatusCode(missing.status)) == "credential_missing",
            "missing status code mismatch");
+    std::cout << "[pass] ONVIF none credential provider missing lookup returns no material\n";
 
     ingress::CredentialLookupRequest referenced_request;
     referenced_request.credential_ref_present = true;
@@ -40,6 +41,7 @@ int main() {
     Assert(std::string(ingress::CredentialLookupStatusCode(referenced.status)) ==
                "credential_provider_unavailable",
            "referenced status code mismatch");
+    std::cout << "[pass] ONVIF none credential provider referenced lookup returns unavailable without material\n";
 
     Assert(std::string(ingress::CredentialLookupStatusCode(ingress::CredentialLookupStatus::kReady)) ==
                "credential_ready",
@@ -59,6 +61,12 @@ int main() {
     Assert(std::string(ingress::CredentialLookupStatusCode(
                ingress::CredentialLookupStatus::kMaterialRejected)) == "credential_material_rejected",
            "material rejected status code mismatch");
+    std::cout << "[pass] ONVIF credential provider ready status code is stable\n";
+    std::cout << "[pass] ONVIF credential provider denied status code is stable\n";
+    std::cout << "[pass] ONVIF credential provider expired status code is stable\n";
+    std::cout << "[pass] ONVIF credential provider material-rejected status code is stable\n";
+    std::cout << "[pass] ONVIF credential provider none auth scheme code is stable\n";
+    std::cout << "[pass] ONVIF credential provider http-basic auth scheme code is stable\n";
 
     ingress::InMemoryCredentialSecretProvider store("fixture-store");
     Assert(std::string(store.ProviderId()) == "fixture-store", "in-memory provider id mismatch");
@@ -72,6 +80,7 @@ int main() {
     Assert(store.UpsertHttpBasic("operator-entered-secret", "fixture-user", "fixture-password"),
            "valid Basic credential should be stored");
     Assert(store.Size() == 1, "stored credential count mismatch");
+    std::cout << "[pass] ONVIF in-memory credential provider stores only valid Basic credentials\n";
 
     ingress::CredentialLookupRequest lookup_request;
     lookup_request.credential_ref_present = true;
@@ -83,18 +92,21 @@ int main() {
            "store ready auth scheme mismatch");
     Assert(ready.material.username == "fixture-user", "store ready username mismatch");
     Assert(ready.material.password == "fixture-password", "store ready password mismatch");
+    std::cout << "[pass] ONVIF in-memory credential provider ready lookup exposes runtime material\n";
 
     Assert(store.MarkStatus("operator-entered-secret", ingress::CredentialLookupStatus::kDenied),
            "store status mark failed");
     const auto denied = store.Lookup(lookup_request);
     Assert(denied.status == ingress::CredentialLookupStatus::kDenied, "store denied status mismatch");
     Assert(!denied.secret_material_present, "denied lookup should not expose material");
+    std::cout << "[pass] ONVIF in-memory credential provider denied status hides material\n";
 
     Assert(store.MarkStatus("operator-entered-secret", ingress::CredentialLookupStatus::kExpired),
            "store expired mark failed");
     const auto expired = store.Lookup(lookup_request);
     Assert(expired.status == ingress::CredentialLookupStatus::kExpired, "store expired status mismatch");
     Assert(!expired.secret_material_present, "expired lookup should not expose material");
+    std::cout << "[pass] ONVIF in-memory credential provider expired status hides material\n";
 
     Assert(store.UpsertHttpBasic("operator-entered-secret", "fixture-user", "fixture-password"),
            "credential refresh should restore ready material");
@@ -102,7 +114,8 @@ int main() {
     const auto erased = store.Lookup(lookup_request);
     Assert(erased.status == ingress::CredentialLookupStatus::kMissing, "erased status mismatch");
     Assert(!erased.secret_material_present, "erased lookup should not expose material");
+    std::cout << "[pass] ONVIF in-memory credential provider erased lookup returns missing without material\n";
 
-    std::cout << "[pass] ONVIF credential provider skeleton smoke\n";
+    std::cout << "[summary] ONVIF credential provider skeleton smoke complete\n";
     return 0;
 }

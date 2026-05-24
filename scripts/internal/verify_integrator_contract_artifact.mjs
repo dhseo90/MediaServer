@@ -35,7 +35,7 @@ const artifactDir = path.resolve(rootDir, args.artifactDir || "test/fixtures/int
 const manifestPath = path.join(artifactDir, "manifest.json");
 const checks = [];
 
-check("manifest and contract files are present", () => {
+check("manifest files are present", () => {
   const manifest = readJson(manifestPath);
   assert(manifest.schema === "media-server.integrator-contract-artifact.v1", "manifest schema mismatch");
   assert(manifest.artifactVersion === "v1.8.0-integrator-contract-artifact.1", "artifact version mismatch");
@@ -51,7 +51,7 @@ check("manifest and contract files are present", () => {
   }
 });
 
-check("bundle support docs pin review and change boundaries", () => {
+check("bundle support docs pin review boundaries", () => {
   const manifest = readJson(manifestPath);
   const readme = readBundleText("README.md");
   const changelog = readBundleText("CHANGELOG.md");
@@ -85,7 +85,7 @@ check("bundle support docs pin review and change boundaries", () => {
   }
 });
 
-check("sample payloads match manifest identifiers and schema files", () => {
+check("sample payloads match manifest identifiers", () => {
   const manifest = readJson(manifestPath);
   for (const item of manifest.contracts) {
     const schema = readJson(path.join(artifactDir, item.schemaFile));
@@ -126,7 +126,7 @@ check("schema samples keep known live identifiers pinned", () => {
   assert(webrtcIndex.explicitlyExcludedFields?.includes("source"), "WebRTC field index must keep source excluded");
 });
 
-check("samples and support docs avoid operational secret and source locator leaks", () => {
+check("samples avoid operational exposure candidates", () => {
   const sampleDir = path.join(artifactDir, "samples");
   const supportFiles = ["README.md", "CHANGELOG.md", "field-index.json", "schema-review-checklist.md", "manifest.json"];
   const sampleForbidden = [
@@ -162,7 +162,7 @@ check("samples and support docs avoid operational secret and source locator leak
   }
 });
 
-check("documentation and entrypoints reference the artifact", () => {
+check("documentation references integrator artifact", () => {
   const doc = readText("docs/integrator-contract-artifact.md");
   const liveContract = readText("docs/live-event-metadata-contracts.md");
   const docsIndex = readText("docs/README.md");
