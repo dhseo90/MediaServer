@@ -41,6 +41,16 @@ const ruleValidationMatrixFixtures = [
     docSnippets: ["inactive profile/template"],
   },
   {
+    id: "missing-profile",
+    owner: "server-ui",
+    fixture: {
+      vaRule: { analysis: { profileId: "profile-missing", classes: ["person"] } },
+    },
+    uiSnippets: ["missing-profile", "프로파일", "찾을 수 없습니다"],
+    serverSnippets: ["vaRule analysis.profileId does not exist"],
+    docSnippets: ["missing reference"],
+  },
+  {
     id: "inactive-template",
     owner: "server-ui",
     fixture: {
@@ -50,6 +60,16 @@ const ruleValidationMatrixFixtures = [
     uiSnippets: ["inactive-template"],
     serverSnippets: ["vaRule templateStart.ruleId is inactive"],
     docSnippets: ["inactive profile/template"],
+  },
+  {
+    id: "missing-template",
+    owner: "server-ui",
+    fixture: {
+      vaRule: { templateStart: { ruleId: "template-missing" } },
+    },
+    uiSnippets: ["missing-template", "이벤트 템플릿", "찾을 수 없습니다"],
+    serverSnippets: ["vaRule templateStart.ruleId does not exist"],
+    docSnippets: ["missing reference"],
   },
   {
     id: "priority-conflict",
@@ -118,7 +138,7 @@ check("rule validation matrix has required fixtures", () => {
     assert(Array.isArray(fixture.uiSnippets), `fixture ${fixture.id} has no uiSnippets`);
     assert(Array.isArray(fixture.serverSnippets), `fixture ${fixture.id} has no serverSnippets`);
   }
-  for (const required of ["duplicate-id", "inactive-profile", "inactive-template", "priority-conflict", "unauthorized-view", "template-class-mismatch", "profile-template-class-mismatch"]) {
+  for (const required of ["duplicate-id", "inactive-profile", "missing-profile", "inactive-template", "missing-template", "priority-conflict", "unauthorized-view", "template-class-mismatch", "profile-template-class-mismatch"]) {
     assert(ids.has(required), `required fixture missing: ${required}`);
   }
 });

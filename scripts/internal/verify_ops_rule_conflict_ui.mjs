@@ -56,6 +56,8 @@ check("ops rules browser smoke blocks invalid profile", () => {
   for (const snippet of [
     "pre-save validation did not block invalid profile",
     "__missing_profile_e2e__",
+    "pre-save validation did not block invalid template",
+    "__missing_template_e2e__",
     "attemptedWrites.length === 0",
   ]) {
     assert(browserSmoke.includes(snippet), `rules browser smoke is missing pre-save e2e snippet: ${snippet}`);

@@ -54,9 +54,9 @@ try {
       body: JSON.stringify(vaRulePayload(invalidVaRuleId, eventRuleId, "999999999", source)),
     },
     400,
-    "profileId",
+    "vaRule analysis.profileId does not exist",
   );
-  console.log("[pass] invalid-profile rejected");
+  console.log("[pass] missing-profile rejected");
 
   await expectHttpError(
     `/lab/analysis/va-rules/${encodeURIComponent(invalidVaRuleId)}`,
@@ -66,9 +66,9 @@ try {
       body: JSON.stringify(vaRulePayload(invalidVaRuleId, "999999998", "1", source)),
     },
     400,
-    "templateStart.ruleId",
+    "vaRule templateStart.ruleId does not exist",
   );
-  console.log("[pass] invalid-template rejected");
+  console.log("[pass] missing-template rejected");
 
   await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(validVaRuleId)}`, {
     method: "PUT",

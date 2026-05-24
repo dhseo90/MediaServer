@@ -768,7 +768,7 @@ PeerConnection, DataChannel, server WebRTC session을 정리합니다.
 PublishedView가 raw/overlay 전용이면 채널 탭에서
 보기 방식과 허용 룰 목록을 먼저 정리한 뒤 룰을 저장합니다.
 
-Rule validation matrix는 duplicate id, inactive profile/template, priority conflict,
+Rule validation matrix는 duplicate id, missing reference, inactive profile/template, priority conflict,
 unauthorized view, VA class mismatch, source mismatch를 fixture 기준으로 고정합니다.
 UI 저장 전 차단과 서버 저장 API 차단 메시지가 따로 흔들리지 않도록
 `verify-ops-rule-validation-matrix`에서 검증합니다.

@@ -242,6 +242,7 @@ function buildRulesOpenExpression() {
           return { ok: false, message: 'missing profile select or save button' };
         }
         const invalidProfileId = '__missing_profile_e2e__';
+        const originalProfileValue = profileSelect.value;
         const option = document.createElement('option');
         option.value = invalidProfileId;
         option.textContent = 'Missing profile E2E';
@@ -265,6 +266,8 @@ function buildRulesOpenExpression() {
         } finally {
           window.fetch = originalFetch;
           option.remove();
+          profileSelect.value = originalProfileValue || '1';
+          profileSelect.dispatchEvent(new Event('change', { bubbles: true }));
         }
         const statusText = status?.textContent || '';
         const ok = attemptedWrites.length === 0 &&
@@ -275,6 +278,57 @@ function buildRulesOpenExpression() {
       })();
       if (!preSaveValidation.ok) {
         return fail('pre-save validation did not block invalid profile', preSaveValidation);
+      }
+
+      const preSaveMissingTemplateValidation = await (async () => {
+        const profileSelect = document.getElementById('opsVaRuleProfileSelect');
+        const templateSelect = document.getElementById('opsVaRuleTemplateSeedSelect');
+        const saveButton = document.getElementById('opsRulesComposerSave');
+        if (!profileSelect || !templateSelect || !saveButton) {
+          return { ok: false, message: 'missing profile select, template select, or save button' };
+        }
+        const validProfileOption = Array.from(profileSelect.options).find(item => item.value && item.value !== '__missing_profile_e2e__');
+        if (validProfileOption) {
+          profileSelect.value = validProfileOption.value;
+          profileSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        const invalidTemplateId = '__missing_template_e2e__';
+        const originalTemplateValue = templateSelect.value;
+        const option = document.createElement('option');
+        option.value = invalidTemplateId;
+        option.textContent = 'Missing template E2E';
+        templateSelect.appendChild(option);
+        templateSelect.value = invalidTemplateId;
+        templateSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        const attemptedWrites = [];
+        const originalFetch = window.fetch.bind(window);
+        window.fetch = (input, init = {}) => {
+          const url = String(typeof input === 'string' ? input : (input?.url || ''));
+          const method = String(init?.method || input?.method || 'GET').toUpperCase();
+          if (method !== 'GET' && url.includes('/lab/analysis/va-rules/')) {
+            attemptedWrites.push(method + ' ' + url);
+            return Promise.reject(new Error('blocked test va-rule write'));
+          }
+          return originalFetch(input, init);
+        };
+        try {
+          saveButton.click();
+          await wait(700);
+        } finally {
+          window.fetch = originalFetch;
+          option.remove();
+          templateSelect.value = originalTemplateValue;
+          templateSelect.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+        const statusText = status?.textContent || '';
+        const ok = attemptedWrites.length === 0 &&
+          statusText.includes('저장 전 검증 실패') &&
+          statusText.includes('이벤트 템플릿') &&
+          statusText.includes('찾을 수 없습니다');
+        return { ok, attemptedWrites, statusText };
+      })();
+      if (!preSaveMissingTemplateValidation.ok) {
+        return fail('pre-save validation did not block invalid template', preSaveMissingTemplateValidation);
       }
 
       click('opsAddEventRuleBtn');
@@ -390,6 +444,7 @@ function buildRulesOpenExpression() {
         ok: true,
         optionTexts,
         preSaveValidation,
+        preSaveMissingTemplateValidation,
         presetQuality,
         navHref: Array.from(document.querySelectorAll('a[href="/ops/users"]')).find(node => visible(node))?.getAttribute('href') || '',
         statusText: status?.textContent || ''
