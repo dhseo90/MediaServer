@@ -327,7 +327,7 @@ Rule scenario/event 발생 검수는 분리합니다.
 | RULE-089 | zone-occupancy threshold 설정 | 필요 | 필요 | 안정화, UI | threshold validation과 저장 |
 | RULE-090 | zone-occupancy min dwell 설정 | 필요 | 필요 | 안정화, UI | min dwell validation과 저장 |
 | RULE-091 | zone-occupancy cooldown 설정 | 필요 | 필요 | 안정화, UI | cooldown validation과 저장 |
-| RULE-092 | duplicate id 검증 | 필요 | 필요 | 안정화, UI | duplicate save가 거부되고 copy가 표시 |
+| RULE-092 | duplicate id 검증 | 필요 | 필요 | 안정화, UI | `/ops/rules` validation panel이 VA rule/event template/profile 중복 ID를 표시하고, 서버 create API가 기존 event template/VA rule ID 재생성을 거부 |
 | RULE-093 | missing template/profile 검증 | 필요 | 필요 | 안정화, UI | missing reference save/apply가 거부됨 |
 | RULE-094 | inactive template/profile 검증 | 필요 | 필요 | 안정화, UI | inactive reference가 적용되지 않음 |
 | RULE-095 | source mismatch 검증 | 필요 | 필요 | 안정화, UI | source mismatch가 저장/apply 단계에서 거부 |

@@ -12,6 +12,24 @@ const checks = [];
 
 const ruleValidationMatrixFixtures = [
   {
+    id: "duplicate-id",
+    owner: "server-ui",
+    fixture: {
+      vaRules: [{ id: "10" }, { id: "10" }],
+      eventTemplates: [{ id: "20" }, { id: "20" }],
+      profiles: [{ id: "30" }, { id: "30" }],
+    },
+    uiSnippets: [
+      "opsRulesDuplicateIds",
+      "opsRulesIssue('duplicate'",
+      "중복 채널 분석 설정 ID",
+      "중복 이벤트 템플릿 ID",
+      "중복 분석 프로파일 ID",
+    ],
+    serverSnippets: ["vaRule id already exists", "analysis document id already exists"],
+    docSnippets: ["duplicate id", "중복 ID"],
+  },
+  {
     id: "inactive-profile",
     owner: "server-ui",
     fixture: {
@@ -100,7 +118,7 @@ check("rule validation matrix has required fixtures", () => {
     assert(Array.isArray(fixture.uiSnippets), `fixture ${fixture.id} has no uiSnippets`);
     assert(Array.isArray(fixture.serverSnippets), `fixture ${fixture.id} has no serverSnippets`);
   }
-  for (const required of ["inactive-profile", "inactive-template", "priority-conflict", "unauthorized-view", "template-class-mismatch", "profile-template-class-mismatch"]) {
+  for (const required of ["duplicate-id", "inactive-profile", "inactive-template", "priority-conflict", "unauthorized-view", "template-class-mismatch", "profile-template-class-mismatch"]) {
     assert(ids.has(required), `required fixture missing: ${required}`);
   }
 });
