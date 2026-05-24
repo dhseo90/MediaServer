@@ -109,6 +109,7 @@ release evidence index, feature scope decision gate의 확인됨/미실행/미�
 현재 release evidence는 [release-evidence-index.md](./release-evidence-index.md),
 [manual-ui-checklist.md](./manual-ui-checklist.md),
 [manual-ui-result-template.md](./manual-ui-result-template.md),
+[project-feature-test-inventory.md](./project-feature-test-inventory.md),
 [ui-visual-release-baseline-approval-template.md](./ui-visual-release-baseline-approval-template.md)를
 source-of-truth로 삼습니다. 현재 `v1.8.0` release pass/fail 기준은 이 evidence와
 통합 검증 명령으로 판단합니다.

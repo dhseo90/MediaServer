@@ -27,7 +27,11 @@
 
 이 문서는 `스크립트 테스트`의 source-of-truth입니다. UI 풀테스트 기준은
 [manual-ui-fulltest.md](./manual-ui-fulltest.md)와
-[manual-ui-checklist.md](./manual-ui-checklist.md)에 둡니다.
+[manual-ui-checklist.md](./manual-ui-checklist.md)에 둡니다. 기능별 UI 필요 여부,
+테스트 필요 여부, 테스트 영역, PASS 판정 기준은
+[project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
+합니다. 이 inventory는 테스트 실행 결과가 아니므로, 행이 있다는 이유만으로
+스크립트 테스트나 UI 풀테스트가 완료됐다고 보고하지 않습니다.
 
 | 영역 | 역할 | 대표 evidence | 대체 불가 항목 |
 | --- | --- | --- | --- |

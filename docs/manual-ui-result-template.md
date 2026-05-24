@@ -3,7 +3,9 @@
 이 템플릿은 사람이 인앱 브라우저에서 직접 눌러 확인한 UI 풀테스트 결과를
 남길 때 사용합니다. 자동 smoke, screenshot artifact, raw JSON 확인만으로 이
 문서를 채우지 않습니다. 기준 정의는 [manual-ui-fulltest.md](./manual-ui-fulltest.md),
-실행 순서는 [manual-ui-checklist.md](./manual-ui-checklist.md)를 봅니다.
+기능별 UI 필요 여부와 테스트 영역은
+[project-feature-test-inventory.md](./project-feature-test-inventory.md), 실행 순서는
+[manual-ui-checklist.md](./manual-ui-checklist.md)를 봅니다.
 
 ## 검수 메타데이터
 
@@ -20,11 +22,14 @@
 - theme:
 - evidence index:
 - 문서 파악 범위:
+- feature inventory revision:
 
 ## 테스트 영역별 판정
 
 스크립트 테스트와 UI 풀테스트는 서로 대체하지 않습니다. 한쪽이 PASS여도 다른
 쪽을 실행하지 않았으면 다른 쪽은 `NOT RUN` 또는 `미확인`으로 남깁니다.
+기능 inventory의 행은 실행 evidence가 아니며, 아래 판정은 실제 실행/조작 결과가
+있을 때만 채웁니다.
 
 | 영역 | 실행 범위 | evidence | 판정 |
 | --- | --- | --- | --- |
@@ -99,19 +104,17 @@
 
 ## 기능별 직접 조작 기록
 
-| 영역 | 클릭/타이핑으로 확인한 항목 | PASS/FAIL/BLOCKED | 비고 |
-| --- | --- | --- | --- |
-| 문서 파악 | README/docs/ui/auth/verification 문서 확인 |  |  |
-| 데이터 리셋 | throwaway users/source/view/analysis/event path 사용 |  |  |
-| Auth | setup, login, password change, invite setup |  |  |
-| Ops Dashboard | search, filter select, copy/share, refresh |  |  |
-| Channels | add/edit, validation, file/RTSP/ONVIF/WHEP input, copy |  |  |
-| Rules | scenario/template/profile, preview, geometry, save |  |  |
-| Users | create/update, scope, pending request approve/reject |  |  |
-| Events | filter, archive toggle, pagination, export |  |  |
-| Client Live | source select/drag, tile start/reconnect/stop, dock, overlay, copy |  |  |
-| Client Dashboard | filter, sort, status/event copy |  |  |
-| Route guard | viewer ops forbidden, client debug/source/raw 비노출 |  |  |
+기능 ID는 [project-feature-test-inventory.md](./project-feature-test-inventory.md)의 ID를
+사용합니다. route를 열었더라도 해당 기능 ID의 control/action을 직접 조작하지
+않았으면 `미확인`으로 남깁니다.
+
+| 기능 ID | 영역 | 클릭/타이핑으로 확인한 항목 | 기대 결과 | 실제 결과 | PASS/FAIL/BLOCKED/미확인 | 비고 |
+| --- | --- | --- | --- | --- | --- | --- |
+| UI-001 | route |  |  |  |  |  |
+| AUTH-018 | users |  |  |  |  |  |
+| SRC-008 | sources |  |  |  |  |  |
+| RULE-018 | rules |  |  |  |  |  |
+| CLIENT-002 | client live |  |  |  |  |  |
 
 ## 접근 요청 검수
 

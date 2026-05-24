@@ -10,7 +10,7 @@
 | 설치, 빌드, 실행 | [development-guide.md](development-guide.md) |
 | 운영자/클라이언트 UI | [ui-guide.md](ui-guide.md) |
 | UI 풀테스트 기준/체크리스트 | [manual-ui-fulltest.md](manual-ui-fulltest.md), [manual-ui-checklist.md](manual-ui-checklist.md), [manual-ui-result-template.md](manual-ui-result-template.md) |
-| 기능/UI/테스트 전면 inventory | [project-feature-test-inventory.md](project-feature-test-inventory.md) |
+| 기능별 UI 필요/테스트 영역 inventory | [project-feature-test-inventory.md](project-feature-test-inventory.md) |
 | RTSP/WebRTC/VA 구조 | [media-server-architecture.md](media-server-architecture.md) |
 | 영상 분석, tracking, scenario | [video-analysis.md](video-analysis.md) |
 | 검증 명령과 release gate | [stream-verification.md](stream-verification.md) |
@@ -43,6 +43,9 @@ Release evidence의 실행/미실행/미확인 색인은
 [stream-verification.md](stream-verification.md)와
 [manual-ui-checklist.md](manual-ui-checklist.md)의 버전 중립 명령만 기준으로
 확인합니다.
+기능별 UI 필요 여부와 테스트 영역 분류는
+[project-feature-test-inventory.md](project-feature-test-inventory.md)에 두며,
+이 문서는 실행 evidence가 아니라 coverage 대조 전 기준표입니다.
 
 ## 기능별 문서
 

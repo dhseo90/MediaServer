@@ -5,6 +5,8 @@
 UI 풀테스트 기준은 [manual-ui-fulltest.md](./manual-ui-fulltest.md),
 브라우저 수동 검수 순서는 [manual-ui-checklist.md](./manual-ui-checklist.md),
 수동 검수 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md),
+기능별 UI 필요/테스트 영역 분류는
+[project-feature-test-inventory.md](./project-feature-test-inventory.md),
 VA 내부 구조는 [video-analysis.md](./video-analysis.md)를 봅니다.
 제품 화면은 Ops/Client 기준으로 두고, 개발/검증 API는 별도로 유지합니다.
 

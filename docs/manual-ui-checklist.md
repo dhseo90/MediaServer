@@ -2,7 +2,9 @@
 
 이 문서는 앞으로 "UI 풀테스트"라고 부르는 작업의 실행 체크리스트입니다.
 기준 정의와 범위는 [manual-ui-fulltest.md](./manual-ui-fulltest.md)를
-source-of-truth로 삼고, 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를
+source-of-truth로 삼고, 기능별 UI 필요 여부와 테스트 영역은
+[project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
+합니다. 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를
 사용합니다. 현재 release 목표는 `v1.8.0`이며, UI 풀테스트 기준도 이 버전의
 제품 route, 권한, 기능 baseline만 대상으로 합니다.
 문서 구조와 evidence 경계는 `./server.sh verify-manual-ui-evidence`로 확인합니다.
@@ -30,10 +32,14 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
   - [development-guide.md](./development-guide.md)
   - [stream-verification.md](./stream-verification.md)
   - [config-reference.md](./config-reference.md)
+  - [project-feature-test-inventory.md](./project-feature-test-inventory.md)
   - [manual-ui-fulltest.md](./manual-ui-fulltest.md)
   - [manual-ui-result-template.md](./manual-ui-result-template.md)
 - 기능 설명이 있는 문서에 나온 웹 UI 흐름은 모두 검수 후보로 적습니다. 문서에
   나온 기능을 열지 못하면 `미확인` 또는 `건너뜀`으로 남깁니다.
+- 기능 단위 누락을 막기 위해 [project-feature-test-inventory.md](./project-feature-test-inventory.md)의
+  ID별 `UI 필요`와 `테스트 영역`을 먼저 확인합니다. 이 inventory는 실행 evidence가
+  아니므로, 행이 있다는 이유만으로 완료 처리하지 않습니다.
 - 현재 scope 밖 기능, release 비범위, 실장비/외부 credential이 필요한 흐름은
   임의로 확장하지 않습니다.
 
@@ -160,6 +166,8 @@ Evidence index에는 route, 계정/권한, 직접 조작, screenshot/artifact, �
 ## 8. 종료 보고와 문서 병합
 
 - 결과는 [manual-ui-result-template.md](./manual-ui-result-template.md)에 기록합니다.
+- 기능별 조작 결과는 [project-feature-test-inventory.md](./project-feature-test-inventory.md)의
+  ID를 함께 적어, route 단위 PASS가 기능 단위 PASS로 과장되지 않게 합니다.
 - 확인됨: 실제 클릭한 화면, 통과한 명령, 생성한 fixture, 수정/커밋 파일
 - 미확인: 열지 않은 화면, 실행하지 않은 장시간 테스트, 추정 원인
 - 건너뜀: destructive action을 fixture가 없어 수행하지 않은 경우

@@ -24,6 +24,7 @@
 | Release metadata/docs drift | VERSION, CMake, README, docs index, release policy, backlog | `./server.sh verify-release-metadata`, `./server.sh verify-docs-links` | PASS/FAIL |
 | Docs UI assets | managed screenshot manifest, capture script ownership, direct image review checklist | `./server.sh verify-docs-ui-assets` | PASS/FAIL/미확인 |
 | Manual UI evidence | `/setup`, `/login`, `/ops`, `/client`, `/ops/rules`, `/client/live` direct click index | `./server.sh verify-manual-ui-evidence`, manual browser review | PASS/FAIL/미확인/건너뜀 |
+| Feature test inventory | 기능별 UI 필요 여부, 테스트 필요 여부, 테스트 영역, PASS 판정 기준 | [project-feature-test-inventory.md](./project-feature-test-inventory.md) | 기준표, 실행 evidence 아님 |
 | English UI visual copy QA | English capture path, nav/card/table wrapping, Korean residue review | `./server.sh verify-ui-copy-i18n-parity`, `./server.sh verify-ops-client-ui --screenshots` | PASS/FAIL/미확인 |
 | Release close-out runbook | branch close, PR merge, main sync, tag, GitHub Release, Latest 확인, next branch sync | `./server.sh verify-release-closeout-helper --dry-run` | planned-local/manual-not-run |
 | Feature scope decision gate | 새 기능 후보를 v1.8 안정화 gate 안에서 구현으로 승격하지 않는 절차 | `./server.sh verify-feature-scope-gate` | PASS/FAIL |

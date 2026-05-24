@@ -1,8 +1,10 @@
 # Manual UI Full Test Standard
 
 이 문서는 MediaServer에서 "UI 풀테스트"라고 요청받았을 때 반드시 포함해야 하는
-기준입니다. 실행 순서는 [manual-ui-checklist.md](./manual-ui-checklist.md), 결과
-기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를 사용합니다.
+기준입니다. 기능별 UI 필요 여부와 테스트 영역 분류는
+[project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
+삼고, 실행 순서는 [manual-ui-checklist.md](./manual-ui-checklist.md), 결과 기록은
+[manual-ui-result-template.md](./manual-ui-result-template.md)를 사용합니다.
 현재 제품 UI 기준은 release 목표 `v1.8.0`입니다. 지원 가능한 모든 기능을 실제 UI 조작으로 확인하지 않은 경우에는 완료로 쓰지 않습니다.
 
 ## 1. 정의
@@ -51,11 +53,18 @@ UI 풀테스트는 `스크립트 테스트`와 별도 영역입니다. 스크립
 - [development-guide.md](./development-guide.md)
 - [stream-verification.md](./stream-verification.md)
 - [config-reference.md](./config-reference.md)
+- [project-feature-test-inventory.md](./project-feature-test-inventory.md)
 - [manual-ui-checklist.md](./manual-ui-checklist.md)
 - [manual-ui-result-template.md](./manual-ui-result-template.md)
 
 문서에 기능이 설명되어 있지만 UI에서 열지 못한 경우, 완료로 쓰지 않고 `미확인`,
 `건너뜀`, 또는 `BLOCKED`로 분리합니다.
+
+기능별 테스트 분류는 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를
+기준으로 합니다. 이 inventory는 테스트 실행 결과가 아니라 기능별 `UI 필요 여부`,
+`테스트 필요 여부`, `테스트 영역`, `PASS 판정 기준`을 고정하는 문서입니다. 따라서
+inventory에 행이 있다는 이유만으로 해당 기능의 UI 풀테스트나 안정화 테스트가
+완료됐다고 쓰지 않습니다.
 
 ## 4. 데이터 리셋
 
@@ -142,6 +151,11 @@ Role/scope:
   dock side, info overlay, workspace actions, copy fallback, keyboard focus
 - Client Dashboard: filter, sort, status copy, event copy
 - Request Access: public submit, pending copy, approval before/after boundary
+
+위 목록은 실행 순서 요약입니다. 실제 기능 단위 범위는
+[project-feature-test-inventory.md](./project-feature-test-inventory.md)의 기능 ID를
+기준으로 추적합니다. UI가 `비대상`인 API/계약/backend 기능은 억지로 제품 UI를
+만들지 않고 스크립트 테스트 영역에서만 판정합니다.
 
 ## 8. 시각 품질과 반응형
 
