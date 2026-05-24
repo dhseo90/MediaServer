@@ -48,6 +48,14 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
 - 운영 데이터가 아닌 throwaway fixture만 사용합니다.
 - 서버는 검증 전용 포트와 임시 users/source/view/analysis/event 경로로 띄웁니다.
 - auth on 검증은 `MEDIA_SERVER_AUTH_MODE=auto`에서 admin을 직접 생성합니다.
+- VA seed는 [project-feature-test-inventory.md](./project-feature-test-inventory.md)의
+  `VA Manual UI Seed Matrix`와
+  `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`을 기준으로 준비합니다.
+  이 seed는 Rule/Profile/Scenario CRUD 검수와 최종 event log 육안 확인을 분리하기
+  위한 throwaway 기준이며, 서버에 적용하고 브라우저로 확인하기 전에는 evidence가
+  아닙니다.
+- Rule/Profile/Channel 추가·수정·삭제 검수 뒤에는 모든 basic event, scenario,
+  preset, tracker/Re-ID 조합이 남아 있는 최종 상태를 유지하고 event log를 확인합니다.
 - destructive action은 throwaway 계정, 채널, 접근 요청으로만 수행합니다.
 - UI smoke 전용 HTML selector 검증은 필요 시 별도 서버에서
   `./server.sh verify-ops-client-ui --screenshots`로 실행하되, 이 결과만으로

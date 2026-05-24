@@ -63,6 +63,22 @@
 - 시각 품질 확인:
 - UI 미확인/건너뜀:
 
+## VA Seed / 최종 룰 상태
+
+기준 fixture는 `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`입니다.
+이 표는 seed를 실제 서버에 적용하고 UI에서 확인했을 때만 채웁니다.
+
+| 항목 | 기대 상태 | 실제 상태 | 판정 |
+| --- | --- | --- | --- |
+| accounts | admin/operator/viewer/integrator |  | PASS/FAIL/미확인 |
+| sources | file sample, VA sample, field 별도 source 구분 |  | PASS/FAIL/미확인 |
+| profiles | tracker/Re-ID 조합 7개 |  | PASS/FAIL/미확인 |
+| event templates | basic 6개 + scenario 6개 |  | PASS/FAIL/미확인 |
+| scenario presets | 12개 preset 선택/적용 |  | PASS/FAIL/미확인 |
+| vaRules | basic/scenario 최종 12개 이상 |  | PASS/FAIL/미확인 |
+| invalid tracker/Re-ID | `tracker=none` + `reid=assist` 거부 또는 정규화 |  | PASS/FAIL/미확인 |
+| event log review | 최종 룰 상태에서 event log 육안 확인 |  | PASS/FAIL/미확인 |
+
 ## 확인됨
 
 실제로 열고 클릭한 화면만 적습니다.

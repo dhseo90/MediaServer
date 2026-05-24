@@ -29,16 +29,86 @@ source-of-truth입니다.
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 245 |
-| UI 직접 필요 | 161 |
-| UI 간접 필요 | 29 |
-| UI 비대상 | 55 |
-| 테스트 필요 | 245 |
-| 안정화 대상 | 229 |
-| UI 풀테스트 대상 | 160 |
-| 30분 soak 대상 | 42 |
+| 전체 기능 항목 | 316 |
+| UI 직접 필요 | 202 |
+| UI 간접 필요 | 28 |
+| UI 비대상 | 86 |
+| 테스트 필요 | 316 |
+| 안정화 대상 | 306 |
+| UI 풀테스트 대상 | 219 |
+| 30분 soak 대상 | 45 |
 | 120분 조건부 대상 | 7 |
 | 필드 별도 조건 포함 | 1 |
+
+## Current Coverage Status
+
+이 절은 현재 문서 정리 단계에서 확인한 coverage 상태입니다. 실제 안정화 테스트,
+30분 soak, 120분 longrun, UI 풀테스트를 실행했다는 뜻이 아닙니다.
+
+| 항목 | 현재 상태 | 결론 |
+| --- | --- | --- |
+| 기능 ID 목록 | 316개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`로 분리 | 기준표 작성 완료 |
+| 코드 로직 위치 | ID prefix별 owner source를 지정했지만, 각 행의 line-level 증적은 별도 대조 필요 | partial |
+| 제품 UI 위치 | UI 필요/간접/비대상을 분리했지만, 브라우저 직접 조작 evidence는 없음 | NOT RUN |
+| 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료, 실행 NOT RUN |
+| 30분 테스트 매핑 | 30분 대상 기능을 media/session/runtime 중심으로 분리 | 기준표 작성 완료, 실행 NOT RUN |
+| 120분 테스트 매핑 | memory leak/runtime drift 조건부 대상 7개 분리 | 기준표 작성 완료, 실행 NOT RUN |
+| VA seed 데이터 | `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`로 full UI seed matrix를 고정 | fixture 기준 작성, 서버 적용 NOT RUN |
+| UI 풀테스트 evidence | 기능 ID별 result template 기록란 추가 | 직접 조작 NOT RUN |
+
+## Owner Source Map
+
+| ID prefix | 코드 로직 owner | 제품 UI owner | 대표 verifier family |
+| --- | --- | --- | --- |
+| `UI-*` | `src/ingress/webrtc_http_server.cpp`, `src/ingress/product_ui_page_scripts.cpp` | Auth/Ops/Client shell | `verify-auth-bootstrap`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-ops-route-boundaries` |
+| `AUTH-*` | `src/ingress/http_auth.cpp`, `src/ingress/webrtc_http_server.cpp` | `/setup`, `/login`, `/password/change`, `/invite/setup`, `/ops/users` | `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` |
+| `SRC-*` | `src/ingress/source_view_registry.cpp`, `src/core/source_factory.cpp`, `src/ingress/onvif_live_import.cpp` | `/ops/sources`, `/client/live`, `/client/dashboard` | `verify-ops-source-lifecycle`, `verify-ops-client-ui`, `verify-onvif-*`, `verify-ops-source-health-bulk` |
+| `RULE-*` | `src/ingress/analysis_query.cpp`, `src/analysis/*scenario.cpp`, `src/analysis/event_rule_engine.cpp` | `/ops/rules`, `/client/live` overlay | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-scenario-builder-ui`, `verify-ops-scenario-presets`, `verify-va-replay`, `verify-analysis-state` |
+| `EVT-*` | `src/analysis/event_manager.cpp`, `src/analysis/event_storage.cpp`, `src/ingress/webrtc_http_server.cpp` | `/ops/dashboard`, `/ops/events`, `/ops/home` | `verify-va-events`, `verify-ops-event-review-inbox`, `verify-ops-event-records-scope`, `verify-ops-alert-delivery-integrations`, `verify-va-runtime-console` |
+| `CLIENT-*` | `src/ingress/product_ui_page_scripts.cpp`, `src/ingress/webrtc_http_server.cpp`, `src/ingress/webrtc_egress_session.cpp` | `/client/live`, `/client/dashboard`, `/client/request-access` | `verify-client-live-workspace`, `verify-client-dashboard-polish`, `verify-client-source-dock-events`, `verify-client-tile-*`, `verify-ops-client-ui` |
+| `MEDIA-*` | `src/core/session_manager.cpp`, `src/core/source_factory.cpp`, `src/core/stream_registry.cpp`, `src/ingress/webrtc_egress_session.cpp`, `src/ingress/rtsp_adapter.cpp` | `/client/live` only where video is visible | `verify-codecs`, `verify-webrtc-ice`, `verify-webrtc-va-metadata`, `verify-uri-source-longrun`, `verify-predev` |
+| `LAB-*` | `src/ingress/analysis_query.cpp`, `src/ingress/webrtc_http_server.cpp` | 비대상 | `verify-analysis-state`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-image-analysis` |
+| `SAFE-*` | schema/payload/media/auth 경계 owner 전체 | route guard와 client 비노출 화면 | `verify-auth-routes`, `verify-ops-client-ui`, `verify-webrtc-va-metadata`, `verify-ws-metadata`, `verify-event-post-*` |
+
+## Verifier Coverage Map
+
+| 기능 ID 범위 | 안정화 verifier 후보 | 비고 |
+| --- | --- | --- |
+| `UI-001`~`UI-018` | `verify-auth-bootstrap`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-ops-route-boundaries` | route/shell/404 경계 |
+| `UI-019`~`UI-021` | `verify-ops-client-ui --screenshots`, `verify-docs-ui-assets`, `verify-product-ui-token-drift` | 시각 품질은 수동 UI evidence 필요 |
+| `AUTH-001`~`AUTH-042` | `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
+| `SRC-001`~`SRC-030` | `verify-ops-source-lifecycle`, `verify-ops-source-health-bulk`, `verify-ops-channel-bulk`, `verify-onvif-*`, `verify-ops-client-ui` | ONVIF field success는 제외 |
+| `RULE-001`~`RULE-101` | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-rule-validation-matrix`, `verify-ops-scenario-builder-ui`, `verify-ops-scenario-presets`, `verify-va-replay`, `verify-analysis-state`, `verify-reid-advanced-tracking`, `verify-tracker-stability` | 실제 UI 이벤트 발생 전수는 아직 NOT RUN |
+| `EVT-001`~`EVT-026` | `verify-va-events`, `verify-ops-event-review-inbox`, `verify-ops-event-records-scope`, `verify-ops-alert-delivery-integrations`, `verify-va-runtime-console` | event log 육안 확인은 UI 풀테스트 |
+| `CLIENT-001`~`CLIENT-022` | `verify-client-live-workspace`, `verify-client-dashboard-polish`, `verify-client-source-dock-events`, `verify-client-tile-disconnect-contract`, `verify-client-tile-info-overlay-health`, `verify-ops-client-ui` | viewer 비노출은 브라우저 확인 필요 |
+| `MEDIA-001`~`MEDIA-020` | `verify-codecs`, `verify-webrtc-ice`, `verify-webrtc-va-metadata`, `verify-uri-source-longrun`, `verify-predev` | 30분/120분은 실행 지시 필요 |
+| `LAB-001`~`LAB-034` | `verify-analysis-state`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-image-analysis` | 제품 UI 비대상 |
+| `SAFE-001`~`SAFE-020` | `verify-auth-routes`, `verify-ops-client-ui`, `verify-event-post-dispatch`, `verify-webrtc-va-metadata`, `verify-ws-metadata`, `verify-rtsp-va-overlay-policy` | schema/media/auth 불변 조건 |
+
+## VA Manual UI Seed Matrix
+
+UI 풀테스트 데이터는 운영 데이터가 아니라 throwaway fixture로만 준비합니다.
+최종 상태는 event log 육안 확인을 위해 삭제하지 않고 남겨야 하며, Rule CRUD와
+Rule scenario/event 발생 검수는 분리합니다.
+
+| 항목 | 기준 |
+| --- | --- |
+| fixture | `test/fixtures/manual_ui_fulltest_va_seed_matrix.json` |
+| 기본 event template | `presence`, `enter`, `exit`, `line-crossing:any`, `line-crossing:forward`, `line-crossing:reverse` |
+| scenario template | `intrusion-dwell`, `re-entry`, `wrong-direction`, `intrusion-after-line-crossing`, `loitering`, `zone-occupancy` |
+| scenario preset | `default`, `road`, `retail`, `park`, `indoor`, `lobby`, `platform`, `entrance`, `doorway`, `parking`, `elevator`, `custom` |
+| tracker policy | `none/off`, `lite/off`, `kalman-lite/off`, `bytetrack/off`, `lite/assist`, `kalman-lite/assist`, `bytetrack/assist` |
+| invalid policy | `tracker=none` + `reid=assist`는 저장 거부 또는 `reid=off` 정규화 |
+| final state | profiles, event templates, VA rules가 모두 남아 있어야 하며 event log 확인 전 삭제하지 않음 |
+| 제외 | OC-SORT, BoT-SORT, DeepSORT, Re-ID default-on, 실제 Re-ID model bundle은 v1.8.0 제품 UI seed가 아님 |
+
+## 30-Minute And 120-Minute Mapping
+
+| 영역 | 대상 기능 | 실행 기준 |
+| --- | --- | --- |
+| 30분 soak | `UI-015`, `SRC-002`~`SRC-005`, `SRC-012`, `SRC-024`, `RULE-035`~`RULE-037`, `RULE-039`, `RULE-099`, `EVT-001`~`EVT-003`, `EVT-006`, `EVT-024`, `EVT-026`, `CLIENT-002`~`CLIENT-005`, `CLIENT-019`, `CLIENT-021`, `MEDIA-001`~`MEDIA-004`, `MEDIA-008`~`MEDIA-013`, `MEDIA-016`~`MEDIA-020`, `LAB-015`, `LAB-016`, `LAB-020`, `SAFE-008`, `SAFE-009`, `SAFE-014` | 사용자 장기간 테스트 지시 또는 버전 로드맵 완료 후 `verify-predev --soak-minutes 30` 계열 |
+| 120분 조건부 | `MEDIA-001`~`MEDIA-004`, `MEDIA-011`, `MEDIA-012`, `SAFE-014` | memory growth, runtime drift, fanout/media path 고위험 변경 시 사용자에게 먼저 말하고 승인 후 실행 |
+| 필드 별도 | `SRC-014` | ONVIF 실기기/endpoint/credential 준비 시 별도 field smoke |
 
 ## Classification Rules
 
@@ -425,3 +495,10 @@ source-of-truth입니다.
 | UI 풀테스트 항목 대조 | 기능 ID별 직접 클릭/타이핑/viewport/theme evidence 항목 |
 
 coverage 대조 전에는 `테스트 있음`, `UI 있음`, `완료`라고 보고하지 않습니다.
+
+## Script Inventory Boundary
+
+이 문서는 기능별 UI 필요 여부와 테스트 영역을 관리합니다. `server.sh` command
+dispatch, `scripts/internal/*`, `scripts/examples/*`, helper script 전체 목록은
+`./server.sh verify-script-inventory`가 source-of-truth입니다. script 파일 하나하나를
+기능 row로 다시 나열하지 않습니다.

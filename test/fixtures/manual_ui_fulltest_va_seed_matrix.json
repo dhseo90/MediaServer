@@ -1,0 +1,326 @@
+{
+  "schema": "media-server.manual-ui-fulltest-va-seed-matrix.v1",
+  "description": "Throwaway VA seed matrix for v1.8.0 manual UI full test planning. This is not execution evidence and not production data.",
+  "releaseTarget": "v1.8.0",
+  "usageBoundary": {
+    "authMode": "auto",
+    "dataScope": "throwaway",
+    "keepFinalRulesForEventLogReview": true,
+    "separateCrudFromScenarioEventReview": true,
+    "notEvidenceUntilAppliedAndVerified": true
+  },
+  "accounts": [
+    {
+      "role": "admin",
+      "purpose": "setup, users, sources, rules, event review, full ops access"
+    },
+    {
+      "role": "operator",
+      "purpose": "ops operational access without admin-only account mutation"
+    },
+    {
+      "role": "viewer",
+      "purpose": "client live/dashboard scoped view and ops/lab denial"
+    },
+    {
+      "role": "integrator",
+      "purpose": "API/scope boundary and non-primary UI landing behavior"
+    }
+  ],
+  "sources": [
+    {
+      "id": "ui-file-sample-h264",
+      "kind": "file",
+      "file": "sample_h264.mp4",
+      "purpose": "video playback smoke only, not all VA event proof"
+    },
+    {
+      "id": "ui-file-va-four-scene",
+      "kind": "file",
+      "file": "va_four_scene_sample.mp4",
+      "purpose": "manual VA overlay and multi-scenario UI seed"
+    },
+    {
+      "id": "ui-rtsp-loopback",
+      "kind": "rtsp",
+      "purpose": "30-minute soak candidate when loopback source is prepared"
+    },
+    {
+      "id": "ui-onvif-field-draft",
+      "kind": "onvif",
+      "purpose": "field-smoke-only draft path; not a default pass requirement"
+    }
+  ],
+  "profiles": [
+    {
+      "id": "ui-prof-none-off",
+      "detector": "yolo",
+      "fps": 6,
+      "maxQueue": 1,
+      "confidence": 0.25,
+      "nms": 0.45,
+      "inputWidth": 640,
+      "inputHeight": 640,
+      "trackingPolicy": {
+        "tracker": "none",
+        "reid": "off"
+      }
+    },
+    {
+      "id": "ui-prof-lite-off",
+      "detector": "yolo",
+      "fps": 6,
+      "maxQueue": 1,
+      "confidence": 0.25,
+      "nms": 0.45,
+      "inputWidth": 640,
+      "inputHeight": 640,
+      "trackingPolicy": {
+        "tracker": "lite",
+        "reid": "off"
+      }
+    },
+    {
+      "id": "ui-prof-kalman-off",
+      "detector": "yolo",
+      "fps": 6,
+      "maxQueue": 1,
+      "confidence": 0.25,
+      "nms": 0.45,
+      "inputWidth": 640,
+      "inputHeight": 640,
+      "trackingPolicy": {
+        "tracker": "kalman-lite",
+        "reid": "off"
+      }
+    },
+    {
+      "id": "ui-prof-bytetrack-off",
+      "detector": "yolo",
+      "fps": 6,
+      "maxQueue": 1,
+      "confidence": 0.25,
+      "nms": 0.45,
+      "inputWidth": 640,
+      "inputHeight": 640,
+      "trackingPolicy": {
+        "tracker": "bytetrack",
+        "reid": "off"
+      }
+    },
+    {
+      "id": "ui-prof-lite-assist",
+      "detector": "yolo",
+      "fps": 6,
+      "maxQueue": 1,
+      "confidence": 0.25,
+      "nms": 0.45,
+      "inputWidth": 640,
+      "inputHeight": 640,
+      "trackingPolicy": {
+        "tracker": "lite",
+        "reid": "assist"
+      }
+    },
+    {
+      "id": "ui-prof-kalman-assist",
+      "detector": "yolo",
+      "fps": 6,
+      "maxQueue": 1,
+      "confidence": 0.25,
+      "nms": 0.45,
+      "inputWidth": 640,
+      "inputHeight": 640,
+      "trackingPolicy": {
+        "tracker": "kalman-lite",
+        "reid": "assist"
+      }
+    },
+    {
+      "id": "ui-prof-bytetrack-assist",
+      "detector": "yolo",
+      "fps": 6,
+      "maxQueue": 1,
+      "confidence": 0.25,
+      "nms": 0.45,
+      "inputWidth": 640,
+      "inputHeight": 640,
+      "trackingPolicy": {
+        "tracker": "bytetrack",
+        "reid": "assist"
+      }
+    }
+  ],
+  "eventTemplates": [
+    {
+      "id": "ui-event-presence",
+      "type": "presence"
+    },
+    {
+      "id": "ui-event-enter",
+      "type": "enter"
+    },
+    {
+      "id": "ui-event-exit",
+      "type": "exit"
+    },
+    {
+      "id": "ui-event-line-any",
+      "type": "line-crossing",
+      "direction": "any"
+    },
+    {
+      "id": "ui-event-line-forward",
+      "type": "line-crossing",
+      "direction": "forward"
+    },
+    {
+      "id": "ui-event-line-reverse",
+      "type": "line-crossing",
+      "direction": "reverse"
+    },
+    {
+      "id": "ui-scenario-intrusion-dwell",
+      "type": "intrusion-dwell",
+      "preset": "default"
+    },
+    {
+      "id": "ui-scenario-re-entry",
+      "type": "re-entry",
+      "preset": "entrance"
+    },
+    {
+      "id": "ui-scenario-wrong-direction",
+      "type": "wrong-direction",
+      "preset": "road",
+      "allowedDirection": "forward"
+    },
+    {
+      "id": "ui-scenario-intrusion-after-line",
+      "type": "intrusion-after-line-crossing",
+      "preset": "platform"
+    },
+    {
+      "id": "ui-scenario-loitering",
+      "type": "loitering",
+      "preset": "retail"
+    },
+    {
+      "id": "ui-scenario-zone-occupancy",
+      "type": "zone-occupancy",
+      "preset": "lobby"
+    }
+  ],
+  "scenarioPresets": [
+    "default",
+    "road",
+    "retail",
+    "park",
+    "indoor",
+    "lobby",
+    "platform",
+    "entrance",
+    "doorway",
+    "parking",
+    "elevator",
+    "custom"
+  ],
+  "vaRules": [
+    {
+      "id": "ui-va-presence-lite",
+      "sourceId": "ui-file-va-four-scene",
+      "profileId": "ui-prof-lite-off",
+      "eventTemplateId": "ui-event-presence"
+    },
+    {
+      "id": "ui-va-enter-kalman",
+      "sourceId": "ui-file-va-four-scene",
+      "profileId": "ui-prof-kalman-off",
+      "eventTemplateId": "ui-event-enter"
+    },
+    {
+      "id": "ui-va-exit-bytetrack",
+      "sourceId": "ui-file-va-four-scene",
+      "profileId": "ui-prof-bytetrack-off",
+      "eventTemplateId": "ui-event-exit"
+    },
+    {
+      "id": "ui-va-line-any",
+      "sourceId": "ui-file-va-four-scene",
+      "profileId": "ui-prof-lite-assist",
+      "eventTemplateId": "ui-event-line-any"
+    },
+    {
+      "id": "ui-va-line-forward",
+      "sourceId": "ui-file-va-four-scene",
+      "profileId": "ui-prof-kalman-assist",
+      "eventTemplateId": "ui-event-line-forward"
+    },
+    {
+      "id": "ui-va-line-reverse",
+      "sourceId": "ui-file-va-four-scene",
+      "profileId": "ui-prof-bytetrack-assist",
+      "eventTemplateId": "ui-event-line-reverse"
+    },
+    {
+      "id": "ui-va-intrusion-dwell",
+      "sourceId": "ui-file-va-four-scene",
+      "profileId": "ui-prof-lite-off",
+      "eventTemplateId": "ui-scenario-intrusion-dwell"
+    },
+    {
+      "id": "ui-va-re-entry",
+      "sourceId": "ui-file-va-four-scene",
+      "profileId": "ui-prof-kalman-off",
+      "eventTemplateId": "ui-scenario-re-entry"
+    },
+    {
+      "id": "ui-va-wrong-direction",
+      "sourceId": "ui-file-va-four-scene",
+      "profileId": "ui-prof-bytetrack-off",
+      "eventTemplateId": "ui-scenario-wrong-direction"
+    },
+    {
+      "id": "ui-va-intrusion-after-line",
+      "sourceId": "ui-file-va-four-scene",
+      "profileId": "ui-prof-lite-assist",
+      "eventTemplateId": "ui-scenario-intrusion-after-line"
+    },
+    {
+      "id": "ui-va-loitering",
+      "sourceId": "ui-file-va-four-scene",
+      "profileId": "ui-prof-kalman-assist",
+      "eventTemplateId": "ui-scenario-loitering"
+    },
+    {
+      "id": "ui-va-zone-occupancy",
+      "sourceId": "ui-file-va-four-scene",
+      "profileId": "ui-prof-bytetrack-assist",
+      "eventTemplateId": "ui-scenario-zone-occupancy"
+    }
+  ],
+  "invalidPolicyCases": [
+    {
+      "id": "ui-invalid-none-assist",
+      "trackingPolicy": {
+        "tracker": "none",
+        "reid": "assist"
+      },
+      "expected": "reject-or-normalize-reid-off"
+    }
+  ],
+  "finalStateMinimums": {
+    "accounts": 4,
+    "sources": 2,
+    "profiles": 7,
+    "eventTemplates": 12,
+    "vaRules": 12
+  },
+  "excludedFromV180ProductSeed": [
+    "oc-sort",
+    "bot-sort",
+    "deepsort",
+    "reid-default-on",
+    "real-reid-model-bundle"
+  ]
+}

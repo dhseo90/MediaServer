@@ -23,6 +23,7 @@ Checks:
   - server.sh command dispatch target exists and is executable
   - README/docs/scripts에 적힌 ./server.sh 명령이 실제 command와 일치
   - 추적 중인 scripts 파일이 server command, helper, example, env template 중 하나로 분류됨
+  - 기능 inventory는 script 전체 목록을 중복 나열하지 않고 verify-script-inventory로 위임함
   - 사용자 노출 JS 스크립트의 옵션 검증 helper 적용 여부
 `);
 }
@@ -103,53 +104,32 @@ check("tracked scripts are classified and referenced", () => {
   assert(unclassified.length === 0, `unclassified or unreferenced script(s):\n${unclassified.join("\n")}`);
 });
 
-check("project inventory lists every tracked script file", () => {
-  const missing = [];
-  for (const file of gitLsFiles(["scripts"]).filter(fileExists)) {
-    if (!projectInventory.includes(`\`${file}\``)) {
-      missing.push(file);
-    }
-  }
-  assert(missing.length === 0, `project feature/test inventory missing script file(s):\n${missing.join("\n")}`);
+check("project inventory delegates script file inventory to this verifier", () => {
   for (const phrase of [
-    "## Individual Function Code UI Test Matrix",
-    "script file: scripts/.media_server.env.example",
-    "script file: scripts/internal/test_all.sh",
-    "script file: scripts/internal/verify_script_inventory.mjs",
-    "script file: scripts/internal/verify_project_feature_test_inventory.mjs",
-    "tracked script reference",
+    "## Script Inventory Boundary",
+    "`./server.sh verify-script-inventory`가 source-of-truth",
+    "script 파일 하나하나를",
+    "기능 row로 다시 나열하지 않습니다",
   ]) {
-    assert(projectInventory.includes(phrase), `project inventory missing script inventory phrase: ${phrase}`);
+    assert(projectInventory.includes(phrase), `project inventory missing script boundary phrase: ${phrase}`);
   }
 });
 
-check("project inventory command detail covers server.sh dispatch commands", () => {
-  const dispatches = parseServerDispatches();
-  const documentedCommands = parseProjectInventoryCommandDetails();
-  const missing = [];
-  for (const item of dispatches) {
-    if (!documentedCommands.has(item.command)) {
-      missing.push(item.command);
-    }
+check("project inventory maps verifier families without duplicating dispatch details", () => {
+  for (const phrase of [
+    "## Verifier Coverage Map",
+    "verify-script-inventory",
+    "기준표 작성 완료, 실행 NOT RUN",
+    "coverage 대조 전에는 `테스트 있음`, `UI 있음`, `완료`라고 보고하지 않습니다.",
+  ]) {
+    assert(projectInventory.includes(phrase), `project inventory missing verifier coverage phrase: ${phrase}`);
   }
-  assert(missing.length === 0, `project inventory command detail missing dispatch command(s):\n${missing.join("\n")}`);
-  assert(
-    projectInventory.includes("server command: verify-script-inventory"),
-    "project inventory does not define server command rows in the individual matrix",
-  );
 });
 
 check("CMake does not define a separate untracked CTest registry", () => {
   const forbidden = /\b(enable_testing|add_test|CTest)\b/g;
   const matches = [...cmake.matchAll(forbidden)].map(match => match[0]);
   assert(matches.length === 0, `CMake test registry exists but is not inventoried:\n${[...new Set(matches)].join("\n")}`);
-  for (const phrase of [
-    "CMakeLists.txt에는 `enable_testing`, `add_test`, `CTest` 기반 별도 test registry가",
-    "현재 테스트 source-of-truth는 `server.sh` dispatch와",
-    "CMake/CTest 별도 test registry가 생기면",
-  ]) {
-    assert(projectInventory.includes(phrase), `project inventory missing CMake/CTest boundary phrase: ${phrase}`);
-  }
 });
 
 check("test entry scripts are reachable from test_all", () => {
@@ -161,15 +141,11 @@ check("test entry scripts are reachable from test_all", () => {
   ];
   const missing = [];
   for (const entry of entries) {
-    if (!testAll.includes(entry) || !projectInventory.includes(`\`${entry}\``)) {
+    if (!testAll.includes(entry)) {
       missing.push(entry);
     }
   }
-  assert(missing.length === 0, `test entry script(s) are not reachable from test_all or inventory:\n${missing.join("\n")}`);
-  assert(
-    projectInventory.includes("`test-entry` script는 `scripts/internal/test_all.sh`에서 호출되는 하위 entry"),
-    "project inventory does not define test-entry reachability",
-  );
+  assert(missing.length === 0, `test entry script(s) are not reachable from test_all:\n${missing.join("\n")}`);
 });
 
 check("user-facing JS option parsers reject unknown options", () => {
@@ -306,16 +282,6 @@ function parseServerDispatches() {
     }
   }
   return dispatches;
-}
-
-function parseProjectInventoryCommandDetails() {
-  const commands = new Set();
-  const regex = /^\| server command: ([^|]+) \|/gm;
-  let match;
-  while ((match = regex.exec(projectInventory)) !== null) {
-    commands.add(match[1].trim());
-  }
-  return commands;
 }
 
 function walkDocsAndScripts() {

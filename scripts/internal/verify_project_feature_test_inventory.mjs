@@ -1,10 +1,9 @@
 #!/usr/bin/env node
-// 파일 용도: 현재 v1.8 기준 기능/UI/검증 inventory 문서가 단일 개별 기능 표로 유지되는지 점검한다.
+// 파일 용도: v1.8.0 기능별 UI 필요/테스트 영역 inventory가 실행 evidence와 분리되어 유지되는지 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
-import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
@@ -20,448 +19,214 @@ Usage:
   ./server.sh verify-project-inventory
 
 Checks:
-  - docs/project-feature-test-inventory.md exists and is linked from docs/README.md
-  - inventory is scoped to current v1.8.0 and explicitly separates unverified manual UI evidence
-  - grouped inventory tables were deleted
-  - the single Individual Function Code UI Test Matrix has one feature/action/route/command per row
-  - each row separates stability, 30-minute, 120-minute, and UI test scope
-  - required product UI, route/API, auth, VA scenario, client, ONVIF, metadata, release, and server command rows exist
-  - every current server.sh command has its own row
+  - docs/project-feature-test-inventory.md is indexed
+  - inventory pins v1.8.0 and states it is not execution evidence
+  - all feature IDs use the current UI/test-area matrix shape
+  - coverage, verifier, VA seed, 30-minute, 120-minute, and field-smoke boundaries exist
+  - manual UI docs reference the feature inventory
+  - the manual UI VA seed matrix fixture covers basic events, scenarios, presets, tracker/Re-ID policies, and invalid policy cases
 `);
 }
 
 assertKnownOptions(rawArgs, ["help"]);
 
+const inventory = readText("docs/project-feature-test-inventory.md");
+const docsIndex = readText("docs/README.md");
+const fulltest = readText("docs/manual-ui-fulltest.md");
+const checklist = readText("docs/manual-ui-checklist.md");
+const template = readText("docs/manual-ui-result-template.md");
+const streamVerification = readText("docs/stream-verification.md");
+const releaseEvidence = readText("docs/release-evidence-index.md");
+const seedFixturePath = "test/fixtures/manual_ui_fulltest_va_seed_matrix.json";
+const seedFixtureText = readText(seedFixturePath);
+const seedFixture = JSON.parse(seedFixtureText);
+
 const checks = [];
 
-const inventoryPath = path.join(rootDir, "docs/project-feature-test-inventory.md");
-const inventory = readText(inventoryPath);
-const docsIndex = readText(path.join(rootDir, "docs/README.md"));
-const server = readText(path.join(rootDir, "server.sh"));
-
-check("inventory document is indexed and scoped to current v1.8.0", () => {
-  requireText(docsIndex, "project-feature-test-inventory.md", "docs index does not link project inventory");
-  requireText(inventory, "현재 release 목표 `v1.8.0`", "inventory does not pin v1.8.0 release target");
-  requireText(
-    inventory,
-    "인앱 브라우저에서 모든 기능을 직접 클릭하고 타이핑한 full manual UI evidence",
-    "inventory does not separate manual UI full-test evidence"
-  );
-  requireText(inventory, "이 문서는 현재 제품 기준만 다룹니다", "inventory does not separate archive history");
-  for (const phrase of [
-    "테스트 단계 역할",
-    "안정화 테스트 | 30분/120분/UI 테스트의 선수 테스트",
-    "기능 개발 중 로드맵의 각 스텝이 끝날 때 수행",
-    "30분 테스트 | 장기간 테스트를 지시받았을 때 기본으로 수행",
-    "각 버전별 로드맵 개발이 끝나면 수행합니다",
-    "120분 테스트 | 메모리 릭",
-    "필요하다고 판단하면 사용자에게 먼저 알리고 승인/지시를 받습니다",
-    "UI 테스트 | 인앱 브라우저에서 직접 클릭/타이핑/반응형/시각 품질",
-  ]) {
-    requireText(inventory, phrase, `inventory missing test phase rule: ${phrase}`);
-  }
+check("inventory is indexed and scoped", () => {
+  requireText(docsIndex, "project-feature-test-inventory.md", "docs index missing inventory link");
+  requireText(inventory, "현재 release 목표 `v1.8.0`", "inventory does not pin v1.8.0");
+  requireText(inventory, "테스트 실행 결과 문서가 아닙니다", "inventory must reject execution-evidence wording");
+  requireText(inventory, "현재 테스트가 존재한다는 증거가 아닙니다", "inventory must reject test-exists wording");
+  requireText(inventory, "coverage 대조 전에는 `테스트 있음`, `UI 있음`, `완료`라고 보고하지 않습니다.", "inventory missing no-overclaim rule");
 });
 
-check("grouped table sections are deleted", () => {
+check("required sections exist", () => {
   for (const heading of [
-    "## Atomic Code Logic / UI / Test Matrix",
-    "## Code Feature Inventory",
-    "## Source Module Inventory Audit",
-    "## Support Artifact Inventory Audit",
-    "## UI-Accessible Feature Inventory",
-    "## UI Action Inventory Audit",
-    "## Route/API Surface Audit",
-    "## Current Verification Inventory",
-    "## Fixture And Test Artifact Inventory Audit",
-    "## Script Inventory Audit",
-    "### Tracked Script File Detail",
-    "## Comparison Result",
+    "## Test Area Roles",
+    "## Summary",
+    "## Current Coverage Status",
+    "## Owner Source Map",
+    "## Verifier Coverage Map",
+    "## VA Manual UI Seed Matrix",
+    "## 30-Minute And 120-Minute Mapping",
+    "## A. Screen And Route",
+    "## B. Auth, Account, Role, Scope",
+    "## C. Channel, Source, Published View",
+    "## D. Rule, Profile, Scenario, Tracker",
+    "## E. Runtime, Dashboard, Events",
+    "## F. Client And Viewer",
+    "## G. Media And Streaming",
+    "## H. Lab, Development API, Metadata",
+    "## I. Safety, Boundary, Invariant Contract",
+    "## Coverage Review To Do",
   ]) {
-    assert(!inventory.includes(heading), `grouped section remains: ${heading}`);
-  }
-
-  for (const heading of [
-    "# Project Feature Test Inventory",
-    "## Individual Function Code UI Test Matrix",
-    "## Current Gaps",
-    "## Maintenance Rules",
-  ]) {
-    requireText(inventory, heading, `inventory missing required section ${heading}`);
+    requireText(inventory, heading, `inventory missing section: ${heading}`);
   }
 });
 
-check("single matrix has individual feature rows", () => {
-  const { rows, byFeature } = parseMatrix();
-  assert(rows.length >= 560, `individual matrix is too small: ${rows.length} row(s)`);
-  assert(byFeature.size === rows.length, "individual matrix has duplicate feature names");
-
-  for (const row of rows) {
-    assert(row.feature.trim(), "matrix row has empty feature");
-    assert(row.code.trim(), `matrix row has empty code logic: ${row.feature}`);
-    assert(row.uiNeed.trim(), `matrix row has empty UI requirement: ${row.feature}`);
-    assert(row.ui.trim(), `matrix row has empty UI state: ${row.feature}`);
-    assert(row.test.trim(), `matrix row has empty test evidence: ${row.feature}`);
-    assert(row.pass.trim(), `matrix row has empty PASS output/judgement: ${row.feature}`);
-    assert(row.stability.trim(), `matrix row has empty stability scope: ${row.feature}`);
-    assert(row.soak30.trim(), `matrix row has empty 30-minute scope: ${row.feature}`);
-    assert(row.soak120.trim(), `matrix row has empty 120-minute scope: ${row.feature}`);
-    assert(row.uiTest.trim(), `matrix row has empty UI test scope: ${row.feature}`);
-    const isTestExcluded = row.ui.startsWith("제외:") ||
-      row.stability.startsWith("제외:") ||
-      row.soak30.startsWith("제외:") ||
-      row.soak120.startsWith("제외:") ||
-      row.uiTest.startsWith("제외:");
-    if (isTestExcluded) {
-      assert(row.uiNeed.startsWith("제외:"), `excluded row must mark UI requirement as excluded: ${row.feature}`);
-      assert(row.ui.startsWith("제외:"), `excluded row must mark UI state as excluded: ${row.feature}`);
-      assert(row.test.includes("테스트 항목 제외"), `excluded row must explicitly state test exclusion: ${row.feature}`);
-      assert(row.pass.includes("PASS 없음"), `excluded row must not claim PASS output: ${row.feature}`);
-      for (const [label, value] of [
-        ["stability", row.stability],
-        ["30-minute", row.soak30],
-        ["120-minute", row.soak120],
-        ["UI test", row.uiTest],
-      ]) {
-        assert(value.startsWith("제외:"), `excluded row ${label} scope must start with 제외: ${row.feature}`);
-        assert(value.includes("실기기") && value.includes("테스트 항목 제외"), `excluded row ${label} scope must name real-device test exclusion: ${row.feature}`);
-      }
-      continue;
-    }
-    assert(
-      row.uiNeed.startsWith("필수:") || row.uiNeed.startsWith("비대상:"),
-      `matrix row UI requirement must be 필수 or 비대상: ${row.feature}`
-    );
-    assert(
-      row.stability.startsWith("존재:") || row.stability.startsWith("조건부:") || row.stability.startsWith("없음:"),
-      `matrix row stability scope must state test existence: ${row.feature}`
-    );
-    assert(row.soak30.includes("verify-predev --soak-minutes 30"), `matrix row 30-minute scope must name 30-minute predev command: ${row.feature}`);
-    assert(row.soak120.includes("120분") && row.soak120.includes("사용자"), `matrix row 120-minute scope must state user-confirmed 120-minute rule: ${row.feature}`);
-    if (row.ui.startsWith("있음")) {
-      assert(row.uiNeed.startsWith("필수:"), `UI-present row must mark UI as required: ${row.feature}`);
-      assert(row.pass.startsWith("PASS 출력:"), `UI-present row must state PASS output: ${row.feature}`);
-      assert(row.pass.includes("exit 0") && row.pass.includes("summary fail 0"), `UI-present row PASS must require exit 0 and fail 0: ${row.feature}`);
-      assert(row.uiTest.startsWith("존재:"), `UI-present row must record UI test existence: ${row.feature}`);
-    } else if (row.ui.startsWith("부분")) {
-      assert(row.uiNeed.startsWith("필수:"), `partial UI row must mark UI as required: ${row.feature}`);
-      assert(row.pass.startsWith("ISSUE:"), `partial UI row must not claim PASS: ${row.feature}`);
-      assert(row.uiTest.startsWith("ISSUE:"), `partial UI row must record partial UI issue: ${row.feature}`);
-    } else if (row.ui.startsWith("없음")) {
-      assert(row.uiNeed.startsWith("비대상:"), `non-UI row must be marked UI not required: ${row.feature}`);
-      assert(row.pass.startsWith("PASS 출력:"), `UI-not-required row must state PASS output: ${row.feature}`);
-      assert(row.uiTest.startsWith("비대상:"), `non-UI row must record UI-not-required status: ${row.feature}`);
-    }
+check("summary counts match current feature IDs", () => {
+  const rows = parseFeatureRows(inventory);
+  assert(rows.length === 316, `expected 316 feature rows, found ${rows.length}`);
+  const ids = rows.map(row => row.id);
+  assert(new Set(ids).size === ids.length, "duplicate feature IDs in inventory");
+  for (const prefix of ["UI", "AUTH", "SRC", "RULE", "EVT", "CLIENT", "MEDIA", "LAB", "SAFE"]) {
+    assert(ids.some(id => id.startsWith(`${prefix}-`)), `missing ${prefix}-* feature IDs`);
   }
-
-  for (const forbidden of [
-    "source update/delete",
-    "view create/update/delete",
-    "event template create/edit/delete",
-    "analysis profile create/edit/delete",
-    "user disable/restore",
-    "profile detector/FPS/queue/confidence/NMS/input/adaptive fields",
-    "preview reconnect/stop",
-    "geometry reset/undo/last/clear",
-    "client tile play/restart/stop",
-    "dashboard compare filter/sort",
-    "copy status/events",
-    "preset JSON apply/reset",
-  ]) {
-    assert(!byFeature.has(forbidden), `grouped feature row remains: ${forbidden}`);
-  }
-});
-
-check("matrix splits formerly grouped source, rule, user, client, and event actions", () => {
-  const { byFeature } = parseMatrix();
-  for (const feature of [
-    "source create API",
-    "source update API",
-    "source delete API",
-    "view create API",
-    "view update API",
-    "view delete API",
-    "VA preview start",
-    "VA preview restart",
-    "VA preview stop",
-    "VA geometry default coordinates",
-    "VA geometry undo",
-    "VA geometry delete last point",
-    "VA geometry clear points",
-    "event template create API",
-    "event template save API",
-    "event template delete API",
-    "analysis profile create API",
-    "analysis profile save API",
-    "analysis profile delete API",
-    "analysis profile detector select",
-    "analysis profile FPS input",
-    "analysis profile queue input",
-    "analysis profile confidence input",
-    "analysis profile NMS input",
-    "analysis profile input width",
-    "analysis profile input height",
-    "analysis profile adaptive toggle",
-    "ops user enable API",
-    "ops user disable API",
-    "event review status filter",
-    "event review class filter",
-    "event review status edit",
-    "event review class edit",
-    "event review note edit",
-    "client live tile playback toggle",
-    "client live tile restart",
-    "client live tile disconnect",
-    "client dashboard status copy",
-    "client dashboard events copy",
-    "client dashboard compare filter",
-    "client dashboard compare sort",
-    "client dashboard preset apply",
-    "client dashboard preset reset",
-  ]) {
-    assert(byFeature.has(feature), `missing individual feature row: ${feature}`);
-  }
-});
-
-check("required feature UI/test triad issues are closed", () => {
-  const { rows } = parseMatrix();
-  const missing = rows.filter((row) =>
-    row.uiNeed.startsWith("필수:") &&
-    (row.ui.startsWith("없음") || row.ui.startsWith("부분") || row.pass.startsWith("ISSUE:") || row.uiTest.startsWith("ISSUE:"))
-  );
-  assert(missing.length === 0, `required feature UI/test issue row(s) remain:\n${missing.map((row) => row.feature).join("\n")}`);
-  requireText(inventory, "| UI가 있어야 하는데 없음 | 0 | 없음 |", "issue closure table missing UI-missing zero count");
-  requireText(inventory, "| 테스트가 있어야 하는데 없음 | 0 | 없음 |", "issue closure table missing test-missing zero count");
-  requireText(inventory, "| UI와 테스트가 둘 다 없음 | 0 | 없음 |", "issue closure table missing both-missing zero count");
-});
-
-check("matrix covers auth roles, scopes, and account flows individually", () => {
-  const { byFeature } = parseMatrix();
-  for (const feature of [
-    "admin bearer token auth",
-    "operator bearer token auth",
-    "viewer bearer token auth",
-    "integrator bearer token auth",
-    "admin role scope template",
-    "operator role scope template",
-    "viewer role scope template",
-    "integrator role scope template",
-    "scope validation for admin",
-    "scope validation for operator",
-    "scope validation for viewer",
-    "scope validation for integrator",
-    "client access request username input",
-    "client access request display-name input",
-    "client access request contact input",
-    "client access request channel input",
-    "client access request reason input",
-    "client access request submit",
-    "ops access request approve",
-    "ops access request reject",
-    "ops invite create",
-    "ops invite list",
-    "ops user reset password API",
-    "last active admin disable guard",
-    "last active admin role-change guard",
-  ]) {
-    assert(byFeature.has(feature), `missing auth/account row: ${feature}`);
-  }
-});
-
-check("matrix covers product UI routes and active Lab API boundaries", () => {
-  for (const route of [
-    "`/`",
-    "`/setup`",
-    "`/login`",
-    "`/logout`",
-    "`/password/change`",
-    "`/invite/setup`",
-    "`/client/request-access`",
-    "`/ops`",
-    "`/ops/home`",
-    "`/ops/dashboard`",
-    "`/ops/sources`",
-    "`/ops/rules`",
-    "`/ops/users`",
-    "`/ops/events`",
-    "`/client`",
-    "`/client/live`",
-    "`/client/dashboard`",
-    "`/client/events`",
-    "`/lab/files`",
-    "`/lab/reports`",
-    "`/lab/reports/content`",
-    "`/lab/runtime/status`",
-  ]) {
-    requireText(inventory, route, `inventory missing route ${route}`);
-  }
-});
-
-check("matrix covers VA scenario functions and keeps manual event evidence boundary", () => {
-  const { byFeature } = parseMatrix();
-  for (const feature of [
-    "intrusion event rule",
-    "line crossing event rule",
-    "intrusion dwell candidate phase",
-    "intrusion dwell confirmed phase",
-    "intrusion dwell ended event",
-    "wrong direction scenario",
-    "re-entry scenario",
-    "intrusion after line crossing trigger",
-    "intrusion after line crossing dwell",
-    "loitering dwell check",
-    "loitering movement-radius check",
-    "loitering trajectory-points check",
-    "zone occupancy threshold check",
-    "zone occupancy dwell check",
-    "scene zone membership calculation",
-    "scene line side calculation",
-    "scenario stable-track requirement",
-    "scenario cooldown enforcement",
-  ]) {
-    const row = byFeature.get(feature);
-    assert(row, `missing VA scenario row: ${feature}`);
-    assert(row.test.includes("verify-va") || row.test.includes("backend"), `VA scenario row missing verifier/backend boundary: ${feature}`);
-    if (row.uiNeed.startsWith("필수:")) {
-      assert(row.ui.startsWith("있음:"), `VA scenario UI-required row must have product UI: ${feature}`);
-      assert(row.pass.startsWith("PASS 출력:"), `VA scenario UI-required row must have PASS judgement: ${feature}`);
-    }
-  }
-  requireText(
-    inventory,
-    "모든 VA scenario가 실제 브라우저 UI에서 실제 이벤트 발생까지 확인됐다는 증거는 아직 없습니다",
-    "inventory must keep manual VA event evidence boundary separate"
-  );
-});
-
-check("matrix covers media, metadata, analysis, ONVIF, release, and sample boundaries", () => {
-  const { byFeature } = parseMatrix();
-  for (const feature of [
-    "RTSP egress session create",
-    "RTSP VA overlay render",
-    "generic WebRTC session create",
-    "generic WebRTC session answer",
-    "generic WebRTC session ICE",
-    "generic WebRTC session delete",
-    "WHEP session create",
-    "WHEP session answer",
-    "WHEP session ICE",
-    "WHEP session delete",
-    "WHIP publish session create",
-    "WHIP publish session ICE",
-    "WHIP publish session delete",
-    "client WebRTC session create",
-    "client WebRTC session answer",
-    "client WebRTC session ICE",
-    "client WebRTC session delete",
-    "WebRTC DataChannel metadata",
-    "SSE metadata side-channel",
-    "WS metadata side-channel",
-    "analysis tap bbox diagnostics API",
-    "analysis tap metrics API",
-    "runtime metadata builder",
-    "ONVIF probe draft apply",
-    "ONVIF profile variant select",
-    "ONVIF field smoke gate",
-    "integrator event-post schema artifact",
-    "public repo readiness check",
-    "manual UI evidence verifier",
-    "sample H264 media fixture",
-    "sample MP4 media fixture",
-    "predev release gate",
-  ]) {
-    assert(byFeature.has(feature), `missing media/metadata/boundary row: ${feature}`);
-  }
-
-  requireText(inventory, "모든 이벤트 수동 evidence 아님", "sample media rows do not reject all-event manual evidence");
-  requireText(inventory, "schema 변경 금지", "metadata schema boundary is not documented");
-});
-
-check("real-device field smoke rows are excluded from current test items", () => {
-  const { byFeature } = parseMatrix();
-  const excludedFeatures = [
-    "ONVIF field smoke gate",
-    "server command: verify-onvif-field-http-probe",
-    "script file: scripts/internal/onvif_field_http_probe_smoke.cpp",
-    "script file: scripts/internal/verify_onvif_field_http_probe.mjs",
+  const counts = {
+    total: rows.length,
+    uiDirect: rows.filter(row => row.uiNeed === "필요").length,
+    uiIndirect: rows.filter(row => row.uiNeed === "간접").length,
+    uiNone: rows.filter(row => row.uiNeed === "비대상").length,
+    testRequired: rows.filter(row => row.testNeed === "필요").length,
+    stability: rows.filter(row => hasArea(row.area, "안정화")).length,
+    ui: rows.filter(row => hasArea(row.area, "UI")).length,
+    soak30: rows.filter(row => hasArea(row.area, "30분")).length,
+    soak120: rows.filter(row => hasArea(row.area, "120분 조건부")).length,
+    field: rows.filter(row => hasArea(row.area, "필드 별도")).length,
+  };
+  const expected = [
+    ["전체 기능 항목", counts.total],
+    ["UI 직접 필요", counts.uiDirect],
+    ["UI 간접 필요", counts.uiIndirect],
+    ["UI 비대상", counts.uiNone],
+    ["테스트 필요", counts.testRequired],
+    ["안정화 대상", counts.stability],
+    ["UI 풀테스트 대상", counts.ui],
+    ["30분 soak 대상", counts.soak30],
+    ["120분 조건부 대상", counts.soak120],
+    ["필드 별도 조건 포함", counts.field],
   ];
-  const excludedSectionStart = inventory.indexOf("### 실기기 필요 테스트 항목 제외");
-  const issueSectionStart = inventory.indexOf("### 기능-UI-테스트 필수 누락 항목");
-  assert(excludedSectionStart >= 0, "missing real-device test exclusion section");
-  assert(issueSectionStart > excludedSectionStart, "real-device exclusion section must precede stability issue list");
-  const excludedSection = inventory.slice(excludedSectionStart, issueSectionStart);
-  const issueSection = inventory.slice(issueSectionStart);
-
-  for (const feature of excludedFeatures) {
-    const row = byFeature.get(feature);
-    assert(row, `missing real-device excluded matrix row: ${feature}`);
-    assert(row.uiNeed.startsWith("제외:"), `real-device row must be excluded from UI requirement: ${feature}`);
-    assert(row.ui.startsWith("제외:"), `real-device row must be excluded from UI requirement: ${feature}`);
-    assert(row.test.includes("테스트 항목 제외"), `real-device row must state test exclusion: ${feature}`);
-    assert(row.pass.includes("PASS 없음"), `real-device row must not claim pass output: ${feature}`);
-    assert(row.stability.startsWith("제외:"), `real-device row must be excluded from stability tests: ${feature}`);
-    assert(row.soak30.startsWith("제외:"), `real-device row must be excluded from 30-minute tests: ${feature}`);
-    assert(row.soak120.startsWith("제외:"), `real-device row must be excluded from 120-minute tests: ${feature}`);
-    assert(row.uiTest.startsWith("제외:"), `real-device row must be excluded from UI tests: ${feature}`);
-    assert(excludedSection.includes(`| ${feature} |`), `real-device exclusion table missing feature: ${feature}`);
-    assert(!issueSection.includes(`| ${feature} |`), `real-device excluded feature remains in stability issue list: ${feature}`);
+  for (const [label, count] of expected) {
+    requireText(inventory, `| ${label} | ${count} |`, `summary count mismatch for ${label}: ${count}`);
   }
 });
 
-check("every current server.sh command has its own row", () => {
-  const { byFeature } = parseMatrix();
-  const missing = parseServerCommands()
-    .map(command => `server command: ${command}`)
-    .filter(feature => !byFeature.has(feature));
-  assert(missing.length === 0, `missing server command row(s):\n${missing.join("\n")}`);
+check("feature rows have required matrix columns", () => {
+  for (const row of parseFeatureRows(inventory)) {
+    assert(row.id, "feature row missing ID");
+    assert(row.feature, `feature row ${row.id} missing feature`);
+    assert(["필요", "간접", "비대상"].includes(row.uiNeed), `feature row ${row.id} has invalid UI need: ${row.uiNeed}`);
+    assert(row.testNeed === "필요", `feature row ${row.id} must mark test need as 필요`);
+    assert(row.area, `feature row ${row.id} missing test area`);
+    assert(row.pass, `feature row ${row.id} missing PASS criteria`);
+  }
 });
 
-check("explicit gaps and maintenance rules prevent completion overstatement", () => {
+check("coverage and verifier wording separates mapping from execution", () => {
   for (const phrase of [
-    "Manual UI full test evidence는 아직 없음",
-    "모든 VA scenario가 실제 브라우저 UI에서 실제 이벤트 발생까지 확인됐다는 증거는 아직 없습니다",
-    "실장비 ONVIF, 외부 WHEP/TURN, 30분/120분 soak",
-    "Integrator role은 API/scope 중심",
-    "sample_h264 같은 sample media 재생은 영상 표시 evidence일 뿐",
-    "기능을 묶어서 쓰지 않습니다",
-    "create, save, delete, filter, sort, copy, start, restart, stop은 각각 행을 분리합니다",
-    "안정화 테스트`, `30분 테스트`, `120분 테스트`, `UI 테스트` 칸을 함께 채웁니다",
-    "## Current Required Triad Count",
-    "정상 기준은 먼저 `UI 필요` 여부를 분리해서 봅니다",
-    "| 전체 기능 row | 754 |",
-    "| 기능-UI-테스트 모두 존재 row | 341 |",
-    "| UI 없어야 정상 row | 409 |",
-    "| 기능-UI-테스트 필수 누락 row | 0 |",
-    "| 테스트 없음 | 0 |",
-    "| 실기기 필요로 테스트 항목 제외 | 4 |",
-    "| UI 필수인데 UI 부분 존재 | 0 |",
-    "| UI가 있어야 하는데 없음 | 0 | 없음 |",
-    "| 테스트가 있어야 하는데 없음 | 0 | 없음 |",
-    "| UI와 테스트가 둘 다 없음 | 0 | 없음 |",
-    "### 실기기 필요 테스트 항목 제외",
-    "### 기능-UI-테스트 필수 누락 항목",
+    "실제 안정화 테스트,",
+    "UI 풀테스트를 실행했다는 뜻이 아닙니다.",
+    "| 제품 UI 위치 |",
+    "| UI 풀테스트 evidence |",
+    "| VA seed 데이터 |",
+    "fixture 기준 작성, 서버 적용 NOT RUN",
+    "Verifier Coverage Map",
+    "실제 UI 이벤트 발생 전수는 아직 NOT RUN",
+    "직접 조작 NOT RUN",
   ]) {
-    requireText(inventory, phrase, `inventory missing gap/rule phrase: ${phrase}`);
+    requireText(inventory, phrase, `inventory missing coverage boundary wording: ${phrase}`);
   }
 });
 
-let pass = 0;
-let fail = 0;
-for (const item of checks) {
-  try {
-    item.fn();
-    pass += 1;
-    console.log(`[pass] ${item.name}`);
-  } catch (error) {
-    fail += 1;
-    console.log(`[fail] ${item.name}: ${error instanceof Error ? error.message : String(error)}`);
+check("manual UI docs reference inventory and seed fixture", () => {
+  for (const [label, text] of [
+    ["manual-ui-fulltest.md", fulltest],
+    ["manual-ui-checklist.md", checklist],
+    ["manual-ui-result-template.md", template],
+    ["stream-verification.md", streamVerification],
+    ["release-evidence-index.md", releaseEvidence],
+  ]) {
+    requireText(text, "project-feature-test-inventory.md", `${label} missing inventory reference`);
   }
+  requireText(checklist, seedFixturePath, "manual checklist missing VA seed fixture path");
+  requireText(template, seedFixturePath, "manual result template missing VA seed fixture path");
+  requireText(template, "## VA Seed / 최종 룰 상태", "manual result template missing VA seed result section");
+});
+
+check("manual UI VA seed matrix covers required v1.8.0 cases", () => {
+  assert(seedFixture.schema === "media-server.manual-ui-fulltest-va-seed-matrix.v1", "unexpected seed fixture schema");
+  assert(seedFixture.releaseTarget === "v1.8.0", "seed fixture must pin v1.8.0");
+  assert(seedFixture.usageBoundary?.notEvidenceUntilAppliedAndVerified === true, "seed fixture must not be evidence by itself");
+  assert(seedFixture.usageBoundary?.keepFinalRulesForEventLogReview === true, "seed fixture must preserve final rules for event review");
+  assert(seedFixture.usageBoundary?.separateCrudFromScenarioEventReview === true, "seed fixture must separate CRUD from event review");
+
+  const accounts = new Set(arrayAt(seedFixture, "accounts").map(item => item.role));
+  for (const role of ["admin", "operator", "viewer", "integrator"]) {
+    assert(accounts.has(role), `seed fixture missing account role: ${role}`);
+  }
+
+  const eventTypes = new Set(arrayAt(seedFixture, "eventTemplates").map(item => item.type));
+  for (const type of ["presence", "enter", "exit", "line-crossing", "intrusion-dwell", "re-entry", "wrong-direction", "intrusion-after-line-crossing", "loitering", "zone-occupancy"]) {
+    assert(eventTypes.has(type), `seed fixture missing event/scenario type: ${type}`);
+  }
+
+  const directions = new Set(arrayAt(seedFixture, "eventTemplates")
+    .filter(item => item.type === "line-crossing")
+    .map(item => item.direction));
+  for (const direction of ["any", "forward", "reverse"]) {
+    assert(directions.has(direction), `seed fixture missing line direction: ${direction}`);
+  }
+
+  const presets = new Set(arrayAt(seedFixture, "scenarioPresets"));
+  for (const preset of ["default", "road", "retail", "park", "indoor", "lobby", "platform", "entrance", "doorway", "parking", "elevator", "custom"]) {
+    assert(presets.has(preset), `seed fixture missing scenario preset: ${preset}`);
+  }
+
+  const trackerPairs = new Set(arrayAt(seedFixture, "profiles").map(item => `${item.trackingPolicy?.tracker}/${item.trackingPolicy?.reid}`));
+  for (const pair of ["none/off", "lite/off", "kalman-lite/off", "bytetrack/off", "lite/assist", "kalman-lite/assist", "bytetrack/assist"]) {
+    assert(trackerPairs.has(pair), `seed fixture missing tracker/Re-ID pair: ${pair}`);
+  }
+  assert(arrayAt(seedFixture, "invalidPolicyCases").some(item => item.trackingPolicy?.tracker === "none" && item.trackingPolicy?.reid === "assist"), "seed fixture missing tracker=none + reid=assist invalid case");
+  assert(seedFixture.finalStateMinimums?.vaRules >= 12, "seed fixture must require at least 12 final VA rules");
+});
+
+runChecks();
+
+function parseFeatureRows(text) {
+  return text
+    .split(/\r?\n/)
+    .filter(line => /^\| (UI|AUTH|SRC|RULE|EVT|CLIENT|MEDIA|LAB|SAFE)-\d+ \|/.test(line))
+    .map(line => {
+      const cells = line.split("|").slice(1, -1).map(cell => cell.trim());
+      return {
+        id: cells[0] || "",
+        feature: cells[1] || "",
+        uiNeed: cells[2] || "",
+        testNeed: cells[3] || "",
+        area: cells[4] || "",
+        pass: cells[5] || "",
+      };
+    });
 }
 
-console.log("");
-console.log("== Project feature/test inventory verification summary ==");
-console.log(`- pass: ${pass}`);
-console.log(`- fail: ${fail}`);
-if (fail > 0) process.exit(1);
+function hasArea(area, token) {
+  return area.split(",").map(item => item.trim()).includes(token);
+}
+
+function readText(relativePath) {
+  return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
+}
+
+function arrayAt(value, key) {
+  const item = value?.[key];
+  assert(Array.isArray(item), `${key} must be an array`);
+  return item;
+}
+
+function requireText(text, needle, message) {
+  assert(text.includes(needle), message);
+}
 
 function check(name, fn) {
   checks.push({ name, fn });
@@ -471,106 +236,24 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-function requireText(text, needle, message) {
-  assert(text.includes(needle), message);
-}
-
-function readText(filePath) {
-  return fs.readFileSync(filePath, "utf8");
-}
-
-function parseMatrix() {
-  const startHeading = "## Individual Function Code UI Test Matrix";
-  const endHeading = "## Current Gaps";
-  const start = inventory.indexOf(startHeading);
-  assert(start >= 0, `missing section ${startHeading}`);
-  const end = inventory.indexOf(endHeading, start + startHeading.length);
-  assert(end >= 0, `missing section end ${endHeading}`);
-  const section = inventory.slice(start, end);
-  requireText(section, "| 기능 | 코드상 로직 | UI 필요 | UI 존재 | 테스트 | PASS 출력/판정 | 안정화 테스트 | 30분 테스트 | 120분 테스트 | UI 테스트 |", "matrix header changed");
-
-  const rows = [];
-  for (const line of section.split("\n")) {
-    if (!line.startsWith("| ")) continue;
-    if (line.startsWith("| 기능 ") || line.startsWith("| ---")) continue;
-    const cells = splitMarkdownRow(line);
-    assert(cells.length === 10, `matrix row must have 10 cells: ${line}`);
-    rows.push({
-      feature: cells[0],
-      code: cells[1],
-      uiNeed: cells[2],
-      ui: cells[3],
-      test: cells[4],
-      pass: cells[5],
-      stability: cells[6],
-      soak30: cells[7],
-      soak120: cells[8],
-      uiTest: cells[9],
-    });
-  }
-  const byFeature = new Map(rows.map(row => [row.feature, row]));
-  return { rows, byFeature };
-}
-
-function splitMarkdownRow(line) {
-  const cells = [];
-  let current = "";
-  let escaped = false;
-  const trimmed = line.trim();
-  for (let i = 1; i < trimmed.length - 1; i += 1) {
-    const ch = trimmed[i];
-    if (escaped) {
-      current += ch;
-      escaped = false;
-      continue;
-    }
-    if (ch === "\\") {
-      escaped = true;
-      current += ch;
-      continue;
-    }
-    if (ch === "|") {
-      cells.push(current.trim().replace(/\\\|/g, "|"));
-      current = "";
-      continue;
-    }
-    current += ch;
-  }
-  cells.push(current.trim().replace(/\\\|/g, "|"));
-  return cells;
-}
-
-function parseServerCommands() {
-  const commands = [];
-  const regex = /^\s{2}([a-zA-Z0-9_.|-]+)\)/gm;
-  let match;
-  while ((match = regex.exec(server)) !== null) {
-    for (const command of match[1].split("|")) {
-      if (command !== "*" && !commands.includes(command)) commands.push(command);
+function runChecks() {
+  let pass = 0;
+  let fail = 0;
+  for (const item of checks) {
+    try {
+      item.fn();
+      pass += 1;
+      console.log(`[pass] ${item.name}`);
+    } catch (error) {
+      fail += 1;
+      console.log(`[fail] ${item.name}: ${error instanceof Error ? error.message : String(error)}`);
     }
   }
-  return commands;
-}
-
-function walk(dir) {
-  const result = [];
-  for (const name of fs.readdirSync(dir)) {
-    const current = path.join(dir, name);
-    const stat = fs.statSync(current);
-    if (stat.isDirectory()) result.push(...walk(current));
-    else result.push(current);
-  }
-  return result;
-}
-
-function walkIfExists(dir) {
-  if (!fs.existsSync(dir)) return [];
-  return walk(dir);
-}
-
-function rootMarkdownFiles() {
-  return fs
-    .readdirSync(rootDir)
-    .filter(name => name.endsWith(".md"))
-    .map(name => path.join(rootDir, name));
+  console.log("");
+  console.log("== Project feature/test inventory summary ==");
+  console.log(`- featureRows: ${parseFeatureRows(inventory).length}`);
+  console.log(`- seedFixture: ${seedFixturePath}`);
+  console.log(`- pass: ${pass}`);
+  console.log(`- fail: ${fail}`);
+  if (fail > 0) process.exit(1);
 }
