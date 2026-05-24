@@ -24,7 +24,8 @@ Checks:
   - all feature IDs use the current UI/test-area matrix shape
   - coverage, verifier, VA seed, 30-minute, 120-minute, and field-smoke boundaries exist
   - manual UI docs reference the feature inventory
-  - the manual UI VA seed matrix fixture covers basic events, scenarios, presets, tracker/Re-ID policies, and invalid policy cases
+  - the manual UI VA seed matrix fixture covers API-ready numeric IDs, basic events, scenarios, presets, tracker/Re-ID policies, and invalid policy cases
+  - the manual UI seed dry-run command is documented as preparation, not evidence
 `);
 }
 
@@ -130,7 +131,7 @@ check("coverage and verifier wording separates mapping from execution", () => {
     "| 제품 UI 위치 |",
     "| UI 풀테스트 evidence |",
     "| VA seed 데이터 |",
-    "fixture 기준 작성, 서버 적용 NOT RUN",
+    "dry-run 준비 가능, 서버 적용 NOT RUN",
     "Verifier Coverage Map",
     "실제 UI 이벤트 발생 전수는 아직 NOT RUN",
     "직접 조작 NOT RUN",
@@ -151,6 +152,8 @@ check("manual UI docs reference inventory and seed fixture", () => {
   }
   requireText(checklist, seedFixturePath, "manual checklist missing VA seed fixture path");
   requireText(template, seedFixturePath, "manual result template missing VA seed fixture path");
+  requireText(checklist, "prepare-manual-ui-fulltest-seed --dry-run", "manual checklist missing seed dry-run command");
+  requireText(template, "prepare-manual-ui-fulltest-seed --dry-run", "manual result template missing seed dry-run command");
   requireText(template, "## VA Seed / 최종 룰 상태", "manual result template missing VA seed result section");
 });
 
@@ -166,14 +169,34 @@ check("manual UI VA seed matrix covers required v1.8.0 cases", () => {
     assert(accounts.has(role), `seed fixture missing account role: ${role}`);
   }
 
+  const profileIds = new Set();
+  for (const profile of arrayAt(seedFixture, "profiles")) {
+    assert(/^\d+$/.test(String(profile.id || "")), `seed fixture profile id must be numeric: ${profile.id}`);
+    assert(!["1", "2", "3", "4", "5"].includes(String(profile.id)), `seed fixture profile id is reserved: ${profile.id}`);
+    assert(profile.payload?.id === profile.id, `seed fixture profile payload id mismatch: ${profile.id}`);
+    assert(Array.isArray(profile.payload?.trackingClasses) && profile.payload.trackingClasses.length > 0, `seed fixture profile missing trackingClasses: ${profile.id}`);
+    assert(profile.payload?.analysis?.trackingPolicy === undefined, `seed fixture profile must not place trackingPolicy in profile payload: ${profile.id}`);
+    profileIds.add(String(profile.id));
+  }
+
   const eventTypes = new Set(arrayAt(seedFixture, "eventTemplates").map(item => item.type));
   for (const type of ["presence", "enter", "exit", "line-crossing", "intrusion-dwell", "re-entry", "wrong-direction", "intrusion-after-line-crossing", "loitering", "zone-occupancy"]) {
     assert(eventTypes.has(type), `seed fixture missing event/scenario type: ${type}`);
   }
+  const eventTemplateIds = new Set();
+  const trackerPairs = new Set();
+  for (const item of arrayAt(seedFixture, "eventTemplates")) {
+    assert(/^\d+$/.test(String(item.id || "")), `seed fixture event template id must be numeric: ${item.id}`);
+    assert(item.payload?.id === item.id, `seed fixture event template payload id mismatch: ${item.id}`);
+    assert(item.payload?.event?.type === item.type, `seed fixture event template type mismatch: ${item.id}`);
+    assert(profileIds.has(String(item.payload?.analysis?.profileId || "")), `seed fixture event template missing profile reference: ${item.id}`);
+    trackerPairs.add(trackerPairFromPayload(item.payload, `event template ${item.id}`));
+    eventTemplateIds.add(String(item.id));
+  }
 
   const directions = new Set(arrayAt(seedFixture, "eventTemplates")
     .filter(item => item.type === "line-crossing")
-    .map(item => item.direction));
+    .map(item => item.direction || item.payload?.event?.region?.direction));
   for (const direction of ["any", "forward", "reverse"]) {
     assert(directions.has(direction), `seed fixture missing line direction: ${direction}`);
   }
@@ -183,11 +206,19 @@ check("manual UI VA seed matrix covers required v1.8.0 cases", () => {
     assert(presets.has(preset), `seed fixture missing scenario preset: ${preset}`);
   }
 
-  const trackerPairs = new Set(arrayAt(seedFixture, "profiles").map(item => `${item.trackingPolicy?.tracker}/${item.trackingPolicy?.reid}`));
+  for (const item of arrayAt(seedFixture, "vaRules")) {
+    assert(/^\d+$/.test(String(item.id || "")), `seed fixture vaRule id must be numeric: ${item.id}`);
+    assert(item.payload?.id === item.id, `seed fixture vaRule payload id mismatch: ${item.id}`);
+    assert(profileIds.has(String(item.profileId || "")), `seed fixture vaRule missing profile reference: ${item.id}`);
+    assert(eventTemplateIds.has(String(item.eventTemplateId || "")), `seed fixture vaRule missing event template reference: ${item.id}`);
+    assert(item.payload?.analysis?.profileId === item.profileId, `seed fixture vaRule profile payload mismatch: ${item.id}`);
+    assert(item.payload?.templateStart?.ruleId === item.eventTemplateId, `seed fixture vaRule template payload mismatch: ${item.id}`);
+    trackerPairs.add(trackerPairFromPayload(item.payload, `vaRule ${item.id}`));
+  }
   for (const pair of ["none/off", "lite/off", "kalman-lite/off", "bytetrack/off", "lite/assist", "kalman-lite/assist", "bytetrack/assist"]) {
     assert(trackerPairs.has(pair), `seed fixture missing tracker/Re-ID pair: ${pair}`);
   }
-  assert(arrayAt(seedFixture, "invalidPolicyCases").some(item => item.trackingPolicy?.tracker === "none" && item.trackingPolicy?.reid === "assist"), "seed fixture missing tracker=none + reid=assist invalid case");
+  assert(arrayAt(seedFixture, "invalidPolicyCases").some(item => item.payload?.analysis?.trackingPolicy?.tracker === "none" && item.payload?.analysis?.trackingPolicy?.reid === "assist" && item.expected === "reject"), "seed fixture missing tracker=none + reid=assist invalid case");
   assert(seedFixture.finalStateMinimums?.vaRules >= 12, "seed fixture must require at least 12 final VA rules");
 });
 
@@ -222,6 +253,19 @@ function arrayAt(value, key) {
   const item = value?.[key];
   assert(Array.isArray(item), `${key} must be an array`);
   return item;
+}
+
+function trackerPairFromPayload(payload, label) {
+  const policy = payload?.analysis?.trackingPolicy;
+  assert(policy && typeof policy === "object", `${label} missing analysis.trackingPolicy`);
+  const tracker = String(policy.tracker || "").trim();
+  const reid = String(policy.reid || "off").trim();
+  assert(["none", "lite", "kalman-lite", "bytetrack"].includes(tracker), `${label} invalid tracker: ${tracker}`);
+  assert(["off", "assist"].includes(reid), `${label} invalid Re-ID: ${reid}`);
+  if (tracker === "none" && reid !== "off") {
+    assert(label.startsWith("invalid"), `${label} uses invalid tracker/Re-ID pair`);
+  }
+  return `${tracker}/${reid}`;
 }
 
 function requireText(text, needle, message) {

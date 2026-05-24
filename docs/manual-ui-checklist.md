@@ -54,6 +54,13 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
   이 seed는 Rule/Profile/Scenario CRUD 검수와 최종 event log 육안 확인을 분리하기
   위한 throwaway 기준이며, 서버에 적용하고 브라우저로 확인하기 전에는 evidence가
   아닙니다.
+- 실제 서버 적용 전에는 `./server.sh prepare-manual-ui-fulltest-seed --dry-run`으로
+  numeric ID, API payload 참조, tracker/Re-ID, scenario/preset coverage, media file
+  존재를 확인합니다. 이 dry-run은 HTTP 요청 0건인 준비 검증이며 UI/event PASS
+  evidence가 아닙니다.
+- seed를 서버에 넣는 동작은 실제 테스트 지시 후에만
+  `./server.sh prepare-manual-ui-fulltest-seed --apply --confirm-throwaway-data --http-base <url>`
+  형태로 수행합니다.
 - Rule/Profile/Channel 추가·수정·삭제 검수 뒤에는 모든 basic event, scenario,
   preset, tracker/Re-ID 조합이 남아 있는 최종 상태를 유지하고 event log를 확인합니다.
 - destructive action은 throwaway 계정, 채널, 접근 요청으로만 수행합니다.

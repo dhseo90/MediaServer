@@ -53,7 +53,7 @@ source-of-truth입니다.
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료, 실행 NOT RUN |
 | 30분 테스트 매핑 | 30분 대상 기능을 media/session/runtime 중심으로 분리 | 기준표 작성 완료, 실행 NOT RUN |
 | 120분 테스트 매핑 | memory leak/runtime drift 조건부 대상 7개 분리 | 기준표 작성 완료, 실행 NOT RUN |
-| VA seed 데이터 | `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`로 full UI seed matrix를 고정 | fixture 기준 작성, 서버 적용 NOT RUN |
+| VA seed 데이터 | `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`로 numeric ID/API payload 기준 full UI seed matrix를 고정 | dry-run 준비 가능, 서버 적용 NOT RUN |
 | UI 풀테스트 evidence | 기능 ID별 result template 기록란 추가 | 직접 조작 NOT RUN |
 
 ## Owner Source Map
@@ -94,6 +94,9 @@ Rule scenario/event 발생 검수는 분리합니다.
 | 항목 | 기준 |
 | --- | --- |
 | fixture | `test/fixtures/manual_ui_fulltest_va_seed_matrix.json` |
+| dry-run 준비 | `./server.sh prepare-manual-ui-fulltest-seed --dry-run`은 HTTP 요청 없이 numeric ID, payload 참조, media file 존재, coverage를 확인합니다. 이 결과는 UI/event evidence가 아닙니다. |
+| apply 경계 | 실제 서버 적용은 사용자 지시 후 `--apply --confirm-throwaway-data --http-base <url>`로만 수행하며, 적용 후에도 인앱 브라우저 확인 전에는 UI PASS가 아닙니다. |
+| ID 정책 | profile/rule/vaRule registry id는 numeric string만 사용하며 built-in profile `1`~`5`는 쓰지 않습니다. |
 | 기본 event template | `presence`, `enter`, `exit`, `line-crossing:any`, `line-crossing:forward`, `line-crossing:reverse` |
 | scenario template | `intrusion-dwell`, `re-entry`, `wrong-direction`, `intrusion-after-line-crossing`, `loitering`, `zone-occupancy` |
 | scenario preset | `default`, `road`, `retail`, `park`, `indoor`, `lobby`, `platform`, `entrance`, `doorway`, `parking`, `elevator`, `custom` |

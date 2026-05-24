@@ -67,6 +67,14 @@
 
 기준 fixture는 `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`입니다.
 이 표는 seed를 실제 서버에 적용하고 UI에서 확인했을 때만 채웁니다.
+준비 단계에서 `./server.sh prepare-manual-ui-fulltest-seed --dry-run`을 실행한
+경우에는 아래 준비 검증에만 기록합니다. dry-run은 HTTP 요청 0건이며 UI/event
+evidence가 아닙니다.
+
+- seed dry-run:
+- seed plan/report:
+- seed apply:
+- seed apply 명령:
 
 | 항목 | 기대 상태 | 실제 상태 | 판정 |
 | --- | --- | --- | --- |
