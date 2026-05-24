@@ -743,6 +743,12 @@ run_routes() {
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" "${BASE}/ops/api/runtime/status")" "200" "ops runtime API read allowed"
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" "${BASE}/ops/api/rules/catalog")" "200" "ops rules catalog API read allowed"
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" "${BASE}/ops/api/events/status?limit=1")" "200" "ops events status API read allowed"
+  local readonly_sources_html
+  readonly_sources_html="$(curl -fsS -b "${OP_READONLY_COOKIE}" "${BASE}/ops/sources")"
+  case "${readonly_sources_html}" in
+    *'data-testid="ops-sources-page"'*'data-scope-contract="source-write-required"'*) pass "AUTH-028 readonly operator sees ops sources UI with source write lock policy" ;;
+    *) fail "AUTH-028 readonly operator sources UI scope policy missing: ${readonly_sources_html}" ;;
+  esac
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" "${BASE}/ops/api/users")" "403" "readonly operator admin users API denied"
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" -H 'Content-Type: application/json' \
     -X POST --data '{"username":"readonly-invite","role":"viewer","viewId":"1"}' "${BASE}/ops/api/invites")" "403" "readonly operator invite API denied"

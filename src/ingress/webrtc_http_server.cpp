@@ -4274,6 +4274,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
           <div>
             <h3>채널 목록</h3>
             <p>목록을 보고 상세/삭제를 진행합니다.</p>
+            <p id="channelScopePolicy" class="form-note" data-scope-contract="source-write-required">ops:read 계정은 채널을 조회할 수 있고 source:write가 없으면 채널 생성/수정/삭제 UI가 잠깁니다.</p>
           </div>
           <div class="actions">
             <button id="add-channel" class="button-primary" type="button">채널 추가</button>

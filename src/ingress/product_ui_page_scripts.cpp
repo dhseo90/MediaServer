@@ -7569,6 +7569,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     let editorMode = 'view';
     let currentChannelEnabled = true;
     let initializedHashChannel = false;
+    let opsPrincipal = null;
     const {
       escapeHtml,
       requestJson,
@@ -7595,6 +7596,31 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     const setOnvifProbeDraftStatus = (message, failed = false) => {
       setFeedback(onvifProbeDraftStatus, message, failed, { collapseEmpty: true });
     };
+    const opsPrincipalScopes = () => Array.isArray(opsPrincipal?.scopes) ? opsPrincipal.scopes.map(item => String(item || '')) : [];
+    const opsPrincipalHasScope = scope => opsPrincipal?.role === 'admin' || opsPrincipalScopes().includes('*') || opsPrincipalScopes().includes(scope);
+    const canWriteSources = () => opsPrincipalHasScope('source:write');
+    const sourceWriteDisabledAttr = () => canWriteSources() ? '' : ' disabled aria-disabled="true" data-scope-blocked="source:write"';
+    function applySourceWriteAccessUi() {
+      const writable = canWriteSources();
+      const policy = document.getElementById('channelScopePolicy');
+      if (policy) {
+        policy.textContent = writable
+          ? 'source:write scope 확인됨. 채널 생성/수정/삭제를 수행할 수 있습니다.'
+          : '읽기 전용 범위입니다. ops:read로 채널 조회만 가능하며 source:write가 필요한 생성/수정/삭제 UI는 잠깁니다.';
+        policy.dataset.scopeState = writable ? 'source-write-allowed' : 'source-write-blocked';
+      }
+      const addButton = document.getElementById('add-channel');
+      if (addButton) {
+        addButton.disabled = !writable;
+        addButton.setAttribute('aria-disabled', writable ? 'false' : 'true');
+        addButton.dataset.scopeBlocked = writable ? '' : 'source:write';
+      }
+      if (editorMode !== 'view') {
+        setFormDisabled(!writable);
+      } else {
+        setFormDisabled(true);
+      }
+    }
     const hasSourceTag = (source, tag) => Array.isArray(source?.tags) &&
       source.tags.map(item => String(item || '').toLowerCase()).includes(String(tag || '').toLowerCase());
     const isOnvifSource = source => hasSourceTag(source, 'onvif');
@@ -7828,11 +7854,12 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       return rows;
     }
     function setFormDisabled(disabled) {
+      const writable = canWriteSources();
       for (const element of Array.from(channelForm.elements)) {
-        element.disabled = disabled;
+        element.disabled = disabled || !writable;
       }
-      saveButton.hidden = disabled;
-      editSelectedButton.hidden = !disabled || !currentChannelId;
+      saveButton.hidden = disabled || !writable;
+      editSelectedButton.hidden = !writable || !disabled || !currentChannelId;
     }
     function setGeneratedChannelId(value) {
       const normalized = String(value || '').trim();
@@ -7872,11 +7899,11 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       saveButton.textContent = '저장';
       setFormDisabled(isView);
     }
-	    function renderChannels(sources, views) {
-	      const rows = channelRows(sources, views);
-	      if (rows.length === 0) {
+    function renderChannels(sources, views) {
+      const rows = channelRows(sources, views);
+      if (rows.length === 0) {
         setTableEmpty(channelBody, 8, '등록된 채널이 없습니다. 채널 추가로 첫 카메라/소스를 등록하세요.');
-	        return;
+        return;
       }
       channelBody.innerHTML = rows.map(row => {
         const source = row.source || {};
@@ -7893,9 +7920,10 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         const kindCellHtml = `<div class="channel-kind-cell">
           <strong>${escapeHtml(kindLabel(source.kind, source))}</strong>
         </div>`;
+        const writeDisabled = sourceWriteDisabledAttr();
         const statusCellHtml = opsRowActionsHtml(`
           ${enabled ? chip('활성') : chip('비활성', 'warn')}
-          <button type="button" class="secondary" data-toggle-channel="${escapeHtml(row.id || '')}">${enabled ? '비활성화' : '적용'}</button>
+          <button type="button" class="secondary" data-toggle-channel="${escapeHtml(row.id || '')}"${writeDisabled}>${enabled ? '비활성화' : '적용'}</button>
         `, 'ops-status-actions channel-status-actions');
         const inputCellHtml = `<div class="channel-input-stack">
           <span class="token">${escapeHtml(inputText)}</span>
@@ -7903,9 +7931,9 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         </div>`;
         const actionsCellHtml = opsContextActionsHtml(
           `<button type="button" class="secondary" data-view-channel="${escapeHtml(row.id || '')}">상세</button>`,
-          `<button type="button" class="secondary" data-clone-channel="${escapeHtml(row.id || '')}">복제</button>
+          `<button type="button" class="secondary" data-clone-channel="${escapeHtml(row.id || '')}"${writeDisabled}>복제</button>
           <button type="button" class="secondary" data-open-client-live="${escapeHtml(row.id || '')}" ${view?.enabled === false ? 'disabled' : ''}>라이브 보기</button>
-          <button type="button" class="danger" data-delete-channel="${escapeHtml(row.id || '')}">삭제</button>`,
+          <button type="button" class="danger" data-delete-channel="${escapeHtml(row.id || '')}"${writeDisabled}>삭제</button>`,
           'channel-row-actions',
           '추가 작업'
         );
@@ -7923,14 +7951,20 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       bindChannelRowActions();
     }
     function bindChannelRowActions() {
-	      document.querySelectorAll('[data-view-channel]').forEach(button => {
-	        button.addEventListener('click', () => openChannel(button.dataset.viewChannel || '', 'view'));
-	      });
+      document.querySelectorAll('[data-view-channel]').forEach(button => {
+        button.addEventListener('click', () => openChannel(button.dataset.viewChannel || '', 'view'));
+      });
       document.querySelectorAll('[data-clone-channel]').forEach(button => {
-        button.addEventListener('click', () => openChannel(button.dataset.cloneChannel || '', 'clone'));
+        button.addEventListener('click', () => {
+          if (!canWriteSources()) return setStatus('source:write scope가 필요합니다.', true);
+          openChannel(button.dataset.cloneChannel || '', 'clone');
+        });
       });
       document.querySelectorAll('[data-toggle-channel]').forEach(button => {
-        button.addEventListener('click', () => toggleChannelEnabled(button.dataset.toggleChannel || ''));
+        button.addEventListener('click', () => {
+          if (!canWriteSources()) return setStatus('source:write scope가 필요합니다.', true);
+          toggleChannelEnabled(button.dataset.toggleChannel || '');
+        });
       });
       document.querySelectorAll('[data-copy-stream-channel]').forEach(button => {
         button.addEventListener('click', () => copyChannelStreamUrl(
@@ -7943,10 +7977,13 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       document.querySelectorAll('[data-open-client-live]').forEach(button => {
         button.addEventListener('click', () => openClientLiveForChannel(button.dataset.openClientLive || ''));
       });
-	      document.querySelectorAll('[data-delete-channel]').forEach(button => {
-	        button.addEventListener('click', () => deleteChannel(button.dataset.deleteChannel || ''));
-	      });
-	    }
+      document.querySelectorAll('[data-delete-channel]').forEach(button => {
+        button.addEventListener('click', () => {
+          if (!canWriteSources()) return setStatus('source:write scope가 필요합니다.', true);
+          deleteChannel(button.dataset.deleteChannel || '');
+        });
+      });
+    }
     function sourceUsesFile(file, exceptSourceId = '') {
       const normalized = String(file || '').trim();
       if (!normalized) return false;
@@ -8015,6 +8052,10 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       };
     }
     function resetChannelForm(mode = 'new') {
+      if (!canWriteSources()) {
+        setStatus('source:write scope가 필요합니다.', true);
+        return;
+      }
       channelForm.reset();
       setGeneratedChannelId(nextChannelId());
       currentChannelEnabled = true;
@@ -8249,13 +8290,16 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       return { channelId, sourcePayload, viewPayload };
     }
     async function loadAll() {
-      const [sources, views, clientViews] = await Promise.all([
+      const [sources, views, clientViews, principal] = await Promise.all([
         requestJson('/ops/api/sources'),
         requestJson('/ops/api/views'),
-        requestJson('/client/api/views')
+        requestJson('/client/api/views'),
+        requestJson('/auth/whoami').catch(() => null)
       ]);
+      opsPrincipal = principal;
       loadedSources = sources.sources || [];
       loadedViews = views.views || [];
+      applySourceWriteAccessUi();
       renderChannels(loadedSources, loadedViews);
       renderOpsAuditTrail('channel-audit-list', 'channels');
       if (!initializedHashChannel) {
@@ -8269,6 +8313,10 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     }
     channelForm.addEventListener('submit', async event => {
       event.preventDefault();
+      if (!canWriteSources()) {
+        setStatus('source:write scope가 필요합니다.', true);
+        return;
+      }
       const form = event.currentTarget;
       const data = formDataObject(form);
       const validation = validateChannelForm(form);
