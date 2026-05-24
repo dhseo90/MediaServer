@@ -126,6 +126,30 @@ const ruleValidationMatrixFixtures = [
     serverSnippets: ["vaRule source must match PublishedView source"],
     docSnippets: ["source mismatch"],
   },
+  {
+    id: "inactive-channel",
+    owner: "server-ui",
+    fixture: {
+      source: { sourceId: "1", enabled: false },
+      view: { viewId: "1", enabled: true, allowedRuleIds: ["10"] },
+      vaRule: { id: "10" },
+    },
+    uiSnippets: ["inactive-channel", "비활성 채널"],
+    serverSnippets: ["PublishedView source is not available"],
+    docSnippets: ["비활성 채널/PublishedView"],
+  },
+  {
+    id: "inactive-view",
+    owner: "server-ui",
+    fixture: {
+      source: { sourceId: "1", enabled: true },
+      view: { viewId: "1", enabled: false, allowedRuleIds: ["10"] },
+      vaRule: { id: "10" },
+    },
+    uiSnippets: ["inactive-view", "비활성 PublishedView"],
+    serverSnippets: ["PublishedView not found"],
+    docSnippets: ["비활성 채널/PublishedView"],
+  },
 ];
 
 check("rule validation matrix has required fixtures", () => {
@@ -138,7 +162,7 @@ check("rule validation matrix has required fixtures", () => {
     assert(Array.isArray(fixture.uiSnippets), `fixture ${fixture.id} has no uiSnippets`);
     assert(Array.isArray(fixture.serverSnippets), `fixture ${fixture.id} has no serverSnippets`);
   }
-  for (const required of ["duplicate-id", "inactive-profile", "missing-profile", "inactive-template", "missing-template", "priority-conflict", "unauthorized-view", "template-class-mismatch", "profile-template-class-mismatch"]) {
+  for (const required of ["duplicate-id", "inactive-profile", "missing-profile", "inactive-template", "missing-template", "priority-conflict", "unauthorized-view", "template-class-mismatch", "profile-template-class-mismatch", "inactive-channel", "inactive-view"]) {
     assert(ids.has(required), `required fixture missing: ${required}`);
   }
 });
@@ -153,7 +177,10 @@ check("UI validation covers every matrix fixture", () => {
 });
 
 check("server validation covers server-owned fixtures", () => {
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = [
+    readText("src/ingress/webrtc_http_server.cpp"),
+    readText("src/ingress/source_view_registry.cpp"),
+  ].join("\n");
   for (const fixture of ruleValidationMatrixFixtures.filter(item => item.owner.includes("server"))) {
     for (const snippet of fixture.serverSnippets) {
       assert(server.includes(snippet), `server validation missing ${fixture.id} snippet: ${snippet}`);

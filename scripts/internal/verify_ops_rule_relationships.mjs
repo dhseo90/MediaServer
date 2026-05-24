@@ -30,17 +30,21 @@ const usedIds = new Set([
   ...initial.vaRules.map(item => String(item?.id || "")),
   ...initial.profiles.map(item => String(item?.id || item?.profileId || "")),
 ]);
-const ids = nextNumericIds(usedIds, { count: 6, start: 9901, end: 9999, label: "ops rule relationship id" });
+const ids = nextNumericIds(usedIds, { count: 8, start: 9901, end: 9999, label: "ops rule relationship id" });
 const inactiveProfileId = ids[0];
 const inactiveEventRuleId = ids[1];
 const eventRuleId = ids[2];
 const validVaRuleId = ids[3];
 const invalidVaRuleId = ids[4];
 const mismatchedVaRuleId = ids[5];
+const inactiveViewVaRuleId = ids[6];
+const inactiveChannelVaRuleId = ids[7];
 const created = [];
 
 try {
   const { ruleSource: source, view: mismatchedView } = pickSourcePair(initial.sources, initial.views);
+  const inactiveFixture = pickFileSourceView(initial.sources, initial.views);
+  const inactiveFixtureViewId = String(inactiveFixture.view?.viewId || "");
   const mismatchedViewId = String(mismatchedView?.viewId || "");
   await requestJson(`/lab/analysis/profiles/${encodeURIComponent(inactiveProfileId)}`, {
     method: "PUT",
@@ -151,6 +155,77 @@ try {
 
   await deleteCreatedItem({ type: "viewRestore", id: mismatchedViewId, payload: viewRestorePayload(mismatchedView) });
   await deleteCreatedItem({ type: "vaRule", id: mismatchedVaRuleId });
+
+  await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(inactiveViewVaRuleId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(vaRulePayload(inactiveViewVaRuleId, eventRuleId, "1", inactiveFixture.source)),
+  });
+  created.push({ type: "vaRule", id: inactiveViewVaRuleId });
+  await requestJson(`/ops/api/views/${encodeURIComponent(inactiveFixtureViewId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(viewPayloadWithRule(inactiveFixture.view, inactiveViewVaRuleId, { enabled: false })),
+  });
+  created.push({ type: "viewRestore", id: inactiveFixtureViewId, payload: viewRestorePayload(inactiveFixture.view) });
+  const inactiveViewGraph = await loadGraph();
+  expectRelationshipIssue(
+    "inactive-view",
+    inactiveViewGraph,
+    `PublishedView ${inactiveFixtureViewId} is inactive for vaRule ${inactiveViewVaRuleId}`,
+  );
+  await expectHttpError(
+    `/client/api/views/${encodeURIComponent(inactiveFixtureViewId)}/webrtc/session`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ overlayMode: "va-rule", ruleId: inactiveViewVaRuleId }),
+    },
+    404,
+    "PublishedView not found",
+  );
+  console.log("[pass] inactive-view client va-rule session rejected");
+  await deleteCreatedItem({ type: "viewRestore", id: inactiveFixtureViewId, payload: viewRestorePayload(inactiveFixture.view) });
+  await deleteCreatedItem({ type: "vaRule", id: inactiveViewVaRuleId });
+
+  await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(inactiveChannelVaRuleId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(vaRulePayload(inactiveChannelVaRuleId, eventRuleId, "1", inactiveFixture.source)),
+  });
+  created.push({ type: "vaRule", id: inactiveChannelVaRuleId });
+  await requestJson(`/ops/api/views/${encodeURIComponent(inactiveFixtureViewId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(viewPayloadWithRule(inactiveFixture.view, inactiveChannelVaRuleId)),
+  });
+  created.push({ type: "viewRestore", id: inactiveFixtureViewId, payload: viewRestorePayload(inactiveFixture.view) });
+  await requestJson(`/ops/api/sources/${encodeURIComponent(inactiveFixture.source.sourceId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(sourceRestorePayload(inactiveFixture.source, { enabled: false })),
+  });
+  created.push({ type: "sourceRestore", id: inactiveFixture.source.sourceId, payload: sourceRestorePayload(inactiveFixture.source) });
+  const inactiveChannelGraph = await loadGraph();
+  expectRelationshipIssue(
+    "inactive-channel",
+    inactiveChannelGraph,
+    `PublishedView ${inactiveFixtureViewId} source ${inactiveFixture.source.sourceId} is inactive for vaRule ${inactiveChannelVaRuleId}`,
+  );
+  await expectHttpError(
+    `/client/api/views/${encodeURIComponent(inactiveFixtureViewId)}/webrtc/session`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ overlayMode: "va-rule", ruleId: inactiveChannelVaRuleId }),
+    },
+    404,
+    "PublishedView source is not available",
+  );
+  console.log("[pass] inactive-channel client va-rule session rejected");
+  await deleteCreatedItem({ type: "sourceRestore", id: inactiveFixture.source.sourceId, payload: sourceRestorePayload(inactiveFixture.source) });
+  await deleteCreatedItem({ type: "viewRestore", id: inactiveFixtureViewId, payload: viewRestorePayload(inactiveFixture.view) });
+  await deleteCreatedItem({ type: "vaRule", id: inactiveChannelVaRuleId });
 
   await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(validVaRuleId)}`, {
     method: "PUT",
@@ -276,6 +351,14 @@ function relationshipIssues(graph) {
         issues.push(`PublishedView ${viewId} sourceId ${view?.sourceId || ""} is missing`);
         continue;
       }
+      if (view.enabled === false) {
+        issues.push(`PublishedView ${viewId} is inactive for vaRule ${ruleId}`);
+        continue;
+      }
+      if (viewSource.enabled === false) {
+        issues.push(`PublishedView ${viewId} source ${view?.sourceId || ""} is inactive for vaRule ${ruleId}`);
+        continue;
+      }
       const viewKey = sourceKeyForSource(viewSource);
       const ruleKey = sourceKeyForVaRule(rule.source || {});
       if (viewKey && ruleKey) {
@@ -304,6 +387,23 @@ function pickSourcePair(sources, views) {
     }
   }
   throw new Error("two distinct sources with an enabled PublishedView are required for source mismatch fixture");
+}
+
+function pickFileSourceView(sources, views) {
+  const sourceById = new Map((Array.isArray(sources) ? sources : [])
+    .filter(source => source?.enabled !== false && source?.kind === "file" && sourcePayload(source))
+    .map(source => [String(source.sourceId), source]));
+  const preferred = (Array.isArray(views) ? views : [])
+    .filter(view => view?.enabled !== false && sourceById.has(String(view?.sourceId || "")))
+    .sort((left, right) => {
+      const leftRules = (Array.isArray(left?.allowedRuleIds) ? left.allowedRuleIds : []).length + (left?.defaultRuleId ? 1 : 0);
+      const rightRules = (Array.isArray(right?.allowedRuleIds) ? right.allowedRuleIds : []).length + (right?.defaultRuleId ? 1 : 0);
+      return leftRules - rightRules;
+    })[0];
+  if (!preferred) {
+    throw new Error("an enabled file source with an enabled PublishedView is required for inactive source/view fixture");
+  }
+  return { source: sourceById.get(String(preferred.sourceId)), view: preferred };
 }
 
 function profilePayload(id, { enabled = true } = {}) {
@@ -376,7 +476,7 @@ function vaRulePayload(id, templateRuleId, profileId, source) {
   };
 }
 
-function viewPayloadWithRule(view, ruleId) {
+function viewPayloadWithRule(view, ruleId, { enabled = true } = {}) {
   const allowedOverlayModes = new Set([
     ...(Array.isArray(view?.allowedOverlayModes) ? view.allowedOverlayModes.map(String) : []),
     "va-rule",
@@ -387,7 +487,7 @@ function viewPayloadWithRule(view, ruleId) {
   ].filter(Boolean));
   return {
     ...viewRestorePayload(view),
-    enabled: true,
+    enabled,
     allowedOverlayModes: Array.from(allowedOverlayModes),
     defaultRuleId: ruleId,
     allowedRuleIds: Array.from(allowedRuleIds),
@@ -411,6 +511,29 @@ function viewRestorePayload(view) {
   };
 }
 
+function sourceRestorePayload(source, { enabled = source?.enabled !== false } = {}) {
+  const payload = {
+    sourceId: String(source?.sourceId || ""),
+    displayName: String(source?.displayName || source?.sourceId || ""),
+    kind: String(source?.kind || ""),
+    enabled,
+    tags: Array.isArray(source?.tags) ? source.tags.map(String) : [],
+    ownerGroup: String(source?.ownerGroup || ""),
+    site: String(source?.site || ""),
+    group: String(source?.group || ""),
+    floor: String(source?.floor || ""),
+    zone: String(source?.zone || ""),
+  };
+  if (payload.kind === "file") payload.file = String(source?.file || "");
+  if (payload.kind === "rtsp") payload.rtspUrl = String(source?.rtspUrl || source?.url || "");
+  if (payload.kind === "whep") payload.whepUrl = String(source?.whepUrl || source?.url || "");
+  if (payload.kind === "webrtc") payload.webrtcSourceId = String(source?.webrtcSourceId || source?.url || "");
+  if (payload.kind === "http" || payload.kind === "hls" || payload.kind === "youtube") {
+    payload.httpUrl = String(source?.httpUrl || source?.url || "");
+  }
+  return payload;
+}
+
 async function deleteCreatedItem(item) {
   const path = item.type === "vaRule"
     ? `/lab/analysis/va-rules/${encodeURIComponent(item.id)}`
@@ -418,8 +541,10 @@ async function deleteCreatedItem(item) {
       ? `/lab/analysis/profiles/${encodeURIComponent(item.id)}`
       : item.type === "viewRestore"
         ? `/ops/api/views/${encodeURIComponent(item.id)}`
+        : item.type === "sourceRestore"
+          ? `/ops/api/sources/${encodeURIComponent(item.id)}`
         : `/lab/analysis/rules/${encodeURIComponent(item.id)}`;
-  if (item.type === "viewRestore") {
+  if (item.type === "viewRestore" || item.type === "sourceRestore") {
     await requestJson(path, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },

@@ -331,7 +331,7 @@ Rule scenario/event 발생 검수는 분리합니다.
 | RULE-093 | missing template/profile 검증 | 필요 | 필요 | 안정화, UI | `/ops/rules` 저장 전 missing profile과 missing template을 각각 차단하고, 서버가 `analysis.profileId`/`templateStart.ruleId` missing reference 저장을 거부 |
 | RULE-094 | inactive template/profile 검증 | 필요 | 필요 | 안정화, UI | `/ops/rules` 저장 전 inactive profile과 inactive template을 각각 차단하고, 서버가 inactive `analysis.profileId`/`templateStart.ruleId` 저장을 거부 |
 | RULE-095 | source mismatch 검증 | 필요 | 필요 | 안정화, UI | `/ops/rules` validation matrix가 source mismatch를 표시하고, mismatched PublishedView `va-rule` session apply가 `vaRule source must match PublishedView source`로 거부 |
-| RULE-096 | inactive channel/View 검증 | 필요 | 필요 | 안정화, UI | inactive source/view로 session/rule 적용 불가 |
+| RULE-096 | inactive channel/View 검증 | 필요 | 필요 | 안정화, UI | `/ops/rules` validation matrix가 inactive channel/view를 표시하고, inactive PublishedView와 inactive source의 `va-rule` session apply가 각각 404로 거부 |
 | RULE-097 | client view 권한 없음 검증 | 필요 | 필요 | 안정화, UI | viewer가 권한 없는 rule/view를 보지 못함 |
 | RULE-098 | va-rule not allowed 검증 | 필요 | 필요 | 안정화, UI | allowed list 밖 vaRule session이 거부 |
 | RULE-099 | existing connection allowed rule 검증 | 간접 | 필요 | 안정화, 30분 | 연결 중 allowed rule 변경 시 정책대로 유지/차단 |
