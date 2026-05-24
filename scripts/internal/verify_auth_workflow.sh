@@ -704,6 +704,12 @@ run_routes() {
   local op_landing viewer_landing
   op_landing="$(login_landing "${OP_COOKIE}" "operator-smoke" "${TEST_PASSWORD}")"
   expect_eq "${op_landing}" "302:/ops/home" "operator login route"
+  local operator_sources_html
+  operator_sources_html="$(curl -fsS -b "${OP_COOKIE}" "${BASE}/ops/sources")"
+  case "${operator_sources_html}" in
+    *'data-testid="ops-sources-page"'*'data-scope-state="source-write-allowed"'*'id="add-channel"'*'aria-disabled="false"'*) pass "AUTH-029 operator with source write scope sees enabled source write UI" ;;
+    *) fail "AUTH-029 operator source write UI allowed state missing: ${operator_sources_html}" ;;
+  esac
   local op_readonly_landing
   op_readonly_landing="$(login_landing "${OP_READONLY_COOKIE}" "operator-readonly" "${TEST_PASSWORD}")"
   expect_eq "${op_readonly_landing}" "302:/ops/home" "readonly operator login route"
@@ -746,7 +752,7 @@ run_routes() {
   local readonly_sources_html
   readonly_sources_html="$(curl -fsS -b "${OP_READONLY_COOKIE}" "${BASE}/ops/sources")"
   case "${readonly_sources_html}" in
-    *'data-testid="ops-sources-page"'*'data-scope-contract="source-write-required"'*) pass "AUTH-028 readonly operator sees ops sources UI with source write lock policy" ;;
+    *'data-testid="ops-sources-page"'*'data-scope-state="source-write-blocked"'*'id="add-channel"'*'disabled data-scope-blocked="source:write"'*) pass "AUTH-028 readonly operator sees ops sources UI with source write lock policy" ;;
     *) fail "AUTH-028 readonly operator sources UI scope policy missing: ${readonly_sources_html}" ;;
   esac
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" "${BASE}/ops/api/users")" "403" "readonly operator admin users API denied"
@@ -774,6 +780,16 @@ run_routes() {
     -X PUT --data "${readonly_va_rule_payload}" "${BASE}/lab/analysis/va-rules/14")" "403" "rule write scope required for lab vaRule write"
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" -H 'Content-Type: application/json' \
     -X PUT --data '{"id":"99","trackingClasses":["person"]}' "${BASE}/lab/analysis/profiles/99")" "403" "rule write scope required for lab profile write"
+  local operator_source_write_json
+  operator_source_write_json="$(curl -fsS -b "${OP_COOKIE}" -H 'Content-Type: application/json' \
+    -X POST --data '{"sourceId":"30","displayName":"Operator Scope Write","kind":"whep","whepUrl":"https://example.test/operator-scope-write","enabled":true}' \
+    "${BASE}/ops/api/sources")"
+  case "${operator_source_write_json}" in
+    *'"sourceId":"30"'*'"kind":"whep"'*'"whepUrl":"https://example.test/operator-scope-write"'*) pass "AUTH-029 operator source write scope creates source" ;;
+    *) fail "AUTH-029 operator source write response missing expected fields: ${operator_source_write_json}" ;;
+  esac
+  expect_eq "$(http_code -b "${OP_COOKIE}" -H 'Content-Type: application/json' \
+    -X PUT --data '{"id":"99","trackingClasses":["person"]}' "${BASE}/lab/analysis/profiles/99")" "200" "AUTH-029 operator rule write scope saves profile"
   local onvif_draft_json
   onvif_draft_json="$(curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
     -X POST --data "${onvif_fixture_payload}" "${BASE}/ops/api/onvif/import-draft")"

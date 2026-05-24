@@ -4258,6 +4258,7 @@ std::string ClientShellActiveForPath(const std::string& path) {
 
 std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
     std::ostringstream out;
+    const bool can_write_sources = auth::RequireScope(principal, "source:write");
     AppendOpsShellStart(out,
                         principal,
                         "sources",
@@ -4274,10 +4275,14 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
           <div>
             <h3>채널 목록</h3>
             <p>목록을 보고 상세/삭제를 진행합니다.</p>
-            <p id="channelScopePolicy" class="form-note" data-scope-contract="source-write-required">ops:read 계정은 채널을 조회할 수 있고 source:write가 없으면 채널 생성/수정/삭제 UI가 잠깁니다.</p>
+            <p id="channelScopePolicy" class="form-note" data-scope-contract="source-write-required" data-scope-state=")OPS" << (can_write_sources ? "source-write-allowed" : "source-write-blocked") << R"OPS(">)OPS"
+        << (can_write_sources
+                ? "source:write scope 확인됨. 채널 생성/수정/삭제를 수행할 수 있습니다."
+                : "읽기 전용 범위입니다. ops:read로 채널 조회만 가능하며 source:write가 필요한 생성/수정/삭제 UI는 잠깁니다.")
+        << R"OPS(</p>
           </div>
           <div class="actions">
-            <button id="add-channel" class="button-primary" type="button">채널 추가</button>
+            <button id="add-channel" class="button-primary" type="button" aria-disabled=")OPS" << (can_write_sources ? "false" : "true") << "\"" << (can_write_sources ? "" : " disabled data-scope-blocked=\"source:write\"") << R"OPS(>채널 추가</button>
 	            )OPS" << RefreshIconButtonHtml("refresh", "button-secondary", "새로고침") << R"OPS(
             <span id="status" class="status" aria-live="polite" hidden></span>
           </div>
