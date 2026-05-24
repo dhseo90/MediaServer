@@ -711,7 +711,7 @@ run_routes() {
   expect_eq "${viewer_landing}" "302:/client/live" "viewer login route"
   local integrator_landing
   integrator_landing="$(login_landing "${INTEGRATOR_COOKIE}" "integrator-smoke" "${TEST_PASSWORD}")"
-  expect_eq "${integrator_landing}" "302:/login" "integrator login keeps API-only landing"
+  expect_eq "${integrator_landing}" "302:/auth/whoami" "integrator login keeps API-only landing"
   expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops")" "403" "viewer ops denied"
   expect_eq "$(http_code "${BASE}/ops/api/sources")" "401" "unauth ops sources API denied"
   expect_eq "$(http_code "${BASE}/ops/api/views")" "401" "unauth ops views API denied"

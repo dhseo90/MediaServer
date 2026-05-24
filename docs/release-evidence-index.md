@@ -18,6 +18,10 @@
 - 30분 soak와 120분 longrun은 서로 대체하지 않습니다.
 - 스크립트 테스트와 UI 풀테스트는 별도 evidence 영역입니다. 30분/120분 안정화 PASS는
   UI 풀테스트 PASS가 아니고, UI 풀테스트 PASS도 30분/120분 안정화 PASS가 아닙니다.
+- 모든 안정화/30분/120분/UI 테스트 기록에는 토큰 사용량을 함께 남깁니다. 최소
+  기록 필드는 `token start`, `token end`, `token consumed`, `elapsed`, `source`
+  입니다. Codex goal usage처럼 자동 집계값이 있으면 그 값을 우선하고, 없으면
+  `source: manual-not-available`과 함께 미집계 사유를 적습니다.
 - tag, push, GitHub Release 생성은 사용자 명시 승인 전에는 완료로 기록하지 않습니다.
 
 ## Evidence Matrix
@@ -37,6 +41,20 @@
 | Script smoke/stability | build/static/auth/API/media verifier, short smoke, skip reason | `./server.sh build`, 범위별 `verify-*` 명령 | 실행한 테스트 행은 `PASS` 또는 `FAIL`; 실행하지 않은 명령은 별도 `미실행` |
 | 30분 soak | 사용자 명시 요청 시 30분 안정성 테스트 | `./server.sh verify-predev --soak-minutes 30` | 실행한 테스트 행은 `PASS` 또는 `FAIL`; 요청이 없으면 별도 `미실행` |
 | 장시간/외부 gate | 120분 longrun, real ONVIF, external TURN/WHEP, YouTube real URL | release runbook/manual report | 실행한 테스트 행은 `PASS` 또는 `FAIL`; 제외/미실행/미확인은 별도 기록 |
+
+## Test Token Usage Ledger
+
+테스트 실행 기록은 평균 비용 산출을 위해 아래 형식으로 누적합니다. 테스트 결과와
+토큰 사용량은 서로 다른 값입니다. 토큰 사용량이 적거나 많다는 이유로 PASS/FAIL을
+바꾸지 않습니다.
+
+| date | run id | test area | scope | verdict | token start | token end | token consumed | elapsed | token usage source | evidence |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-05-25 | stability-script-smoke-20260525 | 안정화 테스트 | build, manual UI seed dry-run, auth bootstrap/users/routes, ops/client UI smoke+screenshot, rule UI, rules roundtrip, analysis state, VA replay, VA events, runtime console, SSE/WS/WebRTC metadata, `git diff --check` | PASS | 0 | 147,501 | 147,501 | 10m 5s | Codex goal usage | `/private/tmp/media_server_stability_20260525_ops_client_ui_screens`, `/private/tmp/media_server_stability_20260525_va_runtime_console_summary.json`, `/private/tmp/media_server_stability_20260525_va_metadata_sidechannel_summary.json`, `/private/tmp/media_server_stability_20260525_webrtc_va_metadata_summary.json` |
+| 2026-05-25 | predev-30min-20260525 | 30분 soak | `./server.sh verify-predev --soak-minutes 30 --rtsp-port 8568 --http-port 8094`; integrated smoke, 22 soak iterations of VA events/Event POST schema/Event POST recovery/redaction/runtime idle, queue mode, port cleanup | PASS | 0 | 86,657 | 86,657 | 39m 29s test / 41m 42s goal snapshot | Codex goal usage snapshot after evidence verification before closeout | `/private/tmp/media_server_30min_20260525_summary.json`, `/private/tmp/media_server_30min_20260525_report.md`, `/private/tmp/media_server_30min_20260525_report.html`, `/tmp/media_server_predev-1779637404-28970` |
+
+Not run for `stability-script-smoke-20260525`: 30분 soak, 120분 longrun, manual UI 풀테스트.
+Not run for `predev-30min-20260525`: 120분 longrun, manual UI 풀테스트.
 
 ## Skipped / Not-run Wording
 

@@ -45,7 +45,21 @@
       "kind": "file",
       "file": "va_four_scene_sample.mp4",
       "localPath": "video/va_four_scene_sample.mp4",
-      "purpose": "manual VA overlay and multi-scenario UI seed"
+      "purpose": "manual VA overlay and visual layout seed; not the default proof for all event/scenario firing"
+    },
+    {
+      "id": "ui-file-va-tracking-event",
+      "kind": "file",
+      "file": "imports/va_tracking_event_1280x720_30fps_h264.mp4",
+      "localPath": "video/imports/va_tracking_event_1280x720_30fps_h264.mp4",
+      "purpose": "actual basic VA event firing proof for presence, enter, exit, line-crossing, intrusion-dwell, wrong-direction, intrusion-after-line-crossing, loitering, and zone-occupancy"
+    },
+    {
+      "id": "ui-file-va-tracking-long",
+      "kind": "file",
+      "file": "imports/va_tracking_event_long_1280x720_30fps_h264.mp4",
+      "localPath": "video/imports/va_tracking_event_long_1280x720_30fps_h264.mp4",
+      "purpose": "actual re-entry scenario firing proof; same-track exit and re-entry requires a longer fixture"
     },
     {
       "id": "ui-rtsp-loopback",
@@ -268,7 +282,7 @@
           "type": "enter",
           "region": {
             "type": "polygon",
-            "points": [{ "x": 0.12, "y": 0.15 }, { "x": 0.42, "y": 0.15 }, { "x": 0.42, "y": 0.75 }, { "x": 0.12, "y": 0.75 }]
+            "points": [{ "x": 0.35, "y": 0.25 }, { "x": 0.65, "y": 0.25 }, { "x": 0.65, "y": 0.98 }, { "x": 0.35, "y": 0.98 }]
           },
           "minConfidence": 0.25,
           "minDurationMs": 0
@@ -295,7 +309,7 @@
           "type": "exit",
           "region": {
             "type": "polygon",
-            "points": [{ "x": 0.58, "y": 0.15 }, { "x": 0.88, "y": 0.15 }, { "x": 0.88, "y": 0.75 }, { "x": 0.58, "y": 0.75 }]
+            "points": [{ "x": 0.35, "y": 0.25 }, { "x": 0.65, "y": 0.25 }, { "x": 0.65, "y": 0.98 }, { "x": 0.35, "y": 0.98 }]
           },
           "minConfidence": 0.25,
           "minDurationMs": 0
@@ -324,9 +338,9 @@
           "region": {
             "type": "line",
             "direction": "any",
-            "points": [{ "x": 0.22, "y": 0.50 }, { "x": 0.78, "y": 0.50 }]
+            "points": [{ "x": 0.25, "y": 0.05 }, { "x": 0.25, "y": 0.98 }]
           },
-          "minConfidence": 0.30,
+          "minConfidence": 0.25,
           "minDurationMs": 0
         },
         "outputs": { "overlay": true, "metadata": true, "events": true }
@@ -353,9 +367,9 @@
           "region": {
             "type": "line",
             "direction": "forward",
-            "points": [{ "x": 0.22, "y": 0.42 }, { "x": 0.78, "y": 0.42 }]
+            "points": [{ "x": 0.25, "y": 0.05 }, { "x": 0.25, "y": 0.98 }]
           },
-          "minConfidence": 0.30,
+          "minConfidence": 0.25,
           "minDurationMs": 0
         },
         "outputs": { "overlay": true, "metadata": true, "events": true }
@@ -382,9 +396,9 @@
           "region": {
             "type": "line",
             "direction": "reverse",
-            "points": [{ "x": 0.22, "y": 0.58 }, { "x": 0.78, "y": 0.58 }]
+            "points": [{ "x": 0.25, "y": 0.05 }, { "x": 0.25, "y": 0.98 }]
           },
-          "minConfidence": 0.30,
+          "minConfidence": 0.25,
           "minDurationMs": 0
         },
         "outputs": { "overlay": true, "metadata": true, "events": true }
@@ -410,7 +424,7 @@
           "type": "intrusion-dwell",
           "region": {
             "type": "polygon",
-            "points": [{ "x": 0.20, "y": 0.20 }, { "x": 0.82, "y": 0.20 }, { "x": 0.82, "y": 0.80 }, { "x": 0.20, "y": 0.80 }]
+            "points": [{ "x": 0.0, "y": 0.0 }, { "x": 1.0, "y": 0.0 }, { "x": 1.0, "y": 1.0 }, { "x": 0.0, "y": 1.0 }]
           },
           "minConfidence": 0.25,
           "minDurationMs": 0
@@ -419,9 +433,9 @@
           "type": "intrusion-dwell",
           "presetId": "default",
           "enabled": true,
-          "candidateTimeMs": 2000,
-          "dwellTimeMs": 10000,
-          "cooldownMs": 5000,
+          "candidateTimeMs": 0,
+          "dwellTimeMs": 500,
+          "cooldownMs": 1000,
           "targetClasses": ["person"],
           "restrictedZoneIds": []
         },
@@ -489,16 +503,17 @@
           "region": {
             "type": "line",
             "direction": "forward",
-            "points": [{ "x": 0.18, "y": 0.48 }, { "x": 0.84, "y": 0.48 }]
+            "points": [{ "x": 0.25, "y": 0.05 }, { "x": 0.25, "y": 0.98 }]
           },
-          "minConfidence": 0.30,
+          "minConfidence": 0.25,
           "minDurationMs": 0
         },
         "scenario": {
           "type": "wrong-direction",
           "presetId": "road",
           "enabled": true,
-          "cooldownMs": 8000,
+          "allowedDirection": "forward",
+          "cooldownMs": 1000,
           "targetClasses": ["person", "vehicle"]
         },
         "outputs": { "overlay": true, "metadata": true, "events": true }
@@ -525,23 +540,23 @@
           "type": "intrusion-after-line-crossing",
           "region": {
             "type": "polygon",
-            "points": [{ "x": 0.24, "y": 0.20 }, { "x": 0.82, "y": 0.20 }, { "x": 0.82, "y": 0.78 }, { "x": 0.24, "y": 0.78 }]
+            "points": [{ "x": 0.0, "y": 0.0 }, { "x": 1.0, "y": 0.0 }, { "x": 1.0, "y": 1.0 }, { "x": 0.0, "y": 1.0 }]
           },
-          "minConfidence": 0.30,
+          "minConfidence": 0.25,
           "minDurationMs": 0
         },
         "scenario": {
           "type": "intrusion-after-line-crossing",
           "presetId": "platform",
           "enabled": true,
-          "maxDelayAfterCrossingMs": 5000,
-          "dwellTimeMs": 1000,
-          "cooldownMs": 6000,
+          "maxDelayAfterCrossingMs": 60000,
+          "dwellTimeMs": 0,
+          "cooldownMs": 1000,
           "targetZoneIds": [],
           "triggerLine": {
             "id": "line-1",
-            "direction": "forward",
-            "points": [{ "x": 0.22, "y": 0.52 }, { "x": 0.78, "y": 0.52 }]
+            "direction": "any",
+            "points": [{ "x": 0.25, "y": 0.05 }, { "x": 0.25, "y": 0.98 }]
           }
         },
         "outputs": { "overlay": true, "metadata": true, "events": true }
@@ -567,7 +582,7 @@
           "type": "loitering",
           "region": {
             "type": "polygon",
-            "points": [{ "x": 0.18, "y": 0.24 }, { "x": 0.76, "y": 0.24 }, { "x": 0.76, "y": 0.82 }, { "x": 0.18, "y": 0.82 }]
+            "points": [{ "x": 0.0, "y": 0.0 }, { "x": 1.0, "y": 0.0 }, { "x": 1.0, "y": 1.0 }, { "x": 0.0, "y": 1.0 }]
           },
           "minConfidence": 0.25,
           "minDurationMs": 0
@@ -576,10 +591,10 @@
           "type": "loitering",
           "presetId": "retail",
           "enabled": true,
-          "minDwellTimeMs": 20000,
-          "maxMovementRadius": 0.06,
-          "minTrajectoryPoints": 4,
-          "cooldownMs": 10000,
+          "minDwellTimeMs": 500,
+          "maxMovementRadius": 1.0,
+          "minTrajectoryPoints": 2,
+          "cooldownMs": 1000,
           "targetClasses": ["person"],
           "restrictedZoneIds": []
         },
@@ -606,7 +621,7 @@
           "type": "zone-occupancy",
           "region": {
             "type": "polygon",
-            "points": [{ "x": 0.16, "y": 0.18 }, { "x": 0.84, "y": 0.18 }, { "x": 0.84, "y": 0.84 }, { "x": 0.16, "y": 0.84 }]
+            "points": [{ "x": 0.0, "y": 0.0 }, { "x": 1.0, "y": 0.0 }, { "x": 1.0, "y": 1.0 }, { "x": 0.0, "y": 1.0 }]
           },
           "minConfidence": 0.25,
           "minDurationMs": 0
@@ -615,9 +630,9 @@
           "type": "zone-occupancy",
           "presetId": "lobby",
           "enabled": true,
-          "occupancyThreshold": 4,
-          "minDwellTimeMs": 7000,
-          "cooldownMs": 12000,
+          "occupancyThreshold": 1,
+          "minDwellTimeMs": 500,
+          "cooldownMs": 1000,
           "targetClasses": ["person"],
           "restrictedZoneIds": []
         },
@@ -663,14 +678,14 @@
     },
     {
       "id": "9302",
-      "sourceId": "ui-file-va-four-scene",
+      "sourceId": "ui-file-va-tracking-event",
       "profileId": "9102",
       "eventTemplateId": "9202",
       "payload": {
         "id": "9302",
         "name": "UI VA enter lite/off",
         "enabled": true,
-        "source": { "kind": "file", "file": "va_four_scene_sample.mp4" },
+        "source": { "kind": "file", "file": "imports/va_tracking_event_1280x720_30fps_h264.mp4" },
         "analysis": {
           "profileId": "9102",
           "classes": ["person"],
@@ -679,19 +694,19 @@
         "templateStart": { "ruleId": "9202" },
         "priority": 1,
         "outputs": { "overlay": true, "metadata": true, "events": true },
-        "geometry": { "type": "polygon", "points": [{ "x": 0.12, "y": 0.15 }, { "x": 0.42, "y": 0.15 }, { "x": 0.42, "y": 0.75 }, { "x": 0.12, "y": 0.75 }] }
+        "geometry": { "type": "polygon", "points": [{ "x": 0.35, "y": 0.25 }, { "x": 0.65, "y": 0.25 }, { "x": 0.65, "y": 0.98 }, { "x": 0.35, "y": 0.98 }] }
       }
     },
     {
       "id": "9303",
-      "sourceId": "ui-file-va-four-scene",
+      "sourceId": "ui-file-va-tracking-event",
       "profileId": "9103",
       "eventTemplateId": "9203",
       "payload": {
         "id": "9303",
         "name": "UI VA exit kalman-lite/off",
         "enabled": true,
-        "source": { "kind": "file", "file": "va_four_scene_sample.mp4" },
+        "source": { "kind": "file", "file": "imports/va_tracking_event_1280x720_30fps_h264.mp4" },
         "analysis": {
           "profileId": "9103",
           "classes": ["person"],
@@ -700,19 +715,19 @@
         "templateStart": { "ruleId": "9203" },
         "priority": 2,
         "outputs": { "overlay": true, "metadata": true, "events": true },
-        "geometry": { "type": "polygon", "points": [{ "x": 0.58, "y": 0.15 }, { "x": 0.88, "y": 0.15 }, { "x": 0.88, "y": 0.75 }, { "x": 0.58, "y": 0.75 }] }
+        "geometry": { "type": "polygon", "points": [{ "x": 0.35, "y": 0.25 }, { "x": 0.65, "y": 0.25 }, { "x": 0.65, "y": 0.98 }, { "x": 0.35, "y": 0.98 }] }
       }
     },
     {
       "id": "9304",
-      "sourceId": "ui-file-va-four-scene",
+      "sourceId": "ui-file-va-tracking-event",
       "profileId": "9104",
       "eventTemplateId": "9204",
       "payload": {
         "id": "9304",
         "name": "UI VA line any bytetrack/off",
         "enabled": true,
-        "source": { "kind": "file", "file": "va_four_scene_sample.mp4" },
+        "source": { "kind": "file", "file": "imports/va_tracking_event_1280x720_30fps_h264.mp4" },
         "analysis": {
           "profileId": "9104",
           "classes": ["person", "vehicle"],
@@ -721,19 +736,19 @@
         "templateStart": { "ruleId": "9204" },
         "priority": 3,
         "outputs": { "overlay": true, "metadata": true, "events": true },
-        "geometry": { "type": "line", "direction": "any", "points": [{ "x": 0.22, "y": 0.50 }, { "x": 0.78, "y": 0.50 }] }
+        "geometry": { "type": "line", "direction": "any", "points": [{ "x": 0.25, "y": 0.05 }, { "x": 0.25, "y": 0.98 }] }
       }
     },
     {
       "id": "9305",
-      "sourceId": "ui-file-va-four-scene",
+      "sourceId": "ui-file-va-tracking-event",
       "profileId": "9105",
       "eventTemplateId": "9205",
       "payload": {
         "id": "9305",
         "name": "UI VA line forward lite/assist",
         "enabled": true,
-        "source": { "kind": "file", "file": "va_four_scene_sample.mp4" },
+        "source": { "kind": "file", "file": "imports/va_tracking_event_1280x720_30fps_h264.mp4" },
         "analysis": {
           "profileId": "9105",
           "classes": ["person", "vehicle"],
@@ -742,19 +757,19 @@
         "templateStart": { "ruleId": "9205" },
         "priority": 4,
         "outputs": { "overlay": true, "metadata": true, "events": true },
-        "geometry": { "type": "line", "direction": "forward", "points": [{ "x": 0.22, "y": 0.42 }, { "x": 0.78, "y": 0.42 }] }
+        "geometry": { "type": "line", "direction": "forward", "points": [{ "x": 0.25, "y": 0.05 }, { "x": 0.25, "y": 0.98 }] }
       }
     },
     {
       "id": "9306",
-      "sourceId": "ui-file-va-four-scene",
+      "sourceId": "ui-file-va-tracking-event",
       "profileId": "9106",
       "eventTemplateId": "9206",
       "payload": {
         "id": "9306",
         "name": "UI VA line reverse kalman-lite/assist",
         "enabled": true,
-        "source": { "kind": "file", "file": "va_four_scene_sample.mp4" },
+        "source": { "kind": "file", "file": "imports/va_tracking_event_1280x720_30fps_h264.mp4" },
         "analysis": {
           "profileId": "9106",
           "classes": ["person", "vehicle"],
@@ -763,19 +778,19 @@
         "templateStart": { "ruleId": "9206" },
         "priority": 5,
         "outputs": { "overlay": true, "metadata": true, "events": true },
-        "geometry": { "type": "line", "direction": "reverse", "points": [{ "x": 0.22, "y": 0.58 }, { "x": 0.78, "y": 0.58 }] }
+        "geometry": { "type": "line", "direction": "reverse", "points": [{ "x": 0.25, "y": 0.05 }, { "x": 0.25, "y": 0.98 }] }
       }
     },
     {
       "id": "9307",
-      "sourceId": "ui-file-va-four-scene",
+      "sourceId": "ui-file-va-tracking-event",
       "profileId": "9107",
       "eventTemplateId": "9207",
       "payload": {
         "id": "9307",
         "name": "UI VA intrusion dwell default bytetrack/assist",
         "enabled": true,
-        "source": { "kind": "file", "file": "va_four_scene_sample.mp4" },
+        "source": { "kind": "file", "file": "imports/va_tracking_event_1280x720_30fps_h264.mp4" },
         "analysis": {
           "profileId": "9107",
           "classes": ["person"],
@@ -784,19 +799,19 @@
         "templateStart": { "ruleId": "9207" },
         "priority": 6,
         "outputs": { "overlay": true, "metadata": true, "events": true },
-        "geometry": { "type": "polygon", "points": [{ "x": 0.20, "y": 0.20 }, { "x": 0.82, "y": 0.20 }, { "x": 0.82, "y": 0.80 }, { "x": 0.20, "y": 0.80 }] }
+        "geometry": { "type": "polygon", "points": [{ "x": 0.0, "y": 0.0 }, { "x": 1.0, "y": 0.0 }, { "x": 1.0, "y": 1.0 }, { "x": 0.0, "y": 1.0 }] }
       }
     },
     {
       "id": "9308",
-      "sourceId": "ui-file-va-four-scene",
+      "sourceId": "ui-file-va-tracking-long",
       "profileId": "9102",
       "eventTemplateId": "9208",
       "payload": {
         "id": "9308",
         "name": "UI VA re-entry entrance lite/off",
         "enabled": true,
-        "source": { "kind": "file", "file": "va_four_scene_sample.mp4" },
+        "source": { "kind": "file", "file": "imports/va_tracking_event_long_1280x720_30fps_h264.mp4" },
         "analysis": {
           "profileId": "9102",
           "classes": ["person"],
@@ -810,14 +825,14 @@
     },
     {
       "id": "9309",
-      "sourceId": "ui-file-va-four-scene",
+      "sourceId": "ui-file-va-tracking-event",
       "profileId": "9103",
       "eventTemplateId": "9209",
       "payload": {
         "id": "9309",
         "name": "UI VA wrong direction road kalman-lite/off",
         "enabled": true,
-        "source": { "kind": "file", "file": "va_four_scene_sample.mp4" },
+        "source": { "kind": "file", "file": "imports/va_tracking_event_1280x720_30fps_h264.mp4" },
         "analysis": {
           "profileId": "9103",
           "classes": ["person", "vehicle"],
@@ -826,19 +841,19 @@
         "templateStart": { "ruleId": "9209" },
         "priority": 8,
         "outputs": { "overlay": true, "metadata": true, "events": true },
-        "geometry": { "type": "line", "direction": "forward", "points": [{ "x": 0.18, "y": 0.48 }, { "x": 0.84, "y": 0.48 }] }
+        "geometry": { "type": "line", "direction": "forward", "points": [{ "x": 0.25, "y": 0.05 }, { "x": 0.25, "y": 0.98 }] }
       }
     },
     {
       "id": "9310",
-      "sourceId": "ui-file-va-four-scene",
+      "sourceId": "ui-file-va-tracking-event",
       "profileId": "9104",
       "eventTemplateId": "9210",
       "payload": {
         "id": "9310",
         "name": "UI VA intrusion after line platform bytetrack/off",
         "enabled": true,
-        "source": { "kind": "file", "file": "va_four_scene_sample.mp4" },
+        "source": { "kind": "file", "file": "imports/va_tracking_event_1280x720_30fps_h264.mp4" },
         "analysis": {
           "profileId": "9104",
           "classes": ["person"],
@@ -847,19 +862,19 @@
         "templateStart": { "ruleId": "9210" },
         "priority": 9,
         "outputs": { "overlay": true, "metadata": true, "events": true },
-        "geometry": { "type": "polygon", "points": [{ "x": 0.24, "y": 0.20 }, { "x": 0.82, "y": 0.20 }, { "x": 0.82, "y": 0.78 }, { "x": 0.24, "y": 0.78 }] }
+        "geometry": { "type": "polygon", "points": [{ "x": 0.0, "y": 0.0 }, { "x": 1.0, "y": 0.0 }, { "x": 1.0, "y": 1.0 }, { "x": 0.0, "y": 1.0 }] }
       }
     },
     {
       "id": "9311",
-      "sourceId": "ui-file-va-four-scene",
+      "sourceId": "ui-file-va-tracking-event",
       "profileId": "9105",
       "eventTemplateId": "9211",
       "payload": {
         "id": "9311",
         "name": "UI VA loitering retail lite/assist",
         "enabled": true,
-        "source": { "kind": "file", "file": "va_four_scene_sample.mp4" },
+        "source": { "kind": "file", "file": "imports/va_tracking_event_1280x720_30fps_h264.mp4" },
         "analysis": {
           "profileId": "9105",
           "classes": ["person"],
@@ -868,19 +883,19 @@
         "templateStart": { "ruleId": "9211" },
         "priority": 10,
         "outputs": { "overlay": true, "metadata": true, "events": true },
-        "geometry": { "type": "polygon", "points": [{ "x": 0.18, "y": 0.24 }, { "x": 0.76, "y": 0.24 }, { "x": 0.76, "y": 0.82 }, { "x": 0.18, "y": 0.82 }] }
+        "geometry": { "type": "polygon", "points": [{ "x": 0.0, "y": 0.0 }, { "x": 1.0, "y": 0.0 }, { "x": 1.0, "y": 1.0 }, { "x": 0.0, "y": 1.0 }] }
       }
     },
     {
       "id": "9312",
-      "sourceId": "ui-file-va-four-scene",
+      "sourceId": "ui-file-va-tracking-event",
       "profileId": "9106",
       "eventTemplateId": "9212",
       "payload": {
         "id": "9312",
         "name": "UI VA zone occupancy lobby kalman-lite/assist",
         "enabled": true,
-        "source": { "kind": "file", "file": "va_four_scene_sample.mp4" },
+        "source": { "kind": "file", "file": "imports/va_tracking_event_1280x720_30fps_h264.mp4" },
         "analysis": {
           "profileId": "9106",
           "classes": ["person"],
@@ -889,7 +904,7 @@
         "templateStart": { "ruleId": "9212" },
         "priority": 11,
         "outputs": { "overlay": true, "metadata": true, "events": true },
-        "geometry": { "type": "polygon", "points": [{ "x": 0.16, "y": 0.18 }, { "x": 0.84, "y": 0.18 }, { "x": 0.84, "y": 0.84 }, { "x": 0.16, "y": 0.84 }] }
+        "geometry": { "type": "polygon", "points": [{ "x": 0.0, "y": 0.0 }, { "x": 1.0, "y": 0.0 }, { "x": 1.0, "y": 1.0 }, { "x": 0.0, "y": 1.0 }] }
       }
     }
   ],
@@ -922,7 +937,7 @@
   ],
   "finalStateMinimums": {
     "accounts": 4,
-    "sources": 2,
+    "sources": 4,
     "profiles": 7,
     "eventTemplates": 12,
     "vaRules": 12

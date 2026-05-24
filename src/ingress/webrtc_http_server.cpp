@@ -1935,6 +1935,9 @@ std::string RoleLandingPath(const auth::Principal& principal, const app::AppConf
     if (principal.role == "admin" || principal.role == "operator") {
         return config.enable_ops ? "/ops/home" : DefaultHomePath(config);
     }
+    if (principal.role == "integrator") {
+        return "/auth/whoami";
+    }
     return "/login";
 }
 
@@ -2636,7 +2639,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
         </div>
         <div class="scenario-builder-grid">
           <label>시나리오
-            <select id="opsScenarioBuilderType">
+            <select id="opsScenarioBuilderType" aria-label="시나리오">
               <option value="intrusion-dwell">침입 체류</option>
               <option value="re-entry">재진입</option>
               <option value="wrong-direction">역방향 이동</option>
@@ -2646,7 +2649,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
             </select>
           </label>
           <label>현장 preset
-            <select id="opsScenarioBuilderPreset">
+            <select id="opsScenarioBuilderPreset" aria-label="시나리오 빌더 현장 preset">
               <option value="default">기본</option>
               <option value="road">도로</option>
               <option value="retail">매장 통로</option>
@@ -2848,7 +2851,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
             </div>
             <div class="row">
               <label>Tracker
-                <select id="opsVaRuleTrackerSelect">
+                <select id="opsVaRuleTrackerSelect" aria-label="Tracker">
                   <option value="lite">Lite</option>
                   <option value="none">사용 안 함</option>
                   <option value="kalman-lite">Kalman-lite</option>
@@ -2856,7 +2859,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
                 </select>
               </label>
               <label>Re-ID
-                <select id="opsVaRuleReidSelect">
+                <select id="opsVaRuleReidSelect" aria-label="Re-ID">
                   <option value="off">Off</option>
                   <option value="assist">Assist</option>
                 </select>
@@ -2947,16 +2950,16 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           </div>
           <div class="row">
             <label>구성
-              <select id="opsEventRuleModeSelect">
+              <select id="opsEventRuleModeSelect" aria-label="구성">
                 <option value="event">이벤트</option>
                 <option value="scenario">시나리오</option>
               </select>
             </label>
             <label>종류
-              <select id="opsEventRuleTypeSelect"></select>
+              <select id="opsEventRuleTypeSelect" aria-label="종류"></select>
             </label>
             <label id="opsEventRulePresetField">현장 preset
-              <select id="opsEventRulePresetSelect">
+              <select id="opsEventRulePresetSelect" aria-label="이벤트 템플릿 현장 preset">
                 <option value="default">기본</option>
                 <option value="road">도로</option>
                 <option value="retail">매장 통로</option>
@@ -3001,7 +3004,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
             </div>
             <div class="row">
               <label id="opsEventRuleLineDirectionField" hidden>라인 방향
-                <select id="opsEventRuleLineDirectionSelect">
+                <select id="opsEventRuleLineDirectionSelect" aria-label="라인 방향">
                   <option value="any">양방향</option>
                   <option value="forward">정방향</option>
                   <option value="reverse">역방향</option>
@@ -3019,7 +3022,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
                 <input id="opsEventRuleReEntryWindowInput" type="number" min="0" step="1000" placeholder="10000" />
               </label>
               <label id="opsEventRuleReEntryModeField" hidden>재진입 기준
-                <select id="opsEventRuleReEntryModeSelect">
+                <select id="opsEventRuleReEntryModeSelect" aria-label="재진입 기준">
                   <option value="same-zone">같은 영역</option>
                   <option value="configured-zones">지정 영역</option>
                 </select>
@@ -3030,7 +3033,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
             </div>
             <div class="row">
               <label id="opsEventRuleTriggerDirectionField" hidden>트리거 라인 방향
-                <select id="opsEventRuleTriggerDirectionSelect">
+                <select id="opsEventRuleTriggerDirectionSelect" aria-label="트리거 라인 방향">
                   <option value="any">양방향</option>
                   <option value="forward">정방향</option>
                   <option value="reverse">역방향</option>
@@ -3065,7 +3068,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
               <span id="opsProfileIdDisplay" class="generated-id-field" data-generated-id="profile">자동 배정</span>
             </div>
             <label>검출기
-              <select id="opsProfileDetectorSelect">
+              <select id="opsProfileDetectorSelect" aria-label="검출기">
                 <option value="yolo">yolo</option>
                 <option value="dummy">dummy</option>
                 <option value="server-config">server-config</option>
@@ -11596,10 +11599,227 @@ void SuppressSocketSigPipe(int fd) {
 
 }  // namespace
 
+std::optional<std::string> ExtractObjectFieldByKey(const std::string& body,
+                                                   const std::string& field);
+
+std::string InsertObjectFieldIfMissing(std::string document,
+                                       const std::string& field_name,
+                                       const std::optional<std::string>& object_value) {
+    if (!object_value.has_value() || object_value->empty() ||
+        ExtractObjectFieldByKey(document, field_name).has_value()) {
+        return document;
+    }
+    const auto closing = document.rfind('}');
+    if (closing == std::string::npos) {
+        return document;
+    }
+    std::size_t previous = closing;
+    while (previous > 0 && std::isspace(static_cast<unsigned char>(document[previous - 1])) != 0) {
+        --previous;
+    }
+    const bool needs_comma = previous > 0 && document[previous - 1] != '{' &&
+                             document[previous - 1] != ',';
+    document.insert(closing,
+                    std::string(needs_comma ? "," : "") + "\"" + JsonEscape(field_name) +
+                        "\":" + *object_value);
+    return document;
+}
+
+std::optional<std::pair<std::size_t, std::size_t>> FindObjectFieldRangeByKey(
+    const std::string& body,
+    const std::string& field) {
+    const std::string needle = "\"" + field + "\"";
+    std::size_t search_pos = 0;
+    while (search_pos < body.size()) {
+        const std::size_t key_pos = body.find(needle, search_pos);
+        if (key_pos == std::string::npos) {
+            return std::nullopt;
+        }
+        search_pos = key_pos + needle.size();
+
+        std::size_t prev = key_pos;
+        while (prev > 0 && std::isspace(static_cast<unsigned char>(body[prev - 1])) != 0) {
+            --prev;
+        }
+        if (prev > 0 && body[prev - 1] != '{' && body[prev - 1] != ',') {
+            continue;
+        }
+
+        std::size_t pos = key_pos + needle.size();
+        while (pos < body.size() && std::isspace(static_cast<unsigned char>(body[pos])) != 0) {
+            ++pos;
+        }
+        if (pos >= body.size() || body[pos] != ':') {
+            continue;
+        }
+        ++pos;
+        while (pos < body.size() && std::isspace(static_cast<unsigned char>(body[pos])) != 0) {
+            ++pos;
+        }
+        if (pos >= body.size() || body[pos] != '{') {
+            continue;
+        }
+
+        bool in_string = false;
+        bool escaped = false;
+        int depth = 0;
+        const std::size_t start = pos;
+        for (; pos < body.size(); ++pos) {
+            const char ch = body[pos];
+            if (escaped) {
+                escaped = false;
+                continue;
+            }
+            if (ch == '\\' && in_string) {
+                escaped = true;
+                continue;
+            }
+            if (ch == '"') {
+                in_string = !in_string;
+                continue;
+            }
+            if (in_string) {
+                continue;
+            }
+            if (ch == '{') {
+                ++depth;
+            } else if (ch == '}') {
+                --depth;
+                if (depth == 0) {
+                    return std::make_pair(start, pos + 1);
+                }
+            }
+        }
+    }
+    return std::nullopt;
+}
+
+std::optional<std::string> ExtractObjectFieldByKey(const std::string& body,
+                                                   const std::string& field) {
+    const auto range = FindObjectFieldRangeByKey(body, field);
+    if (!range.has_value()) {
+        return std::nullopt;
+    }
+    return body.substr(range->first, range->second - range->first);
+}
+
+std::optional<std::pair<std::size_t, std::size_t>> FindDelimitedFieldRange(const std::string& body,
+                                                                           const std::string& field,
+                                                                           char open_ch,
+                                                                           char close_ch) {
+    const std::string needle = "\"" + field + "\"";
+    std::size_t pos = body.find(needle);
+    if (pos == std::string::npos) {
+        return std::nullopt;
+    }
+    pos = body.find(':', pos + needle.size());
+    if (pos == std::string::npos) {
+        return std::nullopt;
+    }
+    pos = body.find(open_ch, pos);
+    if (pos == std::string::npos) {
+        return std::nullopt;
+    }
+
+    bool in_string = false;
+    bool escaped = false;
+    int depth = 0;
+    const std::size_t start = pos;
+    for (; pos < body.size(); ++pos) {
+        const char ch = body[pos];
+        if (escaped) {
+            escaped = false;
+            continue;
+        }
+        if (ch == '\\' && in_string) {
+            escaped = true;
+            continue;
+        }
+        if (ch == '"') {
+            in_string = !in_string;
+            continue;
+        }
+        if (in_string) {
+            continue;
+        }
+        if (ch == open_ch) {
+            ++depth;
+        } else if (ch == close_ch) {
+            --depth;
+            if (depth == 0) {
+                return std::make_pair(start, pos + 1);
+            }
+        }
+    }
+    return std::nullopt;
+}
+
+std::string ReplaceObjectField(std::string document,
+                               const std::string& field_name,
+                               const std::optional<std::string>& object_value) {
+    if (!object_value.has_value() || object_value->empty()) {
+        return document;
+    }
+    const auto range = FindObjectFieldRangeByKey(document, field_name);
+    if (!range.has_value()) {
+        return InsertObjectFieldIfMissing(std::move(document), field_name, object_value);
+    }
+    document.replace(range->first, range->second - range->first, *object_value);
+    return document;
+}
+
+std::optional<std::string> FindRuleDocumentById(const std::vector<std::string>& documents,
+                                                const std::string& id) {
+    if (id.empty()) {
+        return std::nullopt;
+    }
+    for (const auto& document : documents) {
+        if (ParseStringField(document, "id").value_or("") == id) {
+            return document;
+        }
+    }
+    return std::nullopt;
+}
+
+std::optional<std::string> EventObjectForVaRule(const std::string& va_rule_document,
+                                                const std::string& template_document) {
+    auto event = ExtractObjectFieldByKey(template_document, "event");
+    if (!event.has_value()) {
+        return std::nullopt;
+    }
+    event = ReplaceObjectField(*event, "region", ExtractObjectFieldByKey(va_rule_document, "geometry"));
+    return event;
+}
+
+std::string ExpandVaRuleForEventEvaluation(const std::string& va_rule_document,
+                                           const std::vector<std::string>& rule_documents) {
+    if (ExtractObjectFieldByKey(va_rule_document, "event").has_value()) {
+        return va_rule_document;
+    }
+    const auto template_start = ExtractObjectFieldByKey(va_rule_document, "templateStart");
+    if (!template_start.has_value()) {
+        return va_rule_document;
+    }
+    const std::string template_rule_id = Trim(ParseStringField(*template_start, "ruleId").value_or(""));
+    const auto template_document = FindRuleDocumentById(rule_documents, template_rule_id);
+    if (!template_document.has_value()) {
+        return va_rule_document;
+    }
+
+    std::string expanded = va_rule_document;
+    expanded = InsertObjectFieldIfMissing(expanded, "event", EventObjectForVaRule(va_rule_document, *template_document));
+    expanded = InsertObjectFieldIfMissing(expanded, "scenario", ExtractObjectFieldByKey(*template_document, "scenario"));
+    expanded = InsertObjectFieldIfMissing(
+        expanded, "eventActions", ExtractObjectFieldByKey(*template_document, "eventActions"));
+    return expanded;
+}
+
 std::vector<std::string> AnalysisRuleDocumentsSnapshot() {
     auto documents = AnalysisRegistry().RuleDocuments();
     auto va_rule_documents = AnalysisRegistry().VaRuleDocuments();
-    documents.insert(documents.end(), va_rule_documents.begin(), va_rule_documents.end());
+    for (const auto& va_rule_document : va_rule_documents) {
+        documents.push_back(ExpandVaRuleForEventEvaluation(va_rule_document, documents));
+    }
     return documents;
 }
 

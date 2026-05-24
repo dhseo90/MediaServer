@@ -330,8 +330,9 @@ AnalysisEvent IntrusionAfterLineCrossingScenario::BuildEvent(
     const ZoneState& zone_state,
     std::int64_t timestamp_ns) const {
     AnalysisEvent event;
-    event.rule_id =
-        std::string(kScenarioId) + ":" + record.line_id + ":" + zone_state.current_zone;
+    event.rule_id = options_.scenario_key.empty()
+                        ? std::string(kScenarioId) + ":" + record.line_id + ":" + zone_state.current_zone
+                        : options_.scenario_key;
     event.event_type = kScenarioId;
     event.track_id = track_context.track_id;
     event.class_id = track_context.class_id;
@@ -360,7 +361,9 @@ AnalysisEvent IntrusionAfterLineCrossingScenario::BuildEndEvent(
     const TrackSceneContext& track_context,
     const std::string& zone_id) const {
     AnalysisEvent event;
-    event.rule_id = std::string(kScenarioId) + ":" + zone_id;
+    event.rule_id = options_.scenario_key.empty()
+                        ? std::string(kScenarioId) + ":" + zone_id
+                        : options_.scenario_key;
     event.event_type = kScenarioId;
     event.track_id = track_context.track_id;
     event.class_id = track_context.class_id;

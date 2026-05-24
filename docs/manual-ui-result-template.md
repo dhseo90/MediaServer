@@ -23,6 +23,11 @@
 - evidence index:
 - 문서 파악 범위:
 - feature inventory revision:
+- token usage source:
+- token start:
+- token end:
+- token consumed:
+- elapsed:
 
 ## 테스트 영역별 판정
 
@@ -41,6 +46,10 @@
 | 30분 테스트 | `verify-predev --soak-minutes 30`, 장기간 테스트 기본값/버전 완료 soak | summary/report/log | 실행 여부, summary/report/log |
 | 120분 테스트 | `verify-predev --soak-minutes 120`, `verify-va-runtime-console-longrun --duration-minutes 120`, 메모리 릭 감시 필요 시 | summary/report/log | 실행 여부, summary/report/log |
 | UI 풀테스트 | 버전 완료 후 인앱 브라우저 직접 조작, 반응형, 시각 품질 | 개별 기능별 직접 조작, 반영 상태, 로그/EventRecord, screenshot/artifact, 재검수 결과 | PASS/FAIL |
+
+모든 영역은 평균 산출을 위해 `token start`, `token end`, `token consumed`, `elapsed`,
+`source`를 함께 기록합니다. Codex goal usage 같은 자동 집계값이 있으면 그 값을
+우선하고, 집계값이 없으면 미집계 사유를 적습니다.
 
 ## 스크립트 테스트 기록
 

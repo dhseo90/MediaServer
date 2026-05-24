@@ -44,6 +44,8 @@ check("release evidence index owns required evidence categories", () => {
     "Release notes",
     "30분 soak",
     "장시간/외부 gate",
+    "Test Token Usage Ledger",
+    "token consumed",
     "`PASS` 또는 `FAIL`",
     "./server.sh verify-release-evidence-index",
   ]) {
@@ -78,6 +80,24 @@ check("unverified wording stays distinct from pass", () => {
   ]) {
     assert(doc.includes(snippet), `release evidence index missing skipped-test wording: ${snippet}`);
   }
+});
+
+check("test evidence records include token usage fields", () => {
+  const releaseEvidence = readText("docs/release-evidence-index.md");
+  const manualUiStandard = readText("docs/manual-ui-fulltest.md");
+  const manualUiTemplate = readText("docs/manual-ui-result-template.md");
+  const longrunTemplate = readText("docs/runtime-dashboard-longrun-evidence-template.md");
+  for (const [label, text] of [
+    ["release evidence index", releaseEvidence],
+    ["manual UI fulltest standard", manualUiStandard],
+    ["manual UI result template", manualUiTemplate],
+    ["runtime longrun template", longrunTemplate],
+  ]) {
+    for (const snippet of ["token usage source", "token start", "token end", "token consumed", "elapsed"]) {
+      assert(text.includes(snippet), `${label} missing token usage field: ${snippet}`);
+    }
+  }
+  assert(releaseEvidence.includes("147,501"), "release evidence index missing latest stability token usage");
 });
 
 check("docs entrypoints link evidence index without overcrowding README", () => {

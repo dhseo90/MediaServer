@@ -3780,9 +3780,11 @@ void AppendOpsShellScript(std::ostringstream& out,
           return;
         }
         tbody.innerHTML = items.map(item => {
+          const ruleId = display(item?.metadata?.ruleId || item?.ruleId || item?.vaRuleId || '');
           const eventHtml = `<div class="ops-rule-value-stack">
             <span class="table-identity-pill table-identity-id">${escapeHtml(display(item?.eventId || '-'))}</span>
             <span class="ops-rule-note">${escapeHtml(display(item?.eventType || 'event'))}</span>
+            ${ruleId ? `<span class="ops-rule-note">rule ${escapeHtml(ruleId)}</span>` : ''}
           </div>`;
           const scenarioParts = [item?.scenarioName, item?.scenarioPhase].filter(Boolean).map(display);
           return `<tr>

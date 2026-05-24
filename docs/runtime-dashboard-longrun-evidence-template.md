@@ -79,6 +79,11 @@ Run:
 - execution trigger:
 - not-run reason:
 - duration minutes:
+- token usage source:
+- token start:
+- token end:
+- token consumed:
+- elapsed:
 - file/source:
 - clients:
 - include-dashboard:

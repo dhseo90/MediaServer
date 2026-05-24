@@ -32,7 +32,7 @@ Options:
 
 Boundaries:
   - dry-run sends 0 HTTP requests and is not manual UI test evidence
-  - --apply mutates throwaway profile/rule/vaRule registry data only after explicit confirmation
+  - --apply mutates throwaway source/view/profile/rule/vaRule registry data only after explicit confirmation
   - browser clicking, event occurrence, screenshots, and event log review are not produced by this seed helper
 `);
 }
@@ -218,6 +218,11 @@ function buildValidatedPlan(seed, fixtureLabel) {
   assert(eventTemplates.length >= Number(minimums.eventTemplates || 0), "finalStateMinimums.eventTemplates not met");
   assert(vaRules.length >= Number(minimums.vaRules || 0), "finalStateMinimums.vaRules not met");
 
+  const profilePayloads = profiles.map(item => item.payload);
+  const eventTemplatePayloads = eventTemplates.map(item => item.payload);
+  const vaRulePayloads = vaRules.map(item => item.payload);
+  const registryRecords = materializeRegistryRecords(seed, vaRulePayloads);
+
   return {
     schema: "media-server.manual-ui-fulltest-seed-plan.v1",
     fixture: fixtureLabel,
@@ -245,9 +250,11 @@ function buildValidatedPlan(seed, fixtureLabel) {
       trackerPairs: [...trackerPairs].sort(),
     },
     applyOrder: {
-      profiles: profiles.map(item => item.payload),
-      eventTemplates: eventTemplates.map(item => item.payload),
-      vaRules: vaRules.map(item => item.payload),
+      sources: registryRecords.sources,
+      views: registryRecords.views,
+      profiles: profilePayloads,
+      eventTemplates: eventTemplatePayloads,
+      vaRules: vaRulePayloads,
       invalidPolicyCases: invalidPolicyCases.map(item => ({
         id: item.id,
         kind: item.kind,
@@ -262,9 +269,13 @@ function buildValidatedPlan(seed, fixtureLabel) {
 async function applySeedPlan(plan, { httpBase, cookieFile }) {
   const headers = { "Content-Type": "application/json" };
   if (cookieFile) {
-    headers.Cookie = fs.readFileSync(cookieFile, "utf8").trim();
+    headers.Cookie = readCookieHeaderValue(cookieFile);
   }
   let requests = 0;
+  for (const payload of plan.applyOrder.sources || []) {
+    await putJson(httpBase, `/ops/api/sources/${encodeURIComponent(payload.sourceId)}`, payload, headers);
+    requests += 1;
+  }
   for (const payload of plan.applyOrder.profiles) {
     await putJson(httpBase, `/lab/analysis/profiles/${encodeURIComponent(payload.id)}`, payload, headers);
     requests += 1;
@@ -277,12 +288,16 @@ async function applySeedPlan(plan, { httpBase, cookieFile }) {
     await putJson(httpBase, `/lab/analysis/va-rules/${encodeURIComponent(payload.id)}`, payload, headers);
     requests += 1;
   }
+  for (const payload of plan.applyOrder.views || []) {
+    await putJson(httpBase, `/ops/api/views/${encodeURIComponent(payload.viewId)}`, payload, headers);
+    requests += 1;
+  }
   for (const item of plan.applyOrder.invalidPolicyCases) {
     const pathPrefix = item.kind === "vaRule" ? "/lab/analysis/va-rules" : "/lab/analysis/rules";
     await expectPutReject(httpBase, `${pathPrefix}/${encodeURIComponent(item.id)}`, item.payload, headers, item.expectedErrorSnippet);
     requests += 1;
   }
-  console.log("[pass] manual UI full-test seed applied account fixtures to throwaway registry");
+  console.log("[pass] manual UI full-test seed validated account fixtures as external auth prerequisites");
   console.log("[pass] manual UI full-test seed applied source fixtures to throwaway registry");
   console.log("[pass] manual UI full-test seed applied profile fixtures to throwaway registry");
   console.log("[pass] manual UI full-test seed applied event-template fixtures to throwaway registry");
@@ -292,6 +307,23 @@ async function applySeedPlan(plan, { httpBase, cookieFile }) {
   console.log(`- httpRequests: ${requests}`);
   console.log(`- not-ui-test-evidence: browser click evidence is not produced by this seed helper`);
   console.log(`- not-event-evidence: event occurrence review is not produced by this seed helper`);
+}
+
+function readCookieHeaderValue(cookieFile) {
+  const rawCookie = fs.readFileSync(cookieFile, "utf8").trim();
+  if (!rawCookie) return "";
+  const cookieHeader = rawCookie.replace(/^Cookie:\s*/i, "");
+  const jarCookies = [];
+  for (const line of rawCookie.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#") && !trimmed.startsWith("#HttpOnly_")) continue;
+    const fields = trimmed.split(/\t+/);
+    if (fields.length < 7) continue;
+    const name = fields[5]?.trim();
+    const value = fields[6]?.trim();
+    if (name && value) jarCookies.push(`${name}=${value}`);
+  }
+  return jarCookies.length > 0 ? jarCookies.join("; ") : cookieHeader;
 }
 
 async function putJson(httpBase, urlPath, payload, headers) {
@@ -346,50 +378,7 @@ function printDryRun(plan, emittedPlan) {
 }
 
 function writeRegistryFiles(outputDir, seed, plan) {
-  const fileSources = seed.sources.filter(source => source.kind === "file" && source.file);
-  assert(fileSources.length >= 2, "seed fixture must include at least two file sources for registry materialization");
   fs.mkdirSync(outputDir, { recursive: true });
-
-  const sourceIdBySeedId = new Map();
-  const sources = fileSources.map((source, index) => {
-    const sourceId = String(9001 + index);
-    sourceIdBySeedId.set(source.id, sourceId);
-    return {
-      sourceId,
-      displayName: source.id === "ui-file-va-four-scene" ? "UI Fulltest VA Four Scene" : "UI Fulltest Sample H264",
-      kind: "file",
-      enabled: true,
-      tags: ["manual-ui-fulltest", "throwaway"],
-      ownerGroup: "Manual UI Fulltest",
-      site: "QA Seed",
-      group: "Manual UI",
-      floor: "Fixture",
-      zone: source.id === "ui-file-va-four-scene" ? "VA Matrix" : "Playback",
-      canonicalSourceKey: `file:${source.file}`,
-      file: source.file,
-    };
-  });
-
-  const views = fileSources.map((source, index) => {
-    const sourceId = sourceIdBySeedId.get(source.id);
-    const allowedRuleIds = plan.applyOrder.vaRules
-      .filter(rule => seed.vaRules.find(item => item.id === rule.id)?.sourceId === source.id)
-      .map(rule => rule.id);
-    return {
-      viewId: String(9001 + index),
-      displayName: source.id === "ui-file-va-four-scene" ? "UI Fulltest VA Matrix" : "UI Fulltest Playback",
-      sourceId,
-      defaultRuleId: allowedRuleIds[0] || "",
-      allowedRuleIds,
-      allowedOverlayModes: ["raw", "va-overlay", "va-rule"],
-      showDashboard: true,
-      showEvents: true,
-      showMetadataSummary: true,
-      clientGroups: ["manual-ui-fulltest"],
-      maxTiles: source.id === "ui-file-va-four-scene" ? 4 : 1,
-      enabled: true,
-    };
-  });
 
   const analysis = {
     profiles: plan.applyOrder.profiles,
@@ -421,18 +410,93 @@ function writeRegistryFiles(outputDir, seed, plan) {
       analysisRegistry: "analysis.json",
     },
     counts: {
-      sources: sources.length,
-      views: views.length,
+      sources: plan.applyOrder.sources.length,
+      views: plan.applyOrder.views.length,
       profiles: analysis.profiles.length,
       eventTemplates: analysis.rules.length,
       vaRules: analysis.vaRules.length,
     },
   };
 
-  writeJson(path.join(outputDir, "sources.json"), { sources });
-  writeJson(path.join(outputDir, "views.json"), { views });
+  writeJson(path.join(outputDir, "sources.json"), { sources: plan.applyOrder.sources });
+  writeJson(path.join(outputDir, "views.json"), { views: plan.applyOrder.views });
   writeJson(path.join(outputDir, "analysis.json"), analysis);
   writeJson(path.join(outputDir, "preconditions.json"), preconditions);
+}
+
+function materializeRegistryRecords(seed, vaRulePayloads) {
+  const fileSources = seed.sources.filter(source => source.kind === "file" && source.file);
+  assert(fileSources.length >= 2, "seed fixture must include at least two file sources for registry materialization");
+
+  const sourceIdBySeedId = new Map();
+  const sources = fileSources.map((source, index) => {
+    const sourceId = String(9001 + index);
+    sourceIdBySeedId.set(source.id, sourceId);
+    return {
+      sourceId,
+      displayName: sourceDisplayName(source),
+      kind: "file",
+      enabled: true,
+      tags: ["manual-ui-fulltest", "throwaway"],
+      ownerGroup: "Manual UI Fulltest",
+      site: "QA Seed",
+      group: "Manual UI",
+      floor: "Fixture",
+      zone: sourceZoneName(source),
+      canonicalSourceKey: `file:${source.file}`,
+      file: source.file,
+    };
+  });
+
+  const views = fileSources.map((source, index) => {
+    const sourceId = sourceIdBySeedId.get(source.id);
+    const allowedRuleIds = vaRulePayloads
+      .filter(rule => seed.vaRules.find(item => item.id === rule.id)?.sourceId === source.id)
+      .map(rule => rule.id);
+    return {
+      viewId: String(9001 + index),
+      displayName: sourceViewDisplayName(source),
+      sourceId,
+      defaultRuleId: allowedRuleIds[0] || "",
+      allowedRuleIds,
+      allowedOverlayModes: ["raw", "va-overlay", "va-rule"],
+      showDashboard: true,
+      showEvents: true,
+      showMetadataSummary: true,
+      clientGroups: ["manual-ui-fulltest"],
+      maxTiles: source.id === "ui-file-va-four-scene" ? 4 : 1,
+      enabled: true,
+    };
+  });
+
+  return { sources, views };
+}
+
+function sourceDisplayName(source) {
+  const labels = {
+    "ui-file-sample-h264": "UI Fulltest Sample H264",
+    "ui-file-va-four-scene": "UI Fulltest VA Four Scene",
+    "ui-file-va-tracking-event": "UI Fulltest VA Tracking Event",
+    "ui-file-va-tracking-long": "UI Fulltest VA Tracking Long",
+  };
+  return labels[source.id] || `UI Fulltest ${source.id}`;
+}
+
+function sourceViewDisplayName(source) {
+  const labels = {
+    "ui-file-sample-h264": "UI Fulltest Playback",
+    "ui-file-va-four-scene": "UI Fulltest VA Visual Matrix",
+    "ui-file-va-tracking-event": "UI Fulltest VA Event Matrix",
+    "ui-file-va-tracking-long": "UI Fulltest Re-entry Matrix",
+  };
+  return labels[source.id] || `${sourceDisplayName(source)} View`;
+}
+
+function sourceZoneName(source) {
+  if (source.id === "ui-file-va-four-scene") return "VA Visual";
+  if (source.id === "ui-file-va-tracking-event") return "VA Events";
+  if (source.id === "ui-file-va-tracking-long") return "VA Long Events";
+  return "Playback";
 }
 
 function writeJson(filePath, value) {
