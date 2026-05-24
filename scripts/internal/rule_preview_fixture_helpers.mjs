@@ -5,12 +5,21 @@ export async function ensureRulePreviewPrerequisites({
   httpBase,
   includeVaRule = false,
   includeInactiveReferences = false,
+  includeClassMismatch = false,
   profileStart = 9901,
   ruleStart = 9911,
   vaRuleStart = 9921,
 } = {}) {
   if (!httpBase) throw new Error("httpBase is required");
-  const created = { profileId: "", ruleId: "", vaRuleId: "", inactiveProfileId: "", inactiveRuleId: "" };
+  const created = {
+    profileId: "",
+    ruleId: "",
+    vaRuleId: "",
+    inactiveProfileId: "",
+    inactiveRuleId: "",
+    classMismatchProfileId: "",
+    classMismatchRuleId: "",
+  };
   const catalog = await requestJson(httpBase, "/ops/api/rules/catalog");
   const profiles = Array.isArray(catalog.profiles) ? catalog.profiles : [];
   const rules = Array.isArray(catalog.rules) ? catalog.rules : [];
@@ -77,7 +86,37 @@ export async function ensureRulePreviewPrerequisites({
       )),
     });
   }
+  if (includeClassMismatch) {
+    const profileCatalog = await requestJson(httpBase, "/ops/api/rules/catalog");
+    created.classMismatchProfileId = findFreeNumericId(
+      [profileCatalog.profiles, profileCatalog.rules, profileCatalog.vaRules],
+      profileStart + 200,
+    );
+    await requestJson(httpBase, `/lab/analysis/profiles/${encodeURIComponent(created.classMismatchProfileId)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(rulePreviewProfilePayload(
+        created.classMismatchProfileId,
+        { analysisClasses: ["person"] },
+      )),
+    });
+    const ruleCatalog = await requestJson(httpBase, "/ops/api/rules/catalog");
+    created.classMismatchRuleId = findFreeNumericId(
+      [ruleCatalog.profiles, ruleCatalog.rules, ruleCatalog.vaRules],
+      ruleStart + 200,
+    );
+    await requestJson(httpBase, `/lab/analysis/rules/${encodeURIComponent(created.classMismatchRuleId)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(rulePreviewEventTemplatePayload(
+        created.classMismatchRuleId,
+        findFirstProfileId(ruleCatalog) || "1",
+        { analysisClasses: ["vehicle"] },
+      )),
+    });
+  }
   return created.profileId || created.ruleId || created.vaRuleId || created.inactiveProfileId || created.inactiveRuleId
+    || created.classMismatchProfileId || created.classMismatchRuleId
     ? created
     : null;
 }
@@ -93,8 +132,14 @@ export async function cleanupRulePreviewPrerequisites({ httpBase, created } = {}
   if (created.ruleId) {
     await requestJson(httpBase, `/lab/analysis/rules/${encodeURIComponent(created.ruleId)}`, { method: "DELETE" }).catch(() => {});
   }
+  if (created.classMismatchRuleId) {
+    await requestJson(httpBase, `/lab/analysis/rules/${encodeURIComponent(created.classMismatchRuleId)}`, { method: "DELETE" }).catch(() => {});
+  }
   if (created.inactiveProfileId) {
     await requestJson(httpBase, `/lab/analysis/profiles/${encodeURIComponent(created.inactiveProfileId)}`, { method: "DELETE" }).catch(() => {});
+  }
+  if (created.classMismatchProfileId) {
+    await requestJson(httpBase, `/lab/analysis/profiles/${encodeURIComponent(created.classMismatchProfileId)}`, { method: "DELETE" }).catch(() => {});
   }
   if (created.profileId) {
     await requestJson(httpBase, `/lab/analysis/profiles/${encodeURIComponent(created.profileId)}`, { method: "DELETE" }).catch(() => {});
@@ -157,7 +202,10 @@ function findFreeNumericId(groups, start) {
   throw new Error(`failed to allocate temporary rule preview id from ${start}`);
 }
 
-function rulePreviewProfilePayload(id, { enabled = true } = {}) {
+function rulePreviewProfilePayload(id, { enabled = true, analysisClasses = ["person"] } = {}) {
+  const classes = Array.isArray(analysisClasses) && analysisClasses.length > 0
+    ? analysisClasses.map(String).filter(Boolean)
+    : ["person"];
   return {
     id,
     enabled,
@@ -169,15 +217,20 @@ function rulePreviewProfilePayload(id, { enabled = true } = {}) {
     inputWidth: 640,
     inputHeight: 640,
     adaptive: true,
+    analysis: { classes },
+    trackingClasses: classes,
   };
 }
 
-function rulePreviewEventTemplatePayload(id, profileId, { enabled = true } = {}) {
+function rulePreviewEventTemplatePayload(id, profileId, { enabled = true, analysisClasses = ["person"] } = {}) {
+  const classes = Array.isArray(analysisClasses) && analysisClasses.length > 0
+    ? analysisClasses.map(String).filter(Boolean)
+    : ["person"];
   return {
     id,
     enabled,
     match: { sourceKind: "*", route: "*" },
-    analysis: { profileId, classes: ["person"] },
+    analysis: { profileId, classes },
     event: {
       type: "intrusion-dwell",
       region: {
@@ -195,7 +248,7 @@ function rulePreviewEventTemplatePayload(id, profileId, { enabled = true } = {})
       candidateTimeMs: 2000,
       dwellTimeMs: 10000,
       cooldownMs: 5000,
-      targetClasses: ["person"],
+      targetClasses: classes,
     },
   };
 }

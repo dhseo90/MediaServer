@@ -30,7 +30,7 @@ const usedIds = new Set([
   ...initial.vaRules.map(item => String(item?.id || "")),
   ...initial.profiles.map(item => String(item?.id || item?.profileId || "")),
 ]);
-const ids = nextNumericIds(usedIds, { count: 11, start: 9901, end: 9999, label: "ops rule relationship id" });
+const ids = nextNumericIds(usedIds, { count: 13, start: 9901, end: 9999, label: "ops rule relationship id" });
 const inactiveProfileId = ids[0];
 const inactiveEventRuleId = ids[1];
 const eventRuleId = ids[2];
@@ -42,6 +42,8 @@ const inactiveChannelVaRuleId = ids[7];
 const notAllowedVaRuleId = ids[8];
 const existingConnectionVaRuleId = ids[9];
 const priorityConflictVaRuleId = ids[10];
+const classMismatchTemplateId = ids[11];
+const classMismatchProfileId = ids[12];
 const created = [];
 
 try {
@@ -120,6 +122,58 @@ try {
     "vaRule templateStart.ruleId is inactive",
   );
   console.log("[pass] inactive-template rejected");
+
+  await requestJson(`/lab/analysis/rules/${encodeURIComponent(classMismatchTemplateId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(eventTemplatePayload(classMismatchTemplateId, { analysisClasses: ["vehicle"] })),
+  });
+  created.push({ type: "rule", id: classMismatchTemplateId });
+  console.log(`[pass] relationship-fixture class-mismatch-template ${classMismatchTemplateId}`);
+
+  await expectHttpError(
+    `/lab/analysis/va-rules/${encodeURIComponent(invalidVaRuleId)}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(vaRulePayload(
+        invalidVaRuleId,
+        classMismatchTemplateId,
+        "1",
+        source,
+        { analysisClasses: ["person"] },
+      )),
+    },
+    400,
+    "vaRule analysis.classes must include template analysis.classes",
+  );
+  console.log("[pass] class-mismatch rule analysis classes rejected");
+
+  await requestJson(`/lab/analysis/profiles/${encodeURIComponent(classMismatchProfileId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(profilePayload(classMismatchProfileId, { analysisClasses: ["person"] })),
+  });
+  created.push({ type: "profile", id: classMismatchProfileId });
+  console.log(`[pass] relationship-fixture class-mismatch-profile ${classMismatchProfileId}`);
+
+  await expectHttpError(
+    `/lab/analysis/va-rules/${encodeURIComponent(invalidVaRuleId)}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(vaRulePayload(
+        invalidVaRuleId,
+        classMismatchTemplateId,
+        classMismatchProfileId,
+        source,
+        { analysisClasses: ["vehicle"] },
+      )),
+    },
+    400,
+    "vaRule profile classes must include template analysis.classes",
+  );
+  console.log("[pass] class-mismatch profile classes rejected");
 
   await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(mismatchedVaRuleId)}`, {
     method: "PUT",
@@ -526,7 +580,10 @@ function pickFileSourceView(sources, views) {
   return { source: sourceById.get(String(preferred.sourceId)), view: preferred };
 }
 
-function profilePayload(id, { enabled = true } = {}) {
+function profilePayload(id, { enabled = true, analysisClasses = ["person"] } = {}) {
+  const classes = Array.isArray(analysisClasses) && analysisClasses.length > 0
+    ? analysisClasses.map(String).filter(Boolean)
+    : ["person"];
   return {
     id,
     enabled,
@@ -535,17 +592,20 @@ function profilePayload(id, { enabled = true } = {}) {
     maxQueue: 1,
     confidence: 0.25,
     nms: 0.45,
-    trackingClasses: ["person"],
-    analysis: { classes: ["person"] },
+    trackingClasses: classes,
+    analysis: { classes },
   };
 }
 
-function eventTemplatePayload(id, { enabled = true } = {}) {
+function eventTemplatePayload(id, { enabled = true, analysisClasses = ["person"] } = {}) {
+  const classes = Array.isArray(analysisClasses) && analysisClasses.length > 0
+    ? analysisClasses.map(String).filter(Boolean)
+    : ["person"];
   return {
     id,
     enabled,
     ruleKind: "scenario",
-    analysis: { classes: ["person"] },
+    analysis: { classes },
     event: {
       type: "loitering",
       region: {
@@ -560,12 +620,21 @@ function eventTemplatePayload(id, { enabled = true } = {}) {
       enabled: true,
       dwellTimeMs: 10000,
       cooldownMs: 20000,
-      targetClasses: ["person"],
+      targetClasses: classes,
     },
   };
 }
 
-function vaRulePayload(id, templateRuleId, profileId, source, { priority = Number(id) } = {}) {
+function vaRulePayload(
+  id,
+  templateRuleId,
+  profileId,
+  source,
+  { priority = Number(id), analysisClasses = ["person"] } = {},
+) {
+  const classes = Array.isArray(analysisClasses) && analysisClasses.length > 0
+    ? analysisClasses.map(String).filter(Boolean)
+    : ["person"];
   return {
     id,
     name: `관계 검증 ${id}`,
@@ -574,7 +643,7 @@ function vaRulePayload(id, templateRuleId, profileId, source, { priority = Numbe
     source: sourcePayload(source),
     analysis: {
       profileId,
-      classes: ["person"],
+      classes,
     },
     event: {
       type: "loitering",
