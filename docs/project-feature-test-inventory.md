@@ -31,8 +31,8 @@ source-of-truth입니다.
 | --- | ---: |
 | 전체 기능 항목 | 316 |
 | UI 직접 필요 | 202 |
-| UI 간접 필요 | 28 |
-| UI 비대상 | 86 |
+| UI 간접 필요 | 27 |
+| UI 비대상 | 87 |
 | 테스트 필요 | 316 |
 | 안정화 대상 | 306 |
 | UI 풀테스트 대상 | 219 |
@@ -215,7 +215,7 @@ Rule scenario/event 발생 검수는 분리합니다.
 | SRC-012 | source health 조회 | 필요 | 필요 | 안정화, UI, 30분 | health status가 dashboard/list에 반영 |
 | SRC-013 | source health bulk 조회 | 간접 | 필요 | 안정화 | bulk response schema와 status 집계 확인 |
 | SRC-014 | ONVIF import draft | 필요 | 필요 | 안정화, UI, 필드 별도 | no-device 경계와 field smoke 조건을 분리 기록 |
-| SRC-015 | channel bulk API | 간접 | 필요 | 안정화 | bulk payload/schema/status가 계약과 일치 |
+| SRC-015 | channel bulk API | 비대상 | 필요 | 안정화 | 제품 `/ops/sources`에는 channel bulk UI가 없어야 정상이며, `/ops/api/channels/bulk` payload/schema/status/partial failure/rollback/retry 계약이 `verify-ops-channel-bulk`에서 통과 |
 | SRC-016 | PublishedView 목록 조회 | 필요 | 필요 | 안정화, UI | view 목록/count/scope 표시 확인 |
 | SRC-017 | PublishedView 생성 | 필요 | 필요 | 안정화, UI | create 후 client/viewer scope에서 선택 가능 |
 | SRC-018 | PublishedView 수정 | 필요 | 필요 | 안정화, UI | source/rule/scope 변경 후 반영 |
