@@ -2,7 +2,11 @@
 // 파일 용도: Alert Delivery Integrations의 payload 분리, retry, audit masking 계약을 검증한다.
 
 import fs from "node:fs";
+import os from "node:os";
+import path from "node:path";
 import process from "node:process";
+
+import { findChrome, openBrowserPage } from "./ui_visual_smoke_lib.mjs";
 
 const args = parseArgs(process.argv.slice(2));
 const failures = [];
@@ -150,6 +154,9 @@ check("gitignore tracks alert delivery attempts store", () => {
 if (args.roundtripSmoke) {
   await runRoundtripSmoke();
 }
+if (args.uiSmoke) {
+  await runUiSmoke();
+}
 
 if (failures.length > 0) {
   console.log("");
@@ -168,17 +175,29 @@ function readText(filePath) {
 function parseArgs(rawArgs) {
   const parsed = {
     roundtripSmoke: false,
+    uiSmoke: false,
     httpBase: "http://127.0.0.1:8081",
     timeoutMs: 10000,
+    chromePath: findChrome(),
+    debugPort: 9931,
+    outputDir: path.join(os.tmpdir(), `media_server_alert_delivery_ui_${Date.now()}_${process.pid}`),
   };
   for (let index = 0; index < rawArgs.length; index += 1) {
     const arg = rawArgs[index];
     if (arg === "--roundtrip-smoke") {
       parsed.roundtripSmoke = true;
+    } else if (arg === "--ui-smoke") {
+      parsed.uiSmoke = true;
     } else if (arg === "--http-base") {
       parsed.httpBase = rawArgs[++index] || parsed.httpBase;
     } else if (arg === "--timeout-ms") {
       parsed.timeoutMs = Number(rawArgs[++index] || parsed.timeoutMs);
+    } else if (arg === "--chrome-path") {
+      parsed.chromePath = rawArgs[++index] || parsed.chromePath;
+    } else if (arg === "--debug-port") {
+      parsed.debugPort = Number(rawArgs[++index] || parsed.debugPort);
+    } else if (arg === "--output-dir") {
+      parsed.outputDir = rawArgs[++index] || parsed.outputDir;
     } else {
       failures.push(`unknown option: ${arg}`);
       console.log(`[fail] unknown option: ${arg}`);
@@ -272,4 +291,99 @@ async function runRoundtripSmoke() {
     assert(listed.integrations.some(item => item.id === runId && item.endpointRedacted === true), "listed delivery missing/redaction missing");
     assert(Array.isArray(listed.attempts) && listed.attempts.some(item => item.deliveryId === runId), "listed attempt missing");
   });
+}
+
+async function runUiSmoke() {
+  await checkAsync("alert delivery UI save/test action renders delivered fixture", async () => {
+    assert(args.chromePath, "Chrome executable not found");
+    const runId = `alert-ui-${Date.now()}-${process.pid}`;
+    const browser = await openBrowserPage({
+      httpBase: args.httpBase,
+      pagePath: "/ops/events",
+      timeoutMs: args.timeoutMs,
+      chromePath: args.chromePath,
+      debugPort: args.debugPort,
+      width: 1180,
+      height: 900,
+      outputDir: args.outputDir,
+    });
+    try {
+      const result = await browser.evaluate(buildAlertDeliveryUiSmokeExpression(runId), args.timeoutMs);
+      assert(result?.ok, JSON.stringify(result));
+      console.log(`[pass] alert delivery UI smoke row: ${runId}`);
+    } finally {
+      await browser.close();
+    }
+  });
+}
+
+function buildAlertDeliveryUiSmokeExpression(runId) {
+  return `
+    (async () => {
+      const runId = ${JSON.stringify(runId)};
+      const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+      const waitFor = async (predicate, label) => {
+        for (let attempt = 0; attempt < 80; attempt += 1) {
+          const value = predicate();
+          if (value) return value;
+          await wait(125);
+        }
+        throw new Error('timeout waiting for ' + label);
+      };
+      const input = (id, value) => {
+        const node = document.getElementById(id);
+        if (!node) throw new Error('missing input ' + id);
+        node.value = value;
+        node.dispatchEvent(new Event('input', { bubbles: true }));
+        node.dispatchEvent(new Event('change', { bubbles: true }));
+        return node;
+      };
+      const click = (id) => {
+        const node = document.getElementById(id);
+        if (!node) throw new Error('missing button ' + id);
+        node.click();
+        return node;
+      };
+      await waitFor(() => document.querySelector('[data-testid="ops-alert-delivery-integrations"]'), 'alert delivery panel');
+      await waitFor(() => document.getElementById('alertDeliveryRows'), 'alert delivery rows');
+      input('alertDeliveryId', runId);
+      input('alertDeliveryKind', 'webhook');
+      input('alertDeliveryLabel', 'Alert UI smoke');
+      input('alertDeliveryEndpoint', 'https://example.invalid/secret-token');
+      input('alertDeliveryRetryMax', '2');
+      input('alertDeliveryRetryBackoff', '500');
+      const enabled = document.getElementById('alertDeliveryEnabled');
+      if (!enabled) throw new Error('missing enabled checkbox');
+      enabled.checked = true;
+      enabled.dispatchEvent(new Event('change', { bubbles: true }));
+      click('alertDeliverySave');
+      const rowForRun = () => Array.from(document.querySelectorAll('#alertDeliveryRows tr'))
+        .find(row => row.querySelector('[data-alert-delivery-test="' + runId + '"]'));
+      const savedRow = await waitFor(rowForRun, 'saved alert delivery row');
+      const savedText = savedRow.textContent || '';
+      if (!savedText.includes('Alert UI smoke') || !savedText.includes('[redacted-alert-target]')) {
+        return { ok: false, message: 'saved row did not render label/redacted endpoint', savedText };
+      }
+      const rowButton = savedRow.querySelector('[data-alert-delivery-test="' + runId + '"]');
+      rowButton.click();
+      const deliveredRow = await waitFor(() => {
+        const row = rowForRun();
+        const text = row?.textContent || '';
+        return text.includes('delivered') && text.includes('fixture') ? row : null;
+      }, 'delivered fixture result');
+      const deliveredText = deliveredRow.textContent || '';
+      const bodyText = document.body.textContent || '';
+      if (bodyText.includes('secret-token')) {
+        return { ok: false, message: 'UI leaked endpoint token', deliveredText };
+      }
+      return {
+        ok: true,
+        runId,
+        savedText,
+        deliveredText,
+        summary: document.getElementById('alertDeliverySummary')?.textContent || '',
+        badges: document.getElementById('alertDeliveryBadges')?.textContent || ''
+      };
+    })()
+  `;
 }

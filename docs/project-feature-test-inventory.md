@@ -359,7 +359,7 @@ Rule scenario/event 발생 검수는 분리합니다.
 | EVT-015 | evidence 삭제 | 비대상 | 필요 | 안정화 | retention/delete 정책 확인 |
 | EVT-016 | ops events status | 필요 | 필요 | 안정화, UI | events status panel/API 일치 |
 | EVT-017 | alert deliveries 조회 | 필요 | 필요 | 안정화, UI | deliveries list/filter 표시 |
-| EVT-018 | alert delivery test | 필요 | 필요 | 안정화, UI | test delivery action 결과 표시 |
+| EVT-018 | alert delivery test | 필요 | 필요 | 안정화, UI | `/ops/events` Alert Delivery에서 integration 저장 후 Fixture/test action을 클릭하면 최근 시도에 `delivered · fixture`가 표시되고 endpoint token은 redacted 상태로 유지 |
 | EVT-019 | event review 목록 | 필요 | 필요 | 안정화, UI | review inbox list 표시 |
 | EVT-020 | event review 상세 | 필요 | 필요 | 안정화, UI | review detail/status 표시 |
 | EVT-021 | event review 상태 변경 | 필요 | 필요 | 안정화, UI | status change 저장과 audit 반영 |
