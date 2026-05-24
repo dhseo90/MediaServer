@@ -30,7 +30,7 @@ const usedIds = new Set([
   ...initial.vaRules.map(item => String(item?.id || "")),
   ...initial.profiles.map(item => String(item?.id || item?.profileId || "")),
 ]);
-const ids = nextNumericIds(usedIds, { count: 10, start: 9901, end: 9999, label: "ops rule relationship id" });
+const ids = nextNumericIds(usedIds, { count: 11, start: 9901, end: 9999, label: "ops rule relationship id" });
 const inactiveProfileId = ids[0];
 const inactiveEventRuleId = ids[1];
 const eventRuleId = ids[2];
@@ -41,6 +41,7 @@ const inactiveViewVaRuleId = ids[6];
 const inactiveChannelVaRuleId = ids[7];
 const notAllowedVaRuleId = ids[8];
 const existingConnectionVaRuleId = ids[9];
+const priorityConflictVaRuleId = ids[10];
 const created = [];
 
 try {
@@ -315,6 +316,24 @@ try {
   created.push({ type: "vaRule", id: validVaRuleId });
   console.log(`[pass] relationship-fixture va-rule ${validVaRuleId}`);
 
+  await expectHttpError(
+    `/lab/analysis/va-rules/${encodeURIComponent(priorityConflictVaRuleId)}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(vaRulePayload(
+        priorityConflictVaRuleId,
+        eventRuleId,
+        "1",
+        source,
+        { priority: Number(validVaRuleId) },
+      )),
+    },
+    400,
+    "vaRule priority conflicts with existing rule on same source",
+  );
+  console.log("[pass] priority-conflict server rejected same source priority");
+
   const withFixture = await loadGraph();
   assertCleanGraph("with-fixture", withFixture);
   console.log("[summary] ops-rule-relationships complete");
@@ -546,12 +565,12 @@ function eventTemplatePayload(id, { enabled = true } = {}) {
   };
 }
 
-function vaRulePayload(id, templateRuleId, profileId, source) {
+function vaRulePayload(id, templateRuleId, profileId, source, { priority = Number(id) } = {}) {
   return {
     id,
     name: `관계 검증 ${id}`,
     enabled: true,
-    priority: Number(id),
+    priority,
     source: sourcePayload(source),
     analysis: {
       profileId,
