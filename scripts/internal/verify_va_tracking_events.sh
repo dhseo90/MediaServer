@@ -71,6 +71,7 @@ Options:
   MEDIA_SERVER_VERIFY_VA_EVENTS_POLL_COUNT
   MEDIA_SERVER_VERIFY_VA_EVENTS_POLL_INTERVAL_S
   MEDIA_SERVER_VERIFY_VA_EVENTS_DISPATCH_RECORDS
+  MEDIA_SERVER_VERIFY_VA_EVENTS_DISPATCH_EVERY_N
   MEDIA_SERVER_VERIFY_VA_COOKIE_FILE
 EOF_USAGE
 }
@@ -132,6 +133,7 @@ FILE_ROOT="$(media_server_resolve_project_path "${ROOT_DIR}" "${FILE_ROOT:-video
 LOCAL_FILE="${FILE_ROOT}/${FILE_TOKEN}"
 POLL_COUNT="${MEDIA_SERVER_VERIFY_VA_EVENTS_POLL_COUNT:-180}"
 POLL_INTERVAL_S="${MEDIA_SERVER_VERIFY_VA_EVENTS_POLL_INTERVAL_S:-0.2}"
+DISPATCH_EVERY_N="${MEDIA_SERVER_VERIFY_VA_EVENTS_DISPATCH_EVERY_N:-2}"
 MIN_PRESENCE="${MEDIA_SERVER_VERIFY_VA_EVENTS_MIN_PRESENCE:-1}"
 MIN_ENTER="${MEDIA_SERVER_VERIFY_VA_EVENTS_MIN_ENTER:-1}"
 MIN_EXIT="${MEDIA_SERVER_VERIFY_VA_EVENTS_MIN_EXIT:-1}"
@@ -226,6 +228,13 @@ log_info "file=${FILE_TOKEN}"
 log_info "local_file=${LOCAL_FILE}"
 log_info "poll=${POLL_COUNT} interval=${POLL_INTERVAL_S}s"
 log_info "dispatch_records=${DISPATCH_RECORDS}"
+if [[ ! "${DISPATCH_EVERY_N}" =~ ^[0-9]+$ || "${DISPATCH_EVERY_N}" -lt 1 ]]; then
+  log_fail "MEDIA_SERVER_VERIFY_VA_EVENTS_DISPATCH_EVERY_N 값이 잘못되었습니다: ${DISPATCH_EVERY_N}"
+  exit 1
+fi
+if [[ "${DISPATCH_RECORDS}" == "1" ]]; then
+  log_info "dispatch_every_n=${DISPATCH_EVERY_N}"
+fi
 
 if [[ ! -f "${LOCAL_FILE}" ]]; then
   log_fail "이동 이벤트 테스트 영상이 없습니다: ${LOCAL_FILE}"
@@ -319,15 +328,20 @@ log_pass "analysis tap 생성: ${TAP_ID}"
 
 : > "${EVENTS_FILE}"
 EVENTS_PATH="${HTTP_BASE}/lab/analysis/taps/${TAP_ID}/events"
-if [[ "${DISPATCH_RECORDS}" == "1" ]]; then
-  EVENTS_PATH="${EVENTS_PATH}?dispatch=1"
-fi
-for _ in $(seq 1 "${POLL_COUNT}"); do
+EVENTS_DISPATCH_PATH="${EVENTS_PATH}?dispatch=1"
+DISPATCH_REQUEST_COUNT=0
+for POLL_INDEX in $(seq 1 "${POLL_COUNT}"); do
   sleep "${POLL_INTERVAL_S}"
-  curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} "${EVENTS_PATH}" >> "${EVENTS_FILE}"
-  printf '\n' >> "${EVENTS_FILE}"
+  REQUEST_PATH="${EVENTS_PATH}"
+  if [[ "${DISPATCH_RECORDS}" == "1" && $((POLL_INDEX % DISPATCH_EVERY_N)) -eq 0 ]]; then
+    REQUEST_PATH="${EVENTS_DISPATCH_PATH}"
+    DISPATCH_REQUEST_COUNT=$((DISPATCH_REQUEST_COUNT + 1))
+  fi
+  EVENT_PAYLOAD="$(curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} "${REQUEST_PATH}")"
+  printf '%s\n' "${EVENT_PAYLOAD}" >> "${EVENTS_FILE}"
 done
 if [[ "${DISPATCH_RECORDS}" == "1" ]]; then
+  log_info "event_record_dispatch_requests=${DISPATCH_REQUEST_COUNT}"
   python3 - "${HTTP_BASE}" "${COOKIE_FILE}" <<'PY'
 import json
 import subprocess
