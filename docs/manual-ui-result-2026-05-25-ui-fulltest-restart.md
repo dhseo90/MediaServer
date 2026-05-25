@@ -29,7 +29,7 @@
 | 안정화 테스트 | 후속 재검증에서 build/auth/ops-client/rule/VA/docs/static gate 실행 | build PASS, auth bootstrap/users/routes PASS, ops/client UI PASS, rule UI PASS, VA replay/events PASS, docs/static PASS | 최초 auth env missing, 서버 미기동/auth mismatch/storage disabled 실행조건 실패는 같은 단계에서 조건 보정 후 재검증 PASS. release metadata는 원격 latest/tag가 v1.8.0이 아니라 기존 FAIL 유지 |
 | 30분 테스트 | `verify-predev --soak-minutes 30` 실행 | `/tmp/media_server_predev-1779703217-28197_summary.json`, `/tmp/media_server_predev-1779703217-28197_report.md`, durationSec=2399, pass=119 fail=0 skip=1 | PASS. skip: external-turn-hard-gate는 `--include-external-turn` 미지정으로 제외 |
 | 120분 테스트 | 실행하지 않음 | 없음 | 별도 승인 없음 |
-| UI 풀테스트 | 219개 UI 대상 기능 ID 중 100 PASS, 119 FAIL | browser screenshots/json + EventRecord sample + auth UI browser E2E + route boundary CDP screenshots + in-app browser recheck `/private/tmp/media_server_ui_goal_rZkl1F/browser`, `/private/tmp/media_server_iab_auth_VuKUEe/browser`, `/private/tmp/media_server_auth022_N1aAmv/browser` | 최종 FAIL |
+| UI 풀테스트 | 219개 UI 대상 기능 ID 중 101 PASS, 118 FAIL | browser screenshots/json + EventRecord sample + auth UI browser E2E + route boundary CDP screenshots + in-app browser recheck `/private/tmp/media_server_ui_goal_rZkl1F/browser`, `/private/tmp/media_server_iab_auth_VuKUEe/browser`, `/private/tmp/media_server_auth022_N1aAmv/browser` | 최종 FAIL |
 
 ## 스크립트 테스트 기록
 
@@ -430,7 +430,7 @@
 | CLIENT-005 | CLIENT | auth-on viewer `/client/live`에서 타일 1 재생 후 `연결 해제` 클릭, UI가 오프라인/연결 끊김으로 돌아감 | stop/reconnect/logout 후 session cleanup 확인 | stop/disconnect UI 상태는 확인. reconnect/logout 후 runtime cleanup까지는 증명하지 못함 | FAIL | `/private/tmp/media_server_iab_auth_VuKUEe/browser/viewer-client-live-overlay-after-play-plus12s.json`, `viewer-client-live-after-tile1-disconnect-cleanup.json` |
 | CLIENT-006 | CLIENT | auth-on viewer로 `/client/dashboard` 진입, 9001만 표시되고 9002/9003/9004/Ops/Lab/raw/debug 노출 없음 확인 | dashboard가 viewer scope 안의 data만 표시 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_iab_auth_VuKUEe/browser/viewer-client-dashboard.json` |
 | CLIENT-007 | CLIENT | auth-on viewer로 `/client/events` 진입, 9001만 표시되고 9002/9003/9004/Ops/Lab/raw/debug 노출 없음 확인 | events가 viewer scope 안의 data만 표시 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_iab_auth_VuKUEe/browser/viewer-client-events.json` |
-| CLIENT-009 | CLIENT | auth-on viewer `/client/live`에서 grid=`2x2`, density=`표준`, dock=`오른쪽` 선택 후 workspace 작업 메뉴를 열고 `레이아웃 저장` 클릭. 같은 viewer cookie의 direct API PUT은 200 저장 성공 | grid/density/dock preference 저장 | 제품 UI 저장 클릭은 `저장 실패`. 서버 API 직접 저장은 성공하므로 UI 저장 흐름 문제로 분리 | FAIL | `/private/tmp/media_server_iab_auth_VuKUEe/browser/viewer-client-prefs-target-before-save.json`, `viewer-client-prefs-after-save-click.json`, `client-live-layout-put-response.json` |
+| CLIENT-009 | CLIENT | fresh auth fixture에서 viewer `/client/live` grid=`2x2`, density=`표준`, dock=`오른쪽` 선택 후 workspace 작업 메뉴 `레이아웃 저장` 클릭. UI status `사용자 저장값`, `/client/api/preferences/live-layout` userPreference 저장값, reload 후 grid/density/dock 복원 확인 | grid/density/dock preference 저장 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_auth022_N1aAmv/browser/client009-after-ui-save-click.json`, `client009-api-after-ui-save.json`, `client009-after-reload-restore.json`. 과거 `/private/tmp/media_server_iab_auth_VuKUEe/browser/viewer-client-prefs-after-save-click.json`의 `저장 실패`는 새 fixture에서 재현되지 않음 |
 | CLIENT-010 | CLIENT | viewer preference를 API로 저장한 뒤 `/client/live` 로드에서 `2x2/표준/오른쪽` 확인, 이후 unsaved local change `1x2/고밀도/왼쪽` 후 reload에서 다시 `2x2/표준/오른쪽` 복원 확인 | reload 후 preference 복원 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_iab_auth_VuKUEe/browser/viewer-client-prefs-api-saved-loaded-in-ui.json`, `viewer-client-prefs-unsaved-local-change-before-reload.json`, `viewer-client-prefs-api-saved-after-reload.json` |
 | CLIENT-011 | CLIENT | viewer `/client/live`, `/client/dashboard`, `/client/events`에서 assigned 9001만 보이고 unassigned 9002/9003/9004가 보이지 않음 확인 | unassigned view가 목록/API/UI에 보이지 않음 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_iab_auth_VuKUEe/browser/viewer-client-live.json`, `viewer-client-dashboard.json`, `viewer-client-events.json` |
 | CLIENT-012 | CLIENT | viewer /client/live had no Ops navigation; role-guard-evidence.json | client shell에 Ops nav 없음 | 기대 evidence 확인 | PASS | viewer /client/live had no Ops navigation; role-guard-evidence.json |
@@ -479,7 +479,7 @@
 ## 최종 판정
 
 - 최종 결론: FAIL
-- PASS 조건: 개별 기능 실패 행 0개, 현재 UI 대상 실패 행 119개
+- PASS 조건: 개별 기능 실패 행 0개, 현재 UI 대상 실패 행 118개
 - 제품 회귀 여부: client live layout preference 저장은 auth-on viewer UI에서 `저장 실패`가 직접 확인됨. 그 외 남은 실패는 UI coverage 미완료, RULE-004~RULE-101 개별 UI CRUD/EventRecord evidence 부족, `/ops/events` 제품 UI 재검수 미완료.
 - 환경/sandbox 한계: local loopback은 일부 명령에서 sandbox 바깥 실행 필요.
 - 수정 필요 이슈: `/ops/events` 제품 UI에서 전체 event/scenario row 재검수, 나머지 기능 ID 직접 조작 증거 보강.
