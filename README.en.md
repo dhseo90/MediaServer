@@ -171,12 +171,13 @@ For documentation or release metadata changes, start with the fast checks:
 
 ```bash
 git diff --check
-./server.sh verify-release-metadata --allow-unpublished
+./server.sh verify-release-metadata
 ./server.sh verify-docs-links
 ```
 
-After main/tag/GitHub Release publication, rerun `./server.sh verify-release-metadata`
-without `--allow-unpublished`.
+After main/tag/GitHub Release publication, run
+`./server.sh verify-release-metadata --published` to check GitHub Latest Release
+and the remote tag.
 
 Release-local baseline:
 

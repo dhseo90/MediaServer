@@ -50,7 +50,7 @@ const prTemplate = readText(".github/PULL_REQUEST_TEMPLATE.md");
 const preflight = readText(".github/workflows/preflight.yml");
 
 const localCommands = [
-  "./server.sh verify-release-metadata --allow-unpublished",
+  "./server.sh verify-release-metadata",
   "./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md",
   "./server.sh verify-release-bundle-dry-run",
   "./server.sh verify-post-release-reconciliation",
@@ -102,7 +102,7 @@ const releaseRunbook = [
   { order: 4, action: "Tag verified main commit", status: "manual-not-run" },
   { order: 5, action: "Push approved branch/tag refs", status: "manual-not-run" },
   { order: 6, action: "Create source-only GitHub Release", status: "manual-not-run" },
-  { order: 7, action: "Verify GitHub Latest Release", status: "planned-local" },
+  { order: 7, action: "Verify GitHub Latest Release", status: "planned-published" },
   { order: 8, action: "Sync next branch from main", status: "manual-not-run" },
 ];
 
@@ -214,7 +214,7 @@ check("dry-run report marks release actions as not executed", () => {
   assert(report.createdTag === false, "helper must not create tags");
   assert(report.pushed === false, "helper must not push");
   assert(report.releaseRunbook.length === releaseRunbook.length, "release runbook summary mismatch");
-  assert(report.releaseRunbook.find(item => item.action === "Verify GitHub Latest Release")?.status === "planned-local", "Latest Release verification must stay planned-local in dry-run");
+  assert(report.releaseRunbook.find(item => item.action === "Verify GitHub Latest Release")?.status === "planned-published", "Latest Release verification must stay publish-only in dry-run");
   assert(report.releaseRunbook.filter(item => item.status === "manual-not-run").length >= 7, "release runbook manual gates must remain not-run in dry-run");
   assert(report.visualBaselineAutomation?.schema === "media-server.release-visual-baseline-automation.v1", "visual baseline automation schema missing");
   assert(report.visualBaselineAutomation.commands.length === visualAutomationCommands.length, "visual baseline command summary mismatch");

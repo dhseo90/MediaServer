@@ -99,15 +99,17 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-analysis-state
 ```
 
-`verify-release-metadata`는 v1.8.0부터 로컬 VERSION/문서 일치만으로 통과하지
-않습니다. 기본 실행은 `gh release list`, `gh release view`, GitHub API
-`/releases/latest`, `git ls-remote --tags origin <tag>`를 실제로 호출해 GitHub Latest
-Release와 원격 tag가 현재 source-only release 기준 tag를 가리키는지 확인합니다. 네트워크,
-GitHub CLI, origin 접근이 준비되지 않았으면 실패로 보고하고 release close-out PASS로
-대체하지 않습니다.
-release prep 단계에서 tag/GitHub Release가 아직 수동 생성 전이면
-`./server.sh verify-release-metadata --allow-unpublished`로 로컬 v1.8.0 기준만 확인하고,
-GitHub Latest Release 확인은 publish 뒤 기본 실행으로 다시 닫습니다.
+`verify-release-metadata` 기본 실행은 v1.8.0 release prep 단계에서 반복 가능한
+로컬 VERSION/문서 기준을 확인합니다. 이 모드에서는 GitHub Release/tag 생성이 아직
+수동 close-out 전일 수 있으므로 GitHub Latest Release 확인을 `manual-not-run`으로
+기록합니다.
+main merge, tag, GitHub Release publish 이후에는
+`./server.sh verify-release-metadata --published`를 실행합니다. 이 모드는
+`gh release list`, `gh release view`, GitHub API `/releases/latest`,
+`git ls-remote --tags origin <tag>`를 실제로 호출해 GitHub Latest Release와 원격 tag가
+현재 source-only release 기준 tag를 가리키는지 확인합니다. 네트워크, GitHub CLI,
+origin 접근이 준비되지 않았으면 published metadata gate 실패로 보고하고 release
+close-out PASS로 대체하지 않습니다.
 
 현재 v1.8.0 제품 회귀 gate, UI 풀테스트 gate, release trust hardening gate는 아래
 통합 명령으로만 확인합니다.
@@ -135,7 +137,7 @@ GitHub Latest Release 확인은 publish 뒤 기본 실행으로 다시 닫습니
 ./server.sh verify-ops-rule-relationships
 ./server.sh verify-script-inventory
 ./server.sh verify-docs-links
-./server.sh verify-release-metadata --allow-unpublished
+./server.sh verify-release-metadata
 ```
 
 EventRecord 저장 이력까지 확인해야 하는 경우에는 EventRecord storage를 켠 격리
@@ -153,8 +155,8 @@ enabled 서버에서 아래처럼 `/ops/events` UI scope verifier를 실행합�
 ```
 
 release prep branch에서 tag/GitHub Release가 아직 생성 전이면
-`verify-release-metadata --allow-unpublished`만 branch-level metadata PASS로 기록하고,
-main/tag/GitHub Release publish 뒤에는 `verify-release-metadata`를 다시 실행합니다.
+`verify-release-metadata`만 branch-level metadata PASS로 기록합니다.
+main/tag/GitHub Release publish 뒤에는 `verify-release-metadata --published`를 실행합니다.
 
 과거 release 문구나 evidence 보존 상태는 현재 gate가 아닙니다. 필요한 경우에는
 [development-backlog.md](./development-backlog.md)의 archive 섹션을 사람이 검토하고,

@@ -95,10 +95,10 @@ source-only release 기준입니다. `VERSION`과 CMake project version은 v1.8.
 
 | ID | 우선순위 | 영역 | 목표 | 예상 검증 |
 | --- | --- | --- | --- | --- |
-| V180-P0-01 | P0 | GitHub Latest Release verification gate | `verify-release-metadata`가 로컬 문서/버전만 보지 않고 GitHub Releases latest, remote tag, release URL을 실제로 확인하는 gate를 추가합니다. | `gh release list`, GitHub API `/releases/latest`, remote tag check, `verify-release-metadata`, `git diff --check` |
+| V180-P0-01 | P0 | GitHub Latest Release verification gate | `verify-release-metadata` 기본 실행은 branch에서 반복 가능한 로컬 문서/버전 gate로 두고, `verify-release-metadata --published`가 GitHub Releases latest, remote tag, release URL을 실제로 확인하게 분리합니다. | `verify-release-metadata`, `gh release list`, GitHub API `/releases/latest`, remote tag check, `verify-release-metadata --published`, `git diff --check` |
 | V180-P0-02 | P0 | Docs screenshot freshness gate | 문서 대표 screenshot이 현재 UI baseline과 맞는지 자동 캡처 script, managed asset list, 직접 이미지 검수 checklist를 하나의 gate로 묶습니다. | `capture_docs_ui_assets.mjs --lang=ko/en`, `verify-docs-ui-assets`, direct image review, stale baseline search |
 | V180-P0-03 | P0 | Manual UI evidence checklist hardening | release close-out 전에 `/setup`, `/login`, `/ops`, `/client`, `/ops/rules`, `/client/live` 흐름을 직접 클릭하고 미확인 화면을 남기지 않는 checklist를 정리합니다. | 브라우저 수동 검수, `verify-ops-client-ui --screenshots`, `verify-rule-ui`, evidence index |
-| V180-P0-04 | P0 | Release close-out runbook | branch close, PR merge, main fast-forward, tag, GitHub Release 생성, Latest 확인, next branch sync 순서를 단일 runbook으로 고정합니다. | dry-run checklist, real close-out checklist, `verify-docs-links`, `verify-release-metadata` |
+| V180-P0-04 | P0 | Release close-out runbook | branch close, PR merge, main fast-forward, tag, GitHub Release 생성, Latest 확인, next branch sync 순서를 단일 runbook으로 고정합니다. | dry-run checklist, real close-out checklist, `verify-docs-links`, `verify-release-metadata`, publish 후 `verify-release-metadata --published` |
 | V180-P1-01 | P1 | Docs source-of-truth dedupe | README, docs index, backlog, release policy, evidence 문서가 같은 목록을 반복하지 않도록 source-of-truth와 대표 링크를 분리합니다. | stale/current wording search, `verify-docs-links`, `verify-release-metadata` |
 | V180-P1-02 | P1 | English UI visual copy QA | English screenshot-visible copy, nav/card/table wrapping, Korean residue를 별도 QA 항목으로 고정합니다. | English browser review, `verify-ui-copy-i18n-parity`, `verify-ops-client-ui --screenshots` |
 | V180-P1-03 | P1 | Release evidence index | longrun, UI evidence, PR checks, release notes, skipped tests를 한곳에서 확인하되 README 첫 화면을 과밀하게 만들지 않는 evidence index를 정리합니다. | evidence index review, `verify-docs-links`, skipped-test wording review |
@@ -108,7 +108,7 @@ v1.8.0 완료 기준:
 
 - release prep 단계에서는 README, VERSION, CMake, release/version 문서가 v1.8.0
   기준을 말하고, GitHub Latest Release hard gate는 publish 이후
-  `verify-release-metadata`로 실제 GitHub API/CLI 결과를 확인합니다.
+  `verify-release-metadata --published`로 실제 GitHub API/CLI 결과를 확인합니다.
 - 문서 대표 screenshot은 현재 제품 UI 기준으로 재캡처되고, 한국어/영어 이미지 모두
   직접 열어 이상 유무를 확인합니다.
 - manual UI evidence는 스크립트 결과와 분리해 열어본 화면, 누른 action, 미확인 항목을
@@ -125,7 +125,7 @@ v1.8.0 완료 기준:
 - 확인됨: `/ops/events` EventRecord history coverage는 390px/1180px에서
   rule/scenario event 발생 이력 대조 PASS로 보강됨.
 - 미실행: 120분 longrun, main merge, release tag, GitHub Release 생성,
-  publish 후 `verify-release-metadata` 재확인.
+  publish 후 `verify-release-metadata --published` 재확인.
 - 범위 유지: v1.8.0 close-out은 release trust hardening이며 새 제품 기능 roadmap으로
   확장하지 않음.
 

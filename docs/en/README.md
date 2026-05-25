@@ -46,12 +46,12 @@ v1.8.0 release close-out preparation details are in [../development-backlog.md](
 
 ```bash
 ./server.sh verify-docs-links
-./server.sh verify-release-metadata --allow-unpublished
+./server.sh verify-release-metadata
 ./server.sh verify-manual-ui-evidence --result docs/manual-ui-result-2026-05-25-ui-fulltest-restart.md
 ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
 ./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
 ```
 
 The full verification list is maintained in [../stream-verification.md](../stream-verification.md).
-After the tag and GitHub Release are published, run `./server.sh verify-release-metadata`
-without `--allow-unpublished`.
+After the tag and GitHub Release are published, run
+`./server.sh verify-release-metadata --published`.

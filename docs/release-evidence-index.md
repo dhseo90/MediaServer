@@ -28,13 +28,13 @@
 
 | 영역 | Evidence | 대표 명령/출처 | 테스트 판정 / 실행 상태 기록 |
 | --- | --- | --- | --- |
-| GitHub Latest Release | GitHub Releases latest/list/view, `/releases/latest`, remote tag | `./server.sh verify-release-metadata` | `PASS` 또는 `FAIL` |
+| GitHub Latest Release | GitHub Releases latest/list/view, `/releases/latest`, remote tag | `./server.sh verify-release-metadata --published` | `PASS` 또는 `FAIL` |
 | Release metadata/docs drift | VERSION, CMake, README, docs index, release policy, backlog | `./server.sh verify-release-metadata`, `./server.sh verify-docs-links` | `PASS` 또는 `FAIL` |
 | Docs UI assets | managed screenshot manifest, capture script ownership, direct image review checklist | `./server.sh verify-docs-ui-assets` | 실행한 테스트 행은 `PASS` 또는 `FAIL`; 열지 않은 이미지는 별도 `미확인` |
 | Manual UI evidence | `/setup`, `/login`, `/ops/home`, `/ops/dashboard`, `/ops/sources`, `/ops/rules`, `/ops/users`, `/ops/events`, `/client/live`, `/client/dashboard` direct click index | `./server.sh verify-manual-ui-evidence`, manual browser review | `PASS` 또는 `FAIL` |
 | Feature test inventory | 기능별 UI 필요 여부, 테스트 필요 여부, 테스트 영역, PASS 판정 기준 | [project-feature-test-inventory.md](./project-feature-test-inventory.md) | 기준표, 실행 evidence 아님 |
 | English UI visual copy QA | English capture path, nav/card/table wrapping, Korean residue review | `./server.sh verify-ui-copy-i18n-parity`, `./server.sh verify-ops-client-ui --screenshots` | 실행한 테스트 행은 `PASS` 또는 `FAIL`; 열지 않은 화면은 별도 `미확인` |
-| Release close-out runbook | branch close, PR merge, main sync, tag, GitHub Release, Latest 확인, next branch sync | `./server.sh verify-release-closeout-helper --dry-run` | planned-local/manual-not-run |
+| Release close-out runbook | branch close, PR merge, main sync, tag, GitHub Release, Latest 확인, next branch sync | `./server.sh verify-release-closeout-helper --dry-run` | planned-local/planned-published/manual-not-run |
 | Feature scope decision gate | 새 기능 후보를 v1.8 안정화 gate 안에서 구현으로 승격하지 않는 절차 | `./server.sh verify-feature-scope-gate` | `PASS` 또는 `FAIL` |
 | PR checks | Preflight, licensing/artifact guardrails, required checks | GitHub Actions UI/API | 실행 확인 시 `PASS` 또는 `FAIL`; 열지 않은 Actions는 별도 `미확인` |
 | Release notes | source-only scope, non-goals, verification, not-run/unverified | [release-policy.md](./release-policy.md) | 검토 행은 `PASS` 또는 `FAIL`; 실행하지 않은 gate는 별도 `미실행` |
@@ -56,7 +56,7 @@
 
 Not run for `stability-script-smoke-20260525`: 30분 soak, 120분 longrun, manual UI 풀테스트.
 Not run for `predev-30min-20260525`: 120분 longrun, manual UI 풀테스트.
-Not run for `ui-fulltest-restart-20260525-oehkFG`: 120분 longrun, main merge, release tag, GitHub Release 생성, publish 후 `verify-release-metadata` 재확인.
+Not run for `ui-fulltest-restart-20260525-oehkFG`: 120분 longrun, main merge, release tag, GitHub Release 생성, publish 후 `verify-release-metadata --published` 재확인.
 
 ## Skipped / Not-run Wording
 
@@ -82,10 +82,11 @@ Not run for `ui-fulltest-restart-20260525-oehkFG`: 120분 longrun, main merge, r
 ./server.sh verify-release-evidence-index
 ./server.sh verify-feature-scope-gate
 ./server.sh verify-docs-links
-./server.sh verify-release-metadata --allow-unpublished
 ./server.sh verify-release-metadata
+./server.sh verify-release-metadata --published
 ```
 
 release prep branch에서 tag/GitHub Release가 아직 수동 생성 전이면
-`verify-release-metadata --allow-unpublished`만 브랜치 기준 PASS evidence로 쓰고,
-publish 후에는 `--allow-unpublished` 없이 다시 실행합니다.
+`verify-release-metadata`만 브랜치 기준 PASS evidence로 씁니다.
+publish 후에는 `verify-release-metadata --published`로 GitHub Latest Release와
+remote tag를 닫습니다.

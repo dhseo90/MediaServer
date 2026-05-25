@@ -22,21 +22,28 @@ Usage:
 Options:
   --report <path>       Markdown 리포트를 저장합니다.
   --json-report <path>  JSON 리포트를 저장합니다.
-  --allow-unpublished   release prep 단계에서 GitHub latest/tag 미생성을 manual-not-run으로 기록합니다.
+  --published           publish 이후 GitHub latest/release/tag까지 확인합니다.
+  --require-published   --published alias입니다.
+  --allow-unpublished   이전 호환 옵션입니다. 기본 release-prep 모드와 동일하게 처리합니다.
   -h, --help            도움말 출력
 
 Checks:
   - VERSION과 CMake project VERSION 값이 같은 semantic version인지 확인
   - README/English README의 source-only release baseline link가 현재 tag를 가리키는지 확인
-  - GitHub Releases latest/list/view, GitHub API /releases/latest, 원격 tag가 현재 tag를 가리키는지 확인
+  - 기본 모드에서는 GitHub Release/tag 생성을 manual-not-run close-out gate로 기록
+  - --published 모드에서는 GitHub Releases latest/list/view, GitHub API /releases/latest, 원격 tag가 현재 tag를 가리키는지 확인
   - versioning/release/backlog/public review/UI guide 문서가 같은 current release baseline과 deferred phase gate를 말하는지 확인
 `);
 }
 
-assertKnownOptions(rawArgs, ["report", "json-report", "allow-unpublished", "h", "help"]);
+assertKnownOptions(rawArgs, ["report", "json-report", "published", "require-published", "allow-unpublished", "h", "help"]);
 
 const args = parseArgs(rawArgs);
 const allowUnpublished = Boolean(args.allowUnpublished);
+const publishedMode = Boolean(args.published || args.requirePublished);
+if (allowUnpublished && publishedMode) {
+  throw new Error("--allow-unpublished cannot be combined with --published/--require-published");
+}
 const reportPath = args.report ? path.resolve(rootDir, args.report) : "";
 const jsonReportPath = args.jsonReport ? path.resolve(rootDir, args.jsonReport) : "";
 const checks = [];
@@ -44,7 +51,7 @@ const report = {
   schema: "media-server.release-metadata-consistency.v1",
   generatedAt: new Date().toISOString(),
   status: "pass",
-  mode: allowUnpublished ? "release-prep" : "published-release",
+  mode: publishedMode ? "published-release" : "release-prep",
   currentVersion: "",
   currentTag: "",
   checks: [],
@@ -99,12 +106,12 @@ check("README.en.md release link points at current tag", () => {
   return { file: "README.en.md", currentTag };
 });
 
-if (allowUnpublished) {
+if (!publishedMode) {
   check("release prep mode records GitHub publication gate", () => {
     return {
       mode: "release-prep",
       status: "manual-not-run",
-      reason: "GitHub Release/tag creation is a manual close-out gate; rerun without --allow-unpublished after publish.",
+      reason: "GitHub Release/tag creation is a manual close-out gate; rerun with --published after publish.",
       expectedReleaseUrl,
     };
   });

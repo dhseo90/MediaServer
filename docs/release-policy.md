@@ -38,13 +38,12 @@ source offer, model provenance, checksum manifest를 release note에 연결합�
 - release note에는 commit, 검증 명령, known limitation을 짧게 적습니다.
 - source-only release에는 sample/model/runtime binary를 추가 업로드하지 않습니다.
 - `verify-release-closeout-helper`는 dry-run summary만 생성하며 tag, push, GitHub Release 생성을 수행하지 않습니다.
-- `verify-release-metadata`는 로컬 문서/버전뿐 아니라 GitHub Releases latest/list/view,
-  GitHub API `/releases/latest`, 원격 tag를 실제로 확인합니다. 네트워크나 GitHub CLI
-  접근 실패는 release metadata gate 실패로 기록하고 PASS evidence로 대체하지 않습니다.
-- release prep 단계에서 아직 tag/GitHub Release를 만들지 않은 경우에는
-  `./server.sh verify-release-metadata --allow-unpublished`로 로컬 v1.8.0 기준을 확인하고,
-  GitHub latest/tag 확인은 `manual-not-run`으로 남깁니다. 실제 publish 뒤에는
-  `--allow-unpublished` 없이 다시 실행합니다.
+- `verify-release-metadata` 기본 실행은 release prep 단계에서 반복 가능한 로컬
+  문서/버전 기준만 확인하고, GitHub latest/tag 확인은 `manual-not-run`으로 남깁니다.
+- GitHub Releases latest/list/view, GitHub API `/releases/latest`, 원격 tag 확인은
+  main/tag/GitHub Release publish 이후 `./server.sh verify-release-metadata --published`
+  로 실행합니다. 네트워크나 GitHub CLI 접근 실패는 published metadata gate 실패로
+  기록하고 PASS evidence로 대체하지 않습니다.
 - RC longrun 결과는 `rc-release-checklist`와 `media-server-rc-gate` GitHub
   Actions artifact, 또는 `rc-artifact-archive` 외부 archive로 보관합니다.
   임시 `/tmp` 경로는 staging/local-only evidence이며, release-grade 보존 완료로
@@ -82,7 +81,7 @@ screenshot review는 리포트에 manual/not-run으로 남기며, 실제 실행 
 Dry-run checklist:
 
 1. Current branch close 준비: `git status --short`, 단계별 커밋, 미실행/미확인 테스트 기록을 확인합니다.
-2. Local release gates: release prep에서는 `verify-release-metadata --allow-unpublished`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-manual-ui-evidence`, `verify-release-closeout-helper --dry-run` 결과를 모읍니다.
+2. Local release gates: release prep에서는 `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-manual-ui-evidence`, `verify-release-closeout-helper --dry-run` 결과를 모읍니다.
 3. UI evidence readiness: screenshot manifest, direct image review checklist, manual UI evidence index의 `확인됨/미확인/건너뜀` 구분을 확인합니다.
 4. Manual-only actions: PR merge, main fast-forward, tag, push, GitHub Release 생성, Latest Release 확인, next branch sync는 dry-run에서 `manual-not-run`으로 남깁니다.
 
@@ -94,7 +93,7 @@ Real close-out checklist:
 4. Tag: 검증된 main commit에만 annotated release tag를 생성합니다.
 5. Push: tag와 필요한 branch를 명시 승인 후 push합니다.
 6. GitHub Release: source-only release note를 만들고 sample/model/runtime binary를 업로드하지 않습니다.
-7. Latest 확인: GitHub Releases latest, `/releases/latest`, remote tag, README release URL을 `verify-release-metadata`로 확인합니다. 이 단계에서는 `--allow-unpublished`를 쓰지 않습니다.
+7. Latest 확인: GitHub Releases latest, `/releases/latest`, remote tag, README release URL을 `verify-release-metadata --published`로 확인합니다.
 8. Next branch sync: 다음 작업 branch를 main 최신 release fix 위로 동기화한 뒤 미커밋 변경이 없는지 확인합니다.
 
 위 순서 중 실행하지 않은 항목은 테스트 결과 행을 만들지 않고 release evidence 실행

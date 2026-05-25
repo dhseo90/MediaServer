@@ -27,7 +27,7 @@
 
 | 영역 | 실행 범위 | evidence | 기록 |
 | --- | --- | --- | --- |
-| 안정화 테스트 | 후속 재검증에서 build/auth/ops-client/rule/VA/docs/static gate 실행 | build PASS, auth bootstrap/users/routes PASS, ops/client UI PASS, rule UI PASS, VA replay/events PASS, docs/static PASS | 최초 auth env missing, 서버 미기동/auth mismatch/storage disabled 실행조건 실패는 같은 단계에서 조건 보정 후 재검증 PASS. `verify-release-metadata --allow-unpublished`는 PASS 15/0. published release gate는 sandbox 밖 재검증에서도 GitHub latest `v1.7.0`, remote/local `v1.8.0` tag 없음으로 FAIL |
+| 안정화 테스트 | 후속 재검증에서 build/auth/ops-client/rule/VA/docs/static gate 실행 | build PASS, auth bootstrap/users/routes PASS, ops/client UI PASS, rule UI PASS, VA replay/events PASS, docs/static PASS | 최초 auth env missing, 서버 미기동/auth mismatch/storage disabled 실행조건 실패는 같은 단계에서 조건 보정 후 재검증 PASS. 당시 `verify-release-metadata --allow-unpublished`는 PASS 15/0였고 현재 기본 `verify-release-metadata`와 같은 release-prep gate다. published release gate는 sandbox 밖 재검증에서도 GitHub latest `v1.7.0`, remote/local `v1.8.0` tag 없음으로 FAIL |
 | 30분 테스트 | `verify-predev --soak-minutes 30` 실행 | `/tmp/media_server_predev-1779703217-28197_summary.json`, `/tmp/media_server_predev-1779703217-28197_report.md`, durationSec=2399, pass=119 fail=0 skip=1 | PASS. skip: external-turn-hard-gate는 `--include-external-turn` 미지정으로 제외 |
 | 120분 테스트 | 실행하지 않음 | 없음 | 별도 승인 없음 |
 | UI 풀테스트 | 219개 UI 대상 기능 ID 중 219 PASS, 0 FAIL. 기능별 결과표는 UI 비대상 간접 안정화 행 `RULE-099` 별도 PASS 포함 220행 중 220 PASS, 0 FAIL | retained evidence: auth/browser artifacts, current ops click E2E summary JSON, current EventRecord history coverage JSON, command result log below | 최종 PASS |
@@ -51,8 +51,8 @@
 - `./server.sh verify-manual-ui-evidence`: PASS
 - `./server.sh verify-docs-links`: PASS
 - `git diff --check`: PASS
-- `./server.sh verify-release-metadata`: FAIL - GitHub latest release/tag is v1.7.0 and remote/local tag v1.8.0 is absent. UI product regression으로 단정하지 않음.
-- `./server.sh verify-release-metadata --allow-unpublished --json-report /private/tmp/media_server_release_metadata_allow_unpublished.json --report /private/tmp/media_server_release_metadata_allow_unpublished.md`: PASS 15/0 - release prep 문서/버전 기준은 일치하며 GitHub publish/tag는 manual close-out gate로 분리.
+- 당시 published-release 기본 모드 `./server.sh verify-release-metadata`: FAIL - GitHub latest release/tag is v1.7.0 and remote/local tag v1.8.0 is absent. 현재 published gate는 `./server.sh verify-release-metadata --published`로 분리됐다. UI product regression으로 단정하지 않음.
+- 당시 release-prep 모드 `./server.sh verify-release-metadata --allow-unpublished --json-report /private/tmp/media_server_release_metadata_allow_unpublished.json --report /private/tmp/media_server_release_metadata_allow_unpublished.md`: PASS 15/0 - 현재 기본 `verify-release-metadata`와 같은 로컬 문서/버전 기준이며 GitHub publish/tag는 manual close-out gate로 분리.
 - `./server.sh verify-va-events --cookie-file ... --dispatch-records`: FAIL - EventRecord queue drain timeout. Stored records existed; queue remained non-empty and droppedCount > 0.
 - 후속 재검증 `./server.sh verify-va-events --dispatch-records`: PASS - `scripts/internal/verify_va_tracking_events.sh`가 `--dispatch-records` 기본 dispatch 간격을 1로 바꾸고 EventRecord storage disabled를 fail-fast 처리한 뒤, fresh registry/storage 격리 서버에서 `stored=2012 failed=0 dropped=0`, 33 PASS/0 FAIL. 아래 UI 기능별 FAIL 행을 PASS로 대체하지 않음.
 - 후속 재검증 `./server.sh verify-ops-click-e2e --auth-ui-flow --widths 1180 --auth-users-file /private/tmp/media_server_auth_ui_flow_users.json`: PASS - session auth 서버에서 `/setup`, `/login`, `/ops/users`, `/client/request-access`, `/invite/setup`, `/password/change`, `/client/live` 흐름을 자율 Chrome/CDP로 클릭/타이핑 검증.
@@ -551,7 +551,7 @@
 - PASS 조건: 개별 기능 실패 행 0개, 현재 기능별 결과표 실패 행 0개
 - 제품 회귀 여부: client live layout preference 저장 실패는 fresh auth fixture에서 재현되지 않았고 `CLIENT-009`는 PASS로 재분류됨. live session logout cleanup 누수는 `CLIENT-005`에서 재현 후 수정/재검증 PASS. rule/scenario EventRecord 개별 발생 이력과 `/ops/events`의 rule/scenario별 최종 EventRecord 대조는 `event-history-coverage.json` 390px/1180px에서 PASS.
 - 환경/sandbox 한계: local loopback은 일부 명령에서 sandbox 바깥 실행 필요.
-- release gate: main publish 전 브랜치 검증은 `verify-release-metadata --allow-unpublished` 기준 PASS 15/0. published-release 모드는 GitHub latest `v1.7.0`, remote/local `v1.8.0` tag 없음으로 FAIL이며, main/tag/release close-out 단계에서 다시 실행한다.
+- release gate: main publish 전 브랜치 검증은 release-prep metadata gate PASS 15/0. published-release 모드는 GitHub latest `v1.7.0`, remote/local `v1.8.0` tag 없음으로 FAIL이며, main/tag/release close-out 단계에서 `verify-release-metadata --published`로 다시 실행한다.
 - 커밋: UI 풀테스트 close-out 변경 3개 커밋 완료 (`114968b`, `a39e9cb`, `e581ed9`)
 - 푸시 가능: 예, 브랜치 기준
 - 이유: 브랜치 push 기준 release-prep gate PASS, UI 풀테스트 PASS. published-release tag gate는 main close-out 범위.
