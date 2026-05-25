@@ -192,8 +192,10 @@ UI 조작 evidence는 프로젝트 verifier가 자체 Chrome/CDP 세션에서 �
   evidence로만 사용합니다. 하나라도 없으면 VA 이벤트 커버리지는 PASS가 아닙니다.
 - `/ops/users`: 사용자 추가/수정, viewer scope 적용, reset password, disable/restore,
   마지막 admin 보호, pending access request 승인/거절 flow를 확인합니다.
-  접근 요청 거절 confirm은 `verify-ops-click-e2e`처럼 runner가 자동 수락하고
-  거절 POST, rejected row, user row 미생성까지 확인해야 합니다.
+  접근 요청 거절 같은 위험 action은 native confirm/alert/prompt가 아니라 제품 화면 안
+  2회 확인 상태로 처리되어야 합니다. `verify-product-ui-no-native-dialogs`로 native
+  dialog가 없는지 먼저 막고, `verify-ops-click-e2e`는 첫 클릭에서 POST가 발생하지
+  않는지와 두 번째 클릭 뒤 거절 POST, rejected row, user row 미생성까지 확인합니다.
 - `/ops/events`: evidence policy, evidence filter, include archives, prev/next,
   signed bundle export를 확인합니다.
 - `/ops/events`는 primary nav가 아니라 진단/직접 route 또는 Dashboard 내부 섹션으로

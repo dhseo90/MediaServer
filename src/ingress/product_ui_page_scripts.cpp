@@ -4146,6 +4146,15 @@ void AppendOpsShellScript(std::ostringstream& out,
       function opsRulesEditorStatus(message, failed = false) {
         setFeedback(document.getElementById('opsRulesStatus'), message, failed, { collapseEmpty: true });
       }
+      function opsRulesConfirmDangerAction(key, message) {
+        if (opsRulesPendingDangerAction !== key) {
+          opsRulesPendingDangerAction = key;
+          opsRulesEditorStatus(`${message} 다시 누르면 실행합니다.`, false);
+          return false;
+        }
+        opsRulesPendingDangerAction = '';
+        return true;
+      }
       let opsCatalogEventTemplates = [];
       let opsCatalogProfiles = [];
       let opsCatalogBuiltInProfiles = [];
@@ -4158,6 +4167,7 @@ void AppendOpsShellScript(std::ostringstream& out,
       let opsRulesActiveMode = 'va-rule';
       let opsRulesDetailMode = 'closed';
       let opsRulesDetailRecordId = '';
+      let opsRulesPendingDangerAction = '';
       let opsVaRuleTemplateId = '';
       let opsRulesCurrentRecord = null;
       const opsVaRulePreviewState = {
@@ -7296,7 +7306,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           return;
         }
         const name = item?.name ? ` '${item.name}'` : '';
-        if (!window.confirm(`채널 분석 설정 ${opsRulesIdText(id)}${name}을 삭제할까요?`)) return;
+        if (!opsRulesConfirmDangerAction(`delete-va-rule:${id}`, `채널 분석 설정 ${opsRulesIdText(id)}${name} 삭제 확인:`)) return;
         await requestJson(`${opsLabVaRulesPath}/${encodeURIComponent(id)}`, { method: 'DELETE' });
         await recordOpsAudit({ area: 'rules', action: 'delete', target: `va-rule:${id}`, before: item, after: null });
         renderOpsAuditTrail('ops-rules-audit-list', 'rules');
@@ -7312,7 +7322,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           opsRulesEditorStatus('삭제할 이벤트 템플릿을 찾지 못했습니다.', true);
           return;
         }
-        if (!window.confirm(`이벤트 템플릿 '${id}'를 삭제할까요?`)) return;
+        if (!opsRulesConfirmDangerAction(`delete-event-template:${id}`, `이벤트 템플릿 '${id}' 삭제 확인:`)) return;
         await requestJson(`${opsLabRulesPath}/${encodeURIComponent(id)}`, { method: 'DELETE' });
         await recordOpsAudit({ area: 'rules', action: 'delete', target: `event-template:${id}`, before: item, after: null });
         renderOpsAuditTrail('ops-rules-audit-list', 'rules');
@@ -7330,7 +7340,8 @@ void AppendOpsShellScript(std::ostringstream& out,
         }
         const usage = opsProfileUsageSummary(id);
         const usagePrompt = usage === '없음' ? '' : `\n현재 사용처: ${usage}`;
-        if (!window.confirm(`분석 프로파일 '${id}'를 삭제할까요?${usagePrompt}`)) return;
+        const usageText = usagePrompt ? ` 현재 사용처: ${usage}` : '';
+        if (!opsRulesConfirmDangerAction(`delete-profile:${id}`, `분석 프로파일 '${id}' 삭제 확인:${usageText}`)) return;
         await requestJson(`${opsLabProfilesPath}/${encodeURIComponent(id)}`, { method: 'DELETE' });
         await recordOpsAudit({ area: 'rules', action: 'delete', target: `profile:${id}`, before: item, after: null });
         renderOpsAuditTrail('ops-rules-audit-list', 'rules');
@@ -7606,6 +7617,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     let editorMode = 'view';
     let currentChannelEnabled = true;
     let initializedHashChannel = false;
+    let pendingChannelDangerAction = '';
     let opsPrincipal = null;
     const {
       escapeHtml,
@@ -7627,6 +7639,15 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     const setStatus = (message, failed = false) => {
       setFeedback(statusEl, message, failed, { collapseEmpty: true });
     };
+    function confirmChannelDangerAction(key, message) {
+      if (pendingChannelDangerAction !== key) {
+        pendingChannelDangerAction = key;
+        setStatus(`${message} 다시 누르면 실행합니다.`);
+        return false;
+      }
+      pendingChannelDangerAction = '';
+      return true;
+    }
     const setChannelValidation = message => {
       setFeedback(channelValidation, message, Boolean(message));
     };
@@ -8430,7 +8451,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     async function deleteChannel(id) {
       if (!id) id = channelForm.elements.channelId.value.trim();
       if (!id) return;
-      if (!window.confirm(`채널 #${id}을 삭제할까요? 현재 API는 source/view를 비활성화합니다.`)) return;
+      if (!confirmChannelDangerAction(`delete-channel:${id}`, `채널 #${id} 삭제 확인: 현재 API는 source/view를 비활성화합니다.`)) return;
       const before = { source: findSource(id) || null, view: findChannelView(id) || null };
       try {
         const results = await Promise.allSettled([
@@ -8511,6 +8532,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     let loadedInvites = [];
     let loadedClientViews = [];
     let editorMode = 'view';
+    let pendingUserDangerAction = '';
     const {
       escapeHtml,
       requestJson,
@@ -8531,6 +8553,15 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
     const setRequestStatus = (message, failed = false) => setFeedback(requestStatusEl, message, failed, { collapseEmpty: true });
     const setInviteStatus = (message, failed = false) => setFeedback(inviteStatusEl, message, failed, { collapseEmpty: true });
     const setResetPasswordStatus = (message, failed = false) => setFeedback(resetPasswordStatus, message, failed, { collapseEmpty: true });
+    function confirmUserDangerAction(key, message, feedback = setStatus) {
+      if (pendingUserDangerAction !== key) {
+        pendingUserDangerAction = key;
+        feedback(`${message} 다시 누르면 실행합니다.`);
+        return false;
+      }
+      pendingUserDangerAction = '';
+      return true;
+    }
     function compactUserStoreError(error) {
       const message = String(error?.message || error || '').trim();
       if (message.includes('auth users file not found') || message.includes('auth users file is missing')) {
@@ -9204,7 +9235,8 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
       }
     }
     async function rejectAccessRequest(request) {
-      if (!window.confirm(`${request.username || request.requestId} 요청을 거절할까요?`)) return;
+      const label = request.username || request.requestId;
+      if (!confirmUserDangerAction(`reject-request:${request.requestId}`, `${label} 요청 거절 확인:`, setRequestStatus)) return;
       try {
         await requestJson(`/ops/api/access-requests/${encodeURIComponent(request.requestId)}/reject`, { method: 'POST' });
         setInviteOutput('');
@@ -9363,7 +9395,7 @@ void AppendOpsUsersPageScript(std::ostringstream& out) {
         const username = String(lifecycleButton.dataset.userActionUsername || '').trim();
         const enabled = lifecycleButton.dataset.userSetEnabled === 'true';
         if (!username) return;
-        if (!enabled && !window.confirm(`사용자 @${username} 로그인을 비활성화하고 기존 세션을 회수할까요?`)) return;
+        if (!enabled && !confirmUserDangerAction(`disable-user:${username}`, `사용자 @${username} 로그인 비활성화와 기존 세션 회수 확인:`)) return;
         setEnabled(username, enabled);
         return;
       }

@@ -92,6 +92,7 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-auth-routes
 ./server.sh verify-ops-client-ui
 ./server.sh verify-ops-click-e2e
+./server.sh verify-ops-click-e2e --auth-ui-flow --auth-users-file <path>
 ./server.sh verify-ops-tables-layout
 ./server.sh verify-rule-ui
 ./server.sh verify-ops-rules-roundtrip
@@ -118,6 +119,7 @@ GitHub Latest Release 확인은 publish 뒤 기본 실행으로 다시 닫습니
 ./server.sh verify-ops-client-ui
 ./server.sh verify-ops-client-ui --screenshots
 ./server.sh verify-ops-click-e2e
+./server.sh verify-ops-click-e2e --auth-ui-flow --auth-users-file <path>
 ./server.sh verify-ops-tables-layout
 ./server.sh verify-rule-ui
 ./server.sh verify-ops-rules-roundtrip
@@ -128,6 +130,11 @@ GitHub Latest Release 확인은 publish 뒤 기본 실행으로 다시 닫습니
 ./server.sh verify-va-metadata-sidechannel
 ./server.sh verify-ws-metadata
 ```
+
+EventRecord 저장 이력까지 확인해야 하는 경우에는 EventRecord storage를 켠 격리
+서버에서 `verify-va-events --dispatch-records`를 실행합니다. 이 모드는 rare
+`exit`/direction event 누락을 피하기 위해 별도 환경변수를 주지 않으면 모든 poll을
+`dispatch=1`로 조회하며, storage가 꺼져 있으면 긴 polling 전에 실패합니다.
 
 과거 release 문구나 evidence 보존 상태는 현재 gate가 아닙니다. 필요한 경우에는
 [development-backlog.md](./development-backlog.md)의 archive 섹션을 사람이 검토하고,
@@ -163,12 +170,23 @@ FFmpeg/ffprobe CLI가 없는 공개/CI 환경에서는 codec matrix와 RTSP deco
 - 채널 추가/상세
 - 룰 패널 이동
 - 사용자 상세
+- 사용자 수정, 비밀번호 초기화, 비활성화 2회 확인, 복구
+- 초대 발급과 invite list token/tokenHash 비노출
 - 접근 요청 승인 채널 ID 입력과 invite 출력
 - client dashboard
 
 서버를 `MEDIA_SERVER_AUTH_USERS_FILE` override로 띄운 경우에는
 `verify-ops-click-e2e --auth-users-file <path>`에도 같은 경로를 넘겨
 접근 요청 fixture cleanup을 같은 users file에 적용합니다.
+session auth 제품 UI 자체를 검증할 때는 별도 session-auth 서버를 띄우고
+`verify-ops-click-e2e --auth-ui-flow --auth-users-file <path>`를 실행합니다.
+이 모드는 `/setup`, `/login`, `/ops/users`, `/client/request-access`,
+`/invite/setup`, `/password/change`, `/client/live`를 자율 Chrome/CDP로 직접
+조작하며, `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`,
+`MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD`,
+`MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD`,
+`MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE`,
+`MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO`가 없으면 시작하지 않습니다.
 
 ## Flaky verifier stabilization
 
@@ -184,6 +202,10 @@ FFmpeg/ffprobe CLI가 없는 공개/CI 환경에서는 codec matrix와 RTSP deco
   강제로 주입하고 각각 restore합니다. Browser Use clipboard 자체 오류는
   [browser-use-clipboard-diagnostics.md](./browser-use-clipboard-diagnostics.md) 기준으로
   제품 fallback 회귀와 분리합니다.
+- native dialog guard: `verify-product-ui-no-native-dialogs`는 제품 UI source의
+  `alert`/`confirm`/`prompt` 호출을 금지합니다. 위험 action은 제품 화면 안 2회
+  확인 상태로 검증하고, 사용자가 Codex pane나 운영체제 팝업을 눌러야 하는 상태는
+  verifier 실패로 봅니다.
 - Browser/Computer Use fallback: 수동 UI evidence는 Browser Use 직접 조작,
   Chrome 직접 조작, Computer Use visible UI 조작 순서로 시도하고, raw JSON/API-only
   확인을 수동 클릭 evidence로 쓰지 않습니다.
@@ -296,6 +318,7 @@ VA rule/scenario 변경:
 ./server.sh verify-analysis-state
 ./server.sh verify-va-replay
 ./server.sh verify-va-events
+MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_ENABLED=1 ./server.sh verify-va-events --dispatch-records
 ./server.sh verify-ops-scenario-presets
 ```
 
@@ -333,6 +356,7 @@ artifact에서 확인합니다.
 
 - `verify-ops-client-ui`
 - `verify-ops-click-e2e`
+- `verify-ops-click-e2e --auth-ui-flow --auth-users-file <path>`
 - `verify-ops-tables-layout`
 - `verify-rule-ui`
 - `verify-ops-rules-roundtrip`
@@ -585,8 +609,12 @@ Product UI smoke:
 - `/setup`, `/login`, `/password/change`, `/invite/setup`,
   `/client/request-access` auth shell selector
 - `verify-ops-click-e2e`는 자체 Chrome/CDP 세션에서 Ops/Client 주요 클릭 흐름을
-  조작합니다. 접근 요청 거절 confirm 같은 팝업은 runner가 자동 처리하고, 사용자가
-  Codex pane나 운영체제 팝업을 눌러야 하는 상태는 verifier 실패로 봅니다.
+  조작합니다. 접근 요청 거절 같은 위험 action은 native 팝업이 아니라 제품 화면 안
+  2회 확인 상태여야 하며, 사용자가 Codex pane나 운영체제 팝업을 눌러야 하는 상태는
+  verifier 실패로 봅니다.
+- `verify-ops-click-e2e --auth-ui-flow`는 session auth 서버에서 setup/login/logout,
+  public access request submit/approve/reject, invite setup, password change,
+  user disable/restore, last-admin guard를 실제 auth shell과 제품 UI로 조작합니다.
 
 Invite/request smoke:
 
@@ -595,7 +623,7 @@ Invite/request smoke:
 - pending invite와 approved request가 user-only 저장 후에도 users file에 유지
 - 기존 enabled user invite가 수락 전 role/scope/session을 바꾸지 않음
 - access request approve가 invite setup 전 user row를 만들지 않음
-- access request reject가 confirm 자동 처리 후 rejected 상태로 유지되고 user row를 만들지 않음
+- access request reject가 2회 확인 후 rejected 상태로 유지되고 user row를 만들지 않음
 - invite 수락 후 이전 session 폐기
 - password reset 후 `mustChangePassword=true`와 기존 session 회수
 - disable은 login/session 차단, restore는 lockout/실패 횟수 초기화

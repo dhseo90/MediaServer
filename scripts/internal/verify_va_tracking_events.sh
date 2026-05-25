@@ -71,7 +71,7 @@ Options:
   MEDIA_SERVER_VERIFY_VA_EVENTS_POLL_COUNT
   MEDIA_SERVER_VERIFY_VA_EVENTS_POLL_INTERVAL_S
   MEDIA_SERVER_VERIFY_VA_EVENTS_DISPATCH_RECORDS
-  MEDIA_SERVER_VERIFY_VA_EVENTS_DISPATCH_EVERY_N
+  MEDIA_SERVER_VERIFY_VA_EVENTS_DISPATCH_EVERY_N  --dispatch-records 기본값은 1입니다. 미지정 시 rare event 누락을 막기 위해 모든 poll을 dispatch합니다.
   MEDIA_SERVER_VERIFY_VA_COOKIE_FILE
 EOF_USAGE
 }
@@ -133,7 +133,7 @@ FILE_ROOT="$(media_server_resolve_project_path "${ROOT_DIR}" "${FILE_ROOT:-video
 LOCAL_FILE="${FILE_ROOT}/${FILE_TOKEN}"
 POLL_COUNT="${MEDIA_SERVER_VERIFY_VA_EVENTS_POLL_COUNT:-180}"
 POLL_INTERVAL_S="${MEDIA_SERVER_VERIFY_VA_EVENTS_POLL_INTERVAL_S:-0.2}"
-DISPATCH_EVERY_N="${MEDIA_SERVER_VERIFY_VA_EVENTS_DISPATCH_EVERY_N:-2}"
+DISPATCH_EVERY_N="${MEDIA_SERVER_VERIFY_VA_EVENTS_DISPATCH_EVERY_N:-}"
 MIN_PRESENCE="${MEDIA_SERVER_VERIFY_VA_EVENTS_MIN_PRESENCE:-1}"
 MIN_ENTER="${MEDIA_SERVER_VERIFY_VA_EVENTS_MIN_ENTER:-1}"
 MIN_EXIT="${MEDIA_SERVER_VERIFY_VA_EVENTS_MIN_EXIT:-1}"
@@ -213,6 +213,13 @@ print(max(1, int(math.ceil(duration / interval))))
 PY
 )"
 fi
+if [[ -z "${DISPATCH_EVERY_N}" ]]; then
+  if [[ "${DISPATCH_RECORDS}" == "1" ]]; then
+    DISPATCH_EVERY_N=1
+  else
+    DISPATCH_EVERY_N=2
+  fi
+fi
 LOCAL_FILE="${FILE_ROOT}/${FILE_TOKEN}"
 CURL_AUTH_ARGS=()
 if [[ -n "${COOKIE_FILE}" ]]; then
@@ -247,6 +254,17 @@ if ! curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} --max-time 3 "${HTTP_BAS
   exit 1
 fi
 log_pass "HTTP health ok"
+
+if [[ "${DISPATCH_RECORDS}" == "1" ]]; then
+  STORAGE_STATUS="$(curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} --max-time 3 "${HTTP_BASE}/lab/analysis/event-storage/status")"
+  STORAGE_ENABLED="$(python3 -c 'import json,sys; print("1" if json.load(sys.stdin).get("enabled") is True else "0")' <<<"${STORAGE_STATUS}")"
+  if [[ "${STORAGE_ENABLED}" != "1" ]]; then
+    log_fail "EventRecord storage is disabled; enable MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_ENABLED=1 before --dispatch-records"
+    echo "${STORAGE_STATUS}" | sed 's/^/  /'
+    exit 1
+  fi
+  log_pass "EventRecord storage enabled"
+fi
 
 next_rule_id() {
   RULE_ID_COUNTER=$((RULE_ID_COUNTER + 1))
@@ -359,6 +377,13 @@ last = {}
 while time.time() < deadline:
     raw = subprocess.check_output(curl + [url], text=True)
     last = json.loads(raw)
+    if last.get("enabled") is not True:
+        print(
+            "[fail] EventRecord storage disabled during dispatch verification: "
+            f"{json.dumps(last, ensure_ascii=False)[:400]}",
+            file=sys.stderr,
+        )
+        raise SystemExit(1)
     if int(last.get("queueSize") or 0) == 0 and int(last.get("storedCount") or 0) > 0:
         print(
             "[pass] EventRecord queue drained "

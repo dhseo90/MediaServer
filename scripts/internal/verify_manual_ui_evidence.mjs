@@ -38,6 +38,9 @@ const checklist = readText("docs/manual-ui-checklist.md");
 const template = readText("docs/manual-ui-result-template.md");
 const fulltest = readText("docs/manual-ui-fulltest.md");
 const backlog = readText("docs/development-backlog.md");
+const inventory = readText("docs/project-feature-test-inventory.md");
+const seedFixturePath = "test/fixtures/manual_ui_fulltest_va_seed_matrix.json";
+const seedFixture = JSON.parse(readText(seedFixturePath));
 
 const checks = [];
 
@@ -146,6 +149,8 @@ check("manual result template separates automation from direct browser evidence"
     "## 스크립트 테스트 기록",
     "## UI 풀테스트 기록",
     "관련 자동 검증",
+    "verify-product-ui-no-native-dialogs",
+    "verify-ops-click-e2e",
     "## 확인됨",
     "실제로 열고 클릭한 화면만 적습니다.",
     "자율 Chrome/CDP 세션 또는 인앱 브라우저",
@@ -181,6 +186,33 @@ check("manual UI docs separate script stability tests from UI full test", () => 
     "메모리 릭",
     "UI 풀테스트 PASS를 대체하지 않습니다.",
     "30분/120분 안정화 PASS를 대체하지 않습니다.",
+  ], "docs/manual-ui-fulltest.md");
+});
+
+check("manual UI docs require native-dialog-free autonomous UI flow", () => {
+  assertIncludes(checklist, [
+    "verify-product-ui-no-native-dialogs",
+    "native confirm/alert/prompt가 아니라 제품 화면 안",
+    "첫 클릭에서 POST가 발생하지",
+    "두 번째 클릭 뒤 거절 POST",
+  ], "docs/manual-ui-checklist.md");
+  assertIncludes(fulltest, [
+    "사용자에게 pane 열기, 버튼 클릭, 팝업 확인을",
+    "테스트 harness FAIL",
+    "verify-product-ui-no-native-dialogs",
+    "위험 action은 제품 화면 안 2회 확인 상태",
+    "첫 클릭에는 write POST가",
+  ], "docs/manual-ui-fulltest.md");
+  assertIncludes(template, [
+    "자율 Chrome/CDP 또는 인앱 브라우저 직접 조작",
+    "verify-product-ui-no-native-dialogs",
+    "verify-ops-click-e2e",
+  ], "docs/manual-ui-result-template.md");
+  assertNotIncludes(checklist, [
+    "runner가 자동 수락",
+  ], "docs/manual-ui-checklist.md");
+  assertNotIncludes(fulltest, [
+    "팝업은 테스트 runner가 정책대로 처리",
   ], "docs/manual-ui-fulltest.md");
 });
 
@@ -342,6 +374,100 @@ if (resultPath) {
       "NOT RUN",
     ], path.relative(rootDir, resultPath).replaceAll(path.sep, "/"));
   });
+
+  check("provided manual result covers every UI-target feature ID", () => {
+    const inventoryRows = uiTargetFeatureIds();
+    const resultRows = parseFeatureRows(result);
+    const resultIds = new Set(resultRows.map(row => row.id));
+    const missing = inventoryRows.filter(id => !resultIds.has(id));
+    assert(missing.length === 0, `manual result missing UI target feature rows: ${missing.join(", ")}`);
+    for (const row of resultRows) {
+      if (!/^(UI|AUTH|SRC|RULE|EVT|CLIENT|MEDIA|LAB|SAFE)-\d+$/.test(row.id)) continue;
+      assert(["PASS", "FAIL"].includes(row.verdict), `manual result row ${row.id} verdict must be PASS or FAIL: ${row.verdict || "(empty)"}`);
+    }
+  });
+
+  check("provided manual result UI summary count matches UI-target rows", () => {
+    const uiIds = new Set(uiTargetFeatureIds());
+    const resultRows = parseFeatureRows(result).filter(row => uiIds.has(row.id));
+    const pass = resultRows.filter(row => row.verdict === "PASS").length;
+    const fail = resultRows.filter(row => row.verdict === "FAIL").length;
+    const summary = result.match(/UI 풀테스트\s*\|\s*(\d+)개 UI 대상 기능 ID 중 (\d+) PASS, (\d+) FAIL/);
+    assert(summary, "manual result missing UI full-test summary count");
+    const [, totalText, passText, failText] = summary;
+    assert(Number(totalText) === uiIds.size, `manual result UI summary total mismatch: ${totalText} != ${uiIds.size}`);
+    assert(Number(passText) === pass, `manual result UI summary PASS mismatch: ${passText} != ${pass}`);
+    assert(Number(failText) === fail, `manual result UI summary FAIL mismatch: ${failText} != ${fail}`);
+  });
+
+  check("provided manual result covers every RULE feature ID", () => {
+    const inventoryRuleIds = parseFeatureRows(inventory)
+      .filter(row => row.id.startsWith("RULE-"))
+      .map(row => row.id);
+    const resultIds = new Set(parseFeatureRows(result).map(row => row.id));
+    const missing = inventoryRuleIds.filter(id => !resultIds.has(id));
+    assert(missing.length === 0, `manual result missing RULE feature rows: ${missing.join(", ")}`);
+  });
+
+  check("provided manual result populates VA seed matrix rows", () => {
+    const section = sectionBetween(result, "## VA Seed / 최종 룰 상태", "## VA Event Occurrence Coverage");
+    assert(section, "manual result missing VA Seed / final rule section");
+    const expectedRows = expectedSeedResultRows(seedFixture);
+    const rows = parseGenericTableRows(section);
+    const byName = new Map(rows.map(row => [row[0], row]));
+    const missing = expectedRows.filter(name => !byName.has(name));
+    assert(missing.length === 0, `manual result missing VA seed matrix rows: ${missing.join(", ")}`);
+    const incomplete = [];
+    for (const name of expectedRows) {
+      const row = byName.get(name) || [];
+      const actual = row[2] || "";
+      const verdict = row[3] || "";
+      if (!actual || !["PASS", "FAIL"].includes(verdict) || verdict === "PASS/FAIL") {
+        incomplete.push(name);
+      }
+    }
+    assert(incomplete.length === 0, `manual result has unpopulated VA seed matrix rows: ${incomplete.join(", ")}`);
+  });
+
+  check("provided manual result splits VA EventRecord coverage by exact event key", () => {
+    const section = sectionBetween(result, "## VA Event Occurrence Coverage", "### VA EventRecord 후속");
+    assert(section, "manual result missing VA Event Occurrence Coverage section");
+    const expectedKeys = [
+      "`presence`",
+      "`enter`",
+      "`exit`",
+      "`line-crossing:any`",
+      "`line-crossing:forward`",
+      "`line-crossing:reverse`",
+      "`intrusion-dwell`",
+      "`re-entry`",
+      "`wrong-direction`",
+      "`intrusion-after-line-crossing`",
+      "`loitering`",
+      "`zone-occupancy`",
+    ];
+    const rows = parseGenericTableRows(section)
+      .filter(row => row[0]?.startsWith("`"));
+    const byKey = new Map(rows.map(row => [row[0], row]));
+    const missing = expectedKeys.filter(key => !byKey.has(key));
+    assert(missing.length === 0, `manual result missing exact VA EventRecord rows: ${missing.join(", ")}`);
+    const extraCombined = rows
+      .map(row => row[0])
+      .filter(key => key.includes("/") || key.includes("any/forward/reverse"));
+    assert(extraCombined.length === 0, `manual result has combined VA EventRecord rows instead of exact rows: ${extraCombined.join(", ")}`);
+    const invalidPass = [];
+    for (const key of expectedKeys) {
+      const row = byKey.get(key) || [];
+      const evidence = eventCoverageEvidence(row);
+      const verdict = evidence.verdict;
+      if (!["PASS", "FAIL"].includes(verdict || "")) {
+        invalidPass.push(`${key}: invalid verdict ${verdict || "(empty)"}`);
+      } else if (verdict === "PASS" && (!/^(yes|[1-9]\d*)$/i.test(evidence.uiRows) || Number(evidence.jsonRecords) <= 0)) {
+        invalidPass.push(`${key}: PASS without UI row and record evidence`);
+      }
+    }
+    assert(invalidPass.length === 0, `manual result has invalid VA EventRecord verdicts: ${invalidPass.join("; ")}`);
+  });
 }
 
 let pass = 0;
@@ -372,6 +498,105 @@ function readText(relativePath) {
   return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
 }
 
+function parseFeatureRows(text) {
+  return text
+    .split(/\r?\n/)
+    .filter(line => /^\| (UI|AUTH|SRC|RULE|EVT|CLIENT|MEDIA|LAB|SAFE)-\d+ \|/.test(line))
+    .map(line => {
+      const cells = line.split("|").slice(1, -1).map(cell => cell.trim());
+      return {
+        id: cells[0] || "",
+        feature: cells[1] || "",
+        uiNeed: cells[2] || "",
+        testNeed: cells[3] || "",
+        area: cells[4] || "",
+        pass: cells[5] || "",
+        verdict: cells[5] || "",
+      };
+    });
+}
+
+function hasArea(area, token) {
+  return String(area || "").split(",").map(item => item.trim()).includes(token);
+}
+
+function uiTargetFeatureIds() {
+  return parseFeatureRows(inventory)
+    .filter(row => hasArea(row.area, "UI"))
+    .map(row => row.id);
+}
+
+function sectionBetween(text, startHeading, nextHeading) {
+  const start = text.indexOf(startHeading);
+  if (start < 0) return "";
+  const next = text.indexOf(nextHeading, start + startHeading.length);
+  return text.slice(start, next >= 0 ? next : undefined);
+}
+
+function parseGenericTableRows(text) {
+  return text
+    .split(/\r?\n/)
+    .filter(line => line.startsWith("|") && !/^\|\s*-+\s*\|/.test(line))
+    .map(line => line.split("|").slice(1, -1).map(cell => cell.trim()))
+    .filter(cells => cells.length > 0 && cells.some(Boolean))
+    .filter(cells => !/^(개별 항목|개별 event 기능|ID)$/.test(cells[0] || ""));
+}
+
+function expectedSeedResultRows(seed) {
+  return [
+    ...arrayAt(seed, "accounts").map(item => `account: ${item.role}`),
+    ...expectedTrackerPairs(seed).map(pair => `profile: tracker \`${pair.tracker}\` + Re-ID \`${pair.reid}\``),
+    "invalid policy: tracker `none` + Re-ID `assist`",
+    ...arrayAt(seed, "eventTemplates").map(item => `event template: ${eventTemplateLabel(item)}`),
+    ...arrayAt(seed, "scenarioPresets").map(preset => `scenario preset: ${preset}`),
+    ...arrayAt(seed, "vaRules").map(item => `vaRule: ${eventTemplateLabel(arrayAt(seed, "eventTemplates").find(templateRow => templateRow.id === item.eventTemplateId) || {})}`),
+  ];
+}
+
+function eventCoverageEvidence(row) {
+  if (row.length >= 7) {
+    return {
+      uiRows: row[3] || "",
+      jsonRecords: row[4] || "",
+      verdict: row[6] || "",
+    };
+  }
+  return {
+    uiRows: row[1] || "",
+    jsonRecords: row[2] || "",
+    verdict: row[3] || "",
+  };
+}
+
+function expectedTrackerPairs(seed) {
+  const pairs = new Map();
+  for (const collectionName of ["eventTemplates", "vaRules"]) {
+    for (const item of arrayAt(seed, collectionName)) {
+      const policy = item.payload?.analysis?.trackingPolicy || {};
+      const tracker = String(policy.tracker || "").trim();
+      const reid = String(policy.reid || "off").trim();
+      if (tracker && reid && !(tracker === "none" && reid !== "off")) {
+        pairs.set(`${tracker}/${reid}`, { tracker, reid });
+      }
+    }
+  }
+  return [...pairs.values()].sort((left, right) => `${left.tracker}/${left.reid}`.localeCompare(`${right.tracker}/${right.reid}`));
+}
+
+function eventTemplateLabel(item) {
+  if (!item?.type) return "";
+  if (item.type === "line-crossing") {
+    return `line-crossing ${item.direction || item.payload?.event?.region?.direction || ""}`.trim();
+  }
+  return item.type;
+}
+
+function arrayAt(value, key) {
+  const item = value?.[key];
+  if (!Array.isArray(item)) throw new Error(`${key} must be an array`);
+  return item;
+}
+
 function assertIncludes(text, terms, label) {
   const missing = terms.filter(term => !text.includes(term));
   if (missing.length > 0) {
@@ -384,6 +609,10 @@ function assertNotIncludes(text, terms, label) {
   if (present.length > 0) {
     throw new Error(`${label} contains forbidden wording: ${present.join(", ")}`);
   }
+}
+
+function assert(condition, message) {
+  if (!condition) throw new Error(message);
 }
 
 function parseArgs(argv) {

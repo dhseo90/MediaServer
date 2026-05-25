@@ -28,11 +28,13 @@ Options:
   --output-dir <path>       screenshot/log 출력 디렉터리입니다.
   --auth-users-file <path>  접근 요청 승인/거절 fixture 복원 대상 users file입니다.
                             기본 MEDIA_SERVER_AUTH_USERS_FILE 또는 repo .media_server.users.json.
+  --auth-ui-flow            session auth 제품 UI 흐름(/setup,/login,/invite/setup,/password/change)을 검증합니다.
   -h, --help                도움말 출력
 
 Notes:
-  - confirm/alert/prompt dialog는 테스트 runner가 자동 처리하고 처리 이력을 검증합니다.
+  - 위험 작업은 native dialog 없이 제품 화면 안 2회 확인 흐름으로 검증합니다.
   - Codex 인앱 브라우저 pane나 사용자 클릭에 의존하지 않습니다.
+  - --auth-ui-flow는 MEDIA_SERVER_VERIFY_AUTH_* 비밀번호 환경변수가 없으면 시작하지 않습니다.
 `);
 }
 assertKnownOptions(rawArgs, [
@@ -44,6 +46,7 @@ assertKnownOptions(rawArgs, [
   "debug-port-base",
   "output-dir",
   "auth-users-file",
+  "auth-ui-flow",
   "h",
   "help",
 ]);
@@ -58,6 +61,8 @@ const outputDir = args.outputDir || path.join(os.tmpdir(), `media_server_ops_cli
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const rootDir = path.resolve(scriptDir, "../..");
 const authUsersFile = args.authUsersFile || process.env.MEDIA_SERVER_AUTH_USERS_FILE || ".media_server.users.json";
+const authUiFlow = isTruthy(args.authUiFlow);
+const authUiPasswords = authUiFlow ? readAuthUiPasswords() : null;
 
 if (!chromePath) {
   console.error("[fail] Chrome executable not found");
@@ -67,15 +72,15 @@ if (!chromePath) {
 let passCount = 0;
 let failCount = 0;
 const failures = [];
-const createdPrereqs = await ensureOpsClickPrereqs();
+const createdPrereqs = authUiFlow ? null : await ensureOpsClickPrereqs();
 
 try {
   for (let index = 0; index < widths.length; index += 1) {
     const width = widths[index];
-    const label = `ops-click-${width}`;
+    const label = `${authUiFlow ? "auth-ui" : "ops-click"}-${width}`;
     const browser = await openBrowserPage({
       httpBase,
-      pagePath: "/ops/sources",
+      pagePath: authUiFlow ? "/" : "/ops/sources",
       timeoutMs,
       chromePath,
       debugPort: debugPortBase + index,
@@ -84,7 +89,9 @@ try {
       outputDir,
     });
     try {
-      const result = await runOpsClickFlow(browser, { width, label });
+      const result = authUiFlow
+        ? await runAuthUiFlow(browser, { width, label, passwords: authUiPasswords })
+        : await runOpsClickFlow(browser, { width, label });
       passCount += 1;
       for (const step of result.steps) {
         console.log(`[pass] ${label} click step ${step}`);
@@ -99,11 +106,11 @@ try {
     }
   }
 } finally {
-  await cleanupOpsClickPrereqs(createdPrereqs);
+  if (!authUiFlow) await cleanupOpsClickPrereqs(createdPrereqs);
 }
 
 console.log("");
-console.log("== Ops UI direct click E2E 요약 ==");
+console.log(`== ${authUiFlow ? "Auth UI browser E2E" : "Ops UI direct click E2E"} 요약 ==`);
 console.log(`- 통과: ${passCount}`);
 console.log(`- 실패: ${failCount}`);
 if (failures.length > 0) {
@@ -352,6 +359,9 @@ async function runOpsClickFlow(browser, context) {
   await assertAccessRequestApprovalFlow(browser, context);
   await assertAccessRequestRejectFlow(browser, context);
   steps.push("users:access-request-approve", "users:access-request-reject");
+  await assertUserLifecycleFlow(browser, context);
+  await assertInviteCreateFlow(browser, context);
+  steps.push("users:lifecycle-edit-reset-disable-restore", "users:invite-create");
 
   await clickSelector(browser, 'a[href="/client/live"]', "클라이언트 라이브");
   await waitForPath(browser, "/client/live");
@@ -400,6 +410,407 @@ async function runOpsClickFlow(browser, context) {
 
   await assertBrowserErrors(browser, context.label);
   return { steps };
+}
+
+async function runAuthUiFlow(browser, context) {
+  const steps = [];
+  const snapshot = snapshotAuthStore();
+  const suffix = `${process.pid}-${String(context?.width || "w")}-${Date.now()}`;
+  const lifecycleUsername = `auth-ui-life-${suffix}`.slice(0, 64);
+  const requestUsername = `auth-ui-req-${suffix}`.slice(0, 64);
+  const rejectUsername = `auth-ui-reject-${suffix}`.slice(0, 64);
+  const passwords = context.passwords;
+  try {
+    clearAuthStoreForFreshSetup(snapshot);
+    await installErrorCollector(browser);
+
+    await navigatePathExpect(browser, "/", "/setup");
+    await assertVisible(browser, 'form[action="/setup"]', "초기 setup form");
+    await setTextValue(browser, 'form[action="/setup"] [name="password"]', passwords.admin, "초기 admin 비밀번호");
+    await setTextValue(browser, 'form[action="/setup"] [name="confirm"]', passwords.admin, "초기 admin 비밀번호 확인");
+    await clickSelector(browser, 'form[action="/setup"] button[type="submit"]', "초기 admin setup 제출");
+    await waitForPath(browser, "/login");
+    await assertStoreUser("admin", user => user.role === "admin" && user.enabled === true && Boolean(user.passwordHash), "bootstrap admin 저장");
+    steps.push("auth:setup-bootstrap");
+
+    await loginViaForm(browser, "admin", passwords.admin, "/ops/home");
+    await assertWhoami(browser, { username: "admin", role: "admin" }, "admin whoami");
+    await navigatePath(browser, "/client/live");
+    await assertReady(browser, "/client/live", '[data-testid="client-shell-page"]');
+    await assertClientPreviewAdminAffordance(browser, `${context.label}:session-admin-preview`);
+    steps.push("auth:admin-login-client-preview");
+
+    await logoutViaPost(browser);
+    await navigatePathExpect(browser, "/ops/home", "/login");
+    await assertLoginRejected(browser, "admin", passwords.wrongOne, "잘못된 admin 비밀번호 거부");
+    steps.push("auth:logout-route-guard");
+
+    await loginViaForm(browser, "admin", passwords.admin, "/ops/home");
+    await createLifecycleUserViaUi(browser, lifecycleUsername, passwords.userInitial, context);
+    await editLifecycleUserScopeViaUi(browser, lifecycleUsername);
+    await resetLifecycleUserPasswordViaUi(browser, lifecycleUsername, passwords.userReset);
+    await disableLifecycleUserViaUi(browser, lifecycleUsername);
+    await logoutViaPost(browser);
+    await assertLoginRejected(browser, lifecycleUsername, passwords.userReset, "비활성 사용자 로그인 거부");
+    await loginViaForm(browser, "admin", passwords.admin, "/ops/home");
+    await restoreLifecycleUserViaUi(browser, lifecycleUsername);
+    await logoutViaPost(browser);
+    await loginViaForm(browser, lifecycleUsername, passwords.userReset, "/password/change");
+    await changePasswordViaForm(browser, passwords.userReset, passwords.userChanged);
+    await assertLoginRejected(browser, lifecycleUsername, passwords.userReset, "이전 임시 비밀번호 재사용 로그인 거부");
+    await loginViaForm(browser, lifecycleUsername, passwords.userChanged, "/client/live");
+    await assertWhoami(browser, { username: lifecycleUsername, role: "viewer" }, "복구 사용자 whoami");
+    steps.push("auth:user-lifecycle-session");
+
+    await logoutViaPost(browser);
+    await submitPublicAccessRequestViaUi(browser, requestUsername, "1");
+    await assertStoreAccessRequest(requestUsername, request => request.status === "pending" && !findStoreUser(requestUsername), "접근 요청 pending 저장과 user 미생성");
+    await loginViaForm(browser, "admin", passwords.admin, "/ops/home");
+    const approvedToken = await approveAccessRequestViaUi(browser, requestUsername, "1");
+    await assertStoreAccessRequest(requestUsername, request => request.status === "approved" && Boolean(request.inviteId), "접근 요청 승인 저장");
+    await assertStoreNoUser(requestUsername, "초대 설정 전 접근 요청 user 미생성");
+    await logoutViaPost(browser);
+    await acceptInviteViaUi(browser, approvedToken, passwords.inviteAccepted);
+    await assertStoreUser(requestUsername, user => user.enabled === true && user.role === "viewer" && hasScope(user, "view:read:1"), "초대 수락 user/scope 생성");
+    await loginViaForm(browser, requestUsername, passwords.inviteAccepted, "/client/live");
+    await assertWhoami(browser, { username: requestUsername, role: "viewer" }, "초대 수락 viewer whoami");
+    await logoutViaPost(browser);
+    await assertConsumedInviteRejected(browser, approvedToken, passwords.wrongTwo);
+    steps.push("auth:access-request-approve-invite-setup");
+
+    await submitPublicAccessRequestViaUi(browser, rejectUsername, "1");
+    await assertStoreAccessRequest(rejectUsername, request => request.status === "pending" && !findStoreUser(rejectUsername), "거절 요청 pending 저장과 user 미생성");
+    await loginViaForm(browser, "admin", passwords.admin, "/ops/home");
+    await rejectAccessRequestViaUi(browser, rejectUsername);
+    await assertStoreAccessRequest(rejectUsername, request => request.status === "rejected", "접근 요청 거절 저장");
+    await assertStoreNoUser(rejectUsername, "접근 요청 거절 후 user 미생성");
+    await assertStoreNoInvite(rejectUsername, "접근 요청 거절 후 invite 미생성");
+    steps.push("auth:access-request-reject");
+
+    await assertLastAdminGuardViaUi(browser);
+    steps.push("auth:last-admin-guard");
+    await assertBrowserErrors(browser, context.label);
+    return { steps };
+  } finally {
+    await restoreAuthStoreSnapshot(snapshot);
+  }
+}
+
+async function createLifecycleUserViaUi(browser, username, password, context) {
+  await navigatePath(browser, "/ops/users");
+  await installErrorCollector(browser);
+  await assertReady(browser, "/ops/users", '[data-testid="ops-users-page"]');
+  await clickSelector(browser, "#add-user-btn", "session 사용자 추가");
+  await assertVisible(browser, "#user-detail-panel", "session 사용자 추가 패널");
+  await setTextValue(browser, '#user-form [name="username"]', username, "session 사용자 계정명");
+  await setTextValue(browser, '#user-form [name="displayName"]', "Auth UI Lifecycle", "session 사용자 표시 이름");
+  await setTextValue(browser, '#user-form [name="password"]', password, "session 사용자 초기 비밀번호");
+  await setTextValue(browser, '#user-form [name="confirmPassword"]', password, "session 사용자 초기 비밀번호 확인");
+  await setSelectValue(browser, '#user-form [name="role"]', "viewer", "session 사용자 권한");
+  await setTextValue(browser, "#user-scopes-input", viewerScopes("1").join("\n"), "session 사용자 scope");
+  await setCheckboxValue(browser, '#user-form [name="enabled"]', true, "session 사용자 활성화");
+  await setCheckboxValue(browser, '#user-form [name="mustChangePassword"]', false, "session 사용자 must-change 해제");
+  await clickSelector(browser, "#user-save-selected", "session 사용자 저장");
+  await assertText(browser, "#status", "사용자 추가 완료", "session 사용자 추가 상태");
+  await assertStoreUser(username, user =>
+    user.enabled === true &&
+    user.role === "viewer" &&
+    user.mustChangePassword === false &&
+    hasScope(user, "view:read:1"),
+  "session 사용자 저장 결과");
+  await assertUserRowText(browser, username, "Auth UI Lifecycle", "session 사용자 row");
+  await assertNoOverflow(browser, `${context.label}:auth-users-create`);
+}
+
+async function editLifecycleUserScopeViaUi(browser, username) {
+  await navigatePath(browser, "/ops/users");
+  await assertReady(browser, "/ops/users", '[data-testid="ops-users-page"]');
+  await clickSelector(browser, attrEqualsSelector("data-user-view", username), "session 사용자 상세");
+  await clickSelector(browser, "#user-edit-selected", "session 사용자 수정");
+  await setTextValue(browser, '#user-form [name="displayName"]', "Auth UI Lifecycle Updated", "session 사용자 표시 이름 수정");
+  await setTextValue(browser, "#user-scopes-input", viewerScopes("2").join("\n"), "session 사용자 scope 수정");
+  await clickSelector(browser, "#user-save-selected", "session 사용자 수정 저장");
+  await assertText(browser, "#status", "사용자 저장 완료", "session 사용자 수정 상태");
+  await assertStoreUser(username, user =>
+    user.displayName === "Auth UI Lifecycle Updated" &&
+    hasScope(user, "view:read:2") &&
+    !hasScope(user, "view:read:1"),
+  "session 사용자 scope 수정 저장");
+  await assertUserRowText(browser, username, "Auth UI Lifecycle Updated", "session 사용자 수정 row");
+}
+
+async function resetLifecycleUserPasswordViaUi(browser, username, password) {
+  await navigatePath(browser, "/ops/users");
+  await assertReady(browser, "/ops/users", '[data-testid="ops-users-page"]');
+  await clickSelector(browser, attrEqualsSelector("data-user-reset-password", username), "session 사용자 비밀번호 초기화 패널");
+  await assertVisible(browser, "#user-reset-password-panel", "session 사용자 비밀번호 초기화 패널 표시");
+  await setTextValue(browser, "#user-reset-password", password, "session 사용자 임시 비밀번호");
+  await setTextValue(browser, "#user-reset-password-confirm", password, "session 사용자 임시 비밀번호 확인");
+  await clickSelector(browser, "#user-reset-password-button", "session 사용자 비밀번호 초기화");
+  await assertText(browser, "#user-reset-password-status", "비밀번호 초기화 완료", "session 사용자 비밀번호 초기화 상태");
+  await assertStoreUser(username, user => user.mustChangePassword === true && Boolean(user.passwordHash), "session 사용자 must-change 저장");
+}
+
+async function disableLifecycleUserViaUi(browser, username) {
+  await navigatePath(browser, "/ops/users");
+  await assertReady(browser, "/ops/users", '[data-testid="ops-users-page"]');
+  const selector = `${attrEqualsSelector("data-user-set-enabled", "false")}${attrEqualsSelector("data-user-action-username", username)}`;
+  await clickSelector(browser, selector, "session 사용자 비활성화 1차 확인");
+  await assertText(browser, "#status", "로그인 비활성화와 기존 세션 회수 확인", "session 사용자 비활성화 1차 상태");
+  await clickSelector(browser, selector, "session 사용자 비활성화 실행");
+  await assertText(browser, "#status", "비활성화 완료", "session 사용자 비활성화 상태");
+  await assertStoreUser(username, user => user.enabled === false, "session 사용자 비활성화 저장");
+}
+
+async function restoreLifecycleUserViaUi(browser, username) {
+  await navigatePath(browser, "/ops/users");
+  await assertReady(browser, "/ops/users", '[data-testid="ops-users-page"]');
+  const selector = `${attrEqualsSelector("data-user-set-enabled", "true")}${attrEqualsSelector("data-user-action-username", username)}`;
+  await clickSelector(browser, selector, "session 사용자 복구");
+  await assertText(browser, "#status", "복구 완료", "session 사용자 복구 상태");
+  await assertStoreUser(username, user => user.enabled === true, "session 사용자 복구 저장");
+}
+
+async function submitPublicAccessRequestViaUi(browser, username, viewId) {
+  await logoutViaPost(browser).catch(() => null);
+  await navigatePath(browser, "/client/request-access");
+  await waitForPath(browser, "/client/request-access");
+  await assertVisible(browser, "#request-form", "공개 접근 요청 form");
+  await setTextValue(browser, '#request-form [name="username"]', username, "공개 접근 요청 계정명");
+  await setTextValue(browser, '#request-form [name="displayName"]', "Auth UI Request", "공개 접근 요청 표시 이름");
+  await setTextValue(browser, '#request-form [name="contact"]', `${username}@example.test`, "공개 접근 요청 연락처");
+  await setTextValue(browser, '#request-form [name="viewId"]', viewId, "공개 접근 요청 채널");
+  await setTextValue(browser, '#request-form [name="reason"]', "auth ui browser e2e request", "공개 접근 요청 사유");
+  await submitForm(browser, "#request-form", "공개 접근 요청 제출");
+  await assertText(browser, "#message", "승인 전에는 로그인/채널 접근이 열리지 않습니다", "공개 접근 요청 pending 안내");
+}
+
+async function approveAccessRequestViaUi(browser, username, viewId) {
+  await navigatePath(browser, "/ops/users");
+  await assertReady(browser, "/ops/users", '[data-testid="ops-users-page"]');
+  const request = await waitForStore("승인 대상 접근 요청", () => findStoreAccessRequest(username));
+  const viewSelector = attrEqualsSelector("data-request-approve-view", request.requestId);
+  const approveSelector = attrEqualsSelector("data-request-approve", request.requestId);
+  await assertVisible(browser, viewSelector, "session 접근 요청 승인 채널 입력");
+  await setTextValue(browser, viewSelector, viewId, "session 접근 요청 승인 채널");
+  await assertAccessRequestRow(browser, username, "대기", "session 접근 요청 pending row");
+  await clickSelector(browser, approveSelector, "session 접근 요청 승인");
+  await assertText(browser, "#request-status", "접근 요청 승인 완료", "session 접근 요청 승인 상태");
+  await assertText(browser, "#request-invite-output", `계정: ${username}`, "session 접근 요청 승인 계정 출력");
+  const token = await tokenFromOutput(browser, "#request-invite-output", "session 접근 요청 승인 token");
+  await assertAccessRequestRow(browser, username, "승인됨", "session 접근 요청 approved row");
+  return token;
+}
+
+async function rejectAccessRequestViaUi(browser, username) {
+  await navigatePath(browser, "/ops/users");
+  await assertReady(browser, "/ops/users", '[data-testid="ops-users-page"]');
+  const request = await waitForStore("거절 대상 접근 요청", () => findStoreAccessRequest(username));
+  const rejectSelector = attrEqualsSelector("data-request-reject", request.requestId);
+  await assertVisible(browser, rejectSelector, "session 접근 요청 거절 버튼");
+  await assertAccessRequestRow(browser, username, "대기", "session 접근 요청 reject pending row");
+  await clickSelector(browser, rejectSelector, "session 접근 요청 거절 1차 확인");
+  await assertText(browser, "#request-status", "요청 거절 확인", "session 접근 요청 거절 1차 상태");
+  await clickSelector(browser, rejectSelector, "session 접근 요청 거절 실행");
+  await assertText(browser, "#request-status", "접근 요청 거절 완료", "session 접근 요청 거절 상태");
+  await assertAccessRequestRow(browser, username, "거절됨", "session 접근 요청 rejected row");
+}
+
+async function acceptInviteViaUi(browser, token, password) {
+  await navigatePath(browser, `/invite/setup?token=${encodeURIComponent(token)}`);
+  await waitForPath(browser, "/invite/setup");
+  await assertVisible(browser, 'form[action="/invite/setup"]', "초대 설정 form");
+  await assertFormValue(browser, 'form[action="/invite/setup"] [name="token"]', token, "초대 설정 token");
+  await setTextValue(browser, 'form[action="/invite/setup"] [name="password"]', password, "초대 설정 비밀번호");
+  await setTextValue(browser, 'form[action="/invite/setup"] [name="confirm"]', password, "초대 설정 비밀번호 확인");
+  await clickSelector(browser, 'form[action="/invite/setup"] button[type="submit"]', "초대 설정 제출");
+  await waitForPath(browser, "/login");
+}
+
+async function assertConsumedInviteRejected(browser, token, password) {
+  await navigatePath(browser, `/invite/setup?token=${encodeURIComponent(token)}`);
+  await waitForPath(browser, "/invite/setup");
+  await setTextValue(browser, 'form[action="/invite/setup"] [name="password"]', password, "사용 완료 초대 비밀번호");
+  await setTextValue(browser, 'form[action="/invite/setup"] [name="confirm"]', password, "사용 완료 초대 비밀번호 확인");
+  await clickSelector(browser, 'form[action="/invite/setup"] button[type="submit"]', "사용 완료 초대 재사용 제출");
+  await waitForPath(browser, "/invite/setup");
+  await assertText(browser, "form.auth-form", "invalid invite token", "사용 완료 초대 재사용 거부");
+}
+
+async function assertLastAdminGuardViaUi(browser) {
+  await navigatePath(browser, "/ops/users");
+  await assertReady(browser, "/ops/users", '[data-testid="ops-users-page"]');
+  const selector = `${attrEqualsSelector("data-user-set-enabled", "false")}${attrEqualsSelector("data-user-action-username", "admin")}`;
+  await clickSelector(browser, selector, "마지막 admin 비활성화 1차 확인");
+  await assertText(browser, "#status", "다시 누르면 실행합니다", "마지막 admin 비활성화 1차 상태");
+  await clickSelector(browser, selector, "마지막 admin 비활성화 실행");
+  await assertText(browser, "#status", "마지막 활성 admin", "마지막 admin 비활성화 거부 상태");
+  await assertStoreUser("admin", user => user.enabled === true && user.role === "admin", "마지막 admin 유지");
+}
+
+async function loginViaForm(browser, username, password, expectedPath) {
+  await navigatePath(browser, "/login");
+  await waitForPath(browser, "/login");
+  await setTextValue(browser, 'form[action="/login"] [name="username"]', username, `${username} 로그인 계정명`);
+  await setTextValue(browser, 'form[action="/login"] [name="password"]', password, `${username} 로그인 비밀번호`);
+  await clickSelector(browser, 'form[action="/login"] button[type="submit"]', `${username} 로그인 제출`);
+  await waitForPath(browser, expectedPath);
+}
+
+async function assertLoginRejected(browser, username, password, description) {
+  await logoutViaPost(browser).catch(() => null);
+  await navigatePath(browser, "/login");
+  await waitForPath(browser, "/login");
+  await setTextValue(browser, 'form[action="/login"] [name="username"]', username, `${description} 계정명`);
+  await setTextValue(browser, 'form[action="/login"] [name="password"]', password, `${description} 비밀번호`);
+  await clickSelector(browser, 'form[action="/login"] button[type="submit"]', `${description} 로그인 제출`);
+  await waitForPath(browser, "/login");
+  await assertText(browser, "form.auth-form", "로그인 정보가 올바르지 않습니다", description);
+}
+
+async function logoutViaPost(browser) {
+  await browser.evaluate(`
+    (() => fetch('/logout', { method: 'POST', credentials: 'same-origin' }).then(() => true).catch(() => true))()
+  `, 5000).catch(() => null);
+  await navigatePath(browser, "/login");
+  await waitForPath(browser, "/login");
+}
+
+async function changePasswordViaForm(browser, currentPassword, nextPassword) {
+  await waitForPath(browser, "/password/change");
+  await setTextValue(browser, 'form[action="/password/change"] [name="currentPassword"]', currentPassword, "비밀번호 변경 현재 비밀번호");
+  await setTextValue(browser, 'form[action="/password/change"] [name="password"]', nextPassword, "비밀번호 변경 새 비밀번호");
+  await setTextValue(browser, 'form[action="/password/change"] [name="confirm"]', nextPassword, "비밀번호 변경 새 비밀번호 확인");
+  await clickSelector(browser, 'form[action="/password/change"] button[type="submit"]', "비밀번호 변경 제출");
+  await waitForPath(browser, "/login");
+}
+
+async function assertWhoami(browser, expected, description) {
+  await waitForResult(
+    browser,
+    `
+      (() => fetch('/auth/whoami', { credentials: 'same-origin', cache: 'no-store' })
+        .then(response => response.json().then(payload => ({ ok: response.ok, payload })))
+        .then(({ ok, payload }) => ({
+          ok: ok &&
+            String(payload?.username || '') === ${JSON.stringify(expected.username)} &&
+            String(payload?.role || '') === ${JSON.stringify(expected.role)},
+          statusOk: ok,
+          username: payload?.username || '',
+          role: payload?.role || '',
+          scopes: payload?.scopes || [],
+        }))
+        .catch(error => ({ ok: false, error: String(error?.message || error) })))()
+    `,
+    item => item?.ok === true,
+    description,
+  );
+}
+
+function readAuthUiPasswords() {
+  const values = {
+    admin: requireSecretEnv("MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD"),
+    userInitial: requireSecretEnv("MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD"),
+    userReset: requireSecretEnv("MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD"),
+    userChanged: requireSecretEnv("MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE"),
+    inviteAccepted: requireSecretEnv("MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO"),
+  };
+  const distinct = new Set(Object.values(values));
+  if (distinct.size !== Object.keys(values).length) {
+    throw new Error("MEDIA_SERVER_VERIFY_AUTH_* values used by --auth-ui-flow must be distinct");
+  }
+  return {
+    ...values,
+    wrongOne: values.userChanged,
+    wrongTwo: values.inviteAccepted,
+  };
+}
+
+function requireSecretEnv(name) {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`${name} is required for --auth-ui-flow`);
+  }
+  return value;
+}
+
+function isTruthy(value) {
+  return ["1", "true", "yes", "on"].includes(String(value || "").toLowerCase());
+}
+
+function clearAuthStoreForFreshSetup(snapshot) {
+  const filePath = snapshot.filePath;
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+}
+
+function viewerScopes(viewId) {
+  return [
+    `view:read:${viewId}`,
+    `dashboard:read:${viewId}`,
+    `event:read:${viewId}`,
+    `metadata:read:${viewId}`,
+  ];
+}
+
+function readAuthStore() {
+  const filePath = resolveAuthStorePath();
+  if (!fs.existsSync(filePath)) return { users: [], invites: [], accessRequests: [] };
+  const parsed = JSON.parse(fs.readFileSync(filePath, "utf8") || "{}");
+  return {
+    users: Array.isArray(parsed.users) ? parsed.users : [],
+    invites: Array.isArray(parsed.invites) ? parsed.invites : [],
+    accessRequests: Array.isArray(parsed.accessRequests) ? parsed.accessRequests : [],
+  };
+}
+
+function findStoreUser(username) {
+  return readAuthStore().users.find(user => String(user?.username || "") === String(username || "")) || null;
+}
+
+function findStoreInvite(username) {
+  return readAuthStore().invites.find(invite => String(invite?.username || "") === String(username || "")) || null;
+}
+
+function findStoreAccessRequest(username) {
+  return readAuthStore().accessRequests.find(request => String(request?.username || "") === String(username || "")) || null;
+}
+
+function hasScope(user, scope) {
+  return Array.isArray(user?.scopes) && user.scopes.includes(scope);
+}
+
+async function assertStoreUser(username, predicate, description) {
+  await waitForStore(description, () => {
+    const user = findStoreUser(username);
+    return user && predicate(user) ? user : null;
+  });
+}
+
+async function assertStoreNoUser(username, description) {
+  await waitForStore(description, () => findStoreUser(username) ? null : { ok: true });
+}
+
+async function assertStoreNoInvite(username, description) {
+  await waitForStore(description, () => findStoreInvite(username) ? null : { ok: true });
+}
+
+async function assertStoreAccessRequest(username, predicate, description) {
+  await waitForStore(description, () => {
+    const request = findStoreAccessRequest(username);
+    return request && predicate(request) ? request : null;
+  });
+}
+
+async function waitForStore(description, lookup) {
+  const startedAt = Date.now();
+  let last = null;
+  while (Date.now() - startedAt < timeoutMs) {
+    last = lookup();
+    if (last) return last;
+    await delay(100);
+  }
+  throw new Error(`${description} store 확인 실패: ${JSON.stringify(last)}`);
 }
 
 async function assertClientPreviewAdminAffordance(browser, label) {
@@ -482,23 +893,117 @@ async function assertAccessRequestRejectFlow(browser, context) {
     await navigatePath(browser, "/ops/users");
     await installErrorCollector(browser);
     await assertReady(browser, "/ops/users", '[data-testid="ops-users-page"]');
-    await installAutonomousDialogHandler(browser);
     await installAccessRequestRejectSpy(browser, fixture.requestId);
     const rejectSelector = attrEqualsSelector("data-request-reject", fixture.requestId);
     await assertVisible(browser, rejectSelector, "접근 요청 거절 버튼");
     await assertAccessRequestRow(browser, fixture.username, "대기", "접근 요청 pending row");
     await clickSelector(browser, rejectSelector, "접근 요청 거절");
+    await assertText(browser, "#request-status", "요청 거절 확인", "접근 요청 거절 1차 확인 상태");
+    await assertRejectRequestNotPosted(browser, fixture.requestId);
+    await clickSelector(browser, rejectSelector, "접근 요청 거절 확인");
     await assertText(browser, "#request-status", "접근 요청 거절 완료", "접근 요청 거절 상태");
     await assertAccessRequestRow(browser, fixture.username, "거절됨", "접근 요청 rejected row");
-    await assertAutonomousDialogAccepted(browser, fixture.username, "접근 요청 거절 confirm 자동 처리");
     await assertRejectRequestPosted(browser, fixture.requestId);
     await assertRejectedRequestDidNotCreateUser(browser, fixture.username);
     await assertNoOverflow(browser, `${context.label}:users-access-request-reject`);
   } finally {
     await restoreAccessRequestRejectSpy(browser);
-    await restoreAutonomousDialogHandler(browser);
     await restoreAuthStoreSnapshot(fixture.snapshot);
     await assertAccessRequestFixtureCleaned(fixture);
+  }
+}
+
+async function assertUserLifecycleFlow(browser, context) {
+  const snapshot = snapshotAuthStore();
+  const suffix = `${process.pid}-${String(context?.width || "w")}-${Date.now()}`;
+  const username = `click-user-${suffix}`.slice(0, 64);
+  const initialPassword = "UiAuthFlow9!Beta";
+  const resetPassword = "UiResetFlow9!Beta";
+  try {
+    ensureAuthStoreExists(snapshot);
+    await requestJson("/ops/api/users", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        username,
+        displayName: "Click User",
+        role: "viewer",
+        viewId: "1",
+        password: initialPassword,
+        enabled: true,
+        mustChangePassword: false,
+      }),
+    });
+    await navigatePath(browser, "/ops/users");
+    await installErrorCollector(browser);
+    await assertReady(browser, "/ops/users", '[data-testid="ops-users-page"]');
+    await assertUserRowText(browser, username, "활성", "사용자 lifecycle fixture active row");
+
+    await clickSelector(browser, attrEqualsSelector("data-user-view", username), "사용자 lifecycle 상세");
+    await assertVisible(browser, "#user-detail-panel", "사용자 lifecycle 상세 패널");
+    await clickSelector(browser, "#user-edit-selected", "사용자 lifecycle 수정");
+    await setTextValue(browser, '#user-form [name="displayName"]', "Click User Updated", "사용자 표시 이름 수정");
+    await setSelectValue(browser, '#user-form [name="role"]', "operator", "사용자 role 수정");
+    await clickSelector(browser, "#user-save-selected", "사용자 저장");
+    await assertText(browser, "#status", "사용자 저장 완료", "사용자 수정 저장 상태");
+    await assertUserRowText(browser, username, "Click User Updated", "사용자 수정 row 반영");
+    await assertUserRowText(browser, username, "운영자", "사용자 role row 반영");
+
+    await clickSelector(browser, attrEqualsSelector("data-user-reset-password", username), "사용자 비밀번호 초기화 패널");
+    await assertVisible(browser, "#user-reset-password-panel", "사용자 비밀번호 초기화 패널 표시");
+    await setTextValue(browser, "#user-reset-password", resetPassword, "사용자 임시 비밀번호");
+    await setTextValue(browser, "#user-reset-password-confirm", resetPassword, "사용자 임시 비밀번호 확인");
+    await clickSelector(browser, "#user-reset-password-button", "사용자 비밀번호 초기화");
+    await assertText(browser, "#user-reset-password-status", "비밀번호 초기화 완료", "사용자 비밀번호 초기화 상태");
+    await assertText(browser, "#status", "비밀번호 초기화 완료", "사용자 비밀번호 초기화 전체 상태");
+    await assertUserRowText(browser, username, "예", "사용자 must-change row 반영");
+
+    const disableSelector = `${attrEqualsSelector("data-user-set-enabled", "false")}${attrEqualsSelector("data-user-action-username", username)}`;
+    await clickSelector(browser, disableSelector, "사용자 비활성화 1차 확인");
+    await assertText(browser, "#status", "로그인 비활성화와 기존 세션 회수 확인", "사용자 비활성화 1차 확인 상태");
+    await assertUserRowText(browser, username, "활성", "사용자 비활성화 1차 확인 전 row 유지");
+    await clickSelector(browser, disableSelector, "사용자 비활성화 실행");
+    await assertText(browser, "#status", "비활성화 완료", "사용자 비활성화 상태");
+    await assertUserRowText(browser, username, "비활성", "사용자 비활성화 row 반영");
+
+    const restoreSelector = `${attrEqualsSelector("data-user-set-enabled", "true")}${attrEqualsSelector("data-user-action-username", username)}`;
+    await clickSelector(browser, restoreSelector, "사용자 복구 실행");
+    await assertText(browser, "#status", "복구 완료", "사용자 복구 상태");
+    await assertUserRowText(browser, username, "활성", "사용자 복구 row 반영");
+    await assertNoOverflow(browser, `${context.label}:users-lifecycle`);
+  } finally {
+    await restoreAuthStoreSnapshot(snapshot);
+    await assertUserFixtureCleaned(username);
+  }
+}
+
+async function assertInviteCreateFlow(browser, context) {
+  const snapshot = snapshotAuthStore();
+  const suffix = `${process.pid}-${String(context?.width || "w")}-${Date.now()}`;
+  const username = `click-invite-${suffix}`.slice(0, 64);
+  try {
+    ensureAuthStoreExists(snapshot);
+    await navigatePath(browser, "/ops/users");
+    await installErrorCollector(browser);
+    await assertReady(browser, "/ops/users", '[data-testid="ops-users-page"]');
+    await setTextValue(browser, '#invite-create-form [name="username"]', username, "초대 계정명");
+    await setTextValue(browser, '#invite-create-form [name="displayName"]', "Click Invite", "초대 표시 이름");
+    await setSelectValue(browser, '#invite-create-form [name="role"]', "viewer", "초대 권한");
+    await setTextValue(browser, '#invite-create-form [name="viewId"]', "1", "초대 채널 ID");
+    await setTextValue(browser, '#invite-create-form [name="ttlSeconds"]', "3600", "초대 만료 시간");
+    await submitForm(browser, "#invite-create-form", "초대 발급");
+    await assertText(browser, "#invite-status", "초대 발급 완료", "초대 발급 상태");
+    await assertText(browser, "#invite-create-output", `계정: ${username}`, "초대 발급 계정 출력");
+    await assertText(browser, "#invite-create-output", "초대 링크:", "초대 설정 링크 출력");
+    await assertText(browser, "#invite-create-output", "토큰:", "초대 token one-time 출력");
+    await assertText(browser, "#invite-create-output", "토큰/토큰 해시를 저장하거나 다시 표시하지 않습니다.", "초대 redaction 안내");
+    const oneTimeToken = await inviteOutputToken(browser);
+    await assertInviteListRow(browser, username, "대기", "초대 목록 row");
+    await assertInviteListRedaction(browser, username, oneTimeToken);
+    await assertNoOverflow(browser, `${context.label}:users-invite-create`);
+  } finally {
+    await restoreAuthStoreSnapshot(snapshot);
+    await assertInviteFixtureCleaned(username);
   }
 }
 
@@ -559,6 +1064,14 @@ function writeAccessRequestFixture(snapshot, fixture) {
   fs.chmodSync(filePath, snapshot.mode || 0o600);
 }
 
+function ensureAuthStoreExists(snapshot) {
+  if (snapshot?.existed) return;
+  const filePath = snapshot.filePath;
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, `${JSON.stringify({ users: [], invites: [], accessRequests: [] }, null, 2)}\n`, { mode: 0o600 });
+  fs.chmodSync(filePath, 0o600);
+}
+
 function snapshotAuthStore() {
   const filePath = resolveAuthStorePath();
   if (!fs.existsSync(filePath)) {
@@ -604,6 +1117,24 @@ async function assertAccessRequestFixtureCleaned(fixture) {
       username: fixture.username,
       status: leaked.status || "",
     })}`);
+  }
+}
+
+async function assertUserFixtureCleaned(username) {
+  const result = await requestJson("/ops/api/users").catch(error => ({ error: error.message, users: [] }));
+  const users = Array.isArray(result.users) ? result.users : [];
+  const leaked = users.find(user => String(user?.username || "") === username);
+  if (leaked) {
+    throw new Error(`user lifecycle fixture cleanup failed: ${username}`);
+  }
+}
+
+async function assertInviteFixtureCleaned(username) {
+  const result = await requestJson("/ops/api/invites").catch(error => ({ error: error.message, invites: [] }));
+  const invites = Array.isArray(result.invites) ? result.invites : [];
+  const leaked = invites.find(invite => String(invite?.username || "") === username);
+  if (leaked) {
+    throw new Error(`invite fixture cleanup failed: ${username}`);
   }
 }
 
@@ -701,49 +1232,6 @@ async function restoreAccessRequestRejectSpy(browser) {
   `, 3000).catch(() => null);
 }
 
-async function installAutonomousDialogHandler(browser) {
-  await browser.evaluate(`
-    (() => {
-      if (!window.__opsClickDialogOriginals) {
-        window.__opsClickDialogOriginals = {
-          alert: window.alert,
-          confirm: window.confirm,
-          prompt: window.prompt,
-        };
-      }
-      window.__opsClickDialogs = [];
-      window.alert = message => {
-        window.__opsClickDialogs.push({ type: 'alert', message: String(message || '') });
-      };
-      window.confirm = message => {
-        window.__opsClickDialogs.push({ type: 'confirm', message: String(message || ''), accepted: true });
-        return true;
-      };
-      window.prompt = (message, defaultValue = '') => {
-        const value = String(defaultValue || '');
-        window.__opsClickDialogs.push({ type: 'prompt', message: String(message || ''), accepted: true, value });
-        return value;
-      };
-      return true;
-    })()
-  `, 3000);
-}
-
-async function restoreAutonomousDialogHandler(browser) {
-  await browser.evaluate(`
-    (() => {
-      const originals = window.__opsClickDialogOriginals;
-      if (originals) {
-        window.alert = originals.alert;
-        window.confirm = originals.confirm;
-        window.prompt = originals.prompt;
-      }
-      window.__opsClickDialogOriginals = null;
-      return true;
-    })()
-  `, 3000).catch(() => null);
-}
-
 async function assertApproveRequestPayload(browser, requestId, expectedViewId) {
   await waitForResult(
     browser,
@@ -773,6 +1261,23 @@ async function assertApproveRequestPayload(browser, requestId, expectedViewId) {
   );
 }
 
+async function assertRejectRequestNotPosted(browser, requestId) {
+  await waitForResult(
+    browser,
+    `
+      (() => {
+        return {
+          ok: window.__opsClickRejectCalled !== true,
+          requestId: ${JSON.stringify(requestId)},
+          called: window.__opsClickRejectCalled === true,
+        };
+      })()
+    `,
+    item => item?.ok === true,
+    "접근 요청 거절 1차 확인 전 POST 미발생",
+  );
+}
+
 async function assertRejectRequestPosted(browser, requestId) {
   await waitForResult(
     browser,
@@ -789,25 +1294,6 @@ async function assertRejectRequestPosted(browser, requestId) {
     `,
     item => item?.ok === true,
     "접근 요청 거절 POST",
-  );
-}
-
-async function assertAutonomousDialogAccepted(browser, expectedText, description) {
-  await waitForResult(
-    browser,
-    `
-      (() => {
-        const dialogs = Array.isArray(window.__opsClickDialogs) ? window.__opsClickDialogs : [];
-        const match = dialogs.find(item =>
-          item?.type === 'confirm' &&
-          item?.accepted === true &&
-          String(item?.message || '').includes(${JSON.stringify(expectedText)})
-        );
-        return { ok: Boolean(match), dialogs };
-      })()
-    `,
-    item => item?.ok === true,
-    description,
   );
 }
 
@@ -848,6 +1334,109 @@ async function assertAccessRequestRow(browser, username, expectedStatus, descrip
     `,
     item => item?.ok === true,
     description,
+  );
+}
+
+async function assertUserRowText(browser, username, expectedText, description) {
+  await waitForResult(
+    browser,
+    `
+      (() => {
+        const username = ${JSON.stringify(username)};
+        const expectedText = ${JSON.stringify(expectedText)};
+        const row = Array.from(document.querySelectorAll('#users-body tr'))
+          .find(candidate => String(candidate.textContent || '').includes(username));
+        const text = String(row?.textContent || '').replace(/\\s+/g, ' ').trim();
+        return {
+          ok: Boolean(row) && text.includes(expectedText),
+          text,
+        };
+      })()
+    `,
+    item => item?.ok === true,
+    description,
+  );
+}
+
+async function inviteOutputToken(browser) {
+  const result = await waitForResult(
+    browser,
+    `
+      (() => {
+        const text = String(document.querySelector('#invite-create-output')?.textContent || '');
+        const match = text.match(/토큰:\\s*([^\\s]+)/);
+        return {
+          ok: Boolean(match && match[1]),
+          token: match?.[1] || '',
+          text,
+        };
+      })()
+    `,
+    item => item?.ok === true,
+    "초대 one-time token 추출",
+  );
+  return String(result.token || "");
+}
+
+async function tokenFromOutput(browser, selector, description) {
+  const result = await waitForResult(
+    browser,
+    `
+      (() => {
+        const text = String(document.querySelector(${JSON.stringify(selector)})?.textContent || '');
+        const match = text.match(/토큰:\\s*([^\\s]+)/);
+        return {
+          ok: Boolean(match && match[1]),
+          token: match?.[1] || '',
+          text,
+        };
+      })()
+    `,
+    item => item?.ok === true,
+    description,
+  );
+  return String(result.token || "");
+}
+
+async function assertInviteListRow(browser, username, expectedStatus, description) {
+  await waitForResult(
+    browser,
+    `
+      (() => {
+        const username = ${JSON.stringify(username)};
+        const expectedStatus = ${JSON.stringify(expectedStatus)};
+        const row = Array.from(document.querySelectorAll('#invite-list-body tr'))
+          .find(candidate => String(candidate.textContent || '').includes(username));
+        const text = String(row?.textContent || '').replace(/\\s+/g, ' ').trim();
+        return {
+          ok: Boolean(row) && text.includes(expectedStatus),
+          text,
+        };
+      })()
+    `,
+    item => item?.ok === true,
+    description,
+  );
+}
+
+async function assertInviteListRedaction(browser, username, token) {
+  await waitForResult(
+    browser,
+    `
+      (() => {
+        const username = ${JSON.stringify(username)};
+        const token = ${JSON.stringify(token)};
+        const row = Array.from(document.querySelectorAll('#invite-list-body tr'))
+          .find(candidate => String(candidate.textContent || '').includes(username));
+        const text = String(row?.textContent || '').replace(/\\s+/g, ' ').trim();
+        return {
+          ok: Boolean(row) && !text.includes(token) && !/tokenHash|토큰:\\s*\\S+/.test(text),
+          text,
+        };
+      })()
+    `,
+    item => item?.ok === true,
+    "초대 목록 token/tokenHash 비노출",
   );
 }
 
@@ -921,6 +1510,25 @@ async function clickSelector(browser, selector, description) {
   await delay(180);
 }
 
+async function submitForm(browser, selector, description) {
+  const result = await browser.evaluate(`
+    (() => {
+      const form = document.querySelector(${JSON.stringify(selector)});
+      if (!form) return { ok: false, message: 'missing form' };
+      if (typeof form.requestSubmit === 'function') {
+        form.requestSubmit();
+      } else {
+        form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+      }
+      return { ok: true };
+    })()
+  `, 3000);
+  if (!result?.ok) {
+    throw new Error(`${description} form submit 실패: ${JSON.stringify(result)}`);
+  }
+  await delay(180);
+}
+
 function buildElementCenterExpression(selector, options = {}) {
   const shouldScroll = options.scroll !== false;
   return `
@@ -982,6 +1590,12 @@ async function navigatePath(browser, pathValue) {
   await waitForPath(browser, new URL(url).pathname);
 }
 
+async function navigatePathExpect(browser, pathValue, expectedPath) {
+  const url = new URL(pathValue, `${httpBase}/`).toString();
+  await browser.cdp("Page.navigate", { url });
+  await waitForPath(browser, expectedPath);
+}
+
 async function assertEnabled(browser, selector, description) {
   await waitForResult(
     browser,
@@ -1040,6 +1654,22 @@ async function setTextValue(browser, selector, value, description) {
   `, 3000);
   if (!result?.ok) {
     throw new Error(`${description} 입력 실패: ${JSON.stringify(result)}`);
+  }
+}
+
+async function setCheckboxValue(browser, selector, checked, description) {
+  const result = await browser.evaluate(`
+    (() => {
+      const node = document.querySelector(${JSON.stringify(selector)});
+      if (!node) return { ok: false, message: 'missing checkbox' };
+      node.checked = ${JSON.stringify(Boolean(checked))};
+      node.dispatchEvent(new Event('input', { bubbles: true }));
+      node.dispatchEvent(new Event('change', { bubbles: true }));
+      return { ok: node.checked === ${JSON.stringify(Boolean(checked))}, checked: node.checked };
+    })()
+  `, 3000);
+  if (!result?.ok) {
+    throw new Error(`${description} 체크 상태 변경 실패: ${JSON.stringify(result)}`);
   }
 }
 
@@ -1341,7 +1971,7 @@ async function assertClientCopyFallback(browser, selector, expectedSnippets, des
   await installClipboardFailureStub(browser);
   try {
     await clickSelector(browser, selector, description);
-    await assertToastContains(browser, "아래 내용을 선택", `${description} toast`);
+    await assertToastContains(browser, "아래 텍스트를 선택", `${description} toast`);
     await waitForResult(
       browser,
       `

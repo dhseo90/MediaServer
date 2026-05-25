@@ -46,7 +46,7 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 | 안정화 테스트 | 로드맵 스텝 종료 및 30분/120분/UI 테스트 전 선수 확인 | 명령, exit code, summary/report | 실행 여부, exit code, 실패 사유 |
 | 30분 테스트 | `verify-predev --soak-minutes 30`, 장기간 테스트 기본값/버전 완료 soak | summary/report/log | 실행 여부, summary/report/log |
 | 120분 테스트 | `verify-predev --soak-minutes 120`, `verify-va-runtime-console-longrun --duration-minutes 120`, 메모리 릭 감시 필요 시 | summary/report/log | 실행 여부, summary/report/log |
-| UI 풀테스트 | 버전 완료 후 인앱 브라우저 직접 조작, 반응형, 시각 품질 | 개별 기능별 직접 조작, 반영 상태, 로그/EventRecord, screenshot/artifact, 재검수 결과 | PASS/FAIL |
+| UI 풀테스트 | 버전 완료 후 자율 Chrome/CDP 또는 인앱 브라우저 직접 조작, 반응형, 시각 품질 | 개별 기능별 직접 조작, 반영 상태, 로그/EventRecord, screenshot/artifact, 재검수 결과 | PASS/FAIL |
 
 모든 영역은 평균 산출을 위해 `token start`, `token end`, `token consumed`, `elapsed`,
 `source`를 함께 기록합니다. Codex goal usage 같은 자동 집계값이 있으면 그 값을
@@ -61,6 +61,9 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
   - `./server.sh verify-auth-routes`:
   - `./server.sh verify-ops-client-ui`:
   - `./server.sh verify-ops-client-ui --screenshots`:
+  - `./server.sh verify-product-ui-no-native-dialogs`:
+  - `./server.sh verify-ops-click-e2e`:
+  - `./server.sh verify-ops-click-e2e --auth-ui-flow --auth-users-file <path>`:
   - `./server.sh verify-rule-ui`:
   - `./server.sh verify-manual-ui-evidence`:
   - `git diff --check`:

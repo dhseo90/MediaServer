@@ -176,6 +176,28 @@ check("auth verifier has no hardcoded test password defaults", () => {
   assert(authWorkflow.includes("Auth verifier passwords must be provided by the test operator"), "auth workflow missing explicit no-default failure message");
 });
 
+check("VA EventRecord dispatch verifier fails early and dispatches every poll by default", () => {
+  const vaEvents = readText(path.join(rootDir, "scripts/internal/verify_va_tracking_events.sh"));
+  const streamVerification = readText(path.join(rootDir, "docs/stream-verification.md"));
+  for (const phrase of [
+    'DISPATCH_EVERY_N="${MEDIA_SERVER_VERIFY_VA_EVENTS_DISPATCH_EVERY_N:-}"',
+    'if [[ "${DISPATCH_RECORDS}" == "1" ]]; then',
+    "DISPATCH_EVERY_N=1",
+    "EventRecord storage is disabled",
+    "EventRecord storage enabled",
+    "EventRecord storage disabled during dispatch verification",
+  ]) {
+    assert(vaEvents.includes(phrase), `verify_va_tracking_events.sh missing EventRecord dispatch guard: ${phrase}`);
+  }
+  for (const phrase of [
+    "verify-va-events --dispatch-records",
+    "모든 poll을",
+    "storage가 꺼져 있으면 긴 polling 전에 실패합니다",
+  ]) {
+    assert(streamVerification.includes(phrase), `stream verification docs missing EventRecord dispatch wording: ${phrase}`);
+  }
+});
+
 check("critical verifier pass output avoids grouped feature-result wording", () => {
   const forbiddenSnippets = [
     "adaptive input-size downshift/fallback 검증",

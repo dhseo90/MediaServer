@@ -113,8 +113,10 @@ UI 풀테스트는 사용자가 직접 누르는 절차가 아니라 테스트 r
 - copy button, export button, preview/play/stop/reconnect를 누르기
 - role별 route guard를 브라우저에서 확인하기
 - responsive viewport를 바꾸고 화면을 다시 확인하기
-- confirm/alert/prompt 같은 팝업은 테스트 runner가 정책대로 처리하고, 처리 이력을
-  결과에 남기기
+- confirm/alert/prompt 같은 브라우저 native dialog가 제품 UI에 남아 있지 않은지
+  `verify-product-ui-no-native-dialogs`로 먼저 확인하기
+- 위험 action은 제품 화면 안 2회 확인 상태로 처리되고, 첫 클릭에는 write POST가
+  발생하지 않으며 두 번째 클릭에서만 상태가 바뀌는지 확인하기
 
 테스트가 Codex pane attach, 사용자의 클릭, 운영체제 팝업 버튼 수동 확인을 기다리면
 그 항목은 제품 FAIL이 아니라 테스트 harness FAIL입니다. harness FAIL 상태에서
@@ -258,7 +260,9 @@ UI 풀테스트는 기능 검수와 같은 비중으로 시각 품질을 봅니�
 - `./server.sh verify-auth-routes`
 - `./server.sh verify-ops-client-ui`
 - `./server.sh verify-ops-client-ui --screenshots`
+- `./server.sh verify-product-ui-no-native-dialogs`
 - `./server.sh verify-ops-click-e2e`
+- `./server.sh verify-ops-click-e2e --auth-ui-flow --auth-users-file <path>`
 - `./server.sh verify-rule-ui`
 - `git diff --check`
 
