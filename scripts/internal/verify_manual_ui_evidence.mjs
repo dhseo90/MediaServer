@@ -68,7 +68,7 @@ check("manual UI docs are current v1.8.0 baseline", () => {
 check("manual result template covers required screens", () => {
   assertIncludes(template, [
     "# Manual UI Result Template",
-    "브라우저: 인앱 브라우저",
+    "브라우저: 자율 Chrome/CDP 또는 인앱 브라우저",
     "`/setup`",
     "`/login`",
     "`/password/change`",
@@ -148,6 +148,7 @@ check("manual result template separates automation from direct browser evidence"
     "관련 자동 검증",
     "## 확인됨",
     "실제로 열고 클릭한 화면만 적습니다.",
+    "자율 Chrome/CDP 세션 또는 인앱 브라우저",
     "자동 smoke나 raw JSON 확인만으로 채우지 않습니다.",
     "raw JSON/API-only로만 확인한 항목",
     "## 제외 기록",

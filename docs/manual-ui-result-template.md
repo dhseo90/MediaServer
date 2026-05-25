@@ -1,8 +1,9 @@
 # Manual UI Result Template
 
-이 템플릿은 사람이 인앱 브라우저에서 직접 눌러 확인한 UI 풀테스트 결과를
-남길 때 사용합니다. 자동 smoke, screenshot artifact, raw JSON 확인만으로 이
-문서를 채우지 않습니다. 기준 정의는 [manual-ui-fulltest.md](./manual-ui-fulltest.md),
+이 템플릿은 프로젝트 verifier의 자율 Chrome/CDP 세션 또는 인앱 브라우저에서
+실제로 눌러 확인한 UI 풀테스트 결과를 남길 때 사용합니다. 자동 smoke,
+screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니다.
+기준 정의는 [manual-ui-fulltest.md](./manual-ui-fulltest.md),
 기능별 UI 필요 여부와 테스트 영역은
 [project-feature-test-inventory.md](./project-feature-test-inventory.md), 실행 순서는
 [manual-ui-checklist.md](./manual-ui-checklist.md)를 봅니다.
@@ -17,7 +18,7 @@
 - auth mode:
 - users/source/view/analysis fixture:
 - 데이터 리셋 방법:
-- 브라우저: 인앱 브라우저
+- 브라우저: 자율 Chrome/CDP 또는 인앱 브라우저
 - viewport:
 - theme:
 - evidence index:
@@ -32,7 +33,7 @@
 ## 테스트 영역별 판정
 
 스크립트 테스트와 UI 풀테스트는 서로 대체하지 않습니다. UI 풀테스트 판정은
-`PASS`와 `FAIL`만 사용합니다. PASS 조건은 모든 개별 기능을 인앱 브라우저에서
+`PASS`와 `FAIL`만 사용합니다. PASS 조건은 모든 개별 기능을 실제 브라우저에서
 실행하고, 실제 수행 결과가 제품 상태에 반영됐는지 확인하고, 관련 로그 또는
 이벤트 이력을 확인하는 것입니다. 하나라도 빠지면 해당 개별 기능은 `FAIL`입니다.
 사용자가 의도적으로 제외한 실기기/외부 credential/scope 밖 항목은 UI 풀테스트
@@ -70,7 +71,7 @@
 
 ## UI 풀테스트 기록
 
-- 인앱 브라우저:
+- 브라우저:
 - 직접 조작 범위:
 - 반응형/테마 범위:
 - 시각 품질 확인:
