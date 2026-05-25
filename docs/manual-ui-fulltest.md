@@ -9,8 +9,12 @@
 
 ## 1. 정의
 
-UI 풀테스트는 자동 smoke가 아니라 인앱 브라우저에서 제품 웹 UI를 직접 열고,
+UI 풀테스트는 API smoke가 아니라 제품 웹 UI를 실제 브라우저에서 열고,
 클릭과 타이핑으로 문서에 설명된 기능을 하나하나 확인하는 검수입니다.
+기본 실행 방식은 프로젝트 verifier가 자체 Chrome/CDP 세션을 띄워 조작하는
+자율 UI 테스트입니다. Codex 인앱 브라우저나 작업자가 같은 조작을 직접 수행하는
+방식은 보조 재현 수단일 뿐이며, 사용자에게 pane 열기, 버튼 클릭, 팝업 확인을
+요청해야만 진행되는 테스트는 UI 풀테스트 PASS evidence가 아닙니다.
 API 응답, raw JSON, screenshot 생성, 스크립트 통과만으로는 UI 풀테스트를 완료했다고
 기록하지 않습니다.
 
@@ -24,10 +28,10 @@ UI 풀테스트는 `스크립트 테스트`와 별도 영역입니다. 스크립
 | 안정화 테스트 | 30분/120분/UI 테스트의 선수 테스트입니다. 로드맵 각 스텝 종료 시 먼저 수행합니다. 실패하면 UI 풀테스트로 넘어가지 않습니다. |
 | 30분 테스트 | 장기간 테스트 지시 시 기본으로 수행하고, 각 버전별 로드맵 개발이 끝나면 수행합니다. UI 클릭/타이핑 evidence를 대체하지 않습니다. |
 | 120분 테스트 | 메모리 릭, 장시간 누수, runtime drift 감시용입니다. 무조건 실행하지 않고 필요하면 사용자에게 먼저 알립니다. UI 풀테스트 PASS를 대체하지 않습니다. |
-| UI 풀테스트 | 인앱 브라우저 직접 조작, role별 화면, 반응형, 시각 품질 evidence입니다. 30분/120분 안정화 PASS를 대체하지 않습니다. |
+| UI 풀테스트 | 자율 브라우저 조작 또는 인앱 브라우저 직접 조작, role별 화면, 반응형, 시각 품질 evidence입니다. 30분/120분 안정화 PASS를 대체하지 않습니다. |
 
 따라서 결과 문서에는 `스크립트 테스트`와 `UI 풀테스트` 판정을 따로 적습니다.
-UI 풀테스트 판정값은 `PASS`와 `FAIL`만 사용합니다. 모든 기능을 인앱 브라우저에서
+UI 풀테스트 판정값은 `PASS`와 `FAIL`만 사용합니다. 모든 기능을 실제 브라우저에서
 실행하고, 실제 수행 결과가 제품 상태에 반영됐는지 확인하고, 관련 로그 또는
 이벤트 이력을 확인했을 때만 `PASS`입니다. 그 외에는 전부 `FAIL`입니다.
 실기기/외부 credential처럼 사용자가 의도적으로 빼라고 한 항목은 UI 풀테스트
@@ -95,9 +99,12 @@ EventRecord는 JSON Lines, snapshot/clip evidence는 지정 디렉터리에 저�
 데이터 리셋 후 `/setup`에서 admin을 직접 만들고, 결과 문서에는 비밀번호 원문,
 invite token 원문, session cookie, generated password suggestion을 남기지 않습니다.
 
-## 5. 인앱 브라우저 직접 조작
+## 5. 자율 브라우저 직접 조작
 
-모든 수동 확인은 인앱 브라우저에서 수행합니다. 다음 행위가 있어야 `확인됨`입니다.
+UI 풀테스트는 사용자가 직접 누르는 절차가 아니라 테스트 runner가 자체 브라우저를
+제어해 수행하는 절차를 기본값으로 둡니다. Codex 인앱 브라우저는 사람이 화면을
+재현하거나 보조 확인할 때만 사용합니다. 다음 행위가 자동 또는 직접 브라우저에서
+실제로 수행되어야 `확인됨`입니다.
 
 - route를 실제로 열기
 - nav/tab/button/menu/details를 클릭하기
@@ -106,6 +113,12 @@ invite token 원문, session cookie, generated password suggestion을 남기지 
 - copy button, export button, preview/play/stop/reconnect를 누르기
 - role별 route guard를 브라우저에서 확인하기
 - responsive viewport를 바꾸고 화면을 다시 확인하기
+- confirm/alert/prompt 같은 팝업은 테스트 runner가 정책대로 처리하고, 처리 이력을
+  결과에 남기기
+
+테스트가 Codex pane attach, 사용자의 클릭, 운영체제 팝업 버튼 수동 확인을 기다리면
+그 항목은 제품 FAIL이 아니라 테스트 harness FAIL입니다. harness FAIL 상태에서
+해당 기능을 PASS로 기록하지 않습니다.
 
 UI 풀테스트 결과는 모든 개별 기능, route, control, action 단위로 답합니다.
 카테고리 묶음 판정은 금지합니다. 예를 들어 `Rules PASS`, `Auth FAIL`처럼 묶지
@@ -121,6 +134,7 @@ UI 풀테스트 결과는 모든 개별 기능, route, control, action 단위로
 - 열지 않은 화면
 - 실패한 화면을 재검수하지 않음
 - 브라우저가 아닌 문서/코드만 확인
+- 사용자가 대신 누른 클릭이나 팝업 확인을 runner evidence처럼 기록
 
 ## 6. 필수 화면 범위
 
@@ -244,6 +258,7 @@ UI 풀테스트는 기능 검수와 같은 비중으로 시각 품질을 봅니�
 - `./server.sh verify-auth-routes`
 - `./server.sh verify-ops-client-ui`
 - `./server.sh verify-ops-client-ui --screenshots`
+- `./server.sh verify-ops-click-e2e`
 - `./server.sh verify-rule-ui`
 - `git diff --check`
 

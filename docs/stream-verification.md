@@ -584,6 +584,9 @@ Product UI smoke:
 - 접힘 editor selector
 - `/setup`, `/login`, `/password/change`, `/invite/setup`,
   `/client/request-access` auth shell selector
+- `verify-ops-click-e2e`는 자체 Chrome/CDP 세션에서 Ops/Client 주요 클릭 흐름을
+  조작합니다. 접근 요청 거절 confirm 같은 팝업은 runner가 자동 처리하고, 사용자가
+  Codex pane나 운영체제 팝업을 눌러야 하는 상태는 verifier 실패로 봅니다.
 
 Invite/request smoke:
 
@@ -592,7 +595,7 @@ Invite/request smoke:
 - pending invite와 approved request가 user-only 저장 후에도 users file에 유지
 - 기존 enabled user invite가 수락 전 role/scope/session을 바꾸지 않음
 - access request approve가 invite setup 전 user row를 만들지 않음
-- access request reject가 rejected 상태로 유지
+- access request reject가 confirm 자동 처리 후 rejected 상태로 유지되고 user row를 만들지 않음
 - invite 수락 후 이전 session 폐기
 - password reset 후 `mustChangePassword=true`와 기존 session 회수
 - disable은 login/session 차단, restore는 lockout/실패 횟수 초기화

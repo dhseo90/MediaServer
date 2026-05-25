@@ -131,6 +131,11 @@ Evidence index에는 route, 계정/권한, 직접 조작, screenshot/artifact, �
 남깁니다. 사용자가 의도적으로 제외한 항목은 Evidence index가 아니라 `제외 기록`에
 남깁니다.
 
+UI 조작 evidence는 프로젝트 verifier가 자체 Chrome/CDP 세션에서 클릭/타이핑/팝업
+처리를 완료한 기록을 우선합니다. Codex 인앱 브라우저에서 사람이 직접 누르는 방식은
+보조 재현 수단입니다. 테스트가 사용자 클릭이나 팝업 버튼 수동 확인을 기다리면
+해당 항목은 harness 실패로 기록하고 PASS 처리하지 않습니다.
+
 ## 4. Auth Shell
 
 - `/`: setup 필요 상태에서는 `/setup`, 로그인 필요 상태에서는 `/login`, 로그인 후에는
@@ -165,6 +170,7 @@ Evidence index에는 route, 계정/권한, 직접 조작, screenshot/artifact, �
   입력을 끝까지 수행하지 못한 경우에는 해당 개별 기능을 `FAIL`로 기록하고,
   어떤 단계까지 직접 확인했는지와 보조로 통과한 auth smoke 명령을 분리합니다.
   자동 smoke 통과만으로 Chrome 수동 auth 입력을 완료했다고 쓰지 않습니다.
+  사용자가 대신 입력하거나 팝업을 누른 행위는 verifier evidence로 대체하지 않습니다.
 - Auth evidence에는 plaintext password, invite token 원문, session cookie,
   generated password suggestion을 남기지 않습니다.
 
@@ -186,6 +192,8 @@ Evidence index에는 route, 계정/권한, 직접 조작, screenshot/artifact, �
   evidence로만 사용합니다. 하나라도 없으면 VA 이벤트 커버리지는 PASS가 아닙니다.
 - `/ops/users`: 사용자 추가/수정, viewer scope 적용, reset password, disable/restore,
   마지막 admin 보호, pending access request 승인/거절 flow를 확인합니다.
+  접근 요청 거절 confirm은 `verify-ops-click-e2e`처럼 runner가 자동 수락하고
+  거절 POST, rejected row, user row 미생성까지 확인해야 합니다.
 - `/ops/events`: evidence policy, evidence filter, include archives, prev/next,
   signed bundle export를 확인합니다.
 - `/ops/events`는 primary nav가 아니라 진단/직접 route 또는 Dashboard 내부 섹션으로

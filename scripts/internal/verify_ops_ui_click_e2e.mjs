@@ -26,9 +26,13 @@ Options:
   --height <px>             viewport 높이입니다. 기본 900.
   --debug-port-base <port>  Chrome CDP port 시작값입니다. 기본 9750.
   --output-dir <path>       screenshot/log 출력 디렉터리입니다.
-  --auth-users-file <path>  접근 요청 승인 fixture 복원 대상 users file입니다.
+  --auth-users-file <path>  접근 요청 승인/거절 fixture 복원 대상 users file입니다.
                             기본 MEDIA_SERVER_AUTH_USERS_FILE 또는 repo .media_server.users.json.
   -h, --help                도움말 출력
+
+Notes:
+  - confirm/alert/prompt dialog는 테스트 runner가 자동 처리하고 처리 이력을 검증합니다.
+  - Codex 인앱 브라우저 pane나 사용자 클릭에 의존하지 않습니다.
 `);
 }
 assertKnownOptions(rawArgs, [
@@ -346,7 +350,8 @@ async function runOpsClickFlow(browser, context) {
     steps.push("users:add-empty");
   }
   await assertAccessRequestApprovalFlow(browser, context);
-  steps.push("users:access-request-approve");
+  await assertAccessRequestRejectFlow(browser, context);
+  steps.push("users:access-request-approve", "users:access-request-reject");
 
   await clickSelector(browser, 'a[href="/client/live"]', "클라이언트 라이브");
   await waitForPath(browser, "/client/live");
@@ -471,27 +476,46 @@ async function assertAccessRequestApprovalFlow(browser, context) {
   }
 }
 
+async function assertAccessRequestRejectFlow(browser, context) {
+  const fixture = await createAccessRequestFixture(context);
+  try {
+    await navigatePath(browser, "/ops/users");
+    await installErrorCollector(browser);
+    await assertReady(browser, "/ops/users", '[data-testid="ops-users-page"]');
+    await installAutonomousDialogHandler(browser);
+    await installAccessRequestRejectSpy(browser, fixture.requestId);
+    const rejectSelector = attrEqualsSelector("data-request-reject", fixture.requestId);
+    await assertVisible(browser, rejectSelector, "접근 요청 거절 버튼");
+    await assertAccessRequestRow(browser, fixture.username, "대기", "접근 요청 pending row");
+    await clickSelector(browser, rejectSelector, "접근 요청 거절");
+    await assertText(browser, "#request-status", "접근 요청 거절 완료", "접근 요청 거절 상태");
+    await assertAccessRequestRow(browser, fixture.username, "거절됨", "접근 요청 rejected row");
+    await assertAutonomousDialogAccepted(browser, fixture.username, "접근 요청 거절 confirm 자동 처리");
+    await assertRejectRequestPosted(browser, fixture.requestId);
+    await assertRejectedRequestDidNotCreateUser(browser, fixture.username);
+    await assertNoOverflow(browser, `${context.label}:users-access-request-reject`);
+  } finally {
+    await restoreAccessRequestRejectSpy(browser);
+    await restoreAutonomousDialogHandler(browser);
+    await restoreAuthStoreSnapshot(fixture.snapshot);
+    await assertAccessRequestFixtureCleaned(fixture);
+  }
+}
+
 async function createAccessRequestFixture(context) {
   const snapshot = snapshotAuthStore();
   const suffix = `${process.pid}-${String(context?.width || "w")}-${Date.now()}`;
   const username = `click-request-${suffix}`.slice(0, 64);
+  const requestId = `req-click-${suffix}`.slice(0, 64);
   const payload = {
     username,
     displayName: "Click Request",
     contact: `${username}@example.test`,
     viewId: "1",
-    reason: "ops click e2e approval fixture",
+    reason: "ops click e2e access request fixture",
   };
   try {
-    const result = await requestJson("/client/api/access-requests", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-    const requestId = String(result?.accessRequest?.requestId || "");
-    if (!requestId) {
-      throw new Error(`access request fixture missing requestId: ${JSON.stringify(result)}`);
-    }
+    writeAccessRequestFixture(snapshot, { ...payload, requestId });
     return {
       snapshot,
       username,
@@ -503,6 +527,36 @@ async function createAccessRequestFixture(context) {
     await restoreAuthStoreSnapshot(snapshot);
     throw error;
   }
+}
+
+function writeAccessRequestFixture(snapshot, fixture) {
+  const filePath = snapshot.filePath;
+  let store = {};
+  if (snapshot.existed) {
+    store = JSON.parse(fs.readFileSync(filePath, "utf8") || "{}");
+  }
+  if (!Array.isArray(store.users)) store.users = [];
+  if (!Array.isArray(store.invites)) store.invites = [];
+  if (!Array.isArray(store.accessRequests)) store.accessRequests = [];
+  if (store.accessRequests.some(item => String(item?.requestId || "") === fixture.requestId)) {
+    throw new Error(`duplicate access request fixture id: ${fixture.requestId}`);
+  }
+  store.accessRequests.push({
+    requestId: fixture.requestId,
+    username: fixture.username,
+    displayName: fixture.displayName,
+    contact: fixture.contact,
+    reason: fixture.reason,
+    viewId: fixture.viewId,
+    status: "pending",
+    createdAt: new Date().toISOString(),
+    decidedAt: "",
+    decidedBy: "",
+    inviteId: "",
+  });
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(filePath, `${JSON.stringify(store, null, 2)}\n`, { mode: snapshot.mode || 0o600 });
+  fs.chmodSync(filePath, snapshot.mode || 0o600);
 }
 
 function snapshotAuthStore() {
@@ -600,6 +654,96 @@ async function restoreAccessRequestApprovalSpy(browser) {
   `, 3000).catch(() => null);
 }
 
+async function installAccessRequestRejectSpy(browser, requestId) {
+  await browser.evaluate(`
+    (() => {
+      const requestId = ${JSON.stringify(requestId)};
+      if (!window.__opsClickOriginalFetch) {
+        window.__opsClickOriginalFetch = window.fetch.bind(window);
+      }
+      window.__opsClickRejectCalled = false;
+      window.__opsClickRejectResponse = null;
+      window.__opsClickAuditPosts = [];
+      window.fetch = async (input, init = {}) => {
+        const url = String(typeof input === 'string' ? input : input?.url || '');
+        const method = String(init?.method || input?.method || 'GET').toUpperCase();
+        if (method === 'POST' && url.includes('/ops/api/audit')) {
+          window.__opsClickAuditPosts.push(String(init?.body || ''));
+          return new Response(JSON.stringify({ status: 'ops-audit', persistent: false, entry: {} }), {
+            status: 201,
+            statusText: 'Created',
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+        const response = await window.__opsClickOriginalFetch(input, init);
+        if (method === 'POST' && url.includes('/ops/api/access-requests/' + encodeURIComponent(requestId) + '/reject')) {
+          window.__opsClickRejectCalled = true;
+          response.clone().json()
+            .then(payload => { window.__opsClickRejectResponse = payload; })
+            .catch(error => { window.__opsClickRejectResponse = { error: String(error?.message || error) }; });
+        }
+        return response;
+      };
+      return true;
+    })()
+  `, 3000);
+}
+
+async function restoreAccessRequestRejectSpy(browser) {
+  await browser.evaluate(`
+    (() => {
+      if (window.__opsClickOriginalFetch) {
+        window.fetch = window.__opsClickOriginalFetch;
+        window.__opsClickOriginalFetch = null;
+      }
+      return true;
+    })()
+  `, 3000).catch(() => null);
+}
+
+async function installAutonomousDialogHandler(browser) {
+  await browser.evaluate(`
+    (() => {
+      if (!window.__opsClickDialogOriginals) {
+        window.__opsClickDialogOriginals = {
+          alert: window.alert,
+          confirm: window.confirm,
+          prompt: window.prompt,
+        };
+      }
+      window.__opsClickDialogs = [];
+      window.alert = message => {
+        window.__opsClickDialogs.push({ type: 'alert', message: String(message || '') });
+      };
+      window.confirm = message => {
+        window.__opsClickDialogs.push({ type: 'confirm', message: String(message || ''), accepted: true });
+        return true;
+      };
+      window.prompt = (message, defaultValue = '') => {
+        const value = String(defaultValue || '');
+        window.__opsClickDialogs.push({ type: 'prompt', message: String(message || ''), accepted: true, value });
+        return value;
+      };
+      return true;
+    })()
+  `, 3000);
+}
+
+async function restoreAutonomousDialogHandler(browser) {
+  await browser.evaluate(`
+    (() => {
+      const originals = window.__opsClickDialogOriginals;
+      if (originals) {
+        window.alert = originals.alert;
+        window.confirm = originals.confirm;
+        window.prompt = originals.prompt;
+      }
+      window.__opsClickDialogOriginals = null;
+      return true;
+    })()
+  `, 3000).catch(() => null);
+}
+
 async function assertApproveRequestPayload(browser, requestId, expectedViewId) {
   await waitForResult(
     browser,
@@ -626,6 +770,63 @@ async function assertApproveRequestPayload(browser, requestId, expectedViewId) {
     `,
     item => item?.ok === true,
     "접근 요청 승인 POST payload",
+  );
+}
+
+async function assertRejectRequestPosted(browser, requestId) {
+  await waitForResult(
+    browser,
+    `
+      (() => {
+        const response = window.__opsClickRejectResponse || {};
+        return {
+          ok: window.__opsClickRejectCalled === true && response.status === 'rejected',
+          requestId: ${JSON.stringify(requestId)},
+          called: window.__opsClickRejectCalled === true,
+          responseStatus: response.status || '',
+        };
+      })()
+    `,
+    item => item?.ok === true,
+    "접근 요청 거절 POST",
+  );
+}
+
+async function assertAutonomousDialogAccepted(browser, expectedText, description) {
+  await waitForResult(
+    browser,
+    `
+      (() => {
+        const dialogs = Array.isArray(window.__opsClickDialogs) ? window.__opsClickDialogs : [];
+        const match = dialogs.find(item =>
+          item?.type === 'confirm' &&
+          item?.accepted === true &&
+          String(item?.message || '').includes(${JSON.stringify(expectedText)})
+        );
+        return { ok: Boolean(match), dialogs };
+      })()
+    `,
+    item => item?.ok === true,
+    description,
+  );
+}
+
+async function assertRejectedRequestDidNotCreateUser(browser, username) {
+  await waitForResult(
+    browser,
+    `
+      (() => {
+        const username = ${JSON.stringify(username)};
+        const row = Array.from(document.querySelectorAll('#users-body tr'))
+          .find(candidate => String(candidate.textContent || '').includes(username));
+        return {
+          ok: !row,
+          rowText: String(row?.textContent || '').replace(/\\s+/g, ' ').trim(),
+        };
+      })()
+    `,
+    item => item?.ok === true,
+    "접근 요청 거절 후 user row 미생성",
   );
 }
 
