@@ -204,7 +204,7 @@ Rule scenario/event 발생 검수는 분리합니다.
 | SRC-001 | file source 등록 | 필요 | 필요 | 안정화, UI | file source form save 후 목록/view에서 사용 가능 |
 | SRC-002 | RTSP pull source 등록 | 필요 | 필요 | 안정화, UI, 30분 | RTSP URL 저장, health/session 지속성 확인 |
 | SRC-003 | HTTP/HLS URI source 등록 | 필요 | 필요 | 안정화, UI, 30분 | URI 저장, 재생/health 상태 확인 |
-| SRC-004 | external WHEP playback URL source 등록 | 필요 | 필요 | 안정화, UI, 30분 | WHEP URL 저장과 session wrapper 경계 확인 |
+| SRC-004 | external WHEP playback URL source 등록 | 필요 | 필요 | 안정화, UI, 30분 | WHEP URL 저장, client wrapper session 생성/삭제, WHEP source sample ready 확인 |
 | SRC-005 | internal WHIP published source 등록 | 필요 | 필요 | 안정화, UI, 30분 | WHIP publish sourceId가 view/source registry에 반영 |
 | SRC-006 | source 목록 조회 | 필요 | 필요 | 안정화, UI | 목록 row/count/status가 API와 일치 |
 | SRC-007 | source 상세 조회 | 필요 | 필요 | 안정화, UI | detail panel/route가 source fields를 표시 |
@@ -358,7 +358,7 @@ Rule scenario/event 발생 검수는 분리합니다.
 | EVT-014 | evidence 조회 | 간접 | 필요 | 안정화 | evidence metadata/file access 정책 확인 |
 | EVT-015 | evidence 삭제 | 비대상 | 필요 | 안정화 | retention/delete 정책 확인 |
 | EVT-016 | ops events status | 필요 | 필요 | 안정화, UI | events status panel/API 일치 |
-| EVT-017 | alert deliveries 조회 | 필요 | 필요 | 안정화, UI | deliveries list/filter 표시 |
+| EVT-017 | alert deliveries 조회 | 필요 | 필요 | 안정화, UI | `/ops/events` Alert Delivery list에서 검색/kind/status filter와 empty filter 상태를 표시 |
 | EVT-018 | alert delivery test | 필요 | 필요 | 안정화, UI | `/ops/events` Alert Delivery에서 integration 저장 후 Fixture/test action을 클릭하면 최근 시도에 `delivered · fixture`가 표시되고 endpoint token은 redacted 상태로 유지 |
 | EVT-019 | event review 목록 | 필요 | 필요 | 안정화, UI | review inbox list 표시 |
 | EVT-020 | event review 상세 | 필요 | 필요 | 안정화, UI | review detail/status 표시 |

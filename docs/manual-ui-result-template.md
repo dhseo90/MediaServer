@@ -52,6 +52,18 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 `source`를 함께 기록합니다. Codex goal usage 같은 자동 집계값이 있으면 그 값을
 우선하고, 집계값이 없으면 미집계 사유를 적습니다.
 
+## 현재 보존 증적
+
+아래 표에는 최종 판정에 사용하는 retained artifact만 적습니다. command log에
+남은 과거 `--output-dir` 경로가 transient artifact라 현재 파일시스템에 없을 수
+있으므로, 최종 PASS 근거로 쓰는 경로는 이 표에서 `exists`로 확인합니다.
+
+| 증적 | 경로 | 확인 |
+| --- | --- | --- |
+| Auth/browser evidence |  | exists/FAIL |
+| Ops click E2E summary |  | exists/FAIL |
+| EventRecord history coverage |  | exists/FAIL |
+
 ## 스크립트 테스트 기록
 
 - 관련 자동 검증:

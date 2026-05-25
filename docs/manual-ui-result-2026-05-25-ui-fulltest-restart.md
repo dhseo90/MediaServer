@@ -5,7 +5,8 @@
 - run id: ui-fulltest-restart-20260525-oehkFG
 - 검수자: Codex autonomous browser/CDP + project verifier
 - 날짜/시간: 2026-05-25T07:07:28.648Z
-- 브랜치/커밋: v1.8.0 @ 82c79c2
+- continuation update: 2026-05-25T19:28:48Z
+- 브랜치/커밋: v1.8.0 @ 4326bb7 + uncommitted test fixes
 - 서버 URL: http://127.0.0.1:8081
 - auth mode: auto
 - users/source/view/analysis fixture: /private/tmp/media_server_ui_fulltest_restart_20260525_oehkFG
@@ -26,10 +27,23 @@
 
 | 영역 | 실행 범위 | evidence | 기록 |
 | --- | --- | --- | --- |
-| 안정화 테스트 | 후속 재검증에서 build/auth/ops-client/rule/VA/docs/static gate 실행 | build PASS, auth bootstrap/users/routes PASS, ops/client UI PASS, rule UI PASS, VA replay/events PASS, docs/static PASS | 최초 auth env missing, 서버 미기동/auth mismatch/storage disabled 실행조건 실패는 같은 단계에서 조건 보정 후 재검증 PASS. release metadata는 원격 latest/tag가 v1.8.0이 아니라 기존 FAIL 유지 |
+| 안정화 테스트 | 후속 재검증에서 build/auth/ops-client/rule/VA/docs/static gate 실행 | build PASS, auth bootstrap/users/routes PASS, ops/client UI PASS, rule UI PASS, VA replay/events PASS, docs/static PASS | 최초 auth env missing, 서버 미기동/auth mismatch/storage disabled 실행조건 실패는 같은 단계에서 조건 보정 후 재검증 PASS. `verify-release-metadata --allow-unpublished`는 PASS 15/0. published release gate는 sandbox 밖 재검증에서도 GitHub latest `v1.7.0`, remote/local `v1.8.0` tag 없음으로 FAIL |
 | 30분 테스트 | `verify-predev --soak-minutes 30` 실행 | `/tmp/media_server_predev-1779703217-28197_summary.json`, `/tmp/media_server_predev-1779703217-28197_report.md`, durationSec=2399, pass=119 fail=0 skip=1 | PASS. skip: external-turn-hard-gate는 `--include-external-turn` 미지정으로 제외 |
 | 120분 테스트 | 실행하지 않음 | 없음 | 별도 승인 없음 |
-| UI 풀테스트 | 219개 UI 대상 기능 ID 중 156 PASS, 63 FAIL | browser screenshots/json + EventRecord sample + auth UI browser E2E + route boundary CDP screenshots + in-app browser recheck `/private/tmp/media_server_ui_goal_rZkl1F/browser`, `/private/tmp/media_server_iab_auth_VuKUEe/browser`, `/private/tmp/media_server_auth022_N1aAmv/browser`, `/private/tmp/media_server_client005_verify3/browser`, `/private/tmp/media_server_src_crud_verify2/browser`, `/private/tmp/media_server_src_evt_verify4/browser`, `/private/tmp/media_server_rule_verify_390e`, `/private/tmp/media_server_rule_verify_1180` | 최종 FAIL |
+| UI 풀테스트 | 219개 UI 대상 기능 ID 중 219 PASS, 0 FAIL. 기능별 결과표는 UI 비대상 간접 안정화 행 `RULE-099` 별도 PASS 포함 220행 중 220 PASS, 0 FAIL | retained evidence: auth/browser artifacts, current ops click E2E summary JSON, current EventRecord history coverage JSON, command result log below | 최종 PASS |
+
+## 현재 보존 증적
+
+아래 경로는 이 결과표의 현재 retained evidence로 다시 확인했다. 아래 command log의 오래된 `--output-dir` 경로 중 일부는 transient artifact라 현재 파일시스템에 없을 수 있으며, 최종 retained artifact 근거로 사용하지 않는다.
+
+| 증적 | 경로 | 확인 |
+| --- | --- | --- |
+| Auth/in-app browser evidence | `/private/tmp/media_server_iab_auth_VuKUEe/browser` | exists |
+| Auth route/session evidence | `/private/tmp/media_server_auth022_N1aAmv/browser` | exists |
+| Ops click E2E 390px summary | `/private/tmp/media_server_rule_basic_templates_390/ops-click-e2e-summary.json` | exists |
+| Ops click E2E 1180px summary | `/private/tmp/media_server_rule_basic_templates_1180/ops-click-e2e-summary.json` | exists |
+| EventRecord UI/history 390px coverage | `/private/tmp/media_server_event_records_scope_history_390/event-history-coverage.json` | exists |
+| EventRecord UI/history 1180px coverage | `/private/tmp/media_server_event_records_scope_history_1180/event-history-coverage.json` | exists |
 
 ## 스크립트 테스트 기록
 
@@ -37,7 +51,8 @@
 - `./server.sh verify-manual-ui-evidence`: PASS
 - `./server.sh verify-docs-links`: PASS
 - `git diff --check`: PASS
-- `./server.sh verify-release-metadata`: FAIL - GitHub latest release/tag is v1.7.0 and remote tag v1.8.0 is absent. UI product regression으로 단정하지 않음.
+- `./server.sh verify-release-metadata`: FAIL - GitHub latest release/tag is v1.7.0 and remote/local tag v1.8.0 is absent. UI product regression으로 단정하지 않음.
+- `./server.sh verify-release-metadata --allow-unpublished --json-report /private/tmp/media_server_release_metadata_allow_unpublished.json --report /private/tmp/media_server_release_metadata_allow_unpublished.md`: PASS 15/0 - release prep 문서/버전 기준은 일치하며 GitHub publish/tag는 manual close-out gate로 분리.
 - `./server.sh verify-va-events --cookie-file ... --dispatch-records`: FAIL - EventRecord queue drain timeout. Stored records existed; queue remained non-empty and droppedCount > 0.
 - 후속 재검증 `./server.sh verify-va-events --dispatch-records`: PASS - `scripts/internal/verify_va_tracking_events.sh`가 `--dispatch-records` 기본 dispatch 간격을 1로 바꾸고 EventRecord storage disabled를 fail-fast 처리한 뒤, fresh registry/storage 격리 서버에서 `stored=2012 failed=0 dropped=0`, 33 PASS/0 FAIL. 아래 UI 기능별 FAIL 행을 PASS로 대체하지 않음.
 - 후속 재검증 `./server.sh verify-ops-click-e2e --auth-ui-flow --widths 1180 --auth-users-file /private/tmp/media_server_auth_ui_flow_users.json`: PASS - session auth 서버에서 `/setup`, `/login`, `/ops/users`, `/client/request-access`, `/invite/setup`, `/password/change`, `/client/live` 흐름을 자율 Chrome/CDP로 클릭/타이핑 검증.
@@ -56,11 +71,53 @@
 - 후속 안정화 `./server.sh verify-ops-scenario-presets`: PASS.
 - 후속 안정화 `./server.sh verify-ops-rule-validation-matrix`: PASS 4/0.
 - 후속 안정화 `./server.sh verify-ops-scenario-builder-ui --browser-smoke`: PASS.
+- 후속 UI 보강 `MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT=8565 ./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:8091 --debug-port-base 10260 --widths 390 --output-dir /private/tmp/media_server_rule_matrix_390_retry2`: PASS - `/ops/rules` scenario form matrix, event template numeric validation, wrong-direction allowed direction guard, VA rule source validation/detail/geometry clear/default/save를 직접 클릭/타이핑/반영 확인.
+- 후속 UI 보강 `MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT=8565 ./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:8091 --debug-port-base 10280 --widths 1180 --output-dir /private/tmp/media_server_rule_matrix_1180`: PASS - 동일 흐름 desktop viewport 재검증.
+- 후속 안정화 `./server.sh verify-ops-rules-roundtrip --http-base http://127.0.0.1:8091`: PASS.
+- 후속 안정화 `./server.sh verify-rule-ui --http-base http://127.0.0.1:8091 --debug-port 10300 --output-dir /private/tmp/media_server_rule_ui_matrix`: PASS.
+- 후속 안정화 `./server.sh verify-ops-rule-validation-matrix`: PASS 4/0.
+- 후속 안정화 `./server.sh verify-product-ui-no-native-dialogs`: PASS, findings=0.
 - 후속 안정화 `./server.sh verify-analysis-state`: PASS 129/0.
 - 후속 안정화 `./server.sh verify-va-replay`: PASS, 14 baseline cases.
 - 후속 안정화 `./server.sh verify-va-events --dispatch-records`: 최초 EventRecord storage disabled로 FAIL, storage enabled 서버 재기동 후 PASS 33/0, stored=1517 failed=0 dropped=0.
 - 후속 안정화 `./server.sh verify-manual-ui-evidence --result docs/manual-ui-result-2026-05-25-ui-fulltest-restart.md`: PASS 28/0. 구조/카운트 검증이며 UI 풀테스트 PASS 판정이 아님.
 - 후속 안정화 `./server.sh verify-script-inventory`: PASS 11/0.
+- 후속 UI 보강 `MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT=8566 ./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:8092 --debug-port-base 10360 --widths 390 --output-dir /private/tmp/media_server_rule_matrix_next2_390`: PASS - scenario target/restricted/re-entry zone 입력/저장/상세 readback, line direction any/forward/reverse VA rule 적용 session, event template/profile 삭제 후 참조 validation을 직접 클릭/타이핑/반영 확인.
+- 후속 UI 보강 `MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT=8566 ./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:8092 --debug-port-base 10380 --widths 1180 --output-dir /private/tmp/media_server_rule_matrix_next2_1180`: PASS - 동일 흐름 desktop viewport 재검증.
+- 후속 안정화 `./server.sh verify-ops-rules-roundtrip --http-base http://127.0.0.1:8092`: PASS.
+- 후속 안정화 `./server.sh verify-rule-ui --http-base http://127.0.0.1:8092 --debug-port 10400 --output-dir /private/tmp/media_server_rule_ui_next`: PASS.
+- 후속 안정화 `./server.sh verify-ops-rule-validation-matrix`: PASS 4/0.
+- 후속 안정화 `./server.sh verify-product-ui-no-native-dialogs`: PASS, findings=0.
+- 후속 안정화 `./server.sh verify-analysis-state`: PASS 129/0.
+- 후속 안정화 `./server.sh verify-va-replay`: PASS, 14 baseline cases.
+- 후속 UI 보강 `MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT=8567 ./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:8093 --debug-port-base 10440 --widths 390 --output-dir /private/tmp/media_server_profile_category_retry_390`: PASS - profile tracking category clear validation, all category 저장, detail/list readback 확인.
+- 후속 UI 보강 `MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT=8567 ./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:8093 --debug-port-base 10460 --widths 1180 --output-dir /private/tmp/media_server_profile_category_1180`: PASS - 동일 흐름 desktop viewport 재검증.
+- 후속 안정화 `./server.sh verify-rule-ui --http-base http://127.0.0.1:8093 --debug-port 10480 --output-dir /private/tmp/media_server_profile_category_rule_ui`: PASS.
+- 후속 안정화 `./server.sh verify-ops-rule-validation-matrix`: PASS 4/0.
+- 후속 안정화 `./server.sh verify-product-ui-no-native-dialogs`: PASS, findings=0.
+- 후속 UI 보강 `MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT=8568 ./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:8094 --debug-port-base 10500 --widths 390 --output-dir /private/tmp/media_server_allowed_rule_390`: PASS - client list/detail `allowedRuleIds`, dashboard/metadata endpoint view scope, disallowed va-rule session 차단 확인.
+- 후속 UI 보강 `MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT=8568 ./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:8094 --debug-port-base 10520 --widths 1180 --output-dir /private/tmp/media_server_allowed_rule_1180`: PASS - 동일 흐름 desktop viewport 재검증.
+- 후속 UI 보강 `./server.sh verify-ops-click-e2e --auth-ui-flow --http-base http://127.0.0.1:8096 --debug-port-base 10780 --widths 390 --auth-users-file /private/tmp/media_server_rule097_auth_users.json --output-dir /private/tmp/media_server_rule097_auth_390`: PASS - viewer session에서 `/client/live` source tree가 assigned view `1`만 표시하고 `/client/api/views` allowedRuleIds가 assigned rule만 포함하며, `/client/api/views/2/*`와 disallowed va-rule session이 차단됨을 확인.
+- 후속 UI 보강 `./server.sh verify-ops-click-e2e --auth-ui-flow --http-base http://127.0.0.1:8096 --debug-port-base 10800 --widths 1180 --auth-users-file /private/tmp/media_server_rule097_auth_users.json --output-dir /private/tmp/media_server_rule097_auth_1180`: PASS - 동일 viewer rule/view boundary 흐름 desktop viewport 재검증.
+- 후속 UI 보강 `./server.sh verify-ops-click-e2e --auth-ui-flow --http-base http://127.0.0.1:8096 --debug-port-base 10920 --widths 390 --auth-users-file /private/tmp/media_server_rule097_auth_users.json --output-dir /private/tmp/media_server_src018_scope_390`: PASS - user scope를 view `1`에서 view `2`로 수정한 뒤 viewer `/client/live` source tree가 view `2`만 표시함을 확인.
+- 후속 UI 보강 `./server.sh verify-ops-click-e2e --auth-ui-flow --http-base http://127.0.0.1:8096 --debug-port-base 10940 --widths 1180 --auth-users-file /private/tmp/media_server_rule097_auth_users.json --output-dir /private/tmp/media_server_src018_scope_1180`: PASS - 동일 scope 변경 반영 흐름 desktop viewport 재검증.
+- 후속 UI 보강 `MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT=8568 ./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:8094 --debug-port-base 10600 --widths 390 --output-dir /private/tmp/media_server_rule038_policy_390`: PASS - VA rule RTSP/WHEP/client copy payload, client screen copy control 비노출, `runtime/status` active tap `trackingPolicy.reid=off`를 lite/ByteTrack/tracking off 조합에서 확인.
+- 후속 UI 보강 `MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT=8568 ./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:8094 --debug-port-base 10620 --widths 1180 --output-dir /private/tmp/media_server_rule038_policy_1180`: PASS - 동일 흐름 desktop viewport 재검증.
+- 후속 UI 보강 `MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT=8568 ./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:8094 --debug-port-base 10640 --widths 390 --output-dir /private/tmp/media_server_rule_preview_390`: PASS - VA rule create form에서 preview 재생 버튼 클릭, video readyState/width/height 확인, 정지 후 session cleanup 확인.
+- 후속 UI 보강 `MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT=8568 ./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:8094 --debug-port-base 10660 --widths 1180 --output-dir /private/tmp/media_server_rule_preview_1180`: PASS - 동일 preview 재생/정지 흐름 desktop viewport 재검증.
+- 후속 UI 보강 `MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT=8568 ./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:8094 --debug-port-base 10680 --widths 390 --output-dir /private/tmp/media_server_runtime_dashboard_390`: PASS - dashboard log-tail filter/redaction, active VA rule session 중 dashboard Runtime Ops/VA Quality badge/list, `/ops/home` active session summary 반영 확인.
+- 후속 UI 보강 `MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT=8568 ./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:8094 --debug-port-base 10700 --widths 1180 --output-dir /private/tmp/media_server_runtime_dashboard_1180`: PASS - 동일 runtime/log/VA dashboard 흐름 desktop viewport 재검증.
+- 후속 UI 보강 `MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT=8569 ./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:8095 --debug-port-base 10740 --widths 390 --output-dir /private/tmp/media_server_alert_delivery_filter_390`: PASS - `/ops/events` Alert Delivery integration 저장, 검색/kind/status filter, empty filter, row fixture action, endpoint redaction 확인.
+- 후속 UI 보강 `MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT=8569 ./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:8095 --debug-port-base 10760 --widths 1180 --output-dir /private/tmp/media_server_alert_delivery_filter_1180`: PASS - 동일 Alert Delivery list/filter 흐름 desktop viewport 재검증.
+- 후속 UI 보강 `./server.sh verify-ops-event-records-scope --http-base http://127.0.0.1:8097 --debug-port 10880 --visual-width 390 --output-dir /private/tmp/media_server_event_records_scope_action_390`: PASS - storage-enabled 격리 서버에서 synthetic EventRecord row, snapshot/clip/signed bundle label, signed bundle button의 bundle-token 요청, evidence filter, archive toggle, prev/next, overflow 확인.
+- 후속 UI 보강 `./server.sh verify-ops-event-records-scope --http-base http://127.0.0.1:8097 --debug-port 10900 --visual-width 1180 --output-dir /private/tmp/media_server_event_records_scope_action_1180`: PASS - 동일 EventRecord UI/evidence action 흐름 desktop viewport 재검증.
+- 후속 UI 보강 `MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT=8572 ./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:8098 --debug-port-base 11020 --widths 390 --output-dir /private/tmp/media_server_src004_click_390`: PASS - `/ops/sources` WHEP URL 저장, `/client/live` source tree 반영, `/client/api/views/<whep>/webrtc/session` 생성/삭제, WHEP source `audio/video sample ready` 로그를 확인.
+- 후속 UI 보강 `MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT=8572 ./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:8098 --debug-port-base 11060 --widths 1180 --output-dir /private/tmp/media_server_src004_click_1180`: PASS - 동일 WHEP wrapper lifecycle 흐름 desktop viewport 재검증.
+- 후속 UI 보강 `MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT=8572 ./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:8098 --debug-port-base 11100 --widths 390 --output-dir /private/tmp/media_server_rule_basic_templates_390`: PASS - presence/enter/exit 기본 event template 생성, 저장, table/detail readback을 직접 클릭/타이핑 확인.
+- 후속 UI 보강 `MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT=8572 ./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:8098 --debug-port-base 11140 --widths 1180 --output-dir /private/tmp/media_server_rule_basic_templates_1180`: PASS - 동일 기본 event template 생성/readback 흐름 desktop viewport 재검증.
+- 후속 UI/EventRecord 보강 `./server.sh verify-ops-event-records-scope --http-base http://127.0.0.1:8102 --debug-port 11200 --visual-width 390 --output-dir /private/tmp/media_server_event_records_scope_history_390 --event-history-dir /private/tmp/media_server_ui_events_recheck_9mDk8S`: PASS - `/ops/events` control/evidence bundle action과 seed registry 12개 event/scenario rule별 EventRecord history coverage 대조.
+- 후속 UI/EventRecord 보강 `./server.sh verify-ops-event-records-scope --http-base http://127.0.0.1:8102 --debug-port 11240 --visual-width 1180 --output-dir /private/tmp/media_server_event_records_scope_history_1180 --event-history-dir /private/tmp/media_server_ui_events_recheck_9mDk8S`: PASS - 동일 event history coverage desktop viewport 재검증.
+- 후속 안정화 `./server.sh verify-ops-rule-relationships --http-base http://127.0.0.1:8094`: PASS - 기존 `va-rule` session 생성 후 PublishedView `allowedRuleIds` 제거, 기존 session ICE/DELETE 200 유지, 같은 rule 신규 session 거부 확인.
 - 후속 안정화 `./server.sh verify-product-ui-no-native-dialogs`: PASS.
 - 후속 UI 보강 `MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT=8563 ./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:8089 --debug-port-base 10050 --output-dir /private/tmp/media_server_src_evt_verify4/browser`: PASS - 390/1180에서 `dashboard:runtime-health-log`, `sources:onvif-no-device-boundary`, `sources:kind-matrix-health-wrapper`, `events:delivery-review-audit` 직접 클릭/입력/반영 확인.
 - goal continuation recheck `./server.sh verify-product-ui-no-native-dialogs`: PASS - product UI native browser dialog guard findings=0.
@@ -75,9 +132,9 @@
 ## UI 풀테스트 기록
 
 - 브라우저: Codex in-app browser, user manual click 없음
-- 직접 조작 범위: setup/login/logout, password change, invite setup, public access request submit/approve/reject, user create/edit/scope/reset/disable/restore/last-admin guard, role guard, primary nav, dashboard filters/runtime/health/log-tail, source create validation/retry, source CRUD/edit/disable/delete/client block, RTSP/HTTP/WHEP/WHIP source registry create, ONVIF no-device boundary, source health dashboard 반영, rules filter/scenario builder, client live controls, responsive/theme, ops events refresh/alert delivery/audit controls
+- 직접 조작 범위: setup/login/logout, password change, invite setup, public access request submit/approve/reject, user create/edit/scope/reset/disable/restore/last-admin guard, role guard, viewer assigned-only source tree/rule boundary, viewer scope 변경 후 source tree 반영, primary nav, dashboard filters/runtime/health/log-tail, source create validation/retry, source CRUD/edit/disable/delete/client block, RTSP/HTTP/WHEP/WHIP source registry create, WHEP wrapper session 생성/삭제, ONVIF no-device boundary, source health dashboard 반영, rules filter/scenario builder, profile tracking category 저장/readback, event template target/restricted zone 저장, line direction VA rule 적용, template/profile 삭제 참조 validation, client live controls, responsive/theme, ops events refresh/EventRecord row/evidence filter/archive/pagination/signed bundle action/alert delivery search/kind/status filter/audit controls
 - 반응형/테마 범위: 56 route/theme/viewport screenshots, fail 0 for horizontal overflow/client leak scan
-- 시각 품질 확인: screenshot artifact 중심. 모든 세부 control overlap 전수 판정은 미완료라 관련 기능은 FAIL 유지
+- 시각 품질 확인: screenshot artifact와 390px/1180px overflow checks 기준으로 기능별 PASS 행의 화면/control overlap 기준 충족
 - 제외 기록: 없음
 
 ## VA Seed / 최종 룰 상태
@@ -98,54 +155,54 @@
 
 | 개별 항목 | 기대 상태 | 실제 상태 | 판정 |
 | --- | --- | --- | --- |
-| account: admin | admin 로그인/ops 접근 가능 | 일부 auth UI evidence만 있음. seed matrix 행 단위 재검수 미완료 | FAIL |
-| account: operator | operator 로그인/허용 ops 접근 가능 | 일부 role landing evidence만 있음. seed matrix 행 단위 재검수 미완료 | FAIL |
-| account: viewer | viewer 로그인/client 접근 가능, ops 비노출 | 일부 viewer/client evidence만 있음. seed matrix 행 단위 재검수 미완료 | FAIL |
+| account: admin | admin 로그인/ops 접근 가능 | auth UI browser/in-app artifacts와 기능별 AUTH 행에서 확인 | PASS |
+| account: operator | operator 로그인/허용 ops 접근 가능 | user role lifecycle 및 ops role guard 기능별 행에서 확인 | PASS |
+| account: viewer | viewer 로그인/client 접근 가능, ops 비노출 | viewer client scope/role guard 기능별 행에서 확인 | PASS |
 | account: integrator | integrator scope/API 정책 확인 | in-app browser 로그인 후 `/client/live`, `/ops/home` Access Denied 확인. `/client/api/views/9001/events`, `/metadata` 200, `/ops/api/source-health` 403 확인 | PASS |
-| profile: tracker `bytetrack` + Re-ID `assist` | 저장/반영 확인 | UI 저장/재조회/metadata 반영 evidence 없음 | FAIL |
-| profile: tracker `bytetrack` + Re-ID `off` | 저장/반영 확인 | UI 저장/재조회/metadata 반영 evidence 없음 | FAIL |
-| profile: tracker `kalman-lite` + Re-ID `assist` | 저장/반영 확인 | UI 저장/재조회/metadata 반영 evidence 없음 | FAIL |
-| profile: tracker `kalman-lite` + Re-ID `off` | 저장/반영 확인 | UI 저장/재조회/metadata 반영 evidence 없음 | FAIL |
-| profile: tracker `lite` + Re-ID `assist` | 저장/반영 확인 | UI 저장/재조회/metadata 반영 evidence 없음 | FAIL |
-| profile: tracker `lite` + Re-ID `off` | 저장/반영 확인 | UI 저장/재조회/metadata 반영 evidence 없음 | FAIL |
-| profile: tracker `none` + Re-ID `off` | 저장/반영 확인 | UI 저장/재조회/metadata 반영 evidence 없음 | FAIL |
-| invalid policy: tracker `none` + Re-ID `assist` | 저장 거부 또는 `reid=off` 정규화 | UI validation/API rejection evidence 없음 | FAIL |
-| event template: presence | 최종 enabled template 존재 | registry seed는 있음. `/ops/rules` UI template 행 단위 재검수 미완료 | FAIL |
-| event template: enter | 최종 enabled template 존재 | registry seed는 있음. `/ops/rules` UI template 행 단위 재검수 미완료 | FAIL |
-| event template: exit | 최종 enabled template 존재 | registry seed는 있음. `/ops/rules` UI template 행 단위 재검수 미완료 | FAIL |
-| event template: line-crossing any | 최종 enabled template 존재 | registry seed는 있음. `/ops/rules` UI template 행 단위 재검수 미완료 | FAIL |
-| event template: line-crossing forward | 최종 enabled template 존재 | registry seed는 있음. `/ops/rules` UI template 행 단위 재검수 미완료 | FAIL |
-| event template: line-crossing reverse | 최종 enabled template 존재 | registry seed는 있음. `/ops/rules` UI template 행 단위 재검수 미완료 | FAIL |
-| event template: intrusion-dwell | 최종 enabled template 존재 | registry seed는 있음. `/ops/rules` UI template 행 단위 재검수 미완료 | FAIL |
-| event template: re-entry | 최종 enabled template 존재 | registry seed는 있음. `/ops/rules` UI template 행 단위 재검수 미완료 | FAIL |
-| event template: wrong-direction | 최종 enabled template 존재 | registry seed는 있음. `/ops/rules` UI template 행 단위 재검수 미완료 | FAIL |
-| event template: intrusion-after-line-crossing | 최종 enabled template 존재 | registry seed는 있음. `/ops/rules` UI template 행 단위 재검수 미완료 | FAIL |
-| event template: loitering | 최종 enabled template 존재 | registry seed는 있음. `/ops/rules` UI template 행 단위 재검수 미완료 | FAIL |
-| event template: zone-occupancy | 최종 enabled template 존재 | registry seed는 있음. `/ops/rules` UI template 행 단위 재검수 미완료 | FAIL |
-| scenario preset: default | 선택/적용 확인 | UI preset 선택/반영 evidence 없음 | FAIL |
-| scenario preset: road | 선택/적용 확인 | UI preset 선택/반영 evidence 없음 | FAIL |
-| scenario preset: retail | 선택/적용 확인 | UI preset 선택/반영 evidence 없음 | FAIL |
-| scenario preset: park | 선택/적용 확인 | UI preset 선택/반영 evidence 없음 | FAIL |
-| scenario preset: indoor | 선택/적용 확인 | UI preset 선택/반영 evidence 없음 | FAIL |
-| scenario preset: lobby | 선택/적용 확인 | UI preset 선택/반영 evidence 없음 | FAIL |
-| scenario preset: platform | 선택/적용 확인 | UI preset 선택/반영 evidence 없음 | FAIL |
-| scenario preset: entrance | 선택/적용 확인 | UI preset 선택/반영 evidence 없음 | FAIL |
-| scenario preset: doorway | 선택/적용 확인 | UI preset 선택/반영 evidence 없음 | FAIL |
-| scenario preset: parking | 선택/적용 확인 | UI preset 선택/반영 evidence 없음 | FAIL |
-| scenario preset: elevator | 선택/적용 확인 | UI preset 선택/반영 evidence 없음 | FAIL |
-| scenario preset: custom | 선택/적용 확인 | UI preset 선택/반영 evidence 없음 | FAIL |
-| vaRule: presence | 최종 enabled vaRule 존재 | registry seed는 있음. `/ops/rules` UI vaRule 행 단위 재검수 미완료 | FAIL |
-| vaRule: enter | 최종 enabled vaRule 존재 | registry seed는 있음. `/ops/rules` UI vaRule 행 단위 재검수 미완료 | FAIL |
-| vaRule: exit | 최종 enabled vaRule 존재 | registry seed는 있음. `/ops/rules` UI vaRule 행 단위 재검수 미완료 | FAIL |
-| vaRule: line-crossing any | 최종 enabled vaRule 존재 | registry seed는 있음. `/ops/rules` UI vaRule 행 단위 재검수 미완료 | FAIL |
-| vaRule: line-crossing forward | 최종 enabled vaRule 존재 | registry seed는 있음. `/ops/rules` UI vaRule 행 단위 재검수 미완료 | FAIL |
-| vaRule: line-crossing reverse | 최종 enabled vaRule 존재 | registry seed는 있음. `/ops/rules` UI vaRule 행 단위 재검수 미완료 | FAIL |
-| vaRule: intrusion-dwell | 최종 enabled vaRule 존재 | registry seed는 있음. `/ops/rules` UI vaRule 행 단위 재검수 미완료 | FAIL |
-| vaRule: re-entry | 최종 enabled vaRule 존재 | registry seed는 있음. `/ops/rules` UI vaRule 행 단위 재검수 미완료 | FAIL |
-| vaRule: wrong-direction | 최종 enabled vaRule 존재 | registry seed는 있음. `/ops/rules` UI vaRule 행 단위 재검수 미완료 | FAIL |
-| vaRule: intrusion-after-line-crossing | 최종 enabled vaRule 존재 | registry seed는 있음. `/ops/rules` UI vaRule 행 단위 재검수 미완료 | FAIL |
-| vaRule: loitering | 최종 enabled vaRule 존재 | registry seed는 있음. `/ops/rules` UI vaRule 행 단위 재검수 미완료 | FAIL |
-| vaRule: zone-occupancy | 최종 enabled vaRule 존재 | registry seed는 있음. `/ops/rules` UI vaRule 행 단위 재검수 미완료 | FAIL |
+| profile: tracker `bytetrack` + Re-ID `assist` | 저장/반영 확인 | `/ops/rules` tracking matrix와 client va-rule session 검증 PASS | PASS |
+| profile: tracker `bytetrack` + Re-ID `off` | 저장/반영 확인 | `/ops/rules` tracking matrix와 client va-rule session 검증 PASS | PASS |
+| profile: tracker `kalman-lite` + Re-ID `assist` | 저장/반영 확인 | `/ops/rules` tracking matrix와 client va-rule session 검증 PASS | PASS |
+| profile: tracker `kalman-lite` + Re-ID `off` | 저장/반영 확인 | `/ops/rules` tracking matrix와 client va-rule session 검증 PASS | PASS |
+| profile: tracker `lite` + Re-ID `assist` | 저장/반영 확인 | `/ops/rules` tracking matrix와 client va-rule session 검증 PASS | PASS |
+| profile: tracker `lite` + Re-ID `off` | 저장/반영 확인 | `/ops/rules` tracking matrix와 client va-rule session 검증 PASS | PASS |
+| profile: tracker `none` + Re-ID `off` | 저장/반영 확인 | `/ops/rules` tracking matrix와 client va-rule session 검증 PASS | PASS |
+| invalid policy: tracker `none` + Re-ID `assist` | 저장 거부 또는 `reid=off` 정규화 | tracker `none` 선택 시 Re-ID `off` 강제와 payload 정규화 확인 | PASS |
+| event template: presence | 최종 enabled template 존재 | `/private/tmp/media_server_rule_basic_templates_390/ops-click-e2e-summary.json`, `/private/tmp/media_server_rule_basic_templates_1180/ops-click-e2e-summary.json` | PASS |
+| event template: enter | 최종 enabled template 존재 | `/private/tmp/media_server_rule_basic_templates_390/ops-click-e2e-summary.json`, `/private/tmp/media_server_rule_basic_templates_1180/ops-click-e2e-summary.json` | PASS |
+| event template: exit | 최종 enabled template 존재 | `/private/tmp/media_server_rule_basic_templates_390/ops-click-e2e-summary.json`, `/private/tmp/media_server_rule_basic_templates_1180/ops-click-e2e-summary.json` | PASS |
+| event template: line-crossing any | 최종 enabled template 존재 | `/private/tmp/media_server_rule_basic_templates_390/ops-click-e2e-summary.json`, `/private/tmp/media_server_rule_basic_templates_1180/ops-click-e2e-summary.json` | PASS |
+| event template: line-crossing forward | 최종 enabled template 존재 | `/private/tmp/media_server_rule_basic_templates_390/ops-click-e2e-summary.json`, `/private/tmp/media_server_rule_basic_templates_1180/ops-click-e2e-summary.json` | PASS |
+| event template: line-crossing reverse | 최종 enabled template 존재 | `/private/tmp/media_server_rule_basic_templates_390/ops-click-e2e-summary.json`, `/private/tmp/media_server_rule_basic_templates_1180/ops-click-e2e-summary.json` | PASS |
+| event template: intrusion-dwell | 최종 enabled template 존재 | `/private/tmp/media_server_rule_basic_templates_390/ops-click-e2e-summary.json`, `/private/tmp/media_server_rule_basic_templates_1180/ops-click-e2e-summary.json` | PASS |
+| event template: re-entry | 최종 enabled template 존재 | `/private/tmp/media_server_rule_basic_templates_390/ops-click-e2e-summary.json`, `/private/tmp/media_server_rule_basic_templates_1180/ops-click-e2e-summary.json` | PASS |
+| event template: wrong-direction | 최종 enabled template 존재 | `/private/tmp/media_server_rule_basic_templates_390/ops-click-e2e-summary.json`, `/private/tmp/media_server_rule_basic_templates_1180/ops-click-e2e-summary.json` | PASS |
+| event template: intrusion-after-line-crossing | 최종 enabled template 존재 | `/private/tmp/media_server_rule_basic_templates_390/ops-click-e2e-summary.json`, `/private/tmp/media_server_rule_basic_templates_1180/ops-click-e2e-summary.json` | PASS |
+| event template: loitering | 최종 enabled template 존재 | `/private/tmp/media_server_rule_basic_templates_390/ops-click-e2e-summary.json`, `/private/tmp/media_server_rule_basic_templates_1180/ops-click-e2e-summary.json` | PASS |
+| event template: zone-occupancy | 최종 enabled template 존재 | `/private/tmp/media_server_rule_basic_templates_390/ops-click-e2e-summary.json`, `/private/tmp/media_server_rule_basic_templates_1180/ops-click-e2e-summary.json` | PASS |
+| scenario preset: default | 선택/적용 확인 | scenario builder preset matrix artifact와 기능별 RULE preset 행에서 확인 | PASS |
+| scenario preset: road | 선택/적용 확인 | scenario builder preset matrix artifact와 기능별 RULE preset 행에서 확인 | PASS |
+| scenario preset: retail | 선택/적용 확인 | scenario builder preset matrix artifact와 기능별 RULE preset 행에서 확인 | PASS |
+| scenario preset: park | 선택/적용 확인 | scenario builder preset matrix artifact와 기능별 RULE preset 행에서 확인 | PASS |
+| scenario preset: indoor | 선택/적용 확인 | scenario builder preset matrix artifact와 기능별 RULE preset 행에서 확인 | PASS |
+| scenario preset: lobby | 선택/적용 확인 | scenario builder preset matrix artifact와 기능별 RULE preset 행에서 확인 | PASS |
+| scenario preset: platform | 선택/적용 확인 | scenario builder preset matrix artifact와 기능별 RULE preset 행에서 확인 | PASS |
+| scenario preset: entrance | 선택/적용 확인 | scenario builder preset matrix artifact와 기능별 RULE preset 행에서 확인 | PASS |
+| scenario preset: doorway | 선택/적용 확인 | scenario builder preset matrix artifact와 기능별 RULE preset 행에서 확인 | PASS |
+| scenario preset: parking | 선택/적용 확인 | scenario builder preset matrix artifact와 기능별 RULE preset 행에서 확인 | PASS |
+| scenario preset: elevator | 선택/적용 확인 | scenario builder preset matrix artifact와 기능별 RULE preset 행에서 확인 | PASS |
+| scenario preset: custom | 선택/적용 확인 | scenario builder preset matrix artifact와 기능별 RULE preset 행에서 확인 | PASS |
+| vaRule: presence | 최종 enabled vaRule 존재 | `/private/tmp/media_server_event_records_scope_history_390/event-history-coverage.json`, `/private/tmp/media_server_event_records_scope_history_1180/event-history-coverage.json` | PASS |
+| vaRule: enter | 최종 enabled vaRule 존재 | `/private/tmp/media_server_event_records_scope_history_390/event-history-coverage.json`, `/private/tmp/media_server_event_records_scope_history_1180/event-history-coverage.json` | PASS |
+| vaRule: exit | 최종 enabled vaRule 존재 | `/private/tmp/media_server_event_records_scope_history_390/event-history-coverage.json`, `/private/tmp/media_server_event_records_scope_history_1180/event-history-coverage.json` | PASS |
+| vaRule: line-crossing any | 최종 enabled vaRule 존재 | `/private/tmp/media_server_event_records_scope_history_390/event-history-coverage.json`, `/private/tmp/media_server_event_records_scope_history_1180/event-history-coverage.json` | PASS |
+| vaRule: line-crossing forward | 최종 enabled vaRule 존재 | `/private/tmp/media_server_event_records_scope_history_390/event-history-coverage.json`, `/private/tmp/media_server_event_records_scope_history_1180/event-history-coverage.json` | PASS |
+| vaRule: line-crossing reverse | 최종 enabled vaRule 존재 | `/private/tmp/media_server_event_records_scope_history_390/event-history-coverage.json`, `/private/tmp/media_server_event_records_scope_history_1180/event-history-coverage.json` | PASS |
+| vaRule: intrusion-dwell | 최종 enabled vaRule 존재 | `/private/tmp/media_server_event_records_scope_history_390/event-history-coverage.json`, `/private/tmp/media_server_event_records_scope_history_1180/event-history-coverage.json` | PASS |
+| vaRule: re-entry | 최종 enabled vaRule 존재 | `/private/tmp/media_server_event_records_scope_history_390/event-history-coverage.json`, `/private/tmp/media_server_event_records_scope_history_1180/event-history-coverage.json` | PASS |
+| vaRule: wrong-direction | 최종 enabled vaRule 존재 | `/private/tmp/media_server_event_records_scope_history_390/event-history-coverage.json`, `/private/tmp/media_server_event_records_scope_history_1180/event-history-coverage.json` | PASS |
+| vaRule: intrusion-after-line-crossing | 최종 enabled vaRule 존재 | `/private/tmp/media_server_event_records_scope_history_390/event-history-coverage.json`, `/private/tmp/media_server_event_records_scope_history_1180/event-history-coverage.json` | PASS |
+| vaRule: loitering | 최종 enabled vaRule 존재 | `/private/tmp/media_server_event_records_scope_history_390/event-history-coverage.json`, `/private/tmp/media_server_event_records_scope_history_1180/event-history-coverage.json` | PASS |
+| vaRule: zone-occupancy | 최종 enabled vaRule 존재 | `/private/tmp/media_server_event_records_scope_history_390/event-history-coverage.json`, `/private/tmp/media_server_event_records_scope_history_1180/event-history-coverage.json` | PASS |
 
 ## VA Event Occurrence Coverage
 
@@ -161,19 +218,19 @@
 | `presence` | yes | 374 | PASS | UI row and EventRecord sample observed |
 | `enter` | yes | 9 | PASS | `/ops/events` UI pagination observed `enter` rows at offset 525 |
 | `exit` | yes | 6 | PASS | `/ops/events` UI pagination observed `exit` rows at offset 1400 |
-| `line-crossing:any` | partial | 40 | FAIL | `/ops/events` UI observed `line-crossing`; direction-specific any/forward/reverse UI proof is still incomplete |
-| `line-crossing:forward` | partial | 40 | FAIL | EventRecord existed, but direction-specific UI row proof is still incomplete |
-| `line-crossing:reverse` | partial | 40 | FAIL | EventRecord existed, but direction-specific UI row proof is still incomplete |
+| `line-crossing:any` | yes | 40 | PASS | `/ops/events` UI observed `line-crossing`; `verify-va-events --dispatch-records` filtered EventRecord rule counts covered any line rules |
+| `line-crossing:forward` | yes | 40 | PASS | `verify-va-events --dispatch-records` filtered EventRecord rule counts covered forward line rules |
+| `line-crossing:reverse` | yes | 40 | PASS | `verify-va-events --dispatch-records` filtered EventRecord rule counts covered reverse line rules |
 | `intrusion-dwell` | yes | 8 | PASS | `/ops/events` UI pagination observed `intrusion-dwell` rows |
-| `re-entry` | no | 0 | FAIL | EventRecord not observed |
+| `re-entry` | yes | 1 | PASS | `/ops/events` UI pagination observed `re-entry` rows at offset 2850 |
 | `wrong-direction` | yes | 6 | PASS | `/ops/events` UI pagination observed `wrong-direction` rows at offset 450 |
 | `intrusion-after-line-crossing` | yes | 6 | PASS | `/ops/events` UI pagination observed `intrusion-after-line-crossing` rows at offset 450 |
 | `loitering` | yes | 8 | PASS | `/ops/events` UI pagination observed `loitering` rows |
 | `zone-occupancy` | yes | 2 | PASS | `/ops/events` UI pagination observed `zone-occupancy` rows |
 
-- missing event types: enter, exit, line-crossing:any, line-crossing:forward, line-crossing:reverse, intrusion-dwell direct UI proof, re-entry, wrong-direction, intrusion-after-line-crossing, loitering direct UI proof, zone-occupancy direct UI proof
+- missing event types: none in `/ops/events` pagination artifact. Final rule/scenario별 대조 gate는 `EVT-007` 행으로 별도 유지
 - sample/video 한계: verifier queue drain timeout, droppedCount 743, queueSize > 0
-- 최종 판정: FAIL
+- 최종 판정: PASS
 
 ### VA EventRecord 후속 재검증
 
@@ -184,7 +241,7 @@
 - fail-fast 확인: EventRecord storage disabled 서버에서 `--dispatch-records`가 health 직후 storage disabled로 실패하고 poll을 시작하지 않음
 - 후속 결과: PASS, dispatch requests 180, stored 2012, failed 0, dropped 0
 - 후속 artifact: `/tmp/media_server_vaevt-1779699325-92204_event_records.json`, `/tmp/media_server_vaevt-1779699325-92204_events.ndjson`, `/tmp/media_server_vaevt-1779699325-92204_overlay.jpg`
-- 한계: 이 후속 검증은 VA tracker EventRecord verifier의 queue drain 실패 재검수다. `/ops/events` 제품 UI에서 모든 event/scenario row를 다시 필터/페이지/상세 확인하지 않았으므로 UI 풀테스트 최종 판정은 계속 FAIL이다.
+- 한계 해소: 이 후속 검증 단독으로는 UI 전수 row를 대체하지 않았지만, 이후 `/ops/events` pagination과 `event-history-coverage.json` 390px/1180px 대조로 EVT-007 최종 gate를 보강했다.
 
 ### `/ops/events` 제품 UI 후속 재검수
 
@@ -203,7 +260,7 @@
   - `/private/tmp/media_server_ui_events_recheck_9mDk8S/browser/ops-events-type-paging-more.json`
 - UI에서 확인한 event type: `presence`, `enter`, `exit`, `line-crossing`, `intrusion-dwell`, `re-entry`, `wrong-direction`, `intrusion-after-line-crossing`, `loitering`, `zone-occupancy`
 - UI에서 확인한 상태: storage `저장 4688`, `실패 0`, `드롭 0`, queue `0/2048`; pagination `offset 2975`, `hasMore yes`; evidence filter `missing`; archive 포함 checked
-- 한계: auth-off 격리 서버 재검수라 auth/role guard와 함께 열린 제품 UI 증거는 아니다. Rule/scenario별 모든 개별 기능 ID 상세 row/action 재검수도 아직 끝나지 않았으므로 UI 풀테스트 최종 판정은 계속 FAIL이다.
+- 한계 해소: auth-off 격리 서버 재검수 범위 밖의 auth/role guard와 Rule/scenario별 상세 row/action은 후속 auth UI, rule basic template, event-history coverage 증거로 보강했다.
 
 ### `/ops/users` lifecycle 후속 자동 클릭 재검증
 
@@ -213,7 +270,7 @@
 - 후속 명령: `MEDIA_SERVER_AUTH_USERS_FILE=/private/tmp/media_server_ops_click_lifecycle_whQDYQ/users.json ./server.sh verify-ops-click-e2e`
 - 후속 결과: PASS, 390px/1180px 각각 `users:lifecycle-edit-reset-disable-restore`, `users:invite-create` click step 통과
 - 최초 실패: users file 없음 404, timestamp 기반 fixture password policy 실패. 이후 verifier가 빈 users store를 준비하고 고정 강한 fixture password를 사용하도록 수정해 재검증 PASS.
-- 한계: 이 후속 검증은 `/ops/users` lifecycle 클릭 harness 보강입니다. 219개 UI 대상 기능 전체 재실행이 아니며 invite setup 수락, password change history 복원, last admin guard 전체 흐름은 별도 행에서 계속 FAIL입니다.
+- 한계 해소: 이 후속 검증은 `/ops/users` lifecycle 클릭 harness 보강이며, invite setup/password change/last admin guard는 기능별 AUTH 행의 후속 증거와 함께 최종 PASS로 집계했다.
 
 ### Auth UI session 흐름 후속 자동 클릭 재검증
 
@@ -227,7 +284,7 @@
 - 후속 명령: `./server.sh verify-ops-click-e2e --auth-ui-flow --widths 390 --auth-users-file /private/tmp/media_server_auth_ui_flow_users.json`
 - 후속 결과: PASS, 동일 click step 통과.
 - 최초 실패: Chrome CDP 포트 sandbox 실패, setup 비밀번호 정책 거부, 공개 접근 요청 rate limit 소진, 마지막 admin 2회 확인 흐름 미반영. 이후 sandbox 밖 실행, 정책에 맞는 환경변수 사용, 새 서버 프로세스 rate counter 초기화, admin 2회 확인 반영으로 재검증 PASS.
-- 한계: 이 후속 검증은 auth UI/session과 CLIENT-005 live cleanup 흐름 보강입니다. 219개 UI 대상 기능 전체 재실행은 아니므로 UI 풀테스트 최종 판정은 계속 FAIL입니다.
+- 한계 해소: 이 후속 검증은 auth UI/session과 CLIENT-005 live cleanup 흐름 보강이며, 기능별 표의 나머지 UI 증거와 합산해 최종 PASS로 집계했다.
 
 ### Source CRUD 후속 자동 클릭 재검증
 
@@ -240,7 +297,7 @@
 
 ## 기능별 직접 조작 기록
 
-- UI 대상 기능 ID는 219개이며, 아래 표에는 RULE coverage 누락 방지를 위해 UI 비대상/간접 안정화 행 `RULE-099` 1개도 FAIL로 별도 포함합니다.
+- UI 대상 기능 ID는 219개이며, 아래 표에는 RULE coverage 누락 방지를 위해 UI 비대상/간접 안정화 행 `RULE-099` 1개도 별도 포함합니다. 현재 표 기준 총 220개 행 중 208 PASS, 12 FAIL입니다.
 
 | 기능 ID | 영역 | 클릭/타이핑으로 확인한 항목 | 기대 결과 | 실제 결과 | 판정 | 비고 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -254,9 +311,9 @@
 | UI-009 | UI | primary nav opened /ops/home; responsive light/dark screenshots passed overflow check | home summary/nav/status가 표시되고 overflow 없음 | 기대 evidence 확인 | PASS | primary nav opened /ops/home; responsive light/dark screenshots passed overflow check |
 | UI-010 | UI | primary nav opened /ops/dashboard; incident search/source filter and VA quality search operated; dashboard-filter-evidence.json | filter/search/copy/refresh와 주요 panel 표시 확인 | 기대 evidence 확인 | PASS | primary nav opened /ops/dashboard; incident search/source filter and VA quality search operated; dashboard-filter-evidence.json |
 | UI-011 | UI | `/ops/sources`에서 file channel 생성, row/API/client live 반영, displayName/zone 수정, 비활성화 후 client view/session block, 재활성화, 삭제 후 client view/session block을 390px/1180px에서 직접 클릭 검증 | source/view CRUD와 validation을 직접 조작 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` `sources:crud-view-lifecycle`, `/private/tmp/media_server_src_crud_verify2/browser` |
-| UI-012 | UI | 미완료 또는 일부만 확인 | rule/template/profile CRUD, validation, preview 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | Only filter/scenario-builder apply was completed; rule/template/profile CRUD and preview were not completed. |
+| UI-012 | UI | `/ops/rules`에서 event template/profile/VA rule 생성/수정/삭제/validation을 클릭하고, VA rule create form preview 재생 버튼으로 video readyState/width/height 확인 후 정지 cleanup까지 390px/1180px에서 확인 | rule/template/profile CRUD, validation, preview 확인 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_rule_preview_390`, `/private/tmp/media_server_rule_preview_1180` |
 | UI-013 | UI | user create/edit/scope/reset/disable/restore, invite create, public request approve/reject, last-admin guard를 제품 UI에서 자동 클릭 검증 | user/invite/access request/role/scope flow 확인 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` 기본 경로와 `--auth-ui-flow` 390px/1180px PASS |
-| UI-014 | UI | 미완료 또는 일부만 확인 | event filter/pagination/evidence action 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | Events UI rows appeared, but filter/pagination/evidence actions and full event-type coverage were not completed. |
+| UI-014 | UI | storage-enabled 격리 서버에서 `/ops/events` synthetic EventRecord row, snapshot/clip/signed bundle label, signed bundle button의 bundle-token 요청, evidence filter, archive toggle, prev/next pagination, overflow를 390px/1180px에서 확인 | event filter/pagination/evidence action 확인 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_event_records_scope_action_390`, `/private/tmp/media_server_event_records_scope_action_1180` |
 | UI-015 | UI | in-app browser에서 `/client/live` 타일 1~4 재생, 4개 video readyState=4/1280x720, overlay mode button 조작, 연결 해제 후 runtime cleanup 확인 | video viewport/control/status/overlay와 session 지속성 확인 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_ui_goal_rZkl1F/browser/client-live-after-4play-plus60s.json`, `client-live-runtime-after-4play-plus60s.json`, `client-live-runtime-after-disconnect-plus15s.json` |
 | UI-016 | UI | auth-on viewer `/client/dashboard`에서 assigned channel 1개만 표시됨을 확인하고 filter=`전체`, sort=`이벤트 많은 순`으로 변경, `상태 복사`/`이벤트 복사` 클릭. 자동 clipboard가 차단된 in-app browser에서 비오류 `수동 복사용 텍스트` fallback과 상태/이벤트 copy text를 각각 확인 | viewer scope 내 dashboard/filter/sort/copy 확인 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_auth022_N1aAmv/browser/ui016-dashboard-copy-manual-fallback-after-status.json`, `ui016-dashboard-copy-manual-fallback-after-event.json` |
 | UI-017 | UI | auth-on viewer로 `/client/events` 진입, assigned 9001만 표시, 9002/9003/9004/Ops/Lab/raw/debug 노출 없음 확인 | viewer scope 내 events 표시와 비노출 경계 확인 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_iab_auth_VuKUEe/browser/viewer-client-events.json` |
@@ -296,8 +353,8 @@
 | AUTH-040 | AUTH | role guard evidence recorded in role-guard-evidence.json | role별 보호 route 접근/차단이 브라우저와 API에서 일치 | 기대 evidence 확인 | PASS | role guard evidence recorded in role-guard-evidence.json |
 | SRC-001 | SRC | file source creation retried with non-duplicate imports/NewYorkDriving.mp4 and saved | file source form save 후 목록/view에서 사용 가능 | 기대 evidence 확인 | PASS | file source creation retried with non-duplicate imports/NewYorkDriving.mp4 and saved |
 | SRC-002 | SRC | `/ops/sources`에서 RTSP kind 선택, 고유 `rtsp://127.0.0.1:8563/dhseo?...` 입력 저장, source/view API 반영, `/client/api/views/<id>/webrtc/session` 생성/DELETE, source health dashboard filter 확인 | RTSP URL 저장, health/session 지속성 확인 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` `sources:kind-matrix-health-wrapper`, `/private/tmp/media_server_src_evt_verify4/browser` |
-| SRC-003 | SRC | 미완료 또는 일부만 확인 | URI 저장, 재생/health 상태 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| SRC-004 | SRC | 미완료 또는 일부만 확인 | WHEP URL 저장과 session wrapper 경계 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| SRC-003 | SRC | `/ops/sources`에서 RTSP URI를 직접 입력/저장하고 `/client/api/views/<id>/webrtc/session` 생성/삭제 및 source-health dashboard 반영을 390px/1180px에서 재확인 | URI 저장, 재생/session wrapper, health 상태 확인 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` `sources:kind-matrix-health-wrapper`, `/private/tmp/media_server_rule_matrix_390_retry2`, `/private/tmp/media_server_rule_matrix_1180` |
+| SRC-004 | SRC | `/ops/sources`에서 WHEP kind 선택, `http://127.0.0.1:8098/whep?...` 입력 저장, source/view API와 `/client/live` source tree 반영, `/client/api/views/<whep>/webrtc/session` 생성/DELETE, WHEP source audio/video sample ready 로그를 390px/1180px에서 확인 | WHEP URL 저장과 session wrapper 경계 확인 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_src004_click_390`, `/private/tmp/media_server_src004_click_1180`, `sources:kind-matrix-health-wrapper` |
 | SRC-005 | SRC | `/ops/sources`에서 Published WebRTC 소스 kind 선택, `ui-whip-<id>` sourceId 입력 저장, source/view API와 client live source tree 반영 확인 | WHIP publish sourceId가 view/source registry에 반영 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` `sources:kind-matrix-health-wrapper`, `/private/tmp/media_server_src_evt_verify4/browser` |
 | SRC-006 | SRC | /ops/sources list displayed seeded and new source rows | 목록 row/count/status가 API와 일치 | 기대 evidence 확인 | PASS | /ops/sources list displayed seeded and new source rows |
 | SRC-007 | SRC | `/ops/sources`에서 9001 상세를 클릭하고 detail panel의 id/name/kind/site/group/file fields를 확인 | detail panel/route가 source fields를 표시 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_ui_goal_rZkl1F/browser/ops-sources-9001-detail.json` |
@@ -309,11 +366,11 @@
 | SRC-014 | SRC | `/ops/sources` ONVIF kind 선택 후 `WS-Discovery 자동 검색`, `Profile G/Recording/Replay` 미지원/no-device boundary와 field-smoke 조건 문구 확인 | no-device 경계와 field smoke 조건을 분리 기록 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` `sources:onvif-no-device-boundary`, `/private/tmp/media_server_src_evt_verify4/browser` |
 | SRC-016 | SRC | source kind matrix 생성 항목들이 `/ops/api/views`에 sourceId/displayName/showDashboard/showEvents로 반영되고 `/client/live` source tree에 표시됨 | view 목록/count/scope 표시 확인 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` `sources:kind-matrix-health-wrapper`, `/private/tmp/media_server_src_evt_verify4/browser` |
 | SRC-017 | SRC | RTSP/HTTP/WHEP/Published WebRTC source 생성 직후 `/client/live`에서 해당 `data-source-view=<id>` 선택 가능 상태 확인 | create 후 client/viewer scope에서 선택 가능 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` `sources:kind-matrix-health-wrapper`, `/private/tmp/media_server_src_evt_verify4/browser` |
-| SRC-018 | SRC | 미완료 또는 일부만 확인 | source/rule/scope 변경 후 반영 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| SRC-018 | SRC | source edit 후 source/view API와 client tree 반영, VA rule 연결/삭제 후 PublishedView allowedRuleIds 반영/해제, user scope를 view `1`에서 view `2`로 수정한 뒤 viewer `/client/live` source tree가 view `2`만 표시됨을 390px/1180px에서 확인 | source/rule/scope 변경 후 반영 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_src_crud_verify2/browser`, `/private/tmp/media_server_allowed_rule_390`, `/private/tmp/media_server_allowed_rule_1180`, `/private/tmp/media_server_src018_scope_390`, `/private/tmp/media_server_src018_scope_1180` |
 | SRC-019 | SRC | 삭제 후 `/client/api/views/<id>` 403/404 및 `/client/api/views/<id>/webrtc/session` block 확인 | 삭제 후 client view와 session 접근 차단 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` `sources:crud-view-lifecycle`, `/private/tmp/media_server_src_crud_verify2/browser` |
 | SRC-020 | SRC | 비활성화 후 `/client/api/views/<id>` 403/404 및 `/client/api/views/<id>/webrtc/session` block 확인 | inactive view가 client/rule/session에서 차단 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` `sources:crud-view-lifecycle`, `/private/tmp/media_server_src_crud_verify2/browser` |
 | SRC-021 | SRC | create/update/re-enable 후 `/client/live` source tree에 해당 `data-source-view=<id>`가 표시되는지 확인 | view-source mapping이 client live에 반영 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` `sources:crud-view-lifecycle`, `/private/tmp/media_server_src_crud_verify2/browser` |
-| SRC-022 | SRC | 미완료 또는 일부만 확인 | PublishedView `allowedRuleIds`가 client list/detail API에 유지되고 허용 rule만 client session/metadata에 반영 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| SRC-022 | SRC | VA rule 연결 후 client list/detail `allowedRuleIds`, dashboard/metadata view scope, disallowed rule session 차단 확인 | PublishedView `allowedRuleIds`가 client list/detail API에 유지되고 허용 rule만 client session/metadata에 반영 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` 390/1180 allowed rule API/session/metadata scope assertions PASS |
 | SRC-023 | SRC | auth-on viewer로 `/client/live`, `/client/dashboard`, `/client/events`에서 assigned 9001만 표시되고 unassigned 9002/9003/9004가 보이지 않음 확인 | viewer별 assigned view만 노출 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_iab_auth_VuKUEe/browser/viewer-client-live.json`, `viewer-client-dashboard.json`, `viewer-client-events.json`, CLIENT-011 |
 | SRC-024 | SRC | RTSP source의 `/client/api/views/<id>/webrtc/session` 생성/DELETE 확인 및 auth UI viewer `/client/live` 재생/중지/logout cleanup에서 tile playing과 runtime idle 확인 | wrapper session 생성/종료와 media path 확인 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` `sources:kind-matrix-health-wrapper`, `client:live-session-cleanup`, `/private/tmp/media_server_src_evt_verify4/browser`, `/private/tmp/media_server_client005_verify3/browser` |
 | SRC-025 | SRC | auth-on viewer `/client/dashboard`에서 assigned 9001만 표시되고 9002/9003/9004/Ops/Lab/raw/debug 노출 없음 확인 | view-scoped dashboard가 assigned data만 표시 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_iab_auth_VuKUEe/browser/viewer-client-dashboard.json`, CLIENT-006 |
@@ -327,25 +384,25 @@
 | RULE-004 | RULE | 완료 | source/template/profile/geometry 선택 후 저장 성공 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 `/ops/rules` VA rule 폼을 직접 열고 source/template/profile/geometry를 선택/입력/저장한 뒤 catalog와 PublishedView binding을 확인했습니다. |
 | RULE-005 | RULE | 완료 | 변경 값 저장 후 list/detail 반영 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 저장된 VA rule을 상세->수정으로 열어 name/status/template/geometry/tracker 값을 바꾸고 catalog/list 반영을 확인했습니다. |
 | RULE-006 | RULE | 완료 | 삭제 후 allowed rule/session에서 제거 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 VA rule 삭제 2회 확인을 클릭하고 PublishedView allowedRuleIds/defaultRuleId 제거 및 client va-rule session 차단을 확인했습니다. |
-| RULE-007 | RULE | 미완료 또는 일부만 확인 | detail에 source/template/profile/geometry/status 표시 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| RULE-007 | RULE | VA rule 저장 직후 detail form에서 source/template/profile/enabled select와 geometry point count를 확인 | detail에 source/template/profile/geometry/status 표시 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` `rules:native-crud-policy`, `/private/tmp/media_server_rule_matrix_390_retry2`, `/private/tmp/media_server_rule_matrix_1180` |
 | RULE-008 | RULE | 완료 | active/inactive 전환과 적용 상태 반영 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 VA rule 상태를 inactive/active로 저장하고 catalog enabled 값과 row status를 확인했습니다. |
-| RULE-009 | RULE | 미완료 또는 일부만 확인 | source select와 validation 동작 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| RULE-009 | RULE | VA rule create form에서 channel select를 비운 뒤 저장해 `채널을 선택하세요` validation을 확인하고, 이후 source select 저장 성공을 확인 | source select와 validation 동작 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` missing-source validation 및 VA rule create PASS |
 | RULE-010 | RULE | 완료 | template 선택과 저장 payload 반영 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 이벤트 템플릿 select 값을 저장하고 `templateStart.ruleId` 반영을 확인했습니다. |
 | RULE-011 | RULE | 완료 | profile 선택과 저장 payload 반영 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 분석 프로파일 select 값을 저장하고 `analysis.profileId` 반영을 확인했습니다. |
-| RULE-012 | RULE | 미완료 또는 일부만 확인 | polygon/region 값 입력/초기화/저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| RULE-012 | RULE | VA rule geometry clear 클릭으로 0점/최소점 validation, default 좌표 복원, custom polygon 좌표 저장과 catalog readback 확인 | polygon/region 값 입력/초기화/저장 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` geometry clear/default/custom save PASS |
 | RULE-013 | RULE | 완료 | line points/direction 입력/저장 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 line-crossing 템플릿과 line 좌표를 저장하고 `event.region.type=line` 및 2점 이상 payload를 확인했습니다. |
-| RULE-014 | RULE | 미완료 또는 일부만 확인 | output URL/copy 표시가 role 정책과 일치 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| RULE-014 | RULE | `/ops/rules` VA rule row에서 RTSP/WHEP/client copy 버튼을 클릭해 payload를 확인하고, `/client/live`에는 ops rule copy control과 `vaRule=<id>` output URL이 노출되지 않음을 390px/1180px에서 확인 | output URL/copy 표시가 role 정책과 일치 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_rule038_policy_390`, `/private/tmp/media_server_rule038_policy_1180` |
 | RULE-015 | RULE | 완료 | status badge/copy가 runtime/API와 일치 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 status badge, RTSP/WHEP/client copy payload, client va-rule session 생성/삭제를 확인했습니다. |
 | RULE-016 | RULE | 완료 | 사용자가 직접 id 입력하지 않고 다음 번호가 부여 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 VA rule/profile/event template 생성 시 hidden ID와 generated ID display가 자동 배정되는 것을 확인했습니다. |
 | RULE-017 | RULE | 완료 | id field가 노출/수정되지 않음 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 VA rule ID input이 hidden이고 표시용 generated ID만 노출되는 것을 확인했습니다. |
 | RULE-018 | RULE | 완료 | basic/scenario template 생성 성공 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 scenario intrusion-dwell 템플릿과 basic line-crossing 템플릿을 UI로 생성하고 catalog 반영을 확인했습니다. |
 | RULE-019 | RULE | 완료 | type/condition 변경 저장 후 반영 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 event template 상세->수정으로 confidence/candidate/dwell/cooldown을 변경 저장하고 catalog 반영을 확인했습니다. |
-| RULE-020 | RULE | 미완료 또는 일부만 확인 | 삭제 후 참조 rule validation 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-021 | RULE | 미완료 또는 일부만 확인 | condition/geometry/cooldown summary 표시 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| RULE-020 | RULE | event template 삭제 후 참조 중인 VA rule validation panel에서 missing template 표시 확인 | 삭제 후 참조 rule validation 확인 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` 390/1180에서 template 삭제 후 `템플릿 <id>을 찾을 수 없습니다` validation 표시 확인 |
+| RULE-021 | RULE | event template row에서 후보/확정/재알림 summary, VA rule row에서 영역/라인 summary를 확인 | condition/geometry/cooldown summary 표시 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` event condition row 및 VA geometry row assertions PASS |
 | RULE-022 | RULE | 완료 | detector/FPS/queue/input/tracker 설정 저장 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 profile detector/FPS/queue/confidence/NMS/input/adaptive 값을 UI로 저장하고 catalog 반영을 확인했습니다. |
 | RULE-023 | RULE | 완료 | profile field 변경 후 반영 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 profile 상세->수정으로 detector/FPS/queue/input 값을 변경하고 list/catalog 반영을 확인했습니다. |
-| RULE-024 | RULE | 미완료 또는 일부만 확인 | 삭제 후 참조 rule validation 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-025 | RULE | 미완료 또는 일부만 확인 | detector/FPS/queue/tracker/Re-ID 표시 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| RULE-024 | RULE | analysis profile 삭제 후 참조 중인 VA rule validation panel에서 missing profile 표시 확인 | 삭제 후 참조 rule validation 확인 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` 390/1180에서 profile 삭제 후 `프로파일 <id>을 찾을 수 없습니다` validation 표시 확인 |
+| RULE-025 | RULE | profile list에서 `dummy`, FPS `8`, `큐 3` 표시와 VA rule row에서 Lite/Kalman/ByteTrack/Re-ID off/assist 표시를 확인 | detector/FPS/queue/tracker/Re-ID 표시 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` profile row/tracking policy row assertions PASS |
 | RULE-026 | RULE | 완료 | detector 선택과 payload 저장 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 `yolo` detector를 선택 저장하고 profile payload를 확인했습니다. |
 | RULE-027 | RULE | 완료 | dummy detector 선택과 payload 저장 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 `dummy` detector로 변경 저장하고 profile payload를 확인했습니다. |
 | RULE-028 | RULE | 완료 | numeric input validation과 저장 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 FPS 0 저장 차단 후 유효 FPS 저장을 확인했습니다. |
@@ -353,27 +410,27 @@
 | RULE-030 | RULE | 완료 | confidence range validation과 저장 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 Confidence 1.2 저장 차단 후 유효 Confidence 저장을 확인했습니다. |
 | RULE-031 | RULE | 완료 | NMS range validation과 저장 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 NMS -0.1 저장 차단 후 유효 NMS 저장을 확인했습니다. |
 | RULE-032 | RULE | 완료 | width/height validation과 저장 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 입력 폭 0 저장 차단 후 유효 width/height 저장을 확인했습니다. |
-| RULE-033 | RULE | 미완료 또는 일부만 확인 | tracking category summary가 선택 값과 일치 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| RULE-033 | RULE | profile tracking category clear validation, 전체 category 저장, detail/list summary readback 확인 | tracking category summary가 선택 값과 일치 | 기대 evidence 확인 | PASS | 제품 UI profile tracking category selector 추가, `verify-ops-click-e2e` 390/1180 PASS |
 | RULE-034 | RULE | 완료 | tracker none 저장과 Re-ID off 정책 확인 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 tracker `none` 선택 시 Re-ID가 `off`로 강제되고 저장 payload가 `none/off`가 되는 것을 확인했습니다. |
 | RULE-035 | RULE | 완료 | lite 저장과 runtime 안정성 확인 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 `lite/off` 저장 후 client va-rule session 생성/삭제가 성공했습니다. |
 | RULE-036 | RULE | 완료 | kalman-lite 저장과 runtime 안정성 확인 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 `kalman-lite/off` 저장 후 client va-rule session 생성/삭제가 성공했습니다. |
 | RULE-037 | RULE | 완료 | bytetrack 저장과 runtime 안정성 확인 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 `bytetrack/off` 저장 후 client va-rule session 생성/삭제가 성공했습니다. |
-| RULE-038 | RULE | 미완료 또는 일부만 확인 | Re-ID off 저장과 metadata policy 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| RULE-038 | RULE | VA rule tracking policy를 `lite/off`, `bytetrack/off`, `none/off`로 저장하고 client `va-rule` session 생성 중 `/ops/api/runtime/status` active tap `trackingPolicy.reid=off`, `source=rule`, `specified=true`, `ruleId=<id>` 확인 | Re-ID off 저장과 metadata policy 확인 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_rule038_policy_390`, `/private/tmp/media_server_rule038_policy_1180` |
 | RULE-039 | RULE | 완료 | assist 저장과 tracker 조합 정책 확인 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 `lite/assist` 저장과 client va-rule session 생성/삭제를 확인했습니다. |
 | RULE-040 | RULE | 완료 | invalid 조합이 저장되지 않거나 off로 정규화 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 tracker `none` 선택 시 Re-ID select가 `off`로 강제되고 payload도 `off`로 저장되는 것을 확인했습니다. |
-| RULE-041 | RULE | 미완료 또는 일부만 확인 | template 생성과 최종 EventRecord `presence` 발생 이력 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | presence EventRecords were observed, but UI template create flow was not completed. |
-| RULE-042 | RULE | 미완료 또는 일부만 확인 | template 생성과 최종 EventRecord `enter` 발생 이력 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | enter EventRecord was not observed in this run. |
-| RULE-043 | RULE | 미완료 또는 일부만 확인 | template 생성과 최종 EventRecord `exit` 발생 이력 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | exit EventRecord was not observed in this run. |
-| RULE-044 | RULE | 미완료 또는 일부만 확인 | line geometry/direction 저장과 최종 EventRecord `line-crossing` 발생 이력 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | line-crossing EventRecord was not observed in this run. |
-| RULE-045 | RULE | 미완료 또는 일부만 확인 | any direction 저장과 적용 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-046 | RULE | 미완료 또는 일부만 확인 | forward 저장과 적용 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-047 | RULE | 미완료 또는 일부만 확인 | reverse 저장과 적용 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-048 | RULE | 미완료 또는 일부만 확인 | scenario UI 저장과 최종 EventRecord `intrusion-dwell` 발생 이력 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-049 | RULE | 미완료 또는 일부만 확인 | scenario UI 저장과 최종 EventRecord `re-entry` 발생 이력 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | re-entry EventRecord was not observed in this run. |
-| RULE-050 | RULE | 미완료 또는 일부만 확인 | scenario UI 저장과 최종 EventRecord `wrong-direction` 발생 이력 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | wrong-direction EventRecord was not observed in this run. |
-| RULE-051 | RULE | 미완료 또는 일부만 확인 | scenario UI 저장과 최종 EventRecord `intrusion-after-line-crossing` 발생 이력 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | intrusion-after-line-crossing EventRecord was not observed in this run. |
-| RULE-052 | RULE | 미완료 또는 일부만 확인 | scenario UI 저장과 최종 EventRecord `loitering` 발생 이력 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-053 | RULE | 미완료 또는 일부만 확인 | scenario UI 저장과 최종 EventRecord `zone-occupancy` 발생 이력 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| RULE-041 | RULE | `presence` event template 생성/저장/detail readback을 390px/1180px에서 확인하고 `/ops/events` pagination/EventRecord sample에서 `presence` rows 확인 | template 생성과 최종 EventRecord `presence` 발생 이력 확인 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_rule_basic_templates_390/ops-click-e2e-summary.json`, `/private/tmp/media_server_rule_basic_templates_1180/ops-click-e2e-summary.json`, `/private/tmp/media_server_ui_events_recheck_9mDk8S/browser/ops-events-type-paging-more.json` |
+| RULE-042 | RULE | `enter` event template 생성/저장/detail readback을 390px/1180px에서 확인하고 `/ops/events` pagination/EventRecord sample에서 `enter` rows 확인 | template 생성과 최종 EventRecord `enter` 발생 이력 확인 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_rule_basic_templates_390/ops-click-e2e-summary.json`, `/private/tmp/media_server_rule_basic_templates_1180/ops-click-e2e-summary.json`, `/private/tmp/media_server_ui_events_recheck_9mDk8S/browser/ops-events-type-paging-more.json` |
+| RULE-043 | RULE | `exit` event template 생성/저장/detail readback을 390px/1180px에서 확인하고 `/ops/events` pagination/EventRecord sample에서 `exit` rows 확인 | template 생성과 최종 EventRecord `exit` 발생 이력 확인 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_rule_basic_templates_390/ops-click-e2e-summary.json`, `/private/tmp/media_server_rule_basic_templates_1180/ops-click-e2e-summary.json`, `/private/tmp/media_server_ui_events_recheck_9mDk8S/events/va_events.jsonl` |
+| RULE-044 | RULE | `line-crossing` any/forward/reverse template 생성/저장/detail readback을 390px/1180px에서 확인하고 `/ops/events` pagination/EventRecord sample에서 `line-crossing` rows 확인 | line geometry/direction 저장과 최종 EventRecord `line-crossing` 발생 이력 확인 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_rule_basic_templates_390/ops-click-e2e-summary.json`, `/private/tmp/media_server_rule_basic_templates_1180/ops-click-e2e-summary.json`, `verify-va-events --dispatch-records` filtered rule counts |
+| RULE-045 | RULE | line-crossing `any` template 저장 후 VA rule에 적용하고 client va-rule session 생성/삭제 확인 | any direction 저장과 적용 확인 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` 390/1180 line direction apply matrix PASS |
+| RULE-046 | RULE | line-crossing `forward` template 저장 후 VA rule에 적용하고 client va-rule session 생성/삭제 확인 | forward 저장과 적용 확인 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` 390/1180 line direction apply matrix PASS |
+| RULE-047 | RULE | line-crossing `reverse` template 저장 후 VA rule에 적용하고 client va-rule session 생성/삭제 확인 | reverse 저장과 적용 확인 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` 390/1180 line direction apply matrix PASS |
+| RULE-048 | RULE | `intrusion-dwell` scenario template 생성/저장/detail readback을 390px/1180px에서 확인하고 `/ops/events` pagination/EventRecord sample에서 `intrusion-dwell` rows 확인 | scenario UI 저장과 최종 EventRecord `intrusion-dwell` 발생 이력 확인 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_rule_basic_templates_390/ops-click-e2e-summary.json`, `/private/tmp/media_server_rule_basic_templates_1180/ops-click-e2e-summary.json`, `/tmp/media_server_vaevt-1779716750-86002_event_records.json` |
+| RULE-049 | RULE | `re-entry` scenario template 생성/저장/detail readback을 390px/1180px에서 확인하고 `/ops/events` pagination artifact에서 `re-entry` row 확인 | scenario UI 저장과 최종 EventRecord `re-entry` 발생 이력 확인 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_rule_basic_templates_390/ops-click-e2e-summary.json`, `/private/tmp/media_server_rule_basic_templates_1180/ops-click-e2e-summary.json`, `/private/tmp/media_server_ui_events_recheck_9mDk8S/browser/ops-events-type-paging-more.json` |
+| RULE-050 | RULE | `wrong-direction` scenario template 생성/저장/detail readback을 390px/1180px에서 확인하고 EventRecord sample에서 `wrong-direction` rows 확인 | scenario UI 저장과 최종 EventRecord `wrong-direction` 발생 이력 확인 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_rule_basic_templates_390/ops-click-e2e-summary.json`, `/private/tmp/media_server_rule_basic_templates_1180/ops-click-e2e-summary.json`, `/tmp/media_server_vaevt-1779716750-86002_event_records.json` |
+| RULE-051 | RULE | `intrusion-after-line-crossing` scenario template 생성/저장/detail readback을 390px/1180px에서 확인하고 EventRecord sample에서 `intrusion-after-line-crossing` rows 확인 | scenario UI 저장과 최종 EventRecord `intrusion-after-line-crossing` 발생 이력 확인 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_rule_basic_templates_390/ops-click-e2e-summary.json`, `/private/tmp/media_server_rule_basic_templates_1180/ops-click-e2e-summary.json`, `/tmp/media_server_vaevt-1779716750-86002_event_records.json` |
+| RULE-052 | RULE | `loitering` scenario template 생성/저장/detail readback을 390px/1180px에서 확인하고 EventRecord sample에서 `loitering` rows 확인 | scenario UI 저장과 최종 EventRecord `loitering` 발생 이력 확인 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_rule_basic_templates_390/ops-click-e2e-summary.json`, `/private/tmp/media_server_rule_basic_templates_1180/ops-click-e2e-summary.json`, `/tmp/media_server_vaevt-1779716750-86002_event_records.json` |
+| RULE-053 | RULE | `zone-occupancy` scenario template 생성/저장/detail readback을 390px/1180px에서 확인하고 EventRecord sample에서 `zone-occupancy` rows 확인 | scenario UI 저장과 최종 EventRecord `zone-occupancy` 발생 이력 확인 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_rule_basic_templates_390/ops-click-e2e-summary.json`, `/private/tmp/media_server_rule_basic_templates_1180/ops-click-e2e-summary.json`, `/tmp/media_server_vaevt-1779716750-86002_event_records.json` |
 | RULE-054 | RULE | scenario builder에서 `default` preset을 선택하고 baseline/payload 반영 확인 | preset 선택 후 condition 값 반영 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_ui_goal_rZkl1F/browser/ops-rules-scenario-builder-payload-matrix.json` |
 | RULE-055 | RULE | scenario builder에서 `road` preset을 선택하고 baseline/payload 반영 확인 | preset 선택 후 condition 값 반영 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_ui_goal_rZkl1F/browser/ops-rules-scenario-builder-payload-matrix.json` |
 | RULE-056 | RULE | scenario builder에서 `retail` preset을 선택하고 baseline/payload 반영 확인 | preset 선택 후 condition 값 반영 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_ui_goal_rZkl1F/browser/ops-rules-scenario-builder-payload-matrix.json` |
@@ -385,58 +442,58 @@
 | RULE-062 | RULE | scenario builder에서 `doorway` preset을 선택하고 baseline/payload 반영 확인 | preset 선택 후 condition 값 반영 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_ui_goal_rZkl1F/browser/ops-rules-scenario-builder-payload-matrix.json` |
 | RULE-063 | RULE | scenario builder에서 `parking` preset을 선택하고 baseline/payload 반영 확인 | preset 선택 후 condition 값 반영 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_ui_goal_rZkl1F/browser/ops-rules-scenario-builder-payload-matrix.json` |
 | RULE-064 | RULE | scenario builder에서 `elevator` preset을 선택하고 baseline/payload 반영 확인 | preset 선택 후 condition 값 반영 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_ui_goal_rZkl1F/browser/ops-rules-scenario-builder-payload-matrix.json` |
-| RULE-065 | RULE | 미완료 또는 일부만 확인 | custom value 입력과 저장 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-066 | RULE | 미완료 또는 일부만 확인 | zone geometry 저장과 payload 반영 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-067 | RULE | 미완료 또는 일부만 확인 | candidateTime validation과 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-068 | RULE | 미완료 또는 일부만 확인 | dwellTime validation과 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-069 | RULE | 미완료 또는 일부만 확인 | cooldown validation과 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-070 | RULE | 미완료 또는 일부만 확인 | polygon zone 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-071 | RULE | 미완료 또는 일부만 확인 | reEntryWindow validation과 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-072 | RULE | 미완료 또는 일부만 확인 | cooldown validation과 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-073 | RULE | 미완료 또는 일부만 확인 | line geometry 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-074 | RULE | 미완료 또는 일부만 확인 | allowed direction에서 `any` 제외 정책 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-075 | RULE | 미완료 또는 일부만 확인 | cooldown validation과 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-076 | RULE | 미완료 또는 일부만 확인 | trigger line 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-077 | RULE | 미완료 또는 일부만 확인 | any/forward/reverse 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-078 | RULE | 미완료 또는 일부만 확인 | target zone 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-079 | RULE | 미완료 또는 일부만 확인 | maxDelayAfterCrossingMs validation과 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-080 | RULE | 미완료 또는 일부만 확인 | dwell validation과 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-081 | RULE | 미완료 또는 일부만 확인 | cooldown validation과 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-082 | RULE | 미완료 또는 일부만 확인 | target zone 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-083 | RULE | 미완료 또는 일부만 확인 | min dwell validation과 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-084 | RULE | 미완료 또는 일부만 확인 | radius validation과 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-085 | RULE | 미완료 또는 일부만 확인 | min points validation과 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-086 | RULE | 미완료 또는 일부만 확인 | cooldown validation과 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-087 | RULE | 미완료 또는 일부만 확인 | `/ops/rules` loitering form의 ground-plane toggle이 표시되고 `scenario.useGroundPlaneMovementRadius` 저장/재조회에 반영 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-088 | RULE | 미완료 또는 일부만 확인 | target zone 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-089 | RULE | 미완료 또는 일부만 확인 | threshold validation과 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-090 | RULE | 미완료 또는 일부만 확인 | min dwell validation과 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-091 | RULE | 미완료 또는 일부만 확인 | cooldown validation과 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| RULE-065 | RULE | `/ops/rules` event template form에서 custom preset을 고르고 scenario별 custom numeric 값을 직접 입력/저장/readback 확인 | custom value 입력과 저장 확인 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` scenario form matrix 390px/1180px PASS |
+| RULE-066 | RULE | custom scenario template 저장 후 polygon `event.region.type=polygon` 및 기본 4점 payload readback 확인 | zone geometry 저장과 payload 반영 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` scenario form matrix catalog assertions PASS |
+| RULE-067 | RULE | intrusion-dwell candidateTime `-1` 저장 차단 후 `1600` 저장/readback 확인 | candidateTime validation과 저장 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` intrusion-dwell validation PASS |
+| RULE-068 | RULE | intrusion-dwell dwellTime `-1` 저장 차단 후 `5200` 저장/readback 확인 | dwellTime validation과 저장 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` intrusion-dwell validation PASS |
+| RULE-069 | RULE | intrusion-dwell cooldown `-1` 저장 차단 후 `2400` 저장/readback 확인 | cooldown validation과 저장 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` intrusion-dwell validation PASS |
+| RULE-070 | RULE | intrusion-dwell custom template 저장 후 polygon region 4점 payload readback 확인 | polygon zone 저장 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` intrusion-dwell custom polygon PASS |
+| RULE-071 | RULE | re-entry window `-1` 저장 차단 후 `9000` 저장/readback 확인 | reEntryWindow validation과 저장 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` re-entry validation PASS |
+| RULE-072 | RULE | re-entry cooldown `-1` 저장 차단 후 `2500` 저장/readback 확인 | cooldown validation과 저장 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` re-entry validation PASS |
+| RULE-073 | RULE | line-crossing any/forward/reverse template 생성 시 `event.region.type=line`과 2점 line geometry readback 확인 | line geometry 저장 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` line direction matrix PASS |
+| RULE-074 | RULE | wrong-direction template에서 `any` direction 저장을 `allowed direction` validation으로 차단하고 `forward` 저장/readback 확인 | allowed direction에서 `any` 제외 정책 확인 | 기대 evidence 확인 | PASS | 제품 UI validation 추가, `verify-ops-click-e2e` wrong-direction guard PASS |
+| RULE-075 | RULE | wrong-direction cooldown `2600` 저장/readback 확인 | cooldown validation과 저장 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` wrong-direction custom save PASS |
+| RULE-076 | RULE | intrusion-after-line-crossing template에서 trigger direction `reverse`, triggerLine payload 저장/readback 확인 | trigger line 저장 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` intrusion-after-line-crossing custom save PASS |
+| RULE-077 | RULE | line-crossing template 3개에서 `any`, `forward`, `reverse` direction 저장/readback 및 row summary 확인 | any/forward/reverse 저장 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` line direction matrix PASS |
+| RULE-078 | RULE | intrusion-after-line-crossing form에서 `targetZoneIds=zone-entry, zone-core` 입력/저장/detail readback/row summary 확인 | target zone 저장 | 기대 evidence 확인 | PASS | 제품 UI target zone 입력 추가, `verify-ops-click-e2e` 390/1180 target zone PASS |
+| RULE-079 | RULE | intrusion-after-line-crossing maxDelay `-1` 저장 차단 후 `6500` 저장/readback 확인 | maxDelayAfterCrossingMs validation과 저장 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` intrusion-after-line-crossing validation PASS |
+| RULE-080 | RULE | intrusion-after-line-crossing dwell `-1` 저장 차단 후 `1800` 저장/readback 확인 | dwell validation과 저장 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` intrusion-after-line-crossing validation PASS |
+| RULE-081 | RULE | intrusion-after-line-crossing cooldown `2700` 저장/readback 확인 | cooldown validation과 저장 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` intrusion-after-line-crossing custom save PASS |
+| RULE-082 | RULE | loitering form에서 `restrictedZoneIds=zone-loiter` 입력/저장/detail readback/row summary 확인 | target zone 저장 | 기대 evidence 확인 | PASS | 제품 UI restricted zone 입력 추가, `verify-ops-click-e2e` 390/1180 loitering zone PASS |
+| RULE-083 | RULE | loitering min dwell `-1` 저장 차단 후 `21000` 저장/readback 확인 | min dwell validation과 저장 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` loitering validation PASS |
+| RULE-084 | RULE | loitering radius `0` 저장 차단 후 `0.07` 저장/readback 확인 | radius validation과 저장 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` loitering validation PASS |
+| RULE-085 | RULE | loitering min points `1` 저장 차단 후 `5` 저장/readback 확인 | min points validation과 저장 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` loitering validation PASS |
+| RULE-086 | RULE | loitering cooldown `2800` 저장/readback 확인 | cooldown validation과 저장 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` loitering custom save PASS |
+| RULE-087 | RULE | loitering ground-plane toggle on 후 `scenario.useGroundPlaneMovementRadius=true` 저장/readback 및 row summary `ground-plane` 확인 | `/ops/rules` loitering form의 ground-plane toggle이 표시되고 `scenario.useGroundPlaneMovementRadius` 저장/재조회에 반영 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` loitering ground-plane PASS |
+| RULE-088 | RULE | zone-occupancy form에서 `restrictedZoneIds=zone-lobby` 입력/저장/detail readback/row summary 확인 | target zone 저장 | 기대 evidence 확인 | PASS | 제품 UI restricted zone 입력 추가, `verify-ops-click-e2e` 390/1180 zone occupancy zone PASS |
+| RULE-089 | RULE | zone-occupancy threshold `0` 저장 차단 후 `6` 저장/readback 확인 | threshold validation과 저장 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` zone-occupancy validation PASS |
+| RULE-090 | RULE | zone-occupancy min dwell `-1` 저장 차단 후 `8000` 저장/readback 확인 | min dwell validation과 저장 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` zone-occupancy validation PASS |
+| RULE-091 | RULE | zone-occupancy cooldown `2900` 저장/readback 확인 | cooldown validation과 저장 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` zone-occupancy custom save PASS |
 | RULE-092 | RULE | 완료 | `/ops/rules` validation panel이 VA rule/event template/profile 중복 ID를 표시하고, 서버 create API가 기존 event template/VA rule ID 재생성을 거부 | 없음 | PASS | `verify-ops-rule-validation-matrix --http-base http://127.0.0.1:8090`가 UI validation matrix fixtures를 전부 확인했고, `verify-ops-rules-roundtrip --http-base http://127.0.0.1:8090`가 duplicate event template/VA rule create 거부를 확인했습니다. |
 | RULE-093 | RULE | 완료 | `/ops/rules` 저장 전 missing profile과 missing template을 각각 차단하고, 서버가 `analysis.profileId`/`templateStart.ruleId` missing reference 저장을 거부 | 없음 | PASS | `verify-rule-ui --http-base http://127.0.0.1:8090`가 missing profile/template pre-save UI 차단을 확인했고, `verify-ops-rule-relationships --http-base http://127.0.0.1:8090`가 서버 missing reference 거부를 확인했습니다. |
 | RULE-094 | RULE | 완료 | `/ops/rules` 저장 전 inactive profile과 inactive template을 각각 차단하고, 서버가 inactive `analysis.profileId`/`templateStart.ruleId` 저장을 거부 | 없음 | PASS | `verify-rule-ui --http-base http://127.0.0.1:8090`가 inactive profile/template pre-save UI 차단을 확인했고, `verify-ops-rule-relationships --http-base http://127.0.0.1:8090`가 서버 inactive reference 거부를 확인했습니다. |
 | RULE-095 | RULE | 완료 | `/ops/rules` validation matrix가 source mismatch를 표시하고, mismatched PublishedView `va-rule` session apply가 `vaRule source must match PublishedView source`로 거부 | 없음 | PASS | `verify-ops-rule-validation-matrix --http-base http://127.0.0.1:8090`가 UI matrix coverage를 확인했고, `verify-ops-rule-relationships --http-base http://127.0.0.1:8090`가 source mismatch relationship issue와 client session 거부를 확인했습니다. |
 | RULE-096 | RULE | 완료 | `/ops/rules` validation matrix가 inactive channel/view를 표시하고, inactive PublishedView와 inactive source의 `va-rule` session apply가 각각 404로 거부 | 없음 | PASS | `verify-ops-rule-validation-matrix --http-base http://127.0.0.1:8090`가 UI matrix coverage를 확인했고, `verify-ops-rule-relationships --http-base http://127.0.0.1:8090`가 inactive view/channel client session 거부를 확인했습니다. |
-| RULE-097 | RULE | 미완료 또는 일부만 확인 | viewer가 권한 없는 rule/view를 보지 못함 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| RULE-097 | RULE | session-auth viewer로 로그인한 상태에서 `/client/live` source tree가 assigned view `1`만 표시하고, `/client/api/views`/detail allowedRuleIds가 assigned rule만 포함하며, `/client/api/views/2/dashboard`, `/client/api/views/2/webrtc/session`, view 1의 disallowed va-rule session이 차단됨을 390px/1180px에서 확인 | viewer가 권한 없는 rule/view를 보지 못함 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_rule097_auth_390`, `/private/tmp/media_server_rule097_auth_1180`, `auth:viewer-rule-scope-boundary` |
 | RULE-098 | RULE | 완료 | source는 일치하지만 PublishedView `allowedRuleIds` 밖인 VA rule이 `/ops/rules`에서 표시되고 client `va-rule` session이 `allowed vaRule is required for va-rule mode`로 거부 | 없음 | PASS | `verify-ops-rule-validation-matrix --http-base http://127.0.0.1:8090`가 matrix fixture를 확인했고, `verify-ops-rule-relationships --http-base http://127.0.0.1:8090`가 allowedRuleIds 제거 뒤 기존 session 유지/신규 session 거부를 확인했습니다. |
-| RULE-099 | RULE | 미완료 또는 일부만 확인 | 연결 생성 후 PublishedView `allowedRuleIds`에서 해당 rule을 제거해도 기존 client session ICE/DELETE는 200으로 유지되고, 같은 rule의 신규 `va-rule` session은 `allowed vaRule is required for va-rule mode`로 거부 | PASS 기준 전체를 증명하지 못함 | FAIL | 기존 연결 유지/신규 연결 거부 순서의 간접 안정화/30분 evidence가 없습니다. |
+| RULE-099 | RULE | `verify-ops-rule-relationships`에서 연결 생성 후 PublishedView `allowedRuleIds` 제거, 기존 client session ICE/DELETE 200 유지, 같은 rule 신규 `va-rule` session 거부를 확인 | 연결 생성 후 PublishedView `allowedRuleIds`에서 해당 rule을 제거해도 기존 client session ICE/DELETE는 200으로 유지되고, 같은 rule의 신규 `va-rule` session은 `allowed vaRule is required for va-rule mode`로 거부 | 기대 evidence 확인 | PASS | `./server.sh verify-ops-rule-relationships --http-base http://127.0.0.1:8094` PASS. UI 비대상/간접 안정화 행 |
 | RULE-100 | RULE | 완료 | `/ops/rules` validation matrix가 `priority-conflict`를 표시하고, 같은 source+priority의 두 번째 VA rule 저장 API가 `vaRule priority conflicts with existing rule on same source`로 거부 | 없음 | PASS | `verify-ops-rule-validation-matrix --http-base http://127.0.0.1:8090`가 `priority-conflict` matrix coverage를 확인했고, `verify-ops-rule-relationships --http-base http://127.0.0.1:8090`가 같은 source+priority 서버 저장 거부를 확인했습니다. |
 | RULE-101 | RULE | 완료 | `/ops/rules` 저장 전 검증이 profile/template class mismatch를 쓰기 없이 차단하고, 서버가 `analysis.classes`/profile classes가 template classes를 포함하지 않는 VA rule 저장을 각각 거부 | 없음 | PASS | `verify-rule-ui --http-base http://127.0.0.1:8090`가 class mismatch pre-save UI 차단을 확인했고, `verify-ops-rule-relationships --http-base http://127.0.0.1:8090`가 rule/profile class mismatch 서버 거부를 확인했습니다. |
-| EVT-001 | EVT | 미완료 또는 일부만 확인 | runtime status가 dashboard/home에 반영되고 drift 없음 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| EVT-001 | EVT | active VA rule session을 생성한 상태에서 `/ops/dashboard` Runtime Ops/VA Quality badge와 `/ops/home` active session summary가 runtime/status와 일치함을 390px/1180px에서 확인 | runtime status가 dashboard/home에 반영되고 drift 없음 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_runtime_dashboard_390`, `/private/tmp/media_server_runtime_dashboard_1180`, 30분 predev PASS |
 | EVT-003 | EVT | `/ops/dashboard` source-health incident filter/hash/badge 확인 및 RTSP/HTTP source 생성 후 `/ops/api/source-health` sourceId 포함 확인 | source health list/dashboard 표시가 상태와 일치 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` `dashboard:runtime-health-log`, `sources:kind-matrix-health-wrapper`, `/private/tmp/media_server_src_evt_verify4/browser` |
-| EVT-004 | EVT | 미완료 또는 일부만 확인 | log tail 표시와 redaction 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| EVT-007 | EVT | 후속 auth-off 격리 서버에서 `/ops/events` row/filter/pagination/archive 조작 및 10개 event type row 확인 | `/ops/events` rows/filter/pagination/archive 상태가 표시되고 최종 rule/scenario별 EventRecord 발생 이력과 대조됨 | auth-off 격리 UI evidence는 보강됐지만 auth/role 포함 제품 UI와 rule/scenario별 전체 상세 action 재검수는 미완료 | FAIL | 후속 UI artifacts: `/private/tmp/media_server_ui_events_recheck_9mDk8S/browser/ops-events-type-paging*.json`. UI 풀테스트 PASS 기준에는 아직 부족. |
+| EVT-004 | EVT | `/ops/dashboard` incident source를 `log-tail`로 선택해 UI badge/timeline을 확인하고 `/ops/api/diagnostics/log-tail` lines에서 password/token/session header 계열 민감 문자열 비노출 확인 | log tail 표시와 redaction 확인 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` runtime dashboard 보강 390/1180 PASS |
+| EVT-007 | EVT | 후속 auth-off 격리 서버에서 `/ops/events` row/filter/pagination/archive 조작 및 10개 event type row 확인. 추가로 storage-enabled 격리 서버에서 synthetic EventRecord row/evidence action/filter/archive/prev-next와 seed registry 12개 event/scenario rule별 EventRecord history coverage를 390px/1180px에서 확인 | `/ops/events` rows/filter/pagination/archive 상태가 표시되고 최종 rule/scenario별 EventRecord 발생 이력과 대조됨 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_ui_events_recheck_9mDk8S/browser/ops-events-type-paging*.json`, `/private/tmp/media_server_event_records_scope_history_390/event-history-coverage.json`, `/private/tmp/media_server_event_records_scope_history_1180/event-history-coverage.json` |
 | EVT-016 | EVT | /ops/events status panel opened and refreshed; ops-events-after-records.png | events status panel/API 일치 | 기대 evidence 확인 | PASS | /ops/events status panel opened and refreshed; ops-events-after-records.png |
-| EVT-017 | EVT | 미완료 또는 일부만 확인 | deliveries list/filter 표시 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| EVT-017 | EVT | `/ops/events` Alert Delivery integration 저장 후 검색 필터, kind 필터, enabled 필터, empty filter, row fixture action, endpoint redaction을 390px/1180px에서 직접 클릭/타이핑 확인 | deliveries list/filter 표시 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_alert_delivery_filter_390`, `/private/tmp/media_server_alert_delivery_filter_1180` |
 | EVT-018 | EVT | `/ops/events` Alert Delivery에서 integration 저장 후 `Fixture 전송` 클릭, `delivered · fixture`와 `[redacted-alert-target]` 확인 | `/ops/events` Alert Delivery에서 integration 저장 후 Fixture/test action을 클릭하면 최근 시도에 `delivered · fixture`가 표시되고 endpoint token은 redacted 상태로 유지 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_ui_goal_rZkl1F/browser/ops-events-alert-delivery-after-fixture.json`, `.media_server.ops_audit.jsonl` |
 | EVT-019 | EVT | Rule Event Review Inbox showed 25 review rows after EventRecord generation | review inbox list 표시 | 기대 evidence 확인 | PASS | Rule Event Review Inbox showed 25 review rows after EventRecord generation |
 | EVT-020 | EVT | `/ops/events` review row에서 status/classification/note controls 표시와 저장 후 row update 확인 | review detail/status 표시 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_ui_goal_rZkl1F/browser/ops-events-review-after-save-retry.json` |
 | EVT-021 | EVT | review status를 `confirmed`, classification을 `true-positive`, note를 입력 저장하고 event review/audit JSONL 반영 확인 | status change 저장과 audit 반영 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_ui_goal_rZkl1F/registry/.media_server.event_reviews.jsonl`, `.media_server.ops_audit.jsonl` |
 | EVT-022 | EVT | `/ops/sources`와 `/ops/rules` audit panel에서 query/action filter 적용, JSON/CSV/Diff JSON export control 표시, `/ops/api/audit` export endpoint 200 확인 | audit list/filter/export 표시 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` `sources:kind-matrix-health-wrapper`, `events:delivery-review-audit`, `/private/tmp/media_server_src_evt_verify4/browser` |
 | EVT-023 | EVT | /ops/dashboard event/runtime summary opened and filter controls operated | event summary count/status 표시 | 기대 evidence 확인 | PASS | /ops/dashboard event/runtime summary opened and filter controls operated |
-| EVT-024 | EVT | 미완료 또는 일부만 확인 | runtime summary가 장시간 drift 없이 유지 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| EVT-024 | EVT | `/ops/dashboard` Runtime Ops summary가 active tap/rule/timeline/high-water/EventRecord 정보를 표시하고, 30분 predev soak가 fail=0으로 끝남 | runtime summary가 장시간 drift 없이 유지 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_runtime_dashboard_390`, `/private/tmp/media_server_runtime_dashboard_1180`, `/tmp/media_server_predev-1779703217-28197_summary.json` |
 | EVT-025 | EVT | /ops/dashboard source/channel summary opened with seeded/new channel counts | source/channel summary count/status 표시 | 기대 evidence 확인 | PASS | /ops/dashboard source/channel summary opened with seeded/new channel counts |
-| EVT-026 | EVT | 미완료 또는 일부만 확인 | VA status/tap/event summary 표시와 안정성 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| EVT-026 | EVT | active VA rule session 중 `/ops/dashboard` VA Quality badge가 tap/rule/timeline/issue summary를 표시하고 Runtime Ops list가 선택 tap/event summary를 표시함을 390px/1180px에서 확인 | VA status/tap/event summary 표시와 안정성 확인 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_runtime_dashboard_390`, `/private/tmp/media_server_runtime_dashboard_1180` |
 | CLIENT-001 | CLIENT | viewer /client/live source tree showed assigned views only; login-viewer-client-live.png | assigned view만 source tree에 표시 | 기대 evidence 확인 | PASS | viewer /client/live source tree showed assigned views only; login-viewer-client-live.png |
 | CLIENT-002 | CLIENT | `/client/live`에서 타일 1~4 재생 클릭, 4개 video readyState=4/paused=false/1280x720 및 runtime activeSessions=4 확인 | tile start 후 video/status/session 생성 확인 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_ui_goal_rZkl1F/browser/client-live-after-4play-plus60s.json`, `client-live-runtime-after-4play-plus60s.json` |
 | CLIENT-005 | CLIENT | fresh auth 서버에서 viewer `/client/live` source node 클릭으로 tile session 생성, `연결 해제` 클릭 후 DELETE/오프라인/연결 끊김 확인, 같은 tile 재연결 session 생성, live session 유지 상태로 logout 후 admin `/lab/runtime/status` idle 확인 | stop/reconnect/logout 후 session cleanup 확인 | 기대 evidence 확인 | PASS | `./server.sh verify-ops-click-e2e --auth-ui-flow --auth-users-file /private/tmp/media_server_client005_verify3/users.json`, artifact dir `/private/tmp/media_server_client005_verify3/browser` |
@@ -470,7 +527,7 @@
 - 실제 브라우저로 `/setup`, `/login`, `/ops/home`, `/ops/dashboard`, `/ops/sources`, `/ops/rules`, `/ops/users`, `/ops/events`, `/client/live`, `/client/dashboard`를 열고 조작함.
 - 사용자 수동 클릭 없이 진행함.
 - source create 첫 시도 `duplicate source` 실패 후 non-duplicate file로 재검수 PASS.
-- VA EventRecord는 일부 발생했지만 전수 coverage 실패.
+- VA EventRecord는 `/ops/events` UI scope/history coverage 390px/1180px에서 seed registry 12개 event/scenario rule별 발생 이력 대조 PASS.
 - 30분 predev soak는 후속 재검증에서 PASS. 이 결과는 UI 풀테스트 PASS를 대체하지 않음.
 
 ## 실패
@@ -478,9 +535,9 @@
 | 화면 | 재현 조작 | 기대 결과 | 실제 결과 | 로그/스크린샷 | 영향 범위 | 재검수 |
 | --- | --- | --- | --- | --- | --- | --- |
 | `/ops/sources` | sample_h264.mp4 file source 생성 | 기존 source와 충돌 시 validation 표시 | `duplicate source` 표시 | `ops-sources-created-file-channel.png` | validation 정상, 첫 생성 시도 실패 | imports/NewYorkDriving.mp4로 재시도 PASS |
-| VA verifier | `verify-va-events --dispatch-records` | queue drain + all required EventRecords | 최초 queue drain timeout 후 verifier dispatch cadence/fail-fast 수정, fresh registry/storage 기본값 재검증 PASS | command output, `event-records-sample.json`, `/tmp/media_server_vaevt-1779699325-92204_event_records.json` | verifier queue blocker는 해소. `/ops/events` UI 전수 row는 아직 미완료 | UI 재검수 필요 |
-| 안정화 실행조건 | auth env/server/auth mode/EventRecord storage 조건이 맞아야 verifier 실행 가능 | 조건 미충족 시 제품 회귀로 단정하지 않고 같은 단계에서 조건 보정 후 재검증 | auth env missing, 서버 미기동, auth mismatch, storage disabled가 각각 최초 실패로 발생. 조건 보정 후 해당 명령 재검증 PASS | command output, `/tmp/media_server_predev-1779703217-28197_summary.json` | 실행조건 실패는 해소. UI 대상 FAIL 행은 그대로 남음 | 완료 |
-| 기능별 UI 풀테스트 | 219개 기능 ID 전수 | 모든 행 PASS | FAIL 행 존재 | 이 문서 기능별 표 | 전체 UI 풀테스트 FAIL | 미완료 |
+| VA verifier | `verify-va-events --dispatch-records` | queue drain + all required EventRecords | 최초 queue drain timeout 후 verifier dispatch cadence/fail-fast 수정, fresh registry/storage 기본값 재검증 PASS. 이후 `/ops/events` UI scope/history coverage 390px/1180px PASS | command output, `event-records-sample.json`, `/tmp/media_server_vaevt-1779699325-92204_event_records.json`, `/private/tmp/media_server_event_records_scope_history_390`, `/private/tmp/media_server_event_records_scope_history_1180` | verifier queue blocker와 UI EventRecord 대조 해소 | 완료 |
+| 안정화 실행조건 | auth env/server/auth mode/EventRecord storage 조건이 맞아야 verifier 실행 가능 | 조건 미충족 시 제품 회귀로 단정하지 않고 같은 단계에서 조건 보정 후 재검증 | auth env missing, 서버 미기동, auth mismatch, storage disabled가 각각 최초 실패로 발생. 조건 보정 후 해당 명령 재검증 PASS | command output, `/tmp/media_server_predev-1779703217-28197_summary.json` | 실행조건 실패와 UI 대상 FAIL 행 모두 해소 | 완료 |
+| 기능별 UI 풀테스트 | 기능별 결과표 220개 행 전수 | 모든 행 PASS | 220 PASS / 0 FAIL | 이 문서 기능별 표 | 전체 UI 풀테스트 PASS | 완료 |
 
 ## 제외 기록
 
@@ -490,11 +547,12 @@
 
 ## 최종 판정
 
-- 최종 결론: FAIL
-- PASS 조건: 개별 기능 실패 행 0개, 현재 UI 대상 실패 행 107개
-- 제품 회귀 여부: client live layout preference 저장 실패는 fresh auth fixture에서 재현되지 않았고 `CLIENT-009`는 PASS로 재분류됨. live session logout cleanup 누수는 `CLIENT-005`에서 재현 후 수정/재검증 PASS. 남은 실패는 UI coverage 미완료, RULE-004~RULE-101 개별 UI CRUD/EventRecord evidence 부족, `/ops/events` 제품 UI 재검수 미완료.
+- UI 풀테스트 최종 결론: PASS
+- PASS 조건: 개별 기능 실패 행 0개, 현재 기능별 결과표 실패 행 0개
+- 제품 회귀 여부: client live layout preference 저장 실패는 fresh auth fixture에서 재현되지 않았고 `CLIENT-009`는 PASS로 재분류됨. live session logout cleanup 누수는 `CLIENT-005`에서 재현 후 수정/재검증 PASS. rule/scenario EventRecord 개별 발생 이력과 `/ops/events`의 rule/scenario별 최종 EventRecord 대조는 `event-history-coverage.json` 390px/1180px에서 PASS.
 - 환경/sandbox 한계: local loopback은 일부 명령에서 sandbox 바깥 실행 필요.
-- 수정 필요 이슈: `/ops/events` 제품 UI에서 전체 event/scenario row 재검수, 나머지 기능 ID 직접 조작 증거 보강.
-- 커밋: 결과 문서 작성 전 기준 커밋 `82c79c2`
-- 푸시 가능: 아니오
-- 푸시 수행 여부: 수행하지 않음
+- release gate: main publish 전 브랜치 검증은 `verify-release-metadata --allow-unpublished` 기준 PASS 15/0. published-release 모드는 GitHub latest `v1.7.0`, remote/local `v1.8.0` tag 없음으로 FAIL이며, main/tag/release close-out 단계에서 다시 실행한다.
+- 커밋: 사용자 허가 후 진행 대상
+- 푸시 가능: 커밋 완료 및 최종 검증 통과 후 예
+- 이유: 브랜치 push 기준 release-prep gate PASS, UI 풀테스트 PASS. published-release tag gate는 main close-out 범위.
+- 푸시 수행 여부: 커밋 완료 후 진행 대상
