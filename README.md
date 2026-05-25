@@ -196,9 +196,12 @@ YOLO Detection
 
 ```bash
 git diff --check
-./server.sh verify-release-metadata
+./server.sh verify-release-metadata --allow-unpublished
 ./server.sh verify-docs-links
 ```
+
+main/tag/GitHub Release publish 이후에는 `--allow-unpublished` 없이
+`./server.sh verify-release-metadata`를 다시 실행합니다.
 
 release 전 로컬 기준선:
 

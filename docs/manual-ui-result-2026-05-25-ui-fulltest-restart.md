@@ -6,7 +6,7 @@
 - 검수자: Codex autonomous browser/CDP + project verifier
 - 날짜/시간: 2026-05-25T07:07:28.648Z
 - continuation update: 2026-05-25T19:28:48Z
-- 브랜치/커밋: v1.8.0 @ 4326bb7 + uncommitted test fixes
+- 브랜치/커밋: v1.8.0, 시작 기준 4326bb7. UI 풀테스트 close-out 변경은 114968b, a39e9cb, e581ed9로 커밋 후 origin/v1.8.0에 push 완료.
 - 서버 URL: http://127.0.0.1:8081
 - auth mode: auto
 - users/source/view/analysis fixture: /private/tmp/media_server_ui_fulltest_restart_20260525_oehkFG
@@ -80,7 +80,7 @@
 - 후속 안정화 `./server.sh verify-analysis-state`: PASS 129/0.
 - 후속 안정화 `./server.sh verify-va-replay`: PASS, 14 baseline cases.
 - 후속 안정화 `./server.sh verify-va-events --dispatch-records`: 최초 EventRecord storage disabled로 FAIL, storage enabled 서버 재기동 후 PASS 33/0, stored=1517 failed=0 dropped=0.
-- 후속 안정화 `./server.sh verify-manual-ui-evidence --result docs/manual-ui-result-2026-05-25-ui-fulltest-restart.md`: PASS 28/0. 구조/카운트 검증이며 UI 풀테스트 PASS 판정이 아님.
+- 후속 안정화 `./server.sh verify-manual-ui-evidence --result docs/manual-ui-result-2026-05-25-ui-fulltest-restart.md`: PASS 29/0. 구조/카운트 검증이며 UI 풀테스트 PASS 판정이 아님.
 - 후속 안정화 `./server.sh verify-script-inventory`: PASS 11/0.
 - 후속 UI 보강 `MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT=8566 ./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:8092 --debug-port-base 10360 --widths 390 --output-dir /private/tmp/media_server_rule_matrix_next2_390`: PASS - scenario target/restricted/re-entry zone 입력/저장/상세 readback, line direction any/forward/reverse VA rule 적용 session, event template/profile 삭제 후 참조 validation을 직접 클릭/타이핑/반영 확인.
 - 후속 UI 보강 `MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT=8566 ./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:8092 --debug-port-base 10380 --widths 1180 --output-dir /private/tmp/media_server_rule_matrix_next2_1180`: PASS - 동일 흐름 desktop viewport 재검증.
@@ -293,11 +293,11 @@
 - 서버 조건: auth off 격리 서버, fresh source/view/analysis registry.
 - 후속 명령: `./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:8089 --debug-port-base 10010 --output-dir /private/tmp/media_server_src_crud_verify2/browser`
 - 후속 결과: PASS, 390px/1180px 모두 `sources:crud-view-lifecycle` 통과.
-- 한계: 이 검증은 source/view CRUD와 client block을 닫습니다. RTSP/HTTP/WHEP/WHIP source type별 실제 media path, viewer scope 생성, rule/scope 변경, source health 장시간 지속성은 별도 FAIL 행으로 남깁니다.
+- 한계/비범위: 이 검증은 source/view CRUD와 client block을 닫습니다. RTSP/HTTP/WHEP/WHIP source type별 UI wrapper, viewer scope, rule/scope 변경은 후속 보강에서 PASS로 닫았습니다. 외부 네트워크 장시간 지속성과 field endpoint 성공 보장은 이 UI 풀테스트 판정표 밖의 longrun/field smoke 조건입니다.
 
 ## 기능별 직접 조작 기록
 
-- UI 대상 기능 ID는 219개이며, 아래 표에는 RULE coverage 누락 방지를 위해 UI 비대상/간접 안정화 행 `RULE-099` 1개도 별도 포함합니다. 현재 표 기준 총 220개 행 중 208 PASS, 12 FAIL입니다.
+- UI 대상 기능 ID는 219개이며, 아래 표에는 RULE coverage 누락 방지를 위해 UI 비대상/간접 안정화 행 `RULE-099` 1개도 별도 포함합니다. 현재 표 기준 총 220개 행 중 220 PASS, 0 FAIL입니다.
 
 | 기능 ID | 영역 | 클릭/타이핑으로 확인한 항목 | 기대 결과 | 실제 결과 | 판정 | 비고 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -552,7 +552,7 @@
 - 제품 회귀 여부: client live layout preference 저장 실패는 fresh auth fixture에서 재현되지 않았고 `CLIENT-009`는 PASS로 재분류됨. live session logout cleanup 누수는 `CLIENT-005`에서 재현 후 수정/재검증 PASS. rule/scenario EventRecord 개별 발생 이력과 `/ops/events`의 rule/scenario별 최종 EventRecord 대조는 `event-history-coverage.json` 390px/1180px에서 PASS.
 - 환경/sandbox 한계: local loopback은 일부 명령에서 sandbox 바깥 실행 필요.
 - release gate: main publish 전 브랜치 검증은 `verify-release-metadata --allow-unpublished` 기준 PASS 15/0. published-release 모드는 GitHub latest `v1.7.0`, remote/local `v1.8.0` tag 없음으로 FAIL이며, main/tag/release close-out 단계에서 다시 실행한다.
-- 커밋: 사용자 허가 후 진행 대상
-- 푸시 가능: 커밋 완료 및 최종 검증 통과 후 예
+- 커밋: UI 풀테스트 close-out 변경 3개 커밋 완료 (`114968b`, `a39e9cb`, `e581ed9`)
+- 푸시 가능: 예, 브랜치 기준
 - 이유: 브랜치 push 기준 release-prep gate PASS, UI 풀테스트 PASS. published-release tag gate는 main close-out 범위.
-- 푸시 수행 여부: 커밋 완료 후 진행 대상
+- 푸시 수행 여부: `origin/v1.8.0` push 완료. main merge, release tag, GitHub Release 생성은 수행하지 않음.

@@ -123,18 +123,38 @@ GitHub Latest Release 확인은 publish 뒤 기본 실행으로 다시 닫습니
 ./server.sh verify-ops-tables-layout
 ./server.sh verify-rule-ui
 ./server.sh verify-ops-rules-roundtrip
+./server.sh verify-ops-scenario-presets
+./server.sh verify-ops-rule-validation-matrix
+./server.sh verify-product-ui-no-native-dialogs
 ./server.sh verify-analysis-state
 ./server.sh verify-va-events
 ./server.sh verify-va-replay
 ./server.sh verify-webrtc-va-metadata
 ./server.sh verify-va-metadata-sidechannel
 ./server.sh verify-ws-metadata
+./server.sh verify-ops-rule-relationships
+./server.sh verify-script-inventory
+./server.sh verify-docs-links
+./server.sh verify-release-metadata --allow-unpublished
 ```
 
 EventRecord 저장 이력까지 확인해야 하는 경우에는 EventRecord storage를 켠 격리
 서버에서 `verify-va-events --dispatch-records`를 실행합니다. 이 모드는 rare
 `exit`/direction event 누락을 피하기 위해 별도 환경변수를 주지 않으면 모든 poll을
 `dispatch=1`로 조회하며, storage가 꺼져 있으면 긴 polling 전에 실패합니다.
+제품 UI에서 EventRecord row, evidence filter, archive toggle, pagination, signed
+bundle action과 rule/scenario별 history coverage까지 닫아야 할 때는 같은 storage
+enabled 서버에서 아래처럼 `/ops/events` UI scope verifier를 실행합니다.
+
+```bash
+./server.sh verify-ops-event-records-scope \
+  --http-base <storage-enabled-server> \
+  --event-history-dir <manual-ui-event-history-dir>
+```
+
+release prep branch에서 tag/GitHub Release가 아직 생성 전이면
+`verify-release-metadata --allow-unpublished`만 branch-level metadata PASS로 기록하고,
+main/tag/GitHub Release publish 뒤에는 `verify-release-metadata`를 다시 실행합니다.
 
 과거 release 문구나 evidence 보존 상태는 현재 gate가 아닙니다. 필요한 경우에는
 [development-backlog.md](./development-backlog.md)의 archive 섹션을 사람이 검토하고,

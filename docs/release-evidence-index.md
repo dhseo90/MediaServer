@@ -52,10 +52,11 @@
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 2026-05-25 | stability-script-smoke-20260525 | 안정화 테스트 | build, manual UI seed dry-run, auth bootstrap/users/routes, ops/client UI smoke+screenshot, rule UI, rules roundtrip, analysis state, VA replay, VA events, runtime console, SSE/WS/WebRTC metadata, `git diff --check` | PASS | 0 | 147,501 | 147,501 | 10m 5s | Codex goal usage | `/private/tmp/media_server_stability_20260525_ops_client_ui_screens`, `/private/tmp/media_server_stability_20260525_va_runtime_console_summary.json`, `/private/tmp/media_server_stability_20260525_va_metadata_sidechannel_summary.json`, `/private/tmp/media_server_stability_20260525_webrtc_va_metadata_summary.json` |
 | 2026-05-25 | predev-30min-20260525 | 30분 soak | `./server.sh verify-predev --soak-minutes 30 --rtsp-port 8568 --http-port 8094`; integrated smoke, 22 soak iterations of VA events/Event POST schema/Event POST recovery/redaction/runtime idle, queue mode, port cleanup | PASS | 0 | 86,657 | 86,657 | 39m 29s test / 41m 42s goal snapshot | Codex goal usage snapshot after evidence verification before closeout | `/private/tmp/media_server_30min_20260525_summary.json`, `/private/tmp/media_server_30min_20260525_report.md`, `/private/tmp/media_server_30min_20260525_report.html`, `/tmp/media_server_predev-1779637404-28970` |
-| 2026-05-25 | ui-fulltest-restart-20260525-oehkFG | UI 풀테스트 | 새 throwaway data로 `/setup`, `/login`, `/ops/*`, `/client/*` 브라우저 조작, 56개 responsive/theme screenshot, EventRecord sample 대조, 기능 inventory 219개 개별 행. 후속 VA verifier queue 재검증 PASS, auth-off `/ops/events` UI event type/pagination/filter/archive 재검수 보강 | FAIL | 916,832 | 미집계 | 미집계 | 진행 중 goal continuation | Codex goal usage snapshot / result 작성 시점 자동 end 미집계 | [manual-ui-result-2026-05-25-ui-fulltest-restart.md](./manual-ui-result-2026-05-25-ui-fulltest-restart.md), `/private/tmp/media_server_ui_fulltest_restart_20260525_oehkFG/browser`, `/private/tmp/media_server_ui_events_recheck_9mDk8S/browser`, `/tmp/media_server_vaevt-1779694040-60535_event_records.json` |
+| 2026-05-25 | ui-fulltest-restart-20260525-oehkFG | UI 풀테스트 | 새 throwaway data로 `/setup`, `/login`, `/ops/*`, `/client/*` 브라우저 조작, 56개 responsive/theme screenshot, EventRecord sample 대조, UI 대상 기능 ID 219개 PASS. UI 비대상 간접 안정화 행 `RULE-099` 포함 결과표 220 PASS / 0 FAIL. `/ops/events` rule/scenario별 EventRecord history coverage 390px/1180px 대조, WHEP/source/rule/client/auth scope 보강, native dialog guard 확인 | PASS | 916,832 | 2,608,727 | 1,691,895 | goal continuation; 후속 30분 predev durationSec=2399 | Codex goal usage | [manual-ui-result-2026-05-25-ui-fulltest-restart.md](./manual-ui-result-2026-05-25-ui-fulltest-restart.md), `/private/tmp/media_server_iab_auth_VuKUEe/browser`, `/private/tmp/media_server_rule_basic_templates_390/ops-click-e2e-summary.json`, `/private/tmp/media_server_rule_basic_templates_1180/ops-click-e2e-summary.json`, `/private/tmp/media_server_event_records_scope_history_390/event-history-coverage.json`, `/private/tmp/media_server_event_records_scope_history_1180/event-history-coverage.json` |
 
 Not run for `stability-script-smoke-20260525`: 30분 soak, 120분 longrun, manual UI 풀테스트.
 Not run for `predev-30min-20260525`: 120분 longrun, manual UI 풀테스트.
+Not run for `ui-fulltest-restart-20260525-oehkFG`: 120분 longrun, main merge, release tag, GitHub Release 생성, publish 후 `verify-release-metadata` 재확인.
 
 ## Skipped / Not-run Wording
 
@@ -81,5 +82,10 @@ Not run for `predev-30min-20260525`: 120분 longrun, manual UI 풀테스트.
 ./server.sh verify-release-evidence-index
 ./server.sh verify-feature-scope-gate
 ./server.sh verify-docs-links
+./server.sh verify-release-metadata --allow-unpublished
 ./server.sh verify-release-metadata
 ```
+
+release prep branch에서 tag/GitHub Release가 아직 수동 생성 전이면
+`verify-release-metadata --allow-unpublished`만 브랜치 기준 PASS evidence로 쓰고,
+publish 후에는 `--allow-unpublished` 없이 다시 실행합니다.

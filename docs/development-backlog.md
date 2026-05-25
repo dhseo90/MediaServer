@@ -116,6 +116,19 @@ v1.8.0 완료 기준:
 - release close-out 순서는 runbook으로 재현 가능해야 하며, next branch가 main 최신
   release fix를 놓치지 않아야 합니다.
 
+현재 close-out 상태:
+
+- 확인됨: UI 풀테스트 close-out 변경은 `origin/v1.8.0`에 push 완료.
+- 확인됨: 안정화 script gate와 30분 predev soak는 PASS로 기록됨.
+- 확인됨: UI 풀테스트 결과표는 UI 대상 기능 ID 219개와 간접 안정화 행 `RULE-099`
+  포함 220 PASS / 0 FAIL로 닫힘.
+- 확인됨: `/ops/events` EventRecord history coverage는 390px/1180px에서
+  rule/scenario event 발생 이력 대조 PASS로 보강됨.
+- 미실행: 120분 longrun, main merge, release tag, GitHub Release 생성,
+  publish 후 `verify-release-metadata` 재확인.
+- 범위 유지: v1.8.0 close-out은 release trust hardening이며 새 제품 기능 roadmap으로
+  확장하지 않음.
+
 v1.8.0 비범위:
 
 - 장기 녹화, MP4 recorder, VMS/NVR archive, playback/search 기능
