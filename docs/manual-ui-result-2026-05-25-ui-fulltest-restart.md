@@ -29,7 +29,7 @@
 | 안정화 테스트 | 후속 재검증에서 build/auth/ops-client/rule/VA/docs/static gate 실행 | build PASS, auth bootstrap/users/routes PASS, ops/client UI PASS, rule UI PASS, VA replay/events PASS, docs/static PASS | 최초 auth env missing, 서버 미기동/auth mismatch/storage disabled 실행조건 실패는 같은 단계에서 조건 보정 후 재검증 PASS. release metadata는 원격 latest/tag가 v1.8.0이 아니라 기존 FAIL 유지 |
 | 30분 테스트 | `verify-predev --soak-minutes 30` 실행 | `/tmp/media_server_predev-1779703217-28197_summary.json`, `/tmp/media_server_predev-1779703217-28197_report.md`, durationSec=2399, pass=119 fail=0 skip=1 | PASS. skip: external-turn-hard-gate는 `--include-external-turn` 미지정으로 제외 |
 | 120분 테스트 | 실행하지 않음 | 없음 | 별도 승인 없음 |
-| UI 풀테스트 | 219개 UI 대상 기능 ID 중 102 PASS, 117 FAIL | browser screenshots/json + EventRecord sample + auth UI browser E2E + route boundary CDP screenshots + in-app browser recheck `/private/tmp/media_server_ui_goal_rZkl1F/browser`, `/private/tmp/media_server_iab_auth_VuKUEe/browser`, `/private/tmp/media_server_auth022_N1aAmv/browser` | 최종 FAIL |
+| UI 풀테스트 | 219개 UI 대상 기능 ID 중 103 PASS, 116 FAIL | browser screenshots/json + EventRecord sample + auth UI browser E2E + route boundary CDP screenshots + in-app browser recheck `/private/tmp/media_server_ui_goal_rZkl1F/browser`, `/private/tmp/media_server_iab_auth_VuKUEe/browser`, `/private/tmp/media_server_auth022_N1aAmv/browser`, `/private/tmp/media_server_client005_verify3/browser` | 최종 FAIL |
 
 ## 스크립트 테스트 기록
 
@@ -221,10 +221,12 @@
 - 서버 조건: `MEDIA_SERVER_AUTH_MODE=session`, fresh `MEDIA_SERVER_AUTH_USERS_FILE`, 사용자 제공 `MEDIA_SERVER_VERIFY_AUTH_*` 비밀번호 환경변수.
 - 후속 명령: `./server.sh verify-ops-click-e2e --auth-ui-flow --widths 1180 --auth-users-file /private/tmp/media_server_auth_ui_flow_users.json`
 - 후속 결과: PASS, `auth:setup-bootstrap`, `auth:admin-login-client-preview`, `auth:logout-route-guard`, `auth:user-lifecycle-session`, `auth:access-request-approve-invite-setup`, `auth:access-request-reject`, `auth:last-admin-guard`.
+- CLIENT-005 후속 명령: fresh auth 서버 `http://127.0.0.1:8087`에서 `./server.sh verify-ops-click-e2e --auth-ui-flow --auth-users-file /private/tmp/media_server_client005_verify3/users.json`
+- CLIENT-005 후속 결과: PASS, 390px/1180px 모두 `client:live-session-cleanup` 통과. viewer `/client/live` source click으로 session 생성, `연결 해제` DELETE와 UI 오프라인/연결 끊김 반영, 재연결 session 생성, live session 유지 상태의 logout 후 admin `/lab/runtime/status` idle 확인.
 - 후속 명령: `./server.sh verify-ops-click-e2e --auth-ui-flow --widths 390 --auth-users-file /private/tmp/media_server_auth_ui_flow_users.json`
 - 후속 결과: PASS, 동일 click step 통과.
 - 최초 실패: Chrome CDP 포트 sandbox 실패, setup 비밀번호 정책 거부, 공개 접근 요청 rate limit 소진, 마지막 admin 2회 확인 흐름 미반영. 이후 sandbox 밖 실행, 정책에 맞는 환경변수 사용, 새 서버 프로세스 rate counter 초기화, admin 2회 확인 반영으로 재검증 PASS.
-- 한계: 이 후속 검증은 auth UI/session 흐름 보강입니다. 비밀번호 reset 후 이미 열려 있던 별도 세션이 실제로 revoke됐는지는 별도 브라우저 세션으로 확인하지 않았으므로 `AUTH-022`는 계속 FAIL입니다. 219개 UI 대상 기능 전체 재실행이 아니므로 UI 풀테스트 최종 판정은 계속 FAIL입니다.
+- 한계: 이 후속 검증은 auth UI/session과 CLIENT-005 live cleanup 흐름 보강입니다. 219개 UI 대상 기능 전체 재실행은 아니므로 UI 풀테스트 최종 판정은 계속 FAIL입니다.
 
 ## 기능별 직접 조작 기록
 
@@ -427,7 +429,7 @@
 | EVT-026 | EVT | 미완료 또는 일부만 확인 | VA status/tap/event summary 표시와 안정성 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
 | CLIENT-001 | CLIENT | viewer /client/live source tree showed assigned views only; login-viewer-client-live.png | assigned view만 source tree에 표시 | 기대 evidence 확인 | PASS | viewer /client/live source tree showed assigned views only; login-viewer-client-live.png |
 | CLIENT-002 | CLIENT | `/client/live`에서 타일 1~4 재생 클릭, 4개 video readyState=4/paused=false/1280x720 및 runtime activeSessions=4 확인 | tile start 후 video/status/session 생성 확인 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_ui_goal_rZkl1F/browser/client-live-after-4play-plus60s.json`, `client-live-runtime-after-4play-plus60s.json` |
-| CLIENT-005 | CLIENT | auth-on viewer `/client/live`에서 타일 1 재생 후 `연결 해제` 클릭, UI가 오프라인/연결 끊김으로 돌아감 | stop/reconnect/logout 후 session cleanup 확인 | stop/disconnect UI 상태는 확인. reconnect/logout 후 runtime cleanup까지는 증명하지 못함 | FAIL | `/private/tmp/media_server_iab_auth_VuKUEe/browser/viewer-client-live-overlay-after-play-plus12s.json`, `viewer-client-live-after-tile1-disconnect-cleanup.json` |
+| CLIENT-005 | CLIENT | fresh auth 서버에서 viewer `/client/live` source node 클릭으로 tile session 생성, `연결 해제` 클릭 후 DELETE/오프라인/연결 끊김 확인, 같은 tile 재연결 session 생성, live session 유지 상태로 logout 후 admin `/lab/runtime/status` idle 확인 | stop/reconnect/logout 후 session cleanup 확인 | 기대 evidence 확인 | PASS | `./server.sh verify-ops-click-e2e --auth-ui-flow --auth-users-file /private/tmp/media_server_client005_verify3/users.json`, artifact dir `/private/tmp/media_server_client005_verify3/browser` |
 | CLIENT-006 | CLIENT | auth-on viewer로 `/client/dashboard` 진입, 9001만 표시되고 9002/9003/9004/Ops/Lab/raw/debug 노출 없음 확인 | dashboard가 viewer scope 안의 data만 표시 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_iab_auth_VuKUEe/browser/viewer-client-dashboard.json` |
 | CLIENT-007 | CLIENT | auth-on viewer로 `/client/events` 진입, 9001만 표시되고 9002/9003/9004/Ops/Lab/raw/debug 노출 없음 확인 | events가 viewer scope 안의 data만 표시 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_iab_auth_VuKUEe/browser/viewer-client-events.json` |
 | CLIENT-009 | CLIENT | fresh auth fixture에서 viewer `/client/live` grid=`2x2`, density=`표준`, dock=`오른쪽` 선택 후 workspace 작업 메뉴 `레이아웃 저장` 클릭. UI status `사용자 저장값`, `/client/api/preferences/live-layout` userPreference 저장값, reload 후 grid/density/dock 복원 확인 | grid/density/dock preference 저장 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_auth022_N1aAmv/browser/client009-after-ui-save-click.json`, `client009-api-after-ui-save.json`, `client009-after-reload-restore.json`. 과거 `/private/tmp/media_server_iab_auth_VuKUEe/browser/viewer-client-prefs-after-save-click.json`의 `저장 실패`는 새 fixture에서 재현되지 않음 |
@@ -479,8 +481,8 @@
 ## 최종 판정
 
 - 최종 결론: FAIL
-- PASS 조건: 개별 기능 실패 행 0개, 현재 UI 대상 실패 행 117개
-- 제품 회귀 여부: client live layout preference 저장 실패는 fresh auth fixture에서 재현되지 않았고 `CLIENT-009`는 PASS로 재분류됨. 남은 실패는 UI coverage 미완료, RULE-004~RULE-101 개별 UI CRUD/EventRecord evidence 부족, `/ops/events` 제품 UI 재검수 미완료.
+- PASS 조건: 개별 기능 실패 행 0개, 현재 UI 대상 실패 행 116개
+- 제품 회귀 여부: client live layout preference 저장 실패는 fresh auth fixture에서 재현되지 않았고 `CLIENT-009`는 PASS로 재분류됨. live session logout cleanup 누수는 `CLIENT-005`에서 재현 후 수정/재검증 PASS. 남은 실패는 UI coverage 미완료, RULE-004~RULE-101 개별 UI CRUD/EventRecord evidence 부족, `/ops/events` 제품 UI 재검수 미완료.
 - 환경/sandbox 한계: local loopback은 일부 명령에서 sandbox 바깥 실행 필요.
 - 수정 필요 이슈: `/ops/events` 제품 UI에서 전체 event/scenario row 재검수, 나머지 기능 ID 직접 조작 증거 보강.
 - 커밋: 결과 문서 작성 전 기준 커밋 `82c79c2`

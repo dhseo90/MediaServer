@@ -99,7 +99,8 @@ try {
     } catch (error) {
       failCount += 1;
       const message = error instanceof Error ? error.message : String(error);
-      failures.push(`[${label}] ${message}`);
+      const detail = error instanceof Error && error.stack ? `${message}\n${error.stack}` : message;
+      failures.push(`[${label}] ${detail}`);
       console.log(`[fail] ${label}: ${message}`);
     } finally {
       await browser.close();
@@ -461,6 +462,8 @@ async function runAuthUiFlow(browser, context) {
     await loginViaForm(browser, lifecycleUsername, passwords.userChanged, "/client/live");
     await assertWhoami(browser, { username: lifecycleUsername, role: "viewer" }, "복구 사용자 whoami");
     steps.push("auth:user-lifecycle-session");
+    await assertClientLiveSessionCleanupViaUi(browser, context);
+    steps.push("client:live-session-cleanup");
 
     await logoutViaPost(browser);
     await submitPublicAccessRequestViaUi(browser, requestUsername, "1");
@@ -646,6 +649,180 @@ async function assertLastAdminGuardViaUi(browser) {
   await clickSelector(browser, selector, "마지막 admin 비활성화 실행");
   await assertText(browser, "#status", "마지막 활성 admin", "마지막 admin 비활성화 거부 상태");
   await assertStoreUser("admin", user => user.enabled === true && user.role === "admin", "마지막 admin 유지");
+}
+
+async function assertClientLiveSessionCleanupViaUi(browser, context) {
+  await assertReady(browser, "/client/live", '[data-testid="client-shell-page"]');
+  await installClientLiveSessionSpy(browser);
+  await assertVisible(browser, '[data-testid="client-live-source-tree"] [data-source-view]', "viewer live source node");
+  await clickSelector(browser, '[data-testid="client-live-source-tree"] [data-source-view]', "viewer live source start");
+  const firstSession = await waitForClientSessionRequest(browser, { method: "POST", sequence: 1 }, "viewer live first session POST");
+  await assertClientLiveTilePlaying(browser, "viewer live first session UI");
+
+  await clickSelector(browser, '.live-drop-tile[data-tile="0"] [data-action="stop"]', "viewer live tile disconnect");
+  await waitForClientSessionRequest(browser, { method: "DELETE", sessionId: firstSession.sessionId }, "viewer live disconnect DELETE");
+  await assertClientLiveTileDisconnected(browser, "viewer live disconnect UI");
+
+  await clickSelector(browser, '[data-testid="client-live-source-tree"] [data-source-view]', "viewer live reconnect");
+  const secondSession = await waitForClientSessionRequest(browser, { method: "POST", sequence: 2 }, "viewer live reconnect POST");
+  if (secondSession.sessionId && firstSession.sessionId && secondSession.sessionId === firstSession.sessionId) {
+    throw new Error(`viewer live reconnect reused session id: ${secondSession.sessionId}`);
+  }
+  await assertClientLiveTilePlaying(browser, "viewer live reconnect UI");
+
+  await clickSelector(browser, 'form[action="/logout"] button[type="submit"]', "viewer logout with live session");
+  await waitForPath(browser, "/login");
+  await loginViaForm(browser, "admin", context.passwords.admin, "/ops/home");
+  await assertClientRuntimeIdle(browser, "viewer logout live cleanup runtime");
+}
+
+async function installClientLiveSessionSpy(browser) {
+  await browser.evaluate(`
+    (() => {
+      if (!window.__clientLiveSessionOriginalFetch) {
+        window.__clientLiveSessionOriginalFetch = window.fetch;
+      }
+      window.__clientLiveSessionRequests = [];
+      window.fetch = async function(input, init) {
+        const method = String(init?.method || (input?.method) || 'GET').toUpperCase();
+        const url = String(input?.url || input || '');
+        const absolute = new URL(url, window.location.href);
+        const isClientSession = absolute.pathname.includes('/client/api/views/') &&
+          absolute.pathname.includes('/webrtc/session');
+        const response = await window.__clientLiveSessionOriginalFetch.apply(this, arguments);
+        if (isClientSession && (method === 'POST' || method === 'DELETE')) {
+          const item = {
+            method,
+            path: absolute.pathname,
+            ok: response.ok,
+            status: response.status,
+            sessionId: '',
+          };
+          if (method === 'POST') {
+            try {
+              const payload = await response.clone().json();
+              item.sessionId = String(payload?.sessionId || '');
+            } catch (_) {}
+          } else {
+            const match = absolute.pathname.match(new RegExp('/webrtc/session/([^/]+)$'));
+            item.sessionId = match ? decodeURIComponent(match[1]) : '';
+          }
+          window.__clientLiveSessionRequests.push(item);
+        }
+        return response;
+      };
+      return true;
+    })()
+  `, 3000);
+}
+
+async function waitForClientSessionRequest(browser, expected, description) {
+  return await waitForResult(
+    browser,
+    `
+      (() => {
+        const requests = Array.isArray(window.__clientLiveSessionRequests) ? window.__clientLiveSessionRequests : [];
+        const method = ${JSON.stringify(expected.method)};
+        const sessionId = ${JSON.stringify(expected.sessionId || "")};
+        const matches = requests.filter(item =>
+          item?.method === method &&
+          item?.ok === true &&
+          (method !== 'POST' || Boolean(item?.sessionId)) &&
+          (!sessionId || item?.sessionId === sessionId)
+        );
+        const index = Math.max(0, Number(${JSON.stringify(expected.sequence || 1)}) - 1);
+        const item = matches[index] || null;
+        return {
+          ok: Boolean(item?.sessionId || method === 'DELETE'),
+          item,
+          requests,
+          sessionId: item?.sessionId || '',
+        };
+      })()
+    `,
+    item => item?.ok === true,
+    description,
+  );
+}
+
+async function assertClientLiveTilePlaying(browser, description) {
+  await waitForResult(
+    browser,
+    `
+      (() => {
+        const tile = document.querySelector('.live-drop-tile[data-tile="0"]');
+        const status = String(tile?.querySelector('[data-role="status"]')?.textContent || '').trim();
+        const connection = String(tile?.querySelector('[data-role="connection"]')?.textContent || '').trim();
+        const action = tile?.querySelector('[data-action="toggle-playback"]');
+        const label = String(action?.getAttribute('aria-label') || '');
+        const placeholderHidden = tile?.querySelector('[data-role="placeholder"]')?.hidden === true;
+        return {
+          ok: Boolean(tile) && label.includes('정지') && placeholderHidden &&
+            !['오프라인', '오류'].includes(status),
+          status,
+          connection,
+          label,
+          placeholderHidden,
+          viewId: tile?.dataset?.viewId || '',
+        };
+      })()
+    `,
+    item => item?.ok === true,
+    description,
+  );
+}
+
+async function assertClientLiveTileDisconnected(browser, description) {
+  await waitForResult(
+    browser,
+    `
+      (() => {
+        const tile = document.querySelector('.live-drop-tile[data-tile="0"]');
+        const status = String(tile?.querySelector('[data-role="status"]')?.textContent || '').trim();
+        const connection = String(tile?.querySelector('[data-role="connection"]')?.textContent || '').trim();
+        const action = tile?.querySelector('[data-action="toggle-playback"]');
+        const label = String(action?.getAttribute('aria-label') || '');
+        return {
+          ok: Boolean(tile) &&
+            !tile.dataset.viewId &&
+            status === '오프라인' &&
+            connection === '연결 끊김' &&
+            label.includes('재생'),
+          status,
+          connection,
+          label,
+          viewId: tile?.dataset?.viewId || '',
+        };
+      })()
+    `,
+    item => item?.ok === true,
+    description,
+  );
+}
+
+async function assertClientRuntimeIdle(browser, description) {
+  await waitForResult(
+    browser,
+    `
+      (() => fetch('/lab/runtime/status', { credentials: 'same-origin', cache: 'no-store' })
+        .then(response => response.json().then(payload => ({ ok: response.ok, payload })))
+        .then(({ ok, payload }) => {
+          const lifecycle = payload?.sourceLifecycle || {};
+          return {
+            ok: ok &&
+              lifecycle.idle === true &&
+              Number(lifecycle.activeSessions || 0) === 0 &&
+              Number(lifecycle.httpEgressSessions || 0) === 0 &&
+              Number(lifecycle.resourceActiveStreams || 0) === 0,
+            statusOk: ok,
+            lifecycle,
+          };
+        })
+        .catch(error => ({ ok: false, error: String(error?.message || error) })))()
+    `,
+    item => item?.ok === true,
+    description,
+  );
 }
 
 async function loginViaForm(browser, username, password, expectedPath) {

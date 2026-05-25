@@ -448,7 +448,11 @@ async function evaluateWithCdp(cdp, expression, evalTimeoutMs) {
   });
   if (!result || !result.result) return undefined;
   if (result.exceptionDetails) {
-    throw new Error(result.exceptionDetails.text || "Runtime.evaluate exception");
+    const detail = result.exceptionDetails.exception?.description ||
+      result.exceptionDetails.exception?.value ||
+      result.exceptionDetails.text ||
+      "Runtime.evaluate exception";
+    throw new Error(String(detail));
   }
   return result.result.value;
 }

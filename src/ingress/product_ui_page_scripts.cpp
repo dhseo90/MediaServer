@@ -2026,7 +2026,9 @@ void AppendClientShellScript(std::ostringstream& out) {
     async function cleanupClientLiveSession(viewId, sessionId) {
       if (!viewId || !sessionId) return;
       await fetch(`/client/api/views/${encodeURIComponent(viewId)}/webrtc/session/${encodeURIComponent(sessionId)}`, {
-        method: 'DELETE'
+        method: 'DELETE',
+        credentials: 'same-origin',
+        keepalive: true
       }).catch(() => {});
     }
     async function startLiveTile(index) {
@@ -2349,6 +2351,18 @@ void AppendClientShellScript(std::ostringstream& out) {
       }
     });
     if (activePage === 'live') {
+      document.querySelectorAll('form[action="/logout"]').forEach(form => {
+        if (form.dataset.liveLogoutCleanupBound === '1') return;
+        form.dataset.liveLogoutCleanupBound = '1';
+        form.addEventListener('submit', event => {
+          if (form.dataset.liveLogoutCleanupSubmitting === '1') return;
+          event.preventDefault();
+          form.dataset.liveLogoutCleanupSubmitting = '1';
+          stopAllLiveTiles()
+            .catch(() => {})
+            .finally(() => HTMLFormElement.prototype.submit.call(form));
+        });
+      });
       detail.innerHTML = emptyState('라이브 레이아웃 불러오는 중', '저장된 레이아웃과 권한 기본값을 확인합니다.');
       loadLiveLayoutPreferences()
         .catch(error => {
