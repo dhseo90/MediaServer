@@ -3770,6 +3770,7 @@ void AppendOpsShellScript(std::ostringstream& out,
       }
       const OPS_EVENT_RECORD_LIMIT = 25;
       let opsEventRecordsOffset = 0;
+      let alertDeliveryPayloadCache = null;
       const eventRecordTime = value => {
         if (value === null || value === undefined || value === '') return '미제공';
         const numeric = Number(value);
@@ -3962,11 +3963,36 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (kind === 'slack') body.slackChannel = endpoint;
         return body;
       }
+      function alertDeliveryFilterState() {
+        return {
+          query: String(document.getElementById('alertDeliveryFilter')?.value || '').trim().toLowerCase(),
+          kind: String(document.getElementById('alertDeliveryKindFilter')?.value || '').trim(),
+          enabled: String(document.getElementById('alertDeliveryEnabledFilter')?.value || '').trim()
+        };
+      }
+      function alertDeliveryMatchesFilter(item, filter) {
+        const enabled = Boolean(item?.enabled);
+        if (filter.kind && String(item?.kind || '') !== filter.kind) return false;
+        if (filter.enabled === 'enabled' && !enabled) return false;
+        if (filter.enabled === 'disabled' && enabled) return false;
+        if (!filter.query) return true;
+        const haystack = [
+          item?.id,
+          item?.label,
+          item?.kind,
+          item?.endpointMasked,
+          item?.retryPolicy?.maxAttempts,
+          item?.retryPolicy?.backoffMs
+        ].map(value => String(value ?? '').toLowerCase()).join(' ');
+        return haystack.includes(filter.query);
+      }
       function renderAlertDeliveryRows(payload = {}) {
         const tbody = document.getElementById('alertDeliveryRows');
         if (!tbody) return;
         const integrations = Array.isArray(payload.integrations) ? payload.integrations : [];
         const attempts = Array.isArray(payload.attempts) ? payload.attempts : [];
+        const filter = alertDeliveryFilterState();
+        const filteredIntegrations = integrations.filter(item => alertDeliveryMatchesFilter(item, filter));
         const latestById = new Map();
         for (const attempt of attempts) {
           const id = String(attempt?.deliveryId || '');
@@ -3976,7 +4002,11 @@ void AppendOpsShellScript(std::ostringstream& out,
           setTableEmpty(tbody, 4, '등록된 alert delivery integration이 없습니다.');
           return;
         }
-        tbody.innerHTML = integrations.map(item => {
+        if (filteredIntegrations.length === 0) {
+          setTableEmpty(tbody, 4, '필터 조건에 맞는 alert delivery integration이 없습니다.');
+          return;
+        }
+        tbody.innerHTML = filteredIntegrations.map(item => {
           const attempt = latestById.get(String(item?.id || '')) || {};
           const retry = item?.retryPolicy || {};
           return `<tr>
@@ -3995,11 +4025,14 @@ void AppendOpsShellScript(std::ostringstream& out,
         bindAlertDeliveryRowActions();
       }
       function renderAlertDelivery(payload = {}) {
+        alertDeliveryPayloadCache = payload;
         const integrations = Array.isArray(payload.integrations) ? payload.integrations : [];
         const attempts = Array.isArray(payload.attempts) ? payload.attempts : [];
         const enabledCount = integrations.filter(item => item?.enabled).length;
+        const filteredCount = integrations.filter(item => alertDeliveryMatchesFilter(item, alertDeliveryFilterState())).length;
         renderBadges('alertDeliveryBadges', [
           { text: `등록 ${integrations.length}` },
+          { text: `필터 ${filteredCount}` },
           { text: `활성 ${enabledCount}`, tone: enabledCount > 0 ? '' : 'warn' },
           { text: `시도 ${attempts.length}` },
           { text: payload?.contract?.eventPostPayloadChanged === false ? 'Event POST 변경 없음' : '계약 확인 필요', tone: payload?.contract?.eventPostPayloadChanged === false ? 'info' : 'warn' },
@@ -4009,9 +4042,14 @@ void AppendOpsShellScript(std::ostringstream& out,
           'alertDeliverySummary',
           payload.error
             ? `alert delivery 조회 실패: ${payload.error}`
-            : `transports webhook/email/slack · bounded retry · fixture smoke · Event POST payload 변경 없음`
+            : `transports webhook/email/slack · list/filter ${filteredCount}/${integrations.length} · bounded retry · fixture smoke · Event POST payload 변경 없음`
         );
         renderAlertDeliveryRows(payload);
+      }
+      function rerenderAlertDeliveryFilters() {
+        if (alertDeliveryPayloadCache) {
+          renderAlertDelivery(alertDeliveryPayloadCache);
+        }
       }
       async function saveAlertDeliveryIntegration() {
         const payload = await requestJson('/ops/api/alerts/deliveries', {
@@ -4714,7 +4752,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         return opsRulesStringArray(item?.analysis?.classes || item?.scenario?.targetClasses || []);
       }
       function opsRulesProfileClasses(item = {}) {
-        return opsRulesStringArray(item?.analysis?.classes || item?.classes || item?.targetClasses || []);
+        return opsRulesStringArray(item?.trackingClasses || item?.analysis?.classes || item?.classes || item?.targetClasses || []);
       }
       function opsRulesAllowedOverlayModes(view = {}) {
         const modes = opsRulesStringArray(view?.allowedOverlayModes || []);
@@ -5202,7 +5240,8 @@ void AppendOpsShellScript(std::ostringstream& out,
       }
       function opsRulesCategoryConfigs() {
         return [
-          { prefix: 'opsEventRuleClasses', containerId: 'opsEventRuleClassChecks', summaryId: 'opsEventRuleClassesSummary', emptyText: '객체를 선택하세요.' }
+          { prefix: 'opsEventRuleClasses', containerId: 'opsEventRuleClassChecks', summaryId: 'opsEventRuleClassesSummary', emptyText: '객체를 선택하세요.' },
+          { prefix: 'opsProfileClasses', containerId: 'opsProfileClassChecks', summaryId: 'opsProfileClassesSummary', emptyText: '추적 대상을 선택하세요.' }
         ];
       }
       function opsRulesCategoryConfig(prefix) {
@@ -5399,6 +5438,9 @@ void AppendOpsShellScript(std::ostringstream& out,
         opsEventRuleToggleField('opsEventRuleZoneThresholdField', zoneOccupancyMode);
         opsEventRuleToggleField('opsEventRuleZoneDwellField', zoneOccupancyMode);
         opsEventRuleToggleField('opsEventRuleCooldownField', mode === 'scenario');
+        opsEventRuleToggleField('opsEventRuleTargetZonesField', mode === 'scenario' && lineAfterMode);
+        opsEventRuleToggleField('opsEventRuleRestrictedZonesField', mode === 'scenario' && (dwellMode || loiteringMode || zoneOccupancyMode));
+        opsEventRuleToggleField('opsEventRuleReEntryZonesField', mode === 'scenario' && reEntryMode);
         opsEventRuleUpdatePresetSummary(type, document.getElementById('opsEventRulePresetSelect')?.value || 'default');
       }
       function opsEventRuleApplyPresetToInputs(presetId = '') {
@@ -6084,7 +6126,11 @@ void AppendOpsShellScript(std::ostringstream& out,
         document.getElementById('opsEventRuleConfidenceInput').value = String(event?.minConfidence ?? baseline.minConfidence ?? 0.25);
         document.getElementById('opsEventRuleMinDurationInput').value = String(event?.minDurationMs ?? baseline.minDurationMs ?? 0);
         opsRulesRenderCategorySelector('opsEventRuleClasses', Array.isArray(analysis.classes) && analysis.classes.length > 0 ? analysis.classes : opsRuleDefaultCategories);
-        document.getElementById('opsEventRuleLineDirectionSelect').value = String(event?.region?.direction || 'any');
+        document.getElementById('opsEventRuleLineDirectionSelect').value = String(
+          eventType === 'wrong-direction'
+            ? (scenario?.allowedDirection || event?.region?.direction || 'forward')
+            : (event?.region?.direction || 'any')
+        );
         document.getElementById('opsEventRuleCandidateInput').value = String(scenario?.candidateTimeMs ?? baseline.candidateTimeMs ?? 2000);
         document.getElementById('opsEventRuleDwellInput').value = String(scenario?.dwellTimeMs ?? scenario?.minDwellTimeMs ?? baseline.dwellTimeMs ?? baseline.minDwellTimeMs ?? 10000);
         document.getElementById('opsEventRuleReEntryWindowInput').value = String(scenario?.reEntryWindowMs ?? baseline.reEntryWindowMs ?? 10000);
@@ -6097,6 +6143,9 @@ void AppendOpsShellScript(std::ostringstream& out,
         document.getElementById('opsEventRuleZoneThresholdInput').value = String(scenario?.occupancyThreshold ?? baseline.occupancyThreshold ?? 4);
         document.getElementById('opsEventRuleZoneDwellInput').value = String(scenario?.minDwellTimeMs ?? baseline.minDwellTimeMs ?? 7000);
         document.getElementById('opsEventRuleCooldownInput').value = String(scenario?.cooldownMs ?? baseline.cooldownMs ?? 5000);
+        document.getElementById('opsEventRuleTargetZonesInput').value = opsRulesStringArray(scenario?.targetZoneIds || []).join(', ');
+        document.getElementById('opsEventRuleRestrictedZonesInput').value = opsRulesStringArray(scenario?.restrictedZoneIds || []).join(', ');
+        document.getElementById('opsEventRuleReEntryZonesInput').value = opsRulesStringArray(scenario?.reEntryZoneIds || []).join(', ');
         opsRulesSetFormDisabled('event-rule', detailMode === 'view');
         opsEventRuleUpdateModeUi();
       }
@@ -6110,6 +6159,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         document.getElementById('opsProfileInputWidthInput').value = String(item?.inputWidth ?? 640);
         document.getElementById('opsProfileInputHeightInput').value = String(item?.inputHeight ?? 640);
         document.getElementById('opsProfileAdaptiveToggle').checked = item?.adaptive !== false;
+        opsRulesRenderCategorySelector('opsProfileClasses', opsRulesProfileClasses(item).length > 0 ? opsRulesProfileClasses(item) : opsRuleDefaultCategories);
         opsRulesSetFormDisabled('profile', detailMode === 'view' || item?.builtIn === true);
       }
       function opsRulesFillNativeForm(mode, item, detailMode) {
@@ -6149,15 +6199,24 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (scenario) {
           scenario.presetId = presetId;
           scenario.cooldownMs = Number(document.getElementById('opsEventRuleCooldownInput')?.value || scenario.cooldownMs || 5000);
+          const targetZoneIds = opsRulesSplitList(document.getElementById('opsEventRuleTargetZonesInput')?.value || '');
+          const restrictedZoneIds = opsRulesSplitList(document.getElementById('opsEventRuleRestrictedZonesInput')?.value || '');
+          const reEntryZoneIds = opsRulesSplitList(document.getElementById('opsEventRuleReEntryZonesInput')?.value || '');
           if (type === 'intrusion-dwell') {
             scenario.candidateTimeMs = Number(document.getElementById('opsEventRuleCandidateInput')?.value || scenario.candidateTimeMs || 2000);
             scenario.dwellTimeMs = Number(document.getElementById('opsEventRuleDwellInput')?.value || scenario.dwellTimeMs || 10000);
+            scenario.restrictedZoneIds = restrictedZoneIds;
           } else if (type === 're-entry') {
             scenario.reEntryWindowMs = Number(document.getElementById('opsEventRuleReEntryWindowInput')?.value || scenario.reEntryWindowMs || 10000);
             scenario.reEntryMode = String(document.getElementById('opsEventRuleReEntryModeSelect')?.value || scenario.reEntryMode || 'same-zone');
+            scenario.reEntryZoneIds = reEntryZoneIds;
+            scenario.restrictedZoneIds = restrictedZoneIds;
+          } else if (type === 'wrong-direction') {
+            scenario.allowedDirection = String(document.getElementById('opsEventRuleLineDirectionSelect')?.value || scenario.allowedDirection || 'forward');
           } else if (type === 'intrusion-after-line-crossing') {
             scenario.maxDelayAfterCrossingMs = Number(document.getElementById('opsEventRuleLineDelayInput')?.value || scenario.maxDelayAfterCrossingMs || 10000);
             scenario.dwellTimeMs = Number(document.getElementById('opsEventRuleDwellInput')?.value || scenario.dwellTimeMs || 3000);
+            scenario.targetZoneIds = targetZoneIds;
             scenario.triggerLine = {
               ...(scenario.triggerLine || {}),
               direction: String(document.getElementById('opsEventRuleTriggerDirectionSelect')?.value || scenario.triggerLine?.direction || 'any')
@@ -6167,9 +6226,11 @@ void AppendOpsShellScript(std::ostringstream& out,
             scenario.maxMovementRadius = Number(document.getElementById('opsEventRuleLoiteringRadiusInput')?.value || scenario.maxMovementRadius || 0.08);
             scenario.minTrajectoryPoints = Number(document.getElementById('opsEventRuleLoiteringPointsInput')?.value || scenario.minTrajectoryPoints || 4);
             scenario.useGroundPlaneMovementRadius = Boolean(document.getElementById('opsEventRuleLoiteringGroundPlaneToggle')?.checked);
+            scenario.restrictedZoneIds = restrictedZoneIds;
           } else if (type === 'zone-occupancy') {
             scenario.occupancyThreshold = Number(document.getElementById('opsEventRuleZoneThresholdInput')?.value || scenario.occupancyThreshold || 4);
             scenario.minDwellTimeMs = Number(document.getElementById('opsEventRuleZoneDwellInput')?.value || scenario.minDwellTimeMs || 7000);
+            scenario.restrictedZoneIds = restrictedZoneIds;
           }
         }
         const payload = {
@@ -6241,6 +6302,7 @@ void AppendOpsShellScript(std::ostringstream& out,
       }
       function opsRulesReadProfileForm(baseRecord = {}) {
         const base = opsRulesClone(baseRecord);
+        const trackingClasses = opsRulesSelectedCategories('opsProfileClassChecks');
         return {
           ...base,
           id: String(document.getElementById('opsProfileIdInput')?.value || '').trim(),
@@ -6251,8 +6313,62 @@ void AppendOpsShellScript(std::ostringstream& out,
           nms: Number(document.getElementById('opsProfileNmsInput')?.value || 0.45),
           inputWidth: Number(document.getElementById('opsProfileInputWidthInput')?.value || 640),
           inputHeight: Number(document.getElementById('opsProfileInputHeightInput')?.value || 640),
-          adaptive: document.getElementById('opsProfileAdaptiveToggle')?.checked !== false
+          adaptive: document.getElementById('opsProfileAdaptiveToggle')?.checked !== false,
+          trackingClasses
         };
+      }
+      function opsRulesAssertNumberRange(value, label, options = {}) {
+        const number = Number(value);
+        if (!Number.isFinite(number)) {
+          throw new Error(`${label}은(는) 숫자여야 합니다.`);
+        }
+        if (options.integer && !Number.isInteger(number)) {
+          throw new Error(`${label}은(는) 정수여야 합니다.`);
+        }
+        if (options.min !== undefined && number < options.min) {
+          throw new Error(`${label}은(는) ${options.min} 이상이어야 합니다.`);
+        }
+        if (options.max !== undefined && number > options.max) {
+          throw new Error(`${label}은(는) ${options.max} 이하이어야 합니다.`);
+        }
+        return number;
+      }
+      function opsRulesValidateEventTemplatePayload(payload = {}) {
+        const event = payload.event || {};
+        const scenario = payload.scenario || null;
+        const type = String(scenario?.type || event?.type || '').trim();
+        opsRulesAssertNumberRange(event.minConfidence, 'Confidence', { min: 0, max: 1 });
+        opsRulesAssertNumberRange(event.minDurationMs, '최소 지속 시간', { min: 0 });
+        const direction = String(event?.region?.direction || 'any').trim();
+        if (opsRulesIsLineEventType(type) && !['any', 'forward', 'reverse'].includes(direction)) {
+          throw new Error('라인 방향은 any, forward, reverse 중 하나여야 합니다.');
+        }
+        if (!scenario) return;
+        opsRulesAssertNumberRange(scenario.cooldownMs, '재알림 대기', { min: 0 });
+        if (type === 'intrusion-dwell') {
+          opsRulesAssertNumberRange(scenario.candidateTimeMs, '후보 판단 시간', { min: 0 });
+          opsRulesAssertNumberRange(scenario.dwellTimeMs, '확정/체류 시간', { min: 0 });
+        } else if (type === 're-entry') {
+          opsRulesAssertNumberRange(scenario.reEntryWindowMs, '재진입 허용 시간', { min: 0 });
+        } else if (type === 'wrong-direction') {
+          if (!['forward', 'reverse'].includes(direction)) {
+            throw new Error('역방향 이동은 allowed direction을 forward 또는 reverse로 선택해야 합니다.');
+          }
+        } else if (type === 'intrusion-after-line-crossing') {
+          opsRulesAssertNumberRange(scenario.maxDelayAfterCrossingMs, '라인 후 최대 지연', { min: 0 });
+          opsRulesAssertNumberRange(scenario.dwellTimeMs, '확정/체류 시간', { min: 0 });
+          const triggerDirection = String(scenario?.triggerLine?.direction || 'any').trim();
+          if (!['any', 'forward', 'reverse'].includes(triggerDirection)) {
+            throw new Error('트리거 라인 방향은 any, forward, reverse 중 하나여야 합니다.');
+          }
+        } else if (type === 'loitering') {
+          opsRulesAssertNumberRange(scenario.minDwellTimeMs, '최소 체류 시간', { min: 0 });
+          opsRulesAssertNumberRange(scenario.maxMovementRadius, '최대 이동 반경', { min: 0.01, max: 1 });
+          opsRulesAssertNumberRange(scenario.minTrajectoryPoints, '최소 이동 경로 점수', { min: 2, integer: true });
+        } else if (type === 'zone-occupancy') {
+          opsRulesAssertNumberRange(scenario.occupancyThreshold, '점유 임계값', { min: 1, integer: true });
+          opsRulesAssertNumberRange(scenario.minDwellTimeMs, '최소 점유 체류', { min: 0 });
+        }
       }
       async function opsRulesAttachVaRuleToSelectedChannel(ruleId, channel) {
         if (!ruleId || !channel?.view) return;
@@ -6366,6 +6482,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           if (!Array.isArray(payload.analysis?.classes) || payload.analysis.classes.length === 0) {
             throw new Error('분석 대상을 하나 이상 선택하세요.');
           }
+          opsRulesValidateEventTemplatePayload(payload);
           const blockingIssues = opsRulesDraftBlockingIssues(mode, payload, current);
           if (blockingIssues.length) throw new Error(`저장 전 검증 실패: ${blockingIssues.join(' / ')}`);
           const response = await requestJson(`${opsLabRulesPath}/${encodeURIComponent(payload.id)}`, {
@@ -6396,6 +6513,9 @@ void AppendOpsShellScript(std::ostringstream& out,
           if (!Number.isFinite(payload.nms) || payload.nms < 0 || payload.nms > 1) throw new Error('NMS는 0 이상 1 이하이어야 합니다.');
           if (!Number.isFinite(payload.inputWidth) || !Number.isFinite(payload.inputHeight) || payload.inputWidth <= 0 || payload.inputHeight <= 0) {
             throw new Error('입력 해상도는 1 이상이어야 합니다.');
+          }
+          if (!Array.isArray(payload.trackingClasses) || payload.trackingClasses.length === 0) {
+            throw new Error('추적 대상을 하나 이상 선택하세요.');
           }
           const blockingIssues = opsRulesDraftBlockingIssues(mode, payload, current);
           if (blockingIssues.length) throw new Error(`저장 전 검증 실패: ${blockingIssues.join(' / ')}`);
@@ -6977,6 +7097,12 @@ void AppendOpsShellScript(std::ostringstream& out,
           <span class="chip${isScenario ? ' info' : ''}">${isScenario ? '시나리오' : '이벤트'}</span>
         </div>`;
       }
+      function opsRulesZoneIdSummary(value = []) {
+        const ids = opsRulesStringArray(value);
+        if (ids.length === 0) return '';
+        const preview = ids.slice(0, 3).join(', ');
+        return ids.length > 3 ? `${preview} 외 ${ids.length - 3}` : preview;
+      }
       function opsRulesConditionHtml(item = {}) {
         const type = item?.scenario?.type || item?.event?.type || item?.eventType || 'event';
         const scenario = item?.scenario || {};
@@ -6992,6 +7118,8 @@ void AppendOpsShellScript(std::ostringstream& out,
           if (scenario?.reEntryMode) {
             details.push(scenario.reEntryMode === 'configured-zones' ? '지정 영역' : '같은 영역');
           }
+          const zones = opsRulesZoneIdSummary(scenario?.reEntryZoneIds || []);
+          if (zones) details.push(`재진입 ${zones}`);
         } else if (type === 'intrusion-after-line-crossing') {
           const delay = opsRulesMsLabel(scenario?.maxDelayAfterCrossingMs);
           const dwell = opsRulesMsLabel(scenario?.dwellTimeMs);
@@ -6999,6 +7127,8 @@ void AppendOpsShellScript(std::ostringstream& out,
           if (delay) details.push(`라인 후 ${delay}`);
           if (dwell) details.push(`체류 ${dwell}`);
           details.push(direction === 'forward' ? '정방향' : (direction === 'reverse' ? '역방향' : '양방향'));
+          const zones = opsRulesZoneIdSummary(scenario?.targetZoneIds || []);
+          if (zones) details.push(`대상 ${zones}`);
         } else if (type === 'loitering') {
           const dwell = opsRulesMsLabel(scenario?.minDwellTimeMs);
           if (dwell) details.push(`체류 ${dwell}`);
@@ -7006,12 +7136,16 @@ void AppendOpsShellScript(std::ostringstream& out,
             details.push(`반경 ${Number(scenario.maxMovementRadius).toFixed(2)}`);
           }
           if (scenario?.useGroundPlaneMovementRadius) details.push('ground-plane');
+          const zones = opsRulesZoneIdSummary(scenario?.restrictedZoneIds || []);
+          if (zones) details.push(`영역 ${zones}`);
         } else if (type === 'zone-occupancy') {
           if (Number.isFinite(Number(scenario?.occupancyThreshold))) {
             details.push(`임계 ${Number(scenario.occupancyThreshold)}`);
           }
           const dwell = opsRulesMsLabel(scenario?.minDwellTimeMs);
           if (dwell) details.push(`체류 ${dwell}`);
+          const zones = opsRulesZoneIdSummary(scenario?.restrictedZoneIds || []);
+          if (zones) details.push(`영역 ${zones}`);
         } else if (opsRulesIsLineEventType(type)) {
           const direction = item?.event?.region?.direction || 'any';
           details.push(direction === 'forward' ? '정방향' : (direction === 'reverse' ? '역방향' : '양방향'));
@@ -7090,7 +7224,7 @@ void AppendOpsShellScript(std::ostringstream& out,
       function renderOpsProfiles(items) {
         const body = document.getElementById('opsProfileRows');
         if (!Array.isArray(items) || items.length === 0) {
-          setTableEmpty(body, 6, '분석 프로파일이 없습니다.');
+          setTableEmpty(body, 7, '분석 프로파일이 없습니다.');
           return;
         }
         body.innerHTML = items.map(item => {
@@ -7121,6 +7255,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             tableCellHtml('검출기', detectorHtml),
             tableCellHtml('FPS', fpsHtml),
             tableCellHtml('입력', inputHtml),
+            tableCellHtml('추적 대상', opsRulesTargetHtml(opsRulesProfileClasses(item))),
             tableCellHtml('사용처', usageHtml),
             tableCellHtml('작업', actionsHtml, 'table-cell-actions')
           ]);
@@ -7598,6 +7733,9 @@ void AppendOpsShellScript(std::ostringstream& out,
             setText('alertDeliverySummary', `fixture 전송 실패: ${error.message}`);
           }
         });
+        document.getElementById('alertDeliveryFilter')?.addEventListener('input', rerenderAlertDeliveryFilters);
+        document.getElementById('alertDeliveryKindFilter')?.addEventListener('change', rerenderAlertDeliveryFilters);
+        document.getElementById('alertDeliveryEnabledFilter')?.addEventListener('change', rerenderAlertDeliveryFilters);
         document.getElementById('eventRecordsPrev')?.addEventListener('click', () => {
           opsEventRecordsOffset = Math.max(0, opsEventRecordsOffset - OPS_EVENT_RECORD_LIMIT);
           refreshEvents().catch(error => setText('eventRecordSummary', error.message));

@@ -2784,22 +2784,24 @@ void AppendOpsRulesPage(std::ostringstream& out) {
             <colgroup>
               <col class="ops-profile-col-id" />
               <col class="ops-profile-col-detector" />
-              <col class="ops-profile-col-fps" />
-              <col class="ops-profile-col-input" />
-              <col class="ops-profile-col-usage" />
-              <col class="ops-profile-col-actions" />
+	              <col class="ops-profile-col-fps" />
+	              <col class="ops-profile-col-input" />
+	              <col class="ops-profile-col-target" />
+	              <col class="ops-profile-col-usage" />
+	              <col class="ops-profile-col-actions" />
             </colgroup>
             <thead>
               <tr>
                 <th>ID</th>
-                <th>검출기</th>
-                <th>FPS</th>
-                <th>입력</th>
-                <th>사용처</th>
-                <th>작업</th>
-              </tr>
-            </thead>
-            <tbody id="opsProfileRows"><tr><td colspan="6">로딩 중</td></tr></tbody>
+	                <th>검출기</th>
+	                <th>FPS</th>
+	                <th>입력</th>
+	                <th>추적 대상</th>
+	                <th>사용처</th>
+	                <th>작업</th>
+	              </tr>
+	            </thead>
+	            <tbody id="opsProfileRows"><tr><td colspan="7">로딩 중</td></tr></tbody>
           </table>
         </div>
       </section>
@@ -3060,6 +3062,17 @@ void AppendOpsRulesPage(std::ostringstream& out) {
                 <input id="opsEventRuleCooldownInput" type="number" min="0" step="1000" placeholder="5000" />
               </label>
             </div>
+            <div class="row">
+              <label id="opsEventRuleTargetZonesField" hidden>대상 영역 ID
+                <input id="opsEventRuleTargetZonesInput" type="text" placeholder="zone-entry, zone-core" />
+              </label>
+              <label id="opsEventRuleRestrictedZonesField" hidden>관찰/제한 영역 ID
+                <input id="opsEventRuleRestrictedZonesInput" type="text" placeholder="zone-main, zone-restricted" />
+              </label>
+              <label id="opsEventRuleReEntryZonesField" hidden>재진입 영역 ID
+                <input id="opsEventRuleReEntryZonesInput" type="text" placeholder="zone-a, zone-b" />
+              </label>
+            </div>
           </section>
           <p id="opsEventRuleFormNote" class="form-note">여러 채널 분석 설정에서 다시 고를 수 있는 공통 이벤트 템플릿입니다.</p>
         </form>
@@ -3088,10 +3101,25 @@ void AppendOpsRulesPage(std::ostringstream& out) {
             <label>입력 폭<input id="opsProfileInputWidthInput" type="number" min="1" step="1" placeholder="640" /></label>
             <label>입력 높이<input id="opsProfileInputHeightInput" type="number" min="1" step="1" placeholder="640" /></label>
           </div>
-          <div class="checks">
-            <label><input id="opsProfileAdaptiveToggle" type="checkbox" checked /> 적응형 튜닝</label>
-          </div>
-          <p id="opsProfileSummaryText" class="form-note">검출기, FPS, 신뢰도, 입력 크기 같은 분석 엔진 설정만 정의합니다.</p>
+	          <div class="checks">
+	            <label><input id="opsProfileAdaptiveToggle" type="checkbox" checked /> 적응형 튜닝</label>
+	          </div>
+	          <section class="ops-category-section" aria-labelledby="opsProfileClassesHeading">
+	            <div class="ops-category-header">
+	              <div>
+	                <strong id="opsProfileClassesHeading">추적 대상</strong>
+	                <p class="form-note">이 프로파일의 tracker가 유지할 객체 범주를 고릅니다.</p>
+	              </div>
+	              <div class="ops-category-actions">
+	                <button id="opsProfileClassesDefaultBtn" class="button-secondary" type="button">기본</button>
+	                <button id="opsProfileClassesAllBtn" class="button-secondary" type="button">전체 선택</button>
+	                <button id="opsProfileClassesClearBtn" class="button-secondary" type="button">전체 해제</button>
+	              </div>
+	            </div>
+	            <div id="opsProfileClassChecks" class="ops-category-grid"></div>
+	            <p id="opsProfileClassesSummary" class="form-note">사람, 차량</p>
+	          </section>
+	          <p id="opsProfileSummaryText" class="form-note">검출기, FPS, 신뢰도, 입력 크기와 추적 대상 같은 분석 엔진 설정을 정의합니다.</p>
         </form>
       </section>
       <section class="section-card ops-audit-panel">
@@ -3150,6 +3178,24 @@ void AppendOpsEventsPage(std::ostringstream& out) {
             <p id="alertDeliverySummary">Rule event 알림은 Event POST payload와 분리된 delivery state, retry policy, audit로 관리합니다.</p>
           </div>
           <div id="alertDeliveryBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        </div>
+        <div class="actions event-review-controls">
+          <label>검색 <input id="alertDeliveryFilter" placeholder="ID, 라벨, 대상" /></label>
+          <label>종류
+            <select id="alertDeliveryKindFilter">
+              <option value="">전체</option>
+              <option value="webhook">Webhook</option>
+              <option value="email">Email</option>
+              <option value="slack">Slack</option>
+            </select>
+          </label>
+          <label>상태
+            <select id="alertDeliveryEnabledFilter">
+              <option value="">전체</option>
+              <option value="enabled">활성</option>
+              <option value="disabled">비활성</option>
+            </select>
+          </label>
         </div>
         <div class="ops-alert-delivery-form">
           <label>ID <input id="alertDeliveryId" value="default-webhook" /></label>
@@ -4755,6 +4801,87 @@ std::string IceJson(const std::vector<WebRtcIceCandidate>& candidates) {
     }
     out << "]}";
     return out.str();
+}
+
+std::optional<std::uint32_t> ParseUnsignedIndexText(const std::string& raw) {
+    const std::string value = Trim(raw);
+    if (value.empty()) {
+        return std::nullopt;
+    }
+    for (const char ch : value) {
+        if (std::isdigit(static_cast<unsigned char>(ch)) == 0) {
+            return std::nullopt;
+        }
+    }
+    try {
+        const unsigned long parsed = std::stoul(value, nullptr, 10);
+        if (parsed > std::numeric_limits<std::uint32_t>::max()) {
+            return std::nullopt;
+        }
+        return static_cast<std::uint32_t>(parsed);
+    } catch (...) {
+        return std::nullopt;
+    }
+}
+
+std::vector<WebRtcIceCandidate> ParseWhepSdpFragmentIceCandidates(const std::string& body) {
+    std::vector<WebRtcIceCandidate> candidates;
+    std::uint32_t current_mline = 0;
+    bool saw_media_section = false;
+
+    std::istringstream lines(body);
+    std::string line;
+    while (std::getline(lines, line)) {
+        if (!line.empty() && line.back() == '\r') {
+            line.pop_back();
+        }
+        line = Trim(line);
+        if (line.empty()) {
+            continue;
+        }
+        if (line.rfind("m=", 0) == 0) {
+            current_mline = saw_media_section ? current_mline + 1 : 0;
+            saw_media_section = true;
+            continue;
+        }
+        if (line.rfind("a=mid:", 0) == 0) {
+            if (const auto parsed = ParseUnsignedIndexText(line.substr(std::string("a=mid:").size()));
+                parsed.has_value()) {
+                current_mline = *parsed;
+            }
+            continue;
+        }
+
+        std::string candidate;
+        if (line.rfind("a=candidate:", 0) == 0) {
+            candidate = line.substr(2);
+        } else if (line.rfind("candidate:", 0) == 0) {
+            candidate = line;
+        }
+        if (!candidate.empty()) {
+            candidates.push_back(WebRtcIceCandidate{
+                .sdp_mline_index = current_mline,
+                .candidate = candidate,
+            });
+        }
+    }
+    return candidates;
+}
+
+std::optional<HttpResponse> ApplyWhepSdpFragmentIce(
+    const HttpRequest& request,
+    const std::shared_ptr<WebRtcEgressSession>& bridge) {
+    if (bridge == nullptr || request.body.find("candidate:") == std::string::npos) {
+        return std::nullopt;
+    }
+    const auto candidates = ParseWhepSdpFragmentIceCandidates(request.body);
+    if (candidates.empty()) {
+        return std::nullopt;
+    }
+    for (const auto& candidate : candidates) {
+        bridge->AddRemoteIceCandidate(candidate.sdp_mline_index, candidate.candidate);
+    }
+    return HttpResponse{204, "No Content", "text/plain; charset=utf-8", {}, ""};
 }
 
 std::string SourceJson(const std::string& session_id,
@@ -14696,6 +14823,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             created.status_text = "Created";
                             created.content_type = "application/sdp";
                             created.headers["Location"] = "/whep/session/" + session_id;
+                            created.headers["Accept-Patch"] = "application/trickle-ice-sdpfrag";
                             created.headers["X-Session-Capability"] = session_capability;
                             created.body = answer;
                             return created;
@@ -14837,6 +14965,12 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
 
                             if ((request.method == "POST" || request.method == "PATCH") && (suffix.empty() || suffix == "/ice")) {
+                                if (is_whep && request.method == "PATCH") {
+                                    if (auto fragment_response = ApplyWhepSdpFragmentIce(request, bridge);
+                                        fragment_response.has_value()) {
+                                        return *fragment_response;
+                                    }
+                                }
                                 const auto candidate = ParseStringField(request.body, "candidate");
                                 const auto mline = ParseIntField(request.body, "sdpMLineIndex");
                                 if (!candidate.has_value() || !mline.has_value()) {
