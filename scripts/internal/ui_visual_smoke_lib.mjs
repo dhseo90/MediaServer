@@ -336,7 +336,7 @@ async function launchBrowser(port, width, viewportHeight, targetUrl, options) {
         chrome.kill("SIGKILL");
       });
     }
-    fs.rmSync(userDataDir, { recursive: true, force: true });
+    fs.rmSync(userDataDir, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
   };
   try {
     const target = await waitForAnyPageTarget(port, options.timeoutMs);

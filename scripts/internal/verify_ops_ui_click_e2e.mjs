@@ -69,9 +69,12 @@ if (!chromePath) {
   process.exit(1);
 }
 
+fs.mkdirSync(outputDir, { recursive: true });
+
 let passCount = 0;
 let failCount = 0;
 const failures = [];
+const results = [];
 const createdPrereqs = authUiFlow ? null : await ensureOpsClickPrereqs();
 
 try {
@@ -93,6 +96,7 @@ try {
         ? await runAuthUiFlow(browser, { width, label, passwords: authUiPasswords })
         : await runOpsClickFlow(browser, { width, label });
       passCount += 1;
+      results.push({ label, width, status: "PASS", steps: result.steps });
       for (const step of result.steps) {
         console.log(`[pass] ${label} click step ${step}`);
       }
@@ -101,6 +105,7 @@ try {
       const message = error instanceof Error ? error.message : String(error);
       const detail = error instanceof Error && error.stack ? `${message}\n${error.stack}` : message;
       failures.push(`[${label}] ${detail}`);
+      results.push({ label, width, status: "FAIL", error: message });
       console.log(`[fail] ${label}: ${message}`);
     } finally {
       await browser.close();
@@ -114,12 +119,61 @@ console.log("");
 console.log(`== ${authUiFlow ? "Auth UI browser E2E" : "Ops UI direct click E2E"} 요약 ==`);
 console.log(`- 통과: ${passCount}`);
 console.log(`- 실패: ${failCount}`);
+writeE2eSummary({ authUiFlow, passCount, failCount, failures, results });
 if (failures.length > 0) {
   console.log("- 실패 상세:");
   for (const failure of failures) {
     console.log(`  - ${failure}`);
   }
   process.exit(1);
+}
+
+function writeE2eSummary({ authUiFlow, passCount, failCount, failures, results }) {
+  const title = authUiFlow ? "Auth UI browser E2E" : "Ops UI direct click E2E";
+  const summary = {
+    schema: "media-server.ops-ui-click-e2e-summary.v1",
+    title,
+    generatedAt: new Date().toISOString(),
+    httpBase,
+    widths,
+    height,
+    passCount,
+    failCount,
+    outputDir,
+    results,
+    failures,
+  };
+  const jsonPath = path.join(outputDir, "ops-click-e2e-summary.json");
+  const mdPath = path.join(outputDir, "ops-click-e2e-summary.md");
+  fs.writeFileSync(jsonPath, `${JSON.stringify(summary, null, 2)}\n`);
+  fs.writeFileSync(mdPath, buildE2eSummaryMarkdown(summary));
+  console.log(`- evidence: ${jsonPath}`);
+}
+
+function buildE2eSummaryMarkdown(summary) {
+  const lines = [
+    `# ${summary.title}`,
+    "",
+    `- generatedAt: ${summary.generatedAt}`,
+    `- httpBase: ${summary.httpBase}`,
+    `- widths: ${summary.widths.join(",")}`,
+    `- passCount: ${summary.passCount}`,
+    `- failCount: ${summary.failCount}`,
+    "",
+    "| Label | Status | Steps |",
+    "| --- | --- | ---: |",
+  ];
+  for (const item of summary.results) {
+    lines.push(`| ${item.label} | ${item.status} | ${Array.isArray(item.steps) ? item.steps.length : 0} |`);
+  }
+  if (summary.failures.length > 0) {
+    lines.push("", "## Failures", "");
+    for (const failure of summary.failures) {
+      lines.push(`- ${failure.replace(/\n/g, " ")}`);
+    }
+  }
+  lines.push("");
+  return `${lines.join("\n")}\n`;
 }
 
 async function ensureOpsClickPrereqs() {
@@ -582,6 +636,7 @@ async function assertOpsDashboardRuntimeHealthFlow(browser, context) {
   await setSelectValue(browser, "#dashIncidentTimelineSource", "log-tail", "dashboard log-tail incident filter");
   await assertHashParam(browser, "incidentSource", "log-tail", "dashboard log-tail hash");
   await assertText(browser, "#dashIncidentTimelineBadges", "log tail", "dashboard log-tail filter badge");
+  await assertDashboardLogTailRedaction(browser, "dashboard log-tail redaction");
   await assertText(browser, "#dashRuntimeOpsBadges", "분석", "dashboard runtime operations status");
   await assertText(browser, "#dashVaQualityBadges", "분석", "dashboard VA quality status");
   await assertNoOverflow(browser, `${context.label}:dashboard-runtime-health`);
@@ -593,6 +648,47 @@ async function assertOpsDashboardRuntimeHealthFlow(browser, context) {
   await assertTextNotEqual(browser, "#homeRuntimeText", "불러오는 중", "home runtime summary");
   await navigatePath(browser, "/ops/dashboard");
   await assertReady(browser, "/ops/dashboard", '[data-testid="ops-dashboard-page"]');
+}
+
+async function assertDashboardLogTailRedaction(browser, description) {
+  const payload = await requestJson("/ops/api/diagnostics/log-tail?limit=50");
+  const lines = Array.isArray(payload?.lines) ? payload.lines.map(item => String(item || "")) : [];
+  if (payload?.available !== true) {
+    throw new Error(`${description}: log tail unavailable ${JSON.stringify(payload).slice(0, 240)}`);
+  }
+  const serialized = JSON.stringify(lines).toLowerCase();
+  const forbidden = [
+    "passwordhash",
+    "passwordhistory",
+    "tokenhash",
+    "authorization:",
+    "bearer ",
+    "set-cookie",
+    "sessionsecret",
+    "plainpassword",
+  ];
+  const leaked = forbidden.filter(item => serialized.includes(item));
+  if (leaked.length > 0) {
+    throw new Error(`${description}: sensitive log-tail material leaked ${leaked.join(", ")}`);
+  }
+  await waitForResult(
+    browser,
+    `
+      (() => {
+        const badges = String(document.getElementById('dashIncidentTimelineBadges')?.textContent || '');
+        const text = String(document.getElementById('dashIncidentTimelineText')?.textContent || '');
+        const timeline = String(document.getElementById('dashIncidentTimeline')?.textContent || '');
+        return {
+          ok: badges.includes('log tail') && (text.includes('log tail') || timeline.includes('log-tail') || timeline.includes('diagnostics')),
+          badges,
+          text,
+          timeline: timeline.slice(0, 500),
+        };
+      })()
+    `,
+    item => item?.ok === true,
+    `${description} UI`,
+  );
 }
 
 async function assertSourceKindMatrixFlow(browser, context) {
@@ -627,6 +723,7 @@ async function assertSourceKindMatrixFlow(browser, context) {
       sourcePredicate: (source, locator) => source.kind === "whep" && source.whepUrl === locator,
     });
     created.push(whepId);
+    await assertClientSessionLifecycle(whepId, "WHEP source client wrapper lifecycle");
 
     const webrtcId = await createExternalChannelViaUi(browser, context, {
       kind: "webrtc",
@@ -736,6 +833,21 @@ async function assertOpsEventsFlow(browser, context) {
   await clickSelector(browser, "#alertDeliveryTest", "alert delivery fixture");
   await assertText(browser, "#alertDeliveryBadges", "시도", "alert delivery attempt badge");
   await assertText(browser, "#alertDeliveryRows", "[redacted-alert-target]", "alert delivery endpoint redaction");
+  await setTextValue(browser, "#alertDeliveryFilter", deliveryId, "alert delivery search filter");
+  await assertText(browser, "#alertDeliverySummary", "list/filter 1", "alert delivery filtered summary");
+  await assertTableContains(browser, "#alertDeliveryRows", `UI Delivery ${context.label}`, "alert delivery filtered row");
+  await setSelectValue(browser, "#alertDeliveryKindFilter", "webhook", "alert delivery kind filter");
+  await assertText(browser, "#alertDeliveryBadges", "필터 1", "alert delivery kind filter badge");
+  await setSelectValue(browser, "#alertDeliveryEnabledFilter", "enabled", "alert delivery enabled filter");
+  await assertText(browser, "#alertDeliveryRows", "활성", "alert delivery enabled filtered row");
+  await clickSelector(browser, `[data-alert-delivery-test="${deliveryId}"]`, "alert delivery row fixture");
+  await assertText(browser, "#alertDeliveryRows", "delivered", "alert delivery row fixture attempt");
+  await setTextValue(browser, "#alertDeliveryFilter", `${deliveryId}-missing`, "alert delivery empty filter");
+  await assertText(browser, "#alertDeliveryRows", "필터 조건에 맞는", "alert delivery empty filter row");
+  await setTextValue(browser, "#alertDeliveryFilter", "", "alert delivery filter clear");
+  await setSelectValue(browser, "#alertDeliveryKindFilter", "", "alert delivery kind filter clear");
+  await setSelectValue(browser, "#alertDeliveryEnabledFilter", "", "alert delivery enabled filter clear");
+  await assertText(browser, "#alertDeliveryBadges", "필터", "alert delivery filter badge reset");
 
   await setSelectValue(browser, "#eventReviewStatusFilter", "confirmed", "event review status filter");
   await assertText(browser, "#eventReviewSummary", "Event POST payload 변경 없음", "event review summary");
@@ -815,7 +927,13 @@ async function assertRulesNativeCrudAndPolicyFlow(browser, context) {
       lineDirection: "forward",
     });
     created.eventRuleIds.push(lineTemplateId);
+    await assertRulesScenarioFormMatrixFlow(browser, context, created, { sourceId, profileId });
 
+    await assertVaRuleMissingSourceValidation(browser, {
+      profileId,
+      templateId: scenarioTemplateId,
+      name: `UI VA Rule Missing Source ${context.label}`,
+    });
     const vaRuleId = await createVaRuleViaUi(browser, context, {
       sourceId,
       profileId,
@@ -826,12 +944,17 @@ async function assertRulesNativeCrudAndPolicyFlow(browser, context) {
       reid: "off",
       geometryPoints: "0.18,0.20\n0.82,0.20\n0.82,0.76\n0.18,0.76",
       expectedGeometryType: "polygon",
+      previewPlayback: true,
     });
     created.vaRuleIds.push(vaRuleId);
+    await assertClientViewAllowedRuleApis(sourceId, vaRuleId, "created VA rule client allowed rule APIs");
     await assertVaRuleClientSession(sourceId, vaRuleId, "created VA rule client va-rule session");
+    await assertVaRuleRuntimeTrackingPolicy(sourceId, vaRuleId, { tracker: "lite", reid: "off" }, "created VA rule runtime Re-ID off policy");
+    await assertDashboardActiveVaRuntime(browser, sourceId, vaRuleId, "created VA rule dashboard active runtime");
     await assertOpsRuleCopyPayload(browser, "rtsp", vaRuleId, ["rtsp://", `vaRule=${vaRuleId}`], "VA rule RTSP copy");
     await assertOpsRuleCopyPayload(browser, "whep", vaRuleId, ["/whep", `vaRule=${vaRuleId}`], "VA rule WHEP copy");
     await assertOpsRuleCopyPayload(browser, "client", vaRuleId, ["/client/live#", "mode=va-rule", `rule=${vaRuleId}`], "VA rule client copy");
+    await assertClientScreenDoesNotExposeOpsRuleCopyControls(browser, vaRuleId, "client screen ops rule copy boundary");
 
     await updateVaRuleViaUi(browser, vaRuleId, {
       name: `UI VA Rule Disabled ${context.label}`,
@@ -860,20 +983,24 @@ async function assertRulesNativeCrudAndPolicyFlow(browser, context) {
 
     await updateVaRuleTrackingViaUi(browser, vaRuleId, { tracker: "bytetrack", reid: "off" });
     await assertVaRuleClientSession(sourceId, vaRuleId, "bytetrack VA rule client va-rule session");
+    await assertVaRuleRuntimeTrackingPolicy(sourceId, vaRuleId, { tracker: "bytetrack", reid: "off" }, "ByteTrack VA rule runtime Re-ID off policy");
     await updateVaRuleTrackingViaUi(browser, vaRuleId, { tracker: "lite", reid: "assist" });
     await assertVaRuleClientSession(sourceId, vaRuleId, "reid assist VA rule client va-rule session");
     await updateVaRuleTrackingViaUi(browser, vaRuleId, { tracker: "none", reid: "off", expectedReid: "off" });
+    await assertVaRuleRuntimeTrackingPolicy(sourceId, vaRuleId, { tracker: "none", effectiveTracker: "none", reid: "off" }, "tracking disabled VA rule runtime Re-ID off policy");
 
+    await deleteEventTemplateViaUi(browser, lineTemplateId);
+    removeCreated(created.eventRuleIds, lineTemplateId);
+    await assertOpsRulesValidationIssue(browser, `템플릿 ${lineTemplateId}을 찾을 수 없습니다`, "event template delete reference validation");
+    await deleteProfileViaUi(browser, profileId);
+    removeCreated(created.profileIds, profileId);
+    await assertOpsRulesValidationIssue(browser, `프로파일 ${profileId}을 찾을 수 없습니다`, "profile delete reference validation");
     await deleteVaRuleViaUi(browser, vaRuleId, sourceId);
     removeCreated(created.vaRuleIds, vaRuleId);
     await assertVaRuleSessionBlocked(sourceId, vaRuleId, "deleted VA rule client session rejected");
 
-    await deleteEventTemplateViaUi(browser, lineTemplateId);
-    removeCreated(created.eventRuleIds, lineTemplateId);
     await deleteEventTemplateViaUi(browser, scenarioTemplateId);
     removeCreated(created.eventRuleIds, scenarioTemplateId);
-    await deleteProfileViaUi(browser, profileId);
-    removeCreated(created.profileIds, profileId);
     await assertNoOverflow(browser, `${context.label}:rules-native-crud-policy`);
   } finally {
     await cleanupRulesNativeCrudFixtures(created);
@@ -911,6 +1038,12 @@ async function createAnalysisProfileViaUi(browser, context) {
   await setTextValue(browser, "#opsProfileInputWidthInput", "640", "analysis profile width");
   await setTextValue(browser, "#opsProfileInputHeightInput", "480", "analysis profile height");
   await setCheckboxValue(browser, "#opsProfileAdaptiveToggle", true, "analysis profile adaptive");
+  await clickSelector(browser, "#opsProfileClassesClearBtn", "analysis profile tracking categories clear");
+  await assertText(browser, "#opsProfileClassesSummary", "추적 대상을 선택하세요", "analysis profile tracking category empty summary");
+  await clickSelector(browser, "#opsRulesComposerSave", "analysis profile empty tracking category save");
+  await assertText(browser, "#opsRulesStatus", "추적 대상", "analysis profile tracking category validation");
+  await clickSelector(browser, "#opsProfileClassesAllBtn", "analysis profile tracking categories all");
+  await assertText(browser, "#opsProfileClassesSummary", "사람", "analysis profile tracking category summary");
   await clickSelector(browser, "#opsRulesComposerSave", "analysis profile save");
   await assertRuleCatalogProfile(profileId, profile =>
     profile.detector === "yolo" &&
@@ -920,9 +1053,13 @@ async function createAnalysisProfileViaUi(browser, context) {
     Number(profile.nms) === 0.44 &&
     Number(profile.inputWidth) === 640 &&
     Number(profile.inputHeight) === 480 &&
-    profile.adaptive !== false,
+    profile.adaptive !== false &&
+    Array.isArray(profile.trackingClasses) &&
+    profile.trackingClasses.includes("person") &&
+    profile.trackingClasses.includes("vehicle"),
   "analysis profile API create");
   await assertTableContains(browser, "#opsProfileRows", profileId, "analysis profile row id");
+  await assertTableContains(browser, "#opsProfileRows", "사람", "analysis profile tracking category row");
   await assertNoOverflow(browser, `${context.label}:rules-profile-create`);
   return profileId;
 }
@@ -933,6 +1070,7 @@ async function updateAnalysisProfileViaUi(browser, profileId, context) {
   await clickSelector(browser, "#opsAddProfileBtn", "analysis profile tab for edit");
   await clickRuleAction(browser, "view-profile", profileId, "analysis profile detail");
   await assertVisible(browser, "#opsProfileForm", "analysis profile detail form");
+  await assertText(browser, "#opsProfileClassesSummary", "사람", "analysis profile tracking category detail summary");
   await clickSelector(browser, "#opsRulesComposerEdit", "analysis profile edit");
   await setSelectValue(browser, "#opsProfileDetectorSelect", "dummy", "analysis profile detector dummy");
   await setTextValue(browser, "#opsProfileFpsInput", "8", "analysis profile FPS update");
@@ -951,9 +1089,15 @@ async function updateAnalysisProfileViaUi(browser, profileId, context) {
     Number(profile.nms) === 0.42 &&
     Number(profile.inputWidth) === 512 &&
     Number(profile.inputHeight) === 384 &&
-    profile.adaptive === false,
+    profile.adaptive === false &&
+    Array.isArray(profile.trackingClasses) &&
+    profile.trackingClasses.includes("person") &&
+    profile.trackingClasses.includes("vehicle"),
   "analysis profile API update");
   await assertTableContains(browser, "#opsProfileRows", "dummy", "analysis profile detector row");
+  await assertTableContains(browser, "#opsProfileRows", "8", "analysis profile FPS row");
+  await assertTableContains(browser, "#opsProfileRows", "큐 3", "analysis profile queue row");
+  await assertTableContains(browser, "#opsProfileRows", "사람", "analysis profile tracking category update row");
   await assertNoOverflow(browser, `${context.label}:rules-profile-update`);
 }
 
@@ -968,11 +1112,23 @@ async function createEventTemplateViaUi(browser, context, spec) {
   await setSelectValue(browser, "#opsEventRuleModeSelect", spec.mode, `${spec.type} event template mode`);
   await setSelectValue(browser, "#opsEventRuleTypeSelect", spec.type, `${spec.type} event template type`);
   if (spec.preset) await setSelectValue(browser, "#opsEventRulePresetSelect", spec.preset, `${spec.type} event template preset`);
-  if (spec.confidence) await setTextValue(browser, "#opsEventRuleConfidenceInput", spec.confidence, `${spec.type} event template confidence`);
-  if (spec.lineDirection) await setSelectValue(browser, "#opsEventRuleLineDirectionSelect", spec.lineDirection, `${spec.type} event template line direction`);
-  if (spec.candidateMs) await setTextValue(browser, "#opsEventRuleCandidateInput", spec.candidateMs, `${spec.type} event template candidate`);
-  if (spec.dwellMs) await setTextValue(browser, "#opsEventRuleDwellInput", spec.dwellMs, `${spec.type} event template dwell`);
-  if (spec.cooldownMs) await setTextValue(browser, "#opsEventRuleCooldownInput", spec.cooldownMs, `${spec.type} event template cooldown`);
+  await clickSelector(browser, "#opsEventRuleClassesAllBtn", `${spec.type} event template all classes before validation`);
+  await assertText(browser, "#opsEventRuleClassesSummary", "사람", `${spec.type} event template class summary before validation`);
+  for (const check of spec.validationChecks || []) {
+    if (check.kind === "select") {
+      await setSelectValue(browser, check.selector, check.invalid, `${spec.type} event template invalid ${check.description}`);
+    } else {
+      await setTextValue(browser, check.selector, check.invalid, `${spec.type} event template invalid ${check.description}`);
+    }
+    await clickSelector(browser, "#opsRulesComposerSave", `${spec.type} event template invalid ${check.description} save`);
+    await assertText(browser, "#opsRulesStatus", check.message, `${spec.type} event template ${check.description} validation`);
+    if (check.kind === "select") {
+      await setSelectValue(browser, check.selector, check.valid, `${spec.type} event template valid ${check.description}`);
+    } else {
+      await setTextValue(browser, check.selector, check.valid, `${spec.type} event template valid ${check.description}`);
+    }
+  }
+  await applyEventTemplateSpec(browser, spec);
   await clickSelector(browser, "#opsEventRuleClassesAllBtn", `${spec.type} event template all classes`);
   await assertText(browser, "#opsEventRuleClassesSummary", "사람", `${spec.type} event template class summary`);
   await clickSelector(browser, "#opsRulesComposerSave", `${spec.type} event template save`);
@@ -980,11 +1136,33 @@ async function createEventTemplateViaUi(browser, context, spec) {
     ruleEventType(template) === spec.type &&
     Array.isArray(template.analysis?.classes) &&
     template.analysis.classes.includes("person") &&
-    (spec.mode === "scenario" ? Boolean(template.scenario) : !template.scenario),
+    (spec.mode === "scenario" ? Boolean(template.scenario) : !template.scenario) &&
+    eventTemplateMatchesSpec(template, spec),
   `${spec.type} event template API create`);
   await assertTableContains(browser, "#opsEventRuleRows", eventRuleId, `${spec.type} event template row id`);
   await assertNoOverflow(browser, `${context.label}:rules-template-${spec.type}`);
   return eventRuleId;
+}
+
+async function applyEventTemplateSpec(browser, spec) {
+  if (spec.confidence !== undefined) await setTextValue(browser, "#opsEventRuleConfidenceInput", spec.confidence, `${spec.type} event template confidence`);
+  if (spec.minDurationMs !== undefined) await setTextValue(browser, "#opsEventRuleMinDurationInput", spec.minDurationMs, `${spec.type} event template min duration`);
+  if (spec.lineDirection !== undefined) await setSelectValue(browser, "#opsEventRuleLineDirectionSelect", spec.lineDirection, `${spec.type} event template line direction`);
+  if (spec.candidateMs !== undefined) await setTextValue(browser, "#opsEventRuleCandidateInput", spec.candidateMs, `${spec.type} event template candidate`);
+  if (spec.dwellMs !== undefined) await setTextValue(browser, "#opsEventRuleDwellInput", spec.dwellMs, `${spec.type} event template dwell`);
+  if (spec.cooldownMs !== undefined) await setTextValue(browser, "#opsEventRuleCooldownInput", spec.cooldownMs, `${spec.type} event template cooldown`);
+  if (spec.reEntryWindowMs !== undefined) await setTextValue(browser, "#opsEventRuleReEntryWindowInput", spec.reEntryWindowMs, `${spec.type} event template re-entry window`);
+  if (spec.reEntryMode !== undefined) await setSelectValue(browser, "#opsEventRuleReEntryModeSelect", spec.reEntryMode, `${spec.type} event template re-entry mode`);
+  if (spec.lineDelayMs !== undefined) await setTextValue(browser, "#opsEventRuleLineDelayInput", spec.lineDelayMs, `${spec.type} event template line delay`);
+  if (spec.triggerDirection !== undefined) await setSelectValue(browser, "#opsEventRuleTriggerDirectionSelect", spec.triggerDirection, `${spec.type} event template trigger direction`);
+  if (spec.loiteringRadius !== undefined) await setTextValue(browser, "#opsEventRuleLoiteringRadiusInput", spec.loiteringRadius, `${spec.type} event template loitering radius`);
+  if (spec.loiteringPoints !== undefined) await setTextValue(browser, "#opsEventRuleLoiteringPointsInput", spec.loiteringPoints, `${spec.type} event template loitering points`);
+  if (spec.groundPlane !== undefined) await setCheckboxValue(browser, "#opsEventRuleLoiteringGroundPlaneToggle", spec.groundPlane, `${spec.type} event template ground-plane`);
+  if (spec.zoneThreshold !== undefined) await setTextValue(browser, "#opsEventRuleZoneThresholdInput", spec.zoneThreshold, `${spec.type} event template zone threshold`);
+  if (spec.zoneDwellMs !== undefined) await setTextValue(browser, "#opsEventRuleZoneDwellInput", spec.zoneDwellMs, `${spec.type} event template zone dwell`);
+  if (spec.targetZoneIds !== undefined) await setTextValue(browser, "#opsEventRuleTargetZonesInput", spec.targetZoneIds.join(", "), `${spec.type} event template target zones`);
+  if (spec.restrictedZoneIds !== undefined) await setTextValue(browser, "#opsEventRuleRestrictedZonesInput", spec.restrictedZoneIds.join(", "), `${spec.type} event template restricted zones`);
+  if (spec.reEntryZoneIds !== undefined) await setTextValue(browser, "#opsEventRuleReEntryZonesInput", spec.reEntryZoneIds.join(", "), `${spec.type} event template re-entry zones`);
 }
 
 async function updateEventTemplateViaUi(browser, eventRuleId, spec) {
@@ -1008,6 +1186,210 @@ async function updateEventTemplateViaUi(browser, eventRuleId, spec) {
   await assertTableContains(browser, "#opsEventRuleRows", "후보", "event template condition row");
 }
 
+async function assertRulesScenarioFormMatrixFlow(browser, context, created, binding) {
+  const specs = [
+    {
+      mode: "event",
+      type: "presence",
+      preset: "custom",
+      confidence: "0.32",
+      minDurationMs: "500",
+    },
+    {
+      mode: "event",
+      type: "enter",
+      preset: "custom",
+      confidence: "0.33",
+      minDurationMs: "0",
+    },
+    {
+      mode: "event",
+      type: "exit",
+      preset: "custom",
+      confidence: "0.34",
+      minDurationMs: "0",
+    },
+    {
+      mode: "event",
+      type: "line-crossing",
+      preset: "custom",
+      confidence: "0.35",
+      minDurationMs: "0",
+      lineDirection: "any",
+    },
+    {
+      mode: "event",
+      type: "line-crossing",
+      preset: "custom",
+      confidence: "0.36",
+      minDurationMs: "0",
+      lineDirection: "forward",
+    },
+    {
+      mode: "event",
+      type: "line-crossing",
+      preset: "custom",
+      confidence: "0.37",
+      minDurationMs: "0",
+      lineDirection: "reverse",
+    },
+    {
+      mode: "scenario",
+      type: "intrusion-dwell",
+      preset: "custom",
+      confidence: "0.38",
+      candidateMs: "1600",
+      dwellMs: "5200",
+      cooldownMs: "2400",
+      validationChecks: [
+        { selector: "#opsEventRuleCandidateInput", invalid: "-1", valid: "1600", message: "후보 판단 시간", description: "candidate" },
+        { selector: "#opsEventRuleDwellInput", invalid: "-1", valid: "5200", message: "확정/체류 시간", description: "dwell" },
+        { selector: "#opsEventRuleCooldownInput", invalid: "-1", valid: "2400", message: "재알림 대기", description: "cooldown" },
+      ],
+    },
+    {
+      mode: "scenario",
+      type: "re-entry",
+      preset: "custom",
+      confidence: "0.39",
+      reEntryWindowMs: "9000",
+      reEntryMode: "configured-zones",
+      reEntryZoneIds: ["zone-a", "zone-b"],
+      cooldownMs: "2500",
+      validationChecks: [
+        { selector: "#opsEventRuleReEntryWindowInput", invalid: "-1", valid: "9000", message: "재진입 허용 시간", description: "re-entry window" },
+        { selector: "#opsEventRuleCooldownInput", invalid: "-1", valid: "2500", message: "재알림 대기", description: "cooldown" },
+      ],
+    },
+    {
+      mode: "scenario",
+      type: "wrong-direction",
+      preset: "custom",
+      confidence: "0.4",
+      minDurationMs: "0",
+      lineDirection: "forward",
+      cooldownMs: "2600",
+      validationChecks: [
+        { kind: "select", selector: "#opsEventRuleLineDirectionSelect", invalid: "any", valid: "forward", message: "allowed direction", description: "allowed direction" },
+      ],
+    },
+    {
+      mode: "scenario",
+      type: "intrusion-after-line-crossing",
+      preset: "custom",
+      confidence: "0.41",
+      lineDelayMs: "6500",
+      dwellMs: "1800",
+      triggerDirection: "reverse",
+      targetZoneIds: ["zone-entry", "zone-core"],
+      cooldownMs: "2700",
+      validationChecks: [
+        { selector: "#opsEventRuleLineDelayInput", invalid: "-1", valid: "6500", message: "라인 후 최대 지연", description: "line delay" },
+        { selector: "#opsEventRuleDwellInput", invalid: "-1", valid: "1800", message: "확정/체류 시간", description: "dwell" },
+      ],
+    },
+    {
+      mode: "scenario",
+      type: "loitering",
+      preset: "custom",
+      confidence: "0.42",
+      dwellMs: "21000",
+      loiteringRadius: "0.07",
+      loiteringPoints: "5",
+      groundPlane: true,
+      restrictedZoneIds: ["zone-loiter"],
+      cooldownMs: "2800",
+      validationChecks: [
+        { selector: "#opsEventRuleDwellInput", invalid: "-1", valid: "21000", message: "최소 체류 시간", description: "min dwell" },
+        { selector: "#opsEventRuleLoiteringRadiusInput", invalid: "0", valid: "0.07", message: "최대 이동 반경", description: "radius" },
+        { selector: "#opsEventRuleLoiteringPointsInput", invalid: "1", valid: "5", message: "최소 이동 경로 점수", description: "trajectory points" },
+      ],
+    },
+    {
+      mode: "scenario",
+      type: "zone-occupancy",
+      preset: "custom",
+      confidence: "0.43",
+      zoneThreshold: "6",
+      zoneDwellMs: "8000",
+      restrictedZoneIds: ["zone-lobby"],
+      cooldownMs: "2900",
+      validationChecks: [
+        { selector: "#opsEventRuleZoneThresholdInput", invalid: "0", valid: "6", message: "점유 임계값", description: "occupancy threshold" },
+        { selector: "#opsEventRuleZoneDwellInput", invalid: "-1", valid: "8000", message: "최소 점유 체류", description: "zone dwell" },
+      ],
+    },
+  ];
+  const lineTemplates = [];
+  for (const spec of specs) {
+    const id = await createEventTemplateViaUi(browser, context, spec);
+    created.eventRuleIds.push(id);
+    if (spec.type === "line-crossing") lineTemplates.push({ id, spec });
+    await clickRuleAction(browser, "view-event-template", id, `${spec.type} scenario matrix detail`);
+    await assertVisible(browser, "#opsEventRuleForm", `${spec.type} scenario matrix detail form`);
+    await assertFormValue(browser, "#opsEventRuleTypeSelect", spec.type, `${spec.type} scenario matrix detail type`);
+    await assertEventTemplateDetailMatchesSpec(browser, spec);
+    await assertTableContains(browser, "#opsEventRuleRows", id, `${spec.type} scenario matrix table id`);
+  }
+  await assertTableContains(browser, "#opsEventRuleRows", "정방향", "line direction forward summary");
+  await assertTableContains(browser, "#opsEventRuleRows", "역방향", "line direction reverse summary");
+  await assertTableContains(browser, "#opsEventRuleRows", "ground-plane", "loitering ground-plane summary");
+  await assertTableContains(browser, "#opsEventRuleRows", "임계 6", "zone occupancy threshold summary");
+  await assertTableContains(browser, "#opsEventRuleRows", "zone-entry", "intrusion-after-line-crossing target zone summary");
+  await assertTableContains(browser, "#opsEventRuleRows", "zone-loiter", "loitering restricted zone summary");
+  await assertTableContains(browser, "#opsEventRuleRows", "zone-lobby", "zone occupancy restricted zone summary");
+  for (const { id, spec } of lineTemplates) {
+    const vaRuleId = await createVaRuleViaUi(browser, context, {
+      sourceId: binding.sourceId,
+      profileId: binding.profileId,
+      templateId: id,
+      name: `UI Line ${spec.lineDirection} ${context.label}`,
+      enabled: true,
+      tracker: "lite",
+      reid: "off",
+      geometryPoints: "0.10,0.50\n0.90,0.50",
+      expectedGeometryType: "line",
+    });
+    created.vaRuleIds.push(vaRuleId);
+    await assertClientViewAllowedRuleApis(binding.sourceId, vaRuleId, `line ${spec.lineDirection} allowed rule APIs`);
+    await assertVaRuleClientSession(binding.sourceId, vaRuleId, `line ${spec.lineDirection} VA rule client session`);
+    await deleteVaRuleViaUi(browser, vaRuleId, binding.sourceId);
+    removeCreated(created.vaRuleIds, vaRuleId);
+    await assertVaRuleSessionBlocked(binding.sourceId, vaRuleId, `line ${spec.lineDirection} deleted session rejected`);
+  }
+  await assertNoOverflow(browser, `${context.label}:rules-scenario-form-matrix`);
+}
+
+async function assertEventTemplateDetailMatchesSpec(browser, spec) {
+  if (spec.lineDirection !== undefined) {
+    await assertFormValue(browser, "#opsEventRuleLineDirectionSelect", spec.lineDirection, `${spec.type} detail line direction`);
+  }
+  if (spec.targetZoneIds !== undefined) {
+    await assertFormValue(browser, "#opsEventRuleTargetZonesInput", spec.targetZoneIds.join(", "), `${spec.type} detail target zones`);
+  }
+  if (spec.restrictedZoneIds !== undefined) {
+    await assertFormValue(browser, "#opsEventRuleRestrictedZonesInput", spec.restrictedZoneIds.join(", "), `${spec.type} detail restricted zones`);
+  }
+  if (spec.reEntryZoneIds !== undefined) {
+    await assertFormValue(browser, "#opsEventRuleReEntryZonesInput", spec.reEntryZoneIds.join(", "), `${spec.type} detail re-entry zones`);
+  }
+}
+
+async function assertVaRuleMissingSourceValidation(browser, spec) {
+  await navigatePath(browser, "/ops/rules");
+  await assertReady(browser, "/ops/rules", '[data-testid="ops-rules-page"]');
+  await clickSelector(browser, "#opsAddVaRuleBtn", "VA rule missing source tab");
+  await clickSelector(browser, "#opsCreateVaRuleBtn", "VA rule missing source create");
+  await assertVisible(browser, "#opsVaRuleForm", "VA rule missing source form");
+  await setTextValue(browser, "#opsVaRuleNameInput", spec.name, "VA rule missing source name");
+  await setSelectValue(browser, "#opsVaRuleChannelSelect", "", "VA rule missing source empty channel");
+  await setSelectValue(browser, "#opsVaRuleTemplateSeedSelect", spec.templateId, "VA rule missing source template");
+  await setSelectValue(browser, "#opsVaRuleProfileSelect", spec.profileId, "VA rule missing source profile");
+  await clickSelector(browser, "#opsRulesComposerSave", "VA rule missing source save");
+  await assertText(browser, "#opsRulesStatus", "채널을 선택하세요", "VA rule missing source validation");
+  await clickSelector(browser, "#opsRulesComposerClose", "VA rule missing source close");
+}
+
 async function createVaRuleViaUi(browser, context, spec) {
   await navigatePath(browser, "/ops/rules");
   await assertReady(browser, "/ops/rules", '[data-testid="ops-rules-page"]');
@@ -1024,15 +1406,80 @@ async function createVaRuleViaUi(browser, context, spec) {
   await setSelectValue(browser, "#opsVaRuleProfileSelect", spec.profileId, "VA rule profile");
   await setSelectValue(browser, "#opsVaRuleTrackerSelect", spec.tracker, "VA rule tracker");
   await setSelectValue(browser, "#opsVaRuleReidSelect", spec.reid, "VA rule Re-ID");
+  await assertText(browser, "#opsVaRulePreviewSummary", "영상을", "VA rule preview summary");
+  if (spec.previewPlayback) {
+    await assertVaRulePreviewPlayback(browser, "VA rule preview playback");
+  }
+  await clickSelector(browser, "#opsVaRuleGeometryClearBtn", "VA rule geometry clear");
+  await assertText(browser, "#opsVaRuleGeometryPointCountText", "0/", "VA rule geometry cleared point count");
+  await assertText(browser, "#opsVaRuleGeometryMinimumText", "최소", "VA rule geometry clear validation");
+  await clickSelector(browser, "#opsVaRuleGeometryDefaultBtn", "VA rule geometry default");
+  await assertText(browser, "#opsVaRuleGeometryMinimumText", "저장 가능", "VA rule geometry default ready");
   await setTextValue(browser, "#opsVaRuleGeometryPointsInput", spec.geometryPoints, "VA rule geometry points");
   await assertVaGeometryKind(browser, spec.expectedGeometryType, "VA rule geometry kind");
   await clickSelector(browser, "#opsRulesComposerSave", "VA rule save");
   await assertVaRuleSaved(vaRuleId, spec, "VA rule API create");
+  await assertFormValue(browser, "#opsVaRuleChannelSelect", spec.sourceId, "VA rule detail source select");
+  await assertFormValue(browser, "#opsVaRuleTemplateSeedSelect", spec.templateId, "VA rule detail template select");
+  await assertFormValue(browser, "#opsVaRuleProfileSelect", spec.profileId, "VA rule detail profile select");
+  await assertFormValue(browser, "#opsVaRuleEnabledInput", spec.enabled ? "true" : "false", "VA rule detail enabled select");
+  await assertText(browser, "#opsVaRuleGeometryPointCountText", spec.expectedGeometryType === "line" ? "2/" : "4/", "VA rule detail geometry point count");
   await assertViewRuleBinding(spec.sourceId, vaRuleId, true, "VA rule PublishedView binding create");
   await assertTableContains(browser, "#opsVaRuleRows", vaRuleId, "VA rule row id");
   await assertText(browser, "#opsVaRuleRows", spec.enabled ? "활성" : "비활성", "VA rule row status");
+  await assertTableContains(browser, "#opsVaRuleRows", spec.expectedGeometryType === "line" ? "라인" : "영역", "VA rule geometry row");
+  await assertTableContains(browser, "#opsVaRuleRows", trackerPolicyLabel(spec.tracker), "VA rule tracker row");
+  await assertTableContains(browser, "#opsVaRuleRows", reidPolicyLabel(spec.reid), "VA rule reid row");
   await assertNoOverflow(browser, `${context.label}:rules-va-create`);
   return vaRuleId;
+}
+
+async function assertVaRulePreviewPlayback(browser, description) {
+  await clickSelector(browser, "#opsVaRulePreviewStartBtn", `${description} start`);
+  await waitForResult(
+    browser,
+    `
+      (() => {
+        const video = document.getElementById('opsVaRulePreviewVideo');
+        const summary = String(document.getElementById('opsVaRulePreviewSummary')?.textContent || '');
+        const placeholder = document.getElementById('opsVaRulePreviewPlaceholder');
+        return {
+          ok: Boolean(video) &&
+            video.readyState >= 2 &&
+            video.videoWidth > 0 &&
+            video.videoHeight > 0 &&
+            summary.includes('미리보기를 보고') &&
+            placeholder?.hidden === true,
+          readyState: video?.readyState || 0,
+          videoWidth: video?.videoWidth || 0,
+          videoHeight: video?.videoHeight || 0,
+          summary,
+          placeholderHidden: placeholder?.hidden === true,
+        };
+      })()
+    `,
+    item => item?.ok === true,
+    `${description} video ready`,
+  );
+  await clickSelector(browser, "#opsVaRulePreviewStopBtn", `${description} stop`);
+  await waitForResult(
+    browser,
+    `
+      (() => {
+        const video = document.getElementById('opsVaRulePreviewVideo');
+        const summary = String(document.getElementById('opsVaRulePreviewSummary')?.textContent || '');
+        const stopBtn = document.getElementById('opsVaRulePreviewStopBtn');
+        return {
+          ok: Boolean(video) && !video.srcObject && stopBtn?.disabled === true && summary.includes('영상을 재생'),
+          hasSrcObject: Boolean(video?.srcObject),
+          stopDisabled: stopBtn?.disabled === true,
+          summary,
+        };
+      })()
+    `,
+    item => item?.ok === true,
+    `${description} stopped`,
+  );
 }
 
 async function updateVaRuleViaUi(browser, vaRuleId, spec) {
@@ -1052,6 +1499,15 @@ async function updateVaRuleViaUi(browser, vaRuleId, spec) {
   if (spec.expectedGeometryType) await assertVaGeometryKind(browser, spec.expectedGeometryType, "VA rule geometry kind update");
   await clickSelector(browser, "#opsRulesComposerSave", "VA rule update save");
   await assertVaRuleSaved(vaRuleId, spec, "VA rule API update");
+  if (spec.expectedGeometryType) {
+    await assertText(browser, "#opsVaRuleGeometryPointCountText", spec.expectedGeometryType === "line" ? "2/" : "4/", "VA rule geometry update point count");
+  }
+  if (spec.expectedTracker || spec.tracker) {
+    await assertTableContains(browser, "#opsVaRuleRows", trackerPolicyLabel(spec.expectedTracker || spec.tracker), "VA rule tracker update row");
+  }
+  if (spec.expectedReid || spec.reid) {
+    await assertTableContains(browser, "#opsVaRuleRows", reidPolicyLabel(spec.expectedReid || spec.reid), "VA rule reid update row");
+  }
 }
 
 async function updateVaRuleTrackingViaUi(browser, vaRuleId, spec) {
@@ -1192,6 +1648,120 @@ async function assertVaRuleClientSession(viewId, vaRuleId, description) {
   }
 }
 
+async function assertVaRuleRuntimeTrackingPolicy(viewId, vaRuleId, expected, description) {
+  const created = await requestJson(`/client/api/views/${encodeURIComponent(viewId)}/webrtc/session`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ overlayMode: "va-rule", ruleId: vaRuleId }),
+  });
+  const sessionId = String(created?.sessionId || "");
+  if (!sessionId || !created?.offer) {
+    throw new Error(`${description}: missing sessionId/offer ${JSON.stringify(created).slice(0, 240)}`);
+  }
+  try {
+    await waitForApiPredicate("/ops/api/runtime/status", payload => {
+      const taps = Array.isArray(payload?.analysisMatching?.activeTaps) ? payload.analysisMatching.activeTaps : [];
+      return taps.some(tap => {
+        const policy = tap?.trackingPolicy || {};
+        if (String(policy.ruleId || tap?.selectedRuleId || "") !== String(vaRuleId)) return false;
+        if (String(policy.source || "") !== "rule") return false;
+        if (policy.specified !== true) return false;
+        if (expected.tracker && String(policy.tracker || "") !== String(expected.tracker)) return false;
+        if (expected.effectiveTracker && String(policy.effectiveTracker || "") !== String(expected.effectiveTracker)) return false;
+        if (expected.reid && String(policy.reid || "") !== String(expected.reid)) return false;
+        return true;
+      });
+    }, description);
+  } finally {
+    const deleted = await requestStatus(`/client/api/views/${encodeURIComponent(viewId)}/webrtc/session/${encodeURIComponent(sessionId)}`, {
+      method: "DELETE",
+    }).catch(error => ({ ok: false, status: 0, text: String(error?.message || error) }));
+    if (!deleted.ok) {
+      throw new Error(`${description}: cleanup delete failed HTTP ${deleted.status} ${deleted.text.slice(0, 160)}`);
+    }
+  }
+}
+
+async function assertDashboardActiveVaRuntime(browser, viewId, vaRuleId, description) {
+  const created = await requestJson(`/client/api/views/${encodeURIComponent(viewId)}/webrtc/session`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ overlayMode: "va-rule", ruleId: vaRuleId }),
+  });
+  const sessionId = String(created?.sessionId || "");
+  if (!sessionId || !created?.offer) {
+    throw new Error(`${description}: missing sessionId/offer ${JSON.stringify(created).slice(0, 240)}`);
+  }
+  try {
+    const runtime = await waitForApiPredicate("/ops/api/runtime/status", payload => {
+      const taps = Array.isArray(payload?.analysisMatching?.activeTaps) ? payload.analysisMatching.activeTaps : [];
+      return taps.some(tap => String(tap?.selectedRuleId || tap?.trackingPolicy?.ruleId || "") === String(vaRuleId));
+    }, `${description} active tap`);
+    const activeSessions = Number(runtime?.sessionManager?.activeSessions || 0);
+    const activeTaps = Number(runtime?.sessionManager?.activeAnalysisTaps || 0);
+    if (activeSessions <= 0 || activeTaps <= 0) {
+      throw new Error(`${description}: runtime counters did not show active session/tap ${JSON.stringify(runtime?.sessionManager || {})}`);
+    }
+    await navigatePath(browser, "/ops/dashboard");
+    await assertReady(browser, "/ops/dashboard", '[data-testid="ops-dashboard-page"]');
+    await waitForResult(
+      browser,
+      `
+        (() => {
+          const runtimeBadges = String(document.getElementById('dashRuntimeOpsBadges')?.textContent || '');
+          const runtimeText = String(document.getElementById('dashRuntimeOpsText')?.textContent || '');
+          const runtimeList = String(document.getElementById('dashRuntimeOpsList')?.textContent || '');
+          const vaBadges = String(document.getElementById('dashVaQualityBadges')?.textContent || '');
+          const vaText = String(document.getElementById('dashVaQualityText')?.textContent || '');
+          return {
+            ok: runtimeBadges.includes(${JSON.stringify(`룰 ${vaRuleId}`)}) &&
+              runtimeBadges.includes('탭') &&
+              runtimeText.includes('runtime/status') &&
+              runtimeList.includes('선택 tap') &&
+              vaBadges.includes(${JSON.stringify(`룰 ${vaRuleId}`)}) &&
+              vaBadges.includes('타임라인') &&
+              !vaText.includes('활성 분석 탭이 있으면'),
+            runtimeBadges,
+            runtimeText,
+            runtimeList: runtimeList.slice(0, 600),
+            vaBadges,
+            vaText,
+          };
+        })()
+      `,
+      item => item?.ok === true,
+      `${description} dashboard active summary`,
+    );
+    await navigatePath(browser, "/ops/home");
+    await assertReady(browser, "/ops/home", '[data-testid="ops-home-page"]');
+    await waitForResult(
+      browser,
+      `
+        (() => {
+          const active = String(document.getElementById('homeActiveSessions')?.textContent || '').trim();
+          const text = String(document.getElementById('homeRuntimeText')?.textContent || '');
+          return {
+            ok: active && active !== '-' && active !== '0' && !text.includes('불러오는 중'),
+            active,
+            text,
+          };
+        })()
+      `,
+      item => item?.ok === true,
+      `${description} home active summary`,
+    );
+    await navigatePath(browser, "/ops/rules");
+    await assertReady(browser, "/ops/rules", '[data-testid="ops-rules-page"]');
+  } finally {
+    const deleted = await requestStatus(`/client/api/views/${encodeURIComponent(viewId)}/webrtc/session/${encodeURIComponent(sessionId)}`, {
+      method: "DELETE",
+    }).catch(error => ({ ok: false, status: 0, text: String(error?.message || error) }));
+    if (!deleted.ok) {
+      throw new Error(`${description}: cleanup delete failed HTTP ${deleted.status} ${deleted.text.slice(0, 160)}`);
+    }
+  }
+}
+
 async function assertVaRuleSessionBlocked(viewId, vaRuleId, description) {
   const result = await requestStatus(`/client/api/views/${encodeURIComponent(viewId)}/webrtc/session`, {
     method: "POST",
@@ -1201,6 +1771,28 @@ async function assertVaRuleSessionBlocked(viewId, vaRuleId, description) {
   if (![400, 403, 404, 409].includes(result.status)) {
     throw new Error(`${description}: expected blocked session status, got ${result.status} ${result.text.slice(0, 160)}`);
   }
+}
+
+async function assertClientScreenDoesNotExposeOpsRuleCopyControls(browser, vaRuleId, description) {
+  await navigatePath(browser, "/client/live");
+  await assertReady(browser, "/client/live", '[data-testid="client-shell-page"]');
+  const result = await browser.evaluate(`
+    (() => {
+      const body = String(document.body?.textContent || '');
+      const opsCopyButtons = Array.from(document.querySelectorAll('[data-ops-rule-copy-kind]'))
+        .map(item => ({ kind: item.getAttribute('data-ops-rule-copy-kind') || '', id: item.getAttribute('data-ops-rule-copy-id') || '' }));
+      return {
+        ok: opsCopyButtons.length === 0 && !body.includes(${JSON.stringify(`vaRule=${vaRuleId}`)}),
+        opsCopyButtons,
+        leakedVaRuleUrl: body.includes(${JSON.stringify(`vaRule=${vaRuleId}`)}),
+      };
+    })()
+  `, 3000);
+  if (!result?.ok) {
+    throw new Error(`${description}: client screen exposed ops rule copy affordance ${JSON.stringify(result)}`);
+  }
+  await navigatePath(browser, "/ops/rules");
+  await assertReady(browser, "/ops/rules", '[data-testid="ops-rules-page"]');
 }
 
 async function assertRuleCatalogVaRule(id, predicate, description) {
@@ -1246,8 +1838,100 @@ async function assertViewRuleBinding(viewId, ruleId, expected, description) {
   }, description);
 }
 
+async function assertClientViewAllowedRuleApis(viewId, ruleId, description) {
+  const listPayload = await requestJson("/client/api/views");
+  const listViews = Array.isArray(listPayload?.views) ? listPayload.views : (Array.isArray(listPayload) ? listPayload : []);
+  const listView = listViews.find(item => String(item?.viewId || item?.id || "") === String(viewId));
+  if (!listView) {
+    throw new Error(`${description}: client list API missing view ${viewId}`);
+  }
+  const detailPayload = await requestJson(`/client/api/views/${encodeURIComponent(viewId)}`);
+  const detailView = detailPayload?.view || detailPayload;
+  const listAllowed = Array.isArray(listView.allowedRuleIds) ? listView.allowedRuleIds.map(String) : [];
+  const detailAllowed = Array.isArray(detailView.allowedRuleIds) ? detailView.allowedRuleIds.map(String) : [];
+  const expected = String(ruleId);
+  if (!listAllowed.includes(expected) || !detailAllowed.includes(expected)) {
+    throw new Error(`${description}: missing allowedRuleIds in client APIs list=${JSON.stringify(listAllowed)} detail=${JSON.stringify(detailAllowed)}`);
+  }
+  const unexpected = [...listAllowed, ...detailAllowed].filter(item => item && item !== expected);
+  if (unexpected.length > 0) {
+    throw new Error(`${description}: unexpected extra allowedRuleIds ${JSON.stringify(unexpected)}`);
+  }
+  const dashboardPayload = await requestJson(`/client/api/views/${encodeURIComponent(viewId)}/dashboard`);
+  if (String(dashboardPayload?.view?.viewId || "") !== String(viewId)) {
+    throw new Error(`${description}: dashboard endpoint did not stay scoped to view ${viewId}`);
+  }
+  const metadataPayload = await requestJson(`/client/api/views/${encodeURIComponent(viewId)}/metadata`);
+  if (String(metadataPayload?.view?.viewId || "") !== String(viewId) || metadataPayload?.metadata?.schema !== "media-server.client.metadata-summary.v1") {
+    throw new Error(`${description}: metadata endpoint did not stay scoped to view ${viewId}`);
+  }
+  const blocked = await requestStatus(`/client/api/views/${encodeURIComponent(viewId)}/webrtc/session`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ overlayMode: "va-rule", ruleId: `${ruleId}-not-allowed` }),
+  });
+  if (![400, 403, 404, 409].includes(blocked.status)) {
+    throw new Error(`${description}: disallowed va-rule session was not blocked, got ${blocked.status} ${blocked.text.slice(0, 160)}`);
+  }
+}
+
+async function assertOpsRulesValidationIssue(browser, expectedText, description) {
+  await navigatePath(browser, "/ops/rules");
+  await assertReady(browser, "/ops/rules", '[data-testid="ops-rules-page"]');
+  await assertText(browser, "#opsRulesValidationList", expectedText, description);
+}
+
 function ruleEventType(item) {
   return String(item?.scenario?.type || item?.event?.type || item?.eventType || "");
+}
+
+function sameNumber(actual, expected) {
+  if (expected === undefined) return true;
+  return Number(actual) === Number(expected);
+}
+
+function sameStringArray(actual, expected) {
+  if (expected === undefined) return true;
+  if (!Array.isArray(actual) || actual.length !== expected.length) return false;
+  const actualValues = actual.map(item => String(item || ""));
+  return expected.every(item => actualValues.includes(String(item || "")));
+}
+
+function eventTemplateMatchesSpec(template, spec) {
+  const event = template?.event || {};
+  const scenario = template?.scenario || {};
+  return sameNumber(event.minConfidence, spec.confidence) &&
+    sameNumber(event.minDurationMs, spec.minDurationMs) &&
+    (spec.lineDirection === undefined || String(event?.region?.direction || scenario?.allowedDirection || "") === String(spec.lineDirection)) &&
+    sameNumber(scenario.candidateTimeMs, spec.candidateMs) &&
+    (!["intrusion-dwell", "intrusion-after-line-crossing"].includes(spec.type) || sameNumber(scenario.dwellTimeMs, spec.dwellMs)) &&
+    sameNumber(scenario.cooldownMs, spec.cooldownMs) &&
+    sameNumber(scenario.reEntryWindowMs, spec.reEntryWindowMs) &&
+    (spec.reEntryMode === undefined || String(scenario.reEntryMode || "") === String(spec.reEntryMode)) &&
+    (spec.type !== "wrong-direction" || String(scenario.allowedDirection || event?.region?.direction || "") === String(spec.lineDirection || "forward")) &&
+    sameNumber(scenario.maxDelayAfterCrossingMs, spec.lineDelayMs) &&
+    (spec.triggerDirection === undefined || String(scenario?.triggerLine?.direction || "") === String(spec.triggerDirection)) &&
+    (spec.type !== "loitering" || sameNumber(scenario.minDwellTimeMs, spec.dwellMs)) &&
+    (spec.type !== "zone-occupancy" || sameNumber(scenario.minDwellTimeMs, spec.zoneDwellMs)) &&
+    sameNumber(scenario.maxMovementRadius, spec.loiteringRadius) &&
+    sameNumber(scenario.minTrajectoryPoints, spec.loiteringPoints) &&
+    (spec.groundPlane === undefined || Boolean(scenario.useGroundPlaneMovementRadius) === Boolean(spec.groundPlane)) &&
+    sameNumber(scenario.occupancyThreshold, spec.zoneThreshold) &&
+    sameStringArray(scenario.targetZoneIds, spec.targetZoneIds) &&
+    sameStringArray(scenario.restrictedZoneIds, spec.restrictedZoneIds) &&
+    sameStringArray(scenario.reEntryZoneIds, spec.reEntryZoneIds);
+}
+
+function trackerPolicyLabel(value) {
+  const tracker = String(value || "").trim();
+  if (tracker === "none") return "Tracking off";
+  if (tracker === "kalman-lite") return "Kalman-lite";
+  if (tracker === "bytetrack") return "ByteTrack";
+  return "Lite tracker";
+}
+
+function reidPolicyLabel(value) {
+  return String(value || "").trim() === "assist" ? "Re-ID assist" : "Re-ID off";
 }
 
 function sourcePayloadKey(source) {
@@ -1337,7 +2021,8 @@ async function runAuthUiFlow(browser, context) {
     await assertLoginRejected(browser, lifecycleUsername, passwords.userReset, "이전 임시 비밀번호 재사용 로그인 거부");
     await loginViaForm(browser, lifecycleUsername, passwords.userChanged, "/client/live");
     await assertWhoami(browser, { username: lifecycleUsername, role: "viewer" }, "복구 사용자 whoami");
-    steps.push("auth:user-lifecycle-session");
+    await assertClientSourceTreeOnly(browser, "2", "scope 수정 viewer source tree");
+    steps.push("auth:user-lifecycle-session", "auth:viewer-scope-change-source-tree");
     await assertClientLiveSessionCleanupViaUi(browser, context);
     steps.push("client:live-session-cleanup");
 
@@ -1353,9 +2038,10 @@ async function runAuthUiFlow(browser, context) {
     await assertStoreUser(requestUsername, user => user.enabled === true && user.role === "viewer" && hasScope(user, "view:read:1"), "초대 수락 user/scope 생성");
     await loginViaForm(browser, requestUsername, passwords.inviteAccepted, "/client/live");
     await assertWhoami(browser, { username: requestUsername, role: "viewer" }, "초대 수락 viewer whoami");
+    await assertViewerRuleScopeBoundaryViaUi(browser, "초대 수락 viewer rule/view scope boundary");
     await logoutViaPost(browser);
     await assertConsumedInviteRejected(browser, approvedToken, passwords.wrongTwo);
-    steps.push("auth:access-request-approve-invite-setup");
+    steps.push("auth:access-request-approve-invite-setup", "auth:viewer-rule-scope-boundary");
 
     await submitPublicAccessRequestViaUi(browser, rejectUsername, "1");
     await assertStoreAccessRequest(rejectUsername, request => request.status === "pending" && !findStoreUser(rejectUsername), "거절 요청 pending 저장과 user 미생성");
@@ -1514,6 +2200,112 @@ async function assertConsumedInviteRejected(browser, token, password) {
   await clickSelector(browser, 'form[action="/invite/setup"] button[type="submit"]', "사용 완료 초대 재사용 제출");
   await waitForPath(browser, "/invite/setup");
   await assertText(browser, "form.auth-form", "invalid invite token", "사용 완료 초대 재사용 거부");
+}
+
+async function assertViewerRuleScopeBoundaryViaUi(browser, description) {
+  await navigatePath(browser, "/client/live");
+  await assertReady(browser, "/client/live", '[data-testid="client-shell-page"]');
+  await assertClientSourceTreeOnly(browser, "1", `${description} source tree`);
+  await waitForResult(
+    browser,
+    `
+      (() => {
+        const text = String(document.body?.textContent || '');
+        return {
+          ok: !text.includes('view 2') && !text.includes('viewId":"2'),
+          text: text.slice(0, 500),
+        };
+      })()
+    `,
+    item => item?.ok === true,
+    `${description} UI unassigned copy boundary`,
+  );
+  await waitForResult(
+    browser,
+    `
+      (async () => {
+        const read = async (url, options = {}) => {
+          const response = await fetch(url, {
+            credentials: 'same-origin',
+            cache: 'no-store',
+            ...options,
+            headers: {
+              ...(options.headers || {})
+            }
+          });
+          const text = await response.text();
+          let payload = {};
+          try { payload = text ? JSON.parse(text) : {}; } catch {}
+          return { ok: response.ok, status: response.status, text, payload };
+        };
+        const list = await read('/client/api/views');
+        const views = Array.isArray(list.payload?.views) ? list.payload.views : (Array.isArray(list.payload) ? list.payload : []);
+        const assigned = views.find(view => String(view?.viewId || view?.id || '') === '1');
+        const leakedViews = views.filter(view => String(view?.viewId || view?.id || '') !== '1').map(view => String(view?.viewId || view?.id || ''));
+        const allowed = Array.isArray(assigned?.allowedRuleIds) ? assigned.allowedRuleIds.map(String) : [];
+        const disallowedRuleId = allowed.includes('2') ? '999999' : '2';
+        const detail = await read('/client/api/views/1');
+        const detailView = detail.payload?.view || detail.payload || {};
+        const detailAllowed = Array.isArray(detailView.allowedRuleIds) ? detailView.allowedRuleIds.map(String) : [];
+        const crossDashboard = await read('/client/api/views/2/dashboard');
+        const crossSession = await read('/client/api/views/2/webrtc/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ overlayMode: 'raw' })
+        });
+        const disallowedRuleSession = await read('/client/api/views/1/webrtc/session', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ overlayMode: 'va-rule', ruleId: disallowedRuleId })
+        });
+        return {
+          ok: list.ok &&
+            Boolean(assigned) &&
+            leakedViews.length === 0 &&
+            allowed.length > 0 &&
+            detail.ok &&
+            String(detailView.viewId || detailView.id || '') === '1' &&
+            detailAllowed.join(',') === allowed.join(',') &&
+            !allowed.includes(disallowedRuleId) &&
+            [403, 404].includes(crossDashboard.status) &&
+            [403, 404].includes(crossSession.status) &&
+            [400, 403, 404, 409].includes(disallowedRuleSession.status),
+          listStatus: list.status,
+          views: views.map(view => ({ viewId: view?.viewId || view?.id, allowedRuleIds: view?.allowedRuleIds || [] })),
+          allowed,
+          detailAllowed,
+          leakedViews,
+          disallowedRuleId,
+          crossDashboard: crossDashboard.status,
+          crossSession: crossSession.status,
+          disallowedRuleSession: disallowedRuleSession.status,
+        };
+      })()
+    `,
+    item => item?.ok === true,
+    `${description} client API boundary`,
+  );
+}
+
+async function assertClientSourceTreeOnly(browser, expectedViewId, description) {
+  await navigatePath(browser, "/client/live");
+  await assertReady(browser, "/client/live", '[data-testid="client-shell-page"]');
+  await waitForResult(
+    browser,
+    `
+      (() => {
+        const nodes = Array.from(document.querySelectorAll('[data-testid="client-live-source-tree"] [data-source-view]'))
+          .map(node => String(node.getAttribute('data-source-view') || node.dataset.sourceView || node.dataset.viewId || '').trim())
+          .filter(Boolean);
+        return {
+          ok: nodes.length === 1 && nodes[0] === ${JSON.stringify(String(expectedViewId))},
+          nodes,
+        };
+      })()
+    `,
+    item => item?.ok === true,
+    description,
+  );
 }
 
 async function assertLastAdminGuardViaUi(browser) {

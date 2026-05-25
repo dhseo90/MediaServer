@@ -305,6 +305,8 @@ check("manual template links evidence verifier", () => {
   assertIncludes(template, [
     "verify-manual-ui-evidence",
     "seed registry dir",
+    "## 현재 보존 증적",
+    "retained artifact",
   ], "docs/manual-ui-result-template.md");
 });
 
@@ -398,6 +400,26 @@ if (resultPath) {
     assert(Number(totalText) === uiIds.size, `manual result UI summary total mismatch: ${totalText} != ${uiIds.size}`);
     assert(Number(passText) === pass, `manual result UI summary PASS mismatch: ${passText} != ${pass}`);
     assert(Number(failText) === fail, `manual result UI summary FAIL mismatch: ${failText} != ${fail}`);
+  });
+
+  check("provided manual result retained evidence paths exist", () => {
+    const section = sectionBetween(result, "## 현재 보존 증적", "## 스크립트 테스트 기록");
+    assert(section, "manual result missing retained evidence section");
+    const rows = parseGenericTableRows(section)
+      .filter(row => row[1]?.startsWith("`/"));
+    assert(rows.length >= 6, `manual result retained evidence rows too small: ${rows.length}`);
+    const missing = [];
+    for (const row of rows) {
+      const rawPath = String(row[1] || "").replace(/^`|`$/g, "");
+      if (!fs.existsSync(rawPath)) {
+        missing.push(rawPath);
+      }
+      const status = String(row[2] || "").trim();
+      if (status !== "exists") {
+        missing.push(`${rawPath} status=${status || "(empty)"}`);
+      }
+    }
+    assert(missing.length === 0, `manual result retained evidence paths missing: ${missing.join(", ")}`);
   });
 
   check("provided manual result covers every RULE feature ID", () => {

@@ -24,6 +24,9 @@ Options:
   --visual-height <px>  viewport 높이입니다. 기본 900.
   --debug-port <port>   Chrome CDP port입니다. 기본 9910.
   --output-dir <path>   screenshot/log 출력 디렉터리입니다.
+  --event-history-dir <path>
+                        manual UI fulltest seed/event run directory를 읽어
+                        registry rule별 EventRecord 발생 이력을 대조합니다.
   -h, --help            도움말 출력
 `);
 }
@@ -35,6 +38,7 @@ assertKnownOptions(rawArgs, [
   "visual-height",
   "debug-port",
   "output-dir",
+  "event-history-dir",
   "h",
   "help",
 ]);
@@ -46,6 +50,7 @@ const visualWidth = Number(args.visualWidth || 390);
 const visualHeight = Number(args.visualHeight || 900);
 const debugPort = Number(args.debugPort || 9910);
 const outputDir = args.outputDir || path.join(os.tmpdir(), `media_server_event_records_${Date.now()}_${process.pid}`);
+const eventHistoryDir = args.eventHistoryDir ? resolvePath(args.eventHistoryDir) : "";
 fs.mkdirSync(outputDir, { recursive: true });
 
 const opsEventsHtml = await requestText("/ops/events");
@@ -111,6 +116,9 @@ try {
   console.log("[pass] invalid evidence query rejected");
 
   await verifyBrowserUi(fixture);
+  if (eventHistoryDir) {
+    verifyEventHistoryCoverage(eventHistoryDir);
+  }
   console.log("[summary] ops-event-records-scope complete");
 } finally {
   cleanupPopulatedEventRecordFixture(fixture);
@@ -207,6 +215,44 @@ async function verifyBrowserUi(fixture) {
     const screenshotPath = path.join(outputDir, `ops-events-populated-${visualWidth}.png`);
     await browser.screenshot(screenshotPath);
     console.log(`[pass] browser ops-events populated screenshot written ${screenshotPath}`);
+
+    const actionResult = await browser.evaluate(
+      `
+        (async () => {
+          const button = document.querySelector('[data-evidence-bundle]');
+          if (!button) return { ok: false, reason: 'missing evidence bundle button' };
+          const originalFetch = window.fetch.bind(window);
+          window.__opsEventBundleFetches = [];
+          window.fetch = async (...args) => {
+            const response = await originalFetch(...args);
+            const url = String(args[0]?.url || args[0] || '');
+            if (url.includes('/lab/analysis/events/evidence/bundle-token')) {
+              window.__opsEventBundleFetches.push({ url, ok: response.ok, status: response.status });
+            }
+            return response;
+          };
+          button.click();
+          const startedAt = Date.now();
+          while (Date.now() - startedAt < ${JSON.stringify(timeoutMs)}) {
+            const fetches = window.__opsEventBundleFetches || [];
+            const summary = document.querySelector('#eventRecordSummary')?.textContent || '';
+            if (summary.includes('bundle token 발급 실패')) {
+              return { ok: false, reason: summary, fetches };
+            }
+            if (fetches.length > 0) {
+              return { ok: fetches.some(item => item.ok && item.status === 200), fetches, summary };
+            }
+            await new Promise(resolve => setTimeout(resolve, 100));
+          }
+          return { ok: false, reason: 'bundle token fetch timeout', fetches: window.__opsEventBundleFetches || [] };
+        })()
+      `,
+      timeoutMs + 5000,
+    );
+    if (!actionResult?.ok) {
+      throw new Error(`browser evidence bundle action failed: ${JSON.stringify(actionResult)}`);
+    }
+    console.log("[pass] browser ops-events signed bundle action requests bundle token");
 
     const result = await browser.evaluate(
       `
@@ -593,6 +639,147 @@ async function requestJson(pathname) {
   } catch {
     throw new Error(`${pathname} returned non-JSON: ${text.slice(0, 160)}`);
   }
+}
+
+function verifyEventHistoryCoverage(historyDir) {
+  const registryPath = path.join(historyDir, "registry", "analysis.json");
+  const eventsPath = path.join(historyDir, "events", "va_events.jsonl");
+  const pagingPath = path.join(historyDir, "browser", "ops-events-type-paging-more.json");
+  const registry = readJsonFile(registryPath);
+  const records = readJsonLines(eventsPath);
+  const paging = readJsonFile(pagingPath);
+  const rules = Array.isArray(registry.rules) ? registry.rules : [];
+  if (rules.length === 0) {
+    throw new Error(`event history registry has no rules: ${registryPath}`);
+  }
+  const expectedKeys = [
+    "presence",
+    "enter",
+    "exit",
+    "line-crossing:any",
+    "line-crossing:forward",
+    "line-crossing:reverse",
+    "intrusion-dwell",
+    "re-entry",
+    "wrong-direction",
+    "intrusion-after-line-crossing",
+    "loitering",
+    "zone-occupancy",
+  ];
+  const coverage = [];
+  const keyCounts = new Map();
+  for (const rule of rules) {
+    if (rule?.enabled === false) continue;
+    const type = String(rule?.event?.type || "");
+    if (!type) continue;
+    const direction = type === "line-crossing"
+      ? String(rule?.event?.region?.direction || "any")
+      : "";
+    const key = direction ? `${type}:${direction}` : type;
+    keyCounts.set(key, (keyCounts.get(key) || 0) + 1);
+    const ruleId = String(rule.id || "");
+    const matched = records.filter(record => eventRecordMatchesRule(record, { ruleId, type }));
+    coverage.push({
+      ruleId,
+      name: String(rule.name || ""),
+      type,
+      direction,
+      key,
+      count: matched.length,
+      sampleEventId: matched[0]?.eventId || "",
+    });
+  }
+  const missingKeys = expectedKeys.filter(key => !keyCounts.has(key));
+  if (missingKeys.length > 0) {
+    throw new Error(`event history registry missing expected rule keys: ${missingKeys.join(", ")}`);
+  }
+  const missingRules = coverage.filter(item => item.count <= 0);
+  if (missingRules.length > 0) {
+    throw new Error(`event history records missing rule coverage: ${missingRules.map(item => `${item.ruleId}:${item.key}`).join(", ")}`);
+  }
+  const seenTypes = Array.isArray(paging.seenTypes) ? paging.seenTypes.map(String) : [];
+  const expectedTypes = [...new Set(expectedKeys.map(key => key.split(":")[0]))];
+  const missingUiTypes = expectedTypes.filter(type => !seenTypes.includes(type));
+  if (missingUiTypes.length > 0) {
+    throw new Error(`ops-events pagination missing expected types: ${missingUiTypes.join(", ")}`);
+  }
+  const summary = {
+    schema: "media-server.manual-ui-event-history-coverage.v1",
+    generatedAt: new Date().toISOString(),
+    historyDir,
+    registryPath,
+    eventsPath,
+    pagingPath,
+    expectedKeys,
+    seenTypes,
+    records: records.length,
+    coverage,
+  };
+  const jsonPath = path.join(outputDir, "event-history-coverage.json");
+  const mdPath = path.join(outputDir, "event-history-coverage.md");
+  fs.writeFileSync(jsonPath, `${JSON.stringify(summary, null, 2)}\n`);
+  fs.writeFileSync(mdPath, buildEventHistoryCoverageMarkdown(summary));
+  console.log(`[pass] event history registry covers ${coverage.length} enabled event/scenario rules`);
+  console.log(`[pass] event history records cover every registry event/scenario rule`);
+  console.log(`[pass] ops-events pagination covers ${expectedTypes.length} event types`);
+  console.log(`[pass] event history coverage written ${jsonPath}`);
+}
+
+function eventRecordMatchesRule(record, rule) {
+  const eventType = String(record?.eventType || record?.type || "");
+  if (eventType !== rule.type) return false;
+  const ruleId = String(rule.ruleId || "");
+  const metadataRuleId = String(record?.metadata?.ruleId || record?.metadata?.eventRuleId || "");
+  if (metadataRuleId === ruleId) return true;
+  if (metadataRuleId.endsWith(`:${ruleId}`)) return true;
+  if (metadataRuleId.includes(`:${ruleId}:`)) return true;
+  if (String(record?.zoneId || "") === ruleId) return true;
+  if (String(record?.lineId || "") === ruleId) return true;
+  const metadata = record?.metadata?.eventMetadata || {};
+  if (String(metadata?.zoneId || "") === ruleId) return true;
+  if (String(metadata?.lineId || "") === ruleId) return true;
+  return false;
+}
+
+function buildEventHistoryCoverageMarkdown(summary) {
+  const lines = [
+    "# Event History Coverage",
+    "",
+    `- generatedAt: ${summary.generatedAt}`,
+    `- historyDir: ${summary.historyDir}`,
+    `- records: ${summary.records}`,
+    `- seenTypes: ${summary.seenTypes.join(", ")}`,
+    "",
+    "| Rule | Type | Count | Sample |",
+    "| --- | --- | ---: | --- |",
+  ];
+  for (const item of summary.coverage) {
+    lines.push(`| ${item.ruleId} | ${item.key} | ${item.count} | ${item.sampleEventId} |`);
+  }
+  lines.push("");
+  return `${lines.join("\n")}\n`;
+}
+
+function readJsonFile(filePath) {
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`missing JSON file: ${filePath}`);
+  }
+  return JSON.parse(fs.readFileSync(filePath, "utf8"));
+}
+
+function readJsonLines(filePath) {
+  if (!fs.existsSync(filePath)) {
+    throw new Error(`missing JSON Lines file: ${filePath}`);
+  }
+  return fs.readFileSync(filePath, "utf8")
+    .split(/\n+/)
+    .map(line => line.trim())
+    .filter(Boolean)
+    .map(line => JSON.parse(line));
+}
+
+function resolvePath(inputPath) {
+  return path.isAbsolute(inputPath) ? path.normalize(inputPath) : path.resolve(inputPath);
 }
 
 function parseArgs(argv) {
