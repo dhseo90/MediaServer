@@ -450,13 +450,13 @@ if policy == "relay" and counts.get("host", 0) > 0:
 PY
   then
     log_pass "ICE candidate 수집 확인"
-    if [[ "${REQUIRE_RELAY_CANDIDATE}" == "1" ]]; then
+    if [[ "${REQUIRE_RELAY}" == "1" ]]; then
       log_pass "ICE relay candidate 확인"
     fi
-    if [[ "${ICE_TRANSPORT_POLICY}" == "relay" ]]; then
+    if [[ "${EFFECTIVE_ICE_POLICY}" == "relay" ]]; then
       log_pass "ICE relay policy host candidate 차단 확인"
     else
-      log_pass "ICE transport policy 확인: ${ICE_TRANSPORT_POLICY}"
+      log_pass "ICE transport policy 확인: ${EFFECTIVE_ICE_POLICY}"
     fi
   else
     log_fail "ICE candidate 검증 실패"

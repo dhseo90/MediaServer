@@ -133,7 +133,10 @@ check("capture script owns every documented UI asset", () => {
   for (const snippet of requiredSnippets) {
     assert(script.includes(snippet), `capture_docs_ui_assets.mjs is missing capture guard: ${snippet}`);
   }
-  assert(ruleSmoke.includes("ensureRulePreviewPrerequisites({ httpBase })"), "verify-rule-ui does not use shared rule preview fixture helper");
+  assert(
+    ruleSmoke.includes("ensureRulePreviewPrerequisites({") && ruleSmoke.includes("httpBase"),
+    "verify-rule-ui does not use shared rule preview fixture helper",
+  );
   assert(sharedFixture.includes("rulePreviewProfilePayload"), "shared rule preview fixture helper is missing profile payload");
   assert(sharedFixture.includes("rulePreviewEventTemplatePayload"), "shared rule preview fixture helper is missing event template payload");
   assert(sharedFixture.includes("rulePreviewVaRulePayload"), "shared rule preview fixture helper is missing VA rule payload");
