@@ -480,7 +480,7 @@
 
 - 최종 결론: FAIL
 - PASS 조건: 개별 기능 실패 행 0개, 현재 UI 대상 실패 행 117개
-- 제품 회귀 여부: client live layout preference 저장은 auth-on viewer UI에서 `저장 실패`가 직접 확인됨. 그 외 남은 실패는 UI coverage 미완료, RULE-004~RULE-101 개별 UI CRUD/EventRecord evidence 부족, `/ops/events` 제품 UI 재검수 미완료.
+- 제품 회귀 여부: client live layout preference 저장 실패는 fresh auth fixture에서 재현되지 않았고 `CLIENT-009`는 PASS로 재분류됨. 남은 실패는 UI coverage 미완료, RULE-004~RULE-101 개별 UI CRUD/EventRecord evidence 부족, `/ops/events` 제품 UI 재검수 미완료.
 - 환경/sandbox 한계: local loopback은 일부 명령에서 sandbox 바깥 실행 필요.
 - 수정 필요 이슈: `/ops/events` 제품 UI에서 전체 event/scenario row 재검수, 나머지 기능 ID 직접 조작 증거 보강.
 - 커밋: 결과 문서 작성 전 기준 커밋 `82c79c2`
