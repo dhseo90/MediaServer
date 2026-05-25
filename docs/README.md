@@ -9,7 +9,7 @@
 | --- | --- |
 | 설치, 빌드, 실행 | [development-guide.md](development-guide.md) |
 | 운영자/클라이언트 UI | [ui-guide.md](ui-guide.md) |
-| UI 풀테스트 기준/체크리스트/결과 | [manual-ui-fulltest.md](manual-ui-fulltest.md), [manual-ui-checklist.md](manual-ui-checklist.md), [manual-ui-result-template.md](manual-ui-result-template.md), [manual-ui-result-2026-05-25-project-test.md](manual-ui-result-2026-05-25-project-test.md) |
+| UI 풀테스트 기준/체크리스트/결과 | [manual-ui-fulltest.md](manual-ui-fulltest.md), [manual-ui-checklist.md](manual-ui-checklist.md), [manual-ui-result-template.md](manual-ui-result-template.md) |
 | 기능별 UI 필요/테스트 영역 inventory | [project-feature-test-inventory.md](project-feature-test-inventory.md) |
 | RTSP/WebRTC/VA 구조 | [media-server-architecture.md](media-server-architecture.md) |
 | 영상 분석, tracking, scenario | [video-analysis.md](video-analysis.md) |
