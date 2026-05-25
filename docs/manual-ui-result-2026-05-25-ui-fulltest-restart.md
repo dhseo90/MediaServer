@@ -29,7 +29,7 @@
 | 안정화 테스트 | 후속 재검증에서 build/auth/ops-client/rule/VA/docs/static gate 실행 | build PASS, auth bootstrap/users/routes PASS, ops/client UI PASS, rule UI PASS, VA replay/events PASS, docs/static PASS | 최초 auth env missing, 서버 미기동/auth mismatch/storage disabled 실행조건 실패는 같은 단계에서 조건 보정 후 재검증 PASS. release metadata는 원격 latest/tag가 v1.8.0이 아니라 기존 FAIL 유지 |
 | 30분 테스트 | `verify-predev --soak-minutes 30` 실행 | `/tmp/media_server_predev-1779703217-28197_summary.json`, `/tmp/media_server_predev-1779703217-28197_report.md`, durationSec=2399, pass=119 fail=0 skip=1 | PASS. skip: external-turn-hard-gate는 `--include-external-turn` 미지정으로 제외 |
 | 120분 테스트 | 실행하지 않음 | 없음 | 별도 승인 없음 |
-| UI 풀테스트 | 219개 UI 대상 기능 ID 중 101 PASS, 118 FAIL | browser screenshots/json + EventRecord sample + auth UI browser E2E + route boundary CDP screenshots + in-app browser recheck `/private/tmp/media_server_ui_goal_rZkl1F/browser`, `/private/tmp/media_server_iab_auth_VuKUEe/browser`, `/private/tmp/media_server_auth022_N1aAmv/browser` | 최종 FAIL |
+| UI 풀테스트 | 219개 UI 대상 기능 ID 중 102 PASS, 117 FAIL | browser screenshots/json + EventRecord sample + auth UI browser E2E + route boundary CDP screenshots + in-app browser recheck `/private/tmp/media_server_ui_goal_rZkl1F/browser`, `/private/tmp/media_server_iab_auth_VuKUEe/browser`, `/private/tmp/media_server_auth022_N1aAmv/browser` | 최종 FAIL |
 
 ## 스크립트 테스트 기록
 
@@ -246,7 +246,7 @@
 | UI-013 | UI | user create/edit/scope/reset/disable/restore, invite create, public request approve/reject, last-admin guard를 제품 UI에서 자동 클릭 검증 | user/invite/access request/role/scope flow 확인 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` 기본 경로와 `--auth-ui-flow` 390px/1180px PASS |
 | UI-014 | UI | 미완료 또는 일부만 확인 | event filter/pagination/evidence action 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | Events UI rows appeared, but filter/pagination/evidence actions and full event-type coverage were not completed. |
 | UI-015 | UI | in-app browser에서 `/client/live` 타일 1~4 재생, 4개 video readyState=4/1280x720, overlay mode button 조작, 연결 해제 후 runtime cleanup 확인 | video viewport/control/status/overlay와 session 지속성 확인 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_ui_goal_rZkl1F/browser/client-live-after-4play-plus60s.json`, `client-live-runtime-after-4play-plus60s.json`, `client-live-runtime-after-disconnect-plus15s.json` |
-| UI-016 | UI | auth-on viewer `/client/dashboard`에서 assigned channel 1개만 표시됨을 확인하고 filter=`전체`, sort=`이벤트 많은 순`으로 변경, `상태 복사`/`이벤트 복사` 클릭 | viewer scope 내 dashboard/filter/sort/copy 확인 | filter/sort와 scope 경계는 확인. copy 클릭은 `클립보드 복사 실패` fallback 표시로 PASS 기준 전체를 증명하지 못함 | FAIL | `/private/tmp/media_server_iab_auth_VuKUEe/browser/viewer-client-dashboard-after-filter-all-sort-events.json`, `viewer-client-dashboard-after-status-copy-click.json`, `viewer-client-dashboard-after-event-copy-click.json` |
+| UI-016 | UI | auth-on viewer `/client/dashboard`에서 assigned channel 1개만 표시됨을 확인하고 filter=`전체`, sort=`이벤트 많은 순`으로 변경, `상태 복사`/`이벤트 복사` 클릭. 자동 clipboard가 차단된 in-app browser에서 비오류 `수동 복사용 텍스트` fallback과 상태/이벤트 copy text를 각각 확인 | viewer scope 내 dashboard/filter/sort/copy 확인 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_auth022_N1aAmv/browser/ui016-dashboard-copy-manual-fallback-after-status.json`, `ui016-dashboard-copy-manual-fallback-after-event.json` |
 | UI-017 | UI | auth-on viewer로 `/client/events` 진입, assigned 9001만 표시, 9002/9003/9004/Ops/Lab/raw/debug 노출 없음 확인 | viewer scope 내 events 표시와 비노출 경계 확인 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_iab_auth_VuKUEe/browser/viewer-client-events.json` |
 | UI-018 | UI | CDP browser로 `/not-a-product-route-404-check`, `/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test` 직접 렌더링 확인 | 이전 제품 UI route와 임의 route가 제품 UI로 열리지 않음 | 모두 `not found`, product shell/route marker 없음 | PASS | `/var/folders/k0/qhmr6zdx11q0_41wfx4dsd200000gn/T/media_server_route_boundary_1779706070685/*.png` |
 | UI-019 | UI | 56 responsive/theme route checks included light/dark; responsive-evidence.json fail=0 | 주요 화면에서 contrast/token/상태 색상 일관성 확인 | 기대 evidence 확인 | PASS | 56 responsive/theme route checks included light/dark; responsive-evidence.json fail=0 |
@@ -479,7 +479,7 @@
 ## 최종 판정
 
 - 최종 결론: FAIL
-- PASS 조건: 개별 기능 실패 행 0개, 현재 UI 대상 실패 행 118개
+- PASS 조건: 개별 기능 실패 행 0개, 현재 UI 대상 실패 행 117개
 - 제품 회귀 여부: client live layout preference 저장은 auth-on viewer UI에서 `저장 실패`가 직접 확인됨. 그 외 남은 실패는 UI coverage 미완료, RULE-004~RULE-101 개별 UI CRUD/EventRecord evidence 부족, `/ops/events` 제품 UI 재검수 미완료.
 - 환경/sandbox 한계: local loopback은 일부 명령에서 sandbox 바깥 실행 필요.
 - 수정 필요 이슈: `/ops/events` 제품 UI에서 전체 event/scenario row 재검수, 나머지 기능 ID 직접 조작 증거 보강.

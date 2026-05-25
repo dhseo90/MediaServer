@@ -164,24 +164,49 @@ void AppendClientShellScript(std::ostringstream& out) {
     async function copyClientText(text) {
       const value = String(text || '').trim();
       if (!value) throw new Error('복사할 상태가 없습니다.');
+      const copyByEvent = () => {
+        let copied = false;
+        const handler = event => {
+          if (!event.clipboardData) return;
+          event.clipboardData.setData('text/plain', value);
+          event.preventDefault();
+          copied = true;
+        };
+        document.addEventListener('copy', handler, true);
+        try {
+          return document.execCommand('copy') && copied;
+        } finally {
+          document.removeEventListener('copy', handler, true);
+        }
+      };
+      const copyByTextarea = () => {
+        const area = document.createElement('textarea');
+        area.value = value;
+        area.setAttribute('readonly', '');
+        area.style.position = 'fixed';
+        area.style.left = '-1000px';
+        area.style.top = '0';
+        document.body.appendChild(area);
+        area.focus();
+        area.select();
+        try {
+          return document.execCommand('copy');
+        } finally {
+          area.remove();
+        }
+      };
+      if (copyByEvent()) return;
+      if (copyByTextarea()) return;
+      let clipboardError = null;
       if (navigator.clipboard && window.isSecureContext) {
-        await navigator.clipboard.writeText(value);
-        return;
+        try {
+          await navigator.clipboard.writeText(value);
+          return;
+        } catch (error) {
+          clipboardError = error;
+        }
       }
-      const area = document.createElement('textarea');
-      area.value = value;
-      area.setAttribute('readonly', '');
-      area.style.position = 'fixed';
-      area.style.left = '-1000px';
-      area.style.top = '0';
-      document.body.appendChild(area);
-      area.focus();
-      area.select();
-      try {
-        if (!document.execCommand('copy')) throw new Error('copy command rejected');
-      } finally {
-        area.remove();
-      }
+      throw clipboardError || new Error('copy command rejected');
     }
     const clientUiText = (ko, en) => {
       try {
@@ -210,7 +235,7 @@ void AppendClientShellScript(std::ostringstream& out) {
       box.dataset.clientCopyFallback = 'true';
       box.innerHTML = `
         <div>
-          <strong>${escapeHtml(clientUiText('클립보드 복사 실패', 'Clipboard copy failed'))}</strong>
+          <strong>${escapeHtml(clientUiText('수동 복사용 텍스트', 'Manual copy text'))}</strong>
           <p>${escapeHtml(clientUiText('아래 텍스트를 선택해 직접 복사하세요.', 'Select the text below and copy it manually.'))}</p>
         </div>
         <textarea readonly aria-label="${escapeHtml(clientUiText('수동 복사용 텍스트', 'Manual copy text'))}"></textarea>
@@ -285,7 +310,7 @@ void AppendClientShellScript(std::ostringstream& out) {
               showToast(error.message, true);
             } else {
               showClientClipboardFallback(copyText, root);
-              showToast('클립보드 복사 실패. 아래 내용을 선택해 직접 복사하세요.', true);
+              showToast('아래 텍스트를 선택해 직접 복사하세요.');
             }
           } finally {
             button.disabled = false;
