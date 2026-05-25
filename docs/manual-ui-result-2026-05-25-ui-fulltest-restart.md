@@ -101,6 +101,25 @@
 - 후속 artifact: `/tmp/media_server_vaevt-1779693560-58662_event_records.json`, `/tmp/media_server_vaevt-1779693560-58662_events.ndjson`, `/tmp/media_server_vaevt-1779693560-58662_overlay.jpg`
 - 한계: 이 후속 검증은 VA tracker EventRecord verifier의 queue drain 실패 재검수다. `/ops/events` 제품 UI에서 모든 event/scenario row를 다시 필터/페이지/상세 확인하지 않았으므로 UI 풀테스트 최종 판정은 계속 FAIL이다.
 
+### `/ops/events` 제품 UI 후속 재검수
+
+- run dir: `/private/tmp/media_server_ui_events_recheck_9mDk8S`
+- 서버 조건: auth off 격리 서버, manual UI seed registry, EventRecord storage enabled, snapshot/clip hook off
+- EventRecord 생성 명령: `MEDIA_SERVER_VERIFY_VA_EVENTS_DISPATCH_EVERY_N=1 ./server.sh verify-va-events --dispatch-records`
+- EventRecord 생성 결과: PASS, dispatch requests 180, stored 4688, failed 0, dropped 0
+- EventRecord 생성 artifact: `/tmp/media_server_vaevt-1779694040-60535_event_records.json`, `/tmp/media_server_vaevt-1779694040-60535_events.ndjson`, `/tmp/media_server_vaevt-1779694040-60535_overlay.jpg`
+- 브라우저 조작: `/ops/events` open, event records Next pagination 124회, evidence filter `missing`, archive 포함 checkbox on
+- UI artifact:
+  - `/private/tmp/media_server_ui_events_recheck_9mDk8S/browser/ops-events-after-va-pass.png`
+  - `/private/tmp/media_server_ui_events_recheck_9mDk8S/browser/ops-events-page-next.png`
+  - `/private/tmp/media_server_ui_events_recheck_9mDk8S/browser/ops-events-evidence-missing.png`
+  - `/private/tmp/media_server_ui_events_recheck_9mDk8S/browser/ops-events-include-archives.png`
+  - `/private/tmp/media_server_ui_events_recheck_9mDk8S/browser/ops-events-type-paging.json`
+  - `/private/tmp/media_server_ui_events_recheck_9mDk8S/browser/ops-events-type-paging-more.json`
+- UI에서 확인한 event type: `presence`, `enter`, `exit`, `line-crossing`, `intrusion-dwell`, `re-entry`, `wrong-direction`, `intrusion-after-line-crossing`, `loitering`, `zone-occupancy`
+- UI에서 확인한 상태: storage `저장 4688`, `실패 0`, `드롭 0`, queue `0/2048`; pagination `offset 2975`, `hasMore yes`; evidence filter `missing`; archive 포함 checked
+- 한계: auth-off 격리 서버 재검수라 auth/role guard와 함께 열린 제품 UI 증거는 아니다. Rule/scenario별 모든 개별 기능 ID 상세 row/action 재검수도 아직 끝나지 않았으므로 UI 풀테스트 최종 판정은 계속 FAIL이다.
+
 ## 기능별 직접 조작 기록
 
 | 기능 ID | 영역 | 클릭/타이핑으로 확인한 항목 | 기대 결과 | 실제 결과 | 판정 | 비고 |
@@ -285,7 +304,7 @@
 | EVT-001 | EVT | 미완료 또는 일부만 확인 | runtime status가 dashboard/home에 반영되고 drift 없음 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
 | EVT-003 | EVT | 미완료 또는 일부만 확인 | source health list/dashboard 표시가 상태와 일치 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
 | EVT-004 | EVT | 미완료 또는 일부만 확인 | log tail 표시와 redaction 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| EVT-007 | EVT | 미완료 또는 일부만 확인 | `/ops/events` rows/filter/pagination/archive 상태가 표시되고 최종 rule/scenario별 EventRecord 발생 이력과 대조됨 | PASS 기준 전체를 증명하지 못함 | FAIL | Event rows appeared, but final rule/scenario별 EventRecord 전수 대조 failed: only presence, intrusion-dwell, loitering, zone-occupancy sampled. |
+| EVT-007 | EVT | 후속 auth-off 격리 서버에서 `/ops/events` row/filter/pagination/archive 조작 및 10개 event type row 확인 | `/ops/events` rows/filter/pagination/archive 상태가 표시되고 최종 rule/scenario별 EventRecord 발생 이력과 대조됨 | auth-off 격리 UI evidence는 보강됐지만 auth/role 포함 제품 UI와 rule/scenario별 전체 상세 action 재검수는 미완료 | FAIL | 후속 UI artifacts: `/private/tmp/media_server_ui_events_recheck_9mDk8S/browser/ops-events-type-paging*.json`. UI 풀테스트 PASS 기준에는 아직 부족. |
 | EVT-016 | EVT | /ops/events status panel opened and refreshed; ops-events-after-records.png | events status panel/API 일치 | 기대 evidence 확인 | PASS | /ops/events status panel opened and refreshed; ops-events-after-records.png |
 | EVT-017 | EVT | 미완료 또는 일부만 확인 | deliveries list/filter 표시 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
 | EVT-018 | EVT | 미완료 또는 일부만 확인 | `/ops/events` Alert Delivery에서 integration 저장 후 Fixture/test action을 클릭하면 최근 시도에 `delivered · fixture`가 표시되고 endpoint token은 redacted 상태로 유지 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
