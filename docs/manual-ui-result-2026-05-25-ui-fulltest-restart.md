@@ -29,7 +29,7 @@
 | 안정화 테스트 | 후속 재검증에서 build/auth/ops-client/rule/VA/docs/static gate 실행 | build PASS, auth bootstrap/users/routes PASS, ops/client UI PASS, rule UI PASS, VA replay/events PASS, docs/static PASS | 최초 auth env missing, 서버 미기동/auth mismatch/storage disabled 실행조건 실패는 같은 단계에서 조건 보정 후 재검증 PASS. release metadata는 원격 latest/tag가 v1.8.0이 아니라 기존 FAIL 유지 |
 | 30분 테스트 | `verify-predev --soak-minutes 30` 실행 | `/tmp/media_server_predev-1779703217-28197_summary.json`, `/tmp/media_server_predev-1779703217-28197_report.md`, durationSec=2399, pass=119 fail=0 skip=1 | PASS. skip: external-turn-hard-gate는 `--include-external-turn` 미지정으로 제외 |
 | 120분 테스트 | 실행하지 않음 | 없음 | 별도 승인 없음 |
-| UI 풀테스트 | 219개 UI 대상 기능 ID 중 103 PASS, 116 FAIL | browser screenshots/json + EventRecord sample + auth UI browser E2E + route boundary CDP screenshots + in-app browser recheck `/private/tmp/media_server_ui_goal_rZkl1F/browser`, `/private/tmp/media_server_iab_auth_VuKUEe/browser`, `/private/tmp/media_server_auth022_N1aAmv/browser`, `/private/tmp/media_server_client005_verify3/browser` | 최종 FAIL |
+| UI 풀테스트 | 219개 UI 대상 기능 ID 중 112 PASS, 107 FAIL | browser screenshots/json + EventRecord sample + auth UI browser E2E + route boundary CDP screenshots + in-app browser recheck `/private/tmp/media_server_ui_goal_rZkl1F/browser`, `/private/tmp/media_server_iab_auth_VuKUEe/browser`, `/private/tmp/media_server_auth022_N1aAmv/browser`, `/private/tmp/media_server_client005_verify3/browser`, `/private/tmp/media_server_src_crud_verify2/browser` | 최종 FAIL |
 
 ## 스크립트 테스트 기록
 
@@ -74,7 +74,7 @@
 ## UI 풀테스트 기록
 
 - 브라우저: Codex in-app browser, user manual click 없음
-- 직접 조작 범위: setup/login/logout, password change, invite setup, public access request submit/approve/reject, user create/edit/scope/reset/disable/restore/last-admin guard, role guard, primary nav, dashboard filters, source create validation/retry, rules filter/scenario builder, client live controls, responsive/theme, ops events refresh
+- 직접 조작 범위: setup/login/logout, password change, invite setup, public access request submit/approve/reject, user create/edit/scope/reset/disable/restore/last-admin guard, role guard, primary nav, dashboard filters, source create validation/retry, source CRUD/edit/disable/delete/client block, rules filter/scenario builder, client live controls, responsive/theme, ops events refresh
 - 반응형/테마 범위: 56 route/theme/viewport screenshots, fail 0 for horizontal overflow/client leak scan
 - 시각 품질 확인: screenshot artifact 중심. 모든 세부 control overlap 전수 판정은 미완료라 관련 기능은 FAIL 유지
 - 제외 기록: 없음
@@ -228,6 +228,15 @@
 - 최초 실패: Chrome CDP 포트 sandbox 실패, setup 비밀번호 정책 거부, 공개 접근 요청 rate limit 소진, 마지막 admin 2회 확인 흐름 미반영. 이후 sandbox 밖 실행, 정책에 맞는 환경변수 사용, 새 서버 프로세스 rate counter 초기화, admin 2회 확인 반영으로 재검증 PASS.
 - 한계: 이 후속 검증은 auth UI/session과 CLIENT-005 live cleanup 흐름 보강입니다. 219개 UI 대상 기능 전체 재실행은 아니므로 UI 풀테스트 최종 판정은 계속 FAIL입니다.
 
+### Source CRUD 후속 자동 클릭 재검증
+
+- 수정 파일: `scripts/internal/verify_ops_ui_click_e2e.mjs`
+- 변경 요약: 기본 Ops/Client click E2E에 `/ops/sources` file channel 생성, row/API 반영, `/client/live` source tree 반영, displayName/zone 수정, 비활성화 후 client view/session block, 재활성화, 삭제 후 client view/session block 확인을 추가했습니다.
+- 서버 조건: auth off 격리 서버, fresh source/view/analysis registry.
+- 후속 명령: `./server.sh verify-ops-click-e2e --http-base http://127.0.0.1:8089 --debug-port-base 10010 --output-dir /private/tmp/media_server_src_crud_verify2/browser`
+- 후속 결과: PASS, 390px/1180px 모두 `sources:crud-view-lifecycle` 통과.
+- 한계: 이 검증은 source/view CRUD와 client block을 닫습니다. RTSP/HTTP/WHEP/WHIP source type별 실제 media path, viewer scope 생성, rule/scope 변경, source health 장시간 지속성은 별도 FAIL 행으로 남깁니다.
+
 ## 기능별 직접 조작 기록
 
 - UI 대상 기능 ID는 219개이며, 아래 표에는 RULE coverage 누락 방지를 위해 UI 비대상/간접 안정화 행 `RULE-099` 1개도 FAIL로 별도 포함합니다.
@@ -243,7 +252,7 @@
 | UI-008 | UI | `/client/request-access` form 입력/제출, pending 안내 copy, 승인 전 user 미생성 확인 | request submit, pending copy, 승인 전 접근 차단 확인 | 기대 evidence 확인 | PASS | `auth:access-request-approve-invite-setup`, `auth:access-request-reject` 390px/1180px PASS |
 | UI-009 | UI | primary nav opened /ops/home; responsive light/dark screenshots passed overflow check | home summary/nav/status가 표시되고 overflow 없음 | 기대 evidence 확인 | PASS | primary nav opened /ops/home; responsive light/dark screenshots passed overflow check |
 | UI-010 | UI | primary nav opened /ops/dashboard; incident search/source filter and VA quality search operated; dashboard-filter-evidence.json | filter/search/copy/refresh와 주요 panel 표시 확인 | 기대 evidence 확인 | PASS | primary nav opened /ops/dashboard; incident search/source filter and VA quality search operated; dashboard-filter-evidence.json |
-| UI-011 | UI | 미완료 또는 일부만 확인 | source/view CRUD와 validation을 직접 조작 | PASS 기준 전체를 증명하지 못함 | FAIL | Only source create validation was completed; full source/view CRUD was not completed. |
+| UI-011 | UI | `/ops/sources`에서 file channel 생성, row/API/client live 반영, displayName/zone 수정, 비활성화 후 client view/session block, 재활성화, 삭제 후 client view/session block을 390px/1180px에서 직접 클릭 검증 | source/view CRUD와 validation을 직접 조작 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` `sources:crud-view-lifecycle`, `/private/tmp/media_server_src_crud_verify2/browser` |
 | UI-012 | UI | 미완료 또는 일부만 확인 | rule/template/profile CRUD, validation, preview 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | Only filter/scenario-builder apply was completed; rule/template/profile CRUD and preview were not completed. |
 | UI-013 | UI | user create/edit/scope/reset/disable/restore, invite create, public request approve/reject, last-admin guard를 제품 UI에서 자동 클릭 검증 | user/invite/access request/role/scope flow 확인 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` 기본 경로와 `--auth-ui-flow` 390px/1180px PASS |
 | UI-014 | UI | 미완료 또는 일부만 확인 | event filter/pagination/evidence action 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | Events UI rows appeared, but filter/pagination/evidence actions and full event-type coverage were not completed. |
@@ -293,21 +302,21 @@
 | SRC-007 | SRC | `/ops/sources`에서 9001 상세를 클릭하고 detail panel의 id/name/kind/site/group/file fields를 확인 | detail panel/route가 source fields를 표시 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_ui_goal_rZkl1F/browser/ops-sources-9001-detail.json` |
 | SRC-008 | SRC | duplicate source validation shown, then non-duplicate file channel save succeeded; source-ui-evidence.json | create validation과 성공 row 반영 | 기대 evidence 확인 | PASS | duplicate source validation shown, then non-duplicate file channel save succeeded; source-ui-evidence.json |
 | SRC-009 | SRC | 9001 displayName을 `UI Fulltest Playback Edited`로 수정 저장 후 row 반영 확인, 원래 이름으로 복원 저장 확인 | edit save 후 변경 값 반영 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_ui_goal_rZkl1F/browser/ops-sources-9001-edit-saved.json`, `ops-sources-9001-edit-restored.json` |
-| SRC-010 | SRC | 미완료 또는 일부만 확인 | delete 후 목록/view 참조 정리 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| SRC-011 | SRC | 미완료 또는 일부만 확인 | disabled source가 view/session/rule에서 차단됨 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| SRC-010 | SRC | `/ops/sources` delete button 2회 확인 실행 후 `채널 삭제 완료`, `/client/api/views/<id>` 403/404, `/client/api/views/<id>/webrtc/session` block 확인 | delete 후 목록/view 참조 정리 확인 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` `sources:crud-view-lifecycle`, `/private/tmp/media_server_src_crud_verify2/browser` |
+| SRC-011 | SRC | `/ops/sources` 상태 버튼으로 channel 비활성화, source/view API `enabled=false`, client view/session block 확인 후 재활성화 확인 | disabled source가 view/session/rule에서 차단됨 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` `sources:crud-view-lifecycle`, `/private/tmp/media_server_src_crud_verify2/browser` |
 | SRC-012 | SRC | 미완료 또는 일부만 확인 | health status가 dashboard/list에 반영 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
 | SRC-014 | SRC | 미완료 또는 일부만 확인 | no-device 경계와 field smoke 조건을 분리 기록 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
 | SRC-016 | SRC | 미완료 또는 일부만 확인 | view 목록/count/scope 표시 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
 | SRC-017 | SRC | 미완료 또는 일부만 확인 | create 후 client/viewer scope에서 선택 가능 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
 | SRC-018 | SRC | 미완료 또는 일부만 확인 | source/rule/scope 변경 후 반영 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| SRC-019 | SRC | 미완료 또는 일부만 확인 | 삭제 후 client view와 session 접근 차단 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| SRC-020 | SRC | 미완료 또는 일부만 확인 | inactive view가 client/rule/session에서 차단 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| SRC-021 | SRC | 미완료 또는 일부만 확인 | view-source mapping이 client live에 반영 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| SRC-019 | SRC | 삭제 후 `/client/api/views/<id>` 403/404 및 `/client/api/views/<id>/webrtc/session` block 확인 | 삭제 후 client view와 session 접근 차단 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` `sources:crud-view-lifecycle`, `/private/tmp/media_server_src_crud_verify2/browser` |
+| SRC-020 | SRC | 비활성화 후 `/client/api/views/<id>` 403/404 및 `/client/api/views/<id>/webrtc/session` block 확인 | inactive view가 client/rule/session에서 차단 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` `sources:crud-view-lifecycle`, `/private/tmp/media_server_src_crud_verify2/browser` |
+| SRC-021 | SRC | create/update/re-enable 후 `/client/live` source tree에 해당 `data-source-view=<id>`가 표시되는지 확인 | view-source mapping이 client live에 반영 | 기대 evidence 확인 | PASS | `verify-ops-click-e2e` `sources:crud-view-lifecycle`, `/private/tmp/media_server_src_crud_verify2/browser` |
 | SRC-022 | SRC | 미완료 또는 일부만 확인 | PublishedView `allowedRuleIds`가 client list/detail API에 유지되고 허용 rule만 client session/metadata에 반영 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| SRC-023 | SRC | 미완료 또는 일부만 확인 | viewer별 assigned view만 노출 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| SRC-023 | SRC | auth-on viewer로 `/client/live`, `/client/dashboard`, `/client/events`에서 assigned 9001만 표시되고 unassigned 9002/9003/9004가 보이지 않음 확인 | viewer별 assigned view만 노출 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_iab_auth_VuKUEe/browser/viewer-client-live.json`, `viewer-client-dashboard.json`, `viewer-client-events.json`, CLIENT-011 |
 | SRC-024 | SRC | 미완료 또는 일부만 확인 | wrapper session 생성/종료와 media path 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| SRC-025 | SRC | 미완료 또는 일부만 확인 | view-scoped dashboard가 assigned data만 표시 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| SRC-026 | SRC | 미완료 또는 일부만 확인 | view-scoped events가 assigned data만 표시 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| SRC-025 | SRC | auth-on viewer `/client/dashboard`에서 assigned 9001만 표시되고 9002/9003/9004/Ops/Lab/raw/debug 노출 없음 확인 | view-scoped dashboard가 assigned data만 표시 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_iab_auth_VuKUEe/browser/viewer-client-dashboard.json`, CLIENT-006 |
+| SRC-026 | SRC | auth-on viewer `/client/events`에서 assigned 9001만 표시되고 9002/9003/9004/Ops/Lab/raw/debug 노출 없음 확인 | view-scoped events가 assigned data만 표시 | 기대 evidence 확인 | PASS | `/private/tmp/media_server_iab_auth_VuKUEe/browser/viewer-client-events.json`, CLIENT-007 |
 | SRC-028 | SRC | admin /client/live displayed admin preview state; admin-client-preview.png | admin client 화면에 preview 상태가 명확히 표시 | 기대 evidence 확인 | PASS | admin /client/live displayed admin preview state; admin-client-preview.png |
 | SRC-029 | SRC | client live/dashboard leak scan found no source URL token in responsive evidence | client 화면/API에 source URL이 보이지 않음 | 기대 evidence 확인 | PASS | client live/dashboard leak scan found no source URL token in responsive evidence |
 | SRC-030 | SRC | client live/dashboard leak scan found no Developer URL token in responsive evidence | client 화면에 Developer URL이 보이지 않음 | 기대 evidence 확인 | PASS | client live/dashboard leak scan found no Developer URL token in responsive evidence |
@@ -481,7 +490,7 @@
 ## 최종 판정
 
 - 최종 결론: FAIL
-- PASS 조건: 개별 기능 실패 행 0개, 현재 UI 대상 실패 행 116개
+- PASS 조건: 개별 기능 실패 행 0개, 현재 UI 대상 실패 행 107개
 - 제품 회귀 여부: client live layout preference 저장 실패는 fresh auth fixture에서 재현되지 않았고 `CLIENT-009`는 PASS로 재분류됨. live session logout cleanup 누수는 `CLIENT-005`에서 재현 후 수정/재검증 PASS. 남은 실패는 UI coverage 미완료, RULE-004~RULE-101 개별 UI CRUD/EventRecord evidence 부족, `/ops/events` 제품 UI 재검수 미완료.
 - 환경/sandbox 한계: local loopback은 일부 명령에서 sandbox 바깥 실행 필요.
 - 수정 필요 이슈: `/ops/events` 제품 UI에서 전체 event/scenario row 재검수, 나머지 기능 ID 직접 조작 증거 보강.

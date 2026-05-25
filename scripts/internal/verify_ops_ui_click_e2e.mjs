@@ -233,6 +233,12 @@ async function requestJson(pathValue, options = {}) {
   return payload;
 }
 
+async function requestStatus(pathValue, options = {}) {
+  const response = await fetch(`${httpBase}${pathValue}`, options);
+  const text = await response.text();
+  return { status: response.status, ok: response.ok, text };
+}
+
 async function runOpsClickFlow(browser, context) {
   const steps = [];
   await installErrorCollector(browser);
@@ -307,6 +313,8 @@ async function runOpsClickFlow(browser, context) {
   await assertText(browser, "#channel-editor-title", "채널 복제", "채널 복제 제목");
   await clickSelector(browser, "#channel-close", "채널 복제 닫기");
   steps.push("sources:detail");
+  await assertSourceCrudFlow(browser, context);
+  steps.push("sources:crud-view-lifecycle");
 
   await clickSelector(browser, 'a[href="/ops/rules"]', "룰 탭");
   await waitForPath(browser, "/ops/rules");
@@ -411,6 +419,152 @@ async function runOpsClickFlow(browser, context) {
 
   await assertBrowserErrors(browser, context.label);
   return { steps };
+}
+
+async function assertSourceCrudFlow(browser, context) {
+  await assertReady(browser, "/ops/sources", '[data-testid="ops-sources-page"]');
+  const sourceId = await createFileChannelViaUi(browser, context);
+  try {
+    await assertSourceVisibleInClientLive(browser, sourceId, "created source client live mapping");
+    await updateFileChannelViaUi(browser, sourceId, context);
+    await assertSourceVisibleInClientLive(browser, sourceId, "updated source client live mapping");
+    await setChannelEnabledViaUi(browser, sourceId, false);
+    await assertClientViewBlocked(sourceId, "disabled source/view client API block");
+    await assertClientSessionBlocked(sourceId, "disabled source/view session block");
+    await setChannelEnabledViaUi(browser, sourceId, true);
+    await assertSourceVisibleInClientLive(browser, sourceId, "re-enabled source client live mapping");
+    await deleteChannelViaUi(browser, sourceId);
+    await assertClientViewBlocked(sourceId, "deleted source/view client API block");
+    await assertClientSessionBlocked(sourceId, "deleted source/view session block");
+    await assertNoOverflow(browser, `${context.label}:sources-crud`);
+  } catch (error) {
+    await cleanupSourceCrudFixture(sourceId).catch(cleanupError => {
+      console.log(`[warn] source CRUD fixture cleanup failed for ${sourceId}: ${cleanupError.message}`);
+    });
+    throw error;
+  }
+}
+
+async function createFileChannelViaUi(browser, context) {
+  await navigatePath(browser, "/ops/sources");
+  await assertReady(browser, "/ops/sources", '[data-testid="ops-sources-page"]');
+  const fixtureFile = sourceCrudFixtureFile(context);
+  await clickSelector(browser, "#add-channel", "source CRUD channel add");
+  await assertVisible(browser, "#channel-detail-panel", "source CRUD channel panel");
+  await setSelectValue(browser, '[name="kind"]', "file", "source CRUD file kind");
+  await assertVisible(browser, '[data-source-kind="file"]', "source CRUD file selector");
+  const sourceId = await readFormValue(browser, '[name="channelId"]', "source CRUD generated channel id");
+  await setTextValue(browser, '[name="displayName"]', `Source CRUD ${context.label} ${sourceId}`, "source CRUD displayName");
+  await setSelectValue(browser, '[name="file"]', fixtureFile, "source CRUD file");
+  await setTextValue(browser, '[name="site"]', "QA Site", "source CRUD site");
+  await setTextValue(browser, '[name="group"]', "QA Group", "source CRUD group");
+  await setTextValue(browser, '[name="floor"]', "1F", "source CRUD floor");
+  await setTextValue(browser, '[name="zone"]', "North", "source CRUD zone");
+  await clickSelector(browser, "#channel-save-selected", "source CRUD save");
+  await assertText(browser, "#status", "채널 저장 완료", "source CRUD save status");
+  await assertSourceApiRecord(sourceId, source => source.file === fixtureFile && source.enabled !== false, "source CRUD source API create");
+  await assertViewApiRecord(sourceId, view => view.sourceId === sourceId && view.enabled !== false, "source CRUD view API create");
+  await assertTableContains(browser, "#channels-body", sourceId, "source CRUD row id");
+  await assertTableContains(browser, "#channels-body", `Source CRUD ${context.label} ${sourceId}`, "source CRUD row name");
+  return sourceId;
+}
+
+function sourceCrudFixtureFile(context) {
+  return Number(context?.width || 0) <= 560
+    ? "imports/NewYorkDriving.mp4"
+    : "imports/normalized_import_test.mp4";
+}
+
+async function updateFileChannelViaUi(browser, sourceId, context) {
+  await navigatePath(browser, "/ops/sources");
+  await assertReady(browser, "/ops/sources", '[data-testid="ops-sources-page"]');
+  await clickSelector(browser, attrEqualsSelector("data-view-channel", sourceId), "source CRUD detail open");
+  await clickSelector(browser, "#channel-edit-selected", "source CRUD edit");
+  const updatedName = `Source CRUD Updated ${context.label} ${sourceId}`;
+  await setTextValue(browser, '[name="displayName"]', updatedName, "source CRUD displayName update");
+  await setTextValue(browser, '[name="zone"]', "South", "source CRUD zone update");
+  await clickSelector(browser, "#channel-save-selected", "source CRUD update save");
+  await assertText(browser, "#status", "채널 저장 완료", "source CRUD update status");
+  await assertSourceApiRecord(sourceId, source => source.displayName === updatedName && source.zone === "South", "source CRUD source API update");
+  await assertViewApiRecord(sourceId, view => view.displayName === updatedName && view.sourceId === sourceId, "source CRUD view API update");
+  await assertTableContains(browser, "#channels-body", updatedName, "source CRUD updated row name");
+}
+
+async function setChannelEnabledViaUi(browser, sourceId, enabled) {
+  await navigatePath(browser, "/ops/sources");
+  await assertReady(browser, "/ops/sources", '[data-testid="ops-sources-page"]');
+  const selector = attrEqualsSelector("data-toggle-channel", sourceId);
+  await clickSelector(browser, selector, enabled ? "source CRUD enable" : "source CRUD disable");
+  await assertText(browser, "#status", `상태 변경 완료: ${enabled ? '활성' : '비활성'}`, enabled ? "source CRUD enable status" : "source CRUD disable status");
+  await assertSourceApiRecord(sourceId, source => (source.enabled !== false) === enabled, enabled ? "source CRUD source enabled" : "source CRUD source disabled");
+  await assertViewApiRecord(sourceId, view => (view.enabled !== false) === enabled, enabled ? "source CRUD view enabled" : "source CRUD view disabled");
+}
+
+async function deleteChannelViaUi(browser, sourceId) {
+  await navigatePath(browser, "/ops/sources");
+  await assertReady(browser, "/ops/sources", '[data-testid="ops-sources-page"]');
+  const selector = attrEqualsSelector("data-delete-channel", sourceId);
+  await clickSelector(browser, selector, "source CRUD delete confirm");
+  await assertText(browser, "#status", "삭제 확인", "source CRUD delete first status");
+  await clickSelector(browser, selector, "source CRUD delete execute");
+  await assertText(browser, "#status", "채널 삭제 완료", "source CRUD delete status");
+}
+
+async function assertSourceVisibleInClientLive(browser, sourceId, description) {
+  await navigatePath(browser, "/client/live");
+  await assertReady(browser, "/client/live", '[data-testid="client-shell-page"]');
+  await assertVisible(browser, `${attrEqualsSelector("data-source-view", sourceId)}`, description);
+  await navigatePath(browser, "/ops/sources");
+  await assertReady(browser, "/ops/sources", '[data-testid="ops-sources-page"]');
+}
+
+async function assertClientViewBlocked(sourceId, description) {
+  const result = await requestStatus(`/client/api/views/${encodeURIComponent(sourceId)}`);
+  if (![403, 404].includes(result.status)) {
+    throw new Error(`${description}: expected 403/404, got ${result.status} ${result.text.slice(0, 160)}`);
+  }
+}
+
+async function assertClientSessionBlocked(sourceId, description) {
+  const result = await requestStatus(`/client/api/views/${encodeURIComponent(sourceId)}/webrtc/session`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ overlayMode: "raw" }),
+  });
+  if (![403, 404, 409].includes(result.status)) {
+    throw new Error(`${description}: expected blocked session status, got ${result.status} ${result.text.slice(0, 160)}`);
+  }
+}
+
+async function assertSourceApiRecord(sourceId, predicate, description) {
+  await waitForApiPredicate("/ops/api/sources", payload => {
+    const source = (payload.sources || []).find(item => String(item?.sourceId || "") === String(sourceId));
+    return source && predicate(source);
+  }, description);
+}
+
+async function assertViewApiRecord(sourceId, predicate, description) {
+  await waitForApiPredicate("/ops/api/views", payload => {
+    const view = (payload.views || []).find(item => String(item?.viewId || "") === String(sourceId));
+    return view && predicate(view);
+  }, description);
+}
+
+async function waitForApiPredicate(pathValue, predicate, description) {
+  const startedAt = Date.now();
+  let last = null;
+  while (Date.now() - startedAt < timeoutMs) {
+    last = await requestJson(pathValue).catch(error => ({ error: error.message }));
+    if (predicate(last)) return last;
+    await delay(150);
+  }
+  throw new Error(`${description} timeout: ${JSON.stringify(last).slice(0, 500)}`);
+}
+
+async function cleanupSourceCrudFixture(sourceId) {
+  if (!sourceId) return;
+  await requestStatus(`/ops/api/views/${encodeURIComponent(sourceId)}`, { method: "DELETE" }).catch(() => null);
+  await requestStatus(`/ops/api/sources/${encodeURIComponent(sourceId)}`, { method: "DELETE" }).catch(() => null);
 }
 
 async function runAuthUiFlow(browser, context) {
@@ -1945,6 +2099,22 @@ async function assertFormValue(browser, selector, expected, description) {
   return result;
 }
 
+async function readFormValue(browser, selector, description) {
+  const result = await waitForResult(
+    browser,
+    `
+      (() => {
+        const node = document.querySelector(${JSON.stringify(selector)});
+        const value = String(node?.value || '').trim();
+        return { ok: Boolean(value), value };
+      })()
+    `,
+    item => item?.ok === true,
+    description,
+  );
+  return result.value;
+}
+
 async function assertFormValueContains(browser, selector, expected, description) {
   const result = await waitForResult(
     browser,
@@ -1959,6 +2129,20 @@ async function assertFormValueContains(browser, selector, expected, description)
     description,
   );
   return result;
+}
+
+async function assertTableContains(browser, selector, expected, description) {
+  await waitForResult(
+    browser,
+    `
+      (() => {
+        const text = String(document.querySelector(${JSON.stringify(selector)})?.textContent || '').replace(/\\s+/g, ' ').trim();
+        return { ok: text.includes(${JSON.stringify(expected)}), text: text.slice(0, 500) };
+      })()
+    `,
+    item => item?.ok === true,
+    description,
+  );
 }
 
 async function assertAttributeContains(browser, selector, attribute, expected, description) {
