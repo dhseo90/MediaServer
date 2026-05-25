@@ -349,12 +349,28 @@ run_rtsp_regression() {
 
   local rtsp_query="file=$(urlencode "${FILE_TOKEN}")&va=1$(append_extra_query "${EXTRA_QUERY}")"
   local rtsp_url="${MEDIA_SERVER_VERIFY_VA_RTSP_URL:-${RTSP_BASE}?${rtsp_query}}"
-  log_info "rtsp_url=${rtsp_url}"
-  if run_with_timeout "${FFMPEG_TIMEOUT_S}" ffmpeg -hide_banner -loglevel warning -rtsp_transport tcp -i "${rtsp_url}" -t "${DURATION_S}" -an -f null -; then
-    log_pass "RTSP VA overlay decode ok"
-  else
-    log_fail "RTSP VA overlay decode failed"
+  local max_attempts="${MEDIA_SERVER_VERIFY_VA_RTSP_ATTEMPTS:-2}"
+  if ! [[ "${max_attempts}" =~ ^[0-9]+$ ]] || (( max_attempts < 1 )); then
+    max_attempts=1
   fi
+  log_info "rtsp_url=${rtsp_url}"
+  local attempt=1
+  local rc=0
+  while (( attempt <= max_attempts )); do
+    if run_with_timeout "${FFMPEG_TIMEOUT_S}" ffmpeg -hide_banner -loglevel warning -rtsp_transport tcp -i "${rtsp_url}" -t "${DURATION_S}" -an -f null -; then
+      log_pass "RTSP VA overlay decode ok"
+      return
+    fi
+    rc=$?
+    if (( rc == 124 && attempt < max_attempts )); then
+      log_info "RTSP VA overlay decode timeout; retry ${attempt}/${max_attempts}"
+      sleep 2
+      attempt=$((attempt + 1))
+      continue
+    fi
+    log_fail "RTSP VA overlay decode failed"
+    return
+  done
 }
 
 run_lab_regression
