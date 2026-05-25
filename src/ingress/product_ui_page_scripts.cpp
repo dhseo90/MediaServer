@@ -6286,6 +6286,39 @@ void AppendOpsShellScript(std::ostringstream& out,
           })
         });
       }
+      async function opsRulesDetachVaRuleFromViews(ruleId) {
+        const targetId = String(ruleId || '').trim();
+        if (!targetId) return;
+        for (const view of opsRulesViews) {
+          const viewId = String(view?.viewId || '').trim();
+          if (!viewId) continue;
+          const allowedRuleIds = Array.isArray(view.allowedRuleIds)
+            ? view.allowedRuleIds.map(item => String(item || '').trim()).filter(Boolean)
+            : [];
+          const defaultRuleId = String(view?.defaultRuleId || '').trim();
+          if (defaultRuleId !== targetId && !allowedRuleIds.includes(targetId)) continue;
+          const nextAllowed = allowedRuleIds.filter(item => item !== targetId);
+          const nextDefault = defaultRuleId === targetId ? (nextAllowed[0] || '') : defaultRuleId;
+          await requestJson(`/ops/api/views/${encodeURIComponent(viewId)}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              viewId,
+              displayName: view.displayName || viewId,
+              sourceId: view.sourceId || '',
+              defaultRuleId: nextDefault,
+              allowedRuleIds: nextAllowed,
+              allowedOverlayModes: Array.isArray(view.allowedOverlayModes) ? view.allowedOverlayModes : ['raw', 'va-overlay', 'va-rule'],
+              showDashboard: view.showDashboard !== false,
+              showEvents: view.showEvents !== false,
+              showMetadataSummary: view.showMetadataSummary !== false,
+              clientGroups: Array.isArray(view.clientGroups) ? view.clientGroups : [],
+              maxTiles: Number(view.maxTiles || 1),
+              enabled: view.enabled !== false
+            })
+          });
+        }
+      }
       async function opsRulesSaveNativeRecord(mode) {
         const current = opsRulesCurrentRecord?.item || {};
         if (mode === 'va-rule') {
@@ -6358,6 +6391,9 @@ void AppendOpsShellScript(std::ostringstream& out,
           }
           if (!payload.id) throw new Error('분석 프로파일 ID가 필요합니다.');
           if (!Number.isFinite(payload.fps) || payload.fps <= 0) throw new Error('분석 FPS는 1 이상이어야 합니다.');
+          if (!Number.isFinite(payload.maxQueue) || payload.maxQueue <= 0) throw new Error('분석 Queue는 1 이상이어야 합니다.');
+          if (!Number.isFinite(payload.confidence) || payload.confidence < 0 || payload.confidence > 1) throw new Error('Confidence는 0 이상 1 이하이어야 합니다.');
+          if (!Number.isFinite(payload.nms) || payload.nms < 0 || payload.nms > 1) throw new Error('NMS는 0 이상 1 이하이어야 합니다.');
           if (!Number.isFinite(payload.inputWidth) || !Number.isFinite(payload.inputHeight) || payload.inputWidth <= 0 || payload.inputHeight <= 0) {
             throw new Error('입력 해상도는 1 이상이어야 합니다.');
           }
@@ -7322,6 +7358,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         const name = item?.name ? ` '${item.name}'` : '';
         if (!opsRulesConfirmDangerAction(`delete-va-rule:${id}`, `채널 분석 설정 ${opsRulesIdText(id)}${name} 삭제 확인:`)) return;
         await requestJson(`${opsLabVaRulesPath}/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        await opsRulesDetachVaRuleFromViews(id);
         await recordOpsAudit({ area: 'rules', action: 'delete', target: `va-rule:${id}`, before: item, after: null });
         renderOpsAuditTrail('ops-rules-audit-list', 'rules');
         if (String(opsRulesDetailRecordId || '') === String(id)) {

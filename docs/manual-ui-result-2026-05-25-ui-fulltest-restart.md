@@ -29,7 +29,7 @@
 | 안정화 테스트 | 후속 재검증에서 build/auth/ops-client/rule/VA/docs/static gate 실행 | build PASS, auth bootstrap/users/routes PASS, ops/client UI PASS, rule UI PASS, VA replay/events PASS, docs/static PASS | 최초 auth env missing, 서버 미기동/auth mismatch/storage disabled 실행조건 실패는 같은 단계에서 조건 보정 후 재검증 PASS. release metadata는 원격 latest/tag가 v1.8.0이 아니라 기존 FAIL 유지 |
 | 30분 테스트 | `verify-predev --soak-minutes 30` 실행 | `/tmp/media_server_predev-1779703217-28197_summary.json`, `/tmp/media_server_predev-1779703217-28197_report.md`, durationSec=2399, pass=119 fail=0 skip=1 | PASS. skip: external-turn-hard-gate는 `--include-external-turn` 미지정으로 제외 |
 | 120분 테스트 | 실행하지 않음 | 없음 | 별도 승인 없음 |
-| UI 풀테스트 | 219개 UI 대상 기능 ID 중 121 PASS, 98 FAIL | browser screenshots/json + EventRecord sample + auth UI browser E2E + route boundary CDP screenshots + in-app browser recheck `/private/tmp/media_server_ui_goal_rZkl1F/browser`, `/private/tmp/media_server_iab_auth_VuKUEe/browser`, `/private/tmp/media_server_auth022_N1aAmv/browser`, `/private/tmp/media_server_client005_verify3/browser`, `/private/tmp/media_server_src_crud_verify2/browser`, `/private/tmp/media_server_src_evt_verify4/browser` | 최종 FAIL |
+| UI 풀테스트 | 219개 UI 대상 기능 ID 중 148 PASS, 71 FAIL | browser screenshots/json + EventRecord sample + auth UI browser E2E + route boundary CDP screenshots + in-app browser recheck `/private/tmp/media_server_ui_goal_rZkl1F/browser`, `/private/tmp/media_server_iab_auth_VuKUEe/browser`, `/private/tmp/media_server_auth022_N1aAmv/browser`, `/private/tmp/media_server_client005_verify3/browser`, `/private/tmp/media_server_src_crud_verify2/browser`, `/private/tmp/media_server_src_evt_verify4/browser`, `/private/tmp/media_server_rule_verify_390e`, `/private/tmp/media_server_rule_verify_1180` | 최종 FAIL |
 
 ## 스크립트 테스트 기록
 
@@ -324,43 +324,43 @@
 | RULE-001 | RULE | /ops/rules VA rule list count/status visible; ops-rules-nav-click.png | list count/status/source/type/profile이 표시됨 | 기대 evidence 확인 | PASS | /ops/rules VA rule list count/status visible; ops-rules-nav-click.png |
 | RULE-002 | RULE | /ops/rules event template list count/status visible; ops-rules-nav-click.png | template 목록과 type/scenario summary 표시 | 기대 evidence 확인 | PASS | /ops/rules event template list count/status visible; ops-rules-nav-click.png |
 | RULE-003 | RULE | /ops/rules profile list count/status visible; ops-rules-nav-click.png | profile 목록과 detector/FPS/tracking summary 표시 | 기대 evidence 확인 | PASS | /ops/rules profile list count/status visible; ops-rules-nav-click.png |
-| RULE-004 | RULE | 미완료 또는 일부만 확인 | source/template/profile/geometry 선택 후 저장 성공 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-005 | RULE | 미완료 또는 일부만 확인 | 변경 값 저장 후 list/detail 반영 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-006 | RULE | 미완료 또는 일부만 확인 | 삭제 후 allowed rule/session에서 제거 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| RULE-004 | RULE | 완료 | source/template/profile/geometry 선택 후 저장 성공 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 `/ops/rules` VA rule 폼을 직접 열고 source/template/profile/geometry를 선택/입력/저장한 뒤 catalog와 PublishedView binding을 확인했습니다. |
+| RULE-005 | RULE | 완료 | 변경 값 저장 후 list/detail 반영 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 저장된 VA rule을 상세->수정으로 열어 name/status/template/geometry/tracker 값을 바꾸고 catalog/list 반영을 확인했습니다. |
+| RULE-006 | RULE | 완료 | 삭제 후 allowed rule/session에서 제거 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 VA rule 삭제 2회 확인을 클릭하고 PublishedView allowedRuleIds/defaultRuleId 제거 및 client va-rule session 차단을 확인했습니다. |
 | RULE-007 | RULE | 미완료 또는 일부만 확인 | detail에 source/template/profile/geometry/status 표시 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-008 | RULE | 미완료 또는 일부만 확인 | active/inactive 전환과 적용 상태 반영 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| RULE-008 | RULE | 완료 | active/inactive 전환과 적용 상태 반영 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 VA rule 상태를 inactive/active로 저장하고 catalog enabled 값과 row status를 확인했습니다. |
 | RULE-009 | RULE | 미완료 또는 일부만 확인 | source select와 validation 동작 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-010 | RULE | 미완료 또는 일부만 확인 | template 선택과 저장 payload 반영 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-011 | RULE | 미완료 또는 일부만 확인 | profile 선택과 저장 payload 반영 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| RULE-010 | RULE | 완료 | template 선택과 저장 payload 반영 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 이벤트 템플릿 select 값을 저장하고 `templateStart.ruleId` 반영을 확인했습니다. |
+| RULE-011 | RULE | 완료 | profile 선택과 저장 payload 반영 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 분석 프로파일 select 값을 저장하고 `analysis.profileId` 반영을 확인했습니다. |
 | RULE-012 | RULE | 미완료 또는 일부만 확인 | polygon/region 값 입력/초기화/저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-013 | RULE | 미완료 또는 일부만 확인 | line points/direction 입력/저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| RULE-013 | RULE | 완료 | line points/direction 입력/저장 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 line-crossing 템플릿과 line 좌표를 저장하고 `event.region.type=line` 및 2점 이상 payload를 확인했습니다. |
 | RULE-014 | RULE | 미완료 또는 일부만 확인 | output URL/copy 표시가 role 정책과 일치 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-015 | RULE | 미완료 또는 일부만 확인 | status badge/copy가 runtime/API와 일치 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-016 | RULE | 미완료 또는 일부만 확인 | 사용자가 직접 id 입력하지 않고 다음 번호가 부여 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-017 | RULE | 미완료 또는 일부만 확인 | id field가 노출/수정되지 않음 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-018 | RULE | 미완료 또는 일부만 확인 | basic/scenario template 생성 성공 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-019 | RULE | 미완료 또는 일부만 확인 | type/condition 변경 저장 후 반영 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| RULE-015 | RULE | 완료 | status badge/copy가 runtime/API와 일치 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 status badge, RTSP/WHEP/client copy payload, client va-rule session 생성/삭제를 확인했습니다. |
+| RULE-016 | RULE | 완료 | 사용자가 직접 id 입력하지 않고 다음 번호가 부여 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 VA rule/profile/event template 생성 시 hidden ID와 generated ID display가 자동 배정되는 것을 확인했습니다. |
+| RULE-017 | RULE | 완료 | id field가 노출/수정되지 않음 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 VA rule ID input이 hidden이고 표시용 generated ID만 노출되는 것을 확인했습니다. |
+| RULE-018 | RULE | 완료 | basic/scenario template 생성 성공 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 scenario intrusion-dwell 템플릿과 basic line-crossing 템플릿을 UI로 생성하고 catalog 반영을 확인했습니다. |
+| RULE-019 | RULE | 완료 | type/condition 변경 저장 후 반영 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 event template 상세->수정으로 confidence/candidate/dwell/cooldown을 변경 저장하고 catalog 반영을 확인했습니다. |
 | RULE-020 | RULE | 미완료 또는 일부만 확인 | 삭제 후 참조 rule validation 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
 | RULE-021 | RULE | 미완료 또는 일부만 확인 | condition/geometry/cooldown summary 표시 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-022 | RULE | 미완료 또는 일부만 확인 | detector/FPS/queue/input/tracker 설정 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-023 | RULE | 미완료 또는 일부만 확인 | profile field 변경 후 반영 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| RULE-022 | RULE | 완료 | detector/FPS/queue/input/tracker 설정 저장 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 profile detector/FPS/queue/confidence/NMS/input/adaptive 값을 UI로 저장하고 catalog 반영을 확인했습니다. |
+| RULE-023 | RULE | 완료 | profile field 변경 후 반영 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 profile 상세->수정으로 detector/FPS/queue/input 값을 변경하고 list/catalog 반영을 확인했습니다. |
 | RULE-024 | RULE | 미완료 또는 일부만 확인 | 삭제 후 참조 rule validation 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
 | RULE-025 | RULE | 미완료 또는 일부만 확인 | detector/FPS/queue/tracker/Re-ID 표시 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-026 | RULE | 미완료 또는 일부만 확인 | detector 선택과 payload 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-027 | RULE | 미완료 또는 일부만 확인 | dummy detector 선택과 payload 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-028 | RULE | 미완료 또는 일부만 확인 | numeric input validation과 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-029 | RULE | 미완료 또는 일부만 확인 | queue input validation과 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-030 | RULE | 미완료 또는 일부만 확인 | confidence range validation과 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-031 | RULE | 미완료 또는 일부만 확인 | NMS range validation과 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-032 | RULE | 미완료 또는 일부만 확인 | width/height validation과 저장 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| RULE-026 | RULE | 완료 | detector 선택과 payload 저장 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 `yolo` detector를 선택 저장하고 profile payload를 확인했습니다. |
+| RULE-027 | RULE | 완료 | dummy detector 선택과 payload 저장 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 `dummy` detector로 변경 저장하고 profile payload를 확인했습니다. |
+| RULE-028 | RULE | 완료 | numeric input validation과 저장 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 FPS 0 저장 차단 후 유효 FPS 저장을 확인했습니다. |
+| RULE-029 | RULE | 완료 | queue input validation과 저장 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 Queue 0 저장 차단 후 유효 Queue 저장을 확인했습니다. |
+| RULE-030 | RULE | 완료 | confidence range validation과 저장 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 Confidence 1.2 저장 차단 후 유효 Confidence 저장을 확인했습니다. |
+| RULE-031 | RULE | 완료 | NMS range validation과 저장 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 NMS -0.1 저장 차단 후 유효 NMS 저장을 확인했습니다. |
+| RULE-032 | RULE | 완료 | width/height validation과 저장 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 입력 폭 0 저장 차단 후 유효 width/height 저장을 확인했습니다. |
 | RULE-033 | RULE | 미완료 또는 일부만 확인 | tracking category summary가 선택 값과 일치 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-034 | RULE | 미완료 또는 일부만 확인 | tracker none 저장과 Re-ID off 정책 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-035 | RULE | 미완료 또는 일부만 확인 | lite 저장과 runtime 안정성 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-036 | RULE | 미완료 또는 일부만 확인 | kalman-lite 저장과 runtime 안정성 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-037 | RULE | 미완료 또는 일부만 확인 | bytetrack 저장과 runtime 안정성 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| RULE-034 | RULE | 완료 | tracker none 저장과 Re-ID off 정책 확인 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 tracker `none` 선택 시 Re-ID가 `off`로 강제되고 저장 payload가 `none/off`가 되는 것을 확인했습니다. |
+| RULE-035 | RULE | 완료 | lite 저장과 runtime 안정성 확인 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 `lite/off` 저장 후 client va-rule session 생성/삭제가 성공했습니다. |
+| RULE-036 | RULE | 완료 | kalman-lite 저장과 runtime 안정성 확인 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 `kalman-lite/off` 저장 후 client va-rule session 생성/삭제가 성공했습니다. |
+| RULE-037 | RULE | 완료 | bytetrack 저장과 runtime 안정성 확인 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 `bytetrack/off` 저장 후 client va-rule session 생성/삭제가 성공했습니다. |
 | RULE-038 | RULE | 미완료 또는 일부만 확인 | Re-ID off 저장과 metadata policy 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-039 | RULE | 미완료 또는 일부만 확인 | assist 저장과 tracker 조합 정책 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
-| RULE-040 | RULE | 미완료 또는 일부만 확인 | invalid 조합이 저장되지 않거나 off로 정규화 | PASS 기준 전체를 증명하지 못함 | FAIL | 이번 run에서 해당 기능 ID의 개별 클릭/타이핑/반영/로그 evidence가 부족하거나 미실행입니다. |
+| RULE-039 | RULE | 완료 | assist 저장과 tracker 조합 정책 확인 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 `lite/assist` 저장과 client va-rule session 생성/삭제를 확인했습니다. |
+| RULE-040 | RULE | 완료 | invalid 조합이 저장되지 않거나 off로 정규화 | 없음 | PASS | verify-ops-click-e2e 390/1180에서 tracker `none` 선택 시 Re-ID select가 `off`로 강제되고 payload도 `off`로 저장되는 것을 확인했습니다. |
 | RULE-041 | RULE | 미완료 또는 일부만 확인 | template 생성과 최종 EventRecord `presence` 발생 이력 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | presence EventRecords were observed, but UI template create flow was not completed. |
 | RULE-042 | RULE | 미완료 또는 일부만 확인 | template 생성과 최종 EventRecord `enter` 발생 이력 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | enter EventRecord was not observed in this run. |
 | RULE-043 | RULE | 미완료 또는 일부만 확인 | template 생성과 최종 EventRecord `exit` 발생 이력 확인 | PASS 기준 전체를 증명하지 못함 | FAIL | exit EventRecord was not observed in this run. |
