@@ -286,12 +286,13 @@ async function runOpsClickFlow(browser, context) {
   await assertNoOverflow(browser, `${context.label}:dashboard-incident-filter`);
   await clickSelector(browser, "[data-root-cause-kind]", "문제 원인 다음 조치");
   await assertVisible(browser, "#dashRootCauseActionOutput", "문제 원인 조치 결과");
+  await assertOpsDashboardRuntimeHealthFlow(browser, context);
   await assertNoOverflow(browser, `${context.label}:dashboard-root-cause-action`);
   await clickSelector(browser, 'a[href="/ops/sources"]', "채널 탭");
   await waitForPath(browser, "/ops/sources");
   await installErrorCollector(browser);
   await assertReady(browser, "/ops/sources", '[data-testid="ops-sources-page"]');
-  steps.push("dashboard:incident-filter", "dashboard:root-cause-action");
+  steps.push("dashboard:incident-filter", "dashboard:root-cause-action", "dashboard:runtime-health-log");
 
   await clickSelector(browser, "#add-channel", "채널 추가");
   await assertVisible(browser, "#channel-detail-panel", "채널 추가 패널");
@@ -299,8 +300,10 @@ async function runOpsClickFlow(browser, context) {
   await setSelectValue(browser, '[name="kind"]', "onvif", "ONVIF 채널 타입");
   await assertFormValue(browser, '[name="kind"]', "onvif", "ONVIF kind");
   await assertVisible(browser, '[data-source-kind="onvif"]', "ONVIF Stream URI 입력");
+  await assertText(browser, "#channel-detail-panel", "WS-Discovery 자동 검색", "ONVIF no-device boundary");
+  await assertText(browser, "#channel-detail-panel", "Profile G/Recording/Replay", "ONVIF field-smoke boundary");
   await assertNoOverflow(browser, `${context.label}:sources-add`);
-  steps.push("sources:add-onvif-kind");
+  steps.push("sources:add-onvif-kind", "sources:onvif-no-device-boundary");
 
   await clickSelector(browser, "#channel-close", "채널 패널 닫기");
   await assertHidden(browser, "#channel-detail-panel", "채널 패널 닫힘");
@@ -315,6 +318,8 @@ async function runOpsClickFlow(browser, context) {
   steps.push("sources:detail");
   await assertSourceCrudFlow(browser, context);
   steps.push("sources:crud-view-lifecycle");
+  await assertSourceKindMatrixFlow(browser, context);
+  steps.push("sources:kind-matrix-health-wrapper");
 
   await clickSelector(browser, 'a[href="/ops/rules"]', "룰 탭");
   await waitForPath(browser, "/ops/rules");
@@ -371,6 +376,9 @@ async function runOpsClickFlow(browser, context) {
   await assertUserLifecycleFlow(browser, context);
   await assertInviteCreateFlow(browser, context);
   steps.push("users:lifecycle-edit-reset-disable-restore", "users:invite-create");
+
+  await assertOpsEventsFlow(browser, context);
+  steps.push("events:delivery-review-audit");
 
   await clickSelector(browser, 'a[href="/client/live"]', "클라이언트 라이브");
   await waitForPath(browser, "/client/live");
@@ -448,31 +456,25 @@ async function assertSourceCrudFlow(browser, context) {
 async function createFileChannelViaUi(browser, context) {
   await navigatePath(browser, "/ops/sources");
   await assertReady(browser, "/ops/sources", '[data-testid="ops-sources-page"]');
-  const fixtureFile = sourceCrudFixtureFile(context);
   await clickSelector(browser, "#add-channel", "source CRUD channel add");
   await assertVisible(browser, "#channel-detail-panel", "source CRUD channel panel");
-  await setSelectValue(browser, '[name="kind"]', "file", "source CRUD file kind");
-  await assertVisible(browser, '[data-source-kind="file"]', "source CRUD file selector");
+  await setSelectValue(browser, '[name="kind"]', "rtsp", "source CRUD RTSP kind");
+  await assertVisible(browser, '[data-source-kind="rtsp"]', "source CRUD RTSP URL input");
   const sourceId = await readFormValue(browser, '[name="channelId"]', "source CRUD generated channel id");
+  const fixtureUrl = `rtsp://127.0.0.1:${rtspListenPort()}/dhseo?file=sample_h264.mp4&crud=${encodeURIComponent(sourceId)}&w=${encodeURIComponent(String(context.width || ""))}`;
   await setTextValue(browser, '[name="displayName"]', `Source CRUD ${context.label} ${sourceId}`, "source CRUD displayName");
-  await setSelectValue(browser, '[name="file"]', fixtureFile, "source CRUD file");
+  await setTextValue(browser, '[name="rtspUrl"]', fixtureUrl, "source CRUD RTSP URL");
   await setTextValue(browser, '[name="site"]', "QA Site", "source CRUD site");
   await setTextValue(browser, '[name="group"]', "QA Group", "source CRUD group");
   await setTextValue(browser, '[name="floor"]', "1F", "source CRUD floor");
   await setTextValue(browser, '[name="zone"]', "North", "source CRUD zone");
   await clickSelector(browser, "#channel-save-selected", "source CRUD save");
   await assertText(browser, "#status", "채널 저장 완료", "source CRUD save status");
-  await assertSourceApiRecord(sourceId, source => source.file === fixtureFile && source.enabled !== false, "source CRUD source API create");
+  await assertSourceApiRecord(sourceId, source => source.kind === "rtsp" && source.rtspUrl === fixtureUrl && source.enabled !== false, "source CRUD source API create");
   await assertViewApiRecord(sourceId, view => view.sourceId === sourceId && view.enabled !== false, "source CRUD view API create");
   await assertTableContains(browser, "#channels-body", sourceId, "source CRUD row id");
   await assertTableContains(browser, "#channels-body", `Source CRUD ${context.label} ${sourceId}`, "source CRUD row name");
   return sourceId;
-}
-
-function sourceCrudFixtureFile(context) {
-  return Number(context?.width || 0) <= 560
-    ? "imports/NewYorkDriving.mp4"
-    : "imports/normalized_import_test.mp4";
 }
 
 async function updateFileChannelViaUi(browser, sourceId, context) {
@@ -565,6 +567,214 @@ async function cleanupSourceCrudFixture(sourceId) {
   if (!sourceId) return;
   await requestStatus(`/ops/api/views/${encodeURIComponent(sourceId)}`, { method: "DELETE" }).catch(() => null);
   await requestStatus(`/ops/api/sources/${encodeURIComponent(sourceId)}`, { method: "DELETE" }).catch(() => null);
+}
+
+async function assertOpsDashboardRuntimeHealthFlow(browser, context) {
+  await assertReady(browser, "/ops/dashboard", '[data-testid="ops-dashboard-page"]');
+  await assertTextNotEqual(browser, "#dashActiveSessions", "-", "dashboard active session metric");
+  await assertText(browser, "#dashHealthBadges", "라이브 소스", "dashboard source health badges");
+  await assertText(browser, "#dashIncidentTimelineBadges", "log tail", "dashboard log tail badge");
+  await setSelectValue(browser, "#dashIncidentTimelineSource", "source-health", "dashboard source-health incident filter");
+  await assertHashParam(browser, "incidentSource", "source-health", "dashboard source-health hash");
+  await assertText(browser, "#dashIncidentTimelineBadges", "source health", "dashboard source-health badge");
+  await setSelectValue(browser, "#dashIncidentTimelineSource", "log-tail", "dashboard log-tail incident filter");
+  await assertHashParam(browser, "incidentSource", "log-tail", "dashboard log-tail hash");
+  await assertText(browser, "#dashIncidentTimelineBadges", "log tail", "dashboard log-tail filter badge");
+  await assertText(browser, "#dashRuntimeOpsBadges", "분석", "dashboard runtime operations status");
+  await assertText(browser, "#dashVaQualityBadges", "분석", "dashboard VA quality status");
+  await assertNoOverflow(browser, `${context.label}:dashboard-runtime-health`);
+
+  await navigatePath(browser, "/ops/home");
+  await assertReady(browser, "/ops/home", '[data-testid="ops-home-page"]');
+  await assertTextNotEqual(browser, "#homeChannelCount", "-", "home channel count");
+  await assertTextNotEqual(browser, "#homeActiveSessions", "-", "home active session count");
+  await assertTextNotEqual(browser, "#homeRuntimeText", "불러오는 중", "home runtime summary");
+  await navigatePath(browser, "/ops/dashboard");
+  await assertReady(browser, "/ops/dashboard", '[data-testid="ops-dashboard-page"]');
+}
+
+async function assertSourceKindMatrixFlow(browser, context) {
+  const created = [];
+  try {
+    const rtspId = await createExternalChannelViaUi(browser, context, {
+      kind: "rtsp",
+      label: "RTSP",
+      fieldSelector: '[name="rtspUrl"]',
+      locator: sourceId => `rtsp://127.0.0.1:${rtspListenPort()}/dhseo?file=sample_h264.mp4&ui=${encodeURIComponent(sourceId)}`,
+      sourcePredicate: (source, locator) => source.kind === "rtsp" && source.rtspUrl === locator,
+    });
+    created.push(rtspId);
+    await assertClientSessionLifecycle(rtspId, "RTSP source client wrapper lifecycle");
+    await assertSourceHealthMentions(browser, rtspId, "RTSP source health listing");
+
+    const httpId = await createExternalChannelViaUi(browser, context, {
+      kind: "http",
+      label: "HTTP",
+      fieldSelector: '[name="httpUrl"]',
+      locator: sourceId => `${httpBase}/whep?file=sample_h264.mp4&ui=${encodeURIComponent(sourceId)}`,
+      sourcePredicate: (source, locator) => ["http", "hls"].includes(source.kind) && source.httpUrl === locator,
+    });
+    created.push(httpId);
+    await assertSourceHealthMentions(browser, httpId, "HTTP source health listing");
+
+    const whepId = await createExternalChannelViaUi(browser, context, {
+      kind: "whep",
+      label: "WHEP",
+      fieldSelector: '[name="whepUrl"]',
+      locator: sourceId => `${httpBase}/whep?file=sample_h264.mp4&ui=${encodeURIComponent(sourceId)}`,
+      sourcePredicate: (source, locator) => source.kind === "whep" && source.whepUrl === locator,
+    });
+    created.push(whepId);
+
+    const webrtcId = await createExternalChannelViaUi(browser, context, {
+      kind: "webrtc",
+      label: "WHIP",
+      fieldSelector: '[name="webrtcSourceId"]',
+      locator: sourceId => `ui-whip-${sourceId}`,
+      sourcePredicate: (source, locator) => source.kind === "webrtc" && source.webrtcSourceId === locator,
+    });
+    created.push(webrtcId);
+
+    await assertOpsAuditControls(browser, "channel-audit-list", "channels", "source kind matrix audit");
+    await assertNoOverflow(browser, `${context.label}:sources-kind-matrix`);
+  } finally {
+    for (const sourceId of created.reverse()) {
+      await cleanupSourceCrudFixture(sourceId).catch(error => {
+        console.log(`[warn] source kind matrix cleanup failed for ${sourceId}: ${error.message}`);
+      });
+    }
+  }
+}
+
+async function createExternalChannelViaUi(browser, context, spec) {
+  await navigatePath(browser, "/ops/sources");
+  await assertReady(browser, "/ops/sources", '[data-testid="ops-sources-page"]');
+  await clickSelector(browser, "#add-channel", `${spec.label} source add`);
+  await assertVisible(browser, "#channel-detail-panel", `${spec.label} source panel`);
+  await setSelectValue(browser, '[name="kind"]', spec.kind, `${spec.label} source kind`);
+  const sourceId = await readFormValue(browser, '[name="channelId"]', `${spec.label} generated source id`);
+  const locator = spec.locator(sourceId);
+  const displayName = `${spec.label} Source ${context.label} ${sourceId}`;
+  await setTextValue(browser, '[name="displayName"]', displayName, `${spec.label} displayName`);
+  await setTextValue(browser, spec.fieldSelector, locator, `${spec.label} locator`);
+  await setTextValue(browser, '[name="site"]', "QA Site", `${spec.label} site`);
+  await setTextValue(browser, '[name="group"]', "QA Matrix", `${spec.label} group`);
+  await setTextValue(browser, '[name="floor"]', "2F", `${spec.label} floor`);
+  await setTextValue(browser, '[name="zone"]', spec.label, `${spec.label} zone`);
+  await clickSelector(browser, "#channel-save-selected", `${spec.label} save`);
+  await assertText(browser, "#status", "채널 저장 완료", `${spec.label} save status`);
+  await assertSourceApiRecord(sourceId, source =>
+    spec.sourcePredicate(source, locator) &&
+    source.displayName === displayName &&
+    source.site === "QA Site" &&
+    source.zone === spec.label,
+  `${spec.label} source API create`);
+  await assertViewApiRecord(sourceId, view =>
+    view.sourceId === sourceId &&
+    view.displayName === displayName &&
+    view.showDashboard !== false &&
+    view.showEvents !== false,
+  `${spec.label} view API create`);
+  await assertTableContains(browser, "#channels-body", sourceId, `${spec.label} row id`);
+  await assertTableContains(browser, "#channels-body", displayName, `${spec.label} row name`);
+  await assertSourceVisibleInClientLive(browser, sourceId, `${spec.label} client live source mapping`);
+  return sourceId;
+}
+
+async function assertClientSessionLifecycle(viewId, description) {
+  const created = await requestJson(`/client/api/views/${encodeURIComponent(viewId)}/webrtc/session`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ overlayMode: "raw" }),
+  });
+  const sessionId = String(created?.sessionId || "");
+  if (!sessionId || !created?.offer) {
+    throw new Error(`${description}: missing sessionId/offer ${JSON.stringify(created).slice(0, 240)}`);
+  }
+  const deleted = await requestStatus(`/client/api/views/${encodeURIComponent(viewId)}/webrtc/session/${encodeURIComponent(sessionId)}`, {
+    method: "DELETE",
+  });
+  if (!deleted.ok) {
+    throw new Error(`${description}: delete failed HTTP ${deleted.status} ${deleted.text.slice(0, 160)}`);
+  }
+}
+
+async function assertSourceHealthMentions(browser, sourceId, description) {
+  const payload = await waitForApiPredicate("/ops/api/source-health", item => {
+    const values = JSON.stringify(item || {});
+    return values.includes(String(sourceId));
+  }, description);
+  if (!payload?.sourceHealth && !payload?.summary) {
+    throw new Error(`${description}: missing source health payload shape`);
+  }
+  await navigatePath(browser, "/ops/dashboard");
+  await assertReady(browser, "/ops/dashboard", '[data-testid="ops-dashboard-page"]');
+  await setSelectValue(browser, "#dashIncidentTimelineSource", "source-health", `${description} dashboard filter`);
+  await assertText(browser, "#dashIncidentTimelineBadges", "source health", `${description} dashboard badge`);
+  await navigatePath(browser, "/ops/sources");
+  await assertReady(browser, "/ops/sources", '[data-testid="ops-sources-page"]');
+}
+
+async function assertOpsEventsFlow(browser, context) {
+  await navigatePath(browser, "/ops/events");
+  await assertReady(browser, "/ops/events", '[data-testid="ops-events-page"]');
+  await assertVisible(browser, '[data-testid="ops-alert-delivery-integrations"]', "alert delivery panel");
+  await assertVisible(browser, '[data-testid="ops-event-review-inbox"]', "event review inbox");
+  const deliveryId = `ui-delivery-${context.width}`;
+  await setTextValue(browser, "#alertDeliveryId", deliveryId, "alert delivery id");
+  await setSelectValue(browser, "#alertDeliveryKind", "webhook", "alert delivery kind");
+  await setTextValue(browser, "#alertDeliveryLabel", `UI Delivery ${context.label}`, "alert delivery label");
+  await setTextValue(browser, "#alertDeliveryEndpoint", `https://alerts.example.invalid/${deliveryId}`, "alert delivery endpoint");
+  await setTextValue(browser, "#alertDeliveryRetryMax", "2", "alert delivery retry");
+  await setTextValue(browser, "#alertDeliveryRetryBackoff", "750", "alert delivery backoff");
+  await setCheckboxValue(browser, "#alertDeliveryEnabled", true, "alert delivery enabled");
+  await clickSelector(browser, "#alertDeliverySave", "alert delivery save");
+  await assertText(browser, "#alertDeliverySummary", "Event POST payload 변경 없음", "alert delivery summary");
+  await assertTableContains(browser, "#alertDeliveryRows", `UI Delivery ${context.label}`, "alert delivery row");
+  await clickSelector(browser, "#alertDeliveryTest", "alert delivery fixture");
+  await assertText(browser, "#alertDeliveryBadges", "시도", "alert delivery attempt badge");
+  await assertText(browser, "#alertDeliveryRows", "[redacted-alert-target]", "alert delivery endpoint redaction");
+
+  await setSelectValue(browser, "#eventReviewStatusFilter", "confirmed", "event review status filter");
+  await assertText(browser, "#eventReviewSummary", "Event POST payload 변경 없음", "event review summary");
+  await setSelectValue(browser, "#eventReviewClassFilter", "false-positive", "event review class filter");
+  await assertText(browser, "#eventReviewSummary", "Event POST payload 변경 없음", "event review class summary");
+  await setSelectValue(browser, "#eventRecordsEvidenceSelect", "missing", "event evidence missing filter");
+  await assertText(browser, "#eventRecordSummary", "evidence missing", "event evidence filter summary");
+  await setCheckboxValue(browser, "#eventRecordsIncludeArchives", true, "event archive toggle");
+  await assertText(browser, "#eventRecordSummary", "records", "event archive refresh summary");
+  await clickSelector(browser, "#opsEventsRefresh", "ops events refresh");
+  await assertText(browser, "#eventExportPolicyBadges", "audit", "event export audit badge");
+
+  await assertOpsAuditControls(browser, "ops-rules-audit-list", "rules", "rules audit controls from events flow", { ensureRoute: "/ops/rules" });
+  await assertNoOverflow(browser, `${context.label}:ops-events-flow`);
+}
+
+async function assertOpsAuditControls(browser, containerId, area, description, options = {}) {
+  if (options.ensureRoute) {
+    await navigatePath(browser, options.ensureRoute);
+    await assertReady(browser, options.ensureRoute, options.ensureRoute === "/ops/rules" ? '[data-testid="ops-rules-page"]' : '[data-testid="ops-sources-page"]');
+  }
+  const root = `#${containerId}`;
+  await assertVisible(browser, root, `${description} audit root`);
+  await assertVisible(browser, `${root} [data-audit-apply]`, `${description} audit apply`);
+  await setTextValue(browser, `${root} #${containerId}-audit-q`, area === "rules" ? "rule" : "channel", `${description} audit query`);
+  await setSelectValue(browser, `${root} #${containerId}-audit-action`, "create", `${description} audit action`);
+  await clickSelector(browser, `${root} [data-audit-apply]`, `${description} audit search`);
+  await assertVisible(browser, `${root} [data-audit-export="json"]`, `${description} audit json export`);
+  await assertVisible(browser, `${root} [data-audit-export="csv"]`, `${description} audit csv export`);
+  await assertVisible(browser, `${root} [data-audit-export="diff-json"]`, `${description} audit diff export`);
+  for (const format of ["json", "csv", "diff-json"]) {
+    const result = await requestStatus(`/ops/api/audit?area=${encodeURIComponent(area)}&format=${encodeURIComponent(format)}&download=1&limit=1000&offset=0`);
+    if (!result.ok) {
+      throw new Error(`${description} audit ${format} export endpoint failed HTTP ${result.status}: ${result.text.slice(0, 160)}`);
+    }
+  }
+}
+
+function rtspListenPort() {
+  const value = Number(process.env.MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT || process.env.MEDIA_SERVER_LISTEN_PORT || 8554);
+  return Number.isFinite(value) && value > 0 ? value : 8554;
 }
 
 async function runAuthUiFlow(browser, context) {
@@ -2075,6 +2285,22 @@ async function assertText(browser, selector, expected, description) {
         const node = document.querySelector(${JSON.stringify(selector)});
         const text = (node?.textContent || '').trim();
         return { ok: text.includes(${JSON.stringify(expected)}), text };
+      })()
+    `,
+    item => item?.ok === true,
+    description,
+  );
+  return result;
+}
+
+async function assertTextNotEqual(browser, selector, forbidden, description) {
+  const result = await waitForResult(
+    browser,
+    `
+      (() => {
+        const node = document.querySelector(${JSON.stringify(selector)});
+        const text = (node?.textContent || '').trim();
+        return { ok: Boolean(node) && text !== ${JSON.stringify(forbidden)} && text.length > 0, text };
       })()
     `,
     item => item?.ok === true,
