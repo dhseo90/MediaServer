@@ -968,6 +968,13 @@ std::string ProductUiCss() {
       gap: var(--space-4);
       padding: 18px;
     }
+    .panel > *,
+    .section-card > *,
+    .card > *,
+    .grid > * {
+      min-width: 0;
+      max-width: 100%;
+    }
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
