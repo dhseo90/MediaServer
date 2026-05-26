@@ -72,6 +72,7 @@ release candidate gate를 열 때만 명시적으로 실행합니다.
 git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.md .github config docs scripts src include
 ./server.sh verify-script-inventory
 ./server.sh verify-project-inventory
+./server.sh verify-feature-inventory-coverage
 ./server.sh verify-code-comments
 ./server.sh verify-release-metadata
 ./server.sh verify-docs-links
@@ -127,6 +128,17 @@ section에만 기록합니다.
   --evidence <manual-ui-evidence.json> \
   --report <manual-ui-evidence-report.md> \
   --json-report <manual-ui-evidence-report.json>
+```
+
+Feature inventory coverage gate는 `media-server.feature-inventory-coverage.v1`
+report로 모든 기능 ID가 안정화 verifier, UI evidence runner, 30분/120분 승인 gate,
+또는 field exclusion 경계에 연결됐는지 확인합니다. coverage mapping에서 빠진 ID는
+`missing coverage target`으로 기록하며, 누락 ID는 release gate에서 FAIL입니다.
+
+```bash
+./server.sh verify-feature-inventory-coverage \
+  --report <feature-inventory-coverage.md> \
+  --json-report <feature-inventory-coverage.json>
 ```
 main merge, tag, GitHub Release publish 이후에는
 `./server.sh verify-release-metadata --published`를 실행합니다. 이 모드는

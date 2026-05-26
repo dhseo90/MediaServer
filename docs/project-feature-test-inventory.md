@@ -59,6 +59,7 @@ close-out에서 실제 실행한 evidence는 [release-evidence-index.md](release
 | VA seed 데이터 | `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`로 numeric ID/API payload 기준 full UI seed matrix를 고정 | 준비 기준일 뿐 실행 증거 아님 |
 | UI 풀테스트 evidence | 기능 ID별 result template 기록란 추가. 실행 결과는 release evidence 문서에서 관리 | evidence 문서 없이 inventory만으로 UI PASS 판정 불가 |
 | UI evidence runner | `./server.sh verify-manual-ui-evidence-runner`가 `media-server.manual-ui-evidence-input.v1` 입력을 받아 UI 대상 기능 ID별 PASS/FAIL report를 생성 | runner 입력 없이 inventory만으로 UI PASS 판정 불가. 누락된 UI 대상 기능 ID는 `FAIL`, 제외 항목은 판정표 밖 |
+| Coverage gate | `./server.sh verify-feature-inventory-coverage`가 `media-server.feature-inventory-coverage.v1` report로 기능 ID별 verifier/UI evidence/longrun/field exclusion 연결을 점검 | `missing coverage target` 누락 ID는 release gate에서 FAIL |
 
 ## Owner Source Map
 
@@ -503,6 +504,9 @@ Rule scenario/event 발생 검수는 분리합니다.
 | UI 풀테스트 항목 대조 | 기능 ID별 직접 클릭/타이핑/viewport/theme evidence 항목 |
 
 coverage 대조 전에는 `테스트 있음`, `UI 있음`, `완료`라고 보고하지 않습니다.
+정적 대조는 `./server.sh verify-feature-inventory-coverage`로 수행하며, 새 기능 ID가
+안정화 verifier, UI evidence runner, 장시간 승인 gate, field exclusion 중 어디에도
+연결되지 않으면 누락 ID는 release gate에서 FAIL입니다.
 
 ## Script Inventory Boundary
 

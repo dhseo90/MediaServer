@@ -1,0 +1,239 @@
+#!/usr/bin/env node
+// File purpose: verify every feature inventory ID maps to a verifier, UI evidence, longrun gate, or exclusion boundary.
+
+import fs from "node:fs";
+import path from "node:path";
+import process from "node:process";
+import { fileURLToPath } from "node:url";
+
+import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+
+const scriptDir = path.dirname(fileURLToPath(import.meta.url));
+const rootDir = path.resolve(scriptDir, "../..");
+const rawArgs = process.argv.slice(2);
+
+if (hasHelpFlag(rawArgs)) {
+  printUsageAndExit(`Feature inventory coverage verification
+
+Usage:
+  ./server.sh verify-feature-inventory-coverage [options]
+
+Options:
+  --report <path>       Write a Markdown coverage report.
+  --json-report <path>  Write a JSON coverage report.
+  -h, --help            Show help.
+
+Checks:
+  - every docs/project-feature-test-inventory.md feature ID has a coverage target
+  - stability rows map to a verifier family
+  - UI rows map to verify-manual-ui-evidence-runner
+  - 30/120-minute rows map to explicit approval-only longrun gates
+  - field-only rows map to an exclusion/field-smoke boundary
+  - a missing-ID negative fixture produces FAIL rows
+`);
+}
+
+assertKnownOptions(rawArgs, ["report", "json-report", "h", "help"]);
+
+const args = parseArgs(rawArgs);
+const inventory = readText("docs/project-feature-test-inventory.md");
+const rows = parseFeatureRows(inventory);
+const checks = [];
+
+const stabilityVerifierByPrefix = {
+  UI: ["verify-auth-bootstrap", "verify-auth-routes", "verify-ops-client-ui", "verify-ops-route-boundaries"],
+  AUTH: ["verify-auth-bootstrap", "verify-auth-users", "verify-auth-routes", "verify-auth-ui-smoke", "verify-auth-scope-picker"],
+  SRC: ["verify-ops-source-lifecycle", "verify-ops-source-health-bulk", "verify-ops-client-ui", "verify-onvif-no-device-suite"],
+  RULE: ["verify-rule-ui", "verify-ops-rules-roundtrip", "verify-ops-rule-validation-matrix", "verify-va-replay", "verify-analysis-state"],
+  EVT: ["verify-va-events", "verify-ops-event-review-inbox", "verify-ops-event-records-scope", "verify-va-runtime-console"],
+  CLIENT: ["verify-client-live-workspace", "verify-client-dashboard-polish", "verify-client-source-dock-events", "verify-ops-client-ui"],
+  MEDIA: ["verify-codecs", "verify-webrtc-ice", "verify-webrtc-va-metadata"],
+  LAB: ["verify-analysis-state", "verify-va-metadata-sidechannel", "verify-ws-metadata", "verify-image-analysis"],
+  SAFE: ["verify-auth-routes", "verify-ops-client-ui", "verify-event-post", "verify-webrtc-va-metadata", "verify-ws-metadata"],
+};
+
+check("inventory row count is stable", () => {
+  assert(rows.length === 316, `expected 316 feature rows, found ${rows.length}`);
+  assert(new Set(rows.map(row => row.id)).size === rows.length, "duplicate feature ID exists");
+});
+
+check("coverage docs and server command are wired", () => {
+  const docs = [
+    readText("docs/project-feature-test-inventory.md"),
+    readText("docs/stream-verification.md"),
+    readText("docs/development-backlog.md"),
+  ].join("\n");
+  const server = readText("server.sh");
+  for (const snippet of [
+    "verify-feature-inventory-coverage",
+    "media-server.feature-inventory-coverage.v1",
+    "missing coverage target",
+    "누락 ID는 release gate에서 FAIL",
+  ]) {
+    assert(docs.includes(snippet), `docs missing coverage snippet: ${snippet}`);
+  }
+  assert(server.includes("verify-feature-inventory-coverage"), "server.sh missing coverage command");
+  assert(server.includes("verify_feature_inventory_coverage.mjs"), "server.sh missing coverage script dispatch");
+});
+
+check("all feature IDs have coverage targets", () => {
+  const report = buildCoverageReport(rows, stabilityVerifierByPrefix);
+  assert(report.summary.missing === 0, `missing coverage targets: ${report.summary.missing}`);
+});
+
+check("negative missing-ID fixture fails", () => {
+  const brokenMap = { ...stabilityVerifierByPrefix, UI: [] };
+  const brokenRow = { ...rows.find(row => row.id === "UI-001"), area: "안정화" };
+  const report = buildCoverageReport([brokenRow], brokenMap);
+  assert(report.summary.missing === 1, `negative fixture should have one missing row, got ${report.summary.missing}`);
+  assert(report.items[0].status === "FAIL", "negative fixture row must be FAIL");
+});
+
+const report = buildCoverageReport(rows, stabilityVerifierByPrefix);
+if (args.report) writeText(args.report, renderMarkdown(report));
+if (args.jsonReport) writeText(args.jsonReport, `${JSON.stringify(report, null, 2)}\n`);
+
+let pass = 0;
+let fail = 0;
+for (const item of checks) {
+  try {
+    item.fn();
+    pass += 1;
+    console.log(`[pass] ${item.name}`);
+  } catch (error) {
+    fail += 1;
+    console.log(`[fail] ${item.name}: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+console.log("");
+console.log("== Feature inventory coverage summary ==");
+console.log(`- featureRows: ${rows.length}`);
+console.log(`- covered: ${report.summary.covered}`);
+console.log(`- missing: ${report.summary.missing}`);
+console.log(`- pass: ${pass}`);
+console.log(`- fail: ${fail}`);
+if (fail > 0) process.exit(1);
+
+function parseArgs(argsList) {
+  const parsed = {};
+  for (let index = 0; index < argsList.length; index += 1) {
+    const token = argsList[index];
+    if (token.startsWith("--report=")) parsed.report = token.slice("--report=".length);
+    else if (token === "--report") parsed.report = argsList[++index];
+    else if (token.startsWith("--json-report=")) parsed.jsonReport = token.slice("--json-report=".length);
+    else if (token === "--json-report") parsed.jsonReport = argsList[++index];
+  }
+  return parsed;
+}
+
+function buildCoverageReport(featureRows, verifierMap) {
+  const items = featureRows.map(row => {
+    const targets = coverageTargets(row, verifierMap);
+    return {
+      id: row.id,
+      feature: row.feature,
+      area: row.area,
+      targets,
+      status: targets.length > 0 ? "PASS" : "FAIL",
+      reason: targets.length > 0 ? "" : "missing coverage target",
+    };
+  });
+  return {
+    schema: "media-server.feature-inventory-coverage.v1",
+    generatedAt: new Date().toISOString(),
+    summary: {
+      total: items.length,
+      covered: items.filter(item => item.status === "PASS").length,
+      missing: items.filter(item => item.status === "FAIL").length,
+    },
+    items,
+  };
+}
+
+function coverageTargets(row, verifierMap) {
+  const targets = [];
+  const prefix = row.id.split("-", 1)[0];
+  if (hasArea(row.area, "안정화")) {
+    for (const verifier of verifierMap[prefix] || []) {
+      targets.push({ kind: "stability", command: `./server.sh ${verifier}` });
+    }
+  }
+  if (hasArea(row.area, "UI")) {
+    targets.push({ kind: "ui-evidence", command: "./server.sh verify-manual-ui-evidence-runner --evidence <json>" });
+  }
+  if (hasArea(row.area, "30분")) {
+    targets.push({ kind: "30-minute", command: "./server.sh verify-predev --soak-minutes 30", approval: "required" });
+  }
+  if (hasArea(row.area, "120분 조건부")) {
+    targets.push({ kind: "120-minute", command: "./server.sh verify-predev --soak-minutes 120", approval: "required" });
+    targets.push({ kind: "120-minute", command: "./server.sh verify-va-runtime-console-longrun --duration-minutes 120", approval: "conditional" });
+  }
+  if (hasArea(row.area, "필드 별도")) {
+    targets.push({ kind: "field-exclusion", command: "./server.sh verify-onvif-field-smoke-gate", approval: "field endpoint required" });
+  }
+  return targets;
+}
+
+function parseFeatureRows(text) {
+  return text
+    .split(/\r?\n/)
+    .filter(line => /^\| (UI|AUTH|SRC|RULE|EVT|CLIENT|MEDIA|LAB|SAFE)-\d+ \|/.test(line))
+    .map(line => {
+      const cells = line.split("|").slice(1, -1).map(cell => cell.trim());
+      return {
+        id: cells[0] || "",
+        feature: cells[1] || "",
+        uiNeed: cells[2] || "",
+        testNeed: cells[3] || "",
+        area: cells[4] || "",
+        pass: cells[5] || "",
+      };
+    });
+}
+
+function hasArea(area, token) {
+  return area.split(",").map(item => item.trim()).includes(token);
+}
+
+function renderMarkdown(report) {
+  const lines = [
+    "# Feature Inventory Coverage Report",
+    "",
+    `- schema: ${report.schema}`,
+    `- generatedAt: ${report.generatedAt}`,
+    `- total: ${report.summary.total}`,
+    `- covered: ${report.summary.covered}`,
+    `- missing: ${report.summary.missing}`,
+    "",
+    "| feature ID | feature | area | status | targets | reason |",
+    "| --- | --- | --- | --- | --- | --- |",
+  ];
+  for (const item of report.items) {
+    const targets = item.targets.map(target => `${target.kind}:${target.command}`).join("<br>");
+    lines.push(`| ${item.id} | ${escapeCell(item.feature)} | ${escapeCell(item.area)} | ${item.status} | ${escapeCell(targets)} | ${escapeCell(item.reason)} |`);
+  }
+  return `${lines.join("\n")}\n`;
+}
+
+function escapeCell(value) {
+  return String(value ?? "").replaceAll("|", "\\|").replace(/\s+/g, " ").trim();
+}
+
+function readText(relativePath) {
+  return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
+}
+
+function writeText(outputPath, content) {
+  const resolved = path.resolve(rootDir, outputPath);
+  fs.mkdirSync(path.dirname(resolved), { recursive: true });
+  fs.writeFileSync(resolved, content);
+}
+
+function check(name, fn) {
+  checks.push({ name, fn });
+}
+
+function assert(condition, message) {
+  if (!condition) throw new Error(message);
+}

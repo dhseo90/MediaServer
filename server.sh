@@ -204,6 +204,8 @@ Usage:
                  server.sh 명령, 문서 명령 참조, JS 옵션 검증 적용 범위를 점검합니다.
   verify-project-inventory
                  코드 기능/UI 접근 기능/검증 명령 inventory 문서가 현재 command/route 범위를 덮는지 점검합니다.
+  verify-feature-inventory-coverage
+                 기능 ID가 verifier/UI evidence/장시간 승인/field exclusion 중 하나에 연결됐는지 점검합니다.
   verify-actions-security
                  GitHub Actions workflow 권한과 action 사용 정책을 검증합니다.
   verify-public-repo-readiness
@@ -748,6 +750,10 @@ case "${cmd}" in
   verify-project-inventory)
     require_internal verify_project_feature_test_inventory.mjs
     exec "${INTERNAL_DIR}/verify_project_feature_test_inventory.mjs" "$@"
+    ;;
+  verify-feature-inventory-coverage)
+    require_internal verify_feature_inventory_coverage.mjs
+    exec "${INTERNAL_DIR}/verify_feature_inventory_coverage.mjs" "$@"
     ;;
   verify-actions-security)
     require_internal verify_actions_security.mjs

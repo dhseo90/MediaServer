@@ -33,6 +33,11 @@ jobs:
         run: |
           ./server.sh verify-script-inventory
 
+      - name: Feature inventory coverage
+        shell: bash
+        run: |
+          ./server.sh verify-feature-inventory-coverage
+
       - name: Actions security
         shell: bash
         run: |
