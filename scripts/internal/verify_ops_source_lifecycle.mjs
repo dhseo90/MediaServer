@@ -2,6 +2,7 @@
 // 파일 용도: 공통 source/session lifecycle 상태가 active 후 idle로 정리되는지 검증한다.
 
 import { spawn } from "node:child_process";
+import fs from "node:fs";
 import net from "node:net";
 import path from "node:path";
 import process from "node:process";
@@ -52,6 +53,7 @@ const timeoutMs = Number(args.timeoutMs || 12000);
 const pollIntervalMs = Number(args.pollIntervalMs || 250);
 const settleMs = Number(args.settleMs || 500);
 const runId = `ops-source-lifecycle-${Date.now()}-${process.pid}`;
+const managedStateDir = path.join("/private/tmp", `media_server_${runId}_state`);
 let managedServer = null;
 let managedServerLogs = [];
 
@@ -143,14 +145,17 @@ async function resolveManagedServerPorts() {
 function startManagedServer() {
   const httpUrl = new URL(httpBase);
   const httpPort = httpUrl.port || (httpUrl.protocol === "https:" ? "443" : "80");
+  fs.mkdirSync(managedStateDir, { recursive: true });
   const child = spawn("./server.sh", ["foreground"], {
     cwd: rootDir,
     env: {
       ...process.env,
       MEDIA_SERVER_SKIP_LOCAL_ENV: "1",
       MEDIA_SERVER_AUTH_MODE: "off",
-      MEDIA_SERVER_SOURCE_REGISTRY: path.join("/private/tmp", `media_server_${runId}_sources.json`),
-      MEDIA_SERVER_AUTH_USERS_FILE: path.join("/private/tmp", `media_server_${runId}_users.json`),
+      MEDIA_SERVER_SOURCE_REGISTRY: path.join(managedStateDir, "sources.json"),
+      MEDIA_SERVER_PUBLISHED_VIEWS: path.join(managedStateDir, "views.json"),
+      MEDIA_SERVER_ANALYSIS_REGISTRY: path.join(managedStateDir, "analysis.json"),
+      MEDIA_SERVER_AUTH_USERS_FILE: path.join(managedStateDir, "users.json"),
       MEDIA_SERVER_BUILD_DIR: process.env.MEDIA_SERVER_BUILD_DIR || "build-gst-onnx",
       MEDIA_SERVER_SKIP_BUILD: process.env.MEDIA_SERVER_SKIP_BUILD || "1",
       MEDIA_SERVER_LISTEN_ADDRESS: "127.0.0.1",
@@ -223,15 +228,19 @@ async function fetchHealth() {
 }
 
 async function stopManagedServer() {
-  if (!managedServer) return;
-  if (managedServer.exitCode !== null) return;
-  managedServer.kill("SIGTERM");
-  const startedAt = Date.now();
-  while (managedServer.exitCode === null && Date.now() - startedAt < 3000) {
-    await delay(100);
-  }
-  if (managedServer.exitCode === null) {
-    managedServer.kill("SIGKILL");
+  try {
+    if (managedServer && managedServer.exitCode === null) {
+      managedServer.kill("SIGTERM");
+      const startedAt = Date.now();
+      while (managedServer.exitCode === null && Date.now() - startedAt < 3000) {
+        await delay(100);
+      }
+      if (managedServer.exitCode === null) {
+        managedServer.kill("SIGKILL");
+      }
+    }
+  } finally {
+    fs.rmSync(managedStateDir, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
   }
 }
 

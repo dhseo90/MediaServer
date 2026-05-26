@@ -281,8 +281,14 @@ session auth 제품 UI 자체를 검증할 때는 별도 session-auth 서버를 
 - Browser/Computer Use fallback: 수동 UI evidence는 Browser Use 직접 조작,
   Chrome 직접 조작, Computer Use visible UI 조작 순서로 시도하고, raw JSON/API-only
   확인을 수동 클릭 evidence로 쓰지 않습니다.
-- fixture cleanup: `verify-fixture-cleanup-contracts`는 access request, EventRecord,
-  audit/evidence fixture가 실행 후 복원/삭제되는지 정적으로 확인합니다.
+- fixture cleanup: `verify-fixture-cleanup-contracts`는 access request, source/view
+  registry, manual UI seed registry, EventRecord, audit/evidence fixture가 실행 후
+  복원/삭제되거나 throwaway state dir로 격리되는지 정적으로 확인합니다.
+  `prepare-manual-ui-fulltest-seed --dry-run --emit-registry-dir <dir>`는
+  `sources.json`, `views.json`, `analysis.json`, `preconditions.json`만 생성하며
+  UI/event evidence로 쓰지 않습니다.
+  SSE/WS/Event POST temporary tap/rule/receiver cleanup, lifecycle port cleanup,
+  Chrome userDataDir 삭제도 같은 gate에서 확인합니다.
 - browser route smoke: click E2E는 path wait, scroll idle, browser error collector,
   overflow assertion을 같이 사용합니다. sandbox local fetch/CDP 제한으로 실패하면
   같은 명령을 권한 밖에서 재실행해 환경 제한과 제품 회귀를 분리합니다.
