@@ -144,7 +144,8 @@ check("coverage wording separates mapping from execution", () => {
     "dry-run 준비 가능, 서버 적용 evidence 없음",
     "Verifier Coverage Map",
     "실제 UI 이벤트 발생 전수 evidence 없음",
-    "직접 조작 evidence 없음",
+    "inventory 단독으로 UI PASS 판정 불가",
+    "evidence 문서 없이 inventory만으로 UI PASS 판정 불가",
   ]) {
     requireText(inventory, phrase, `inventory missing coverage boundary wording: ${phrase}`);
   }

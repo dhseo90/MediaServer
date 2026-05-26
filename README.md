@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Source Release](https://img.shields.io/badge/source--only%20release-v1.8.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v1.8.0)
+[![Release Prep](https://img.shields.io/badge/source--only%20release%20prep-v1.8.0-blue)](docs/development-backlog.md)
 
 RTSP/WebRTC live stream을 받아 다시 내보내고, 필요할 때 YOLO/ONNX 영상 분석
 overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다.
@@ -13,7 +13,7 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 
 - English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 - 전체 문서 색인: [docs/README.md](docs/README.md)
-- source-only release 기준: [v1.8.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.8.0)
+- source-only release 준비 기준: [v1.8.0](docs/development-backlog.md)
 - v1.8.0 release close-out 준비: [docs/development-backlog.md](docs/development-backlog.md)
 
 ## 한눈에 보기

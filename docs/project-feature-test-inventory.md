@@ -42,19 +42,22 @@ source-of-truth입니다.
 
 ## Current Coverage Status
 
-이 절은 현재 문서 정리 단계에서 확인한 coverage 상태입니다. 실제 안정화 테스트,
-30분 soak, 120분 longrun, UI 풀테스트를 실행했다는 뜻이 아닙니다.
+이 절은 inventory 문서 자체의 coverage 상태입니다. 실제 안정화 테스트,
+30분 soak, 120분 longrun, UI 풀테스트를 실행했다는 뜻이 아닙니다. v1.8.0 release
+close-out에서 실제 실행한 evidence는 [release-evidence-index.md](release-evidence-index.md)와
+[manual-ui-result-2026-05-25-ui-fulltest-restart.md](manual-ui-result-2026-05-25-ui-fulltest-restart.md)를
+기준으로 봅니다.
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
 | 기능 ID 목록 | 316개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정했지만, 각 행의 line-level 증적은 별도 대조 필요 | 실행 증거 아님 |
-| 제품 UI 위치 | UI 필요/간접/비대상을 분리했지만, 브라우저 직접 조작 evidence는 없음 | UI 풀테스트 판정 시 FAIL |
+| 제품 UI 위치 | UI 필요/간접/비대상을 분리했지만, inventory 자체는 브라우저 직접 조작 evidence를 보관하지 않음 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
 | 30분 테스트 매핑 | 30분 대상 기능을 media/session/runtime 중심으로 분리 | 기준표 작성 완료 |
 | 120분 테스트 매핑 | memory leak/runtime drift 조건부 대상 7개 분리 | 기준표 작성 완료 |
 | VA seed 데이터 | `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`로 numeric ID/API payload 기준 full UI seed matrix를 고정 | 준비 기준일 뿐 실행 증거 아님 |
-| UI 풀테스트 evidence | 기능 ID별 result template 기록란 추가 | 직접 조작 evidence 없음. UI 풀테스트 판정 시 evidence 없으면 FAIL |
+| UI 풀테스트 evidence | 기능 ID별 result template 기록란 추가. 실행 결과는 release evidence 문서에서 관리 | evidence 문서 없이 inventory만으로 UI PASS 판정 불가 |
 
 ## Owner Source Map
 

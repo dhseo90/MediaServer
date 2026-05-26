@@ -19,7 +19,7 @@
 
 ## 현재 제품 경계
 
-- 현재 main 기준 release: `v1.8.0`
+- 현재 release 준비 기준: `v1.8.0`
 - 중심 범위: live source onboarding, live source health, live VA event 품질
 - 기본 release 형태: source-only
 - 명시적 비범위: 장기 녹화, VMS/NVR, playback/search, ONVIF Profile G
@@ -41,7 +41,8 @@ Release evidence의 실행/미실행/미확인 색인은
 [release-evidence-index.md](release-evidence-index.md)에 둡니다.
 직전 UI 풀테스트 close-out 증적은 결과표 220 PASS / 0 FAIL, 30분 predev PASS,
 해당 close-out 커밋의 브랜치 push 완료로 기록되어 있습니다. 120분 longrun과 main/tag/GitHub Release
-publish gate는 아직 미실행입니다.
+publish gate는 아직 미실행이며, GitHub release URL은 publish 이후 `verify-release-metadata --published`로
+확인합니다.
 현재 v1.8.0 제품 회귀와 UI 풀테스트 gate는
 [stream-verification.md](stream-verification.md)와
 [manual-ui-checklist.md](manual-ui-checklist.md)의 버전 중립 명령만 기준으로

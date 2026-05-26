@@ -93,7 +93,7 @@ Real close-out checklist:
 4. Tag: 검증된 main commit에만 annotated release tag를 생성합니다.
 5. Push: tag와 필요한 branch를 명시 승인 후 push합니다.
 6. GitHub Release: source-only release note를 만들고 sample/model/runtime binary를 업로드하지 않습니다.
-7. Latest 확인: GitHub Releases latest, `/releases/latest`, remote tag, README release URL을 `verify-release-metadata --published`로 확인합니다.
+7. Latest 확인: GitHub Releases latest, `/releases/latest`, remote tag를 `verify-release-metadata --published`로 확인합니다. README는 publish 전 dead release URL을 걸지 않고 release 준비 기준 문서로 연결합니다.
 8. Next branch sync: 다음 작업 branch를 main 최신 release fix 위로 동기화한 뒤 미커밋 변경이 없는지 확인합니다.
 
 위 순서 중 실행하지 않은 항목은 테스트 결과 행을 만들지 않고 release evidence 실행

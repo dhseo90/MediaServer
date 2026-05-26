@@ -29,7 +29,7 @@ Options:
 
 Checks:
   - VERSION과 CMake project VERSION 값이 같은 semantic version인지 확인
-  - README/English README의 source-only release baseline link가 현재 tag를 가리키는지 확인
+  - README/English README의 source-only release preparation baseline이 현재 tag와 로컬 release close-out 문서를 가리키는지 확인
   - 기본 모드에서는 GitHub Release/tag 생성을 manual-not-run close-out gate로 기록
   - --published 모드에서는 GitHub Releases latest/list/view, GitHub API /releases/latest, 원격 tag가 현재 tag를 가리키는지 확인
   - versioning/release/backlog/public review/UI guide 문서가 같은 current release baseline과 deferred phase gate를 말하는지 확인
@@ -80,29 +80,27 @@ check("VERSION matches CMake project VERSION", () => {
   return { version };
 });
 
-check("README.md release baseline points at current tag", () => {
+check("README.md release preparation baseline points at current tag", () => {
   const readme = readText("README.md");
-  assert(readme.includes(`source-only release 기준: [${currentTag}]`), "README.md source-only release baseline text drifted");
+  assert(readme.includes(`source-only release 준비 기준: [${currentTag}](docs/development-backlog.md)`), "README.md source-only release preparation baseline text drifted");
   return { file: "README.md", currentTag };
 });
 
-check("README.md release link points at current tag", () => {
+check("README.md does not link to unpublished release tag in prep mode", () => {
   const readme = readText("README.md");
-  assert(readme.includes(`/releases/tag/${currentTag}`), "README.md latest release link drifted");
-  assertSingleReleaseLink(readme, "README.md");
+  assert(!readme.includes(`/releases/tag/${currentTag}`), "README.md should not link to GitHub release tag before publish");
   return { file: "README.md", currentTag };
 });
 
-check("README.en.md release baseline points at current tag", () => {
+check("README.en.md release preparation baseline points at current tag", () => {
   const readmeEn = readText("README.en.md");
-  assert(readmeEn.includes(`Source-only release baseline: [${currentTag}]`), "README.en.md source-only release baseline text drifted");
+  assert(readmeEn.includes(`Source-only release preparation baseline: [${currentTag}](docs/development-backlog.md)`), "README.en.md source-only release preparation baseline text drifted");
   return { file: "README.en.md", currentTag };
 });
 
-check("README.en.md release link points at current tag", () => {
+check("README.en.md does not link to unpublished release tag in prep mode", () => {
   const readmeEn = readText("README.en.md");
-  assert(readmeEn.includes(`/releases/tag/${currentTag}`), "README.en.md latest release link drifted");
-  assertSingleReleaseLink(readmeEn, "README.en.md");
+  assert(!readmeEn.includes(`/releases/tag/${currentTag}`), "README.en.md should not link to GitHub release tag before publish");
   return { file: "README.en.md", currentTag };
 });
 
