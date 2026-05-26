@@ -871,6 +871,20 @@ function opsSourcesGeneratedIdExpression() {
       if (String(hiddenId?.value || '') !== idText) issue('hidden channel id does not match display');
       const active = document.activeElement;
       if (active?.name === 'channelId') issue('channel id can receive edit focus');
+      document.querySelector('#channel-save-selected')?.click();
+      await wait(250);
+      const validation = String(document.querySelector('#channel-validation')?.textContent || '').trim();
+      if (!validation.includes('채널 이름이 필요합니다.')) {
+        issue('empty channel name validation missing: ' + validation);
+      }
+      const rows = Array.from(document.querySelectorAll('#channels-body tr'));
+      const emptyNameRow = rows.some(row => {
+        const cells = Array.from(row.querySelectorAll('td'));
+        const id = String(cells[0]?.textContent || '').trim();
+        const name = String(cells[1]?.textContent || '').trim();
+        return id === idText && !name;
+      });
+      if (emptyNameRow) issue('empty channel name row was saved');
       return { ok: issues.length === 0, issues, idText };
     })()
   `;

@@ -8466,6 +8466,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     function validateChannelForm(form) {
       const data = formDataObject(form);
       if (!isNumericChannelId(data.channelId)) return '채널 ID는 1 이상의 숫자만 사용할 수 있습니다.';
+      if (!String(data.displayName || '').trim()) return '채널 이름이 필요합니다.';
       const kind = data.kind || 'file';
       const locatorByKind = {
         file: data.file,

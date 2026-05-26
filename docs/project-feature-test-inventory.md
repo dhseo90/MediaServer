@@ -213,7 +213,7 @@ Rule scenario/event 발생 검수는 분리합니다.
 | SRC-005 | internal WHIP published source 등록 | 필요 | 필요 | 안정화, UI, 30분 | WHIP publish sourceId가 view/source registry에 반영 |
 | SRC-006 | source 목록 조회 | 필요 | 필요 | 안정화, UI | 목록 row/count/status가 API와 일치 |
 | SRC-007 | source 상세 조회 | 필요 | 필요 | 안정화, UI | detail panel/route가 source fields를 표시 |
-| SRC-008 | source 생성 | 필요 | 필요 | 안정화, UI | create validation과 성공 row 반영 |
+| SRC-008 | source 생성 | 필요 | 필요 | 안정화, UI | create validation, 빈 채널 이름 거부, 성공 row 반영 |
 | SRC-009 | source 수정 | 필요 | 필요 | 안정화, UI | edit save 후 변경 값 반영 |
 | SRC-010 | source 삭제 | 필요 | 필요 | 안정화, UI | delete 후 목록/view 참조 정리 확인 |
 | SRC-011 | source 활성/비활성 상태 | 필요 | 필요 | 안정화, UI | disabled source가 view/session/rule에서 차단됨 |
