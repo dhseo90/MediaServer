@@ -175,6 +175,8 @@ evidence가 아닙니다.
 admin/operator 권한으로 `/ops/events`를 직접 열고, 최종 enabled event
 template/vaRule별 EventRecord 발생 이력을 대조합니다. 파일/API 대조는 보조
 evidence이며, UI에서 열지 않은 경우 `FAIL`입니다.
+basic 6개 + scenario 6개, basic/scenario 최종 12개 이상을 개별 행으로 기록하고
+묶음 PASS로 대체하지 않습니다.
 
 - `/ops/events` screenshot:
 - visible rows:

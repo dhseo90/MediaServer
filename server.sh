@@ -42,6 +42,8 @@ Usage:
                  사람 객체 자동 모자이크(redaction)의 image/live 검증을 수행합니다.
   verify-va-events
                  이동 테스트 영상으로 tracker 기반 presence/enter/exit/line-crossing을 검증합니다.
+  verify-va-event-coverage-report
+                 VA rule/scenario/EventRecord coverage를 조합 단위 report로 검증합니다.
   verify-va-category-samples
                  실제 영상 샘플에서 VA 카테고리별 presence 이벤트를 검증합니다.
   verify-route-profiles
@@ -432,6 +434,10 @@ case "${cmd}" in
   verify-va-events)
     require_internal verify_va_tracking_events.sh
     exec "${INTERNAL_DIR}/verify_va_tracking_events.sh" "$@"
+    ;;
+  verify-va-event-coverage-report)
+    require_internal verify_va_event_coverage_report.mjs
+    exec "${INTERNAL_DIR}/verify_va_event_coverage_report.mjs" "$@"
     ;;
   verify-va-category-samples)
     require_internal verify_va_category_samples.sh

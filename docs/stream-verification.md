@@ -73,6 +73,7 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-script-inventory
 ./server.sh verify-project-inventory
 ./server.sh verify-feature-inventory-coverage
+./server.sh verify-va-event-coverage-report
 ./server.sh verify-code-comments
 ./server.sh verify-release-metadata
 ./server.sh verify-docs-links
@@ -205,6 +206,7 @@ fallback까지 실패하면 `media-server.github-metadata-fallback-policy.v1` �
 ./server.sh verify-product-ui-no-native-dialogs
 ./server.sh verify-analysis-state
 ./server.sh verify-va-events
+./server.sh verify-va-event-coverage-report
 ./server.sh verify-va-replay
 ./server.sh verify-webrtc-va-metadata
 ./server.sh verify-va-metadata-sidechannel
@@ -222,6 +224,18 @@ EventRecord 저장 이력까지 확인해야 하는 경우에는 EventRecord sto
 제품 UI에서 EventRecord row, evidence filter, archive toggle, pagination, signed
 bundle action과 rule/scenario별 history coverage까지 닫아야 할 때는 같은 storage
 enabled 서버에서 아래처럼 `/ops/events` UI scope verifier를 실행합니다.
+
+VA rule/scenario/event type/EventRecord 조합표는 아래 report verifier가 관리합니다.
+이 report는 `media-server.va-rule-event-coverage-report.v1` schema로 basic event,
+line direction, scenario replay, EventRecord history key, invalid/negative 조합을
+개별 행으로 나눕니다. expected invalid 조합은 `FAIL` row로 남기며 PASS 범주에
+섞지 않습니다.
+
+```bash
+./server.sh verify-va-event-coverage-report \
+  --report /tmp/media_server_va_event_coverage.md \
+  --json-report /tmp/media_server_va_event_coverage.json
+```
 
 ```bash
 ./server.sh verify-ops-event-records-scope \
