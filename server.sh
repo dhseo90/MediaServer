@@ -250,6 +250,8 @@ Usage:
                  admin 계정 관리, viewer scope 제한, lockout, invite/request를 검증합니다.
   verify-auth-routes
                  root/login/ops/client와 Lab API role 기반 route 정책을 검증합니다.
+  verify-auth-regression-matrix
+                 Auth/session/scope regression matrix와 verifier coverage를 검증합니다.
   verify-event-post
                  VA event POST payload, 실패/cooldown/queue 상태를 검증합니다.
   verify-integrator-contract-artifact
@@ -846,6 +848,10 @@ case "${cmd}" in
   verify-auth-routes)
     require_internal verify_auth_routes.sh
     exec "${INTERNAL_DIR}/verify_auth_routes.sh" "$@"
+    ;;
+  verify-auth-regression-matrix)
+    require_internal verify_auth_regression_matrix.mjs
+    exec "${INTERNAL_DIR}/verify_auth_regression_matrix.mjs" "$@"
     ;;
   verify-event-post)
     require_internal verify_event_post_dispatch.sh

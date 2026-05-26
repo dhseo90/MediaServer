@@ -42,7 +42,7 @@ const checks = [];
 
 const stabilityVerifierByPrefix = {
   UI: ["verify-auth-bootstrap", "verify-auth-routes", "verify-ops-client-ui", "verify-ops-route-boundaries"],
-  AUTH: ["verify-auth-bootstrap", "verify-auth-users", "verify-auth-routes", "verify-auth-ui-smoke", "verify-auth-scope-picker"],
+  AUTH: ["verify-auth-regression-matrix", "verify-auth-bootstrap", "verify-auth-users", "verify-auth-routes", "verify-auth-ui-smoke", "verify-auth-scope-picker"],
   SRC: ["verify-ops-source-lifecycle", "verify-ops-source-health-bulk", "verify-ops-client-ui", "verify-onvif-no-device-suite"],
   RULE: ["verify-rule-ui", "verify-ops-rules-roundtrip", "verify-ops-rule-validation-matrix", "verify-va-event-coverage-report", "verify-va-replay", "verify-analysis-state"],
   EVT: ["verify-va-event-coverage-report", "verify-va-events", "verify-ops-event-review-inbox", "verify-ops-event-records-scope", "verify-va-runtime-console"],

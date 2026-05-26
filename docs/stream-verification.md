@@ -93,6 +93,7 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
 ./server.sh verify-release-bundle-dry-run
 ./server.sh source-offer-checklist --stable --bundle-policy-report /tmp/media_server_bundle_policy.json
+./server.sh verify-auth-regression-matrix
 ./server.sh verify-auth-routes
 ./server.sh verify-ops-client-ui
 ./server.sh verify-ops-click-e2e
@@ -638,10 +639,19 @@ Auth 변경:
 ./server.sh verify-auth-bootstrap
 ./server.sh verify-auth-users
 ./server.sh verify-auth-routes
+./server.sh verify-auth-regression-matrix \
+  --report /tmp/media_server_auth_regression_matrix.md \
+  --json-report /tmp/media_server_auth_regression_matrix.json
 ```
 
 위 세 명령은 임시 users file과 격리 포트에서 auth 서버를 띄워
 setup/login/session/user/route smoke를 자동으로 확인합니다.
+`verify-auth-regression-matrix`는 `media-server.auth-session-scope-regression-matrix.v1`
+report로 admin/operator/viewer/integrator, invite/request, password history,
+last-admin guard, viewer redaction, session capability 경계를 기능 ID와 verifier
+단위로 나눕니다. 이 matrix report는 실행 증거를 대체하지 않으며, 실제
+`verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`,
+`verify-ops-click-e2e --auth-ui-flow` 결과와 UI 풀테스트 evidence를 함께 봅니다.
 자동 auth smoke, 로컬 QA, 수동 smoke의 계정 비밀번호는 테스트 실행자가
 아래 환경변수로 명시합니다. 값이 없으면 auth verifier는 서버를 띄우기 전에
 실패해야 하며, 문서나 스크립트에 고정 기본 비밀번호를 두지 않습니다.
