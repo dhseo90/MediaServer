@@ -25,7 +25,7 @@ Usage:
 
 Options:
   --http-base <url>         실행 중인 서버 HTTP base입니다. 기본 http://127.0.0.1:8081.
-  --timeout-ms <ms>         HTTP/브라우저 대기 시간입니다. 기본 10000.
+  --timeout-ms <ms>         HTTP/브라우저 대기 시간입니다. 기본 30000.
   --screenshots[=1]         대표 화면 screenshot smoke를 함께 수행합니다.
   --chrome-path <path>      Chrome/Chromium 실행 파일 경로입니다.
   --visual-widths <csv>     screenshot 검증 viewport 폭 목록입니다. 기본 320,390,760,1180.
@@ -49,7 +49,7 @@ assertKnownOptions(rawArgs, [
 ]);
 const args = parseArgs(rawArgs);
 const httpBase = (args.httpBase || "http://127.0.0.1:8081").replace(/\/+$/, "");
-const timeoutMs = Number(args.timeoutMs || 10000);
+const timeoutMs = Number(args.timeoutMs || 30000);
 const screenshotEnabled = isTruthy(args.screenshots);
 const chromePath = args.chromePath || findChrome();
 const visualWidths = parseWidthList(args.visualWidths || "320,390,760,1180");

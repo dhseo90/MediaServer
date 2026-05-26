@@ -1,6 +1,6 @@
 #!/usr/bin/env node
-// File purpose: verify per-feature manual UI evidence input and emit PASS/FAIL rows.
-// Summary: this does not run a browser; it turns explicit UI evidence into a complete per-ID report.
+// 파일 용도: 기능 ID별 수동 UI evidence 입력을 검증하고 PASS/FAIL 결과 행을 생성한다.
+// 요약: 브라우저를 실행하지 않고 명시 evidence를 완전한 기능별 report로 변환한다.
 
 import fs from "node:fs";
 import path from "node:path";

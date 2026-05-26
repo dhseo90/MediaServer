@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// File purpose: verify every feature inventory ID maps to a verifier, UI evidence, longrun gate, or exclusion boundary.
+// 파일 용도: 모든 feature inventory ID가 verifier, UI evidence, longrun gate, 제외 경계 중 하나에 연결되는지 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";

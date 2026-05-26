@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// File purpose: verify GitHub Actions static/guardrail gates stay aligned with local release commands.
+// 파일 용도: GitHub Actions static/guardrail gate와 로컬 release 명령의 parity를 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";

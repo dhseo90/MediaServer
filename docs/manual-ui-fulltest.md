@@ -230,6 +230,8 @@ VA 룰/시나리오 검수는 Rule/Profile/Scenario CRUD와 EventRecord 발생 �
 - basic event type은 `presence`, `enter`, `exit`, `line-crossing`입니다.
 - scenario event type은 `intrusion-dwell`, `re-entry`, `wrong-direction`,
   `intrusion-after-line-crossing`, `loitering`, `zone-occupancy`입니다.
+- basic/scenario 최종 12개 이상 event key는 개별 PASS/FAIL 행으로 기록하고,
+  카테고리 묶음 PASS로 대체하지 않습니다.
 - UI 풀테스트 완료 전 `/ops/events`를 admin/operator 권한으로 열고 EventRecord
   rows를 직접 확인합니다. screenshot과 함께 visible row, pagination/filter 상태,
   archive 포함 여부를 기록합니다.
