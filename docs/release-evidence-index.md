@@ -58,6 +58,30 @@ Not run for `stability-script-smoke-20260525`: 30분 soak, 120분 longrun, manua
 Not run for `predev-30min-20260525`: 120분 longrun, manual UI 풀테스트.
 Not run for `ui-fulltest-restart-20260525-oehkFG`: 120분 longrun, main merge, release tag, GitHub Release 생성, publish 후 `verify-release-metadata --published` 재확인.
 
+## v2.0.0 Entry Baseline Report
+
+v1.9.0 종료 후 v2.0.0 신규 기능으로 들어가기 전에는
+`media-server.v190-entry-baseline-report.v1` report로 release close-out evidence를
+한 번에 모읍니다. 이 report는 안정화, 30분, UI 풀테스트, 120분 longrun, CI 상태,
+release metadata, published metadata, v2.0.0 entry freeze gate를 같은 표에 두되
+서로 대체하지 않습니다.
+
+```bash
+./server.sh verify-v190-entry-baseline \
+  --report /tmp/media_server_v190_entry_baseline.md \
+  --json-report /tmp/media_server_v190_entry_baseline.json
+```
+
+- 30분, UI 풀테스트, 120분 longrun은 이 명령에서 실행하지 않습니다. 사용자 명시
+  승인 전에는 각각 `미실행`으로만 기록합니다.
+- CI 상태는 GitHub Actions UI/API를 실제 확인하기 전까지 `미확인`으로 기록합니다.
+- `verify-release-metadata`, `verify-release-evidence-index`,
+  `verify-post-release-reconciliation`, `verify-release-closeout-helper --dry-run --one-shot-dry-run`,
+  `verify-integrator-contract-artifact` 결과를 close-out 시점에 report evidence로
+  연결합니다.
+- publish 전 `verify-release-metadata --published`, tag, push, GitHub Release 생성,
+  release branch 삭제, next branch sync는 `manual-not-run`입니다.
+
 ## Skipped / Not-run Wording
 
 보고서와 release note에서는 아래 문구를 구분합니다. `미실행`, `manual-not-run`,

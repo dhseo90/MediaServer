@@ -76,6 +76,7 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-va-event-coverage-report
 ./server.sh verify-code-comments
 ./server.sh verify-release-metadata
+./server.sh verify-v190-entry-baseline --report /tmp/media_server_v190_entry_baseline.md --json-report /tmp/media_server_v190_entry_baseline.json
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-manual-ui-evidence
@@ -108,6 +109,12 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 로컬 VERSION/문서 기준을 확인합니다. 이 모드에서는 GitHub Release/tag 생성이 아직
 수동 close-out 전일 수 있으므로 GitHub Latest Release 확인을 `manual-not-run`으로
 기록합니다.
+`verify-v190-entry-baseline`은 v1.9.0 종료와 v2.0.0 진입 전 evidence를
+`media-server.v190-entry-baseline-report.v1` report로 모으는 정적 gate입니다.
+이 명령은 30분 soak, 120분 longrun, UI 풀테스트를 실행하지 않고, 승인 전 항목은
+`미실행`/`미확인`/`manual-not-run`으로 분리해 기록합니다. 실제 release close-out
+때는 `verify-release-evidence-index`, `verify-post-release-reconciliation`,
+`verify-release-metadata`, CI check review 결과를 이 report에 연결합니다.
 GitHub Actions warning annotation gate는 check-run conclusion과 별도로 봅니다.
 success check-run이어도 GitHub check-runs annotations API export에
 warning/failure annotation이 있으면
