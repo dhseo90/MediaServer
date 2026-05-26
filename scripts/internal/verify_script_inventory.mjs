@@ -412,6 +412,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_ui_blocking_dialog_policy.mjs",
     "verify_product_shell_examples.mjs",
     "verify_runtime_dashboard_longrun_template.mjs",
+    "verify_runtime_media_longrun_trigger_matrix.mjs",
     "verify_ui_copy_matrix.mjs",
     "verify_ui_copy_i18n_parity.mjs",
     "verify_ui_release_baseline_approval_log.mjs",

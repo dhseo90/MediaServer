@@ -264,6 +264,8 @@ Usage:
                  event POST schema/recovery/선택 queue 검증을 반복 실행합니다.
   verify-longrun-separation
                  기본 smoke와 장기 soak/longrun harness 분리 기준을 검증합니다.
+  verify-runtime-media-longrun-trigger-matrix
+                 runtime/media 변경 유형별 30분/120분 longrun trigger matrix를 검증합니다.
   verify-runtime-dashboard-longrun-template
                  Runtime Dashboard 장시간 evidence template과 실행 분리 기준을 검증합니다.
   verify-rc-release-gate
@@ -880,6 +882,10 @@ case "${cmd}" in
   verify-longrun-separation)
     require_internal verify_longrun_separation.mjs
     exec "${INTERNAL_DIR}/verify_longrun_separation.mjs" "$@"
+    ;;
+  verify-runtime-media-longrun-trigger-matrix)
+    require_internal verify_runtime_media_longrun_trigger_matrix.mjs
+    exec "${INTERNAL_DIR}/verify_runtime_media_longrun_trigger_matrix.mjs" "$@"
     ;;
   verify-runtime-dashboard-longrun-template)
     require_internal verify_runtime_dashboard_longrun_template.mjs

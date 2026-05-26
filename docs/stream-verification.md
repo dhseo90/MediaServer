@@ -932,6 +932,36 @@ event POST 반복 안정성:
 
 120분 predev는 상시 검증이 아니라 release candidate 또는 고위험 변경 gate입니다.
 
+### Runtime/media longrun trigger matrix
+
+`media-server.runtime-media-longrun-trigger-matrix.v1`은 변경 유형별로 안정화,
+30분 soak, 120분 predev, VA runtime longrun, field smoke/exclusion trigger를
+분리합니다. 이 matrix는 장시간 테스트를 실행하지 않고 실행 조건과 승인 경계를
+검증합니다.
+
+```bash
+./server.sh verify-runtime-media-longrun-trigger-matrix \
+  --report /tmp/media_server_runtime_media_longrun_trigger_matrix.md \
+  --json-report /tmp/media_server_runtime_media_longrun_trigger_matrix.json
+./server.sh verify-runtime-dashboard-longrun-template
+```
+
+| ID | 변경 유형 | 기본 trigger | 120분/field trigger | 승인 |
+| --- | --- | --- | --- | --- |
+| `docs-policy-only` | 문서, verifier wording, release evidence policy | short stability | 없음 | 불필요 |
+| `ui-nonmedia-shell` | Ops/Client shell layout, copy, non-media controls | short stability, UI evidence | 없음 | 불필요 |
+| `runtime-dashboard-metadata-fanout` | Runtime dashboard, SSE/WS/DataChannel metadata fanout | short stability, 30분 soak | VA runtime 120분 longrun | 필요 |
+| `rtsp-gstreamer-webrtc-session-lifecycle` | RTSP/GStreamer/WebRTC session lifecycle 또는 media path ownership | short stability, 30분 soak | 120분 predev | 필요 |
+| `event-post-queue-recovery` | Event POST queue/recovery/cooldown | short stability, event POST longrun, 30분 soak | RC/high-risk 시 120분 판단 | 조건부 |
+| `va-tracker-reid-scenario-runtime` | VA tracker/Re-ID/scenario runtime | short stability, 30분 soak | VA runtime 120분 longrun | 필요 |
+| `external-field-endpoints` | External TURN/WHEP/ONVIF/YouTube real endpoint | field-smoke-or-exclusion | local soak로 대체 금지 | 필요 |
+| `release-candidate-closeout` | Release candidate close-out | short stability, 30분 soak | 120분 predev와 VA runtime longrun | 필요 |
+
+30분 soak는 120분 longrun PASS를 대체하지 않습니다. 120분 longrun도 UI 풀테스트
+PASS를 대체하지 않습니다. 120분 gate는 사용자 승인, release candidate, media path
+고위험 변경, metadata fanout lifecycle 변경, active RSS high-water 증가 같은 trigger가
+있을 때만 실행합니다.
+
 실행 조건:
 
 - release candidate 전
