@@ -27,7 +27,7 @@ const usedIds = new Set([
   ...(Array.isArray(catalog.rules) ? catalog.rules : []).map((item) => String(item?.id || "")),
   ...(Array.isArray(catalog.vaRules) ? catalog.vaRules : []).map((item) => String(item?.id || "")),
 ]);
-const ids = nextNumericIds(usedIds, { count: 5, start: 9801, end: 9999, label: "ops rules roundtrip id" });
+const ids = nextNumericIds(usedIds, { count: 6, start: 9801, end: 9999, label: "ops rules roundtrip id" });
 
 const fixtures = [
   {
@@ -125,6 +125,7 @@ const fixtures = [
 ];
 
 const created = [];
+const createdVaRules = [];
 try {
   for (const payload of fixtures) {
     await requestJson(`/lab/analysis/rules/${encodeURIComponent(payload.id)}`, {
@@ -137,6 +138,37 @@ try {
     assertRuleRoundTrip(payload, readback.rule);
     console.log(`[pass] roundtrip ${payload.id}: ${payload.event.type}`);
   }
+  await assertRequestFails("/lab/analysis/rules", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(fixtures[0]),
+  }, "analysis document id already exists");
+  console.log("[pass] duplicate event template create rejects existing id");
+  const duplicateVaRule = {
+    id: ids[4],
+    priority: 812,
+    enabled: true,
+    source: { kind: "file", file: "rule-roundtrip-duplicate-id.mp4" },
+    analysis: {
+      profileId: "1",
+      classes: ["person", "vehicle"],
+      trackingPolicy: { tracker: "none", reid: "off" },
+    },
+    templateStart: { ruleId: fixtures[0].id },
+    event: fixtures[0].event,
+  };
+  await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(duplicateVaRule.id)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(duplicateVaRule),
+  });
+  createdVaRules.push(duplicateVaRule.id);
+  await assertRequestFails("/lab/analysis/va-rules", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(duplicateVaRule),
+  }, "vaRule id already exists");
+  console.log("[pass] duplicate vaRule create rejects existing id");
   await assertRequestFails(`/lab/analysis/rules/${encodeURIComponent(ids[4])}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -152,11 +184,11 @@ try {
     }),
   }, "reid must be off when tracker is none");
   console.log("[pass] trackingPolicy validation rejects tracker=none + reid=assist");
-  await assertRequestFails(`/lab/analysis/rules/${encodeURIComponent(ids[4])}`, {
+  await assertRequestFails(`/lab/analysis/rules/${encodeURIComponent(ids[5])}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
-      id: ids[4],
+      id: ids[5],
       enabled: true,
       ruleKind: "basic",
       analysis: {
@@ -167,8 +199,11 @@ try {
     }),
   }, "trackingPolicy.tracker is required for explicit opt-in policy");
   console.log("[pass] trackingPolicy validation rejects reid=assist without explicit tracker");
-  console.log("[pass] ops-rules-roundtrip");
+  console.log("[summary] ops-rules-roundtrip complete");
 } finally {
+  for (const id of createdVaRules.reverse()) {
+    await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(id)}`, { method: "DELETE" }).catch(() => {});
+  }
   for (const id of created.reverse()) {
     await requestJson(`/lab/analysis/rules/${encodeURIComponent(id)}`, { method: "DELETE" }).catch(() => {});
   }

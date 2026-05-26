@@ -19,14 +19,20 @@ path short enough to scan. The full index is `docs/README.md`.
 
 ## Current Boundary
 
-- v1.7.0 is published as the current source-only release.
+- v1.8.0 is the current source-only release baseline for release preparation.
 - The main product boundary is live source onboarding, live source health, and
   live VA event quality.
 - Binary, runtime, and model bundles are excluded from the default release.
 - Long-term recording, VMS/NVR, playback/search, ONVIF Profile G
   recording/replay, Re-ID default-on, and tracker default-on remain out of scope.
 
-v1.7.0 release close-out details are in [../development-backlog.md](../development-backlog.md).
+v1.8.0 branch-level close-out evidence is tracked in
+[../release-evidence-index.md](../release-evidence-index.md). The current manual
+UI result is 220 PASS / 0 FAIL at the feature-result row level. The 120-minute
+longrun, main merge, release tag, and GitHub Release publish gate are still
+not-run manual close-out steps.
+
+v1.8.0 release close-out preparation details are in [../development-backlog.md](../development-backlog.md).
 
 ## Public Repository Boundary
 
@@ -41,8 +47,11 @@ v1.7.0 release close-out details are in [../development-backlog.md](../developme
 ```bash
 ./server.sh verify-docs-links
 ./server.sh verify-release-metadata
+./server.sh verify-manual-ui-evidence --result docs/manual-ui-result-2026-05-25-ui-fulltest-restart.md
 ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
 ./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
 ```
 
 The full verification list is maintained in [../stream-verification.md](../stream-verification.md).
+After the tag and GitHub Release are published, run
+`./server.sh verify-release-metadata --published`.

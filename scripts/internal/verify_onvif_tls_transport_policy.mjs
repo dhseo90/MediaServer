@@ -67,11 +67,12 @@ for (const term of [
   "connection refused",
 ]) {
   assertContains(doc, term, `TLS policy doc missing required term: ${term}`);
+  console.log(`[pass] ONVIF TLS policy doc contains ${JSON.stringify(term)}`);
 }
 
 for (const term of [
   "# ONVIF HTTPS TLS Fixture Harness Design",
-  "v1.2.0에서 도입된 현재 상태는 fixture-only",
+  "v1.8.0에서 도입된 상태는 v1.8.0 기준에도 fixture-only",
   "trustedFixtureSuccess",
   "ephemeral CA",
   "fixture CA bundle",
@@ -82,6 +83,7 @@ for (const term of [
   "private key",
 ]) {
   assertContains(fixtureHarnessDoc, term, `TLS fixture harness doc missing required term: ${term}`);
+  console.log(`[pass] ONVIF TLS fixture harness doc contains ${JSON.stringify(term)}`);
 }
 
 for (const forbidden of [
@@ -91,9 +93,11 @@ for (const forbidden of [
   "allow invalid certificate",
 ]) {
   assert(!doc.includes(forbidden), `TLS policy doc includes forbidden bypass wording: ${forbidden}`);
+  console.log(`[pass] ONVIF TLS policy doc omits forbidden bypass wording ${JSON.stringify(forbidden)}`);
 }
 
 assert(supportDoc.includes("./onvif-tls-transport-policy.md"), "ONVIF support doc must link TLS policy");
+console.log("[pass] ONVIF TLS support doc links TLS policy");
 assert(smoke.includes("RunHttpsTransportSmoke"), "HTTP transport smoke missing HTTPS fixture runner");
 assert(smoke.includes("RunHttpsTransportFailureMatrix"), "HTTP transport smoke missing HTTPS failure matrix runner");
 assert(smoke.includes("https://localhost:"), "HTTP transport smoke missing HTTPS fixture endpoint");
@@ -109,9 +113,19 @@ assert(implementation.includes("SSL_connect"), "transport implementation missing
 assert(implementation.includes("SSL_set1_host"), "transport implementation missing hostname verification");
 assert(implementation.includes("https transport requires OpenSSL support"), "transport implementation missing OpenSSL fallback wording");
 
-console.log("[pass] ONVIF TLS transport policy document");
-console.log("[pass] ONVIF TLS fixture harness design document");
-console.log("[pass] ONVIF TLS fixture smoke coverage");
+console.log("[pass] ONVIF TLS fixture smoke references HTTPS success runner");
+console.log("[pass] ONVIF TLS fixture smoke references HTTPS failure matrix runner");
+console.log("[pass] ONVIF TLS fixture smoke uses loopback HTTPS endpoint");
+console.log("[pass] ONVIF TLS fixture smoke covers untrusted CA redaction");
+console.log("[pass] ONVIF TLS fixture smoke covers hostname mismatch redaction");
+console.log("[pass] ONVIF TLS fixture smoke covers handshake failure redaction");
+console.log("[pass] ONVIF TLS fixture smoke covers connection refused redaction");
+console.log("[pass] ONVIF TLS fixture smoke covers URL userinfo rejection");
+console.log("[pass] ONVIF TLS fixture smoke covers URL password redaction assertion");
+console.log("[pass] ONVIF TLS transport implementation keeps scheme preflight helper");
+console.log("[pass] ONVIF TLS transport implementation keeps SSL connect path");
+console.log("[pass] ONVIF TLS transport implementation keeps hostname verification");
+console.log("[pass] ONVIF TLS transport implementation keeps OpenSSL fallback wording");
 console.log("");
 console.log("== ONVIF TLS transport policy summary ==");
 console.log(`- doc: ${path.relative(rootDir, docPath)}`);

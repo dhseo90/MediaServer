@@ -65,7 +65,7 @@ check("separate follow-up scope is not counted as no-device residual work", () =
     assertContains(noDeviceDoc, term, `no-device doc missing separate follow-up term: ${term}`);
   }
   assertContains(matrixDoc, "HTTPS/TLS ONVIF SOAP endpoint | OpenSSL 빌드 제한 지원", "matrix must keep HTTPS SOAP OpenSSL scope");
-  assertContains(matrixDoc, "Credential reference / HTTP Basic auth | v1.2.0 reference/redaction 정책 지원", "matrix must keep credential reference scope");
+  assertContains(matrixDoc, "Credential reference / HTTP Basic auth | v1.8.0 reference/redaction 정책 지원", "matrix must keep credential reference scope");
   assertContains(matrixDoc, "ONVIF WS-Discovery | 비지원", "matrix must keep WS-Discovery unsupported");
   assertContains(matrixDoc, "ONVIF Profile G / Recording / Replay | 비지원", "matrix must keep Profile G unsupported");
 });
@@ -75,11 +75,14 @@ check("live support verification includes no-device completion guard", () => {
   assertContains(liveSupportDoc, "실장비 endpoint 성공은 미확인", "live support doc must keep real device success unverified");
 });
 
-check("no-device suite includes completion guard and local simulator variants", () => {
+check("no-device suite includes completion guard", () => {
+  assertContains(suiteScript, "verify-onvif-no-device-completion", "suite missing completion guard");
+});
+
+check("no-device suite includes local simulator variants", () => {
   assertContains(suiteScript, "verify-onvif-local-simulator", "suite missing local simulator smoke");
   assertContains(suiteScript, "verify-onvif-synthetic-vendor-fixtures", "suite missing synthetic vendor fixture smoke");
   assertContains(suiteScript, "verify-onvif-field-smoke-gate", "suite missing field smoke gate verifier");
-  assertContains(suiteScript, "verify-onvif-no-device-completion", "suite missing completion guard");
 });
 
 check("success summary fixture preserves completed no-device closure", () => {

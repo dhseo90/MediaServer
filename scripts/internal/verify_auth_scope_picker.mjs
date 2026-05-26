@@ -26,17 +26,20 @@ if (!cookieHeader) {
 }
 
 const html = await requestText("/ops/users");
-assertContains("ops-users-scope-picker-html", html, [
+const scopePickerControls = [
   'id="apply-view-scope-template"',
   'id="apply-role-default-scope-template"',
   'id="clear-custom-scopes"',
   'id="scope-template-preview"',
   'id="user-scopes-input"',
-]);
-console.log("[pass] ops users scope picker controls rendered");
+];
+assertContains("ops-users-scope-picker-html", html, scopePickerControls);
+for (const control of scopePickerControls) {
+  console.log(`[pass] ops users scope picker html contains ${control}`);
+}
 
 await verifyBrowserPicker();
-console.log("[pass] auth-scope-picker");
+console.log("[summary] auth-scope-picker complete");
 
 async function verifyBrowserPicker() {
   const browser = await openBrowserPage({
@@ -132,7 +135,30 @@ async function verifyBrowserPicker() {
     if (!result?.ok) {
       throw new Error(`scope picker browser check failed: ${JSON.stringify(result)}`);
     }
-    console.log(`[pass] browser auth scope picker width=${visualWidth} overflow=${result.overflowX}`);
+    for (const selector of [
+      "#add-user-btn",
+      "#user-detail-panel",
+      "#apply-view-scope-template",
+      "#apply-role-default-scope-template",
+      "#clear-custom-scopes",
+      "#scope-template-preview",
+      "#user-scopes-input",
+    ]) {
+      console.log(`[pass] browser auth scope picker contains selector ${selector}`);
+    }
+    for (const scope of result.viewer || []) {
+      console.log(`[pass] browser auth scope picker viewer template includes ${scope}`);
+    }
+    for (const scope of result.integrator || []) {
+      console.log(`[pass] browser auth scope picker integrator template includes ${scope}`);
+    }
+    for (const scope of result.operator || []) {
+      console.log(`[pass] browser auth scope picker operator template includes ${scope}`);
+    }
+    console.log("[pass] browser auth scope picker clear custom scopes empties textarea");
+    console.log("[pass] browser auth scope picker unassigned view preview is shown");
+    console.log(`[pass] browser auth scope picker viewport width=${visualWidth}`);
+    console.log(`[pass] browser auth scope picker overflowX=${result.overflowX}`);
   } finally {
     await browser.close();
   }

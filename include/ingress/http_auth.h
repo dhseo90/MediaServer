@@ -144,6 +144,7 @@ AuthUserResult ResetAuthUserPasswordFromJson(const app::AppConfig& config,
                                              const std::string& body);
 AuthUserResult CreateInviteFromJson(const app::AppConfig& config,
                                     const std::string& body);
+AuthUserResult ListInvites(const app::AppConfig& config);
 AuthUserResult CompleteInvitePasswordSetup(const app::AppConfig& config,
                                            const std::string& token,
                                            const std::string& password,

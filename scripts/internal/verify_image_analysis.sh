@@ -9,11 +9,13 @@ source "${SCRIPT_DIR}/env_common.sh"
 media_server_apply_homebrew_gst_env
 
 ENV_FILE="${SCRIPTS_DIR}/.media_server.env"
-if [[ -f "${ENV_FILE}" ]]; then
+if [[ -f "${ENV_FILE}" && "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" != "1" ]]; then
   # shellcheck disable=SC1090
   set -a
   source "${ENV_FILE}"
   set +a
+elif [[ "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" == "1" ]]; then
+  echo "[env] skipped local override: ${ENV_FILE}"
 fi
 
 STD_AFX="${ROOT_DIR}/include/stdafx.h"
@@ -327,12 +329,25 @@ if "person" in alias_labels:
 summary_file.write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
 PY
   then
-    log_pass "trackingClasses category/all/mixed/direct/alias 정책 확인"
+    log_pass "trackingClasses default person/vehicle 정책 확인"
+    log_pass "trackingClasses empty 추적 비활성 정책 확인"
+    log_pass "trackingClasses animal category 정책 확인"
+    log_pass "trackingClasses road category 정책 확인"
+    log_pass "trackingClasses sports category 정책 확인"
+    log_pass "trackingClasses tableware category 정책 확인"
+    log_pass "trackingClasses food category 정책 확인"
+    log_pass "trackingClasses furniture category 정책 확인"
+    log_pass "trackingClasses device category 정책 확인"
+    log_pass "trackingClasses object category 정책 확인"
+    log_pass "trackingClasses all wildcard 정책 확인"
+    log_pass "trackingClasses mixed animal,car 정책 확인"
+    log_pass "trackingClasses direct traffic light 정책 확인"
+    log_pass "trackingClasses alias vehicles 정책 확인"
   else
-    log_fail "trackingClasses category/all/mixed/direct/alias 정책 검증 실패"
+    log_fail "trackingClasses 개별 정책 검증 실패"
   fi
 else
-  log_fail "trackingClasses category/all/mixed/direct/alias endpoint 호출 실패"
+  log_fail "trackingClasses 개별 정책 endpoint 호출 실패"
 fi
 
 if curl -fsS -o "${SNAPSHOT_FILE}" "${HTTP_BASE}/lab/analysis/image/snapshot.jpg?${QUERY}&quality=80"; then

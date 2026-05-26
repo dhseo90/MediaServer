@@ -82,6 +82,7 @@ assertIncludes([
 
 const checklistItems = [...doc.matchAll(/^- \[ \] /gm)].length;
 assert(checklistItems >= 10, `expected at least 10 checklist items, got ${checklistItems}`);
+console.log(`[pass] ONVIF field smoke redaction checklist actionable item count ${checklistItems}`);
 
 assertForbiddenAbsent([
   "operator-entered-secret",
@@ -93,9 +94,6 @@ assertForbiddenAbsent([
   "Cookie:",
   "<s:Envelope",
 ]);
-
-console.log("[pass] ONVIF field smoke redaction checklist content");
-console.log("[pass] ONVIF field smoke redaction forbidden literals absent");
 console.log("");
 console.log("== ONVIF field smoke redaction checklist summary ==");
 console.log(`- doc: ${path.relative(rootDir, docPath)}`);
@@ -105,12 +103,14 @@ console.log("- failures: 0");
 function assertIncludes(terms) {
   for (const term of terms) {
     assert(doc.includes(term), `missing required wording: ${term}`);
+    console.log(`[pass] ONVIF field smoke redaction checklist contains required wording ${JSON.stringify(term)}`);
   }
 }
 
 function assertForbiddenAbsent(terms) {
   for (const term of terms) {
     assert(!doc.includes(term), `forbidden literal present: ${term}`);
+    console.log(`[pass] ONVIF field smoke redaction checklist omits forbidden literal ${JSON.stringify(term)}`);
   }
 }
 

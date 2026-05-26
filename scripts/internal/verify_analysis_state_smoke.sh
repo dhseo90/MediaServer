@@ -39,6 +39,7 @@ if rg -n -i "tensorrt|openvino" "${ROOT_DIR}/CMakeLists.txt" "${ROOT_DIR}/includ
   echo "[fail] unexpected TensorRT/OpenVINO dependency reference"
   exit 1
 fi
-echo "[pass] appearance hook dependency scan: no TensorRT/OpenVINO references"
+echo "[pass] appearance hook dependency scan omits TensorRT references"
+echo "[pass] appearance hook dependency scan omits OpenVINO references"
 
 "${BUILD_DIR}/analysis_state_smoke"

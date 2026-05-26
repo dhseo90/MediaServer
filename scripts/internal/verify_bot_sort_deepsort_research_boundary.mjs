@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v1.4.0 BoT-SORT/DeepSORT research boundary가 runtime tracker로 승격되지 않았는지 검증한다.
+// 파일 용도: 현재 v1.8.0 BoT-SORT/DeepSORT research boundary가 runtime tracker로 승격되지 않았는지 검증한다.
 // 동작 요약: BoT-SORT/DeepSORT를 제품 tracker 허용값에서 배제하고, privacy/dependency/bundle review만 남아 있는지 정적 점검한다.
 
 import fs from "node:fs";
@@ -26,7 +26,7 @@ Options:
 
 Checks:
   - BoT-SORT/DeepSORT가 analysis.trackingPolicy.tracker 허용값, UI option, runtime tracker enum에 추가되지 않았는지 확인
-  - verify-tracker-stability / compare-close-object-tracker가 현재 v1.4.0 tracker 후보만 받는지 확인
+  - verify-tracker-stability / compare-close-object-tracker가 현재 tracker 후보만 받는지 확인
   - BoT-SORT/DeepSORT 연구가 privacy/dependency/bundle 후속 Phase 후보이며 schema/media path 변경 근거가 아닌지 문서화됐는지 확인
   - 이번 페이즈의 미분류 P0~P1 후속 이슈가 남지 않았는지 확인
 `);
@@ -45,22 +45,27 @@ const report = {
   checks: [],
 };
 
-const researchRuntimeTokens = [
+const botSortTokens = [
   "bot-sort",
   "botsort",
   "bot_sort",
   "BoTSORT",
   "BotSort",
+  "ObjectTrackerKind::BoT",
+];
+
+const deepSortTokens = [
   "deep-sort",
   "deepsort",
   "deep_sort",
   "DeepSORT",
   "DeepSort",
-  "ObjectTrackerKind::BoT",
   "ObjectTrackerKind::Deep",
 ];
 
-check("BoT-SORT and DeepSORT are not runtime tracker policy values", () => {
+const researchRuntimeTokens = [...botSortTokens, ...deepSortTokens];
+
+check("runtime tracker policy rejects BoT-SORT tokens", () => {
   const analysisQuery = readText("src/ingress/analysis_query.cpp");
   const server = readText("src/ingress/webrtc_http_server.cpp");
   const ui = readText("src/ingress/product_ui_page_scripts.cpp");
@@ -70,8 +75,29 @@ check("BoT-SORT and DeepSORT are not runtime tracker policy values", () => {
     ["webrtc_http_server.cpp", server],
     ["product_ui_page_scripts.cpp", ui],
   ]) {
-    assertNoRuntimeToken(label, text);
+    assertNoRuntimeTokenGroup(label, text, botSortTokens, "BoT-SORT");
   }
+  return { rejected: ["bot-sort", "botsort"] };
+});
+
+check("runtime tracker policy rejects DeepSORT tokens", () => {
+  const analysisQuery = readText("src/ingress/analysis_query.cpp");
+  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const ui = readText("src/ingress/product_ui_page_scripts.cpp");
+
+  for (const [label, text] of [
+    ["analysis_query.cpp", analysisQuery],
+    ["webrtc_http_server.cpp", server],
+    ["product_ui_page_scripts.cpp", ui],
+  ]) {
+    assertNoRuntimeTokenGroup(label, text, deepSortTokens, "DeepSORT");
+  }
+  return { rejected: ["deep-sort", "deepsort"] };
+});
+
+check("runtime tracker policy keeps current allowed values", () => {
+  const analysisQuery = readText("src/ingress/analysis_query.cpp");
+  const server = readText("src/ingress/webrtc_http_server.cpp");
 
   for (const snippet of [
     'value == "none" || value == "kalman-lite" || value == "bytetrack"',
@@ -80,28 +106,38 @@ check("BoT-SORT and DeepSORT are not runtime tracker policy values", () => {
   ]) {
     assert(
       analysisQuery.includes(snippet) || server.includes(snippet),
-      `tracking policy contract missing expected v1.4.0 snippet: ${snippet}`
+      `tracking policy contract missing expected current snippet: ${snippet}`
     );
   }
 
   return {
     allowedTrackers: ["none", "lite", "kalman-lite", "bytetrack"],
-    rejected: ["bot-sort", "botsort", "deep-sort", "deepsort"],
   };
 });
 
-check("ObjectTracker implementation remains limited to Lite, Kalman-lite, and ByteTrack", () => {
+check("ObjectTracker runtime kind Lite exists", () => {
+  const header = readText("include/analysis/object_tracker.h");
+  assert(header.includes("enum class ObjectTrackerKind"), "ObjectTrackerKind enum missing");
+  assert(header.includes("Lite"), "ObjectTrackerKind missing current tracker: Lite");
+  return { runtimeKind: "Lite" };
+});
+
+check("ObjectTracker runtime kind KalmanLite exists", () => {
+  const header = readText("include/analysis/object_tracker.h");
+  assert(header.includes("KalmanLite"), "ObjectTrackerKind missing current tracker: KalmanLite");
+  return { runtimeKind: "KalmanLite" };
+});
+
+check("ObjectTracker runtime kind ByteTrack exists", () => {
+  const header = readText("include/analysis/object_tracker.h");
+  assert(header.includes("ByteTrack"), "ObjectTrackerKind missing current tracker: ByteTrack");
+  return { runtimeKind: "ByteTrack" };
+});
+
+check("ObjectTracker implementation rejects research tracker tokens", () => {
   const header = readText("include/analysis/object_tracker.h");
   const manager = readText("src/analysis/analysis_manager.cpp");
   const tracker = readText("src/analysis/object_tracker.cpp");
-  assert(header.includes("enum class ObjectTrackerKind"), "ObjectTrackerKind enum missing");
-  for (const snippet of [
-    "Lite",
-    "KalmanLite",
-    "ByteTrack",
-  ]) {
-    assert(header.includes(snippet), `ObjectTrackerKind missing current tracker: ${snippet}`);
-  }
   for (const [label, text] of [
     ["object_tracker.h", header],
     ["analysis_manager.cpp", manager],
@@ -110,11 +146,11 @@ check("ObjectTracker implementation remains limited to Lite, Kalman-lite, and By
     assertNoRuntimeToken(label, text);
   }
   return {
-    runtimeKinds: ["Lite", "KalmanLite", "ByteTrack"],
+    rejected: ["bot-sort", "botsort", "deep-sort", "deepsort"],
   };
 });
 
-check("benchmark harness accepts only current v1.4.0 tracker policies", () => {
+check("benchmark harness accepts only current tracker policies", () => {
   const stability = readText("scripts/internal/verify_tracker_stability.sh");
   const compare = readText("scripts/internal/compare_close_object_tracker.py");
   for (const [label, text] of [
@@ -141,7 +177,7 @@ check("benchmark harness accepts only current v1.4.0 tracker policies", () => {
   };
 });
 
-check("BoT-SORT/DeepSORT research boundary is documented without product-scope expansion", () => {
+check("research boundary docs block tracker product scope expansion", () => {
   const backlog = readText("docs/development-backlog.md");
   const video = readText("docs/video-analysis.md");
   const stream = readText("docs/stream-verification.md");
@@ -153,7 +189,6 @@ check("BoT-SORT/DeepSORT research boundary is documented without product-scope e
   const docsEn = readText("docs/en/README.md");
 
   for (const snippet of [
-    "V140-P2-02",
     "BoT-SORT/DeepSORT research boundary",
     "BoT-SORT/botsort/DeepSORT/deepsort token을 제품 tracker로 받지 않습니다",
     "미분류 P0~P1 후속 이슈: 없음",
@@ -165,7 +200,7 @@ check("BoT-SORT/DeepSORT research boundary is documented without product-scope e
   }
 
   for (const snippet of [
-    "BoT-SORT/DeepSORT도 v1.4.0 runtime tracker 허용값이 아닙니다",
+    "BoT-SORT/DeepSORT도 v1.8.0 runtime tracker 허용값이 아닙니다",
     "Event POST/WebRTC DataChannel/SSE/WS metadata schema",
     "RTSP/WebRTC media path 변경 근거가 아닙니다",
   ]) {
@@ -182,7 +217,7 @@ check("BoT-SORT/DeepSORT research boundary is documented without product-scope e
 
   for (const snippet of [
     "BoT-SORT/DeepSORT Research Boundary",
-    "이번 v1.4.0 (8) 범위",
+    "이번 v1.8.0 (8) 범위",
     "미분류 P0~P1 후속",
     "후속 Phase",
     "실제 BoT-SORT 또는 DeepSORT algorithm 구현",
@@ -220,21 +255,30 @@ check("BoT-SORT/DeepSORT research boundary is documented without product-scope e
   };
 });
 
-check("server command and script inventory expose the boundary verifier", () => {
+check("server command exposes research boundary verifier command", () => {
   const server = readText("server.sh");
+  assert(server.includes("verify-bot-sort-deepsort-research-boundary"), "server.sh missing verify-bot-sort-deepsort-research-boundary");
+  return {
+    command: "verify-bot-sort-deepsort-research-boundary",
+  };
+});
+
+check("server command exposes research boundary verifier script", () => {
+  const server = readText("server.sh");
+  assert(server.includes("verify_bot_sort_deepsort_research_boundary.mjs"), "server.sh missing verify_bot_sort_deepsort_research_boundary.mjs");
+  return {
+    script: "verify_bot_sort_deepsort_research_boundary.mjs",
+  };
+});
+
+check("script inventory exposes research boundary verifier script", () => {
   const inventory = readText("scripts/internal/verify_script_inventory.mjs");
-  for (const snippet of [
-    "verify-bot-sort-deepsort-research-boundary",
-    "verify_bot_sort_deepsort_research_boundary.mjs",
-  ]) {
-    assert(server.includes(snippet), `server.sh missing ${snippet}`);
-  }
   assert(
     inventory.includes("verify_bot_sort_deepsort_research_boundary.mjs"),
     "script inventory missing verifier"
   );
   return {
-    command: "verify-bot-sort-deepsort-research-boundary",
+    script: "verify_bot_sort_deepsort_research_boundary.mjs",
   };
 });
 
@@ -274,10 +318,14 @@ function assert(condition, message) {
 }
 
 function assertNoRuntimeToken(label, text) {
-  const hits = researchRuntimeTokens.filter(token => text.includes(token));
+  assertNoRuntimeTokenGroup(label, text, researchRuntimeTokens, "BoT-SORT/DeepSORT");
+}
+
+function assertNoRuntimeTokenGroup(label, text, tokens, displayName) {
+  const hits = tokens.filter(token => text.includes(token));
   assert(
     hits.length === 0,
-    `${label} unexpectedly contains BoT-SORT/DeepSORT runtime token(s): ${hits.join(", ")}`
+    `${label} unexpectedly contains ${displayName} runtime token(s): ${hits.join(", ")}`
   );
 }
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v1.2.1 수동 UI 검수 결과 문서가 실제 확인/미확인/건너뜀을 분리하는지 검증한다.
+// 파일 용도: 현재 release 수동 UI 풀테스트 문서가 PASS/FAIL 이원화와 개별 기능 증거를 강제하는지 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -19,33 +19,63 @@ Usage:
   ./server.sh verify-manual-ui-evidence [options]
 
 Options:
-  --result <path>  manual UI result 문서입니다. 기본 docs/manual-ui-v1.2.1-result.md.
+  --result <path>  실제 manual UI result 문서입니다. 지정한 경우 template 구조도 함께 검증합니다.
   -h, --help       도움말 출력
 
 Checks:
-  - 수동으로 연 화면, 자동 smoke, 미확인/건너뜀 항목을 분리해 기록했는지 확인
+  - v1.8.0 기준 UI 풀테스트 판정이 PASS/FAIL만 쓰고 개별 기능 결과를 기록하는지 확인
   - client/viewer 비노출 항목과 admin preview 경계가 명시됐는지 확인
-  - destructive/manual submit 미실행을 통과처럼 쓰지 않는지 확인
+  - 사용자 명시 제외 항목은 판정표 밖 제외 기록으로 남기는지 확인
 `);
 }
 
 assertKnownOptions(rawArgs, ["result", "h", "help"]);
 
 const args = parseArgs(rawArgs);
-const resultPath = path.resolve(rootDir, args.result || "docs/manual-ui-v1.2.1-result.md");
-const result = fs.readFileSync(resultPath, "utf8");
+const resultPath = args.result ? path.resolve(rootDir, args.result) : "";
+const result = resultPath ? fs.readFileSync(resultPath, "utf8") : "";
 const checklist = readText("docs/manual-ui-checklist.md");
 const template = readText("docs/manual-ui-result-template.md");
+const fulltest = readText("docs/manual-ui-fulltest.md");
 const backlog = readText("docs/development-backlog.md");
+const inventory = readText("docs/project-feature-test-inventory.md");
+const seedFixturePath = "test/fixtures/manual_ui_fulltest_va_seed_matrix.json";
+const seedFixture = JSON.parse(readText(seedFixturePath));
 
 const checks = [];
 
-check("manual result covers required screens", () => {
-  assertIncludes(result, [
-    "# Manual UI Result - v1.2.1 Patch Evidence",
-    "Chrome + Computer Use",
+check("manual UI docs are current v1.8.0 baseline", () => {
+  assertIncludes(checklist, [
+    "현재 release 목표는 `v1.8.0`",
+    "현재 제품 UI 직접 조작 evidence 없이 완료 판정에 포함하지 않습니다.",
+    "v1.8.0 release trust hardening gate",
     "`/setup`",
     "`/login`",
+    "`/ops/rules`",
+    "`/client/live`",
+    "Evidence index",
+    "raw JSON/API-only 확인",
+  ], "docs/manual-ui-checklist.md");
+  assertIncludes(fulltest, [
+    "현재 제품 UI 기준",
+    "지원 가능한 모든 기능을 실제 UI 조작으로 확인",
+    "테스트 영역 역할 분리",
+    "UI 풀테스트는 `스크립트 테스트`와 별도 영역입니다.",
+    "열지 않은 화면",
+    "UI 풀테스트 판정값은 `PASS`와 `FAIL`만 사용합니다.",
+    "카테고리 묶음 판정은 금지합니다.",
+    "제외 기록",
+  ], "docs/manual-ui-fulltest.md");
+});
+
+check("manual result template covers required screens", () => {
+  assertIncludes(template, [
+    "# Manual UI Result Template",
+    "브라우저: 자율 Chrome/CDP 또는 인앱 브라우저",
+    "`/setup`",
+    "`/login`",
+    "`/password/change`",
+    "`/invite/setup`",
     "`/ops/home`",
     "`/ops/dashboard`",
     "`/ops/sources`",
@@ -55,76 +85,412 @@ check("manual result covers required screens", () => {
     "`/client/live`",
     "`/client/dashboard`",
     "`/client/request-access`",
-  ], "docs/manual-ui-v1.2.1-result.md");
+  ], "docs/manual-ui-result-template.md");
 });
 
-check("manual result separates automation from direct browser evidence", () => {
-  assertIncludes(result, [
-    "## 관련 자동 검증",
+check("manual result template splits tracker policy results", () => {
+  assertIncludes(template, [
+    "profile: tracker `none` + Re-ID `off`",
+    "profile: tracker `lite` + Re-ID `off`",
+    "profile: tracker `kalman-lite` + Re-ID `off`",
+    "profile: tracker `bytetrack` + Re-ID `off`",
+    "profile: tracker `lite` + Re-ID `assist`",
+    "profile: tracker `kalman-lite` + Re-ID `assist`",
+    "profile: tracker `bytetrack` + Re-ID `assist`",
+    "invalid policy: tracker `none` + Re-ID `assist`",
+  ], "docs/manual-ui-result-template.md");
+});
+
+check("manual result template splits event template results", () => {
+  assertIncludes(template, [
+    "event template: line-crossing any",
+    "event template: line-crossing forward",
+    "event template: line-crossing reverse",
+  ], "docs/manual-ui-result-template.md");
+});
+
+check("manual result template splits scenario preset results", () => {
+  assertIncludes(template, [
+    "scenario preset: default",
+    "scenario preset: custom",
+  ], "docs/manual-ui-result-template.md");
+});
+
+check("manual result template splits vaRule results", () => {
+  assertIncludes(template, [
+    "vaRule: line-crossing any",
+    "vaRule: line-crossing forward",
+    "vaRule: line-crossing reverse",
+  ], "docs/manual-ui-result-template.md");
+});
+
+check("manual result template splits event record keys", () => {
+  assertIncludes(template, [
+    "`line-crossing:any`",
+    "`line-crossing:forward`",
+    "`line-crossing:reverse`",
+  ], "docs/manual-ui-result-template.md");
+  assertNotIncludes(template, [
+    "tracker/Re-ID 조합 7개",
+    "basic 6개 + scenario 6개",
+    "basic/scenario 최종 12개 이상",
+    "| `/ops` |",
+    "| `/client` |",
+  ], "docs/manual-ui-result-template.md");
+});
+
+check("manual result template separates automation from direct browser evidence", () => {
+  assertIncludes(template, [
+    "## 테스트 영역별 판정",
+    "스크립트 테스트와 UI 풀테스트는 서로 대체하지 않습니다.",
+    "안정화 테스트",
+    "30분 테스트",
+    "120분 테스트",
+    "## 스크립트 테스트 기록",
+    "## UI 풀테스트 기록",
+    "관련 자동 검증",
+    "verify-product-ui-no-native-dialogs",
+    "verify-ops-click-e2e",
     "## 확인됨",
-    "실제로 Chrome에서 열고 클릭한 화면만 적습니다.",
-    "sandbox 내부 첫 실행은 local fetch/CDP 제한으로 실패",
-    "권한 밖 재실행 기준",
-    "request-access form submit 없음",
-    "destructive action 없음",
-  ], "docs/manual-ui-v1.2.1-result.md");
+    "실제로 열고 클릭한 화면만 적습니다.",
+    "자율 Chrome/CDP 세션 또는 인앱 브라우저",
+    "자동 smoke나 raw JSON 확인만으로 채우지 않습니다.",
+    "raw JSON/API-only로만 확인한 항목",
+    "## 제외 기록",
+    "## 실패",
+  ], "docs/manual-ui-result-template.md");
+  assertNotIncludes(template, [
+    "PASS/FAIL/BLOCKED",
+    "PASS/FAIL/미확인",
+    "PASS/FAIL/BLOCKED/미확인",
+    "## 미확인",
+    "## 건너뜀",
+    "NOT RUN",
+  ], "docs/manual-ui-result-template.md");
 });
 
-check("manual result pins client redaction and admin preview boundary", () => {
-  assertIncludes(result, [
-    "Client Preview as admin",
-    "client primary nav 자체는 Live/Dashboard만 표시",
-    "source URL: PASS",
-    "Developer URL: PASS",
-    "raw JSON: PASS",
-    "debug counter: PASS",
-    "BBox diagnostics: PASS",
-    "rule/profile editor: PASS",
-    "Ops/Lab primary navigation: PASS",
-  ], "docs/manual-ui-v1.2.1-result.md");
-});
-
-check("manual result lists not-run and skipped items explicitly", () => {
-  assertIncludes(result, [
-    "장시간 테스트: 실행하지 않음",
-    "`verify-predev`: 실행하지 않음",
-    "ONVIF 실장비",
-    "외부 TURN/WHEP credential",
-    "YouTube 실제 URL relay",
-    "실제 viewer credential을 브라우저에 입력하는 수동 로그인: 수행하지 않음",
-    "`/setup` 실제 admin 생성 manual submit",
-    "request-access form submit",
-    "destructive admin actions",
-  ], "docs/manual-ui-v1.2.1-result.md");
-});
-
-check("manual result closes V121-P2-02 without expanding UI scope", () => {
-  assertIncludes(result, [
-    "## V121-P2-02 UI Polish Follow-up",
-    "보강 반응형 polish fix",
-    "manual findings 표의 실패 항목이 `없음`",
-    "320px viewport의 product page grid child min-width",
-    "UI 코드 수정: 수행함",
-    "제품 nav/route/API/schema 변경: 없음",
-    "verify-ops-client-ui --screenshots",
-    "verify-ops-tables-layout",
-    "verify-ui-copy-i18n-parity",
-  ], "docs/manual-ui-v1.2.1-result.md");
-});
-
-check("checklist and roadmap link the v1.2.1 evidence verifier", () => {
+check("manual UI docs separate script stability tests from UI full test", () => {
   assertIncludes(checklist, [
-    "manual-ui-v1.2.1-result.md",
-    "verify-manual-ui-evidence",
+    "스크립트 테스트, 30분 안정화, 120분 장시간 테스트",
+    "UI 풀테스트와",
+    "스크립트 안정화 테스트는 서로 대체하지 않으며",
+    "verify-predev --soak-minutes 30",
+    "verify-predev --soak-minutes 120",
+    "verify-va-runtime-console-longrun --duration-minutes 120",
+  ], "docs/manual-ui-checklist.md");
+  assertIncludes(fulltest, [
+    "30분 테스트",
+    "120분 테스트",
+    "로드맵 각 스텝 종료 시 먼저 수행합니다",
+    "장기간 테스트 지시 시 기본으로 수행",
+    "메모리 릭",
+    "UI 풀테스트 PASS를 대체하지 않습니다.",
+    "30분/120분 안정화 PASS를 대체하지 않습니다.",
+  ], "docs/manual-ui-fulltest.md");
+});
+
+check("manual UI docs require native-dialog-free autonomous UI flow", () => {
+  assertIncludes(checklist, [
+    "verify-product-ui-no-native-dialogs",
+    "native confirm/alert/prompt가 아니라 제품 화면 안",
+    "첫 클릭에서 POST가 발생하지",
+    "두 번째 클릭 뒤 거절 POST",
+  ], "docs/manual-ui-checklist.md");
+  assertIncludes(fulltest, [
+    "사용자에게 pane 열기, 버튼 클릭, 팝업 확인을",
+    "테스트 harness FAIL",
+    "verify-product-ui-no-native-dialogs",
+    "위험 action은 제품 화면 안 2회 확인 상태",
+    "첫 클릭에는 write POST가",
+  ], "docs/manual-ui-fulltest.md");
+  assertIncludes(template, [
+    "자율 Chrome/CDP 또는 인앱 브라우저 직접 조작",
+    "verify-product-ui-no-native-dialogs",
+    "verify-ops-click-e2e",
+  ], "docs/manual-ui-result-template.md");
+  assertNotIncludes(checklist, [
+    "runner가 자동 수락",
+  ], "docs/manual-ui-checklist.md");
+  assertNotIncludes(fulltest, [
+    "팝업은 테스트 runner가 정책대로 처리",
+  ], "docs/manual-ui-fulltest.md");
+});
+
+check("manual result template pins admin preview boundary", () => {
+  assertIncludes(template, [
+    "Client Preview as admin",
+    "client/viewer 화면에서 보이지 않아야 하는 항목입니다.",
+  ], "docs/manual-ui-result-template.md");
+});
+
+check("manual result template pins client redaction boundary", () => {
+  assertIncludes(template, [
+    "source URL:",
+    "Developer URL:",
+    "raw JSON:",
+    "debug counter:",
+    "BBox diagnostics:",
+    "rule/profile editor:",
+    "Ops/Lab primary navigation:",
+  ], "docs/manual-ui-result-template.md");
+});
+
+check("manual UI docs require operator-provided auth verifier passwords", () => {
+  for (const envName of [
+    "MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD",
+    "MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD",
+    "MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD",
+    "MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE",
+    "MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO",
+  ]) {
+    assertIncludes(checklist, [envName], "docs/manual-ui-checklist.md");
+    assertIncludes(template, [envName], "docs/manual-ui-result-template.md");
+  }
+  assertIncludes(checklist, [
+    "값이 없으면 auth 테스트를 시작하지 않고",
   ], "docs/manual-ui-checklist.md");
   assertIncludes(template, [
-    "verify-manual-ui-evidence",
+    "Auth verifier 선수 조건",
+    "SET / MISSING",
   ], "docs/manual-ui-result-template.md");
+});
+
+check("manual result template records explicit exclusions outside UI verdict", () => {
+  assertIncludes(template, [
+    "## 제외 기록",
+    "사용자가 의도적으로 UI 풀테스트 기준에서 제외하라고 한 항목만 적습니다.",
+    "여기에 있는 항목은 PASS/FAIL 판정표에 넣지 않습니다.",
+    "제외 이유",
+    "후속 확인 조건",
+  ], "docs/manual-ui-result-template.md");
+});
+
+check("manual UI docs keep rewrite requirements", () => {
+  assertIncludes(template, [
+    "## 문서 재작성/신규 작성/비교 병합",
+    "재작성한 UI 풀테스트 관련 문서:",
+  ], "docs/manual-ui-result-template.md");
+});
+
+check("manual UI docs keep new document requirements", () => {
+  assertIncludes(template, [
+    "새로 작성한 UI 풀테스트 문서:",
+  ], "docs/manual-ui-result-template.md");
+});
+
+check("manual UI docs keep merge requirements", () => {
+  assertIncludes(template, [
+    "비교 결과:",
+    "병합 결과:",
+  ], "docs/manual-ui-result-template.md");
+});
+
+check("manual checklist references UI fulltest document", () => {
+  assertIncludes(checklist, [
+    "UI 풀테스트 문서를 재작성하거나 새 문서를 추가한 경우",
+    "manual-ui-fulltest.md",
+  ], "docs/manual-ui-checklist.md");
+});
+
+check("manual checklist links evidence verifier", () => {
+  assertIncludes(checklist, [
+    "verify-manual-ui-evidence",
+  ], "docs/manual-ui-checklist.md");
+  assertIncludes(checklist, [
+    "--emit-registry-dir <dir>",
+  ], "docs/manual-ui-checklist.md");
+});
+
+check("manual template links evidence verifier", () => {
+  assertIncludes(template, [
+    "verify-manual-ui-evidence",
+    "seed registry dir",
+    "## 현재 보존 증적",
+    "retained artifact",
+  ], "docs/manual-ui-result-template.md");
+});
+
+check("roadmap links evidence verifier", () => {
   assertIncludes(backlog, [
-    "| V121-P0-03 |",
+    "| V180-P0-03 |",
     "verify-manual-ui-evidence",
   ], "docs/development-backlog.md");
 });
+
+check("v1.8.0 release trust checklist requires direct UI evidence index", () => {
+  assertIncludes(checklist, [
+    "v1.8.0 release trust hardening gate",
+    "`/setup`",
+    "`/login`",
+    "`/ops`",
+    "`/client`",
+    "`/ops/rules`",
+    "`/client/live`",
+    "Evidence index",
+    "열지 않은 화면은 `FAIL`",
+    "raw JSON/API-only 확인만",
+    "판정은 `PASS` 또는 `FAIL`만 사용합니다.",
+  ], "docs/manual-ui-checklist.md");
+  assertIncludes(template, [
+    "evidence index:",
+    "## v1.8.0 Release Evidence Index",
+    "자동 smoke나 raw JSON 확인만으로 채우지 않습니다.",
+    "| `/setup` |",
+    "| `/login` |",
+    "| `/ops/home` |",
+    "| `/ops/dashboard` |",
+    "| `/ops/sources` |",
+    "| `/ops/users` |",
+    "| `/ops/events` |",
+    "| `/ops/rules` |",
+    "| `/client/live` |",
+    "| `/client/dashboard` |",
+    "직접 열어보지 않은 화면",
+    "실패 후 재검수한 화면",
+    "client/viewer 비노출 재확인",
+    "카테고리 묶음 판정은 금지합니다.",
+  ], "docs/manual-ui-result-template.md");
+  assertIncludes(backlog, [
+    "| V180-P0-03 |",
+    "Manual UI evidence checklist hardening",
+    "`/setup`, `/login`, `/ops`, `/client`, `/ops/rules`, `/client/live`",
+    "evidence index",
+  ], "docs/development-backlog.md");
+});
+
+if (resultPath) {
+  check("provided manual result follows current evidence structure", () => {
+    assertIncludes(result, [
+      "## 검수 메타데이터",
+      "## 확인됨",
+      "## 제외 기록",
+      "## 실패",
+      "푸시 수행 여부",
+    ], path.relative(rootDir, resultPath).replaceAll(path.sep, "/"));
+    assertNotIncludes(result, [
+      "PASS/FAIL/BLOCKED",
+      "PASS/FAIL/미확인",
+      "PASS/FAIL/BLOCKED/미확인",
+      "## 미확인",
+      "## 건너뜀",
+      "NOT RUN",
+    ], path.relative(rootDir, resultPath).replaceAll(path.sep, "/"));
+  });
+
+  check("provided manual result covers every UI-target feature ID", () => {
+    const inventoryRows = uiTargetFeatureIds();
+    const resultRows = parseFeatureRows(result);
+    const resultIds = new Set(resultRows.map(row => row.id));
+    const missing = inventoryRows.filter(id => !resultIds.has(id));
+    assert(missing.length === 0, `manual result missing UI target feature rows: ${missing.join(", ")}`);
+    for (const row of resultRows) {
+      if (!/^(UI|AUTH|SRC|RULE|EVT|CLIENT|MEDIA|LAB|SAFE)-\d+$/.test(row.id)) continue;
+      assert(["PASS", "FAIL"].includes(row.verdict), `manual result row ${row.id} verdict must be PASS or FAIL: ${row.verdict || "(empty)"}`);
+    }
+  });
+
+  check("provided manual result UI summary count matches UI-target rows", () => {
+    const uiIds = new Set(uiTargetFeatureIds());
+    const resultRows = parseFeatureRows(result).filter(row => uiIds.has(row.id));
+    const pass = resultRows.filter(row => row.verdict === "PASS").length;
+    const fail = resultRows.filter(row => row.verdict === "FAIL").length;
+    const summary = result.match(/UI 풀테스트\s*\|\s*(\d+)개 UI 대상 기능 ID 중 (\d+) PASS, (\d+) FAIL/);
+    assert(summary, "manual result missing UI full-test summary count");
+    const [, totalText, passText, failText] = summary;
+    assert(Number(totalText) === uiIds.size, `manual result UI summary total mismatch: ${totalText} != ${uiIds.size}`);
+    assert(Number(passText) === pass, `manual result UI summary PASS mismatch: ${passText} != ${pass}`);
+    assert(Number(failText) === fail, `manual result UI summary FAIL mismatch: ${failText} != ${fail}`);
+  });
+
+  check("provided manual result retained evidence paths exist", () => {
+    const section = sectionBetween(result, "## 현재 보존 증적", "## 스크립트 테스트 기록");
+    assert(section, "manual result missing retained evidence section");
+    const rows = parseGenericTableRows(section)
+      .filter(row => row[1]?.startsWith("`/"));
+    assert(rows.length >= 6, `manual result retained evidence rows too small: ${rows.length}`);
+    const missing = [];
+    for (const row of rows) {
+      const rawPath = String(row[1] || "").replace(/^`|`$/g, "");
+      if (!fs.existsSync(rawPath)) {
+        missing.push(rawPath);
+      }
+      const status = String(row[2] || "").trim();
+      if (status !== "exists") {
+        missing.push(`${rawPath} status=${status || "(empty)"}`);
+      }
+    }
+    assert(missing.length === 0, `manual result retained evidence paths missing: ${missing.join(", ")}`);
+  });
+
+  check("provided manual result covers every RULE feature ID", () => {
+    const inventoryRuleIds = parseFeatureRows(inventory)
+      .filter(row => row.id.startsWith("RULE-"))
+      .map(row => row.id);
+    const resultIds = new Set(parseFeatureRows(result).map(row => row.id));
+    const missing = inventoryRuleIds.filter(id => !resultIds.has(id));
+    assert(missing.length === 0, `manual result missing RULE feature rows: ${missing.join(", ")}`);
+  });
+
+  check("provided manual result populates VA seed matrix rows", () => {
+    const section = sectionBetween(result, "## VA Seed / 최종 룰 상태", "## VA Event Occurrence Coverage");
+    assert(section, "manual result missing VA Seed / final rule section");
+    const expectedRows = expectedSeedResultRows(seedFixture);
+    const rows = parseGenericTableRows(section);
+    const byName = new Map(rows.map(row => [row[0], row]));
+    const missing = expectedRows.filter(name => !byName.has(name));
+    assert(missing.length === 0, `manual result missing VA seed matrix rows: ${missing.join(", ")}`);
+    const incomplete = [];
+    for (const name of expectedRows) {
+      const row = byName.get(name) || [];
+      const actual = row[2] || "";
+      const verdict = row[3] || "";
+      if (!actual || !["PASS", "FAIL"].includes(verdict) || verdict === "PASS/FAIL") {
+        incomplete.push(name);
+      }
+    }
+    assert(incomplete.length === 0, `manual result has unpopulated VA seed matrix rows: ${incomplete.join(", ")}`);
+  });
+
+  check("provided manual result splits VA EventRecord coverage by exact event key", () => {
+    const section = sectionBetween(result, "## VA Event Occurrence Coverage", "### VA EventRecord 후속");
+    assert(section, "manual result missing VA Event Occurrence Coverage section");
+    const expectedKeys = [
+      "`presence`",
+      "`enter`",
+      "`exit`",
+      "`line-crossing:any`",
+      "`line-crossing:forward`",
+      "`line-crossing:reverse`",
+      "`intrusion-dwell`",
+      "`re-entry`",
+      "`wrong-direction`",
+      "`intrusion-after-line-crossing`",
+      "`loitering`",
+      "`zone-occupancy`",
+    ];
+    const rows = parseGenericTableRows(section)
+      .filter(row => row[0]?.startsWith("`"));
+    const byKey = new Map(rows.map(row => [row[0], row]));
+    const missing = expectedKeys.filter(key => !byKey.has(key));
+    assert(missing.length === 0, `manual result missing exact VA EventRecord rows: ${missing.join(", ")}`);
+    const extraCombined = rows
+      .map(row => row[0])
+      .filter(key => key.includes("/") || key.includes("any/forward/reverse"));
+    assert(extraCombined.length === 0, `manual result has combined VA EventRecord rows instead of exact rows: ${extraCombined.join(", ")}`);
+    const invalidPass = [];
+    for (const key of expectedKeys) {
+      const row = byKey.get(key) || [];
+      const evidence = eventCoverageEvidence(row);
+      const verdict = evidence.verdict;
+      if (!["PASS", "FAIL"].includes(verdict || "")) {
+        invalidPass.push(`${key}: invalid verdict ${verdict || "(empty)"}`);
+      } else if (verdict === "PASS" && (!/^(yes|[1-9]\d*)$/i.test(evidence.uiRows) || Number(evidence.jsonRecords) <= 0)) {
+        invalidPass.push(`${key}: PASS without UI row and record evidence`);
+      }
+    }
+    assert(invalidPass.length === 0, `manual result has invalid VA EventRecord verdicts: ${invalidPass.join("; ")}`);
+  });
+}
 
 let pass = 0;
 let fail = 0;
@@ -141,7 +507,7 @@ for (const item of checks) {
 
 console.log("");
 console.log("== Manual UI evidence verification summary ==");
-console.log(`- result: ${path.relative(rootDir, resultPath).replaceAll(path.sep, "/")}`);
+console.log(`- result: ${resultPath ? path.relative(rootDir, resultPath).replaceAll(path.sep, "/") : "not provided; template/checklist only"}`);
 console.log(`- pass: ${pass}`);
 console.log(`- fail: ${fail}`);
 if (fail > 0) process.exit(1);
@@ -154,11 +520,121 @@ function readText(relativePath) {
   return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
 }
 
+function parseFeatureRows(text) {
+  return text
+    .split(/\r?\n/)
+    .filter(line => /^\| (UI|AUTH|SRC|RULE|EVT|CLIENT|MEDIA|LAB|SAFE)-\d+ \|/.test(line))
+    .map(line => {
+      const cells = line.split("|").slice(1, -1).map(cell => cell.trim());
+      return {
+        id: cells[0] || "",
+        feature: cells[1] || "",
+        uiNeed: cells[2] || "",
+        testNeed: cells[3] || "",
+        area: cells[4] || "",
+        pass: cells[5] || "",
+        verdict: cells[5] || "",
+      };
+    });
+}
+
+function hasArea(area, token) {
+  return String(area || "").split(",").map(item => item.trim()).includes(token);
+}
+
+function uiTargetFeatureIds() {
+  return parseFeatureRows(inventory)
+    .filter(row => hasArea(row.area, "UI"))
+    .map(row => row.id);
+}
+
+function sectionBetween(text, startHeading, nextHeading) {
+  const start = text.indexOf(startHeading);
+  if (start < 0) return "";
+  const next = text.indexOf(nextHeading, start + startHeading.length);
+  return text.slice(start, next >= 0 ? next : undefined);
+}
+
+function parseGenericTableRows(text) {
+  return text
+    .split(/\r?\n/)
+    .filter(line => line.startsWith("|") && !/^\|\s*-+\s*\|/.test(line))
+    .map(line => line.split("|").slice(1, -1).map(cell => cell.trim()))
+    .filter(cells => cells.length > 0 && cells.some(Boolean))
+    .filter(cells => !/^(개별 항목|개별 event 기능|ID)$/.test(cells[0] || ""));
+}
+
+function expectedSeedResultRows(seed) {
+  return [
+    ...arrayAt(seed, "accounts").map(item => `account: ${item.role}`),
+    ...expectedTrackerPairs(seed).map(pair => `profile: tracker \`${pair.tracker}\` + Re-ID \`${pair.reid}\``),
+    "invalid policy: tracker `none` + Re-ID `assist`",
+    ...arrayAt(seed, "eventTemplates").map(item => `event template: ${eventTemplateLabel(item)}`),
+    ...arrayAt(seed, "scenarioPresets").map(preset => `scenario preset: ${preset}`),
+    ...arrayAt(seed, "vaRules").map(item => `vaRule: ${eventTemplateLabel(arrayAt(seed, "eventTemplates").find(templateRow => templateRow.id === item.eventTemplateId) || {})}`),
+  ];
+}
+
+function eventCoverageEvidence(row) {
+  if (row.length >= 7) {
+    return {
+      uiRows: row[3] || "",
+      jsonRecords: row[4] || "",
+      verdict: row[6] || "",
+    };
+  }
+  return {
+    uiRows: row[1] || "",
+    jsonRecords: row[2] || "",
+    verdict: row[3] || "",
+  };
+}
+
+function expectedTrackerPairs(seed) {
+  const pairs = new Map();
+  for (const collectionName of ["eventTemplates", "vaRules"]) {
+    for (const item of arrayAt(seed, collectionName)) {
+      const policy = item.payload?.analysis?.trackingPolicy || {};
+      const tracker = String(policy.tracker || "").trim();
+      const reid = String(policy.reid || "off").trim();
+      if (tracker && reid && !(tracker === "none" && reid !== "off")) {
+        pairs.set(`${tracker}/${reid}`, { tracker, reid });
+      }
+    }
+  }
+  return [...pairs.values()].sort((left, right) => `${left.tracker}/${left.reid}`.localeCompare(`${right.tracker}/${right.reid}`));
+}
+
+function eventTemplateLabel(item) {
+  if (!item?.type) return "";
+  if (item.type === "line-crossing") {
+    return `line-crossing ${item.direction || item.payload?.event?.region?.direction || ""}`.trim();
+  }
+  return item.type;
+}
+
+function arrayAt(value, key) {
+  const item = value?.[key];
+  if (!Array.isArray(item)) throw new Error(`${key} must be an array`);
+  return item;
+}
+
 function assertIncludes(text, terms, label) {
   const missing = terms.filter(term => !text.includes(term));
   if (missing.length > 0) {
     throw new Error(`${label} missing required wording: ${missing.join(", ")}`);
   }
+}
+
+function assertNotIncludes(text, terms, label) {
+  const present = terms.filter(term => text.includes(term));
+  if (present.length > 0) {
+    throw new Error(`${label} contains forbidden wording: ${present.join(", ")}`);
+  }
+}
+
+function assert(condition, message) {
+  if (!condition) throw new Error(message);
 }
 
 function parseArgs(argv) {

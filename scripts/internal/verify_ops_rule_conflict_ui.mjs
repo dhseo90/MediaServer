@@ -23,9 +23,8 @@ check("ops rules page exposes validation panel", () => {
   }
 });
 
-check("ops rules script detects conflict and missing references", () => {
+check("ops rules script detects conflict references", () => {
   const script = readText("src/ingress/product_ui_page_scripts.cpp");
-  const browserSmoke = readText("scripts/internal/verify_ops_rules_embed_smoke.mjs");
   const required = [
     "opsRulesBuildValidationIssues",
     "opsRulesDraftBlockingIssues",
@@ -50,9 +49,20 @@ check("ops rules script detects conflict and missing references", () => {
   for (const snippet of required) {
     assert(script.includes(snippet), `rules script is missing conflict guard snippet: ${snippet}`);
   }
+});
+
+check("ops rules browser smoke blocks invalid profile", () => {
+  const browserSmoke = readText("scripts/internal/verify_ops_rules_embed_smoke.mjs");
   for (const snippet of [
     "pre-save validation did not block invalid profile",
     "__missing_profile_e2e__",
+    "pre-save validation did not block invalid template",
+    "__missing_template_e2e__",
+    "pre-save validation did not block inactive profile",
+    "pre-save validation did not block inactive template",
+    "pre-save validation did not block class mismatch",
+    "classMismatchProfileId",
+    "classMismatchRuleId",
     "attemptedWrites.length === 0",
   ]) {
     assert(browserSmoke.includes(snippet), `rules browser smoke is missing pre-save e2e snippet: ${snippet}`);

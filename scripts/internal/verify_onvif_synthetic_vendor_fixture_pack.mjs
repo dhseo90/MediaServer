@@ -40,7 +40,7 @@ const noDeviceDoc = fs.readFileSync(noDeviceDocPath, "utf8");
 const provenanceDoc = fs.readFileSync(provenanceDocPath, "utf8");
 const checks = [];
 
-check("fixture pack schema and no-device scope are pinned", () => {
+check("fixture pack schema pins no device scope", () => {
   assert(fixture.schema === "media-server.onvif-synthetic-vendor-fixture-pack.v1", "unexpected fixture schema");
   assert(String(fixture.description || "").includes("not a product API contract"), "description must avoid product API contract wording");
   const scope = objectAt(fixture, "packScope");
@@ -79,7 +79,7 @@ check("required vendor-style cases are present", () => {
   }
 });
 
-check("each fixture uses documentation endpoints and synthetic device identity", () => {
+check("each fixture uses synthetic device identity", () => {
   const seenSourceIds = new Set();
   for (const item of fixtures()) {
     const probe = objectAt(item, "probe");
@@ -101,7 +101,7 @@ check("each fixture uses documentation endpoints and synthetic device identity",
     const supported = arrayAt(device, "profilesSupported");
     assert(supported.length > 0, `${item.id}: profilesSupported must not be empty`);
     for (const profile of supported) {
-      assert(["S", "T"].includes(profile), `${item.id}: only Profile S/T are in v1.2.0 synthetic vendor scope`);
+      assert(["S", "T"].includes(profile), `${item.id}: only Profile S/T are in v1.8.0 synthetic vendor scope`);
     }
     assert(!supported.includes("G"), `${item.id}: Profile G must not be listed`);
 
@@ -122,7 +122,7 @@ check("service matrix stays live-source only", () => {
   }
 });
 
-check("optional service quirks stay descriptive and inside live fallback scope", () => {
+check("optional service quirks stay descriptive", () => {
   for (const item of fixtures()) {
     const serviceQuirks = Array.isArray(item.serviceQuirks) ? item.serviceQuirks : [];
     for (const quirk of serviceQuirks) {
@@ -143,7 +143,7 @@ check("optional service quirks stay descriptive and inside live fallback scope",
   }
 });
 
-check("selected profiles are live RTSP/RTSPS and map to existing source/view drafts", () => {
+check("selected profiles map to existing draft payloads", () => {
   for (const item of fixtures()) {
     const selected = selectedProfile(item);
     const expectedDraft = objectAt(item, "expectedDraft");
@@ -193,7 +193,7 @@ check("selected profiles are live RTSP/RTSPS and map to existing source/view dra
   }
 });
 
-check("origin metadata remains proposed diagnostic context outside source/view payloads", () => {
+check("origin metadata remains diagnostic context only", () => {
   for (const item of fixtures()) {
     const expectedDraft = objectAt(item, "expectedDraft");
     const origin = objectAt(expectedDraft, "proposedOriginMetadata");
@@ -210,7 +210,7 @@ check("origin metadata remains proposed diagnostic context outside source/view p
   }
 });
 
-check("fixture pack excludes raw SOAP, credentials, and non-scope features", () => {
+check("fixture pack excludes non scope materials", () => {
   const forbiddenTerms = [
     "<s:Envelope",
     "<SOAP-ENV",

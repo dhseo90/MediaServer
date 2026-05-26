@@ -139,7 +139,8 @@ async function readWebSocketSession(pathname, options = {}) {
 
     socket.addEventListener("open", () => {
       opened = true;
-      logPass("WebSocket handshake/open 확인");
+      logPass("WebSocket handshake 확인");
+      logPass("WebSocket open 확인");
       const commands = Array.isArray(options.commands)
         ? options.commands
         : (options.command ? [options.command] : []);
@@ -202,7 +203,11 @@ assertRuntimeMetadata(temp.metadata, "temporary source WebSocket");
 if (!temp.metadata.metrics || typeof temp.metadata.metrics !== "object") {
   fail("temporary source WebSocket: runtime metrics summary is missing");
 }
-logPass("WebSocket 임시 source metadata schema/tracks/events/scenarios/metrics 확인");
+logPass("WebSocket 임시 source metadata schema 확인");
+logPass("WebSocket 임시 source metadata tracks array 확인");
+logPass("WebSocket 임시 source metadata events array 확인");
+logPass("WebSocket 임시 source metadata scenarios array 확인");
+logPass("WebSocket 임시 source metadata metrics object 확인");
 
 await waitForTapCleanup();
 logPass("WebSocket 임시 analysis tap cleanup 확인");
@@ -219,6 +224,9 @@ const tapPayload = await readWebSocketSession(
 );
 assertRuntimeMetadata(tapPayload.metadata, "tapId WebSocket");
 logPass("WebSocket tapId 재사용 metadata schema 확인");
+logPass("WebSocket tapId 재사용 metadata tracks array 확인");
+logPass("WebSocket tapId 재사용 metadata events array 확인");
+logPass("WebSocket tapId 재사용 metadata scenarios array 확인");
 
 const subscribed = await readWebSocketSession(
   `/ws/va-metadata?tapId=${encodeURIComponent(tapId)}&intervalMs=1000&streamMaxDurationMs=${Math.max(timeoutMs - 1000, 2000)}`,
@@ -260,7 +268,8 @@ const statusAck = paused.controls?.[1];
 if (unsubscribeAck?.subscribed !== false || statusAck?.subscribed !== false || statusAck?.action !== "status") {
   fail(`WebSocket unsubscribe/status subscribed state mismatch: ${JSON.stringify(paused.controls)}`);
 }
-logPass("WebSocket unsubscribe/status control ack 확인");
+logPass("WebSocket unsubscribe control ack 확인");
+logPass("WebSocket status control ack 확인");
 
 const resumed = await readWebSocketSession(
   `/ws/va-metadata?tapId=${encodeURIComponent(tapId)}&intervalMs=1000&streamMaxDurationMs=${Math.max(timeoutMs - 1000, 2000)}`,
@@ -297,7 +306,8 @@ if (!Array.isArray(resetAck?.filter?.eventTypes) ||
     resetAck.action !== "reset") {
   fail(`WebSocket reset ack mismatch: ${JSON.stringify(reset.controls)}`);
 }
-logPass("WebSocket reset control ack 및 기본값 복원 확인");
+logPass("WebSocket reset control ack 확인");
+logPass("WebSocket reset 기본값 복원 확인");
 
 await fetchJson(`/lab/analysis/taps/${encodeURIComponent(tapId)}`, { method: "DELETE" });
 logPass("WebSocket smoke용 명시적 analysis tap 삭제 확인");

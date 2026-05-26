@@ -1,8 +1,8 @@
 # ONVIF HTTPS SOAP Transport Design
 
 이 문서는 ONVIF `https://` Device service SOAP transport 구현 기준과 이번
-no-device 검증 결과를 고정합니다. v1.2.0에서 도입되어 현재 유지되는 구현은 OpenSSL을 사용할 수 있는
-빌드에서 HTTPS SOAP fixture transport를 지원합니다. 실장비 HTTPS endpoint 성공은
+no-device 검증 결과를 고정합니다. v1.8.0에서 도입된 구현은 v1.8.0 기준에도
+OpenSSL을 사용할 수 있는 빌드에서 HTTPS SOAP fixture transport를 지원합니다. 실장비 HTTPS endpoint 성공은
 별도 field smoke 전까지 미확인으로 남깁니다.
 
 관련 기준:

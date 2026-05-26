@@ -12,6 +12,24 @@ const checks = [];
 
 const ruleValidationMatrixFixtures = [
   {
+    id: "duplicate-id",
+    owner: "server-ui",
+    fixture: {
+      vaRules: [{ id: "10" }, { id: "10" }],
+      eventTemplates: [{ id: "20" }, { id: "20" }],
+      profiles: [{ id: "30" }, { id: "30" }],
+    },
+    uiSnippets: [
+      "opsRulesDuplicateIds",
+      "opsRulesIssue('duplicate'",
+      "중복 채널 분석 설정 ID",
+      "중복 이벤트 템플릿 ID",
+      "중복 분석 프로파일 ID",
+    ],
+    serverSnippets: ["vaRule id already exists", "analysis document id already exists"],
+    docSnippets: ["duplicate id", "중복 ID"],
+  },
+  {
     id: "inactive-profile",
     owner: "server-ui",
     fixture: {
@@ -23,6 +41,16 @@ const ruleValidationMatrixFixtures = [
     docSnippets: ["inactive profile/template"],
   },
   {
+    id: "missing-profile",
+    owner: "server-ui",
+    fixture: {
+      vaRule: { analysis: { profileId: "profile-missing", classes: ["person"] } },
+    },
+    uiSnippets: ["missing-profile", "프로파일", "찾을 수 없습니다"],
+    serverSnippets: ["vaRule analysis.profileId does not exist"],
+    docSnippets: ["missing reference"],
+  },
+  {
     id: "inactive-template",
     owner: "server-ui",
     fixture: {
@@ -32,6 +60,16 @@ const ruleValidationMatrixFixtures = [
     uiSnippets: ["inactive-template"],
     serverSnippets: ["vaRule templateStart.ruleId is inactive"],
     docSnippets: ["inactive profile/template"],
+  },
+  {
+    id: "missing-template",
+    owner: "server-ui",
+    fixture: {
+      vaRule: { templateStart: { ruleId: "template-missing" } },
+    },
+    uiSnippets: ["missing-template", "이벤트 템플릿", "찾을 수 없습니다"],
+    serverSnippets: ["vaRule templateStart.ruleId does not exist"],
+    docSnippets: ["missing reference"],
   },
   {
     id: "priority-conflict",
@@ -54,6 +92,17 @@ const ruleValidationMatrixFixtures = [
     uiSnippets: ["unauthorized-view", "view-mode-not-allowed", "view-rule-not-allowed"],
     serverSnippets: [],
     docSnippets: ["unauthorized view"],
+  },
+  {
+    id: "va-rule-not-allowed",
+    owner: "server-ui",
+    fixture: {
+      view: { viewId: "1", allowedOverlayModes: ["raw", "va-rule"], allowedRuleIds: [] },
+      vaRule: { id: "10", source: { kind: "file", file: "sample_h264.mp4" } },
+    },
+    uiSnippets: ["view-rule-not-allowed", "PublishedView 허용 룰 목록"],
+    serverSnippets: ["allowed vaRule is required for va-rule mode"],
+    docSnippets: ["허용 룰 목록"],
   },
   {
     id: "template-class-mismatch",
@@ -79,14 +128,38 @@ const ruleValidationMatrixFixtures = [
   },
   {
     id: "source-mismatch",
-    owner: "ui",
+    owner: "server-ui",
     fixture: {
       view: { viewId: "1", sourceId: "1" },
       vaRule: { id: "10", source: { kind: "file", file: "other.mp4" } },
     },
     uiSnippets: ["source-mismatch"],
-    serverSnippets: [],
+    serverSnippets: ["vaRule source must match PublishedView source"],
     docSnippets: ["source mismatch"],
+  },
+  {
+    id: "inactive-channel",
+    owner: "server-ui",
+    fixture: {
+      source: { sourceId: "1", enabled: false },
+      view: { viewId: "1", enabled: true, allowedRuleIds: ["10"] },
+      vaRule: { id: "10" },
+    },
+    uiSnippets: ["inactive-channel", "비활성 채널"],
+    serverSnippets: ["PublishedView source is not available"],
+    docSnippets: ["비활성 채널/PublishedView"],
+  },
+  {
+    id: "inactive-view",
+    owner: "server-ui",
+    fixture: {
+      source: { sourceId: "1", enabled: true },
+      view: { viewId: "1", enabled: false, allowedRuleIds: ["10"] },
+      vaRule: { id: "10" },
+    },
+    uiSnippets: ["inactive-view", "비활성 PublishedView"],
+    serverSnippets: ["PublishedView not found"],
+    docSnippets: ["비활성 채널/PublishedView"],
   },
 ];
 
@@ -100,7 +173,7 @@ check("rule validation matrix has required fixtures", () => {
     assert(Array.isArray(fixture.uiSnippets), `fixture ${fixture.id} has no uiSnippets`);
     assert(Array.isArray(fixture.serverSnippets), `fixture ${fixture.id} has no serverSnippets`);
   }
-  for (const required of ["inactive-profile", "inactive-template", "priority-conflict", "unauthorized-view", "template-class-mismatch", "profile-template-class-mismatch"]) {
+  for (const required of ["duplicate-id", "inactive-profile", "missing-profile", "inactive-template", "missing-template", "priority-conflict", "unauthorized-view", "va-rule-not-allowed", "template-class-mismatch", "profile-template-class-mismatch", "inactive-channel", "inactive-view"]) {
     assert(ids.has(required), `required fixture missing: ${required}`);
   }
 });
@@ -115,7 +188,10 @@ check("UI validation covers every matrix fixture", () => {
 });
 
 check("server validation covers server-owned fixtures", () => {
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = [
+    readText("src/ingress/webrtc_http_server.cpp"),
+    readText("src/ingress/source_view_registry.cpp"),
+  ].join("\n");
   for (const fixture of ruleValidationMatrixFixtures.filter(item => item.owner.includes("server"))) {
     for (const snippet of fixture.serverSnippets) {
       assert(server.includes(snippet), `server validation missing ${fixture.id} snippet: ${snippet}`);

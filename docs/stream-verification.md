@@ -1,8 +1,6 @@
 # Stream Verification
 
 이 문서는 현재 기준의 스트리밍/VA 검증 명령을 관리합니다.
-과거 날짜별 상세 검증 이력은
-[history/verification-history.md](./history/verification-history.md)에 보관합니다.
 
 ## 목적
 
@@ -24,6 +22,31 @@
 | `./server.sh test --stable` | 기존 stable 호환 기준 |
 
 외부 RTSP/HLS/HTTP/WHEP source, 운영 TURN relay/auth는 외부 환경 영향을 받으므로 기본 hard gate가 아닙니다. YouTube import/source는 기본 빌드에서 제외한 lab-only 실험 기능이며, 현재 기본 검증에서는 실제 YouTube URL 성공을 확인하지 않습니다. 공개 URL을 사용할 때는 재현 가능한 예시 URL 또는 환경 변수로만 주입하고, 개인 LAN IP, credential, 고객/운영 영상 URL은 문서와 artifact에 남기지 않습니다.
+
+## 테스트 영역 역할 분리
+
+이 문서는 `스크립트 테스트`의 source-of-truth입니다. UI 풀테스트 기준은
+[manual-ui-fulltest.md](./manual-ui-fulltest.md)와
+[manual-ui-checklist.md](./manual-ui-checklist.md)에 둡니다. 기능별 UI 필요 여부,
+테스트 필요 여부, 테스트 영역, PASS 판정 기준은
+[project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
+합니다. 이 inventory는 테스트 실행 결과가 아니므로, 행이 있다는 이유만으로
+스크립트 테스트나 UI 풀테스트가 완료됐다고 보고하지 않습니다.
+
+| 영역 | 역할 | 대표 evidence | 대체 불가 항목 |
+| --- | --- | --- | --- |
+| 안정화 테스트 | 30분/120분/UI 테스트의 선수 테스트입니다. 로드맵 각 스텝 종료 시 build/static/API/schema/auth/media/verifier 회귀를 먼저 확인합니다. | 명령, exit code, summary/report, 로그 | 30분/120분 장시간 PASS, 인앱 브라우저 직접 조작 evidence |
+| 30분 테스트 | 장기간 테스트 지시 시 기본으로 수행하는 soak입니다. 각 버전별 로드맵 개발이 끝나면 수행합니다. | `verify-predev --soak-minutes 30` summary/report | 안정화 테스트, 120분 메모리 감시, UI 풀테스트 |
+| 120분 테스트 | 메모리 릭, 장시간 누수, runtime drift 감시용입니다. 무조건 실행하지 않으며 필요하면 사용자에게 먼저 알립니다. | `verify-predev --soak-minutes 120`, `verify-va-runtime-console-longrun --duration-minutes 120` report | 안정화 테스트, 30분 기본 soak, UI 풀테스트 |
+| UI 풀테스트 | 제품 화면을 인앱 브라우저에서 직접 클릭/타이핑/반응형 확인 | manual UI result, route별 직접 조작, screenshot/artifact | 스크립트 smoke, raw JSON/API-only 확인 |
+
+안정화 테스트가 실패하면 30분/120분/UI 테스트로 넘어가지 않습니다.
+스크립트 테스트는 제품 내부 계약과 장시간 안정성을 확인하지만, 화면을 사람이 직접
+열고 조작했다는 증거가 아닙니다. UI 풀테스트는 실제 사용자 경험을 확인하지만,
+30분/120분 안정화나 media path 장시간 안정성을 통과시킨 증거가 아닙니다.
+보고서에는 두 영역을 별도 섹션으로 나눕니다. 실행한 테스트 결과 행의 판정값은
+`PASS` 또는 `FAIL`만 쓰고, 실행하지 않은 영역은 기능 결과 행 밖의 `미실행`,
+`미확인`, `제외 기록`에만 남깁니다.
 
 문서/UI/Auth/권한/계정처럼 media pipeline 자체를 바꾸지 않은 변경에서는
 `./server.sh test`, `./server.sh test --basic`, `./server.sh test --full`,
@@ -48,13 +71,9 @@ release candidate gate를 열 때만 명시적으로 실행합니다.
 ./server.sh build
 git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.md .github config docs scripts src include
 ./server.sh verify-script-inventory
+./server.sh verify-project-inventory
 ./server.sh verify-code-comments
 ./server.sh verify-release-metadata
-./server.sh verify-v121-follow-up-closure
-./server.sh verify-v130-follow-up-closure
-./server.sh verify-v140-follow-up-closure
-./server.sh verify-v140-report-archive-policy
-./server.sh verify-v150-follow-up-closure
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-manual-ui-evidence
@@ -64,6 +83,8 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-post-release-reconciliation
 ./server.sh verify-release-closeout-helper --dry-run --report /tmp/media_server_release_closeout_helper.md
 ./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>
+./server.sh verify-release-evidence-index
+./server.sh verify-feature-scope-gate
 ./server.sh dependency-snapshot --stable --output /tmp/media_server_dependency_snapshot.md --no-linked-libs
 ./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
 ./server.sh verify-release-bundle-dry-run
@@ -71,91 +92,86 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-auth-routes
 ./server.sh verify-ops-client-ui
 ./server.sh verify-ops-click-e2e
+./server.sh verify-ops-click-e2e --auth-ui-flow --auth-users-file <path>
 ./server.sh verify-ops-tables-layout
 ./server.sh verify-rule-ui
 ./server.sh verify-ops-rules-roundtrip
 ./server.sh verify-analysis-state
 ```
 
-v1.4.0 tracker/Re-ID opt-in 이후 남은 후속 항목 분류와 종료 판정은
-[v1.4.0 Follow-up Closure](./v1.4.0-follow-up-closure.md)를 기준으로 확인합니다.
-v1.5.0 Tracker/Re-ID opt-in 안정화 이후 남은 후속 항목 분류와 종료 판정은
-[v1.5.0 Follow-up Closure](./v1.5.0-follow-up-closure.md)를 기준으로 확인합니다.
-v1.6.0 stabilization release evidence는
-[v1.6.0 Release Evidence Dashboard](./v1.6.0-release-evidence-dashboard.md)를
-기준으로 확인하며, 실행한 검증과 미실행 장시간/실장비/외부 credential gate를
-분리합니다.
-`verify-predev` report에 `건너뜀`이 있으면 skip count와 step reason을 같이
-검토합니다. 사용자가 요청하지 않은 optional external TURN 같은 선택 gate만
-건너뛴 경우에는 predev 결과와 외부 TURN `NOT RUN`을 분리해 기록합니다.
-요청한 hard gate가 건너뛰어진 경우에는 release PASS가 아니라 HOLD 또는 NOT RUN으로
-남깁니다.
+`verify-release-metadata` 기본 실행은 v1.8.0 release prep 단계에서 반복 가능한
+로컬 VERSION/문서 기준을 확인합니다. 이 모드에서는 GitHub Release/tag 생성이 아직
+수동 close-out 전일 수 있으므로 GitHub Latest Release 확인을 `manual-not-run`으로
+기록합니다.
+main merge, tag, GitHub Release publish 이후에는
+`./server.sh verify-release-metadata --published`를 실행합니다. 이 모드는
+`gh release list`, `gh release view`, GitHub API `/releases/latest`,
+`git ls-remote --tags origin <tag>`를 실제로 호출해 GitHub Latest Release와 원격 tag가
+현재 source-only release 기준 tag를 가리키는지 확인합니다. 네트워크, GitHub CLI,
+origin 접근이 준비되지 않았으면 published metadata gate 실패로 보고하고 release
+close-out PASS로 대체하지 않습니다.
+
+현재 v1.8.0 제품 회귀 gate, UI 풀테스트 gate, release trust hardening gate는 아래
+통합 명령으로만 확인합니다.
 
 ```bash
-./server.sh verify-v160-release-evidence-dashboard
-./server.sh verify-v160-stability-verification-gate
-./server.sh verify-v160-debug-exposure-regression-guard
-./server.sh verify-v160-tracker-reid-opt-in-closeout
-./server.sh verify-v160-onvif-field-smoke-evidence-reconciliation
-./server.sh verify-v160-audit-export-masking-regression-hardening
-./server.sh verify-v160-runtime-model-bundle-rc-policy
-./server.sh verify-v160-manual-ui-release-checklist-closure
-./server.sh verify-v160-public-docs-consistency-polish
-./server.sh verify-v160-tracker-benchmark-harness-planning
+./server.sh verify-auth-bootstrap
+./server.sh verify-auth-users
+./server.sh verify-auth-routes
+./server.sh verify-ops-client-ui
+./server.sh verify-ops-client-ui --screenshots
+./server.sh verify-ops-click-e2e
+./server.sh verify-ops-click-e2e --auth-ui-flow --auth-users-file <path>
+./server.sh verify-ops-tables-layout
+./server.sh verify-rule-ui
+./server.sh verify-ops-rules-roundtrip
+./server.sh verify-ops-scenario-presets
+./server.sh verify-ops-rule-validation-matrix
+./server.sh verify-product-ui-no-native-dialogs
+./server.sh verify-analysis-state
+./server.sh verify-va-events
+./server.sh verify-va-replay
+./server.sh verify-webrtc-va-metadata
+./server.sh verify-va-metadata-sidechannel
+./server.sh verify-ws-metadata
+./server.sh verify-ops-rule-relationships
+./server.sh verify-script-inventory
+./server.sh verify-docs-links
+./server.sh verify-release-metadata
 ```
 
-Stability gate 분류는
-[v1.6.0 Stability Verification Gates](./v1.6.0-stability-verification-gates.md)에
-고정합니다. static/docs gate, attached UI/Auth gate, Runtime/VA metadata gate,
-Tracker/Re-ID carry-over gate, flaky/cleanup isolation gate, longrun/external gate를
-분리하고, 실행하지 않은 gate를 release pass처럼 쓰지 않습니다.
-Client/Ops debug exposure guard는
-[v1.6.0 Client/Ops Debug Exposure Regression Guard](./v1.6.0-debug-exposure-regression-guard.md)에
-고정합니다. `verify-ops-client-ui`의 client forbidden text/key matrix가 source URL,
-raw JSON, debug counter, rule/profile editor, model/source/auth material을 검사하는지
-`verify-v160-debug-exposure-regression-guard`로 확인합니다.
-Tracker/Re-ID opt-in close-out은
-[v1.6.0 Tracker/Re-ID Opt-in Stabilization Close-out](./v1.6.0-tracker-reid-opt-in-closeout.md)에
-고정합니다. v1.5.0 follow-up closure, stability matrix, Re-ID provenance/fallback
-approval verifier를 carry-over gate로 연결하되, default-on이나 runtime/model bundle
-승격은 P0 완료로 쓰지 않습니다.
-ONVIF field smoke evidence reconciliation은
-[v1.6.0 ONVIF Field Smoke Evidence Reconciliation](./v1.6.0-onvif-field-smoke-evidence-reconciliation.md)에
-고정합니다. 실장비 field smoke를 실행하지 않았으면 `NOT RUN`과
-`realDeviceEndpointSuccess=unverified`로 유지하고, no-device suite 결과를 field
-smoke pass로 쓰지 않는지 `verify-v160-onvif-field-smoke-evidence-reconciliation`로
-확인합니다.
-Audit/export masking regression hardening은
-[v1.6.0 Audit Export Masking Regression Hardening](./v1.6.0-audit-export-masking-regression-hardening.md)에
-고정합니다. `/ops/api/audit` 조회와 JSON/CSV/Diff JSON export가 source/model/auth/raw
-material을 다시 노출하지 않는지 `verify-v160-audit-export-masking-regression-hardening`로
-확인합니다.
-Runtime/model bundle RC policy는
-[v1.6.0 Runtime/Model Bundle RC Policy](./v1.6.0-runtime-model-bundle-rc-policy.md)에
-고정합니다. v1.6.0 기본 release에 ONNX Runtime package나 YOLO/Re-ID/model binary를
-포함하지 않고, 향후 별도 RC의 bundle policy, source offer, model provenance,
-privacy/redaction review 조건만 `verify-v160-runtime-model-bundle-rc-policy`로
-확인합니다.
-Manual UI release checklist closure는
-[v1.6.0 Manual UI Release Checklist Closure](./v1.6.0-manual-ui-release-checklist-closure.md)에
-고정합니다. 자동 smoke나 screenshot 생성만으로 수동 클릭 검수를 완료했다고 쓰지
-않고, 실제 실행 artifact/link와 미실행/미확인 항목을
-`verify-v160-manual-ui-release-checklist-closure`로 분리합니다.
-Public docs consistency polish는
-[v1.6.0 Public Docs Consistency Polish](./v1.6.0-public-docs-consistency-polish.md)에
-고정합니다. 이 historical gate는 v1.6.0 close-out 당시의 public tag/evidence drift와
-v1.6.0 stabilization roadmap/evidence를 분리하고, public docs가 tag/push/GitHub
-Release나 후속 Phase 후보를 완료로 쓰지 않는지
-`verify-v160-public-docs-consistency-polish`로 확인합니다.
-V160-P2-01 Public docs consistency polish는 public docs current tag와
-stabilization evidence 표현을 정리하는 항목입니다.
-Tracker benchmark harness planning only는
-[v1.6.0 Tracker Benchmark Harness Planning](./v1.6.0-tracker-benchmark-harness-planning.md)에
-고정합니다. OC-SORT/BoT-SORT/DeepSORT를 runtime tracker로 승격하지 않고,
-metadata-only sandbox와 별도 Phase benchmark 요구사항만
-`verify-v160-tracker-benchmark-harness-planning`으로 확인합니다.
+EventRecord 저장 이력까지 확인해야 하는 경우에는 EventRecord storage를 켠 격리
+서버에서 `verify-va-events --dispatch-records`를 실행합니다. 이 모드는 rare
+`exit`/direction event 누락을 피하기 위해 별도 환경변수를 주지 않으면 모든 poll을
+`dispatch=1`로 조회하며, storage가 꺼져 있으면 긴 polling 전에 실패합니다.
+제품 UI에서 EventRecord row, evidence filter, archive toggle, pagination, signed
+bundle action과 rule/scenario별 history coverage까지 닫아야 할 때는 같은 storage
+enabled 서버에서 아래처럼 `/ops/events` UI scope verifier를 실행합니다.
 
-위 전용 기준은 느린 기본 추가 RTSP/WebRTC source 영상, codec matrix, multichannel media soak를 사용하지 않습니다.
+```bash
+./server.sh verify-ops-event-records-scope \
+  --http-base <storage-enabled-server> \
+  --event-history-dir <manual-ui-event-history-dir>
+```
+
+release prep branch에서 tag/GitHub Release가 아직 생성 전이면
+`verify-release-metadata`만 branch-level metadata PASS로 기록합니다.
+main/tag/GitHub Release publish 뒤에는 `verify-release-metadata --published`를 실행합니다.
+
+과거 release 문구나 evidence 보존 상태는 현재 gate가 아닙니다. 필요한 경우에는
+[development-backlog.md](./development-backlog.md)의 archive 섹션을 사람이 검토하고,
+결과는 현재 제품 PASS/FAIL이 아니라 historical review로 기록합니다.
+
+`verify-predev` report에 `건너뜀`이 있으면 skip count와 step reason을 같이
+검토합니다. 사용자가 요청하지 않은 optional external TURN 같은 선택 gate만
+건너뛴 경우에는 predev 결과와 외부 TURN `미실행` 상태를 기능 결과 행 밖에
+분리해 기록합니다. 요청한 hard gate가 건너뛰어진 경우에는 release PASS가 아니라
+해당 gate 기능 결과를 `FAIL`로 남기고 원인을 별도 기록합니다.
+
+Historical v1.x close-out 정보는 standalone verifier가 아니라 backlog archive로
+보존합니다. archive 정합성 확인은 현재 제품 regression 결과와 섞지 않습니다.
+
+위 전용 기준은 느린 기본 추가 RTSP/WebRTC source 영상과 codec matrix를 사용하지 않습니다.
 기본 smoke와 longrun gate가 섞이지 않았는지는 다음 명령으로 정적으로 확인합니다.
 
 ```bash
@@ -176,12 +192,23 @@ FFmpeg/ffprobe CLI가 없는 공개/CI 환경에서는 codec matrix와 RTSP deco
 - 채널 추가/상세
 - 룰 패널 이동
 - 사용자 상세
+- 사용자 수정, 비밀번호 초기화, 비활성화 2회 확인, 복구
+- 초대 발급과 invite list token/tokenHash 비노출
 - 접근 요청 승인 채널 ID 입력과 invite 출력
 - client dashboard
 
 서버를 `MEDIA_SERVER_AUTH_USERS_FILE` override로 띄운 경우에는
 `verify-ops-click-e2e --auth-users-file <path>`에도 같은 경로를 넘겨
 접근 요청 fixture cleanup을 같은 users file에 적용합니다.
+session auth 제품 UI 자체를 검증할 때는 별도 session-auth 서버를 띄우고
+`verify-ops-click-e2e --auth-ui-flow --auth-users-file <path>`를 실행합니다.
+이 모드는 `/setup`, `/login`, `/ops/users`, `/client/request-access`,
+`/invite/setup`, `/password/change`, `/client/live`를 자율 Chrome/CDP로 직접
+조작하며, `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`,
+`MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD`,
+`MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD`,
+`MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE`,
+`MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO`가 없으면 시작하지 않습니다.
 
 ## Flaky verifier stabilization
 
@@ -197,6 +224,10 @@ FFmpeg/ffprobe CLI가 없는 공개/CI 환경에서는 codec matrix와 RTSP deco
   강제로 주입하고 각각 restore합니다. Browser Use clipboard 자체 오류는
   [browser-use-clipboard-diagnostics.md](./browser-use-clipboard-diagnostics.md) 기준으로
   제품 fallback 회귀와 분리합니다.
+- native dialog guard: `verify-product-ui-no-native-dialogs`는 제품 UI source의
+  `alert`/`confirm`/`prompt` 호출을 금지합니다. 위험 action은 제품 화면 안 2회
+  확인 상태로 검증하고, 사용자가 Codex pane나 운영체제 팝업을 눌러야 하는 상태는
+  verifier 실패로 봅니다.
 - Browser/Computer Use fallback: 수동 UI evidence는 Browser Use 직접 조작,
   Chrome 직접 조작, Computer Use visible UI 조작 순서로 시도하고, raw JSON/API-only
   확인을 수동 클릭 evidence로 쓰지 않습니다.
@@ -309,6 +340,7 @@ VA rule/scenario 변경:
 ./server.sh verify-analysis-state
 ./server.sh verify-va-replay
 ./server.sh verify-va-events
+MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_ENABLED=1 ./server.sh verify-va-events --dispatch-records
 ./server.sh verify-ops-scenario-presets
 ```
 
@@ -338,7 +370,7 @@ MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1 ./serve
 ```
 
 UI 변경 검증에서는 기본 추가 RTSP/WebRTC source 영상이나 codec matrix를 쓰지 않습니다.
-v1.2.0에서 도입되어 v1.3.0에서도 유지되는 UI visual regression gate는 ERP/운영 콘솔형 visual refresh 기준을 함께 봅니다.
+v1.8.0에서 도입되어 v1.8.0에서도 유지되는 UI visual regression gate는 ERP/운영 콘솔형 visual refresh 기준을 함께 봅니다.
 즉, 기능 selector만 통과하면 끝이 아니라 compact product shell, nav/account header,
 metric/card/table/form/badge 밀도, client source/debug 비노출, 모바일 overflow를 같은
 artifact에서 확인합니다.
@@ -346,6 +378,7 @@ artifact에서 확인합니다.
 
 - `verify-ops-client-ui`
 - `verify-ops-click-e2e`
+- `verify-ops-click-e2e --auth-ui-flow --auth-users-file <path>`
 - `verify-ops-tables-layout`
 - `verify-rule-ui`
 - `verify-ops-rules-roundtrip`
@@ -373,7 +406,7 @@ Ops/Client shell 변경 확인 포인트:
   `/ops/sources`, `/ops/users`, `/client/live`, `/client/dashboard`를
   기본 320/390/760/1180px 폭으로 열어 overflow와 screenshot을 남깁니다.
   release gate나 단계 종료 보고에서는 `--output-dir`로 artifact 경로를 고정합니다.
-  예: `--output-dir /tmp/media_server_v120_p0_02_screenshots`
+  예: `--output-dir /tmp/media_server_v180_p0_02_screenshots`
   통과 시 같은 디렉터리에 `visual-regression-manifest.json`과 `index.md`를
   생성합니다. manifest schema는 `media-server.ui-visual-artifact-index.v1`이며
   page/selector가 있는 기본 screenshot과 ONVIF hint/preview 같은 보조 screenshot을
@@ -445,8 +478,7 @@ fi
 - `/ops/events`는 primary nav에서 숨긴 직접/진단 route입니다.
   독립 제품 탭으로 취급하지 않습니다.
   이벤트 조건은 룰에서 설정하고 운영 요약은 대시보드에서 확인합니다.
-- `/ops/dashboard`와 `/ops/rules`는 Lab iframe이나
-  `/lab/rules?embed=1`을 포함하지 않습니다.
+- `/ops/dashboard`와 `/ops/rules`는 개발/검증 iframe을 포함하지 않습니다.
   대시보드는 `/ops/api/runtime/status`,
   룰 화면은 `/ops/api/rules/catalog`,
   숨김 이벤트 상태는 `/ops/api/events/status`를 사용합니다.
@@ -481,7 +513,7 @@ fi
   source URL, Developer URL, BBox diagnostics, 내부 진단 JSON,
   rule/profile editor를 노출하지 않습니다.
   Client Events tab은 primary nav에서 제거합니다.
-- `/lab`, `/lab/rules`, `/lab/import` 화면 route는 404로 닫고, 개발/검증 API는 `/lab/analysis/*`에서만 유지합니다.
+- 개발/검증 API는 `/lab/analysis/*`에서만 유지하고 제품 UI는 Ops/Client shell을 기준으로 확인합니다.
 
 WebRTC/stream 변경:
 
@@ -500,10 +532,6 @@ event/scenario side effect를 함께 확인합니다.
 리포트의 `Quality Gate` 섹션은 risk 증가, event/scenario 불변,
 default-on 후보 여부, 권고를 요약합니다.
 
-초기 `/webrtc/test` 화면에 의존하던 다채널 브라우저 harness는 제품 UI 정리 후
-실행하지 않습니다. 긴 RTSP/WebRTC 다채널 재생 검증은 별도 제품 UI harness가
-준비될 때까지 기본 안정성 테스트에서 제외합니다.
-
 Auth 변경:
 
 ```bash
@@ -514,9 +542,18 @@ Auth 변경:
 
 위 세 명령은 임시 users file과 격리 포트에서 auth 서버를 띄워
 setup/login/session/user/route smoke를 자동으로 확인합니다.
-자동 auth smoke, 로컬 QA, 수동 smoke의 표준 테스트 계정 비밀번호는
-`qweasd0-`로 통일합니다.
-이 규칙은 검증 재현성을 위한 것이며, 제품 기본 admin 비밀번호가 아닙니다.
+자동 auth smoke, 로컬 QA, 수동 smoke의 계정 비밀번호는 테스트 실행자가
+아래 환경변수로 명시합니다. 값이 없으면 auth verifier는 서버를 띄우기 전에
+실패해야 하며, 문서나 스크립트에 고정 기본 비밀번호를 두지 않습니다.
+
+```bash
+export MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD='<operator-provided-current-password>'
+export MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD='<operator-provided-previous-password>'
+export MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD='<operator-provided-second-previous-password>'
+export MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE='<operator-provided-wrong-password-one>'
+export MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO='<operator-provided-wrong-password-two>'
+```
+
 수동으로 세부 상태를 확인할 때는 아래 curl 흐름을 사용합니다.
 
 ```bash
@@ -541,7 +578,8 @@ MEDIA_SERVER_AUTH_LOGIN_LOCKOUT_SECONDS=300 \
   ./server.sh foreground
 curl -fsS 'http://127.0.0.1:8080/login'
 curl -fsS -c /tmp/media-server.cookies \
-  -d 'username=operator1&password=qweasd0-' \
+  --data-urlencode 'username=operator1' \
+  --data-urlencode "password=${MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD}" \
   'http://127.0.0.1:8080/login'
 curl -fsS -b /tmp/media-server.cookies 'http://127.0.0.1:8080/auth/whoami'
 curl -fsS -b /tmp/media-server.cookies -X POST 'http://127.0.0.1:8080/logout'
@@ -592,6 +630,13 @@ Product UI smoke:
 - 접힘 editor selector
 - `/setup`, `/login`, `/password/change`, `/invite/setup`,
   `/client/request-access` auth shell selector
+- `verify-ops-click-e2e`는 자체 Chrome/CDP 세션에서 Ops/Client 주요 클릭 흐름을
+  조작합니다. 접근 요청 거절 같은 위험 action은 native 팝업이 아니라 제품 화면 안
+  2회 확인 상태여야 하며, 사용자가 Codex pane나 운영체제 팝업을 눌러야 하는 상태는
+  verifier 실패로 봅니다.
+- `verify-ops-click-e2e --auth-ui-flow`는 session auth 서버에서 setup/login/logout,
+  public access request submit/approve/reject, invite setup, password change,
+  user disable/restore, last-admin guard를 실제 auth shell과 제품 UI로 조작합니다.
 
 Invite/request smoke:
 
@@ -600,7 +645,7 @@ Invite/request smoke:
 - pending invite와 approved request가 user-only 저장 후에도 users file에 유지
 - 기존 enabled user invite가 수락 전 role/scope/session을 바꾸지 않음
 - access request approve가 invite setup 전 user row를 만들지 않음
-- access request reject가 rejected 상태로 유지
+- access request reject가 2회 확인 후 rejected 상태로 유지되고 user row를 만들지 않음
 - invite 수락 후 이전 session 폐기
 - password reset 후 `mustChangePassword=true`와 기존 session 회수
 - disable은 login/session 차단, restore는 lockout/실패 횟수 초기화
@@ -645,7 +690,6 @@ Root/route 확인 기준:
 - Viewer token: `/ -> /client/live`
 - 미인증 auth-on 요청: `/ -> /login`
 - Viewer의 `/ops` 접근: `403`
-- `/lab` 화면 route: `404`
 
 Ops 권한 기준:
 
@@ -830,7 +874,7 @@ Re-ID assist opt-in까지 같이 태우는 경우에는 `--reid-policy assist`�
 ./server.sh compare-close-object-tracker \
   --tracker-policy bytetrack \
   --reid-policy assist \
-  --history-dir /private/tmp/media_server_v140_reid_assist_warning_trend
+  --history-dir /private/tmp/media_server_v180_reid_assist_warning_trend
 ```
 
 단일 비교에 `--history-dir`를 지정하면 summary/report 사본과 Markdown/JSON index가
@@ -850,13 +894,12 @@ OC-SORT가 `analysis.trackingPolicy.tracker`, `/ops/rules` UI,
 ./server.sh verify-oc-sort-benchmark-boundary
 ```
 
-v1.5.0 OC-SORT experimental sandbox는 같은 runtime 승격 금지 경계를 유지하면서
-`compare-close-object-tracker` report에 `manifest-only` sandbox metadata만 남깁니다.
-이 sandbox는 OC-SORT를 실행하지 않고, `--tracker-policy` 허용값도
-`lite`, `kalman-lite`, `bytetrack`에 머뭅니다.
+v1.8.0 OC-SORT experimental sandbox 검증은 release archive 전용입니다. 현재
+제품 회귀에서는 같은 runtime 승격 금지 경계를 `verify-oc-sort-benchmark-boundary`와
+`compare-close-object-tracker`의 현재 fixture 옵션으로 확인하고, archive 명령을
+현재 PASS/FAIL에 섞지 않습니다.
 
 ```bash
-./server.sh verify-v150-oc-sort-experimental-sandbox
 ./server.sh compare-close-object-tracker --list-experimental-sandboxes
 ./server.sh compare-close-object-tracker --fixture-matrix --experimental-sandbox oc-sort --tracker-policy bytetrack --max-fixtures 1
 ```
@@ -1001,38 +1044,10 @@ count, mean, stdev, variance, min, max를 표시합니다.
 - replay/event 결과가 흔들려도 default on 전환 금지입니다.
 - default on은 여러 fixture와 현장 샘플에서 ID continuity 개선과 event 결과 무변화가 함께 확인된 뒤에만 검토합니다.
 - privacy/default-off gate는 `verify-reid-advanced-tracking`으로 별도 확인합니다.
-- v1.5.0 명시 opt-in guard는 `verify-v150-opt-in-tracking-policy`로 확인합니다.
-  이 검증은 tracker 없는 `reid=assist` fixture를 저장 거부하고, runtime/UI/docs가
-  자동 migration 또는 default-on 승격 근거가 아닙니다 라는 경계를 유지하는지
-  점검합니다.
-- v1.5.0 Tracker/Re-ID stability matrix는
-  `verify-v150-tracker-reid-stability-matrix`로 문서/entrypoint/fixture-history
-  경계를 먼저 고정합니다. 이 정적 guard는 runtime matrix를 직접 실행하지 않으며,
-  `lite/off`, `kalman-lite/off`, `bytetrack/off`, `lite/assist`,
-  `kalman-lite/assist`, `bytetrack/assist` 조합이 warning drift 관찰 대상이고
-  `matrix-ok`가 제품 default-on 승인 값이 아닙니다 라는 해석을 확인합니다.
-- v1.5.0 Re-ID model provenance/fallback approval은
-  `verify-v150-reid-provenance-fallback-approval`로 문서/entrypoint/smoke fixture
-  경계를 고정합니다. 이 guard는 missing/invalid/mismatched model을 NoOp fallback으로
-  닫고, privacy/retention approval을 제품 default-on 승인이나 model bundle 승인으로
-  해석하지 않습니다.
-- v1.5.0 Ops Dashboard tracker warning next-action은
-  `verify-v150-ops-tracker-warning-next-action`으로 UI copy, tracker warning fixture
-  smoke, docs 경계를 고정합니다. 이 guard는 warning을 사용자 opt-in 튜닝 참고와
-  다음 조치로 표시하되 default-on 근거가 아닙니다 라는 해석을 확인합니다.
-- v1.5.0 Audit export review hardening은
-  `verify-v150-audit-export-review-hardening`으로 Ops audit 조회와
-  JSON/CSV/Diff JSON export의 model/source material 마스킹, Tracker/Re-ID
-  설정 변경 review chip, model/fallback status-only 표시 경계를 고정합니다.
-  이 guard는 audit export UX를 강화하되 Event POST/WebRTC/SSE/WS metadata schema나
-  RTSP/WebRTC media path 변경으로 해석하지 않습니다.
-- v1.5.0 Field smoke summary evidence boundary는
-  `verify-v150-field-smoke-summary-evidence-boundary`로
-  `compare-close-object-tracker --history-dir`가 summary/report/history index evidence만
-  보존하고 raw media, crop, embedding, model/source/auth material을 archive하지
-  않는지 확인합니다. 이 guard는 release 문서에서 완료/미확인/비범위를 분리하며,
-  제품 default-on 승인, 실장비 ONVIF field smoke 성공, 장기 field sample workflow
-  완료로 해석하지 않습니다.
+- 현재 회귀에서는
+  `verify-reid-advanced-tracking`, `verify-tracker-stability`,
+  `compare-close-object-tracker`, `verify-va-replay`, `verify-analysis-state`,
+  `verify-va-events`로 runtime/default-off/metadata/event 안정성을 확인합니다.
 
 비교 리포트 해석:
 
@@ -1049,14 +1064,6 @@ count, mean, stdev, variance, min, max를 표시합니다.
 - threshold tuning 또는 추가 fixture 수집은 새 field/model review가 열릴 때 별도 review로 다룹니다.
 
 ```bash
-./server.sh verify-v150-opt-in-tracking-policy
-./server.sh verify-v150-tracker-reid-stability-matrix
-./server.sh verify-v150-reid-provenance-fallback-approval
-./server.sh verify-v150-ops-tracker-warning-next-action
-./server.sh verify-v150-audit-export-review-hardening
-./server.sh verify-v150-field-smoke-summary-evidence-boundary
-./server.sh verify-v150-oc-sort-experimental-sandbox
-./server.sh verify-v150-follow-up-closure
 ./server.sh verify-reid-advanced-tracking
 ./server.sh verify-tracker-stability --long --overlap-focus
 ./server.sh verify-va-replay
@@ -1077,9 +1084,6 @@ MEDIA_SERVER_ANALYSIS_TRACKING_CLOSE_OBJECT_GUARD_MODE=enforce ./server.sh verif
 특정 mode 재현이 필요할 때 사용합니다.
 report judgement가 `hold`이면 event/scenario delta 또는 주요 회귀가 있다는 뜻입니다.
 이 경우 default on 검토를 중단하고 fixture와 summary log를 먼저 확인합니다.
-
-반복 다채널 VA 브라우저 검증은 제거된 초기 harness가 아니라 별도 제품 UI
-harness가 준비된 뒤 장기 테스트로만 실행합니다.
 
 외부 source 장시간 검증은 사용할 source가 준비된 경우에만 실행합니다.
 
@@ -1636,7 +1640,7 @@ Runtime Console 검증 정책:
 | 기본 test 포함 여부 | `./server.sh test`에는 포함하지 않음 |
 | 실행 성격 | 30분 이상 실행하는 선택 검증 |
 | 120분 실행 | release candidate 또는 고위험 RTSP/GStreamer/WebRTC/VA fanout 변경 gate |
-| 120분 미실행 기록 | 사용자 명시 요청 없음 또는 변경 범위가 runtime fanout/media path가 아니면 `NOT RUN` |
+| 120분 미실행 기록 | 사용자 명시 요청 없음 또는 변경 범위가 runtime fanout/media path가 아니면 기능 결과 행 밖에 `미실행` |
 | 대체 불가 | 30분 longrun, cycle 검증, sample fixture를 120분 PASS evidence로 쓰지 않음 |
 | report 보존 | RC artifact 또는 외부 archive 보존 위치와 retention days를 기록 |
 | trace env | 검증용 subprocess env에서 `MEDIA_SERVER_WEBRTC_TRACE=1` 사용 |
@@ -1743,9 +1747,7 @@ curl -fsS -X POST \
 ./server.sh verify-va
 ```
 
-현재 `verify-va`의 WebRTC browser playback 구간은 초기 `/webrtc/test` harness 제거 후
-별도 제품 UI harness가 준비될 때까지 skip됩니다. 기본 자동 기준은 lab API와 RTSP
-server-side overlay를 확인합니다.
+현재 `verify-va`의 기본 자동 기준은 lab API와 RTSP server-side overlay를 확인합니다.
 
 수동 RTSP overlay URL:
 
@@ -1931,9 +1933,8 @@ baseline fixture 전체 검증:
 
 ## 다채널 검증
 
-초기 `/webrtc/test` 기반 다채널 브라우저 harness는 제거되었습니다.
 현재 quick 안정성 범위에서는 느린 RTSP/WebRTC 다채널 재생을 실행하지 않고,
-제품 UI smoke, rule UI round-trip, route 404 smoke, API 계약 검증으로 대체합니다.
+제품 UI smoke, rule UI round-trip, API 계약 검증을 사용합니다.
 
 단계별 수동 기준:
 
@@ -2073,6 +2074,7 @@ Replay 결과 차이는 누락/초과/불일치 이벤트를 먼저 확인합니
 
 ## 과거 이력 링크
 
-날짜별 상세 검증 이력은 [history/verification-history.md](./history/verification-history.md)에 보관합니다.
+날짜별 상세 검증 이력은 [development-backlog.md](./development-backlog.md)의 archive 섹션에 보관합니다.
 
-현재 문서에는 지금 실행할 명령과 최신 통과 기준만 남깁니다. 과거 이력은 삭제하지 않고 history 문서에 누적합니다.
+현재 문서에는 지금 실행할 명령과 최신 통과 기준만 남깁니다. 과거 이력은 별도
+이력 문서가 아니라 backlog archive에만 보존합니다.

@@ -1,11 +1,11 @@
 # BoT-SORT/DeepSORT Research Boundary
 
-이 문서는 v1.4.0 (8) `BoT-SORT/DeepSORT research boundary`의 범위와
+이 문서는 v1.8.0 (8) `BoT-SORT/DeepSORT research boundary`의 범위와
 후속 분류를 고정합니다. 목표는 appearance/Re-ID 의존성이 큰 tracker 계열을
-v1.4.0 runtime tracker로 조용히 승격하지 않고, dependency/privacy/bundle review가
+v1.8.0 runtime tracker로 조용히 승격하지 않고, dependency/privacy/bundle review가
 열릴 때 필요한 research note 경계만 남기는 것입니다.
 
-## 이번 v1.4.0 (8) 범위
+## 이번 v1.8.0 (8) 범위
 
 포함:
 
@@ -61,5 +61,5 @@ DeepSORT를 실행하지 않습니다.
 - camera motion compensation 및 dataset benchmark report
 - runtime/model bundle RC policy와 source-offer 검토
 
-위 항목은 v1.4.0 (8)의 잔여가 아니라, 별도 privacy, benchmark, 또는 product
+위 항목은 v1.8.0 (8)의 잔여가 아니라, 별도 privacy, benchmark, 또는 product
 review가 열릴 때만 다룹니다.

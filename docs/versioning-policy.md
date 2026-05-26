@@ -4,17 +4,19 @@
 
 ## 현재 기준
 
-- 현재 기준 버전: `v1.7.0`
+- 현재 기준 버전: `v1.8.0`
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
-- `v1.7.0`은 v1.6.0까지 닫은 source-only/live-only 제품 경계를 유지하면서
-  Client Live workspace, source tree/dock event feed, tile disconnect,
-  event review, source group/site, tile info overlay, saved layout,
-  incident timeline, alert delivery, scenario builder, Ops/Client declutter를
-  닫은 source-only UI-first release입니다.
-- 현재 제품 경계와 v1.7.0 종료 판정은 [development-backlog.md](./development-backlog.md)를
-  기준으로 합니다. v1.6.0 release evidence 문서는 historical evidence로 유지합니다.
+- `v1.8.0`은 직전 release까지 닫은 source-only/live-only 제품 경계를 유지하면서
+  release/latest/docs evidence drift를 막는 trust hardening을 닫은 source-only
+  release입니다. Client Live workspace, source tree/dock event feed, tile
+  disconnect, event review, source group/site, tile info overlay, saved layout,
+  incident timeline, alert delivery, scenario builder, Ops/Client declutter는
+  현재 UI-first 제품 baseline으로 유지합니다.
+- 현재 제품 경계와 v1.8.0 종료 판정은 [development-backlog.md](./development-backlog.md)를
+  기준으로 합니다. 이전 release evidence는 현재 release pass/fail 기준으로
+  재사용하지 않습니다.
 
-## `v1.7.0`에 포함되는 범위
+## `v1.8.0`에 포함되는 범위
 
 - Apache-2.0 소스 코드
 - 문서, 설정 예시, 검증 스크립트
@@ -29,24 +31,24 @@
 - source-only release packaging rehearsal과 bundle policy dry-run
 - Re-ID/advanced tracking default-off 실험 guard
 - YouTube import/source lab-only 현상 유지 결정
-- v1.3.0 runtime operations console, ONVIF field smoke gate, source health incident
-  workflow, Client Live accessibility/mobile polish, Rule/Scenario preset quality,
-  audit trail operations, release/visual baseline automation, Re-ID default-off
-  research continuation과 follow-up closure
+- runtime operations console, ONVIF field smoke gate, source health incident workflow,
+  Client Live accessibility/mobile polish, Rule/Scenario preset quality, audit trail
+  operations, release/visual baseline automation, Re-ID default-off research
+  continuation과 follow-up closure
 - rule-level `analysis.trackingPolicy`와 Ops Rules tracker/Re-ID 선택 UI
 - Kalman-lite/ByteTrack rule-level opt-in tracker
 - Re-ID assist default-off runtime fallback, warning history, privacy/release guard
 - close-object report archive policy와 tracker warning dashboard summary
-- v1.4.0 follow-up closure
-- v1.5.0 explicit tracker/Re-ID opt-in guard
+- rule-level tracker/Re-ID follow-up closure
+- explicit tracker/Re-ID opt-in guard
 - Tracker/Re-ID stability matrix와 default-on 비승격 경계
 - Re-ID opt-in model provenance/checksum/fallback approval
 - Ops Dashboard tracker warning next-action refinement
 - Audit export review hardening과 model/source material masking
 - Field smoke summary evidence boundary
 - OC-SORT manifest-only experimental sandbox
-- v1.5.0 follow-up closure
-- v1.6.0 release evidence dashboard와 stability gate cleanup
+- tracker/Re-ID follow-up closure
+- release evidence dashboard와 stability gate cleanup
 - Client/Ops debug exposure regression guard
 - Tracker/Re-ID opt-in stabilization close-out
 - ONVIF field smoke evidence reconciliation
@@ -66,8 +68,16 @@
 - Alert Delivery Integrations
 - Scenario Builder UI
 - Ops/Client shared UI declutter
+- GitHub Latest Release verification gate
+- Docs screenshot freshness gate
+- Manual UI evidence checklist hardening
+- Release close-out runbook
+- Docs source-of-truth dedupe
+- English UI visual copy QA
+- Release evidence index
+- Feature scope decision gate
 
-## `v1.7.0`에 포함하지 않는 범위
+## `v1.8.0`에 포함하지 않는 범위
 
 - FFmpeg/GStreamer/ONNX Runtime/YOLO model binary bundle
 - container image, offline package, app bundle
@@ -99,7 +109,7 @@
 
 ## Tag와 release 기준
 
-- 현재 published source-only release tag 기준은 `v1.7.0`입니다.
+- 현재 source-only release 기준 tag는 `v1.8.0`입니다.
 - tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만 붙입니다.
 - source-only release에는 sample/model/runtime binary를 추가 업로드하지 않습니다.
 - binary/container/offline bundle은 별도 RC gate와 bundle policy 검토를 통과한 뒤 별도 release로 다룹니다.

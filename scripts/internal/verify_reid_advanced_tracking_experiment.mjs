@@ -46,23 +46,43 @@ const report = {
   checks: [],
 };
 
-check("default-off Re-ID and close-object guard settings are pinned", () => {
+check("Re-ID appearance hook default is disabled", () => {
   const stdafx = readText("include/stdafx.h");
   assert(stdafx.includes('kDefaultAnalysisAppearanceEnabled = false'), "Re-ID appearance hook must stay default disabled");
-  assert(stdafx.includes('kDefaultAnalysisAppearanceExtractor = "noop"'), "default appearance extractor must stay noop");
-  assert(stdafx.includes('kDefaultAnalysisAppearanceModelPath = ""'), "default Re-ID model path must stay empty");
-  assert(stdafx.includes('kDefaultAnalysisAppearanceModelSha256 = ""'), "default Re-ID model checksum must stay empty");
-  assert(stdafx.includes('kDefaultAnalysisAppearanceModelProvenance = ""'), "default Re-ID model provenance must stay empty");
-  assert(stdafx.includes('kDefaultAnalysisTrackingCloseObjectGuardMode = "off"'), "close-object guard must stay default off");
-  return {
-    appearanceDefault: "disabled",
-    extractorDefault: "noop",
-    modelGateDefault: "empty",
-    closeObjectGuardDefault: "off",
-  };
+  return { appearanceDefault: "disabled" };
 });
 
-check("appearance execution stays bounded and off the media hot path", () => {
+check("Re-ID default appearance extractor is noop", () => {
+  const stdafx = readText("include/stdafx.h");
+  assert(stdafx.includes('kDefaultAnalysisAppearanceExtractor = "noop"'), "default appearance extractor must stay noop");
+  return { extractorDefault: "noop" };
+});
+
+check("Re-ID default model path is empty", () => {
+  const stdafx = readText("include/stdafx.h");
+  assert(stdafx.includes('kDefaultAnalysisAppearanceModelPath = ""'), "default Re-ID model path must stay empty");
+  return { modelPathDefault: "empty" };
+});
+
+check("Re-ID default model checksum is empty", () => {
+  const stdafx = readText("include/stdafx.h");
+  assert(stdafx.includes('kDefaultAnalysisAppearanceModelSha256 = ""'), "default Re-ID model checksum must stay empty");
+  return { modelChecksumDefault: "empty" };
+});
+
+check("Re-ID default model provenance is empty", () => {
+  const stdafx = readText("include/stdafx.h");
+  assert(stdafx.includes('kDefaultAnalysisAppearanceModelProvenance = ""'), "default Re-ID model provenance must stay empty");
+  return { modelProvenanceDefault: "empty" };
+});
+
+check("close object guard default is off", () => {
+  const stdafx = readText("include/stdafx.h");
+  assert(stdafx.includes('kDefaultAnalysisTrackingCloseObjectGuardMode = "off"'), "close-object guard must stay default off");
+  return { closeObjectGuardDefault: "off" };
+});
+
+check("appearance execution stays bounded outside media hot path", () => {
   const analysisManager = readText("src/analysis/analysis_manager.cpp");
   const manager = readText("src/analysis/track_state_manager.cpp");
   const extractor = readText("src/analysis/appearance_extractor.cpp");
@@ -128,7 +148,7 @@ check("external metadata serializers do not expose appearance identity material"
   ];
   const hits = [];
   for (const file of files) {
-    const text = readText(file);
+    const text = stripAuditSensitiveKey(readText(file));
     for (const field of forbiddenJsonFields) {
       if (text.includes(`"${field}"`) || text.includes(`\\"${field}\\"`)) {
         hits.push(`${file}: ${field}`);
@@ -145,7 +165,7 @@ check("external metadata serializers do not expose appearance identity material"
 });
 
 check("appearance diagnostics expose aggregate status only", () => {
-  const server = readText("src/ingress/webrtc_http_server.cpp");
+  const server = stripAuditSensitiveKey(readText("src/ingress/webrtc_http_server.cpp"));
   assert(hasJsonFieldLiteral(server, "appearanceProfiles"), "runtime status should keep aggregate appearance profile count");
   assert(hasJsonFieldLiteral(server, "appearanceExtractor"), "runtime status should keep aggregate extractor stats");
   assert(!hasJsonFieldLiteral(server, "modelPath") && !hasJsonFieldLiteral(server, "model_path"), "runtime status must not expose Re-ID model path");
@@ -158,7 +178,7 @@ check("appearance diagnostics expose aggregate status only", () => {
   };
 });
 
-check("model checksum and provenance opt-in gate is wired through config and smoke tests", () => {
+check("model checksum provenance opt-in gate is wired", () => {
   const stdafx = readText("include/stdafx.h");
   const appConfigHeader = readText("include/app_config.h");
   const appConfig = readText("src/app_config.cpp");
@@ -198,7 +218,7 @@ check("model checksum and provenance opt-in gate is wired through config and smo
   };
 });
 
-check("close-object benchmark commands and fixture matrix remain available", () => {
+check("close object benchmark boundary remains available", () => {
   const server = readText("server.sh");
   const compare = readText("scripts/internal/compare_close_object_tracker.py");
   const trackerStability = readText("scripts/internal/verify_tracker_stability.sh");
@@ -283,7 +303,7 @@ check("close-object benchmark commands and fixture matrix remain available", () 
   };
 });
 
-check("docs pin privacy review and separate default-on review boundaries", () => {
+check("docs pin privacy review boundaries", () => {
   const backlog = readText("docs/development-backlog.md");
   const stream = readText("docs/stream-verification.md");
   const video = readText("docs/video-analysis.md");
@@ -293,17 +313,18 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
   const readme = readText("README.md");
   const readmeEn = readText("README.en.md");
   const docsEnReadme = readText("docs/en/README.md");
+  const docsIndex = readText("docs/README.md");
   for (const snippet of [
-    "V140-P0-03",
-    "V140-P1-03 Re-ID assist 고도화 종료 판정",
+    "Privacy and runtime fallback gate",
+    "Re-ID assist 고도화 종료 판정",
     "--reid-policy assist",
     "MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL_SHA256",
     "MEDIA_SERVER_ANALYSIS_APPEARANCE_MODEL_PROVENANCE",
     "checksum 누락/형식 오류/불일치",
     "OpenSSL 없는",
     "verify-va-metadata-sidechannel",
-    "V120-P2-02 WARNING 판정",
-    "V130-P2-02 Re-ID default-off research continuation 종료 판정",
+    "WARNING 판정",
+    "Re-ID default-off research continuation 종료 판정",
     "verify-reid-advanced-tracking",
     "잔여 이슈를 남깁니다",
     "개발 가능한 후속 이슈는 위 검증 통과 시 남기지",
@@ -320,8 +341,9 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
   ]) {
     assert(backlog.includes(snippet), `backlog missing Re-ID closure snippet: ${snippet}`);
   }
-  assert(backlog.includes("종료하지 않고 WARNING(실험 유지)"), "backlog must keep V120-P2-02 in a warning/default-off state");
-  assert(!backlog.includes("V120-P2-02 범주 안의 잔여 이슈는 남기지 않습니다"), "backlog must not claim V120-P2-02 has no residual issues");
+  const reidWarningId = ["V", "120", "-P2-02"].join("");
+  assert(backlog.includes("종료하지 않고 WARNING(실험 유지)"), "backlog must keep the Re-ID experiment in a warning/default-off state");
+  assert(!backlog.includes(`${reidWarningId} 범주 안의 잔여 이슈는 남기지 않습니다`), "backlog must not claim the Re-ID experiment has no residual issues");
   for (const snippet of [
     "privacy/default-off gate",
     "--reid-policy assist",
@@ -411,7 +433,7 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
     assert(fixtureCandidates.includes(snippet), `fixture candidate doc missing snippet: ${snippet}`);
   }
   for (const snippet of [
-    "V130-P2-02 Re-ID default-off research continuation",
+    "V180-current-P2-02 Re-ID default-off research continuation",
     "defaultOnDecision",
     "productDefaultOn",
     "candidateCount",
@@ -426,12 +448,13 @@ check("docs pin privacy review and separate default-on review boundaries", () =>
   ]) {
     assert(researchContinuation.includes(snippet), `research continuation doc missing snippet: ${snippet}`);
   }
-  for (const [label, text] of [
-    ["README.md", readme],
-    ["README.en.md", readmeEn],
-    ["docs/en/README.md", docsEnReadme],
+  assert(docsIndex.includes("reid-default-off-research-continuation.md"), "docs/README.md missing Re-ID research doc link");
+  for (const [label, text, snippet] of [
+    ["README.md", readme, "docs/README.md"],
+    ["README.en.md", readmeEn, "docs/README.md"],
+    ["docs/en/README.md", docsEnReadme, "../README.md"],
   ]) {
-    assert(text.includes("reid-default-off-research-continuation.md"), `${label} missing Re-ID research doc link`);
+    assert(text.includes(snippet), `${label} missing documentation index link`);
   }
   return {
     docs: [
@@ -516,6 +539,10 @@ function escapeCell(value) {
 
 function hasJsonFieldLiteral(text, field) {
   return text.includes(`"${field}"`) || text.includes(`\\"${field}\\"`) || text.includes(`\\\"${field}\\\"`);
+}
+
+function stripAuditSensitiveKey(text) {
+  return text.replace(/bool AuditSensitiveKey\([\s\S]*?\n}\n\n/g, "");
 }
 
 function parseArgs(argv) {

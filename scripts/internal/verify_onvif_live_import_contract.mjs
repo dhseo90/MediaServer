@@ -56,7 +56,7 @@ check("credential policy keeps plaintext secrets out of the fixture", () => {
   assert(secretFields.length === 0, `disallowed secret fields found: ${secretFields.join(", ")}`);
 });
 
-check("preview contract is explicit before source/view storage", () => {
+check("preview contract disables storage mutation", () => {
   const preview = objectAt(fixture, "previewContract");
   assert(preview.schema === "media-server.onvif-draft-preview.v1", "previewContract.schema mismatch");
   assert(preview.scope === "ops-sources-before-save", "previewContract.scope mismatch");
@@ -70,10 +70,17 @@ check("preview contract is explicit before source/view storage", () => {
   assert(preview.diagnosticJsonIncluded === false, "previewContract diagnostic JSON must be excluded");
 });
 
-check("recording, replay, and Profile G remain outside the import contract", () => {
+check("recording remains outside the import contract", () => {
   const capabilities = objectAt(fixture, "capabilities");
   assert(capabilities.recording === false, "capabilities.recording must remain false");
+});
+
+check("replay remains outside the import contract", () => {
+  const capabilities = objectAt(fixture, "capabilities");
   assert(capabilities.replay === false, "capabilities.replay must remain false");
+});
+
+check("Profile G remains outside the import contract", () => {
   const nonGoals = arrayAt(fixture, "nonGoals");
   for (const required of [
     "ONVIF Profile G recording/replay",
@@ -127,7 +134,7 @@ check("SourceRegistry draft uses only existing RTSP source payload fields", () =
   ], "expectedSourceDraft");
 });
 
-check("PublishedView draft keeps source locators and ONVIF details out", () => {
+check("PublishedView draft hides source locators", () => {
   const decision = objectAt(fixture, "importDecision");
   const source = objectAt(decision, "expectedSourceDraft");
   const view = objectAt(decision, "expectedPublishedViewDraft");
@@ -153,7 +160,7 @@ check("PublishedView draft keeps source locators and ONVIF details out", () => {
   ], "expectedPublishedViewDraft");
 });
 
-check("origin metadata draft is diagnostic-only and not embedded in source/view payloads", () => {
+check("origin metadata draft is diagnostic only", () => {
   const decision = objectAt(fixture, "importDecision");
   const origin = objectAt(decision, "proposedOriginMetadata");
   const selected = selectedProfile();
@@ -162,6 +169,10 @@ check("origin metadata draft is diagnostic-only and not embedded in source/view 
   assert(origin.mediaProfileToken === selected.token, "origin mediaProfileToken must match selected profile");
   assert(origin.mediaApi === selected.mediaApi, "origin mediaApi must match selected profile");
   assert(origin.credentialInline === false, "origin credentialInline must be false");
+});
+
+check("origin metadata is absent from persisted drafts", () => {
+  const decision = objectAt(fixture, "importDecision");
   assert(!Object.hasOwn(decision.expectedSourceDraft, "origin"), "source draft must not include origin metadata yet");
   assert(!Object.hasOwn(decision.expectedPublishedViewDraft, "origin"), "view draft must not include origin metadata");
 });

@@ -21,7 +21,7 @@ GitHub Settings 화면에서 직접 눌러야 하는 항목은 자동화하지 �
   - Description: `RTSP/WebRTC media server with optional YOLO-based video analytics`
   - Topics: `rtsp`, `gstreamer`, `cpp`, `webrtc`, `media-server`, `yolo`, `video-analytics`
 - Visibility: public
-- 현재 published source-only release: `v1.7.0`
+- 현재 source-only release 준비 기준: `v1.8.0`
 
 `Restrict deletions`와 `Block force pushes`는 GitHub Actions check가 아니라 ruleset branch rule입니다.
 Required status check에는 추가하지 않고, checkbox enabled 상태만 확인합니다.
@@ -119,19 +119,19 @@ Public/release UI 리허설:
 
 ## 공개/release 점검표
 
-2026-05-17 로컬 확인 기준:
+2026-05-26 v1.8.0 branch 로컬 재확인 기준:
 
 - [x] `git status --short`에 의도하지 않은 파일이 없습니다.
 - [x] secret, token, password, auth store, 개인 local path가 문서/코드/history에 없습니다.
 - [x] `verify-public-repo-readiness`가 통과했습니다.
-- [ ] 최신 `main` HEAD의 `Preflight`, `Licensing and Artifact Guardrails`가 통과했습니다.
+- [ ] 최신 `main` HEAD의 `Preflight`, `Licensing and Artifact Guardrails`가 통과했습니다. main merge 이후 확인합니다.
 - [x] README 첫 화면이 제품 경계, 빠른 시작, 문서 길잡이를 명확히 보여줍니다.
 - [x] README 영문판과 README-linked 영문 문서가 준비되어 있습니다.
 - [x] `VERSION`, `CMakeLists.txt`, [versioning-policy.md](./versioning-policy.md)의 기준 버전이 맞습니다.
 - [x] LICENSE는 Apache-2.0이고 NOTICE/THIRD_PARTY_NOTICES가 있습니다.
-- [ ] `DEPENDENCY_SNAPSHOT.md`가 현재 release 판단 기준과 맞습니다.
+- [x] `DEPENDENCY_SNAPSHOT.md`가 현재 release 판단 기준과 맞습니다.
 - [x] `verify-bundle-policy` 결과에 기본 정책 위반 항목이 없습니다.
 - [x] runtime 포함 배포를 선택하지 않았으므로 source offer checklist 첨부 대상이 아닙니다.
-- [ ] public repository에서 처음 열 사용자가 따라 할 빠른 시작 경로가 깨지지 않습니다.
+- [ ] public repository에서 처음 열 사용자가 따라 할 빠른 시작 경로가 깨지지 않습니다. public 전환 또는 release cut 직전에 확인합니다.
 
 남은 unchecked 항목은 최신 `main`과 다음 release cut 직전에 수동으로 확인합니다.

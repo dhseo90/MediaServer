@@ -259,7 +259,17 @@ def run(args: argparse.Namespace, summary: dict[str, Any]) -> None:
         log_pass("SSE metadata include flag payload 제어 확인")
     if args.metadata_event_type or args.metadata_scenario_name or args.metadata_track_id or args.metadata_zone_id:
         log_pass("SSE metadata subscription filter payload 확인")
-    log_pass("SSE metadata schema/tracks/events/scenarios 확인")
+    log_pass("SSE metadata schema 확인")
+    log_pass("SSE metadata tracks array 확인")
+    log_pass("SSE metadata events array 확인")
+    if args.omit_scenarios:
+        log_pass("SSE metadata scenarios omit flag 확인")
+    else:
+        log_pass("SSE metadata scenarios array 확인")
+    if args.omit_metrics:
+        log_pass("SSE metadata metrics omit flag 확인")
+    else:
+        log_pass("SSE metadata metrics object 확인")
 
     after_taps: dict[str, Any] = {}
     after_active_taps = before_active_taps

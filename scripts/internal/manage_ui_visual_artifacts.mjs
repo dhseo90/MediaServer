@@ -149,7 +149,11 @@ Options:
       maxDepth: numberOption(args.maxDepth, 4, "--max-depth"),
       maxAgeDays: args.maxAgeDays == null ? null : numberOption(args.maxAgeDays, 14, "--max-age-days"),
     });
-    console.log(`[pass] UI visual artifact maintenance: total=${result.summary.total} keep=${result.summary.keep} archive=${result.summary.archive} cleanup=${result.summary.cleanup} dryRun=${!result.apply}`);
+    console.log(`[pass] UI visual artifact maintenance total ${result.summary.total}`);
+    console.log(`[pass] UI visual artifact maintenance keep ${result.summary.keep}`);
+    console.log(`[pass] UI visual artifact maintenance archive ${result.summary.archive}`);
+    console.log(`[pass] UI visual artifact maintenance cleanup ${result.summary.cleanup}`);
+    console.log(`[pass] UI visual artifact maintenance dryRun ${!result.apply}`);
     if (result.reportPath) console.log(`[pass] maintenance report: ${result.reportPath}`);
     if (result.markdownReportPath) console.log(`[pass] maintenance markdown: ${result.markdownReportPath}`);
   } catch (error) {

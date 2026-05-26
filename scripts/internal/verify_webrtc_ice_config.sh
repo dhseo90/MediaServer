@@ -24,20 +24,15 @@ RUN_ID="webrtc-ice-$(date +%s)-$$"
 CANDIDATES_FILE="/tmp/media_server_${RUN_ID}_candidates.ndjson"
 SESSION_JSON="/tmp/media_server_${RUN_ID}_session.json"
 CONFIG_JSON="/tmp/media_server_${RUN_ID}_webrtc_config.json"
-BROWSER_LOG="/tmp/media_server_${RUN_ID}_browser.json"
 SUMMARY_FILE="/tmp/media_server_${RUN_ID}_summary.json"
-BROWSER_WEBRTC_HARNESS="${SCRIPT_DIR}/browser_webrtc_publish_consume_check.mjs"
 SESSION_ID=""
 REQUIRE_RELAY=0
 EXTERNAL_TURN_MODE=0
-SKIP_BROWSER=0
 SKIP_WHIP=0
 PRINT_LOCAL_COTURN_EXAMPLE=0
 POLL_COUNT="${MEDIA_SERVER_VERIFY_WEBRTC_ICE_POLL_COUNT:-10}"
 POLL_INTERVAL_S="${MEDIA_SERVER_VERIFY_WEBRTC_ICE_POLL_INTERVAL_S:-0.5}"
 FILE_TOKEN="${MEDIA_SERVER_VERIFY_WEBRTC_ICE_FILE:-sample_h264.mp4}"
-WEBRTC_HOLD_MS="${MEDIA_SERVER_VERIFY_WEBRTC_ICE_HOLD_MS:-5000}"
-WEBRTC_TIMEOUT_MS="${MEDIA_SERVER_VERIFY_WEBRTC_ICE_TIMEOUT_MS:-45000}"
 
 # 검증 진행 상황을 같은 형식으로 출력한다.
 log_info() { echo "[info] $*"; }
@@ -47,11 +42,6 @@ log_pass() { echo "[pass] $*"; PASS_COUNT=$((PASS_COUNT + 1)); }
 log_fail() { echo "[fail] $*"; FAIL_COUNT=$((FAIL_COUNT + 1)); }
 # 환경 의존으로 생략한 항목을 누적하고 이유를 출력한다.
 log_skip() { echo "[skip] $*"; SKIP_COUNT=$((SKIP_COUNT + 1)); }
-
-browser_webrtc_harness_available() {
-  [[ -f "${BROWSER_WEBRTC_HARNESS}" ]] || return 1
-  ! grep -Fq "removed: 초기 WebRTC 테스트 페이지" "${BROWSER_WEBRTC_HARNESS}"
-}
 
 # verify-webrtc-ice 명령의 사용법과 관련 환경 변수를 출력한다.
 usage() {
@@ -64,7 +54,6 @@ Usage:
 Options:
   --require-relay    relay candidate가 반드시 수집되어야 함. 실제 TURN 서버/계정 검증용
   --external-turn    외부 운영 TURN credential 검증 모드. relay policy와 TURN credential 필요
-  --skip-browser     브라우저 WebRTC playback 검증 생략
   --skip-whip        WHIP publish -> consume 검증 생략
   --file <token>     file source token. 기본 sample_h264.mp4
   --print-local-coturn
@@ -149,9 +138,6 @@ while [[ $# -gt 0 ]]; do
     --external-turn)
       EXTERNAL_TURN_MODE=1
       REQUIRE_RELAY=1
-      ;;
-    --skip-browser)
-      SKIP_BROWSER=1
       ;;
     --skip-whip)
       SKIP_WHIP=1
@@ -248,17 +234,6 @@ print_turn_failure_hints() {
 [hint] 3. Mac 로컬 단일 머신 coturn 검증이면 coturn에 --allow-loopback-peers 필요
 [hint] 4. 별도 호스트/운영 TURN이면 3478 TCP/UDP와 relay UDP range inbound 필요
 [hint] 5. 외부 운영 TURN 서버 relay/auth end-to-end는 현재 프로젝트에서 아직 진행하지 않음
-EOF_HINT
-}
-
-# 브라우저 playback 실패 시 ICE와 media 수신 원인을 빠르게 좁히는 힌트를 출력한다.
-print_browser_failure_hints() {
-  cat <<EOF_HINT
-[hint] 브라우저 playback 실패 원인 후보
-[hint] 1. relay policy에서 ICE가 failed/disconnected이면 TURN permission/channel bind 로그 확인
-[hint] 2. Mac 로컬 coturn이면 --allow-loopback-peers 누락 여부 확인
-[hint] 3. candidate는 relay인데 bytes/frames가 0이면 MediaServer WebRTC trace와 browser log 확인
-[hint] 4. browser log: ${BROWSER_LOG}
 EOF_HINT
 }
 
@@ -474,31 +449,19 @@ if policy == "relay" and counts.get("host", 0) > 0:
     raise SystemExit("relay policy에서 host candidate가 수집되었습니다. 서버가 relay policy로 시작됐는지 확인하세요")
 PY
   then
-    log_pass "ICE candidate 수집/정책 확인"
+    log_pass "ICE candidate 수집 확인"
+    if [[ "${REQUIRE_RELAY}" == "1" ]]; then
+      log_pass "ICE relay candidate 확인"
+    fi
+    if [[ "${EFFECTIVE_ICE_POLICY}" == "relay" ]]; then
+      log_pass "ICE relay policy host candidate 차단 확인"
+    else
+      log_pass "ICE transport policy 확인: ${EFFECTIVE_ICE_POLICY}"
+    fi
   else
-    log_fail "ICE candidate 수집/정책 검증 실패"
+    log_fail "ICE candidate 검증 실패"
     print_turn_failure_hints
   fi
-fi
-
-if [[ "${SKIP_BROWSER}" == "1" ]]; then
-  log_skip "브라우저 WebRTC playback 검증 생략"
-elif browser_webrtc_harness_available; then
-  if node "${BROWSER_WEBRTC_HARNESS}" \
-      --http-base "${HTTP_BASE}" \
-      --mode simple \
-      --file "${FILE_TOKEN}" \
-      --single-browser 1 \
-      --hold-ms "${WEBRTC_HOLD_MS}" \
-      --timeout-ms "${WEBRTC_TIMEOUT_MS}" > "${BROWSER_LOG}" 2>&1; then
-    log_pass "브라우저 WebRTC file consume playback 확인"
-  else
-    log_fail "브라우저 WebRTC file consume playback 실패"
-    tail -n 80 "${BROWSER_LOG}" || true
-    print_browser_failure_hints
-  fi
-else
-  log_skip "브라우저 WebRTC playback 검증 생략: product WebRTC browser harness is not available"
 fi
 
 if [[ "${SKIP_WHIP}" == "1" ]]; then
@@ -565,7 +528,6 @@ echo "- 실패: ${FAIL_COUNT}"
 echo "- 건너뜀: ${SKIP_COUNT}"
 echo "- browser config: ${CONFIG_JSON}"
 echo "- candidates: ${CANDIDATES_FILE}"
-echo "- browser log: ${BROWSER_LOG}"
 echo "- summary: ${SUMMARY_FILE}"
 
 if (( FAIL_COUNT > 0 )); then

@@ -51,6 +51,9 @@ int main() {
     Assert(HasService(services, "Device"), "Device service missing");
     Assert(HasService(services, "Media"), "Media service missing");
     Assert(HasService(services, "Media2"), "Media2 service missing");
+    std::cout << "[pass] ONVIF SOAP parser extracts Device service\n";
+    std::cout << "[pass] ONVIF SOAP parser extracts Media service\n";
+    std::cout << "[pass] ONVIF SOAP parser extracts Media2 service\n";
 
     const std::string media2_profiles_soap = R"SOAP(
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
@@ -85,6 +88,13 @@ int main() {
     Assert(main_profile.width == 1920, "Media2 profile width mismatch");
     Assert(main_profile.height == 1080, "Media2 profile height mismatch");
     Assert(main_profile.fps == 30, "Media2 profile fps mismatch");
+    std::cout << "[pass] ONVIF SOAP parser extracts Media2 profile token\n";
+    std::cout << "[pass] ONVIF SOAP parser extracts Media2 profile name\n";
+    std::cout << "[pass] ONVIF SOAP parser extracts Media2 profile api\n";
+    std::cout << "[pass] ONVIF SOAP parser extracts Media2 profile encoding\n";
+    std::cout << "[pass] ONVIF SOAP parser extracts Media2 profile width\n";
+    std::cout << "[pass] ONVIF SOAP parser extracts Media2 profile height\n";
+    std::cout << "[pass] ONVIF SOAP parser extracts Media2 profile fps\n";
 
     const std::string stream_uri_soap = R"SOAP(
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
@@ -102,6 +112,7 @@ int main() {
     Assert(ingress::AttachOnvifStreamUriSoap(stream_uri_soap, &main_profile), "stream URI attach failed");
     Assert(main_profile.transport == "RTSP", "stream URI transport mismatch");
     Assert(main_profile.stream_uri == "rtsp://192.0.2.20/live/main", "stream URI mismatch");
+    std::cout << "[pass] ONVIF SOAP parser attaches RTSP stream URI\n";
 
     const std::string media_profiles_soap = R"SOAP(
 <s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope">
@@ -132,7 +143,11 @@ int main() {
     Assert(media_profiles.front().width == 640, "Media profile width mismatch");
     Assert(media_profiles.front().height == 360, "Media profile height mismatch");
     Assert(media_profiles.front().fps == 15, "Media profile fps mismatch");
+    std::cout << "[pass] ONVIF SOAP parser normalizes Media H265 encoding\n";
+    std::cout << "[pass] ONVIF SOAP parser extracts Media profile width\n";
+    std::cout << "[pass] ONVIF SOAP parser extracts Media profile height\n";
+    std::cout << "[pass] ONVIF SOAP parser extracts Media profile fps\n";
 
-    std::cout << "[pass] ONVIF SOAP parser service/profile/stream smoke\n";
+    std::cout << "[summary] ONVIF SOAP parser service/profile/stream smoke complete\n";
     return 0;
 }

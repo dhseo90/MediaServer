@@ -84,7 +84,7 @@ check("auth injection design documents future secret handling requirements", () 
   }
 });
 
-check("auth method design fixture separates implemented Basic from Digest and WS-Security", () => {
+check("auth method design fixture pins implemented Basic scope", () => {
   assert(authMatrix.schema === "media-server.onvif-auth-method-design-matrix.v1", "unexpected auth method fixture schema");
   assert(String(authMatrix.description || "").includes("not a secret store"), "auth method fixture must avoid secret-store wording");
   assert(String(authMatrix.description || "").includes("not a product API contract"), "auth method fixture must avoid product API contract wording");
@@ -95,6 +95,10 @@ check("auth method design fixture separates implemented Basic from Digest and WS
   assert(scope.plaintextSecretIncluded === false, "auth method fixture must not include plaintext secrets");
   assert(scope.persistentSecretStoreImplemented === false, "auth method fixture must not claim persistent secret storage");
   assertArrayEquals(arrayAt(scope, "currentImplementedMethodIds"), ["http-basic-provider-material"], "implemented method ids mismatch");
+});
+
+check("auth method design fixture pins design-only auth methods", () => {
+  const scope = objectAt(authMatrix, "scope");
   for (const id of [
     "http-digest-challenge-retry",
     "ws-security-username-token-text",
@@ -108,6 +112,10 @@ check("auth method design fixture separates implemented Basic from Digest and WS
   for (const id of [...arrayAt(scope, "currentImplementedMethodIds"), ...arrayAt(scope, "designOnlyMethodIds")]) {
     assert(byId.has(id), `method fixture missing: ${id}`);
   }
+});
+
+check("auth method design fixture validates method rows", () => {
+  const methods = arrayAt(authMatrix, "methods");
   for (const method of methods) {
     assert(nonEmptyString(method.id), "method id is required");
     assert(["http-header", "soap-security-header"].includes(method.layer), `${method.id}: unexpected layer`);
@@ -132,6 +140,9 @@ check("auth method design fixture separates implemented Basic from Digest and WS
       assert(method.challengeRetrySupported === false, `${method.id}: design-only method must not claim retry support`);
     }
   }
+});
+
+check("auth method design fixture lists non-goals", () => {
   for (const nonGoal of [
     "real device authentication success",
     "captured Authorization header",
@@ -171,15 +182,21 @@ check("auth method design fixture contains no raw secrets or captured auth mater
   }
 });
 
-check("credential policy and protocol matrix link auth injection design", () => {
+check("credential policy links auth injection design", () => {
   assertContains(credentialDoc, "./onvif-auth-injection-design.md", "credential policy missing auth design link");
   assertContains(credentialDoc, "./onvif-credential-store-integration-design.md", "credential policy missing credential store design link");
+});
+
+check("credential store design links auth injection design", () => {
   assertContains(storeDesign, "./onvif-auth-injection-design.md", "credential store design missing auth design link");
+  assertContains(storeDesign, "InMemoryCredentialSecretProvider", "credential store design missing in-memory provider");
+});
+
+check("protocol matrix links auth injection design", () => {
   assertContains(matrixDoc, "./onvif-auth-injection-design.md", "protocol matrix missing auth design link");
   assertContains(matrixDoc, "./onvif-credential-store-integration-design.md", "protocol matrix missing credential store design link");
   assertContains(matrixDoc, "verify-onvif-auth-injection-design", "protocol matrix missing auth design verification");
   assertContains(matrixDoc, "verify-onvif-auth-injection-loopback", "protocol matrix missing auth loopback verification");
-  assertContains(storeDesign, "InMemoryCredentialSecretProvider", "credential store design missing in-memory provider");
 });
 
 check("current ONVIF SOAP transport injects only provider-provided Basic auth", () => {

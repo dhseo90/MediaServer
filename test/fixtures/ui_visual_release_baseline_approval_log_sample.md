@@ -5,7 +5,7 @@
 ## Baseline Identity
 
 - baseline run: sample-baseline-run-20260516
-- branch/tag: sample/v1.2.0-rc
+- branch/tag: sample/v1.8.0-rc
 - commit: 0000000000000000000000000000000000000000
 - artifact directory: `/tmp/sample-ui-visual-baseline-artifact`
 - `visual-regression-manifest.json`: `/tmp/sample-ui-visual-baseline-artifact/visual-regression-manifest.json`

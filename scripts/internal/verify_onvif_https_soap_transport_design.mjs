@@ -83,7 +83,7 @@ check("HTTPS SOAP design documents TLS requirements", () => {
 check("HTTPS TLS fixture harness design is documented as fixture-only no-device scope", () => {
   for (const term of [
     "# ONVIF HTTPS TLS Fixture Harness Design",
-    "v1.2.0에서 도입된 현재 상태는 fixture-only",
+    "v1.8.0에서 도입된 상태는 v1.8.0 기준에도 fixture-only",
     "trustedFixtureSuccess",
     "ephemeral CA",
     "server private key는 repository와 artifact에 저장하지 않습니다",
@@ -103,17 +103,20 @@ check("HTTPS TLS fixture harness design is documented as fixture-only no-device 
   }
 });
 
-check("TLS policy and protocol matrix link HTTPS SOAP design", () => {
+check("TLS policy links HTTPS SOAP design", () => {
   assertContains(tlsDoc, "./onvif-https-soap-transport-design.md", "TLS policy missing HTTPS design link");
   assertContains(tlsDoc, "./onvif-https-tls-fixture-harness-design.md", "TLS policy missing fixture harness link");
   assertContains(tlsDoc, "OpenSSL 기반 HTTPS SOAP fixture transport", "TLS policy missing OpenSSL HTTPS wording");
+});
+
+check("protocol matrix links HTTPS SOAP design", () => {
   assertContains(matrixDoc, "./onvif-https-soap-transport-design.md", "protocol matrix missing HTTPS design link");
   assertContains(matrixDoc, "./onvif-https-tls-fixture-harness-design.md", "protocol matrix missing fixture harness link");
   assertContains(matrixDoc, "OpenSSL 빌드 제한 지원", "protocol matrix missing OpenSSL HTTPS status");
   assertContains(matrixDoc, "verify-onvif-https-soap-transport-design", "protocol matrix missing HTTPS design verification");
 });
 
-check("implementation supports HTTPS fixture transport and sanitized fallback", () => {
+check("implementation supports HTTPS fixture transport", () => {
   for (const term of [
     "bool IsHttpSoapTransportScheme",
     "scheme == \"http\" || scheme == \"https\"",
@@ -126,6 +129,9 @@ check("implementation supports HTTPS fixture transport and sanitized fallback", 
   ]) {
     assertContains(onvifCode, term, `implementation missing HTTPS transport term: ${term}`);
   }
+});
+
+check("HTTP transport smoke covers HTTPS sanitized failures", () => {
   for (const term of [
     "RunHttpsTransportSmoke",
     "RunHttpsTransportFailureMatrix",

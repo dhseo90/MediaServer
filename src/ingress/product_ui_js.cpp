@@ -47,11 +47,13 @@ std::string ProductSharedUiScript() {
         '라이트 모드로 전환': 'Switch to light mode',
         '현재 계정': 'Current account',
         '홈': 'Home',
+        '운영': 'Ops',
         '대시보드': 'Dashboard',
         '채널': 'Channels',
         '룰': 'Rules',
         '사용자': 'Users',
         '클라이언트': 'Client',
+        '관리자 클라이언트 미리보기': 'Client Preview as admin',
         '미리보기': 'Client Preview',
         '라이브': 'Live',
         '운영 메뉴': 'Ops menu',
@@ -70,6 +72,7 @@ std::string ProductSharedUiScript() {
         '지연': 'Stale',
         '연결됨': 'Connected',
         '연결 끊김': 'Disconnected',
+        '온라인': 'Online',
         '대기': 'Waiting',
         '경고': 'Warning',
         '오류': 'Error',
@@ -189,6 +192,21 @@ std::string ProductSharedUiScript() {
         '요청은 승인 대기 상태로 저장되며 관리자 승인 전에는 로그인이나 채널 접근이 허용되지 않습니다.': 'Requests are stored as pending and cannot sign in or access channels until an admin approves them.',
         '요청/결정': 'Request / decision',
         '공개 회원가입이 아니라, 별도 요청 페이지로 들어온 계정을 관리자가 검토한 뒤 초대 링크를 발급합니다.': 'This is not open self-signup; admins review requests from the request page and issue invite links.',
+        '초대 발급': 'Issue Invite',
+        '관리자가 직접 초대 링크를 발급하고, 사용 전/사용 완료 초대 상태를 확인합니다.': 'Admins can issue invite links directly and review pending or used invite status.',
+        '유효 시간(초)': 'TTL seconds',
+        'viewer/integrator 범위': 'viewer/integrator scope',
+        '발급 직후에만 토큰과 설정 링크를 표시합니다. 목록에는 토큰/토큰 해시를 노출하지 않습니다.': 'Token and setup link are shown only immediately after issue. The list does not expose token material.',
+        '발급된 초대가 없습니다.': 'No invites have been issued.',
+        '사용 완료': 'Used',
+        '만료': 'Expired',
+        '대기': 'Pending',
+        '발급/사용': 'Issued / used',
+        '초대할 계정명을 입력하세요.': 'Enter the username to invite.',
+        '이 목록에는 토큰/토큰 해시를 저장하거나 다시 표시하지 않습니다.': 'This list does not store or show token material again.',
+        '초대 발급 완료': 'Invite issued',
+        '초대 목록을 불러오지 못했습니다.': 'Failed to load invites.',
+        '발급자': 'Issued by',
         '사용자와 권한 범위를 관리합니다.': 'Manage users and scopes.',
         '사용자 저장소가 아직 없습니다. 사용자 추가로 계정을 생성하세요.': 'No user store exists yet. Create an account with Add User.',
         '사용자 비공개': 'Users hidden',
@@ -573,7 +591,12 @@ std::string ProductSharedUiScript() {
         '고밀도': 'Compact',
         '그리드': 'Grid',
         '밀도': 'Density',
-        'Dock': 'Dock',
+        '도크': 'Dock',
+        '소스 도크 위치': 'Source dock position',
+        '비트레이트': 'Bitrate',
+        '드롭': 'Dropped',
+        '프리즈': 'Freeze',
+        'VA/이벤트': 'VA/Event',
         '정보 오버레이 숨김': 'Hide info overlay',
         '정보 오버레이 표시': 'Show info overlay',
         '워크스페이스 작업': 'Workspace actions',
@@ -679,7 +702,7 @@ std::string ProductSharedUiScript() {
           [/^view 누락\s+(\d+)$/u, (_match, count) => `Missing views ${count}`],
           [/^입력 미완성\s+(\d+)$/u, (_match, count) => `Incomplete inputs ${count}`],
           [/^타일\s+(\d+):\s+(.+)$/u, (_match, count, detail) => `Tile ${count}: ${koToEn.get(detail.trim()) || translatePattern(detail.trim())}`],
-          [/^타일\s+(\d+)\s+(시작|재연결|정지|연결 해제|채널 선택|채널|보기 방식)$/u, (_match, count, action) => `Tile ${count} ${koToEn.get(action) || action}`],
+          [/^타일\s+(\d+)\s+(시작|재생|재연결|새로고침|정지|연결 해제|채널 선택|채널|보기 방식|VA 오버레이|VA 룰)$/u, (_match, count, action) => `Tile ${count} ${koToEn.get(action) || action}`],
           [/^타일\s+(\d+)\s+·\s+(.+)$/u, (_match, count, mode) => `Tile ${count} · ${koToEn.get(mode) || mode}`],
           [/^(\d+)개 범위\s+([\s\S]+)$/u, (_match, count, detail) => `${count} scopes\n${koToEn.get(detail.trim()) || detail}`],
           [/^(\d+)개 범위$/u, (_match, count) => `${count} scopes`],
@@ -1597,21 +1620,6 @@ void AppendProductThemeScript(std::ostringstream& out) {
 	      (() => {
 	        const button = document.getElementById('themeToggleBtn');
 	        const currentTheme = () => document.documentElement.dataset.theme === 'dark' ? 'dark' : 'light';
-	        const syncFrames = (theme = currentTheme()) => {
-	          document.querySelectorAll('iframe').forEach(frame => {
-	            try {
-	              frame.contentWindow?.postMessage({ type: 'mediaServer.theme', theme }, window.location.origin);
-	            } catch {}
-	          });
-	        };
-	        const bindFrameThemeSync = () => {
-	          document.querySelectorAll('iframe').forEach(frame => {
-	            if (frame.dataset.themeSyncBound === '1') return;
-	            frame.dataset.themeSyncBound = '1';
-	            frame.addEventListener('load', () => syncFrames());
-	          });
-	          syncFrames();
-	        };
 	        const sync = () => {
 	          const theme = currentTheme();
 	          const label = theme === 'dark' ? '라이트 모드로 전환' : '다크 모드로 전환';
@@ -1619,7 +1627,6 @@ void AppendProductThemeScript(std::ostringstream& out) {
 	            button.setAttribute('aria-label', label);
 	            button.setAttribute('title', label);
 	          }
-	          bindFrameThemeSync();
 	          window.MediaServerUi?.translatePage?.();
 	        };
 	        sync();
@@ -1629,12 +1636,9 @@ void AppendProductThemeScript(std::ostringstream& out) {
 	            const next = currentTheme() === 'dark' ? 'light' : 'dark';
 	            document.documentElement.dataset.theme = next;
 	            localStorage.setItem('mediaServerTheme', next);
-	            syncFrames(next);
 	            sync();
 	          });
 	        }
-	        window.addEventListener('load', bindFrameThemeSync);
-	        setTimeout(bindFrameThemeSync, 0);
 	      })();
 	    </script>
 )SCRIPT";

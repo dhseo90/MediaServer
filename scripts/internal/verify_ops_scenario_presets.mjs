@@ -23,30 +23,33 @@ const args = parseArgs(rawArgs);
 const httpBase = String(args.httpBase || "http://127.0.0.1:8081").replace(/\/+$/, "");
 
 const rulesHtml = await requestText("/ops/rules");
-for (const needle of [
-  'id="opsEventRulePresetSelect"',
-  '<option value="road">도로</option>',
-  '<option value="retail">매장 통로</option>',
-  '<option value="park">공원</option>',
-  '<option value="indoor">실내</option>',
-  '<option value="lobby">로비</option>',
-  '<option value="platform">승강장</option>',
-  '<option value="entrance">출입구</option>',
-  '<option value="doorway">문 앞 정체</option>',
-  '<option value="parking">주차장 가장자리</option>',
-  '<option value="elevator">승강기 홀</option>',
-  'id="opsEventRulePresetSummary"',
-  'id="opsEventRuleMinDurationField"',
-  '라인 통과 preset은 최소 신뢰도 시작값만 채웁니다.',
-  '점유 preset은 polygon이 병목 구간만 포함한다는 전제입니다.',
-  'id="opsEventRuleZoneThresholdInput" type="number" min="1" step="1" placeholder="4"',
-  'id="opsEventRuleZoneDwellInput" type="number" min="0" step="1000" placeholder="7000"',
-]) {
+const uiNeedles = [
+  ["scenario preset select control", 'id="opsEventRulePresetSelect"'],
+  ["scenario preset option road", '<option value="road">도로</option>'],
+  ["scenario preset option retail", '<option value="retail">매장 통로</option>'],
+  ["scenario preset option park", '<option value="park">공원</option>'],
+  ["scenario preset option indoor", '<option value="indoor">실내</option>'],
+  ["scenario preset option lobby", '<option value="lobby">로비</option>'],
+  ["scenario preset option platform", '<option value="platform">승강장</option>'],
+  ["scenario preset option entrance", '<option value="entrance">출입구</option>'],
+  ["scenario preset option doorway", '<option value="doorway">문 앞 정체</option>'],
+  ["scenario preset option parking", '<option value="parking">주차장 가장자리</option>'],
+  ["scenario preset option elevator", '<option value="elevator">승강기 홀</option>'],
+  ["scenario preset summary control", 'id="opsEventRulePresetSummary"'],
+  ["scenario minDuration field", 'id="opsEventRuleMinDurationField"'],
+  ["line-crossing preset helper copy", '라인 통과 preset은 최소 신뢰도 시작값만 채웁니다.'],
+  ["zone occupancy preset helper copy", '점유 preset은 polygon이 병목 구간만 포함한다는 전제입니다.'],
+  ["zone occupancy threshold input", 'id="opsEventRuleZoneThresholdInput" type="number" min="1" step="1" placeholder="4"'],
+  ["zone occupancy dwell input", 'id="opsEventRuleZoneDwellInput" type="number" min="0" step="1000" placeholder="7000"'],
+  ["loitering ground-plane field", 'id="opsEventRuleLoiteringGroundPlaneField"'],
+  ["loitering ground-plane toggle", 'id="opsEventRuleLoiteringGroundPlaneToggle" type="checkbox"'],
+];
+for (const [label, needle] of uiNeedles) {
   if (!rulesHtml.includes(needle)) {
     throw new Error(`scenario preset UI missing: ${needle}`);
   }
+  console.log(`[pass] ${label}`);
 }
-console.log("[pass] scenario-preset-ui");
 
 const catalog = await requestJson("/ops/api/rules/catalog");
 const usedIds = new Set((Array.isArray(catalog.rules) ? catalog.rules : []).map(item => String(item?.id || "")));
@@ -73,6 +76,7 @@ const fixtures = [
         minDwellTimeMs: 30000,
         maxMovementRadius: 0.08,
         minTrajectoryPoints: 4,
+        useGroundPlaneMovementRadius: true,
         cooldownMs: 12000,
         targetClasses: ["person"],
       },
@@ -82,6 +86,7 @@ const fixtures = [
       "scenario.minDwellTimeMs": 30000,
       "scenario.maxMovementRadius": 0.08,
       "scenario.minTrajectoryPoints": 4,
+      "scenario.useGroundPlaneMovementRadius": true,
       "scenario.cooldownMs": 12000,
     },
   },
@@ -390,7 +395,7 @@ try {
     }
     console.log(`[pass] scenario-preset ${fixture.name}`);
   }
-  console.log("[pass] ops-scenario-presets");
+  console.log("[summary] ops-scenario-presets complete");
 } finally {
   for (const id of created.reverse()) {
     await requestJson(`/lab/analysis/rules/${encodeURIComponent(id)}`, { method: "DELETE" }).catch(() => {});

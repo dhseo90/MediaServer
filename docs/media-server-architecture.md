@@ -269,7 +269,7 @@ Ops/Client 화면 동작을 media signaling 구현과 물리적으로 섞지 않
   다음 조치 버튼은 source 재검증, registry diff, Event/evidence 진단,
   auth/config 확인, log correlation 필터를 실행합니다.
   `/ops/rules`는 채널 분석 설정, 이벤트 템플릿, 분석 프로파일을
-  Lab iframe 없이 제품 컴포넌트로 표시합니다.
+  제품 컴포넌트로 표시합니다.
   `/ops/events`는 primary nav에서 숨긴 직접/진단 route로 보존하며
   독립 제품 탭으로 취급하지 않습니다.
   내부 진단 JSON은 제품 화면에 직접 노출하지 않고 API/검증 명령에서 확인합니다.
@@ -286,9 +286,8 @@ Ops/Client 화면 동작을 media signaling 구현과 물리적으로 섞지 않
   Integrator는 이 shell에 진입하지 않고 scoped client API만 사용합니다.
 - `/lab/analysis/*`:
   개발/검증 API입니다.
-  `/lab`, `/lab/rules`, `/lab/import` 화면 route는 404로 닫습니다.
   Runtime/metadata/event storage API만 권한 gate 뒤에 유지합니다.
-  운영 화면은 Lab editor를 embed하지 않고,
+  운영 화면은 개발/검증 editor를 embed하지 않고,
   채널/룰 상태를 Ops 전용 API와 제품 컴포넌트로 표시합니다.
 
 ### Source+Profile analysis reuse

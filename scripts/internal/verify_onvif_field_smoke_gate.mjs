@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v1.3.0 ONVIF field smoke gate 절차와 sample artifact 기준을 정적으로 검증한다.
+// 파일 용도: v1.8.0 ONVIF field smoke gate 절차와 sample artifact 기준을 정적으로 검증한다.
 // 동작 요약: 실제 장비 성공을 개발 완료로 과장하지 않고 gate/report/redaction 상태를 분리했는지 확인한다.
 
 import fs from "node:fs";
@@ -27,7 +27,7 @@ Options:
   -h, --help              도움말 출력
 
 Checks:
-  - V130-P0-02가 별도 field smoke gate 절차와 verifier를 연결함
+  - V180-current-P0-02가 별도 field smoke gate 절차와 verifier를 연결함
   - 실제 장비 성공과 release 개발 완료 상태를 분리함
   - sample bundle/report template이 gateDecision, playbackStatus, review status를 포함함
   - credential store, Digest/WS-Security, WS-Discovery, Profile G를 이 gate에서 열지 않음
@@ -64,10 +64,10 @@ const combinedSample = [
 
 const checks = [];
 
-check("gate document fixes V130-P0-02 procedure boundaries", () => {
+check("gate document fixes V180-current-P0-02 procedure boundaries", () => {
   for (const term of [
     "# ONVIF Field Smoke Gate",
-    "v1.3.0 `V130-P0-02 ONVIF field smoke gate`",
+    "v1.8.0 `V180-current-P0-02 ONVIF field smoke gate`",
     "## Gate 원칙",
     "## Gate 상태",
     "## 실행 절차",
@@ -113,12 +113,16 @@ check("gate document keeps unsupported ONVIF expansions out of scope", () => {
   }
 });
 
-check("roadmap links V130-P0-02 to the fixed gate verifier", () => {
+check("current docs link the fixed field smoke gate verifier", () => {
+  const docsIndex = readText("docs/README.md");
   for (const term of [
-    "V130-P0-02",
     "ONVIF field smoke gate",
-    "[ONVIF Field Smoke Gate](./onvif-field-smoke-gate.md)",
+    "onvif-field-smoke-gate.md",
     "verify-onvif-field-smoke-gate",
+  ]) {
+    assertContains(docsIndex + gateDoc, term, `current docs missing gate term: ${term}`);
+  }
+  for (const term of [
     "release 개발 완료와 별도 field gate 결과를 분리",
     "실장비 endpoint 성공 미확인",
     "이 카테고리의 개발 가능한 후속 이슈는 없음",
@@ -127,19 +131,23 @@ check("roadmap links V130-P0-02 to the fixed gate verifier", () => {
   }
 });
 
-check("redaction and live docs point at the gate procedure", () => {
-  for (const [label, text] of [
-    ["redaction doc", redactionDoc],
-    ["live support doc", liveSupportDoc],
-    ["no-device doc", noDeviceDoc],
-  ]) {
-    assertContains(text, "./onvif-field-smoke-gate.md", `${label} missing gate doc link`);
-    assertContains(text, "verify-onvif-field-smoke-gate", `${label} missing gate verifier command`);
-  }
+check("redaction doc points at the gate procedure", () => {
+  assertContains(redactionDoc, "./onvif-field-smoke-gate.md", "redaction doc missing gate doc link");
+  assertContains(redactionDoc, "verify-onvif-field-smoke-gate", "redaction doc missing gate verifier command");
   assertContains(redactionDoc, "gateDecision", "redaction doc missing gateDecision");
   assertContains(redactionDoc, "playbackStatus", "redaction doc missing playbackStatus");
   assertContains(redactionDoc, "redactionArtifactReview", "redaction doc missing redactionArtifactReview");
   assertContains(redactionDoc, "fieldSmokeReportReview", "redaction doc missing fieldSmokeReportReview");
+});
+
+check("live support doc points at the gate procedure", () => {
+  assertContains(liveSupportDoc, "./onvif-field-smoke-gate.md", "live support doc missing gate doc link");
+  assertContains(liveSupportDoc, "verify-onvif-field-smoke-gate", "live support doc missing gate verifier command");
+});
+
+check("no-device doc points at the gate procedure", () => {
+  assertContains(noDeviceDoc, "./onvif-field-smoke-gate.md", "no-device doc missing gate doc link");
+  assertContains(noDeviceDoc, "verify-onvif-field-smoke-gate", "no-device doc missing gate verifier command");
 });
 
 check("sample bundle preserves gate decision fields", () => {
@@ -163,7 +171,7 @@ check("sample bundle preserves gate decision fields", () => {
   assert(summary.verificationStatus?.some(item => item?.command === "verify-onvif-field-smoke-gate"), "summary missing gate verifier status");
 });
 
-check("sample report/checklist include gate review status", () => {
+check("sample report includes gate review status", () => {
   for (const term of [
     "Gate Decision",
     "releaseDevelopmentStatus",

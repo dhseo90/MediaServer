@@ -86,8 +86,6 @@ def load_payloads(path: pathlib.Path) -> list[dict[str, Any]]:
 # 파일명과 payload key를 조합해 어떤 검증 리포트인지 추정한다.
 def detect_report_kind(path: pathlib.Path, payload: dict[str, Any]) -> str:
     name = path.name
-    if "multichannel" in name:
-        return "multichannel"
     if "predev" in name:
         return "predev"
     if "va-runtime-longrun" in name or payload.get("kind") == "va-runtime-console-longrun":
@@ -156,13 +154,6 @@ def summarize_details(kind: str, payloads: list[dict[str, Any]]) -> str:
     if not payloads:
         return "empty"
     first = payloads[0]
-    if kind == "multichannel":
-        cases = first.get("cases") if isinstance(first.get("cases"), list) else []
-        decoded = 0
-        for case in cases:
-            for report in case.get("clientReports", []):
-                decoded += int(((report.get("stats") or {}).get("inboundVideoFramesDecoded") or 0))
-        return f"cases={len(cases)} decodedFrames={decoded} final={first.get('finalStatus', {}).get('sessionManager', {})}"
     if kind == "event-post":
         return f"mode={first.get('mode')} received={first.get('receivedCount')} paths={first.get('receivedPathCounts', {})}"
     if kind == "event-post-longrun":
@@ -248,21 +239,6 @@ def detail_lines(kind: str, payloads: list[dict[str, Any]]) -> list[str]:
             if isinstance(step, dict):
                 lines.append(f"- step `{step.get('name', '-')}`: `{step.get('status', '-')}` log=`{step.get('logFile', '-')}`")
         return lines
-    if kind == "multichannel":
-        for case in first.get("cases", [])[:20]:
-            if not isinstance(case, dict):
-                continue
-            lines.append(
-                f"- case `{case.get('name') or case.get('case') or '-'}`: "
-                f"clients=`{case.get('expectedClients', '-')}` streams=`{case.get('expectedStreams', '-')}`"
-            )
-            for report in case.get("clientReports", [])[:8]:
-                stats = report.get("stats") or {}
-                lines.append(
-                    f"- client `{report.get('index', '-')}` file=`{report.get('fileName', '-')}` "
-                    f"frames=`{stats.get('inboundVideoFramesDecoded', 0)}` bytes=`{stats.get('inboundVideoBytes', 0)}`"
-                )
-        return lines or ["- multichannel case 없음"]
     if kind == "event-post":
         lines.append(f"- mode: `{first.get('mode', '-')}`")
         lines.append(f"- receivedCount: `{first.get('receivedCount', '-')}`")

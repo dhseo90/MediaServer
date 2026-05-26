@@ -96,12 +96,20 @@ const summaryJsonPath = path.join(bundleRoot, "release-bundle-dry-run-summary.js
 writeText(summaryPath, renderDryRunSummaryMarkdown(summary));
 writeText(summaryJsonPath, `${JSON.stringify(summary, null, 2)}\n`);
 
-console.log(`[pass] release bundle dry-run: ${bundleRoot}`);
-console.log(`[pass] release bundle candidates: ${candidateReports.map((report) => report.candidate).join(", ")}`);
-console.log(`[pass] release bundle dry-run summary: ${summaryPath}`);
+console.log(`[pass] release bundle dry-run workspace prepared ${bundleRoot}`);
+for (const report of candidateReports) {
+  console.log(`[pass] release bundle candidate ${report.candidate} policy status ${report.status}`);
+  console.log(`[pass] release bundle candidate ${report.candidate} files scanned ${report.filesScanned}`);
+  console.log(`[pass] release bundle candidate ${report.candidate} path hit count ${report.pathHitCount}`);
+  console.log(`[pass] release bundle candidate ${report.candidate} linked hit count ${report.linkedHitCount}`);
+  console.log(`[pass] release bundle candidate ${report.candidate} markdown report ${report.report}`);
+  console.log(`[pass] release bundle candidate ${report.candidate} json report ${report.jsonReport}`);
+}
+console.log(`[pass] release bundle dry-run markdown summary written ${summaryPath}`);
+console.log(`[pass] release bundle dry-run json summary written ${summaryJsonPath}`);
 if (!keepBundle) {
   fs.rmSync(bundleRoot, { recursive: true, force: true });
-  console.log("[pass] release bundle dry-run cleanup complete");
+  console.log(`[pass] release bundle dry-run workspace cleanup complete ${bundleRoot}`);
 }
 
 function prepareSourceOnlyBundle(bundleRootPath) {

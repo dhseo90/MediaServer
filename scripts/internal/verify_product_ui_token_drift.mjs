@@ -45,42 +45,42 @@ const productCssBody = css.slice(tokenEnd);
 
 const checksRun = [];
 
-check("core semantic tokens exist in light and dark themes", () => {
-  for (const token of [
-    "--color-bg",
-    "--color-surface",
-    "--color-text",
-    "--color-primary",
-    "--color-warning",
-    "--color-danger",
-    "--color-selection-ring",
-    "--color-modal-backdrop",
-    "--color-media-bg",
-  ]) {
+for (const token of [
+  "--color-bg",
+  "--color-surface",
+  "--color-text",
+  "--color-primary",
+  "--color-warning",
+  "--color-danger",
+  "--color-selection-ring",
+  "--color-modal-backdrop",
+  "--color-media-bg",
+]) {
+  check(`semantic token ${token} has theme definitions`, () => {
     const count = countTokenDefinitions(tokenCss, token);
     assert(count >= 2, `${token} must be defined for light and dark themes`);
-  }
-});
+  });
+}
 
-check("layout and overlay tokens are centralized", () => {
-  for (const token of [
-    "--radius-sm",
-    "--radius-md",
-    "--radius-lg",
-    "--space-1",
-    "--space-2",
-    "--space-3",
-    "--space-4",
-    "--space-6",
-    "--shadow-sm",
-    "--shadow-md",
-    "--overlay-stage-gloss-shadow",
-    "--overlay-point-shadow",
-    "--overlay-badge-stroke",
-  ]) {
+for (const token of [
+  "--radius-sm",
+  "--radius-md",
+  "--radius-lg",
+  "--space-1",
+  "--space-2",
+  "--space-3",
+  "--space-4",
+  "--space-6",
+  "--shadow-sm",
+  "--shadow-md",
+  "--overlay-stage-gloss-shadow",
+  "--overlay-point-shadow",
+  "--overlay-badge-stroke",
+]) {
+  check(`design token ${token} is centralized`, () => {
     assert(tokenCss.includes(`${token}:`), `${token} is missing from ProductDesignTokensCss`);
-  }
-});
+  });
+}
 
 check("product CSS body does not introduce raw hex or rgb colors", () => {
   const rawColorMatches = [...productCssBody.matchAll(/#[0-9a-fA-F]{3,8}\b|rgba?\([^;\n]*\)/g)]
@@ -88,28 +88,28 @@ check("product CSS body does not introduce raw hex or rgb colors", () => {
   assert(rawColorMatches.length === 0, `raw color values outside ProductDesignTokensCss:\n${rawColorMatches.join("\n")}`);
 });
 
-check("client and overlay selections use tokenized color hooks", () => {
-  for (const snippet of [
-    "box-shadow: 0 0 0 2px var(--color-selection-ring)",
-    "background: var(--color-modal-backdrop)",
-    "box-shadow: var(--overlay-stage-gloss-shadow)",
-    "filter: var(--overlay-point-shadow)",
-    "stroke: var(--overlay-badge-stroke)",
-    "background: var(--color-media-bg)",
-  ]) {
+for (const snippet of [
+  "box-shadow: 0 0 0 2px var(--color-selection-ring)",
+  "background: var(--color-modal-backdrop)",
+  "box-shadow: var(--overlay-stage-gloss-shadow)",
+  "filter: var(--overlay-point-shadow)",
+  "stroke: var(--overlay-badge-stroke)",
+  "background: var(--color-media-bg)",
+]) {
+  check(`tokenized CSS hook exists for ${snippet}`, () => {
     assert(productCssBody.includes(snippet), `product CSS body missing token hook: ${snippet}`);
-  }
-});
+  });
+}
 
-check("docs and command inventory mention token drift verification", () => {
-  for (const [label, text] of [
-    ["server.sh", server],
-    ["docs/ui-guide.md", uiGuide],
-    ["docs/development-backlog.md", backlog],
-  ]) {
+for (const [label, text] of [
+  ["server.sh", server],
+  ["docs/ui-guide.md", uiGuide],
+  ["docs/development-backlog.md", backlog],
+]) {
+  check(`${label} mentions token drift verification`, () => {
     assert(text.includes("verify-product-ui-token-drift"), `${label} must mention verify-product-ui-token-drift`);
-  }
-});
+  });
+}
 
 let failCount = 0;
 for (const item of checksRun) {

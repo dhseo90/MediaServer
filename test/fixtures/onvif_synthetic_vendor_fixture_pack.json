@@ -1,6 +1,6 @@
 {
   "schema": "media-server.onvif-synthetic-vendor-fixture-pack.v1",
-  "description": "Synthetic vendor-style ONVIF probe fixtures for no-device v1.2.0 verification. This pack uses documentation-only endpoint ranges and is not a product API contract.",
+  "description": "Synthetic vendor-style ONVIF probe fixtures for no-device v1.8.0 verification. This pack uses documentation-only endpoint ranges and is not a product API contract.",
   "packScope": {
     "mode": "synthetic-vendor-style",
     "realDeviceEndpointSuccess": "미확인",

@@ -1114,7 +1114,7 @@ print("category_track_counts=", dict(sorted(category_track_counts.items())))
 print("category_sample_counts=", dict(sorted(category_sample_counts.items())))
 print("class_track_counts=", dict(sorted(class_track_counts.items())))
 PY
-log_pass "tracker stability 반복 요약 생성"
+echo "[summary] tracker stability 반복 요약 생성"
 
 echo
 echo "== tracker stability 검증 요약 =="

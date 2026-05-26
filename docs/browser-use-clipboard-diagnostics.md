@@ -49,12 +49,13 @@ Computer Use가 같은 화면을 서로 대체할 수는 있지만, raw JSON/API
 2. password field, clipboard, local fetch/CDP, focus, permission 오류가 나면
    tool 이름, route, selector 또는 화면 영역, 마지막으로 직접 확인한 상태를 기록합니다.
 3. 같은 throwaway fixture에서 Chrome 직접 조작을 시도합니다. 로그인/session이 다른
-   프로필에 묶이면 그 상태를 `BLOCKED` 또는 `미확인`으로 남깁니다.
+   프로필에 묶이면 기능 결과 행은 `FAIL`로 남기고, 환경 제한 사유를 별도 기록합니다.
 4. Browser/Chrome이 field 입력이나 클릭을 완료하지 못할 때만 Computer Use로 보이는
    화면을 클릭/입력합니다. 비밀번호 원문, invite token 원문, session cookie,
    OS clipboard 내용은 기록하지 않습니다.
 5. Computer Use도 완료하지 못하면 자동 smoke 결과를 `대체 검증`으로만 기록하고,
-   수동 UI 항목은 `BLOCKED`, `건너뜀`, 또는 `미확인`으로 닫습니다.
+   수동 UI 항목의 기능 결과 행은 `FAIL`로 닫습니다. 사용자가 명시 제외한 항목만
+   결과 행에서 빼고 별도 `제외 기록`에 남깁니다.
 6. 수동 UI 완료 보고에는 실제 클릭한 화면과 자동 smoke로 대체 확인한 항목을 분리합니다.
 
 fallback 후에도 제품 회귀로 볼 수 있는 경우는 같은 fixture에서 실제 화면 클릭이

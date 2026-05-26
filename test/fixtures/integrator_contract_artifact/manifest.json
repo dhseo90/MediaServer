@@ -1,6 +1,6 @@
 {
   "schema": "media-server.integrator-contract-artifact.v1",
-  "artifactVersion": "v1.2.0-integrator-contract-artifact.1",
+  "artifactVersion": "v1.8.0-integrator-contract-artifact.1",
   "generatedAt": "2026-05-16T00:00:00Z",
   "scope": "Event POST, WebRTC DataChannel, SSE runtime metadata, and WebSocket runtime metadata sample bundle for external integrators.",
   "files": [

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v1.4.0 OC-SORT 후순위 benchmark 경계가 runtime tracker로 승격되지 않았는지 검증한다.
+// 파일 용도: 현재 v1.8.0 OC-SORT benchmark 경계가 runtime tracker로 승격되지 않았는지 검증한다.
 // 동작 요약: OC-SORT를 제품 tracker 허용값에서 배제하고, benchmark/report 문서와 기존 비교 harness만 열려 있는지 정적 점검한다.
 
 import fs from "node:fs";
@@ -26,7 +26,7 @@ Options:
 
 Checks:
   - OC-SORT가 analysis.trackingPolicy.tracker 허용값, UI option, runtime tracker enum에 추가되지 않았는지 확인
-  - verify-tracker-stability / compare-close-object-tracker가 현재 v1.4.0 tracker 후보만 받는지 확인
+  - verify-tracker-stability / compare-close-object-tracker가 현재 tracker 후보만 받는지 확인
   - OC-SORT benchmark가 Kalman-lite/ByteTrack 이후 별도 report 후보이며 schema/media path 변경 근거가 아닌지 문서화됐는지 확인
   - 이번 페이즈의 미분류 P0~P1 후속 이슈가 남지 않았는지 확인
 `);
@@ -74,7 +74,7 @@ check("OC-SORT is not a runtime tracker policy value", () => {
   ]) {
     assert(
       analysisQuery.includes(snippet) || server.includes(snippet),
-      `tracking policy contract missing expected v1.4.0 snippet: ${snippet}`
+      `tracking policy contract missing expected current snippet: ${snippet}`
     );
   }
 
@@ -84,18 +84,29 @@ check("OC-SORT is not a runtime tracker policy value", () => {
   };
 });
 
-check("ObjectTracker implementation remains limited to Lite, Kalman-lite, and ByteTrack", () => {
+check("ObjectTracker runtime kind Lite exists", () => {
+  const header = readText("include/analysis/object_tracker.h");
+  assert(header.includes("enum class ObjectTrackerKind"), "ObjectTrackerKind enum missing");
+  assert(header.includes("Lite"), "ObjectTrackerKind missing current tracker: Lite");
+  return { runtimeKind: "Lite" };
+});
+
+check("ObjectTracker runtime kind KalmanLite exists", () => {
+  const header = readText("include/analysis/object_tracker.h");
+  assert(header.includes("KalmanLite"), "ObjectTrackerKind missing current tracker: KalmanLite");
+  return { runtimeKind: "KalmanLite" };
+});
+
+check("ObjectTracker runtime kind ByteTrack exists", () => {
+  const header = readText("include/analysis/object_tracker.h");
+  assert(header.includes("ByteTrack"), "ObjectTrackerKind missing current tracker: ByteTrack");
+  return { runtimeKind: "ByteTrack" };
+});
+
+check("ObjectTracker implementation rejects OC-SORT tokens", () => {
   const header = readText("include/analysis/object_tracker.h");
   const manager = readText("src/analysis/analysis_manager.cpp");
   const tracker = readText("src/analysis/object_tracker.cpp");
-  assert(header.includes("enum class ObjectTrackerKind"), "ObjectTrackerKind enum missing");
-  for (const snippet of [
-    "Lite",
-    "KalmanLite",
-    "ByteTrack",
-  ]) {
-    assert(header.includes(snippet), `ObjectTrackerKind missing current tracker: ${snippet}`);
-  }
   for (const [label, text] of [
     ["object_tracker.h", header],
     ["analysis_manager.cpp", manager],
@@ -104,11 +115,11 @@ check("ObjectTracker implementation remains limited to Lite, Kalman-lite, and By
     assertNoRuntimeToken(label, text);
   }
   return {
-    runtimeKinds: ["Lite", "KalmanLite", "ByteTrack"],
+    rejected: ["oc-sort", "ocsort"],
   };
 });
 
-check("benchmark harness accepts only current v1.4.0 tracker policies", () => {
+check("benchmark harness accepts only current tracker policies", () => {
   const stability = readText("scripts/internal/verify_tracker_stability.sh");
   const compare = readText("scripts/internal/compare_close_object_tracker.py");
   assertNoRuntimeToken("verify_tracker_stability.sh", stability);
@@ -155,7 +166,6 @@ check("OC-SORT benchmark boundary is documented without product-scope expansion"
   const docsEn = readText("docs/en/README.md");
 
   for (const snippet of [
-    "V140-P2-01",
     "OC-SORT 후순위 benchmark",
     "analysis.trackingPolicy.tracker` 허용값에 추가하지 않습니다",
     "ByteTrack/Kalman-lite 이후",
@@ -167,7 +177,7 @@ check("OC-SORT benchmark boundary is documented without product-scope expansion"
   }
 
   for (const snippet of [
-    "OC-SORT는 v1.4.0 runtime tracker 허용값이 아닙니다",
+    "OC-SORT는 v1.8.0 runtime tracker 허용값이 아닙니다",
     "Event POST/WebRTC DataChannel/SSE/WS metadata schema에는 새 필드를 추가하지 않습니다",
   ]) {
     assert(includesText(video, snippet), `video-analysis missing OC-SORT snippet: ${snippet}`);
@@ -183,7 +193,7 @@ check("OC-SORT benchmark boundary is documented without product-scope expansion"
 
   for (const snippet of [
     "OC-SORT Benchmark Boundary",
-    "이번 v1.4.0 (7) 범위",
+    "이번 v1.8.0 (7) 범위",
     "미분류 P0~P1 후속",
     "후속 Phase",
   ]) {
@@ -217,18 +227,27 @@ check("OC-SORT benchmark boundary is documented without product-scope expansion"
   };
 });
 
-check("server command and script inventory expose the boundary verifier", () => {
+check("server command exposes OC-SORT boundary verifier command", () => {
   const server = readText("server.sh");
-  const inventory = readText("scripts/internal/verify_script_inventory.mjs");
-  for (const snippet of [
-    "verify-oc-sort-benchmark-boundary",
-    "verify_oc_sort_benchmark_boundary.mjs",
-  ]) {
-    assert(server.includes(snippet), `server.sh missing ${snippet}`);
-    assert(inventory.includes("verify_oc_sort_benchmark_boundary.mjs"), "script inventory missing verifier");
-  }
+  assert(server.includes("verify-oc-sort-benchmark-boundary"), "server.sh missing verify-oc-sort-benchmark-boundary");
   return {
     command: "verify-oc-sort-benchmark-boundary",
+  };
+});
+
+check("server command exposes OC-SORT boundary verifier script", () => {
+  const server = readText("server.sh");
+  assert(server.includes("verify_oc_sort_benchmark_boundary.mjs"), "server.sh missing verify_oc_sort_benchmark_boundary.mjs");
+  return {
+    script: "verify_oc_sort_benchmark_boundary.mjs",
+  };
+});
+
+check("script inventory exposes OC-SORT boundary verifier script", () => {
+  const inventory = readText("scripts/internal/verify_script_inventory.mjs");
+  assert(inventory.includes("verify_oc_sort_benchmark_boundary.mjs"), "script inventory missing verifier");
+  return {
+    script: "verify_oc_sort_benchmark_boundary.mjs",
   };
 });
 

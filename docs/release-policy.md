@@ -38,6 +38,12 @@ source offer, model provenance, checksum manifest를 release note에 연결합�
 - release note에는 commit, 검증 명령, known limitation을 짧게 적습니다.
 - source-only release에는 sample/model/runtime binary를 추가 업로드하지 않습니다.
 - `verify-release-closeout-helper`는 dry-run summary만 생성하며 tag, push, GitHub Release 생성을 수행하지 않습니다.
+- `verify-release-metadata` 기본 실행은 release prep 단계에서 반복 가능한 로컬
+  문서/버전 기준만 확인하고, GitHub latest/tag 확인은 `manual-not-run`으로 남깁니다.
+- GitHub Releases latest/list/view, GitHub API `/releases/latest`, 원격 tag 확인은
+  main/tag/GitHub Release publish 이후 `./server.sh verify-release-metadata --published`
+  로 실행합니다. 네트워크나 GitHub CLI 접근 실패는 published metadata gate 실패로
+  기록하고 PASS evidence로 대체하지 않습니다.
 - RC longrun 결과는 `rc-release-checklist`와 `media-server-rc-gate` GitHub
   Actions artifact, 또는 `rc-artifact-archive` 외부 archive로 보관합니다.
   임시 `/tmp` 경로는 staging/local-only evidence이며, release-grade 보존 완료로
@@ -49,6 +55,8 @@ source offer, model provenance, checksum manifest를 release note에 연결합�
 
 `verify-release-closeout-helper`는 release local verifier, tag/push 수동 gate,
 visual artifact policy, screenshot review 체크포인트를 한 dry-run report로 묶습니다.
+실행/미실행/미확인 evidence 색인은 [release-evidence-index.md](./release-evidence-index.md)에
+두고, README 첫 화면에는 세부 matrix를 반복하지 않습니다.
 JSON report의 visual 자동화 영역은
 `media-server.release-visual-baseline-automation.v1` schema를 사용합니다.
 
@@ -64,45 +72,53 @@ artifact로 업로드합니다. 같은 release 준비 흐름에서
 future tag, push, GitHub Release, accepted baseline 채택, 320/390/760/1180px
 screenshot review는 리포트에 manual/not-run으로 남기며, 실제 실행 및 링크가
 없는 항목을 pass로 쓰지 않습니다.
-v1.7.0 source-only release에서는
-[development-backlog.md](./development-backlog.md)의 `v1.7.0 UI-first Close-out`
-기준으로 Client Live workspace, source tree/dock, tile disconnect, event review,
-source group/site, saved layout, incident timeline, alert delivery, scenario builder,
-Ops/Client declutter의 확인됨/미실행/미확인 상태를 분리합니다.
-v1.6.0 source-only release evidence는 historical evidence로 유지하며,
-[v1.6.0 Release Evidence Dashboard](./v1.6.0-release-evidence-dashboard.md)와
-`./server.sh verify-v160-release-evidence-dashboard`로 release evidence의
-확인됨/미실행/미확인 상태를 분리합니다.
-ONVIF field smoke evidence는
-[v1.6.0 ONVIF Field Smoke Evidence Reconciliation](./v1.6.0-onvif-field-smoke-evidence-reconciliation.md)와
-`./server.sh verify-v160-onvif-field-smoke-evidence-reconciliation` 기준으로
-no-device suite, 실장비 미실행, redacted artifact review를 분리합니다.
-Audit/export masking evidence는
-[v1.6.0 Audit Export Masking Regression Hardening](./v1.6.0-audit-export-masking-regression-hardening.md)와
-`./server.sh verify-v160-audit-export-masking-regression-hardening` 기준으로
-JSON/CSV/Diff JSON export의 source/model/auth/raw material 비노출을 확인합니다.
-Runtime/model bundle RC policy는
-[v1.6.0 Runtime/Model Bundle RC Policy](./v1.6.0-runtime-model-bundle-rc-policy.md)와
-`./server.sh verify-v160-runtime-model-bundle-rc-policy` 기준으로 기본 release
-미포함 경계와 향후 RC 승인 조건을 분리합니다.
-Manual UI release checklist closure는
-[v1.6.0 Manual UI Release Checklist Closure](./v1.6.0-manual-ui-release-checklist-closure.md)와
-`./server.sh verify-v160-manual-ui-release-checklist-closure` 기준으로 실제 수동 클릭
-검수, screenshot artifact, 미실행/미확인 항목을 분리합니다.
-Public docs consistency polish는
-[v1.6.0 Public Docs Consistency Polish](./v1.6.0-public-docs-consistency-polish.md)와
-`./server.sh verify-v160-public-docs-consistency-polish` 기준으로 v1.6.0 close-out
-당시의 public tag/evidence drift와 v1.6.0 release evidence 표현을 맞춥니다.
-Tracker benchmark harness planning only는
-[v1.6.0 Tracker Benchmark Harness Planning](./v1.6.0-tracker-benchmark-harness-planning.md)와
-`./server.sh verify-v160-tracker-benchmark-harness-planning` 기준으로 runtime tracker
-승격 없이 별도 benchmark 요구사항만 분리합니다.
+
+## v1.8.0 Release Close-out Runbook
+
+이 runbook은 순서가 evidence입니다. dry-run에서는 실행 가능 여부와 수동 gate만
+점검하고, real close-out에서는 아래 순서를 건너뛰지 않습니다.
+
+Dry-run checklist:
+
+1. Current branch close 준비: `git status --short`, 단계별 커밋, 미실행/미확인 테스트 기록을 확인합니다.
+2. Local release gates: release prep에서는 `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-manual-ui-evidence`, `verify-release-closeout-helper --dry-run` 결과를 모읍니다.
+3. UI evidence readiness: screenshot manifest, direct image review checklist, manual UI evidence index의 `확인됨/미확인/건너뜀` 구분을 확인합니다.
+4. Manual-only actions: PR merge, main fast-forward, tag, push, GitHub Release 생성, Latest Release 확인, next branch sync는 dry-run에서 `manual-not-run`으로 남깁니다.
+
+Real close-out checklist:
+
+1. Branch close: release branch의 모든 단계 커밋과 최종 검증 결과를 확인합니다.
+2. PR merge: required checks와 review 상태를 확인하고 main으로 merge합니다.
+3. Main fast-forward/sync: 로컬 main을 원격 main 최신 commit으로 맞추고 release commit을 다시 확인합니다.
+4. Tag: 검증된 main commit에만 annotated release tag를 생성합니다.
+5. Push: tag와 필요한 branch를 명시 승인 후 push합니다.
+6. GitHub Release: source-only release note를 만들고 sample/model/runtime binary를 업로드하지 않습니다.
+7. Latest 확인: GitHub Releases latest, `/releases/latest`, remote tag를 `verify-release-metadata --published`로 확인합니다. README는 publish 전 dead release URL을 걸지 않고 release 준비 기준 문서로 연결합니다.
+8. Next branch sync: 다음 작업 branch를 main 최신 release fix 위로 동기화한 뒤 미커밋 변경이 없는지 확인합니다.
+
+위 순서 중 실행하지 않은 항목은 테스트 결과 행을 만들지 않고 release evidence 실행
+상태에 `미실행` 또는 `manual-not-run`으로 남기며, 실행하지 않은
+tag/push/GitHub Release를 완료로 쓰지 않습니다.
+v1.8.0 source-only release에서는
+[development-backlog.md](./development-backlog.md)의
+`v1.8.0 Release Trust Hardening Close-out` 기준으로 GitHub Latest Release
+verification gate, docs screenshot freshness, manual UI evidence checklist,
+release close-out runbook, docs source-of-truth dedupe, English UI visual copy QA,
+release evidence index, feature scope decision gate의 확인됨/미실행/미확인 상태를
+분리합니다. Client/Ops UI-first workflow는 제품 baseline으로 유지합니다.
+현재 release evidence는 [release-evidence-index.md](./release-evidence-index.md),
+[manual-ui-checklist.md](./manual-ui-checklist.md),
+[manual-ui-result-template.md](./manual-ui-result-template.md),
+[project-feature-test-inventory.md](./project-feature-test-inventory.md),
+[ui-visual-release-baseline-approval-template.md](./ui-visual-release-baseline-approval-template.md)를
+source-of-truth로 삼습니다. 현재 `v1.8.0` release pass/fail 기준은 이 evidence와
+통합 검증 명령으로 판단합니다.
 
 ## Tag 전략
 
-- 현재 published source-only release tag는 `v1.7.0`입니다.
+- 현재 source-only release 기준 tag는 `v1.8.0`입니다.
 - public-readiness, bundle policy, Actions status check가 모두 통과한 커밋에만 tag를 붙입니다.
-- `v1.7.0`은 live-only source release 기준을 유지한 UI-first release이며, binary/runtime/model bundle의 운영 배포 완료를 뜻하지 않습니다.
+- `v1.8.0`은 live-only source release 기준을 유지한 release trust hardening release이며, binary/runtime/model bundle의 운영 배포 완료를 뜻하지 않습니다.
 - route/API/config/schema migration이 필요한 변경은 `v2.0.0` 후보로 분리합니다.
 - tag release에는 generated sample pack, YOLO model, FFmpeg/GStreamer runtime bundle을 붙이지 않습니다.
 
@@ -116,7 +132,7 @@ major update를 적용하려면 workflow 권한, upstream changelog, pin 전략�
 ## Release Note Template
 
 ```markdown
-# Media Server v1.7.0
+# Media Server v1.8.0
 
 ## Scope
 
@@ -126,8 +142,8 @@ major update를 적용하려면 workflow 권한, upstream changelog, pin 전략�
 ## Live-only Scope
 
 - Live media relay and live VA event focus
-- ONVIF Profile S/T assisted source onboarding, source health operator workflow, VA event quality, UI refresh, delivery contract artifact work, rule-level tracker/Re-ID opt-in work, and v1.7.0 Client/Ops UI-first workflow work
-- v1.7.0 close-out: Client Live workspace, source tree/dock event feed, tile disconnect, event review, source group/site, tile info overlay, saved layout, incident timeline, alert delivery, scenario builder, and Ops/Client declutter
+- ONVIF Profile S/T assisted source onboarding, source health operator workflow, VA event quality, UI refresh, delivery contract artifact work, rule-level tracker/Re-ID opt-in work, and Client/Ops UI-first workflow work
+- v1.8.0 close-out: GitHub Latest Release verification gate, docs screenshot freshness, manual UI evidence checklist hardening, release close-out runbook, docs source-of-truth dedupe, English UI visual copy QA, release evidence index, and feature scope decision gate
 - EventRecord/snapshot/clip: short event evidence helper, not the main product message
 
 ## Non-goals
@@ -165,5 +181,5 @@ Do not list an item as pass unless it was actually executed for this release cut
 ## Known Limitations
 
 - 장기 soak/RC 검증은 별도 workflow_dispatch 기준입니다.
-- ONVIF 실장비 field smoke, YouTube 실제 URL relay, Re-ID default-on, tracker default-on, OC-SORT runtime promotion은 v1.6.0 완료 근거가 아닙니다.
+- ONVIF 실장비 field smoke, YouTube 실제 URL relay, Re-ID default-on, tracker default-on, OC-SORT runtime promotion은 v1.8.0 완료 근거가 아닙니다.
 ```

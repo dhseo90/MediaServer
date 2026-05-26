@@ -97,7 +97,7 @@
 field smoke report는 [ONVIF Field Smoke Gate](./onvif-field-smoke-gate.md)의
 상태값을 따릅니다.
 
-- `releaseDevelopmentStatus=procedure-fixed`: v1.3.0 (2)는 절차와 verifier를
+- `releaseDevelopmentStatus=procedure-fixed`: v1.8.0 (2)는 절차와 verifier를
   고정했다는 뜻이며 실제 장비 성공을 뜻하지 않습니다.
 - `gateDecision=not-run|blocked|failed|passed`: 실제 field gate 판정입니다.
   no-device suite 통과는 field smoke gate pass가 아닙니다.

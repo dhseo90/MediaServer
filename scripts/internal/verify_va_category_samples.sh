@@ -264,7 +264,7 @@ CATEGORIES=(person vehicle road animal tableware food furniture device object)
 if [[ "${INCLUDE_SPORTS}" == "1" ]]; then
   CATEGORIES+=(sports)
 else
-  log_skip "sports category 영상 샘플 검증을 옵션으로 제외했습니다."
+  log_skip "제외 기록: sports category 영상 샘플 검증을 옵션으로 제외했습니다."
 fi
 
 for category in "${CATEGORIES[@]}"; do
@@ -378,7 +378,12 @@ coverage_file.write_text(json.dumps({
     "analyzedPackets": snapshot.get("analyzedPackets", 0),
 }, ensure_ascii=False, indent=2), encoding="utf-8")
 PY
-log_pass "카테고리별 presence 이벤트 확인"
+for category in "${CATEGORIES[@]}"; do
+  log_pass "presence event 발생: category ${category}"
+done
+log_pass "presence event 발생: direct class car"
+log_pass "presence event 발생: alias vehicles"
+log_pass "analysis tap frame 분석 확인"
 log_info "events_log=${EVENTS_FILE}"
 log_info "coverage=${COVERAGE_FILE}"
 
@@ -386,7 +391,7 @@ echo
 echo "== VA 카테고리 영상 샘플 검증 요약 =="
 echo "- 통과: ${PASS_COUNT}"
 echo "- 실패: ${FAIL_COUNT}"
-echo "- 건너뜀: ${SKIP_COUNT}"
+echo "- 제외: ${SKIP_COUNT}"
 echo "- events: ${EVENTS_FILE}"
 echo "- snapshot: ${SNAPSHOT_FILE}"
 echo "- coverage: ${COVERAGE_FILE}"

@@ -44,7 +44,7 @@ check("server exposes persistent ops audit API", () => {
   }
 });
 
-check("shared UI writes audit records to server and falls back locally", () => {
+check("shared UI writes audit records with local fallback", () => {
   const shared = readText("src/ingress/product_ui_js.cpp");
   const required = [
     "persistOpsAuditTrail",

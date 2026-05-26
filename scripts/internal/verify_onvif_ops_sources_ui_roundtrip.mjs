@@ -23,7 +23,7 @@ Usage:
 
 Options:
   --http-base <url>          실행 중인 서버 HTTP base입니다. 기본 http://127.0.0.1:8081.
-  --source-id <id>           저장 검증에 사용할 임시 source/view id입니다. 기본은 비어 있는 90번대 이후 id.
+  --source-id <id>           생성될 임시 source/view id를 검증합니다. 기본은 UI 자동 생성값을 사용합니다.
   --timeout-ms <ms>          브라우저/API 대기 시간입니다. 기본 15000.
   --chrome-path <path>       Chrome/Chromium 실행 파일 경로입니다.
   --debug-port <port>        Chrome CDP port입니다. 기본 9765.
@@ -36,7 +36,7 @@ Checks:
   - /ops/sources 채널 폼에서 ONVIF camera 타입을 선택하고 ONVIF stream URI를 입력
   - /ops/sources 채널 목록의 Live/VA URL 복사 버튼이 ONVIF RTSP/WHEP로 표시됨
   - /ops/rules에서 ONVIF 소스에 연결된 채널 분석 설정 URL 복사 버튼이 ONVIF RTSP/WHEP로 표시됨
-  - operator가 channelId를 바꿔도 ONVIF tags/view 옵션이 저장 payload에 유지됨
+  - channelId가 표시 전용 자동 생성값으로 저장되고 ONVIF tags/view 옵션이 유지됨
   - 기존 source/view API로 저장된 뒤 client API에 RTSP URL, ONVIF endpoint, credential이 노출되지 않음
   - smoke 종료 시 만든 vaRule/source/view를 삭제
 `);
@@ -75,12 +75,14 @@ const viewsBefore = await requestJson("/ops/api/views");
 assertTempRegistry(sourcesBefore.storagePath, "source registry");
 assertTempRegistry(viewsBefore.storagePath, "published view registry");
 
-const sourceId = String(args.sourceId || findFreeNumericId(sourcesBefore.sources, viewsBefore.views, 90));
-assert(/^[1-9]\d*$/.test(sourceId), "--source-id must be numeric");
-assert(!hasRecord(sourcesBefore.sources, "sourceId", sourceId), `sourceId ${sourceId} already exists`);
-assert(!hasRecord(viewsBefore.views, "viewId", sourceId), `viewId ${sourceId} already exists`);
-
-const displayName = `ONVIF UI Roundtrip ${sourceId}`;
+const requestedSourceId = args.sourceId ? String(args.sourceId) : "";
+if (requestedSourceId) {
+  assert(/^[1-9]\d*$/.test(requestedSourceId), "--source-id must be numeric");
+  assert(!hasRecord(sourcesBefore.sources, "sourceId", requestedSourceId), `sourceId ${requestedSourceId} already exists`);
+  assert(!hasRecord(viewsBefore.views, "viewId", requestedSourceId), `viewId ${requestedSourceId} already exists`);
+}
+let sourceId = "";
+let displayName = "";
 let savedRtspUrl = "";
 let savedEventRuleId = "";
 let savedVaRuleId = "";
@@ -109,17 +111,31 @@ try {
   await assertText(browser, "#onvifProbeDraftStatus", "Probe draft 적용", "ONVIF probe draft status");
   const draftedRtspUrl = await readInputValue(browser, '[name="onvifStreamUrl"]', "drafted ONVIF stream URI");
   assert(draftedRtspUrl === "rtsp://192.0.2.20/live/sub", `drafted ONVIF stream URI mismatch: ${draftedRtspUrl}`);
+  sourceId = await readInputValue(browser, '[name="channelId"]', "generated channelId");
+  assert(/^[1-9]\d*$/.test(sourceId), `generated channelId must be numeric: ${sourceId}`);
+  assert(!hasRecord(sourcesBefore.sources, "sourceId", sourceId), `generated sourceId ${sourceId} already exists`);
+  assert(!hasRecord(viewsBefore.views, "viewId", sourceId), `generated viewId ${sourceId} already exists`);
+  if (requestedSourceId) {
+    assert(sourceId === requestedSourceId, `generated sourceId mismatch: expected ${requestedSourceId}, got ${sourceId}`);
+  }
+  await assertGeneratedChannelIdDisplay(browser, sourceId);
+  displayName = `ONVIF UI Roundtrip ${sourceId}`;
   savedRtspUrl = `rtsp://192.0.2.10/live/main-${sourceId}`;
-  await setInputValue(browser, '[name="channelId"]', sourceId, "channelId");
   await setInputValue(browser, '[name="displayName"]', displayName, "displayName");
   await setInputValue(browser, '[name="onvifStreamUrl"]', savedRtspUrl, "ONVIF Stream URI");
   await clickSelector(browser, "#channel-save-selected", "ONVIF channel save");
   await assertText(browser, "#status", "채널 저장 완료", "channel save status");
-  await assertOnvifChannelCopyButtons(browser, sourceId);
+  const channelCopyButtons = await assertOnvifChannelCopyButtons(browser, sourceId);
+  console.log(`[pass] ops sources ONVIF channel copy button count ${channelCopyButtons.count}`);
+  for (const label of ["ONVIF RTSP", "ONVIF WHEP"]) {
+    console.log(`[pass] ops sources ONVIF channel copy button label ${label}`);
+  }
+  for (const kind of ["라이브 URL RTSP", "라이브 URL WHEP", "VA URL RTSP", "VA URL WHEP"]) {
+    console.log(`[pass] ops sources ONVIF channel copy button title includes ${kind}`);
+  }
   await assertOnvifChannelCopyClipboard(browser, sourceId, savedRtspUrl);
   await assertBrowserErrors(browser);
   console.log("[pass] ONVIF camera source saved through channel form");
-  console.log("[pass] ops sources UI renders and copies ONVIF URLs");
 } finally {
   if (browser) await browser.close().catch(() => {});
 }
@@ -129,21 +145,26 @@ try {
   const savedSource = findRecord(sourcesAfter.sources, "sourceId", sourceId);
   assert(savedSource, "saved source missing from ops API");
   assert(savedSource.kind === "rtsp", "saved source kind must be rtsp");
+  console.log("[pass] ops sources API preserved ONVIF source kind");
   assert(savedSource.displayName === displayName, "saved source displayName mismatch");
+  console.log("[pass] ops sources API preserved ONVIF displayName");
   assert(savedSource.rtspUrl === savedRtspUrl, "saved source rtspUrl mismatch");
+  console.log("[pass] ops sources API preserved ONVIF RTSP URL");
   assert(Array.isArray(savedSource.tags), "saved source tags must be array");
   assert(savedSource.tags.includes("onvif"), "saved source tags missing onvif");
   assert(savedSource.tags.includes("live"), "saved source tags missing live");
-  console.log("[pass] ops sources API preserved ONVIF source fields");
+  console.log("[pass] ops sources API preserved ONVIF source tags");
 
   const viewsAfter = await requestJson("/ops/api/views");
   const savedView = findRecord(viewsAfter.views, "viewId", sourceId);
   assert(savedView, "saved PublishedView missing from ops API");
   assert(savedView.displayName === displayName, "saved PublishedView displayName mismatch");
+  console.log("[pass] ops views API preserved ONVIF PublishedView displayName");
   assert(savedView.sourceId === sourceId, "saved PublishedView sourceId mismatch");
+  console.log("[pass] ops views API preserved ONVIF PublishedView sourceId");
   assert(Array.isArray(savedView.allowedOverlayModes), "allowedOverlayModes must be array");
   assert(savedView.allowedOverlayModes.includes("raw"), "PublishedView allowedOverlayModes missing raw");
-  console.log("[pass] ops views API preserved ONVIF PublishedView fields");
+  console.log("[pass] ops views API preserved ONVIF PublishedView raw overlay mode");
 
   const catalogBefore = await requestJson("/ops/api/rules/catalog");
   savedEventRuleId = findFreeNumericAnalysisId({
@@ -190,24 +211,34 @@ try {
     "ONVIF PublishedView rule attachment",
   );
   assert(viewAfterVaSave?.defaultRuleId === savedVaRuleId || Array.isArray(viewAfterVaSave?.allowedRuleIds), "ONVIF PublishedView readback missing rule attachment");
-  await assertOnvifRuleCopyButtons(browser, savedVaRuleId);
+  const copyButtons = await assertOnvifRuleCopyButtons(browser, savedVaRuleId);
+  console.log(`[pass] ops rules ONVIF VA rule copy button count ${copyButtons.count}`);
+  for (const label of ["ONVIF RTSP", "ONVIF WHEP", "WebRTC"]) {
+    console.log(`[pass] ops rules ONVIF VA rule copy button label ${label}`);
+  }
+  for (const kind of ["RTSP URL", "WHEP URL", "WebRTC 링크"]) {
+    console.log(`[pass] ops rules ONVIF VA rule copy button aria includes ${kind}`);
+  }
   await assertOnvifRuleCopyClipboard(browser, savedVaRuleId, sourceId);
   await assertBrowserErrors(browser);
   await browser.close();
   browser = null;
-  console.log("[pass] ops rules UI renders and copies ONVIF URLs");
 
   const clientListText = await requestText("/client/api/views");
   assertNoClientForbiddenText("client-api-views", clientListText, savedRtspUrl);
   const clientList = JSON.parse(clientListText);
   assert(hasRecord(clientList.views, "viewId", sourceId), "client views list missing ONVIF view");
+  console.log("[pass] client API includes ONVIF view in sanitized view list");
   const clientViewText = await requestText(`/client/api/views/${encodeURIComponent(sourceId)}`);
   assertNoClientForbiddenText(`client-api-view-${sourceId}`, clientViewText, savedRtspUrl);
+  console.log("[pass] client API omits ONVIF source locator from view detail");
   const clientView = JSON.parse(clientViewText).view;
   assert(clientView?.viewId === sourceId, "client view detail missing ONVIF view");
+  console.log("[pass] client API returns ONVIF view detail by viewId");
   assert(clientView.sourceKind === "rtsp", "client view sourceKind should remain downstream rtsp");
+  console.log("[pass] client API preserves sanitized ONVIF sourceKind");
   assert(Array.isArray(clientView.sourceTags) && clientView.sourceTags.includes("onvif"), "client view should expose sanitized ONVIF tag");
-  console.log("[pass] client API redacts ONVIF source locator");
+  console.log("[pass] client API exposes sanitized ONVIF tag");
 } finally {
   if (browser) await browser.close().catch(() => {});
   if (savedVaRuleId) {
@@ -350,6 +381,35 @@ async function assertText(browserInstance, selector, expected, description) {
   );
 }
 
+async function assertGeneratedChannelIdDisplay(browserInstance, expectedId) {
+  const result = await waitForResult(
+    browserInstance,
+    `
+      (() => {
+        const hidden = document.querySelector('[name="channelId"]');
+        const display = document.querySelector('#channel-id-display');
+        const editableChannelIdInput = document.querySelector('input[name="channelId"][type="number"]');
+        const text = (display?.textContent || '').trim();
+        return {
+          ok: Boolean(hidden)
+            && hidden.type === 'hidden'
+            && hidden.value === ${JSON.stringify(expectedId)}
+            && Boolean(display)
+            && text.includes(${JSON.stringify(expectedId)})
+            && !editableChannelIdInput,
+          hiddenType: hidden?.type || '',
+          hiddenValue: hidden?.value || '',
+          displayText: text,
+          editableChannelIdInput: Boolean(editableChannelIdInput),
+        };
+      })()
+    `,
+    item => item?.ok === true,
+    "generated channelId display",
+  );
+  console.log(`[pass] channelId 자동 생성 표시: ${result.displayText}`);
+}
+
 async function readInputValue(browserInstance, selector, description) {
   const result = await waitForResult(
     browserInstance,
@@ -437,6 +497,7 @@ async function assertOnvifChannelCopyButtons(browserInstance, sourceIdValue) {
   if (!result?.ok) {
     throw new Error(`ONVIF channel copy button mismatch: ${JSON.stringify(result)}`);
   }
+  return result;
 }
 
 async function assertOnvifChannelCopyClipboard(browserInstance, sourceIdValue, rtspUrl) {
@@ -468,6 +529,7 @@ async function assertOnvifChannelCopyClipboard(browserInstance, sourceIdValue, r
     if (!item.expect(copied)) {
       throw new Error(`${item.description} copied unexpected URL: ${copied}`);
     }
+    console.log(`[pass] ops sources ${item.description} clipboard URL matches expected shape`);
   }
 }
 
@@ -516,6 +578,7 @@ async function assertOnvifRuleCopyClipboard(browserInstance, vaRuleId, viewId) {
     if (!item.expect(copied)) {
       throw new Error(`${item.description} copied unexpected URL: ${copied}`);
     }
+    console.log(`[pass] ops rules ${item.description} clipboard URL matches expected shape`);
   }
 }
 

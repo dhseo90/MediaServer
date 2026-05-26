@@ -3,7 +3,7 @@
 schema: `media-server.ui-copy-matrix.v1`
 updated: 2026-05-16
 
-이 문서는 v1.2.0 UI visual regression 후속에서 도입되어 v1.3.0에서도 유지되는
+이 문서는 v1.8.0 UI visual regression 후속에서 도입되어 v1.8.0에서도 유지되는
 Ops/Client 제품 화면의 빈 상태, 로딩 상태, 오류 상태 문구를 고정합니다. 문구는 운영자가 다음 행동을 알 수 있게 쓰되, viewer/client 화면에는 source URL, raw JSON, debug counter, Developer URL을 노출하지 않습니다.
 
 ## 원칙

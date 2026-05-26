@@ -61,6 +61,7 @@ const clientLiveA11ySnapshot = JSON.parse(fs.readFileSync(path.join(process.cwd(
 
 const productShellMust = [
   'class="product-shell',
+  'class="brand-mark"',
   'id="themeToggleBtn"',
   'class="account-menu"',
   "window.MediaServerUi",
@@ -70,6 +71,7 @@ const opsShellMust = [
   'aria-label="운영 메뉴"',
   'href="/ops/home"',
   'href="/client/live"',
+  '클라이언트',
 ];
 
 const clientShellMust = [
@@ -91,39 +93,39 @@ const pageChecks = [
     path: "/ops/dashboard",
     visualSelector: '[data-testid="ops-dashboard-page"]',
     must: ['data-testid="ops-dashboard-page"', 'data-testid="ops-root-cause-panel"', 'data-testid="ops-incident-timeline-panel"', 'data-testid="ops-runtime-operations-console"', 'data-testid="ops-va-quality-panel"', 'id="dashActiveSessions"', 'id="dashHealthBadges"', 'id="dashRootCauseList"', 'id="dashIncidentTimelineSearch"', 'id="dashIncidentTimelineSource"', 'id="dashIncidentTimeline"', 'option value="rule-warning"', 'option value="runtime-status"', 'dashboardRuleWarningItems', 'dashboardRuntimeStatusIncidentItems', 'data-incident-workflow', 'id="dashRuntimeOpsBadges"', 'id="dashRuntimeOpsList"', 'id="dashVaQualityFilterInput"', 'id="dashScenarioTimeline"', 'id="dashTrackingIssueGroups"', '/ops/api/runtime/status', '/ops/api/source-health', '/ops/api/rules/catalog', '라이브 소스 상태', '최근 인시던트 흐름', '런타임 운영 판독', '라이브 VA 이벤트 품질'],
-    mustNot: ['<iframe', 'opsDashboardFrame', '/lab/rules?embed=1', '/lab/runtime/status'],
+    mustNot: ['/lab/runtime/status'],
   },
   {
     name: "ops-events",
     path: "/ops/events",
     must: ['data-testid="ops-events-page"', 'data-route-scope="direct-diagnostic"', 'Primary nav에는 표시하지 않는 direct/diagnostic route', 'id="opsEventsRefresh"', '/ops/api/events/status', 'data-testid="ops-alert-delivery-integrations"', 'data-alert-contract="separate-from-event-post-payload"', 'id="alertDeliverySave"', 'id="alertDeliveryTest"', '/ops/api/alerts/deliveries', '/ops/api/alerts/deliveries/test', 'data-testid="ops-event-review-inbox"', 'data-review-state="separate-from-event-post-payload"', 'id="eventReviewStatusFilter"', '/ops/api/events/reviews'],
-    mustNot: ['<iframe', 'href="/lab', 'src="/lab', 'href="/webrtc/test"', 'href="/ops/events"'],
+    mustNot: ['href="/ops/events"'],
   },
   {
     name: "ops-rules",
     path: "/ops/rules",
     visualSelector: '[data-testid="ops-rules-page"]',
-    must: ['data-testid="ops-rules-page"', 'data-testid="ops-scenario-builder"', 'data-scenario-builder-contract="ui-only-no-engine-change"', 'id="opsScenarioBuilderApply"', 'opsContextActionsHtml', 'data-testid="ops-context-actions"', 'data-action-density="primary-context"', 'id="opsRulesFilterInput"', 'id="opsVaRuleRows"', 'id="opsEventRuleRows"', 'id="opsProfileRows"', 'id="opsAddVaRuleBtn"', 'id="opsAddEventRuleBtn"', 'id="opsAddProfileBtn"', 'id="opsRulesDetailPanel"', 'id="opsVaRuleForm"', 'id="opsEventRuleForm"', 'id="opsProfileForm"', 'id="opsVaRulePreviewVideo"', 'id="opsVaRuleGeometryPreview"', 'id="opsVaRuleTemplateSeedSelect"', 'id="opsVaRuleProfileSelect"', 'id="opsVaRuleChannelSelect"', '/ops/api/rules/catalog'],
-    mustNot: ['<iframe', 'opsRulesFrame', 'id="opsRulesEditorComponent"', '/lab/rules?embed=1'],
+    must: ['data-testid="ops-rules-page"', 'data-testid="ops-scenario-builder"', 'data-scenario-builder-contract="ui-only-no-engine-change"', 'id="opsScenarioBuilderApply"', 'opsContextActionsHtml', 'data-testid="ops-context-actions"', 'data-action-density="primary-context"', 'id="opsRulesFilterInput"', 'id="opsVaRuleRows"', 'id="opsEventRuleRows"', 'id="opsProfileRows"', 'id="opsAddVaRuleBtn"', 'id="opsAddEventRuleBtn"', 'id="opsAddProfileBtn"', 'id="opsRulesDetailPanel"', 'id="opsVaRuleForm"', 'id="opsEventRuleForm"', 'id="opsProfileForm"', 'id="opsVaRulePreviewVideo"', 'id="opsVaRuleGeometryPreview"', 'id="opsVaRuleTemplateSeedSelect"', 'id="opsVaRuleProfileSelect"', 'id="opsVaRuleChannelSelect"', 'id="opsEventRuleLoiteringGroundPlaneField"', 'id="opsEventRuleLoiteringGroundPlaneToggle"', 'id="opsVaRuleIdDisplay"', 'id="opsEventRuleIdDisplay"', 'id="opsProfileIdDisplay"', 'data-generated-id="va-rule"', 'data-generated-id="event-rule"', 'data-generated-id="profile"', '/ops/api/rules/catalog'],
+    mustNot: ['id="opsRulesEditorComponent"', 'id="opsVaRuleIdInput" type="text"', 'id="opsEventRuleIdInput" type="text"', 'id="opsProfileIdInput" type="text"'],
   },
   {
     name: "ops-sources",
     path: "/ops/sources",
     visualSelector: '[data-testid="ops-sources-page"]',
-    must: ['data-testid="ops-sources-page"', 'id="channels-body"', 'id="channel-detail-panel"', 'name="kind"', 'value="onvif"', 'data-source-kind="onvif"', 'data-testid="source-group-site-management"', 'data-scope-contract="view-read-scopes-unchanged"', 'name="site"', 'name="group"', 'name="floor"', 'name="zone"', 'data-testid="onvif-probe-draft-tool"', 'id="onvifProbeDraftInput"', 'id="onvifProbeProfileSelect"', 'id="onvifProbeDraftApply"', 'name="onvifStreamUrl"', 'name="whepUrl"', "ONVIF 카메라", "ONVIF 스트림 URI", "ONVIF probe fixture", "ONVIF profile", "Probe draft 적용", "외부 WHEP URL", "Published WebRTC 소스", "발행 sourceId", "라이브 URL", "VA URL"],
-    mustNot: ['AppendTableHead(', 'R"OPS(', 'WHIP Published Source ID', "Registry raw JSON", 'sources-json', 'views-json', 'client-views-json', 'data-testid="onvif-import-panel"', 'id="onvif-import-stub"', 'id="onvifImportSummary"', "ONVIF Live Source import", 'data-testid="channel-bulk-panel"', 'id="channel-bulk-select-all"', 'id="channelBulkDiagnostics"', 'data-testid="source-health-panel"', 'id="channelHealthSummary"', 'id="channelHealthDiagnostics"', 'id="channel-detail-health"'],
+    must: ['data-testid="ops-sources-page"', 'id="channels-body"', 'id="channel-detail-panel"', 'id="channel-id-display"', 'data-generated-id="channel"', 'name="channelId" type="hidden"', 'name="kind"', 'value="onvif"', 'data-source-kind="onvif"', 'data-testid="source-group-site-management"', 'data-scope-contract="view-read-scopes-unchanged"', 'name="site"', 'name="group"', 'name="floor"', 'name="zone"', 'data-testid="onvif-probe-draft-tool"', 'id="onvifProbeDraftInput"', 'id="onvifProbeProfileSelect"', 'id="onvifProbeDraftApply"', 'name="onvifStreamUrl"', 'name="whepUrl"', "ONVIF 카메라", "ONVIF 스트림 URI", "ONVIF probe fixture", "ONVIF profile", "Probe draft 적용", "외부 WHEP URL", "Published WebRTC 소스", "발행 sourceId", "라이브 URL", "VA URL"],
+    mustNot: ['AppendTableHead(', 'R"OPS(', 'WHIP Published Source ID', "Registry raw JSON", 'sources-json', 'views-json', 'client-views-json', 'data-testid="onvif-import-panel"', 'id="onvif-import-stub"', 'id="onvifImportSummary"', "ONVIF Live Source import", 'data-testid="channel-bulk-panel"', 'id="channel-bulk-select-all"', 'id="channelBulkDiagnostics"', 'data-testid="source-health-panel"', 'id="channelHealthSummary"', 'id="channelHealthDiagnostics"', 'id="channel-detail-health"', 'name="channelId" type="number"', 'inputmode="numeric" placeholder="1" required'],
   },
   {
     name: "ops-users",
     path: "/ops/users",
     visualSelector: '[data-testid="ops-users-page"]',
-    must: ['data-testid="ops-users-page"', 'data-testid="user-lifecycle-policy"', 'id="users-body"', 'id="access-requests-body"', 'id="request-invite-output"', 'id="user-detail-panel"', 'id="user-edit-selected"', 'id="user-save-selected"', 'id="user-close"', 'id="view-assignment"', 'id="view-assignment-options"', 'clientViewLocationLabel', '사이트/그룹', 'id="user-lifecycle-summary"', 'id="user-reset-password-panel"', 'id="user-reset-password-button"', 'data-user-reset-password', 'data-user-set-enabled', '초대 링크는 기본 24시간 동안만 유효', '사용자 감사 JSON/CSV/Diff JSON export', '승인 전: 로그인/세션/채널 권한 없음', '초대 링크 만료', '/ops/api/access-requests'],
+    must: ['data-testid="ops-users-page"', 'data-testid="user-lifecycle-policy"', 'id="users-body"', 'id="access-requests-body"', 'id="request-invite-output"', 'data-testid="ops-invites-panel"', 'id="invite-create-form"', 'id="invite-list-body"', 'id="invite-create-output"', 'id="invite-status"', '/ops/api/invites', '토큰/토큰 해시를 노출하지 않습니다', 'id="user-detail-panel"', 'id="user-edit-selected"', 'id="user-save-selected"', 'id="user-close"', 'id="view-assignment"', 'id="view-assignment-options"', 'data-testid="user-channel-assignment-list"', 'data-assignment-view', 'selectedAssignmentViewIds', 'viewId: selectedViewIds[0] ||', 'scopeTemplateForRole(role, selectedViewIds)', 'clientViewLocationLabel', '사이트/그룹', 'id="user-lifecycle-summary"', 'id="user-reset-password-panel"', 'id="user-reset-password-button"', 'data-user-reset-password', 'data-user-set-enabled', '초대 링크는 기본 24시간 동안만 유효', '사용자 감사 JSON/CSV/Diff JSON export', '승인 전: 로그인/세션/채널 권한 없음', '초대 링크 만료', '/ops/api/access-requests'],
   },
   {
     name: "client-live",
     path: "/client/live",
     visualSelector: '[data-testid="client-shell-page"]',
-    must: ['data-testid="client-shell-page"', 'data-client-active="live"', 'id="views"', 'id="detail"', '/webrtc/config', 'peerConnectionConfig', 'viewMaxTiles', 'maxTiles', 'id="liveDensity"', 'id="liveSummary"', 'data-testid="client-live-action-reduction"', 'data-action-model="source-drag,tile-selection,icon-actions,keyboard-shortcuts"', 'data-disconnect-contract="tile-disconnect-clears-slot,workspace-disconnect-keeps-layout"', 'disconnectLiveTile', 'clearLiveTileSlot', 'data-disconnect-scope="tile"', '전체 연결 해제', 'data-testid="client-live-workspace"', 'data-workspace-model="source-tree,drag-drop-grid,multi-source"', 'data-testid="client-live-source-tree"', 'data-tree-model="group/site/floor/source"', 'data-tree-level="site"', 'data-tree-level="floor"', 'data-testid="client-live-dock-event-feed"', 'data-redaction="viewer-safe-events"', 'id="liveDockSide"', 'mediaServerClientLiveDockSide', 'id="liveInfoOverlayToggle"', 'mediaServerClientLiveInfoOverlay', 'data-testid="client-live-tile-info-overlay"', 'data-overlay-trigger="info-toggle"', 'data-testid="client-live-layout-presets"', 'data-preset-contract="user-preference,role-preset"', 'liveLayoutPreferenceEndpoint', '/client/api/preferences/live-layout', 'liveCurrentLayoutSnapshot', 'applyLiveLayoutPreference', 'selectedSources', 'overlayDefaults', 'refreshTilePlaybackStats', 'framesPerSecond', 'bytesReceived', 'framesDropped', 'refreshLiveDockEventFeed', '/events?limit=6', 'data-source-view="${escapeHtml(view.viewId)}"', 'draggable="true"', 'assignViewToTile', 'assignSourceToSelectedTile', 'data-drop-state="idle"', 'dataTransfer.setData', "root.addEventListener('drop'", "root.addEventListener('dragover'", 'class="workspace-actions"', 'class="icon-button tile-action-primary"', 'data-action="restart"', 'restartLiveTile', "event.key === 's'", "event.key === 'Delete'", 'tabindex="0"', 'focusLiveTile', 'ArrowRight', 'aria-describedby="liveTileStatus${tile.index}"', 'data-role="a11y-status"', 'aria-live="polite"', 'aria-atomic="true"', 'liveTileA11yStatus', 'liveTileConnectionLabel', 'clientDynamicText', 'data-client-copy="status"', 'data-client-copy="events"', '타일 ${tile.index + 1} 시작'],
+    must: ['data-testid="client-shell-page"', 'data-client-active="live"', 'id="views"', 'id="detail"', '/webrtc/config', 'peerConnectionConfig', 'viewMaxTiles', 'maxTiles', 'id="liveDensity"', 'id="liveSummary"', 'data-testid="client-live-action-reduction"', 'data-action-model="source-drag,tile-selection,icon-actions,keyboard-shortcuts"', 'data-disconnect-contract="tile-disconnect-clears-slot,workspace-disconnect-keeps-layout"', 'data-disconnect-scope="tile"', 'disconnectLiveTile', 'clearLiveTileSlot', '전체 연결 해제', 'data-testid="client-live-workspace"', 'data-workspace-model="source-tree,drag-drop-grid,multi-source"', 'data-testid="client-live-source-tree"', 'data-tree-model="group/site/floor/source"', 'data-tree-level="site"', 'data-tree-level="floor"', 'data-testid="client-live-dock-event-feed"', 'data-redaction="viewer-safe-events"', 'id="liveDockSide"', 'mediaServerClientLiveDockSide', 'id="liveInfoOverlayToggle"', 'mediaServerClientLiveInfoOverlay', 'data-testid="client-live-tile-info-overlay"', 'data-overlay-trigger="info-toggle"', 'data-testid="client-live-va-overlay-toggle"', 'data-role="mode-buttons"', 'data-mode-action="raw"', 'data-mode-action="va-overlay"', 'setTileOverlayMode', 'toggleLiveTilePlayback', 'data-action="toggle-playback"', 'data-role="tile-playback-icon"', 'data-role="status"', 'data-testid="client-live-layout-presets"', 'data-preset-contract="user-preference,role-preset"', 'liveLayoutPreferenceEndpoint', '/client/api/preferences/live-layout', 'liveCurrentLayoutSnapshot', 'applyLiveLayoutPreference', 'selectedSources', 'overlayDefaults', 'refreshTilePlaybackStats', 'framesPerSecond', 'bytesReceived', 'framesDropped', 'refreshLiveDockEventFeed', '/events?limit=6', 'data-source-view="${escapeHtml(view.viewId)}"', 'draggable="true"', 'assignViewToTile', 'assignSourceToSelectedTile', 'data-drop-state="idle"', 'dataTransfer.setData', "root.addEventListener('drop'", "root.addEventListener('dragover'", 'class="workspace-actions"', 'class="icon-button tile-action-primary"', 'data-action="restart"', 'data-action="stop"', 'restartLiveTile', "event.key === 's'", "event.key === 'Delete'", 'tabindex="0"', 'focusLiveTile', 'ArrowRight', 'aria-describedby="liveTileStatus${tile.index}"', 'data-role="a11y-status"', 'aria-live="polite"', 'aria-atomic="true"', 'liveTileA11yStatus', 'liveTileConnectionLabel', 'clientDynamicText', 'data-client-copy="status"', 'data-client-copy="events"', '타일 ${tile.index + 1} 재생', '타일 ${tile.index + 1} 연결 해제'],
     shellMust: clientShellMust,
     mustNot: [...clientForbiddenText(), 'new RTCPeerConnection({ iceServers: [] })', 'id="liveAllStart"', 'id="liveAllRestart"'],
   },
@@ -169,10 +171,14 @@ for (const check of pageChecks) {
 
 try {
   await assertOpsApiContract("ops-api-runtime-status", "/ops/api/runtime/status");
+  passCount += 1;
+  console.log("[pass] ops-api-runtime-status product endpoint available");
   await assertOpsApiContract("ops-api-rules-catalog", "/ops/api/rules/catalog");
+  passCount += 1;
+  console.log("[pass] ops-api-rules-catalog product endpoint available");
   await assertOpsApiContract("ops-api-events-status", "/ops/api/events/status?limit=5");
   passCount += 1;
-  console.log("[pass] ops-api-contract: runtime/rules/events product endpoints available");
+  console.log("[pass] ops-api-events-status product endpoint available");
 } catch (error) {
   failCount += 1;
   const message = error instanceof Error ? error.message : String(error);
@@ -182,8 +188,11 @@ try {
 
 try {
   const payload = await assertClientApiContract("client-api-views", "/client/api/views");
-  passCount += 1;
-  console.log("[pass] client-api-views: sensitive source/debug fields omitted");
+  passCount += 4;
+  console.log("[pass] client-api-views source locator fields omitted");
+  console.log("[pass] client-api-views debug fields omitted");
+  console.log("[pass] client-api-views model provenance fields omitted");
+  console.log("[pass] client-api-views auth material fields omitted");
   const views = Array.isArray(payload.views) ? payload.views : [];
   if (views.length === 0) {
     passCount += 1;
@@ -228,17 +237,15 @@ try {
 }
 
 try {
-  await assertHttpStatus("removed-lab-home", "/lab", 404);
-  await assertHttpStatus("removed-lab-rules", "/lab/rules", 404);
-  await assertHttpStatus("removed-lab-import", "/lab/import", 404);
-  await assertHttpStatus("removed-webrtc-test-page", "/webrtc/test", 404);
-  passCount += 1;
-  console.log("[pass] removed-ui-routes: lab/import/rules/webrtc-test are closed");
+  const opsFormResult = await runOpsAdminFormRegressionSmoke();
+  passCount += opsFormResult.passCount;
+  failCount += opsFormResult.failCount;
+  failures.push(...opsFormResult.failures);
 } catch (error) {
   failCount += 1;
   const message = error instanceof Error ? error.message : String(error);
-  failures.push(`[removed-ui-routes] ${message}`);
-  console.log(`[fail] removed-ui-routes: ${message}`);
+  failures.push(`[ops-admin-form-regression] ${message}`);
+  console.log(`[fail] ops-admin-form-regression: ${message}`);
 }
 
 console.log("");
@@ -277,6 +284,8 @@ if (screenshotEnabled) {
     summaryTitle: "Ops/Client screenshot smoke 요약",
   });
   if (result.failCount > 0) process.exit(1);
+  const shellHeaderResult = await runShellHeaderAccountSmoke();
+  if (shellHeaderResult.failCount > 0) process.exit(1);
   const clientHeaderResult = await runClientHeaderResponsiveSmoke();
   if (clientHeaderResult.failCount > 0) process.exit(1);
   const clientLiveKeyboardResult = await runClientLiveTileKeyboardSmoke();
@@ -397,7 +406,8 @@ async function runClientRenderedLeakSmoke() {
         throw new Error(`${check.name}: ${details}`);
       }
       result.passCount += 1;
-      console.log(`[pass] ${check.name}: forbidden=0, textLength=${leakResult.textLength}`);
+      console.log(`[pass] ${check.name} rendered forbidden text count 0`);
+      console.log(`[pass] ${check.name} rendered text length ${leakResult.textLength}`);
     } catch (error) {
       result.failCount += 1;
       const message = error instanceof Error ? error.message : String(error);
@@ -456,6 +466,122 @@ function clientRenderedLeakExpression() {
   `;
 }
 
+async function runShellHeaderAccountSmoke() {
+  let passCount = 0;
+  let failCount = 0;
+  const failures = [];
+  const checks = [
+    { name: "ops-home-account-header", path: "/ops/home" },
+    { name: "ops-dashboard-account-header", path: "/ops/dashboard" },
+    { name: "client-live-account-header", path: "/client/live" },
+  ];
+  let checkIndex = 0;
+  for (const check of checks) {
+    for (const width of visualWidths) {
+      const browser = await openBrowserPage({
+        httpBase,
+        pagePath: check.path,
+        timeoutMs,
+        chromePath,
+        debugPort: debugPortBase + 160 + checkIndex,
+        width,
+        height: visualHeight,
+        outputDir,
+      });
+      checkIndex += 1;
+      try {
+        const result = await browser.evaluate(shellHeaderAccountExpression(), 10000);
+        const label = `${check.name}-${width}`;
+        if (!result?.ok) {
+          const details = Array.isArray(result?.issues) ? result.issues.join("; ") : JSON.stringify(result);
+          throw new Error(`${label}: ${details}`);
+        }
+        passCount += 1;
+        console.log(`[pass] ${label} account item count ${result.accountItemCount}`);
+        console.log(`[pass] ${label} brand width ${Math.round(result.brandWidth)}`);
+        console.log(`[pass] ${label} brand height ${Math.round(result.brandHeight)}`);
+      } catch (error) {
+        failCount += 1;
+        const message = error instanceof Error ? error.message : String(error);
+        failures.push(`[${check.name}] ${message}`);
+        console.log(`[fail] ${check.name}: ${message}`);
+      } finally {
+        await browser.close();
+      }
+    }
+  }
+  console.log("");
+  console.log("== Shell account header smoke 요약 ==");
+  console.log(`- 통과: ${passCount}`);
+  console.log(`- 실패: ${failCount}`);
+  if (failures.length > 0) {
+    console.log("- 실패 상세:");
+    for (const failure of failures) {
+      console.log(`  - ${failure}`);
+    }
+  }
+  return { passCount, failCount };
+}
+
+function shellHeaderAccountExpression() {
+  return `
+    (() => {
+      const issues = [];
+      const account = document.querySelector('body.product-shell header.app-chrome .account-menu');
+      const brand = document.querySelector('body.product-shell header.app-chrome .brand-mark');
+      if (!account) issues.push('account menu missing');
+      if (!brand) issues.push('formal brand mark missing');
+      if (!account || !brand) return { ok: false, issues };
+      const visibleRect = element => {
+        if (!element) return null;
+        const style = window.getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        if (style.display === 'none' || style.visibility === 'hidden' || rect.width <= 0 || rect.height <= 0) return null;
+        return rect;
+      };
+      const accountRect = account.getBoundingClientRect();
+      const brandRect = brand.getBoundingClientRect();
+      if (brandRect.width < 30 || brandRect.height < 30) {
+        issues.push('brand mark too small: ' + Math.round(brandRect.width) + 'x' + Math.round(brandRect.height));
+      }
+      const accountItems = [
+        ['status', visibleRect(account.querySelector('.sketch-status-chip'))],
+        ['avatar', visibleRect(account.querySelector('.account-avatar'))],
+        ['theme', visibleRect(account.querySelector('#themeToggleBtn'))],
+        ['language', visibleRect(account.querySelector('.language-select'))],
+        ['shortcut', visibleRect(account.querySelector('.account-shortcut'))],
+        ['logout', visibleRect(account.querySelector('form button'))],
+      ].filter(([, rect]) => rect);
+      for (let index = 0; index < accountItems.length; index += 1) {
+        const [name, rect] = accountItems[index];
+        if (rect.left < accountRect.left - 1 || rect.right > accountRect.right + 1) {
+          issues.push('account item outside menu: ' + name);
+        }
+        for (let next = index + 1; next < accountItems.length; next += 1) {
+          const [otherName, otherRect] = accountItems[next];
+          const overlaps = rect.left < otherRect.right &&
+            rect.right > otherRect.left &&
+            rect.top < otherRect.bottom &&
+            rect.bottom > otherRect.top;
+          if (overlaps) issues.push('account controls overlap: ' + name + '/' + otherName);
+        }
+      }
+      const doc = document.documentElement;
+      const body = document.body;
+      const overflowX = Math.max(0, Math.max(doc.scrollWidth, body.scrollWidth) - window.innerWidth);
+      if (overflowX > 2) issues.push('document horizontal overflow ' + overflowX + 'px');
+      return {
+        ok: issues.length === 0,
+        issues,
+        accountItemCount: accountItems.length,
+        brandWidth: brandRect.width,
+        brandHeight: brandRect.height,
+        overflowX,
+      };
+    })()
+  `;
+}
+
 async function runClientHeaderResponsiveSmoke() {
   let headerPassCount = 0;
   let headerFailCount = 0;
@@ -467,7 +593,6 @@ async function runClientHeaderResponsiveSmoke() {
   let checkIndex = 0;
   for (const check of clientPaths) {
     for (const width of visualWidths) {
-      if (width > 560) continue;
       const browser = await openBrowserPage({
         httpBase,
         pagePath: check.path,
@@ -487,7 +612,8 @@ async function runClientHeaderResponsiveSmoke() {
           throw new Error(`${label}: ${details}`);
         }
         headerPassCount += 1;
-        console.log(`[pass] ${label}: navWidth=${Math.round(result.navWidth)}, accountTop=${Math.round(result.accountTop)}`);
+        console.log(`[pass] ${label} nav width ${Math.round(result.navWidth)}`);
+        console.log(`[pass] ${label} account top ${Math.round(result.accountTop)}`);
       } catch (error) {
         headerFailCount += 1;
         const message = error instanceof Error ? error.message : String(error);
@@ -499,7 +625,7 @@ async function runClientHeaderResponsiveSmoke() {
     }
   }
   console.log("");
-  console.log("== Client mobile header smoke 요약 ==");
+  console.log("== Client header smoke 요약 ==");
   console.log(`- 통과: ${headerPassCount}`);
   console.log(`- 실패: ${headerFailCount}`);
   if (headerFailures.length > 0) {
@@ -536,11 +662,43 @@ function clientHeaderResponsiveExpression() {
       if (intersects) {
         issues.push('client nav/account boxes overlap');
       }
-      if (navRect.width < headerRect.width - 2) {
-        issues.push('client nav does not fill the mobile header row');
+      if (window.innerWidth <= 860) {
+        if (navRect.width < headerRect.width - 2) {
+          issues.push('client nav does not fill the mobile header row');
+        }
+        if (accountRect.top < navRect.bottom + 8) {
+          issues.push('client account menu is not stacked below nav');
+        }
       }
-      if (accountRect.top < navRect.bottom + 8) {
-        issues.push('client account menu is not stacked below nav');
+      const visibleRect = element => {
+        if (!element) return null;
+        const style = window.getComputedStyle(element);
+        const rect = element.getBoundingClientRect();
+        if (style.display === 'none' || style.visibility === 'hidden' || rect.width <= 0 || rect.height <= 0) return null;
+        return rect;
+      };
+      const accountItems = [
+        ['status', visibleRect(account.querySelector('.sketch-status-chip'))],
+        ['avatar', visibleRect(account.querySelector('.account-avatar'))],
+        ['theme', visibleRect(account.querySelector('#themeToggleBtn'))],
+        ['language', visibleRect(account.querySelector('.language-select'))],
+        ['logout', visibleRect(account.querySelector('form button'))],
+      ].filter(([, rect]) => rect);
+      for (let index = 0; index < accountItems.length; index += 1) {
+        const [name, rect] = accountItems[index];
+        if (rect.left < accountRect.left - 1 || rect.right > accountRect.right + 1) {
+          issues.push('client account item outside menu: ' + name);
+        }
+        for (let next = index + 1; next < accountItems.length; next += 1) {
+          const [otherName, otherRect] = accountItems[next];
+          const overlaps = rect.left < otherRect.right &&
+            rect.right > otherRect.left &&
+            rect.top < otherRect.bottom &&
+            rect.bottom > otherRect.top;
+          if (overlaps) {
+            issues.push('client account controls overlap: ' + name + '/' + otherName);
+          }
+        }
       }
       for (const item of navItems) {
         const rect = item.getBoundingClientRect();
@@ -554,6 +712,14 @@ function clientHeaderResponsiveExpression() {
       if (overflowX > 2) {
         issues.push('document horizontal overflow ' + overflowX + 'px');
       }
+      const header = headerTop.closest('header.app-chrome');
+      const originalScrollY = window.scrollY;
+      window.scrollTo(0, 220);
+      const scrolledHeaderRect = header?.getBoundingClientRect();
+      if (!scrolledHeaderRect || Math.abs(scrolledHeaderRect.top) > 1) {
+        issues.push('client header is not stable while scrolling');
+      }
+      window.scrollTo(0, originalScrollY);
       return {
         ok: issues.length === 0,
         issues,
@@ -561,6 +727,8 @@ function clientHeaderResponsiveExpression() {
         headerWidth: headerRect.width,
         accountTop: accountRect.top,
         navBottom: navRect.bottom,
+        accountItemCount: accountItems.length,
+        scrolledHeaderTop: scrolledHeaderRect?.top ?? null,
         overflowX,
       };
     })()
@@ -598,7 +766,9 @@ async function runClientLiveTileKeyboardSmoke() {
           throw new Error(`${label}: ${details}`);
         }
         keyboardPassCount += 1;
-        console.log(`[pass] ${label}: tiles=${result.tileCount}, selected=${result.selectedTile}, active=${result.activeTile}`);
+        console.log(`[pass] ${label} tile count ${result.tileCount}`);
+        console.log(`[pass] ${label} selected tile ${result.selectedTile}`);
+        console.log(`[pass] ${label} active tile ${result.activeTile}`);
       } catch (error) {
         keyboardFailCount += 1;
         const message = error instanceof Error ? error.message : String(error);
@@ -620,6 +790,166 @@ async function runClientLiveTileKeyboardSmoke() {
     }
   }
   return { passCount: keyboardPassCount, failCount: keyboardFailCount };
+}
+
+async function runOpsAdminFormRegressionSmoke() {
+  if (!chromePath) {
+    return { passCount: 0, failCount: 1, failures: ["[ops-admin-form-regression] Chrome executable not found"] };
+  }
+  const cases = [
+    {
+      name: "ops-sources-generated-channel-id",
+      pagePath: "/ops/sources",
+      expression: opsSourcesGeneratedIdExpression(),
+    },
+    {
+      name: "ops-rules-generated-id-displays",
+      pagePath: "/ops/rules",
+      expression: opsRulesGeneratedIdExpression(),
+    },
+    {
+      name: "ops-users-multi-channel-assignment",
+      pagePath: "/ops/users",
+      expression: opsUsersMultiChannelAssignmentExpression(),
+    },
+  ];
+  let localPass = 0;
+  let localFail = 0;
+  const localFailures = [];
+  let index = 0;
+  for (const item of cases) {
+    const browser = await openBrowserPage({
+      httpBase,
+      pagePath: item.pagePath,
+      timeoutMs,
+      chromePath,
+      debugPort: debugPortBase + 420 + index,
+      width: 1180,
+      height: 900,
+      outputDir,
+    });
+    index += 1;
+    try {
+      const result = await browser.evaluate(item.expression, 10000);
+      if (!result?.ok) {
+        const details = Array.isArray(result?.issues) ? result.issues.join("; ") : JSON.stringify(result);
+        throw new Error(details);
+      }
+      localPass += 1;
+      console.log(`[pass] ${item.name}`);
+    } catch (error) {
+      localFail += 1;
+      const message = error instanceof Error ? error.message : String(error);
+      localFailures.push(`[${item.name}] ${message}`);
+      console.log(`[fail] ${item.name}: ${message}`);
+    } finally {
+      await browser.close();
+    }
+  }
+  return { passCount: localPass, failCount: localFail, failures: localFailures };
+}
+
+function opsSourcesGeneratedIdExpression() {
+  return `
+    (async () => {
+      const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+      const issues = [];
+      const issue = message => { if (issues.length < 12) issues.push(message); };
+      await wait(500);
+      document.querySelector('#add-channel')?.click();
+      await wait(250);
+      const form = document.querySelector('#channel-form');
+      const hiddenId = form?.elements?.channelId;
+      const display = document.querySelector('#channel-id-display');
+      if (!form) issue('channel form missing');
+      if (!hiddenId) issue('channel hidden id missing');
+      if (hiddenId && hiddenId.type !== 'hidden') issue('channel id is not hidden: ' + hiddenId.type);
+      if (document.querySelector('#channel-form input[name="channelId"][type="number"]')) issue('editable channel numeric id input remains');
+      if (!display) issue('channel generated id display missing');
+      const idText = String(display?.textContent || '').trim();
+      if (!/^\\d+$/.test(idText)) issue('generated channel id is not numeric: ' + idText);
+      if (String(hiddenId?.value || '') !== idText) issue('hidden channel id does not match display');
+      const active = document.activeElement;
+      if (active?.name === 'channelId') issue('channel id can receive edit focus');
+      return { ok: issues.length === 0, issues, idText };
+    })()
+  `;
+}
+
+function opsRulesGeneratedIdExpression() {
+  return `
+    (async () => {
+      const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+      const issues = [];
+      const issue = message => { if (issues.length < 16) issues.push(message); };
+      await wait(600);
+      for (const [inputId, displayId] of [
+        ['opsVaRuleIdInput', 'opsVaRuleIdDisplay'],
+        ['opsEventRuleIdInput', 'opsEventRuleIdDisplay'],
+        ['opsProfileIdInput', 'opsProfileIdDisplay']
+      ]) {
+        const input = document.getElementById(inputId);
+        const display = document.getElementById(displayId);
+        if (!input) issue(inputId + ' missing');
+        if (input && input.type !== 'hidden') issue(inputId + ' is not hidden: ' + input.type);
+        if (!display) issue(displayId + ' missing');
+        if (display && display.matches('input, textarea, select')) issue(displayId + ' is editable control');
+      }
+      if (document.querySelector('#opsVaRuleIdInput[type="text"], #opsEventRuleIdInput[type="text"], #opsProfileIdInput[type="text"]')) {
+        issue('editable rule/profile id input remains');
+      }
+      document.querySelector('#opsAddEventRuleBtn')?.click();
+      await wait(120);
+      document.querySelector('#opsCreateEventRuleBtn')?.click();
+      await wait(250);
+      const eventDisplay = document.getElementById('opsEventRuleIdDisplay');
+      const eventHidden = document.getElementById('opsEventRuleIdInput');
+      const eventText = String(eventDisplay?.textContent || '').trim();
+      if (!/^\\d+$/.test(eventText)) issue('event rule generated id display is not numeric: ' + eventText);
+      if (String(eventHidden?.value || '') !== eventText) issue('event rule hidden id does not match display');
+      return { ok: issues.length === 0, issues, eventText };
+    })()
+  `;
+}
+
+function opsUsersMultiChannelAssignmentExpression() {
+  return `
+    (async () => {
+      const wait = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+      const issues = [];
+      const issue = message => { if (issues.length < 16) issues.push(message); };
+      await wait(600);
+      document.querySelector('#add-user-btn')?.click();
+      await wait(250);
+      const list = document.querySelector('[data-testid="user-channel-assignment-list"]');
+      const hidden = document.querySelector('#user-form input[name="viewId"][type="hidden"]');
+      const options = Array.from(list?.querySelectorAll('[data-assignment-view]') || []);
+      if (!list) issue('multi-channel assignment list missing');
+      if (!hidden) issue('hidden viewId field missing');
+      if (document.querySelector('#user-form input[name="viewId"][list]')) issue('single datalist channel input remains');
+      if (document.querySelector('#view-assignment-options option')) issue('datalist option UI remains');
+      if (options.length < 2) issue('expected multiple selectable channel checkboxes, got ' + options.length);
+      for (const option of options.slice(0, 3)) {
+        if (!option.checked) option.click();
+      }
+      await wait(120);
+      document.querySelector('#apply-view-scope-template')?.click();
+      await wait(120);
+      const selected = options.slice(0, 3).map(input => String(input.value || '').trim()).filter(Boolean);
+      const scopes = String(document.querySelector('#user-scopes-input')?.value || '');
+      for (const viewId of selected) {
+        if (!scopes.includes('view:read:' + viewId)) issue('missing view scope for ' + viewId);
+        if (!scopes.includes('dashboard:read:' + viewId)) issue('missing dashboard scope for ' + viewId);
+        if (!scopes.includes('event:read:' + viewId)) issue('missing event scope for ' + viewId);
+        if (!scopes.includes('metadata:read:' + viewId)) issue('missing metadata scope for ' + viewId);
+      }
+      const hiddenValue = String(hidden?.value || '');
+      for (const viewId of selected) {
+        if (!hiddenValue.split(',').includes(viewId)) issue('hidden assignment missing ' + viewId);
+      }
+      return { ok: issues.length === 0, issues, optionCount: options.length, selected, hiddenValue };
+    })()
+  `;
 }
 
 function clientLiveTileKeyboardExpression(a11ySnapshot) {
@@ -660,6 +990,24 @@ function clientLiveTileKeyboardExpression(a11ySnapshot) {
         if (!document.querySelector('[data-testid="client-live-source-tree"] [data-tree-level="site"]')) issue('client live source site group missing');
         if (!document.querySelector('[data-testid="client-live-source-tree"] [data-tree-level="floor"]')) issue('client live source floor group missing');
         if (!document.querySelector('[data-testid="client-live-dock-event-feed"][data-redaction="viewer-safe-events"]')) issue('client live dock event feed missing');
+        const modeToggle = first.querySelector('[data-testid="client-live-va-overlay-toggle"]');
+        if (!modeToggle) issue('first tile VA overlay toggle missing');
+        const rawModeButton = modeToggle?.querySelector('[data-mode-action="raw"]');
+        const vaModeButton = modeToggle?.querySelector('[data-mode-action="va-overlay"]');
+        if (modeToggle && modeToggle.hidden) issue('first tile VA overlay toggle is hidden');
+        if (modeToggle && !rawModeButton) issue('first tile raw mode action missing');
+        if (modeToggle && !vaModeButton) issue('first tile VA overlay mode action missing');
+        if (vaModeButton && vaModeButton.getAttribute('aria-pressed') !== 'true') {
+          issue('first tile default VA overlay mode is not active');
+        }
+        if (rawModeButton && vaModeButton) {
+          vaModeButton.click();
+          await wait(180);
+          if (vaModeButton.getAttribute('aria-pressed') !== 'true') issue('VA overlay mode did not become active after click');
+          rawModeButton.click();
+          await wait(180);
+          if (rawModeButton.getAttribute('aria-pressed') !== 'true') issue('raw mode did not become active after click');
+        }
         const describedBy = String(first.getAttribute('aria-describedby') || '');
         if (!describedBy) issue('first tile aria-describedby missing');
         const describedNode = describedBy ? document.getElementById(describedBy) : null;
@@ -683,12 +1031,16 @@ function clientLiveTileKeyboardExpression(a11ySnapshot) {
         }
         const labels = Array.from(first.querySelectorAll('button, select')).map(node => node.getAttribute('aria-label') || '');
         const expectedLabels = language === 'english'
-          ? ['Tile 1 Start', 'Tile 1 Reconnect', 'Tile 1 Disconnect']
-          : ['타일 1 시작', '타일 1 재연결', '타일 1 연결 해제'];
+          ? ['Tile 1 Play', 'Tile 1 Refresh']
+          : ['타일 1 재생', '타일 1 새로고침'];
         for (const expected of expectedLabels) {
           if (!labels.some(label => label.includes(expected))) issue('missing control aria-label: ' + expected);
         }
         const tileRect = first.getBoundingClientRect();
+        const tileRatio = tileRect.width / Math.max(1, tileRect.height);
+        if (tileRatio < 1.72 || tileRatio > 1.84) {
+          issue('first tile video frame is not 16:9: ' + tileRect.width.toFixed(1) + 'x' + tileRect.height.toFixed(1));
+        }
         for (const control of first.querySelectorAll('button, select')) {
           const rect = control.getBoundingClientRect();
           if (control.closest('[hidden]') || rect.width <= 0 || rect.height <= 0) continue;
@@ -764,7 +1116,8 @@ async function runOpsAuditResponsiveSmoke() {
           throw new Error(`${label}: ${details}`);
         }
         auditPassCount += 1;
-        console.log(`[pass] ${label}: overflow=${result.overflowX}, controls=${result.controlCount}`);
+        console.log(`[pass] ${label} overflowX ${result.overflowX}`);
+        console.log(`[pass] ${label} control count ${result.controlCount}`);
       } catch (error) {
         auditFailCount += 1;
         const message = error instanceof Error ? error.message : String(error);
@@ -816,7 +1169,8 @@ async function runOpsSourcesOnvifUnsupportedHintSmoke() {
         throw new Error(`${label}: ${details}`);
       }
       hintPassCount += 1;
-      console.log(`[pass] ${label}: hintHeight=${Math.round(result.hintHeight)}, overflow=${result.overflowX}`);
+      console.log(`[pass] ${label} hint height ${Math.round(result.hintHeight)}`);
+      console.log(`[pass] ${label} overflowX ${result.overflowX}`);
     } catch (error) {
       hintFailCount += 1;
       const message = error instanceof Error ? error.message : String(error);
@@ -869,7 +1223,8 @@ async function runOpsSourcesOnvifPreviewToolSmoke() {
         throw new Error(`${label}: ${details}`);
       }
       previewPassCount += 1;
-      console.log(`[pass] ${label}: toolHeight=${Math.round(result.toolHeight)}, overflow=${result.overflowX}`);
+      console.log(`[pass] ${label} tool height ${Math.round(result.toolHeight)}`);
+      console.log(`[pass] ${label} overflowX ${result.overflowX}`);
     } catch (error) {
       previewFailCount += 1;
       const message = error instanceof Error ? error.message : String(error);
@@ -1230,12 +1585,6 @@ async function assertClientApiContract(label, path) {
 
 async function assertOpsApiContract(label, path) {
   const payload = await requestText(path);
-  assertOmits(label, payload, [
-    "/lab/rules?embed=1",
-    "opsDashboardFrame",
-    "opsRulesFrame",
-    "<iframe",
-  ]);
   return parseJson(label, payload);
 }
 

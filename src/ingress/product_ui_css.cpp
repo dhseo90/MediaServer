@@ -248,7 +248,7 @@ std::string ProductUiCss() {
     body.product-shell .app-header-top {
       grid-template-columns: minmax(0, 1fr) minmax(0, max-content);
       min-height: 60px;
-      gap: 14px;
+      gap: 20px;
     }
     body.product-shell .app-nav-cluster {
       min-width: 0;
@@ -266,17 +266,12 @@ std::string ProductUiCss() {
     body.product-shell .brand-mark {
       width: 32px;
       height: 32px;
+      display: block;
       border-radius: 9px;
       font-size: 0;
       background: var(--color-primary);
+      color: var(--color-on-primary);
       box-shadow: 0 6px 18px color-mix(in srgb, var(--color-primary) 22%, transparent);
-    }
-    body.product-shell .brand-mark::before {
-      content: "▶";
-      margin-left: 2px;
-      color: var(--overlay-label-text);
-      font-size: 15px;
-      line-height: 1;
     }
     body.product-shell .brand-copy {
       min-width: 0;
@@ -359,7 +354,7 @@ std::string ProductUiCss() {
     }
     body.product-shell .account-menu {
       width: auto;
-      max-width: min(34vw, 340px);
+      max-width: min(42vw, 460px);
       min-width: 0;
       min-height: 44px;
       height: auto;
@@ -370,19 +365,19 @@ std::string ProductUiCss() {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
-      gap: 8px;
+      gap: 16px;
     }
     body.product-shell .account-menu-top {
       min-width: 0;
       display: flex;
       align-items: center;
-      gap: 8px;
+      gap: 16px;
     }
     body.product-shell .sketch-status-chip {
       flex: 0 0 auto;
       width: 106px;
       min-height: 26px;
-      display: inline-flex;
+      display: none;
       align-items: center;
       justify-content: center;
       gap: 6px;
@@ -404,17 +399,17 @@ std::string ProductUiCss() {
     }
     body.product-shell .account-identity {
       min-width: 0;
-      gap: 8px;
+      gap: 10px;
     }
     body.product-shell .account-avatar {
-      width: 26px;
-      height: 26px;
+      width: 30px;
+      height: 30px;
       color: var(--color-text);
     }
     body.product-shell .account-copy {
       min-width: 0;
       max-width: 132px;
-      display: flex;
+      display: none;
       align-items: center;
       gap: 6px;
     }
@@ -437,7 +432,7 @@ std::string ProductUiCss() {
     body.product-shell .account-controls {
       flex: 0 0 auto;
       flex-wrap: nowrap;
-      gap: 6px;
+      gap: 12px;
     }
     body.product-shell .account-menu > form {
       flex: 0 0 auto;
@@ -446,8 +441,8 @@ std::string ProductUiCss() {
     body.product-shell .language-select,
     body.product-shell .account-shortcut,
     body.product-shell .account-menu > form > button {
-      min-height: 34px;
-      height: 34px;
+      min-height: 36px;
+      height: 36px;
       border-radius: 7px;
       background: var(--color-bg-elevated);
     }
@@ -599,14 +594,10 @@ std::string ProductUiCss() {
     .brand-mark {
       width: 34px;
       height: 34px;
-      display: inline-grid;
-      place-items: center;
+      display: block;
       border-radius: 8px;
       background: var(--color-primary);
       color: var(--color-on-primary);
-      font-size: 12px;
-      font-weight: 950;
-      letter-spacing: 0;
     }
     .brand-copy {
       min-width: 0;
@@ -977,6 +968,13 @@ std::string ProductUiCss() {
       gap: var(--space-4);
       padding: 18px;
     }
+    .panel > *,
+    .section-card > *,
+    .card > *,
+    .grid > * {
+      min-width: 0;
+      max-width: 100%;
+    }
     .grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
@@ -1099,6 +1097,35 @@ std::string ProductUiCss() {
       color: var(--color-text-muted);
       font-size: 13px;
       font-weight: 850;
+    }
+    .form-label {
+      color: var(--color-text-muted);
+      font-size: 13px;
+      font-weight: 850;
+    }
+    .generated-id-control {
+      display: grid;
+      gap: 6px;
+      min-width: 0;
+    }
+    .generated-id-field {
+      display: inline-flex;
+      align-items: center;
+      min-height: 38px;
+      width: 100%;
+      min-width: 0;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      padding: 8px 10px;
+      background: var(--color-surface-subtle);
+      color: var(--color-text);
+      font-weight: 900;
+      font-variant-numeric: tabular-nums;
+      overflow-wrap: anywhere;
+    }
+    .generated-id-field[data-empty="true"] {
+      color: var(--color-text-muted);
+      font-weight: 800;
     }
     input,
     select,
@@ -2231,6 +2258,51 @@ std::string ProductUiCss() {
     .scope-template-actions button {
       max-width: 100%;
     }
+    .channel-assignment-field {
+      display: grid;
+      gap: 8px;
+    }
+    .channel-assignment-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 8px;
+      max-height: 220px;
+      overflow: auto;
+      padding: 8px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-subtle);
+    }
+    .channel-assignment-option {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+      gap: 8px;
+      min-height: 36px;
+      padding: 7px 8px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: var(--color-surface);
+      color: var(--color-text);
+      font-size: 13px;
+      font-weight: 800;
+    }
+    .channel-assignment-option input {
+      width: auto;
+      min-height: auto;
+      margin: 0;
+    }
+    .channel-assignment-option span {
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .channel-assignment-empty {
+      color: var(--color-text-muted);
+      font-size: 13px;
+      font-weight: 800;
+    }
     .user-lifecycle-policy .status-stat strong {
       font-size: 16px;
       line-height: 1.35;
@@ -2693,7 +2765,7 @@ std::string ProductUiCss() {
         display: grid;
         grid-template-columns: minmax(0, 1fr) auto;
         align-items: center;
-        gap: 6px;
+        gap: 10px;
         padding: 0;
       }
       body.product-shell .account-menu-top,
@@ -2703,7 +2775,7 @@ std::string ProductUiCss() {
         display: flex;
         justify-content: flex-end;
         align-items: center;
-        gap: 8px;
+        gap: 12px;
       }
       body.product-shell .account-copy,
       body.client-shell .account-copy {
@@ -2715,7 +2787,7 @@ std::string ProductUiCss() {
       }
       body.product-shell .sketch-status-chip,
       body.client-shell .sketch-status-chip {
-        padding: 0 7px;
+        display: none;
       }
       .app-header-top {
         grid-template-columns: minmax(0, 1fr) minmax(280px, 300px);
@@ -2749,14 +2821,14 @@ std::string ProductUiCss() {
         grid-template-columns: minmax(0, 1fr) auto;
         align-items: center;
         justify-content: flex-end;
-        gap: 6px;
+        gap: 10px;
         padding: 0;
       }
       body.client-shell .account-menu-top {
         min-width: 0;
         height: auto;
         justify-content: flex-end;
-        gap: 8px;
+        gap: 12px;
       }
       body.client-shell .account-identity {
         display: flex;
@@ -3161,25 +3233,35 @@ std::string ClientShellCss() {
       align-items: center;
     }
     body.client-shell .account-menu {
-      max-width: min(38vw, 390px);
+      max-width: min(42vw, 430px);
       min-height: 44px;
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
       align-items: center;
       justify-content: flex-end;
-      gap: 6px;
+      gap: 10px;
       padding: 0;
     }
     body.client-shell .account-identity {
       display: flex;
+      flex: 0 0 auto;
+    }
+    body.client-shell .account-copy {
+      display: none;
     }
     body.client-shell .language-control {
       min-width: 64px;
     }
     body.client-shell .account-menu-top {
       min-width: 0;
+      overflow: hidden;
       justify-content: flex-end;
-      gap: 8px;
+      gap: 12px;
+    }
+    body.client-shell .account-controls {
+      flex: 0 0 auto;
+      flex-wrap: nowrap;
+      gap: 10px;
     }
     body.client-shell .account-menu > form > button {
       min-width: 52px;
@@ -3714,12 +3796,16 @@ std::string ClientShellCss() {
       margin: 0;
     }
     body.client-shell header.app-chrome {
+      position: sticky;
+      top: 0;
+      z-index: 80;
       min-height: 60px;
       padding: 0 22px;
       border-width: 0 0 1px;
       border-radius: 0;
       background: color-mix(in srgb, var(--panel) 97%, transparent);
       box-shadow: 0 1px 0 color-mix(in srgb, var(--line) 70%, transparent);
+      overflow: visible;
     }
     body.client-shell header.app-chrome .app-header-top {
       grid-template-columns: minmax(0, 1fr) minmax(0, max-content);
@@ -3748,7 +3834,7 @@ std::string ClientShellCss() {
       display: none;
     }
     body.client-shell .account-menu {
-      max-width: min(34vw, 340px);
+      max-width: min(42vw, 430px);
       min-height: 44px;
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
@@ -4127,10 +4213,12 @@ std::string ClientShellCss() {
     }
     body.client-shell .live-grid,
     body.client-shell .live-grid[data-grid-size] {
-      height: calc(100vh - 92px);
+      height: auto;
+      min-height: 0;
       display: grid;
       gap: 8px;
-      grid-auto-rows: minmax(0, 1fr);
+      grid-auto-rows: auto;
+      align-content: start;
     }
     body.client-shell .live-grid[data-grid-size="1"] {
       grid-template-columns: 1fr;
@@ -4140,7 +4228,7 @@ std::string ClientShellCss() {
     }
     body.client-shell .live-grid[data-grid-size="4"] {
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      grid-template-rows: repeat(2, minmax(0, 1fr));
+      grid-template-rows: none;
     }
     body.client-shell .live-grid[data-grid-size="6"],
     body.client-shell .live-grid[data-grid-size="9"] {
@@ -4150,6 +4238,7 @@ std::string ClientShellCss() {
     body.client-shell .live-grid[data-density="compact"] .tile {
       position: relative;
       min-height: 0;
+      aspect-ratio: 16 / 9;
       display: block;
       padding: 0;
       border-radius: 8px;
@@ -4167,12 +4256,14 @@ std::string ClientShellCss() {
       inset: 12px 12px auto 12px;
       z-index: 12;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 136px;
+      grid-template-columns: minmax(0, 1fr);
       align-items: flex-start;
-      gap: 12px;
+      gap: 8px;
       pointer-events: none;
     }
     body.client-shell .tile-title {
+      grid-column: 1;
+      grid-row: 2;
       min-width: 0;
       display: flex;
       flex-direction: column;
@@ -4206,18 +4297,69 @@ std::string ClientShellCss() {
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-    body.client-shell .tile-title .chip {
+    body.client-shell .tile-status-pill {
       flex: 0 0 auto;
-      max-width: 100%;
-      width: 66px;
-      min-height: 22px;
-      padding: 2px 7px;
-      background: color-mix(in srgb, var(--accent) 90%, transparent);
-      color: var(--overlay-label-text);
+      width: auto;
+      min-width: 66px;
+      max-width: 84px;
+      min-height: 28px;
+      padding: 3px 9px;
+      border: 1px solid color-mix(in srgb, var(--color-primary) 28%, var(--line));
+      background: var(--accent-soft);
+      color: var(--color-primary-weak-text);
       justify-content: center;
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+    }
+    body.client-shell .tile-status-pill.warn {
+      border-color: color-mix(in srgb, var(--warn) 30%, var(--line));
+      background: var(--warn-soft);
+      color: var(--warn);
+    }
+    body.client-shell .tile-status-pill.bad {
+      border-color: color-mix(in srgb, var(--bad) 30%, var(--line));
+      background: var(--bad-soft);
+      color: var(--bad);
+    }
+    body.client-shell .tile-mode-controls {
+      max-width: 100%;
+      display: inline-flex;
+      flex-wrap: nowrap;
+      align-items: center;
+      gap: 3px;
+      padding: 3px;
+      border: 1px solid color-mix(in srgb, var(--overlay-label-text) 34%, transparent);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--color-code-bg) 64%, transparent);
+      backdrop-filter: blur(12px);
+      pointer-events: auto;
+    }
+    body.client-shell .tile-mode-controls[hidden],
+    body.client-shell .tile-mode-button[hidden] {
+      display: none;
+    }
+    body.client-shell .tile-mode-button {
+      min-width: 42px;
+      min-height: 26px;
+      padding: 3px 8px;
+      border: 0;
+      border-radius: 999px;
+      background: transparent;
+      color: color-mix(in srgb, var(--overlay-label-text) 86%, transparent);
+      font-size: 11px;
+      font-weight: 900;
+      line-height: 1;
+      white-space: nowrap;
+      box-shadow: none;
+    }
+    body.client-shell .tile-mode-button[aria-pressed="true"] {
+      background: color-mix(in srgb, var(--accent) 92%, transparent);
+      color: var(--overlay-label-text);
+    }
+    body.client-shell .tile-mode-button:focus-visible {
+      outline: 2px solid var(--overlay-label-text);
+      outline-offset: 2px;
     }
     body.client-shell .tile-controls {
       display: none;
@@ -4228,7 +4370,10 @@ std::string ClientShellCss() {
       pointer-events: auto;
       display: flex;
       flex-wrap: nowrap;
-      gap: 6px;
+      align-items: center;
+      gap: 7px;
+      grid-column: 1;
+      grid-row: 1;
       justify-self: end;
     }
     body.client-shell .tile-actions .icon-button {
@@ -4248,9 +4393,11 @@ std::string ClientShellCss() {
     }
     body.client-shell .tile-stage,
     body.client-shell .live-grid[data-density="compact"] .tile-stage {
-      width: 100%;
-      height: 100%;
-      min-height: 100%;
+      position: absolute;
+      inset: 0;
+      width: auto;
+      height: auto;
+      min-height: 0;
       aspect-ratio: auto;
       border-radius: 0;
       background:
@@ -4265,16 +4412,22 @@ std::string ClientShellCss() {
         var(--color-media-bg);
     }
     body.client-shell .tile-stage video {
-      object-fit: cover;
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
       filter: none;
     }
     body.client-shell .tile-stage > span[data-role="placeholder"] {
+      display: none;
       inset: 50% 22px auto 22px;
       transform: translateY(-50%);
       color: color-mix(in srgb, var(--overlay-label-text) 82%, transparent);
       text-align: center;
       font-size: 18px;
       font-weight: 700;
+    }
+    body.client-shell .tile[data-view-id=""] .tile-stage > span[data-role="placeholder"] {
+      display: block;
     }
     body.client-shell .tile-status {
       display: none;
@@ -4341,6 +4494,7 @@ std::string ClientShellCss() {
       body.client-shell .account-controls {
         flex-wrap: wrap;
         justify-content: flex-start;
+        overflow: visible;
       }
       body.client-shell .account-menu > form {
         justify-self: start;
@@ -4423,7 +4577,8 @@ std::string ClientShellCss() {
       }
       body.client-shell .tile,
       body.client-shell .live-grid[data-density="compact"] .tile {
-        min-height: 282px;
+        min-height: 0;
+        aspect-ratio: 16 / 9;
       }
       body.client-shell .client-workspace-shell:not(.live-workspace) {
         grid-template-columns: 1fr;
@@ -4452,12 +4607,37 @@ std::string ClientShellCss() {
       .tile-actions { opacity: 1; pointer-events: auto; }
       .tile-actions .icon-button { width: 44px; min-width: 44px; height: 44px; min-height: 44px; }
       body.client-shell .tile-head {
-        grid-template-columns: minmax(0, 1fr) 150px;
+        grid-template-columns: minmax(0, 1fr);
+      }
+      body.client-shell .tile-title {
+        grid-column: 1;
+        grid-row: 2;
+      }
+      body.client-shell .tile-actions {
+        grid-column: 1;
+        grid-row: 1;
+        justify-self: stretch;
+        max-width: 100%;
+        min-width: 0;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+      }
+      body.client-shell .tile-status-pill {
+        flex: 0 1 auto;
+        min-height: 44px;
+        max-width: 90px;
+      }
+      body.client-shell .tile-mode-controls {
+        flex: 0 1 auto;
       }
       body.client-shell .tile-actions .icon-button {
         width: 44px;
         min-width: 44px;
         height: 44px;
+        min-height: 44px;
+      }
+      body.client-shell .tile-mode-button {
+        min-width: 48px;
         min-height: 44px;
       }
       body.client-shell .workspace-actions[open]::after {
@@ -4475,6 +4655,11 @@ std::string ClientShellCss() {
     }
     @media (max-width: 340px) {
       .tile-actions { justify-content: flex-start; }
+      body.client-shell .tile,
+      body.client-shell .live-grid[data-density="compact"] .tile {
+        aspect-ratio: auto;
+        min-height: 176px;
+      }
     }
     @media (max-width: 560px) {
       .client-compare-head,

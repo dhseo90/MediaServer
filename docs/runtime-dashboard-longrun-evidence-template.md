@@ -35,7 +35,8 @@ updated: 2026-05-20
   cleanup count, metadata side-channel, dashboard polling에 release 판단 보류가
   남은 경우
 
-다음 변경만 있을 때는 실행하지 않고 `NOT RUN`으로 남깁니다.
+다음 변경만 있을 때는 실행하지 않고, 테스트 결과 행을 만들지 않은 채 별도
+`미실행`으로 남깁니다.
 
 - 문서, checklist, verifier wording만 바꾼 경우
 - UI/Auth/Ops 문구 또는 layout만 바꾸고 runtime fanout/media path를 건드리지 않은 경우
@@ -44,8 +45,8 @@ updated: 2026-05-20
 
 30분 longrun, cycle 검증, sample fixture는 120분 Runtime Console PASS evidence를
 대체하지 않습니다. 실행하지 않은 경우에는
-`Runtime Console 120분 longrun: NOT RUN (사용자 명시 요청 없음 또는 해당 변경 범위 아님)`으로
-보고합니다.
+`Runtime Console 120분 longrun: 미실행 (사용자 명시 요청 없음 또는 해당 변경 범위 아님)`으로
+별도 실행 상태에만 보고합니다.
 
 cycle형 증거가 필요할 때:
 
@@ -78,6 +79,11 @@ Run:
 - execution trigger:
 - not-run reason:
 - duration minutes:
+- token usage source:
+- token start:
+- token end:
+- token consumed:
+- elapsed:
 - file/source:
 - clients:
 - include-dashboard:
@@ -130,7 +136,8 @@ RSS / CPU:
 - CPU notes:
 
 Judgement:
-- PASS / WARNING / HOLD / FAIL:
+- test verdict:
+- release review state:
 - reason:
 - follow-up:
 ```
@@ -143,13 +150,19 @@ Judgement:
 
 ## 판정 기준
 
-| 판정 | 기준 |
+테스트 판정값은 `PASS`와 `FAIL`만 씁니다. `WARNING`, `HOLD`, `미실행`은 테스트
+판정값이 아니라 release review state 또는 별도 실행 상태 기록입니다.
+
+| 테스트 판정 | 기준 |
 | --- | --- |
 | PASS | summary/report가 존재하고 cleanup 후 active session/tap/SSE/WS/RTSP egress count가 0이며 `portsClean=true`입니다. DataChannel failure가 없고 idle judgement가 pass입니다. |
+| FAIL | longrun 명령 실패, port cleanup failure, dashboard polling 중단, metadata side-channel 지속 실패, RTSP/WebRTC media path 회귀가 확인됩니다. |
+
+| 별도 상태 | 기준 |
+| --- | --- |
 | WARNING | active 중 RSS가 증가했지만 cleanup 후 active count가 0이고 idle RSS가 유지/하락합니다. allocator high-water 또는 buffer pool retention 후보로 남깁니다. |
 | HOLD | cleanup count가 0으로 정리되지 않거나 idle 중 active count가 다시 증가합니다. 원인 확인 전 release gate 통과로 보지 않습니다. |
-| FAIL | longrun 명령 실패, port cleanup failure, dashboard polling 중단, metadata side-channel 지속 실패, RTSP/WebRTC media path 회귀가 확인됩니다. |
-| NOT RUN | 실행 기준에 해당하지 않거나 사용자가 명시하지 않아 longrun을 실행하지 않은 상태입니다. sample fixture, 30분 longrun, cycle 검증을 120분 PASS evidence로 대체하지 않습니다. |
+| 미실행 | 실행 기준에 해당하지 않거나 사용자가 명시하지 않아 longrun을 실행하지 않은 상태입니다. sample fixture, 30분 longrun, cycle 검증을 120분 PASS evidence로 대체하지 않습니다. |
 
 ## 확인 항목
 

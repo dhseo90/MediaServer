@@ -1019,6 +1019,7 @@ void AttachTrackHealthSnapshots(std::vector<AnalysisEvent>* events,
         std::ostringstream metadata;
         metadata << "{"
                  << "\"schema\":\"media-server.va.event-track-health.v1\","
+                 << "\"ruleId\":\"" << JsonEscape(event.rule_id) << "\","
                  << "\"eventMetadata\":" << existing_metadata << ","
                  << "\"trackHealth\":" << TrackHealthSnapshotJson(track_state->health)
                  << "}";

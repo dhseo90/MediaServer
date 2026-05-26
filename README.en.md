@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Source Release](https://img.shields.io/badge/source--only%20release-v1.7.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v1.7.0)
+[![Release Prep](https://img.shields.io/badge/source--only%20release%20prep-v1.8.0-blue)](docs/development-backlog.md)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
 video analytics overlays and rule/scenario live events when analytics are enabled.
@@ -13,8 +13,8 @@ runtime/model bundle distribution are outside the default release scope.
 
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
-- Latest source-only release: [v1.7.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.7.0)
-- v1.7.0 release close-out evidence: [docs/development-backlog.md](docs/development-backlog.md)
+- Source-only release preparation baseline: [v1.8.0](docs/development-backlog.md)
+- v1.8.0 release close-out preparation: [docs/development-backlog.md](docs/development-backlog.md)
 
 ## At a Glance
 
@@ -25,7 +25,7 @@ runtime/model bundle distribution are outside the default release scope.
   metadata. EventRecord, snapshot, and clip hooks are short event evidence
   helpers, not the central product message.
 - **Product UI**: routes users to Ops or Client views based on account
-  permissions. `/lab` UI routes stay disabled; lab endpoints remain available
+  permissions. There is no Lab product screen; lab endpoints remain available
   for API and verification workflows.
 - **Auth and scopes**: supports first-admin setup, session login, role/scope,
   admin user management, and viewer invite/request approval.
@@ -124,7 +124,7 @@ release evidence live in dedicated docs.
 - Verification commands: [docs/stream-verification.md](docs/stream-verification.md)
 - Release/version policy: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
-- v1.7.0 close-out evidence: [docs/development-backlog.md](docs/development-backlog.md)
+- v1.8.0 close-out preparation: [docs/development-backlog.md](docs/development-backlog.md)
 
 ## UI Preview
 
@@ -174,6 +174,10 @@ git diff --check
 ./server.sh verify-release-metadata
 ./server.sh verify-docs-links
 ```
+
+After main/tag/GitHub Release publication, run
+`./server.sh verify-release-metadata --published` to check GitHub Latest Release
+and the remote tag.
 
 Release-local baseline:
 

@@ -1,0 +1,74 @@
+{
+  "schema": "media-server.v180.audit-export-review-hardening-fixture.v1",
+  "rawAuditSample": {
+    "area": "rules",
+    "action": "update",
+    "target": "va-rule:tracker-review",
+    "before": {
+      "analysis": {
+        "trackingPolicy": {
+          "tracker": "bytetrack",
+          "reid": "assist"
+        },
+        "appearanceModelStatus": "approved",
+        "modelPath": "models/reid.onnx",
+        "modelSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "modelProvenance": "field-sample-private"
+      },
+      "sourceUrl": "rtsp://camera.local/private/stream",
+      "crop": "raw-crop-bytes",
+      "embedding": [0.01, 0.02]
+    },
+    "after": {
+      "analysis": {
+        "trackingPolicy": {
+          "tracker": "kalman-lite",
+          "reid": "off"
+        },
+        "appearanceModelStatus": "noop-fallback",
+        "modelPath": "models/reid.onnx",
+        "modelSha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "modelProvenance": "field-sample-private"
+      },
+      "sourceUrl": "rtsp://camera.local/private/stream"
+    }
+  },
+  "expectedSanitizedExport": {
+    "area": "rules",
+    "action": "update",
+    "target": "va-rule:tracker-review",
+    "before": {
+      "analysis": {
+        "trackingPolicy": {
+          "tracker": "bytetrack",
+          "reid": "assist"
+        },
+        "appearanceModelStatus": "approved",
+        "modelPath": "[redacted]",
+        "modelSha256": "[redacted]",
+        "modelProvenance": "[redacted]"
+      },
+      "sourceUrl": "[redacted]",
+      "crop": "[redacted]",
+      "embedding": "[redacted]"
+    },
+    "after": {
+      "analysis": {
+        "trackingPolicy": {
+          "tracker": "kalman-lite",
+          "reid": "off"
+        },
+        "appearanceModelStatus": "noop-fallback",
+        "modelPath": "[redacted]",
+        "modelSha256": "[redacted]",
+        "modelProvenance": "[redacted]"
+      },
+      "sourceUrl": "[redacted]"
+    },
+    "expectedReviewFlags": [
+      "Tracker/Re-ID bytetrack/assist -> kalman-lite/off",
+      "model/fallback approved -> noop-fallback",
+      "export masking 적용"
+    ]
+  }
+}

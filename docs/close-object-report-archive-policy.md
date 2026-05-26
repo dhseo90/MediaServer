@@ -2,7 +2,7 @@
 
 Schema: `media-server.close-object-report-archive-policy.v1`
 
-이 문서는 v1.4.0 close-object tracker 비교에서 생성되는 summary/report 산출물의
+이 문서는 v1.8.0 close-object tracker 비교에서 생성되는 summary/report 산출물의
 보존 경계를 정의합니다. 목적은 field-driving fixture 검증 evidence를 남기되,
 제품 default-on 승인, 고객 영상 보존, release asset 업로드로 과장하지 않는 것입니다.
 
@@ -33,23 +33,23 @@ Schema: `media-server.close-object-report-archive-policy.v1`
 - close-object 비교 중 생성된 raw frame, crop, embedding, model path, checksum
 - 개인정보 review가 끝나지 않은 screenshot 또는 overlay image
 - `field-new-york-driving` 외부의 승인되지 않은 field sample
-- long-running soak output을 v1.4.0 검증 완료로 표시하는 report
+- long-running soak output을 v1.8.0 검증 완료로 표시하는 report
 
 이미지 파일은 문서용 고정 asset 또는 UI screenshot artifact policy를 따릅니다.
 close-object report archive에는 raw media image를 포함하지 않습니다. UI screenshot
 검증 산출물은 기존 UI visual artifact maintenance 정책으로 관리하고, 이 정책의
 history dir에는 summary/report/index만 둡니다.
 
-## v1.4.0 판정
+## v1.8.0 판정
 
-- field-driving fixture report archive policy는 v1.4.0 안정화/릴리즈 마무리 범위입니다.
-- field sample scheduler, dataset ingest, 고객 영상 보존 자동화는 v1.4.0 범위 밖입니다.
+- field-driving fixture report archive policy는 v1.8.0 안정화/릴리즈 마무리 범위입니다.
+- field sample scheduler, dataset ingest, 고객 영상 보존 자동화는 v1.8.0 범위 밖입니다.
 - 제품 default-on 승격 검토는 별도 Phase gate입니다.
 - push, tag, GitHub Release, release asset 업로드는 명시 요청 전까지 수행하지 않습니다.
 
-## v1.5.0 Field Smoke Summary Evidence Boundary
+## v1.8.0 Field Smoke Summary Evidence Boundary
 
-v1.5.0 `V150-P1-03 Field smoke summary evidence boundary`는 이 archive
+v1.8.0 `V180-current-P1-03 Field smoke summary evidence boundary`는 이 archive
 정책을 Tracker/Re-ID opt-in field-like smoke 결과 해석까지 확장합니다.
 `field-smoke-summary-evidence`는 summary/report/history index evidence만
 retained evidence로 보존한다는 표시입니다.
@@ -83,18 +83,18 @@ field sample history review workflow 완료로 해석하지 않습니다.
   --fixture-matrix \
   --fixture-ids field-new-york-driving \
   --tracker-policy bytetrack \
-  --history-dir /private/tmp/media_server_v140_field_driving_report_archive
+  --history-dir /private/tmp/media_server_v180_field_driving_report_archive
 
 ./server.sh compare-close-object-tracker \
   --tracker-policy bytetrack \
   --reid-policy assist \
-  --history-dir /private/tmp/media_server_v140_reid_assist_warning_trend
+  --history-dir /private/tmp/media_server_v180_reid_assist_warning_trend
 ```
 
 ## 검증
 
 ```bash
-./server.sh verify-v140-report-archive-policy
+./server.sh verify-reid-advanced-tracking
 ./server.sh verify-docs-links
 git diff --check
 ```

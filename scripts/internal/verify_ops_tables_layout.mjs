@@ -122,14 +122,16 @@ for (let index = 0; index < checks.length; index += 1) {
         throw new Error(`${label}: ${details}`);
       }
       passCount += 1;
-      console.log(`[pass] ${label}: tables=${result.tableCount}, overflow=${result.overflowX}`);
+      console.log(`[pass] ${label} table count ${result.tableCount}`);
+      console.log(`[pass] ${label} overflowX ${result.overflowX}`);
       const detailResult = await browser.evaluate(detailAndAuditCheckExpression(check), 10000);
       if (!detailResult?.ok) {
         const details = Array.isArray(detailResult?.issues) ? detailResult.issues.join("; ") : JSON.stringify(detailResult);
         throw new Error(`${label}-detail-audit: ${details}`);
       }
       passCount += 1;
-      console.log(`[pass] ${label}-detail-audit: detail=${detailResult.detailChecked ? 1 : 0}, controls=${detailResult.auditControlCount}`);
+      console.log(`[pass] ${label}-detail-audit detail checked ${detailResult.detailChecked ? 1 : 0}`);
+      console.log(`[pass] ${label}-detail-audit audit controls ${detailResult.auditControlCount}`);
     }
   } catch (error) {
     failCount += 1;

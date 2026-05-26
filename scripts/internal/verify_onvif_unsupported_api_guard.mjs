@@ -44,11 +44,14 @@ const serverCode = readText("src/ingress/webrtc_http_server.cpp");
 const negativeRouteFixture = JSON.parse(readText("test/fixtures/onvif_unsupported_api_negative_routes.json"));
 const checks = [];
 
-check("unsupported API guard document pins allowed and blocked ONVIF routes", () => {
+check("unsupported API guard document pins allowed route", () => {
   assertContains(guardDoc, "POST /ops/api/onvif/import-draft", "guard doc missing allowed import draft route");
   assertContains(guardDoc, "test/fixtures/onvif_unsupported_api_negative_routes.json", "guard doc missing negative route fixture path");
   assertContains(guardDoc, "405", "guard doc missing method-not-allowed status");
   assertContains(guardDoc, "404", "guard doc missing not-found status");
+});
+
+check("unsupported API guard document pins blocked routes", () => {
   for (const term of [
     "/ops/api/onvif/discover",
     "/ops/api/onvif/ptz",
@@ -87,7 +90,7 @@ check("related docs link unsupported API guard", () => {
   assertContains(liveSupportDoc, "verify-onvif-unsupported-api-guard", "live support verification missing unsupported API guard command");
 });
 
-check("negative route matrix pins 404/405 expectations", () => {
+check("negative route matrix pins method guard expectations", () => {
   assert(negativeRouteFixture.schema === "media-server.onvif-unsupported-api-negative-routes.v1", "unexpected negative route fixture schema");
   assert(String(negativeRouteFixture.description || "").includes("not a product API contract"), "negative route fixture must avoid product API contract wording");
   assert(negativeRouteFixture.allowedRoute?.method === "POST", "allowed route method must be POST");
@@ -105,9 +108,20 @@ check("negative route matrix pins 404/405 expectations", () => {
   }
   assert(byPath.get("GET /ops/api/onvif/import-draft")?.expectedStatus === 405, "GET import-draft must be 405");
   assert(byPath.get("PUT /ops/api/onvif/import-draft")?.expectedStatus === 405, "PUT import-draft must be 405");
+});
+
+check("negative route matrix pins blocked route expectations", () => {
+  const routes = arrayAt(negativeRouteFixture, "negativeRoutes");
+  const byPath = new Map();
+  for (const route of routes) {
+    byPath.set(`${route.method} ${route.path}`, route);
+  }
   for (const path of unsupportedRoutePaths()) {
     assert(byPath.get(`POST ${path}`)?.expectedStatus === 404, `POST ${path} must be 404`);
   }
+});
+
+check("negative route matrix pins forbidden response terms", () => {
   const forbidden = arrayAt(negativeRouteFixture, "forbiddenResponseTerms");
   for (const required of ["credentialRef", "raw SOAP", "rtsp://", "rtsps://"]) {
     assert(forbidden.includes(required), `forbiddenResponseTerms missing ${required}`);
@@ -136,7 +150,7 @@ for (const item of checks) {
 if (failures === 0 && exerciseRoutes) {
   try {
     await verifyHttpNegativeRoutes();
-    console.log("[pass] negative route matrix HTTP status smoke");
+    console.log("[summary] negative route matrix HTTP status smoke complete");
   } catch (error) {
     failures += 1;
     console.log(`[fail] negative route matrix HTTP status smoke: ${error instanceof Error ? error.message : String(error)}`);
@@ -207,6 +221,7 @@ async function verifyHttpNegativeRoutes() {
     for (const forbidden of forbiddenTerms) {
       assert(!text.includes(forbidden), `${route.id}: response leaked forbidden term ${forbidden}`);
     }
+    console.log(`[pass] negative route ${route.id} HTTP ${route.expectedStatus}`);
   }
 }
 

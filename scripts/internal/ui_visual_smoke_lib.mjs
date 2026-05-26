@@ -39,7 +39,7 @@ export async function runVisualSmoke({
           outputDir,
         });
         passCount += 1;
-        console.log(`[pass] ${labelPrefix}-${label}: overflow=${result.overflowX}`);
+        console.log(`[pass] ${labelPrefix}-${label} overflowX ${result.overflowX}`);
       } catch (error) {
         failCount += 1;
         const message = error instanceof Error ? error.message : String(error);
@@ -336,7 +336,7 @@ async function launchBrowser(port, width, viewportHeight, targetUrl, options) {
         chrome.kill("SIGKILL");
       });
     }
-    fs.rmSync(userDataDir, { recursive: true, force: true });
+    fs.rmSync(userDataDir, { recursive: true, force: true, maxRetries: 3, retryDelay: 100 });
   };
   try {
     const target = await waitForAnyPageTarget(port, options.timeoutMs);
@@ -448,7 +448,11 @@ async function evaluateWithCdp(cdp, expression, evalTimeoutMs) {
   });
   if (!result || !result.result) return undefined;
   if (result.exceptionDetails) {
-    throw new Error(result.exceptionDetails.text || "Runtime.evaluate exception");
+    const detail = result.exceptionDetails.exception?.description ||
+      result.exceptionDetails.exception?.value ||
+      result.exceptionDetails.text ||
+      "Runtime.evaluate exception";
+    throw new Error(String(detail));
   }
   return result.result.value;
 }

@@ -1,9 +1,10 @@
 # ONVIF Auth Injection Design
 
 이 문서는 ONVIF SOAP probe에 credential을 주입할 때의 설계 기준을 고정합니다.
-v1.2.0에서 도입되어 현재 유지되는 구현은 명시적으로 연결된 credential provider가 `HTTP Basic` material을
-반환할 때만 `Authorization` header를 주입합니다. 기본 provider는 계속 secret 없이
-닫히며, WS-Security UsernameToken과 HTTP Digest 인증 주입은 구현 완료가 아닙니다.
+v1.8.0에서 도입된 구현은 v1.8.0 기준에도 명시적으로 연결된 credential provider가
+`HTTP Basic` material을 반환할 때만 `Authorization` header를 주입합니다. 기본 provider는
+계속 secret 없이 닫히며, WS-Security UsernameToken과 HTTP Digest 인증 주입은 구현 완료가
+아닙니다.
 
 관련 기준:
 

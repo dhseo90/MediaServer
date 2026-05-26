@@ -18,7 +18,7 @@ elif [[ "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" == "1" ]]; then
   echo "[env] skipped local override: ${ENV_FILE}"
 fi
 
-# Basic/full regression suite는 Lab/WebRTC 개발 화면을 검증한다.
+# Basic/full regression suite는 제품 UI와 현재 API를 검증한다.
 # 다른 auth 구성을 의도적으로 검증하는 경우가 아니면 명시적으로 auth-off mode를 유지한다.
 export MEDIA_SERVER_AUTH_MODE="${MEDIA_SERVER_AUTH_MODE:-off}"
 
@@ -38,13 +38,25 @@ INCLUDE_WEBRTC_ICE=0
 INCLUDE_URI_LONGRUN=0
 INCLUDE_EVENT_POST=0
 INCLUDE_PRODUCT_UI_SMOKE=0
-INCLUDE_MULTICHANNEL=0
 INCLUDE_REDACTION=0
 INCLUDE_REPORT_SUMMARY=0
 URI_LONGRUN_EXTERNAL=0
 FAIL_FAST=0
 REQUIRE_EXTERNAL_SOURCE=0
 FULL_TARGET_SECONDS="${MEDIA_SERVER_TEST_FULL_TARGET_SECONDS:-1800}"
+
+test_client_host() {
+  local value="$1"
+  if [[ -z "${value}" || "${value}" == "0.0.0.0" || "${value}" == "::" ]]; then
+    printf '127.0.0.1'
+  else
+    printf '%s' "${value}"
+  fi
+}
+
+TEST_HTTP_PORT="${MEDIA_SERVER_HTTP_LISTEN_PORT:-8080}"
+TEST_HTTP_HOST="$(test_client_host "${MEDIA_SERVER_TEST_HTTP_HOST:-${MEDIA_SERVER_VERIFY_HOST:-${MEDIA_SERVER_HTTP_LISTEN_ADDRESS:-127.0.0.1}}}")"
+TEST_HTTP_BASE="${MEDIA_SERVER_TEST_HTTP_BASE:-http://${TEST_HTTP_HOST}:${TEST_HTTP_PORT}}"
 
 usage() {
   cat <<'EOF_USAGE'
@@ -73,7 +85,6 @@ basic 기준:
   - adaptive tuner 장시간 검증
   - Product UI smoke, 룰/이벤트/POST smoke, 정적 이미지 분석 API는 full 또는 선택 검증으로 실행
   - event POST longrun과 runtime longrun/cycle은 별도 verify-*longrun 명령으로만 실행
-  - 다채널 fan-out은 초기 브라우저 harness 제거 후 별도 제품 UI harness 준비 전까지 skip
 
 Options:
   --quick             정적 검사, start, status, diagnose, LAN IP 외부 접근성까지만 실행
@@ -93,8 +104,6 @@ Options:
   --include-event-post 선택 검증: event POST schema/recovery smoke test를 추가
   --include-product-ui-smoke
                        선택 검증: /ops와 /client shell, 실제 클릭, 테이블, rules round-trip smoke를 추가
-  --include-multichannel
-                       현재 skip: 초기 브라우저 harness 제거 후 별도 제품 UI harness 필요
   --include-redaction 선택 검증: 사람 객체 자동 모자이크 image/live 검증을 추가
   --include-report-summary
                        선택 검증: /tmp summary Markdown/HTML 리포트 생성 smoke를 추가
@@ -155,9 +164,6 @@ while [[ $# -gt 0 ]]; do
       ;;
     --include-product-ui-smoke)
       INCLUDE_PRODUCT_UI_SMOKE=1
-      ;;
-    --include-multichannel)
-      INCLUDE_MULTICHANNEL=1
       ;;
     --include-redaction)
       INCLUDE_REDACTION=1
@@ -289,7 +295,7 @@ MediaServer 통합 테스트 시작
   룰 registry는 --include-rules, Rule UI는 --include-rule-ui, 이동 이벤트는 --include-va-events,
   이미지 분석은 --include-image-analysis, WebRTC ICE는 --include-webrtc-ice,
   URI 장기 검증은 --include-uri-longrun, event POST smoke는 --include-event-post,
-  다채널 fan-out은 현재 skip, 사람 모자이크는 --include-redaction으로 선택 실행 가능
+  사람 모자이크는 --include-redaction으로 선택 실행 가능
 
 EOF_HEADER
 }
@@ -588,7 +594,7 @@ else
     "va-overlay" \
     "YOLO/VA overlay 검증" \
     "VA overlay 검증 실패입니다. ONNX Runtime, YOLO 모델/라벨, detector 성능, RTSP overlay를 확인하세요." \
-    "./server.sh verify-va" || true
+    "MEDIA_SERVER_VERIFY_VA_HTTP_BASE='${TEST_HTTP_BASE}' ./server.sh verify-va" || true
 fi
 
 if [[ "${INCLUDE_EVENT_POST}" == "1" ]]; then
@@ -599,21 +605,15 @@ if [[ "${INCLUDE_EVENT_POST}" == "1" ]]; then
       "event-post-schema" \
       "선택 검증: event POST enabled schema smoke" \
       "event POST enabled schema 검증 실패입니다. 서버가 MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1로 실행됐는지와 POST worker counter를 확인하세요." \
-      "./server.sh verify-event-post --mode schema" || true
+      "./server.sh verify-event-post --mode schema --http-base '${TEST_HTTP_BASE}'" || true
     run_step \
       "event-post-recovery" \
       "선택 검증: event POST enabled recovery smoke" \
       "event POST enabled recovery 검증 실패입니다. 실패 endpoint 복구 counter와 POST worker 상태를 확인하세요." \
-      "./server.sh verify-event-post --mode recovery" || true
+      "./server.sh verify-event-post --mode recovery --http-base '${TEST_HTTP_BASE}'" || true
   fi
 else
   skip_step "event POST 선택 검증" "event POST worker smoke는 full/predev 기준입니다. 장기 반복은 전용 longrun 명령으로 분리합니다."
-fi
-
-if [[ "${INCLUDE_MULTICHANNEL}" == "1" ]]; then
-  skip_step "다채널 WebRTC 선택 검증" "초기 /webrtc/test 브라우저 harness 제거 후 별도 제품 UI harness가 아직 없어 명시적으로 생략합니다."
-else
-  skip_step "다채널 WebRTC 선택 검증" "초기 /webrtc/test 브라우저 harness 제거 후 별도 제품 UI harness가 아직 없습니다."
 fi
 
 if [[ "${INCLUDE_REDACTION}" == "1" ]]; then
@@ -626,7 +626,7 @@ if [[ "${INCLUDE_REDACTION}" == "1" ]]; then
       "redaction" \
       "선택 검증: 사람 객체 자동 모자이크 image/live" \
       "redaction 검증 실패입니다. 정적 이미지 pixel diff, RTSP overlay query, VA 제어를 확인하세요." \
-      "./server.sh verify-redaction --duration 10" || true
+      "MEDIA_SERVER_VERIFY_REDACTION_HTTP_BASE='${TEST_HTTP_BASE}' ./server.sh verify-redaction --duration 10" || true
   fi
 else
   skip_step "사람 객체 자동 모자이크 선택 검증" "redaction 승격 검증은 full/predev 또는 --include-redaction 기준입니다."
@@ -640,7 +640,7 @@ if [[ "${INCLUDE_WEBRTC_ICE}" == "1" ]]; then
       "webrtc-ice" \
       "선택 검증: WebRTC STUN/TURN/ICE policy" \
       "WebRTC ICE 검증 실패입니다. STUN/TURN URI, relay policy, TURN 계정, candidate 수집 상태를 확인하세요." \
-      "./server.sh verify-webrtc-ice" || true
+      "MEDIA_SERVER_VERIFY_WEBRTC_ICE_HTTP_BASE='${TEST_HTTP_BASE}' ./server.sh verify-webrtc-ice" || true
   fi
 else
   skip_step "WebRTC ICE 선택 검증" "실제 TURN/auth/ICE policy 검증은 환경 의존 항목이라 기본 테스트에서 제외합니다. 필요하면 --include-webrtc-ice를 사용하세요."
@@ -654,7 +654,7 @@ if [[ "${INCLUDE_RULES}" == "1" ]]; then
       "rules-registry" \
       "선택 검증: profile/rule registry API" \
       "profile/rule registry API 검증 실패입니다. /lab/analysis/profiles, /lab/analysis/rules 응답과 registry 파일 권한을 확인하세요." \
-      "bash scripts/internal/test_rule_registry.sh" || true
+      "MEDIA_SERVER_TEST_HTTP_BASE='${TEST_HTTP_BASE}' bash scripts/internal/test_rule_registry.sh" || true
   fi
 else
   skip_step "profile/rule registry 선택 검증" "아직 안정 기능으로 승격하지 않아 기본 테스트에서 제외합니다. 필요하면 --include-rules를 사용하세요."
@@ -668,7 +668,7 @@ if [[ "${INCLUDE_RULE_UI}" == "1" ]]; then
       "rule-ui-smoke" \
       "선택 검증: Rule/Profile 카테고리 UI" \
       "Rule/Profile UI 검증 실패입니다. /ops/rules DOM, 탭 이동, 카테고리 payload를 확인하세요." \
-      "./server.sh verify-rule-ui" || true
+      "./server.sh verify-rule-ui --http-base '${TEST_HTTP_BASE}'" || true
   fi
 else
   skip_step "Rule/Profile UI 선택 검증" "브라우저 자동화가 필요한 항목이라 기본 테스트에서 제외합니다. 필요하면 --include-rule-ui를 사용하세요."
@@ -713,7 +713,7 @@ if [[ "${INCLUDE_VA_EVENTS}" == "1" ]]; then
       "va-tracking-events" \
       "선택 검증: VA tracking 이벤트" \
       "VA tracking 이벤트 검증 실패입니다. 테스트 영상, YOLO 검출, trackId 유지, event rule 영역/라인을 확인하세요." \
-      "./server.sh verify-va-events" || true
+      "MEDIA_SERVER_VERIFY_VA_HTTP_BASE='${TEST_HTTP_BASE}' ./server.sh verify-va-events" || true
   fi
 else
   skip_step "VA tracking 이벤트 선택 검증" "실제 이동 영상 기반 검증은 아직 기본 기준이 아닙니다. 필요하면 --include-va-events를 사용하세요."
@@ -729,7 +729,7 @@ if [[ "${INCLUDE_IMAGE_ANALYSIS}" == "1" ]]; then
       "image-analysis" \
       "선택 검증: 정적 이미지 분석 API + tracking category" \
       "정적 이미지 분석 API 검증 실패입니다. 이미지 decode, ONNX Runtime, YOLO 모델/라벨, overlay JPEG 인코딩, trackingClasses category/all 정책을 확인하세요." \
-      "./server.sh verify-image-analysis" || true
+      "MEDIA_SERVER_VERIFY_IMAGE_HTTP_BASE='${TEST_HTTP_BASE}' ./server.sh verify-image-analysis" || true
   fi
 else
   skip_step "정적 이미지 분석 선택 검증" "개발용 endpoint라 기본 테스트에서 제외합니다. 필요하면 --include-image-analysis를 사용하세요."

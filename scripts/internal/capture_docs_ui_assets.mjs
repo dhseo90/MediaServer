@@ -296,7 +296,7 @@ async function setupClientLive(browser) {
     if (infoToggle && !infoToggle.checked) {
       infoToggle.click();
     }
-    const start = tile?.querySelector('[data-action="start"]');
+    const start = tile?.querySelector('[data-action="toggle-playback"]');
     if (start) start.click();
     return !!start;
   })()`, 8000);
@@ -305,7 +305,8 @@ async function setupClientLive(browser) {
     const root = tiles.find((tile) => (tile.textContent || '').includes('VA Test File')) || tiles[0];
     const video = root?.querySelector('video');
     const placeholder = root?.querySelector('[data-role="placeholder"]');
-    return Boolean(video && video.readyState >= 2 && placeholder?.hidden);
+    const placeholderHidden = !placeholder || placeholder.hidden || getComputedStyle(placeholder).display === 'none';
+    return Boolean(video && video.readyState >= 2 && placeholderHidden);
   })()`, 15000);
   await delay(3500);
 }

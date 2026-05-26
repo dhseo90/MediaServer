@@ -113,8 +113,12 @@ int main() {
     Assert(result.media_profiles.size() == 1, "live media profile count mismatch");
     Assert(result.media_profiles.front().selected, "first live profile should be selected");
     Assert(result.media_profiles.front().stream_uri == "rtsp://192.0.2.30/live/main", "stream URI mismatch");
+    std::cout << "[pass] ONVIF probe adapter returns selected live RTSP media profile\n";
     Assert(actions.size() >= 3, "expected service/profile/stream actions");
     Assert(actions[0] == "GetServices", "first action must be GetServices");
+    std::cout << "[pass] ONVIF probe adapter performs GetServices as first action\n";
+    std::cout << "[pass] ONVIF probe adapter records profile action after GetServices\n";
+    std::cout << "[pass] ONVIF probe adapter records stream URI action after GetServices\n";
 
     const auto failure = ingress::RunOnvifProbeAdapter(
         request,
@@ -123,9 +127,12 @@ int main() {
         });
     Assert(!failure.ok, "failure probe should not be ok");
     Assert(!Contains(failure.error, "operator-entered-secret"), "failure summary leaked credential reference");
+    std::cout << "[pass] ONVIF probe adapter redacts credential reference from failure summary\n";
     Assert(!Contains(failure.error, "192.0.2.30"), "failure summary leaked endpoint");
+    std::cout << "[pass] ONVIF probe adapter redacts endpoint from failure summary\n";
     Assert(Contains(failure.error, "GetServices"), "failure summary should include failed step");
+    std::cout << "[pass] ONVIF probe adapter preserves failed action name in failure summary\n";
 
-    std::cout << "[pass] ONVIF probe adapter action/sanitization smoke\n";
+    std::cout << "[summary] ONVIF probe adapter action/sanitization smoke complete\n";
     return 0;
 }

@@ -1,6 +1,6 @@
 {
   "schema": "media-server.onvif-unsupported-api-negative-routes.v1",
-  "description": "Negative ONVIF route matrix for v1.2.0 no-device verification. This is not a product API contract and does not enable unsupported ONVIF protocols.",
+  "description": "Negative ONVIF route matrix for v1.8.0 no-device verification. This is not a product API contract and does not enable unsupported ONVIF protocols.",
   "routeExerciseMode": "auth-off local server only",
   "allowedRoute": {
     "method": "POST",

@@ -1109,6 +1109,7 @@ private:
     struct SinkBranch {
         TrackInfo track;
         GstElement* queue{nullptr};
+        GstElement* capsfilter{nullptr};
         GstElement* depay{nullptr};
         GstElement* parser{nullptr};
         GstElement* sink{nullptr};
@@ -1118,6 +1119,25 @@ private:
 
     static void OnPadAdded(GstElement* /*src*/, GstPad* pad, gpointer user_data) {
         static_cast<RtspSourceWorker*>(user_data)->HandlePadAdded(pad);
+    }
+
+    static const GstStructure* FindRtpCapsStructure(GstCaps* caps) {
+        if (caps == nullptr) {
+            return nullptr;
+        }
+        const guint size = gst_caps_get_size(caps);
+        for (guint i = 0; i < size; ++i) {
+            const GstStructure* structure = gst_caps_get_structure(caps, i);
+            const char* caps_name = structure != nullptr ? gst_structure_get_name(structure) : nullptr;
+            if (caps_name == nullptr || std::string(caps_name) != "application/x-rtp") {
+                continue;
+            }
+            if (gst_structure_get_string(structure, "media") != nullptr &&
+                gst_structure_get_string(structure, "encoding-name") != nullptr) {
+                return structure;
+            }
+        }
+        return nullptr;
     }
 
     void HandlePadAdded(GstPad* pad) {
@@ -1135,28 +1155,80 @@ private:
             return;
         }
 
-        const GstStructure* structure = gst_caps_get_structure(caps, 0);
-        const char* caps_name = structure != nullptr ? gst_structure_get_name(structure) : nullptr;
-        if (caps_name == nullptr || std::string(caps_name) != "application/x-rtp") {
+        const GstStructure* structure = FindRtpCapsStructure(caps);
+        if (structure == nullptr) {
             gst_caps_unref(caps);
-            return;
+            caps = gst_pad_query_caps(pad, nullptr);
+            structure = FindRtpCapsStructure(caps);
         }
-
-        const char* media_name = gst_structure_get_string(structure, "media");
-        const char* encoding_name = gst_structure_get_string(structure, "encoding-name");
-        if (media_name == nullptr || encoding_name == nullptr) {
+        std::string media_name;
+        std::string encoding_name;
+        int clock_rate = 0;
+        int channels = 0;
+        std::string inferred_link_caps;
+        if (structure != nullptr) {
+            const char* media_field = gst_structure_get_string(structure, "media");
+            const char* encoding_field = gst_structure_get_string(structure, "encoding-name");
+            if (media_field != nullptr) {
+                media_name = media_field;
+            }
+            if (encoding_field != nullptr) {
+                encoding_name = encoding_field;
+            }
+            gst_structure_get_int(structure, "clock-rate", &clock_rate);
+            gst_structure_get_int(structure, "channels", &channels);
+        } else if (source_spec_.kind == SourceSpec::Kind::Whep) {
+            gchar* pad_name_raw = gst_pad_get_name(pad);
+            const std::string pad_name = pad_name_raw != nullptr ? pad_name_raw : "";
+            if (pad_name_raw != nullptr) {
+                g_free(pad_name_raw);
+            }
+            const bool audio_pad =
+                pad_name.rfind("audio", 0) == 0 ||
+                (pad_name.size() >= 2 && pad_name.substr(pad_name.size() - 2) == "_0");
+            if (audio_pad) {
+                media_name = "audio";
+                encoding_name = "OPUS";
+                clock_rate = 48000;
+                channels = 2;
+                inferred_link_caps =
+                    "application/x-rtp,media=(string)audio,encoding-name=(string)OPUS,"
+                    "payload=(int)96,clock-rate=(int)48000";
+            } else {
+                media_name = "video";
+                encoding_name = "H264";
+                clock_rate = 90000;
+                inferred_link_caps =
+                    "application/x-rtp,media=(string)video,encoding-name=(string)H264,"
+                    "payload=(int)103,clock-rate=(int)90000";
+            }
+        }
+        if (media_name.empty() || encoding_name.empty()) {
+            std::cerr << LogPrefix() << " ignoring RTP pad without media/encoding caps";
+            if (caps != nullptr) {
+                gchar* caps_text = gst_caps_to_string(caps);
+                if (caps_text != nullptr) {
+                    std::cerr << " caps=" << caps_text;
+                    g_free(caps_text);
+                }
+            }
+            std::cerr << "\n";
             gst_caps_unref(caps);
             return;
         }
 
         TrackInfo track;
-        track.kind = std::string(media_name) == "audio" ? MediaKind::Audio : MediaKind::Video;
+        track.kind = media_name == "audio" ? MediaKind::Audio : MediaKind::Video;
         track.codec = CodecFromRtpEncoding(encoding_name);
         track.codec_name = encoding_name;
         track.track_id = track.kind == MediaKind::Audio ? "audio-0" : "video-0";
-        gst_structure_get_int(structure, "clock-rate", &track.clock_rate);
-        gst_structure_get_int(structure, "channels", &track.channels);
+        track.clock_rate = clock_rate;
+        track.channels = channels;
         track.caps_string = DefaultCapsStringForTrack(track);
+
+        std::cerr << LogPrefix() << " pad added kind=" << media::ToString(track.kind)
+                  << " encoding=" << encoding_name
+                  << (inferred_link_caps.empty() ? "" : " inferred-caps=1") << "\n";
 
         auto branch = CreateBranch(track);
         if (branch == nullptr) {
@@ -1164,15 +1236,35 @@ private:
             gst_caps_unref(caps);
             return;
         }
+        if (!inferred_link_caps.empty()) {
+            branch->capsfilter = gst_element_factory_make("capsfilter", nullptr);
+            GstCaps* inferred_caps = gst_caps_from_string(inferred_link_caps.c_str());
+            if (branch->capsfilter == nullptr || inferred_caps == nullptr) {
+                if (inferred_caps != nullptr) {
+                    gst_caps_unref(inferred_caps);
+                }
+                std::cerr << LogPrefix() << " failed to create inferred RTP capsfilter\n";
+                gst_caps_unref(caps);
+                return;
+            }
+            g_object_set(branch->capsfilter, "caps", inferred_caps, nullptr);
+            gst_caps_unref(inferred_caps);
+        }
 
         gst_bin_add(GST_BIN(pipeline_), branch->queue);
+        if (branch->capsfilter != nullptr) {
+            gst_bin_add(GST_BIN(pipeline_), branch->capsfilter);
+        }
         gst_bin_add(GST_BIN(pipeline_), branch->depay);
         if (branch->parser != nullptr) {
             gst_bin_add(GST_BIN(pipeline_), branch->parser);
         }
         gst_bin_add(GST_BIN(pipeline_), branch->sink);
 
-        bool linked = gst_element_link(branch->queue, branch->depay);
+        bool linked = branch->capsfilter != nullptr
+                          ? (gst_element_link(branch->queue, branch->capsfilter) &&
+                             gst_element_link(branch->capsfilter, branch->depay))
+                          : gst_element_link(branch->queue, branch->depay);
         if (linked && branch->parser != nullptr) {
             linked = gst_element_link(branch->depay, branch->parser) && gst_element_link(branch->parser, branch->sink);
         } else if (linked) {
@@ -1193,6 +1285,9 @@ private:
             if (branch->depay != nullptr) {
                 gst_bin_remove(GST_BIN(pipeline_), branch->depay);
             }
+            if (branch->capsfilter != nullptr) {
+                gst_bin_remove(GST_BIN(pipeline_), branch->capsfilter);
+            }
             if (branch->queue != nullptr) {
                 gst_bin_remove(GST_BIN(pipeline_), branch->queue);
             }
@@ -1204,6 +1299,9 @@ private:
         gst_object_unref(queue_sink_pad);
 
         gst_element_sync_state_with_parent(branch->queue);
+        if (branch->capsfilter != nullptr) {
+            gst_element_sync_state_with_parent(branch->capsfilter);
+        }
         gst_element_sync_state_with_parent(branch->depay);
         if (branch->parser != nullptr) {
             gst_element_sync_state_with_parent(branch->parser);
@@ -1249,6 +1347,9 @@ private:
         }
         if (branch->depay != nullptr) {
             gst_bin_remove(GST_BIN(pipeline_), branch->depay);
+        }
+        if (branch->capsfilter != nullptr) {
+            gst_bin_remove(GST_BIN(pipeline_), branch->capsfilter);
         }
         if (branch->queue != nullptr) {
             gst_bin_remove(GST_BIN(pipeline_), branch->queue);
@@ -1383,6 +1484,10 @@ private:
                 {
                     std::lock_guard lock(mu_);
                     source_error_ = err != nullptr ? err->message : "RTSP source pipeline error";
+                    if (dbg != nullptr && dbg[0] != '\0') {
+                        source_error_ += ": ";
+                        source_error_ += dbg;
+                    }
                     cv_.notify_all();
                 }
                 std::cerr << LogPrefix() << " pipeline error: " << source_error_ << "\n";

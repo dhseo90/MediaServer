@@ -264,9 +264,6 @@ gst-inspect-1.0 uridecodebin
 ./server.sh verify-predev --quick
 ```
 
-초기 WebRTC 브라우저 테스트 화면에 의존하던 `verify-multichannel`은 현재 제품 UI 기준에서 skip됩니다.
-느린 RTSP/WebRTC 다채널 재생 검증은 별도 제품 UI harness가 준비될 때 장기 검증으로만 다룹니다.
-
 `verify-predev --quick`와 `./server.sh test*` 계열은 느립니다.
 기본 추가 RTSP/WebRTC source 영상과 codec matrix를 사용하기 때문입니다.
 
@@ -300,7 +297,9 @@ VA Metadata Runtime Console 계열 검증은 선택 검증입니다.
 - 단기 명령은 summary JSON 경로를 출력합니다.
 - `verify-va-runtime-console-longrun`은 summary JSON과 Markdown report를 함께 생성합니다.
 - 120분 Runtime Console longrun은 release candidate, 사용자 명시 요청, 또는 Runtime Console/VA metadata fanout/media path 고위험 변경에서만 실행합니다.
-- 문서/checklist/template 정리만 했으면 120분 longrun은 `NOT RUN`으로 보고하고 30분 longrun이나 sample fixture를 120분 PASS evidence로 대체하지 않습니다.
+- 문서/checklist/template 정리만 했으면 120분 longrun은 테스트 결과 행을 만들지 않고
+  별도 `미실행`으로만 기록하며, 30분 longrun이나 sample fixture를 120분 PASS
+  evidence로 대체하지 않습니다.
 
 ## Auth Bootstrap 개발 확인
 
@@ -341,8 +340,7 @@ MEDIA_SERVER_AUTH_USERS_FILE=/tmp/media-server-bootstrap-users.json \
 - CLI는 `./server.sh auth-user list`, `add`, `reset-password`, `disable`, `enable`을 사용하고 비밀번호는 기본 prompt로 입력
 
 제품 UI 검증은 명시적으로 auth off 서버에서 실행합니다.
-`/lab`, `/lab/rules`, `/lab/import` 화면 route는 404로 닫혀 있습니다.
-새 검증은 Ops 화면을 기준으로 합니다.
+새 검증은 Ops/Client 화면과 현재 `/lab/analysis/*` API 경계를 기준으로 합니다.
 
 ```bash
 MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground

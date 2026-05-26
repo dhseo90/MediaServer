@@ -2,10 +2,13 @@
 
 이 문서는 Auth, Ops, Client 제품 UI의 현재 화면 구조와 운영 기준을 설명합니다.
 서버 실행/검증 명령은 [development-guide.md](./development-guide.md),
+UI 풀테스트 기준은 [manual-ui-fulltest.md](./manual-ui-fulltest.md),
 브라우저 수동 검수 순서는 [manual-ui-checklist.md](./manual-ui-checklist.md),
 수동 검수 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md),
+기능별 UI 필요/테스트 영역 분류는
+[project-feature-test-inventory.md](./project-feature-test-inventory.md),
 VA 내부 구조는 [video-analysis.md](./video-analysis.md)를 봅니다.
-`/lab` 화면 route는 제품 UI에서 제거했고 개발/검증 API만 유지합니다.
+제품 화면은 Ops/Client 기준으로 두고, 개발/검증 API는 별도로 유지합니다.
 
 ## 1. UI 개요
 
@@ -34,7 +37,7 @@ card, button, form, table, badge는 같은 semantic color 규칙을 공유합니
 제품 shell에 직접 노출하지 않고 API와 검증 명령에서 확인합니다.
 client/viewer shell에는 내부 진단 응답, debug 정보, developer/source URL을 노출하지 않습니다.
 
-v1.2.0에서 도입되어 v1.3.0에서도 유지되는 product shell은 ERP/운영 콘솔형 밀도를 따릅니다.
+v1.8.0에서 도입되어 v1.8.0에서도 유지되는 product shell은 ERP/운영 콘솔형 밀도를 따릅니다.
 상단에는 compact brand/nav/account header를 두고,
 본문은 metric card, dense table, form section, right/detail panel을 같은
 8px 이하 radius와 semantic token으로 맞춥니다. 장식용 hero, 큰 카드 나열,
@@ -49,13 +52,13 @@ v1.2.0에서 도입되어 v1.3.0에서도 유지되는 product shell은 ERP/운�
 
 ### 1.1 Design token/component inventory
 
-v1.2.0 이후, 현재 v1.7.0까지의 UI 변경은 아래 inventory를 기준으로 합니다.
+v1.8.0 이후, 현재 v1.8.0까지의 UI 변경은 아래 inventory를 기준으로 합니다.
 새 색상, radius, spacing, shadow, table row, detail panel, client tile을 추가하기 전에
 먼저 같은 계층의 기존 token/class/helper로 표현할 수 있는지 확인합니다.
 
 | 계층 | 소스 | 현재 계약 | 회귀 guard |
 | --- | --- | --- | --- |
-| Design tokens | `ProductDesignTokensCss()` | `--color-*`, `--space-*`, `--radius-*`, `--shadow-*`, overlay token, legacy alias(`--bg`, `--panel`, `--ink`)를 light/dark 양쪽에서 정의합니다. page-specific hex/rgb color는 `ProductDesignTokensCss()` 밖에 추가하지 않습니다. | `verify-product-ui-token-drift`, `verify-ops-client-ui --screenshots`, `verify-docs-ui-assets` |
+| Design tokens | `ProductDesignTokensCss()` | `--color-*`, `--space-*`, `--radius-*`, `--shadow-*`, overlay token, short alias(`--bg`, `--panel`, `--ink`)를 light/dark 양쪽에서 정의합니다. page-specific hex/rgb color는 `ProductDesignTokensCss()` 밖에 추가하지 않습니다. | `verify-product-ui-token-drift`, `verify-ops-client-ui --screenshots`, `verify-docs-ui-assets` |
 | Product shell | `ProductUiCss()`, `AppendOpsShellStart/End`, `AppendAuthShellStart/End` | compact app chrome, image nav, account menu, `section-card`, `metric-card`, `button`, `status-badge`, form/grid, empty/table-empty 상태를 Auth/Ops/Client가 공유합니다. | `verify-auth-bootstrap`, `verify-ops-client-ui` |
 | Ops data surfaces | `ProductSharedUiScript()`, `AppendOpsShellScript()`, route별 page script | `ops-responsive-table`, `ops-row-actions`, `ops-detail-panel`, `ops-audit-panel`, `root-cause-*`를 표준 표/상세/감사/진단 surface로 유지합니다. | `verify-ops-client-ui`, `verify-ops-click-e2e`, `verify-rule-ui` |
 | Client surfaces | `ClientShellCss()`, `AppendClientShellScript()` | `client-compare-*`, `client-loading-state`, `live-monitor`, `live-toolbar`, `live-grid`, `tile-*`로 viewer live/dashboard를 구성합니다. source URL, raw JSON, debug counter, rule/profile editor는 노출하지 않습니다. | `verify-client-dashboard-polish`, `verify-ops-client-ui --screenshots` |
@@ -122,7 +125,7 @@ UI ownership 기준:
   - 책임: design token, product shell CSS, client shell CSS
   - 주의: 색상/spacing/radius는 semantic token 우선으로 유지합니다.
 - Product JS: `product_ui_js.*`
-  - 책임: `MediaServerUi` helper, theme persistence, iframe theme sync
+  - 책임: `MediaServerUi` helper, theme persistence
   - 주의: API schema나 route별 payload를 넣지 않습니다.
 - Product page scripts: `product_ui_page_scripts.*`
   - 책임: route별 Ops/Client form/table/live monitor script
@@ -146,7 +149,7 @@ UI ownership 기준:
 
 `/ops/rules`는 채널 분석 설정, 이벤트 템플릿,
 분석 프로파일을 제품 운영 화면에서 직접 관리합니다.
-`/lab/rules` iframe이나 이전 Lab 3탭을 embed하지 않습니다.
+개발/검증 editor를 iframe으로 embed하지 않습니다.
 
 룰 화면의 저장 전 검증 패널은 다음 오류를 표시합니다.
 
@@ -207,10 +210,13 @@ role/scope snapshot을 담은 HttpOnly session cookie를 받습니다.
 
 ![로그인 화면](assets/ui/auth-login.png)
 
-로컬 QA, 수동 smoke, 자동 auth smoke의 표준 테스트 계정 비밀번호는
-`qweasd0-`로 통일합니다.
-이는 검증 중 계정 상태를 일관되게 맞추기 위한 테스트 규칙이며,
-운영 배포나 제품 기본 비밀번호로 사용하지 않습니다.
+로컬 QA, 수동 smoke, 자동 auth smoke의 계정 비밀번호는 테스트 실행자가
+명시적으로 지정합니다. auth verifier는 `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`,
+`MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD`,
+`MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD`,
+`MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE`,
+`MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO`가 없으면 시작 전에 실패해야 합니다.
+문서, 스크립트, fixture에 고정 기본 비밀번호를 두지 않습니다.
 
 Password policy 기본값은 `kr-privacy`입니다.
 `/setup`과 `/password/change`는 동일한 정책을 적용합니다.
@@ -225,7 +231,7 @@ Password policy 기본값은 `kr-privacy`입니다.
 `mustChangePassword=true` 계정은 로그인 후 `/password/change`로 이동합니다.
 
 `MEDIA_SERVER_AUTH_MODE=off`는 기존 개발 자동화를 위한 명시 모드입니다.
-이 모드에서도 `/lab`, `/lab/rules`, `/lab/import` 화면 route는 404로 닫습니다.
+이 모드에서도 제품 화면은 Ops/Client 기준으로 검증하고,
 개발/검증 API만 `/lab/analysis/*` 아래에서 유지합니다.
 
 Role별 이동:
@@ -322,9 +328,6 @@ Route 역할:
   admin/operator 또는 `lab:read` scope용 개발/검증 API입니다.
   viewer/client 기본 계정은 접근할 수 없고,
   rule/profile/vaRule 변경 API는 `rule:write` scope를 추가로 요구합니다.
-  `/lab`, `/lab/rules`, `/lab/import` 화면 route는 404로 닫습니다.
-- `/webrtc/test`:
-  초기 브라우저 테스트 화면은 404로 닫고 제품 UI 진입점으로 사용하지 않습니다.
 
 ![운영 대시보드](assets/ui/ops-dashboard.png)
 
@@ -453,12 +456,10 @@ client/viewer shell과 client API에는 source URL, raw JSON, debug counter,
 `analysisTapId`, Scenario Timeline debug object를 노출하지 않습니다.
 raw JSON이 필요한 경우에도 운영자 debug details 접힘 영역 또는
 개발/검증 API에서만 확인합니다.
-v1.6.0 client debug/source/model/auth material 비노출 guard는
-[v1.6.0 Client/Ops Debug Exposure Regression Guard](./v1.6.0-debug-exposure-regression-guard.md)와
-`./server.sh verify-v160-debug-exposure-regression-guard`로 확인합니다.
-v1.6.0 audit/export masking regression guard는
-[v1.6.0 Audit Export Masking Regression Hardening](./v1.6.0-audit-export-masking-regression-hardening.md)와
-`./server.sh verify-v160-audit-export-masking-regression-hardening`로 확인합니다.
+client debug/source/model/auth material 비노출 guard는 `verify-ops-client-ui`,
+`verify-ops-client-ui --screenshots`, `verify-auth-routes`로 확인합니다.
+audit/export masking regression guard는 `verify-ops-audit-trail`,
+`verify-ops-audit-persistence`, `verify-ops-event-records-scope`로 확인합니다.
 
 ## 3. Admin User Management
 
@@ -519,15 +520,17 @@ UI/API 응답에 노출하지 않습니다.
   변경 이력 패널은 검색, 작업자/사용자/대상/action/기간 필터,
   offset 기반 이전/다음 페이지, JSON/CSV export, Diff JSON export,
   전/후 diff 상세 모달을 공통으로 제공합니다.
-  v1.5.0 `Audit export review hardening` 이후 룰 감사 항목은 Tracker/Re-ID
+  v1.8.0 `Audit export review hardening` 이후 룰 감사 항목은 Tracker/Re-ID
   전/후 설정과 model/fallback status-only 값을 review chip으로 표시합니다.
   model/source material, source URL/URI/file, model path/checksum/provenance,
   raw media/crop/embedding은 서버 조회와 JSON/CSV/Diff JSON export, 브라우저
   fallback cache에서 `[redacted]`로 유지합니다.
-  이 경계는 `verify-v150-audit-export-review-hardening`으로 확인합니다.
-  v1.6.0 `Audit Export Masking Regression Hardening`은 여기에 auth/session,
+  이 경계는 `verify-ops-audit-trail`, `verify-ops-audit-persistence`,
+  `verify-reid-advanced-tracking`으로 확인합니다.
+  v1.8.0 `Audit Export Masking Regression Hardening`은 여기에 auth/session,
   password/token/hash/secret/credential/capability material 비노출 guard를 더해
-  `verify-v160-audit-export-masking-regression-hardening`으로 확인합니다.
+  `verify-auth-users`, `verify-auth-routes`, `verify-ops-audit-persistence`로
+  확인합니다.
   채널/사용자 변경 이력 필터는 작은 화면에서 table/action 영역을
   침범하지 않는 별도 responsive contract입니다. 320/390px 기준으로
   시작/종료 input은 `min-width: 0` 흐름 안에서 한 줄 또는 다음 줄로
@@ -668,6 +671,10 @@ source 원본 URL, file/url/source override,
 내부 진단 응답, rule/profile 수정 UI는 노출하지 않습니다.
 `va-rule` mode는 PublishedView의 `allowedRuleIds`와
 rule source 일치 검증을 모두 통과해야 합니다.
+검증은 새 client session 생성 시점에 수행하며, 이미 생성된 client session은
+이후 `allowedRuleIds`가 변경되어도 자신의 session alias로 ICE/DELETE를
+마칠 수 있습니다. 같은 rule을 새로 적용하는 요청은 변경된 `allowedRuleIds`를
+다시 검사합니다.
 viewer/client 계정은 직접 `/webrtc/session`, `/whep`, `/whip/publish`
 생성 route를 호출할 수 없습니다.
 
@@ -765,7 +772,7 @@ PeerConnection, DataChannel, server WebRTC session을 정리합니다.
 PublishedView가 raw/overlay 전용이면 채널 탭에서
 보기 방식과 허용 룰 목록을 먼저 정리한 뒤 룰을 저장합니다.
 
-Rule validation matrix는 inactive profile/template, priority conflict,
+Rule validation matrix는 duplicate id, missing reference, inactive profile/template, priority conflict,
 unauthorized view, VA class mismatch, source mismatch를 fixture 기준으로 고정합니다.
 UI 저장 전 차단과 서버 저장 API 차단 메시지가 따로 흔들리지 않도록
 `verify-ops-rule-validation-matrix`에서 검증합니다.
@@ -1479,7 +1486,8 @@ Screenshot 관리 정책:
 | 파일명 | 역할 기반 이름 사용 |
 | 기본 theme | dark mode 대표 화면 |
 | 링크 정책 | 새 이미지가 없으면 broken link 대신 “이미지 추가 예정” 문구 사용 |
-| 현재 대표 이미지 | 2026-05-23 v1.7.0 UI-first close-out 기준 재캡처. Client Live는 source tree, dock event feed, workspace preset, tile action/VA overlay 구조를 포함 |
+| 현재 대표 이미지 | 2026-05-23 v1.8.0 release baseline 기준 재캡처. Client Live는 source tree, dock event feed, workspace preset, tile action/VA overlay 구조를 포함 |
+| 관리 목록 | `config/docs_ui_assets.json`의 managed asset list가 파일명, capture task, 최소 크기, direct review checklist를 고정 |
 | 재캡처 | `node scripts/internal/capture_docs_ui_assets.mjs --http-base http://127.0.0.1:8082` |
 | 기준 검증 | `./server.sh verify-docs-ui-assets` |
 | visual regression 산출물 | `verify-ops-client-ui --screenshots --output-dir <dir>` 실행 후 `<dir>/visual-regression-manifest.json`, `<dir>/index.md` |

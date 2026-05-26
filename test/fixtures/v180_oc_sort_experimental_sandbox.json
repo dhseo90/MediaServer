@@ -1,0 +1,56 @@
+{
+  "schema": "media-server.v180.oc-sort-experimental-sandbox-fixture.v1",
+  "roadmapId": "V180-current-P2-01",
+  "title": "OC-SORT experimental sandbox",
+  "status": "manifest-only",
+  "experimentalSandbox": {
+    "id": "oc-sort",
+    "algorithmAdapter": false,
+    "runtimeTrackerPolicy": "",
+    "requiresExplicitFlag": true,
+    "compareFlag": "--experimental-sandbox oc-sort",
+    "allowedRuntimeTrackerPolicies": ["lite", "kalman-lite", "bytetrack"],
+    "rejectedRuntimeTrackerPolicies": ["oc-sort", "ocsort", "oc_sort"],
+    "defaultOnCandidate": false,
+    "productDefaultOn": false
+  },
+  "compareCommands": [
+    "./server.sh compare-close-object-tracker --list-experimental-sandboxes",
+    "./server.sh compare-close-object-tracker --fixture-matrix --experimental-sandbox oc-sort --tracker-policy bytetrack --max-fixtures 1"
+  ],
+  "runtimeBoundary": {
+    "analysisTrackingPolicyTrackerValues": ["none", "lite", "kalman-lite", "bytetrack"],
+    "opsRulesTrackerOptionAdded": false,
+    "objectTrackerKindAdded": false,
+    "metadataSchemaChanged": false,
+    "mediaPathChanged": false
+  },
+  "evidenceBoundary": {
+    "retained": [
+      "summary.json",
+      "report.md",
+      "matrix-summary.json",
+      "matrix-report.md",
+      "index.json",
+      "index.md",
+      "experimentalSandbox"
+    ],
+    "excluded": [
+      "raw media",
+      "raw frame",
+      "crop",
+      "embedding",
+      "model path/checksum/provenance",
+      "source URL/URI/file",
+      "credential/auth/session material"
+    ]
+  },
+  "followUpClassification": {
+    "unclassifiedP0P1": [],
+    "laterPhase": [
+      "actual OC-SORT algorithm adapter and dataset benchmark report",
+      "ByteTrack/Kalman-lite/OC-SORT fixture matrix comparison history",
+      "field sample based tracker replacement product review"
+    ]
+  }
+}

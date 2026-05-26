@@ -62,8 +62,7 @@ ONVIF protocol/service별 지원 범위는
 5. 해당 ONVIF 채널에 VA rule이 연결되면 `/ops/rules`의 URL 복사 영역에도
    `ONVIF RTSP`, `ONVIF WHEP`, `WebRTC` 버튼을 같은 테이블 UI 규칙으로 표시합니다.
 
-`/lab/import` 화면 route는 닫힌 상태를 유지합니다. ONVIF는 `/ops/sources`의
-일반 채널 관리 흐름 안에서만 제품 UI에 노출합니다.
+ONVIF는 `/ops/sources`의 일반 채널 관리 흐름 안에서만 제품 UI에 노출합니다.
 
 ## 저장 계약
 
@@ -142,8 +141,8 @@ test/fixtures/onvif_closed_loopback_failure_matrix.json
 
 ## Media/Media2 Profile Selection Policy
 
-v1.2.0에서 도입되어 현재 유지되는 ONVIF probe는 live source 등록 draft 생성을 위한 최소 profile
-선택만 수행합니다.
+v1.8.0에서 도입된 ONVIF probe는 v1.8.0 기준에도 live source 등록 draft 생성을 위한
+최소 profile 선택만 수행합니다.
 
 선택 순서:
 
@@ -195,7 +194,7 @@ synthetic fixture, loopback transport, redaction 검증만 수행하며, 실장�
 성공은 미확인으로 보고합니다.
 이 개발 검증 결과는 [ONVIF Field Smoke Gate](./onvif-field-smoke-gate.md)의
 field smoke gate 결과와 분리합니다.
-2026-05-15 v1.2.0 ONVIF 현장 연동 개발 과정에서는 실제 ONVIF 카메라 smoke를 수행하지
+2026-05-15 v1.8.0 ONVIF 현장 연동 개발 과정에서는 실제 ONVIF 카메라 smoke를 수행하지
 않았고, 공개 인터넷의 임의 ONVIF endpoint도 실장비 대체로 사용하지 않았습니다.
 실장비 없는 성공 경로 대체 검증은 local simulator fixture smoke로만 구분해
 보고합니다.

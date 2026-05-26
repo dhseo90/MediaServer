@@ -31,10 +31,19 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 
 const checks = [];
 
-check("template defines runtime dashboard evidence schema and commands", () => {
+check("template defines runtime dashboard evidence schema", () => {
   const doc = readText("docs/runtime-dashboard-longrun-evidence-template.md");
   const required = [
     "media-server.runtime-dashboard-longrun-evidence-template.v1",
+  ];
+  for (const snippet of required) {
+    assert(doc.includes(snippet), `template missing schema snippet: ${snippet}`);
+  }
+});
+
+check("template defines runtime dashboard commands", () => {
+  const doc = readText("docs/runtime-dashboard-longrun-evidence-template.md");
+  const required = [
     "./server.sh verify-va-runtime-console-longrun",
     "--duration-minutes 120",
     "--include-sidechannel",
@@ -45,7 +54,7 @@ check("template defines runtime dashboard evidence schema and commands", () => {
     "run_va_runtime_120=true",
     "사용자가 `verify-va-runtime-console-longrun --duration-minutes 120` 실행을",
     "문서, checklist, verifier wording만 바꾼 경우",
-    "Runtime Console 120분 longrun: NOT RUN",
+    "Runtime Console 120분 longrun: 미실행",
     "./server.sh verify-va-runtime-console-cycles",
   ];
   for (const snippet of required) {
@@ -81,14 +90,24 @@ check("template captures required evidence fields", () => {
   }
 });
 
-check("template separates judgement states and non-execution reporting", () => {
+check("template separates judgement states", () => {
   const doc = readText("docs/runtime-dashboard-longrun-evidence-template.md");
   const required = [
+    "테스트 판정값은 `PASS`와 `FAIL`만 씁니다.",
     "| PASS |",
+    "| FAIL |",
     "| WARNING |",
     "| HOLD |",
-    "| FAIL |",
-    "| NOT RUN |",
+    "| 미실행 |",
+  ];
+  for (const snippet of required) {
+    assert(doc.includes(snippet), `template missing judgement snippet: ${snippet}`);
+  }
+});
+
+check("template separates non-execution reporting", () => {
+  const doc = readText("docs/runtime-dashboard-longrun-evidence-template.md");
+  const required = [
     "장시간 테스트를 실행하지 않습니다",
     "실제 longrun은 사용자가 명시하거나 RC gate에서 요구할 때만 실행합니다",
     "30분 longrun, cycle 검증, sample fixture는 120분 Runtime Console PASS evidence를",

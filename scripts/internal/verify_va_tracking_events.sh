@@ -10,20 +10,22 @@ source "${SCRIPT_DIR}/numeric_id_helpers.sh"
 media_server_apply_homebrew_gst_env
 
 ENV_FILE="${SCRIPTS_DIR}/.media_server.env"
-if [[ -f "${ENV_FILE}" ]]; then
+if [[ -f "${ENV_FILE}" && "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" != "1" ]]; then
   # shellcheck disable=SC1090
   set -a
   source "${ENV_FILE}"
   set +a
+elif [[ "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" == "1" ]]; then
+  echo "[env] skipped local override: ${ENV_FILE}"
 fi
 
 STD_AFX="${ROOT_DIR}/include/stdafx.h"
 PASS_COUNT=0
 FAIL_COUNT=0
-SKIP_COUNT=0
 TAP_ID=""
 RULE_IDS=()
 LONG_MODE=0
+DISPATCH_RECORDS="${MEDIA_SERVER_VERIFY_VA_EVENTS_DISPATCH_RECORDS:-0}"
 
 log_info() {
   echo "[info] $*"
@@ -37,11 +39,6 @@ log_pass() {
 log_fail() {
   echo "[fail] $*"
   FAIL_COUNT=$((FAIL_COUNT + 1))
-}
-
-log_skip() {
-  echo "[skip] $*"
-  SKIP_COUNT=$((SKIP_COUNT + 1))
 }
 
 require_cmd() {
@@ -64,6 +61,8 @@ Options:
   --poll-count <count>   polling 횟수. 기본 180
   --interval <seconds>   polling 간격. 기본 0.2
   --file <token>         video root 기준 이동 테스트 파일 token
+  --cookie-file <path>   auth-on 서버 검증용 curl cookie jar
+  --dispatch-records     /lab/analysis/taps/<id>/events?dispatch=1로 EventRecord 저장까지 검증
   -h, --help             도움말 출력
 
 환경 변수:
@@ -71,6 +70,9 @@ Options:
   MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S
   MEDIA_SERVER_VERIFY_VA_EVENTS_POLL_COUNT
   MEDIA_SERVER_VERIFY_VA_EVENTS_POLL_INTERVAL_S
+  MEDIA_SERVER_VERIFY_VA_EVENTS_DISPATCH_RECORDS
+  MEDIA_SERVER_VERIFY_VA_EVENTS_DISPATCH_EVERY_N  --dispatch-records 기본값은 1입니다. 미지정 시 rare event 누락을 막기 위해 모든 poll을 dispatch합니다.
+  MEDIA_SERVER_VERIFY_VA_COOKIE_FILE
 EOF_USAGE
 }
 
@@ -108,11 +110,11 @@ PY
 cleanup_runtime_documents() {
   # 파일은 삭제하지 않는다. 테스트 중 서버 registry에 만든 runtime 문서/tap만 API로 정리한다.
   if [[ -n "${TAP_ID}" ]]; then
-    curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/taps/${TAP_ID}" >/dev/null 2>&1 || true
+    curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} -X DELETE "${HTTP_BASE}/lab/analysis/taps/${TAP_ID}" >/dev/null 2>&1 || true
   fi
   for rule_id in "${RULE_IDS[@]:-}"; do
     [[ -n "${rule_id}" ]] || continue
-    curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/rules/${rule_id}" >/dev/null 2>&1 || true
+    curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} -X DELETE "${HTTP_BASE}/lab/analysis/rules/${rule_id}" >/dev/null 2>&1 || true
   done
 }
 trap cleanup_runtime_documents EXIT
@@ -125,11 +127,13 @@ HTTP_ADDRESS="${MEDIA_SERVER_HTTP_LISTEN_ADDRESS:-$(media_server_read_const_char
 HTTP_HOST="$(client_host "${MEDIA_SERVER_VERIFY_VA_HTTP_HOST:-${MEDIA_SERVER_VERIFY_HOST:-${HTTP_ADDRESS}}}")"
 HTTP_BASE="${MEDIA_SERVER_VERIFY_VA_HTTP_BASE:-http://${HTTP_HOST}:${HTTP_PORT}}"
 FILE_TOKEN="${MEDIA_SERVER_VERIFY_VA_EVENTS_FILE:-imports/va_tracking_event_1280x720_30fps_h264.mp4}"
+COOKIE_FILE="${MEDIA_SERVER_VERIFY_VA_COOKIE_FILE:-}"
 FILE_ROOT="${MEDIA_SERVER_FILE_ROOT:-$(media_server_read_const_charp "${STD_AFX}" "kFileRootPath" || true)}"
 FILE_ROOT="$(media_server_resolve_project_path "${ROOT_DIR}" "${FILE_ROOT:-video}")"
 LOCAL_FILE="${FILE_ROOT}/${FILE_TOKEN}"
 POLL_COUNT="${MEDIA_SERVER_VERIFY_VA_EVENTS_POLL_COUNT:-180}"
 POLL_INTERVAL_S="${MEDIA_SERVER_VERIFY_VA_EVENTS_POLL_INTERVAL_S:-0.2}"
+DISPATCH_EVERY_N="${MEDIA_SERVER_VERIFY_VA_EVENTS_DISPATCH_EVERY_N:-}"
 MIN_PRESENCE="${MEDIA_SERVER_VERIFY_VA_EVENTS_MIN_PRESENCE:-1}"
 MIN_ENTER="${MEDIA_SERVER_VERIFY_VA_EVENTS_MIN_ENTER:-1}"
 MIN_EXIT="${MEDIA_SERVER_VERIFY_VA_EVENTS_MIN_EXIT:-1}"
@@ -144,6 +148,7 @@ RULE_ID_COUNTER=0
 NEXT_RULE_ID=""
 RULE_MAP_FILE="/tmp/media_server_${RUN_ID}_rules.tsv"
 EVENTS_FILE="/tmp/media_server_${RUN_ID}_events.ndjson"
+EVENT_RECORDS_FILE="/tmp/media_server_${RUN_ID}_event_records.json"
 SNAPSHOT_FILE="/tmp/media_server_${RUN_ID}_snapshot.json"
 TAPS_FILE="/tmp/media_server_${RUN_ID}_taps.json"
 OVERLAY_FILE="${MEDIA_SERVER_VERIFY_VA_EVENTS_OVERLAY_FILE:-/tmp/media_server_${RUN_ID}_overlay.jpg}"
@@ -168,6 +173,13 @@ while [[ $# -gt 0 ]]; do
     --file)
       FILE_TOKEN="$2"
       shift
+      ;;
+    --cookie-file)
+      COOKIE_FILE="$2"
+      shift
+      ;;
+    --dispatch-records)
+      DISPATCH_RECORDS=1
       ;;
     -h|--help)
       usage
@@ -201,12 +213,35 @@ print(max(1, int(math.ceil(duration / interval))))
 PY
 )"
 fi
+if [[ -z "${DISPATCH_EVERY_N}" ]]; then
+  if [[ "${DISPATCH_RECORDS}" == "1" ]]; then
+    DISPATCH_EVERY_N=1
+  else
+    DISPATCH_EVERY_N=2
+  fi
+fi
 LOCAL_FILE="${FILE_ROOT}/${FILE_TOKEN}"
+CURL_AUTH_ARGS=()
+if [[ -n "${COOKIE_FILE}" ]]; then
+  if [[ ! -f "${COOKIE_FILE}" ]]; then
+    log_fail "cookie file이 없습니다: ${COOKIE_FILE}"
+    exit 1
+  fi
+  CURL_AUTH_ARGS=(-b "${COOKIE_FILE}")
+fi
 
 log_info "http_base=${HTTP_BASE}"
 log_info "file=${FILE_TOKEN}"
 log_info "local_file=${LOCAL_FILE}"
 log_info "poll=${POLL_COUNT} interval=${POLL_INTERVAL_S}s"
+log_info "dispatch_records=${DISPATCH_RECORDS}"
+if [[ ! "${DISPATCH_EVERY_N}" =~ ^[0-9]+$ || "${DISPATCH_EVERY_N}" -lt 1 ]]; then
+  log_fail "MEDIA_SERVER_VERIFY_VA_EVENTS_DISPATCH_EVERY_N 값이 잘못되었습니다: ${DISPATCH_EVERY_N}"
+  exit 1
+fi
+if [[ "${DISPATCH_RECORDS}" == "1" ]]; then
+  log_info "dispatch_every_n=${DISPATCH_EVERY_N}"
+fi
 
 if [[ ! -f "${LOCAL_FILE}" ]]; then
   log_fail "이동 이벤트 테스트 영상이 없습니다: ${LOCAL_FILE}"
@@ -214,11 +249,22 @@ if [[ ! -f "${LOCAL_FILE}" ]]; then
   exit 1
 fi
 
-if ! curl -fsS --max-time 3 "${HTTP_BASE}/health" >/dev/null; then
+if ! curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} --max-time 3 "${HTTP_BASE}/health" >/dev/null; then
   log_fail "HTTP health check 실패: ${HTTP_BASE}/health"
   exit 1
 fi
 log_pass "HTTP health ok"
+
+if [[ "${DISPATCH_RECORDS}" == "1" ]]; then
+  STORAGE_STATUS="$(curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} --max-time 3 "${HTTP_BASE}/lab/analysis/event-storage/status")"
+  STORAGE_ENABLED="$(python3 -c 'import json,sys; print("1" if json.load(sys.stdin).get("enabled") is True else "0")' <<<"${STORAGE_STATUS}")"
+  if [[ "${STORAGE_ENABLED}" != "1" ]]; then
+    log_fail "EventRecord storage is disabled; enable MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_ENABLED=1 before --dispatch-records"
+    echo "${STORAGE_STATUS}" | sed 's/^/  /'
+    exit 1
+  fi
+  log_pass "EventRecord storage enabled"
+fi
 
 next_rule_id() {
   RULE_ID_COUNTER=$((RULE_ID_COUNTER + 1))
@@ -232,7 +278,7 @@ create_rule() {
   RULE_IDS+=("${rule_id}")
   printf '%s\t%s\n' "${alias}" "${rule_id}" >> "${RULE_MAP_FILE}"
   printf '%s' "${body}" > "/tmp/media_server_${RUN_ID}_${rule_id}.json"
-  curl -fsS -X PUT "${HTTP_BASE}/lab/analysis/rules/${rule_id}" \
+  curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} -X PUT "${HTTP_BASE}/lab/analysis/rules/${rule_id}" \
     -H 'Content-Type: application/json' \
     --data-binary "@/tmp/media_server_${RUN_ID}_${rule_id}.json" >/dev/null
   log_pass "rule 저장: ${rule_id}"
@@ -289,7 +335,7 @@ create_rule "${exit_rule_id}" \
   "exit-center"
 
 ENCODED_FILE="$(urlencode_file_token "${FILE_TOKEN}")"
-TAP_RESPONSE="$(curl -fsS -X POST "${HTTP_BASE}/lab/analysis/taps?file=${ENCODED_FILE}&va=1&fps=8&maxQueue=1&trackIds=1&trackTrails=1")"
+TAP_RESPONSE="$(curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} -X POST "${HTTP_BASE}/lab/analysis/taps?file=${ENCODED_FILE}&va=1&fps=8&maxQueue=1&trackIds=1&trackTrails=1")"
 TAP_ID="$(python3 -c 'import json,sys; print(json.load(sys.stdin).get("tapId",""))' <<<"${TAP_RESPONSE}")"
 if [[ -z "${TAP_ID}" ]]; then
   log_fail "analysis tap 생성 실패"
@@ -299,14 +345,61 @@ fi
 log_pass "analysis tap 생성: ${TAP_ID}"
 
 : > "${EVENTS_FILE}"
-for _ in $(seq 1 "${POLL_COUNT}"); do
+EVENTS_PATH="${HTTP_BASE}/lab/analysis/taps/${TAP_ID}/events"
+EVENTS_DISPATCH_PATH="${EVENTS_PATH}?dispatch=1"
+DISPATCH_REQUEST_COUNT=0
+for POLL_INDEX in $(seq 1 "${POLL_COUNT}"); do
   sleep "${POLL_INTERVAL_S}"
-  curl -fsS "${HTTP_BASE}/lab/analysis/taps/${TAP_ID}/events" >> "${EVENTS_FILE}"
-  printf '\n' >> "${EVENTS_FILE}"
+  REQUEST_PATH="${EVENTS_PATH}"
+  if [[ "${DISPATCH_RECORDS}" == "1" && $((POLL_INDEX % DISPATCH_EVERY_N)) -eq 0 ]]; then
+    REQUEST_PATH="${EVENTS_DISPATCH_PATH}"
+    DISPATCH_REQUEST_COUNT=$((DISPATCH_REQUEST_COUNT + 1))
+  fi
+  EVENT_PAYLOAD="$(curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} "${REQUEST_PATH}")"
+  printf '%s\n' "${EVENT_PAYLOAD}" >> "${EVENTS_FILE}"
 done
-curl -fsS "${HTTP_BASE}/lab/analysis/taps/${TAP_ID}" > "${SNAPSHOT_FILE}"
-curl -fsS "${HTTP_BASE}/lab/analysis/taps" > "${TAPS_FILE}"
-curl -fsS "${HTTP_BASE}/lab/analysis/taps/${TAP_ID}/overlay.jpg?quality=88&thickness=4&drawLabels=1&labelLang=ko&trackIds=1&trackTrails=1" \
+if [[ "${DISPATCH_RECORDS}" == "1" ]]; then
+  log_info "event_record_dispatch_requests=${DISPATCH_REQUEST_COUNT}"
+  python3 - "${HTTP_BASE}" "${COOKIE_FILE}" <<'PY'
+import json
+import subprocess
+import sys
+import time
+
+http_base = sys.argv[1].rstrip("/")
+cookie_file = sys.argv[2]
+curl = ["curl", "-fsS"]
+if cookie_file:
+    curl += ["-b", cookie_file]
+url = f"{http_base}/lab/analysis/event-storage/status"
+deadline = time.time() + 10.0
+last = {}
+while time.time() < deadline:
+    raw = subprocess.check_output(curl + [url], text=True)
+    last = json.loads(raw)
+    if last.get("enabled") is not True:
+        print(
+            "[fail] EventRecord storage disabled during dispatch verification: "
+            f"{json.dumps(last, ensure_ascii=False)[:400]}",
+            file=sys.stderr,
+        )
+        raise SystemExit(1)
+    if int(last.get("queueSize") or 0) == 0 and int(last.get("storedCount") or 0) > 0:
+        print(
+            "[pass] EventRecord queue drained "
+            f"stored={last.get('storedCount')} failed={last.get('failedCount')} dropped={last.get('droppedCount')}"
+        )
+        raise SystemExit(0)
+    time.sleep(0.2)
+print(f"[fail] EventRecord queue drain timeout: {json.dumps(last, ensure_ascii=False)[:400]}", file=sys.stderr)
+raise SystemExit(1)
+PY
+  curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} \
+    "${HTTP_BASE}/lab/analysis/events/records?limit=5000&includeArchives=1" > "${EVENT_RECORDS_FILE}"
+fi
+curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} "${HTTP_BASE}/lab/analysis/taps/${TAP_ID}" > "${SNAPSHOT_FILE}"
+curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} "${HTTP_BASE}/lab/analysis/taps" > "${TAPS_FILE}"
+curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} "${HTTP_BASE}/lab/analysis/taps/${TAP_ID}/overlay.jpg?quality=88&thickness=4&drawLabels=1&labelLang=ko&trackIds=1&trackTrails=1" \
   -o "${OVERLAY_FILE}"
 
 python3 - \
@@ -320,11 +413,17 @@ python3 - \
   "${MIN_ENTER}" \
   "${MIN_EXIT}" \
   "${MIN_LINE}" \
-  "${MIN_UNIQUE_TRACKS}" <<'PY'
+  "${MIN_UNIQUE_TRACKS}" \
+  "${DISPATCH_RECORDS}" \
+  "${EVENT_RECORDS_FILE}" \
+  "${HTTP_BASE}" \
+  "${COOKIE_FILE}" <<'PY'
 import collections
 import json
 import pathlib
+import subprocess
 import sys
+import urllib.parse
 
 events_file = pathlib.Path(sys.argv[1])
 snapshot_file = pathlib.Path(sys.argv[2])
@@ -337,6 +436,10 @@ min_enter = int(sys.argv[8])
 min_exit = int(sys.argv[9])
 min_line = int(sys.argv[10])
 min_tracks = int(sys.argv[11])
+dispatch_records = sys.argv[12] == "1"
+event_records_file = pathlib.Path(sys.argv[13])
+http_base = sys.argv[14].rstrip("/")
+cookie_file = sys.argv[15]
 
 rule_id_by_alias = {}
 rule_alias_by_id = {}
@@ -438,6 +541,12 @@ for side in ("left", "right"):
     forward_count = rule_count(f"line-{side}-forward")
     reverse_count = rule_count(f"line-{side}-reverse")
     directed_line_total += forward_count + reverse_count
+    if any_count <= 0:
+        errors.append(f"line-{side} any 이벤트가 없습니다")
+    if forward_count <= 0:
+        errors.append(f"line-{side} forward 이벤트가 없습니다")
+    if reverse_count <= 0:
+        errors.append(f"line-{side} reverse 이벤트가 없습니다")
     if any_count > 0 and forward_count + reverse_count != any_count:
         errors.append(
             f"line-{side} direction 분할 불일치: any={any_count}, "
@@ -468,15 +577,111 @@ if "#ff0000" not in rule_colors("presence"):
 if 1500 not in rule_durations("presence"):
     errors.append("presence rule blink durationMs=1500 이벤트가 없습니다")
 
+if dispatch_records:
+    if not event_records_file.exists():
+        errors.append(f"EventRecord output missing: {event_records_file}")
+    else:
+        payload = json.loads(event_records_file.read_text())
+        records = payload.get("records", [])
+        record_counts = collections.Counter()
+        record_rule_counts = collections.Counter()
+        record_tracks = set()
+        for record in records:
+            event_type = record.get("eventType", "")
+            metadata = record.get("metadata") or {}
+            rule_id = str(metadata.get("ruleId") or metadata.get("eventRuleId") or "")
+            record_counts[event_type] += 1
+            if rule_id:
+                record_rule_counts[rule_id] += 1
+            track_id = record.get("trackId")
+            if isinstance(track_id, int) and track_id > 0:
+                record_tracks.add(track_id)
+        print("event_record_counts=", dict(record_counts))
+        print("event_record_rule_counts=", dict(record_rule_counts))
+        print("event_record_tracks=", sorted(record_tracks))
+        curl_base = ["curl", "-fsS"]
+        if cookie_file:
+            curl_base += ["-b", cookie_file]
+
+        def query_records(**params):
+            query = urllib.parse.urlencode({
+                "limit": "500",
+                "includeArchives": "1",
+                **{key: value for key, value in params.items() if value},
+            })
+            raw = subprocess.check_output(
+                curl_base + [f"{http_base}/lab/analysis/events/records?{query}"],
+                text=True,
+            )
+            return json.loads(raw).get("records", [])
+
+        filtered_specs = [
+            ("presence", "presence", "zoneId"),
+            ("presence-500ms", "presence", "zoneId"),
+            ("multi-category-presence", "presence", "zoneId"),
+            ("enter-center", "enter", "zoneId"),
+            ("exit-center", "exit", "zoneId"),
+            ("line-left", "line-crossing", "lineId"),
+            ("line-left-forward", "line-crossing", "lineId"),
+            ("line-left-reverse", "line-crossing", "lineId"),
+            ("line-right", "line-crossing", "lineId"),
+            ("line-right-forward", "line-crossing", "lineId"),
+            ("line-right-reverse", "line-crossing", "lineId"),
+        ]
+        filtered_event_types = collections.Counter()
+        filtered_tracks = set()
+        filtered_rule_counts = {}
+        for alias, event_type, id_field in filtered_specs:
+            rule_id = rule_id_by_alias.get(alias, "")
+            if not rule_id:
+                errors.append(f"EventRecord rule alias missing: {alias}")
+                continue
+            params = {"eventType": event_type, id_field: rule_id}
+            records_for_rule = query_records(**params)
+            filtered_rule_counts[alias] = len(records_for_rule)
+            filtered_event_types[event_type] += len(records_for_rule)
+            for record in records_for_rule:
+                track_id = record.get("trackId")
+                if isinstance(track_id, int) and track_id > 0:
+                    filtered_tracks.add(track_id)
+            if not records_for_rule:
+                errors.append(f"EventRecord rule {alias}({rule_id}) 저장 이력이 없습니다")
+        print("event_record_filtered_rule_counts=", filtered_rule_counts)
+        print("event_record_filtered_event_types=", dict(filtered_event_types))
+        print("event_record_filtered_tracks=", sorted(filtered_tracks))
+        for event_type in ("presence", "enter", "exit", "line-crossing"):
+            if filtered_event_types.get(event_type, 0) <= 0:
+                errors.append(f"EventRecord {event_type} 저장 이력이 없습니다")
+        if len(filtered_tracks) < min_tracks:
+            errors.append(f"EventRecord trackId 종류 부족: {len(filtered_tracks)} < {min_tracks}")
+
 if errors:
     for error in errors:
         print("[fail]", error)
     raise SystemExit(1)
 PY
-log_pass "presence/enter/exit/line-crossing 이벤트 검증"
-log_pass "trackId 기반 이벤트 및 active tap 목록 검증"
-log_pass "다중 카테고리 presence 이벤트 검증"
-log_pass "이벤트 blink highlight 색상/시간 검증"
+log_pass "presence 이벤트 발생"
+log_pass "presence minDuration 이벤트 발생"
+log_pass "multi-category presence 이벤트 발생"
+log_pass "enter 이벤트 발생"
+log_pass "exit 이벤트 발생"
+log_pass "line-left any 이벤트 발생"
+log_pass "line-left forward 이벤트 발생"
+log_pass "line-left reverse 이벤트 발생"
+log_pass "line-right any 이벤트 발생"
+log_pass "line-right forward 이벤트 발생"
+log_pass "line-right reverse 이벤트 발생"
+log_pass "enter-center rule 이벤트 발생"
+log_pass "exit-center rule 이벤트 발생"
+log_pass "trackId 기반 이벤트 검증"
+log_pass "active tap 목록 검증"
+log_pass "snapshot trackCount 검증"
+log_pass "이벤트 blink highlight 색상 검증"
+log_pass "이벤트 blink highlight 시간 검증"
+if [[ "${DISPATCH_RECORDS}" == "1" ]]; then
+  log_pass "EventRecord 저장 이력 검증"
+  log_info "event_records=${EVENT_RECORDS_FILE}"
+fi
 log_info "overlay=${OVERLAY_FILE}"
 log_info "events_log=${EVENTS_FILE}"
 
@@ -484,7 +689,6 @@ echo
 echo "== VA tracking event 검증 요약 =="
 echo "- 통과: ${PASS_COUNT}"
 echo "- 실패: ${FAIL_COUNT}"
-echo "- 건너뜀: ${SKIP_COUNT}"
 if [[ ${FAIL_COUNT} -gt 0 ]]; then
   exit 1
 fi

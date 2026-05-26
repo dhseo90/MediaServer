@@ -198,6 +198,38 @@ if values[-1]["analyzed"] <= 0:
 PY
 }
 
+input_size_result_modes() {
+  python3 - "$1" <<'PY'
+import json
+import pathlib
+import sys
+
+values = []
+for line in pathlib.Path(sys.argv[1]).read_text().splitlines():
+    if not line.strip():
+        continue
+    tap = json.loads(line).get("tap") or {}
+    values.append({
+        "modelInputWidth": int(tap.get("modelInputWidth") or 0),
+        "modelInputHeight": int(tap.get("modelInputHeight") or 0),
+        "adaptiveInputSizeDisabled": bool(tap.get("adaptiveInputSizeDisabled")),
+    })
+
+downshift = any(
+    value["modelInputWidth"] <= 480 and value["modelInputHeight"] <= 480
+    for value in values
+    if value["modelInputWidth"] > 0 and value["modelInputHeight"] > 0
+)
+fallback = any(value["adaptiveInputSizeDisabled"] for value in values)
+modes = []
+if downshift:
+    modes.append("downshift")
+if fallback:
+    modes.append("fallback")
+print(" ".join(modes))
+PY
+}
+
 assert_upshift() {
   python3 - "$1" <<'PY'
 import json
@@ -277,9 +309,15 @@ INPUT_TAP="${CREATED_TAP_ID}"
 log_pass "input-size tap 생성: ${INPUT_TAP}"
 poll_tap "${INPUT_TAP}" "${INPUT_LOG}" "${POLL_COUNT}" "${POLL_INTERVAL_S}"
 if assert_input_size_fallback "${INPUT_LOG}"; then
-  log_pass "adaptive input-size downshift/fallback 검증"
+  INPUT_SIZE_MODES="$(input_size_result_modes "${INPUT_LOG}")"
+  if [[ " ${INPUT_SIZE_MODES} " == *" downshift "* ]]; then
+    log_pass "adaptive input-size downshift 검증"
+  fi
+  if [[ " ${INPUT_SIZE_MODES} " == *" fallback "* ]]; then
+    log_pass "adaptive input-size fallback disabled 검증"
+  fi
 else
-  log_fail "adaptive input-size downshift/fallback 검증 실패"
+  log_fail "adaptive input-size 조정 기준 검증 실패"
 fi
 curl -fsS -X DELETE "${HTTP_BASE}/lab/analysis/taps/${INPUT_TAP}" >/dev/null 2>&1 || true
 
@@ -337,7 +375,7 @@ summary = {
 pathlib.Path(sys.argv[4]).write_text(json.dumps(summary, ensure_ascii=False, indent=2), encoding="utf-8")
 print("adaptive_summary=", summary)
 PY
-log_pass "adaptive 상태 전환 summary 생성"
+log_pass "adaptive 상태 전환 summary artifact 생성"
 
 echo
 echo "== adaptive tuner 검증 요약 =="

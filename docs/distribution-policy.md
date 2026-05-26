@@ -11,9 +11,8 @@ Release asset 기준은 [release-policy.md](./release-policy.md)에서 함께 �
 - FFmpeg/GStreamer runtime은 사용자 package manager 설치물로 취급합니다.
 - bundle, app package, container image, offline package를 만들 때는 `./server.sh verify-bundle-policy --bundle-dir <release_bundle_dir>`를 실행합니다.
 - GPL-risk runtime을 의도적으로 포함하면 별도 라이선스 검토, upstream license text, source offer, attribution을 준비합니다.
-- v1.6.0 runtime/model bundle RC policy는
-  [v1.6.0 Runtime/Model Bundle RC Policy](./v1.6.0-runtime-model-bundle-rc-policy.md)와
-  `./server.sh verify-v160-runtime-model-bundle-rc-policy`로 확인합니다.
+- runtime/model bundle RC policy는 현재 기준에서 `verify-bundle-policy`,
+  `verify-release-bundle-dry-run`, `verify-rc-release-gate`로 확인합니다.
 
 ## 배포 유형
 

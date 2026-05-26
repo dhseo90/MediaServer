@@ -4,12 +4,22 @@
 export async function ensureRulePreviewPrerequisites({
   httpBase,
   includeVaRule = false,
+  includeInactiveReferences = false,
+  includeClassMismatch = false,
   profileStart = 9901,
   ruleStart = 9911,
   vaRuleStart = 9921,
 } = {}) {
   if (!httpBase) throw new Error("httpBase is required");
-  const created = { profileId: "", ruleId: "", vaRuleId: "" };
+  const created = {
+    profileId: "",
+    ruleId: "",
+    vaRuleId: "",
+    inactiveProfileId: "",
+    inactiveRuleId: "",
+    classMismatchProfileId: "",
+    classMismatchRuleId: "",
+  };
   const catalog = await requestJson(httpBase, "/ops/api/rules/catalog");
   const profiles = Array.isArray(catalog.profiles) ? catalog.profiles : [];
   const rules = Array.isArray(catalog.rules) ? catalog.rules : [];
@@ -40,14 +50,75 @@ export async function ensureRulePreviewPrerequisites({
       : catalog;
     const profileId = created.profileId || findFirstProfileId(nextCatalog) || "1";
     const ruleId = created.ruleId || findFirstRuleId(nextCatalog) || "1";
+    const template = (Array.isArray(nextCatalog.rules) ? nextCatalog.rules : [])
+      .find(item => String(item?.id || item?.ruleId || "").trim() === ruleId);
+    const templateClasses = classesFromRuleTemplate(template);
     created.vaRuleId = findFreeNumericId([nextCatalog.profiles, nextCatalog.rules, nextCatalog.vaRules], vaRuleStart);
     await requestJson(httpBase, `/lab/analysis/va-rules/${encodeURIComponent(created.vaRuleId)}`, {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(rulePreviewVaRulePayload(created.vaRuleId, profileId, ruleId)),
+      body: JSON.stringify(rulePreviewVaRulePayload(created.vaRuleId, profileId, ruleId, templateClasses)),
     });
   }
-  return created.profileId || created.ruleId || created.vaRuleId ? created : null;
+  if (includeInactiveReferences) {
+    const inactiveProfileCatalog = await requestJson(httpBase, "/ops/api/rules/catalog");
+    created.inactiveProfileId = findFreeNumericId(
+      [inactiveProfileCatalog.profiles, inactiveProfileCatalog.rules, inactiveProfileCatalog.vaRules],
+      profileStart + 100,
+    );
+    await requestJson(httpBase, `/lab/analysis/profiles/${encodeURIComponent(created.inactiveProfileId)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(rulePreviewProfilePayload(created.inactiveProfileId, { enabled: false })),
+    });
+    const inactiveRuleCatalog = await requestJson(httpBase, "/ops/api/rules/catalog");
+    created.inactiveRuleId = findFreeNumericId(
+      [inactiveRuleCatalog.profiles, inactiveRuleCatalog.rules, inactiveRuleCatalog.vaRules],
+      ruleStart + 100,
+    );
+    await requestJson(httpBase, `/lab/analysis/rules/${encodeURIComponent(created.inactiveRuleId)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(rulePreviewEventTemplatePayload(
+        created.inactiveRuleId,
+        findFirstProfileId(inactiveRuleCatalog) || "1",
+        { enabled: false },
+      )),
+    });
+  }
+  if (includeClassMismatch) {
+    const profileCatalog = await requestJson(httpBase, "/ops/api/rules/catalog");
+    created.classMismatchProfileId = findFreeNumericId(
+      [profileCatalog.profiles, profileCatalog.rules, profileCatalog.vaRules],
+      profileStart + 200,
+    );
+    await requestJson(httpBase, `/lab/analysis/profiles/${encodeURIComponent(created.classMismatchProfileId)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(rulePreviewProfilePayload(
+        created.classMismatchProfileId,
+        { analysisClasses: ["person"] },
+      )),
+    });
+    const ruleCatalog = await requestJson(httpBase, "/ops/api/rules/catalog");
+    created.classMismatchRuleId = findFreeNumericId(
+      [ruleCatalog.profiles, ruleCatalog.rules, ruleCatalog.vaRules],
+      ruleStart + 200,
+    );
+    await requestJson(httpBase, `/lab/analysis/rules/${encodeURIComponent(created.classMismatchRuleId)}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(rulePreviewEventTemplatePayload(
+        created.classMismatchRuleId,
+        findFirstProfileId(ruleCatalog) || "1",
+        { analysisClasses: ["vehicle"] },
+      )),
+    });
+  }
+  return created.profileId || created.ruleId || created.vaRuleId || created.inactiveProfileId || created.inactiveRuleId
+    || created.classMismatchProfileId || created.classMismatchRuleId
+    ? created
+    : null;
 }
 
 export async function cleanupRulePreviewPrerequisites({ httpBase, created } = {}) {
@@ -55,8 +126,20 @@ export async function cleanupRulePreviewPrerequisites({ httpBase, created } = {}
   if (created.vaRuleId) {
     await requestJson(httpBase, `/lab/analysis/va-rules/${encodeURIComponent(created.vaRuleId)}`, { method: "DELETE" }).catch(() => {});
   }
+  if (created.inactiveRuleId) {
+    await requestJson(httpBase, `/lab/analysis/rules/${encodeURIComponent(created.inactiveRuleId)}`, { method: "DELETE" }).catch(() => {});
+  }
   if (created.ruleId) {
     await requestJson(httpBase, `/lab/analysis/rules/${encodeURIComponent(created.ruleId)}`, { method: "DELETE" }).catch(() => {});
+  }
+  if (created.classMismatchRuleId) {
+    await requestJson(httpBase, `/lab/analysis/rules/${encodeURIComponent(created.classMismatchRuleId)}`, { method: "DELETE" }).catch(() => {});
+  }
+  if (created.inactiveProfileId) {
+    await requestJson(httpBase, `/lab/analysis/profiles/${encodeURIComponent(created.inactiveProfileId)}`, { method: "DELETE" }).catch(() => {});
+  }
+  if (created.classMismatchProfileId) {
+    await requestJson(httpBase, `/lab/analysis/profiles/${encodeURIComponent(created.classMismatchProfileId)}`, { method: "DELETE" }).catch(() => {});
   }
   if (created.profileId) {
     await requestJson(httpBase, `/lab/analysis/profiles/${encodeURIComponent(created.profileId)}`, { method: "DELETE" }).catch(() => {});
@@ -90,6 +173,18 @@ function findFirstRuleId(catalog) {
     .find(Boolean) || "";
 }
 
+function classesFromRuleTemplate(rule) {
+  const candidates = [
+    rule?.analysis?.classes,
+    rule?.scenario?.targetClasses,
+  ];
+  const classes = candidates
+    .find(value => Array.isArray(value) && value.length > 0)
+    ?.map(item => String(item || "").trim())
+    .filter(Boolean) || [];
+  return classes.length ? Array.from(new Set(classes)) : ["person"];
+}
+
 function findFreeNumericId(groups, start) {
   const used = new Set();
   for (const group of groups) {
@@ -107,9 +202,13 @@ function findFreeNumericId(groups, start) {
   throw new Error(`failed to allocate temporary rule preview id from ${start}`);
 }
 
-function rulePreviewProfilePayload(id) {
+function rulePreviewProfilePayload(id, { enabled = true, analysisClasses = ["person"] } = {}) {
+  const classes = Array.isArray(analysisClasses) && analysisClasses.length > 0
+    ? analysisClasses.map(String).filter(Boolean)
+    : ["person"];
   return {
     id,
+    enabled,
     detector: "yolo",
     fps: 6,
     maxQueue: 1,
@@ -118,15 +217,20 @@ function rulePreviewProfilePayload(id) {
     inputWidth: 640,
     inputHeight: 640,
     adaptive: true,
+    analysis: { classes },
+    trackingClasses: classes,
   };
 }
 
-function rulePreviewEventTemplatePayload(id, profileId) {
+function rulePreviewEventTemplatePayload(id, profileId, { enabled = true, analysisClasses = ["person"] } = {}) {
+  const classes = Array.isArray(analysisClasses) && analysisClasses.length > 0
+    ? analysisClasses.map(String).filter(Boolean)
+    : ["person"];
   return {
     id,
-    enabled: true,
+    enabled,
     match: { sourceKind: "*", route: "*" },
-    analysis: { profileId, classes: ["person"] },
+    analysis: { profileId, classes },
     event: {
       type: "intrusion-dwell",
       region: {
@@ -144,18 +248,19 @@ function rulePreviewEventTemplatePayload(id, profileId) {
       candidateTimeMs: 2000,
       dwellTimeMs: 10000,
       cooldownMs: 5000,
-      targetClasses: ["person"],
+      targetClasses: classes,
     },
   };
 }
 
-function rulePreviewVaRulePayload(id, profileId, ruleId) {
+function rulePreviewVaRulePayload(id, profileId, ruleId, classes = ["person"]) {
+  const normalizedClasses = Array.isArray(classes) && classes.length > 0 ? classes : ["person"];
   return {
     id,
     name: "VA Test File preview",
     enabled: true,
     source: { kind: "file", file: "va_four_scene_sample.mp4" },
-    analysis: { profileId, classes: ["person"] },
+    analysis: { profileId, classes: normalizedClasses },
     templateStart: { ruleId },
     priority: 0,
     outputs: { overlay: true, metadata: true, events: true },

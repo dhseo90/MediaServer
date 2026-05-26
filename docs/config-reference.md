@@ -61,7 +61,7 @@ Auth users file 내용과 plaintext secret은 포함하지 않습니다.
 | `MEDIA_SERVER_AUTH_COOKIE_NAME` | `media_server_session` | session cookie 이름 |
 | `MEDIA_SERVER_AUTH_COOKIE_SECURE` | `0` | `1`이면 session cookie에 `Secure` attribute 추가 |
 | `MEDIA_SERVER_UI_DEFAULT_HOME` | `ops` | auth off에서 `/`가 이동할 home. `ops`, `client`; `lab`은 이전 설정 호환값이며 `/ops/home`으로 fallback |
-| `MEDIA_SERVER_ENABLE_LAB` | `1` | `/lab/analysis/*`, `/lab/runtime/status` 같은 개발/검증 API 노출. `/lab` 화면 route는 열지 않음 |
+| `MEDIA_SERVER_ENABLE_LAB` | `1` | `/lab/analysis/*`, `/lab/runtime/status` 같은 개발/검증 API 노출. 제품 화면은 별도 제공하지 않음 |
 | `MEDIA_SERVER_ENABLE_OPS` | `1` | `/ops` 운영 shell/API route 노출 |
 | `MEDIA_SERVER_ENABLE_CLIENT` | `1` | `/client` client shell/API route 노출 |
 | `MEDIA_SERVER_SUBSCRIBER_QUEUE_SIZE` | `256` | subscriber queue 상한 |
@@ -509,7 +509,7 @@ close-object guard는 lightweight direction-based tracker 내부의 opt-in 진�
 rule-level `analysis.trackingPolicy.tracker` opt-in으로만 선택하며, BoT-SORT,
 DeepSORT, Re-ID 모델 도입은 별도 review 범위입니다.
 OC-SORT도 현재 환경변수나 rule-level tracker 허용값이 아니며, 후순위 benchmark와
-v1.5.0 experimental sandbox 경계는
+v1.8.0 experimental sandbox 경계는
 [OC-SORT Benchmark Boundary](./oc-sort-benchmark-boundary.md)에 둡니다.
 BoT-SORT/DeepSORT의 dependency/privacy/bundle research 경계는
 [BoT-SORT/DeepSORT Research Boundary](./bot-sort-deepsort-research-boundary.md)에

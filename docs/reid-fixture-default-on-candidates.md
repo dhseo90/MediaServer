@@ -1,6 +1,6 @@
 # Re-ID Fixture Default-on Candidates
 
-이 문서는 V120-P2-02 Re-ID/advanced tracking experiment에서
+이 문서는 V180-current-P2-02 Re-ID/advanced tracking experiment에서
 close-object guard의 `defaultOnCandidate` 판정을 fixture별로 분리해 기록합니다.
 전체 제품 default-on 결정 문서가 아닙니다.
 
@@ -12,7 +12,7 @@ close-object guard의 `defaultOnCandidate` 판정을 fixture별로 분리해 기
 - summary: `/tmp/media_server_close_object_tracker_1778947054_1446/matrix-summary.json`
 - matrix result: `matrix-ok=True`
 - script decision fields: `[matrix-default-on-decision]`, `[matrix-product-default-on]`
-- 전체 판정: V120-P2-02는 `WARNING(실험 유지)`
+- 실험 결론: V180-current-P2-02는 `WARNING(실험 유지)`
 
 Fixture별 판정:
 
@@ -33,7 +33,7 @@ event/scenario stable delta와 기본값 `off` 조건은 완화하지 않습니�
 
 - `defaultOnCandidate=True`는 fixture 단위의 후보 표시입니다.
 - 하나 이상의 fixture가 후보여도 matrix에 `hold`나 `warning`이 남아 있으면
-  V120-P2-02를 default-on 또는 안정 완료로 닫지 않습니다.
+  V180-current-P2-02를 default-on 또는 안정 완료로 닫지 않습니다.
 - `matrix-ok=True`여도 `judgement=warning` fixture가 있으면 제품 default-on 판단을
   진행하지 않습니다.
 - `matrix-ok`는 명령/gate 결과이며 제품 default-on 승인 값이 아닙니다.

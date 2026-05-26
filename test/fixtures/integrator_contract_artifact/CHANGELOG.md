@@ -1,6 +1,6 @@
 # Integrator Contract Artifact Changelog
 
-## v1.2.0-integrator-contract-artifact.1
+## v1.8.0-integrator-contract-artifact.1
 
 - Added synthetic JSON Schema and sample payloads for Event POST, WebRTC
   DataChannel metadata, SSE runtime metadata, WebSocket runtime metadata, and

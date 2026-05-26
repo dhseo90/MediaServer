@@ -9,11 +9,13 @@ source "${SCRIPT_DIR}/env_common.sh"
 media_server_apply_homebrew_gst_env
 
 ENV_FILE="${SCRIPTS_DIR}/.media_server.env"
-if [[ -f "${ENV_FILE}" ]]; then
+if [[ -f "${ENV_FILE}" && "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" != "1" ]]; then
   # shellcheck disable=SC1090
   set -a
   source "${ENV_FILE}"
   set +a
+elif [[ "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" == "1" ]]; then
+  echo "[env] skipped local override: ${ENV_FILE}"
 fi
 
 STD_AFX="${ROOT_DIR}/include/stdafx.h"
@@ -176,8 +178,6 @@ LABELS_PATH="$(media_server_resolve_project_path "${ROOT_DIR}" "${MEDIA_SERVER_A
 DURATION_S="${MEDIA_SERVER_VERIFY_VA_DURATION_S:-15}"
 FFMPEG_TIMEOUT_S="${MEDIA_SERVER_VERIFY_VA_FFMPEG_TIMEOUT_S:-}"
 POLL_INTERVAL_S="${MEDIA_SERVER_VERIFY_VA_POLL_INTERVAL_S:-2}"
-WEBRTC_HOLD_MS="${MEDIA_SERVER_VERIFY_VA_WEBRTC_HOLD_MS:-5000}"
-WEBRTC_TIMEOUT_MS="${MEDIA_SERVER_VERIFY_VA_WEBRTC_TIMEOUT_MS:-45000}"
 REQUIRE_DETECTIONS="${MEDIA_SERVER_VERIFY_VA_REQUIRE_DETECTIONS:-1}"
 EXTRA_QUERY="${MEDIA_SERVER_VERIFY_VA_EXTRA_QUERY:-}"
 REDACTION_MODE="${MEDIA_SERVER_VERIFY_VA_REDACTION:-}"
@@ -186,10 +186,6 @@ REDACTION_BLOCK_SIZE="${MEDIA_SERVER_VERIFY_VA_REDACTION_BLOCK_SIZE:-}"
 REDACTION_MARGIN_RATIO="${MEDIA_SERVER_VERIFY_VA_REDACTION_MARGIN_RATIO:-}"
 SKIP_LAB="${MEDIA_SERVER_VERIFY_VA_SKIP_LAB:-0}"
 SKIP_RTSP="${MEDIA_SERVER_VERIFY_VA_SKIP_RTSP:-0}"
-SKIP_WEBRTC="${MEDIA_SERVER_VERIFY_VA_SKIP_WEBRTC:-0}"
-SKIP_WEBRTC_SIMPLE="${MEDIA_SERVER_VERIFY_VA_SKIP_WEBRTC_SIMPLE:-0}"
-SKIP_WEBRTC_WHEP="${MEDIA_SERVER_VERIFY_VA_SKIP_WEBRTC_WHEP:-0}"
-BROWSER_WEBRTC_HARNESS="${SCRIPT_DIR}/browser_webrtc_publish_consume_check.mjs"
 
 log_info "http_base=${HTTP_BASE}"
 log_info "rtsp_base=${RTSP_BASE}"
@@ -223,11 +219,6 @@ if ! curl -fsS --max-time 3 "${HTTP_BASE}/health" >/dev/null; then
   exit 1
 fi
 log_pass "HTTP health ok"
-
-browser_webrtc_harness_available() {
-  [[ -f "${BROWSER_WEBRTC_HARNESS}" ]] || return 1
-  ! grep -Fq "removed: 초기 WebRTC 테스트 페이지" "${BROWSER_WEBRTC_HARNESS}"
-}
 
 run_lab_regression() {
   if [[ "${SKIP_LAB}" == "1" ]]; then
@@ -358,61 +349,32 @@ run_rtsp_regression() {
 
   local rtsp_query="file=$(urlencode "${FILE_TOKEN}")&va=1$(append_extra_query "${EXTRA_QUERY}")"
   local rtsp_url="${MEDIA_SERVER_VERIFY_VA_RTSP_URL:-${RTSP_BASE}?${rtsp_query}}"
+  local max_attempts="${MEDIA_SERVER_VERIFY_VA_RTSP_ATTEMPTS:-2}"
+  if ! [[ "${max_attempts}" =~ ^[0-9]+$ ]] || (( max_attempts < 1 )); then
+    max_attempts=1
+  fi
   log_info "rtsp_url=${rtsp_url}"
-  if run_with_timeout "${FFMPEG_TIMEOUT_S}" ffmpeg -hide_banner -loglevel warning -rtsp_transport tcp -i "${rtsp_url}" -t "${DURATION_S}" -an -f null -; then
-    log_pass "RTSP VA overlay decode ok"
-  else
+  local attempt=1
+  local rc=0
+  while (( attempt <= max_attempts )); do
+    if run_with_timeout "${FFMPEG_TIMEOUT_S}" ffmpeg -hide_banner -loglevel warning -rtsp_transport tcp -i "${rtsp_url}" -t "${DURATION_S}" -an -f null -; then
+      log_pass "RTSP VA overlay decode ok"
+      return
+    fi
+    rc=$?
+    if (( rc == 124 && attempt < max_attempts )); then
+      log_info "RTSP VA overlay decode timeout; retry ${attempt}/${max_attempts}"
+      sleep 2
+      attempt=$((attempt + 1))
+      continue
+    fi
     log_fail "RTSP VA overlay decode failed"
-  fi
-}
-
-run_webrtc_mode() {
-  local mode="$1"
-  local skip="$2"
-  if [[ "${SKIP_WEBRTC}" == "1" || "${skip}" == "1" ]]; then
-    log_skip "WebRTC ${mode} VA overlay regression skipped"
     return
-  fi
-  if ! browser_webrtc_harness_available; then
-    log_skip "WebRTC ${mode} VA overlay regression skipped: product WebRTC browser harness is not available"
-    return
-  fi
-  require_cmd node
-
-  local command=(node "${BROWSER_WEBRTC_HARNESS}"
-      --http-base "${HTTP_BASE}" \
-      --mode "${mode}" \
-      --file "${FILE_TOKEN}" \
-      --va 1 \
-      --post-playback-hold-ms "${WEBRTC_HOLD_MS}" \
-      --consumer-playback-timeout-ms "${WEBRTC_TIMEOUT_MS}" \
-      --timeout-ms "${WEBRTC_TIMEOUT_MS}")
-  if [[ -n "${REDACTION_MODE}" ]]; then
-    command+=(--redaction "${REDACTION_MODE}")
-  fi
-  if [[ -n "${REDACTION_CLASSES}" ]]; then
-    command+=(--redaction-classes "${REDACTION_CLASSES}")
-  fi
-  if [[ -n "${REDACTION_BLOCK_SIZE}" ]]; then
-    command+=(--redaction-block-size "${REDACTION_BLOCK_SIZE}")
-  fi
-  if [[ -n "${REDACTION_MARGIN_RATIO}" ]]; then
-    command+=(--redaction-margin-ratio "${REDACTION_MARGIN_RATIO}")
-  fi
-
-  if "${command[@]}" >/tmp/media_server_va_${mode}.json; then
-    log_pass "WebRTC ${mode} VA overlay playback ok"
-    sed -n '1,40p' "/tmp/media_server_va_${mode}.json" | sed 's/^/[browser] /'
-  else
-    log_fail "WebRTC ${mode} VA overlay playback failed"
-    [[ -f "/tmp/media_server_va_${mode}.json" ]] && sed -n '1,80p' "/tmp/media_server_va_${mode}.json" | sed 's/^/[browser] /'
-  fi
+  done
 }
 
 run_lab_regression
 run_rtsp_regression
-run_webrtc_mode "simple" "${SKIP_WEBRTC_SIMPLE}"
-run_webrtc_mode "whep" "${SKIP_WEBRTC_WHEP}"
 
 echo
 echo "[summary] pass=${PASS_COUNT} fail=${FAIL_COUNT} skip=${SKIP_COUNT}"

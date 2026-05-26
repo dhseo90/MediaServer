@@ -30,14 +30,43 @@ const usedIds = new Set([
   ...initial.vaRules.map(item => String(item?.id || "")),
   ...initial.profiles.map(item => String(item?.id || item?.profileId || "")),
 ]);
-const ids = nextNumericIds(usedIds, { count: 3, start: 9901, end: 9999, label: "ops rule relationship id" });
-const eventRuleId = ids[0];
-const validVaRuleId = ids[1];
-const invalidVaRuleId = ids[2];
+const ids = nextNumericIds(usedIds, { count: 13, start: 9901, end: 9999, label: "ops rule relationship id" });
+const inactiveProfileId = ids[0];
+const inactiveEventRuleId = ids[1];
+const eventRuleId = ids[2];
+const validVaRuleId = ids[3];
+const invalidVaRuleId = ids[4];
+const mismatchedVaRuleId = ids[5];
+const inactiveViewVaRuleId = ids[6];
+const inactiveChannelVaRuleId = ids[7];
+const notAllowedVaRuleId = ids[8];
+const existingConnectionVaRuleId = ids[9];
+const priorityConflictVaRuleId = ids[10];
+const classMismatchTemplateId = ids[11];
+const classMismatchProfileId = ids[12];
 const created = [];
 
 try {
-  const source = pickSource(initial.sources);
+  const { ruleSource: source, view: mismatchedView } = pickSourcePair(initial.sources, initial.views);
+  const inactiveFixture = pickFileSourceView(initial.sources, initial.views);
+  const inactiveFixtureViewId = String(inactiveFixture.view?.viewId || "");
+  const mismatchedViewId = String(mismatchedView?.viewId || "");
+  await requestJson(`/lab/analysis/profiles/${encodeURIComponent(inactiveProfileId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(profilePayload(inactiveProfileId, { enabled: false })),
+  });
+  created.push({ type: "profile", id: inactiveProfileId });
+  console.log(`[pass] relationship-fixture inactive-profile ${inactiveProfileId}`);
+
+  await requestJson(`/lab/analysis/rules/${encodeURIComponent(inactiveEventRuleId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(eventTemplatePayload(inactiveEventRuleId, { enabled: false })),
+  });
+  created.push({ type: "rule", id: inactiveEventRuleId });
+  console.log(`[pass] relationship-fixture inactive-template ${inactiveEventRuleId}`);
+
   await requestJson(`/lab/analysis/rules/${encodeURIComponent(eventRuleId)}`, {
     method: "PUT",
     headers: { "Content-Type": "application/json" },
@@ -54,9 +83,9 @@ try {
       body: JSON.stringify(vaRulePayload(invalidVaRuleId, eventRuleId, "999999999", source)),
     },
     400,
-    "profileId",
+    "vaRule analysis.profileId does not exist",
   );
-  console.log("[pass] invalid-profile rejected");
+  console.log("[pass] missing-profile rejected");
 
   await expectHttpError(
     `/lab/analysis/va-rules/${encodeURIComponent(invalidVaRuleId)}`,
@@ -66,9 +95,272 @@ try {
       body: JSON.stringify(vaRulePayload(invalidVaRuleId, "999999998", "1", source)),
     },
     400,
-    "templateStart.ruleId",
+    "vaRule templateStart.ruleId does not exist",
   );
-  console.log("[pass] invalid-template rejected");
+  console.log("[pass] missing-template rejected");
+
+  await expectHttpError(
+    `/lab/analysis/va-rules/${encodeURIComponent(invalidVaRuleId)}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(vaRulePayload(invalidVaRuleId, eventRuleId, inactiveProfileId, source)),
+    },
+    400,
+    "vaRule analysis.profileId is inactive",
+  );
+  console.log("[pass] inactive-profile rejected");
+
+  await expectHttpError(
+    `/lab/analysis/va-rules/${encodeURIComponent(invalidVaRuleId)}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(vaRulePayload(invalidVaRuleId, inactiveEventRuleId, "1", source)),
+    },
+    400,
+    "vaRule templateStart.ruleId is inactive",
+  );
+  console.log("[pass] inactive-template rejected");
+
+  await requestJson(`/lab/analysis/rules/${encodeURIComponent(classMismatchTemplateId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(eventTemplatePayload(classMismatchTemplateId, { analysisClasses: ["vehicle"] })),
+  });
+  created.push({ type: "rule", id: classMismatchTemplateId });
+  console.log(`[pass] relationship-fixture class-mismatch-template ${classMismatchTemplateId}`);
+
+  await expectHttpError(
+    `/lab/analysis/va-rules/${encodeURIComponent(invalidVaRuleId)}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(vaRulePayload(
+        invalidVaRuleId,
+        classMismatchTemplateId,
+        "1",
+        source,
+        { analysisClasses: ["person"] },
+      )),
+    },
+    400,
+    "vaRule analysis.classes must include template analysis.classes",
+  );
+  console.log("[pass] class-mismatch rule analysis classes rejected");
+
+  await requestJson(`/lab/analysis/profiles/${encodeURIComponent(classMismatchProfileId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(profilePayload(classMismatchProfileId, { analysisClasses: ["person"] })),
+  });
+  created.push({ type: "profile", id: classMismatchProfileId });
+  console.log(`[pass] relationship-fixture class-mismatch-profile ${classMismatchProfileId}`);
+
+  await expectHttpError(
+    `/lab/analysis/va-rules/${encodeURIComponent(invalidVaRuleId)}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(vaRulePayload(
+        invalidVaRuleId,
+        classMismatchTemplateId,
+        classMismatchProfileId,
+        source,
+        { analysisClasses: ["vehicle"] },
+      )),
+    },
+    400,
+    "vaRule profile classes must include template analysis.classes",
+  );
+  console.log("[pass] class-mismatch profile classes rejected");
+
+  await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(mismatchedVaRuleId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(vaRulePayload(mismatchedVaRuleId, eventRuleId, "1", source)),
+  });
+  created.push({ type: "vaRule", id: mismatchedVaRuleId });
+  console.log(`[pass] relationship-fixture mismatched-source va-rule ${mismatchedVaRuleId}`);
+
+  await requestJson(`/ops/api/views/${encodeURIComponent(mismatchedViewId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(viewPayloadWithRule(mismatchedView, mismatchedVaRuleId)),
+  });
+  created.push({ type: "viewRestore", id: mismatchedViewId, payload: viewRestorePayload(mismatchedView) });
+  console.log(`[pass] relationship-fixture mismatched-source view ${mismatchedViewId}`);
+
+  const sourceMismatchGraph = await loadGraph();
+  expectRelationshipIssue(
+    "source-mismatch",
+    sourceMismatchGraph,
+    `PublishedView ${mismatchedViewId} vaRule ${mismatchedVaRuleId} source mismatch`,
+  );
+
+  await expectHttpError(
+    `/client/api/views/${encodeURIComponent(mismatchedViewId)}/webrtc/session`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ overlayMode: "va-rule", ruleId: mismatchedVaRuleId }),
+    },
+    400,
+    "vaRule source must match PublishedView source",
+  );
+  console.log("[pass] source-mismatch client va-rule session rejected");
+
+  await deleteCreatedItem({ type: "viewRestore", id: mismatchedViewId, payload: viewRestorePayload(mismatchedView) });
+  await deleteCreatedItem({ type: "vaRule", id: mismatchedVaRuleId });
+
+  await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(inactiveViewVaRuleId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(vaRulePayload(inactiveViewVaRuleId, eventRuleId, "1", inactiveFixture.source)),
+  });
+  created.push({ type: "vaRule", id: inactiveViewVaRuleId });
+  await requestJson(`/ops/api/views/${encodeURIComponent(inactiveFixtureViewId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(viewPayloadWithRule(inactiveFixture.view, inactiveViewVaRuleId, { enabled: false })),
+  });
+  created.push({ type: "viewRestore", id: inactiveFixtureViewId, payload: viewRestorePayload(inactiveFixture.view) });
+  const inactiveViewGraph = await loadGraph();
+  expectRelationshipIssue(
+    "inactive-view",
+    inactiveViewGraph,
+    `PublishedView ${inactiveFixtureViewId} is inactive for vaRule ${inactiveViewVaRuleId}`,
+  );
+  await expectHttpError(
+    `/client/api/views/${encodeURIComponent(inactiveFixtureViewId)}/webrtc/session`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ overlayMode: "va-rule", ruleId: inactiveViewVaRuleId }),
+    },
+    404,
+    "PublishedView not found",
+  );
+  console.log("[pass] inactive-view client va-rule session rejected");
+  await deleteCreatedItem({ type: "viewRestore", id: inactiveFixtureViewId, payload: viewRestorePayload(inactiveFixture.view) });
+  await deleteCreatedItem({ type: "vaRule", id: inactiveViewVaRuleId });
+
+  await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(inactiveChannelVaRuleId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(vaRulePayload(inactiveChannelVaRuleId, eventRuleId, "1", inactiveFixture.source)),
+  });
+  created.push({ type: "vaRule", id: inactiveChannelVaRuleId });
+  await requestJson(`/ops/api/views/${encodeURIComponent(inactiveFixtureViewId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(viewPayloadWithRule(inactiveFixture.view, inactiveChannelVaRuleId)),
+  });
+  created.push({ type: "viewRestore", id: inactiveFixtureViewId, payload: viewRestorePayload(inactiveFixture.view) });
+  await requestJson(`/ops/api/sources/${encodeURIComponent(inactiveFixture.source.sourceId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(sourceRestorePayload(inactiveFixture.source, { enabled: false })),
+  });
+  created.push({ type: "sourceRestore", id: inactiveFixture.source.sourceId, payload: sourceRestorePayload(inactiveFixture.source) });
+  const inactiveChannelGraph = await loadGraph();
+  expectRelationshipIssue(
+    "inactive-channel",
+    inactiveChannelGraph,
+    `PublishedView ${inactiveFixtureViewId} source ${inactiveFixture.source.sourceId} is inactive for vaRule ${inactiveChannelVaRuleId}`,
+  );
+  await expectHttpError(
+    `/client/api/views/${encodeURIComponent(inactiveFixtureViewId)}/webrtc/session`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ overlayMode: "va-rule", ruleId: inactiveChannelVaRuleId }),
+    },
+    404,
+    "PublishedView source is not available",
+  );
+  console.log("[pass] inactive-channel client va-rule session rejected");
+  await deleteCreatedItem({ type: "sourceRestore", id: inactiveFixture.source.sourceId, payload: sourceRestorePayload(inactiveFixture.source) });
+  await deleteCreatedItem({ type: "viewRestore", id: inactiveFixtureViewId, payload: viewRestorePayload(inactiveFixture.view) });
+  await deleteCreatedItem({ type: "vaRule", id: inactiveChannelVaRuleId });
+
+  await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(notAllowedVaRuleId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(vaRulePayload(notAllowedVaRuleId, eventRuleId, "1", inactiveFixture.source)),
+  });
+  created.push({ type: "vaRule", id: notAllowedVaRuleId });
+  const notAllowedGraph = await loadGraph();
+  expectVaRuleNotAllowed(notAllowedGraph, notAllowedVaRuleId, inactiveFixtureViewId);
+  await expectHttpError(
+    `/client/api/views/${encodeURIComponent(inactiveFixtureViewId)}/webrtc/session`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ overlayMode: "va-rule", ruleId: notAllowedVaRuleId }),
+    },
+    400,
+    "allowed vaRule is required for va-rule mode",
+  );
+  console.log("[pass] va-rule-not-allowed client session rejected");
+  await deleteCreatedItem({ type: "vaRule", id: notAllowedVaRuleId });
+
+  await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(existingConnectionVaRuleId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(vaRulePayload(existingConnectionVaRuleId, eventRuleId, "1", inactiveFixture.source)),
+  });
+  created.push({ type: "vaRule", id: existingConnectionVaRuleId });
+  await requestJson(`/ops/api/views/${encodeURIComponent(inactiveFixtureViewId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(viewPayloadWithRule(inactiveFixture.view, existingConnectionVaRuleId)),
+  });
+  created.push({ type: "viewRestore", id: inactiveFixtureViewId, payload: viewRestorePayload(inactiveFixture.view) });
+  const existingSession = await requestJson(
+    `/client/api/views/${encodeURIComponent(inactiveFixtureViewId)}/webrtc/session`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ overlayMode: "va-rule", ruleId: existingConnectionVaRuleId }),
+    },
+  );
+  const existingSessionId = String(existingSession?.sessionId || "");
+  if (!existingSessionId) {
+    throw new Error("existing-connection-allowed-rule sessionId missing");
+  }
+  created.push({ type: "clientSession", viewId: inactiveFixtureViewId, id: existingSessionId });
+  console.log("[pass] existing-connection-allowed-rule client session created");
+  await requestJson(`/ops/api/views/${encodeURIComponent(inactiveFixtureViewId)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(viewRestorePayload(inactiveFixture.view)),
+  });
+  await expectHttpStatus(
+    `/client/api/views/${encodeURIComponent(inactiveFixtureViewId)}/webrtc/session/${encodeURIComponent(existingSessionId)}/ice`,
+    { method: "GET" },
+    200,
+  );
+  console.log("[pass] existing-connection-allowed-rule existing session ICE remains reachable after allowedRuleIds removal");
+  await expectHttpStatus(
+    `/client/api/views/${encodeURIComponent(inactiveFixtureViewId)}/webrtc/session/${encodeURIComponent(existingSessionId)}`,
+    { method: "DELETE" },
+    200,
+  );
+  console.log("[pass] existing-connection-allowed-rule existing session delete allowed after allowedRuleIds removal");
+  await expectHttpError(
+    `/client/api/views/${encodeURIComponent(inactiveFixtureViewId)}/webrtc/session`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ overlayMode: "va-rule", ruleId: existingConnectionVaRuleId }),
+    },
+    400,
+    "allowed vaRule is required for va-rule mode",
+  );
+  console.log("[pass] existing-connection-allowed-rule new session rejected after allowedRuleIds removal");
+  await deleteCreatedItem({ type: "viewRestore", id: inactiveFixtureViewId, payload: viewRestorePayload(inactiveFixture.view) });
+  await deleteCreatedItem({ type: "vaRule", id: existingConnectionVaRuleId });
 
   await requestJson(`/lab/analysis/va-rules/${encodeURIComponent(validVaRuleId)}`, {
     method: "PUT",
@@ -78,15 +370,30 @@ try {
   created.push({ type: "vaRule", id: validVaRuleId });
   console.log(`[pass] relationship-fixture va-rule ${validVaRuleId}`);
 
+  await expectHttpError(
+    `/lab/analysis/va-rules/${encodeURIComponent(priorityConflictVaRuleId)}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(vaRulePayload(
+        priorityConflictVaRuleId,
+        eventRuleId,
+        "1",
+        source,
+        { priority: Number(validVaRuleId) },
+      )),
+    },
+    400,
+    "vaRule priority conflicts with existing rule on same source",
+  );
+  console.log("[pass] priority-conflict server rejected same source priority");
+
   const withFixture = await loadGraph();
   assertCleanGraph("with-fixture", withFixture);
-  console.log("[pass] ops-rule-relationships");
+  console.log("[summary] ops-rule-relationships complete");
 } finally {
   for (const item of created.reverse()) {
-    const path = item.type === "vaRule"
-      ? `/lab/analysis/va-rules/${encodeURIComponent(item.id)}`
-      : `/lab/analysis/rules/${encodeURIComponent(item.id)}`;
-    await requestJson(path, { method: "DELETE" }).catch(() => {});
+    await deleteCreatedItem(item);
   }
 }
 
@@ -110,15 +417,62 @@ async function loadGraph() {
 }
 
 function assertCleanGraph(label, graph) {
-  const issues = relationshipIssues(graph);
+  const { issues, stats } = relationshipIssues(graph);
   if (issues.length > 0) {
     throw new Error(`${label} relationship issues:\n- ${issues.join("\n- ")}`);
   }
-  console.log(`[pass] ${label} relationship graph: profiles=${graph.profiles.length}, eventTemplates=${graph.eventTemplates.length}, vaRules=${graph.vaRules.length}, views=${graph.views.length}`);
+  console.log(`[pass] ${label} relationship profile index count ${graph.profiles.length}`);
+  console.log(`[pass] ${label} relationship event-template index count ${graph.eventTemplates.length}`);
+  console.log(`[pass] ${label} relationship va-rule index count ${graph.vaRules.length}`);
+  console.log(`[pass] ${label} relationship source index count ${graph.sources.length}`);
+  console.log(`[pass] ${label} relationship published-view index count ${graph.views.length}`);
+  console.log(`[pass] ${label} va-rule profile references valid checked=${stats.vaRuleProfileRefs}`);
+  console.log(`[pass] ${label} va-rule event-template references valid checked=${stats.vaRuleTemplateRefs}`);
+  console.log(`[pass] ${label} va-rule source references registered checked=${stats.vaRuleSourceRefs}`);
+  console.log(`[pass] ${label} published-view default rule belongs to allowed set checked=${stats.viewDefaultRules}`);
+  console.log(`[pass] ${label} published-view va-rule references exist checked=${stats.viewRuleRefs}`);
+  console.log(`[pass] ${label} published-view va-rule source matches view source checked=${stats.viewRuleSourceMatches}`);
+}
+
+function expectRelationshipIssue(label, graph, expected) {
+  const { issues } = relationshipIssues(graph);
+  if (!issues.some(issue => issue.includes(expected))) {
+    throw new Error(`${label} relationship issue missing: ${expected}\n- ${issues.join("\n- ")}`);
+  }
+  console.log(`[pass] ${label} relationship issue detected`);
+}
+
+function expectVaRuleNotAllowed(graph, ruleId, viewId) {
+  const rule = graph.vaRules.find(item => String(item?.id || "") === String(ruleId));
+  const view = graph.views.find(item => String(item?.viewId || "") === String(viewId));
+  const source = graph.sources.find(item => String(item?.sourceId || "") === String(view?.sourceId || ""));
+  if (!rule || !view || !source) {
+    throw new Error(`va-rule-not-allowed fixture missing rule/view/source: rule=${ruleId} view=${viewId}`);
+  }
+  const ruleKey = sourceKeyForVaRule(rule.source || {});
+  const viewKey = sourceKeyForSource(source);
+  const allowed = new Set((Array.isArray(view.allowedRuleIds) ? view.allowedRuleIds : []).map(String).filter(Boolean));
+  const defaultRuleId = String(view.defaultRuleId || "").trim();
+  if (defaultRuleId) allowed.add(defaultRuleId);
+  if (ruleKey !== viewKey) {
+    throw new Error(`va-rule-not-allowed fixture source mismatch: ${ruleKey} !== ${viewKey}`);
+  }
+  if (allowed.has(String(ruleId))) {
+    throw new Error(`va-rule-not-allowed fixture unexpectedly allowed rule ${ruleId} on view ${viewId}`);
+  }
+  console.log("[pass] va-rule-not-allowed relationship fixture detected");
 }
 
 function relationshipIssues(graph) {
   const issues = [];
+  const stats = {
+    vaRuleProfileRefs: 0,
+    vaRuleTemplateRefs: 0,
+    vaRuleSourceRefs: 0,
+    viewDefaultRules: 0,
+    viewRuleRefs: 0,
+    viewRuleSourceMatches: 0,
+  };
   const profileIds = new Set(graph.profiles.map(item => String(item?.id || item?.profileId || "")).filter(Boolean));
   const eventTemplateIds = new Set(graph.eventTemplates.map(item => String(item?.id || "")).filter(Boolean));
   const vaRulesById = new Map(graph.vaRules.map(item => [String(item?.id || ""), item]).filter(([id]) => id));
@@ -128,11 +482,13 @@ function relationshipIssues(graph) {
     const id = String(rule?.id || "");
     const profileId = String(rule?.analysis?.profileId || "").trim();
     const templateId = String(rule?.templateStart?.ruleId || "").trim();
+    stats.vaRuleProfileRefs += 1;
     if (!profileId) {
       issues.push(`vaRule ${id || "(unknown)"} missing analysis.profileId`);
     } else if (!profileIds.has(profileId)) {
       issues.push(`vaRule ${id || "(unknown)"} references missing profile ${profileId}`);
     }
+    stats.vaRuleTemplateRefs += 1;
     if (!templateId) {
       issues.push(`vaRule ${id || "(unknown)"} missing templateStart.ruleId`);
     } else if (!eventTemplateIds.has(templateId)) {
@@ -142,6 +498,9 @@ function relationshipIssues(graph) {
     if (sourceKey && !graph.sources.some(source => sourceKeyForSource(source) === sourceKey)) {
       issues.push(`vaRule ${id || "(unknown)"} source is not registered as a channel source`);
     }
+    if (sourceKey) {
+      stats.vaRuleSourceRefs += 1;
+    }
   }
 
   for (const view of graph.views) {
@@ -149,10 +508,14 @@ function relationshipIssues(graph) {
     const viewSource = sourcesById.get(String(view?.sourceId || ""));
     const allowed = new Set((Array.isArray(view?.allowedRuleIds) ? view.allowedRuleIds : []).map(String).filter(Boolean));
     const defaultRuleId = String(view?.defaultRuleId || "").trim();
+    if (defaultRuleId) {
+      stats.viewDefaultRules += 1;
+    }
     if (defaultRuleId && !allowed.has(defaultRuleId)) {
       issues.push(`PublishedView ${viewId} defaultRuleId ${defaultRuleId} is not included in allowedRuleIds`);
     }
     for (const ruleId of new Set([...allowed, defaultRuleId].filter(Boolean))) {
+      stats.viewRuleRefs += 1;
       const rule = vaRulesById.get(ruleId);
       if (!rule) {
         issues.push(`PublishedView ${viewId} references missing vaRule ${ruleId}`);
@@ -162,30 +525,87 @@ function relationshipIssues(graph) {
         issues.push(`PublishedView ${viewId} sourceId ${view?.sourceId || ""} is missing`);
         continue;
       }
+      if (view.enabled === false) {
+        issues.push(`PublishedView ${viewId} is inactive for vaRule ${ruleId}`);
+        continue;
+      }
+      if (viewSource.enabled === false) {
+        issues.push(`PublishedView ${viewId} source ${view?.sourceId || ""} is inactive for vaRule ${ruleId}`);
+        continue;
+      }
       const viewKey = sourceKeyForSource(viewSource);
       const ruleKey = sourceKeyForVaRule(rule.source || {});
+      if (viewKey && ruleKey) {
+        stats.viewRuleSourceMatches += 1;
+      }
       if (viewKey && ruleKey && viewKey !== ruleKey) {
         issues.push(`PublishedView ${viewId} vaRule ${ruleId} source mismatch`);
       }
     }
   }
-  return issues;
+  return { issues, stats };
 }
 
-function pickSource(sources) {
-  const source = sources.find(item => item?.enabled !== false && sourcePayload(item));
-  if (!source) {
-    throw new Error("no source available for relationship fixture");
+function pickSourcePair(sources, views) {
+  const candidates = sources.filter(item => item?.enabled !== false && sourcePayload(item));
+  const viewsBySourceId = new Map((Array.isArray(views) ? views : [])
+    .filter(view => view?.enabled !== false && String(view?.sourceId || "").trim())
+    .map(view => [String(view.sourceId), view]));
+  for (let leftIndex = 0; leftIndex < candidates.length; leftIndex += 1) {
+    for (let rightIndex = 0; rightIndex < candidates.length; rightIndex += 1) {
+      if (leftIndex === rightIndex) continue;
+      const view = viewsBySourceId.get(String(candidates[rightIndex]?.sourceId || ""));
+      if (view && sourceKeyForSource(candidates[leftIndex]) !== sourceKeyForSource(candidates[rightIndex])) {
+        return { ruleSource: candidates[leftIndex], viewSource: candidates[rightIndex], view };
+      }
+    }
   }
-  return source;
+  throw new Error("two distinct sources with an enabled PublishedView are required for source mismatch fixture");
 }
 
-function eventTemplatePayload(id) {
+function pickFileSourceView(sources, views) {
+  const sourceById = new Map((Array.isArray(sources) ? sources : [])
+    .filter(source => source?.enabled !== false && source?.kind === "file" && sourcePayload(source))
+    .map(source => [String(source.sourceId), source]));
+  const preferred = (Array.isArray(views) ? views : [])
+    .filter(view => view?.enabled !== false && sourceById.has(String(view?.sourceId || "")))
+    .sort((left, right) => {
+      const leftRules = (Array.isArray(left?.allowedRuleIds) ? left.allowedRuleIds : []).length + (left?.defaultRuleId ? 1 : 0);
+      const rightRules = (Array.isArray(right?.allowedRuleIds) ? right.allowedRuleIds : []).length + (right?.defaultRuleId ? 1 : 0);
+      return leftRules - rightRules;
+    })[0];
+  if (!preferred) {
+    throw new Error("an enabled file source with an enabled PublishedView is required for inactive source/view fixture");
+  }
+  return { source: sourceById.get(String(preferred.sourceId)), view: preferred };
+}
+
+function profilePayload(id, { enabled = true, analysisClasses = ["person"] } = {}) {
+  const classes = Array.isArray(analysisClasses) && analysisClasses.length > 0
+    ? analysisClasses.map(String).filter(Boolean)
+    : ["person"];
   return {
     id,
-    enabled: true,
+    enabled,
+    detector: "yolo",
+    fps: 6,
+    maxQueue: 1,
+    confidence: 0.25,
+    nms: 0.45,
+    trackingClasses: classes,
+    analysis: { classes },
+  };
+}
+
+function eventTemplatePayload(id, { enabled = true, analysisClasses = ["person"] } = {}) {
+  const classes = Array.isArray(analysisClasses) && analysisClasses.length > 0
+    ? analysisClasses.map(String).filter(Boolean)
+    : ["person"];
+  return {
+    id,
+    enabled,
     ruleKind: "scenario",
-    analysis: { classes: ["person"] },
+    analysis: { classes },
     event: {
       type: "loitering",
       region: {
@@ -200,20 +620,30 @@ function eventTemplatePayload(id) {
       enabled: true,
       dwellTimeMs: 10000,
       cooldownMs: 20000,
-      targetClasses: ["person"],
+      targetClasses: classes,
     },
   };
 }
 
-function vaRulePayload(id, templateRuleId, profileId, source) {
+function vaRulePayload(
+  id,
+  templateRuleId,
+  profileId,
+  source,
+  { priority = Number(id), analysisClasses = ["person"] } = {},
+) {
+  const classes = Array.isArray(analysisClasses) && analysisClasses.length > 0
+    ? analysisClasses.map(String).filter(Boolean)
+    : ["person"];
   return {
     id,
     name: `관계 검증 ${id}`,
     enabled: true,
+    priority,
     source: sourcePayload(source),
     analysis: {
       profileId,
-      classes: ["person"],
+      classes,
     },
     event: {
       type: "loitering",
@@ -233,6 +663,91 @@ function vaRulePayload(id, templateRuleId, profileId, source) {
     },
     templateStart: { ruleId: templateRuleId },
   };
+}
+
+function viewPayloadWithRule(view, ruleId, { enabled = true } = {}) {
+  const allowedOverlayModes = new Set([
+    ...(Array.isArray(view?.allowedOverlayModes) ? view.allowedOverlayModes.map(String) : []),
+    "va-rule",
+  ].filter(Boolean));
+  const allowedRuleIds = new Set([
+    ...(Array.isArray(view?.allowedRuleIds) ? view.allowedRuleIds.map(String) : []),
+    String(ruleId),
+  ].filter(Boolean));
+  return {
+    ...viewRestorePayload(view),
+    enabled,
+    allowedOverlayModes: Array.from(allowedOverlayModes),
+    defaultRuleId: ruleId,
+    allowedRuleIds: Array.from(allowedRuleIds),
+  };
+}
+
+function viewRestorePayload(view) {
+  return {
+    viewId: String(view?.viewId || ""),
+    sourceId: String(view?.sourceId || ""),
+    displayName: String(view?.displayName || view?.viewId || ""),
+    enabled: view?.enabled !== false,
+    showDashboard: view?.showDashboard !== false,
+    showEvents: view?.showEvents !== false,
+    showMetadataSummary: view?.showMetadataSummary !== false,
+    allowedOverlayModes: Array.isArray(view?.allowedOverlayModes) ? view.allowedOverlayModes.map(String) : [],
+    defaultRuleId: String(view?.defaultRuleId || ""),
+    allowedRuleIds: Array.isArray(view?.allowedRuleIds) ? view.allowedRuleIds.map(String) : [],
+    clientGroups: Array.isArray(view?.clientGroups) ? view.clientGroups.map(String) : [],
+    maxTiles: Number(view?.maxTiles || 1),
+  };
+}
+
+function sourceRestorePayload(source, { enabled = source?.enabled !== false } = {}) {
+  const payload = {
+    sourceId: String(source?.sourceId || ""),
+    displayName: String(source?.displayName || source?.sourceId || ""),
+    kind: String(source?.kind || ""),
+    enabled,
+    tags: Array.isArray(source?.tags) ? source.tags.map(String) : [],
+    ownerGroup: String(source?.ownerGroup || ""),
+    site: String(source?.site || ""),
+    group: String(source?.group || ""),
+    floor: String(source?.floor || ""),
+    zone: String(source?.zone || ""),
+  };
+  if (payload.kind === "file") payload.file = String(source?.file || "");
+  if (payload.kind === "rtsp") payload.rtspUrl = String(source?.rtspUrl || source?.url || "");
+  if (payload.kind === "whep") payload.whepUrl = String(source?.whepUrl || source?.url || "");
+  if (payload.kind === "webrtc") payload.webrtcSourceId = String(source?.webrtcSourceId || source?.url || "");
+  if (payload.kind === "http" || payload.kind === "hls" || payload.kind === "youtube") {
+    payload.httpUrl = String(source?.httpUrl || source?.url || "");
+  }
+  return payload;
+}
+
+async function deleteCreatedItem(item) {
+  const path = item.type === "vaRule"
+    ? `/lab/analysis/va-rules/${encodeURIComponent(item.id)}`
+    : item.type === "profile"
+      ? `/lab/analysis/profiles/${encodeURIComponent(item.id)}`
+      : item.type === "viewRestore"
+        ? `/ops/api/views/${encodeURIComponent(item.id)}`
+        : item.type === "sourceRestore"
+          ? `/ops/api/sources/${encodeURIComponent(item.id)}`
+        : item.type === "clientSession"
+          ? `/client/api/views/${encodeURIComponent(item.viewId)}/webrtc/session/${encodeURIComponent(item.id)}`
+          : `/lab/analysis/rules/${encodeURIComponent(item.id)}`;
+  if (item.type === "viewRestore" || item.type === "sourceRestore") {
+    await requestJson(path, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(item.payload),
+    }).catch(() => {});
+    return;
+  }
+  if (item.type === "clientSession") {
+    await requestJson(path, { method: "DELETE" }).catch(() => {});
+    return;
+  }
+  await requestJson(path, { method: "DELETE" }).catch(() => {});
 }
 
 function sourcePayload(source) {
@@ -298,6 +813,15 @@ async function expectHttpError(path, options, status, errorNeedle) {
     throw new Error(`${path} error did not include ${errorNeedle}: ${message}`);
   }
   return payload;
+}
+
+async function expectHttpStatus(path, options, status) {
+  const response = await fetch(`${httpBase}${path}`, options);
+  const text = await response.text();
+  if (response.status !== status) {
+    throw new Error(`${path} expected HTTP ${status}, got ${response.status}: ${text.slice(0, 160)}`);
+  }
+  return text;
 }
 
 async function requestJson(path, options = {}) {

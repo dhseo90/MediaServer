@@ -37,9 +37,12 @@ const fixture = JSON.parse(fixtureText);
 const supportDoc = fs.readFileSync(supportDocPath, "utf8");
 const checks = [];
 
-check("variant fixture schema and required ids are pinned", () => {
+check("variant fixture schema is pinned", () => {
   assert(fixture.schema === "media-server.onvif-probe-profile-variants.v1", "unexpected fixture schema");
   assert(String(fixture.description || "").includes("not a product API contract"), "description must avoid product API contract wording");
+});
+
+check("variant fixture required ids are pinned", () => {
   const ids = new Set(arrayAt(fixture, "variants").map(variant => variant.id));
   for (const id of [
     "media2-preferred-live-rtsp",
@@ -53,7 +56,7 @@ check("variant fixture schema and required ids are pinned", () => {
   }
 });
 
-check("failure variants pin empty Media/Media2 profile behavior", () => {
+check("failure variants pin empty profile behavior", () => {
   const failureVariants = arrayAt(fixture, "failureVariants");
   const byId = Object.fromEntries(failureVariants.map(variant => [variant.id, variant]));
   const emptyProfiles = byId["media2-and-media-empty-profiles"];
@@ -114,7 +117,7 @@ check("service availability matches expected profile fallback paths", () => {
   assert(selectedProfile(rtspsFallback).streamUri.startsWith("rtsps://"), "RTSPS fallback variant must select an rtsps stream URI");
 });
 
-check("selected variants can map to existing SourceRegistry/PublishedView draft shape", () => {
+check("selected variants map to existing draft shape", () => {
   for (const variant of arrayAt(fixture, "variants")) {
     const selected = selectedProfile(variant);
     const sourceDraft = {
@@ -159,7 +162,7 @@ check("rtsps variants remain existing kind=rtsp draft cases", () => {
   }
 });
 
-check("fixture remains synthetic and excludes non-goals", () => {
+check("fixture remains synthetic", () => {
   for (const term of [
     "<s:Envelope",
     "<SOAP-ENV",
@@ -170,6 +173,9 @@ check("fixture remains synthetic and excludes non-goals", () => {
   ]) {
     assert(!fixtureText.includes(term), `variant fixture leaked forbidden term: ${term}`);
   }
+});
+
+check("fixture excludes non-goals", () => {
   const nonGoals = arrayAt(fixture, "nonGoals");
   for (const required of [
     "ONVIF Profile G recording/replay",

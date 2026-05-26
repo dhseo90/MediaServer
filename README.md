@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Source Release](https://img.shields.io/badge/source--only%20release-v1.7.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v1.7.0)
+[![Release Prep](https://img.shields.io/badge/source--only%20release%20prep-v1.8.0-blue)](docs/development-backlog.md)
 
 RTSP/WebRTC live stream을 받아 다시 내보내고, 필요할 때 YOLO/ONNX 영상 분석
 overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다.
@@ -13,8 +13,8 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 
 - English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 - 전체 문서 색인: [docs/README.md](docs/README.md)
-- 최신 source-only release: [v1.7.0](https://github.com/dhseo90/MediaServer/releases/tag/v1.7.0)
-- v1.7.0 release close-out: [docs/development-backlog.md](docs/development-backlog.md)
+- source-only release 준비 기준: [v1.8.0](docs/development-backlog.md)
+- v1.8.0 release close-out 준비: [docs/development-backlog.md](docs/development-backlog.md)
 
 ## 한눈에 보기
 
@@ -22,9 +22,10 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 - **영상 분석**: `va=1` overlay, 저장 룰 `vaRule=<id>`, Rule/Profile/Scenario, live Event POST와 runtime metadata를 제공합니다.
   EventRecord와 snapshot/clip은 short event evidence 보조 기능이며 현재 중심 제품 메시지는 아닙니다.
 - **제품 화면**: 같은 메인 주소에서 계정 권한에 따라 운영자 화면 또는 클라이언트 화면으로 이동합니다.
-  `/lab` 화면 route는 닫고 검증/연동 API만 유지합니다.
+  검증/연동 API는 제품 화면과 분리해 유지합니다.
 - **계정/권한**: 최초 관리자 설정, session 로그인, role/scope, admin 사용자 관리, viewer invite/request 승인 흐름을 사용합니다.
 - **검증**: UI/Auth smoke, VA replay, runtime state, 백업/복구 리허설, RC gate artifact 검증 명령을 `./server.sh`에서 제공합니다.
+  장기 soak/부하 검증은 기본 smoke와 분리해 [docs/stream-verification.md](docs/stream-verification.md)의 longrun gate 기준으로만 다룹니다.
 - **배포 경계**: source/doc 중심 공개가 기본이며, binary/runtime/model bundle은 별도 guardrail 통과 전까지 제공하지 않습니다.
 
 ## 실행 환경
@@ -117,7 +118,7 @@ README는 제품을 빠르게 파악하기 위한 문서입니다. 세부 정책
 - 검증 명령: [docs/stream-verification.md](docs/stream-verification.md)
 - release/version 기준: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
-- v1.7.0 종료 판정: [docs/development-backlog.md](docs/development-backlog.md)
+- v1.8.0 종료 판정: [docs/development-backlog.md](docs/development-backlog.md)
 
 ## 대표 UI 미리보기
 
@@ -198,6 +199,9 @@ git diff --check
 ./server.sh verify-release-metadata
 ./server.sh verify-docs-links
 ```
+
+main/tag/GitHub Release publish 이후에는 GitHub Latest Release와 원격 tag까지
+확인하는 `./server.sh verify-release-metadata --published`를 실행합니다.
 
 release 전 로컬 기준선:
 

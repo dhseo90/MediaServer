@@ -1,6 +1,6 @@
 # ONVIF RTSPS Draft Policy
 
-이 문서는 v1.2.0 ONVIF probe에서 `rtsps://` GetStreamUri 결과를 어떻게 다루는지
+이 문서는 v1.8.0 ONVIF probe에서 `rtsps://` GetStreamUri 결과를 어떻게 다루는지
 고정합니다. 핵심은 automatic probe candidate, automatic import draft, manual
 source registration이 `rtsps://`를 기존 `rtsp` source draft 범위 안에서만
 다루도록 제한하는 것입니다.

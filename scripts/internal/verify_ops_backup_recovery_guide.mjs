@@ -63,11 +63,14 @@ check("backup recovery guide defines restore validation commands", () => {
   }
 });
 
-check("guide is discoverable from config reference and README", () => {
+check("guide is discoverable from config reference", () => {
   const config = readText("docs/config-reference.md");
-  const readme = readText("README.md");
   assert(config.includes("docs/ops-backup-recovery.md"), "config reference must link ops backup guide");
-  assert(readme.includes("docs/ops-backup-recovery.md"), "README docs table must link ops backup guide");
+});
+
+check("guide is discoverable from docs index", () => {
+  const docsIndex = readText("docs/README.md");
+  assert(docsIndex.includes("ops-backup-recovery.md"), "docs index must link ops backup guide");
 });
 
 check("server exposes backup recovery guide verification", () => {

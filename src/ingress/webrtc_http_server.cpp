@@ -1935,6 +1935,9 @@ std::string RoleLandingPath(const auth::Principal& principal, const app::AppConf
     if (principal.role == "admin" || principal.role == "operator") {
         return config.enable_ops ? "/ops/home" : DefaultHomePath(config);
     }
+    if (principal.role == "integrator") {
+        return "/auth/whoami";
+    }
     return "/login";
 }
 
@@ -2084,7 +2087,7 @@ void AppendProductAccountMenu(std::ostringstream& out,
                              const std::string& secondary_action_label = std::string()) {
     out << R"(        <div class="account-menu" data-sketch-account-menu="true" aria-label="현재 계정">
           <div class="account-menu-top">
-            <span class="sketch-status-chip" aria-label="연결 상태"><span aria-hidden="true"></span>Connected</span>
+            <span class="sketch-status-chip" aria-label="연결 상태"><span aria-hidden="true"></span>연결됨</span>
             <div class="account-identity">
               )" << ProductAccountAvatarSvg() << R"(
               <div class="account-copy">
@@ -2153,7 +2156,7 @@ void AppendOpsShellStart(std::ostringstream& out,
       <div class="app-header-top">
         <div class="app-nav-cluster sketch-nav-cluster">
           <div class="app-brand sketch-brand">
-            <span class="brand-mark" aria-hidden="true">MS</span>
+            )" << ProductBrandMarkSvg() << R"(
             <div class="brand-copy">
               <strong>Media Server</strong>
               <span>Ops</span>
@@ -2168,7 +2171,7 @@ void AppendOpsShellStart(std::ostringstream& out,
     if (auth::IsAdmin(principal)) {
         AppendImageNavLink(out, "/ops/users", "users", "사용자", active == "users", "data-admin-only");
     }
-    AppendImageNavLink(out, "/client/live", "client", "미리보기", false, R"(aria-label="Client Preview")");
+    AppendImageNavLink(out, "/client/live", "client", "클라이언트", false, R"(aria-label="클라이언트")");
     out << R"(          </nav>
         </div>
 )";
@@ -2465,7 +2468,7 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
               <input id="dashIncidentTimelineSearch" placeholder="제목, 출처, incident/cid 검색" />
             </label>
             <label>출처
-              <select id="dashIncidentTimelineSource">
+              <select id="dashIncidentTimelineSource" aria-label="출처">
                 <option value="">전체 출처</option>
                 <option value="root-cause">문제 원인</option>
                 <option value="event-record">EventRecord</option>
@@ -2636,7 +2639,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
         </div>
         <div class="scenario-builder-grid">
           <label>시나리오
-            <select id="opsScenarioBuilderType">
+            <select id="opsScenarioBuilderType" aria-label="시나리오">
               <option value="intrusion-dwell">침입 체류</option>
               <option value="re-entry">재진입</option>
               <option value="wrong-direction">역방향 이동</option>
@@ -2646,7 +2649,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
             </select>
           </label>
           <label>현장 preset
-            <select id="opsScenarioBuilderPreset">
+            <select id="opsScenarioBuilderPreset" aria-label="시나리오 빌더 현장 preset">
               <option value="default">기본</option>
               <option value="road">도로</option>
               <option value="retail">매장 통로</option>
@@ -2781,22 +2784,24 @@ void AppendOpsRulesPage(std::ostringstream& out) {
             <colgroup>
               <col class="ops-profile-col-id" />
               <col class="ops-profile-col-detector" />
-              <col class="ops-profile-col-fps" />
-              <col class="ops-profile-col-input" />
-              <col class="ops-profile-col-usage" />
-              <col class="ops-profile-col-actions" />
+	              <col class="ops-profile-col-fps" />
+	              <col class="ops-profile-col-input" />
+	              <col class="ops-profile-col-target" />
+	              <col class="ops-profile-col-usage" />
+	              <col class="ops-profile-col-actions" />
             </colgroup>
             <thead>
               <tr>
                 <th>ID</th>
-                <th>검출기</th>
-                <th>FPS</th>
-                <th>입력</th>
-                <th>사용처</th>
-                <th>작업</th>
-              </tr>
-            </thead>
-            <tbody id="opsProfileRows"><tr><td colspan="6">로딩 중</td></tr></tbody>
+	                <th>검출기</th>
+	                <th>FPS</th>
+	                <th>입력</th>
+	                <th>추적 대상</th>
+	                <th>사용처</th>
+	                <th>작업</th>
+	              </tr>
+	            </thead>
+	            <tbody id="opsProfileRows"><tr><td colspan="7">로딩 중</td></tr></tbody>
           </table>
         </div>
       </section>
@@ -2816,7 +2821,11 @@ void AppendOpsRulesPage(std::ostringstream& out) {
         <div id="opsRulesComposerSteps" class="rule-step-strip" aria-label="현재 작성 단계" hidden></div>
         <form id="opsVaRuleForm" hidden>
           <div class="row">
-            <label>ID<input id="opsVaRuleIdInput" type="text" inputmode="numeric" readonly /></label>
+            <div class="generated-id-control">
+              <span class="form-label">ID</span>
+              <input id="opsVaRuleIdInput" type="hidden" />
+              <span id="opsVaRuleIdDisplay" class="generated-id-field" data-generated-id="va-rule">자동 배정</span>
+            </div>
             <label>이름<input id="opsVaRuleNameInput" type="text" placeholder="채널 분석 설정 이름" /></label>
             <label>상태
               <select id="opsVaRuleEnabledInput">
@@ -2844,7 +2853,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
             </div>
             <div class="row">
               <label>Tracker
-                <select id="opsVaRuleTrackerSelect">
+                <select id="opsVaRuleTrackerSelect" aria-label="Tracker">
                   <option value="lite">Lite</option>
                   <option value="none">사용 안 함</option>
                   <option value="kalman-lite">Kalman-lite</option>
@@ -2852,7 +2861,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
                 </select>
               </label>
               <label>Re-ID
-                <select id="opsVaRuleReidSelect">
+                <select id="opsVaRuleReidSelect" aria-label="Re-ID">
                   <option value="off">Off</option>
                   <option value="assist">Assist</option>
                 </select>
@@ -2935,20 +2944,24 @@ void AppendOpsRulesPage(std::ostringstream& out) {
         </form>
         <form id="opsEventRuleForm" hidden>
           <div class="row">
-            <label>ID<input id="opsEventRuleIdInput" type="text" inputmode="numeric" readonly /></label>
+            <div class="generated-id-control">
+              <span class="form-label">ID</span>
+              <input id="opsEventRuleIdInput" type="hidden" />
+              <span id="opsEventRuleIdDisplay" class="generated-id-field" data-generated-id="event-rule">자동 배정</span>
+            </div>
           </div>
           <div class="row">
             <label>구성
-              <select id="opsEventRuleModeSelect">
+              <select id="opsEventRuleModeSelect" aria-label="구성">
                 <option value="event">이벤트</option>
                 <option value="scenario">시나리오</option>
               </select>
             </label>
             <label>종류
-              <select id="opsEventRuleTypeSelect"></select>
+              <select id="opsEventRuleTypeSelect" aria-label="종류"></select>
             </label>
             <label id="opsEventRulePresetField">현장 preset
-              <select id="opsEventRulePresetSelect">
+              <select id="opsEventRulePresetSelect" aria-label="이벤트 템플릿 현장 preset">
                 <option value="default">기본</option>
                 <option value="road">도로</option>
                 <option value="retail">매장 통로</option>
@@ -2993,7 +3006,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
             </div>
             <div class="row">
               <label id="opsEventRuleLineDirectionField" hidden>라인 방향
-                <select id="opsEventRuleLineDirectionSelect">
+                <select id="opsEventRuleLineDirectionSelect" aria-label="라인 방향">
                   <option value="any">양방향</option>
                   <option value="forward">정방향</option>
                   <option value="reverse">역방향</option>
@@ -3011,7 +3024,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
                 <input id="opsEventRuleReEntryWindowInput" type="number" min="0" step="1000" placeholder="10000" />
               </label>
               <label id="opsEventRuleReEntryModeField" hidden>재진입 기준
-                <select id="opsEventRuleReEntryModeSelect">
+                <select id="opsEventRuleReEntryModeSelect" aria-label="재진입 기준">
                   <option value="same-zone">같은 영역</option>
                   <option value="configured-zones">지정 영역</option>
                 </select>
@@ -3022,7 +3035,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
             </div>
             <div class="row">
               <label id="opsEventRuleTriggerDirectionField" hidden>트리거 라인 방향
-                <select id="opsEventRuleTriggerDirectionSelect">
+                <select id="opsEventRuleTriggerDirectionSelect" aria-label="트리거 라인 방향">
                   <option value="any">양방향</option>
                   <option value="forward">정방향</option>
                   <option value="reverse">역방향</option>
@@ -3033,6 +3046,9 @@ void AppendOpsRulesPage(std::ostringstream& out) {
               </label>
               <label id="opsEventRuleLoiteringPointsField" hidden>최소 이동 경로 점수
                 <input id="opsEventRuleLoiteringPointsInput" type="number" min="2" step="1" placeholder="4" />
+              </label>
+              <label id="opsEventRuleLoiteringGroundPlaneField" hidden>Ground-plane 반경
+                <input id="opsEventRuleLoiteringGroundPlaneToggle" type="checkbox" />
               </label>
             </div>
             <div class="row">
@@ -3046,14 +3062,29 @@ void AppendOpsRulesPage(std::ostringstream& out) {
                 <input id="opsEventRuleCooldownInput" type="number" min="0" step="1000" placeholder="5000" />
               </label>
             </div>
+            <div class="row">
+              <label id="opsEventRuleTargetZonesField" hidden>대상 영역 ID
+                <input id="opsEventRuleTargetZonesInput" type="text" placeholder="zone-entry, zone-core" />
+              </label>
+              <label id="opsEventRuleRestrictedZonesField" hidden>관찰/제한 영역 ID
+                <input id="opsEventRuleRestrictedZonesInput" type="text" placeholder="zone-main, zone-restricted" />
+              </label>
+              <label id="opsEventRuleReEntryZonesField" hidden>재진입 영역 ID
+                <input id="opsEventRuleReEntryZonesInput" type="text" placeholder="zone-a, zone-b" />
+              </label>
+            </div>
           </section>
           <p id="opsEventRuleFormNote" class="form-note">여러 채널 분석 설정에서 다시 고를 수 있는 공통 이벤트 템플릿입니다.</p>
         </form>
         <form id="opsProfileForm" hidden>
           <div class="row">
-            <label>ID<input id="opsProfileIdInput" type="text" inputmode="numeric" readonly /></label>
+            <div class="generated-id-control">
+              <span class="form-label">ID</span>
+              <input id="opsProfileIdInput" type="hidden" />
+              <span id="opsProfileIdDisplay" class="generated-id-field" data-generated-id="profile">자동 배정</span>
+            </div>
             <label>검출기
-              <select id="opsProfileDetectorSelect">
+              <select id="opsProfileDetectorSelect" aria-label="검출기">
                 <option value="yolo">yolo</option>
                 <option value="dummy">dummy</option>
                 <option value="server-config">server-config</option>
@@ -3070,10 +3101,25 @@ void AppendOpsRulesPage(std::ostringstream& out) {
             <label>입력 폭<input id="opsProfileInputWidthInput" type="number" min="1" step="1" placeholder="640" /></label>
             <label>입력 높이<input id="opsProfileInputHeightInput" type="number" min="1" step="1" placeholder="640" /></label>
           </div>
-          <div class="checks">
-            <label><input id="opsProfileAdaptiveToggle" type="checkbox" checked /> 적응형 튜닝</label>
-          </div>
-          <p id="opsProfileSummaryText" class="form-note">검출기, FPS, 신뢰도, 입력 크기 같은 분석 엔진 설정만 정의합니다.</p>
+	          <div class="checks">
+	            <label><input id="opsProfileAdaptiveToggle" type="checkbox" checked /> 적응형 튜닝</label>
+	          </div>
+	          <section class="ops-category-section" aria-labelledby="opsProfileClassesHeading">
+	            <div class="ops-category-header">
+	              <div>
+	                <strong id="opsProfileClassesHeading">추적 대상</strong>
+	                <p class="form-note">이 프로파일의 tracker가 유지할 객체 범주를 고릅니다.</p>
+	              </div>
+	              <div class="ops-category-actions">
+	                <button id="opsProfileClassesDefaultBtn" class="button-secondary" type="button">기본</button>
+	                <button id="opsProfileClassesAllBtn" class="button-secondary" type="button">전체 선택</button>
+	                <button id="opsProfileClassesClearBtn" class="button-secondary" type="button">전체 해제</button>
+	              </div>
+	            </div>
+	            <div id="opsProfileClassChecks" class="ops-category-grid"></div>
+	            <p id="opsProfileClassesSummary" class="form-note">사람, 차량</p>
+	          </section>
+	          <p id="opsProfileSummaryText" class="form-note">검출기, FPS, 신뢰도, 입력 크기와 추적 대상 같은 분석 엔진 설정을 정의합니다.</p>
         </form>
       </section>
       <section class="section-card ops-audit-panel">
@@ -3132,6 +3178,24 @@ void AppendOpsEventsPage(std::ostringstream& out) {
             <p id="alertDeliverySummary">Rule event 알림은 Event POST payload와 분리된 delivery state, retry policy, audit로 관리합니다.</p>
           </div>
           <div id="alertDeliveryBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        </div>
+        <div class="actions event-review-controls">
+          <label>검색 <input id="alertDeliveryFilter" placeholder="ID, 라벨, 대상" /></label>
+          <label>종류
+            <select id="alertDeliveryKindFilter">
+              <option value="">전체</option>
+              <option value="webhook">Webhook</option>
+              <option value="email">Email</option>
+              <option value="slack">Slack</option>
+            </select>
+          </label>
+          <label>상태
+            <select id="alertDeliveryEnabledFilter">
+              <option value="">전체</option>
+              <option value="enabled">활성</option>
+              <option value="disabled">비활성</option>
+            </select>
+          </label>
         </div>
         <div class="ops-alert-delivery-form">
           <label>ID <input id="alertDeliveryId" value="default-webhook" /></label>
@@ -4153,7 +4217,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     const bool preview_mode =
         (auth::IsAdmin(principal) || auth::IsOperator(principal)) &&
         auth::RequireScope(principal, "ops:read");
-    const std::string client_subtitle = preview_mode ? "Client Preview as admin" : "Client";
+    const std::string client_subtitle = preview_mode ? "관리자 클라이언트 미리보기" : "클라이언트";
     std::ostringstream out;
     out << R"(<!doctype html>
 <html lang="ko">
@@ -4169,7 +4233,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
       <div class="app-header-top">
         <div class="app-nav-cluster sketch-nav-cluster">
           <div class="app-brand sketch-brand">
-            <span class="brand-mark" aria-hidden="true">MS</span>
+            )" << ProductBrandMarkSvg() << R"(
             <div class="brand-copy">
               <strong>Media Server</strong>
               <span>)" << HtmlEscape(client_subtitle) << R"(</span>
@@ -4185,7 +4249,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
     AppendProductAccountMenu(out,
                              principal,
                              preview_mode ? "/ops/home" : std::string(),
-                             preview_mode ? "Ops" : std::string());
+                             preview_mode ? "운영" : std::string());
     out << R"(      </div>
     </header>
 )";
@@ -4243,6 +4307,7 @@ std::string ClientShellActiveForPath(const std::string& path) {
 
 std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
     std::ostringstream out;
+    const bool can_write_sources = auth::RequireScope(principal, "source:write");
     AppendOpsShellStart(out,
                         principal,
                         "sources",
@@ -4259,9 +4324,14 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
           <div>
             <h3>채널 목록</h3>
             <p>목록을 보고 상세/삭제를 진행합니다.</p>
+            <p id="channelScopePolicy" class="form-note" data-scope-contract="source-write-required" data-scope-state=")OPS" << (can_write_sources ? "source-write-allowed" : "source-write-blocked") << R"OPS(">)OPS"
+        << (can_write_sources
+                ? "source:write scope 확인됨. 채널 생성/수정/삭제를 수행할 수 있습니다."
+                : "읽기 전용 범위입니다. ops:read로 채널 조회만 가능하며 source:write가 필요한 생성/수정/삭제 UI는 잠깁니다.")
+        << R"OPS(</p>
           </div>
           <div class="actions">
-            <button id="add-channel" class="button-primary" type="button">채널 추가</button>
+            <button id="add-channel" class="button-primary" type="button" aria-disabled=")OPS" << (can_write_sources ? "false" : "true") << "\"" << (can_write_sources ? "" : " disabled data-scope-blocked=\"source:write\"") << R"OPS(>채널 추가</button>
 	            )OPS" << RefreshIconButtonHtml("refresh", "button-secondary", "새로고침") << R"OPS(
             <span id="status" class="status" aria-live="polite" hidden></span>
           </div>
@@ -4304,7 +4374,11 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
             <p><strong>ONVIF 카메라</strong>는 ONVIF 프로파일에서 선택한 라이브 스트림 URI를 연결합니다. <strong>외부 WHEP</strong>는 URL 입력, <strong>Published WebRTC 소스</strong>는 저장된 <code>sourceId</code> 연결입니다.</p>
           </div>
           <div class="row">
-            <label>채널 ID<input name="channelId" type="number" min="1" step="1" inputmode="numeric" placeholder="1" required /></label>
+            <div class="generated-id-control">
+              <span class="form-label">채널 ID</span>
+              <input name="channelId" type="hidden" required />
+              <span id="channel-id-display" class="generated-id-field" data-generated-id="channel">자동 배정</span>
+            </div>
             <label>이름<input name="displayName" /></label>
             <label>종류
               <select name="kind">
@@ -4324,7 +4398,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
             <label>구역<input name="zone" placeholder="예: 출입구" /></label>
           </div>
           <label data-source-kind="file">파일
-            <select name="file" id="channel-file-select">
+            <select name="file" id="channel-file-select" aria-label="파일">
               <option value="sample_h264.mp4">sample_h264.mp4</option>
             </select>
           </label>
@@ -4470,6 +4544,49 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         </div>
       </section>
 
+      <section class="section-card" data-testid="ops-invites-panel">
+        <div class="toolbar">
+          <div>
+            <h2>초대 발급</h2>
+            <p>관리자가 직접 초대 링크를 발급하고, 사용 전/사용 완료 초대 상태를 확인합니다.</p>
+          </div>
+          <span id="invite-status" class="status"></span>
+        </div>
+        <form id="invite-create-form" class="inline-form">
+          <label>계정명<input name="username" required /></label>
+          <label>표시 이름<input name="displayName" /></label>
+          <label>권한
+            <select name="role">
+              <option value="viewer">시청자</option>
+              <option value="operator">운영자</option>
+              <option value="integrator">연동</option>
+              <option value="admin">관리자</option>
+            </select>
+          </label>
+          <label>채널 ID<input name="viewId" placeholder="viewer/integrator 범위" /></label>
+          <label>유효 시간(초)<input name="ttlSeconds" type="number" min="60" step="60" value="86400" /></label>
+          <button class="button-primary" type="submit">초대 발급</button>
+        </form>
+        <p class="hint">발급 직후에만 토큰과 설정 링크를 표시합니다. 목록에는 토큰/토큰 해시를 노출하지 않습니다.</p>
+        <pre id="invite-create-output" hidden></pre>
+        <div class="table-wrap">
+          <table class="ops-data-table ops-responsive-table user-table">
+            <colgroup>
+              <col class="request-col-username" />
+              <col class="request-col-name" />
+              <col class="user-col-role" />
+              <col class="request-col-channel" />
+              <col class="request-col-status" />
+              <col class="request-col-decision" />
+              <col class="request-col-decision" />
+            </colgroup>
+)USERS";
+    AppendTableHead(out, {"계정명", "이름", "권한", "채널", "상태", "만료", "발급/사용"});
+    out << R"USERS(            <tbody id="invite-list-body"></tbody>
+          </table>
+        </div>
+      </section>
+
       <section id="user-detail-panel" class="section-card ops-detail-panel" hidden>
         <div class="toolbar">
           <div>
@@ -4503,9 +4620,12 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
               </label>
             </div>
             <div id="view-assignment">
-              <label>채널 ID<input name="viewId" list="view-assignment-options" placeholder="1" /></label>
-              <datalist id="view-assignment-options"></datalist>
-              <p class="hint">시청자/연동 계정에는 선택한 채널의 라이브, 대시보드, 이벤트, 메타데이터 조회 권한만 부여합니다. 운영, 개발, 소스, 룰 관리 권한은 허용하지 않습니다.</p>
+              <div class="channel-assignment-field">
+                <span class="form-label">채널</span>
+                <input name="viewId" type="hidden" />
+                <div id="view-assignment-options" class="channel-assignment-list" data-testid="user-channel-assignment-list"></div>
+              </div>
+              <p class="hint">채널명과 사이트/그룹 위치를 확인해 여러 채널을 선택합니다. 시청자/연동 계정에는 선택한 채널들의 라이브, 대시보드, 이벤트, 메타데이터 조회 권한만 부여합니다. 운영, 개발, 소스, 룰 관리 권한은 허용하지 않습니다.</p>
             </div>
             <div class="scope-template-actions">
               <button id="apply-view-scope-template" class="button-secondary" type="button">채널 범위 적용</button>
@@ -4681,6 +4801,87 @@ std::string IceJson(const std::vector<WebRtcIceCandidate>& candidates) {
     }
     out << "]}";
     return out.str();
+}
+
+std::optional<std::uint32_t> ParseUnsignedIndexText(const std::string& raw) {
+    const std::string value = Trim(raw);
+    if (value.empty()) {
+        return std::nullopt;
+    }
+    for (const char ch : value) {
+        if (std::isdigit(static_cast<unsigned char>(ch)) == 0) {
+            return std::nullopt;
+        }
+    }
+    try {
+        const unsigned long parsed = std::stoul(value, nullptr, 10);
+        if (parsed > std::numeric_limits<std::uint32_t>::max()) {
+            return std::nullopt;
+        }
+        return static_cast<std::uint32_t>(parsed);
+    } catch (...) {
+        return std::nullopt;
+    }
+}
+
+std::vector<WebRtcIceCandidate> ParseWhepSdpFragmentIceCandidates(const std::string& body) {
+    std::vector<WebRtcIceCandidate> candidates;
+    std::uint32_t current_mline = 0;
+    bool saw_media_section = false;
+
+    std::istringstream lines(body);
+    std::string line;
+    while (std::getline(lines, line)) {
+        if (!line.empty() && line.back() == '\r') {
+            line.pop_back();
+        }
+        line = Trim(line);
+        if (line.empty()) {
+            continue;
+        }
+        if (line.rfind("m=", 0) == 0) {
+            current_mline = saw_media_section ? current_mline + 1 : 0;
+            saw_media_section = true;
+            continue;
+        }
+        if (line.rfind("a=mid:", 0) == 0) {
+            if (const auto parsed = ParseUnsignedIndexText(line.substr(std::string("a=mid:").size()));
+                parsed.has_value()) {
+                current_mline = *parsed;
+            }
+            continue;
+        }
+
+        std::string candidate;
+        if (line.rfind("a=candidate:", 0) == 0) {
+            candidate = line.substr(2);
+        } else if (line.rfind("candidate:", 0) == 0) {
+            candidate = line;
+        }
+        if (!candidate.empty()) {
+            candidates.push_back(WebRtcIceCandidate{
+                .sdp_mline_index = current_mline,
+                .candidate = candidate,
+            });
+        }
+    }
+    return candidates;
+}
+
+std::optional<HttpResponse> ApplyWhepSdpFragmentIce(
+    const HttpRequest& request,
+    const std::shared_ptr<WebRtcEgressSession>& bridge) {
+    if (bridge == nullptr || request.body.find("candidate:") == std::string::npos) {
+        return std::nullopt;
+    }
+    const auto candidates = ParseWhepSdpFragmentIceCandidates(request.body);
+    if (candidates.empty()) {
+        return std::nullopt;
+    }
+    for (const auto& candidate : candidates) {
+        bridge->AddRemoteIceCandidate(candidate.sdp_mline_index, candidate.candidate);
+    }
+    return HttpResponse{204, "No Content", "text/plain; charset=utf-8", {}, ""};
 }
 
 std::string SourceJson(const std::string& session_id,
@@ -7246,7 +7447,7 @@ bool DetachAnalysisTapAndReleaseRuntimes(core::SessionManager& session_manager, 
 analysis::EventRuleEvaluation EvaluateStoredEventRules(
     const analysis::AnalysisResult& result,
     const std::shared_ptr<analysis::EventRuleRuntime>& runtime) {
-    return analysis::ApplyEventRulesToResult(result, AnalysisRegistry().RuleDocuments(), runtime);
+    return analysis::ApplyEventRulesToResult(result, AnalysisRuleDocumentsSnapshot(), runtime);
 }
 
 std::string AnalysisEventJson(const analysis::AnalysisEvent& event) {
@@ -9356,7 +9557,7 @@ std::string DispatchOpsAlertDeliveryFixture(const app::AppConfig& config,
     const std::string wanted_id = Trim(ParseStringField(body, "id").value_or(
         ParseStringField(body, "deliveryId").value_or("")));
     const std::string event_id = Trim(ParseStringField(body, "eventId").value_or(
-        "v170-alert-fixture-" + std::to_string(NowUnixMs())));
+        "alert-fixture-" + std::to_string(NowUnixMs())));
     const std::string event_type =
         Trim(ParseStringField(body, "eventType").value_or("intrusion"));
     const std::string source_id = Trim(ParseStringField(body, "sourceId").value_or("sample"));
@@ -11193,9 +11394,6 @@ std::string LabReportKindFromName(const std::string& name) {
     if (name.find("predev") != std::string::npos) {
         return "predev";
     }
-    if (name.find("multichannel") != std::string::npos) {
-        return "multichannel";
-    }
     if (name.find("evtpost-longrun") != std::string::npos) {
         return "event-post-longrun";
     }
@@ -11260,7 +11458,7 @@ std::string LabReportsJson() {
     return out.str();
 }
 
-// 큰 로그가 Lab 화면을 잠그지 않도록 앞부분만 읽고 truncation 여부를 같이 내려준다.
+// 큰 로그 응답은 앞부분만 읽고 truncation 여부를 같이 내려준다.
 bool BuildLabReportContentJson(const std::string& requested_path,
                                std::string* response_body,
                                std::string* error_message) {
@@ -11537,10 +11735,227 @@ void SuppressSocketSigPipe(int fd) {
 
 }  // namespace
 
+std::optional<std::string> ExtractObjectFieldByKey(const std::string& body,
+                                                   const std::string& field);
+
+std::string InsertObjectFieldIfMissing(std::string document,
+                                       const std::string& field_name,
+                                       const std::optional<std::string>& object_value) {
+    if (!object_value.has_value() || object_value->empty() ||
+        ExtractObjectFieldByKey(document, field_name).has_value()) {
+        return document;
+    }
+    const auto closing = document.rfind('}');
+    if (closing == std::string::npos) {
+        return document;
+    }
+    std::size_t previous = closing;
+    while (previous > 0 && std::isspace(static_cast<unsigned char>(document[previous - 1])) != 0) {
+        --previous;
+    }
+    const bool needs_comma = previous > 0 && document[previous - 1] != '{' &&
+                             document[previous - 1] != ',';
+    document.insert(closing,
+                    std::string(needs_comma ? "," : "") + "\"" + JsonEscape(field_name) +
+                        "\":" + *object_value);
+    return document;
+}
+
+std::optional<std::pair<std::size_t, std::size_t>> FindObjectFieldRangeByKey(
+    const std::string& body,
+    const std::string& field) {
+    const std::string needle = "\"" + field + "\"";
+    std::size_t search_pos = 0;
+    while (search_pos < body.size()) {
+        const std::size_t key_pos = body.find(needle, search_pos);
+        if (key_pos == std::string::npos) {
+            return std::nullopt;
+        }
+        search_pos = key_pos + needle.size();
+
+        std::size_t prev = key_pos;
+        while (prev > 0 && std::isspace(static_cast<unsigned char>(body[prev - 1])) != 0) {
+            --prev;
+        }
+        if (prev > 0 && body[prev - 1] != '{' && body[prev - 1] != ',') {
+            continue;
+        }
+
+        std::size_t pos = key_pos + needle.size();
+        while (pos < body.size() && std::isspace(static_cast<unsigned char>(body[pos])) != 0) {
+            ++pos;
+        }
+        if (pos >= body.size() || body[pos] != ':') {
+            continue;
+        }
+        ++pos;
+        while (pos < body.size() && std::isspace(static_cast<unsigned char>(body[pos])) != 0) {
+            ++pos;
+        }
+        if (pos >= body.size() || body[pos] != '{') {
+            continue;
+        }
+
+        bool in_string = false;
+        bool escaped = false;
+        int depth = 0;
+        const std::size_t start = pos;
+        for (; pos < body.size(); ++pos) {
+            const char ch = body[pos];
+            if (escaped) {
+                escaped = false;
+                continue;
+            }
+            if (ch == '\\' && in_string) {
+                escaped = true;
+                continue;
+            }
+            if (ch == '"') {
+                in_string = !in_string;
+                continue;
+            }
+            if (in_string) {
+                continue;
+            }
+            if (ch == '{') {
+                ++depth;
+            } else if (ch == '}') {
+                --depth;
+                if (depth == 0) {
+                    return std::make_pair(start, pos + 1);
+                }
+            }
+        }
+    }
+    return std::nullopt;
+}
+
+std::optional<std::string> ExtractObjectFieldByKey(const std::string& body,
+                                                   const std::string& field) {
+    const auto range = FindObjectFieldRangeByKey(body, field);
+    if (!range.has_value()) {
+        return std::nullopt;
+    }
+    return body.substr(range->first, range->second - range->first);
+}
+
+std::optional<std::pair<std::size_t, std::size_t>> FindDelimitedFieldRange(const std::string& body,
+                                                                           const std::string& field,
+                                                                           char open_ch,
+                                                                           char close_ch) {
+    const std::string needle = "\"" + field + "\"";
+    std::size_t pos = body.find(needle);
+    if (pos == std::string::npos) {
+        return std::nullopt;
+    }
+    pos = body.find(':', pos + needle.size());
+    if (pos == std::string::npos) {
+        return std::nullopt;
+    }
+    pos = body.find(open_ch, pos);
+    if (pos == std::string::npos) {
+        return std::nullopt;
+    }
+
+    bool in_string = false;
+    bool escaped = false;
+    int depth = 0;
+    const std::size_t start = pos;
+    for (; pos < body.size(); ++pos) {
+        const char ch = body[pos];
+        if (escaped) {
+            escaped = false;
+            continue;
+        }
+        if (ch == '\\' && in_string) {
+            escaped = true;
+            continue;
+        }
+        if (ch == '"') {
+            in_string = !in_string;
+            continue;
+        }
+        if (in_string) {
+            continue;
+        }
+        if (ch == open_ch) {
+            ++depth;
+        } else if (ch == close_ch) {
+            --depth;
+            if (depth == 0) {
+                return std::make_pair(start, pos + 1);
+            }
+        }
+    }
+    return std::nullopt;
+}
+
+std::string ReplaceObjectField(std::string document,
+                               const std::string& field_name,
+                               const std::optional<std::string>& object_value) {
+    if (!object_value.has_value() || object_value->empty()) {
+        return document;
+    }
+    const auto range = FindObjectFieldRangeByKey(document, field_name);
+    if (!range.has_value()) {
+        return InsertObjectFieldIfMissing(std::move(document), field_name, object_value);
+    }
+    document.replace(range->first, range->second - range->first, *object_value);
+    return document;
+}
+
+std::optional<std::string> FindRuleDocumentById(const std::vector<std::string>& documents,
+                                                const std::string& id) {
+    if (id.empty()) {
+        return std::nullopt;
+    }
+    for (const auto& document : documents) {
+        if (ParseStringField(document, "id").value_or("") == id) {
+            return document;
+        }
+    }
+    return std::nullopt;
+}
+
+std::optional<std::string> EventObjectForVaRule(const std::string& va_rule_document,
+                                                const std::string& template_document) {
+    auto event = ExtractObjectFieldByKey(template_document, "event");
+    if (!event.has_value()) {
+        return std::nullopt;
+    }
+    event = ReplaceObjectField(*event, "region", ExtractObjectFieldByKey(va_rule_document, "geometry"));
+    return event;
+}
+
+std::string ExpandVaRuleForEventEvaluation(const std::string& va_rule_document,
+                                           const std::vector<std::string>& rule_documents) {
+    if (ExtractObjectFieldByKey(va_rule_document, "event").has_value()) {
+        return va_rule_document;
+    }
+    const auto template_start = ExtractObjectFieldByKey(va_rule_document, "templateStart");
+    if (!template_start.has_value()) {
+        return va_rule_document;
+    }
+    const std::string template_rule_id = Trim(ParseStringField(*template_start, "ruleId").value_or(""));
+    const auto template_document = FindRuleDocumentById(rule_documents, template_rule_id);
+    if (!template_document.has_value()) {
+        return va_rule_document;
+    }
+
+    std::string expanded = va_rule_document;
+    expanded = InsertObjectFieldIfMissing(expanded, "event", EventObjectForVaRule(va_rule_document, *template_document));
+    expanded = InsertObjectFieldIfMissing(expanded, "scenario", ExtractObjectFieldByKey(*template_document, "scenario"));
+    expanded = InsertObjectFieldIfMissing(
+        expanded, "eventActions", ExtractObjectFieldByKey(*template_document, "eventActions"));
+    return expanded;
+}
+
 std::vector<std::string> AnalysisRuleDocumentsSnapshot() {
     auto documents = AnalysisRegistry().RuleDocuments();
     auto va_rule_documents = AnalysisRegistry().VaRuleDocuments();
-    documents.insert(documents.end(), va_rule_documents.begin(), va_rule_documents.end());
+    for (const auto& va_rule_document : va_rule_documents) {
+        documents.push_back(ExpandVaRuleForEventEvaluation(va_rule_document, documents));
+    }
     return documents;
 }
 
@@ -12824,6 +13239,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            if (const auto auth_response = require_admin_principal(); auth_response.has_value()) {
 	                                return *auth_response;
 	                            }
+                            if (request.method == "GET") {
+                                return AuthUserHttpResponse(auth::ListInvites(config));
+                            }
                             if (request.method == "POST") {
                                 const auth::AuthUserResult result =
                                     auth::CreateInviteFromJson(config, request.body);
@@ -13423,42 +13841,21 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             return no_content;
                         }
 
-                        if (request.method == "GET" && request.path == "/webrtc/test") {
-                            return HttpResponse{404, "Not Found", "text/plain; charset=utf-8", {}, "not found"};
-                        }
-
                         if (request.method == "GET" && request.path == "/webrtc/config") {
                             HttpResponse ok = JsonResponse(200, "OK", WebRtcBrowserConfigJson());
                             ok.headers["Cache-Control"] = "no-store";
                             return ok;
                         }
 
-                        if (request.method == "GET" && request.path == "/lab") {
-                            return HttpResponse{404, "Not Found", "text/plain; charset=utf-8", {}, "not found"};
-                        }
-
-                        if (request.method == "GET" && request.path == "/lab/rules") {
-                            return HttpResponse{404, "Not Found", "text/plain; charset=utf-8", {}, "not found"};
-                        }
-
-                        if (request.method == "GET" && request.path == "/lab/import") {
-                            return HttpResponse{404, "Not Found", "text/plain; charset=utf-8", {}, "not found"};
-                        }
-
-                        if (request.path == "/lab" || request.path.rfind("/lab/", 0) == 0) {
+                        const auto is_lab_api_route = [](const std::string& path) {
+                            return path == "/lab/files" ||
+                                   path == "/lab/reports" ||
+                                   path == "/lab/reports/content" ||
+                                   path == "/lab/runtime/status" ||
+                                   path.rfind("/lab/analysis/", 0) == 0;
+                        };
+                        if (is_lab_api_route(request.path)) {
                             if (const auto auth_response = require_lab_principal(); auth_response.has_value()) {
-                                if (!principal_result.ok && session_auth_mode && config.enable_lab) {
-                                    return RedirectResponse("/login");
-                                }
-                                const bool lab_page_get =
-                                    request.method == "GET" &&
-                                    false;
-                                if (lab_page_get && !principal_result.ok) {
-                                    return UnauthorizedPageResponse();
-                                }
-                                if (lab_page_get && auth_response->status == 403) {
-                                    return ForbiddenPageResponse("Lab은 admin/operator 또는 lab:read scope가 필요합니다.");
-                                }
                                 return *auth_response;
                             }
                         }
@@ -14426,6 +14823,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             created.status_text = "Created";
                             created.content_type = "application/sdp";
                             created.headers["Location"] = "/whep/session/" + session_id;
+                            created.headers["Accept-Patch"] = "application/trickle-ice-sdpfrag";
                             created.headers["X-Session-Capability"] = session_capability;
                             created.body = answer;
                             return created;
@@ -14567,6 +14965,12 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
 
                             if ((request.method == "POST" || request.method == "PATCH") && (suffix.empty() || suffix == "/ice")) {
+                                if (is_whep && request.method == "PATCH") {
+                                    if (auto fragment_response = ApplyWhepSdpFragmentIce(request, bridge);
+                                        fragment_response.has_value()) {
+                                        return *fragment_response;
+                                    }
+                                }
                                 const auto candidate = ParseStringField(request.body, "candidate");
                                 const auto mline = ParseIntField(request.body, "sdpMLineIndex");
                                 if (!candidate.has_value() || !mline.has_value()) {

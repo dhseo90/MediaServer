@@ -10,11 +10,13 @@ source "${SCRIPT_DIR}/env_common.sh"
 media_server_apply_homebrew_gst_env
 
 ENV_FILE="${SCRIPTS_DIR}/.media_server.env"
-if [[ -f "${ENV_FILE}" ]]; then
+if [[ -f "${ENV_FILE}" && "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" != "1" ]]; then
   # shellcheck disable=SC1090
   set -a
   source "${ENV_FILE}"
   set +a
+elif [[ "${MEDIA_SERVER_SKIP_LOCAL_ENV:-0}" == "1" ]]; then
+  echo "[env] skipped local override: ${ENV_FILE}"
 fi
 
 STD_AFX="${ROOT_DIR}/include/stdafx.h"
@@ -29,14 +31,12 @@ IMAGE_FILE="${MEDIA_SERVER_VERIFY_REDACTION_IMAGE_FILE:-}"
 FILE_TOKEN="${MEDIA_SERVER_VERIFY_REDACTION_FILE:-va_four_scene_sample.mp4}"
 DURATION_S="${MEDIA_SERVER_VERIFY_REDACTION_DURATION_S:-12}"
 REPEAT_COUNT="${MEDIA_SERVER_VERIFY_REDACTION_REPEAT:-1}"
-HOLD_MS="${MEDIA_SERVER_VERIFY_REDACTION_HOLD_MS:-5000}"
 REDACTION_CLASSES="${MEDIA_SERVER_VERIFY_REDACTION_CLASSES:-person}"
 REDACTION_BLOCK_SIZE="${MEDIA_SERVER_VERIFY_REDACTION_BLOCK_SIZE:-20}"
 REDACTION_MARGIN_RATIO="${MEDIA_SERVER_VERIFY_REDACTION_MARGIN_RATIO:-0.08}"
 MIN_INSIDE_DIFF="${MEDIA_SERVER_VERIFY_REDACTION_MIN_INSIDE_DIFF:-2.0}"
 RUN_STATIC=1
 RUN_LIVE=1
-RUN_MULTICHANNEL="${MEDIA_SERVER_VERIFY_REDACTION_INCLUDE_MULTICHANNEL:-0}"
 RUN_EVENTS="${MEDIA_SERVER_VERIFY_REDACTION_INCLUDE_EVENTS:-0}"
 RUN_TRACKER="${MEDIA_SERVER_VERIFY_REDACTION_INCLUDE_TRACKER:-0}"
 RUN_URI="${MEDIA_SERVER_VERIFY_REDACTION_INCLUDE_URI:-0}"
@@ -67,13 +67,12 @@ Options:
   --redaction-classes <csv>  모자이크 대상 category/class. 기본 ${REDACTION_CLASSES}
   --block-size <n>           mosaic block size. 기본 ${REDACTION_BLOCK_SIZE}
   --margin-ratio <n>         bbox 확장 비율. 기본 ${REDACTION_MARGIN_RATIO}
-  --include-multichannel     현재 skip: 초기 브라우저 harness 제거 후 별도 제품 UI harness 필요
   --include-events           VA event 검증을 함께 실행해 redaction과 event 동시 사용성을 확인
   --include-tracker          tracker 안정성 검증을 함께 실행
   --include-uri              URI/HLS source 장기 검증 준비 상태를 summary에 포함
   --skip-idle-precheck       시작 시 runtime 잔여 session/stream/tap 확인을 건너뜀
   --idle-precheck-timeout <s> runtime idle 대기 시간. 기본 ${IDLE_PRECHECK_TIMEOUT_S}
-  --long                     duration=30, repeat=2, events/tracker 포함. multichannel은 현재 skip
+  --long                     duration=30, repeat=2, events/tracker 포함
   --static-only              정적 이미지 redaction만 검증
   --live-only                RTSP/WebRTC live redaction만 검증
   --summary-file <path>      summary JSON 출력 경로
@@ -443,16 +442,7 @@ run_live_redaction() {
   local query
   query="$(redaction_query)"
   run_step "live-va-redaction" \
-    "MEDIA_SERVER_VERIFY_VA_FILE='${FILE_TOKEN}' MEDIA_SERVER_VERIFY_VA_DURATION_S=${DURATION_S} MEDIA_SERVER_VERIFY_VA_WEBRTC_HOLD_MS=${HOLD_MS} MEDIA_SERVER_VERIFY_VA_EXTRA_QUERY='${query}' MEDIA_SERVER_VERIFY_VA_REDACTION=person-mosaic MEDIA_SERVER_VERIFY_VA_REDACTION_CLASSES='${REDACTION_CLASSES}' MEDIA_SERVER_VERIFY_VA_REDACTION_BLOCK_SIZE=${REDACTION_BLOCK_SIZE} MEDIA_SERVER_VERIFY_VA_REDACTION_MARGIN_RATIO=${REDACTION_MARGIN_RATIO} ./server.sh verify-va" || true
-}
-
-# 제거된 초기 브라우저 harness를 대체할 제품 UI harness가 생길 때까지 다채널 redaction은 skip한다.
-run_multichannel_redaction() {
-  if [[ "${RUN_MULTICHANNEL}" != "1" ]]; then
-    skip_step "multichannel-redaction" "--include-multichannel 미지정"
-    return 0
-  fi
-  skip_step "multichannel-redaction" "초기 /webrtc/test 브라우저 harness 제거 후 별도 제품 UI harness가 아직 없어 명시적으로 생략합니다."
+    "MEDIA_SERVER_SKIP_LOCAL_ENV=${MEDIA_SERVER_SKIP_LOCAL_ENV:-0} MEDIA_SERVER_LISTEN_PORT=${MEDIA_SERVER_LISTEN_PORT:-} MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} MEDIA_SERVER_VERIFY_VA_HTTP_BASE='${HTTP_BASE}' MEDIA_SERVER_VERIFY_VA_FILE='${FILE_TOKEN}' MEDIA_SERVER_VERIFY_VA_DURATION_S=${DURATION_S} MEDIA_SERVER_VERIFY_VA_EXTRA_QUERY='${query}' MEDIA_SERVER_VERIFY_VA_REDACTION=person-mosaic MEDIA_SERVER_VERIFY_VA_REDACTION_CLASSES='${REDACTION_CLASSES}' MEDIA_SERVER_VERIFY_VA_REDACTION_BLOCK_SIZE=${REDACTION_BLOCK_SIZE} MEDIA_SERVER_VERIFY_VA_REDACTION_MARGIN_RATIO=${REDACTION_MARGIN_RATIO} ./server.sh verify-va" || true
 }
 
 # redaction과 event rule을 함께 켰을 때 event 산출 경로가 깨지지 않는지 확인한다.
@@ -466,7 +456,7 @@ run_event_compatibility() {
     event_duration=30
   fi
   run_step "event-redaction-compatibility" \
-    "MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=${event_duration} ./server.sh verify-va-events --duration ${event_duration}" || true
+    "MEDIA_SERVER_SKIP_LOCAL_ENV=${MEDIA_SERVER_SKIP_LOCAL_ENV:-0} MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} MEDIA_SERVER_VERIFY_VA_HTTP_BASE='${HTTP_BASE}' MEDIA_SERVER_VERIFY_VA_EVENTS_DURATION_S=${event_duration} ./server.sh verify-va-events --duration ${event_duration}" || true
 }
 
 # redaction 승격 중 tracker 자체의 ID 유지 통계가 악화되지 않는지 별도 smoke로 확인한다.
@@ -571,10 +561,6 @@ parse_args() {
         REDACTION_MARGIN_RATIO="${2:-}"
         shift 2
         ;;
-      --include-multichannel)
-        RUN_MULTICHANNEL=1
-        shift
-        ;;
       --include-events)
         RUN_EVENTS=1
         shift
@@ -598,7 +584,6 @@ parse_args() {
       --long)
         DURATION_S=30
         REPEAT_COUNT=2
-        RUN_MULTICHANNEL=1
         RUN_EVENTS=1
         RUN_TRACKER=1
         shift
@@ -606,7 +591,6 @@ parse_args() {
       --static-only)
         RUN_STATIC=1
         RUN_LIVE=0
-        RUN_MULTICHANNEL=0
         RUN_EVENTS=0
         RUN_TRACKER=0
         RUN_URI=0
@@ -679,7 +663,6 @@ main() {
   else
     skip_step "live-va-redaction" "--static-only 설정으로 제외"
   fi
-  run_multichannel_redaction
   run_event_compatibility
   run_tracker_compatibility
   run_uri_readiness
