@@ -82,15 +82,21 @@ maintenance-first roadmap입니다. v1.8.0에서 닫은 source-only/live-only �
 - 새 후속 이슈는 먼저 후보로 제시하고, 영향 범위와 검증 비용을 owner에게 확인받습니다.
 - owner가 명시적으로 승인하기 전에는 이 표에 새 roadmap 행으로 추가하지 않습니다.
 - 승인 없는 후보를 "v1.9.0 범위" 또는 "잔여 이슈"로 확정해 기록하지 않습니다.
-- 2026-05-26 기준 승인된 post-release 운영 이슈 4개는 아래 표에 active roadmap으로
-  반영합니다. 그 밖의 추가 개발 후보는 다시 owner 승인 전까지 반영하지 않습니다.
+- 2026-05-26 기준 승인된 post-release 운영 이슈 4개와 개발 로드맵 이슈 5개는
+  아래 표에 active roadmap으로 반영합니다. 그 밖의 추가 개발 후보는 다시 owner
+  승인 전까지 반영하지 않습니다.
 
 | ID | 우선순위 | 영역 | 목표 | 예상 검증 |
 | --- | --- | --- | --- | --- |
 | V190-P0-01 | P0 | GitHub Actions warning annotation gate | main check-run은 success여도 Node.js 20 actions deprecation warning annotation이 남을 수 있으므로, warning을 release gate에서 허용할지 차단할지 기준을 명확히 정합니다. | GitHub check-runs annotations API review, release gate policy review, `verify-actions-security`, Preflight/static-gates/guardrails, `git diff --check` |
 | V190-P0-02 | P0 | GitHub Actions Node 24 readiness | `actions/checkout@v4`, `actions/upload-artifact@v4`의 Node 24 지원 경로, 현재 `verify-actions-security`의 `actions/*@v4` 허용 정책, Dependabot major ignore 정책을 함께 검토한 뒤 workflow와 verifier 정책을 일관되게 갱신합니다. | upstream action version/changelog review, `.github/dependabot.yml` review, `verify-actions-security`, Preflight/static-gates/guardrails, `git diff --check` |
+| V190-P0-03 | P0 | UI 풀테스트 evidence runner | inventory 기능 ID별 클릭, 입력, 상태 반영, 관련 로그 확인 결과를 자동 산출하고 미실행 ID를 FAIL로 남기는 evidence runner를 정리합니다. 수동 클릭 의존을 줄이고 UI 풀테스트 완료/미완료 판정을 기능 ID 단위로 남깁니다. | feature inventory fixture review, autonomous UI runner, per-ID evidence report, manual spot review, `verify-ops-client-ui --screenshots`, `verify-rule-ui`, `git diff --check` |
+| V190-P0-04 | P0 | Feature inventory coverage gate | `project-feature-test-inventory.md`의 기능 ID가 실제 verifier, UI evidence, 또는 명시적 제외 기록과 연결되지 않으면 release gate에서 잡도록 coverage mapping을 고정합니다. | inventory-to-verifier mapping report, missing-ID FAIL check, `verify-script-inventory`, release gate dry-run, `git diff --check` |
 | V190-P1-01 | P1 | Published release evidence automation | release 후 main page 오른쪽 Releases/Latest 표시, GitHub Latest Release API, remote tag/branch 상태를 수동 보고에만 의존하지 않도록 증적 저장 또는 report 출력을 정리합니다. | `verify-release-metadata --published` report review, GitHub API latest release check, remote refs check, release evidence index review, `git diff --check` |
 | V190-P1-02 | P1 | GitHub metadata verifier fallback policy | `gh` 인증 또는 SSH/DNS 문제가 있을 때 `verify-release-metadata --published`가 제품 회귀와 환경 실패를 구분해 보고하도록 GitHub API/curl fallback 또는 실패 메시지 정책을 검토합니다. | sandbox/non-sandbox verifier comparison, `gh` failure reproduction, GitHub API fallback review, `verify-release-metadata --published`, `git diff --check` |
+| V190-P1-03 | P1 | VA rule/scenario/EventRecord coverage report | rule, scenario, event type별 발생 이력과 EventRecord 저장 여부, 누락 조합을 표로 뽑아 VA coverage를 카테고리 한 줄이 아니라 조합 단위 evidence로 확인합니다. | VA replay matrix, EventRecord history report, rule/scenario event type coverage, invalid-combination FAIL rows, `verify-va-events`, `verify-va-replay`, `git diff --check` |
+| V190-P1-04 | P1 | Release close-out one-shot gate | main merge 이후 tag 생성, release branch 삭제, GitHub Release latest 확인, published metadata verify, next branch 생성을 한 순서로 강제하고 실패 시 즉시 중단하는 close-out gate를 설계합니다. | dry-run close-out gate, remote refs check, GitHub latest release API check, `verify-release-metadata --published`, failure-stop rehearsal, `git diff --check` |
+| V190-P2-01 | P2 | UI blocking dialog policy | UI 테스트 중 사용자 수동 클릭을 요구하는 확인 버튼, modal, blocking dialog를 검출하고 제품/테스트 모드별 허용 기준을 분리합니다. 자동 테스트가 멈추는 dialog는 evidence에 FAIL 또는 명시 제외로 남깁니다. | blocking dialog fixture, autonomous UI runner fail-fast check, modal allowlist review, ops/client UI smoke, `git diff --check` |
 
 ## v1.8.0 Release Trust Hardening Close-out
 
