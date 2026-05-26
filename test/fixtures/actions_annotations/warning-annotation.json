@@ -1,0 +1,12 @@
+{
+  "annotations": [
+    {
+      "path": ".github/workflows/preflight.yml",
+      "start_line": 17,
+      "end_line": 17,
+      "annotation_level": "warning",
+      "title": "Node.js 20 action runtime deprecation",
+      "message": "Synthetic fixture: success check-run with a warning annotation must block release evidence."
+    }
+  ]
+}

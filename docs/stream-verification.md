@@ -78,6 +78,7 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-manual-ui-evidence
 ./server.sh verify-actions-security
+./server.sh verify-actions-security --annotations-json <annotations.json>
 ./server.sh write-dependency-notice --check
 ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
 ./server.sh verify-post-release-reconciliation
@@ -103,6 +104,12 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 로컬 VERSION/문서 기준을 확인합니다. 이 모드에서는 GitHub Release/tag 생성이 아직
 수동 close-out 전일 수 있으므로 GitHub Latest Release 확인을 `manual-not-run`으로
 기록합니다.
+GitHub Actions warning annotation gate는 check-run conclusion과 별도로 봅니다.
+success check-run이어도 GitHub check-runs annotations API export에
+warning/failure annotation이 있으면
+`./server.sh verify-actions-security --annotations-json <annotations.json>`가 실패하며,
+해당 run을 release PASS evidence로 대체하지 않습니다. annotation API 확인을
+실행하지 않았으면 annotation 상태는 `미확인`입니다.
 main merge, tag, GitHub Release publish 이후에는
 `./server.sh verify-release-metadata --published`를 실행합니다. 이 모드는
 `gh release list`, `gh release view`, GitHub API `/releases/latest`,

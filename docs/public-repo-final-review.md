@@ -38,6 +38,21 @@ Required status check에는 추가하지 않고, checkbox enabled 상태만 확�
 따라서 GitHub Actions major update는 자동 병합 대상이 아니며, 보안 정책을 검토한 뒤 수동으로 올립니다.
 반복 실패 알림을 줄이기 위해 `.github/dependabot.yml`은 `actions/checkout`, `actions/upload-artifact`의 semver major update를 무시합니다.
 
+## GitHub Actions warning annotation gate
+
+최신 `Preflight` 또는 `Licensing and Artifact Guardrails`가 success check-run으로
+보여도 warning/failure annotation이 있으면 release gate PASS로 기록하지 않습니다.
+GitHub check-runs annotations API review에서 annotation JSON을 받은 경우 아래처럼
+로컬 gate에 넣어 확인합니다.
+
+```bash
+./server.sh verify-actions-security --annotations-json <annotations.json>
+```
+
+현재 정책은 Node.js action runtime deprecation 같은 warning/failure annotation을
+차단하는 것입니다. GitHub UI에서 열어보지 않았거나 API export를 실행하지 않은
+annotation 상태는 `미확인`으로 남기고 PASS evidence로 대체하지 않습니다.
+
 ## 자동 확인
 
 public/release readiness를 로컬 또는 CI에서 확인할 때 실행합니다.
@@ -48,6 +63,7 @@ public/release readiness를 로컬 또는 CI에서 확인할 때 실행합니다
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-actions-security
+./server.sh verify-actions-security --annotations-json <annotations.json>
 ./server.sh write-dependency-notice --check
 ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
 ./server.sh dependency-snapshot --stable --output /tmp/media_server_dependency_snapshot.md --json-output /tmp/media_server_dependency_snapshot.json --no-linked-libs

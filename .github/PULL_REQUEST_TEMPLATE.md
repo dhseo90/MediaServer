@@ -21,6 +21,7 @@
 - [ ] `./server.sh verify-docs-links` when docs changed
 - [ ] `./server.sh verify-docs-ui-assets` when README/UI asset references changed
 - [ ] `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>` when release/visual baseline readiness changed
+- [ ] `./server.sh verify-actions-security --annotations-json <annotations.json>` when GitHub check-runs annotations were reviewed for release evidence
 - [ ] `./server.sh verify-ui-visual-artifact-index` when UI screenshot artifact behavior or docs changed
 - [ ] `./server.sh verify-ui-release-baseline-approval-log` when release baseline artifact approval docs or workflow gates changed
 - [ ] `./server.sh verify-ops-client-ui --screenshots --output-dir <artifact-dir>` when Auth/Ops/Client UI changed
@@ -49,6 +50,7 @@
 - [ ] Visual baseline diff/comment artifact `media-server-ui-visual-baseline-diff` is available or marked not run.
 - [ ] Visual maintenance dry-run artifact `media-server-ui-visual-maintenance-dry-run` is available or marked not run.
 - [ ] Manual release actions, tag, push, GitHub Release, accepted baseline adoption, and screenshot review are not claimed as pass unless actually executed and linked.
+- [ ] GitHub Actions warning annotation gate: success check-run warning/failure annotation state is checked or explicitly marked not run; warning/failure annotation is not treated as PASS evidence.
 
 ## Not Run
 

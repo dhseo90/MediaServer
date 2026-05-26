@@ -129,6 +129,24 @@ Dependabot이 `actions/checkout@v6`, `actions/upload-artifact@v7`처럼 major up
 Preflight가 실패하는 것이 현재 정책상 정상입니다.
 major update를 적용하려면 workflow 권한, upstream changelog, pin 전략을 먼저 검토합니다.
 
+### GitHub Actions warning annotation gate
+
+GitHub Actions check-run이 `success`여도 warning/failure annotation이 남아 있으면
+release gate PASS evidence로 대체하지 않습니다. 특히 action runtime deprecation처럼
+main check-run을 실패시키지 않는 warning/failure annotation은 release close-out 전에
+차단하거나, owner가 별도 정책으로 허용 범위와 만료일을 승인해야 합니다. 현재
+v1.9.0 P0 기준은 warning/failure annotation 전부 차단입니다.
+
+GitHub check-runs annotations API에서 받은 JSON export는 아래 명령으로 확인합니다.
+
+```bash
+./server.sh verify-actions-security --annotations-json <annotations.json>
+```
+
+이 명령은 `annotation_level`이 `warning` 또는 `failure`인 항목을 실패로 처리합니다.
+`notice` annotation은 release gate 실패로 보지 않지만, 실행하지 않은 API 확인을
+PASS evidence로 대체하지 않습니다.
+
 ## Release Note Template
 
 ```markdown
