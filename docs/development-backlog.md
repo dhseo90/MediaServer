@@ -70,6 +70,23 @@ alert delivery, scenario builder, Ops/Client declutter는 이전 UI-first close-
 과거 release evidence는 standalone current 문서가 아니라 이 문서의 archive 섹션에만
 보존합니다.
 
+## 활성 차기 로드맵: v1.9.0
+
+v1.9.0은 v1.8.0 source release 이후 main/release 운영 신뢰도를 유지하는
+maintenance-first roadmap입니다. v1.8.0에서 닫은 source-only/live-only 제품 경계를
+유지하고, 새 제품 기능은 owner가 별도 승인하기 전까지 active roadmap으로 승격하지
+않습니다.
+
+후속 이슈 승격 원칙:
+
+- 새 후속 이슈는 먼저 후보로 제시하고, 영향 범위와 검증 비용을 owner에게 확인받습니다.
+- owner가 명시적으로 승인하기 전에는 이 표에 새 roadmap 행으로 추가하지 않습니다.
+- 승인 없는 후보를 "v1.9.0 범위" 또는 "잔여 이슈"로 확정해 기록하지 않습니다.
+
+| ID | 우선순위 | 영역 | 목표 | 예상 검증 |
+| --- | --- | --- | --- | --- |
+| V190-P0-01 | P0 | GitHub Actions Node 24 readiness | main check-run에서 확인된 Node.js 20 actions deprecation warning을 v1.9.0 선반영 항목으로 닫습니다. `actions/checkout@v4`, `actions/upload-artifact@v4`의 Node 24 지원 경로, 현재 `verify-actions-security`의 `actions/*@v4` 허용 정책, Dependabot major ignore 정책을 함께 검토한 뒤 workflow와 verifier 정책을 일관되게 갱신합니다. | GitHub check annotations review, upstream action version/changelog review, `verify-actions-security`, Preflight/static-gates/guardrails, `git diff --check` |
+
 ## v1.8.0 Release Trust Hardening Close-out
 
 v1.8.0의 목표는 새 제품 기능 확장이 아니라 이전 close-out에서 드러난
