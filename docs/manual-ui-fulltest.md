@@ -115,6 +115,8 @@ UI 풀테스트는 사용자가 직접 누르는 절차가 아니라 테스트 r
 - responsive viewport를 바꾸고 화면을 다시 확인하기
 - confirm/alert/prompt 같은 브라우저 native dialog가 제품 UI에 남아 있지 않은지
   `verify-product-ui-no-native-dialogs`로 먼저 확인하기
+- blocking dialog policy에서 허용한 in-page dialog만 쓰는지
+  `verify-ui-blocking-dialog-policy`로 확인하기
 - 위험 action은 제품 화면 안 2회 확인 상태로 처리되고, 첫 클릭에는 write POST가
   발생하지 않으며 두 번째 클릭에서만 상태가 바뀌는지 확인하기
 
@@ -266,6 +268,7 @@ UI 풀테스트는 기능 검수와 같은 비중으로 시각 품질을 봅니�
 - `./server.sh verify-ops-client-ui`
 - `./server.sh verify-ops-client-ui --screenshots`
 - `./server.sh verify-product-ui-no-native-dialogs`
+- `./server.sh verify-ui-blocking-dialog-policy`
 - `./server.sh verify-ops-click-e2e`
 - `./server.sh verify-ops-click-e2e --auth-ui-flow --auth-users-file <path>`
 - `./server.sh verify-rule-ui`

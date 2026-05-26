@@ -124,6 +124,8 @@ Usage:
                  기능 ID별 UI evidence JSON을 PASS/FAIL report로 변환하고 누락 ID를 FAIL로 검증합니다.
   verify-product-ui-no-native-dialogs
                  제품 UI가 alert/confirm/prompt native dialog로 자동 UI 검수를 멈추지 않는지 검증합니다.
+  verify-ui-blocking-dialog-policy
+                 제품/test UI blocking dialog 허용 기준과 fail-fast 정책을 검증합니다.
   prepare-manual-ui-fulltest-seed
                  수동 UI 풀테스트용 VA seed fixture를 dry-run 검증하고, 명시 승인 시 throwaway 서버에 적용합니다.
   verify-docs-links
@@ -602,6 +604,10 @@ case "${cmd}" in
   verify-product-ui-no-native-dialogs)
     require_internal verify_product_ui_no_native_dialogs.mjs
     exec "${INTERNAL_DIR}/verify_product_ui_no_native_dialogs.mjs" "$@"
+    ;;
+  verify-ui-blocking-dialog-policy)
+    require_internal verify_ui_blocking_dialog_policy.mjs
+    exec "${INTERNAL_DIR}/verify_ui_blocking_dialog_policy.mjs" "$@"
     ;;
   prepare-manual-ui-fulltest-seed)
     require_internal prepare_manual_ui_fulltest_seed.mjs

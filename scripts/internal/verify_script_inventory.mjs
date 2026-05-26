@@ -409,6 +409,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_project_feature_test_inventory.mjs",
     "verify_manual_ui_evidence.mjs",
     "verify_ops_client_ui_smoke.mjs",
+    "verify_ui_blocking_dialog_policy.mjs",
     "verify_product_shell_examples.mjs",
     "verify_runtime_dashboard_longrun_template.mjs",
     "verify_ui_copy_matrix.mjs",

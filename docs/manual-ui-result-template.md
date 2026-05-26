@@ -74,6 +74,7 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
   - `./server.sh verify-ops-client-ui`:
   - `./server.sh verify-ops-client-ui --screenshots`:
   - `./server.sh verify-product-ui-no-native-dialogs`:
+  - `./server.sh verify-ui-blocking-dialog-policy`:
   - `./server.sh verify-ops-click-e2e`:
   - `./server.sh verify-ops-click-e2e --auth-ui-flow --auth-users-file <path>`:
   - `./server.sh verify-rule-ui`:
@@ -86,6 +87,11 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
   - `./server.sh verify-va-runtime-console-longrun --duration-minutes 120`:
 
 ## UI 풀테스트 기록
+
+- blocking dialog policy:
+  - native alert/confirm/prompt 없음:
+  - allowlisted in-page dialog만 사용:
+  - 위험 action 2회 확인 첫 클릭 write 없음:
 
 - 브라우저:
 - 직접 조작 범위:
@@ -175,8 +181,8 @@ evidence가 아닙니다.
 admin/operator 권한으로 `/ops/events`를 직접 열고, 최종 enabled event
 template/vaRule별 EventRecord 발생 이력을 대조합니다. 파일/API 대조는 보조
 evidence이며, UI에서 열지 않은 경우 `FAIL`입니다.
-basic 6개 + scenario 6개, basic/scenario 최종 12개 이상을 개별 행으로 기록하고
-묶음 PASS로 대체하지 않습니다.
+`line-crossing:any`, `line-crossing:forward`, `line-crossing:reverse`처럼 event key를
+개별 행으로 기록하고 묶음 PASS로 대체하지 않습니다.
 
 - `/ops/events` screenshot:
 - visible rows:

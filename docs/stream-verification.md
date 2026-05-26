@@ -325,6 +325,10 @@ session auth 제품 UI 자체를 검증할 때는 별도 session-auth 서버를 
   `alert`/`confirm`/`prompt` 호출을 금지합니다. 위험 action은 제품 화면 안 2회
   확인 상태로 검증하고, 사용자가 Codex pane나 운영체제 팝업을 눌러야 하는 상태는
   verifier 실패로 봅니다.
+- blocking dialog policy: `verify-ui-blocking-dialog-policy`는
+  `media-server.ui-blocking-dialog-policy.v1` report로 native dialog 금지,
+  non-blocking `beforeunload` cleanup, allowlisted read-only `<dialog>`, 위험 action
+  2회 확인 정책을 함께 검증합니다.
 - Browser/Computer Use fallback: 수동 UI evidence는 Browser Use 직접 조작,
   Chrome 직접 조작, Computer Use visible UI 조작 순서로 시도하고, raw JSON/API-only
   확인을 수동 클릭 evidence로 쓰지 않습니다.
