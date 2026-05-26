@@ -1,0 +1,148 @@
+{
+  "schema": "media-server.v200-contract-schema-freeze.v1",
+  "targetRelease": "v2.0.0-entry",
+  "artifactVersion": "v1.8.0-integrator-contract-artifact.1",
+  "generatedAt": "2026-05-26T00:00:00Z",
+  "requiresSchemaReviewForDrift": true,
+  "runtimeVerificationStillRequired": true,
+  "contractGroups": [
+    {
+      "id": "live-event-metadata",
+      "scope": "Event POST, WebRTC DataChannel, SSE/WS runtime metadata, and WebSocket control sample/schema files."
+    },
+    {
+      "id": "auth-session-scope",
+      "scope": "Auth principal, users, session, role, and scope boundary files."
+    },
+    {
+      "id": "source-published-view",
+      "scope": "SourceRegistry and PublishedView storage/API boundary files."
+    },
+    {
+      "id": "rule-profile-payload",
+      "scope": "Rule/Profile storage payload and VA rule application boundary files."
+    }
+  ],
+  "entries": [
+    {
+      "group": "live-event-metadata",
+      "path": "test/fixtures/integrator_contract_artifact/README.md",
+      "sha256": "bfca6bc75ebc054b2eccc1454f82e1f05f6b764ce655a01098fbd322a512dcf9"
+    },
+    {
+      "group": "live-event-metadata",
+      "path": "test/fixtures/integrator_contract_artifact/CHANGELOG.md",
+      "sha256": "c7dfa30e28560cf8d371efaaf5188a683b858b27467532f190516b0459ff1a2f"
+    },
+    {
+      "group": "live-event-metadata",
+      "path": "test/fixtures/integrator_contract_artifact/field-index.json",
+      "sha256": "3950454586af3e04603272063869c06ff377cf22c014199db1ddb8d0ea170a72"
+    },
+    {
+      "group": "live-event-metadata",
+      "path": "test/fixtures/integrator_contract_artifact/schema-review-checklist.md",
+      "sha256": "cd441a56d9776f5b108c360e24ce7d8b285654fe758192b38edef3950aec522f"
+    },
+    {
+      "group": "live-event-metadata",
+      "path": "test/fixtures/integrator_contract_artifact/manifest.json",
+      "sha256": "771e3f49114785d40e9b27138ffeb2cf7016a4c71909c9601aaad84a2fc32796"
+    },
+    {
+      "group": "live-event-metadata",
+      "path": "test/fixtures/integrator_contract_artifact/schemas/common.json",
+      "sha256": "46f36462f6e43f67de12cd43627d70450207c22f1d854f0bfb8c3fb71d934fc5"
+    },
+    {
+      "group": "live-event-metadata",
+      "path": "test/fixtures/integrator_contract_artifact/schemas/event-post.schema.json",
+      "sha256": "c88f0d383208bda3cb13646acd2e053bf7beab325e41b80bc5c995a29e27f505"
+    },
+    {
+      "group": "live-event-metadata",
+      "path": "test/fixtures/integrator_contract_artifact/schemas/webrtc-va-metadata.schema.json",
+      "sha256": "2bb8ee3dfe01da92e93ad6fe6bbb37a26ea5528734af9555146f842650c0d0b9"
+    },
+    {
+      "group": "live-event-metadata",
+      "path": "test/fixtures/integrator_contract_artifact/schemas/runtime-metadata.schema.json",
+      "sha256": "fc22900e3c58dceee0792d6fa58fe960a1258cbf93971c5ea5c14ad5ec5991d6"
+    },
+    {
+      "group": "live-event-metadata",
+      "path": "test/fixtures/integrator_contract_artifact/schemas/metadata-control.schema.json",
+      "sha256": "7aeb130d372651d92582d2d93640b37101f75757609adb91034dcdb3388f4899"
+    },
+    {
+      "group": "live-event-metadata",
+      "path": "test/fixtures/integrator_contract_artifact/samples/event-post.json",
+      "sha256": "64a00c27193e5762e2788ade21ab320d671b38a689a365dde177c6f63564471b"
+    },
+    {
+      "group": "live-event-metadata",
+      "path": "test/fixtures/integrator_contract_artifact/samples/webrtc-va-metadata.json",
+      "sha256": "6e043430562886af2259e48d572d9421506a81387ab4b954c053363a248d1645"
+    },
+    {
+      "group": "live-event-metadata",
+      "path": "test/fixtures/integrator_contract_artifact/samples/runtime-metadata-sse.json",
+      "sha256": "f0d81df567f1a081ae03850b1fa9e01e3671086a5af65b3b960abdfc2d21b3fa"
+    },
+    {
+      "group": "live-event-metadata",
+      "path": "test/fixtures/integrator_contract_artifact/samples/runtime-metadata-ws.json",
+      "sha256": "a88cf6d0e74d601d904263e785155582e8436e383adc50a4d6a47135feae949a"
+    },
+    {
+      "group": "live-event-metadata",
+      "path": "test/fixtures/integrator_contract_artifact/samples/metadata-control-subscribe-ack.json",
+      "sha256": "4188f10f319430423e94989f57df495e241d84e92023687eed1c9351c1c573f2"
+    },
+    {
+      "group": "live-event-metadata",
+      "path": "docs/integrator-contract-artifact.md",
+      "sha256": "50c039f906716db11ce25cf3813e77779729e2107928080d0260d73f1e085854"
+    },
+    {
+      "group": "live-event-metadata",
+      "path": "docs/live-event-metadata-contracts.md",
+      "sha256": "0bc35bfb603526ec15b81ff8883d8b1a346be01f0b65d34f0d1a50378e695323"
+    },
+    {
+      "group": "live-event-metadata",
+      "path": "docs/webrtc-metadata-client.md",
+      "sha256": "1965d85d879f85a2aafc35dada2170820897b6153de0b8d81dfd1a8001ff331a"
+    },
+    {
+      "group": "auth-session-scope",
+      "path": "docs/media-server-architecture.md",
+      "sha256": "10003ca24c60d9e7f8a7fe1d6911343545af69c986ffd4edac8e219b6db2fe7a"
+    },
+    {
+      "group": "auth-session-scope",
+      "path": "include/ingress/http_auth.h",
+      "sha256": "64e5fbf22d8a96ffa5730b48533ce2e2b78c3a24bef5e3e18048120533995354"
+    },
+    {
+      "group": "auth-session-scope",
+      "path": "src/ingress/http_auth.cpp",
+      "sha256": "f86e94efa6b5fd04a35557e113d8859821b67a54fdc50ead87c2dc479dbb0be5"
+    },
+    {
+      "group": "source-published-view",
+      "path": "include/ingress/source_view_registry.h",
+      "sha256": "df025688df521b7b82125bb8fbfe472cde144280fc98121d7e8b482ba9451937"
+    },
+    {
+      "group": "source-published-view",
+      "path": "src/ingress/source_view_registry.cpp",
+      "sha256": "082b039451014d33db7891eaec13e87917c8cf15343ed9a27083e2c17659c9ec"
+    },
+    {
+      "group": "rule-profile-payload",
+      "path": "include/ingress/analysis_rule_registry.h",
+      "sha256": "1208a496f889f24fdfd8bbe7ef889885d493f166d8f6b223a9ae0a05048040df"
+    }
+  ]
+}

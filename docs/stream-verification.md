@@ -140,6 +140,19 @@ report로 모든 기능 ID가 안정화 verifier, UI evidence runner, 30분/120�
   --report <feature-inventory-coverage.md> \
   --json-report <feature-inventory-coverage.json>
 ```
+
+v2.0.0 entry freeze gate는 integrator contract artifact 안의
+`freeze-baseline.json`을 사용합니다. report schema는
+`media-server.v200-contract-schema-freeze.v1`이며, Event POST/WebRTC/SSE/WS
+contract sample, Auth/session/scope, SourceRegistry/PublishedView,
+Rule/Profile payload 기준 파일의 SHA-256 drift를 `verify-integrator-contract-artifact`
+에서 실패로 처리합니다. 이 gate는 schema/payload sample diff를 잡는 정적 gate이며,
+runtime delivery smoke 통과를 대신하지 않습니다.
+
+```bash
+./server.sh verify-integrator-contract-artifact
+```
+
 main merge, tag, GitHub Release publish 이후에는
 `./server.sh verify-release-metadata --published`를 실행합니다. 이 모드는
 `gh release list`, `gh release view`, GitHub API `/releases/latest`,

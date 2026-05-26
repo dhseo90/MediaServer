@@ -3,6 +3,7 @@
 // 동작 요약: manifest, JSON Schema, sample payload, 금지 노출 후보, server.sh 등록 상태를 점검한다.
 
 import fs from "node:fs";
+import crypto from "node:crypto";
 import path from "node:path";
 import process from "node:process";
 import { fileURLToPath } from "node:url";
@@ -24,6 +25,7 @@ Checks:
   - README/changelog/field index/schema review checklist가 manifest와 일치
   - sample payload가 제공된 JSON Schema subset을 만족
   - sample에 source URL/userinfo/credential/token/hash 노출 후보가 없음
+  - v2.0.0 entry freeze baseline SHA-256과 contract artifact/docs가 일치
   - live contract 문서, backlog, server.sh, script inventory 연결 유지
 `);
 }
@@ -33,6 +35,7 @@ assertKnownOptions(rawArgs, ["artifact-dir", "h", "help"]);
 const args = parseArgs(rawArgs);
 const artifactDir = path.resolve(rootDir, args.artifactDir || "test/fixtures/integrator_contract_artifact");
 const manifestPath = path.join(artifactDir, "manifest.json");
+const freezeBaselinePath = path.join(artifactDir, "freeze-baseline.json");
 const checks = [];
 
 check("manifest files are present", () => {
@@ -61,11 +64,13 @@ check("bundle support docs pin review boundaries", () => {
   assert(manifest.files.includes("CHANGELOG.md"), "manifest missing CHANGELOG.md");
   assert(manifest.files.includes("field-index.json"), "manifest missing field-index.json");
   assert(manifest.files.includes("schema-review-checklist.md"), "manifest missing schema-review-checklist.md");
+  assert(manifest.files.includes("freeze-baseline.json"), "manifest missing freeze-baseline.json");
   assert(fieldIndex.schema === "media-server.integrator-contract-field-index.v1", "field index schema mismatch");
   assert(fieldIndex.artifactVersion === manifest.artifactVersion, "field index artifactVersion mismatch");
   for (const snippet of [
     "does not define a new API",
     "Runtime delivery verification is separate",
+    "v2.0.0 entry freeze gate",
     "./server.sh verify-integrator-contract-artifact",
   ]) {
     assert(readme.includes(snippet), `bundle README missing snippet: ${snippet}`);
@@ -171,9 +176,12 @@ check("documentation references integrator artifact", () => {
   const inventory = readText("scripts/internal/verify_script_inventory.mjs");
   for (const snippet of [
     "media-server.integrator-contract-artifact.v1",
+    "media-server.v200-contract-schema-freeze.v1",
     "test/fixtures/integrator_contract_artifact/",
+    "freeze-baseline.json",
     "field-index.json",
     "schema-review-checklist.md",
+    "v2.0.0 entry freeze gate",
     "./server.sh verify-integrator-contract-artifact",
     "payload field를 추가하거나 삭제하지 않습니다"
   ]) {
@@ -185,6 +193,21 @@ check("documentation references integrator artifact", () => {
   assert(server.includes("verify-integrator-contract-artifact"), "server.sh missing verifier command");
   assert(server.includes("verify_integrator_contract_artifact.mjs"), "server.sh missing verifier script target");
   assert(inventory.includes("verify_integrator_contract_artifact.mjs"), "script inventory missing verifier script");
+});
+
+check("v2.0.0 entry freeze baseline matches artifact and contract docs", () => {
+  const manifest = readJson(manifestPath);
+  const baseline = readJson(freezeBaselinePath);
+  const failures = freezeBaselineFailures(baseline, manifest);
+  assert(failures.length === 0, failures.join("; "));
+});
+
+check("v2.0.0 entry freeze baseline negative fixture fails", () => {
+  const manifest = readJson(manifestPath);
+  const baseline = cloneJson(readJson(freezeBaselinePath));
+  baseline.entries[0].sha256 = "0".repeat(64);
+  const failures = freezeBaselineFailures(baseline, manifest);
+  assert(failures.some((failure) => failure.includes("sha256 mismatch")), "negative freeze fixture should fail on sha256 mismatch");
 });
 
 let failCount = 0;
@@ -234,6 +257,100 @@ function readBundleText(relativePath) {
 
 function readJson(filePath) {
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
+}
+
+function cloneJson(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
+function freezeBaselineFailures(baseline, manifest) {
+  const failures = [];
+  if (baseline.schema !== "media-server.v200-contract-schema-freeze.v1") {
+    failures.push("freeze baseline schema mismatch");
+  }
+  if (baseline.targetRelease !== "v2.0.0-entry") {
+    failures.push("freeze baseline targetRelease mismatch");
+  }
+  if (baseline.artifactVersion !== manifest.artifactVersion) {
+    failures.push("freeze baseline artifactVersion mismatch");
+  }
+  if (baseline.requiresSchemaReviewForDrift !== true) {
+    failures.push("freeze baseline must require schema review for drift");
+  }
+  const requiredGroups = [
+    "live-event-metadata",
+    "auth-session-scope",
+    "source-published-view",
+    "rule-profile-payload",
+  ];
+  const declaredGroups = new Set((baseline.contractGroups || []).map((group) => group.id));
+  for (const group of requiredGroups) {
+    if (!declaredGroups.has(group)) failures.push(`freeze baseline missing contract group: ${group}`);
+  }
+  if (!Array.isArray(baseline.entries) || baseline.entries.length === 0) {
+    failures.push("freeze baseline entries missing");
+    return failures;
+  }
+
+  const entryByPath = new Map();
+  const entriesByGroup = new Map();
+  for (const entry of baseline.entries) {
+    if (!entry.path || entryByPath.has(entry.path)) {
+      failures.push(`freeze baseline duplicate or missing path: ${entry.path || "(missing)"}`);
+      continue;
+    }
+    entryByPath.set(entry.path, entry);
+    if (!declaredGroups.has(entry.group)) {
+      failures.push(`${entry.path}: unknown freeze group ${entry.group || "(missing)"}`);
+    } else {
+      entriesByGroup.set(entry.group, (entriesByGroup.get(entry.group) || 0) + 1);
+    }
+    if (!/^[a-f0-9]{64}$/.test(entry.sha256 || "")) {
+      failures.push(`${entry.path}: invalid sha256`);
+      continue;
+    }
+    const absolutePath = path.join(rootDir, entry.path);
+    if (!fs.existsSync(absolutePath)) {
+      failures.push(`${entry.path}: missing freeze target`);
+      continue;
+    }
+    const actualHash = sha256File(absolutePath);
+    if (actualHash !== entry.sha256) {
+      failures.push(`${entry.path}: sha256 mismatch ${actualHash} != ${entry.sha256}`);
+    }
+  }
+
+  const manifestTargets = manifest.files
+    .filter((file) => file !== "freeze-baseline.json")
+    .map((file) => normalizePath(path.relative(rootDir, path.join(artifactDir, file))));
+  for (const target of manifestTargets) {
+    if (!entryByPath.has(target)) failures.push(`freeze baseline missing manifest target: ${target}`);
+  }
+  for (const target of [
+    "docs/integrator-contract-artifact.md",
+    "docs/live-event-metadata-contracts.md",
+    "docs/webrtc-metadata-client.md",
+    "docs/media-server-architecture.md",
+    "include/ingress/http_auth.h",
+    "src/ingress/http_auth.cpp",
+    "include/ingress/source_view_registry.h",
+    "src/ingress/source_view_registry.cpp",
+    "include/ingress/analysis_rule_registry.h",
+  ]) {
+    if (!entryByPath.has(target)) failures.push(`freeze baseline missing required target: ${target}`);
+  }
+  for (const group of requiredGroups) {
+    if (!entriesByGroup.has(group)) failures.push(`freeze baseline group has no entries: ${group}`);
+  }
+  return failures;
+}
+
+function sha256File(filePath) {
+  return crypto.createHash("sha256").update(fs.readFileSync(filePath)).digest("hex");
+}
+
+function normalizePath(value) {
+  return value.split(path.sep).join("/");
 }
 
 function assert(condition, message) {

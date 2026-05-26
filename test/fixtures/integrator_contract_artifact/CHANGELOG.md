@@ -8,5 +8,7 @@
 - Added a field index to pin top-level payload fields without changing runtime
   serializers.
 - Added a schema review checklist for any future payload mutation request.
+- Added a v2.0.0 entry freeze baseline to pin artifact files and source
+  contract docs by SHA-256.
 - No Event POST, WebRTC DataChannel, SSE, or WebSocket runtime payload fields
   were added, removed, renamed, or retyped by this artifact.

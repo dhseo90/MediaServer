@@ -469,18 +469,18 @@ Rule scenario/event 발생 검수는 분리합니다.
 
 | ID | 기능 | UI 필요 | 테스트 필요 | 테스트 영역 | PASS 기준 |
 | --- | --- | --- | --- | --- | --- |
-| SAFE-001 | Event POST payload schema 유지 | 비대상 | 필요 | 안정화 | payload field/type 호환 유지 |
-| SAFE-002 | WebRTC DataChannel schema 유지 | 비대상 | 필요 | 안정화 | 기존 client metadata consumer 호환 유지 |
-| SAFE-003 | SSE metadata schema 유지 | 비대상 | 필요 | 안정화 | SSE event/schema 호환 유지 |
-| SAFE-004 | WS metadata schema 유지 | 비대상 | 필요 | 안정화 | WS payload/schema 호환 유지 |
+| SAFE-001 | Event POST payload schema 유지 | 비대상 | 필요 | 안정화 | payload field/type 호환과 freeze baseline SHA-256 유지 |
+| SAFE-002 | WebRTC DataChannel schema 유지 | 비대상 | 필요 | 안정화 | 기존 client metadata consumer 호환과 freeze baseline 유지 |
+| SAFE-003 | SSE metadata schema 유지 | 비대상 | 필요 | 안정화 | SSE event/schema 호환과 freeze baseline 유지 |
+| SAFE-004 | WS metadata schema 유지 | 비대상 | 필요 | 안정화 | WS payload/schema 호환과 freeze baseline 유지 |
 | SAFE-005 | 기존 Intrusion event type 유지 | 비대상 | 필요 | 안정화 | existing event type string 유지 |
 | SAFE-006 | 기존 LineCrossing event type 유지 | 비대상 | 필요 | 안정화 | existing event type string 유지 |
 | SAFE-007 | scenario 판단 로직 유지 | 비대상 | 필요 | 안정화 | replay/scenario fixture 결과 유지 |
 | SAFE-008 | RTSP media path 유지 | 비대상 | 필요 | 안정화, 30분 | RTSP playback path 회귀 없음 |
 | SAFE-009 | WebRTC media path 유지 | 비대상 | 필요 | 안정화, 30분 | WebRTC playback path 회귀 없음 |
-| SAFE-010 | SourceRegistry API 계약 유지 | 비대상 | 필요 | 안정화 | registry schema/semantics 호환 유지 |
-| SAFE-011 | PublishedView API 계약 유지 | 비대상 | 필요 | 안정화 | view schema/semantics 호환 유지 |
-| SAFE-012 | Rule/Profile 저장 payload 계약 유지 | 비대상 | 필요 | 안정화 | 저장 payload/schema 호환 유지 |
+| SAFE-010 | SourceRegistry API 계약 유지 | 비대상 | 필요 | 안정화 | registry schema/semantics 호환과 freeze baseline 유지 |
+| SAFE-011 | PublishedView API 계약 유지 | 비대상 | 필요 | 안정화 | view schema/semantics 호환과 freeze baseline 유지 |
+| SAFE-012 | Rule/Profile 저장 payload 계약 유지 | 비대상 | 필요 | 안정화 | 저장 payload/schema 호환과 freeze baseline 유지 |
 | SAFE-013 | `vaRule=<id>` 호출 정책 유지 | 비대상 | 필요 | 안정화 | allowed rule/session policy 유지 |
 | SAFE-014 | media pipeline non-blocking 정책 | 비대상 | 필요 | 안정화, 30분, 120분 조건부 | VA/metadata 실패가 media path를 막지 않음 |
 | SAFE-015 | lab 개발 UI 제품 화면 embed 금지 | 필요 | 필요 | 안정화, UI | ops/client 제품 화면에 lab editor가 없음 |
