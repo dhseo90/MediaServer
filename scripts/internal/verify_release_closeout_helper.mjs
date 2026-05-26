@@ -22,6 +22,10 @@ Usage:
 
 Options:
   --dry-run             명시 dry-run 플래그입니다. 기본 동작도 dry-run입니다.
+  --one-shot-dry-run    main merge/tag/release/latest/branch cleanup/next branch 순서를 one-shot gate로 요약합니다.
+  --release-branch <name>  release branch 이름입니다. 기본은 현재 branch입니다.
+  --target-branch <name>   merge/tag 기준 branch입니다. 기본 main입니다.
+  --next-branch <name>     다음 개발 branch 이름입니다. 기본 v2.0.0입니다.
   --report <path>       Markdown 리포트를 저장합니다.
   --json-report <path>  JSON 리포트를 저장합니다.
   -h, --help            도움말 출력
@@ -30,15 +34,20 @@ Checks:
   - release 직전 로컬 verifier 명령 목록이 server.sh에 존재하는지 확인
   - release/version/public readiness 문서가 tag/push 수동 경계를 설명하는지 확인
   - visual baseline artifact, diff/comment, approval log, preflight artifact 요약이 PR/release 준비 흐름에 연결됐는지 확인
+  - one-shot dry-run report가 main sync, tag, GitHub Release, published metadata, release branch 삭제, next branch sync 순서와 fail-stop을 고정하는지 확인
   - dry-run 리포트에 tag, push, GitHub Release 생성이 미수행/수동 항목으로 기록됨
 `);
 }
 
-assertKnownOptions(rawArgs, ["dry-run", "report", "json-report", "h", "help"]);
+assertKnownOptions(rawArgs, ["dry-run", "one-shot-dry-run", "release-branch", "target-branch", "next-branch", "report", "json-report", "h", "help"]);
 
 const args = parseArgs(rawArgs);
 const reportPath = args.report ? path.resolve(rootDir, args.report) : "";
 const jsonReportPath = args.jsonReport ? path.resolve(rootDir, args.jsonReport) : "";
+const currentBranch = runGitValue(["branch", "--show-current"]) || "<detached>";
+const releaseBranch = args.releaseBranch || process.env.MEDIA_SERVER_RELEASE_BRANCH || currentBranch;
+const targetBranch = args.targetBranch || process.env.MEDIA_SERVER_RELEASE_TARGET_BRANCH || "main";
+const nextBranch = args.nextBranch || process.env.MEDIA_SERVER_RELEASE_NEXT_BRANCH || "v2.0.0";
 const server = readText("server.sh");
 const releasePolicy = readText("docs/release-policy.md");
 const versioningPolicy = readText("docs/versioning-policy.md");
@@ -92,6 +101,7 @@ const manualActions = [
   "git push",
   "GitHub Release creation/upload",
   "GitHub Latest Release confirmation after publish",
+  "release branch deletion",
   "next branch sync from main",
 ];
 
@@ -103,7 +113,8 @@ const releaseRunbook = [
   { order: 5, action: "Push approved branch/tag refs", status: "manual-not-run" },
   { order: 6, action: "Create source-only GitHub Release", status: "manual-not-run" },
   { order: 7, action: "Verify GitHub Latest Release", status: "planned-published" },
-  { order: 8, action: "Sync next branch from main", status: "manual-not-run" },
+  { order: 8, action: "Delete release branch after published verification", status: "manual-not-run" },
+  { order: 9, action: "Sync next branch from main", status: "manual-not-run" },
 ];
 
 const visualManualReviews = [
@@ -152,6 +163,7 @@ check("release docs keep publish gates manual", () => {
     "Main fast-forward/sync",
     "GitHub Release",
     "Latest 확인",
+    "release branch",
     "Next branch sync",
     "Tag 전략",
     "수동으로만 진행",
@@ -215,7 +227,7 @@ check("dry-run report marks release actions as not executed", () => {
   assert(report.pushed === false, "helper must not push");
   assert(report.releaseRunbook.length === releaseRunbook.length, "release runbook summary mismatch");
   assert(report.releaseRunbook.find(item => item.action === "Verify GitHub Latest Release")?.status === "planned-published", "Latest Release verification must stay publish-only in dry-run");
-  assert(report.releaseRunbook.filter(item => item.status === "manual-not-run").length >= 7, "release runbook manual gates must remain not-run in dry-run");
+  assert(report.releaseRunbook.filter(item => item.status === "manual-not-run").length >= 8, "release runbook manual gates must remain not-run in dry-run");
   assert(report.visualBaselineAutomation?.schema === "media-server.release-visual-baseline-automation.v1", "visual baseline automation schema missing");
   assert(report.visualBaselineAutomation.commands.length === visualAutomationCommands.length, "visual baseline command summary mismatch");
   assert(report.visualBaselineAutomation.manualReviews.every(item => item.status === "manual-not-run"), "visual manual reviews must be not-run in dry-run");
@@ -225,6 +237,46 @@ check("dry-run report marks release actions as not executed", () => {
     pushed: report.pushed,
     visualBaselineAutomation: report.visualBaselineAutomation.schema,
   };
+});
+
+check("one-shot close-out gate is ordered and fail-stop", () => {
+  const gate = buildOneShotGate();
+  assert(gate.schema === "media-server.release-closeout-one-shot-gate.v1", "one-shot gate schema mismatch");
+  assert(gate.mode === "dry-run", "one-shot gate must stay dry-run");
+  assert(gate.releaseBranch === releaseBranch, "one-shot gate releaseBranch mismatch");
+  assert(gate.targetBranch === targetBranch, "one-shot gate targetBranch mismatch");
+  assert(gate.nextBranch === nextBranch, "one-shot gate nextBranch mismatch");
+  assert(gate.failStop === true, "one-shot gate must be fail-stop");
+  assert(gate.steps.length === 9, "one-shot gate step count mismatch");
+  for (let index = 0; index < gate.steps.length; index += 1) {
+    assert(gate.steps[index].order === index + 1, `one-shot gate order mismatch at ${index + 1}`);
+    assert(gate.steps[index].haltOnFailure === true, `one-shot gate step must halt on failure: ${gate.steps[index].id}`);
+  }
+  for (const id of ["sync-main", "create-tag", "create-github-release", "verify-published-metadata", "delete-release-branch", "sync-next-branch"]) {
+    assert(gate.steps.some(item => item.id === id), `one-shot gate missing step: ${id}`);
+  }
+  const skippedAfterFailure = gate.failureRehearsal.steps.filter(item => item.afterFailure === true);
+  assert(skippedAfterFailure.length > 0, "one-shot failure rehearsal must skip later steps");
+  assert(skippedAfterFailure.every(item => item.status === "skipped"), "one-shot failure rehearsal must mark later steps skipped");
+  return {
+    schema: gate.schema,
+    steps: gate.steps.length,
+    simulatedFailureStep: gate.failureRehearsal.failAt,
+  };
+});
+
+check("one-shot close-out docs keep destructive actions manual", () => {
+  const docs = [releasePolicy, streamVerification, backlog].join("\n");
+  for (const snippet of [
+    "media-server.release-closeout-one-shot-gate.v1",
+    "--one-shot-dry-run",
+    "release branch 삭제",
+    "published metadata",
+    "fail-stop",
+  ]) {
+    assert(docs.includes(snippet), `one-shot close-out docs missing snippet: ${snippet}`);
+  }
+  return { docs: ["docs/release-policy.md", "docs/stream-verification.md", "docs/development-backlog.md"] };
 });
 
 const report = buildReport();
@@ -277,8 +329,130 @@ function buildReport() {
       manualReviews: visualManualReviews.map(action => ({ action, status: "manual-not-run" })),
       preflightArtifacts,
     },
+    oneShotCloseoutGate: buildOneShotGate(),
     gitStatusLines: gitStatus,
     checks: [],
+  };
+}
+
+function buildOneShotGate() {
+  const steps = [
+    {
+      order: 1,
+      id: "branch-close-preflight",
+      action: "Confirm release branch is closed and local gates are collected",
+      status: "planned-local",
+      command: "./server.sh verify-release-closeout-helper --dry-run",
+      haltOnFailure: true,
+      mutatesRepository: false,
+    },
+    {
+      order: 2,
+      id: "merge-release-branch",
+      action: `Merge ${releaseBranch} into ${targetBranch} after required checks`,
+      status: "manual-not-run",
+      command: `gh pr merge <release-pr> --merge --delete-branch=false`,
+      haltOnFailure: true,
+      mutatesRepository: true,
+      requiresApproval: true,
+    },
+    {
+      order: 3,
+      id: "sync-main",
+      action: `Fast-forward local ${targetBranch} to origin/${targetBranch}`,
+      status: "manual-not-run",
+      command: `git fetch origin ${targetBranch} && git checkout ${targetBranch} && git pull --ff-only origin ${targetBranch}`,
+      haltOnFailure: true,
+      mutatesRepository: true,
+      requiresApproval: true,
+    },
+    {
+      order: 4,
+      id: "create-tag",
+      action: "Create annotated tag on verified target branch commit",
+      status: "manual-not-run",
+      command: "git tag -a <current-tag> -m <release-note-title>",
+      haltOnFailure: true,
+      mutatesRepository: true,
+      requiresApproval: true,
+    },
+    {
+      order: 5,
+      id: "push-main-and-tag",
+      action: "Push approved target branch and tag refs",
+      status: "manual-not-run",
+      command: `git push origin ${targetBranch} <current-tag>`,
+      haltOnFailure: true,
+      mutatesRepository: true,
+      requiresApproval: true,
+    },
+    {
+      order: 6,
+      id: "create-github-release",
+      action: "Create source-only GitHub Release without binary/model/runtime assets",
+      status: "manual-not-run",
+      command: "gh release create <current-tag> --title <title> --notes-file <release-notes>",
+      haltOnFailure: true,
+      mutatesRepository: true,
+      requiresApproval: true,
+    },
+    {
+      order: 7,
+      id: "verify-published-metadata",
+      action: "Verify GitHub Latest Release, repository page, remote tag/branch",
+      status: "planned-published",
+      command: `./server.sh verify-release-metadata --published --release-branch ${targetBranch} --report <published-report.md> --json-report <published-report.json>`,
+      haltOnFailure: true,
+      mutatesRepository: false,
+    },
+    {
+      order: 8,
+      id: "delete-release-branch",
+      action: `Delete release branch ${releaseBranch} only after published metadata passes`,
+      status: "manual-not-run",
+      command: `git push origin --delete ${releaseBranch}`,
+      haltOnFailure: true,
+      mutatesRepository: true,
+      requiresApproval: true,
+    },
+    {
+      order: 9,
+      id: "sync-next-branch",
+      action: `Create or fast-forward ${nextBranch} from ${targetBranch}`,
+      status: "manual-not-run",
+      command: `git checkout -B ${nextBranch} ${targetBranch}`,
+      haltOnFailure: true,
+      mutatesRepository: true,
+      requiresApproval: true,
+    },
+  ];
+  return {
+    schema: "media-server.release-closeout-one-shot-gate.v1",
+    mode: "dry-run",
+    releaseBranch,
+    targetBranch,
+    nextBranch,
+    failStop: true,
+    destructiveActions: "manual-not-run",
+    steps,
+    failureRehearsal: simulateOneShotFailure(steps, "create-github-release"),
+  };
+}
+
+function simulateOneShotFailure(steps, failAt) {
+  let failed = false;
+  return {
+    failAt,
+    steps: steps.map(step => {
+      if (failed) {
+        return { id: step.id, order: step.order, status: "skipped", afterFailure: true };
+      }
+      if (step.id === failAt) {
+        failed = true;
+        return { id: step.id, order: step.order, status: "failed", afterFailure: false };
+      }
+      return { id: step.id, order: step.order, status: "would-run", afterFailure: false };
+    }),
   };
 }
 
@@ -306,6 +480,21 @@ function renderMarkdown(data) {
   lines.push("", "## Release Runbook", "", "| order | action | status |", "| --- | --- | --- |");
   for (const item of data.releaseRunbook) {
     lines.push(`| ${item.order} | ${item.action} | ${item.status} |`);
+  }
+  lines.push("", "## One-shot Close-out Gate", "");
+  lines.push(`- schema: \`${data.oneShotCloseoutGate.schema}\``);
+  lines.push(`- mode: \`${data.oneShotCloseoutGate.mode}\``);
+  lines.push(`- releaseBranch: \`${data.oneShotCloseoutGate.releaseBranch}\``);
+  lines.push(`- targetBranch: \`${data.oneShotCloseoutGate.targetBranch}\``);
+  lines.push(`- nextBranch: \`${data.oneShotCloseoutGate.nextBranch}\``);
+  lines.push(`- failStop: \`${data.oneShotCloseoutGate.failStop}\``);
+  lines.push("", "| order | id | action | status | command |", "| --- | --- | --- | --- | --- |");
+  for (const item of data.oneShotCloseoutGate.steps) {
+    lines.push(`| ${item.order} | ${item.id} | ${item.action} | ${item.status} | \`${item.command}\` |`);
+  }
+  lines.push("", "### Failure Rehearsal", "", "| order | id | status |", "| --- | --- | --- |");
+  for (const item of data.oneShotCloseoutGate.failureRehearsal.steps) {
+    lines.push(`| ${item.order} | ${item.id} | ${item.status} |`);
   }
   lines.push(
     "",
@@ -343,6 +532,15 @@ function runGitStatus() {
   });
   if (result.status !== 0) return [`git status failed: ${result.stderr || result.stdout}`.trim()];
   return result.stdout.split("\n").map(line => line.trim()).filter(Boolean);
+}
+
+function runGitValue(args) {
+  const result = spawnSync("git", args, {
+    cwd: rootDir,
+    encoding: "utf8",
+  });
+  if (result.status !== 0) return "";
+  return result.stdout.trim();
 }
 
 function check(name, fn) {

@@ -416,6 +416,7 @@ screenshot review 체크포인트를 함께 요약합니다.
 
 ```bash
 ./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>
+./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run --release-branch <release-branch> --target-branch main --next-branch <next-branch> --report <report.md> --json-report <report.json>
 ```
 
 helper JSON report에는 `media-server.release-visual-baseline-automation.v1`
@@ -428,6 +429,10 @@ preflight의 `media-server-release-closeout-helper-dry-run`,
 `media-server-ui-visual-maintenance-dry-run` artifact를 함께 확인하게 합니다.
 tag, push, GitHub Release, accepted baseline adoption, 320/390/760/1180px 수동
 screenshot review는 실제 실행 전까지 pass로 쓰지 않고 manual/not-run 상태로 남깁니다.
+`--one-shot-dry-run` report에는 `media-server.release-closeout-one-shot-gate.v1`
+schema가 포함됩니다. 이 gate는 main sync, tag, GitHub Release, published metadata,
+release branch 삭제, next branch sync 순서를 fail-stop으로 고정하고, 실패 rehearsal에서
+뒤 step을 `skipped`로 남깁니다. 실제 tag/push/branch 삭제는 여기서 실행하지 않습니다.
 
 VA rule/scenario 변경:
 

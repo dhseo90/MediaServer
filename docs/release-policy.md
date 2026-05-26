@@ -65,6 +65,11 @@ source offer, model provenance, checksum manifest를 release note에 연결합�
 
 `verify-release-closeout-helper`는 release local verifier, tag/push 수동 gate,
 visual artifact policy, screenshot review 체크포인트를 한 dry-run report로 묶습니다.
+`--one-shot-dry-run`은 `media-server.release-closeout-one-shot-gate.v1` schema로
+main merge 이후 tag 생성, GitHub Release 생성, published metadata 검증,
+release branch 삭제, next branch sync를 한 순서로 묶고 fail-stop rehearsal을
+남깁니다. 이 모드도 tag, push, GitHub Release, release branch 삭제를 직접 수행하지
+않고 `manual-not-run`으로만 기록합니다.
 실행/미실행/미확인 evidence 색인은 [release-evidence-index.md](./release-evidence-index.md)에
 두고, README 첫 화면에는 세부 matrix를 반복하지 않습니다.
 JSON report의 visual 자동화 영역은
@@ -72,6 +77,7 @@ JSON report의 visual 자동화 영역은
 
 ```bash
 ./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>
+./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run --release-branch <release-branch> --target-branch main --next-branch <next-branch> --report <report.md> --json-report <report.json>
 ```
 
 preflight CI는 이 report를 `media-server-release-closeout-helper-dry-run`
@@ -104,7 +110,8 @@ Real close-out checklist:
 5. Push: tag와 필요한 branch를 명시 승인 후 push합니다.
 6. GitHub Release: source-only release note를 만들고 sample/model/runtime binary를 업로드하지 않습니다.
 7. Latest 확인: GitHub Releases latest, `/releases/latest`, repository page Releases/Latest link, remote tag/branch를 `verify-release-metadata --published --report <report.md> --json-report <report.json>`로 확인합니다. README는 publish 전 dead release URL을 걸지 않고 release 준비 기준 문서로 연결합니다.
-8. Next branch sync: 다음 작업 branch를 main 최신 release fix 위로 동기화한 뒤 미커밋 변경이 없는지 확인합니다.
+8. Release branch 삭제: published metadata가 통과한 뒤에만 release branch 삭제를 수동 승인합니다.
+9. Next branch sync: 다음 작업 branch를 main 최신 release fix 위로 동기화한 뒤 미커밋 변경이 없는지 확인합니다.
 
 위 순서 중 실행하지 않은 항목은 테스트 결과 행을 만들지 않고 release evidence 실행
 상태에 `미실행` 또는 `manual-not-run`으로 남기며, 실행하지 않은
