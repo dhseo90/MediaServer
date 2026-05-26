@@ -82,10 +82,15 @@ maintenance-first roadmap입니다. v1.8.0에서 닫은 source-only/live-only �
 - 새 후속 이슈는 먼저 후보로 제시하고, 영향 범위와 검증 비용을 owner에게 확인받습니다.
 - owner가 명시적으로 승인하기 전에는 이 표에 새 roadmap 행으로 추가하지 않습니다.
 - 승인 없는 후보를 "v1.9.0 범위" 또는 "잔여 이슈"로 확정해 기록하지 않습니다.
+- 2026-05-26 기준 승인된 post-release 운영 이슈 4개는 아래 표에 active roadmap으로
+  반영합니다. 그 밖의 추가 개발 후보는 다시 owner 승인 전까지 반영하지 않습니다.
 
 | ID | 우선순위 | 영역 | 목표 | 예상 검증 |
 | --- | --- | --- | --- | --- |
-| V190-P0-01 | P0 | GitHub Actions Node 24 readiness | main check-run에서 확인된 Node.js 20 actions deprecation warning을 v1.9.0 선반영 항목으로 닫습니다. `actions/checkout@v4`, `actions/upload-artifact@v4`의 Node 24 지원 경로, 현재 `verify-actions-security`의 `actions/*@v4` 허용 정책, Dependabot major ignore 정책을 함께 검토한 뒤 workflow와 verifier 정책을 일관되게 갱신합니다. | GitHub check annotations review, upstream action version/changelog review, `verify-actions-security`, Preflight/static-gates/guardrails, `git diff --check` |
+| V190-P0-01 | P0 | GitHub Actions warning annotation gate | main check-run은 success여도 Node.js 20 actions deprecation warning annotation이 남을 수 있으므로, warning을 release gate에서 허용할지 차단할지 기준을 명확히 정합니다. | GitHub check-runs annotations API review, release gate policy review, `verify-actions-security`, Preflight/static-gates/guardrails, `git diff --check` |
+| V190-P0-02 | P0 | GitHub Actions Node 24 readiness | `actions/checkout@v4`, `actions/upload-artifact@v4`의 Node 24 지원 경로, 현재 `verify-actions-security`의 `actions/*@v4` 허용 정책, Dependabot major ignore 정책을 함께 검토한 뒤 workflow와 verifier 정책을 일관되게 갱신합니다. | upstream action version/changelog review, `.github/dependabot.yml` review, `verify-actions-security`, Preflight/static-gates/guardrails, `git diff --check` |
+| V190-P1-01 | P1 | Published release evidence automation | release 후 main page 오른쪽 Releases/Latest 표시, GitHub Latest Release API, remote tag/branch 상태를 수동 보고에만 의존하지 않도록 증적 저장 또는 report 출력을 정리합니다. | `verify-release-metadata --published` report review, GitHub API latest release check, remote refs check, release evidence index review, `git diff --check` |
+| V190-P1-02 | P1 | GitHub metadata verifier fallback policy | `gh` 인증 또는 SSH/DNS 문제가 있을 때 `verify-release-metadata --published`가 제품 회귀와 환경 실패를 구분해 보고하도록 GitHub API/curl fallback 또는 실패 메시지 정책을 검토합니다. | sandbox/non-sandbox verifier comparison, `gh` failure reproduction, GitHub API fallback review, `verify-release-metadata --published`, `git diff --check` |
 
 ## v1.8.0 Release Trust Hardening Close-out
 
