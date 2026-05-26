@@ -155,6 +155,7 @@ check("sample fixture captures evidence shape without claiming execution", () =>
     "activeWebSocketClientsAfterCleanup",
     "rtspEgressConsumersAfterCleanup",
     "portsClean",
+    "checkedPorts",
     "idleJudgement",
   ]) {
     assert(Object.prototype.hasOwnProperty.call(record.cleanup || {}, key), `sample cleanup missing ${key}`);
@@ -164,9 +165,26 @@ check("sample fixture captures evidence shape without claiming execution", () =>
     "verify-va-runtime-console-longrun",
     "미실행",
     "PASS evidence로 쓰지 않습니다",
+    "checked ports:",
   ]) {
     assert(report.includes(snippet), `sample report missing snippet: ${snippet}`);
   }
+});
+
+check("longrun cleanup port gate is scoped to run-owned ports by default", () => {
+  const longrun = readText("scripts/internal/verify_va_runtime_console_longrun.py");
+  const cycles = readText("scripts/internal/verify_va_runtime_console_cycles.py");
+  const template = readText("docs/runtime-dashboard-longrun-evidence-template.md");
+  for (const snippet of [
+    "REPRESENTATIVE_CLEANUP_PORTS = [8080, 8081, 8554, 8555]",
+    "MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_CHECK_REPRESENTATIVE_PORTS",
+    "MEDIA_SERVER_VERIFY_RUNTIME_LONGRUN_CHECK_REPRESENTATIVE_PORTS",
+    "cleanup_ports([args.http_port, args.rtsp_port])",
+  ]) {
+    assert(longrun.includes(snippet), `longrun cleanup policy missing snippet: ${snippet}`);
+  }
+  assert(cycles.includes("cleanup_ports([args.http_port, args.rtsp_port])"), "cycle verifier must share longrun cleanup port policy");
+  assert(template.includes("대표 기본 port 확인은 `MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_CHECK_REPRESENTATIVE_PORTS=1`"), "template missing representative port opt-in policy");
 });
 
 check("verification docs reference the evidence template", () => {

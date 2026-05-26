@@ -127,6 +127,7 @@ Cleanup:
 - active WebSocket clients after cleanup:
 - RTSP egress consumers after cleanup:
 - ports clean:
+- checked ports:
 - idle judgement:
 
 RSS / CPU:
@@ -155,7 +156,7 @@ Judgement:
 
 | 테스트 판정 | 기준 |
 | --- | --- |
-| PASS | summary/report가 존재하고 cleanup 후 active session/tap/SSE/WS/RTSP egress count가 0이며 `portsClean=true`입니다. DataChannel failure가 없고 idle judgement가 pass입니다. |
+| PASS | summary/report가 존재하고 cleanup 후 active session/tap/SSE/WS/RTSP egress count가 0이며 `portsClean=true`입니다. 기본 cleanup port gate는 해당 longrun run이 사용한 HTTP/RTSP port를 검사하고, 대표 기본 port 확인은 `MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_CHECK_REPRESENTATIVE_PORTS=1` 또는 `MEDIA_SERVER_VERIFY_RUNTIME_LONGRUN_CHECK_REPRESENTATIVE_PORTS=1` 지정 시 추가합니다. DataChannel failure가 없고 idle judgement가 pass입니다. |
 | FAIL | longrun 명령 실패, port cleanup failure, dashboard polling 중단, metadata side-channel 지속 실패, RTSP/WebRTC media path 회귀가 확인됩니다. |
 
 | 별도 상태 | 기준 |

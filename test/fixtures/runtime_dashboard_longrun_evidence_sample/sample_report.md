@@ -55,6 +55,7 @@ Cleanup:
 - active WebSocket clients after cleanup: 0
 - RTSP egress consumers after cleanup: 0
 - ports clean: true
+- checked ports: 8081, 8555
 - idle judgement: pass
 
 RSS / CPU:
