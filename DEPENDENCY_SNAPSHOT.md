@@ -5,7 +5,7 @@
 - schema: media-server.dependency-snapshot.v1
 - generatedAt: stable
 - inventory: config/third_party_attribution.json
-- platform: Darwin 25.4.0 arm64
+- platform: Darwin 25.5.0 arm64
 - binary: build-gst-onnx/media_server
 
 이 snapshot은 현재 개발/배포 환경에서 감지한 dependency 버전과 asset hash입니다.
@@ -62,6 +62,8 @@
 /opt/homebrew/opt/glib/lib/libglib-2.0.0.dylib (compatibility version 8601.0.0, current version 8601.4.0)
 /opt/homebrew/opt/gettext/lib/libintl.8.dylib (compatibility version 13.0.0, current version 13.6.0)
 /opt/homebrew/opt/libsodium/lib/libsodium.26.dylib (compatibility version 30.0.0, current version 30.0.0)
+/opt/homebrew/opt/openssl@3/lib/libssl.3.dylib (compatibility version 3.0.0, current version 3.0.0)
+/opt/homebrew/opt/openssl@3/lib/libcrypto.3.dylib (compatibility version 3.0.0, current version 3.0.0)
 /usr/lib/libc++.1.dylib (compatibility version 1.0.0, current version 2100.43.0)
 /usr/lib/libSystem.B.dylib (compatibility version 1.0.0, current version 1356.0.0)
 ```
