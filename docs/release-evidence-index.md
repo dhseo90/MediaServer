@@ -28,7 +28,7 @@
 
 | 영역 | Evidence | 대표 명령/출처 | 테스트 판정 / 실행 상태 기록 |
 | --- | --- | --- | --- |
-| GitHub Latest Release | GitHub Releases latest/list/view, `/releases/latest`, repository page Releases/Latest link, remote tag/branch, `media-server.published-release-evidence.v1` report | `./server.sh verify-release-metadata --published --report <report.md> --json-report <report.json>` | `PASS` 또는 `FAIL` |
+| GitHub Latest Release | GitHub Releases latest/list/view, `/releases/latest`, repository page Releases/Latest link, remote tag/branch, `media-server.published-release-evidence.v1` report, `media-server.github-metadata-fallback-policy.v1` failure class | `./server.sh verify-release-metadata --published --report <report.md> --json-report <report.json>`, `./server.sh verify-release-metadata --self-test-fallback-policy` | `PASS` 또는 `FAIL` |
 | Release metadata/docs drift | VERSION, CMake, README, docs index, release policy, backlog | `./server.sh verify-release-metadata`, `./server.sh verify-docs-links` | `PASS` 또는 `FAIL` |
 | Docs UI assets | managed screenshot manifest, capture script ownership, direct image review checklist | `./server.sh verify-docs-ui-assets` | 실행한 테스트 행은 `PASS` 또는 `FAIL`; 열지 않은 이미지는 별도 `미확인` |
 | Manual UI evidence | `/setup`, `/login`, `/ops/home`, `/ops/dashboard`, `/ops/sources`, `/ops/rules`, `/ops/users`, `/ops/events`, `/client/live`, `/client/dashboard` direct click index | `./server.sh verify-manual-ui-evidence`, manual browser review | `PASS` 또는 `FAIL` |
@@ -83,6 +83,7 @@ Not run for `ui-fulltest-restart-20260525-oehkFG`: 120분 longrun, main merge, r
 ./server.sh verify-feature-scope-gate
 ./server.sh verify-docs-links
 ./server.sh verify-release-metadata
+./server.sh verify-release-metadata --self-test-fallback-policy
 ./server.sh verify-release-metadata --published
 ```
 
@@ -93,3 +94,9 @@ repository page의 Releases/Latest link, remote tag/branch를 닫습니다. Mark
 report의 `Published Release Evidence` 섹션은
 `media-server.published-release-evidence.v1` schema로 GitHub API/list/view,
 repository page, remote refs 결과를 함께 보존합니다.
+`media-server.github-metadata-fallback-policy.v1`은 `gh` 인증/도구 실패를 curl
+GitHub REST API fallback으로, SSH origin refs 실패를 GitHub HTTPS refs fallback으로
+재시도한 뒤 `failure-class=external-auth-or-permission`,
+`failure-class=external-network`, `failure-class=tool-unavailable`,
+`failure-class=external-github-access`를 분리해 남깁니다. 이 분류는 release metadata
+환경/접근 실패를 제품 runtime/media 회귀로 축소하거나 과장하지 않기 위한 기준입니다.

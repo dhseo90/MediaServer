@@ -48,6 +48,12 @@ source offer, model provenance, checksum manifest를 release note에 연결합�
 - publish 후 Markdown/JSON report를 남길 때 `Published Release Evidence` 섹션은
   `media-server.published-release-evidence.v1` schema로 API/list/view, repository
   page link, remote refs 증적을 함께 보존합니다.
+- `gh` 인증/도구 실패는 curl GitHub REST API fallback으로, SSH origin refs 실패는
+  GitHub HTTPS refs fallback으로 재시도합니다. fallback까지 실패하면
+  `media-server.github-metadata-fallback-policy.v1` 기준의
+  `failure-class=external-auth-or-permission`, `failure-class=external-network`,
+  `failure-class=tool-unavailable`, `failure-class=external-github-access` 중 하나로
+  보고하고, 제품 runtime/media 회귀와 섞어 쓰지 않습니다.
 - RC longrun 결과는 `rc-release-checklist`와 `media-server-rc-gate` GitHub
   Actions artifact, 또는 `rc-artifact-archive` 외부 archive로 보관합니다.
   임시 `/tmp` 경로는 staging/local-only evidence이며, release-grade 보존 완료로

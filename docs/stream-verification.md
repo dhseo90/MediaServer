@@ -173,6 +173,18 @@ repository page Releases/Latest link, `git ls-remote --tags origin <tag>`,
 `media-server.published-release-evidence.v1` schema로 보존합니다. 네트워크,
 GitHub CLI, origin 접근이 준비되지 않았으면 published metadata gate 실패로 보고하고
 release close-out PASS로 대체하지 않습니다.
+`gh` 인증/도구 실패는 curl GitHub REST API fallback으로, SSH origin refs 실패는
+GitHub HTTPS refs fallback으로 재시도합니다. fallback 정책의 정적 안정화는
+아래 명령으로 네트워크 없이 확인합니다.
+
+```bash
+./server.sh verify-release-metadata --self-test-fallback-policy
+```
+
+fallback까지 실패하면 `media-server.github-metadata-fallback-policy.v1` 기준의
+`failure-class=external-auth-or-permission`, `failure-class=external-network`,
+`failure-class=tool-unavailable`, `failure-class=external-github-access` 중 하나로
+보고하고 제품 runtime/media 회귀와 분리합니다.
 
 현재 v1.8.0 제품 회귀 gate, UI 풀테스트 gate, release trust hardening gate는 아래
 통합 명령으로만 확인합니다.
