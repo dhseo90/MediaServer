@@ -25,18 +25,19 @@ Options:
   --published           publish 이후 GitHub latest/release/tag까지 확인합니다.
   --require-published   --published alias입니다.
   --allow-unpublished   이전 호환 옵션입니다. 기본 release-prep 모드와 동일하게 처리합니다.
+  --release-branch <name>  published mode에서 원격 branch HEAD를 비교할 branch입니다. 기본은 현재 branch입니다.
   -h, --help            도움말 출력
 
 Checks:
   - VERSION과 CMake project VERSION 값이 같은 semantic version인지 확인
   - README/English README의 source-only release preparation baseline이 현재 tag와 로컬 release close-out 문서를 가리키는지 확인
   - 기본 모드에서는 GitHub Release/tag 생성을 manual-not-run close-out gate로 기록
-  - --published 모드에서는 GitHub Releases latest/list/view, GitHub API /releases/latest, 원격 tag가 현재 tag를 가리키는지 확인
+  - --published 모드에서는 GitHub Releases latest/list/view, GitHub API /releases/latest, 원격 tag/branch, repository page Releases/Latest link가 현재 tag를 가리키는지 확인
   - versioning/release/backlog/public review/UI guide 문서가 같은 current release baseline과 deferred phase gate를 말하는지 확인
 `);
 }
 
-assertKnownOptions(rawArgs, ["report", "json-report", "published", "require-published", "allow-unpublished", "h", "help"]);
+assertKnownOptions(rawArgs, ["report", "json-report", "published", "require-published", "allow-unpublished", "release-branch", "h", "help"]);
 
 const args = parseArgs(rawArgs);
 const allowUnpublished = Boolean(args.allowUnpublished);
@@ -61,15 +62,36 @@ const version = readText("VERSION").trim();
 assert(/^\d+\.\d+\.\d+$/.test(version), `VERSION must be semver, got ${version}`);
 const currentTag = `v${version}`;
 const githubRepository = resolveGithubRepository();
+const repositoryUrl = `https://github.com/${githubRepository}`;
 const expectedReleaseUrl = `https://github.com/${githubRepository}/releases/tag/${currentTag}`;
+const currentBranch = resolveCurrentBranch();
+const releaseBranch = args.releaseBranch || process.env.MEDIA_SERVER_RELEASE_BRANCH || currentBranch;
 report.currentVersion = version;
 report.currentTag = currentTag;
 report.github = {
   repository: githubRepository,
+  repositoryUrl,
   expectedReleaseUrl,
+  currentBranch,
+  releaseBranch,
   latestRelease: null,
   releaseListLatest: null,
+  releaseView: null,
   remoteTag: null,
+  remoteBranch: null,
+  repositoryLandingPage: null,
+};
+report.publishedEvidence = {
+  schema: "media-server.published-release-evidence.v1",
+  status: publishedMode ? "pending" : "manual-not-run",
+  repository: githubRepository,
+  repositoryUrl,
+  expectedReleaseUrl,
+  currentTag,
+  currentBranch,
+  releaseBranch,
+  command: "./server.sh verify-release-metadata --published --report <report.md> --json-report <report.json>",
+  evidence: {},
 };
 
 check("VERSION matches CMake project VERSION", () => {
@@ -106,11 +128,13 @@ check("README.en.md does not link to unpublished release tag in prep mode", () =
 
 if (!publishedMode) {
   check("release prep mode records GitHub publication gate", () => {
+    report.publishedEvidence.reason = "GitHub Release/tag creation is a manual close-out gate; rerun with --published after publish.";
     return {
       mode: "release-prep",
       status: "manual-not-run",
       reason: "GitHub Release/tag creation is a manual close-out gate; rerun with --published after publish.",
       expectedReleaseUrl,
+      releaseBranch,
     };
   });
 } else {
@@ -132,6 +156,7 @@ if (!publishedMode) {
   assert(listedLatest.isDraft === false, "GitHub latest release list entry is draft");
   assert(listedLatest.isPrerelease === false, "GitHub latest release list entry is prerelease");
   report.github.releaseListLatest = listedLatest;
+  report.publishedEvidence.evidence.releaseListLatest = listedLatest;
   return {
     repository: githubRepository,
     releaseListTag: listedLatest.tagName,
@@ -148,6 +173,7 @@ if (!publishedMode) {
   assert(latestApi?.draft === false, "GitHub API latest release is draft");
   assert(latestApi?.prerelease === false, "GitHub API latest release is prerelease");
   report.github.latestRelease = latestApi;
+  report.publishedEvidence.evidence.latestReleaseApi = summarizeLatestReleaseApi(latestApi);
   return {
     repository: githubRepository,
     apiTag: latestApi.tag_name,
@@ -168,6 +194,8 @@ if (!publishedMode) {
   assert(releaseView?.url === expectedReleaseUrl, `gh release view URL ${releaseView?.url || "-"} does not match ${expectedReleaseUrl}`);
   assert(releaseView?.isDraft === false, "gh release view reports a draft release");
   assert(releaseView?.isPrerelease === false, "gh release view reports a prerelease");
+  report.github.releaseView = releaseView;
+  report.publishedEvidence.evidence.releaseView = releaseView;
   return {
     repository: githubRepository,
     releaseViewTag: releaseView.tagName,
@@ -183,10 +211,55 @@ if (!publishedMode) {
   const [sha] = exactTagLine.split(/\s+/);
   assert(/^[0-9a-f]{40}$/.test(sha), `remote tag ${currentTag} did not return a commit SHA`);
   report.github.remoteTag = { tag: currentTag, sha };
+  report.publishedEvidence.evidence.remoteTag = report.github.remoteTag;
   return {
     repository: githubRepository,
     remoteTag: currentTag,
     remoteSha: sha,
+  };
+  });
+
+  check("remote origin exposes release branch head", () => {
+  assert(releaseBranch && releaseBranch !== "HEAD", "release branch must resolve to a named branch");
+  const localHead = runTextCommand("git", ["rev-parse", "HEAD"]).trim();
+  assert(/^[0-9a-f]{40}$/.test(localHead), `local HEAD did not resolve to a commit SHA: ${localHead}`);
+  const remoteBranchOutput = runTextCommand("git", ["ls-remote", "--heads", "origin", releaseBranch]);
+  const remoteLines = remoteBranchOutput.split("\n").map(line => line.trim()).filter(Boolean);
+  const exactBranchLine = remoteLines.find(line => line.endsWith(`refs/heads/${releaseBranch}`));
+  assert(exactBranchLine, `remote origin does not expose refs/heads/${releaseBranch}`);
+  const [remoteSha] = exactBranchLine.split(/\s+/);
+  assert(/^[0-9a-f]{40}$/.test(remoteSha), `remote branch ${releaseBranch} did not return a commit SHA`);
+  assert(remoteSha === localHead, `remote branch ${releaseBranch} (${remoteSha}) does not match local HEAD (${localHead})`);
+  report.github.remoteBranch = { branch: releaseBranch, remoteSha, localHead };
+  report.publishedEvidence.evidence.remoteBranch = report.github.remoteBranch;
+  return {
+    repository: githubRepository,
+    remoteBranch: releaseBranch,
+    remoteSha,
+  };
+  });
+
+  check("GitHub repository page exposes Releases Latest link", () => {
+  const pageHtml = runTextCommand("curl", ["-fsSL", repositoryUrl]);
+  const expectedTagPath = `/${githubRepository}/releases/tag/${currentTag}`;
+  const expectedLatestPath = `/${githubRepository}/releases/latest`;
+  const hasTagLink = pageHtml.includes(expectedTagPath) || pageHtml.includes(expectedReleaseUrl);
+  const hasLatestMarker = pageHtml.includes(expectedLatestPath) || /\bLatest\b/i.test(pageHtml);
+  assert(hasTagLink, `repository page ${repositoryUrl} does not include release link ${expectedTagPath}`);
+  assert(hasLatestMarker, `repository page ${repositoryUrl} does not include a Latest release marker`);
+  report.github.repositoryLandingPage = {
+    url: repositoryUrl,
+    expectedRightRail: "Releases / Latest",
+    expectedHref: expectedReleaseUrl,
+    observedTagPath: expectedTagPath,
+    observedLatestMarker: true,
+  };
+  report.publishedEvidence.evidence.repositoryLandingPage = report.github.repositoryLandingPage;
+  return {
+    repository: githubRepository,
+    repositoryUrl,
+    expectedRightRail: "Releases / Latest",
+    expectedHref: expectedReleaseUrl,
   };
   });
 }
@@ -336,6 +409,13 @@ for (const item of checks) {
   }
 }
 
+report.publishedEvidence.status = publishedMode ? report.status : "manual-not-run";
+if (publishedMode && fail > 0) {
+  report.publishedEvidence.failedChecks = report.checks
+    .filter(item => item.status === "fail")
+    .map(item => item.name);
+}
+
 console.log("");
 console.log("== Release metadata consistency summary ==");
 console.log(`- current version: ${version}`);
@@ -388,6 +468,15 @@ function renderMarkdown(payload) {
     `- mode: ${payload.mode}`,
     `- currentVersion: ${payload.currentVersion}`,
     `- currentTag: ${payload.currentTag}`,
+    `- repository: ${payload.github?.repository || "-"}`,
+    `- releaseBranch: ${payload.github?.releaseBranch || "-"}`,
+    "",
+    "## Published Release Evidence",
+    "",
+    `- schema: ${payload.publishedEvidence?.schema || "-"}`,
+    `- status: ${payload.publishedEvidence?.status || "-"}`,
+    `- expectedReleaseUrl: ${payload.publishedEvidence?.expectedReleaseUrl || "-"}`,
+    `- command: ${payload.publishedEvidence?.command || "-"}`,
     "",
     "| 결과 | 검사 | 상세 |",
     "| --- | --- | --- |",
@@ -427,6 +516,23 @@ function parseArgs(argv) {
 
 function toCamel(value) {
   return value.replace(/-([a-z])/g, (_match, chr) => chr.toUpperCase());
+}
+
+function summarizeLatestReleaseApi(release) {
+  return {
+    id: release?.id || null,
+    tagName: release?.tag_name || "",
+    htmlUrl: release?.html_url || "",
+    publishedAt: release?.published_at || "",
+    draft: release?.draft,
+    prerelease: release?.prerelease,
+  };
+}
+
+function resolveCurrentBranch() {
+  const branch = runTextCommand("git", ["branch", "--show-current"]).trim();
+  if (branch) return branch;
+  return runTextCommand("git", ["rev-parse", "--abbrev-ref", "HEAD"]).trim();
 }
 
 function resolveGithubRepository() {

@@ -166,10 +166,13 @@ gate가 GitHub Actions에 없거나, CI에만 있고 문서 경계가 없으면 
 main merge, tag, GitHub Release publish 이후에는
 `./server.sh verify-release-metadata --published`를 실행합니다. 이 모드는
 `gh release list`, `gh release view`, GitHub API `/releases/latest`,
-`git ls-remote --tags origin <tag>`를 실제로 호출해 GitHub Latest Release와 원격 tag가
-현재 source-only release 기준 tag를 가리키는지 확인합니다. 네트워크, GitHub CLI,
-origin 접근이 준비되지 않았으면 published metadata gate 실패로 보고하고 release
-close-out PASS로 대체하지 않습니다.
+repository page Releases/Latest link, `git ls-remote --tags origin <tag>`,
+`git ls-remote --heads origin <branch>`를 실제로 호출해 GitHub Latest Release와
+원격 tag/branch가 현재 source-only release 기준 tag와 branch HEAD를 가리키는지
+확인합니다. Markdown/JSON report를 지정하면 `Published Release Evidence` 섹션에
+`media-server.published-release-evidence.v1` schema로 보존합니다. 네트워크,
+GitHub CLI, origin 접근이 준비되지 않았으면 published metadata gate 실패로 보고하고
+release close-out PASS로 대체하지 않습니다.
 
 현재 v1.8.0 제품 회귀 gate, UI 풀테스트 gate, release trust hardening gate는 아래
 통합 명령으로만 확인합니다.

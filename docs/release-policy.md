@@ -40,10 +40,14 @@ source offer, model provenance, checksum manifest를 release note에 연결합�
 - `verify-release-closeout-helper`는 dry-run summary만 생성하며 tag, push, GitHub Release 생성을 수행하지 않습니다.
 - `verify-release-metadata` 기본 실행은 release prep 단계에서 반복 가능한 로컬
   문서/버전 기준만 확인하고, GitHub latest/tag 확인은 `manual-not-run`으로 남깁니다.
-- GitHub Releases latest/list/view, GitHub API `/releases/latest`, 원격 tag 확인은
+- GitHub Releases latest/list/view, GitHub API `/releases/latest`, repository page
+  Releases/Latest link, 원격 tag/branch 확인은
   main/tag/GitHub Release publish 이후 `./server.sh verify-release-metadata --published`
   로 실행합니다. 네트워크나 GitHub CLI 접근 실패는 published metadata gate 실패로
   기록하고 PASS evidence로 대체하지 않습니다.
+- publish 후 Markdown/JSON report를 남길 때 `Published Release Evidence` 섹션은
+  `media-server.published-release-evidence.v1` schema로 API/list/view, repository
+  page link, remote refs 증적을 함께 보존합니다.
 - RC longrun 결과는 `rc-release-checklist`와 `media-server-rc-gate` GitHub
   Actions artifact, 또는 `rc-artifact-archive` 외부 archive로 보관합니다.
   임시 `/tmp` 경로는 staging/local-only evidence이며, release-grade 보존 완료로
@@ -93,7 +97,7 @@ Real close-out checklist:
 4. Tag: 검증된 main commit에만 annotated release tag를 생성합니다.
 5. Push: tag와 필요한 branch를 명시 승인 후 push합니다.
 6. GitHub Release: source-only release note를 만들고 sample/model/runtime binary를 업로드하지 않습니다.
-7. Latest 확인: GitHub Releases latest, `/releases/latest`, remote tag를 `verify-release-metadata --published`로 확인합니다. README는 publish 전 dead release URL을 걸지 않고 release 준비 기준 문서로 연결합니다.
+7. Latest 확인: GitHub Releases latest, `/releases/latest`, repository page Releases/Latest link, remote tag/branch를 `verify-release-metadata --published --report <report.md> --json-report <report.json>`로 확인합니다. README는 publish 전 dead release URL을 걸지 않고 release 준비 기준 문서로 연결합니다.
 8. Next branch sync: 다음 작업 branch를 main 최신 release fix 위로 동기화한 뒤 미커밋 변경이 없는지 확인합니다.
 
 위 순서 중 실행하지 않은 항목은 테스트 결과 행을 만들지 않고 release evidence 실행

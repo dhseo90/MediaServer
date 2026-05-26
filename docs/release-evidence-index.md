@@ -28,7 +28,7 @@
 
 | 영역 | Evidence | 대표 명령/출처 | 테스트 판정 / 실행 상태 기록 |
 | --- | --- | --- | --- |
-| GitHub Latest Release | GitHub Releases latest/list/view, `/releases/latest`, remote tag | `./server.sh verify-release-metadata --published` | `PASS` 또는 `FAIL` |
+| GitHub Latest Release | GitHub Releases latest/list/view, `/releases/latest`, repository page Releases/Latest link, remote tag/branch, `media-server.published-release-evidence.v1` report | `./server.sh verify-release-metadata --published --report <report.md> --json-report <report.json>` | `PASS` 또는 `FAIL` |
 | Release metadata/docs drift | VERSION, CMake, README, docs index, release policy, backlog | `./server.sh verify-release-metadata`, `./server.sh verify-docs-links` | `PASS` 또는 `FAIL` |
 | Docs UI assets | managed screenshot manifest, capture script ownership, direct image review checklist | `./server.sh verify-docs-ui-assets` | 실행한 테스트 행은 `PASS` 또는 `FAIL`; 열지 않은 이미지는 별도 `미확인` |
 | Manual UI evidence | `/setup`, `/login`, `/ops/home`, `/ops/dashboard`, `/ops/sources`, `/ops/rules`, `/ops/users`, `/ops/events`, `/client/live`, `/client/dashboard` direct click index | `./server.sh verify-manual-ui-evidence`, manual browser review | `PASS` 또는 `FAIL` |
@@ -89,4 +89,7 @@ Not run for `ui-fulltest-restart-20260525-oehkFG`: 120분 longrun, main merge, r
 release prep branch에서 tag/GitHub Release가 아직 수동 생성 전이면
 `verify-release-metadata`만 브랜치 기준 PASS evidence로 씁니다.
 publish 후에는 `verify-release-metadata --published`로 GitHub Latest Release와
-remote tag를 닫습니다.
+repository page의 Releases/Latest link, remote tag/branch를 닫습니다. Markdown/JSON
+report의 `Published Release Evidence` 섹션은
+`media-server.published-release-evidence.v1` schema로 GitHub API/list/view,
+repository page, remote refs 결과를 함께 보존합니다.
