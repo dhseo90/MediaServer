@@ -110,6 +110,11 @@ warning/failure annotation이 있으면
 `./server.sh verify-actions-security --annotations-json <annotations.json>`가 실패하며,
 해당 run을 release PASS evidence로 대체하지 않습니다. annotation API 확인을
 실행하지 않았으면 annotation 상태는 `미확인`입니다.
+GitHub Actions Node 24 baseline은 `actions/checkout@v5`와
+`actions/upload-artifact@v6`입니다. 이 baseline은 Node.js 24 action runtime 경로이며
+self-hosted runner는 minimum Actions Runner version `2.327.1` 이상이어야 합니다.
+`.github/dependabot.yml`은 future major update 자동 병합을 막고,
+`verify-actions-security`는 이 baseline과 SHA pin/local action만 허용합니다.
 main merge, tag, GitHub Release publish 이후에는
 `./server.sh verify-release-metadata --published`를 실행합니다. 이 모드는
 `gh release list`, `gh release view`, GitHub API `/releases/latest`,

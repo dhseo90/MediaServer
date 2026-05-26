@@ -89,7 +89,7 @@ maintenance-first roadmap입니다. v1.8.0에서 닫은 source-only/live-only �
 | ID | 우선순위 | 영역 | 목표 | 예상 검증 |
 | --- | --- | --- | --- | --- |
 | V190-P0-01 | P0 | GitHub Actions warning annotation gate | main check-run은 success여도 Node.js 20 actions deprecation warning annotation이 남을 수 있으므로, warning을 release gate에서 허용할지 차단할지 기준을 명확히 정합니다. | GitHub check-runs annotations API review, release gate policy review, `verify-actions-security`, Preflight/static-gates/guardrails, `git diff --check` |
-| V190-P0-02 | P0 | GitHub Actions Node 24 readiness | `actions/checkout@v4`, `actions/upload-artifact@v4`의 Node 24 지원 경로, 현재 `verify-actions-security`의 `actions/*@v4` 허용 정책, Dependabot major ignore 정책을 함께 검토한 뒤 workflow와 verifier 정책을 일관되게 갱신합니다. | upstream action version/changelog review, `.github/dependabot.yml` review, `verify-actions-security`, Preflight/static-gates/guardrails, `git diff --check` |
+| V190-P0-02 | P0 | GitHub Actions Node 24 readiness | `actions/checkout@v5`, `actions/upload-artifact@v6`의 Node 24 runtime baseline, `verify-actions-security`의 허용 정책, Dependabot major ignore 정책을 함께 검토한 뒤 workflow와 verifier 정책을 일관되게 유지합니다. | upstream action version/changelog review, `.github/dependabot.yml` review, `verify-actions-security`, Preflight/static-gates/guardrails, `git diff --check` |
 | V190-P0-03 | P0 | UI 풀테스트 evidence runner | inventory 기능 ID별 클릭, 입력, 상태 반영, 관련 로그 확인 결과를 자동 산출하고 미실행 ID를 FAIL로 남기는 evidence runner를 정리합니다. 수동 클릭 의존을 줄이고 UI 풀테스트 완료/미완료 판정을 기능 ID 단위로 남깁니다. | feature inventory fixture review, autonomous UI runner, per-ID evidence report, manual spot review, `verify-ops-client-ui --screenshots`, `verify-rule-ui`, `git diff --check` |
 | V190-P0-04 | P0 | Feature inventory coverage gate | `project-feature-test-inventory.md`의 기능 ID가 실제 verifier, UI evidence, 또는 명시적 제외 기록과 연결되지 않으면 release gate에서 잡도록 coverage mapping을 고정합니다. | inventory-to-verifier mapping report, missing-ID FAIL check, `verify-script-inventory`, release gate dry-run, `git diff --check` |
 | V190-P0-05 | P0 | v2.0.0 entry contract/schema freeze gate | v2.0.0 신규 기능 개발 전 WebRTC DataChannel, SSE/WS metadata, Event POST, Auth/session/scope, SourceRegistry/PublishedView, Rule/Profile payload 기준선을 고정하고 변경 징후를 즉시 잡는 freeze gate를 정리합니다. | contract artifact review, schema/payload sample diff, `verify-integrator-contract-artifact`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-event-post`, `git diff --check` |
@@ -2806,7 +2806,7 @@ PR template과 정적 verifier를 연결했습니다.
 
 - preflight에 `Publish UI visual baseline PR summary` 단계를 추가했습니다.
 - `visual-baseline-comment.md`가 있으면 `GITHUB_STEP_SUMMARY`에 붙이고, 없으면 미생성 상태를 명시합니다.
-- `actions/upload-artifact@v4`의 `artifact-url` output을 사용해 summary에 artifact download 링크를 함께 표시합니다.
+- `actions/upload-artifact@v6`의 `artifact-url` output을 사용해 summary에 artifact download 링크를 함께 표시합니다.
 - workflow 권한은 `contents: read`만 유지하며 `pull-requests: write`를 열지 않았습니다.
 - `verify-ui-visual-artifact-index`와 `verify-actions-security`가 summary 게시 연결과 권한 경계를 검증합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.

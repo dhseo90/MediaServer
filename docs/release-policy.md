@@ -124,10 +124,21 @@ source-of-truth로 삼습니다. 현재 `v1.8.0` release pass/fail 기준은 이
 
 ## Actions update 정책
 
-`verify-actions-security`는 공식 `actions/*@v4`, SHA pin, local action만 허용합니다.
-Dependabot이 `actions/checkout@v6`, `actions/upload-artifact@v7`처럼 major update를 제안하면
-Preflight가 실패하는 것이 현재 정책상 정상입니다.
-major update를 적용하려면 workflow 권한, upstream changelog, pin 전략을 먼저 검토합니다.
+### GitHub Actions Node 24 baseline
+
+v1.9.0 P0 기준 GitHub Actions 공식 action baseline은 `actions/checkout@v5`와
+`actions/upload-artifact@v6`입니다. 두 action은 Node.js 24 runtime 경로이며,
+self-hosted runner는 minimum Actions Runner version `2.327.1` 이상이어야 합니다.
+GitHub-hosted runner를 쓰는 `Preflight`와 `Licensing and Artifact Guardrails`는 이
+baseline을 사용하고, `RC Release Gate`에서 self-hosted runner를 지정할 때는 runner
+version readiness를 별도 운영 조건으로 확인합니다.
+
+`verify-actions-security`는 `actions/checkout@v5`, `actions/upload-artifact@v6`,
+SHA pin, local action만 허용합니다. `.github/dependabot.yml`은 future semver major
+update 알림을 자동 병합하지 않도록 유지합니다. Dependabot이 `actions/checkout@v6`
+또는 `actions/upload-artifact@v7` 같은 future major update를 제안하면 Preflight가
+실패하는 것이 현재 정책상 정상입니다. major update를 적용하려면 workflow 권한,
+upstream changelog, runner compatibility, pin 전략을 먼저 검토합니다.
 
 ### GitHub Actions warning annotation gate
 

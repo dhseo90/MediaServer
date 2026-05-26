@@ -26,7 +26,7 @@ GitHub Settings 화면에서 직접 눌러야 하는 항목은 자동화하지 �
 `Restrict deletions`와 `Block force pushes`는 GitHub Actions check가 아니라 ruleset branch rule입니다.
 Required status check에는 추가하지 않고, checkbox enabled 상태만 확인합니다.
 
-## Dependabot Actions 실패 판단
+## Dependabot Actions / Node 24 readiness 판단
 
 2026-05-10 Actions 화면에서 아래 실패가 확인됐습니다.
 
@@ -34,9 +34,14 @@ Required status check에는 추가하지 않고, checkbox enabled 상태만 확�
 - `Preflight #7`: `ci: bump actions/upload-artifact from 4 to 7`
 
 두 실패는 `main` 최신 커밋 실패가 아니라 Dependabot branch에서 발생한 정책 차단입니다.
-현재 `verify-actions-security`는 공식 `actions/*@v4`, SHA pin, local action만 허용합니다.
-따라서 GitHub Actions major update는 자동 병합 대상이 아니며, 보안 정책을 검토한 뒤 수동으로 올립니다.
-반복 실패 알림을 줄이기 위해 `.github/dependabot.yml`은 `actions/checkout`, `actions/upload-artifact`의 semver major update를 무시합니다.
+현재 GitHub Actions Node 24 baseline은 `actions/checkout@v5`와
+`actions/upload-artifact@v6`입니다. 두 action은 Node.js 24 runtime 경로이며
+minimum Actions Runner version `2.327.1` 이상이 필요합니다. `verify-actions-security`는
+이 두 공식 action 버전, SHA pin, local action만 허용합니다.
+따라서 future GitHub Actions major update는 자동 병합 대상이 아니며, 보안 정책과
+runner compatibility를 검토한 뒤 수동으로 올립니다. 반복 실패 알림을 줄이기 위해
+`.github/dependabot.yml`은 `actions/checkout`, `actions/upload-artifact`의 semver
+major update를 무시합니다.
 
 ## GitHub Actions warning annotation gate
 

@@ -113,7 +113,7 @@ check("GitHub Actions workflow uploads RC gate artifacts", () => {
     "--retention-days",
     "--history-dir artifacts/rc-gate/history",
     "--artifact-name media-server-rc-gate",
-    "actions/upload-artifact@v4",
+    "actions/upload-artifact@v6",
     "media-server-rc-gate",
   ];
   for (const snippet of requiredSnippets) {
