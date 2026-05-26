@@ -8,6 +8,10 @@ source-of-truth로 삼고, 기능별 UI 필요 여부와 테스트 영역은
 사용합니다. 현재 release 목표는 `v1.8.0`이며, UI 풀테스트 기준도 이 버전의
 제품 route, 권한, 기능 baseline만 대상으로 합니다.
 문서 구조와 evidence 경계는 `./server.sh verify-manual-ui-evidence`로 확인합니다.
+기능 ID별 UI evidence JSON을 만든 경우에는
+`./server.sh verify-manual-ui-evidence-runner --evidence <json> --report <report.md>`를
+실행해 inventory의 UI 대상 기능을 전수 report로 변환합니다.
+누락된 UI 대상 기능 ID는 `FAIL`이고, 제외 항목은 판정표 밖에만 남깁니다.
 현재 제품 UI 직접 조작 evidence 없이 완료 판정에 포함하지 않습니다.
 
 UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라우저에서 제품

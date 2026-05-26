@@ -118,6 +118,8 @@ Usage:
                  README/UI guide screenshot 자산과 자동 캡처 기준을 검증합니다.
   verify-manual-ui-evidence
                  수동 UI 검수 결과가 확인/미확인/건너뜀을 분리해 기록됐는지 검증합니다.
+  verify-manual-ui-evidence-runner
+                 기능 ID별 UI evidence JSON을 PASS/FAIL report로 변환하고 누락 ID를 FAIL로 검증합니다.
   verify-product-ui-no-native-dialogs
                  제품 UI가 alert/confirm/prompt native dialog로 자동 UI 검수를 멈추지 않는지 검증합니다.
   prepare-manual-ui-fulltest-seed
@@ -578,6 +580,10 @@ case "${cmd}" in
   verify-manual-ui-evidence)
     require_internal verify_manual_ui_evidence.mjs
     exec "${INTERNAL_DIR}/verify_manual_ui_evidence.mjs" "$@"
+    ;;
+  verify-manual-ui-evidence-runner)
+    require_internal verify_manual_ui_evidence_runner.mjs
+    exec "${INTERNAL_DIR}/verify_manual_ui_evidence_runner.mjs" "$@"
     ;;
   verify-product-ui-no-native-dialogs)
     require_internal verify_product_ui_no_native_dialogs.mjs

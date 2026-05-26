@@ -78,6 +78,7 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
   - `./server.sh verify-ops-click-e2e --auth-ui-flow --auth-users-file <path>`:
   - `./server.sh verify-rule-ui`:
   - `./server.sh verify-manual-ui-evidence`:
+  - `./server.sh verify-manual-ui-evidence-runner --evidence <json> --report <report.md>`:
   - `git diff --check`:
 - 안정화/장시간:
   - `./server.sh verify-predev --soak-minutes 30`:
@@ -252,6 +253,9 @@ evidence이며, UI에서 열지 않은 경우 `FAIL`입니다.
 사용합니다. route를 열었더라도 해당 기능 ID의 control/action을 직접 조작하지
 않았으면 `FAIL`로 남깁니다. 카테고리 묶음 판정은 금지합니다. 아래 행은 예시이며,
 실제 결과 문서에서는 inventory의 대상 기능 ID를 빠짐없이 한 행씩 추가합니다.
+runner 입력 JSON은 `media-server.manual-ui-evidence-input.v1` schema를 사용합니다.
+`./server.sh verify-manual-ui-evidence-runner`는 누락된 UI 대상 기능 ID는 `FAIL`로
+기록하고, 제외 항목은 판정표 밖 `Exclusions`에만 둡니다.
 
 | 기능 ID | 영역 | 클릭/타이핑으로 확인한 항목 | 기대 결과 | 실제 결과 | 판정 | 비고 |
 | --- | --- | --- | --- | --- | --- | --- |

@@ -77,6 +77,7 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-manual-ui-evidence
+./server.sh verify-manual-ui-evidence-runner
 ./server.sh verify-actions-security
 ./server.sh verify-actions-security --annotations-json <annotations.json>
 ./server.sh write-dependency-notice --check
@@ -115,6 +116,18 @@ GitHub Actions Node 24 baseline은 `actions/checkout@v5`와
 self-hosted runner는 minimum Actions Runner version `2.327.1` 이상이어야 합니다.
 `.github/dependabot.yml`은 future major update 자동 병합을 막고,
 `verify-actions-security`는 이 baseline과 SHA pin/local action만 허용합니다.
+Manual UI evidence runner는 UI 풀테스트 자체를 실행하지 않습니다. 대신
+`media-server.manual-ui-evidence-input.v1` JSON을 받아
+`project-feature-test-inventory.md`의 UI 대상 기능 ID별 PASS/FAIL report를 생성합니다.
+누락된 UI 대상 기능 ID는 `FAIL`로 남기고, 제외 항목은 판정표 밖 `Exclusions`
+section에만 기록합니다.
+
+```bash
+./server.sh verify-manual-ui-evidence-runner \
+  --evidence <manual-ui-evidence.json> \
+  --report <manual-ui-evidence-report.md> \
+  --json-report <manual-ui-evidence-report.json>
+```
 main merge, tag, GitHub Release publish 이후에는
 `./server.sh verify-release-metadata --published`를 실행합니다. 이 모드는
 `gh release list`, `gh release view`, GitHub API `/releases/latest`,

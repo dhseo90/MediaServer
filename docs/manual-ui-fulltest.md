@@ -127,6 +127,11 @@ UI 풀테스트 결과는 모든 개별 기능, route, control, action 단위로
 않고, `RULE-041 presence EventRecord 발생`, `AUTH-022 reset 후 must-change`,
 `UI-004 password change 임시 pw 로그인`처럼 개별 행으로 기록합니다.
 요약은 개별 행 이후에만 둘 수 있고, 요약이 개별 결과를 대체할 수 없습니다.
+자율 브라우저 또는 직접 조작 결과를 JSON으로 남길 때는
+`media-server.manual-ui-evidence-input.v1` schema를 사용하고
+`./server.sh verify-manual-ui-evidence-runner --evidence <json> --report <report.md>`
+로 기능 ID별 PASS/FAIL report를 생성합니다. 누락된 UI 대상 기능 ID는 `FAIL`이며,
+제외 항목은 판정표 밖 `Exclusions`에만 둡니다.
 
 다음은 `확인됨`으로 쓰지 않으며, UI 풀테스트 대상이면 `FAIL`입니다.
 
@@ -272,6 +277,7 @@ UI 풀테스트는 기능 검수와 같은 비중으로 시각 품질을 봅니�
 - `./server.sh verify-docs-ui-assets`
 - `./server.sh verify-release-metadata`
 - `./server.sh verify-manual-ui-evidence`
+- `./server.sh verify-manual-ui-evidence-runner`
 
 장시간 테스트와 `verify-predev`는 사용자가 명시 요청하지 않으면 실행하지 않습니다.
 실행하지 않은 스크립트는 실행하지 않았다고 사실 기록만 남기며, UI 풀테스트의
