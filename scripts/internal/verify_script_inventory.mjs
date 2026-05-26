@@ -396,6 +396,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_release_closeout_helper.mjs",
     "prepare_manual_ui_fulltest_seed.mjs",
     "verify_actions_security.mjs",
+    "verify_ci_local_gate_parity.mjs",
     "verify_release_bundle_dry_run.mjs",
     "verify_reid_advanced_tracking_experiment.mjs",
     "verify_oc_sort_benchmark_boundary.mjs",

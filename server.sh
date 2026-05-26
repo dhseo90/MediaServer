@@ -208,6 +208,8 @@ Usage:
                  기능 ID가 verifier/UI evidence/장시간 승인/field exclusion 중 하나에 연결됐는지 점검합니다.
   verify-actions-security
                  GitHub Actions workflow 권한과 action 사용 정책을 검증합니다.
+  verify-ci-local-gate-parity
+                 로컬 verifier와 GitHub Actions static/guardrail gate 매핑을 검증합니다.
   verify-public-repo-readiness
                  public 전환 전 secret/history/asset/문서 준비 상태를 검증합니다.
   verify-post-release-reconciliation
@@ -758,6 +760,10 @@ case "${cmd}" in
   verify-actions-security)
     require_internal verify_actions_security.mjs
     exec "${INTERNAL_DIR}/verify_actions_security.mjs" "$@"
+    ;;
+  verify-ci-local-gate-parity)
+    require_internal verify_ci_local_gate_parity.mjs
+    exec "${INTERNAL_DIR}/verify_ci_local_gate_parity.mjs" "$@"
     ;;
   verify-public-repo-readiness)
     require_internal verify_public_repo_readiness.mjs

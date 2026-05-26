@@ -158,6 +158,21 @@ GitHub check-runs annotations API에서 받은 JSON export는 아래 명령으�
 `notice` annotation은 release gate 실패로 보지 않지만, 실행하지 않은 API 확인을
 PASS evidence로 대체하지 않습니다.
 
+### CI/local gate parity
+
+로컬 release/static verifier와 GitHub Actions required/static/guardrail gate는
+`media-server.ci-local-gate-parity.v1` 기준으로 대조합니다. Preflight/static-gates,
+Licensing and Artifact Guardrails/guardrails, RC Release Gate workflow에 들어간
+`./server.sh` 명령이 문서화된 로컬 gate와 어긋나면 아래 명령이 실패해야 합니다.
+
+```bash
+./server.sh verify-ci-local-gate-parity
+```
+
+이 gate는 30분/120분 장시간 검증을 자동 실행하지 않습니다. RC workflow의
+`verify-predev --soak-minutes 120`과 `verify-va-runtime-console-longrun --duration-minutes 120`
+는 `workflow_dispatch` 입력이 명시된 경우에만 실행되는 별도 evidence입니다.
+
 ## Release Note Template
 
 ```markdown

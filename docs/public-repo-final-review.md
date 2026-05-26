@@ -64,17 +64,24 @@ public/release readiness를 로컬 또는 CI에서 확인할 때 실행합니다
 
 ```bash
 ./server.sh verify-script-inventory
+./server.sh verify-feature-inventory-coverage
 ./server.sh verify-code-comments
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-actions-security
 ./server.sh verify-actions-security --annotations-json <annotations.json>
+./server.sh verify-ci-local-gate-parity
 ./server.sh write-dependency-notice --check
 ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
 ./server.sh dependency-snapshot --stable --output /tmp/media_server_dependency_snapshot.md --json-output /tmp/media_server_dependency_snapshot.json --no-linked-libs
 ./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
 ./server.sh source-offer-checklist --stable --bundle-policy-report /tmp/media_server_bundle_policy.json --output /tmp/media_server_source_offer_checklist.md
 ```
+
+`verify-ci-local-gate-parity`는 `media-server.ci-local-gate-parity.v1` summary로
+Preflight/static-gates/guardrails와 로컬 verifier 목록을 대조합니다. 이 명령이
+통과하지 않으면 GitHub Actions의 required/static/guardrail gate가 로컬 release
+gate를 실제로 막는다는 evidence로 기록하지 않습니다.
 
 media pipeline을 바꾸지 않은 공개 준비 변경은 FFmpeg CLI 의존을 분리한 smoke를 사용할 수 있습니다.
 

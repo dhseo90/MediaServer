@@ -153,6 +153,16 @@ runtime delivery smoke 통과를 대신하지 않습니다.
 ./server.sh verify-integrator-contract-artifact
 ```
 
+CI/local gate parity는 `media-server.ci-local-gate-parity.v1` summary로
+Preflight/static-gates/guardrails/RC workflow에 실제로 걸린 `./server.sh` 명령과
+로컬 release/static verifier 목록을 대조합니다. 로컬에서 통과해야 한다고 문서화한
+gate가 GitHub Actions에 없거나, CI에만 있고 문서 경계가 없으면 v2.0.0 기능 PR 전에
+아래 명령으로 먼저 정리합니다.
+
+```bash
+./server.sh verify-ci-local-gate-parity
+```
+
 main merge, tag, GitHub Release publish 이후에는
 `./server.sh verify-release-metadata --published`를 실행합니다. 이 모드는
 `gh release list`, `gh release view`, GitHub API `/releases/latest`,

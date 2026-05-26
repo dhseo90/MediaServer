@@ -43,6 +43,11 @@ jobs:
         run: |
           ./server.sh verify-actions-security
 
+      - name: CI/local gate parity
+        shell: bash
+        run: |
+          ./server.sh verify-ci-local-gate-parity
+
       - name: Code comments
         shell: bash
         run: |
