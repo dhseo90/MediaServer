@@ -154,8 +154,8 @@ v1.8.0 완료 기준:
 
 - 확인됨: UI 풀테스트 close-out 변경은 `origin/v1.8.0`에 push 완료.
 - 확인됨: 안정화 script gate와 30분 predev soak는 PASS로 기록됨.
-- 확인됨: UI 풀테스트 결과표는 UI 대상 기능 ID 219개와 간접 안정화 행 `RULE-099`
-  포함 220 PASS / 0 FAIL로 닫힘.
+- 확인됨: UI 풀테스트 결과표는 UI 대상 기능 ID 220개와 간접 안정화 행 `RULE-099`
+  포함 221 PASS / 0 FAIL로 닫힘.
 - 확인됨: `/ops/events` EventRecord history coverage는 390px/1180px에서
   rule/scenario event 발생 이력 대조 PASS로 보강됨.
 - 미실행: 120분 longrun, main merge, release tag, GitHub Release 생성,

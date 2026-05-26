@@ -39,7 +39,7 @@ Release close-out runbook과 tag/push 수동 gate는
 세부 순서를 둡니다.
 Release evidence의 실행/미실행/미확인 색인은
 [release-evidence-index.md](release-evidence-index.md)에 둡니다.
-직전 UI 풀테스트 close-out 증적은 결과표 220 PASS / 0 FAIL, 30분 predev PASS,
+직전 UI 풀테스트 close-out 증적은 결과표 221 PASS / 0 FAIL, 30분 predev PASS,
 해당 close-out 커밋의 브랜치 push 완료로 기록되어 있습니다. 120분 longrun과 main/tag/GitHub Release
 publish gate는 아직 미실행이며, GitHub release URL은 publish 이후 `verify-release-metadata --published`로
 확인합니다.

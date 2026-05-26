@@ -28,7 +28,7 @@ path short enough to scan. The full index is `docs/README.md`.
 
 v1.8.0 branch-level close-out evidence is tracked in
 [../release-evidence-index.md](../release-evidence-index.md). The current manual
-UI result is 220 PASS / 0 FAIL at the feature-result row level. The 120-minute
+UI result is 221 PASS / 0 FAIL at the feature-result row level. The 120-minute
 longrun, main merge, release tag, and GitHub Release publish gate are still
 not-run manual close-out steps.
 
