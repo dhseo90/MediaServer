@@ -57,10 +57,37 @@
     }
   ],
   "hardwareClasses": {
+    "local-unsupported": {
+      "planningOnly": true,
+      "targetOperatingSystems": [
+        "macOS",
+        "Linux"
+      ],
+      "examples": [
+        "Intel Mac CPU-only",
+        "Apple unified memory below 16GB",
+        "GTX 1050 2GB",
+        "GTX 1050 3GB",
+        "GTX 1050 Ti 4GB",
+        "Linux CPU-only",
+        "NVIDIA VRAM below 8GB",
+        "AMD/Intel GPU runtime not verified",
+        "system RAM below 16GB"
+      ],
+      "defaultLocalVlmAllowed": false,
+      "decisionWhenCloudDisabled": "no-local-vlm-recommendation",
+      "decisionWhenCloudAllowed": "gemini-2.5-flash",
+      "reason": "macOS/Linux local VLM runtime or memory headroom is below the default recommendation floor."
+    },
     "local-low": {
       "planningOnly": true,
       "modelClass": "4B class local model",
-      "memoryGuide": "about 16GB RAM or 8GB+ VRAM class",
+      "macosCriteria": "Apple Silicon 16GB-23GB unified memory",
+      "linuxCriteria": "NVIDIA 8GB-11GB VRAM with 16GB+ system RAM",
+      "minimumSystemRamGb": 16,
+      "minimumGpuVramGb": 8,
+      "minimumAppleUnifiedMemoryGb": 16,
+      "memoryGuide": "16GB RAM with 8GB+ VRAM, or 16GB+ Apple unified memory class",
       "allowedTiers": [
         "T2-local-low-spec-fallback"
       ]
@@ -68,16 +95,28 @@
     "local-standard": {
       "planningOnly": true,
       "modelClass": "7B/8B class local model",
-      "memoryGuide": "about 24GB RAM, 12GB+ VRAM, or 16GB+ Apple unified memory class",
+      "macosCriteria": "Apple Silicon 24GB-47GB unified memory",
+      "linuxCriteria": "NVIDIA 12GB-23GB VRAM with 24GB+ system RAM",
+      "minimumSystemRamGb": 24,
+      "minimumGpuVramGb": 12,
+      "minimumAppleUnifiedMemoryGb": 24,
+      "memoryGuide": "24GB RAM with 12GB+ VRAM, or 24GB+ Apple unified memory class",
       "allowedTiers": [
         "T1-primary-local-standard"
       ]
     },
     "local-high": {
       "planningOnly": true,
-      "modelClass": "12B+ local model",
+      "modelClass": "30B class local evaluation candidate",
+      "macosCriteria": "Apple Silicon 48GB+ unified memory",
+      "linuxCriteria": "NVIDIA 24GB+ VRAM with 64GB+ system RAM",
+      "minimumSystemRamGb": 64,
+      "minimumGpuVramGb": 24,
+      "minimumAppleUnifiedMemoryGb": 48,
       "defaultAllowed": false,
-      "reason": "not a v2.0.0 default candidate without explicit owner approval"
+      "recommendedCandidate": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "safeFallback": "Qwen/Qwen3-VL-8B-Instruct",
+      "reason": "high tier candidate requires V200-S06 evaluation before default promotion"
     },
     "cloud-allowed": {
       "planningOnly": true,
@@ -95,6 +134,68 @@
       ]
     }
   },
+  "resourceDecisionPolicy": {
+    "planningOnly": true,
+    "memoryHeadroomMaxRatio": 0.7,
+    "reservedGpuVramGb": 2,
+    "latencyTargets": {
+      "eventReviewP50Seconds": 10,
+      "eventReviewP95Seconds": 30,
+      "mustNotBlockMediaPath": true
+    },
+    "pcSelectionMatrix": [
+      {
+        "pcClass": "local-unsupported",
+        "macosCriteria": "Intel Mac CPU-only, Apple unified memory below 16GB, or VLM runtime not verified",
+        "linuxCriteria": "CPU-only, NVIDIA VRAM below 8GB, AMD/Intel GPU runtime not verified, or RAM below 16GB",
+        "examples": [
+          "GTX 1050/1050 Ti 2GB-4GB",
+          "CPU-only",
+          "RAM below 16GB"
+        ],
+        "cloudDisabledDecision": "no-local-vlm-recommendation",
+        "cloudAllowedDecision": "gemini-2.5-flash",
+        "localModel": null
+      },
+      {
+        "pcClass": "local-low",
+        "macosCriteria": "Apple Silicon 16GB-23GB unified memory",
+        "linuxCriteria": "NVIDIA 8GB-11GB VRAM with 16GB+ system RAM",
+        "examples": [
+          "16GB RAM with 8GB+ VRAM",
+          "16GB+ Apple unified memory"
+        ],
+        "cloudDisabledDecision": "Qwen/Qwen3-VL-4B-Instruct",
+        "cloudAllowedDecision": "prefer-local-then-gemini-2.5-flash",
+        "localModel": "Qwen/Qwen3-VL-4B-Instruct"
+      },
+      {
+        "pcClass": "local-standard",
+        "macosCriteria": "Apple Silicon 24GB-47GB unified memory",
+        "linuxCriteria": "NVIDIA 12GB-23GB VRAM with 24GB+ system RAM",
+        "examples": [
+          "24GB RAM with 12GB+ VRAM",
+          "24GB+ Apple unified memory"
+        ],
+        "cloudDisabledDecision": "Qwen/Qwen3-VL-8B-Instruct",
+        "cloudAllowedDecision": "prefer-local-then-gemini-2.5-flash",
+        "localModel": "Qwen/Qwen3-VL-8B-Instruct"
+      },
+      {
+        "pcClass": "local-high",
+        "macosCriteria": "Apple Silicon 48GB+ unified memory",
+        "linuxCriteria": "NVIDIA 24GB+ VRAM with 64GB+ system RAM",
+        "examples": [
+          "48GB+ Apple unified memory",
+          "64GB RAM with 24GB+ VRAM"
+        ],
+        "cloudDisabledDecision": "Qwen/Qwen3-VL-30B-A3B-Instruct evaluation candidate with Qwen/Qwen3-VL-8B-Instruct safe fallback",
+        "cloudAllowedDecision": "evaluate-high-local-or-gemini-2.5-flash",
+        "localModel": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+        "safeFallback": "Qwen/Qwen3-VL-8B-Instruct"
+      }
+    ]
+  },
   "tiers": {
     "T1-primary-local-standard": {
       "defaultRole": "primary-local-standard",
@@ -105,6 +206,13 @@
     "T2-local-low-spec-fallback": {
       "defaultRole": "local-low-spec-fallback",
       "requiresExternalTransfer": false,
+      "licenseGate": "Apache-2.0 or project-compatible open local license",
+      "bundlePolicy": "user-supplied-only"
+    },
+    "T1H-local-high-candidate": {
+      "defaultRole": "local-high-candidate",
+      "requiresExternalTransfer": false,
+      "requiresEvaluationBeforeDefault": true,
       "licenseGate": "Apache-2.0 or project-compatible open local license",
       "bundlePolicy": "user-supplied-only"
     },
@@ -188,6 +296,30 @@
       "reason": "cloud-only fallback for price-performance when local execution is not viable and the operator explicitly allows external transfer"
     }
   ],
+  "highCandidates": [
+    {
+      "id": "qwen3-vl-30b-a3b-instruct",
+      "model": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+      "role": "local-high-candidate",
+      "tier": "T1H-local-high-candidate",
+      "deployment": "local",
+      "hardwareClass": "local-high",
+      "license": "Apache-2.0",
+      "licenseCompatibility": "compatible-with-apache-2-source-release-when-user-supplied-and-not-bundled",
+      "officialSources": [
+        {
+          "label": "Qwen/Qwen3-VL-30B-A3B-Instruct Hugging Face model card",
+          "url": "https://huggingface.co/Qwen/Qwen3-VL-30B-A3B-Instruct"
+        }
+      ],
+      "externalTransfer": false,
+      "bundleAllowed": false,
+      "autoInstallAllowed": false,
+      "defaultAllowedBeforeEvaluation": false,
+      "safeFallback": "Qwen/Qwen3-VL-8B-Instruct",
+      "reason": "Apache-2.0 official local image-text model for high macOS/Linux servers; default promotion requires V200-S06 evaluation evidence."
+    }
+  ],
   "conditional": [
     {
       "id": "gemma-family",
@@ -230,6 +362,8 @@
       "hardGateResults",
       "tier",
       "hardwareClass",
+      "minimumRamOrVram",
+      "latencyTarget",
       "decisionRole",
       "bundlePolicy",
       "exclusionOrConditionReason"

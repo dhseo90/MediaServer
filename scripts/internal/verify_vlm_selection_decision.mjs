@@ -28,7 +28,7 @@ Checks:
   - V200-S01 roadmap row가 실제 모델 선택값과 선택 기준으로 완료 처리됐는지 확인
   - docs/vlm-model-selection.md가 1차 모델, fallback, 제외/조건부 사유, license/privacy/bundle gate를 담는지 확인
   - selection_decision.json이 같은 결정을 구조화해 보존하는지 확인
-  - Qwen 8B/4B, Gemini Flash, Gemma 조건부 판정이 프로젝트 license/bundle/privacy 제약을 지키는지 확인
+  - macOS/Linux PC tier별 Qwen 4B/8B/30B, Gemini Flash, Gemma 조건부 판정이 프로젝트 license/bundle/privacy 제약을 지키는지 확인
 `);
 }
 
@@ -54,6 +54,7 @@ check("V200-S01 roadmap row is closed with explicit selected models", () => {
     "| 1 | V200-S01 | 완료 | VLM 후보군/선택 기준 |",
     "`Qwen/Qwen3-VL-8B-Instruct`를 1차 local standard로 선택",
     "`Qwen/Qwen3-VL-4B-Instruct`를 local low-spec fallback",
+    "`Qwen/Qwen3-VL-30B-A3B-Instruct`",
     "`gemini-2.5-flash`는 cloud opt-in fallback",
     "Gemma 계열은 custom terms/license review 때문에 기본값이 아닙니다",
     "`verify-vlm-selection-decision`",
@@ -71,6 +72,7 @@ check("selection document contains direct answer, gates, tiers, hardware classes
     "## 직접 답",
     "`Qwen/Qwen3-VL-8B-Instruct`",
     "`Qwen/Qwen3-VL-4B-Instruct`",
+    "`Qwen/Qwen3-VL-30B-A3B-Instruct`",
     "`gemini-2.5-flash`",
     "Gemma 계열",
     "## Hard Gates",
@@ -81,13 +83,25 @@ check("selection document contains direct answer, gates, tiers, hardware classes
     "## Tier 기준",
     "`T1-primary-local-standard`",
     "`T2-local-low-spec-fallback`",
+    "`T1H-local-high-candidate`",
     "`T3-cloud-opt-in-fallback`",
     "`T4-conditional-user-supplied`",
     "`T5-excluded-or-blocked`",
     "## PC 등급 기준",
+    "macOS/Linux",
+    "`local-unsupported`",
     "`local-low`",
     "`local-standard`",
+    "`local-high`",
+    "Apple Silicon",
+    "NVIDIA",
+    "24GB 이상 VRAM",
+    "48GB 이상 unified memory",
     "`cloud-allowed`",
+    "GTX 1050",
+    "no-local-vlm-recommendation",
+    "P50 10초 이하",
+    "P95 30초 이하",
     "benchmark PASS로 보고하지 않습니다",
     "## 향후 모델 추가 규칙",
     "Event POST/WebRTC/SSE/WS metadata schema 변경",
@@ -157,6 +171,19 @@ check("cloud fallback is Gemini 2.5 Flash with explicit opt-in and no redistribu
   return { fallback: fallback.model, privacyModeRequired: fallback.privacyModeRequired };
 });
 
+check("local high candidate is Qwen3-VL 30B-A3B for high macOS/Linux servers only", () => {
+  const candidate = findById(decision.highCandidates, "qwen3-vl-30b-a3b-instruct");
+  assert(candidate.model === "Qwen/Qwen3-VL-30B-A3B-Instruct", "high candidate model mismatch");
+  assert(candidate.tier === "T1H-local-high-candidate", "high candidate tier mismatch");
+  assert(candidate.deployment === "local", "high candidate must be local");
+  assert(candidate.hardwareClass === "local-high", "high candidate hardware class mismatch");
+  assert(candidate.license === "Apache-2.0", "high candidate license mismatch");
+  assert(candidate.defaultAllowedBeforeEvaluation === false, "high candidate must require evaluation before default");
+  assert(candidate.safeFallback === "Qwen/Qwen3-VL-8B-Instruct", "high candidate safe fallback mismatch");
+  assert(hasSource(candidate, "https://huggingface.co/Qwen/Qwen3-VL-30B-A3B-Instruct"), "high candidate official source missing");
+  return { candidate: candidate.model, tier: candidate.tier };
+});
+
 check("Gemma is conditional user-supplied and not default", () => {
   const gemma = findById(decision.conditional, "gemma-family");
   assert(gemma.tier === "T4-conditional-user-supplied", "Gemma tier mismatch");
@@ -185,21 +212,48 @@ check("hard gates and future model admission criteria are complete", () => {
   for (const tier of [
     "T1-primary-local-standard",
     "T2-local-low-spec-fallback",
+    "T1H-local-high-candidate",
     "T3-cloud-opt-in-fallback",
     "T4-conditional-user-supplied",
     "T5-excluded-or-blocked",
   ]) {
     assert(Object.hasOwn(decision.tiers, tier), `tier missing ${tier}`);
   }
-  for (const hardwareClass of ["local-low", "local-standard", "local-high", "cloud-allowed", "cloud-disabled"]) {
+  for (const hardwareClass of [
+    "local-unsupported",
+    "local-low",
+    "local-standard",
+    "local-high",
+    "cloud-allowed",
+    "cloud-disabled",
+  ]) {
     assert(Object.hasOwn(decision.hardwareClasses, hardwareClass), `hardware class missing ${hardwareClass}`);
   }
+  assert(decision.hardwareClasses["local-unsupported"].decisionWhenCloudDisabled === "no-local-vlm-recommendation", "unsupported class must not receive a local VLM default");
+  assert(decision.hardwareClasses["local-unsupported"].decisionWhenCloudAllowed === "gemini-2.5-flash", "unsupported class cloud fallback mismatch");
+  assert(decision.hardwareClasses["local-low"].minimumGpuVramGb === 8, "local-low minimum VRAM must be 8GB");
+  assert(decision.hardwareClasses["local-standard"].minimumGpuVramGb === 12, "local-standard minimum VRAM must be 12GB");
+  assert(decision.hardwareClasses["local-high"].minimumGpuVramGb === 24, "local-high minimum VRAM must be 24GB");
+  assert(decision.hardwareClasses["local-high"].minimumAppleUnifiedMemoryGb === 48, "local-high Apple unified memory must be 48GB");
+  assert(decision.hardwareClasses["local-high"].recommendedCandidate === "Qwen/Qwen3-VL-30B-A3B-Instruct", "local-high candidate mismatch");
+  assert(decision.resourceDecisionPolicy.memoryHeadroomMaxRatio === 0.7, "resource headroom ratio mismatch");
+  assert(decision.resourceDecisionPolicy.reservedGpuVramGb === 2, "reserved GPU VRAM mismatch");
+  assert(decision.resourceDecisionPolicy.latencyTargets.eventReviewP50Seconds === 10, "P50 latency target mismatch");
+  assert(decision.resourceDecisionPolicy.latencyTargets.eventReviewP95Seconds === 30, "P95 latency target mismatch");
+  assert(decision.resourceDecisionPolicy.latencyTargets.mustNotBlockMediaPath === true, "media path blocking target mismatch");
+  const matrix = decision.resourceDecisionPolicy.pcSelectionMatrix || [];
+  assert(matrix.some((item) => item.pcClass === "local-unsupported" && item.localModel === null), "PC selection matrix must block unsupported local model defaults");
+  assert(matrix.some((item) => item.pcClass === "local-low" && item.localModel === "Qwen/Qwen3-VL-4B-Instruct"), "PC selection matrix missing local-low Qwen 4B");
+  assert(matrix.some((item) => item.pcClass === "local-standard" && item.localModel === "Qwen/Qwen3-VL-8B-Instruct"), "PC selection matrix missing local-standard Qwen 8B");
+  assert(matrix.some((item) => item.pcClass === "local-high" && item.localModel === "Qwen/Qwen3-VL-30B-A3B-Instruct"), "PC selection matrix missing local-high Qwen 30B");
   for (const field of [
     "officialSourceUrl",
     "licenseUrl",
     "hardGateResults",
     "tier",
     "hardwareClass",
+    "minimumRamOrVram",
+    "latencyTarget",
     "decisionRole",
     "bundlePolicy",
     "exclusionOrConditionReason",

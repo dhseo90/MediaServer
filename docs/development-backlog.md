@@ -234,11 +234,25 @@ VLM runtime 실행, PC 사양 감지, 추천 엔진, 설치 UI, profile 저장, 
 
 PC 등급 기준:
 
-- `local-low`: 4B class quantized/local runtime 후보. 실제 성능 측정 전 planning
-  class이며 `Qwen/Qwen3-VL-4B-Instruct`가 해당합니다.
-- `local-standard`: 7B/8B class quantized/local runtime 후보. 실제 성능 측정 전
-  planning class이며 `Qwen/Qwen3-VL-8B-Instruct`가 해당합니다.
+- 대상 서버 OS는 macOS/Linux입니다. Windows PC는 이 기준의 대상이 아닙니다.
+- `local-unsupported`: Intel Mac CPU-only, Apple unified memory 16GB 미만, Linux
+  CPU-only, NVIDIA VRAM 8GB 미만, AMD/Intel GPU runtime 미검증, RAM 16GB 미만.
+  local VLM 기본 추천은 하지 않습니다. cloud opt-in이면 `gemini-2.5-flash`, cloud
+  disabled면 VLM local 미추천/비활성으로 둡니다.
+- `local-low`: Apple Silicon 16GB~23GB unified memory, 또는 Linux NVIDIA 8GB~11GB
+  VRAM + system RAM 16GB 이상.
+  `Qwen/Qwen3-VL-4B-Instruct`가 해당합니다.
+- `local-standard`: Apple Silicon 24GB~47GB unified memory, 또는 Linux NVIDIA
+  12GB~23GB VRAM + system RAM 24GB 이상.
+  `Qwen/Qwen3-VL-8B-Instruct`가 해당합니다.
+- `local-high`: Apple Silicon 48GB 이상 unified memory, 또는 Linux NVIDIA 24GB
+  이상 VRAM + system RAM 64GB 이상.
+  `Qwen/Qwen3-VL-30B-A3B-Instruct`를 평가 후보로 추천하고, 안전 fallback은
+  `Qwen/Qwen3-VL-8B-Instruct`입니다.
 - `cloud-allowed`: 외부 전송 opt-in 상태. `gemini-2.5-flash`가 해당합니다.
+- 새 local 모델은 사용 가능한 VRAM/RAM의 70% 이하 working set, GPU VRAM 2GB headroom,
+  event review P50 10초 이하/P95 30초 이하, media path non-blocking 기준을 만족해야
+  PC tier에 배정할 수 있습니다.
 
 완료 판정:
 
