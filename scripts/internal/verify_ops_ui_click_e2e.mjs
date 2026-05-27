@@ -1976,6 +1976,7 @@ function rtspListenPort() {
 async function runAuthUiFlow(browser, context) {
   const steps = [];
   const snapshot = snapshotAuthStore();
+  let scopeFixture = null;
   const suffix = `${process.pid}-${String(context?.width || "w")}-${Date.now()}`;
   const lifecycleUsername = `auth-ui-life-${suffix}`.slice(0, 64);
   const requestUsername = `auth-ui-req-${suffix}`.slice(0, 64);
@@ -1996,6 +1997,7 @@ async function runAuthUiFlow(browser, context) {
 
     await loginViaForm(browser, "admin", passwords.admin, "/ops/home");
     await assertWhoami(browser, { username: "admin", role: "admin" }, "admin whoami");
+    scopeFixture = await authUiScopeFixture(browser);
     await navigatePath(browser, "/client/live");
     await assertReady(browser, "/client/live", '[data-testid="client-shell-page"]');
     await assertClientPreviewAdminAffordance(browser, `${context.label}:session-admin-preview`);
@@ -2007,8 +2009,8 @@ async function runAuthUiFlow(browser, context) {
     steps.push("auth:logout-route-guard");
 
     await loginViaForm(browser, "admin", passwords.admin, "/ops/home");
-    await createLifecycleUserViaUi(browser, lifecycleUsername, passwords.userInitial, context);
-    await editLifecycleUserScopeViaUi(browser, lifecycleUsername);
+    await createLifecycleUserViaUi(browser, lifecycleUsername, passwords.userInitial, context, scopeFixture.initialViewId);
+    await editLifecycleUserScopeViaUi(browser, lifecycleUsername, scopeFixture.updatedViewId, scopeFixture.initialViewId);
     await resetLifecycleUserPasswordViaUi(browser, lifecycleUsername, passwords.userReset);
     await disableLifecycleUserViaUi(browser, lifecycleUsername);
     await logoutViaPost(browser);
@@ -2021,29 +2023,29 @@ async function runAuthUiFlow(browser, context) {
     await assertLoginRejected(browser, lifecycleUsername, passwords.userReset, "이전 임시 비밀번호 재사용 로그인 거부");
     await loginViaForm(browser, lifecycleUsername, passwords.userChanged, "/client/live");
     await assertWhoami(browser, { username: lifecycleUsername, role: "viewer" }, "복구 사용자 whoami");
-    await assertClientSourceTreeOnly(browser, "2", "scope 수정 viewer source tree");
+    await assertClientSourceTreeOnly(browser, scopeFixture.updatedViewId, "scope 수정 viewer source tree");
     steps.push("auth:user-lifecycle-session", "auth:viewer-scope-change-source-tree");
     await assertClientLiveSessionCleanupViaUi(browser, context);
     steps.push("client:live-session-cleanup");
 
     await logoutViaPost(browser);
-    await submitPublicAccessRequestViaUi(browser, requestUsername, "1");
+    await submitPublicAccessRequestViaUi(browser, requestUsername, scopeFixture.ruleViewId);
     await assertStoreAccessRequest(requestUsername, request => request.status === "pending" && !findStoreUser(requestUsername), "접근 요청 pending 저장과 user 미생성");
     await loginViaForm(browser, "admin", passwords.admin, "/ops/home");
-    const approvedToken = await approveAccessRequestViaUi(browser, requestUsername, "1");
+    const approvedToken = await approveAccessRequestViaUi(browser, requestUsername, scopeFixture.ruleViewId);
     await assertStoreAccessRequest(requestUsername, request => request.status === "approved" && Boolean(request.inviteId), "접근 요청 승인 저장");
     await assertStoreNoUser(requestUsername, "초대 설정 전 접근 요청 user 미생성");
     await logoutViaPost(browser);
     await acceptInviteViaUi(browser, approvedToken, passwords.inviteAccepted);
-    await assertStoreUser(requestUsername, user => user.enabled === true && user.role === "viewer" && hasScope(user, "view:read:1"), "초대 수락 user/scope 생성");
+    await assertStoreUser(requestUsername, user => user.enabled === true && user.role === "viewer" && hasScope(user, `view:read:${scopeFixture.ruleViewId}`), "초대 수락 user/scope 생성");
     await loginViaForm(browser, requestUsername, passwords.inviteAccepted, "/client/live");
     await assertWhoami(browser, { username: requestUsername, role: "viewer" }, "초대 수락 viewer whoami");
-    await assertViewerRuleScopeBoundaryViaUi(browser, "초대 수락 viewer rule/view scope boundary");
+    await assertViewerRuleScopeBoundaryViaUi(browser, "초대 수락 viewer rule/view scope boundary", scopeFixture);
     await logoutViaPost(browser);
     await assertConsumedInviteRejected(browser, approvedToken, passwords.wrongTwo);
     steps.push("auth:access-request-approve-invite-setup", "auth:viewer-rule-scope-boundary");
 
-    await submitPublicAccessRequestViaUi(browser, rejectUsername, "1");
+    await submitPublicAccessRequestViaUi(browser, rejectUsername, scopeFixture.ruleViewId);
     await assertStoreAccessRequest(rejectUsername, request => request.status === "pending" && !findStoreUser(rejectUsername), "거절 요청 pending 저장과 user 미생성");
     await loginViaForm(browser, "admin", passwords.admin, "/ops/home");
     await rejectAccessRequestViaUi(browser, rejectUsername);
@@ -2061,7 +2063,7 @@ async function runAuthUiFlow(browser, context) {
   }
 }
 
-async function createLifecycleUserViaUi(browser, username, password, context) {
+async function createLifecycleUserViaUi(browser, username, password, context, viewId) {
   await navigatePath(browser, "/ops/users");
   await installErrorCollector(browser);
   await assertReady(browser, "/ops/users", '[data-testid="ops-users-page"]');
@@ -2072,7 +2074,7 @@ async function createLifecycleUserViaUi(browser, username, password, context) {
   await setTextValue(browser, '#user-form [name="password"]', password, "session 사용자 초기 비밀번호");
   await setTextValue(browser, '#user-form [name="confirmPassword"]', password, "session 사용자 초기 비밀번호 확인");
   await setSelectValue(browser, '#user-form [name="role"]', "viewer", "session 사용자 권한");
-  await setTextValue(browser, "#user-scopes-input", viewerScopes("1").join("\n"), "session 사용자 scope");
+  await setTextValue(browser, "#user-scopes-input", viewerScopes(viewId).join("\n"), "session 사용자 scope");
   await setCheckboxValue(browser, '#user-form [name="enabled"]', true, "session 사용자 활성화");
   await setCheckboxValue(browser, '#user-form [name="mustChangePassword"]', false, "session 사용자 must-change 해제");
   await clickSelector(browser, "#user-save-selected", "session 사용자 저장");
@@ -2081,25 +2083,25 @@ async function createLifecycleUserViaUi(browser, username, password, context) {
     user.enabled === true &&
     user.role === "viewer" &&
     user.mustChangePassword === false &&
-    hasScope(user, "view:read:1"),
+    hasScope(user, `view:read:${viewId}`),
   "session 사용자 저장 결과");
   await assertUserRowText(browser, username, "Auth UI Lifecycle", "session 사용자 row");
   await assertNoOverflow(browser, `${context.label}:auth-users-create`);
 }
 
-async function editLifecycleUserScopeViaUi(browser, username) {
+async function editLifecycleUserScopeViaUi(browser, username, nextViewId, previousViewId) {
   await navigatePath(browser, "/ops/users");
   await assertReady(browser, "/ops/users", '[data-testid="ops-users-page"]');
   await clickSelector(browser, attrEqualsSelector("data-user-view", username), "session 사용자 상세");
   await clickSelector(browser, "#user-edit-selected", "session 사용자 수정");
   await setTextValue(browser, '#user-form [name="displayName"]', "Auth UI Lifecycle Updated", "session 사용자 표시 이름 수정");
-  await setTextValue(browser, "#user-scopes-input", viewerScopes("2").join("\n"), "session 사용자 scope 수정");
+  await setTextValue(browser, "#user-scopes-input", viewerScopes(nextViewId).join("\n"), "session 사용자 scope 수정");
   await clickSelector(browser, "#user-save-selected", "session 사용자 수정 저장");
   await assertText(browser, "#status", "사용자 저장 완료", "session 사용자 수정 상태");
   await assertStoreUser(username, user =>
     user.displayName === "Auth UI Lifecycle Updated" &&
-    hasScope(user, "view:read:2") &&
-    !hasScope(user, "view:read:1"),
+    hasScope(user, `view:read:${nextViewId}`) &&
+    !hasScope(user, `view:read:${previousViewId}`),
   "session 사용자 scope 수정 저장");
   await assertUserRowText(browser, username, "Auth UI Lifecycle Updated", "session 사용자 수정 row");
 }
@@ -2202,17 +2204,21 @@ async function assertConsumedInviteRejected(browser, token, password) {
   await assertText(browser, "form.auth-form", "invalid invite token", "사용 완료 초대 재사용 거부");
 }
 
-async function assertViewerRuleScopeBoundaryViaUi(browser, description) {
+async function assertViewerRuleScopeBoundaryViaUi(browser, description, scopeFixture) {
+  const assignedViewId = String(scopeFixture.ruleViewId);
+  const blockedViewId = String(scopeFixture.blockedViewId);
+  const disallowedRuleId = String(scopeFixture.disallowedRuleId);
   await navigatePath(browser, "/client/live");
   await assertReady(browser, "/client/live", '[data-testid="client-shell-page"]');
-  await assertClientSourceTreeOnly(browser, "1", `${description} source tree`);
+  await assertClientSourceTreeOnly(browser, assignedViewId, `${description} source tree`);
   await waitForResult(
     browser,
     `
       (() => {
         const text = String(document.body?.textContent || '');
         return {
-          ok: !text.includes('view 2') && !text.includes('viewId":"2'),
+          ok: !text.includes(${JSON.stringify(`view ${blockedViewId}`)}) &&
+            !text.includes(${JSON.stringify(`viewId":"${blockedViewId}`)}),
           text: text.slice(0, 500),
         };
       })()
@@ -2240,20 +2246,22 @@ async function assertViewerRuleScopeBoundaryViaUi(browser, description) {
         };
         const list = await read('/client/api/views');
         const views = Array.isArray(list.payload?.views) ? list.payload.views : (Array.isArray(list.payload) ? list.payload : []);
-        const assigned = views.find(view => String(view?.viewId || view?.id || '') === '1');
-        const leakedViews = views.filter(view => String(view?.viewId || view?.id || '') !== '1').map(view => String(view?.viewId || view?.id || ''));
+        const assignedViewId = ${JSON.stringify(assignedViewId)};
+        const blockedViewId = ${JSON.stringify(blockedViewId)};
+        const disallowedRuleId = ${JSON.stringify(disallowedRuleId)};
+        const assigned = views.find(view => String(view?.viewId || view?.id || '') === assignedViewId);
+        const leakedViews = views.filter(view => String(view?.viewId || view?.id || '') !== assignedViewId).map(view => String(view?.viewId || view?.id || ''));
         const allowed = Array.isArray(assigned?.allowedRuleIds) ? assigned.allowedRuleIds.map(String) : [];
-        const disallowedRuleId = allowed.includes('2') ? '999999' : '2';
-        const detail = await read('/client/api/views/1');
+        const detail = await read('/client/api/views/' + encodeURIComponent(assignedViewId));
         const detailView = detail.payload?.view || detail.payload || {};
         const detailAllowed = Array.isArray(detailView.allowedRuleIds) ? detailView.allowedRuleIds.map(String) : [];
-        const crossDashboard = await read('/client/api/views/2/dashboard');
-        const crossSession = await read('/client/api/views/2/webrtc/session', {
+        const crossDashboard = await read('/client/api/views/' + encodeURIComponent(blockedViewId) + '/dashboard');
+        const crossSession = await read('/client/api/views/' + encodeURIComponent(blockedViewId) + '/webrtc/session', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ overlayMode: 'raw' })
         });
-        const disallowedRuleSession = await read('/client/api/views/1/webrtc/session', {
+        const disallowedRuleSession = await read('/client/api/views/' + encodeURIComponent(assignedViewId) + '/webrtc/session', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ overlayMode: 'va-rule', ruleId: disallowedRuleId })
@@ -2264,7 +2272,7 @@ async function assertViewerRuleScopeBoundaryViaUi(browser, description) {
             leakedViews.length === 0 &&
             allowed.length > 0 &&
             detail.ok &&
-            String(detailView.viewId || detailView.id || '') === '1' &&
+            String(detailView.viewId || detailView.id || '') === assignedViewId &&
             detailAllowed.join(',') === allowed.join(',') &&
             !allowed.includes(disallowedRuleId) &&
             [403, 404].includes(crossDashboard.status) &&
@@ -2587,6 +2595,56 @@ function clearAuthStoreForFreshSetup(snapshot) {
   const filePath = snapshot.filePath;
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
+}
+
+async function authUiScopeFixture(browser) {
+  const views = await readPublishedViewsForAuthUi(browser);
+  if (views.length < 2) {
+    throw new Error(`--auth-ui-flow requires at least two enabled PublishedView entries, found ${views.length}`);
+  }
+  const ids = views.map(viewIdOf).filter(Boolean);
+  const ruleView = views.find(view => Array.isArray(view.allowedRuleIds) && view.allowedRuleIds.length > 0) || views[0];
+  const ruleViewId = viewIdOf(ruleView);
+  const blockedView = views.find(view => viewIdOf(view) && viewIdOf(view) !== ruleViewId) || views[1];
+  const blockedViewId = viewIdOf(blockedView);
+  const disallowedRuleId = views
+    .flatMap(view => Array.isArray(view.allowedRuleIds) ? view.allowedRuleIds.map(String) : [])
+    .find(ruleId => !new Set((ruleView.allowedRuleIds || []).map(String)).has(ruleId)) || "999999";
+  return {
+    initialViewId: ids[0],
+    updatedViewId: ids.find(id => id !== ids[0]) || ids[0],
+    ruleViewId,
+    blockedViewId,
+    disallowedRuleId,
+  };
+}
+
+async function readPublishedViewsForAuthUi(browser) {
+  const apiViews = await browser.evaluate(`
+    (async () => {
+      const response = await fetch('/ops/api/views', { credentials: 'same-origin', cache: 'no-store' });
+      if (!response.ok) return [];
+      const payload = await response.json();
+      return Array.isArray(payload?.views) ? payload.views : (Array.isArray(payload) ? payload : []);
+    })()
+  `, 5000).catch(() => []);
+  if (Array.isArray(apiViews) && apiViews.length > 0) {
+    return apiViews.filter(view => view?.enabled !== false);
+  }
+  const filePath = resolvePublishedViewsPath();
+  if (!fs.existsSync(filePath)) return [];
+  const parsed = JSON.parse(fs.readFileSync(filePath, "utf8") || "{}");
+  const fileViews = Array.isArray(parsed) ? parsed : (Array.isArray(parsed.views) ? parsed.views : []);
+  return fileViews.filter(view => view?.enabled !== false);
+}
+
+function resolvePublishedViewsPath() {
+  const raw = process.env.MEDIA_SERVER_PUBLISHED_VIEWS || ".media_server.views.json";
+  return path.isAbsolute(raw) ? path.normalize(raw) : path.resolve(rootDir, raw);
+}
+
+function viewIdOf(view) {
+  return String(view?.viewId || view?.id || "").trim();
 }
 
 function viewerScopes(viewId) {
