@@ -1,0 +1,239 @@
+{
+  "schema": "media-server.vlm-selection-decision.v1",
+  "targetStep": "V200-S01",
+  "status": "selected",
+  "projectLicense": "Apache-2.0",
+  "decidedAt": "2026-05-27",
+  "decisionScope": "model-selection-criteria-only",
+  "nonScope": [
+    "pc-capability-detector",
+    "recommendation-engine",
+    "install-or-connection-ui",
+    "profile-storage",
+    "runtime-vlm-call",
+    "sidecar-storage",
+    "event-post-webrtc-sse-ws-schema-change"
+  ],
+  "hardGates": [
+    {
+      "id": "G0-official-source",
+      "required": true,
+      "description": "official model card or provider documentation is required"
+    },
+    {
+      "id": "G0-license-compatible",
+      "required": true,
+      "description": "license and usage terms must not conflict with the Apache-2.0 source release policy"
+    },
+    {
+      "id": "G0-no-bundle",
+      "required": true,
+      "description": "model weights, runtime packages, credentials, and download tokens are not included in the repo, release, or bundle"
+    },
+    {
+      "id": "G0-cloud-opt-in",
+      "required": true,
+      "description": "cloud models require explicit external transfer opt-in"
+    },
+    {
+      "id": "G0-image-input",
+      "required": true,
+      "description": "candidate must support event image/text evidence interpretation"
+    },
+    {
+      "id": "G0-structured-output-plan",
+      "required": true,
+      "description": "candidate must be testable for structured output stability in a later harness"
+    },
+    {
+      "id": "G0-no-contract-drift",
+      "required": true,
+      "description": "Event POST, WebRTC DataChannel, SSE/WS metadata, and media path contracts must not change in this step"
+    },
+    {
+      "id": "G0-viewer-redaction",
+      "required": true,
+      "description": "viewer/client must not expose prompt, raw response, source URL, credential, or internal model details"
+    }
+  ],
+  "hardwareClasses": {
+    "local-low": {
+      "planningOnly": true,
+      "modelClass": "4B class local model",
+      "memoryGuide": "about 16GB RAM or 8GB+ VRAM class",
+      "allowedTiers": [
+        "T2-local-low-spec-fallback"
+      ]
+    },
+    "local-standard": {
+      "planningOnly": true,
+      "modelClass": "7B/8B class local model",
+      "memoryGuide": "about 24GB RAM, 12GB+ VRAM, or 16GB+ Apple unified memory class",
+      "allowedTiers": [
+        "T1-primary-local-standard"
+      ]
+    },
+    "local-high": {
+      "planningOnly": true,
+      "modelClass": "12B+ local model",
+      "defaultAllowed": false,
+      "reason": "not a v2.0.0 default candidate without explicit owner approval"
+    },
+    "cloud-allowed": {
+      "planningOnly": true,
+      "externalTransfer": true,
+      "allowedTiers": [
+        "T3-cloud-opt-in-fallback"
+      ]
+    },
+    "cloud-disabled": {
+      "planningOnly": true,
+      "externalTransfer": false,
+      "allowedTiers": [
+        "T1-primary-local-standard",
+        "T2-local-low-spec-fallback"
+      ]
+    }
+  },
+  "tiers": {
+    "T1-primary-local-standard": {
+      "defaultRole": "primary-local-standard",
+      "requiresExternalTransfer": false,
+      "licenseGate": "Apache-2.0 or project-compatible open local license",
+      "bundlePolicy": "user-supplied-only"
+    },
+    "T2-local-low-spec-fallback": {
+      "defaultRole": "local-low-spec-fallback",
+      "requiresExternalTransfer": false,
+      "licenseGate": "Apache-2.0 or project-compatible open local license",
+      "bundlePolicy": "user-supplied-only"
+    },
+    "T3-cloud-opt-in-fallback": {
+      "defaultRole": "cloud-opt-in-fallback",
+      "requiresExternalTransfer": true,
+      "privacyModeRequired": "cloud-allowed-explicit-opt-in",
+      "bundlePolicy": "no-model-bundle"
+    },
+    "T4-conditional-user-supplied": {
+      "defaultRole": "conditional-user-supplied",
+      "defaultAllowed": false,
+      "requiresLicenseReview": true
+    },
+    "T5-excluded-or-blocked": {
+      "defaultRole": "excluded",
+      "defaultAllowed": false
+    }
+  },
+  "primary": {
+    "id": "qwen3-vl-8b-instruct",
+    "model": "Qwen/Qwen3-VL-8B-Instruct",
+    "role": "primary-local-standard",
+    "tier": "T1-primary-local-standard",
+    "deployment": "local",
+    "hardwareClass": "local-standard",
+    "license": "Apache-2.0",
+    "licenseCompatibility": "compatible-with-apache-2-source-release-when-user-supplied-and-not-bundled",
+    "officialSources": [
+      {
+        "label": "Qwen/Qwen3-VL-8B-Instruct Hugging Face model card",
+        "url": "https://huggingface.co/Qwen/Qwen3-VL-8B-Instruct"
+      }
+    ],
+    "externalTransfer": false,
+    "bundleAllowed": false,
+    "autoInstallAllowed": false,
+    "reason": "Apache-2.0 official local image-text model with local runtime paths; best current baseline for standard local class."
+  },
+  "fallbacks": [
+    {
+      "id": "qwen3-vl-4b-instruct",
+      "model": "Qwen/Qwen3-VL-4B-Instruct",
+      "role": "local-low-spec-fallback",
+      "tier": "T2-local-low-spec-fallback",
+      "deployment": "local",
+      "hardwareClass": "local-low",
+      "license": "Apache-2.0",
+      "licenseCompatibility": "compatible-with-apache-2-source-release-when-user-supplied-and-not-bundled",
+      "officialSources": [
+        {
+          "label": "Qwen/Qwen3-VL-4B-Instruct Hugging Face model card",
+          "url": "https://huggingface.co/Qwen/Qwen3-VL-4B-Instruct"
+        }
+      ],
+      "externalTransfer": false,
+      "bundleAllowed": false,
+      "autoInstallAllowed": false,
+      "expectedTradeoff": "lower memory and latency target with lower explanation quality expected than the 8B baseline"
+    },
+    {
+      "id": "gemini-2.5-flash",
+      "model": "gemini-2.5-flash",
+      "role": "cloud-opt-in-fallback",
+      "tier": "T3-cloud-opt-in-fallback",
+      "deployment": "cloud",
+      "hardwareClass": "cloud-allowed",
+      "license": "provider-api-terms",
+      "licenseCompatibility": "provider-terms-review-required-no-model-redistribution",
+      "officialSources": [
+        {
+          "label": "Gemini API models",
+          "url": "https://ai.google.dev/gemini-api/docs/models"
+        }
+      ],
+      "externalTransfer": true,
+      "privacyModeRequired": "cloud-allowed-explicit-opt-in",
+      "loggingRetentionReviewRequired": true,
+      "bundleAllowed": false,
+      "autoInstallAllowed": false,
+      "reason": "cloud-only fallback for price-performance when local execution is not viable and the operator explicitly allows external transfer"
+    }
+  ],
+  "conditional": [
+    {
+      "id": "gemma-family",
+      "family": "Gemma",
+      "role": "conditional-user-supplied",
+      "tier": "T4-conditional-user-supplied",
+      "status": "not-default",
+      "defaultAllowed": false,
+      "requiresLicenseReview": true,
+      "officialSources": [
+        {
+          "label": "Gemma Terms of Use",
+          "url": "https://ai.google.dev/gemma/terms"
+        }
+      ],
+      "reason": "Gemma uses separate terms for listed models; do not make it a default or recommendation baseline until terms acceptance and license review are explicit."
+    }
+  ],
+  "excludedRules": [
+    {
+      "id": "unofficial-or-unknown-license",
+      "tier": "T5-excluded-or-blocked",
+      "reason": "unofficial mirror, missing model card, or unclear license/provenance"
+    },
+    {
+      "id": "requires-bundled-weight-or-runtime",
+      "tier": "T5-excluded-or-blocked",
+      "reason": "candidate cannot be used without bundling model weight/runtime into repo or release asset"
+    },
+    {
+      "id": "cloud-without-opt-in",
+      "tier": "T5-excluded-or-blocked",
+      "reason": "external transfer is required but privacy mode is not cloud-allowed"
+    }
+  ],
+  "futureModelAdmission": {
+    "requiredFields": [
+      "officialSourceUrl",
+      "licenseUrl",
+      "hardGateResults",
+      "tier",
+      "hardwareClass",
+      "decisionRole",
+      "bundlePolicy",
+      "exclusionOrConditionReason"
+    ],
+    "verifier": "./server.sh verify-vlm-selection-decision"
+  }
+}

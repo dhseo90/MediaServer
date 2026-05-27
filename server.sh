@@ -260,6 +260,8 @@ Usage:
                  Auth/session/scope regression matrix와 verifier coverage를 검증합니다.
   verify-vlm-boundary
                  v2.0.0 VLM 도입 경계와 기존 event/metadata/media contract 불변 조건을 검증합니다.
+  verify-vlm-selection-decision
+                 v2.0.0 VLM 모델 선택값, fallback, license/privacy/bundle gate를 검증합니다.
   verify-event-post
                  VA event POST payload, 실패/cooldown/queue 상태를 검증합니다.
   verify-integrator-contract-artifact
@@ -878,6 +880,10 @@ case "${cmd}" in
   verify-vlm-boundary)
     require_internal verify_vlm_boundary.mjs
     exec "${INTERNAL_DIR}/verify_vlm_boundary.mjs" "$@"
+    ;;
+  verify-vlm-selection-decision)
+    require_internal verify_vlm_selection_decision.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_selection_decision.mjs" "$@"
     ;;
   verify-event-post)
     require_internal verify_event_post_dispatch.sh

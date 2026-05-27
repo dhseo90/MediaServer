@@ -175,6 +175,14 @@ runtime delivery smoke 통과를 대신하지 않습니다.
 ./server.sh verify-integrator-contract-artifact
 ```
 
+VLM 모델 선택 결정은 `V200-S01`의 모델 선택 결정 자체와 tier/hardware/license/privacy
+기준을 확인합니다. 이 명령은 VLM runtime 호출, PC 사양 감지, 추천 엔진, 설치 UI,
+profile 저장, sidecar 저장 검증을 대신하지 않습니다.
+
+```bash
+./server.sh verify-vlm-selection-decision
+```
+
 CI/local gate parity는 `media-server.ci-local-gate-parity.v1` summary로
 Preflight/static-gates/guardrails/RC workflow에 실제로 걸린 `./server.sh` 명령과
 로컬 release/static verifier 목록을 대조합니다. 로컬에서 통과해야 한다고 문서화한
@@ -218,6 +226,7 @@ fallback까지 실패하면 `media-server.github-metadata-fallback-policy.v1` �
 ./server.sh verify-ops-client-ui
 ./server.sh verify-ops-client-ui --screenshots
 ./server.sh verify-vlm-boundary
+./server.sh verify-vlm-selection-decision
 ./server.sh verify-ops-click-e2e
 ./server.sh verify-ops-click-e2e --auth-ui-flow --auth-users-file <path>
 ./server.sh verify-ops-tables-layout
