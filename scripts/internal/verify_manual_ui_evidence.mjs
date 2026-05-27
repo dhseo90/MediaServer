@@ -23,7 +23,7 @@ Options:
   -h, --help       도움말 출력
 
 Checks:
-  - v1.8.0 기준 UI 풀테스트 판정이 PASS/FAIL만 쓰고 개별 기능 결과를 기록하는지 확인
+  - 현재 릴리즈 기준 UI 풀테스트 판정이 PASS/FAIL만 쓰고 개별 기능 결과를 기록하는지 확인
   - client/viewer 비노출 항목과 admin preview 경계가 명시됐는지 확인
   - 사용자 명시 제외 항목은 판정표 밖 제외 기록으로 남기는지 확인
 `);
@@ -41,14 +41,16 @@ const backlog = readText("docs/development-backlog.md");
 const inventory = readText("docs/project-feature-test-inventory.md");
 const seedFixturePath = "test/fixtures/manual_ui_fulltest_va_seed_matrix.json";
 const seedFixture = JSON.parse(readText(seedFixturePath));
+const currentVersion = readText("VERSION").trim();
+const currentTag = `v${currentVersion}`;
 
 const checks = [];
 
-check("manual UI docs are current v1.8.0 baseline", () => {
+check("manual UI docs are current release baseline", () => {
   assertIncludes(checklist, [
-    "현재 release 목표는 `v1.8.0`",
+    `현재 release 목표는 \`${currentTag}\``,
     "현재 제품 UI 직접 조작 evidence 없이 완료 판정에 포함하지 않습니다.",
-    "v1.8.0 release trust hardening gate",
+    `${currentTag} release trust hardening gate`,
     "`/setup`",
     "`/login`",
     "`/ops/rules`",
@@ -317,9 +319,9 @@ check("roadmap links evidence verifier", () => {
   ], "docs/development-backlog.md");
 });
 
-check("v1.8.0 release trust checklist requires direct UI evidence index", () => {
+check("current release trust checklist requires direct UI evidence index", () => {
   assertIncludes(checklist, [
-    "v1.8.0 release trust hardening gate",
+    `${currentTag} release trust hardening gate`,
     "`/setup`",
     "`/login`",
     "`/ops`",
@@ -333,7 +335,7 @@ check("v1.8.0 release trust checklist requires direct UI evidence index", () => 
   ], "docs/manual-ui-checklist.md");
   assertIncludes(template, [
     "evidence index:",
-    "## v1.8.0 Release Evidence Index",
+    `## ${currentTag} Release Evidence Index`,
     "자동 smoke나 raw JSON 확인만으로 채우지 않습니다.",
     "| `/setup` |",
     "| `/login` |",

@@ -34,11 +34,11 @@ source-of-truth가 아닙니다. 현재 기준은 이 문서와 기능별 상세
 
 `완료`는 운영 배포 ready, 장기 안정성 보장, 외부 연동 ready를 뜻하지 않습니다.
 
-## 현재 기준: v1.8.0 Source Release Baseline
+## 현재 기준: v1.9.0 Source Release Baseline
 
-v1.8.0은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서
-release/latest/docs evidence drift를 막는 trust hardening을 닫은 source-only
-release입니다. Client Live workspace, source tree/dock event feed, tile disconnect,
+v1.9.0은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서
+release/latest/docs evidence drift와 v2.0.0 진입 전 gate drift를 막는
+maintenance-first source-only release입니다. Client Live workspace, source tree/dock event feed, tile disconnect,
 event review, source group/site, tile info overlay, saved layout, incident timeline,
 alert delivery, scenario builder, Ops/Client declutter는 이전 UI-first close-out에서 닫은
 제품 baseline으로 유지합니다.
@@ -53,7 +53,7 @@ alert delivery, scenario builder, Ops/Client declutter는 이전 UI-first close-
   incident timeline, viewer debug/source 비노출
 - Auth: setup/login/session, role/scope, admin user console, invite/request approval
 - Release: source-only readiness, bundle/license guardrail, release evidence, manual UI evidence,
-  GitHub Latest Release 확인 gate, docs screenshot freshness, release close-out runbook
+  GitHub Actions warning/Node 24 gate, UI evidence runner, feature coverage, release close-out runbook
 - Research boundary: Re-ID/tracker default-off, OC-SORT manifest-only sandbox, YouTube lab-only 유지
 
 명시적 비범위:
@@ -66,16 +66,20 @@ alert delivery, scenario builder, Ops/Client declutter는 이전 UI-first close-
 - field sample scheduler, dataset ingest, tracker replacement benchmark 실행
 - 별도 Phase의 실제 기능 개발, tracker replacement product review
 
-세부 종료 증적은 아래 v1.8.0 Release Trust Hardening Close-out 섹션을 봅니다.
+세부 종료 증적은 아래 v1.9.0 Release Trust Hardening Close-out 섹션을 봅니다.
 과거 release evidence는 standalone current 문서가 아니라 이 문서의 archive 섹션에만
 보존합니다.
 
-## 활성 차기 로드맵: v1.9.0
+## v1.9.0 Release Trust Hardening Close-out
 
 v1.9.0은 v1.8.0 source release 이후 main/release 운영 신뢰도를 유지하는
 maintenance-first roadmap입니다. v1.8.0에서 닫은 source-only/live-only 제품 경계를
 유지하고, 새 제품 기능은 owner가 별도 승인하기 전까지 active roadmap으로 승격하지
 않습니다.
+v1.9.0의 목표는 새 제품 기능 확장이 아니라 GitHub Actions warning/Node 24 기준,
+UI evidence runner, feature inventory coverage, contract/schema freeze, fixture cleanup,
+CI/local gate parity, published release evidence, auth/session/scope matrix, final baseline
+report를 v2.0.0 진입 전에 고정하는 것입니다.
 
 후속 이슈 승격 원칙:
 
@@ -201,7 +205,7 @@ Decision record 최소 필드:
 
 ## Archived: v1.7.0 UI-first Close-out
 
-이 섹션은 v1.7.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v1.8.0
+이 섹션은 v1.7.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v1.9.0
 Release Trust Hardening Close-out입니다.
 
 v1.7.0 close-out 당시에는 Client Live workspace와 Ops workflow 보강을 완료 기준으로 둡니다.
@@ -239,7 +243,7 @@ UI 원칙:
 2. 이벤트 검토, source group/site, layout 저장을 붙여 실제 운영 흐름을 닫았습니다.
 3. 알림 연동, Scenario Builder, Incident Timeline을 기본 UI 위에 확장했습니다.
 4. v1.7.0 close-out 당시 README/UI guide 대표 screenshot asset을 UI-first
-   화면으로 한국어/영어 모두 재캡처했습니다. 현재 문서 대표 이미지는 상단 v1.8.0
+   화면으로 한국어/영어 모두 재캡처했습니다. 현재 문서 대표 이미지는 상단 v1.9.0
    release 기준에서 다시 관리합니다.
 
 | ID | 우선순위 | 영역 | 목표 | 예상 검증 |
@@ -279,7 +283,7 @@ v1.7.0 비범위:
 
 ## Archived: v1.6.0 Stabilization Close-out
 
-이 섹션은 v1.6.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v1.8.0
+이 섹션은 v1.6.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v1.9.0
 Release Trust Hardening Close-out입니다.
 
 v1.6.0 close-out 당시에는 새 제품 기능을 여는 minor release가 아니라, v1.5.0까지 닫은 기능을
@@ -719,7 +723,7 @@ release evidence index에
 확인됨:
 
 - 이 절의 확인 항목은 v1.6.0 close-out historical evidence입니다. 최신
-  source-only release 기준 tag 판정은 상단 v1.8.0 기준을 따릅니다.
+  source-only release 기준 tag 판정은 상단 v1.9.0 기준을 따릅니다.
 - v1.6.0 close-out 당시 public docs는 source-only release tag를 `v1.6.0`으로
   맞추도록 정리했습니다.
 - v1.6.0은 source-only stabilization release이며 runtime/model/binary bundle release가 아닙니다.

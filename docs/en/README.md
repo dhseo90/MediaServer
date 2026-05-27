@@ -19,20 +19,21 @@ path short enough to scan. The full index is `docs/README.md`.
 
 ## Current Boundary
 
-- v1.8.0 is the current source-only release baseline for release preparation.
+- v1.9.0 is the current source-only release baseline for release preparation.
 - The main product boundary is live source onboarding, live source health, and
   live VA event quality.
 - Binary, runtime, and model bundles are excluded from the default release.
 - Long-term recording, VMS/NVR, playback/search, ONVIF Profile G
   recording/replay, Re-ID default-on, and tracker default-on remain out of scope.
 
-v1.8.0 branch-level close-out evidence is tracked in
-[../release-evidence-index.md](../release-evidence-index.md). The current manual
-UI result is 221 PASS / 0 FAIL at the feature-result row level. The 120-minute
-longrun, main merge, release tag, and GitHub Release publish gate are still
-not-run manual close-out steps.
+v1.9.0 branch-level close-out evidence is tracked in
+[../release-evidence-index.md](../release-evidence-index.md). The previous
+manual UI result remains historical evidence until the current release UI gate
+is rerun or explicitly recorded as not-run. The 120-minute longrun, main merge,
+release tag, and GitHub Release publish gate are still not-run manual close-out
+steps.
 
-v1.8.0 release close-out preparation details are in [../development-backlog.md](../development-backlog.md).
+v1.9.0 release close-out preparation details are in [../development-backlog.md](../development-backlog.md).
 
 ## Public Repository Boundary
 

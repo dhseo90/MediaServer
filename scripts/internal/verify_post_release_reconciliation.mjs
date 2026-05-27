@@ -23,7 +23,7 @@ Options:
   -h, --help        도움말 출력
 
 Checks:
-  - 현재 v1.8.0 release evidence index가 기능별 PASS/FAIL 결과와 release 실행 상태를 분리함
+  - 현재 release evidence index가 기능별 PASS/FAIL 결과와 release 실행 상태를 분리함
   - 실행하지 않은 장시간/실장비/외부 검증을 release PASS로 쓰지 않는 문구가 있음
   - release note template에도 Not Run / Unverified 섹션이 있음
 `);

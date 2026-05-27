@@ -1,6 +1,6 @@
 # Integrator Contract Artifact Sample Bundle
 
-This synthetic bundle is the v1.8.0 integrator-facing reference for current
+This synthetic bundle is the v1.9.0 integrator-facing reference for current
 live Event POST, WebRTC DataChannel, SSE runtime metadata, and WebSocket runtime
 metadata contracts.
 

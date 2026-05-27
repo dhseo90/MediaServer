@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: 현재 v1.8.0 OC-SORT benchmark 경계가 runtime tracker로 승격되지 않았는지 검증한다.
+// 파일 용도: 현재 release OC-SORT benchmark 경계가 runtime tracker로 승격되지 않았는지 검증한다.
 // 동작 요약: OC-SORT를 제품 tracker 허용값에서 배제하고, benchmark/report 문서와 기존 비교 harness만 열려 있는지 정적 점검한다.
 
 import fs from "node:fs";

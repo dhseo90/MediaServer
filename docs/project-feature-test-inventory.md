@@ -1,6 +1,6 @@
 # Project Feature Test Inventory
 
-이 문서는 현재 release 목표 `v1.8.0` 기준의 기능별 테스트 분류
+이 문서는 현재 release 목표 `v1.9.0` 기준의 기능별 테스트 분류
 source-of-truth입니다.
 
 중요한 경계:
@@ -43,10 +43,10 @@ source-of-truth입니다.
 ## Current Coverage Status
 
 이 절은 inventory 문서 자체의 coverage 상태입니다. 실제 안정화 테스트,
-30분 soak, 120분 longrun, UI 풀테스트를 실행했다는 뜻이 아닙니다. v1.8.0 release
+30분 soak, 120분 longrun, UI 풀테스트를 실행했다는 뜻이 아닙니다. v1.9.0 release
 close-out에서 실제 실행한 evidence는 [release-evidence-index.md](release-evidence-index.md)와
 [manual-ui-result-2026-05-25-ui-fulltest-restart.md](manual-ui-result-2026-05-25-ui-fulltest-restart.md)를
-기준으로 봅니다.
+함께 보되, 과거 수동 UI 결과는 현재 release UI gate를 대체하지 않습니다.
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
@@ -110,7 +110,7 @@ Rule scenario/event 발생 검수는 분리합니다.
 | tracker policy | `none/off`, `lite/off`, `kalman-lite/off`, `bytetrack/off`, `lite/assist`, `kalman-lite/assist`, `bytetrack/assist` |
 | invalid policy | `tracker=none` + `reid=assist`는 저장 거부 또는 `reid=off` 정규화 |
 | final state | profiles, event templates, VA rules가 모두 남아 있어야 하며 event log 확인 전 삭제하지 않음 |
-| 제외 | OC-SORT, BoT-SORT, DeepSORT, Re-ID default-on, 실제 Re-ID model bundle은 v1.8.0 제품 UI seed가 아님 |
+| 제외 | OC-SORT, BoT-SORT, DeepSORT, Re-ID default-on, 실제 Re-ID model bundle은 v1.9.0 제품 UI seed가 아님 |
 
 ## 30-Minute And 120-Minute Mapping
 

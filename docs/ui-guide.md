@@ -37,7 +37,7 @@ card, button, form, table, badge는 같은 semantic color 규칙을 공유합니
 제품 shell에 직접 노출하지 않고 API와 검증 명령에서 확인합니다.
 client/viewer shell에는 내부 진단 응답, debug 정보, developer/source URL을 노출하지 않습니다.
 
-v1.8.0에서 도입되어 v1.8.0에서도 유지되는 product shell은 ERP/운영 콘솔형 밀도를 따릅니다.
+v1.8.0에서 도입되어 v1.9.0에서도 유지되는 product shell은 ERP/운영 콘솔형 밀도를 따릅니다.
 상단에는 compact brand/nav/account header를 두고,
 본문은 metric card, dense table, form section, right/detail panel을 같은
 8px 이하 radius와 semantic token으로 맞춥니다. 장식용 hero, 큰 카드 나열,
@@ -52,7 +52,7 @@ v1.8.0에서 도입되어 v1.8.0에서도 유지되는 product shell은 ERP/운�
 
 ### 1.1 Design token/component inventory
 
-v1.8.0 이후, 현재 v1.8.0까지의 UI 변경은 아래 inventory를 기준으로 합니다.
+v1.8.0 이후, 현재 v1.9.0까지의 UI 변경은 아래 inventory를 기준으로 합니다.
 새 색상, radius, spacing, shadow, table row, detail panel, client tile을 추가하기 전에
 먼저 같은 계층의 기존 token/class/helper로 표현할 수 있는지 확인합니다.
 
@@ -1486,7 +1486,7 @@ Screenshot 관리 정책:
 | 파일명 | 역할 기반 이름 사용 |
 | 기본 theme | dark mode 대표 화면 |
 | 링크 정책 | 새 이미지가 없으면 broken link 대신 “이미지 추가 예정” 문구 사용 |
-| 현재 대표 이미지 | 2026-05-23 v1.8.0 release baseline 기준 재캡처. Client Live는 source tree, dock event feed, workspace preset, tile action/VA overlay 구조를 포함 |
+| 현재 대표 이미지 | 2026-05-23 캡처 자산을 v1.9.0 release baseline 대표 이미지로 유지. Client Live는 source tree, dock event feed, workspace preset, tile action/VA overlay 구조를 포함 |
 | 관리 목록 | `config/docs_ui_assets.json`의 managed asset list가 파일명, capture task, 최소 크기, direct review checklist를 고정 |
 | 재캡처 | `node scripts/internal/capture_docs_ui_assets.mjs --http-base http://127.0.0.1:8082` |
 | 기준 검증 | `./server.sh verify-docs-ui-assets` |

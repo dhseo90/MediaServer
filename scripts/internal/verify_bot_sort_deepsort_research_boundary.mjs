@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: 현재 v1.8.0 BoT-SORT/DeepSORT research boundary가 runtime tracker로 승격되지 않았는지 검증한다.
+// 파일 용도: 현재 release BoT-SORT/DeepSORT research boundary가 runtime tracker로 승격되지 않았는지 검증한다.
 // 동작 요약: BoT-SORT/DeepSORT를 제품 tracker 허용값에서 배제하고, privacy/dependency/bundle review만 남아 있는지 정적 점검한다.
 
 import fs from "node:fs";

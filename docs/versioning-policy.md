@@ -4,19 +4,19 @@
 
 ## 현재 기준
 
-- 현재 기준 버전: `v1.8.0`
+- 현재 기준 버전: `v1.9.0`
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
-- `v1.8.0`은 직전 release까지 닫은 source-only/live-only 제품 경계를 유지하면서
-  release/latest/docs evidence drift를 막는 trust hardening을 닫은 source-only
-  release입니다. Client Live workspace, source tree/dock event feed, tile
+- `v1.9.0`은 직전 release까지 닫은 source-only/live-only 제품 경계를 유지하면서
+  release/latest/docs evidence drift와 v2.0.0 진입 전 gate drift를 막는
+  maintenance-first source-only release입니다. Client Live workspace, source tree/dock event feed, tile
   disconnect, event review, source group/site, tile info overlay, saved layout,
   incident timeline, alert delivery, scenario builder, Ops/Client declutter는
   현재 UI-first 제품 baseline으로 유지합니다.
-- 현재 제품 경계와 v1.8.0 종료 판정은 [development-backlog.md](./development-backlog.md)를
+- 현재 제품 경계와 v1.9.0 종료 판정은 [development-backlog.md](./development-backlog.md)를
   기준으로 합니다. 이전 release evidence는 현재 release pass/fail 기준으로
   재사용하지 않습니다.
 
-## `v1.8.0`에 포함되는 범위
+## `v1.9.0`에 포함되는 범위
 
 - Apache-2.0 소스 코드
 - 문서, 설정 예시, 검증 스크립트
@@ -76,8 +76,15 @@
 - English UI visual copy QA
 - Release evidence index
 - Feature scope decision gate
+- GitHub Actions warning annotation gate와 Node 24 action baseline
+- UI fulltest evidence runner와 one-shot wrapper
+- Feature inventory coverage gate와 fixture cleanup contract gate
+- v2.0.0 entry contract/schema freeze gate
+- CI/local gate parity와 release close-out one-shot dry-run gate
+- Published release evidence fallback policy와 auth/session/scope regression matrix
+- v1.9.0 final baseline and v2.0.0 entry report
 
-## `v1.8.0`에 포함하지 않는 범위
+## `v1.9.0`에 포함하지 않는 범위
 
 - FFmpeg/GStreamer/ONNX Runtime/YOLO model binary bundle
 - container image, offline package, app bundle
@@ -109,7 +116,7 @@
 
 ## Tag와 release 기준
 
-- 현재 source-only release 기준 tag는 `v1.8.0`입니다.
+- 현재 source-only release 기준 tag는 `v1.9.0`입니다.
 - tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만 붙입니다.
 - source-only release에는 sample/model/runtime binary를 추가 업로드하지 않습니다.
 - binary/container/offline bundle은 별도 RC gate와 bundle policy 검토를 통과한 뒤 별도 release로 다룹니다.

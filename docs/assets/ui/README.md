@@ -2,8 +2,8 @@
 
 이 디렉터리는 README와 `docs/ui-guide.md`에서 사용할 제품 UI 스크린샷을 역할 기준 파일명으로 보관합니다.
 
-현재 대표 제품 이미지는 2026-05-23 기준 v1.8.0 release baseline 화면으로
-다시 캡처했습니다. 특히 Client Live 이미지는 source tree, dock event feed,
+현재 대표 제품 이미지는 2026-05-23 캡처 자산을 v1.9.0 release baseline 화면으로
+유지합니다. 특히 Client Live 이미지는 source tree, dock event feed,
 workspace preset, tile-level disconnect/action, VA overlay tile이 보이는 현재
 제품 구조를 기준으로 합니다.
 
@@ -23,7 +23,7 @@ fixture를 사용해 preview prerequisite drift를 막습니다.
 직접 이미지 검수 checklist:
 
 - 재캡처 뒤 한국어/영어 PNG를 모두 직접 엽니다.
-- 현재 v1.8.0 release baseline과 화면 구조가 맞는지 확인합니다.
+- 현재 v1.9.0 release baseline과 화면 구조가 맞는지 확인합니다.
 - 영상 screenshot은 video viewport, control, status, VA overlay가 잘리지 않는지 확인합니다.
 - client/viewer screenshot에 source URL, Developer URL, raw JSON, debug counter,
   BBox diagnostics, model path, credential, session material이 보이지 않는지 확인합니다.

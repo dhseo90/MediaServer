@@ -89,7 +89,7 @@ future tag, push, GitHub Release, accepted baseline 채택, 320/390/760/1180px
 screenshot review는 리포트에 manual/not-run으로 남기며, 실제 실행 및 링크가
 없는 항목을 pass로 쓰지 않습니다.
 
-## v1.8.0 Release Close-out Runbook
+## v1.9.0 Release Close-out Runbook
 
 이 runbook은 순서가 evidence입니다. dry-run에서는 실행 가능 여부와 수동 gate만
 점검하고, real close-out에서는 아래 순서를 건너뛰지 않습니다.
@@ -116,26 +116,26 @@ Real close-out checklist:
 위 순서 중 실행하지 않은 항목은 테스트 결과 행을 만들지 않고 release evidence 실행
 상태에 `미실행` 또는 `manual-not-run`으로 남기며, 실행하지 않은
 tag/push/GitHub Release를 완료로 쓰지 않습니다.
-v1.8.0 source-only release에서는
+v1.9.0 source-only release에서는
 [development-backlog.md](./development-backlog.md)의
-`v1.8.0 Release Trust Hardening Close-out` 기준으로 GitHub Latest Release
-verification gate, docs screenshot freshness, manual UI evidence checklist,
-release close-out runbook, docs source-of-truth dedupe, English UI visual copy QA,
-release evidence index, feature scope decision gate의 확인됨/미실행/미확인 상태를
-분리합니다. Client/Ops UI-first workflow는 제품 baseline으로 유지합니다.
+`v1.9.0 Release Trust Hardening Close-out` 기준으로 GitHub Actions warning/Node 24
+baseline, UI evidence runner, feature inventory coverage, contract/schema freeze,
+fixture cleanup, CI/local gate parity, published release evidence, auth/scope
+matrix, final baseline report의 확인됨/미실행/미확인 상태를 분리합니다.
+Client/Ops UI-first workflow는 제품 baseline으로 유지합니다.
 현재 release evidence는 [release-evidence-index.md](./release-evidence-index.md),
 [manual-ui-checklist.md](./manual-ui-checklist.md),
 [manual-ui-result-template.md](./manual-ui-result-template.md),
 [project-feature-test-inventory.md](./project-feature-test-inventory.md),
 [ui-visual-release-baseline-approval-template.md](./ui-visual-release-baseline-approval-template.md)를
-source-of-truth로 삼습니다. 현재 `v1.8.0` release pass/fail 기준은 이 evidence와
+source-of-truth로 삼습니다. 현재 `v1.9.0` release pass/fail 기준은 이 evidence와
 통합 검증 명령으로 판단합니다.
 
 ## Tag 전략
 
-- 현재 source-only release 기준 tag는 `v1.8.0`입니다.
+- 현재 source-only release 기준 tag는 `v1.9.0`입니다.
 - public-readiness, bundle policy, Actions status check가 모두 통과한 커밋에만 tag를 붙입니다.
-- `v1.8.0`은 live-only source release 기준을 유지한 release trust hardening release이며, binary/runtime/model bundle의 운영 배포 완료를 뜻하지 않습니다.
+- `v1.9.0`은 live-only source release 기준을 유지한 release trust hardening release이며, binary/runtime/model bundle의 운영 배포 완료를 뜻하지 않습니다.
 - route/API/config/schema migration이 필요한 변경은 `v2.0.0` 후보로 분리합니다.
 - tag release에는 generated sample pack, YOLO model, FFmpeg/GStreamer runtime bundle을 붙이지 않습니다.
 
@@ -193,7 +193,7 @@ Licensing and Artifact Guardrails/guardrails, RC Release Gate workflow에 들어
 ## Release Note Template
 
 ```markdown
-# Media Server v1.8.0
+# Media Server v1.9.0
 
 ## Scope
 
@@ -204,7 +204,7 @@ Licensing and Artifact Guardrails/guardrails, RC Release Gate workflow에 들어
 
 - Live media relay and live VA event focus
 - ONVIF Profile S/T assisted source onboarding, source health operator workflow, VA event quality, UI refresh, delivery contract artifact work, rule-level tracker/Re-ID opt-in work, and Client/Ops UI-first workflow work
-- v1.8.0 close-out: GitHub Latest Release verification gate, docs screenshot freshness, manual UI evidence checklist hardening, release close-out runbook, docs source-of-truth dedupe, English UI visual copy QA, release evidence index, and feature scope decision gate
+- v1.9.0 close-out: GitHub Actions warning/Node 24 gate, UI evidence runner, feature inventory coverage, contract/schema freeze, fixture cleanup, CI/local parity, published release evidence, auth/scope matrix, release close-out one-shot dry-run, and final baseline report
 - EventRecord/snapshot/clip: short event evidence helper, not the main product message
 
 ## Non-goals
@@ -242,5 +242,5 @@ Do not list an item as pass unless it was actually executed for this release cut
 ## Known Limitations
 
 - 장기 soak/RC 검증은 별도 workflow_dispatch 기준입니다.
-- ONVIF 실장비 field smoke, YouTube 실제 URL relay, Re-ID default-on, tracker default-on, OC-SORT runtime promotion은 v1.8.0 완료 근거가 아닙니다.
+- ONVIF 실장비 field smoke, YouTube 실제 URL relay, Re-ID default-on, tracker default-on, OC-SORT runtime promotion은 v1.9.0 완료 근거가 아닙니다.
 ```

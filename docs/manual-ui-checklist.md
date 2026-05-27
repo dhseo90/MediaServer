@@ -5,7 +5,7 @@
 source-of-truth로 삼고, 기능별 UI 필요 여부와 테스트 영역은
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 합니다. 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를
-사용합니다. 현재 release 목표는 `v1.8.0`이며, UI 풀테스트 기준도 이 버전의
+사용합니다. 현재 release 목표는 `v1.9.0`이며, UI 풀테스트 기준도 이 버전의
 제품 route, 권한, 기능 baseline만 대상으로 합니다.
 문서 구조와 evidence 경계는 `./server.sh verify-manual-ui-evidence`로 확인합니다.
 기능 ID별 UI evidence JSON을 만든 경우에는
@@ -124,9 +124,9 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
 - 실패 후 고친 화면은 같은 조작으로 재검수하고, 최초 실패와 재확인 결과를 모두
   남깁니다.
 
-### v1.8.0 release trust hardening gate
+### v1.9.0 release trust hardening gate
 
-v1.8.0 release close-out에서는 자동 smoke와 별도로 아래 화면을 브라우저에서 직접
+v1.9.0 release close-out에서는 자동 smoke와 별도로 아래 화면을 브라우저에서 직접
 열고 클릭한 Evidence index를 남깁니다. 자동 screenshot 생성이나 raw JSON/API-only 확인만
 있으면 해당 개별 기능은 `FAIL`입니다.
 

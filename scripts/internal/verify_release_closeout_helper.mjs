@@ -57,6 +57,8 @@ const streamVerification = readText("docs/stream-verification.md");
 const uiGuide = readText("docs/ui-guide.md");
 const prTemplate = readText(".github/PULL_REQUEST_TEMPLATE.md");
 const preflight = readText(".github/workflows/preflight.yml");
+const currentVersion = readText("VERSION").trim();
+const currentTag = `v${currentVersion}`;
 
 const localCommands = [
   "./server.sh verify-release-metadata",
@@ -155,7 +157,7 @@ check("release close-out commands are available", () => {
 check("release docs keep publish gates manual", () => {
   for (const snippet of [
     "GitHub Releases 운영",
-    "v1.8.0 Release Close-out Runbook",
+    `${currentTag} Release Close-out Runbook`,
     "Dry-run checklist",
     "Real close-out checklist",
     "Branch close",

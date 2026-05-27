@@ -1,7 +1,7 @@
 # ONVIF Credential Reference Policy
 
 이 문서는 v1.8.0 ONVIF field integration에서 도입한 credential reference 기준을
-v1.8.0 release baseline에서 유지되는 경계로 고정합니다. 현재 구현은 제품 persistent
+v1.9.0 release baseline에서도 유지되는 경계로 고정합니다. 현재 구현은 제품 persistent
 credential 저장소가 아니라 live source 등록 draft, provider 기반 HTTP Basic 주입 경계,
 fixture-grade in-memory store, redaction 검증을 제공하는 범위입니다.
 credential 주입 설계 기준은
