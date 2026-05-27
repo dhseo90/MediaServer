@@ -15,19 +15,26 @@
 | 영상 분석, tracking, scenario | [video-analysis.md](video-analysis.md) |
 | 검증 명령과 release gate | [stream-verification.md](stream-verification.md) |
 | release/version 기준 | [release-policy.md](release-policy.md), [versioning-policy.md](versioning-policy.md), [release-evidence-index.md](release-evidence-index.md) |
+| 현재/차기 roadmap | [development-backlog.md](development-backlog.md) |
 | 영어 문서 진입점 | [en/README.md](en/README.md) |
 
 ## 현재 제품 경계
 
 - 현재 release 준비 기준: `v1.9.0`
+- 활성 차기 roadmap: `v2.0.0 VLM 기반 AI 대형 업데이트`
 - 중심 범위: live source onboarding, live source health, live VA event 품질
 - 기본 release 형태: source-only
 - 명시적 비범위: 장기 녹화, VMS/NVR, playback/search, ONVIF Profile G
-  recording/replay, Re-ID/tracker default-on, binary/runtime/model bundle release
+  recording/replay, Re-ID/tracker default-on, VLM default-on,
+  VLM model/runtime bundle release, binary/runtime/model bundle release
 
 상세 기준은 [development-backlog.md](development-backlog.md),
 [versioning-policy.md](versioning-policy.md),
 [release-policy.md](release-policy.md)를 봅니다.
+
+v2.0.0의 활성 차기 roadmap은 [development-backlog.md](development-backlog.md)의
+`활성 차기 로드맵: v2.0.0 VLM 기반 AI 대형 업데이트` 섹션에서 관리합니다. 이 항목은
+개발 순서 기준 roadmap이며, 구현 완료나 release evidence가 아닙니다.
 
 ## Current Release Close-Out
 

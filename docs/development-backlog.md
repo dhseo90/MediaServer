@@ -70,6 +70,112 @@ alert delivery, scenario builder, Ops/Client declutter는 이전 UI-first close-
 과거 release evidence는 standalone current 문서가 아니라 이 문서의 archive 섹션에만
 보존합니다.
 
+## 활성 차기 로드맵: v2.0.0 VLM 기반 AI 대형 업데이트
+
+v2.0.0은 기존 YOLO/ONNX 기반 실시간 감지, Rule/Profile/Scenario, EventRecord,
+snapshot/short clip evidence를 유지하면서 VLM(Vision-Language Model)을 이벤트 해석
+보조 계층으로 도입하는 신규 기능 로드맵입니다. VLM은 최종 판정자가 아니라
+YOLO 이벤트가 왜 발생했는지 설명하고, 오탐 가능성 및 운영자 확인 포인트를 제안하는
+보조 분석 기능입니다.
+
+이 로드맵은 중요도 순서가 아니라 실제 개발 진행 순서로 관리합니다. 각 순서는
+개발, 안정화 테스트, 영향 범위 보고, 커밋을 거친 뒤 다음 순서로 넘어갑니다.
+
+핵심 원칙:
+
+- YOLO/Rule/Scenario는 유지하고 VLM으로 대체하지 않습니다.
+- 전체 영상을 VLM에 상시 전달하지 않습니다.
+- VLM 입력은 이벤트 발생 시점의 snapshot, bbox crop, 전후 frame, 짧은 clip evidence
+  후보로 제한합니다.
+- 기존 Event POST, WebRTC DataChannel, SSE/WS metadata schema는 기본적으로 변경하지
+  않습니다.
+- VLM 결과는 별도 sidecar contract로 저장하고, 기존 외부 event/metadata payload에
+  즉시 섞지 않습니다.
+- 사용자 PC 사양을 모르는 상태에서 특정 VLM 모델을 roadmap 기본값으로 고정하지
+  않습니다.
+- 제품은 모델을 자동으로 여러 개 설치하지 않고, 추천 사유와 예상 비용, privacy
+  영향을 보여준 뒤 사용자가 하나를 선택하게 합니다.
+- cloud VLM은 외부 전송 경고와 명시 opt-in이 있어야 합니다.
+- client/viewer에는 prompt, raw response, source URL, debug JSON, 내부 모델 정보,
+  credential을 노출하지 않습니다.
+
+모델 선택 기준:
+
+- 로컬 실행 가능 여부, cloud 전송 허용 여부
+- RAM/VRAM/Apple Silicon/NVIDIA GPU 적합성
+- 설치 방식: Ollama, vLLM, provider API
+- 모델 크기, 디스크 사용량, latency, queue 영향
+- 이벤트 설명 품질, 오탐 힌트 품질, 운영자 질문 품질
+- JSON/structured output 안정성
+- 한국어/영어 설명 품질
+- 라이선스, 상업 사용 조건, 모델 provenance
+- privacy/logging/retention 정책
+- 업데이트 및 지원 지속성
+
+명시적 비범위:
+
+- YOLO 대체
+- VLM 단독 실시간 감지
+- VLM default-on
+- 전체 영상 상시 업로드
+- 장기 녹화, MP4 recorder, VMS/NVR archive, playback/search
+- 자동 최종 판정
+- 자동 Rule/Profile 적용
+- viewer/client 화면 노출
+- 기존 Event POST/WebRTC/SSE/WS metadata schema 직접 변경
+- VLM model/runtime bundle release
+- 고사양 서버 전용 모델을 기본 요구사항으로 설정
+
+| 순서 | ID | 상태 | 영역 | 목표 | 예상 검증 |
+| --- | --- | --- | --- | --- | --- |
+| 0 | V200-S00 | 예정 | VLM 도입 경계 | VLM을 감지기가 아니라 이벤트 해석/리뷰 보조 계층으로 정의하고 YOLO, Rule, Scenario, Event POST, WebRTC/SSE/WS metadata, media path 불변 조건을 고정합니다. | roadmap review, contract boundary review, `verify-integrator-contract-artifact`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-event-post`, `git diff --check` |
+| 1 | V200-S01 | 예정 | VLM 후보군/선택 기준 | Qwen, Gemma, Gemini 같은 후보군을 모델명으로 고정하지 않고 로컬/cloud, 라이선스, 성능, privacy, 설치 방식 기준으로 분류합니다. | model catalog review, license/provenance checklist, cloud/local privacy review, `verify-bundle-policy`, `git diff --check` |
+| 2 | V200-S02 | 예정 | PC 사양 감지 | OS, CPU, RAM, GPU/VRAM, Apple Silicon, Docker, Ollama, vLLM/API 연결 가능 여부를 수집하는 local capability detector를 만듭니다. | hardware scan fixture, macOS/Linux smoke, missing-tool fixture, `git diff --check` |
+| 3 | V200-S03 | 예정 | VLM 추천 엔진 | 사용자 PC 사양과 privacy mode에 따라 추천 모델, 대안 모델, 비추천 사유, 예상 메모리/디스크/latency/cost를 산출합니다. | recommendation matrix fixture, low/mid/high spec fixture, local-only/cloud-allowed policy fixture, `git diff --check` |
+| 4 | V200-S04 | 예정 | VLM 설치/연결 UI | Ops에서 local model 설치 또는 cloud API 연결을 선택하게 합니다. 자동 다중 설치는 금지하고, 설치 전 영향과 외부 전송 여부를 표시합니다. | Ops UI smoke, install dry-run fixture, cloud opt-in guard, viewer redaction UI smoke, `git diff --check` |
+| 5 | V200-S05 | 예정 | VLM profile 저장 | 선택한 provider, model, runtime, prompt profile, privacy mode, 평가 결과, 활성화 상태를 저장하고 fallback/disable 상태를 명확히 둡니다. | profile CRUD smoke, auth/scope route guard, invalid profile fixture, `verify-auth-routes`, `git diff --check` |
+| 6 | V200-S06 | 예정 | VLM 평가 harness | sample 이벤트 frame, bbox crop, 전후 frame으로 latency, 설명 품질, hallucination, JSON 안정성, 한국어/영어 출력 품질을 비교합니다. | VLM fixture sample, prompt profile A/B, structured output fixture, evaluation report, `git diff --check` |
+| 7 | V200-S07 | 예정 | 이벤트 evidence 추출 | YOLO 이벤트 발생 시 snapshot, bbox crop, 전후 frame, 짧은 clip evidence 후보를 만들고 VLM 입력으로 쓸 수 있게 reference를 분리합니다. | EventRecord snapshot/clip fixture, crop extraction smoke, redaction review, `verify-va-events`, `verify-va-replay`, `git diff --check` |
+| 8 | V200-S08 | 예정 | VLMObservation sidecar | 기존 Event POST/WebRTC/SSE/WS metadata를 바꾸지 않고 VLM 결과를 별도 sidecar로 저장합니다. | sidecar schema fixture, EventRecord correlation report, existing metadata diff guard, `verify-event-post`, `verify-ws-metadata`, `git diff --check` |
+| 9 | V200-S09 | 예정 | 이벤트 설명/오탐 힌트 | 이벤트 발생 이유, 화면 내 사람/차량/영역 관계, 오탐 가능성, 운영자 확인 질문을 생성합니다. | event explanation fixture, false-positive hint fixture, operator question review, JSON stability check, `git diff --check` |
+| 10 | V200-S10 | 예정 | Ops 이벤트 리뷰 UI | EventRecord, snapshot/짧은 clip evidence, VLM 설명을 Ops 이벤트 리뷰 화면에서 함께 보여줍니다. viewer/client에는 노출하지 않습니다. | `verify-ops-client-ui`, `verify-ops-client-ui --screenshots`, event review UI smoke, viewer redaction UI smoke, `git diff --check` |
+| 11 | V200-S11 | 예정 | Privacy/전송 guard | cloud 사용 시 외부 전송 경고, redaction, credential/prompt/raw response/source URL 비노출, provider logging 정책을 강제합니다. | privacy fixture, source URL/raw JSON leak guard, auth/scope review, `verify-auth-routes`, `verify-ops-client-ui`, `git diff --check` |
+| 12 | V200-S12 | 예정 | VLM summary 검색 후보 | VLM summary를 이용해 "문 근처에서 멈춘 사람" 같은 semantic event search 후보를 만듭니다. 검색은 후보 단계로 두고 기존 event schema는 변경하지 않습니다. | search fixture, sidecar query smoke, EventRecord correlation smoke, `git diff --check` |
+| 13 | V200-S13 | 예정 | Rule 추천 보조 후보 | VLM이 line/intrusion/zone 후보를 제안하되 자동 적용은 금지합니다. 운영자가 확인 후 수동 저장하는 흐름만 후보로 둡니다. | rule suggestion fixture, no-auto-apply guard, `/ops/rules` smoke, `verify-rule-ui`, `git diff --check` |
+| 14 | V200-S14 | 예정 | 테스트 inventory 확장 | VLM으로 추가된 route, control, action, runtime state, sidecar, privacy guard를 기능 ID 단위로 `project-feature-test-inventory.md`에 추가합니다. | `verify-project-feature-test-inventory`, `verify-feature-inventory-coverage`, inventory-to-verifier mapping, `git diff --check` |
+| 15 | V200-S15 | 예정 | 간이 테스트 리허설 | 안정화/30분/120분/UI 풀테스트 전에 VLM 전용 짧은 smoke, missing-model, cloud-disabled, invalid-output, queue-timeout fixture를 실행해 테스트 자체가 막히지 않는지 확인합니다. | VLM smoke, failure fixture matrix, cleanup check, port/server lifecycle check, `git diff --check` |
+| 16 | V200-S16 | 예정 | 기존 테스트 side effect 점검 | VLM 변경이 auth, Ops/Client UI, Rule UI, VA replay/events, WebRTC metadata, SSE/WS metadata, Event POST, RTSP/WebRTC media path verifier에 영향을 주지 않는지 확인합니다. | `./server.sh build`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-rule-ui`, `verify-va-replay`, `verify-va-events`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-event-post`, `git diff --check` |
+| 17 | V200-S17 | 예정 | 안정화/장시간/UI 기준 정리 | VLM queue, memory, provider timeout, model install 상태에 따라 안정화, 30분, 120분, UI 풀테스트 실행 기준과 제외/미실행 보고 기준을 정리합니다. | `verify-runtime-media-longrun-trigger-matrix`, `verify-longrun-separation`, VLM longrun trigger matrix, manual UI checklist update, `git diff --check` |
+| 18 | V200-S18 | 예정 | v2.0.0 close-out readiness | 전체 스크립트 테스트와 UI 풀테스트 결과를 분리해 release evidence로 닫고, 미실행/제외/미확인을 명확히 기록합니다. | release evidence review, `verify-release-evidence-index`, `verify-release-metadata`, VLM close-out report, 30분/UI/120분 실행 또는 미실행 기록, `git diff --check` |
+
+VLMObservation sidecar 후보:
+
+```text
+eventId
+sourceId
+ruleId
+scenarioId
+inputType
+inputEvidenceRefs
+summary
+eventExplanation
+falsePositiveHints[]
+operatorReviewQuestions[]
+ruleSuggestion?
+uncertainty
+provider
+model
+promptProfile
+privacyMode
+latencyMs
+createdAt
+```
+
+v2.0.0 완료 판정은 기능 구현만으로 닫지 않습니다. 각 개발 순서에서 추가한 테스트가
+`project-feature-test-inventory.md`, 안정화 테스트, 30분/120분 trigger, UI 풀테스트
+기준에 반영됐는지 확인하고, 기존 테스트 항목에 side effect가 없는지 별도 행으로
+검증해야 합니다.
+
 ## v1.9.0 Release Trust Hardening Close-out
 
 v1.9.0은 v1.8.0 source release 이후 main/release 운영 신뢰도를 유지하는
