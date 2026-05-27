@@ -135,6 +135,15 @@ UI 풀테스트 결과는 모든 개별 기능, route, control, action 단위로
 로 기능 ID별 PASS/FAIL report를 생성합니다. 누락된 UI 대상 기능 ID는 `FAIL`이며,
 제외 항목은 판정표 밖 `Exclusions`에만 둡니다.
 
+풀테스트 harness 자체를 한 번에 실행할 때는
+`./server.sh verify-ui-fulltest-one-shot`을 사용합니다. 이 명령은 전용
+throwaway registry/users/event 경로와 격리 포트로 core/auth 서버를 띄운 뒤
+manual evidence runner, native/blocking dialog guard, feature inventory coverage,
+Ops/Client screenshot smoke, Rules smoke, route/rules/table guard, core/auth click
+E2E를 순서대로 실행하고 `summary.json`과 `summary.md`를 남깁니다. 이 wrapper는
+`verify-predev --soak-minutes 30`, `verify-predev --soak-minutes 120`,
+`verify-va-runtime-console-longrun --duration-minutes 120`을 실행하지 않습니다.
+
 다음은 `확인됨`으로 쓰지 않으며, UI 풀테스트 대상이면 `FAIL`입니다.
 
 - raw JSON/API-only 확인만 수행

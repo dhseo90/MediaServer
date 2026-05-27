@@ -13,6 +13,10 @@ source-of-truth로 삼고, 기능별 UI 필요 여부와 테스트 영역은
 실행해 inventory의 UI 대상 기능을 전수 report로 변환합니다.
 누락된 UI 대상 기능 ID는 `FAIL`이고, 제외 항목은 판정표 밖에만 남깁니다.
 현재 제품 UI 직접 조작 evidence 없이 완료 판정에 포함하지 않습니다.
+전용 throwaway 서버부터 core/auth 클릭 검증까지 한 번에 실행해야 할 때는
+`./server.sh verify-ui-fulltest-one-shot --output-dir <dir>`을 사용합니다.
+이 wrapper는 UI 풀테스트 선수/보조 verifier 묶음만 실행하며 30분/120분 장시간
+테스트는 실행하지 않습니다.
 
 UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라우저에서 제품
 화면을 직접 열고 클릭과 타이핑으로 수행하는 end-to-end 검수입니다. API-only
@@ -73,6 +77,10 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
   `sources.json`, `views.json`, `analysis.json`, `preconditions.json`을 한 디렉터리에
   생성합니다. auth users file은 비밀번호 hash가 필요하므로 실행자가 지정한
   비밀번호로 별도 생성하고, seed 스크립트가 기본 비밀번호를 만들지 않습니다.
+- `./server.sh verify-ui-fulltest-one-shot`은 core/auth용 registry 디렉터리와
+  event/snapshot/clip 경로를 output dir 아래에 직접 만들고, `--http-base`,
+  `MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT`, `--auth-users-file`을 각 verifier에
+  명시해 현재 PublishedView/Rule seed를 기준으로 실행합니다.
 - seed를 서버에 넣는 동작은 실제 테스트 지시 후에만
   `./server.sh prepare-manual-ui-fulltest-seed --apply --confirm-throwaway-data --http-base <url>`
   형태로 수행합니다.

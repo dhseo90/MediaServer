@@ -126,6 +126,8 @@ Usage:
                  제품 UI가 alert/confirm/prompt native dialog로 자동 UI 검수를 멈추지 않는지 검증합니다.
   verify-ui-blocking-dialog-policy
                  제품/test UI blocking dialog 허용 기준과 fail-fast 정책을 검증합니다.
+  verify-ui-fulltest-one-shot
+                 throwaway seed/server와 UI 풀테스트 verifier 묶음을 한 번에 실행합니다.
   prepare-manual-ui-fulltest-seed
                  수동 UI 풀테스트용 VA seed fixture를 dry-run 검증하고, 명시 승인 시 throwaway 서버에 적용합니다.
   verify-docs-links
@@ -610,6 +612,10 @@ case "${cmd}" in
   verify-ui-blocking-dialog-policy)
     require_internal verify_ui_blocking_dialog_policy.mjs
     exec "${INTERNAL_DIR}/verify_ui_blocking_dialog_policy.mjs" "$@"
+    ;;
+  verify-ui-fulltest-one-shot)
+    require_internal verify_ui_fulltest_one_shot.mjs
+    exec "${INTERNAL_DIR}/verify_ui_fulltest_one_shot.mjs" "$@"
     ;;
   prepare-manual-ui-fulltest-seed)
     require_internal prepare_manual_ui_fulltest_seed.mjs

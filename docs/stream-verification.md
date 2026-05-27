@@ -81,6 +81,7 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-manual-ui-evidence
 ./server.sh verify-manual-ui-evidence-runner
+./server.sh verify-ui-fulltest-one-shot --output-dir /tmp/media_server_ui_fulltest_one_shot
 ./server.sh verify-actions-security
 ./server.sh verify-actions-security --annotations-json <annotations.json>
 ./server.sh write-dependency-notice --check
@@ -137,6 +138,18 @@ section에만 기록합니다.
   --evidence <manual-ui-evidence.json> \
   --report <manual-ui-evidence-report.md> \
   --json-report <manual-ui-evidence-report.json>
+```
+
+UI 풀테스트 one-shot wrapper는 실제 UI verifier 묶음을 실행하는 harness입니다.
+전용 throwaway seed, core auth-off 서버, auth-auto 서버를 분리해 띄우고,
+manual evidence runner, native/blocking dialog guard, feature inventory coverage,
+Ops/Client screenshot smoke, Rules/route/rules/table verifier, core/auth click E2E를
+순서대로 실행합니다. 이 wrapper는 30분 soak, 120분 predev, 120분 runtime console
+longrun을 실행하지 않고 summary에 `not-run`으로 남깁니다.
+
+```bash
+./server.sh verify-ui-fulltest-one-shot \
+  --output-dir /tmp/media_server_ui_fulltest_one_shot
 ```
 
 Feature inventory coverage gate는 `media-server.feature-inventory-coverage.v1`
