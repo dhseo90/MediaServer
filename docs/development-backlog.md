@@ -132,7 +132,7 @@ YOLO 이벤트가 왜 발생했는지 설명하고, 오탐 가능성 및 운영�
 | 0 | V200-S00 | 완료 | VLM 도입 경계 | VLM을 감지기가 아니라 이벤트 해석/리뷰 보조 계층으로 정의하고 YOLO, Rule, Scenario, Event POST, WebRTC/SSE/WS metadata, media path 불변 조건을 고정합니다. | roadmap review, contract boundary review, `verify-integrator-contract-artifact`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-event-post`, `verify-vlm-boundary`, `git diff --check` |
 | 1 | V200-S01 | 완료 | VLM 후보군/선택 기준 | `Qwen/Qwen3-VL-8B-Instruct`를 1차 local standard로 선택하고, `Qwen/Qwen3-VL-4B-Instruct`를 local low-spec fallback, `gemini-2.5-flash`는 cloud opt-in fallback으로 둡니다. Gemma 계열은 custom terms/license review 때문에 기본값이 아닙니다. | model selection decision review, license/provenance checklist, cloud/local privacy review, `verify-vlm-selection-decision`, `verify-bundle-policy`, `git diff --check` |
 | 2 | V200-S02 | 완료 | PC 사양 감지 | OS, CPU, RAM, GPU/VRAM, Apple Silicon, Docker, Ollama, vLLM/API 연결 가능 여부를 수집하는 local capability detector를 만듭니다. 추천 모델 산출은 다음 단계로 둡니다. | `detect-vlm-pc-capability`, hardware scan fixture, macOS/Linux smoke, missing-tool fixture, `verify-vlm-pc-capability`, `verify-script-inventory`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `git diff --check` |
-| 3 | V200-S03 | 예정 | VLM 추천 엔진 | 사용자 PC 사양과 privacy mode에 따라 추천 모델, 대안 모델, 비추천 사유, 예상 메모리/디스크/latency/cost를 산출합니다. | recommendation matrix fixture, low/mid/high spec fixture, local-only/cloud-allowed policy fixture, `git diff --check` |
+| 3 | V200-S03 | 완료 | VLM 추천 엔진 | 사용자 PC 사양과 privacy mode에 따라 추천 모델, 대안 모델, 비추천 사유, 예상 메모리/디스크/latency/cost를 산출합니다. | `recommend-vlm-model`, recommendation matrix fixture, low/standard/high/unsupported spec fixture, local-only/cloud-disabled/cloud-allowed policy fixture, `verify-vlm-recommendation-engine`, `verify-script-inventory`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `git diff --check` |
 | 4 | V200-S04 | 예정 | VLM 설치/연결 UI | Ops에서 local model 설치 또는 cloud API 연결을 선택하게 합니다. 자동 다중 설치는 금지하고, 설치 전 영향과 외부 전송 여부를 표시합니다. | Ops UI smoke, install dry-run fixture, cloud opt-in guard, viewer redaction UI smoke, `git diff --check` |
 | 5 | V200-S05 | 예정 | VLM profile 저장 | 선택한 provider, model, runtime, prompt profile, privacy mode, 평가 결과, 활성화 상태를 저장하고 fallback/disable 상태를 명확히 둡니다. | profile CRUD smoke, auth/scope route guard, invalid profile fixture, `verify-auth-routes`, `git diff --check` |
 | 6 | V200-S06 | 예정 | VLM 평가 harness | sample 이벤트 frame, bbox crop, 전후 frame으로 latency, 설명 품질, hallucination, JSON 안정성, 한국어/영어 출력 품질을 비교합니다. | VLM fixture sample, prompt profile A/B, structured output fixture, evaluation report, `git diff --check` |
@@ -321,7 +321,62 @@ PC 등급 기준:
 
 후속 이슈:
 
-- 다음 개발 순서가 필요하면 `V200-S03 VLM 추천 엔진`부터 별도 지시로 진행합니다.
+- `V200-S03 VLM 추천 엔진`은 별도 단계로 닫았습니다. 설치/연결 UI는 여전히
+  `V200-S04` 범위이며 이 단계에서 진행하지 않습니다.
+
+### V200-S03 VLM 추천 엔진 종료 기준
+
+이 단계는 PC 사양 감지 결과와 모델 선택 결정을 조합해 추천/대안/비추천/resource
+estimate를 산출하는 단계입니다. 설치/연결 UI, profile 저장, VLM runtime 호출,
+sidecar 저장은 다음 단계로 남깁니다.
+
+이번 단계에서 구현한 범위:
+
+- `./server.sh recommend-vlm-model`은 `media-server.vlm-pc-capability.v1` JSON 또는
+  PC capability fixture와 `privacy-mode`를 입력으로 받아
+  `media-server.vlm-recommendation.v1` JSON을 출력합니다.
+- `privacy-mode`는 `local-only`, `cloud-disabled`, `cloud-allowed`만 허용합니다.
+- 추천 결과에는 1차 추천, 대안 모델, 비추천/조건부 후보, 예상 memory/disk/latency/cost,
+  local runtime readiness, contract invariant가 포함됩니다.
+- `local-unsupported` + cloud disabled/local-only에서는 `no-local-vlm-recommendation`으로
+  판정하고, cloud allowed에서만 `gemini-2.5-flash`를 1차 cloud fallback으로 둡니다.
+- `local-low`는 `Qwen/Qwen3-VL-4B-Instruct`, `local-standard`는
+  `Qwen/Qwen3-VL-8B-Instruct`, `local-high`는
+  `Qwen/Qwen3-VL-30B-A3B-Instruct` 평가 후보와
+  `Qwen/Qwen3-VL-8B-Instruct` safe fallback을 산출합니다.
+- Gemma 계열은 별도 terms/license review가 필요한 conditional user-supplied 후보로
+  유지하며 기본 추천/fallback으로 두지 않습니다.
+- `test/fixtures/vlm_recommendation/cases.json`은 unsupported/local-low/local-standard/
+  local-high, local-only/cloud-disabled/cloud-allowed, missing runtime tool case를
+  구조화합니다.
+- `./server.sh verify-vlm-recommendation-engine`이 matrix fixture, schema, 추천/대안/
+  비추천/resource estimate, 비범위 경계, 문서/명령/inventory 연결을 검증합니다.
+
+이번 단계에서 하지 않는 일:
+
+- 설치/연결 UI 구현, profile 저장, VLM runtime 호출, VLMObservation sidecar 저장은
+  이 단계 완료 조건이 아닙니다.
+- Event POST, WebRTC DataChannel, SSE/WS metadata schema, Rule/Profile payload,
+  SourceRegistry/PublishedView 계약, RTSP/WebRTC media path는 변경하지 않습니다.
+- client/viewer 화면에는 PC 사양, 모델 정보, prompt/raw response/debug JSON을 노출하지
+  않습니다.
+- model weight/runtime package, credential, download token은 repo/release/bundle에
+  포함하지 않습니다.
+- resource estimate는 planning estimate이며 V200-S06 평가 harness PASS가 아닙니다.
+
+완료 판정:
+
+- `./server.sh verify-vlm-recommendation-engine`이 추천 엔진 matrix와 비범위 경계를
+  직접 검증합니다.
+- `./server.sh verify-vlm-pc-capability`와 `./server.sh verify-vlm-selection-decision`이
+  입력 source-of-truth의 기존 경계를 재검증합니다.
+- `./server.sh verify-script-inventory`, `./server.sh verify-project-inventory`,
+  `./server.sh verify-feature-inventory-coverage`가 새 명령과 기능 ID 연결을 확인합니다.
+- `git diff --check`가 문서/fixture/script 변경의 whitespace drift를 확인합니다.
+
+후속 이슈:
+
+- 설치/연결 UI는 `V200-S04`로 남아 있으며 이번 단계에서는 미진행입니다.
 
 v2.0.0 완료 판정은 기능 구현만으로 닫지 않습니다. 각 개발 순서에서 추가한 테스트가
 `project-feature-test-inventory.md`, 안정화 테스트, 30분/120분 trigger, UI 풀테스트

@@ -195,6 +195,18 @@ endpoint probe는 loopback 주소로 제한하며 외부 cloud/provider API는 �
 ./server.sh verify-vlm-pc-capability
 ```
 
+VLM 추천 엔진은 `V200-S03`의 추천 matrix를 확인합니다. 추천 출력 schema는
+`media-server.vlm-recommendation.v1`이며 PC capability와 privacy mode에 따라
+추천 모델, 대안 모델, 비추천 사유, 예상 memory/disk/latency/cost를 산출합니다.
+추천 엔진은 설치 UI, profile 저장, VLM runtime 호출을 대신하지 않습니다. Cloud
+fallback은 `cloud-allowed` privacy mode에서만 추천하며, 출력의 resource estimate는
+planning estimate이지 V200-S06 평가 harness PASS가 아닙니다.
+
+```bash
+./server.sh recommend-vlm-model
+./server.sh verify-vlm-recommendation-engine
+```
+
 CI/local gate parity는 `media-server.ci-local-gate-parity.v1` summary로
 Preflight/static-gates/guardrails/RC workflow에 실제로 걸린 `./server.sh` 명령과
 로컬 release/static verifier 목록을 대조합니다. 로컬에서 통과해야 한다고 문서화한

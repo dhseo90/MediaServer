@@ -407,6 +407,8 @@ check("user-facing JS option parsers reject unknown options", () => {
     "detect_vlm_pc_capability.mjs",
     "verify_vlm_selection_decision.mjs",
     "verify_vlm_pc_capability_detector.mjs",
+    "recommend_vlm_model.mjs",
+    "verify_vlm_recommendation_engine.mjs",
     "verify_code_comments.mjs",
     "verify_docs_links.mjs",
     "verify_project_feature_test_inventory.mjs",

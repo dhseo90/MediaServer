@@ -266,6 +266,10 @@ Usage:
                  v2.0.0 VLM PC 사양 감지 정보를 local-only JSON으로 수집합니다.
   verify-vlm-pc-capability
                  v2.0.0 VLM PC 사양 감지 detector와 fixture matrix를 검증합니다.
+  recommend-vlm-model
+                 v2.0.0 VLM 추천 모델/대안/비추천 사유와 resource estimate를 산출합니다.
+  verify-vlm-recommendation-engine
+                 v2.0.0 VLM 추천 엔진과 low/standard/high/privacy fixture matrix를 검증합니다.
   verify-event-post
                  VA event POST payload, 실패/cooldown/queue 상태를 검증합니다.
   verify-integrator-contract-artifact
@@ -896,6 +900,14 @@ case "${cmd}" in
   verify-vlm-pc-capability)
     require_internal verify_vlm_pc_capability_detector.mjs
     exec "${INTERNAL_DIR}/verify_vlm_pc_capability_detector.mjs" "$@"
+    ;;
+  recommend-vlm-model)
+    require_internal recommend_vlm_model.mjs
+    exec "${INTERNAL_DIR}/recommend_vlm_model.mjs" "$@"
+    ;;
+  verify-vlm-recommendation-engine)
+    require_internal verify_vlm_recommendation_engine.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_recommendation_engine.mjs" "$@"
     ;;
   verify-event-post)
     require_internal verify_event_post_dispatch.sh
