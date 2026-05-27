@@ -183,6 +183,18 @@ profile 저장, sidecar 저장 검증을 대신하지 않습니다.
 ./server.sh verify-vlm-selection-decision
 ```
 
+VLM PC 사양 감지는 `V200-S02`의 local capability detector를 확인합니다.
+detector 출력 schema는 `media-server.vlm-pc-capability.v1`이며 OS, CPU, RAM,
+GPU/VRAM, Apple Silicon, Docker, Ollama, vLLM/API loopback 연결 가능 여부를
+구조화합니다. 이 명령은 추천 엔진 검증을 대신하지 않습니다. 추천 모델 산출,
+설치 UI, profile 저장, VLM runtime 호출, sidecar 저장은 다음 단계 범위입니다.
+endpoint probe는 loopback 주소로 제한하며 외부 cloud/provider API는 호출하지 않습니다.
+
+```bash
+./server.sh detect-vlm-pc-capability
+./server.sh verify-vlm-pc-capability
+```
+
 CI/local gate parity는 `media-server.ci-local-gate-parity.v1` summary로
 Preflight/static-gates/guardrails/RC workflow에 실제로 걸린 `./server.sh` 명령과
 로컬 release/static verifier 목록을 대조합니다. 로컬에서 통과해야 한다고 문서화한
@@ -227,6 +239,7 @@ fallback까지 실패하면 `media-server.github-metadata-fallback-policy.v1` �
 ./server.sh verify-ops-client-ui --screenshots
 ./server.sh verify-vlm-boundary
 ./server.sh verify-vlm-selection-decision
+./server.sh verify-vlm-pc-capability
 ./server.sh verify-ops-click-e2e
 ./server.sh verify-ops-click-e2e --auth-ui-flow --auth-users-file <path>
 ./server.sh verify-ops-tables-layout

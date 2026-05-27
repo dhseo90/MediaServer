@@ -1,0 +1,228 @@
+{
+  "schema": "media-server.vlm-pc-capability-fixtures.v1",
+  "targetStep": "V200-S02",
+  "purpose": "Synthetic macOS/Linux hardware and missing-tool cases for the local PC capability detector.",
+  "cases": [
+    {
+      "id": "macos-apple-silicon-16gb",
+      "expectedHardwareClass": "local-low",
+      "probe": {
+        "platform": "darwin",
+        "arch": "arm64",
+        "osRelease": "23.6.0",
+        "cpu": { "brand": "Apple M2", "cores": 8 },
+        "memory": { "totalBytes": 17179869184 },
+        "apple": { "silicon": true, "unifiedMemoryBytes": 17179869184 },
+        "gpus": [
+          { "vendor": "Apple", "model": "Apple M2", "integrated": true, "source": "fixture" }
+        ],
+        "commands": {
+          "docker": { "available": true, "version": "Docker version 25.0.0" },
+          "ollama": { "available": true, "version": "ollama version 0.5.0" },
+          "vllmModule": { "available": false, "status": "missing" }
+        },
+        "endpoints": {
+          "ollama": { "reachable": true, "statusCode": 200 },
+          "vllm": { "reachable": false, "status": "unreachable" }
+        }
+      }
+    },
+    {
+      "id": "macos-apple-silicon-24gb",
+      "expectedHardwareClass": "local-standard",
+      "probe": {
+        "platform": "darwin",
+        "arch": "arm64",
+        "osRelease": "23.6.0",
+        "cpu": { "brand": "Apple M2 Pro", "cores": 10 },
+        "memory": { "totalBytes": 25769803776 },
+        "apple": { "silicon": true, "unifiedMemoryBytes": 25769803776 },
+        "gpus": [
+          { "vendor": "Apple", "model": "Apple M2 Pro", "integrated": true, "source": "fixture" }
+        ],
+        "commands": {
+          "docker": { "available": true, "version": "Docker version 25.0.0" },
+          "ollama": { "available": true, "version": "ollama version 0.5.0" },
+          "vllmModule": { "available": true, "version": "" }
+        },
+        "endpoints": {
+          "ollama": { "reachable": true, "statusCode": 200 },
+          "vllm": { "reachable": true, "statusCode": 200 }
+        }
+      }
+    },
+    {
+      "id": "macos-apple-silicon-48gb",
+      "expectedHardwareClass": "local-high",
+      "probe": {
+        "platform": "darwin",
+        "arch": "arm64",
+        "osRelease": "23.6.0",
+        "cpu": { "brand": "Apple M2 Ultra", "cores": 24 },
+        "memory": { "totalBytes": 51539607552 },
+        "apple": { "silicon": true, "unifiedMemoryBytes": 51539607552 },
+        "gpus": [
+          { "vendor": "Apple", "model": "Apple M2 Ultra", "integrated": true, "source": "fixture" }
+        ],
+        "commands": {
+          "docker": { "available": true, "version": "Docker version 25.0.0" },
+          "ollama": { "available": true, "version": "ollama version 0.5.0" },
+          "vllmModule": { "available": true, "version": "" }
+        },
+        "endpoints": {
+          "ollama": { "reachable": true, "statusCode": 200 },
+          "vllm": { "reachable": false, "status": "unreachable" }
+        }
+      }
+    },
+    {
+      "id": "macos-intel-cpu-only",
+      "expectedHardwareClass": "local-unsupported",
+      "probe": {
+        "platform": "darwin",
+        "arch": "x64",
+        "osRelease": "22.6.0",
+        "cpu": { "brand": "Intel Core i7", "cores": 8 },
+        "memory": { "totalBytes": 34359738368 },
+        "apple": { "silicon": false, "unifiedMemoryBytes": null },
+        "gpus": [
+          { "vendor": "Intel", "model": "Intel UHD Graphics", "integrated": true, "source": "fixture" }
+        ],
+        "commands": {
+          "docker": { "available": true, "version": "Docker version 25.0.0" },
+          "ollama": { "available": false, "status": "missing" },
+          "vllmModule": { "available": false, "status": "missing" }
+        },
+        "endpoints": {
+          "ollama": { "reachable": false, "status": "unreachable" },
+          "vllm": { "reachable": false, "status": "unreachable" }
+        }
+      }
+    },
+    {
+      "id": "linux-nvidia-8gb",
+      "expectedHardwareClass": "local-low",
+      "probe": {
+        "platform": "linux",
+        "arch": "x64",
+        "osRelease": "6.8.0",
+        "cpu": { "brand": "AMD Ryzen 7", "cores": 16 },
+        "memory": { "totalBytes": 34359738368 },
+        "apple": { "silicon": false, "unifiedMemoryBytes": null },
+        "gpus": [
+          { "vendor": "NVIDIA", "model": "NVIDIA RTX 3060 Laptop GPU", "vramBytes": 8589934592, "runtimeVerified": true, "source": "nvidia-smi" }
+        ],
+        "commands": {
+          "docker": { "available": true, "version": "Docker version 25.0.0" },
+          "ollama": { "available": true, "version": "ollama version 0.5.0" },
+          "vllmModule": { "available": false, "status": "missing" }
+        },
+        "endpoints": {
+          "ollama": { "reachable": true, "statusCode": 200 },
+          "vllm": { "reachable": false, "status": "unreachable" }
+        }
+      }
+    },
+    {
+      "id": "linux-nvidia-12gb",
+      "expectedHardwareClass": "local-standard",
+      "probe": {
+        "platform": "linux",
+        "arch": "x64",
+        "osRelease": "6.8.0",
+        "cpu": { "brand": "Intel Xeon", "cores": 24 },
+        "memory": { "totalBytes": 68719476736 },
+        "apple": { "silicon": false, "unifiedMemoryBytes": null },
+        "gpus": [
+          { "vendor": "NVIDIA", "model": "NVIDIA RTX 4070", "vramBytes": 12884901888, "runtimeVerified": true, "source": "nvidia-smi" }
+        ],
+        "commands": {
+          "docker": { "available": true, "version": "Docker version 25.0.0" },
+          "ollama": { "available": true, "version": "ollama version 0.5.0" },
+          "vllmModule": { "available": true, "version": "" }
+        },
+        "endpoints": {
+          "ollama": { "reachable": true, "statusCode": 200 },
+          "vllm": { "reachable": true, "statusCode": 200 }
+        }
+      }
+    },
+    {
+      "id": "linux-nvidia-24gb",
+      "expectedHardwareClass": "local-high",
+      "probe": {
+        "platform": "linux",
+        "arch": "x64",
+        "osRelease": "6.8.0",
+        "cpu": { "brand": "AMD Threadripper", "cores": 32 },
+        "memory": { "totalBytes": 137438953472 },
+        "apple": { "silicon": false, "unifiedMemoryBytes": null },
+        "gpus": [
+          { "vendor": "NVIDIA", "model": "NVIDIA RTX 4090", "vramBytes": 25769803776, "runtimeVerified": true, "source": "nvidia-smi" }
+        ],
+        "commands": {
+          "docker": { "available": true, "version": "Docker version 25.0.0" },
+          "ollama": { "available": true, "version": "ollama version 0.5.0" },
+          "vllmModule": { "available": true, "version": "" }
+        },
+        "endpoints": {
+          "ollama": { "reachable": true, "statusCode": 200 },
+          "vllm": { "reachable": true, "statusCode": 200 }
+        }
+      }
+    },
+    {
+      "id": "linux-cpu-only",
+      "expectedHardwareClass": "local-unsupported",
+      "probe": {
+        "platform": "linux",
+        "arch": "x64",
+        "osRelease": "6.8.0",
+        "cpu": { "brand": "Intel Core i5", "cores": 8 },
+        "memory": { "totalBytes": 34359738368 },
+        "apple": { "silicon": false, "unifiedMemoryBytes": null },
+        "gpus": [],
+        "commands": {
+          "docker": { "available": true, "version": "Docker version 25.0.0" },
+          "ollama": { "available": false, "status": "missing" },
+          "vllmModule": { "available": false, "status": "missing" }
+        },
+        "endpoints": {
+          "ollama": { "reachable": false, "status": "unreachable" },
+          "vllm": { "reachable": false, "status": "unreachable" }
+        }
+      }
+    },
+    {
+      "id": "missing-runtime-tools",
+      "expectedHardwareClass": "local-standard",
+      "expectedRuntimeStatuses": {
+        "docker": "missing",
+        "ollamaCli": "missing",
+        "ollamaLoopback": "unreachable",
+        "vllmModule": "missing",
+        "vllmLoopback": "unreachable"
+      },
+      "probe": {
+        "platform": "linux",
+        "arch": "x64",
+        "osRelease": "6.8.0",
+        "cpu": { "brand": "Intel Xeon", "cores": 24 },
+        "memory": { "totalBytes": 68719476736 },
+        "apple": { "silicon": false, "unifiedMemoryBytes": null },
+        "gpus": [
+          { "vendor": "NVIDIA", "model": "NVIDIA RTX A4000", "vramBytes": 17179869184, "runtimeVerified": true, "source": "nvidia-smi" }
+        ],
+        "commands": {
+          "docker": { "available": false, "status": "missing" },
+          "ollama": { "available": false, "status": "missing" },
+          "vllmModule": { "available": false, "status": "missing" }
+        },
+        "endpoints": {
+          "ollama": { "reachable": false, "status": "unreachable" },
+          "vllm": { "reachable": false, "status": "unreachable" }
+        }
+      }
+    }
+  ]
+}
