@@ -216,6 +216,76 @@ test: 테스트 추가
 푸시 수행 여부: 수행하지 않음
 ```
 
+### 6.1 릴리즈 준비 지시 처리
+
+사용자가 “릴리즈 준비”, “release 준비”, “릴리즈 close-out 준비”처럼 현재 브랜치의
+릴리즈 종료를 명시하면, 그 요청은 아래 작업에 대한 명시 지시로 본다. 단, 각 단계는
+순서대로 진행하고 실패한 뒤 단계는 모두 중단한다.
+
+1. 현재 릴리즈 버전 확인
+   - 현재 작업 브랜치, `VERSION`, 로드맵/릴리즈 문서에서 릴리즈 버전을 확인한다.
+   - 예: 현재 브랜치가 `v1.9.0` 또는 `1.9.0`이면 이번 릴리즈 기준은 `1.9.0`이다.
+   - 버전이 서로 다르면 추정으로 진행하지 말고 불일치 파일과 확인 필요 사항을 보고한다.
+2. 전체 문서 업데이트
+   - README, `README.en.md`, `docs/README.md`, release evidence, backlog/roadmap,
+     UI/fulltest 문서, config/operation 문서를 현재 릴리즈 브랜치 기준으로 갱신한다.
+   - README는 공개 첫 화면이므로 제품 정체성, 현재 release, 빠른 시작, 대표 이미지,
+     핵심 문서 링크가 가독성 있게 보이는지 최우선으로 확인한다.
+   - README에 들어가야 할 새 기능/상태/이미지가 있으면 추가하고, README가 과밀해지면
+     세부 내용은 `docs/README.md` 또는 전용 문서로 넘긴 뒤 대표 링크만 둔다.
+   - 문서 이미지와 스크린샷은 현재 UI와 맞아야 하며, 새로 추가/교체한 이미지는 잘림,
+     source URL/debug/raw JSON/auth material 노출 여부를 확인한다.
+   - 이전 버전에서만 유효하고 현재 릴리즈에서 deprecated된 route, 기능, 검증 명령,
+     스크린샷, 상태 설명은 남겨두지 말고 삭제하거나 현재 기준으로 바꾼다.
+   - 실행하지 않은 테스트, 미완료 기능, release 후속 작업을 완료처럼 쓰지 않는다.
+3. 빌드와 릴리즈 검증
+   - 최소 `./server.sh build`, 문서 검증, release metadata/evidence 검증,
+     현재 릴리즈 범위의 안정화 테스트를 실행한다.
+   - 30분/120분/UI 풀테스트는 사용자가 릴리즈 준비 지시와 함께 실행을 승인했거나,
+     별도 지시가 있는 경우에만 실행한다. 실행하지 않은 장시간/UI 테스트는 미실행으로
+     분리해 보고한다.
+   - 빌드 또는 핵심 release gate가 실패하면 PR, main merge, tag, GitHub Release,
+     후속 브랜치 생성을 진행하지 않는다.
+4. PR 생성과 main 머지
+   - 모든 변경이 커밋되고 release gate가 통과한 뒤 현재 릴리즈 브랜치를 push한다.
+   - GitHub PR을 생성하거나 기존 PR을 갱신하고, CI/check 상태를 확인한다.
+   - main merge는 PR check가 통과한 뒤 수행한다. merge 방식은 저장소 정책을 따른다.
+   - merge에 실패하거나 CI가 실패하면 tag/GitHub Release/후속 브랜치를 진행하지 않는다.
+5. 릴리즈 tag 생성
+   - PR이 main에 merge된 뒤 main의 최신 release commit에 릴리즈 tag를 만든다.
+   - 예: `1.9.0` 릴리즈면 main의 마지막 릴리즈 커밋에 `v1.9.0` tag가 있어야 한다.
+   - tag 대상 commit hash를 확인하고, tag를 push하기 전후 hash를 보고한다.
+6. GitHub Release 업데이트
+   - GitHub 우측 Releases에 해당 버전이 보이도록 tag 기반 GitHub Release를 생성하거나
+     기존 draft/release를 갱신한다.
+   - release notes에는 실제 완료된 항목, 주요 변경, 검증 결과, 미실행/제외 항목을
+     구분해 적는다.
+   - GitHub Release 생성/갱신에 실패하면 후속 브랜치 생성 전 실패로 보고한다.
+7. 후속 버전 브랜치 생성
+   - 릴리즈 tag와 GitHub Release가 완료된 뒤 다음 릴리즈 브랜치를 만든다.
+   - patch 버전 브랜치는 사용자가 특별히 지시하지 않으면 만들지 않는다.
+   - minor 버전은 `9`가 마지막이다. 예: `1.8.0` 다음은 `1.9.0`,
+     `1.9.0` 다음은 `2.0.0`이다.
+   - 일반 규칙은 `major.minor.patch`에서 patch는 `0` 유지, minor가 `0`~`8`이면
+     `minor + 1`, minor가 `9`이면 `major + 1.0.0`이다.
+   - 후속 브랜치는 main의 release tag 이후 최신 상태에서 생성하고 push한다.
+
+릴리즈 준비 최종 보고에는 반드시 아래를 포함한다.
+
+```text
+릴리즈 준비 결과:
+- 기준 버전:
+- 문서 업데이트:
+- 빌드/검증:
+- PR:
+- main merge:
+- tag:
+- GitHub Release:
+- 후속 브랜치:
+- 미실행/제외 테스트:
+- 실패/중단 지점:
+```
+
 ---
 
 ## 7. 테스트 정책
