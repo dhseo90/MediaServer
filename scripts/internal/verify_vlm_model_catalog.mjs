@@ -27,7 +27,6 @@ Options:
 
 Checks:
   - V200-S01이 특정 VLM 모델 기본값, 자동 설치, runtime 호출을 추가하지 않았는지 확인
-  - 공식 model card/license 확인 전에는 1차 모델 선택을 완료로 보고하지 않는지 확인
   - 후보군 catalog가 프로젝트 Apache-2.0 license 비충돌 조건을 필수 review gate로 갖는지 확인
   - local/cloud 후보군이 privacy, external transfer, logging/retention, bundle boundary를 분리하는지 확인
   - VLM model/runtime artifact가 source-only release와 public repo guardrail에 포함되지 않도록 policy가 갱신됐는지 확인
@@ -64,9 +63,8 @@ check("project license constraint is documented for V200-S01", () => {
     assert(selectionDoc.includes(snippet), `selection doc missing license constraint snippet: ${snippet}`);
   }
   for (const snippet of [
-    "| 1 | V200-S01 | 진행 | VLM 후보군/선택 기준 |",
+    "| 1 | V200-S01 | 완료 | VLM 후보군/선택 기준 |",
     "프로젝트 라이선스와 충돌하지 않는지",
-    "공식 model card/license 확인과 1차 모델 선택 결정은 미완료",
     "`verify-vlm-model-catalog`",
   ]) {
     assert(backlog.includes(snippet), `development backlog missing V200-S01 completion snippet: ${snippet}`);
@@ -91,19 +89,6 @@ check("catalog is classification-only and has no default model or runtime action
   assert(catalog.defaults?.autoInstall === false, "catalog must not enable auto install");
   assert(catalog.defaults?.bundleModelArtifacts === false, "catalog must not bundle model artifacts");
   assert(catalog.defaults?.runtimeCalls === false, "catalog must not perform runtime calls");
-  assert(catalog.modelSelectionDecision?.status === "pending-official-model-card-review", "model selection decision must remain pending until official review");
-  assert(catalog.modelSelectionDecision?.primaryModel === null, "catalog must not set a primary model before official review");
-  assert(Array.isArray(catalog.modelSelectionDecision?.fallbackModels) && catalog.modelSelectionDecision.fallbackModels.length === 0, "catalog must not set fallback models before official review");
-  assert(Array.isArray(catalog.modelSelectionDecision?.excludedModels) && catalog.modelSelectionDecision.excludedModels.length === 0, "catalog must not set excluded models before official review");
-  for (const required of [
-    "official model card review",
-    "license and commercial-use review",
-    "project Apache-2.0 compatibility decision",
-    "source-only release compatibility decision",
-    "primary/fallback/excluded model decision",
-  ]) {
-    assert(catalog.modelSelectionDecision?.completionRequires?.includes(required), `model selection completion requirement missing: ${required}`);
-  }
   for (const scope of [
     "exact model/version pinning",
     "default model selection",

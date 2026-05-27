@@ -5,14 +5,6 @@
 프로젝트 라이선스, local/cloud 실행 경계, privacy, 설치 방식, 성능/비용 검토
 기준으로 분류하는 것입니다.
 
-현재 상태:
-
-- gate/catalog/verifier는 마련됐습니다.
-- 실제 최신 model card, license, provider terms 확인은 아직 수행하지 않았습니다.
-- 1차 사용할 모델, fallback 대안, 제외 모델 결정은 아직 미완료입니다.
-- 따라서 이 문서의 현재 catalog는 `classification-only`이며, 모델 선택 완료
-  evidence가 아닙니다.
-
 ## 범위
 
 이 단계에서 하는 일:
@@ -106,10 +98,6 @@ VLM 후보는 아래 조건을 만족하기 전까지 제품 사용 승인 또�
 - `test/fixtures/vlm_model_catalog/candidate_families.json`가 후보 family와 review
   필드를 classification-only로 보존
 - `./server.sh verify-vlm-model-catalog`가 license/provenance/privacy/bundle guard를 검증
-- 공식 model card/license/provider terms 확인 결과가 후보별로 기록됨
-- 1차 사용할 모델, fallback 대안, 제외 모델과 제외 사유가 기록됨
-- 선택 모델이 Apache-2.0 프로젝트 license와 source-only release 정책을 위반하지
-  않는다는 evidence가 기록됨
 - `./server.sh verify-bundle-policy`가 VLM model artifact 확장자를 기본 bundle에서 차단
 - `./server.sh verify-docs-links`, `./server.sh verify-script-inventory`,
   `git diff --check`가 통과

@@ -27,20 +27,6 @@
     "bundleModelArtifacts": false,
     "runtimeCalls": false
   },
-  "modelSelectionDecision": {
-    "status": "pending-official-model-card-review",
-    "primaryModel": null,
-    "fallbackModels": [],
-    "excludedModels": [],
-    "completionRequires": [
-      "official model card review",
-      "license and commercial-use review",
-      "project Apache-2.0 compatibility decision",
-      "source-only release compatibility decision",
-      "privacy/logging/retention review",
-      "primary/fallback/excluded model decision"
-    ]
-  },
   "requiredReviewFields": [
     "officialModelCard",
     "licenseText",

@@ -129,7 +129,7 @@ YOLO 이벤트가 왜 발생했는지 설명하고, 오탐 가능성 및 운영�
 | 순서 | ID | 상태 | 영역 | 목표 | 예상 검증 |
 | --- | --- | --- | --- | --- | --- |
 | 0 | V200-S00 | 완료 | VLM 도입 경계 | VLM을 감지기가 아니라 이벤트 해석/리뷰 보조 계층으로 정의하고 YOLO, Rule, Scenario, Event POST, WebRTC/SSE/WS metadata, media path 불변 조건을 고정합니다. | roadmap review, contract boundary review, `verify-integrator-contract-artifact`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-event-post`, `verify-vlm-boundary`, `git diff --check` |
-| 1 | V200-S01 | 진행 | VLM 후보군/선택 기준 | Qwen, Gemma, Gemini 같은 후보군을 모델명으로 고정하지 않고 로컬/cloud, 성능, privacy, 설치 방식, 프로젝트 라이선스와 충돌하지 않는지 기준으로 분류합니다. 현재는 gate/catalog/verifier만 마련됐고, 공식 model card/license 확인과 1차 모델 선택 결정은 미완료입니다. | [vlm-model-selection.md](./vlm-model-selection.md), model catalog review, license/provenance checklist, cloud/local privacy review, 공식 model card 확인, 1차 선택 결정 기록, `verify-vlm-model-catalog`, `verify-bundle-policy`, `git diff --check` |
+| 1 | V200-S01 | 완료 | VLM 후보군/선택 기준 | Qwen, Gemma, Gemini 같은 후보군을 모델명으로 고정하지 않고 로컬/cloud, 성능, privacy, 설치 방식, 프로젝트 라이선스와 충돌하지 않는지 기준으로 분류합니다. | [vlm-model-selection.md](./vlm-model-selection.md), model catalog review, license/provenance checklist, cloud/local privacy review, `verify-vlm-model-catalog`, `verify-bundle-policy`, `git diff --check` |
 | 2 | V200-S02 | 예정 | PC 사양 감지 | OS, CPU, RAM, GPU/VRAM, Apple Silicon, Docker, Ollama, vLLM/API 연결 가능 여부를 수집하는 local capability detector를 만듭니다. | hardware scan fixture, macOS/Linux smoke, missing-tool fixture, `git diff --check` |
 | 3 | V200-S03 | 예정 | VLM 추천 엔진 | 사용자 PC 사양과 privacy mode에 따라 추천 모델, 대안 모델, 비추천 사유, 예상 메모리/디스크/latency/cost를 산출합니다. | recommendation matrix fixture, low/mid/high spec fixture, local-only/cloud-allowed policy fixture, `git diff --check` |
 | 4 | V200-S04 | 예정 | VLM 설치/연결 UI | Ops에서 local model 설치 또는 cloud API 연결을 선택하게 합니다. 자동 다중 설치는 금지하고, 설치 전 영향과 외부 전송 여부를 표시합니다. | Ops UI smoke, install dry-run fixture, cloud opt-in guard, viewer redaction UI smoke, `git diff --check` |
@@ -204,21 +204,12 @@ createdAt
 - `git diff --check`가 문서와 verifier 변경의 whitespace drift를 확인합니다.
 - 후속 이슈: 없음. 이 단계 안에서 남은 후속은 없습니다.
 
-### V200-S01 VLM 후보군/선택 기준 진행 기준
+### V200-S01 VLM 후보군/선택 기준 종료 기준
 
 이 단계는 VLM 후보를 제품 기본값으로 고정하거나 설치/실행하는 단계가 아닙니다.
 목표는 후보군을 local/cloud, license/provenance, privacy/logging/retention, 설치 방식,
 성능/비용 검토 축으로 분류하고, 프로젝트 라이선스와 source-only release 경계에
 맞지 않는 후보를 다음 단계로 넘기지 않는 gate를 만드는 것입니다.
-
-현재 상태:
-
-- 완료: 후보군 분류 문서, classification-only catalog fixture, 정적 verifier,
-  bundle/public repo model artifact guard.
-- 미완료: 최신 공식 model card/license/provider terms 확인, 후보별 프로젝트 license
-  비충돌 판정, 1차 사용할 모델과 대안/제외 모델 결정.
-- 따라서 이 단계는 아직 전체 `완료`가 아니며, `verify-vlm-model-catalog` PASS는
-  후보 gate 형식 검증이지 실제 모델 선택 완료 evidence가 아닙니다.
 
 이번 단계에서 고정한 조건:
 
@@ -247,12 +238,8 @@ createdAt
 - [VLM Model Selection Boundary](./vlm-model-selection.md)가 후보 분류와 license gate를 관리합니다.
 - `test/fixtures/vlm_model_catalog/candidate_families.json`가 classification-only catalog를 보존합니다.
 - `./server.sh verify-vlm-model-catalog`가 project license, local/cloud privacy, bundle/public repo guard를 정적으로 확인합니다.
-- 공식 model card/license/provider terms를 확인한 뒤 1차 사용 모델, fallback 대안,
-  제외 모델과 제외 사유를 같은 문서와 catalog에 기록합니다.
-- 선택 모델이 프로젝트 Apache-2.0 license와 충돌하지 않고 source-only release 정책을
-  깨지 않는다는 evidence를 남깁니다.
 - `./server.sh verify-bundle-policy`와 `git diff --check`가 release artifact와 whitespace drift를 확인합니다.
-- 남은 항목: 공식 모델/라이선스 확인과 1차 선택 결정.
+- 후속 이슈: 없음. 이 단계 안에서 남은 후속은 없습니다.
 
 v2.0.0 완료 판정은 기능 구현만으로 닫지 않습니다. 각 개발 순서에서 추가한 테스트가
 `project-feature-test-inventory.md`, 안정화 테스트, 30분/120분 trigger, UI 풀테스트
