@@ -1,0 +1,142 @@
+{
+  "schema": "media-server.vlm-model-catalog.v1",
+  "targetStep": "V200-S01",
+  "catalogStatus": "classification-only",
+  "projectLicenseConstraint": {
+    "projectLicense": "Apache-2.0",
+    "sourceFile": "LICENSE",
+    "mustNotViolateProjectLicense": true,
+    "mustNotRequireProjectRelicense": true,
+    "uncertainLicenseMeans": "not-approved"
+  },
+  "nonScope": [
+    "exact model/version pinning",
+    "default model selection",
+    "automatic install",
+    "runtime call",
+    "credential storage",
+    "profile persistence",
+    "VLMObservation sidecar storage",
+    "Event POST/WebRTC/SSE/WS metadata schema change",
+    "model/runtime bundle release"
+  ],
+  "defaults": {
+    "defaultProvider": null,
+    "defaultModel": null,
+    "autoInstall": false,
+    "bundleModelArtifacts": false,
+    "runtimeCalls": false
+  },
+  "requiredReviewFields": [
+    "officialModelCard",
+    "licenseText",
+    "commercialUseTerms",
+    "redistributionTerms",
+    "attributionNotice",
+    "projectLicenseCompatibility",
+    "modelProvenance",
+    "runtimeDependencyTerms",
+    "privacyLoggingRetention",
+    "externalTransfer",
+    "structuredOutputStability",
+    "languageQuality",
+    "latencyMemoryCost"
+  ],
+  "candidateFamilies": [
+    {
+      "id": "local-open-vlm-family",
+      "displayName": "Local user-selected VLM family",
+      "exampleFamilies": [
+        "Qwen family",
+        "Gemma family"
+      ],
+      "deploymentClass": "local",
+      "runtimeKinds": [
+        "ollama",
+        "vllm",
+        "provider-compatible-local-runtime"
+      ],
+      "installationMode": "user-selected-single-candidate",
+      "exactModelPinned": false,
+      "recommendationStatus": "not-ranked",
+      "licenseReview": {
+        "status": "required",
+        "mustNotViolateProjectLicense": true,
+        "projectLicenseCompatibility": "review-required",
+        "requiredEvidence": [
+          "official model card",
+          "license text",
+          "commercial use terms",
+          "redistribution terms",
+          "attribution or NOTICE requirement",
+          "runtime dependency terms"
+        ],
+        "blockingConditions": [
+          "requires project relicensing",
+          "conflicts with Apache-2.0 source release policy",
+          "requires bundling model/runtime artifact in default release",
+          "unclear commercial use terms"
+        ]
+      },
+      "privacyReview": {
+        "externalTransfer": false,
+        "cloudOptInRequired": false,
+        "promptSourceMaterialReviewRequired": true,
+        "rawResponseViewerVisible": false,
+        "providerLoggingReviewRequired": false
+      },
+      "bundlePolicy": {
+        "modelArtifactsInRepo": false,
+        "modelArtifactsInReleaseAsset": false,
+        "runtimeArtifactsInDefaultBundle": false,
+        "sourceOnlyDefault": true
+      }
+    },
+    {
+      "id": "cloud-provider-vlm-family",
+      "displayName": "Cloud provider VLM family",
+      "exampleFamilies": [
+        "Gemini family"
+      ],
+      "deploymentClass": "cloud",
+      "runtimeKinds": [
+        "provider-api"
+      ],
+      "installationMode": "explicit-provider-connection",
+      "exactModelPinned": false,
+      "recommendationStatus": "not-ranked",
+      "licenseReview": {
+        "status": "required",
+        "mustNotViolateProjectLicense": true,
+        "projectLicenseCompatibility": "review-required",
+        "requiredEvidence": [
+          "provider model card or model documentation",
+          "provider API terms",
+          "commercial use terms",
+          "data processing terms",
+          "attribution or NOTICE requirement"
+        ],
+        "blockingConditions": [
+          "requires project relicensing",
+          "conflicts with Apache-2.0 source release policy",
+          "unclear provider API terms",
+          "unreviewed data retention or logging policy"
+        ]
+      },
+      "privacyReview": {
+        "externalTransfer": true,
+        "cloudOptInRequired": true,
+        "promptSourceMaterialReviewRequired": true,
+        "rawResponseViewerVisible": false,
+        "providerLoggingReviewRequired": true,
+        "credentialInRepoAllowed": false
+      },
+      "bundlePolicy": {
+        "modelArtifactsInRepo": false,
+        "modelArtifactsInReleaseAsset": false,
+        "runtimeArtifactsInDefaultBundle": false,
+        "sourceOnlyDefault": true
+      }
+    }
+  ]
+}

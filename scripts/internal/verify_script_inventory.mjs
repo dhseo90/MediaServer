@@ -404,6 +404,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_bot_sort_deepsort_research_boundary.mjs",
     "verify_public_repo_readiness.mjs",
     "verify_integrator_contract_artifact.mjs",
+    "verify_vlm_model_catalog.mjs",
     "verify_code_comments.mjs",
     "verify_docs_links.mjs",
     "verify_project_feature_test_inventory.mjs",

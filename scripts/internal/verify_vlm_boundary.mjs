@@ -147,6 +147,7 @@ check("VLM implementation is not introduced before boundary-only step closes", (
   const allowlisted = new Set([
     "test/fixtures/integrator_contract_artifact/README.md",
     "test/fixtures/integrator_contract_artifact/freeze-baseline.json",
+    "test/fixtures/vlm_model_catalog/candidate_families.json",
   ]);
   const forbiddenTokens = [
     /\bVLMObservation\b/,
