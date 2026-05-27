@@ -74,10 +74,12 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
   - `./server.sh verify-ops-client-ui`:
   - `./server.sh verify-ops-client-ui --screenshots`:
   - `./server.sh verify-product-ui-no-native-dialogs`:
+  - `./server.sh verify-ui-blocking-dialog-policy`:
   - `./server.sh verify-ops-click-e2e`:
   - `./server.sh verify-ops-click-e2e --auth-ui-flow --auth-users-file <path>`:
   - `./server.sh verify-rule-ui`:
   - `./server.sh verify-manual-ui-evidence`:
+  - `./server.sh verify-manual-ui-evidence-runner --evidence <json> --report <report.md>`:
   - `git diff --check`:
 - 안정화/장시간:
   - `./server.sh verify-predev --soak-minutes 30`:
@@ -85,6 +87,11 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
   - `./server.sh verify-va-runtime-console-longrun --duration-minutes 120`:
 
 ## UI 풀테스트 기록
+
+- blocking dialog policy:
+  - native alert/confirm/prompt 없음:
+  - allowlisted in-page dialog만 사용:
+  - 위험 action 2회 확인 첫 클릭 write 없음:
 
 - 브라우저:
 - 직접 조작 범위:
@@ -174,6 +181,8 @@ evidence가 아닙니다.
 admin/operator 권한으로 `/ops/events`를 직접 열고, 최종 enabled event
 template/vaRule별 EventRecord 발생 이력을 대조합니다. 파일/API 대조는 보조
 evidence이며, UI에서 열지 않은 경우 `FAIL`입니다.
+`line-crossing:any`, `line-crossing:forward`, `line-crossing:reverse`처럼 event key를
+개별 행으로 기록하고 묶음 PASS로 대체하지 않습니다.
 
 - `/ops/events` screenshot:
 - visible rows:
@@ -223,7 +232,7 @@ evidence이며, UI에서 열지 않은 경우 `FAIL`입니다.
 | `/client/dashboard` | viewer/admin preview |  |  |  |  | PASS/FAIL |
 | `/client/request-access` | public |  |  |  |  | PASS/FAIL |
 
-## v1.8.0 Release Evidence Index
+## v1.9.0 Release Evidence Index
 
 자동 smoke나 raw JSON 확인만으로 채우지 않습니다. 실제로 열고 클릭한 화면만
 `PASS` 후보가 될 수 있고, 열지 않은 개별 기능은 `FAIL`입니다.
@@ -252,6 +261,9 @@ evidence이며, UI에서 열지 않은 경우 `FAIL`입니다.
 사용합니다. route를 열었더라도 해당 기능 ID의 control/action을 직접 조작하지
 않았으면 `FAIL`로 남깁니다. 카테고리 묶음 판정은 금지합니다. 아래 행은 예시이며,
 실제 결과 문서에서는 inventory의 대상 기능 ID를 빠짐없이 한 행씩 추가합니다.
+runner 입력 JSON은 `media-server.manual-ui-evidence-input.v1` schema를 사용합니다.
+`./server.sh verify-manual-ui-evidence-runner`는 누락된 UI 대상 기능 ID는 `FAIL`로
+기록하고, 제외 항목은 판정표 밖 `Exclusions`에만 둡니다.
 
 | 기능 ID | 영역 | 클릭/타이핑으로 확인한 항목 | 기대 결과 | 실제 결과 | 판정 | 비고 |
 | --- | --- | --- | --- | --- | --- | --- |

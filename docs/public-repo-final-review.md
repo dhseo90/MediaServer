@@ -21,12 +21,12 @@ GitHub Settings 화면에서 직접 눌러야 하는 항목은 자동화하지 �
   - Description: `RTSP/WebRTC media server with optional YOLO-based video analytics`
   - Topics: `rtsp`, `gstreamer`, `cpp`, `webrtc`, `media-server`, `yolo`, `video-analytics`
 - Visibility: public
-- 현재 source-only release 준비 기준: `v1.8.0`
+- 현재 source-only release 준비 기준: `v1.9.0`
 
 `Restrict deletions`와 `Block force pushes`는 GitHub Actions check가 아니라 ruleset branch rule입니다.
 Required status check에는 추가하지 않고, checkbox enabled 상태만 확인합니다.
 
-## Dependabot Actions 실패 판단
+## Dependabot Actions / Node 24 readiness 판단
 
 2026-05-10 Actions 화면에서 아래 실패가 확인됐습니다.
 
@@ -34,9 +34,29 @@ Required status check에는 추가하지 않고, checkbox enabled 상태만 확�
 - `Preflight #7`: `ci: bump actions/upload-artifact from 4 to 7`
 
 두 실패는 `main` 최신 커밋 실패가 아니라 Dependabot branch에서 발생한 정책 차단입니다.
-현재 `verify-actions-security`는 공식 `actions/*@v4`, SHA pin, local action만 허용합니다.
-따라서 GitHub Actions major update는 자동 병합 대상이 아니며, 보안 정책을 검토한 뒤 수동으로 올립니다.
-반복 실패 알림을 줄이기 위해 `.github/dependabot.yml`은 `actions/checkout`, `actions/upload-artifact`의 semver major update를 무시합니다.
+현재 GitHub Actions Node 24 baseline은 `actions/checkout@v5`와
+`actions/upload-artifact@v6`입니다. 두 action은 Node.js 24 runtime 경로이며
+minimum Actions Runner version `2.327.1` 이상이 필요합니다. `verify-actions-security`는
+이 두 공식 action 버전, SHA pin, local action만 허용합니다.
+따라서 future GitHub Actions major update는 자동 병합 대상이 아니며, 보안 정책과
+runner compatibility를 검토한 뒤 수동으로 올립니다. 반복 실패 알림을 줄이기 위해
+`.github/dependabot.yml`은 `actions/checkout`, `actions/upload-artifact`의 semver
+major update를 무시합니다.
+
+## GitHub Actions warning annotation gate
+
+최신 `Preflight` 또는 `Licensing and Artifact Guardrails`가 success check-run으로
+보여도 warning/failure annotation이 있으면 release gate PASS로 기록하지 않습니다.
+GitHub check-runs annotations API review에서 annotation JSON을 받은 경우 아래처럼
+로컬 gate에 넣어 확인합니다.
+
+```bash
+./server.sh verify-actions-security --annotations-json <annotations.json>
+```
+
+현재 정책은 Node.js action runtime deprecation 같은 warning/failure annotation을
+차단하는 것입니다. GitHub UI에서 열어보지 않았거나 API export를 실행하지 않은
+annotation 상태는 `미확인`으로 남기고 PASS evidence로 대체하지 않습니다.
 
 ## 자동 확인
 
@@ -44,16 +64,24 @@ public/release readiness를 로컬 또는 CI에서 확인할 때 실행합니다
 
 ```bash
 ./server.sh verify-script-inventory
+./server.sh verify-feature-inventory-coverage
 ./server.sh verify-code-comments
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-actions-security
+./server.sh verify-actions-security --annotations-json <annotations.json>
+./server.sh verify-ci-local-gate-parity
 ./server.sh write-dependency-notice --check
 ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
 ./server.sh dependency-snapshot --stable --output /tmp/media_server_dependency_snapshot.md --json-output /tmp/media_server_dependency_snapshot.json --no-linked-libs
 ./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
 ./server.sh source-offer-checklist --stable --bundle-policy-report /tmp/media_server_bundle_policy.json --output /tmp/media_server_source_offer_checklist.md
 ```
+
+`verify-ci-local-gate-parity`는 `media-server.ci-local-gate-parity.v1` summary로
+Preflight/static-gates/guardrails와 로컬 verifier 목록을 대조합니다. 이 명령이
+통과하지 않으면 GitHub Actions의 required/static/guardrail gate가 로컬 release
+gate를 실제로 막는다는 evidence로 기록하지 않습니다.
 
 media pipeline을 바꾸지 않은 공개 준비 변경은 FFmpeg CLI 의존을 분리한 smoke를 사용할 수 있습니다.
 
@@ -119,7 +147,7 @@ Public/release UI 리허설:
 
 ## 공개/release 점검표
 
-2026-05-26 v1.8.0 branch 로컬 재확인 기준:
+2026-05-27 v1.9.0 branch 로컬 재확인 기준:
 
 - [x] `git status --short`에 의도하지 않은 파일이 없습니다.
 - [x] secret, token, password, auth store, 개인 local path가 문서/코드/history에 없습니다.

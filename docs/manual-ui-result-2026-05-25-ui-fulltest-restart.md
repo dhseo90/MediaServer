@@ -6,6 +6,7 @@
 - 검수자: Codex autonomous browser/CDP + project verifier
 - 날짜/시간: 2026-05-25T07:07:28.648Z
 - continuation update: 2026-05-25T19:28:48Z
+- current evidence sync: 2026-05-27, `SAFE-021` UI blocking dialog policy row/count drift reconciled with current inventory.
 - 브랜치/커밋: v1.8.0, 시작 기준 4326bb7. UI 풀테스트 close-out 변경은 114968b, a39e9cb, e581ed9로 커밋 후 origin/v1.8.0에 push 완료.
 - 서버 URL: http://127.0.0.1:8081
 - auth mode: auto
@@ -30,7 +31,7 @@
 | 안정화 테스트 | 후속 재검증에서 build/auth/ops-client/rule/VA/docs/static gate 실행 | build PASS, auth bootstrap/users/routes PASS, ops/client UI PASS, rule UI PASS, VA replay/events PASS, docs/static PASS | 최초 auth env missing, 서버 미기동/auth mismatch/storage disabled 실행조건 실패는 같은 단계에서 조건 보정 후 재검증 PASS. 당시 `verify-release-metadata --allow-unpublished`는 PASS 15/0였고 현재 기본 `verify-release-metadata`와 같은 release-prep gate다. published release gate는 sandbox 밖 재검증에서도 GitHub latest `v1.7.0`, remote/local `v1.8.0` tag 없음으로 FAIL |
 | 30분 테스트 | `verify-predev --soak-minutes 30` 실행 | `/tmp/media_server_predev-1779703217-28197_summary.json`, `/tmp/media_server_predev-1779703217-28197_report.md`, durationSec=2399, pass=119 fail=0 skip=1 | PASS. skip: external-turn-hard-gate는 `--include-external-turn` 미지정으로 제외 |
 | 120분 테스트 | 실행하지 않음 | 없음 | 별도 승인 없음 |
-| UI 풀테스트 | 219개 UI 대상 기능 ID 중 219 PASS, 0 FAIL. 기능별 결과표는 UI 비대상 간접 안정화 행 `RULE-099` 별도 PASS 포함 220행 중 220 PASS, 0 FAIL | retained evidence: auth/browser artifacts, current ops click E2E summary JSON, current EventRecord history coverage JSON, command result log below | 최종 PASS |
+| UI 풀테스트 | 220개 UI 대상 기능 ID 중 220 PASS, 0 FAIL. 기능별 결과표는 UI 비대상 간접 안정화 행 `RULE-099` 별도 PASS 포함 221행 중 221 PASS, 0 FAIL | retained evidence: auth/browser artifacts, current ops click E2E summary JSON, current EventRecord history coverage JSON, command result log below | 최종 PASS |
 
 ## 현재 보존 증적
 
@@ -51,6 +52,8 @@
 - `./server.sh verify-manual-ui-evidence`: PASS
 - `./server.sh verify-docs-links`: PASS
 - `git diff --check`: PASS
+- current evidence sync `./server.sh verify-product-ui-no-native-dialogs`: PASS - product UI에서 native `alert`/`confirm`/`prompt` 사용 없음.
+- current evidence sync `./server.sh verify-ui-blocking-dialog-policy`: PASS 6/0 - native dialog 금지, non-blocking beforeunload cleanup, allowlisted read-only modal, 제품 화면 안 2회 확인 정책 확인.
 - 당시 published-release 기본 모드 `./server.sh verify-release-metadata`: FAIL - GitHub latest release/tag is v1.7.0 and remote/local tag v1.8.0 is absent. 현재 published gate는 `./server.sh verify-release-metadata --published`로 분리됐다. UI product regression으로 단정하지 않음.
 - 당시 release-prep 모드 `./server.sh verify-release-metadata --allow-unpublished --json-report /private/tmp/media_server_release_metadata_allow_unpublished.json --report /private/tmp/media_server_release_metadata_allow_unpublished.md`: PASS 15/0 - 현재 기본 `verify-release-metadata`와 같은 로컬 문서/버전 기준이며 GitHub publish/tag는 manual close-out gate로 분리.
 - `./server.sh verify-va-events --cookie-file ... --dispatch-records`: FAIL - EventRecord queue drain timeout. Stored records existed; queue remained non-empty and droppedCount > 0.
@@ -297,7 +300,7 @@
 
 ## 기능별 직접 조작 기록
 
-- UI 대상 기능 ID는 219개이며, 아래 표에는 RULE coverage 누락 방지를 위해 UI 비대상/간접 안정화 행 `RULE-099` 1개도 별도 포함합니다. 현재 표 기준 총 220개 행 중 220 PASS, 0 FAIL입니다.
+- UI 대상 기능 ID는 220개이며, 아래 표에는 RULE coverage 누락 방지를 위해 UI 비대상/간접 안정화 행 `RULE-099` 1개도 별도 포함합니다. 현재 표 기준 총 221개 행 중 221 PASS, 0 FAIL입니다.
 
 | 기능 ID | 영역 | 클릭/타이핑으로 확인한 항목 | 기대 결과 | 실제 결과 | 판정 | 비고 |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -521,6 +524,7 @@
 | SAFE-018 | SAFE | viewer/client leak checks passed for debug/source/raw tokens | client 화면/API에 debug/source/raw 정보 없음 | 기대 evidence 확인 | PASS | viewer/client leak checks passed for debug/source/raw tokens |
 | SAFE-019 | SAFE | screenshots/results omit plaintext password, tokenHash, passwordHash; temp password file removed | password/token/session material이 artifact/UI/API에 없음 | 기대 evidence 확인 | PASS | screenshots/results omit plaintext password, tokenHash, passwordHash; temp password file removed |
 | SAFE-020 | SAFE | admin/operator/viewer route/nav separation confirmed by role-guard-evidence.json | ops/client nav, route, action guard가 role별로 분리 | 기대 evidence 확인 | PASS | admin/operator/viewer route/nav separation confirmed by role-guard-evidence.json |
+| SAFE-021 | SAFE | `verify-product-ui-no-native-dialogs`와 `verify-ui-blocking-dialog-policy`로 native alert/confirm/prompt 금지, non-blocking beforeunload cleanup, allowlisted read-only modal, 제품 화면 안 2회 확인 정책을 확인 | native alert/confirm/prompt와 blocking beforeunload는 금지하고, allowlisted read-only dialog와 제품 화면 안 2회 확인 흐름만 허용 | 기대 evidence 확인 | PASS | current evidence sync 2026-05-27: policy verifier PASS 6/0, native dialog guard PASS |
 
 ## 확인됨
 
@@ -537,7 +541,7 @@
 | `/ops/sources` | sample_h264.mp4 file source 생성 | 기존 source와 충돌 시 validation 표시 | `duplicate source` 표시 | `ops-sources-created-file-channel.png` | validation 정상, 첫 생성 시도 실패 | imports/NewYorkDriving.mp4로 재시도 PASS |
 | VA verifier | `verify-va-events --dispatch-records` | queue drain + all required EventRecords | 최초 queue drain timeout 후 verifier dispatch cadence/fail-fast 수정, fresh registry/storage 기본값 재검증 PASS. 이후 `/ops/events` UI scope/history coverage 390px/1180px PASS | command output, `event-records-sample.json`, `/tmp/media_server_vaevt-1779699325-92204_event_records.json`, `/private/tmp/media_server_event_records_scope_history_390`, `/private/tmp/media_server_event_records_scope_history_1180` | verifier queue blocker와 UI EventRecord 대조 해소 | 완료 |
 | 안정화 실행조건 | auth env/server/auth mode/EventRecord storage 조건이 맞아야 verifier 실행 가능 | 조건 미충족 시 제품 회귀로 단정하지 않고 같은 단계에서 조건 보정 후 재검증 | auth env missing, 서버 미기동, auth mismatch, storage disabled가 각각 최초 실패로 발생. 조건 보정 후 해당 명령 재검증 PASS | command output, `/tmp/media_server_predev-1779703217-28197_summary.json` | 실행조건 실패와 UI 대상 FAIL 행 모두 해소 | 완료 |
-| 기능별 UI 풀테스트 | 기능별 결과표 220개 행 전수 | 모든 행 PASS | 220 PASS / 0 FAIL | 이 문서 기능별 표 | 전체 UI 풀테스트 PASS | 완료 |
+| 기능별 UI 풀테스트 | 기능별 결과표 221개 행 전수 | 모든 행 PASS | 221 PASS / 0 FAIL | 이 문서 기능별 표 | 전체 UI 풀테스트 PASS | 완료 |
 
 ## 제외 기록
 

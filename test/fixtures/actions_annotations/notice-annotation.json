@@ -1,0 +1,12 @@
+{
+  "annotations": [
+    {
+      "path": ".github/workflows/preflight.yml",
+      "start_line": 17,
+      "end_line": 17,
+      "annotation_level": "notice",
+      "title": "Informational annotation",
+      "message": "Synthetic fixture: notice annotations do not block the release gate."
+    }
+  ]
+}

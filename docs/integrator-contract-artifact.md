@@ -18,6 +18,7 @@ test/fixtures/integrator_contract_artifact/
   CHANGELOG.md
   field-index.json
   schema-review-checklist.md
+  freeze-baseline.json
   manifest.json
   schemas/
     event-post.schema.json
@@ -37,6 +38,11 @@ test/fixtures/integrator_contract_artifact/
 `field-index.json`은 top-level field와 integrator-visible payload에서 제외해야 할
 field를 고정합니다. `schema-review-checklist.md`는 payload mutation 요청이
 나왔을 때만 사용하는 review gate입니다.
+`freeze-baseline.json`은 `media-server.v200-contract-schema-freeze.v1` schema의
+v2.0.0 entry freeze gate입니다. artifact 파일, source contract 문서, 그리고
+Auth/session/scope, SourceRegistry/PublishedView, Rule/Profile payload 기준 파일의
+SHA-256을 고정하며, drift가 있으면 schema review 없이 v2.0.0 신규 기능으로
+넘어가지 않습니다.
 
 | 영역 | Identifier | Sample | Runtime 검증 |
 | --- | --- | --- | --- |
@@ -55,6 +61,9 @@ field를 고정합니다. `schema-review-checklist.md`는 payload mutation 요�
 - 기존 SSE/WS runtime metadata sample과 JSON Schema
 - WebSocket subscribe/status/reset 계열 control ack sample과 JSON Schema
 - artifact manifest와 정적 검증 명령
+- v2.0.0 entry freeze gate용 `freeze-baseline.json`
+- Auth/session/scope, SourceRegistry/PublishedView, Rule/Profile payload 기준선의
+  drift 감지 목록
 
 비범위:
 
@@ -93,6 +102,8 @@ artifact 자체 검증:
   노출 후보가 없음
 - `field-index.json`, `CHANGELOG.md`, `schema-review-checklist.md`가 bundle에
   포함되고 manifest와 일치함
+- `freeze-baseline.json`의 SHA-256 pin이 artifact와 source contract 문서의 현재
+  내용과 일치하며, intentional drift는 schema review가 필요함
 
 Runtime delivery smoke는 별도입니다. 위 artifact 검증만 실행했다면 Event POST,
 WebRTC, SSE, WebSocket delivery가 실제로 재검증됐다고 보고하지 않습니다.

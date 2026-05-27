@@ -56,6 +56,10 @@
     "activeWebSocketClientsAfterCleanup": 0,
     "rtspEgressConsumersAfterCleanup": 0,
     "portsClean": true,
+    "checkedPorts": [
+      8081,
+      8555
+    ],
     "idleJudgement": "pass"
   },
   "rssCpu": {

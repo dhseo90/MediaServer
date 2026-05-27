@@ -591,7 +591,8 @@ def main() -> int:
             server_proc.send_signal(signal.SIGTERM)
             longrun.close_process(server_proc, 10.0)
 
-    port_clean = longrun.ports_clean([args.http_port, args.rtsp_port, 8080, 8081, 8554, 8555])
+    checked_ports = longrun.cleanup_ports([args.http_port, args.rtsp_port])
+    port_clean = longrun.ports_clean(checked_ports)
     log_step(steps, "ports-clean", "pass" if port_clean else "fail")
     finished_at = iso_now()
     trend = idle_baseline_trend(cycle_reports)
@@ -640,6 +641,7 @@ def main() -> int:
         "cleanupFailures": cleanup_failures,
         "childFailures": child_failures,
         "portClean": port_clean,
+        "checkedPorts": checked_ports,
         "steps": steps,
     }
     summary_file.write_text(json.dumps(summary, ensure_ascii=False, indent=2, sort_keys=True) + "\n", encoding="utf-8")

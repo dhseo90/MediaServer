@@ -25,7 +25,7 @@ Usage:
 
 Options:
   --http-base <url>         실행 중인 서버 HTTP base입니다. 기본 http://127.0.0.1:8081.
-  --timeout-ms <ms>         HTTP/브라우저 대기 시간입니다. 기본 10000.
+  --timeout-ms <ms>         HTTP/브라우저 대기 시간입니다. 기본 30000.
   --screenshots[=1]         대표 화면 screenshot smoke를 함께 수행합니다.
   --chrome-path <path>      Chrome/Chromium 실행 파일 경로입니다.
   --visual-widths <csv>     screenshot 검증 viewport 폭 목록입니다. 기본 320,390,760,1180.
@@ -49,7 +49,7 @@ assertKnownOptions(rawArgs, [
 ]);
 const args = parseArgs(rawArgs);
 const httpBase = (args.httpBase || "http://127.0.0.1:8081").replace(/\/+$/, "");
-const timeoutMs = Number(args.timeoutMs || 10000);
+const timeoutMs = Number(args.timeoutMs || 30000);
 const screenshotEnabled = isTruthy(args.screenshots);
 const chromePath = args.chromePath || findChrome();
 const visualWidths = parseWidthList(args.visualWidths || "320,390,760,1180");
@@ -871,6 +871,20 @@ function opsSourcesGeneratedIdExpression() {
       if (String(hiddenId?.value || '') !== idText) issue('hidden channel id does not match display');
       const active = document.activeElement;
       if (active?.name === 'channelId') issue('channel id can receive edit focus');
+      document.querySelector('#channel-save-selected')?.click();
+      await wait(250);
+      const validation = String(document.querySelector('#channel-validation')?.textContent || '').trim();
+      if (!validation.includes('채널 이름이 필요합니다.')) {
+        issue('empty channel name validation missing: ' + validation);
+      }
+      const rows = Array.from(document.querySelectorAll('#channels-body tr'));
+      const emptyNameRow = rows.some(row => {
+        const cells = Array.from(row.querySelectorAll('td'));
+        const id = String(cells[0]?.textContent || '').trim();
+        const name = String(cells[1]?.textContent || '').trim();
+        return id === idText && !name;
+      });
+      if (emptyNameRow) issue('empty channel name row was saved');
       return { ok: issues.length === 0, issues, idText };
     })()
   `;

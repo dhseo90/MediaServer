@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v1.8.0 기능별 UI 필요/테스트 영역 inventory가 실행 evidence와 분리되어 유지되는지 검증한다.
+// 파일 용도: 현재 릴리즈 기능별 UI 필요/테스트 영역 inventory가 실행 evidence와 분리되어 유지되는지 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -20,7 +20,7 @@ Usage:
 
 Checks:
   - docs/project-feature-test-inventory.md is indexed
-  - inventory pins v1.8.0 and states it is not execution evidence
+  - inventory pins the current release and states it is not execution evidence
   - all feature IDs use the current UI/test-area matrix shape
   - coverage, verifier, VA seed, 30-minute, 120-minute, and field-smoke boundaries exist
   - manual UI docs reference the feature inventory
@@ -42,6 +42,8 @@ const agents = readText("AGENTS.md");
 const seedFixturePath = "test/fixtures/manual_ui_fulltest_va_seed_matrix.json";
 const seedFixtureText = readText(seedFixturePath);
 const seedFixture = JSON.parse(seedFixtureText);
+const currentVersion = readText("VERSION").trim();
+const currentTag = `v${currentVersion}`;
 
 const checks = [];
 
@@ -49,8 +51,8 @@ check("docs index references feature inventory", () => {
   requireText(docsIndex, "project-feature-test-inventory.md", "docs index missing inventory link");
 });
 
-check("feature inventory pins v1.8.0 scope", () => {
-  requireText(inventory, "현재 release 목표 `v1.8.0`", "inventory does not pin v1.8.0");
+check("feature inventory pins current release scope", () => {
+  requireText(inventory, `현재 release 목표 \`${currentTag}\``, `inventory does not pin ${currentTag}`);
   requireText(inventory, "테스트 실행 결과 문서가 아닙니다", "inventory must reject execution-evidence wording");
   requireText(inventory, "현재 테스트가 존재한다는 증거가 아닙니다", "inventory must reject test-exists wording");
   requireText(inventory, "coverage 대조 전에는 `테스트 있음`, `UI 있음`, `완료`라고 보고하지 않습니다.", "inventory missing no-overclaim rule");
@@ -82,7 +84,7 @@ check("required sections exist", () => {
 
 check("summary counts match current feature IDs", () => {
   const rows = parseFeatureRows(inventory);
-  assert(rows.length === 316, `expected 316 feature rows, found ${rows.length}`);
+  assert(rows.length === 317, `expected 317 feature rows, found ${rows.length}`);
   const ids = rows.map(row => row.id);
   assert(new Set(ids).size === ids.length, "duplicate feature IDs in inventory");
   for (const prefix of ["UI", "AUTH", "SRC", "RULE", "EVT", "CLIENT", "MEDIA", "LAB", "SAFE"]) {
@@ -189,9 +191,9 @@ check("AGENTS requires individual future feature test rows", () => {
   }
 });
 
-check("manual UI VA seed matrix covers required v1.8.0 cases", () => {
+check("manual UI VA seed matrix covers required current release cases", () => {
   assert(seedFixture.schema === "media-server.manual-ui-fulltest-va-seed-matrix.v1", "unexpected seed fixture schema");
-  assert(seedFixture.releaseTarget === "v1.8.0", "seed fixture must pin v1.8.0");
+  assert(seedFixture.releaseTarget === currentTag, `seed fixture must pin ${currentTag}`);
   assert(seedFixture.usageBoundary?.notEvidenceUntilAppliedAndVerified === true, "seed fixture must not be evidence by itself");
   assert(seedFixture.usageBoundary?.keepFinalRulesForEventLogReview === true, "seed fixture must preserve final rules for event review");
   assert(seedFixture.usageBoundary?.separateCrudFromScenarioEventReview === true, "seed fixture must separate CRUD from event review");

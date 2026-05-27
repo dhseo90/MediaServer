@@ -8,6 +8,7 @@
     "CHANGELOG.md",
     "field-index.json",
     "schema-review-checklist.md",
+    "freeze-baseline.json",
     "manifest.json",
     "schemas/common.json",
     "schemas/event-post.schema.json",

@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Shell syntax
         shell: bash
@@ -33,10 +33,20 @@ jobs:
         run: |
           ./server.sh verify-script-inventory
 
+      - name: Feature inventory coverage
+        shell: bash
+        run: |
+          ./server.sh verify-feature-inventory-coverage
+
       - name: Actions security
         shell: bash
         run: |
           ./server.sh verify-actions-security
+
+      - name: CI/local gate parity
+        shell: bash
+        run: |
+          ./server.sh verify-ci-local-gate-parity
 
       - name: Code comments
         shell: bash
@@ -64,7 +74,7 @@ jobs:
       - name: Upload release close-out helper dry-run
         id: upload-release-closeout-helper
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: media-server-release-closeout-helper-dry-run
           path: |
@@ -121,7 +131,7 @@ jobs:
 
       - name: Upload UI visual maintenance dry-run report
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: media-server-ui-visual-maintenance-dry-run
           path: |
@@ -132,7 +142,7 @@ jobs:
       - name: Upload UI visual baseline diff preflight artifact
         id: upload-ui-visual-baseline-diff
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: media-server-ui-visual-baseline-diff
           path: |

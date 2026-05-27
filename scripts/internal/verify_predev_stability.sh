@@ -67,8 +67,8 @@ Options:
 
 기준:
   - 통합 smoke, VA event, redaction, event POST schema/recovery/queue를 확인합니다.
-  - predev 테스트 서버는 기본 `MEDIA_SERVER_AUTH_MODE=off`로 시작합니다.
-    다른 auth mode를 의도적으로 검증하려면 `MEDIA_SERVER_VERIFY_PREDEV_AUTH_MODE`를 지정합니다.
+  - predev 테스트 서버는 기본 MEDIA_SERVER_AUTH_MODE=off로 시작합니다.
+    다른 auth mode를 의도적으로 검증하려면 MEDIA_SERVER_VERIFY_PREDEV_AUTH_MODE를 지정합니다.
   - 종료 시 runtime session/stream/tap cleanup과 8080/8081/8554/8555 listener 정리를 hard check합니다.
   - LAN IP 외부 접근성은 bind/방화벽 영향이 커서 --include-external-client 지정 시에만 hard gate로 포함합니다.
   - 외부 TURN credential이 없는 환경에서는 외부 TURN hard gate를 기본 포함하지 않습니다.

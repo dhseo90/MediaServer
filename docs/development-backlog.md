@@ -34,11 +34,11 @@ source-of-truth가 아닙니다. 현재 기준은 이 문서와 기능별 상세
 
 `완료`는 운영 배포 ready, 장기 안정성 보장, 외부 연동 ready를 뜻하지 않습니다.
 
-## 현재 기준: v1.8.0 Source Release Baseline
+## 현재 기준: v1.9.0 Source Release Baseline
 
-v1.8.0은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서
-release/latest/docs evidence drift를 막는 trust hardening을 닫은 source-only
-release입니다. Client Live workspace, source tree/dock event feed, tile disconnect,
+v1.9.0은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서
+release/latest/docs evidence drift와 v2.0.0 진입 전 gate drift를 막는
+maintenance-first source-only release입니다. Client Live workspace, source tree/dock event feed, tile disconnect,
 event review, source group/site, tile info overlay, saved layout, incident timeline,
 alert delivery, scenario builder, Ops/Client declutter는 이전 UI-first close-out에서 닫은
 제품 baseline으로 유지합니다.
@@ -53,7 +53,7 @@ alert delivery, scenario builder, Ops/Client declutter는 이전 UI-first close-
   incident timeline, viewer debug/source 비노출
 - Auth: setup/login/session, role/scope, admin user console, invite/request approval
 - Release: source-only readiness, bundle/license guardrail, release evidence, manual UI evidence,
-  GitHub Latest Release 확인 gate, docs screenshot freshness, release close-out runbook
+  GitHub Actions warning/Node 24 gate, UI evidence runner, feature coverage, release close-out runbook
 - Research boundary: Re-ID/tracker default-off, OC-SORT manifest-only sandbox, YouTube lab-only 유지
 
 명시적 비범위:
@@ -66,9 +66,47 @@ alert delivery, scenario builder, Ops/Client declutter는 이전 UI-first close-
 - field sample scheduler, dataset ingest, tracker replacement benchmark 실행
 - 별도 Phase의 실제 기능 개발, tracker replacement product review
 
-세부 종료 증적은 아래 v1.8.0 Release Trust Hardening Close-out 섹션을 봅니다.
+세부 종료 증적은 아래 v1.9.0 Release Trust Hardening Close-out 섹션을 봅니다.
 과거 release evidence는 standalone current 문서가 아니라 이 문서의 archive 섹션에만
 보존합니다.
+
+## v1.9.0 Release Trust Hardening Close-out
+
+v1.9.0은 v1.8.0 source release 이후 main/release 운영 신뢰도를 유지하는
+maintenance-first roadmap입니다. v1.8.0에서 닫은 source-only/live-only 제품 경계를
+유지하고, 새 제품 기능은 owner가 별도 승인하기 전까지 active roadmap으로 승격하지
+않습니다.
+v1.9.0의 목표는 새 제품 기능 확장이 아니라 GitHub Actions warning/Node 24 기준,
+UI evidence runner, feature inventory coverage, contract/schema freeze, fixture cleanup,
+CI/local gate parity, published release evidence, auth/session/scope matrix, final baseline
+report를 v2.0.0 진입 전에 고정하는 것입니다.
+
+후속 이슈 승격 원칙:
+
+- 새 후속 이슈는 먼저 후보로 제시하고, 영향 범위와 검증 비용을 owner에게 확인받습니다.
+- owner가 명시적으로 승인하기 전에는 이 표에 새 roadmap 행으로 추가하지 않습니다.
+- 승인 없는 후보를 "v1.9.0 범위" 또는 "잔여 이슈"로 확정해 기록하지 않습니다.
+- 2026-05-26 기준 승인된 post-release 운영 이슈 4개, 개발 로드맵 이슈 5개,
+  v2.0.0 신규 기능 진입 전 안정화 이슈 6개는 아래 표에 active roadmap으로
+  반영합니다. 그 밖의 추가 개발 후보는 다시 owner 승인 전까지 반영하지 않습니다.
+
+| ID | 우선순위 | 영역 | 목표 | 예상 검증 |
+| --- | --- | --- | --- | --- |
+| V190-P0-01 | P0 | GitHub Actions warning annotation gate | main check-run은 success여도 Node.js 20 actions deprecation warning annotation이 남을 수 있으므로, warning을 release gate에서 허용할지 차단할지 기준을 명확히 정합니다. | GitHub check-runs annotations API review, release gate policy review, `verify-actions-security`, Preflight/static-gates/guardrails, `git diff --check` |
+| V190-P0-02 | P0 | GitHub Actions Node 24 readiness | `actions/checkout@v5`, `actions/upload-artifact@v6`의 Node 24 runtime baseline, `verify-actions-security`의 허용 정책, Dependabot major ignore 정책을 함께 검토한 뒤 workflow와 verifier 정책을 일관되게 유지합니다. | upstream action version/changelog review, `.github/dependabot.yml` review, `verify-actions-security`, Preflight/static-gates/guardrails, `git diff --check` |
+| V190-P0-03 | P0 | UI 풀테스트 evidence runner | inventory 기능 ID별 클릭, 입력, 상태 반영, 관련 로그 확인 결과를 자동 산출하고 미실행 ID를 FAIL로 남기는 evidence runner를 정리합니다. 수동 클릭 의존을 줄이고 UI 풀테스트 완료/미완료 판정을 기능 ID 단위로 남깁니다. | feature inventory fixture review, autonomous UI runner, per-ID evidence report, manual spot review, `verify-ops-client-ui --screenshots`, `verify-rule-ui`, `git diff --check` |
+| V190-P0-04 | P0 | Feature inventory coverage gate | `project-feature-test-inventory.md`의 기능 ID가 실제 verifier, UI evidence, 장시간 승인 gate, 또는 명시적 제외 기록과 연결되지 않으면 release gate에서 잡도록 coverage mapping을 고정합니다. | `verify-feature-inventory-coverage` inventory-to-verifier mapping report, missing-ID FAIL check, `verify-script-inventory`, release gate dry-run, `git diff --check` |
+| V190-P0-05 | P0 | v2.0.0 entry contract/schema freeze gate | v2.0.0 신규 기능 개발 전 WebRTC DataChannel, SSE/WS metadata, Event POST, Auth/session/scope, SourceRegistry/PublishedView, Rule/Profile payload 기준선을 `freeze-baseline.json`으로 고정하고 변경 징후를 즉시 잡는 freeze gate를 정리합니다. | contract artifact review, schema/payload sample diff, `verify-integrator-contract-artifact`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-event-post`, `git diff --check` |
+| V190-P0-06 | P0 | Test state isolation cleanup gate | UI runner, VA seed, EventRecord, auth users, source/view registry, analysis registry, port/server lifecycle이 테스트 후 항상 복원되거나 throwaway 경로로 격리되는지 `media-server.fixture-cleanup-contracts.v1` gate로 통합 확인합니다. | fixture cleanup matrix, throwaway state path review, `verify-fixture-cleanup-contracts`, access request cleanup, EventRecord cleanup, port cleanup check, `git diff --check` |
+| V190-P0-07 | P0 | CI/local gate parity | 로컬에서 통과하는 verifier와 GitHub Actions에서 실제로 막는 required/static/guardrail gate를 `media-server.ci-local-gate-parity.v1`으로 대조해 v2.0.0 기능 PR 전에 CI 누락을 줄입니다. | local-vs-CI gate matrix, `.github/workflows/*` review, `verify-ci-local-gate-parity`, `verify-script-inventory`, `verify-actions-security`, Preflight/static-gates/guardrails, `git diff --check` |
+| V190-P1-01 | P1 | Published release evidence automation | release 후 main page 오른쪽 Releases/Latest 표시, GitHub Latest Release API, remote tag/branch 상태를 수동 보고에만 의존하지 않도록 증적 저장 또는 report 출력을 정리합니다. | `verify-release-metadata --published` report review, GitHub API latest release check, remote refs check, release evidence index review, `git diff --check` |
+| V190-P1-02 | P1 | GitHub metadata verifier fallback policy | `gh` 인증 또는 SSH/DNS 문제가 있을 때 `verify-release-metadata --published`가 제품 회귀와 환경 실패를 구분해 보고하도록 GitHub API/curl fallback 또는 실패 메시지 정책을 검토합니다. | sandbox/non-sandbox verifier comparison, `gh` failure reproduction, GitHub API fallback review, `verify-release-metadata --published`, `git diff --check` |
+| V190-P1-03 | P1 | VA rule/scenario/EventRecord coverage report | rule, scenario, event type별 발생 이력과 EventRecord 저장 여부, 누락 조합을 표로 뽑아 VA coverage를 카테고리 한 줄이 아니라 조합 단위 evidence로 확인합니다. | VA replay matrix, EventRecord history report, rule/scenario event type coverage, invalid-combination FAIL rows, `verify-va-events`, `verify-va-replay`, `git diff --check` |
+| V190-P1-04 | P1 | Release close-out one-shot gate | main merge 이후 tag 생성, release branch 삭제, GitHub Release latest 확인, published metadata verify, next branch 생성을 한 순서로 강제하고 실패 시 즉시 중단하는 `media-server.release-closeout-one-shot-gate.v1` dry-run gate를 설계합니다. | `verify-release-closeout-helper --dry-run --one-shot-dry-run`, dry-run close-out gate, remote refs check, GitHub latest release API check, `verify-release-metadata --published`, failure-stop rehearsal, `git diff --check` |
+| V190-P1-05 | P1 | Auth/session/scope regression matrix | admin/operator/viewer/integrator, invite/request-access, password history, last-admin guard, viewer redaction을 `media-server.auth-session-scope-regression-matrix.v1` 기능 ID 기준 matrix로 고정해 v2.0.0 신규 기능이 권한 경계를 새지 않게 합니다. | `verify-auth-regression-matrix`, auth/scope matrix report, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-ops-click-e2e --auth-ui-flow`, viewer redaction UI smoke, `git diff --check` |
+| V190-P1-06 | P1 | v1.9.0 final baseline and v2.0.0 entry report | v1.9.0 종료 시 안정화, 30분, UI 풀테스트, 120분 판단, 제외/미확인, CI 상태, release metadata를 `media-server.v190-entry-baseline-report.v1` v2.0.0 entry baseline report로 닫습니다. | `verify-v190-entry-baseline`, final baseline report, release evidence index review, `verify-release-evidence-index`, `verify-post-release-reconciliation`, `verify-release-metadata`, CI check review, `git diff --check` |
+| V190-P2-01 | P2 | UI blocking dialog policy | UI 테스트 중 사용자 수동 클릭을 요구하는 확인 버튼, modal, blocking dialog를 `media-server.ui-blocking-dialog-policy.v1` 기준으로 검출하고 제품/테스트 모드별 허용 기준을 분리합니다. 자동 테스트가 멈추는 dialog는 evidence에 FAIL 또는 명시 제외로 남깁니다. | `verify-ui-blocking-dialog-policy`, blocking dialog fixture, autonomous UI runner fail-fast check, modal allowlist review, ops/client UI smoke, `git diff --check` |
+| V190-P2-02 | P2 | Runtime/media longrun trigger matrix | 어떤 변경은 30분 soak로 충분하고 어떤 변경은 120분 predev 또는 VA runtime longrun을 요구하는지 `media-server.runtime-media-longrun-trigger-matrix.v1` 조건표로 고정해 장시간 테스트 판단을 일관되게 만듭니다. 120분 상시 실행을 뜻하지 않고 trigger와 승인 기준을 분리합니다. | `verify-runtime-media-longrun-trigger-matrix`, longrun trigger matrix, `verify-longrun-separation`, `verify-rc-release-gate`, `verify-runtime-dashboard-longrun-template`, high-risk change rehearsal, `git diff --check` |
 
 ## v1.8.0 Release Trust Hardening Close-out
 
@@ -120,8 +158,8 @@ v1.8.0 완료 기준:
 
 - 확인됨: UI 풀테스트 close-out 변경은 `origin/v1.8.0`에 push 완료.
 - 확인됨: 안정화 script gate와 30분 predev soak는 PASS로 기록됨.
-- 확인됨: UI 풀테스트 결과표는 UI 대상 기능 ID 219개와 간접 안정화 행 `RULE-099`
-  포함 220 PASS / 0 FAIL로 닫힘.
+- 확인됨: UI 풀테스트 결과표는 UI 대상 기능 ID 220개와 간접 안정화 행 `RULE-099`
+  포함 221 PASS / 0 FAIL로 닫힘.
 - 확인됨: `/ops/events` EventRecord history coverage는 390px/1180px에서
   rule/scenario event 발생 이력 대조 PASS로 보강됨.
 - 미실행: 120분 longrun, main merge, release tag, GitHub Release 생성,
@@ -167,7 +205,7 @@ Decision record 최소 필드:
 
 ## Archived: v1.7.0 UI-first Close-out
 
-이 섹션은 v1.7.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v1.8.0
+이 섹션은 v1.7.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v1.9.0
 Release Trust Hardening Close-out입니다.
 
 v1.7.0 close-out 당시에는 Client Live workspace와 Ops workflow 보강을 완료 기준으로 둡니다.
@@ -205,7 +243,7 @@ UI 원칙:
 2. 이벤트 검토, source group/site, layout 저장을 붙여 실제 운영 흐름을 닫았습니다.
 3. 알림 연동, Scenario Builder, Incident Timeline을 기본 UI 위에 확장했습니다.
 4. v1.7.0 close-out 당시 README/UI guide 대표 screenshot asset을 UI-first
-   화면으로 한국어/영어 모두 재캡처했습니다. 현재 문서 대표 이미지는 상단 v1.8.0
+   화면으로 한국어/영어 모두 재캡처했습니다. 현재 문서 대표 이미지는 상단 v1.9.0
    release 기준에서 다시 관리합니다.
 
 | ID | 우선순위 | 영역 | 목표 | 예상 검증 |
@@ -245,7 +283,7 @@ v1.7.0 비범위:
 
 ## Archived: v1.6.0 Stabilization Close-out
 
-이 섹션은 v1.6.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v1.8.0
+이 섹션은 v1.6.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v1.9.0
 Release Trust Hardening Close-out입니다.
 
 v1.6.0 close-out 당시에는 새 제품 기능을 여는 minor release가 아니라, v1.5.0까지 닫은 기능을
@@ -685,7 +723,7 @@ release evidence index에
 확인됨:
 
 - 이 절의 확인 항목은 v1.6.0 close-out historical evidence입니다. 최신
-  source-only release 기준 tag 판정은 상단 v1.8.0 기준을 따릅니다.
+  source-only release 기준 tag 판정은 상단 v1.9.0 기준을 따릅니다.
 - v1.6.0 close-out 당시 public docs는 source-only release tag를 `v1.6.0`으로
   맞추도록 정리했습니다.
 - v1.6.0은 source-only stabilization release이며 runtime/model/binary bundle release가 아닙니다.
@@ -2772,7 +2810,7 @@ PR template과 정적 verifier를 연결했습니다.
 
 - preflight에 `Publish UI visual baseline PR summary` 단계를 추가했습니다.
 - `visual-baseline-comment.md`가 있으면 `GITHUB_STEP_SUMMARY`에 붙이고, 없으면 미생성 상태를 명시합니다.
-- `actions/upload-artifact@v4`의 `artifact-url` output을 사용해 summary에 artifact download 링크를 함께 표시합니다.
+- `actions/upload-artifact@v6`의 `artifact-url` output을 사용해 summary에 artifact download 링크를 함께 표시합니다.
 - workflow 권한은 `contents: read`만 유지하며 `pull-requests: write`를 열지 않았습니다.
 - `verify-ui-visual-artifact-index`와 `verify-actions-security`가 summary 게시 연결과 권한 경계를 검증합니다.
 - schema, media path, auth/session, WebRTC/DataChannel/SSE/WS metadata 계약은 변경하지 않았습니다.

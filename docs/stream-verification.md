@@ -72,12 +72,18 @@ release candidate gate를 열 때만 명시적으로 실행합니다.
 git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.md .github config docs scripts src include
 ./server.sh verify-script-inventory
 ./server.sh verify-project-inventory
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-va-event-coverage-report
 ./server.sh verify-code-comments
 ./server.sh verify-release-metadata
+./server.sh verify-v190-entry-baseline --report /tmp/media_server_v190_entry_baseline.md --json-report /tmp/media_server_v190_entry_baseline.json
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-manual-ui-evidence
+./server.sh verify-manual-ui-evidence-runner
+./server.sh verify-ui-fulltest-one-shot --output-dir /tmp/media_server_ui_fulltest_one_shot
 ./server.sh verify-actions-security
+./server.sh verify-actions-security --annotations-json <annotations.json>
 ./server.sh write-dependency-notice --check
 ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
 ./server.sh verify-post-release-reconciliation
@@ -89,6 +95,7 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
 ./server.sh verify-release-bundle-dry-run
 ./server.sh source-offer-checklist --stable --bundle-policy-report /tmp/media_server_bundle_policy.json
+./server.sh verify-auth-regression-matrix
 ./server.sh verify-auth-routes
 ./server.sh verify-ops-client-ui
 ./server.sh verify-ops-click-e2e
@@ -99,19 +106,109 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-analysis-state
 ```
 
-`verify-release-metadata` 기본 실행은 v1.8.0 release prep 단계에서 반복 가능한
+`verify-release-metadata` 기본 실행은 v1.9.0 release prep 단계에서 반복 가능한
 로컬 VERSION/문서 기준을 확인합니다. 이 모드에서는 GitHub Release/tag 생성이 아직
 수동 close-out 전일 수 있으므로 GitHub Latest Release 확인을 `manual-not-run`으로
 기록합니다.
+`verify-v190-entry-baseline`은 v1.9.0 종료와 v2.0.0 진입 전 evidence를
+`media-server.v190-entry-baseline-report.v1` report로 모으는 정적 gate입니다.
+이 명령은 30분 soak, 120분 longrun, UI 풀테스트를 실행하지 않고, 승인 전 항목은
+`미실행`/`미확인`/`manual-not-run`으로 분리해 기록합니다. 실제 release close-out
+때는 `verify-release-evidence-index`, `verify-post-release-reconciliation`,
+`verify-release-metadata`, CI check review 결과를 이 report에 연결합니다.
+GitHub Actions warning annotation gate는 check-run conclusion과 별도로 봅니다.
+success check-run이어도 GitHub check-runs annotations API export에
+warning/failure annotation이 있으면
+`./server.sh verify-actions-security --annotations-json <annotations.json>`가 실패하며,
+해당 run을 release PASS evidence로 대체하지 않습니다. annotation API 확인을
+실행하지 않았으면 annotation 상태는 `미확인`입니다.
+GitHub Actions Node 24 baseline은 `actions/checkout@v5`와
+`actions/upload-artifact@v6`입니다. 이 baseline은 Node.js 24 action runtime 경로이며
+self-hosted runner는 minimum Actions Runner version `2.327.1` 이상이어야 합니다.
+`.github/dependabot.yml`은 future major update 자동 병합을 막고,
+`verify-actions-security`는 이 baseline과 SHA pin/local action만 허용합니다.
+Manual UI evidence runner는 UI 풀테스트 자체를 실행하지 않습니다. 대신
+`media-server.manual-ui-evidence-input.v1` JSON을 받아
+`project-feature-test-inventory.md`의 UI 대상 기능 ID별 PASS/FAIL report를 생성합니다.
+누락된 UI 대상 기능 ID는 `FAIL`로 남기고, 제외 항목은 판정표 밖 `Exclusions`
+section에만 기록합니다.
+
+```bash
+./server.sh verify-manual-ui-evidence-runner \
+  --evidence <manual-ui-evidence.json> \
+  --report <manual-ui-evidence-report.md> \
+  --json-report <manual-ui-evidence-report.json>
+```
+
+UI 풀테스트 one-shot wrapper는 실제 UI verifier 묶음을 실행하는 harness입니다.
+전용 throwaway seed, core auth-off 서버, auth-auto 서버를 분리해 띄우고,
+manual evidence runner, native/blocking dialog guard, feature inventory coverage,
+Ops/Client screenshot smoke, Rules/route/rules/table verifier, core/auth click E2E를
+순서대로 실행합니다. 이 wrapper는 30분 soak, 120분 predev, 120분 runtime console
+longrun을 실행하지 않고 summary에 `not-run`으로 남깁니다.
+
+```bash
+./server.sh verify-ui-fulltest-one-shot \
+  --output-dir /tmp/media_server_ui_fulltest_one_shot
+```
+
+Feature inventory coverage gate는 `media-server.feature-inventory-coverage.v1`
+report로 모든 기능 ID가 안정화 verifier, UI evidence runner, 30분/120분 승인 gate,
+또는 field exclusion 경계에 연결됐는지 확인합니다. coverage mapping에서 빠진 ID는
+`missing coverage target`으로 기록하며, 누락 ID는 release gate에서 FAIL입니다.
+
+```bash
+./server.sh verify-feature-inventory-coverage \
+  --report <feature-inventory-coverage.md> \
+  --json-report <feature-inventory-coverage.json>
+```
+
+v2.0.0 entry freeze gate는 integrator contract artifact 안의
+`freeze-baseline.json`을 사용합니다. report schema는
+`media-server.v200-contract-schema-freeze.v1`이며, Event POST/WebRTC/SSE/WS
+contract sample, Auth/session/scope, SourceRegistry/PublishedView,
+Rule/Profile payload 기준 파일의 SHA-256 drift를 `verify-integrator-contract-artifact`
+에서 실패로 처리합니다. 이 gate는 schema/payload sample diff를 잡는 정적 gate이며,
+runtime delivery smoke 통과를 대신하지 않습니다.
+
+```bash
+./server.sh verify-integrator-contract-artifact
+```
+
+CI/local gate parity는 `media-server.ci-local-gate-parity.v1` summary로
+Preflight/static-gates/guardrails/RC workflow에 실제로 걸린 `./server.sh` 명령과
+로컬 release/static verifier 목록을 대조합니다. 로컬에서 통과해야 한다고 문서화한
+gate가 GitHub Actions에 없거나, CI에만 있고 문서 경계가 없으면 v2.0.0 기능 PR 전에
+아래 명령으로 먼저 정리합니다.
+
+```bash
+./server.sh verify-ci-local-gate-parity
+```
+
 main merge, tag, GitHub Release publish 이후에는
 `./server.sh verify-release-metadata --published`를 실행합니다. 이 모드는
 `gh release list`, `gh release view`, GitHub API `/releases/latest`,
-`git ls-remote --tags origin <tag>`를 실제로 호출해 GitHub Latest Release와 원격 tag가
-현재 source-only release 기준 tag를 가리키는지 확인합니다. 네트워크, GitHub CLI,
-origin 접근이 준비되지 않았으면 published metadata gate 실패로 보고하고 release
-close-out PASS로 대체하지 않습니다.
+repository page Releases/Latest link, `git ls-remote --tags origin <tag>`,
+`git ls-remote --heads origin <branch>`를 실제로 호출해 GitHub Latest Release와
+원격 tag/branch가 현재 source-only release 기준 tag와 branch HEAD를 가리키는지
+확인합니다. Markdown/JSON report를 지정하면 `Published Release Evidence` 섹션에
+`media-server.published-release-evidence.v1` schema로 보존합니다. 네트워크,
+GitHub CLI, origin 접근이 준비되지 않았으면 published metadata gate 실패로 보고하고
+release close-out PASS로 대체하지 않습니다.
+`gh` 인증/도구 실패는 curl GitHub REST API fallback으로, SSH origin refs 실패는
+GitHub HTTPS refs fallback으로 재시도합니다. fallback 정책의 정적 안정화는
+아래 명령으로 네트워크 없이 확인합니다.
 
-현재 v1.8.0 제품 회귀 gate, UI 풀테스트 gate, release trust hardening gate는 아래
+```bash
+./server.sh verify-release-metadata --self-test-fallback-policy
+```
+
+fallback까지 실패하면 `media-server.github-metadata-fallback-policy.v1` 기준의
+`failure-class=external-auth-or-permission`, `failure-class=external-network`,
+`failure-class=tool-unavailable`, `failure-class=external-github-access` 중 하나로
+보고하고 제품 runtime/media 회귀와 분리합니다.
+
+현재 v1.9.0 제품 회귀 gate, UI 풀테스트 gate, release trust hardening gate는 아래
 통합 명령으로만 확인합니다.
 
 ```bash
@@ -130,6 +227,7 @@ close-out PASS로 대체하지 않습니다.
 ./server.sh verify-product-ui-no-native-dialogs
 ./server.sh verify-analysis-state
 ./server.sh verify-va-events
+./server.sh verify-va-event-coverage-report
 ./server.sh verify-va-replay
 ./server.sh verify-webrtc-va-metadata
 ./server.sh verify-va-metadata-sidechannel
@@ -147,6 +245,18 @@ EventRecord 저장 이력까지 확인해야 하는 경우에는 EventRecord sto
 제품 UI에서 EventRecord row, evidence filter, archive toggle, pagination, signed
 bundle action과 rule/scenario별 history coverage까지 닫아야 할 때는 같은 storage
 enabled 서버에서 아래처럼 `/ops/events` UI scope verifier를 실행합니다.
+
+VA rule/scenario/event type/EventRecord 조합표는 아래 report verifier가 관리합니다.
+이 report는 `media-server.va-rule-event-coverage-report.v1` schema로 basic event,
+line direction, scenario replay, EventRecord history key, invalid/negative 조합을
+개별 행으로 나눕니다. expected invalid 조합은 `FAIL` row로 남기며 PASS 범주에
+섞지 않습니다.
+
+```bash
+./server.sh verify-va-event-coverage-report \
+  --report /tmp/media_server_va_event_coverage.md \
+  --json-report /tmp/media_server_va_event_coverage.json
+```
 
 ```bash
 ./server.sh verify-ops-event-records-scope \
@@ -228,11 +338,21 @@ session auth 제품 UI 자체를 검증할 때는 별도 session-auth 서버를 
   `alert`/`confirm`/`prompt` 호출을 금지합니다. 위험 action은 제품 화면 안 2회
   확인 상태로 검증하고, 사용자가 Codex pane나 운영체제 팝업을 눌러야 하는 상태는
   verifier 실패로 봅니다.
+- blocking dialog policy: `verify-ui-blocking-dialog-policy`는
+  `media-server.ui-blocking-dialog-policy.v1` report로 native dialog 금지,
+  non-blocking `beforeunload` cleanup, allowlisted read-only `<dialog>`, 위험 action
+  2회 확인 정책을 함께 검증합니다.
 - Browser/Computer Use fallback: 수동 UI evidence는 Browser Use 직접 조작,
   Chrome 직접 조작, Computer Use visible UI 조작 순서로 시도하고, raw JSON/API-only
   확인을 수동 클릭 evidence로 쓰지 않습니다.
-- fixture cleanup: `verify-fixture-cleanup-contracts`는 access request, EventRecord,
-  audit/evidence fixture가 실행 후 복원/삭제되는지 정적으로 확인합니다.
+- fixture cleanup: `verify-fixture-cleanup-contracts`는 access request, source/view
+  registry, manual UI seed registry, EventRecord, audit/evidence fixture가 실행 후
+  복원/삭제되거나 throwaway state dir로 격리되는지 정적으로 확인합니다.
+  `prepare-manual-ui-fulltest-seed --dry-run --emit-registry-dir <dir>`는
+  `sources.json`, `views.json`, `analysis.json`, `preconditions.json`만 생성하며
+  UI/event evidence로 쓰지 않습니다.
+  SSE/WS/Event POST temporary tap/rule/receiver cleanup, lifecycle port cleanup,
+  Chrome userDataDir 삭제도 같은 gate에서 확인합니다.
 - browser route smoke: click E2E는 path wait, scroll idle, browser error collector,
   overflow assertion을 같이 사용합니다. sandbox local fetch/CDP 제한으로 실패하면
   같은 명령을 권한 밖에서 재실행해 환경 제한과 제품 회귀를 분리합니다.
@@ -321,6 +441,7 @@ screenshot review 체크포인트를 함께 요약합니다.
 
 ```bash
 ./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>
+./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run --release-branch <release-branch> --target-branch main --next-branch <next-branch> --report <report.md> --json-report <report.json>
 ```
 
 helper JSON report에는 `media-server.release-visual-baseline-automation.v1`
@@ -333,6 +454,10 @@ preflight의 `media-server-release-closeout-helper-dry-run`,
 `media-server-ui-visual-maintenance-dry-run` artifact를 함께 확인하게 합니다.
 tag, push, GitHub Release, accepted baseline adoption, 320/390/760/1180px 수동
 screenshot review는 실제 실행 전까지 pass로 쓰지 않고 manual/not-run 상태로 남깁니다.
+`--one-shot-dry-run` report에는 `media-server.release-closeout-one-shot-gate.v1`
+schema가 포함됩니다. 이 gate는 main sync, tag, GitHub Release, published metadata,
+release branch 삭제, next branch sync 순서를 fail-stop으로 고정하고, 실패 rehearsal에서
+뒤 step을 `skipped`로 남깁니다. 실제 tag/push/branch 삭제는 여기서 실행하지 않습니다.
 
 VA rule/scenario 변경:
 
@@ -370,7 +495,7 @@ MEDIA_SERVER_VERIFY_AUTH_VISUAL=1 MEDIA_SERVER_VERIFY_AUTH_SCREENSHOTS=1 ./serve
 ```
 
 UI 변경 검증에서는 기본 추가 RTSP/WebRTC source 영상이나 codec matrix를 쓰지 않습니다.
-v1.8.0에서 도입되어 v1.8.0에서도 유지되는 UI visual regression gate는 ERP/운영 콘솔형 visual refresh 기준을 함께 봅니다.
+v1.8.0에서 도입되어 v1.9.0에서도 유지되는 UI visual regression gate는 ERP/운영 콘솔형 visual refresh 기준을 함께 봅니다.
 즉, 기능 selector만 통과하면 끝이 아니라 compact product shell, nav/account header,
 metric/card/table/form/badge 밀도, client source/debug 비노출, 모바일 overflow를 같은
 artifact에서 확인합니다.
@@ -538,10 +663,19 @@ Auth 변경:
 ./server.sh verify-auth-bootstrap
 ./server.sh verify-auth-users
 ./server.sh verify-auth-routes
+./server.sh verify-auth-regression-matrix \
+  --report /tmp/media_server_auth_regression_matrix.md \
+  --json-report /tmp/media_server_auth_regression_matrix.json
 ```
 
 위 세 명령은 임시 users file과 격리 포트에서 auth 서버를 띄워
 setup/login/session/user/route smoke를 자동으로 확인합니다.
+`verify-auth-regression-matrix`는 `media-server.auth-session-scope-regression-matrix.v1`
+report로 admin/operator/viewer/integrator, invite/request, password history,
+last-admin guard, viewer redaction, session capability 경계를 기능 ID와 verifier
+단위로 나눕니다. 이 matrix report는 실행 증거를 대체하지 않으며, 실제
+`verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`,
+`verify-ops-click-e2e --auth-ui-flow` 결과와 UI 풀테스트 evidence를 함께 봅니다.
 자동 auth smoke, 로컬 QA, 수동 smoke의 계정 비밀번호는 테스트 실행자가
 아래 환경변수로 명시합니다. 값이 없으면 auth verifier는 서버를 띄우기 전에
 실패해야 하며, 문서나 스크립트에 고정 기본 비밀번호를 두지 않습니다.
@@ -810,6 +944,36 @@ event POST 반복 안정성:
 ```
 
 120분 predev는 상시 검증이 아니라 release candidate 또는 고위험 변경 gate입니다.
+
+### Runtime/media longrun trigger matrix
+
+`media-server.runtime-media-longrun-trigger-matrix.v1`은 변경 유형별로 안정화,
+30분 soak, 120분 predev, VA runtime longrun, field smoke/exclusion trigger를
+분리합니다. 이 matrix는 장시간 테스트를 실행하지 않고 실행 조건과 승인 경계를
+검증합니다.
+
+```bash
+./server.sh verify-runtime-media-longrun-trigger-matrix \
+  --report /tmp/media_server_runtime_media_longrun_trigger_matrix.md \
+  --json-report /tmp/media_server_runtime_media_longrun_trigger_matrix.json
+./server.sh verify-runtime-dashboard-longrun-template
+```
+
+| ID | 변경 유형 | 기본 trigger | 120분/field trigger | 승인 |
+| --- | --- | --- | --- | --- |
+| `docs-policy-only` | 문서, verifier wording, release evidence policy | short stability | 없음 | 불필요 |
+| `ui-nonmedia-shell` | Ops/Client shell layout, copy, non-media controls | short stability, UI evidence | 없음 | 불필요 |
+| `runtime-dashboard-metadata-fanout` | Runtime dashboard, SSE/WS/DataChannel metadata fanout | short stability, 30분 soak | VA runtime 120분 longrun | 필요 |
+| `rtsp-gstreamer-webrtc-session-lifecycle` | RTSP/GStreamer/WebRTC session lifecycle 또는 media path ownership | short stability, 30분 soak | 120분 predev | 필요 |
+| `event-post-queue-recovery` | Event POST queue/recovery/cooldown | short stability, event POST longrun, 30분 soak | RC/high-risk 시 120분 판단 | 조건부 |
+| `va-tracker-reid-scenario-runtime` | VA tracker/Re-ID/scenario runtime | short stability, 30분 soak | VA runtime 120분 longrun | 필요 |
+| `external-field-endpoints` | External TURN/WHEP/ONVIF/YouTube real endpoint | field-smoke-or-exclusion | local soak로 대체 금지 | 필요 |
+| `release-candidate-closeout` | Release candidate close-out | short stability, 30분 soak | 120분 predev와 VA runtime longrun | 필요 |
+
+30분 soak는 120분 longrun PASS를 대체하지 않습니다. 120분 longrun도 UI 풀테스트
+PASS를 대체하지 않습니다. 120분 gate는 사용자 승인, release candidate, media path
+고위험 변경, metadata fanout lifecycle 변경, active RSS high-water 증가 같은 trigger가
+있을 때만 실행합니다.
 
 실행 조건:
 

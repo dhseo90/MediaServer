@@ -299,7 +299,7 @@ check("visual baseline diff preflight artifact is wired", () => {
     "Artifact download:",
     "visual-baseline-diff.json",
     "visual-baseline-diff.md",
-    "actions/upload-artifact@v4",
+    "actions/upload-artifact@v6",
   ]) {
     assert(preflight.includes(snippet), `preflight missing visual baseline diff artifact snippet: ${snippet}`);
   }
@@ -361,7 +361,7 @@ check("visual artifact maintenance command is wired", () => {
     "./server.sh ui-visual-artifact-maintenance",
     "--max-age-days 0",
     "media-server-ui-visual-maintenance-dry-run",
-    "actions/upload-artifact@v4",
+    "actions/upload-artifact@v6",
   ]) {
     assert(preflight.includes(snippet), `preflight missing visual artifact maintenance CI snippet: ${snippet}`);
   }

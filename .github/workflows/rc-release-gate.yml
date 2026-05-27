@@ -48,7 +48,7 @@ jobs:
       RC_ARTIFACT_RETENTION_DAYS: ${{ inputs.artifact_retention_days }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Prepare artifact paths
         shell: bash
@@ -153,7 +153,7 @@ jobs:
             --retention-days "${{ inputs.artifact_retention_days }}"
 
       - name: Upload RC gate artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: media-server-rc-gate
           path: artifacts/rc-gate/

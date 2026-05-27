@@ -22,6 +22,7 @@ KB_PER_MB = 1024.0
 DEFAULT_RSS_WARMUP_MINUTES = 5.0
 DEFAULT_RSS_LARGE_DROP_MB = 20.0
 DEFAULT_IDLE_SAMPLE_INTERVAL_SECONDS = 30.0
+REPRESENTATIVE_CLEANUP_PORTS = [8080, 8081, 8554, 8555]
 
 
 def parse_args() -> argparse.Namespace:
@@ -576,6 +577,19 @@ def ports_clean(ports: list[int]) -> bool:
         if result.returncode == 0:
             return False
     return True
+
+
+def enabled_env_flag(name: str) -> bool:
+    return os.environ.get(name, "").strip().lower() in {"1", "true", "yes", "on"}
+
+
+def cleanup_ports(run_ports: list[int]) -> list[int]:
+    ports = list(run_ports)
+    if enabled_env_flag("MEDIA_SERVER_VERIFY_VA_RUNTIME_LONGRUN_CHECK_REPRESENTATIVE_PORTS") or enabled_env_flag(
+        "MEDIA_SERVER_VERIFY_RUNTIME_LONGRUN_CHECK_REPRESENTATIVE_PORTS"
+    ):
+        ports.extend(REPRESENTATIVE_CLEANUP_PORTS)
+    return sorted(set(ports))
 
 
 def load_json(path: Path) -> dict[str, Any]:
@@ -1217,7 +1231,8 @@ def main() -> int:
             server_proc.send_signal(signal.SIGTERM)
             close_process(server_proc, 10.0)
 
-    port_ok = ports_clean([args.http_port, args.rtsp_port, 8080, 8081, 8554, 8555])
+    checked_ports = cleanup_ports([args.http_port, args.rtsp_port])
+    port_ok = ports_clean(checked_ports)
     step("ports-clean", "pass" if port_ok else "fail")
 
     webrtc_message_count = 0
@@ -1301,6 +1316,7 @@ def main() -> int:
         "cleanup": {
             "runtimeIdle": cleanup_ok,
             "portsClean": port_ok,
+            "checkedPorts": checked_ports,
             "finalRuntime": next((item.get("finalRuntime") for item in reversed(steps) if item.get("name") == "runtime-cleanup"), {}),
         },
         "idleAfterCleanup": idle_summary,

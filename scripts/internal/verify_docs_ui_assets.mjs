@@ -12,6 +12,8 @@ const docsAssetDir = path.join(rootDir, "docs/assets/ui");
 const docsAssetEnDir = path.join(docsAssetDir, "en");
 
 const manifest = JSON.parse(readText("config/docs_ui_assets.json"));
+const currentVersion = readText("VERSION").trim();
+const currentTag = `v${currentVersion}`;
 const readmeAssets = manifest.assets.filter((asset) => asset.readme).map((asset) => asset.file);
 const uiGuideAssets = manifest.assets.filter((asset) => asset.uiGuide).map((asset) => asset.file);
 const assetByFile = new Map(manifest.assets.map((asset) => [asset.file, asset]));
@@ -79,7 +81,7 @@ check("docs UI asset policy documents capture rules", () => {
 
 check("managed UI asset manifest stays complete", () => {
   assert(manifest.schema === "media-server.docs-ui-assets.v1", "docs UI asset manifest schema mismatch");
-  assert(manifest.baseline?.release === "v1.8.0", "docs UI asset manifest baseline release drifted");
+  assert(manifest.baseline?.release === currentTag, "docs UI asset manifest baseline release drifted");
   assert(manifest.baseline?.capturedAt === "2026-05-23", "docs UI asset manifest capture date drifted");
   assert(manifest.baseline?.theme === "dark", "docs UI asset manifest theme drifted");
   assert(manifest.baseline?.sampleVideo === "va_four_scene_sample.mp4", "docs UI asset manifest sample video drifted");
@@ -89,7 +91,7 @@ check("managed UI asset manifest stays complete", () => {
   assert(Array.isArray(manifest.directReviewChecklist) && manifest.directReviewChecklist.length >= 5, "direct review checklist is too small");
   for (const snippet of [
     "Open every Korean and English PNG",
-    "current v1.8.0 release baseline",
+    `current ${currentTag} release baseline`,
     "full video viewport",
     "source URLs",
     "unverified rather than pass",
@@ -170,7 +172,7 @@ check("docs capture covers current screenshots", () => {
   for (const snippet of requiredTranslations) {
     assert(i18n.includes(snippet), `product English i18n is missing screenshot-visible copy: ${snippet}`);
   }
-  assert(policy.includes("v1.8.0 release baseline"), "docs/assets/ui/README.md does not state the v1.8.0 screenshot baseline");
+  assert(policy.includes(`${currentTag} release baseline`), `docs/assets/ui/README.md does not state the ${currentTag} screenshot baseline`);
 });
 
 check("representative screenshot docs do not point at stale visual baselines", () => {

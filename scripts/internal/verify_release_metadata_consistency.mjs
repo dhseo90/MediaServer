@@ -25,20 +25,27 @@ Options:
   --published           publish 이후 GitHub latest/release/tag까지 확인합니다.
   --require-published   --published alias입니다.
   --allow-unpublished   이전 호환 옵션입니다. 기본 release-prep 모드와 동일하게 처리합니다.
+  --release-branch <name>  published mode에서 원격 branch HEAD를 비교할 branch입니다. 기본은 현재 branch입니다.
+  --self-test-fallback-policy  네트워크 없이 GitHub metadata fallback/failure 분류 정책을 자체 점검합니다.
   -h, --help            도움말 출력
 
 Checks:
   - VERSION과 CMake project VERSION 값이 같은 semantic version인지 확인
   - README/English README의 source-only release preparation baseline이 현재 tag와 로컬 release close-out 문서를 가리키는지 확인
   - 기본 모드에서는 GitHub Release/tag 생성을 manual-not-run close-out gate로 기록
-  - --published 모드에서는 GitHub Releases latest/list/view, GitHub API /releases/latest, 원격 tag가 현재 tag를 가리키는지 확인
+  - --published 모드에서는 GitHub Releases latest/list/view, GitHub API /releases/latest, 원격 tag/branch, repository page Releases/Latest link가 현재 tag를 가리키는지 확인
+  - gh 인증/도구 실패는 curl GitHub REST API fallback, SSH origin refs 실패는 HTTPS refs fallback으로 재시도하고 외부 접근 실패를 failure-class로 구분
   - versioning/release/backlog/public review/UI guide 문서가 같은 current release baseline과 deferred phase gate를 말하는지 확인
 `);
 }
 
-assertKnownOptions(rawArgs, ["report", "json-report", "published", "require-published", "allow-unpublished", "h", "help"]);
+assertKnownOptions(rawArgs, ["report", "json-report", "published", "require-published", "allow-unpublished", "release-branch", "self-test-fallback-policy", "h", "help"]);
 
 const args = parseArgs(rawArgs);
+if (args.selfTestFallbackPolicy) {
+  runFallbackPolicySelfTest();
+  process.exit(0);
+}
 const allowUnpublished = Boolean(args.allowUnpublished);
 const publishedMode = Boolean(args.published || args.requirePublished);
 if (allowUnpublished && publishedMode) {
@@ -61,15 +68,42 @@ const version = readText("VERSION").trim();
 assert(/^\d+\.\d+\.\d+$/.test(version), `VERSION must be semver, got ${version}`);
 const currentTag = `v${version}`;
 const githubRepository = resolveGithubRepository();
+const repositoryUrl = `https://github.com/${githubRepository}`;
 const expectedReleaseUrl = `https://github.com/${githubRepository}/releases/tag/${currentTag}`;
+const currentBranch = resolveCurrentBranch();
+const releaseBranch = args.releaseBranch || process.env.MEDIA_SERVER_RELEASE_BRANCH || currentBranch;
 report.currentVersion = version;
 report.currentTag = currentTag;
 report.github = {
   repository: githubRepository,
+  repositoryUrl,
   expectedReleaseUrl,
+  currentBranch,
+  releaseBranch,
   latestRelease: null,
   releaseListLatest: null,
+  releaseView: null,
   remoteTag: null,
+  remoteBranch: null,
+  repositoryLandingPage: null,
+};
+report.publishedEvidence = {
+  schema: "media-server.published-release-evidence.v1",
+  status: publishedMode ? "pending" : "manual-not-run",
+  repository: githubRepository,
+  repositoryUrl,
+  expectedReleaseUrl,
+  currentTag,
+  currentBranch,
+  releaseBranch,
+  command: "./server.sh verify-release-metadata --published --report <report.md> --json-report <report.json>",
+  fallbackPolicy: {
+    schema: "media-server.github-metadata-fallback-policy.v1",
+    ghFallback: "curl GitHub REST API /releases, /releases/latest, /releases/tags/<tag>",
+    remoteRefFallback: `git ls-remote against https://github.com/${githubRepository}.git`,
+    failureClasses: ["external-auth-or-permission", "external-network", "tool-unavailable", "external-github-access"],
+  },
+  evidence: {},
 };
 
 check("VERSION matches CMake project VERSION", () => {
@@ -106,87 +140,162 @@ check("README.en.md does not link to unpublished release tag in prep mode", () =
 
 if (!publishedMode) {
   check("release prep mode records GitHub publication gate", () => {
+    report.publishedEvidence.reason = "GitHub Release/tag creation is a manual close-out gate; rerun with --published after publish.";
     return {
       mode: "release-prep",
       status: "manual-not-run",
       reason: "GitHub Release/tag creation is a manual close-out gate; rerun with --published after publish.",
       expectedReleaseUrl,
+      releaseBranch,
     };
   });
 } else {
   check("GitHub release list latest tag matches current tag", () => {
-  const releaseList = runJsonCommand("gh", [
-    "release",
-    "list",
-    "--repo",
-    githubRepository,
-    "--limit",
-    "20",
-    "--json",
-    "tagName,isLatest,publishedAt,isDraft,isPrerelease",
-  ]);
-  assert(Array.isArray(releaseList), "gh release list did not return an array");
-  const listedLatest = releaseList.find((item) => item?.isLatest === true);
+  const releaseListEvidence = readGithubReleaseListLatestWithFallback();
+  const releaseList = releaseListEvidence.releaseList;
+  assert(Array.isArray(releaseList), "GitHub release list did not return an array");
+  const listedLatest = releaseListEvidence.latest;
   assert(listedLatest, "gh release list did not mark any release as latest");
   assert(listedLatest.tagName === currentTag, `GitHub latest release list tag ${listedLatest.tagName} does not match ${currentTag}`);
   assert(listedLatest.isDraft === false, "GitHub latest release list entry is draft");
   assert(listedLatest.isPrerelease === false, "GitHub latest release list entry is prerelease");
-  report.github.releaseListLatest = listedLatest;
+  report.github.releaseListLatest = {
+    ...listedLatest,
+    source: releaseListEvidence.source,
+    fallbackUsed: releaseListEvidence.fallbackUsed,
+    primaryFailure: releaseListEvidence.primaryFailure || null,
+  };
+  report.publishedEvidence.evidence.releaseListLatest = report.github.releaseListLatest;
   return {
     repository: githubRepository,
     releaseListTag: listedLatest.tagName,
+    source: releaseListEvidence.source,
+    fallbackUsed: releaseListEvidence.fallbackUsed,
   };
   });
 
   check("GitHub API latest release matches current tag", () => {
-  const latestApi = runJsonCommand("gh", [
-    "api",
-    `repos/${githubRepository}/releases/latest`,
-  ]);
+  const latestEvidence = readGithubLatestApiWithFallback();
+  const latestApi = latestEvidence.release;
   assert(latestApi?.tag_name === currentTag, `GitHub API latest release tag ${latestApi?.tag_name || "-"} does not match ${currentTag}`);
   assert(latestApi?.html_url === expectedReleaseUrl, `GitHub API latest release URL ${latestApi?.html_url || "-"} does not match ${expectedReleaseUrl}`);
   assert(latestApi?.draft === false, "GitHub API latest release is draft");
   assert(latestApi?.prerelease === false, "GitHub API latest release is prerelease");
   report.github.latestRelease = latestApi;
+  report.publishedEvidence.evidence.latestReleaseApi = {
+    ...summarizeLatestReleaseApi(latestApi),
+    source: latestEvidence.source,
+    fallbackUsed: latestEvidence.fallbackUsed,
+    primaryFailure: latestEvidence.primaryFailure || null,
+  };
   return {
     repository: githubRepository,
     apiTag: latestApi.tag_name,
     releaseUrl: latestApi.html_url,
+    source: latestEvidence.source,
+    fallbackUsed: latestEvidence.fallbackUsed,
   };
   });
 
   check("GitHub release view matches current tag", () => {
-  const releaseView = runJsonCommand("gh", [
-    "release",
-    "view",
-    "--repo",
-    githubRepository,
-    "--json",
-    "tagName,url,publishedAt,isDraft,isPrerelease,targetCommitish",
-  ]);
+  const releaseViewEvidence = readGithubReleaseViewWithFallback();
+  const releaseView = releaseViewEvidence.release;
   assert(releaseView?.tagName === currentTag, `gh release view tag ${releaseView?.tagName || "-"} does not match ${currentTag}`);
   assert(releaseView?.url === expectedReleaseUrl, `gh release view URL ${releaseView?.url || "-"} does not match ${expectedReleaseUrl}`);
   assert(releaseView?.isDraft === false, "gh release view reports a draft release");
   assert(releaseView?.isPrerelease === false, "gh release view reports a prerelease");
+  report.github.releaseView = {
+    ...releaseView,
+    source: releaseViewEvidence.source,
+    fallbackUsed: releaseViewEvidence.fallbackUsed,
+    primaryFailure: releaseViewEvidence.primaryFailure || null,
+  };
+  report.publishedEvidence.evidence.releaseView = report.github.releaseView;
   return {
     repository: githubRepository,
     releaseViewTag: releaseView.tagName,
     releaseUrl: releaseView.url,
+    source: releaseViewEvidence.source,
+    fallbackUsed: releaseViewEvidence.fallbackUsed,
   };
   });
 
   check("remote origin exposes current release tag", () => {
-  const remoteTag = runTextCommand("git", ["ls-remote", "--tags", "origin", currentTag]);
+  const remoteTagEvidence = readRemoteRefWithHttpsFallback("tags", currentTag);
+  const remoteTag = remoteTagEvidence.output;
   const remoteLines = remoteTag.split("\n").map(line => line.trim()).filter(Boolean);
   const exactTagLine = remoteLines.find(line => line.endsWith(`refs/tags/${currentTag}`));
   assert(exactTagLine, `remote origin does not expose refs/tags/${currentTag}`);
   const [sha] = exactTagLine.split(/\s+/);
   assert(/^[0-9a-f]{40}$/.test(sha), `remote tag ${currentTag} did not return a commit SHA`);
-  report.github.remoteTag = { tag: currentTag, sha };
+  report.github.remoteTag = {
+    tag: currentTag,
+    sha,
+    source: remoteTagEvidence.source,
+    fallbackUsed: remoteTagEvidence.fallbackUsed,
+    primaryFailure: remoteTagEvidence.primaryFailure || null,
+  };
+  report.publishedEvidence.evidence.remoteTag = report.github.remoteTag;
   return {
     repository: githubRepository,
     remoteTag: currentTag,
     remoteSha: sha,
+    source: remoteTagEvidence.source,
+    fallbackUsed: remoteTagEvidence.fallbackUsed,
+  };
+  });
+
+  check("remote origin exposes release branch head", () => {
+  assert(releaseBranch && releaseBranch !== "HEAD", "release branch must resolve to a named branch");
+  const localHead = runTextCommand("git", ["rev-parse", "HEAD"]).trim();
+  assert(/^[0-9a-f]{40}$/.test(localHead), `local HEAD did not resolve to a commit SHA: ${localHead}`);
+  const remoteBranchEvidence = readRemoteRefWithHttpsFallback("heads", releaseBranch);
+  const remoteBranchOutput = remoteBranchEvidence.output;
+  const remoteLines = remoteBranchOutput.split("\n").map(line => line.trim()).filter(Boolean);
+  const exactBranchLine = remoteLines.find(line => line.endsWith(`refs/heads/${releaseBranch}`));
+  assert(exactBranchLine, `remote origin does not expose refs/heads/${releaseBranch}`);
+  const [remoteSha] = exactBranchLine.split(/\s+/);
+  assert(/^[0-9a-f]{40}$/.test(remoteSha), `remote branch ${releaseBranch} did not return a commit SHA`);
+  assert(remoteSha === localHead, `remote branch ${releaseBranch} (${remoteSha}) does not match local HEAD (${localHead})`);
+  report.github.remoteBranch = {
+    branch: releaseBranch,
+    remoteSha,
+    localHead,
+    source: remoteBranchEvidence.source,
+    fallbackUsed: remoteBranchEvidence.fallbackUsed,
+    primaryFailure: remoteBranchEvidence.primaryFailure || null,
+  };
+  report.publishedEvidence.evidence.remoteBranch = report.github.remoteBranch;
+  return {
+    repository: githubRepository,
+    remoteBranch: releaseBranch,
+    remoteSha,
+    source: remoteBranchEvidence.source,
+    fallbackUsed: remoteBranchEvidence.fallbackUsed,
+  };
+  });
+
+  check("GitHub repository page exposes Releases Latest link", () => {
+  const pageHtml = readRepositoryPageHtml();
+  const expectedTagPath = `/${githubRepository}/releases/tag/${currentTag}`;
+  const expectedLatestPath = `/${githubRepository}/releases/latest`;
+  const hasTagLink = pageHtml.includes(expectedTagPath) || pageHtml.includes(expectedReleaseUrl);
+  const hasLatestMarker = pageHtml.includes(expectedLatestPath) || /\bLatest\b/i.test(pageHtml);
+  assert(hasTagLink, `repository page ${repositoryUrl} does not include release link ${expectedTagPath}`);
+  assert(hasLatestMarker, `repository page ${repositoryUrl} does not include a Latest release marker`);
+  report.github.repositoryLandingPage = {
+    url: repositoryUrl,
+    expectedRightRail: "Releases / Latest",
+    expectedHref: expectedReleaseUrl,
+    observedTagPath: expectedTagPath,
+    observedLatestMarker: true,
+  };
+  report.publishedEvidence.evidence.repositoryLandingPage = report.github.repositoryLandingPage;
+  return {
+    repository: githubRepository,
+    repositoryUrl,
+    expectedRightRail: "Releases / Latest",
+    expectedHref: expectedReleaseUrl,
   };
   });
 }
@@ -336,6 +445,13 @@ for (const item of checks) {
   }
 }
 
+report.publishedEvidence.status = publishedMode ? report.status : "manual-not-run";
+if (publishedMode && fail > 0) {
+  report.publishedEvidence.failedChecks = report.checks
+    .filter(item => item.status === "fail")
+    .map(item => item.name);
+}
+
 console.log("");
 console.log("== Release metadata consistency summary ==");
 console.log(`- current version: ${version}`);
@@ -388,6 +504,18 @@ function renderMarkdown(payload) {
     `- mode: ${payload.mode}`,
     `- currentVersion: ${payload.currentVersion}`,
     `- currentTag: ${payload.currentTag}`,
+    `- repository: ${payload.github?.repository || "-"}`,
+    `- releaseBranch: ${payload.github?.releaseBranch || "-"}`,
+    "",
+    "## Published Release Evidence",
+    "",
+    `- schema: ${payload.publishedEvidence?.schema || "-"}`,
+    `- status: ${payload.publishedEvidence?.status || "-"}`,
+    `- expectedReleaseUrl: ${payload.publishedEvidence?.expectedReleaseUrl || "-"}`,
+    `- command: ${payload.publishedEvidence?.command || "-"}`,
+    `- fallbackPolicy: ${payload.publishedEvidence?.fallbackPolicy?.schema || "-"}`,
+    `- ghFallback: ${payload.publishedEvidence?.fallbackPolicy?.ghFallback || "-"}`,
+    `- remoteRefFallback: ${payload.publishedEvidence?.fallbackPolicy?.remoteRefFallback || "-"}`,
     "",
     "| 결과 | 검사 | 상세 |",
     "| --- | --- | --- |",
@@ -429,6 +557,258 @@ function toCamel(value) {
   return value.replace(/-([a-z])/g, (_match, chr) => chr.toUpperCase());
 }
 
+function runFallbackPolicySelfTest() {
+  const samples = [
+    ["gh auth login required before accessing releases", "external-auth-or-permission"],
+    ["git@github.com: Permission denied (publickey). Could not read from remote repository.", "external-auth-or-permission"],
+    ["curl: (6) Could not resolve host: github.com", "external-network"],
+    ["spawn gh ENOENT", "tool-unavailable"],
+  ];
+  for (const [message, expected] of samples) {
+    const actual = classifyExternalFailure(message);
+    assert(actual === expected, `fallback classifier expected ${expected} for "${message}", got ${actual}`);
+  }
+  const normalizedView = normalizeGithubApiReleaseView({
+    tag_name: "v1.8.0",
+    html_url: "https://github.com/example/repo/releases/tag/v1.8.0",
+    published_at: "2026-05-26T00:00:00Z",
+    draft: false,
+    prerelease: false,
+    target_commitish: "main",
+  });
+  assert(normalizedView.tagName === "v1.8.0", "fallback release view tag normalization failed");
+  assert(normalizedView.url.endsWith("/v1.8.0"), "fallback release view URL normalization failed");
+  assert(normalizedView.isDraft === false, "fallback release view draft normalization failed");
+  const normalizedList = normalizeGithubApiReleaseForList({ tag_name: "v1.8.0", draft: false, prerelease: false, published_at: "2026-05-26T00:00:00Z" });
+  assert(normalizedList.tagName === "v1.8.0", "fallback release list tag normalization failed");
+  assert(normalizedList.isPrerelease === false, "fallback release list prerelease normalization failed");
+  console.log("[pass] GitHub metadata fallback failure classes");
+  console.log("[pass] GitHub REST API release normalization");
+  console.log("");
+  console.log("== Release metadata fallback policy self-test summary ==");
+  console.log("- pass: 2");
+  console.log("- fail: 0");
+}
+
+function summarizeLatestReleaseApi(release) {
+  return {
+    id: release?.id || null,
+    tagName: release?.tag_name || "",
+    htmlUrl: release?.html_url || "",
+    publishedAt: release?.published_at || "",
+    draft: release?.draft,
+    prerelease: release?.prerelease,
+  };
+}
+
+function resolveCurrentBranch() {
+  const branch = runTextCommand("git", ["branch", "--show-current"]).trim();
+  if (branch) return branch;
+  return runTextCommand("git", ["rev-parse", "--abbrev-ref", "HEAD"]).trim();
+}
+
+function readGithubReleaseListLatestWithFallback() {
+  const ghArgs = [
+    "release",
+    "list",
+    "--repo",
+    githubRepository,
+    "--limit",
+    "20",
+    "--json",
+    "tagName,isLatest,publishedAt,isDraft,isPrerelease",
+  ];
+  try {
+    const releaseList = runJsonCommand("gh", ghArgs);
+    const latest = Array.isArray(releaseList) ? releaseList.find((item) => item?.isLatest === true) : null;
+    return {
+      releaseList,
+      latest,
+      source: "gh release list",
+      fallbackUsed: false,
+    };
+  } catch (primaryError) {
+    const primaryMessage = errorMessage(primaryError);
+    try {
+      const apiList = runCurlJson(githubApiUrl(`repos/${githubRepository}/releases?per_page=20`));
+      const latestApi = runCurlJson(githubApiUrl(`repos/${githubRepository}/releases/latest`));
+      assert(Array.isArray(apiList), "GitHub REST /releases did not return an array");
+      const latestTag = latestApi?.tag_name || "";
+      const releaseList = apiList.map((item) => {
+        const normalized = normalizeGithubApiReleaseForList(item);
+        return { ...normalized, isLatest: normalized.tagName === latestTag };
+      });
+      const latest = releaseList.find((item) => item.isLatest === true) || normalizeGithubApiReleaseForList(latestApi);
+      return {
+        releaseList,
+        latest: { ...latest, isLatest: true },
+        source: "curl GitHub REST API /releases + /releases/latest fallback",
+        fallbackUsed: true,
+        primaryFailure: summarizeExternalFailure(primaryMessage),
+      };
+    } catch (fallbackError) {
+      throw new Error(formatExternalFailure("GitHub release list/latest", primaryMessage, errorMessage(fallbackError)));
+    }
+  }
+}
+
+function readGithubLatestApiWithFallback() {
+  const ghArgs = ["api", `repos/${githubRepository}/releases/latest`];
+  try {
+    return {
+      release: runJsonCommand("gh", ghArgs),
+      source: "gh api repos/<repo>/releases/latest",
+      fallbackUsed: false,
+    };
+  } catch (primaryError) {
+    const primaryMessage = errorMessage(primaryError);
+    try {
+      return {
+        release: runCurlJson(githubApiUrl(`repos/${githubRepository}/releases/latest`)),
+        source: "curl GitHub REST API /releases/latest fallback",
+        fallbackUsed: true,
+        primaryFailure: summarizeExternalFailure(primaryMessage),
+      };
+    } catch (fallbackError) {
+      throw new Error(formatExternalFailure("GitHub API latest release", primaryMessage, errorMessage(fallbackError)));
+    }
+  }
+}
+
+function readGithubReleaseViewWithFallback() {
+  const ghArgs = [
+    "release",
+    "view",
+    "--repo",
+    githubRepository,
+    "--json",
+    "tagName,url,publishedAt,isDraft,isPrerelease,targetCommitish",
+  ];
+  try {
+    return {
+      release: runJsonCommand("gh", ghArgs),
+      source: "gh release view",
+      fallbackUsed: false,
+    };
+  } catch (primaryError) {
+    const primaryMessage = errorMessage(primaryError);
+    try {
+      const release = runCurlJson(githubApiUrl(`repos/${githubRepository}/releases/tags/${encodeURIComponent(currentTag)}`));
+      return {
+        release: normalizeGithubApiReleaseView(release),
+        source: "curl GitHub REST API /releases/tags/<tag> fallback",
+        fallbackUsed: true,
+        primaryFailure: summarizeExternalFailure(primaryMessage),
+      };
+    } catch (fallbackError) {
+      throw new Error(formatExternalFailure("GitHub release view", primaryMessage, errorMessage(fallbackError)));
+    }
+  }
+}
+
+function readRemoteRefWithHttpsFallback(kind, refName) {
+  const flag = kind === "tags" ? "--tags" : "--heads";
+  try {
+    return {
+      output: runTextCommand("git", ["ls-remote", flag, "origin", refName]),
+      source: `git ls-remote ${flag} origin`,
+      fallbackUsed: false,
+    };
+  } catch (primaryError) {
+    const primaryMessage = errorMessage(primaryError);
+    const httpsRemote = `https://github.com/${githubRepository}.git`;
+    try {
+      return {
+        output: runTextCommand("git", ["ls-remote", flag, httpsRemote, refName]),
+        source: `git ls-remote ${flag} ${httpsRemote} fallback`,
+        fallbackUsed: true,
+        primaryFailure: summarizeExternalFailure(primaryMessage),
+      };
+    } catch (fallbackError) {
+      throw new Error(formatExternalFailure(`remote ${kind} ref ${refName}`, primaryMessage, errorMessage(fallbackError)));
+    }
+  }
+}
+
+function readRepositoryPageHtml() {
+  try {
+    return runTextCommand("curl", ["-fsSL", repositoryUrl]);
+  } catch (error) {
+    throw new Error(formatExternalFailure("GitHub repository page Releases/Latest link", errorMessage(error), ""));
+  }
+}
+
+function normalizeGithubApiReleaseForList(release) {
+  return {
+    tagName: release?.tag_name || "",
+    publishedAt: release?.published_at || "",
+    isDraft: release?.draft,
+    isPrerelease: release?.prerelease,
+  };
+}
+
+function normalizeGithubApiReleaseView(release) {
+  return {
+    tagName: release?.tag_name || "",
+    url: release?.html_url || "",
+    publishedAt: release?.published_at || "",
+    isDraft: release?.draft,
+    isPrerelease: release?.prerelease,
+    targetCommitish: release?.target_commitish || "",
+  };
+}
+
+function runCurlJson(url) {
+  const output = runTextCommand("curl", ["-fsSL", url]);
+  try {
+    return JSON.parse(output);
+  } catch (error) {
+    throw new Error(`curl ${url} returned invalid JSON: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+function githubApiUrl(apiPath) {
+  return `https://api.github.com/${String(apiPath).replace(/^\/+/, "")}`;
+}
+
+function formatExternalFailure(label, primaryMessage, fallbackMessage) {
+  const combined = [primaryMessage, fallbackMessage].filter(Boolean).join(" | ");
+  const failureClass = classifyExternalFailure(combined);
+  const fallbackPart = fallbackMessage ? `; fallback=${oneLine(fallbackMessage)}` : "";
+  return `failure-class=${failureClass}; source=published-release-external-gate; ${label} failed; primary=${oneLine(primaryMessage)}${fallbackPart}; 제품 runtime/media 회귀와 외부 GitHub/auth/DNS/SSH 접근 실패를 분리해서 보고해야 합니다.`;
+}
+
+function summarizeExternalFailure(message) {
+  return {
+    failureClass: classifyExternalFailure(message),
+    message: oneLine(message),
+  };
+}
+
+function classifyExternalFailure(message) {
+  const lower = String(message || "").toLowerCase();
+  if (/(enoent|command not found|not recognized|no such file or directory)/.test(lower)) {
+    return "tool-unavailable";
+  }
+  if (/(could not resolve|name or service not known|temporary failure in name resolution|getaddrinfo|network is unreachable|failed to connect|connection timed out|timed out|proxy|tls|ssl|couldn't connect)/.test(lower)) {
+    return "external-network";
+  }
+  if (/(authentication required|requires authentication|not logged|gh auth login|bad credentials|permission denied|publickey|could not read from remote repository|http 401|http 403|resource not accessible)/.test(lower)) {
+    return "external-auth-or-permission";
+  }
+  return "external-github-access";
+}
+
+function errorMessage(error) {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function oneLine(value, maxLength = 900) {
+  const text = String(value || "").replace(/\s+/g, " ").trim();
+  if (text.length <= maxLength) return text;
+  return `${text.slice(0, maxLength - 3)}...`;
+}
+
 function resolveGithubRepository() {
   const fromEnv = process.env.MEDIA_SERVER_GITHUB_REPOSITORY || process.env.GITHUB_REPOSITORY || "";
   if (fromEnv && /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(fromEnv)) {
@@ -459,6 +839,9 @@ function runTextCommand(command, args) {
     encoding: "utf8",
     env: process.env,
   });
+  if (result.error) {
+    throw new Error(`${formatCommand(command, args)} failed: ${result.error.message}`);
+  }
   if (result.status !== 0) {
     const stderr = String(result.stderr || "").trim();
     const stdout = String(result.stdout || "").trim();

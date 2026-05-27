@@ -5,10 +5,18 @@
 source-of-truth로 삼고, 기능별 UI 필요 여부와 테스트 영역은
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 합니다. 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를
-사용합니다. 현재 release 목표는 `v1.8.0`이며, UI 풀테스트 기준도 이 버전의
+사용합니다. 현재 release 목표는 `v1.9.0`이며, UI 풀테스트 기준도 이 버전의
 제품 route, 권한, 기능 baseline만 대상으로 합니다.
 문서 구조와 evidence 경계는 `./server.sh verify-manual-ui-evidence`로 확인합니다.
+기능 ID별 UI evidence JSON을 만든 경우에는
+`./server.sh verify-manual-ui-evidence-runner --evidence <json> --report <report.md>`를
+실행해 inventory의 UI 대상 기능을 전수 report로 변환합니다.
+누락된 UI 대상 기능 ID는 `FAIL`이고, 제외 항목은 판정표 밖에만 남깁니다.
 현재 제품 UI 직접 조작 evidence 없이 완료 판정에 포함하지 않습니다.
+전용 throwaway 서버부터 core/auth 클릭 검증까지 한 번에 실행해야 할 때는
+`./server.sh verify-ui-fulltest-one-shot --output-dir <dir>`을 사용합니다.
+이 wrapper는 UI 풀테스트 선수/보조 verifier 묶음만 실행하며 30분/120분 장시간
+테스트는 실행하지 않습니다.
 
 UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라우저에서 제품
 화면을 직접 열고 클릭과 타이핑으로 수행하는 end-to-end 검수입니다. API-only
@@ -69,6 +77,10 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
   `sources.json`, `views.json`, `analysis.json`, `preconditions.json`을 한 디렉터리에
   생성합니다. auth users file은 비밀번호 hash가 필요하므로 실행자가 지정한
   비밀번호로 별도 생성하고, seed 스크립트가 기본 비밀번호를 만들지 않습니다.
+- `./server.sh verify-ui-fulltest-one-shot`은 core/auth용 registry 디렉터리와
+  event/snapshot/clip 경로를 output dir 아래에 직접 만들고, `--http-base`,
+  `MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT`, `--auth-users-file`을 각 verifier에
+  명시해 현재 PublishedView/Rule seed를 기준으로 실행합니다.
 - seed를 서버에 넣는 동작은 실제 테스트 지시 후에만
   `./server.sh prepare-manual-ui-fulltest-seed --apply --confirm-throwaway-data --http-base <url>`
   형태로 수행합니다.
@@ -112,9 +124,9 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
 - 실패 후 고친 화면은 같은 조작으로 재검수하고, 최초 실패와 재확인 결과를 모두
   남깁니다.
 
-### v1.8.0 release trust hardening gate
+### v1.9.0 release trust hardening gate
 
-v1.8.0 release close-out에서는 자동 smoke와 별도로 아래 화면을 브라우저에서 직접
+v1.9.0 release close-out에서는 자동 smoke와 별도로 아래 화면을 브라우저에서 직접
 열고 클릭한 Evidence index를 남깁니다. 자동 screenshot 생성이나 raw JSON/API-only 확인만
 있으면 해당 개별 기능은 `FAIL`입니다.
 
@@ -194,7 +206,8 @@ UI 조작 evidence는 프로젝트 verifier가 자체 Chrome/CDP 세션에서 �
   마지막 admin 보호, pending access request 승인/거절 flow를 확인합니다.
   접근 요청 거절 같은 위험 action은 native confirm/alert/prompt가 아니라 제품 화면 안
   2회 확인 상태로 처리되어야 합니다. `verify-product-ui-no-native-dialogs`로 native
-  dialog가 없는지 먼저 막고, `verify-ops-click-e2e`는 첫 클릭에서 POST가 발생하지
+  dialog가 없는지 먼저 막고, `verify-ui-blocking-dialog-policy`로 allowlist와
+  blocking dialog policy를 확인합니다. `verify-ops-click-e2e`는 첫 클릭에서 POST가 발생하지
   않는지와 두 번째 클릭 뒤 거절 POST, rejected row, user row 미생성까지 확인합니다.
 - `/ops/events`: evidence policy, evidence filter, include archives, prev/next,
   signed bundle export를 확인합니다.

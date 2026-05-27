@@ -5,7 +5,7 @@
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 삼고, 실행 순서는 [manual-ui-checklist.md](./manual-ui-checklist.md), 결과 기록은
 [manual-ui-result-template.md](./manual-ui-result-template.md)를 사용합니다.
-현재 제품 UI 기준은 release 목표 `v1.8.0`입니다. 지원 가능한 모든 기능을 실제 UI 조작으로 확인하지 않은 경우에는 완료로 쓰지 않습니다.
+현재 제품 UI 기준은 release 목표 `v1.9.0`입니다. 지원 가능한 모든 기능을 실제 UI 조작으로 확인하지 않은 경우에는 완료로 쓰지 않습니다.
 
 ## 1. 정의
 
@@ -115,6 +115,8 @@ UI 풀테스트는 사용자가 직접 누르는 절차가 아니라 테스트 r
 - responsive viewport를 바꾸고 화면을 다시 확인하기
 - confirm/alert/prompt 같은 브라우저 native dialog가 제품 UI에 남아 있지 않은지
   `verify-product-ui-no-native-dialogs`로 먼저 확인하기
+- blocking dialog policy에서 허용한 in-page dialog만 쓰는지
+  `verify-ui-blocking-dialog-policy`로 확인하기
 - 위험 action은 제품 화면 안 2회 확인 상태로 처리되고, 첫 클릭에는 write POST가
   발생하지 않으며 두 번째 클릭에서만 상태가 바뀌는지 확인하기
 
@@ -127,6 +129,20 @@ UI 풀테스트 결과는 모든 개별 기능, route, control, action 단위로
 않고, `RULE-041 presence EventRecord 발생`, `AUTH-022 reset 후 must-change`,
 `UI-004 password change 임시 pw 로그인`처럼 개별 행으로 기록합니다.
 요약은 개별 행 이후에만 둘 수 있고, 요약이 개별 결과를 대체할 수 없습니다.
+자율 브라우저 또는 직접 조작 결과를 JSON으로 남길 때는
+`media-server.manual-ui-evidence-input.v1` schema를 사용하고
+`./server.sh verify-manual-ui-evidence-runner --evidence <json> --report <report.md>`
+로 기능 ID별 PASS/FAIL report를 생성합니다. 누락된 UI 대상 기능 ID는 `FAIL`이며,
+제외 항목은 판정표 밖 `Exclusions`에만 둡니다.
+
+풀테스트 harness 자체를 한 번에 실행할 때는
+`./server.sh verify-ui-fulltest-one-shot`을 사용합니다. 이 명령은 전용
+throwaway registry/users/event 경로와 격리 포트로 core/auth 서버를 띄운 뒤
+manual evidence runner, native/blocking dialog guard, feature inventory coverage,
+Ops/Client screenshot smoke, Rules smoke, route/rules/table guard, core/auth click
+E2E를 순서대로 실행하고 `summary.json`과 `summary.md`를 남깁니다. 이 wrapper는
+`verify-predev --soak-minutes 30`, `verify-predev --soak-minutes 120`,
+`verify-va-runtime-console-longrun --duration-minutes 120`을 실행하지 않습니다.
 
 다음은 `확인됨`으로 쓰지 않으며, UI 풀테스트 대상이면 `FAIL`입니다.
 
@@ -223,6 +239,8 @@ VA 룰/시나리오 검수는 Rule/Profile/Scenario CRUD와 EventRecord 발생 �
 - basic event type은 `presence`, `enter`, `exit`, `line-crossing`입니다.
 - scenario event type은 `intrusion-dwell`, `re-entry`, `wrong-direction`,
   `intrusion-after-line-crossing`, `loitering`, `zone-occupancy`입니다.
+- basic/scenario 최종 12개 이상 event key는 개별 PASS/FAIL 행으로 기록하고,
+  카테고리 묶음 PASS로 대체하지 않습니다.
 - UI 풀테스트 완료 전 `/ops/events`를 admin/operator 권한으로 열고 EventRecord
   rows를 직접 확인합니다. screenshot과 함께 visible row, pagination/filter 상태,
   archive 포함 여부를 기록합니다.
@@ -261,6 +279,7 @@ UI 풀테스트는 기능 검수와 같은 비중으로 시각 품질을 봅니�
 - `./server.sh verify-ops-client-ui`
 - `./server.sh verify-ops-client-ui --screenshots`
 - `./server.sh verify-product-ui-no-native-dialogs`
+- `./server.sh verify-ui-blocking-dialog-policy`
 - `./server.sh verify-ops-click-e2e`
 - `./server.sh verify-ops-click-e2e --auth-ui-flow --auth-users-file <path>`
 - `./server.sh verify-rule-ui`
@@ -272,6 +291,7 @@ UI 풀테스트는 기능 검수와 같은 비중으로 시각 품질을 봅니�
 - `./server.sh verify-docs-ui-assets`
 - `./server.sh verify-release-metadata`
 - `./server.sh verify-manual-ui-evidence`
+- `./server.sh verify-manual-ui-evidence-runner`
 
 장시간 테스트와 `verify-predev`는 사용자가 명시 요청하지 않으면 실행하지 않습니다.
 실행하지 않은 스크립트는 실행하지 않았다고 사실 기록만 남기며, UI 풀테스트의

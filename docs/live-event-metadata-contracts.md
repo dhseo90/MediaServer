@@ -82,6 +82,11 @@ v1.8.0 integrator 배포용 sample bundle은
 `test/fixtures/integrator_contract_artifact/`에 둡니다. bundle은 JSON Schema와
 synthetic sample payload만 포함하며, 기준 serializer나 runtime payload를 바꾸지
 않습니다. artifact 자체 검증은 아래 명령으로 분리합니다.
+bundle의 `freeze-baseline.json`은 `media-server.v200-contract-schema-freeze.v1`
+schema를 사용하는 v2.0.0 entry freeze gate입니다. Event POST, WebRTC DataChannel,
+SSE/WS metadata, WebSocket control ack sample, 이 문서 계열 source contract 문서,
+Auth/session/scope, SourceRegistry/PublishedView, Rule/Profile payload 기준 파일의
+SHA-256을 고정해 schema/payload sample diff를 즉시 실패로 보고합니다.
 
 ```bash
 ./server.sh verify-integrator-contract-artifact

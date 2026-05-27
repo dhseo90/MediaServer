@@ -42,6 +42,8 @@ Usage:
                  사람 객체 자동 모자이크(redaction)의 image/live 검증을 수행합니다.
   verify-va-events
                  이동 테스트 영상으로 tracker 기반 presence/enter/exit/line-crossing을 검증합니다.
+  verify-va-event-coverage-report
+                 VA rule/scenario/EventRecord coverage를 조합 단위 report로 검증합니다.
   verify-va-category-samples
                  실제 영상 샘플에서 VA 카테고리별 presence 이벤트를 검증합니다.
   verify-route-profiles
@@ -118,8 +120,14 @@ Usage:
                  README/UI guide screenshot 자산과 자동 캡처 기준을 검증합니다.
   verify-manual-ui-evidence
                  수동 UI 검수 결과가 확인/미확인/건너뜀을 분리해 기록됐는지 검증합니다.
+  verify-manual-ui-evidence-runner
+                 기능 ID별 UI evidence JSON을 PASS/FAIL report로 변환하고 누락 ID를 FAIL로 검증합니다.
   verify-product-ui-no-native-dialogs
                  제품 UI가 alert/confirm/prompt native dialog로 자동 UI 검수를 멈추지 않는지 검증합니다.
+  verify-ui-blocking-dialog-policy
+                 제품/test UI blocking dialog 허용 기준과 fail-fast 정책을 검증합니다.
+  verify-ui-fulltest-one-shot
+                 throwaway seed/server와 UI 풀테스트 verifier 묶음을 한 번에 실행합니다.
   prepare-manual-ui-fulltest-seed
                  수동 UI 풀테스트용 VA seed fixture를 dry-run 검증하고, 명시 승인 시 throwaway 서버에 적용합니다.
   verify-docs-links
@@ -196,14 +204,20 @@ Usage:
                  VERSION, CMake, README, release/versioning/backlog 문서의 release 기준 drift를 검증합니다.
   verify-release-evidence-index
                  release evidence index가 실행/미실행/미확인 항목을 분리하는지 검증합니다.
+  verify-v190-entry-baseline
+                 v1.9.0 종료와 v2.0.0 진입 baseline report 구획을 검증합니다.
   verify-feature-scope-gate
                  v1.8.0 안정화 범위에서 새 기능 후보를 구현으로 승격하지 않는 decision gate를 검증합니다.
   verify-script-inventory
                  server.sh 명령, 문서 명령 참조, JS 옵션 검증 적용 범위를 점검합니다.
   verify-project-inventory
                  코드 기능/UI 접근 기능/검증 명령 inventory 문서가 현재 command/route 범위를 덮는지 점검합니다.
+  verify-feature-inventory-coverage
+                 기능 ID가 verifier/UI evidence/장시간 승인/field exclusion 중 하나에 연결됐는지 점검합니다.
   verify-actions-security
                  GitHub Actions workflow 권한과 action 사용 정책을 검증합니다.
+  verify-ci-local-gate-parity
+                 로컬 verifier와 GitHub Actions static/guardrail gate 매핑을 검증합니다.
   verify-public-repo-readiness
                  public 전환 전 secret/history/asset/문서 준비 상태를 검증합니다.
   verify-post-release-reconciliation
@@ -242,6 +256,8 @@ Usage:
                  admin 계정 관리, viewer scope 제한, lockout, invite/request를 검증합니다.
   verify-auth-routes
                  root/login/ops/client와 Lab API role 기반 route 정책을 검증합니다.
+  verify-auth-regression-matrix
+                 Auth/session/scope regression matrix와 verifier coverage를 검증합니다.
   verify-event-post
                  VA event POST payload, 실패/cooldown/queue 상태를 검증합니다.
   verify-integrator-contract-artifact
@@ -250,6 +266,8 @@ Usage:
                  event POST schema/recovery/선택 queue 검증을 반복 실행합니다.
   verify-longrun-separation
                  기본 smoke와 장기 soak/longrun harness 분리 기준을 검증합니다.
+  verify-runtime-media-longrun-trigger-matrix
+                 runtime/media 변경 유형별 30분/120분 longrun trigger matrix를 검증합니다.
   verify-runtime-dashboard-longrun-template
                  Runtime Dashboard 장시간 evidence template과 실행 분리 기준을 검증합니다.
   verify-rc-release-gate
@@ -427,6 +445,10 @@ case "${cmd}" in
     require_internal verify_va_tracking_events.sh
     exec "${INTERNAL_DIR}/verify_va_tracking_events.sh" "$@"
     ;;
+  verify-va-event-coverage-report)
+    require_internal verify_va_event_coverage_report.mjs
+    exec "${INTERNAL_DIR}/verify_va_event_coverage_report.mjs" "$@"
+    ;;
   verify-va-category-samples)
     require_internal verify_va_category_samples.sh
     exec "${INTERNAL_DIR}/verify_va_category_samples.sh" "$@"
@@ -579,9 +601,21 @@ case "${cmd}" in
     require_internal verify_manual_ui_evidence.mjs
     exec "${INTERNAL_DIR}/verify_manual_ui_evidence.mjs" "$@"
     ;;
+  verify-manual-ui-evidence-runner)
+    require_internal verify_manual_ui_evidence_runner.mjs
+    exec "${INTERNAL_DIR}/verify_manual_ui_evidence_runner.mjs" "$@"
+    ;;
   verify-product-ui-no-native-dialogs)
     require_internal verify_product_ui_no_native_dialogs.mjs
     exec "${INTERNAL_DIR}/verify_product_ui_no_native_dialogs.mjs" "$@"
+    ;;
+  verify-ui-blocking-dialog-policy)
+    require_internal verify_ui_blocking_dialog_policy.mjs
+    exec "${INTERNAL_DIR}/verify_ui_blocking_dialog_policy.mjs" "$@"
+    ;;
+  verify-ui-fulltest-one-shot)
+    require_internal verify_ui_fulltest_one_shot.mjs
+    exec "${INTERNAL_DIR}/verify_ui_fulltest_one_shot.mjs" "$@"
     ;;
   prepare-manual-ui-fulltest-seed)
     require_internal prepare_manual_ui_fulltest_seed.mjs
@@ -731,6 +765,10 @@ case "${cmd}" in
     require_internal verify_release_evidence_index.mjs
     exec "${INTERNAL_DIR}/verify_release_evidence_index.mjs" "$@"
     ;;
+  verify-v190-entry-baseline)
+    require_internal verify_v190_entry_baseline_report.mjs
+    exec "${INTERNAL_DIR}/verify_v190_entry_baseline_report.mjs" "$@"
+    ;;
   verify-feature-scope-gate)
     require_internal verify_feature_scope_decision_gate.mjs
     exec "${INTERNAL_DIR}/verify_feature_scope_decision_gate.mjs" "$@"
@@ -743,9 +781,17 @@ case "${cmd}" in
     require_internal verify_project_feature_test_inventory.mjs
     exec "${INTERNAL_DIR}/verify_project_feature_test_inventory.mjs" "$@"
     ;;
+  verify-feature-inventory-coverage)
+    require_internal verify_feature_inventory_coverage.mjs
+    exec "${INTERNAL_DIR}/verify_feature_inventory_coverage.mjs" "$@"
+    ;;
   verify-actions-security)
     require_internal verify_actions_security.mjs
     exec "${INTERNAL_DIR}/verify_actions_security.mjs" "$@"
+    ;;
+  verify-ci-local-gate-parity)
+    require_internal verify_ci_local_gate_parity.mjs
+    exec "${INTERNAL_DIR}/verify_ci_local_gate_parity.mjs" "$@"
     ;;
   verify-public-repo-readiness)
     require_internal verify_public_repo_readiness.mjs
@@ -823,6 +869,10 @@ case "${cmd}" in
     require_internal verify_auth_routes.sh
     exec "${INTERNAL_DIR}/verify_auth_routes.sh" "$@"
     ;;
+  verify-auth-regression-matrix)
+    require_internal verify_auth_regression_matrix.mjs
+    exec "${INTERNAL_DIR}/verify_auth_regression_matrix.mjs" "$@"
+    ;;
   verify-event-post)
     require_internal verify_event_post_dispatch.sh
     exec "${INTERNAL_DIR}/verify_event_post_dispatch.sh" "$@"
@@ -838,6 +888,10 @@ case "${cmd}" in
   verify-longrun-separation)
     require_internal verify_longrun_separation.mjs
     exec "${INTERNAL_DIR}/verify_longrun_separation.mjs" "$@"
+    ;;
+  verify-runtime-media-longrun-trigger-matrix)
+    require_internal verify_runtime_media_longrun_trigger_matrix.mjs
+    exec "${INTERNAL_DIR}/verify_runtime_media_longrun_trigger_matrix.mjs" "$@"
     ;;
   verify-runtime-dashboard-longrun-template)
     require_internal verify_runtime_dashboard_longrun_template.mjs
