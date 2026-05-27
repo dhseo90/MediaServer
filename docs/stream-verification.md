@@ -217,6 +217,7 @@ fallback까지 실패하면 `media-server.github-metadata-fallback-policy.v1` �
 ./server.sh verify-auth-routes
 ./server.sh verify-ops-client-ui
 ./server.sh verify-ops-client-ui --screenshots
+./server.sh verify-vlm-boundary
 ./server.sh verify-ops-click-e2e
 ./server.sh verify-ops-click-e2e --auth-ui-flow --auth-users-file <path>
 ./server.sh verify-ops-tables-layout

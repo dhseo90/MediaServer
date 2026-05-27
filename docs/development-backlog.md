@@ -128,7 +128,7 @@ YOLO 이벤트가 왜 발생했는지 설명하고, 오탐 가능성 및 운영�
 
 | 순서 | ID | 상태 | 영역 | 목표 | 예상 검증 |
 | --- | --- | --- | --- | --- | --- |
-| 0 | V200-S00 | 예정 | VLM 도입 경계 | VLM을 감지기가 아니라 이벤트 해석/리뷰 보조 계층으로 정의하고 YOLO, Rule, Scenario, Event POST, WebRTC/SSE/WS metadata, media path 불변 조건을 고정합니다. | roadmap review, contract boundary review, `verify-integrator-contract-artifact`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-event-post`, `git diff --check` |
+| 0 | V200-S00 | 완료 | VLM 도입 경계 | VLM을 감지기가 아니라 이벤트 해석/리뷰 보조 계층으로 정의하고 YOLO, Rule, Scenario, Event POST, WebRTC/SSE/WS metadata, media path 불변 조건을 고정합니다. | roadmap review, contract boundary review, `verify-integrator-contract-artifact`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-event-post`, `verify-vlm-boundary`, `git diff --check` |
 | 1 | V200-S01 | 예정 | VLM 후보군/선택 기준 | Qwen, Gemma, Gemini 같은 후보군을 모델명으로 고정하지 않고 로컬/cloud, 라이선스, 성능, privacy, 설치 방식 기준으로 분류합니다. | model catalog review, license/provenance checklist, cloud/local privacy review, `verify-bundle-policy`, `git diff --check` |
 | 2 | V200-S02 | 예정 | PC 사양 감지 | OS, CPU, RAM, GPU/VRAM, Apple Silicon, Docker, Ollama, vLLM/API 연결 가능 여부를 수집하는 local capability detector를 만듭니다. | hardware scan fixture, macOS/Linux smoke, missing-tool fixture, `git diff --check` |
 | 3 | V200-S03 | 예정 | VLM 추천 엔진 | 사용자 PC 사양과 privacy mode에 따라 추천 모델, 대안 모델, 비추천 사유, 예상 메모리/디스크/latency/cost를 산출합니다. | recommendation matrix fixture, low/mid/high spec fixture, local-only/cloud-allowed policy fixture, `git diff --check` |
@@ -170,6 +170,39 @@ privacyMode
 latencyMs
 createdAt
 ```
+
+### V200-S00 VLM 도입 경계 종료 기준
+
+이 단계는 VLM을 제품 감지기, 최종 판정자, 상시 영상 분석 runtime으로 도입하는
+단계가 아닙니다. v2.0.0에서 VLM을 열기 전에 기존 live-only 제품 계약과 media path
+불변 조건을 먼저 닫는 boundary 작업입니다.
+
+이번 단계에서 고정한 불변 조건:
+
+- YOLO/ONNX detection, RuleEventEngine, ScenarioEngine 판단 흐름은 현재 기준을 유지합니다.
+- VLM은 기존 이벤트가 왜 발생했는지 설명하고 운영자 review 질문을 제안하는 보조 계층입니다.
+- 기존 Event POST payload, WebRTC DataChannel label/schema, SSE/WS runtime metadata schema는 변경하지 않습니다.
+- RTSP/WebRTC relay, WebRTC ICE/media track, RTSP VA overlay 정책을 VLM 실패와 연결하지 않습니다.
+- VLM 입력은 이후 단계에서 별도 검토할 event-time evidence reference로만 제한하며, 전체 영상 상시 전달은 금지합니다.
+- VLM 결과는 이후 sidecar contract 후보로만 다루고 기존 외부 event/metadata payload에 직접 섞지 않습니다.
+- client/viewer 화면에는 prompt, raw response, source URL, debug JSON, 내부 모델 정보, credential을 노출하지 않습니다.
+
+이번 단계에서 하지 않는 일:
+
+- VLM 실행, 설정 저장, 결과 저장, 제품 화면 노출 구현은 이 단계의 완료 조건이 아닙니다.
+- 이 단계 밖의 기능 세부 설계와 구현은 처리하지 않습니다.
+- VLM route, config, environment variable, storage schema, EventRecord field를 추가하지 않습니다.
+- 외부/로컬 VLM runtime 호출, prompt 실행, VLM 결과 저장은 수행하지 않습니다.
+
+완료 판정:
+
+- `./server.sh verify-vlm-boundary`가 roadmap review와 contract boundary review를 정적으로 확인합니다.
+- `./server.sh verify-integrator-contract-artifact`가 v2.0.0 entry freeze baseline과 live event/metadata artifact drift를 확인합니다.
+- `./server.sh verify-webrtc-va-metadata`, `./server.sh verify-va-metadata-sidechannel`,
+  `./server.sh verify-ws-metadata`, `./server.sh verify-event-post`가 기존 runtime delivery contract를
+  별도로 재검증합니다.
+- `git diff --check`가 문서와 verifier 변경의 whitespace drift를 확인합니다.
+- 후속 이슈: 없음. 이 단계 안에서 남은 후속은 없습니다.
 
 v2.0.0 완료 판정은 기능 구현만으로 닫지 않습니다. 각 개발 순서에서 추가한 테스트가
 `project-feature-test-inventory.md`, 안정화 테스트, 30분/120분 trigger, UI 풀테스트
