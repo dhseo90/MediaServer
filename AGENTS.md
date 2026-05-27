@@ -219,14 +219,29 @@ test: 테스트 추가
 ### 6.1 릴리즈 준비 지시 처리
 
 사용자가 “릴리즈 준비”, “release 준비”, “릴리즈 close-out 준비”처럼 현재 브랜치의
-릴리즈 종료를 명시하면, 그 요청은 아래 작업에 대한 명시 지시로 본다. 단, 각 단계는
-순서대로 진행하고 실패한 뒤 단계는 모두 중단한다.
+릴리즈 종료를 명시하면, 그 요청은 아래 작업에 대한 명시 지시로 본다. 이는 6장의
+일반 푸시 금지 규칙에 대한 범위 제한 예외이며, release close-out에 필요한
+push/PR/main merge/tag/GitHub Release/후속 브랜치 생성에만 적용한다. release branch
+삭제, tag force update, force push, GitHub Release 삭제, rollback성 destructive
+조치는 사용자가 별도로 명시하지 않으면 수행하지 않는다. 각 단계는 순서대로 진행하고
+실패한 뒤 단계는 모두 중단한다.
 
-1. 현재 릴리즈 버전 확인
+1. 사전 상태와 현재 릴리즈 버전 확인
+   - `git status --short --branch`, 현재 branch, upstream tracking, ahead/behind,
+     local/remote tag 존재 여부, main 최신 여부, 미커밋/미추적 파일 여부를 확인한다.
+   - PR/merge/tag 직전에도 다시 clean/sync 상태를 확인한다.
    - 현재 작업 브랜치, `VERSION`, 로드맵/릴리즈 문서에서 릴리즈 버전을 확인한다.
    - 예: 현재 브랜치가 `v1.9.0` 또는 `1.9.0`이면 이번 릴리즈 기준은 `1.9.0`이다.
    - 버전이 서로 다르면 추정으로 진행하지 말고 불일치 파일과 확인 필요 사항을 보고한다.
-2. 전체 문서 업데이트
+2. 릴리즈 버전 source-of-truth 업데이트
+   - 브랜치가 `v1.9.0`이면 `VERSION`, `CMakeLists.txt`의 project version,
+     README/README.en/docs의 current release baseline, release metadata 문서도
+     `1.9.0`/`v1.9.0` 기준으로 맞춘다.
+   - historical evidence, 과거 release archive, 과거 수동 UI 결과 문서처럼 증적 보존
+     목적의 이전 버전 표기는 현재 기준으로 덮어쓰지 않는다.
+   - `verify-release-metadata`가 보고하는 current version/current tag가 이번 릴리즈
+     기준과 일치해야 다음 단계로 넘어간다.
+3. 전체 문서 업데이트
    - README, `README.en.md`, `docs/README.md`, release evidence, backlog/roadmap,
      UI/fulltest 문서, config/operation 문서를 현재 릴리즈 브랜치 기준으로 갱신한다.
    - README는 공개 첫 화면이므로 제품 정체성, 현재 release, 빠른 시작, 대표 이미지,
@@ -237,51 +252,76 @@ test: 테스트 추가
      source URL/debug/raw JSON/auth material 노출 여부를 확인한다.
    - 이전 버전에서만 유효하고 현재 릴리즈에서 deprecated된 route, 기능, 검증 명령,
      스크린샷, 상태 설명은 남겨두지 말고 삭제하거나 현재 기준으로 바꾼다.
+   - `release-evidence-index`, backlog close-out, post-release reconciliation 문서,
+     release notes source 문서를 실제 실행/미실행 상태에 맞게 갱신한다.
+   - `CHANGELOG`/`CHANGELOG.md`/`NEWS` 같은 변경 이력 파일이 있으면 현재 릴리즈 항목을
+     갱신하고, 없으면 “변경 이력 파일 없음”으로 보고한다.
    - 실행하지 않은 테스트, 미완료 기능, release 후속 작업을 완료처럼 쓰지 않는다.
-3. 빌드와 릴리즈 검증
+4. 빌드와 릴리즈 검증
    - 최소 `./server.sh build`, 문서 검증, release metadata/evidence 검증,
      현재 릴리즈 범위의 안정화 테스트를 실행한다.
+   - GitHub Actions required check와 warning/failure annotation gate를 분리해 확인한다.
+     annotation JSON을 확보한 경우 `./server.sh verify-actions-security --annotations-json <annotations.json>`를
+     실행하고, 확보하지 못했으면 annotation 상태를 `미확인`으로 보고한다.
+   - PR check, required check, optional check, warning annotation, local verifier 결과를
+     서로 대체하지 않고 각각 PASS/FAIL/미확인으로 기록한다.
    - 30분/120분/UI 풀테스트는 사용자가 릴리즈 준비 지시와 함께 실행을 승인했거나,
      별도 지시가 있는 경우에만 실행한다. 실행하지 않은 장시간/UI 테스트는 미실행으로
      분리해 보고한다.
    - 빌드 또는 핵심 release gate가 실패하면 PR, main merge, tag, GitHub Release,
      후속 브랜치 생성을 진행하지 않는다.
-4. PR 생성과 main 머지
+5. PR 생성과 main 머지
    - 모든 변경이 커밋되고 release gate가 통과한 뒤 현재 릴리즈 브랜치를 push한다.
    - GitHub PR을 생성하거나 기존 PR을 갱신하고, CI/check 상태를 확인한다.
    - main merge는 PR check가 통과한 뒤 수행한다. merge 방식은 저장소 정책을 따른다.
+   - PR merge 후 main을 최신 상태로 fetch/checkout/pull하고, tag 대상 main commit
+     hash와 PR merge commit hash를 확인해 보고한다.
    - merge에 실패하거나 CI가 실패하면 tag/GitHub Release/후속 브랜치를 진행하지 않는다.
-5. 릴리즈 tag 생성
-   - PR이 main에 merge된 뒤 main의 최신 release commit에 릴리즈 tag를 만든다.
+6. 릴리즈 tag 생성
+   - PR이 main에 merge된 뒤 main의 최신 release commit에 annotated 릴리즈 tag를 만든다.
    - 예: `1.9.0` 릴리즈면 main의 마지막 릴리즈 커밋에 `v1.9.0` tag가 있어야 한다.
+   - 동일 tag가 local 또는 remote에 이미 있으면 덮어쓰거나 force update하지 않고
+     즉시 중단해 충돌 상태를 보고한다.
    - tag 대상 commit hash를 확인하고, tag를 push하기 전후 hash를 보고한다.
-6. GitHub Release 업데이트
+7. GitHub Release 업데이트와 published metadata 재검증
    - GitHub 우측 Releases에 해당 버전이 보이도록 tag 기반 GitHub Release를 생성하거나
      기존 draft/release를 갱신한다.
    - release notes에는 실제 완료된 항목, 주요 변경, 검증 결과, 미실행/제외 항목을
      구분해 적는다.
+   - GitHub Release 생성/갱신 후 `./server.sh verify-release-metadata --published`를
+     실행해 Latest Release, release URL, remote tag, release branch 상태를 재검증한다.
    - GitHub Release 생성/갱신에 실패하면 후속 브랜치 생성 전 실패로 보고한다.
-7. 후속 버전 브랜치 생성
+8. 후속 버전 브랜치 생성
    - 릴리즈 tag와 GitHub Release가 완료된 뒤 다음 릴리즈 브랜치를 만든다.
    - patch 버전 브랜치는 사용자가 특별히 지시하지 않으면 만들지 않는다.
    - minor 버전은 `9`가 마지막이다. 예: `1.8.0` 다음은 `1.9.0`,
      `1.9.0` 다음은 `2.0.0`이다.
    - 일반 규칙은 `major.minor.patch`에서 patch는 `0` 유지, minor가 `0`~`8`이면
      `minor + 1`, minor가 `9`이면 `major + 1.0.0`이다.
-   - 후속 브랜치는 main의 release tag 이후 최신 상태에서 생성하고 push한다.
+   - 후속 브랜치는 main을 fetch/checkout/pull한 뒤 release tag commit이 포함된 최신
+     main에서 생성하고 push한다.
+   - release branch 삭제는 별도 명시 지시가 없으면 수행하지 않는다.
+9. 실패와 rollback 경계
+   - 실패 후 local/remote tag 삭제, force push, GitHub Release 삭제, merge revert,
+     release branch 삭제 같은 rollback성 작업을 임의로 수행하지 않는다.
+   - 이미 생성된 외부 상태가 있으면 commit/tag/release URL과 실패 지점을 보고하고,
+     사용자 지시를 기다린다.
 
 릴리즈 준비 최종 보고에는 반드시 아래를 포함한다.
 
 ```text
 릴리즈 준비 결과:
 - 기준 버전:
+- 사전 clean/sync:
 - 문서 업데이트:
 - 빌드/검증:
 - PR:
 - main merge:
 - tag:
 - GitHub Release:
+- published metadata 재검증:
 - 후속 브랜치:
+- CHANGELOG/변경 이력:
 - 미실행/제외 테스트:
 - 실패/중단 지점:
 ```
@@ -478,7 +518,7 @@ verify-predev: 실행하지 않음
    안정화/30분/120분/UI 테스트 기준에서 제외하고, field smoke 별도 조건과 제외
    사유를 `제외 기록`에 적는다.
 6. 기능 개발 중 기존 코드가 구버전 레거시가 되면 호환 명목으로 남겨두지 않는다.
-   현재 v1.8.0 제품 route/API/UI에서 쓰지 않는 레거시 화면, route, helper, verifier
+   현재 릴리즈 제품 route/API/UI에서 쓰지 않는 레거시 화면, route, helper, verifier
    문자열은 영향 범위를 확인한 뒤 같은 작업 범위에서 삭제한다.
 7. UI 테스트는 Codex 인앱 브라우저에서 직접 클릭/타이핑/반응형 확인으로 수행한다.
    raw JSON, curl, Playwright 스크립트만으로 제품 UI 수동 확인을 대체했다고 보고하지
