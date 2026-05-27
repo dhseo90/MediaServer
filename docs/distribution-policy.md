@@ -7,7 +7,7 @@ Release asset 기준은 [release-policy.md](./release-policy.md)에서 함께 �
 
 - 기본 공개 단위는 Apache-2.0 원본 소스와 문서입니다.
 - 기본 binary bundle에는 FFmpeg, FFprobe, libav*, x264/x265, GStreamer GPL-risk plugin 바이너리를 포함하지 않습니다.
-- ONNX Runtime package와 YOLO/Re-ID/VLM/model binary는 기본 release asset에 포함하지 않습니다.
+- ONNX Runtime package와 YOLO/Re-ID/model binary는 기본 release asset에 포함하지 않습니다.
 - FFmpeg/GStreamer runtime은 사용자 package manager 설치물로 취급합니다.
 - bundle, app package, container image, offline package를 만들 때는 `./server.sh verify-bundle-policy --bundle-dir <release_bundle_dir>`를 실행합니다.
 - GPL-risk runtime을 의도적으로 포함하면 별도 라이선스 검토, upstream license text, source offer, attribution을 준비합니다.
@@ -21,7 +21,7 @@ Release asset 기준은 [release-policy.md](./release-policy.md)에서 함께 �
 | Source release | 소스/문서/LICENSE/NOTICE만 공개 | `write-dependency-notice --check`, `verify-bundle-policy` |
 | Local binary bundle | `media_server`와 문서만 묶음 | `verify-release-bundle-dry-run --candidate local-binary`, `verify-bundle-policy --bundle-dir <dir>` |
 | Offline package without runtime/model | `media_server`, 문서, 설치 안내만 묶음 | `verify-release-bundle-dry-run --candidate offline-package`, `verify-bundle-policy --bundle-dir <dir>` |
-| Runtime/model 포함 bundle | GStreamer/FFmpeg/plugin/ONNX Runtime/model까지 복사 | 별도 법무/라이선스 검토, source offer, license text, attribution, model provenance/checksum, 프로젝트 license 비충돌 확인 |
+| Runtime/model 포함 bundle | GStreamer/FFmpeg/plugin/ONNX Runtime/model까지 복사 | 별도 법무/라이선스 검토, source offer, license text, attribution, model provenance/checksum |
 | Container image without runtime/model | 사용자가 runtime/model layer를 직접 선택 | `verify-release-bundle-dry-run --candidate container-root`, README에 설치 의존성 명시 |
 | Container image with runtime/model | image 안에 FFmpeg/GStreamer/plugin/ONNX Runtime/model 포함 | image filesystem에 대해 `verify-bundle-policy` 실행, 위반 시 기본 release 대상 제외 |
 
@@ -42,12 +42,6 @@ Container release 전 확인:
 위반 항목이 나오면 기본 release 대상이 아닙니다.
 의도적으로 포함하는 경우에만 `--allow-risky-runtime`으로 경고 리포트를 만들고,
 그 리포트를 release 검토 기록에 첨부합니다.
-
-VLM model/runtime artifact도 기본 source-only release에는 포함하지 않습니다.
-`.gguf`, `.ggml`, `.safetensors`, `.ckpt` 같은 VLM checkpoint 후보는 사용자 준비물
-또는 별도 review 대상이며, 포함 배포를 검토할 때는
-[VLM Model Selection Boundary](./vlm-model-selection.md)의 Apache-2.0 프로젝트
-license 비충돌 조건과 provider/model license를 먼저 확인합니다.
 
 ## Source Offer Checklist
 

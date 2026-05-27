@@ -218,7 +218,6 @@ fallback까지 실패하면 `media-server.github-metadata-fallback-policy.v1` �
 ./server.sh verify-ops-client-ui
 ./server.sh verify-ops-client-ui --screenshots
 ./server.sh verify-vlm-boundary
-./server.sh verify-vlm-model-catalog
 ./server.sh verify-ops-click-e2e
 ./server.sh verify-ops-click-e2e --auth-ui-flow --auth-users-file <path>
 ./server.sh verify-ops-tables-layout
@@ -239,11 +238,6 @@ fallback까지 실패하면 `media-server.github-metadata-fallback-policy.v1` �
 ./server.sh verify-docs-links
 ./server.sh verify-release-metadata
 ```
-
-`verify-vlm-model-catalog`는 v2.0.0 VLM 후보군 catalog가 특정 모델 기본값,
-자동 설치, runtime 호출을 추가하지 않고, 프로젝트 Apache-2.0 license와 충돌하지
-않는 license/provenance/privacy/bundle review gate를 갖는지 확인합니다.
-이 명령은 VLM 실행, provider 연결, 추천 엔진 평가를 수행하지 않습니다.
 
 EventRecord 저장 이력까지 확인해야 하는 경우에는 EventRecord storage를 켠 격리
 서버에서 `verify-va-events --dispatch-records`를 실행합니다. 이 모드는 rare

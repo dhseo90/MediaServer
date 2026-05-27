@@ -6,7 +6,6 @@
     "^third_party/",
     "^\\.media_server",
     "^scripts/\\.media_server\\.env$",
-    "^.*\\.(gguf|ggml|safetensors|ckpt)$",
     "^video/imports/(?!va_tracking_event_1280x720_30fps_h264\\.mp4$).+",
     "^.*\\.DS_Store$"
   ],
@@ -59,7 +58,7 @@
   ],
   "assetPolicySummary": [
     "Tracked video files are generated smoke fixtures, not production evidence or customer media.",
-    "YOLO/Re-ID/VLM model binaries and optional layout models stay ignored under models/ or blocked by model artifact extension patterns, and are fetched or prepared locally.",
+    "YOLO model binaries and optional layout models stay ignored under models/ and are fetched or prepared locally.",
     "Large imported media, local auth stores, logs, evidence media, third_party runtimes, and package-manager binaries are not public repo content."
   ]
 }

@@ -70,7 +70,6 @@ publish gate는 아직 미실행이며, GitHub release URL은 publish 이후 `ve
 | Live source health | [live-source-health.md](live-source-health.md) |
 | Event/WebRTC/SSE/WS metadata contract | [live-event-metadata-contracts.md](live-event-metadata-contracts.md) |
 | VA threshold/event/report details | [analysis-threshold-baselines.md](analysis-threshold-baselines.md), [webrtc-metadata-client.md](webrtc-metadata-client.md), [close-object-report-archive-policy.md](close-object-report-archive-policy.md) |
-| VLM 후보/선택 기준 | [vlm-model-selection.md](vlm-model-selection.md) |
 | Integrator sample bundle | [integrator-contract-artifact.md](integrator-contract-artifact.md) |
 | Runtime dashboard/scenario timeline | [scenario-timeline-debug.md](scenario-timeline-debug.md), [runtime-dashboard-longrun-evidence-template.md](runtime-dashboard-longrun-evidence-template.md) |
 | Backup and restore | [ops-backup-recovery.md](ops-backup-recovery.md) |

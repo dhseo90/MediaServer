@@ -3,7 +3,7 @@
   "defaultMode": "source-release-without-third-party-runtime-binaries",
   "summary": [
     "기본 공개/배포 단위는 Apache-2.0 원본 소스와 문서이며 FFmpeg, FFprobe, libav*, x264/x265, GStreamer GPL-risk plugin 바이너리를 포함하지 않습니다.",
-    "ONNX Runtime package와 YOLO/Re-ID/VLM/model binary 및 VLM model artifact는 기본 release asset에 포함하지 않습니다.",
+    "ONNX Runtime package와 YOLO/model binary는 기본 release asset에 포함하지 않습니다.",
     "패키지 매니저로 설치되는 media runtime과 검증 도구는 사용자 환경 의존성으로 취급합니다.",
     "binary bundle, app bundle, container image, offline package를 만들 때는 verify-bundle-policy로 포함 파일을 검사합니다.",
     "GPL-risk runtime을 의도적으로 포함하는 배포는 별도 법무/라이선스 검토, upstream license text, source offer, attribution을 준비해야 합니다."
@@ -99,10 +99,10 @@
       "id": "model-binary",
       "severity": "block",
       "title": "Model binary file",
-      "reason": "YOLO/Re-ID/VLM model binary와 VLM model artifact는 검증 fixture 또는 사용자 준비물로 취급하며 기본 release asset에 포함하지 않습니다.",
+      "reason": "YOLO/model binary는 검증 fixture 또는 사용자 준비물로 취급하며 기본 release asset에 포함하지 않습니다.",
       "pathPatterns": [
         "(^|/)models($|/)",
-        "(^|/)[^/]+\\.(onnx|pt|pth|weights|engine|tflite|mlmodel|gguf|ggml|safetensors|ckpt)($|/)",
+        "(^|/)[^/]+\\.(onnx|pt|pth|weights|engine|tflite|mlmodel)($|/)",
         "(^|/)[^/]+\\.mlpackage($|/)"
       ],
       "linkedPatterns": []
