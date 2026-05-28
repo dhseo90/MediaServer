@@ -1,0 +1,123 @@
+{
+  "schema": "media-server.vlm-install-connection-dry-run-fixtures.v1",
+  "targetStep": "V200-S04",
+  "purpose": "Synthetic VLM install/connection dry-run matrix for local, cloud, unsupported, missing-runtime, and cloud opt-in guard cases.",
+  "pcCapabilityFixture": "test/fixtures/vlm_pc_capability/cases.json",
+  "recommendationFixture": "test/fixtures/vlm_recommendation/cases.json",
+  "cases": [
+    {
+      "id": "unsupported-local-only",
+      "pcCapabilityCase": "linux-cpu-only",
+      "privacyMode": "local-only",
+      "cloudOptIn": "not-acknowledged",
+      "expected": {
+        "status": "no-selectable-option",
+        "hardwareClass": "local-unsupported",
+        "selectableCount": 0,
+        "selectableModels": [],
+        "disabledReasonsInclude": [
+          "recommendation-engine-returned-no-supported-option"
+        ]
+      }
+    },
+    {
+      "id": "unsupported-cloud-allowed-without-opt-in",
+      "pcCapabilityCase": "macos-intel-cpu-only",
+      "privacyMode": "cloud-allowed",
+      "cloudOptIn": "not-acknowledged",
+      "expected": {
+        "status": "no-selectable-option",
+        "hardwareClass": "local-unsupported",
+        "selectableCount": 0,
+        "selectableModels": [],
+        "disabledReasonsInclude": [
+          "cloud-explicit-opt-in-required"
+        ],
+        "warningsInclude": [
+          "cloud-explicit-opt-in-required"
+        ]
+      }
+    },
+    {
+      "id": "unsupported-cloud-allowed-with-opt-in",
+      "pcCapabilityCase": "macos-intel-cpu-only",
+      "privacyMode": "cloud-allowed",
+      "cloudOptIn": "acknowledged",
+      "expected": {
+        "status": "ready-for-user-selection",
+        "hardwareClass": "local-unsupported",
+        "selectableCount": 1,
+        "selectableModels": [
+          "gemini-2.5-flash"
+        ]
+      }
+    },
+    {
+      "id": "low-local-only",
+      "pcCapabilityCase": "linux-nvidia-8gb",
+      "privacyMode": "local-only",
+      "cloudOptIn": "not-acknowledged",
+      "expected": {
+        "status": "ready-for-user-selection",
+        "hardwareClass": "local-low",
+        "selectableCount": 1,
+        "selectableModels": [
+          "Qwen/Qwen3-VL-4B-Instruct"
+        ]
+      }
+    },
+    {
+      "id": "standard-cloud-allowed-with-opt-in",
+      "pcCapabilityCase": "linux-nvidia-12gb",
+      "privacyMode": "cloud-allowed",
+      "cloudOptIn": "acknowledged",
+      "expected": {
+        "status": "ready-for-user-selection",
+        "hardwareClass": "local-standard",
+        "selectableCount": 3,
+        "selectableModels": [
+          "Qwen/Qwen3-VL-8B-Instruct",
+          "Qwen/Qwen3-VL-4B-Instruct",
+          "gemini-2.5-flash"
+        ]
+      }
+    },
+    {
+      "id": "high-cloud-disabled",
+      "pcCapabilityCase": "macos-apple-silicon-48gb",
+      "privacyMode": "cloud-disabled",
+      "cloudOptIn": "not-acknowledged",
+      "expected": {
+        "status": "ready-for-user-selection",
+        "hardwareClass": "local-high",
+        "selectableCount": 2,
+        "selectableModels": [
+          "Qwen/Qwen3-VL-30B-A3B-Instruct",
+          "Qwen/Qwen3-VL-8B-Instruct"
+        ],
+        "warningsInclude": [
+          "local-high-candidate-requires-v200-s06-evaluation"
+        ]
+      }
+    },
+    {
+      "id": "standard-missing-runtime-tools",
+      "pcCapabilityCase": "missing-runtime-tools",
+      "privacyMode": "local-only",
+      "cloudOptIn": "not-acknowledged",
+      "expected": {
+        "status": "ready-for-user-selection",
+        "hardwareClass": "local-standard",
+        "selectableCount": 2,
+        "selectableModels": [
+          "Qwen/Qwen3-VL-8B-Instruct",
+          "Qwen/Qwen3-VL-4B-Instruct"
+        ],
+        "warningsInclude": [
+          "local-runtime-missing",
+          "local-runtime-setup-required-before-activation"
+        ]
+      }
+    }
+  ]
+}

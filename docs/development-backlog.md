@@ -417,6 +417,38 @@ S04에서 금지:
   추천 경계를 계속 검증합니다.
 - `git diff --check`가 문서/script whitespace drift를 확인합니다.
 
+### V200-S04 VLM 설치/연결 dry-run contract
+
+이 단계는 `V200-S03` 추천 결과를 Ops UI가 표시할 수 있는 설치/연결 후보 contract로
+변환합니다. 실제 Ops 화면 구현, Auth/redaction guard, profile 저장, VLM runtime 호출,
+sidecar 저장은 별도 후속 스텝으로 남깁니다.
+
+이번 단계에서 구현하는 범위:
+
+- `./server.sh vlm-install-connection-dry-run`은 `media-server.vlm-recommendation.v1`
+  추천 결과 또는 PC capability fixture/privacy mode를 받아
+  `media-server.vlm-install-connection-dry-run.v1` JSON을 출력합니다.
+- 명령 이름은 `vlm-install-connection-dry-run`, 검증 명령은
+  `verify-vlm-install-connection-dry-run`입니다.
+- 출력은 local model 설치 dry-run 후보와 cloud API 연결 dry-run 후보를 포함합니다.
+- cloud 후보는 `privacy-mode=cloud-allowed`와 별도 `cloud-opt-in=acknowledged`가
+  모두 있어야 selectable입니다.
+- 모든 option은 단일 사용자 선택 후보이며 자동 다중 설치를 허용하지 않습니다.
+- 모든 side-effect invariant는 false입니다. 실제 설치, provider API 호출, credential
+  저장, profile 저장, runtime 호출, sidecar 저장, schema/media path 변경은 없습니다.
+- `test/fixtures/vlm_install_connection_dry_run/cases.json`은 unsupported/local/cloud/
+  high/missing-runtime/cloud-opt-in guard case를 구조화합니다.
+
+완료 판정:
+
+- `./server.sh verify-vlm-install-connection-dry-run`이 dry-run schema, fixture matrix,
+  cloud opt-in guard, side-effect false invariant, redaction boundary, 문서/명령 연결을
+  검증합니다.
+- 기존 `verify-vlm-install-connection-scope-gate`, `verify-vlm-recommendation-engine`,
+  `verify-vlm-pc-capability`, `verify-vlm-selection-decision`이 입력 경계와 S04 scope를
+  계속 검증합니다.
+- `git diff --check`가 문서/fixture/script whitespace drift를 확인합니다.
+
 v2.0.0 완료 판정은 기능 구현만으로 닫지 않습니다. 각 개발 순서에서 추가한 테스트가
 `project-feature-test-inventory.md`, 안정화 테스트, 30분/120분 trigger, UI 풀테스트
 기준에 반영됐는지 확인하고, 기존 테스트 항목에 side effect가 없는지 별도 행으로

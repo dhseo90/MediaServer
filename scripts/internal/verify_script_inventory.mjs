@@ -410,6 +410,8 @@ check("user-facing JS option parsers reject unknown options", () => {
     "recommend_vlm_model.mjs",
     "verify_vlm_recommendation_engine.mjs",
     "verify_vlm_install_connection_scope_gate.mjs",
+    "vlm_install_connection_dry_run.mjs",
+    "verify_vlm_install_connection_dry_run.mjs",
     "verify_code_comments.mjs",
     "verify_docs_links.mjs",
     "verify_project_feature_test_inventory.mjs",

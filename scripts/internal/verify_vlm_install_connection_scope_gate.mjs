@@ -76,15 +76,15 @@ check("feature inventory and coverage gate include the S04 scope gate", () => {
     "| SAFE-022 | VLM 설치/연결 UI scope gate | 비대상 | 필요 | 안정화 |",
     "verify-vlm-install-connection-scope-gate",
     "| `SAFE-001`~`SAFE-022` |",
-    "| 전체 기능 항목 | 320 |",
-    "| UI 비대상 | 90 |",
-    "| 테스트 필요 | 320 |",
-    "| 안정화 대상 | 310 |",
+    "| 전체 기능 항목 | 321 |",
+    "| UI 비대상 | 91 |",
+    "| 테스트 필요 | 321 |",
+    "| 안정화 대상 | 311 |",
   ]) {
     assert(inventory.includes(snippet), `feature inventory missing S04 scope gate snippet: ${snippet}`);
   }
   assert(coverage.includes("verify-vlm-install-connection-scope-gate"), "coverage verifier missing S04 scope command");
-  assert(projectInventoryVerifier.includes("rows.length === 320"), "project inventory verifier must expect 320 feature rows");
+  assert(projectInventoryVerifier.includes("rows.length === 321"), "project inventory verifier must expect 321 feature rows");
 });
 
 check("server command and script inventory are wired", () => {

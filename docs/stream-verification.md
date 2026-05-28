@@ -217,6 +217,17 @@ cloud 연결, profile 저장, runtime 호출, UI smoke 통과를 대신하지 �
 ./server.sh verify-vlm-install-connection-scope-gate
 ```
 
+VLM 설치/연결 dry-run contract는 `V200-S04`의 contract 산출물입니다. 추천 결과를
+local model 설치 dry-run 후보와 cloud API 연결 dry-run 후보로 변환하지만, 실제 설치,
+cloud provider API 호출, credential 저장, profile 저장, VLM runtime 호출, sidecar
+저장, Event POST/WebRTC/SSE/WS metadata schema 변경은 수행하지 않습니다.
+출력 schema는 `media-server.vlm-install-connection-dry-run.v1`입니다.
+
+```bash
+./server.sh vlm-install-connection-dry-run
+./server.sh verify-vlm-install-connection-dry-run
+```
+
 CI/local gate parity는 `media-server.ci-local-gate-parity.v1` summary로
 Preflight/static-gates/guardrails/RC workflow에 실제로 걸린 `./server.sh` 명령과
 로컬 release/static verifier 목록을 대조합니다. 로컬에서 통과해야 한다고 문서화한
@@ -263,6 +274,7 @@ fallback까지 실패하면 `media-server.github-metadata-fallback-policy.v1` �
 ./server.sh verify-vlm-selection-decision
 ./server.sh verify-vlm-pc-capability
 ./server.sh verify-vlm-install-connection-scope-gate
+./server.sh verify-vlm-install-connection-dry-run
 ./server.sh verify-ops-click-e2e
 ./server.sh verify-ops-click-e2e --auth-ui-flow --auth-users-file <path>
 ./server.sh verify-ops-tables-layout

@@ -272,6 +272,10 @@ Usage:
                  v2.0.0 VLM 추천 엔진과 low/standard/high/privacy fixture matrix를 검증합니다.
   verify-vlm-install-connection-scope-gate
                  v2.0.0 VLM 설치/연결 UI 착수 범위 gate를 검증합니다.
+  vlm-install-connection-dry-run
+                 v2.0.0 VLM 설치/연결 dry-run contract JSON을 산출합니다.
+  verify-vlm-install-connection-dry-run
+                 v2.0.0 VLM 설치/연결 dry-run contract와 fixture matrix를 검증합니다.
   verify-event-post
                  VA event POST payload, 실패/cooldown/queue 상태를 검증합니다.
   verify-integrator-contract-artifact
@@ -914,6 +918,14 @@ case "${cmd}" in
   verify-vlm-install-connection-scope-gate)
     require_internal verify_vlm_install_connection_scope_gate.mjs
     exec "${INTERNAL_DIR}/verify_vlm_install_connection_scope_gate.mjs" "$@"
+    ;;
+  vlm-install-connection-dry-run)
+    require_internal vlm_install_connection_dry_run.mjs
+    exec "${INTERNAL_DIR}/vlm_install_connection_dry_run.mjs" "$@"
+    ;;
+  verify-vlm-install-connection-dry-run)
+    require_internal verify_vlm_install_connection_dry_run.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_install_connection_dry_run.mjs" "$@"
     ;;
   verify-event-post)
     require_internal verify_event_post_dispatch.sh

@@ -146,7 +146,7 @@ check("roadmap, verification docs, feature inventory, and server command are wir
   for (const snippet of [
     "| LAB-035 | VLM PC capability detector",
     "verify-vlm-pc-capability",
-    "| `LAB-001`~`LAB-036` |",
+    "| `LAB-001`~`LAB-037` |",
   ]) {
     assert(inventory.includes(snippet), `feature inventory missing snippet: ${snippet}`);
   }

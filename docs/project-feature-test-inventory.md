@@ -29,12 +29,12 @@ source-of-truth입니다.
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 320 |
+| 전체 기능 항목 | 321 |
 | UI 직접 필요 | 203 |
 | UI 간접 필요 | 27 |
-| UI 비대상 | 90 |
-| 테스트 필요 | 320 |
-| 안정화 대상 | 310 |
+| UI 비대상 | 91 |
+| 테스트 필요 | 321 |
+| 안정화 대상 | 311 |
 | UI 풀테스트 대상 | 220 |
 | 30분 soak 대상 | 45 |
 | 120분 조건부 대상 | 7 |
@@ -73,7 +73,7 @@ close-out에서 실제 실행한 evidence는 [release-evidence-index.md](release
 | `EVT-*` | `src/analysis/event_manager.cpp`, `src/analysis/event_storage.cpp`, `src/ingress/webrtc_http_server.cpp` | `/ops/dashboard`, `/ops/events`, `/ops/home` | `verify-va-event-coverage-report`, `verify-va-events`, `verify-ops-event-review-inbox`, `verify-ops-event-records-scope`, `verify-ops-alert-delivery-integrations`, `verify-va-runtime-console` |
 | `CLIENT-*` | `src/ingress/product_ui_page_scripts.cpp`, `src/ingress/webrtc_http_server.cpp`, `src/ingress/webrtc_egress_session.cpp` | `/client/live`, `/client/dashboard`, `/client/request-access` | `verify-client-live-workspace`, `verify-client-dashboard-polish`, `verify-client-source-dock-events`, `verify-client-tile-*`, `verify-ops-client-ui`, `verify-ops-click-e2e` |
 | `MEDIA-*` | `src/core/session_manager.cpp`, `src/core/source_factory.cpp`, `src/core/stream_registry.cpp`, `src/ingress/webrtc_egress_session.cpp`, `src/ingress/rtsp_adapter.cpp` | `/client/live` only where video is visible | `verify-codecs`, `verify-webrtc-ice`, `verify-webrtc-va-metadata`, `verify-uri-source-longrun`, `verify-predev` |
-| `LAB-*` | `src/ingress/analysis_query.cpp`, `src/ingress/webrtc_http_server.cpp`, local detector/recommendation scripts | 비대상 | `verify-analysis-state`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-image-analysis`, `verify-vlm-pc-capability`, `verify-vlm-recommendation-engine` |
+| `LAB-*` | `src/ingress/analysis_query.cpp`, `src/ingress/webrtc_http_server.cpp`, local detector/recommendation scripts | 비대상 | `verify-analysis-state`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-image-analysis`, `verify-vlm-pc-capability`, `verify-vlm-recommendation-engine`, `verify-vlm-install-connection-dry-run` |
 | `SAFE-*` | schema/payload/media/auth/UI test 경계 owner 전체 | route guard와 client 비노출 화면 | `verify-auth-routes`, `verify-ops-client-ui`, `verify-ui-blocking-dialog-policy`, `verify-webrtc-va-metadata`, `verify-ws-metadata`, `verify-event-post-*`, `verify-vlm-install-connection-scope-gate` |
 
 ## Verifier Coverage Map
@@ -88,7 +88,7 @@ close-out에서 실제 실행한 evidence는 [release-evidence-index.md](release
 | `EVT-001`~`EVT-026` | `verify-va-event-coverage-report`, `verify-va-events`, `verify-ops-event-review-inbox`, `verify-ops-event-records-scope`, `verify-ops-alert-delivery-integrations`, `verify-va-runtime-console` | event log 육안 확인은 UI 풀테스트 |
 | `CLIENT-001`~`CLIENT-022` | `verify-client-live-workspace`, `verify-client-dashboard-polish`, `verify-client-source-dock-events`, `verify-client-tile-disconnect-contract`, `verify-client-tile-info-overlay-health`, `verify-ops-client-ui` | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-020` | `verify-codecs`, `verify-webrtc-ice`, `verify-webrtc-va-metadata`, `verify-uri-source-longrun`, `verify-predev` | 30분/120분은 실행 지시 필요 |
-| `LAB-001`~`LAB-036` | `verify-analysis-state`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-image-analysis`, `verify-vlm-pc-capability`, `verify-vlm-recommendation-engine` | 제품 UI 비대상 |
+| `LAB-001`~`LAB-037` | `verify-analysis-state`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-image-analysis`, `verify-vlm-pc-capability`, `verify-vlm-recommendation-engine`, `verify-vlm-install-connection-dry-run` | 제품 UI 비대상 |
 | `SAFE-001`~`SAFE-022` | `verify-auth-routes`, `verify-ops-client-ui`, `verify-ui-blocking-dialog-policy`, `verify-event-post-dispatch`, `verify-webrtc-va-metadata`, `verify-ws-metadata`, `verify-rtsp-va-overlay-policy`, `verify-vlm-install-connection-scope-gate` | schema/media/auth/UI automation 불변 조건 |
 
 ## VA Manual UI Seed Matrix
@@ -467,6 +467,7 @@ Rule scenario/event 발생 검수는 분리합니다.
 | LAB-034 | lab report content 조회 | 비대상 | 필요 | 안정화 | report content fetch와 path guard 확인 |
 | LAB-035 | VLM PC capability detector | 비대상 | 필요 | 안정화 | `media-server.vlm-pc-capability.v1` schema, macOS/Linux fixture, missing-tool fixture, no recommendation/install/runtime-call boundary, loopback-only probe 확인 |
 | LAB-036 | VLM recommendation engine | 비대상 | 필요 | 안정화 | `media-server.vlm-recommendation.v1` schema, low/standard/high/unsupported fixture, local-only/cloud-disabled/cloud-allowed policy, recommendation/alternative/not-recommended/resource estimate, no install/profile/runtime-call/sidecar boundary 확인 |
+| LAB-037 | VLM install/connection dry-run contract | 비대상 | 필요 | 안정화 | `media-server.vlm-install-connection-dry-run.v1` schema, local/cloud/unsupported/missing-runtime/cloud-opt-in fixture, dry-run-only side-effect false invariant, no profile/runtime-call/sidecar/cloud-provider-call boundary 확인 |
 
 ## I. Safety, Boundary, Invariant Contract
 
