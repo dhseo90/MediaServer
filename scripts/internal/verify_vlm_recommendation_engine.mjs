@@ -195,16 +195,14 @@ check("roadmap, verification docs, feature inventory, docs index, and server com
   return { command: "./server.sh verify-vlm-recommendation-engine" };
 });
 
-check("source tree does not add product route, profile, sidecar, or runtime VLM artifacts", () => {
+check("source tree does not add client route, profile, sidecar, or runtime VLM artifacts", () => {
   const sourceFiles = gitLsFiles(["src", "include"]).filter(file => !isBinaryPath(file));
   const hits = [];
   const forbidden = [
     /\bVLMObservation\b/,
-    /\bvlm[_-]?provider\b/i,
     /\bvlm[_-]?profile\b/i,
     /\bvlm[_-]?sidecar\b/i,
     /\bpromptProfile\b/,
-    /\/ops\/vlm/i,
     /\/client\/vlm/i,
   ];
   for (const file of sourceFiles) {

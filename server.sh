@@ -270,6 +270,8 @@ Usage:
                  v2.0.0 VLM 추천 모델/대안/비추천 사유와 resource estimate를 산출합니다.
   verify-vlm-recommendation-engine
                  v2.0.0 VLM 추천 엔진과 low/standard/high/privacy fixture matrix를 검증합니다.
+  verify-vlm-install-connection-scope-gate
+                 v2.0.0 VLM 설치/연결 UI 착수 범위 gate를 검증합니다.
   verify-event-post
                  VA event POST payload, 실패/cooldown/queue 상태를 검증합니다.
   verify-integrator-contract-artifact
@@ -908,6 +910,10 @@ case "${cmd}" in
   verify-vlm-recommendation-engine)
     require_internal verify_vlm_recommendation_engine.mjs
     exec "${INTERNAL_DIR}/verify_vlm_recommendation_engine.mjs" "$@"
+    ;;
+  verify-vlm-install-connection-scope-gate)
+    require_internal verify_vlm_install_connection_scope_gate.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_install_connection_scope_gate.mjs" "$@"
     ;;
   verify-event-post)
     require_internal verify_event_post_dispatch.sh

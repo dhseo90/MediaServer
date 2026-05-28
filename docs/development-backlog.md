@@ -378,6 +378,45 @@ sidecar 저장은 다음 단계로 남깁니다.
 
 - 설치/연결 UI는 `V200-S04`로 남아 있으며 이번 단계에서는 미진행입니다.
 
+### V200-S04 VLM 설치/연결 UI 범위 gate
+
+이 gate는 `V200-S04` 개발 착수 시 기존 S01/S02/S03 gate가 S04의 Ops-only UI
+준비를 과도하게 막지 않도록 분리하면서, 아직 이 단계에서 하면 안 되는 저장/runtime/
+sidecar/schema 변경은 계속 차단하기 위한 선수 작업입니다. 이 gate만 통과해도
+`V200-S04` 전체가 완료된 것은 아닙니다.
+
+S04에서 허용:
+
+- Ops-only 설치/연결 UI route 또는 panel 준비
+- PC capability와 recommendation 결과를 읽어 설치 후보, 대안, 비추천 사유,
+  memory/disk/latency/cost planning estimate를 표시하는 UI 준비
+- local runtime 준비 상태와 설치 전 영향 안내
+- cloud provider 연결 선택 전 외부 전송 경고와 명시 opt-in guard
+- install dry-run fixture와 viewer redaction UI smoke 준비
+
+S04에서 금지:
+
+- profile 저장은 `V200-S05` 범위입니다.
+- VLM runtime 호출은 `V200-S06` 이후 평가 harness 범위입니다.
+- VLMObservation sidecar 저장은 `V200-S08` 범위입니다.
+- cloud provider API 호출, credential 저장, prompt/raw response 저장은 이 단계에서
+  수행하지 않습니다.
+- Event POST, WebRTC DataChannel, SSE/WS metadata schema 변경은 하지 않습니다.
+- RTSP/WebRTC media path 변경은 하지 않습니다.
+- viewer/client 화면 노출은 하지 않습니다.
+- VLM model/runtime artifact를 repo, source release, binary bundle, container image에
+  포함하지 않습니다.
+
+완료 판정:
+
+- `./server.sh verify-vlm-install-connection-scope-gate`가 S04 범위 gate, 기존 VLM
+  verifier relax/retain 경계, feature inventory 연결, 금지 artifact token을 검증합니다.
+- `./server.sh verify-vlm-selection-decision`,
+  `./server.sh verify-vlm-pc-capability`,
+  `./server.sh verify-vlm-recommendation-engine`이 기존 입력 source-of-truth와
+  추천 경계를 계속 검증합니다.
+- `git diff --check`가 문서/script whitespace drift를 확인합니다.
+
 v2.0.0 완료 판정은 기능 구현만으로 닫지 않습니다. 각 개발 순서에서 추가한 테스트가
 `project-feature-test-inventory.md`, 안정화 테스트, 30분/120분 trigger, UI 풀테스트
 기준에 반영됐는지 확인하고, 기존 테스트 항목에 side effect가 없는지 별도 행으로

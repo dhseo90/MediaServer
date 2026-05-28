@@ -150,10 +150,8 @@ check("VLM implementation is not introduced before boundary-only step closes", (
   ]);
   const forbiddenTokens = [
     /\bVLMObservation\b/,
-    /\bvlm[_-]?provider\b/i,
     /\bvlm[_-]?profile\b/i,
     /\bvlm[_-]?sidecar\b/i,
-    /\bvision[-_ ]language\b/i,
     /\bpromptProfile\b/,
   ];
   const hits = [];

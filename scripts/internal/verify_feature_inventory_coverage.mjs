@@ -49,11 +49,11 @@ const stabilityVerifierByPrefix = {
   CLIENT: ["verify-client-live-workspace", "verify-client-dashboard-polish", "verify-client-source-dock-events", "verify-ops-client-ui"],
   MEDIA: ["verify-codecs", "verify-webrtc-ice", "verify-webrtc-va-metadata"],
   LAB: ["verify-analysis-state", "verify-va-metadata-sidechannel", "verify-ws-metadata", "verify-image-analysis", "verify-vlm-pc-capability", "verify-vlm-recommendation-engine"],
-  SAFE: ["verify-integrator-contract-artifact", "verify-auth-routes", "verify-ops-client-ui", "verify-ui-blocking-dialog-policy", "verify-event-post", "verify-webrtc-va-metadata", "verify-ws-metadata"],
+  SAFE: ["verify-integrator-contract-artifact", "verify-auth-routes", "verify-ops-client-ui", "verify-ui-blocking-dialog-policy", "verify-event-post", "verify-webrtc-va-metadata", "verify-ws-metadata", "verify-vlm-install-connection-scope-gate"],
 };
 
 check("inventory row count is stable", () => {
-  assert(rows.length === 319, `expected 319 feature rows, found ${rows.length}`);
+  assert(rows.length === 320, `expected 320 feature rows, found ${rows.length}`);
   assert(new Set(rows.map(row => row.id)).size === rows.length, "duplicate feature ID exists");
 });
 

@@ -304,7 +304,6 @@ check("V200-S01 does not introduce runtime implementation artifacts", () => {
   const hits = [];
   const forbidden = [
     /\bVLMObservation\b/,
-    /\bvlm[_-]?provider\b/i,
     /\bvlm[_-]?profile\b/i,
     /\bvlm[_-]?sidecar\b/i,
     /\bpromptProfile\b/,
