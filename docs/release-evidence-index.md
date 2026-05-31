@@ -61,16 +61,17 @@ Not run for `predev-30min-20260525`: 120분 longrun, manual UI 풀테스트.
 Not run for `ui-fulltest-restart-20260525-oehkFG`: 120분 longrun, main merge, release tag, GitHub Release 생성, publish 후 `verify-release-metadata --published` 재확인.
 Not run for `v200-vlm-closeout-readiness-20260531`: UI 풀테스트, 30분 soak, 120분 longrun, cloud provider field smoke, main merge, release tag, GitHub Release 생성, publish 후 `verify-release-metadata --published` 재확인.
 
-## v2.0.0 Test Run 2026-05-31
+## v2.0.0 Test Restart 2026-05-31
 
-사용자 지시 범위는 `테스트 기록 리스트 만들기`, `안정성 테스트 진행`,
-`30분 테스트 진행`입니다. 120분 longrun과 UI 풀테스트는 별도 지시 전까지
-미실행으로 둡니다.
+사용자 지시 범위는 `기존 테스트 기록 리스트 삭제 후 다시 만들기`,
+`안정성 테스트 진행`, `30분 테스트 진행`입니다. 이전 실행은 채팅방 깜빡임 이슈로
+중단했고, 이번 절은 재작성한 테스트 기록 리스트만 가리킵니다. 120분 longrun과
+UI 풀테스트는 별도 지시 전까지 미실행으로 둡니다.
 
 - 상세 기록: [v200-test-record-2026-05-31.md](./v200-test-record-2026-05-31.md)
-- 실행 순서: 테스트 기록 리스트 -> 안정성 테스트 -> 30분 테스트
-- 제외: 120분 longrun, UI 풀테스트, cloud provider field smoke, main merge, release tag,
-  GitHub Release, push
+- 실행 순서: 테스트 기록 리스트 재작성 -> 안정성 테스트 -> 30분 테스트
+- 제외: 120분 longrun, UI 풀테스트, cloud provider field smoke, main merge,
+  release tag, GitHub Release, push
 - 판정 경계: 안정성/30분 PASS는 UI 풀테스트 PASS가 아닙니다.
 
 ## v2.0.0 Entry Baseline Report
