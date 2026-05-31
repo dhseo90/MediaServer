@@ -8,7 +8,9 @@ import process from "node:process";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import {
+  browserFallbackUnavailableMessage,
   findChrome,
+  isCodexInAppBrowserEnvironment,
   isTruthy,
   openBrowserPage,
   parseWidthList,
@@ -31,6 +33,8 @@ Options:
   --screenshots[=1]         대표 화면 screenshot smoke를 함께 수행합니다.
   --allow-chrome-fallback[=1]
                             인앱 브라우저가 없는 외부 환경에서 Chrome fallback을 허용합니다.
+                            Codex 세션에서는 --browser-mode chrome과 함께 지정한 명시
+                            예외일 때만 Chrome fallback을 허용합니다.
   --chrome-path <path>      fallback용 Chrome/Chromium 실행 파일 경로입니다.
   --visual-widths <csv>     screenshot 검증 viewport 폭 목록입니다. 기본 320,390,760,1180.
   --visual-height <px>      screenshot 검증 viewport 높이입니다. 기본 900.
@@ -58,6 +62,10 @@ const args = parseArgs(rawArgs);
 const httpBase = (args.httpBase || "http://127.0.0.1:8081").replace(/\/+$/, "");
 const timeoutMs = Number(args.timeoutMs || 30000);
 const browserMode = normalizeBrowserMode(args.browserMode || process.env.MEDIA_SERVER_UI_BROWSER_MODE || "auto");
+if (browserMode === "chrome" && isTruthy(args.allowChromeFallback)) {
+  process.env.MEDIA_SERVER_UI_BROWSER_MODE = "chrome";
+  process.env.MEDIA_SERVER_ALLOW_CHROME_FALLBACK = "1";
+}
 const inAppEvidencePath = args.inAppEvidence || process.env.MEDIA_SERVER_IN_APP_BROWSER_EVIDENCE || "";
 const inAppEvidence = loadInAppEvidence(inAppEvidencePath);
 const codexInAppBrowserAvailable = isCodexInAppBrowserAvailable();
@@ -71,8 +79,8 @@ const runId = `ops-client-ui-${Date.now()}-${process.pid}`;
 const outputDir = args.outputDir || path.join(os.tmpdir(), `media_server_${runId}`);
 const clientLiveA11ySnapshot = JSON.parse(fs.readFileSync(path.join(process.cwd(), "test/fixtures/client_live_tile_a11y_i18n_snapshot.json"), "utf8"));
 
-if (codexInAppBrowserAvailable && chromeFallbackAllowed) {
-  throw new Error("Codex 환경에서는 인앱 브라우저 evidence를 사용해야 하며 Chrome fallback은 자동 실행하지 않습니다.");
+if (codexInAppBrowserAvailable && chromeFallbackAllowed && !(browserMode === "chrome" && isTruthy(process.env.MEDIA_SERVER_ALLOW_CHROME_FALLBACK))) {
+  throw new Error(browserFallbackUnavailableMessage());
 }
 
 const productShellMust = [
@@ -347,11 +355,14 @@ function normalizeBrowserMode(value) {
 }
 
 function isCodexInAppBrowserAvailable() {
-  return Boolean(process.env.CODEX_SHELL || process.env.CODEX_THREAD_ID || process.env.CODEX_INTERNAL_ORIGINATOR_OVERRIDE);
+  return isCodexInAppBrowserEnvironment();
 }
 
 function shouldAllowChromeFallback() {
   if (browserMode === "chrome") {
+    if (codexInAppBrowserAvailable) {
+      return isTruthy(args.allowChromeFallback) || isTruthy(process.env.MEDIA_SERVER_ALLOW_CHROME_FALLBACK);
+    }
     return true;
   }
   if (browserMode === "in-app" || browserMode === "static" || inAppEvidence) {

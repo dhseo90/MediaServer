@@ -54,10 +54,35 @@ test_client_host() {
   fi
 }
 
+is_truthy() {
+  case "${1:-}" in
+    1|true|TRUE|yes|YES|on|ON) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+is_codex_in_app_browser_environment() {
+  [[ -n "${CODEX_SHELL:-}" || -n "${CODEX_THREAD_ID:-}" || -n "${CODEX_INTERNAL_ORIGINATOR_OVERRIDE:-}" ]]
+}
+
+chrome_fallback_allowed_for_codex() {
+  [[ "${MEDIA_SERVER_UI_BROWSER_MODE:-auto}" == "chrome" ]] && is_truthy "${MEDIA_SERVER_ALLOW_CHROME_FALLBACK:-0}"
+}
+
+resolve_rule_ui_chrome_path() {
+  if is_codex_in_app_browser_environment && ! chrome_fallback_allowed_for_codex; then
+    return 0
+  fi
+  case "${MEDIA_SERVER_UI_BROWSER_MODE:-auto}" in
+    in-app|static) return 0 ;;
+  esac
+  printf '%s' "${MEDIA_SERVER_TEST_RULE_UI_CHROME_PATH:-${MEDIA_SERVER_VERIFY_RULE_UI_CHROME_PATH:-${CHROME_PATH:-}}}"
+}
+
 TEST_HTTP_PORT="${MEDIA_SERVER_HTTP_LISTEN_PORT:-8080}"
 TEST_HTTP_HOST="$(test_client_host "${MEDIA_SERVER_TEST_HTTP_HOST:-${MEDIA_SERVER_VERIFY_HOST:-${MEDIA_SERVER_HTTP_LISTEN_ADDRESS:-127.0.0.1}}}")"
 TEST_HTTP_BASE="${MEDIA_SERVER_TEST_HTTP_BASE:-http://${TEST_HTTP_HOST}:${TEST_HTTP_PORT}}"
-RULE_UI_CHROME_PATH="${MEDIA_SERVER_TEST_RULE_UI_CHROME_PATH:-${MEDIA_SERVER_VERIFY_RULE_UI_CHROME_PATH:-${CHROME_PATH:-}}}"
+RULE_UI_CHROME_PATH="$(resolve_rule_ui_chrome_path)"
 
 usage() {
   cat <<'EOF_USAGE'

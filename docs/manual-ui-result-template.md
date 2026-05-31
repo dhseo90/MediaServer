@@ -19,6 +19,10 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 - users/source/view/analysis fixture:
 - 데이터 리셋 방법:
 - 브라우저: 자율 Chrome/CDP 또는 인앱 브라우저
+- 브라우저 선택: Codex 실행은 인앱 브라우저 evidence 우선, Codex 밖 사용자 실행은
+  Chrome/CDP 허용. Codex 세션의 Chrome/CDP 예외는
+  `MEDIA_SERVER_UI_BROWSER_MODE=chrome` + `MEDIA_SERVER_ALLOW_CHROME_FALLBACK=1`
+  지정과 사유를 기록.
 - viewport:
 - theme:
 - evidence index:

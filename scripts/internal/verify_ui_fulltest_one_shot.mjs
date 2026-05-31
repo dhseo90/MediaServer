@@ -49,6 +49,8 @@ Required auth env for --auth-ui-flow:
 Boundaries:
   - verify-predev 30분/120분과 Runtime Console 120분 longrun은 실행하지 않습니다.
   - 운영 데이터가 아니라 output-dir 아래 throwaway registry/users/event path만 사용합니다.
+  - Codex 세션의 기본 UI evidence는 인앱 브라우저이며, 이 Chrome/CDP wrapper는
+    Codex 밖 사용자 실행 또는 명시 Chrome fallback 예외에만 사용합니다.
   - 실패한 step 이후 step은 실행하지 않고 summary에 남깁니다.
 `);
 }

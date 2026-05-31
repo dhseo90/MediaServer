@@ -130,6 +130,11 @@ preflight 실패는 긴 테스트 실패로 과장하지 않습니다. 문서/li
 ## 3. 실행 원칙
 
 - 모든 웹 UI 검수는 인앱 브라우저에서 수행합니다.
+- Codex가 실행하는 검수는 인앱 브라우저 evidence를 우선합니다. Codex 밖에서 사용자가
+  직접 실행하는 자동 검수는 Chrome/CDP를 사용할 수 있습니다.
+- Codex 세션에서 Chrome/CDP가 꼭 필요한 예외는 `MEDIA_SERVER_UI_BROWSER_MODE=chrome`과
+  `MEDIA_SERVER_ALLOW_CHROME_FALLBACK=1`을 함께 남긴 경우로 제한하고, 결과 문서에
+  왜 인앱 브라우저가 아닌지 기록합니다.
 - 클릭, 타이핑, select 변경, checkbox/toggle, copy button, nav 이동, route guard를
   실제 UI 조작으로 확인합니다.
 - 모든 결과는 개별 기능, route, control, action 단위로 기록합니다. 카테고리 묶음

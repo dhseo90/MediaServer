@@ -203,13 +203,17 @@ export function findChrome() {
   return candidates.find((candidate) => fs.existsSync(candidate)) || "";
 }
 
+export function isCodexInAppBrowserEnvironment() {
+  return Boolean(process.env.CODEX_SHELL || process.env.CODEX_THREAD_ID || process.env.CODEX_INTERNAL_ORIGINATOR_OVERRIDE);
+}
+
 export function chromeFallbackAvailableForThisEnvironment() {
-  if (process.env.CODEX_SHELL || process.env.CODEX_THREAD_ID || process.env.CODEX_INTERNAL_ORIGINATOR_OVERRIDE) {
-    return false;
-  }
   const mode = String(process.env.MEDIA_SERVER_UI_BROWSER_MODE || "auto").trim().toLowerCase();
   if (mode === "in-app" || mode === "static") {
     return false;
+  }
+  if (isCodexInAppBrowserEnvironment()) {
+    return mode === "chrome" && isTruthy(process.env.MEDIA_SERVER_ALLOW_CHROME_FALLBACK);
   }
   if (process.env.MEDIA_SERVER_ALLOW_CHROME_FALLBACK != null) {
     return isTruthy(process.env.MEDIA_SERVER_ALLOW_CHROME_FALLBACK);
@@ -218,8 +222,8 @@ export function chromeFallbackAvailableForThisEnvironment() {
 }
 
 export function browserFallbackUnavailableMessage() {
-  if (process.env.CODEX_SHELL || process.env.CODEX_THREAD_ID || process.env.CODEX_INTERNAL_ORIGINATOR_OVERRIDE) {
-    return "Codex environment requires in-app browser evidence; fallback browser is disabled";
+  if (isCodexInAppBrowserEnvironment()) {
+    return "Codex environment requires in-app browser evidence; Chrome fallback requires MEDIA_SERVER_UI_BROWSER_MODE=chrome and MEDIA_SERVER_ALLOW_CHROME_FALLBACK=1";
   }
   return "Chrome executable not found";
 }
@@ -256,6 +260,9 @@ export async function openBrowserPage({
   cookieHeader = "",
   locale = "",
 }) {
+  if (!chromeFallbackAvailableForThisEnvironment()) {
+    throw new Error(browserFallbackUnavailableMessage());
+  }
   if (!chromePath) {
     throw new Error(browserFallbackUnavailableMessage());
   }

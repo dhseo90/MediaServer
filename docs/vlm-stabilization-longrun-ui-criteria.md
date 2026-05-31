@@ -19,6 +19,10 @@ VLM queue, memory, provider timeout, model install 상태가 바뀌었을 때 �
 - UI 풀테스트: `/ops/vlm`, `/ops/events` VLM review, viewer/client redaction,
   cloud opt-in guard, model install state copy가 바뀌면 인앱 브라우저 또는 자율
   브라우저 직접 조작 evidence가 필요합니다.
+- 브라우저 선택: Codex가 실행하는 UI evidence는 인앱 브라우저가 기본입니다. Codex
+  밖에서 사용자가 직접 실행하는 자동 검수는 Chrome/CDP를 사용할 수 있으며, Codex
+  세션의 Chrome/CDP는 `MEDIA_SERVER_UI_BROWSER_MODE=chrome`과
+  `MEDIA_SERVER_ALLOW_CHROME_FALLBACK=1`을 함께 지정한 명시 예외로만 둡니다.
 - Cloud provider field smoke: cloud provider timeout/retry/credential이 실제 provider에
   의존하면 local soak PASS로 대체하지 않고, field smoke 또는 제외 기록으로 남깁니다.
 

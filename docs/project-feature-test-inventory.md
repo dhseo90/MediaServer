@@ -64,6 +64,11 @@ close-out에서 실제 실행한 evidence는 [release-evidence-index.md](release
 | VLM route, control, action, runtime state, sidecar, privacy guard | V200-S14 기준으로 `/ops/vlm`, `/ops/events` VLM review, VLMObservation sidecar, summary/rule suggestion 후보, privacy/redaction/no-auto-apply 경계를 기능 ID 단위로 확장 | 실행 evidence가 아니며, 실제 UI 풀테스트와 장시간 안정화는 별도 단계에서 PASS/FAIL로 기록 |
 | v2.0.0 pre-test update list | 안정화/30분/120분/UI 풀테스트 실행 전 V200-S00~S18 변경분을 아래 `v2.0.0 Pre-Test Update List`에 반영 | 테스트 실행 결과가 아니며, 실제 실행 전 누락 방지용 목록 |
 
+브라우저 선택 기준: Codex 세션에서는 인앱 브라우저 evidence를 기본으로 하며, 자동
+Chrome/CDP는 `MEDIA_SERVER_UI_BROWSER_MODE=chrome`과
+`MEDIA_SERVER_ALLOW_CHROME_FALLBACK=1`을 함께 지정한 명시 예외일 때만 사용합니다.
+Codex 밖에서 사용자가 직접 실행하는 자동 검수는 Chrome/CDP를 사용할 수 있습니다.
+
 ## Owner Source Map
 
 | ID prefix | 코드 로직 owner | 제품 UI owner | 대표 verifier family |
