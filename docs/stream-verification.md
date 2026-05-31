@@ -249,6 +249,21 @@ VLMObservation sidecar 저장, 이벤트 설명 품질 평가, 브라우저 UI �
 ./server.sh verify-vlm-profile-storage
 ```
 
+VLM 평가 harness는 `V200-S06`의 fixture-captured output 비교를 확인합니다.
+sample 이벤트 `eventFrame`, `bboxCrop`, `previousFrame`, `nextFrame` reference와
+prompt profile A/B, latency, 설명 품질, hallucination, JSON 안정성, 한국어/영어
+품질 scoring을 검증합니다. 이 검증은 실제 VLM runtime 호출, cloud provider API 호출,
+model download, VLMObservation sidecar 저장, Event/WebRTC/SSE/WS schema 변경,
+RTSP/WebRTC media path 변경을 수행하지 않습니다.
+
+```bash
+./server.sh evaluate-vlm-harness \
+  --fixture test/fixtures/vlm_evaluation_harness/cases.json \
+  --json-output /tmp/media_server_vlm_eval_report.json \
+  --report /tmp/media_server_vlm_eval_report.md
+./server.sh verify-vlm-evaluation-harness
+```
+
 CI/local gate parity는 `media-server.ci-local-gate-parity.v1` summary로
 Preflight/static-gates/guardrails/RC workflow에 실제로 걸린 `./server.sh` 명령과
 로컬 release/static verifier 목록을 대조합니다. 로컬에서 통과해야 한다고 문서화한

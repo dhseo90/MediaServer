@@ -135,7 +135,7 @@ YOLO 이벤트가 왜 발생했는지 설명하고, 오탐 가능성 및 운영�
 | 3 | V200-S03 | 완료 | VLM 추천 엔진 | 사용자 PC 사양과 privacy mode에 따라 추천 모델, 대안 모델, 비추천 사유, 예상 메모리/디스크/latency/cost를 산출합니다. | `recommend-vlm-model`, recommendation matrix fixture, low/standard/high/unsupported spec fixture, local-only/cloud-disabled/cloud-allowed policy fixture, `verify-vlm-recommendation-engine`, `verify-script-inventory`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `git diff --check` |
 | 4 | V200-S04 | 완료 | VLM 설치/연결 UI | Ops에서 local model 설치 또는 cloud API 연결을 선택하게 합니다. 자동 다중 설치는 금지하고, 설치 전 영향과 외부 전송 여부를 표시합니다. | Ops UI smoke, install dry-run fixture, cloud opt-in guard, viewer redaction UI smoke, `verify-vlm-install-connection-ui`, `git diff --check` |
 | 5 | V200-S05 | 완료 | VLM profile 저장 | 선택한 provider, model, runtime, prompt profile, privacy mode, 평가 결과, 활성화 상태를 저장하고 fallback/disable 상태를 명확히 둡니다. | profile CRUD smoke, auth/scope route guard, invalid profile fixture, `verify-vlm-profile-storage`, `verify-auth-routes`, `git diff --check` |
-| 6 | V200-S06 | 예정 | VLM 평가 harness | sample 이벤트 frame, bbox crop, 전후 frame으로 latency, 설명 품질, hallucination, JSON 안정성, 한국어/영어 출력 품질을 비교합니다. | VLM fixture sample, prompt profile A/B, structured output fixture, evaluation report, `git diff --check` |
+| 6 | V200-S06 | 완료 | VLM 평가 harness | sample 이벤트 frame, bbox crop, 전후 frame으로 latency, 설명 품질, hallucination, JSON 안정성, 한국어/영어 출력 품질을 비교합니다. | VLM fixture sample, prompt profile A/B, structured output fixture, evaluation report, `git diff --check` |
 | 7 | V200-S07 | 예정 | 이벤트 evidence 추출 | YOLO 이벤트 발생 시 snapshot, bbox crop, 전후 frame, 짧은 clip evidence 후보를 만들고 VLM 입력으로 쓸 수 있게 reference를 분리합니다. | EventRecord snapshot/clip fixture, crop extraction smoke, redaction review, `verify-va-events`, `verify-va-replay`, `git diff --check` |
 | 8 | V200-S08 | 예정 | VLMObservation sidecar | 기존 Event POST/WebRTC/SSE/WS metadata를 바꾸지 않고 VLM 결과를 별도 sidecar로 저장합니다. | sidecar schema fixture, EventRecord correlation report, existing metadata diff guard, `verify-event-post`, `verify-ws-metadata`, `git diff --check` |
 | 9 | V200-S09 | 예정 | 이벤트 설명/오탐 힌트 | 이벤트 발생 이유, 화면 내 사람/차량/영역 관계, 오탐 가능성, 운영자 확인 질문을 생성합니다. | event explanation fixture, false-positive hint fixture, operator question review, JSON stability check, `git diff --check` |
@@ -552,6 +552,56 @@ document로 저장하는 단계입니다. 저장은 profile metadata에만 한�
 - VLM 평가 harness는 `V200-S06` 범위입니다.
 - event evidence 추출은 `V200-S07` 범위입니다.
 - VLMObservation sidecar 저장은 `V200-S08` 범위입니다.
+
+### V200-S06 VLM 평가 harness 완료 기준
+
+S06는 S05 profile을 운영 default로 승격하기 전에, fixture-captured VLM output을
+동일한 기준으로 비교하는 평가 harness를 만드는 단계입니다. 실제 model/runtime 설치,
+cloud provider 호출, sidecar 저장은 이 단계의 완료 조건이 아닙니다.
+
+이번 범위에서 구현하는 것:
+
+- `./server.sh evaluate-vlm-harness` CLI를 추가합니다.
+- 입력 fixture schema는 `media-server.vlm-evaluation-fixtures.v1`입니다.
+- 출력 report schema는 `media-server.vlm-evaluation-report.v1`입니다.
+- sample 이벤트의 `eventFrame`, `bboxCrop`, `previousFrame`, `nextFrame` reference를
+  평가 입력으로 사용합니다.
+- prompt profile A/B candidate output을 latency, 설명 품질, hallucination,
+  JSON 안정성, 한국어/영어 품질로 비교합니다.
+- invalid JSON/hallucination fixture는 candidate 실패로 남기되, expected failure로
+  harness 자체는 PASS할 수 있어야 합니다.
+
+이번 범위에서 하지 않는 일:
+
+- 실제 VLM runtime 호출
+- cloud provider API 호출
+- model artifact download 또는 bundle 포함
+- VLMObservation sidecar 저장
+- Event POST/WebRTC/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- viewer/client 화면 노출
+- S07 evidence 추출 또는 S08 sidecar 저장 완료 주장
+
+완료 evidence:
+
+- `./server.sh evaluate-vlm-harness --fixture test/fixtures/vlm_evaluation_harness/cases.json`
+  가 `media-server.vlm-evaluation-report.v1` JSON을 출력합니다.
+- `./server.sh verify-vlm-evaluation-harness`가 fixture coverage, scoring, docs/inventory,
+  server command, non-scope boundary를 검증합니다.
+- `./server.sh verify-script-inventory`, `./server.sh verify-project-inventory`,
+  `./server.sh verify-feature-inventory-coverage`, docs verifier, `git diff --check`를
+  S06 변경 후 실행합니다.
+- 2026-05-31 S06 local evidence: `./server.sh evaluate-vlm-harness --fixture test/fixtures/vlm_evaluation_harness/cases.json`,
+  `./server.sh verify-vlm-evaluation-harness`, `./server.sh verify-script-inventory`,
+  `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`,
+  `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, VLM 기존 gate,
+  `git diff --check`.
+
+후속 단계로 남기는 범위:
+
+- 실제 EventRecord snapshot/crop/clip evidence 추출은 `V200-S07` 범위입니다.
+- VLMObservation sidecar 저장은 `V200-S08` 범위입니다.
+- 운영 이벤트 설명/오탐 힌트 생성은 `V200-S09` 범위입니다.
 
 v2.0.0 완료 판정은 기능 구현만으로 닫지 않습니다. 각 개발 순서에서 추가한 테스트가
 `project-feature-test-inventory.md`, 안정화 테스트, 30분/120분 trigger, UI 풀테스트

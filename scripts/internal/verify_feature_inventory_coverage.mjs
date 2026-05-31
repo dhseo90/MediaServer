@@ -48,12 +48,12 @@ const stabilityVerifierByPrefix = {
   EVT: ["verify-va-event-coverage-report", "verify-va-events", "verify-ops-event-review-inbox", "verify-ops-event-records-scope", "verify-va-runtime-console"],
   CLIENT: ["verify-client-live-workspace", "verify-client-dashboard-polish", "verify-client-source-dock-events", "verify-ops-client-ui"],
   MEDIA: ["verify-codecs", "verify-webrtc-ice", "verify-webrtc-va-metadata"],
-  LAB: ["verify-analysis-state", "verify-va-metadata-sidechannel", "verify-ws-metadata", "verify-image-analysis", "verify-vlm-pc-capability", "verify-vlm-recommendation-engine", "verify-vlm-install-connection-dry-run", "verify-vlm-profile-storage"],
+  LAB: ["verify-analysis-state", "verify-va-metadata-sidechannel", "verify-ws-metadata", "verify-image-analysis", "verify-vlm-pc-capability", "verify-vlm-recommendation-engine", "verify-vlm-install-connection-dry-run", "verify-vlm-profile-storage", "verify-vlm-evaluation-harness"],
   SAFE: ["verify-integrator-contract-artifact", "verify-auth-routes", "verify-ops-client-ui", "verify-ui-blocking-dialog-policy", "verify-event-post", "verify-webrtc-va-metadata", "verify-ws-metadata", "verify-vlm-install-connection-scope-gate", "verify-vlm-profile-storage"],
 };
 
 check("inventory row count is stable", () => {
-  assert(rows.length === 325, `expected 325 feature rows, found ${rows.length}`);
+  assert(rows.length === 326, `expected 326 feature rows, found ${rows.length}`);
   assert(new Set(rows.map(row => row.id)).size === rows.length, "duplicate feature ID exists");
 });
 
