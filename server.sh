@@ -300,6 +300,8 @@ Usage:
                  v2.0.0 VLM summary 검색 후보와 sidecar/EventRecord correlation 경계를 검증합니다.
   verify-vlm-rule-suggestion-candidates
                  v2.0.0 VLM Rule 추천 보조 후보와 no-auto-apply 경계를 검증합니다.
+  verify-vlm-test-rehearsal
+                 v2.0.0 VLM 간이 테스트 리허설과 failure fixture/cleanup/lifecycle 경계를 검증합니다.
   verify-event-post
                  VA event POST payload, 실패/cooldown/queue 상태를 검증합니다.
   verify-integrator-contract-artifact
@@ -998,6 +1000,10 @@ case "${cmd}" in
   verify-vlm-rule-suggestion-candidates)
     require_internal verify_vlm_rule_suggestion_candidates.mjs
     exec "${INTERNAL_DIR}/verify_vlm_rule_suggestion_candidates.mjs" "$@"
+    ;;
+  verify-vlm-test-rehearsal)
+    require_internal verify_vlm_test_rehearsal.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_test_rehearsal.mjs" "$@"
     ;;
   verify-event-post)
     require_internal verify_event_post_dispatch.sh

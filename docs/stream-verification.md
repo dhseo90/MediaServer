@@ -357,6 +357,19 @@ RTSP/WebRTC media path 변경을 대신하지 않습니다.
 git diff --check
 ```
 
+VLM 간이 테스트 리허설은 `V200-S15`의 짧은 fixture gate입니다. 안정화/30분/120분/UI
+풀테스트 전에 `missing-model`, `cloud-disabled`, `invalid-output`, `queue-timeout`,
+cleanup, `port/server lifecycle` failure fixture가 VLM-only outcome으로 처리되는지
+확인합니다. 이 검증은 실제 VLM runtime 호출, cloud provider API 호출, model download,
+sidecar 저장, Event/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경,
+장시간 안정화, UI 풀테스트 PASS를 대신하지 않습니다.
+
+```bash
+./server.sh verify-vlm-test-rehearsal \
+  --report /tmp/media_server_vlm_test_rehearsal.md \
+  --json-report /tmp/media_server_vlm_test_rehearsal.json
+```
+
 CI/local gate parity는 `media-server.ci-local-gate-parity.v1` summary로
 Preflight/static-gates/guardrails/RC workflow에 실제로 걸린 `./server.sh` 명령과
 로컬 release/static verifier 목록을 대조합니다. 로컬에서 통과해야 한다고 문서화한

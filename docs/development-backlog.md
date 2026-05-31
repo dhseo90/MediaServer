@@ -144,7 +144,7 @@ YOLO 이벤트가 왜 발생했는지 설명하고, 오탐 가능성 및 운영�
 | 12 | V200-S12 | 완료 | VLM summary 검색 후보 | VLM summary를 이용해 "문 근처에서 멈춘 사람" 같은 semantic event search 후보를 만듭니다. 검색은 후보 단계로 두고 기존 event schema는 변경하지 않습니다. | `verify-vlm-summary-search-candidates`, search fixture, sidecar query smoke, EventRecord correlation smoke, `git diff --check` |
 | 13 | V200-S13 | 완료 | Rule 추천 보조 후보 | VLM이 line/intrusion/zone 후보를 제안하되 자동 적용은 금지합니다. 운영자가 확인 후 수동 저장하는 흐름만 후보로 둡니다. | rule suggestion fixture, no-auto-apply guard, `/ops/rules` smoke, `verify-rule-ui`, `git diff --check` |
 | 14 | V200-S14 | 완료 | 테스트 inventory 확장 | VLM으로 추가된 route, control, action, runtime state, sidecar, privacy guard를 기능 ID 단위로 `project-feature-test-inventory.md`에 추가합니다. | `verify-project-inventory`, `verify-feature-inventory-coverage`, inventory-to-verifier mapping, `git diff --check` |
-| 15 | V200-S15 | 예정 | 간이 테스트 리허설 | 안정화/30분/120분/UI 풀테스트 전에 VLM 전용 짧은 smoke, missing-model, cloud-disabled, invalid-output, queue-timeout fixture를 실행해 테스트 자체가 막히지 않는지 확인합니다. | VLM smoke, failure fixture matrix, cleanup check, port/server lifecycle check, `git diff --check` |
+| 15 | V200-S15 | 완료 | 간이 테스트 리허설 | 안정화/30분/120분/UI 풀테스트 전에 VLM 전용 짧은 smoke, missing-model, cloud-disabled, invalid-output, queue-timeout fixture를 실행해 테스트 자체가 막히지 않는지 확인합니다. | `verify-vlm-test-rehearsal`, VLM smoke, failure fixture matrix, cleanup check, port/server lifecycle check, `git diff --check` |
 | 16 | V200-S16 | 예정 | 기존 테스트 side effect 점검 | VLM 변경이 auth, Ops/Client UI, Rule UI, VA replay/events, WebRTC metadata, SSE/WS metadata, Event POST, RTSP/WebRTC media path verifier에 영향을 주지 않는지 확인합니다. | `./server.sh build`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-rule-ui`, `verify-va-replay`, `verify-va-events`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-event-post`, `git diff --check` |
 | 17 | V200-S17 | 예정 | 안정화/장시간/UI 기준 정리 | VLM queue, memory, provider timeout, model install 상태에 따라 안정화, 30분, 120분, UI 풀테스트 실행 기준과 제외/미실행 보고 기준을 정리합니다. | `verify-runtime-media-longrun-trigger-matrix`, `verify-longrun-separation`, VLM longrun trigger matrix, manual UI checklist update, `git diff --check` |
 | 18 | V200-S18 | 예정 | v2.0.0 close-out readiness | 전체 스크립트 테스트와 UI 풀테스트 결과를 분리해 release evidence로 닫고, 미실행/제외/미확인을 명확히 기록합니다. | release evidence review, `verify-release-evidence-index`, `verify-release-metadata`, VLM close-out report, 30분/UI/120분 실행 또는 미실행 기록, `git diff --check` |
@@ -1073,6 +1073,49 @@ v2.0.0 완료 판정은 기능 구현만으로 닫지 않습니다. 각 개발 �
 `project-feature-test-inventory.md`, 안정화 테스트, 30분/120분 trigger, UI 풀테스트
 기준에 반영됐는지 확인하고, 기존 테스트 항목에 side effect가 없는지 별도 행으로
 검증해야 합니다.
+
+### V200-S15 간이 테스트 리허설 종료 기준
+
+이 단계는 안정화/30분/120분/UI 풀테스트 전에 VLM 전용 짧은 리허설이 막히지
+않는지 확인하는 단계입니다. 테스트 리허설 evidence이며, 실제 안정화/장시간/UI
+PASS evidence가 아닙니다.
+
+이번 범위에서 구현한 것:
+
+- `docs/vlm-test-rehearsal.md`를 S15 source-of-truth로 추가했습니다.
+- `test/fixtures/vlm_test_rehearsal/cases.json`에 `short-vlm-smoke`,
+  `missing-model`, `cloud-disabled`, `invalid-output`, `queue-timeout`,
+  `cleanup-lifecycle`, `port-server-lifecycle` fixture를 추가했습니다.
+- `./server.sh verify-vlm-test-rehearsal`을 추가해 fixture matrix, VLM-only outcome,
+  cleanup, port/server lifecycle, docs/server/script inventory 연결을 확인하게 했습니다.
+- `docs/stream-verification.md`와 `docs/README.md`에 S15 리허설 명령과 비대체 경계를
+  연결했습니다.
+
+이번 범위에서 하지 않는 일:
+
+- 실제 VLM runtime 호출
+- cloud provider API 호출
+- model/runtime download 또는 bundle 추가
+- credential/profile/sidecar 저장
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- 30분/120분 장시간 안정화 실행
+- 인앱 브라우저 UI 풀테스트 실행
+- V200-S16 side effect 점검, V200-S17 장시간/UI 기준 정리, V200-S18 close-out readiness
+
+완료 evidence:
+
+- `./server.sh verify-vlm-test-rehearsal`이 7개 rehearsal case와 failure fixture 4개,
+  cleanup case 6개, lifecycle case 1개를 PASS로 검증했습니다.
+- `./server.sh verify-script-inventory`가 새 command dispatch, 문서 명령 참조,
+  strict option parser 연결을 PASS로 검증했습니다.
+- `git diff --check`가 코드/문서/script whitespace drift 없음을 확인했습니다.
+
+후속 단계로 남기는 범위:
+
+- v2.0.0 전체 side effect 안정화는 `V200-S16` 범위입니다.
+- 장시간/UI 기준 정리는 `V200-S17` 범위입니다.
+- close-out readiness는 `V200-S18` 범위입니다.
 
 ## v1.9.0 Release Trust Hardening Close-out
 

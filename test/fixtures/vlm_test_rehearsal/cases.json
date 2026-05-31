@@ -1,0 +1,267 @@
+{
+  "schema": "media-server.vlm-test-rehearsal-fixtures.v1",
+  "targetStep": "V200-S15",
+  "purpose": "Short VLM-only rehearsal before stabilization, 30-minute, 120-minute, and manual UI fulltest gates.",
+  "nonScope": [
+    "runtime-vlm-call",
+    "model-download",
+    "cloud-provider-api-call",
+    "credential-storage",
+    "profile-storage",
+    "sidecar-storage",
+    "event-post-webrtc-sse-ws-schema-change",
+    "rtsp-webrtc-media-path-change",
+    "viewer-client-exposure",
+    "longrun-execution",
+    "manual-ui-fulltest-pass"
+  ],
+  "cases": [
+    {
+      "id": "short-vlm-smoke",
+      "kind": "smoke",
+      "description": "Existing VLM fixture-only commands are reachable and remain short stability checks.",
+      "input": {
+        "profileState": "disabled",
+        "modelAvailable": true,
+        "privacyMode": "local-only",
+        "capturedOutputKind": "valid-json",
+        "queueWaitMs": 0,
+        "queueTimeoutMs": 30000
+      },
+      "expected": {
+        "status": "pass",
+        "outcome": "fixture-smoke-ready",
+        "cleanupRequired": false,
+        "serverLifecycle": "not-started",
+        "portLifecycle": "not-bound"
+      },
+      "contractInvariants": {
+        "runtimeVlmCallPerformed": false,
+        "modelDownloadPerformed": false,
+        "cloudProviderApiCalled": false,
+        "credentialStored": false,
+        "profileStored": false,
+        "sidecarStored": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelSchemaChanged": false,
+        "sseMetadataSchemaChanged": false,
+        "wsMetadataSchemaChanged": false,
+        "rtspOrWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false
+      }
+    },
+    {
+      "id": "missing-model",
+      "kind": "failure-fixture",
+      "description": "Missing local model must block VLM runtime work without falling into media path failure.",
+      "input": {
+        "profileState": "enabled",
+        "modelAvailable": false,
+        "privacyMode": "local-only",
+        "capturedOutputKind": "not-run",
+        "queueWaitMs": 0,
+        "queueTimeoutMs": 30000
+      },
+      "expected": {
+        "status": "pass",
+        "outcome": "blocked-missing-model",
+        "cleanupRequired": true,
+        "serverLifecycle": "not-started",
+        "portLifecycle": "not-bound"
+      },
+      "contractInvariants": {
+        "runtimeVlmCallPerformed": false,
+        "modelDownloadPerformed": false,
+        "cloudProviderApiCalled": false,
+        "credentialStored": false,
+        "profileStored": false,
+        "sidecarStored": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelSchemaChanged": false,
+        "sseMetadataSchemaChanged": false,
+        "wsMetadataSchemaChanged": false,
+        "rtspOrWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false
+      }
+    },
+    {
+      "id": "cloud-disabled",
+      "kind": "failure-fixture",
+      "description": "Cloud candidate must stay disabled when privacy mode does not allow external transfer.",
+      "input": {
+        "profileState": "enabled",
+        "provider": "cloud",
+        "modelAvailable": true,
+        "privacyMode": "cloud-disabled",
+        "cloudOptInAcknowledged": false,
+        "capturedOutputKind": "not-run",
+        "queueWaitMs": 0,
+        "queueTimeoutMs": 30000
+      },
+      "expected": {
+        "status": "pass",
+        "outcome": "blocked-cloud-disabled",
+        "cleanupRequired": true,
+        "serverLifecycle": "not-started",
+        "portLifecycle": "not-bound"
+      },
+      "contractInvariants": {
+        "runtimeVlmCallPerformed": false,
+        "modelDownloadPerformed": false,
+        "cloudProviderApiCalled": false,
+        "credentialStored": false,
+        "profileStored": false,
+        "sidecarStored": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelSchemaChanged": false,
+        "sseMetadataSchemaChanged": false,
+        "wsMetadataSchemaChanged": false,
+        "rtspOrWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false
+      }
+    },
+    {
+      "id": "invalid-output",
+      "kind": "failure-fixture",
+      "description": "Invalid structured VLM output must be rejected as fixture failure, not stored as sidecar.",
+      "input": {
+        "profileState": "enabled",
+        "modelAvailable": true,
+        "privacyMode": "local-only",
+        "capturedOutputKind": "invalid-json",
+        "queueWaitMs": 0,
+        "queueTimeoutMs": 30000
+      },
+      "expected": {
+        "status": "pass",
+        "outcome": "rejected-invalid-output",
+        "cleanupRequired": true,
+        "serverLifecycle": "not-started",
+        "portLifecycle": "not-bound"
+      },
+      "contractInvariants": {
+        "runtimeVlmCallPerformed": false,
+        "modelDownloadPerformed": false,
+        "cloudProviderApiCalled": false,
+        "credentialStored": false,
+        "profileStored": false,
+        "sidecarStored": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelSchemaChanged": false,
+        "sseMetadataSchemaChanged": false,
+        "wsMetadataSchemaChanged": false,
+        "rtspOrWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false
+      }
+    },
+    {
+      "id": "queue-timeout",
+      "kind": "failure-fixture",
+      "description": "Queue timeout must produce a VLM-only timeout outcome and keep media path independent.",
+      "input": {
+        "profileState": "enabled",
+        "modelAvailable": true,
+        "privacyMode": "local-only",
+        "capturedOutputKind": "not-run",
+        "queueWaitMs": 31000,
+        "queueTimeoutMs": 30000
+      },
+      "expected": {
+        "status": "pass",
+        "outcome": "timeout-no-media-path-failure",
+        "cleanupRequired": true,
+        "serverLifecycle": "not-started",
+        "portLifecycle": "not-bound"
+      },
+      "contractInvariants": {
+        "runtimeVlmCallPerformed": false,
+        "modelDownloadPerformed": false,
+        "cloudProviderApiCalled": false,
+        "credentialStored": false,
+        "profileStored": false,
+        "sidecarStored": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelSchemaChanged": false,
+        "sseMetadataSchemaChanged": false,
+        "wsMetadataSchemaChanged": false,
+        "rtspOrWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false
+      }
+    },
+    {
+      "id": "cleanup-lifecycle",
+      "kind": "cleanup",
+      "description": "Throwaway files produced by a rehearsal must be removed or marked retained before reporting.",
+      "input": {
+        "profileState": "disabled",
+        "modelAvailable": true,
+        "privacyMode": "local-only",
+        "capturedOutputKind": "valid-json",
+        "queueWaitMs": 0,
+        "queueTimeoutMs": 30000,
+        "temporaryArtifacts": [
+          "vlm-rehearsal-summary.json",
+          "vlm-rehearsal-report.md"
+        ]
+      },
+      "expected": {
+        "status": "pass",
+        "outcome": "cleanup-ok",
+        "cleanupRequired": true,
+        "serverLifecycle": "not-started",
+        "portLifecycle": "not-bound"
+      },
+      "contractInvariants": {
+        "runtimeVlmCallPerformed": false,
+        "modelDownloadPerformed": false,
+        "cloudProviderApiCalled": false,
+        "credentialStored": false,
+        "profileStored": false,
+        "sidecarStored": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelSchemaChanged": false,
+        "sseMetadataSchemaChanged": false,
+        "wsMetadataSchemaChanged": false,
+        "rtspOrWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false
+      }
+    },
+    {
+      "id": "port-server-lifecycle",
+      "kind": "lifecycle",
+      "description": "Server/port lifecycle is planned as isolated throwaway state and is not silently skipped.",
+      "input": {
+        "profileState": "disabled",
+        "modelAvailable": true,
+        "privacyMode": "local-only",
+        "capturedOutputKind": "valid-json",
+        "queueWaitMs": 0,
+        "queueTimeoutMs": 30000,
+        "requiresIsolatedHttpPort": true,
+        "requiresIsolatedRtspPort": true,
+        "bindAttemptedInStaticRehearsal": false
+      },
+      "expected": {
+        "status": "pass",
+        "outcome": "lifecycle-plan-valid",
+        "cleanupRequired": true,
+        "serverLifecycle": "throwaway-required-for-attached-smoke",
+        "portLifecycle": "explicit-isolated-port-required"
+      },
+      "contractInvariants": {
+        "runtimeVlmCallPerformed": false,
+        "modelDownloadPerformed": false,
+        "cloudProviderApiCalled": false,
+        "credentialStored": false,
+        "profileStored": false,
+        "sidecarStored": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelSchemaChanged": false,
+        "sseMetadataSchemaChanged": false,
+        "wsMetadataSchemaChanged": false,
+        "rtspOrWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false
+      }
+    }
+  ]
+}
