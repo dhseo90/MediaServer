@@ -286,6 +286,8 @@ Usage:
                  v2.0.0 VLM 평가 harness와 latency/품질/JSON/언어 fixture를 검증합니다.
   verify-vlm-event-evidence-extraction
                  v2.0.0 VLM event evidence reference 추출 경계를 검증합니다.
+  verify-vlm-observation-sidecar
+                 v2.0.0 VLMObservation sidecar 저장소와 EventRecord 상관 경계를 검증합니다.
   verify-event-post
                  VA event POST payload, 실패/cooldown/queue 상태를 검증합니다.
   verify-integrator-contract-artifact
@@ -956,6 +958,10 @@ case "${cmd}" in
   verify-vlm-event-evidence-extraction)
     require_internal verify_vlm_event_evidence_extraction.mjs
     exec "${INTERNAL_DIR}/verify_vlm_event_evidence_extraction.mjs" "$@"
+    ;;
+  verify-vlm-observation-sidecar)
+    require_internal verify_vlm_observation_sidecar.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_observation_sidecar.mjs" "$@"
     ;;
   verify-event-post)
     require_internal verify_event_post_dispatch.sh

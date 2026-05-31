@@ -1,0 +1,90 @@
+{
+  "schema": "media-server.vlm-observation-fixtures.v1",
+  "targetStep": "V200-S08",
+  "cases": [
+    {
+      "id": "line-crossing-side-storage",
+      "eventRecord": {
+        "schema": "media-server.va.event-record.v1",
+        "eventId": "evt-fixture-line-crossing",
+        "eventType": "line-crossing",
+        "streamId": "fixture-stream",
+        "channelId": "fixture-channel",
+        "trackId": 7,
+        "snapshotPath": "/tmp/fixture/evt-fixture-line-crossing.snapshot.jpg",
+        "clipPath": "/tmp/fixture/evt-fixture-line-crossing.clip/manifest.json",
+        "metadata": {
+          "schema": "media-server.va.event-record.metadata.v1",
+          "vlmEvidenceRefs": {
+            "schema": "media-server.vlm-event-evidence-refs.v1",
+            "eventFrame": {
+              "path": "/tmp/fixture/evt-fixture-line-crossing.snapshot.jpg"
+            },
+            "bboxCrop": {
+              "path": "/tmp/fixture/evt-fixture-line-crossing.bbox-crop.jpg"
+            },
+            "temporalContext": {
+              "path": "/tmp/fixture/evt-fixture-line-crossing.clip/manifest.json"
+            }
+          }
+        }
+      },
+      "observation": {
+        "schema": "media-server.vlm-observation.v1",
+        "observationId": "vlmobs-fixture-line-crossing",
+        "eventId": "evt-fixture-line-crossing",
+        "sourceId": "fixture-stream",
+        "ruleId": "entry-line",
+        "scenarioId": "line-crossing",
+        "inputType": "event-short-evidence-ref-only",
+        "inputEvidenceRefs": {
+          "schema": "media-server.vlm-event-evidence-refs.v1",
+          "eventFrame": {
+            "path": "/tmp/fixture/evt-fixture-line-crossing.snapshot.jpg"
+          },
+          "bboxCrop": {
+            "path": "/tmp/fixture/evt-fixture-line-crossing.bbox-crop.jpg"
+          },
+          "temporalContext": {
+            "path": "/tmp/fixture/evt-fixture-line-crossing.clip/manifest.json"
+          }
+        },
+        "summary": "fixture-only line crossing observation",
+        "eventExplanation": "fixture-only output stored outside EventRecord",
+        "falsePositiveHints": [
+          "reflection near line"
+        ],
+        "operatorReviewQuestions": [
+          "Did the person fully cross the line?"
+        ],
+        "ruleSuggestion": {
+          "kind": "none",
+          "autoApply": false
+        },
+        "uncertainty": 0.2,
+        "provider": "fixture-local",
+        "model": "fixture-vlm",
+        "promptProfile": "event-review-default",
+        "privacyMode": "local-only",
+        "latencyMs": 42,
+        "createdAt": 5200,
+        "storageScope": "vlm-observation-store-only",
+        "redactionReview": {
+          "rawPromptStored": false,
+          "rawResponseStored": false,
+          "sourceUrlExposed": false,
+          "credentialMaterialStored": false,
+          "rawMediaEmbedded": false
+        },
+        "contractInvariants": {
+          "eventPostPayloadChanged": false,
+          "webrtcDataChannelSchemaChanged": false,
+          "sseMetadataSchemaChanged": false,
+          "wsMetadataSchemaChanged": false,
+          "rtspOrWebrtcMediaPathChanged": false,
+          "viewerClientExposureAdded": false
+        }
+      }
+    }
+  ]
+}

@@ -160,7 +160,7 @@ check("roadmap, verification docs, feature inventory, docs index, and server com
   for (const snippet of [
     "| LAB-036 | VLM recommendation engine",
     "verify-vlm-recommendation-engine",
-    "| `LAB-001`~`LAB-039` |",
+    "| `LAB-001`~`LAB-040` |",
   ]) {
     assert(inventory.includes(snippet), `feature inventory missing snippet: ${snippet}`);
   }

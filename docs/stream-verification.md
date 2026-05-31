@@ -274,6 +274,19 @@ Event/WebRTC/SSE/WS schema 변경, media path 변경은 수행하지 않습니�
 ./server.sh verify-analysis-state
 ```
 
+VLMObservation sidecar는 `V200-S08`의 별도 JSONL observation 저장소를 확인합니다.
+EventRecord와 observation은 `eventId`로만 상관시키고, 기존 Event POST/WebRTC
+DataChannel/SSE/WS metadata schema와 RTSP/WebRTC media path는 바꾸지 않습니다.
+이 검증은 실제 VLM runtime 호출, cloud provider API 호출, 이벤트 설명 품질 평가,
+Ops 리뷰 UI 구현을 대신하지 않습니다.
+
+```bash
+./server.sh verify-vlm-observation-sidecar
+./server.sh verify-analysis-state
+./server.sh verify-event-post
+./server.sh verify-ws-metadata
+```
+
 CI/local gate parity는 `media-server.ci-local-gate-parity.v1` summary로
 Preflight/static-gates/guardrails/RC workflow에 실제로 걸린 `./server.sh` 명령과
 로컬 release/static verifier 목록을 대조합니다. 로컬에서 통과해야 한다고 문서화한

@@ -29,12 +29,12 @@ source-of-truth입니다.
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 327 |
+| 전체 기능 항목 | 328 |
 | UI 직접 필요 | 205 |
 | UI 간접 필요 | 27 |
-| UI 비대상 | 95 |
-| 테스트 필요 | 327 |
-| 안정화 대상 | 317 |
+| UI 비대상 | 96 |
+| 테스트 필요 | 328 |
+| 안정화 대상 | 318 |
 | UI 풀테스트 대상 | 222 |
 | 30분 soak 대상 | 45 |
 | 120분 조건부 대상 | 7 |
@@ -50,7 +50,7 @@ close-out에서 실제 실행한 evidence는 [release-evidence-index.md](release
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 327개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 328개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정했지만, 각 행의 line-level 증적은 별도 대조 필요 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리했지만, inventory 자체는 브라우저 직접 조작 evidence를 보관하지 않음 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -73,7 +73,7 @@ close-out에서 실제 실행한 evidence는 [release-evidence-index.md](release
 | `EVT-*` | `src/analysis/event_manager.cpp`, `src/analysis/event_storage.cpp`, `src/ingress/webrtc_http_server.cpp` | `/ops/dashboard`, `/ops/events`, `/ops/home` | `verify-va-event-coverage-report`, `verify-va-events`, `verify-ops-event-review-inbox`, `verify-ops-event-records-scope`, `verify-ops-alert-delivery-integrations`, `verify-va-runtime-console`, `verify-vlm-event-evidence-extraction` |
 | `CLIENT-*` | `src/ingress/product_ui_page_scripts.cpp`, `src/ingress/webrtc_http_server.cpp`, `src/ingress/webrtc_egress_session.cpp` | `/client/live`, `/client/dashboard`, `/client/request-access` | `verify-client-live-workspace`, `verify-client-dashboard-polish`, `verify-client-source-dock-events`, `verify-client-tile-*`, `verify-ops-client-ui`, `verify-ops-click-e2e` |
 | `MEDIA-*` | `src/core/session_manager.cpp`, `src/core/source_factory.cpp`, `src/core/stream_registry.cpp`, `src/ingress/webrtc_egress_session.cpp`, `src/ingress/rtsp_adapter.cpp` | `/client/live` only where video is visible | `verify-codecs`, `verify-webrtc-ice`, `verify-webrtc-va-metadata`, `verify-uri-source-longrun`, `verify-predev` |
-| `LAB-*` | `src/ingress/analysis_query.cpp`, `src/ingress/webrtc_http_server.cpp`, local detector/recommendation/evaluation scripts | 비대상 | `verify-analysis-state`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-image-analysis`, `verify-vlm-pc-capability`, `verify-vlm-recommendation-engine`, `verify-vlm-install-connection-dry-run`, `verify-vlm-profile-storage`, `verify-vlm-evaluation-harness` |
+| `LAB-*` | `src/ingress/analysis_query.cpp`, `src/ingress/webrtc_http_server.cpp`, `src/analysis/vlm_observation_store.cpp`, local detector/recommendation/evaluation scripts | 비대상 | `verify-analysis-state`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-image-analysis`, `verify-vlm-pc-capability`, `verify-vlm-recommendation-engine`, `verify-vlm-install-connection-dry-run`, `verify-vlm-profile-storage`, `verify-vlm-evaluation-harness`, `verify-vlm-observation-sidecar` |
 | `SAFE-*` | schema/payload/media/auth/UI test 경계 owner 전체 | route guard와 client 비노출 화면 | `verify-auth-routes`, `verify-ops-client-ui`, `verify-ui-blocking-dialog-policy`, `verify-webrtc-va-metadata`, `verify-ws-metadata`, `verify-event-post-*`, `verify-vlm-install-connection-scope-gate`, `verify-vlm-profile-storage` |
 
 ## Verifier Coverage Map
@@ -88,7 +88,7 @@ close-out에서 실제 실행한 evidence는 [release-evidence-index.md](release
 | `EVT-001`~`EVT-027` | `verify-va-event-coverage-report`, `verify-va-events`, `verify-ops-event-review-inbox`, `verify-ops-event-records-scope`, `verify-ops-alert-delivery-integrations`, `verify-va-runtime-console`, `verify-vlm-event-evidence-extraction` | event log 육안 확인은 UI 풀테스트 |
 | `CLIENT-001`~`CLIENT-022` | `verify-client-live-workspace`, `verify-client-dashboard-polish`, `verify-client-source-dock-events`, `verify-client-tile-disconnect-contract`, `verify-client-tile-info-overlay-health`, `verify-ops-client-ui` | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-020` | `verify-codecs`, `verify-webrtc-ice`, `verify-webrtc-va-metadata`, `verify-uri-source-longrun`, `verify-predev` | 30분/120분은 실행 지시 필요 |
-| `LAB-001`~`LAB-039` | `verify-analysis-state`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-image-analysis`, `verify-vlm-pc-capability`, `verify-vlm-recommendation-engine`, `verify-vlm-install-connection-dry-run`, `verify-vlm-profile-storage`, `verify-vlm-evaluation-harness` | 제품 UI 비대상 |
+| `LAB-001`~`LAB-040` | `verify-analysis-state`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-image-analysis`, `verify-vlm-pc-capability`, `verify-vlm-recommendation-engine`, `verify-vlm-install-connection-dry-run`, `verify-vlm-profile-storage`, `verify-vlm-evaluation-harness`, `verify-vlm-observation-sidecar` | 제품 UI 비대상 |
 | `SAFE-001`~`SAFE-023` | `verify-auth-routes`, `verify-ops-client-ui`, `verify-ui-blocking-dialog-policy`, `verify-event-post-dispatch`, `verify-webrtc-va-metadata`, `verify-ws-metadata`, `verify-rtsp-va-overlay-policy`, `verify-vlm-install-connection-scope-gate`, `verify-vlm-profile-storage` | schema/media/auth/UI automation 불변 조건 |
 
 ## VA Manual UI Seed Matrix
@@ -473,6 +473,7 @@ Rule scenario/event 발생 검수는 분리합니다.
 | LAB-037 | VLM install/connection dry-run contract | 비대상 | 필요 | 안정화 | `media-server.vlm-install-connection-dry-run.v1` schema, local/cloud/unsupported/missing-runtime/cloud-opt-in fixture, dry-run-only side-effect false invariant, no profile/runtime-call/sidecar/cloud-provider-call boundary 확인 |
 | LAB-038 | VLM profile storage API contract | 비대상 | 필요 | 안정화 | `media-server.vlm-profile.v1` schema, `/ops/api/vlm/profiles` CRUD, invalid profile fixture, provider/model/runtime/prompt/evaluation/activation validation, no runtime-call/sidecar/schema/media path boundary 확인 |
 | LAB-039 | VLM evaluation harness fixture report | 비대상 | 필요 | 안정화 | `media-server.vlm-evaluation-report.v1` schema, event frame/bbox crop/previous-next frame refs, prompt profile A/B, latency/explanation/hallucination/JSON/한국어/영어 scoring, fixture-only no runtime/provider/sidecar/schema/media path boundary 확인 |
+| LAB-040 | VLMObservation sidecar storage | 비대상 | 필요 | 안정화 | `media-server.vlm-observation.v1` schema, 별도 JSONL 저장, EventRecord `eventId` correlation report, raw prompt/response/source URL/credential/raw media 비저장, Event POST/WebRTC/SSE/WS schema와 RTSP/WebRTC media path 불변 확인 |
 
 ## I. Safety, Boundary, Invariant Contract
 

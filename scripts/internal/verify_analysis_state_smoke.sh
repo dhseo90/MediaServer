@@ -28,6 +28,7 @@ echo "[verify] build analysis state smoke: ${BUILD_DIR}"
   "${ROOT_DIR}/src/analysis/snapshot_encoder.cpp" \
   "${ROOT_DIR}/src/analysis/track_state_manager.cpp" \
   "${ROOT_DIR}/src/analysis/va_runtime_metadata.cpp" \
+  "${ROOT_DIR}/src/analysis/vlm_observation_store.cpp" \
   "${ROOT_DIR}/src/analysis/wrong_direction_scenario.cpp" \
   "${ROOT_DIR}/src/analysis/zone_occupancy_scenario.cpp" \
   "${ROOT_DIR}/src/app_config.cpp" \

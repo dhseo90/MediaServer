@@ -141,7 +141,7 @@ check("roadmap, verification docs, feature inventory, docs index, and server com
   for (const snippet of [
     "| LAB-037 | VLM install/connection dry-run contract",
     "verify-vlm-install-connection-dry-run",
-    "| `LAB-001`~`LAB-039` |",
+    "| `LAB-001`~`LAB-040` |",
   ]) {
     assert(inventory.includes(snippet), `feature inventory missing snippet: ${snippet}`);
   }
