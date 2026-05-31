@@ -49,6 +49,7 @@
 #include "analysis/overlay_renderer.h"
 #include "analysis/snapshot_encoder.h"
 #include "analysis/va_runtime_metadata.h"
+#include "analysis/vlm_observation_store.h"
 #include "core/runtime_debug_counters.h"
 #include "core/stream_key.h"
 #include "ingress/analysis_query.h"
@@ -600,6 +601,19 @@ bool StringArrayIncludesAll(const std::vector<std::string>& source,
     return std::all_of(required.begin(), required.end(), [&](const std::string& value) {
         return source_set.find(value) != source_set.end();
     });
+}
+
+std::string JsonStringArray(const std::vector<std::string>& values) {
+    std::ostringstream out;
+    out << "[";
+    for (std::size_t i = 0; i < values.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "\"" << JsonEscape(values[i]) << "\"";
+    }
+    out << "]";
+    return out.str();
 }
 
 std::vector<std::string> AnalysisClassesFromDocument(const std::string& body) {
@@ -3493,11 +3507,11 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           </table>
         </div>
       </section>
-      <section class="section-card" data-testid="ops-event-review-inbox" data-review-state="separate-from-event-post-payload">
+      <section class="section-card" data-testid="ops-event-review-inbox" data-review-state="separate-from-event-post-payload" data-vlm-review-state="ops-only-event-record-evidence">
         <div class="toolbar">
           <div>
             <h3>Rule Event Review Inbox</h3>
-            <p id="eventReviewSummary">Rule/Scenario 이벤트의 확인, 분류, 메모, 상태를 별도 review state로 관리합니다.</p>
+            <p id="eventReviewSummary">Rule/Scenario 이벤트의 확인, 분류, 메모, 상태와 EventRecord evidence, VLM 설명을 Ops 전용 review state로 관리합니다.</p>
           </div>
           <div class="actions event-review-controls">
             <label>Review 상태
@@ -3530,10 +3544,11 @@ void AppendOpsEventsPage(std::ostringstream& out) {
                 <th>리뷰</th>
                 <th>분류</th>
                 <th>메모</th>
+                <th>Evidence / VLM</th>
                 <th>업데이트</th>
               </tr>
             </thead>
-            <tbody id="eventReviewRows"><tr><td colspan="5">로딩 중</td></tr></tbody>
+            <tbody id="eventReviewRows"><tr><td colspan="6">로딩 중</td></tr></tbody>
           </table>
         </div>
       </section>
@@ -11376,6 +11391,101 @@ std::string AnalysisEventRecordsJson(const analysis::EventRecordQueryResult& res
     return out.str();
 }
 
+std::string OpsVlmEventReviewJson(const std::string& event_json) {
+    const bool event_record_present = !Trim(event_json).empty();
+    const std::string event_id =
+        event_record_present ? Trim(ParseStringField(event_json, "eventId").value_or("")) : std::string();
+    const std::string event_type =
+        event_record_present ? Trim(ParseStringField(event_json, "eventType").value_or("")) : std::string();
+    const std::string snapshot_path =
+        event_record_present ? Trim(ParseStringField(event_json, "snapshotPath").value_or("")) : std::string();
+    const std::string clip_path =
+        event_record_present ? Trim(ParseStringField(event_json, "clipPath").value_or("")) : std::string();
+    const auto metadata = event_record_present ? ExtractObjectField(event_json, "metadata") : std::nullopt;
+    const bool vlm_evidence_refs_present =
+        metadata.has_value() && metadata->find("\"vlmEvidenceRefs\"") != std::string::npos;
+
+    bool observation_query_ok = false;
+    bool observation_store_exists = false;
+    std::string observation_error;
+    std::string observation_json;
+    if (!event_id.empty()) {
+        analysis::VlmObservationQueryOptions options;
+        options.event_id = event_id;
+        options.limit = 1;
+        analysis::VlmObservationQueryResult query_result;
+        observation_query_ok = analysis::QueryVlmObservations(
+            analysis::DefaultVlmObservationStorePath(), options, &query_result, &observation_error);
+        observation_store_exists = query_result.file_exists;
+        if (observation_query_ok && !query_result.observations_json.empty()) {
+            observation_json = query_result.observations_json.front();
+        }
+    }
+    const bool observation_present = !observation_json.empty();
+    const std::string summary = observation_present
+                                    ? Trim(ParseStringField(observation_json, "summary").value_or(""))
+                                    : (event_record_present ? "VLM explanation pending for this EventRecord"
+                                                            : "EventRecord is not available for VLM review");
+    const std::string explanation =
+        observation_present
+            ? Trim(ParseStringField(observation_json, "eventExplanation").value_or(summary))
+            : "Ops review shows EventRecord evidence first; VLM observation text appears here when the side storage has a matching eventId.";
+    std::vector<std::string> hints =
+        observation_present ? StringArrayFieldValues(observation_json, "falsePositiveHints")
+                            : std::vector<std::string>{
+                                  "Check snapshot and clip evidence before classifying this event.",
+                              };
+    std::vector<std::string> questions =
+        observation_present ? StringArrayFieldValues(observation_json, "operatorReviewQuestions")
+                            : std::vector<std::string>{
+                                  "Does the snapshot and short clip support the rule/scenario decision?",
+                              };
+    if (hints.empty()) {
+        hints.push_back("No false-positive hint was attached to the matching VLM observation.");
+    }
+    if (questions.empty()) {
+        questions.push_back("No operator question was attached to the matching VLM observation.");
+    }
+
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.vlm-event-review.v1\","
+        << "\"eventId\":\"" << JsonEscape(event_id) << "\","
+        << "\"eventType\":\"" << JsonEscape(event_type) << "\","
+        << "\"eventRecordPresent\":" << (event_record_present ? "true" : "false") << ","
+        << "\"observationPresent\":" << (observation_present ? "true" : "false") << ","
+        << "\"observationStoreExists\":" << (observation_store_exists ? "true" : "false") << ","
+        << "\"observationQueryOk\":" << (observation_query_ok ? "true" : "false") << ","
+        << "\"observationError\":\"" << JsonEscape(observation_query_ok ? "" : observation_error) << "\","
+        << "\"evidence\":{"
+        << "\"snapshotPathPresent\":" << (snapshot_path.empty() ? "false" : "true") << ","
+        << "\"clipPathPresent\":" << (clip_path.empty() ? "false" : "true") << ","
+        << "\"vlmEvidenceRefsPresent\":" << (vlm_evidence_refs_present ? "true" : "false") << ","
+        << "\"snapshotLabel\":\"" << JsonEscape(snapshot_path.empty() ? "snapshot missing" : "snapshot available")
+        << "\","
+        << "\"clipLabel\":\"" << JsonEscape(clip_path.empty() ? "clip missing" : "short clip available")
+        << "\""
+        << "},"
+        << "\"explanation\":{"
+        << "\"summary\":\"" << JsonEscape(summary) << "\","
+        << "\"eventExplanation\":\"" << JsonEscape(explanation) << "\","
+        << "\"falsePositiveHints\":" << JsonStringArray(hints) << ","
+        << "\"operatorReviewQuestions\":" << JsonStringArray(questions)
+        << "},"
+        << "\"contract\":{"
+        << "\"opsOnly\":true,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"autoRuleApplied\":false"
+        << "}"
+        << "}";
+    return out.str();
+}
+
 std::string OpsEventReviewInboxItemJson(const std::string& event_json,
                                         const OpsEventReviewState& review) {
     std::ostringstream out;
@@ -11387,6 +11497,7 @@ std::string OpsEventReviewInboxItemJson(const std::string& event_json,
         out << event_json;
     }
     out << ",\"review\":" << OpsEventReviewStateJson(review)
+        << ",\"vlmReview\":" << OpsVlmEventReviewJson(event_json)
         << "}";
     return out.str();
 }

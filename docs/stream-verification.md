@@ -301,6 +301,21 @@ API 호출, Event/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경은 
 ./server.sh verify-vlm-event-explanation-hints
 ```
 
+VLM Ops event review UI는 `V200-S10`의 Ops 전용 리뷰 화면을 확인합니다. `/ops/events`
+review inbox가 EventRecord, snapshot/short clip evidence, VLM explanation,
+falsePositiveHints, operatorReviewQuestions를 함께 표시하되 viewer/client에는 노출하지
+않고 기존 Event POST/WebRTC/SSE/WS schema와 media path를 바꾸지 않는지 검증합니다.
+
+```bash
+./server.sh verify-vlm-ops-event-review-ui
+./server.sh verify-ops-event-review-inbox
+```
+
+S10 UI 직접 확인은 Codex 인앱 브라우저에서 `/ops/events`, `/client/live`,
+`/client/dashboard`를 열어 Ops 표시와 viewer/client 비노출을 확인합니다. Chrome/CDP
+기반 `verify-ops-client-ui`와 `verify-ops-client-ui --screenshots`는 이번 S10 close
+evidence로 사용하지 않습니다.
+
 CI/local gate parity는 `media-server.ci-local-gate-parity.v1` summary로
 Preflight/static-gates/guardrails/RC workflow에 실제로 걸린 `./server.sh` 명령과
 로컬 release/static verifier 목록을 대조합니다. 로컬에서 통과해야 한다고 문서화한

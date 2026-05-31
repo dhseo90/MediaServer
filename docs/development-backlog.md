@@ -139,7 +139,7 @@ YOLO 이벤트가 왜 발생했는지 설명하고, 오탐 가능성 및 운영�
 | 7 | V200-S07 | 완료 | 이벤트 evidence 추출 | YOLO 이벤트 발생 시 snapshot, bbox crop, 전후 frame, 짧은 clip evidence 후보를 만들고 VLM 입력으로 쓸 수 있게 reference를 분리합니다. | EventRecord snapshot/clip fixture, crop extraction smoke, redaction review, `verify-va-events`, `verify-va-replay`, `git diff --check` |
 | 8 | V200-S08 | 완료 | VLMObservation sidecar | 기존 Event POST/WebRTC/SSE/WS metadata를 바꾸지 않고 VLM 결과를 별도 sidecar로 저장합니다. | sidecar schema fixture, EventRecord correlation report, existing metadata diff guard, `verify-event-post`, `verify-ws-metadata`, `git diff --check` |
 | 9 | V200-S09 | 완료 | 이벤트 설명/오탐 힌트 | 이벤트 발생 이유, 화면 내 사람/차량/영역 관계, 오탐 가능성, 운영자 확인 질문을 생성합니다. | event explanation fixture, false-positive hint fixture, operator question review, JSON stability check, `git diff --check` |
-| 10 | V200-S10 | 예정 | Ops 이벤트 리뷰 UI | EventRecord, snapshot/짧은 clip evidence, VLM 설명을 Ops 이벤트 리뷰 화면에서 함께 보여줍니다. viewer/client에는 노출하지 않습니다. | `verify-ops-client-ui`, `verify-ops-client-ui --screenshots`, event review UI smoke, viewer redaction UI smoke, `git diff --check` |
+| 10 | V200-S10 | 완료 | Ops 이벤트 리뷰 UI | EventRecord, snapshot/짧은 clip evidence, VLM 설명을 Ops 이벤트 리뷰 화면에서 함께 보여줍니다. viewer/client에는 노출하지 않습니다. | `verify-vlm-ops-event-review-ui`, `verify-ops-event-review-inbox`, 인앱 브라우저 `/ops/events` 직접 확인, viewer/client redaction 확인, `git diff --check` |
 | 11 | V200-S11 | 예정 | Privacy/전송 guard | cloud 사용 시 외부 전송 경고, redaction, credential/prompt/raw response/source URL 비노출, provider logging 정책을 강제합니다. | privacy fixture, source URL/raw JSON leak guard, auth/scope review, `verify-auth-routes`, `verify-ops-client-ui`, `git diff --check` |
 | 12 | V200-S12 | 예정 | VLM summary 검색 후보 | VLM summary를 이용해 "문 근처에서 멈춘 사람" 같은 semantic event search 후보를 만듭니다. 검색은 후보 단계로 두고 기존 event schema는 변경하지 않습니다. | search fixture, sidecar query smoke, EventRecord correlation smoke, `git diff --check` |
 | 13 | V200-S13 | 예정 | Rule 추천 보조 후보 | VLM이 line/intrusion/zone 후보를 제안하되 자동 적용은 금지합니다. 운영자가 확인 후 수동 저장하는 흐름만 후보로 둡니다. | rule suggestion fixture, no-auto-apply guard, `/ops/rules` smoke, `verify-rule-ui`, `git diff --check` |
@@ -754,6 +754,60 @@ S09는 S07 evidence reference와 S08 observation 저장 계약 위에서 이벤�
 - Privacy/전송 guard는 `V200-S11` 범위입니다.
 - semantic event search 후보는 `V200-S12` 범위입니다.
 - rule 추천 보조 후보는 `V200-S13` 범위입니다.
+
+### V200-S10 Ops 이벤트 리뷰 UI 완료 기준
+
+S10은 `/ops/events`의 Rule Event Review Inbox에 EventRecord evidence와 S08 VLM
+observation 설명을 Ops 전용 review panel로 표시하는 단계입니다. 이 단계는
+EventRecord 자체, Event POST payload, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC
+media path를 변경하지 않습니다.
+
+이번 범위에서 구현한 것:
+
+- `/ops/api/events/reviews`의 각 review item에 Ops 전용 `vlmReview` object를 붙입니다.
+- `vlmReview`는 `media-server.ops.vlm-event-review.v1` schema를 사용합니다.
+- EventRecord 존재 여부, snapshot/short clip path 존재 여부, S07 `vlmEvidenceRefs`
+  존재 여부, S08 observation matching 여부를 표시합니다.
+- VLM summary, event explanation, false-positive hints, operator review questions를
+  `/ops/events` review inbox 행 안에 표시합니다.
+- viewer/client 화면에는 `ops-vlm-event-review-card` 또는 fixture VLM 설명을 노출하지
+  않습니다.
+
+이번 범위에서 하지 않는 일:
+
+- Privacy/전송 guard 전체 구현
+- semantic event search 후보
+- rule suggestion 후보 또는 자동 rule/profile 적용
+- 실제 VLM runtime/provider 호출
+- EventRecord top-level schema 변경
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+
+완료 evidence:
+
+- `node --check scripts/internal/verify_vlm_ops_event_review_ui.mjs` PASS.
+- `./server.sh verify-vlm-ops-event-review-ui` PASS.
+- `./server.sh verify-ops-event-review-inbox` PASS.
+- `./server.sh build` PASS.
+- `./server.sh verify-script-inventory`, `./server.sh verify-project-inventory`,
+  `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-vlm-install-connection-scope-gate`
+  PASS.
+- 2026-05-31 인앱 브라우저 직접 확인: `/ops/events`에서 fixture EventRecord
+  `s10-event-001`의 `EventRecord`, `snapshot`, `short clip`, `VLM 설명`, 오탐 힌트,
+  운영자 확인 질문이 표시됨.
+- 2026-05-31 인앱 브라우저 직접 확인: `/client/live`, `/client/dashboard`에서
+  `ops-vlm-event-review-card`, `s10-event-001`, fixture VLM 설명이 비노출.
+- Chrome/CDP 기반 `verify-ops-client-ui`와 `verify-ops-client-ui --screenshots`는
+  이번 S10 close에서 사용하지 않았습니다. 사용자가 인앱 브라우저 테스트를 명시했고,
+  해당 명령은 Chrome/CDP target timeout을 만들 수 있어 미실행으로 분리합니다.
+
+후속 단계로 남기는 범위:
+
+- Privacy/전송 guard는 `V200-S11` 범위입니다.
+- semantic event search 후보는 `V200-S12` 범위입니다.
+- rule 추천 보조 후보는 `V200-S13` 범위입니다.
+- v2.0.0 전체 side effect 안정화는 `V200-S16`, 장시간/UI 기준 정리는 `V200-S17`,
+  close-out readiness는 `V200-S18` 범위입니다.
 
 v2.0.0 완료 판정은 기능 구현만으로 닫지 않습니다. 각 개발 순서에서 추가한 테스트가
 `project-feature-test-inventory.md`, 안정화 테스트, 30분/120분 trigger, UI 풀테스트

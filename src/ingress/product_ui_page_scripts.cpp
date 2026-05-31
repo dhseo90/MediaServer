@@ -4129,11 +4129,33 @@ void AppendOpsShellScript(std::ostringstream& out,
           ${values.map(item => `<option value="${escapeHtml(item)}"${item === value ? ' selected' : ''}>${escapeHtml(item)}</option>`).join('')}
         </select>`;
       };
+      function eventReviewVlmHtml(entry = {}) {
+        const vlm = entry?.vlmReview || {};
+        const evidence = vlm.evidence || {};
+        const explanation = vlm.explanation || {};
+        const hints = Array.isArray(explanation.falsePositiveHints) ? explanation.falsePositiveHints : [];
+        const questions = Array.isArray(explanation.operatorReviewQuestions) ? explanation.operatorReviewQuestions : [];
+        const badges = [
+          { text: vlm.eventRecordPresent ? 'EventRecord' : 'EventRecord 없음', tone: vlm.eventRecordPresent ? 'info' : 'warn' },
+          { text: evidence.snapshotPathPresent ? 'snapshot' : 'snapshot 없음', tone: evidence.snapshotPathPresent ? 'info' : 'warn' },
+          { text: evidence.clipPathPresent ? 'short clip' : 'clip 없음', tone: evidence.clipPathPresent ? 'info' : 'warn' },
+          { text: vlm.observationPresent ? 'VLM 설명' : 'VLM 대기', tone: vlm.observationPresent ? 'info' : 'warn' }
+        ];
+        const hintText = hints.length ? hints.slice(0, 2).map(display).join(' · ') : '오탐 힌트 없음';
+        const questionText = questions.length ? questions.slice(0, 2).map(display).join(' · ') : '운영자 질문 없음';
+        return `<div class="ops-vlm-event-review" data-testid="ops-vlm-event-review-card" data-vlm-review-contract="ops-only-no-client-exposure">
+          <div class="badge-row">${badges.map(item => `<span class="chip${item.tone ? ` ${escapeHtml(item.tone)}` : ''}">${escapeHtml(item.text)}</span>`).join('')}</div>
+          <strong>${escapeHtml(display(explanation.summary || 'VLM explanation pending'))}</strong>
+          <span class="ops-rule-note">${escapeHtml(display(explanation.eventExplanation || 'EventRecord evidence와 matching observation이 있으면 설명을 표시합니다.'))}</span>
+          <span class="ops-rule-note">오탐: ${escapeHtml(hintText)}</span>
+          <span class="ops-rule-note">확인: ${escapeHtml(questionText)}</span>
+        </div>`;
+      }
       function renderEventReviewRows(items) {
         const tbody = document.getElementById('eventReviewRows');
         if (!tbody) return;
         if (!Array.isArray(items) || items.length === 0) {
-          setTableEmpty(tbody, 5, '검토할 Rule/Scenario 이벤트가 없습니다.');
+          setTableEmpty(tbody, 6, '검토할 Rule/Scenario 이벤트가 없습니다.');
           return;
         }
         tbody.innerHTML = items.map(entry => {
@@ -4155,6 +4177,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             ${tableCellHtml('리뷰', eventReviewSelectHtml('reviewStatus', EVENT_REVIEW_STATUSES, review.reviewStatus || 'new'))}
             ${tableCellHtml('분류', eventReviewSelectHtml('classification', EVENT_REVIEW_CLASSES, review.classification || 'unclassified'))}
             ${tableCellHtml('메모', noteHtml)}
+            ${tableCellHtml('Evidence / VLM', eventReviewVlmHtml(entry))}
             ${tableCellHtml('업데이트', `<div class="event-review-actions"><span>${escapeHtml(updated)}</span><button type="button" class="button button-secondary button-compact" data-event-review-save ${eventId ? '' : 'disabled'}>저장</button></div>`)}
           </tr>`;
         }).join('');
@@ -4428,7 +4451,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           'eventReviewSummary',
           reviewPayload.error
             ? `review 조회 실패: ${reviewPayload.error}`
-            : `review ${reviewItems.length}개 · Event POST payload 변경 없음 · audit action event-review-update`
+            : `review ${reviewItems.length}개 · VLM review panel ${reviewItems.filter(item => item?.vlmReview).length}개 · Event POST payload 변경 없음 · audit action event-review-update`
         );
         renderEventReviewRows(reviewItems);
         const prevButton = document.getElementById('eventRecordsPrev');

@@ -292,6 +292,8 @@ Usage:
                  v2.0.0 VLM 이벤트 설명/오탐 힌트 fixture report를 산출합니다.
   verify-vlm-event-explanation-hints
                  v2.0.0 VLM 이벤트 설명/오탐 힌트와 JSON 안정성을 검증합니다.
+  verify-vlm-ops-event-review-ui
+                 v2.0.0 Ops 이벤트 리뷰 UI의 VLM 설명/evidence 표시 경계를 검증합니다.
   verify-event-post
                  VA event POST payload, 실패/cooldown/queue 상태를 검증합니다.
   verify-integrator-contract-artifact
@@ -974,6 +976,10 @@ case "${cmd}" in
   verify-vlm-event-explanation-hints)
     require_internal verify_vlm_event_explanation_hints.mjs
     exec "${INTERNAL_DIR}/verify_vlm_event_explanation_hints.mjs" "$@"
+    ;;
+  verify-vlm-ops-event-review-ui)
+    require_internal verify_vlm_ops_event_review_ui.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_ops_event_review_ui.mjs" "$@"
     ;;
   verify-event-post)
     require_internal verify_event_post_dispatch.sh

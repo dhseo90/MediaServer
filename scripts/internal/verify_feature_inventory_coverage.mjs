@@ -45,7 +45,7 @@ const stabilityVerifierByPrefix = {
   AUTH: ["verify-auth-regression-matrix", "verify-auth-bootstrap", "verify-auth-users", "verify-auth-routes", "verify-auth-ui-smoke", "verify-auth-scope-picker"],
   SRC: ["verify-ops-source-lifecycle", "verify-ops-source-health-bulk", "verify-ops-client-ui", "verify-onvif-no-device-suite"],
   RULE: ["verify-rule-ui", "verify-ops-rules-roundtrip", "verify-ops-rule-validation-matrix", "verify-va-event-coverage-report", "verify-va-replay", "verify-analysis-state"],
-  EVT: ["verify-va-event-coverage-report", "verify-va-events", "verify-ops-event-review-inbox", "verify-ops-event-records-scope", "verify-va-runtime-console", "verify-vlm-event-evidence-extraction"],
+  EVT: ["verify-va-event-coverage-report", "verify-va-events", "verify-ops-event-review-inbox", "verify-ops-event-records-scope", "verify-va-runtime-console", "verify-vlm-event-evidence-extraction", "verify-vlm-ops-event-review-ui"],
   CLIENT: ["verify-client-live-workspace", "verify-client-dashboard-polish", "verify-client-source-dock-events", "verify-ops-client-ui"],
   MEDIA: ["verify-codecs", "verify-webrtc-ice", "verify-webrtc-va-metadata"],
   LAB: ["verify-analysis-state", "verify-va-metadata-sidechannel", "verify-ws-metadata", "verify-image-analysis", "verify-vlm-pc-capability", "verify-vlm-recommendation-engine", "verify-vlm-install-connection-dry-run", "verify-vlm-profile-storage", "verify-vlm-evaluation-harness", "verify-vlm-observation-sidecar", "verify-vlm-event-explanation-hints"],
@@ -53,7 +53,7 @@ const stabilityVerifierByPrefix = {
 };
 
 check("inventory row count is stable", () => {
-  assert(rows.length === 329, `expected 329 feature rows, found ${rows.length}`);
+  assert(rows.length === 330, `expected 330 feature rows, found ${rows.length}`);
   assert(new Set(rows.map(row => row.id)).size === rows.length, "duplicate feature ID exists");
 });
 
