@@ -147,7 +147,7 @@ YOLO 이벤트가 왜 발생했는지 설명하고, 오탐 가능성 및 운영�
 | 15 | V200-S15 | 완료 | 간이 테스트 리허설 | 안정화/30분/120분/UI 풀테스트 전에 VLM 전용 짧은 smoke, missing-model, cloud-disabled, invalid-output, queue-timeout fixture를 실행해 테스트 자체가 막히지 않는지 확인합니다. | `verify-vlm-test-rehearsal`, VLM smoke, failure fixture matrix, cleanup check, port/server lifecycle check, `git diff --check` |
 | 16 | V200-S16 | 완료 | 기존 테스트 side effect 점검 | VLM 변경이 auth, Ops/Client UI, Rule UI, VA replay/events, WebRTC metadata, SSE/WS metadata, Event POST, RTSP/WebRTC media path verifier에 영향을 주지 않는지 확인합니다. | `./server.sh build`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-rule-ui`, `verify-va-replay`, `verify-va-events`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-event-post`, `git diff --check` |
 | 17 | V200-S17 | 완료 | 안정화/장시간/UI 기준 정리 | VLM queue, memory, provider timeout, model install 상태에 따라 안정화, 30분, 120분, UI 풀테스트 실행 기준과 제외/미실행 보고 기준을 정리합니다. | `verify-runtime-media-longrun-trigger-matrix`, `verify-longrun-separation`, VLM longrun trigger matrix, manual UI checklist update, `git diff --check` |
-| 18 | V200-S18 | 예정 | v2.0.0 close-out readiness | 전체 스크립트 테스트와 UI 풀테스트 결과를 분리해 release evidence로 닫고, 미실행/제외/미확인을 명확히 기록합니다. | release evidence review, `verify-release-evidence-index`, `verify-release-metadata`, VLM close-out report, 30분/UI/120분 실행 또는 미실행 기록, `git diff --check` |
+| 18 | V200-S18 | 완료 | v2.0.0 close-out readiness | 전체 스크립트 테스트와 UI 풀테스트 결과를 분리해 release evidence로 닫고, 미실행/제외/미확인을 명확히 기록합니다. | release evidence review, `verify-release-evidence-index`, `verify-release-metadata`, VLM close-out report, 30분/UI/120분 실행 또는 미실행 기록, `git diff --check` |
 
 VLMObservation sidecar 후보:
 
@@ -1239,6 +1239,57 @@ side effect를 만들지 않았는지 확인하는 단계입니다. 제품 UI �
 
 - S18 close-out readiness는 미진행입니다.
 - 30분/120분 장시간 안정화와 인앱 브라우저 UI 풀테스트는 실행하지 않았습니다.
+
+### V200-S18 v2.0.0 close-out readiness 종료 기준
+
+이 단계는 v2.0.0 VLM 로드맵의 close-out readiness를 release evidence로 정리하는
+단계입니다. 스크립트 테스트, UI 풀테스트, 30분, 120분, provider field smoke,
+publish gate를 서로 대체하지 않도록 기록합니다.
+
+이번 범위에서 구현/정리한 것:
+
+- `docs/vlm-close-out-readiness.md`를 S18 source-of-truth report로 추가했습니다.
+- `./server.sh verify-vlm-closeout-readiness`를 추가해 S18 report, release evidence,
+  roadmap, stream verification, docs index, server/script inventory 연결을 검증합니다.
+- `docs/release-evidence-index.md`에 VLM close-out readiness evidence row와
+  `v200-vlm-closeout-readiness-20260531` token ledger row를 추가했습니다.
+- `docs/stream-verification.md`와 `docs/README.md`에 S18 report/verifier를 연결했습니다.
+
+직접 기준:
+
+- VLM close-out readiness report는 `media-server.vlm-close-out-readiness.v1`입니다.
+- 30분/UI/120분 실행 또는 미실행 기록은 S18 완료 조건입니다.
+- UI 풀테스트, 30분 soak, 120분 longrun, cloud provider field smoke는 이번 S18에서
+  미실행으로 기록합니다.
+- S18 완료로 v2.0.0 release tag, GitHub Release, main merge, UI 풀테스트 PASS를 완료로 보지 않습니다.
+
+이번 범위에서 하지 않는 일:
+
+- 실제 VLM runtime 호출
+- cloud provider API 호출
+- model/runtime download 또는 bundle 추가
+- 30분/120분 장시간 안정화 실행
+- 인앱 브라우저 UI 풀테스트 실행
+- main merge, release tag, GitHub Release 생성
+
+완료 evidence:
+
+- `./server.sh verify-vlm-closeout-readiness`가 S18 report와 release evidence 경계를
+  PASS로 검증했습니다.
+- `./server.sh verify-release-evidence-index`가 VLM close-out readiness row와
+  미실행/미확인/제외 분리 문구를 PASS로 검증했습니다.
+- `./server.sh verify-release-metadata`가 branch-level VERSION/CMake/README/docs drift를
+  PASS로 검증했습니다.
+- `./server.sh verify-vlm-test-rehearsal`, `./server.sh verify-runtime-media-longrun-trigger-matrix`,
+  `./server.sh verify-longrun-separation`, `./server.sh verify-manual-ui-evidence`,
+  `./server.sh verify-script-inventory`, `./server.sh verify-docs-links`가 PASS입니다.
+- `git diff --check`가 코드/문서/script whitespace drift 없음을 확인했습니다.
+
+후속 단계로 남기는 범위:
+
+- 실제 v2.0.0 release publish, tag, main merge, GitHub Release 생성은 미진행입니다.
+- UI 풀테스트, 30분 soak, 120분 longrun은 미실행입니다.
+- publish 후 `verify-release-metadata --published`는 미실행입니다.
 
 ## v1.9.0 Release Trust Hardening Close-out
 

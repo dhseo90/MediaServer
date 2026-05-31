@@ -370,6 +370,17 @@ sidecar 저장, Event/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경
   --json-report /tmp/media_server_vlm_test_rehearsal.json
 ```
 
+VLM close-out readiness는 `V200-S18`의 release evidence 분리 report입니다. 세부
+기준은 [vlm-close-out-readiness.md](./vlm-close-out-readiness.md)에 둡니다.
+`media-server.vlm-close-out-readiness.v1` report는 스크립트 테스트, UI 풀테스트,
+30분, 120분, provider field smoke, publish gate를 서로 대체하지 않고 `PASS`,
+`미실행`, `manual-not-run`, `제외`, `미확인`으로 분리합니다. 이 검증은 GitHub
+Release publish, 30분/120분 longrun, UI 풀테스트를 실행하지 않습니다.
+
+```bash
+./server.sh verify-vlm-closeout-readiness
+```
+
 CI/local gate parity는 `media-server.ci-local-gate-parity.v1` summary로
 Preflight/static-gates/guardrails/RC workflow에 실제로 걸린 `./server.sh` 명령과
 로컬 release/static verifier 목록을 대조합니다. 로컬에서 통과해야 한다고 문서화한

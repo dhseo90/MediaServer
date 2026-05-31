@@ -302,6 +302,8 @@ Usage:
                  v2.0.0 VLM Rule 추천 보조 후보와 no-auto-apply 경계를 검증합니다.
   verify-vlm-test-rehearsal
                  v2.0.0 VLM 간이 테스트 리허설과 failure fixture/cleanup/lifecycle 경계를 검증합니다.
+  verify-vlm-closeout-readiness
+                 v2.0.0 VLM close-out readiness report와 release evidence 분리 기준을 검증합니다.
   verify-event-post
                  VA event POST payload, 실패/cooldown/queue 상태를 검증합니다.
   verify-integrator-contract-artifact
@@ -1004,6 +1006,10 @@ case "${cmd}" in
   verify-vlm-test-rehearsal)
     require_internal verify_vlm_test_rehearsal.mjs
     exec "${INTERNAL_DIR}/verify_vlm_test_rehearsal.mjs" "$@"
+    ;;
+  verify-vlm-closeout-readiness)
+    require_internal verify_vlm_closeout_readiness.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_closeout_readiness.mjs" "$@"
     ;;
   verify-event-post)
     require_internal verify_event_post_dispatch.sh
