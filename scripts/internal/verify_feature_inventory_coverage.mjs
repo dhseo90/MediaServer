@@ -48,12 +48,12 @@ const stabilityVerifierByPrefix = {
   EVT: ["verify-va-event-coverage-report", "verify-va-events", "verify-ops-event-review-inbox", "verify-ops-event-records-scope", "verify-va-runtime-console", "verify-vlm-event-evidence-extraction", "verify-vlm-ops-event-review-ui"],
   CLIENT: ["verify-client-live-workspace", "verify-client-dashboard-polish", "verify-client-source-dock-events", "verify-ops-client-ui"],
   MEDIA: ["verify-codecs", "verify-webrtc-ice", "verify-webrtc-va-metadata"],
-  LAB: ["verify-analysis-state", "verify-va-metadata-sidechannel", "verify-ws-metadata", "verify-image-analysis", "verify-vlm-pc-capability", "verify-vlm-recommendation-engine", "verify-vlm-install-connection-dry-run", "verify-vlm-profile-storage", "verify-vlm-evaluation-harness", "verify-vlm-observation-sidecar", "verify-vlm-event-explanation-hints", "verify-vlm-privacy-transfer-guard"],
+  LAB: ["verify-analysis-state", "verify-va-metadata-sidechannel", "verify-ws-metadata", "verify-image-analysis", "verify-vlm-pc-capability", "verify-vlm-recommendation-engine", "verify-vlm-install-connection-dry-run", "verify-vlm-profile-storage", "verify-vlm-evaluation-harness", "verify-vlm-observation-sidecar", "verify-vlm-event-explanation-hints", "verify-vlm-privacy-transfer-guard", "verify-vlm-summary-search-candidates"],
   SAFE: ["verify-integrator-contract-artifact", "verify-auth-routes", "verify-ops-client-ui", "verify-ui-blocking-dialog-policy", "verify-event-post", "verify-webrtc-va-metadata", "verify-ws-metadata", "verify-vlm-install-connection-scope-gate", "verify-vlm-profile-storage", "verify-vlm-privacy-transfer-guard"],
 };
 
 check("inventory row count is stable", () => {
-  assert(rows.length === 333, `expected 333 feature rows, found ${rows.length}`);
+  assert(rows.length === 334, `expected 334 feature rows, found ${rows.length}`);
   assert(new Set(rows.map(row => row.id)).size === rows.length, "duplicate feature ID exists");
 });
 

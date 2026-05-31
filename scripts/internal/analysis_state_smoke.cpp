@@ -1737,8 +1737,8 @@ void VerifyVlmObservationStore() {
         "\"eventFrame\":{\"path\":\"/tmp/event-records/evt-vlm-observation.snapshot.jpg\"},"
         "\"bboxCrop\":{\"path\":\"/tmp/event-records/evt-vlm-observation.bbox-crop.jpg\"},"
         "\"temporalContext\":{\"path\":\"/tmp/event-records/evt-vlm-observation.clip/manifest.json\"}}";
-    observation.summary = "fixture observation summary";
-    observation.event_explanation = "fixture explanation stored outside EventRecord";
+    observation.summary = "person stopped near the door after crossing the entry line";
+    observation.event_explanation = "fixture explanation stored outside EventRecord for a person waiting by the doorway";
     observation.false_positive_hints = {"reflection near line", "partial occlusion"};
     observation.operator_review_questions = {"Did the person fully cross the line?"};
     observation.rule_suggestion_json = "{\"kind\":\"none\",\"autoApply\":false}";
@@ -1803,6 +1803,30 @@ void VerifyVlmObservationStore() {
     Expect(default_path.find(".vlm-observations") != std::string::npos,
            "VLM observation default path must be separate from EventRecord path");
 
+    VlmSummarySearchOptions search_options;
+    search_options.query = "person door stopped";
+    search_options.source_id = record.stream_id;
+    search_options.limit = 5;
+    std::string search_json;
+    Expect(BuildVlmSummarySearchCandidatesJson(observation_path.string(),
+                                               search_options,
+                                               &search_json,
+                                               &error_message),
+           "VLM summary search smoke must build candidates: " + error_message);
+    Expect(search_json.find("\"schema\":\"media-server.vlm-summary-search-candidates.v1\"") !=
+               std::string::npos &&
+               search_json.find("\"targetStep\":\"V200-S12\"") != std::string::npos &&
+               search_json.find("\"eventId\":\"evt-vlm-observation\"") != std::string::npos &&
+               search_json.find("\"correlationKey\":\"eventId\"") != std::string::npos &&
+               search_json.find("\"candidateStatus\":\"candidate-only-not-product-search\"") !=
+                   std::string::npos,
+           "VLM summary search must return a sidecar candidate correlated by eventId");
+    Expect(search_json.find("\"eventPostPayloadChanged\":false") != std::string::npos &&
+               search_json.find("\"viewerClientExposureAdded\":false") != std::string::npos &&
+               search_json.find("\"runtimeVlmCallPerformed\":false") != std::string::npos &&
+               search_json.find("\"autoRuleApplied\":false") != std::string::npos,
+           "VLM summary search must preserve payload/UI/runtime/rule boundaries");
+
     std::filesystem::remove(event_path, ec);
     ec.clear();
     std::filesystem::remove(observation_path, ec);
@@ -1810,6 +1834,8 @@ void VerifyVlmObservationStore() {
     Pass("VLM observation store writes side storage");
     Pass("VLM observation query correlates EventRecord by eventId");
     Pass("VLM observation correlation report preserves event payload boundary");
+    Pass("VLM summary search returns sidecar candidates");
+    Pass("VLM summary search preserves EventRecord correlation boundary");
 }
 
 void VerifyEventRecorderMediaHooks() {

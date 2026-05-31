@@ -8,6 +8,7 @@
 #include <cctype>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
 #include <limits>
 #include <optional>
 #include <sstream>
@@ -355,6 +356,146 @@ bool VlmObservationMatchesQuery(const std::string& line,
            match_string("privacyMode", options.privacy_mode);
 }
 
+struct VlmSummarySearchCandidate {
+    std::string event_id;
+    std::string observation_id;
+    std::string source_id;
+    std::string rule_id;
+    std::string scenario_id;
+    std::string summary;
+    std::string event_explanation;
+    std::string provider;
+    std::string model;
+    std::string prompt_profile;
+    std::string privacy_mode;
+    std::vector<std::string> matched_terms;
+    std::string observation_json;
+    double match_score{0.0};
+    std::size_t line_index{0};
+};
+
+std::string NormalizeSummarySearchText(const std::string& value) {
+    std::string out;
+    out.reserve(value.size());
+    bool last_space = true;
+    for (const unsigned char raw_ch : value) {
+        char next = '\0';
+        if (raw_ch < 128) {
+            if (std::isalnum(raw_ch) != 0) {
+                next = static_cast<char>(std::tolower(raw_ch));
+            } else {
+                next = ' ';
+            }
+        } else {
+            next = static_cast<char>(raw_ch);
+        }
+        const bool is_space = std::isspace(static_cast<unsigned char>(next)) != 0;
+        if (is_space) {
+            if (!last_space) {
+                out.push_back(' ');
+            }
+            last_space = true;
+        } else {
+            out.push_back(next);
+            last_space = false;
+        }
+    }
+    if (!out.empty() && out.back() == ' ') {
+        out.pop_back();
+    }
+    return out;
+}
+
+std::vector<std::string> SummarySearchTerms(const std::string& query) {
+    const std::string normalized = NormalizeSummarySearchText(query);
+    std::istringstream input(normalized);
+    std::vector<std::string> terms;
+    std::string term;
+    while (input >> term) {
+        if (std::find(terms.begin(), terms.end(), term) == terms.end()) {
+            terms.push_back(term);
+        }
+        if (terms.size() >= 16) {
+            break;
+        }
+    }
+    return terms;
+}
+
+bool VlmObservationMatchesSearchFilters(const std::string& line,
+                                        const VlmSummarySearchOptions& options) {
+    const auto schema = ExtractTopLevelString(line, "schema");
+    if (!schema.has_value() || *schema != "media-server.vlm-observation.v1") {
+        return false;
+    }
+    const auto match_string = [&](const std::string& field, const std::string& expected) {
+        return expected.empty() || ExtractTopLevelString(line, field).value_or("") == expected;
+    };
+    return match_string("sourceId", options.source_id) &&
+           match_string("privacyMode", options.privacy_mode);
+}
+
+std::vector<std::string> MatchedSearchTerms(const std::string& observation_json,
+                                            const std::vector<std::string>& terms) {
+    std::string haystack;
+    for (const char* field : {"summary", "eventExplanation", "ruleId", "scenarioId", "sourceId"}) {
+        haystack += " ";
+        haystack += ExtractTopLevelString(observation_json, field).value_or("");
+    }
+    // Include the full sidecar line so array fields such as hints and operator questions are searchable
+    // without adding another JSON array parser to this small contract helper.
+    haystack += " ";
+    haystack += observation_json;
+    const std::string normalized_haystack = NormalizeSummarySearchText(haystack);
+
+    std::vector<std::string> matched;
+    for (const auto& term : terms) {
+        if (!term.empty() && normalized_haystack.find(term) != std::string::npos) {
+            matched.push_back(term);
+        }
+    }
+    return matched;
+}
+
+std::string JsonStringArrayRaw(const std::vector<std::string>& values) {
+    return JsonStringArray(values);
+}
+
+void AppendVlmSummarySearchCandidateJson(std::ostringstream& out,
+                                         const VlmSummarySearchCandidate& candidate) {
+    out << "{"
+        << "\"schema\":\"media-server.vlm-summary-search-candidate.v1\","
+        << "\"eventId\":\"" << JsonEscape(candidate.event_id) << "\","
+        << "\"observationId\":\"" << JsonEscape(candidate.observation_id) << "\","
+        << "\"sourceId\":\"" << JsonEscape(candidate.source_id) << "\","
+        << "\"ruleId\":\"" << JsonEscape(candidate.rule_id) << "\","
+        << "\"scenarioId\":\"" << JsonEscape(candidate.scenario_id) << "\","
+        << "\"summary\":\"" << JsonEscape(candidate.summary) << "\","
+        << "\"eventExplanation\":\"" << JsonEscape(candidate.event_explanation) << "\","
+        << "\"provider\":\"" << JsonEscape(candidate.provider) << "\","
+        << "\"model\":\"" << JsonEscape(candidate.model) << "\","
+        << "\"promptProfile\":\"" << JsonEscape(candidate.prompt_profile) << "\","
+        << "\"privacyMode\":\"" << JsonEscape(candidate.privacy_mode) << "\","
+        << "\"matchedTerms\":" << JsonStringArrayRaw(candidate.matched_terms) << ","
+        << "\"matchedTermCount\":" << candidate.matched_terms.size() << ","
+        << "\"matchScore\":" << std::fixed << std::setprecision(3) << candidate.match_score << ","
+        << "\"correlationKey\":\"eventId\","
+        << "\"candidateSource\":\"vlm-observation-sidecar-summary\","
+        << "\"contract\":{"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"runtimeVlmCallPerformed\":false,"
+        << "\"cloudProviderApiCalled\":false,"
+        << "\"autoRuleApplied\":false"
+        << "}"
+        << "}";
+}
+
 bool HasForbiddenEventRecordObservationFields(const std::string& event_record_json) {
     return HasTopLevelField(event_record_json, "vlmObservation") ||
            HasTopLevelField(event_record_json, "vlmObservationPath") ||
@@ -531,6 +672,148 @@ bool QueryVlmObservations(const std::string& path,
         result->next_offset += 1;
     }
     result->truncated = result->has_more;
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+}
+
+bool BuildVlmSummarySearchCandidatesJson(const std::string& path,
+                                         const VlmSummarySearchOptions& options,
+                                         std::string* body,
+                                         std::string* error_message) {
+    if (body == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "missing VLM summary search response body";
+        }
+        return false;
+    }
+    body->clear();
+    const std::vector<std::string> terms = SummarySearchTerms(options.query);
+    if (terms.empty()) {
+        if (error_message != nullptr) {
+            *error_message = "VLM summary search query is required";
+        }
+        return false;
+    }
+
+    const std::filesystem::path store_path(path);
+    std::error_code ec;
+    const bool file_exists = !store_path.empty() && std::filesystem::exists(store_path, ec) && !ec;
+    if (ec) {
+        if (error_message != nullptr) {
+            *error_message = ec.message();
+        }
+        return false;
+    }
+
+    std::vector<VlmSummarySearchCandidate> candidates;
+    std::uint64_t skipped_corrupt_lines = 0;
+    if (file_exists) {
+        std::ifstream input(store_path);
+        if (!input.good()) {
+            if (error_message != nullptr) {
+                *error_message = "failed to open VLM observation store";
+            }
+            return false;
+        }
+        std::string line;
+        std::size_t line_index = 0;
+        while (std::getline(input, line)) {
+            ++line_index;
+            if (!line.empty() && line.back() == '\r') {
+                line.pop_back();
+            }
+            if (TrimCopy(line).empty()) {
+                continue;
+            }
+            if (line.size() > kMaxObservationLineBytes || !ValidateTopLevelJsonObject(line)) {
+                ++skipped_corrupt_lines;
+                continue;
+            }
+            if (!VlmObservationMatchesSearchFilters(line, options)) {
+                continue;
+            }
+            std::vector<std::string> matched_terms = MatchedSearchTerms(line, terms);
+            if (matched_terms.empty()) {
+                continue;
+            }
+            VlmSummarySearchCandidate candidate;
+            candidate.event_id = ExtractTopLevelString(line, "eventId").value_or("");
+            candidate.observation_id = ExtractTopLevelString(line, "observationId").value_or("");
+            candidate.source_id = ExtractTopLevelString(line, "sourceId").value_or("");
+            candidate.rule_id = ExtractTopLevelString(line, "ruleId").value_or("");
+            candidate.scenario_id = ExtractTopLevelString(line, "scenarioId").value_or("");
+            candidate.summary = ExtractTopLevelString(line, "summary").value_or("");
+            candidate.event_explanation = ExtractTopLevelString(line, "eventExplanation").value_or("");
+            candidate.provider = ExtractTopLevelString(line, "provider").value_or("");
+            candidate.model = ExtractTopLevelString(line, "model").value_or("");
+            candidate.prompt_profile = ExtractTopLevelString(line, "promptProfile").value_or("");
+            candidate.privacy_mode = ExtractTopLevelString(line, "privacyMode").value_or("");
+            candidate.matched_terms = std::move(matched_terms);
+            candidate.observation_json = line;
+            candidate.match_score =
+                static_cast<double>(candidate.matched_terms.size()) / static_cast<double>(terms.size());
+            candidate.line_index = line_index;
+            candidates.push_back(std::move(candidate));
+        }
+    }
+
+    std::stable_sort(candidates.begin(),
+                     candidates.end(),
+                     [](const VlmSummarySearchCandidate& lhs,
+                        const VlmSummarySearchCandidate& rhs) {
+                         if (lhs.match_score != rhs.match_score) {
+                             return lhs.match_score > rhs.match_score;
+                         }
+                         return lhs.line_index < rhs.line_index;
+                     });
+
+    const std::size_t effective_limit = options.limit == 0 ? 25 : std::min<std::size_t>(options.limit, 100);
+    const std::size_t begin = std::min(options.offset, candidates.size());
+    const std::size_t end = std::min(begin + effective_limit, candidates.size());
+
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.vlm-summary-search-candidates.v1\","
+        << "\"targetStep\":\"V200-S12\","
+        << "\"query\":\"" << JsonEscape(options.query) << "\","
+        << "\"searchMode\":\"sidecar-summary-token-candidate\","
+        << "\"correlationKey\":\"eventId\","
+        << "\"candidateStatus\":\"candidate-only-not-product-search\","
+        << "\"fileExists\":" << (file_exists ? "true" : "false") << ","
+        << "\"queryTerms\":" << JsonStringArrayRaw(terms) << ","
+        << "\"sourceId\":\"" << JsonEscape(options.source_id) << "\","
+        << "\"privacyMode\":\"" << JsonEscape(options.privacy_mode) << "\","
+        << "\"candidates\":[";
+    for (std::size_t index = begin; index < end; ++index) {
+        if (index != begin) {
+            out << ",";
+        }
+        AppendVlmSummarySearchCandidateJson(out, candidates[index]);
+    }
+    out << "],"
+        << "\"offset\":" << options.offset << ","
+        << "\"limit\":" << effective_limit << ","
+        << "\"nextOffset\":" << end << ","
+        << "\"matchedCandidates\":" << candidates.size() << ","
+        << "\"hasMore\":" << (end < candidates.size() ? "true" : "false") << ","
+        << "\"truncated\":" << (end < candidates.size() ? "true" : "false") << ","
+        << "\"skippedCorruptLines\":" << skipped_corrupt_lines << ","
+        << "\"contract\":{"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"runtimeVlmCallPerformed\":false,"
+        << "\"cloudProviderApiCalled\":false,"
+        << "\"autoRuleApplied\":false"
+        << "}"
+        << "}";
+    *body = out.str();
     if (error_message != nullptr) {
         error_message->clear();
     }

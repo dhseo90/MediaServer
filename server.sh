@@ -296,6 +296,8 @@ Usage:
                  v2.0.0 Ops 이벤트 리뷰 UI의 VLM 설명/evidence 표시 경계를 검증합니다.
   verify-vlm-privacy-transfer-guard
                  v2.0.0 Privacy/전송 guard와 provider logging/redaction 경계를 검증합니다.
+  verify-vlm-summary-search-candidates
+                 v2.0.0 VLM summary 검색 후보와 sidecar/EventRecord correlation 경계를 검증합니다.
   verify-event-post
                  VA event POST payload, 실패/cooldown/queue 상태를 검증합니다.
   verify-integrator-contract-artifact
@@ -986,6 +988,10 @@ case "${cmd}" in
   verify-vlm-privacy-transfer-guard)
     require_internal verify_vlm_privacy_transfer_guard.mjs
     exec "${INTERNAL_DIR}/verify_vlm_privacy_transfer_guard.mjs" "$@"
+    ;;
+  verify-vlm-summary-search-candidates)
+    require_internal verify_vlm_summary_search_candidates.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_summary_search_candidates.mjs" "$@"
     ;;
   verify-event-post)
     require_internal verify_event_post_dispatch.sh

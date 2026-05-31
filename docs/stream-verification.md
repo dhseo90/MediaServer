@@ -329,6 +329,20 @@ response 저장, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 
 ./server.sh verify-ops-client-ui
 ```
 
+VLM summary 검색 후보는 `V200-S12`의 sidecar-only 후보 query를 확인합니다.
+`media-server.vlm-summary-search-candidates.v1` response는 S08 VLMObservation summary를
+local token candidate로 찾고 EventRecord와 `eventId`로만 상관시킵니다. 이 검증은
+제품 검색 UI, vector index, provider rerank, runtime VLM 호출, Event/WebRTC/SSE/WS
+schema 변경, RTSP/WebRTC media path 변경, V200-S13 rule suggestion을 대신하지
+않습니다.
+
+```bash
+./server.sh verify-vlm-summary-search-candidates
+./server.sh verify-analysis-state
+./server.sh verify-event-post
+./server.sh verify-ws-metadata
+```
+
 CI/local gate parity는 `media-server.ci-local-gate-parity.v1` summary로
 Preflight/static-gates/guardrails/RC workflow에 실제로 걸린 `./server.sh` 명령과
 로컬 release/static verifier 목록을 대조합니다. 로컬에서 통과해야 한다고 문서화한

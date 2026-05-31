@@ -1,0 +1,172 @@
+{
+  "schema": "media-server.vlm-summary-search-fixtures.v1",
+  "targetStep": "V200-S12",
+  "purpose": "Fixture-only VLM summary search candidate matrix. It searches VLMObservation sidecar summaries and correlates candidates to EventRecord by eventId without changing existing event/metadata/media contracts.",
+  "decision": {
+    "primarySearchCandidate": "sidecar-summary-token-candidate",
+    "firstQuery": "문 근처에서 멈춘 사람",
+    "fallback": "eventId/sourceId scoped sidecar query with manual Ops review",
+    "alternatives": [
+      "vector-index-candidate",
+      "provider-rerank-candidate"
+    ],
+    "excluded": [
+      {
+        "id": "event-record-top-level-vlm-summary",
+        "reason": "Existing EventRecord/Event POST/WebRTC/SSE/WS contracts must not gain VLM summary fields in S12."
+      },
+      {
+        "id": "client-viewer-semantic-search-ui",
+        "reason": "Viewer/client exposure is outside S12 and would require separate UI/security review."
+      },
+      {
+        "id": "auto-rule-creation-from-search",
+        "reason": "Rule suggestion and auto-apply are outside S12; V200-S13 remains a separate roadmap item."
+      },
+      {
+        "id": "runtime-vlm-requery",
+        "reason": "S12 searches already stored summaries only and must not call local or cloud VLM runtimes."
+      }
+    ],
+    "licenseProvenancePrivacyReview": {
+      "modelLicenseReusedFrom": "V200-S01/V200-S05 stored VLM profile metadata",
+      "newModelOrProviderAdded": false,
+      "rawPromptStored": false,
+      "rawResponseStored": false,
+      "sourceUrlExposed": false,
+      "rawFrameBytesStored": false,
+      "credentialMaterialStored": false,
+      "externalTransferAdded": false,
+      "operatorDefault": "candidate-only disabled until an Ops-only review/search UI step is explicitly scoped"
+    }
+  },
+  "cases": [
+    {
+      "id": "door-stop-person",
+      "query": "문 근처에서 멈춘 사람",
+      "options": {
+        "sourceId": "front-door",
+        "privacyMode": "local-only",
+        "limit": 5
+      },
+      "eventRecord": {
+        "schema": "media-server.va.event-record.v1",
+        "eventId": "evt-door-stop-001",
+        "sourceId": "front-door",
+        "eventType": "zone-occupancy",
+        "metadata": {
+          "vlmEvidenceRefs": {
+            "schema": "media-server.vlm-event-evidence-refs.v1",
+            "eventFrame": {
+              "path": "/tmp/events/evt-door-stop-001.snapshot.jpg"
+            },
+            "bboxCrop": {
+              "path": "/tmp/events/evt-door-stop-001.crop.jpg"
+            }
+          }
+        }
+      },
+      "observations": [
+        {
+          "schema": "media-server.vlm-observation.v1",
+          "observationId": "vlmobs-door-stop-001",
+          "eventId": "evt-door-stop-001",
+          "sourceId": "front-door",
+          "ruleId": "door-zone",
+          "scenarioId": "zone-occupancy",
+          "summary": "문 근처에서 사람이 멈춘 상태입니다.",
+          "eventExplanation": "사람 bbox가 문 근처 영역 안에 머물러 zone occupancy 이벤트가 발생했습니다.",
+          "falsePositiveHints": [
+            "유리 반사 또는 포스터가 사람처럼 보였는지 확인하세요."
+          ],
+          "operatorReviewQuestions": [
+            "실제 사람이 문 근처에 계속 서 있었나요?"
+          ],
+          "privacyMode": "local-only",
+          "provider": "fixture-local",
+          "model": "fixture-vlm",
+          "promptProfile": "event-review-default",
+          "storageScope": "vlm-observation-store-only",
+          "redactionReview": {
+            "rawPromptStored": false,
+            "rawResponseStored": false,
+            "sourceUrlExposed": false,
+            "credentialMaterialStored": false,
+            "rawMediaEmbedded": false
+          },
+          "contractInvariants": {
+            "eventPostPayloadChanged": false,
+            "webrtcDataChannelSchemaChanged": false,
+            "sseMetadataSchemaChanged": false,
+            "wsMetadataSchemaChanged": false,
+            "rtspOrWebrtcMediaPathChanged": false,
+            "viewerClientExposureAdded": false
+          }
+        },
+        {
+          "schema": "media-server.vlm-observation.v1",
+          "observationId": "vlmobs-loading-vehicle-001",
+          "eventId": "evt-loading-vehicle-001",
+          "sourceId": "loading-dock",
+          "ruleId": "dock-line",
+          "scenarioId": "line-crossing",
+          "summary": "차량이 적재 구역 선을 통과했습니다.",
+          "eventExplanation": "차량 bbox가 loading dock line을 지나 line crossing 이벤트가 발생했습니다.",
+          "falsePositiveHints": [],
+          "operatorReviewQuestions": [
+            "차량이 실제 적재 구역으로 진입했나요?"
+          ],
+          "privacyMode": "local-only",
+          "provider": "fixture-local",
+          "model": "fixture-vlm",
+          "promptProfile": "event-review-default",
+          "storageScope": "vlm-observation-store-only",
+          "redactionReview": {
+            "rawPromptStored": false,
+            "rawResponseStored": false,
+            "sourceUrlExposed": false,
+            "credentialMaterialStored": false,
+            "rawMediaEmbedded": false
+          },
+          "contractInvariants": {
+            "eventPostPayloadChanged": false,
+            "webrtcDataChannelSchemaChanged": false,
+            "sseMetadataSchemaChanged": false,
+            "wsMetadataSchemaChanged": false,
+            "rtspOrWebrtcMediaPathChanged": false,
+            "viewerClientExposureAdded": false
+          }
+        }
+      ],
+      "expected": {
+        "schema": "media-server.vlm-summary-search-candidates.v1",
+        "candidateSchema": "media-server.vlm-summary-search-candidate.v1",
+        "searchMode": "sidecar-summary-token-candidate",
+        "candidateStatus": "candidate-only-not-product-search",
+        "correlationKey": "eventId",
+        "primaryEventId": "evt-door-stop-001",
+        "excludedEventIds": [
+          "evt-loading-vehicle-001"
+        ],
+        "matchedTerms": [
+          "문",
+          "근처에서",
+          "멈춘",
+          "사람"
+        ],
+        "contract": {
+          "eventRecordSchemaChanged": false,
+          "eventPostPayloadChanged": false,
+          "webrtcDataChannelSchemaChanged": false,
+          "sseMetadataSchemaChanged": false,
+          "wsMetadataSchemaChanged": false,
+          "rtspOrWebrtcMediaPathChanged": false,
+          "viewerClientExposureAdded": false,
+          "runtimeVlmCallPerformed": false,
+          "cloudProviderApiCalled": false,
+          "autoRuleApplied": false
+        }
+      }
+    }
+  ]
+}

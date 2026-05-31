@@ -54,6 +54,14 @@ struct VlmObservationQueryResult {
     std::uint64_t skipped_corrupt_lines{0};
 };
 
+struct VlmSummarySearchOptions {
+    std::string query;
+    std::string source_id;
+    std::string privacy_mode;
+    std::size_t offset{0};
+    std::size_t limit{25};
+};
+
 class FileVlmObservationStore final {
 public:
     explicit FileVlmObservationStore(std::string path);
@@ -69,6 +77,10 @@ bool QueryVlmObservations(const std::string& path,
                           const VlmObservationQueryOptions& options,
                           VlmObservationQueryResult* result,
                           std::string* error_message);
+bool BuildVlmSummarySearchCandidatesJson(const std::string& path,
+                                         const VlmSummarySearchOptions& options,
+                                         std::string* body,
+                                         std::string* error_message);
 std::string BuildVlmObservationCorrelationReportJson(const std::string& event_record_json,
                                                      const std::string& observation_json);
 
