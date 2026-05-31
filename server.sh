@@ -294,6 +294,8 @@ Usage:
                  v2.0.0 VLM 이벤트 설명/오탐 힌트와 JSON 안정성을 검증합니다.
   verify-vlm-ops-event-review-ui
                  v2.0.0 Ops 이벤트 리뷰 UI의 VLM 설명/evidence 표시 경계를 검증합니다.
+  verify-vlm-privacy-transfer-guard
+                 v2.0.0 Privacy/전송 guard와 provider logging/redaction 경계를 검증합니다.
   verify-event-post
                  VA event POST payload, 실패/cooldown/queue 상태를 검증합니다.
   verify-integrator-contract-artifact
@@ -980,6 +982,10 @@ case "${cmd}" in
   verify-vlm-ops-event-review-ui)
     require_internal verify_vlm_ops_event_review_ui.mjs
     exec "${INTERNAL_DIR}/verify_vlm_ops_event_review_ui.mjs" "$@"
+    ;;
+  verify-vlm-privacy-transfer-guard)
+    require_internal verify_vlm_privacy_transfer_guard.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_privacy_transfer_guard.mjs" "$@"
     ;;
   verify-event-post)
     require_internal verify_event_post_dispatch.sh

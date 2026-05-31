@@ -836,7 +836,7 @@ public:
         out << "{\"status\":\"registry\","
             << "\"schema\":\"media-server.vlm-profile-registry.v1\","
             << "\"storagePath\":\"" << JsonEscape(storage_path_.string()) << "\","
-            << "\"scope\":\"V200-S05 stores selected VLM provider/model/runtime/prompt/privacy/evaluation/activation metadata only; runtime calls and sidecar writes remain later steps.\","
+            << "\"scope\":\"V200-S05 stores selected VLM provider/model/runtime/prompt/privacy/evaluation/activation metadata only; V200-S11 adds privacy transfer guard review; runtime calls and sidecar writes remain later steps.\","
             << "\"promptProfiles\":["
             << "{\"id\":\"event-review-default\",\"version\":\"v1\",\"language\":\"ko-en\"},"
             << "{\"id\":\"false-positive-review\",\"version\":\"v1\",\"language\":\"ko-en\"},"
@@ -1456,6 +1456,9 @@ private:
             SetRegistryError(error_message, "local VLM profile must not use cloud model or provider-api runtime");
             return std::nullopt;
         }
+        if (!ValidateVlmPrivacyGuardContract(body, provider == "cloud-provider-api", error_message)) {
+            return std::nullopt;
+        }
         const auto prompt_profile = ExtractObjectField(body, "promptProfile");
         if (!prompt_profile.has_value() || Trim(ParseStringField(*prompt_profile, "id").value_or("")).empty()) {
             SetRegistryError(error_message, "VLM profile promptProfile.id is required");
@@ -1537,6 +1540,63 @@ private:
         return std::any_of(allowed.begin(), allowed.end(), [&](const char* item) {
             return value == item;
         });
+    }
+
+    static bool ValidateVlmPrivacyGuardContract(const std::string& body,
+                                                bool cloud_profile,
+                                                std::string* error_message) {
+        const auto guard = ExtractObjectField(body, "privacyGuard");
+        if (!guard.has_value()) {
+            if (cloud_profile) {
+                SetRegistryError(error_message, "cloud VLM profile requires privacyGuard review");
+                return false;
+            }
+            return true;
+        }
+        if (ParseStringField(*guard, "schema").value_or("") != "media-server.vlm-privacy-transfer-guard.v1") {
+            SetRegistryError(error_message, "VLM privacyGuard schema must be media-server.vlm-privacy-transfer-guard.v1");
+            return false;
+        }
+        const bool external_transfer = ParseBoolField(*guard, "externalTransfer").value_or(cloud_profile);
+        if (external_transfer != cloud_profile) {
+            SetRegistryError(error_message, "VLM privacyGuard externalTransfer must match provider type");
+            return false;
+        }
+        if (cloud_profile && !ParseBoolField(*guard, "externalTransferWarningAcknowledged").value_or(false)) {
+            SetRegistryError(error_message, "cloud VLM profile requires external transfer warning acknowledgement");
+            return false;
+        }
+        const auto redaction = ExtractObjectField(*guard, "redaction");
+        if (!redaction.has_value()) {
+            SetRegistryError(error_message, "VLM privacyGuard redaction object is required");
+            return false;
+        }
+        for (const std::string& field :
+             {"credentialMaterialStored",
+              "promptStored",
+              "rawProviderResponseStored",
+              "sourceUrlStored",
+              "rawFrameBytesStored",
+              "viewerClientExposureAdded"}) {
+            if (ParseBoolField(*redaction, field).value_or(true)) {
+                SetRegistryError(error_message, "VLM privacyGuard redaction field must be false: " + field);
+                return false;
+            }
+        }
+        const auto provider_logging = ExtractObjectField(*guard, "providerLoggingPolicy");
+        if (cloud_profile) {
+            if (!provider_logging.has_value()) {
+                SetRegistryError(error_message, "cloud VLM profile requires providerLoggingPolicy review");
+                return false;
+            }
+            if (ParseStringField(*provider_logging, "reviewStatus").value_or("") != "accepted" ||
+                !ParseBoolField(*provider_logging, "loggingAndRetentionReviewed").value_or(false) ||
+                !ParseBoolField(*provider_logging, "termsReviewed").value_or(false)) {
+                SetRegistryError(error_message, "cloud VLM profile requires accepted provider logging and retention review");
+                return false;
+            }
+        }
+        return true;
     }
 
     static bool ContainsForbiddenVlmProfileField(const std::string& body) {
@@ -3739,6 +3799,30 @@ void AppendOpsVlmInstallConnectionPage(std::ostringstream& out) {
           </table>
         </div>
         <p id="opsVlmSelectionSummary">선택한 후보 없음</p>
+      </section>
+      <section class="section-card" data-testid="ops-vlm-privacy-transfer-guard-panel">
+        <div class="toolbar">
+          <div>
+            <h3>Privacy/전송 guard</h3>
+            <p>Cloud 후보는 외부 전송 경고와 provider logging/retention 검토가 끝나야 profile 활성화 후보가 됩니다.</p>
+          </div>
+        </div>
+        <div id="opsVlmPrivacyGuardBadges" class="badge-row">
+          <span class="chip">redaction 확인 대기</span>
+        </div>
+        <div class="form-grid">
+          <label class="check-inline">
+            <input id="opsVlmExternalTransferWarningAck" type="checkbox" disabled>
+            외부 전송 경고 확인
+          </label>
+          <label class="check-inline">
+            <input id="opsVlmProviderLoggingReviewed" type="checkbox" disabled>
+            provider logging/retention 검토 완료
+          </label>
+        </div>
+        <div id="opsVlmPrivacyGuardList" class="root-cause-list">
+          <div class="empty">privacy guard를 불러오는 중입니다.</div>
+        </div>
       </section>
       <section class="section-card" data-testid="ops-vlm-profile-panel">
         <div class="toolbar">
@@ -8098,6 +8182,39 @@ std::string OpsVlmNoSideEffectsJson() {
     return R"({"dryRunOnly":true,"installPerformed":false,"connectionPerformed":false,"runtimeCallPerformed":false,"profileStored":false,"sidecarStored":false,"cloudProviderApiCalled":false,"credentialsStored":false,"modelArtifactDownloaded":false})";
 }
 
+std::string OpsVlmPrivacyTransferGuardJson(bool external_transfer, bool external_acknowledged) {
+    const bool review_required = external_transfer;
+    const std::string review_status = external_transfer
+                                          ? (external_acknowledged ? "review-required-before-activation"
+                                                                   : "blocked-pending-external-transfer-opt-in")
+                                          : "not-applicable";
+    std::ostringstream out;
+    out << "{\"schema\":\"media-server.vlm-privacy-transfer-guard.v1\","
+        << "\"targetStep\":\"V200-S11\","
+        << "\"externalTransfer\":" << JsonBool(external_transfer) << ","
+        << "\"externalTransferWarningRequired\":" << JsonBool(external_transfer) << ","
+        << "\"externalTransferWarningAcknowledged\":" << JsonBool(external_transfer && external_acknowledged) << ","
+        << "\"redaction\":{"
+        << "\"credentialMaterialStored\":false,"
+        << "\"promptStored\":false,"
+        << "\"rawProviderResponseStored\":false,"
+        << "\"sourceUrlStored\":false,"
+        << "\"rawFrameBytesStored\":false,"
+        << "\"viewerClientExposureAdded\":false},"
+        << "\"providerLoggingPolicy\":{"
+        << "\"provider\":\"" << (external_transfer ? "gemini-api" : "operator-local-runtime") << "\","
+        << "\"reviewRequired\":" << JsonBool(review_required) << ","
+        << "\"reviewStatus\":\"" << JsonEscape(review_status) << "\","
+        << "\"loggingAndRetentionReviewed\":false,"
+        << "\"termsReviewed\":false,"
+        << "\"currentProviderPolicyStored\":false},"
+        << "\"gate\":{\"status\":\""
+        << (external_transfer ? (external_acknowledged ? "review-required" : "blocked") : "pass")
+        << "\",\"profileActivationAllowed\":" << JsonBool(!external_transfer)
+        << ",\"providerCallAllowed\":false}}";
+    return out.str();
+}
+
 void AppendOpsVlmModelEstimate(std::ostringstream& out, const OpsVlmModelPlan& plan) {
     if (plan.deployment == "cloud") {
         out << R"({"memory":{"localWorkingSetGb":0},"disk":{"modelArtifactGb":0},"latency":{"label":"provider/API/network dependent"},"cost":{"class":"provider-api-variable"}})";
@@ -8167,6 +8284,7 @@ void AppendOpsVlmOptionJson(std::ostringstream& out,
         << "\"installCommandsIncluded\":false,"
         << "\"modelArtifactReferenceIncluded\":false,"
         << "\"credentialAcceptedByDryRun\":false,"
+        << "\"privacyTransferGuard\":" << OpsVlmPrivacyTransferGuardJson(is_cloud, cloud_opt_in_satisfied) << ","
         << "\"impact\":{\"resourceEstimate\":";
     AppendOpsVlmModelEstimate(out, plan);
     out << ",\"localRuntimeReadiness\":" << OpsVlmRuntimeStatusJson(runtime_readiness)
@@ -8317,6 +8435,9 @@ std::string OpsVlmInstallConnectionDryRunJson(
         << "\"sourceLocatorOrCredentialIncluded\":false,"
         << "\"promptOrResponseIncluded\":false,"
         << "\"providerCredentialEchoed\":false},"
+        << "\"privacyTransferGuard\":"
+        << OpsVlmPrivacyTransferGuardJson(privacy_mode == "cloud-allowed", cloud_opt_in == "acknowledged")
+        << ","
         << "\"decision\":{\"status\":\"" << JsonEscape(status) << "\","
         << "\"singleSelectionRequired\":true,"
         << "\"automaticMultiInstallAllowed\":false,"
@@ -11480,7 +11601,12 @@ std::string OpsVlmEventReviewJson(const std::string& event_json) {
         << "\"sseMetadataSchemaChanged\":false,"
         << "\"wsMetadataSchemaChanged\":false,"
         << "\"rtspOrWebrtcMediaPathChanged\":false,"
-        << "\"autoRuleApplied\":false"
+        << "\"autoRuleApplied\":false,"
+        << "\"credentialMaterialStored\":false,"
+        << "\"promptStored\":false,"
+        << "\"rawProviderResponseStored\":false,"
+        << "\"sourceUrlStored\":false,"
+        << "\"rawFrameBytesStored\":false"
         << "}"
         << "}";
     return out.str();

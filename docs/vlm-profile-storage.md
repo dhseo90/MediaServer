@@ -17,6 +17,8 @@ analysis registry 파일의 `vlmProfiles` 필드이며, 제품 route는 Ops 전�
 - runtime: `ollama`, `vllm`, `provider-api`, `not-configured`
 - prompt profile: raw prompt가 아니라 `promptProfile.id/version/language`
 - privacy mode와 cloud opt-in acknowledgement
+- S11 `privacyGuard`: 외부 전송 경고 확인, redaction flag, provider logging/retention
+  review 상태
 - evaluation status: `not-run`, `passed`, `failed`, `review-required`
 - activation status: `pending-evaluation`, `active`, `disabled`, `fallback`
 - fallback profile ID 또는 disabled reason
@@ -46,7 +48,9 @@ API를 만들지 않습니다.
 
 Cloud profile은 `provider=cloud-provider-api`, `model=gemini-2.5-flash`,
 `runtime=provider-api`, `privacyMode=cloud-allowed`,
-`cloudOptInAcknowledged=true`가 모두 맞아야 저장됩니다.
+`cloudOptInAcknowledged=true`가 모두 맞아야 저장됩니다. S11 이후 cloud profile은
+`privacyGuard` 안의 외부 전송 경고 확인과 provider logging/retention/terms accepted
+review도 필요합니다.
 
 활성화 조건:
 

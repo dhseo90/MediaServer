@@ -1,0 +1,113 @@
+{
+  "schema": "media-server.vlm-privacy-transfer-guard-fixtures.v1",
+  "targetStep": "V200-S11",
+  "purpose": "Privacy and transfer guard cases for cloud VLM opt-in, redaction, provider logging review, and viewer/client non-exposure.",
+  "cases": [
+    {
+      "id": "local-profile-redaction-pass",
+      "provider": "user-supplied-local-runtime",
+      "model": "Qwen/Qwen3-VL-8B-Instruct",
+      "privacyMode": "local-only",
+      "expectedStatus": "pass",
+      "privacyGuard": {
+        "schema": "media-server.vlm-privacy-transfer-guard.v1",
+        "targetStep": "V200-S11",
+        "externalTransfer": false,
+        "externalTransferWarningRequired": false,
+        "externalTransferWarningAcknowledged": false,
+        "redaction": {
+          "credentialMaterialStored": false,
+          "promptStored": false,
+          "rawProviderResponseStored": false,
+          "sourceUrlStored": false,
+          "rawFrameBytesStored": false,
+          "viewerClientExposureAdded": false
+        },
+        "providerLoggingPolicy": {
+          "provider": "operator-local-runtime",
+          "reviewRequired": false,
+          "reviewStatus": "not-applicable",
+          "loggingAndRetentionReviewed": false,
+          "termsReviewed": false,
+          "currentProviderPolicyStored": false
+        }
+      }
+    },
+    {
+      "id": "cloud-profile-provider-logging-required",
+      "provider": "cloud-provider-api",
+      "model": "gemini-2.5-flash",
+      "privacyMode": "cloud-allowed",
+      "expectedStatus": "blocked",
+      "expectedReason": "provider-logging-review-required",
+      "privacyGuard": {
+        "schema": "media-server.vlm-privacy-transfer-guard.v1",
+        "targetStep": "V200-S11",
+        "externalTransfer": true,
+        "externalTransferWarningRequired": true,
+        "externalTransferWarningAcknowledged": true,
+        "redaction": {
+          "credentialMaterialStored": false,
+          "promptStored": false,
+          "rawProviderResponseStored": false,
+          "sourceUrlStored": false,
+          "rawFrameBytesStored": false,
+          "viewerClientExposureAdded": false
+        },
+        "providerLoggingPolicy": {
+          "provider": "gemini-api",
+          "reviewRequired": true,
+          "reviewStatus": "review-required",
+          "loggingAndRetentionReviewed": false,
+          "termsReviewed": false,
+          "currentProviderPolicyStored": false
+        }
+      }
+    },
+    {
+      "id": "cloud-profile-complete-guard-pass",
+      "provider": "cloud-provider-api",
+      "model": "gemini-2.5-flash",
+      "privacyMode": "cloud-allowed",
+      "expectedStatus": "pass",
+      "privacyGuard": {
+        "schema": "media-server.vlm-privacy-transfer-guard.v1",
+        "targetStep": "V200-S11",
+        "externalTransfer": true,
+        "externalTransferWarningRequired": true,
+        "externalTransferWarningAcknowledged": true,
+        "redaction": {
+          "credentialMaterialStored": false,
+          "promptStored": false,
+          "rawProviderResponseStored": false,
+          "sourceUrlStored": false,
+          "rawFrameBytesStored": false,
+          "viewerClientExposureAdded": false
+        },
+        "providerLoggingPolicy": {
+          "provider": "gemini-api",
+          "reviewRequired": true,
+          "reviewStatus": "accepted",
+          "loggingAndRetentionReviewed": true,
+          "termsReviewed": true,
+          "currentProviderPolicyStored": false
+        }
+      }
+    },
+    {
+      "id": "ops-review-redaction-boundary",
+      "provider": "ops-event-review",
+      "model": "sidecar-only",
+      "privacyMode": "local-only",
+      "expectedStatus": "pass",
+      "viewerClientExposureAdded": false,
+      "forbiddenOutputFields": [
+        "credential",
+        "rawPrompt",
+        "rawResponse",
+        "sourceUrl",
+        "rawFrameBytes"
+      ]
+    }
+  ]
+}

@@ -3804,11 +3804,67 @@ void AppendOpsShellScript(std::ostringstream& out,
         const options = Array.isArray(opsVlmLastPayload?.options) ? opsVlmLastPayload.options : [];
         return options.find(option => option.id === opsVlmSelectedOptionId) || null;
       };
+      const opsVlmOptionUsesExternalTransfer = option =>
+        option?.externalTransfer === true || option?.actionType === 'cloud-api-connection-dry-run';
       const opsVlmRuntimeForOption = option => {
         if (option?.actionType === 'cloud-api-connection-dry-run') return 'provider-api';
         const readiness = option?.impact?.localRuntimeReadiness || {};
         if (readiness.status === 'ready') return readiness.vllmModuleAvailable ? 'vllm' : 'ollama';
         return 'not-configured';
+      };
+      const renderOpsVlmPrivacyTransferGuard = payload => {
+        const selected = opsVlmSelectedOption();
+        const guard = selected?.privacyTransferGuard || payload?.privacyTransferGuard || {};
+        const redaction = guard.redaction || {};
+        const providerLogging = guard.providerLoggingPolicy || {};
+        const usesExternalTransfer = opsVlmOptionUsesExternalTransfer(selected);
+        const externalAck = document.getElementById('opsVlmExternalTransferWarningAck');
+        const providerReviewed = document.getElementById('opsVlmProviderLoggingReviewed');
+        if (externalAck) {
+          externalAck.disabled = !usesExternalTransfer;
+          externalAck.checked = usesExternalTransfer ? payload?.privacy?.cloudOptInState === 'acknowledged' : false;
+        }
+        if (providerReviewed) {
+          providerReviewed.disabled = !usesExternalTransfer;
+          if (!usesExternalTransfer) providerReviewed.checked = false;
+        }
+        renderBadges('opsVlmPrivacyGuardBadges', [
+          { text: usesExternalTransfer ? '외부 전송 후보' : 'local-only 후보', tone: usesExternalTransfer ? 'warn' : '' },
+          { text: redaction.credentialMaterialStored === false ? 'credential 비저장' : 'credential 확인 필요', tone: redaction.credentialMaterialStored === false ? '' : 'warn' },
+          { text: redaction.promptStored === false ? 'prompt 비저장' : 'prompt 확인 필요', tone: redaction.promptStored === false ? '' : 'warn' },
+          { text: redaction.rawProviderResponseStored === false ? 'raw response 비저장' : 'raw response 확인 필요', tone: redaction.rawProviderResponseStored === false ? '' : 'warn' },
+          { text: redaction.sourceUrlStored === false ? 'source URL 비저장' : 'source URL 확인 필요', tone: redaction.sourceUrlStored === false ? '' : 'warn' }
+        ]);
+        const root = document.getElementById('opsVlmPrivacyGuardList');
+        if (root) {
+          root.innerHTML = [
+            {
+              title: '외부 전송',
+              text: usesExternalTransfer
+                ? 'cloud provider 후보는 profile 저장 전 외부 전송 경고 확인과 provider policy 검토가 필요합니다.'
+                : 'local 후보는 외부 provider 전송을 만들지 않습니다.',
+              state: usesExternalTransfer ? (externalAck?.checked ? 'acknowledged' : 'ack-required') : 'not-applicable'
+            },
+            {
+              title: 'Provider logging',
+              text: usesExternalTransfer
+                ? 'provider logging/retention/terms 검토는 저장 payload의 privacyGuard에 accepted 상태로 남깁니다.'
+                : 'local runtime 후보에는 provider logging review가 적용되지 않습니다.',
+              state: usesExternalTransfer ? (providerReviewed?.checked ? 'accepted' : (providerLogging.reviewStatus || 'review-required')) : 'not-applicable'
+            },
+            {
+              title: 'Redaction',
+              text: 'credential, prompt, raw response, source URL, raw frame bytes는 profile, sidecar, viewer/client에 저장하거나 노출하지 않습니다.',
+              state: 'enforced'
+            }
+          ].map(item => `<article class="root-cause-item ${item.state === 'accepted' || item.state === 'enforced' || item.state === 'not-applicable' ? 'info' : 'warn'}">
+            <div>
+              <strong>${escapeHtml(item.title)}</strong>
+              <p>${escapeHtml(item.text)}</p>
+            </div>
+            ${badge(item.state, item.state === 'ack-required' || item.state === 'review-required' ? 'warn' : 'info')}
+          </article>`).join('');
+        }
       };
       const syncOpsVlmProfileDraft = (selected, payload) => {
         const idInput = document.getElementById('opsVlmProfileId');
@@ -3836,7 +3892,11 @@ void AppendOpsShellScript(std::ostringstream& out,
         const saveButton = document.getElementById('opsVlmSaveProfile');
         if (saveButton) {
           const selectableIds = new Set(payload?.decision?.selectableOptionIds || []);
-          saveButton.disabled = !selected || !selectableIds.has(selected.id);
+          const externalTransfer = opsVlmOptionUsesExternalTransfer(selected);
+          const privacyReady = !externalTransfer ||
+            (document.getElementById('opsVlmExternalTransferWarningAck')?.checked === true &&
+             document.getElementById('opsVlmProviderLoggingReviewed')?.checked === true);
+          saveButton.disabled = !selected || !selectableIds.has(selected.id) || !privacyReady;
           saveButton.setAttribute('aria-disabled', saveButton.disabled ? 'true' : 'false');
         }
       };
@@ -3871,6 +3931,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         setText('opsVlmSelectionSummary', selected
           ? `${selected.model} · ${selected.actionType} · S05 profile 저장 가능`
           : '선택한 후보 없음');
+        renderOpsVlmPrivacyTransferGuard(payload);
         syncOpsVlmProfileDraft(selected, payload);
       };
       const renderOpsVlmDisabled = payload => {
@@ -3925,6 +3986,10 @@ void AppendOpsShellScript(std::ostringstream& out,
         const enabled = document.getElementById('opsVlmProfileEnabled')?.checked === true;
         const fallbackProfileId = opsVlmControlValue('opsVlmFallbackProfileId').trim();
         const disabledReason = opsVlmControlValue('opsVlmDisabledReason', activationStatus === 'disabled' ? 'operator-disabled' : 'evaluation-not-run').trim();
+        const externalTransfer = opsVlmOptionUsesExternalTransfer(selected);
+        const providerLoggingReviewed = externalTransfer
+          ? document.getElementById('opsVlmProviderLoggingReviewed')?.checked === true
+          : false;
         return {
           schema: 'media-server.vlm-profile.v1',
           id,
@@ -3934,6 +3999,31 @@ void AppendOpsShellScript(std::ostringstream& out,
           runtime: opsVlmRuntimeForOption(selected),
           privacyMode: opsVlmLastPayload?.privacy?.mode || opsVlmControlValue('opsVlmPrivacyMode', 'local-only'),
           cloudOptInAcknowledged: opsVlmLastPayload?.privacy?.cloudOptInState === 'acknowledged',
+          privacyGuard: {
+            schema: 'media-server.vlm-privacy-transfer-guard.v1',
+            targetStep: 'V200-S11',
+            externalTransfer,
+            externalTransferWarningRequired: externalTransfer,
+            externalTransferWarningAcknowledged: externalTransfer
+              ? document.getElementById('opsVlmExternalTransferWarningAck')?.checked === true
+              : false,
+            redaction: {
+              credentialMaterialStored: false,
+              promptStored: false,
+              rawProviderResponseStored: false,
+              sourceUrlStored: false,
+              rawFrameBytesStored: false,
+              viewerClientExposureAdded: false
+            },
+            providerLoggingPolicy: {
+              provider: externalTransfer ? 'gemini-api' : 'operator-local-runtime',
+              reviewRequired: externalTransfer,
+              reviewStatus: externalTransfer ? (providerLoggingReviewed ? 'accepted' : 'review-required') : 'not-applicable',
+              loggingAndRetentionReviewed: providerLoggingReviewed,
+              termsReviewed: providerLoggingReviewed,
+              currentProviderPolicyStored: false
+            }
+          },
           promptProfile: {
             id: promptId,
             version: 'v1',
@@ -4030,6 +4120,14 @@ void AppendOpsShellScript(std::ostringstream& out,
         document.getElementById('opsVlmProfileId')?.addEventListener('input', event => { event.target.dataset.userEdited = '1'; });
         document.getElementById('opsVlmProfileEnabled')?.addEventListener('change', () => syncOpsVlmProfileDraft(opsVlmSelectedOption(), opsVlmLastPayload));
         document.getElementById('opsVlmEvaluationStatus')?.addEventListener('change', () => syncOpsVlmProfileDraft(opsVlmSelectedOption(), opsVlmLastPayload));
+        document.getElementById('opsVlmExternalTransferWarningAck')?.addEventListener('change', () => {
+          renderOpsVlmPrivacyTransferGuard(opsVlmLastPayload);
+          syncOpsVlmProfileDraft(opsVlmSelectedOption(), opsVlmLastPayload);
+        });
+        document.getElementById('opsVlmProviderLoggingReviewed')?.addEventListener('change', () => {
+          renderOpsVlmPrivacyTransferGuard(opsVlmLastPayload);
+          syncOpsVlmProfileDraft(opsVlmSelectedOption(), opsVlmLastPayload);
+        });
         document.getElementById('opsVlmSaveProfile')?.addEventListener('click', () => saveOpsVlmProfile().catch(error => opsVlmProfileStatus(error.message, true)));
         document.getElementById('opsVlmProfileRows')?.addEventListener('click', event => {
           const button = event.target.closest('[data-delete-vlm-profile]');

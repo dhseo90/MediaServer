@@ -69,6 +69,69 @@
           "viewerClientExposureAdded": false
         }
       }
+    },
+    {
+      "id": "cloud-provider-logging-review-required",
+      "expectedError": "accepted provider logging and retention review",
+      "profile": {
+        "schema": "media-server.vlm-profile.v1",
+        "id": "vlm-invalid-cloud-logging",
+        "selectedOptionId": "cloud-gemini-2-5-flash",
+        "provider": "cloud-provider-api",
+        "model": "gemini-2.5-flash",
+        "runtime": "provider-api",
+        "privacyMode": "cloud-allowed",
+        "cloudOptInAcknowledged": true,
+        "privacyGuard": {
+          "schema": "media-server.vlm-privacy-transfer-guard.v1",
+          "targetStep": "V200-S11",
+          "externalTransfer": true,
+          "externalTransferWarningRequired": true,
+          "externalTransferWarningAcknowledged": true,
+          "redaction": {
+            "credentialMaterialStored": false,
+            "promptStored": false,
+            "rawProviderResponseStored": false,
+            "sourceUrlStored": false,
+            "rawFrameBytesStored": false,
+            "viewerClientExposureAdded": false
+          },
+          "providerLoggingPolicy": {
+            "provider": "gemini-api",
+            "reviewRequired": true,
+            "reviewStatus": "review-required",
+            "loggingAndRetentionReviewed": false,
+            "termsReviewed": false,
+            "currentProviderPolicyStored": false
+          }
+        },
+        "promptProfile": {
+          "id": "event-review-default",
+          "version": "v1",
+          "language": "ko-en"
+        },
+        "evaluation": {
+          "status": "not-run"
+        },
+        "activation": {
+          "enabled": false,
+          "status": "pending-evaluation",
+          "fallbackProfileId": "",
+          "disabledReason": "privacy-review-required"
+        },
+        "contractInvariants": {
+          "runtimeVlmCallPerformed": false,
+          "sidecarStored": false,
+          "cloudProviderApiCalled": false,
+          "credentialStored": false,
+          "eventPostPayloadChanged": false,
+          "webrtcDataChannelSchemaChanged": false,
+          "sseMetadataSchemaChanged": false,
+          "wsMetadataSchemaChanged": false,
+          "rtspOrWebrtcMediaPathChanged": false,
+          "viewerClientExposureAdded": false
+        }
+      }
     }
   ]
 }

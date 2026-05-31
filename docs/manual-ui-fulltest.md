@@ -11,9 +11,9 @@
 
 UI 풀테스트는 API smoke가 아니라 제품 웹 UI를 실제 브라우저에서 열고,
 클릭과 타이핑으로 문서에 설명된 기능을 하나하나 확인하는 검수입니다.
-기본 실행 방식은 프로젝트 verifier가 자체 Chrome/CDP 세션을 띄워 조작하는
-자율 UI 테스트입니다. Codex 인앱 브라우저나 작업자가 같은 조작을 직접 수행하는
-방식은 보조 재현 수단일 뿐이며, 사용자에게 pane 열기, 버튼 클릭, 팝업 확인을
+Codex 세션에서는 인앱 브라우저 직접 조작을 기본 evidence로 사용합니다.
+인앱 브라우저를 사용할 수 없는 외부 자동화 환경에서만 Chrome/CDP fallback을
+명시적으로 사용합니다. 사용자에게 pane 열기, 버튼 클릭, 팝업 확인을
 요청해야만 진행되는 테스트는 UI 풀테스트 PASS evidence가 아닙니다.
 API 응답, raw JSON, screenshot 생성, 스크립트 통과만으로는 UI 풀테스트를 완료했다고
 기록하지 않습니다.
@@ -277,7 +277,8 @@ UI 풀테스트는 기능 검수와 같은 비중으로 시각 품질을 봅니�
 - `./server.sh verify-auth-users`
 - `./server.sh verify-auth-routes`
 - `./server.sh verify-ops-client-ui`
-- `./server.sh verify-ops-client-ui --screenshots`
+- Codex 세션: 인앱 브라우저 직접 확인 evidence
+- 인앱 브라우저 부재 외부 환경: `./server.sh verify-ops-client-ui --screenshots`
 - `./server.sh verify-product-ui-no-native-dialogs`
 - `./server.sh verify-ui-blocking-dialog-policy`
 - `./server.sh verify-ops-click-e2e`

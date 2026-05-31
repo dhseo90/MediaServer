@@ -18,7 +18,7 @@ export async function runVisualSmoke({
   labelPrefix = "visual",
 }) {
   if (!chromePath) {
-    return { passCount: 0, failCount: 1, failures: ["Chrome executable not found"], outputDir };
+    return { passCount: 0, failCount: 1, failures: [browserFallbackUnavailableMessage()], outputDir };
   }
   fs.mkdirSync(outputDir, { recursive: true });
   let passCount = 0;
@@ -189,6 +189,9 @@ export function isTruthy(value) {
 }
 
 export function findChrome() {
+  if (!chromeFallbackAvailableForThisEnvironment()) {
+    return "";
+  }
   const candidates = [
     process.env.CHROME_PATH,
     "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
@@ -198,6 +201,27 @@ export function findChrome() {
     "/usr/bin/chromium-browser",
   ].filter(Boolean);
   return candidates.find((candidate) => fs.existsSync(candidate)) || "";
+}
+
+export function chromeFallbackAvailableForThisEnvironment() {
+  if (process.env.CODEX_SHELL || process.env.CODEX_THREAD_ID || process.env.CODEX_INTERNAL_ORIGINATOR_OVERRIDE) {
+    return false;
+  }
+  const mode = String(process.env.MEDIA_SERVER_UI_BROWSER_MODE || "auto").trim().toLowerCase();
+  if (mode === "in-app" || mode === "static") {
+    return false;
+  }
+  if (process.env.MEDIA_SERVER_ALLOW_CHROME_FALLBACK != null) {
+    return isTruthy(process.env.MEDIA_SERVER_ALLOW_CHROME_FALLBACK);
+  }
+  return mode === "auto" || mode === "chrome";
+}
+
+export function browserFallbackUnavailableMessage() {
+  if (process.env.CODEX_SHELL || process.env.CODEX_THREAD_ID || process.env.CODEX_INTERNAL_ORIGINATOR_OVERRIDE) {
+    return "Codex environment requires in-app browser evidence; fallback browser is disabled";
+  }
+  return "Chrome executable not found";
 }
 
 export function cookieHeaderFromNetscapeFile(cookieFile) {
@@ -233,7 +257,7 @@ export async function openBrowserPage({
   locale = "",
 }) {
   if (!chromePath) {
-    throw new Error("Chrome executable not found");
+    throw new Error(browserFallbackUnavailableMessage());
   }
   const url = new URL(pagePath, `${httpBase}/`).toString();
   return launchBrowser(debugPort, width, height, url, {
@@ -388,7 +412,7 @@ async function waitForAnyPageTarget(port, waitTimeoutMs) {
     } catch (_) {}
     await delay(250);
   }
-  throw new Error(`Chrome CDP target timeout: port=${port}`);
+  throw new Error(`browser CDP target timeout: port=${port}`);
 }
 
 async function connectWebSocket(url, pending) {

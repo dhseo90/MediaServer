@@ -33,8 +33,8 @@ viewer/client 화면에는 `ops-vlm-event-review-card` 또는 VLM review panel�
 ```
 
 S10 UI 직접 확인은 Codex 인앱 브라우저에서 `/ops/events`, `/client/live`,
-`/client/dashboard`를 열어 수행합니다. Chrome/CDP 기반 `verify-ops-client-ui`와
-`verify-ops-client-ui --screenshots`는 이번 S10 close evidence로 사용하지 않습니다.
+`/client/dashboard`를 열어 수행합니다. Chrome/CDP fallback은 인앱 브라우저가 없는
+외부 환경에서만 사용하며, Codex close evidence로 사용하지 않습니다.
 
 ## Non-Scope
 

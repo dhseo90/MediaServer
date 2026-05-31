@@ -20,7 +20,7 @@ VA 내부 구조는 [video-analysis.md](./video-analysis.md)를 봅니다.
 | 운영 콘솔 | `http://127.0.0.1:8080/ops` 또는 `/ops/home` | admin/operator용 운영 화면과 운영 홈 요약 |
 | 운영 Dashboard | `http://127.0.0.1:8080/ops/dashboard` | runtime status를 card/detail UI로 표시 |
 | 운영 Events 직접 route | `http://127.0.0.1:8080/ops/events` | primary nav에서 숨긴 후속/진단 route |
-| VLM 설치/연결/profile 준비 | `http://127.0.0.1:8080/ops/vlm` | V200-S04 dry-run 후보, cloud opt-in guard, V200-S05 profile 저장 panel을 Ops 전용으로 표시 |
+| VLM 설치/연결/profile/privacy 준비 | `http://127.0.0.1:8080/ops/vlm` | V200-S04 dry-run 후보, cloud opt-in guard, V200-S05 profile 저장 panel, V200-S11 Privacy/전송 guard를 Ops 전용으로 표시 |
 | 채널 관리 | `http://127.0.0.1:8080/ops/sources` | admin/operator용 숫자 채널 목록과 SourceRegistry/PublishedView 연결 관리 |
 | 계정 관리 | `http://127.0.0.1:8080/ops/users` | admin 전용 사용자 목록, 상세, 상태 관리 |
 | 클라이언트 포털 | `http://127.0.0.1:8080/client` 또는 `/client/live` | viewer/operator/admin용 source tree + live workspace |
@@ -308,10 +308,14 @@ Route 역할:
   - `/ops/vlm`:
     V200-S04 VLM 설치/연결 준비 화면입니다. `/ops/api/vlm/install-connection/dry-run`
     read-only API로 local/cloud 후보, resource estimate, cloud opt-in guard,
-    단일 선택 상태, 실행 경계를 표시합니다. 이 route는 primary nav에 넣지 않고
+    단일 선택 상태, 실행 경계와 V200-S11 Privacy/전송 guard를 표시합니다. 이 route는 primary nav에 넣지 않고
     `/ops/home` 보조 CTA로 연결합니다. 실제 설치, credential 저장, profile 저장,
     VLM runtime 호출, sidecar 저장, Event/WebRTC/SSE/WS schema 변경, media path 변경은
     이 화면에서 수행하지 않습니다.
+    Cloud 후보는 외부 전송 경고 확인과 provider logging/retention 검토 체크가 끝나기
+    전까지 profile 저장 버튼이 비활성입니다. 저장 profile의 `privacyGuard`는
+    credential, prompt, raw response, source URL, raw frame bytes 비저장 상태와
+    provider policy review 상태만 보존합니다.
   - `/ops/sources`:
     숫자 채널 목록, 상세 패널, 채널 추가 폼, URL copy 영역,
     채널 변경 이력을 제공합니다.
@@ -367,9 +371,10 @@ Ops/Client/Lab API guard를 확인합니다.
   `visual-regression-manifest.json`과 `index.md`를 함께 생성합니다.
 - Ops/Client selector와 client debug/source 비노출은
   `./server.sh verify-ops-client-ui`로 확인합니다.
-  이 smoke는 client shell HTML, `/client/api/views*` scoped JSON,
-  Chrome 렌더링 후 DOM에서 source URL, Developer URL, raw JSON,
-  debug counter, BBox diagnostics, rule/profile editor 노출을 함께 검사합니다.
+  이 smoke는 client shell HTML, `/client/api/views*` scoped JSON, 인앱 브라우저
+  evidence 또는 인앱 브라우저 부재 외부 환경의 fallback 렌더링으로 source URL,
+  Developer URL, raw JSON, debug counter, BBox diagnostics, rule/profile editor
+  노출을 함께 검사합니다.
 - 실제 클릭 흐름과 채널/룰/사용자 테이블 반응형 침범 검증은
   `./server.sh verify-ops-click-e2e`,
   `./server.sh verify-ops-tables-layout`로 확인합니다.
@@ -377,8 +382,10 @@ Ops/Client/Lab API guard를 확인합니다.
   audit filter/preset control overflow를 함께 검사합니다.
 - 화면 회귀까지 보려면
   `./server.sh verify-ops-client-ui --screenshots`를 사용합니다. 기본 screenshot 폭은
-  320/390/760/1180px이며, Chrome DevTools 수동 리뷰 체크박스는
-  [stream-verification.md](./stream-verification.md)에 유지합니다. `--output-dir`를
+  320/390/760/1180px입니다. Codex 세션에서는 인앱 브라우저 screenshot/evidence를
+  우선하고, Chrome/CDP는 인앱 브라우저가 없는 외부 자동화 fallback에만 사용합니다.
+  수동 리뷰 체크박스는 [stream-verification.md](./stream-verification.md)에 유지합니다.
+  `--output-dir`를
   지정하면 같은 디렉터리에 `visual-regression-manifest.json`과 `index.md`가
   생성되며, manifest schema는 `media-server.ui-visual-artifact-index.v1`입니다.
 - 두 artifact를 비교할 때는
@@ -1498,7 +1505,7 @@ Screenshot 관리 정책:
 | 관리 목록 | `config/docs_ui_assets.json`의 managed asset list가 파일명, capture task, 최소 크기, direct review checklist를 고정 |
 | 재캡처 | `node scripts/internal/capture_docs_ui_assets.mjs --http-base http://127.0.0.1:8082` |
 | 기준 검증 | `./server.sh verify-docs-ui-assets` |
-| visual regression 산출물 | `verify-ops-client-ui --screenshots --output-dir <dir>` 실행 후 `<dir>/visual-regression-manifest.json`, `<dir>/index.md` |
+| visual regression 산출물 | Codex 인앱 브라우저 screenshot/evidence 또는 인앱 브라우저 부재 외부 환경의 `verify-ops-client-ui --screenshots --output-dir <dir>` 실행 후 `<dir>/visual-regression-manifest.json`, `<dir>/index.md` |
 
 문서용 screenshot 촬영 기준:
 

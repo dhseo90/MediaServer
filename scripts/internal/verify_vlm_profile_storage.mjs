@@ -50,6 +50,18 @@ check("registry persists VLM profiles with strict validation", () => {
     "activation.status",
     "cloudOptInAcknowledged",
     "ContainsForbiddenVlmProfileField",
+    "ValidateVlmPrivacyGuardContract",
+    "media-server.vlm-privacy-transfer-guard.v1",
+    "privacyGuard",
+    "externalTransferWarningAcknowledged",
+    "providerLoggingPolicy",
+    "loggingAndRetentionReviewed",
+    "termsReviewed",
+    "credentialMaterialStored",
+    "promptStored",
+    "rawProviderResponseStored",
+    "sourceUrlStored",
+    "rawFrameBytesStored",
     "runtimeVlmCallPerformed",
     "sidecarStored",
     "credentialStored",
@@ -106,6 +118,9 @@ check("ops UI renders profile storage controls and saved profile table", () => {
     "id=\"opsVlmDisabledReason\"",
     "id=\"opsVlmSaveProfile\"",
     "id=\"opsVlmProfileRows\"",
+    "data-testid=\"ops-vlm-privacy-transfer-guard-panel\"",
+    "id=\"opsVlmExternalTransferWarningAck\"",
+    "id=\"opsVlmProviderLoggingReviewed\"",
   ]) {
     assert(server.includes(snippet), `server missing VLM profile UI snippet: ${snippet}`);
   }
@@ -118,6 +133,8 @@ check("ops UI renders profile storage controls and saved profile table", () => {
     "method: 'PUT'",
     "method: 'DELETE'",
     "profile-storage-only",
+    "privacyGuard",
+    "providerLoggingPolicy",
     "S05 profile 저장 가능",
   ]) {
     assert(script.includes(snippet), `page script missing VLM profile behavior snippet: ${snippet}`);
@@ -130,7 +147,7 @@ check("invalid profile fixture covers rejection classes", () => {
   const fixture = JSON.parse(fixtureText);
   assert(fixture.schema === "media-server.vlm-profile-invalid-fixtures.v1", "invalid fixture schema mismatch");
   const ids = new Set((fixture.cases || []).map(item => item.id));
-  for (const id of ["raw-prompt-rejected", "cloud-opt-in-required", "active-requires-passed-evaluation"]) {
+  for (const id of ["raw-prompt-rejected", "cloud-opt-in-required", "active-requires-passed-evaluation", "cloud-provider-logging-review-required"]) {
     assert(ids.has(id), `invalid fixture missing case: ${id}`);
   }
   for (const item of fixture.cases || []) {

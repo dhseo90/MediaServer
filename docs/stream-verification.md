@@ -313,8 +313,21 @@ falsePositiveHints, operatorReviewQuestions를 함께 표시하되 viewer/client
 
 S10 UI 직접 확인은 Codex 인앱 브라우저에서 `/ops/events`, `/client/live`,
 `/client/dashboard`를 열어 Ops 표시와 viewer/client 비노출을 확인합니다. Chrome/CDP
-기반 `verify-ops-client-ui`와 `verify-ops-client-ui --screenshots`는 이번 S10 close
-evidence로 사용하지 않습니다.
+fallback은 인앱 브라우저가 없는 외부 환경에서만 사용하며, Codex close evidence로
+사용하지 않습니다.
+
+VLM Privacy/전송 guard는 `V200-S11`의 cloud 외부 전송 경고, redaction, provider
+logging/retention 검토 경계를 확인합니다. `/ops/vlm` privacy guard panel과 저장되는
+VLM profile의 `privacyGuard`만 대상으로 하며, 실제 provider API 호출, raw prompt/raw
+response 저장, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경은
+수행하지 않습니다.
+
+```bash
+./server.sh verify-vlm-privacy-transfer-guard
+./server.sh verify-vlm-profile-storage
+./server.sh verify-auth-routes
+./server.sh verify-ops-client-ui
+```
 
 CI/local gate parity는 `media-server.ci-local-gate-parity.v1` summary로
 Preflight/static-gates/guardrails/RC workflow에 실제로 걸린 `./server.sh` 명령과
@@ -363,6 +376,7 @@ fallback까지 실패하면 `media-server.github-metadata-fallback-policy.v1` �
 ./server.sh verify-vlm-pc-capability
 ./server.sh verify-vlm-install-connection-scope-gate
 ./server.sh verify-vlm-install-connection-dry-run
+./server.sh verify-vlm-privacy-transfer-guard
 ./server.sh verify-ops-click-e2e
 ./server.sh verify-ops-click-e2e --auth-ui-flow --auth-users-file <path>
 ./server.sh verify-ops-tables-layout
@@ -459,8 +473,9 @@ FFmpeg/ffprobe CLI가 없는 공개/CI 환경에서는 codec matrix와 RTSP deco
 session auth 제품 UI 자체를 검증할 때는 별도 session-auth 서버를 띄우고
 `verify-ops-click-e2e --auth-ui-flow --auth-users-file <path>`를 실행합니다.
 이 모드는 `/setup`, `/login`, `/ops/users`, `/client/request-access`,
-`/invite/setup`, `/password/change`, `/client/live`를 자율 Chrome/CDP로 직접
-조작하며, `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`,
+`/invite/setup`, `/password/change`, `/client/live`를 브라우저로 직접 조작합니다.
+Codex 세션에서는 인앱 브라우저 evidence를 우선하고, Chrome/CDP fallback은 인앱
+브라우저가 없는 외부 자동화 환경에서만 허용합니다. `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`,
 `MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD`,
 `MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD`,
 `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE`,
@@ -488,8 +503,8 @@ session auth 제품 UI 자체를 검증할 때는 별도 session-auth 서버를 
   `media-server.ui-blocking-dialog-policy.v1` report로 native dialog 금지,
   non-blocking `beforeunload` cleanup, allowlisted read-only `<dialog>`, 위험 action
   2회 확인 정책을 함께 검증합니다.
-- Browser/Computer Use fallback: 수동 UI evidence는 Browser Use 직접 조작,
-  Chrome 직접 조작, Computer Use visible UI 조작 순서로 시도하고, raw JSON/API-only
+- Browser fallback: 수동 UI evidence는 Codex 인앱 브라우저 직접 조작을 우선합니다.
+  인앱 브라우저가 없는 외부 환경에서만 Chrome/CDP fallback을 사용하고, raw JSON/API-only
   확인을 수동 클릭 evidence로 쓰지 않습니다.
 - fixture cleanup: `verify-fixture-cleanup-contracts`는 access request, source/view
   registry, manual UI seed registry, EventRecord, audit/evidence fixture가 실행 후
@@ -498,10 +513,10 @@ session auth 제품 UI 자체를 검증할 때는 별도 session-auth 서버를 
   `sources.json`, `views.json`, `analysis.json`, `preconditions.json`만 생성하며
   UI/event evidence로 쓰지 않습니다.
   SSE/WS/Event POST temporary tap/rule/receiver cleanup, lifecycle port cleanup,
-  Chrome userDataDir 삭제도 같은 gate에서 확인합니다.
+  fallback browser profile cleanup도 같은 gate에서 확인합니다.
 - browser route smoke: click E2E는 path wait, scroll idle, browser error collector,
-  overflow assertion을 같이 사용합니다. sandbox local fetch/CDP 제한으로 실패하면
-  같은 명령을 권한 밖에서 재실행해 환경 제한과 제품 회귀를 분리합니다.
+  overflow assertion을 같이 사용합니다. sandbox local fetch/browser automation 제한으로
+  실패하면 같은 명령을 권한 밖에서 재실행해 환경 제한과 제품 회귀를 분리합니다.
 
 정적 guard:
 
@@ -686,8 +701,9 @@ Ops/Client shell 변경 확인 포인트:
   320/390px에서 검색/작업자/사용자/대상/동작/시작/종료/페이지 크기
   control이 감사 로그 패널 폭 안에 있어야 하며, 시작/종료 date/time
   input이 viewport 밖으로 밀리면 실패입니다.
-- 실제 Chrome DevTools 수동 리뷰는 자동 overflow 결과와 별개로 아래
-  체크리스트를 닫습니다.
+- 실제 인앱 브라우저 수동 리뷰는 자동 overflow 결과와 별개로 아래 체크리스트를
+  닫습니다. 인앱 브라우저가 없는 외부 환경에서는 Chrome DevTools fallback 리뷰를
+  같은 항목으로 대체할 수 있습니다.
   PR을 여는 경우 같은 항목을 `.github/PULL_REQUEST_TEMPLATE.md`의
   `UI Visual Review` 섹션에 artifact directory와 함께 남깁니다.
   - [ ] Device toolbar를 320px로 맞추고 Ops nav, 계정/로그아웃,

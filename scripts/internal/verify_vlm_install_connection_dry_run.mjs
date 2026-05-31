@@ -141,7 +141,7 @@ check("roadmap, verification docs, feature inventory, docs index, and server com
   for (const snippet of [
     "| LAB-037 | VLM install/connection dry-run contract",
     "verify-vlm-install-connection-dry-run",
-    "| `LAB-001`~`LAB-041` |",
+    "| `LAB-001`~`LAB-042` |",
   ]) {
     assert(inventory.includes(snippet), `feature inventory missing snippet: ${snippet}`);
   }
@@ -281,7 +281,9 @@ function assertNoSideEffects(output, id) {
 }
 
 function assertNoSensitiveLeak(output, id) {
-  const text = JSON.stringify(output);
+  const text = JSON.stringify(output)
+    .replaceAll('"sourceUrlStored":false', "")
+    .replaceAll('"rawProviderResponseStored":false', "");
   for (const pattern of [
     /api[_-]?key/i,
     /password/i,
