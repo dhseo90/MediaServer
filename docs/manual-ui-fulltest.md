@@ -49,6 +49,33 @@ UI 풀테스트 판정값은 `PASS`와 `FAIL`만 사용합니다. 모든 기능�
 - 발견 이슈 수정 후 같은 화면 재검수
 - 수동 결과 문서와 자동 검증 결과의 분리 기록
 
+## 2.1 긴 테스트 전 fail-fast 기준
+
+30분, 120분, UI 풀테스트는 시작 전에 실패 가능성이 높은 준비 문제를 먼저 끊어냅니다.
+아래 항목이 정리되지 않으면 긴 테스트를 시작하지 않습니다.
+
+- `project-feature-test-inventory.md`의 `v2.0.0 Pre-Test Update List`와
+  `Longrun/UI Fail-Fast Preflight`를 확인해 누락된 route/control/action을 먼저 고칩니다.
+- `/ops/vlm`, `/ops/events`, `/client/live`, `/client/dashboard`, `/client/events`의
+  VLM 관련 UI/비노출 항목이 result template에 없으면 UI 풀테스트를 시작하지 않습니다.
+- auth 테스트 비밀번호 환경변수, throwaway users/source/view/analysis/event/snapshot/clip
+  경로, seed dry-run/registry dir, output artifact 경로를 시작 전에 기록합니다.
+- `verify-product-ui-no-native-dialogs`와 `verify-ui-blocking-dialog-policy`를 UI 전
+  선수 gate로 계획합니다. native dialog가 남아 있으면 UI 풀테스트를 시작하지 않습니다.
+- 120분은 30분 또는 해당 high-risk short gate, 사용자 승인, RC/high-risk 사유,
+  memory/runtime 관찰 항목이 없으면 시작하지 않습니다.
+
+실패 후 재검수 범위:
+
+- preflight/list/fixture/auth env/output dir 실패는 긴 테스트 실패로 기록하지 않고,
+  해당 짧은 gate 또는 문서만 고친 뒤 다시 확인합니다.
+- 제품 runtime, media path, auth/session, registry seed를 바꾼 경우에는 영향을 받은
+  phase부터 재검수합니다. 최종 UI PASS는 모든 UI 대상 기능 ID의 evidence가 다시
+  충족될 때만 가능합니다.
+- 120분 실행 결과 summary/report/log가 이미 남아 있고 제품 runtime을 고치지 않았다면,
+  리포트 경로/문서 누락만으로 120분을 처음부터 다시 실행하지 않습니다. retained
+  artifact가 요구 범위를 직접 증명하지 못하면 PASS가 아니라 미확인으로 남깁니다.
+
 ## 3. 문서 파악
 
 테스트 전에는 프로젝트 내 문서를 먼저 읽고 UI 기능, release boundary, 비노출 정책,

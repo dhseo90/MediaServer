@@ -52,6 +52,32 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 `source`를 함께 기록합니다. Codex goal usage 같은 자동 집계값이 있으면 그 값을
 우선하고, 집계값이 없으면 미집계 사유를 적습니다.
 
+## 긴 테스트 Preflight / 재시작 경계
+
+30분, 120분, UI 풀테스트를 시작하기 전에 채웁니다. 아래 항목 누락은 긴 테스트
+실패가 아니라 preflight 실패입니다.
+
+| 항목 | 기대 상태 | 실제 상태 | 판정 | 후속 |
+| --- | --- | --- | --- | --- |
+| v2.0.0 기능 목록 freeze | `v2.0.0 Pre-Test Update List`와 기능 ID 목록 확인 |  | PASS/FAIL |  |
+| VLM UI 대상 | `/ops/vlm`, `/ops/events`, `/client/live`, `/client/dashboard`, `/client/events` 결과 행 존재 |  | PASS/FAIL |  |
+| auth verifier env | auth test password env 5개 모두 `SET` |  | PASS/FAIL |  |
+| throwaway fixture | users/source/view/analysis/event/snapshot/clip 경로 고정 |  | PASS/FAIL |  |
+| VA seed 준비 | seed dry-run 또는 registry dir 준비, 아직 UI/event evidence로 쓰지 않음 |  | PASS/FAIL |  |
+| output artifact | summary/report/log/screenshot/evidence JSON 경로 고정 |  | PASS/FAIL |  |
+| UI blocker guard | native dialog/blocking dialog/browser permission 확인 계획 있음 |  | PASS/FAIL |  |
+| 30분 시작 조건 | 안정화 gate PASS 또는 미실행 사유, VLM queue/runtime/media 변경 여부 기록 |  | PASS/FAIL |  |
+| 120분 시작 조건 | 사용자 승인, RC/high-risk 사유, 30분 또는 high-risk short gate, memory/runtime 관찰 항목 기록 |  | PASS/FAIL |  |
+
+- preflight 실패:
+- 긴 테스트 시작 여부:
+- 긴 테스트 미시작 항목:
+- 제품 runtime/media/auth/session/registry 수정 여부:
+- 전체 재시작 필요 여부:
+- 부분 재검수 가능 범위:
+- retained artifact로 재판정 가능한 항목:
+- retained artifact가 부족해 미확인으로 남길 항목:
+
 ## 현재 보존 증적
 
 아래 표에는 최종 판정에 사용하는 retained artifact만 적습니다. command log에

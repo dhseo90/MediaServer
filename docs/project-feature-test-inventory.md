@@ -141,6 +141,24 @@ Rule scenario/event 발생 검수는 분리합니다.
 | S17 안정화/장시간/UI 기준 | [vlm-stabilization-longrun-ui-criteria.md](./vlm-stabilization-longrun-ui-criteria.md) | `verify-runtime-media-longrun-trigger-matrix`, `verify-longrun-separation`, `verify-manual-ui-evidence`를 사전 목록에 포함 | trigger matrix상 필요 또는 버전 close-out 지시 시 포함 | RC/high-risk/user approval 시 포함 | VLM UI 변경이 있으면 `/ops/vlm`, `/ops/events`, client redaction route를 직접 확인 | 실행하지 않은 장시간/UI 항목은 `미실행`으로 기록 |
 | S18 close-out readiness/evidence 분리 | [vlm-close-out-readiness.md](./vlm-close-out-readiness.md), [release-evidence-index.md](./release-evidence-index.md) | `verify-vlm-closeout-readiness`, `verify-release-evidence-index`, `verify-release-metadata`, docs/index guard를 목록에 포함 | 실제 실행 지시가 없으면 미실행으로 기록 | 실제 승인 없으면 미실행으로 기록 | 직접 브라우저 조작 없으면 UI 풀테스트 PASS로 쓰지 않음 | release tag, main merge, GitHub Release publish와 구분 |
 
+## Longrun/UI Fail-Fast Preflight
+
+30분, 120분, UI 풀테스트는 실패 후 재시작 비용이 크므로 아래 항목이 먼저
+`PASS` 또는 명시 제외로 정리되지 않으면 시작하지 않습니다. 이 절은 긴 테스트를
+실행했다는 증거가 아니라, 긴 테스트 시작 전 중단 기준입니다.
+
+| preflight 항목 | 긴 테스트 전 확인 | 실패 시 처리 | 재시작 경계 |
+| --- | --- | --- | --- |
+| 기능/route 목록 freeze | `v2.0.0 Pre-Test Update List`, `UI-022`~`UI-032`, `/ops/vlm`, `/client/events`, client redaction route가 결과 템플릿에 있음 | 리스트/템플릿 수정 후 긴 테스트 시작 전 재검수 | 긴 테스트 미시작 상태이므로 30분/120분/UI 재시작 없음 |
+| 짧은 VLM rehearsal | `verify-vlm-test-rehearsal`과 missing-model/cloud-disabled/invalid-output/queue-timeout fixture가 먼저 준비됨 | fixture 또는 harness 수정 후 short gate만 재확인 | rehearsal 실패는 30분/120분/UI PASS/FAIL로 기록하지 않음 |
+| side-effect 선수 gate | build/auth/Ops/Client/Rule/VA/WebRTC/SSE/WS/Event POST/media path verifier 목록이 실행 계획에 있음 | 선수 gate 실패를 제품 회귀/환경 문제로 분리하고 긴 테스트 중단 | 선수 gate 실패 후에는 30분/120분/UI를 시작하지 않음 |
+| throwaway fixture와 auth env | users/source/view/analysis/event/snapshot/clip 경로, auth test password env `SET/MISSING`, seed dry-run/registry dir가 결과 템플릿에 있음 | fixture/env 누락이면 긴 테스트 시작 전 중단 | env/fixture 누락은 120분 재시작 사유가 아니라 preflight 실패 |
+| output artifact 보존 | summary/report/log/screenshot/evidence JSON output dir가 시작 전에 정해짐 | artifact 경로 누락이면 시작 전 중단 | 결과 파일만 누락된 경우 기존 raw evidence가 요구 범위를 증명하지 못하면 PASS 금지 |
+| native/blocking dialog guard | `verify-product-ui-no-native-dialogs`, `verify-ui-blocking-dialog-policy`가 UI 전 선수로 계획됨 | native dialog가 남으면 UI 풀테스트 시작 전 수정 | dialog guard 실패는 UI 전체 재시작 전 early failure로 기록 |
+| 30분 선행 조건 | 안정화 gate PASS, VLM queue/runtime/media 변경 여부, 제외/미실행 사유가 기록됨 | 안정화 실패 또는 범위 미정이면 30분 시작 금지 | 30분 실행 중 제품 runtime 수정이 있으면 같은 30분 범위 재실행 |
+| 120분 선행 조건 | 30분 또는 해당 high-risk short gate PASS, 사용자 승인, RC/high-risk 사유, memory/runtime 측정 항목이 기록됨 | 승인/사유/측정 항목 누락이면 120분 시작 금지 | 문서/리포트 누락만으로는 120분 재실행하지 않고 retained artifact가 범위를 증명하는지 먼저 확인 |
+| UI phase order | Auth/setup, route/nav, fixture seed, VLM redaction, VA EventRecord, responsive/theme 순서로 early failure를 앞에 둠 | 앞 phase 실패 시 뒤 phase로 진행하지 않음 | shared auth/session/registry/media 수정이면 영향 phase부터 재검수, 전체 PASS는 모든 기능 ID evidence가 있을 때만 |
+
 ## Classification Rules
 
 | 값 | 의미 |

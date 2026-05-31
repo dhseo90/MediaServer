@@ -108,6 +108,25 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
   Computer Use visible UI 조작 순서로 시도하고 실패 지점과 대체 smoke를 분리해
   기록합니다. raw JSON/API-only 확인은 수동 UI 클릭 evidence로 쓰지 않습니다.
 
+### 긴 테스트 시작 전 fail-fast 확인
+
+아래 항목이 하나라도 비어 있으면 30분, 120분, UI 풀테스트를 시작하지 않습니다.
+
+- 기능/route/control/action 목록: `v2.0.0 Pre-Test Update List`,
+  `Longrun/UI Fail-Fast Preflight`, `/ops/vlm`, `/client/events`, VLM client redaction.
+- auth/env: auth verifier password env 5개가 `SET`인지, users file과 session state가
+  throwaway인지 확인합니다.
+- fixture/output: source/view/analysis/event/snapshot/clip 경로, seed dry-run 결과,
+  output dir, summary/report/log/evidence JSON 경로를 시작 전에 고정합니다.
+- UI blocker: native dialog guard, blocking dialog policy, browser automation 권한,
+  viewport/theme 목록을 먼저 확인합니다.
+- longrun blocker: 120분은 30분 또는 high-risk short gate PASS, 사용자 승인,
+  RC/high-risk 사유, memory/runtime 관찰 항목이 모두 있어야 시작합니다.
+
+preflight 실패는 긴 테스트 실패로 과장하지 않습니다. 문서/list/fixture/env 문제를
+고친 뒤 짧은 gate만 다시 확인하고, 아직 시작하지 않은 30분/120분/UI 결과는
+`미실행`으로 남깁니다.
+
 ## 3. 실행 원칙
 
 - 모든 웹 UI 검수는 인앱 브라우저에서 수행합니다.
