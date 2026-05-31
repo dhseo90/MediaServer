@@ -145,7 +145,7 @@ YOLO 이벤트가 왜 발생했는지 설명하고, 오탐 가능성 및 운영�
 | 13 | V200-S13 | 완료 | Rule 추천 보조 후보 | VLM이 line/intrusion/zone 후보를 제안하되 자동 적용은 금지합니다. 운영자가 확인 후 수동 저장하는 흐름만 후보로 둡니다. | rule suggestion fixture, no-auto-apply guard, `/ops/rules` smoke, `verify-rule-ui`, `git diff --check` |
 | 14 | V200-S14 | 완료 | 테스트 inventory 확장 | VLM으로 추가된 route, control, action, runtime state, sidecar, privacy guard를 기능 ID 단위로 `project-feature-test-inventory.md`에 추가합니다. | `verify-project-inventory`, `verify-feature-inventory-coverage`, inventory-to-verifier mapping, `git diff --check` |
 | 15 | V200-S15 | 완료 | 간이 테스트 리허설 | 안정화/30분/120분/UI 풀테스트 전에 VLM 전용 짧은 smoke, missing-model, cloud-disabled, invalid-output, queue-timeout fixture를 실행해 테스트 자체가 막히지 않는지 확인합니다. | `verify-vlm-test-rehearsal`, VLM smoke, failure fixture matrix, cleanup check, port/server lifecycle check, `git diff --check` |
-| 16 | V200-S16 | 예정 | 기존 테스트 side effect 점검 | VLM 변경이 auth, Ops/Client UI, Rule UI, VA replay/events, WebRTC metadata, SSE/WS metadata, Event POST, RTSP/WebRTC media path verifier에 영향을 주지 않는지 확인합니다. | `./server.sh build`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-rule-ui`, `verify-va-replay`, `verify-va-events`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-event-post`, `git diff --check` |
+| 16 | V200-S16 | 완료 | 기존 테스트 side effect 점검 | VLM 변경이 auth, Ops/Client UI, Rule UI, VA replay/events, WebRTC metadata, SSE/WS metadata, Event POST, RTSP/WebRTC media path verifier에 영향을 주지 않는지 확인합니다. | `./server.sh build`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-rule-ui`, `verify-va-replay`, `verify-va-events`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-event-post`, `git diff --check` |
 | 17 | V200-S17 | 예정 | 안정화/장시간/UI 기준 정리 | VLM queue, memory, provider timeout, model install 상태에 따라 안정화, 30분, 120분, UI 풀테스트 실행 기준과 제외/미실행 보고 기준을 정리합니다. | `verify-runtime-media-longrun-trigger-matrix`, `verify-longrun-separation`, VLM longrun trigger matrix, manual UI checklist update, `git diff --check` |
 | 18 | V200-S18 | 예정 | v2.0.0 close-out readiness | 전체 스크립트 테스트와 UI 풀테스트 결과를 분리해 release evidence로 닫고, 미실행/제외/미확인을 명확히 기록합니다. | release evidence review, `verify-release-evidence-index`, `verify-release-metadata`, VLM close-out report, 30분/UI/120분 실행 또는 미실행 기록, `git diff --check` |
 
@@ -1116,6 +1116,63 @@ PASS evidence가 아닙니다.
 - v2.0.0 전체 side effect 안정화는 `V200-S16` 범위입니다.
 - 장시간/UI 기준 정리는 `V200-S17` 범위입니다.
 - close-out readiness는 `V200-S18` 범위입니다.
+
+### V200-S16 기존 테스트 side effect 점검 종료 기준
+
+이 단계는 VLM S00~S15 변경이 기존 auth, Ops/Client shell, Rule UI, VA replay/events,
+WebRTC metadata, SSE/WS metadata, Event POST, RTSP/WebRTC media path 관련 verifier에
+side effect를 만들지 않았는지 확인하는 단계입니다. 제품 UI 풀테스트 직접 조작이나
+30분/120분 장시간 안정화는 이 단계의 완료 evidence가 아닙니다.
+
+이번 범위에서 구현/정리한 것:
+
+- 제품 코드/API/schema/media path는 변경하지 않았습니다.
+- S16 결과를 roadmap에 기록했습니다.
+- S16 검증 중 서버/포트/auth/Event POST dispatcher 실행 조건을 제품 회귀와 분리해
+  기록했습니다.
+
+이번 범위에서 하지 않는 일:
+
+- 실제 VLM runtime 호출
+- cloud provider API 호출
+- model/runtime download 또는 bundle 추가
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- 30분/120분 장시간 안정화 실행
+- 인앱 브라우저 UI 풀테스트 실행
+- V200-S17 장시간/UI 기준 정리, V200-S18 close-out readiness
+
+완료 evidence:
+
+- `./server.sh build`: PASS, `build-gst-onnx/media_server` build target 최신.
+- `./server.sh verify-auth-routes`: 최초 sandbox RTSP bind EPERM으로 실패했으나,
+  같은 auth env로 sandbox 밖 재실행 PASS 135/0.
+- `./server.sh verify-ops-client-ui --http-base http://127.0.0.1:8182 --browser-mode static`:
+  최초 서버 미기동/증적 조건 실패 및 sandbox fetch 실패 후 격리 auth-off 서버에서
+  sandbox 밖 재실행 PASS 18/0. Static mode라 `client-rendered-leak`,
+  `ops-admin-form-regression` browser 조작 보조 항목은 skip이며 UI 풀테스트 PASS
+  evidence로 쓰지 않습니다.
+- `./server.sh verify-rule-ui --http-base http://127.0.0.1:8182 --chrome-path ...`:
+  Chrome 경로를 명시해 sandbox 밖 재실행 PASS. `/ops/rules` native browser smoke,
+  validation, mobile geometry, nav round-trip 확인.
+- `./server.sh verify-va-replay`: PASS, 14 baseline cases.
+- `./server.sh verify-va-events`: 최초 default 8081 health 실패 후 격리 auth-off 서버
+  `http://127.0.0.1:8182`에서 sandbox 밖 재실행 PASS 31/0.
+- `./server.sh verify-webrtc-va-metadata --http-base http://127.0.0.1:8182 --chrome-path ...`:
+  최초 default endpoint fetch 실패 후 sandbox 밖 재실행 PASS 8/0.
+- `./server.sh verify-va-metadata-sidechannel --http-base http://127.0.0.1:8182`:
+  최초 default endpoint connection refused 후 sandbox 밖 재실행 PASS, summary fail=0.
+- `./server.sh verify-ws-metadata --http-base http://127.0.0.1:8182`:
+  최초 default endpoint sandbox EPERM 후 sandbox 밖 재실행 PASS 9/0.
+- `./server.sh verify-event-post --http-base http://127.0.0.1:8183`: 기본 disabled 서버의
+  schema mode precondition 실패를 확인한 뒤 Event POST enabled 격리 서버에서 PASS 9/0.
+
+후속 단계로 남기는 범위:
+
+- S17 안정화/장시간/UI 기준 정리는 미진행입니다.
+- S18 close-out readiness는 미진행입니다.
+- 인앱 브라우저 UI 풀테스트와 30분/120분 장시간 안정화는 이 단계에서 실행하지
+  않았습니다.
 
 ## v1.9.0 Release Trust Hardening Close-out
 
