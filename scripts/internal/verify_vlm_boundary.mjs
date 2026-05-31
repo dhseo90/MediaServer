@@ -142,17 +142,19 @@ check("contract freeze baseline remains the schema drift gate", () => {
   };
 });
 
-check("VLM implementation is not introduced before boundary-only step closes", () => {
+check("VLM implementation artifacts preserve boundary non-scope invariants", () => {
   const sourceFiles = gitLsFiles(["src", "include", "config", "test/fixtures"]);
   const allowlisted = new Set([
     "test/fixtures/integrator_contract_artifact/README.md",
     "test/fixtures/integrator_contract_artifact/freeze-baseline.json",
   ]);
   const forbiddenTokens = [
-    /\bVLMObservation\b/,
-    /\bvlm[_-]?profile\b/i,
-    /\bvlm[_-]?sidecar\b/i,
-    /\bpromptProfile\b/,
+    /\/client\/vlm/i,
+    /\.(gguf|safetensors|ggml|ckpt)\b/i,
+    /\bcloudProviderApiCalled\s*:\s*true\b/,
+    /\bruntimeVlmCallPerformed\s*:\s*true\b/,
+    /\bmodelArtifactDownloaded\s*:\s*true\b/,
+    /\bautoRuleApplied\s*:\s*true\b/,
   ];
   const hits = [];
   for (const file of sourceFiles) {
@@ -162,10 +164,10 @@ check("VLM implementation is not introduced before boundary-only step closes", (
       if (token.test(text)) hits.push(`${file}: ${token}`);
     }
   }
-  assert(hits.length === 0, `VLM implementation token(s) found before boundary step:\n${hits.join("\n")}`);
+  assert(hits.length === 0, `forbidden VLM boundary artifact token(s) found:\n${hits.join("\n")}`);
   return {
     scannedRoots: ["src", "include", "config", "test/fixtures"],
-    forbiddenImplementationTokens: forbiddenTokens.length,
+    forbiddenBoundaryTokens: forbiddenTokens.length,
   };
 });
 

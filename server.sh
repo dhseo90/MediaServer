@@ -288,6 +288,10 @@ Usage:
                  v2.0.0 VLM event evidence reference 추출 경계를 검증합니다.
   verify-vlm-observation-sidecar
                  v2.0.0 VLMObservation sidecar 저장소와 EventRecord 상관 경계를 검증합니다.
+  generate-vlm-event-explanation
+                 v2.0.0 VLM 이벤트 설명/오탐 힌트 fixture report를 산출합니다.
+  verify-vlm-event-explanation-hints
+                 v2.0.0 VLM 이벤트 설명/오탐 힌트와 JSON 안정성을 검증합니다.
   verify-event-post
                  VA event POST payload, 실패/cooldown/queue 상태를 검증합니다.
   verify-integrator-contract-artifact
@@ -962,6 +966,14 @@ case "${cmd}" in
   verify-vlm-observation-sidecar)
     require_internal verify_vlm_observation_sidecar.mjs
     exec "${INTERNAL_DIR}/verify_vlm_observation_sidecar.mjs" "$@"
+    ;;
+  generate-vlm-event-explanation)
+    require_internal generate_vlm_event_explanation.mjs
+    exec "${INTERNAL_DIR}/generate_vlm_event_explanation.mjs" "$@"
+    ;;
+  verify-vlm-event-explanation-hints)
+    require_internal verify_vlm_event_explanation_hints.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_event_explanation_hints.mjs" "$@"
     ;;
   verify-event-post)
     require_internal verify_event_post_dispatch.sh

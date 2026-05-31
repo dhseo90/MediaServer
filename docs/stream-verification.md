@@ -287,6 +287,20 @@ Ops 리뷰 UI 구현을 대신하지 않습니다.
 ./server.sh verify-ws-metadata
 ```
 
+VLM event explanation은 `V200-S09`의 fixture 기반 이벤트 설명/오탐 힌트 생성을
+확인합니다. 이벤트 발생 이유, 화면 내 사람/차량/영역 관계, falsePositiveHints,
+operatorReviewQuestions, JSON stability를 검증하되, 실제 VLM runtime 호출, cloud provider
+API 호출, Event/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경은 수행하지
+않습니다.
+
+```bash
+./server.sh generate-vlm-event-explanation \
+  --fixture test/fixtures/vlm_event_explanation/cases.json \
+  --json-output /tmp/media_server_vlm_event_explanation.json \
+  --report /tmp/media_server_vlm_event_explanation.md
+./server.sh verify-vlm-event-explanation-hints
+```
+
 CI/local gate parity는 `media-server.ci-local-gate-parity.v1` summary로
 Preflight/static-gates/guardrails/RC workflow에 실제로 걸린 `./server.sh` 명령과
 로컬 release/static verifier 목록을 대조합니다. 로컬에서 통과해야 한다고 문서화한

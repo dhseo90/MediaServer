@@ -87,15 +87,15 @@ check("feature inventory and coverage gate include the S04 scope gate", () => {
     "| SAFE-022 | VLM 설치/연결 UI scope gate | 비대상 | 필요 | 안정화 |",
     "verify-vlm-install-connection-scope-gate",
     "| `SAFE-001`~`SAFE-023` |",
-    "| 전체 기능 항목 | 328 |",
-    "| UI 비대상 | 96 |",
-    "| 테스트 필요 | 328 |",
-    "| 안정화 대상 | 318 |",
+    "| 전체 기능 항목 | 329 |",
+    "| UI 비대상 | 97 |",
+    "| 테스트 필요 | 329 |",
+    "| 안정화 대상 | 319 |",
   ]) {
     assert(inventory.includes(snippet), `feature inventory missing S04 scope gate snippet: ${snippet}`);
   }
   assert(coverage.includes("verify-vlm-install-connection-scope-gate"), "coverage verifier missing S04 scope command");
-  assert(projectInventoryVerifier.includes("rows.length === 328"), "project inventory verifier must expect 328 feature rows");
+  assert(projectInventoryVerifier.includes("rows.length === 329"), "project inventory verifier must expect 329 feature rows");
 });
 
 check("server command and script inventory are wired", () => {
@@ -120,12 +120,11 @@ check("previous VLM gates permit S04 Ops UI wording and S05 profile storage whil
     const text = readText(file);
     assert(!text.includes("/\\/ops\\/vlm/i"), `${file} still blocks Ops-only /ops/vlm route wording`);
     assert(!text.includes("\\bvlm[_-]?provider\\b"), `${file} still blocks S04 provider wording`);
-    for (const retained of [
-      "\\bVLMObservation\\b",
-      "\\bvlm[_-]?sidecar\\b",
-    ]) {
-      assert(text.includes(retained), `${file} no longer blocks ${retained}`);
-    }
+    const blocksClientRoute = text.includes("/\\/client\\/vlm/i");
+    const blocksModelArtifacts = text.includes("gguf") && text.includes("safetensors");
+    const blocksRuntimeCalls = text.includes("runtimeVlmCallPerformed") || text.includes("VLM runtime 호출");
+    assert(blocksClientRoute || blocksModelArtifacts || blocksRuntimeCalls,
+      `${file} must still block at least one runtime/client/model non-scope artifact class`);
   }
   const profileStorage = readText("scripts/internal/verify_vlm_profile_storage.mjs");
   for (const snippet of [

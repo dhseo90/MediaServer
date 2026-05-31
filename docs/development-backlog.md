@@ -138,7 +138,7 @@ YOLO 이벤트가 왜 발생했는지 설명하고, 오탐 가능성 및 운영�
 | 6 | V200-S06 | 완료 | VLM 평가 harness | sample 이벤트 frame, bbox crop, 전후 frame으로 latency, 설명 품질, hallucination, JSON 안정성, 한국어/영어 출력 품질을 비교합니다. | VLM fixture sample, prompt profile A/B, structured output fixture, evaluation report, `git diff --check` |
 | 7 | V200-S07 | 완료 | 이벤트 evidence 추출 | YOLO 이벤트 발생 시 snapshot, bbox crop, 전후 frame, 짧은 clip evidence 후보를 만들고 VLM 입력으로 쓸 수 있게 reference를 분리합니다. | EventRecord snapshot/clip fixture, crop extraction smoke, redaction review, `verify-va-events`, `verify-va-replay`, `git diff --check` |
 | 8 | V200-S08 | 완료 | VLMObservation sidecar | 기존 Event POST/WebRTC/SSE/WS metadata를 바꾸지 않고 VLM 결과를 별도 sidecar로 저장합니다. | sidecar schema fixture, EventRecord correlation report, existing metadata diff guard, `verify-event-post`, `verify-ws-metadata`, `git diff --check` |
-| 9 | V200-S09 | 예정 | 이벤트 설명/오탐 힌트 | 이벤트 발생 이유, 화면 내 사람/차량/영역 관계, 오탐 가능성, 운영자 확인 질문을 생성합니다. | event explanation fixture, false-positive hint fixture, operator question review, JSON stability check, `git diff --check` |
+| 9 | V200-S09 | 완료 | 이벤트 설명/오탐 힌트 | 이벤트 발생 이유, 화면 내 사람/차량/영역 관계, 오탐 가능성, 운영자 확인 질문을 생성합니다. | event explanation fixture, false-positive hint fixture, operator question review, JSON stability check, `git diff --check` |
 | 10 | V200-S10 | 예정 | Ops 이벤트 리뷰 UI | EventRecord, snapshot/짧은 clip evidence, VLM 설명을 Ops 이벤트 리뷰 화면에서 함께 보여줍니다. viewer/client에는 노출하지 않습니다. | `verify-ops-client-ui`, `verify-ops-client-ui --screenshots`, event review UI smoke, viewer redaction UI smoke, `git diff --check` |
 | 11 | V200-S11 | 예정 | Privacy/전송 guard | cloud 사용 시 외부 전송 경고, redaction, credential/prompt/raw response/source URL 비노출, provider logging 정책을 강제합니다. | privacy fixture, source URL/raw JSON leak guard, auth/scope review, `verify-auth-routes`, `verify-ops-client-ui`, `git diff --check` |
 | 12 | V200-S12 | 예정 | VLM summary 검색 후보 | VLM summary를 이용해 "문 근처에서 멈춘 사람" 같은 semantic event search 후보를 만듭니다. 검색은 후보 단계로 두고 기존 event schema는 변경하지 않습니다. | search fixture, sidecar query smoke, EventRecord correlation smoke, `git diff --check` |
@@ -703,6 +703,57 @@ schema, RTSP/WebRTC media path는 변경하지 않습니다.
 - Ops 이벤트 리뷰 UI는 `V200-S10` 범위입니다.
 - Privacy/전송 guard는 `V200-S11` 범위입니다.
 - v2.0.0 전체 UI 풀테스트와 close-out evidence는 `V200-S18` 범위입니다.
+
+### V200-S09 이벤트 설명/오탐 힌트 완료 기준
+
+S09는 S07 evidence reference와 S08 observation 저장 계약 위에서 이벤트 설명,
+화면 내 사람/차량/영역 관계, 오탐 가능성, 운영자 확인 질문을 생성하는 단계입니다.
+실제 VLM runtime/provider 호출은 하지 않고 fixture 기반 deterministic JSON report로
+품질과 안정성 기준을 먼저 고정합니다.
+
+이번 범위에서 구현하는 것:
+
+- `media-server.vlm-event-explanation-report.v1` report를 생성합니다.
+- 개별 output은 `media-server.vlm-event-explanation.v1` schema를 사용합니다.
+- 사람 line-crossing, 사람 zone dwell, 차량 restricted zone fixture를 포함합니다.
+- `objectAreaRelations[]`, `falsePositiveHints[]`, `operatorReviewQuestions[]`를 각각
+  비워두지 않고 생성합니다.
+- 동일 fixture 반복 실행 시 byte-stable JSON을 보장합니다.
+- raw prompt, raw provider response, credential material, source URL, raw frame bytes를
+  저장하지 않는 redaction review를 유지합니다.
+
+이번 범위에서 하지 않는 일:
+
+- 실제 VLM runtime 호출
+- cloud provider API 호출
+- model artifact download 또는 bundle 포함
+- Ops 이벤트 리뷰 UI 구현
+- viewer/client 화면 노출
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- 자동 rule/profile 적용
+
+완료 evidence:
+
+- `./server.sh generate-vlm-event-explanation --fixture test/fixtures/vlm_event_explanation/cases.json`
+  명령이 JSON report를 생성합니다.
+- `./server.sh verify-vlm-event-explanation-hints`가 event explanation fixture,
+  false-positive hint fixture, operator question review, JSON stability, docs/inventory/server
+  wiring, non-scope boundary를 검증합니다.
+- `./server.sh verify-vlm-observation-sidecar`가 S08 저장 경계가 유지되는지 확인합니다.
+- `git diff --check`가 코드/문서/script whitespace drift를 확인합니다.
+- 2026-05-31 S09 local evidence: `node --check scripts/internal/generate_vlm_event_explanation.mjs`,
+  `node --check scripts/internal/verify_vlm_event_explanation_hints.mjs`,
+  `./server.sh generate-vlm-event-explanation --fixture test/fixtures/vlm_event_explanation/cases.json`,
+  `./server.sh verify-vlm-event-explanation-hints`, `./server.sh verify-vlm-observation-sidecar`,
+  docs/inventory/script verifier, 기존 VLM gate, `git diff --check`.
+
+후속 단계로 남기는 범위:
+
+- Ops 이벤트 리뷰 UI는 `V200-S10` 범위입니다.
+- Privacy/전송 guard는 `V200-S11` 범위입니다.
+- semantic event search 후보는 `V200-S12` 범위입니다.
+- rule 추천 보조 후보는 `V200-S13` 범위입니다.
 
 v2.0.0 완료 판정은 기능 구현만으로 닫지 않습니다. 각 개발 순서에서 추가한 테스트가
 `project-feature-test-inventory.md`, 안정화 테스트, 30분/120분 trigger, UI 풀테스트
