@@ -270,6 +270,21 @@ std::optional<std::string> ExtractTopLevelString(const std::string& json, const 
     return decoded;
 }
 
+std::optional<bool> ExtractTopLevelBool(const std::string& json, const std::string& field) {
+    const auto value = ExtractTopLevelJsonValue(json, field);
+    if (!value.has_value()) {
+        return std::nullopt;
+    }
+    const std::string trimmed = TrimCopy(*value);
+    if (trimmed == "true") {
+        return true;
+    }
+    if (trimmed == "false") {
+        return false;
+    }
+    return std::nullopt;
+}
+
 bool HasTopLevelField(const std::string& json, const std::string& field) {
     return ExtractTopLevelJsonValue(json, field).has_value();
 }
@@ -374,6 +389,26 @@ struct VlmSummarySearchCandidate {
     std::size_t line_index{0};
 };
 
+struct VlmRuleSuggestionCandidate {
+    std::string event_id;
+    std::string observation_id;
+    std::string source_id;
+    std::string rule_id;
+    std::string scenario_id;
+    std::string summary;
+    std::string event_explanation;
+    std::string provider;
+    std::string model;
+    std::string prompt_profile;
+    std::string privacy_mode;
+    std::string rule_suggestion_json;
+    std::string proposed_rule_kind;
+    std::string candidate_id;
+    std::string suggested_action;
+    std::string target_route;
+    std::size_t line_index{0};
+};
+
 std::string NormalizeSummarySearchText(const std::string& value) {
     std::string out;
     out.reserve(value.size());
@@ -424,6 +459,19 @@ std::vector<std::string> SummarySearchTerms(const std::string& query) {
 
 bool VlmObservationMatchesSearchFilters(const std::string& line,
                                         const VlmSummarySearchOptions& options) {
+    const auto schema = ExtractTopLevelString(line, "schema");
+    if (!schema.has_value() || *schema != "media-server.vlm-observation.v1") {
+        return false;
+    }
+    const auto match_string = [&](const std::string& field, const std::string& expected) {
+        return expected.empty() || ExtractTopLevelString(line, field).value_or("") == expected;
+    };
+    return match_string("sourceId", options.source_id) &&
+           match_string("privacyMode", options.privacy_mode);
+}
+
+bool VlmObservationMatchesRuleSuggestionFilters(const std::string& line,
+                                                const VlmRuleSuggestionOptions& options) {
     const auto schema = ExtractTopLevelString(line, "schema");
     if (!schema.has_value() || *schema != "media-server.vlm-observation.v1") {
         return false;
@@ -492,6 +540,46 @@ void AppendVlmSummarySearchCandidateJson(std::ostringstream& out,
         << "\"runtimeVlmCallPerformed\":false,"
         << "\"cloudProviderApiCalled\":false,"
         << "\"autoRuleApplied\":false"
+        << "}"
+        << "}";
+}
+
+void AppendVlmRuleSuggestionCandidateJson(std::ostringstream& out,
+                                          const VlmRuleSuggestionCandidate& candidate) {
+    out << "{"
+        << "\"schema\":\"media-server.vlm-rule-suggestion-candidate.v1\","
+        << "\"eventId\":\"" << JsonEscape(candidate.event_id) << "\","
+        << "\"observationId\":\"" << JsonEscape(candidate.observation_id) << "\","
+        << "\"sourceId\":\"" << JsonEscape(candidate.source_id) << "\","
+        << "\"ruleId\":\"" << JsonEscape(candidate.rule_id) << "\","
+        << "\"scenarioId\":\"" << JsonEscape(candidate.scenario_id) << "\","
+        << "\"summary\":\"" << JsonEscape(candidate.summary) << "\","
+        << "\"eventExplanation\":\"" << JsonEscape(candidate.event_explanation) << "\","
+        << "\"provider\":\"" << JsonEscape(candidate.provider) << "\","
+        << "\"model\":\"" << JsonEscape(candidate.model) << "\","
+        << "\"promptProfile\":\"" << JsonEscape(candidate.prompt_profile) << "\","
+        << "\"privacyMode\":\"" << JsonEscape(candidate.privacy_mode) << "\","
+        << "\"proposedRuleKind\":\"" << JsonEscape(candidate.proposed_rule_kind) << "\","
+        << "\"candidateId\":\"" << JsonEscape(candidate.candidate_id) << "\","
+        << "\"suggestedAction\":\"" << JsonEscape(candidate.suggested_action) << "\","
+        << "\"targetRoute\":\"" << JsonEscape(candidate.target_route.empty() ? "/ops/rules" : candidate.target_route) << "\","
+        << "\"manualReviewRequired\":true,"
+        << "\"autoApply\":false,"
+        << "\"candidateSource\":\"vlm-observation-sidecar-rule-suggestion\","
+        << "\"ruleSuggestion\":" << SafeObjectOrNull(candidate.rule_suggestion_json) << ","
+        << "\"contract\":{"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"runtimeVlmCallPerformed\":false,"
+        << "\"cloudProviderApiCalled\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"autoRuleApplied\":false,"
+        << "\"autoProfileApplied\":false"
         << "}"
         << "}";
 }
@@ -811,6 +899,166 @@ bool BuildVlmSummarySearchCandidatesJson(const std::string& path,
         << "\"runtimeVlmCallPerformed\":false,"
         << "\"cloudProviderApiCalled\":false,"
         << "\"autoRuleApplied\":false"
+        << "}"
+        << "}";
+    *body = out.str();
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+}
+
+bool BuildVlmRuleSuggestionCandidatesJson(const std::string& path,
+                                          const VlmRuleSuggestionOptions& options,
+                                          std::string* body,
+                                          std::string* error_message) {
+    if (body == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "missing VLM rule suggestion response body";
+        }
+        return false;
+    }
+    body->clear();
+
+    const std::filesystem::path store_path(path);
+    std::error_code ec;
+    const bool file_exists = !store_path.empty() && std::filesystem::exists(store_path, ec) && !ec;
+    if (ec) {
+        if (error_message != nullptr) {
+            *error_message = ec.message();
+        }
+        return false;
+    }
+
+    std::vector<VlmRuleSuggestionCandidate> candidates;
+    std::uint64_t skipped_corrupt_lines = 0;
+    std::uint64_t excluded_auto_apply_suggestions = 0;
+    std::uint64_t excluded_non_manual_review_suggestions = 0;
+    if (file_exists) {
+        std::ifstream input(store_path);
+        if (!input.good()) {
+            if (error_message != nullptr) {
+                *error_message = "failed to open VLM observation store";
+            }
+            return false;
+        }
+        std::string line;
+        std::size_t line_index = 0;
+        while (std::getline(input, line)) {
+            ++line_index;
+            if (!line.empty() && line.back() == '\r') {
+                line.pop_back();
+            }
+            if (TrimCopy(line).empty()) {
+                continue;
+            }
+            if (line.size() > kMaxObservationLineBytes || !ValidateTopLevelJsonObject(line)) {
+                ++skipped_corrupt_lines;
+                continue;
+            }
+            if (!VlmObservationMatchesRuleSuggestionFilters(line, options)) {
+                continue;
+            }
+            const auto suggestion_value = ExtractTopLevelJsonValue(line, "ruleSuggestion");
+            if (!suggestion_value.has_value()) {
+                continue;
+            }
+            const std::string suggestion_json = TrimCopy(*suggestion_value);
+            if (suggestion_json == "null" || !ValidateTopLevelJsonObject(suggestion_json)) {
+                continue;
+            }
+            const std::string kind = ExtractTopLevelString(suggestion_json, "kind").value_or("");
+            if (kind.empty() || kind == "none") {
+                continue;
+            }
+            if (!options.suggestion_kind.empty() && kind != options.suggestion_kind) {
+                continue;
+            }
+            if (ExtractTopLevelBool(suggestion_json, "autoApply").value_or(true)) {
+                ++excluded_auto_apply_suggestions;
+                continue;
+            }
+            if (!ExtractTopLevelBool(suggestion_json, "manualReviewRequired").value_or(false)) {
+                ++excluded_non_manual_review_suggestions;
+                continue;
+            }
+
+            VlmRuleSuggestionCandidate candidate;
+            candidate.event_id = ExtractTopLevelString(line, "eventId").value_or("");
+            candidate.observation_id = ExtractTopLevelString(line, "observationId").value_or("");
+            candidate.source_id = ExtractTopLevelString(line, "sourceId").value_or("");
+            candidate.rule_id = ExtractTopLevelString(line, "ruleId").value_or("");
+            candidate.scenario_id = ExtractTopLevelString(line, "scenarioId").value_or("");
+            candidate.summary = ExtractTopLevelString(line, "summary").value_or("");
+            candidate.event_explanation = ExtractTopLevelString(line, "eventExplanation").value_or("");
+            candidate.provider = ExtractTopLevelString(line, "provider").value_or("");
+            candidate.model = ExtractTopLevelString(line, "model").value_or("");
+            candidate.prompt_profile = ExtractTopLevelString(line, "promptProfile").value_or("");
+            candidate.privacy_mode = ExtractTopLevelString(line, "privacyMode").value_or("");
+            candidate.rule_suggestion_json = suggestion_json;
+            candidate.proposed_rule_kind = kind;
+            candidate.candidate_id = ExtractTopLevelString(suggestion_json, "candidateId").value_or("");
+            candidate.suggested_action =
+                ExtractTopLevelString(suggestion_json, "suggestedAction").value_or("manual-save-in-ops-rules");
+            candidate.target_route = ExtractTopLevelString(suggestion_json, "targetRoute").value_or("/ops/rules");
+            candidate.line_index = line_index;
+            candidates.push_back(std::move(candidate));
+        }
+    }
+
+    std::stable_sort(candidates.begin(),
+                     candidates.end(),
+                     [](const VlmRuleSuggestionCandidate& lhs,
+                        const VlmRuleSuggestionCandidate& rhs) {
+                         return lhs.line_index < rhs.line_index;
+                     });
+
+    const std::size_t effective_limit = options.limit == 0 ? 25 : std::min<std::size_t>(options.limit, 100);
+    const std::size_t begin = std::min(options.offset, candidates.size());
+    const std::size_t end = std::min(begin + effective_limit, candidates.size());
+
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.vlm-rule-suggestion-candidates.v1\","
+        << "\"targetStep\":\"V200-S13\","
+        << "\"suggestionMode\":\"sidecar-rule-suggestion-candidate\","
+        << "\"correlationKey\":\"eventId\","
+        << "\"candidateStatus\":\"candidate-only-manual-rule-save\","
+        << "\"manualSaveRoute\":\"/ops/rules\","
+        << "\"fileExists\":" << (file_exists ? "true" : "false") << ","
+        << "\"sourceId\":\"" << JsonEscape(options.source_id) << "\","
+        << "\"privacyMode\":\"" << JsonEscape(options.privacy_mode) << "\","
+        << "\"suggestionKind\":\"" << JsonEscape(options.suggestion_kind) << "\","
+        << "\"candidates\":[";
+    for (std::size_t index = begin; index < end; ++index) {
+        if (index != begin) {
+            out << ",";
+        }
+        AppendVlmRuleSuggestionCandidateJson(out, candidates[index]);
+    }
+    out << "],"
+        << "\"offset\":" << options.offset << ","
+        << "\"limit\":" << effective_limit << ","
+        << "\"nextOffset\":" << end << ","
+        << "\"matchedCandidates\":" << candidates.size() << ","
+        << "\"hasMore\":" << (end < candidates.size() ? "true" : "false") << ","
+        << "\"truncated\":" << (end < candidates.size() ? "true" : "false") << ","
+        << "\"skippedCorruptLines\":" << skipped_corrupt_lines << ","
+        << "\"excludedAutoApplySuggestions\":" << excluded_auto_apply_suggestions << ","
+        << "\"excludedNonManualReviewSuggestions\":" << excluded_non_manual_review_suggestions << ","
+        << "\"contract\":{"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"runtimeVlmCallPerformed\":false,"
+        << "\"cloudProviderApiCalled\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"autoRuleApplied\":false,"
+        << "\"autoProfileApplied\":false"
         << "}"
         << "}";
     *body = out.str();

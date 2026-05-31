@@ -1741,7 +1741,13 @@ void VerifyVlmObservationStore() {
     observation.event_explanation = "fixture explanation stored outside EventRecord for a person waiting by the doorway";
     observation.false_positive_hints = {"reflection near line", "partial occlusion"};
     observation.operator_review_questions = {"Did the person fully cross the line?"};
-    observation.rule_suggestion_json = "{\"kind\":\"none\",\"autoApply\":false}";
+    observation.rule_suggestion_json =
+        "{\"kind\":\"line-crossing\",\"candidateId\":\"line-entry-manual-review\","
+        "\"suggestedAction\":\"manual-save-in-ops-rules\",\"targetRoute\":\"/ops/rules\","
+        "\"manualReviewRequired\":true,\"autoApply\":false,"
+        "\"draftRule\":{\"eventType\":\"line-crossing\",\"regionType\":\"line\","
+        "\"direction\":\"forward\",\"classes\":[\"person\"],\"minConfidence\":0.55},"
+        "\"rationale\":\"Person stopped near the doorway after crossing the entry line.\"}";
     observation.uncertainty = 0.2;
     observation.provider = "fixture-local";
     observation.model = "fixture-vlm";
@@ -1827,6 +1833,33 @@ void VerifyVlmObservationStore() {
                search_json.find("\"autoRuleApplied\":false") != std::string::npos,
            "VLM summary search must preserve payload/UI/runtime/rule boundaries");
 
+    VlmRuleSuggestionOptions rule_suggestion_options;
+    rule_suggestion_options.source_id = record.stream_id;
+    rule_suggestion_options.limit = 5;
+    std::string rule_suggestion_json;
+    Expect(BuildVlmRuleSuggestionCandidatesJson(observation_path.string(),
+                                                rule_suggestion_options,
+                                                &rule_suggestion_json,
+                                                &error_message),
+           "VLM rule suggestion smoke must build candidates: " + error_message);
+    Expect(rule_suggestion_json.find("\"schema\":\"media-server.vlm-rule-suggestion-candidates.v1\"") !=
+               std::string::npos &&
+               rule_suggestion_json.find("\"targetStep\":\"V200-S13\"") != std::string::npos &&
+               rule_suggestion_json.find("\"eventId\":\"evt-vlm-observation\"") != std::string::npos &&
+               rule_suggestion_json.find("\"proposedRuleKind\":\"line-crossing\"") !=
+                   std::string::npos &&
+               rule_suggestion_json.find("\"candidateStatus\":\"candidate-only-manual-rule-save\"") !=
+                   std::string::npos &&
+               rule_suggestion_json.find("\"manualSaveRoute\":\"/ops/rules\"") != std::string::npos,
+           "VLM rule suggestion must return a manual-save candidate correlated by eventId");
+    Expect(rule_suggestion_json.find("\"autoApply\":false") != std::string::npos &&
+               rule_suggestion_json.find("\"manualReviewRequired\":true") != std::string::npos &&
+               rule_suggestion_json.find("\"ruleRegistryWritePerformed\":false") != std::string::npos &&
+               rule_suggestion_json.find("\"viewerClientExposureAdded\":false") != std::string::npos &&
+               rule_suggestion_json.find("\"runtimeVlmCallPerformed\":false") != std::string::npos &&
+               rule_suggestion_json.find("\"autoRuleApplied\":false") != std::string::npos,
+           "VLM rule suggestion must preserve manual-review and no-auto-apply boundaries");
+
     std::filesystem::remove(event_path, ec);
     ec.clear();
     std::filesystem::remove(observation_path, ec);
@@ -1836,6 +1869,8 @@ void VerifyVlmObservationStore() {
     Pass("VLM observation correlation report preserves event payload boundary");
     Pass("VLM summary search returns sidecar candidates");
     Pass("VLM summary search preserves EventRecord correlation boundary");
+    Pass("VLM rule suggestion returns manual-save candidates");
+    Pass("VLM rule suggestion preserves no-auto-apply boundary");
 }
 
 void VerifyEventRecorderMediaHooks() {

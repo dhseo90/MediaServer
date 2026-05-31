@@ -1,0 +1,298 @@
+{
+  "schema": "media-server.vlm-rule-suggestion-fixtures.v1",
+  "targetStep": "V200-S13",
+  "purpose": "Fixture-only VLM rule suggestion candidate matrix. It extracts candidate-only rule drafts from VLMObservation sidecar records and keeps all application as a manual /ops/rules action.",
+  "decision": {
+    "primarySuggestionCandidate": "sidecar-rule-suggestion-candidate",
+    "selectedCandidates": [
+      "line-crossing-manual-review",
+      "intrusion-dwell-manual-review",
+      "zone-occupancy-manual-review"
+    ],
+    "fallback": "Ops manual review of EventRecord, VLM explanation, and existing /ops/rules rule/template/profile forms",
+    "alternatives": [
+      "rule-suggestion-review-ui-candidate",
+      "provider-rerank-rule-candidate"
+    ],
+    "excluded": [
+      {
+        "id": "auto-rule-create-or-apply",
+        "reason": "V200-S13 must not write Rule/Profile registry payloads or apply a suggested rule automatically."
+      },
+      {
+        "id": "event-record-top-level-rule-suggestion",
+        "reason": "Existing EventRecord/Event POST/WebRTC/SSE/WS contracts must not gain ruleSuggestion fields."
+      },
+      {
+        "id": "client-viewer-rule-suggestion-ui",
+        "reason": "Rule suggestions are Ops-only candidates and must not appear in viewer/client surfaces."
+      },
+      {
+        "id": "runtime-vlm-requery-for-rule-suggestion",
+        "reason": "S13 uses already stored sidecar observations and must not call local or cloud VLM runtimes."
+      }
+    ],
+    "licenseProvenancePrivacyReview": {
+      "modelLicenseReusedFrom": "V200-S01/V200-S05 stored VLM profile metadata",
+      "newModelOrProviderAdded": false,
+      "rawPromptStored": false,
+      "rawResponseStored": false,
+      "sourceUrlExposed": false,
+      "rawFrameBytesStored": false,
+      "credentialMaterialStored": false,
+      "externalTransferAdded": false,
+      "ruleRegistryWritePerformed": false,
+      "operatorDefault": "candidate-only manual save in /ops/rules; no automatic rule/profile application"
+    }
+  },
+  "cases": [
+    {
+      "id": "line-intrusion-zone-candidates",
+      "options": {
+        "sourceId": "front-door",
+        "privacyMode": "local-only",
+        "limit": 5
+      },
+      "observations": [
+        {
+          "schema": "media-server.vlm-observation.v1",
+          "observationId": "vlmobs-rule-line-001",
+          "eventId": "evt-rule-line-001",
+          "sourceId": "front-door",
+          "ruleId": "entry-line",
+          "scenarioId": "line-crossing",
+          "summary": "사람이 출입문 기준선을 동쪽 방향으로 통과했습니다.",
+          "eventExplanation": "bbox 중심이 출입문 line을 지나고 다음 frame에서도 문 안쪽에 있습니다.",
+          "falsePositiveHints": [
+            "반사체가 선 근처에 겹쳤는지 확인하세요."
+          ],
+          "operatorReviewQuestions": [
+            "운영자가 설정한 선 방향이 실제 출입 방향과 일치하나요?"
+          ],
+          "ruleSuggestion": {
+            "kind": "line-crossing",
+            "candidateId": "line-crossing-manual-review",
+            "suggestedAction": "manual-save-in-ops-rules",
+            "targetRoute": "/ops/rules",
+            "manualReviewRequired": true,
+            "autoApply": false,
+            "draftRule": {
+              "eventType": "line-crossing",
+              "regionType": "line",
+              "direction": "forward",
+              "classes": [
+                "person"
+              ],
+              "minConfidence": 0.55
+            },
+            "rationale": "Line-crossing candidate only; operator must verify geometry and save manually."
+          },
+          "privacyMode": "local-only",
+          "provider": "fixture-local",
+          "model": "fixture-vlm",
+          "promptProfile": "event-review-default",
+          "storageScope": "vlm-observation-store-only",
+          "redactionReview": {
+            "rawPromptStored": false,
+            "rawResponseStored": false,
+            "sourceUrlExposed": false,
+            "credentialMaterialStored": false,
+            "rawMediaEmbedded": false
+          },
+          "contractInvariants": {
+            "eventPostPayloadChanged": false,
+            "webrtcDataChannelSchemaChanged": false,
+            "sseMetadataSchemaChanged": false,
+            "wsMetadataSchemaChanged": false,
+            "rtspOrWebrtcMediaPathChanged": false,
+            "viewerClientExposureAdded": false
+          }
+        },
+        {
+          "schema": "media-server.vlm-observation.v1",
+          "observationId": "vlmobs-rule-intrusion-001",
+          "eventId": "evt-rule-intrusion-001",
+          "sourceId": "front-door",
+          "ruleId": "restricted-entry",
+          "scenarioId": "intrusion-dwell",
+          "summary": "사람이 제한 구역 안에 일정 시간 머물렀습니다.",
+          "eventExplanation": "사람 bbox가 제한 구역 polygon 내부에 유지되어 intrusion dwell 후보가 됩니다.",
+          "falsePositiveHints": [
+            "통로와 제한 구역 polygon이 겹쳤는지 확인하세요."
+          ],
+          "operatorReviewQuestions": [
+            "이 polygon이 실제 제한 구역만 포함하나요?"
+          ],
+          "ruleSuggestion": {
+            "kind": "intrusion-dwell",
+            "candidateId": "intrusion-dwell-manual-review",
+            "suggestedAction": "manual-save-in-ops-rules",
+            "targetRoute": "/ops/rules",
+            "manualReviewRequired": true,
+            "autoApply": false,
+            "draftRule": {
+              "eventType": "intrusion-dwell",
+              "regionType": "polygon",
+              "classes": [
+                "person"
+              ],
+              "minDurationMs": 3000,
+              "cooldownMs": 15000
+            },
+            "rationale": "Intrusion candidate only; operator must review zone geometry and dwell time."
+          },
+          "privacyMode": "local-only",
+          "provider": "fixture-local",
+          "model": "fixture-vlm",
+          "promptProfile": "event-review-default",
+          "storageScope": "vlm-observation-store-only",
+          "redactionReview": {
+            "rawPromptStored": false,
+            "rawResponseStored": false,
+            "sourceUrlExposed": false,
+            "credentialMaterialStored": false,
+            "rawMediaEmbedded": false
+          },
+          "contractInvariants": {
+            "eventPostPayloadChanged": false,
+            "webrtcDataChannelSchemaChanged": false,
+            "sseMetadataSchemaChanged": false,
+            "wsMetadataSchemaChanged": false,
+            "rtspOrWebrtcMediaPathChanged": false,
+            "viewerClientExposureAdded": false
+          }
+        },
+        {
+          "schema": "media-server.vlm-observation.v1",
+          "observationId": "vlmobs-rule-zone-001",
+          "eventId": "evt-rule-zone-001",
+          "sourceId": "front-door",
+          "ruleId": "door-zone",
+          "scenarioId": "zone-occupancy",
+          "summary": "문 앞 영역에 사람이 계속 머무릅니다.",
+          "eventExplanation": "zone occupancy 후보이며 운영자가 구역 크기와 체류 시간을 확인해야 합니다.",
+          "falsePositiveHints": [
+            "포스터나 그림자가 사람으로 검출됐는지 확인하세요."
+          ],
+          "operatorReviewQuestions": [
+            "문 앞 대기열도 같은 zone에 포함해야 하나요?"
+          ],
+          "ruleSuggestion": {
+            "kind": "zone-occupancy",
+            "candidateId": "zone-occupancy-manual-review",
+            "suggestedAction": "manual-save-in-ops-rules",
+            "targetRoute": "/ops/rules",
+            "manualReviewRequired": true,
+            "autoApply": false,
+            "draftRule": {
+              "eventType": "zone-occupancy",
+              "regionType": "polygon",
+              "classes": [
+                "person"
+              ],
+              "minOccupancy": 1,
+              "minDurationMs": 5000
+            },
+            "rationale": "Zone occupancy candidate only; operator must verify whether the zone should trigger alerts."
+          },
+          "privacyMode": "local-only",
+          "provider": "fixture-local",
+          "model": "fixture-vlm",
+          "promptProfile": "event-review-default",
+          "storageScope": "vlm-observation-store-only",
+          "redactionReview": {
+            "rawPromptStored": false,
+            "rawResponseStored": false,
+            "sourceUrlExposed": false,
+            "credentialMaterialStored": false,
+            "rawMediaEmbedded": false
+          },
+          "contractInvariants": {
+            "eventPostPayloadChanged": false,
+            "webrtcDataChannelSchemaChanged": false,
+            "sseMetadataSchemaChanged": false,
+            "wsMetadataSchemaChanged": false,
+            "rtspOrWebrtcMediaPathChanged": false,
+            "viewerClientExposureAdded": false
+          }
+        },
+        {
+          "schema": "media-server.vlm-observation.v1",
+          "observationId": "vlmobs-rule-auto-apply-rejected",
+          "eventId": "evt-rule-auto-apply-rejected",
+          "sourceId": "front-door",
+          "ruleId": "unsafe-auto-rule",
+          "scenarioId": "line-crossing",
+          "summary": "이 후보는 자동 적용 요청을 포함하므로 제외되어야 합니다.",
+          "eventExplanation": "autoApply true is a negative fixture.",
+          "falsePositiveHints": [],
+          "operatorReviewQuestions": [
+            "auto apply must be rejected."
+          ],
+          "ruleSuggestion": {
+            "kind": "line-crossing",
+            "candidateId": "auto-apply-rejected",
+            "suggestedAction": "auto-save-rule",
+            "targetRoute": "/ops/rules",
+            "manualReviewRequired": true,
+            "autoApply": true,
+            "draftRule": {
+              "eventType": "line-crossing",
+              "regionType": "line"
+            }
+          },
+          "privacyMode": "local-only",
+          "provider": "fixture-local",
+          "model": "fixture-vlm",
+          "promptProfile": "event-review-default",
+          "storageScope": "vlm-observation-store-only",
+          "redactionReview": {
+            "rawPromptStored": false,
+            "rawResponseStored": false,
+            "sourceUrlExposed": false,
+            "credentialMaterialStored": false,
+            "rawMediaEmbedded": false
+          },
+          "contractInvariants": {
+            "eventPostPayloadChanged": false,
+            "webrtcDataChannelSchemaChanged": false,
+            "sseMetadataSchemaChanged": false,
+            "wsMetadataSchemaChanged": false,
+            "rtspOrWebrtcMediaPathChanged": false,
+            "viewerClientExposureAdded": false
+          }
+        }
+      ],
+      "expected": {
+        "schema": "media-server.vlm-rule-suggestion-candidates.v1",
+        "candidateSchema": "media-server.vlm-rule-suggestion-candidate.v1",
+        "suggestionMode": "sidecar-rule-suggestion-candidate",
+        "candidateStatus": "candidate-only-manual-rule-save",
+        "manualSaveRoute": "/ops/rules",
+        "correlationKey": "eventId",
+        "candidateKinds": [
+          "line-crossing",
+          "intrusion-dwell",
+          "zone-occupancy"
+        ],
+        "excludedEventIds": [
+          "evt-rule-auto-apply-rejected"
+        ],
+        "contract": {
+          "eventRecordSchemaChanged": false,
+          "eventPostPayloadChanged": false,
+          "webrtcDataChannelSchemaChanged": false,
+          "sseMetadataSchemaChanged": false,
+          "wsMetadataSchemaChanged": false,
+          "rtspOrWebrtcMediaPathChanged": false,
+          "viewerClientExposureAdded": false,
+          "runtimeVlmCallPerformed": false,
+          "cloudProviderApiCalled": false,
+          "ruleRegistryWritePerformed": false,
+          "autoRuleApplied": false,
+          "autoProfileApplied": false
+        }
+      }
+    }
+  ]
+}

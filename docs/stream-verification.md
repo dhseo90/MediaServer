@@ -343,6 +343,20 @@ schema 변경, RTSP/WebRTC media path 변경, V200-S13 rule suggestion을 대신
 ./server.sh verify-ws-metadata
 ```
 
+VLM Rule 추천 보조 후보는 `V200-S13`의 sidecar-only rule draft 후보를 확인합니다.
+`media-server.vlm-rule-suggestion-candidates.v1` response는 S08 VLMObservation
+`ruleSuggestion`을 후보로 읽고 line-crossing, intrusion-dwell, zone-occupancy를
+`/ops/rules` 수동 저장 대상으로만 둡니다. 이 검증은 제품 rule suggestion UI, 자동
+Rule/Profile 적용, runtime VLM 호출, provider rerank, Event/WebRTC/SSE/WS schema 변경,
+RTSP/WebRTC media path 변경을 대신하지 않습니다.
+
+```bash
+./server.sh verify-vlm-rule-suggestion-candidates
+./server.sh verify-analysis-state
+./server.sh verify-rule-ui
+git diff --check
+```
+
 CI/local gate parity는 `media-server.ci-local-gate-parity.v1` summary로
 Preflight/static-gates/guardrails/RC workflow에 실제로 걸린 `./server.sh` 명령과
 로컬 release/static verifier 목록을 대조합니다. 로컬에서 통과해야 한다고 문서화한

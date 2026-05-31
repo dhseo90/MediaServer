@@ -142,7 +142,7 @@ YOLO 이벤트가 왜 발생했는지 설명하고, 오탐 가능성 및 운영�
 | 10 | V200-S10 | 완료 | Ops 이벤트 리뷰 UI | EventRecord, snapshot/짧은 clip evidence, VLM 설명을 Ops 이벤트 리뷰 화면에서 함께 보여줍니다. viewer/client에는 노출하지 않습니다. | `verify-vlm-ops-event-review-ui`, `verify-ops-event-review-inbox`, 인앱 브라우저 `/ops/events` 직접 확인, viewer/client redaction 확인, `git diff --check` |
 | 11 | V200-S11 | 완료 | Privacy/전송 guard | cloud 사용 시 외부 전송 경고, redaction, credential/prompt/raw response/source URL 비노출, provider logging 정책을 강제합니다. | privacy fixture, source URL/raw JSON leak guard, auth/scope review, `verify-vlm-privacy-transfer-guard`, `verify-auth-routes`, `verify-ops-client-ui`, `git diff --check` |
 | 12 | V200-S12 | 완료 | VLM summary 검색 후보 | VLM summary를 이용해 "문 근처에서 멈춘 사람" 같은 semantic event search 후보를 만듭니다. 검색은 후보 단계로 두고 기존 event schema는 변경하지 않습니다. | `verify-vlm-summary-search-candidates`, search fixture, sidecar query smoke, EventRecord correlation smoke, `git diff --check` |
-| 13 | V200-S13 | 예정 | Rule 추천 보조 후보 | VLM이 line/intrusion/zone 후보를 제안하되 자동 적용은 금지합니다. 운영자가 확인 후 수동 저장하는 흐름만 후보로 둡니다. | rule suggestion fixture, no-auto-apply guard, `/ops/rules` smoke, `verify-rule-ui`, `git diff --check` |
+| 13 | V200-S13 | 완료 | Rule 추천 보조 후보 | VLM이 line/intrusion/zone 후보를 제안하되 자동 적용은 금지합니다. 운영자가 확인 후 수동 저장하는 흐름만 후보로 둡니다. | rule suggestion fixture, no-auto-apply guard, `/ops/rules` smoke, `verify-rule-ui`, `git diff --check` |
 | 14 | V200-S14 | 예정 | 테스트 inventory 확장 | VLM으로 추가된 route, control, action, runtime state, sidecar, privacy guard를 기능 ID 단위로 `project-feature-test-inventory.md`에 추가합니다. | `verify-project-feature-test-inventory`, `verify-feature-inventory-coverage`, inventory-to-verifier mapping, `git diff --check` |
 | 15 | V200-S15 | 예정 | 간이 테스트 리허설 | 안정화/30분/120분/UI 풀테스트 전에 VLM 전용 짧은 smoke, missing-model, cloud-disabled, invalid-output, queue-timeout fixture를 실행해 테스트 자체가 막히지 않는지 확인합니다. | VLM smoke, failure fixture matrix, cleanup check, port/server lifecycle check, `git diff --check` |
 | 16 | V200-S16 | 예정 | 기존 테스트 side effect 점검 | VLM 변경이 auth, Ops/Client UI, Rule UI, VA replay/events, WebRTC metadata, SSE/WS metadata, Event POST, RTSP/WebRTC media path verifier에 영향을 주지 않는지 확인합니다. | `./server.sh build`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-rule-ui`, `verify-va-replay`, `verify-va-events`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-event-post`, `git diff --check` |
@@ -932,6 +932,77 @@ S12는 S08 VLMObservation sidecar에 이미 저장된 summary와 설명을 이�
 후속 단계로 남기는 범위:
 
 - rule 추천 보조 후보는 `V200-S13` 범위입니다.
+- VLM 테스트 inventory 전체 확장은 `V200-S14` 범위입니다.
+- v2.0.0 전체 side effect 안정화는 `V200-S16`, 장시간/UI 기준 정리는 `V200-S17`,
+  close-out readiness는 `V200-S18` 범위입니다.
+
+### V200-S13 Rule 추천 보조 후보 완료 기준
+
+S13은 S08 VLMObservation sidecar에 이미 저장된 `ruleSuggestion` object를 이용해
+line-crossing, intrusion-dwell, zone-occupancy 후보를 만드는 단계입니다. 이 단계는
+제품 rule suggestion UI, 자동 rule/profile 저장, runtime VLM 재호출, provider rerank를
+구현하지 않습니다.
+
+이번 범위에서 확정한 직접 답:
+
+- 1차 선택값: `sidecar-rule-suggestion-candidate`
+- 실제 선택 후보: `line-crossing-manual-review`,
+  `intrusion-dwell-manual-review`, `zone-occupancy-manual-review`
+- fallback: EventRecord, VLM 설명/오탐 힌트, 기존 `/ops/rules` form을 운영자가 직접
+  검토해 수동 저장
+- 대안: `rule-suggestion-review-ui-candidate`, `provider-rerank-rule-candidate`는
+  후보로만 보류
+
+제외 대상과 이유:
+
+- 자동 Rule/Profile 생성 또는 적용: 기존 rule registry write와 운영 승인 경계를
+  우회하므로 제외합니다.
+- EventRecord top-level `ruleSuggestion` 추가: 기존 EventRecord/Event POST/WebRTC/SSE/WS
+  contract 변경이므로 제외합니다.
+- client/viewer rule suggestion UI: viewer/client 노출 정책 검토가 별도 필요하므로
+  제외합니다.
+- runtime VLM re-query/provider rerank: 실제 VLM runtime 또는 cloud provider API 호출을
+  만들 수 있으므로 제외합니다.
+
+이번 범위에서 구현한 것:
+
+- `media-server.vlm-rule-suggestion-candidates.v1` response schema와
+  `media-server.vlm-rule-suggestion-candidate.v1` 후보 schema를 추가했습니다.
+- `BuildVlmRuleSuggestionCandidatesJson`이 VLMObservation sidecar JSONL에서
+  `ruleSuggestion` object를 읽고 수동 저장 후보만 반환합니다.
+- 후보는 `eventId`로 EventRecord와 상관시키며, EventRecord top-level payload에는
+  `ruleSuggestion` field를 추가하지 않습니다.
+- `test/fixtures/vlm_rule_suggestion/cases.json`이 실제 선택 후보, fallback, 제외 사유,
+  license/provenance/privacy review, line/intrusion/zone 후보, auto-apply rejected case를
+  보존합니다.
+- `verify-vlm-rule-suggestion-candidates`가 fixture, C++ builder, analysis-state smoke,
+  docs/inventory/server wiring, no-auto-apply boundary를 검증합니다.
+
+이번 범위에서 하지 않는 일:
+
+- 실제 VLM runtime 호출
+- cloud provider API 호출 또는 provider rerank
+- 제품 rule suggestion UI 또는 viewer/client 노출
+- EventRecord top-level schema 변경
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- 자동 Rule/Profile 생성 또는 적용
+- rule registry write 수행
+- V200-S14 테스트 inventory 전체 확장
+
+완료 evidence:
+
+- `./server.sh verify-vlm-rule-suggestion-candidates`가 fixture, C++ sidecar rule suggestion
+  builder, no-auto-apply guard, docs/inventory/server wiring, non-scope boundary를
+  검증합니다.
+- `./server.sh verify-analysis-state`가 sidecar rule suggestion 후보를 만들고 EventRecord와
+  `eventId`로만 상관시키는 smoke를 실행합니다.
+- `./server.sh verify-rule-ui`가 기존 `/ops/rules` smoke selector와 Rule/Profile 저장
+  흐름이 유지되는지 확인합니다.
+- `git diff --check`가 코드/문서/script whitespace drift를 확인합니다.
+
+후속 단계로 남기는 범위:
+
 - VLM 테스트 inventory 전체 확장은 `V200-S14` 범위입니다.
 - v2.0.0 전체 side effect 안정화는 `V200-S16`, 장시간/UI 기준 정리는 `V200-S17`,
   close-out readiness는 `V200-S18` 범위입니다.
