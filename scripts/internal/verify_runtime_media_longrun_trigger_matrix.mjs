@@ -70,6 +70,26 @@ check("VA runtime high-risk row requires runtime console longrun", () => {
   assert(fanout.highRiskSignals.includes("metadata fanout lifecycle"), "runtime fanout row missing high-risk signal");
 });
 
+check("VLM queue, memory, provider timeout, and model install rows are classified", () => {
+  const queue = rowById("vlm-queue-timeout-nonblocking");
+  assert(queue.triggers.includes("verify-predev --soak-minutes 30"), "VLM queue row must require 30 minute soak");
+  assert(queue.triggers.includes("verify-va-runtime-console-longrun --duration-minutes 120"), "VLM queue row must trigger runtime longrun for high risk");
+  assert(queue.approvalRequired === true, "VLM queue 120 minute trigger must require approval");
+  assert(queue.highRiskSignals.includes("VLM queue backpressure"), "VLM queue row missing backpressure signal");
+
+  const memory = rowById("vlm-memory-runtime-cache");
+  assert(memory.triggers.includes("verify-predev --soak-minutes 120"), "VLM memory row must trigger 120 minute predev");
+  assert(memory.approvalRequired === true, "VLM memory row must require approval");
+
+  const provider = rowById("vlm-provider-timeout-cloud");
+  assert(provider.triggers.includes("field-smoke-or-exclusion"), "VLM provider timeout row must use field smoke/exclusion");
+  assert(provider.notSubstitutes.includes("local 30-minute PASS"), "VLM provider timeout row must not use local soak as cloud PASS");
+
+  const install = rowById("vlm-model-install-state");
+  assert(install.triggers.includes("short-stability"), "VLM model install state row must keep short stability");
+  assert(!install.triggers.some(item => item.includes("120")), "VLM model install state row must not require 120 minute longrun by itself");
+});
+
 check("field/external endpoints are exclusion or field smoke, not substitute longrun PASS", () => {
   const external = rowById("external-field-endpoints");
   assert(external.triggers.includes("field-smoke-or-exclusion"), "external endpoint row must point at field smoke/exclusion");
@@ -87,14 +107,21 @@ check("docs expose runtime/media longrun trigger matrix", () => {
     "docs-policy-only",
     "rtsp-gstreamer-webrtc-session-lifecycle",
     "runtime-dashboard-metadata-fanout",
+    "VLM longrun trigger matrix",
+    "vlm-queue-timeout-nonblocking",
+    "vlm-memory-runtime-cache",
+    "vlm-provider-timeout-cloud",
+    "vlm-model-install-state",
     "30분 soak는 120분 longrun PASS를 대체하지 않습니다",
   ]) {
     assert(stream.includes(snippet), `stream verification missing matrix snippet: ${snippet}`);
   }
   assert(backlog.includes("media-server.runtime-media-longrun-trigger-matrix.v1"), "backlog missing trigger matrix schema");
   assert(backlog.includes("verify-runtime-media-longrun-trigger-matrix"), "backlog missing trigger matrix command");
+  assert(backlog.includes("V200-S17 안정화/장시간/UI 기준 정리 종료 기준"), "backlog missing S17 close section");
   assert(inventory.includes("120분 조건부 대상"), "feature inventory missing 120 minute target section");
   assert(inventory.includes("memory growth, runtime drift, fanout/media path 고위험 변경"), "feature inventory missing high-risk wording");
+  assert(inventory.includes("VLM queue/backpressure"), "feature inventory missing VLM queue trigger wording");
 });
 
 check("server and script inventory expose trigger matrix verifier", () => {
@@ -204,6 +231,51 @@ function matrixRows() {
       highRiskSignals: ["queue backpressure", "retry/cooldown persistence"],
       notSubstitutes: ["120-minute PASS"],
       reason: "Repeated event POST longrun is targeted; 120m is only RC/high-risk.",
+    }),
+    row({
+      id: "vlm-docs-fixture-only",
+      changeType: "VLM docs, fixture, verifier wording, rehearsal-only changes",
+      triggers: ["short-stability"],
+      approvalRequired: false,
+      highRiskSignals: [],
+      notSubstitutes: ["30-minute PASS", "120-minute PASS", "UI fulltest PASS"],
+      reason: "Fixture-only VLM rehearsal changes do not exercise runtime queues, memory, provider calls, or UI surfaces.",
+    }),
+    row({
+      id: "vlm-model-install-state",
+      changeType: "VLM model install readiness, missing-model state, disabled profile state",
+      triggers: ["short-stability", "manual-ui-evidence-or-ui-fulltest"],
+      approvalRequired: false,
+      highRiskSignals: ["model install state shown in Ops UI", "missing model fallback wording changed"],
+      notSubstitutes: ["runtime benchmark PASS", "120-minute PASS"],
+      reason: "Install readiness is default-off UI/profile state unless model download or runtime cache ownership changes.",
+    }),
+    row({
+      id: "vlm-provider-timeout-cloud",
+      changeType: "Cloud provider timeout, retry, opt-in, external transfer behavior",
+      triggers: ["short-stability", "field-smoke-or-exclusion"],
+      approvalRequired: true,
+      highRiskSignals: ["cloud opt-in enabled", "provider timeout/retry queue", "external credential required"],
+      notSubstitutes: ["local 30-minute PASS", "local 120-minute PASS", "UI fulltest PASS"],
+      reason: "Cloud timeout behavior needs explicit opt-in and field/provider evidence or an exclusion record.",
+    }),
+    row({
+      id: "vlm-queue-timeout-nonblocking",
+      changeType: "VLM queue/backpressure, timeout, worker lifecycle, media non-blocking behavior",
+      triggers: ["short-stability", "verify-predev --soak-minutes 30", "verify-va-runtime-console-longrun --duration-minutes 120"],
+      approvalRequired: true,
+      highRiskSignals: ["VLM queue backpressure", "timeout retries persist", "metadata fanout lifecycle", "media non-blocking boundary changed"],
+      notSubstitutes: ["UI fulltest PASS"],
+      reason: "Queue and timeout changes can drift under sustained runtime load and must stay isolated from media paths.",
+    }),
+    row({
+      id: "vlm-memory-runtime-cache",
+      changeType: "VLM runtime cache, crop/frame retention, memory ownership",
+      triggers: ["short-stability", "verify-predev --soak-minutes 30", "verify-predev --soak-minutes 120"],
+      approvalRequired: true,
+      highRiskSignals: ["model/runtime cache ownership", "frame or crop buffer retention", "active RSS high-water growth"],
+      notSubstitutes: ["UI fulltest PASS"],
+      reason: "Memory ownership changes require 30m soak and 120m approval when cache/retention or RSS risk is present.",
     }),
     row({
       id: "va-tracker-reid-scenario-runtime",

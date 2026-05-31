@@ -199,6 +199,10 @@ Role/scope:
 - Users: user create/edit, viewer scope, password reset, disable/restore, last admin guard,
   pending request approve/reject
 - Events: filters, include archives, prev/next, evidence/export action
+- VLM Ops: `/ops/vlm` install/model state, cloud opt-in guard, privacy transfer warning,
+  profile activation/fallback/disable/delete, raw details 접힘 영역
+- VLM Event Review: `/ops/events` VLM summary/explanation/false-positive hints/operator
+  questions 표시, client/viewer 비노출
 - Client Live: source tree, tile assignment, start/reconnect/stop, grid/density,
   dock side, info overlay, workspace actions, copy fallback, keyboard focus
 - Client Dashboard: filter, sort, status copy, event copy
@@ -297,6 +301,19 @@ UI 풀테스트는 기능 검수와 같은 비중으로 시각 품질을 봅니�
 장시간 테스트와 `verify-predev`는 사용자가 명시 요청하지 않으면 실행하지 않습니다.
 실행하지 않은 스크립트는 실행하지 않았다고 사실 기록만 남기며, UI 풀테스트의
 대체 evidence로 쓰지 않습니다.
+
+VLM UI 기준:
+
+- `/ops/vlm`의 model install readiness, missing-model, cloud-disabled, provider timeout
+  안내는 직접 클릭/선택/저장/삭제 결과로 확인합니다.
+- cloud opt-in guard는 opt-in 전 provider 호출/credential 저장이 없고, opt-in 후에도
+  dry-run 선택만 반영되는지 확인합니다.
+- `/ops/events` VLM review detail은 EventRecord evidence와 함께 표시되지만
+  Event POST/WebRTC/SSE/WS payload에 섞이지 않는지 스크립트 evidence와 분리합니다.
+- `/client/live`, `/client/dashboard`, `/client/events`에는 VLM model, prompt, raw
+  response, provider, internal review card가 보이지 않아야 합니다.
+- raw JSON/API-only 확인, `verify-ops-client-ui --browser-mode static`, screenshot만으로는
+  VLM UI 풀테스트 PASS가 아닙니다.
 
 ## 10. 토큰 사용량 기록
 

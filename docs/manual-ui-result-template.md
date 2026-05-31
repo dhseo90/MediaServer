@@ -99,6 +99,22 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 - 시각 품질 확인:
 - 제외 기록:
 
+### VLM UI Criteria
+
+| 기능 ID/화면 | 직접 조작 | 기대 상태 | 실제 상태 | 판정 | 증적 |
+| --- | --- | --- | --- | --- | --- |
+| UI-022 `/ops/vlm` 설치/연결 준비 | local/cloud dry-run 후보 선택 | 자동 설치/호출/저장 없음 |  | PASS/FAIL |  |
+| UI-023 `/ops/vlm` profile 저장 | 저장/활성화/fallback/disable/delete | profile state만 반영, runtime call 없음 |  | PASS/FAIL |  |
+| UI-024 `/ops/vlm` privacy guard | cloud opt-in 전/후 guard 확인 | provider 호출/credential 저장 없음 |  | PASS/FAIL |  |
+| UI-031 `/ops/vlm` raw details | details 열기/닫기 | raw details는 Ops 접힘 영역에만 있음 |  | PASS/FAIL |  |
+| UI-032 `/ops/events` VLM review | review detail 열기 | summary/explanation/hints/questions가 Ops에만 표시 |  | PASS/FAIL |  |
+| SAFE-031 client/viewer 비노출 | `/client/live`, `/client/dashboard`, `/client/events` 확인 | model/prompt/raw response/provider/internal review card 없음 |  | PASS/FAIL |  |
+
+VLM queue/backpressure, memory/runtime cache, provider timeout, model install state의
+30분/120분 기준은 [vlm-stabilization-longrun-ui-criteria.md](./vlm-stabilization-longrun-ui-criteria.md)에
+따릅니다. 실행하지 않은 장시간 테스트는 이 UI 표에서 PASS로 쓰지 않고
+`안정화/장시간` 또는 `제외 기록`에만 남깁니다.
+
 ## VA Seed / 최종 룰 상태
 
 기준 fixture는 `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`입니다.

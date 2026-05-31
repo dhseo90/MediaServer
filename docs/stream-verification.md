@@ -1169,6 +1169,11 @@ event POST 반복 안정성:
 | `runtime-dashboard-metadata-fanout` | Runtime dashboard, SSE/WS/DataChannel metadata fanout | short stability, 30분 soak | VA runtime 120분 longrun | 필요 |
 | `rtsp-gstreamer-webrtc-session-lifecycle` | RTSP/GStreamer/WebRTC session lifecycle 또는 media path ownership | short stability, 30분 soak | 120분 predev | 필요 |
 | `event-post-queue-recovery` | Event POST queue/recovery/cooldown | short stability, event POST longrun, 30분 soak | RC/high-risk 시 120분 판단 | 조건부 |
+| `vlm-docs-fixture-only` | VLM docs/fixture/verifier wording | short stability | 없음 | 불필요 |
+| `vlm-model-install-state` | VLM model install readiness/missing-model state | short stability, UI evidence | 없음 | 불필요 |
+| `vlm-provider-timeout-cloud` | VLM cloud provider timeout/retry/opt-in | short stability, field-smoke-or-exclusion | local soak로 대체 금지 | 필요 |
+| `vlm-queue-timeout-nonblocking` | VLM queue/backpressure/timeout worker | short stability, 30분 soak | VA runtime 120분 longrun | 필요 |
+| `vlm-memory-runtime-cache` | VLM runtime cache/frame retention/memory ownership | short stability, 30분 soak | 120분 predev | 필요 |
 | `va-tracker-reid-scenario-runtime` | VA tracker/Re-ID/scenario runtime | short stability, 30분 soak | VA runtime 120분 longrun | 필요 |
 | `external-field-endpoints` | External TURN/WHEP/ONVIF/YouTube real endpoint | field-smoke-or-exclusion | local soak로 대체 금지 | 필요 |
 | `release-candidate-closeout` | Release candidate close-out | short stability, 30분 soak | 120분 predev와 VA runtime longrun | 필요 |
@@ -1184,6 +1189,19 @@ PASS를 대체하지 않습니다. 120분 gate는 사용자 승인, release cand
 - RTSP/GStreamer/WebRTC media path 변경 후
 - SharedStream/VA metadata/dashboard/SSE/WS fanout 변경 후
 - 30분 predev에서 active RSS high-water가 이전 기준보다 커졌을 때
+- VLM queue/backpressure/timeout worker 또는 memory/runtime cache ownership 변경 후
+
+### VLM longrun trigger matrix
+
+VLM queue, memory, provider timeout, model install state의 상세 기준은
+[vlm-stabilization-longrun-ui-criteria.md](./vlm-stabilization-longrun-ui-criteria.md)에
+둡니다. `vlm-queue-timeout-nonblocking`과 `vlm-memory-runtime-cache`는 media
+non-blocking, active RSS, cleanup drift가 얽힐 수 있으므로 30분 soak 대상이며,
+120분은 사용자 승인 또는 RC/high-risk gate에서만 실행합니다. `vlm-provider-timeout-cloud`는
+provider credential/endpoint가 필요하므로 local 30분/120분 PASS로 cloud 성공을
+대체하지 않고 field smoke 또는 제외 기록으로 남깁니다. `vlm-model-install-state`는
+기본적으로 UI/profile 상태 기준이며 model download나 runtime cache ownership이
+없으면 120분 longrun 대상이 아닙니다.
 
 ```bash
 ./server.sh verify-predev --soak-minutes 120

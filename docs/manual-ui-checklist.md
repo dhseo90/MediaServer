@@ -87,6 +87,12 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
 - Rule/Profile/Channel 추가·수정·삭제 검수 뒤에는 모든 basic event, scenario,
   preset, tracker/Re-ID 개별 조합이 남아 있는 최종 상태를 유지하고 event log를
   각 기능별로 확인합니다.
+- VLM 검수는 `/ops/vlm`의 model install readiness, missing-model, cloud-disabled,
+  provider timeout 안내, privacy transfer guard, profile activation/fallback/disable/delete,
+  raw details 접힘 영역을 직접 조작합니다. `/ops/events`의 VLM review detail은
+  EventRecord evidence와 함께 확인하고, `/client/live`, `/client/dashboard`,
+  `/client/events`에서 VLM model/prompt/raw response/provider/internal review card가
+  보이지 않는지 확인합니다.
 - destructive action은 throwaway 계정, 채널, 접근 요청으로만 수행합니다.
 - UI smoke 전용 HTML selector 검증은 필요 시 별도 서버에서
   `./server.sh verify-ops-client-ui --screenshots`로 실행하되, 이 결과만으로
@@ -115,6 +121,10 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
 - `verify-predev --soak-minutes 30`, `verify-predev --soak-minutes 120`,
   `verify-va-runtime-console-longrun --duration-minutes 120`은 스크립트 안정화
   테스트입니다. 실행 여부와 PASS/FAIL은 UI 풀테스트 판정과 별도 섹션에 기록합니다.
+- VLM queue/backpressure, memory/runtime cache, provider timeout, model install state
+  기준은 [vlm-stabilization-longrun-ui-criteria.md](./vlm-stabilization-longrun-ui-criteria.md)를
+  따릅니다. 장시간 명령을 실행하지 않은 경우에는 UI PASS로 대체하지 않고
+  `미실행` 또는 `제외 기록`에만 남깁니다.
 - UI 풀테스트에는 기능 동작뿐 아니라 시각 품질을 포함합니다. 텍스트박스 간격,
   table/action 정렬, 버튼 text overflow, badge clipping, modal/menu 위치, focus
   visible, empty/loading/error copy, contrast, responsive overflow를 함께 확인합니다.

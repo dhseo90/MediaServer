@@ -146,7 +146,7 @@ YOLO 이벤트가 왜 발생했는지 설명하고, 오탐 가능성 및 운영�
 | 14 | V200-S14 | 완료 | 테스트 inventory 확장 | VLM으로 추가된 route, control, action, runtime state, sidecar, privacy guard를 기능 ID 단위로 `project-feature-test-inventory.md`에 추가합니다. | `verify-project-inventory`, `verify-feature-inventory-coverage`, inventory-to-verifier mapping, `git diff --check` |
 | 15 | V200-S15 | 완료 | 간이 테스트 리허설 | 안정화/30분/120분/UI 풀테스트 전에 VLM 전용 짧은 smoke, missing-model, cloud-disabled, invalid-output, queue-timeout fixture를 실행해 테스트 자체가 막히지 않는지 확인합니다. | `verify-vlm-test-rehearsal`, VLM smoke, failure fixture matrix, cleanup check, port/server lifecycle check, `git diff --check` |
 | 16 | V200-S16 | 완료 | 기존 테스트 side effect 점검 | VLM 변경이 auth, Ops/Client UI, Rule UI, VA replay/events, WebRTC metadata, SSE/WS metadata, Event POST, RTSP/WebRTC media path verifier에 영향을 주지 않는지 확인합니다. | `./server.sh build`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-rule-ui`, `verify-va-replay`, `verify-va-events`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-event-post`, `git diff --check` |
-| 17 | V200-S17 | 예정 | 안정화/장시간/UI 기준 정리 | VLM queue, memory, provider timeout, model install 상태에 따라 안정화, 30분, 120분, UI 풀테스트 실행 기준과 제외/미실행 보고 기준을 정리합니다. | `verify-runtime-media-longrun-trigger-matrix`, `verify-longrun-separation`, VLM longrun trigger matrix, manual UI checklist update, `git diff --check` |
+| 17 | V200-S17 | 완료 | 안정화/장시간/UI 기준 정리 | VLM queue, memory, provider timeout, model install 상태에 따라 안정화, 30분, 120분, UI 풀테스트 실행 기준과 제외/미실행 보고 기준을 정리합니다. | `verify-runtime-media-longrun-trigger-matrix`, `verify-longrun-separation`, VLM longrun trigger matrix, manual UI checklist update, `git diff --check` |
 | 18 | V200-S18 | 예정 | v2.0.0 close-out readiness | 전체 스크립트 테스트와 UI 풀테스트 결과를 분리해 release evidence로 닫고, 미실행/제외/미확인을 명확히 기록합니다. | release evidence review, `verify-release-evidence-index`, `verify-release-metadata`, VLM close-out report, 30분/UI/120분 실행 또는 미실행 기록, `git diff --check` |
 
 VLMObservation sidecar 후보:
@@ -1173,6 +1173,72 @@ side effect를 만들지 않았는지 확인하는 단계입니다. 제품 UI �
 - S18 close-out readiness는 미진행입니다.
 - 인앱 브라우저 UI 풀테스트와 30분/120분 장시간 안정화는 이 단계에서 실행하지
   않았습니다.
+
+### V200-S17 안정화/장시간/UI 기준 정리 종료 기준
+
+이 단계는 VLM queue, memory, provider timeout, model install 상태별로 안정화,
+30분, 120분, UI 풀테스트 실행 기준과 제외/미실행 보고 기준을 정리하는 단계입니다.
+기준 정리 단계이며, 실제 30분/120분 장시간 실행이나 UI 풀테스트 PASS evidence가
+아닙니다.
+
+이번 범위에서 구현/정리한 것:
+
+- `docs/vlm-stabilization-longrun-ui-criteria.md`를 S17 source-of-truth로 추가했습니다.
+- `verify-runtime-media-longrun-trigger-matrix`에 `vlm-docs-fixture-only`,
+  `vlm-model-install-state`, `vlm-provider-timeout-cloud`,
+  `vlm-queue-timeout-nonblocking`, `vlm-memory-runtime-cache` row를 추가했습니다.
+- `docs/stream-verification.md`의 Runtime/media matrix와 VLM longrun trigger section을
+  갱신했습니다.
+- `docs/project-feature-test-inventory.md`의 30분/120분 mapping에 VLM queue/backpressure,
+  runtime cache, `SAFE-032` trigger 기준을 추가했습니다.
+- `manual-ui-fulltest.md`, `manual-ui-checklist.md`,
+  `manual-ui-result-template.md`에 `/ops/vlm`, `/ops/events` VLM review,
+  client/viewer redaction, raw JSON/API-only 비대체 기준을 추가했습니다.
+
+직접 기준:
+
+- VLM docs/fixture/verifier wording만 바뀌면 짧은 안정화만 실행하고 장시간/UI는
+  미실행으로 기록합니다.
+- VLM model install readiness, missing-model, cloud-disabled 상태는 `/ops/vlm` UI
+  직접 확인 대상이지만 그 자체로 120분 longrun 대상은 아닙니다.
+- cloud provider timeout/retry/credential path는 local soak PASS로 cloud 성공을
+  대체하지 않고 field smoke 또는 제외 기록으로 남깁니다.
+- VLM queue/backpressure/timeout worker는 30분 soak 대상이며, metadata fanout/media
+  non-blocking 또는 cleanup drift 고위험 신호가 있으면 사용자 승인 후 120분
+  Runtime Console longrun 대상입니다.
+- VLM memory/runtime cache/frame retention 변경은 30분 soak 대상이며, active RSS
+  high-water 또는 cache ownership 변경이 있으면 사용자 승인 후 120분 predev 대상입니다.
+- VLM UI 풀테스트는 `/ops/vlm`, `/ops/events`, `/client/live`,
+  `/client/dashboard`, `/client/events`를 직접 조작/확인해야 하며 static smoke나
+  raw JSON/API-only 확인으로 대체하지 않습니다.
+
+이번 범위에서 하지 않는 일:
+
+- 실제 VLM runtime 호출
+- cloud provider API 호출
+- model/runtime download 또는 bundle 추가
+- 30분/120분 장시간 안정화 실행
+- 인앱 브라우저 UI 풀테스트 실행
+- V200-S18 close-out readiness
+
+완료 evidence:
+
+- `./server.sh verify-runtime-media-longrun-trigger-matrix`가 VLM row 포함 trigger
+  matrix를 PASS로 검증했습니다.
+- `./server.sh verify-longrun-separation`이 기본 smoke와 장시간 gate 분리를 PASS로
+  검증했습니다.
+- `./server.sh verify-manual-ui-evidence`가 UI 풀테스트 문서 구조와 비대체 경계를
+  PASS로 검증했습니다.
+- `./server.sh verify-script-inventory`가 변경된 verifier script와 문서 명령 참조를
+  PASS로 검증했습니다.
+- `./server.sh verify-docs-links`가 새 VLM 기준 문서 링크와 문서 index를 PASS로
+  검증했습니다.
+- `git diff --check`가 코드/문서/script whitespace drift 없음을 확인했습니다.
+
+후속 단계로 남기는 범위:
+
+- S18 close-out readiness는 미진행입니다.
+- 30분/120분 장시간 안정화와 인앱 브라우저 UI 풀테스트는 실행하지 않았습니다.
 
 ## v1.9.0 Release Trust Hardening Close-out
 

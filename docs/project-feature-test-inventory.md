@@ -117,8 +117,8 @@ Rule scenario/event 발생 검수는 분리합니다.
 
 | 영역 | 대상 기능 | 실행 기준 |
 | --- | --- | --- |
-| 30분 soak | `UI-015`, `SRC-002`~`SRC-005`, `SRC-012`, `SRC-024`, `RULE-035`~`RULE-037`, `RULE-039`, `RULE-099`, `EVT-001`~`EVT-003`, `EVT-006`, `EVT-024`, `EVT-026`, `CLIENT-002`~`CLIENT-005`, `CLIENT-019`, `CLIENT-021`, `MEDIA-001`~`MEDIA-004`, `MEDIA-008`~`MEDIA-013`, `MEDIA-016`~`MEDIA-020`, `LAB-015`, `LAB-016`, `LAB-020`, `SAFE-008`, `SAFE-009`, `SAFE-014` | 사용자 장기간 테스트 지시 또는 버전 로드맵 완료 후 `verify-predev --soak-minutes 30` 계열 |
-| 120분 조건부 | `MEDIA-001`~`MEDIA-004`, `MEDIA-011`, `MEDIA-012`, `SAFE-014` | memory growth, runtime drift, fanout/media path 고위험 변경 시 사용자에게 먼저 말하고 승인 후 실행 |
+| 30분 soak | `UI-015`, `SRC-002`~`SRC-005`, `SRC-012`, `SRC-024`, `RULE-035`~`RULE-037`, `RULE-039`, `RULE-099`, `EVT-001`~`EVT-003`, `EVT-006`, `EVT-024`, `EVT-026`, `CLIENT-002`~`CLIENT-005`, `CLIENT-019`, `CLIENT-021`, `MEDIA-001`~`MEDIA-004`, `MEDIA-008`~`MEDIA-013`, `MEDIA-016`~`MEDIA-020`, `LAB-015`, `LAB-016`, `LAB-020`, VLM queue/backpressure 또는 runtime cache 변경 시 `LAB-038`~`LAB-044`, `SAFE-032` | 사용자 장기간 테스트 지시, 버전 로드맵 완료, VLM queue/backpressure/runtime cache/media non-blocking 변경 후 `verify-predev --soak-minutes 30` 계열 |
+| 120분 조건부 | `MEDIA-001`~`MEDIA-004`, `MEDIA-011`, `MEDIA-012`, `SAFE-014`, VLM memory/runtime cache 또는 queue drift 고위험 변경 시 `SAFE-032` | memory growth, runtime drift, fanout/media path 고위험 변경, VLM active RSS high-water 또는 queue cleanup drift 시 사용자에게 먼저 말하고 승인 후 실행 |
 | 필드 별도 | `SRC-014` | ONVIF 실기기/endpoint/credential 준비 시 별도 field smoke |
 
 ## Classification Rules
