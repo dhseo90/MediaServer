@@ -1,0 +1,74 @@
+{
+  "schema": "media-server.vlm-profile-invalid-fixtures.v1",
+  "targetStep": "V200-S05",
+  "cases": [
+    {
+      "id": "raw-prompt-rejected",
+      "expectedError": "credentials, prompts, raw responses, source locators, or frame bytes",
+      "profile": {
+        "schema": "media-server.vlm-profile.v1",
+        "id": "vlm-invalid-raw-prompt",
+        "selectedOptionId": "primary-qwen3-vl-8b-instruct",
+        "provider": "user-supplied-local-runtime",
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "runtime": "not-configured",
+        "privacyMode": "local-only",
+        "prompt": "raw prompt must not be stored"
+      }
+    },
+    {
+      "id": "cloud-opt-in-required",
+      "expectedError": "cloud VLM profile requires",
+      "profile": {
+        "schema": "media-server.vlm-profile.v1",
+        "id": "vlm-invalid-cloud-opt-in",
+        "selectedOptionId": "alternative-gemini-2.5-flash",
+        "provider": "cloud-provider-api",
+        "model": "gemini-2.5-flash",
+        "runtime": "provider-api",
+        "privacyMode": "cloud-disabled",
+        "cloudOptInAcknowledged": false
+      }
+    },
+    {
+      "id": "active-requires-passed-evaluation",
+      "expectedError": "enabled VLM profile requires passed evaluation and active activation",
+      "profile": {
+        "schema": "media-server.vlm-profile.v1",
+        "id": "vlm-invalid-active",
+        "selectedOptionId": "primary-qwen3-vl-8b-instruct",
+        "provider": "user-supplied-local-runtime",
+        "model": "Qwen/Qwen3-VL-8B-Instruct",
+        "runtime": "ollama",
+        "privacyMode": "local-only",
+        "cloudOptInAcknowledged": false,
+        "promptProfile": {
+          "id": "event-review-default",
+          "version": "v1",
+          "language": "ko-en"
+        },
+        "evaluation": {
+          "status": "not-run"
+        },
+        "activation": {
+          "enabled": true,
+          "status": "active",
+          "fallbackProfileId": "",
+          "disabledReason": ""
+        },
+        "contractInvariants": {
+          "runtimeVlmCallPerformed": false,
+          "sidecarStored": false,
+          "cloudProviderApiCalled": false,
+          "credentialStored": false,
+          "eventPostPayloadChanged": false,
+          "webrtcDataChannelSchemaChanged": false,
+          "sseMetadataSchemaChanged": false,
+          "wsMetadataSchemaChanged": false,
+          "rtspOrWebrtcMediaPathChanged": false,
+          "viewerClientExposureAdded": false
+        }
+      }
+    }
+  ]
+}

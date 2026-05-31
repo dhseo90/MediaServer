@@ -141,7 +141,7 @@ check("roadmap, verification docs, feature inventory, docs index, and server com
   for (const snippet of [
     "| LAB-037 | VLM install/connection dry-run contract",
     "verify-vlm-install-connection-dry-run",
-    "| `LAB-001`~`LAB-037` |",
+    "| `LAB-001`~`LAB-038` |",
   ]) {
     assert(inventory.includes(snippet), `feature inventory missing snippet: ${snippet}`);
   }
@@ -173,7 +173,7 @@ check("roadmap, verification docs, feature inventory, docs index, and server com
   }
 });
 
-check("source tree does not add profile, sidecar, runtime, or client VLM artifacts", () => {
+check("source tree does not add sidecar, runtime, client VLM, or model artifacts beyond S05 profile storage", () => {
   const sourceFiles = gitLsFiles(["src", "include", "config", "test/fixtures"])
     .filter(file => !isBinaryPath(file));
   const allowlisted = new Set([
@@ -185,9 +185,7 @@ check("source tree does not add profile, sidecar, runtime, or client VLM artifac
   const hits = [];
   const forbidden = [
     /\bVLMObservation\b/,
-    /\bvlm[_-]?profile\b/i,
     /\bvlm[_-]?sidecar\b/i,
-    /\bpromptProfile\b/,
     /\/client\/vlm/i,
     /\.(gguf|safetensors|ggml|ckpt)\b/i,
   ];
@@ -198,7 +196,7 @@ check("source tree does not add profile, sidecar, runtime, or client VLM artifac
       if (pattern.test(text)) hits.push(`${file}: ${pattern}`);
     }
   }
-  assert(hits.length === 0, `forbidden dry-run artifact token(s) found:\n${hits.join("\n")}`);
+  assert(hits.length === 0, `forbidden dry-run/runtime artifact token(s) found:\n${hits.join("\n")}`);
 });
 
 let failCount = 0;

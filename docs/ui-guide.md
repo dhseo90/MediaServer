@@ -20,7 +20,7 @@ VA 내부 구조는 [video-analysis.md](./video-analysis.md)를 봅니다.
 | 운영 콘솔 | `http://127.0.0.1:8080/ops` 또는 `/ops/home` | admin/operator용 운영 화면과 운영 홈 요약 |
 | 운영 Dashboard | `http://127.0.0.1:8080/ops/dashboard` | runtime status를 card/detail UI로 표시 |
 | 운영 Events 직접 route | `http://127.0.0.1:8080/ops/events` | primary nav에서 숨긴 후속/진단 route |
-| VLM 설치/연결 준비 | `http://127.0.0.1:8080/ops/vlm` | V200-S04 dry-run 후보와 cloud opt-in guard를 Ops 전용으로 표시 |
+| VLM 설치/연결/profile 준비 | `http://127.0.0.1:8080/ops/vlm` | V200-S04 dry-run 후보, cloud opt-in guard, V200-S05 profile 저장 panel을 Ops 전용으로 표시 |
 | 채널 관리 | `http://127.0.0.1:8080/ops/sources` | admin/operator용 숫자 채널 목록과 SourceRegistry/PublishedView 연결 관리 |
 | 계정 관리 | `http://127.0.0.1:8080/ops/users` | admin 전용 사용자 목록, 상세, 상태 관리 |
 | 클라이언트 포털 | `http://127.0.0.1:8080/client` 또는 `/client/live` | viewer/operator/admin용 source tree + live workspace |

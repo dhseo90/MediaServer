@@ -24,7 +24,7 @@ Options:
 Checks:
   - /ops/vlm shell route와 /ops/api/vlm/install-connection/dry-run API가 Ops guard 아래에 있음
   - UI가 dry-run 후보 선택, cloud opt-in guard, warning/boundary/raw details를 렌더링함
-  - profile 저장, VLM runtime 호출, sidecar 저장, credential 저장, viewer/client route가 추가되지 않음
+  - S04 dry-run API는 저장/호출 side effect를 계속 false로 유지하고, S05 profile 저장은 별도 panel/API/verifier로 분리됨
   - server.sh, script inventory, feature inventory, stream verification, roadmap 연결을 확인
 `);
 }
@@ -40,6 +40,7 @@ check("Ops shell exposes VLM install/connection page and dry-run API", () => {
     "data-testid=\"ops-vlm-page\"",
     "data-testid=\"ops-vlm-controls\"",
     "data-testid=\"ops-vlm-options-panel\"",
+    "data-testid=\"ops-vlm-profile-panel\"",
     "data-testid=\"ops-vlm-boundary-panel\"",
     "id=\"opsVlmRawDetails\"",
     "id=\"opsVlmPretty\"",
@@ -59,9 +60,11 @@ check("Ops page script renders selectable dry-run candidates without writes", ()
   const script = readText("src/ingress/product_ui_page_scripts.cpp");
   for (const snippet of [
     "refreshOpsVlmInstallConnection",
+    "refreshOpsVlmProfiles",
     "wireOpsVlmControls",
     "opsVlmSelectedOptionId",
     "requestJson(`/ops/api/vlm/install-connection/dry-run?",
+    "/ops/api/vlm/profiles",
     "data-vlm-option-id",
     "renderBadges('opsVlmWarnings'",
     "payload.warnings",
@@ -70,15 +73,7 @@ check("Ops page script renders selectable dry-run candidates without writes", ()
   ]) {
     assert(script.includes(snippet), `page script missing VLM UI snippet: ${snippet}`);
   }
-  for (const forbidden of [
-    "/ops/api/vlm/profiles",
-    "method: 'POST'",
-    "method: 'PUT'",
-    "method: 'DELETE'",
-  ]) {
-    if (forbidden.startsWith("method")) continue;
-    assert(!script.includes(forbidden), `VLM UI must not write profile/runtime state: ${forbidden}`);
-  }
+  assert(script.includes("profile-storage-only"), "S05 profile save must be labeled profile-storage-only");
 });
 
 check("dry-run API keeps S04 non-scope side effects false", () => {
@@ -102,6 +97,7 @@ check("dry-run API keeps S04 non-scope side effects false", () => {
     assert(server.includes(snippet), `dry-run API missing invariant snippet: ${snippet}`);
   }
   assert(!/\/client\/vlm/i.test(server), "client VLM route must not be added");
+  assert(server.includes("profileStored\":false"), "S04 dry-run API must still report profileStored false");
 });
 
 check("docs, inventory, server command, and script inventory are wired", () => {
@@ -115,6 +111,7 @@ check("docs, inventory, server command, and script inventory are wired", () => {
     "verify-vlm-install-connection-ui",
     "/ops/vlm",
     "/ops/api/vlm/install-connection/dry-run",
+    "/ops/api/vlm/profiles",
   ]) {
     assert(backlog.includes(snippet) || stream.includes(snippet) || inventory.includes(snippet), `docs missing VLM UI snippet: ${snippet}`);
   }

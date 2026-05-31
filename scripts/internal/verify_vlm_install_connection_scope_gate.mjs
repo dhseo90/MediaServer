@@ -23,7 +23,7 @@ Checks:
   - V200-S04 remains an Ops-only install/connection UI scope, not profile/runtime/sidecar work
   - docs and feature inventory name the allowed and forbidden S04 boundaries
   - existing S01/S03 gates no longer block Ops-only S04 UI route/provider wording
-  - source/config/fixture tree still has no VLM runtime/profile/sidecar artifacts
+  - source/config/fixture tree still has no VLM runtime/sidecar/client/model artifacts beyond S05 profile storage
 `);
 }
 
@@ -86,16 +86,16 @@ check("feature inventory and coverage gate include the S04 scope gate", () => {
   for (const snippet of [
     "| SAFE-022 | VLM 설치/연결 UI scope gate | 비대상 | 필요 | 안정화 |",
     "verify-vlm-install-connection-scope-gate",
-    "| `SAFE-001`~`SAFE-022` |",
-    "| 전체 기능 항목 | 322 |",
-    "| UI 비대상 | 91 |",
-    "| 테스트 필요 | 322 |",
-    "| 안정화 대상 | 312 |",
+    "| `SAFE-001`~`SAFE-023` |",
+    "| 전체 기능 항목 | 325 |",
+    "| UI 비대상 | 93 |",
+    "| 테스트 필요 | 325 |",
+    "| 안정화 대상 | 315 |",
   ]) {
     assert(inventory.includes(snippet), `feature inventory missing S04 scope gate snippet: ${snippet}`);
   }
   assert(coverage.includes("verify-vlm-install-connection-scope-gate"), "coverage verifier missing S04 scope command");
-  assert(projectInventoryVerifier.includes("rows.length === 322"), "project inventory verifier must expect 322 feature rows");
+  assert(projectInventoryVerifier.includes("rows.length === 325"), "project inventory verifier must expect 325 feature rows");
 });
 
 check("server command and script inventory are wired", () => {
@@ -110,7 +110,7 @@ check("server command and script inventory are wired", () => {
   assert(scriptInventory.includes("verify_vlm_install_connection_scope_gate.mjs"), "script inventory missing S04 scope gate script");
 });
 
-check("previous VLM gates permit S04 Ops UI wording but still block runtime/profile/storage artifacts", () => {
+check("previous VLM gates permit S04 Ops UI wording and S05 profile storage while runtime artifacts stay blocked", () => {
   const gateFiles = [
     "scripts/internal/verify_vlm_boundary.mjs",
     "scripts/internal/verify_vlm_selection_decision.mjs",
@@ -122,18 +122,27 @@ check("previous VLM gates permit S04 Ops UI wording but still block runtime/prof
     assert(!text.includes("\\bvlm[_-]?provider\\b"), `${file} still blocks S04 provider wording`);
     for (const retained of [
       "\\bVLMObservation\\b",
-      "\\bvlm[_-]?profile\\b",
       "\\bvlm[_-]?sidecar\\b",
-      "\\bpromptProfile\\b",
     ]) {
       assert(text.includes(retained), `${file} no longer blocks ${retained}`);
     }
+  }
+  const profileStorage = readText("scripts/internal/verify_vlm_profile_storage.mjs");
+  for (const snippet of [
+    "media-server.vlm-profile.v1",
+    "credentialStored",
+    "eventPostPayloadChanged",
+    "webrtcDataChannelSchemaChanged",
+    "rtspOrWebrtcMediaPathChanged",
+    "viewerClientExposureAdded",
+  ]) {
+    assert(profileStorage.includes(snippet), `S05 profile storage gate missing boundary snippet: ${snippet}`);
   }
   const recommendation = readText("scripts/internal/verify_vlm_recommendation_engine.mjs");
   assert(recommendation.includes("/\\/client\\/vlm/i"), "recommendation gate must still block client VLM route exposure");
 });
 
-check("tracked source/config/fixture files do not introduce forbidden S04 artifacts", () => {
+check("tracked source/config/fixture files do not introduce forbidden runtime/sidecar/client/model artifacts", () => {
   const files = gitLsFiles(["src", "include", "config", "test/fixtures"])
     .filter(file => !isBinaryPath(file));
   const allowlisted = new Set([
@@ -143,9 +152,7 @@ check("tracked source/config/fixture files do not introduce forbidden S04 artifa
   ]);
   const forbidden = [
     /\bVLMObservation\b/,
-    /\bvlm[_-]?profile\b/i,
     /\bvlm[_-]?sidecar\b/i,
-    /\bpromptProfile\b/,
     /\/client\/vlm/i,
     /\.(gguf|safetensors|ggml|ckpt)\b/i,
   ];

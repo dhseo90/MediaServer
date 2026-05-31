@@ -134,7 +134,7 @@ YOLO 이벤트가 왜 발생했는지 설명하고, 오탐 가능성 및 운영�
 | 2 | V200-S02 | 완료 | PC 사양 감지 | OS, CPU, RAM, GPU/VRAM, Apple Silicon, Docker, Ollama, vLLM/API 연결 가능 여부를 수집하는 local capability detector를 만듭니다. 추천 모델 산출은 다음 단계로 둡니다. | `detect-vlm-pc-capability`, hardware scan fixture, macOS/Linux smoke, missing-tool fixture, `verify-vlm-pc-capability`, `verify-script-inventory`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `git diff --check` |
 | 3 | V200-S03 | 완료 | VLM 추천 엔진 | 사용자 PC 사양과 privacy mode에 따라 추천 모델, 대안 모델, 비추천 사유, 예상 메모리/디스크/latency/cost를 산출합니다. | `recommend-vlm-model`, recommendation matrix fixture, low/standard/high/unsupported spec fixture, local-only/cloud-disabled/cloud-allowed policy fixture, `verify-vlm-recommendation-engine`, `verify-script-inventory`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `git diff --check` |
 | 4 | V200-S04 | 완료 | VLM 설치/연결 UI | Ops에서 local model 설치 또는 cloud API 연결을 선택하게 합니다. 자동 다중 설치는 금지하고, 설치 전 영향과 외부 전송 여부를 표시합니다. | Ops UI smoke, install dry-run fixture, cloud opt-in guard, viewer redaction UI smoke, `verify-vlm-install-connection-ui`, `git diff --check` |
-| 5 | V200-S05 | 예정 | VLM profile 저장 | 선택한 provider, model, runtime, prompt profile, privacy mode, 평가 결과, 활성화 상태를 저장하고 fallback/disable 상태를 명확히 둡니다. | profile CRUD smoke, auth/scope route guard, invalid profile fixture, `verify-auth-routes`, `git diff --check` |
+| 5 | V200-S05 | 완료 | VLM profile 저장 | 선택한 provider, model, runtime, prompt profile, privacy mode, 평가 결과, 활성화 상태를 저장하고 fallback/disable 상태를 명확히 둡니다. | profile CRUD smoke, auth/scope route guard, invalid profile fixture, `verify-vlm-profile-storage`, `verify-auth-routes`, `git diff --check` |
 | 6 | V200-S06 | 예정 | VLM 평가 harness | sample 이벤트 frame, bbox crop, 전후 frame으로 latency, 설명 품질, hallucination, JSON 안정성, 한국어/영어 출력 품질을 비교합니다. | VLM fixture sample, prompt profile A/B, structured output fixture, evaluation report, `git diff --check` |
 | 7 | V200-S07 | 예정 | 이벤트 evidence 추출 | YOLO 이벤트 발생 시 snapshot, bbox crop, 전후 frame, 짧은 clip evidence 후보를 만들고 VLM 입력으로 쓸 수 있게 reference를 분리합니다. | EventRecord snapshot/clip fixture, crop extraction smoke, redaction review, `verify-va-events`, `verify-va-replay`, `git diff --check` |
 | 8 | V200-S08 | 예정 | VLMObservation sidecar | 기존 Event POST/WebRTC/SSE/WS metadata를 바꾸지 않고 VLM 결과를 별도 sidecar로 저장합니다. | sidecar schema fixture, EventRecord correlation report, existing metadata diff guard, `verify-event-post`, `verify-ws-metadata`, `git diff --check` |
@@ -498,6 +498,60 @@ API가 존재한다는 뜻이며, profile 저장, VLM runtime 호출, sidecar �
 - `./server.sh verify-vlm-install-connection-dry-run`
 - `./server.sh verify-vlm-install-connection-scope-gate`
 - UI 변경 안정화 gate와 `git diff --check`
+
+### V200-S05 VLM profile 저장 완료 기준
+
+S05는 S04 dry-run에서 선택한 후보를 운영자가 나중에 평가/활성화할 수 있는 profile
+document로 저장하는 단계입니다. 저장은 profile metadata에만 한정하며 VLM runtime
+호출, cloud provider API 호출, sidecar 저장은 후속 단계로 남깁니다.
+
+이번 범위에서 구현하는 것:
+
+- `/ops/api/vlm/profiles`와 `/ops/api/vlm/profiles/{id}` CRUD route를 추가합니다.
+- 읽기는 admin/operator `ops:read`, 쓰기는 `ops:read`와 `rule:write`가 모두 필요합니다.
+- 저장 schema는 `media-server.vlm-profile.v1`입니다.
+- 저장 항목은 provider, model, runtime, prompt profile, privacy mode, cloud opt-in
+  acknowledgement, evaluation status, activation status, fallback profile ID, disabled reason입니다.
+- `/ops/vlm`에는 profile ID, prompt profile, evaluation, activation, enabled,
+  fallback/disable control과 저장된 profile 목록을 표시합니다.
+- invalid profile fixture는 raw prompt/credential/source locator/frame bytes 저장,
+  cloud opt-in 누락, 평가 미통과 active 상태를 거부합니다.
+
+이번 범위에서 하지 않는 일:
+
+- 실제 VLM runtime 호출
+- cloud provider API 호출
+- credential/API key/token 저장
+- raw prompt/raw response/source URL/frame bytes 저장
+- VLMObservation sidecar 저장
+- Event POST/WebRTC/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- viewer/client 화면 노출
+
+완료 evidence:
+
+- `./server.sh verify-vlm-profile-storage`가 API/UI/schema/invalid fixture/docs/inventory
+  연결을 검증합니다.
+- `./server.sh verify-auth-routes`가 unauth/viewer 차단, readonly operator read 허용,
+  readonly write 차단, admin CRUD, invalid profile fixture 거부를 route smoke로 확인합니다.
+- UI 변경 안정화 gate인 `./server.sh build`, auth bootstrap/users/routes,
+  `./server.sh verify-ops-client-ui`, `./server.sh verify-ops-client-ui --screenshots`,
+  `./server.sh verify-rule-ui`를 S05 변경 후 실행합니다.
+- 브라우저 직접 확인에서 `/ops/vlm`의 profile 저장 panel, 저장 목록, fallback/disable
+  state, 삭제 2회 확인 흐름, `/client/live` VLM profile 비노출을 확인합니다.
+- 2026-05-31 S05 local evidence: `./server.sh build`,
+  `./server.sh verify-vlm-profile-storage`, `./server.sh verify-auth-routes`,
+  `./server.sh verify-ops-client-ui --http-base http://127.0.0.1:8082`,
+  `./server.sh verify-ops-client-ui --screenshots --http-base http://127.0.0.1:8082`,
+  `./server.sh verify-rule-ui --http-base http://127.0.0.1:8082`,
+  docs/inventory verifier, browser direct `/ops/vlm` save/delete and `/client/live`
+  redaction check.
+
+후속 단계로 남기는 범위:
+
+- VLM 평가 harness는 `V200-S06` 범위입니다.
+- event evidence 추출은 `V200-S07` 범위입니다.
+- VLMObservation sidecar 저장은 `V200-S08` 범위입니다.
 
 v2.0.0 완료 판정은 기능 구현만으로 닫지 않습니다. 각 개발 순서에서 추가한 테스트가
 `project-feature-test-inventory.md`, 안정화 테스트, 30분/120분 trigger, UI 풀테스트

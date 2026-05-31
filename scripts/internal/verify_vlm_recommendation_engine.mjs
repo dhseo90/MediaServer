@@ -160,7 +160,7 @@ check("roadmap, verification docs, feature inventory, docs index, and server com
   for (const snippet of [
     "| LAB-036 | VLM recommendation engine",
     "verify-vlm-recommendation-engine",
-    "| `LAB-001`~`LAB-037` |",
+    "| `LAB-001`~`LAB-038` |",
   ]) {
     assert(inventory.includes(snippet), `feature inventory missing snippet: ${snippet}`);
   }
@@ -195,14 +195,12 @@ check("roadmap, verification docs, feature inventory, docs index, and server com
   return { command: "./server.sh verify-vlm-recommendation-engine" };
 });
 
-check("source tree does not add client route, profile, sidecar, or runtime VLM artifacts", () => {
+check("source tree does not add client route, sidecar, or runtime VLM artifacts beyond S05 profile storage", () => {
   const sourceFiles = gitLsFiles(["src", "include"]).filter(file => !isBinaryPath(file));
   const hits = [];
   const forbidden = [
     /\bVLMObservation\b/,
-    /\bvlm[_-]?profile\b/i,
     /\bvlm[_-]?sidecar\b/i,
-    /\bpromptProfile\b/,
     /\/client\/vlm/i,
   ];
   for (const file of sourceFiles) {

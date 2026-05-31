@@ -815,6 +815,25 @@ public:
         return out.str();
     }
 
+    std::string VlmProfilesJson() {
+        std::lock_guard lock(mu_);
+        EnsureLoadedLocked();
+        std::ostringstream out;
+        out << "{\"status\":\"registry\","
+            << "\"schema\":\"media-server.vlm-profile-registry.v1\","
+            << "\"storagePath\":\"" << JsonEscape(storage_path_.string()) << "\","
+            << "\"scope\":\"V200-S05 stores selected VLM provider/model/runtime/prompt/privacy/evaluation/activation metadata only; runtime calls and sidecar writes remain later steps.\","
+            << "\"promptProfiles\":["
+            << "{\"id\":\"event-review-default\",\"version\":\"v1\",\"language\":\"ko-en\"},"
+            << "{\"id\":\"false-positive-review\",\"version\":\"v1\",\"language\":\"ko-en\"},"
+            << "{\"id\":\"operator-question-review\",\"version\":\"v1\",\"language\":\"ko-en\"}"
+            << "],"
+            << "\"profiles\":";
+        AppendDocumentsArray(out, vlm_profiles_);
+        out << "}";
+        return out.str();
+    }
+
     std::string RulesJson() {
         std::lock_guard lock(mu_);
         EnsureLoadedLocked();
@@ -858,6 +877,12 @@ public:
         return FindDocumentLocked(va_rules_, id);
     }
 
+    std::optional<std::string> VlmProfileJson(const std::string& id) {
+        std::lock_guard lock(mu_);
+        EnsureLoadedLocked();
+        return FindDocumentLocked(vlm_profiles_, id);
+    }
+
     std::vector<std::string> RuleDocuments() {
         std::lock_guard lock(mu_);
         EnsureLoadedLocked();
@@ -891,6 +916,17 @@ public:
         return out;
     }
 
+    std::vector<std::string> VlmProfileDocuments() {
+        std::lock_guard lock(mu_);
+        EnsureLoadedLocked();
+        std::vector<std::string> out;
+        out.reserve(vlm_profiles_.size());
+        for (const auto& profile : vlm_profiles_) {
+            out.push_back(profile.body);
+        }
+        return out;
+    }
+
     bool CreateProfile(const std::string& body, std::string* response, std::string* error_message) {
         return CreateDocument(true, body, response, error_message);
     }
@@ -914,6 +950,25 @@ public:
         SaveLocked();
         if (response != nullptr) {
             *response = DocumentResponseJson("vaRule", *prepared);
+        }
+        return true;
+    }
+
+    bool CreateVlmProfile(const std::string& body, std::string* response, std::string* error_message) {
+        std::lock_guard lock(mu_);
+        EnsureLoadedLocked();
+        const auto prepared = PrepareVlmProfileDocumentLocked("", body, error_message);
+        if (!prepared.has_value()) {
+            return false;
+        }
+        if (FindDocumentLocked(vlm_profiles_, prepared->id).has_value()) {
+            SetRegistryError(error_message, "VLM profile id already exists");
+            return false;
+        }
+        vlm_profiles_.push_back(*prepared);
+        SaveLocked();
+        if (response != nullptr) {
+            *response = DocumentResponseJson("vlmProfile", *prepared);
         }
         return true;
     }
@@ -951,6 +1006,34 @@ public:
         return true;
     }
 
+    bool UpsertVlmProfile(const std::string& id,
+                          const std::string& body,
+                          std::string* response,
+                          std::string* error_message) {
+        std::lock_guard lock(mu_);
+        EnsureLoadedLocked();
+        const auto prepared = PrepareVlmProfileDocumentLocked(id, body, error_message);
+        if (!prepared.has_value()) {
+            return false;
+        }
+        bool updated = false;
+        for (auto& item : vlm_profiles_) {
+            if (item.id == prepared->id) {
+                item = *prepared;
+                updated = true;
+                break;
+            }
+        }
+        if (!updated) {
+            vlm_profiles_.push_back(*prepared);
+        }
+        SaveLocked();
+        if (response != nullptr) {
+            *response = DocumentResponseJson("vlmProfile", *prepared, updated ? "updated" : "created");
+        }
+        return true;
+    }
+
     bool DeleteProfile(const std::string& id) {
         std::lock_guard lock(mu_);
         EnsureLoadedLocked();
@@ -978,6 +1061,16 @@ public:
         std::lock_guard lock(mu_);
         EnsureLoadedLocked();
         const bool removed = RemoveDocumentLocked(va_rules_, id);
+        if (removed) {
+            SaveLocked();
+        }
+        return removed;
+    }
+
+    bool DeleteVlmProfile(const std::string& id) {
+        std::lock_guard lock(mu_);
+        EnsureLoadedLocked();
+        const bool removed = RemoveDocumentLocked(vlm_profiles_, id);
         if (removed) {
             SaveLocked();
         }
@@ -1021,6 +1114,7 @@ private:
         LoadDocumentsLocked("profiles", content, &profiles_);
         LoadDocumentsLocked("rules", content, &rules_);
         LoadDocumentsLocked("vaRules", content, &va_rules_);
+        LoadDocumentsLocked("vlmProfiles", content, &vlm_profiles_);
     }
 
     static void LoadDocumentsLocked(const std::string& field,
@@ -1284,6 +1378,172 @@ private:
         return Document{id, normalized};
     }
 
+    std::optional<Document> PrepareVlmProfileDocumentLocked(const std::string& path_id,
+                                                            const std::string& body,
+                                                            std::string* error_message) const {
+        if (!LooksLikeJsonObject(body)) {
+            SetRegistryError(error_message, "request body must be a JSON object");
+            return std::nullopt;
+        }
+        if (ContainsForbiddenVlmProfileField(body)) {
+            SetRegistryError(error_message, "VLM profile must not include credentials, prompts, raw responses, source locators, or frame bytes");
+            return std::nullopt;
+        }
+        if (ParseStringField(body, "schema").value_or("") != "media-server.vlm-profile.v1") {
+            SetRegistryError(error_message, "VLM profile schema must be media-server.vlm-profile.v1");
+            return std::nullopt;
+        }
+        const std::string id = Trim(ParseStringField(body, "id").value_or(""));
+        if (id.empty() || !IsSafeVlmProfileId(id)) {
+            SetRegistryError(error_message, "VLM profile id must use letters, numbers, dot, dash, or underscore");
+            return std::nullopt;
+        }
+        if (!path_id.empty() && id != path_id) {
+            SetRegistryError(error_message, "path id and body id must match");
+            return std::nullopt;
+        }
+        const std::string selected_option_id = Trim(ParseStringField(body, "selectedOptionId").value_or(""));
+        if (selected_option_id.empty() || !IsSafeVlmProfileId(selected_option_id)) {
+            SetRegistryError(error_message, "VLM profile selectedOptionId is required");
+            return std::nullopt;
+        }
+        const std::string provider = Trim(ParseStringField(body, "provider").value_or(""));
+        const std::string model = Trim(ParseStringField(body, "model").value_or(""));
+        const std::string runtime = Trim(ParseStringField(body, "runtime").value_or(""));
+        const std::string privacy_mode = Trim(ParseStringField(body, "privacyMode").value_or(""));
+        if (!IsOneOf(provider, {"user-supplied-local-runtime", "cloud-provider-api"})) {
+            SetRegistryError(error_message, "VLM profile provider is not supported");
+            return std::nullopt;
+        }
+        if (!IsOneOf(model,
+                     {"Qwen/Qwen3-VL-4B-Instruct",
+                      "Qwen/Qwen3-VL-8B-Instruct",
+                      "Qwen/Qwen3-VL-30B-A3B-Instruct",
+                      "gemini-2.5-flash"})) {
+            SetRegistryError(error_message, "VLM profile model is not supported");
+            return std::nullopt;
+        }
+        if (!IsOneOf(runtime, {"ollama", "vllm", "provider-api", "not-configured"})) {
+            SetRegistryError(error_message, "VLM profile runtime is not supported");
+            return std::nullopt;
+        }
+        if (!IsOneOf(privacy_mode, {"local-only", "cloud-disabled", "cloud-allowed"})) {
+            SetRegistryError(error_message, "VLM profile privacyMode is not supported");
+            return std::nullopt;
+        }
+        const bool cloud_opt_in_acknowledged = ParseBoolField(body, "cloudOptInAcknowledged").value_or(false);
+        if (provider == "cloud-provider-api") {
+            if (model != "gemini-2.5-flash" || runtime != "provider-api" ||
+                privacy_mode != "cloud-allowed" || !cloud_opt_in_acknowledged) {
+                SetRegistryError(error_message, "cloud VLM profile requires gemini-2.5-flash, provider-api runtime, cloud-allowed privacy, and opt-in acknowledgement");
+                return std::nullopt;
+            }
+        } else if (model == "gemini-2.5-flash" || runtime == "provider-api") {
+            SetRegistryError(error_message, "local VLM profile must not use cloud model or provider-api runtime");
+            return std::nullopt;
+        }
+        const auto prompt_profile = ExtractObjectField(body, "promptProfile");
+        if (!prompt_profile.has_value() || Trim(ParseStringField(*prompt_profile, "id").value_or("")).empty()) {
+            SetRegistryError(error_message, "VLM profile promptProfile.id is required");
+            return std::nullopt;
+        }
+        const auto evaluation = ExtractObjectField(body, "evaluation");
+        const std::string evaluation_status =
+            evaluation.has_value() ? Trim(ParseStringField(*evaluation, "status").value_or("")) : std::string();
+        if (!IsOneOf(evaluation_status, {"not-run", "passed", "failed", "review-required"})) {
+            SetRegistryError(error_message, "VLM profile evaluation.status is not supported");
+            return std::nullopt;
+        }
+        const auto activation = ExtractObjectField(body, "activation");
+        if (!activation.has_value()) {
+            SetRegistryError(error_message, "VLM profile activation object is required");
+            return std::nullopt;
+        }
+        const std::string activation_status = Trim(ParseStringField(*activation, "status").value_or(""));
+        const bool activation_enabled = ParseBoolField(*activation, "enabled").value_or(false);
+        const std::string fallback_profile_id =
+            Trim(ParseStringField(*activation, "fallbackProfileId").value_or(""));
+        const std::string disabled_reason =
+            Trim(ParseStringField(*activation, "disabledReason").value_or(""));
+        if (!IsOneOf(activation_status, {"pending-evaluation", "active", "disabled", "fallback"})) {
+            SetRegistryError(error_message, "VLM profile activation.status is not supported");
+            return std::nullopt;
+        }
+        if (activation_enabled && (evaluation_status != "passed" || activation_status != "active")) {
+            SetRegistryError(error_message, "enabled VLM profile requires passed evaluation and active activation");
+            return std::nullopt;
+        }
+        if (!activation_enabled && activation_status == "active") {
+            SetRegistryError(error_message, "active VLM profile must be enabled");
+            return std::nullopt;
+        }
+        if (activation_status == "disabled" && disabled_reason.empty()) {
+            SetRegistryError(error_message, "disabled VLM profile requires disabledReason");
+            return std::nullopt;
+        }
+        if (activation_status == "fallback") {
+            if (fallback_profile_id.empty() || !IsSafeVlmProfileId(fallback_profile_id) ||
+                fallback_profile_id == id) {
+                SetRegistryError(error_message, "fallback VLM profile requires a different fallbackProfileId");
+                return std::nullopt;
+            }
+        }
+        const auto invariants = ExtractObjectField(body, "contractInvariants");
+        if (!invariants.has_value()) {
+            SetRegistryError(error_message, "VLM profile contractInvariants object is required");
+            return std::nullopt;
+        }
+        for (const std::string& field :
+             {"runtimeVlmCallPerformed",
+              "sidecarStored",
+              "cloudProviderApiCalled",
+              "credentialStored",
+              "eventPostPayloadChanged",
+              "webrtcDataChannelSchemaChanged",
+              "sseMetadataSchemaChanged",
+              "wsMetadataSchemaChanged",
+              "rtspOrWebrtcMediaPathChanged",
+              "viewerClientExposureAdded"}) {
+            if (ParseBoolField(*invariants, field).value_or(true)) {
+                SetRegistryError(error_message, "VLM profile invariant must be false: " + field);
+                return std::nullopt;
+            }
+        }
+        return Document{id, Trim(body)};
+    }
+
+    static bool IsSafeVlmProfileId(const std::string& value) {
+        return !value.empty() &&
+               std::all_of(value.begin(), value.end(), [](unsigned char ch) {
+                   return std::isalnum(ch) != 0 || ch == '.' || ch == '-' || ch == '_';
+               });
+    }
+
+    static bool IsOneOf(const std::string& value, std::initializer_list<const char*> allowed) {
+        return std::any_of(allowed.begin(), allowed.end(), [&](const char* item) {
+            return value == item;
+        });
+    }
+
+    static bool ContainsForbiddenVlmProfileField(const std::string& body) {
+        for (const std::string& field :
+             {"apiKey",
+              "credential",
+              "providerCredential",
+              "prompt",
+              "rawPrompt",
+              "rawResponse",
+              "sourceUrl",
+              "sourceLocator",
+              "imageData",
+              "frameBytes"}) {
+            if (body.find("\"" + field + "\"") != std::string::npos) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     std::string NextVaRuleIdLocked() const {
         std::uint64_t next_id = 1;
         for (const auto& item : va_rules_) {
@@ -1351,6 +1611,8 @@ private:
         AppendDocumentsArray(out, rules_);
         out << ",\n  \"vaRules\": ";
         AppendDocumentsArray(out, va_rules_);
+        out << ",\n  \"vlmProfiles\": ";
+        AppendDocumentsArray(out, vlm_profiles_);
         out << "\n}\n";
     }
 
@@ -1360,6 +1622,7 @@ private:
     std::vector<Document> profiles_;
     std::vector<Document> rules_;
     std::vector<Document> va_rules_;
+    std::vector<Document> vlm_profiles_;
 };
 
 AnalysisDocumentRegistry& AnalysisRegistry() {
@@ -3377,7 +3640,7 @@ void AppendOpsHomePage(std::ostringstream& out) {
         </div>
         <div class="badge-row">
           <span class="chip info">dry-run only</span>
-          <span class="chip">profile 저장 없음</span>
+          <span class="chip">profile 저장 지원</span>
           <span class="chip">runtime 호출 없음</span>
         </div>
       </section>
@@ -3462,19 +3725,81 @@ void AppendOpsVlmInstallConnectionPage(std::ostringstream& out) {
         </div>
         <p id="opsVlmSelectionSummary">선택한 후보 없음</p>
       </section>
+      <section class="section-card" data-testid="ops-vlm-profile-panel">
+        <div class="toolbar">
+          <div>
+            <h3>VLM profile 저장</h3>
+            <p>S05 저장 계약은 provider, model, runtime, prompt profile, privacy, 평가, 활성화 상태만 저장합니다.</p>
+          </div>
+          <button id="opsVlmSaveProfile" class="button-primary" type="button">profile 저장</button>
+        </div>
+        <div id="opsVlmProfileStatus" class="message" hidden></div>
+        <div class="form-grid">
+          <label>Profile ID
+            <input id="opsVlmProfileId" value="vlm-primary-qwen3-vl-8b-instruct" autocomplete="off">
+          </label>
+          <label>Prompt profile
+            <select id="opsVlmPromptProfile">
+              <option value="event-review-default">event-review-default</option>
+              <option value="false-positive-review">false-positive-review</option>
+              <option value="operator-question-review">operator-question-review</option>
+            </select>
+          </label>
+          <label>Evaluation
+            <select id="opsVlmEvaluationStatus">
+              <option value="not-run" selected>not-run</option>
+              <option value="review-required">review-required</option>
+              <option value="failed">failed</option>
+              <option value="passed">passed</option>
+            </select>
+          </label>
+          <label>Activation
+            <select id="opsVlmActivationStatus">
+              <option value="pending-evaluation" selected>pending-evaluation</option>
+              <option value="disabled">disabled</option>
+              <option value="fallback">fallback</option>
+              <option value="active">active</option>
+            </select>
+          </label>
+          <label class="check-inline">
+            <input id="opsVlmProfileEnabled" type="checkbox">
+            enabled
+          </label>
+          <label>Fallback profile
+            <input id="opsVlmFallbackProfileId" placeholder="fallback profile id" autocomplete="off">
+          </label>
+          <label>Disabled reason
+            <input id="opsVlmDisabledReason" value="evaluation-not-run" autocomplete="off">
+          </label>
+        </div>
+        <div class="ops-responsive-table">
+          <table>
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>모델</th>
+                <th>평가/활성화</th>
+                <th>Fallback</th>
+                <th>작업</th>
+              </tr>
+            </thead>
+            <tbody id="opsVlmProfileRows"><tr><td colspan="5">저장된 VLM profile을 불러오는 중입니다.</td></tr></tbody>
+          </table>
+        </div>
+      </section>
       <section class="section-card" data-testid="ops-vlm-boundary-panel">
         <div class="toolbar">
           <div>
             <h3>실행 경계</h3>
-            <p>이 화면은 dry-run 검토만 수행합니다.</p>
+            <p>설치/연결 후보 선택과 profile 저장만 수행하며 runtime 호출과 sidecar 저장은 이후 단계입니다.</p>
           </div>
         </div>
         <div id="opsVlmBoundaryBadges" class="badge-row">
           <span class="chip">설치 없음</span>
           <span class="chip">credential 저장 없음</span>
-          <span class="chip">profile 저장 없음</span>
           <span class="chip">VLM 호출 없음</span>
           <span class="chip">sidecar 저장 없음</span>
+          <span class="chip">schema/media 변경 없음</span>
         </div>
         <div id="opsVlmDisabledList" class="root-cause-list">
           <div class="empty">비추천 후보를 불러오는 중입니다.</div>
@@ -7236,6 +7561,10 @@ std::string AnalysisRulesJson() {
 
 std::string AnalysisVaRulesJson() {
     return AnalysisRegistry().VaRulesJson();
+}
+
+std::string OpsVlmProfilesJson() {
+    return AnalysisRegistry().VlmProfilesJson();
 }
 
 void AppendJsonDocumentArray(std::ostream& out, const std::vector<std::string>& documents) {
@@ -13376,6 +13705,85 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            ok.headers["Cache-Control"] = "no-store";
 	                            return ok;
 	                        }
+
+                            if (request.path == "/ops/api/vlm/profiles") {
+                                if (request.method == "GET") {
+                                    if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                        return *auth_response;
+                                    }
+                                    HttpResponse ok = JsonResponse(200, "OK", OpsVlmProfilesJson());
+                                    ok.headers["Cache-Control"] = "no-store";
+                                    return ok;
+                                }
+                                if (request.method == "POST") {
+                                    if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                        return *auth_response;
+                                    }
+                                    if (const auto auth_response = require_rule_write_principal(); auth_response.has_value()) {
+                                        return *auth_response;
+                                    }
+                                    std::string response_body;
+                                    std::string error_message;
+                                    if (!AnalysisRegistry().CreateVlmProfile(request.body, &response_body, &error_message)) {
+                                        return JsonResponse(400,
+                                                            "Bad Request",
+                                                            "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                                    }
+                                    return JsonResponse(201, "Created", response_body);
+                                }
+                            }
+
+                            const auto ops_vlm_profile_prefix = std::string("/ops/api/vlm/profiles/");
+                            if (request.path.rfind(ops_vlm_profile_prefix, 0) == 0) {
+                                const std::string id = UrlDecode(request.path.substr(ops_vlm_profile_prefix.size()));
+                                if (id.empty()) {
+                                    return JsonResponse(400, "Bad Request",
+                                                        "{\"error\":\"VLM profile id is required\"}");
+                                }
+                                if (request.method == "GET") {
+                                    if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                        return *auth_response;
+                                    }
+                                    const auto profile = AnalysisRegistry().VlmProfileJson(id);
+                                    if (!profile.has_value()) {
+                                        return JsonResponse(404, "Not Found",
+                                                            "{\"error\":\"VLM profile not found\"}");
+                                    }
+                                    HttpResponse ok = JsonResponse(200, "OK", "{\"vlmProfile\":" + *profile + "}");
+                                    ok.headers["Cache-Control"] = "no-store";
+                                    return ok;
+                                }
+                                if (request.method == "PUT") {
+                                    if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                        return *auth_response;
+                                    }
+                                    if (const auto auth_response = require_rule_write_principal(); auth_response.has_value()) {
+                                        return *auth_response;
+                                    }
+                                    std::string response_body;
+                                    std::string error_message;
+                                    if (!AnalysisRegistry().UpsertVlmProfile(id, request.body, &response_body, &error_message)) {
+                                        return JsonResponse(400,
+                                                            "Bad Request",
+                                                            "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+                                    }
+                                    return JsonResponse(200, "OK", response_body);
+                                }
+                                if (request.method == "DELETE") {
+                                    if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                        return *auth_response;
+                                    }
+                                    if (const auto auth_response = require_rule_write_principal(); auth_response.has_value()) {
+                                        return *auth_response;
+                                    }
+                                    if (!AnalysisRegistry().DeleteVlmProfile(id)) {
+                                        return JsonResponse(404, "Not Found",
+                                                            "{\"error\":\"VLM profile not found\"}");
+                                    }
+                                    return JsonResponse(200, "OK",
+                                                        "{\"ok\":true,\"deleted\":\"" + JsonEscape(id) + "\"}");
+                                }
+                            }
 
 	                        if (request.method == "GET" && request.path == "/ops/api/source-health") {
 	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {

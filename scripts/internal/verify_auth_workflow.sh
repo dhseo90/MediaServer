@@ -783,6 +783,29 @@ run_routes() {
     -X PUT --data "${readonly_va_rule_payload}" "${BASE}/lab/analysis/va-rules/14")" "403" "rule write scope required for lab vaRule write"
   expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" -H 'Content-Type: application/json' \
     -X PUT --data '{"id":"99","trackingClasses":["person"]}' "${BASE}/lab/analysis/profiles/99")" "403" "rule write scope required for lab profile write"
+  local vlm_profile_payload invalid_vlm_profile_payload
+  vlm_profile_payload='{"schema":"media-server.vlm-profile.v1","id":"vlm-route-smoke","selectedOptionId":"primary-qwen3-vl-8b-instruct","provider":"user-supplied-local-runtime","model":"Qwen/Qwen3-VL-8B-Instruct","runtime":"not-configured","privacyMode":"local-only","cloudOptInAcknowledged":false,"promptProfile":{"id":"event-review-default","version":"v1","language":"ko-en"},"evaluation":{"status":"not-run"},"activation":{"enabled":false,"status":"disabled","fallbackProfileId":"","disabledReason":"evaluation-not-run"},"sourceStep":"V200-S05","storageScope":"profile-storage-only","contractInvariants":{"runtimeVlmCallPerformed":false,"sidecarStored":false,"cloudProviderApiCalled":false,"credentialStored":false,"eventPostPayloadChanged":false,"webrtcDataChannelSchemaChanged":false,"sseMetadataSchemaChanged":false,"wsMetadataSchemaChanged":false,"rtspOrWebrtcMediaPathChanged":false,"viewerClientExposureAdded":false}}'
+  invalid_vlm_profile_payload='{"schema":"media-server.vlm-profile.v1","id":"vlm-route-smoke-invalid","selectedOptionId":"primary-qwen3-vl-8b-instruct","provider":"user-supplied-local-runtime","model":"Qwen/Qwen3-VL-8B-Instruct","runtime":"not-configured","privacyMode":"local-only","prompt":"leak"}'
+  expect_eq "$(http_code "${BASE}/ops/api/vlm/profiles")" "401" "unauth VLM profile API denied"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/ops/api/vlm/profiles")" "403" "viewer VLM profile API denied"
+  expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" "${BASE}/ops/api/vlm/profiles")" "200" "readonly operator VLM profile read allowed"
+  expect_eq "$(http_code -b "${OP_READONLY_COOKIE}" -H 'Content-Type: application/json' \
+    -X PUT --data "${vlm_profile_payload}" "${BASE}/ops/api/vlm/profiles/vlm-route-smoke")" "403" "rule write scope required for VLM profile write"
+  expect_eq "$(http_code -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
+    -X PUT --data "${invalid_vlm_profile_payload}" "${BASE}/ops/api/vlm/profiles/vlm-route-smoke-invalid")" "400" "invalid VLM profile fixture rejected"
+  local vlm_profile_json vlm_profile_list_json
+  vlm_profile_json="$(curl -fsS -b "${ADMIN_COOKIE}" -H 'Content-Type: application/json' \
+    -X PUT --data "${vlm_profile_payload}" "${BASE}/ops/api/vlm/profiles/vlm-route-smoke")"
+  case "${vlm_profile_json}" in
+    *'"status":"created"'*'"schema":"media-server.vlm-profile.v1"'*) pass "VLM profile write creates storage document" ;;
+    *) fail "VLM profile write response mismatch: ${vlm_profile_json}" ;;
+  esac
+  vlm_profile_list_json="$(curl -fsS -b "${OP_READONLY_COOKIE}" "${BASE}/ops/api/vlm/profiles")"
+  case "${vlm_profile_list_json}" in
+    *'"schema":"media-server.vlm-profile-registry.v1"'*'"id":"vlm-route-smoke"'*) pass "VLM profile read lists stored profile" ;;
+    *) fail "VLM profile read list mismatch: ${vlm_profile_list_json}" ;;
+  esac
+  expect_eq "$(http_code -b "${ADMIN_COOKIE}" -X DELETE "${BASE}/ops/api/vlm/profiles/vlm-route-smoke")" "200" "VLM profile delete allowed for admin"
   local operator_source_write_json
   operator_source_write_json="$(curl -fsS -b "${OP_COOKIE}" -H 'Content-Type: application/json' \
     -X POST --data '{"sourceId":"30","displayName":"Operator Scope Write","kind":"whep","whepUrl":"https://example.test/operator-scope-write","enabled":true}' \

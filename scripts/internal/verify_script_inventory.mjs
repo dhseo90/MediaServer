@@ -413,6 +413,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "vlm_install_connection_dry_run.mjs",
     "verify_vlm_install_connection_dry_run.mjs",
     "verify_vlm_install_connection_ui.mjs",
+    "verify_vlm_profile_storage.mjs",
     "verify_code_comments.mjs",
     "verify_docs_links.mjs",
     "verify_project_feature_test_inventory.mjs",

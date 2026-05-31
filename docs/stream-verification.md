@@ -238,6 +238,17 @@ sidecar 저장, provider API 호출 성공을 뜻하지 않으며, 브라우저 
 ./server.sh verify-vlm-install-connection-ui
 ```
 
+VLM profile 저장은 `V200-S05`의 profile storage contract를 확인합니다.
+`/ops/api/vlm/profiles` CRUD와 `/ops/vlm` profile 저장 panel은 선택한 provider,
+model, runtime, prompt profile, privacy mode, evaluation, activation, fallback/disable
+상태만 저장합니다. 이 검증은 VLM runtime 호출, cloud provider API 호출,
+VLMObservation sidecar 저장, 이벤트 설명 품질 평가, 브라우저 UI 풀테스트 완료를
+대신하지 않습니다.
+
+```bash
+./server.sh verify-vlm-profile-storage
+```
+
 CI/local gate parity는 `media-server.ci-local-gate-parity.v1` summary로
 Preflight/static-gates/guardrails/RC workflow에 실제로 걸린 `./server.sh` 명령과
 로컬 release/static verifier 목록을 대조합니다. 로컬에서 통과해야 한다고 문서화한

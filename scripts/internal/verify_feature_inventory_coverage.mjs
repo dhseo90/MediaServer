@@ -41,19 +41,19 @@ const rows = parseFeatureRows(inventory);
 const checks = [];
 
 const stabilityVerifierByPrefix = {
-  UI: ["verify-auth-bootstrap", "verify-auth-routes", "verify-ops-client-ui", "verify-ops-route-boundaries", "verify-vlm-install-connection-ui"],
+  UI: ["verify-auth-bootstrap", "verify-auth-routes", "verify-ops-client-ui", "verify-ops-route-boundaries", "verify-vlm-install-connection-ui", "verify-vlm-profile-storage"],
   AUTH: ["verify-auth-regression-matrix", "verify-auth-bootstrap", "verify-auth-users", "verify-auth-routes", "verify-auth-ui-smoke", "verify-auth-scope-picker"],
   SRC: ["verify-ops-source-lifecycle", "verify-ops-source-health-bulk", "verify-ops-client-ui", "verify-onvif-no-device-suite"],
   RULE: ["verify-rule-ui", "verify-ops-rules-roundtrip", "verify-ops-rule-validation-matrix", "verify-va-event-coverage-report", "verify-va-replay", "verify-analysis-state"],
   EVT: ["verify-va-event-coverage-report", "verify-va-events", "verify-ops-event-review-inbox", "verify-ops-event-records-scope", "verify-va-runtime-console"],
   CLIENT: ["verify-client-live-workspace", "verify-client-dashboard-polish", "verify-client-source-dock-events", "verify-ops-client-ui"],
   MEDIA: ["verify-codecs", "verify-webrtc-ice", "verify-webrtc-va-metadata"],
-  LAB: ["verify-analysis-state", "verify-va-metadata-sidechannel", "verify-ws-metadata", "verify-image-analysis", "verify-vlm-pc-capability", "verify-vlm-recommendation-engine", "verify-vlm-install-connection-dry-run"],
-  SAFE: ["verify-integrator-contract-artifact", "verify-auth-routes", "verify-ops-client-ui", "verify-ui-blocking-dialog-policy", "verify-event-post", "verify-webrtc-va-metadata", "verify-ws-metadata", "verify-vlm-install-connection-scope-gate"],
+  LAB: ["verify-analysis-state", "verify-va-metadata-sidechannel", "verify-ws-metadata", "verify-image-analysis", "verify-vlm-pc-capability", "verify-vlm-recommendation-engine", "verify-vlm-install-connection-dry-run", "verify-vlm-profile-storage"],
+  SAFE: ["verify-integrator-contract-artifact", "verify-auth-routes", "verify-ops-client-ui", "verify-ui-blocking-dialog-policy", "verify-event-post", "verify-webrtc-va-metadata", "verify-ws-metadata", "verify-vlm-install-connection-scope-gate", "verify-vlm-profile-storage"],
 };
 
 check("inventory row count is stable", () => {
-  assert(rows.length === 322, `expected 322 feature rows, found ${rows.length}`);
+  assert(rows.length === 325, `expected 325 feature rows, found ${rows.length}`);
   assert(new Set(rows.map(row => row.id)).size === rows.length, "duplicate feature ID exists");
 });
 

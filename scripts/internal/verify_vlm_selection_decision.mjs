@@ -299,14 +299,12 @@ check("server command, script inventory, docs index, and verification docs are w
   return { command: "./server.sh verify-vlm-selection-decision" };
 });
 
-check("V200-S01 does not introduce runtime implementation artifacts", () => {
+check("V200-S01/S03 do not introduce runtime implementation artifacts beyond S05 profile storage", () => {
   const sourceFiles = gitLsFiles(["src", "include"]).filter((file) => !isBinaryPath(file));
   const hits = [];
   const forbidden = [
     /\bVLMObservation\b/,
-    /\bvlm[_-]?profile\b/i,
     /\bvlm[_-]?sidecar\b/i,
-    /\bpromptProfile\b/,
   ];
   for (const file of sourceFiles) {
     const text = readText(file);
