@@ -93,6 +93,9 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
   EventRecord evidence와 함께 확인하고, `/client/live`, `/client/dashboard`,
   `/client/events`에서 VLM model/prompt/raw response/provider/internal review card가
   보이지 않는지 확인합니다.
+- v2.0.0 pre-test 반영 목록은 [project-feature-test-inventory.md](./project-feature-test-inventory.md)의
+  `v2.0.0 Pre-Test Update List`를 기준으로 확인합니다. 이 목록은 실행 결과가 아니라
+  안정화/30분/120분/UI 풀테스트에 포함할 대상을 빠뜨리지 않기 위한 사전 목록입니다.
 - destructive action은 throwaway 계정, 채널, 접근 요청으로만 수행합니다.
 - UI smoke 전용 HTML selector 검증은 필요 시 별도 서버에서
   `./server.sh verify-ops-client-ui --screenshots`로 실행하되, 이 결과만으로
@@ -243,7 +246,8 @@ UI 조작 evidence는 프로젝트 verifier가 자체 Chrome/CDP 세션에서 �
 
 - 320px, 390px, 760px, 1180px에서 `/setup`, `/login`, `/ops/home`,
   `/ops/dashboard`, `/ops/sources`, `/ops/rules`, `/ops/users`, `/ops/events`,
-  `/client/live`, `/client/dashboard`, `/client/request-access`를 확인합니다.
+  `/ops/vlm`, `/client/live`, `/client/dashboard`, `/client/events`,
+  `/client/request-access`를 확인합니다.
 - nav, table row action, form input, select, button text, badge, tile, modal/menu,
   workspace 작업 메뉴가 부모 폭과 viewport를 넘지 않아야 합니다.
 - light/dark 전환 후 shell, card, table, form, badge, video tile contrast가 유지됩니다.

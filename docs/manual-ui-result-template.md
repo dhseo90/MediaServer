@@ -106,6 +106,12 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 | UI-022 `/ops/vlm` 설치/연결 준비 | local/cloud dry-run 후보 선택 | 자동 설치/호출/저장 없음 |  | PASS/FAIL |  |
 | UI-023 `/ops/vlm` profile 저장 | 저장/활성화/fallback/disable/delete | profile state만 반영, runtime call 없음 |  | PASS/FAIL |  |
 | UI-024 `/ops/vlm` privacy guard | cloud opt-in 전/후 guard 확인 | provider 호출/credential 저장 없음 |  | PASS/FAIL |  |
+| UI-025 `/ops/vlm` PC capability/recommendation | capability/recommendation 요약 확인 | 추천/대안/비추천 사유가 Ops-only로 보이고 자동 설치/호출 없음 |  | PASS/FAIL |  |
+| UI-026 `/ops/vlm` local 후보 선택 | local dry-run 후보 선택 | model download/runtime install/profile 저장 없이 선택 상태만 갱신 |  | PASS/FAIL |  |
+| UI-027 `/ops/vlm` cloud 후보 선택 | opt-in 전 disabled, opt-in 후 dry-run 선택 | provider API 호출/credential 저장 없이 선택 상태만 갱신 |  | PASS/FAIL |  |
+| UI-028 `/ops/vlm` profile 상태 control | active/fallback/disabled 전환 | 저장 목록과 상세 copy만 반영, runtime call 없음 |  | PASS/FAIL |  |
+| UI-029 `/ops/vlm` profile 삭제 | 삭제 action | 목록에서 제거되고 EventRecord/sidecar/media path 영향 없음 |  | PASS/FAIL |  |
+| UI-030 `/ops/vlm` evaluation/prompt profile | 평가 상태와 prompt profile 표시 | benchmark PASS로 과장하지 않고 저장 profile에 표시 |  | PASS/FAIL |  |
 | UI-031 `/ops/vlm` raw details | details 열기/닫기 | raw details는 Ops 접힘 영역에만 있음 |  | PASS/FAIL |  |
 | UI-032 `/ops/events` VLM review | review detail 열기 | summary/explanation/hints/questions가 Ops에만 표시 |  | PASS/FAIL |  |
 | SAFE-031 client/viewer 비노출 | `/client/live`, `/client/dashboard`, `/client/events` 확인 | model/prompt/raw response/provider/internal review card 없음 |  | PASS/FAIL |  |
@@ -244,8 +250,10 @@ evidence이며, UI에서 열지 않은 경우 `FAIL`입니다.
 | `/ops/rules` | admin/operator |  |  |  |  | PASS/FAIL |
 | `/ops/users` | admin |  |  |  |  | PASS/FAIL |
 | `/ops/events` | admin/operator |  |  |  |  | PASS/FAIL |
+| `/ops/vlm` | admin/operator |  |  |  |  | PASS/FAIL |
 | `/client/live` | viewer/admin preview |  |  |  |  | PASS/FAIL |
 | `/client/dashboard` | viewer/admin preview |  |  |  |  | PASS/FAIL |
+| `/client/events` | viewer/admin preview |  |  |  |  | PASS/FAIL |
 | `/client/request-access` | public |  |  |  |  | PASS/FAIL |
 
 ## v1.9.0 Release Evidence Index
@@ -263,8 +271,10 @@ evidence이며, UI에서 열지 않은 경우 `FAIL`입니다.
 | `/ops/rules` | admin/operator | Rules 화면 진입/validation 확인 |  | `verify-rule-ui` | PASS/FAIL |  |
 | `/ops/users` | admin | Users 화면 진입/user table 확인 |  | `verify-ops-client-ui --screenshots` | PASS/FAIL |  |
 | `/ops/events` | admin/operator | Events 화면 진입/EventRecord review 확인 |  | `verify-ops-event-records-scope` | PASS/FAIL |  |
+| `/ops/vlm` | admin/operator | VLM install/profile/privacy 화면 진입 및 controls 확인 |  | `verify-vlm-install-connection-ui`, `verify-vlm-profile-storage`, `verify-vlm-privacy-transfer-guard` | PASS/FAIL |  |
 | `/client/live` | viewer/admin preview | Live 화면 진입/source 선택/drag-drop 확인 |  | `verify-ops-client-ui --screenshots` | PASS/FAIL |  |
 | `/client/dashboard` | viewer/admin preview | Dashboard 화면 진입/view 상태 확인 |  | `verify-client-dashboard-polish` | PASS/FAIL |  |
+| `/client/events` | viewer/admin preview | viewer scope events와 VLM internal card 비노출 확인 |  | `verify-ops-client-ui --screenshots` | PASS/FAIL |  |
 
 - 직접 열어보지 않은 화면:
 - 실패 후 재검수한 화면:

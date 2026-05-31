@@ -172,11 +172,13 @@ Ops:
 - `/ops/rules`
 - `/ops/users`
 - `/ops/events`
+- `/ops/vlm`
 
 Client:
 
 - `/client/live`
 - `/client/dashboard`
+- `/client/events`
 - `/client/request-access`
 
 Role/scope:
@@ -207,6 +209,12 @@ Role/scope:
   dock side, info overlay, workspace actions, copy fallback, keyboard focus
 - Client Dashboard: filter, sort, status copy, event copy
 - Request Access: public submit, pending copy, approval before/after boundary
+- v2.0.0 VLM pre-test 반영: `/ops/vlm`의 local/cloud dry-run 후보, missing-model,
+  cloud-disabled, provider-timeout 안내, privacy transfer guard, profile 저장/
+  활성화/fallback/disable/delete, raw details 접힘 영역을 기능 ID별로 확인
+- v2.0.0 client redaction: `/client/live`, `/client/dashboard`, `/client/events`에서
+  VLM model, prompt, raw response, provider, internal review card, source/debug JSON이
+  보이지 않는지 기능 ID별로 확인
 
 위 목록은 실행 순서 요약입니다. 실제 기능 단위 범위는
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)의 기능 ID를

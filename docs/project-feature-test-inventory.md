@@ -62,6 +62,7 @@ close-out에서 실제 실행한 evidence는 [release-evidence-index.md](release
 | UI fulltest one-shot wrapper | `./server.sh verify-ui-fulltest-one-shot`이 throwaway core/auth 서버와 UI verifier 묶음을 순차 실행 | 30분/120분 longrun은 실행하지 않으며, wrapper PASS만으로 장시간 안정화 PASS가 되지 않음 |
 | Coverage gate | `./server.sh verify-feature-inventory-coverage`가 `media-server.feature-inventory-coverage.v1` report로 기능 ID별 verifier/UI evidence/longrun/field exclusion 연결을 점검 | `missing coverage target` 누락 ID는 release gate에서 FAIL |
 | VLM route, control, action, runtime state, sidecar, privacy guard | V200-S14 기준으로 `/ops/vlm`, `/ops/events` VLM review, VLMObservation sidecar, summary/rule suggestion 후보, privacy/redaction/no-auto-apply 경계를 기능 ID 단위로 확장 | 실행 evidence가 아니며, 실제 UI 풀테스트와 장시간 안정화는 별도 단계에서 PASS/FAIL로 기록 |
+| v2.0.0 pre-test update list | 안정화/30분/120분/UI 풀테스트 실행 전 V200-S00~S18 변경분을 아래 `v2.0.0 Pre-Test Update List`에 반영 | 테스트 실행 결과가 아니며, 실제 실행 전 누락 방지용 목록 |
 
 ## Owner Source Map
 
@@ -120,6 +121,25 @@ Rule scenario/event 발생 검수는 분리합니다.
 | 30분 soak | `UI-015`, `SRC-002`~`SRC-005`, `SRC-012`, `SRC-024`, `RULE-035`~`RULE-037`, `RULE-039`, `RULE-099`, `EVT-001`~`EVT-003`, `EVT-006`, `EVT-024`, `EVT-026`, `CLIENT-002`~`CLIENT-005`, `CLIENT-019`, `CLIENT-021`, `MEDIA-001`~`MEDIA-004`, `MEDIA-008`~`MEDIA-013`, `MEDIA-016`~`MEDIA-020`, `LAB-015`, `LAB-016`, `LAB-020`, VLM queue/backpressure 또는 runtime cache 변경 시 `LAB-038`~`LAB-044`, `SAFE-032` | 사용자 장기간 테스트 지시, 버전 로드맵 완료, VLM queue/backpressure/runtime cache/media non-blocking 변경 후 `verify-predev --soak-minutes 30` 계열 |
 | 120분 조건부 | `MEDIA-001`~`MEDIA-004`, `MEDIA-011`, `MEDIA-012`, `SAFE-014`, VLM memory/runtime cache 또는 queue drift 고위험 변경 시 `SAFE-032` | memory growth, runtime drift, fanout/media path 고위험 변경, VLM active RSS high-water 또는 queue cleanup drift 시 사용자에게 먼저 말하고 승인 후 실행 |
 | 필드 별도 | `SRC-014` | ONVIF 실기기/endpoint/credential 준비 시 별도 field smoke |
+
+## v2.0.0 Pre-Test Update List
+
+이 절은 안정화/30분/120분/UI 풀테스트를 실제로 실행하기 전에 v2.0.0에서 늘어난
+검수 대상을 누락하지 않기 위한 목록입니다. 아래 행은 테스트 실행 결과가 아니며,
+`PASS` 증거로 쓰지 않습니다. 기존 기능 ID 표의 상세 PASS 기준은 그대로 유지하고,
+여기서는 어떤 테스트 영역에 포함해야 하는지만 고정합니다.
+
+| v2.0.0 변경 묶음 | 연결 기능 ID/문서 | 안정화 리스트 반영 | 30분 리스트 반영 | 120분 리스트 반영 | UI 풀테스트 리스트 반영 | 실행 전 기록 |
+| --- | --- | --- | --- | --- | --- | --- |
+| VLM 도입 경계, 모델 선택, PC capability, recommendation | `LAB-035`~`LAB-049`, `SAFE-025`~`SAFE-027`, [vlm-model-selection.md](./vlm-model-selection.md), [vlm-recommendation-engine.md](./vlm-recommendation-engine.md) | `verify-vlm-boundary`, `verify-vlm-selection-decision`, `verify-vlm-pc-capability`, `verify-vlm-recommendation-engine`, bundle/privacy guard | runtime/queue/cache/media 변경이 없으면 미실행 | high-risk signal 없으면 미실행 | UI 변경 없음. `/ops/vlm` 요약 copy가 바뀐 경우 `UI-025` 확인 | 모델/runtime download, provider credential, cloud call은 제외 또는 field smoke로 분리 |
+| `/ops/vlm` install/profile/privacy controls | `UI-022`~`UI-031`, `LAB-037`, `LAB-038`, `LAB-050`, `LAB-051`, `SAFE-022`~`SAFE-024`, `SAFE-028`, `SAFE-033` | `verify-vlm-install-connection-ui`, `verify-vlm-install-connection-dry-run`, `verify-vlm-profile-storage`, `verify-vlm-privacy-transfer-guard`, auth/ops shell guard | queue/backpressure/runtime cache 변경이 있거나 release close-out에서 지시되면 포함 | provider retry/queue drift, active RSS high-water, memory ownership 변경 시 승인 후 포함 | `/ops/vlm` local/cloud dry-run, opt-in guard, profile save/activate/fallback/disable/delete, raw details 접힘 영역을 직접 조작 | 실제 provider 호출, credential 저장, model install은 실행 전 제외/미실행 사유 기록 |
+| VLM evidence extraction, sidecar, event explanation, Ops review | `UI-032`, `EVT-027`~`EVT-031`, `LAB-039`~`LAB-042`, `LAB-052`, `LAB-053`, `SAFE-028`, `SAFE-029`, `SAFE-031` | `verify-vlm-evaluation-harness`, `verify-vlm-event-evidence-extraction`, `verify-vlm-observation-sidecar`, `verify-vlm-event-explanation-hints`, `verify-vlm-ops-event-review-ui`, Event POST/WebRTC/SSE/WS metadata guard | EventRecord storage/fanout 또는 runtime queue 변경 시 포함 | metadata fanout/media path 고위험 변경 시 승인 후 포함 | `/ops/events` VLM review detail, evidence availability, sidecar matching/missing state를 확인하고 `/client/live`, `/client/dashboard`, `/client/events` 비노출 확인 | raw prompt/response/source URL/credential/raw media 비저장과 schema/media path 불변 조건 기록 |
+| VLM summary search 후보와 Rule 추천 보조 후보 | `EVT-032`, `EVT-033`, `LAB-043`~`LAB-055`, `SAFE-030` | `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates`, `verify-rule-ui` no-auto-apply guard | runtime queue/cache 또는 rule/event fanout 변경 시 포함 | high-risk rule/event fanout 변경 시 승인 후 포함 | 제품 검색 UI나 자동 적용 UI가 없어야 정상. `/ops/events` 후보 표시가 생기면 개별 UI 행으로 기록 | 후보 단계, 수동 저장 전 registry write 없음, 자동 적용 금지 기록 |
+| VLM runtime disabled, missing-model, cloud-disabled, provider timeout | `EVT-034`, `SAFE-025`, `SAFE-027`, `SAFE-032`, [vlm-test-rehearsal.md](./vlm-test-rehearsal.md) | `verify-vlm-test-rehearsal`, side-effect verifier, media/metadata guard | queue/backpressure/timeout worker 또는 media non-blocking 변경 시 포함 | provider retry queue drift, active RSS high-water, cleanup drift 발생 시 승인 후 포함 | `/ops/vlm` missing-model/cloud-disabled/provider-timeout copy가 바뀌면 직접 확인 | missing model/provider disabled는 media path FAIL이 아니며 provider field smoke와 분리 |
+| S15 간이 테스트 리허설 | [vlm-test-rehearsal.md](./vlm-test-rehearsal.md), `media-server.vlm-test-rehearsal-report.v1` | 안정화 실행 전 짧은 rehearsal 목록에 포함 | 미실행. 30분 PASS 대체 금지 | 미실행. 120분 PASS 대체 금지 | 미실행. UI PASS 대체 금지 | fixture-only 리허설이며 runtime/provider/UI/longrun evidence가 아님 |
+| S16 기존 테스트 side effect 점검 | [development-backlog.md](./development-backlog.md) S16 evidence | build/auth/Ops/Client/Rule/VA/WebRTC/SSE/WS/Event POST/media path verifier를 안정화 선수 목록에 포함 | VLM 변경이 media/runtime에 닿았거나 release close-out에서 지시되면 포함 | schema/media path 고위험 회귀 신호가 있으면 승인 후 포함 | side-effect script PASS는 UI 직접 조작 PASS가 아님. UI 변경 route는 별도 클릭 대상 | verifier가 검사하지 않은 UI/장시간/provider 범위는 미확인으로 남김 |
+| S17 안정화/장시간/UI 기준 | [vlm-stabilization-longrun-ui-criteria.md](./vlm-stabilization-longrun-ui-criteria.md) | `verify-runtime-media-longrun-trigger-matrix`, `verify-longrun-separation`, `verify-manual-ui-evidence`를 사전 목록에 포함 | trigger matrix상 필요 또는 버전 close-out 지시 시 포함 | RC/high-risk/user approval 시 포함 | VLM UI 변경이 있으면 `/ops/vlm`, `/ops/events`, client redaction route를 직접 확인 | 실행하지 않은 장시간/UI 항목은 `미실행`으로 기록 |
+| S18 close-out readiness/evidence 분리 | [vlm-close-out-readiness.md](./vlm-close-out-readiness.md), [release-evidence-index.md](./release-evidence-index.md) | `verify-vlm-closeout-readiness`, `verify-release-evidence-index`, `verify-release-metadata`, docs/index guard를 목록에 포함 | 실제 실행 지시가 없으면 미실행으로 기록 | 실제 승인 없으면 미실행으로 기록 | 직접 브라우저 조작 없으면 UI 풀테스트 PASS로 쓰지 않음 | release tag, main merge, GitHub Release publish와 구분 |
 
 ## Classification Rules
 
