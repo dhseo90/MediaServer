@@ -54,6 +54,7 @@ const args = parseArgs(rawArgs);
 const fixturePath = path.resolve(rootDir, args.fixture || "test/fixtures/manual_ui_fulltest_va_seed_matrix.json");
 const fixture = JSON.parse(fs.readFileSync(fixturePath, "utf8"));
 const relativeFixturePath = path.relative(rootDir, fixturePath);
+const currentTag = `v${fs.readFileSync(path.join(rootDir, "VERSION"), "utf8").trim()}`;
 const plan = buildValidatedPlan(fixture, relativeFixturePath);
 
 if (args.apply && args.dryRun) {
@@ -83,7 +84,7 @@ if (args.apply) {
 
 function buildValidatedPlan(seed, fixtureLabel) {
   assert(seed.schema === "media-server.manual-ui-fulltest-va-seed-matrix.v1", "unexpected seed fixture schema");
-  assert(seed.releaseTarget === "v1.8.0", "seed fixture must pin v1.8.0");
+  assert(seed.releaseTarget === currentTag, `seed fixture must pin ${currentTag}`);
   assert(seed.usageBoundary?.notEvidenceUntilAppliedAndVerified === true, "seed fixture must not be evidence by itself");
   assert(seed.usageBoundary?.keepFinalRulesForEventLogReview === true, "seed fixture must keep final rules for event log review");
   assert(seed.usageBoundary?.separateCrudFromScenarioEventReview === true, "seed fixture must separate CRUD from scenario review");

@@ -557,7 +557,8 @@ Codex 세션에서는 인앱 브라우저 evidence를 우선하고, Chrome/CDP f
   2회 확인 정책을 함께 검증합니다.
 - Browser fallback: 수동 UI evidence는 Codex 인앱 브라우저 직접 조작을 우선합니다.
   인앱 브라우저가 없는 외부 환경에서만 Chrome/CDP fallback을 사용하고, raw JSON/API-only
-  확인을 수동 클릭 evidence로 쓰지 않습니다.
+  확인을 수동 클릭 evidence로 쓰지 않습니다. Chrome/CDP fallback은 임시
+  Chrome userDataDir를 사용하고 종료 시 삭제해야 합니다.
 - fixture cleanup: `verify-fixture-cleanup-contracts`는 access request, source/view
   registry, manual UI seed registry, EventRecord, audit/evidence fixture가 실행 후
   복원/삭제되거나 throwaway state dir로 격리되는지 정적으로 확인합니다.

@@ -3155,6 +3155,7 @@ std::string ProductUiCss() {
       }
       .ops-rules-table td,
       .event-record-table td,
+      .event-review-table td,
       .alert-delivery-table td,
       .user-table td {
         grid-template-columns: 1fr;
@@ -3164,6 +3165,7 @@ std::string ProductUiCss() {
       .ops-responsive-table td::before,
       .ops-rules-table td::before,
       .event-record-table td::before,
+      .event-review-table td::before,
       .alert-delivery-table td::before,
       .user-table td::before {
         line-height: 1.35;
