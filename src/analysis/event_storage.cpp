@@ -9,6 +9,7 @@
 #include <algorithm>
 #include <cctype>
 #include <chrono>
+#include <cmath>
 #include <condition_variable>
 #include <deque>
 #include <filesystem>
@@ -142,6 +143,8 @@ EventRecord BuildEventRecord(const AnalysisResult& result, const AnalysisEvent& 
     record.scenario_name = event.scenario_name;
     record.scenario_phase = event.scenario_phase;
     record.confidence = event.score;
+    record.bbox_available = event.box.width > 0.0F && event.box.height > 0.0F;
+    record.bbox = event.box;
     record.pre_event_ms = app::GetAppConfig().analysis_event_pre_event_ms;
     record.post_event_ms = app::GetAppConfig().analysis_event_post_event_ms;
     record.metadata_json = BuildMetadataJson(result, event);
@@ -799,6 +802,79 @@ bool ParseEventRecordLine(const std::string& line, ParsedEventRecordLine* record
     return true;
 }
 
+std::string BuildVlmEvidenceRefsJson(const EventRecord& record) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.vlm-event-evidence-refs.v1\","
+        << "\"inputMode\":\"event-short-evidence-ref-only\","
+        << "\"eventFrame\":{"
+        << "\"kind\":\"snapshot\","
+        << "\"available\":" << (record.snapshot_path.empty() ? "false" : "true") << ","
+        << "\"path\":\"" << JsonEscape(record.snapshot_path) << "\""
+        << "},"
+        << "\"bboxCrop\":{"
+        << "\"kind\":\"bbox-crop\","
+        << "\"available\":" << (record.bbox_crop_path.empty() ? "false" : "true") << ","
+        << "\"path\":\"" << JsonEscape(record.bbox_crop_path) << "\","
+        << "\"bbox\":{"
+        << "\"x\":" << record.bbox.x << ","
+        << "\"y\":" << record.bbox.y << ","
+        << "\"width\":" << record.bbox.width << ","
+        << "\"height\":" << record.bbox.height
+        << "}"
+        << "},"
+        << "\"temporalContext\":{"
+        << "\"kind\":\"clip-manifest\","
+        << "\"available\":" << (record.clip_path.empty() ? "false" : "true") << ","
+        << "\"path\":\"" << JsonEscape(record.clip_path) << "\","
+        << "\"previousFrameRef\":\"vlmInputRefs.previousFrame\","
+        << "\"eventFrameRef\":\"vlmInputRefs.eventFrame\","
+        << "\"nextFrameRef\":\"vlmInputRefs.nextFrame\""
+        << "},"
+        << "\"rawMediaEmbedded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"credentialMaterialExposed\":false"
+        << "}";
+    return out.str();
+}
+
+bool AppendTopLevelJsonField(const std::string& object_json,
+                             const std::string& key,
+                             const std::string& value_json,
+                             std::string* output) {
+    if (output == nullptr || !ValidateTopLevelJsonObject(object_json)) {
+        return false;
+    }
+    std::string trimmed = TrimCopy(object_json);
+    if (trimmed.empty() || trimmed.back() != '}') {
+        return false;
+    }
+    trimmed.pop_back();
+    const std::string prefix = TrimCopy(trimmed);
+    std::ostringstream out;
+    out << prefix;
+    if (!prefix.empty() && prefix.back() != '{') {
+        out << ",";
+    }
+    out << "\"" << JsonEscape(key) << "\":" << value_json << "}";
+    *output = out.str();
+    return true;
+}
+
+void AttachVlmEvidenceRefs(EventRecord* record) {
+    if (record == nullptr) {
+        return;
+    }
+    const std::string refs = BuildVlmEvidenceRefsJson(*record);
+    std::string merged;
+    if (AppendTopLevelJsonField(record->metadata_json.empty() ? "{}" : record->metadata_json,
+                                "vlmEvidenceRefs",
+                                refs,
+                                &merged)) {
+        record->metadata_json = std::move(merged);
+    }
+}
+
 struct EventStorageRecoveryScan {
     bool file_exists{false};
     std::uint64_t file_size_bytes{0};
@@ -1127,6 +1203,91 @@ bool EncodeRecorderFrame(const RawVideoFrame& frame,
     return true;
 }
 
+int ClampPixelIndex(float normalized, int max_value) {
+    if (max_value <= 0) {
+        return 0;
+    }
+    const float clamped = std::clamp(normalized, 0.0F, 1.0F);
+    return std::clamp(static_cast<int>(std::floor(clamped * static_cast<float>(max_value))),
+                      0,
+                      max_value - 1);
+}
+
+int PixelChannelCount(PixelFormat format) {
+    if (format == PixelFormat::RGB || format == PixelFormat::BGR) {
+        return 3;
+    }
+    if (format == PixelFormat::Gray8) {
+        return 1;
+    }
+    return 0;
+}
+
+std::optional<RawVideoFrame> CropFrameToBbox(const RawVideoFrame& frame,
+                                             const RectF& bbox,
+                                             std::string* error_message) {
+    const int channels = PixelChannelCount(frame.format);
+    if (channels <= 0) {
+        if (error_message != nullptr) {
+            *error_message = "bbox crop supports RGB/BGR/Gray8 recorder frames only";
+        }
+        return std::nullopt;
+    }
+    if (frame.width <= 0 || frame.height <= 0 || frame.data.empty()) {
+        if (error_message != nullptr) {
+            *error_message = "missing raw frame data for bbox crop";
+        }
+        return std::nullopt;
+    }
+    const std::size_t expected_size =
+        static_cast<std::size_t>(frame.width) * static_cast<std::size_t>(frame.height) *
+        static_cast<std::size_t>(channels);
+    if (frame.data.size() < expected_size) {
+        if (error_message != nullptr) {
+            *error_message = "raw frame data is smaller than expected for bbox crop";
+        }
+        return std::nullopt;
+    }
+
+    const int x0 = ClampPixelIndex(bbox.x, frame.width);
+    const int y0 = ClampPixelIndex(bbox.y, frame.height);
+    const int x1 = std::max(x0 + 1, ClampPixelIndex(bbox.x + bbox.width, frame.width) + 1);
+    const int y1 = std::max(y0 + 1, ClampPixelIndex(bbox.y + bbox.height, frame.height) + 1);
+    const int crop_width = std::clamp(x1 - x0, 1, frame.width - x0);
+    const int crop_height = std::clamp(y1 - y0, 1, frame.height - y0);
+
+    RawVideoFrame crop;
+    crop.source_key = frame.source_key;
+    crop.track_id = frame.track_id;
+    crop.width = crop_width;
+    crop.height = crop_height;
+    crop.format = frame.format;
+    crop.pts = frame.pts;
+    crop.data.resize(static_cast<std::size_t>(crop_width) *
+                     static_cast<std::size_t>(crop_height) *
+                     static_cast<std::size_t>(channels));
+
+    for (int row = 0; row < crop_height; ++row) {
+        const std::size_t source_offset =
+            (static_cast<std::size_t>(y0 + row) * static_cast<std::size_t>(frame.width) +
+             static_cast<std::size_t>(x0)) *
+            static_cast<std::size_t>(channels);
+        const std::size_t target_offset =
+            static_cast<std::size_t>(row) * static_cast<std::size_t>(crop_width) *
+            static_cast<std::size_t>(channels);
+        const std::size_t row_bytes =
+            static_cast<std::size_t>(crop_width) * static_cast<std::size_t>(channels);
+        std::copy(frame.data.begin() + static_cast<std::ptrdiff_t>(source_offset),
+                  frame.data.begin() + static_cast<std::ptrdiff_t>(source_offset + row_bytes),
+                  crop.data.begin() + static_cast<std::ptrdiff_t>(target_offset));
+    }
+
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return crop;
+}
+
 bool WriteBinaryFile(const std::filesystem::path& path,
                      const std::vector<unsigned char>& data,
                      std::string* error_message) {
@@ -1433,6 +1594,94 @@ bool WriteSnapshotMedia(const EventRecord& record,
     return true;
 }
 
+bool WriteBboxCropMedia(const EventRecord& record,
+                        const EventMediaHookOptions& options,
+                        std::string* crop_path,
+                        std::string* error_message) {
+    if (!options.enabled || !record.bbox_available) {
+        if (crop_path != nullptr) {
+            crop_path->clear();
+        }
+        if (error_message != nullptr) {
+            error_message->clear();
+        }
+        return true;
+    }
+    const auto frame = RecorderFrameBuffer().ClosestFrame(record);
+    if (!frame.has_value()) {
+        return WriteHookMarker(record, options, "bbox-crop", crop_path, error_message);
+    }
+    const auto crop = CropFrameToBbox(frame->frame, record.bbox, error_message);
+    if (!crop.has_value()) {
+        return WriteHookMarker(record, options, "bbox-crop", crop_path, error_message);
+    }
+    EncodedRecorderFrame encoded;
+    if (!EncodeRecorderFrame(*crop, 85, &encoded, error_message)) {
+        return false;
+    }
+    const std::filesystem::path dir(options.directory.empty() ? "." : options.directory);
+    const std::string token = SanitizePathToken(record.event_id) + ".bbox-crop";
+    const std::filesystem::path media_path = dir / (token + encoded.extension);
+    if (!WriteBinaryFile(media_path, encoded.data, error_message)) {
+        return false;
+    }
+
+    const std::filesystem::path manifest_path = dir / (token + ".json");
+    if (!EnsureParentDirectory(manifest_path, error_message)) {
+        return false;
+    }
+    std::ofstream manifest(manifest_path, std::ios::out | std::ios::trunc);
+    if (!manifest.good()) {
+        if (error_message != nullptr) {
+            *error_message = "failed to open bbox crop recorder manifest";
+        }
+        return false;
+    }
+    manifest << "{"
+             << "\"schema\":\"media-server.va.event-bbox-crop-hook.v1\","
+             << "\"captureStatus\":\"recorded\","
+             << "\"recorded\":true,"
+             << "\"eventId\":\"" << JsonEscape(record.event_id) << "\","
+             << "\"eventType\":\"" << JsonEscape(record.event_type) << "\","
+             << "\"streamId\":\"" << JsonEscape(record.stream_id) << "\","
+             << "\"channelId\":\"" << JsonEscape(record.channel_id) << "\","
+             << "\"trackId\":" << record.track_id << ","
+             << "\"timestampMs\":" << record.update_time_ms << ","
+             << "\"framePtsMs\":" << frame->timestamp_ms << ","
+             << "\"bbox\":{"
+             << "\"x\":" << record.bbox.x << ","
+             << "\"y\":" << record.bbox.y << ","
+             << "\"width\":" << record.bbox.width << ","
+             << "\"height\":" << record.bbox.height
+             << "},"
+             << "\"mediaPath\":\"" << JsonEscape(media_path.string()) << "\","
+             << "\"contentType\":\"" << JsonEscape(encoded.content_type) << "\","
+             << "\"byteSize\":" << encoded.data.size() << ","
+             << "\"cropWidth\":" << crop->width << ","
+             << "\"cropHeight\":" << crop->height << ","
+             << "\"fallbackEncoder\":" << (encoded.fallback_encoder ? "true" : "false") << ","
+             << "\"fallbackReason\":\"" << JsonEscape(encoded.fallback_reason) << "\","
+             << "\"redactionReview\":{"
+             << "\"rawFrameBytesEmbedded\":false,"
+             << "\"sourceUrlExposed\":false,"
+             << "\"credentialMaterialExposed\":false"
+             << "}"
+             << "}\n";
+    if (!manifest.good()) {
+        if (error_message != nullptr) {
+            *error_message = "failed to write bbox crop recorder manifest";
+        }
+        return false;
+    }
+    if (crop_path != nullptr) {
+        *crop_path = media_path.string();
+    }
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+}
+
 bool WriteClipMedia(const EventRecord& record,
                     const EventMediaHookOptions& options,
                     std::string* clip_path,
@@ -1490,6 +1739,37 @@ bool WriteClipMedia(const EventRecord& record,
     const std::int64_t start_ms = std::max<std::int64_t>(0, record.update_time_ms - options.pre_event_ms);
     const std::int64_t end_ms = std::max<std::int64_t>(record.update_time_ms,
                                                        record.update_time_ms + options.post_event_ms);
+    auto closest_frame_index = [&]() {
+        std::size_t best = 0;
+        std::int64_t best_delta =
+            std::llabs(written_frames[0].first.timestamp_ms - record.update_time_ms);
+        for (std::size_t index = 1; index < written_frames.size(); ++index) {
+            const auto delta = std::llabs(written_frames[index].first.timestamp_ms - record.update_time_ms);
+            if (delta < best_delta) {
+                best = index;
+                best_delta = delta;
+            }
+        }
+        return best;
+    };
+    const std::size_t event_frame_index = closest_frame_index();
+    std::size_t previous_frame_index = event_frame_index;
+    std::size_t next_frame_index = event_frame_index;
+    for (std::size_t index = 0; index < written_frames.size(); ++index) {
+        if (written_frames[index].first.timestamp_ms <= record.update_time_ms) {
+            previous_frame_index = index;
+        }
+        if (written_frames[index].first.timestamp_ms >= record.update_time_ms) {
+            next_frame_index = index;
+            break;
+        }
+    }
+    auto write_vlm_frame_ref = [&](const char* name, std::size_t index) {
+        manifest << "\"" << name << "\":{"
+                 << "\"path\":\"" << JsonEscape(written_frames[index].second.string()) << "\","
+                 << "\"ptsMs\":" << written_frames[index].first.timestamp_ms
+                 << "}";
+    };
     manifest << "{"
              << "\"schema\":\"media-server.va.event-clip-hook.v1\","
              << "\"captureStatus\":\"recorded\","
@@ -1523,6 +1803,13 @@ bool WriteClipMedia(const EventRecord& record,
                  << "}";
     }
     manifest << "],"
+             << "\"vlmInputRefs\":{";
+    write_vlm_frame_ref("previousFrame", previous_frame_index);
+    manifest << ",";
+    write_vlm_frame_ref("eventFrame", event_frame_index);
+    manifest << ",";
+    write_vlm_frame_ref("nextFrame", next_frame_index);
+    manifest << "},"
              << "\"eventStatus\":\"" << JsonEscape(record.status) << "\","
              << "\"zoneId\":\"" << JsonEscape(record.zone_id) << "\","
              << "\"lineId\":\"" << JsonEscape(record.line_id) << "\","
@@ -1731,6 +2018,15 @@ private:
             ++snapshot_hook_failed_count_;
             last_snapshot_error_ = TrimForLog(error_message);
         }
+        std::string bbox_crop_path;
+        error_message.clear();
+        if (WriteBboxCropMedia(*record, snapshot_options, &bbox_crop_path, &error_message)) {
+            record->bbox_crop_path = bbox_crop_path;
+        } else {
+            std::lock_guard lock(mu_);
+            ++snapshot_hook_failed_count_;
+            last_snapshot_error_ = TrimForLog(error_message);
+        }
 
         EventMediaHookOptions clip_options;
         clip_options.enabled = config.analysis_event_clip_hook_enabled;
@@ -1751,6 +2047,7 @@ private:
             ++clip_hook_failed_count_;
             last_clip_error_ = TrimForLog(error_message);
         }
+        AttachVlmEvidenceRefs(record);
     }
 
     static void ApplyFileStats(EventStorageSnapshot* snapshot) {

@@ -1727,6 +1727,7 @@ void VerifyEventRecorderMediaHooks() {
     event.class_id = 0;
     event.label = "person";
     event.score = 0.93F;
+    event.box = RectF{0.25F, 0.25F, 0.5F, 0.5F};
     event.zone_id = "queue-zone";
     event.scenario_name = "zone-occupancy";
     event.scenario_phase = "confirmed";
@@ -1752,15 +1753,30 @@ void VerifyEventRecorderMediaHooks() {
            "Event recorder snapshot path must point to actual media bytes");
     Expect(record_json.find(".clip/manifest.json") != std::string::npos,
            "Event recorder clip path must point to clip manifest");
+    Expect(record_json.find("\"vlmEvidenceRefs\"") != std::string::npos &&
+               record_json.find("\"schema\":\"media-server.vlm-event-evidence-refs.v1\"") != std::string::npos,
+           "Event recorder metadata must include VLM evidence refs");
+    Expect(record_json.find("\"bboxCrop\"") != std::string::npos &&
+               record_json.find(".bbox-crop.") != std::string::npos,
+           "Event recorder metadata must include bbox crop evidence reference");
+    Expect(record_json.find("\"rawMediaEmbedded\":false") != std::string::npos &&
+               record_json.find("\"sourceUrlExposed\":false") != std::string::npos,
+           "Event recorder VLM evidence refs must keep raw media/source URL redacted");
 
     bool found_snapshot_media = false;
+    bool found_bbox_crop_media = false;
     if (std::filesystem::exists(snapshot.snapshot_dir, ec) && !ec) {
         for (const auto& entry : std::filesystem::directory_iterator(snapshot.snapshot_dir)) {
+            const std::string name = entry.path().filename().string();
             const auto ext = entry.path().extension().string();
             found_snapshot_media = found_snapshot_media || ext == ".jpg" || ext == ".ppm" || ext == ".pgm";
+            found_bbox_crop_media = found_bbox_crop_media ||
+                                    (name.find(".bbox-crop.") != std::string::npos &&
+                                     (ext == ".jpg" || ext == ".ppm" || ext == ".pgm"));
         }
     }
     Expect(found_snapshot_media, "Event recorder must write snapshot media bytes");
+    Expect(found_bbox_crop_media, "Event recorder must write bbox crop media bytes");
 
     const std::filesystem::path clip_manifest =
         std::filesystem::path(snapshot.clip_dir) / "evt-recorder-smoke.clip" / "manifest.json";
@@ -1768,7 +1784,11 @@ void VerifyEventRecorderMediaHooks() {
     std::string manifest((std::istreambuf_iterator<char>(input)), std::istreambuf_iterator<char>());
     Expect(manifest.find("\"recorded\":true") != std::string::npos &&
                manifest.find("\"frameCount\":") != std::string::npos &&
-               manifest.find("frame-0001") != std::string::npos,
+               manifest.find("frame-0001") != std::string::npos &&
+               manifest.find("\"vlmInputRefs\"") != std::string::npos &&
+               manifest.find("\"previousFrame\"") != std::string::npos &&
+               manifest.find("\"eventFrame\"") != std::string::npos &&
+               manifest.find("\"nextFrame\"") != std::string::npos,
            "Event recorder must write clip manifest and frame bytes");
 
     std::filesystem::remove(active_path, ec);
@@ -1778,8 +1798,10 @@ void VerifyEventRecorderMediaHooks() {
     std::filesystem::remove_all(snapshot.clip_dir, ec);
 
     Pass("Event recorder writes snapshot media");
+    Pass("Event recorder writes bbox crop media");
     Pass("Event recorder writes clip media");
     Pass("Event recorder records snapshot evidence path");
+    Pass("Event recorder records VLM evidence refs");
     Pass("Event recorder records clip evidence path");
 }
 

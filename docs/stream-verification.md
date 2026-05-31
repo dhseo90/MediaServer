@@ -264,6 +264,16 @@ RTSP/WebRTC media path 변경을 수행하지 않습니다.
 ./server.sh verify-vlm-evaluation-harness
 ```
 
+VLM event evidence extraction은 `V200-S07`의 reference-only EventRecord evidence를
+검증합니다. snapshot, bbox crop, clip manifest, previous/event/next frame reference를
+EventRecord metadata와 clip manifest에 분리하되, 실제 VLM runtime 호출, sidecar 저장,
+Event/WebRTC/SSE/WS schema 변경, media path 변경은 수행하지 않습니다.
+
+```bash
+./server.sh verify-vlm-event-evidence-extraction
+./server.sh verify-analysis-state
+```
+
 CI/local gate parity는 `media-server.ci-local-gate-parity.v1` summary로
 Preflight/static-gates/guardrails/RC workflow에 실제로 걸린 `./server.sh` 명령과
 로컬 release/static verifier 목록을 대조합니다. 로컬에서 통과해야 한다고 문서화한

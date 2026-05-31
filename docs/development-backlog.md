@@ -136,7 +136,7 @@ YOLO 이벤트가 왜 발생했는지 설명하고, 오탐 가능성 및 운영�
 | 4 | V200-S04 | 완료 | VLM 설치/연결 UI | Ops에서 local model 설치 또는 cloud API 연결을 선택하게 합니다. 자동 다중 설치는 금지하고, 설치 전 영향과 외부 전송 여부를 표시합니다. | Ops UI smoke, install dry-run fixture, cloud opt-in guard, viewer redaction UI smoke, `verify-vlm-install-connection-ui`, `git diff --check` |
 | 5 | V200-S05 | 완료 | VLM profile 저장 | 선택한 provider, model, runtime, prompt profile, privacy mode, 평가 결과, 활성화 상태를 저장하고 fallback/disable 상태를 명확히 둡니다. | profile CRUD smoke, auth/scope route guard, invalid profile fixture, `verify-vlm-profile-storage`, `verify-auth-routes`, `git diff --check` |
 | 6 | V200-S06 | 완료 | VLM 평가 harness | sample 이벤트 frame, bbox crop, 전후 frame으로 latency, 설명 품질, hallucination, JSON 안정성, 한국어/영어 출력 품질을 비교합니다. | VLM fixture sample, prompt profile A/B, structured output fixture, evaluation report, `git diff --check` |
-| 7 | V200-S07 | 예정 | 이벤트 evidence 추출 | YOLO 이벤트 발생 시 snapshot, bbox crop, 전후 frame, 짧은 clip evidence 후보를 만들고 VLM 입력으로 쓸 수 있게 reference를 분리합니다. | EventRecord snapshot/clip fixture, crop extraction smoke, redaction review, `verify-va-events`, `verify-va-replay`, `git diff --check` |
+| 7 | V200-S07 | 완료 | 이벤트 evidence 추출 | YOLO 이벤트 발생 시 snapshot, bbox crop, 전후 frame, 짧은 clip evidence 후보를 만들고 VLM 입력으로 쓸 수 있게 reference를 분리합니다. | EventRecord snapshot/clip fixture, crop extraction smoke, redaction review, `verify-va-events`, `verify-va-replay`, `git diff --check` |
 | 8 | V200-S08 | 예정 | VLMObservation sidecar | 기존 Event POST/WebRTC/SSE/WS metadata를 바꾸지 않고 VLM 결과를 별도 sidecar로 저장합니다. | sidecar schema fixture, EventRecord correlation report, existing metadata diff guard, `verify-event-post`, `verify-ws-metadata`, `git diff --check` |
 | 9 | V200-S09 | 예정 | 이벤트 설명/오탐 힌트 | 이벤트 발생 이유, 화면 내 사람/차량/영역 관계, 오탐 가능성, 운영자 확인 질문을 생성합니다. | event explanation fixture, false-positive hint fixture, operator question review, JSON stability check, `git diff --check` |
 | 10 | V200-S10 | 예정 | Ops 이벤트 리뷰 UI | EventRecord, snapshot/짧은 clip evidence, VLM 설명을 Ops 이벤트 리뷰 화면에서 함께 보여줍니다. viewer/client에는 노출하지 않습니다. | `verify-ops-client-ui`, `verify-ops-client-ui --screenshots`, event review UI smoke, viewer redaction UI smoke, `git diff --check` |
@@ -602,6 +602,55 @@ cloud provider 호출, sidecar 저장은 이 단계의 완료 조건이 아닙�
 - 실제 EventRecord snapshot/crop/clip evidence 추출은 `V200-S07` 범위입니다.
 - VLMObservation sidecar 저장은 `V200-S08` 범위입니다.
 - 운영 이벤트 설명/오탐 힌트 생성은 `V200-S09` 범위입니다.
+
+### V200-S07 이벤트 evidence 추출 완료 기준
+
+S07은 기존 EventRecord snapshot/clip hook을 VLM 입력 후보 reference로 확장하는
+단계입니다. EventRecord top-level schema, Event POST payload, WebRTC DataChannel,
+SSE/WS metadata schema, RTSP/WebRTC media path는 변경하지 않습니다.
+
+이번 범위에서 구현하는 것:
+
+- `metadata.vlmEvidenceRefs`에 `media-server.vlm-event-evidence-refs.v1` reference-only
+  object를 추가합니다.
+- 기존 snapshot hook의 event-time snapshot path를 `eventFrame` reference로 둡니다.
+- event bbox 기준 crop media를 만들고 `bboxCrop` reference와 normalized bbox를 둡니다.
+- clip manifest 안에 `vlmInputRefs.previousFrame`, `vlmInputRefs.eventFrame`,
+  `vlmInputRefs.nextFrame` reference를 분리합니다.
+- crop manifest는 raw frame bytes/source URL/credential material을 embed하지 않는다는
+  redaction review field를 보존합니다.
+
+이번 범위에서 하지 않는 일:
+
+- 실제 VLM runtime 호출
+- cloud provider API 호출
+- model artifact download 또는 bundle 포함
+- VLMObservation sidecar 저장
+- Event POST/WebRTC/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- viewer/client 화면 노출
+- 운영 이벤트 설명/오탐 힌트 생성
+
+완료 evidence:
+
+- `./server.sh verify-vlm-event-evidence-extraction`이 EventRecord code, smoke, docs,
+  inventory, server command, non-scope boundary를 검증합니다.
+- `./server.sh verify-analysis-state`가 snapshot media, bbox crop media, clip manifest
+  frame refs, `metadata.vlmEvidenceRefs`, redaction boundary를 실행 smoke로 확인합니다.
+- `./server.sh verify-va-events`, `./server.sh verify-va-replay`가 기존 VA event 발생과
+  replay 경로가 유지되는지 확인합니다.
+- `git diff --check`가 코드/문서/script whitespace drift를 확인합니다.
+- 2026-05-31 S07 local evidence: `./server.sh build`,
+  `./server.sh verify-vlm-event-evidence-extraction`, `./server.sh verify-analysis-state`,
+  `./server.sh verify-va-replay`, auth-off isolated
+  `MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_HTTP_LISTEN_PORT=8083 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8083 ./server.sh verify-va-events`,
+  docs/inventory/script verifier, `git diff --check`.
+
+후속 단계로 남기는 범위:
+
+- VLMObservation sidecar 저장은 `V200-S08` 범위입니다.
+- 운영 이벤트 설명/오탐 힌트 생성은 `V200-S09` 범위입니다.
+- Ops 이벤트 리뷰 UI는 `V200-S10` 범위입니다.
 
 v2.0.0 완료 판정은 기능 구현만으로 닫지 않습니다. 각 개발 순서에서 추가한 테스트가
 `project-feature-test-inventory.md`, 안정화 테스트, 30분/120분 trigger, UI 풀테스트

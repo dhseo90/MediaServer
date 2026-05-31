@@ -29,7 +29,10 @@ struct EventRecord {
     std::string scenario_name;
     std::string scenario_phase;
     float confidence{0.0F};
+    bool bbox_available{false};
+    RectF bbox;
     std::string snapshot_path;
+    std::string bbox_crop_path;
     std::string clip_path;
     int pre_event_ms{0};
     int post_event_ms{0};
