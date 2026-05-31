@@ -23,7 +23,7 @@ Checks:
   - V200-S04 remains an Ops-only install/connection UI scope, not profile/runtime/sidecar work
   - docs and feature inventory name the allowed and forbidden S04 boundaries
   - existing S01/S03 gates no longer block Ops-only S04 UI route/provider wording
-  - source/config/fixture tree still has no VLM runtime/sidecar/client/model artifacts beyond S05 profile storage
+  - source/config/fixture tree still has no VLM runtime/client/model artifacts outside approved VLM contracts
 `);
 }
 
@@ -86,17 +86,17 @@ check("feature inventory and coverage gate include the S04 scope gate", () => {
   for (const snippet of [
     "| SAFE-022 | VLM 설치/연결 UI scope gate | 비대상 | 필요 | 안정화 |",
     "verify-vlm-install-connection-scope-gate",
-    "| `SAFE-001`~`SAFE-023` |",
-    "| 전체 기능 항목 | 330 |",
-    "| UI 직접 필요 | 206 |",
-    "| UI 비대상 | 97 |",
-    "| 테스트 필요 | 330 |",
-    "| 안정화 대상 | 320 |",
+    "| `SAFE-001`~`SAFE-033` |",
+    "| 전체 기능 항목 | 369 |",
+    "| UI 직접 필요 | 221 |",
+    "| UI 비대상 | 121 |",
+    "| 테스트 필요 | 369 |",
+    "| 안정화 대상 | 359 |",
   ]) {
     assert(inventory.includes(snippet), `feature inventory missing S04 scope gate snippet: ${snippet}`);
   }
   assert(coverage.includes("verify-vlm-install-connection-scope-gate"), "coverage verifier missing S04 scope command");
-  assert(projectInventoryVerifier.includes("rows.length === 330"), "project inventory verifier must expect 330 feature rows");
+  assert(projectInventoryVerifier.includes("rows.length === 369"), "project inventory verifier must expect 369 feature rows");
 });
 
 check("server command and script inventory are wired", () => {
@@ -142,7 +142,7 @@ check("previous VLM gates permit S04 Ops UI wording and S05 profile storage whil
   assert(recommendation.includes("/\\/client\\/vlm/i"), "recommendation gate must still block client VLM route exposure");
 });
 
-check("tracked source/config/fixture files do not introduce forbidden runtime/sidecar/client/model artifacts", () => {
+check("tracked source/config/fixture files do not introduce forbidden runtime/client/model artifacts", () => {
   const files = gitLsFiles(["src", "include", "config", "test/fixtures"])
     .filter(file => !isBinaryPath(file));
   const allowlisted = new Set([
@@ -151,10 +151,11 @@ check("tracked source/config/fixture files do not introduce forbidden runtime/si
     "test/fixtures/vlm_recommendation/cases.json",
   ]);
   const forbidden = [
-    /\bVLMObservation\b/,
-    /\bvlm[_-]?sidecar\b/i,
     /\/client\/vlm/i,
     /\.(gguf|safetensors|ggml|ckpt)\b/i,
+    /\bcloudProviderApiCalled\s*:\s*true\b/,
+    /\bruntimeVlmCallPerformed\s*:\s*true\b/,
+    /\bmodelArtifactDownloaded\s*:\s*true\b/,
   ];
   const hits = [];
   for (const file of files) {

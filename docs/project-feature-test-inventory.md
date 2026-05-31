@@ -29,13 +29,13 @@ source-of-truth입니다.
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 335 |
-| UI 직접 필요 | 208 |
+| 전체 기능 항목 | 369 |
+| UI 직접 필요 | 221 |
 | UI 간접 필요 | 27 |
-| UI 비대상 | 100 |
-| 테스트 필요 | 335 |
-| 안정화 대상 | 325 |
-| UI 풀테스트 대상 | 225 |
+| UI 비대상 | 121 |
+| 테스트 필요 | 369 |
+| 안정화 대상 | 359 |
+| UI 풀테스트 대상 | 238 |
 | 30분 soak 대상 | 45 |
 | 120분 조건부 대상 | 7 |
 | 필드 별도 조건 포함 | 1 |
@@ -50,7 +50,7 @@ close-out에서 실제 실행한 evidence는 [release-evidence-index.md](release
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 335개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 369개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정했지만, 각 행의 line-level 증적은 별도 대조 필요 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리했지만, inventory 자체는 브라우저 직접 조작 evidence를 보관하지 않음 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -61,35 +61,36 @@ close-out에서 실제 실행한 evidence는 [release-evidence-index.md](release
 | UI evidence runner | `./server.sh verify-manual-ui-evidence-runner`가 `media-server.manual-ui-evidence-input.v1` 입력을 받아 UI 대상 기능 ID별 PASS/FAIL report를 생성 | runner 입력 없이 inventory만으로 UI PASS 판정 불가. 누락된 UI 대상 기능 ID는 `FAIL`, 제외 항목은 판정표 밖 |
 | UI fulltest one-shot wrapper | `./server.sh verify-ui-fulltest-one-shot`이 throwaway core/auth 서버와 UI verifier 묶음을 순차 실행 | 30분/120분 longrun은 실행하지 않으며, wrapper PASS만으로 장시간 안정화 PASS가 되지 않음 |
 | Coverage gate | `./server.sh verify-feature-inventory-coverage`가 `media-server.feature-inventory-coverage.v1` report로 기능 ID별 verifier/UI evidence/longrun/field exclusion 연결을 점검 | `missing coverage target` 누락 ID는 release gate에서 FAIL |
+| VLM route, control, action, runtime state, sidecar, privacy guard | V200-S14 기준으로 `/ops/vlm`, `/ops/events` VLM review, VLMObservation sidecar, summary/rule suggestion 후보, privacy/redaction/no-auto-apply 경계를 기능 ID 단위로 확장 | 실행 evidence가 아니며, 실제 UI 풀테스트와 장시간 안정화는 별도 단계에서 PASS/FAIL로 기록 |
 
 ## Owner Source Map
 
 | ID prefix | 코드 로직 owner | 제품 UI owner | 대표 verifier family |
 | --- | --- | --- | --- |
-| `UI-*` | `src/ingress/webrtc_http_server.cpp`, `src/ingress/product_ui_page_scripts.cpp` | Auth/Ops/Client shell | `verify-auth-bootstrap`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-ops-click-e2e`, `verify-ops-route-boundaries`, `verify-vlm-install-connection-ui`, `verify-vlm-profile-storage`, `verify-vlm-privacy-transfer-guard` |
+| `UI-*` | `src/ingress/webrtc_http_server.cpp`, `src/ingress/product_ui_page_scripts.cpp` | Auth/Ops/Client shell | `verify-auth-bootstrap`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-ops-click-e2e`, `verify-ops-route-boundaries`, `verify-vlm-install-connection-ui`, `verify-vlm-profile-storage`, `verify-vlm-ops-event-review-ui`, `verify-vlm-privacy-transfer-guard` |
 | `AUTH-*` | `src/ingress/http_auth.cpp`, `src/ingress/webrtc_http_server.cpp` | `/setup`, `/login`, `/password/change`, `/invite/setup`, `/ops/users` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker`, `verify-ops-click-e2e` |
 | `SRC-*` | `src/ingress/source_view_registry.cpp`, `src/core/source_factory.cpp`, `src/ingress/onvif_live_import.cpp` | `/ops/sources`, `/client/live`, `/client/dashboard` | `verify-ops-source-lifecycle`, `verify-ops-client-ui`, `verify-onvif-*`, `verify-ops-source-health-bulk` |
 | `RULE-*` | `src/ingress/analysis_query.cpp`, `src/analysis/*scenario.cpp`, `src/analysis/event_rule_engine.cpp` | `/ops/rules`, `/client/live` overlay | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-scenario-builder-ui`, `verify-ops-scenario-presets`, `verify-va-event-coverage-report`, `verify-va-replay`, `verify-analysis-state` |
-| `EVT-*` | `src/analysis/event_manager.cpp`, `src/analysis/event_storage.cpp`, `src/ingress/webrtc_http_server.cpp` | `/ops/dashboard`, `/ops/events`, `/ops/home` | `verify-va-event-coverage-report`, `verify-va-events`, `verify-ops-event-review-inbox`, `verify-ops-event-records-scope`, `verify-ops-alert-delivery-integrations`, `verify-va-runtime-console`, `verify-vlm-event-evidence-extraction`, `verify-vlm-ops-event-review-ui` |
+| `EVT-*` | `src/analysis/event_manager.cpp`, `src/analysis/event_storage.cpp`, `src/ingress/webrtc_http_server.cpp` | `/ops/dashboard`, `/ops/events`, `/ops/home` | `verify-va-event-coverage-report`, `verify-va-events`, `verify-ops-event-review-inbox`, `verify-ops-event-records-scope`, `verify-ops-alert-delivery-integrations`, `verify-va-runtime-console`, `verify-vlm-event-evidence-extraction`, `verify-vlm-observation-sidecar`, `verify-vlm-event-explanation-hints`, `verify-vlm-ops-event-review-ui`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates` |
 | `CLIENT-*` | `src/ingress/product_ui_page_scripts.cpp`, `src/ingress/webrtc_http_server.cpp`, `src/ingress/webrtc_egress_session.cpp` | `/client/live`, `/client/dashboard`, `/client/request-access` | `verify-client-live-workspace`, `verify-client-dashboard-polish`, `verify-client-source-dock-events`, `verify-client-tile-*`, `verify-ops-client-ui`, `verify-ops-click-e2e` |
 | `MEDIA-*` | `src/core/session_manager.cpp`, `src/core/source_factory.cpp`, `src/core/stream_registry.cpp`, `src/ingress/webrtc_egress_session.cpp`, `src/ingress/rtsp_adapter.cpp` | `/client/live` only where video is visible | `verify-codecs`, `verify-webrtc-ice`, `verify-webrtc-va-metadata`, `verify-uri-source-longrun`, `verify-predev` |
-| `LAB-*` | `src/ingress/analysis_query.cpp`, `src/ingress/webrtc_http_server.cpp`, `src/analysis/vlm_observation_store.cpp`, local detector/recommendation/evaluation scripts | 비대상 | `verify-analysis-state`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-image-analysis`, `verify-vlm-pc-capability`, `verify-vlm-recommendation-engine`, `verify-vlm-install-connection-dry-run`, `verify-vlm-profile-storage`, `verify-vlm-evaluation-harness`, `verify-vlm-observation-sidecar`, `verify-vlm-event-explanation-hints`, `verify-vlm-privacy-transfer-guard`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates` |
-| `SAFE-*` | schema/payload/media/auth/UI test 경계 owner 전체 | route guard와 client 비노출 화면 | `verify-auth-routes`, `verify-ops-client-ui`, `verify-ui-blocking-dialog-policy`, `verify-webrtc-va-metadata`, `verify-ws-metadata`, `verify-event-post-*`, `verify-vlm-install-connection-scope-gate`, `verify-vlm-profile-storage`, `verify-vlm-privacy-transfer-guard` |
+| `LAB-*` | `src/ingress/analysis_query.cpp`, `src/ingress/webrtc_http_server.cpp`, `src/analysis/vlm_observation_store.cpp`, local detector/recommendation/evaluation scripts | 비대상 | `verify-analysis-state`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-image-analysis`, `verify-vlm-boundary`, `verify-vlm-selection-decision`, `verify-vlm-pc-capability`, `verify-vlm-recommendation-engine`, `verify-vlm-install-connection-dry-run`, `verify-vlm-profile-storage`, `verify-vlm-evaluation-harness`, `verify-vlm-observation-sidecar`, `verify-vlm-event-explanation-hints`, `verify-vlm-privacy-transfer-guard`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates` |
+| `SAFE-*` | schema/payload/media/auth/UI test 경계 owner 전체 | route guard와 client 비노출 화면 | `verify-auth-routes`, `verify-ops-client-ui`, `verify-ui-blocking-dialog-policy`, `verify-integrator-contract-artifact`, `verify-webrtc-va-metadata`, `verify-ws-metadata`, `verify-event-post-*`, `verify-vlm-boundary`, `verify-vlm-install-connection-scope-gate`, `verify-vlm-profile-storage`, `verify-vlm-observation-sidecar`, `verify-vlm-privacy-transfer-guard`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates` |
 
 ## Verifier Coverage Map
 
 | 기능 ID 범위 | 안정화 verifier 후보 | 비고 |
 | --- | --- | --- |
-| `UI-001`~`UI-018`, `UI-022`~`UI-024` | `verify-auth-bootstrap`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-ops-route-boundaries`, `verify-vlm-install-connection-ui`, `verify-vlm-profile-storage`, `verify-vlm-privacy-transfer-guard` | route/shell/404/VLM dry-run/profile/privacy guard UI 경계 |
+| `UI-001`~`UI-018`, `UI-022`~`UI-032` | `verify-auth-bootstrap`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-ops-route-boundaries`, `verify-vlm-install-connection-ui`, `verify-vlm-profile-storage`, `verify-vlm-ops-event-review-ui`, `verify-vlm-privacy-transfer-guard` | route/shell/404/VLM dry-run/profile/privacy/event review guard UI 경계 |
 | `UI-019`~`UI-021` | Codex 인앱 브라우저 evidence, 인앱 브라우저 부재 외부 환경의 `verify-ops-client-ui --screenshots`, `verify-docs-ui-assets`, `verify-product-ui-token-drift` | 시각 품질은 수동 UI evidence 필요 |
 | `AUTH-001`~`AUTH-042` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
 | `SRC-001`~`SRC-030` | `verify-ops-source-lifecycle`, `verify-ops-source-health-bulk`, `verify-ops-channel-bulk`, `verify-onvif-*`, `verify-ops-client-ui` | ONVIF field success는 제외 |
 | `RULE-001`~`RULE-101` | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-rule-validation-matrix`, `verify-ops-scenario-builder-ui`, `verify-ops-scenario-presets`, `verify-va-event-coverage-report`, `verify-va-replay`, `verify-analysis-state`, `verify-reid-advanced-tracking`, `verify-tracker-stability` | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
-| `EVT-001`~`EVT-028` | `verify-va-event-coverage-report`, `verify-va-events`, `verify-ops-event-review-inbox`, `verify-ops-event-records-scope`, `verify-ops-alert-delivery-integrations`, `verify-va-runtime-console`, `verify-vlm-event-evidence-extraction`, `verify-vlm-ops-event-review-ui` | event log 육안 확인은 UI 풀테스트 |
+| `EVT-001`~`EVT-034` | `verify-va-event-coverage-report`, `verify-va-events`, `verify-ops-event-review-inbox`, `verify-ops-event-records-scope`, `verify-ops-alert-delivery-integrations`, `verify-va-runtime-console`, `verify-vlm-event-evidence-extraction`, `verify-vlm-observation-sidecar`, `verify-vlm-event-explanation-hints`, `verify-vlm-ops-event-review-ui`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates` | event log 육안 확인은 UI 풀테스트 |
 | `CLIENT-001`~`CLIENT-022` | `verify-client-live-workspace`, `verify-client-dashboard-polish`, `verify-client-source-dock-events`, `verify-client-tile-disconnect-contract`, `verify-client-tile-info-overlay-health`, `verify-ops-client-ui` | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-020` | `verify-codecs`, `verify-webrtc-ice`, `verify-webrtc-va-metadata`, `verify-uri-source-longrun`, `verify-predev` | 30분/120분은 실행 지시 필요 |
-| `LAB-001`~`LAB-044` | `verify-analysis-state`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-image-analysis`, `verify-vlm-pc-capability`, `verify-vlm-recommendation-engine`, `verify-vlm-install-connection-dry-run`, `verify-vlm-profile-storage`, `verify-vlm-evaluation-harness`, `verify-vlm-observation-sidecar`, `verify-vlm-event-explanation-hints`, `verify-vlm-privacy-transfer-guard`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates` | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-024` | `verify-auth-routes`, `verify-ops-client-ui`, `verify-ui-blocking-dialog-policy`, `verify-event-post-dispatch`, `verify-webrtc-va-metadata`, `verify-ws-metadata`, `verify-rtsp-va-overlay-policy`, `verify-vlm-install-connection-scope-gate`, `verify-vlm-profile-storage`, `verify-vlm-privacy-transfer-guard` | schema/media/auth/UI automation 불변 조건 |
+| `LAB-001`~`LAB-055` | `verify-analysis-state`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-image-analysis`, `verify-vlm-boundary`, `verify-vlm-selection-decision`, `verify-vlm-pc-capability`, `verify-vlm-recommendation-engine`, `verify-vlm-install-connection-dry-run`, `verify-vlm-profile-storage`, `verify-vlm-evaluation-harness`, `verify-vlm-observation-sidecar`, `verify-vlm-event-explanation-hints`, `verify-vlm-privacy-transfer-guard`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates` | 제품 UI 비대상 |
+| `SAFE-001`~`SAFE-033` | `verify-integrator-contract-artifact`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-ui-blocking-dialog-policy`, `verify-event-post-dispatch`, `verify-webrtc-va-metadata`, `verify-ws-metadata`, `verify-rtsp-va-overlay-policy`, `verify-vlm-boundary`, `verify-vlm-install-connection-scope-gate`, `verify-vlm-profile-storage`, `verify-vlm-observation-sidecar`, `verify-vlm-privacy-transfer-guard`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates` | schema/media/auth/UI automation 불변 조건 |
 
 ## VA Manual UI Seed Matrix
 
@@ -158,6 +159,14 @@ Rule scenario/event 발생 검수는 분리합니다.
 | UI-022 | `/ops/vlm` VLM 설치/연결 준비 | 필요 | 필요 | 안정화, UI | Ops-only route에서 local/cloud dry-run 후보, cloud opt-in guard, 단일 선택 상태, 실행/저장 없음 boundary가 표시되고 viewer/client에는 노출되지 않음 |
 | UI-023 | `/ops/vlm` VLM profile 저장 | 필요 | 필요 | 안정화, UI | 선택한 dry-run 후보를 profile ID, prompt profile, 평가 상태, 활성화/fallback/disable 상태와 함께 저장하고 저장 목록/삭제가 Ops-only로 동작 |
 | UI-024 | `/ops/vlm` VLM Privacy/전송 guard | 필요 | 필요 | 안정화, UI | Cloud 후보에서 외부 전송 경고 확인과 provider logging/retention 검토가 profile 저장 전 guard로 표시되고, local 후보는 provider 전송 없음 상태로 표시 |
+| UI-025 | `/ops/vlm` PC capability/recommendation 요약 | 필요 | 필요 | 안정화, UI | hardware class, runtime readiness, 추천/대안/비추천 사유가 Ops-only로 표시되고 자동 설치/호출/저장 action은 발생하지 않음 |
+| UI-026 | `/ops/vlm` local model dry-run 후보 선택 | 필요 | 필요 | 안정화, UI | local 후보 선택 버튼이 단일 선택 상태를 반영하고 model download, runtime install, profile 저장 없이 dry-run 상태만 갱신 |
+| UI-027 | `/ops/vlm` cloud connection dry-run 후보 선택 | 필요 | 필요 | 안정화, UI | cloud opt-in 전 후보가 disabled 상태이며 opt-in 확인 후에도 provider API 호출/credential 저장 없이 dry-run 선택만 반영 |
+| UI-028 | `/ops/vlm` profile 활성화/fallback/disable control | 필요 | 필요 | 안정화, UI | profile row의 active/fallback/disabled 상태가 저장 목록과 상세 copy에 반영되고 VLM runtime 호출은 발생하지 않음 |
+| UI-029 | `/ops/vlm` profile 삭제 action | 필요 | 필요 | 안정화, UI | 삭제 버튼이 Ops-only로 동작하고 삭제 후 목록에서 제거되며 EventRecord, sidecar, media path에는 영향 없음 |
+| UI-030 | `/ops/vlm` evaluation/prompt profile 표시 | 필요 | 필요 | 안정화, UI | 평가 상태, prompt profile, language/JSON stability planning 값이 저장 profile에 표시되고 benchmark PASS로 과장하지 않음 |
+| UI-031 | `/ops/vlm` raw details 접힘 영역 | 필요 | 필요 | 안정화, UI | dry-run/profile diagnostic JSON은 Ops debug details 안에만 접혀 있고 viewer/client 화면에는 노출되지 않음 |
+| UI-032 | `/ops/events` VLM review detail control | 필요 | 필요 | 안정화, UI | VLM summary, explanation, false-positive hints, operator questions, evidence availability가 Ops event review 안에서만 열리고 client/viewer에는 노출되지 않음 |
 
 ## B. Auth, Account, Role, Scope
 
@@ -379,6 +388,12 @@ Rule scenario/event 발생 검수는 분리합니다.
 | EVT-026 | dashboard VA 상태 요약 | 필요 | 필요 | 안정화, UI, 30분 | VA status/tap/event summary 표시와 안정성 확인 |
 | EVT-027 | VLM event evidence refs extraction | 비대상 | 필요 | 안정화 | EventRecord `metadata.vlmEvidenceRefs`가 snapshot, bbox crop, clip manifest, previous/event/next frame refs를 reference-only로 제공하고 raw media/source URL/credential 노출 없음 |
 | EVT-028 | VLM Ops event review evidence panel | 필요 | 필요 | 안정화, UI | `/ops/events` review inbox가 EventRecord, snapshot/short clip evidence, VLM explanation, false-positive hints, operator questions를 Ops 전용으로 표시하고 viewer/client 비노출, Event POST/WebRTC/SSE/WS schema와 media path 불변 확인 |
+| EVT-029 | VLM evidence availability runtime state | 비대상 | 필요 | 안정화 | EventRecord review item이 snapshot, bbox crop, clip, previous/event/next frame ref 존재 여부를 상태값으로 제공하되 raw media/source URL/credential은 노출하지 않음 |
+| EVT-030 | VLMObservation sidecar correlation state | 필요 | 필요 | 안정화, UI | sidecar observation은 `eventId`로만 EventRecord와 상관되고 Ops review UI는 matching/missing 상태를 표시하며 EventRecord top-level schema는 변경하지 않음 |
+| EVT-031 | VLM explanation/hint review state | 필요 | 필요 | 안정화, UI | summary, eventExplanation, falsePositiveHints, operatorReviewQuestions가 Ops review 상태에 표시되고 provider raw response/prompt는 표시하지 않음 |
+| EVT-032 | VLM summary search candidate state | 비대상 | 필요 | 안정화 | summary search 후보는 sidecar summary와 EventRecord `eventId` correlation만 사용하고 제품 검색 UI, vector index, provider rerank는 만들지 않음 |
+| EVT-033 | VLM rule suggestion candidate state | 비대상 | 필요 | 안정화 | line/intrusion/zone rule suggestion 후보는 manual review 상태로만 산출하고 rule/profile registry write와 auto-apply는 발생하지 않음 |
+| EVT-034 | VLM runtime disabled/queue readiness state | 비대상 | 필요 | 안정화 | profile/recommendation 상태가 runtime disabled, missing model, queue not started를 명확히 표시하고 media path나 Event POST dispatch를 block하지 않음 |
 
 ## F. Client And Viewer
 
@@ -480,6 +495,17 @@ Rule scenario/event 발생 검수는 분리합니다.
 | LAB-042 | VLM privacy transfer guard contract | 비대상 | 필요 | 안정화 | `media-server.vlm-privacy-transfer-guard.v1` schema, local/cloud fixture, external transfer warning, provider logging/retention review, credential/prompt/raw response/source URL/raw frame bytes 비저장 확인 |
 | LAB-043 | VLM summary search candidates | 비대상 | 필요 | 안정화 | `media-server.vlm-summary-search-candidates.v1` schema, sidecar summary token 후보, EventRecord `eventId` correlation, excluded candidate/reason, no runtime/provider/client/schema/media path/auto-rule boundary 확인 |
 | LAB-044 | VLM Rule suggestion candidates | 비대상 | 필요 | 안정화 | `media-server.vlm-rule-suggestion-candidates.v1` schema, line/intrusion/zone 수동 저장 후보, EventRecord `eventId` correlation, rejected auto-apply candidate, no runtime/provider/client/schema/media path/rule registry write boundary 확인 |
+| LAB-045 | VLM boundary contract gate | 비대상 | 필요 | 안정화 | `verify-vlm-boundary`가 VLM을 YOLO 대체가 아닌 이벤트 해석 보조 계층으로 고정하고 Event POST/WebRTC/SSE/WS/media path 불변 조건을 확인 |
+| LAB-046 | VLM model selection decision fixture | 비대상 | 필요 | 안정화 | `media-server.vlm-selection-decision.v1`이 1차 local standard, low-spec fallback, cloud opt-in fallback, 제외/조건부 후보와 license/provenance/privacy 판정을 보존 |
+| LAB-047 | VLM model artifact/bundle exclusion | 비대상 | 필요 | 안정화 | model weight, runtime package, credential, download token이 repo/release/bundle/container image에 포함되지 않음을 selection/bundle gate가 확인 |
+| LAB-048 | VLM PC capability hardware-class matrix | 비대상 | 필요 | 안정화 | Apple Silicon, Linux NVIDIA, CPU-only, missing runtime case가 hardware class만 산출하고 추천/설치/profile/runtime/sidecar 결과를 만들지 않음 |
+| LAB-049 | VLM recommendation privacy-mode matrix | 비대상 | 필요 | 안정화 | local-only, cloud-disabled, cloud-allowed별 추천/대안/비추천/resource estimate가 산출되고 cloud 후보는 opt-in 전 실행 가능 상태가 아님 |
+| LAB-050 | VLM install dry-run disabled-option matrix | 비대상 | 필요 | 안정화 | unsupported, missing-runtime, cloud-opt-in-required 후보가 disabled reason을 보존하고 install/profile/runtime/provider call side effect를 만들지 않음 |
+| LAB-051 | VLM profile invalid-case matrix | 비대상 | 필요 | 안정화 | provider/model/runtime/prompt/evaluation/activation/privacyGuard invalid profile이 저장 전 거부되고 credential/prompt/raw response/source URL 저장 없음 |
+| LAB-052 | VLM evaluation scoring-axis matrix | 비대상 | 필요 | 안정화 | latency, explanation quality, hallucination, JSON stability, Korean/English scoring 축이 fixture report에 분리되고 실제 benchmark PASS로 보고하지 않음 |
+| LAB-053 | VLM sidecar JSONL redaction invariant | 비대상 | 필요 | 안정화 | observation JSONL에는 raw prompt, raw provider response, credential, source URL, raw frame bytes가 저장되지 않고 별도 sidecar scope만 유지 |
+| LAB-054 | VLM summary search query builder | 비대상 | 필요 | 안정화 | sidecar summary token 후보가 queryTerms, matchedTerms, matchScore, eventId correlation을 산출하되 제품 검색 UI나 external rerank를 만들지 않음 |
+| LAB-055 | VLM rule suggestion no-auto-apply builder | 비대상 | 필요 | 안정화 | rule suggestion 후보가 manualSaveRoute와 autoApply=false를 고정하고 `/ops/rules` 수동 저장 전 registry write를 수행하지 않음 |
 
 ## I. Safety, Boundary, Invariant Contract
 
@@ -509,6 +535,15 @@ Rule scenario/event 발생 검수는 분리합니다.
 | SAFE-022 | VLM 설치/연결 UI scope gate | 비대상 | 필요 | 안정화 | `verify-vlm-install-connection-scope-gate`가 Ops-only S04 UI 준비 허용, profile 저장/VLM runtime 호출/sidecar 저장/cloud provider API 호출/schema/media path 변경 금지, viewer/client 비노출 경계를 확인 |
 | SAFE-023 | VLM profile 저장 scope gate | 비대상 | 필요 | 안정화 | `verify-vlm-profile-storage`가 S05 profile 저장만 허용하고 VLM runtime 호출, sidecar 저장, cloud provider API 호출, credential/prompt/raw response/source URL 저장, Event/WebRTC/SSE/WS schema와 media path 변경을 금지 |
 | SAFE-024 | VLM Privacy/전송 guard | 필요 | 필요 | 안정화, UI | `verify-vlm-privacy-transfer-guard`와 Ops/Client UI leak guard가 cloud 외부 전송 경고, provider logging/retention accepted review, credential/prompt/raw response/source URL/raw frame bytes 비노출을 확인 |
+| SAFE-025 | VLM default-off / no runtime auto-start | 비대상 | 필요 | 안정화 | VLM profile이나 recommendation이 있어도 명시 실행 단계 전에는 runtime call, queue start, provider API call이 자동으로 발생하지 않음 |
+| SAFE-026 | VLM model/runtime bundle 금지 | 비대상 | 필요 | 안정화 | Qwen/Gemini/Gemma 등 model weight, GGUF/safetensors/ckpt, runtime package, credential, download token이 repo/release/bundle에 포함되지 않음 |
+| SAFE-027 | VLM cloud external transfer opt-in 필수 | 비대상 | 필요 | 안정화 | cloud 후보는 privacy mode와 외부 전송 경고, provider logging/retention review가 충족되기 전 전송 가능 상태가 되지 않음 |
+| SAFE-028 | VLM prompt/raw response/credential/source redaction | 필요 | 필요 | 안정화, UI | profile, sidecar, Ops review, debug details, viewer/client, Event POST/WebRTC/SSE/WS payload에 prompt/raw response/credential/source URL/raw frame bytes가 노출되지 않음 |
+| SAFE-029 | VLM sidecar와 외부 event/metadata 분리 | 비대상 | 필요 | 안정화 | VLMObservation, summary search, rule suggestion 결과는 sidecar/candidate contract에만 있고 EventRecord top-level, Event POST, WebRTC DataChannel, SSE/WS metadata에 섞이지 않음 |
+| SAFE-030 | VLM 자동 rule/profile 적용 금지 | 비대상 | 필요 | 안정화 | rule suggestion 후보가 있어도 Rule/Profile registry write, auto apply, viewer/client suggestion 노출이 발생하지 않음 |
+| SAFE-031 | VLM viewer/client 비노출 | 필요 | 필요 | 안정화, UI | viewer/client route/nav/API/UI에 VLM model, prompt, raw response, provider, internal review card, source/debug JSON이 노출되지 않음 |
+| SAFE-032 | VLM queue/media path non-blocking | 비대상 | 필요 | 안정화 | VLM disabled/missing/runtime failure 상태가 RTSP/WebRTC media path, VA metadata, Event POST dispatch 실패로 전파되지 않음 |
+| SAFE-033 | VLM Ops-only debug details boundary | 필요 | 필요 | 안정화, UI | VLM diagnostic JSON과 dry-run raw details는 Ops debug details 접힘 영역 안에만 있으며 제품 client 화면과 public evidence에는 노출되지 않음 |
 
 ## Coverage Review To Do
 

@@ -143,7 +143,7 @@ YOLO 이벤트가 왜 발생했는지 설명하고, 오탐 가능성 및 운영�
 | 11 | V200-S11 | 완료 | Privacy/전송 guard | cloud 사용 시 외부 전송 경고, redaction, credential/prompt/raw response/source URL 비노출, provider logging 정책을 강제합니다. | privacy fixture, source URL/raw JSON leak guard, auth/scope review, `verify-vlm-privacy-transfer-guard`, `verify-auth-routes`, `verify-ops-client-ui`, `git diff --check` |
 | 12 | V200-S12 | 완료 | VLM summary 검색 후보 | VLM summary를 이용해 "문 근처에서 멈춘 사람" 같은 semantic event search 후보를 만듭니다. 검색은 후보 단계로 두고 기존 event schema는 변경하지 않습니다. | `verify-vlm-summary-search-candidates`, search fixture, sidecar query smoke, EventRecord correlation smoke, `git diff --check` |
 | 13 | V200-S13 | 완료 | Rule 추천 보조 후보 | VLM이 line/intrusion/zone 후보를 제안하되 자동 적용은 금지합니다. 운영자가 확인 후 수동 저장하는 흐름만 후보로 둡니다. | rule suggestion fixture, no-auto-apply guard, `/ops/rules` smoke, `verify-rule-ui`, `git diff --check` |
-| 14 | V200-S14 | 예정 | 테스트 inventory 확장 | VLM으로 추가된 route, control, action, runtime state, sidecar, privacy guard를 기능 ID 단위로 `project-feature-test-inventory.md`에 추가합니다. | `verify-project-feature-test-inventory`, `verify-feature-inventory-coverage`, inventory-to-verifier mapping, `git diff --check` |
+| 14 | V200-S14 | 완료 | 테스트 inventory 확장 | VLM으로 추가된 route, control, action, runtime state, sidecar, privacy guard를 기능 ID 단위로 `project-feature-test-inventory.md`에 추가합니다. | `verify-project-inventory`, `verify-feature-inventory-coverage`, inventory-to-verifier mapping, `git diff --check` |
 | 15 | V200-S15 | 예정 | 간이 테스트 리허설 | 안정화/30분/120분/UI 풀테스트 전에 VLM 전용 짧은 smoke, missing-model, cloud-disabled, invalid-output, queue-timeout fixture를 실행해 테스트 자체가 막히지 않는지 확인합니다. | VLM smoke, failure fixture matrix, cleanup check, port/server lifecycle check, `git diff --check` |
 | 16 | V200-S16 | 예정 | 기존 테스트 side effect 점검 | VLM 변경이 auth, Ops/Client UI, Rule UI, VA replay/events, WebRTC metadata, SSE/WS metadata, Event POST, RTSP/WebRTC media path verifier에 영향을 주지 않는지 확인합니다. | `./server.sh build`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-rule-ui`, `verify-va-replay`, `verify-va-events`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-event-post`, `git diff --check` |
 | 17 | V200-S17 | 예정 | 안정화/장시간/UI 기준 정리 | VLM queue, memory, provider timeout, model install 상태에 따라 안정화, 30분, 120분, UI 풀테스트 실행 기준과 제외/미실행 보고 기준을 정리합니다. | `verify-runtime-media-longrun-trigger-matrix`, `verify-longrun-separation`, VLM longrun trigger matrix, manual UI checklist update, `git diff --check` |
@@ -859,7 +859,7 @@ RTSP/WebRTC media path 변경은 포함하지 않습니다.
 
 - semantic event search 후보는 `V200-S12` 범위입니다.
 - rule 추천 보조 후보는 `V200-S13` 범위입니다.
-- VLM 테스트 inventory 전체 확장은 `V200-S14` 범위입니다.
+- VLM 테스트 inventory 전체 확장은 `V200-S14`에서 별도 종료했습니다.
 - v2.0.0 전체 side effect 안정화는 `V200-S16`, 장시간/UI 기준 정리는 `V200-S17`,
   close-out readiness는 `V200-S18` 범위입니다.
 
@@ -932,7 +932,7 @@ S12는 S08 VLMObservation sidecar에 이미 저장된 summary와 설명을 이�
 후속 단계로 남기는 범위:
 
 - rule 추천 보조 후보는 `V200-S13` 범위입니다.
-- VLM 테스트 inventory 전체 확장은 `V200-S14` 범위입니다.
+- VLM 테스트 inventory 전체 확장은 `V200-S14`에서 별도 종료했습니다.
 - v2.0.0 전체 side effect 안정화는 `V200-S16`, 장시간/UI 기준 정리는 `V200-S17`,
   close-out readiness는 `V200-S18` 범위입니다.
 
@@ -1003,7 +1003,69 @@ line-crossing, intrusion-dwell, zone-occupancy 후보를 만드는 단계입니�
 
 후속 단계로 남기는 범위:
 
-- VLM 테스트 inventory 전체 확장은 `V200-S14` 범위입니다.
+- VLM 테스트 inventory 전체 확장은 `V200-S14`에서 별도 종료했습니다.
+- v2.0.0 전체 side effect 안정화는 `V200-S16`, 장시간/UI 기준 정리는 `V200-S17`,
+  close-out readiness는 `V200-S18` 범위입니다.
+
+### V200-S14 테스트 inventory 확장 종료 기준
+
+이 단계는 VLM으로 추가된 route, control, action, runtime state, sidecar, privacy guard를
+기능 ID 단위로 `project-feature-test-inventory.md`에 반영하는 단계입니다. Inventory는
+실행 evidence가 아니라 coverage 기준표이며, 실제 UI 풀테스트와 장시간 안정화는 이
+단계의 완료 evidence로 사용하지 않습니다.
+
+이번 범위에서 구현한 것:
+
+- `project-feature-test-inventory.md`의 기능 ID를 335개에서 369개로 확장했습니다.
+- `/ops/vlm`의 PC capability/recommendation 요약, local/cloud dry-run 선택, profile
+  활성화/fallback/disable, 삭제, evaluation/prompt 표시, raw details 접힘 영역을
+  `UI-025`~`UI-031`로 분리했습니다.
+- `/ops/events` VLM review detail control을 `UI-032`로 분리했습니다.
+- VLM evidence availability, sidecar correlation, explanation/hint review, summary search
+  candidate, rule suggestion candidate, runtime disabled/queue readiness state를
+  `EVT-029`~`EVT-034`로 분리했습니다.
+- VLM boundary/model selection/artifact exclusion, PC capability/recommendation/dry-run/
+  profile/evaluation 세부 matrix, sidecar redaction, summary search builder,
+  no-auto-apply rule suggestion builder를 `LAB-045`~`LAB-055`로 분리했습니다.
+- VLM default-off, model/runtime bundle 금지, cloud opt-in, redaction, sidecar 분리,
+  no-auto-apply, viewer/client 비노출, media path non-blocking, Ops-only debug details
+  경계를 `SAFE-025`~`SAFE-033`로 분리했습니다.
+- `verify-project-inventory`, `verify-feature-inventory-coverage`,
+  `verify-manual-ui-evidence-runner`의 row count, UI target count, verifier mapping을
+  새 inventory 기준으로 갱신했습니다.
+
+이번 범위에서 하지 않는 일:
+
+- 실제 VLM runtime 호출
+- cloud provider API 호출
+- model/runtime download 또는 bundle 추가
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- 제품 검색 UI 또는 rule suggestion UI 구현
+- 자동 Rule/Profile 생성 또는 적용
+- 30분/120분 장시간 안정화 실행
+- 인앱 브라우저 UI 풀테스트 실행
+- V200-S15 간이 테스트 리허설, V200-S16 side effect 점검, V200-S17 장시간/UI 기준 정리
+
+완료 evidence:
+
+- `./server.sh verify-project-inventory`가 369개 feature row, 238개 UI target,
+  V200-S14 확장 행, summary count, coverage boundary wording을 검증했습니다.
+- `./server.sh verify-feature-inventory-coverage`가 369개 feature ID 모두 verifier,
+  UI evidence, longrun approval, field exclusion 중 하나에 연결됐음을 검증했습니다.
+- `./server.sh verify-manual-ui-evidence-runner`가 새 UI target count 238개를 기준으로
+  누락 UI evidence를 FAIL로 산출하는 self-test를 통과했습니다.
+- `./server.sh verify-vlm-install-connection-scope-gate`가 S14 이후 늘어난 inventory
+  count/range와 현재 VLM 계약을 기준으로 PASS했습니다.
+- `./server.sh verify-vlm-pc-capability`, `./server.sh verify-vlm-recommendation-engine`,
+  `./server.sh verify-vlm-install-connection-dry-run`이 새 `LAB-001`~`LAB-055` inventory
+  range와 연결된 상태로 PASS했습니다.
+- `./server.sh verify-script-inventory`가 script inventory 연결을 PASS했습니다.
+- `git diff --check`가 문서/script whitespace drift 없음을 확인했습니다.
+
+후속 단계로 남기는 범위:
+
+- V200-S15 간이 테스트 리허설은 미진행입니다.
 - v2.0.0 전체 side effect 안정화는 `V200-S16`, 장시간/UI 기준 정리는 `V200-S17`,
   close-out readiness는 `V200-S18` 범위입니다.
 
