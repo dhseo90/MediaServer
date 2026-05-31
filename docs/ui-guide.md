@@ -20,6 +20,7 @@ VA 내부 구조는 [video-analysis.md](./video-analysis.md)를 봅니다.
 | 운영 콘솔 | `http://127.0.0.1:8080/ops` 또는 `/ops/home` | admin/operator용 운영 화면과 운영 홈 요약 |
 | 운영 Dashboard | `http://127.0.0.1:8080/ops/dashboard` | runtime status를 card/detail UI로 표시 |
 | 운영 Events 직접 route | `http://127.0.0.1:8080/ops/events` | primary nav에서 숨긴 후속/진단 route |
+| VLM 설치/연결 준비 | `http://127.0.0.1:8080/ops/vlm` | V200-S04 dry-run 후보와 cloud opt-in guard를 Ops 전용으로 표시 |
 | 채널 관리 | `http://127.0.0.1:8080/ops/sources` | admin/operator용 숫자 채널 목록과 SourceRegistry/PublishedView 연결 관리 |
 | 계정 관리 | `http://127.0.0.1:8080/ops/users` | admin 전용 사용자 목록, 상세, 상태 관리 |
 | 클라이언트 포털 | `http://127.0.0.1:8080/client` 또는 `/client/live` | viewer/operator/admin용 source tree + live workspace |
@@ -304,6 +305,13 @@ Route 역할:
     읽어 Scenario Timeline과 TrackHealth issue grouping을 표시합니다.
     phase elapsed, cooldown, dedupe/emitted count는 운영자 debug summary로만
     보여주며 Event POST/WebRTC/SSE/WS metadata schema를 바꾸지 않습니다.
+  - `/ops/vlm`:
+    V200-S04 VLM 설치/연결 준비 화면입니다. `/ops/api/vlm/install-connection/dry-run`
+    read-only API로 local/cloud 후보, resource estimate, cloud opt-in guard,
+    단일 선택 상태, 실행 경계를 표시합니다. 이 route는 primary nav에 넣지 않고
+    `/ops/home` 보조 CTA로 연결합니다. 실제 설치, credential 저장, profile 저장,
+    VLM runtime 호출, sidecar 저장, Event/WebRTC/SSE/WS schema 변경, media path 변경은
+    이 화면에서 수행하지 않습니다.
   - `/ops/sources`:
     숫자 채널 목록, 상세 패널, 채널 추가 폼, URL copy 영역,
     채널 변경 이력을 제공합니다.

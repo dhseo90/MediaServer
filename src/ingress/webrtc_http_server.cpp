@@ -3367,6 +3367,124 @@ void AppendOpsHomePage(std::ostringstream& out) {
         </div>
         <p id="homeRuntimeText">불러오는 중</p>
       </section>
+      <section class="section-card compact-card" data-testid="ops-home-vlm-entry">
+        <div class="toolbar">
+          <div>
+            <h3>VLM 설치/연결 준비</h3>
+            <p>local runtime과 cloud opt-in 후보를 dry-run으로 비교합니다.</p>
+          </div>
+          <a class="button button-secondary" href="/ops/vlm">VLM 준비</a>
+        </div>
+        <div class="badge-row">
+          <span class="chip info">dry-run only</span>
+          <span class="chip">profile 저장 없음</span>
+          <span class="chip">runtime 호출 없음</span>
+        </div>
+      </section>
+    </section>
+)";
+}
+
+void AppendOpsVlmInstallConnectionPage(std::ostringstream& out) {
+    out << R"(    <section class="panel" data-ops-panel="vlm" data-testid="ops-vlm-page">
+      <div class="toolbar panel-title-toolbar">
+        <div>
+          <h2>VLM 설치/연결 준비</h2>
+          <p>추천 결과를 설치/연결 후보로 변환하되 실행과 저장은 하지 않습니다.</p>
+        </div>
+        )" << RefreshIconButtonHtml("opsVlmRefresh", "button-secondary", "새로고침") << R"(
+      </div>
+      <div id="opsVlmStatus" class="message" hidden></div>
+      <section class="section-card" data-testid="ops-vlm-controls">
+        <div class="toolbar">
+          <div>
+            <h3>입력 조건</h3>
+            <p>운영자가 검토할 PC 등급과 privacy 조건입니다.</p>
+          </div>
+        </div>
+        <div class="form-grid">
+          <label>PC 등급
+            <select id="opsVlmHardwareClass">
+              <option value="local-unsupported">local-unsupported</option>
+              <option value="local-low">local-low</option>
+              <option value="local-standard" selected>local-standard</option>
+              <option value="local-high">local-high</option>
+            </select>
+          </label>
+          <label>Local runtime
+            <select id="opsVlmRuntimeReadiness">
+              <option value="ready">ready</option>
+              <option value="missing" selected>missing</option>
+            </select>
+          </label>
+          <label>Privacy mode
+            <select id="opsVlmPrivacyMode">
+              <option value="local-only">local-only</option>
+              <option value="cloud-disabled">cloud-disabled</option>
+              <option value="cloud-allowed">cloud-allowed</option>
+            </select>
+          </label>
+          <label>Cloud opt-in
+            <select id="opsVlmCloudOptIn">
+              <option value="not-acknowledged" selected>not-acknowledged</option>
+              <option value="acknowledged">acknowledged</option>
+            </select>
+          </label>
+        </div>
+      </section>
+      <div class="grid ops-metric-grid">
+        <div class="metric-card"><span>상태</span><strong id="opsVlmDecisionStatus">-</strong></div>
+        <div class="metric-card"><span>선택 후보</span><strong id="opsVlmSelectableCount">-</strong></div>
+        <div class="metric-card"><span>PC 등급</span><strong id="opsVlmHardwareSummary">-</strong></div>
+        <div class="metric-card"><span>외부 전송</span><strong id="opsVlmTransferSummary">-</strong></div>
+      </div>
+      <section class="section-card" data-testid="ops-vlm-options-panel">
+        <div class="toolbar">
+          <div>
+            <h3>설치/연결 dry-run 후보</h3>
+            <p id="opsVlmDecisionText">후보를 불러오는 중입니다.</p>
+          </div>
+        </div>
+        <div id="opsVlmWarnings" class="badge-row"><span class="chip">로딩 중</span></div>
+        <div class="ops-responsive-table">
+          <table>
+            <thead>
+              <tr>
+                <th>선택</th>
+                <th>모델</th>
+                <th>실행 위치</th>
+                <th>영향</th>
+                <th>상태</th>
+              </tr>
+            </thead>
+            <tbody id="opsVlmOptionRows"><tr><td colspan="5">로딩 중</td></tr></tbody>
+          </table>
+        </div>
+        <p id="opsVlmSelectionSummary">선택한 후보 없음</p>
+      </section>
+      <section class="section-card" data-testid="ops-vlm-boundary-panel">
+        <div class="toolbar">
+          <div>
+            <h3>실행 경계</h3>
+            <p>이 화면은 dry-run 검토만 수행합니다.</p>
+          </div>
+        </div>
+        <div id="opsVlmBoundaryBadges" class="badge-row">
+          <span class="chip">설치 없음</span>
+          <span class="chip">credential 저장 없음</span>
+          <span class="chip">profile 저장 없음</span>
+          <span class="chip">VLM 호출 없음</span>
+          <span class="chip">sidecar 저장 없음</span>
+        </div>
+        <div id="opsVlmDisabledList" class="root-cause-list">
+          <div class="empty">비추천 후보를 불러오는 중입니다.</div>
+        </div>
+      </section>
+      <details id="opsVlmRawDetails" class="debug-details">
+        <summary>dry-run JSON</summary>
+        <label class="check-inline"><input id="opsVlmPretty" type="checkbox" checked> pretty</label>
+        <pre id="opsVlmRaw">{}</pre>
+      </details>
     </section>
 )";
 }
@@ -3385,6 +3503,8 @@ std::string OpsShellPageHtml(const app::AppConfig& config,
         AppendOpsEventsPage(out);
     } else if (active == "rules") {
         AppendOpsRulesPage(out);
+    } else if (active == "vlm") {
+        AppendOpsVlmInstallConnectionPage(out);
     } else {
         AppendOpsHomePage(out);
     }
@@ -4280,7 +4400,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
 
 bool IsOpsOverviewShellRoute(const std::string& path) {
     return path == "/ops" || path == "/ops/home" || path == "/ops/dashboard" ||
-           path == "/ops/events";
+           path == "/ops/events" || path == "/ops/vlm";
 }
 
 std::string OpsOverviewActiveForPath(const std::string& path) {
@@ -4289,6 +4409,9 @@ std::string OpsOverviewActiveForPath(const std::string& path) {
     }
     if (path == "/ops/events") {
         return "events";
+    }
+    if (path == "/ops/vlm") {
+        return "vlm";
     }
     return "home";
 }
@@ -7571,6 +7694,321 @@ void AppendNullableJsonString(std::ostringstream& out, const std::string& value)
     } else {
         out << "\"" << JsonEscape(value) << "\"";
     }
+}
+
+std::string JsonBool(bool value) {
+    return value ? "true" : "false";
+}
+
+std::string QueryValueOr(const std::unordered_map<std::string, std::string>& query,
+                         const std::string& key,
+                         const std::string& fallback) {
+    const auto it = query.find(key);
+    if (it == query.end()) {
+        return fallback;
+    }
+    const std::string trimmed = Trim(it->second);
+    return trimmed.empty() ? fallback : trimmed;
+}
+
+bool IsAllowedValue(const std::string& value, std::initializer_list<const char*> allowed) {
+    return std::any_of(allowed.begin(), allowed.end(), [&](const char* candidate) {
+        return value == candidate;
+    });
+}
+
+void AppendJsonStringArray(std::ostringstream& out, const std::vector<std::string>& values) {
+    out << "[";
+    for (std::size_t i = 0; i < values.size(); ++i) {
+        if (i > 0) {
+            out << ",";
+        }
+        out << "\"" << JsonEscape(values[i]) << "\"";
+    }
+    out << "]";
+}
+
+struct OpsVlmModelPlan {
+    std::string option_id;
+    std::string model;
+    std::string tier;
+    std::string role;
+    std::string deployment;
+    int memory_gb{0};
+    int disk_gb{0};
+    int latency_p50_s{0};
+    int latency_p95_s{0};
+    bool high_candidate{false};
+};
+
+std::string OpsVlmRuntimeStatusJson(const std::string& runtime_readiness) {
+    std::ostringstream out;
+    out << "{\"status\":\"" << JsonEscape(runtime_readiness) << "\","
+        << "\"ollamaCli\":\"operator-supplied\","
+        << "\"vllmApi\":\"operator-supplied\","
+        << "\"dryRunOnly\":true}";
+    return out.str();
+}
+
+std::string OpsVlmNoSideEffectsJson() {
+    return R"({"dryRunOnly":true,"installPerformed":false,"connectionPerformed":false,"runtimeCallPerformed":false,"profileStored":false,"sidecarStored":false,"cloudProviderApiCalled":false,"credentialsStored":false,"modelArtifactDownloaded":false})";
+}
+
+void AppendOpsVlmModelEstimate(std::ostringstream& out, const OpsVlmModelPlan& plan) {
+    if (plan.deployment == "cloud") {
+        out << R"({"memory":{"localWorkingSetGb":0},"disk":{"modelArtifactGb":0},"latency":{"label":"provider/API/network dependent"},"cost":{"class":"provider-api-variable"}})";
+        return;
+    }
+    out << "{\"memory\":{\"localWorkingSetGb\":" << plan.memory_gb << "},"
+        << "\"disk\":{\"modelArtifactGb\":" << plan.disk_gb << "},"
+        << "\"latency\":{\"p50Seconds\":" << plan.latency_p50_s
+        << ",\"p95Seconds\":" << plan.latency_p95_s << "},"
+        << "\"cost\":{\"class\":\"local-hardware\"}}";
+}
+
+std::string OpsVlmInstallImpactSummary(const OpsVlmModelPlan& plan, bool requires_runtime_setup) {
+    if (plan.deployment == "cloud") {
+        return "No local model artifact is installed in dry-run; provider cost/terms/logging review remains required.";
+    }
+    std::ostringstream out;
+    out << "model artifact planning size " << plan.disk_gb << "GB; local working set planning size "
+        << plan.memory_gb << "GB";
+    if (requires_runtime_setup) {
+        out << "; local runtime setup is still required";
+    }
+    return out.str();
+}
+
+void AppendOpsVlmOptionJson(std::ostringstream& out,
+                            const OpsVlmModelPlan& plan,
+                            std::size_t priority,
+                            const std::string& runtime_readiness,
+                            const std::string& cloud_opt_in,
+                            std::vector<std::string>* selectable_ids) {
+    const bool is_cloud = plan.deployment == "cloud";
+    const bool cloud_opt_in_satisfied = cloud_opt_in == "acknowledged";
+    std::vector<std::string> disabled_reasons;
+    if (is_cloud && !cloud_opt_in_satisfied) {
+        disabled_reasons.push_back("cloud-explicit-opt-in-required");
+    }
+    const bool selectable = disabled_reasons.empty();
+    if (selectable && selectable_ids != nullptr) {
+        selectable_ids->push_back(plan.option_id);
+    }
+    const bool requires_runtime_setup = !is_cloud && runtime_readiness != "ready";
+    out << "{\"id\":\"" << JsonEscape(plan.option_id) << "\","
+        << "\"source\":\"" << (priority == 1 ? "primary" : "alternative") << "\","
+        << "\"actionType\":\"" << (is_cloud ? "cloud-api-connection-dry-run" : "local-model-install-dry-run") << "\","
+        << "\"provider\":\"" << (is_cloud ? "cloud-provider-api" : "user-supplied-local-runtime") << "\","
+        << "\"model\":\"" << JsonEscape(plan.model) << "\","
+        << "\"tier\":\"" << JsonEscape(plan.tier) << "\","
+        << "\"role\":\"" << JsonEscape(plan.role) << "\","
+        << "\"priority\":" << priority << ","
+        << "\"deployment\":\"" << JsonEscape(plan.deployment) << "\","
+        << "\"selectable\":" << JsonBool(selectable) << ","
+        << "\"disabledReasons\":";
+    AppendJsonStringArray(out, disabled_reasons);
+    out << ",\"externalTransfer\":" << JsonBool(is_cloud)
+        << ",\"requiresCloudOptIn\":" << JsonBool(is_cloud)
+        << ",\"cloudOptInSatisfied\":";
+    if (is_cloud) {
+        out << JsonBool(cloud_opt_in_satisfied);
+    } else {
+        out << "null";
+    }
+    out << ",\"requiresRuntimeSetup\":" << JsonBool(requires_runtime_setup)
+        << ",\"automaticInstallAllowed\":false,"
+        << "\"automaticMultiInstallAllowed\":false,"
+        << "\"bundleAllowed\":false,"
+        << "\"installCommandsIncluded\":false,"
+        << "\"modelArtifactReferenceIncluded\":false,"
+        << "\"credentialAcceptedByDryRun\":false,"
+        << "\"impact\":{\"resourceEstimate\":";
+    AppendOpsVlmModelEstimate(out, plan);
+    out << ",\"localRuntimeReadiness\":" << OpsVlmRuntimeStatusJson(runtime_readiness)
+        << ",\"installImpactSummary\":\"" << JsonEscape(OpsVlmInstallImpactSummary(plan, requires_runtime_setup)) << "\","
+        << "\"privacyImpactSummary\":\""
+        << (is_cloud
+                ? "External transfer warning and explicit opt-in are required before any provider connection."
+                : "Local option keeps event evidence on operator-supplied runtime; no provider transfer in dry-run.")
+        << "\"},"
+        << "\"execution\":" << OpsVlmNoSideEffectsJson() << ","
+        << "\"nextStepBoundary\":\"S04 Ops UI may display/select this option; S05 profile storage and later runtime calls remain separate.\"}";
+}
+
+std::string OpsVlmInstallConnectionDryRunJson(
+    const std::unordered_map<std::string, std::string>& query,
+    std::string* error_message) {
+    const std::string hardware_class = QueryValueOr(query, "hardwareClass", "local-standard");
+    const std::string privacy_mode = QueryValueOr(query, "privacyMode", "local-only");
+    const std::string cloud_opt_in = QueryValueOr(query, "cloudOptIn", "not-acknowledged");
+    const std::string runtime_readiness = QueryValueOr(query, "runtimeReadiness", "missing");
+    if (!IsAllowedValue(hardware_class, {"local-unsupported", "local-low", "local-standard", "local-high"})) {
+        if (error_message != nullptr) *error_message = "unsupported hardwareClass";
+        return {};
+    }
+    if (!IsAllowedValue(privacy_mode, {"local-only", "cloud-disabled", "cloud-allowed"})) {
+        if (error_message != nullptr) *error_message = "unsupported privacyMode";
+        return {};
+    }
+    if (!IsAllowedValue(cloud_opt_in, {"acknowledged", "not-acknowledged"})) {
+        if (error_message != nullptr) *error_message = "unsupported cloudOptIn";
+        return {};
+    }
+    if (!IsAllowedValue(runtime_readiness, {"ready", "missing"})) {
+        if (error_message != nullptr) *error_message = "unsupported runtimeReadiness";
+        return {};
+    }
+
+    std::vector<OpsVlmModelPlan> options;
+    if (hardware_class == "local-low") {
+        options.push_back({"local-qwen3-vl-4b", "Qwen/Qwen3-VL-4B-Instruct", "T2-local-low-spec-fallback", "primary-local-low", "local", 10, 9, 6, 20, false});
+    } else if (hardware_class == "local-standard") {
+        options.push_back({"local-qwen3-vl-8b", "Qwen/Qwen3-VL-8B-Instruct", "T1-primary-local-standard", "primary-local-standard", "local", 18, 16, 8, 25, false});
+        options.push_back({"local-qwen3-vl-4b", "Qwen/Qwen3-VL-4B-Instruct", "T2-local-low-spec-fallback", "safe-local-fallback", "local", 10, 9, 6, 20, false});
+    } else if (hardware_class == "local-high") {
+        options.push_back({"local-qwen3-vl-30b", "Qwen/Qwen3-VL-30B-A3B-Instruct", "T1H-local-high-candidate", "high-evaluation-candidate", "local", 46, 60, 12, 35, true});
+        options.push_back({"local-qwen3-vl-8b", "Qwen/Qwen3-VL-8B-Instruct", "T1-primary-local-standard", "safe-local-fallback", "local", 18, 16, 8, 25, false});
+    }
+    if (privacy_mode == "cloud-allowed") {
+        options.push_back({"cloud-gemini-2-5-flash", "gemini-2.5-flash", "T3-cloud-opt-in-fallback", "cloud-opt-in-fallback", "cloud", 0, 0, 0, 0, false});
+    }
+
+    std::vector<std::string> selectable_ids;
+    std::vector<std::string> warnings;
+    if (runtime_readiness != "ready" && hardware_class != "local-unsupported") {
+        warnings.push_back("local-runtime-setup-required-before-activation");
+    }
+    if (hardware_class == "local-high") {
+        warnings.push_back("local-high-candidate-requires-v200-s06-evaluation");
+    }
+    if (privacy_mode == "cloud-allowed" && cloud_opt_in != "acknowledged") {
+        warnings.push_back("cloud-explicit-opt-in-required");
+    }
+    warnings.push_back("dry-run-only-no-install-connection-profile-runtime-sidecar");
+
+    std::ostringstream option_json;
+    option_json << "[";
+    for (std::size_t i = 0; i < options.size(); ++i) {
+        if (i > 0) {
+            option_json << ",";
+        }
+        AppendOpsVlmOptionJson(option_json, options[i], i + 1, runtime_readiness, cloud_opt_in, &selectable_ids);
+    }
+    option_json << "]";
+
+    const std::string status = selectable_ids.empty() ? "no-selectable-option" : "ready-for-user-selection";
+    std::string blocked_reason;
+    if (selectable_ids.empty()) {
+        blocked_reason = hardware_class == "local-unsupported"
+                             ? (privacy_mode == "cloud-allowed" ? "cloud-explicit-opt-in-required" : "recommendation-engine-returned-no-supported-option")
+                             : "no-selectable-dry-run-option";
+    }
+
+    std::ostringstream disabled;
+    disabled << "[";
+    bool first_disabled = true;
+    auto append_disabled = [&](const std::string& id,
+                               const std::string& model,
+                               const std::string& deployment,
+                               const std::string& reason_code,
+                               const std::string& reason,
+                               bool license_review_required) {
+        if (!first_disabled) {
+            disabled << ",";
+        }
+        first_disabled = false;
+        disabled << "{\"id\":\"" << JsonEscape(id) << "\","
+                 << "\"model\":";
+        AppendNullableJsonString(disabled, model);
+        disabled << ",\"deployment\":\"" << JsonEscape(deployment) << "\","
+                 << "\"selectable\":false,"
+                 << "\"disabledReason\":\"" << JsonEscape(reason_code) << "\","
+                 << "\"reason\":\"" << JsonEscape(reason) << "\","
+                 << "\"licenseReviewRequired\":" << JsonBool(license_review_required) << ","
+                 << "\"defaultAllowed\":false,"
+                 << "\"execution\":" << OpsVlmNoSideEffectsJson() << "}";
+    };
+    if (hardware_class == "local-unsupported") {
+        append_disabled("not-recommended-local-vlm",
+                        "",
+                        "local",
+                        "hardware-below-local-floor",
+                        "local VLM runtime or memory headroom is below the default recommendation floor.",
+                        false);
+    }
+    if (privacy_mode != "cloud-allowed") {
+        append_disabled("not-recommended-gemini-cloud",
+                        "gemini-2.5-flash",
+                        "cloud",
+                        "privacy-mode-disallows-cloud",
+                        "cloud fallback requires explicit external transfer opt-in.",
+                        false);
+    }
+    append_disabled("conditional-gemma-user-supplied",
+                    "Gemma family",
+                    "user-supplied",
+                    "custom-terms-license-review-required",
+                    "Gemma remains conditional user-supplied and is not a default or fallback baseline.",
+                    true);
+    disabled << "]";
+
+    std::ostringstream out;
+    out << "{\"schema\":\"media-server.vlm-install-connection-dry-run.v1\","
+        << "\"targetStep\":\"V200-S04\","
+        << "\"generatedAt\":\"" << JsonEscape(FormatUnixMsUtc(NowUnixMs())) << "\","
+        << "\"scope\":\"install-connection-dry-run-contract-only\","
+        << "\"sourceRecommendation\":{\"schema\":\"media-server.vlm-recommendation.v1\","
+        << "\"targetStep\":\"V200-S03\","
+        << "\"source\":\"ops-ui-planning-dry-run\","
+        << "\"decisionStatus\":\"" << (hardware_class == "local-unsupported" && privacy_mode != "cloud-allowed" ? "not-recommended" : "recommended") << "\"},"
+        << "\"pcCapability\":{\"osFamily\":\"operator-selected\","
+        << "\"platform\":\"ops-ui\","
+        << "\"hardwareClass\":\"" << JsonEscape(hardware_class) << "\","
+        << "\"runtimeReadiness\":\"" << JsonEscape(runtime_readiness) << "\"},"
+        << "\"privacy\":{\"mode\":\"" << JsonEscape(privacy_mode) << "\","
+        << "\"externalTransferAllowed\":" << JsonBool(privacy_mode == "cloud-allowed") << ","
+        << "\"cloudRequiresExplicitOptIn\":true,"
+        << "\"cloudOptInState\":\"" << JsonEscape(cloud_opt_in) << "\","
+        << "\"sourceLocatorOrCredentialIncluded\":false,"
+        << "\"promptOrResponseIncluded\":false,"
+        << "\"providerCredentialEchoed\":false},"
+        << "\"decision\":{\"status\":\"" << JsonEscape(status) << "\","
+        << "\"singleSelectionRequired\":true,"
+        << "\"automaticMultiInstallAllowed\":false,"
+        << "\"selectableOptionIds\":";
+    AppendJsonStringArray(out, selectable_ids);
+    out << ",\"blockedReason\":\"" << JsonEscape(blocked_reason) << "\"},"
+        << "\"options\":" << option_json.str() << ","
+        << "\"disabledOptions\":" << disabled.str() << ","
+        << "\"warnings\":";
+    AppendJsonStringArray(out, warnings);
+    out << ",\"nonScope\":["
+        << "\"profile-storage\","
+        << "\"runtime-vlm-call\","
+        << "\"sidecar-storage\","
+        << "\"cloud-provider-api-call\","
+        << "\"credential-storage\","
+        << "\"event-post-webrtc-sse-ws-schema-change\","
+        << "\"rtsp-webrtc-media-path-change\","
+        << "\"viewer-client-exposure\","
+        << "\"model-or-runtime-bundle-release\"],"
+        << "\"contractInvariants\":{\"installPerformed\":false,"
+        << "\"connectionPerformed\":false,"
+        << "\"runtimeVlmCallPerformed\":false,"
+        << "\"profileStored\":false,"
+        << "\"sidecarStored\":false,"
+        << "\"cloudProviderApiCalled\":false,"
+        << "\"credentialsStored\":false,"
+        << "\"modelArtifactDownloaded\":false,"
+        << "\"modelArtifactBundled\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"viewerClientExposureAdded\":false}}";
+    return out.str();
 }
 
 struct OpsSourceHealthItem {
@@ -12919,6 +13357,22 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                return *auth_response;
 	                            }
 	                            HttpResponse ok = JsonResponse(200, "OK", runtime_status_body());
+	                            ok.headers["Cache-Control"] = "no-store";
+	                            return ok;
+	                        }
+
+	                        if (request.method == "GET" && request.path == "/ops/api/vlm/install-connection/dry-run") {
+	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+	                                return *auth_response;
+	                            }
+                                std::string vlm_error;
+                                const std::string body = OpsVlmInstallConnectionDryRunJson(query, &vlm_error);
+                                if (body.empty()) {
+                                    return JsonResponse(400,
+                                                        "Bad Request",
+                                                        "{\"error\":\"" + JsonEscape(vlm_error) + "\"}");
+                                }
+	                            HttpResponse ok = JsonResponse(200, "OK", body);
 	                            ok.headers["Cache-Control"] = "no-store";
 	                            return ok;
 	                        }

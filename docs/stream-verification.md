@@ -228,6 +228,16 @@ cloud provider API 호출, credential 저장, profile 저장, VLM runtime 호출
 ./server.sh verify-vlm-install-connection-dry-run
 ```
 
+VLM 설치/연결 Ops UI는 `/ops/vlm` 화면과
+`/ops/api/vlm/install-connection/dry-run` read-only API가 S04 dry-run contract를
+제품 UI에서 보여주는지 확인합니다. 이 검증은 실제 설치, profile 저장, runtime 호출,
+sidecar 저장, provider API 호출 성공을 뜻하지 않으며, 브라우저 직접 UI 풀테스트를
+대신하지 않습니다.
+
+```bash
+./server.sh verify-vlm-install-connection-ui
+```
+
 CI/local gate parity는 `media-server.ci-local-gate-parity.v1` summary로
 Preflight/static-gates/guardrails/RC workflow에 실제로 걸린 `./server.sh` 명령과
 로컬 release/static verifier 목록을 대조합니다. 로컬에서 통과해야 한다고 문서화한

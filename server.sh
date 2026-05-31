@@ -276,6 +276,8 @@ Usage:
                  v2.0.0 VLM 설치/연결 dry-run contract JSON을 산출합니다.
   verify-vlm-install-connection-dry-run
                  v2.0.0 VLM 설치/연결 dry-run contract와 fixture matrix를 검증합니다.
+  verify-vlm-install-connection-ui
+                 v2.0.0 VLM 설치/연결 Ops UI와 dry-run API 경계를 검증합니다.
   verify-event-post
                  VA event POST payload, 실패/cooldown/queue 상태를 검증합니다.
   verify-integrator-contract-artifact
@@ -926,6 +928,10 @@ case "${cmd}" in
   verify-vlm-install-connection-dry-run)
     require_internal verify_vlm_install_connection_dry_run.mjs
     exec "${INTERNAL_DIR}/verify_vlm_install_connection_dry_run.mjs" "$@"
+    ;;
+  verify-vlm-install-connection-ui)
+    require_internal verify_vlm_install_connection_ui.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_install_connection_ui.mjs" "$@"
     ;;
   verify-event-post)
     require_internal verify_event_post_dispatch.sh

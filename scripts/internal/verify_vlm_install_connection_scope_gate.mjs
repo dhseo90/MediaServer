@@ -31,10 +31,9 @@ assertKnownOptions(rawArgs, ["help"]);
 
 const checks = [];
 
-check("roadmap defines V200-S04 scope gate without marking the full step complete", () => {
+check("roadmap defines V200-S04 scope gate and completion evidence", () => {
   const backlog = readText("docs/development-backlog.md");
   for (const snippet of [
-    "| 4 | V200-S04 | 예정 | VLM 설치/연결 UI |",
     "### V200-S04 VLM 설치/연결 UI 범위 gate",
     "S04에서 허용",
     "S04에서 금지",
@@ -45,10 +44,22 @@ check("roadmap defines V200-S04 scope gate without marking the full step complet
     "RTSP/WebRTC media path",
     "viewer/client 화면 노출",
     "`./server.sh verify-vlm-install-connection-scope-gate`",
+    "### V200-S04 VLM 설치/연결 Ops UI 완료 기준",
+    "완료 evidence",
+    "브라우저 직접 확인에서 `/ops/vlm`",
+    "cloud opt-in 전",
+    "`gemini-2.5-flash` 비활성",
+    "opt-in 후 cloud 후보 선택 상태",
+    "실행/저장 false",
+    "브라우저 직접 확인에서 `/client/live`",
+    "invalid query",
+    "400 JSON",
+    "v2.0.0 전체 UI 풀테스트와 close-out evidence는 S18 범위",
   ]) {
     assert(backlog.includes(snippet), `development backlog missing S04 gate snippet: ${snippet}`);
   }
-  assert(!backlog.includes("| 4 | V200-S04 | 완료 |"), "V200-S04 must not be marked complete by scope-gate work");
+  assert(/\| 4 \| V200-S04 \| 완료 \| VLM 설치\/연결 UI \|/.test(backlog),
+    "V200-S04 roadmap row must be complete only after Ops UI evidence is documented");
 });
 
 check("stream verification documents the S04 scope gate command and limits", () => {
@@ -76,15 +87,15 @@ check("feature inventory and coverage gate include the S04 scope gate", () => {
     "| SAFE-022 | VLM 설치/연결 UI scope gate | 비대상 | 필요 | 안정화 |",
     "verify-vlm-install-connection-scope-gate",
     "| `SAFE-001`~`SAFE-022` |",
-    "| 전체 기능 항목 | 321 |",
+    "| 전체 기능 항목 | 322 |",
     "| UI 비대상 | 91 |",
-    "| 테스트 필요 | 321 |",
-    "| 안정화 대상 | 311 |",
+    "| 테스트 필요 | 322 |",
+    "| 안정화 대상 | 312 |",
   ]) {
     assert(inventory.includes(snippet), `feature inventory missing S04 scope gate snippet: ${snippet}`);
   }
   assert(coverage.includes("verify-vlm-install-connection-scope-gate"), "coverage verifier missing S04 scope command");
-  assert(projectInventoryVerifier.includes("rows.length === 321"), "project inventory verifier must expect 321 feature rows");
+  assert(projectInventoryVerifier.includes("rows.length === 322"), "project inventory verifier must expect 322 feature rows");
 });
 
 check("server command and script inventory are wired", () => {

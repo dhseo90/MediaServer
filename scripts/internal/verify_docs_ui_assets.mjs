@@ -4,6 +4,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
+import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -195,7 +196,10 @@ check("representative screenshot docs do not point at stale visual baselines", (
 
 check("docs UI asset directory contains managed PNG files", () => {
   const allowed = new Set(uiGuideAssets);
-  const entries = fs.readdirSync(docsAssetDir).filter((entry) => entry.endsWith(".png"));
+  const trackedAssets = gitLsFiles("docs/assets/ui");
+  const entries = trackedAssets
+    .filter((entry) => path.dirname(entry) === "docs/assets/ui" && entry.endsWith(".png"))
+    .map((entry) => path.basename(entry));
   for (const entry of entries) {
     assert(allowed.has(entry), `unexpected unmanaged UI PNG asset: ${entry}`);
   }
@@ -208,7 +212,9 @@ check("docs UI asset directory contains managed PNG files", () => {
     assertMeetsManifestMinimum(asset, dimensions, "");
   }
   assert(fs.existsSync(docsAssetEnDir), "missing English UI screenshot asset directory: docs/assets/ui/en");
-  const englishEntries = fs.readdirSync(docsAssetEnDir).filter((entry) => entry.endsWith(".png"));
+  const englishEntries = trackedAssets
+    .filter((entry) => path.dirname(entry) === "docs/assets/ui/en" && entry.endsWith(".png"))
+    .map((entry) => path.basename(entry));
   for (const entry of englishEntries) {
     assert(uiGuideAssets.includes(entry), `unexpected unmanaged English UI PNG asset: ${entry}`);
   }
@@ -266,6 +272,20 @@ function assert(condition, message) {
 
 function readText(relativePath) {
   return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
+}
+
+function gitLsFiles(relativePath) {
+  const result = spawnSync("git", ["ls-files", relativePath], {
+    cwd: rootDir,
+    encoding: "utf8",
+  });
+  if (result.error) {
+    throw result.error;
+  }
+  if (result.status !== 0) {
+    throw new Error(`git ls-files ${relativePath} failed: ${result.stderr || result.stdout}`);
+  }
+  return result.stdout.split(/\n/).filter(Boolean);
 }
 
 function findAssetReferences(text) {

@@ -39,7 +39,20 @@ PC capability/privacy mode이며, 출력은 local model 설치 dry-run 후보와
 
 ```bash
 ./server.sh verify-vlm-install-connection-dry-run
+./server.sh verify-vlm-install-connection-ui
 ```
+
+## Ops UI 연결
+
+`/ops/vlm`은 이 dry-run contract를 제품 Ops 화면에서 표시하는 V200-S04 전용
+route입니다. 화면은 `/ops/api/vlm/install-connection/dry-run` read-only API를
+호출해 local/cloud 후보, resource estimate, cloud opt-in guard, 단일 선택 상태,
+비추천/조건부 후보, 실행 경계 badge, 접힌 raw details를 보여줍니다.
+
+이 route는 admin/operator용 Ops shell 아래에만 있고 `/ops` primary nav에는 추가하지
+않습니다. `/ops/home`의 보조 CTA에서 진입합니다. UI에서 후보를 선택해도 실제 설치,
+provider connection, credential 저장, profile 저장, VLM runtime 호출, sidecar 저장은
+발생하지 않습니다.
 
 ## Output Contract
 
@@ -84,13 +97,15 @@ UI의 외부 전송 동의를 완료했다는 뜻이 아닙니다. `--cloud-opt-
   high/missing-runtime/cloud-opt-in guard case를 보존합니다.
 - `./server.sh verify-vlm-install-connection-dry-run`이 schema, fixture matrix,
   side-effect false invariant, redaction boundary, 문서/명령 연결을 검증합니다.
+- `./server.sh verify-vlm-install-connection-ui`가 `/ops/vlm` shell route,
+  read-only API, cloud opt-in guard, no-write boundary, docs/inventory 연결을 정적으로
+  검증합니다.
 - `git diff --check`가 문서/fixture/script whitespace drift를 확인합니다.
 
 비범위:
 
-- Ops 화면 구현
-- Auth/redaction route guard 구현
-- profile 저장
+- V200-S04 정적/UI smoke를 넘어선 브라우저 전체 UI 풀테스트 완료 주장
+- V200-S05 profile 저장
 - VLM runtime 호출
 - sidecar 저장
 - Event/WebRTC/SSE/WS schema 변경

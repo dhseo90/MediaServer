@@ -133,7 +133,7 @@ YOLO 이벤트가 왜 발생했는지 설명하고, 오탐 가능성 및 운영�
 | 1 | V200-S01 | 완료 | VLM 후보군/선택 기준 | `Qwen/Qwen3-VL-8B-Instruct`를 1차 local standard로 선택하고, `Qwen/Qwen3-VL-4B-Instruct`를 local low-spec fallback, `gemini-2.5-flash`는 cloud opt-in fallback으로 둡니다. Gemma 계열은 custom terms/license review 때문에 기본값이 아닙니다. | model selection decision review, license/provenance checklist, cloud/local privacy review, `verify-vlm-selection-decision`, `verify-bundle-policy`, `git diff --check` |
 | 2 | V200-S02 | 완료 | PC 사양 감지 | OS, CPU, RAM, GPU/VRAM, Apple Silicon, Docker, Ollama, vLLM/API 연결 가능 여부를 수집하는 local capability detector를 만듭니다. 추천 모델 산출은 다음 단계로 둡니다. | `detect-vlm-pc-capability`, hardware scan fixture, macOS/Linux smoke, missing-tool fixture, `verify-vlm-pc-capability`, `verify-script-inventory`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `git diff --check` |
 | 3 | V200-S03 | 완료 | VLM 추천 엔진 | 사용자 PC 사양과 privacy mode에 따라 추천 모델, 대안 모델, 비추천 사유, 예상 메모리/디스크/latency/cost를 산출합니다. | `recommend-vlm-model`, recommendation matrix fixture, low/standard/high/unsupported spec fixture, local-only/cloud-disabled/cloud-allowed policy fixture, `verify-vlm-recommendation-engine`, `verify-script-inventory`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `git diff --check` |
-| 4 | V200-S04 | 예정 | VLM 설치/연결 UI | Ops에서 local model 설치 또는 cloud API 연결을 선택하게 합니다. 자동 다중 설치는 금지하고, 설치 전 영향과 외부 전송 여부를 표시합니다. | Ops UI smoke, install dry-run fixture, cloud opt-in guard, viewer redaction UI smoke, `git diff --check` |
+| 4 | V200-S04 | 완료 | VLM 설치/연결 UI | Ops에서 local model 설치 또는 cloud API 연결을 선택하게 합니다. 자동 다중 설치는 금지하고, 설치 전 영향과 외부 전송 여부를 표시합니다. | Ops UI smoke, install dry-run fixture, cloud opt-in guard, viewer redaction UI smoke, `verify-vlm-install-connection-ui`, `git diff --check` |
 | 5 | V200-S05 | 예정 | VLM profile 저장 | 선택한 provider, model, runtime, prompt profile, privacy mode, 평가 결과, 활성화 상태를 저장하고 fallback/disable 상태를 명확히 둡니다. | profile CRUD smoke, auth/scope route guard, invalid profile fixture, `verify-auth-routes`, `git diff --check` |
 | 6 | V200-S06 | 예정 | VLM 평가 harness | sample 이벤트 frame, bbox crop, 전후 frame으로 latency, 설명 품질, hallucination, JSON 안정성, 한국어/영어 출력 품질을 비교합니다. | VLM fixture sample, prompt profile A/B, structured output fixture, evaluation report, `git diff --check` |
 | 7 | V200-S07 | 예정 | 이벤트 evidence 추출 | YOLO 이벤트 발생 시 snapshot, bbox crop, 전후 frame, 짧은 clip evidence 후보를 만들고 VLM 입력으로 쓸 수 있게 reference를 분리합니다. | EventRecord snapshot/clip fixture, crop extraction smoke, redaction review, `verify-va-events`, `verify-va-replay`, `git diff --check` |
@@ -448,6 +448,56 @@ sidecar 저장은 별도 후속 스텝으로 남깁니다.
   `verify-vlm-pc-capability`, `verify-vlm-selection-decision`이 입력 경계와 S04 scope를
   계속 검증합니다.
 - `git diff --check`가 문서/fixture/script whitespace drift를 확인합니다.
+
+### V200-S04 VLM 설치/연결 Ops UI 완료 기준
+
+S04는 dry-run contract를 Ops UI에서 검토하고, cloud opt-in guard와 viewer redaction
+경계를 확인하는 단계입니다. 이 단계의 완료는 설치/연결 후보를 고르는 UI와 read-only
+API가 존재한다는 뜻이며, profile 저장, VLM runtime 호출, sidecar 저장 완료를 뜻하지
+않습니다.
+
+이번 범위에서 구현한 것:
+
+- `/ops/vlm` Ops-only 화면을 추가해 PC 등급, local runtime 상태, privacy mode,
+  cloud opt-in 상태를 고르고 dry-run 후보를 확인합니다.
+- `/ops/api/vlm/install-connection/dry-run`은 `media-server.vlm-install-connection-dry-run.v1`
+  JSON을 반환하되 설치, connection, provider API 호출, credential 저장, profile 저장,
+  VLM runtime 호출, sidecar 저장, Event/WebRTC/SSE/WS schema 변경, media path 변경을
+  모두 false invariant로 둡니다.
+- UI는 local/cloud 후보, 예상 memory/disk/latency/cost, cloud opt-in guard,
+  단일 선택 상태, 비추천/조건부 후보, dry-run JSON details를 Ops 화면에서만 표시합니다.
+- `/ops` primary nav에는 새 항목을 넣지 않고 `/ops/home`에서 보조 CTA로 연결합니다.
+
+완료 evidence:
+
+- `./server.sh verify-vlm-install-connection-ui`,
+  `./server.sh verify-vlm-install-connection-dry-run`,
+  `./server.sh verify-vlm-install-connection-scope-gate`가 UI/API/dry-run/scope 경계를
+  검증합니다.
+- UI 변경 안정화 gate인 `./server.sh build`, auth bootstrap/users/routes,
+  `./server.sh verify-ops-client-ui`, `./server.sh verify-ops-client-ui --screenshots`,
+  `./server.sh verify-rule-ui`를 S04 변경 후 실행합니다.
+- 브라우저 직접 확인에서 `/ops/vlm`의 local/cloud dry-run 후보, cloud opt-in 전
+  `gemini-2.5-flash` 비활성, opt-in 후 cloud 후보 선택 상태, 실행/저장 false
+  invariant badge를 확인합니다.
+- 브라우저 직접 확인에서 `/client/live`가 `/ops/vlm`, VLM dry-run schema, raw JSON,
+  Developer URL, source URL, debug/BBox diagnostics를 노출하지 않는 것을 확인합니다.
+- invalid query인 `/ops/api/vlm/install-connection/dry-run?hardwareClass=bad`는
+  400 JSON으로 거부합니다.
+
+후속 단계로 남기는 범위:
+
+- profile 저장은 `V200-S05` 범위입니다.
+- VLM runtime 호출과 평가 harness는 `V200-S06` 범위입니다.
+- VLMObservation sidecar 저장은 `V200-S08` 범위입니다.
+- v2.0.0 전체 UI 풀테스트와 close-out evidence는 S18 범위입니다.
+
+검증:
+
+- `./server.sh verify-vlm-install-connection-ui`
+- `./server.sh verify-vlm-install-connection-dry-run`
+- `./server.sh verify-vlm-install-connection-scope-gate`
+- UI 변경 안정화 gate와 `git diff --check`
 
 v2.0.0 완료 판정은 기능 구현만으로 닫지 않습니다. 각 개발 순서에서 추가한 테스트가
 `project-feature-test-inventory.md`, 안정화 테스트, 30분/120분 trigger, UI 풀테스트
