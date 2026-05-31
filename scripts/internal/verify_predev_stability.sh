@@ -163,6 +163,27 @@ require_cmd() {
   fi
 }
 
+detect_rule_ui_chrome_path() {
+  local configured="${MEDIA_SERVER_VERIFY_RULE_UI_CHROME_PATH:-${CHROME_PATH:-}}"
+  if [[ -n "${configured}" ]]; then
+    printf '%s\n' "${configured}"
+    return 0
+  fi
+  local candidate
+  for candidate in \
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+    "/Applications/Chromium.app/Contents/MacOS/Chromium" \
+    "/usr/bin/google-chrome" \
+    "/usr/bin/chromium" \
+    "/usr/bin/chromium-browser"; do
+    if [[ -x "${candidate}" ]]; then
+      printf '%s\n' "${candidate}"
+      return 0
+    fi
+  done
+  return 1
+}
+
 # 양수 정수 옵션이 잘못 들어오면 조기 중단한다.
 assert_non_negative_int() {
   local value="$1"
@@ -539,6 +560,11 @@ main() {
   require_cmd lsof
   require_cmd node
   require_cmd python3
+  local detected_rule_ui_chrome_path
+  detected_rule_ui_chrome_path="$(detect_rule_ui_chrome_path || true)"
+  if [[ -n "${detected_rule_ui_chrome_path}" ]]; then
+    export MEDIA_SERVER_VERIFY_RULE_UI_CHROME_PATH="${detected_rule_ui_chrome_path}"
+  fi
 
   local started_at="${SECONDS}"
   local external_client_option="--skip-external"

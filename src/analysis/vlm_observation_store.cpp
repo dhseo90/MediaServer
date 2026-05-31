@@ -490,8 +490,8 @@ std::vector<std::string> MatchedSearchTerms(const std::string& observation_json,
         haystack += " ";
         haystack += ExtractTopLevelString(observation_json, field).value_or("");
     }
-    // Include the full sidecar line so array fields such as hints and operator questions are searchable
-    // without adding another JSON array parser to this small contract helper.
+    // hints/operator questions 같은 배열 필드까지 검색되도록 sidecar 한 줄 전체를 포함합니다.
+    // 작은 contract helper에 별도 JSON 배열 parser를 더하지 않기 위한 절충입니다.
     haystack += " ";
     haystack += observation_json;
     const std::string normalized_haystack = NormalizeSummarySearchText(haystack);

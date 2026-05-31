@@ -286,7 +286,14 @@ for line in received_path.read_text(encoding="utf-8").splitlines():
 if not posts:
     errors.append("성공 endpoint가 받은 POST payload가 없습니다")
 else:
-    payload = posts[0]
+    payload = next(
+        (item for item in posts if str((item.get("rule") or {}).get("id", "")) == success_rule_id),
+        None,
+    )
+    if payload is None:
+        rule_ids = [str((item.get("rule") or {}).get("id", "")) for item in posts]
+        errors.append(f"성공 endpoint에 이번 검증 rule payload가 없습니다: expected={success_rule_id}, got={rule_ids}")
+        payload = posts[0]
     if payload.get("schema") != "media-server.va.event.v1":
         errors.append(f"schema mismatch: {payload.get('schema')}")
     if not str(payload.get("eventId", "")).startswith("evt_"):
@@ -326,7 +333,7 @@ if errors:
     raise SystemExit(1)
 
 print("status=", status)
-print("payload_sample=", posts[0])
+print("payload_sample=", payload)
 PY
   log_pass "POST payload schema 검증"
   log_pass "POST 실패 카운터 검증"

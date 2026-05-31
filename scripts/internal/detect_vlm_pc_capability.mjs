@@ -245,7 +245,7 @@ function collectDarwinProbe(probe, timeoutMs) {
       }
     }
   } catch {
-    // system_profiler output is optional and can be slow or localized.
+    // system_profiler 출력은 선택 정보이며 느리거나 로컬라이즈될 수 있습니다.
   }
 }
 
@@ -255,7 +255,7 @@ function collectLinuxProbe(probe, timeoutMs) {
     const modelLine = cpuInfo.split(/\r?\n/).find(line => /^model name\s*:/i.test(line));
     if (modelLine) probe.cpu.brand = modelLine.split(":").slice(1).join(":").trim();
   } catch {
-    // optional
+    // 선택 정보이므로 읽기 실패는 무시합니다.
   }
   try {
     const memInfo = fs.readFileSync("/proc/meminfo", "utf8");
@@ -265,7 +265,7 @@ function collectLinuxProbe(probe, timeoutMs) {
       if (Number.isFinite(kb) && kb > 0) probe.memory.totalBytes = kb * 1024;
     }
   } catch {
-    // optional
+    // 선택 정보이므로 읽기 실패는 무시합니다.
   }
   const nvidia = runCommand("nvidia-smi", ["--query-gpu=name,memory.total", "--format=csv,noheader,nounits"], timeoutMs);
   probe.commands.nvidiaSmi = commandFromRun(nvidia);

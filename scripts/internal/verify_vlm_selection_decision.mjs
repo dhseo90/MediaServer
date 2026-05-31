@@ -366,7 +366,7 @@ function parseArgs(argv) {
     } else if (arg === "--json-report") {
       parsed.jsonReport = requireValue(argv, ++index, arg);
     } else if (arg === "-h" || arg === "--help") {
-      // handled before option validation
+      // 도움말 옵션은 앞단에서 처리됩니다.
     }
   }
   return parsed;
