@@ -59,10 +59,10 @@ Release close-out runbook과 tag/push 수동 gate는
 보존합니다.
 Release evidence의 실행/미실행/미확인 색인은
 [release-evidence-index.md](release-evidence-index.md)에 둡니다.
-v2.0.0 release publish는 PR #19 merge, `v2.0.0` annotated tag, GitHub Release,
-published metadata verifier PASS로 닫혔습니다. `verify-va-runtime-console-longrun
---duration-minutes 120`, real cloud provider call, external TURN field gate는
-별도 미실행으로 남깁니다.
+v2.0.0 release publish는 PR #19 초기 publish와 README/VLM 문서 follow-up을 거쳐,
+`v2.0.0` annotated tag, GitHub Release, published metadata verifier PASS로 닫혔습니다.
+`verify-va-runtime-console-longrun --duration-minutes 120`, real cloud provider call,
+external TURN field gate는 별도 미실행으로 남깁니다.
 현재 v2.0.0 제품 회귀와 UI 풀테스트 gate는
 [stream-verification.md](stream-verification.md)와
 [manual-ui-checklist.md](manual-ui-checklist.md)의 버전 중립 명령만 기준으로
