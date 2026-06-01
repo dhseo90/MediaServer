@@ -83,8 +83,9 @@ YOLO 이벤트가 왜 발생했는지 설명하고, 오탐 가능성 및 운영�
 보조 분석 기능입니다.
 
 VLM S00~S18 구현 및 테스트 evidence는 아래 표와 release evidence 문서에서 닫혔고,
-v2.0.0 release close-out도 PR #19 merge, main sync, annotated tag, GitHub Release,
-published metadata 검증, release branch 삭제, 다음 branch sync까지 완료했습니다.
+v2.0.0 release close-out도 PR #19 초기 publish와 README/VLM 문서 follow-up을 거쳐
+main sync, annotated tag, GitHub Release, published metadata 검증, release branch 삭제,
+다음 branch sync까지 완료했습니다.
 release 완료 뒤 다음 branch 이름은 규칙상 `v2.1.0`이지만, v2.1.0 roadmap은 아직 작성하지 않습니다.
 
 핵심 원칙:
@@ -1306,9 +1307,9 @@ S18 이후 v2.0.0 브랜치 테스트 보강:
 - 2026-06-01 `v200-inapp-policy-30min-20260601`: 30분 soak PASS.
 - 2026-06-01 `v200-inapp-policy-ui-fulltest-20260601`: 인앱 브라우저 UI 풀테스트 PASS.
 - 2026-06-01 `v200-inapp-policy-120min-20260601`: `verify-predev --soak-minutes 120` PASS.
-- 2026-06-01 release close-out: PR #19 merge, main sync, `v2.0.0` annotated tag,
-  GitHub Release, published metadata verification, `v2.0.0` branch 삭제, `v2.1.0`
-  branch 생성 완료.
+- 2026-06-01 release close-out: PR #19 초기 publish와 README/VLM 문서 follow-up,
+  main sync, `v2.0.0` annotated tag, GitHub Release, published metadata verification,
+  `v2.0.0` branch 삭제, `v2.1.0` branch 생성 완료.
 - 여전히 미실행/제외: `verify-va-runtime-console-longrun --duration-minutes 120`,
   cloud provider field smoke, external TURN/WHEP credential operation,
   VLM model/runtime bundle.
