@@ -15,6 +15,9 @@ runtime/model bundle distribution are outside the default release scope.
 - Documentation index: [docs/README.md](docs/README.md)
 - Source-only release preparation baseline: [v1.9.0](docs/development-backlog.md)
 - v1.9.0 release close-out preparation: [docs/development-backlog.md](docs/development-backlog.md)
+- Latest v2.0.0 test evidence:
+  [docs/release-evidence-index.md](docs/release-evidence-index.md),
+  [docs/v200-test-record-2026-05-31.md](docs/v200-test-record-2026-05-31.md).
 
 ## At a Glance
 

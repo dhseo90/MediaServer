@@ -111,6 +111,17 @@ UI 풀테스트: 미실행
 Codex goal usage는 최종 보고에서 별도로 확인합니다. 문서에는 임의 token 값을 쓰지
 않고 미집계 사유를 남깁니다.
 
+## Post-S18 Branch Test Evidence
+
+이 절은 S18 readiness 당시의 완료 조건을 바꾸지 않고, 이후 v2.0.0 브랜치에서 별도로
+실행한 테스트 상태만 연결합니다.
+
+| 후속 test area | 실행 상태 | evidence | 경계 |
+| --- | --- | --- | --- |
+| 30분 soak | PASS | [v200-test-record-2026-05-31.md](./v200-test-record-2026-05-31.md), `/private/tmp/media_server_v200_inapp_30min_20260601_summary.json` | S18 readiness PASS를 대체하지 않고 별도 evidence |
+| UI 풀테스트 | PASS | [manual-ui-result-2026-06-01-v200-inapp-fulltest.md](./manual-ui-result-2026-06-01-v200-inapp-fulltest.md) | 직접 UI evidence이며 30분/120분을 대체하지 않음 |
+| predev 120-minute longrun | PASS | [release-evidence-index.md](./release-evidence-index.md), `/private/tmp/media_server_v200_120min_20260601_retry2_summary.json` | `verify-va-runtime-console-longrun --duration-minutes 120`은 별도 미실행 |
+
 ## Completion Boundary
 
 S18 완료로 인정하는 것:

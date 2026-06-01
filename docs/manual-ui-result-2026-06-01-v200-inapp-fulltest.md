@@ -26,7 +26,7 @@
 | --- | --- | --- | --- |
 | 안정화 테스트 | 인앱 정책 변경 후 build/static/auth/API/media verifier 묶음 재실행 | `/private/tmp/media_server_v200_inapp_stability_*.log`, `.media_server.test/20260601-000215` | PASS. UI 풀테스트를 대체하지 않음 |
 | 30분 테스트 | `verify-predev --soak-minutes 30` 재실행 | `/private/tmp/media_server_v200_inapp_30min_20260601_summary.json` | PASS. UI 풀테스트를 대체하지 않음 |
-| 120분 테스트 | 실행하지 않음 | 없음 | 사용자 별도 지시 전 제외. PASS로 계산하지 않음 |
+| 120분 테스트 | UI 풀테스트 당시 실행하지 않음. 후속 `/goal 120분 테스트`에서 별도 실행 | `/private/tmp/media_server_v200_120min_20260601_retry2_summary.json` | 후속 PASS. UI 풀테스트 PASS를 대체하지 않음 |
 | UI 풀테스트 | 238개 UI 대상 기능 ID 중 238 PASS, 0 FAIL | 인앱 브라우저 route/action evidence, one-shot wrapper PASS, EventRecord history coverage | 최종 PASS |
 
 ## 현재 보존 증적
@@ -57,7 +57,7 @@
 - 직접 조작 범위: setup/login/logout, password change, invite setup, public access request, user lifecycle/scope/reset/disable/restore, role guard, dashboard refresh/filter/log-tail, source/rule/user/event/client controls, VLM dry-run/profile details, EventRecord evidence controls, responsive/theme
 - 반응형/테마 범위: 320, 390, 760, 1180 width sweep, dark theme `/ops/home`, `/ops/events` 320px overflow fix 후 재검수
 - 시각 품질 확인: 인앱 screenshot evidence와 overflow/leak checks 기준으로 horizontal overflow 0, client redaction PASS
-- 제외 기록: 120분 longrun, 실제 cloud provider 호출, credential 저장, external TURN field gate
+- 제외 기록: UI 풀테스트 당시 120분 longrun, 실제 cloud provider 호출, credential 저장, external TURN field gate. 120분 predev longrun은 후속 `v200-inapp-policy-120min-20260601`에서 별도 PASS로 기록
 
 ## 확인됨
 
@@ -387,7 +387,7 @@
 
 | 항목 | 제외 이유 | 후속 확인 조건 |
 | --- | --- | --- |
-| 120분 longrun | 사용자가 별도 지시 예정 | 별도 지시 시 `verify-predev --soak-minutes 120` 또는 runtime 120분 longrun 실행 |
+| 120분 longrun | UI 풀테스트 당시 별도 지시 전이어서 제외 | 후속 `verify-predev --soak-minutes 120`은 `v200-inapp-policy-120min-20260601`에서 PASS. `verify-va-runtime-console-longrun --duration-minutes 120`은 별도 미실행 |
 | real cloud provider call/credential 저장 | 이번 UI fulltest는 dry-run/guard 범위 | provider field smoke 승인과 credential 제공 시 별도 실행 |
 
 ## 실패

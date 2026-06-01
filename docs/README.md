@@ -38,6 +38,14 @@ v2.0.0의 활성 차기 roadmap은 [development-backlog.md](development-backlog.
 `활성 차기 로드맵: v2.0.0 VLM 기반 AI 대형 업데이트` 섹션에서 관리합니다. 이 항목은
 개발 순서 기준 roadmap이며, 구현 완료나 release evidence가 아닙니다.
 
+최신 v2.0.0 테스트 evidence는 [release-evidence-index.md](release-evidence-index.md)와
+[v200-test-record-2026-05-31.md](v200-test-record-2026-05-31.md)에 둡니다.
+2026-06-01 기준 안정화 테스트, 30분 soak, 인앱 브라우저 UI 풀테스트,
+120분 predev longrun은 모두 별도 evidence로 PASS 기록이 있으며, 서로를 대체하지
+않습니다. `verify-va-runtime-console-longrun --duration-minutes 120`, real cloud
+provider call, external TURN field gate, main merge, release tag, GitHub Release
+생성은 아직 별도 미실행입니다.
+
 ## Current Release Close-Out
 
 v1.9.0의 현재 release close-out 기준은 [development-backlog.md](development-backlog.md)의

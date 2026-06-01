@@ -15,6 +15,8 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 - 전체 문서 색인: [docs/README.md](docs/README.md)
 - source-only release 준비 기준: [v1.9.0](docs/development-backlog.md)
 - v1.9.0 release close-out 준비: [docs/development-backlog.md](docs/development-backlog.md)
+- v2.0.0 최신 테스트 증적: [docs/release-evidence-index.md](docs/release-evidence-index.md),
+  [docs/v200-test-record-2026-05-31.md](docs/v200-test-record-2026-05-31.md)
 
 ## 한눈에 보기
 

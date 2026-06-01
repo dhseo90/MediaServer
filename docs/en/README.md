@@ -33,6 +33,15 @@ is rerun or explicitly recorded as not-run. The 120-minute longrun, main merge,
 release tag, and GitHub Release publish gate are still not-run manual close-out
 steps.
 
+Latest v2.0.0 test evidence is tracked in
+[../release-evidence-index.md](../release-evidence-index.md) and
+[../v200-test-record-2026-05-31.md](../v200-test-record-2026-05-31.md).
+As of 2026-06-01, the stability test, 30-minute soak, in-app browser UI
+fulltest, and 120-minute predev longrun each have separate PASS evidence. They
+do not replace one another. `verify-va-runtime-console-longrun --duration-minutes
+120`, real cloud provider calls, external TURN field gates, main merge, release
+tagging, and GitHub Release publishing are still separate not-run gates.
+
 v1.9.0 release close-out preparation details are in [../development-backlog.md](../development-backlog.md).
 
 ## Public Repository Boundary

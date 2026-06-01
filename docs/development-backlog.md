@@ -1291,6 +1291,14 @@ publish gate를 서로 대체하지 않도록 기록합니다.
 - UI 풀테스트, 30분 soak, 120분 longrun은 미실행입니다.
 - publish 후 `verify-release-metadata --published`는 미실행입니다.
 
+S18 이후 v2.0.0 브랜치 테스트 보강:
+
+- 2026-06-01 `v200-inapp-policy-30min-20260601`: 30분 soak PASS.
+- 2026-06-01 `v200-inapp-policy-ui-fulltest-20260601`: 인앱 브라우저 UI 풀테스트 PASS.
+- 2026-06-01 `v200-inapp-policy-120min-20260601`: `verify-predev --soak-minutes 120` PASS.
+- 여전히 미실행: `verify-va-runtime-console-longrun --duration-minutes 120`, cloud provider field smoke,
+  main merge, release tag, GitHub Release 생성, publish 후 `verify-release-metadata --published`.
+
 ## v1.9.0 Release Trust Hardening Close-out
 
 v1.9.0은 v1.8.0 source release 이후 main/release 운영 신뢰도를 유지하는
