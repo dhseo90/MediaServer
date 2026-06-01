@@ -40,29 +40,6 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 | 보조 도구 | Node.js, Python 3, ffmpeg/ffprobe, curl |
 | 기본 route/file root | RTSP route `dhseo`, file root `video/` |
 
-정확한 설치 버전과 모델 hash는 [DEPENDENCY_SNAPSHOT.md](DEPENDENCY_SNAPSHOT.md)에 기록합니다.
-release 또는 binary bundle 전에는 `./server.sh dependency-snapshot`으로 다시 생성합니다.
-기본 binary bundle에는 FFmpeg/libav/x264/x265/GStreamer GPL-risk plugin 바이너리를 포함하지 않습니다.
-배포 bundle은 `./server.sh verify-bundle-policy --bundle-dir <release_bundle_dir>`로 검사합니다.
-CI나 공개 검증 환경에서 FFmpeg CLI 의존을 빼려면 `./server.sh test --basic --ffmpeg-free`를 사용합니다.
-
-권장 준비 명령:
-
-```bash
-./server.sh install
-./server.sh build
-```
-
-`./server.sh install`은 로컬 의존성, ONNX Runtime, YOLO 모델/라벨,
-로컬 env 파일을 준비합니다. 패키지별 수동 설치 명령은
-[docs/development-guide.md](docs/development-guide.md)의 요구 환경을 봅니다.
-설치는 media runtime과 선택 AI asset을 준비하므로 가볍지 않습니다.
-AI 없이 스트리밍 경로만 빌드하려면 다음처럼 실행합니다.
-
-```bash
-MEDIA_SERVER_ENABLE_AI=0 ./server.sh build
-```
-
 기본 인증 모드는 `MEDIA_SERVER_AUTH_MODE=auto`입니다.
 users file 또는 `admin.passwordHash`가 없으면 첫 접속 시 `/setup`으로 이동해
 관리자 비밀번호를 직접 설정합니다. 제품 기본 admin 비밀번호는 없습니다.
@@ -228,7 +205,6 @@ UI/Auth/VA/장기 soak 검증의 전체 명령과 실행 조건은
 - 이 저장소의 원본 코드와 문서는 [Apache License 2.0](LICENSE)을 따릅니다.
 - Third-party runtime, plugin, model, tool attribution은 [NOTICE](NOTICE)에 정리합니다.
 - 자동 생성되는 상세 목록은 [THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)를 확인합니다.
-- 현재 개발 환경에서 감지한 버전과 linked library snapshot은 [DEPENDENCY_SNAPSHOT.md](DEPENDENCY_SNAPSHOT.md)를 확인합니다.
 
 배포 전 확인:
 

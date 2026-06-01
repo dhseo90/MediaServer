@@ -48,20 +48,6 @@ runtime/model bundle distribution are outside the default release scope.
 | Helper tools | Node.js, Python 3, FFmpeg/ffprobe, curl |
 | Defaults | RTSP route `dhseo`, file root `video/` |
 
-Exact local versions and model hashes are recorded in [DEPENDENCY_SNAPSHOT.md](DEPENDENCY_SNAPSHOT.md). Regenerate it before a release or binary bundle with:
-
-```bash
-./server.sh dependency-snapshot
-```
-
-The default binary bundle does not include FFmpeg, libav, x264/x265, or GStreamer GPL-risk plugin binaries. Check release bundles with:
-
-```bash
-./server.sh verify-bundle-policy --bundle-dir <release_bundle_dir>
-```
-
-Use `./server.sh test --basic --ffmpeg-free` when CI or public verification should avoid depending on the FFmpeg CLI.
-
 ## Quick Start
 
 ```bash
