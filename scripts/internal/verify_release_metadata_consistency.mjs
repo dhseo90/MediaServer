@@ -24,15 +24,15 @@ Options:
   --json-report <path>  JSON 리포트를 저장합니다.
   --published           publish 이후 GitHub latest/release/tag까지 확인합니다.
   --require-published   --published alias입니다.
-  --allow-unpublished   이전 호환 옵션입니다. 기본 release-prep 모드와 동일하게 처리합니다.
+  --allow-unpublished   이전 호환 옵션입니다. 기본 local metadata 모드와 동일하게 처리합니다.
   --release-branch <name>  published mode에서 원격 branch HEAD를 비교할 branch입니다. 기본은 현재 branch입니다.
   --self-test-fallback-policy  네트워크 없이 GitHub metadata fallback/failure 분류 정책을 자체 점검합니다.
   -h, --help            도움말 출력
 
 Checks:
   - VERSION과 CMake project VERSION 값이 같은 semantic version인지 확인
-  - README/English README의 source-only release preparation baseline이 현재 tag와 로컬 release close-out 문서를 가리키는지 확인
-  - 기본 모드에서는 GitHub Release/tag 생성을 manual-not-run close-out gate로 기록
+  - README/English README의 현재 release 링크가 current tag와 GitHub Release를 가리키는지 확인
+  - 기본 모드에서는 GitHub latest/tag 외부 확인을 실행하지 않고 --published 재검증 안내로 기록
   - --published 모드에서는 GitHub Releases latest/list/view, GitHub API /releases/latest, 원격 tag/branch, repository page Releases/Latest link가 현재 tag를 가리키는지 확인
   - gh 인증/도구 실패는 curl GitHub REST API fallback, SSH origin refs 실패는 HTTPS refs fallback으로 재시도하고 외부 접근 실패를 failure-class로 구분
   - versioning/release/backlog/public review/UI guide 문서가 같은 current release baseline과 deferred phase gate를 말하는지 확인
@@ -58,7 +58,7 @@ const report = {
   schema: "media-server.release-metadata-consistency.v1",
   generatedAt: new Date().toISOString(),
   status: "pass",
-  mode: publishedMode ? "published-release" : "release-prep",
+  mode: publishedMode ? "published-release" : "local-release-metadata",
   currentVersion: "",
   currentTag: "",
   checks: [],
@@ -114,37 +114,41 @@ check("VERSION matches CMake project VERSION", () => {
   return { version };
 });
 
-check("README.md release preparation baseline points at current tag", () => {
+check("README.md current release link points at current tag", () => {
   const readme = readText("README.md");
-  assert(readme.includes(`source-only release 준비 기준: [${currentTag}](docs/development-backlog.md)`), "README.md source-only release preparation baseline text drifted");
+  assert(readme.includes(`현재 릴리즈: [${currentTag}](${expectedReleaseUrl})`), "README.md current release link drifted");
+  assertSingleReleaseLink(readme, "README.md");
+  return { file: "README.md", currentTag, expectedReleaseUrl };
+});
+
+check("README.md keeps release source-of-truth links lightweight", () => {
+  const readme = readText("README.md");
+  assert(readme.includes("docs/development-backlog.md"), "README.md missing development backlog link");
+  assert(readme.includes("docs/release-policy.md"), "README.md missing release policy link");
   return { file: "README.md", currentTag };
 });
 
-check("README.md does not link to unpublished release tag in prep mode", () => {
-  const readme = readText("README.md");
-  assert(!readme.includes(`/releases/tag/${currentTag}`), "README.md should not link to GitHub release tag before publish");
-  return { file: "README.md", currentTag };
+check("README.en.md current release link points at current tag", () => {
+  const readmeEn = readText("README.en.md");
+  assert(readmeEn.includes(`Current release: [${currentTag}](${expectedReleaseUrl})`), "README.en.md current release link drifted");
+  assertSingleReleaseLink(readmeEn, "README.en.md");
+  return { file: "README.en.md", currentTag, expectedReleaseUrl };
 });
 
-check("README.en.md release preparation baseline points at current tag", () => {
+check("README.en.md keeps release source-of-truth links lightweight", () => {
   const readmeEn = readText("README.en.md");
-  assert(readmeEn.includes(`Source-only release preparation baseline: [${currentTag}](docs/development-backlog.md)`), "README.en.md source-only release preparation baseline text drifted");
-  return { file: "README.en.md", currentTag };
-});
-
-check("README.en.md does not link to unpublished release tag in prep mode", () => {
-  const readmeEn = readText("README.en.md");
-  assert(!readmeEn.includes(`/releases/tag/${currentTag}`), "README.en.md should not link to GitHub release tag before publish");
+  assert(readmeEn.includes("docs/development-backlog.md"), "README.en.md missing development backlog link");
+  assert(readmeEn.includes("docs/release-policy.md"), "README.en.md missing release policy link");
   return { file: "README.en.md", currentTag };
 });
 
 if (!publishedMode) {
-  check("release prep mode records GitHub publication gate", () => {
-    report.publishedEvidence.reason = "GitHub Release/tag creation is a manual close-out gate; rerun with --published after publish.";
+  check("default mode records published metadata verification as external gate", () => {
+    report.publishedEvidence.reason = "Default mode checks local release metadata only; rerun with --published to verify GitHub Latest Release, remote tag, and release branch.";
     return {
-      mode: "release-prep",
-      status: "manual-not-run",
-      reason: "GitHub Release/tag creation is a manual close-out gate; rerun with --published after publish.",
+      mode: "local-release-metadata",
+      status: "external-not-checked",
+      reason: "Default mode checks local release metadata only; rerun with --published to verify GitHub Latest Release, remote tag, and release branch.",
       expectedReleaseUrl,
       releaseBranch,
     };
@@ -374,7 +378,14 @@ check("docs index points to backlog as current release source of truth", () => {
     ["docs/en/README.md", docsEn],
   ]) {
     assert(text.includes("docs/development-backlog.md") || text.includes("../development-backlog.md"), `${label} missing development backlog link`);
-    assert(text.includes(`${currentTag} release close-out`) || text.includes(`${currentTag} 종료 판정`) || text.includes(`${currentTag} patch close-out`), `${label} missing current release wording`);
+    assert(
+      text.includes(`${currentTag} release close-out`) ||
+        text.includes(`${currentTag} 종료 판정`) ||
+        text.includes(`${currentTag} patch close-out`) ||
+        text.includes(`현재 릴리즈: [${currentTag}]`) ||
+        text.includes(`Current release: [${currentTag}]`),
+      `${label} missing current release wording`
+    );
   }
   return { files: ["README.md", "README.en.md", "docs/en/README.md"] };
 });
@@ -416,7 +427,7 @@ check("public entry docs keep release evidence source-of-truth deduped", () => {
 
 check("public review pins current release wording", () => {
   const publicReview = readText("docs/public-repo-final-review.md");
-  assert(publicReview.includes(`현재 source-only release 준비 기준: \`${currentTag}\``), "docs/public-repo-final-review.md current release drifted");
+  assert(publicReview.includes(`현재 source-only release: \`${currentTag}\``), "docs/public-repo-final-review.md current release drifted");
   assertNoOtherCurrentTag(publicReview, "docs/public-repo-final-review.md", currentTag);
   return { file: "docs/public-repo-final-review.md", currentTag };
 });
@@ -445,7 +456,7 @@ for (const item of checks) {
   }
 }
 
-report.publishedEvidence.status = publishedMode ? report.status : "manual-not-run";
+report.publishedEvidence.status = publishedMode ? report.status : "external-not-checked";
 if (publishedMode && fail > 0) {
   report.publishedEvidence.failedChecks = report.checks
     .filter(item => item.status === "fail")
@@ -479,7 +490,7 @@ function assertSingleReleaseLink(text, label) {
 
 function assertNoOtherCurrentTag(text, label, expectedTag) {
   const currentTagMatches = [
-    ...text.matchAll(/현재 (?:기준 버전|source-only release 기준 tag|(?:published )?source-only release tag 기준|(?:published )?source-only release tag)[^\n`]*`(v\d+\.\d+\.\d+)`/g),
+    ...text.matchAll(/현재 (?:기준 버전|source-only release|source-only release 기준 tag|(?:published )?source-only release tag 기준|(?:published )?source-only release tag)[^\n`]*`(v\d+\.\d+\.\d+)`/g),
   ].map(match => match[1]);
   const unexpected = currentTagMatches.filter(tag => tag !== expectedTag);
   assert(unexpected.length === 0, `${label} has current tag other than ${expectedTag}: ${unexpected.join(", ")}`);

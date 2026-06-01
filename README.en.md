@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Release Prep](https://img.shields.io/badge/source--only%20release%20prep-v2.0.0-blue)](docs/development-backlog.md)
+[![Release](https://img.shields.io/badge/release-v2.0.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.0.0)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
 video analytics overlays and rule/scenario live events when analytics are enabled.
@@ -13,11 +13,7 @@ runtime/model bundle distribution are outside the default release scope.
 
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
-- Source-only release preparation baseline: [v2.0.0](docs/development-backlog.md)
-- v2.0.0 release close-out preparation: [docs/development-backlog.md](docs/development-backlog.md)
-- Latest v2.0.0 test evidence:
-  [docs/release-evidence-index.md](docs/release-evidence-index.md),
-  [docs/v200-test-record-2026-05-31.md](docs/v200-test-record-2026-05-31.md).
+- Current release: [v2.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.0.0)
 
 ## At a Glance
 
@@ -27,6 +23,9 @@ runtime/model bundle distribution are outside the default release scope.
   `vaRule=<id>`, Rule/Profile/Scenario models, live Event POST, and runtime
   metadata. EventRecord, snapshot, and clip hooks are short event evidence
   helpers, not the central product message.
+- **VLM review assist**: adds Ops-only review assistance for event explanations,
+  false-positive hints, and suggestion candidates. VLM model/runtime bundles and
+  real cloud provider calls are not part of the default release.
 - **Product UI**: routes users to Ops or Client views based on account
   permissions. There is no Lab product screen; lab endpoints remain available
   for API and verification workflows.
@@ -127,7 +126,8 @@ release evidence live in dedicated docs.
 - Verification commands: [docs/stream-verification.md](docs/stream-verification.md)
 - Release/version policy: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
-- v2.0.0 release close-out preparation: [docs/development-backlog.md](docs/development-backlog.md)
+- Release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
+- Release notes: [v2.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.0.0)
 
 ## UI Preview
 

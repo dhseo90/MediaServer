@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Release Prep](https://img.shields.io/badge/source--only%20release%20prep-v2.0.0-blue)](docs/development-backlog.md)
+[![Release](https://img.shields.io/badge/release-v2.0.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.0.0)
 
 RTSP/WebRTC live stream을 받아 다시 내보내고, 필요할 때 YOLO/ONNX 영상 분석
 overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다.
@@ -13,16 +13,15 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 
 - English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 - 전체 문서 색인: [docs/README.md](docs/README.md)
-- source-only release 준비 기준: [v2.0.0](docs/development-backlog.md)
-- v2.0.0 release close-out 준비: [docs/development-backlog.md](docs/development-backlog.md)
-- v2.0.0 테스트 증적: [docs/release-evidence-index.md](docs/release-evidence-index.md),
-  [docs/v200-test-record-2026-05-31.md](docs/v200-test-record-2026-05-31.md)
+- 현재 릴리즈: [v2.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.0.0)
 
 ## 한눈에 보기
 
 - **스트리밍**: file, RTSP pull, WHEP pull, WHIP publish, HTTP/HLS source를 RTSP와 WebRTC/WHEP로 내보냅니다.
 - **영상 분석**: `va=1` overlay, 저장 룰 `vaRule=<id>`, Rule/Profile/Scenario, live Event POST와 runtime metadata를 제공합니다.
   EventRecord와 snapshot/clip은 short event evidence 보조 기능이며 현재 중심 제품 메시지는 아닙니다.
+- **VLM 리뷰 보조**: Ops 이벤트 검토에서 VLM 기반 설명, 오탐 힌트, 추천 후보를 보조 정보로 다룹니다.
+  VLM model/runtime bundle과 cloud provider 실제 호출은 기본 release에 포함하지 않습니다.
 - **제품 화면**: 같은 메인 주소에서 계정 권한에 따라 운영자 화면 또는 클라이언트 화면으로 이동합니다.
   검증/연동 API는 제품 화면과 분리해 유지합니다.
 - **계정/권한**: 최초 관리자 설정, session 로그인, role/scope, admin 사용자 관리, viewer invite/request 승인 흐름을 사용합니다.
@@ -120,7 +119,8 @@ README는 제품을 빠르게 파악하기 위한 문서입니다. 세부 정책
 - 검증 명령: [docs/stream-verification.md](docs/stream-verification.md)
 - release/version 기준: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
-- v2.0.0 종료 판정: [docs/development-backlog.md](docs/development-backlog.md)
+- release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
+- release notes: [v2.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.0.0)
 
 ## 대표 UI 미리보기
 

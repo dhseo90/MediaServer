@@ -16,13 +16,13 @@
 | 검증 명령과 release gate | [stream-verification.md](stream-verification.md) |
 | release/version 기준 | [release-policy.md](release-policy.md), [versioning-policy.md](versioning-policy.md), [release-evidence-index.md](release-evidence-index.md) |
 | v2.0.0 테스트 실행 기록 | [v200-test-record-2026-05-31.md](v200-test-record-2026-05-31.md) |
-| 현재/차기 roadmap | [development-backlog.md](development-backlog.md) |
+| 현재 release/archive roadmap | [development-backlog.md](development-backlog.md) |
 | v2.0.0 VLM 모델 선택/PC 사양 감지 기준, 추천 엔진, 설치/연결 dry-run, profile 저장, 평가 harness, event evidence 추출, observation sidecar, 이벤트 설명/오탐 힌트, Ops 리뷰 UI, Privacy/전송 guard, summary 검색 후보, Rule 추천 보조 후보, 테스트 리허설, 안정화/장시간/UI 기준 및 close-out readiness | [vlm-model-selection.md](vlm-model-selection.md), [vlm-recommendation-engine.md](vlm-recommendation-engine.md), [vlm-install-connection-dry-run.md](vlm-install-connection-dry-run.md), [vlm-profile-storage.md](vlm-profile-storage.md), [vlm-evaluation-harness.md](vlm-evaluation-harness.md), [vlm-event-evidence-extraction.md](vlm-event-evidence-extraction.md), [vlm-observation-sidecar.md](vlm-observation-sidecar.md), [vlm-event-explanation-hints.md](vlm-event-explanation-hints.md), [vlm-ops-event-review-ui.md](vlm-ops-event-review-ui.md), [vlm-privacy-transfer-guard.md](vlm-privacy-transfer-guard.md), [vlm-summary-search-candidates.md](vlm-summary-search-candidates.md), [vlm-rule-suggestion-candidates.md](vlm-rule-suggestion-candidates.md), [vlm-test-rehearsal.md](vlm-test-rehearsal.md), [vlm-stabilization-longrun-ui-criteria.md](vlm-stabilization-longrun-ui-criteria.md), [vlm-close-out-readiness.md](vlm-close-out-readiness.md), [development-backlog.md](development-backlog.md) |
 | 영어 문서 진입점 | [en/README.md](en/README.md) |
 
 ## 현재 제품 경계
 
-- 현재 release 준비 기준: `v2.0.0`
+- 현재 release: [`v2.0.0`](https://github.com/dhseo90/MediaServer/releases/tag/v2.0.0)
 - 다음 roadmap: `v2.1.0`은 아직 작성하지 않음
 - 중심 범위: live source onboarding, live source health, live VA event 품질
 - 기본 release 형태: source-only
@@ -34,18 +34,18 @@
 [versioning-policy.md](versioning-policy.md),
 [release-policy.md](release-policy.md)를 봅니다.
 
-v2.0.0 VLM 기반 AI 대형 업데이트의 release close-out 기준은
+v2.0.0 VLM 기반 AI 대형 업데이트의 release close-out 결과는
 [development-backlog.md](development-backlog.md)의 `v2.0.0 Release Close-out`
-섹션에서 관리합니다. 이 항목은 release 준비 기준이며, tag/GitHub Release publish
-완료 evidence가 아닙니다.
+섹션과 [release-evidence-index.md](release-evidence-index.md)에 보존합니다.
+release tag와 GitHub Release는 게시 완료됐고, 다음 branch는 `v2.1.0`입니다.
 
 최신 v2.0.0 테스트 evidence는 [release-evidence-index.md](release-evidence-index.md)와
 [v200-test-record-2026-05-31.md](v200-test-record-2026-05-31.md)에 둡니다.
 2026-06-01 기준 안정화 테스트, 30분 soak, 인앱 브라우저 UI 풀테스트,
 120분 predev longrun은 모두 별도 evidence로 PASS 기록이 있으며, 서로를 대체하지
 않습니다. `verify-va-runtime-console-longrun --duration-minutes 120`, real cloud
-provider call, external TURN field gate, main merge, release tag, GitHub Release
-생성은 release close-out 단계에서 별도로 진행합니다.
+provider call, external TURN field gate, VLM model/runtime bundle은 v2.0.0 release
+완료 근거가 아닙니다.
 
 ## Current Release Close-Out
 
@@ -55,15 +55,14 @@ v2.0.0의 현재 release close-out 기준은 [development-backlog.md](developmen
 cloud provider 호출, default-on 승격은 release 범위 밖으로 분리합니다.
 VLM source-only release 경계는 실제 runtime/model 배포 완료와 구분합니다.
 Release close-out runbook과 tag/push 수동 gate는
-[release-policy.md](release-policy.md)의 `v2.0.0 Release Close-out Runbook`에만
-세부 순서를 둡니다.
+[release-policy.md](release-policy.md)의 `v2.0.0 Release Close-out Runbook`에
+보존합니다.
 Release evidence의 실행/미실행/미확인 색인은
 [release-evidence-index.md](release-evidence-index.md)에 둡니다.
-직전 UI 풀테스트 close-out 증적은 결과표 221 PASS / 0 FAIL, 30분 predev PASS,
-해당 close-out 커밋의 브랜치 push 완료로 기록되어 있습니다.
-`verify-va-runtime-console-longrun --duration-minutes 120`과 main/tag/GitHub Release
-publish gate는 아직 미실행이며, GitHub release URL은 publish 이후
-`verify-release-metadata --published`로 확인합니다.
+v2.0.0 release publish는 PR #19 merge, `v2.0.0` annotated tag, GitHub Release,
+published metadata verifier PASS로 닫혔습니다. `verify-va-runtime-console-longrun
+--duration-minutes 120`, real cloud provider call, external TURN field gate는
+별도 미실행으로 남깁니다.
 현재 v2.0.0 제품 회귀와 UI 풀테스트 gate는
 [stream-verification.md](stream-verification.md)와
 [manual-ui-checklist.md](manual-ui-checklist.md)의 버전 중립 명령만 기준으로
