@@ -37,6 +37,28 @@ runtime/model bundle distribution are outside the default release scope.
   documentation. Binary, runtime, and model bundles are not published unless
   separate guardrails pass.
 
+## VLM Review Assist
+
+v2.0.0 adds VLM as an operator review-assist layer, not as the final decision
+engine. YOLO/Rule/Scenario still create the events; VLM adds explanations,
+false-positive hints, evidence summaries, and rule suggestion candidates while
+keeping the existing Event POST, WebRTC, SSE/WS metadata schemas and media paths.
+
+Model recommendation is based on both PC capability and privacy mode. The current
+baseline is `Qwen/Qwen3-VL-8B-Instruct` for local standard hardware,
+`Qwen/Qwen3-VL-4B-Instruct` as the low-spec fallback,
+`Qwen/Qwen3-VL-30B-A3B-Instruct` as a high-tier evaluation candidate, and
+`gemini-2.5-flash` as the explicit cloud opt-in fallback. Real model/runtime
+installation, cloud provider calls, and model/runtime bundle distribution are
+outside the default release.
+
+Details:
+
+- Model selection: [docs/vlm-model-selection.md](docs/vlm-model-selection.md)
+- PC-based recommendation engine: [docs/vlm-recommendation-engine.md](docs/vlm-recommendation-engine.md)
+- Install/connection dry-run: [docs/vlm-install-connection-dry-run.md](docs/vlm-install-connection-dry-run.md)
+- Ops review UI flow: [docs/vlm-ops-event-review-ui.md](docs/vlm-ops-event-review-ui.md)
+
 ## Runtime Requirements
 
 | Area | Requirement |

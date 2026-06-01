@@ -29,6 +29,25 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
   장기 soak/부하 검증은 기본 smoke와 분리해 [docs/stream-verification.md](docs/stream-verification.md)의 longrun gate 기준으로만 다룹니다.
 - **배포 경계**: source/doc 중심 공개가 기본이며, binary/runtime/model bundle은 별도 guardrail 통과 전까지 제공하지 않습니다.
 
+## VLM 리뷰 보조
+
+v2.0.0은 VLM을 최종 판정 엔진이 아니라 운영자 이벤트 리뷰 보조 계층으로 추가합니다.
+YOLO/Rule/Scenario가 만든 이벤트에 대해 설명, 오탐 가능성 힌트, evidence 요약,
+Rule 추천 후보를 제공하고, 기존 Event POST/WebRTC/SSE/WS schema와 media path는 유지합니다.
+
+모델 선택 기준은 PC 사양과 privacy mode를 함께 봅니다. 현재 기준은 local standard
+`Qwen/Qwen3-VL-8B-Instruct`, low-spec fallback `Qwen/Qwen3-VL-4B-Instruct`,
+high-tier 평가 후보 `Qwen/Qwen3-VL-30B-A3B-Instruct`, cloud opt-in fallback
+`gemini-2.5-flash`입니다. 실제 모델/runtime 설치, cloud provider 호출,
+model/runtime bundle 배포는 기본 release에 포함하지 않습니다.
+
+상세 기준:
+
+- 모델 선택: [docs/vlm-model-selection.md](docs/vlm-model-selection.md)
+- PC 사양별 추천 엔진: [docs/vlm-recommendation-engine.md](docs/vlm-recommendation-engine.md)
+- 설치/연결 dry-run: [docs/vlm-install-connection-dry-run.md](docs/vlm-install-connection-dry-run.md)
+- 운영 UI 리뷰 흐름: [docs/vlm-ops-event-review-ui.md](docs/vlm-ops-event-review-ui.md)
+
 ## 실행 환경
 
 | 구분 | 기준 |
