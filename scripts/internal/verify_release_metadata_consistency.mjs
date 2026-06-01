@@ -329,7 +329,7 @@ check("release policy pins source-only tag baseline", () => {
   const doc = readText("docs/release-policy.md");
   for (const snippet of [
     `현재 source-only release 기준 tag는 \`${currentTag}\`입니다.`,
-    `\`${currentTag}\`은 live-only source release 기준을 유지`,
+    `\`${currentTag}\`은 live-only media path를 유지하면서 VLM review assist를 source-only로 추가한 release`,
   ]) {
     assert(doc.includes(snippet), `docs/release-policy.md missing snippet: ${snippet}`);
   }
@@ -354,10 +354,10 @@ check("development backlog separates current baseline from deferred phase gates"
   for (const snippet of [
     `## 현재 기준: ${currentTag} Source Release Baseline`,
     `${currentTag}은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서`,
-    `## ${currentTag} Release Trust Hardening Close-out`,
-    `${currentTag}의 목표는 새 제품 기능 확장이 아니라`,
-    "별도 Phase gate 또는 release/field/manual approval gate",
-    "기능 개발로 확정하지 않은 항목은 별도 기능 개발",
+    `## ${currentTag} Release Close-out`,
+    "VLM을 이벤트 해석/리뷰 보조 계층",
+    "실제 tag/push는 수동 승인 후에만 수행합니다",
+    "v2.1.0 roadmap은 아직 작성하지 않습니다",
   ]) {
     assert(doc.includes(snippet), `docs/development-backlog.md missing snippet: ${snippet}`);
   }
@@ -399,15 +399,15 @@ check("public entry docs keep release evidence source-of-truth deduped", () => {
   }
   for (const snippet of [
     "Current Release Close-Out",
-    `${currentTag} Release Trust Hardening Close-out`,
-    "release/latest/docs evidence drift",
+    `${currentTag} Release Close-out`,
+    "VLM source-only",
     `${currentTag} Release Close-out Runbook`,
     "release-policy.md",
   ]) {
     assert(docsIndex.includes(snippet), `docs/README.md missing source-of-truth link snippet: ${snippet}`);
   }
   assert(releasePolicy.includes(`## ${currentTag} Release Close-out Runbook`), `release policy must own the ${currentTag} close-out runbook`);
-  assert(backlog.includes(`## ${currentTag} Release Trust Hardening Close-out`), `development backlog must own the ${currentTag} release trust close-out`);
+  assert(backlog.includes(`## ${currentTag} Release Close-out`), `development backlog must own the ${currentTag} release close-out`);
   return {
     publicEntrypoints: ["README.md", "README.en.md"],
     sourceOfTruth: ["docs/README.md", "docs/development-backlog.md", "docs/release-policy.md"],

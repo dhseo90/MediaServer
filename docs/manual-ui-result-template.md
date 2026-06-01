@@ -286,7 +286,7 @@ evidence이며, UI에서 열지 않은 경우 `FAIL`입니다.
 | `/client/events` | viewer/admin preview |  |  |  |  | PASS/FAIL |
 | `/client/request-access` | public |  |  |  |  | PASS/FAIL |
 
-## v1.9.0 Release Evidence Index
+## v2.0.0 Release Evidence Index
 
 자동 smoke나 raw JSON 확인만으로 채우지 않습니다. 실제로 열고 클릭한 화면만
 `PASS` 후보가 될 수 있고, 열지 않은 개별 기능은 `FAIL`입니다.

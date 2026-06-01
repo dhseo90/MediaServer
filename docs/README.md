@@ -22,8 +22,8 @@
 
 ## 현재 제품 경계
 
-- 현재 release 준비 기준: `v1.9.0`
-- 활성 차기 roadmap: `v2.0.0 VLM 기반 AI 대형 업데이트`
+- 현재 release 준비 기준: `v2.0.0`
+- 다음 roadmap: `v2.1.0`은 아직 작성하지 않음
 - 중심 범위: live source onboarding, live source health, live VA event 품질
 - 기본 release 형태: source-only
 - 명시적 비범위: 장기 녹화, VMS/NVR, playback/search, ONVIF Profile G
@@ -34,9 +34,10 @@
 [versioning-policy.md](versioning-policy.md),
 [release-policy.md](release-policy.md)를 봅니다.
 
-v2.0.0의 활성 차기 roadmap은 [development-backlog.md](development-backlog.md)의
-`활성 차기 로드맵: v2.0.0 VLM 기반 AI 대형 업데이트` 섹션에서 관리합니다. 이 항목은
-개발 순서 기준 roadmap이며, 구현 완료나 release evidence가 아닙니다.
+v2.0.0 VLM 기반 AI 대형 업데이트의 release close-out 기준은
+[development-backlog.md](development-backlog.md)의 `v2.0.0 Release Close-out`
+섹션에서 관리합니다. 이 항목은 release 준비 기준이며, tag/GitHub Release publish
+완료 evidence가 아닙니다.
 
 최신 v2.0.0 테스트 evidence는 [release-evidence-index.md](release-evidence-index.md)와
 [v200-test-record-2026-05-31.md](v200-test-record-2026-05-31.md)에 둡니다.
@@ -44,24 +45,26 @@ v2.0.0의 활성 차기 roadmap은 [development-backlog.md](development-backlog.
 120분 predev longrun은 모두 별도 evidence로 PASS 기록이 있으며, 서로를 대체하지
 않습니다. `verify-va-runtime-console-longrun --duration-minutes 120`, real cloud
 provider call, external TURN field gate, main merge, release tag, GitHub Release
-생성은 아직 별도 미실행입니다.
+생성은 release close-out 단계에서 별도로 진행합니다.
 
 ## Current Release Close-Out
 
-v1.9.0의 현재 release close-out 기준은 [development-backlog.md](development-backlog.md)의
-`v1.9.0 Release Trust Hardening Close-out` 섹션에서 관리합니다. 이 release는 새 제품
-기능 확장이 아니라 release/latest/docs evidence drift와 v2.0.0 진입 전 gate drift를
-막는 검증 체계 보강입니다.
+v2.0.0의 현재 release close-out 기준은 [development-backlog.md](development-backlog.md)의
+`v2.0.0 Release Close-out` 섹션에서 관리합니다. 이 release는 기존 live-only 제품
+경계 위에 VLM event review 보조 계층을 source-only로 추가하되, runtime/model bundle,
+cloud provider 호출, default-on 승격은 release 범위 밖으로 분리합니다.
+VLM source-only release 경계는 실제 runtime/model 배포 완료와 구분합니다.
 Release close-out runbook과 tag/push 수동 gate는
-[release-policy.md](release-policy.md)의 `v1.9.0 Release Close-out Runbook`에만
+[release-policy.md](release-policy.md)의 `v2.0.0 Release Close-out Runbook`에만
 세부 순서를 둡니다.
 Release evidence의 실행/미실행/미확인 색인은
 [release-evidence-index.md](release-evidence-index.md)에 둡니다.
 직전 UI 풀테스트 close-out 증적은 결과표 221 PASS / 0 FAIL, 30분 predev PASS,
-해당 close-out 커밋의 브랜치 push 완료로 기록되어 있습니다. 120분 longrun과 main/tag/GitHub Release
-publish gate는 아직 미실행이며, GitHub release URL은 publish 이후 `verify-release-metadata --published`로
-확인합니다.
-현재 v1.9.0 제품 회귀와 UI 풀테스트 gate는
+해당 close-out 커밋의 브랜치 push 완료로 기록되어 있습니다.
+`verify-va-runtime-console-longrun --duration-minutes 120`과 main/tag/GitHub Release
+publish gate는 아직 미실행이며, GitHub release URL은 publish 이후
+`verify-release-metadata --published`로 확인합니다.
+현재 v2.0.0 제품 회귀와 UI 풀테스트 gate는
 [stream-verification.md](stream-verification.md)와
 [manual-ui-checklist.md](manual-ui-checklist.md)의 버전 중립 명령만 기준으로
 확인합니다.

@@ -106,7 +106,7 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-analysis-state
 ```
 
-`verify-release-metadata` 기본 실행은 v1.9.0 release prep 단계에서 반복 가능한
+`verify-release-metadata` 기본 실행은 v2.0.0 release prep 단계에서 반복 가능한
 로컬 VERSION/문서 기준을 확인합니다. 이 모드에서는 GitHub Release/tag 생성이 아직
 수동 close-out 전일 수 있으므로 GitHub Latest Release 확인을 `manual-not-run`으로
 기록합니다.
@@ -414,7 +414,7 @@ fallback까지 실패하면 `media-server.github-metadata-fallback-policy.v1` �
 `failure-class=tool-unavailable`, `failure-class=external-github-access` 중 하나로
 보고하고 제품 runtime/media 회귀와 분리합니다.
 
-현재 v1.9.0 제품 회귀 gate, UI 풀테스트 gate, release trust hardening gate는 아래
+현재 v2.0.0 제품 회귀 gate, UI 풀테스트 gate, release close-out gate는 아래
 통합 명령으로만 확인합니다.
 
 ```bash

@@ -707,9 +707,9 @@ AppearanceProfile과 IAppearanceExtractor는 향후 Re-ID/attribute 분석을 �
   gate와 privacy/retention approval을 함께 확인합니다. missing/invalid/mismatched model은
   NoOp fallback으로 닫고, 이 승인 경계를 제품 default-on 또는 model bundle 승인으로
   해석하지 않습니다.
-- 현재 v1.9.0 기준 model approval, invalid/missing model fixture, metadata 비노출,
+- 현재 v2.0.0 기준 model approval, invalid/missing model fixture, metadata 비노출,
   default-off 안정화와 default-on 비승격은 `verify-reid-advanced-tracking`으로
-  확인합니다. 현재 v1.9.0 검증은 통합 command set과 release evidence index로 확인합니다.
+  확인합니다. 현재 v2.0.0 검증은 통합 command set과 release evidence index로 확인합니다.
 - v1.8.0 연구 지속 기준은 [Re-ID Default-off Research Continuation](reid-default-off-research-continuation.md)에
   분리하며, 제품 default-on 결정이나 대형 tracker 교체로 해석하지 않습니다.
 - privacy threat model에서는 embedding vector, bbox crop, track-linked

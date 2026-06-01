@@ -34,14 +34,14 @@ source-of-truth가 아닙니다. 현재 기준은 이 문서와 기능별 상세
 
 `완료`는 운영 배포 ready, 장기 안정성 보장, 외부 연동 ready를 뜻하지 않습니다.
 
-## 현재 기준: v1.9.0 Source Release Baseline
+## 현재 기준: v2.0.0 Source Release Baseline
 
-v1.9.0은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서
-release/latest/docs evidence drift와 v2.0.0 진입 전 gate drift를 막는
-maintenance-first source-only release입니다. Client Live workspace, source tree/dock event feed, tile disconnect,
-event review, source group/site, tile info overlay, saved layout, incident timeline,
-alert delivery, scenario builder, Ops/Client declutter는 이전 UI-first close-out에서 닫은
-제품 baseline으로 유지합니다.
+v2.0.0은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서
+VLM을 이벤트 해석/리뷰 보조 계층으로 추가하는 source-only release입니다.
+Client Live workspace, source tree/dock event feed, tile disconnect, event review,
+source group/site, tile info overlay, saved layout, incident timeline, alert delivery,
+scenario builder, Ops/Client declutter는 이전 UI-first close-out에서 닫은 제품
+baseline으로 유지합니다.
 
 핵심 완료 범위:
 
@@ -52,6 +52,9 @@ alert delivery, scenario builder, Ops/Client declutter는 이전 UI-first close-
   workspace, source tree/dock, event review, source group/site, saved layout,
   incident timeline, viewer debug/source 비노출
 - Auth: setup/login/session, role/scope, admin user console, invite/request approval
+- VLM: 모델 선택 기준, PC capability, 추천 엔진, `/ops/vlm` dry-run/profile/privacy UI,
+  evaluation fixture harness, event evidence refs, VLMObservation sidecar, event explanation,
+  Ops event review panel, summary/rule suggestion 후보
 - Release: source-only readiness, bundle/license guardrail, release evidence, manual UI evidence,
   GitHub Actions warning/Node 24 gate, UI evidence runner, feature coverage, release close-out runbook
 - Research boundary: Re-ID/tracker default-off, OC-SORT manifest-only sandbox, YouTube lab-only 유지
@@ -61,16 +64,17 @@ alert delivery, scenario builder, Ops/Client declutter는 이전 UI-first close-
 - 장기 녹화, MP4 recorder, VMS/NVR archive, playback/search
 - ONVIF Profile G recording/replay, persistent credential store, Digest/WS-Security 운영 보장
 - Re-ID default-on, tracker default-on, OC-SORT/BoT-SORT/DeepSORT runtime tracker 승격
-- binary/runtime/model bundle release
+- binary/runtime/model bundle release, VLM model/runtime bundle release, VLM default-on
+- 실제 VLM runtime/cloud provider 호출 성공 보장, provider credential 저장
 - 외부 TURN/WHEP credential 운영 보장, 실장비 ONVIF 성공 보장
 - field sample scheduler, dataset ingest, tracker replacement benchmark 실행
 - 별도 Phase의 실제 기능 개발, tracker replacement product review
 
-세부 종료 증적은 아래 v1.9.0 Release Trust Hardening Close-out 섹션을 봅니다.
+세부 종료 증적은 아래 v2.0.0 Release Close-out 섹션을 봅니다.
 과거 release evidence는 standalone current 문서가 아니라 이 문서의 archive 섹션에만
 보존합니다.
 
-## 활성 차기 로드맵: v2.0.0 VLM 기반 AI 대형 업데이트
+## v2.0.0 Release Close-out
 
 v2.0.0은 기존 YOLO/ONNX 기반 실시간 감지, Rule/Profile/Scenario, EventRecord,
 snapshot/short clip evidence를 유지하면서 VLM(Vision-Language Model)을 이벤트 해석
@@ -78,8 +82,11 @@ snapshot/short clip evidence를 유지하면서 VLM(Vision-Language Model)을 �
 YOLO 이벤트가 왜 발생했는지 설명하고, 오탐 가능성 및 운영자 확인 포인트를 제안하는
 보조 분석 기능입니다.
 
-이 로드맵은 중요도 순서가 아니라 실제 개발 진행 순서로 관리합니다. 각 순서는
-개발, 안정화 테스트, 영향 범위 보고, 커밋을 거친 뒤 다음 순서로 넘어갑니다.
+VLM S00~S18 구현 및 테스트 evidence는 아래 표와 release evidence 문서에서 닫혔고,
+이 섹션은 v2.0.0 release prep에서 남은 PR, main merge, tag, GitHub Release,
+published metadata, release branch 삭제, 다음 branch sync를 추적합니다. 실제 tag/push는
+수동 승인 후에만 수행합니다. release 완료 뒤 다음 branch 이름은 규칙상 `v2.1.0`이지만,
+v2.1.0 roadmap은 아직 작성하지 않습니다.
 
 핵심 원칙:
 
@@ -1434,8 +1441,8 @@ Decision record 최소 필드:
 
 ## Archived: v1.7.0 UI-first Close-out
 
-이 섹션은 v1.7.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v1.9.0
-Release Trust Hardening Close-out입니다.
+이 섹션은 v1.7.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v2.0.0
+Release Close-out입니다.
 
 v1.7.0 close-out 당시에는 Client Live workspace와 Ops workflow 보강을 완료 기준으로 둡니다.
 기존 Client 화면을 “라이브 월 추가”가 아니라 `/client/live` 대체로 정리했고,
@@ -1472,7 +1479,7 @@ UI 원칙:
 2. 이벤트 검토, source group/site, layout 저장을 붙여 실제 운영 흐름을 닫았습니다.
 3. 알림 연동, Scenario Builder, Incident Timeline을 기본 UI 위에 확장했습니다.
 4. v1.7.0 close-out 당시 README/UI guide 대표 screenshot asset을 UI-first
-   화면으로 한국어/영어 모두 재캡처했습니다. 현재 문서 대표 이미지는 상단 v1.9.0
+   화면으로 한국어/영어 모두 재캡처했습니다. 현재 문서 대표 이미지는 상단 v2.0.0
    release 기준에서 다시 관리합니다.
 
 | ID | 우선순위 | 영역 | 목표 | 예상 검증 |
@@ -1512,8 +1519,8 @@ v1.7.0 비범위:
 
 ## Archived: v1.6.0 Stabilization Close-out
 
-이 섹션은 v1.6.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v1.9.0
-Release Trust Hardening Close-out입니다.
+이 섹션은 v1.6.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v2.0.0
+Release Close-out입니다.
 
 v1.6.0 close-out 당시에는 새 제품 기능을 여는 minor release가 아니라, v1.5.0까지 닫은 기능을
 다음 기능 개발 사이클 전에 안정화하고 release-grade 증적, verifier, 문서 경계를
@@ -1952,7 +1959,7 @@ release evidence index에
 확인됨:
 
 - 이 절의 확인 항목은 v1.6.0 close-out historical evidence입니다. 최신
-  source-only release 기준 tag 판정은 상단 v1.9.0 기준을 따릅니다.
+  source-only release 기준 tag 판정은 상단 v2.0.0 기준을 따릅니다.
 - v1.6.0 close-out 당시 public docs는 source-only release tag를 `v1.6.0`으로
   맞추도록 정리했습니다.
 - v1.6.0은 source-only stabilization release이며 runtime/model/binary bundle release가 아닙니다.

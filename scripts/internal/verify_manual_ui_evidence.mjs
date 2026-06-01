@@ -50,7 +50,7 @@ check("manual UI docs are current release baseline", () => {
   assertIncludes(checklist, [
     `현재 release 목표는 \`${currentTag}\``,
     "현재 제품 UI 직접 조작 evidence 없이 완료 판정에 포함하지 않습니다.",
-    `${currentTag} release trust hardening gate`,
+    `${currentTag} release UI gate`,
     "`/setup`",
     "`/login`",
     "`/ops/rules`",
@@ -319,9 +319,9 @@ check("roadmap links evidence verifier", () => {
   ], "docs/development-backlog.md");
 });
 
-check("current release trust checklist requires direct UI evidence index", () => {
+check("current release UI checklist requires direct UI evidence index", () => {
   assertIncludes(checklist, [
-    `${currentTag} release trust hardening gate`,
+    `${currentTag} release UI gate`,
     "`/setup`",
     "`/login`",
     "`/ops`",

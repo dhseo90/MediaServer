@@ -25,7 +25,7 @@ Options:
   --one-shot-dry-run    main merge/tag/release/latest/branch cleanup/next branch 순서를 one-shot gate로 요약합니다.
   --release-branch <name>  release branch 이름입니다. 기본은 현재 branch입니다.
   --target-branch <name>   merge/tag 기준 branch입니다. 기본 main입니다.
-  --next-branch <name>     다음 개발 branch 이름입니다. 기본 v2.0.0입니다.
+  --next-branch <name>     다음 개발 branch 이름입니다. 기본 v2.1.0입니다.
   --report <path>       Markdown 리포트를 저장합니다.
   --json-report <path>  JSON 리포트를 저장합니다.
   -h, --help            도움말 출력
@@ -47,7 +47,7 @@ const jsonReportPath = args.jsonReport ? path.resolve(rootDir, args.jsonReport) 
 const currentBranch = runGitValue(["branch", "--show-current"]) || "<detached>";
 const releaseBranch = args.releaseBranch || process.env.MEDIA_SERVER_RELEASE_BRANCH || currentBranch;
 const targetBranch = args.targetBranch || process.env.MEDIA_SERVER_RELEASE_TARGET_BRANCH || "main";
-const nextBranch = args.nextBranch || process.env.MEDIA_SERVER_RELEASE_NEXT_BRANCH || "v2.0.0";
+const nextBranch = args.nextBranch || process.env.MEDIA_SERVER_RELEASE_NEXT_BRANCH || "v2.1.0";
 const server = readText("server.sh");
 const releasePolicy = readText("docs/release-policy.md");
 const versioningPolicy = readText("docs/versioning-policy.md");
