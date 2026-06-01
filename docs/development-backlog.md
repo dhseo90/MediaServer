@@ -83,10 +83,9 @@ YOLO 이벤트가 왜 발생했는지 설명하고, 오탐 가능성 및 운영�
 보조 분석 기능입니다.
 
 VLM S00~S18 구현 및 테스트 evidence는 아래 표와 release evidence 문서에서 닫혔고,
-이 섹션은 v2.0.0 release prep에서 남은 PR, main merge, tag, GitHub Release,
-published metadata, release branch 삭제, 다음 branch sync를 추적합니다. 실제 tag/push는
-수동 승인 후에만 수행합니다. release 완료 뒤 다음 branch 이름은 규칙상 `v2.1.0`이지만,
-v2.1.0 roadmap은 아직 작성하지 않습니다.
+v2.0.0 release close-out도 PR #19 merge, main sync, annotated tag, GitHub Release,
+published metadata 검증, release branch 삭제, 다음 branch sync까지 완료했습니다.
+release 완료 뒤 다음 branch 이름은 규칙상 `v2.1.0`이지만, v2.1.0 roadmap은 아직 작성하지 않습니다.
 
 핵심 원칙:
 
@@ -1176,10 +1175,10 @@ side effect를 만들지 않았는지 확인하는 단계입니다. 제품 UI �
 
 후속 단계로 남기는 범위:
 
-- S17 안정화/장시간/UI 기준 정리는 미진행입니다.
-- S18 close-out readiness는 미진행입니다.
-- 인앱 브라우저 UI 풀테스트와 30분/120분 장시간 안정화는 이 단계에서 실행하지
-  않았습니다.
+- 이 S16 단계 자체에서는 S17/S18, 인앱 브라우저 UI 풀테스트, 30분/120분 장시간
+  안정화를 실행하지 않았습니다.
+- S17/S18과 v2.0.0 30분/UI/120분 보강, release publish는 이후 별도 evidence로
+  완료했습니다.
 
 ### V200-S17 안정화/장시간/UI 기준 정리 종료 기준
 
@@ -1244,8 +1243,10 @@ side effect를 만들지 않았는지 확인하는 단계입니다. 제품 UI �
 
 후속 단계로 남기는 범위:
 
-- S18 close-out readiness는 미진행입니다.
-- 30분/120분 장시간 안정화와 인앱 브라우저 UI 풀테스트는 실행하지 않았습니다.
+- 이 S17 단계 자체에서는 S18 close-out readiness, 30분/120분 장시간 안정화,
+  인앱 브라우저 UI 풀테스트를 실행하지 않았습니다.
+- S18과 v2.0.0 30분/UI/120분 보강, release publish는 이후 별도 evidence로
+  완료했습니다.
 
 ### V200-S18 v2.0.0 close-out readiness 종료 기준
 
@@ -1294,17 +1295,23 @@ publish gate를 서로 대체하지 않도록 기록합니다.
 
 후속 단계로 남기는 범위:
 
-- 실제 v2.0.0 release publish, tag, main merge, GitHub Release 생성은 미진행입니다.
-- UI 풀테스트, 30분 soak, 120분 longrun은 미실행입니다.
-- publish 후 `verify-release-metadata --published`는 미실행입니다.
+- 이 S18 단계 자체에서는 실제 v2.0.0 release publish, tag, main merge,
+  GitHub Release 생성, UI 풀테스트, 30분 soak, 120분 longrun을 실행하지 않았습니다.
+- v2.0.0 release publish, tag, main merge, GitHub Release 생성,
+  `verify-release-metadata --published`, UI 풀테스트, 30분 soak, 120분 predev
+  longrun은 이후 별도 evidence로 완료했습니다.
 
 S18 이후 v2.0.0 브랜치 테스트 보강:
 
 - 2026-06-01 `v200-inapp-policy-30min-20260601`: 30분 soak PASS.
 - 2026-06-01 `v200-inapp-policy-ui-fulltest-20260601`: 인앱 브라우저 UI 풀테스트 PASS.
 - 2026-06-01 `v200-inapp-policy-120min-20260601`: `verify-predev --soak-minutes 120` PASS.
-- 여전히 미실행: `verify-va-runtime-console-longrun --duration-minutes 120`, cloud provider field smoke,
-  main merge, release tag, GitHub Release 생성, publish 후 `verify-release-metadata --published`.
+- 2026-06-01 release close-out: PR #19 merge, main sync, `v2.0.0` annotated tag,
+  GitHub Release, published metadata verification, `v2.0.0` branch 삭제, `v2.1.0`
+  branch 생성 완료.
+- 여전히 미실행/제외: `verify-va-runtime-console-longrun --duration-minutes 120`,
+  cloud provider field smoke, external TURN/WHEP credential operation,
+  VLM model/runtime bundle.
 
 ## v1.9.0 Release Trust Hardening Close-out
 

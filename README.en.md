@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Release Prep](https://img.shields.io/badge/source--only%20release%20prep-v2.0.0-blue)](docs/development-backlog.md)
+[![Release](https://img.shields.io/badge/release-v2.0.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.0.0)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
 video analytics overlays and rule/scenario live events when analytics are enabled.
@@ -13,11 +13,7 @@ runtime/model bundle distribution are outside the default release scope.
 
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
-- Source-only release preparation baseline: [v2.0.0](docs/development-backlog.md)
-- v2.0.0 release close-out preparation: [docs/development-backlog.md](docs/development-backlog.md)
-- Latest v2.0.0 test evidence:
-  [docs/release-evidence-index.md](docs/release-evidence-index.md),
-  [docs/v200-test-record-2026-05-31.md](docs/v200-test-record-2026-05-31.md).
+- Current release: [v2.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.0.0)
 
 ## At a Glance
 
@@ -27,6 +23,9 @@ runtime/model bundle distribution are outside the default release scope.
   `vaRule=<id>`, Rule/Profile/Scenario models, live Event POST, and runtime
   metadata. EventRecord, snapshot, and clip hooks are short event evidence
   helpers, not the central product message.
+- **VLM review assist**: adds Ops-only review assistance for event explanations,
+  false-positive hints, and suggestion candidates. VLM model/runtime bundles and
+  real cloud provider calls are not part of the default release.
 - **Product UI**: routes users to Ops or Client views based on account
   permissions. There is no Lab product screen; lab endpoints remain available
   for API and verification workflows.
@@ -38,6 +37,28 @@ runtime/model bundle distribution are outside the default release scope.
   documentation. Binary, runtime, and model bundles are not published unless
   separate guardrails pass.
 
+## VLM Review Assist
+
+v2.0.0 adds VLM as an operator review-assist layer, not as the final decision
+engine. YOLO/Rule/Scenario still create the events; VLM adds explanations,
+false-positive hints, evidence summaries, and rule suggestion candidates while
+keeping the existing Event POST, WebRTC, SSE/WS metadata schemas and media paths.
+
+Model recommendation is based on both PC capability and privacy mode. The current
+baseline is `Qwen/Qwen3-VL-8B-Instruct` for local standard hardware,
+`Qwen/Qwen3-VL-4B-Instruct` as the low-spec fallback,
+`Qwen/Qwen3-VL-30B-A3B-Instruct` as a high-tier evaluation candidate, and
+`gemini-2.5-flash` as the explicit cloud opt-in fallback. Real model/runtime
+installation, cloud provider calls, and model/runtime bundle distribution are
+outside the default release.
+
+Details:
+
+- Model selection: [docs/vlm-model-selection.md](docs/vlm-model-selection.md)
+- PC-based recommendation engine: [docs/vlm-recommendation-engine.md](docs/vlm-recommendation-engine.md)
+- Install/connection dry-run: [docs/vlm-install-connection-dry-run.md](docs/vlm-install-connection-dry-run.md)
+- Ops review UI flow: [docs/vlm-ops-event-review-ui.md](docs/vlm-ops-event-review-ui.md)
+
 ## Runtime Requirements
 
 | Area | Requirement |
@@ -48,20 +69,6 @@ runtime/model bundle distribution are outside the default release scope.
 | Optional AI | ONNX Runtime, YOLO ONNX model, label file |
 | Helper tools | Node.js, Python 3, FFmpeg/ffprobe, curl |
 | Defaults | RTSP route `dhseo`, file root `video/` |
-
-Exact local versions and model hashes are recorded in [DEPENDENCY_SNAPSHOT.md](DEPENDENCY_SNAPSHOT.md). Regenerate it before a release or binary bundle with:
-
-```bash
-./server.sh dependency-snapshot
-```
-
-The default binary bundle does not include FFmpeg, libav, x264/x265, or GStreamer GPL-risk plugin binaries. Check release bundles with:
-
-```bash
-./server.sh verify-bundle-policy --bundle-dir <release_bundle_dir>
-```
-
-Use `./server.sh test --basic --ffmpeg-free` when CI or public verification should avoid depending on the FFmpeg CLI.
 
 ## Quick Start
 
@@ -127,7 +134,8 @@ release evidence live in dedicated docs.
 - Verification commands: [docs/stream-verification.md](docs/stream-verification.md)
 - Release/version policy: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
-- v2.0.0 release close-out preparation: [docs/development-backlog.md](docs/development-backlog.md)
+- Release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
+- Release notes: [v2.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.0.0)
 
 ## UI Preview
 

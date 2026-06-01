@@ -106,10 +106,9 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-analysis-state
 ```
 
-`verify-release-metadata` 기본 실행은 v2.0.0 release prep 단계에서 반복 가능한
-로컬 VERSION/문서 기준을 확인합니다. 이 모드에서는 GitHub Release/tag 생성이 아직
-수동 close-out 전일 수 있으므로 GitHub Latest Release 확인을 `manual-not-run`으로
-기록합니다.
+`verify-release-metadata` 기본 실행은 반복 가능한 로컬 VERSION/문서 기준을
+확인합니다. GitHub Latest Release, remote tag/branch, repository page link는
+`verify-release-metadata --published`의 외부 published metadata gate로 분리합니다.
 `verify-v190-entry-baseline`은 v1.9.0 종료와 v2.0.0 진입 전 evidence를
 `media-server.v190-entry-baseline-report.v1` report로 모으는 정적 gate입니다.
 이 명령은 30분 soak, 120분 longrun, UI 풀테스트를 실행하지 않고, 승인 전 항목은

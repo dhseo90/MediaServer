@@ -34,7 +34,7 @@
 | Manual UI evidence | `/setup`, `/login`, `/ops/home`, `/ops/dashboard`, `/ops/sources`, `/ops/rules`, `/ops/users`, `/ops/events`, `/client/live`, `/client/dashboard` direct click index | `./server.sh verify-manual-ui-evidence`, manual browser review | `PASS` 또는 `FAIL` |
 | Feature test inventory | 기능별 UI 필요 여부, 테스트 필요 여부, 테스트 영역, PASS 판정 기준 | [project-feature-test-inventory.md](./project-feature-test-inventory.md) | 기준표, 실행 evidence 아님 |
 | English UI visual copy QA | English capture path, nav/card/table wrapping, Korean residue review | `./server.sh verify-ui-copy-i18n-parity`, `./server.sh verify-ops-client-ui --screenshots` | 실행한 테스트 행은 `PASS` 또는 `FAIL`; 열지 않은 화면은 별도 `미확인` |
-| Release close-out runbook | branch close, PR merge, main sync, tag, GitHub Release, Latest 확인, release branch 삭제, next branch sync, `media-server.release-closeout-one-shot-gate.v1` fail-stop rehearsal | `./server.sh verify-release-closeout-helper --dry-run`, `./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run` | planned-local/planned-published/manual-not-run |
+| Release close-out runbook | branch close, PR merge, main sync, tag, GitHub Release, Latest 확인, release branch 삭제, next branch sync, `media-server.release-closeout-one-shot-gate.v1` fail-stop rehearsal | `./server.sh verify-release-closeout-helper --dry-run`, `./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run` | dry-run은 planned/manual-not-run, 실제 publish 결과는 release publication evidence row로 분리 |
 | Feature scope decision gate | 새 기능 후보를 v1.8 안정화 gate 안에서 구현으로 승격하지 않는 절차 | `./server.sh verify-feature-scope-gate` | `PASS` 또는 `FAIL` |
 | PR checks | Preflight, licensing/artifact guardrails, required checks | GitHub Actions UI/API | 실행 확인 시 `PASS` 또는 `FAIL`; 열지 않은 Actions는 별도 `미확인` |
 | Release notes | source-only scope, non-goals, verification, not-run/unverified | [release-policy.md](./release-policy.md) | 검토 행은 `PASS` 또는 `FAIL`; 실행하지 않은 gate는 별도 `미실행` |
@@ -62,6 +62,7 @@
 | 2026-06-01 | v200-inapp-policy-30min-20260601 | 30분 soak | Codex 실행 시 인앱 브라우저 primary evidence 정책 변경 후 `./server.sh verify-predev --soak-minutes 30 --rtsp-port 8568 --http-port 8094` 재실행. build, integrated smoke, 22회 soak iterations of VA events/Event POST schema/Event POST recovery/redaction/runtime idle, queue mode, ports-clean, summary-report PASS. Chrome Rule UI 자동화는 기본 제외했고 UI 풀테스트 PASS로 계산하지 않음 | PASS | 334,637 | 492,353 | 157,716 | command durationSec 2365; goal snapshot delta 2385s | Codex goal usage snapshot before/after 30분 step | [v200-test-record-2026-05-31.md](./v200-test-record-2026-05-31.md), `/private/tmp/media_server_v200_inapp_30min_20260601_summary.json`, `/private/tmp/media_server_v200_inapp_30min_20260601_report.md`, `/private/tmp/media_server_v200_inapp_30min_20260601_report.html`, `/private/tmp/media_server_v200_inapp_30min_20260601_run.log`, `/tmp/media_server_predev-1780240771-16862` |
 | 2026-06-01 | v200-inapp-policy-ui-fulltest-20260601 | UI 풀테스트 | Codex 인앱 브라우저 primary evidence로 `/setup`, `/login`, `/ops/*`, `/client/*`, `/ops/vlm` route/action/responsive/theme를 직접 확인하고, 인앱 evidence를 one-shot wrapper에 연결. 인앱 모드가 없는 legacy click/EventRecord verifier는 `MEDIA_SERVER_UI_BROWSER_MODE=chrome` + `MEDIA_SERVER_ALLOW_CHROME_FALLBACK=1` 예외로 보조 실행. UI 대상 기능 ID 238개, RULE rows, VA seed matrix, 12개 EventRecord event/scenario key 구조 검증 PASS. 실제 VA EventRecord dispatch도 records-only 저장소에서 PASS | PASS | 492,353 | 1,404,241 | 911,888 | goal snapshot delta after 30분 step through UI close-out | Codex goal usage snapshot before/after UI step | [manual-ui-result-2026-06-01-v200-inapp-fulltest.md](./manual-ui-result-2026-06-01-v200-inapp-fulltest.md), [v200-test-record-2026-05-31.md](./v200-test-record-2026-05-31.md), `/private/tmp/media_server_v200_iab_ui_fulltest_20260601/in-app-browser-ui-evidence.json`, `/private/tmp/media_server_v200_ui_one_shot_20260601_retry2/summary.json`, `/private/tmp/media_server_v200_ui_event_records_history_scope_390_20260601/event-history-coverage.json`, `/private/tmp/media_server_v200_ui_event_records_dispatch_records_only_20260601.log` |
 | 2026-06-01 | v200-inapp-policy-120min-20260601 | 120분 longrun | `/goal 120분 테스트` 지시 후 `./server.sh verify-predev --soak-minutes 120 --rtsp-port 8568 --http-port 8094` 재실행. build, integrated smoke, 87회 soak iterations of VA events/Event POST schema/Event POST recovery/redaction/runtime idle, main runtime idle, Event POST queue mode, ports-clean, summary-report PASS. 최초 sandbox RTSP bind 실패와 docs index 누락 실패는 수정/재실행했고 최종 retry2 PASS | PASS | 96,618 | 296,735 | 200,117 | command durationSec 7758; successful-run goal snapshot delta 7779s; whole 120분 goal snapshot 8262s | Codex goal usage snapshot before successful retry and after evidence verification. 이슈 처리 포함 goal total은 0 -> 296,735 | [v200-test-record-2026-05-31.md](./v200-test-record-2026-05-31.md), `/private/tmp/media_server_v200_120min_20260601_retry2_summary.json`, `/private/tmp/media_server_v200_120min_20260601_retry2_report.md`, `/private/tmp/media_server_v200_120min_20260601_retry2_report.html`, `/private/tmp/media_server_v200_120min_20260601_retry2_run.log`, `/tmp/media_server_predev-1780269327-81605` |
+| 2026-06-01 | v200-release-publication-20260601 | release publication | PR #19 merge, main sync, `v2.0.0` annotated tag, GitHub Release publish, `verify-release-metadata --published --release-branch main`, remote `v2.0.0` branch deletion, `v2.1.0` branch creation. GitHub PR checks `guardrails`/`static-gates` PASS, check-run blocking annotations 0 | PASS | 0 | 379,651 | 379,651 | goal elapsed 24m 24s | Codex goal usage plus GitHub/command output | [GitHub Release v2.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.0.0), [PR #19](https://github.com/dhseo90/MediaServer/pull/19), `df95b41dc1e6a5dc29da4ae00ca86b9fd1addddd`, `/tmp/media_server_v200_published_metadata.md`, `/tmp/media_server_pr19_annotations.json` |
 
 Not run for `stability-script-smoke-20260525`: 30분 soak, 120분 longrun, manual UI 풀테스트.
 Not run for `predev-30min-20260525`: 120분 longrun, manual UI 풀테스트.
@@ -74,6 +75,10 @@ Not run for `v200-inapp-policy-stability-20260601`: 30분 soak was run separatel
 Not run for `v200-inapp-policy-30min-20260601`: cloud provider field smoke, main merge, release tag, GitHub Release 생성, push. UI 풀테스트는 별도 `v200-inapp-policy-ui-fulltest-20260601`, 120분 longrun은 별도 `v200-inapp-policy-120min-20260601`에서 실행.
 Not run for `v200-inapp-policy-ui-fulltest-20260601`: real cloud provider call, credential 저장, external TURN field gate, main merge, release tag, GitHub Release 생성, push. 120분 longrun은 별도 `v200-inapp-policy-120min-20260601`에서 실행.
 Not run for `v200-inapp-policy-120min-20260601`: `verify-va-runtime-console-longrun --duration-minutes 120`, real cloud provider call, credential 저장, external TURN field gate, main merge, release tag, GitHub Release 생성, push.
+
+Release publication was later completed by `v200-release-publication-20260601`.
+Per-test "not run" rows above remain scoped to the individual test run that did
+not perform publication actions.
 
 ## v2.0.0 Test Restart 2026-05-31
 
@@ -109,8 +114,10 @@ release metadata, published metadata, v2.0.0 entry freeze gate를 같은 표에 
   `verify-post-release-reconciliation`, `verify-release-closeout-helper --dry-run --one-shot-dry-run`,
   `verify-integrator-contract-artifact` 결과를 close-out 시점에 report evidence로
   연결합니다.
-- publish 전 `verify-release-metadata --published`, tag, push, GitHub Release 생성,
-  release branch 삭제, next branch sync는 `manual-not-run`입니다.
+- v2.0.0 release publication is now recorded separately as
+  `v200-release-publication-20260601`; this historical entry-baseline command
+  still does not execute tag, push, GitHub Release, branch deletion, or next
+  branch sync by itself.
 
 ## Skipped / Not-run Wording
 
