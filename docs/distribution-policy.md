@@ -7,7 +7,7 @@ Release asset 기준은 [release-policy.md](./release-policy.md)에서 함께 �
 
 - 기본 공개 단위는 Apache-2.0 원본 소스와 문서입니다.
 - 기본 binary bundle에는 FFmpeg, FFprobe, libav*, x264/x265, GStreamer GPL-risk plugin 바이너리를 포함하지 않습니다.
-- ONNX Runtime package와 YOLO/Re-ID/model binary는 기본 release asset에 포함하지 않습니다.
+- ONNX Runtime package와 YOLO/Re-ID/VLM model artifact는 기본 release asset에 포함하지 않습니다.
 - FFmpeg/GStreamer runtime은 사용자 package manager 설치물로 취급합니다.
 - bundle, app package, container image, offline package를 만들 때는 `./server.sh verify-bundle-policy --bundle-dir <release_bundle_dir>`를 실행합니다.
 - GPL-risk runtime을 의도적으로 포함하면 별도 라이선스 검토, upstream license text, source offer, attribution을 준비합니다.
@@ -42,6 +42,20 @@ Container release 전 확인:
 위반 항목이 나오면 기본 release 대상이 아닙니다.
 의도적으로 포함하는 경우에만 `--allow-risky-runtime`으로 경고 리포트를 만들고,
 그 리포트를 release 검토 기록에 첨부합니다.
+
+## VLM 모델 artifact 경계
+
+VLM 후보는 사용자 준비물 또는 외부 provider API로 취급하며, 기본 source release,
+binary bundle, container image에는 model weight/runtime을 포함하지 않습니다.
+특히 `.gguf`, `.safetensors`, `.ggml`, `.ckpt` 같은 VLM model artifact는
+`config/bundle_distribution_policy.json`과 `config/public_repo_policy.json`에서
+차단합니다.
+
+VLM model artifact를 의도적으로 포함하는 배포는 기본 release 대상이 아니며,
+별도 license/provenance 검토, upstream model card, checksum, attribution, provider
+terms, redistribution 조건, privacy/logging/retention 검토를 먼저 완료해야 합니다.
+`V200-S01`의 선택 문서는 모델명과 기준을 고정하지만 model 파일을 repo나 release
+asset에 넣는 승인이 아닙니다.
 
 ## Source Offer Checklist
 

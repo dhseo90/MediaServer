@@ -54,9 +54,35 @@ test_client_host() {
   fi
 }
 
+is_truthy() {
+  case "${1:-}" in
+    1|true|TRUE|yes|YES|on|ON) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+is_codex_in_app_browser_environment() {
+  [[ -n "${CODEX_SHELL:-}" || -n "${CODEX_THREAD_ID:-}" || -n "${CODEX_INTERNAL_ORIGINATOR_OVERRIDE:-}" ]]
+}
+
+chrome_fallback_allowed_for_codex() {
+  [[ "${MEDIA_SERVER_UI_BROWSER_MODE:-auto}" == "chrome" ]] && is_truthy "${MEDIA_SERVER_ALLOW_CHROME_FALLBACK:-0}"
+}
+
+resolve_rule_ui_chrome_path() {
+  if is_codex_in_app_browser_environment && ! chrome_fallback_allowed_for_codex; then
+    return 0
+  fi
+  case "${MEDIA_SERVER_UI_BROWSER_MODE:-auto}" in
+    in-app|static) return 0 ;;
+  esac
+  printf '%s' "${MEDIA_SERVER_TEST_RULE_UI_CHROME_PATH:-${MEDIA_SERVER_VERIFY_RULE_UI_CHROME_PATH:-${CHROME_PATH:-}}}"
+}
+
 TEST_HTTP_PORT="${MEDIA_SERVER_HTTP_LISTEN_PORT:-8080}"
 TEST_HTTP_HOST="$(test_client_host "${MEDIA_SERVER_TEST_HTTP_HOST:-${MEDIA_SERVER_VERIFY_HOST:-${MEDIA_SERVER_HTTP_LISTEN_ADDRESS:-127.0.0.1}}}")"
 TEST_HTTP_BASE="${MEDIA_SERVER_TEST_HTTP_BASE:-http://${TEST_HTTP_HOST}:${TEST_HTTP_PORT}}"
+RULE_UI_CHROME_PATH="$(resolve_rule_ui_chrome_path)"
 
 usage() {
   cat <<'EOF_USAGE'
@@ -251,6 +277,17 @@ fi
 
 CODEC_SKIP_REASON="--skip-codecs 또는 --quick 옵션으로 생략했습니다."
 VA_SKIP_REASON="--skip-va 또는 --quick 옵션으로 생략했습니다."
+
+shell_quote_arg() {
+  printf "%q" "$1"
+}
+
+optional_chrome_path_arg() {
+  local value="$1"
+  if [[ -n "${value}" ]]; then
+    printf " --chrome-path %s" "$(shell_quote_arg "${value}")"
+  fi
+}
 
 if [[ "${FFMPEG_FREE}" == "1" ]]; then
   # 공개/CI 환경에서는 FFmpeg/ffprobe CLI가 없어도 통과 가능한 gate와 GStreamer 서버 기본 동작만 확인한다.
@@ -668,7 +705,7 @@ if [[ "${INCLUDE_RULE_UI}" == "1" ]]; then
       "rule-ui-smoke" \
       "선택 검증: Rule/Profile 카테고리 UI" \
       "Rule/Profile UI 검증 실패입니다. /ops/rules DOM, 탭 이동, 카테고리 payload를 확인하세요." \
-      "./server.sh verify-rule-ui --http-base '${TEST_HTTP_BASE}'" || true
+      "./server.sh verify-rule-ui --http-base '${TEST_HTTP_BASE}'$(optional_chrome_path_arg "${RULE_UI_CHROME_PATH}")" || true
   fi
 else
   skip_step "Rule/Profile UI 선택 검증" "브라우저 자동화가 필요한 항목이라 기본 테스트에서 제외합니다. 필요하면 --include-rule-ui를 사용하세요."

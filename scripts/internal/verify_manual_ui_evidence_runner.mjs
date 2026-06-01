@@ -43,8 +43,8 @@ const uiTargetRows = rows.filter(row => hasArea(row.area, "UI"));
 const checks = [];
 
 check("inventory UI target count is stable", () => {
-  assert(rows.length === 317, `expected 317 feature rows, found ${rows.length}`);
-  assert(uiTargetRows.length === 220, `expected 220 UI target rows, found ${uiTargetRows.length}`);
+  assert(rows.length === 369, `expected 369 feature rows, found ${rows.length}`);
+  assert(uiTargetRows.length === 238, `expected 238 UI target rows, found ${uiTargetRows.length}`);
 });
 
 check("docs wire the evidence runner boundary", () => {

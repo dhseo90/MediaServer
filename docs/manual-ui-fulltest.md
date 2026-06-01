@@ -5,18 +5,28 @@
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 삼고, 실행 순서는 [manual-ui-checklist.md](./manual-ui-checklist.md), 결과 기록은
 [manual-ui-result-template.md](./manual-ui-result-template.md)를 사용합니다.
-현재 제품 UI 기준은 release 목표 `v1.9.0`입니다. 지원 가능한 모든 기능을 실제 UI 조작으로 확인하지 않은 경우에는 완료로 쓰지 않습니다.
+현재 제품 UI 기준은 release 목표 `v2.0.0`입니다. 지원 가능한 모든 기능을 실제 UI 조작으로 확인하지 않은 경우에는 완료로 쓰지 않습니다.
 
 ## 1. 정의
 
 UI 풀테스트는 API smoke가 아니라 제품 웹 UI를 실제 브라우저에서 열고,
 클릭과 타이핑으로 문서에 설명된 기능을 하나하나 확인하는 검수입니다.
-기본 실행 방식은 프로젝트 verifier가 자체 Chrome/CDP 세션을 띄워 조작하는
-자율 UI 테스트입니다. Codex 인앱 브라우저나 작업자가 같은 조작을 직접 수행하는
-방식은 보조 재현 수단일 뿐이며, 사용자에게 pane 열기, 버튼 클릭, 팝업 확인을
+Codex 세션에서는 인앱 브라우저 직접 조작을 기본 evidence로 사용합니다.
+인앱 브라우저를 사용할 수 없는 외부 자동화 환경에서만 Chrome/CDP fallback을
+명시적으로 사용합니다. 사용자에게 pane 열기, 버튼 클릭, 팝업 확인을
 요청해야만 진행되는 테스트는 UI 풀테스트 PASS evidence가 아닙니다.
 API 응답, raw JSON, screenshot 생성, 스크립트 통과만으로는 UI 풀테스트를 완료했다고
 기록하지 않습니다.
+
+브라우저 선택 정책:
+
+- Codex가 테스트를 실행하는 세션에서는 인앱 브라우저 evidence가 기본입니다.
+- Chrome/CDP 자동화는 Codex 밖에서 사용자가 직접 테스트하거나, Codex 세션에서
+  `MEDIA_SERVER_UI_BROWSER_MODE=chrome`과 `MEDIA_SERVER_ALLOW_CHROME_FALLBACK=1`을
+  함께 지정한 명시 예외일 때만 사용합니다.
+- 안정화/30분/120분 스크립트 안의 UI smoke가 Codex 인앱 브라우저로 직접 연결되지
+  않는 경우에는 해당 UI smoke를 UI 풀테스트 PASS로 쓰지 않고, 별도 인앱 브라우저
+  직접 확인으로 닫습니다.
 
 ## 2. 테스트 영역 역할 분리
 
@@ -28,7 +38,7 @@ UI 풀테스트는 `스크립트 테스트`와 별도 영역입니다. 스크립
 | 안정화 테스트 | 30분/120분/UI 테스트의 선수 테스트입니다. 로드맵 각 스텝 종료 시 먼저 수행합니다. 실패하면 UI 풀테스트로 넘어가지 않습니다. |
 | 30분 테스트 | 장기간 테스트 지시 시 기본으로 수행하고, 각 버전별 로드맵 개발이 끝나면 수행합니다. UI 클릭/타이핑 evidence를 대체하지 않습니다. |
 | 120분 테스트 | 메모리 릭, 장시간 누수, runtime drift 감시용입니다. 무조건 실행하지 않고 필요하면 사용자에게 먼저 알립니다. UI 풀테스트 PASS를 대체하지 않습니다. |
-| UI 풀테스트 | 자율 브라우저 조작 또는 인앱 브라우저 직접 조작, role별 화면, 반응형, 시각 품질 evidence입니다. 30분/120분 안정화 PASS를 대체하지 않습니다. |
+| UI 풀테스트 | Codex 세션에서는 인앱 브라우저 직접 조작, Codex 밖 사용자 실행에서는 자율 Chrome/CDP 조작도 허용하는 role별 화면, 반응형, 시각 품질 evidence입니다. 30분/120분 안정화 PASS를 대체하지 않습니다. |
 
 따라서 결과 문서에는 `스크립트 테스트`와 `UI 풀테스트` 판정을 따로 적습니다.
 UI 풀테스트 판정값은 `PASS`와 `FAIL`만 사용합니다. 모든 기능을 실제 브라우저에서
@@ -48,6 +58,33 @@ UI 풀테스트 판정값은 `PASS`와 `FAIL`만 사용합니다. 모든 기능�
 - UI 시각 품질 확인
 - 발견 이슈 수정 후 같은 화면 재검수
 - 수동 결과 문서와 자동 검증 결과의 분리 기록
+
+## 2.1 긴 테스트 전 fail-fast 기준
+
+30분, 120분, UI 풀테스트는 시작 전에 실패 가능성이 높은 준비 문제를 먼저 끊어냅니다.
+아래 항목이 정리되지 않으면 긴 테스트를 시작하지 않습니다.
+
+- `project-feature-test-inventory.md`의 `v2.0.0 Pre-Test Update List`와
+  `Longrun/UI Fail-Fast Preflight`를 확인해 누락된 route/control/action을 먼저 고칩니다.
+- `/ops/vlm`, `/ops/events`, `/client/live`, `/client/dashboard`, `/client/events`의
+  VLM 관련 UI/비노출 항목이 result template에 없으면 UI 풀테스트를 시작하지 않습니다.
+- auth 테스트 비밀번호 환경변수, throwaway users/source/view/analysis/event/snapshot/clip
+  경로, seed dry-run/registry dir, output artifact 경로를 시작 전에 기록합니다.
+- `verify-product-ui-no-native-dialogs`와 `verify-ui-blocking-dialog-policy`를 UI 전
+  선수 gate로 계획합니다. native dialog가 남아 있으면 UI 풀테스트를 시작하지 않습니다.
+- 120분은 30분 또는 해당 high-risk short gate, 사용자 승인, RC/high-risk 사유,
+  memory/runtime 관찰 항목이 없으면 시작하지 않습니다.
+
+실패 후 재검수 범위:
+
+- preflight/list/fixture/auth env/output dir 실패는 긴 테스트 실패로 기록하지 않고,
+  해당 짧은 gate 또는 문서만 고친 뒤 다시 확인합니다.
+- 제품 runtime, media path, auth/session, registry seed를 바꾼 경우에는 영향을 받은
+  phase부터 재검수합니다. 최종 UI PASS는 모든 UI 대상 기능 ID의 evidence가 다시
+  충족될 때만 가능합니다.
+- 120분 실행 결과 summary/report/log가 이미 남아 있고 제품 runtime을 고치지 않았다면,
+  리포트 경로/문서 누락만으로 120분을 처음부터 다시 실행하지 않습니다. retained
+  artifact가 요구 범위를 직접 증명하지 못하면 PASS가 아니라 미확인으로 남깁니다.
 
 ## 3. 문서 파악
 
@@ -172,11 +209,13 @@ Ops:
 - `/ops/rules`
 - `/ops/users`
 - `/ops/events`
+- `/ops/vlm`
 
 Client:
 
 - `/client/live`
 - `/client/dashboard`
+- `/client/events`
 - `/client/request-access`
 
 Role/scope:
@@ -199,10 +238,20 @@ Role/scope:
 - Users: user create/edit, viewer scope, password reset, disable/restore, last admin guard,
   pending request approve/reject
 - Events: filters, include archives, prev/next, evidence/export action
+- VLM Ops: `/ops/vlm` install/model state, cloud opt-in guard, privacy transfer warning,
+  profile activation/fallback/disable/delete, raw details 접힘 영역
+- VLM Event Review: `/ops/events` VLM summary/explanation/false-positive hints/operator
+  questions 표시, client/viewer 비노출
 - Client Live: source tree, tile assignment, start/reconnect/stop, grid/density,
   dock side, info overlay, workspace actions, copy fallback, keyboard focus
 - Client Dashboard: filter, sort, status copy, event copy
 - Request Access: public submit, pending copy, approval before/after boundary
+- v2.0.0 VLM pre-test 반영: `/ops/vlm`의 local/cloud dry-run 후보, missing-model,
+  cloud-disabled, provider-timeout 안내, privacy transfer guard, profile 저장/
+  활성화/fallback/disable/delete, raw details 접힘 영역을 기능 ID별로 확인
+- v2.0.0 client redaction: `/client/live`, `/client/dashboard`, `/client/events`에서
+  VLM model, prompt, raw response, provider, internal review card, source/debug JSON이
+  보이지 않는지 기능 ID별로 확인
 
 위 목록은 실행 순서 요약입니다. 실제 기능 단위 범위는
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)의 기능 ID를
@@ -277,7 +326,8 @@ UI 풀테스트는 기능 검수와 같은 비중으로 시각 품질을 봅니�
 - `./server.sh verify-auth-users`
 - `./server.sh verify-auth-routes`
 - `./server.sh verify-ops-client-ui`
-- `./server.sh verify-ops-client-ui --screenshots`
+- Codex 세션: 인앱 브라우저 직접 확인 evidence
+- 인앱 브라우저 부재 외부 환경: `./server.sh verify-ops-client-ui --screenshots`
 - `./server.sh verify-product-ui-no-native-dialogs`
 - `./server.sh verify-ui-blocking-dialog-policy`
 - `./server.sh verify-ops-click-e2e`
@@ -296,6 +346,19 @@ UI 풀테스트는 기능 검수와 같은 비중으로 시각 품질을 봅니�
 장시간 테스트와 `verify-predev`는 사용자가 명시 요청하지 않으면 실행하지 않습니다.
 실행하지 않은 스크립트는 실행하지 않았다고 사실 기록만 남기며, UI 풀테스트의
 대체 evidence로 쓰지 않습니다.
+
+VLM UI 기준:
+
+- `/ops/vlm`의 model install readiness, missing-model, cloud-disabled, provider timeout
+  안내는 직접 클릭/선택/저장/삭제 결과로 확인합니다.
+- cloud opt-in guard는 opt-in 전 provider 호출/credential 저장이 없고, opt-in 후에도
+  dry-run 선택만 반영되는지 확인합니다.
+- `/ops/events` VLM review detail은 EventRecord evidence와 함께 표시되지만
+  Event POST/WebRTC/SSE/WS payload에 섞이지 않는지 스크립트 evidence와 분리합니다.
+- `/client/live`, `/client/dashboard`, `/client/events`에는 VLM model, prompt, raw
+  response, provider, internal review card가 보이지 않아야 합니다.
+- raw JSON/API-only 확인, `verify-ops-client-ui --browser-mode static`, screenshot만으로는
+  VLM UI 풀테스트 PASS가 아닙니다.
 
 ## 10. 토큰 사용량 기록
 

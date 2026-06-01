@@ -4,19 +4,18 @@
 
 ## 현재 기준
 
-- 현재 기준 버전: `v1.9.0`
+- 현재 기준 버전: `v2.0.0`
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
-- `v1.9.0`은 직전 release까지 닫은 source-only/live-only 제품 경계를 유지하면서
-  release/latest/docs evidence drift와 v2.0.0 진입 전 gate drift를 막는
-  maintenance-first source-only release입니다. Client Live workspace, source tree/dock event feed, tile
-  disconnect, event review, source group/site, tile info overlay, saved layout,
-  incident timeline, alert delivery, scenario builder, Ops/Client declutter는
-  현재 UI-first 제품 baseline으로 유지합니다.
-- 현재 제품 경계와 v1.9.0 종료 판정은 [development-backlog.md](./development-backlog.md)를
+- `v2.0.0`은 직전 release까지 닫은 source-only/live-only 제품 경계를 유지하면서
+  VLM을 이벤트 해석/리뷰 보조 계층으로 추가하는 source-only release입니다.
+  Client Live workspace, source tree/dock event feed, tile disconnect, event review,
+  source group/site, tile info overlay, saved layout, incident timeline, alert delivery,
+  scenario builder, Ops/Client declutter는 현재 UI-first 제품 baseline으로 유지합니다.
+- 현재 제품 경계와 v2.0.0 종료 판정은 [development-backlog.md](./development-backlog.md)를
   기준으로 합니다. 이전 release evidence는 현재 release pass/fail 기준으로
   재사용하지 않습니다.
 
-## `v1.9.0`에 포함되는 범위
+## `v2.0.0`에 포함되는 범위
 
 - Apache-2.0 소스 코드
 - 문서, 설정 예시, 검증 스크립트
@@ -83,10 +82,18 @@
 - CI/local gate parity와 release close-out one-shot dry-run gate
 - Published release evidence fallback policy와 auth/session/scope regression matrix
 - v1.9.0 final baseline and v2.0.0 entry report
+- VLM 도입 경계, 모델 선택 기준, PC capability detector, 추천 엔진
+- `/ops/vlm` 설치/연결 dry-run UI, VLM profile 저장, Privacy/전송 guard
+- VLM evaluation fixture harness, event evidence reference, VLMObservation sidecar
+- 이벤트 설명/오탐 힌트, Ops 이벤트 리뷰 UI의 VLM review detail
+- VLM summary 검색 후보와 Rule 추천 보조 후보
+- VLM 테스트 리허설, 장시간/UI 기준, close-out readiness와 2026-06-01 안정화/30분/UI/120분 evidence
 
-## `v1.9.0`에 포함하지 않는 범위
+## `v2.0.0`에 포함하지 않는 범위
 
 - FFmpeg/GStreamer/ONNX Runtime/YOLO model binary bundle
+- VLM model/runtime bundle, VLM default-on, 실제 VLM runtime 호출 보장
+- cloud provider API 호출 성공 보장, credential 저장, provider logging 운영 승인
 - container image, offline package, app bundle
 - 고객/현장 영상, 운영 evidence, auth store, log
 - 장기 운영 SLA, 외부 TURN credential 운영 보장, 장기 녹화/VMS/NVR 범위
@@ -116,7 +123,7 @@
 
 ## Tag와 release 기준
 
-- 현재 source-only release 기준 tag는 `v1.9.0`입니다.
+- 현재 source-only release 기준 tag는 `v2.0.0`입니다.
 - tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만 붙입니다.
 - source-only release에는 sample/model/runtime binary를 추가 업로드하지 않습니다.
 - binary/container/offline bundle은 별도 RC gate와 bundle policy 검토를 통과한 뒤 별도 release로 다룹니다.

@@ -258,6 +258,52 @@ Usage:
                  root/login/ops/client와 Lab API role 기반 route 정책을 검증합니다.
   verify-auth-regression-matrix
                  Auth/session/scope regression matrix와 verifier coverage를 검증합니다.
+  verify-vlm-boundary
+                 v2.0.0 VLM 도입 경계와 기존 event/metadata/media contract 불변 조건을 검증합니다.
+  verify-vlm-selection-decision
+                 v2.0.0 VLM 모델 선택값, fallback, license/privacy/bundle gate를 검증합니다.
+  detect-vlm-pc-capability
+                 v2.0.0 VLM PC 사양 감지 정보를 local-only JSON으로 수집합니다.
+  verify-vlm-pc-capability
+                 v2.0.0 VLM PC 사양 감지 detector와 fixture matrix를 검증합니다.
+  recommend-vlm-model
+                 v2.0.0 VLM 추천 모델/대안/비추천 사유와 resource estimate를 산출합니다.
+  verify-vlm-recommendation-engine
+                 v2.0.0 VLM 추천 엔진과 low/standard/high/privacy fixture matrix를 검증합니다.
+  verify-vlm-install-connection-scope-gate
+                 v2.0.0 VLM 설치/연결 UI 착수 범위 gate를 검증합니다.
+  vlm-install-connection-dry-run
+                 v2.0.0 VLM 설치/연결 dry-run contract JSON을 산출합니다.
+  verify-vlm-install-connection-dry-run
+                 v2.0.0 VLM 설치/연결 dry-run contract와 fixture matrix를 검증합니다.
+  verify-vlm-install-connection-ui
+                 v2.0.0 VLM 설치/연결 Ops UI와 dry-run API 경계를 검증합니다.
+  verify-vlm-profile-storage
+                 v2.0.0 VLM profile 저장 API/UI/fixture/auth 경계를 검증합니다.
+  evaluate-vlm-harness
+                 v2.0.0 VLM 평가 harness fixture report를 산출합니다.
+  verify-vlm-evaluation-harness
+                 v2.0.0 VLM 평가 harness와 latency/품질/JSON/언어 fixture를 검증합니다.
+  verify-vlm-event-evidence-extraction
+                 v2.0.0 VLM event evidence reference 추출 경계를 검증합니다.
+  verify-vlm-observation-sidecar
+                 v2.0.0 VLMObservation sidecar 저장소와 EventRecord 상관 경계를 검증합니다.
+  generate-vlm-event-explanation
+                 v2.0.0 VLM 이벤트 설명/오탐 힌트 fixture report를 산출합니다.
+  verify-vlm-event-explanation-hints
+                 v2.0.0 VLM 이벤트 설명/오탐 힌트와 JSON 안정성을 검증합니다.
+  verify-vlm-ops-event-review-ui
+                 v2.0.0 Ops 이벤트 리뷰 UI의 VLM 설명/evidence 표시 경계를 검증합니다.
+  verify-vlm-privacy-transfer-guard
+                 v2.0.0 Privacy/전송 guard와 provider logging/redaction 경계를 검증합니다.
+  verify-vlm-summary-search-candidates
+                 v2.0.0 VLM summary 검색 후보와 sidecar/EventRecord correlation 경계를 검증합니다.
+  verify-vlm-rule-suggestion-candidates
+                 v2.0.0 VLM Rule 추천 보조 후보와 no-auto-apply 경계를 검증합니다.
+  verify-vlm-test-rehearsal
+                 v2.0.0 VLM 간이 테스트 리허설과 failure fixture/cleanup/lifecycle 경계를 검증합니다.
+  verify-vlm-closeout-readiness
+                 v2.0.0 VLM close-out readiness report와 release evidence 분리 기준을 검증합니다.
   verify-event-post
                  VA event POST payload, 실패/cooldown/queue 상태를 검증합니다.
   verify-integrator-contract-artifact
@@ -872,6 +918,98 @@ case "${cmd}" in
   verify-auth-regression-matrix)
     require_internal verify_auth_regression_matrix.mjs
     exec "${INTERNAL_DIR}/verify_auth_regression_matrix.mjs" "$@"
+    ;;
+  verify-vlm-boundary)
+    require_internal verify_vlm_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_boundary.mjs" "$@"
+    ;;
+  verify-vlm-selection-decision)
+    require_internal verify_vlm_selection_decision.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_selection_decision.mjs" "$@"
+    ;;
+  detect-vlm-pc-capability)
+    require_internal detect_vlm_pc_capability.mjs
+    exec "${INTERNAL_DIR}/detect_vlm_pc_capability.mjs" "$@"
+    ;;
+  verify-vlm-pc-capability)
+    require_internal verify_vlm_pc_capability_detector.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_pc_capability_detector.mjs" "$@"
+    ;;
+  recommend-vlm-model)
+    require_internal recommend_vlm_model.mjs
+    exec "${INTERNAL_DIR}/recommend_vlm_model.mjs" "$@"
+    ;;
+  verify-vlm-recommendation-engine)
+    require_internal verify_vlm_recommendation_engine.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_recommendation_engine.mjs" "$@"
+    ;;
+  verify-vlm-install-connection-scope-gate)
+    require_internal verify_vlm_install_connection_scope_gate.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_install_connection_scope_gate.mjs" "$@"
+    ;;
+  vlm-install-connection-dry-run)
+    require_internal vlm_install_connection_dry_run.mjs
+    exec "${INTERNAL_DIR}/vlm_install_connection_dry_run.mjs" "$@"
+    ;;
+  verify-vlm-install-connection-dry-run)
+    require_internal verify_vlm_install_connection_dry_run.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_install_connection_dry_run.mjs" "$@"
+    ;;
+  verify-vlm-install-connection-ui)
+    require_internal verify_vlm_install_connection_ui.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_install_connection_ui.mjs" "$@"
+    ;;
+  verify-vlm-profile-storage)
+    require_internal verify_vlm_profile_storage.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_profile_storage.mjs" "$@"
+    ;;
+  evaluate-vlm-harness)
+    require_internal evaluate_vlm_harness.mjs
+    exec "${INTERNAL_DIR}/evaluate_vlm_harness.mjs" "$@"
+    ;;
+  verify-vlm-evaluation-harness)
+    require_internal verify_vlm_evaluation_harness.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_evaluation_harness.mjs" "$@"
+    ;;
+  verify-vlm-event-evidence-extraction)
+    require_internal verify_vlm_event_evidence_extraction.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_event_evidence_extraction.mjs" "$@"
+    ;;
+  verify-vlm-observation-sidecar)
+    require_internal verify_vlm_observation_sidecar.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_observation_sidecar.mjs" "$@"
+    ;;
+  generate-vlm-event-explanation)
+    require_internal generate_vlm_event_explanation.mjs
+    exec "${INTERNAL_DIR}/generate_vlm_event_explanation.mjs" "$@"
+    ;;
+  verify-vlm-event-explanation-hints)
+    require_internal verify_vlm_event_explanation_hints.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_event_explanation_hints.mjs" "$@"
+    ;;
+  verify-vlm-ops-event-review-ui)
+    require_internal verify_vlm_ops_event_review_ui.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_ops_event_review_ui.mjs" "$@"
+    ;;
+  verify-vlm-privacy-transfer-guard)
+    require_internal verify_vlm_privacy_transfer_guard.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_privacy_transfer_guard.mjs" "$@"
+    ;;
+  verify-vlm-summary-search-candidates)
+    require_internal verify_vlm_summary_search_candidates.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_summary_search_candidates.mjs" "$@"
+    ;;
+  verify-vlm-rule-suggestion-candidates)
+    require_internal verify_vlm_rule_suggestion_candidates.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_rule_suggestion_candidates.mjs" "$@"
+    ;;
+  verify-vlm-test-rehearsal)
+    require_internal verify_vlm_test_rehearsal.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_test_rehearsal.mjs" "$@"
+    ;;
+  verify-vlm-closeout-readiness)
+    require_internal verify_vlm_closeout_readiness.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_closeout_readiness.mjs" "$@"
     ;;
   verify-event-post)
     require_internal verify_event_post_dispatch.sh

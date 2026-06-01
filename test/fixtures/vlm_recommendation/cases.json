@@ -1,0 +1,130 @@
+{
+  "schema": "media-server.vlm-recommendation-fixtures.v1",
+  "targetStep": "V200-S03",
+  "purpose": "Synthetic VLM recommendation matrix for low/standard/high/unsupported PC classes and local/cloud privacy modes.",
+  "pcCapabilityFixture": "test/fixtures/vlm_pc_capability/cases.json",
+  "selectionDecisionFixture": "test/fixtures/vlm_model_catalog/selection_decision.json",
+  "cases": [
+    {
+      "id": "unsupported-local-only",
+      "pcCapabilityCase": "linux-cpu-only",
+      "privacyMode": "local-only",
+      "expected": {
+        "status": "not-recommended",
+        "primaryModel": null,
+        "alternativesInclude": [],
+        "notRecommendedInclude": [
+          "Qwen/Qwen3-VL-4B-Instruct",
+          "Qwen/Qwen3-VL-8B-Instruct",
+          "Qwen/Qwen3-VL-30B-A3B-Instruct",
+          "gemini-2.5-flash",
+          "Gemma family"
+        ],
+        "externalTransferAllowed": false,
+        "hardwareClass": "local-unsupported"
+      }
+    },
+    {
+      "id": "unsupported-cloud-allowed",
+      "pcCapabilityCase": "macos-intel-cpu-only",
+      "privacyMode": "cloud-allowed",
+      "expected": {
+        "status": "recommended",
+        "primaryModel": "gemini-2.5-flash",
+        "alternativesInclude": [],
+        "notRecommendedInclude": [
+          "Qwen/Qwen3-VL-4B-Instruct",
+          "Qwen/Qwen3-VL-8B-Instruct",
+          "Qwen/Qwen3-VL-30B-A3B-Instruct",
+          "Gemma family"
+        ],
+        "externalTransferAllowed": true,
+        "hardwareClass": "local-unsupported"
+      }
+    },
+    {
+      "id": "low-local-only",
+      "pcCapabilityCase": "linux-nvidia-8gb",
+      "privacyMode": "local-only",
+      "expected": {
+        "status": "recommended",
+        "primaryModel": "Qwen/Qwen3-VL-4B-Instruct",
+        "alternativesInclude": [],
+        "notRecommendedInclude": [
+          "Qwen/Qwen3-VL-8B-Instruct",
+          "Qwen/Qwen3-VL-30B-A3B-Instruct",
+          "gemini-2.5-flash",
+          "Gemma family"
+        ],
+        "externalTransferAllowed": false,
+        "hardwareClass": "local-low"
+      }
+    },
+    {
+      "id": "standard-cloud-allowed",
+      "pcCapabilityCase": "linux-nvidia-12gb",
+      "privacyMode": "cloud-allowed",
+      "expected": {
+        "status": "recommended",
+        "primaryModel": "Qwen/Qwen3-VL-8B-Instruct",
+        "alternativesInclude": [
+          "Qwen/Qwen3-VL-4B-Instruct",
+          "gemini-2.5-flash"
+        ],
+        "notRecommendedInclude": [
+          "Qwen/Qwen3-VL-30B-A3B-Instruct",
+          "Gemma family"
+        ],
+        "externalTransferAllowed": true,
+        "hardwareClass": "local-standard"
+      }
+    },
+    {
+      "id": "high-cloud-disabled",
+      "pcCapabilityCase": "macos-apple-silicon-48gb",
+      "privacyMode": "cloud-disabled",
+      "expected": {
+        "status": "recommended",
+        "primaryModel": "Qwen/Qwen3-VL-30B-A3B-Instruct",
+        "alternativesInclude": [
+          "Qwen/Qwen3-VL-8B-Instruct"
+        ],
+        "notRecommendedInclude": [
+          "gemini-2.5-flash",
+          "Gemma family"
+        ],
+        "externalTransferAllowed": false,
+        "hardwareClass": "local-high",
+        "warningsInclude": [
+          "local-high-candidate-requires-v200-s06-evaluation"
+        ]
+      }
+    },
+    {
+      "id": "standard-missing-runtime-tools",
+      "pcCapabilityCase": "missing-runtime-tools",
+      "privacyMode": "local-only",
+      "expected": {
+        "status": "recommended",
+        "primaryModel": "Qwen/Qwen3-VL-8B-Instruct",
+        "alternativesInclude": [
+          "Qwen/Qwen3-VL-4B-Instruct"
+        ],
+        "notRecommendedInclude": [
+          "Qwen/Qwen3-VL-30B-A3B-Instruct",
+          "gemini-2.5-flash",
+          "Gemma family"
+        ],
+        "externalTransferAllowed": false,
+        "hardwareClass": "local-standard",
+        "runtimeReadiness": "missing",
+        "warningsInclude": [
+          "docker-missing",
+          "ollama-cli-missing",
+          "vllm-module-missing",
+          "local-runtime-missing"
+        ]
+      }
+    }
+  ]
+}

@@ -8,7 +8,9 @@ import process from "node:process";
 
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
 import {
+  browserFallbackUnavailableMessage,
   findChrome,
+  isCodexInAppBrowserEnvironment,
   isTruthy,
   openBrowserPage,
   parseWidthList,
@@ -26,11 +28,17 @@ Usage:
 Options:
   --http-base <url>         실행 중인 서버 HTTP base입니다. 기본 http://127.0.0.1:8081.
   --timeout-ms <ms>         HTTP/브라우저 대기 시간입니다. 기본 30000.
+  --browser-mode <mode>     auto, in-app, chrome, static 중 하나입니다. 기본 auto.
+  --in-app-evidence <path>  Codex 인앱 브라우저 직접 확인 evidence JSON입니다.
   --screenshots[=1]         대표 화면 screenshot smoke를 함께 수행합니다.
-  --chrome-path <path>      Chrome/Chromium 실행 파일 경로입니다.
+  --allow-chrome-fallback[=1]
+                            인앱 브라우저가 없는 외부 환경에서 Chrome fallback을 허용합니다.
+                            Codex 세션에서는 --browser-mode chrome과 함께 지정한 명시
+                            예외일 때만 Chrome fallback을 허용합니다.
+  --chrome-path <path>      fallback용 Chrome/Chromium 실행 파일 경로입니다.
   --visual-widths <csv>     screenshot 검증 viewport 폭 목록입니다. 기본 320,390,760,1180.
   --visual-height <px>      screenshot 검증 viewport 높이입니다. 기본 900.
-  --debug-port-base <port>  Chrome CDP port 시작값입니다. 기본 9700.
+  --debug-port-base <port>  fallback용 Chrome CDP port 시작값입니다. 기본 9700.
   --output-dir <path>       screenshot/log 출력 디렉터리입니다.
   -h, --help                도움말 출력
 `);
@@ -38,7 +46,10 @@ Options:
 assertKnownOptions(rawArgs, [
   "http-base",
   "timeout-ms",
+  "browser-mode",
+  "in-app-evidence",
   "screenshots",
+  "allow-chrome-fallback",
   "chrome-path",
   "visual-widths",
   "visual-height",
@@ -50,14 +61,27 @@ assertKnownOptions(rawArgs, [
 const args = parseArgs(rawArgs);
 const httpBase = (args.httpBase || "http://127.0.0.1:8081").replace(/\/+$/, "");
 const timeoutMs = Number(args.timeoutMs || 30000);
+const browserMode = normalizeBrowserMode(args.browserMode || process.env.MEDIA_SERVER_UI_BROWSER_MODE || "auto");
+if (browserMode === "chrome" && isTruthy(args.allowChromeFallback)) {
+  process.env.MEDIA_SERVER_UI_BROWSER_MODE = "chrome";
+  process.env.MEDIA_SERVER_ALLOW_CHROME_FALLBACK = "1";
+}
+const inAppEvidencePath = args.inAppEvidence || process.env.MEDIA_SERVER_IN_APP_BROWSER_EVIDENCE || "";
+const inAppEvidence = loadInAppEvidence(inAppEvidencePath);
+const codexInAppBrowserAvailable = isCodexInAppBrowserAvailable();
+const chromeFallbackAllowed = shouldAllowChromeFallback();
 const screenshotEnabled = isTruthy(args.screenshots);
-const chromePath = args.chromePath || findChrome();
+const chromePath = chromeFallbackAllowed ? (args.chromePath || findChrome()) : "";
 const visualWidths = parseWidthList(args.visualWidths || "320,390,760,1180");
 const visualHeight = Number(args.visualHeight || 900);
 const debugPortBase = Number(args.debugPortBase || 9700);
 const runId = `ops-client-ui-${Date.now()}-${process.pid}`;
 const outputDir = args.outputDir || path.join(os.tmpdir(), `media_server_${runId}`);
 const clientLiveA11ySnapshot = JSON.parse(fs.readFileSync(path.join(process.cwd(), "test/fixtures/client_live_tile_a11y_i18n_snapshot.json"), "utf8"));
+
+if (codexInAppBrowserAvailable && chromeFallbackAllowed && !(browserMode === "chrome" && isTruthy(process.env.MEDIA_SERVER_ALLOW_CHROME_FALLBACK))) {
+  throw new Error(browserFallbackUnavailableMessage());
+}
 
 const productShellMust = [
   'class="product-shell',
@@ -98,7 +122,7 @@ const pageChecks = [
   {
     name: "ops-events",
     path: "/ops/events",
-    must: ['data-testid="ops-events-page"', 'data-route-scope="direct-diagnostic"', 'Primary nav에는 표시하지 않는 direct/diagnostic route', 'id="opsEventsRefresh"', '/ops/api/events/status', 'data-testid="ops-alert-delivery-integrations"', 'data-alert-contract="separate-from-event-post-payload"', 'id="alertDeliverySave"', 'id="alertDeliveryTest"', '/ops/api/alerts/deliveries', '/ops/api/alerts/deliveries/test', 'data-testid="ops-event-review-inbox"', 'data-review-state="separate-from-event-post-payload"', 'id="eventReviewStatusFilter"', '/ops/api/events/reviews'],
+    must: ['data-testid="ops-events-page"', 'data-route-scope="direct-diagnostic"', 'Primary nav에는 표시하지 않는 direct/diagnostic route', 'id="opsEventsRefresh"', '/ops/api/events/status', 'data-testid="ops-alert-delivery-integrations"', 'data-alert-contract="separate-from-event-post-payload"', 'id="alertDeliverySave"', 'id="alertDeliveryTest"', '/ops/api/alerts/deliveries', '/ops/api/alerts/deliveries/test', 'data-testid="ops-event-review-inbox"', 'data-review-state="separate-from-event-post-payload"', 'data-vlm-review-state="ops-only-event-record-evidence"', 'id="eventReviewStatusFilter"', '/ops/api/events/reviews'],
     mustNot: ['href="/ops/events"'],
   },
   {
@@ -120,6 +144,13 @@ const pageChecks = [
     path: "/ops/users",
     visualSelector: '[data-testid="ops-users-page"]',
     must: ['data-testid="ops-users-page"', 'data-testid="user-lifecycle-policy"', 'id="users-body"', 'id="access-requests-body"', 'id="request-invite-output"', 'data-testid="ops-invites-panel"', 'id="invite-create-form"', 'id="invite-list-body"', 'id="invite-create-output"', 'id="invite-status"', '/ops/api/invites', '토큰/토큰 해시를 노출하지 않습니다', 'id="user-detail-panel"', 'id="user-edit-selected"', 'id="user-save-selected"', 'id="user-close"', 'id="view-assignment"', 'id="view-assignment-options"', 'data-testid="user-channel-assignment-list"', 'data-assignment-view', 'selectedAssignmentViewIds', 'viewId: selectedViewIds[0] ||', 'scopeTemplateForRole(role, selectedViewIds)', 'clientViewLocationLabel', '사이트/그룹', 'id="user-lifecycle-summary"', 'id="user-reset-password-panel"', 'id="user-reset-password-button"', 'data-user-reset-password', 'data-user-set-enabled', '초대 링크는 기본 24시간 동안만 유효', '사용자 감사 JSON/CSV/Diff JSON export', '승인 전: 로그인/세션/채널 권한 없음', '초대 링크 만료', '/ops/api/access-requests'],
+  },
+  {
+    name: "ops-vlm",
+    path: "/ops/vlm",
+    visualSelector: '[data-testid="ops-vlm-page"]',
+    must: ['data-testid="ops-vlm-page"', 'data-testid="ops-vlm-controls"', 'data-testid="ops-vlm-options-panel"', 'data-testid="ops-vlm-privacy-transfer-guard-panel"', 'data-testid="ops-vlm-profile-panel"', 'data-testid="ops-vlm-boundary-panel"', 'id="opsVlmExternalTransferWarningAck"', 'id="opsVlmProviderLoggingReviewed"', 'id="opsVlmPrivacyGuardList"', 'id="opsVlmSaveProfile"', '/ops/api/vlm/install-connection/dry-run', '/ops/api/vlm/profiles', 'media-server.vlm-privacy-transfer-guard.v1', 'credential, prompt, raw response, source URL, raw frame bytes'],
+    mustNot: ['cloudProviderApiCalled":true', 'viewerClientExposureAdded":true', 'runtimeVlmCallPerformed":true'],
   },
   {
     name: "client-live",
@@ -261,7 +292,15 @@ if (failures.length > 0) {
   process.exit(1);
 }
 
-if (screenshotEnabled) {
+if (screenshotEnabled && browserMode === "static") {
+  console.log("[skip] screenshots: static mode는 브라우저 렌더링을 수행하지 않습니다.");
+} else if (screenshotEnabled && inAppEvidence) {
+  const evidenceResult = assertInAppScreenshotEvidence();
+  if (evidenceResult.failCount > 0) process.exit(1);
+} else if (screenshotEnabled && !chromeFallbackAllowed) {
+  console.log("[fail] screenshots: Codex 환경에서는 --in-app-evidence로 인앱 브라우저 evidence를 전달해야 합니다.");
+  process.exit(1);
+} else if (screenshotEnabled) {
   const result = await runVisualSmoke({
     checks: pageChecks
       .filter((check) => check.visualSelector)
@@ -305,6 +344,161 @@ if (screenshotEnabled) {
     visualHeight,
     checks: pageChecks.filter((check) => check.visualSelector),
   });
+}
+
+function normalizeBrowserMode(value) {
+  const mode = String(value || "auto").trim().toLowerCase();
+  if (["auto", "in-app", "chrome", "static"].includes(mode)) {
+    return mode;
+  }
+  throw new Error(`invalid browser mode: ${value}`);
+}
+
+function isCodexInAppBrowserAvailable() {
+  return isCodexInAppBrowserEnvironment();
+}
+
+function shouldAllowChromeFallback() {
+  if (browserMode === "chrome") {
+    if (codexInAppBrowserAvailable) {
+      return isTruthy(args.allowChromeFallback) || isTruthy(process.env.MEDIA_SERVER_ALLOW_CHROME_FALLBACK);
+    }
+    return true;
+  }
+  if (browserMode === "in-app" || browserMode === "static" || inAppEvidence) {
+    return false;
+  }
+  if (codexInAppBrowserAvailable) {
+    return false;
+  }
+  if (args.allowChromeFallback != null) {
+    return isTruthy(args.allowChromeFallback);
+  }
+  if (process.env.MEDIA_SERVER_ALLOW_CHROME_FALLBACK != null) {
+    return isTruthy(process.env.MEDIA_SERVER_ALLOW_CHROME_FALLBACK);
+  }
+  return true;
+}
+
+function loadInAppEvidence(evidencePath) {
+  if (!evidencePath) {
+    return null;
+  }
+  const resolved = path.resolve(evidencePath);
+  let parsed;
+  try {
+    parsed = JSON.parse(fs.readFileSync(resolved, "utf8"));
+  } catch (error) {
+    throw new Error(`invalid in-app browser evidence ${resolved}: ${error.message}`);
+  }
+  if (parsed?.schema !== "media-server.in-app-browser-ui-evidence.v1") {
+    throw new Error(`invalid in-app browser evidence schema: ${parsed?.schema || "(missing)"}`);
+  }
+  const browserName = String(parsed.browser || parsed.browserId || parsed.source || "");
+  if (!/in-app|iab|codex/i.test(browserName)) {
+    throw new Error("in-app browser evidence must identify Codex in-app browser/iab as the browser source");
+  }
+  return { ...parsed, path: resolved };
+}
+
+function skippedBrowserResult(label, reason) {
+  console.log(`[skip] ${label}: ${reason}`);
+  return { passCount: 0, failCount: 0, failures: [] };
+}
+
+function failedBrowserResult(label, reason) {
+  console.log(`[fail] ${label}: ${reason}`);
+  return { passCount: 0, failCount: 1, failures: [`[${label}] ${reason}`] };
+}
+
+function missingInAppEvidenceResult(label) {
+  return failedBrowserResult(label, "Codex 환경에서는 --in-app-evidence로 인앱 브라우저 직접 확인 결과를 전달해야 합니다.");
+}
+
+function evidenceRoutes() {
+  return Array.isArray(inAppEvidence?.routes) ? inAppEvidence.routes : [];
+}
+
+function evidenceInteractions() {
+  return Array.isArray(inAppEvidence?.interactions) ? inAppEvidence.interactions : [];
+}
+
+function findEvidenceRoute(routePath) {
+  return evidenceRoutes().find((route) => route?.path === routePath || route?.url?.endsWith(routePath));
+}
+
+function assertInAppRenderedLeakEvidence() {
+  const result = { passCount: 0, failCount: 0, failures: [] };
+  for (const routePath of ["/client/live", "/client/dashboard", "/client/events"]) {
+    const route = findEvidenceRoute(routePath);
+    if (!route) {
+      result.failCount += 1;
+      result.failures.push(`[in-app-rendered-leak] missing route evidence: ${routePath}`);
+      console.log(`[fail] in-app-rendered-leak ${routePath}: route evidence missing`);
+      continue;
+    }
+    const hits = route.forbiddenTextHits || route.clientForbiddenTextHits || [];
+    const explicitPass = route.checks?.noClientForbiddenText === true || route.noClientForbiddenText === true;
+    if (Array.isArray(hits) && hits.length === 0 && explicitPass) {
+      result.passCount += 1;
+      console.log(`[pass] in-app-rendered-leak ${routePath}: forbidden text count 0`);
+      continue;
+    }
+    const details = Array.isArray(hits) && hits.length > 0 ? hits.join(", ") : "noClientForbiddenText check missing";
+    result.failCount += 1;
+    result.failures.push(`[in-app-rendered-leak ${routePath}] ${details}`);
+    console.log(`[fail] in-app-rendered-leak ${routePath}: ${details}`);
+  }
+  return result;
+}
+
+function assertInAppInteractionEvidence(label, requiredIds) {
+  const interactions = evidenceInteractions();
+  let localPass = 0;
+  let localFail = 0;
+  const localFailures = [];
+  for (const id of requiredIds) {
+    const item = interactions.find((entry) => entry?.id === id);
+    if (item?.pass === true) {
+      localPass += 1;
+      console.log(`[pass] in-app ${id}`);
+      continue;
+    }
+    const reason = item ? (item.reason || "pass is not true") : "interaction evidence missing";
+    localFail += 1;
+    localFailures.push(`[${id}] ${reason}`);
+    console.log(`[fail] in-app ${id}: ${reason}`);
+  }
+  return { passCount: localPass, failCount: localFail, failures: localFailures.map((failure) => `[${label}] ${failure}`) };
+}
+
+function assertInAppScreenshotEvidence() {
+  const visualRoutes = pageChecks.filter((check) => check.visualSelector).map((check) => check.path);
+  const result = { passCount: 0, failCount: 0, failures: [] };
+  for (const routePath of visualRoutes) {
+    const route = findEvidenceRoute(routePath);
+    const screenshots = Array.isArray(route?.screenshots) ? route.screenshots : [];
+    if (route?.checks?.visualLayoutPass === true && screenshots.length > 0) {
+      result.passCount += 1;
+      console.log(`[pass] in-app screenshot evidence ${routePath}: screenshots=${screenshots.length}`);
+      continue;
+    }
+    const reason = route ? "visualLayoutPass/screenshot evidence missing" : "route evidence missing";
+    result.failCount += 1;
+    result.failures.push(`[in-app-screenshots ${routePath}] ${reason}`);
+    console.log(`[fail] in-app screenshot evidence ${routePath}: ${reason}`);
+  }
+  console.log("");
+  console.log("== In-app browser screenshot evidence 요약 ==");
+  console.log(`- 통과: ${result.passCount}`);
+  console.log(`- 실패: ${result.failCount}`);
+  if (result.failures.length > 0) {
+    console.log("- 실패 상세:");
+    for (const failure of result.failures) {
+      console.log(`  - ${failure}`);
+    }
+  }
+  return result;
 }
 
 function clientForbiddenText() {
@@ -376,10 +570,18 @@ function assertOpsPrimaryNavContract(name, html) {
 }
 
 async function runClientRenderedLeakSmoke() {
+  if (browserMode === "static") {
+    return skippedBrowserResult("client-rendered-leak", "static mode는 렌더링 검사를 수행하지 않습니다.");
+  }
+  if (inAppEvidence) {
+    return assertInAppRenderedLeakEvidence();
+  }
+  if (!chromeFallbackAllowed) {
+    return missingInAppEvidenceResult("client-rendered-leak");
+  }
   const result = { passCount: 0, failCount: 0, failures: [] };
   if (!chromePath) {
-    console.log("[skip] client-rendered-leak: Chrome executable not found");
-    return result;
+    return failedBrowserResult("client-rendered-leak", "Chrome fallback requested but executable was not found");
   }
   const clientPaths = [
     { name: "client-live-rendered-leak", path: "/client/live" },
@@ -793,8 +995,21 @@ async function runClientLiveTileKeyboardSmoke() {
 }
 
 async function runOpsAdminFormRegressionSmoke() {
+  if (browserMode === "static") {
+    return skippedBrowserResult("ops-admin-form-regression", "static mode는 브라우저 조작 검사를 수행하지 않습니다.");
+  }
+  if (inAppEvidence) {
+    return assertInAppInteractionEvidence("ops-admin-form-regression", [
+      "ops-sources-generated-channel-id",
+      "ops-rules-generated-id-displays",
+      "ops-users-multi-channel-assignment",
+    ]);
+  }
+  if (!chromeFallbackAllowed) {
+    return missingInAppEvidenceResult("ops-admin-form-regression");
+  }
   if (!chromePath) {
-    return { passCount: 0, failCount: 1, failures: ["[ops-admin-form-regression] Chrome executable not found"] };
+    return failedBrowserResult("ops-admin-form-regression", "Chrome fallback requested but executable was not found");
   }
   const cases = [
     {

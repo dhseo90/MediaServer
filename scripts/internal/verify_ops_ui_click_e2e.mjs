@@ -2535,7 +2535,26 @@ async function changePasswordViaForm(browser, currentPassword, nextPassword) {
   await setTextValue(browser, 'form[action="/password/change"] [name="password"]', nextPassword, "비밀번호 변경 새 비밀번호");
   await setTextValue(browser, 'form[action="/password/change"] [name="confirm"]', nextPassword, "비밀번호 변경 새 비밀번호 확인");
   await clickSelector(browser, 'form[action="/password/change"] button[type="submit"]', "비밀번호 변경 제출");
-  await waitForPath(browser, "/login");
+  const outcome = await waitForResult(
+    browser,
+    `
+      (() => {
+        const pathname = window.location.pathname;
+        const error = document.querySelector('.auth-form .message.error')?.textContent?.trim() || '';
+        return {
+          ok: document.readyState === 'complete' && pathname === '/login',
+          failed: document.readyState === 'complete' && pathname === '/password/change' && Boolean(error),
+          pathname,
+          error,
+        };
+      })()
+    `,
+    result => result?.ok === true || result?.failed === true,
+    "비밀번호 변경 결과",
+  );
+  if (outcome?.failed) {
+    throw new Error(`비밀번호 변경 실패: ${outcome.error}`);
+  }
 }
 
 async function assertWhoami(browser, expected, description) {

@@ -3768,6 +3768,386 @@ void AppendOpsShellScript(std::ostringstream& out,
         renderRaw('opsDashboardRaw', 'opsDashboardPretty', runtime);
         window.MediaServerUi?.translatePage?.();
       }
+      let opsVlmSelectedOptionId = '';
+      let opsVlmLastPayload = null;
+      let opsVlmProfiles = [];
+      let opsVlmPendingDelete = '';
+      const opsVlmControlValue = (id, fallback = '') => {
+        const element = document.getElementById(id);
+        return element ? String(element.value || fallback) : fallback;
+      };
+      const opsVlmProfileStatus = (message, failed = false) => {
+        setFeedback(document.getElementById('opsVlmProfileStatus'), message, failed, { collapseEmpty: true });
+      };
+      const opsVlmSlug = value => String(value || '')
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9_.-]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 72) || 'profile';
+      const opsVlmResourceText = option => {
+        const estimate = option?.impact?.resourceEstimate || {};
+        const memory = estimate.memory?.localWorkingSetGb;
+        const disk = estimate.disk?.modelArtifactGb;
+        const latency = estimate.latency || {};
+        const pieces = [];
+        if (memory != null) pieces.push(`memory ${memory}GB`);
+        if (disk != null) pieces.push(`disk ${disk}GB`);
+        if (latency.p50Seconds != null && latency.p95Seconds != null) {
+          pieces.push(`P50 ${latency.p50Seconds}s / P95 ${latency.p95Seconds}s`);
+        } else if (latency.label) {
+          pieces.push(latency.label);
+        }
+        return pieces.length ? pieces.join(' · ') : 'planning estimate 미제공';
+      };
+      const opsVlmSelectedOption = () => {
+        const options = Array.isArray(opsVlmLastPayload?.options) ? opsVlmLastPayload.options : [];
+        return options.find(option => option.id === opsVlmSelectedOptionId) || null;
+      };
+      const opsVlmOptionUsesExternalTransfer = option =>
+        option?.externalTransfer === true || option?.actionType === 'cloud-api-connection-dry-run';
+      const opsVlmRuntimeForOption = option => {
+        if (option?.actionType === 'cloud-api-connection-dry-run') return 'provider-api';
+        const readiness = option?.impact?.localRuntimeReadiness || {};
+        if (readiness.status === 'ready') return readiness.vllmModuleAvailable ? 'vllm' : 'ollama';
+        return 'not-configured';
+      };
+      const renderOpsVlmPrivacyTransferGuard = payload => {
+        const selected = opsVlmSelectedOption();
+        const guard = selected?.privacyTransferGuard || payload?.privacyTransferGuard || {};
+        const redaction = guard.redaction || {};
+        const providerLogging = guard.providerLoggingPolicy || {};
+        const usesExternalTransfer = opsVlmOptionUsesExternalTransfer(selected);
+        const externalAck = document.getElementById('opsVlmExternalTransferWarningAck');
+        const providerReviewed = document.getElementById('opsVlmProviderLoggingReviewed');
+        if (externalAck) {
+          externalAck.disabled = !usesExternalTransfer;
+          externalAck.checked = usesExternalTransfer ? payload?.privacy?.cloudOptInState === 'acknowledged' : false;
+        }
+        if (providerReviewed) {
+          providerReviewed.disabled = !usesExternalTransfer;
+          if (!usesExternalTransfer) providerReviewed.checked = false;
+        }
+        renderBadges('opsVlmPrivacyGuardBadges', [
+          { text: usesExternalTransfer ? '외부 전송 후보' : 'local-only 후보', tone: usesExternalTransfer ? 'warn' : '' },
+          { text: redaction.credentialMaterialStored === false ? 'credential 비저장' : 'credential 확인 필요', tone: redaction.credentialMaterialStored === false ? '' : 'warn' },
+          { text: redaction.promptStored === false ? 'prompt 비저장' : 'prompt 확인 필요', tone: redaction.promptStored === false ? '' : 'warn' },
+          { text: redaction.rawProviderResponseStored === false ? 'raw response 비저장' : 'raw response 확인 필요', tone: redaction.rawProviderResponseStored === false ? '' : 'warn' },
+          { text: redaction.sourceUrlStored === false ? 'source URL 비저장' : 'source URL 확인 필요', tone: redaction.sourceUrlStored === false ? '' : 'warn' }
+        ]);
+        const root = document.getElementById('opsVlmPrivacyGuardList');
+        if (root) {
+          root.innerHTML = [
+            {
+              title: '외부 전송',
+              text: usesExternalTransfer
+                ? 'cloud provider 후보는 profile 저장 전 외부 전송 경고 확인과 provider policy 검토가 필요합니다.'
+                : 'local 후보는 외부 provider 전송을 만들지 않습니다.',
+              state: usesExternalTransfer ? (externalAck?.checked ? 'acknowledged' : 'ack-required') : 'not-applicable'
+            },
+            {
+              title: 'Provider logging',
+              text: usesExternalTransfer
+                ? 'provider logging/retention/terms 검토는 저장 payload의 privacyGuard에 accepted 상태로 남깁니다.'
+                : 'local runtime 후보에는 provider logging review가 적용되지 않습니다.',
+              state: usesExternalTransfer ? (providerReviewed?.checked ? 'accepted' : (providerLogging.reviewStatus || 'review-required')) : 'not-applicable'
+            },
+            {
+              title: 'Redaction',
+              text: 'credential, prompt, raw response, source URL, raw frame bytes는 profile, sidecar, viewer/client에 저장하거나 노출하지 않습니다.',
+              state: 'enforced'
+            }
+          ].map(item => `<article class="root-cause-item ${item.state === 'accepted' || item.state === 'enforced' || item.state === 'not-applicable' ? 'info' : 'warn'}">
+            <div>
+              <strong>${escapeHtml(item.title)}</strong>
+              <p>${escapeHtml(item.text)}</p>
+            </div>
+            ${badge(item.state, item.state === 'ack-required' || item.state === 'review-required' ? 'warn' : 'info')}
+          </article>`).join('');
+        }
+      };
+      const syncOpsVlmProfileDraft = (selected, payload) => {
+        const idInput = document.getElementById('opsVlmProfileId');
+        if (idInput && selected) {
+          const suggested = `vlm-${opsVlmSlug(selected.id || selected.model)}`;
+          const edited = idInput.dataset.userEdited === '1';
+          if (!edited || !String(idInput.value || '').trim()) {
+            idInput.value = suggested;
+          }
+        }
+        const disabledReason = document.getElementById('opsVlmDisabledReason');
+        if (disabledReason && !String(disabledReason.value || '').trim()) {
+          disabledReason.value = 'evaluation-not-run';
+        }
+        const activation = document.getElementById('opsVlmActivationStatus');
+        const enabled = document.getElementById('opsVlmProfileEnabled');
+        const evaluation = document.getElementById('opsVlmEvaluationStatus');
+        if (activation && enabled && evaluation) {
+          if (enabled.checked && evaluation.value === 'passed') {
+            activation.value = 'active';
+          } else if (!enabled.checked && activation.value === 'active') {
+            activation.value = 'pending-evaluation';
+          }
+        }
+        const saveButton = document.getElementById('opsVlmSaveProfile');
+        if (saveButton) {
+          const selectableIds = new Set(payload?.decision?.selectableOptionIds || []);
+          const externalTransfer = opsVlmOptionUsesExternalTransfer(selected);
+          const privacyReady = !externalTransfer ||
+            (document.getElementById('opsVlmExternalTransferWarningAck')?.checked === true &&
+             document.getElementById('opsVlmProviderLoggingReviewed')?.checked === true);
+          saveButton.disabled = !selected || !selectableIds.has(selected.id) || !privacyReady;
+          saveButton.setAttribute('aria-disabled', saveButton.disabled ? 'true' : 'false');
+        }
+      };
+      const renderOpsVlmOptions = payload => {
+        const options = Array.isArray(payload?.options) ? payload.options : [];
+        const selectableIds = new Set(payload?.decision?.selectableOptionIds || []);
+        if (!opsVlmSelectedOptionId || !selectableIds.has(opsVlmSelectedOptionId)) {
+          opsVlmSelectedOptionId = payload?.decision?.selectableOptionIds?.[0] || '';
+        }
+        const tbody = document.getElementById('opsVlmOptionRows');
+        if (tbody) {
+          if (options.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="5">선택 가능한 local/cloud dry-run 후보가 없습니다.</td></tr>';
+          } else {
+            tbody.innerHTML = options.map(option => {
+              const selectable = option.selectable === true;
+              const selected = selectable && option.id === opsVlmSelectedOptionId;
+              const state = selectable
+                ? (selected ? badge('선택됨') : badge('선택 가능', 'info'))
+                : badge((option.disabledReasons || []).join(', ') || '비활성', 'warn');
+              return `<tr data-vlm-option-row="${escapeHtml(option.id)}">
+                <td><button type="button" class="button-secondary button-compact" data-vlm-option-id="${escapeHtml(option.id)}" ${selectable ? '' : 'disabled'}>${selected ? '선택됨' : '선택'}</button></td>
+                <td><strong>${escapeHtml(option.model || '-')}</strong><br><span class="ops-rule-note">${escapeHtml(option.tier || '-')}</span></td>
+                <td>${escapeHtml(option.deployment || '-')}<br><span class="ops-rule-note">${escapeHtml(option.actionType || '-')}</span></td>
+                <td>${escapeHtml(opsVlmResourceText(option))}<br><span class="ops-rule-note">${escapeHtml(option.impact?.installImpactSummary || '')}</span></td>
+                <td>${state}</td>
+              </tr>`;
+            }).join('');
+          }
+        }
+        const selected = options.find(option => option.id === opsVlmSelectedOptionId);
+        setText('opsVlmSelectionSummary', selected
+          ? `${selected.model} · ${selected.actionType} · S05 profile 저장 가능`
+          : '선택한 후보 없음');
+        renderOpsVlmPrivacyTransferGuard(payload);
+        syncOpsVlmProfileDraft(selected, payload);
+      };
+      const renderOpsVlmDisabled = payload => {
+        const root = document.getElementById('opsVlmDisabledList');
+        const disabled = Array.isArray(payload?.disabledOptions) ? payload.disabledOptions : [];
+        if (!root) return;
+        if (disabled.length === 0) {
+          root.innerHTML = '<div class="empty">비추천 후보 없음</div>';
+          return;
+        }
+        root.innerHTML = disabled.map(item => `<article class="root-cause-item info">
+          <div>
+            <strong>${escapeHtml(item.model || item.id || '-')}</strong>
+            <p>${escapeHtml(item.reason || item.disabledReason || '-')}</p>
+          </div>
+          ${badge(item.disabledReason || 'disabled', item.licenseReviewRequired ? 'warn' : 'info')}
+        </article>`).join('');
+      };
+      const renderOpsVlmProfiles = () => {
+        const tbody = document.getElementById('opsVlmProfileRows');
+        if (!tbody) return;
+        if (opsVlmProfiles.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5">저장된 VLM profile이 없습니다.</td></tr>';
+          return;
+        }
+        tbody.innerHTML = opsVlmProfiles.map(profile => {
+          const activation = profile.activation || {};
+          const evaluation = profile.evaluation || {};
+          const fallback = activation.fallbackProfileId || activation.disabledReason || '-';
+          return `<tr data-vlm-profile-row="${escapeHtml(profile.id || '')}">
+            <td><strong>${escapeHtml(profile.id || '-')}</strong><br><span class="ops-rule-note">${escapeHtml(profile.selectedOptionId || '-')}</span></td>
+            <td>${escapeHtml(profile.model || '-')}<br><span class="ops-rule-note">${escapeHtml(profile.provider || '-')} · ${escapeHtml(profile.runtime || '-')}</span></td>
+            <td>${badge(evaluation.status || 'not-run', evaluation.status === 'passed' ? '' : 'info')} ${badge(activation.status || 'pending-evaluation', activation.enabled ? '' : 'warn')}</td>
+            <td>${escapeHtml(fallback)}</td>
+            <td><button type="button" class="danger button-compact" data-delete-vlm-profile="${escapeHtml(profile.id || '')}">삭제</button></td>
+          </tr>`;
+        }).join('');
+      };
+      async function refreshOpsVlmProfiles(showMessage = false) {
+        const payload = await requestJson('/ops/api/vlm/profiles');
+        opsVlmProfiles = Array.isArray(payload.profiles) ? payload.profiles : [];
+        renderOpsVlmProfiles();
+        if (showMessage) opsVlmProfileStatus(`저장된 VLM profile ${opsVlmProfiles.length}개를 불러왔습니다.`);
+      }
+      const buildOpsVlmProfilePayload = () => {
+        const selected = opsVlmSelectedOption();
+        if (!selected) throw new Error('저장할 VLM dry-run 후보를 먼저 선택하세요.');
+        const id = opsVlmControlValue('opsVlmProfileId').trim();
+        const promptId = opsVlmControlValue('opsVlmPromptProfile', 'event-review-default');
+        const evaluationStatus = opsVlmControlValue('opsVlmEvaluationStatus', 'not-run');
+        const activationStatus = opsVlmControlValue('opsVlmActivationStatus', 'pending-evaluation');
+        const enabled = document.getElementById('opsVlmProfileEnabled')?.checked === true;
+        const fallbackProfileId = opsVlmControlValue('opsVlmFallbackProfileId').trim();
+        const disabledReason = opsVlmControlValue('opsVlmDisabledReason', activationStatus === 'disabled' ? 'operator-disabled' : 'evaluation-not-run').trim();
+        const externalTransfer = opsVlmOptionUsesExternalTransfer(selected);
+        const providerLoggingReviewed = externalTransfer
+          ? document.getElementById('opsVlmProviderLoggingReviewed')?.checked === true
+          : false;
+        return {
+          schema: 'media-server.vlm-profile.v1',
+          id,
+          selectedOptionId: selected.id,
+          provider: selected.provider || (selected.actionType === 'cloud-api-connection-dry-run' ? 'cloud-provider-api' : 'user-supplied-local-runtime'),
+          model: selected.model || '',
+          runtime: opsVlmRuntimeForOption(selected),
+          privacyMode: opsVlmLastPayload?.privacy?.mode || opsVlmControlValue('opsVlmPrivacyMode', 'local-only'),
+          cloudOptInAcknowledged: opsVlmLastPayload?.privacy?.cloudOptInState === 'acknowledged',
+          privacyGuard: {
+            schema: 'media-server.vlm-privacy-transfer-guard.v1',
+            targetStep: 'V200-S11',
+            externalTransfer,
+            externalTransferWarningRequired: externalTransfer,
+            externalTransferWarningAcknowledged: externalTransfer
+              ? document.getElementById('opsVlmExternalTransferWarningAck')?.checked === true
+              : false,
+            redaction: {
+              credentialMaterialStored: false,
+              promptStored: false,
+              rawProviderResponseStored: false,
+              sourceUrlStored: false,
+              rawFrameBytesStored: false,
+              viewerClientExposureAdded: false
+            },
+            providerLoggingPolicy: {
+              provider: externalTransfer ? 'gemini-api' : 'operator-local-runtime',
+              reviewRequired: externalTransfer,
+              reviewStatus: externalTransfer ? (providerLoggingReviewed ? 'accepted' : 'review-required') : 'not-applicable',
+              loggingAndRetentionReviewed: providerLoggingReviewed,
+              termsReviewed: providerLoggingReviewed,
+              currentProviderPolicyStored: false
+            }
+          },
+          promptProfile: {
+            id: promptId,
+            version: 'v1',
+            language: 'ko-en'
+          },
+          evaluation: {
+            status: evaluationStatus,
+            source: 'manual-s05-profile-state'
+          },
+          activation: {
+            enabled,
+            status: activationStatus,
+            fallbackProfileId,
+            disabledReason
+          },
+          sourceStep: 'V200-S05',
+          storageScope: 'profile-storage-only',
+          contractInvariants: {
+            runtimeVlmCallPerformed: false,
+            sidecarStored: false,
+            cloudProviderApiCalled: false,
+            credentialStored: false,
+            eventPostPayloadChanged: false,
+            webrtcDataChannelSchemaChanged: false,
+            sseMetadataSchemaChanged: false,
+            wsMetadataSchemaChanged: false,
+            rtspOrWebrtcMediaPathChanged: false,
+            viewerClientExposureAdded: false
+          }
+        };
+      };
+      async function saveOpsVlmProfile() {
+        const payload = buildOpsVlmProfilePayload();
+        await requestJson(`/ops/api/vlm/profiles/${encodeURIComponent(payload.id)}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        opsVlmProfileStatus(`VLM profile '${payload.id}'를 저장했습니다.`);
+        await refreshOpsVlmProfiles();
+      }
+      async function deleteOpsVlmProfile(id) {
+        const profile = opsVlmProfiles.find(item => item.id === id);
+        if (!profile) {
+          opsVlmProfileStatus('삭제할 VLM profile을 찾지 못했습니다.', true);
+          return;
+        }
+        if (opsVlmPendingDelete !== id) {
+          opsVlmPendingDelete = id;
+          opsVlmProfileStatus(`VLM profile '${id}' 삭제 확인: 다시 누르면 삭제합니다.`);
+          return;
+        }
+        opsVlmPendingDelete = '';
+        await requestJson(`/ops/api/vlm/profiles/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        opsVlmProfileStatus(`VLM profile '${id}'를 삭제했습니다.`);
+        await refreshOpsVlmProfiles();
+      }
+      async function refreshOpsVlmInstallConnection() {
+        const status = document.getElementById('opsVlmStatus');
+        setFeedback(status, '', false, { collapseEmpty: true });
+        const params = new URLSearchParams({
+          hardwareClass: opsVlmControlValue('opsVlmHardwareClass', 'local-standard'),
+          runtimeReadiness: opsVlmControlValue('opsVlmRuntimeReadiness', 'missing'),
+          privacyMode: opsVlmControlValue('opsVlmPrivacyMode', 'local-only'),
+          cloudOptIn: opsVlmControlValue('opsVlmCloudOptIn', 'not-acknowledged')
+        });
+        const payload = await requestJson(`/ops/api/vlm/install-connection/dry-run?${params.toString()}`);
+        opsVlmLastPayload = payload;
+        setText('opsVlmDecisionStatus', payload.decision?.status || '-');
+        setText('opsVlmSelectableCount', (payload.decision?.selectableOptionIds || []).length);
+        setText('opsVlmHardwareSummary', payload.pcCapability?.hardwareClass || '-');
+        setText('opsVlmTransferSummary', payload.privacy?.externalTransferAllowed ? 'cloud allowed' : 'local only');
+        setText('opsVlmDecisionText', payload.decision?.blockedReason
+          ? `선택 차단: ${payload.decision.blockedReason}`
+          : '후보 중 하나만 선택해 다음 단계의 profile 저장 전 검토 상태로 둡니다.');
+        renderBadges('opsVlmWarnings', (payload.warnings || []).map(text => ({
+          text,
+          tone: text.includes('required') || text.includes('high') ? 'warn' : 'info'
+        })));
+        renderBadges('opsVlmBoundaryBadges', [
+          { text: payload.contractInvariants?.installPerformed === false ? '설치 없음' : '설치 확인 필요', tone: payload.contractInvariants?.installPerformed === false ? '' : 'warn' },
+          { text: payload.contractInvariants?.cloudProviderApiCalled === false ? 'provider 호출 없음' : 'provider 확인 필요', tone: payload.contractInvariants?.cloudProviderApiCalled === false ? '' : 'warn' },
+          { text: payload.contractInvariants?.profileStored === false ? 'profile 저장 없음' : 'profile 확인 필요', tone: payload.contractInvariants?.profileStored === false ? '' : 'warn' },
+          { text: payload.contractInvariants?.runtimeVlmCallPerformed === false ? 'VLM 호출 없음' : 'VLM 호출 확인 필요', tone: payload.contractInvariants?.runtimeVlmCallPerformed === false ? '' : 'warn' },
+          { text: payload.contractInvariants?.viewerClientExposureAdded === false ? 'viewer 비노출' : 'viewer 노출 확인 필요', tone: payload.contractInvariants?.viewerClientExposureAdded === false ? '' : 'warn' }
+        ]);
+        renderOpsVlmOptions(payload);
+        renderOpsVlmDisabled(payload);
+        renderRaw('opsVlmRaw', 'opsVlmPretty', payload);
+        window.MediaServerUi?.translatePage?.();
+      }
+      const wireOpsVlmControls = () => {
+        document.getElementById('opsVlmRefresh')?.addEventListener('click', () => refreshOpsVlmInstallConnection().catch(error => setFeedback(document.getElementById('opsVlmStatus'), error.message, true, { collapseEmpty: true })));
+        document.getElementById('opsVlmProfileId')?.addEventListener('input', event => { event.target.dataset.userEdited = '1'; });
+        document.getElementById('opsVlmProfileEnabled')?.addEventListener('change', () => syncOpsVlmProfileDraft(opsVlmSelectedOption(), opsVlmLastPayload));
+        document.getElementById('opsVlmEvaluationStatus')?.addEventListener('change', () => syncOpsVlmProfileDraft(opsVlmSelectedOption(), opsVlmLastPayload));
+        document.getElementById('opsVlmExternalTransferWarningAck')?.addEventListener('change', () => {
+          renderOpsVlmPrivacyTransferGuard(opsVlmLastPayload);
+          syncOpsVlmProfileDraft(opsVlmSelectedOption(), opsVlmLastPayload);
+        });
+        document.getElementById('opsVlmProviderLoggingReviewed')?.addEventListener('change', () => {
+          renderOpsVlmPrivacyTransferGuard(opsVlmLastPayload);
+          syncOpsVlmProfileDraft(opsVlmSelectedOption(), opsVlmLastPayload);
+        });
+        document.getElementById('opsVlmSaveProfile')?.addEventListener('click', () => saveOpsVlmProfile().catch(error => opsVlmProfileStatus(error.message, true)));
+        document.getElementById('opsVlmProfileRows')?.addEventListener('click', event => {
+          const button = event.target.closest('[data-delete-vlm-profile]');
+          if (!button) return;
+          deleteOpsVlmProfile(String(button.dataset.deleteVlmProfile || '')).catch(error => opsVlmProfileStatus(error.message, true));
+        });
+        for (const id of ['opsVlmHardwareClass', 'opsVlmRuntimeReadiness', 'opsVlmPrivacyMode', 'opsVlmCloudOptIn']) {
+          document.getElementById(id)?.addEventListener('change', () => {
+            opsVlmSelectedOptionId = '';
+            refreshOpsVlmInstallConnection().catch(error => setFeedback(document.getElementById('opsVlmStatus'), error.message, true, { collapseEmpty: true }));
+          });
+        }
+        document.getElementById('opsVlmOptionRows')?.addEventListener('click', event => {
+          const button = event.target.closest('[data-vlm-option-id]');
+          if (!button || button.disabled) return;
+          opsVlmSelectedOptionId = String(button.dataset.vlmOptionId || '');
+          refreshOpsVlmInstallConnection().catch(error => setFeedback(document.getElementById('opsVlmStatus'), error.message, true, { collapseEmpty: true }));
+        });
+        refreshOpsVlmProfiles().catch(error => opsVlmProfileStatus(error.message, true));
+      };
       const OPS_EVENT_RECORD_LIMIT = 25;
       let opsEventRecordsOffset = 0;
       let alertDeliveryPayloadCache = null;
@@ -3847,11 +4227,33 @@ void AppendOpsShellScript(std::ostringstream& out,
           ${values.map(item => `<option value="${escapeHtml(item)}"${item === value ? ' selected' : ''}>${escapeHtml(item)}</option>`).join('')}
         </select>`;
       };
+      function eventReviewVlmHtml(entry = {}) {
+        const vlm = entry?.vlmReview || {};
+        const evidence = vlm.evidence || {};
+        const explanation = vlm.explanation || {};
+        const hints = Array.isArray(explanation.falsePositiveHints) ? explanation.falsePositiveHints : [];
+        const questions = Array.isArray(explanation.operatorReviewQuestions) ? explanation.operatorReviewQuestions : [];
+        const badges = [
+          { text: vlm.eventRecordPresent ? 'EventRecord' : 'EventRecord 없음', tone: vlm.eventRecordPresent ? 'info' : 'warn' },
+          { text: evidence.snapshotPathPresent ? 'snapshot' : 'snapshot 없음', tone: evidence.snapshotPathPresent ? 'info' : 'warn' },
+          { text: evidence.clipPathPresent ? 'short clip' : 'clip 없음', tone: evidence.clipPathPresent ? 'info' : 'warn' },
+          { text: vlm.observationPresent ? 'VLM 설명' : 'VLM 대기', tone: vlm.observationPresent ? 'info' : 'warn' }
+        ];
+        const hintText = hints.length ? hints.slice(0, 2).map(display).join(' · ') : '오탐 힌트 없음';
+        const questionText = questions.length ? questions.slice(0, 2).map(display).join(' · ') : '운영자 질문 없음';
+        return `<div class="ops-vlm-event-review" data-testid="ops-vlm-event-review-card" data-vlm-review-contract="ops-only-no-client-exposure">
+          <div class="badge-row">${badges.map(item => `<span class="chip${item.tone ? ` ${escapeHtml(item.tone)}` : ''}">${escapeHtml(item.text)}</span>`).join('')}</div>
+          <strong>${escapeHtml(display(explanation.summary || 'VLM explanation pending'))}</strong>
+          <span class="ops-rule-note">${escapeHtml(display(explanation.eventExplanation || 'EventRecord evidence와 matching observation이 있으면 설명을 표시합니다.'))}</span>
+          <span class="ops-rule-note">오탐: ${escapeHtml(hintText)}</span>
+          <span class="ops-rule-note">확인: ${escapeHtml(questionText)}</span>
+        </div>`;
+      }
       function renderEventReviewRows(items) {
         const tbody = document.getElementById('eventReviewRows');
         if (!tbody) return;
         if (!Array.isArray(items) || items.length === 0) {
-          setTableEmpty(tbody, 5, '검토할 Rule/Scenario 이벤트가 없습니다.');
+          setTableEmpty(tbody, 6, '검토할 Rule/Scenario 이벤트가 없습니다.');
           return;
         }
         tbody.innerHTML = items.map(entry => {
@@ -3873,6 +4275,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             ${tableCellHtml('리뷰', eventReviewSelectHtml('reviewStatus', EVENT_REVIEW_STATUSES, review.reviewStatus || 'new'))}
             ${tableCellHtml('분류', eventReviewSelectHtml('classification', EVENT_REVIEW_CLASSES, review.classification || 'unclassified'))}
             ${tableCellHtml('메모', noteHtml)}
+            ${tableCellHtml('Evidence / VLM', eventReviewVlmHtml(entry))}
             ${tableCellHtml('업데이트', `<div class="event-review-actions"><span>${escapeHtml(updated)}</span><button type="button" class="button button-secondary button-compact" data-event-review-save ${eventId ? '' : 'disabled'}>저장</button></div>`)}
           </tr>`;
         }).join('');
@@ -4146,7 +4549,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           'eventReviewSummary',
           reviewPayload.error
             ? `review 조회 실패: ${reviewPayload.error}`
-            : `review ${reviewItems.length}개 · Event POST payload 변경 없음 · audit action event-review-update`
+            : `review ${reviewItems.length}개 · VLM review panel ${reviewItems.filter(item => item?.vlmReview).length}개 · Event POST payload 변경 없음 · audit action event-review-update`
         );
         renderEventReviewRows(reviewItems);
         const prevButton = document.getElementById('eventRecordsPrev');
@@ -7752,6 +8155,7 @@ void AppendOpsShellScript(std::ostringstream& out,
       }
       applyPrincipalVisibility().catch(() => {});
       wireOpsRefresh();
+      wireOpsVlmControls();
       wireOpsRulesNavLinks();
       wireOpsRulesShellClose();
       if (activeOpsPage === 'dashboard') {
@@ -7774,6 +8178,8 @@ void AppendOpsShellScript(std::ostringstream& out,
         });
       } else if (activeOpsPage === 'home') {
         refreshLive().catch(error => setText('homeRuntimeText', error.message));
+      } else if (activeOpsPage === 'vlm') {
+        refreshOpsVlmInstallConnection().catch(error => setFeedback(document.getElementById('opsVlmStatus'), error.message, true, { collapseEmpty: true }));
       }
     </script>
 )OPSSCRIPT";

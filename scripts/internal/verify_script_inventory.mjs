@@ -404,6 +404,28 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_bot_sort_deepsort_research_boundary.mjs",
     "verify_public_repo_readiness.mjs",
     "verify_integrator_contract_artifact.mjs",
+    "detect_vlm_pc_capability.mjs",
+    "verify_vlm_selection_decision.mjs",
+    "verify_vlm_pc_capability_detector.mjs",
+    "recommend_vlm_model.mjs",
+    "verify_vlm_recommendation_engine.mjs",
+    "verify_vlm_install_connection_scope_gate.mjs",
+    "vlm_install_connection_dry_run.mjs",
+    "verify_vlm_install_connection_dry_run.mjs",
+    "verify_vlm_install_connection_ui.mjs",
+    "verify_vlm_profile_storage.mjs",
+    "verify_vlm_privacy_transfer_guard.mjs",
+    "evaluate_vlm_harness.mjs",
+    "verify_vlm_evaluation_harness.mjs",
+    "verify_vlm_event_evidence_extraction.mjs",
+    "verify_vlm_observation_sidecar.mjs",
+    "generate_vlm_event_explanation.mjs",
+    "verify_vlm_event_explanation_hints.mjs",
+    "verify_vlm_ops_event_review_ui.mjs",
+    "verify_vlm_summary_search_candidates.mjs",
+    "verify_vlm_rule_suggestion_candidates.mjs",
+    "verify_vlm_test_rehearsal.mjs",
+    "verify_vlm_closeout_readiness.mjs",
     "verify_code_comments.mjs",
     "verify_docs_links.mjs",
     "verify_project_feature_test_inventory.mjs",
@@ -520,30 +542,7 @@ function parseServerDispatches() {
 }
 
 function walkDocsAndScripts() {
-  const roots = ["README.md", "docs", "scripts"];
-  const files = [];
-  for (const root of roots) {
-    const full = path.join(rootDir, root);
-    if (!fs.existsSync(full)) continue;
-    if (fs.statSync(full).isFile()) {
-      files.push(full);
-    } else {
-      files.push(...walk(full));
-    }
-  }
-  return files.filter(file => /\.(md|sh|mjs|py)$/.test(file));
-}
-
-function walk(dir) {
-  const result = [];
-  for (const name of fs.readdirSync(dir)) {
-    if (name === "__pycache__") continue;
-    const current = path.join(dir, name);
-    const relative = path.relative(rootDir, current);
-    if (relative.startsWith(".media_server.test") || relative.startsWith("build")) continue;
-    const stat = fs.statSync(current);
-    if (stat.isDirectory()) result.push(...walk(current));
-    else result.push(current);
-  }
-  return result;
+  return gitLsFiles(["README.md", "docs", "scripts"])
+    .filter(file => /\.(md|sh|mjs|py)$/.test(file))
+    .map(file => path.join(rootDir, file));
 }

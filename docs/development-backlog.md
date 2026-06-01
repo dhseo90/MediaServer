@@ -34,14 +34,14 @@ source-of-truth가 아닙니다. 현재 기준은 이 문서와 기능별 상세
 
 `완료`는 운영 배포 ready, 장기 안정성 보장, 외부 연동 ready를 뜻하지 않습니다.
 
-## 현재 기준: v1.9.0 Source Release Baseline
+## 현재 기준: v2.0.0 Source Release Baseline
 
-v1.9.0은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서
-release/latest/docs evidence drift와 v2.0.0 진입 전 gate drift를 막는
-maintenance-first source-only release입니다. Client Live workspace, source tree/dock event feed, tile disconnect,
-event review, source group/site, tile info overlay, saved layout, incident timeline,
-alert delivery, scenario builder, Ops/Client declutter는 이전 UI-first close-out에서 닫은
-제품 baseline으로 유지합니다.
+v2.0.0은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서
+VLM을 이벤트 해석/리뷰 보조 계층으로 추가하는 source-only release입니다.
+Client Live workspace, source tree/dock event feed, tile disconnect, event review,
+source group/site, tile info overlay, saved layout, incident timeline, alert delivery,
+scenario builder, Ops/Client declutter는 이전 UI-first close-out에서 닫은 제품
+baseline으로 유지합니다.
 
 핵심 완료 범위:
 
@@ -52,6 +52,9 @@ alert delivery, scenario builder, Ops/Client declutter는 이전 UI-first close-
   workspace, source tree/dock, event review, source group/site, saved layout,
   incident timeline, viewer debug/source 비노출
 - Auth: setup/login/session, role/scope, admin user console, invite/request approval
+- VLM: 모델 선택 기준, PC capability, 추천 엔진, `/ops/vlm` dry-run/profile/privacy UI,
+  evaluation fixture harness, event evidence refs, VLMObservation sidecar, event explanation,
+  Ops event review panel, summary/rule suggestion 후보
 - Release: source-only readiness, bundle/license guardrail, release evidence, manual UI evidence,
   GitHub Actions warning/Node 24 gate, UI evidence runner, feature coverage, release close-out runbook
 - Research boundary: Re-ID/tracker default-off, OC-SORT manifest-only sandbox, YouTube lab-only 유지
@@ -61,14 +64,1247 @@ alert delivery, scenario builder, Ops/Client declutter는 이전 UI-first close-
 - 장기 녹화, MP4 recorder, VMS/NVR archive, playback/search
 - ONVIF Profile G recording/replay, persistent credential store, Digest/WS-Security 운영 보장
 - Re-ID default-on, tracker default-on, OC-SORT/BoT-SORT/DeepSORT runtime tracker 승격
-- binary/runtime/model bundle release
+- binary/runtime/model bundle release, VLM model/runtime bundle release, VLM default-on
+- 실제 VLM runtime/cloud provider 호출 성공 보장, provider credential 저장
 - 외부 TURN/WHEP credential 운영 보장, 실장비 ONVIF 성공 보장
 - field sample scheduler, dataset ingest, tracker replacement benchmark 실행
 - 별도 Phase의 실제 기능 개발, tracker replacement product review
 
-세부 종료 증적은 아래 v1.9.0 Release Trust Hardening Close-out 섹션을 봅니다.
+세부 종료 증적은 아래 v2.0.0 Release Close-out 섹션을 봅니다.
 과거 release evidence는 standalone current 문서가 아니라 이 문서의 archive 섹션에만
 보존합니다.
+
+## v2.0.0 Release Close-out
+
+v2.0.0은 기존 YOLO/ONNX 기반 실시간 감지, Rule/Profile/Scenario, EventRecord,
+snapshot/short clip evidence를 유지하면서 VLM(Vision-Language Model)을 이벤트 해석
+보조 계층으로 도입하는 신규 기능 로드맵입니다. VLM은 최종 판정자가 아니라
+YOLO 이벤트가 왜 발생했는지 설명하고, 오탐 가능성 및 운영자 확인 포인트를 제안하는
+보조 분석 기능입니다.
+
+VLM S00~S18 구현 및 테스트 evidence는 아래 표와 release evidence 문서에서 닫혔고,
+이 섹션은 v2.0.0 release prep에서 남은 PR, main merge, tag, GitHub Release,
+published metadata, release branch 삭제, 다음 branch sync를 추적합니다. 실제 tag/push는
+수동 승인 후에만 수행합니다. release 완료 뒤 다음 branch 이름은 규칙상 `v2.1.0`이지만,
+v2.1.0 roadmap은 아직 작성하지 않습니다.
+
+핵심 원칙:
+
+- YOLO/Rule/Scenario는 유지하고 VLM으로 대체하지 않습니다.
+- 전체 영상을 VLM에 상시 전달하지 않습니다.
+- VLM 입력은 이벤트 발생 시점의 snapshot, bbox crop, 전후 frame, 짧은 clip evidence
+  후보로 제한합니다.
+- 기존 Event POST, WebRTC DataChannel, SSE/WS metadata schema는 기본적으로 변경하지
+  않습니다.
+- VLM 결과는 별도 sidecar contract로 저장하고, 기존 외부 event/metadata payload에
+  즉시 섞지 않습니다.
+- 사용자 PC 사양을 모르는 상태에서 VLM runtime 기본값이나 자동 설치 모델을 고정하지
+  않습니다. 모델 선택 기준 단계에서는 1차 기준 모델과 fallback 역할만 source-of-truth로
+  고정합니다.
+- 제품은 모델을 자동으로 여러 개 설치하지 않고, 추천 사유와 예상 비용, privacy
+  영향을 보여준 뒤 사용자가 하나를 선택하게 합니다.
+- cloud VLM은 외부 전송 경고와 명시 opt-in이 있어야 합니다.
+- client/viewer에는 prompt, raw response, source URL, debug JSON, 내부 모델 정보,
+  credential을 노출하지 않습니다.
+
+모델 선택 기준:
+
+- 로컬 실행 가능 여부, cloud 전송 허용 여부
+- RAM/VRAM/Apple Silicon/NVIDIA GPU 적합성
+- 설치 방식: Ollama, vLLM, provider API
+- 모델 크기, 디스크 사용량, latency, queue 영향
+- 이벤트 설명 품질, 오탐 힌트 품질, 운영자 질문 품질
+- JSON/structured output 안정성
+- 한국어/영어 설명 품질
+- 라이선스, 상업 사용 조건, 모델 provenance
+- privacy/logging/retention 정책
+- 업데이트 및 지원 지속성
+
+명시적 비범위:
+
+- YOLO 대체
+- VLM 단독 실시간 감지
+- VLM default-on
+- 전체 영상 상시 업로드
+- 장기 녹화, MP4 recorder, VMS/NVR archive, playback/search
+- 자동 최종 판정
+- 자동 Rule/Profile 적용
+- viewer/client 화면 노출
+- 기존 Event POST/WebRTC/SSE/WS metadata schema 직접 변경
+- VLM model/runtime bundle release
+- 고사양 서버 전용 모델을 기본 요구사항으로 설정
+
+| 순서 | ID | 상태 | 영역 | 목표 | 예상 검증 |
+| --- | --- | --- | --- | --- | --- |
+| 0 | V200-S00 | 완료 | VLM 도입 경계 | VLM을 감지기가 아니라 이벤트 해석/리뷰 보조 계층으로 정의하고 YOLO, Rule, Scenario, Event POST, WebRTC/SSE/WS metadata, media path 불변 조건을 고정합니다. | roadmap review, contract boundary review, `verify-integrator-contract-artifact`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-event-post`, `verify-vlm-boundary`, `git diff --check` |
+| 1 | V200-S01 | 완료 | VLM 후보군/선택 기준 | `Qwen/Qwen3-VL-8B-Instruct`를 1차 local standard로 선택하고, `Qwen/Qwen3-VL-4B-Instruct`를 local low-spec fallback, `gemini-2.5-flash`는 cloud opt-in fallback으로 둡니다. Gemma 계열은 custom terms/license review 때문에 기본값이 아닙니다. | model selection decision review, license/provenance checklist, cloud/local privacy review, `verify-vlm-selection-decision`, `verify-bundle-policy`, `git diff --check` |
+| 2 | V200-S02 | 완료 | PC 사양 감지 | OS, CPU, RAM, GPU/VRAM, Apple Silicon, Docker, Ollama, vLLM/API 연결 가능 여부를 수집하는 local capability detector를 만듭니다. 추천 모델 산출은 다음 단계로 둡니다. | `detect-vlm-pc-capability`, hardware scan fixture, macOS/Linux smoke, missing-tool fixture, `verify-vlm-pc-capability`, `verify-script-inventory`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `git diff --check` |
+| 3 | V200-S03 | 완료 | VLM 추천 엔진 | 사용자 PC 사양과 privacy mode에 따라 추천 모델, 대안 모델, 비추천 사유, 예상 메모리/디스크/latency/cost를 산출합니다. | `recommend-vlm-model`, recommendation matrix fixture, low/standard/high/unsupported spec fixture, local-only/cloud-disabled/cloud-allowed policy fixture, `verify-vlm-recommendation-engine`, `verify-script-inventory`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `git diff --check` |
+| 4 | V200-S04 | 완료 | VLM 설치/연결 UI | Ops에서 local model 설치 또는 cloud API 연결을 선택하게 합니다. 자동 다중 설치는 금지하고, 설치 전 영향과 외부 전송 여부를 표시합니다. | Ops UI smoke, install dry-run fixture, cloud opt-in guard, viewer redaction UI smoke, `verify-vlm-install-connection-ui`, `git diff --check` |
+| 5 | V200-S05 | 완료 | VLM profile 저장 | 선택한 provider, model, runtime, prompt profile, privacy mode, 평가 결과, 활성화 상태를 저장하고 fallback/disable 상태를 명확히 둡니다. | profile CRUD smoke, auth/scope route guard, invalid profile fixture, `verify-vlm-profile-storage`, `verify-auth-routes`, `git diff --check` |
+| 6 | V200-S06 | 완료 | VLM 평가 harness | sample 이벤트 frame, bbox crop, 전후 frame으로 latency, 설명 품질, hallucination, JSON 안정성, 한국어/영어 출력 품질을 비교합니다. | VLM fixture sample, prompt profile A/B, structured output fixture, evaluation report, `git diff --check` |
+| 7 | V200-S07 | 완료 | 이벤트 evidence 추출 | YOLO 이벤트 발생 시 snapshot, bbox crop, 전후 frame, 짧은 clip evidence 후보를 만들고 VLM 입력으로 쓸 수 있게 reference를 분리합니다. | EventRecord snapshot/clip fixture, crop extraction smoke, redaction review, `verify-va-events`, `verify-va-replay`, `git diff --check` |
+| 8 | V200-S08 | 완료 | VLMObservation sidecar | 기존 Event POST/WebRTC/SSE/WS metadata를 바꾸지 않고 VLM 결과를 별도 sidecar로 저장합니다. | sidecar schema fixture, EventRecord correlation report, existing metadata diff guard, `verify-event-post`, `verify-ws-metadata`, `git diff --check` |
+| 9 | V200-S09 | 완료 | 이벤트 설명/오탐 힌트 | 이벤트 발생 이유, 화면 내 사람/차량/영역 관계, 오탐 가능성, 운영자 확인 질문을 생성합니다. | event explanation fixture, false-positive hint fixture, operator question review, JSON stability check, `git diff --check` |
+| 10 | V200-S10 | 완료 | Ops 이벤트 리뷰 UI | EventRecord, snapshot/짧은 clip evidence, VLM 설명을 Ops 이벤트 리뷰 화면에서 함께 보여줍니다. viewer/client에는 노출하지 않습니다. | `verify-vlm-ops-event-review-ui`, `verify-ops-event-review-inbox`, 인앱 브라우저 `/ops/events` 직접 확인, viewer/client redaction 확인, `git diff --check` |
+| 11 | V200-S11 | 완료 | Privacy/전송 guard | cloud 사용 시 외부 전송 경고, redaction, credential/prompt/raw response/source URL 비노출, provider logging 정책을 강제합니다. | privacy fixture, source URL/raw JSON leak guard, auth/scope review, `verify-vlm-privacy-transfer-guard`, `verify-auth-routes`, `verify-ops-client-ui`, `git diff --check` |
+| 12 | V200-S12 | 완료 | VLM summary 검색 후보 | VLM summary를 이용해 "문 근처에서 멈춘 사람" 같은 semantic event search 후보를 만듭니다. 검색은 후보 단계로 두고 기존 event schema는 변경하지 않습니다. | `verify-vlm-summary-search-candidates`, search fixture, sidecar query smoke, EventRecord correlation smoke, `git diff --check` |
+| 13 | V200-S13 | 완료 | Rule 추천 보조 후보 | VLM이 line/intrusion/zone 후보를 제안하되 자동 적용은 금지합니다. 운영자가 확인 후 수동 저장하는 흐름만 후보로 둡니다. | rule suggestion fixture, no-auto-apply guard, `/ops/rules` smoke, `verify-rule-ui`, `git diff --check` |
+| 14 | V200-S14 | 완료 | 테스트 inventory 확장 | VLM으로 추가된 route, control, action, runtime state, sidecar, privacy guard를 기능 ID 단위로 `project-feature-test-inventory.md`에 추가합니다. | `verify-project-inventory`, `verify-feature-inventory-coverage`, inventory-to-verifier mapping, `git diff --check` |
+| 15 | V200-S15 | 완료 | 간이 테스트 리허설 | 안정화/30분/120분/UI 풀테스트 전에 VLM 전용 짧은 smoke, missing-model, cloud-disabled, invalid-output, queue-timeout fixture를 실행해 테스트 자체가 막히지 않는지 확인합니다. | `verify-vlm-test-rehearsal`, VLM smoke, failure fixture matrix, cleanup check, port/server lifecycle check, `git diff --check` |
+| 16 | V200-S16 | 완료 | 기존 테스트 side effect 점검 | VLM 변경이 auth, Ops/Client UI, Rule UI, VA replay/events, WebRTC metadata, SSE/WS metadata, Event POST, RTSP/WebRTC media path verifier에 영향을 주지 않는지 확인합니다. | `./server.sh build`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-rule-ui`, `verify-va-replay`, `verify-va-events`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-event-post`, `git diff --check` |
+| 17 | V200-S17 | 완료 | 안정화/장시간/UI 기준 정리 | VLM queue, memory, provider timeout, model install 상태에 따라 안정화, 30분, 120분, UI 풀테스트 실행 기준과 제외/미실행 보고 기준을 정리합니다. | `verify-runtime-media-longrun-trigger-matrix`, `verify-longrun-separation`, VLM longrun trigger matrix, manual UI checklist update, `git diff --check` |
+| 18 | V200-S18 | 완료 | v2.0.0 close-out readiness | 전체 스크립트 테스트와 UI 풀테스트 결과를 분리해 release evidence로 닫고, 미실행/제외/미확인을 명확히 기록합니다. | release evidence review, `verify-release-evidence-index`, `verify-release-metadata`, VLM close-out report, 30분/UI/120분 실행 또는 미실행 기록, `git diff --check` |
+
+VLMObservation sidecar 후보:
+
+```text
+eventId
+sourceId
+ruleId
+scenarioId
+inputType
+inputEvidenceRefs
+summary
+eventExplanation
+falsePositiveHints[]
+operatorReviewQuestions[]
+ruleSuggestion?
+uncertainty
+provider
+model
+promptProfile
+privacyMode
+latencyMs
+createdAt
+```
+
+### V200-S00 VLM 도입 경계 종료 기준
+
+이 단계는 VLM을 제품 감지기, 최종 판정자, 상시 영상 분석 runtime으로 도입하는
+단계가 아닙니다. v2.0.0에서 VLM을 열기 전에 기존 live-only 제품 계약과 media path
+불변 조건을 먼저 닫는 boundary 작업입니다.
+
+이번 단계에서 고정한 불변 조건:
+
+- YOLO/ONNX detection, RuleEventEngine, ScenarioEngine 판단 흐름은 현재 기준을 유지합니다.
+- VLM은 기존 이벤트가 왜 발생했는지 설명하고 운영자 review 질문을 제안하는 보조 계층입니다.
+- 기존 Event POST payload, WebRTC DataChannel label/schema, SSE/WS runtime metadata schema는 변경하지 않습니다.
+- RTSP/WebRTC relay, WebRTC ICE/media track, RTSP VA overlay 정책을 VLM 실패와 연결하지 않습니다.
+- VLM 입력은 이후 단계에서 별도 검토할 event-time evidence reference로만 제한하며, 전체 영상 상시 전달은 금지합니다.
+- VLM 결과는 이후 sidecar contract 후보로만 다루고 기존 외부 event/metadata payload에 직접 섞지 않습니다.
+- client/viewer 화면에는 prompt, raw response, source URL, debug JSON, 내부 모델 정보, credential을 노출하지 않습니다.
+
+이번 단계에서 하지 않는 일:
+
+- VLM 실행, 설정 저장, 결과 저장, 제품 화면 노출 구현은 이 단계의 완료 조건이 아닙니다.
+- 이 단계 밖의 기능 세부 설계와 구현은 처리하지 않습니다.
+- VLM route, config, environment variable, storage schema, EventRecord field를 추가하지 않습니다.
+- 외부/로컬 VLM runtime 호출, prompt 실행, VLM 결과 저장은 수행하지 않습니다.
+
+완료 판정:
+
+- `./server.sh verify-vlm-boundary`가 roadmap review와 contract boundary review를 정적으로 확인합니다.
+- `./server.sh verify-integrator-contract-artifact`가 v2.0.0 entry freeze baseline과 live event/metadata artifact drift를 확인합니다.
+- `./server.sh verify-webrtc-va-metadata`, `./server.sh verify-va-metadata-sidechannel`,
+  `./server.sh verify-ws-metadata`, `./server.sh verify-event-post`가 기존 runtime delivery contract를
+  별도로 재검증합니다.
+- `git diff --check`가 문서와 verifier 변경의 whitespace drift를 확인합니다.
+- 후속 이슈: 없음. 이 단계 안에서 남은 후속은 없습니다.
+
+### V200-S01 VLM 후보군/선택 기준 종료 기준
+
+이 단계는 "후보군 catalog"가 아니라 실제 선택 기준과 선택값을 닫는 단계입니다.
+VLM runtime 실행, PC 사양 감지, 추천 엔진, 설치 UI, profile 저장, sidecar 저장은
+다음 단계로 남깁니다.
+
+이번 단계에서 확정한 직접 답:
+
+- 1차 local standard: `Qwen/Qwen3-VL-8B-Instruct`
+- local low-spec fallback: `Qwen/Qwen3-VL-4B-Instruct`
+- cloud opt-in fallback: `gemini-2.5-flash`
+- 조건부 user-supplied: Gemma 계열. Gemma 계열은 custom terms/license review 때문에
+  기본값이 아닙니다.
+
+선택 기준:
+
+- 공식 model card/provider 문서가 없는 후보는 제외합니다.
+- 프로젝트 Apache-2.0 source release 정책과 충돌하거나 별도 사용 제한이 있는 후보는
+  기본값으로 두지 않습니다.
+- model weight, runtime package, credential, download token은 repo/release/bundle에
+  포함하지 않습니다.
+- cloud 후보는 외부 전송 경고와 명시 opt-in 없이는 사용할 수 없습니다.
+- Event POST, WebRTC DataChannel, SSE/WS metadata schema, RTSP/WebRTC media path는
+  이 단계에서 변경하지 않습니다.
+- 향후 모델은 hard gate, tier, PC 등급, license/provenance/privacy, 선택 역할,
+  제외/조건부 사유를 모두 채운 뒤에만 후보로 추가합니다.
+
+PC 등급 기준:
+
+- 대상 서버 OS는 macOS/Linux입니다. Windows PC는 이 기준의 대상이 아닙니다.
+- `local-unsupported`: Intel Mac CPU-only, Apple unified memory 16GB 미만, Linux
+  CPU-only, NVIDIA VRAM 8GB 미만, AMD/Intel GPU runtime 미검증, RAM 16GB 미만.
+  local VLM 기본 추천은 하지 않습니다. cloud opt-in이면 `gemini-2.5-flash`, cloud
+  disabled면 VLM local 미추천/비활성으로 둡니다.
+- `local-low`: Apple Silicon 16GB~23GB unified memory, 또는 Linux NVIDIA 8GB~11GB
+  VRAM + system RAM 16GB 이상.
+  `Qwen/Qwen3-VL-4B-Instruct`가 해당합니다.
+- `local-standard`: Apple Silicon 24GB~47GB unified memory, 또는 Linux NVIDIA
+  12GB~23GB VRAM + system RAM 24GB 이상.
+  `Qwen/Qwen3-VL-8B-Instruct`가 해당합니다.
+- `local-high`: Apple Silicon 48GB 이상 unified memory, 또는 Linux NVIDIA 24GB
+  이상 VRAM + system RAM 64GB 이상.
+  `Qwen/Qwen3-VL-30B-A3B-Instruct`를 평가 후보로 추천하고, 안전 fallback은
+  `Qwen/Qwen3-VL-8B-Instruct`입니다.
+- `cloud-allowed`: 외부 전송 opt-in 상태. `gemini-2.5-flash`가 해당합니다.
+- 새 local 모델은 사용 가능한 VRAM/RAM의 70% 이하 working set, GPU VRAM 2GB headroom,
+  event review P50 10초 이하/P95 30초 이하, media path non-blocking 기준을 만족해야
+  PC tier에 배정할 수 있습니다.
+
+완료 판정:
+
+- [vlm-model-selection.md](./vlm-model-selection.md)가 직접 선택값, fallback, 제외/조건부
+  사유, hard gate, tier, PC 등급, 향후 모델 추가 규칙을 보존합니다.
+- `test/fixtures/vlm_model_catalog/selection_decision.json`이 같은 결정을 구조화합니다.
+- `./server.sh verify-vlm-selection-decision`이 모델 선택 결정 자체, license/privacy,
+  bundle/public repo guard, 문서 연결을 검증합니다.
+- `./server.sh verify-bundle-policy`가 VLM model artifact를 기본 bundle에서 차단합니다.
+- `git diff --check`가 문서/fixture/script 변경의 whitespace drift를 확인합니다.
+
+이번 단계에서 하지 않는 일:
+
+- PC 사양 감지, 추천 엔진, 설치/연결 UI, profile 저장, VLM 호출, sidecar 저장은
+  이 단계 완료 조건이 아닙니다.
+- VLM model/runtime bundle release는 여전히 비범위입니다.
+- 장시간 테스트와 UI 풀테스트는 이 문서/정적 verifier 단계에서 실행하지 않습니다.
+
+후속 이슈:
+
+- 다음 개발 순서가 필요하면 `V200-S02 PC 사양 감지`부터 별도 지시로 진행합니다.
+
+### V200-S02 PC 사양 감지 종료 기준
+
+이 단계는 local capability detector를 추가하는 단계입니다. 사용자 PC 사양을
+구조화해 다음 추천 엔진 단계의 입력으로 넘기되, 이번 단계 자체는 모델 추천,
+설치, profile 저장, VLM 호출을 수행하지 않습니다.
+
+이번 단계에서 구현한 범위:
+
+- `./server.sh detect-vlm-pc-capability`는
+  `media-server.vlm-pc-capability.v1` JSON으로 OS, CPU, system RAM,
+  GPU/VRAM, Apple Silicon/unified memory, Docker, Ollama CLI/local API,
+  vLLM Python module/local API 상태를 수집합니다.
+- endpoint probe는 loopback 주소로 제한하며 외부 cloud/provider API를 호출하지 않습니다.
+- 감지 결과는 `hardwareClassCandidate`까지만 산출합니다. 이 값은 `local-low`,
+  `local-standard`, `local-high`, `local-unsupported` 중 하나이며 추천 모델 선택값이
+  아닙니다.
+- `test/fixtures/vlm_pc_capability/cases.json`은 Apple Silicon 16GB/24GB/48GB,
+  Intel Mac CPU-only, Linux NVIDIA 8GB/12GB/24GB, Linux CPU-only,
+  missing runtime tool case를 보존합니다.
+- `./server.sh verify-vlm-pc-capability`가 fixture matrix, 현재 host live smoke,
+  no recommendation/install/runtime-call key, privacy/redaction, server/docs/inventory
+  연결을 검증합니다.
+
+이번 단계에서 하지 않는 일:
+
+- 추천 모델 산출, 설치 UI, profile 저장, VLM runtime 호출, sidecar 저장은
+  이 단계 완료 조건이 아닙니다.
+- Event POST, WebRTC DataChannel, SSE/WS metadata schema, RTSP/WebRTC media path,
+  Rule/Profile payload, SourceRegistry/PublishedView 계약은 변경하지 않습니다.
+- client/viewer 화면에는 PC 감지 결과, 모델 정보, prompt/raw response/debug JSON을
+  노출하지 않습니다.
+- VLM model weight/runtime package, credential, download token은 repo/release/bundle에
+  포함하지 않습니다.
+
+완료 판정:
+
+- `./server.sh verify-vlm-pc-capability`가 detector schema, macOS/Linux fixture,
+  missing-tool fixture, privacy/redaction, no-recommendation boundary를 직접 검증합니다.
+- `./server.sh verify-vlm-boundary`와 `./server.sh verify-vlm-selection-decision`이
+  기존 VLM 경계와 모델 선택 기준이 추천/설치/호출 단계로 확장되지 않았는지 확인합니다.
+- `./server.sh verify-script-inventory`, `./server.sh verify-project-inventory`,
+  `./server.sh verify-feature-inventory-coverage`가 새 명령과 기능 ID 연결을 확인합니다.
+- `git diff --check`가 문서/fixture/script 변경의 whitespace drift를 확인합니다.
+
+후속 이슈:
+
+- `V200-S03 VLM 추천 엔진`은 별도 단계로 닫았습니다. 설치/연결 UI는 여전히
+  `V200-S04` 범위이며 이 단계에서 진행하지 않습니다.
+
+### V200-S03 VLM 추천 엔진 종료 기준
+
+이 단계는 PC 사양 감지 결과와 모델 선택 결정을 조합해 추천/대안/비추천/resource
+estimate를 산출하는 단계입니다. 설치/연결 UI, profile 저장, VLM runtime 호출,
+sidecar 저장은 다음 단계로 남깁니다.
+
+이번 단계에서 구현한 범위:
+
+- `./server.sh recommend-vlm-model`은 `media-server.vlm-pc-capability.v1` JSON 또는
+  PC capability fixture와 `privacy-mode`를 입력으로 받아
+  `media-server.vlm-recommendation.v1` JSON을 출력합니다.
+- `privacy-mode`는 `local-only`, `cloud-disabled`, `cloud-allowed`만 허용합니다.
+- 추천 결과에는 1차 추천, 대안 모델, 비추천/조건부 후보, 예상 memory/disk/latency/cost,
+  local runtime readiness, contract invariant가 포함됩니다.
+- `local-unsupported` + cloud disabled/local-only에서는 `no-local-vlm-recommendation`으로
+  판정하고, cloud allowed에서만 `gemini-2.5-flash`를 1차 cloud fallback으로 둡니다.
+- `local-low`는 `Qwen/Qwen3-VL-4B-Instruct`, `local-standard`는
+  `Qwen/Qwen3-VL-8B-Instruct`, `local-high`는
+  `Qwen/Qwen3-VL-30B-A3B-Instruct` 평가 후보와
+  `Qwen/Qwen3-VL-8B-Instruct` safe fallback을 산출합니다.
+- Gemma 계열은 별도 terms/license review가 필요한 conditional user-supplied 후보로
+  유지하며 기본 추천/fallback으로 두지 않습니다.
+- `test/fixtures/vlm_recommendation/cases.json`은 unsupported/local-low/local-standard/
+  local-high, local-only/cloud-disabled/cloud-allowed, missing runtime tool case를
+  구조화합니다.
+- `./server.sh verify-vlm-recommendation-engine`이 matrix fixture, schema, 추천/대안/
+  비추천/resource estimate, 비범위 경계, 문서/명령/inventory 연결을 검증합니다.
+
+이번 단계에서 하지 않는 일:
+
+- 설치/연결 UI 구현, profile 저장, VLM runtime 호출, VLMObservation sidecar 저장은
+  이 단계 완료 조건이 아닙니다.
+- Event POST, WebRTC DataChannel, SSE/WS metadata schema, Rule/Profile payload,
+  SourceRegistry/PublishedView 계약, RTSP/WebRTC media path는 변경하지 않습니다.
+- client/viewer 화면에는 PC 사양, 모델 정보, prompt/raw response/debug JSON을 노출하지
+  않습니다.
+- model weight/runtime package, credential, download token은 repo/release/bundle에
+  포함하지 않습니다.
+- resource estimate는 planning estimate이며 V200-S06 평가 harness PASS가 아닙니다.
+
+완료 판정:
+
+- `./server.sh verify-vlm-recommendation-engine`이 추천 엔진 matrix와 비범위 경계를
+  직접 검증합니다.
+- `./server.sh verify-vlm-pc-capability`와 `./server.sh verify-vlm-selection-decision`이
+  입력 source-of-truth의 기존 경계를 재검증합니다.
+- `./server.sh verify-script-inventory`, `./server.sh verify-project-inventory`,
+  `./server.sh verify-feature-inventory-coverage`가 새 명령과 기능 ID 연결을 확인합니다.
+- `git diff --check`가 문서/fixture/script 변경의 whitespace drift를 확인합니다.
+
+후속 이슈:
+
+- 설치/연결 UI는 `V200-S04`로 남아 있으며 이번 단계에서는 미진행입니다.
+
+### V200-S04 VLM 설치/연결 UI 범위 gate
+
+이 gate는 `V200-S04` 개발 착수 시 기존 S01/S02/S03 gate가 S04의 Ops-only UI
+준비를 과도하게 막지 않도록 분리하면서, 아직 이 단계에서 하면 안 되는 저장/runtime/
+sidecar/schema 변경은 계속 차단하기 위한 선수 작업입니다. 이 gate만 통과해도
+`V200-S04` 전체가 완료된 것은 아닙니다.
+
+S04에서 허용:
+
+- Ops-only 설치/연결 UI route 또는 panel 준비
+- PC capability와 recommendation 결과를 읽어 설치 후보, 대안, 비추천 사유,
+  memory/disk/latency/cost planning estimate를 표시하는 UI 준비
+- local runtime 준비 상태와 설치 전 영향 안내
+- cloud provider 연결 선택 전 외부 전송 경고와 명시 opt-in guard
+- install dry-run fixture와 viewer redaction UI smoke 준비
+
+S04에서 금지:
+
+- profile 저장은 `V200-S05` 범위입니다.
+- VLM runtime 호출은 `V200-S06` 이후 평가 harness 범위입니다.
+- VLMObservation sidecar 저장은 `V200-S08` 범위입니다.
+- cloud provider API 호출, credential 저장, prompt/raw response 저장은 이 단계에서
+  수행하지 않습니다.
+- Event POST, WebRTC DataChannel, SSE/WS metadata schema 변경은 하지 않습니다.
+- RTSP/WebRTC media path 변경은 하지 않습니다.
+- viewer/client 화면 노출은 하지 않습니다.
+- VLM model/runtime artifact를 repo, source release, binary bundle, container image에
+  포함하지 않습니다.
+
+완료 판정:
+
+- `./server.sh verify-vlm-install-connection-scope-gate`가 S04 범위 gate, 기존 VLM
+  verifier relax/retain 경계, feature inventory 연결, 금지 artifact token을 검증합니다.
+- `./server.sh verify-vlm-selection-decision`,
+  `./server.sh verify-vlm-pc-capability`,
+  `./server.sh verify-vlm-recommendation-engine`이 기존 입력 source-of-truth와
+  추천 경계를 계속 검증합니다.
+- `git diff --check`가 문서/script whitespace drift를 확인합니다.
+
+### V200-S04 VLM 설치/연결 dry-run contract
+
+이 단계는 `V200-S03` 추천 결과를 Ops UI가 표시할 수 있는 설치/연결 후보 contract로
+변환합니다. 실제 Ops 화면 구현, Auth/redaction guard, profile 저장, VLM runtime 호출,
+sidecar 저장은 별도 후속 스텝으로 남깁니다.
+
+이번 단계에서 구현하는 범위:
+
+- `./server.sh vlm-install-connection-dry-run`은 `media-server.vlm-recommendation.v1`
+  추천 결과 또는 PC capability fixture/privacy mode를 받아
+  `media-server.vlm-install-connection-dry-run.v1` JSON을 출력합니다.
+- 명령 이름은 `vlm-install-connection-dry-run`, 검증 명령은
+  `verify-vlm-install-connection-dry-run`입니다.
+- 출력은 local model 설치 dry-run 후보와 cloud API 연결 dry-run 후보를 포함합니다.
+- cloud 후보는 `privacy-mode=cloud-allowed`와 별도 `cloud-opt-in=acknowledged`가
+  모두 있어야 selectable입니다.
+- 모든 option은 단일 사용자 선택 후보이며 자동 다중 설치를 허용하지 않습니다.
+- 모든 side-effect invariant는 false입니다. 실제 설치, provider API 호출, credential
+  저장, profile 저장, runtime 호출, sidecar 저장, schema/media path 변경은 없습니다.
+- `test/fixtures/vlm_install_connection_dry_run/cases.json`은 unsupported/local/cloud/
+  high/missing-runtime/cloud-opt-in guard case를 구조화합니다.
+
+완료 판정:
+
+- `./server.sh verify-vlm-install-connection-dry-run`이 dry-run schema, fixture matrix,
+  cloud opt-in guard, side-effect false invariant, redaction boundary, 문서/명령 연결을
+  검증합니다.
+- 기존 `verify-vlm-install-connection-scope-gate`, `verify-vlm-recommendation-engine`,
+  `verify-vlm-pc-capability`, `verify-vlm-selection-decision`이 입력 경계와 S04 scope를
+  계속 검증합니다.
+- `git diff --check`가 문서/fixture/script whitespace drift를 확인합니다.
+
+### V200-S04 VLM 설치/연결 Ops UI 완료 기준
+
+S04는 dry-run contract를 Ops UI에서 검토하고, cloud opt-in guard와 viewer redaction
+경계를 확인하는 단계입니다. 이 단계의 완료는 설치/연결 후보를 고르는 UI와 read-only
+API가 존재한다는 뜻이며, profile 저장, VLM runtime 호출, sidecar 저장 완료를 뜻하지
+않습니다.
+
+이번 범위에서 구현한 것:
+
+- `/ops/vlm` Ops-only 화면을 추가해 PC 등급, local runtime 상태, privacy mode,
+  cloud opt-in 상태를 고르고 dry-run 후보를 확인합니다.
+- `/ops/api/vlm/install-connection/dry-run`은 `media-server.vlm-install-connection-dry-run.v1`
+  JSON을 반환하되 설치, connection, provider API 호출, credential 저장, profile 저장,
+  VLM runtime 호출, sidecar 저장, Event/WebRTC/SSE/WS schema 변경, media path 변경을
+  모두 false invariant로 둡니다.
+- UI는 local/cloud 후보, 예상 memory/disk/latency/cost, cloud opt-in guard,
+  단일 선택 상태, 비추천/조건부 후보, dry-run JSON details를 Ops 화면에서만 표시합니다.
+- `/ops` primary nav에는 새 항목을 넣지 않고 `/ops/home`에서 보조 CTA로 연결합니다.
+
+완료 evidence:
+
+- `./server.sh verify-vlm-install-connection-ui`,
+  `./server.sh verify-vlm-install-connection-dry-run`,
+  `./server.sh verify-vlm-install-connection-scope-gate`가 UI/API/dry-run/scope 경계를
+  검증합니다.
+- UI 변경 안정화 gate인 `./server.sh build`, auth bootstrap/users/routes,
+  `./server.sh verify-ops-client-ui`, `./server.sh verify-ops-client-ui --screenshots`,
+  `./server.sh verify-rule-ui`를 S04 변경 후 실행합니다.
+- 브라우저 직접 확인에서 `/ops/vlm`의 local/cloud dry-run 후보, cloud opt-in 전
+  `gemini-2.5-flash` 비활성, opt-in 후 cloud 후보 선택 상태, 실행/저장 false
+  invariant badge를 확인합니다.
+- 브라우저 직접 확인에서 `/client/live`가 `/ops/vlm`, VLM dry-run schema, raw JSON,
+  Developer URL, source URL, debug/BBox diagnostics를 노출하지 않는 것을 확인합니다.
+- invalid query인 `/ops/api/vlm/install-connection/dry-run?hardwareClass=bad`는
+  400 JSON으로 거부합니다.
+
+후속 단계로 남기는 범위:
+
+- profile 저장은 `V200-S05` 범위입니다.
+- VLM runtime 호출과 평가 harness는 `V200-S06` 범위입니다.
+- VLMObservation sidecar 저장은 `V200-S08` 범위입니다.
+- v2.0.0 전체 UI 풀테스트와 close-out evidence는 S18 범위입니다.
+
+검증:
+
+- `./server.sh verify-vlm-install-connection-ui`
+- `./server.sh verify-vlm-install-connection-dry-run`
+- `./server.sh verify-vlm-install-connection-scope-gate`
+- UI 변경 안정화 gate와 `git diff --check`
+
+### V200-S05 VLM profile 저장 완료 기준
+
+S05는 S04 dry-run에서 선택한 후보를 운영자가 나중에 평가/활성화할 수 있는 profile
+document로 저장하는 단계입니다. 저장은 profile metadata에만 한정하며 VLM runtime
+호출, cloud provider API 호출, sidecar 저장은 후속 단계로 남깁니다.
+
+이번 범위에서 구현하는 것:
+
+- `/ops/api/vlm/profiles`와 `/ops/api/vlm/profiles/{id}` CRUD route를 추가합니다.
+- 읽기는 admin/operator `ops:read`, 쓰기는 `ops:read`와 `rule:write`가 모두 필요합니다.
+- 저장 schema는 `media-server.vlm-profile.v1`입니다.
+- 저장 항목은 provider, model, runtime, prompt profile, privacy mode, cloud opt-in
+  acknowledgement, evaluation status, activation status, fallback profile ID, disabled reason입니다.
+- `/ops/vlm`에는 profile ID, prompt profile, evaluation, activation, enabled,
+  fallback/disable control과 저장된 profile 목록을 표시합니다.
+- invalid profile fixture는 raw prompt/credential/source locator/frame bytes 저장,
+  cloud opt-in 누락, 평가 미통과 active 상태를 거부합니다.
+
+이번 범위에서 하지 않는 일:
+
+- 실제 VLM runtime 호출
+- cloud provider API 호출
+- credential/API key/token 저장
+- raw prompt/raw response/source URL/frame bytes 저장
+- VLMObservation sidecar 저장
+- Event POST/WebRTC/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- viewer/client 화면 노출
+
+완료 evidence:
+
+- `./server.sh verify-vlm-profile-storage`가 API/UI/schema/invalid fixture/docs/inventory
+  연결을 검증합니다.
+- `./server.sh verify-auth-routes`가 unauth/viewer 차단, readonly operator read 허용,
+  readonly write 차단, admin CRUD, invalid profile fixture 거부를 route smoke로 확인합니다.
+- UI 변경 안정화 gate인 `./server.sh build`, auth bootstrap/users/routes,
+  `./server.sh verify-ops-client-ui`, `./server.sh verify-ops-client-ui --screenshots`,
+  `./server.sh verify-rule-ui`를 S05 변경 후 실행합니다.
+- 브라우저 직접 확인에서 `/ops/vlm`의 profile 저장 panel, 저장 목록, fallback/disable
+  state, 삭제 2회 확인 흐름, `/client/live` VLM profile 비노출을 확인합니다.
+- 2026-05-31 S05 local evidence: `./server.sh build`,
+  `./server.sh verify-vlm-profile-storage`, `./server.sh verify-auth-routes`,
+  `./server.sh verify-ops-client-ui --http-base http://127.0.0.1:8082`,
+  `./server.sh verify-ops-client-ui --screenshots --http-base http://127.0.0.1:8082`,
+  `./server.sh verify-rule-ui --http-base http://127.0.0.1:8082`,
+  docs/inventory verifier, browser direct `/ops/vlm` save/delete and `/client/live`
+  redaction check.
+
+후속 단계로 남기는 범위:
+
+- VLM 평가 harness는 `V200-S06` 범위입니다.
+- event evidence 추출은 `V200-S07` 범위입니다.
+- VLMObservation sidecar 저장은 `V200-S08` 범위입니다.
+
+### V200-S06 VLM 평가 harness 완료 기준
+
+S06는 S05 profile을 운영 default로 승격하기 전에, fixture-captured VLM output을
+동일한 기준으로 비교하는 평가 harness를 만드는 단계입니다. 실제 model/runtime 설치,
+cloud provider 호출, sidecar 저장은 이 단계의 완료 조건이 아닙니다.
+
+이번 범위에서 구현하는 것:
+
+- `./server.sh evaluate-vlm-harness` CLI를 추가합니다.
+- 입력 fixture schema는 `media-server.vlm-evaluation-fixtures.v1`입니다.
+- 출력 report schema는 `media-server.vlm-evaluation-report.v1`입니다.
+- sample 이벤트의 `eventFrame`, `bboxCrop`, `previousFrame`, `nextFrame` reference를
+  평가 입력으로 사용합니다.
+- prompt profile A/B candidate output을 latency, 설명 품질, hallucination,
+  JSON 안정성, 한국어/영어 품질로 비교합니다.
+- invalid JSON/hallucination fixture는 candidate 실패로 남기되, expected failure로
+  harness 자체는 PASS할 수 있어야 합니다.
+
+이번 범위에서 하지 않는 일:
+
+- 실제 VLM runtime 호출
+- cloud provider API 호출
+- model artifact download 또는 bundle 포함
+- VLMObservation sidecar 저장
+- Event POST/WebRTC/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- viewer/client 화면 노출
+- S07 evidence 추출 또는 S08 sidecar 저장 완료 주장
+
+완료 evidence:
+
+- `./server.sh evaluate-vlm-harness --fixture test/fixtures/vlm_evaluation_harness/cases.json`
+  가 `media-server.vlm-evaluation-report.v1` JSON을 출력합니다.
+- `./server.sh verify-vlm-evaluation-harness`가 fixture coverage, scoring, docs/inventory,
+  server command, non-scope boundary를 검증합니다.
+- `./server.sh verify-script-inventory`, `./server.sh verify-project-inventory`,
+  `./server.sh verify-feature-inventory-coverage`, docs verifier, `git diff --check`를
+  S06 변경 후 실행합니다.
+- 2026-05-31 S06 local evidence: `./server.sh evaluate-vlm-harness --fixture test/fixtures/vlm_evaluation_harness/cases.json`,
+  `./server.sh verify-vlm-evaluation-harness`, `./server.sh verify-script-inventory`,
+  `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`,
+  `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, VLM 기존 gate,
+  `git diff --check`.
+
+후속 단계로 남기는 범위:
+
+- 실제 EventRecord snapshot/crop/clip evidence 추출은 `V200-S07` 범위입니다.
+- VLMObservation sidecar 저장은 `V200-S08` 범위입니다.
+- 운영 이벤트 설명/오탐 힌트 생성은 `V200-S09` 범위입니다.
+
+### V200-S07 이벤트 evidence 추출 완료 기준
+
+S07은 기존 EventRecord snapshot/clip hook을 VLM 입력 후보 reference로 확장하는
+단계입니다. EventRecord top-level schema, Event POST payload, WebRTC DataChannel,
+SSE/WS metadata schema, RTSP/WebRTC media path는 변경하지 않습니다.
+
+이번 범위에서 구현하는 것:
+
+- `metadata.vlmEvidenceRefs`에 `media-server.vlm-event-evidence-refs.v1` reference-only
+  object를 추가합니다.
+- 기존 snapshot hook의 event-time snapshot path를 `eventFrame` reference로 둡니다.
+- event bbox 기준 crop media를 만들고 `bboxCrop` reference와 normalized bbox를 둡니다.
+- clip manifest 안에 `vlmInputRefs.previousFrame`, `vlmInputRefs.eventFrame`,
+  `vlmInputRefs.nextFrame` reference를 분리합니다.
+- crop manifest는 raw frame bytes/source URL/credential material을 embed하지 않는다는
+  redaction review field를 보존합니다.
+
+이번 범위에서 하지 않는 일:
+
+- 실제 VLM runtime 호출
+- cloud provider API 호출
+- model artifact download 또는 bundle 포함
+- VLMObservation sidecar 저장
+- Event POST/WebRTC/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- viewer/client 화면 노출
+- 운영 이벤트 설명/오탐 힌트 생성
+
+완료 evidence:
+
+- `./server.sh verify-vlm-event-evidence-extraction`이 EventRecord code, smoke, docs,
+  inventory, server command, non-scope boundary를 검증합니다.
+- `./server.sh verify-analysis-state`가 snapshot media, bbox crop media, clip manifest
+  frame refs, `metadata.vlmEvidenceRefs`, redaction boundary를 실행 smoke로 확인합니다.
+- `./server.sh verify-va-events`, `./server.sh verify-va-replay`가 기존 VA event 발생과
+  replay 경로가 유지되는지 확인합니다.
+- `git diff --check`가 코드/문서/script whitespace drift를 확인합니다.
+- 2026-05-31 S07 local evidence: `./server.sh build`,
+  `./server.sh verify-vlm-event-evidence-extraction`, `./server.sh verify-analysis-state`,
+  `./server.sh verify-va-replay`, auth-off isolated
+  `MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_HTTP_LISTEN_PORT=8083 MEDIA_SERVER_VERIFY_VA_HTTP_BASE=http://127.0.0.1:8083 ./server.sh verify-va-events`,
+  docs/inventory/script verifier, `git diff --check`.
+
+후속 단계로 남기는 범위:
+
+- VLMObservation sidecar 저장은 `V200-S08` 범위입니다.
+- 운영 이벤트 설명/오탐 힌트 생성은 `V200-S09` 범위입니다.
+- Ops 이벤트 리뷰 UI는 `V200-S10` 범위입니다.
+
+### V200-S08 VLMObservation sidecar 완료 기준
+
+S08은 VLM 결과를 EventRecord와 분리된 JSONL observation 저장소에 기록하는 단계입니다.
+EventRecord top-level field, Event POST payload, WebRTC DataChannel, SSE/WS metadata
+schema, RTSP/WebRTC media path는 변경하지 않습니다.
+
+이번 범위에서 구현하는 것:
+
+- `media-server.vlm-observation.v1` observation schema를 별도 저장소에 기록합니다.
+- EventRecord와 observation은 `eventId`로만 상관시킵니다.
+- `inputEvidenceRefs`에는 S07의 `metadata.vlmEvidenceRefs` reference를 넣을 수 있게
+  유지합니다.
+- EventRecord correlation report는 EventRecord match, observation match, eventId match,
+  EventRecord top-level VLM field 부재, 외부 payload 변경 없음 상태를 분리해 기록합니다.
+- raw prompt, raw provider response, source URL, credential material, raw frame bytes를
+  저장하지 않았음을 `redactionReview`로 기록합니다.
+
+이번 범위에서 하지 않는 일:
+
+- 실제 VLM runtime 호출
+- cloud provider API 호출
+- 이벤트 설명/오탐 힌트 품질 생성/판정
+- Ops 이벤트 리뷰 UI 구현
+- viewer/client 화면 노출
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- 자동 rule/profile 적용
+
+완료 evidence:
+
+- `./server.sh verify-vlm-observation-sidecar`가 sidecar schema fixture, C++ store/query,
+  EventRecord correlation report, docs, inventory, server command, non-scope boundary를
+  검증합니다.
+- `./server.sh verify-analysis-state`가 observation 저장소 write/query, EventRecord
+  eventId correlation, EventRecord payload drift 없음, correlation report를 실행 smoke로
+  확인합니다.
+- `./server.sh verify-event-post`, `./server.sh verify-ws-metadata`가 기존 외부 event/metadata
+  payload 경계가 유지되는지 확인합니다.
+- `git diff --check`가 코드/문서/script whitespace drift를 확인합니다.
+- 2026-05-31 S08 local evidence: `./server.sh build`,
+  `./server.sh verify-vlm-observation-sidecar`, `./server.sh verify-analysis-state`,
+  `./server.sh verify-event-post --http-base http://127.0.0.1:8084`, escalated
+  `./server.sh verify-ws-metadata --http-base http://127.0.0.1:8084`, docs/inventory/script
+  verifier, 기존 VLM gate, `git diff --check`.
+
+후속 단계로 남기는 범위:
+
+- 이벤트 설명/오탐 힌트 생성은 `V200-S09` 범위입니다.
+- Ops 이벤트 리뷰 UI는 `V200-S10` 범위입니다.
+- Privacy/전송 guard는 `V200-S11` 범위입니다.
+- v2.0.0 전체 UI 풀테스트와 close-out evidence는 `V200-S18` 범위입니다.
+
+### V200-S09 이벤트 설명/오탐 힌트 완료 기준
+
+S09는 S07 evidence reference와 S08 observation 저장 계약 위에서 이벤트 설명,
+화면 내 사람/차량/영역 관계, 오탐 가능성, 운영자 확인 질문을 생성하는 단계입니다.
+실제 VLM runtime/provider 호출은 하지 않고 fixture 기반 deterministic JSON report로
+품질과 안정성 기준을 먼저 고정합니다.
+
+이번 범위에서 구현하는 것:
+
+- `media-server.vlm-event-explanation-report.v1` report를 생성합니다.
+- 개별 output은 `media-server.vlm-event-explanation.v1` schema를 사용합니다.
+- 사람 line-crossing, 사람 zone dwell, 차량 restricted zone fixture를 포함합니다.
+- `objectAreaRelations[]`, `falsePositiveHints[]`, `operatorReviewQuestions[]`를 각각
+  비워두지 않고 생성합니다.
+- 동일 fixture 반복 실행 시 byte-stable JSON을 보장합니다.
+- raw prompt, raw provider response, credential material, source URL, raw frame bytes를
+  저장하지 않는 redaction review를 유지합니다.
+
+이번 범위에서 하지 않는 일:
+
+- 실제 VLM runtime 호출
+- cloud provider API 호출
+- model artifact download 또는 bundle 포함
+- Ops 이벤트 리뷰 UI 구현
+- viewer/client 화면 노출
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- 자동 rule/profile 적용
+
+완료 evidence:
+
+- `./server.sh generate-vlm-event-explanation --fixture test/fixtures/vlm_event_explanation/cases.json`
+  명령이 JSON report를 생성합니다.
+- `./server.sh verify-vlm-event-explanation-hints`가 event explanation fixture,
+  false-positive hint fixture, operator question review, JSON stability, docs/inventory/server
+  wiring, non-scope boundary를 검증합니다.
+- `./server.sh verify-vlm-observation-sidecar`가 S08 저장 경계가 유지되는지 확인합니다.
+- `git diff --check`가 코드/문서/script whitespace drift를 확인합니다.
+- 2026-05-31 S09 local evidence: `node --check scripts/internal/generate_vlm_event_explanation.mjs`,
+  `node --check scripts/internal/verify_vlm_event_explanation_hints.mjs`,
+  `./server.sh generate-vlm-event-explanation --fixture test/fixtures/vlm_event_explanation/cases.json`,
+  `./server.sh verify-vlm-event-explanation-hints`, `./server.sh verify-vlm-observation-sidecar`,
+  docs/inventory/script verifier, 기존 VLM gate, `git diff --check`.
+
+후속 단계로 남기는 범위:
+
+- Ops 이벤트 리뷰 UI는 `V200-S10` 범위입니다.
+- Privacy/전송 guard는 `V200-S11` 범위입니다.
+- semantic event search 후보는 `V200-S12` 범위입니다.
+- rule 추천 보조 후보는 `V200-S13` 범위입니다.
+
+### V200-S10 Ops 이벤트 리뷰 UI 완료 기준
+
+S10은 `/ops/events`의 Rule Event Review Inbox에 EventRecord evidence와 S08 VLM
+observation 설명을 Ops 전용 review panel로 표시하는 단계입니다. 이 단계는
+EventRecord 자체, Event POST payload, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC
+media path를 변경하지 않습니다.
+
+이번 범위에서 구현한 것:
+
+- `/ops/api/events/reviews`의 각 review item에 Ops 전용 `vlmReview` object를 붙입니다.
+- `vlmReview`는 `media-server.ops.vlm-event-review.v1` schema를 사용합니다.
+- EventRecord 존재 여부, snapshot/short clip path 존재 여부, S07 `vlmEvidenceRefs`
+  존재 여부, S08 observation matching 여부를 표시합니다.
+- VLM summary, event explanation, false-positive hints, operator review questions를
+  `/ops/events` review inbox 행 안에 표시합니다.
+- viewer/client 화면에는 `ops-vlm-event-review-card` 또는 fixture VLM 설명을 노출하지
+  않습니다.
+
+이번 범위에서 하지 않는 일:
+
+- Privacy/전송 guard 전체 구현
+- semantic event search 후보
+- rule suggestion 후보 또는 자동 rule/profile 적용
+- 실제 VLM runtime/provider 호출
+- EventRecord top-level schema 변경
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+
+완료 evidence:
+
+- `node --check scripts/internal/verify_vlm_ops_event_review_ui.mjs` PASS.
+- `./server.sh verify-vlm-ops-event-review-ui` PASS.
+- `./server.sh verify-ops-event-review-inbox` PASS.
+- `./server.sh build` PASS.
+- `./server.sh verify-script-inventory`, `./server.sh verify-project-inventory`,
+  `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-vlm-install-connection-scope-gate`
+  PASS.
+- 2026-05-31 인앱 브라우저 직접 확인: `/ops/events`에서 fixture EventRecord
+  `s10-event-001`의 `EventRecord`, `snapshot`, `short clip`, `VLM 설명`, 오탐 힌트,
+  운영자 확인 질문이 표시됨.
+- 2026-05-31 인앱 브라우저 직접 확인: `/client/live`, `/client/dashboard`에서
+  `ops-vlm-event-review-card`, `s10-event-001`, fixture VLM 설명이 비노출.
+- Chrome/CDP 기반 `verify-ops-client-ui`와 `verify-ops-client-ui --screenshots`는
+  이번 S10 close에서 사용하지 않았습니다. 사용자가 인앱 브라우저 테스트를 명시했고,
+  해당 명령은 Chrome/CDP target timeout을 만들 수 있어 미실행으로 분리합니다.
+
+후속 단계로 남기는 범위:
+
+- Privacy/전송 guard는 `V200-S11` 범위입니다.
+- semantic event search 후보는 `V200-S12` 범위입니다.
+- rule 추천 보조 후보는 `V200-S13` 범위입니다.
+- v2.0.0 전체 side effect 안정화는 `V200-S16`, 장시간/UI 기준 정리는 `V200-S17`,
+  close-out readiness는 `V200-S18` 범위입니다.
+
+### V200-S11 Privacy/전송 guard 완료 기준
+
+S11은 S04/S05 `/ops/vlm` 준비 화면과 VLM profile 저장 계약 위에 cloud 외부 전송,
+redaction, provider logging/retention review gate를 얹는 단계입니다. 실제 provider API
+호출, runtime VLM 호출, sidecar 저장, Event POST/WebRTC/SSE/WS metadata schema 변경,
+RTSP/WebRTC media path 변경은 포함하지 않습니다.
+
+이번 범위에서 구현한 것:
+
+- `media-server.vlm-privacy-transfer-guard.v1` guard schema를 dry-run option과
+  저장 profile의 `privacyGuard`에 추가했습니다.
+- `/ops/vlm`에 `Privacy/전송 guard` panel을 추가해 외부 전송 경고 확인,
+  provider logging/retention 검토, redaction 상태를 Ops 전용으로 표시합니다.
+- Cloud profile은 `cloudOptInAcknowledged=true`, 외부 전송 경고 확인, provider
+  logging/retention/terms accepted review가 없으면 저장/활성화 후보로 통과하지 않습니다.
+- credential, prompt, raw provider response, source URL, raw frame bytes, viewer/client
+  노출 guard flag를 모두 false로 고정합니다.
+- Ops review contract에도 prompt/raw response/source URL/credential/raw frame bytes
+  비저장 redaction flag를 추가했습니다.
+- `test/fixtures/vlm_privacy_transfer_guard/cases.json`이 local pass, cloud blocked,
+  cloud accepted, Ops review redaction boundary case를 보존합니다.
+
+이번 범위에서 하지 않는 일:
+
+- 실제 VLM runtime 호출
+- cloud provider API 호출
+- provider credential/API key 저장
+- raw prompt/raw provider response 저장
+- semantic event search 후보
+- rule suggestion 후보
+- Event POST/WebRTC/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- viewer/client VLM 노출
+
+완료 evidence:
+
+- `./server.sh verify-vlm-privacy-transfer-guard`가 fixture, C++ profile guard,
+  `/ops/vlm` privacy panel, viewer/client 비노출, Event POST/EventRecord storage 불변,
+  docs/inventory/server wiring을 정적으로 검증합니다.
+- `./server.sh verify-vlm-profile-storage`가 기존 profile 저장 계약과 새 privacyGuard
+  rejection fixture를 함께 검증합니다.
+- `./server.sh verify-auth-routes`가 VLM profile route의 auth/scope guard와 invalid
+  profile rejection을 route smoke로 확인합니다.
+- `./server.sh verify-ops-client-ui`가 Ops/Client leak guard를 확인합니다.
+- `git diff --check`가 코드/문서/script whitespace drift를 확인합니다.
+
+후속 단계로 남기는 범위:
+
+- semantic event search 후보는 `V200-S12` 범위입니다.
+- rule 추천 보조 후보는 `V200-S13` 범위입니다.
+- VLM 테스트 inventory 전체 확장은 `V200-S14`에서 별도 종료했습니다.
+- v2.0.0 전체 side effect 안정화는 `V200-S16`, 장시간/UI 기준 정리는 `V200-S17`,
+  close-out readiness는 `V200-S18` 범위입니다.
+
+### V200-S12 VLM summary 검색 후보 완료 기준
+
+S12는 S08 VLMObservation sidecar에 이미 저장된 summary와 설명을 이용해 운영자가
+자연어로 기억하는 이벤트를 찾는 semantic event search 후보 단계입니다. 이 단계는
+제품 검색 UI, vector index, provider rerank, runtime VLM 재호출, 자동 rule 적용을
+구현하지 않습니다.
+
+이번 범위에서 확정한 직접 답:
+
+- 1차 선택값: `sidecar-summary-token-candidate`
+- 1차 query 후보: `문 근처에서 멈춘 사람`
+- fallback: `eventId`/`sourceId` scoped sidecar query와 Ops 수동 review
+- 대안: `vector-index-candidate`, `provider-rerank-candidate`는 후보로만 보류
+
+제외 대상과 이유:
+
+- EventRecord top-level `vlmSummary` 추가: 기존 EventRecord/Event POST/WebRTC/SSE/WS
+  contract 변경이므로 제외합니다.
+- client/viewer semantic search UI: viewer/client 노출 정책 검토가 별도 필요하므로
+  제외합니다.
+- runtime VLM re-query/provider rerank: 실제 VLM runtime 또는 cloud provider API 호출을
+  만들 수 있으므로 제외합니다.
+- 검색 결과 기반 자동 rule 생성/적용: V200-S13 범위이므로 제외합니다.
+
+이번 범위에서 구현한 것:
+
+- `media-server.vlm-summary-search-candidates.v1` response schema와
+  `media-server.vlm-summary-search-candidate.v1` 후보 schema를 추가했습니다.
+- `BuildVlmSummarySearchCandidatesJson`이 VLMObservation sidecar JSONL에서 summary,
+  explanation, hint, operator question text를 local token 후보로 검색합니다.
+- 후보는 `eventId`로 EventRecord와 상관시키며, EventRecord top-level payload에는
+  VLM summary/search field를 추가하지 않습니다.
+- `test/fixtures/vlm_summary_search/cases.json`이 실제 선택 후보, fallback, 제외 사유,
+  license/provenance/privacy review, matching/excluded event case를 보존합니다.
+- `verify-vlm-summary-search-candidates`가 fixture, C++ builder, analysis-state smoke,
+  docs/inventory/server wiring, non-scope boundary를 검증합니다.
+
+이번 범위에서 하지 않는 일:
+
+- 실제 VLM runtime 호출
+- cloud provider API 호출 또는 provider rerank
+- vector DB/index 도입
+- 제품 검색 UI 또는 viewer/client 노출
+- EventRecord top-level schema 변경
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- 자동 Rule/Profile 적용
+- V200-S13 rule suggestion 구현
+
+완료 evidence:
+
+- `./server.sh verify-vlm-summary-search-candidates`가 fixture, C++ sidecar summary search,
+  EventRecord correlation boundary, docs/inventory/server wiring, non-scope boundary를
+  검증합니다.
+- `./server.sh verify-analysis-state`가 VLM summary search 후보를 sidecar에서 조회하고
+  EventRecord와 `eventId`로만 상관시키는 smoke를 실행합니다.
+- `./server.sh verify-event-post`, `./server.sh verify-ws-metadata`가 기존 외부 event/metadata
+  payload 경계가 유지되는지 확인합니다.
+- `git diff --check`가 코드/문서/script whitespace drift를 확인합니다.
+- 2026-05-31 S12 local evidence: `./server.sh build`,
+  `./server.sh verify-vlm-summary-search-candidates`, `./server.sh verify-analysis-state`,
+  `./server.sh verify-vlm-observation-sidecar`,
+  auth-off isolated `./server.sh verify-event-post --http-base http://127.0.0.1:8084`,
+  escalated `./server.sh verify-ws-metadata --http-base http://127.0.0.1:8084`,
+  docs/inventory/script verifier, `git diff --check`.
+
+후속 단계로 남기는 범위:
+
+- rule 추천 보조 후보는 `V200-S13` 범위입니다.
+- VLM 테스트 inventory 전체 확장은 `V200-S14`에서 별도 종료했습니다.
+- v2.0.0 전체 side effect 안정화는 `V200-S16`, 장시간/UI 기준 정리는 `V200-S17`,
+  close-out readiness는 `V200-S18` 범위입니다.
+
+### V200-S13 Rule 추천 보조 후보 완료 기준
+
+S13은 S08 VLMObservation sidecar에 이미 저장된 `ruleSuggestion` object를 이용해
+line-crossing, intrusion-dwell, zone-occupancy 후보를 만드는 단계입니다. 이 단계는
+제품 rule suggestion UI, 자동 rule/profile 저장, runtime VLM 재호출, provider rerank를
+구현하지 않습니다.
+
+이번 범위에서 확정한 직접 답:
+
+- 1차 선택값: `sidecar-rule-suggestion-candidate`
+- 실제 선택 후보: `line-crossing-manual-review`,
+  `intrusion-dwell-manual-review`, `zone-occupancy-manual-review`
+- fallback: EventRecord, VLM 설명/오탐 힌트, 기존 `/ops/rules` form을 운영자가 직접
+  검토해 수동 저장
+- 대안: `rule-suggestion-review-ui-candidate`, `provider-rerank-rule-candidate`는
+  후보로만 보류
+
+제외 대상과 이유:
+
+- 자동 Rule/Profile 생성 또는 적용: 기존 rule registry write와 운영 승인 경계를
+  우회하므로 제외합니다.
+- EventRecord top-level `ruleSuggestion` 추가: 기존 EventRecord/Event POST/WebRTC/SSE/WS
+  contract 변경이므로 제외합니다.
+- client/viewer rule suggestion UI: viewer/client 노출 정책 검토가 별도 필요하므로
+  제외합니다.
+- runtime VLM re-query/provider rerank: 실제 VLM runtime 또는 cloud provider API 호출을
+  만들 수 있으므로 제외합니다.
+
+이번 범위에서 구현한 것:
+
+- `media-server.vlm-rule-suggestion-candidates.v1` response schema와
+  `media-server.vlm-rule-suggestion-candidate.v1` 후보 schema를 추가했습니다.
+- `BuildVlmRuleSuggestionCandidatesJson`이 VLMObservation sidecar JSONL에서
+  `ruleSuggestion` object를 읽고 수동 저장 후보만 반환합니다.
+- 후보는 `eventId`로 EventRecord와 상관시키며, EventRecord top-level payload에는
+  `ruleSuggestion` field를 추가하지 않습니다.
+- `test/fixtures/vlm_rule_suggestion/cases.json`이 실제 선택 후보, fallback, 제외 사유,
+  license/provenance/privacy review, line/intrusion/zone 후보, auto-apply rejected case를
+  보존합니다.
+- `verify-vlm-rule-suggestion-candidates`가 fixture, C++ builder, analysis-state smoke,
+  docs/inventory/server wiring, no-auto-apply boundary를 검증합니다.
+
+이번 범위에서 하지 않는 일:
+
+- 실제 VLM runtime 호출
+- cloud provider API 호출 또는 provider rerank
+- 제품 rule suggestion UI 또는 viewer/client 노출
+- EventRecord top-level schema 변경
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- 자동 Rule/Profile 생성 또는 적용
+- rule registry write 수행
+- V200-S14 테스트 inventory 전체 확장
+
+완료 evidence:
+
+- `./server.sh verify-vlm-rule-suggestion-candidates`가 fixture, C++ sidecar rule suggestion
+  builder, no-auto-apply guard, docs/inventory/server wiring, non-scope boundary를
+  검증합니다.
+- `./server.sh verify-analysis-state`가 sidecar rule suggestion 후보를 만들고 EventRecord와
+  `eventId`로만 상관시키는 smoke를 실행합니다.
+- `./server.sh verify-rule-ui`가 기존 `/ops/rules` smoke selector와 Rule/Profile 저장
+  흐름이 유지되는지 확인합니다.
+- `git diff --check`가 코드/문서/script whitespace drift를 확인합니다.
+
+후속 단계로 남기는 범위:
+
+- VLM 테스트 inventory 전체 확장은 `V200-S14`에서 별도 종료했습니다.
+- v2.0.0 전체 side effect 안정화는 `V200-S16`, 장시간/UI 기준 정리는 `V200-S17`,
+  close-out readiness는 `V200-S18` 범위입니다.
+
+### V200-S14 테스트 inventory 확장 종료 기준
+
+이 단계는 VLM으로 추가된 route, control, action, runtime state, sidecar, privacy guard를
+기능 ID 단위로 `project-feature-test-inventory.md`에 반영하는 단계입니다. Inventory는
+실행 evidence가 아니라 coverage 기준표이며, 실제 UI 풀테스트와 장시간 안정화는 이
+단계의 완료 evidence로 사용하지 않습니다.
+
+이번 범위에서 구현한 것:
+
+- `project-feature-test-inventory.md`의 기능 ID를 335개에서 369개로 확장했습니다.
+- `/ops/vlm`의 PC capability/recommendation 요약, local/cloud dry-run 선택, profile
+  활성화/fallback/disable, 삭제, evaluation/prompt 표시, raw details 접힘 영역을
+  `UI-025`~`UI-031`로 분리했습니다.
+- `/ops/events` VLM review detail control을 `UI-032`로 분리했습니다.
+- VLM evidence availability, sidecar correlation, explanation/hint review, summary search
+  candidate, rule suggestion candidate, runtime disabled/queue readiness state를
+  `EVT-029`~`EVT-034`로 분리했습니다.
+- VLM boundary/model selection/artifact exclusion, PC capability/recommendation/dry-run/
+  profile/evaluation 세부 matrix, sidecar redaction, summary search builder,
+  no-auto-apply rule suggestion builder를 `LAB-045`~`LAB-055`로 분리했습니다.
+- VLM default-off, model/runtime bundle 금지, cloud opt-in, redaction, sidecar 분리,
+  no-auto-apply, viewer/client 비노출, media path non-blocking, Ops-only debug details
+  경계를 `SAFE-025`~`SAFE-033`로 분리했습니다.
+- `verify-project-inventory`, `verify-feature-inventory-coverage`,
+  `verify-manual-ui-evidence-runner`의 row count, UI target count, verifier mapping을
+  새 inventory 기준으로 갱신했습니다.
+
+이번 범위에서 하지 않는 일:
+
+- 실제 VLM runtime 호출
+- cloud provider API 호출
+- model/runtime download 또는 bundle 추가
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- 제품 검색 UI 또는 rule suggestion UI 구현
+- 자동 Rule/Profile 생성 또는 적용
+- 30분/120분 장시간 안정화 실행
+- 인앱 브라우저 UI 풀테스트 실행
+- V200-S15 간이 테스트 리허설, V200-S16 side effect 점검, V200-S17 장시간/UI 기준 정리
+
+완료 evidence:
+
+- `./server.sh verify-project-inventory`가 369개 feature row, 238개 UI target,
+  V200-S14 확장 행, summary count, coverage boundary wording을 검증했습니다.
+- `./server.sh verify-feature-inventory-coverage`가 369개 feature ID 모두 verifier,
+  UI evidence, longrun approval, field exclusion 중 하나에 연결됐음을 검증했습니다.
+- `./server.sh verify-manual-ui-evidence-runner`가 새 UI target count 238개를 기준으로
+  누락 UI evidence를 FAIL로 산출하는 self-test를 통과했습니다.
+- `./server.sh verify-vlm-install-connection-scope-gate`가 S14 이후 늘어난 inventory
+  count/range와 현재 VLM 계약을 기준으로 PASS했습니다.
+- `./server.sh verify-vlm-pc-capability`, `./server.sh verify-vlm-recommendation-engine`,
+  `./server.sh verify-vlm-install-connection-dry-run`이 새 `LAB-001`~`LAB-055` inventory
+  range와 연결된 상태로 PASS했습니다.
+- `./server.sh verify-script-inventory`가 script inventory 연결을 PASS했습니다.
+- `git diff --check`가 문서/script whitespace drift 없음을 확인했습니다.
+
+후속 단계로 남기는 범위:
+
+- V200-S15 간이 테스트 리허설은 미진행입니다.
+- v2.0.0 전체 side effect 안정화는 `V200-S16`, 장시간/UI 기준 정리는 `V200-S17`,
+  close-out readiness는 `V200-S18` 범위입니다.
+
+v2.0.0 완료 판정은 기능 구현만으로 닫지 않습니다. 각 개발 순서에서 추가한 테스트가
+`project-feature-test-inventory.md`, 안정화 테스트, 30분/120분 trigger, UI 풀테스트
+기준에 반영됐는지 확인하고, 기존 테스트 항목에 side effect가 없는지 별도 행으로
+검증해야 합니다.
+
+### V200-S15 간이 테스트 리허설 종료 기준
+
+이 단계는 안정화/30분/120분/UI 풀테스트 전에 VLM 전용 짧은 리허설이 막히지
+않는지 확인하는 단계입니다. 테스트 리허설 evidence이며, 실제 안정화/장시간/UI
+PASS evidence가 아닙니다.
+
+이번 범위에서 구현한 것:
+
+- `docs/vlm-test-rehearsal.md`를 S15 source-of-truth로 추가했습니다.
+- `test/fixtures/vlm_test_rehearsal/cases.json`에 `short-vlm-smoke`,
+  `missing-model`, `cloud-disabled`, `invalid-output`, `queue-timeout`,
+  `cleanup-lifecycle`, `port-server-lifecycle` fixture를 추가했습니다.
+- `./server.sh verify-vlm-test-rehearsal`을 추가해 fixture matrix, VLM-only outcome,
+  cleanup, port/server lifecycle, docs/server/script inventory 연결을 확인하게 했습니다.
+- `docs/stream-verification.md`와 `docs/README.md`에 S15 리허설 명령과 비대체 경계를
+  연결했습니다.
+
+이번 범위에서 하지 않는 일:
+
+- 실제 VLM runtime 호출
+- cloud provider API 호출
+- model/runtime download 또는 bundle 추가
+- credential/profile/sidecar 저장
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- 30분/120분 장시간 안정화 실행
+- 인앱 브라우저 UI 풀테스트 실행
+- V200-S16 side effect 점검, V200-S17 장시간/UI 기준 정리, V200-S18 close-out readiness
+
+완료 evidence:
+
+- `./server.sh verify-vlm-test-rehearsal`이 7개 rehearsal case와 failure fixture 4개,
+  cleanup case 6개, lifecycle case 1개를 PASS로 검증했습니다.
+- `./server.sh verify-script-inventory`가 새 command dispatch, 문서 명령 참조,
+  strict option parser 연결을 PASS로 검증했습니다.
+- `git diff --check`가 코드/문서/script whitespace drift 없음을 확인했습니다.
+
+후속 단계로 남기는 범위:
+
+- v2.0.0 전체 side effect 안정화는 `V200-S16` 범위입니다.
+- 장시간/UI 기준 정리는 `V200-S17` 범위입니다.
+- close-out readiness는 `V200-S18` 범위입니다.
+
+### V200-S16 기존 테스트 side effect 점검 종료 기준
+
+이 단계는 VLM S00~S15 변경이 기존 auth, Ops/Client shell, Rule UI, VA replay/events,
+WebRTC metadata, SSE/WS metadata, Event POST, RTSP/WebRTC media path 관련 verifier에
+side effect를 만들지 않았는지 확인하는 단계입니다. 제품 UI 풀테스트 직접 조작이나
+30분/120분 장시간 안정화는 이 단계의 완료 evidence가 아닙니다.
+
+이번 범위에서 구현/정리한 것:
+
+- 제품 코드/API/schema/media path는 변경하지 않았습니다.
+- S16 결과를 roadmap에 기록했습니다.
+- S16 검증 중 서버/포트/auth/Event POST dispatcher 실행 조건을 제품 회귀와 분리해
+  기록했습니다.
+
+이번 범위에서 하지 않는 일:
+
+- 실제 VLM runtime 호출
+- cloud provider API 호출
+- model/runtime download 또는 bundle 추가
+- Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
+- RTSP/WebRTC media path 변경
+- 30분/120분 장시간 안정화 실행
+- 인앱 브라우저 UI 풀테스트 실행
+- V200-S17 장시간/UI 기준 정리, V200-S18 close-out readiness
+
+완료 evidence:
+
+- `./server.sh build`: PASS, `build-gst-onnx/media_server` build target 최신.
+- `./server.sh verify-auth-routes`: 최초 sandbox RTSP bind EPERM으로 실패했으나,
+  같은 auth env로 sandbox 밖 재실행 PASS 135/0.
+- `./server.sh verify-ops-client-ui --http-base http://127.0.0.1:8182 --browser-mode static`:
+  최초 서버 미기동/증적 조건 실패 및 sandbox fetch 실패 후 격리 auth-off 서버에서
+  sandbox 밖 재실행 PASS 18/0. Static mode라 `client-rendered-leak`,
+  `ops-admin-form-regression` browser 조작 보조 항목은 skip이며 UI 풀테스트 PASS
+  evidence로 쓰지 않습니다.
+- `./server.sh verify-rule-ui --http-base http://127.0.0.1:8182 --chrome-path ...`:
+  Chrome 경로를 명시해 sandbox 밖 재실행 PASS. `/ops/rules` native browser smoke,
+  validation, mobile geometry, nav round-trip 확인.
+- `./server.sh verify-va-replay`: PASS, 14 baseline cases.
+- `./server.sh verify-va-events`: 최초 default 8081 health 실패 후 격리 auth-off 서버
+  `http://127.0.0.1:8182`에서 sandbox 밖 재실행 PASS 31/0.
+- `./server.sh verify-webrtc-va-metadata --http-base http://127.0.0.1:8182 --chrome-path ...`:
+  최초 default endpoint fetch 실패 후 sandbox 밖 재실행 PASS 8/0.
+- `./server.sh verify-va-metadata-sidechannel --http-base http://127.0.0.1:8182`:
+  최초 default endpoint connection refused 후 sandbox 밖 재실행 PASS, summary fail=0.
+- `./server.sh verify-ws-metadata --http-base http://127.0.0.1:8182`:
+  최초 default endpoint sandbox EPERM 후 sandbox 밖 재실행 PASS 9/0.
+- `./server.sh verify-event-post --http-base http://127.0.0.1:8183`: 기본 disabled 서버의
+  schema mode precondition 실패를 확인한 뒤 Event POST enabled 격리 서버에서 PASS 9/0.
+
+후속 단계로 남기는 범위:
+
+- S17 안정화/장시간/UI 기준 정리는 미진행입니다.
+- S18 close-out readiness는 미진행입니다.
+- 인앱 브라우저 UI 풀테스트와 30분/120분 장시간 안정화는 이 단계에서 실행하지
+  않았습니다.
+
+### V200-S17 안정화/장시간/UI 기준 정리 종료 기준
+
+이 단계는 VLM queue, memory, provider timeout, model install 상태별로 안정화,
+30분, 120분, UI 풀테스트 실행 기준과 제외/미실행 보고 기준을 정리하는 단계입니다.
+기준 정리 단계이며, 실제 30분/120분 장시간 실행이나 UI 풀테스트 PASS evidence가
+아닙니다.
+
+이번 범위에서 구현/정리한 것:
+
+- `docs/vlm-stabilization-longrun-ui-criteria.md`를 S17 source-of-truth로 추가했습니다.
+- `verify-runtime-media-longrun-trigger-matrix`에 `vlm-docs-fixture-only`,
+  `vlm-model-install-state`, `vlm-provider-timeout-cloud`,
+  `vlm-queue-timeout-nonblocking`, `vlm-memory-runtime-cache` row를 추가했습니다.
+- `docs/stream-verification.md`의 Runtime/media matrix와 VLM longrun trigger section을
+  갱신했습니다.
+- `docs/project-feature-test-inventory.md`의 30분/120분 mapping에 VLM queue/backpressure,
+  runtime cache, `SAFE-032` trigger 기준을 추가했습니다.
+- `manual-ui-fulltest.md`, `manual-ui-checklist.md`,
+  `manual-ui-result-template.md`에 `/ops/vlm`, `/ops/events` VLM review,
+  client/viewer redaction, raw JSON/API-only 비대체 기준을 추가했습니다.
+
+직접 기준:
+
+- VLM docs/fixture/verifier wording만 바뀌면 짧은 안정화만 실행하고 장시간/UI는
+  미실행으로 기록합니다.
+- VLM model install readiness, missing-model, cloud-disabled 상태는 `/ops/vlm` UI
+  직접 확인 대상이지만 그 자체로 120분 longrun 대상은 아닙니다.
+- cloud provider timeout/retry/credential path는 local soak PASS로 cloud 성공을
+  대체하지 않고 field smoke 또는 제외 기록으로 남깁니다.
+- VLM queue/backpressure/timeout worker는 30분 soak 대상이며, metadata fanout/media
+  non-blocking 또는 cleanup drift 고위험 신호가 있으면 사용자 승인 후 120분
+  Runtime Console longrun 대상입니다.
+- VLM memory/runtime cache/frame retention 변경은 30분 soak 대상이며, active RSS
+  high-water 또는 cache ownership 변경이 있으면 사용자 승인 후 120분 predev 대상입니다.
+- VLM UI 풀테스트는 `/ops/vlm`, `/ops/events`, `/client/live`,
+  `/client/dashboard`, `/client/events`를 직접 조작/확인해야 하며 static smoke나
+  raw JSON/API-only 확인으로 대체하지 않습니다.
+
+이번 범위에서 하지 않는 일:
+
+- 실제 VLM runtime 호출
+- cloud provider API 호출
+- model/runtime download 또는 bundle 추가
+- 30분/120분 장시간 안정화 실행
+- 인앱 브라우저 UI 풀테스트 실행
+- V200-S18 close-out readiness
+
+완료 evidence:
+
+- `./server.sh verify-runtime-media-longrun-trigger-matrix`가 VLM row 포함 trigger
+  matrix를 PASS로 검증했습니다.
+- `./server.sh verify-longrun-separation`이 기본 smoke와 장시간 gate 분리를 PASS로
+  검증했습니다.
+- `./server.sh verify-manual-ui-evidence`가 UI 풀테스트 문서 구조와 비대체 경계를
+  PASS로 검증했습니다.
+- `./server.sh verify-script-inventory`가 변경된 verifier script와 문서 명령 참조를
+  PASS로 검증했습니다.
+- `./server.sh verify-docs-links`가 새 VLM 기준 문서 링크와 문서 index를 PASS로
+  검증했습니다.
+- `git diff --check`가 코드/문서/script whitespace drift 없음을 확인했습니다.
+
+후속 단계로 남기는 범위:
+
+- S18 close-out readiness는 미진행입니다.
+- 30분/120분 장시간 안정화와 인앱 브라우저 UI 풀테스트는 실행하지 않았습니다.
+
+### V200-S18 v2.0.0 close-out readiness 종료 기준
+
+이 단계는 v2.0.0 VLM 로드맵의 close-out readiness를 release evidence로 정리하는
+단계입니다. 스크립트 테스트, UI 풀테스트, 30분, 120분, provider field smoke,
+publish gate를 서로 대체하지 않도록 기록합니다.
+
+이번 범위에서 구현/정리한 것:
+
+- `docs/vlm-close-out-readiness.md`를 S18 source-of-truth report로 추가했습니다.
+- `./server.sh verify-vlm-closeout-readiness`를 추가해 S18 report, release evidence,
+  roadmap, stream verification, docs index, server/script inventory 연결을 검증합니다.
+- `docs/release-evidence-index.md`에 VLM close-out readiness evidence row와
+  `v200-vlm-closeout-readiness-20260531` token ledger row를 추가했습니다.
+- `docs/stream-verification.md`와 `docs/README.md`에 S18 report/verifier를 연결했습니다.
+
+직접 기준:
+
+- VLM close-out readiness report는 `media-server.vlm-close-out-readiness.v1`입니다.
+- 30분/UI/120분 실행 또는 미실행 기록은 S18 완료 조건입니다.
+- UI 풀테스트, 30분 soak, 120분 longrun, cloud provider field smoke는 이번 S18에서
+  미실행으로 기록합니다.
+- S18 완료로 v2.0.0 release tag, GitHub Release, main merge, UI 풀테스트 PASS를 완료로 보지 않습니다.
+
+이번 범위에서 하지 않는 일:
+
+- 실제 VLM runtime 호출
+- cloud provider API 호출
+- model/runtime download 또는 bundle 추가
+- 30분/120분 장시간 안정화 실행
+- 인앱 브라우저 UI 풀테스트 실행
+- main merge, release tag, GitHub Release 생성
+
+완료 evidence:
+
+- `./server.sh verify-vlm-closeout-readiness`가 S18 report와 release evidence 경계를
+  PASS로 검증했습니다.
+- `./server.sh verify-release-evidence-index`가 VLM close-out readiness row와
+  미실행/미확인/제외 분리 문구를 PASS로 검증했습니다.
+- `./server.sh verify-release-metadata`가 branch-level VERSION/CMake/README/docs drift를
+  PASS로 검증했습니다.
+- `./server.sh verify-vlm-test-rehearsal`, `./server.sh verify-runtime-media-longrun-trigger-matrix`,
+  `./server.sh verify-longrun-separation`, `./server.sh verify-manual-ui-evidence`,
+  `./server.sh verify-script-inventory`, `./server.sh verify-docs-links`가 PASS입니다.
+- `git diff --check`가 코드/문서/script whitespace drift 없음을 확인했습니다.
+
+후속 단계로 남기는 범위:
+
+- 실제 v2.0.0 release publish, tag, main merge, GitHub Release 생성은 미진행입니다.
+- UI 풀테스트, 30분 soak, 120분 longrun은 미실행입니다.
+- publish 후 `verify-release-metadata --published`는 미실행입니다.
+
+S18 이후 v2.0.0 브랜치 테스트 보강:
+
+- 2026-06-01 `v200-inapp-policy-30min-20260601`: 30분 soak PASS.
+- 2026-06-01 `v200-inapp-policy-ui-fulltest-20260601`: 인앱 브라우저 UI 풀테스트 PASS.
+- 2026-06-01 `v200-inapp-policy-120min-20260601`: `verify-predev --soak-minutes 120` PASS.
+- 여전히 미실행: `verify-va-runtime-console-longrun --duration-minutes 120`, cloud provider field smoke,
+  main merge, release tag, GitHub Release 생성, publish 후 `verify-release-metadata --published`.
 
 ## v1.9.0 Release Trust Hardening Close-out
 
@@ -205,8 +1441,8 @@ Decision record 최소 필드:
 
 ## Archived: v1.7.0 UI-first Close-out
 
-이 섹션은 v1.7.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v1.9.0
-Release Trust Hardening Close-out입니다.
+이 섹션은 v1.7.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v2.0.0
+Release Close-out입니다.
 
 v1.7.0 close-out 당시에는 Client Live workspace와 Ops workflow 보강을 완료 기준으로 둡니다.
 기존 Client 화면을 “라이브 월 추가”가 아니라 `/client/live` 대체로 정리했고,
@@ -243,7 +1479,7 @@ UI 원칙:
 2. 이벤트 검토, source group/site, layout 저장을 붙여 실제 운영 흐름을 닫았습니다.
 3. 알림 연동, Scenario Builder, Incident Timeline을 기본 UI 위에 확장했습니다.
 4. v1.7.0 close-out 당시 README/UI guide 대표 screenshot asset을 UI-first
-   화면으로 한국어/영어 모두 재캡처했습니다. 현재 문서 대표 이미지는 상단 v1.9.0
+   화면으로 한국어/영어 모두 재캡처했습니다. 현재 문서 대표 이미지는 상단 v2.0.0
    release 기준에서 다시 관리합니다.
 
 | ID | 우선순위 | 영역 | 목표 | 예상 검증 |
@@ -283,8 +1519,8 @@ v1.7.0 비범위:
 
 ## Archived: v1.6.0 Stabilization Close-out
 
-이 섹션은 v1.6.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v1.9.0
-Release Trust Hardening Close-out입니다.
+이 섹션은 v1.6.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v2.0.0
+Release Close-out입니다.
 
 v1.6.0 close-out 당시에는 새 제품 기능을 여는 minor release가 아니라, v1.5.0까지 닫은 기능을
 다음 기능 개발 사이클 전에 안정화하고 release-grade 증적, verifier, 문서 경계를
@@ -723,7 +1959,7 @@ release evidence index에
 확인됨:
 
 - 이 절의 확인 항목은 v1.6.0 close-out historical evidence입니다. 최신
-  source-only release 기준 tag 판정은 상단 v1.9.0 기준을 따릅니다.
+  source-only release 기준 tag 판정은 상단 v2.0.0 기준을 따릅니다.
 - v1.6.0 close-out 당시 public docs는 source-only release tag를 `v1.6.0`으로
   맞추도록 정리했습니다.
 - v1.6.0은 source-only stabilization release이며 runtime/model/binary bundle release가 아닙니다.

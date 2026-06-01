@@ -84,7 +84,7 @@ check("required sections exist", () => {
 
 check("summary counts match current feature IDs", () => {
   const rows = parseFeatureRows(inventory);
-  assert(rows.length === 317, `expected 317 feature rows, found ${rows.length}`);
+  assert(rows.length === 369, `expected 369 feature rows, found ${rows.length}`);
   const ids = rows.map(row => row.id);
   assert(new Set(ids).size === ids.length, "duplicate feature IDs in inventory");
   for (const prefix of ["UI", "AUTH", "SRC", "RULE", "EVT", "CLIENT", "MEDIA", "LAB", "SAFE"]) {
@@ -150,6 +150,58 @@ check("coverage wording separates mapping from execution", () => {
     "evidence 문서 없이 inventory만으로 UI PASS 판정 불가",
   ]) {
     requireText(inventory, phrase, `inventory missing coverage boundary wording: ${phrase}`);
+  }
+});
+
+check("V200-S14 VLM feature expansion rows exist", () => {
+  const requiredRows = [
+    "UI-025",
+    "UI-026",
+    "UI-027",
+    "UI-028",
+    "UI-029",
+    "UI-030",
+    "UI-031",
+    "UI-032",
+    "EVT-029",
+    "EVT-030",
+    "EVT-031",
+    "EVT-032",
+    "EVT-033",
+    "EVT-034",
+    "LAB-045",
+    "LAB-046",
+    "LAB-047",
+    "LAB-048",
+    "LAB-049",
+    "LAB-050",
+    "LAB-051",
+    "LAB-052",
+    "LAB-053",
+    "LAB-054",
+    "LAB-055",
+    "SAFE-025",
+    "SAFE-026",
+    "SAFE-027",
+    "SAFE-028",
+    "SAFE-029",
+    "SAFE-030",
+    "SAFE-031",
+    "SAFE-032",
+    "SAFE-033",
+  ];
+  const ids = new Set(parseFeatureRows(inventory).map(row => row.id));
+  for (const id of requiredRows) {
+    assert(ids.has(id), `missing V200-S14 expanded feature row: ${id}`);
+  }
+  for (const snippet of [
+    "`UI-001`~`UI-018`, `UI-022`~`UI-032`",
+    "`EVT-001`~`EVT-034`",
+    "`LAB-001`~`LAB-055`",
+    "`SAFE-001`~`SAFE-033`",
+    "VLM route, control, action, runtime state, sidecar, privacy guard",
+  ]) {
+    requireText(inventory, snippet, `inventory missing V200-S14 expansion snippet: ${snippet}`);
   }
 });
 

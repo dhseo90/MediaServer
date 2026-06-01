@@ -19,6 +19,10 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 - users/source/view/analysis fixture:
 - 데이터 리셋 방법:
 - 브라우저: 자율 Chrome/CDP 또는 인앱 브라우저
+- 브라우저 선택: Codex 실행은 인앱 브라우저 evidence 우선, Codex 밖 사용자 실행은
+  Chrome/CDP 허용. Codex 세션의 Chrome/CDP 예외는
+  `MEDIA_SERVER_UI_BROWSER_MODE=chrome` + `MEDIA_SERVER_ALLOW_CHROME_FALLBACK=1`
+  지정과 사유를 기록.
 - viewport:
 - theme:
 - evidence index:
@@ -51,6 +55,32 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 모든 영역은 평균 산출을 위해 `token start`, `token end`, `token consumed`, `elapsed`,
 `source`를 함께 기록합니다. Codex goal usage 같은 자동 집계값이 있으면 그 값을
 우선하고, 집계값이 없으면 미집계 사유를 적습니다.
+
+## 긴 테스트 Preflight / 재시작 경계
+
+30분, 120분, UI 풀테스트를 시작하기 전에 채웁니다. 아래 항목 누락은 긴 테스트
+실패가 아니라 preflight 실패입니다.
+
+| 항목 | 기대 상태 | 실제 상태 | 판정 | 후속 |
+| --- | --- | --- | --- | --- |
+| v2.0.0 기능 목록 freeze | `v2.0.0 Pre-Test Update List`와 기능 ID 목록 확인 |  | PASS/FAIL |  |
+| VLM UI 대상 | `/ops/vlm`, `/ops/events`, `/client/live`, `/client/dashboard`, `/client/events` 결과 행 존재 |  | PASS/FAIL |  |
+| auth verifier env | auth test password env 5개 모두 `SET` |  | PASS/FAIL |  |
+| throwaway fixture | users/source/view/analysis/event/snapshot/clip 경로 고정 |  | PASS/FAIL |  |
+| VA seed 준비 | seed dry-run 또는 registry dir 준비, 아직 UI/event evidence로 쓰지 않음 |  | PASS/FAIL |  |
+| output artifact | summary/report/log/screenshot/evidence JSON 경로 고정 |  | PASS/FAIL |  |
+| UI blocker guard | native dialog/blocking dialog/browser permission 확인 계획 있음 |  | PASS/FAIL |  |
+| 30분 시작 조건 | 안정화 gate PASS 또는 미실행 사유, VLM queue/runtime/media 변경 여부 기록 |  | PASS/FAIL |  |
+| 120분 시작 조건 | 사용자 승인, RC/high-risk 사유, 30분 또는 high-risk short gate, memory/runtime 관찰 항목 기록 |  | PASS/FAIL |  |
+
+- preflight 실패:
+- 긴 테스트 시작 여부:
+- 긴 테스트 미시작 항목:
+- 제품 runtime/media/auth/session/registry 수정 여부:
+- 전체 재시작 필요 여부:
+- 부분 재검수 가능 범위:
+- retained artifact로 재판정 가능한 항목:
+- retained artifact가 부족해 미확인으로 남길 항목:
 
 ## 현재 보존 증적
 
@@ -98,6 +128,28 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 - 반응형/테마 범위:
 - 시각 품질 확인:
 - 제외 기록:
+
+### VLM UI Criteria
+
+| 기능 ID/화면 | 직접 조작 | 기대 상태 | 실제 상태 | 판정 | 증적 |
+| --- | --- | --- | --- | --- | --- |
+| UI-022 `/ops/vlm` 설치/연결 준비 | local/cloud dry-run 후보 선택 | 자동 설치/호출/저장 없음 |  | PASS/FAIL |  |
+| UI-023 `/ops/vlm` profile 저장 | 저장/활성화/fallback/disable/delete | profile state만 반영, runtime call 없음 |  | PASS/FAIL |  |
+| UI-024 `/ops/vlm` privacy guard | cloud opt-in 전/후 guard 확인 | provider 호출/credential 저장 없음 |  | PASS/FAIL |  |
+| UI-025 `/ops/vlm` PC capability/recommendation | capability/recommendation 요약 확인 | 추천/대안/비추천 사유가 Ops-only로 보이고 자동 설치/호출 없음 |  | PASS/FAIL |  |
+| UI-026 `/ops/vlm` local 후보 선택 | local dry-run 후보 선택 | model download/runtime install/profile 저장 없이 선택 상태만 갱신 |  | PASS/FAIL |  |
+| UI-027 `/ops/vlm` cloud 후보 선택 | opt-in 전 disabled, opt-in 후 dry-run 선택 | provider API 호출/credential 저장 없이 선택 상태만 갱신 |  | PASS/FAIL |  |
+| UI-028 `/ops/vlm` profile 상태 control | active/fallback/disabled 전환 | 저장 목록과 상세 copy만 반영, runtime call 없음 |  | PASS/FAIL |  |
+| UI-029 `/ops/vlm` profile 삭제 | 삭제 action | 목록에서 제거되고 EventRecord/sidecar/media path 영향 없음 |  | PASS/FAIL |  |
+| UI-030 `/ops/vlm` evaluation/prompt profile | 평가 상태와 prompt profile 표시 | benchmark PASS로 과장하지 않고 저장 profile에 표시 |  | PASS/FAIL |  |
+| UI-031 `/ops/vlm` raw details | details 열기/닫기 | raw details는 Ops 접힘 영역에만 있음 |  | PASS/FAIL |  |
+| UI-032 `/ops/events` VLM review | review detail 열기 | summary/explanation/hints/questions가 Ops에만 표시 |  | PASS/FAIL |  |
+| SAFE-031 client/viewer 비노출 | `/client/live`, `/client/dashboard`, `/client/events` 확인 | model/prompt/raw response/provider/internal review card 없음 |  | PASS/FAIL |  |
+
+VLM queue/backpressure, memory/runtime cache, provider timeout, model install state의
+30분/120분 기준은 [vlm-stabilization-longrun-ui-criteria.md](./vlm-stabilization-longrun-ui-criteria.md)에
+따릅니다. 실행하지 않은 장시간 테스트는 이 UI 표에서 PASS로 쓰지 않고
+`안정화/장시간` 또는 `제외 기록`에만 남깁니다.
 
 ## VA Seed / 최종 룰 상태
 
@@ -228,11 +280,13 @@ evidence이며, UI에서 열지 않은 경우 `FAIL`입니다.
 | `/ops/rules` | admin/operator |  |  |  |  | PASS/FAIL |
 | `/ops/users` | admin |  |  |  |  | PASS/FAIL |
 | `/ops/events` | admin/operator |  |  |  |  | PASS/FAIL |
+| `/ops/vlm` | admin/operator |  |  |  |  | PASS/FAIL |
 | `/client/live` | viewer/admin preview |  |  |  |  | PASS/FAIL |
 | `/client/dashboard` | viewer/admin preview |  |  |  |  | PASS/FAIL |
+| `/client/events` | viewer/admin preview |  |  |  |  | PASS/FAIL |
 | `/client/request-access` | public |  |  |  |  | PASS/FAIL |
 
-## v1.9.0 Release Evidence Index
+## v2.0.0 Release Evidence Index
 
 자동 smoke나 raw JSON 확인만으로 채우지 않습니다. 실제로 열고 클릭한 화면만
 `PASS` 후보가 될 수 있고, 열지 않은 개별 기능은 `FAIL`입니다.
@@ -247,8 +301,10 @@ evidence이며, UI에서 열지 않은 경우 `FAIL`입니다.
 | `/ops/rules` | admin/operator | Rules 화면 진입/validation 확인 |  | `verify-rule-ui` | PASS/FAIL |  |
 | `/ops/users` | admin | Users 화면 진입/user table 확인 |  | `verify-ops-client-ui --screenshots` | PASS/FAIL |  |
 | `/ops/events` | admin/operator | Events 화면 진입/EventRecord review 확인 |  | `verify-ops-event-records-scope` | PASS/FAIL |  |
+| `/ops/vlm` | admin/operator | VLM install/profile/privacy 화면 진입 및 controls 확인 |  | `verify-vlm-install-connection-ui`, `verify-vlm-profile-storage`, `verify-vlm-privacy-transfer-guard` | PASS/FAIL |  |
 | `/client/live` | viewer/admin preview | Live 화면 진입/source 선택/drag-drop 확인 |  | `verify-ops-client-ui --screenshots` | PASS/FAIL |  |
 | `/client/dashboard` | viewer/admin preview | Dashboard 화면 진입/view 상태 확인 |  | `verify-client-dashboard-polish` | PASS/FAIL |  |
+| `/client/events` | viewer/admin preview | viewer scope events와 VLM internal card 비노출 확인 |  | `verify-ops-client-ui --screenshots` | PASS/FAIL |  |
 
 - 직접 열어보지 않은 화면:
 - 실패 후 재검수한 화면:

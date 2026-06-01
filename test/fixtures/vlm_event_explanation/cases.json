@@ -1,0 +1,190 @@
+{
+  "schema": "media-server.vlm-event-explanation-fixtures.v1",
+  "targetStep": "V200-S09",
+  "description": "Fixture-only cases for event explanation, object/area relation, false-positive hints, operator review questions, and deterministic JSON stability.",
+  "cases": [
+    {
+      "id": "line-crossing-person-ko",
+      "language": "ko",
+      "privacyMode": "local-only-fixture",
+      "event": {
+        "eventId": "evt-vlm-explain-line-001",
+        "sourceId": "sample-h264",
+        "ruleId": "rule-line-crossing-eastbound",
+        "scenarioId": "scenario-doorway-review",
+        "eventType": "line-crossing",
+        "displayName": "라인 통과",
+        "triggerReason": "bbox 중심이 이전 frame의 라인 서쪽에서 event frame 이후 동쪽으로 이동했습니다."
+      },
+      "primaryObject": {
+        "label": "사람",
+        "role": "moving-subject"
+      },
+      "evidenceRefs": {
+        "previousFrame": "fixture://event-evidence/evt-vlm-explain-line-001/previous-frame.jpg",
+        "eventFrame": "fixture://event-evidence/evt-vlm-explain-line-001/event-frame.jpg",
+        "nextFrame": "fixture://event-evidence/evt-vlm-explain-line-001/next-frame.jpg",
+        "bboxCrop": "fixture://event-evidence/evt-vlm-explain-line-001/bbox-crop.jpg"
+      },
+      "relations": [
+        {
+          "subject": "primary-object",
+          "subjectLabel": "사람",
+          "target": "line-east-entry",
+          "targetLabel": "동쪽 출입 라인",
+          "relation": "bbox 중심이 라인을 넘어가는 관계",
+          "evidenceRefs": ["previousFrame", "eventFrame", "nextFrame", "bboxCrop"],
+          "reviewFocus": "라인 기준이 bbox 중심인지 발 위치인지 확인"
+        }
+      ],
+      "falsePositiveFactors": [
+        {
+          "risk": "medium",
+          "reason": "bbox crop이 상반신 위주라 발 위치 기준 라인 교차와 다를 수 있어 오탐 가능성이 있습니다.",
+          "evidenceRefs": ["eventFrame", "bboxCrop"],
+          "operatorAction": "라인 crossing 기준과 실제 현장 방향을 대조합니다."
+        }
+      ],
+      "operatorReviewQuestions": [
+        "동쪽 출입 라인의 forward 방향이 현장 기준과 맞습니까?",
+        "previousFrame과 nextFrame에서 같은 사람이 계속 보입니까?"
+      ],
+      "promptProfile": {
+        "id": "event-explanation-default",
+        "version": "1"
+      },
+      "uncertainty": {
+        "level": "medium",
+        "score": 0.28,
+        "reason": "bbox crop 경계가 좁아 발 위치 확인이 필요합니다."
+      },
+      "expected": {
+        "requiredTerms": ["사람", "라인", "통과", "오탐"],
+        "minFalsePositiveHints": 1,
+        "minOperatorQuestions": 2
+      }
+    },
+    {
+      "id": "zone-dwell-person-en",
+      "language": "en",
+      "privacyMode": "local-only-fixture",
+      "event": {
+        "eventId": "evt-vlm-explain-zone-001",
+        "sourceId": "sample-h264",
+        "ruleId": "rule-loading-zone-dwell",
+        "scenarioId": "scenario-loading-zone",
+        "eventType": "zone-dwell",
+        "displayName": "zone dwell",
+        "triggerReason": "A person remains inside the configured loading zone across the previous, event, and next frames."
+      },
+      "primaryObject": {
+        "label": "person",
+        "role": "stationary-subject"
+      },
+      "evidenceRefs": {
+        "previousFrame": "fixture://event-evidence/evt-vlm-explain-zone-001/previous-frame.jpg",
+        "eventFrame": "fixture://event-evidence/evt-vlm-explain-zone-001/event-frame.jpg",
+        "nextFrame": "fixture://event-evidence/evt-vlm-explain-zone-001/next-frame.jpg",
+        "bboxCrop": "fixture://event-evidence/evt-vlm-explain-zone-001/bbox-crop.jpg"
+      },
+      "relations": [
+        {
+          "subject": "primary-object",
+          "subjectLabel": "person",
+          "target": "loading-zone",
+          "targetLabel": "loading zone",
+          "relation": "stays inside the polygon boundary",
+          "evidenceRefs": ["previousFrame", "eventFrame", "nextFrame", "bboxCrop"],
+          "reviewFocus": "confirm whether the zone includes a normal walkway"
+        }
+      ],
+      "falsePositiveFactors": [
+        {
+          "risk": "medium",
+          "reason": "The configured zone may overlap a normal walking path, which can create a false positive.",
+          "evidenceRefs": ["previousFrame", "eventFrame", "nextFrame"],
+          "operatorAction": "Review the zone polygon against the intended restricted area."
+        }
+      ],
+      "operatorReviewQuestions": [
+        "Does the loading zone intentionally include this walkway?",
+        "Is the same person visible in the previous and next frames?"
+      ],
+      "promptProfile": {
+        "id": "false-positive-review",
+        "version": "1"
+      },
+      "uncertainty": {
+        "level": "medium",
+        "score": 0.35,
+        "reason": "The zone edge may include a normal path."
+      },
+      "expected": {
+        "requiredTerms": ["person", "zone", "dwell", "false positive"],
+        "minFalsePositiveHints": 1,
+        "minOperatorQuestions": 2
+      }
+    },
+    {
+      "id": "restricted-zone-vehicle-ko",
+      "language": "ko",
+      "privacyMode": "local-only-fixture",
+      "event": {
+        "eventId": "evt-vlm-explain-vehicle-001",
+        "sourceId": "sample-parking",
+        "ruleId": "rule-restricted-vehicle-zone",
+        "scenarioId": "scenario-parking-restricted",
+        "eventType": "restricted-zone",
+        "displayName": "제한 구역 진입",
+        "triggerReason": "차량 bbox가 제한 주차 영역 안쪽에 걸친 상태로 이벤트 frame에 표시됩니다."
+      },
+      "primaryObject": {
+        "label": "차량",
+        "role": "vehicle-subject"
+      },
+      "evidenceRefs": {
+        "previousFrame": "fixture://event-evidence/evt-vlm-explain-vehicle-001/previous-frame.jpg",
+        "eventFrame": "fixture://event-evidence/evt-vlm-explain-vehicle-001/event-frame.jpg",
+        "nextFrame": "fixture://event-evidence/evt-vlm-explain-vehicle-001/next-frame.jpg",
+        "bboxCrop": "fixture://event-evidence/evt-vlm-explain-vehicle-001/bbox-crop.jpg"
+      },
+      "relations": [
+        {
+          "subject": "primary-object",
+          "subjectLabel": "차량",
+          "target": "restricted-parking-zone",
+          "targetLabel": "제한 주차 영역",
+          "relation": "bbox 하단이 영역 내부와 겹치는 관계",
+          "evidenceRefs": ["eventFrame", "bboxCrop"],
+          "reviewFocus": "영역 polygon이 주행 차로를 포함하지 않는지 확인"
+        }
+      ],
+      "falsePositiveFactors": [
+        {
+          "risk": "medium",
+          "reason": "차량 그림자나 주행 차로 일부가 제한 영역 polygon과 겹치면 오탐이 될 수 있습니다.",
+          "evidenceRefs": ["eventFrame", "bboxCrop"],
+          "operatorAction": "영역 polygon과 차로 경계, 그림자 위치를 함께 확인합니다."
+        }
+      ],
+      "operatorReviewQuestions": [
+        "제한 주차 영역 polygon이 실제 금지 구역만 포함합니까?",
+        "차량 bbox가 그림자가 아니라 실제 차체를 기준으로 잡혔습니까?"
+      ],
+      "promptProfile": {
+        "id": "operator-question-review",
+        "version": "1"
+      },
+      "uncertainty": {
+        "level": "medium",
+        "score": 0.32,
+        "reason": "차량 하단과 그림자 경계가 겹쳐 보일 수 있습니다."
+      },
+      "expected": {
+        "requiredTerms": ["차량", "영역", "오탐", "polygon"],
+        "minFalsePositiveHints": 1,
+        "minOperatorQuestions": 2
+      }
+    }
+  ]
+}

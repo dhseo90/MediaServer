@@ -9,7 +9,12 @@ import {
   ensureRulePreviewPrerequisites,
 } from "./rule_preview_fixture_helpers.mjs";
 import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
-import { findChrome, openBrowserPage } from "./ui_visual_smoke_lib.mjs";
+import {
+  browserFallbackUnavailableMessage,
+  chromeFallbackAvailableForThisEnvironment,
+  findChrome,
+  openBrowserPage,
+} from "./ui_visual_smoke_lib.mjs";
 
 const rawArgs = process.argv.slice(2);
 if (hasHelpFlag(rawArgs)) {
@@ -22,6 +27,8 @@ Options:
   --http-base <url>     실행 중인 서버 HTTP base입니다. 기본 http://127.0.0.1:8081.
   --timeout-ms <ms>     브라우저 대기 시간입니다. 기본 12000.
   --chrome-path <path>  Chrome/Chromium 실행 파일 경로입니다.
+                        Codex 세션에서는 기본적으로 인앱 브라우저 evidence를 사용해야 하며,
+                        Chrome fallback은 명시 예외 환경변수 지정 시에만 허용합니다.
   --debug-port <port>   Chrome CDP port입니다. 기본 9899.
   --output-dir <path>   screenshot/log 출력 디렉터리입니다.
   -h, --help            도움말 출력
@@ -43,8 +50,8 @@ const chromePath = args.chromePath || findChrome();
 const debugPort = Number(args.debugPort || 9899);
 const outputDir = args.outputDir || path.join("/tmp", `media_server_ops_rules_native_${Date.now()}_${process.pid}`);
 
-if (!chromePath) {
-  console.error("[fail] Chrome executable not found");
+if (!chromeFallbackAvailableForThisEnvironment() || !chromePath) {
+  console.error(`[fail] ${browserFallbackUnavailableMessage()}`);
   process.exit(1);
 }
 

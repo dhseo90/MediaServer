@@ -33,9 +33,14 @@ Options:
   --widths <csv>            direct click viewport 폭입니다. 기본 390,1180.
   --visual-widths <csv>     screenshot viewport 폭입니다. 기본 320,390,760,1180.
   --manual-result <path>    기존 manual UI result 문서 검증 대상입니다.
+  --browser-mode <mode>     ops/client smoke browser mode입니다. auto, in-app, chrome 중 하나입니다.
+  --in-app-evidence <path>  Codex 인앱 브라우저 직접 확인 evidence JSON입니다.
+  --allow-chrome-fallback[=1]
+                            Codex 세션에서 Chrome/CDP wrapper 예외를 명시합니다.
   --chrome-path <path>      Chrome/Chromium 실행 파일 경로입니다.
   --timeout-ms <ms>         서버 health 대기 시간입니다. 기본 30000.
   --skip-build              사전 build를 건너뜁니다.
+  --skip-manual-result      wrapper artifact만 만들고 manual result 구조 검증은 건너뜁니다.
   --keep-servers            실패/성공 후 throwaway 서버를 종료하지 않습니다.
   -h, --help                도움말 출력
 
@@ -49,6 +54,8 @@ Required auth env for --auth-ui-flow:
 Boundaries:
   - verify-predev 30분/120분과 Runtime Console 120분 longrun은 실행하지 않습니다.
   - 운영 데이터가 아니라 output-dir 아래 throwaway registry/users/event path만 사용합니다.
+  - Codex 세션의 기본 UI evidence는 인앱 브라우저이며, 이 Chrome/CDP wrapper는
+    Codex 밖 사용자 실행 또는 --browser-mode chrome --allow-chrome-fallback 예외에만 사용합니다.
   - 실패한 step 이후 step은 실행하지 않고 summary에 남깁니다.
 `);
 }
@@ -63,9 +70,13 @@ assertKnownOptions(rawArgs, [
   "widths",
   "visual-widths",
   "manual-result",
+  "browser-mode",
+  "in-app-evidence",
+  "allow-chrome-fallback",
   "chrome-path",
   "timeout-ms",
   "skip-build",
+  "skip-manual-result",
   "keep-servers",
   "h",
   "help",
@@ -79,9 +90,14 @@ const debugPortBase = numberOption(args.debugPortBase, 14000);
 const widths = args.widths || "390,1180";
 const visualWidths = args.visualWidths || "320,390,760,1180";
 const manualResult = args.manualResult || "docs/manual-ui-result-2026-05-25-ui-fulltest-restart.md";
+const browserMode = normalizeBrowserMode(args.browserMode || "auto");
+const inAppEvidence = args.inAppEvidence || "";
+const allowChromeFallback = truthy(args.allowChromeFallback);
 const skipBuild = Boolean(args.skipBuild);
+const skipManualResult = Boolean(args.skipManualResult);
 const keepServers = Boolean(args.keepServers);
 const chromeArgs = args.chromePath ? ["--chrome-path", args.chromePath] : [];
+const opsClientBrowserArgs = buildOpsClientBrowserArgs();
 
 const authEnvNames = [
   "MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD",
@@ -147,6 +163,7 @@ try {
     MEDIA_SERVER_ANALYSIS_EVENT_CLIP_DIR: path.join(outputDir, "core-clips"),
   });
   await waitForHealth("core-ui-health", `http://127.0.0.1:${ports.coreHttp}/health`);
+  appendDiagnosticLogTailFixture();
 
   await runCommand("score-ui-evidence-runner", ["./server.sh", "verify-manual-ui-evidence-runner"]);
   await runCommand("guard-native-dialogs", ["./server.sh", "verify-product-ui-no-native-dialogs"]);
@@ -161,6 +178,7 @@ try {
     String(debugPortBase + 0),
     "--output-dir",
     path.join(outputDir, "ops-client-ui"),
+    ...opsClientBrowserArgs,
     ...chromeArgs,
   ]);
   await runCommand("ops-client-ui-screenshots", [
@@ -175,6 +193,7 @@ try {
     String(debugPortBase + 200),
     "--output-dir",
     path.join(outputDir, "ops-client-ui-screenshots"),
+    ...opsClientBrowserArgs,
     ...chromeArgs,
   ]);
   await runCommand("rule-ui", [
@@ -258,12 +277,16 @@ try {
     ...chromeArgs,
   ]);
 
-  await runCommand("manual-ui-result-structure", [
-    "./server.sh",
-    "verify-manual-ui-evidence",
-    "--result",
-    manualResult,
-  ]);
+  if (skipManualResult) {
+    markSkipped("manual-ui-result-structure", "--skip-manual-result");
+  } else {
+    await runCommand("manual-ui-result-structure", [
+      "./server.sh",
+      "verify-manual-ui-evidence",
+      "--result",
+      manualResult,
+    ]);
+  }
 
   markSkipped("predev-30min", "one-shot UI wrapper does not run verify-predev --soak-minutes 30");
   markSkipped("predev-120min", "one-shot UI wrapper does not run verify-predev --soak-minutes 120");
@@ -295,6 +318,7 @@ function parseArgs(argv) {
   for (let index = 0; index < argv.length; index += 1) {
     const token = argv[index];
     if (token === "--skip-build") parsed.skipBuild = true;
+    else if (token === "--skip-manual-result") parsed.skipManualResult = true;
     else if (token === "--keep-servers") parsed.keepServers = true;
     else if (token.startsWith("--output-dir=")) parsed.outputDir = token.slice("--output-dir=".length);
     else if (token === "--output-dir") parsed.outputDir = argv[++index];
@@ -314,6 +338,12 @@ function parseArgs(argv) {
     else if (token === "--visual-widths") parsed.visualWidths = argv[++index];
     else if (token.startsWith("--manual-result=")) parsed.manualResult = token.slice("--manual-result=".length);
     else if (token === "--manual-result") parsed.manualResult = argv[++index];
+    else if (token.startsWith("--browser-mode=")) parsed.browserMode = token.slice("--browser-mode=".length);
+    else if (token === "--browser-mode") parsed.browserMode = argv[++index];
+    else if (token.startsWith("--in-app-evidence=")) parsed.inAppEvidence = token.slice("--in-app-evidence=".length);
+    else if (token === "--in-app-evidence") parsed.inAppEvidence = argv[++index];
+    else if (token.startsWith("--allow-chrome-fallback=")) parsed.allowChromeFallback = token.slice("--allow-chrome-fallback=".length);
+    else if (token === "--allow-chrome-fallback") parsed.allowChromeFallback = argv[index + 1] && !argv[index + 1].startsWith("--") ? argv[++index] : "1";
     else if (token.startsWith("--chrome-path=")) parsed.chromePath = token.slice("--chrome-path=".length);
     else if (token === "--chrome-path") parsed.chromePath = argv[++index];
     else if (token.startsWith("--timeout-ms=")) parsed.timeoutMs = token.slice("--timeout-ms=".length);
@@ -329,6 +359,39 @@ function numberOption(value, fallback) {
     throw new Error(`invalid positive number option: ${value}`);
   }
   return parsed;
+}
+
+function normalizeBrowserMode(value) {
+  const mode = String(value || "auto").trim().toLowerCase();
+  if (["auto", "in-app", "chrome"].includes(mode)) return mode;
+  throw new Error(`invalid browser mode: ${value}`);
+}
+
+function truthy(value) {
+  if (value === undefined || value === null || value === "") return false;
+  return !["0", "false", "no", "off"].includes(String(value).trim().toLowerCase());
+}
+
+function buildOpsClientBrowserArgs() {
+  if (inAppEvidence) {
+    return ["--browser-mode", "in-app", "--in-app-evidence", inAppEvidence];
+  }
+  if (browserMode === "chrome") {
+    const argsList = ["--browser-mode", "chrome"];
+    if (allowChromeFallback) argsList.push("--allow-chrome-fallback", "1");
+    return argsList;
+  }
+  return [];
+}
+
+function browserFallbackEnv() {
+  if (browserMode === "chrome" && allowChromeFallback) {
+    return {
+      MEDIA_SERVER_UI_BROWSER_MODE: "chrome",
+      MEDIA_SERVER_ALLOW_CHROME_FALLBACK: "1",
+    };
+  }
+  return {};
 }
 
 function requireAuthEnv() {
@@ -401,6 +464,13 @@ function baseServerEnv() {
   };
 }
 
+function appendDiagnosticLogTailFixture() {
+  const logPath = path.join(rootDir, ".media_server.log");
+  const line = `[ui-fulltest] source health cleanup event storage auth ICE reconnect cid=${runId}`;
+  fs.appendFileSync(logPath, `${line}\n`);
+  markPass("diagnostic-log-tail-fixture", "safe log-tail UI pattern appended");
+}
+
 async function waitForHealth(id, url) {
   const startedAt = Date.now();
   let lastError = "";
@@ -429,6 +499,7 @@ async function runCommand(id, command, extraEnv = {}) {
     cwd: rootDir,
     env: {
       ...process.env,
+      ...browserFallbackEnv(),
       ...extraEnv,
     },
     stdio: ["ignore", "pipe", "pipe"],
@@ -502,6 +573,9 @@ function writeSummary(result) {
     widths,
     visualWidths,
     manualResult,
+    browserMode,
+    inAppEvidence,
+    allowChromeFallback,
     failure: failed ? failed.message : "",
     longrun: {
       predev30: "not-run",
@@ -528,6 +602,9 @@ function renderMarkdown(summary) {
     `- outputDir: ${summary.outputDir}`,
     `- widths: ${summary.widths}`,
     `- visualWidths: ${summary.visualWidths}`,
+    `- browserMode: ${summary.browserMode}`,
+    `- inAppEvidence: ${summary.inAppEvidence || "not-provided"}`,
+    `- allowChromeFallback: ${summary.allowChromeFallback ? "yes" : "no"}`,
     `- 30분 predev: ${summary.longrun.predev30}`,
     `- 120분 predev: ${summary.longrun.predev120}`,
     `- 120분 runtime console: ${summary.longrun.runtimeConsole120}`,

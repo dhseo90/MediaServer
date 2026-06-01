@@ -14,6 +14,7 @@
 #include "analysis/scene_context_builder.h"
 #include "analysis/track_state_manager.h"
 #include "analysis/va_runtime_metadata.h"
+#include "analysis/vlm_observation_store.h"
 #include "analysis/wrong_direction_scenario.h"
 #include "analysis/zone_occupancy_scenario.h"
 #include "app_config.h"
@@ -1696,6 +1697,182 @@ void VerifyEventStorageArchiveCompaction() {
     Pass("EventStorage preserves active record count");
 }
 
+void VerifyVlmObservationStore() {
+    const std::filesystem::path event_path(app::GetAppConfig().analysis_event_storage_path);
+    const std::filesystem::path observation_path(DefaultVlmObservationStorePath());
+    std::error_code ec;
+    std::filesystem::remove(event_path, ec);
+    ec.clear();
+    std::filesystem::remove(observation_path, ec);
+
+    EventRecord record = MakeEventRecord("evt-vlm-observation",
+                                         "line-crossing",
+                                         "line-crossing",
+                                         "confirmed",
+                                         "entry-zone",
+                                         61,
+                                         5000);
+    record.snapshot_path = "/tmp/event-records/evt-vlm-observation.snapshot.jpg";
+    record.clip_path = "/tmp/event-records/evt-vlm-observation.clip/manifest.json";
+    record.metadata_json =
+        "{\"schema\":\"media-server.va.event-record.metadata.v1\","
+        "\"vlmEvidenceRefs\":{\"schema\":\"media-server.vlm-event-evidence-refs.v1\","
+        "\"eventFrame\":{\"path\":\"/tmp/event-records/evt-vlm-observation.snapshot.jpg\"},"
+        "\"bboxCrop\":{\"path\":\"/tmp/event-records/evt-vlm-observation.bbox-crop.jpg\"},"
+        "\"temporalContext\":{\"path\":\"/tmp/event-records/evt-vlm-observation.clip/manifest.json\"}}}";
+
+    std::string error_message;
+    FileEventStorage event_storage(event_path.string());
+    Expect(event_storage.Store(record, &error_message),
+           "VLM observation smoke must write correlated EventRecord: " + error_message);
+
+    VlmObservationSidecar observation;
+    observation.observation_id = "vlmobs-evt-vlm-observation";
+    observation.event_id = record.event_id;
+    observation.source_id = record.stream_id;
+    observation.rule_id = "entry-line";
+    observation.scenario_id = record.scenario_name;
+    observation.input_evidence_refs_json =
+        "{\"schema\":\"media-server.vlm-event-evidence-refs.v1\","
+        "\"eventFrame\":{\"path\":\"/tmp/event-records/evt-vlm-observation.snapshot.jpg\"},"
+        "\"bboxCrop\":{\"path\":\"/tmp/event-records/evt-vlm-observation.bbox-crop.jpg\"},"
+        "\"temporalContext\":{\"path\":\"/tmp/event-records/evt-vlm-observation.clip/manifest.json\"}}";
+    observation.summary = "person stopped near the door after crossing the entry line";
+    observation.event_explanation = "fixture explanation stored outside EventRecord for a person waiting by the doorway";
+    observation.false_positive_hints = {"reflection near line", "partial occlusion"};
+    observation.operator_review_questions = {"Did the person fully cross the line?"};
+    observation.rule_suggestion_json =
+        "{\"kind\":\"line-crossing\",\"candidateId\":\"line-entry-manual-review\","
+        "\"suggestedAction\":\"manual-save-in-ops-rules\",\"targetRoute\":\"/ops/rules\","
+        "\"manualReviewRequired\":true,\"autoApply\":false,"
+        "\"draftRule\":{\"eventType\":\"line-crossing\",\"regionType\":\"line\","
+        "\"direction\":\"forward\",\"classes\":[\"person\"],\"minConfidence\":0.55},"
+        "\"rationale\":\"Person stopped near the doorway after crossing the entry line.\"}";
+    observation.uncertainty = 0.2;
+    observation.provider = "fixture-local";
+    observation.model = "fixture-vlm";
+    observation.prompt_profile = "event-review-default";
+    observation.privacy_mode = "local-only";
+    observation.latency_ms = 42;
+    observation.created_at_ms = 5200;
+    observation.metadata_json = "{\"fixture\":true}";
+
+    FileVlmObservationStore observation_store(observation_path.string());
+    Expect(observation_store.Store(observation, &error_message),
+           "VLM observation smoke must write observation store: " + error_message);
+
+    EventRecordQueryOptions event_query;
+    event_query.event_id = record.event_id;
+    EventRecordQueryResult event_result;
+    Expect(QueryEventRecords(event_query, &event_result, &error_message),
+           "VLM observation smoke must query EventRecord: " + error_message);
+    Expect(event_result.records_json.size() == 1, "VLM observation smoke must find one EventRecord");
+
+    VlmObservationQueryOptions observation_query;
+    observation_query.event_id = record.event_id;
+    VlmObservationQueryResult observation_result;
+    Expect(QueryVlmObservations(observation_path.string(),
+                                observation_query,
+                                &observation_result,
+                                &error_message),
+           "VLM observation smoke must query observation store: " + error_message);
+    Expect(observation_result.observations_json.size() == 1,
+           "VLM observation smoke must find one observation");
+    const std::string& observation_json = observation_result.observations_json[0];
+    Expect(observation_json.find("\"schema\":\"media-server.vlm-observation.v1\"") != std::string::npos,
+           "VLM observation schema must be stored");
+    Expect(observation_json.find("\"inputEvidenceRefs\"") != std::string::npos,
+           "VLM observation must store input evidence refs");
+    Expect(observation_json.find("\"rawPromptStored\":false") != std::string::npos &&
+               observation_json.find("\"rawResponseStored\":false") != std::string::npos &&
+               observation_json.find("\"sourceUrlExposed\":false") != std::string::npos,
+           "VLM observation must keep raw prompt/response/source URL redacted");
+
+    const std::string& event_json = event_result.records_json[0];
+    Expect(event_json.find("\"eventExplanation\"") == std::string::npos &&
+               event_json.find("\"falsePositiveHints\"") == std::string::npos &&
+               event_json.find("\"operatorReviewQuestions\"") == std::string::npos &&
+               event_json.find("\"model\":\"fixture-vlm\"") == std::string::npos,
+           "VLM observation fields must stay out of EventRecord top-level JSON");
+
+    const std::string correlation =
+        BuildVlmObservationCorrelationReportJson(event_json, observation_json);
+    Expect(correlation.find("\"schema\":\"media-server.vlm-observation-correlation-report.v1\"") !=
+               std::string::npos &&
+               correlation.find("\"eventIdMatched\":true") != std::string::npos &&
+               correlation.find("\"externalPayloadChanged\":false") != std::string::npos &&
+               correlation.find("\"eventRecordTopLevelObservationFieldsPresent\":false") !=
+                   std::string::npos,
+           "VLM observation correlation report must prove side storage without payload drift");
+
+    const std::string default_path = DefaultVlmObservationStorePath();
+    Expect(default_path.find(".vlm-observations") != std::string::npos,
+           "VLM observation default path must be separate from EventRecord path");
+
+    VlmSummarySearchOptions search_options;
+    search_options.query = "person door stopped";
+    search_options.source_id = record.stream_id;
+    search_options.limit = 5;
+    std::string search_json;
+    Expect(BuildVlmSummarySearchCandidatesJson(observation_path.string(),
+                                               search_options,
+                                               &search_json,
+                                               &error_message),
+           "VLM summary search smoke must build candidates: " + error_message);
+    Expect(search_json.find("\"schema\":\"media-server.vlm-summary-search-candidates.v1\"") !=
+               std::string::npos &&
+               search_json.find("\"targetStep\":\"V200-S12\"") != std::string::npos &&
+               search_json.find("\"eventId\":\"evt-vlm-observation\"") != std::string::npos &&
+               search_json.find("\"correlationKey\":\"eventId\"") != std::string::npos &&
+               search_json.find("\"candidateStatus\":\"candidate-only-not-product-search\"") !=
+                   std::string::npos,
+           "VLM summary search must return a sidecar candidate correlated by eventId");
+    Expect(search_json.find("\"eventPostPayloadChanged\":false") != std::string::npos &&
+               search_json.find("\"viewerClientExposureAdded\":false") != std::string::npos &&
+               search_json.find("\"runtimeVlmCallPerformed\":false") != std::string::npos &&
+               search_json.find("\"autoRuleApplied\":false") != std::string::npos,
+           "VLM summary search must preserve payload/UI/runtime/rule boundaries");
+
+    VlmRuleSuggestionOptions rule_suggestion_options;
+    rule_suggestion_options.source_id = record.stream_id;
+    rule_suggestion_options.limit = 5;
+    std::string rule_suggestion_json;
+    Expect(BuildVlmRuleSuggestionCandidatesJson(observation_path.string(),
+                                                rule_suggestion_options,
+                                                &rule_suggestion_json,
+                                                &error_message),
+           "VLM rule suggestion smoke must build candidates: " + error_message);
+    Expect(rule_suggestion_json.find("\"schema\":\"media-server.vlm-rule-suggestion-candidates.v1\"") !=
+               std::string::npos &&
+               rule_suggestion_json.find("\"targetStep\":\"V200-S13\"") != std::string::npos &&
+               rule_suggestion_json.find("\"eventId\":\"evt-vlm-observation\"") != std::string::npos &&
+               rule_suggestion_json.find("\"proposedRuleKind\":\"line-crossing\"") !=
+                   std::string::npos &&
+               rule_suggestion_json.find("\"candidateStatus\":\"candidate-only-manual-rule-save\"") !=
+                   std::string::npos &&
+               rule_suggestion_json.find("\"manualSaveRoute\":\"/ops/rules\"") != std::string::npos,
+           "VLM rule suggestion must return a manual-save candidate correlated by eventId");
+    Expect(rule_suggestion_json.find("\"autoApply\":false") != std::string::npos &&
+               rule_suggestion_json.find("\"manualReviewRequired\":true") != std::string::npos &&
+               rule_suggestion_json.find("\"ruleRegistryWritePerformed\":false") != std::string::npos &&
+               rule_suggestion_json.find("\"viewerClientExposureAdded\":false") != std::string::npos &&
+               rule_suggestion_json.find("\"runtimeVlmCallPerformed\":false") != std::string::npos &&
+               rule_suggestion_json.find("\"autoRuleApplied\":false") != std::string::npos,
+           "VLM rule suggestion must preserve manual-review and no-auto-apply boundaries");
+
+    std::filesystem::remove(event_path, ec);
+    ec.clear();
+    std::filesystem::remove(observation_path, ec);
+
+    Pass("VLM observation store writes side storage");
+    Pass("VLM observation query correlates EventRecord by eventId");
+    Pass("VLM observation correlation report preserves event payload boundary");
+    Pass("VLM summary search returns sidecar candidates");
+    Pass("VLM summary search preserves EventRecord correlation boundary");
+    Pass("VLM rule suggestion returns manual-save candidates");
+    Pass("VLM rule suggestion preserves no-auto-apply boundary");
+}
+
 void VerifyEventRecorderMediaHooks() {
     const auto snapshot = GetEventStorageSnapshot();
     const std::filesystem::path active_path(snapshot.active_path.empty() ? snapshot.path
@@ -1727,6 +1904,7 @@ void VerifyEventRecorderMediaHooks() {
     event.class_id = 0;
     event.label = "person";
     event.score = 0.93F;
+    event.box = RectF{0.25F, 0.25F, 0.5F, 0.5F};
     event.zone_id = "queue-zone";
     event.scenario_name = "zone-occupancy";
     event.scenario_phase = "confirmed";
@@ -1752,15 +1930,30 @@ void VerifyEventRecorderMediaHooks() {
            "Event recorder snapshot path must point to actual media bytes");
     Expect(record_json.find(".clip/manifest.json") != std::string::npos,
            "Event recorder clip path must point to clip manifest");
+    Expect(record_json.find("\"vlmEvidenceRefs\"") != std::string::npos &&
+               record_json.find("\"schema\":\"media-server.vlm-event-evidence-refs.v1\"") != std::string::npos,
+           "Event recorder metadata must include VLM evidence refs");
+    Expect(record_json.find("\"bboxCrop\"") != std::string::npos &&
+               record_json.find(".bbox-crop.") != std::string::npos,
+           "Event recorder metadata must include bbox crop evidence reference");
+    Expect(record_json.find("\"rawMediaEmbedded\":false") != std::string::npos &&
+               record_json.find("\"sourceUrlExposed\":false") != std::string::npos,
+           "Event recorder VLM evidence refs must keep raw media/source URL redacted");
 
     bool found_snapshot_media = false;
+    bool found_bbox_crop_media = false;
     if (std::filesystem::exists(snapshot.snapshot_dir, ec) && !ec) {
         for (const auto& entry : std::filesystem::directory_iterator(snapshot.snapshot_dir)) {
+            const std::string name = entry.path().filename().string();
             const auto ext = entry.path().extension().string();
             found_snapshot_media = found_snapshot_media || ext == ".jpg" || ext == ".ppm" || ext == ".pgm";
+            found_bbox_crop_media = found_bbox_crop_media ||
+                                    (name.find(".bbox-crop.") != std::string::npos &&
+                                     (ext == ".jpg" || ext == ".ppm" || ext == ".pgm"));
         }
     }
     Expect(found_snapshot_media, "Event recorder must write snapshot media bytes");
+    Expect(found_bbox_crop_media, "Event recorder must write bbox crop media bytes");
 
     const std::filesystem::path clip_manifest =
         std::filesystem::path(snapshot.clip_dir) / "evt-recorder-smoke.clip" / "manifest.json";
@@ -1768,7 +1961,11 @@ void VerifyEventRecorderMediaHooks() {
     std::string manifest((std::istreambuf_iterator<char>(input)), std::istreambuf_iterator<char>());
     Expect(manifest.find("\"recorded\":true") != std::string::npos &&
                manifest.find("\"frameCount\":") != std::string::npos &&
-               manifest.find("frame-0001") != std::string::npos,
+               manifest.find("frame-0001") != std::string::npos &&
+               manifest.find("\"vlmInputRefs\"") != std::string::npos &&
+               manifest.find("\"previousFrame\"") != std::string::npos &&
+               manifest.find("\"eventFrame\"") != std::string::npos &&
+               manifest.find("\"nextFrame\"") != std::string::npos,
            "Event recorder must write clip manifest and frame bytes");
 
     std::filesystem::remove(active_path, ec);
@@ -1778,8 +1975,10 @@ void VerifyEventRecorderMediaHooks() {
     std::filesystem::remove_all(snapshot.clip_dir, ec);
 
     Pass("Event recorder writes snapshot media");
+    Pass("Event recorder writes bbox crop media");
     Pass("Event recorder writes clip media");
     Pass("Event recorder records snapshot evidence path");
+    Pass("Event recorder records VLM evidence refs");
     Pass("Event recorder records clip evidence path");
 }
 
@@ -2070,6 +2269,7 @@ int main() {
         VerifyLoiteringScenario();
         VerifyZoneOccupancyScenario();
         VerifyEventStorageArchiveCompaction();
+        VerifyVlmObservationStore();
         VerifyEventRecorderMediaHooks();
         VerifyVaRuntimeMetadataBuilder();
         VerifyVaMetadataSubscriptionFilter();

@@ -106,7 +106,7 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-analysis-state
 ```
 
-`verify-release-metadata` 기본 실행은 v1.9.0 release prep 단계에서 반복 가능한
+`verify-release-metadata` 기본 실행은 v2.0.0 release prep 단계에서 반복 가능한
 로컬 VERSION/문서 기준을 확인합니다. 이 모드에서는 GitHub Release/tag 생성이 아직
 수동 close-out 전일 수 있으므로 GitHub Latest Release 확인을 `manual-not-run`으로
 기록합니다.
@@ -175,6 +175,212 @@ runtime delivery smoke 통과를 대신하지 않습니다.
 ./server.sh verify-integrator-contract-artifact
 ```
 
+VLM 모델 선택 결정은 `V200-S01`의 모델 선택 결정 자체와 tier/hardware/license/privacy
+기준을 확인합니다. 이 명령은 VLM runtime 호출, PC 사양 감지, 추천 엔진, 설치 UI,
+profile 저장, sidecar 저장 검증을 대신하지 않습니다.
+
+```bash
+./server.sh verify-vlm-selection-decision
+```
+
+VLM PC 사양 감지는 `V200-S02`의 local capability detector를 확인합니다.
+detector 출력 schema는 `media-server.vlm-pc-capability.v1`이며 OS, CPU, RAM,
+GPU/VRAM, Apple Silicon, Docker, Ollama, vLLM/API loopback 연결 가능 여부를
+구조화합니다. 이 명령은 추천 엔진 검증을 대신하지 않습니다. 추천 모델 산출,
+설치 UI, profile 저장, VLM runtime 호출, sidecar 저장은 다음 단계 범위입니다.
+endpoint probe는 loopback 주소로 제한하며 외부 cloud/provider API는 호출하지 않습니다.
+
+```bash
+./server.sh detect-vlm-pc-capability
+./server.sh verify-vlm-pc-capability
+```
+
+VLM 추천 엔진은 `V200-S03`의 추천 matrix를 확인합니다. 추천 출력 schema는
+`media-server.vlm-recommendation.v1`이며 PC capability와 privacy mode에 따라
+추천 모델, 대안 모델, 비추천 사유, 예상 memory/disk/latency/cost를 산출합니다.
+추천 엔진은 설치 UI, profile 저장, VLM runtime 호출을 대신하지 않습니다. Cloud
+fallback은 `cloud-allowed` privacy mode에서만 추천하며, 출력의 resource estimate는
+planning estimate이지 V200-S06 평가 harness PASS가 아닙니다.
+
+```bash
+./server.sh recommend-vlm-model
+./server.sh verify-vlm-recommendation-engine
+```
+
+VLM 설치/연결 UI 범위 gate는 `V200-S04` 착수 전후에 기존 S01/S03 verifier가
+Ops-only 설치/연결 UI 준비를 막지 않도록 허용 범위를 분리하되, profile 저장,
+VLM runtime 호출, sidecar 저장, cloud provider API 호출, Event POST/WebRTC/SSE/WS
+metadata schema 변경은 계속 금지하는 정적 gate입니다. 이 명령은 실제 설치,
+cloud 연결, profile 저장, runtime 호출, UI smoke 통과를 대신하지 않습니다.
+
+```bash
+./server.sh verify-vlm-install-connection-scope-gate
+```
+
+VLM 설치/연결 dry-run contract는 `V200-S04`의 contract 산출물입니다. 추천 결과를
+local model 설치 dry-run 후보와 cloud API 연결 dry-run 후보로 변환하지만, 실제 설치,
+cloud provider API 호출, credential 저장, profile 저장, VLM runtime 호출, sidecar
+저장, Event POST/WebRTC/SSE/WS metadata schema 변경은 수행하지 않습니다.
+출력 schema는 `media-server.vlm-install-connection-dry-run.v1`입니다.
+
+```bash
+./server.sh vlm-install-connection-dry-run
+./server.sh verify-vlm-install-connection-dry-run
+```
+
+VLM 설치/연결 Ops UI는 `/ops/vlm` 화면과
+`/ops/api/vlm/install-connection/dry-run` read-only API가 S04 dry-run contract를
+제품 UI에서 보여주는지 확인합니다. 이 검증은 실제 설치, profile 저장, runtime 호출,
+sidecar 저장, provider API 호출 성공을 뜻하지 않으며, 브라우저 직접 UI 풀테스트를
+대신하지 않습니다.
+
+```bash
+./server.sh verify-vlm-install-connection-ui
+```
+
+VLM profile 저장은 `V200-S05`의 profile storage contract를 확인합니다.
+`/ops/api/vlm/profiles` CRUD와 `/ops/vlm` profile 저장 panel은 선택한 provider,
+model, runtime, prompt profile, privacy mode, evaluation, activation, fallback/disable
+상태만 저장합니다. 이 검증은 VLM runtime 호출, cloud provider API 호출,
+VLMObservation sidecar 저장, 이벤트 설명 품질 평가, 브라우저 UI 풀테스트 완료를
+대신하지 않습니다.
+
+```bash
+./server.sh verify-vlm-profile-storage
+```
+
+VLM 평가 harness는 `V200-S06`의 fixture-captured output 비교를 확인합니다.
+sample 이벤트 `eventFrame`, `bboxCrop`, `previousFrame`, `nextFrame` reference와
+prompt profile A/B, latency, 설명 품질, hallucination, JSON 안정성, 한국어/영어
+품질 scoring을 검증합니다. 이 검증은 실제 VLM runtime 호출, cloud provider API 호출,
+model download, VLMObservation sidecar 저장, Event/WebRTC/SSE/WS schema 변경,
+RTSP/WebRTC media path 변경을 수행하지 않습니다.
+
+```bash
+./server.sh evaluate-vlm-harness \
+  --fixture test/fixtures/vlm_evaluation_harness/cases.json \
+  --json-output /tmp/media_server_vlm_eval_report.json \
+  --report /tmp/media_server_vlm_eval_report.md
+./server.sh verify-vlm-evaluation-harness
+```
+
+VLM event evidence extraction은 `V200-S07`의 reference-only EventRecord evidence를
+검증합니다. snapshot, bbox crop, clip manifest, previous/event/next frame reference를
+EventRecord metadata와 clip manifest에 분리하되, 실제 VLM runtime 호출, sidecar 저장,
+Event/WebRTC/SSE/WS schema 변경, media path 변경은 수행하지 않습니다.
+
+```bash
+./server.sh verify-vlm-event-evidence-extraction
+./server.sh verify-analysis-state
+```
+
+VLMObservation sidecar는 `V200-S08`의 별도 JSONL observation 저장소를 확인합니다.
+EventRecord와 observation은 `eventId`로만 상관시키고, 기존 Event POST/WebRTC
+DataChannel/SSE/WS metadata schema와 RTSP/WebRTC media path는 바꾸지 않습니다.
+이 검증은 실제 VLM runtime 호출, cloud provider API 호출, 이벤트 설명 품질 평가,
+Ops 리뷰 UI 구현을 대신하지 않습니다.
+
+```bash
+./server.sh verify-vlm-observation-sidecar
+./server.sh verify-analysis-state
+./server.sh verify-event-post
+./server.sh verify-ws-metadata
+```
+
+VLM event explanation은 `V200-S09`의 fixture 기반 이벤트 설명/오탐 힌트 생성을
+확인합니다. 이벤트 발생 이유, 화면 내 사람/차량/영역 관계, falsePositiveHints,
+operatorReviewQuestions, JSON stability를 검증하되, 실제 VLM runtime 호출, cloud provider
+API 호출, Event/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경은 수행하지
+않습니다.
+
+```bash
+./server.sh generate-vlm-event-explanation \
+  --fixture test/fixtures/vlm_event_explanation/cases.json \
+  --json-output /tmp/media_server_vlm_event_explanation.json \
+  --report /tmp/media_server_vlm_event_explanation.md
+./server.sh verify-vlm-event-explanation-hints
+```
+
+VLM Ops event review UI는 `V200-S10`의 Ops 전용 리뷰 화면을 확인합니다. `/ops/events`
+review inbox가 EventRecord, snapshot/short clip evidence, VLM explanation,
+falsePositiveHints, operatorReviewQuestions를 함께 표시하되 viewer/client에는 노출하지
+않고 기존 Event POST/WebRTC/SSE/WS schema와 media path를 바꾸지 않는지 검증합니다.
+
+```bash
+./server.sh verify-vlm-ops-event-review-ui
+./server.sh verify-ops-event-review-inbox
+```
+
+S10 UI 직접 확인은 Codex 인앱 브라우저에서 `/ops/events`, `/client/live`,
+`/client/dashboard`를 열어 Ops 표시와 viewer/client 비노출을 확인합니다. Chrome/CDP
+fallback은 인앱 브라우저가 없는 외부 환경에서만 사용하며, Codex close evidence로
+사용하지 않습니다.
+
+VLM Privacy/전송 guard는 `V200-S11`의 cloud 외부 전송 경고, redaction, provider
+logging/retention 검토 경계를 확인합니다. `/ops/vlm` privacy guard panel과 저장되는
+VLM profile의 `privacyGuard`만 대상으로 하며, 실제 provider API 호출, raw prompt/raw
+response 저장, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경은
+수행하지 않습니다.
+
+```bash
+./server.sh verify-vlm-privacy-transfer-guard
+./server.sh verify-vlm-profile-storage
+./server.sh verify-auth-routes
+./server.sh verify-ops-client-ui
+```
+
+VLM summary 검색 후보는 `V200-S12`의 sidecar-only 후보 query를 확인합니다.
+`media-server.vlm-summary-search-candidates.v1` response는 S08 VLMObservation summary를
+local token candidate로 찾고 EventRecord와 `eventId`로만 상관시킵니다. 이 검증은
+제품 검색 UI, vector index, provider rerank, runtime VLM 호출, Event/WebRTC/SSE/WS
+schema 변경, RTSP/WebRTC media path 변경, V200-S13 rule suggestion을 대신하지
+않습니다.
+
+```bash
+./server.sh verify-vlm-summary-search-candidates
+./server.sh verify-analysis-state
+./server.sh verify-event-post
+./server.sh verify-ws-metadata
+```
+
+VLM Rule 추천 보조 후보는 `V200-S13`의 sidecar-only rule draft 후보를 확인합니다.
+`media-server.vlm-rule-suggestion-candidates.v1` response는 S08 VLMObservation
+`ruleSuggestion`을 후보로 읽고 line-crossing, intrusion-dwell, zone-occupancy를
+`/ops/rules` 수동 저장 대상으로만 둡니다. 이 검증은 제품 rule suggestion UI, 자동
+Rule/Profile 적용, runtime VLM 호출, provider rerank, Event/WebRTC/SSE/WS schema 변경,
+RTSP/WebRTC media path 변경을 대신하지 않습니다.
+
+```bash
+./server.sh verify-vlm-rule-suggestion-candidates
+./server.sh verify-analysis-state
+./server.sh verify-rule-ui
+git diff --check
+```
+
+VLM 간이 테스트 리허설은 `V200-S15`의 짧은 fixture gate입니다. 안정화/30분/120분/UI
+풀테스트 전에 `missing-model`, `cloud-disabled`, `invalid-output`, `queue-timeout`,
+cleanup, `port/server lifecycle` failure fixture가 VLM-only outcome으로 처리되는지
+확인합니다. 이 검증은 실제 VLM runtime 호출, cloud provider API 호출, model download,
+sidecar 저장, Event/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경,
+장시간 안정화, UI 풀테스트 PASS를 대신하지 않습니다.
+
+```bash
+./server.sh verify-vlm-test-rehearsal \
+  --report /tmp/media_server_vlm_test_rehearsal.md \
+  --json-report /tmp/media_server_vlm_test_rehearsal.json
+```
+
+VLM close-out readiness는 `V200-S18`의 release evidence 분리 report입니다. 세부
+기준은 [vlm-close-out-readiness.md](./vlm-close-out-readiness.md)에 둡니다.
+`media-server.vlm-close-out-readiness.v1` report는 스크립트 테스트, UI 풀테스트,
+30분, 120분, provider field smoke, publish gate를 서로 대체하지 않고 `PASS`,
+`미실행`, `manual-not-run`, `제외`, `미확인`으로 분리합니다. 이 검증은 GitHub
+Release publish, 30분/120분 longrun, UI 풀테스트를 실행하지 않습니다.
+
+```bash
+./server.sh verify-vlm-closeout-readiness
+```
+
 CI/local gate parity는 `media-server.ci-local-gate-parity.v1` summary로
 Preflight/static-gates/guardrails/RC workflow에 실제로 걸린 `./server.sh` 명령과
 로컬 release/static verifier 목록을 대조합니다. 로컬에서 통과해야 한다고 문서화한
@@ -208,7 +414,7 @@ fallback까지 실패하면 `media-server.github-metadata-fallback-policy.v1` �
 `failure-class=tool-unavailable`, `failure-class=external-github-access` 중 하나로
 보고하고 제품 runtime/media 회귀와 분리합니다.
 
-현재 v1.9.0 제품 회귀 gate, UI 풀테스트 gate, release trust hardening gate는 아래
+현재 v2.0.0 제품 회귀 gate, UI 풀테스트 gate, release close-out gate는 아래
 통합 명령으로만 확인합니다.
 
 ```bash
@@ -217,6 +423,12 @@ fallback까지 실패하면 `media-server.github-metadata-fallback-policy.v1` �
 ./server.sh verify-auth-routes
 ./server.sh verify-ops-client-ui
 ./server.sh verify-ops-client-ui --screenshots
+./server.sh verify-vlm-boundary
+./server.sh verify-vlm-selection-decision
+./server.sh verify-vlm-pc-capability
+./server.sh verify-vlm-install-connection-scope-gate
+./server.sh verify-vlm-install-connection-dry-run
+./server.sh verify-vlm-privacy-transfer-guard
 ./server.sh verify-ops-click-e2e
 ./server.sh verify-ops-click-e2e --auth-ui-flow --auth-users-file <path>
 ./server.sh verify-ops-tables-layout
@@ -313,8 +525,9 @@ FFmpeg/ffprobe CLI가 없는 공개/CI 환경에서는 codec matrix와 RTSP deco
 session auth 제품 UI 자체를 검증할 때는 별도 session-auth 서버를 띄우고
 `verify-ops-click-e2e --auth-ui-flow --auth-users-file <path>`를 실행합니다.
 이 모드는 `/setup`, `/login`, `/ops/users`, `/client/request-access`,
-`/invite/setup`, `/password/change`, `/client/live`를 자율 Chrome/CDP로 직접
-조작하며, `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`,
+`/invite/setup`, `/password/change`, `/client/live`를 브라우저로 직접 조작합니다.
+Codex 세션에서는 인앱 브라우저 evidence를 우선하고, Chrome/CDP fallback은 인앱
+브라우저가 없는 외부 자동화 환경에서만 허용합니다. `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`,
 `MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD`,
 `MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD`,
 `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE`,
@@ -342,9 +555,10 @@ session auth 제품 UI 자체를 검증할 때는 별도 session-auth 서버를 
   `media-server.ui-blocking-dialog-policy.v1` report로 native dialog 금지,
   non-blocking `beforeunload` cleanup, allowlisted read-only `<dialog>`, 위험 action
   2회 확인 정책을 함께 검증합니다.
-- Browser/Computer Use fallback: 수동 UI evidence는 Browser Use 직접 조작,
-  Chrome 직접 조작, Computer Use visible UI 조작 순서로 시도하고, raw JSON/API-only
-  확인을 수동 클릭 evidence로 쓰지 않습니다.
+- Browser fallback: 수동 UI evidence는 Codex 인앱 브라우저 직접 조작을 우선합니다.
+  인앱 브라우저가 없는 외부 환경에서만 Chrome/CDP fallback을 사용하고, raw JSON/API-only
+  확인을 수동 클릭 evidence로 쓰지 않습니다. Chrome/CDP fallback은 임시
+  Chrome userDataDir를 사용하고 종료 시 삭제해야 합니다.
 - fixture cleanup: `verify-fixture-cleanup-contracts`는 access request, source/view
   registry, manual UI seed registry, EventRecord, audit/evidence fixture가 실행 후
   복원/삭제되거나 throwaway state dir로 격리되는지 정적으로 확인합니다.
@@ -352,10 +566,10 @@ session auth 제품 UI 자체를 검증할 때는 별도 session-auth 서버를 
   `sources.json`, `views.json`, `analysis.json`, `preconditions.json`만 생성하며
   UI/event evidence로 쓰지 않습니다.
   SSE/WS/Event POST temporary tap/rule/receiver cleanup, lifecycle port cleanup,
-  Chrome userDataDir 삭제도 같은 gate에서 확인합니다.
+  fallback browser profile cleanup도 같은 gate에서 확인합니다.
 - browser route smoke: click E2E는 path wait, scroll idle, browser error collector,
-  overflow assertion을 같이 사용합니다. sandbox local fetch/CDP 제한으로 실패하면
-  같은 명령을 권한 밖에서 재실행해 환경 제한과 제품 회귀를 분리합니다.
+  overflow assertion을 같이 사용합니다. sandbox local fetch/browser automation 제한으로
+  실패하면 같은 명령을 권한 밖에서 재실행해 환경 제한과 제품 회귀를 분리합니다.
 
 정적 guard:
 
@@ -540,8 +754,9 @@ Ops/Client shell 변경 확인 포인트:
   320/390px에서 검색/작업자/사용자/대상/동작/시작/종료/페이지 크기
   control이 감사 로그 패널 폭 안에 있어야 하며, 시작/종료 date/time
   input이 viewport 밖으로 밀리면 실패입니다.
-- 실제 Chrome DevTools 수동 리뷰는 자동 overflow 결과와 별개로 아래
-  체크리스트를 닫습니다.
+- 실제 인앱 브라우저 수동 리뷰는 자동 overflow 결과와 별개로 아래 체크리스트를
+  닫습니다. 인앱 브라우저가 없는 외부 환경에서는 Chrome DevTools fallback 리뷰를
+  같은 항목으로 대체할 수 있습니다.
   PR을 여는 경우 같은 항목을 `.github/PULL_REQUEST_TEMPLATE.md`의
   `UI Visual Review` 섹션에 artifact directory와 함께 남깁니다.
   - [ ] Device toolbar를 320px로 맞추고 Ops nav, 계정/로그아웃,
@@ -966,6 +1181,11 @@ event POST 반복 안정성:
 | `runtime-dashboard-metadata-fanout` | Runtime dashboard, SSE/WS/DataChannel metadata fanout | short stability, 30분 soak | VA runtime 120분 longrun | 필요 |
 | `rtsp-gstreamer-webrtc-session-lifecycle` | RTSP/GStreamer/WebRTC session lifecycle 또는 media path ownership | short stability, 30분 soak | 120분 predev | 필요 |
 | `event-post-queue-recovery` | Event POST queue/recovery/cooldown | short stability, event POST longrun, 30분 soak | RC/high-risk 시 120분 판단 | 조건부 |
+| `vlm-docs-fixture-only` | VLM docs/fixture/verifier wording | short stability | 없음 | 불필요 |
+| `vlm-model-install-state` | VLM model install readiness/missing-model state | short stability, UI evidence | 없음 | 불필요 |
+| `vlm-provider-timeout-cloud` | VLM cloud provider timeout/retry/opt-in | short stability, field-smoke-or-exclusion | local soak로 대체 금지 | 필요 |
+| `vlm-queue-timeout-nonblocking` | VLM queue/backpressure/timeout worker | short stability, 30분 soak | VA runtime 120분 longrun | 필요 |
+| `vlm-memory-runtime-cache` | VLM runtime cache/frame retention/memory ownership | short stability, 30분 soak | 120분 predev | 필요 |
 | `va-tracker-reid-scenario-runtime` | VA tracker/Re-ID/scenario runtime | short stability, 30분 soak | VA runtime 120분 longrun | 필요 |
 | `external-field-endpoints` | External TURN/WHEP/ONVIF/YouTube real endpoint | field-smoke-or-exclusion | local soak로 대체 금지 | 필요 |
 | `release-candidate-closeout` | Release candidate close-out | short stability, 30분 soak | 120분 predev와 VA runtime longrun | 필요 |
@@ -981,6 +1201,19 @@ PASS를 대체하지 않습니다. 120분 gate는 사용자 승인, release cand
 - RTSP/GStreamer/WebRTC media path 변경 후
 - SharedStream/VA metadata/dashboard/SSE/WS fanout 변경 후
 - 30분 predev에서 active RSS high-water가 이전 기준보다 커졌을 때
+- VLM queue/backpressure/timeout worker 또는 memory/runtime cache ownership 변경 후
+
+### VLM longrun trigger matrix
+
+VLM queue, memory, provider timeout, model install state의 상세 기준은
+[vlm-stabilization-longrun-ui-criteria.md](./vlm-stabilization-longrun-ui-criteria.md)에
+둡니다. `vlm-queue-timeout-nonblocking`과 `vlm-memory-runtime-cache`는 media
+non-blocking, active RSS, cleanup drift가 얽힐 수 있으므로 30분 soak 대상이며,
+120분은 사용자 승인 또는 RC/high-risk gate에서만 실행합니다. `vlm-provider-timeout-cloud`는
+provider credential/endpoint가 필요하므로 local 30분/120분 PASS로 cloud 성공을
+대체하지 않고 field smoke 또는 제외 기록으로 남깁니다. `vlm-model-install-state`는
+기본적으로 UI/profile 상태 기준이며 model download나 runtime cache ownership이
+없으면 120분 longrun 대상이 아닙니다.
 
 ```bash
 ./server.sh verify-predev --soak-minutes 120

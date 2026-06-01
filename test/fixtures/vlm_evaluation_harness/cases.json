@@ -1,0 +1,113 @@
+{
+  "schema": "media-server.vlm-evaluation-fixtures.v1",
+  "targetStep": "V200-S06",
+  "description": "Fixture-only VLM evaluation samples for event frame, bbox crop, previous/next frame, prompt profile A/B, latency, structured output, hallucination, and Korean/English quality checks.",
+  "cases": [
+    {
+      "id": "line-crossing-ko-ab",
+      "event": {
+        "eventId": "evt-vlm-fixture-line-001",
+        "sourceId": "sample-h264",
+        "ruleId": "rule-line-crossing-eastbound",
+        "eventType": "line-crossing",
+        "timestampMs": 4200
+      },
+      "evidenceRefs": {
+        "previousFrame": "fixture://video/va_four_scene_sample.mp4#t=00:00:03.900",
+        "eventFrame": "fixture://video/va_four_scene_sample.mp4#t=00:00:04.200",
+        "nextFrame": "fixture://video/va_four_scene_sample.mp4#t=00:00:04.500",
+        "bboxCrop": "fixture://video/va_four_scene_sample.mp4#t=00:00:04.200&bbox=0.42,0.32,0.12,0.31"
+      },
+      "expectedOutputSchema": "media-server.vlm-event-review.v1",
+      "requiredTerms": ["사람", "라인", "통과", "오탐"],
+      "forbiddenClaims": ["차량", "화재", "무기", "얼굴 인식", "sourceUrl"],
+      "thresholds": {
+        "maxLatencyMs": 30000,
+        "minExplanationTermCoverage": 0.75
+      },
+      "candidates": [
+        {
+          "id": "qwen8b-default-ko",
+          "model": "Qwen/Qwen3-VL-8B-Instruct",
+          "promptProfile": {
+            "id": "event-review-default",
+            "variant": "A",
+            "version": "1"
+          },
+          "language": "ko",
+          "latencyMs": 8200,
+          "expectedStatus": "passed",
+          "unsupportedClaims": [],
+          "structuredJsonText": "{\"schema\":\"media-server.vlm-event-review.v1\",\"eventId\":\"evt-vlm-fixture-line-001\",\"language\":\"ko\",\"summary\":\"사람이 지정 라인을 통과한 것으로 보이며, bbox crop과 전후 frame에서 이동 방향이 이어집니다.\",\"evidenceRefs\":[\"previousFrame\",\"eventFrame\",\"nextFrame\",\"bboxCrop\"],\"objects\":[{\"label\":\"사람\",\"role\":\"moving-subject\"}],\"falsePositiveRisk\":\"오탐 가능성은 낮지만 라인 위치와 bbox 중심이 겹치는지 운영자가 확인해야 합니다.\",\"operatorQuestions\":[\"라인 방향이 현장 기준과 맞습니까?\",\"통과 직전 frame에서도 같은 사람이 보입니까?\"],\"confidence\":0.78}"
+        },
+        {
+          "id": "qwen4b-fp-ko",
+          "model": "Qwen/Qwen3-VL-4B-Instruct",
+          "promptProfile": {
+            "id": "false-positive-review",
+            "variant": "B",
+            "version": "1"
+          },
+          "language": "ko",
+          "latencyMs": 6100,
+          "expectedStatus": "passed",
+          "unsupportedClaims": [],
+          "structuredJsonText": "{\"schema\":\"media-server.vlm-event-review.v1\",\"eventId\":\"evt-vlm-fixture-line-001\",\"language\":\"ko\",\"summary\":\"사람 bbox가 라인 근처를 통과하지만 crop 경계가 좁아 라인 교차 판정은 추가 확인이 필요합니다.\",\"evidenceRefs\":[\"previousFrame\",\"eventFrame\",\"nextFrame\",\"bboxCrop\"],\"objects\":[{\"label\":\"사람\",\"role\":\"moving-subject\"}],\"falsePositiveRisk\":\"오탐 가능성은 중간입니다. 전후 frame에서 라인 반대편 이동이 충분히 보이는지 확인하세요.\",\"operatorQuestions\":[\"라인이 bbox 중심 기준인지 발 위치 기준인지 확인했습니까?\"],\"confidence\":0.64}"
+        }
+      ]
+    },
+    {
+      "id": "intrusion-en-json-stability",
+      "event": {
+        "eventId": "evt-vlm-fixture-intrusion-001",
+        "sourceId": "sample-h264",
+        "ruleId": "rule-intrusion-zone-loading",
+        "eventType": "intrusion-dwell",
+        "timestampMs": 9100
+      },
+      "evidenceRefs": {
+        "previousFrame": "fixture://video/va_four_scene_sample.mp4#t=00:00:08.700",
+        "eventFrame": "fixture://video/va_four_scene_sample.mp4#t=00:00:09.100",
+        "nextFrame": "fixture://video/va_four_scene_sample.mp4#t=00:00:09.500",
+        "bboxCrop": "fixture://video/va_four_scene_sample.mp4#t=00:00:09.100&bbox=0.51,0.28,0.14,0.34"
+      },
+      "expectedOutputSchema": "media-server.vlm-event-review.v1",
+      "requiredTerms": ["person", "zone", "dwell", "false positive"],
+      "forbiddenClaims": ["fire", "weapon", "license plate", "face recognition", "sourceUrl"],
+      "thresholds": {
+        "maxLatencyMs": 30000,
+        "minExplanationTermCoverage": 0.75
+      },
+      "candidates": [
+        {
+          "id": "qwen8b-default-en",
+          "model": "Qwen/Qwen3-VL-8B-Instruct",
+          "promptProfile": {
+            "id": "event-review-default",
+            "variant": "A",
+            "version": "1"
+          },
+          "language": "en",
+          "latencyMs": 9700,
+          "expectedStatus": "passed",
+          "unsupportedClaims": [],
+          "structuredJsonText": "{\"schema\":\"media-server.vlm-event-review.v1\",\"eventId\":\"evt-vlm-fixture-intrusion-001\",\"language\":\"en\",\"summary\":\"A person remains inside the configured zone long enough to match the dwell rule.\",\"evidenceRefs\":[\"previousFrame\",\"eventFrame\",\"nextFrame\",\"bboxCrop\"],\"objects\":[{\"label\":\"person\",\"role\":\"stationary-subject\"}],\"falsePositiveRisk\":\"The false positive risk is medium if the zone boundary includes a normal walkway.\",\"operatorQuestions\":[\"Does the zone polygon intentionally include this walkway?\",\"Is the same person visible in the previous and next frame?\"],\"confidence\":0.72}"
+        },
+        {
+          "id": "bad-json-hallucination-en",
+          "model": "Qwen/Qwen3-VL-4B-Instruct",
+          "promptProfile": {
+            "id": "operator-question-review",
+            "variant": "C",
+            "version": "1"
+          },
+          "language": "en",
+          "latencyMs": 34000,
+          "expectedStatus": "failed",
+          "unsupportedClaims": ["fire is visible outside the bbox crop"],
+          "structuredJsonText": "{\"schema\":\"media-server.vlm-event-review.v1\",\"eventId\":\"evt-vlm-fixture-intrusion-001\",\"language\":\"en\",\"summary\":\"A person is in the zone and fire is visible\""
+        }
+      ]
+    }
+  ]
+}

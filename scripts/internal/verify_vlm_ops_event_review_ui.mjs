@@ -1,0 +1,139 @@
+#!/usr/bin/env node
+// 파일 용도: V200-S10 Ops 이벤트 리뷰 화면이 EventRecord evidence와 VLM 설명을 Ops 전용으로 표시하는지 검증한다.
+
+import fs from "node:fs";
+import process from "node:process";
+
+import { assertKnownOptions, hasHelpFlag, printUsageAndExit } from "./script_arg_utils.mjs";
+
+const rawArgs = process.argv.slice(2);
+
+if (hasHelpFlag(rawArgs)) {
+  printUsageAndExit(`VLM Ops event review UI verification
+
+Usage:
+  ./server.sh verify-vlm-ops-event-review-ui
+
+Checks:
+  - /ops/api/events/reviews attaches an Ops-only media-server.ops.vlm-event-review.v1 object.
+  - Ops /ops/events review inbox renders EventRecord, snapshot/clip evidence, VLM explanation, false-positive hints, and operator questions.
+  - viewer/client pages do not expose the Ops VLM review marker.
+  - EventRecord storage and Event POST payload remain unchanged.
+`);
+}
+
+assertKnownOptions(rawArgs, ["h", "help"]);
+
+const checks = [];
+const server = readText("src/ingress/webrtc_http_server.cpp");
+const pageScript = readText("src/ingress/product_ui_page_scripts.cpp");
+const css = readText("src/ingress/product_ui_css.cpp");
+const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
+const eventStorage = readText("src/analysis/event_storage.cpp");
+const eventPost = readText("src/analysis/event_post_dispatcher.cpp");
+const serverSh = readText("server.sh");
+
+check("ops review API attaches VLM review object without mutating EventRecord", () => {
+  for (const snippet of [
+    "OpsVlmEventReviewJson",
+    "media-server.ops.vlm-event-review.v1",
+    "vlmReview",
+    "QueryVlmObservations",
+    "DefaultVlmObservationStorePath",
+    "snapshotPathPresent",
+    "clipPathPresent",
+    "vlmEvidenceRefsPresent",
+    "falsePositiveHints",
+    "operatorReviewQuestions",
+    "viewerClientExposureAdded",
+    "eventPostPayloadChanged",
+    "autoRuleApplied",
+  ]) {
+    assertIncludes(server, snippet, "Ops VLM review API");
+  }
+  assert(!eventStorage.includes("\"vlmReview\""), "EventRecord storage must not contain vlmReview");
+  assert(!eventPost.includes("vlmReview"), "Event POST dispatcher must not contain vlmReview");
+});
+
+check("ops events UI renders VLM review panel in review inbox", () => {
+  for (const snippet of [
+    'data-vlm-review-state="ops-only-event-record-evidence"',
+    "EventRecord evidence, VLM 설명",
+    "<th>Evidence / VLM</th>",
+  ]) {
+    assertIncludes(server, snippet, "Ops events markup");
+  }
+  for (const snippet of [
+    "eventReviewVlmHtml",
+    'data-testid="ops-vlm-event-review-card"',
+    'data-vlm-review-contract="ops-only-no-client-exposure"',
+    "VLM review panel",
+    "falsePositiveHints",
+    "operatorReviewQuestions",
+  ]) {
+    assertIncludes(pageScript, snippet, "Ops events script");
+  }
+  assertIncludes(css, ".ops-vlm-event-review", "Ops events CSS");
+});
+
+check("ops smoke and server command are wired", () => {
+  for (const snippet of [
+    'data-vlm-review-state="ops-only-event-record-evidence"',
+    "verify-vlm-ops-event-review-ui",
+    "verify_vlm_ops_event_review_ui.mjs",
+  ]) {
+    assert(uiSmoke.includes(snippet) || serverSh.includes(snippet),
+      `smoke/server wiring missing snippet: ${snippet}`);
+  }
+});
+
+check("viewer/client markup does not expose the Ops VLM review panel", () => {
+  const clientStart = server.indexOf("void AppendClientEventItemJson");
+  const clientEnd = server.indexOf("void AppendOpsVlmModelEstimate");
+  const clientRegion = clientStart >= 0 && clientEnd > clientStart
+    ? server.slice(clientStart, clientEnd)
+    : "";
+  assert(clientRegion.length > 0, "client region not found");
+  for (const forbidden of [
+    'data-testid="ops-vlm-event-review-card"',
+    'data-vlm-review-state="ops-only-event-record-evidence"',
+    "media-server.ops.vlm-event-review.v1",
+  ]) {
+    assert(!clientRegion.includes(forbidden), `client region exposes ${forbidden}`);
+  }
+});
+
+let pass = 0;
+let fail = 0;
+for (const item of checks) {
+  try {
+    item.fn();
+    pass += 1;
+    console.log(`[pass] ${item.name}`);
+  } catch (error) {
+    fail += 1;
+    console.log(`[fail] ${item.name}: ${error instanceof Error ? error.message : String(error)}`);
+  }
+}
+
+console.log("");
+console.log("== VLM Ops event review UI summary ==");
+console.log(`- pass: ${pass}`);
+console.log(`- fail: ${fail}`);
+if (fail > 0) process.exit(1);
+
+function check(name, fn) {
+  checks.push({ name, fn });
+}
+
+function assert(condition, message) {
+  if (!condition) throw new Error(message);
+}
+
+function assertIncludes(text, needle, label) {
+  assert(text.includes(needle), `${label} missing snippet: ${needle}`);
+}
+
+function readText(path) {
+  return fs.readFileSync(path, "utf8");
+}

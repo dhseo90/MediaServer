@@ -5,7 +5,7 @@
 source-of-truth로 삼고, 기능별 UI 필요 여부와 테스트 영역은
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 합니다. 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를
-사용합니다. 현재 release 목표는 `v1.9.0`이며, UI 풀테스트 기준도 이 버전의
+사용합니다. 현재 release 목표는 `v2.0.0`이며, UI 풀테스트 기준도 이 버전의
 제품 route, 권한, 기능 baseline만 대상으로 합니다.
 문서 구조와 evidence 경계는 `./server.sh verify-manual-ui-evidence`로 확인합니다.
 기능 ID별 UI evidence JSON을 만든 경우에는
@@ -87,6 +87,15 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
 - Rule/Profile/Channel 추가·수정·삭제 검수 뒤에는 모든 basic event, scenario,
   preset, tracker/Re-ID 개별 조합이 남아 있는 최종 상태를 유지하고 event log를
   각 기능별로 확인합니다.
+- VLM 검수는 `/ops/vlm`의 model install readiness, missing-model, cloud-disabled,
+  provider timeout 안내, privacy transfer guard, profile activation/fallback/disable/delete,
+  raw details 접힘 영역을 직접 조작합니다. `/ops/events`의 VLM review detail은
+  EventRecord evidence와 함께 확인하고, `/client/live`, `/client/dashboard`,
+  `/client/events`에서 VLM model/prompt/raw response/provider/internal review card가
+  보이지 않는지 확인합니다.
+- v2.0.0 pre-test 반영 목록은 [project-feature-test-inventory.md](./project-feature-test-inventory.md)의
+  `v2.0.0 Pre-Test Update List`를 기준으로 확인합니다. 이 목록은 실행 결과가 아니라
+  안정화/30분/120분/UI 풀테스트에 포함할 대상을 빠뜨리지 않기 위한 사전 목록입니다.
 - destructive action은 throwaway 계정, 채널, 접근 요청으로만 수행합니다.
 - UI smoke 전용 HTML selector 검증은 필요 시 별도 서버에서
   `./server.sh verify-ops-client-ui --screenshots`로 실행하되, 이 결과만으로
@@ -99,9 +108,33 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
   Computer Use visible UI 조작 순서로 시도하고 실패 지점과 대체 smoke를 분리해
   기록합니다. raw JSON/API-only 확인은 수동 UI 클릭 evidence로 쓰지 않습니다.
 
+### 긴 테스트 시작 전 fail-fast 확인
+
+아래 항목이 하나라도 비어 있으면 30분, 120분, UI 풀테스트를 시작하지 않습니다.
+
+- 기능/route/control/action 목록: `v2.0.0 Pre-Test Update List`,
+  `Longrun/UI Fail-Fast Preflight`, `/ops/vlm`, `/client/events`, VLM client redaction.
+- auth/env: auth verifier password env 5개가 `SET`인지, users file과 session state가
+  throwaway인지 확인합니다.
+- fixture/output: source/view/analysis/event/snapshot/clip 경로, seed dry-run 결과,
+  output dir, summary/report/log/evidence JSON 경로를 시작 전에 고정합니다.
+- UI blocker: native dialog guard, blocking dialog policy, browser automation 권한,
+  viewport/theme 목록을 먼저 확인합니다.
+- longrun blocker: 120분은 30분 또는 high-risk short gate PASS, 사용자 승인,
+  RC/high-risk 사유, memory/runtime 관찰 항목이 모두 있어야 시작합니다.
+
+preflight 실패는 긴 테스트 실패로 과장하지 않습니다. 문서/list/fixture/env 문제를
+고친 뒤 짧은 gate만 다시 확인하고, 아직 시작하지 않은 30분/120분/UI 결과는
+`미실행`으로 남깁니다.
+
 ## 3. 실행 원칙
 
 - 모든 웹 UI 검수는 인앱 브라우저에서 수행합니다.
+- Codex가 실행하는 검수는 인앱 브라우저 evidence를 우선합니다. Codex 밖에서 사용자가
+  직접 실행하는 자동 검수는 Chrome/CDP를 사용할 수 있습니다.
+- Codex 세션에서 Chrome/CDP가 꼭 필요한 예외는 `MEDIA_SERVER_UI_BROWSER_MODE=chrome`과
+  `MEDIA_SERVER_ALLOW_CHROME_FALLBACK=1`을 함께 남긴 경우로 제한하고, 결과 문서에
+  왜 인앱 브라우저가 아닌지 기록합니다.
 - 클릭, 타이핑, select 변경, checkbox/toggle, copy button, nav 이동, route guard를
   실제 UI 조작으로 확인합니다.
 - 모든 결과는 개별 기능, route, control, action 단위로 기록합니다. 카테고리 묶음
@@ -115,6 +148,10 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
 - `verify-predev --soak-minutes 30`, `verify-predev --soak-minutes 120`,
   `verify-va-runtime-console-longrun --duration-minutes 120`은 스크립트 안정화
   테스트입니다. 실행 여부와 PASS/FAIL은 UI 풀테스트 판정과 별도 섹션에 기록합니다.
+- VLM queue/backpressure, memory/runtime cache, provider timeout, model install state
+  기준은 [vlm-stabilization-longrun-ui-criteria.md](./vlm-stabilization-longrun-ui-criteria.md)를
+  따릅니다. 장시간 명령을 실행하지 않은 경우에는 UI PASS로 대체하지 않고
+  `미실행` 또는 `제외 기록`에만 남깁니다.
 - UI 풀테스트에는 기능 동작뿐 아니라 시각 품질을 포함합니다. 텍스트박스 간격,
   table/action 정렬, 버튼 text overflow, badge clipping, modal/menu 위치, focus
   visible, empty/loading/error copy, contrast, responsive overflow를 함께 확인합니다.
@@ -124,9 +161,9 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
 - 실패 후 고친 화면은 같은 조작으로 재검수하고, 최초 실패와 재확인 결과를 모두
   남깁니다.
 
-### v1.9.0 release trust hardening gate
+### v2.0.0 release UI gate
 
-v1.9.0 release close-out에서는 자동 smoke와 별도로 아래 화면을 브라우저에서 직접
+v2.0.0 release close-out에서는 자동 smoke와 별도로 아래 화면을 브라우저에서 직접
 열고 클릭한 Evidence index를 남깁니다. 자동 screenshot 생성이나 raw JSON/API-only 확인만
 있으면 해당 개별 기능은 `FAIL`입니다.
 
@@ -233,7 +270,8 @@ UI 조작 evidence는 프로젝트 verifier가 자체 Chrome/CDP 세션에서 �
 
 - 320px, 390px, 760px, 1180px에서 `/setup`, `/login`, `/ops/home`,
   `/ops/dashboard`, `/ops/sources`, `/ops/rules`, `/ops/users`, `/ops/events`,
-  `/client/live`, `/client/dashboard`, `/client/request-access`를 확인합니다.
+  `/ops/vlm`, `/client/live`, `/client/dashboard`, `/client/events`,
+  `/client/request-access`를 확인합니다.
 - nav, table row action, form input, select, button text, badge, tile, modal/menu,
   workspace 작업 메뉴가 부모 폭과 viewport를 넘지 않아야 합니다.
 - light/dark 전환 후 shell, card, table, form, badge, video tile contrast가 유지됩니다.

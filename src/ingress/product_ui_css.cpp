@@ -2191,6 +2191,20 @@ std::string ProductUiCss() {
       gap: var(--space-2);
       justify-items: start;
     }
+    .ops-vlm-event-review {
+      display: grid;
+      gap: 6px;
+      min-width: 220px;
+      max-width: 420px;
+    }
+    .ops-vlm-event-review .badge-row {
+      gap: 4px;
+    }
+    .ops-vlm-event-review > strong {
+      font-size: 13px;
+      line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
     .ops-alert-delivery-form {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -3141,6 +3155,7 @@ std::string ProductUiCss() {
       }
       .ops-rules-table td,
       .event-record-table td,
+      .event-review-table td,
       .alert-delivery-table td,
       .user-table td {
         grid-template-columns: 1fr;
@@ -3150,6 +3165,7 @@ std::string ProductUiCss() {
       .ops-responsive-table td::before,
       .ops-rules-table td::before,
       .event-record-table td::before,
+      .event-review-table td::before,
       .alert-delivery-table td::before,
       .user-table td::before {
         line-height: 1.35;

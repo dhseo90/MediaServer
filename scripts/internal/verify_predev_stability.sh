@@ -163,6 +163,48 @@ require_cmd() {
   fi
 }
 
+is_truthy() {
+  case "${1:-}" in
+    1|true|TRUE|yes|YES|on|ON) return 0 ;;
+    *) return 1 ;;
+  esac
+}
+
+is_codex_in_app_browser_environment() {
+  [[ -n "${CODEX_SHELL:-}" || -n "${CODEX_THREAD_ID:-}" || -n "${CODEX_INTERNAL_ORIGINATOR_OVERRIDE:-}" ]]
+}
+
+chrome_fallback_allowed_for_codex() {
+  [[ "${MEDIA_SERVER_UI_BROWSER_MODE:-auto}" == "chrome" ]] && is_truthy "${MEDIA_SERVER_ALLOW_CHROME_FALLBACK:-0}"
+}
+
+detect_rule_ui_chrome_path() {
+  if is_codex_in_app_browser_environment && ! chrome_fallback_allowed_for_codex; then
+    return 1
+  fi
+  case "${MEDIA_SERVER_UI_BROWSER_MODE:-auto}" in
+    in-app|static) return 1 ;;
+  esac
+  local configured="${MEDIA_SERVER_VERIFY_RULE_UI_CHROME_PATH:-${CHROME_PATH:-}}"
+  if [[ -n "${configured}" ]]; then
+    printf '%s\n' "${configured}"
+    return 0
+  fi
+  local candidate
+  for candidate in \
+    "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" \
+    "/Applications/Chromium.app/Contents/MacOS/Chromium" \
+    "/usr/bin/google-chrome" \
+    "/usr/bin/chromium" \
+    "/usr/bin/chromium-browser"; do
+    if [[ -x "${candidate}" ]]; then
+      printf '%s\n' "${candidate}"
+      return 0
+    fi
+  done
+  return 1
+}
+
 # 양수 정수 옵션이 잘못 들어오면 조기 중단한다.
 assert_non_negative_int() {
   local value="$1"
@@ -539,6 +581,13 @@ main() {
   require_cmd lsof
   require_cmd node
   require_cmd python3
+  local detected_rule_ui_chrome_path
+  detected_rule_ui_chrome_path="$(detect_rule_ui_chrome_path || true)"
+  if [[ -n "${detected_rule_ui_chrome_path}" ]]; then
+    export MEDIA_SERVER_VERIFY_RULE_UI_CHROME_PATH="${detected_rule_ui_chrome_path}"
+  elif is_codex_in_app_browser_environment; then
+    echo "[info] Codex 인앱 브라우저 환경: predev integrated smoke의 Chrome Rule UI 자동화를 제외하고, UI 풀테스트는 인앱 브라우저 evidence로 분리합니다."
+  fi
 
   local started_at="${SECONDS}"
   local external_client_option="--skip-external"
@@ -557,8 +606,12 @@ main() {
 
   start_server 256 || true
   if [[ -n "${SERVER_PID}" ]] && kill -0 "${SERVER_PID}" >/dev/null 2>&1; then
+    local rule_ui_option="--include-rule-ui"
+    if is_codex_in_app_browser_environment && [[ -z "${MEDIA_SERVER_VERIFY_RULE_UI_CHROME_PATH:-}" ]]; then
+      rule_ui_option=""
+    fi
     run_step "integrated-smoke" \
-      "MEDIA_SERVER_LISTEN_PORT=${RTSP_PORT} MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} MEDIA_SERVER_LISTEN_ADDRESS=${RTSP_LISTEN_ADDRESS} MEDIA_SERVER_HTTP_LISTEN_ADDRESS=${HTTP_LISTEN_ADDRESS} MEDIA_SERVER_SKIP_LOCAL_ENV=${MEDIA_SERVER_VERIFY_PREDEV_SKIP_LOCAL_ENV:-1} MEDIA_SERVER_AUTH_MODE=${AUTH_MODE} ./server.sh test --no-start ${external_client_option} --include-rules --include-rule-ui --include-va-events --include-image-analysis $([[ "${INCLUDE_REDACTION}" == "1" ]] && printf -- '--include-redaction')" || true
+      "MEDIA_SERVER_LISTEN_PORT=${RTSP_PORT} MEDIA_SERVER_HTTP_LISTEN_PORT=${HTTP_PORT} MEDIA_SERVER_LISTEN_ADDRESS=${RTSP_LISTEN_ADDRESS} MEDIA_SERVER_HTTP_LISTEN_ADDRESS=${HTTP_LISTEN_ADDRESS} MEDIA_SERVER_SKIP_LOCAL_ENV=${MEDIA_SERVER_VERIFY_PREDEV_SKIP_LOCAL_ENV:-1} MEDIA_SERVER_AUTH_MODE=${AUTH_MODE} ./server.sh test --no-start ${external_client_option} --include-rules ${rule_ui_option} --include-va-events --include-image-analysis $([[ "${INCLUDE_REDACTION}" == "1" ]] && printf -- '--include-redaction')" || true
     run_external_turn_gate || true
     run_soak_loop
     assert_runtime_idle "main-runtime-idle" || true
