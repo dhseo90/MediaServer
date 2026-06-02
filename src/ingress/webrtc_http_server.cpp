@@ -3894,6 +3894,28 @@ void AppendOpsVlmInstallConnectionPage(std::ostringstream& out) {
         <div class="metric-card"><span>PC 등급</span><strong id="opsVlmHardwareSummary">-</strong></div>
         <div class="metric-card"><span>외부 전송</span><strong id="opsVlmTransferSummary">-</strong></div>
       </div>
+      <section class="section-card" data-testid="ops-vlm-runtime-status-panel" data-vlm-runtime-status="ops-only-default-off">
+        <div class="toolbar">
+          <div>
+            <h3>VLM runtime status</h3>
+            <p>provider 상태, runtime 연결 상태, 마지막 evaluation, 실패 사유, privacy mode, default-off 상태를 읽기 전용으로 표시합니다.</p>
+          </div>
+        </div>
+        <div class="grid ops-metric-grid">
+          <div class="metric-card"><span>Provider</span><strong id="opsVlmProviderStatus">-</strong></div>
+          <div class="metric-card"><span>Runtime</span><strong id="opsVlmRuntimeConnectionStatus">-</strong></div>
+          <div class="metric-card"><span>Last evaluation</span><strong id="opsVlmLastEvaluationStatus">-</strong></div>
+          <div class="metric-card"><span>Failure</span><strong id="opsVlmFailureReason">-</strong></div>
+          <div class="metric-card"><span>Privacy</span><strong id="opsVlmPrivacyModeStatus">-</strong></div>
+          <div class="metric-card"><span>Default</span><strong id="opsVlmDefaultOffStatus">-</strong></div>
+        </div>
+        <div id="opsVlmRuntimeStatusBadges" class="badge-row">
+          <span class="chip">runtime/status 로딩 중</span>
+        </div>
+        <div id="opsVlmRuntimeStatusList" class="root-cause-list">
+          <div class="empty">VLM runtime status를 불러오는 중입니다.</div>
+        </div>
+      </section>
       <section class="section-card" data-testid="ops-vlm-options-panel">
         <div class="toolbar">
           <div>

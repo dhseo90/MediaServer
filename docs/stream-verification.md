@@ -547,6 +547,26 @@ missing-model, invalid-output, timeout, metadata fanout, Event POST dispatch cas
 브라우저 UI 직접 확인 evidence가 아닙니다. 30분 soak는 runtime path나
 queue/backpressure 제품 경로 변경이 있을 때만 실행합니다.
 
+v2.1.0 S05 Ops VLM runtime status UI는 `/ops/vlm`에서 provider 상태, runtime 연결
+상태, 마지막 evaluation, 실패 사유, privacy mode, default-off 상태를 read-only로
+보여줍니다.
+
+```bash
+./server.sh verify-vlm-runtime-status-ui
+./server.sh verify-vlm-install-connection-ui
+./server.sh verify-vlm-profile-storage
+./server.sh verify-vlm-privacy-transfer-guard
+./server.sh verify-auth-routes
+./server.sh verify-ops-client-ui
+git diff --check
+```
+
+`verify-vlm-runtime-status-ui`와 `verify-ops-client-ui`는 UI wiring과 route/client
+비노출 smoke입니다. 제품 UI 직접 확인은 인앱 브라우저에서 `/ops/vlm` 패널과
+상태 변경을 직접 조작한 evidence로 분리하며, raw JSON/API 확인만으로 UI PASS를
+대체하지 않습니다. S05는 실제 VLM runtime/provider 호출이나 외부 payload schema
+변경을 수행하지 않습니다.
+
 EventRecord 저장 이력까지 확인해야 하는 경우에는 EventRecord storage를 켠 격리
 서버에서 `verify-va-events --dispatch-records`를 실행합니다. 이 모드는 rare
 `exit`/direction event 누락을 피하기 위해 별도 환경변수를 주지 않으면 모든 poll을

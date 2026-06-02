@@ -3770,6 +3770,7 @@ void AppendOpsShellScript(std::ostringstream& out,
       }
       let opsVlmSelectedOptionId = '';
       let opsVlmLastPayload = null;
+      let opsVlmRuntimeStatusPayload = null;
       let opsVlmProfiles = [];
       let opsVlmPendingDelete = '';
       const opsVlmControlValue = (id, fallback = '') => {
@@ -3806,12 +3807,122 @@ void AppendOpsShellScript(std::ostringstream& out,
       };
       const opsVlmOptionUsesExternalTransfer = option =>
         option?.externalTransfer === true || option?.actionType === 'cloud-api-connection-dry-run';
+      const opsVlmActiveProfile = () =>
+        opsVlmProfiles.find(profile => profile?.activation?.enabled === true && profile?.activation?.status === 'active') ||
+        opsVlmProfiles.find(profile => profile?.activation?.status === 'fallback') ||
+        opsVlmProfiles[0] ||
+        null;
       const opsVlmRuntimeForOption = option => {
         if (option?.actionType === 'cloud-api-connection-dry-run') return 'provider-api';
         const readiness = option?.impact?.localRuntimeReadiness || {};
         if (readiness.status === 'ready') return readiness.vllmModuleAvailable ? 'vllm' : 'ollama';
         return 'not-configured';
       };
+      const opsVlmRuntimeStatusSummary = (payload, runtimePayload) => {
+        const selected = opsVlmSelectedOption();
+        const activeProfile = opsVlmActiveProfile();
+        const contract = activeProfile?.runtimeContract ||
+          buildOpsVlmRuntimeContract(selected, payload, 'pending-evaluation', false);
+        const externalTransfer = opsVlmOptionUsesExternalTransfer(selected) || contract?.mode === 'cloud-provider';
+        const readiness = selected?.impact?.localRuntimeReadiness || payload?.recommendation?.runtimeReadiness || {};
+        const evaluation = activeProfile?.evaluation || {};
+        const activation = activeProfile?.activation || {};
+        const disabledReasons = Array.isArray(selected?.disabledReasons) ? selected.disabledReasons : [];
+        const failureReason = contract?.status === 'disabled'
+          ? (activation.disabledReason || 'default-off')
+          : (['missing-model', 'invalid-output', 'timeout'].includes(contract?.status)
+              ? contract.status
+              : (disabledReasons[0] || payload?.decision?.blockedReason || 'none'));
+        const runtimeLoaded = runtimePayload && !runtimePayload.error;
+        const counts = runtimeLoaded ? runtimeCounts(runtimePayload) : null;
+        return {
+          selected,
+          activeProfile,
+          contract,
+          externalTransfer,
+          providerStatus: externalTransfer
+            ? (payload?.privacy?.cloudOptInState === 'acknowledged' ? 'cloud opt-in acknowledged' : 'cloud opt-in required')
+            : (selected?.provider || activeProfile?.provider || 'local runtime candidate'),
+          runtimeStatus: externalTransfer
+            ? 'provider field smoke only'
+            : (readiness.status === 'ready' ? `local ready · ${opsVlmRuntimeForOption(selected)}` : (contract?.status || 'missing-model')),
+          evaluationStatus: evaluation.status || 'not-run',
+          failureReason,
+          privacyMode: activeProfile?.privacyMode || payload?.privacy?.mode || opsVlmControlValue('opsVlmPrivacyMode', 'local-only'),
+          defaultOffStatus: contract?.defaultEnabled === false && contract?.runtimeCallAllowed === false
+            ? 'default-off'
+            : 'check-required',
+          runtimeEndpointText: runtimeLoaded
+            ? `runtime/status ok · taps ${counts.taps} · sessions ${counts.sessions} · egress ${counts.egress}`
+            : `runtime/status ${runtimePayload?.error ? 'error' : 'loading'}`,
+        };
+      };
+      const renderOpsVlmRuntimeStatus = (payload = opsVlmLastPayload) => {
+        if (!payload) return;
+        const summary = opsVlmRuntimeStatusSummary(payload, opsVlmRuntimeStatusPayload);
+        setText('opsVlmProviderStatus', summary.providerStatus);
+        setText('opsVlmRuntimeConnectionStatus', summary.runtimeStatus);
+        setText('opsVlmLastEvaluationStatus', summary.evaluationStatus);
+        setText('opsVlmFailureReason', summary.failureReason);
+        setText('opsVlmPrivacyModeStatus', summary.privacyMode);
+        setText('opsVlmDefaultOffStatus', summary.defaultOffStatus);
+        renderBadges('opsVlmRuntimeStatusBadges', [
+          { text: summary.externalTransfer ? 'provider field smoke 분리' : 'local/runtime 상태', tone: summary.externalTransfer ? 'warn' : 'info' },
+          { text: summary.defaultOffStatus === 'default-off' ? 'defaultEnabled=false' : 'default 확인 필요', tone: summary.defaultOffStatus === 'default-off' ? 'info' : 'warn' },
+          { text: summary.contract?.runtimeCallAllowed === false ? 'runtime 호출 없음' : 'runtime 호출 확인 필요', tone: summary.contract?.runtimeCallAllowed === false ? 'info' : 'warn' },
+          { text: summary.contract?.providerCallAllowed === false ? 'provider 호출 없음' : 'provider 호출 확인 필요', tone: summary.contract?.providerCallAllowed === false ? 'info' : 'warn' },
+          { text: opsVlmRuntimeStatusPayload?.error ? 'runtime/status 오류' : 'runtime/status 연결', tone: opsVlmRuntimeStatusPayload?.error ? 'warn' : 'info' }
+        ]);
+        const root = document.getElementById('opsVlmRuntimeStatusList');
+        if (!root) return;
+        const profileId = summary.activeProfile?.id || '저장 profile 없음';
+        const statusItems = [
+          {
+            title: 'Provider',
+            text: summary.externalTransfer
+              ? 'Cloud provider는 opt-in field smoke와 credential env 준비 전까지 release PASS가 아닙니다.'
+              : 'Local runtime 후보는 operator supplied runtime/model 상태만 표시하고 자동 설치나 호출을 시작하지 않습니다.',
+            state: summary.providerStatus
+          },
+          {
+            title: 'Runtime connection',
+            text: `${summary.runtimeStatus} · ${summary.runtimeEndpointText}`,
+            state: summary.contract?.status || 'not-run'
+          },
+          {
+            title: 'Last evaluation',
+            text: `${profileId} · ${summary.evaluationStatus}`,
+            state: summary.evaluationStatus
+          },
+          {
+            title: 'Failure reason',
+            text: summary.failureReason === 'none'
+              ? '현재 선택/profile 기준으로 표시할 VLM-only 실패 사유가 없습니다.'
+              : `${summary.failureReason} 상태는 media/Event/metadata/Event POST 실패로 전파하지 않습니다.`,
+            state: summary.failureReason
+          },
+          {
+            title: 'Privacy/default-off',
+            text: `${summary.privacyMode} · ${summary.defaultOffStatus} · prompt/raw response/source URL/credential 비노출`,
+            state: summary.defaultOffStatus
+          }
+        ];
+        root.innerHTML = statusItems.map(item => `<article class="root-cause-item ${item.state === 'none' || item.state === 'default-off' || item.state === 'not-run' ? 'info' : (String(item.state).includes('required') || String(item.state).includes('missing') || String(item.state).includes('timeout') || String(item.state).includes('invalid') ? 'warn' : 'info')}">
+          <div>
+            <strong>${escapeHtml(item.title)}</strong>
+            <p>${escapeHtml(item.text)}</p>
+          </div>
+          ${badge(item.state || 'not-run', String(item.state).includes('required') || String(item.state).includes('missing') || String(item.state).includes('timeout') || String(item.state).includes('invalid') ? 'warn' : 'info')}
+        </article>`).join('');
+      };
+      async function refreshOpsVlmRuntimeStatus(payload = opsVlmLastPayload) {
+        try {
+          opsVlmRuntimeStatusPayload = await requestJson('/ops/api/runtime/status');
+        } catch (error) {
+          opsVlmRuntimeStatusPayload = { error: error.message || 'runtime status unavailable' };
+        }
+        renderOpsVlmRuntimeStatus(payload);
+      }
       const buildOpsVlmRuntimeContract = (selected, payload, activationStatus, enabled) => {
         const externalTransfer = opsVlmOptionUsesExternalTransfer(selected);
         const readiness = selected?.impact?.localRuntimeReadiness?.status || payload?.recommendation?.runtimeReadiness?.status || '';
@@ -4017,6 +4128,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         const payload = await requestJson('/ops/api/vlm/profiles');
         opsVlmProfiles = Array.isArray(payload.profiles) ? payload.profiles : [];
         renderOpsVlmProfiles();
+        renderOpsVlmRuntimeStatus();
         if (showMessage) opsVlmProfileStatus(`저장된 VLM profile ${opsVlmProfiles.length}개를 불러왔습니다.`);
       }
       const buildOpsVlmProfilePayload = () => {
@@ -4136,6 +4248,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         });
         const payload = await requestJson(`/ops/api/vlm/install-connection/dry-run?${params.toString()}`);
         opsVlmLastPayload = payload;
+        await refreshOpsVlmRuntimeStatus(payload);
         setText('opsVlmDecisionStatus', payload.decision?.status || '-');
         setText('opsVlmSelectableCount', (payload.decision?.selectableOptionIds || []).length);
         setText('opsVlmHardwareSummary', payload.pcCapability?.hardwareClass || '-');
@@ -4156,6 +4269,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         ]);
         renderOpsVlmOptions(payload);
         renderOpsVlmDisabled(payload);
+        renderOpsVlmRuntimeStatus(payload);
         renderRaw('opsVlmRaw', 'opsVlmPretty', payload);
         window.MediaServerUi?.translatePage?.();
       }

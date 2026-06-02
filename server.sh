@@ -290,6 +290,8 @@ Usage:
                  v2.1.0 Cloud provider field smoke gate의 승인/credential/redaction/PASS 분리 기준을 검증합니다.
   verify-vlm-queue-backpressure-stability
                  v2.1.0 VLM queue/backpressure가 media/Event/metadata/Event POST 경로를 막지 않는지 검증합니다.
+  verify-vlm-runtime-status-ui
+                 v2.1.0 Ops VLM runtime status UI와 viewer/client 비노출 경계를 검증합니다.
   evaluate-vlm-harness
                  v2.0.0 VLM 평가 harness fixture report를 산출합니다.
   verify-vlm-evaluation-harness
@@ -992,6 +994,10 @@ case "${cmd}" in
   verify-vlm-queue-backpressure-stability)
     require_internal verify_vlm_queue_backpressure_stability.mjs
     exec "${INTERNAL_DIR}/verify_vlm_queue_backpressure_stability.mjs" "$@"
+    ;;
+  verify-vlm-runtime-status-ui)
+    require_internal verify_vlm_runtime_status_ui.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_runtime_status_ui.mjs" "$@"
     ;;
   evaluate-vlm-harness)
     require_internal evaluate_vlm_harness.mjs

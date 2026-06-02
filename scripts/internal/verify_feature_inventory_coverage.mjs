@@ -41,7 +41,7 @@ const rows = parseFeatureRows(inventory);
 const checks = [];
 
 const stabilityVerifierByPrefix = {
-  UI: ["verify-auth-bootstrap", "verify-auth-routes", "verify-ops-client-ui", "verify-ops-route-boundaries", "verify-vlm-install-connection-ui", "verify-vlm-profile-storage", "verify-vlm-runtime-opt-in-contract", "verify-vlm-ops-event-review-ui", "verify-vlm-privacy-transfer-guard"],
+  UI: ["verify-auth-bootstrap", "verify-auth-routes", "verify-ops-client-ui", "verify-ops-route-boundaries", "verify-vlm-install-connection-ui", "verify-vlm-profile-storage", "verify-vlm-runtime-opt-in-contract", "verify-vlm-runtime-status-ui", "verify-vlm-ops-event-review-ui", "verify-vlm-privacy-transfer-guard"],
   AUTH: ["verify-auth-regression-matrix", "verify-auth-bootstrap", "verify-auth-users", "verify-auth-routes", "verify-auth-ui-smoke", "verify-auth-scope-picker"],
   SRC: ["verify-ops-source-lifecycle", "verify-ops-source-health-bulk", "verify-ops-client-ui", "verify-onvif-no-device-suite"],
   RULE: ["verify-rule-ui", "verify-ops-rules-roundtrip", "verify-ops-rule-validation-matrix", "verify-va-event-coverage-report", "verify-va-replay", "verify-analysis-state"],
@@ -53,7 +53,7 @@ const stabilityVerifierByPrefix = {
 };
 
 check("inventory row count is stable", () => {
-  assert(rows.length === 375, `expected 375 feature rows, found ${rows.length}`);
+  assert(rows.length === 376, `expected 376 feature rows, found ${rows.length}`);
   assert(new Set(rows.map(row => row.id)).size === rows.length, "duplicate feature ID exists");
 });
 
