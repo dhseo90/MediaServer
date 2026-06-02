@@ -84,7 +84,7 @@ check("required sections exist", () => {
 
 check("summary counts match current feature IDs", () => {
   const rows = parseFeatureRows(inventory);
-  assert(rows.length === 369, `expected 369 feature rows, found ${rows.length}`);
+  assert(rows.length === 378, `expected 378 feature rows, found ${rows.length}`);
   const ids = rows.map(row => row.id);
   assert(new Set(ids).size === ids.length, "duplicate feature IDs in inventory");
   for (const prefix of ["UI", "AUTH", "SRC", "RULE", "EVT", "CLIENT", "MEDIA", "LAB", "SAFE"]) {
@@ -195,10 +195,10 @@ check("V200-S14 VLM feature expansion rows exist", () => {
     assert(ids.has(id), `missing V200-S14 expanded feature row: ${id}`);
   }
   for (const snippet of [
-    "`UI-001`~`UI-018`, `UI-022`~`UI-032`",
+    "`UI-001`~`UI-018`, `UI-022`~`UI-034`",
     "`EVT-001`~`EVT-034`",
-    "`LAB-001`~`LAB-055`",
-    "`SAFE-001`~`SAFE-033`",
+    "`LAB-001`~`LAB-059`",
+    "`SAFE-001`~`SAFE-036`",
     "VLM route, control, action, runtime state, sidecar, privacy guard",
   ]) {
     requireText(inventory, snippet, `inventory missing V200-S14 expansion snippet: ${snippet}`);

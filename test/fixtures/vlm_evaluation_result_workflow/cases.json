@@ -1,0 +1,87 @@
+{
+  "schema": "media-server.vlm-evaluation-result-workflow-fixtures.v1",
+  "targetStep": "V210-S06",
+  "sourceReportSchema": "media-server.vlm-evaluation-report.v1",
+  "purpose": "Ops-only VLM evaluation result workflow cases for profile candidate selection without runtime/provider/profile side effects.",
+  "selection": {
+    "primaryCandidateId": "eval-qwen8b-event-review-default",
+    "fallbackCandidateId": "eval-qwen4b-false-positive-review",
+    "excludedCandidateIds": [
+      "eval-qwen4b-operator-question-review"
+    ],
+    "operatorMustSaveProfile": true,
+    "autoActivateSelectedProfile": false
+  },
+  "candidates": [
+    {
+      "id": "eval-qwen8b-event-review-default",
+      "model": "Qwen/Qwen3-VL-8B-Instruct",
+      "promptProfileId": "event-review-default",
+      "evaluationStatus": "passed",
+      "profileDraftAllowed": true,
+      "expectedDecision": "primary",
+      "caseIds": [
+        "line-crossing-ko-ab",
+        "intrusion-en-json-stability"
+      ],
+      "qualityAxes": {
+        "latency": "passed",
+        "jsonStability": "passed",
+        "explanationQuality": "passed",
+        "hallucinationRisk": "passed",
+        "languageQuality": "passed"
+      }
+    },
+    {
+      "id": "eval-qwen4b-false-positive-review",
+      "model": "Qwen/Qwen3-VL-4B-Instruct",
+      "promptProfileId": "false-positive-review",
+      "evaluationStatus": "review-required",
+      "profileDraftAllowed": true,
+      "expectedDecision": "fallback",
+      "caseIds": [
+        "line-crossing-ko-ab"
+      ],
+      "qualityAxes": {
+        "latency": "passed",
+        "jsonStability": "passed",
+        "explanationQuality": "passed",
+        "hallucinationRisk": "passed",
+        "languageQuality": "review-required"
+      }
+    },
+    {
+      "id": "eval-qwen4b-operator-question-review",
+      "model": "Qwen/Qwen3-VL-4B-Instruct",
+      "promptProfileId": "operator-question-review",
+      "evaluationStatus": "failed",
+      "profileDraftAllowed": false,
+      "expectedDecision": "excluded",
+      "exclusionReason": "invalid JSON, latency threshold miss, and hallucination fixture failure",
+      "caseIds": [
+        "intrusion-en-json-stability"
+      ],
+      "qualityAxes": {
+        "latency": "failed",
+        "jsonStability": "failed",
+        "explanationQuality": "review-required",
+        "hallucinationRisk": "failed",
+        "languageQuality": "passed"
+      }
+    }
+  ],
+  "contractInvariants": {
+    "runtimeVlmCallPerformed": false,
+    "cloudProviderApiCalled": false,
+    "modelArtifactDownloaded": false,
+    "profileStoredBySelection": false,
+    "profileAutoActivated": false,
+    "sidecarStored": false,
+    "eventPostPayloadChanged": false,
+    "webrtcDataChannelSchemaChanged": false,
+    "sseMetadataSchemaChanged": false,
+    "wsMetadataSchemaChanged": false,
+    "rtspOrWebrtcMediaPathChanged": false,
+    "viewerClientExposureAdded": false
+  }
+}

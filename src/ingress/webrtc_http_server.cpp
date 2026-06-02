@@ -3916,6 +3916,37 @@ void AppendOpsVlmInstallConnectionPage(std::ostringstream& out) {
           <div class="empty">VLM runtime status를 불러오는 중입니다.</div>
         </div>
       </section>
+      <section class="section-card" data-testid="ops-vlm-evaluation-result-workflow" data-vlm-evaluation-workflow="fixture-result-profile-selection">
+        <div class="toolbar">
+          <div>
+            <h3>Evaluation result workflow</h3>
+            <p>sample event 평가 결과를 latency, JSON 안정성, 설명 품질, hallucination risk, 한국어/영어 품질 기준으로 비교하고 profile draft에 반영합니다.</p>
+          </div>
+        </div>
+        <div class="grid ops-metric-grid">
+          <div class="metric-card"><span>Workflow</span><strong id="opsVlmEvaluationWorkflowStatus">-</strong></div>
+          <div class="metric-card"><span>Sample cases</span><strong id="opsVlmEvaluationCaseCount">-</strong></div>
+          <div class="metric-card"><span>Candidates</span><strong id="opsVlmEvaluationCandidateCount">-</strong></div>
+          <div class="metric-card"><span>Selected result</span><strong id="opsVlmEvaluationSelectedProfile">-</strong></div>
+        </div>
+        <div id="opsVlmEvaluationBadges" class="badge-row">
+          <span class="chip">evaluation 결과 로딩 중</span>
+        </div>
+        <div class="ops-responsive-table">
+          <table>
+            <thead>
+              <tr>
+                <th>선택</th>
+                <th>모델 / prompt</th>
+                <th>품질 축</th>
+                <th>운영 판정</th>
+              </tr>
+            </thead>
+            <tbody id="opsVlmEvaluationRows"><tr><td colspan="4">평가 결과를 불러오는 중입니다.</td></tr></tbody>
+          </table>
+        </div>
+        <p id="opsVlmEvaluationSelectionSummary">평가 후보를 profile draft에 반영하지 않았습니다.</p>
+      </section>
       <section class="section-card" data-testid="ops-vlm-options-panel">
         <div class="toolbar">
           <div>
@@ -8320,6 +8351,185 @@ std::string OpsVlmRuntimeStatusJson(const std::string& runtime_readiness) {
 
 std::string OpsVlmNoSideEffectsJson() {
     return R"({"dryRunOnly":true,"installPerformed":false,"connectionPerformed":false,"runtimeCallPerformed":false,"profileStored":false,"sidecarStored":false,"cloudProviderApiCalled":false,"credentialsStored":false,"modelArtifactDownloaded":false})";
+}
+
+std::string OpsVlmEvaluationResultWorkflowJson() {
+    return R"JSON({
+  "schema": "media-server.ops.vlm-evaluation-result-workflow.v1",
+  "targetStep": "V210-S06",
+  "sourceReportSchema": "media-server.vlm-evaluation-report.v1",
+  "sourceFixture": "test/fixtures/vlm_evaluation_harness/cases.json",
+  "status": "ready-for-operator-selection",
+  "scope": "ops-only-evaluation-result-profile-selection",
+  "summary": {
+    "sampleCases": 2,
+    "caseCandidates": 4,
+    "profileCandidates": 3,
+    "passedProfileCandidates": 1,
+    "reviewRequiredProfileCandidates": 1,
+    "failedProfileCandidates": 1,
+    "recommendedCandidateId": "eval-qwen8b-event-review-default"
+  },
+  "selectionPolicy": {
+    "singleProfileCandidateSelection": true,
+    "operatorMustSaveProfile": true,
+    "autoActivateSelectedProfile": false,
+    "runtimeCallAllowed": false,
+    "providerCallAllowed": false,
+    "profileDraftMayCopyEvaluationStatus": true
+  },
+  "profileCandidates": [
+    {
+      "id": "eval-qwen8b-event-review-default",
+      "model": "Qwen/Qwen3-VL-8B-Instruct",
+      "selectedOptionModel": "Qwen/Qwen3-VL-8B-Instruct",
+      "promptProfile": {
+        "id": "event-review-default",
+        "version": "v1",
+        "language": "ko-en"
+      },
+      "caseIds": ["line-crossing-ko-ab", "intrusion-en-json-stability"],
+      "latencyMs": {
+        "p50": 8200,
+        "p95": 9700
+      },
+      "dimensions": {
+        "latency": "passed",
+        "jsonStability": "passed",
+        "explanationQuality": "passed",
+        "hallucinationRisk": "passed",
+        "languageQuality": "passed"
+      },
+      "score": {
+        "total": 0.93,
+        "latency": 1.0,
+        "jsonStability": 1.0,
+        "explanationQuality": 0.88,
+        "hallucinationRisk": 1.0,
+        "languageQuality": 1.0
+      },
+      "evaluation": {
+        "status": "passed",
+        "source": "v210-s06-evaluation-result-workflow"
+      },
+      "selection": {
+        "profileDraftAllowed": true,
+        "activationDefault": "pending-evaluation",
+        "enabledDefault": false,
+        "reason": "Best fixture-passed profile candidate across Korean and English sample events."
+      }
+    },
+    {
+      "id": "eval-qwen4b-false-positive-review",
+      "model": "Qwen/Qwen3-VL-4B-Instruct",
+      "selectedOptionModel": "Qwen/Qwen3-VL-4B-Instruct",
+      "promptProfile": {
+        "id": "false-positive-review",
+        "version": "v1",
+        "language": "ko"
+      },
+      "caseIds": ["line-crossing-ko-ab"],
+      "latencyMs": {
+        "p50": 6100,
+        "p95": 6100
+      },
+      "dimensions": {
+        "latency": "passed",
+        "jsonStability": "passed",
+        "explanationQuality": "passed",
+        "hallucinationRisk": "passed",
+        "languageQuality": "review-required"
+      },
+      "score": {
+        "total": 0.82,
+        "latency": 1.0,
+        "jsonStability": 1.0,
+        "explanationQuality": 0.75,
+        "hallucinationRisk": 1.0,
+        "languageQuality": 0.5
+      },
+      "evaluation": {
+        "status": "review-required",
+        "source": "v210-s06-evaluation-result-workflow"
+      },
+      "selection": {
+        "profileDraftAllowed": true,
+        "activationDefault": "pending-evaluation",
+        "enabledDefault": false,
+        "reason": "Local low-spec fallback can be saved only as review-required until English quality is evaluated."
+      }
+    },
+    {
+      "id": "eval-qwen4b-operator-question-review",
+      "model": "Qwen/Qwen3-VL-4B-Instruct",
+      "selectedOptionModel": "Qwen/Qwen3-VL-4B-Instruct",
+      "promptProfile": {
+        "id": "operator-question-review",
+        "version": "v1",
+        "language": "en"
+      },
+      "caseIds": ["intrusion-en-json-stability"],
+      "latencyMs": {
+        "p50": 34000,
+        "p95": 34000
+      },
+      "dimensions": {
+        "latency": "failed",
+        "jsonStability": "failed",
+        "explanationQuality": "review-required",
+        "hallucinationRisk": "failed",
+        "languageQuality": "passed"
+      },
+      "score": {
+        "total": 0.18,
+        "latency": 0.0,
+        "jsonStability": 0.0,
+        "explanationQuality": 0.25,
+        "hallucinationRisk": 0.0,
+        "languageQuality": 1.0
+      },
+      "evaluation": {
+        "status": "failed",
+        "source": "v210-s06-evaluation-result-workflow"
+      },
+      "selection": {
+        "profileDraftAllowed": false,
+        "activationDefault": "disabled",
+        "enabledDefault": false,
+        "reason": "Invalid JSON, latency threshold miss, and hallucination fixture failure exclude this prompt profile."
+      }
+    }
+  ],
+  "caseResults": [
+    {
+      "caseId": "line-crossing-ko-ab",
+      "eventType": "line-crossing",
+      "language": "ko",
+      "bestCandidateId": "qwen8b-default-ko",
+      "candidateIds": ["qwen8b-default-ko", "qwen4b-fp-ko"]
+    },
+    {
+      "caseId": "intrusion-en-json-stability",
+      "eventType": "intrusion-dwell",
+      "language": "en",
+      "bestCandidateId": "qwen8b-default-en",
+      "candidateIds": ["qwen8b-default-en", "bad-json-hallucination-en"]
+    }
+  ],
+  "contractInvariants": {
+    "runtimeMode": "fixture-captured-output-only",
+    "runtimeVlmCallPerformed": false,
+    "cloudProviderApiCalled": false,
+    "modelArtifactDownloaded": false,
+    "sidecarStored": false,
+    "eventPostPayloadChanged": false,
+    "webrtcDataChannelSchemaChanged": false,
+    "sseMetadataSchemaChanged": false,
+    "wsMetadataSchemaChanged": false,
+    "rtspOrWebrtcMediaPathChanged": false,
+    "viewerClientExposureAdded": false
+  }
+})JSON";
 }
 
 std::string OpsVlmPrivacyTransferGuardJson(bool external_transfer, bool external_acknowledged) {
@@ -14079,6 +14289,15 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                                         "{\"error\":\"" + JsonEscape(vlm_error) + "\"}");
                                 }
 	                            HttpResponse ok = JsonResponse(200, "OK", body);
+	                            ok.headers["Cache-Control"] = "no-store";
+	                            return ok;
+	                        }
+
+	                        if (request.method == "GET" && request.path == "/ops/api/vlm/evaluation-results") {
+	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+	                                return *auth_response;
+	                            }
+	                            HttpResponse ok = JsonResponse(200, "OK", OpsVlmEvaluationResultWorkflowJson());
 	                            ok.headers["Cache-Control"] = "no-store";
 	                            return ok;
 	                        }

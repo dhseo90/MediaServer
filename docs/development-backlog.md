@@ -115,7 +115,7 @@ opt-in 기능으로 여는 stabilization roadmap입니다. 이 roadmap은 `v2.1.
 | 3 | V210-S03 | P0 | 완료 | Cloud provider field smoke gate | `gemini-2.5-flash` 같은 cloud opt-in provider를 credential 저장 없이 env/manual 승인 기반 field smoke로 검증합니다. 미실행과 실패를 release PASS로 쓰지 않습니다. | cloud opt-in checklist, redaction review, provider field smoke report, `verify-vlm-cloud-provider-field-smoke-gate`, `verify-vlm-privacy-transfer-guard`, `git diff --check` |
 | 4 | V210-S04 | P0 | 완료 | VLM queue/backpressure stability | VLM worker가 RTSP/WebRTC media path, EventRecord, metadata fanout, Event POST dispatch를 막지 않는지 안정화 기준을 실행합니다. | `./server.sh build`, `verify-vlm-queue-backpressure-stability`, VLM queue fixture, `verify-va-events`, `verify-event-post`, metadata verifier, 30분 soak when runtime path changes, `git diff --check` |
 | 5 | V210-S05 | P0 | 완료 | Ops VLM runtime status UI | `/ops/vlm`에서 provider 상태, runtime 연결 상태, 마지막 evaluation, 실패 사유, privacy mode, default-off 상태를 운영자가 확인할 수 있게 합니다. | `verify-vlm-runtime-status-ui`, Ops UI smoke, auth/scope route guard, viewer/client redaction check, `verify-ops-client-ui`, VLM UI direct review, `git diff --check` |
-| 6 | V210-S06 | P1 | 예정 | VLM evaluation result workflow | sample event 기준 latency, JSON 안정성, 설명 품질, hallucination risk, 한국어/영어 출력 품질을 비교하고 운영자가 model/profile을 선택할 수 있게 합니다. | evaluation fixture, prompt profile comparison, structured output check, `verify-vlm-recommendation-engine`, `git diff --check` |
+| 6 | V210-S06 | P1 | 완료 | VLM evaluation result workflow | sample event 기준 latency, JSON 안정성, 설명 품질, hallucination risk, 한국어/영어 출력 품질을 비교하고 운영자가 model/profile을 선택할 수 있게 합니다. | evaluation fixture, prompt profile comparison, structured output check, `verify-vlm-evaluation-result-workflow`, `verify-vlm-recommendation-engine`, `git diff --check` |
 | 7 | V210-S07 | P1 | 예정 | VLM review action workflow | `/ops/events`에서 설명/오탐 힌트를 accept, dismiss, review-needed 같은 운영 기록으로 남기되 외부 event/metadata schema는 유지합니다. | EventRecord correlation review, sidecar review action fixture, Ops events UI review, `verify-event-post`, metadata verifier, `git diff --check` |
 | 8 | V210-S08 | P1 | 예정 | Rule suggestion draft workflow | VLM rule 후보를 자동 적용하지 않고 `/ops/rules` draft로 가져가 운영자가 수동 저장하는 흐름만 허용합니다. | no-auto-apply guard, `/ops/rules` smoke, rule draft fixture, `verify-rule-ui`, `git diff --check` |
 | 9 | V210-S09 | P1 | 예정 | VA coverage evidence report | rule, scenario, event type, EventRecord 발생 이력, invalid combination을 조합 단위 evidence로 출력합니다. | VA replay matrix, EventRecord history report, `verify-va-events`, `verify-va-replay`, `git diff --check` |
@@ -276,6 +276,34 @@ panel, local/cloud 상태 변경, 저장 profile이 있을 때 Last evaluation�
 렌더링 경계, client/viewer 비노출을 확인한 기록을 포함합니다. 이 단계는 실제 VLM
 runtime/provider 호출, model download, provider credential 저장, sidecar write,
 30분/120분 longrun을 수행하지 않습니다.
+
+### V210-S06 VLM evaluation result workflow 종료 기준
+
+직접 답: S06의 1차 선택값은 `eval-qwen8b-event-review-default`입니다.
+모델은 `Qwen/Qwen3-VL-8B-Instruct`, prompt profile은 `event-review-default`입니다.
+fallback은 `eval-qwen4b-false-positive-review`이며, 영어 품질이 review-required라
+active default로 승격하지 않습니다. `eval-qwen4b-operator-question-review`는 invalid
+JSON, latency 초과, hallucination fixture 실패 때문에 제외합니다.
+
+`/ops/vlm`에는 `data-testid="ops-vlm-evaluation-result-workflow"` 패널이 있습니다.
+이 패널은 `/ops/api/vlm/evaluation-results`에서
+`media-server.ops.vlm-evaluation-result-workflow.v1` payload를 읽고 latency, JSON
+안정성, 설명 품질, hallucination risk, 한국어/영어 품질을 비교합니다. 운영자가
+`profile draft 반영`을 누르면 후보 model/prompt/evaluation 상태가 기존 VLM profile
+저장 form에 복사됩니다. 이 선택만으로 profile 저장, runtime/provider 호출,
+sidecar write, activation은 발생하지 않습니다.
+
+```bash
+./server.sh verify-vlm-evaluation-result-workflow
+./server.sh verify-vlm-evaluation-harness
+./server.sh verify-vlm-recommendation-engine
+./server.sh verify-vlm-profile-storage
+git diff --check
+```
+
+S06은 실제 VLM runtime 호출, cloud provider API 호출, model/runtime install, 자동
+profile 저장/활성화, VLMObservation sidecar write, Event POST/WebRTC/SSE/WS metadata
+schema 변경, RTSP/WebRTC media path 변경, client/viewer 노출을 수행하지 않습니다.
 
 ## v2.0.0 Release Close-out
 
