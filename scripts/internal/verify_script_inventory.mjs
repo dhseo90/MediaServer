@@ -420,6 +420,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_vlm_queue_backpressure_stability.mjs",
     "verify_vlm_runtime_status_ui.mjs",
     "verify_vlm_evaluation_result_workflow.mjs",
+    "verify_vlm_review_action_workflow.mjs",
     "verify_vlm_privacy_transfer_guard.mjs",
     "evaluate_vlm_harness.mjs",
     "verify_vlm_evaluation_harness.mjs",

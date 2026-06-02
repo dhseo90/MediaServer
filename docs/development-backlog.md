@@ -116,7 +116,7 @@ opt-in 기능으로 여는 stabilization roadmap입니다. 이 roadmap은 `v2.1.
 | 4 | V210-S04 | P0 | 완료 | VLM queue/backpressure stability | VLM worker가 RTSP/WebRTC media path, EventRecord, metadata fanout, Event POST dispatch를 막지 않는지 안정화 기준을 실행합니다. | `./server.sh build`, `verify-vlm-queue-backpressure-stability`, VLM queue fixture, `verify-va-events`, `verify-event-post`, metadata verifier, 30분 soak when runtime path changes, `git diff --check` |
 | 5 | V210-S05 | P0 | 완료 | Ops VLM runtime status UI | `/ops/vlm`에서 provider 상태, runtime 연결 상태, 마지막 evaluation, 실패 사유, privacy mode, default-off 상태를 운영자가 확인할 수 있게 합니다. | `verify-vlm-runtime-status-ui`, Ops UI smoke, auth/scope route guard, viewer/client redaction check, `verify-ops-client-ui`, VLM UI direct review, `git diff --check` |
 | 6 | V210-S06 | P1 | 완료 | VLM evaluation result workflow | sample event 기준 latency, JSON 안정성, 설명 품질, hallucination risk, 한국어/영어 출력 품질을 비교하고 운영자가 model/profile을 선택할 수 있게 합니다. | evaluation fixture, prompt profile comparison, structured output check, `verify-vlm-evaluation-result-workflow`, `verify-vlm-recommendation-engine`, `git diff --check` |
-| 7 | V210-S07 | P1 | 예정 | VLM review action workflow | `/ops/events`에서 설명/오탐 힌트를 accept, dismiss, review-needed 같은 운영 기록으로 남기되 외부 event/metadata schema는 유지합니다. | EventRecord correlation review, sidecar review action fixture, Ops events UI review, `verify-event-post`, metadata verifier, `git diff --check` |
+| 7 | V210-S07 | P1 | 완료 | VLM review action workflow | `/ops/events`에서 설명/오탐 힌트를 accept, dismiss, review-needed 같은 운영 기록으로 남기되 외부 event/metadata schema는 유지합니다. | `verify-vlm-review-action-workflow`, `verify-ops-event-review-inbox`, `verify-vlm-ops-event-review-ui`, Event POST/metadata verifier, `git diff --check` |
 | 8 | V210-S08 | P1 | 예정 | Rule suggestion draft workflow | VLM rule 후보를 자동 적용하지 않고 `/ops/rules` draft로 가져가 운영자가 수동 저장하는 흐름만 허용합니다. | no-auto-apply guard, `/ops/rules` smoke, rule draft fixture, `verify-rule-ui`, `git diff --check` |
 | 9 | V210-S09 | P1 | 예정 | VA coverage evidence report | rule, scenario, event type, EventRecord 발생 이력, invalid combination을 조합 단위 evidence로 출력합니다. | VA replay matrix, EventRecord history report, `verify-va-events`, `verify-va-replay`, `git diff --check` |
 | 10 | V210-S10 | P2 | 예정 | External TURN/WHEP field gate | external TURN/WHEP credential 운영 검증을 별도 field smoke로 분리하고, 기본 release PASS와 혼동하지 않게 합니다. | external field smoke checklist, WebRTC ICE review, `verify-webrtc-ice`, 미실행/제외 기록 |
@@ -304,6 +304,44 @@ git diff --check
 S06은 실제 VLM runtime 호출, cloud provider API 호출, model/runtime install, 자동
 profile 저장/활성화, VLMObservation sidecar write, Event POST/WebRTC/SSE/WS metadata
 schema 변경, RTSP/WebRTC media path 변경, client/viewer 노출을 수행하지 않습니다.
+
+### V210-S07 VLM review action workflow 종료 기준
+
+직접 답: S07의 1차 action은 `accept`입니다. fallback action은
+`review-needed`이고, 기본값은 `not-reviewed`입니다. action target은 `summary`,
+`eventExplanation`, `falsePositiveHints`, `operatorReviewQuestions` 중 하나입니다.
+`dismiss`는 snapshot/short clip evidence와 비교해 VLM hint를 채택하지 않을 때 쓰는
+대안 action입니다.
+
+제외 대상과 이유:
+
+- 자동 Rule/Profile 적용: VLM review action만으로 운영 룰을 바꾸면 수동 승인 경계를
+  우회하므로 제외합니다.
+- Event POST/WebRTC DataChannel/SSE/WS metadata action field 추가: 외부 schema freeze
+  범위라 제외합니다.
+- client/viewer action UI: VLM review action은 Ops-only review state라 제외합니다.
+- VLMObservation sidecar action write: S07은 operator review 기록이며 sidecar 분석
+  결과를 수정하지 않습니다.
+
+`/ops/events`에는 `data-vlm-review-action-workflow="ops-only-review-state"` 경계와
+VLM review card action/target/note control이 있습니다. 저장 payload는 기존
+`/ops/api/events/reviews/{eventId}`로 전송되며 `review.vlmAction`에
+`media-server.ops.vlm-review-action-state.v1` 객체로 남습니다. 저장 위치는 기존 Ops
+event review JSONL/audit before-after state이고, EventRecord top-level payload와
+Event POST/metadata/media path는 변경하지 않습니다.
+
+```bash
+./server.sh verify-vlm-review-action-workflow
+./server.sh verify-ops-event-review-inbox
+./server.sh verify-vlm-ops-event-review-ui
+./server.sh verify-event-post
+./server.sh verify-ws-metadata
+git diff --check
+```
+
+S07은 실제 VLM runtime 호출, cloud provider API 호출, sidecar write, 자동 Rule/Profile
+저장/적용, Event POST/WebRTC/SSE/WS metadata schema 변경, RTSP/WebRTC media path 변경,
+client/viewer 노출을 수행하지 않습니다.
 
 ## v2.0.0 Release Close-out
 

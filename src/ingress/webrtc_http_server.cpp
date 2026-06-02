@@ -3685,11 +3685,11 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           </table>
         </div>
       </section>
-      <section class="section-card" data-testid="ops-event-review-inbox" data-review-state="separate-from-event-post-payload" data-vlm-review-state="ops-only-event-record-evidence">
+      <section class="section-card" data-testid="ops-event-review-inbox" data-review-state="separate-from-event-post-payload" data-vlm-review-state="ops-only-event-record-evidence" data-vlm-review-action-workflow="ops-only-review-state">
         <div class="toolbar">
           <div>
             <h3>Rule Event Review Inbox</h3>
-            <p id="eventReviewSummary">Rule/Scenario 이벤트의 확인, 분류, 메모, 상태와 EventRecord evidence, VLM 설명을 Ops 전용 review state로 관리합니다.</p>
+            <p id="eventReviewSummary">Rule/Scenario 이벤트의 확인, 분류, 메모, 상태와 EventRecord evidence, VLM 설명/action을 Ops 전용 review state로 관리합니다.</p>
           </div>
           <div class="actions event-review-controls">
             <label>Review 상태
@@ -9914,6 +9914,9 @@ struct OpsEventReviewState {
     std::string review_status{"new"};
     std::string classification{"unclassified"};
     std::string note;
+    std::string vlm_action{"not-reviewed"};
+    std::string vlm_action_target{"eventExplanation"};
+    std::string vlm_action_note;
     std::int64_t updated_at_ms{0};
     std::string actor;
     std::string role;
@@ -9964,6 +9967,26 @@ bool OpsEventReviewClassificationAllowed(const std::string& value) {
     return kAllowed.count(value) != 0;
 }
 
+bool OpsVlmReviewActionAllowed(const std::string& value) {
+    static const std::unordered_set<std::string> kAllowed = {
+        "not-reviewed",
+        "accept",
+        "dismiss",
+        "review-needed",
+    };
+    return kAllowed.count(value) != 0;
+}
+
+bool OpsVlmReviewActionTargetAllowed(const std::string& value) {
+    static const std::unordered_set<std::string> kAllowed = {
+        "summary",
+        "eventExplanation",
+        "falsePositiveHints",
+        "operatorReviewQuestions",
+    };
+    return kAllowed.count(value) != 0;
+}
+
 std::string NormalizeOpsEventReviewStatus(std::string value) {
     value = LowerAscii(Trim(std::move(value)));
     return OpsEventReviewStatusAllowed(value) ? value : "new";
@@ -9972,6 +9995,16 @@ std::string NormalizeOpsEventReviewStatus(std::string value) {
 std::string NormalizeOpsEventReviewClassification(std::string value) {
     value = LowerAscii(Trim(std::move(value)));
     return OpsEventReviewClassificationAllowed(value) ? value : "unclassified";
+}
+
+std::string NormalizeOpsVlmReviewAction(std::string value) {
+    value = LowerAscii(Trim(std::move(value)));
+    return OpsVlmReviewActionAllowed(value) ? value : "not-reviewed";
+}
+
+std::string NormalizeOpsVlmReviewActionTarget(std::string value) {
+    value = Trim(std::move(value));
+    return OpsVlmReviewActionTargetAllowed(value) ? value : "eventExplanation";
 }
 
 bool OpsEventReviewNoteContainsSensitiveMaterial(const std::string& value) {
@@ -10029,6 +10062,14 @@ OpsEventReviewState OpsEventReviewStateFromJsonLine(const std::string& line) {
     state.classification = NormalizeOpsEventReviewClassification(
         ParseStringField(line, "classification").value_or("unclassified"));
     state.note = NormalizeOpsEventReviewNote(ParseStringField(line, "note").value_or(""));
+    if (const auto vlm_action = ExtractObjectField(line, "vlmAction"); vlm_action.has_value()) {
+        state.vlm_action = NormalizeOpsVlmReviewAction(
+            ParseStringField(*vlm_action, "action").value_or("not-reviewed"));
+        state.vlm_action_target = NormalizeOpsVlmReviewActionTarget(
+            ParseStringField(*vlm_action, "target").value_or("eventExplanation"));
+        state.vlm_action_note =
+            NormalizeOpsEventReviewNote(ParseStringField(*vlm_action, "note").value_or(""));
+    }
     state.updated_at_ms = ParseInt64Field(line, "updatedAtMs").value_or(0);
     state.actor = Trim(ParseStringField(line, "actor").value_or(""));
     state.role = Trim(ParseStringField(line, "role").value_or(""));
@@ -10050,6 +10091,20 @@ std::string OpsEventReviewStateJson(const OpsEventReviewState& state) {
                                                      : state.classification)
         << "\","
         << "\"note\":\"" << JsonEscape(state.note) << "\","
+        << "\"vlmAction\":{"
+        << "\"schema\":\"media-server.ops.vlm-review-action-state.v1\","
+        << "\"action\":\"" << JsonEscape(state.vlm_action.empty() ? "not-reviewed"
+                                                                   : state.vlm_action)
+        << "\","
+        << "\"target\":\"" << JsonEscape(state.vlm_action_target.empty()
+                                             ? "eventExplanation"
+                                             : state.vlm_action_target)
+        << "\","
+        << "\"note\":\"" << JsonEscape(state.vlm_action_note) << "\","
+        << "\"persistent\":true,"
+        << "\"separateFromEventRecords\":true,"
+        << "\"eventPostPayloadChanged\":false"
+        << "},"
         << "\"updatedAtMs\":" << state.updated_at_ms << ","
         << "\"actor\":\"" << JsonEscape(state.actor) << "\","
         << "\"role\":\"" << JsonEscape(state.role) << "\""
@@ -10063,6 +10118,8 @@ OpsEventReviewState DefaultOpsEventReviewState(std::string event_id) {
     state.present = false;
     state.review_status = "new";
     state.classification = "unclassified";
+    state.vlm_action = "not-reviewed";
+    state.vlm_action_target = "eventExplanation";
     return state;
 }
 
@@ -10122,6 +10179,9 @@ bool UpsertOpsEventReviewState(const app::AppConfig& config,
     next.review_status = NormalizeOpsEventReviewStatus(next.review_status);
     next.classification = NormalizeOpsEventReviewClassification(next.classification);
     next.note = NormalizeOpsEventReviewNote(next.note);
+    next.vlm_action = NormalizeOpsVlmReviewAction(next.vlm_action);
+    next.vlm_action_target = NormalizeOpsVlmReviewActionTarget(next.vlm_action_target);
+    next.vlm_action_note = NormalizeOpsEventReviewNote(next.vlm_action_note);
     next.updated_at_ms = NowUnixMs();
     const std::filesystem::path path = OpsEventReviewStoragePath(config);
     std::error_code ec;
@@ -10162,7 +10222,9 @@ bool UpsertOpsEventReviewState(const app::AppConfig& config,
 std::string OpsEventReviewCatalogJson() {
     return "{\"reviewStatuses\":[\"new\",\"reviewing\",\"confirmed\",\"dismissed\","
            "\"needs-follow-up\"],\"classifications\":[\"unclassified\",\"true-positive\","
-           "\"false-positive\",\"duplicate\",\"needs-tuning\"]}";
+           "\"false-positive\",\"duplicate\",\"needs-tuning\"],\"vlmActions\":[\"not-reviewed\","
+           "\"accept\",\"dismiss\",\"review-needed\"],\"vlmActionTargets\":[\"summary\","
+           "\"eventExplanation\",\"falsePositiveHints\",\"operatorReviewQuestions\"]}";
 }
 
 bool OpsEventReviewMatchesFilters(const OpsEventReviewState& state,
@@ -12045,6 +12107,8 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         << "\"separateFromEventRecords\":true,"
         << "\"separateFromEventPostPayload\":true,"
         << "\"eventPostPayloadChanged\":false,"
+        << "\"vlmReviewActionSchema\":\"media-server.ops.vlm-review-action-state.v1\","
+        << "\"vlmReviewActionPersistent\":true,"
         << "\"auditArea\":\"events\","
         << "\"auditAction\":\"event-review-update\""
         << "},"
@@ -14589,6 +14653,15 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                next.classification = ParseStringField(request.body, "classification")
 	                                                          .value_or("unclassified");
 	                                next.note = ParseStringField(request.body, "note").value_or("");
+	                                if (const auto vlm_action = ExtractObjectField(request.body, "vlmAction");
+	                                    vlm_action.has_value()) {
+	                                    next.vlm_action = ParseStringField(*vlm_action, "action")
+	                                                          .value_or("not-reviewed");
+	                                    next.vlm_action_target = ParseStringField(*vlm_action, "target")
+	                                                                 .value_or("eventExplanation");
+	                                    next.vlm_action_note = ParseStringField(*vlm_action, "note")
+	                                                               .value_or("");
+	                                }
 	                                next.actor = principal_result.principal.username.empty()
 	                                                 ? principal_result.principal.display_name
 	                                                 : principal_result.principal.username;

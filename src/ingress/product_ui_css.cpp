@@ -2186,6 +2186,19 @@ std::string ProductUiCss() {
       width: 100%;
       min-width: 0;
     }
+    .ops-vlm-review-action-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 6px;
+      align-items: end;
+    }
+    .ops-vlm-review-action-controls label {
+      display: grid;
+      gap: 3px;
+      min-width: 0;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
     .event-review-actions {
       display: grid;
       gap: var(--space-2);

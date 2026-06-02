@@ -4489,6 +4489,8 @@ void AppendOpsShellScript(std::ostringstream& out,
       }
       const EVENT_REVIEW_STATUSES = ['new', 'reviewing', 'confirmed', 'dismissed', 'needs-follow-up'];
       const EVENT_REVIEW_CLASSES = ['unclassified', 'true-positive', 'false-positive', 'duplicate', 'needs-tuning'];
+      const VLM_REVIEW_ACTIONS = ['not-reviewed', 'accept', 'dismiss', 'review-needed'];
+      const VLM_REVIEW_ACTION_TARGETS = ['summary', 'eventExplanation', 'falsePositiveHints', 'operatorReviewQuestions'];
       const eventReviewSelectHtml = (name, values, selected) => {
         const value = String(selected || values[0] || '').trim();
         return `<select data-event-review-field="${escapeHtml(name)}">
@@ -4497,6 +4499,8 @@ void AppendOpsShellScript(std::ostringstream& out,
       };
       function eventReviewVlmHtml(entry = {}) {
         const vlm = entry?.vlmReview || {};
+        const review = entry?.review || {};
+        const vlmAction = review.vlmAction || {};
         const evidence = vlm.evidence || {};
         const explanation = vlm.explanation || {};
         const hints = Array.isArray(explanation.falsePositiveHints) ? explanation.falsePositiveHints : [];
@@ -4515,6 +4519,11 @@ void AppendOpsShellScript(std::ostringstream& out,
           <span class="ops-rule-note">${escapeHtml(display(explanation.eventExplanation || 'EventRecord evidence와 matching observation이 있으면 설명을 표시합니다.'))}</span>
           <span class="ops-rule-note">오탐: ${escapeHtml(hintText)}</span>
           <span class="ops-rule-note">확인: ${escapeHtml(questionText)}</span>
+          <div class="ops-vlm-review-action-controls" data-testid="ops-vlm-review-action-controls" data-vlm-review-action-workflow="ops-only-review-state">
+            <label>VLM action ${eventReviewSelectHtml('vlmAction', VLM_REVIEW_ACTIONS, vlmAction.action || 'not-reviewed')}</label>
+            <label>Target ${eventReviewSelectHtml('vlmActionTarget', VLM_REVIEW_ACTION_TARGETS, vlmAction.target || 'eventExplanation')}</label>
+            <input class="event-review-note-input" data-event-review-field="vlmActionNote" maxlength="300" value="${escapeHtml(vlmAction.note || '')}" placeholder="VLM action note" />
+          </div>
         </div>`;
       }
       function renderEventReviewRows(items) {
@@ -4561,7 +4570,13 @@ void AppendOpsShellScript(std::ostringstream& out,
             const payload = {
               reviewStatus: row.querySelector('[data-event-review-field="reviewStatus"]')?.value || 'reviewing',
               classification: row.querySelector('[data-event-review-field="classification"]')?.value || 'unclassified',
-              note: row.querySelector('[data-event-review-field="note"]')?.value || ''
+              note: row.querySelector('[data-event-review-field="note"]')?.value || '',
+              vlmAction: {
+                schema: 'media-server.ops.vlm-review-action-state.v1',
+                action: row.querySelector('[data-event-review-field="vlmAction"]')?.value || 'not-reviewed',
+                target: row.querySelector('[data-event-review-field="vlmActionTarget"]')?.value || 'eventExplanation',
+                note: row.querySelector('[data-event-review-field="vlmActionNote"]')?.value || ''
+              }
             };
             button.disabled = true;
             try {
@@ -4570,7 +4585,7 @@ void AppendOpsShellScript(std::ostringstream& out,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
               });
-              setText('eventReviewSummary', `${eventId} review 저장됨 · ${result.review?.reviewStatus || payload.reviewStatus}`);
+              setText('eventReviewSummary', `${eventId} review 저장됨 · ${result.review?.reviewStatus || payload.reviewStatus} · VLM ${result.review?.vlmAction?.action || payload.vlmAction.action}`);
               await refreshEvents();
             } catch (error) {
               setText('eventReviewSummary', `review 저장 실패: ${error.message}`);

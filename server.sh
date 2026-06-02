@@ -294,6 +294,8 @@ Usage:
                  v2.1.0 Ops VLM runtime status UI와 viewer/client 비노출 경계를 검증합니다.
   verify-vlm-evaluation-result-workflow
                  v2.1.0 VLM evaluation result workflow의 Ops 선택/profile draft 경계를 검증합니다.
+  verify-vlm-review-action-workflow
+                 v2.1.0 VLM review action workflow의 Ops review state/API/UI 경계를 검증합니다.
   evaluate-vlm-harness
                  v2.0.0 VLM 평가 harness fixture report를 산출합니다.
   verify-vlm-evaluation-harness
@@ -1004,6 +1006,10 @@ case "${cmd}" in
   verify-vlm-evaluation-result-workflow)
     require_internal verify_vlm_evaluation_result_workflow.mjs
     exec "${INTERNAL_DIR}/verify_vlm_evaluation_result_workflow.mjs" "$@"
+    ;;
+  verify-vlm-review-action-workflow)
+    require_internal verify_vlm_review_action_workflow.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_review_action_workflow.mjs" "$@"
     ;;
   evaluate-vlm-harness)
     require_internal evaluate_vlm_harness.mjs

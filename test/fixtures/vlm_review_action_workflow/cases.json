@@ -1,0 +1,73 @@
+{
+  "schema": "media-server.vlm-review-action-workflow-fixtures.v1",
+  "targetStep": "V210-S07",
+  "workflow": {
+    "primaryAction": "accept",
+    "fallbackAction": "review-needed",
+    "storageScope": "ops-event-review-state-only",
+    "defaultAction": "not-reviewed",
+    "defaultTarget": "eventExplanation"
+  },
+  "actions": [
+    {
+      "id": "accept-event-explanation",
+      "action": "accept",
+      "target": "eventExplanation",
+      "reason": "The operator accepts the VLM event explanation as useful review context while keeping the EventRecord decision unchanged."
+    },
+    {
+      "id": "dismiss-false-positive-hints",
+      "action": "dismiss",
+      "target": "falsePositiveHints",
+      "reason": "The operator rejects VLM false-positive hints after comparing snapshot and short clip evidence."
+    },
+    {
+      "id": "review-needed-operator-questions",
+      "action": "review-needed",
+      "target": "operatorReviewQuestions",
+      "reason": "The operator needs a follow-up review because VLM questions remain unresolved."
+    }
+  ],
+  "fallback": {
+    "action": "review-needed",
+    "target": "operatorReviewQuestions",
+    "reason": "Use when the explanation or hints cannot be accepted or dismissed from current EventRecord evidence."
+  },
+  "excluded": [
+    {
+      "id": "auto-apply-rule-from-vlm-action",
+      "reason": "VLM review action must not write Rule/Profile registries or auto-apply operational changes."
+    },
+    {
+      "id": "event-post-vlm-action-field",
+      "reason": "External Event POST payload schema is frozen for this step."
+    },
+    {
+      "id": "client-viewer-vlm-review-action",
+      "reason": "VLM review action is Ops-only and must not appear in client/viewer pages."
+    },
+    {
+      "id": "vlm-sidecar-action-write",
+      "reason": "S07 records operator action in Ops event review state, not in VLMObservation sidecar."
+    }
+  ],
+  "review": {
+    "license": "No model artifact, runtime package, provider output, or third-party content is added.",
+    "provenance": "Action values are operator-entered review metadata stored beside existing Ops review state.",
+    "privacy": "Action notes reuse review-note redaction and reject source URL, credential, token, raw JSON, and debug material.",
+    "operation": "The action persists through /ops/api/events/reviews and audit before/after state; it does not change EventRecord, media, Event POST, WebRTC DataChannel, SSE, or WS metadata payloads."
+  },
+  "contractInvariants": {
+    "eventRecordPayloadChanged": false,
+    "eventPostPayloadChanged": false,
+    "webrtcDataChannelSchemaChanged": false,
+    "sseMetadataSchemaChanged": false,
+    "wsMetadataSchemaChanged": false,
+    "rtspOrWebrtcMediaPathChanged": false,
+    "sidecarWritePerformed": false,
+    "autoRuleApplied": false,
+    "viewerClientExposureAdded": false,
+    "runtimeVlmCallPerformed": false,
+    "cloudProviderApiCalled": false
+  }
+}

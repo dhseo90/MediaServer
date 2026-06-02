@@ -27,31 +27,41 @@ check("server stores review state outside event payloads", () => {
   assertIncludes(server, "UpsertOpsEventReviewState", "review state update");
   assertIncludes(server, "/ops/api/events/reviews", "review API route");
   assertIncludes(server, "event-review-update", "review audit action");
+  assertIncludes(server, "media-server.ops.vlm-review-action-state.v1", "VLM review action state");
+  assertIncludes(server, '\\"vlmAction\\":{', "VLM review action JSON");
+  assertIncludes(server, "vlmReviewActionSchema", "VLM review action storage contract");
 });
 
 check("event payload storage excludes review fields", () => {
   assert(!eventStorage.includes("reviewStatus"), "EventRecord storage must not include reviewStatus");
   assert(!eventStorage.includes("classification\""), "EventRecord storage must not include review classification");
+  assert(!eventStorage.includes("vlmAction"), "EventRecord storage must not include VLM review action");
   assert(!eventPost.includes("reviewStatus"), "Event POST dispatcher must not include reviewStatus");
+  assert(!eventPost.includes("vlmAction"), "Event POST dispatcher must not include VLM review action");
   assert(!eventPost.includes("event-review"), "Event POST dispatcher must not mention event review state");
 });
 
 check("ops events UI exposes review inbox controls", () => {
   assertIncludes(server, 'data-testid="ops-event-review-inbox"', "ops events review inbox marker");
   assertIncludes(server, 'data-review-state="separate-from-event-post-payload"', "review state marker");
+  assertIncludes(server, 'data-vlm-review-action-workflow="ops-only-review-state"', "VLM review action marker");
   assertIncludes(server, 'id="eventReviewStatusFilter"', "review status filter");
   assertIncludes(server, 'id="eventReviewClassFilter"', "review classification filter");
   assertIncludes(server, 'id="eventReviewRows"', "review rows");
   assertIncludes(pageScript, "renderEventReviewRows", "review table renderer");
   assertIncludes(pageScript, "bindEventReviewActions", "review save binding");
+  assertIncludes(pageScript, "vlmAction", "VLM review action save binding");
+  assertIncludes(pageScript, "media-server.ops.vlm-review-action-state.v1", "VLM review action save schema");
   assertIncludes(pageScript, "/ops/api/events/reviews/", "review save endpoint");
   assertIncludes(pageScript, "Event POST payload 변경 없음", "review summary contract copy");
   assertIncludes(css, ".event-review-table", "review table CSS");
+  assertIncludes(css, ".ops-vlm-review-action-controls", "VLM review action CSS");
 });
 
 check("ops client UI smoke tracks event review inbox", () => {
   assertIncludes(uiSmoke, 'data-testid="ops-event-review-inbox"', "ops events smoke marker");
   assertIncludes(uiSmoke, 'data-review-state="separate-from-event-post-payload"', "ops events smoke state marker");
+  assertIncludes(uiSmoke, 'data-vlm-review-action-workflow="ops-only-review-state"', "ops events smoke VLM action marker");
   assertIncludes(uiSmoke, "/ops/api/events/reviews", "ops events smoke endpoint");
 });
 
@@ -169,6 +179,12 @@ async function runRoundtripSmoke() {
         reviewStatus: "confirmed",
         classification: "false-positive",
         note: "operator checked rtsp://internal.example/live with token abc",
+        vlmAction: {
+          schema: "media-server.ops.vlm-review-action-state.v1",
+          action: "review-needed",
+          target: "operatorReviewQuestions",
+          note: "follow up before using rtsp://internal.example/live token abc",
+        },
       }),
     });
     assert(json.status === "ops-event-review", "unexpected update status");
@@ -176,6 +192,10 @@ async function runRoundtripSmoke() {
     assert(json.review?.reviewStatus === "confirmed", "updated review status mismatch");
     assert(json.review?.classification === "false-positive", "updated review classification mismatch");
     assert(json.review?.note === "[redacted-review-note]", "sensitive review note was not redacted");
+    assert(json.review?.vlmAction?.schema === "media-server.ops.vlm-review-action-state.v1", "VLM action schema mismatch");
+    assert(json.review?.vlmAction?.action === "review-needed", "VLM action mismatch");
+    assert(json.review?.vlmAction?.target === "operatorReviewQuestions", "VLM action target mismatch");
+    assert(json.review?.vlmAction?.note === "[redacted-review-note]", "sensitive VLM action note was not redacted");
     assert(!text.includes("rtsp://internal.example"), "review response leaked rtsp URL");
     assert(!text.includes("token abc"), "review response leaked token text");
   });
@@ -188,6 +208,7 @@ async function runRoundtripSmoke() {
     const review = json.records?.[0]?.review;
     assert(review?.eventId === eventId, "listed review eventId mismatch");
     assert(review?.reviewStatus === "confirmed", "listed review status mismatch");
+    assert(review?.vlmAction?.action === "review-needed", "listed VLM action mismatch");
     assert(!text.includes("rtsp://internal.example"), "inbox response leaked rtsp URL");
     const status = await requestJson(`/ops/api/events/status?eventId=${encodeURIComponent(eventId)}&limit=1`);
     assert(!status.text.includes("reviewStatus"), "EventRecord status response contains reviewStatus");
