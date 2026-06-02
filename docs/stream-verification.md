@@ -489,6 +489,24 @@ git diff --check
 상태와 `defaultEnabled=false`를 확인합니다. local runtime smoke와 cloud provider
 field smoke는 S02/S03 이후 별도 evidence이며, S01 PASS로 대체하지 않습니다.
 
+v2.1.0 S02 Local VLM runtime connection smoke는 실제 external model 품질 평가가
+아니라 loopback local endpoint fixture를 bind해 HTTP roundtrip, timeout abort, queue
+cleanup, invalid structured output fallback을 실행합니다.
+
+```bash
+./server.sh verify-vlm-test-rehearsal
+./server.sh verify-vlm-local-runtime-smoke \
+  --report /tmp/media_server_vlm_local_runtime_smoke.md \
+  --json-report /tmp/media_server_vlm_local_runtime_smoke.json
+git diff --check
+```
+
+`media-server.vlm-local-runtime-smoke-report.v1`은 `ollama-loopback-chat-pass`,
+`vllm-openai-compatible-pass`, `api-compatible-local-pass`, `missing-runtime-fallback`,
+`timeout-queue-cleanup`, `invalid-output-fallback` case를 분리합니다. 이 report는
+cloud provider field smoke, provider credential 저장, 실제 사용자 model 품질, UI
+풀테스트, 30분/120분 longrun, release close-out PASS를 대신하지 않습니다.
+
 EventRecord 저장 이력까지 확인해야 하는 경우에는 EventRecord storage를 켠 격리
 서버에서 `verify-va-events --dispatch-records`를 실행합니다. 이 모드는 rare
 `exit`/direction event 누락을 피하기 위해 별도 환경변수를 주지 않으면 모든 poll을

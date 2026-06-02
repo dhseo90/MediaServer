@@ -284,6 +284,8 @@ Usage:
                  v2.0.0 VLM profile 저장 API/UI/fixture/auth 경계를 검증합니다.
   verify-vlm-runtime-opt-in-contract
                  v2.1.0 VLM runtime opt-in 상태와 default-off 계약을 검증합니다.
+  verify-vlm-local-runtime-smoke
+                 v2.1.0 Local VLM runtime connection smoke의 loopback endpoint/timeout/cleanup/fallback을 검증합니다.
   evaluate-vlm-harness
                  v2.0.0 VLM 평가 harness fixture report를 산출합니다.
   verify-vlm-evaluation-harness
@@ -974,6 +976,10 @@ case "${cmd}" in
   verify-vlm-runtime-opt-in-contract)
     require_internal verify_vlm_runtime_opt_in_contract.mjs
     exec "${INTERNAL_DIR}/verify_vlm_runtime_opt_in_contract.mjs" "$@"
+    ;;
+  verify-vlm-local-runtime-smoke)
+    require_internal verify_vlm_local_runtime_smoke.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_local_runtime_smoke.mjs" "$@"
     ;;
   evaluate-vlm-harness)
     require_internal evaluate_vlm_harness.mjs

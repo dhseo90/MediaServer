@@ -1,0 +1,182 @@
+{
+  "schema": "media-server.vlm-local-runtime-smoke-fixtures.v1",
+  "targetStep": "V210-S02",
+  "runtimeBoundary": "loopback-fixture-only-local-runtime-smoke",
+  "cases": [
+    {
+      "id": "ollama-loopback-chat-pass",
+      "endpointKind": "ollama",
+      "path": "/api/chat",
+      "responseKind": "ollama-chat-json",
+      "request": {
+        "timeoutMs": 1000
+      },
+      "expected": {
+        "status": "pass",
+        "outcome": "connected-structured-output-accepted",
+        "runtimeConnected": true,
+        "structuredOutputAccepted": true,
+        "queueCleanup": "cleanup-ok"
+      },
+      "contractInvariants": {
+        "providerCredentialStored": false,
+        "promptStored": false,
+        "rawRuntimeResponseStored": false,
+        "sourceUrlStored": false,
+        "rawFrameBytesStored": false,
+        "sidecarWritten": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelChanged": false,
+        "sseWsMetadataChanged": false,
+        "rtspOrWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false
+      }
+    },
+    {
+      "id": "vllm-openai-compatible-pass",
+      "endpointKind": "openai-compatible",
+      "path": "/v1/chat/completions",
+      "responseKind": "openai-chat-json",
+      "request": {
+        "timeoutMs": 1000
+      },
+      "expected": {
+        "status": "pass",
+        "outcome": "connected-structured-output-accepted",
+        "runtimeConnected": true,
+        "structuredOutputAccepted": true,
+        "queueCleanup": "cleanup-ok"
+      },
+      "contractInvariants": {
+        "providerCredentialStored": false,
+        "promptStored": false,
+        "rawRuntimeResponseStored": false,
+        "sourceUrlStored": false,
+        "rawFrameBytesStored": false,
+        "sidecarWritten": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelChanged": false,
+        "sseWsMetadataChanged": false,
+        "rtspOrWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false
+      }
+    },
+    {
+      "id": "api-compatible-local-pass",
+      "endpointKind": "openai-compatible",
+      "path": "/v1/chat/completions",
+      "responseKind": "api-compatible-json",
+      "request": {
+        "timeoutMs": 1000
+      },
+      "expected": {
+        "status": "pass",
+        "outcome": "connected-structured-output-accepted",
+        "runtimeConnected": true,
+        "structuredOutputAccepted": true,
+        "queueCleanup": "cleanup-ok"
+      },
+      "contractInvariants": {
+        "providerCredentialStored": false,
+        "promptStored": false,
+        "rawRuntimeResponseStored": false,
+        "sourceUrlStored": false,
+        "rawFrameBytesStored": false,
+        "sidecarWritten": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelChanged": false,
+        "sseWsMetadataChanged": false,
+        "rtspOrWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false
+      }
+    },
+    {
+      "id": "missing-runtime-fallback",
+      "endpointKind": "openai-compatible",
+      "path": "/v1/chat/completions",
+      "responseKind": "no-server",
+      "request": {
+        "timeoutMs": 250
+      },
+      "expected": {
+        "status": "pass",
+        "outcome": "blocked-missing-runtime",
+        "runtimeConnected": false,
+        "structuredOutputAccepted": false,
+        "queueCleanup": "cleanup-ok"
+      },
+      "contractInvariants": {
+        "providerCredentialStored": false,
+        "promptStored": false,
+        "rawRuntimeResponseStored": false,
+        "sourceUrlStored": false,
+        "rawFrameBytesStored": false,
+        "sidecarWritten": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelChanged": false,
+        "sseWsMetadataChanged": false,
+        "rtspOrWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false
+      }
+    },
+    {
+      "id": "timeout-queue-cleanup",
+      "endpointKind": "ollama",
+      "path": "/api/chat",
+      "responseKind": "delayed-ollama-chat-json",
+      "request": {
+        "timeoutMs": 40,
+        "fixtureDelayMs": 180
+      },
+      "expected": {
+        "status": "pass",
+        "outcome": "timeout-cleanup-ok",
+        "runtimeConnected": false,
+        "structuredOutputAccepted": false,
+        "queueCleanup": "cleanup-ok"
+      },
+      "contractInvariants": {
+        "providerCredentialStored": false,
+        "promptStored": false,
+        "rawRuntimeResponseStored": false,
+        "sourceUrlStored": false,
+        "rawFrameBytesStored": false,
+        "sidecarWritten": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelChanged": false,
+        "sseWsMetadataChanged": false,
+        "rtspOrWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false
+      }
+    },
+    {
+      "id": "invalid-output-fallback",
+      "endpointKind": "openai-compatible",
+      "path": "/v1/chat/completions",
+      "responseKind": "invalid-json-content",
+      "request": {
+        "timeoutMs": 1000
+      },
+      "expected": {
+        "status": "pass",
+        "outcome": "rejected-invalid-output-no-sidecar-write",
+        "runtimeConnected": true,
+        "structuredOutputAccepted": false,
+        "queueCleanup": "cleanup-ok"
+      },
+      "contractInvariants": {
+        "providerCredentialStored": false,
+        "promptStored": false,
+        "rawRuntimeResponseStored": false,
+        "sourceUrlStored": false,
+        "rawFrameBytesStored": false,
+        "sidecarWritten": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelChanged": false,
+        "sseWsMetadataChanged": false,
+        "rtspOrWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false
+      }
+    }
+  ]
+}
