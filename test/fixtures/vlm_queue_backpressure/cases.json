@@ -1,0 +1,229 @@
+{
+  "schema": "media-server.vlm-queue-backpressure-fixtures.v1",
+  "targetStep": "V210-S04",
+  "purpose": "VLM queue/backpressure stability cases that keep VLM-only failure states from blocking media, EventRecord, metadata fanout, or Event POST dispatch.",
+  "requiredCommands": [
+    "./server.sh build",
+    "./server.sh verify-vlm-queue-backpressure-stability",
+    "./server.sh verify-va-events",
+    "./server.sh verify-event-post",
+    "./server.sh verify-webrtc-va-metadata",
+    "./server.sh verify-va-metadata-sidechannel",
+    "./server.sh verify-ws-metadata",
+    "git diff --check"
+  ],
+  "cases": [
+    {
+      "id": "default-off-no-worker",
+      "kind": "default-off",
+      "description": "Default-off runtime contract does not start a VLM queue and does not block existing live paths.",
+      "input": {
+        "runtimeContractStatus": "disabled",
+        "operatorOptInAcknowledged": false,
+        "queueState": "not-started",
+        "queueDepth": 0,
+        "queueCapacity": 4
+      },
+      "expected": {
+        "status": "pass",
+        "outcome": "default-off-no-queue-start",
+        "queueAction": "none",
+        "failureReason": "operator-opt-in-required"
+      },
+      "contractInvariants": {
+        "runtimeVlmCallPerformed": false,
+        "queueStartedByDefault": false,
+        "mediaPathBlocked": false,
+        "eventRecordBlocked": false,
+        "metadataFanoutBlocked": false,
+        "eventPostDispatchBlocked": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelSchemaChanged": false,
+        "sseMetadataSchemaChanged": false,
+        "wsMetadataSchemaChanged": false,
+        "rtspOrWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false,
+        "credentialStored": false,
+        "sidecarStored": false
+      }
+    },
+    {
+      "id": "missing-model-nonblocking",
+      "kind": "missing-model",
+      "description": "Missing local model blocks VLM work only and leaves media/event/metadata paths independent.",
+      "input": {
+        "runtimeContractStatus": "missing-model",
+        "modelAvailable": false,
+        "queueState": "blocked",
+        "queueDepth": 0,
+        "queueCapacity": 4
+      },
+      "expected": {
+        "status": "pass",
+        "outcome": "blocked-missing-model-nonblocking",
+        "queueAction": "do-not-enqueue",
+        "failureReason": "missing-model"
+      },
+      "contractInvariants": {
+        "runtimeVlmCallPerformed": false,
+        "queueStartedByDefault": false,
+        "mediaPathBlocked": false,
+        "eventRecordBlocked": false,
+        "metadataFanoutBlocked": false,
+        "eventPostDispatchBlocked": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelSchemaChanged": false,
+        "sseMetadataSchemaChanged": false,
+        "wsMetadataSchemaChanged": false,
+        "rtspOrWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false,
+        "credentialStored": false,
+        "sidecarStored": false
+      }
+    },
+    {
+      "id": "queue-timeout-drop-vlm-only",
+      "kind": "timeout",
+      "description": "A queue wait beyond the VLM timeout drops VLM work without propagating backpressure to media or fanout.",
+      "input": {
+        "runtimeContractStatus": "timeout",
+        "queueState": "full",
+        "queueDepth": 4,
+        "queueCapacity": 4,
+        "queueWaitMs": 5200,
+        "queueTimeoutMs": 3000,
+        "dropPolicy": "drop-vlm-task"
+      },
+      "expected": {
+        "status": "pass",
+        "outcome": "timeout-no-media-path-failure",
+        "queueAction": "drop-vlm-task",
+        "failureReason": "queue-timeout"
+      },
+      "contractInvariants": {
+        "runtimeVlmCallPerformed": false,
+        "queueStartedByDefault": false,
+        "mediaPathBlocked": false,
+        "eventRecordBlocked": false,
+        "metadataFanoutBlocked": false,
+        "eventPostDispatchBlocked": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelSchemaChanged": false,
+        "sseMetadataSchemaChanged": false,
+        "wsMetadataSchemaChanged": false,
+        "rtspOrWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false,
+        "credentialStored": false,
+        "sidecarStored": false
+      }
+    },
+    {
+      "id": "invalid-output-rejected-no-sidecar",
+      "kind": "invalid-output",
+      "description": "Invalid VLM output is rejected as VLM-only failure and is not written to sidecar or external payloads.",
+      "input": {
+        "runtimeContractStatus": "invalid-output",
+        "capturedOutputKind": "invalid-json",
+        "queueState": "drained",
+        "queueDepth": 0,
+        "queueCapacity": 4
+      },
+      "expected": {
+        "status": "pass",
+        "outcome": "rejected-invalid-output-nonblocking",
+        "queueAction": "discard-invalid-output",
+        "failureReason": "invalid-output"
+      },
+      "contractInvariants": {
+        "runtimeVlmCallPerformed": false,
+        "queueStartedByDefault": false,
+        "mediaPathBlocked": false,
+        "eventRecordBlocked": false,
+        "metadataFanoutBlocked": false,
+        "eventPostDispatchBlocked": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelSchemaChanged": false,
+        "sseMetadataSchemaChanged": false,
+        "wsMetadataSchemaChanged": false,
+        "rtspOrWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false,
+        "credentialStored": false,
+        "sidecarStored": false
+      }
+    },
+    {
+      "id": "metadata-fanout-independent",
+      "kind": "metadata-fanout",
+      "description": "SSE, WebSocket, and WebRTC VA metadata fanout remain existing contract paths when VLM work is blocked.",
+      "input": {
+        "runtimeContractStatus": "timeout",
+        "metadataClients": {
+          "webrtcDataChannels": 2,
+          "sseClients": 1,
+          "webSocketClients": 1
+        },
+        "queueState": "full",
+        "queueDepth": 4,
+        "queueCapacity": 4
+      },
+      "expected": {
+        "status": "pass",
+        "outcome": "metadata-fanout-independent",
+        "queueAction": "keep-fanout-independent",
+        "failureReason": "vlm-queue-backpressure"
+      },
+      "contractInvariants": {
+        "runtimeVlmCallPerformed": false,
+        "queueStartedByDefault": false,
+        "mediaPathBlocked": false,
+        "eventRecordBlocked": false,
+        "metadataFanoutBlocked": false,
+        "eventPostDispatchBlocked": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelSchemaChanged": false,
+        "sseMetadataSchemaChanged": false,
+        "wsMetadataSchemaChanged": false,
+        "rtspOrWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false,
+        "credentialStored": false,
+        "sidecarStored": false
+      }
+    },
+    {
+      "id": "event-post-dispatch-independent",
+      "kind": "event-post-dispatch",
+      "description": "EventRecord and Event POST dispatch keep their own queue/recovery path and are not blocked by VLM timeout state.",
+      "input": {
+        "runtimeContractStatus": "timeout",
+        "eventRecordStorageEnabled": true,
+        "eventPostDispatchEnabled": true,
+        "eventPostQueueState": "recovery-ok",
+        "queueState": "full",
+        "queueDepth": 4,
+        "queueCapacity": 4
+      },
+      "expected": {
+        "status": "pass",
+        "outcome": "event-post-dispatch-independent",
+        "queueAction": "keep-event-dispatch-independent",
+        "failureReason": "vlm-queue-backpressure"
+      },
+      "contractInvariants": {
+        "runtimeVlmCallPerformed": false,
+        "queueStartedByDefault": false,
+        "mediaPathBlocked": false,
+        "eventRecordBlocked": false,
+        "metadataFanoutBlocked": false,
+        "eventPostDispatchBlocked": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelSchemaChanged": false,
+        "sseMetadataSchemaChanged": false,
+        "wsMetadataSchemaChanged": false,
+        "rtspOrWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false,
+        "credentialStored": false,
+        "sidecarStored": false
+      }
+    }
+  ]
+}

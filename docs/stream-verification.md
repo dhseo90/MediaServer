@@ -524,6 +524,29 @@ git diff --check
 `releasePassEligible=false`이며 local runtime smoke PASS나 privacy guard PASS로
 대체하지 않습니다.
 
+v2.1.0 S04 VLM queue/backpressure stability는 VLM-only failure 상태가
+RTSP/WebRTC media path, EventRecord, metadata fanout, Event POST dispatch를 막지
+않는지 fixture와 기존 side-effect verifier 묶음으로 확인합니다.
+
+```bash
+./server.sh build
+./server.sh verify-vlm-queue-backpressure-stability \
+  --report /tmp/media_server_vlm_queue_backpressure.md \
+  --json-report /tmp/media_server_vlm_queue_backpressure.json
+./server.sh verify-va-events
+./server.sh verify-event-post
+./server.sh verify-webrtc-va-metadata
+./server.sh verify-va-metadata-sidechannel
+./server.sh verify-ws-metadata
+git diff --check
+```
+
+`media-server.vlm-queue-backpressure-stability-report.v1`은 default-off,
+missing-model, invalid-output, timeout, metadata fanout, Event POST dispatch case를
+분리합니다. 이 report는 실제 VLM runtime/provider 호출, 30분 soak, 120분 longrun,
+브라우저 UI 직접 확인 evidence가 아닙니다. 30분 soak는 runtime path나
+queue/backpressure 제품 경로 변경이 있을 때만 실행합니다.
+
 EventRecord 저장 이력까지 확인해야 하는 경우에는 EventRecord storage를 켠 격리
 서버에서 `verify-va-events --dispatch-records`를 실행합니다. 이 모드는 rare
 `exit`/direction event 누락을 피하기 위해 별도 환경변수를 주지 않으면 모든 poll을

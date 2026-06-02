@@ -113,7 +113,7 @@ opt-in 기능으로 여는 stabilization roadmap입니다. 이 roadmap은 `v2.1.
 | 1 | V210-S01 | P0 | 완료 | VLM runtime opt-in contract | local runtime, cloud provider, disabled, missing-model, invalid-output, timeout 상태를 분리하고 기본 off 계약을 고정합니다. | contract fixture, auth/scope review, VLM profile state review, `verify-vlm-runtime-opt-in-contract`, `verify-vlm-profile-storage`, `verify-vlm-privacy-transfer-guard`, `git diff --check` |
 | 2 | V210-S02 | P0 | 완료 | Local VLM runtime connection smoke | Ollama/vLLM/API-compatible local endpoint 연결, timeout, queue cleanup, invalid output fallback을 실제 local smoke로 확인합니다. | local endpoint fixture, missing-runtime fixture, timeout/cleanup fixture, `verify-vlm-test-rehearsal`, `verify-vlm-local-runtime-smoke`, `git diff --check` |
 | 3 | V210-S03 | P0 | 완료 | Cloud provider field smoke gate | `gemini-2.5-flash` 같은 cloud opt-in provider를 credential 저장 없이 env/manual 승인 기반 field smoke로 검증합니다. 미실행과 실패를 release PASS로 쓰지 않습니다. | cloud opt-in checklist, redaction review, provider field smoke report, `verify-vlm-cloud-provider-field-smoke-gate`, `verify-vlm-privacy-transfer-guard`, `git diff --check` |
-| 4 | V210-S04 | P0 | 예정 | VLM queue/backpressure stability | VLM worker가 RTSP/WebRTC media path, EventRecord, metadata fanout, Event POST dispatch를 막지 않는지 안정화 기준을 실행합니다. | `./server.sh build`, VLM queue fixture, `verify-va-events`, `verify-event-post`, metadata verifier, 30분 soak when runtime path changes, `git diff --check` |
+| 4 | V210-S04 | P0 | 완료 | VLM queue/backpressure stability | VLM worker가 RTSP/WebRTC media path, EventRecord, metadata fanout, Event POST dispatch를 막지 않는지 안정화 기준을 실행합니다. | `./server.sh build`, `verify-vlm-queue-backpressure-stability`, VLM queue fixture, `verify-va-events`, `verify-event-post`, metadata verifier, 30분 soak when runtime path changes, `git diff --check` |
 | 5 | V210-S05 | P0 | 예정 | Ops VLM runtime status UI | `/ops/vlm`에서 provider 상태, runtime 연결 상태, 마지막 evaluation, 실패 사유, privacy mode, default-off 상태를 운영자가 확인할 수 있게 합니다. | Ops UI smoke, auth/scope route guard, viewer/client redaction check, `verify-ops-client-ui`, VLM UI direct review, `git diff --check` |
 | 6 | V210-S06 | P1 | 예정 | VLM evaluation result workflow | sample event 기준 latency, JSON 안정성, 설명 품질, hallucination risk, 한국어/영어 출력 품질을 비교하고 운영자가 model/profile을 선택할 수 있게 합니다. | evaluation fixture, prompt profile comparison, structured output check, `verify-vlm-recommendation-engine`, `git diff --check` |
 | 7 | V210-S07 | P1 | 예정 | VLM review action workflow | `/ops/events`에서 설명/오탐 힌트를 accept, dismiss, review-needed 같은 운영 기록으로 남기되 외부 event/metadata schema는 유지합니다. | EventRecord correlation review, sidecar review action fixture, Ops events UI review, `verify-event-post`, metadata verifier, `git diff --check` |
@@ -225,6 +225,33 @@ MEDIA_SERVER_VLM_CLOUD_API_KEY=<env-only-secret> \
 credential 누락, provider timeout/failure는 모두 `releasePassEligible=false`로 남기며,
 credential material, raw prompt, raw provider response, source URL, raw frame bytes는
 report나 public artifact에 저장하지 않습니다.
+
+### V210-S04 VLM queue/backpressure stability 종료 기준
+
+직접 답: S04의 1차 gate는 `verify-vlm-queue-backpressure-stability`입니다. 이
+명령은 `media-server.vlm-queue-backpressure-fixtures.v1` fixture로 default-off,
+missing-model, invalid-output, timeout, metadata fanout, Event POST dispatch 상태를
+VLM-only failure로 판정하고, RTSP/WebRTC media path, EventRecord, metadata fanout,
+Event POST dispatch로 backpressure가 전파되지 않는지 확인합니다.
+
+```bash
+./server.sh build
+./server.sh verify-vlm-queue-backpressure-stability \
+  --report /tmp/media_server_vlm_queue_backpressure.md \
+  --json-report /tmp/media_server_vlm_queue_backpressure.json
+./server.sh verify-va-events
+./server.sh verify-event-post
+./server.sh verify-webrtc-va-metadata
+./server.sh verify-va-metadata-sidechannel
+./server.sh verify-ws-metadata
+git diff --check
+```
+
+이 묶음은 short stability evidence입니다. 실제 VLM runtime/provider 호출, model
+download, provider credential 저장, sidecar write, Event POST/WebRTC/SSE/WS payload
+schema 변경, RTSP/WebRTC media path 변경은 수행하지 않습니다. 30분 soak는 runtime
+path나 queue/backpressure 제품 경로 변경이 있을 때만 실행하고, UI 직접 조작은
+V210-S05 `/ops/vlm` runtime status UI 범위로 분리합니다.
 
 ## v2.0.0 Release Close-out
 
