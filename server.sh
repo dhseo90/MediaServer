@@ -206,6 +206,8 @@ Usage:
                  release evidence index가 실행/미실행/미확인 항목을 분리하는지 검증합니다.
   verify-v190-entry-baseline
                  v1.9.0 종료와 v2.0.0 진입 baseline report 구획을 검증합니다.
+  verify-v210-entry-baseline
+                 v2.0.0 published evidence를 v2.1.0 진입 baseline으로 고정합니다.
   verify-feature-scope-gate
                  v1.8.0 안정화 범위에서 새 기능 후보를 구현으로 승격하지 않는 decision gate를 검증합니다.
   verify-script-inventory
@@ -814,6 +816,10 @@ case "${cmd}" in
   verify-v190-entry-baseline)
     require_internal verify_v190_entry_baseline_report.mjs
     exec "${INTERNAL_DIR}/verify_v190_entry_baseline_report.mjs" "$@"
+    ;;
+  verify-v210-entry-baseline)
+    require_internal verify_v210_entry_baseline.mjs
+    exec "${INTERNAL_DIR}/verify_v210_entry_baseline.mjs" "$@"
     ;;
   verify-feature-scope-gate)
     require_internal verify_feature_scope_decision_gate.mjs

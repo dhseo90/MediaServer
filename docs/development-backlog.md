@@ -109,7 +109,7 @@ opt-in 기능으로 여는 stabilization roadmap입니다. 이 roadmap은 `v2.1.
 
 | 순서 | ID | 우선순위 | 상태 | 영역 | 목표 | 예상 검증 |
 | --- | --- | --- | --- | --- | --- | --- |
-| 0 | V210-S00 | P0 | 예정 | v2.1.0 entry baseline | v2.0.0 최종 main/tag/evidence를 v2.1.0 시작 기준으로 고정하고, WebRTC/SSE/WS/Event POST/Auth/media path freeze를 재확인합니다. | baseline review, `verify-release-metadata`, `verify-release-evidence-index`, `verify-integrator-contract-artifact`, `verify-event-post`, metadata verifier, `git diff --check` |
+| 0 | V210-S00 | P0 | 완료 | v2.1.0 entry baseline | v2.0.0 최종 main/tag/evidence를 v2.1.0 시작 기준으로 고정하고, WebRTC/SSE/WS/Event POST/Auth/media path freeze를 재확인합니다. | baseline review, `verify-v210-entry-baseline`, `verify-release-metadata`, `verify-release-evidence-index`, `verify-integrator-contract-artifact`, `verify-event-post`, metadata verifier, `git diff --check` |
 | 1 | V210-S01 | P0 | 예정 | VLM runtime opt-in contract | local runtime, cloud provider, disabled, missing-model, invalid-output, timeout 상태를 분리하고 기본 off 계약을 고정합니다. | contract fixture, auth/scope review, VLM profile state review, `verify-vlm-profile-storage`, `verify-vlm-privacy-transfer-guard`, `git diff --check` |
 | 2 | V210-S02 | P0 | 예정 | Local VLM runtime connection smoke | Ollama/vLLM/API-compatible local endpoint 연결, timeout, queue cleanup, invalid output fallback을 실제 local smoke로 확인합니다. | local endpoint fixture, missing-runtime fixture, timeout/cleanup fixture, `verify-vlm-test-rehearsal`, VLM runtime smoke, `git diff --check` |
 | 3 | V210-S03 | P0 | 예정 | Cloud provider field smoke gate | `gemini-2.5-flash` 같은 cloud opt-in provider를 credential 저장 없이 env/manual 승인 기반 field smoke로 검증합니다. 미실행과 실패를 release PASS로 쓰지 않습니다. | cloud opt-in checklist, redaction review, provider field smoke report, `verify-vlm-privacy-transfer-guard`, `git diff --check` |
@@ -135,6 +135,27 @@ v2.1.0 완료 gate:
 - `git diff --check`
 - release metadata/evidence verifier
 - signed annotated tag 기반 release close-out
+
+### V210-S00 v2.1.0 entry baseline 종료 기준
+
+직접 답: v2.1.0의 entry baseline은 `v2.0.0` published source-only release,
+signed tag follow-up evidence, `v2.1.0` branch sync 기록, 그리고 기존 integrator
+contract freeze artifact를 사용합니다. live GitHub published state를 현재 환경에서
+재확인하지 못하면 live 상태는 `미확인`으로 남기고, recorded release evidence만
+baseline으로 사용합니다.
+
+S00 완료 evidence는 `verify-v210-entry-baseline`, `verify-release-metadata`,
+`verify-release-evidence-index`, `verify-integrator-contract-artifact`,
+`verify-event-post`, `verify-auth-routes`, `verify-codecs`, `verify-webrtc-ice`,
+`verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`,
+`git diff --check`입니다. `verify-v210-entry-baseline`은
+`media-server.v210-entry-baseline-report.v1` schema의 baseline report를 생성할 수
+있고, 안정화/UI/30분/120분/published metadata 상태를 서로 대체하지 않게 분리합니다.
+
+S00은 VLM runtime/provider 호출, UI 변경, Event POST/WebRTC/SSE/WS payload 변경,
+RTSP/WebRTC media path 변경을 수행하지 않습니다. 제외 대상은 VLM default-on,
+runtime/model bundle, provider credential 저장, real cloud provider call, UI
+풀테스트, 30분 soak, 120분 longrun입니다.
 
 ## v2.0.0 Release Close-out
 

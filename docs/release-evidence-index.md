@@ -120,6 +120,35 @@ release metadata, published metadata, v2.0.0 entry freeze gate를 같은 표에 
   still does not execute tag, push, GitHub Release, branch deletion, or next
   branch sync by itself.
 
+## v2.1.0 Entry Baseline Report
+
+v2.1.0 개발 진입 전에는 `media-server.v210-entry-baseline-report.v1` report로
+v2.0.0 published release/tag/evidence, active `v2.1.0` branch, 그리고
+WebRTC/SSE/WS/Event POST/Auth/media path freeze gate를 분리해 기록합니다. 이
+report는 v2.0.0 published evidence를 v2.1.0 시작 기준으로 고정하지만, live GitHub
+published metadata 재확인, UI 풀테스트, 30분 soak, 120분 longrun을 자동으로
+실행하거나 PASS로 대체하지 않습니다.
+
+```bash
+./server.sh verify-v210-entry-baseline \
+  --report /tmp/media_server_v210_entry_baseline.md \
+  --json-report /tmp/media_server_v210_entry_baseline.json
+```
+
+- 기준 release: `v2.0.0`; 기준 branch: `v2.1.0`.
+- baseline primary: `v200-release-publication-20260601`,
+  `v200-signed-tag-verification-20260602`, `verify-integrator-contract-artifact`
+  freeze artifact.
+- baseline fallback: live GitHub 상태를 현재 환경에서 확인하지 못하면 recorded
+  release evidence만 사용하고 live published state는 `미확인`으로 기록합니다.
+- 제외: VLM runtime/provider 호출, model/runtime bundle, provider credential 저장,
+  Event POST/WebRTC/SSE/WS payload 변경, RTSP/WebRTC media path 변경.
+- current-run companion gates: `verify-release-metadata`,
+  `verify-release-evidence-index`, `verify-integrator-contract-artifact`,
+  `verify-event-post`, `verify-auth-routes`, `verify-codecs`, `verify-webrtc-ice`,
+  `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`,
+  `verify-ws-metadata`, `git diff --check`.
+
 ## Skipped / Not-run Wording
 
 보고서와 release note에서는 아래 문구를 구분합니다. `미실행`, `manual-not-run`,

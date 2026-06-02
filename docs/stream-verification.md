@@ -449,6 +449,30 @@ fallback까지 실패하면 `media-server.github-metadata-fallback-policy.v1` �
 ./server.sh verify-release-metadata
 ```
 
+v2.1.0 entry baseline은 v2.0.0 published evidence를 시작점으로 고정하되,
+신규 VLM runtime/provider 호출이나 UI/장시간 테스트 PASS를 만들지 않습니다.
+`media-server.v210-entry-baseline-report.v1` report는 아래 명령으로 생성합니다.
+
+```bash
+./server.sh verify-v210-entry-baseline \
+  --report /tmp/media_server_v210_entry_baseline.md \
+  --json-report /tmp/media_server_v210_entry_baseline.json
+./server.sh verify-release-metadata
+./server.sh verify-release-evidence-index
+./server.sh verify-integrator-contract-artifact
+./server.sh verify-event-post
+./server.sh verify-auth-routes
+./server.sh verify-codecs
+./server.sh verify-webrtc-ice
+./server.sh verify-webrtc-va-metadata
+./server.sh verify-va-metadata-sidechannel
+./server.sh verify-ws-metadata
+```
+
+이 묶음은 WebRTC/SSE/WS/Event POST/Auth/media path freeze의 S00 선수 gate입니다.
+UI 풀테스트, 30분 soak, 120분 longrun, published GitHub live metadata 확인은 별도
+명시 지시나 release 후보 gate에서만 실행하고, 이 report의 PASS로 대체하지 않습니다.
+
 EventRecord 저장 이력까지 확인해야 하는 경우에는 EventRecord storage를 켠 격리
 서버에서 `verify-va-events --dispatch-records`를 실행합니다. 이 모드는 rare
 `exit`/direction event 누락을 피하기 위해 별도 환경변수를 주지 않으면 모든 poll을
