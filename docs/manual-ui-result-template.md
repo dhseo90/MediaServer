@@ -28,6 +28,11 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 - evidence index:
 - 문서 파악 범위:
 - feature inventory revision:
+- manual evidence schema: `media-server.manual-ui-evidence-input.v1`
+- manual evidence required fields: `id`, `verdict`, `route`, `control`,
+  `interaction`, `input` 또는 `inputNotApplicableReason`, `expected`, `actual`,
+  `stateReflected`, `artifacts`, `logChecked`/`eventRecordChecked`/`logNotApplicableReason`
+- manualSpotReviews:
 - token usage source:
 - token start:
 - token end:
@@ -128,6 +133,16 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 - 반응형/테마 범위:
 - 시각 품질 확인:
 - 제외 기록:
+
+### Manual UI Evidence Runner Fields
+
+`verify-manual-ui-evidence-runner` report는 기능 ID별로 아래 필드를 출력합니다.
+누락된 UI 대상 기능 ID 또는 아래 PASS 필드가 빠진 행은 `FAIL`입니다.
+`manualSpotReviews`는 사람이 확인한 보조 범위를 남기지만 개별 기능 ID의
+route/control/input/state/log/artifact 누락을 대체하지 않습니다.
+
+| feature ID | route | control | interaction | input/inputNotApplicableReason | expected | actual | stateReflected | log/event evidence | artifacts | verdict |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 
 ### VLM UI Criteria
 

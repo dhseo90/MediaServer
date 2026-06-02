@@ -121,7 +121,7 @@ opt-in 기능으로 여는 stabilization roadmap입니다. 이 roadmap은 `v2.1.
 | 9 | V210-S09 | P1 | 완료 | VA coverage evidence report | rule, scenario, event type, EventRecord 발생 이력, invalid combination을 조합 단위 evidence로 출력합니다. | VA replay matrix, EventRecord history report, `verify-va-event-coverage-report`, `verify-va-events`, `verify-va-replay`, `git diff --check` |
 | 10 | V210-S10 | P2 | 완료 | External TURN/WHEP field gate | external TURN/WHEP credential 운영 검증을 별도 field smoke로 분리하고, 기본 release PASS와 혼동하지 않게 합니다. 실제 외부 endpoint/credential 성공은 미실행/별도 field evidence로 남깁니다. | `verify-external-turn-whep-field-gate`, external field smoke checklist, WebRTC ICE review, `verify-webrtc-ice`, 미실행/제외 기록, `git diff --check` |
 | 11 | V210-S11 | P2 | 완료 | Runtime/model bundle RC rehearsal | 실제 bundle release 없이 hash/provenance/license, GPL-risk binary exclusion, release asset 금지 기준을 RC rehearsal로만 확인합니다. 기본 결정값은 source-only 유지입니다. | `verify-runtime-model-bundle-rc-rehearsal`, `verify-bundle-policy`, `verify-release-bundle-dry-run --candidate source-only`, dependency snapshot review, bundle dry-run policy, `git diff --check` |
-| 12 | V210-S12 | P2 | 예정 | UI fulltest evidence runner 개선 | 기능 ID별 클릭, 입력, 상태 반영, 관련 로그 확인 report를 보강해 UI 풀테스트 누락을 줄입니다. | feature inventory mapping, UI evidence report, manual spot review, `verify-ops-client-ui --screenshots`, `verify-rule-ui`, `git diff --check` |
+| 12 | V210-S12 | P2 | 완료 | UI fulltest evidence runner 개선 | 기능 ID별 클릭, 입력, 상태 반영, 관련 로그 확인 report를 보강해 UI 풀테스트 누락을 줄입니다. 이 완료는 runner 개선이며 실제 UI 풀테스트 PASS가 아닙니다. | `verify-manual-ui-evidence-runner`, feature inventory mapping, UI evidence report, manual spot review field, `verify-ops-client-ui --screenshots`, `verify-rule-ui`, `git diff --check` |
 
 v2.1.0 완료 gate:
 
@@ -470,6 +470,43 @@ S11은 ONNX Runtime package, FFmpeg/GStreamer GPL-risk runtime, YOLO/Re-ID/VLM m
 artifact, download token, binary/runtime/model release asset을 repo, bundle, GitHub
 Release에 포함하지 않습니다. Event POST/WebRTC DataChannel/SSE/WS metadata schema,
 RTSP/WebRTC media path, 제품 UI도 변경하지 않습니다.
+
+### V210-S12 UI fulltest evidence runner 개선 종료 기준
+
+직접 답: S12의 산출물은 `verify-manual-ui-evidence-runner`가 생성하는
+`media-server.manual-ui-evidence-report.v1` report 강화입니다. UI 풀테스트 자체를
+실행하거나 UI PASS를 새로 만드는 단계가 아닙니다.
+
+개선된 PASS row는 각 UI 대상 기능 ID마다 아래를 요구합니다.
+
+- `route`
+- `control`
+- `interaction`
+- `input` 또는 `inputNotApplicableReason`
+- `expected`
+- `actual`
+- `stateReflected=true`
+- `artifacts`
+- `logChecked`, `eventRecordChecked`, 또는 `logNotApplicableReason`
+
+`manualSpotReviews`는 사람이 확인한 보조 범위와 artifact를 보존하지만, 누락된 기능
+ID, raw JSON/API-only 확인, route/control/input/state/log/artifact 누락을 PASS로
+바꾸지 않습니다.
+
+```bash
+./server.sh verify-manual-ui-evidence-runner \
+  --report /tmp/media_server_manual_ui_evidence_runner_selftest.md \
+  --json-report /tmp/media_server_manual_ui_evidence_runner_selftest.json
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-ops-client-ui --screenshots
+./server.sh verify-rule-ui
+git diff --check
+```
+
+S12는 제품 UI, Auth/session/scope, Event POST/WebRTC/SSE/WS metadata schema,
+RTSP/WebRTC media path를 변경하지 않습니다. `verify-ops-client-ui --screenshots`와
+`verify-rule-ui`는 smoke/script evidence이며, 인앱 브라우저에서 전체 UI 기능을 직접
+클릭한 UI 풀테스트 PASS를 대체하지 않습니다.
 
 ## v2.0.0 Release Close-out
 

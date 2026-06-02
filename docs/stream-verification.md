@@ -133,6 +133,11 @@ Manual UI evidence runner는 UI 풀테스트 자체를 실행하지 않습니다
 `project-feature-test-inventory.md`의 UI 대상 기능 ID별 PASS/FAIL report를 생성합니다.
 누락된 UI 대상 기능 ID는 `FAIL`로 남기고, 제외 항목은 판정표 밖 `Exclusions`
 section에만 기록합니다.
+PASS row에는 `route`, `control`, `interaction`, `input` 또는
+`inputNotApplicableReason`, expected/actual, `stateReflected=true`, artifact, 그리고
+log/EventRecord/not-applicable evidence가 필요합니다. `manualSpotReviews`는 manual
+spot review 보조 evidence로 report에 보존하지만, 누락된 UI 기능 ID나 raw JSON/API-only
+확인을 PASS로 바꾸지 않습니다.
 
 ```bash
 ./server.sh verify-manual-ui-evidence-runner \

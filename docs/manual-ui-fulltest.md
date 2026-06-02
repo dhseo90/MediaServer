@@ -171,6 +171,12 @@ UI 풀테스트 결과는 모든 개별 기능, route, control, action 단위로
 `./server.sh verify-manual-ui-evidence-runner --evidence <json> --report <report.md>`
 로 기능 ID별 PASS/FAIL report를 생성합니다. 누락된 UI 대상 기능 ID는 `FAIL`이며,
 제외 항목은 판정표 밖 `Exclusions`에만 둡니다.
+각 PASS row에는 `route`, `control`, `interaction`, `input` 또는
+`inputNotApplicableReason`, `expected`, `actual`, `stateReflected=true`,
+`artifacts`, 그리고 `logChecked`, `eventRecordChecked`, 또는
+`logNotApplicableReason` 중 하나가 있어야 합니다. `manualSpotReviews`는 사람이
+보조로 spot review한 범위를 보존하지만, 누락된 기능 ID를 PASS로 바꾸는 대체
+증거가 아닙니다.
 
 풀테스트 harness 자체를 한 번에 실행할 때는
 `./server.sh verify-ui-fulltest-one-shot`을 사용합니다. 이 명령은 전용

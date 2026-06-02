@@ -41,10 +41,12 @@ const inventoryText = readText("docs/project-feature-test-inventory.md");
 const rows = parseFeatureRows(inventoryText);
 const uiTargetRows = rows.filter(row => hasArea(row.area, "UI"));
 const checks = [];
+const EXPECTED_FEATURE_ROWS = 392;
+const EXPECTED_UI_TARGET_ROWS = 244;
 
 check("inventory UI target count is stable", () => {
-  assert(rows.length === 382, `expected 382 feature rows, found ${rows.length}`);
-  assert(uiTargetRows.length === 241, `expected 241 UI target rows, found ${uiTargetRows.length}`);
+  assert(rows.length === EXPECTED_FEATURE_ROWS, `expected ${EXPECTED_FEATURE_ROWS} feature rows, found ${rows.length}`);
+  assert(uiTargetRows.length === EXPECTED_UI_TARGET_ROWS, `expected ${EXPECTED_UI_TARGET_ROWS} UI target rows, found ${uiTargetRows.length}`);
 });
 
 check("docs wire the evidence runner boundary", () => {
@@ -60,6 +62,10 @@ check("docs wire the evidence runner boundary", () => {
     "media-server.manual-ui-evidence-input.v1",
     "누락된 UI 대상 기능 ID는 `FAIL`",
     "제외 항목은 판정표 밖",
+    "route",
+    "control",
+    "inputNotApplicableReason",
+    "manualSpotReviews",
   ]) {
     assert(docs.includes(snippet), `docs missing runner snippet: ${snippet}`);
   }
@@ -77,6 +83,19 @@ check("self-test missing evidence fails every omitted UI target", () => {
   const report = buildReport(evidence, "synthetic-missing");
   assert(report.summary.fail === uiTargetRows.length - 1, `missing synthetic evidence fail count mismatch: ${report.summary.fail}`);
   assert(report.results.every(row => row.verdict === "PASS" || row.verdict === "FAIL"), "result rows must use PASS/FAIL only");
+});
+
+check("self-test incomplete PASS evidence exposes missing interaction details", () => {
+  const evidence = buildSyntheticEvidence(uiTargetRows.slice(0, 1));
+  delete evidence.featureResults[0].route;
+  delete evidence.featureResults[0].control;
+  delete evidence.featureResults[0].inputNotApplicableReason;
+  const report = buildReport(evidence, "synthetic-incomplete-pass");
+  assert(report.summary.fail === uiTargetRows.length, `incomplete synthetic evidence fail count mismatch: ${report.summary.fail}`);
+  const row = report.results.find(item => item.id === uiTargetRows[0].id);
+  assert(row.actual.includes("route"), "incomplete PASS row should name missing route");
+  assert(row.actual.includes("control"), "incomplete PASS row should name missing control");
+  assert(row.actual.includes("input/inputNotApplicableReason"), "incomplete PASS row should name missing input boundary");
 });
 
 if (args.evidence) {
@@ -161,6 +180,9 @@ function readEvidence(filePath) {
   if (payload.exclusions !== undefined) {
     assert(Array.isArray(payload.exclusions), "evidence exclusions must be an array");
   }
+  if (payload.manualSpotReviews !== undefined) {
+    assert(Array.isArray(payload.manualSpotReviews), "evidence manualSpotReviews must be an array");
+  }
   return payload;
 }
 
@@ -177,6 +199,7 @@ function buildReport(evidence, evidenceLabel) {
     if (!item?.id) continue;
     exclusions.set(item.id, item);
   }
+  const manualSpotReviews = buildManualSpotReviews(evidence.manualSpotReviews || []);
 
   const results = [];
   const excluded = [];
@@ -221,9 +244,14 @@ function buildReport(evidence, evidenceLabel) {
       feature: row.feature,
       area: row.area,
       verdict: "PASS",
+      route: firstText(actual.route, actual.path, actual.url),
+      control: firstText(actual.control, actual.selector, actual.controlLabel),
       interaction: firstText(actual.interaction, actual.action, actual.operation),
+      input: inputSummary(actual),
       expected: String(actual.expected),
       actual: String(actual.actual),
+      state: actual.stateReflected === true ? "reflected" : "not-reflected",
+      logEvent: logEventSummary(actual),
       evidence: evidenceSummary(actual),
     });
   }
@@ -233,6 +261,7 @@ function buildReport(evidence, evidenceLabel) {
     pass: results.filter(row => row.verdict === "PASS").length,
     fail: results.filter(row => row.verdict === "FAIL").length,
     excluded: excluded.length,
+    manualSpotReviews: manualSpotReviews.length,
   };
   return {
     schema: "media-server.manual-ui-evidence-report.v1",
@@ -241,12 +270,18 @@ function buildReport(evidence, evidenceLabel) {
     summary,
     results,
     exclusions: excluded,
+    manualSpotReviews,
   };
 }
 
 function missingPassFields(item) {
   const missing = [];
+  if (!firstText(item.route, item.path, item.url)) missing.push("route");
+  if (!firstText(item.control, item.selector, item.controlLabel)) missing.push("control");
   if (!firstText(item.interaction, item.action, item.operation)) missing.push("interaction");
+  if (!firstText(item.input, item.typedText, item.selectedValue, item.inputNotApplicableReason)) {
+    missing.push("input/inputNotApplicableReason");
+  }
   if (!firstText(item.expected)) missing.push("expected");
   if (!firstText(item.actual)) missing.push("actual");
   if (item.stateReflected !== true) missing.push("stateReflected");
@@ -263,32 +298,80 @@ function failRow(row, reason) {
     feature: row.feature,
     area: row.area,
     verdict: "FAIL",
+    route: "",
+    control: "",
     interaction: "",
+    input: "",
     expected: row.pass,
     actual: reason,
+    state: "",
+    logEvent: "",
     evidence: "",
   };
 }
 
 function evidenceSummary(item) {
   const artifacts = Array.isArray(item.artifacts) ? item.artifacts.join(", ") : "";
-  if (item.eventRecordChecked === true) return `eventRecord; ${artifacts}`;
-  if (item.logChecked === true) return `log; ${artifacts}`;
-  return `not-applicable: ${item.logNotApplicableReason}; ${artifacts}`;
+  const refs = [
+    ...(Array.isArray(item.logRefs) ? item.logRefs.map(ref => `log:${ref}`) : []),
+    ...(Array.isArray(item.eventRecordRefs) ? item.eventRecordRefs.map(ref => `event:${ref}`) : []),
+  ];
+  const suffix = refs.length > 0 ? `; ${refs.join(", ")}` : "";
+  if (item.eventRecordChecked === true) return `eventRecord; ${artifacts}${suffix}`;
+  if (item.logChecked === true) return `log; ${artifacts}${suffix}`;
+  return `not-applicable: ${item.logNotApplicableReason}; ${artifacts}${suffix}`;
+}
+
+function inputSummary(item) {
+  const input = firstText(item.input, item.typedText, item.selectedValue);
+  if (input) return input;
+  return `n/a: ${firstText(item.inputNotApplicableReason)}`;
+}
+
+function logEventSummary(item) {
+  if (item.eventRecordChecked === true) return "eventRecordChecked";
+  if (item.logChecked === true) return "logChecked";
+  return `not-applicable: ${firstText(item.logNotApplicableReason)}`;
+}
+
+function buildManualSpotReviews(items) {
+  return items.map(item => ({
+    id: String(item.id || "").trim(),
+    reviewer: String(item.reviewer || "").trim(),
+    scope: String(item.scope || "").trim(),
+    result: item.result === "PASS" || item.result === "FAIL" ? item.result : "FAIL",
+    notes: String(item.notes || "").trim(),
+    artifacts: Array.isArray(item.artifacts) ? item.artifacts.map(String) : [],
+    valid: Boolean(item.id && item.reviewer && item.scope && (item.result === "PASS" || item.result === "FAIL")),
+  }));
 }
 
 function buildSyntheticEvidence(targetRows) {
   return {
     schema: "media-server.manual-ui-evidence-input.v1",
     runId: "synthetic-self-test",
+    manualSpotReviews: [
+      {
+        id: "synthetic-spot-review",
+        reviewer: "synthetic",
+        scope: "route/control/input/log evidence shape",
+        result: "PASS",
+        notes: "synthetic manual spot review",
+        artifacts: ["synthetic/spot-review.png"],
+      },
+    ],
     featureResults: targetRows.map(row => ({
       id: row.id,
       verdict: "PASS",
+      route: `/synthetic/${row.id}`,
+      control: `synthetic-control-${row.id}`,
       interaction: `synthetic interaction for ${row.id}`,
+      inputNotApplicableReason: "synthetic control has no text input",
       expected: row.pass,
       actual: "synthetic state reflected",
       stateReflected: true,
       logChecked: true,
+      logRefs: [`synthetic/${row.id}.log`],
       artifacts: [`synthetic/${row.id}.png`],
     })),
     exclusions: [],
@@ -306,14 +389,15 @@ function renderMarkdown(report) {
     `- PASS: ${report.summary.pass}`,
     `- FAIL: ${report.summary.fail}`,
     `- exclusions: ${report.summary.excluded}`,
+    `- manualSpotReviews: ${report.summary.manualSpotReviews}`,
     "",
     "## Result Rows",
     "",
-    "| feature ID | feature | interaction | expected | actual | verdict | evidence |",
-    "| --- | --- | --- | --- | --- | --- | --- |",
+    "| feature ID | feature | route | control | interaction | input | expected | actual | state | log/event | verdict | evidence |",
+    "| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |",
   ];
   for (const row of report.results) {
-    lines.push(`| ${row.id} | ${escapeCell(row.feature)} | ${escapeCell(row.interaction)} | ${escapeCell(row.expected)} | ${escapeCell(row.actual)} | ${row.verdict} | ${escapeCell(row.evidence)} |`);
+    lines.push(`| ${row.id} | ${escapeCell(row.feature)} | ${escapeCell(row.route)} | ${escapeCell(row.control)} | ${escapeCell(row.interaction)} | ${escapeCell(row.input)} | ${escapeCell(row.expected)} | ${escapeCell(row.actual)} | ${escapeCell(row.state)} | ${escapeCell(row.logEvent)} | ${row.verdict} | ${escapeCell(row.evidence)} |`);
   }
   lines.push("", "## Exclusions", "");
   if (report.exclusions.length === 0) {
@@ -322,6 +406,15 @@ function renderMarkdown(report) {
     lines.push("| feature ID | feature | reason | scope | approvedBy | valid |", "| --- | --- | --- | --- | --- | --- |");
     for (const item of report.exclusions) {
       lines.push(`| ${item.id} | ${escapeCell(item.feature)} | ${escapeCell(item.reason)} | ${escapeCell(item.scope)} | ${escapeCell(item.approvedBy)} | ${item.valid ? "yes" : "no"} |`);
+    }
+  }
+  lines.push("", "## Manual Spot Reviews", "");
+  if (report.manualSpotReviews.length === 0) {
+    lines.push("- None");
+  } else {
+    lines.push("| id | reviewer | scope | result | valid | artifacts | notes |", "| --- | --- | --- | --- | --- | --- | --- |");
+    for (const item of report.manualSpotReviews) {
+      lines.push(`| ${escapeCell(item.id)} | ${escapeCell(item.reviewer)} | ${escapeCell(item.scope)} | ${item.result} | ${item.valid ? "yes" : "no"} | ${escapeCell(item.artifacts.join(", "))} | ${escapeCell(item.notes)} |`);
     }
   }
   return `${lines.join("\n")}\n`;
