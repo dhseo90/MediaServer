@@ -96,13 +96,13 @@ check("manual UI docs require exact VA event rows", () => {
 
 check("project inventory maps VA coverage report into RULE/EVT verifier families", () => {
   const inventory = readText("docs/project-feature-test-inventory.md");
-  for (const snippet of [
-    "verify-va-event-coverage-report",
-    "`RULE-001`~`RULE-101`",
-    "`EVT-001`~`EVT-026`",
-  ]) {
+  for (const snippet of ["verify-va-event-coverage-report"]) {
     assert(inventory.includes(snippet), `project feature inventory missing snippet: ${snippet}`);
   }
+  const ruleRange = inventory.match(/`RULE-001`~`RULE-(\d{3})`/);
+  const eventRange = inventory.match(/`EVT-001`~`EVT-(\d{3})`/);
+  assert(ruleRange && Number(ruleRange[1]) >= 101, "project feature inventory RULE range must include S09 rule coverage baseline");
+  assert(eventRange && Number(eventRange[1]) >= 26, "project feature inventory EVT range must include S09 event coverage baseline");
 });
 
 const report = {

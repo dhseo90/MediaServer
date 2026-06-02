@@ -118,7 +118,7 @@ opt-in 기능으로 여는 stabilization roadmap입니다. 이 roadmap은 `v2.1.
 | 6 | V210-S06 | P1 | 완료 | VLM evaluation result workflow | sample event 기준 latency, JSON 안정성, 설명 품질, hallucination risk, 한국어/영어 출력 품질을 비교하고 운영자가 model/profile을 선택할 수 있게 합니다. | evaluation fixture, prompt profile comparison, structured output check, `verify-vlm-evaluation-result-workflow`, `verify-vlm-recommendation-engine`, `git diff --check` |
 | 7 | V210-S07 | P1 | 완료 | VLM review action workflow | `/ops/events`에서 설명/오탐 힌트를 accept, dismiss, review-needed 같은 운영 기록으로 남기되 외부 event/metadata schema는 유지합니다. | `verify-vlm-review-action-workflow`, `verify-ops-event-review-inbox`, `verify-vlm-ops-event-review-ui`, Event POST/metadata verifier, `git diff --check` |
 | 8 | V210-S08 | P1 | 완료 | Rule suggestion draft workflow | VLM rule 후보를 자동 적용하지 않고 `/ops/rules` draft로 가져가 운영자가 수동 저장하는 흐름만 허용합니다. | no-auto-apply guard, `/ops/rules` smoke, rule draft fixture, `verify-vlm-rule-suggestion-draft-workflow`, `verify-rule-ui`, `git diff --check` |
-| 9 | V210-S09 | P1 | 예정 | VA coverage evidence report | rule, scenario, event type, EventRecord 발생 이력, invalid combination을 조합 단위 evidence로 출력합니다. | VA replay matrix, EventRecord history report, `verify-va-events`, `verify-va-replay`, `git diff --check` |
+| 9 | V210-S09 | P1 | 완료 | VA coverage evidence report | rule, scenario, event type, EventRecord 발생 이력, invalid combination을 조합 단위 evidence로 출력합니다. | VA replay matrix, EventRecord history report, `verify-va-event-coverage-report`, `verify-va-events`, `verify-va-replay`, `git diff --check` |
 | 10 | V210-S10 | P2 | 예정 | External TURN/WHEP field gate | external TURN/WHEP credential 운영 검증을 별도 field smoke로 분리하고, 기본 release PASS와 혼동하지 않게 합니다. | external field smoke checklist, WebRTC ICE review, `verify-webrtc-ice`, 미실행/제외 기록 |
 | 11 | V210-S11 | P2 | 예정 | Runtime/model bundle RC rehearsal | 실제 bundle release 없이 hash/provenance/license, GPL-risk binary exclusion, release asset 금지 기준을 RC rehearsal로만 확인합니다. | `verify-bundle-policy`, dependency snapshot review, bundle dry-run policy, `git diff --check` |
 | 12 | V210-S12 | P2 | 예정 | UI fulltest evidence runner 개선 | 기능 ID별 클릭, 입력, 상태 반영, 관련 로그 확인 report를 보강해 UI 풀테스트 누락을 줄입니다. | feature inventory mapping, UI evidence report, manual spot review, `verify-ops-client-ui --screenshots`, `verify-rule-ui`, `git diff --check` |
@@ -378,6 +378,34 @@ UI 풀테스트 evidence를 대신하지 않습니다.
 2026-06-02 local evidence: 위 verifier 범위에서 draft-only API/UI, no-auto-apply
 guard, 기존 rule roundtrip, VA replay/event smoke가 통과했습니다. 장시간 soak와
 수동 UI 풀테스트는 S08 완료 evidence에 포함하지 않습니다.
+
+### V210-S09 VA coverage evidence report 종료 기준
+
+직접 답: S09의 coverage report schema는
+`media-server.va-rule-event-coverage-report.v1`입니다. report verifier는 basic
+event, line direction, scenario replay, EventRecord history key,
+invalid/negative 조합을 개별 row로 출력합니다. 1차 local report는 25행이며,
+expected PASS 21행과 expected FAIL 4행을 분리합니다. invalid 조합은 PASS로
+섞지 않고 expected FAIL row로 남깁니다.
+
+```bash
+./server.sh verify-va-event-coverage-report \
+  --report /tmp/media_server_v210_s09_va_coverage.md \
+  --json-report /tmp/media_server_v210_s09_va_coverage.json
+./server.sh verify-va-replay
+./server.sh verify-va-events --dispatch-records
+git diff --check
+```
+
+2026-06-02 local evidence: 위 report verifier는 `/tmp/media_server_v210_s09_va_coverage.md`
+와 `/tmp/media_server_v210_s09_va_coverage.json`을 생성하고 5개 정적 coverage
+check를 통과했습니다. `verify-va-replay`는 14개 replay baseline을 통과했습니다.
+storage-enabled 격리 서버에서 `verify-va-events --dispatch-records`는 EventRecord
+queue drain과 저장 이력 검증을 포함해 33 PASS / 0 FAIL로 끝났습니다.
+
+S09는 VA media/Event POST/WebRTC DataChannel/SSE/WS metadata schema를 변경하지
+않습니다. report/verifier evidence는 제품 UI 풀테스트나 30분/120분 장시간 soak를
+대체하지 않습니다.
 
 ## v2.0.0 Release Close-out
 
