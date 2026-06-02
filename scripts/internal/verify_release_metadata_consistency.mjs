@@ -353,6 +353,24 @@ check("release policy pins release note template", () => {
   return { file: "docs/release-policy.md" };
 });
 
+check("release policies require future signed tags", () => {
+  const docs = [
+    ["docs/release-policy.md", readText("docs/release-policy.md")],
+    ["docs/versioning-policy.md", readText("docs/versioning-policy.md")],
+  ];
+  for (const [file, doc] of docs) {
+    for (const snippet of [
+      "다음 신규 release tag는 signed annotated tag로 생성합니다.",
+      "unsigned annotated tag",
+      "lightweight tag는 새 release tag",
+      "GitHub API tag\n  verification `verified=true`/`reason=valid`",
+    ]) {
+      assert(doc.includes(snippet), `${file} missing snippet: ${snippet}`);
+    }
+  }
+  return { files: docs.map(([file]) => file) };
+});
+
 check("development backlog separates current baseline from deferred phase gates", () => {
   const doc = readText("docs/development-backlog.md");
   for (const snippet of [

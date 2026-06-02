@@ -37,6 +37,11 @@ source offer, model provenance, checksum manifest를 release note에 연결합�
 
 - release note에는 commit, 검증 명령, known limitation을 짧게 적습니다.
 - source-only release에는 sample/model/runtime binary를 추가 업로드하지 않습니다.
+- 다음 신규 release tag는 signed annotated tag로 생성합니다. unsigned annotated tag와
+  lightweight tag는 새 release tag로 사용하지 않습니다.
+- tag signature verification이 불가능하면 tag/push/GitHub Release를 중단하고
+  `미확인` 또는 `FAIL`로 남깁니다. 재서명 전 `v2.0.0` tag의 unsigned 상태는
+  서명 검증 PASS로 소급해 쓰지 않습니다.
 - `verify-release-closeout-helper`는 dry-run summary만 생성하며 tag, push, GitHub Release 생성을 수행하지 않습니다.
 - `verify-release-metadata` 기본 실행은 반복 가능한 로컬 문서/버전 기준만 확인하고,
   GitHub latest/tag 확인은 외부 published metadata gate로 분리합니다.
@@ -106,7 +111,8 @@ Real close-out checklist:
 1. Branch close: release branch의 모든 단계 커밋과 최종 검증 결과를 확인합니다.
 2. PR merge: required checks와 review 상태를 확인하고 main으로 merge합니다.
 3. Main fast-forward/sync: 로컬 main을 원격 main 최신 commit으로 맞추고 release commit을 다시 확인합니다.
-4. Tag: 검증된 main commit에만 annotated release tag를 생성합니다.
+4. Tag: 검증된 main commit에만 signed annotated release tag를 생성합니다.
+   unsigned annotated tag와 lightweight tag는 새 release tag로 쓰지 않습니다.
 5. Push: tag와 필요한 branch를 명시 승인 후 push합니다.
 6. GitHub Release: source-only release note를 만들고 sample/model/runtime binary를 업로드하지 않습니다.
 7. Latest 확인: GitHub Releases latest, `/releases/latest`, repository page Releases/Latest link, remote tag/branch를 `verify-release-metadata --published --report <report.md> --json-report <report.json>`로 확인합니다. README의 release URL은 GitHub Release publish 후에만 current release 링크로 둡니다.
@@ -135,6 +141,10 @@ source-of-truth로 삼습니다. 현재 `v2.0.0` release pass/fail 기준은 이
 
 - 현재 source-only release 기준 tag는 `v2.0.0`입니다.
 - public-readiness, bundle policy, Actions status check가 모두 통과한 커밋에만 tag를 붙입니다.
+- 다음 신규 release tag는 signed annotated tag로 생성합니다. `git tag -s <tag> <commit>`
+  또는 GitHub가 검증 가능한 SSH/S/MIME signing 설정만 허용합니다.
+- signed tag evidence는 GitHub Tags/Releases의 Verified 표시 또는 GitHub API tag
+  verification `verified=true`/`reason=valid`로 확인합니다.
 - `v2.0.0`은 live-only media path를 유지하면서 VLM review assist를 source-only로 추가한 release이며, binary/runtime/model bundle의 운영 배포 완료를 뜻하지 않습니다.
 - route/API/config/schema migration이 필요한 후속 변경은 `v2.1.0` 이후 후보로 분리합니다.
 - tag release에는 generated sample pack, YOLO model, FFmpeg/GStreamer runtime bundle을 붙이지 않습니다.
