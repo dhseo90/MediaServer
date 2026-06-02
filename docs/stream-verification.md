@@ -507,6 +507,23 @@ git diff --check
 cloud provider field smoke, provider credential 저장, 실제 사용자 model 품질, UI
 풀테스트, 30분/120분 longrun, release close-out PASS를 대신하지 않습니다.
 
+v2.1.0 S03 Cloud provider field smoke gate는 `gemini-2.5-flash` 같은 cloud opt-in
+provider 호출을 credential 저장 없이 env/manual 승인 기반으로만 허용합니다.
+
+```bash
+./server.sh verify-vlm-cloud-provider-field-smoke-gate \
+  --report /tmp/media_server_vlm_cloud_field_gate.md \
+  --json-report /tmp/media_server_vlm_cloud_field_gate.json
+./server.sh verify-vlm-privacy-transfer-guard
+git diff --check
+```
+
+기본 gate PASS는 provider field smoke PASS가 아닙니다. 실제 field call은
+`--allow-field-call`, `MEDIA_SERVER_VLM_CLOUD_FIELD_SMOKE_APPROVED=1`, env credential이
+모두 있을 때만 실행합니다. 미실행, missing credential, provider timeout/failure는
+`releasePassEligible=false`이며 local runtime smoke PASS나 privacy guard PASS로
+대체하지 않습니다.
+
 EventRecord 저장 이력까지 확인해야 하는 경우에는 EventRecord storage를 켠 격리
 서버에서 `verify-va-events --dispatch-records`를 실행합니다. 이 모드는 rare
 `exit`/direction event 누락을 피하기 위해 별도 환경변수를 주지 않으면 모든 poll을

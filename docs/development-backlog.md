@@ -112,7 +112,7 @@ opt-in 기능으로 여는 stabilization roadmap입니다. 이 roadmap은 `v2.1.
 | 0 | V210-S00 | P0 | 완료 | v2.1.0 entry baseline | v2.0.0 최종 main/tag/evidence를 v2.1.0 시작 기준으로 고정하고, WebRTC/SSE/WS/Event POST/Auth/media path freeze를 재확인합니다. | baseline review, `verify-v210-entry-baseline`, `verify-release-metadata`, `verify-release-evidence-index`, `verify-integrator-contract-artifact`, `verify-event-post`, metadata verifier, `git diff --check` |
 | 1 | V210-S01 | P0 | 완료 | VLM runtime opt-in contract | local runtime, cloud provider, disabled, missing-model, invalid-output, timeout 상태를 분리하고 기본 off 계약을 고정합니다. | contract fixture, auth/scope review, VLM profile state review, `verify-vlm-runtime-opt-in-contract`, `verify-vlm-profile-storage`, `verify-vlm-privacy-transfer-guard`, `git diff --check` |
 | 2 | V210-S02 | P0 | 완료 | Local VLM runtime connection smoke | Ollama/vLLM/API-compatible local endpoint 연결, timeout, queue cleanup, invalid output fallback을 실제 local smoke로 확인합니다. | local endpoint fixture, missing-runtime fixture, timeout/cleanup fixture, `verify-vlm-test-rehearsal`, `verify-vlm-local-runtime-smoke`, `git diff --check` |
-| 3 | V210-S03 | P0 | 예정 | Cloud provider field smoke gate | `gemini-2.5-flash` 같은 cloud opt-in provider를 credential 저장 없이 env/manual 승인 기반 field smoke로 검증합니다. 미실행과 실패를 release PASS로 쓰지 않습니다. | cloud opt-in checklist, redaction review, provider field smoke report, `verify-vlm-privacy-transfer-guard`, `git diff --check` |
+| 3 | V210-S03 | P0 | 완료 | Cloud provider field smoke gate | `gemini-2.5-flash` 같은 cloud opt-in provider를 credential 저장 없이 env/manual 승인 기반 field smoke로 검증합니다. 미실행과 실패를 release PASS로 쓰지 않습니다. | cloud opt-in checklist, redaction review, provider field smoke report, `verify-vlm-cloud-provider-field-smoke-gate`, `verify-vlm-privacy-transfer-guard`, `git diff --check` |
 | 4 | V210-S04 | P0 | 예정 | VLM queue/backpressure stability | VLM worker가 RTSP/WebRTC media path, EventRecord, metadata fanout, Event POST dispatch를 막지 않는지 안정화 기준을 실행합니다. | `./server.sh build`, VLM queue fixture, `verify-va-events`, `verify-event-post`, metadata verifier, 30분 soak when runtime path changes, `git diff --check` |
 | 5 | V210-S05 | P0 | 예정 | Ops VLM runtime status UI | `/ops/vlm`에서 provider 상태, runtime 연결 상태, 마지막 evaluation, 실패 사유, privacy mode, default-off 상태를 운영자가 확인할 수 있게 합니다. | Ops UI smoke, auth/scope route guard, viewer/client redaction check, `verify-ops-client-ui`, VLM UI direct review, `git diff --check` |
 | 6 | V210-S06 | P1 | 예정 | VLM evaluation result workflow | sample event 기준 latency, JSON 안정성, 설명 품질, hallucination risk, 한국어/영어 출력 품질을 비교하고 운영자가 model/profile을 선택할 수 있게 합니다. | evaluation fixture, prompt profile comparison, structured output check, `verify-vlm-recommendation-engine`, `git diff --check` |
@@ -196,6 +196,35 @@ git diff --check
 사용자 설치 실제 모델 품질, cloud provider field smoke, provider credential 저장,
 VLMObservation sidecar write, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC
 media path 변경, UI 풀테스트, 장시간 안정화 PASS를 대신하지 않습니다.
+
+### V210-S03 Cloud provider field smoke gate 종료 기준
+
+직접 답: S03의 1차 gate는 `verify-vlm-cloud-provider-field-smoke-gate`입니다. 이
+명령은 `media-server.vlm-cloud-provider-field-smoke-gate-fixtures.v1` fixture로
+manual flag, env approval, env credential이 모두 있을 때만 cloud provider field call이
+가능하고, 기본 `not-run`, missing credential, provider timeout/failure는 release PASS가
+아님을 확인합니다.
+
+```bash
+./server.sh verify-vlm-cloud-provider-field-smoke-gate \
+  --report /tmp/media_server_vlm_cloud_field_gate.md \
+  --json-report /tmp/media_server_vlm_cloud_field_gate.json
+./server.sh verify-vlm-privacy-transfer-guard
+git diff --check
+```
+
+실제 provider 호출은 아래 조건이 모두 있을 때만 수행합니다.
+
+```bash
+MEDIA_SERVER_VLM_CLOUD_FIELD_SMOKE_APPROVED=1 \
+MEDIA_SERVER_VLM_CLOUD_API_KEY=<env-only-secret> \
+./server.sh verify-vlm-cloud-provider-field-smoke-gate --allow-field-call
+```
+
+기본 gate PASS는 provider field smoke PASS가 아닙니다. 실제 provider call 미실행,
+credential 누락, provider timeout/failure는 모두 `releasePassEligible=false`로 남기며,
+credential material, raw prompt, raw provider response, source URL, raw frame bytes는
+report나 public artifact에 저장하지 않습니다.
 
 ## v2.0.0 Release Close-out
 

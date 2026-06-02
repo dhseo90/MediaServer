@@ -286,6 +286,8 @@ Usage:
                  v2.1.0 VLM runtime opt-in 상태와 default-off 계약을 검증합니다.
   verify-vlm-local-runtime-smoke
                  v2.1.0 Local VLM runtime connection smoke의 loopback endpoint/timeout/cleanup/fallback을 검증합니다.
+  verify-vlm-cloud-provider-field-smoke-gate
+                 v2.1.0 Cloud provider field smoke gate의 승인/credential/redaction/PASS 분리 기준을 검증합니다.
   evaluate-vlm-harness
                  v2.0.0 VLM 평가 harness fixture report를 산출합니다.
   verify-vlm-evaluation-harness
@@ -980,6 +982,10 @@ case "${cmd}" in
   verify-vlm-local-runtime-smoke)
     require_internal verify_vlm_local_runtime_smoke.mjs
     exec "${INTERNAL_DIR}/verify_vlm_local_runtime_smoke.mjs" "$@"
+    ;;
+  verify-vlm-cloud-provider-field-smoke-gate)
+    require_internal verify_vlm_cloud_provider_field_smoke_gate.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_cloud_provider_field_smoke_gate.mjs" "$@"
     ;;
   evaluate-vlm-harness)
     require_internal evaluate_vlm_harness.mjs

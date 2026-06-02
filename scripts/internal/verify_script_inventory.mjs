@@ -416,6 +416,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_vlm_profile_storage.mjs",
     "verify_vlm_runtime_opt_in_contract.mjs",
     "verify_vlm_local_runtime_smoke.mjs",
+    "verify_vlm_cloud_provider_field_smoke_gate.mjs",
     "verify_vlm_privacy_transfer_guard.mjs",
     "evaluate_vlm_harness.mjs",
     "verify_vlm_evaluation_harness.mjs",
