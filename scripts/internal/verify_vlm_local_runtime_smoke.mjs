@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Purpose: verify the V210-S02 local VLM runtime connection smoke with loopback fixtures.
+// 파일 용도: V210-S02 local VLM runtime connection smoke를 loopback fixture로 검증한다.
 
 import fs from "node:fs";
 import http from "node:http";

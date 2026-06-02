@@ -141,7 +141,7 @@ check("roadmap, verification docs, feature inventory, docs index, and server com
   for (const snippet of [
     "| LAB-037 | VLM install/connection dry-run contract",
     "verify-vlm-install-connection-dry-run",
-    "| `LAB-001`~`LAB-060` |",
+    "| `LAB-001`~`LAB-063` |",
   ]) {
     assert(inventory.includes(snippet), `feature inventory missing snippet: ${snippet}`);
   }
@@ -182,6 +182,7 @@ check("source tree does not add sidecar, runtime, client VLM, or model artifacts
     "test/fixtures/vlm_pc_capability/cases.json",
     "test/fixtures/vlm_recommendation/cases.json",
     "test/fixtures/vlm_observation_store/observations.json",
+    "test/fixtures/vlm_review_action_workflow/cases.json",
     "test/fixtures/vlm_summary_search/cases.json",
     "test/fixtures/vlm_rule_suggestion/cases.json",
   ]);

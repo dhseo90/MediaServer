@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Purpose: verify the V210-S03 cloud provider field smoke gate and optional field run.
+// 파일 용도: V210-S03 cloud provider field smoke gate와 선택 field 실행 경계를 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";
