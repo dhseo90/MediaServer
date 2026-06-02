@@ -1,0 +1,295 @@
+{
+  "schema": "media-server.vlm-runtime-opt-in-contract-fixtures.v1",
+  "targetStep": "V210-S01",
+  "purpose": "VLM runtime opt-in profile states are stored as explicit default-off contract metadata only.",
+  "cases": [
+    {
+      "id": "disabled-default-off-pass",
+      "expectedStatus": "pass",
+      "provider": "user-supplied-local-runtime",
+      "runtime": "not-configured",
+      "runtimeContract": {
+        "schema": "media-server.vlm-runtime-opt-in-contract.v1",
+        "targetStep": "V210-S01",
+        "mode": "disabled",
+        "status": "disabled",
+        "defaultEnabled": false,
+        "operatorOptInRequired": true,
+        "operatorOptInAcknowledged": false,
+        "runtimeCallAllowed": false,
+        "providerCallAllowed": false,
+        "providerFieldSmokeRequired": false,
+        "failurePolicy": {
+          "missingModel": "blocked-missing-model-no-media-path-failure",
+          "invalidOutput": "rejected-invalid-output-no-sidecar-write",
+          "timeout": "timeout-no-media-path-failure"
+        },
+        "sideEffects": {
+          "runtimeVlmCallPerformed": false,
+          "cloudProviderApiCalled": false,
+          "modelArtifactDownloaded": false,
+          "modelArtifactBundled": false,
+          "credentialStored": false,
+          "sidecarStored": false,
+          "eventPostPayloadChanged": false,
+          "webrtcDataChannelSchemaChanged": false,
+          "sseMetadataSchemaChanged": false,
+          "wsMetadataSchemaChanged": false,
+          "rtspOrWebrtcMediaPathChanged": false,
+          "viewerClientExposureAdded": false
+        }
+      }
+    },
+    {
+      "id": "local-runtime-pass",
+      "expectedStatus": "pass",
+      "provider": "user-supplied-local-runtime",
+      "runtime": "ollama",
+      "runtimeContract": {
+        "schema": "media-server.vlm-runtime-opt-in-contract.v1",
+        "targetStep": "V210-S01",
+        "mode": "local-runtime",
+        "status": "local-runtime",
+        "defaultEnabled": false,
+        "operatorOptInRequired": true,
+        "operatorOptInAcknowledged": true,
+        "runtimeCallAllowed": false,
+        "providerCallAllowed": false,
+        "providerFieldSmokeRequired": false,
+        "failurePolicy": {
+          "missingModel": "blocked-missing-model-no-media-path-failure",
+          "invalidOutput": "rejected-invalid-output-no-sidecar-write",
+          "timeout": "timeout-no-media-path-failure"
+        },
+        "sideEffects": {
+          "runtimeVlmCallPerformed": false,
+          "cloudProviderApiCalled": false,
+          "modelArtifactDownloaded": false,
+          "modelArtifactBundled": false,
+          "credentialStored": false,
+          "sidecarStored": false,
+          "eventPostPayloadChanged": false,
+          "webrtcDataChannelSchemaChanged": false,
+          "sseMetadataSchemaChanged": false,
+          "wsMetadataSchemaChanged": false,
+          "rtspOrWebrtcMediaPathChanged": false,
+          "viewerClientExposureAdded": false
+        }
+      }
+    },
+    {
+      "id": "cloud-provider-pass",
+      "expectedStatus": "pass",
+      "provider": "cloud-provider-api",
+      "runtime": "provider-api",
+      "runtimeContract": {
+        "schema": "media-server.vlm-runtime-opt-in-contract.v1",
+        "targetStep": "V210-S01",
+        "mode": "cloud-provider",
+        "status": "cloud-provider",
+        "defaultEnabled": false,
+        "operatorOptInRequired": true,
+        "operatorOptInAcknowledged": true,
+        "runtimeCallAllowed": false,
+        "providerCallAllowed": false,
+        "providerFieldSmokeRequired": true,
+        "failurePolicy": {
+          "missingModel": "blocked-missing-model-no-media-path-failure",
+          "invalidOutput": "rejected-invalid-output-no-sidecar-write",
+          "timeout": "timeout-no-media-path-failure"
+        },
+        "sideEffects": {
+          "runtimeVlmCallPerformed": false,
+          "cloudProviderApiCalled": false,
+          "modelArtifactDownloaded": false,
+          "modelArtifactBundled": false,
+          "credentialStored": false,
+          "sidecarStored": false,
+          "eventPostPayloadChanged": false,
+          "webrtcDataChannelSchemaChanged": false,
+          "sseMetadataSchemaChanged": false,
+          "wsMetadataSchemaChanged": false,
+          "rtspOrWebrtcMediaPathChanged": false,
+          "viewerClientExposureAdded": false
+        }
+      }
+    },
+    {
+      "id": "missing-model-pass",
+      "expectedStatus": "pass",
+      "provider": "user-supplied-local-runtime",
+      "runtime": "not-configured",
+      "runtimeContract": {
+        "schema": "media-server.vlm-runtime-opt-in-contract.v1",
+        "targetStep": "V210-S01",
+        "mode": "local-runtime",
+        "status": "missing-model",
+        "defaultEnabled": false,
+        "operatorOptInRequired": true,
+        "operatorOptInAcknowledged": false,
+        "runtimeCallAllowed": false,
+        "providerCallAllowed": false,
+        "providerFieldSmokeRequired": false,
+        "failurePolicy": {
+          "missingModel": "blocked-missing-model-no-media-path-failure",
+          "invalidOutput": "rejected-invalid-output-no-sidecar-write",
+          "timeout": "timeout-no-media-path-failure"
+        },
+        "sideEffects": {
+          "runtimeVlmCallPerformed": false,
+          "cloudProviderApiCalled": false,
+          "modelArtifactDownloaded": false,
+          "modelArtifactBundled": false,
+          "credentialStored": false,
+          "sidecarStored": false,
+          "eventPostPayloadChanged": false,
+          "webrtcDataChannelSchemaChanged": false,
+          "sseMetadataSchemaChanged": false,
+          "wsMetadataSchemaChanged": false,
+          "rtspOrWebrtcMediaPathChanged": false,
+          "viewerClientExposureAdded": false
+        }
+      }
+    },
+    {
+      "id": "invalid-output-pass",
+      "expectedStatus": "pass",
+      "provider": "user-supplied-local-runtime",
+      "runtime": "ollama",
+      "runtimeContract": {
+        "schema": "media-server.vlm-runtime-opt-in-contract.v1",
+        "targetStep": "V210-S01",
+        "mode": "local-runtime",
+        "status": "invalid-output",
+        "defaultEnabled": false,
+        "operatorOptInRequired": true,
+        "operatorOptInAcknowledged": true,
+        "runtimeCallAllowed": false,
+        "providerCallAllowed": false,
+        "providerFieldSmokeRequired": false,
+        "failurePolicy": {
+          "missingModel": "blocked-missing-model-no-media-path-failure",
+          "invalidOutput": "rejected-invalid-output-no-sidecar-write",
+          "timeout": "timeout-no-media-path-failure"
+        },
+        "sideEffects": {
+          "runtimeVlmCallPerformed": false,
+          "cloudProviderApiCalled": false,
+          "modelArtifactDownloaded": false,
+          "modelArtifactBundled": false,
+          "credentialStored": false,
+          "sidecarStored": false,
+          "eventPostPayloadChanged": false,
+          "webrtcDataChannelSchemaChanged": false,
+          "sseMetadataSchemaChanged": false,
+          "wsMetadataSchemaChanged": false,
+          "rtspOrWebrtcMediaPathChanged": false,
+          "viewerClientExposureAdded": false
+        }
+      }
+    },
+    {
+      "id": "timeout-pass",
+      "expectedStatus": "pass",
+      "provider": "cloud-provider-api",
+      "runtime": "provider-api",
+      "runtimeContract": {
+        "schema": "media-server.vlm-runtime-opt-in-contract.v1",
+        "targetStep": "V210-S01",
+        "mode": "cloud-provider",
+        "status": "timeout",
+        "defaultEnabled": false,
+        "operatorOptInRequired": true,
+        "operatorOptInAcknowledged": true,
+        "runtimeCallAllowed": false,
+        "providerCallAllowed": false,
+        "providerFieldSmokeRequired": true,
+        "failurePolicy": {
+          "missingModel": "blocked-missing-model-no-media-path-failure",
+          "invalidOutput": "rejected-invalid-output-no-sidecar-write",
+          "timeout": "timeout-no-media-path-failure"
+        },
+        "sideEffects": {
+          "runtimeVlmCallPerformed": false,
+          "cloudProviderApiCalled": false,
+          "modelArtifactDownloaded": false,
+          "modelArtifactBundled": false,
+          "credentialStored": false,
+          "sidecarStored": false,
+          "eventPostPayloadChanged": false,
+          "webrtcDataChannelSchemaChanged": false,
+          "sseMetadataSchemaChanged": false,
+          "wsMetadataSchemaChanged": false,
+          "rtspOrWebrtcMediaPathChanged": false,
+          "viewerClientExposureAdded": false
+        }
+      }
+    },
+    {
+      "id": "default-enabled-rejected",
+      "expectedStatus": "fail",
+      "expectedError": "defaultEnabled must be false",
+      "provider": "user-supplied-local-runtime",
+      "runtime": "ollama",
+      "runtimeContract": {
+        "schema": "media-server.vlm-runtime-opt-in-contract.v1",
+        "targetStep": "V210-S01",
+        "mode": "local-runtime",
+        "status": "local-runtime",
+        "defaultEnabled": true,
+        "operatorOptInRequired": true,
+        "operatorOptInAcknowledged": true,
+        "runtimeCallAllowed": false,
+        "providerCallAllowed": false,
+        "providerFieldSmokeRequired": false,
+        "sideEffects": {
+          "runtimeVlmCallPerformed": false,
+          "cloudProviderApiCalled": false,
+          "modelArtifactDownloaded": false,
+          "modelArtifactBundled": false,
+          "credentialStored": false,
+          "sidecarStored": false,
+          "eventPostPayloadChanged": false,
+          "webrtcDataChannelSchemaChanged": false,
+          "sseMetadataSchemaChanged": false,
+          "wsMetadataSchemaChanged": false,
+          "rtspOrWebrtcMediaPathChanged": false,
+          "viewerClientExposureAdded": false
+        }
+      }
+    },
+    {
+      "id": "runtime-call-side-effect-rejected",
+      "expectedStatus": "fail",
+      "expectedError": "runtimeCallAllowed must be false",
+      "provider": "user-supplied-local-runtime",
+      "runtime": "ollama",
+      "runtimeContract": {
+        "schema": "media-server.vlm-runtime-opt-in-contract.v1",
+        "targetStep": "V210-S01",
+        "mode": "local-runtime",
+        "status": "local-runtime",
+        "defaultEnabled": false,
+        "operatorOptInRequired": true,
+        "operatorOptInAcknowledged": true,
+        "runtimeCallAllowed": true,
+        "providerCallAllowed": false,
+        "providerFieldSmokeRequired": false,
+        "sideEffects": {
+          "runtimeVlmCallPerformed": true,
+          "cloudProviderApiCalled": false,
+          "modelArtifactDownloaded": false,
+          "modelArtifactBundled": false,
+          "credentialStored": false,
+          "sidecarStored": false,
+          "eventPostPayloadChanged": false,
+          "webrtcDataChannelSchemaChanged": false,
+          "sseMetadataSchemaChanged": false,
+          "wsMetadataSchemaChanged": false,
+          "rtspOrWebrtcMediaPathChanged": false,
+          "viewerClientExposureAdded": false
+        }
+      }
+    }
+  ]
+}

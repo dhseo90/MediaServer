@@ -473,6 +473,22 @@ v2.1.0 entry baseline은 v2.0.0 published evidence를 시작점으로 고정하�
 UI 풀테스트, 30분 soak, 120분 longrun, published GitHub live metadata 확인은 별도
 명시 지시나 release 후보 gate에서만 실행하고, 이 report의 PASS로 대체하지 않습니다.
 
+v2.1.0 S01 VLM runtime opt-in contract는 profile 저장 계약 안에서 runtime 상태만
+고정합니다. 실제 local/cloud runtime 호출이 아니라 default-off 상태 분리 gate입니다.
+
+```bash
+./server.sh verify-vlm-runtime-opt-in-contract
+./server.sh verify-vlm-profile-storage
+./server.sh verify-vlm-privacy-transfer-guard
+./server.sh verify-auth-routes
+git diff --check
+```
+
+이 묶음은 `media-server.vlm-runtime-opt-in-contract.v1`의 `disabled`,
+`local-runtime`, `cloud-provider`, `missing-model`, `invalid-output`, `timeout`
+상태와 `defaultEnabled=false`를 확인합니다. local runtime smoke와 cloud provider
+field smoke는 S02/S03 이후 별도 evidence이며, S01 PASS로 대체하지 않습니다.
+
 EventRecord 저장 이력까지 확인해야 하는 경우에는 EventRecord storage를 켠 격리
 서버에서 `verify-va-events --dispatch-records`를 실행합니다. 이 모드는 rare
 `exit`/direction event 누락을 피하기 위해 별도 환경변수를 주지 않으면 모든 poll을

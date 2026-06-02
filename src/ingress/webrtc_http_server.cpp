@@ -1505,6 +1505,14 @@ private:
                 return std::nullopt;
             }
         }
+        if (!ValidateVlmRuntimeOptInContract(body,
+                                             provider,
+                                             runtime,
+                                             activation_enabled,
+                                             activation_status,
+                                             error_message)) {
+            return std::nullopt;
+        }
         const auto invariants = ExtractObjectField(body, "contractInvariants");
         if (!invariants.has_value()) {
             SetRegistryError(error_message, "VLM profile contractInvariants object is required");
@@ -1540,6 +1548,116 @@ private:
         return std::any_of(allowed.begin(), allowed.end(), [&](const char* item) {
             return value == item;
         });
+    }
+
+    static bool ValidateVlmRuntimeOptInContract(const std::string& body,
+                                                const std::string& provider,
+                                                const std::string& runtime,
+                                                bool activation_enabled,
+                                                const std::string& activation_status,
+                                                std::string* error_message) {
+        const auto contract = ExtractObjectField(body, "runtimeContract");
+        if (!contract.has_value()) {
+            SetRegistryError(error_message, "VLM profile runtimeContract object is required");
+            return false;
+        }
+        if (ParseStringField(*contract, "schema").value_or("") !=
+            "media-server.vlm-runtime-opt-in-contract.v1") {
+            SetRegistryError(error_message,
+                             "VLM runtimeContract schema must be media-server.vlm-runtime-opt-in-contract.v1");
+            return false;
+        }
+        const std::string mode = Trim(ParseStringField(*contract, "mode").value_or(""));
+        const std::string status = Trim(ParseStringField(*contract, "status").value_or(""));
+        if (!IsOneOf(mode, {"disabled", "local-runtime", "cloud-provider"})) {
+            SetRegistryError(error_message, "VLM runtimeContract mode is not supported");
+            return false;
+        }
+        if (!IsOneOf(status,
+                     {"disabled",
+                      "local-runtime",
+                      "cloud-provider",
+                      "missing-model",
+                      "invalid-output",
+                      "timeout"})) {
+            SetRegistryError(error_message, "VLM runtimeContract status is not supported");
+            return false;
+        }
+        if (ParseBoolField(*contract, "defaultEnabled").value_or(true)) {
+            SetRegistryError(error_message, "VLM runtimeContract defaultEnabled must be false");
+            return false;
+        }
+        if (!ParseBoolField(*contract, "operatorOptInRequired").value_or(false)) {
+            SetRegistryError(error_message, "VLM runtimeContract requires operator opt-in");
+            return false;
+        }
+        if (ParseBoolField(*contract, "runtimeCallAllowed").value_or(true)) {
+            SetRegistryError(error_message, "VLM runtimeContract runtimeCallAllowed must be false in V210-S01");
+            return false;
+        }
+        if (ParseBoolField(*contract, "providerCallAllowed").value_or(true)) {
+            SetRegistryError(error_message, "VLM runtimeContract providerCallAllowed must be false in V210-S01");
+            return false;
+        }
+        const bool cloud_profile = provider == "cloud-provider-api";
+        if (cloud_profile && mode != "cloud-provider") {
+            SetRegistryError(error_message, "cloud VLM profile requires cloud-provider runtimeContract mode");
+            return false;
+        }
+        if (!cloud_profile && mode == "cloud-provider") {
+            SetRegistryError(error_message, "local VLM profile must not use cloud-provider runtimeContract mode");
+            return false;
+        }
+        if (status == "cloud-provider" && !cloud_profile) {
+            SetRegistryError(error_message, "cloud-provider runtimeContract status requires cloud provider profile");
+            return false;
+        }
+        if (status == "local-runtime" && (cloud_profile || runtime == "provider-api" || runtime == "not-configured")) {
+            SetRegistryError(error_message, "local-runtime status requires a configured local runtime");
+            return false;
+        }
+        if (status == "missing-model" && cloud_profile) {
+            SetRegistryError(error_message, "missing-model runtimeContract status is local-runtime only");
+            return false;
+        }
+        if ((status == "disabled" || status == "missing-model" || status == "invalid-output" ||
+             status == "timeout") &&
+            activation_enabled) {
+            SetRegistryError(error_message, "VLM runtimeContract failure or disabled status must not be enabled");
+            return false;
+        }
+        if (status == "disabled" && activation_status == "active") {
+            SetRegistryError(error_message, "disabled VLM runtimeContract must not have active activation");
+            return false;
+        }
+        if (mode == "disabled" && status != "disabled") {
+            SetRegistryError(error_message, "disabled VLM runtimeContract mode requires disabled status");
+            return false;
+        }
+        const auto side_effects = ExtractObjectField(*contract, "sideEffects");
+        if (!side_effects.has_value()) {
+            SetRegistryError(error_message, "VLM runtimeContract sideEffects object is required");
+            return false;
+        }
+        for (const std::string& field :
+             {"runtimeVlmCallPerformed",
+              "cloudProviderApiCalled",
+              "modelArtifactDownloaded",
+              "modelArtifactBundled",
+              "credentialStored",
+              "sidecarStored",
+              "eventPostPayloadChanged",
+              "webrtcDataChannelSchemaChanged",
+              "sseMetadataSchemaChanged",
+              "wsMetadataSchemaChanged",
+              "rtspOrWebrtcMediaPathChanged",
+              "viewerClientExposureAdded"}) {
+            if (ParseBoolField(*side_effects, field).value_or(true)) {
+                SetRegistryError(error_message, "VLM runtimeContract side effect must be false: " + field);
+                return false;
+            }
+        }
+        return true;
     }
 
     static bool ValidateVlmPrivacyGuardContract(const std::string& body,

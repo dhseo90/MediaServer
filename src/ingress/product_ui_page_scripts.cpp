@@ -3812,6 +3812,49 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (readiness.status === 'ready') return readiness.vllmModuleAvailable ? 'vllm' : 'ollama';
         return 'not-configured';
       };
+      const buildOpsVlmRuntimeContract = (selected, payload, activationStatus, enabled) => {
+        const externalTransfer = opsVlmOptionUsesExternalTransfer(selected);
+        const readiness = selected?.impact?.localRuntimeReadiness?.status || payload?.recommendation?.runtimeReadiness?.status || '';
+        let mode = externalTransfer ? 'cloud-provider' : 'local-runtime';
+        let status = externalTransfer ? 'cloud-provider' : 'local-runtime';
+        if (activationStatus === 'disabled') {
+          mode = 'disabled';
+          status = 'disabled';
+        } else if (!externalTransfer && readiness !== 'ready') {
+          status = 'missing-model';
+        }
+        return {
+          schema: 'media-server.vlm-runtime-opt-in-contract.v1',
+          targetStep: 'V210-S01',
+          mode,
+          status,
+          defaultEnabled: false,
+          operatorOptInRequired: true,
+          operatorOptInAcknowledged: enabled === true,
+          runtimeCallAllowed: false,
+          providerCallAllowed: false,
+          providerFieldSmokeRequired: externalTransfer,
+          failurePolicy: {
+            missingModel: 'blocked-missing-model-no-media-path-failure',
+            invalidOutput: 'rejected-invalid-output-no-sidecar-write',
+            timeout: 'timeout-no-media-path-failure'
+          },
+          sideEffects: {
+            runtimeVlmCallPerformed: false,
+            cloudProviderApiCalled: false,
+            modelArtifactDownloaded: false,
+            modelArtifactBundled: false,
+            credentialStored: false,
+            sidecarStored: false,
+            eventPostPayloadChanged: false,
+            webrtcDataChannelSchemaChanged: false,
+            sseMetadataSchemaChanged: false,
+            wsMetadataSchemaChanged: false,
+            rtspOrWebrtcMediaPathChanged: false,
+            viewerClientExposureAdded: false
+          }
+        };
+      };
       const renderOpsVlmPrivacyTransferGuard = payload => {
         const selected = opsVlmSelectedOption();
         const guard = selected?.privacyTransferGuard || payload?.privacyTransferGuard || {};
@@ -4039,7 +4082,8 @@ void AppendOpsShellScript(std::ostringstream& out,
             fallbackProfileId,
             disabledReason
           },
-          sourceStep: 'V200-S05',
+          runtimeContract: buildOpsVlmRuntimeContract(selected, opsVlmLastPayload, activationStatus, enabled),
+          sourceStep: 'V210-S01',
           storageScope: 'profile-storage-only',
           contractInvariants: {
             runtimeVlmCallPerformed: false,

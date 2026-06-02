@@ -22,6 +22,8 @@ analysis registry 파일의 `vlmProfiles` 필드이며, 제품 route는 Ops 전�
 - evaluation status: `not-run`, `passed`, `failed`, `review-required`
 - activation status: `pending-evaluation`, `active`, `disabled`, `fallback`
 - fallback profile ID 또는 disabled reason
+- S01 `runtimeContract`: `media-server.vlm-runtime-opt-in-contract.v1`,
+  default-off, local/cloud/disabled/failure state, runtime/provider call 금지
 
 저장하지 않는 항목:
 
@@ -52,6 +54,12 @@ Cloud profile은 `provider=cloud-provider-api`, `model=gemini-2.5-flash`,
 `privacyGuard` 안의 외부 전송 경고 확인과 provider logging/retention/terms accepted
 review도 필요합니다.
 
+v2.1.0 S01 이후 모든 profile은 `runtimeContract`를 포함해야 합니다.
+`defaultEnabled=false`, `operatorOptInRequired=true`, `runtimeCallAllowed=false`,
+`providerCallAllowed=false`, `sideEffects.*=false`가 아니면 저장하지 않습니다.
+허용 상태는 `disabled`, `local-runtime`, `cloud-provider`, `missing-model`,
+`invalid-output`, `timeout`입니다.
+
 활성화 조건:
 
 - `enabled=true`는 `evaluation.status=passed`와 `activation.status=active`일 때만 허용합니다.
@@ -71,11 +79,14 @@ fallback/disable 상태와 함께 저장하고, 저장된 profile 목록에서 �
 
 ```bash
 ./server.sh verify-vlm-profile-storage
+./server.sh verify-vlm-runtime-opt-in-contract
 ./server.sh verify-auth-routes
 git diff --check
 ```
 
 `verify-vlm-profile-storage`는 API/UI/schema/fixture/document wiring을 확인합니다.
+`verify-vlm-runtime-opt-in-contract`는 S01 runtime 상태 분리와 default-off invariant를
+확인합니다.
 `verify-auth-routes`는 unauth/viewer 차단, readonly operator read 허용, readonly
 write 차단, admin CRUD, invalid profile fixture 거부를 실제 route smoke로 확인합니다.
 
