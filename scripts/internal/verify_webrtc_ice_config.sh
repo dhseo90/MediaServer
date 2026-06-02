@@ -94,6 +94,13 @@ Mac 로컬 coturn 단일 머신 검증 예:
   MEDIA_SERVER_WEBRTC_TURN_SERVER=turn://user:pass@turn.example.com:3478 \
   MEDIA_SERVER_WEBRTC_ICE_TRANSPORT_POLICY=relay \
   ./server.sh verify-webrtc-ice --external-turn
+
+외부 TURN/WHEP field gate 절차 고정:
+  ./server.sh verify-external-turn-whep-field-gate
+
+주의:
+  verify-webrtc-ice 기본 PASS, local coturn PASS, UI 풀테스트 PASS는 외부 운영
+  TURN credential 또는 외부 WHEP playback endpoint 성공 PASS를 대체하지 않습니다.
 EOF_USAGE
 }
 
@@ -234,6 +241,7 @@ print_turn_failure_hints() {
 [hint] 3. Mac 로컬 단일 머신 coturn 검증이면 coturn에 --allow-loopback-peers 필요
 [hint] 4. 별도 호스트/운영 TURN이면 3478 TCP/UDP와 relay UDP range inbound 필요
 [hint] 5. 외부 운영 TURN 서버 relay/auth end-to-end는 현재 프로젝트에서 아직 진행하지 않음
+[hint] 6. 외부 TURN/WHEP field gate 분리는 ./server.sh verify-external-turn-whep-field-gate로 확인
 EOF_HINT
 }
 

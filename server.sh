@@ -35,6 +35,8 @@ Usage:
   verify-codecs  file/RTSP/WebRTC source와 codec route matrix를 자동 검증합니다.
   verify-webrtc-ice
                  WebRTC STUN/TURN/ICE policy와 candidate 수집 상태를 검증합니다.
+  verify-external-turn-whep-field-gate
+                 v2.1.0 external TURN/WHEP field smoke와 기본 release PASS 분리 기준을 검증합니다.
   verify-uri-longrun
                  HTTP/HLS URI source의 로컬 반복 검증과 선택 외부 URL 반복 검증을 수행합니다.
   verify-va      YOLO/VA overlay의 lab/RTSP 검증을 수행합니다.
@@ -492,6 +494,10 @@ case "${cmd}" in
   verify-webrtc-ice)
     require_internal verify_webrtc_ice_config.sh
     exec "${INTERNAL_DIR}/verify_webrtc_ice_config.sh" "$@"
+    ;;
+  verify-external-turn-whep-field-gate)
+    require_internal verify_external_turn_whep_field_gate.mjs
+    exec "${INTERNAL_DIR}/verify_external_turn_whep_field_gate.mjs" "$@"
     ;;
   verify-uri-longrun)
     require_internal verify_uri_source_longrun.sh

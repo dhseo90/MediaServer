@@ -47,13 +47,13 @@ const stabilityVerifierByPrefix = {
   RULE: ["verify-rule-ui", "verify-ops-rules-roundtrip", "verify-ops-rule-validation-matrix", "verify-va-event-coverage-report", "verify-va-replay", "verify-analysis-state"],
   EVT: ["verify-va-event-coverage-report", "verify-va-events", "verify-ops-event-review-inbox", "verify-ops-event-records-scope", "verify-va-runtime-console", "verify-vlm-event-evidence-extraction", "verify-vlm-observation-sidecar", "verify-vlm-event-explanation-hints", "verify-vlm-review-action-workflow", "verify-vlm-ops-event-review-ui", "verify-vlm-summary-search-candidates", "verify-vlm-rule-suggestion-candidates", "verify-vlm-rule-suggestion-draft-workflow"],
   CLIENT: ["verify-client-live-workspace", "verify-client-dashboard-polish", "verify-client-source-dock-events", "verify-ops-client-ui"],
-  MEDIA: ["verify-codecs", "verify-webrtc-ice", "verify-webrtc-va-metadata"],
+  MEDIA: ["verify-codecs", "verify-webrtc-ice", "verify-external-turn-whep-field-gate", "verify-webrtc-va-metadata"],
   LAB: ["verify-analysis-state", "verify-va-metadata-sidechannel", "verify-ws-metadata", "verify-image-analysis", "verify-vlm-boundary", "verify-vlm-selection-decision", "verify-vlm-pc-capability", "verify-vlm-recommendation-engine", "verify-vlm-install-connection-dry-run", "verify-vlm-profile-storage", "verify-vlm-runtime-opt-in-contract", "verify-vlm-local-runtime-smoke", "verify-vlm-cloud-provider-field-smoke-gate", "verify-vlm-queue-backpressure-stability", "verify-vlm-evaluation-harness", "verify-vlm-evaluation-result-workflow", "verify-vlm-review-action-workflow", "verify-vlm-observation-sidecar", "verify-vlm-event-explanation-hints", "verify-vlm-privacy-transfer-guard", "verify-vlm-summary-search-candidates", "verify-vlm-rule-suggestion-candidates", "verify-vlm-rule-suggestion-draft-workflow"],
-  SAFE: ["verify-integrator-contract-artifact", "verify-auth-routes", "verify-ops-client-ui", "verify-ui-blocking-dialog-policy", "verify-event-post", "verify-webrtc-va-metadata", "verify-ws-metadata", "verify-vlm-boundary", "verify-vlm-install-connection-scope-gate", "verify-vlm-profile-storage", "verify-vlm-runtime-opt-in-contract", "verify-vlm-local-runtime-smoke", "verify-vlm-cloud-provider-field-smoke-gate", "verify-vlm-queue-backpressure-stability", "verify-vlm-review-action-workflow", "verify-vlm-observation-sidecar", "verify-vlm-privacy-transfer-guard", "verify-vlm-summary-search-candidates", "verify-vlm-rule-suggestion-candidates", "verify-vlm-rule-suggestion-draft-workflow"],
+  SAFE: ["verify-integrator-contract-artifact", "verify-auth-routes", "verify-ops-client-ui", "verify-ui-blocking-dialog-policy", "verify-event-post", "verify-webrtc-va-metadata", "verify-ws-metadata", "verify-external-turn-whep-field-gate", "verify-vlm-boundary", "verify-vlm-install-connection-scope-gate", "verify-vlm-profile-storage", "verify-vlm-runtime-opt-in-contract", "verify-vlm-local-runtime-smoke", "verify-vlm-cloud-provider-field-smoke-gate", "verify-vlm-queue-backpressure-stability", "verify-vlm-review-action-workflow", "verify-vlm-observation-sidecar", "verify-vlm-privacy-transfer-guard", "verify-vlm-summary-search-candidates", "verify-vlm-rule-suggestion-candidates", "verify-vlm-rule-suggestion-draft-workflow"],
 };
 
 check("inventory row count is stable", () => {
-  assert(rows.length === 386, `expected 386 feature rows, found ${rows.length}`);
+  assert(rows.length === 388, `expected 388 feature rows, found ${rows.length}`);
   assert(new Set(rows.map(row => row.id)).size === rows.length, "duplicate feature ID exists");
 });
 
@@ -169,10 +169,36 @@ function coverageTargets(row, verifierMap) {
     targets.push({ kind: "120-minute", command: "./server.sh verify-predev --soak-minutes 120", approval: "required" });
     targets.push({ kind: "120-minute", command: "./server.sh verify-va-runtime-console-longrun --duration-minutes 120", approval: "conditional" });
   }
-  if (hasArea(row.area, "필드 별도")) {
-    targets.push({ kind: "field-exclusion", command: "./server.sh verify-onvif-field-smoke-gate", approval: "field endpoint required" });
+  if (hasFieldArea(row.area)) {
+    targets.push(fieldCoverageTarget(row));
   }
   return targets;
+}
+
+function hasFieldArea(area) {
+  return hasArea(area, "필드 별도") || hasArea(area, "field 별도");
+}
+
+function fieldCoverageTarget(row) {
+  if (row.id === "LAB-057" || row.id === "SAFE-035") {
+    return {
+      kind: "field-exclusion",
+      command: "./server.sh verify-vlm-cloud-provider-field-smoke-gate",
+      approval: "cloud provider credential and manual approval required",
+    };
+  }
+  if (row.id === "MEDIA-021" || row.id === "SAFE-039") {
+    return {
+      kind: "field-exclusion",
+      command: "./server.sh verify-external-turn-whep-field-gate",
+      approval: "external TURN/WHEP endpoint and credential required",
+    };
+  }
+  return {
+    kind: "field-exclusion",
+    command: "./server.sh verify-onvif-field-smoke-gate",
+    approval: "field endpoint required",
+  };
 }
 
 function parseFeatureRows(text) {

@@ -1,0 +1,145 @@
+{
+  "schema": "media-server.external-turn-whep-field-gate-fixtures.v1",
+  "targetStep": "V210-S10",
+  "purpose": "Separate external TURN/WHEP field smoke evidence from default release PASS.",
+  "cases": [
+    {
+      "id": "not-approved-not-run",
+      "manualApproval": false,
+      "turnCredentialPresent": false,
+      "whepEndpointPresent": false,
+      "turnOutcome": "not-run",
+      "whepOutcome": "not-run",
+      "redaction": {
+        "credentialMaterialStored": false,
+        "rawTurnServerStored": false,
+        "rawWhepUrlStored": false,
+        "rawIceCandidateStored": false,
+        "sourceUrlStored": false,
+        "viewerClientExposureAdded": false
+      },
+      "expected": {
+        "fieldSmokeStatus": "not-run",
+        "turnRelayStatus": "not-run",
+        "whepPlaybackStatus": "not-run",
+        "fieldGatePassEligible": false,
+        "defaultReleasePassClaimAllowed": false
+      }
+    },
+    {
+      "id": "approved-missing-turn-credential-blocked",
+      "manualApproval": true,
+      "turnCredentialPresent": false,
+      "whepEndpointPresent": true,
+      "turnOutcome": "not-run",
+      "whepOutcome": "pass",
+      "redaction": {
+        "credentialMaterialStored": false,
+        "rawTurnServerStored": false,
+        "rawWhepUrlStored": false,
+        "rawIceCandidateStored": false,
+        "sourceUrlStored": false,
+        "viewerClientExposureAdded": false
+      },
+      "expected": {
+        "fieldSmokeStatus": "blocked",
+        "turnRelayStatus": "missing-credential",
+        "whepPlaybackStatus": "passed",
+        "fieldGatePassEligible": false,
+        "defaultReleasePassClaimAllowed": false
+      }
+    },
+    {
+      "id": "approved-missing-whep-endpoint-blocked",
+      "manualApproval": true,
+      "turnCredentialPresent": true,
+      "whepEndpointPresent": false,
+      "turnOutcome": "pass",
+      "whepOutcome": "not-run",
+      "redaction": {
+        "credentialMaterialStored": false,
+        "rawTurnServerStored": false,
+        "rawWhepUrlStored": false,
+        "rawIceCandidateStored": false,
+        "sourceUrlStored": false,
+        "viewerClientExposureAdded": false
+      },
+      "expected": {
+        "fieldSmokeStatus": "blocked",
+        "turnRelayStatus": "passed",
+        "whepPlaybackStatus": "missing-endpoint",
+        "fieldGatePassEligible": false,
+        "defaultReleasePassClaimAllowed": false
+      }
+    },
+    {
+      "id": "approved-turn-relay-fail-not-release-pass",
+      "manualApproval": true,
+      "turnCredentialPresent": true,
+      "whepEndpointPresent": true,
+      "turnOutcome": "fail",
+      "whepOutcome": "pass",
+      "redaction": {
+        "credentialMaterialStored": false,
+        "rawTurnServerStored": false,
+        "rawWhepUrlStored": false,
+        "rawIceCandidateStored": false,
+        "sourceUrlStored": false,
+        "viewerClientExposureAdded": false
+      },
+      "expected": {
+        "fieldSmokeStatus": "failed",
+        "turnRelayStatus": "failed",
+        "whepPlaybackStatus": "passed",
+        "fieldGatePassEligible": false,
+        "defaultReleasePassClaimAllowed": false
+      }
+    },
+    {
+      "id": "approved-whep-playback-fail-not-release-pass",
+      "manualApproval": true,
+      "turnCredentialPresent": true,
+      "whepEndpointPresent": true,
+      "turnOutcome": "pass",
+      "whepOutcome": "fail",
+      "redaction": {
+        "credentialMaterialStored": false,
+        "rawTurnServerStored": false,
+        "rawWhepUrlStored": false,
+        "rawIceCandidateStored": false,
+        "sourceUrlStored": false,
+        "viewerClientExposureAdded": false
+      },
+      "expected": {
+        "fieldSmokeStatus": "failed",
+        "turnRelayStatus": "passed",
+        "whepPlaybackStatus": "failed",
+        "fieldGatePassEligible": false,
+        "defaultReleasePassClaimAllowed": false
+      }
+    },
+    {
+      "id": "approved-turn-whep-pass-field-only",
+      "manualApproval": true,
+      "turnCredentialPresent": true,
+      "whepEndpointPresent": true,
+      "turnOutcome": "pass",
+      "whepOutcome": "pass",
+      "redaction": {
+        "credentialMaterialStored": false,
+        "rawTurnServerStored": false,
+        "rawWhepUrlStored": false,
+        "rawIceCandidateStored": false,
+        "sourceUrlStored": false,
+        "viewerClientExposureAdded": false
+      },
+      "expected": {
+        "fieldSmokeStatus": "passed",
+        "turnRelayStatus": "passed",
+        "whepPlaybackStatus": "passed",
+        "fieldGatePassEligible": true,
+        "defaultReleasePassClaimAllowed": false
+      }
+    }
+  ]
+}

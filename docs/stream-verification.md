@@ -94,6 +94,7 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh dependency-snapshot --stable --output /tmp/media_server_dependency_snapshot.md --no-linked-libs
 ./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
 ./server.sh verify-release-bundle-dry-run
+./server.sh verify-external-turn-whep-field-gate
 ./server.sh source-offer-checklist --stable --bundle-policy-report /tmp/media_server_bundle_policy.json
 ./server.sh verify-auth-regression-matrix
 ./server.sh verify-auth-routes
@@ -546,6 +547,25 @@ missing-model, invalid-output, timeout, metadata fanout, Event POST dispatch cas
 분리합니다. 이 report는 실제 VLM runtime/provider 호출, 30분 soak, 120분 longrun,
 브라우저 UI 직접 확인 evidence가 아닙니다. 30분 soak는 runtime path나
 queue/backpressure 제품 경로 변경이 있을 때만 실행합니다.
+
+v2.1.0 S10 External TURN/WHEP field gate는 운영 TURN credential과 외부 WHEP
+playback endpoint 성공을 기본 release PASS와 분리합니다.
+
+```bash
+./server.sh verify-external-turn-whep-field-gate \
+  --report /tmp/media_server_external_turn_whep_field_gate.md \
+  --json-report /tmp/media_server_external_turn_whep_field_gate.json
+./server.sh verify-webrtc-ice
+git diff --check
+```
+
+`media-server.external-turn-whep-field-gate-report.v1`은 기본 실행에서 외부
+network call을 하지 않고 `fieldSmokeStatus=not-run`,
+`defaultReleasePassClaimAllowed=false`를 기록합니다. 실제 TURN relay/auth 또는
+외부 WHEP playback field smoke는 접근 가능한 endpoint, env credential, 운영 승인,
+redacted report가 모두 있을 때만 별도 field evidence로 남깁니다. `verify-webrtc-ice`
+기본 PASS, local coturn PASS, UI 풀테스트, 30분/120분 longrun은 external TURN/WHEP
+field PASS를 대체하지 않습니다.
 
 v2.1.0 S05 Ops VLM runtime status UI는 `/ops/vlm`에서 provider 상태, runtime 연결
 상태, 마지막 evaluation, 실패 사유, privacy mode, default-off 상태를 read-only로
