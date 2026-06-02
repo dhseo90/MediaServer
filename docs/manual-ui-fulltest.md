@@ -64,7 +64,7 @@ UI 풀테스트 판정값은 `PASS`와 `FAIL`만 사용합니다. 모든 기능�
 30분, 120분, UI 풀테스트는 시작 전에 실패 가능성이 높은 준비 문제를 먼저 끊어냅니다.
 아래 항목이 정리되지 않으면 긴 테스트를 시작하지 않습니다.
 
-- `project-feature-test-inventory.md`의 `v2.0.0 Pre-Test Update List`와
+- `project-feature-test-inventory.md`의 `Current Pre-Test Update List`와
   `Longrun/UI Fail-Fast Preflight`를 확인해 누락된 route/control/action을 먼저 고칩니다.
 - `/ops/vlm`, `/ops/events`, `/client/live`, `/client/dashboard`, `/client/events`의
   VLM 관련 UI/비노출 항목이 result template에 없으면 UI 풀테스트를 시작하지 않습니다.

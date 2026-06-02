@@ -68,7 +68,7 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 
 | 항목 | 기대 상태 | 실제 상태 | 판정 | 후속 |
 | --- | --- | --- | --- | --- |
-| v2.0.0 기능 목록 freeze | `v2.0.0 Pre-Test Update List`와 기능 ID 목록 확인 |  | PASS/FAIL |  |
+| 기능 목록 freeze | `Current Pre-Test Update List`와 기능 ID 목록 확인 |  | PASS/FAIL |  |
 | VLM UI 대상 | `/ops/vlm`, `/ops/events`, `/client/live`, `/client/dashboard`, `/client/events` 결과 행 존재 |  | PASS/FAIL |  |
 | auth verifier env | auth test password env 5개 모두 `SET` |  | PASS/FAIL |  |
 | throwaway fixture | users/source/view/analysis/event/snapshot/clip 경로 고정 |  | PASS/FAIL |  |

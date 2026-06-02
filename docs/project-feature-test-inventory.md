@@ -30,12 +30,12 @@ source-of-truth입니다.
 | 항목 | 수 |
 | --- | ---: |
 | 전체 기능 항목 | 392 |
-| UI 직접 필요 | 224 |
-| UI 간접 필요 | 28 |
-| UI 비대상 | 136 |
+| UI 직접 필요 | 226 |
+| UI 간접 필요 | 29 |
+| UI 비대상 | 137 |
 | 테스트 필요 | 392 |
-| 안정화 대상 | 378 |
-| UI 풀테스트 대상 | 241 |
+| 안정화 대상 | 382 |
+| UI 풀테스트 대상 | 244 |
 | 30분 soak 대상 | 45 |
 | 120분 조건부 대상 | 7 |
 | 필드 별도 조건 포함 | 5 |
@@ -51,7 +51,7 @@ close-out에서 실제 실행한 evidence는 [release-evidence-index.md](release
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 382개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 392개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정했지만, 각 행의 line-level 증적은 별도 대조 필요 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리했지만, inventory 자체는 브라우저 직접 조작 evidence를 보관하지 않음 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -62,8 +62,8 @@ close-out에서 실제 실행한 evidence는 [release-evidence-index.md](release
 | UI evidence runner | `./server.sh verify-manual-ui-evidence-runner`가 `media-server.manual-ui-evidence-input.v1` 입력을 받아 UI 대상 기능 ID별 PASS/FAIL report를 생성 | runner 입력 없이 inventory만으로 UI PASS 판정 불가. 누락된 UI 대상 기능 ID는 `FAIL`, 제외 항목은 판정표 밖 |
 | UI fulltest one-shot wrapper | `./server.sh verify-ui-fulltest-one-shot`이 throwaway core/auth 서버와 UI verifier 묶음을 순차 실행 | 30분/120분 longrun은 실행하지 않으며, wrapper PASS만으로 장시간 안정화 PASS가 되지 않음 |
 | Coverage gate | `./server.sh verify-feature-inventory-coverage`가 `media-server.feature-inventory-coverage.v1` report로 기능 ID별 verifier/UI evidence/longrun/field exclusion 연결을 점검 | `missing coverage target` 누락 ID는 release gate에서 FAIL |
-| VLM route, control, action, runtime state, sidecar, privacy guard | V200-S14 기준으로 `/ops/vlm`, `/ops/events` VLM review, VLMObservation sidecar, summary/rule suggestion 후보, privacy/redaction/no-auto-apply 경계를 기능 ID 단위로 확장 | 실행 evidence가 아니며, 실제 UI 풀테스트와 장시간 안정화는 별도 단계에서 PASS/FAIL로 기록 |
-| v2.0.0 pre-test update list | 안정화/30분/120분/UI 풀테스트 실행 전 V200-S00~S18 변경분을 아래 `v2.0.0 Pre-Test Update List`에 반영 | 테스트 실행 결과가 아니며, 실제 실행 전 누락 방지용 목록 |
+| VLM route, control, action, runtime state, sidecar, privacy guard | V200-S14~V210-S12 기준으로 `/ops/vlm`, `/ops/events` VLM review, `/ops/rules` draft, VLMObservation sidecar, summary/rule suggestion 후보, privacy/redaction/no-auto-apply 경계를 기능 ID 단위로 확장 | 실행 evidence가 아니며, 실제 UI 풀테스트와 장시간 안정화는 별도 단계에서 PASS/FAIL로 기록 |
+| current pre-test update list | 안정화/30분/120분/UI 풀테스트 실행 전 V200-S00~S18 및 V210-S00~S12 변경분을 아래 `Current Pre-Test Update List`에 반영 | 테스트 실행 결과가 아니며, 실제 실행 전 누락 방지용 목록 |
 
 브라우저 선택 기준: Codex 세션에서는 인앱 브라우저 evidence를 기본으로 하며, 자동
 Chrome/CDP는 `MEDIA_SERVER_UI_BROWSER_MODE=chrome`과
@@ -128,14 +128,15 @@ Rule scenario/event 발생 검수는 분리합니다.
 | 120분 조건부 | `MEDIA-001`~`MEDIA-004`, `MEDIA-011`, `MEDIA-012`, `SAFE-014`, VLM memory/runtime cache 또는 queue drift 고위험 변경 시 `SAFE-032`, `SAFE-036` | memory growth, runtime drift, fanout/media path 고위험 변경, VLM active RSS high-water 또는 queue cleanup drift 시 사용자에게 먼저 말하고 승인 후 실행 |
 | 필드 별도 | `SRC-014`, `LAB-057`, `SAFE-035`, `MEDIA-021`, `SAFE-039` | ONVIF 실기기/endpoint/credential, cloud provider credential/approval, external TURN/WHEP endpoint/credential 준비 시 별도 field smoke |
 
-## v2.0.0 Pre-Test Update List
+## Current Pre-Test Update List
 
-이 절은 안정화/30분/120분/UI 풀테스트를 실제로 실행하기 전에 v2.0.0에서 늘어난
-검수 대상을 누락하지 않기 위한 목록입니다. 아래 행은 테스트 실행 결과가 아니며,
+이 절은 안정화/30분/120분/UI 풀테스트를 실제로 실행하기 전에 v2.0.0 baseline과
+v2.1.0 active roadmap에서 늘어난 검수 대상을 누락하지 않기 위한 목록입니다.
+아래 행은 테스트 실행 결과가 아니며,
 `PASS` 증거로 쓰지 않습니다. 기존 기능 ID 표의 상세 PASS 기준은 그대로 유지하고,
 여기서는 어떤 테스트 영역에 포함해야 하는지만 고정합니다.
 
-| v2.0.0 변경 묶음 | 연결 기능 ID/문서 | 안정화 리스트 반영 | 30분 리스트 반영 | 120분 리스트 반영 | UI 풀테스트 리스트 반영 | 실행 전 기록 |
+| 변경 묶음 | 연결 기능 ID/문서 | 안정화 리스트 반영 | 30분 리스트 반영 | 120분 리스트 반영 | UI 풀테스트 리스트 반영 | 실행 전 기록 |
 | --- | --- | --- | --- | --- | --- | --- |
 | VLM 도입 경계, 모델 선택, PC capability, recommendation | `LAB-035`~`LAB-049`, `SAFE-025`~`SAFE-027`, [vlm-model-selection.md](./vlm-model-selection.md), [vlm-recommendation-engine.md](./vlm-recommendation-engine.md) | `verify-vlm-boundary`, `verify-vlm-selection-decision`, `verify-vlm-pc-capability`, `verify-vlm-recommendation-engine`, bundle/privacy guard | runtime/queue/cache/media 변경이 없으면 미실행 | high-risk signal 없으면 미실행 | UI 변경 없음. `/ops/vlm` 요약 copy가 바뀐 경우 `UI-025` 확인 | 모델/runtime download, provider credential, cloud call은 제외 또는 field smoke로 분리 |
 | `/ops/vlm` install/profile/privacy/runtime/evaluation controls | `UI-022`~`UI-031`, `UI-033`, `UI-034`, `LAB-037`, `LAB-038`, `LAB-050`, `LAB-051`, `LAB-059`, `SAFE-022`~`SAFE-024`, `SAFE-028`, `SAFE-033` | `verify-vlm-install-connection-ui`, `verify-vlm-install-connection-dry-run`, `verify-vlm-profile-storage`, `verify-vlm-runtime-status-ui`, `verify-vlm-evaluation-result-workflow`, `verify-vlm-privacy-transfer-guard`, auth/ops shell guard | queue/backpressure/runtime cache 변경이 있거나 release close-out에서 지시되면 포함 | provider retry/queue drift, active RSS high-water, memory ownership 변경 시 승인 후 포함 | `/ops/vlm` local/cloud dry-run, opt-in guard, profile save/activate/fallback/disable/delete, runtime status panel, evaluation result profile draft 반영, raw details 접힘 영역을 직접 조작 | 실제 provider 호출, credential 저장, model install은 실행 전 제외/미실행 사유 기록 |
@@ -165,7 +166,7 @@ Rule scenario/event 발생 검수는 분리합니다.
 
 | preflight 항목 | 긴 테스트 전 확인 | 실패 시 처리 | 재시작 경계 |
 | --- | --- | --- | --- |
-| 기능/route 목록 freeze | `v2.0.0 Pre-Test Update List`, `UI-022`~`UI-036`, `/ops/vlm`, `/ops/events`, `/ops/rules`, `/client/events`, client redaction route가 결과 템플릿에 있음 | 리스트/템플릿 수정 후 긴 테스트 시작 전 재검수 | 긴 테스트 미시작 상태이므로 30분/120분/UI 재시작 없음 |
+| 기능/route 목록 freeze | `Current Pre-Test Update List`, `UI-022`~`UI-036`, `/ops/vlm`, `/ops/events`, `/ops/rules`, `/client/events`, client redaction route가 결과 템플릿에 있음 | 리스트/템플릿 수정 후 긴 테스트 시작 전 재검수 | 긴 테스트 미시작 상태이므로 30분/120분/UI 재시작 없음 |
 | 짧은 VLM rehearsal | `verify-vlm-test-rehearsal`과 missing-model/cloud-disabled/invalid-output/queue-timeout fixture가 먼저 준비됨 | fixture 또는 harness 수정 후 short gate만 재확인 | rehearsal 실패는 30분/120분/UI PASS/FAIL로 기록하지 않음 |
 | side-effect 선수 gate | build/auth/Ops/Client/Rule/VA/WebRTC/SSE/WS/Event POST/media path verifier 목록이 실행 계획에 있음 | 선수 gate 실패를 제품 회귀/환경 문제로 분리하고 긴 테스트 중단 | 선수 gate 실패 후에는 30분/120분/UI를 시작하지 않음 |
 | throwaway fixture와 auth env | users/source/view/analysis/event/snapshot/clip 경로, auth test password env `SET/MISSING`, seed dry-run/registry dir가 결과 템플릿에 있음 | fixture/env 누락이면 긴 테스트 시작 전 중단 | env/fixture 누락은 120분 재시작 사유가 아니라 preflight 실패 |
@@ -568,7 +569,7 @@ Rule scenario/event 발생 검수는 분리합니다.
 | LAB-054 | VLM summary search query builder | 비대상 | 필요 | 안정화 | sidecar summary token 후보가 queryTerms, matchedTerms, matchScore, eventId correlation을 산출하되 제품 검색 UI나 external rerank를 만들지 않음 |
 | LAB-055 | VLM rule suggestion no-auto-apply builder | 비대상 | 필요 | 안정화 | rule suggestion 후보가 manualSaveRoute와 autoApply=false를 고정하고 `/ops/rules` 수동 저장 전 registry write를 수행하지 않음 |
 | LAB-056 | VLM local runtime connection smoke | 비대상 | 필요 | 안정화 | `media-server.vlm-local-runtime-smoke-report.v1`이 Ollama/vLLM/API-compatible loopback endpoint 연결, missing-runtime, timeout queue cleanup, invalid-output fallback을 실행하고 cloud/provider/model quality/UI/longrun PASS로 과장하지 않음 |
-| LAB-057 | VLM cloud provider field smoke gate | 비대상 | 필요 | 안정화, field 별도 | `media-server.vlm-cloud-provider-field-smoke-gate-report.v1`이 `gemini-2.5-flash` provider 후보의 env/manual 승인, credential env-only, not-run/missing-credential/failure/pass 분리, releasePassEligible 판정을 기록하고 기본 gate PASS를 provider PASS로 과장하지 않음 |
+| LAB-057 | VLM cloud provider field smoke gate | 비대상 | 필요 | 안정화, 필드 별도 | `media-server.vlm-cloud-provider-field-smoke-gate-report.v1`이 `gemini-2.5-flash` provider 후보의 env/manual 승인, credential env-only, not-run/missing-credential/failure/pass 분리, releasePassEligible 판정을 기록하고 기본 gate PASS를 provider PASS로 과장하지 않음 |
 | LAB-058 | VLM queue/backpressure stability fixture | 비대상 | 필요 | 안정화, 30분 조건부 | `media-server.vlm-queue-backpressure-fixtures.v1`이 default-off, missing-model, invalid-output, timeout, metadata fanout, Event POST dispatch case를 VLM-only failure로 판정하고 media/Event/metadata/Event POST non-blocking 경계를 확인 |
 | LAB-059 | VLM evaluation result workflow fixture | 비대상 | 필요 | 안정화 | `media-server.ops.vlm-evaluation-result-workflow.v1`이 1차 선택값, fallback, 제외 사유, latency/JSON/explanation/hallucination/language 품질축, profile draft-only side-effect false invariant를 보존 |
 | LAB-060 | VLM review action workflow fixture | 비대상 | 필요 | 안정화 | `media-server.vlm-review-action-workflow-fixtures.v1`이 1차 action, fallback, 제외 사유, action target, license/provenance/privacy/operation 검토, side-effect false invariant를 보존 |
@@ -614,7 +615,7 @@ Rule scenario/event 발생 검수는 분리합니다.
 | SAFE-032 | VLM queue/media path non-blocking | 비대상 | 필요 | 안정화 | VLM disabled/missing-model/invalid-output/timeout 상태가 RTSP/WebRTC media path, VA metadata, Event POST dispatch 실패로 전파되지 않음 |
 | SAFE-033 | VLM Ops-only debug details boundary | 필요 | 필요 | 안정화, UI | VLM diagnostic JSON과 dry-run raw details는 Ops debug details 접힘 영역 안에만 있으며 제품 client 화면과 public evidence에는 노출되지 않음 |
 | SAFE-034 | VLM local runtime smoke side-effect boundary | 비대상 | 필요 | 안정화 | `verify-vlm-local-runtime-smoke`가 local runtime request/response/timeout cleanup을 실행하되 credential/prompt/raw runtime response/source URL/raw frame bytes 저장, sidecar write, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경, viewer/client 노출을 만들지 않음 |
-| SAFE-035 | VLM cloud provider field smoke credential/redaction boundary | 비대상 | 필요 | 안정화, field 별도 | `verify-vlm-cloud-provider-field-smoke-gate`가 credential material, raw prompt, raw provider response, source URL, raw frame bytes를 report/profile/sidecar/Event POST/WebRTC/SSE/WS/client에 저장하지 않고, 미실행/실패를 release PASS로 기록하지 않음 |
+| SAFE-035 | VLM cloud provider field smoke credential/redaction boundary | 비대상 | 필요 | 안정화, 필드 별도 | `verify-vlm-cloud-provider-field-smoke-gate`가 credential material, raw prompt, raw provider response, source URL, raw frame bytes를 report/profile/sidecar/Event POST/WebRTC/SSE/WS/client에 저장하지 않고, 미실행/실패를 release PASS로 기록하지 않음 |
 | SAFE-036 | VLM queue/backpressure non-blocking stability | 비대상 | 필요 | 안정화, 30분 조건부 | `verify-vlm-queue-backpressure-stability`와 VA/Event/metadata verifier 묶음이 VLM disabled/missing-model/invalid-output/timeout 상태가 RTSP/WebRTC media path, EventRecord, metadata fanout, Event POST dispatch를 block하지 않고 payload/schema를 바꾸지 않음을 확인 |
 | SAFE-037 | VLM review action external schema boundary | 비대상 | 필요 | 안정화 | VLM review action은 Ops review JSONL/audit에만 저장되고 EventRecord, Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path, client/viewer, sidecar에 action field나 raw note를 노출하지 않음 |
 | SAFE-038 | VLM rule suggestion draft no-auto-save boundary | 필요 | 필요 | 안정화, UI | `/ops/rules` draft 적용은 이벤트 템플릿 form field만 채우며 기존 저장 버튼 수동 조작 전 Rule/Profile registry write, automatic apply, EventRecord/Event POST/WebRTC/SSE/WS schema 변경, media path 변경, client/viewer 노출을 만들지 않음 |
