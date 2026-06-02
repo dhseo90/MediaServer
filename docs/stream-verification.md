@@ -567,6 +567,27 @@ git diff --check
 대체하지 않습니다. S05는 실제 VLM runtime/provider 호출이나 외부 payload schema
 변경을 수행하지 않습니다.
 
+v2.1.0 S08 Rule suggestion draft workflow는 저장된 VLMObservation sidecar의
+rule suggestion 후보를 자동 적용하지 않고 `/ops/rules` 이벤트 템플릿 draft로만
+가져갑니다. 이 API/UI는 `media-server.vlm-rule-suggestion-draft-workflow.v1`
+payload와 `data-vlm-rule-draft-contract="draft-only-manual-save"` 경계로 관리하며,
+저장은 기존 `/ops/rules` composer 저장 버튼을 운영자가 직접 눌렀을 때만 발생합니다.
+
+```bash
+./server.sh verify-vlm-rule-suggestion-draft-workflow
+./server.sh verify-vlm-rule-suggestion-candidates
+./server.sh verify-analysis-state
+./server.sh verify-rule-ui
+git diff --check
+```
+
+이 묶음은 V200-S13 `media-server.vlm-rule-suggestion-candidates.v1` 후보 builder,
+Ops-only read route, `/ops/rules` form draft 반영, no-auto-apply/browser write guard를
+확인합니다. 실제 runtime/provider 재질의, 자동 Rule/Profile 저장/적용,
+Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경, client/viewer
+노출, 운영자가 모든 후보를 제품 UI에서 저장 승인했다는 UI 풀테스트 evidence를
+대체하지 않습니다.
+
 EventRecord 저장 이력까지 확인해야 하는 경우에는 EventRecord storage를 켠 격리
 서버에서 `verify-va-events --dispatch-records`를 실행합니다. 이 모드는 rare
 `exit`/direction event 누락을 피하기 위해 별도 환경변수를 주지 않으면 모든 poll을

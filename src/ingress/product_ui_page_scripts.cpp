@@ -4908,6 +4908,7 @@ void AppendOpsShellScript(std::ostringstream& out,
       let opsRulesPendingDangerAction = '';
       let opsVaRuleTemplateId = '';
       let opsRulesCurrentRecord = null;
+      let opsVlmRuleDraftPayload = null;
       const opsVaRulePreviewState = {
         viewId: '',
         sessionId: '',
@@ -5407,6 +5408,126 @@ void AppendOpsShellScript(std::ostringstream& out,
         opsEventRuleApplyPresetToInputs(state.presetId);
         opsRulesSetSelectedCategories('opsEventRuleClassChecks', state.classes, 'opsEventRuleClassesSummary', '객체를 선택하세요.');
         opsRulesEditorStatus('시나리오 빌더 초안을 이벤트 템플릿 폼에 적용했습니다. 저장 전 채널 영상 기준으로 geometry와 숫자 조건을 확인하세요.', false);
+        document.getElementById('opsRulesDetailPanel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+      function opsVlmRuleDraftCandidates(payload = opsVlmRuleDraftPayload) {
+        const report = payload?.sourceCandidateReport || payload || {};
+        return Array.isArray(report.candidates) ? report.candidates : [];
+      }
+      function opsVlmRuleDraftType(candidate = {}) {
+        const suggestion = candidate?.ruleSuggestion || {};
+        const draft = suggestion?.draftRule || {};
+        return String(draft.eventType || draft.type || candidate?.proposedRuleKind || suggestion?.kind || '').trim();
+      }
+      function opsVlmRuleDraftClasses(draft = {}) {
+        const classes = Array.isArray(draft.classes)
+          ? draft.classes
+          : (Array.isArray(draft.targetClasses) ? draft.targetClasses : []);
+        const normalized = opsRulesNormalizeCategories(classes);
+        return normalized.length > 0 ? normalized : ['person'];
+      }
+      function renderOpsVlmRuleDrafts(payload = opsVlmRuleDraftPayload) {
+        const list = document.getElementById('opsVlmRuleDraftList');
+        const summary = document.getElementById('opsVlmRuleDraftSummary');
+        if (!list) return;
+        if (payload?.error) {
+          list.innerHTML = `<div class="empty">${escapeHtml(payload.error)}</div>`;
+          if (summary) summary.textContent = 'VLM rule draft 후보를 불러오지 못했습니다.';
+          return;
+        }
+        const report = payload?.sourceCandidateReport || {};
+        const candidates = opsVlmRuleDraftCandidates(payload);
+        if (summary) {
+          const matched = Number(report.matchedCandidates ?? candidates.length);
+          const excluded = Number(report.excludedAutoApplySuggestions ?? 0);
+          summary.textContent = `수동 저장 후보 ${candidates.length}/${matched}개 · 자동 적용 제외 ${excluded}개 · 저장 전 registry write 없음`;
+        }
+        if (!candidates.length) {
+          list.innerHTML = '<div class="empty">수동 저장 가능한 VLM rule draft 후보가 없습니다.</div>';
+          return;
+        }
+        list.innerHTML = candidates.map((candidate, index) => {
+          const type = opsVlmRuleDraftType(candidate);
+          const suggestion = candidate?.ruleSuggestion || {};
+          const draft = suggestion?.draftRule || {};
+          const label = opsRuleEventTypeLabel(type);
+          const eventId = candidate?.eventId || '-';
+          const summaryText = candidate?.summary || suggestion?.rationale || '후보 요약 없음';
+          const classesText = opsRulesCategorySummaryText(opsVlmRuleDraftClasses(draft), '대상 없음');
+          const review = suggestion?.manualReviewRequired === true && suggestion?.autoApply === false;
+          return `
+            <article class="ops-vlm-rule-draft-card" data-vlm-rule-draft-card="${index}">
+              <div class="toolbar compact-toolbar">
+                <div>
+                  <div class="badge-row">
+                    <span class="chip info">${escapeHtml(label)}</span>
+                    <span class="chip">${escapeHtml(eventId)}</span>
+                    <span class="chip">${review ? '수동 저장' : '검토 필요'}</span>
+                  </div>
+                  <p>${escapeHtml(summaryText)}</p>
+                  <p class="form-note">대상 ${escapeHtml(classesText)} · ${escapeHtml(suggestion?.rationale || '운영자가 geometry와 숫자 조건을 확인합니다.')}</p>
+                </div>
+                <div class="actions">
+                  <button type="button" class="button-secondary button-compact" data-vlm-rule-draft-index="${index}" ${review ? '' : 'disabled'}>폼에 적용</button>
+                </div>
+              </div>
+            </article>`;
+        }).join('');
+      }
+      async function refreshOpsVlmRuleDrafts() {
+        const kind = String(document.getElementById('opsVlmRuleDraftKindSelect')?.value || '').trim();
+        const params = new URLSearchParams();
+        params.set('limit', '10');
+        if (kind) params.set('suggestionKind', kind);
+        const payload = await requestJson(`/ops/api/vlm/rule-suggestion-drafts?${params.toString()}`);
+        opsVlmRuleDraftPayload = payload;
+        renderOpsVlmRuleDrafts(payload);
+        return payload;
+      }
+      function setOpsVlmRuleDraftInputValue(id, value) {
+        const input = document.getElementById(id);
+        if (!input || value === undefined || value === null || value === '') return;
+        input.value = String(value);
+      }
+      async function applyOpsVlmRuleSuggestionDraft(index) {
+        const candidates = opsVlmRuleDraftCandidates();
+        const candidate = candidates[Number(index)];
+        if (!candidate) {
+          throw new Error('선택한 VLM rule draft 후보를 찾지 못했습니다.');
+        }
+        const suggestion = candidate?.ruleSuggestion || {};
+        const draft = suggestion?.draftRule || {};
+        if (suggestion.autoApply !== false || suggestion.manualReviewRequired !== true) {
+          throw new Error('수동 검토 후보만 이벤트 템플릿 draft로 가져올 수 있습니다.');
+        }
+        const type = opsVlmRuleDraftType(candidate);
+        if (!opsRulesEventTypes.includes(type)) {
+          throw new Error(`지원하지 않는 VLM rule draft 종류입니다: ${type || 'unknown'}`);
+        }
+        await openOpsRulesEditor('event-rule', 'new');
+        const modeSelect = document.getElementById('opsEventRuleModeSelect');
+        if (modeSelect) modeSelect.value = opsEventRuleModeForType(type);
+        opsEventRuleRefreshTypeOptions(type);
+        const typeSelect = document.getElementById('opsEventRuleTypeSelect');
+        if (typeSelect) typeSelect.value = type;
+        const presetSelect = document.getElementById('opsEventRulePresetSelect');
+        if (presetSelect) presetSelect.value = 'custom';
+        opsEventRuleUpdateModeUi();
+        opsRulesSetSelectedCategories(
+          'opsEventRuleClassChecks',
+          opsVlmRuleDraftClasses(draft),
+          'opsEventRuleClassesSummary',
+          '객체를 선택하세요.'
+        );
+        setOpsVlmRuleDraftInputValue('opsEventRuleConfidenceInput', draft.minConfidence);
+        setOpsVlmRuleDraftInputValue('opsEventRuleMinDurationInput', draft.minDurationMs);
+        setOpsVlmRuleDraftInputValue('opsEventRuleLineDirectionSelect', draft.direction || draft.lineDirection || draft.allowedDirection);
+        setOpsVlmRuleDraftInputValue('opsEventRuleCandidateInput', draft.candidateTimeMs);
+        setOpsVlmRuleDraftInputValue('opsEventRuleDwellInput', draft.dwellTimeMs ?? draft.minDurationMs);
+        setOpsVlmRuleDraftInputValue('opsEventRuleCooldownInput', draft.cooldownMs);
+        setOpsVlmRuleDraftInputValue('opsEventRuleZoneThresholdInput', draft.occupancyThreshold ?? draft.minOccupancy);
+        setOpsVlmRuleDraftInputValue('opsEventRuleZoneDwellInput', draft.minDwellTimeMs ?? draft.minDurationMs);
+        opsRulesEditorStatus(`VLM 후보 ${candidate.eventId || candidate.candidateId || '-'}를 이벤트 템플릿 draft에 반영했습니다. 저장은 운영자가 수동으로 실행해야 합니다.`, false);
         document.getElementById('opsRulesDetailPanel')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
       }
       function opsRulesIsScenarioType(type) {
@@ -8318,6 +8439,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         setText('opsProfileSummary', `총 ${filteredProfiles.length}/${allProfiles.length}개`);
         refreshOpsVaTemplateAssistOptions();
         renderOpsScenarioBuilder();
+        refreshOpsVlmRuleDrafts().catch((error) => renderOpsVlmRuleDrafts({ error: error.message || 'VLM rule draft 후보 로드 실패' }));
         renderOpsVaRules(filteredVaRules);
         renderOpsEventRules(filteredRules);
         renderOpsProfiles(filteredProfiles);
@@ -8339,6 +8461,14 @@ void AppendOpsShellScript(std::ostringstream& out,
         document.getElementById('opsScenarioBuilderPreset')?.addEventListener('change', () => renderOpsScenarioBuilder());
         document.getElementById('opsScenarioBuilderClasses')?.addEventListener('input', () => renderOpsScenarioBuilder());
         document.getElementById('opsScenarioBuilderApply')?.addEventListener('click', () => applyOpsScenarioBuilderToEventRule().catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true })));
+        document.getElementById('opsVlmRuleDraftKindSelect')?.addEventListener('change', () => refreshOpsVlmRuleDrafts().catch(error => renderOpsVlmRuleDrafts({ error: error.message || 'VLM rule draft 후보 로드 실패' })));
+        document.getElementById('opsVlmRuleDraftRefresh')?.addEventListener('click', () => refreshOpsVlmRuleDrafts().catch(error => renderOpsVlmRuleDrafts({ error: error.message || 'VLM rule draft 후보 로드 실패' })));
+        document.getElementById('opsVlmRuleDraftList')?.addEventListener('click', (event) => {
+          const button = event.target.closest('[data-vlm-rule-draft-index]');
+          if (!button) return;
+          applyOpsVlmRuleSuggestionDraft(button.dataset.vlmRuleDraftIndex || '0')
+            .catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true }));
+        });
         document.getElementById('opsVaRuleTemplateSeedSelect')?.addEventListener('change', (event) => opsRulesApplyVaRuleTemplateSeed(event.target.value || ''));
         document.getElementById('opsVaRuleChannelSelect')?.addEventListener('change', () => {
           opsRulesUpdateVaRuleFormSummary();

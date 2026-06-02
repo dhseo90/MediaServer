@@ -117,7 +117,7 @@ opt-in 기능으로 여는 stabilization roadmap입니다. 이 roadmap은 `v2.1.
 | 5 | V210-S05 | P0 | 완료 | Ops VLM runtime status UI | `/ops/vlm`에서 provider 상태, runtime 연결 상태, 마지막 evaluation, 실패 사유, privacy mode, default-off 상태를 운영자가 확인할 수 있게 합니다. | `verify-vlm-runtime-status-ui`, Ops UI smoke, auth/scope route guard, viewer/client redaction check, `verify-ops-client-ui`, VLM UI direct review, `git diff --check` |
 | 6 | V210-S06 | P1 | 완료 | VLM evaluation result workflow | sample event 기준 latency, JSON 안정성, 설명 품질, hallucination risk, 한국어/영어 출력 품질을 비교하고 운영자가 model/profile을 선택할 수 있게 합니다. | evaluation fixture, prompt profile comparison, structured output check, `verify-vlm-evaluation-result-workflow`, `verify-vlm-recommendation-engine`, `git diff --check` |
 | 7 | V210-S07 | P1 | 완료 | VLM review action workflow | `/ops/events`에서 설명/오탐 힌트를 accept, dismiss, review-needed 같은 운영 기록으로 남기되 외부 event/metadata schema는 유지합니다. | `verify-vlm-review-action-workflow`, `verify-ops-event-review-inbox`, `verify-vlm-ops-event-review-ui`, Event POST/metadata verifier, `git diff --check` |
-| 8 | V210-S08 | P1 | 예정 | Rule suggestion draft workflow | VLM rule 후보를 자동 적용하지 않고 `/ops/rules` draft로 가져가 운영자가 수동 저장하는 흐름만 허용합니다. | no-auto-apply guard, `/ops/rules` smoke, rule draft fixture, `verify-rule-ui`, `git diff --check` |
+| 8 | V210-S08 | P1 | 완료 | Rule suggestion draft workflow | VLM rule 후보를 자동 적용하지 않고 `/ops/rules` draft로 가져가 운영자가 수동 저장하는 흐름만 허용합니다. | no-auto-apply guard, `/ops/rules` smoke, rule draft fixture, `verify-vlm-rule-suggestion-draft-workflow`, `verify-rule-ui`, `git diff --check` |
 | 9 | V210-S09 | P1 | 예정 | VA coverage evidence report | rule, scenario, event type, EventRecord 발생 이력, invalid combination을 조합 단위 evidence로 출력합니다. | VA replay matrix, EventRecord history report, `verify-va-events`, `verify-va-replay`, `git diff --check` |
 | 10 | V210-S10 | P2 | 예정 | External TURN/WHEP field gate | external TURN/WHEP credential 운영 검증을 별도 field smoke로 분리하고, 기본 release PASS와 혼동하지 않게 합니다. | external field smoke checklist, WebRTC ICE review, `verify-webrtc-ice`, 미실행/제외 기록 |
 | 11 | V210-S11 | P2 | 예정 | Runtime/model bundle RC rehearsal | 실제 bundle release 없이 hash/provenance/license, GPL-risk binary exclusion, release asset 금지 기준을 RC rehearsal로만 확인합니다. | `verify-bundle-policy`, dependency snapshot review, bundle dry-run policy, `git diff --check` |
@@ -342,6 +342,42 @@ git diff --check
 S07은 실제 VLM runtime 호출, cloud provider API 호출, sidecar write, 자동 Rule/Profile
 저장/적용, Event POST/WebRTC/SSE/WS metadata schema 변경, RTSP/WebRTC media path 변경,
 client/viewer 노출을 수행하지 않습니다.
+
+### V210-S08 Rule suggestion draft workflow 종료 기준
+
+직접 답: S08의 1차 workflow는 `sidecar-candidate-to-ops-rules-event-template-draft`입니다.
+fallback은 기존 `/ops/rules` 이벤트 템플릿/시나리오 빌더를 운영자가 직접 열어
+수동 저장하는 흐름입니다. `auto-save-rule-from-vlm`, `client-viewer-rule-draft`,
+`runtime-vlm-requery`는 제외합니다.
+
+`/ops/api/vlm/rule-suggestion-drafts`는 기존 V200-S13
+`media-server.vlm-rule-suggestion-candidates.v1` 후보를 읽기 전용으로 감싸
+`media-server.vlm-rule-suggestion-draft-workflow.v1` payload를 반환합니다.
+`/ops/rules`의 `data-testid="ops-vlm-rule-draft-workflow"` 패널은 후보를
+이벤트 템플릿 form draft에만 반영합니다. 저장은 기존 composer 저장 버튼을
+운영자가 직접 누를 때만 발생하며 draft 적용 중 Rule/Profile registry write,
+자동 Rule/Profile 적용, runtime/provider 호출은 발생하지 않습니다.
+
+```bash
+./server.sh verify-vlm-rule-suggestion-draft-workflow
+./server.sh verify-vlm-rule-suggestion-candidates
+./server.sh verify-analysis-state
+./server.sh verify-ops-rules-roundtrip
+./server.sh verify-rule-ui
+./server.sh verify-va-replay
+./server.sh verify-va-events
+git diff --check
+```
+
+S08은 EventRecord top-level, Event POST, WebRTC DataChannel, SSE/WS metadata schema,
+RTSP/WebRTC media path, client/viewer UI/API, VLM runtime/provider 호출을 변경하지
+않습니다. `verify-rule-ui`의 browser smoke는 draft 적용 중 write API가 호출되지
+않는지만 확인하며, 운영자가 실제 제품 UI에서 모든 후보를 저장/운영 승인했다는
+UI 풀테스트 evidence를 대신하지 않습니다.
+
+2026-06-02 local evidence: 위 verifier 범위에서 draft-only API/UI, no-auto-apply
+guard, 기존 rule roundtrip, VA replay/event smoke가 통과했습니다. 장시간 soak와
+수동 UI 풀테스트는 S08 완료 evidence에 포함하지 않습니다.
 
 ## v2.0.0 Release Close-out
 

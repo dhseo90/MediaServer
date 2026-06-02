@@ -513,6 +513,103 @@ function buildRulesOpenExpression(seededPrereqs = {}) {
       if (visible(eventChannelSelect) && !document.getElementById('opsVaRuleForm')?.hidden) {
         return fail('va rule form should stay hidden in event template mode');
       }
+      const vlmDraftWorkflow = await (async () => {
+        const draftPayload = {
+          schema: 'media-server.vlm-rule-suggestion-draft-workflow.v1',
+          targetStep: 'V210-S08',
+          status: 'draft-only-manual-save-required',
+          manualSaveRoute: '/ops/rules',
+          sourceCandidateStep: 'V200-S13',
+          sourceCandidateReport: {
+            schema: 'media-server.vlm-rule-suggestion-candidates.v1',
+            candidates: [{
+              schema: 'media-server.vlm-rule-suggestion-candidate.v1',
+              eventId: 'evt-vlm-draft-line-001',
+              observationId: 'vlmobs-draft-line-001',
+              sourceId: 'front-door',
+              summary: '사람이 기준선을 통과했습니다.',
+              proposedRuleKind: 'line-crossing',
+              candidateStatus: 'candidate-only-manual-rule-save',
+              manualSaveRoute: '/ops/rules',
+              ruleSuggestion: {
+                kind: 'line-crossing',
+                candidateId: 'line-crossing-manual-review',
+                suggestedAction: 'manual-save-in-ops-rules',
+                targetRoute: '/ops/rules',
+                manualReviewRequired: true,
+                autoApply: false,
+                draftRule: {
+                  eventType: 'line-crossing',
+                  regionType: 'line',
+                  direction: 'forward',
+                  classes: ['person'],
+                  minConfidence: 0.55
+                },
+                rationale: 'Operator must verify geometry and save manually.'
+              }
+            }],
+            matchedCandidates: 1,
+            excludedAutoApplySuggestions: 1
+          }
+        };
+        const attemptedDraftWrites = [];
+        const originalFetch = window.fetch.bind(window);
+        window.fetch = (input, init = {}) => {
+          const url = String(typeof input === 'string' ? input : (input?.url || ''));
+          const method = String(init?.method || input?.method || 'GET').toUpperCase();
+          if (method === 'GET' && url.includes('/ops/api/vlm/rule-suggestion-drafts')) {
+            return Promise.resolve(new Response(JSON.stringify(draftPayload), {
+              status: 200,
+              headers: { 'Content-Type': 'application/json' }
+            }));
+          }
+          if (method !== 'GET' && (url.includes('/lab/analysis/rules') || url.includes('/lab/analysis/va-rules') || url.includes('/ops/api/vlm/'))) {
+            attemptedDraftWrites.push(method + ' ' + url);
+            return Promise.reject(new Error('blocked VLM draft write attempt'));
+          }
+          return originalFetch(input, init);
+        };
+        try {
+          document.getElementById('opsVlmRuleDraftRefresh')?.click();
+          await wait(350);
+          const draftButton = document.querySelector('[data-vlm-rule-draft-index="0"]');
+          if (!draftButton) {
+            return { ok: false, message: 'missing VLM draft apply button', listText: document.getElementById('opsVlmRuleDraftList')?.textContent || '' };
+          }
+          draftButton.click();
+          await wait(600);
+        } finally {
+          window.fetch = originalFetch;
+        }
+        const modeValue = String(document.getElementById('opsEventRuleModeSelect')?.value || '');
+        const typeValue = String(document.getElementById('opsEventRuleTypeSelect')?.value || '');
+        const directionValue = String(document.getElementById('opsEventRuleLineDirectionSelect')?.value || '');
+        const confidenceValue = String(document.getElementById('opsEventRuleConfidenceInput')?.value || '');
+        const statusText = status?.textContent || '';
+        const classesSummary = document.getElementById('opsEventRuleClassesSummary')?.textContent || '';
+        const ok = attemptedDraftWrites.length === 0 &&
+          visible(detailPanel) &&
+          visible(document.getElementById('opsEventRuleForm')) &&
+          modeValue === 'event' &&
+          typeValue === 'line-crossing' &&
+          directionValue === 'forward' &&
+          confidenceValue === '0.55' &&
+          classesSummary.includes('사람') &&
+          statusText.includes('저장은 운영자가 수동');
+        return {
+          ok,
+          attemptedDraftWrites,
+          modeValue,
+          typeValue,
+          directionValue,
+          confidenceValue,
+          classesSummary,
+          statusText
+        };
+      })();
+      if (!vlmDraftWorkflow.ok) {
+        return fail('VLM rule suggestion draft workflow failed', vlmDraftWorkflow);
+      }
       const presetQuality = await (async () => {
         const setSelect = (id, value) => {
           const select = document.getElementById(id);
@@ -607,6 +704,7 @@ function buildRulesOpenExpression(seededPrereqs = {}) {
         preSaveInactiveProfileValidation,
         preSaveInactiveTemplateValidation,
         preSaveClassMismatchValidation,
+        vlmDraftWorkflow,
         presetQuality,
         navHref: Array.from(document.querySelectorAll('a[href="/ops/users"]')).find(node => visible(node))?.getAttribute('href') || '',
         statusText: status?.textContent || ''

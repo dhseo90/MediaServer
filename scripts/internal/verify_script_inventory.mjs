@@ -431,6 +431,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_vlm_ops_event_review_ui.mjs",
     "verify_vlm_summary_search_candidates.mjs",
     "verify_vlm_rule_suggestion_candidates.mjs",
+    "verify_vlm_rule_suggestion_draft_workflow.mjs",
     "verify_vlm_test_rehearsal.mjs",
     "verify_vlm_closeout_readiness.mjs",
     "verify_code_comments.mjs",

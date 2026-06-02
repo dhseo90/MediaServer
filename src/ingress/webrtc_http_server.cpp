@@ -3134,6 +3134,28 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           </details>
         </div>
       </section>
+      <section class="section-card ops-vlm-rule-draft-workflow" data-testid="ops-vlm-rule-draft-workflow" data-vlm-rule-draft-contract="draft-only-manual-save">
+        <div class="toolbar">
+          <div>
+            <h3>VLM Rule draft</h3>
+            <p id="opsVlmRuleDraftSummary">저장된 VLM observation 후보를 이벤트 템플릿 폼 초안으로만 가져옵니다.</p>
+          </div>
+          <div class="actions">
+            <label>후보 종류
+              <select id="opsVlmRuleDraftKindSelect" aria-label="VLM rule draft 후보 종류">
+                <option value="">전체</option>
+                <option value="line-crossing">라인 통과</option>
+                <option value="intrusion-dwell">침입 체류</option>
+                <option value="zone-occupancy">영역 점유</option>
+              </select>
+            </label>
+            <button id="opsVlmRuleDraftRefresh" class="button-secondary" type="button">후보 새로고침</button>
+          </div>
+        </div>
+        <div id="opsVlmRuleDraftList" class="ops-vlm-rule-draft-list" aria-live="polite">
+          <div class="empty">후보를 불러오는 중입니다.</div>
+        </div>
+      </section>
       <section class="section-card">
         <div class="toolbar">
           <div>
@@ -12024,6 +12046,64 @@ std::string OpsVlmEventReviewJson(const std::string& event_json) {
     return out.str();
 }
 
+std::string OpsVlmRuleSuggestionDraftWorkflowJson(
+    const std::unordered_map<std::string, std::string>& query,
+    std::string* error_message) {
+    analysis::VlmRuleSuggestionOptions options;
+    options.source_id = query.count("sourceId") != 0 ? Trim(query.at("sourceId")) : std::string();
+    options.privacy_mode =
+        query.count("privacyMode") != 0 ? Trim(query.at("privacyMode")) : std::string();
+    options.suggestion_kind =
+        query.count("suggestionKind") != 0 ? Trim(query.at("suggestionKind")) : std::string();
+    options.offset = static_cast<std::size_t>(
+        ParseClampedIntQuery(query, "offset", 0, 0, 1000000));
+    options.limit = static_cast<std::size_t>(
+        ParseClampedIntQuery(query, "limit", 10, 1, 25));
+
+    std::string candidate_body;
+    std::string candidate_error;
+    if (!analysis::BuildVlmRuleSuggestionCandidatesJson(analysis::DefaultVlmObservationStorePath(),
+                                                        options,
+                                                        &candidate_body,
+                                                        &candidate_error)) {
+        if (error_message != nullptr) {
+            *error_message = candidate_error;
+        }
+        return {};
+    }
+
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.vlm-rule-suggestion-draft-workflow.v1\","
+        << "\"targetStep\":\"V210-S08\","
+        << "\"status\":\"draft-only-manual-save-required\","
+        << "\"manualSaveRoute\":\"/ops/rules\","
+        << "\"sourceCandidateStep\":\"V200-S13\","
+        << "\"sourceCandidateReport\":" << candidate_body << ","
+        << "\"workflowContract\":{"
+        << "\"opsOnly\":true,"
+        << "\"draftOnly\":true,"
+        << "\"manualSaveRequired\":true,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"runtimeVlmCallPerformed\":false,"
+        << "\"cloudProviderApiCalled\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"autoRuleApplied\":false,"
+        << "\"autoProfileApplied\":false"
+        << "}"
+        << "}";
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return out.str();
+}
+
 std::string OpsEventReviewInboxItemJson(const std::string& event_json,
                                         const OpsEventReviewState& review) {
     std::ostringstream out;
@@ -14365,6 +14445,23 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            ok.headers["Cache-Control"] = "no-store";
 	                            return ok;
 	                        }
+
+                            if (request.method == "GET" && request.path == "/ops/api/vlm/rule-suggestion-drafts") {
+                                if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                    return *auth_response;
+                                }
+                                std::string draft_error;
+                                const std::string body =
+                                    OpsVlmRuleSuggestionDraftWorkflowJson(query, &draft_error);
+                                if (body.empty()) {
+                                    return JsonResponse(400,
+                                                        "Bad Request",
+                                                        "{\"error\":\"" + JsonEscape(draft_error) + "\"}");
+                                }
+                                HttpResponse ok = JsonResponse(200, "OK", body);
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
 
                             if (request.path == "/ops/api/vlm/profiles") {
                                 if (request.method == "GET") {

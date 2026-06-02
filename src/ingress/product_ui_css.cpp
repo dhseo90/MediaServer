@@ -2012,6 +2012,27 @@ std::string ProductUiCss() {
       font-weight: 800;
       white-space: nowrap;
     }
+    .ops-vlm-rule-draft-list {
+      display: grid;
+      gap: 10px;
+    }
+    .ops-vlm-rule-draft-card {
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      background: var(--surface-muted);
+    }
+    .ops-vlm-rule-draft-card .toolbar {
+      gap: 12px;
+      margin: 0;
+    }
+    .ops-vlm-rule-draft-card p {
+      margin: 6px 0 0;
+      overflow-wrap: anywhere;
+    }
+    .ops-vlm-rule-draft-card .form-note {
+      margin-top: 4px;
+    }
     .ops-data-table,
     .ops-responsive-table,
     .ops-rules-table,

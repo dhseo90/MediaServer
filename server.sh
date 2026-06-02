@@ -296,6 +296,8 @@ Usage:
                  v2.1.0 VLM evaluation result workflow의 Ops 선택/profile draft 경계를 검증합니다.
   verify-vlm-review-action-workflow
                  v2.1.0 VLM review action workflow의 Ops review state/API/UI 경계를 검증합니다.
+  verify-vlm-rule-suggestion-draft-workflow
+                 v2.1.0 VLM rule suggestion 후보를 /ops/rules draft/manual save로만 가져가는지 검증합니다.
   evaluate-vlm-harness
                  v2.0.0 VLM 평가 harness fixture report를 산출합니다.
   verify-vlm-evaluation-harness
@@ -1050,6 +1052,10 @@ case "${cmd}" in
   verify-vlm-rule-suggestion-candidates)
     require_internal verify_vlm_rule_suggestion_candidates.mjs
     exec "${INTERNAL_DIR}/verify_vlm_rule_suggestion_candidates.mjs" "$@"
+    ;;
+  verify-vlm-rule-suggestion-draft-workflow)
+    require_internal verify_vlm_rule_suggestion_draft_workflow.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_rule_suggestion_draft_workflow.mjs" "$@"
     ;;
   verify-vlm-test-rehearsal)
     require_internal verify_vlm_test_rehearsal.mjs
