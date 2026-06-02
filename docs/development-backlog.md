@@ -120,7 +120,7 @@ opt-in 기능으로 여는 stabilization roadmap입니다. 이 roadmap은 `v2.1.
 | 8 | V210-S08 | P1 | 완료 | Rule suggestion draft workflow | VLM rule 후보를 자동 적용하지 않고 `/ops/rules` draft로 가져가 운영자가 수동 저장하는 흐름만 허용합니다. | no-auto-apply guard, `/ops/rules` smoke, rule draft fixture, `verify-vlm-rule-suggestion-draft-workflow`, `verify-rule-ui`, `git diff --check` |
 | 9 | V210-S09 | P1 | 완료 | VA coverage evidence report | rule, scenario, event type, EventRecord 발생 이력, invalid combination을 조합 단위 evidence로 출력합니다. | VA replay matrix, EventRecord history report, `verify-va-event-coverage-report`, `verify-va-events`, `verify-va-replay`, `git diff --check` |
 | 10 | V210-S10 | P2 | 완료 | External TURN/WHEP field gate | external TURN/WHEP credential 운영 검증을 별도 field smoke로 분리하고, 기본 release PASS와 혼동하지 않게 합니다. 실제 외부 endpoint/credential 성공은 미실행/별도 field evidence로 남깁니다. | `verify-external-turn-whep-field-gate`, external field smoke checklist, WebRTC ICE review, `verify-webrtc-ice`, 미실행/제외 기록, `git diff --check` |
-| 11 | V210-S11 | P2 | 예정 | Runtime/model bundle RC rehearsal | 실제 bundle release 없이 hash/provenance/license, GPL-risk binary exclusion, release asset 금지 기준을 RC rehearsal로만 확인합니다. | `verify-bundle-policy`, dependency snapshot review, bundle dry-run policy, `git diff --check` |
+| 11 | V210-S11 | P2 | 완료 | Runtime/model bundle RC rehearsal | 실제 bundle release 없이 hash/provenance/license, GPL-risk binary exclusion, release asset 금지 기준을 RC rehearsal로만 확인합니다. 기본 결정값은 source-only 유지입니다. | `verify-runtime-model-bundle-rc-rehearsal`, `verify-bundle-policy`, `verify-release-bundle-dry-run --candidate source-only`, dependency snapshot review, bundle dry-run policy, `git diff --check` |
 | 12 | V210-S12 | P2 | 예정 | UI fulltest evidence runner 개선 | 기능 ID별 클릭, 입력, 상태 반영, 관련 로그 확인 report를 보강해 UI 풀테스트 누락을 줄입니다. | feature inventory mapping, UI evidence report, manual spot review, `verify-ops-client-ui --screenshots`, `verify-rule-ui`, `git diff --check` |
 
 v2.1.0 완료 gate:
@@ -433,6 +433,43 @@ longrun은 external TURN/WHEP field PASS를 대체하지 않습니다.
 `whepPlaybackStatus=not-run`, `defaultReleasePassClaimAllowed=false` report를
 생성합니다. 이 evidence는 gate 절차와 redaction/분리 기준의 PASS이며, 실제 external
 TURN/WHEP credential 운영 PASS가 아닙니다.
+
+### V210-S11 Runtime/model bundle RC rehearsal 종료 기준
+
+직접 답: S11의 기본 배포 결정값은 `source-only` 유지입니다. 1차 runtime/model bundle
+후보는 선택하지 않습니다. local-binary, offline-package, container-root는 runtime/model
+없는 RC rehearsal shape로만 남기고, runtime/model 포함 bundle, GPL-risk runtime 포함
+bundle, hash/provenance/license/source-offer 누락 후보, binary/runtime/model release
+asset 업로드는 blocked입니다.
+
+```bash
+./server.sh verify-runtime-model-bundle-rc-rehearsal \
+  --report /tmp/media_server_runtime_model_bundle_rc_rehearsal.md \
+  --json-report /tmp/media_server_runtime_model_bundle_rc_rehearsal.json
+./server.sh verify-bundle-policy \
+  --output /tmp/media_server_bundle_policy.md \
+  --json-output /tmp/media_server_bundle_policy.json
+./server.sh verify-release-bundle-dry-run --candidate source-only
+./server.sh dependency-snapshot \
+  --stable \
+  --no-linked-libs \
+  --output /tmp/media_server_dependency_snapshot_s11.md \
+  --json-output /tmp/media_server_dependency_snapshot_s11.json
+git diff --check
+```
+
+`media-server.runtime-model-bundle-rc-rehearsal-report.v1`은
+`source-only-default-pass`, `runtime-model-included-blocked`,
+`gpl-risk-runtime-binary-blocked`, `missing-hash-provenance-license-blocked`,
+`release-asset-upload-blocked` case를 분리합니다. report의
+`actualBundleCreated=false`, `releaseAssetUploaded=false`,
+`runtimeModelBundleSelected=false`, `rcRehearsalOnly=true`는 이번 단계가 실제
+bundle release가 아님을 뜻합니다.
+
+S11은 ONNX Runtime package, FFmpeg/GStreamer GPL-risk runtime, YOLO/Re-ID/VLM model
+artifact, download token, binary/runtime/model release asset을 repo, bundle, GitHub
+Release에 포함하지 않습니다. Event POST/WebRTC DataChannel/SSE/WS metadata schema,
+RTSP/WebRTC media path, 제품 UI도 변경하지 않습니다.
 
 ## v2.0.0 Release Close-out
 

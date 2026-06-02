@@ -18,6 +18,7 @@ binary bundle, app bundle, container image, offline package는 별도 release ca
 
 ```bash
 ./server.sh verify-release-bundle-dry-run
+./server.sh verify-runtime-model-bundle-rc-rehearsal
 ./server.sh verify-bundle-policy --bundle-dir <release_bundle_dir> --json-output /tmp/media_server_bundle_policy.json
 ./server.sh source-offer-checklist --stable --bundle-policy-report /tmp/media_server_bundle_policy.json
 ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
@@ -32,6 +33,12 @@ ONNX Runtime package, model binary가 policy gate에서 차단되는지 negative
 함께 확인합니다.
 runtime/model을 의도적으로 포함하면 upstream license text, attribution,
 source offer, model provenance, checksum manifest를 release note에 연결합니다.
+v2.1.0 S11 기준에서는 [runtime-model-bundle-rc-rehearsal.md](./runtime-model-bundle-rc-rehearsal.md)의
+`media-server.runtime-model-bundle-rc-rehearsal-report.v1` report가
+`source-only-default-pass`, `runtime-model-included-blocked`,
+`gpl-risk-runtime-binary-blocked`, `release-asset-upload-blocked` fixture를 확인하지만,
+이 report는 실제 runtime/model bundle 생성이나 release asset 업로드 evidence가
+아닙니다.
 
 ## GitHub Releases 운영
 

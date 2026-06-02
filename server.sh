@@ -350,6 +350,8 @@ Usage:
                  배포 bundle 안의 FFmpeg/GStreamer GPL-risk runtime 포함 여부를 검사합니다.
   verify-release-bundle-dry-run
                  기본 release bundle을 임시 구성하고 bundle policy gate를 실행합니다.
+  verify-runtime-model-bundle-rc-rehearsal
+                 v2.1.0 runtime/model bundle RC rehearsal과 release asset 금지 기준을 검증합니다.
   source-offer-checklist
                  LGPL/GPL runtime 포함 배포 전 source offer 준비 항목을 점검합니다.
   verify-tracker-stability
@@ -1122,6 +1124,10 @@ case "${cmd}" in
   verify-release-bundle-dry-run)
     require_internal verify_release_bundle_dry_run.mjs
     exec "${INTERNAL_DIR}/verify_release_bundle_dry_run.mjs" "$@"
+    ;;
+  verify-runtime-model-bundle-rc-rehearsal)
+    require_internal verify_runtime_model_bundle_rc_rehearsal.mjs
+    exec "${INTERNAL_DIR}/verify_runtime_model_bundle_rc_rehearsal.mjs" "$@"
     ;;
   source-offer-checklist)
     require_internal write_source_offer_checklist.mjs

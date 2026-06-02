@@ -94,6 +94,7 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh dependency-snapshot --stable --output /tmp/media_server_dependency_snapshot.md --no-linked-libs
 ./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
 ./server.sh verify-release-bundle-dry-run
+./server.sh verify-runtime-model-bundle-rc-rehearsal
 ./server.sh verify-external-turn-whep-field-gate
 ./server.sh source-offer-checklist --stable --bundle-policy-report /tmp/media_server_bundle_policy.json
 ./server.sh verify-auth-regression-matrix
@@ -566,6 +567,31 @@ network call을 하지 않고 `fieldSmokeStatus=not-run`,
 redacted report가 모두 있을 때만 별도 field evidence로 남깁니다. `verify-webrtc-ice`
 기본 PASS, local coturn PASS, UI 풀테스트, 30분/120분 longrun은 external TURN/WHEP
 field PASS를 대체하지 않습니다.
+
+v2.1.0 S11 Runtime/model bundle RC rehearsal은 source-only default를 유지하면서
+runtime/model 포함 bundle의 hash/provenance/license/source-offer 차단 기준만 확인합니다.
+
+```bash
+./server.sh verify-runtime-model-bundle-rc-rehearsal \
+  --report /tmp/media_server_runtime_model_bundle_rc_rehearsal.md \
+  --json-report /tmp/media_server_runtime_model_bundle_rc_rehearsal.json
+./server.sh verify-bundle-policy \
+  --output /tmp/media_server_bundle_policy.md \
+  --json-output /tmp/media_server_bundle_policy.json
+./server.sh verify-release-bundle-dry-run --candidate source-only
+./server.sh dependency-snapshot \
+  --stable \
+  --no-linked-libs \
+  --output /tmp/media_server_dependency_snapshot_s11.md \
+  --json-output /tmp/media_server_dependency_snapshot_s11.json
+git diff --check
+```
+
+`media-server.runtime-model-bundle-rc-rehearsal-report.v1`은
+`actualBundleCreated=false`, `releaseAssetUploaded=false`,
+`runtimeModelBundleSelected=false`, `rcRehearsalOnly=true`를 기록합니다. 이 report와
+source-only dry-run PASS는 runtime/model 포함 배포 승인, binary release asset 업로드,
+GitHub Release asset 생성, source offer 완료를 대체하지 않습니다.
 
 v2.1.0 S05 Ops VLM runtime status UI는 `/ops/vlm`에서 provider 상태, runtime 연결
 상태, 마지막 evaluation, 실패 사유, privacy mode, default-off 상태를 read-only로

@@ -1,0 +1,175 @@
+{
+  "schema": "media-server.runtime-model-bundle-rc-rehearsal-fixtures.v1",
+  "targetStep": "V210-S11",
+  "purpose": "Rehearse runtime/model bundle release decisions without creating release assets.",
+  "cases": [
+    {
+      "id": "source-only-default-pass",
+      "candidate": "source-only",
+      "includesBinary": false,
+      "includesRuntime": false,
+      "includesModel": false,
+      "gplRiskRuntime": false,
+      "hashPresent": true,
+      "provenancePresent": true,
+      "licenseReview": "not-required-for-no-runtime-model",
+      "sourceOfferReady": false,
+      "releaseAssetUploadRequested": false,
+      "expected": {
+        "decision": "allow-default-source-only",
+        "allowedForDefaultRelease": true,
+        "allowedForRcRehearsal": true,
+        "blocked": false,
+        "actualBundleCreated": false,
+        "releaseAssetUploaded": false
+      }
+    },
+    {
+      "id": "local-binary-no-runtime-model-rc-only",
+      "candidate": "local-binary",
+      "includesBinary": true,
+      "includesRuntime": false,
+      "includesModel": false,
+      "gplRiskRuntime": false,
+      "hashPresent": true,
+      "provenancePresent": true,
+      "licenseReview": "pass",
+      "sourceOfferReady": false,
+      "releaseAssetUploadRequested": false,
+      "expected": {
+        "decision": "rc-rehearsal-only",
+        "allowedForDefaultRelease": false,
+        "allowedForRcRehearsal": true,
+        "blocked": false,
+        "actualBundleCreated": false,
+        "releaseAssetUploaded": false
+      }
+    },
+    {
+      "id": "offline-package-no-runtime-model-rc-only",
+      "candidate": "offline-package",
+      "includesBinary": true,
+      "includesRuntime": false,
+      "includesModel": false,
+      "gplRiskRuntime": false,
+      "hashPresent": true,
+      "provenancePresent": true,
+      "licenseReview": "pass",
+      "sourceOfferReady": false,
+      "releaseAssetUploadRequested": false,
+      "expected": {
+        "decision": "rc-rehearsal-only",
+        "allowedForDefaultRelease": false,
+        "allowedForRcRehearsal": true,
+        "blocked": false,
+        "actualBundleCreated": false,
+        "releaseAssetUploaded": false
+      }
+    },
+    {
+      "id": "container-root-no-runtime-model-rc-only",
+      "candidate": "container-root",
+      "includesBinary": true,
+      "includesRuntime": false,
+      "includesModel": false,
+      "gplRiskRuntime": false,
+      "hashPresent": true,
+      "provenancePresent": true,
+      "licenseReview": "pass",
+      "sourceOfferReady": false,
+      "releaseAssetUploadRequested": false,
+      "expected": {
+        "decision": "rc-rehearsal-only",
+        "allowedForDefaultRelease": false,
+        "allowedForRcRehearsal": true,
+        "blocked": false,
+        "actualBundleCreated": false,
+        "releaseAssetUploaded": false
+      }
+    },
+    {
+      "id": "runtime-model-included-blocked",
+      "candidate": "runtime-model-bundle",
+      "includesBinary": true,
+      "includesRuntime": true,
+      "includesModel": true,
+      "gplRiskRuntime": false,
+      "hashPresent": true,
+      "provenancePresent": true,
+      "licenseReview": "review-required",
+      "sourceOfferReady": false,
+      "releaseAssetUploadRequested": false,
+      "expected": {
+        "decision": "blocked-runtime-or-model-included",
+        "allowedForDefaultRelease": false,
+        "allowedForRcRehearsal": false,
+        "blocked": true,
+        "actualBundleCreated": false,
+        "releaseAssetUploaded": false
+      }
+    },
+    {
+      "id": "gpl-risk-runtime-binary-blocked",
+      "candidate": "gpl-risk-runtime-bundle",
+      "includesBinary": true,
+      "includesRuntime": true,
+      "includesModel": false,
+      "gplRiskRuntime": true,
+      "hashPresent": true,
+      "provenancePresent": true,
+      "licenseReview": "review-required",
+      "sourceOfferReady": false,
+      "releaseAssetUploadRequested": false,
+      "expected": {
+        "decision": "blocked-gpl-risk-runtime",
+        "allowedForDefaultRelease": false,
+        "allowedForRcRehearsal": false,
+        "blocked": true,
+        "actualBundleCreated": false,
+        "releaseAssetUploaded": false
+      }
+    },
+    {
+      "id": "missing-hash-provenance-license-blocked",
+      "candidate": "model-candidate-without-review",
+      "includesBinary": true,
+      "includesRuntime": false,
+      "includesModel": true,
+      "gplRiskRuntime": false,
+      "hashPresent": false,
+      "provenancePresent": false,
+      "licenseReview": "missing",
+      "sourceOfferReady": false,
+      "releaseAssetUploadRequested": false,
+      "expected": {
+        "decision": "blocked-missing-review-evidence",
+        "allowedForDefaultRelease": false,
+        "allowedForRcRehearsal": false,
+        "blocked": true,
+        "actualBundleCreated": false,
+        "releaseAssetUploaded": false
+      }
+    },
+    {
+      "id": "release-asset-upload-blocked",
+      "candidate": "runtime-model-release-asset",
+      "includesBinary": true,
+      "includesRuntime": true,
+      "includesModel": true,
+      "gplRiskRuntime": false,
+      "hashPresent": true,
+      "provenancePresent": true,
+      "licenseReview": "review-required",
+      "sourceOfferReady": true,
+      "releaseAssetUploadRequested": true,
+      "expected": {
+        "decision": "blocked-release-asset-upload",
+        "allowedForDefaultRelease": false,
+        "allowedForRcRehearsal": false,
+        "blocked": true,
+        "actualBundleCreated": false,
+        "releaseAssetUploaded": false
+      }
+    }
+  ]
+}
