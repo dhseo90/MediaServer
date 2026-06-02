@@ -125,5 +125,9 @@
 
 - 현재 source-only release 기준 tag는 `v2.0.0`입니다.
 - tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만 붙입니다.
+- 다음 신규 release tag는 signed annotated tag로 생성합니다. unsigned annotated tag와
+  lightweight tag는 새 release tag로 사용하지 않습니다.
+- signed tag evidence는 GitHub Tags/Releases의 Verified 표시 또는 GitHub API tag
+  verification `verified=true`/`reason=valid`로 확인합니다.
 - source-only release에는 sample/model/runtime binary를 추가 업로드하지 않습니다.
 - binary/container/offline bundle은 별도 RC gate와 bundle policy 검토를 통과한 뒤 별도 release로 다룹니다.
