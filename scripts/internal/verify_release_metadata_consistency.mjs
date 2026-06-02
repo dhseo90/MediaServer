@@ -377,9 +377,11 @@ check("development backlog separates current baseline from deferred phase gates"
     `## 현재 기준: ${currentTag} Source Release Baseline`,
     `${currentTag}은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서`,
     `## ${currentTag} Release Close-out`,
+    "## 활성 roadmap: v2.1.0 VLM Runtime Opt-in Stabilization",
     "VLM을 이벤트 해석/리뷰 보조 계층",
+    "이 roadmap은 `v2.1.0` branch에서",
     "실제 tag/push는 수동 승인 후에만 수행합니다",
-    "v2.1.0 roadmap은 아직 작성하지 않습니다",
+    "v2.1.0 roadmap은 상단",
   ]) {
     assert(doc.includes(snippet), `docs/development-backlog.md missing snippet: ${snippet}`);
   }

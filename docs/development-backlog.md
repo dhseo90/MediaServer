@@ -74,6 +74,68 @@ baseline으로 유지합니다.
 과거 release evidence는 standalone current 문서가 아니라 이 문서의 archive 섹션에만
 보존합니다.
 
+## 활성 roadmap: v2.1.0 VLM Runtime Opt-in Stabilization
+
+v2.1.0은 v2.0.0의 VLM review-assist source-only baseline을 유지하면서,
+운영자가 명시적으로 켠 경우에만 실제 VLM runtime/provider 연결을 검증 가능한
+opt-in 기능으로 여는 stabilization roadmap입니다. 이 roadmap은 `v2.1.0` branch에서
+진행하며, v2.0.0 release 완료 상태나 `v2.0.0` tag를 다시 해석하지 않습니다.
+
+핵심 원칙:
+
+- VLM은 계속 최종 판정 엔진이 아니라 운영자 review-assist 계층입니다.
+- VLM default-on, 자동 provider credential 저장, model/runtime bundle release는
+  v2.1.0 기본 완료 범위가 아닙니다.
+- 기존 Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path,
+  Auth/session/scope, Rule/Profile payload schema는 요청 없이 변경하지 않습니다.
+- cloud provider 호출은 명시 opt-in field smoke로만 다루고, 미실행이면 PASS로
+  기록하지 않습니다.
+- local runtime smoke와 cloud provider field smoke는 서로를 대체하지 않습니다.
+- client/viewer에는 prompt, raw response, source URL, debug JSON, provider credential,
+  내부 model/runtime 진단을 노출하지 않습니다.
+- Rule suggestion은 자동 적용하지 않고, 운영자가 확인한 draft/manual save 흐름만
+  허용합니다.
+
+명시적 비범위:
+
+- VLM default-on 또는 VLM 단독 실시간 감지
+- VLM model/runtime binary bundle, release asset 업로드, container/offline bundle 배포
+- provider credential persistent store, provider billing/retention 운영 보장
+- Event POST/WebRTC/SSE/WS 외부 payload schema 변경
+- RTSP/WebRTC media pipeline 구조 변경
+- 자동 Rule/Profile 적용, 자동 최종 판정
+- external TURN/WHEP credential 운영 성공 보장
+- ONVIF 실장비 성공 보장, 장기 녹화/playback/search
+
+| 순서 | ID | 우선순위 | 상태 | 영역 | 목표 | 예상 검증 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0 | V210-S00 | P0 | 예정 | v2.1.0 entry baseline | v2.0.0 최종 main/tag/evidence를 v2.1.0 시작 기준으로 고정하고, WebRTC/SSE/WS/Event POST/Auth/media path freeze를 재확인합니다. | baseline review, `verify-release-metadata`, `verify-release-evidence-index`, `verify-integrator-contract-artifact`, `verify-event-post`, metadata verifier, `git diff --check` |
+| 1 | V210-S01 | P0 | 예정 | VLM runtime opt-in contract | local runtime, cloud provider, disabled, missing-model, invalid-output, timeout 상태를 분리하고 기본 off 계약을 고정합니다. | contract fixture, auth/scope review, VLM profile state review, `verify-vlm-profile-storage`, `verify-vlm-privacy-transfer-guard`, `git diff --check` |
+| 2 | V210-S02 | P0 | 예정 | Local VLM runtime connection smoke | Ollama/vLLM/API-compatible local endpoint 연결, timeout, queue cleanup, invalid output fallback을 실제 local smoke로 확인합니다. | local endpoint fixture, missing-runtime fixture, timeout/cleanup fixture, `verify-vlm-test-rehearsal`, VLM runtime smoke, `git diff --check` |
+| 3 | V210-S03 | P0 | 예정 | Cloud provider field smoke gate | `gemini-2.5-flash` 같은 cloud opt-in provider를 credential 저장 없이 env/manual 승인 기반 field smoke로 검증합니다. 미실행과 실패를 release PASS로 쓰지 않습니다. | cloud opt-in checklist, redaction review, provider field smoke report, `verify-vlm-privacy-transfer-guard`, `git diff --check` |
+| 4 | V210-S04 | P0 | 예정 | VLM queue/backpressure stability | VLM worker가 RTSP/WebRTC media path, EventRecord, metadata fanout, Event POST dispatch를 막지 않는지 안정화 기준을 실행합니다. | `./server.sh build`, VLM queue fixture, `verify-va-events`, `verify-event-post`, metadata verifier, 30분 soak when runtime path changes, `git diff --check` |
+| 5 | V210-S05 | P0 | 예정 | Ops VLM runtime status UI | `/ops/vlm`에서 provider 상태, runtime 연결 상태, 마지막 evaluation, 실패 사유, privacy mode, default-off 상태를 운영자가 확인할 수 있게 합니다. | Ops UI smoke, auth/scope route guard, viewer/client redaction check, `verify-ops-client-ui`, VLM UI direct review, `git diff --check` |
+| 6 | V210-S06 | P1 | 예정 | VLM evaluation result workflow | sample event 기준 latency, JSON 안정성, 설명 품질, hallucination risk, 한국어/영어 출력 품질을 비교하고 운영자가 model/profile을 선택할 수 있게 합니다. | evaluation fixture, prompt profile comparison, structured output check, `verify-vlm-recommendation-engine`, `git diff --check` |
+| 7 | V210-S07 | P1 | 예정 | VLM review action workflow | `/ops/events`에서 설명/오탐 힌트를 accept, dismiss, review-needed 같은 운영 기록으로 남기되 외부 event/metadata schema는 유지합니다. | EventRecord correlation review, sidecar review action fixture, Ops events UI review, `verify-event-post`, metadata verifier, `git diff --check` |
+| 8 | V210-S08 | P1 | 예정 | Rule suggestion draft workflow | VLM rule 후보를 자동 적용하지 않고 `/ops/rules` draft로 가져가 운영자가 수동 저장하는 흐름만 허용합니다. | no-auto-apply guard, `/ops/rules` smoke, rule draft fixture, `verify-rule-ui`, `git diff --check` |
+| 9 | V210-S09 | P1 | 예정 | VA coverage evidence report | rule, scenario, event type, EventRecord 발생 이력, invalid combination을 조합 단위 evidence로 출력합니다. | VA replay matrix, EventRecord history report, `verify-va-events`, `verify-va-replay`, `git diff --check` |
+| 10 | V210-S10 | P2 | 예정 | External TURN/WHEP field gate | external TURN/WHEP credential 운영 검증을 별도 field smoke로 분리하고, 기본 release PASS와 혼동하지 않게 합니다. | external field smoke checklist, WebRTC ICE review, `verify-webrtc-ice`, 미실행/제외 기록 |
+| 11 | V210-S11 | P2 | 예정 | Runtime/model bundle RC rehearsal | 실제 bundle release 없이 hash/provenance/license, GPL-risk binary exclusion, release asset 금지 기준을 RC rehearsal로만 확인합니다. | `verify-bundle-policy`, dependency snapshot review, bundle dry-run policy, `git diff --check` |
+| 12 | V210-S12 | P2 | 예정 | UI fulltest evidence runner 개선 | 기능 ID별 클릭, 입력, 상태 반영, 관련 로그 확인 report를 보강해 UI 풀테스트 누락을 줄입니다. | feature inventory mapping, UI evidence report, manual spot review, `verify-ops-client-ui --screenshots`, `verify-rule-ui`, `git diff --check` |
+
+v2.1.0 완료 gate:
+
+- P0 범위 구현과 해당 verifier PASS
+- `./server.sh build`
+- auth/scope, Event POST, WebRTC/SSE/WS metadata, RTSP/WebRTC media path 회귀 검증
+- local VLM runtime smoke는 실행한 경우에만 PASS로 기록
+- cloud provider field smoke는 명시 승인 후 실행한 경우에만 PASS로 기록
+- runtime path나 queue/backpressure 변경 시 30분 soak
+- release 후보 단계에서 UI 풀테스트와 필요 시 120분 longrun
+- `git diff --check`
+- release metadata/evidence verifier
+- signed annotated tag 기반 release close-out
+
 ## v2.0.0 Release Close-out
 
 v2.0.0은 기존 YOLO/ONNX 기반 실시간 감지, Rule/Profile/Scenario, EventRecord,
@@ -86,7 +148,8 @@ VLM S00~S18 구현 및 테스트 evidence는 아래 표와 release evidence 문�
 v2.0.0 release close-out도 PR #19 초기 publish와 README/VLM 문서 follow-up을 거쳐
 main sync, annotated tag, GitHub Release, published metadata 검증, release branch 삭제,
 다음 branch sync까지 완료했습니다.
-release 완료 뒤 다음 branch 이름은 규칙상 `v2.1.0`이지만, v2.1.0 roadmap은 아직 작성하지 않습니다.
+release 완료 뒤 다음 branch 이름은 규칙상 `v2.1.0`이며, v2.1.0 roadmap은 상단
+`활성 roadmap: v2.1.0 VLM Runtime Opt-in Stabilization` 섹션에서 관리합니다.
 
 핵심 원칙:
 

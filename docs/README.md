@@ -16,14 +16,15 @@
 | 검증 명령과 release gate | [stream-verification.md](stream-verification.md) |
 | release/version 기준 | [release-policy.md](release-policy.md), [versioning-policy.md](versioning-policy.md), [release-evidence-index.md](release-evidence-index.md) |
 | v2.0.0 테스트 실행 기록 | [v200-test-record-2026-05-31.md](v200-test-record-2026-05-31.md) |
-| 현재 release/archive roadmap | [development-backlog.md](development-backlog.md) |
+| 현재 release/active roadmap/archive | [development-backlog.md](development-backlog.md) |
 | v2.0.0 VLM 모델 선택/PC 사양 감지 기준, 추천 엔진, 설치/연결 dry-run, profile 저장, 평가 harness, event evidence 추출, observation sidecar, 이벤트 설명/오탐 힌트, Ops 리뷰 UI, Privacy/전송 guard, summary 검색 후보, Rule 추천 보조 후보, 테스트 리허설, 안정화/장시간/UI 기준 및 close-out readiness | [vlm-model-selection.md](vlm-model-selection.md), [vlm-recommendation-engine.md](vlm-recommendation-engine.md), [vlm-install-connection-dry-run.md](vlm-install-connection-dry-run.md), [vlm-profile-storage.md](vlm-profile-storage.md), [vlm-evaluation-harness.md](vlm-evaluation-harness.md), [vlm-event-evidence-extraction.md](vlm-event-evidence-extraction.md), [vlm-observation-sidecar.md](vlm-observation-sidecar.md), [vlm-event-explanation-hints.md](vlm-event-explanation-hints.md), [vlm-ops-event-review-ui.md](vlm-ops-event-review-ui.md), [vlm-privacy-transfer-guard.md](vlm-privacy-transfer-guard.md), [vlm-summary-search-candidates.md](vlm-summary-search-candidates.md), [vlm-rule-suggestion-candidates.md](vlm-rule-suggestion-candidates.md), [vlm-test-rehearsal.md](vlm-test-rehearsal.md), [vlm-stabilization-longrun-ui-criteria.md](vlm-stabilization-longrun-ui-criteria.md), [vlm-close-out-readiness.md](vlm-close-out-readiness.md), [development-backlog.md](development-backlog.md) |
 | 영어 문서 진입점 | [en/README.md](en/README.md) |
 
 ## 현재 제품 경계
 
 - 현재 release: [`v2.0.0`](https://github.com/dhseo90/MediaServer/releases/tag/v2.0.0)
-- 다음 roadmap: `v2.1.0`은 아직 작성하지 않음
+- 활성 roadmap: `v2.1.0` VLM runtime opt-in stabilization은
+  [development-backlog.md](development-backlog.md)에 작성됨
 - 중심 범위: live source onboarding, live source health, live VA event 품질
 - 기본 release 형태: source-only
 - 명시적 비범위: 장기 녹화, VMS/NVR, playback/search, ONVIF Profile G
@@ -37,7 +38,8 @@
 v2.0.0 VLM 기반 AI 대형 업데이트의 release close-out 결과는
 [development-backlog.md](development-backlog.md)의 `v2.0.0 Release Close-out`
 섹션과 [release-evidence-index.md](release-evidence-index.md)에 보존합니다.
-release tag와 GitHub Release는 게시 완료됐고, 다음 branch는 `v2.1.0`입니다.
+release tag와 GitHub Release는 게시 완료됐고, 다음 branch와 활성 roadmap은
+`v2.1.0`입니다.
 
 최신 v2.0.0 테스트 evidence는 [release-evidence-index.md](release-evidence-index.md)와
 [v200-test-record-2026-05-31.md](v200-test-record-2026-05-31.md)에 둡니다.

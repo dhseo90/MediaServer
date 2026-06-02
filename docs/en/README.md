@@ -21,6 +21,8 @@ path short enough to scan. The full index is `docs/README.md`.
 
 - v2.0.0 is the current published source-only release:
   <https://github.com/dhseo90/MediaServer/releases/tag/v2.0.0>.
+- v2.1.0 is the active roadmap branch and is tracked in
+  [../development-backlog.md](../development-backlog.md).
 - The main product boundary is live source onboarding, live source health, and
   live VA event quality.
 - Binary, runtime, and model bundles are excluded from the default release.
