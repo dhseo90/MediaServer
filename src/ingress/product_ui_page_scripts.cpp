@@ -2918,6 +2918,21 @@ void AppendOpsShellScript(std::ostringstream& out,
         query: String(document.getElementById('dashIncidentTimelineSearch')?.value || '').trim().toLowerCase(),
         source: String(document.getElementById('dashIncidentTimelineSource')?.value || '').trim()
       });
+      const dashboardIncidentSourceFilterLabel = source => {
+        const normalized = String(source || '').trim();
+        if (normalized === 'event-record') return 'EventRecord';
+        if (normalized === 'source-health') return 'source health';
+        if (normalized === 'rule-warning') return 'rule warning';
+        if (normalized === 'runtime-status') return 'runtime status';
+        if (normalized === 'log-tail') return 'log tail';
+        return '전체 출처';
+      };
+      const dashboardIncidentEmptyFilterText = filter => {
+        if (!filter?.source) return '필터에 맞는 인시던트 단서가 없습니다.';
+        const parts = [`${dashboardIncidentSourceFilterLabel(filter.source)} 필터`];
+        if (filter?.query) parts.push(`검색어 "${filter.query}"`);
+        return `${parts.join(' / ')}에 맞는 인시던트 단서가 없습니다.`;
+      };
       const writeDashboardIncidentFilterHash = () => {
         const filter = dashboardIncidentFilterState();
         const params = opsHashParams();
@@ -3198,15 +3213,16 @@ void AppendOpsShellScript(std::ostringstream& out,
           { text: runtimeWarningCount > 0 ? `runtime status ${runtimeWarningCount}` : 'runtime status 정상', tone: runtimeWarningCount > 0 ? 'warn' : 'info' },
           { text: diagnosticLog?.available === false ? 'log tail 없음' : 'log tail' }
         ]);
+        const emptyFilterText = dashboardIncidentEmptyFilterText(filter);
         setText('dashIncidentTimelineText', filtersActive && items.length === 0
-          ? '필터에 맞는 인시던트 단서가 없습니다.'
+          ? emptyFilterText
           : (warnCount > 0
             ? '최근 단서를 시간순으로 묶었습니다. 확인 항목부터 관련 화면으로 이동합니다.'
             : '최근 EventRecord와 source health 단서를 기준으로 즉시 대응할 인시던트가 없습니다.'));
         const list = document.getElementById('dashIncidentTimeline');
         if (!list) return items;
         if (items.length === 0) {
-          list.innerHTML = '<div class="empty">필터에 맞는 인시던트 단서가 없습니다.<br />다른 검색어 또는 출처 필터를 선택하세요.</div>';
+          list.innerHTML = `<div class="empty">${escapeHtml(emptyFilterText)}<br />다른 검색어 또는 출처 필터를 선택하세요.</div>`;
           window.MediaServerUi?.translatePage?.();
           return items;
         }
