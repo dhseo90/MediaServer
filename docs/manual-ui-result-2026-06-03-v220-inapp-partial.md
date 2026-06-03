@@ -596,6 +596,6 @@ client/viewer 화면에서 보이지 않아야 하는 항목입니다. admin이 
 - 제품 회귀 여부: 미확정, 현재 evidence는 제품 회귀가 아니라 full UI evidence 미완성 상태를 가리킴
 - 환경/sandbox 한계: full UI 전수 조작과 장시간 테스트 미실행
 - 수정 필요 이슈: full UI evidence JSON 작성, role guard 전수, VA EventRecord coverage, 30분/120분 장시간 실행 여부 결정
-- 커밋: 이번 문서 보정 커밋 대상
-- 푸시 가능: 커밋 및 검증 후 판단
+- 커밋: `8f9fac3 docs: normalize v2.2.0 partial UI evidence result`
+- 푸시 가능: 예, 후속 정정 커밋 포함 시 원격 대비 ahead 상태
 - 푸시 수행 여부: 수행하지 않음
