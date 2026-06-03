@@ -25,8 +25,9 @@
 - 현재 release: [`v2.1.0`](https://github.com/dhseo90/MediaServer/releases/tag/v2.1.0)
 - release close-out: `v2.1.0` VLM runtime opt-in stabilization은
   [development-backlog.md](development-backlog.md)의 `v2.1.0 Release Close-out`에서 관리함
-- 다음 branch: `v2.2.0`은 release 종료 후 생성만 하며, 사용자가 생각해 둔 개발
-  방향은 후속 명시 지시 전까지 문서화하거나 착수하지 않음
+- 활성 roadmap: `v2.2.0 Responsive UI Foundation`은
+  [development-backlog.md](development-backlog.md)의 활성 roadmap에서 관리하며,
+  UI 기반 재설계, 반응형 task shell, C++ 문자열 UI 구조 한계 완화를 다룸
 - 중심 범위: live source onboarding, live source health, live VA event 품질
 - 기본 release 형태: source-only
 - 명시적 비범위: 장기 녹화, VMS/NVR, playback/search, ONVIF Profile G

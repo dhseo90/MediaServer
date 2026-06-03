@@ -23,8 +23,9 @@ path short enough to scan. The full index is `docs/README.md`.
   <https://github.com/dhseo90/MediaServer/releases/tag/v2.1.0>.
 - v2.1.0 release close-out is tracked in
   [../development-backlog.md](../development-backlog.md).
-- v2.2.0 will be created only as the next branch after the v2.1.0 release. Its
-  development direction remains owner-held until a follow-up instruction.
+- v2.2.0 active roadmap is tracked in
+  [../development-backlog.md](../development-backlog.md) as Responsive UI
+  Foundation.
 - The main product boundary is live source onboarding, live source health, and
   live VA event quality.
 - Binary, runtime, and model bundles are excluded from the default release.

@@ -78,6 +78,62 @@ baseline으로 유지합니다.
 과거 release evidence는 standalone current 문서가 아니라 이 문서의 archive 섹션에만
 보존합니다.
 
+## 활성 roadmap: v2.2.0 Responsive UI Foundation
+
+v2.2.0은 v2.1.0 source-only release baseline 위에서 제품 UI의 기반을 재정리하는
+roadmap입니다. 목표는 화면 색상만 바꾸는 것이 아니라, 현재 C++ 문자열 기반 UI의
+한계를 줄이고 `/ops`, `/client`, `/setup`, `/login`을 같은 responsive shell,
+design token, component primitive 기준으로 재구성할 수 있는 기반을 만드는 것입니다.
+
+1차 UI 방향은 `작업 단위 반응형 셸`입니다. 기능을 모바일에서 숨기지 않고, 화면
+크기에 따라 표, 상세, 편집, 미리보기, 보조 action을 단계형 흐름과 drawer/panel로
+재배치합니다. 완료 기준 viewport는 `320`, `390`, `760`, `1180+`를 기본으로 두며,
+작은 화면에서는 horizontal overflow와 텍스트 겹침이 없어야 합니다. 760px 구간은
+tablet/panel 전환 기준, 1180px 이상은 밀도 높은 운영 콘솔 기준으로 봅니다.
+
+핵심 원칙:
+
+- v2.2.0 UI 개편은 Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC
+  media path, Auth/session/scope, Rule/Profile payload schema를 변경하지 않습니다.
+- client/viewer에는 source URL, Developer URL, raw JSON, debugCounters, BBox
+  diagnostics, rule/profile editor, provider credential을 노출하지 않습니다.
+- raw JSON과 운영자 debug details는 `/ops`의 접힘 영역에만 둡니다.
+- `/ops/rules` smoke selector와 Rule/Profile 저장 흐름은 redesign 중에도 보존합니다.
+- UI 풀테스트는 스크립트 smoke, screenshot 생성, raw JSON/API 확인으로 대체하지 않고
+  인앱 브라우저 직접 조작 evidence로 판정합니다.
+- route별 primary task를 먼저 정의한 뒤 visual polish를 적용합니다.
+
+명시적 비범위:
+
+- 장기 녹화, VMS/NVR archive, playback/search
+- RTSP/WebRTC media pipeline 구조 변경
+- Event POST/WebRTC/SSE/WS 외부 payload schema 변경
+- VLM default-on, VLM runtime/provider 기능 확장, provider credential 저장
+- Re-ID/tracker default-on, tracker replacement product 승격
+- ONVIF Profile G recording/replay, 외부 TURN/WHEP 운영 성공 보장
+- v2.1.0 release evidence, tag, GitHub Release 상태 재해석
+
+| 순서 | ID | 우선순위 | 상태 | 영역 | 목표 | 예상 검증 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0 | V220-S00 | P0 | 예정 | Entry boundary / roadmap gate | v2.1.0 release baseline과 v2.2.0 UI redesign 범위를 분리하고, 변경 금지 contract와 viewer redaction 경계를 재확인합니다. | roadmap review, contract boundary review, `verify-event-post`, metadata verifier, `verify-auth-routes`, `git diff --check` |
+| 1 | V220-S01 | P0 | 예정 | UI architecture inventory | C++ 문자열 UI 파일, shared token, page script, asset helper, route별 template 경계를 inventory로 정리하고 분리 가능한 component primitive 후보를 정합니다. | UI source inventory review, route/template mapping, `verify-ops-client-ui`, `git diff --check` |
+| 2 | V220-S02 | P0 | 예정 | Responsive task shell | `/ops`, `/client`, `/setup`, `/login`의 route별 primary task, secondary action, drawer/panel 전환 기준을 정의합니다. | 320/390/760/1180 viewport checklist, layout contract review, `verify-ops-client-ui --screenshots`, `git diff --check` |
+| 3 | V220-S03 | P0 | 예정 | Design token refresh | light/dark theme-aware token, spacing, density, typography, button/input/table/badge/debug details 기준을 단일 source로 정리합니다. | token diff review, theme contrast review, `verify-ops-client-ui`, `git diff --check` |
+| 4 | V220-S04 | P1 | 예정 | Component primitives | card, toolbar, tab, segmented control, table, drawer, form row, status badge, empty/loading/error state를 반복 사용 가능한 C++ helper 단위로 묶습니다. | component snapshot review, route smoke, `verify-ops-tables-layout`, `git diff --check` |
+| 5 | V220-S05 | P1 | 예정 | Ops workspace redesign | `/ops` home, channels/source health, event feed, runtime/dashboard 화면의 시각 계층과 반복 운영 흐름을 재정리합니다. | Ops direct browser review, `verify-ops-click-e2e`, `verify-ops-client-ui --screenshots`, `git diff --check` |
+| 6 | V220-S06 | P1 | 예정 | Rules workspace redesign | `/ops/rules`의 rule/profile/scenario 편집, preview, smoke selector, 저장 feedback을 반응형 shell 기준으로 재배치합니다. | `/ops/rules` direct browser review, `verify-rule-ui`, `verify-ops-rules-roundtrip`, `git diff --check` |
+| 7 | V220-S07 | P1 | 예정 | Client live redesign | `/client` viewer는 운영자 debug를 숨긴 상태로 video/status/event review 흐름을 정리하고 작은 화면에서 viewer-first 동선을 보장합니다. | Client direct browser review, viewer redaction check, `verify-ops-client-ui --screenshots`, `git diff --check` |
+| 8 | V220-S08 | P2 | 예정 | Auth/setup redesign | `/setup`, `/login`, admin/auth 관련 화면을 같은 token과 responsive form layout으로 정리하되 auth route guard와 scope를 유지합니다. | `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, auth UI direct review, `git diff --check` |
+| 9 | V220-S09 | P2 | 예정 | UI fulltest matrix / evidence | v2.2.0 UI 변경 기능을 action/route/control 단위로 feature inventory와 manual UI fulltest checklist에 연결합니다. | `verify-manual-ui-evidence-runner`, `verify-docs-ui-assets`, manual UI checklist review, `git diff --check` |
+
+v2.2.0 후속 작업:
+
+1. V220-S00에서 v2.1.0 freeze contract와 v2.2.0 UI redesign scope를 먼저 닫습니다.
+2. V220-S01에서 현재 UI 파일과 route/template/component 후보 inventory를 작성합니다.
+3. V220-S02에서 `작업 단위 반응형 셸`의 route별 primary task와 viewport별 완료 기준을 확정합니다.
+4. S00~S02가 닫힌 뒤 visual redesign mockup과 구현 계획을 별도 spec/plan으로 분리합니다.
+5. 구현 단계는 route/API/schema/media path 변경 금지와 UI 풀테스트 직접 조작 evidence를 매 단계 완료 조건으로 둡니다.
+
 ## 완료 roadmap: v2.1.0 VLM Runtime Opt-in Stabilization
 
 v2.1.0은 v2.0.0의 VLM review-assist source-only baseline을 유지하면서,
@@ -160,8 +216,8 @@ route/API/config/schema migration은 현재 release 완료 범위가 아닙니�
 뒤 단계는 건너뜁니다.
 
 v2.2.0 branch는 v2.1.0 GitHub Release와 published metadata 재검증이 끝난 뒤
-생성까지만 수행합니다. v2.2.0 개발 방향은 사용자가 생각해 둔 별도 후속 지시 전까지
-문서화하지 않고, 활성 roadmap으로 승격하지 않으며, 구현도 착수하지 않습니다.
+생성합니다. v2.2.0 개발 방향은 상단의 `활성 roadmap: v2.2.0 Responsive UI
+Foundation`을 source-of-truth로 두며, 각 단계는 별도 승인/검증/커밋 단위로 닫습니다.
 
 close-out 작업 순서:
 
