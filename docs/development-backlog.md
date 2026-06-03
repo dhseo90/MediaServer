@@ -128,11 +128,24 @@ tablet/panel 전환 기준, 1180px 이상은 밀도 높은 운영 콘솔 기준�
 
 v2.2.0 후속 작업:
 
-1. V220-S00에서 v2.1.0 freeze contract와 v2.2.0 UI redesign scope를 먼저 닫습니다.
-2. V220-S01에서 현재 UI 파일과 route/template/component 후보 inventory를 작성합니다.
-3. V220-S02에서 `작업 단위 반응형 셸`의 route별 primary task와 viewport별 완료 기준을 확정합니다.
-4. S00~S02가 닫힌 뒤 visual redesign mockup과 구현 계획을 별도 spec/plan으로 분리합니다.
-5. 구현 단계는 route/API/schema/media path 변경 금지와 UI 풀테스트 직접 조작 evidence를 매 단계 완료 조건으로 둡니다.
+1. S00~S09의 roadmap/matrix 구현은 닫혔지만, 실제 v2.2.0 전체 UI 풀테스트 PASS는
+   아직 아닙니다. 현재 partial 결과 문서는
+   [manual-ui-result-2026-06-03-v220-inapp-partial.md](./manual-ui-result-2026-06-03-v220-inapp-partial.md)
+   이며, `244개 UI 대상 기능 ID 중 0 PASS, 244 FAIL`로 남겨 전수 evidence
+   미완료를 명확히 기록합니다.
+2. 다음 실제 후속은 `media-server.manual-ui-evidence-input.v1` evidence JSON을
+   작성하고 `./server.sh verify-manual-ui-evidence-runner --evidence <json>`와
+   `./server.sh verify-manual-ui-evidence --result <result.md>`를 통과시키는 것입니다.
+   이때 누락 기능 ID, raw JSON/API-only 확인, screenshot-only 확인은 모두 `FAIL`
+   로 남깁니다.
+3. full UI evidence에서 특히 남은 P0/P1 확인 축은 viewer role guard, invite setup
+   end-to-end, `/ops/users` access request 승인/거절, VA seed apply, event key별
+   `/ops/events` EventRecord 발생 이력 대조입니다.
+4. 30분 soak, 120분 longrun, published metadata 재검증, release close-out은 아직
+   미실행입니다. 장시간 테스트와 release close-out은 사용자 명시 지시가 있을 때만
+   실행하며, one-shot wrapper PASS나 partial UI evidence로 대체하지 않습니다.
+5. 푸시/PR/릴리즈 준비는 별도 지시에 따라 수행합니다. 현재 문서 evidence는
+   v2.2.0 UI 기반 개편 산출물과 남은 release gate를 분리하기 위한 상태 기록입니다.
 
 ### V220-S00 v2.2.0 UI redesign entry boundary 종료 기준
 
