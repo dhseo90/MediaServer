@@ -6,6 +6,11 @@
 삼고, 실행 순서는 [manual-ui-checklist.md](./manual-ui-checklist.md), 결과 기록은
 [manual-ui-result-template.md](./manual-ui-result-template.md)를 사용합니다.
 현재 제품 UI 기준은 release 목표 `v2.1.0`입니다. 지원 가능한 모든 기능을 실제 UI 조작으로 확인하지 않은 경우에는 완료로 쓰지 않습니다.
+v2.2.0 Responsive UI Foundation의 UI 풀테스트 준비 matrix는
+[v220-ui-fulltest-matrix-evidence.md](./v220-ui-fulltest-matrix-evidence.md)의
+`media-server.v220-ui-fulltest-matrix.v1`을 함께 사용합니다. 이 matrix도
+`media-server.manual-ui-evidence-input.v1`과 `verify-manual-ui-evidence-runner`
+입력 기준을 따르며, matrix 작성만으로 UI 풀테스트 PASS가 되지 않습니다.
 
 ## 1. 정의
 

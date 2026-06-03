@@ -124,7 +124,7 @@ tablet/panel 전환 기준, 1180px 이상은 밀도 높은 운영 콘솔 기준�
 | 6 | V220-S06 | P1 | 완료 | Rules workspace redesign | `/ops/rules`의 rule/profile/scenario 편집, preview, smoke selector, 저장 feedback을 반응형 shell 기준으로 재배치합니다. | [v220-rules-workspace-redesign.md](./v220-rules-workspace-redesign.md), `/ops/rules` smoke, `verify-v220-rules-workspace-redesign`, `verify-rule-ui`, `verify-ops-rules-roundtrip`, `git diff --check` |
 | 7 | V220-S07 | P1 | 완료 | Client live redesign | `/client` viewer는 운영자 debug를 숨긴 상태로 video/status/event review 흐름을 정리하고 작은 화면에서 viewer-first 동선을 보장합니다. | [v220-client-live-redesign.md](./v220-client-live-redesign.md), Client direct browser review, viewer redaction check, `verify-v220-client-live-redesign`, `verify-ops-client-ui --screenshots`, `git diff --check` |
 | 8 | V220-S08 | P2 | 완료 | Auth/setup redesign | `/setup`, `/login`, admin/auth 관련 화면을 같은 token과 responsive form layout으로 정리하되 auth route guard와 scope를 유지합니다. | [v220-auth-setup-redesign.md](./v220-auth-setup-redesign.md), `verify-v220-auth-setup-redesign`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, auth UI direct review, `git diff --check` |
-| 9 | V220-S09 | P2 | 예정 | UI fulltest matrix / evidence | v2.2.0 UI 변경 기능을 action/route/control 단위로 feature inventory와 manual UI fulltest checklist에 연결합니다. | `verify-manual-ui-evidence-runner`, `verify-docs-ui-assets`, manual UI checklist review, `git diff --check` |
+| 9 | V220-S09 | P2 | 완료 | UI fulltest matrix / evidence | v2.2.0 UI 변경 기능을 action/route/control 단위로 feature inventory와 manual UI fulltest checklist에 연결합니다. | [v220-ui-fulltest-matrix-evidence.md](./v220-ui-fulltest-matrix-evidence.md), `verify-v220-ui-fulltest-matrix-evidence`, `verify-manual-ui-evidence-runner`, `verify-docs-ui-assets`, `git diff --check` |
 
 v2.2.0 후속 작업:
 
@@ -472,6 +472,44 @@ S08은 `/setup`, `/login`, `/password/change`, `/invite/setup`,
 - 변경 금지 확인: auth route guard, Auth/session/scope/role contract, password policy,
   invite token, access request API schema/rate limit, RTSP/WebRTC media path,
   Event POST/WebRTC/SSE/WS metadata schema를 S08 구현 범위에서 변경하지 않았습니다.
+
+### V220-S09 UI fulltest matrix / evidence 종료 기준
+
+직접 답: v2.2.0 UI fulltest matrix의 source-of-truth는
+[v220-ui-fulltest-matrix-evidence.md](./v220-ui-fulltest-matrix-evidence.md)의
+`media-server.v220-ui-fulltest-matrix.v1`입니다. S09는 S05~S08 route redesign을
+기능 ID와 `media-server.manual-ui-evidence-input.v1` 필드에 연결합니다.
+
+S09는 matrix/evidence 준비 단계입니다. 실제 인앱 브라우저 UI 풀테스트 PASS,
+30분 soak, 120분 longrun, published metadata 재검증, release close-out은 이번 단계
+완료 근거가 아닙니다.
+
+2026-06-03 S09 closure evidence:
+
+- PASS: `./server.sh verify-v220-ui-fulltest-matrix-evidence`,
+  `./server.sh verify-manual-ui-evidence`,
+  `./server.sh verify-manual-ui-evidence-runner`,
+  `./server.sh verify-docs-links`,
+  `./server.sh verify-docs-ui-assets`,
+  `./server.sh verify-feature-inventory-coverage`,
+  `./server.sh verify-script-inventory`,
+  `./server.sh verify-release-metadata`,
+  `node --check scripts/internal/verify_v220_ui_fulltest_matrix_evidence.mjs`
+- 산출물: [v220-ui-fulltest-matrix-evidence.md](./v220-ui-fulltest-matrix-evidence.md),
+  `docs/superpowers/specs/2026-06-03-v220-s09-ui-fulltest-matrix-evidence-design.md`,
+  `docs/superpowers/plans/2026-06-03-v220-s09-ui-fulltest-matrix-evidence.md`,
+  `scripts/internal/verify_v220_ui_fulltest_matrix_evidence.mjs`
+- 구현 범위: S05~S08 route redesign을 `media-server.v220-ui-fulltest-matrix.v1`과
+  `media-server.manual-ui-evidence-input.v1` 필드에 연결하고, manual UI 기준 문서,
+  feature inventory, stream verification에 S09 matrix 경계를 추가했습니다.
+
+미실행으로 남기는 범위:
+
+- 브라우저 UI 풀테스트 실행
+- 30분 soak
+- 120분 longrun
+- published metadata 재검증
+- release close-out, main merge, tag, GitHub Release
 
 ## 완료 roadmap: v2.1.0 VLM Runtime Opt-in Stabilization
 

@@ -7,6 +7,10 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 기능별 UI 필요 여부와 테스트 영역은
 [project-feature-test-inventory.md](./project-feature-test-inventory.md), 실행 순서는
 [manual-ui-checklist.md](./manual-ui-checklist.md)를 봅니다.
+v2.2.0 Responsive UI Foundation 결과를 기록할 때는
+[v220-ui-fulltest-matrix-evidence.md](./v220-ui-fulltest-matrix-evidence.md)의
+`media-server.v220-ui-fulltest-matrix.v1`과
+`media-server.manual-ui-evidence-input.v1` 필드를 함께 대조합니다.
 
 ## 검수 메타데이터
 
@@ -29,6 +33,7 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 - 문서 파악 범위:
 - feature inventory revision:
 - manual evidence schema: `media-server.manual-ui-evidence-input.v1`
+- v2.2.0 UI matrix schema: `media-server.v220-ui-fulltest-matrix.v1`
 - manual evidence required fields: `id`, `verdict`, `route`, `control`,
   `interaction`, `input` 또는 `inputNotApplicableReason`, `expected`, `actual`,
   `stateReflected`, `artifacts`, `logChecked`/`eventRecordChecked`/`logNotApplicableReason`

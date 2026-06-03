@@ -659,6 +659,26 @@ form class와 기존 action/input/session hook을 함께 유지하는지 확인�
 풀테스트, 30분 soak, 120분 longrun, published metadata 재검증은 S08 PASS로 대체하지
 않습니다.
 
+v2.2.0 UI fulltest matrix는 S09에서 S05~S08 route redesign을 manual UI evidence
+runner가 요구하는 기능 ID, route, control, interaction, input/state/log/artifact
+필드에 연결합니다. 이 단계는 UI 풀테스트 실행이 아니라 실행 전 coverage matrix
+gate입니다.
+
+```bash
+./server.sh verify-v220-ui-fulltest-matrix-evidence
+./server.sh verify-manual-ui-evidence
+./server.sh verify-manual-ui-evidence-runner
+./server.sh verify-docs-ui-assets
+./server.sh verify-feature-inventory-coverage
+git diff --check
+```
+
+이 묶음은 [v220-ui-fulltest-matrix-evidence.md](./v220-ui-fulltest-matrix-evidence.md)의
+`media-server.v220-ui-fulltest-matrix.v1`이
+`media-server.manual-ui-evidence-input.v1`과 `verify-manual-ui-evidence-runner`
+경계를 유지하는지 확인합니다. 브라우저 UI 풀테스트, 30분 soak, 120분 longrun,
+published metadata 재검증은 S09 PASS로 대체하지 않습니다.
+
 v2.1.0 S01 VLM runtime opt-in contract는 profile 저장 계약 안에서 runtime 상태만
 고정합니다. 실제 local/cloud runtime 호출이 아니라 default-off 상태 분리 gate입니다.
 
