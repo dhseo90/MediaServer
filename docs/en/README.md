@@ -19,7 +19,7 @@ path short enough to scan. The full index is `docs/README.md`.
 
 ## Current Boundary
 
-- v2.1.0 is the current source-only release target:
+- v2.1.0 is the latest published source-only release target:
   <https://github.com/dhseo90/MediaServer/releases/tag/v2.1.0>.
 - v2.1.0 release close-out is tracked in
   [../development-backlog.md](../development-backlog.md).
@@ -41,6 +41,10 @@ not replace one another. Real cloud provider calls, external TURN field gates,
 and VLM model/runtime bundles remain outside the v2.1.0 completion evidence.
 
 v2.1.0 release close-out details are in [../development-backlog.md](../development-backlog.md).
+For the active v2.2.0 documentation baseline, UI preview images are
+documentation assets only. QA-registry-heavy recaptures, unapproved Chrome/CDP
+fallback captures, and screenshot-only artifacts are not promoted to
+representative images or UI fulltest evidence without in-app browser review.
 
 ## Public Repository Boundary
 

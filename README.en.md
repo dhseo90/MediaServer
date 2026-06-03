@@ -13,7 +13,8 @@ runtime/model bundle distribution are outside the default release scope.
 
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
-- Current release: [v2.1.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.1.0)
+- Latest published release: [v2.1.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.1.0)
+- Active branch baseline: `v2.2.0 Responsive UI Foundation`
 
 ## At a Glance
 
@@ -29,6 +30,8 @@ runtime/model bundle distribution are outside the default release scope.
 - **Product UI**: routes users to Ops or Client views based on account
   permissions. There is no Lab product screen; lab endpoints remain available
   for API and verification workflows.
+  The active `v2.2.0` branch is a UI foundation and responsive workspace update;
+  it does not expand backend media paths, event schemas, or auth policy.
 - **Auth and scopes**: supports first-admin setup, session login, role/scope,
   admin user management, and viewer invite/request approval.
 - **Verification**: `./server.sh` provides UI/Auth smoke tests, VA replay checks,
@@ -138,8 +141,14 @@ release evidence live in dedicated docs.
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - Release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
 - Release notes: [v2.1.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.1.0)
+- Active UI roadmap: `v2.2.0 Responsive UI Foundation` in
+  [docs/development-backlog.md](docs/development-backlog.md)
 
 ## UI Preview
+
+These images are documentation preview assets, not UI fulltest PASS evidence.
+For the active `v2.2.0` docs baseline, QA-registry-heavy recaptures and
+unapproved Chrome/CDP fallback captures are not used as representative assets.
 
 **Ops Home**
 

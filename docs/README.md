@@ -31,10 +31,10 @@
 
 ## 현재 제품 경계
 
-- 현재 release: [`v2.1.0`](https://github.com/dhseo90/MediaServer/releases/tag/v2.1.0)
+- 최신 공개 release: [`v2.1.0`](https://github.com/dhseo90/MediaServer/releases/tag/v2.1.0)
 - release close-out: `v2.1.0` VLM runtime opt-in stabilization은
   [development-backlog.md](development-backlog.md)의 `v2.1.0 Release Close-out`에서 관리함
-- 활성 roadmap: `v2.2.0 Responsive UI Foundation`은
+- 현재 작업 기준: `v2.2.0 Responsive UI Foundation`은
   [development-backlog.md](development-backlog.md)의 활성 roadmap에서 관리하며,
   UI 기반 재설계, 반응형 task shell, C++ 문자열 UI 구조 한계 완화를 다룸
 - 중심 범위: live source onboarding, live source health, live VA event 품질
@@ -58,6 +58,11 @@ evidence로만 보관합니다.
 둡니다. 안정화 테스트, 30분 soak, 인앱 브라우저 UI 풀테스트, 120분 longrun은
 서로를 대체하지 않습니다. real cloud provider call, external TURN field gate,
 VLM model/runtime bundle은 v2.1.0 release 완료 근거가 아닙니다.
+
+v2.2.0 문서 기준에서 README와 UI guide의 대표 이미지는 제품 흐름을 설명하는
+문서용 자산입니다. 운영 QA registry가 섞인 긴 캡처, Chrome/CDP 예외 캡처, 자동
+screenshot 생성만으로 만든 산출물은 인앱 브라우저 확인 없이 대표 이미지나 UI
+풀테스트 evidence로 승격하지 않습니다.
 
 ## Current Release Close-Out
 

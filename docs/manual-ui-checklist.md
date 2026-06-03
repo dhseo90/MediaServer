@@ -5,8 +5,11 @@
 source-of-truth로 삼고, 기능별 UI 필요 여부와 테스트 영역은
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 합니다. 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를
-사용합니다. 현재 release 목표는 `v2.1.0`이며, UI 풀테스트 기준도 이 버전의
-제품 route, 권한, 기능 baseline만 대상으로 합니다.
+사용합니다. 최신 공개 release 기준은 `v2.1.0`이며, 현재 작업 브랜치의 UI 문서
+기준은 `v2.2.0 Responsive UI Foundation`입니다. UI 풀테스트 기준은 해당 작업
+범위에 포함된 제품 route, 권한, 기능 baseline만 대상으로 합니다.
+현재 release 목표는 `v2.1.0`이라는 gate 문구는 최신 공개 release baseline을
+뜻하며, v2.2.0 브랜치의 UI 재배치 작업 완료나 UI 풀테스트 PASS를 뜻하지 않습니다.
 문서 구조와 evidence 경계는 `./server.sh verify-manual-ui-evidence`로 확인합니다.
 현재 제품 UI 직접 조작 evidence 없이 완료 판정에 포함하지 않습니다.
 전용 throwaway 서버부터 core/auth 클릭 검증까지 한 번에 실행해야 할 때는
@@ -185,10 +188,11 @@ Evidence index에는 route, 계정/권한, 직접 조작, screenshot/artifact, �
 남깁니다. 사용자가 의도적으로 제외한 항목은 Evidence index가 아니라 `제외 기록`에
 남깁니다.
 
-UI 조작 evidence는 프로젝트 verifier가 자체 Chrome/CDP 세션에서 클릭/타이핑/팝업
-처리를 완료한 기록을 우선합니다. Codex 인앱 브라우저에서 사람이 직접 누르는 방식은
-보조 재현 수단입니다. 테스트가 사용자 클릭이나 팝업 버튼 수동 확인을 기다리면
-해당 항목은 harness 실패로 기록하고 PASS 처리하지 않습니다.
+Codex 세션의 UI 조작 evidence는 인앱 브라우저 직접 조작을 우선합니다.
+프로젝트 verifier가 자체 Chrome/CDP 세션에서 클릭/타이핑/팝업 처리를 완료한 기록은
+명시 승인된 예외나 Codex 밖 실행의 보조 evidence로만 씁니다. 테스트가 사용자 클릭이나
+팝업 버튼 수동 확인을 기다리면 해당 항목은 harness 실패로 기록하고 PASS 처리하지
+않습니다.
 
 ## 4. Auth Shell
 

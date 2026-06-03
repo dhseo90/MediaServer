@@ -34,7 +34,7 @@ source-of-truth가 아닙니다. 현재 기준은 이 문서와 기능별 상세
 
 `완료`는 운영 배포 ready, 장기 안정성 보장, 외부 연동 ready를 뜻하지 않습니다.
 
-## 현재 기준: v2.1.0 Source Release Baseline
+## 최신 공개 release 기준: v2.1.0 Source Release Baseline
 
 v2.1.0은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서
 VLM을 이벤트 해석/리뷰 보조 계층과 runtime/provider opt-in stabilization 범위로
@@ -78,7 +78,7 @@ baseline으로 유지합니다.
 과거 release evidence는 standalone current 문서가 아니라 이 문서의 archive 섹션에만
 보존합니다.
 
-## 활성 roadmap: v2.2.0 Responsive UI Foundation
+## 현재 작업 기준: v2.2.0 Responsive UI Foundation
 
 v2.2.0은 v2.1.0 source-only release baseline 위에서 제품 UI의 기반을 재정리하는
 roadmap입니다. 목표는 화면 색상만 바꾸는 것이 아니라, 현재 C++ 문자열 기반 UI의

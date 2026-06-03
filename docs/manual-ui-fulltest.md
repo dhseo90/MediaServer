@@ -5,7 +5,8 @@
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 삼고, 실행 순서는 [manual-ui-checklist.md](./manual-ui-checklist.md), 결과 기록은
 [manual-ui-result-template.md](./manual-ui-result-template.md)를 사용합니다.
-현재 제품 UI 기준은 release 목표 `v2.1.0`입니다. 지원 가능한 모든 기능을 실제 UI 조작으로 확인하지 않은 경우에는 완료로 쓰지 않습니다.
+현재 제품 UI 기준은 최신 공개 release `v2.1.0`이고, 현재 작업 브랜치의 UI 문서
+기준은 `v2.2.0 Responsive UI Foundation`입니다. 지원 가능한 모든 기능을 실제 UI 조작으로 확인하지 않은 경우에는 완료로 쓰지 않습니다.
 
 ## 1. 정의
 
@@ -13,7 +14,8 @@ UI 풀테스트는 API smoke가 아니라 제품 웹 UI를 실제 브라우저�
 클릭과 타이핑으로 문서에 설명된 기능을 하나하나 확인하는 검수입니다.
 Codex 세션에서는 인앱 브라우저 직접 조작을 기본 evidence로 사용합니다.
 인앱 브라우저를 사용할 수 없는 외부 자동화 환경에서만 Chrome/CDP fallback을
-명시적으로 사용합니다. 사용자에게 pane 열기, 버튼 클릭, 팝업 확인을
+명시적으로 사용합니다. Codex 세션에서 Chrome/CDP fallback을 사용하려면 사용자
+승인이 먼저 필요합니다. 사용자에게 pane 열기, 버튼 클릭, 팝업 확인을
 요청해야만 진행되는 테스트는 UI 풀테스트 PASS evidence가 아닙니다.
 API 응답, raw JSON, screenshot 생성, 스크립트 통과만으로는 UI 풀테스트를 완료했다고
 기록하지 않습니다.
@@ -38,7 +40,7 @@ UI 풀테스트는 `스크립트 테스트`와 별도 영역입니다. 스크립
 | 안정화 테스트 | 30분/120분/UI 테스트의 선수 테스트입니다. 로드맵 각 스텝 종료 시 먼저 수행합니다. 실패하면 UI 풀테스트로 넘어가지 않습니다. |
 | 30분 테스트 | 장기간 테스트 지시 시 기본으로 수행하고, 각 버전별 로드맵 개발이 끝나면 수행합니다. UI 클릭/타이핑 evidence를 대체하지 않습니다. |
 | 120분 테스트 | 메모리 릭, 장시간 누수, runtime drift 감시용입니다. 무조건 실행하지 않고 필요하면 사용자에게 먼저 알립니다. UI 풀테스트 PASS를 대체하지 않습니다. |
-| UI 풀테스트 | Codex 세션에서는 인앱 브라우저 직접 조작, Codex 밖 사용자 실행에서는 자율 Chrome/CDP 조작도 허용하는 role별 화면, 반응형, 시각 품질 evidence입니다. 30분/120분 안정화 PASS를 대체하지 않습니다. |
+| UI 풀테스트 | Codex 세션에서는 인앱 브라우저 직접 조작을 사용합니다. Codex 밖 사용자 실행 또는 명시 승인된 예외에서만 Chrome/CDP 조작을 별도 evidence로 기록합니다. role별 화면, 반응형, 시각 품질 evidence이며 30분/120분 안정화 PASS를 대체하지 않습니다. |
 
 따라서 결과 문서에는 `스크립트 테스트`와 `UI 풀테스트` 판정을 따로 적습니다.
 UI 풀테스트 판정값은 `PASS`와 `FAIL`만 사용합니다. 모든 기능을 실제 브라우저에서

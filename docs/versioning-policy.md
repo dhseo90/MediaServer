@@ -4,8 +4,12 @@
 
 ## 현재 기준
 
-- 현재 기준 버전: `v2.1.0`
+- 최신 공개 release 기준 버전: `v2.1.0`
+- 현재 작업 브랜치 기준: `v2.2.0 Responsive UI Foundation`
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
+- release close-out 전까지 `VERSION`/`CMakeLists.txt` metadata는 최신 공개 release
+  기준을 유지하며, active branch roadmap 이름만으로 제품 release publish를 완료한
+  것으로 보지 않습니다.
 - `v2.1.0`은 직전 release까지 닫은 source-only/live-only 제품 경계를 유지하면서
   VLM을 이벤트 해석/리뷰 보조 계층과 runtime/provider opt-in stabilization 범위로
   닫는 source-only release입니다.
