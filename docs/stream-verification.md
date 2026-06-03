@@ -556,6 +556,27 @@ density, spacing, button/input/table/badge/debug details 기준을
 control에서 소비하는지 확인합니다. screenshot evidence, 브라우저 UI 풀테스트,
 visual redesign mockup, 30분 soak, 120분 longrun은 S03 PASS로 대체하지 않습니다.
 
+v2.2.0 component primitive는 S04에서 card, toolbar, tab, segmented control, table,
+drawer/details panel, form row, status badge, empty/loading/error state를 C++ helper
+API로 묶고 정적 서버 template의 최소 소비 지점을 연결합니다. 이 단계는 route별
+화면 재배치가 아니라 S05~S08 route redesign의 helper 입력값을 고정하는 작업입니다.
+
+```bash
+./server.sh verify-v220-component-primitives
+./server.sh verify-v220-design-token-refresh
+./server.sh verify-product-ui-token-drift
+./server.sh verify-ops-tables-layout
+./server.sh verify-ops-client-ui --browser-mode static
+./server.sh verify-docs-links
+./server.sh verify-script-inventory
+```
+
+이 묶음은 [v220-component-primitives.md](./v220-component-primitives.md)가 helper API와
+변경 금지 경계를 담고, `product_ui_components`가 빌드에 연결됐으며 static product
+template이 helper를 실제 소비하는지 확인합니다. screenshot evidence, 브라우저 UI
+풀테스트, visual redesign mockup, 30분 soak, 120분 longrun은 S04 PASS로 대체하지
+않습니다.
+
 v2.1.0 S01 VLM runtime opt-in contract는 profile 저장 계약 안에서 runtime 상태만
 고정합니다. 실제 local/cloud runtime 호출이 아니라 default-off 상태 분리 gate입니다.
 

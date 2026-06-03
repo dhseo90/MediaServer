@@ -119,7 +119,7 @@ tablet/panel 전환 기준, 1180px 이상은 밀도 높은 운영 콘솔 기준�
 | 1 | V220-S01 | P0 | 완료 | UI architecture inventory | C++ 문자열 UI 파일, shared token, page script, asset helper, route별 template 경계를 inventory로 정리하고 분리 가능한 component primitive 후보를 정합니다. | [v220-ui-architecture-inventory.md](./v220-ui-architecture-inventory.md), UI source inventory review, route/template mapping, `verify-v220-ui-architecture-inventory`, `verify-ops-client-ui`, `git diff --check` |
 | 2 | V220-S02 | P0 | 완료 | Responsive task shell | `/ops`, `/client`, `/setup`, `/login`의 route별 primary task, secondary action, drawer/panel 전환 기준을 정의합니다. | [v220-responsive-task-shell.md](./v220-responsive-task-shell.md), 320/390/760/1180 viewport checklist, layout contract review, `verify-v220-responsive-task-shell`, `verify-ops-client-ui --browser-mode static`, `git diff --check` |
 | 3 | V220-S03 | P0 | 완료 | Design token refresh | light/dark theme-aware token, spacing, density, typography, button/input/table/badge/debug details 기준을 단일 source로 정리합니다. | [v220-design-token-refresh.md](./v220-design-token-refresh.md), token diff review, theme contrast review, `verify-v220-design-token-refresh`, `verify-product-ui-token-drift`, `verify-ops-client-ui`, `git diff --check` |
-| 4 | V220-S04 | P1 | 예정 | Component primitives | card, toolbar, tab, segmented control, table, drawer, form row, status badge, empty/loading/error state를 반복 사용 가능한 C++ helper 단위로 묶습니다. | component snapshot review, route smoke, `verify-ops-tables-layout`, `git diff --check` |
+| 4 | V220-S04 | P1 | 완료 | Component primitives | card, toolbar, tab, segmented control, table, drawer, form row, status badge, empty/loading/error state를 반복 사용 가능한 C++ helper 단위로 묶습니다. | [v220-component-primitives.md](./v220-component-primitives.md), component snapshot review, route smoke, `verify-v220-component-primitives`, `verify-ops-tables-layout`, `git diff --check` |
 | 5 | V220-S05 | P1 | 예정 | Ops workspace redesign | `/ops` home, channels/source health, event feed, runtime/dashboard 화면의 시각 계층과 반복 운영 흐름을 재정리합니다. | Ops direct browser review, `verify-ops-click-e2e`, `verify-ops-client-ui --screenshots`, `git diff --check` |
 | 6 | V220-S06 | P1 | 예정 | Rules workspace redesign | `/ops/rules`의 rule/profile/scenario 편집, preview, smoke selector, 저장 feedback을 반응형 shell 기준으로 재배치합니다. | `/ops/rules` direct browser review, `verify-rule-ui`, `verify-ops-rules-roundtrip`, `git diff --check` |
 | 7 | V220-S07 | P1 | 예정 | Client live redesign | `/client` viewer는 운영자 debug를 숨긴 상태로 video/status/event review 흐름을 정리하고 작은 화면에서 viewer-first 동선을 보장합니다. | Client direct browser review, viewer redaction check, `verify-ops-client-ui --screenshots`, `git diff --check` |
@@ -260,6 +260,42 @@ longrun은 S03 완료 근거가 아닙니다.
   밖에서 재실행했고, `verify-auth-routes`는 병렬 실행 중 포트 충돌이 발생해 단독
   재실행했습니다. `verify-rule-ui`와 screenshot smoke는 Codex 세션의 명시적 Chrome
   fallback 예외로 실행했습니다.
+
+### V220-S04 component primitives 종료 기준
+
+직접 답: v2.2.0 component primitive helper의 source-of-truth는
+[v220-component-primitives.md](./v220-component-primitives.md),
+`include/ingress/product_ui_components.h`,
+`src/ingress/product_ui_components.cpp`입니다. S04는 card, toolbar, tab, segmented
+control, table, drawer/details panel, form row, status badge, empty/loading/error
+state helper를 C++ API로 만들고, static product template의 최소 소비 지점을 연결합니다.
+
+S04는 route redesign 단계가 아닙니다. `/ops`, `/client`, `/setup`, `/login` 화면의
+전면 재배치, visual redesign mockup, 브라우저 UI 풀테스트 PASS, 30분 soak, 120분
+longrun은 S04 완료 근거가 아닙니다.
+
+2026-06-03 S04 closure evidence:
+
+- PASS: `./server.sh build`, `verify-v220-component-primitives`,
+  `verify-v220-design-token-refresh`, `verify-product-ui-token-drift`,
+  `verify-ops-tables-layout`, `verify-ops-client-ui --screenshots`, `verify-rule-ui`,
+  `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`,
+  `verify-docs-links`, `verify-docs-ui-assets`, `verify-script-inventory`,
+  `verify-code-comments`, `verify-release-metadata`, `git diff --check`
+- 산출물: [v220-component-primitives.md](./v220-component-primitives.md),
+  `include/ingress/product_ui_components.h`,
+  `src/ingress/product_ui_components.cpp`,
+  `scripts/internal/verify_v220_component_primitives.mjs`
+- 구현 범위: `product_ui_components` helper API를 추가하고, auth login form,
+  auth landing badge, Ops dashboard toolbar/summary card/empty state의 최소 소비
+  지점을 연결했습니다.
+- 미실행: 브라우저 UI 풀테스트, visual redesign mockup, 30분 soak, 120분 longrun,
+  published metadata 재검증
+- 이슈 처리: `verify-ops-tables-layout`는 기본 실행에서 Chrome executable 미탐지,
+  이후 서버 미기동 `ECONNREFUSED`로 실패해 auth-off isolated 서버를 띄운 뒤 Codex
+  세션의 명시적 Chrome fallback 예외로 재실행했습니다. `verify-ops-client-ui
+  --screenshots`와 `verify-rule-ui`도 같은 명시적 fallback 예외로 실행했습니다. Auth
+  verifier는 실행자 제공 throwaway 환경변수로 단독 순서 실행했습니다.
 
 ## 완료 roadmap: v2.1.0 VLM Runtime Opt-in Stabilization
 

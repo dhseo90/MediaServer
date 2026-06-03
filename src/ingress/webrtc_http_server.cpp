@@ -58,6 +58,7 @@
 #include "ingress/onvif_live_import.h"
 #include "ingress/request_parser.h"
 #include "ingress/product_ui_assets.h"
+#include "ingress/product_ui_components.h"
 #include "ingress/product_ui_css.h"
 #include "ingress/product_ui_js.h"
 #include "ingress/product_ui_page_scripts.h"
@@ -2682,12 +2683,13 @@ std::string LoginPageHtml(const std::string& message, bool failed) {
         out << "      <div class=\"message" << (failed ? " error" : "") << "\">"
             << HtmlEscape(message) << "</div>\n";
     }
-    out << R"(      <label>계정명
-        <input name="username" autocomplete="username" required />
-      </label>
-      <label>비밀번호
-        <input name="password" type="password" autocomplete="current-password" required />
-      </label>
+    out << "      " << ProductUiFormRowHtml("계정명",
+                                             R"(<input name="username" autocomplete="username" required />)")
+        << "\n";
+    out << "      " << ProductUiFormRowHtml("비밀번호",
+                                             R"(<input name="password" type="password" autocomplete="current-password" required />)")
+        << "\n";
+    out << R"(
       <button class="primary" type="submit">로그인</button>
     </form>
 )";
@@ -2836,8 +2838,8 @@ std::string AuthLandingPageHtml(const auth::Principal& principal,
     <section class="panel">
       <strong>)" << HtmlEscape(principal.display_name) << R"(</strong>
       <div class="meta">
-        <span class="chip">권한: )" << HtmlEscape(principal.role) << R"(</span>
-        <span class="chip">인증: )" << HtmlEscape(principal.auth_mode) << R"(</span>
+        )" << ProductUiStatusBadgeHtml("권한: " + principal.role)
+            << ProductUiStatusBadgeHtml("인증: " + principal.auth_mode) << R"(
       </div>
       <p>)";
     for (std::size_t i = 0; i < principal.scopes.size(); ++i) {
@@ -2863,13 +2865,10 @@ std::string AuthLandingPageHtml(const auth::Principal& principal,
 
 void AppendOpsDashboardPage(std::ostringstream& out) {
     out << R"(    <section class="panel" data-ops-panel="dashboard" data-testid="ops-dashboard-page">
-      <div class="toolbar panel-title-toolbar">
-        <div>
-          <h2>운영 대시보드</h2>
-          <p>현재 상태를 한눈에 봅니다.</p>
-        </div>
-        )" << RefreshIconButtonHtml("opsDashboardRefresh", "button-secondary", "새로고침") << R"(
-      </div>
+      )" << ProductUiToolbarHtml("운영 대시보드",
+                                  "현재 상태를 한눈에 봅니다.",
+                                  RefreshIconButtonHtml("opsDashboardRefresh", "button-secondary", "새로고침"),
+                                  "panel-title-toolbar") << R"(
       <div class="grid ops-metric-grid">
         <div class="metric-card"><span>활성 세션</span><strong id="dashActiveSessions">-</strong></div>
         <div class="metric-card"><span>활성 스트림</span><strong id="dashActiveStreams">-</strong></div>
@@ -2877,26 +2876,30 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
         <div class="metric-card"><span>WHIP 소스</span><strong id="dashPublishSources">-</strong></div>
       </div>
       <div class="grid ops-dashboard-card-grid">
-        <section class="section-card">
-          <h3>상태 요약</h3>
-          <div id="dashHealthBadges" class="badge-row"><span class="chip">로딩 중</span></div>
-          <p id="dashHealthText">불러오는 중</p>
-        </section>
-        <section class="section-card">
-          <h3>분석 재사용</h3>
-          <div id="dashRuntimeRows" class="badge-row"><span class="chip">로딩 중</span></div>
-          <p id="dashRuntimeText">불러오는 중</p>
-        </section>
-        <section class="section-card">
-          <h3>메타데이터 전송</h3>
-          <div id="dashBackpressureRows" class="badge-row"><span class="chip">로딩 중</span></div>
-          <p id="dashBackpressureText">불러오는 중</p>
-        </section>
-        <section class="section-card">
-          <h3>정리 상태</h3>
-          <div id="dashCleanupRows" class="badge-row"><span class="chip">로딩 중</span></div>
-          <p id="dashCleanupText">불러오는 중</p>
-        </section>
+        )" << ProductUiSectionCardHtml("상태 요약",
+                                        std::string(),
+                                        ProductUiBadgeRowHtml({{"로딩 중", std::string()}},
+                                                              std::string(),
+                                                              "dashHealthBadges") +
+                                            R"(<p id="dashHealthText">불러오는 중</p>)") << R"(
+        )" << ProductUiSectionCardHtml("분석 재사용",
+                                        std::string(),
+                                        ProductUiBadgeRowHtml({{"로딩 중", std::string()}},
+                                                              std::string(),
+                                                              "dashRuntimeRows") +
+                                            R"(<p id="dashRuntimeText">불러오는 중</p>)") << R"(
+        )" << ProductUiSectionCardHtml("메타데이터 전송",
+                                        std::string(),
+                                        ProductUiBadgeRowHtml({{"로딩 중", std::string()}},
+                                                              std::string(),
+                                                              "dashBackpressureRows") +
+                                            R"(<p id="dashBackpressureText">불러오는 중</p>)") << R"(
+        )" << ProductUiSectionCardHtml("정리 상태",
+                                        std::string(),
+                                        ProductUiBadgeRowHtml({{"로딩 중", std::string()}},
+                                                              std::string(),
+                                                              "dashCleanupRows") +
+                                            R"(<p id="dashCleanupText">불러오는 중</p>)") << R"(
       </div>
       <section class="section-card" data-testid="ops-root-cause-panel">
         <div class="toolbar">
@@ -2908,7 +2911,7 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
         <div id="dashRootCauseBadges" class="badge-row"><span class="chip">로딩 중</span></div>
         <p id="dashRootCauseText">불러오는 중</p>
         <div id="dashRootCauseList" class="root-cause-list">
-          <div class="empty">런타임 상태를 불러오는 중입니다.</div>
+          )" << ProductUiEmptyStateHtml("런타임 상태를 불러오는 중입니다.") << R"(
         </div>
         <div id="dashRootCauseActionOutput" class="root-cause-action-output" hidden></div>
       </section>
