@@ -84,7 +84,7 @@ check("required sections exist", () => {
 
 check("summary counts match current feature IDs", () => {
   const rows = parseFeatureRows(inventory);
-  assert(rows.length === 369, `expected 369 feature rows, found ${rows.length}`);
+  assert(rows.length === 392, `expected 392 feature rows, found ${rows.length}`);
   const ids = rows.map(row => row.id);
   assert(new Set(ids).size === ids.length, "duplicate feature IDs in inventory");
   for (const prefix of ["UI", "AUTH", "SRC", "RULE", "EVT", "CLIENT", "MEDIA", "LAB", "SAFE"]) {
@@ -153,7 +153,7 @@ check("coverage wording separates mapping from execution", () => {
   }
 });
 
-check("V200-S14 VLM feature expansion rows exist", () => {
+check("current VLM feature expansion rows exist", () => {
   const requiredRows = [
     "UI-025",
     "UI-026",
@@ -163,12 +163,19 @@ check("V200-S14 VLM feature expansion rows exist", () => {
     "UI-030",
     "UI-031",
     "UI-032",
+    "UI-033",
+    "UI-034",
+    "UI-035",
+    "UI-036",
     "EVT-029",
     "EVT-030",
     "EVT-031",
     "EVT-032",
     "EVT-033",
     "EVT-034",
+    "EVT-035",
+    "EVT-036",
+    "MEDIA-021",
     "LAB-045",
     "LAB-046",
     "LAB-047",
@@ -180,6 +187,14 @@ check("V200-S14 VLM feature expansion rows exist", () => {
     "LAB-053",
     "LAB-054",
     "LAB-055",
+    "LAB-056",
+    "LAB-057",
+    "LAB-058",
+    "LAB-059",
+    "LAB-060",
+    "LAB-061",
+    "LAB-062",
+    "LAB-063",
     "SAFE-025",
     "SAFE-026",
     "SAFE-027",
@@ -189,19 +204,29 @@ check("V200-S14 VLM feature expansion rows exist", () => {
     "SAFE-031",
     "SAFE-032",
     "SAFE-033",
+    "SAFE-034",
+    "SAFE-035",
+    "SAFE-036",
+    "SAFE-037",
+    "SAFE-038",
+    "SAFE-039",
+    "SAFE-040",
+    "SAFE-041",
   ];
   const ids = new Set(parseFeatureRows(inventory).map(row => row.id));
   for (const id of requiredRows) {
-    assert(ids.has(id), `missing V200-S14 expanded feature row: ${id}`);
+    assert(ids.has(id), `missing current VLM expanded feature row: ${id}`);
   }
   for (const snippet of [
-    "`UI-001`~`UI-018`, `UI-022`~`UI-032`",
-    "`EVT-001`~`EVT-034`",
-    "`LAB-001`~`LAB-055`",
-    "`SAFE-001`~`SAFE-033`",
+    "`UI-001`~`UI-018`, `UI-022`~`UI-036`",
+    "`EVT-001`~`EVT-036`",
+    "`MEDIA-001`~`MEDIA-021`",
+    "`LAB-001`~`LAB-063`",
+    "`SAFE-001`~`SAFE-041`",
+    "V200-S00~S18 및 V210-S00~S12 변경분",
     "VLM route, control, action, runtime state, sidecar, privacy guard",
   ]) {
-    requireText(inventory, snippet, `inventory missing V200-S14 expansion snippet: ${snippet}`);
+    requireText(inventory, snippet, `inventory missing current VLM expansion snippet: ${snippet}`);
   }
 });
 

@@ -333,7 +333,7 @@ check("release policy pins source-only tag baseline", () => {
   const doc = readText("docs/release-policy.md");
   for (const snippet of [
     `현재 source-only release 기준 tag는 \`${currentTag}\`입니다.`,
-    `\`${currentTag}\`은 live-only media path를 유지하면서 VLM review assist를 source-only로 추가한 release`,
+    `\`${currentTag}\`은 live-only media path를 유지하면서 VLM review assist를 source-only baseline으로 유지하고 runtime/provider opt-in stabilization을 닫는 release`,
   ]) {
     assert(doc.includes(snippet), `docs/release-policy.md missing snippet: ${snippet}`);
   }
@@ -377,9 +377,12 @@ check("development backlog separates current baseline from deferred phase gates"
     `## 현재 기준: ${currentTag} Source Release Baseline`,
     `${currentTag}은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서`,
     `## ${currentTag} Release Close-out`,
-    "VLM을 이벤트 해석/리뷰 보조 계층",
-    "실제 tag/push는 수동 승인 후에만 수행합니다",
-    "v2.1.0 roadmap은 아직 작성하지 않습니다",
+    "## 완료 roadmap: v2.1.0 VLM Runtime Opt-in Stabilization",
+    "VLM을 이벤트 해석/리뷰 보조 계층과 runtime/provider opt-in stabilization 범위",
+    "이 roadmap은 `v2.1.0` branch에서",
+    "실제 tag/push는 이 release close-out 지시에 한해 수행합니다",
+    "v2.2.0 branch는 v2.1.0 GitHub Release와 published metadata 재검증이 끝난 뒤",
+    "v2.2.0 개발 방향은 사용자가 생각해 둔 별도 후속 지시 전까지",
   ]) {
     assert(doc.includes(snippet), `docs/development-backlog.md missing snippet: ${snippet}`);
   }

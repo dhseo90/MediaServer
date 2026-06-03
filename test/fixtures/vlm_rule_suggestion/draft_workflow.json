@@ -1,0 +1,56 @@
+{
+  "schema": "media-server.vlm-rule-suggestion-draft-workflow-fixture.v1",
+  "targetStep": "V210-S08",
+  "sourceCandidateStep": "V200-S13",
+  "workflow": {
+    "primaryDraftRoute": "/ops/rules",
+    "apiRoute": "/ops/api/vlm/rule-suggestion-drafts",
+    "operatorAction": "apply-to-event-template-form",
+    "manualSaveRequired": true,
+    "autoApply": false,
+    "ruleRegistryWritePerformed": false,
+    "autoRuleApplied": false,
+    "autoProfileApplied": false,
+    "viewerClientExposureAdded": false
+  },
+  "draftCases": [
+    {
+      "id": "line-crossing-form-draft",
+      "sourceCandidateId": "line-crossing-manual-review",
+      "expectedFormMode": "event",
+      "expectedEventType": "line-crossing",
+      "expectedManualSaveRoute": "/ops/rules",
+      "expectedWriteBeforeSave": false
+    },
+    {
+      "id": "intrusion-dwell-form-draft",
+      "sourceCandidateId": "intrusion-dwell-manual-review",
+      "expectedFormMode": "scenario",
+      "expectedEventType": "intrusion-dwell",
+      "expectedManualSaveRoute": "/ops/rules",
+      "expectedWriteBeforeSave": false
+    },
+    {
+      "id": "zone-occupancy-form-draft",
+      "sourceCandidateId": "zone-occupancy-manual-review",
+      "expectedFormMode": "scenario",
+      "expectedEventType": "zone-occupancy",
+      "expectedManualSaveRoute": "/ops/rules",
+      "expectedWriteBeforeSave": false
+    }
+  ],
+  "excluded": [
+    {
+      "id": "auto-save-from-vlm-candidate",
+      "reason": "Operators must press the existing /ops/rules save action after reviewing geometry and thresholds."
+    },
+    {
+      "id": "client-viewer-rule-draft",
+      "reason": "Rule draft workflow is Ops-only and must not appear in client/viewer routes."
+    },
+    {
+      "id": "runtime-vlm-requery",
+      "reason": "S08 reads stored sidecar candidates and must not call local or cloud VLM providers."
+    }
+  ]
+}

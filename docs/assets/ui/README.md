@@ -2,7 +2,7 @@
 
 이 디렉터리는 README와 `docs/ui-guide.md`에서 사용할 제품 UI 스크린샷을 역할 기준 파일명으로 보관합니다.
 
-현재 대표 제품 이미지는 2026-05-23 캡처 자산을 current v2.0.0 release baseline의
+현재 대표 제품 이미지는 2026-05-23 캡처 자산을 current v2.1.0 release baseline의
 대표 shell 화면으로 유지합니다. 특히 Client Live 이미지는 source tree, dock event feed,
 workspace preset, tile-level disconnect/action, VA overlay tile이 보이는 제품 구조를
 기준으로 합니다. 단, 이 대표 이미지는 VLM 전용 `/ops/vlm`, `/ops/events` 리뷰 보조
@@ -22,10 +22,33 @@ README, README.en, `docs/ui-guide.md`, `docs/video-analysis.md`에서 참조하�
 `scripts/internal/rule_preview_fixture_helpers.mjs`의 공통 profile/event/VA rule
 fixture를 사용해 preview prerequisite drift를 막습니다.
 
+## v2.1.0 Image Review - 2026-06-03
+
+v2.1.0 close-out 문서 리뷰에서 문서가 참조하는 전체 이미지 20개를 직접 열어
+확인했습니다. 대상은 한국어 UI PNG 9개, English UI PNG 9개,
+`docs/assets/va-four-scene-overlay-ko.jpg`, `docs/assets/va-four-scene-sample.png`입니다.
+
+결론:
+
+- 기존 2026-05-23 대표 제품 shell 캡처를 v2.1.0 대표 이미지로 유지합니다.
+- README/README.en 대표 이미지 12개는 crop 없이 핵심 화면과 control이 보입니다.
+- `client-live`, `client-dashboard` 계열 screenshot은 source URL, Developer URL,
+  raw JSON, debug counter, BBox diagnostics, model path, credential, session material을
+  노출하지 않습니다.
+- Ops channel/dashboard screenshot에는 운영자 화면의 sample input URL 또는 internal
+  incident key가 보이지만 client/viewer 화면이 아니며, credential/auth material은
+  보이지 않습니다.
+- `ops-rules-preview`와 VA overlay 이미지는 4분할 sample video viewport, VA overlay,
+  bbox/label, 영역/라인 control이 잘리지 않습니다.
+- VLM 전용 `/ops/vlm`, `/ops/events` review-assist 화면은 이 대표 이미지 세트로
+  대체하지 않고, [manual-ui-result-2026-06-03-v210-inapp-fulltest.md](../../manual-ui-result-2026-06-03-v210-inapp-fulltest.md)
+  및 `verify-manual-ui-evidence-runner` evidence로 분리합니다.
+- 이번 리뷰에서 recapture가 필요한 이미지 이슈는 없었습니다.
+
 직접 이미지 검수 checklist:
 
 - 재캡처 뒤 한국어/영어 PNG를 모두 직접 엽니다.
-- 현재 v2.0.0 release baseline의 대표 shell 화면 구조와 맞는지 확인합니다.
+- 현재 v2.1.0 release baseline의 대표 shell 화면 구조와 맞는지 확인합니다.
 - VLM 전용 화면이 필요한 release evidence로 이 대표 이미지를 대신 쓰지 않습니다.
 - 영상 screenshot은 video viewport, control, status, VA overlay가 잘리지 않는지 확인합니다.
 - client/viewer screenshot에 source URL, Developer URL, raw JSON, debug counter,

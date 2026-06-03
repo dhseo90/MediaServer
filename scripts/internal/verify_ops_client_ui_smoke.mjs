@@ -122,7 +122,7 @@ const pageChecks = [
   {
     name: "ops-events",
     path: "/ops/events",
-    must: ['data-testid="ops-events-page"', 'data-route-scope="direct-diagnostic"', 'Primary nav에는 표시하지 않는 direct/diagnostic route', 'id="opsEventsRefresh"', '/ops/api/events/status', 'data-testid="ops-alert-delivery-integrations"', 'data-alert-contract="separate-from-event-post-payload"', 'id="alertDeliverySave"', 'id="alertDeliveryTest"', '/ops/api/alerts/deliveries', '/ops/api/alerts/deliveries/test', 'data-testid="ops-event-review-inbox"', 'data-review-state="separate-from-event-post-payload"', 'data-vlm-review-state="ops-only-event-record-evidence"', 'id="eventReviewStatusFilter"', '/ops/api/events/reviews'],
+    must: ['data-testid="ops-events-page"', 'data-route-scope="direct-diagnostic"', 'Primary nav에는 표시하지 않는 direct/diagnostic route', 'id="opsEventsRefresh"', '/ops/api/events/status', 'data-testid="ops-alert-delivery-integrations"', 'data-alert-contract="separate-from-event-post-payload"', 'id="alertDeliverySave"', 'id="alertDeliveryTest"', '/ops/api/alerts/deliveries', '/ops/api/alerts/deliveries/test', 'data-testid="ops-event-review-inbox"', 'data-review-state="separate-from-event-post-payload"', 'data-vlm-review-state="ops-only-event-record-evidence"', 'data-vlm-review-action-workflow="ops-only-review-state"', 'id="eventReviewStatusFilter"', '/ops/api/events/reviews'],
     mustNot: ['href="/ops/events"'],
   },
   {
@@ -149,7 +149,7 @@ const pageChecks = [
     name: "ops-vlm",
     path: "/ops/vlm",
     visualSelector: '[data-testid="ops-vlm-page"]',
-    must: ['data-testid="ops-vlm-page"', 'data-testid="ops-vlm-controls"', 'data-testid="ops-vlm-options-panel"', 'data-testid="ops-vlm-privacy-transfer-guard-panel"', 'data-testid="ops-vlm-profile-panel"', 'data-testid="ops-vlm-boundary-panel"', 'id="opsVlmExternalTransferWarningAck"', 'id="opsVlmProviderLoggingReviewed"', 'id="opsVlmPrivacyGuardList"', 'id="opsVlmSaveProfile"', '/ops/api/vlm/install-connection/dry-run', '/ops/api/vlm/profiles', 'media-server.vlm-privacy-transfer-guard.v1', 'credential, prompt, raw response, source URL, raw frame bytes'],
+    must: ['data-testid="ops-vlm-page"', 'data-testid="ops-vlm-controls"', 'data-testid="ops-vlm-runtime-status-panel"', 'data-testid="ops-vlm-evaluation-result-workflow"', 'data-testid="ops-vlm-options-panel"', 'data-testid="ops-vlm-privacy-transfer-guard-panel"', 'data-testid="ops-vlm-profile-panel"', 'data-testid="ops-vlm-boundary-panel"', 'id="opsVlmProviderStatus"', 'id="opsVlmRuntimeConnectionStatus"', 'id="opsVlmLastEvaluationStatus"', 'id="opsVlmFailureReason"', 'id="opsVlmDefaultOffStatus"', 'id="opsVlmEvaluationRows"', 'id="opsVlmEvaluationSelectionSummary"', 'id="opsVlmExternalTransferWarningAck"', 'id="opsVlmProviderLoggingReviewed"', 'id="opsVlmPrivacyGuardList"', 'id="opsVlmSaveProfile"', '/ops/api/runtime/status', '/ops/api/vlm/install-connection/dry-run', '/ops/api/vlm/evaluation-results', '/ops/api/vlm/profiles', 'media-server.vlm-privacy-transfer-guard.v1', 'credential, prompt, raw response, source URL, raw frame bytes'],
     mustNot: ['cloudProviderApiCalled":true', 'viewerClientExposureAdded":true', 'runtimeVlmCallPerformed":true'],
   },
   {

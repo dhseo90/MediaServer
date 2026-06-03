@@ -28,6 +28,11 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 - evidence index:
 - 문서 파악 범위:
 - feature inventory revision:
+- manual evidence schema: `media-server.manual-ui-evidence-input.v1`
+- manual evidence required fields: `id`, `verdict`, `route`, `control`,
+  `interaction`, `input` 또는 `inputNotApplicableReason`, `expected`, `actual`,
+  `stateReflected`, `artifacts`, `logChecked`/`eventRecordChecked`/`logNotApplicableReason`
+- manualSpotReviews:
 - token usage source:
 - token start:
 - token end:
@@ -63,7 +68,7 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 
 | 항목 | 기대 상태 | 실제 상태 | 판정 | 후속 |
 | --- | --- | --- | --- | --- |
-| v2.0.0 기능 목록 freeze | `v2.0.0 Pre-Test Update List`와 기능 ID 목록 확인 |  | PASS/FAIL |  |
+| 기능 목록 freeze | `Current Pre-Test Update List`와 기능 ID 목록 확인 |  | PASS/FAIL |  |
 | VLM UI 대상 | `/ops/vlm`, `/ops/events`, `/client/live`, `/client/dashboard`, `/client/events` 결과 행 존재 |  | PASS/FAIL |  |
 | auth verifier env | auth test password env 5개 모두 `SET` |  | PASS/FAIL |  |
 | throwaway fixture | users/source/view/analysis/event/snapshot/clip 경로 고정 |  | PASS/FAIL |  |
@@ -128,6 +133,16 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 - 반응형/테마 범위:
 - 시각 품질 확인:
 - 제외 기록:
+
+### Manual UI Evidence Runner Fields
+
+`verify-manual-ui-evidence-runner` report는 기능 ID별로 아래 필드를 출력합니다.
+누락된 UI 대상 기능 ID 또는 아래 PASS 필드가 빠진 행은 `FAIL`입니다.
+`manualSpotReviews`는 사람이 확인한 보조 범위를 남기지만 개별 기능 ID의
+route/control/input/state/log/artifact 누락을 대체하지 않습니다.
+
+| feature ID | route | control | interaction | input/inputNotApplicableReason | expected | actual | stateReflected | log/event evidence | artifacts | verdict |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 
 ### VLM UI Criteria
 
@@ -286,7 +301,7 @@ evidence이며, UI에서 열지 않은 경우 `FAIL`입니다.
 | `/client/events` | viewer/admin preview |  |  |  |  | PASS/FAIL |
 | `/client/request-access` | public |  |  |  |  | PASS/FAIL |
 
-## v2.0.0 Release Evidence Index
+## v2.1.0 Release Evidence Index
 
 자동 smoke나 raw JSON 확인만으로 채우지 않습니다. 실제로 열고 클릭한 화면만
 `PASS` 후보가 될 수 있고, 열지 않은 개별 기능은 `FAIL`입니다.

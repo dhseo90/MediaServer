@@ -69,10 +69,26 @@ provider logging/retention 검토는 V200-S11 guard 결과를 따라야 하며, 
 
 ```bash
 ./server.sh verify-vlm-rule-suggestion-candidates
+./server.sh verify-vlm-rule-suggestion-draft-workflow
 ./server.sh verify-analysis-state
 ./server.sh verify-rule-ui
 git diff --check
 ```
+
+## v2.1.0 S08 Draft Workflow
+
+V210-S08은 이 문서의 V200-S13 후보를 제품 `/ops/rules` 화면의 이벤트 템플릿
+draft로만 가져갑니다. API schema는
+`media-server.vlm-rule-suggestion-draft-workflow.v1`이며,
+`/ops/api/vlm/rule-suggestion-drafts`가 기존
+`media-server.vlm-rule-suggestion-candidates.v1` 후보 report를
+`sourceCandidateReport`로 감싸 반환합니다.
+
+운영 기본값은 `sidecar-candidate-to-ops-rules-event-template-draft`입니다.
+운영자는 후보를 `폼에 적용`한 뒤 기존 `/ops/rules` composer 저장 버튼으로
+수동 저장해야 합니다. draft 적용 자체는 Rule/Profile registry write, 자동 적용,
+VLM runtime/provider 호출, EventRecord/Event POST/WebRTC/SSE/WS schema 변경,
+RTSP/WebRTC media path 변경, client/viewer 노출을 수행하지 않습니다.
 
 ## Non-Scope
 
@@ -82,7 +98,7 @@ S13에서 하지 않는 일:
 - cloud provider API 호출 또는 provider rerank
 - 자동 Rule/Profile 생성 또는 적용
 - rule registry write 수행
-- 제품 rule suggestion UI 또는 viewer/client 노출
+- 자동 저장 rule suggestion UI 또는 viewer/client 노출
 - EventRecord top-level schema 변경
 - Event POST/WebRTC DataChannel/SSE/WS metadata schema 변경
 - RTSP/WebRTC media path 변경

@@ -11,8 +11,9 @@ Release asset 기준은 [release-policy.md](./release-policy.md)에서 함께 �
 - FFmpeg/GStreamer runtime은 사용자 package manager 설치물로 취급합니다.
 - bundle, app package, container image, offline package를 만들 때는 `./server.sh verify-bundle-policy --bundle-dir <release_bundle_dir>`를 실행합니다.
 - GPL-risk runtime을 의도적으로 포함하면 별도 라이선스 검토, upstream license text, source offer, attribution을 준비합니다.
-- runtime/model bundle RC policy는 현재 기준에서 `verify-bundle-policy`,
-  `verify-release-bundle-dry-run`, `verify-rc-release-gate`로 확인합니다.
+- runtime/model bundle RC policy는 현재 기준에서 `verify-runtime-model-bundle-rc-rehearsal`,
+  `verify-bundle-policy`, `verify-release-bundle-dry-run`, `dependency-snapshot`,
+  `source-offer-checklist`, `verify-rc-release-gate`로 확인합니다.
 
 ## 배포 유형
 
@@ -56,6 +57,32 @@ VLM model artifact를 의도적으로 포함하는 배포는 기본 release 대�
 terms, redistribution 조건, privacy/logging/retention 검토를 먼저 완료해야 합니다.
 `V200-S01`의 선택 문서는 모델명과 기준을 고정하지만 model 파일을 repo나 release
 asset에 넣는 승인이 아닙니다.
+
+## Runtime/Model Bundle RC Rehearsal
+
+v2.1.0 `V210-S11 Runtime/model bundle RC rehearsal`은 실제 bundle release나 release
+asset 업로드가 아니라 [runtime-model-bundle-rc-rehearsal.md](./runtime-model-bundle-rc-rehearsal.md)의
+blocked/RC-only decision을 검증하는 단계입니다. 기본 결정값은 source-only 유지이며,
+`media-server.runtime-model-bundle-rc-rehearsal-report.v1` report는
+`actualBundleCreated=false`, `releaseAssetUploaded=false`,
+`runtimeModelBundleSelected=false`를 보존해야 합니다.
+
+```bash
+./server.sh verify-runtime-model-bundle-rc-rehearsal \
+  --report /tmp/media_server_runtime_model_bundle_rc_rehearsal.md \
+  --json-report /tmp/media_server_runtime_model_bundle_rc_rehearsal.json
+./server.sh verify-bundle-policy \
+  --output /tmp/media_server_bundle_policy.md \
+  --json-output /tmp/media_server_bundle_policy.json
+./server.sh verify-release-bundle-dry-run --candidate source-only
+./server.sh dependency-snapshot --stable --no-linked-libs \
+  --output /tmp/media_server_dependency_snapshot_s11.md
+```
+
+`source-only-default-pass`, `runtime-model-included-blocked`,
+`gpl-risk-runtime-binary-blocked`, `release-asset-upload-blocked` fixture는 실제 bundle
+생성 없이 RC policy를 검증합니다. 이 PASS는 runtime/model 포함 배포 승인이나 GitHub
+Release asset 업로드 완료가 아닙니다.
 
 ## Source Offer Checklist
 

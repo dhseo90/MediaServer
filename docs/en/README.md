@@ -19,24 +19,27 @@ path short enough to scan. The full index is `docs/README.md`.
 
 ## Current Boundary
 
-- v2.0.0 is the current published source-only release:
-  <https://github.com/dhseo90/MediaServer/releases/tag/v2.0.0>.
+- v2.1.0 is the current source-only release target:
+  <https://github.com/dhseo90/MediaServer/releases/tag/v2.1.0>.
+- v2.1.0 release close-out is tracked in
+  [../development-backlog.md](../development-backlog.md).
+- v2.2.0 will be created only as the next branch after the v2.1.0 release. Its
+  development direction remains owner-held until a follow-up instruction.
 - The main product boundary is live source onboarding, live source health, and
   live VA event quality.
 - Binary, runtime, and model bundles are excluded from the default release.
 - Long-term recording, VMS/NVR, playback/search, ONVIF Profile G
   recording/replay, Re-ID default-on, and tracker default-on remain out of scope.
 
-v2.0.0 branch-level close-out evidence is tracked in
-[../release-evidence-index.md](../release-evidence-index.md) and
-[../v200-test-record-2026-05-31.md](../v200-test-record-2026-05-31.md).
-As of 2026-06-01, the stability test, 30-minute soak, in-app browser UI
-fulltest, and 120-minute predev longrun each have separate PASS evidence. They
-do not replace one another. `verify-va-runtime-console-longrun --duration-minutes
-120`, real cloud provider calls, external TURN field gates, and VLM model/runtime
-bundles remain outside the v2.0.0 completion evidence.
+v2.1.0 branch-level close-out evidence is tracked in
+[../release-evidence-index.md](../release-evidence-index.md). The 2026-06-03
+in-app browser UI fulltest result is tracked in
+[../manual-ui-result-2026-06-03-v210-inapp-fulltest.md](../manual-ui-result-2026-06-03-v210-inapp-fulltest.md).
+Script stability, 30-minute soak, UI fulltest, and 120-minute longrun evidence do
+not replace one another. Real cloud provider calls, external TURN field gates,
+and VLM model/runtime bundles remain outside the v2.1.0 completion evidence.
 
-v2.0.0 release close-out details are in [../development-backlog.md](../development-backlog.md).
+v2.1.0 release close-out details are in [../development-backlog.md](../development-backlog.md).
 
 ## Public Repository Boundary
 

@@ -1,0 +1,134 @@
+{
+  "schema": "media-server.vlm-cloud-provider-field-smoke-gate-fixtures.v1",
+  "targetStep": "V210-S03",
+  "defaultProvider": "gemini",
+  "defaultModel": "gemini-2.5-flash",
+  "cases": [
+    {
+      "id": "not-approved-not-run",
+      "manualApprovalFlag": false,
+      "envApproval": false,
+      "credentialPresent": false,
+      "providerOutcome": "not-called",
+      "expected": {
+        "gateStatus": "pass",
+        "fieldSmokeStatus": "not-run",
+        "providerApiCalled": false,
+        "releasePassEligible": false
+      },
+      "redaction": {
+        "credentialMaterialStored": false,
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "sourceUrlStored": false,
+        "rawFrameBytesStored": false,
+        "viewerClientExposureAdded": false
+      }
+    },
+    {
+      "id": "manual-flag-without-env-approval-not-run",
+      "manualApprovalFlag": true,
+      "envApproval": false,
+      "credentialPresent": true,
+      "providerOutcome": "not-called",
+      "expected": {
+        "gateStatus": "pass",
+        "fieldSmokeStatus": "not-run",
+        "providerApiCalled": false,
+        "releasePassEligible": false
+      },
+      "redaction": {
+        "credentialMaterialStored": false,
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "sourceUrlStored": false,
+        "rawFrameBytesStored": false,
+        "viewerClientExposureAdded": false
+      }
+    },
+    {
+      "id": "env-approval-without-manual-flag-not-run",
+      "manualApprovalFlag": false,
+      "envApproval": true,
+      "credentialPresent": true,
+      "providerOutcome": "not-called",
+      "expected": {
+        "gateStatus": "pass",
+        "fieldSmokeStatus": "not-run",
+        "providerApiCalled": false,
+        "releasePassEligible": false
+      },
+      "redaction": {
+        "credentialMaterialStored": false,
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "sourceUrlStored": false,
+        "rawFrameBytesStored": false,
+        "viewerClientExposureAdded": false
+      }
+    },
+    {
+      "id": "approved-missing-credential-blocked",
+      "manualApprovalFlag": true,
+      "envApproval": true,
+      "credentialPresent": false,
+      "providerOutcome": "not-called",
+      "expected": {
+        "gateStatus": "pass",
+        "fieldSmokeStatus": "blocked-missing-credential",
+        "providerApiCalled": false,
+        "releasePassEligible": false
+      },
+      "redaction": {
+        "credentialMaterialStored": false,
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "sourceUrlStored": false,
+        "rawFrameBytesStored": false,
+        "viewerClientExposureAdded": false
+      }
+    },
+    {
+      "id": "approved-provider-timeout-fail-not-release-pass",
+      "manualApprovalFlag": true,
+      "envApproval": true,
+      "credentialPresent": true,
+      "providerOutcome": "timeout",
+      "expected": {
+        "gateStatus": "pass",
+        "fieldSmokeStatus": "fail",
+        "providerApiCalled": true,
+        "releasePassEligible": false
+      },
+      "redaction": {
+        "credentialMaterialStored": false,
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "sourceUrlStored": false,
+        "rawFrameBytesStored": false,
+        "viewerClientExposureAdded": false
+      }
+    },
+    {
+      "id": "approved-provider-pass-release-eligible",
+      "manualApprovalFlag": true,
+      "envApproval": true,
+      "credentialPresent": true,
+      "providerOutcome": "pass",
+      "expected": {
+        "gateStatus": "pass",
+        "fieldSmokeStatus": "pass",
+        "providerApiCalled": true,
+        "releasePassEligible": true
+      },
+      "redaction": {
+        "credentialMaterialStored": false,
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "sourceUrlStored": false,
+        "rawFrameBytesStored": false,
+        "viewerClientExposureAdded": false
+      }
+    }
+  ]
+}

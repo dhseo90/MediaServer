@@ -1505,6 +1505,14 @@ private:
                 return std::nullopt;
             }
         }
+        if (!ValidateVlmRuntimeOptInContract(body,
+                                             provider,
+                                             runtime,
+                                             activation_enabled,
+                                             activation_status,
+                                             error_message)) {
+            return std::nullopt;
+        }
         const auto invariants = ExtractObjectField(body, "contractInvariants");
         if (!invariants.has_value()) {
             SetRegistryError(error_message, "VLM profile contractInvariants object is required");
@@ -1540,6 +1548,116 @@ private:
         return std::any_of(allowed.begin(), allowed.end(), [&](const char* item) {
             return value == item;
         });
+    }
+
+    static bool ValidateVlmRuntimeOptInContract(const std::string& body,
+                                                const std::string& provider,
+                                                const std::string& runtime,
+                                                bool activation_enabled,
+                                                const std::string& activation_status,
+                                                std::string* error_message) {
+        const auto contract = ExtractObjectField(body, "runtimeContract");
+        if (!contract.has_value()) {
+            SetRegistryError(error_message, "VLM profile runtimeContract object is required");
+            return false;
+        }
+        if (ParseStringField(*contract, "schema").value_or("") !=
+            "media-server.vlm-runtime-opt-in-contract.v1") {
+            SetRegistryError(error_message,
+                             "VLM runtimeContract schema must be media-server.vlm-runtime-opt-in-contract.v1");
+            return false;
+        }
+        const std::string mode = Trim(ParseStringField(*contract, "mode").value_or(""));
+        const std::string status = Trim(ParseStringField(*contract, "status").value_or(""));
+        if (!IsOneOf(mode, {"disabled", "local-runtime", "cloud-provider"})) {
+            SetRegistryError(error_message, "VLM runtimeContract mode is not supported");
+            return false;
+        }
+        if (!IsOneOf(status,
+                     {"disabled",
+                      "local-runtime",
+                      "cloud-provider",
+                      "missing-model",
+                      "invalid-output",
+                      "timeout"})) {
+            SetRegistryError(error_message, "VLM runtimeContract status is not supported");
+            return false;
+        }
+        if (ParseBoolField(*contract, "defaultEnabled").value_or(true)) {
+            SetRegistryError(error_message, "VLM runtimeContract defaultEnabled must be false");
+            return false;
+        }
+        if (!ParseBoolField(*contract, "operatorOptInRequired").value_or(false)) {
+            SetRegistryError(error_message, "VLM runtimeContract requires operator opt-in");
+            return false;
+        }
+        if (ParseBoolField(*contract, "runtimeCallAllowed").value_or(true)) {
+            SetRegistryError(error_message, "VLM runtimeContract runtimeCallAllowed must be false in V210-S01");
+            return false;
+        }
+        if (ParseBoolField(*contract, "providerCallAllowed").value_or(true)) {
+            SetRegistryError(error_message, "VLM runtimeContract providerCallAllowed must be false in V210-S01");
+            return false;
+        }
+        const bool cloud_profile = provider == "cloud-provider-api";
+        if (cloud_profile && mode != "cloud-provider") {
+            SetRegistryError(error_message, "cloud VLM profile requires cloud-provider runtimeContract mode");
+            return false;
+        }
+        if (!cloud_profile && mode == "cloud-provider") {
+            SetRegistryError(error_message, "local VLM profile must not use cloud-provider runtimeContract mode");
+            return false;
+        }
+        if (status == "cloud-provider" && !cloud_profile) {
+            SetRegistryError(error_message, "cloud-provider runtimeContract status requires cloud provider profile");
+            return false;
+        }
+        if (status == "local-runtime" && (cloud_profile || runtime == "provider-api" || runtime == "not-configured")) {
+            SetRegistryError(error_message, "local-runtime status requires a configured local runtime");
+            return false;
+        }
+        if (status == "missing-model" && cloud_profile) {
+            SetRegistryError(error_message, "missing-model runtimeContract status is local-runtime only");
+            return false;
+        }
+        if ((status == "disabled" || status == "missing-model" || status == "invalid-output" ||
+             status == "timeout") &&
+            activation_enabled) {
+            SetRegistryError(error_message, "VLM runtimeContract failure or disabled status must not be enabled");
+            return false;
+        }
+        if (status == "disabled" && activation_status == "active") {
+            SetRegistryError(error_message, "disabled VLM runtimeContract must not have active activation");
+            return false;
+        }
+        if (mode == "disabled" && status != "disabled") {
+            SetRegistryError(error_message, "disabled VLM runtimeContract mode requires disabled status");
+            return false;
+        }
+        const auto side_effects = ExtractObjectField(*contract, "sideEffects");
+        if (!side_effects.has_value()) {
+            SetRegistryError(error_message, "VLM runtimeContract sideEffects object is required");
+            return false;
+        }
+        for (const std::string& field :
+             {"runtimeVlmCallPerformed",
+              "cloudProviderApiCalled",
+              "modelArtifactDownloaded",
+              "modelArtifactBundled",
+              "credentialStored",
+              "sidecarStored",
+              "eventPostPayloadChanged",
+              "webrtcDataChannelSchemaChanged",
+              "sseMetadataSchemaChanged",
+              "wsMetadataSchemaChanged",
+              "rtspOrWebrtcMediaPathChanged",
+              "viewerClientExposureAdded"}) {
+            if (ParseBoolField(*side_effects, field).value_or(true)) {
+                SetRegistryError(error_message, "VLM runtimeContract side effect must be false: " + field);
+                return false;
+            }
+        }
+        return true;
     }
 
     static bool ValidateVlmPrivacyGuardContract(const std::string& body,
@@ -3016,6 +3134,28 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           </details>
         </div>
       </section>
+      <section class="section-card ops-vlm-rule-draft-workflow" data-testid="ops-vlm-rule-draft-workflow" data-vlm-rule-draft-contract="draft-only-manual-save">
+        <div class="toolbar">
+          <div>
+            <h3>VLM Rule draft</h3>
+            <p id="opsVlmRuleDraftSummary">저장된 VLM observation 후보를 이벤트 템플릿 폼 초안으로만 가져옵니다.</p>
+          </div>
+          <div class="actions">
+            <label>후보 종류
+              <select id="opsVlmRuleDraftKindSelect" aria-label="VLM rule draft 후보 종류">
+                <option value="">전체</option>
+                <option value="line-crossing">라인 통과</option>
+                <option value="intrusion-dwell">침입 체류</option>
+                <option value="zone-occupancy">영역 점유</option>
+              </select>
+            </label>
+            <button id="opsVlmRuleDraftRefresh" class="button-secondary" type="button">후보 새로고침</button>
+          </div>
+        </div>
+        <div id="opsVlmRuleDraftList" class="ops-vlm-rule-draft-list" aria-live="polite">
+          <div class="empty">후보를 불러오는 중입니다.</div>
+        </div>
+      </section>
       <section class="section-card">
         <div class="toolbar">
           <div>
@@ -3567,11 +3707,11 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           </table>
         </div>
       </section>
-      <section class="section-card" data-testid="ops-event-review-inbox" data-review-state="separate-from-event-post-payload" data-vlm-review-state="ops-only-event-record-evidence">
+      <section class="section-card" data-testid="ops-event-review-inbox" data-review-state="separate-from-event-post-payload" data-vlm-review-state="ops-only-event-record-evidence" data-vlm-review-action-workflow="ops-only-review-state">
         <div class="toolbar">
           <div>
             <h3>Rule Event Review Inbox</h3>
-            <p id="eventReviewSummary">Rule/Scenario 이벤트의 확인, 분류, 메모, 상태와 EventRecord evidence, VLM 설명을 Ops 전용 review state로 관리합니다.</p>
+            <p id="eventReviewSummary">Rule/Scenario 이벤트의 확인, 분류, 메모, 상태와 EventRecord evidence, VLM 설명/action을 Ops 전용 review state로 관리합니다.</p>
           </div>
           <div class="actions event-review-controls">
             <label>Review 상태
@@ -3776,6 +3916,59 @@ void AppendOpsVlmInstallConnectionPage(std::ostringstream& out) {
         <div class="metric-card"><span>PC 등급</span><strong id="opsVlmHardwareSummary">-</strong></div>
         <div class="metric-card"><span>외부 전송</span><strong id="opsVlmTransferSummary">-</strong></div>
       </div>
+      <section class="section-card" data-testid="ops-vlm-runtime-status-panel" data-vlm-runtime-status="ops-only-default-off">
+        <div class="toolbar">
+          <div>
+            <h3>VLM runtime status</h3>
+            <p>provider 상태, runtime 연결 상태, 마지막 evaluation, 실패 사유, privacy mode, default-off 상태를 읽기 전용으로 표시합니다.</p>
+          </div>
+        </div>
+        <div class="grid ops-metric-grid">
+          <div class="metric-card"><span>Provider</span><strong id="opsVlmProviderStatus">-</strong></div>
+          <div class="metric-card"><span>Runtime</span><strong id="opsVlmRuntimeConnectionStatus">-</strong></div>
+          <div class="metric-card"><span>Last evaluation</span><strong id="opsVlmLastEvaluationStatus">-</strong></div>
+          <div class="metric-card"><span>Failure</span><strong id="opsVlmFailureReason">-</strong></div>
+          <div class="metric-card"><span>Privacy</span><strong id="opsVlmPrivacyModeStatus">-</strong></div>
+          <div class="metric-card"><span>Default</span><strong id="opsVlmDefaultOffStatus">-</strong></div>
+        </div>
+        <div id="opsVlmRuntimeStatusBadges" class="badge-row">
+          <span class="chip">runtime/status 로딩 중</span>
+        </div>
+        <div id="opsVlmRuntimeStatusList" class="root-cause-list">
+          <div class="empty">VLM runtime status를 불러오는 중입니다.</div>
+        </div>
+      </section>
+      <section class="section-card" data-testid="ops-vlm-evaluation-result-workflow" data-vlm-evaluation-workflow="fixture-result-profile-selection">
+        <div class="toolbar">
+          <div>
+            <h3>Evaluation result workflow</h3>
+            <p>sample event 평가 결과를 latency, JSON 안정성, 설명 품질, hallucination risk, 한국어/영어 품질 기준으로 비교하고 profile draft에 반영합니다.</p>
+          </div>
+        </div>
+        <div class="grid ops-metric-grid">
+          <div class="metric-card"><span>Workflow</span><strong id="opsVlmEvaluationWorkflowStatus">-</strong></div>
+          <div class="metric-card"><span>Sample cases</span><strong id="opsVlmEvaluationCaseCount">-</strong></div>
+          <div class="metric-card"><span>Candidates</span><strong id="opsVlmEvaluationCandidateCount">-</strong></div>
+          <div class="metric-card"><span>Selected result</span><strong id="opsVlmEvaluationSelectedProfile">-</strong></div>
+        </div>
+        <div id="opsVlmEvaluationBadges" class="badge-row">
+          <span class="chip">evaluation 결과 로딩 중</span>
+        </div>
+        <div class="ops-responsive-table">
+          <table>
+            <thead>
+              <tr>
+                <th>선택</th>
+                <th>모델 / prompt</th>
+                <th>품질 축</th>
+                <th>운영 판정</th>
+              </tr>
+            </thead>
+            <tbody id="opsVlmEvaluationRows"><tr><td colspan="4">평가 결과를 불러오는 중입니다.</td></tr></tbody>
+          </table>
+        </div>
+        <p id="opsVlmEvaluationSelectionSummary">평가 후보를 profile draft에 반영하지 않았습니다.</p>
+      </section>
       <section class="section-card" data-testid="ops-vlm-options-panel">
         <div class="toolbar">
           <div>
@@ -8182,6 +8375,185 @@ std::string OpsVlmNoSideEffectsJson() {
     return R"({"dryRunOnly":true,"installPerformed":false,"connectionPerformed":false,"runtimeCallPerformed":false,"profileStored":false,"sidecarStored":false,"cloudProviderApiCalled":false,"credentialsStored":false,"modelArtifactDownloaded":false})";
 }
 
+std::string OpsVlmEvaluationResultWorkflowJson() {
+    return R"JSON({
+  "schema": "media-server.ops.vlm-evaluation-result-workflow.v1",
+  "targetStep": "V210-S06",
+  "sourceReportSchema": "media-server.vlm-evaluation-report.v1",
+  "sourceFixture": "test/fixtures/vlm_evaluation_harness/cases.json",
+  "status": "ready-for-operator-selection",
+  "scope": "ops-only-evaluation-result-profile-selection",
+  "summary": {
+    "sampleCases": 2,
+    "caseCandidates": 4,
+    "profileCandidates": 3,
+    "passedProfileCandidates": 1,
+    "reviewRequiredProfileCandidates": 1,
+    "failedProfileCandidates": 1,
+    "recommendedCandidateId": "eval-qwen8b-event-review-default"
+  },
+  "selectionPolicy": {
+    "singleProfileCandidateSelection": true,
+    "operatorMustSaveProfile": true,
+    "autoActivateSelectedProfile": false,
+    "runtimeCallAllowed": false,
+    "providerCallAllowed": false,
+    "profileDraftMayCopyEvaluationStatus": true
+  },
+  "profileCandidates": [
+    {
+      "id": "eval-qwen8b-event-review-default",
+      "model": "Qwen/Qwen3-VL-8B-Instruct",
+      "selectedOptionModel": "Qwen/Qwen3-VL-8B-Instruct",
+      "promptProfile": {
+        "id": "event-review-default",
+        "version": "v1",
+        "language": "ko-en"
+      },
+      "caseIds": ["line-crossing-ko-ab", "intrusion-en-json-stability"],
+      "latencyMs": {
+        "p50": 8200,
+        "p95": 9700
+      },
+      "dimensions": {
+        "latency": "passed",
+        "jsonStability": "passed",
+        "explanationQuality": "passed",
+        "hallucinationRisk": "passed",
+        "languageQuality": "passed"
+      },
+      "score": {
+        "total": 0.93,
+        "latency": 1.0,
+        "jsonStability": 1.0,
+        "explanationQuality": 0.88,
+        "hallucinationRisk": 1.0,
+        "languageQuality": 1.0
+      },
+      "evaluation": {
+        "status": "passed",
+        "source": "v210-s06-evaluation-result-workflow"
+      },
+      "selection": {
+        "profileDraftAllowed": true,
+        "activationDefault": "pending-evaluation",
+        "enabledDefault": false,
+        "reason": "Best fixture-passed profile candidate across Korean and English sample events."
+      }
+    },
+    {
+      "id": "eval-qwen4b-false-positive-review",
+      "model": "Qwen/Qwen3-VL-4B-Instruct",
+      "selectedOptionModel": "Qwen/Qwen3-VL-4B-Instruct",
+      "promptProfile": {
+        "id": "false-positive-review",
+        "version": "v1",
+        "language": "ko"
+      },
+      "caseIds": ["line-crossing-ko-ab"],
+      "latencyMs": {
+        "p50": 6100,
+        "p95": 6100
+      },
+      "dimensions": {
+        "latency": "passed",
+        "jsonStability": "passed",
+        "explanationQuality": "passed",
+        "hallucinationRisk": "passed",
+        "languageQuality": "review-required"
+      },
+      "score": {
+        "total": 0.82,
+        "latency": 1.0,
+        "jsonStability": 1.0,
+        "explanationQuality": 0.75,
+        "hallucinationRisk": 1.0,
+        "languageQuality": 0.5
+      },
+      "evaluation": {
+        "status": "review-required",
+        "source": "v210-s06-evaluation-result-workflow"
+      },
+      "selection": {
+        "profileDraftAllowed": true,
+        "activationDefault": "pending-evaluation",
+        "enabledDefault": false,
+        "reason": "Local low-spec fallback can be saved only as review-required until English quality is evaluated."
+      }
+    },
+    {
+      "id": "eval-qwen4b-operator-question-review",
+      "model": "Qwen/Qwen3-VL-4B-Instruct",
+      "selectedOptionModel": "Qwen/Qwen3-VL-4B-Instruct",
+      "promptProfile": {
+        "id": "operator-question-review",
+        "version": "v1",
+        "language": "en"
+      },
+      "caseIds": ["intrusion-en-json-stability"],
+      "latencyMs": {
+        "p50": 34000,
+        "p95": 34000
+      },
+      "dimensions": {
+        "latency": "failed",
+        "jsonStability": "failed",
+        "explanationQuality": "review-required",
+        "hallucinationRisk": "failed",
+        "languageQuality": "passed"
+      },
+      "score": {
+        "total": 0.18,
+        "latency": 0.0,
+        "jsonStability": 0.0,
+        "explanationQuality": 0.25,
+        "hallucinationRisk": 0.0,
+        "languageQuality": 1.0
+      },
+      "evaluation": {
+        "status": "failed",
+        "source": "v210-s06-evaluation-result-workflow"
+      },
+      "selection": {
+        "profileDraftAllowed": false,
+        "activationDefault": "disabled",
+        "enabledDefault": false,
+        "reason": "Invalid JSON, latency threshold miss, and hallucination fixture failure exclude this prompt profile."
+      }
+    }
+  ],
+  "caseResults": [
+    {
+      "caseId": "line-crossing-ko-ab",
+      "eventType": "line-crossing",
+      "language": "ko",
+      "bestCandidateId": "qwen8b-default-ko",
+      "candidateIds": ["qwen8b-default-ko", "qwen4b-fp-ko"]
+    },
+    {
+      "caseId": "intrusion-en-json-stability",
+      "eventType": "intrusion-dwell",
+      "language": "en",
+      "bestCandidateId": "qwen8b-default-en",
+      "candidateIds": ["qwen8b-default-en", "bad-json-hallucination-en"]
+    }
+  ],
+  "contractInvariants": {
+    "runtimeMode": "fixture-captured-output-only",
+    "runtimeVlmCallPerformed": false,
+    "cloudProviderApiCalled": false,
+    "modelArtifactDownloaded": false,
+    "sidecarStored": false,
+    "eventPostPayloadChanged": false,
+    "webrtcDataChannelSchemaChanged": false,
+    "sseMetadataSchemaChanged": false,
+    "wsMetadataSchemaChanged": false,
+    "rtspOrWebrtcMediaPathChanged": false,
+    "viewerClientExposureAdded": false
+  }
+})JSON";
+}
+
 std::string OpsVlmPrivacyTransferGuardJson(bool external_transfer, bool external_acknowledged) {
     const bool review_required = external_transfer;
     const std::string review_status = external_transfer
@@ -9564,6 +9936,9 @@ struct OpsEventReviewState {
     std::string review_status{"new"};
     std::string classification{"unclassified"};
     std::string note;
+    std::string vlm_action{"not-reviewed"};
+    std::string vlm_action_target{"eventExplanation"};
+    std::string vlm_action_note;
     std::int64_t updated_at_ms{0};
     std::string actor;
     std::string role;
@@ -9614,6 +9989,26 @@ bool OpsEventReviewClassificationAllowed(const std::string& value) {
     return kAllowed.count(value) != 0;
 }
 
+bool OpsVlmReviewActionAllowed(const std::string& value) {
+    static const std::unordered_set<std::string> kAllowed = {
+        "not-reviewed",
+        "accept",
+        "dismiss",
+        "review-needed",
+    };
+    return kAllowed.count(value) != 0;
+}
+
+bool OpsVlmReviewActionTargetAllowed(const std::string& value) {
+    static const std::unordered_set<std::string> kAllowed = {
+        "summary",
+        "eventExplanation",
+        "falsePositiveHints",
+        "operatorReviewQuestions",
+    };
+    return kAllowed.count(value) != 0;
+}
+
 std::string NormalizeOpsEventReviewStatus(std::string value) {
     value = LowerAscii(Trim(std::move(value)));
     return OpsEventReviewStatusAllowed(value) ? value : "new";
@@ -9622,6 +10017,16 @@ std::string NormalizeOpsEventReviewStatus(std::string value) {
 std::string NormalizeOpsEventReviewClassification(std::string value) {
     value = LowerAscii(Trim(std::move(value)));
     return OpsEventReviewClassificationAllowed(value) ? value : "unclassified";
+}
+
+std::string NormalizeOpsVlmReviewAction(std::string value) {
+    value = LowerAscii(Trim(std::move(value)));
+    return OpsVlmReviewActionAllowed(value) ? value : "not-reviewed";
+}
+
+std::string NormalizeOpsVlmReviewActionTarget(std::string value) {
+    value = Trim(std::move(value));
+    return OpsVlmReviewActionTargetAllowed(value) ? value : "eventExplanation";
 }
 
 bool OpsEventReviewNoteContainsSensitiveMaterial(const std::string& value) {
@@ -9679,6 +10084,14 @@ OpsEventReviewState OpsEventReviewStateFromJsonLine(const std::string& line) {
     state.classification = NormalizeOpsEventReviewClassification(
         ParseStringField(line, "classification").value_or("unclassified"));
     state.note = NormalizeOpsEventReviewNote(ParseStringField(line, "note").value_or(""));
+    if (const auto vlm_action = ExtractObjectField(line, "vlmAction"); vlm_action.has_value()) {
+        state.vlm_action = NormalizeOpsVlmReviewAction(
+            ParseStringField(*vlm_action, "action").value_or("not-reviewed"));
+        state.vlm_action_target = NormalizeOpsVlmReviewActionTarget(
+            ParseStringField(*vlm_action, "target").value_or("eventExplanation"));
+        state.vlm_action_note =
+            NormalizeOpsEventReviewNote(ParseStringField(*vlm_action, "note").value_or(""));
+    }
     state.updated_at_ms = ParseInt64Field(line, "updatedAtMs").value_or(0);
     state.actor = Trim(ParseStringField(line, "actor").value_or(""));
     state.role = Trim(ParseStringField(line, "role").value_or(""));
@@ -9700,6 +10113,20 @@ std::string OpsEventReviewStateJson(const OpsEventReviewState& state) {
                                                      : state.classification)
         << "\","
         << "\"note\":\"" << JsonEscape(state.note) << "\","
+        << "\"vlmAction\":{"
+        << "\"schema\":\"media-server.ops.vlm-review-action-state.v1\","
+        << "\"action\":\"" << JsonEscape(state.vlm_action.empty() ? "not-reviewed"
+                                                                   : state.vlm_action)
+        << "\","
+        << "\"target\":\"" << JsonEscape(state.vlm_action_target.empty()
+                                             ? "eventExplanation"
+                                             : state.vlm_action_target)
+        << "\","
+        << "\"note\":\"" << JsonEscape(state.vlm_action_note) << "\","
+        << "\"persistent\":true,"
+        << "\"separateFromEventRecords\":true,"
+        << "\"eventPostPayloadChanged\":false"
+        << "},"
         << "\"updatedAtMs\":" << state.updated_at_ms << ","
         << "\"actor\":\"" << JsonEscape(state.actor) << "\","
         << "\"role\":\"" << JsonEscape(state.role) << "\""
@@ -9713,6 +10140,8 @@ OpsEventReviewState DefaultOpsEventReviewState(std::string event_id) {
     state.present = false;
     state.review_status = "new";
     state.classification = "unclassified";
+    state.vlm_action = "not-reviewed";
+    state.vlm_action_target = "eventExplanation";
     return state;
 }
 
@@ -9772,6 +10201,9 @@ bool UpsertOpsEventReviewState(const app::AppConfig& config,
     next.review_status = NormalizeOpsEventReviewStatus(next.review_status);
     next.classification = NormalizeOpsEventReviewClassification(next.classification);
     next.note = NormalizeOpsEventReviewNote(next.note);
+    next.vlm_action = NormalizeOpsVlmReviewAction(next.vlm_action);
+    next.vlm_action_target = NormalizeOpsVlmReviewActionTarget(next.vlm_action_target);
+    next.vlm_action_note = NormalizeOpsEventReviewNote(next.vlm_action_note);
     next.updated_at_ms = NowUnixMs();
     const std::filesystem::path path = OpsEventReviewStoragePath(config);
     std::error_code ec;
@@ -9812,7 +10244,9 @@ bool UpsertOpsEventReviewState(const app::AppConfig& config,
 std::string OpsEventReviewCatalogJson() {
     return "{\"reviewStatuses\":[\"new\",\"reviewing\",\"confirmed\",\"dismissed\","
            "\"needs-follow-up\"],\"classifications\":[\"unclassified\",\"true-positive\","
-           "\"false-positive\",\"duplicate\",\"needs-tuning\"]}";
+           "\"false-positive\",\"duplicate\",\"needs-tuning\"],\"vlmActions\":[\"not-reviewed\","
+           "\"accept\",\"dismiss\",\"review-needed\"],\"vlmActionTargets\":[\"summary\","
+           "\"eventExplanation\",\"falsePositiveHints\",\"operatorReviewQuestions\"]}";
 }
 
 bool OpsEventReviewMatchesFilters(const OpsEventReviewState& state,
@@ -11612,6 +12046,64 @@ std::string OpsVlmEventReviewJson(const std::string& event_json) {
     return out.str();
 }
 
+std::string OpsVlmRuleSuggestionDraftWorkflowJson(
+    const std::unordered_map<std::string, std::string>& query,
+    std::string* error_message) {
+    analysis::VlmRuleSuggestionOptions options;
+    options.source_id = query.count("sourceId") != 0 ? Trim(query.at("sourceId")) : std::string();
+    options.privacy_mode =
+        query.count("privacyMode") != 0 ? Trim(query.at("privacyMode")) : std::string();
+    options.suggestion_kind =
+        query.count("suggestionKind") != 0 ? Trim(query.at("suggestionKind")) : std::string();
+    options.offset = static_cast<std::size_t>(
+        ParseClampedIntQuery(query, "offset", 0, 0, 1000000));
+    options.limit = static_cast<std::size_t>(
+        ParseClampedIntQuery(query, "limit", 10, 1, 25));
+
+    std::string candidate_body;
+    std::string candidate_error;
+    if (!analysis::BuildVlmRuleSuggestionCandidatesJson(analysis::DefaultVlmObservationStorePath(),
+                                                        options,
+                                                        &candidate_body,
+                                                        &candidate_error)) {
+        if (error_message != nullptr) {
+            *error_message = candidate_error;
+        }
+        return {};
+    }
+
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.vlm-rule-suggestion-draft-workflow.v1\","
+        << "\"targetStep\":\"V210-S08\","
+        << "\"status\":\"draft-only-manual-save-required\","
+        << "\"manualSaveRoute\":\"/ops/rules\","
+        << "\"sourceCandidateStep\":\"V200-S13\","
+        << "\"sourceCandidateReport\":" << candidate_body << ","
+        << "\"workflowContract\":{"
+        << "\"opsOnly\":true,"
+        << "\"draftOnly\":true,"
+        << "\"manualSaveRequired\":true,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"runtimeVlmCallPerformed\":false,"
+        << "\"cloudProviderApiCalled\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"autoRuleApplied\":false,"
+        << "\"autoProfileApplied\":false"
+        << "}"
+        << "}";
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return out.str();
+}
+
 std::string OpsEventReviewInboxItemJson(const std::string& event_json,
                                         const OpsEventReviewState& review) {
     std::ostringstream out;
@@ -11695,6 +12187,8 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         << "\"separateFromEventRecords\":true,"
         << "\"separateFromEventPostPayload\":true,"
         << "\"eventPostPayloadChanged\":false,"
+        << "\"vlmReviewActionSchema\":\"media-server.ops.vlm-review-action-state.v1\","
+        << "\"vlmReviewActionPersistent\":true,"
         << "\"auditArea\":\"events\","
         << "\"auditAction\":\"event-review-update\""
         << "},"
@@ -13943,6 +14437,32 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            return ok;
 	                        }
 
+	                        if (request.method == "GET" && request.path == "/ops/api/vlm/evaluation-results") {
+	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+	                                return *auth_response;
+	                            }
+	                            HttpResponse ok = JsonResponse(200, "OK", OpsVlmEvaluationResultWorkflowJson());
+	                            ok.headers["Cache-Control"] = "no-store";
+	                            return ok;
+	                        }
+
+                            if (request.method == "GET" && request.path == "/ops/api/vlm/rule-suggestion-drafts") {
+                                if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                    return *auth_response;
+                                }
+                                std::string draft_error;
+                                const std::string body =
+                                    OpsVlmRuleSuggestionDraftWorkflowJson(query, &draft_error);
+                                if (body.empty()) {
+                                    return JsonResponse(400,
+                                                        "Bad Request",
+                                                        "{\"error\":\"" + JsonEscape(draft_error) + "\"}");
+                                }
+                                HttpResponse ok = JsonResponse(200, "OK", body);
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+
                             if (request.path == "/ops/api/vlm/profiles") {
                                 if (request.method == "GET") {
                                     if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
@@ -14230,6 +14750,15 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                next.classification = ParseStringField(request.body, "classification")
 	                                                          .value_or("unclassified");
 	                                next.note = ParseStringField(request.body, "note").value_or("");
+	                                if (const auto vlm_action = ExtractObjectField(request.body, "vlmAction");
+	                                    vlm_action.has_value()) {
+	                                    next.vlm_action = ParseStringField(*vlm_action, "action")
+	                                                          .value_or("not-reviewed");
+	                                    next.vlm_action_target = ParseStringField(*vlm_action, "target")
+	                                                                 .value_or("eventExplanation");
+	                                    next.vlm_action_note = ParseStringField(*vlm_action, "note")
+	                                                               .value_or("");
+	                                }
 	                                next.actor = principal_result.principal.username.empty()
 	                                                 ? principal_result.principal.display_name
 	                                                 : principal_result.principal.username;

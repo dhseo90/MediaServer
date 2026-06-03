@@ -45,6 +45,10 @@ check("ops review API attaches VLM review object without mutating EventRecord", 
     "vlmEvidenceRefsPresent",
     "falsePositiveHints",
     "operatorReviewQuestions",
+    "media-server.ops.vlm-review-action-state.v1",
+    "vlmAction",
+    "vlmActions",
+    "vlmActionTargets",
     "viewerClientExposureAdded",
     "eventPostPayloadChanged",
     "autoRuleApplied",
@@ -53,11 +57,14 @@ check("ops review API attaches VLM review object without mutating EventRecord", 
   }
   assert(!eventStorage.includes("\"vlmReview\""), "EventRecord storage must not contain vlmReview");
   assert(!eventPost.includes("vlmReview"), "Event POST dispatcher must not contain vlmReview");
+  assert(!eventStorage.includes("vlmAction"), "EventRecord storage must not contain vlmAction");
+  assert(!eventPost.includes("vlmAction"), "Event POST dispatcher must not contain vlmAction");
 });
 
 check("ops events UI renders VLM review panel in review inbox", () => {
   for (const snippet of [
     'data-vlm-review-state="ops-only-event-record-evidence"',
+    'data-vlm-review-action-workflow="ops-only-review-state"',
     "EventRecord evidence, VLM 설명",
     "<th>Evidence / VLM</th>",
   ]) {
@@ -66,8 +73,12 @@ check("ops events UI renders VLM review panel in review inbox", () => {
   for (const snippet of [
     "eventReviewVlmHtml",
     'data-testid="ops-vlm-event-review-card"',
+    'data-testid="ops-vlm-review-action-controls"',
     'data-vlm-review-contract="ops-only-no-client-exposure"',
+    'data-vlm-review-action-workflow="ops-only-review-state"',
     "VLM review panel",
+    "VLM_REVIEW_ACTIONS",
+    "media-server.ops.vlm-review-action-state.v1",
     "falsePositiveHints",
     "operatorReviewQuestions",
   ]) {
@@ -81,6 +92,7 @@ check("ops smoke and server command are wired", () => {
     'data-vlm-review-state="ops-only-event-record-evidence"',
     "verify-vlm-ops-event-review-ui",
     "verify_vlm_ops_event_review_ui.mjs",
+    'data-vlm-review-action-workflow="ops-only-review-state"',
   ]) {
     assert(uiSmoke.includes(snippet) || serverSh.includes(snippet),
       `smoke/server wiring missing snippet: ${snippet}`);
@@ -96,8 +108,11 @@ check("viewer/client markup does not expose the Ops VLM review panel", () => {
   assert(clientRegion.length > 0, "client region not found");
   for (const forbidden of [
     'data-testid="ops-vlm-event-review-card"',
+    'data-testid="ops-vlm-review-action-controls"',
     'data-vlm-review-state="ops-only-event-record-evidence"',
     "media-server.ops.vlm-event-review.v1",
+    "media-server.ops.vlm-review-action-state.v1",
+    "vlmAction",
   ]) {
     assert(!clientRegion.includes(forbidden), `client region exposes ${forbidden}`);
   }

@@ -35,6 +35,8 @@ Usage:
   verify-codecs  file/RTSP/WebRTC source와 codec route matrix를 자동 검증합니다.
   verify-webrtc-ice
                  WebRTC STUN/TURN/ICE policy와 candidate 수집 상태를 검증합니다.
+  verify-external-turn-whep-field-gate
+                 v2.1.0 external TURN/WHEP field smoke와 기본 release PASS 분리 기준을 검증합니다.
   verify-uri-longrun
                  HTTP/HLS URI source의 로컬 반복 검증과 선택 외부 URL 반복 검증을 수행합니다.
   verify-va      YOLO/VA overlay의 lab/RTSP 검증을 수행합니다.
@@ -206,6 +208,8 @@ Usage:
                  release evidence index가 실행/미실행/미확인 항목을 분리하는지 검증합니다.
   verify-v190-entry-baseline
                  v1.9.0 종료와 v2.0.0 진입 baseline report 구획을 검증합니다.
+  verify-v210-entry-baseline
+                 v2.0.0 published evidence를 v2.1.0 진입 baseline으로 고정합니다.
   verify-feature-scope-gate
                  v1.8.0 안정화 범위에서 새 기능 후보를 구현으로 승격하지 않는 decision gate를 검증합니다.
   verify-script-inventory
@@ -280,6 +284,22 @@ Usage:
                  v2.0.0 VLM 설치/연결 Ops UI와 dry-run API 경계를 검증합니다.
   verify-vlm-profile-storage
                  v2.0.0 VLM profile 저장 API/UI/fixture/auth 경계를 검증합니다.
+  verify-vlm-runtime-opt-in-contract
+                 v2.1.0 VLM runtime opt-in 상태와 default-off 계약을 검증합니다.
+  verify-vlm-local-runtime-smoke
+                 v2.1.0 Local VLM runtime connection smoke의 loopback endpoint/timeout/cleanup/fallback을 검증합니다.
+  verify-vlm-cloud-provider-field-smoke-gate
+                 v2.1.0 Cloud provider field smoke gate의 승인/credential/redaction/PASS 분리 기준을 검증합니다.
+  verify-vlm-queue-backpressure-stability
+                 v2.1.0 VLM queue/backpressure가 media/Event/metadata/Event POST 경로를 막지 않는지 검증합니다.
+  verify-vlm-runtime-status-ui
+                 v2.1.0 Ops VLM runtime status UI와 viewer/client 비노출 경계를 검증합니다.
+  verify-vlm-evaluation-result-workflow
+                 v2.1.0 VLM evaluation result workflow의 Ops 선택/profile draft 경계를 검증합니다.
+  verify-vlm-review-action-workflow
+                 v2.1.0 VLM review action workflow의 Ops review state/API/UI 경계를 검증합니다.
+  verify-vlm-rule-suggestion-draft-workflow
+                 v2.1.0 VLM rule suggestion 후보를 /ops/rules draft/manual save로만 가져가는지 검증합니다.
   evaluate-vlm-harness
                  v2.0.0 VLM 평가 harness fixture report를 산출합니다.
   verify-vlm-evaluation-harness
@@ -330,6 +350,8 @@ Usage:
                  배포 bundle 안의 FFmpeg/GStreamer GPL-risk runtime 포함 여부를 검사합니다.
   verify-release-bundle-dry-run
                  기본 release bundle을 임시 구성하고 bundle policy gate를 실행합니다.
+  verify-runtime-model-bundle-rc-rehearsal
+                 v2.1.0 runtime/model bundle RC rehearsal과 release asset 금지 기준을 검증합니다.
   source-offer-checklist
                  LGPL/GPL runtime 포함 배포 전 source offer 준비 항목을 점검합니다.
   verify-tracker-stability
@@ -474,6 +496,10 @@ case "${cmd}" in
   verify-webrtc-ice)
     require_internal verify_webrtc_ice_config.sh
     exec "${INTERNAL_DIR}/verify_webrtc_ice_config.sh" "$@"
+    ;;
+  verify-external-turn-whep-field-gate)
+    require_internal verify_external_turn_whep_field_gate.mjs
+    exec "${INTERNAL_DIR}/verify_external_turn_whep_field_gate.mjs" "$@"
     ;;
   verify-uri-longrun)
     require_internal verify_uri_source_longrun.sh
@@ -815,6 +841,10 @@ case "${cmd}" in
     require_internal verify_v190_entry_baseline_report.mjs
     exec "${INTERNAL_DIR}/verify_v190_entry_baseline_report.mjs" "$@"
     ;;
+  verify-v210-entry-baseline)
+    require_internal verify_v210_entry_baseline.mjs
+    exec "${INTERNAL_DIR}/verify_v210_entry_baseline.mjs" "$@"
+    ;;
   verify-feature-scope-gate)
     require_internal verify_feature_scope_decision_gate.mjs
     exec "${INTERNAL_DIR}/verify_feature_scope_decision_gate.mjs" "$@"
@@ -963,6 +993,34 @@ case "${cmd}" in
     require_internal verify_vlm_profile_storage.mjs
     exec "${INTERNAL_DIR}/verify_vlm_profile_storage.mjs" "$@"
     ;;
+  verify-vlm-runtime-opt-in-contract)
+    require_internal verify_vlm_runtime_opt_in_contract.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_runtime_opt_in_contract.mjs" "$@"
+    ;;
+  verify-vlm-local-runtime-smoke)
+    require_internal verify_vlm_local_runtime_smoke.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_local_runtime_smoke.mjs" "$@"
+    ;;
+  verify-vlm-cloud-provider-field-smoke-gate)
+    require_internal verify_vlm_cloud_provider_field_smoke_gate.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_cloud_provider_field_smoke_gate.mjs" "$@"
+    ;;
+  verify-vlm-queue-backpressure-stability)
+    require_internal verify_vlm_queue_backpressure_stability.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_queue_backpressure_stability.mjs" "$@"
+    ;;
+  verify-vlm-runtime-status-ui)
+    require_internal verify_vlm_runtime_status_ui.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_runtime_status_ui.mjs" "$@"
+    ;;
+  verify-vlm-evaluation-result-workflow)
+    require_internal verify_vlm_evaluation_result_workflow.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_evaluation_result_workflow.mjs" "$@"
+    ;;
+  verify-vlm-review-action-workflow)
+    require_internal verify_vlm_review_action_workflow.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_review_action_workflow.mjs" "$@"
+    ;;
   evaluate-vlm-harness)
     require_internal evaluate_vlm_harness.mjs
     exec "${INTERNAL_DIR}/evaluate_vlm_harness.mjs" "$@"
@@ -1002,6 +1060,10 @@ case "${cmd}" in
   verify-vlm-rule-suggestion-candidates)
     require_internal verify_vlm_rule_suggestion_candidates.mjs
     exec "${INTERNAL_DIR}/verify_vlm_rule_suggestion_candidates.mjs" "$@"
+    ;;
+  verify-vlm-rule-suggestion-draft-workflow)
+    require_internal verify_vlm_rule_suggestion_draft_workflow.mjs
+    exec "${INTERNAL_DIR}/verify_vlm_rule_suggestion_draft_workflow.mjs" "$@"
     ;;
   verify-vlm-test-rehearsal)
     require_internal verify_vlm_test_rehearsal.mjs
@@ -1062,6 +1124,10 @@ case "${cmd}" in
   verify-release-bundle-dry-run)
     require_internal verify_release_bundle_dry_run.mjs
     exec "${INTERNAL_DIR}/verify_release_bundle_dry_run.mjs" "$@"
+    ;;
+  verify-runtime-model-bundle-rc-rehearsal)
+    require_internal verify_runtime_model_bundle_rc_rehearsal.mjs
+    exec "${INTERNAL_DIR}/verify_runtime_model_bundle_rc_rehearsal.mjs" "$@"
     ;;
   source-offer-checklist)
     require_internal write_source_offer_checklist.mjs

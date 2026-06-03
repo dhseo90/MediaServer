@@ -5,7 +5,7 @@
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 삼고, 실행 순서는 [manual-ui-checklist.md](./manual-ui-checklist.md), 결과 기록은
 [manual-ui-result-template.md](./manual-ui-result-template.md)를 사용합니다.
-현재 제품 UI 기준은 release 목표 `v2.0.0`입니다. 지원 가능한 모든 기능을 실제 UI 조작으로 확인하지 않은 경우에는 완료로 쓰지 않습니다.
+현재 제품 UI 기준은 release 목표 `v2.1.0`입니다. 지원 가능한 모든 기능을 실제 UI 조작으로 확인하지 않은 경우에는 완료로 쓰지 않습니다.
 
 ## 1. 정의
 
@@ -64,7 +64,7 @@ UI 풀테스트 판정값은 `PASS`와 `FAIL`만 사용합니다. 모든 기능�
 30분, 120분, UI 풀테스트는 시작 전에 실패 가능성이 높은 준비 문제를 먼저 끊어냅니다.
 아래 항목이 정리되지 않으면 긴 테스트를 시작하지 않습니다.
 
-- `project-feature-test-inventory.md`의 `v2.0.0 Pre-Test Update List`와
+- `project-feature-test-inventory.md`의 `Current Pre-Test Update List`와
   `Longrun/UI Fail-Fast Preflight`를 확인해 누락된 route/control/action을 먼저 고칩니다.
 - `/ops/vlm`, `/ops/events`, `/client/live`, `/client/dashboard`, `/client/events`의
   VLM 관련 UI/비노출 항목이 result template에 없으면 UI 풀테스트를 시작하지 않습니다.
@@ -171,6 +171,12 @@ UI 풀테스트 결과는 모든 개별 기능, route, control, action 단위로
 `./server.sh verify-manual-ui-evidence-runner --evidence <json> --report <report.md>`
 로 기능 ID별 PASS/FAIL report를 생성합니다. 누락된 UI 대상 기능 ID는 `FAIL`이며,
 제외 항목은 판정표 밖 `Exclusions`에만 둡니다.
+각 PASS row에는 `route`, `control`, `interaction`, `input` 또는
+`inputNotApplicableReason`, `expected`, `actual`, `stateReflected=true`,
+`artifacts`, 그리고 `logChecked`, `eventRecordChecked`, 또는
+`logNotApplicableReason` 중 하나가 있어야 합니다. `manualSpotReviews`는 사람이
+보조로 spot review한 범위를 보존하지만, 누락된 기능 ID를 PASS로 바꾸는 대체
+증거가 아닙니다.
 
 풀테스트 harness 자체를 한 번에 실행할 때는
 `./server.sh verify-ui-fulltest-one-shot`을 사용합니다. 이 명령은 전용
@@ -246,10 +252,10 @@ Role/scope:
   dock side, info overlay, workspace actions, copy fallback, keyboard focus
 - Client Dashboard: filter, sort, status copy, event copy
 - Request Access: public submit, pending copy, approval before/after boundary
-- v2.0.0 VLM pre-test 반영: `/ops/vlm`의 local/cloud dry-run 후보, missing-model,
+- v2.1.0 VLM pre-test 반영: `/ops/vlm`의 local/cloud dry-run 후보, missing-model,
   cloud-disabled, provider-timeout 안내, privacy transfer guard, profile 저장/
   활성화/fallback/disable/delete, raw details 접힘 영역을 기능 ID별로 확인
-- v2.0.0 client redaction: `/client/live`, `/client/dashboard`, `/client/events`에서
+- v2.1.0 client redaction: `/client/live`, `/client/dashboard`, `/client/events`에서
   VLM model, prompt, raw response, provider, internal review card, source/debug JSON이
   보이지 않는지 기능 ID별로 확인
 

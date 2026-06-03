@@ -34,10 +34,11 @@ source-of-truth가 아닙니다. 현재 기준은 이 문서와 기능별 상세
 
 `완료`는 운영 배포 ready, 장기 안정성 보장, 외부 연동 ready를 뜻하지 않습니다.
 
-## 현재 기준: v2.0.0 Source Release Baseline
+## 현재 기준: v2.1.0 Source Release Baseline
 
-v2.0.0은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서
-VLM을 이벤트 해석/리뷰 보조 계층으로 추가하는 source-only release입니다.
+v2.1.0은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서
+VLM을 이벤트 해석/리뷰 보조 계층과 runtime/provider opt-in stabilization 범위로
+닫는 source-only release입니다.
 Client Live workspace, source tree/dock event feed, tile disconnect, event review,
 source group/site, tile info overlay, saved layout, incident timeline, alert delivery,
 scenario builder, Ops/Client declutter는 이전 UI-first close-out에서 닫은 제품
@@ -53,6 +54,9 @@ baseline으로 유지합니다.
   incident timeline, viewer debug/source 비노출
 - Auth: setup/login/session, role/scope, admin user console, invite/request approval
 - VLM: 모델 선택 기준, PC capability, 추천 엔진, `/ops/vlm` dry-run/profile/privacy UI,
+  runtime opt-in contract, local runtime smoke gate, cloud provider field smoke gate,
+  queue/backpressure stability, runtime status UI, evaluation result workflow,
+  review action workflow, rule suggestion draft workflow, VA coverage evidence,
   evaluation fixture harness, event evidence refs, VLMObservation sidecar, event explanation,
   Ops event review panel, summary/rule suggestion 후보
 - Release: source-only readiness, bundle/license guardrail, release evidence, manual UI evidence,
@@ -70,9 +74,487 @@ baseline으로 유지합니다.
 - field sample scheduler, dataset ingest, tracker replacement benchmark 실행
 - 별도 Phase의 실제 기능 개발, tracker replacement product review
 
-세부 종료 증적은 아래 v2.0.0 Release Close-out 섹션을 봅니다.
+세부 종료 증적은 아래 v2.1.0 Release Close-out 섹션을 봅니다.
 과거 release evidence는 standalone current 문서가 아니라 이 문서의 archive 섹션에만
 보존합니다.
+
+## 완료 roadmap: v2.1.0 VLM Runtime Opt-in Stabilization
+
+v2.1.0은 v2.0.0의 VLM review-assist source-only baseline을 유지하면서,
+운영자가 명시적으로 켠 경우에만 실제 VLM runtime/provider 연결을 검증 가능한
+opt-in 기능으로 여는 stabilization roadmap입니다. 이 roadmap은 `v2.1.0` branch에서
+진행했고, 아래 표의 S00~S12는 완료됐습니다. v2.0.0 release 완료 상태나 `v2.0.0`
+tag를 다시 해석하지 않습니다.
+
+핵심 원칙:
+
+- VLM은 계속 최종 판정 엔진이 아니라 운영자 review-assist 계층입니다.
+- VLM default-on, 자동 provider credential 저장, model/runtime bundle release는
+  v2.1.0 기본 완료 범위가 아닙니다.
+- 기존 Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path,
+  Auth/session/scope, Rule/Profile payload schema는 요청 없이 변경하지 않습니다.
+- cloud provider 호출은 명시 opt-in field smoke로만 다루고, 미실행이면 PASS로
+  기록하지 않습니다.
+- local runtime smoke와 cloud provider field smoke는 서로를 대체하지 않습니다.
+- client/viewer에는 prompt, raw response, source URL, debug JSON, provider credential,
+  내부 model/runtime 진단을 노출하지 않습니다.
+- Rule suggestion은 자동 적용하지 않고, 운영자가 확인한 draft/manual save 흐름만
+  허용합니다.
+
+명시적 비범위:
+
+- VLM default-on 또는 VLM 단독 실시간 감지
+- VLM model/runtime binary bundle, release asset 업로드, container/offline bundle 배포
+- provider credential persistent store, provider billing/retention 운영 보장
+- Event POST/WebRTC/SSE/WS 외부 payload schema 변경
+- RTSP/WebRTC media pipeline 구조 변경
+- 자동 Rule/Profile 적용, 자동 최종 판정
+- external TURN/WHEP credential 운영 성공 보장
+- ONVIF 실장비 성공 보장, 장기 녹화/playback/search
+
+| 순서 | ID | 우선순위 | 상태 | 영역 | 목표 | 예상 검증 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0 | V210-S00 | P0 | 완료 | v2.1.0 entry baseline | v2.0.0 최종 main/tag/evidence를 v2.1.0 시작 기준으로 고정하고, WebRTC/SSE/WS/Event POST/Auth/media path freeze를 재확인합니다. | baseline review, `verify-v210-entry-baseline`, `verify-release-metadata`, `verify-release-evidence-index`, `verify-integrator-contract-artifact`, `verify-event-post`, metadata verifier, `git diff --check` |
+| 1 | V210-S01 | P0 | 완료 | VLM runtime opt-in contract | local runtime, cloud provider, disabled, missing-model, invalid-output, timeout 상태를 분리하고 기본 off 계약을 고정합니다. | contract fixture, auth/scope review, VLM profile state review, `verify-vlm-runtime-opt-in-contract`, `verify-vlm-profile-storage`, `verify-vlm-privacy-transfer-guard`, `git diff --check` |
+| 2 | V210-S02 | P0 | 완료 | Local VLM runtime connection smoke | Ollama/vLLM/API-compatible local endpoint 연결, timeout, queue cleanup, invalid output fallback을 실제 local smoke로 확인합니다. | local endpoint fixture, missing-runtime fixture, timeout/cleanup fixture, `verify-vlm-test-rehearsal`, `verify-vlm-local-runtime-smoke`, `git diff --check` |
+| 3 | V210-S03 | P0 | 완료 | Cloud provider field smoke gate | `gemini-2.5-flash` 같은 cloud opt-in provider를 credential 저장 없이 env/manual 승인 기반 field smoke로 검증합니다. 미실행과 실패를 release PASS로 쓰지 않습니다. | cloud opt-in checklist, redaction review, provider field smoke report, `verify-vlm-cloud-provider-field-smoke-gate`, `verify-vlm-privacy-transfer-guard`, `git diff --check` |
+| 4 | V210-S04 | P0 | 완료 | VLM queue/backpressure stability | VLM worker가 RTSP/WebRTC media path, EventRecord, metadata fanout, Event POST dispatch를 막지 않는지 안정화 기준을 실행합니다. | `./server.sh build`, `verify-vlm-queue-backpressure-stability`, VLM queue fixture, `verify-va-events`, `verify-event-post`, metadata verifier, 30분 soak when runtime path changes, `git diff --check` |
+| 5 | V210-S05 | P0 | 완료 | Ops VLM runtime status UI | `/ops/vlm`에서 provider 상태, runtime 연결 상태, 마지막 evaluation, 실패 사유, privacy mode, default-off 상태를 운영자가 확인할 수 있게 합니다. | `verify-vlm-runtime-status-ui`, Ops UI smoke, auth/scope route guard, viewer/client redaction check, `verify-ops-client-ui`, VLM UI direct review, `git diff --check` |
+| 6 | V210-S06 | P1 | 완료 | VLM evaluation result workflow | sample event 기준 latency, JSON 안정성, 설명 품질, hallucination risk, 한국어/영어 출력 품질을 비교하고 운영자가 model/profile을 선택할 수 있게 합니다. | evaluation fixture, prompt profile comparison, structured output check, `verify-vlm-evaluation-result-workflow`, `verify-vlm-recommendation-engine`, `git diff --check` |
+| 7 | V210-S07 | P1 | 완료 | VLM review action workflow | `/ops/events`에서 설명/오탐 힌트를 accept, dismiss, review-needed 같은 운영 기록으로 남기되 외부 event/metadata schema는 유지합니다. | `verify-vlm-review-action-workflow`, `verify-ops-event-review-inbox`, `verify-vlm-ops-event-review-ui`, Event POST/metadata verifier, `git diff --check` |
+| 8 | V210-S08 | P1 | 완료 | Rule suggestion draft workflow | VLM rule 후보를 자동 적용하지 않고 `/ops/rules` draft로 가져가 운영자가 수동 저장하는 흐름만 허용합니다. | no-auto-apply guard, `/ops/rules` smoke, rule draft fixture, `verify-vlm-rule-suggestion-draft-workflow`, `verify-rule-ui`, `git diff --check` |
+| 9 | V210-S09 | P1 | 완료 | VA coverage evidence report | rule, scenario, event type, EventRecord 발생 이력, invalid combination을 조합 단위 evidence로 출력합니다. | VA replay matrix, EventRecord history report, `verify-va-event-coverage-report`, `verify-va-events`, `verify-va-replay`, `git diff --check` |
+| 10 | V210-S10 | P2 | 완료 | External TURN/WHEP field gate | external TURN/WHEP credential 운영 검증을 별도 field smoke로 분리하고, 기본 release PASS와 혼동하지 않게 합니다. 실제 외부 endpoint/credential 성공은 미실행/별도 field evidence로 남깁니다. | `verify-external-turn-whep-field-gate`, external field smoke checklist, WebRTC ICE review, `verify-webrtc-ice`, 미실행/제외 기록, `git diff --check` |
+| 11 | V210-S11 | P2 | 완료 | Runtime/model bundle RC rehearsal | 실제 bundle release 없이 hash/provenance/license, GPL-risk binary exclusion, release asset 금지 기준을 RC rehearsal로만 확인합니다. 기본 결정값은 source-only 유지입니다. | `verify-runtime-model-bundle-rc-rehearsal`, `verify-bundle-policy`, `verify-release-bundle-dry-run --candidate source-only`, dependency snapshot review, bundle dry-run policy, `git diff --check` |
+| 12 | V210-S12 | P2 | 완료 | UI fulltest evidence runner 개선 | 기능 ID별 클릭, 입력, 상태 반영, 관련 로그 확인 report를 보강해 UI 풀테스트 누락을 줄입니다. 이 완료는 runner 개선이며 실제 UI 풀테스트 PASS가 아닙니다. | `verify-manual-ui-evidence-runner`, feature inventory mapping, UI evidence report, manual spot review field, `verify-ops-client-ui --screenshots`, `verify-rule-ui`, `git diff --check` |
+
+v2.1.0 완료 gate:
+
+- P0 범위 구현과 해당 verifier PASS
+- `./server.sh build`
+- auth/scope, Event POST, WebRTC/SSE/WS metadata, RTSP/WebRTC media path 회귀 검증
+- local VLM runtime smoke는 실행한 경우에만 PASS로 기록
+- cloud provider field smoke는 명시 승인 후 실행한 경우에만 PASS로 기록
+- runtime path나 queue/backpressure 변경 시 30분 soak
+- release 후보 단계에서 UI 풀테스트와 필요 시 120분 longrun
+- `git diff --check`
+- release metadata/evidence verifier
+- signed annotated tag 기반 release close-out
+
+## v2.1.0 Release Close-out
+
+v2.1.0 release close-out은 위 `완료 roadmap: v2.1.0 VLM Runtime Opt-in Stabilization`
+범위를 기준으로 문서/source-of-truth, 대표 이미지 review, release metadata, local
+release gate, PR/main merge, signed annotated tag, GitHub Release, published metadata
+재검증을 순서대로 닫는 단계입니다.
+
+v2.1.0은 VLM을 이벤트 해석/리뷰 보조 계층으로 유지하고, runtime/provider 연결은
+운영자가 명시 opt-in한 검증 가능한 흐름으로만 다룹니다. VLM default-on,
+runtime/model bundle release, provider credential persistent store, real cloud provider
+success guarantee, external TURN/WHEP credential 운영 성공, long-term recording/VMS/NVR,
+route/API/config/schema migration은 현재 release 완료 범위가 아닙니다.
+
+실제 tag/push는 이 release close-out 지시에 한해 수행합니다. 실패가 발생하면
+원인/실패 명령/영향 파일을 기록하고, 같은 v2.1.0 범위에서 수정 가능한 경우 수정 후
+해당 gate부터 재검증합니다. 해결 불가능하거나 사용자 결정이 필요한 경우에만 중단하고
+뒤 단계는 건너뜁니다.
+
+v2.2.0 branch는 v2.1.0 GitHub Release와 published metadata 재검증이 끝난 뒤
+생성까지만 수행합니다. v2.2.0 개발 방향은 사용자가 생각해 둔 별도 후속 지시 전까지
+문서화하지 않고, 활성 roadmap으로 승격하지 않으며, 구현도 착수하지 않습니다.
+
+close-out 작업 순서:
+
+1. 사전 상태/버전 확인: branch, upstream, local/remote tag, main sync,
+   `VERSION`/CMake/docs 기준을 확인합니다.
+2. 문서 전체 리뷰 및 업데이트: README, README.en.md, docs index, release/version
+   policy, backlog, evidence, manual UI, feature inventory, UI asset policy를 v2.1.0
+   기준으로 맞춥니다.
+3. 문서 이미지 리뷰 및 업데이트: managed UI PNG와 VA 이미지를 직접 열어 crop,
+   viewport, debug/source/raw/auth material 노출 여부를 확인하고 필요한 경우 recapture합니다.
+4. 로컬 release gate: `./server.sh build`, 문서 링크, UI asset, release metadata,
+   evidence/index, manual UI evidence runner, release closeout helper dry-run을 실행합니다.
+5. 커밋/branch push: 변경을 커밋하고 `v2.1.0` branch를 push합니다.
+6. PR/main merge: required check, warning/failure annotation 상태를 분리 확인한 뒤
+   main으로 merge합니다.
+7. signed annotated tag: main release commit에 `v2.1.0` signed annotated tag를 만들고 push합니다.
+8. GitHub Release: source-only release note를 생성하고 sample/model/runtime binary를
+   업로드하지 않습니다.
+9. published metadata 재검증: `./server.sh verify-release-metadata --published`로
+   latest release, release URL, remote tag/branch를 확인합니다.
+10. next branch: 최신 main에서 `v2.2.0` branch를 생성하고 push만 수행합니다.
+
+### V210-S00 v2.1.0 entry baseline 종료 기준
+
+직접 답: v2.1.0의 entry baseline은 `v2.0.0` published source-only release,
+signed tag follow-up evidence, `v2.1.0` branch sync 기록, 그리고 기존 integrator
+contract freeze artifact를 사용합니다. live GitHub published state를 현재 환경에서
+재확인하지 못하면 live 상태는 `미확인`으로 남기고, recorded release evidence만
+baseline으로 사용합니다.
+
+S00 완료 evidence는 `verify-v210-entry-baseline`, `verify-release-metadata`,
+`verify-release-evidence-index`, `verify-integrator-contract-artifact`,
+`verify-event-post`, `verify-auth-routes`, `verify-codecs`, `verify-webrtc-ice`,
+`verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`,
+`git diff --check`입니다. `verify-v210-entry-baseline`은
+`media-server.v210-entry-baseline-report.v1` schema의 baseline report를 생성할 수
+있고, 안정화/UI/30분/120분/published metadata 상태를 서로 대체하지 않게 분리합니다.
+
+S00은 VLM runtime/provider 호출, UI 변경, Event POST/WebRTC/SSE/WS payload 변경,
+RTSP/WebRTC media path 변경을 수행하지 않습니다. 제외 대상은 VLM default-on,
+runtime/model bundle, provider credential 저장, real cloud provider call, UI
+풀테스트, 30분 soak, 120분 longrun입니다.
+
+### V210-S01 VLM runtime opt-in contract 종료 기준
+
+직접 답: S01에서 쓰기로 한 profile runtime 상태 contract는
+`media-server.vlm-runtime-opt-in-contract.v1`입니다. 기본값은 `disabled`와
+`defaultEnabled=false`이며, local runtime, cloud provider, missing-model,
+invalid-output, timeout은 각각 별도 `runtimeContract.status` 값으로 저장합니다.
+
+1차 선택값은 `disabled` default-off입니다. local fallback은 `missing-model`,
+cloud fallback은 `cloud-provider` + `providerFieldSmokeRequired=true`입니다.
+invalid output과 timeout은 VLM-only failure state로 두고 sidecar/EventRecord 쓰기,
+Event POST/WebRTC/SSE/WS payload 변경, RTSP/WebRTC media path 변경으로 전파하지
+않습니다.
+
+S01 완료 evidence는 `verify-vlm-runtime-opt-in-contract`,
+`verify-vlm-profile-storage`, `verify-vlm-privacy-transfer-guard`,
+`verify-auth-routes`, `git diff --check`입니다. 이 단계는 local VLM runtime smoke,
+cloud provider field smoke, runtime queue/backpressure, Ops runtime status UI,
+UI 풀테스트, 30분/120분 longrun을 수행하지 않습니다.
+
+### V210-S02 Local VLM runtime connection smoke 종료 기준
+
+직접 답: S02의 1차 smoke는 `verify-vlm-local-runtime-smoke`입니다. 이 명령은
+`media-server.vlm-local-runtime-smoke-fixtures.v1` fixture로 loopback local runtime
+server를 실제 bind하고 Ollama `/api/chat`, vLLM/OpenAI-compatible
+`/v1/chat/completions`, missing-runtime, timeout/queue cleanup, invalid output
+fallback을 확인합니다.
+
+```bash
+./server.sh verify-vlm-test-rehearsal
+./server.sh verify-vlm-local-runtime-smoke \
+  --report /tmp/media_server_vlm_local_runtime_smoke.md \
+  --json-report /tmp/media_server_vlm_local_runtime_smoke.json
+git diff --check
+```
+
+이 묶음은 local loopback runtime request/response/timeout cleanup만 검증합니다.
+사용자 설치 실제 모델 품질, cloud provider field smoke, provider credential 저장,
+VLMObservation sidecar write, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC
+media path 변경, UI 풀테스트, 장시간 안정화 PASS를 대신하지 않습니다.
+
+### V210-S03 Cloud provider field smoke gate 종료 기준
+
+직접 답: S03의 1차 gate는 `verify-vlm-cloud-provider-field-smoke-gate`입니다. 이
+명령은 `media-server.vlm-cloud-provider-field-smoke-gate-fixtures.v1` fixture로
+manual flag, env approval, env credential이 모두 있을 때만 cloud provider field call이
+가능하고, 기본 `not-run`, missing credential, provider timeout/failure는 release PASS가
+아님을 확인합니다.
+
+```bash
+./server.sh verify-vlm-cloud-provider-field-smoke-gate \
+  --report /tmp/media_server_vlm_cloud_field_gate.md \
+  --json-report /tmp/media_server_vlm_cloud_field_gate.json
+./server.sh verify-vlm-privacy-transfer-guard
+git diff --check
+```
+
+실제 provider 호출은 아래 조건이 모두 있을 때만 수행합니다.
+
+```bash
+MEDIA_SERVER_VLM_CLOUD_FIELD_SMOKE_APPROVED=1 \
+MEDIA_SERVER_VLM_CLOUD_API_KEY=<env-only-secret> \
+./server.sh verify-vlm-cloud-provider-field-smoke-gate --allow-field-call
+```
+
+기본 gate PASS는 provider field smoke PASS가 아닙니다. 실제 provider call 미실행,
+credential 누락, provider timeout/failure는 모두 `releasePassEligible=false`로 남기며,
+credential material, raw prompt, raw provider response, source URL, raw frame bytes는
+report나 public artifact에 저장하지 않습니다.
+
+### V210-S04 VLM queue/backpressure stability 종료 기준
+
+직접 답: S04의 1차 gate는 `verify-vlm-queue-backpressure-stability`입니다. 이
+명령은 `media-server.vlm-queue-backpressure-fixtures.v1` fixture로 default-off,
+missing-model, invalid-output, timeout, metadata fanout, Event POST dispatch 상태를
+VLM-only failure로 판정하고, RTSP/WebRTC media path, EventRecord, metadata fanout,
+Event POST dispatch로 backpressure가 전파되지 않는지 확인합니다.
+
+```bash
+./server.sh build
+./server.sh verify-vlm-queue-backpressure-stability \
+  --report /tmp/media_server_vlm_queue_backpressure.md \
+  --json-report /tmp/media_server_vlm_queue_backpressure.json
+./server.sh verify-va-events
+./server.sh verify-event-post
+./server.sh verify-webrtc-va-metadata
+./server.sh verify-va-metadata-sidechannel
+./server.sh verify-ws-metadata
+git diff --check
+```
+
+이 묶음은 short stability evidence입니다. 실제 VLM runtime/provider 호출, model
+download, provider credential 저장, sidecar write, Event POST/WebRTC/SSE/WS payload
+schema 변경, RTSP/WebRTC media path 변경은 수행하지 않습니다. 30분 soak는 runtime
+path나 queue/backpressure 제품 경로 변경이 있을 때만 실행하고, UI 직접 조작은
+V210-S05 `/ops/vlm` runtime status UI 범위로 분리합니다.
+
+### V210-S05 Ops VLM runtime status UI 종료 기준
+
+직접 답: S05는 `/ops/vlm`의 `data-testid="ops-vlm-runtime-status-panel"` 패널로
+provider 상태, runtime 연결 상태, 마지막 evaluation, 실패 사유, privacy mode,
+default-off 상태를 운영자가 read-only로 확인하게 합니다. 이 패널은 기존
+`/ops/api/runtime/status`, `/ops/api/vlm/install-connection/dry-run`,
+`/ops/api/vlm/profiles`를 조합하며 새 외부 payload schema를 만들지 않습니다.
+
+```bash
+./server.sh verify-vlm-runtime-status-ui
+./server.sh verify-vlm-install-connection-ui
+./server.sh verify-vlm-profile-storage
+./server.sh verify-vlm-privacy-transfer-guard
+./server.sh verify-auth-routes
+./server.sh verify-ops-client-ui
+git diff --check
+```
+
+S05 완료 evidence에는 인앱 브라우저에서 `/ops/vlm`을 직접 열어 runtime status
+panel, local/cloud 상태 변경, 저장 profile이 있을 때 Last evaluation을 반영하는
+렌더링 경계, client/viewer 비노출을 확인한 기록을 포함합니다. 이 단계는 실제 VLM
+runtime/provider 호출, model download, provider credential 저장, sidecar write,
+30분/120분 longrun을 수행하지 않습니다.
+
+### V210-S06 VLM evaluation result workflow 종료 기준
+
+직접 답: S06의 1차 선택값은 `eval-qwen8b-event-review-default`입니다.
+모델은 `Qwen/Qwen3-VL-8B-Instruct`, prompt profile은 `event-review-default`입니다.
+fallback은 `eval-qwen4b-false-positive-review`이며, 영어 품질이 review-required라
+active default로 승격하지 않습니다. `eval-qwen4b-operator-question-review`는 invalid
+JSON, latency 초과, hallucination fixture 실패 때문에 제외합니다.
+
+`/ops/vlm`에는 `data-testid="ops-vlm-evaluation-result-workflow"` 패널이 있습니다.
+이 패널은 `/ops/api/vlm/evaluation-results`에서
+`media-server.ops.vlm-evaluation-result-workflow.v1` payload를 읽고 latency, JSON
+안정성, 설명 품질, hallucination risk, 한국어/영어 품질을 비교합니다. 운영자가
+`profile draft 반영`을 누르면 후보 model/prompt/evaluation 상태가 기존 VLM profile
+저장 form에 복사됩니다. 이 선택만으로 profile 저장, runtime/provider 호출,
+sidecar write, activation은 발생하지 않습니다.
+
+```bash
+./server.sh verify-vlm-evaluation-result-workflow
+./server.sh verify-vlm-evaluation-harness
+./server.sh verify-vlm-recommendation-engine
+./server.sh verify-vlm-profile-storage
+git diff --check
+```
+
+S06은 실제 VLM runtime 호출, cloud provider API 호출, model/runtime install, 자동
+profile 저장/활성화, VLMObservation sidecar write, Event POST/WebRTC/SSE/WS metadata
+schema 변경, RTSP/WebRTC media path 변경, client/viewer 노출을 수행하지 않습니다.
+
+### V210-S07 VLM review action workflow 종료 기준
+
+직접 답: S07의 1차 action은 `accept`입니다. fallback action은
+`review-needed`이고, 기본값은 `not-reviewed`입니다. action target은 `summary`,
+`eventExplanation`, `falsePositiveHints`, `operatorReviewQuestions` 중 하나입니다.
+`dismiss`는 snapshot/short clip evidence와 비교해 VLM hint를 채택하지 않을 때 쓰는
+대안 action입니다.
+
+제외 대상과 이유:
+
+- 자동 Rule/Profile 적용: VLM review action만으로 운영 룰을 바꾸면 수동 승인 경계를
+  우회하므로 제외합니다.
+- Event POST/WebRTC DataChannel/SSE/WS metadata action field 추가: 외부 schema freeze
+  범위라 제외합니다.
+- client/viewer action UI: VLM review action은 Ops-only review state라 제외합니다.
+- VLMObservation sidecar action write: S07은 operator review 기록이며 sidecar 분석
+  결과를 수정하지 않습니다.
+
+`/ops/events`에는 `data-vlm-review-action-workflow="ops-only-review-state"` 경계와
+VLM review card action/target/note control이 있습니다. 저장 payload는 기존
+`/ops/api/events/reviews/{eventId}`로 전송되며 `review.vlmAction`에
+`media-server.ops.vlm-review-action-state.v1` 객체로 남습니다. 저장 위치는 기존 Ops
+event review JSONL/audit before-after state이고, EventRecord top-level payload와
+Event POST/metadata/media path는 변경하지 않습니다.
+
+```bash
+./server.sh verify-vlm-review-action-workflow
+./server.sh verify-ops-event-review-inbox
+./server.sh verify-vlm-ops-event-review-ui
+./server.sh verify-event-post
+./server.sh verify-ws-metadata
+git diff --check
+```
+
+S07은 실제 VLM runtime 호출, cloud provider API 호출, sidecar write, 자동 Rule/Profile
+저장/적용, Event POST/WebRTC/SSE/WS metadata schema 변경, RTSP/WebRTC media path 변경,
+client/viewer 노출을 수행하지 않습니다.
+
+### V210-S08 Rule suggestion draft workflow 종료 기준
+
+직접 답: S08의 1차 workflow는 `sidecar-candidate-to-ops-rules-event-template-draft`입니다.
+fallback은 기존 `/ops/rules` 이벤트 템플릿/시나리오 빌더를 운영자가 직접 열어
+수동 저장하는 흐름입니다. `auto-save-rule-from-vlm`, `client-viewer-rule-draft`,
+`runtime-vlm-requery`는 제외합니다.
+
+`/ops/api/vlm/rule-suggestion-drafts`는 기존 V200-S13
+`media-server.vlm-rule-suggestion-candidates.v1` 후보를 읽기 전용으로 감싸
+`media-server.vlm-rule-suggestion-draft-workflow.v1` payload를 반환합니다.
+`/ops/rules`의 `data-testid="ops-vlm-rule-draft-workflow"` 패널은 후보를
+이벤트 템플릿 form draft에만 반영합니다. 저장은 기존 composer 저장 버튼을
+운영자가 직접 누를 때만 발생하며 draft 적용 중 Rule/Profile registry write,
+자동 Rule/Profile 적용, runtime/provider 호출은 발생하지 않습니다.
+
+```bash
+./server.sh verify-vlm-rule-suggestion-draft-workflow
+./server.sh verify-vlm-rule-suggestion-candidates
+./server.sh verify-analysis-state
+./server.sh verify-ops-rules-roundtrip
+./server.sh verify-rule-ui
+./server.sh verify-va-replay
+./server.sh verify-va-events
+git diff --check
+```
+
+S08은 EventRecord top-level, Event POST, WebRTC DataChannel, SSE/WS metadata schema,
+RTSP/WebRTC media path, client/viewer UI/API, VLM runtime/provider 호출을 변경하지
+않습니다. `verify-rule-ui`의 browser smoke는 draft 적용 중 write API가 호출되지
+않는지만 확인하며, 운영자가 실제 제품 UI에서 모든 후보를 저장/운영 승인했다는
+UI 풀테스트 evidence를 대신하지 않습니다.
+
+2026-06-02 local evidence: 위 verifier 범위에서 draft-only API/UI, no-auto-apply
+guard, 기존 rule roundtrip, VA replay/event smoke가 통과했습니다. 장시간 soak와
+수동 UI 풀테스트는 S08 완료 evidence에 포함하지 않습니다.
+
+### V210-S09 VA coverage evidence report 종료 기준
+
+직접 답: S09의 coverage report schema는
+`media-server.va-rule-event-coverage-report.v1`입니다. report verifier는 basic
+event, line direction, scenario replay, EventRecord history key,
+invalid/negative 조합을 개별 row로 출력합니다. 1차 local report는 25행이며,
+expected PASS 21행과 expected FAIL 4행을 분리합니다. invalid 조합은 PASS로
+섞지 않고 expected FAIL row로 남깁니다.
+
+```bash
+./server.sh verify-va-event-coverage-report \
+  --report /tmp/media_server_v210_s09_va_coverage.md \
+  --json-report /tmp/media_server_v210_s09_va_coverage.json
+./server.sh verify-va-replay
+./server.sh verify-va-events --dispatch-records
+git diff --check
+```
+
+2026-06-02 local evidence: 위 report verifier는 `/tmp/media_server_v210_s09_va_coverage.md`
+와 `/tmp/media_server_v210_s09_va_coverage.json`을 생성하고 5개 정적 coverage
+check를 통과했습니다. `verify-va-replay`는 14개 replay baseline을 통과했습니다.
+storage-enabled 격리 서버에서 `verify-va-events --dispatch-records`는 EventRecord
+queue drain과 저장 이력 검증을 포함해 33 PASS / 0 FAIL로 끝났습니다.
+
+S09는 VA media/Event POST/WebRTC DataChannel/SSE/WS metadata schema를 변경하지
+않습니다. report/verifier evidence는 제품 UI 풀테스트나 30분/120분 장시간 soak를
+대체하지 않습니다.
+
+### V210-S10 External TURN/WHEP field gate 종료 기준
+
+직접 답: S10의 1차 gate는 `verify-external-turn-whep-field-gate`입니다. 이 명령은
+`media-server.external-turn-whep-field-gate-fixtures.v1` fixture로 external TURN
+relay/auth와 external WHEP playback 상태를 `not-run`, `blocked`, `failed`,
+`passed`로 분리하고, 어떤 fixture도 기본 release PASS claim으로 쓰지 않게 합니다.
+
+```bash
+./server.sh verify-external-turn-whep-field-gate \
+  --report /tmp/media_server_external_turn_whep_field_gate.md \
+  --json-report /tmp/media_server_external_turn_whep_field_gate.json
+./server.sh verify-webrtc-ice
+git diff --check
+```
+
+S10은 실제 외부 TURN credential 운영 성공, 외부 WHEP endpoint playback 성공,
+방화벽/relay 운영 보장을 완료로 보고하지 않습니다. 현재 개발 환경에는 접근 가능한
+외부 TURN/WHEP endpoint와 credential이 없으므로 field smoke는 `not-run`으로
+남깁니다. `verify-webrtc-ice` 기본 PASS, local coturn PASS, UI 풀테스트, 30분/120분
+longrun은 external TURN/WHEP field PASS를 대체하지 않습니다.
+
+2026-06-03 local evidence: S10 verifier는 default execution에서 external network를
+시도하지 않고 `fieldSmokeStatus=not-run`, `turnRelayStatus=not-run`,
+`whepPlaybackStatus=not-run`, `defaultReleasePassClaimAllowed=false` report를
+생성합니다. 이 evidence는 gate 절차와 redaction/분리 기준의 PASS이며, 실제 external
+TURN/WHEP credential 운영 PASS가 아닙니다.
+
+### V210-S11 Runtime/model bundle RC rehearsal 종료 기준
+
+직접 답: S11의 기본 배포 결정값은 `source-only` 유지입니다. 1차 runtime/model bundle
+후보는 선택하지 않습니다. local-binary, offline-package, container-root는 runtime/model
+없는 RC rehearsal shape로만 남기고, runtime/model 포함 bundle, GPL-risk runtime 포함
+bundle, hash/provenance/license/source-offer 누락 후보, binary/runtime/model release
+asset 업로드는 blocked입니다.
+
+```bash
+./server.sh verify-runtime-model-bundle-rc-rehearsal \
+  --report /tmp/media_server_runtime_model_bundle_rc_rehearsal.md \
+  --json-report /tmp/media_server_runtime_model_bundle_rc_rehearsal.json
+./server.sh verify-bundle-policy \
+  --output /tmp/media_server_bundle_policy.md \
+  --json-output /tmp/media_server_bundle_policy.json
+./server.sh verify-release-bundle-dry-run --candidate source-only
+./server.sh dependency-snapshot \
+  --stable \
+  --no-linked-libs \
+  --output /tmp/media_server_dependency_snapshot_s11.md \
+  --json-output /tmp/media_server_dependency_snapshot_s11.json
+git diff --check
+```
+
+`media-server.runtime-model-bundle-rc-rehearsal-report.v1`은
+`source-only-default-pass`, `runtime-model-included-blocked`,
+`gpl-risk-runtime-binary-blocked`, `missing-hash-provenance-license-blocked`,
+`release-asset-upload-blocked` case를 분리합니다. report의
+`actualBundleCreated=false`, `releaseAssetUploaded=false`,
+`runtimeModelBundleSelected=false`, `rcRehearsalOnly=true`는 이번 단계가 실제
+bundle release가 아님을 뜻합니다.
+
+S11은 ONNX Runtime package, FFmpeg/GStreamer GPL-risk runtime, YOLO/Re-ID/VLM model
+artifact, download token, binary/runtime/model release asset을 repo, bundle, GitHub
+Release에 포함하지 않습니다. Event POST/WebRTC DataChannel/SSE/WS metadata schema,
+RTSP/WebRTC media path, 제품 UI도 변경하지 않습니다.
+
+### V210-S12 UI fulltest evidence runner 개선 종료 기준
+
+직접 답: S12의 산출물은 `verify-manual-ui-evidence-runner`가 생성하는
+`media-server.manual-ui-evidence-report.v1` report 강화입니다. UI 풀테스트 자체를
+실행하거나 UI PASS를 새로 만드는 단계가 아닙니다.
+
+개선된 PASS row는 각 UI 대상 기능 ID마다 아래를 요구합니다.
+
+- `route`
+- `control`
+- `interaction`
+- `input` 또는 `inputNotApplicableReason`
+- `expected`
+- `actual`
+- `stateReflected=true`
+- `artifacts`
+- `logChecked`, `eventRecordChecked`, 또는 `logNotApplicableReason`
+
+`manualSpotReviews`는 사람이 확인한 보조 범위와 artifact를 보존하지만, 누락된 기능
+ID, raw JSON/API-only 확인, route/control/input/state/log/artifact 누락을 PASS로
+바꾸지 않습니다.
+
+```bash
+./server.sh verify-manual-ui-evidence-runner \
+  --report /tmp/media_server_manual_ui_evidence_runner_selftest.md \
+  --json-report /tmp/media_server_manual_ui_evidence_runner_selftest.json
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-ops-client-ui --screenshots
+./server.sh verify-rule-ui
+git diff --check
+```
+
+S12는 제품 UI, Auth/session/scope, Event POST/WebRTC/SSE/WS metadata schema,
+RTSP/WebRTC media path를 변경하지 않습니다. `verify-ops-client-ui --screenshots`와
+`verify-rule-ui`는 smoke/script evidence이며, 인앱 브라우저에서 전체 UI 기능을 직접
+클릭한 UI 풀테스트 PASS를 대체하지 않습니다.
 
 ## v2.0.0 Release Close-out
 
@@ -86,7 +568,8 @@ VLM S00~S18 구현 및 테스트 evidence는 아래 표와 release evidence 문�
 v2.0.0 release close-out도 PR #19 초기 publish와 README/VLM 문서 follow-up을 거쳐
 main sync, annotated tag, GitHub Release, published metadata 검증, release branch 삭제,
 다음 branch sync까지 완료했습니다.
-release 완료 뒤 다음 branch 이름은 규칙상 `v2.1.0`이지만, v2.1.0 roadmap은 아직 작성하지 않습니다.
+release 완료 뒤 다음 branch 이름은 규칙상 `v2.1.0`이었으며, v2.1.0 roadmap은 현재
+상단 `완료 roadmap: v2.1.0 VLM Runtime Opt-in Stabilization` 섹션에 보존합니다.
 
 핵심 원칙:
 
@@ -1449,7 +1932,7 @@ Decision record 최소 필드:
 
 ## Archived: v1.7.0 UI-first Close-out
 
-이 섹션은 v1.7.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v2.0.0
+이 섹션은 v1.7.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v2.1.0
 Release Close-out입니다.
 
 v1.7.0 close-out 당시에는 Client Live workspace와 Ops workflow 보강을 완료 기준으로 둡니다.
@@ -1527,7 +2010,7 @@ v1.7.0 비범위:
 
 ## Archived: v1.6.0 Stabilization Close-out
 
-이 섹션은 v1.6.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v2.0.0
+이 섹션은 v1.6.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v2.1.0
 Release Close-out입니다.
 
 v1.6.0 close-out 당시에는 새 제품 기능을 여는 minor release가 아니라, v1.5.0까지 닫은 기능을

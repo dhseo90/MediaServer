@@ -94,6 +94,8 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh dependency-snapshot --stable --output /tmp/media_server_dependency_snapshot.md --no-linked-libs
 ./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
 ./server.sh verify-release-bundle-dry-run
+./server.sh verify-runtime-model-bundle-rc-rehearsal
+./server.sh verify-external-turn-whep-field-gate
 ./server.sh source-offer-checklist --stable --bundle-policy-report /tmp/media_server_bundle_policy.json
 ./server.sh verify-auth-regression-matrix
 ./server.sh verify-auth-routes
@@ -131,6 +133,11 @@ Manual UI evidence runner는 UI 풀테스트 자체를 실행하지 않습니다
 `project-feature-test-inventory.md`의 UI 대상 기능 ID별 PASS/FAIL report를 생성합니다.
 누락된 UI 대상 기능 ID는 `FAIL`로 남기고, 제외 항목은 판정표 밖 `Exclusions`
 section에만 기록합니다.
+PASS row에는 `route`, `control`, `interaction`, `input` 또는
+`inputNotApplicableReason`, expected/actual, `stateReflected=true`, artifact, 그리고
+log/EventRecord/not-applicable evidence가 필요합니다. `manualSpotReviews`는 manual
+spot review 보조 evidence로 report에 보존하지만, 누락된 UI 기능 ID나 raw JSON/API-only
+확인을 PASS로 바꾸지 않습니다.
 
 ```bash
 ./server.sh verify-manual-ui-evidence-runner \
@@ -413,7 +420,7 @@ fallback까지 실패하면 `media-server.github-metadata-fallback-policy.v1` �
 `failure-class=tool-unavailable`, `failure-class=external-github-access` 중 하나로
 보고하고 제품 runtime/media 회귀와 분리합니다.
 
-현재 v2.0.0 제품 회귀 gate, UI 풀테스트 gate, release close-out gate는 아래
+현재 v2.1.0 제품 회귀 gate, UI 풀테스트 gate, release close-out gate는 아래
 통합 명령으로만 확인합니다.
 
 ```bash
@@ -448,6 +455,189 @@ fallback까지 실패하면 `media-server.github-metadata-fallback-policy.v1` �
 ./server.sh verify-docs-links
 ./server.sh verify-release-metadata
 ```
+
+v2.1.0 entry baseline은 v2.0.0 published evidence를 시작점으로 고정하되,
+신규 VLM runtime/provider 호출이나 UI/장시간 테스트 PASS를 만들지 않습니다.
+`media-server.v210-entry-baseline-report.v1` report는 아래 명령으로 생성합니다.
+
+```bash
+./server.sh verify-v210-entry-baseline \
+  --report /tmp/media_server_v210_entry_baseline.md \
+  --json-report /tmp/media_server_v210_entry_baseline.json
+./server.sh verify-release-metadata
+./server.sh verify-release-evidence-index
+./server.sh verify-integrator-contract-artifact
+./server.sh verify-event-post
+./server.sh verify-auth-routes
+./server.sh verify-codecs
+./server.sh verify-webrtc-ice
+./server.sh verify-webrtc-va-metadata
+./server.sh verify-va-metadata-sidechannel
+./server.sh verify-ws-metadata
+```
+
+이 묶음은 WebRTC/SSE/WS/Event POST/Auth/media path freeze의 S00 선수 gate입니다.
+UI 풀테스트, 30분 soak, 120분 longrun, published GitHub live metadata 확인은 별도
+명시 지시나 release 후보 gate에서만 실행하고, 이 report의 PASS로 대체하지 않습니다.
+
+v2.1.0 S01 VLM runtime opt-in contract는 profile 저장 계약 안에서 runtime 상태만
+고정합니다. 실제 local/cloud runtime 호출이 아니라 default-off 상태 분리 gate입니다.
+
+```bash
+./server.sh verify-vlm-runtime-opt-in-contract
+./server.sh verify-vlm-profile-storage
+./server.sh verify-vlm-privacy-transfer-guard
+./server.sh verify-auth-routes
+git diff --check
+```
+
+이 묶음은 `media-server.vlm-runtime-opt-in-contract.v1`의 `disabled`,
+`local-runtime`, `cloud-provider`, `missing-model`, `invalid-output`, `timeout`
+상태와 `defaultEnabled=false`를 확인합니다. local runtime smoke와 cloud provider
+field smoke는 S02/S03 이후 별도 evidence이며, S01 PASS로 대체하지 않습니다.
+
+v2.1.0 S02 Local VLM runtime connection smoke는 실제 external model 품질 평가가
+아니라 loopback local endpoint fixture를 bind해 HTTP roundtrip, timeout abort, queue
+cleanup, invalid structured output fallback을 실행합니다.
+
+```bash
+./server.sh verify-vlm-test-rehearsal
+./server.sh verify-vlm-local-runtime-smoke \
+  --report /tmp/media_server_vlm_local_runtime_smoke.md \
+  --json-report /tmp/media_server_vlm_local_runtime_smoke.json
+git diff --check
+```
+
+`media-server.vlm-local-runtime-smoke-report.v1`은 `ollama-loopback-chat-pass`,
+`vllm-openai-compatible-pass`, `api-compatible-local-pass`, `missing-runtime-fallback`,
+`timeout-queue-cleanup`, `invalid-output-fallback` case를 분리합니다. 이 report는
+cloud provider field smoke, provider credential 저장, 실제 사용자 model 품질, UI
+풀테스트, 30분/120분 longrun, release close-out PASS를 대신하지 않습니다.
+
+v2.1.0 S03 Cloud provider field smoke gate는 `gemini-2.5-flash` 같은 cloud opt-in
+provider 호출을 credential 저장 없이 env/manual 승인 기반으로만 허용합니다.
+
+```bash
+./server.sh verify-vlm-cloud-provider-field-smoke-gate \
+  --report /tmp/media_server_vlm_cloud_field_gate.md \
+  --json-report /tmp/media_server_vlm_cloud_field_gate.json
+./server.sh verify-vlm-privacy-transfer-guard
+git diff --check
+```
+
+기본 gate PASS는 provider field smoke PASS가 아닙니다. 실제 field call은
+`--allow-field-call`, `MEDIA_SERVER_VLM_CLOUD_FIELD_SMOKE_APPROVED=1`, env credential이
+모두 있을 때만 실행합니다. 미실행, missing credential, provider timeout/failure는
+`releasePassEligible=false`이며 local runtime smoke PASS나 privacy guard PASS로
+대체하지 않습니다.
+
+v2.1.0 S04 VLM queue/backpressure stability는 VLM-only failure 상태가
+RTSP/WebRTC media path, EventRecord, metadata fanout, Event POST dispatch를 막지
+않는지 fixture와 기존 side-effect verifier 묶음으로 확인합니다.
+
+```bash
+./server.sh build
+./server.sh verify-vlm-queue-backpressure-stability \
+  --report /tmp/media_server_vlm_queue_backpressure.md \
+  --json-report /tmp/media_server_vlm_queue_backpressure.json
+./server.sh verify-va-events
+./server.sh verify-event-post
+./server.sh verify-webrtc-va-metadata
+./server.sh verify-va-metadata-sidechannel
+./server.sh verify-ws-metadata
+git diff --check
+```
+
+`media-server.vlm-queue-backpressure-stability-report.v1`은 default-off,
+missing-model, invalid-output, timeout, metadata fanout, Event POST dispatch case를
+분리합니다. 이 report는 실제 VLM runtime/provider 호출, 30분 soak, 120분 longrun,
+브라우저 UI 직접 확인 evidence가 아닙니다. 30분 soak는 runtime path나
+queue/backpressure 제품 경로 변경이 있을 때만 실행합니다.
+
+v2.1.0 S10 External TURN/WHEP field gate는 운영 TURN credential과 외부 WHEP
+playback endpoint 성공을 기본 release PASS와 분리합니다.
+
+```bash
+./server.sh verify-external-turn-whep-field-gate \
+  --report /tmp/media_server_external_turn_whep_field_gate.md \
+  --json-report /tmp/media_server_external_turn_whep_field_gate.json
+./server.sh verify-webrtc-ice
+git diff --check
+```
+
+`media-server.external-turn-whep-field-gate-report.v1`은 기본 실행에서 외부
+network call을 하지 않고 `fieldSmokeStatus=not-run`,
+`defaultReleasePassClaimAllowed=false`를 기록합니다. 실제 TURN relay/auth 또는
+외부 WHEP playback field smoke는 접근 가능한 endpoint, env credential, 운영 승인,
+redacted report가 모두 있을 때만 별도 field evidence로 남깁니다. `verify-webrtc-ice`
+기본 PASS, local coturn PASS, UI 풀테스트, 30분/120분 longrun은 external TURN/WHEP
+field PASS를 대체하지 않습니다.
+
+v2.1.0 S11 Runtime/model bundle RC rehearsal은 source-only default를 유지하면서
+runtime/model 포함 bundle의 hash/provenance/license/source-offer 차단 기준만 확인합니다.
+
+```bash
+./server.sh verify-runtime-model-bundle-rc-rehearsal \
+  --report /tmp/media_server_runtime_model_bundle_rc_rehearsal.md \
+  --json-report /tmp/media_server_runtime_model_bundle_rc_rehearsal.json
+./server.sh verify-bundle-policy \
+  --output /tmp/media_server_bundle_policy.md \
+  --json-output /tmp/media_server_bundle_policy.json
+./server.sh verify-release-bundle-dry-run --candidate source-only
+./server.sh dependency-snapshot \
+  --stable \
+  --no-linked-libs \
+  --output /tmp/media_server_dependency_snapshot_s11.md \
+  --json-output /tmp/media_server_dependency_snapshot_s11.json
+git diff --check
+```
+
+`media-server.runtime-model-bundle-rc-rehearsal-report.v1`은
+`actualBundleCreated=false`, `releaseAssetUploaded=false`,
+`runtimeModelBundleSelected=false`, `rcRehearsalOnly=true`를 기록합니다. 이 report와
+source-only dry-run PASS는 runtime/model 포함 배포 승인, binary release asset 업로드,
+GitHub Release asset 생성, source offer 완료를 대체하지 않습니다.
+
+v2.1.0 S05 Ops VLM runtime status UI는 `/ops/vlm`에서 provider 상태, runtime 연결
+상태, 마지막 evaluation, 실패 사유, privacy mode, default-off 상태를 read-only로
+보여줍니다.
+
+```bash
+./server.sh verify-vlm-runtime-status-ui
+./server.sh verify-vlm-install-connection-ui
+./server.sh verify-vlm-profile-storage
+./server.sh verify-vlm-privacy-transfer-guard
+./server.sh verify-auth-routes
+./server.sh verify-ops-client-ui
+git diff --check
+```
+
+`verify-vlm-runtime-status-ui`와 `verify-ops-client-ui`는 UI wiring과 route/client
+비노출 smoke입니다. 제품 UI 직접 확인은 인앱 브라우저에서 `/ops/vlm` 패널과
+상태 변경을 직접 조작한 evidence로 분리하며, raw JSON/API 확인만으로 UI PASS를
+대체하지 않습니다. S05는 실제 VLM runtime/provider 호출이나 외부 payload schema
+변경을 수행하지 않습니다.
+
+v2.1.0 S08 Rule suggestion draft workflow는 저장된 VLMObservation sidecar의
+rule suggestion 후보를 자동 적용하지 않고 `/ops/rules` 이벤트 템플릿 draft로만
+가져갑니다. 이 API/UI는 `media-server.vlm-rule-suggestion-draft-workflow.v1`
+payload와 `data-vlm-rule-draft-contract="draft-only-manual-save"` 경계로 관리하며,
+저장은 기존 `/ops/rules` composer 저장 버튼을 운영자가 직접 눌렀을 때만 발생합니다.
+
+```bash
+./server.sh verify-vlm-rule-suggestion-draft-workflow
+./server.sh verify-vlm-rule-suggestion-candidates
+./server.sh verify-analysis-state
+./server.sh verify-rule-ui
+git diff --check
+```
+
+이 묶음은 V200-S13 `media-server.vlm-rule-suggestion-candidates.v1` 후보 builder,
+Ops-only read route, `/ops/rules` form draft 반영, no-auto-apply/browser write guard를
+확인합니다. 실제 runtime/provider 재질의, 자동 Rule/Profile 저장/적용,
+Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경, client/viewer
+노출, 운영자가 모든 후보를 제품 UI에서 저장 승인했다는 UI 풀테스트 evidence를
+대체하지 않습니다.
 
 EventRecord 저장 이력까지 확인해야 하는 경우에는 EventRecord storage를 켠 격리
 서버에서 `verify-va-events --dispatch-records`를 실행합니다. 이 모드는 rare

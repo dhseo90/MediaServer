@@ -72,6 +72,11 @@ guard, docs/inventory/server wiring, viewer/client 비노출, Event POST/EventRe
 이 검증은 실제 provider logging policy의 최신 내용 검토, 실제 cloud API 호출,
 VLM runtime 호출, 장시간 안정화, UI 풀테스트 완료를 대신하지 않습니다.
 
+v2.1.0 S03의 실제 cloud provider field smoke는 별도
+`verify-vlm-cloud-provider-field-smoke-gate`가 관리합니다. Privacy/전송 guard PASS는
+provider field smoke PASS가 아니며, S03 gate에서도 미실행/실패는 release PASS로
+기록하지 않습니다.
+
 ## Non-Scope
 
 S11에서 하지 않는 일:
