@@ -521,6 +521,22 @@ v2.2.0 UI architecture inventory는 S01에서 현재 C++ 문자열 UI 구조, ro
 빠짐없이 연결하는지 확인합니다. 실제 브라우저 UI 풀테스트, visual redesign mockup,
 30분 soak, 120분 longrun은 S01 PASS로 대체하지 않습니다.
 
+v2.2.0 responsive task shell은 S02에서 route별 primary task, secondary action,
+drawer/panel 전환 기준과 320/390/760/1180+ viewport 완료 기준을 고정합니다. 이
+단계는 HTML/CSS/JavaScript 재배치 구현이 아니라 layout contract review입니다.
+
+```bash
+./server.sh verify-v220-responsive-task-shell
+./server.sh verify-ops-client-ui --browser-mode static
+./server.sh verify-docs-links
+./server.sh verify-script-inventory
+```
+
+이 묶음은 [v220-responsive-task-shell.md](./v220-responsive-task-shell.md)가
+responsive task shell 계약과 후속 S03/S04 입력값을 담는지 확인합니다. screenshot
+evidence, 브라우저 UI 풀테스트, visual redesign mockup, 30분 soak, 120분 longrun은
+S02 PASS로 대체하지 않습니다.
+
 v2.1.0 S01 VLM runtime opt-in contract는 profile 저장 계약 안에서 runtime 상태만
 고정합니다. 실제 local/cloud runtime 호출이 아니라 default-off 상태 분리 gate입니다.
 
