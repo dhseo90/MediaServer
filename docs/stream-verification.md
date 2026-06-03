@@ -480,6 +480,31 @@ v2.1.0 entry baseline은 v2.0.0 published evidence를 시작점으로 고정하�
 UI 풀테스트, 30분 soak, 120분 longrun, published GitHub live metadata 확인은 별도
 명시 지시나 release 후보 gate에서만 실행하고, 이 report의 PASS로 대체하지 않습니다.
 
+v2.2.0 Responsive UI Foundation entry boundary는 v2.1.0 source-only release baseline을
+제품 contract로 고정하고, UI 기반 재설계가 route/API/schema/media path 변경으로
+번지지 않도록 시작 경계를 확인합니다. `media-server.v220-entry-boundary-report.v1`
+report는 아래 명령으로 생성합니다.
+
+```bash
+./server.sh verify-v220-entry-boundary \
+  --report /tmp/media_server_v220_entry_boundary.md \
+  --json-report /tmp/media_server_v220_entry_boundary.json
+./server.sh verify-integrator-contract-artifact
+./server.sh verify-event-post
+./server.sh verify-auth-routes
+./server.sh verify-webrtc-va-metadata
+./server.sh verify-va-metadata-sidechannel
+./server.sh verify-ws-metadata
+./server.sh verify-docs-links
+./server.sh verify-script-inventory
+```
+
+이 묶음은 v2.2.0 S00의 roadmap review와 contract boundary review입니다.
+320/390/760/1180+ responsive task shell은 active roadmap의 완료 기준으로 고정하지만,
+S00은 UI 구현이나 visual redesign mockup을 만들지 않습니다. UI 풀테스트, 30분 soak,
+120분 longrun, published GitHub live metadata 확인은 별도 명시 지시나 release 후보
+gate에서만 실행하고, 이 report의 PASS로 대체하지 않습니다.
+
 v2.1.0 S01 VLM runtime opt-in contract는 profile 저장 계약 안에서 runtime 상태만
 고정합니다. 실제 local/cloud runtime 호출이 아니라 default-off 상태 분리 gate입니다.
 

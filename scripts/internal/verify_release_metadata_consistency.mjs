@@ -35,7 +35,7 @@ Checks:
   - 기본 모드에서는 GitHub latest/tag 외부 확인을 실행하지 않고 --published 재검증 안내로 기록
   - --published 모드에서는 GitHub Releases latest/list/view, GitHub API /releases/latest, 원격 tag/branch, repository page Releases/Latest link가 현재 tag를 가리키는지 확인
   - gh 인증/도구 실패는 curl GitHub REST API fallback, SSH origin refs 실패는 HTTPS refs fallback으로 재시도하고 외부 접근 실패를 failure-class로 구분
-  - versioning/release/backlog/public review/UI guide 문서가 같은 current release baseline과 deferred phase gate를 말하는지 확인
+  - versioning/release/backlog/public review/UI guide 문서가 같은 current release baseline과 active next-roadmap gate를 말하는지 확인
 `);
 }
 
@@ -371,18 +371,22 @@ check("release policies require future signed tags", () => {
   return { files: docs.map(([file]) => file) };
 });
 
-check("development backlog separates current baseline from deferred phase gates", () => {
+check("development backlog separates current baseline from active v2.2.0 roadmap gates", () => {
   const doc = readText("docs/development-backlog.md");
   for (const snippet of [
     `## 현재 기준: ${currentTag} Source Release Baseline`,
     `${currentTag}은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서`,
+    "## 활성 roadmap: v2.2.0 Responsive UI Foundation",
+    "작업 단위 반응형 셸",
+    "V220-S00",
+    "verify-v220-entry-boundary",
     `## ${currentTag} Release Close-out`,
     "## 완료 roadmap: v2.1.0 VLM Runtime Opt-in Stabilization",
     "VLM을 이벤트 해석/리뷰 보조 계층과 runtime/provider opt-in stabilization 범위",
     "이 roadmap은 `v2.1.0` branch에서",
     "실제 tag/push는 이 release close-out 지시에 한해 수행합니다",
     "v2.2.0 branch는 v2.1.0 GitHub Release와 published metadata 재검증이 끝난 뒤",
-    "v2.2.0 개발 방향은 사용자가 생각해 둔 별도 후속 지시 전까지",
+    "v2.2.0 개발 방향은 상단의 `활성 roadmap: v2.2.0 Responsive UI",
   ]) {
     assert(doc.includes(snippet), `docs/development-backlog.md missing snippet: ${snippet}`);
   }

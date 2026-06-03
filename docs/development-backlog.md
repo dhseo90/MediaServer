@@ -115,7 +115,7 @@ tablet/panel 전환 기준, 1180px 이상은 밀도 높은 운영 콘솔 기준�
 
 | 순서 | ID | 우선순위 | 상태 | 영역 | 목표 | 예상 검증 |
 | --- | --- | --- | --- | --- | --- | --- |
-| 0 | V220-S00 | P0 | 예정 | Entry boundary / roadmap gate | v2.1.0 release baseline과 v2.2.0 UI redesign 범위를 분리하고, 변경 금지 contract와 viewer redaction 경계를 재확인합니다. | roadmap review, contract boundary review, `verify-event-post`, metadata verifier, `verify-auth-routes`, `git diff --check` |
+| 0 | V220-S00 | P0 | 완료 | Entry boundary / roadmap gate | v2.1.0 release baseline과 v2.2.0 UI redesign 범위를 분리하고, 변경 금지 contract와 viewer redaction 경계를 재확인합니다. | roadmap review, contract boundary review, `verify-v220-entry-boundary`, `verify-integrator-contract-artifact`, `verify-event-post`, metadata verifier, `verify-auth-routes`, `git diff --check` |
 | 1 | V220-S01 | P0 | 예정 | UI architecture inventory | C++ 문자열 UI 파일, shared token, page script, asset helper, route별 template 경계를 inventory로 정리하고 분리 가능한 component primitive 후보를 정합니다. | UI source inventory review, route/template mapping, `verify-ops-client-ui`, `git diff --check` |
 | 2 | V220-S02 | P0 | 예정 | Responsive task shell | `/ops`, `/client`, `/setup`, `/login`의 route별 primary task, secondary action, drawer/panel 전환 기준을 정의합니다. | 320/390/760/1180 viewport checklist, layout contract review, `verify-ops-client-ui --screenshots`, `git diff --check` |
 | 3 | V220-S03 | P0 | 예정 | Design token refresh | light/dark theme-aware token, spacing, density, typography, button/input/table/badge/debug details 기준을 단일 source로 정리합니다. | token diff review, theme contrast review, `verify-ops-client-ui`, `git diff --check` |
@@ -133,6 +133,43 @@ v2.2.0 후속 작업:
 3. V220-S02에서 `작업 단위 반응형 셸`의 route별 primary task와 viewport별 완료 기준을 확정합니다.
 4. S00~S02가 닫힌 뒤 visual redesign mockup과 구현 계획을 별도 spec/plan으로 분리합니다.
 5. 구현 단계는 route/API/schema/media path 변경 금지와 UI 풀테스트 직접 조작 evidence를 매 단계 완료 조건으로 둡니다.
+
+### V220-S00 v2.2.0 UI redesign entry boundary 종료 기준
+
+직접 답: v2.2.0의 시작 기준은 `v2.1.0` source-only release baseline입니다.
+v2.2.0은 제품 UI 기반 재설계와 responsive shell을 다루지만, S00에서는 UI 구현,
+C++ 문자열 UI 구조 변경, route/API/config/schema migration, RTSP/WebRTC media path
+변경을 수행하지 않습니다.
+
+1차 선택값은 `작업 단위 반응형 셸`입니다. 이 선택은 `/ops`, `/client`, `/setup`,
+`/login`의 route별 primary task와 `320`, `390`, `760`, `1180+` viewport 완료 기준을
+S02에서 구체화하기 위한 제품 방향입니다. S00은 이 방향을 active roadmap의 경계로
+고정하고, 실제 visual redesign mockup과 구현 계획은 S01~S03 이후 별도 spec/plan에서
+다룹니다.
+
+S00 완료 evidence는 `verify-v220-entry-boundary`, `verify-integrator-contract-artifact`,
+`verify-event-post`, `verify-auth-routes`, `verify-webrtc-va-metadata`,
+`verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-docs-links`,
+`verify-script-inventory`, `git diff --check`입니다. `verify-v220-entry-boundary`는
+`media-server.v220-entry-boundary-report.v1` schema의 boundary report를 생성할 수
+있고, UI 풀테스트, 30분 soak, 120분 longrun, published metadata 확인을 서로
+대체하지 않게 분리합니다.
+
+S00 제외 대상은 UI 코드 구현, 제품 화면 재배치, C++ helper 분리, Event POST/WebRTC
+DataChannel/SSE/WS payload 변경, Rule/Profile payload schema 변경, RTSP/WebRTC media
+pipeline 변경, VLM runtime/provider 확장, credential persistent store, model/runtime
+bundle, GitHub published metadata 재검증입니다.
+
+2026-06-03 S00 closure evidence:
+
+- PASS: `verify-v220-entry-boundary`, `verify-integrator-contract-artifact`,
+  `verify-event-post`, `verify-auth-routes`, `verify-webrtc-va-metadata`,
+  `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-docs-links`,
+  `verify-script-inventory`, `git diff --check`
+- 미실행: UI 구현, UI 풀테스트, 30분 soak, 120분 longrun, published metadata 재검증
+- 이슈 처리: `verify-event-post`는 서버 미기동/401 조건을 auth-off isolated 서버로
+  보정해 재실행했고, `verify-webrtc-va-metadata`와 `verify-auth-routes`는 sandbox
+  localhost/RTSP 제한을 sandbox 밖 재실행으로 확인했습니다.
 
 ## 완료 roadmap: v2.1.0 VLM Runtime Opt-in Stabilization
 

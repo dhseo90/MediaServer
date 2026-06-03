@@ -210,6 +210,8 @@ Usage:
                  v1.9.0 종료와 v2.0.0 진입 baseline report 구획을 검증합니다.
   verify-v210-entry-baseline
                  v2.0.0 published evidence를 v2.1.0 진입 baseline으로 고정합니다.
+  verify-v220-entry-boundary
+                 v2.2.0 responsive UI foundation 진입 경계와 변경 금지 contract를 검증합니다.
   verify-feature-scope-gate
                  v1.8.0 안정화 범위에서 새 기능 후보를 구현으로 승격하지 않는 decision gate를 검증합니다.
   verify-script-inventory
@@ -844,6 +846,10 @@ case "${cmd}" in
   verify-v210-entry-baseline)
     require_internal verify_v210_entry_baseline.mjs
     exec "${INTERNAL_DIR}/verify_v210_entry_baseline.mjs" "$@"
+    ;;
+  verify-v220-entry-boundary)
+    require_internal verify_v220_entry_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v220_entry_boundary.mjs" "$@"
     ;;
   verify-feature-scope-gate)
     require_internal verify_feature_scope_decision_gate.mjs
