@@ -420,7 +420,7 @@ fallback까지 실패하면 `media-server.github-metadata-fallback-policy.v1` �
 `failure-class=tool-unavailable`, `failure-class=external-github-access` 중 하나로
 보고하고 제품 runtime/media 회귀와 분리합니다.
 
-현재 v2.0.0 제품 회귀 gate, UI 풀테스트 gate, release close-out gate는 아래
+현재 v2.1.0 제품 회귀 gate, UI 풀테스트 gate, release close-out gate는 아래
 통합 명령으로만 확인합니다.
 
 ```bash

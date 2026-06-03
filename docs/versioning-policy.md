@@ -4,18 +4,19 @@
 
 ## 현재 기준
 
-- 현재 기준 버전: `v2.0.0`
+- 현재 기준 버전: `v2.1.0`
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
-- `v2.0.0`은 직전 release까지 닫은 source-only/live-only 제품 경계를 유지하면서
-  VLM을 이벤트 해석/리뷰 보조 계층으로 추가하는 source-only release입니다.
+- `v2.1.0`은 직전 release까지 닫은 source-only/live-only 제품 경계를 유지하면서
+  VLM을 이벤트 해석/리뷰 보조 계층과 runtime/provider opt-in stabilization 범위로
+  닫는 source-only release입니다.
   Client Live workspace, source tree/dock event feed, tile disconnect, event review,
   source group/site, tile info overlay, saved layout, incident timeline, alert delivery,
   scenario builder, Ops/Client declutter는 현재 UI-first 제품 baseline으로 유지합니다.
-- 현재 제품 경계와 v2.0.0 종료 판정은 [development-backlog.md](./development-backlog.md)를
+- 현재 제품 경계와 v2.1.0 종료 판정은 [development-backlog.md](./development-backlog.md)를
   기준으로 합니다. 이전 release evidence는 현재 release pass/fail 기준으로
   재사용하지 않습니다.
 
-## `v2.0.0`에 포함되는 범위
+## `v2.1.0`에 포함되는 범위
 
 - Apache-2.0 소스 코드
 - 문서, 설정 예시, 검증 스크립트
@@ -88,11 +89,16 @@
 - 이벤트 설명/오탐 힌트, Ops 이벤트 리뷰 UI의 VLM review detail
 - VLM summary 검색 후보와 Rule 추천 보조 후보
 - VLM 테스트 리허설, 장시간/UI 기준, close-out readiness와 2026-06-01 안정화/30분/UI/120분 evidence
+- VLM runtime opt-in contract, local runtime smoke gate, cloud provider field smoke
+  gate, queue/backpressure stability, runtime status UI, evaluation result workflow,
+  review action workflow, Rule suggestion draft workflow, VA coverage evidence,
+  external TURN/WHEP field gate, runtime/model bundle RC rehearsal, UI fulltest
+  evidence runner hardening과 2026-06-03 UI fulltest evidence
 
-## `v2.0.0`에 포함하지 않는 범위
+## `v2.1.0`에 포함하지 않는 범위
 
 - FFmpeg/GStreamer/ONNX Runtime/YOLO model binary bundle
-- VLM model/runtime bundle, VLM default-on, 실제 VLM runtime 호출 보장
+- VLM model/runtime bundle, VLM default-on, production runtime/provider 성공 보장
 - cloud provider API 호출 성공 보장, credential 저장, provider logging 운영 승인
 - container image, offline package, app bundle
 - 고객/현장 영상, 운영 evidence, auth store, log
@@ -123,7 +129,7 @@
 
 ## Tag와 release 기준
 
-- 현재 source-only release 기준 tag는 `v2.0.0`입니다.
+- 현재 source-only release 기준 tag는 `v2.1.0`입니다.
 - tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만 붙입니다.
 - 다음 신규 release tag는 signed annotated tag로 생성합니다. unsigned annotated tag와
   lightweight tag는 새 release tag로 사용하지 않습니다.

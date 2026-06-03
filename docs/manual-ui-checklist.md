@@ -5,7 +5,7 @@
 source-of-truth로 삼고, 기능별 UI 필요 여부와 테스트 영역은
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 합니다. 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를
-사용합니다. 현재 release 목표는 `v2.0.0`이며, UI 풀테스트 기준도 이 버전의
+사용합니다. 현재 release 목표는 `v2.1.0`이며, UI 풀테스트 기준도 이 버전의
 제품 route, 권한, 기능 baseline만 대상으로 합니다.
 문서 구조와 evidence 경계는 `./server.sh verify-manual-ui-evidence`로 확인합니다.
 기능 ID별 UI evidence JSON을 만든 경우에는
@@ -93,8 +93,8 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
   EventRecord evidence와 함께 확인하고, `/client/live`, `/client/dashboard`,
   `/client/events`에서 VLM model/prompt/raw response/provider/internal review card가
   보이지 않는지 확인합니다.
-- v2.0.0 pre-test 반영 목록은 [project-feature-test-inventory.md](./project-feature-test-inventory.md)의
-  `v2.0.0 Pre-Test Update List`를 기준으로 확인합니다. 이 목록은 실행 결과가 아니라
+- current pre-test 반영 목록은 [project-feature-test-inventory.md](./project-feature-test-inventory.md)의
+  `Current Pre-Test Update List`를 기준으로 확인합니다. 이 목록은 실행 결과가 아니라
   안정화/30분/120분/UI 풀테스트에 포함할 대상을 빠뜨리지 않기 위한 사전 목록입니다.
 - destructive action은 throwaway 계정, 채널, 접근 요청으로만 수행합니다.
 - UI smoke 전용 HTML selector 검증은 필요 시 별도 서버에서
@@ -112,7 +112,7 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
 
 아래 항목이 하나라도 비어 있으면 30분, 120분, UI 풀테스트를 시작하지 않습니다.
 
-- 기능/route/control/action 목록: `v2.0.0 Pre-Test Update List`,
+- 기능/route/control/action 목록: `Current Pre-Test Update List`,
   `Longrun/UI Fail-Fast Preflight`, `/ops/vlm`, `/client/events`, VLM client redaction.
 - auth/env: auth verifier password env 5개가 `SET`인지, users file과 session state가
   throwaway인지 확인합니다.
@@ -161,9 +161,9 @@ preflight 실패는 긴 테스트 실패로 과장하지 않습니다. 문서/li
 - 실패 후 고친 화면은 같은 조작으로 재검수하고, 최초 실패와 재확인 결과를 모두
   남깁니다.
 
-### v2.0.0 release UI gate
+### v2.1.0 release UI gate
 
-v2.0.0 release close-out에서는 자동 smoke와 별도로 아래 화면을 브라우저에서 직접
+v2.1.0 release close-out에서는 자동 smoke와 별도로 아래 화면을 브라우저에서 직접
 열고 클릭한 Evidence index를 남깁니다. 자동 screenshot 생성이나 raw JSON/API-only 확인만
 있으면 해당 개별 기능은 `FAIL`입니다.
 

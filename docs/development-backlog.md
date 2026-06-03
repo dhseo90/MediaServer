@@ -34,10 +34,11 @@ source-of-truth가 아닙니다. 현재 기준은 이 문서와 기능별 상세
 
 `완료`는 운영 배포 ready, 장기 안정성 보장, 외부 연동 ready를 뜻하지 않습니다.
 
-## 현재 기준: v2.0.0 Source Release Baseline
+## 현재 기준: v2.1.0 Source Release Baseline
 
-v2.0.0은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서
-VLM을 이벤트 해석/리뷰 보조 계층으로 추가하는 source-only release입니다.
+v2.1.0은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서
+VLM을 이벤트 해석/리뷰 보조 계층과 runtime/provider opt-in stabilization 범위로
+닫는 source-only release입니다.
 Client Live workspace, source tree/dock event feed, tile disconnect, event review,
 source group/site, tile info overlay, saved layout, incident timeline, alert delivery,
 scenario builder, Ops/Client declutter는 이전 UI-first close-out에서 닫은 제품
@@ -53,6 +54,9 @@ baseline으로 유지합니다.
   incident timeline, viewer debug/source 비노출
 - Auth: setup/login/session, role/scope, admin user console, invite/request approval
 - VLM: 모델 선택 기준, PC capability, 추천 엔진, `/ops/vlm` dry-run/profile/privacy UI,
+  runtime opt-in contract, local runtime smoke gate, cloud provider field smoke gate,
+  queue/backpressure stability, runtime status UI, evaluation result workflow,
+  review action workflow, rule suggestion draft workflow, VA coverage evidence,
   evaluation fixture harness, event evidence refs, VLMObservation sidecar, event explanation,
   Ops event review panel, summary/rule suggestion 후보
 - Release: source-only readiness, bundle/license guardrail, release evidence, manual UI evidence,
@@ -70,16 +74,17 @@ baseline으로 유지합니다.
 - field sample scheduler, dataset ingest, tracker replacement benchmark 실행
 - 별도 Phase의 실제 기능 개발, tracker replacement product review
 
-세부 종료 증적은 아래 v2.0.0 Release Close-out 섹션을 봅니다.
+세부 종료 증적은 아래 v2.1.0 Release Close-out 섹션을 봅니다.
 과거 release evidence는 standalone current 문서가 아니라 이 문서의 archive 섹션에만
 보존합니다.
 
-## 활성 roadmap: v2.1.0 VLM Runtime Opt-in Stabilization
+## 완료 roadmap: v2.1.0 VLM Runtime Opt-in Stabilization
 
 v2.1.0은 v2.0.0의 VLM review-assist source-only baseline을 유지하면서,
 운영자가 명시적으로 켠 경우에만 실제 VLM runtime/provider 연결을 검증 가능한
 opt-in 기능으로 여는 stabilization roadmap입니다. 이 roadmap은 `v2.1.0` branch에서
-진행하며, v2.0.0 release 완료 상태나 `v2.0.0` tag를 다시 해석하지 않습니다.
+진행했고, 아래 표의 S00~S12는 완료됐습니다. v2.0.0 release 완료 상태나 `v2.0.0`
+tag를 다시 해석하지 않습니다.
 
 핵심 원칙:
 
@@ -135,6 +140,49 @@ v2.1.0 완료 gate:
 - `git diff --check`
 - release metadata/evidence verifier
 - signed annotated tag 기반 release close-out
+
+## v2.1.0 Release Close-out
+
+v2.1.0 release close-out은 위 `완료 roadmap: v2.1.0 VLM Runtime Opt-in Stabilization`
+범위를 기준으로 문서/source-of-truth, 대표 이미지 review, release metadata, local
+release gate, PR/main merge, signed annotated tag, GitHub Release, published metadata
+재검증을 순서대로 닫는 단계입니다.
+
+v2.1.0은 VLM을 이벤트 해석/리뷰 보조 계층으로 유지하고, runtime/provider 연결은
+운영자가 명시 opt-in한 검증 가능한 흐름으로만 다룹니다. VLM default-on,
+runtime/model bundle release, provider credential persistent store, real cloud provider
+success guarantee, external TURN/WHEP credential 운영 성공, long-term recording/VMS/NVR,
+route/API/config/schema migration은 현재 release 완료 범위가 아닙니다.
+
+실제 tag/push는 이 release close-out 지시에 한해 수행합니다. 실패가 발생하면
+원인/실패 명령/영향 파일을 기록하고, 같은 v2.1.0 범위에서 수정 가능한 경우 수정 후
+해당 gate부터 재검증합니다. 해결 불가능하거나 사용자 결정이 필요한 경우에만 중단하고
+뒤 단계는 건너뜁니다.
+
+v2.2.0 branch는 v2.1.0 GitHub Release와 published metadata 재검증이 끝난 뒤
+생성까지만 수행합니다. v2.2.0 개발 방향은 사용자가 생각해 둔 별도 후속 지시 전까지
+문서화하지 않고, 활성 roadmap으로 승격하지 않으며, 구현도 착수하지 않습니다.
+
+close-out 작업 순서:
+
+1. 사전 상태/버전 확인: branch, upstream, local/remote tag, main sync,
+   `VERSION`/CMake/docs 기준을 확인합니다.
+2. 문서 전체 리뷰 및 업데이트: README, README.en.md, docs index, release/version
+   policy, backlog, evidence, manual UI, feature inventory, UI asset policy를 v2.1.0
+   기준으로 맞춥니다.
+3. 문서 이미지 리뷰 및 업데이트: managed UI PNG와 VA 이미지를 직접 열어 crop,
+   viewport, debug/source/raw/auth material 노출 여부를 확인하고 필요한 경우 recapture합니다.
+4. 로컬 release gate: `./server.sh build`, 문서 링크, UI asset, release metadata,
+   evidence/index, manual UI evidence runner, release closeout helper dry-run을 실행합니다.
+5. 커밋/branch push: 변경을 커밋하고 `v2.1.0` branch를 push합니다.
+6. PR/main merge: required check, warning/failure annotation 상태를 분리 확인한 뒤
+   main으로 merge합니다.
+7. signed annotated tag: main release commit에 `v2.1.0` signed annotated tag를 만들고 push합니다.
+8. GitHub Release: source-only release note를 생성하고 sample/model/runtime binary를
+   업로드하지 않습니다.
+9. published metadata 재검증: `./server.sh verify-release-metadata --published`로
+   latest release, release URL, remote tag/branch를 확인합니다.
+10. next branch: 최신 main에서 `v2.2.0` branch를 생성하고 push만 수행합니다.
 
 ### V210-S00 v2.1.0 entry baseline 종료 기준
 
@@ -520,8 +568,8 @@ VLM S00~S18 구현 및 테스트 evidence는 아래 표와 release evidence 문�
 v2.0.0 release close-out도 PR #19 초기 publish와 README/VLM 문서 follow-up을 거쳐
 main sync, annotated tag, GitHub Release, published metadata 검증, release branch 삭제,
 다음 branch sync까지 완료했습니다.
-release 완료 뒤 다음 branch 이름은 규칙상 `v2.1.0`이며, v2.1.0 roadmap은 상단
-`활성 roadmap: v2.1.0 VLM Runtime Opt-in Stabilization` 섹션에서 관리합니다.
+release 완료 뒤 다음 branch 이름은 규칙상 `v2.1.0`이었으며, v2.1.0 roadmap은 현재
+상단 `완료 roadmap: v2.1.0 VLM Runtime Opt-in Stabilization` 섹션에 보존합니다.
 
 핵심 원칙:
 
@@ -1884,7 +1932,7 @@ Decision record 최소 필드:
 
 ## Archived: v1.7.0 UI-first Close-out
 
-이 섹션은 v1.7.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v2.0.0
+이 섹션은 v1.7.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v2.1.0
 Release Close-out입니다.
 
 v1.7.0 close-out 당시에는 Client Live workspace와 Ops workflow 보강을 완료 기준으로 둡니다.
@@ -1962,7 +2010,7 @@ v1.7.0 비범위:
 
 ## Archived: v1.6.0 Stabilization Close-out
 
-이 섹션은 v1.6.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v2.0.0
+이 섹션은 v1.6.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v2.1.0
 Release Close-out입니다.
 
 v1.6.0 close-out 당시에는 새 제품 기능을 여는 minor release가 아니라, v1.5.0까지 닫은 기능을

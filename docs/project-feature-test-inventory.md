@@ -1,6 +1,6 @@
 # Project Feature Test Inventory
 
-이 문서는 현재 release 목표 `v2.0.0` 기준의 기능별 테스트 분류
+이 문서는 현재 release 목표 `v2.1.0` 기준의 기능별 테스트 분류
 source-of-truth입니다.
 
 중요한 경계:
@@ -43,10 +43,11 @@ source-of-truth입니다.
 ## Current Coverage Status
 
 이 절은 inventory 문서 자체의 coverage 상태입니다. 실제 안정화 테스트,
-30분 soak, 120분 longrun, UI 풀테스트를 실행했다는 뜻이 아닙니다. v2.0.0 release
+30분 soak, 120분 longrun, UI 풀테스트를 실행했다는 뜻이 아닙니다. v2.1.0 release
 close-out에서 실제 실행한 evidence는 [release-evidence-index.md](release-evidence-index.md),
 [v200-test-record-2026-05-31.md](v200-test-record-2026-05-31.md),
-[manual-ui-result-2026-06-01-v200-inapp-fulltest.md](manual-ui-result-2026-06-01-v200-inapp-fulltest.md)를
+[manual-ui-result-2026-06-01-v200-inapp-fulltest.md](manual-ui-result-2026-06-01-v200-inapp-fulltest.md),
+[manual-ui-result-2026-06-03-v210-inapp-fulltest.md](manual-ui-result-2026-06-03-v210-inapp-fulltest.md)를
 함께 보되, inventory 자체는 현재 release UI gate를 대체하지 않습니다.
 
 | 항목 | 현재 상태 | 결론 |
@@ -131,7 +132,7 @@ Rule scenario/event 발생 검수는 분리합니다.
 ## Current Pre-Test Update List
 
 이 절은 안정화/30분/120분/UI 풀테스트를 실제로 실행하기 전에 v2.0.0 baseline과
-v2.1.0 active roadmap에서 늘어난 검수 대상을 누락하지 않기 위한 목록입니다.
+v2.1.0 completed roadmap에서 늘어난 검수 대상을 누락하지 않기 위한 목록입니다.
 아래 행은 테스트 실행 결과가 아니며,
 `PASS` 증거로 쓰지 않습니다. 기존 기능 ID 표의 상세 PASS 기준은 그대로 유지하고,
 여기서는 어떤 테스트 영역에 포함해야 하는지만 고정합니다.

@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Release](https://img.shields.io/badge/release-v2.0.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.0.0)
+[![Release](https://img.shields.io/badge/release-v2.1.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.1.0)
 
 RTSP/WebRTC live stream을 받아 다시 내보내고, 필요할 때 YOLO/ONNX 영상 분석
 overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다.
@@ -13,7 +13,7 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 
 - English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 - 전체 문서 색인: [docs/README.md](docs/README.md)
-- 현재 릴리즈: [v2.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.0.0)
+- 현재 릴리즈: [v2.1.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.1.0)
 
 ## 한눈에 보기
 
@@ -31,15 +31,17 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 
 ## VLM 리뷰 보조
 
-v2.0.0은 VLM을 최종 판정 엔진이 아니라 운영자 이벤트 리뷰 보조 계층으로 추가합니다.
-YOLO/Rule/Scenario가 만든 이벤트에 대해 설명, 오탐 가능성 힌트, evidence 요약,
-Rule 추천 후보를 제공하고, 기존 Event POST/WebRTC/SSE/WS schema와 media path는 유지합니다.
+v2.1.0은 VLM을 최종 판정 엔진이 아니라 운영자 이벤트 리뷰 보조 계층으로 유지하면서,
+명시적으로 opt-in한 runtime/provider 연결을 검증 가능한 source-only 안정화 범위로
+정리합니다. YOLO/Rule/Scenario가 만든 이벤트에 대해 설명, 오탐 가능성 힌트,
+evidence 요약, Rule 추천 후보를 제공하고, 기존 Event POST/WebRTC/SSE/WS schema와
+media path는 유지합니다.
 
 모델 선택 기준은 PC 사양과 privacy mode를 함께 봅니다. 현재 기준은 local standard
 `Qwen/Qwen3-VL-8B-Instruct`, low-spec fallback `Qwen/Qwen3-VL-4B-Instruct`,
 high-tier 평가 후보 `Qwen/Qwen3-VL-30B-A3B-Instruct`, cloud opt-in fallback
-`gemini-2.5-flash`입니다. 실제 모델/runtime 설치, cloud provider 호출,
-model/runtime bundle 배포는 기본 release에 포함하지 않습니다.
+`gemini-2.5-flash`입니다. 실제 모델/runtime 설치, cloud provider 호출 성공 보장,
+model/runtime bundle 배포와 default-on 승격은 기본 release에 포함하지 않습니다.
 
 상세 기준:
 
@@ -116,7 +118,7 @@ README는 제품을 빠르게 파악하기 위한 문서입니다. 세부 정책
 - release/version 기준: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
-- release notes: [v2.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.0.0)
+- release notes: [v2.1.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.1.0)
 
 ## 대표 UI 미리보기
 
