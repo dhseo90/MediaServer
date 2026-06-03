@@ -2757,16 +2757,69 @@ std::string ProductUiCss() {
       place-items: center;
       padding: var(--space-5);
     }
+    .auth-responsive-shell {
+      min-width: 0;
+      align-items: center;
+      justify-items: center;
+    }
+    .auth-responsive-control {
+      width: min(520px, 100%);
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--space-2);
+      min-width: 0;
+    }
     .auth-card {
       width: min(460px, 100%);
       display: grid;
       gap: var(--space-4);
       padding: var(--space-5);
     }
+    .auth-responsive-card {
+      min-width: 0;
+      align-self: start;
+    }
     .auth-card-wide {
       width: min(520px, 100%);
     }
-    .auth-form { display: grid; gap: var(--space-3); }
+    .auth-form {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .auth-form-grid {
+      min-width: 0;
+    }
+    .auth-form-grid > h1,
+    .auth-form-grid > p,
+    .auth-form-grid .form-grid,
+    .auth-form-grid .auth-message,
+    .auth-form-grid .auth-helper-panel {
+      min-width: 0;
+    }
+    .auth-form-grid > h1 {
+      font-size: 26px;
+      line-height: 1.12;
+    }
+    .auth-helper-panel {
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-subtle);
+    }
+    .auth-helper-panel .hint {
+      margin: 0;
+    }
+    .auth-message {
+      padding: 10px 12px;
+      border: 1px solid color-mix(in srgb, var(--color-info) 34%, var(--color-border));
+      border-radius: var(--radius-md);
+      background: var(--color-info-bg);
+      overflow-wrap: anywhere;
+    }
+    .auth-message.error {
+      border-color: color-mix(in srgb, var(--color-danger) 48%, var(--color-border));
+      background: var(--color-danger-bg);
+    }
     .auth-actions {
       display: flex;
       align-items: center;
@@ -2821,6 +2874,41 @@ std::string ProductUiCss() {
       body.ops-shell .rules-workspace input,
       body.ops-shell .rules-workspace select,
       body.ops-shell .rules-workspace textarea {
+        width: 100%;
+        min-width: 0;
+      }
+      body.auth-shell.auth-responsive-shell {
+        place-items: start center;
+        padding: var(--space-4);
+      }
+      body.auth-shell .auth-responsive-control,
+      body.auth-shell .auth-responsive-card {
+        width: min(100%, 560px);
+      }
+    }
+    @media (max-width: 560px) {
+      body.auth-shell.auth-responsive-shell {
+        padding: var(--space-3);
+      }
+      body.auth-shell .auth-responsive-control {
+        justify-content: stretch;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+      }
+      body.auth-shell .auth-responsive-control > * {
+        width: 100%;
+        min-width: 0;
+      }
+      body.auth-shell .auth-responsive-card {
+        padding: var(--space-4);
+        border-radius: var(--radius-md);
+      }
+      body.auth-shell .auth-form-grid > h1 {
+        font-size: 22px;
+      }
+      body.auth-shell .auth-form-grid button,
+      body.auth-shell .auth-form-grid input,
+      body.auth-shell .auth-form-grid textarea {
         width: 100%;
         min-width: 0;
       }

@@ -85,18 +85,36 @@ async function verifyBrowserPicker() {
             form.elements.role.dispatchEvent(new Event('change', { bubbles: true }));
           };
           const setView = value => {
-            form.elements.viewId.value = value;
+            const values = String(value || '').split(/[\\s,]+/).map(item => item.trim()).filter(Boolean);
+            const wanted = new Set(values);
+            for (const input of Array.from(document.querySelectorAll('[data-assignment-view]') || [])) {
+              input.checked = wanted.has(String(input.value || '').trim());
+            }
+            document.querySelector('#view-assignment-options')?.dispatchEvent(new Event('change', { bubbles: true }));
+            form.elements.viewId.value = values.join(',');
             form.elements.viewId.dispatchEvent(new Event('input', { bubbles: true }));
           };
           const scopeLines = () => scopesInput.value.split(/\\n/).map(item => item.trim()).filter(Boolean);
+          const availableViewIds = Array.from(document.querySelectorAll('[data-assignment-view]') || [])
+            .map(input => String(input.value || '').trim())
+            .filter(Boolean);
+          const viewerTarget = availableViewIds.includes('7') ? '7' : availableViewIds[0];
+          const integratorTarget = availableViewIds.includes('8')
+            ? '8'
+            : (availableViewIds.find(item => item !== viewerTarget) || availableViewIds[0]);
+          if (!viewerTarget || !integratorTarget) {
+            return { ok: false, missing, availableViewIds, reason: 'no assignable client views' };
+          }
           setRole('viewer');
-          setView('7');
+          setView(viewerTarget);
+          await waitFor(() => (document.querySelector('#scope-template-preview')?.textContent || '').includes('view:read:' + viewerTarget), 'viewer scoped preview');
           document.querySelector('#apply-view-scope-template').click();
           const viewer = scopeLines();
           document.querySelector('#clear-custom-scopes').click();
           const cleared = scopesInput.value === '';
           setRole('integrator');
-          setView('8');
+          setView(integratorTarget);
+          await waitFor(() => (document.querySelector('#scope-template-preview')?.textContent || '').includes('metadata:read:' + integratorTarget), 'integrator scoped preview');
           document.querySelector('#apply-view-scope-template').click();
           const integrator = scopeLines();
           setRole('operator');
@@ -108,8 +126,8 @@ async function verifyBrowserPicker() {
           const doc = document.documentElement;
           const body = document.body;
           const overflowX = Math.max(0, Math.max(doc.scrollWidth, body.scrollWidth) - window.innerWidth);
-          const expectedViewer = ['view:read:7', 'dashboard:read:7', 'event:read:7', 'metadata:read:7'];
-          const expectedIntegrator = ['metadata:read:8', 'event:read:8'];
+          const expectedViewer = ['view:read:' + viewerTarget, 'dashboard:read:' + viewerTarget, 'event:read:' + viewerTarget, 'metadata:read:' + viewerTarget];
+          const expectedIntegrator = ['metadata:read:' + integratorTarget, 'event:read:' + integratorTarget];
           const expectedOperator = ['ops:read', 'rule:write', 'source:write', 'dashboard:read:*', 'event:read:*'];
           const same = (left, right) => left.length === right.length && left.every((item, index) => item === right[index]);
           return {
@@ -123,6 +141,9 @@ async function verifyBrowserPicker() {
             viewer,
             integrator,
             operator,
+            availableViewIds,
+            viewerTarget,
+            integratorTarget,
             cleared,
             preview: document.querySelector('#scope-template-preview')?.textContent || '',
             overflowX,

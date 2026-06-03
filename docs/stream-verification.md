@@ -638,7 +638,25 @@ scope, viewer redaction, responsive 기준, 변경 금지 경계를 담고, `/cl
 `/client/dashboard`, `/client/events`가 S07 viewer class와 기존 live/dashboard/event
 hook을 함께 유지하는지 확인합니다. 브라우저 UI 풀테스트, 30분 soak, 120분 longrun,
 published metadata 재검증은 S07 PASS로 대체하지 않습니다.
-풀테스트, 30분 soak, 120분 longrun, published metadata 재검증은 S06 PASS로 대체하지
+
+v2.2.0 Auth/setup redesign은 S08에서 `/setup`, `/login`, `/password/change`,
+`/invite/setup`, `/client/request-access` route를 같은 responsive form layout과
+component primitive 기준으로 정리합니다. 이 단계는 auth form visual hierarchy와
+layout class를 바꾸지만 Auth/session/scope/role contract, password policy, invite
+token, access request API schema/rate limit는 변경하지 않습니다.
+
+```bash
+./server.sh verify-v220-auth-setup-redesign
+./server.sh verify-auth-bootstrap
+./server.sh verify-auth-users
+./server.sh verify-auth-routes
+git diff --check
+```
+
+이 묶음은 [v220-auth-setup-redesign.md](./v220-auth-setup-redesign.md)가 S08 route
+scope, auth route guard, responsive 기준, 변경 금지 경계를 담고, auth route들이 S08
+form class와 기존 action/input/session hook을 함께 유지하는지 확인합니다. 브라우저 UI
+풀테스트, 30분 soak, 120분 longrun, published metadata 재검증은 S08 PASS로 대체하지
 않습니다.
 
 v2.1.0 S01 VLM runtime opt-in contract는 profile 저장 계약 안에서 runtime 상태만

@@ -78,6 +78,8 @@ Usage:
                  v2.2.0 Rules workspace redesign route/CSS/문서 연결을 검증합니다.
   verify-v220-client-live-redesign
                  v2.2.0 Client live redesign route/CSS/문서 연결을 검증합니다.
+  verify-v220-auth-setup-redesign
+                 v2.2.0 Auth/setup redesign route/CSS/문서 연결을 검증합니다.
   verify-product-shell-examples
                  제품 shell/component 예시 문서와 UI guide 연결을 검증합니다.
   verify-ops-route-boundaries
@@ -892,6 +894,10 @@ case "${cmd}" in
   verify-v220-client-live-redesign)
     require_internal verify_v220_client_live_redesign.mjs
     exec "${INTERNAL_DIR}/verify_v220_client_live_redesign.mjs" "$@"
+    ;;
+  verify-v220-auth-setup-redesign)
+    require_internal verify_v220_auth_setup_redesign.mjs
+    exec "${INTERNAL_DIR}/verify_v220_auth_setup_redesign.mjs" "$@"
     ;;
   verify-feature-scope-gate)
     require_internal verify_feature_scope_decision_gate.mjs

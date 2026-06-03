@@ -2656,9 +2656,9 @@ void AppendAuthShellStart(std::ostringstream& out,
   <title>)" << HtmlEscape(title) << R"(</title>
 )" << ProductThemeBootScript() << ProductUiCss() << ProductSharedUiScript() << R"(
 </head>
-<body class="auth-shell">
-  <div class="auth-theme-control">)" << ProductThemeToggleButtonHtml() << ProductLanguageSelectHtml() << R"(</div>
-  <main class="auth-card)" << (card_extra_class.empty() ? "" : " " + HtmlEscape(card_extra_class)) << R"(">
+<body class="auth-shell auth-responsive-shell" data-auth-shell="responsive-form">
+  <div class="auth-theme-control auth-responsive-control">)" << ProductThemeToggleButtonHtml() << ProductLanguageSelectHtml() << R"(</div>
+  <main class="auth-card auth-responsive-card)" << (card_extra_class.empty() ? "" : " " + HtmlEscape(card_extra_class)) << R"(">
     <div class="auth-actions">
       <p class="eyebrow">)" << HtmlEscape(eyebrow) << R"(</p>
     </div>
@@ -2673,16 +2673,21 @@ void AppendAuthShellEnd(std::ostringstream& out) {
 </html>)";
 }
 
+std::string AuthMessageHtml(const std::string& message, bool failed) {
+    if (message.empty()) {
+        return std::string();
+    }
+    return "<div class=\"message auth-message" + std::string(failed ? " error" : "") +
+           "\" data-testid=\"auth-message\">" + HtmlEscape(message) + "</div>\n";
+}
+
 std::string LoginPageHtml(const std::string& message, bool failed) {
     std::ostringstream out;
     AppendAuthShellStart(out, "MediaServer Login", "MediaServer");
-    out << R"(    <form class="auth-form" method="post" action="/login">
+    out << R"(    <form class="auth-form auth-form-grid" method="post" action="/login" data-testid="auth-login-form">
       <h1>로그인</h1>
 )";
-    if (!message.empty()) {
-        out << "      <div class=\"message" << (failed ? " error" : "") << "\">"
-            << HtmlEscape(message) << "</div>\n";
-    }
+    out << AuthMessageHtml(message, failed);
     out << "      " << ProductUiFormRowHtml("계정명",
                                              R"(<input name="username" autocomplete="username" required />)")
         << "\n";
@@ -2698,30 +2703,27 @@ std::string LoginPageHtml(const std::string& message, bool failed) {
 }
 
 std::string PasswordPolicyHintHtml() {
-    return R"(<p class="hint">기본 kr-privacy 정책: 대문자/소문자/숫자/특수문자 중 3종류 이상이면 최소 8자, 2종류 조합이면 최소 10자입니다. username, 반복 문자, 연속 숫자, 키보드 배열, 흔한 비밀번호, 이전 비밀번호 재사용은 허용하지 않습니다.</p>)";
+    return R"(<div class="auth-helper-panel auth-policy-hint" data-testid="auth-password-policy"><p class="hint">기본 kr-privacy 정책: 대문자/소문자/숫자/특수문자 중 3종류 이상이면 최소 8자, 2종류 조합이면 최소 10자입니다. username, 반복 문자, 연속 숫자, 키보드 배열, 흔한 비밀번호, 이전 비밀번호 재사용은 허용하지 않습니다.</p></div>)";
 }
 
 std::string SetupPageHtml(const std::string& message, bool failed) {
     std::ostringstream out;
     AppendAuthShellStart(out, "MediaServer Setup", "Initial Setup");
-    out << R"(    <form class="auth-form" method="post" action="/setup">
+    out << R"(    <form class="auth-form auth-form-grid" method="post" action="/setup" data-testid="auth-setup-form">
       <h1>관리자 설정</h1>
       <p>기본 admin 계정에 강한 비밀번호를 설정한 뒤 제품 화면으로 이동합니다.</p>
 )";
-    if (!message.empty()) {
-        out << "      <div class=\"message" << (failed ? " error" : "") << "\">"
-            << HtmlEscape(message) << "</div>\n";
-    }
-    out << R"(      <label>계정명
-        <input name="username" value="admin" readonly />
-      </label>
-      <label>비밀번호
-        <input name="password" type="password" autocomplete="new-password" required />
-      </label>
-      <label>비밀번호 확인
-        <input name="confirm" type="password" autocomplete="new-password" required />
-      </label>
-      )" << PasswordPolicyHintHtml() << R"(
+    out << AuthMessageHtml(message, failed);
+    out << "      " << ProductUiFormRowHtml("계정명",
+                                             R"(<input name="username" value="admin" readonly />)")
+        << "\n";
+    out << "      " << ProductUiFormRowHtml("비밀번호",
+                                             R"(<input name="password" type="password" autocomplete="new-password" required />)")
+        << "\n";
+    out << "      " << ProductUiFormRowHtml("비밀번호 확인",
+                                             R"(<input name="confirm" type="password" autocomplete="new-password" required />)")
+        << "\n";
+    out << "      " << PasswordPolicyHintHtml() << R"(
       <button class="primary" type="submit">관리자 비밀번호 설정</button>
     </form>
 )";
@@ -2734,25 +2736,24 @@ std::string InviteSetupPageHtml(const std::string& token,
                                 bool failed) {
     std::ostringstream out;
     AppendAuthShellStart(out, "초대 설정", "Invite Setup");
-    out << R"(    <form class="auth-form" method="post" action="/invite/setup">
+    out << R"(    <form class="auth-form auth-form-grid" method="post" action="/invite/setup" data-testid="auth-invite-setup-form">
       <h1>초대 계정 설정</h1>
       <p>관리자가 발급한 초대 토큰으로 비밀번호를 설정합니다.</p>
 )";
-    if (!message.empty()) {
-        out << "      <div class=\"message" << (failed ? " error" : "") << "\">"
-            << HtmlEscape(message) << "</div>\n";
-    }
-    out << R"(      <label>초대 토큰
-        <input name="token" value=")" << HtmlEscape(token) << R"(" autocomplete="off" required />
-      </label>
-      <label>비밀번호
-        <input name="password" type="password" autocomplete="new-password" required />
-      </label>
-      <label>비밀번호 확인
-        <input name="confirm" type="password" autocomplete="new-password" required />
-      </label>
-      )" << PasswordPolicyHintHtml() << R"(
-      <button type="submit">비밀번호 설정</button>
+    out << AuthMessageHtml(message, failed);
+    out << "      " << ProductUiFormRowHtml("초대 토큰",
+                                             std::string(R"(<input name="token" value=")") +
+                                                 HtmlEscape(token) +
+                                                 R"(" autocomplete="off" required />)")
+        << "\n";
+    out << "      " << ProductUiFormRowHtml("비밀번호",
+                                             R"(<input name="password" type="password" autocomplete="new-password" required />)")
+        << "\n";
+    out << "      " << ProductUiFormRowHtml("비밀번호 확인",
+                                             R"(<input name="confirm" type="password" autocomplete="new-password" required />)")
+        << "\n";
+    out << "      " << PasswordPolicyHintHtml() << R"(
+      <button class="primary" type="submit">비밀번호 설정</button>
     </form>
 )";
     AppendAuthShellEnd(out);
@@ -2762,15 +2763,20 @@ std::string InviteSetupPageHtml(const std::string& token,
 std::string ClientAccessRequestPageHtml() {
     std::ostringstream out;
     AppendAuthShellStart(out, "시청 권한 요청", "Client Access", "auth-card-wide");
-    out << R"(    <form id="request-form" class="auth-form">
+    out << R"(    <form id="request-form" class="auth-form auth-form-grid" data-testid="auth-access-request-form">
       <h1>시청 권한 요청</h1>
       <p>요청은 승인 대기 상태로 저장되며 관리자 승인 전에는 로그인이나 채널 접근이 허용되지 않습니다.</p>
-      <div id="message" class="message" hidden></div>
-      <label>계정명<input name="username" autocomplete="username" required /></label>
-      <label>표시 이름<input name="displayName" /></label>
-      <label>연락처<input name="contact" autocomplete="email" /></label>
-      <label>요청 채널 ID<input name="viewId" placeholder="선택 사항" /></label>
-      <label>사유<textarea name="reason" required></textarea></label>
+      <div id="message" class="message auth-message" data-testid="auth-message" hidden></div>
+      )" << ProductUiFormRowHtml("계정명", R"(<input name="username" autocomplete="username" required />)")
+          << R"(
+      )" << ProductUiFormRowHtml("표시 이름", R"(<input name="displayName" />)")
+          << R"(
+      )" << ProductUiFormRowHtml("연락처", R"(<input name="contact" autocomplete="email" />)")
+          << R"(
+      )" << ProductUiFormRowHtml("요청 채널 ID", R"(<input name="viewId" placeholder="선택 사항" />)")
+          << R"(
+      )" << ProductUiFormRowHtml("사유", R"(<textarea name="reason" required></textarea>)")
+          << R"(
       <button type="submit">요청 제출</button>
     </form>
 )";
@@ -2784,25 +2790,22 @@ std::string PasswordChangePageHtml(const auth::Principal& principal,
                                    bool failed) {
     std::ostringstream out;
     AppendAuthShellStart(out, "비밀번호 변경", "Password Change");
-    out << R"(    <form class="auth-form" method="post" action="/password/change">
+    out << R"(    <form class="auth-form auth-form-grid" method="post" action="/password/change" data-testid="auth-password-change-form">
       <h1>비밀번호 변경</h1>
       <p>)" << HtmlEscape(principal.display_name) << R"( 계정의 비밀번호를 새 정책에 맞게 변경합니다.</p>
 )";
-    if (!message.empty()) {
-        out << "      <div class=\"message" << (failed ? " error" : "") << "\">"
-            << HtmlEscape(message) << "</div>\n";
-    }
-    out << R"(      <label>현재 비밀번호
-        <input name="currentPassword" type="password" autocomplete="current-password" required />
-      </label>
-      <label>새 비밀번호
-        <input name="password" type="password" autocomplete="new-password" required />
-      </label>
-      <label>새 비밀번호 확인
-        <input name="confirm" type="password" autocomplete="new-password" required />
-      </label>
-      )" << PasswordPolicyHintHtml() << R"(
-      <button type="submit">비밀번호 변경</button>
+    out << AuthMessageHtml(message, failed);
+    out << "      " << ProductUiFormRowHtml("현재 비밀번호",
+                                             R"(<input name="currentPassword" type="password" autocomplete="current-password" required />)")
+        << "\n";
+    out << "      " << ProductUiFormRowHtml("새 비밀번호",
+                                             R"(<input name="password" type="password" autocomplete="new-password" required />)")
+        << "\n";
+    out << "      " << ProductUiFormRowHtml("새 비밀번호 확인",
+                                             R"(<input name="confirm" type="password" autocomplete="new-password" required />)")
+        << "\n";
+    out << "      " << PasswordPolicyHintHtml() << R"(
+      <button class="primary" type="submit">비밀번호 변경</button>
     </form>
 )";
     AppendAuthShellEnd(out);

@@ -123,7 +123,7 @@ tablet/panel 전환 기준, 1180px 이상은 밀도 높은 운영 콘솔 기준�
 | 5 | V220-S05 | P1 | 완료 | Ops workspace redesign | `/ops` home, channels/source health, event feed, runtime/dashboard 화면의 시각 계층과 반복 운영 흐름을 재정리합니다. | [v220-ops-workspace-redesign.md](./v220-ops-workspace-redesign.md), Ops direct browser smoke, `verify-v220-ops-workspace-redesign`, `verify-ops-click-e2e`, `verify-ops-client-ui --screenshots`, `git diff --check` |
 | 6 | V220-S06 | P1 | 완료 | Rules workspace redesign | `/ops/rules`의 rule/profile/scenario 편집, preview, smoke selector, 저장 feedback을 반응형 shell 기준으로 재배치합니다. | [v220-rules-workspace-redesign.md](./v220-rules-workspace-redesign.md), `/ops/rules` smoke, `verify-v220-rules-workspace-redesign`, `verify-rule-ui`, `verify-ops-rules-roundtrip`, `git diff --check` |
 | 7 | V220-S07 | P1 | 완료 | Client live redesign | `/client` viewer는 운영자 debug를 숨긴 상태로 video/status/event review 흐름을 정리하고 작은 화면에서 viewer-first 동선을 보장합니다. | [v220-client-live-redesign.md](./v220-client-live-redesign.md), Client direct browser review, viewer redaction check, `verify-v220-client-live-redesign`, `verify-ops-client-ui --screenshots`, `git diff --check` |
-| 8 | V220-S08 | P2 | 예정 | Auth/setup redesign | `/setup`, `/login`, admin/auth 관련 화면을 같은 token과 responsive form layout으로 정리하되 auth route guard와 scope를 유지합니다. | `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, auth UI direct review, `git diff --check` |
+| 8 | V220-S08 | P2 | 완료 | Auth/setup redesign | `/setup`, `/login`, admin/auth 관련 화면을 같은 token과 responsive form layout으로 정리하되 auth route guard와 scope를 유지합니다. | [v220-auth-setup-redesign.md](./v220-auth-setup-redesign.md), `verify-v220-auth-setup-redesign`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, auth UI direct review, `git diff --check` |
 | 9 | V220-S09 | P2 | 예정 | UI fulltest matrix / evidence | v2.2.0 UI 변경 기능을 action/route/control 단위로 feature inventory와 manual UI fulltest checklist에 연결합니다. | `verify-manual-ui-evidence-runner`, `verify-docs-ui-assets`, manual UI checklist review, `git diff --check` |
 
 v2.2.0 후속 작업:
@@ -424,6 +424,54 @@ layout과 redaction marker를 다룹니다. `/setup`, `/login`, `/password/chang
   Auth/session/scope, Rule/Profile payload schema, `/ops/rules` smoke selector와 저장
   roundtrip, client/viewer source/debug/raw/editor 비노출 경계를 S07 구현 범위에서
   변경하지 않았습니다.
+
+### V220-S08 Auth/setup redesign 종료 기준
+
+직접 답: v2.2.0 Auth/setup redesign의 source-of-truth는
+[v220-auth-setup-redesign.md](./v220-auth-setup-redesign.md),
+`src/ingress/webrtc_http_server.cpp`의 `AppendAuthShellStart`와 auth page builders,
+`src/ingress/product_ui_css.cpp`의 `auth-responsive*`, `auth-form-grid`,
+`auth-helper-panel`, `auth-message` class,
+`scripts/internal/verify_v220_auth_setup_redesign.mjs`입니다.
+
+S08은 `/setup`, `/login`, `/password/change`, `/invite/setup`,
+`/client/request-access` route의 responsive form layout을 다룹니다. `/ops/users`,
+`/ops`, `/client/live`, v2.2.0 UI fulltest matrix는 이번 단계 범위가 아닙니다.
+
+2026-06-03 S08 closure evidence:
+
+- PASS: `./server.sh build`,
+  `./server.sh verify-v220-auth-setup-redesign`,
+  `./server.sh verify-v220-component-primitives`,
+  `./server.sh verify-product-ui-token-drift`,
+  `./server.sh verify-docs-links`,
+  `./server.sh verify-docs-ui-assets`,
+  `./server.sh verify-script-inventory`,
+  `./server.sh verify-feature-inventory-coverage`,
+  `./server.sh verify-auth-bootstrap`,
+  `./server.sh verify-auth-users`,
+  `./server.sh verify-auth-routes`,
+  `./server.sh verify-ops-route-boundaries --http-base http://127.0.0.1:8081`,
+  `./server.sh verify-ops-client-ui --browser-mode static --http-base http://127.0.0.1:8081`,
+  `./server.sh verify-ops-client-ui --screenshots --browser-mode chrome --allow-chrome-fallback --http-base http://127.0.0.1:8081`,
+  `./server.sh verify-rule-ui`,
+  `./server.sh verify-ops-rules-roundtrip`,
+  `node --check scripts/internal/verify_auth_scope_picker.mjs`
+- 산출물: [v220-auth-setup-redesign.md](./v220-auth-setup-redesign.md),
+  `docs/superpowers/specs/2026-06-03-v220-s08-auth-setup-redesign-design.md`,
+  `docs/superpowers/plans/2026-06-03-v220-s08-auth-setup-redesign.md`,
+  `scripts/internal/verify_v220_auth_setup_redesign.mjs`
+- 구현 범위: 공통 auth shell에 `auth-responsive-shell`, `auth-responsive-card`,
+  `data-auth-shell="responsive-form"`을 추가하고, setup/login/password/invite/access
+  request form을 `auth-form-grid`와 `ProductUiFormRowHtml` 기준으로 정리했습니다.
+- 이슈 처리: `verify-auth-users` visual smoke에서 `/ops/users` scope picker verifier가
+  구버전 hidden `viewId` 조작을 사용해 checkbox 기반 assignment UI와 맞지 않는
+  문제가 확인됐고, verifier가 현재 checkbox 선택 상태를 조작하도록 수정한 뒤
+  visual smoke를 재실행했습니다.
+- 미실행: 브라우저 UI 풀테스트, 30분 soak, 120분 longrun, published metadata 재검증
+- 변경 금지 확인: auth route guard, Auth/session/scope/role contract, password policy,
+  invite token, access request API schema/rate limit, RTSP/WebRTC media path,
+  Event POST/WebRTC/SSE/WS metadata schema를 S08 구현 범위에서 변경하지 않았습니다.
 
 ## 완료 roadmap: v2.1.0 VLM Runtime Opt-in Stabilization
 

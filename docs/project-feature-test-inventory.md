@@ -67,6 +67,7 @@ close-out에서 실제 실행한 evidence는 [release-evidence-index.md](release
 | v2.2.0 S05 Ops workspace redesign | 기존 `UI-009`, `UI-010`, `UI-014`를 `/ops/home`, `/ops/dashboard`, `/ops/events` responsive workspace 기준에 연결 | `verify-v220-ops-workspace-redesign`과 Ops UI smoke는 안정화 evidence이며, 인앱 브라우저 UI 풀테스트 결과를 대체하지 않음 |
 | v2.2.0 S06 Rules workspace redesign | 기존 `UI-012`를 `/ops/rules` readiness/assist/catalog/detail responsive workspace 기준에 연결 | `verify-v220-rules-workspace-redesign`과 Rules UI smoke는 안정화 evidence이며, 인앱 브라우저 UI 풀테스트 결과를 대체하지 않음 |
 | v2.2.0 S07 Client live redesign | 기존 `UI-015`, `UI-016`, `UI-017`을 `/client/live`, `/client/dashboard`, `/client/events` viewer-first responsive workspace 기준에 연결 | `verify-v220-client-live-redesign`과 Client UI smoke는 안정화 evidence이며, 인앱 브라우저 UI 풀테스트 결과를 대체하지 않음 |
+| v2.2.0 S08 Auth/setup redesign | 기존 `UI-002`, `UI-003`, `UI-004`, `UI-007`, `UI-008`을 auth/setup responsive form 기준에 연결 | `verify-v220-auth-setup-redesign`과 Auth smoke는 안정화 evidence이며, 인앱 브라우저 UI 풀테스트 결과를 대체하지 않음 |
 | current pre-test update list | 안정화/30분/120분/UI 풀테스트 실행 전 V200-S00~S18 및 V210-S00~S12 변경분을 아래 `Current Pre-Test Update List`에 반영 | 테스트 실행 결과가 아니며, 실제 실행 전 누락 방지용 목록 |
 
 브라우저 선택 기준: Codex 세션에서는 인앱 브라우저 evidence를 기본으로 하며, 자동
@@ -79,7 +80,7 @@ Codex 밖에서 사용자가 직접 실행하는 자동 검수는 Chrome/CDP를 
 | ID prefix | 코드 로직 owner | 제품 UI owner | 대표 verifier family |
 | --- | --- | --- | --- |
 | `UI-*` | `src/ingress/webrtc_http_server.cpp`, `src/ingress/product_ui_page_scripts.cpp` | Auth/Ops/Client shell | `verify-auth-bootstrap`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-ops-click-e2e`, `verify-ops-route-boundaries`, `verify-v220-ops-workspace-redesign`, `verify-v220-rules-workspace-redesign`, `verify-v220-client-live-redesign`, `verify-vlm-install-connection-ui`, `verify-vlm-profile-storage`, `verify-vlm-review-action-workflow`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-vlm-ops-event-review-ui`, `verify-vlm-privacy-transfer-guard` |
-| `AUTH-*` | `src/ingress/http_auth.cpp`, `src/ingress/webrtc_http_server.cpp` | `/setup`, `/login`, `/password/change`, `/invite/setup`, `/ops/users` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker`, `verify-ops-click-e2e` |
+| `AUTH-*` | `src/ingress/http_auth.cpp`, `src/ingress/webrtc_http_server.cpp` | `/setup`, `/login`, `/password/change`, `/invite/setup`, `/ops/users` | `verify-v220-auth-setup-redesign`, `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker`, `verify-ops-click-e2e` |
 | `SRC-*` | `src/ingress/source_view_registry.cpp`, `src/core/source_factory.cpp`, `src/ingress/onvif_live_import.cpp` | `/ops/sources`, `/client/live`, `/client/dashboard` | `verify-ops-source-lifecycle`, `verify-ops-client-ui`, `verify-onvif-*`, `verify-ops-source-health-bulk` |
 | `RULE-*` | `src/ingress/analysis_query.cpp`, `src/analysis/*scenario.cpp`, `src/analysis/event_rule_engine.cpp` | `/ops/rules`, `/client/live` overlay | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-scenario-builder-ui`, `verify-ops-scenario-presets`, `verify-va-event-coverage-report`, `verify-va-replay`, `verify-analysis-state` |
 | `EVT-*` | `src/analysis/event_manager.cpp`, `src/analysis/event_storage.cpp`, `src/ingress/webrtc_http_server.cpp` | `/ops/dashboard`, `/ops/events`, `/ops/home` | `verify-va-event-coverage-report`, `verify-va-events`, `verify-ops-event-review-inbox`, `verify-ops-event-records-scope`, `verify-ops-alert-delivery-integrations`, `verify-va-runtime-console`, `verify-vlm-event-evidence-extraction`, `verify-vlm-observation-sidecar`, `verify-vlm-event-explanation-hints`, `verify-vlm-review-action-workflow`, `verify-vlm-ops-event-review-ui`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates`, `verify-vlm-rule-suggestion-draft-workflow` |
@@ -195,13 +196,13 @@ v2.1.0 completed roadmap에서 늘어난 검수 대상을 누락하지 않기 �
 | ID | 기능 | UI 필요 | 테스트 필요 | 테스트 영역 | PASS 기준 |
 | --- | --- | --- | --- | --- | --- |
 | UI-001 | `/` 진입 후 제품 시작 route로 이동 | 필요 | 필요 | 안정화, UI | auth/setup 상태별 redirect가 실제 route와 브라우저 화면에서 일치 |
-| UI-002 | `/setup` 최초 관리자 설정 화면 | 필요 | 필요 | 안정화, UI | setup form 표시, weak/strong password flow 직접 확인 |
-| UI-003 | `/login` 로그인 화면 | 필요 | 필요 | 안정화, UI | credential 입력 후 role landing 확인 |
-| UI-004 | `/password/change` 비밀번호 변경 화면 | 필요 | 필요 | 안정화, UI | 사용자 지정 테스트 pw -> 임시 pw 변경 성공, 임시 pw 로그인, 즉시 원래 pw 재사용 거부, history count 기준 복원 후 최종 로그인 확인 |
+| UI-002 | `/setup` 최초 관리자 설정 화면 | 필요 | 필요 | 안정화, UI | setup form 표시, S08 `auth-form-grid`/password policy panel, weak/strong password flow 직접 확인 |
+| UI-003 | `/login` 로그인 화면 | 필요 | 필요 | 안정화, UI | S08 `auth-login-form` credential 입력 후 role landing 확인 |
+| UI-004 | `/password/change` 비밀번호 변경 화면 | 필요 | 필요 | 안정화, UI | S08 `auth-password-change-form`, 사용자 지정 테스트 pw -> 임시 pw 변경 성공, 임시 pw 로그인, 즉시 원래 pw 재사용 거부, history count 기준 복원 후 최종 로그인 확인 |
 | UI-005 | `/logout` 세션 종료 | 간접 | 필요 | 안정화, UI | logout action 후 세션 종료와 보호 route 재접근 차단 확인 |
 | UI-006 | `/auth/whoami` 현재 세션 확인 | 간접 | 필요 | 안정화 | principal/schema가 role/scope와 일치 |
-| UI-007 | `/invite/setup` 초대 기반 계정 설정 | 필요 | 필요 | 안정화, UI | invite setup 전후 login/client 접근 경계 확인 |
-| UI-008 | `/client/request-access` 시청자 접근 요청 | 필요 | 필요 | 안정화, UI | request submit, pending copy, 승인 전 접근 차단 확인 |
+| UI-007 | `/invite/setup` 초대 기반 계정 설정 | 필요 | 필요 | 안정화, UI | S08 `auth-invite-setup-form`, invite setup 전후 login/client 접근 경계 확인 |
+| UI-008 | `/client/request-access` 시청자 접근 요청 | 필요 | 필요 | 안정화, UI | S08 `auth-access-request-form`, request submit, pending copy, 승인 전 접근 차단 확인 |
 | UI-009 | `/ops/home` 운영 Home | 필요 | 필요 | 안정화, UI | home summary/nav/status와 S05 `ops-workspace-home` action grid가 표시되고 320/390/760/1180 overflow 없음 |
 | UI-010 | `/ops/dashboard` 운영 Dashboard | 필요 | 필요 | 안정화, UI | filter/search/copy/refresh, root cause/runtime/event panel, S05 `ops-workspace-dashboard` diagnostic grid 표시 확인 |
 | UI-011 | `/ops/sources` 채널 / 소스 관리 | 필요 | 필요 | 안정화, UI | source/view CRUD와 validation을 직접 조작 |
