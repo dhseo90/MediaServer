@@ -84,6 +84,15 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
   event/snapshot/clip 경로를 output dir 아래에 직접 만들고, `--http-base`,
   `MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT`, `--auth-users-file`을 각 verifier에
   명시해 현재 PublishedView/Rule seed를 기준으로 실행합니다.
+  `--manual-result <result.md>`를 지정하면 기존 manual result 문서 구조까지 함께
+  검증합니다. manual result 구조 검증은 opt-in이며, manual result를 지정하지 않으면
+  해당 step은 skip됩니다. wrapper PASS는 full UI 풀테스트 PASS가 아닙니다.
+  auth UI flow를 포함하므로 아래 환경변수는 실행자가 직접 지정해야 합니다.
+  - `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`
+  - `MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD`
+  - `MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD`
+  - `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE`
+  - `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO`
 - seed를 서버에 넣는 동작은 실제 테스트 지시 후에만
   `./server.sh prepare-manual-ui-fulltest-seed --apply --confirm-throwaway-data --http-base <url>`
   형태로 수행합니다.

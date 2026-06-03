@@ -35,6 +35,8 @@ const rule = readText("scripts/internal/verify_ops_rules_embed_smoke.mjs");
 const helper = readText("scripts/internal/rule_preview_fixture_helpers.mjs");
 const cleanup = readText("scripts/internal/verify_fixture_cleanup_contracts.mjs");
 const stream = readText("docs/stream-verification.md");
+const manualFulltest = readText("docs/manual-ui-fulltest.md");
+const manualChecklist = readText("docs/manual-ui-checklist.md");
 const clipboardDocs = readText("docs/browser-use-clipboard-diagnostics.md");
 const server = readText("server.sh");
 const inventory = readText("scripts/internal/verify_script_inventory.mjs");
@@ -116,6 +118,22 @@ check("UI fulltest one-shot manual result verification is opt-in", () => {
   assertNotIncludes(oneShot, [
     "docs/manual-ui-result-2026-05-25-ui-fulltest-restart.md",
   ], "verify_ui_fulltest_one_shot.mjs");
+});
+
+check("UI fulltest one-shot docs expose auth env and manual-result boundaries", () => {
+  for (const text of [stream, manualFulltest, manualChecklist]) {
+    assertIncludes(text, [
+      "--manual-result <result.md>",
+      "manual result 구조 검증은 opt-in",
+      "manual result를 지정하지 않으면",
+      "MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD",
+      "MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD",
+      "MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD",
+      "MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE",
+      "MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO",
+      "wrapper PASS는 full UI 풀테스트 PASS가 아닙니다",
+    ], "one-shot UI docs");
+  }
 });
 
 check("rule preview smoke uses shared fixture helper", () => {

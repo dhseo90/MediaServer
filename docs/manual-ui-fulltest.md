@@ -191,6 +191,16 @@ Ops/Client screenshot smoke, Rules smoke, route/rules/table guard, core/auth cli
 E2E를 순서대로 실행하고 `summary.json`과 `summary.md`를 남깁니다. 이 wrapper는
 `verify-predev --soak-minutes 30`, `verify-predev --soak-minutes 120`,
 `verify-va-runtime-console-longrun --duration-minutes 120`을 실행하지 않습니다.
+`--manual-result <result.md>`를 지정하면 기존 manual result 문서 구조를 함께
+검증합니다. manual result 구조 검증은 opt-in이며, manual result를 지정하지 않으면
+해당 step은 skip됩니다. wrapper PASS는 full UI 풀테스트 PASS가 아닙니다.
+auth UI flow를 포함하므로 아래 환경변수는 실행자가 직접 지정해야 합니다.
+
+- `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`
+- `MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD`
+- `MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD`
+- `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE`
+- `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO`
 
 다음은 `확인됨`으로 쓰지 않으며, UI 풀테스트 대상이면 `FAIL`입니다.
 

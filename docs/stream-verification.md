@@ -152,10 +152,23 @@ manual evidence runner, native/blocking dialog guard, feature inventory coverage
 Ops/Client screenshot smoke, Rules/route/rules/table verifier, core/auth click E2E를
 순서대로 실행합니다. 이 wrapper는 30분 soak, 120분 predev, 120분 runtime console
 longrun을 실행하지 않고 summary에 `not-run`으로 남깁니다.
+`--manual-result <result.md>`를 지정하면 기존 manual result 문서 구조까지 함께
+검증합니다. manual result 구조 검증은 opt-in이며, manual result를 지정하지 않으면
+해당 step은 `manual result not provided`로 skip됩니다. wrapper PASS는 full UI 풀테스트 PASS가 아닙니다.
+full UI PASS는 `media-server.manual-ui-evidence-input.v1`
+전수 evidence와 manual result 문서가 모두 PASS일 때만 별도로 판단합니다.
+auth UI flow를 포함하므로 아래 환경변수는 실행자가 직접 지정해야 합니다.
+
+- `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`
+- `MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD`
+- `MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD`
+- `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE`
+- `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO`
 
 ```bash
 ./server.sh verify-ui-fulltest-one-shot \
-  --output-dir /tmp/media_server_ui_fulltest_one_shot
+  --output-dir /tmp/media_server_ui_fulltest_one_shot \
+  --manual-result <result.md>
 ```
 
 Feature inventory coverage gate는 `media-server.feature-inventory-coverage.v1`
