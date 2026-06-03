@@ -113,34 +113,58 @@ tablet/panel 전환 기준, 1180px 이상은 밀도 높은 운영 콘솔 기준�
 - ONVIF Profile G recording/replay, 외부 TURN/WHEP 운영 성공 보장
 - v2.1.0 release evidence, tag, GitHub Release 상태 재해석
 
+### 기존 v2.2.0 로드맵 기록 (재검토 대상)
+
+아래 `V220-S00`~`V220-S08`은 기존 v2.2.0 로드맵 기록입니다. 이 표의 기존
+`완료` 표기는 현재 추가된 `V220-R00` 전면 재검토가 끝나기 전까지 최종 완료
+판정으로 쓰지 않습니다. 각 행은 코드 반영, 문서 반영, verifier PASS, 브라우저 UI
+직접 확인, 30분/120분/릴리즈 gate 미실행 여부를 다시 분리해 확인해야 합니다.
+
 | 순서 | ID | 우선순위 | 상태 | 영역 | 목표 | 예상 검증 |
 | --- | --- | --- | --- | --- | --- | --- |
-| 0 | V220-S00 | P0 | 완료 | Entry boundary / roadmap gate | v2.1.0 release baseline과 v2.2.0 UI redesign 범위를 분리하고, 변경 금지 contract와 viewer redaction 경계를 재확인합니다. | roadmap review, contract boundary review, `verify-v220-entry-boundary`, `verify-integrator-contract-artifact`, `verify-event-post`, metadata verifier, `verify-auth-routes`, `git diff --check` |
-| 1 | V220-S01 | P0 | 완료 | UI architecture inventory | C++ 문자열 UI 파일, shared token, page script, asset helper, route별 template 경계를 inventory로 정리하고 분리 가능한 component primitive 후보를 정합니다. | [v220-ui-architecture-inventory.md](./v220-ui-architecture-inventory.md), UI source inventory review, route/template mapping, `verify-v220-ui-architecture-inventory`, `verify-ops-client-ui`, `git diff --check` |
-| 2 | V220-S02 | P0 | 완료 | Responsive task shell | `/ops`, `/client`, `/setup`, `/login`의 route별 primary task, secondary action, drawer/panel 전환 기준을 정의합니다. | [v220-responsive-task-shell.md](./v220-responsive-task-shell.md), 320/390/760/1180 viewport checklist, layout contract review, `verify-v220-responsive-task-shell`, `verify-ops-client-ui --browser-mode static`, `git diff --check` |
-| 3 | V220-S03 | P0 | 완료 | Design token refresh | light/dark theme-aware token, spacing, density, typography, button/input/table/badge/debug details 기준을 단일 source로 정리합니다. | [v220-design-token-refresh.md](./v220-design-token-refresh.md), token diff review, theme contrast review, `verify-v220-design-token-refresh`, `verify-product-ui-token-drift`, `verify-ops-client-ui`, `git diff --check` |
-| 4 | V220-S04 | P1 | 완료 | Component primitives | card, toolbar, tab, segmented control, table, drawer, form row, status badge, empty/loading/error state를 반복 사용 가능한 C++ helper 단위로 묶습니다. | [v220-component-primitives.md](./v220-component-primitives.md), component snapshot review, route smoke, `verify-v220-component-primitives`, `verify-ops-tables-layout`, `git diff --check` |
-| 5 | V220-S05 | P1 | 완료 | Ops workspace redesign | `/ops` home, channels/source health, event feed, runtime/dashboard 화면의 시각 계층과 반복 운영 흐름을 재정리합니다. | [v220-ops-workspace-redesign.md](./v220-ops-workspace-redesign.md), Ops direct browser smoke, `verify-v220-ops-workspace-redesign`, `verify-ops-click-e2e`, `verify-ops-client-ui --screenshots`, `git diff --check` |
-| 6 | V220-S06 | P1 | 완료 | Rules workspace redesign | `/ops/rules`의 rule/profile/scenario 편집, preview, smoke selector, 저장 feedback을 반응형 shell 기준으로 재배치합니다. | [v220-rules-workspace-redesign.md](./v220-rules-workspace-redesign.md), `/ops/rules` smoke, `verify-v220-rules-workspace-redesign`, `verify-rule-ui`, `verify-ops-rules-roundtrip`, `git diff --check` |
-| 7 | V220-S07 | P1 | 완료 | Client live redesign | `/client` viewer는 운영자 debug를 숨긴 상태로 video/status/event review 흐름을 정리하고 작은 화면에서 viewer-first 동선을 보장합니다. | [v220-client-live-redesign.md](./v220-client-live-redesign.md), Client direct browser review, viewer redaction check, `verify-v220-client-live-redesign`, `verify-ops-client-ui --screenshots`, `git diff --check` |
-| 8 | V220-S08 | P2 | 완료 | Auth/setup redesign | `/setup`, `/login`, admin/auth 관련 화면을 같은 token과 responsive form layout으로 정리하되 auth route guard와 scope를 유지합니다. | [v220-auth-setup-redesign.md](./v220-auth-setup-redesign.md), `verify-v220-auth-setup-redesign`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, auth UI direct review, `git diff --check` |
+| 0 | V220-S00 | P0 | 기존 완료 표기 / 재검토 대상 | Entry boundary / roadmap gate | v2.1.0 release baseline과 v2.2.0 UI redesign 범위를 분리하고, 변경 금지 contract와 viewer redaction 경계를 재확인합니다. | roadmap review, contract boundary review, `verify-v220-entry-boundary`, `verify-integrator-contract-artifact`, `verify-event-post`, metadata verifier, `verify-auth-routes`, `git diff --check` |
+| 1 | V220-S01 | P0 | 기존 완료 표기 / 재검토 대상 | UI architecture inventory | C++ 문자열 UI 파일, shared token, page script, asset helper, route별 template 경계를 inventory로 정리하고 분리 가능한 component primitive 후보를 정합니다. | [v220-ui-architecture-inventory.md](./v220-ui-architecture-inventory.md), UI source inventory review, route/template mapping, `verify-v220-ui-architecture-inventory`, `verify-ops-client-ui`, `git diff --check` |
+| 2 | V220-S02 | P0 | 기존 완료 표기 / 재검토 대상 | Responsive task shell | `/ops`, `/client`, `/setup`, `/login`의 route별 primary task, secondary action, drawer/panel 전환 기준을 정의합니다. | [v220-responsive-task-shell.md](./v220-responsive-task-shell.md), 320/390/760/1180 viewport checklist, layout contract review, `verify-v220-responsive-task-shell`, `verify-ops-client-ui --browser-mode static`, `git diff --check` |
+| 3 | V220-S03 | P0 | 기존 완료 표기 / 재검토 대상 | Design token refresh | light/dark theme-aware token, spacing, density, typography, button/input/table/badge/debug details 기준을 단일 source로 정리합니다. | [v220-design-token-refresh.md](./v220-design-token-refresh.md), token diff review, theme contrast review, `verify-v220-design-token-refresh`, `verify-product-ui-token-drift`, `verify-ops-client-ui`, `git diff --check` |
+| 4 | V220-S04 | P1 | 기존 완료 표기 / 재검토 대상 | Component primitives | card, toolbar, tab, segmented control, table, drawer, form row, status badge, empty/loading/error state를 반복 사용 가능한 C++ helper 단위로 묶습니다. | [v220-component-primitives.md](./v220-component-primitives.md), component snapshot review, route smoke, `verify-v220-component-primitives`, `verify-ops-tables-layout`, `git diff --check` |
+| 5 | V220-S05 | P1 | 기존 완료 표기 / 재검토 대상 | Ops workspace redesign | `/ops` home, channels/source health, event feed, runtime/dashboard 화면의 시각 계층과 반복 운영 흐름을 재정리합니다. | [v220-ops-workspace-redesign.md](./v220-ops-workspace-redesign.md), Ops direct browser smoke, `verify-v220-ops-workspace-redesign`, `verify-ops-click-e2e`, `verify-ops-client-ui --screenshots`, `git diff --check` |
+| 6 | V220-S06 | P1 | 기존 완료 표기 / 재검토 대상 | Rules workspace redesign | `/ops/rules`의 rule/profile/scenario 편집, preview, smoke selector, 저장 feedback을 반응형 shell 기준으로 재배치합니다. | [v220-rules-workspace-redesign.md](./v220-rules-workspace-redesign.md), `/ops/rules` smoke, `verify-v220-rules-workspace-redesign`, `verify-rule-ui`, `verify-ops-rules-roundtrip`, `git diff --check` |
+| 7 | V220-S07 | P1 | 기존 완료 표기 / 재검토 대상 | Client live redesign | `/client` viewer는 운영자 debug를 숨긴 상태로 video/status/event review 흐름을 정리하고 작은 화면에서 viewer-first 동선을 보장합니다. | [v220-client-live-redesign.md](./v220-client-live-redesign.md), Client direct browser review, viewer redaction check, `verify-v220-client-live-redesign`, `verify-ops-client-ui --screenshots`, `git diff --check` |
+| 8 | V220-S08 | P2 | 기존 완료 표기 / 재검토 대상 | Auth/setup redesign | `/setup`, `/login`, admin/auth 관련 화면을 같은 token과 responsive form layout으로 정리하되 auth route guard와 scope를 유지합니다. | [v220-auth-setup-redesign.md](./v220-auth-setup-redesign.md), `verify-v220-auth-setup-redesign`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, auth UI direct review, `git diff --check` |
+
+### 추가 v2.2.0 로드맵: 완료 표기 재검토와 UI 재배치
+
+아래 `V220-R00`~`V220-R05`는 현재 추가된 v2.2.0 로드맵입니다. 기존
+`V220-S00`~`V220-S08` 기록과 구분하기 위해 `R` prefix를 사용합니다. `V220-R00`
+재검토가 닫히기 전에는 뒤 단계의 개발을 시작하지 않습니다.
+
+| 순서 | ID | 우선순위 | 상태 | 영역 | 목표 | 예상 검증 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0 | V220-R00 | P0 | 예정 | Roadmap source reset / 완료 표기 전면 재검토 | 현재 로드맵에서 개발 완료라고 표기된 기존 `V220-S00`~`V220-S08`이 실제로 완료됐는지 전면 재검토합니다. 각 항목별 코드 반영, 문서 반영, verifier PASS, 브라우저 UI 직접 확인, 미실행/미확인 항목을 분리하고 직접 evidence가 없으면 `완료`가 아니라 실제 상태로 되돌립니다. | roadmap/status review, 변경 파일 review, verifier evidence review, UI evidence review, 미실행/미확인 목록, `git diff --check` |
+| 1 | V220-R01 | P1 | 예정 | Ops Channels workspace 재배치 | `/ops/sources`를 채널 목록, source detail, ONVIF/WHEP/WHIP 입력, PublishedView, audit 흐름 기준으로 작업 단위 재배치합니다. SourceRegistry/API/media path는 변경하지 않습니다. | `./server.sh build`, `verify-ops-client-ui`, `verify-ops-tables-layout`, `verify-ops-click-e2e`, `git diff --check` |
+| 2 | V220-R02 | P1 | 예정 | Ops Users / Access workspace 재배치 | `/ops/users`, `/client/request-access`, `/invite/setup` 흐름을 사용자, 초대, 승인, role-scope 작업 단위로 재배치합니다. Auth/session/scope 계약은 변경하지 않습니다. | `./server.sh build`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-ops-click-e2e`, `git diff --check` |
+| 3 | V220-R03 | P1 | 예정 | Ops VLM UI containment 정리 | `/ops/vlm`을 primary nav가 아닌 Ops 보조 작업으로 유지하면서 privacy, default-off, profile 상태를 더 읽기 쉽게 재배치합니다. VLM runtime/provider 확장, default-on, credential 저장은 비범위입니다. | `./server.sh build`, `verify-vlm-install-connection-ui`, `verify-vlm-profile-storage`, `verify-vlm-privacy-transfer-guard`, `verify-ops-client-ui`, `git diff --check` |
+| 4 | V220-R04 | P1 | 예정 | Client preview / viewer redaction 재검수 중심 정리 | `/client/live`, `/client/dashboard`, `/client/events`에서 admin preview 표시와 viewer-safe 비노출 상태를 문서/검증 기준으로 다시 묶습니다. 새 client 기능 추가가 아니라 UI 경계 정리로 한정합니다. | `./server.sh build`, `verify-v220-client-live-redesign`, `verify-client-live-workspace`, `verify-client-dashboard-polish`, `verify-ops-client-ui --screenshots`, `git diff --check` |
+| 5 | V220-R05 | P2 | 예정 | v2.2.0 UI evidence close-out 준비 | 기능 inventory와 manual UI checklist를 새 로드맵 기준으로 갱신하고, 실제 UI 풀테스트는 별도 실행 전까지 `미실행`으로 남깁니다. 스크립트 smoke와 UI 풀테스트를 서로 대체하지 않습니다. | `verify-feature-inventory-coverage`, `verify-manual-ui-evidence`, `verify-docs-links`, `git diff --check` |
 
 v2.2.0 후속 작업:
 
-1. S00~S08의 UI redesign 구현은 닫혔지만, 실제 v2.2.0 전체 UI 풀테스트 PASS는
-   아직 아닙니다. 강화 matrix/evidence 기준과 partial 결과 문서는 현재 기준에서
-   폐기합니다.
-2. 다음 실제 후속은 AGENTS.md와 [manual-ui-fulltest.md](./manual-ui-fulltest.md)에
+1. `V220-R00`이 닫히기 전까지 기존 `V220-S00`~`V220-S08`의 완료 표기는 최종 완료
+   evidence로 쓰지 않습니다.
+2. `V220-R00` 재검토 결과 직접 evidence가 없는 항목은 `완료`가 아니라 `진행`,
+   `부분 완료`, `gate 준비 완료`, `미완료 decision 있음`, `미확인` 중 실제 상태로
+   되돌립니다.
+3. 다음 실제 후속은 AGENTS.md와 [manual-ui-fulltest.md](./manual-ui-fulltest.md)에
    적힌 기존 UI 풀테스트를 인앱 브라우저에서 직접 수행하고,
    [manual-ui-result-template.md](./manual-ui-result-template.md)에 최종 실행 결과만
    남기는 것입니다.
-3. 특히 남은 P0/P1 확인 축은 viewer role guard, invite setup end-to-end,
+4. 특히 남은 P0/P1 확인 축은 viewer role guard, invite setup end-to-end,
    `/ops/users` access request 승인/거절, VA seed apply, event key별 `/ops/events`
    EventRecord 발생 이력 대조입니다.
-4. 30분 soak, 120분 longrun, published metadata 재검증, release close-out은 아직
+5. 30분 soak, 120분 longrun, published metadata 재검증, release close-out은 아직
    미실행입니다. 장시간 테스트와 release close-out은 사용자 명시 지시가 있을 때만
    실행하며, one-shot wrapper PASS나 partial 결과로 대체하지 않습니다.
-5. 푸시/PR/릴리즈 준비는 별도 지시에 따라 수행합니다. 현재 문서 evidence는
+6. 푸시/PR/릴리즈 준비는 별도 지시에 따라 수행합니다. 현재 문서 evidence는
    v2.2.0 UI 기반 개편 산출물과 남은 release gate를 분리하기 위한 상태 기록입니다.
 
 ### V220-S00 v2.2.0 UI redesign entry boundary 종료 기준
