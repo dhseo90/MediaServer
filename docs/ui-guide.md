@@ -53,8 +53,8 @@ v1.8.0에서 도입되어 v1.9.0에서도 유지되는 product shell은 ERP/운�
 
 ### 1.1 Design token/component inventory
 
-v1.8.0 이후 최신 공개 release `v2.1.0`과 현재 작업 기준 `v2.2.0 Responsive UI
-Foundation`의 UI 변경은 아래 inventory를 기준으로 합니다.
+현재 v2.1.0까지의 UI 변경과 현재 작업 기준 `v2.2.0 Responsive UI Foundation`의
+UI 정리는 아래 inventory를 기준으로 합니다.
 새 색상, radius, spacing, shadow, table row, detail panel, client tile을 추가하기 전에
 먼저 같은 계층의 기존 token/class/helper로 표현할 수 있는지 확인합니다.
 

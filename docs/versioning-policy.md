@@ -4,7 +4,7 @@
 
 ## 현재 기준
 
-- 최신 공개 release 기준 버전: `v2.1.0`
+- 현재 기준 버전: `v2.1.0`
 - 현재 작업 브랜치 기준: `v2.2.0 Responsive UI Foundation`
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
 - release close-out 전까지 `VERSION`/`CMakeLists.txt` metadata는 최신 공개 release

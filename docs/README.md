@@ -34,6 +34,7 @@
 - 최신 공개 release: [`v2.1.0`](https://github.com/dhseo90/MediaServer/releases/tag/v2.1.0)
 - release close-out: `v2.1.0` VLM runtime opt-in stabilization은
   [development-backlog.md](development-backlog.md)의 `v2.1.0 Release Close-out`에서 관리함
+- 활성 roadmap: `v2.2.0 Responsive UI Foundation`
 - 현재 작업 기준: `v2.2.0 Responsive UI Foundation`은
   [development-backlog.md](development-backlog.md)의 활성 roadmap에서 관리하며,
   UI 기반 재설계, 반응형 task shell, C++ 문자열 UI 구조 한계 완화를 다룸

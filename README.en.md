@@ -13,7 +13,7 @@ runtime/model bundle distribution are outside the default release scope.
 
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
-- Latest published release: [v2.1.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.1.0)
+- Current release: [v2.1.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.1.0)
 - Active branch baseline: `v2.2.0 Responsive UI Foundation`
 
 ## At a Glance

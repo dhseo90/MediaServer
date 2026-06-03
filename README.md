@@ -13,7 +13,7 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 
 - English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 - 전체 문서 색인: [docs/README.md](docs/README.md)
-- 최신 공개 릴리즈: [v2.1.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.1.0)
+- 현재 릴리즈: [v2.1.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.1.0)
 - 현재 작업 기준: `v2.2.0 Responsive UI Foundation`
 
 ## 한눈에 보기
