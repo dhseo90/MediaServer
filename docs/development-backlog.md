@@ -116,7 +116,7 @@ tablet/panel 전환 기준, 1180px 이상은 밀도 높은 운영 콘솔 기준�
 | 순서 | ID | 우선순위 | 상태 | 영역 | 목표 | 예상 검증 |
 | --- | --- | --- | --- | --- | --- | --- |
 | 0 | V220-S00 | P0 | 완료 | Entry boundary / roadmap gate | v2.1.0 release baseline과 v2.2.0 UI redesign 범위를 분리하고, 변경 금지 contract와 viewer redaction 경계를 재확인합니다. | roadmap review, contract boundary review, `verify-v220-entry-boundary`, `verify-integrator-contract-artifact`, `verify-event-post`, metadata verifier, `verify-auth-routes`, `git diff --check` |
-| 1 | V220-S01 | P0 | 예정 | UI architecture inventory | C++ 문자열 UI 파일, shared token, page script, asset helper, route별 template 경계를 inventory로 정리하고 분리 가능한 component primitive 후보를 정합니다. | UI source inventory review, route/template mapping, `verify-ops-client-ui`, `git diff --check` |
+| 1 | V220-S01 | P0 | 완료 | UI architecture inventory | C++ 문자열 UI 파일, shared token, page script, asset helper, route별 template 경계를 inventory로 정리하고 분리 가능한 component primitive 후보를 정합니다. | [v220-ui-architecture-inventory.md](./v220-ui-architecture-inventory.md), UI source inventory review, route/template mapping, `verify-v220-ui-architecture-inventory`, `verify-ops-client-ui`, `git diff --check` |
 | 2 | V220-S02 | P0 | 예정 | Responsive task shell | `/ops`, `/client`, `/setup`, `/login`의 route별 primary task, secondary action, drawer/panel 전환 기준을 정의합니다. | 320/390/760/1180 viewport checklist, layout contract review, `verify-ops-client-ui --screenshots`, `git diff --check` |
 | 3 | V220-S03 | P0 | 예정 | Design token refresh | light/dark theme-aware token, spacing, density, typography, button/input/table/badge/debug details 기준을 단일 source로 정리합니다. | token diff review, theme contrast review, `verify-ops-client-ui`, `git diff --check` |
 | 4 | V220-S04 | P1 | 예정 | Component primitives | card, toolbar, tab, segmented control, table, drawer, form row, status badge, empty/loading/error state를 반복 사용 가능한 C++ helper 단위로 묶습니다. | component snapshot review, route smoke, `verify-ops-tables-layout`, `git diff --check` |
@@ -170,6 +170,36 @@ bundle, GitHub published metadata 재검증입니다.
 - 이슈 처리: `verify-event-post`는 서버 미기동/401 조건을 auth-off isolated 서버로
   보정해 재실행했고, `verify-webrtc-va-metadata`와 `verify-auth-routes`는 sandbox
   localhost/RTSP 제한을 sandbox 밖 재실행으로 확인했습니다.
+
+### V220-S01 UI architecture inventory 종료 기준
+
+직접 답: v2.2.0 UI redesign 구현 전 현재 UI 구조의 source-of-truth inventory는
+[v220-ui-architecture-inventory.md](./v220-ui-architecture-inventory.md)입니다.
+이 문서는 `src/ingress/webrtc_http_server.cpp`, `product_ui_css.cpp`,
+`product_ui_page_scripts.cpp`, `product_ui_js.cpp`, `product_ui_assets.cpp`와
+`include/ingress/product_ui_*.h` public helper 경계를 route/template/component 후보로
+정리합니다.
+
+S01은 UI 구현 단계가 아닙니다. S01 완료 evidence는
+`verify-v220-ui-architecture-inventory`, `verify-ops-client-ui --browser-mode static`,
+`verify-docs-links`, `verify-script-inventory`, `git diff --check`입니다. 브라우저 UI
+풀테스트, visual redesign mockup, 30분 soak, 120분 longrun은 S01에서 실행하지
+않습니다.
+
+S01 이후 S02는 이 inventory를 입력으로 `/ops`, `/client`, `/setup`, `/login`의
+route별 primary task, secondary action, drawer/panel 전환 기준을 확정합니다.
+
+2026-06-03 S01 closure evidence:
+
+- PASS: `verify-v220-ui-architecture-inventory`,
+  `verify-ops-client-ui --browser-mode static`, `verify-docs-links`,
+  `verify-script-inventory`, `verify-code-comments`, `git diff --check`
+- 산출물: [v220-ui-architecture-inventory.md](./v220-ui-architecture-inventory.md)
+- 미실행: UI 구현, 브라우저 UI 풀테스트, visual redesign mockup, 30분 soak,
+  120분 longrun
+- 이슈 처리: `verify-ops-client-ui --browser-mode static`은 서버 미기동 및 sandbox
+  localhost fetch 제한을 분리했고, auth-off isolated 서버를 띄운 뒤 sandbox 밖에서
+  재실행해 PASS를 확인했습니다.
 
 ## 완료 roadmap: v2.1.0 VLM Runtime Opt-in Stabilization
 

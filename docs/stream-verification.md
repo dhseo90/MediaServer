@@ -505,6 +505,22 @@ S00은 UI 구현이나 visual redesign mockup을 만들지 않습니다. UI 풀�
 120분 longrun, published GitHub live metadata 확인은 별도 명시 지시나 release 후보
 gate에서만 실행하고, 이 report의 PASS로 대체하지 않습니다.
 
+v2.2.0 UI architecture inventory는 S01에서 현재 C++ 문자열 UI 구조, route/template
+경계, public helper API, component primitive 후보를 문서화합니다. 이 단계는 UI 구현이
+아니며, 정적 UI shell contract smoke만 연결합니다.
+
+```bash
+./server.sh verify-v220-ui-architecture-inventory
+./server.sh verify-ops-client-ui --browser-mode static
+./server.sh verify-docs-links
+./server.sh verify-script-inventory
+```
+
+이 묶음은 [v220-ui-architecture-inventory.md](./v220-ui-architecture-inventory.md)가
+`/ops`, `/client`, `/setup`, `/login` route 경계와 현재 `product_ui_*` helper를
+빠짐없이 연결하는지 확인합니다. 실제 브라우저 UI 풀테스트, visual redesign mockup,
+30분 soak, 120분 longrun은 S01 PASS로 대체하지 않습니다.
+
 v2.1.0 S01 VLM runtime opt-in contract는 profile 저장 계약 안에서 runtime 상태만
 고정합니다. 실제 local/cloud runtime 호출이 아니라 default-off 상태 분리 gate입니다.
 
