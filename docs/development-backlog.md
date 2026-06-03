@@ -118,7 +118,7 @@ tablet/panel 전환 기준, 1180px 이상은 밀도 높은 운영 콘솔 기준�
 | 0 | V220-S00 | P0 | 완료 | Entry boundary / roadmap gate | v2.1.0 release baseline과 v2.2.0 UI redesign 범위를 분리하고, 변경 금지 contract와 viewer redaction 경계를 재확인합니다. | roadmap review, contract boundary review, `verify-v220-entry-boundary`, `verify-integrator-contract-artifact`, `verify-event-post`, metadata verifier, `verify-auth-routes`, `git diff --check` |
 | 1 | V220-S01 | P0 | 완료 | UI architecture inventory | C++ 문자열 UI 파일, shared token, page script, asset helper, route별 template 경계를 inventory로 정리하고 분리 가능한 component primitive 후보를 정합니다. | [v220-ui-architecture-inventory.md](./v220-ui-architecture-inventory.md), UI source inventory review, route/template mapping, `verify-v220-ui-architecture-inventory`, `verify-ops-client-ui`, `git diff --check` |
 | 2 | V220-S02 | P0 | 완료 | Responsive task shell | `/ops`, `/client`, `/setup`, `/login`의 route별 primary task, secondary action, drawer/panel 전환 기준을 정의합니다. | [v220-responsive-task-shell.md](./v220-responsive-task-shell.md), 320/390/760/1180 viewport checklist, layout contract review, `verify-v220-responsive-task-shell`, `verify-ops-client-ui --browser-mode static`, `git diff --check` |
-| 3 | V220-S03 | P0 | 예정 | Design token refresh | light/dark theme-aware token, spacing, density, typography, button/input/table/badge/debug details 기준을 단일 source로 정리합니다. | token diff review, theme contrast review, `verify-ops-client-ui`, `git diff --check` |
+| 3 | V220-S03 | P0 | 완료 | Design token refresh | light/dark theme-aware token, spacing, density, typography, button/input/table/badge/debug details 기준을 단일 source로 정리합니다. | [v220-design-token-refresh.md](./v220-design-token-refresh.md), token diff review, theme contrast review, `verify-v220-design-token-refresh`, `verify-product-ui-token-drift`, `verify-ops-client-ui`, `git diff --check` |
 | 4 | V220-S04 | P1 | 예정 | Component primitives | card, toolbar, tab, segmented control, table, drawer, form row, status badge, empty/loading/error state를 반복 사용 가능한 C++ helper 단위로 묶습니다. | component snapshot review, route smoke, `verify-ops-tables-layout`, `git diff --check` |
 | 5 | V220-S05 | P1 | 예정 | Ops workspace redesign | `/ops` home, channels/source health, event feed, runtime/dashboard 화면의 시각 계층과 반복 운영 흐름을 재정리합니다. | Ops direct browser review, `verify-ops-click-e2e`, `verify-ops-client-ui --screenshots`, `git diff --check` |
 | 6 | V220-S06 | P1 | 예정 | Rules workspace redesign | `/ops/rules`의 rule/profile/scenario 편집, preview, smoke selector, 저장 feedback을 반응형 shell 기준으로 재배치합니다. | `/ops/rules` direct browser review, `verify-rule-ui`, `verify-ops-rules-roundtrip`, `git diff --check` |
@@ -225,6 +225,41 @@ S02에서 실행하지 않습니다.
   visual redesign mockup, 30분 soak, 120분 longrun
 - 이슈 처리: static UI smoke는 auth-off isolated 서버를 띄운 뒤 sandbox 밖에서 실행해
   localhost fetch 제한과 제품 회귀를 분리했습니다.
+
+### V220-S03 design token refresh 종료 기준
+
+직접 답: v2.2.0 design token refresh의 source-of-truth는
+[v220-design-token-refresh.md](./v220-design-token-refresh.md)와
+`ProductDesignTokensCss()`입니다. S03은 typography, density, spacing,
+button/input/table/badge/debug details token family를 단일 CSS token source에 추가하고,
+common control 소비 지점을 이 token으로 연결합니다.
+
+S03은 route redesign 단계가 아닙니다. `/ops`, `/client`, `/setup`, `/login` 화면의
+전면 재배치, visual redesign mockup, 브라우저 UI 풀테스트 PASS, 30분 soak, 120분
+longrun은 S03 완료 근거가 아닙니다.
+
+2026-06-03 S03 closure evidence:
+
+- PASS: `./server.sh build`, `verify-v220-design-token-refresh`,
+  `verify-product-ui-token-drift`, `verify-ops-client-ui --browser-mode static`,
+  `verify-ops-client-ui --screenshots`, `verify-rule-ui`, `verify-auth-bootstrap`,
+  `verify-auth-users`, `verify-auth-routes`, `verify-docs-links`,
+  `verify-docs-ui-assets`, `verify-script-inventory`, `verify-code-comments`,
+  `verify-release-metadata`, `git diff --check`
+- 산출물: [v220-design-token-refresh.md](./v220-design-token-refresh.md),
+  `scripts/internal/verify_v220_design_token_refresh.mjs`
+- 구현 범위: `ProductDesignTokensCss()`에 typography/density/component token family를
+  추가했고, 제품 공통 button/input/table/badge/debug details와 대표 font 소비 지점을
+  token으로 연결했습니다.
+- 미실행: 브라우저 UI 풀테스트, visual redesign mockup, 30분 soak, 120분 longrun,
+  published metadata 재검증
+- 이슈 처리: `verify-ops-client-ui --browser-mode static`은 sandbox localhost fetch
+  제한으로 처음 실패해 sandbox 밖에서 재실행했습니다. Auth verifier는 처음에
+  비밀번호 환경변수 부재로 시작 전 실패했고, 실행자 제공 throwaway 환경변수로
+  재실행했습니다. Auth verifier의 sandbox 실행은 RTSP bind 제한으로 실패해 sandbox
+  밖에서 재실행했고, `verify-auth-routes`는 병렬 실행 중 포트 충돌이 발생해 단독
+  재실행했습니다. `verify-rule-ui`와 screenshot smoke는 Codex 세션의 명시적 Chrome
+  fallback 예외로 실행했습니다.
 
 ## 완료 roadmap: v2.1.0 VLM Runtime Opt-in Stabilization
 

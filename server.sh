@@ -68,6 +68,8 @@ Usage:
                  UI visual artifact를 retention policy 기준으로 dry-run/보관/정리합니다.
   verify-product-ui-token-drift
                  제품 UI CSS가 design token 밖 raw color를 추가하지 않는지 검증합니다.
+  verify-v220-design-token-refresh
+                 v2.2.0 design token refresh 계약과 token 소비 지점을 검증합니다.
   verify-product-shell-examples
                  제품 shell/component 예시 문서와 UI guide 연결을 검증합니다.
   verify-ops-route-boundaries
@@ -862,6 +864,10 @@ case "${cmd}" in
   verify-v220-responsive-task-shell)
     require_internal verify_v220_responsive_task_shell.mjs
     exec "${INTERNAL_DIR}/verify_v220_responsive_task_shell.mjs" "$@"
+    ;;
+  verify-v220-design-token-refresh)
+    require_internal verify_v220_design_token_refresh.mjs
+    exec "${INTERNAL_DIR}/verify_v220_design_token_refresh.mjs" "$@"
     ;;
   verify-feature-scope-gate)
     require_internal verify_feature_scope_decision_gate.mjs

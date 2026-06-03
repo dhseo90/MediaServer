@@ -90,6 +90,7 @@ std::string ProductDesignTokensCss() {
       --radius-lg: 8px;
       --shadow-sm: 0 1px 2px rgba(23, 28, 31, 0.06);
       --shadow-md: 0 12px 28px rgba(23, 28, 31, 0.11);
+      --shadow-lg: 0 18px 44px rgba(23, 28, 31, 0.14);
       --space-1: 4px;
       --space-2: 8px;
       --space-3: 12px;
@@ -97,6 +98,40 @@ std::string ProductDesignTokensCss() {
       --space-5: 20px;
       --space-6: 24px;
       --space-8: 32px;
+      --font-ui: "Avenir Next", "Pretendard", "Noto Sans KR", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --font-size-xs: 11px;
+      --font-size-sm: 12px;
+      --font-size-md: 13px;
+      --font-size-lg: 18px;
+      --font-size-xl: 28px;
+      --line-height-tight: 1.12;
+      --line-height-base: 1.45;
+      --line-height-relaxed: 1.55;
+      --control-height-sm: 34px;
+      --control-height-md: 38px;
+      --control-height-lg: 44px;
+      --icon-button-size: 40px;
+      --panel-padding: var(--space-4);
+      --card-padding: 18px;
+      --button-radius: var(--radius-md);
+      --button-padding-y: var(--space-2);
+      --button-padding-x: var(--space-3);
+      --input-height: var(--control-height-md);
+      --input-radius: var(--radius-md);
+      --input-padding-y: var(--space-2);
+      --input-padding-x: 10px;
+      --table-row-min-height: 42px;
+      --table-cell-padding-y: var(--space-2);
+      --table-cell-padding-x: 9px;
+      --badge-height: 24px;
+      --badge-radius: 999px;
+      --badge-padding-y: 3px;
+      --badge-padding-x: var(--space-2);
+      --debug-details-bg: var(--color-code-bg);
+      --debug-details-border: var(--color-debug-border);
+      --debug-details-text: var(--color-code-text);
+      --debug-details-padding: var(--space-4);
       --bg: var(--color-bg);
       --panel: var(--color-surface);
       --panel2: var(--color-surface-muted);
@@ -167,6 +202,7 @@ std::string ProductDesignTokensCss() {
       --overlay-label-bg: rgba(2, 6, 23, 0.86);
       --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.22);
       --shadow-md: 0 10px 24px rgba(0, 0, 0, 0.28);
+      --shadow-lg: 0 18px 44px rgba(0, 0, 0, 0.34);
     }
 )CSS";
 }
@@ -186,7 +222,7 @@ std::string ProductUiCss() {
     body.auth-shell {
       margin: 0;
       min-height: 100vh;
-      font-family: "Avenir Next", "Pretendard", "Noto Sans KR", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: var(--font-ui);
       color: var(--color-text);
       background: var(--color-bg);
     }
@@ -634,7 +670,7 @@ std::string ProductUiCss() {
       align-items: center;
     }
     .app-title-block { display: grid; gap: var(--space-1); }
-    .shell-title-block h1 { font-size: clamp(22px, 2.2vw, 28px); }
+    .shell-title-block h1 { font-size: var(--font-size-xl); }
     .shell-title-block p:not(.eyebrow) { max-width: 760px; }
     .header-utilities {
       display: flex;
@@ -787,10 +823,10 @@ std::string ProductUiCss() {
       font-size: 12px;
     }
     h1, h2, h3 { margin: 0; letter-spacing: 0; }
-    h1 { font-size: clamp(24px, 2.2vw, 32px); line-height: 1.08; }
-    h2 { font-size: 19px; }
+    h1 { font-size: var(--font-size-xl); line-height: var(--line-height-tight); }
+    h2 { font-size: var(--font-size-lg); }
     h3 { font-size: 15px; }
-    p { margin: 0; color: var(--color-text-muted); line-height: 1.55; }
+    p { margin: 0; color: var(--color-text-muted); line-height: var(--line-height-relaxed); }
     .eyebrow {
       margin: 0;
       color: var(--color-primary);
@@ -817,14 +853,14 @@ std::string ProductUiCss() {
     .nav,
     .button,
     button {
-      min-height: 36px;
+      min-height: var(--control-height-md);
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: var(--space-2);
       border: 1px solid var(--color-border);
-      border-radius: var(--radius-md);
-      padding: 8px 12px;
+      border-radius: var(--button-radius);
+      padding: var(--button-padding-y) var(--button-padding-x);
       background: var(--color-bg-elevated);
       color: var(--color-text);
       font: inherit;
@@ -919,7 +955,7 @@ std::string ProductUiCss() {
     }
     .language-select {
       width: 100%;
-      min-height: 34px;
+      min-height: var(--control-height-sm);
       height: 34px;
       padding: 5px 8px;
       border-radius: var(--radius-md);
@@ -966,7 +1002,7 @@ std::string ProductUiCss() {
     .card {
       display: grid;
       gap: var(--space-4);
-      padding: 18px;
+      padding: var(--card-padding);
     }
     .panel > *,
     .section-card > *,
@@ -1072,9 +1108,9 @@ std::string ProductUiCss() {
     .pill {
       display: inline-flex;
       align-items: center;
-      min-height: 24px;
-      padding: 3px 8px;
-      border-radius: 999px;
+      min-height: var(--badge-height);
+      padding: var(--badge-padding-y) var(--badge-padding-x);
+      border-radius: var(--badge-radius);
       background: var(--color-primary-weak-bg);
       color: var(--color-primary-weak-text);
       font-size: 11px;
@@ -1133,10 +1169,10 @@ std::string ProductUiCss() {
       width: 100%;
       min-width: 0;
       max-width: 100%;
-      min-height: 38px;
+      min-height: var(--input-height);
       border: 1px solid var(--color-input-border);
-      border-radius: var(--radius-md);
-      padding: 8px 10px;
+      border-radius: var(--input-radius);
+      padding: var(--input-padding-y) var(--input-padding-x);
       background: var(--color-input-bg);
       color: var(--color-text);
       font: inherit;
@@ -1544,7 +1580,7 @@ std::string ProductUiCss() {
     th,
     td {
       border-bottom: 1px solid var(--color-table-border);
-      padding: 8px 9px;
+      padding: var(--table-cell-padding-y) var(--table-cell-padding-x);
       text-align: left;
       vertical-align: top;
     }
@@ -1568,13 +1604,13 @@ std::string ProductUiCss() {
       white-space: pre-wrap;
       word-break: break-word;
       margin: 0;
-      padding: var(--space-4);
-      border: 1px solid var(--color-debug-border);
+      padding: var(--debug-details-padding);
+      border: 1px solid var(--debug-details-border);
       border-radius: var(--radius-md);
-      background: var(--color-code-bg);
-      color: var(--color-code-text);
+      background: var(--debug-details-bg);
+      color: var(--debug-details-text);
       font-size: 12px;
-      line-height: 1.45;
+      line-height: var(--line-height-base);
       max-height: 420px;
       overflow: auto;
     }
@@ -1873,7 +1909,7 @@ std::string ProductUiCss() {
       color: var(--color-text-muted);
     }
     .table-cell-code {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-family: var(--font-mono);
       overflow-wrap: anywhere;
     }
     .table-empty {
@@ -2666,7 +2702,7 @@ std::string ProductUiCss() {
     }
     .token {
       overflow-wrap: anywhere;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-family: var(--font-mono);
     }
     @media (max-width: 860px) {
       .product-page { width: min(100% - 20px, 760px); padding-top: var(--space-5); }
@@ -3245,15 +3281,15 @@ std::string ClientShellCss() {
       --warn-soft: var(--color-warning-bg);
       --bad: var(--color-danger);
       --bad-soft: var(--color-danger-bg);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: var(--font-ui);
     }
     body { margin: 0; background: var(--bg); color: var(--text); }
     main { max-width: 1440px; margin: 0 auto; padding: 18px 14px 40px; display: grid; gap: 16px; }
     h1, h2, h3 { margin: 0; }
-    h1 { font-size: 28px; }
-    h2 { font-size: 18px; }
+    h1 { font-size: var(--font-size-xl); }
+    h2 { font-size: var(--font-size-lg); }
     h3 { font-size: 16px; }
-    p { margin: 0; color: var(--muted); line-height: 1.5; }
+    p { margin: 0; color: var(--muted); line-height: var(--line-height-base); }
     header.app-chrome {
       display: grid;
       gap: var(--space-2);
@@ -3388,7 +3424,7 @@ std::string ClientShellCss() {
       min-height: 120px;
       box-sizing: border-box;
       resize: vertical;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-family: var(--font-mono);
       font-size: 12px;
       line-height: 1.45;
     }
