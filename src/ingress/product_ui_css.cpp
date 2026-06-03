@@ -1891,12 +1891,12 @@ std::string ProductUiCss() {
       font-size: 12px;
       overflow-wrap: anywhere;
     }
-    .root-cause-evidence {
+    .root-cause-item .root-cause-evidence {
       grid-column: 1 / -1;
       color: var(--color-text);
       font-weight: 600;
     }
-    .root-cause-log {
+    .root-cause-item .root-cause-log {
       grid-column: 1 / -1;
       padding: 8px;
       border: 1px solid var(--color-border);
@@ -2891,15 +2891,28 @@ std::string ProductUiCss() {
         padding: var(--space-3);
       }
       body.auth-shell .auth-responsive-control {
+        left: var(--space-3);
+        right: var(--space-3);
         justify-content: stretch;
         display: grid;
-        grid-template-columns: minmax(0, 1fr);
+        grid-template-columns: 34px minmax(0, 1fr);
+        width: auto;
+        align-items: end;
       }
       body.auth-shell .auth-responsive-control > * {
-        width: 100%;
+        width: auto;
         min-width: 0;
       }
+      body.auth-shell .auth-responsive-control > .theme-toggle {
+        width: 34px;
+        min-width: 34px;
+        justify-self: start;
+      }
+      body.auth-shell .auth-responsive-control > .language-control {
+        width: 100%;
+      }
       body.auth-shell .auth-responsive-card {
+        margin-top: calc(var(--space-6) + var(--control-height-sm));
         padding: var(--space-4);
         border-radius: var(--radius-md);
       }
