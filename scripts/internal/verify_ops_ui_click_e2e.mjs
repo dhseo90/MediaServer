@@ -125,8 +125,9 @@ if (failures.length > 0) {
   for (const failure of failures) {
     console.log(`  - ${failure}`);
   }
-  process.exit(1);
+  await exitAfterSummary(1);
 }
+await exitAfterSummary(0);
 
 function writeE2eSummary({ authUiFlow, passCount, failCount, failures, results }) {
   const title = authUiFlow ? "Auth UI browser E2E" : "Ops UI direct click E2E";
@@ -148,6 +149,24 @@ function writeE2eSummary({ authUiFlow, passCount, failCount, failures, results }
   fs.writeFileSync(jsonPath, `${JSON.stringify(summary, null, 2)}\n`);
   fs.writeFileSync(mdPath, buildE2eSummaryMarkdown(summary));
   console.log(`- evidence: ${jsonPath}`);
+}
+
+async function exitAfterSummary(code) {
+  await Promise.all([
+    flushStream(process.stdout),
+    flushStream(process.stderr),
+  ]);
+  process.exit(code);
+}
+
+function flushStream(stream) {
+  return new Promise(resolve => {
+    if (!stream || stream.destroyed || !stream.writable) {
+      resolve();
+      return;
+    }
+    stream.write("", () => resolve());
+  });
 }
 
 function buildE2eSummaryMarkdown(summary) {
