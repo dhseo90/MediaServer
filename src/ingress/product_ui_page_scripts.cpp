@@ -626,7 +626,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	      const dashboardRuleId = tileRuleId(assignedView);
         const fieldState = dashboardFieldState(health, events);
 	      detail.innerHTML = `
-	        <div class="client-dashboard-shell" data-testid="client-dashboard-shell">
+	        <div class="client-dashboard-shell client-viewer-dashboard" data-testid="client-dashboard-shell" data-viewer-flow="status-events">
 	        <div class="toolbar client-dashboard-head">
           <div>
             <h2>${escapeHtml(view.displayName || view.viewId || '대시보드')}</h2>
@@ -644,7 +644,7 @@ void AppendClientShellScript(std::ostringstream& out) {
             <button type="button" class="ghost" data-client-copy="events">이벤트 복사</button>
           </div>
         </div>
-        <section class="events client-field-summary" data-testid="client-dashboard-field-summary">
+        <section class="events client-field-summary client-viewer-summary" data-testid="client-dashboard-field-summary">
           <h3>현장 요약</h3>
           <div class="summary">
             <div class="metric"><span>현장 상태</span><strong>${escapeHtml(fieldState.text)}</strong></div>
@@ -674,7 +674,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	            <div class="metric"><span>VA 룰</span><strong>${escapeHtml(dashboardRuleId ? `#${dashboardRuleId}` : '연결 없음')}</strong></div>
 	          </div>
 	        </section>
-        <section class="events client-dashboard-compare" data-testid="client-dashboard-compare">
+        <section class="events client-dashboard-compare client-viewer-compare" data-testid="client-dashboard-compare">
           <h3>채널 비교</h3>
           <div class="client-compare-toolbar">
             <label>필터
@@ -704,7 +704,7 @@ void AppendClientShellScript(std::ostringstream& out) {
           </details>
           ${renderDashboardCompare(compareItems)}
         </section>
-	        <section class="events">
+	        <section class="events client-viewer-events-summary">
 	          <h3>이벤트 요약</h3>
           <div class="meta">
             ${(events.countsByType || []).map(item => `<span class="chip">${escapeHtml(item.eventType || '이벤트')} ${escapeHtml(item.count)}</span>`).join('') || '<span class="chip info">이벤트 없음</span>'}
@@ -774,7 +774,8 @@ void AppendClientShellScript(std::ostringstream& out) {
       const view = payload.view || {};
       const events = payload.events || {};
       detail.innerHTML = `
-        <div class="toolbar">
+        <div class="client-viewer-events" data-viewer-flow="events-first">
+        <div class="toolbar client-events-head">
           <div>
             <h2>${escapeHtml(view.displayName || view.viewId || '이벤트')}</h2>
             <p>${events.provided ? '최근 이벤트' : '이 채널은 이벤트 표시가 꺼져 있거나 이벤트 권한이 없습니다.'}</p>
@@ -787,7 +788,8 @@ void AppendClientShellScript(std::ostringstream& out) {
         <div class="meta">
           ${(events.countsByType || []).map(item => `<span class="chip">${escapeHtml(item.eventType || '이벤트')} ${escapeHtml(item.count)}</span>`).join('') || '<span class="chip info">이벤트 없음</span>'}
         </div>
-        <section class="events">${renderEvents(events.recent || [])}</section>
+        <section class="events client-viewer-event-feed">${renderEvents(events.recent || [])}</section>
+        </div>
       `;
       bindClientCopyButtons({ view, events });
     }
@@ -1401,7 +1403,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	    function liveSourceTreeHtml() {
 	      const groups = liveSourceTreeGroups();
 	      return `
-	        <aside class="live-source-dock" data-testid="client-live-source-tree" aria-label="라이브 소스 트리">
+	        <aside class="live-source-dock client-live-dock" data-testid="client-live-source-tree" data-viewer-redaction="source-url-hidden" aria-label="라이브 소스 트리">
 	          <div class="live-source-dock-head">
 	            <div>
 	              <h3>카메라</h3>
@@ -1428,7 +1430,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	              </details>
 	            `).join('')}
 	          </div>
-	          <section class="live-dock-event-feed" data-testid="client-live-dock-event-feed" data-redaction="viewer-safe-events" aria-live="polite">
+	          <section class="live-dock-event-feed client-live-event-dock" data-testid="client-live-dock-event-feed" data-redaction="viewer-safe-events" aria-live="polite">
 	            <div class="live-dock-event-head">
 	              <h3>이벤트</h3>
 	              <span class="chip" data-role="event-feed-status">대기</span>
@@ -1523,11 +1525,11 @@ void AppendClientShellScript(std::ostringstream& out) {
 	    }
 	    function liveMonitorHtml() {
 	      return `
-	        <div class="live-monitor live-sketch-monitor" data-testid="client-live-action-reduction" data-action-model="source-drag,tile-selection,icon-actions,keyboard-shortcuts" data-disconnect-contract="tile-disconnect-clears-slot,workspace-disconnect-keeps-layout">
-	          <div class="live-workspace-layout live-sketch-layout" data-testid="client-live-workspace" data-workspace-model="source-tree,drag-drop-grid,multi-source" data-dock-side="${escapeHtml(liveDockSide)}">
+	        <div class="live-monitor live-sketch-monitor client-live-workspace" data-testid="client-live-action-reduction" data-viewer-flow="video-first" data-action-model="source-drag,tile-selection,icon-actions,keyboard-shortcuts" data-disconnect-contract="tile-disconnect-clears-slot,workspace-disconnect-keeps-layout">
+	          <div class="live-workspace-layout live-sketch-layout client-live-layout" data-testid="client-live-workspace" data-workspace-model="source-tree,drag-drop-grid,multi-source" data-dock-side="${escapeHtml(liveDockSide)}">
 	            ${liveSourceTreeHtml()}
-	            <section class="live-workspace-main live-sketch-workspace" aria-label="라이브 워크스페이스">
-	          <div class="live-toolbar live-sketch-toolbar">
+	            <section class="live-workspace-main live-sketch-workspace client-live-primary" aria-label="라이브 워크스페이스">
+	          <div class="live-toolbar live-sketch-toolbar client-live-toolbar">
 	            <div class="live-workspace-title">
 	              <h2>라이브 워크스페이스</h2>
 	            </div>
@@ -1575,7 +1577,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	            <div class="metric"><span>오프라인</span><strong data-summary="offline">0</strong></div>
 	          </div>
 	              <section class="detail-box live-selected-detail" id="liveSelectedDetail">${emptyState('타일을 선택하세요', '선택한 타일의 연결, 메타데이터, 이벤트 상태가 여기에 표시됩니다.')}</section>
-	              <div class="live-grid" data-testid="client-live-drop-grid" data-grid-size="${liveTileCount}" data-density="${escapeHtml(liveDensity)}">
+	              <div class="live-grid client-live-video-grid" data-testid="client-live-drop-grid" data-grid-size="${liveTileCount}" data-density="${escapeHtml(liveDensity)}">
 	                ${liveTiles.slice(0, liveTileCount).map(liveTileHtml).join('')}
 	              </div>
 	            </section>

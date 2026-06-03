@@ -122,7 +122,7 @@ tablet/panel 전환 기준, 1180px 이상은 밀도 높은 운영 콘솔 기준�
 | 4 | V220-S04 | P1 | 완료 | Component primitives | card, toolbar, tab, segmented control, table, drawer, form row, status badge, empty/loading/error state를 반복 사용 가능한 C++ helper 단위로 묶습니다. | [v220-component-primitives.md](./v220-component-primitives.md), component snapshot review, route smoke, `verify-v220-component-primitives`, `verify-ops-tables-layout`, `git diff --check` |
 | 5 | V220-S05 | P1 | 완료 | Ops workspace redesign | `/ops` home, channels/source health, event feed, runtime/dashboard 화면의 시각 계층과 반복 운영 흐름을 재정리합니다. | [v220-ops-workspace-redesign.md](./v220-ops-workspace-redesign.md), Ops direct browser smoke, `verify-v220-ops-workspace-redesign`, `verify-ops-click-e2e`, `verify-ops-client-ui --screenshots`, `git diff --check` |
 | 6 | V220-S06 | P1 | 완료 | Rules workspace redesign | `/ops/rules`의 rule/profile/scenario 편집, preview, smoke selector, 저장 feedback을 반응형 shell 기준으로 재배치합니다. | [v220-rules-workspace-redesign.md](./v220-rules-workspace-redesign.md), `/ops/rules` smoke, `verify-v220-rules-workspace-redesign`, `verify-rule-ui`, `verify-ops-rules-roundtrip`, `git diff --check` |
-| 7 | V220-S07 | P1 | 예정 | Client live redesign | `/client` viewer는 운영자 debug를 숨긴 상태로 video/status/event review 흐름을 정리하고 작은 화면에서 viewer-first 동선을 보장합니다. | Client direct browser review, viewer redaction check, `verify-ops-client-ui --screenshots`, `git diff --check` |
+| 7 | V220-S07 | P1 | 완료 | Client live redesign | `/client` viewer는 운영자 debug를 숨긴 상태로 video/status/event review 흐름을 정리하고 작은 화면에서 viewer-first 동선을 보장합니다. | [v220-client-live-redesign.md](./v220-client-live-redesign.md), Client direct browser review, viewer redaction check, `verify-v220-client-live-redesign`, `verify-ops-client-ui --screenshots`, `git diff --check` |
 | 8 | V220-S08 | P2 | 예정 | Auth/setup redesign | `/setup`, `/login`, admin/auth 관련 화면을 같은 token과 responsive form layout으로 정리하되 auth route guard와 scope를 유지합니다. | `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, auth UI direct review, `git diff --check` |
 | 9 | V220-S09 | P2 | 예정 | UI fulltest matrix / evidence | v2.2.0 UI 변경 기능을 action/route/control 단위로 feature inventory와 manual UI fulltest checklist에 연결합니다. | `verify-manual-ui-evidence-runner`, `verify-docs-ui-assets`, manual UI checklist review, `git diff --check` |
 
@@ -377,6 +377,53 @@ responsive workspace 기준으로 재배치합니다. `/ops/home`, `/ops/dashboa
   schema, RTSP/WebRTC media path, Auth/session/scope, VLM draft 자동 저장/자동 적용,
   client/viewer source/debug/raw/editor 비노출 경계를 S06 구현 범위에서 변경하지
   않았습니다.
+
+### V220-S07 Client live redesign 종료 기준
+
+직접 답: v2.2.0 Client live redesign의 source-of-truth는
+[v220-client-live-redesign.md](./v220-client-live-redesign.md),
+`src/ingress/webrtc_http_server.cpp`의 `ClientShellPageHtml`과
+`ClientShellActiveForPath`, `src/ingress/product_ui_page_scripts.cpp`의 client live,
+dashboard, event renderer, `src/ingress/product_ui_css.cpp`의 `client-viewer*`와
+`client-live*` layout class, `scripts/internal/verify_v220_client_live_redesign.mjs`
+입니다.
+
+S07은 `/client/live`, `/client/dashboard`, `/client/events` route의 viewer-first
+layout과 redaction marker를 다룹니다. `/setup`, `/login`, `/password/change`,
+`/invite/setup`, `/ops`, `/ops/rules`의 전면 재배치는 이번 단계 범위가 아닙니다.
+
+2026-06-03 S07 closure evidence:
+
+- PASS: `./server.sh build`, `verify-v220-client-live-redesign`,
+  `verify-ops-route-boundaries`, `verify-ops-client-ui --browser-mode static`,
+  `verify-ops-client-ui --screenshots`, `verify-rule-ui`,
+  `verify-ops-rules-roundtrip`, `verify-auth-bootstrap`, `verify-auth-users`,
+  `verify-auth-routes`, `verify-v220-component-primitives`,
+  `verify-v220-ops-workspace-redesign`, `verify-v220-rules-workspace-redesign`,
+  `verify-product-ui-token-drift`, `verify-client-live-workspace`,
+  `verify-client-source-dock-events`, `verify-client-dashboard-polish`,
+  `verify-client-tile-info-overlay-health`,
+  `verify-client-saved-views-layout-presets`, `verify-docs-links`,
+  `verify-docs-ui-assets`, `verify-script-inventory`,
+  `verify-feature-inventory-coverage`, `verify-code-comments`,
+  `verify-release-metadata`, `git diff --check`
+- 산출물: [v220-client-live-redesign.md](./v220-client-live-redesign.md),
+  `docs/superpowers/specs/2026-06-03-v220-s07-client-live-redesign-design.md`,
+  `docs/superpowers/plans/2026-06-03-v220-s07-client-live-redesign.md`,
+  `scripts/internal/verify_v220_client_live_redesign.mjs`
+- 구현 범위: `/client` shell에 `client-viewer-workspace`, `client-viewer-dock`,
+  `client-viewer-detail`을 추가하고, live renderer에 `client-live-workspace`,
+  `client-live-layout`, `client-live-primary`, `client-live-video-grid`,
+  `client-live-dock`, `client-live-event-dock`을 추가했습니다. `/client/events` direct
+  route는 `events` active renderer로 분리했습니다.
+- 미실행: 브라우저 UI 풀테스트, 30분 soak, 120분 longrun, published metadata 재검증
+- 이슈 처리: auth verifier와 Node fetch 기반 route/UI verifier는 sandbox의 포트
+  바인딩 또는 fetch 제한으로 기본 실행이 실패했습니다. throwaway password 환경변수와
+  auth-off 격리 서버 `8081/8555`, 명시적 Chrome fallback 예외로 재실행해 PASS했습니다.
+- 변경 금지 확인: Event POST/WebRTC/SSE/WS metadata schema, RTSP/WebRTC media path,
+  Auth/session/scope, Rule/Profile payload schema, `/ops/rules` smoke selector와 저장
+  roundtrip, client/viewer source/debug/raw/editor 비노출 경계를 S07 구현 범위에서
+  변경하지 않았습니다.
 
 ## 완료 roadmap: v2.1.0 VLM Runtime Opt-in Stabilization
 

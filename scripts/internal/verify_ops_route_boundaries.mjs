@@ -158,7 +158,7 @@ const checks = [
   {
     name: "client-events-shell",
     run: async () => assertHtmlContract("/client/events", clientShellMust, [
-      'data-client-active="dashboard"',
+      'data-client-active="events"',
       'id="views"',
       'id="detail"',
       "/client/api/views",

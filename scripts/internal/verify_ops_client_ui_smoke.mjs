@@ -171,7 +171,7 @@ const pageChecks = [
   {
     name: "client-events",
     path: "/client/events",
-    must: ['data-testid="client-shell-page"', 'data-client-active="dashboard"', 'id="views"', 'id="detail"'],
+    must: ['data-testid="client-shell-page"', 'data-client-active="events"', 'id="views"', 'id="detail"', 'client-viewer-events', 'data-viewer-flow="events-first"'],
     shellMust: clientShellMust,
     mustNot: clientForbiddenText(),
   },

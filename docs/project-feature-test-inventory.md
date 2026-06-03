@@ -66,6 +66,7 @@ close-out에서 실제 실행한 evidence는 [release-evidence-index.md](release
 | VLM route, control, action, runtime state, sidecar, privacy guard | V200-S14~V210-S12 기준으로 `/ops/vlm`, `/ops/events` VLM review, `/ops/rules` draft, VLMObservation sidecar, summary/rule suggestion 후보, privacy/redaction/no-auto-apply 경계를 기능 ID 단위로 확장 | 실행 evidence가 아니며, 실제 UI 풀테스트와 장시간 안정화는 별도 단계에서 PASS/FAIL로 기록 |
 | v2.2.0 S05 Ops workspace redesign | 기존 `UI-009`, `UI-010`, `UI-014`를 `/ops/home`, `/ops/dashboard`, `/ops/events` responsive workspace 기준에 연결 | `verify-v220-ops-workspace-redesign`과 Ops UI smoke는 안정화 evidence이며, 인앱 브라우저 UI 풀테스트 결과를 대체하지 않음 |
 | v2.2.0 S06 Rules workspace redesign | 기존 `UI-012`를 `/ops/rules` readiness/assist/catalog/detail responsive workspace 기준에 연결 | `verify-v220-rules-workspace-redesign`과 Rules UI smoke는 안정화 evidence이며, 인앱 브라우저 UI 풀테스트 결과를 대체하지 않음 |
+| v2.2.0 S07 Client live redesign | 기존 `UI-015`, `UI-016`, `UI-017`을 `/client/live`, `/client/dashboard`, `/client/events` viewer-first responsive workspace 기준에 연결 | `verify-v220-client-live-redesign`과 Client UI smoke는 안정화 evidence이며, 인앱 브라우저 UI 풀테스트 결과를 대체하지 않음 |
 | current pre-test update list | 안정화/30분/120분/UI 풀테스트 실행 전 V200-S00~S18 및 V210-S00~S12 변경분을 아래 `Current Pre-Test Update List`에 반영 | 테스트 실행 결과가 아니며, 실제 실행 전 누락 방지용 목록 |
 
 브라우저 선택 기준: Codex 세션에서는 인앱 브라우저 evidence를 기본으로 하며, 자동
@@ -77,7 +78,7 @@ Codex 밖에서 사용자가 직접 실행하는 자동 검수는 Chrome/CDP를 
 
 | ID prefix | 코드 로직 owner | 제품 UI owner | 대표 verifier family |
 | --- | --- | --- | --- |
-| `UI-*` | `src/ingress/webrtc_http_server.cpp`, `src/ingress/product_ui_page_scripts.cpp` | Auth/Ops/Client shell | `verify-auth-bootstrap`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-ops-click-e2e`, `verify-ops-route-boundaries`, `verify-v220-ops-workspace-redesign`, `verify-v220-rules-workspace-redesign`, `verify-vlm-install-connection-ui`, `verify-vlm-profile-storage`, `verify-vlm-review-action-workflow`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-vlm-ops-event-review-ui`, `verify-vlm-privacy-transfer-guard` |
+| `UI-*` | `src/ingress/webrtc_http_server.cpp`, `src/ingress/product_ui_page_scripts.cpp` | Auth/Ops/Client shell | `verify-auth-bootstrap`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-ops-click-e2e`, `verify-ops-route-boundaries`, `verify-v220-ops-workspace-redesign`, `verify-v220-rules-workspace-redesign`, `verify-v220-client-live-redesign`, `verify-vlm-install-connection-ui`, `verify-vlm-profile-storage`, `verify-vlm-review-action-workflow`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-vlm-ops-event-review-ui`, `verify-vlm-privacy-transfer-guard` |
 | `AUTH-*` | `src/ingress/http_auth.cpp`, `src/ingress/webrtc_http_server.cpp` | `/setup`, `/login`, `/password/change`, `/invite/setup`, `/ops/users` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker`, `verify-ops-click-e2e` |
 | `SRC-*` | `src/ingress/source_view_registry.cpp`, `src/core/source_factory.cpp`, `src/ingress/onvif_live_import.cpp` | `/ops/sources`, `/client/live`, `/client/dashboard` | `verify-ops-source-lifecycle`, `verify-ops-client-ui`, `verify-onvif-*`, `verify-ops-source-health-bulk` |
 | `RULE-*` | `src/ingress/analysis_query.cpp`, `src/analysis/*scenario.cpp`, `src/analysis/event_rule_engine.cpp` | `/ops/rules`, `/client/live` overlay | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-scenario-builder-ui`, `verify-ops-scenario-presets`, `verify-va-event-coverage-report`, `verify-va-replay`, `verify-analysis-state` |
@@ -91,7 +92,7 @@ Codex 밖에서 사용자가 직접 실행하는 자동 검수는 Chrome/CDP를 
 
 | 기능 ID 범위 | 안정화 verifier 후보 | 비고 |
 | --- | --- | --- |
-| `UI-001`~`UI-018`, `UI-022`~`UI-036` | `verify-auth-bootstrap`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-ops-route-boundaries`, `verify-v220-ops-workspace-redesign`, `verify-v220-rules-workspace-redesign`, `verify-vlm-install-connection-ui`, `verify-vlm-profile-storage`, `verify-vlm-runtime-status-ui`, `verify-vlm-evaluation-result-workflow`, `verify-vlm-review-action-workflow`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-vlm-ops-event-review-ui`, `verify-vlm-privacy-transfer-guard` | route/shell/404/Ops workspace/Rules workspace/VLM dry-run/profile/privacy/runtime status/evaluation result/event review/action/rule draft guard UI 경계 |
+| `UI-001`~`UI-018`, `UI-022`~`UI-036` | `verify-auth-bootstrap`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-ops-route-boundaries`, `verify-v220-ops-workspace-redesign`, `verify-v220-rules-workspace-redesign`, `verify-v220-client-live-redesign`, `verify-vlm-install-connection-ui`, `verify-vlm-profile-storage`, `verify-vlm-runtime-status-ui`, `verify-vlm-evaluation-result-workflow`, `verify-vlm-review-action-workflow`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-vlm-ops-event-review-ui`, `verify-vlm-privacy-transfer-guard` | route/shell/404/Ops workspace/Rules workspace/Client viewer workspace/VLM dry-run/profile/privacy/runtime status/evaluation result/event review/action/rule draft guard UI 경계 |
 | `UI-019`~`UI-021` | Codex 인앱 브라우저 evidence, 인앱 브라우저 부재 외부 환경의 `verify-ops-client-ui --screenshots`, `verify-docs-ui-assets`, `verify-product-ui-token-drift` | 시각 품질은 수동 UI evidence 필요 |
 | `AUTH-001`~`AUTH-042` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
 | `SRC-001`~`SRC-030` | `verify-ops-source-lifecycle`, `verify-ops-source-health-bulk`, `verify-ops-channel-bulk`, `verify-onvif-*`, `verify-ops-client-ui` | ONVIF field success는 제외 |
@@ -207,9 +208,9 @@ v2.1.0 completed roadmap에서 늘어난 검수 대상을 누락하지 않기 �
 | UI-012 | `/ops/rules` VA 룰 / 프로파일 / 이벤트 템플릿 관리 | 필요 | 필요 | 안정화, UI | rule/template/profile CRUD, validation, preview, S06 `rules-workspace` readiness/assist/catalog/detail flow와 320/390/760/1180 overflow 확인 |
 | UI-013 | `/ops/users` 사용자 관리 | 필요 | 필요 | 안정화, UI | user/invite/access request/role/scope flow 확인 |
 | UI-014 | `/ops/events` 이벤트 진단 route | 필요 | 필요 | 안정화, UI | event filter/pagination/evidence action과 S05 `ops-workspace-events` event workbench 표시 확인 |
-| UI-015 | `/client/live` 시청자 Live | 필요 | 필요 | 안정화, UI, 30분 | video viewport/control/status/overlay와 session 지속성 확인 |
-| UI-016 | `/client/dashboard` 시청자 Dashboard | 필요 | 필요 | 안정화, UI | viewer scope 내 dashboard/filter/sort/copy 확인 |
-| UI-017 | `/client/events` 시청자 이벤트 route | 필요 | 필요 | 안정화, UI | viewer scope 내 events 표시와 비노출 경계 확인 |
+| UI-015 | `/client/live` 시청자 Live | 필요 | 필요 | 안정화, UI, 30분 | video viewport/control/status/overlay, S07 `client-live-workspace` video-first grid, viewer redaction, session 지속성 확인 |
+| UI-016 | `/client/dashboard` 시청자 Dashboard | 필요 | 필요 | 안정화, UI | viewer scope 내 dashboard/filter/sort/copy와 S07 `client-viewer-dashboard` status/event summary 확인 |
+| UI-017 | `/client/events` 시청자 이벤트 route | 필요 | 필요 | 안정화, UI | viewer scope 내 events 표시, S07 `client-viewer-events` direct route, 비노출 경계 확인 |
 | UI-018 | `/lab`, `/lab/rules`, `/lab/import`, `/webrtc/test` 제품 UI 미제공 / 404 | 비대상 | 필요 | 안정화, UI | 이전 제품 UI route와 임의 route가 제품 UI로 열리지 않음 |
 | UI-019 | light/dark theme-aware 공통 UI | 필요 | 필요 | UI | 주요 화면에서 contrast/token/상태 색상 일관성 확인 |
 | UI-020 | desktop 반응형 화면 | 필요 | 필요 | UI | 1180px 이상에서 nav/table/form/video 겹침 없음 |

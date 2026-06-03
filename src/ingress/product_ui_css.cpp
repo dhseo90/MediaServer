@@ -4117,6 +4117,63 @@ std::string ClientShellCss() {
     body.client-shell .client-dashboard-shell .summary {
       grid-template-columns: repeat(auto-fit, minmax(164px, 1fr));
     }
+    body.client-shell .client-viewer-workspace,
+    body.client-shell .client-viewer-dock,
+    body.client-shell .client-viewer-detail,
+    body.client-shell .client-live-workspace,
+    body.client-shell .client-live-layout,
+    body.client-shell .client-live-primary,
+    body.client-shell .client-live-video-grid,
+    body.client-shell .client-live-dock,
+    body.client-shell .client-live-event-dock,
+    body.client-shell .client-viewer-dashboard,
+    body.client-shell .client-viewer-events {
+      min-width: 0;
+    }
+    body.client-shell .client-viewer-workspace {
+      align-items: start;
+    }
+    body.client-shell .client-viewer-detail {
+      overflow: clip;
+    }
+    body.client-shell .client-live-primary {
+      display: grid;
+      align-content: start;
+      gap: 12px;
+      min-height: calc(100vh - 60px);
+    }
+    body.client-shell .client-live-video-grid {
+      width: 100%;
+    }
+    body.client-shell .client-live-dock {
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr) auto;
+    }
+    body.client-shell .client-live-event-dock {
+      min-height: 0;
+      overflow: auto;
+    }
+    body.client-shell .client-viewer-dashboard,
+    body.client-shell .client-viewer-events {
+      display: grid;
+      gap: 14px;
+    }
+    body.client-shell .client-events-head,
+    body.client-shell .client-viewer-event-feed {
+      min-width: 0;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow-sm);
+    }
+    body.client-shell .client-viewer-events > .meta {
+      min-width: 0;
+      padding: 12px 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+    }
     body.client-shell .live-monitor {
       position: relative;
       min-height: calc(100vh - 60px);
@@ -4754,6 +4811,16 @@ std::string ClientShellCss() {
         border-left: 0;
         border-bottom: 1px solid var(--line);
       }
+      body.client-shell .client-live-layout .client-live-dock,
+      body.client-shell .client-live-layout[data-dock-side] .client-live-dock,
+      body.client-shell .client-live-layout[data-dock-side="right"] .client-live-dock {
+        order: 2;
+      }
+      body.client-shell .client-live-layout .client-live-primary,
+      body.client-shell .client-live-layout[data-dock-side] .client-live-primary,
+      body.client-shell .client-live-layout[data-dock-side="right"] .client-live-primary {
+        order: 1;
+      }
       body.client-shell .live-source-tree {
         max-height: 260px;
         overflow: auto;
@@ -4770,6 +4837,14 @@ std::string ClientShellCss() {
         justify-content: flex-start;
         flex-wrap: wrap;
         margin-bottom: 12px;
+      }
+      body.client-shell .client-live-toolbar label,
+      body.client-shell .client-live-toolbar .live-copy-actions,
+      body.client-shell .client-live-toolbar .workspace-actions {
+        min-width: 0;
+      }
+      body.client-shell .client-live-toolbar .live-copy-actions {
+        flex-wrap: wrap;
       }
       body.client-shell .live-grid,
       body.client-shell .live-grid[data-grid-size],
@@ -4807,6 +4882,15 @@ std::string ClientShellCss() {
       body.client-shell .client-dashboard-head .client-copy-actions button {
         min-width: 0;
       }
+      body.client-shell .client-events-head {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      body.client-shell .client-events-head .meta,
+      body.client-shell .client-events-head .client-copy-actions {
+        justify-content: flex-start;
+      }
     }
     @media (max-width: 560px) {
       .live-grid, .live-grid[data-grid-size] { grid-template-columns: 1fr; }
@@ -4842,6 +4926,30 @@ std::string ClientShellCss() {
         min-width: 44px;
         height: 44px;
         min-height: 44px;
+      }
+      body.client-shell .client-live-toolbar {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+      body.client-shell .client-live-toolbar label,
+      body.client-shell .client-live-toolbar label select,
+      body.client-shell .client-live-toolbar .live-copy-actions,
+      body.client-shell .client-live-toolbar .live-copy-actions button,
+      body.client-shell .client-live-toolbar .workspace-actions,
+      body.client-shell .client-live-toolbar .workspace-actions summary {
+        width: 100%;
+        max-width: none;
+      }
+      body.client-shell .client-live-toolbar .live-info-toggle {
+        width: 100%;
+        max-width: none;
+        flex-basis: auto;
+      }
+      body.client-shell .client-viewer-workspace,
+      body.client-shell .client-viewer-dashboard,
+      body.client-shell .client-viewer-events {
+        gap: 10px;
       }
       body.client-shell .tile-mode-button {
         min-width: 48px;

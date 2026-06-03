@@ -5007,15 +5007,15 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
 )";
 
     out << R"(
-    <section class="workspace client-workspace-shell" data-testid="client-shell-page">
-      <div class="panel client-channel-dock">
+    <section class="workspace client-workspace-shell client-viewer-workspace" data-testid="client-shell-page" data-client-workspace="viewer-first">
+      <div class="panel client-channel-dock client-viewer-dock" data-client-redaction="viewer-safe-dock">
         <div class="toolbar panel-title-toolbar">
           <h2>할당 채널</h2>
 	          )" << RefreshIconButtonHtml("refresh", "ghost", "새로고침") << R"(
         </div>
         <div id="views" class="views"></div>
       </div>
-      <div class="panel client-detail-panel" id="detail">
+      <div class="panel client-detail-panel client-viewer-detail" id="detail">
         <div class="empty"><h3>채널을 선택하세요</h3><p>허용된 채널을 선택하면 이 영역에 상태가 표시됩니다.</p></div>
       </div>
     </section>
@@ -5054,7 +5054,10 @@ bool IsClientShellRoute(const std::string& path) {
 }
 
 std::string ClientShellActiveForPath(const std::string& path) {
-    if (path == "/client/dashboard" || path == "/client/events") {
+    if (path == "/client/events") {
+        return "events";
+    }
+    if (path == "/client/dashboard") {
         return "dashboard";
     }
     return "live";
