@@ -2864,11 +2864,13 @@ std::string AuthLandingPageHtml(const auth::Principal& principal,
 }
 
 void AppendOpsDashboardPage(std::ostringstream& out) {
-    out << R"(    <section class="panel" data-ops-panel="dashboard" data-testid="ops-dashboard-page">
+    out << R"(    <section class="panel ops-workspace ops-workspace-dashboard" data-ops-panel="dashboard" data-testid="ops-dashboard-page">
+      <div class="ops-workspace-hero">
       )" << ProductUiToolbarHtml("운영 대시보드",
-                                  "현재 상태를 한눈에 봅니다.",
+                                  "Source, runtime, event evidence를 같은 진단 흐름에서 판독합니다.",
                                   RefreshIconButtonHtml("opsDashboardRefresh", "button-secondary", "새로고침"),
                                   "panel-title-toolbar") << R"(
+      </div>
       <div class="grid ops-metric-grid">
         <div class="metric-card"><span>활성 세션</span><strong id="dashActiveSessions">-</strong></div>
         <div class="metric-card"><span>활성 스트림</span><strong id="dashActiveStreams">-</strong></div>
@@ -2901,6 +2903,7 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
                                                               "dashCleanupRows") +
                                             R"(<p id="dashCleanupText">불러오는 중</p>)") << R"(
       </div>
+      <div class="ops-workspace-diagnostic-grid">
       <section class="section-card" data-testid="ops-root-cause-panel">
         <div class="toolbar">
           <div>
@@ -2945,7 +2948,7 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
           <div class="empty">최근 인시던트 단서를 불러오는 중입니다.</div>
         </div>
       </section>
-      <section class="section-card" data-testid="ops-runtime-operations-console">
+      <section class="section-card ops-workspace-wide" data-testid="ops-runtime-operations-console">
         <div class="toolbar">
           <div>
             <h3>런타임 운영 판독</h3>
@@ -2958,7 +2961,8 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
           <div class="empty">런타임 운영 판독 대기 중입니다.</div>
         </div>
       </section>
-      <section class="section-card">
+      </div>
+      <section class="section-card ops-workspace-wide">
         <div class="toolbar">
           <div>
             <h3>운영 상세</h3>
@@ -2975,7 +2979,7 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
         </div>
         <p id="dashDetailText">불러오는 중</p>
       </section>
-      <section class="section-card" data-testid="ops-va-quality-panel">
+      <section class="section-card ops-workspace-wide" data-testid="ops-va-quality-panel">
         <div class="toolbar">
           <div>
             <h3>라이브 VA 이벤트 품질</h3>
@@ -3617,11 +3621,11 @@ void AppendOpsRulesPage(std::ostringstream& out) {
 }
 
 void AppendOpsEventsPage(std::ostringstream& out) {
-    out << R"(    <section class="panel" data-ops-panel="events" data-testid="ops-events-page" data-route-scope="direct-diagnostic">
-      <div class="toolbar">
+    out << R"(    <section class="panel ops-workspace ops-workspace-events" data-ops-panel="events" data-testid="ops-events-page" data-route-scope="direct-diagnostic">
+      <div class="toolbar panel-title-toolbar ops-workspace-hero">
         <div>
           <h2>이벤트 상태</h2>
-          <p>Primary nav에는 표시하지 않는 direct/diagnostic route입니다. 이벤트 조건은 Rules에서, 운영 요약은 Dashboard에서 확인합니다.</p>
+          <p>Primary nav에는 표시하지 않는 direct/diagnostic route입니다. Event storage, delivery, review inbox, evidence records를 한 작업대에서 확인합니다.</p>
         </div>
         <div class="actions">
           <a class="button button-secondary" href="/ops/dashboard">대시보드</a>
@@ -3629,7 +3633,7 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           )" << RefreshIconButtonHtml("opsEventsRefresh", "button-secondary", "새로고침") << R"(
         </div>
       </div>
-      <div class="grid">
+      <div class="grid ops-workspace-event-grid">
         <section class="section-card">
           <h3>이벤트 저장소</h3>
           <div id="eventStorageBadges" class="badge-row"><span class="chip">로딩 중</span></div>
@@ -3651,7 +3655,7 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <p id="eventExportPolicyText">증거 export와 삭제 권한을 확인합니다.</p>
         </section>
       </div>
-      <section class="section-card" data-testid="ops-alert-delivery-integrations" data-alert-contract="separate-from-event-post-payload">
+      <section class="section-card ops-workspace-wide" data-testid="ops-alert-delivery-integrations" data-alert-contract="separate-from-event-post-payload">
         <div class="toolbar">
           <div>
             <h3>Alert Delivery Integrations</h3>
@@ -3710,7 +3714,7 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           </table>
         </div>
       </section>
-      <section class="section-card" data-testid="ops-event-review-inbox" data-review-state="separate-from-event-post-payload" data-vlm-review-state="ops-only-event-record-evidence" data-vlm-review-action-workflow="ops-only-review-state">
+      <section class="section-card ops-workspace-wide" data-testid="ops-event-review-inbox" data-review-state="separate-from-event-post-payload" data-vlm-review-state="ops-only-event-record-evidence" data-vlm-review-action-workflow="ops-only-review-state">
         <div class="toolbar">
           <div>
             <h3>Rule Event Review Inbox</h3>
@@ -3755,7 +3759,7 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           </table>
         </div>
       </section>
-      <section class="section-card">
+      <section class="section-card ops-workspace-wide">
         <div class="toolbar">
           <div>
             <h3>최근 이벤트 기록</h3>
@@ -3808,14 +3812,15 @@ void AppendOpsEventsPage(std::ostringstream& out) {
 }
 
 void AppendOpsHomePage(std::ostringstream& out) {
-    out << R"(    <section class="panel" data-ops-panel="home" data-testid="ops-home-page">
-      <div class="toolbar panel-title-toolbar">
+    out << R"(    <section class="panel ops-workspace ops-workspace-home" data-ops-panel="home" data-testid="ops-home-page">
+      <div class="toolbar panel-title-toolbar ops-workspace-hero">
         <div>
           <h2>운영 홈</h2>
-          <p>운영 구성과 현재 상태를 함께 봅니다.</p>
+          <p>구성, 런타임 상태, 위험 신호와 다음 조치를 한 화면에서 선택합니다.</p>
         </div>
         )" << RefreshIconButtonHtml("opsHomeRefresh", "button-secondary", "새로고침") << R"(
       </div>
+      <div class="ops-workspace-action-grid">
       <section class="section-card compact-card">
         <div class="toolbar">
           <div>
@@ -3862,6 +3867,7 @@ void AppendOpsHomePage(std::ostringstream& out) {
           <span class="chip">runtime 호출 없음</span>
         </div>
       </section>
+      </div>
     </section>
 )";
 }

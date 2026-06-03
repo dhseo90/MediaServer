@@ -581,6 +581,48 @@ std::string ProductUiCss() {
     body.ops-shell .ops-metric-grid {
       gap: 12px;
     }
+    body.ops-shell .ops-workspace {
+      display: grid;
+      gap: var(--space-4);
+    }
+    body.ops-shell .ops-workspace-hero {
+      min-width: 0;
+    }
+    body.ops-shell .ops-workspace-hero > .panel-title-toolbar,
+    body.ops-shell [data-ops-panel] > .ops-workspace-hero.panel-title-toolbar {
+      min-width: 0;
+      min-height: 68px;
+      padding: 16px 18px;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--color-surface-raised) 96%, transparent);
+      box-shadow: var(--shadow-sm);
+    }
+    body.ops-shell .ops-workspace-action-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-3);
+      align-items: stretch;
+    }
+    body.ops-shell .ops-workspace-action-grid > .section-card,
+    body.ops-shell .ops-workspace-event-grid > .section-card {
+      min-height: 100%;
+    }
+    body.ops-shell .ops-workspace-diagnostic-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+      gap: var(--space-3);
+      align-items: start;
+    }
+    body.ops-shell .ops-workspace-event-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--space-3);
+      align-items: stretch;
+    }
+    body.ops-shell .ops-workspace-wide {
+      grid-column: 1 / -1;
+    }
     .app-header {
       display: grid;
       gap: var(--space-3);
@@ -2703,6 +2745,41 @@ std::string ProductUiCss() {
     .token {
       overflow-wrap: anywhere;
       font-family: var(--font-mono);
+    }
+    @media (max-width: 760px) {
+      body.ops-shell .ops-workspace-action-grid,
+      body.ops-shell .ops-workspace-diagnostic-grid,
+      body.ops-shell .ops-workspace-event-grid,
+      body.ops-shell .ops-metric-grid,
+      body.ops-shell .ops-dashboard-card-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      body.ops-shell .ops-workspace-hero.panel-title-toolbar,
+      body.ops-shell .ops-workspace-hero > .panel-title-toolbar {
+        align-items: stretch;
+        padding: 14px;
+      }
+      body.ops-shell .ops-workspace-hero .actions,
+      body.ops-shell .ops-workspace .actions,
+      body.ops-shell .incident-timeline-controls,
+      body.ops-shell .event-review-controls,
+      body.ops-shell .event-record-controls {
+        width: 100%;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        justify-items: stretch;
+      }
+      body.ops-shell .ops-workspace-hero .actions > *,
+      body.ops-shell .ops-workspace .actions > *,
+      body.ops-shell .incident-timeline-controls > *,
+      body.ops-shell .event-review-controls > *,
+      body.ops-shell .event-record-controls > * {
+        width: 100%;
+        min-width: 0;
+      }
+      body.ops-shell .ops-workspace .toolbar {
+        align-items: stretch;
+      }
     }
     @media (max-width: 860px) {
       .product-page { width: min(100% - 20px, 760px); padding-top: var(--space-5); }

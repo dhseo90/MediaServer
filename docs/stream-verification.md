@@ -577,6 +577,28 @@ template이 helper를 실제 소비하는지 확인합니다. screenshot evidenc
 풀테스트, visual redesign mockup, 30분 soak, 120분 longrun은 S04 PASS로 대체하지
 않습니다.
 
+v2.2.0 Ops workspace redesign은 S05에서 `/ops/home`, `/ops/dashboard`, `/ops/events`
+route를 운영자 작업 흐름과 responsive shell 기준으로 재배치합니다. 이 단계는
+Ops overview route의 visual hierarchy와 layout class를 바꾸지만 Event POST,
+WebRTC/SSE/WS metadata schema, RTSP/WebRTC media path, Auth/session/scope,
+Rule/Profile payload schema는 변경하지 않습니다.
+
+```bash
+./server.sh verify-v220-ops-workspace-redesign
+./server.sh verify-v220-component-primitives
+./server.sh verify-product-ui-token-drift
+./server.sh verify-ops-click-e2e
+./server.sh verify-ops-client-ui --screenshots
+./server.sh verify-rule-ui
+git diff --check
+```
+
+이 묶음은 [v220-ops-workspace-redesign.md](./v220-ops-workspace-redesign.md)가 S05 route
+scope, responsive 기준, 변경 금지 경계를 담고, `/ops/home`, `/ops/dashboard`,
+`/ops/events`가 S05 workspace class와 기존 JS hook을 함께 유지하는지 확인합니다.
+브라우저 UI 풀테스트, 30분 soak, 120분 longrun, published metadata 재검증은 S05
+PASS로 대체하지 않습니다.
+
 v2.1.0 S01 VLM runtime opt-in contract는 profile 저장 계약 안에서 runtime 상태만
 고정합니다. 실제 local/cloud runtime 호출이 아니라 default-off 상태 분리 gate입니다.
 

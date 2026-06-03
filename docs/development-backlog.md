@@ -120,7 +120,7 @@ tablet/panel 전환 기준, 1180px 이상은 밀도 높은 운영 콘솔 기준�
 | 2 | V220-S02 | P0 | 완료 | Responsive task shell | `/ops`, `/client`, `/setup`, `/login`의 route별 primary task, secondary action, drawer/panel 전환 기준을 정의합니다. | [v220-responsive-task-shell.md](./v220-responsive-task-shell.md), 320/390/760/1180 viewport checklist, layout contract review, `verify-v220-responsive-task-shell`, `verify-ops-client-ui --browser-mode static`, `git diff --check` |
 | 3 | V220-S03 | P0 | 완료 | Design token refresh | light/dark theme-aware token, spacing, density, typography, button/input/table/badge/debug details 기준을 단일 source로 정리합니다. | [v220-design-token-refresh.md](./v220-design-token-refresh.md), token diff review, theme contrast review, `verify-v220-design-token-refresh`, `verify-product-ui-token-drift`, `verify-ops-client-ui`, `git diff --check` |
 | 4 | V220-S04 | P1 | 완료 | Component primitives | card, toolbar, tab, segmented control, table, drawer, form row, status badge, empty/loading/error state를 반복 사용 가능한 C++ helper 단위로 묶습니다. | [v220-component-primitives.md](./v220-component-primitives.md), component snapshot review, route smoke, `verify-v220-component-primitives`, `verify-ops-tables-layout`, `git diff --check` |
-| 5 | V220-S05 | P1 | 예정 | Ops workspace redesign | `/ops` home, channels/source health, event feed, runtime/dashboard 화면의 시각 계층과 반복 운영 흐름을 재정리합니다. | Ops direct browser review, `verify-ops-click-e2e`, `verify-ops-client-ui --screenshots`, `git diff --check` |
+| 5 | V220-S05 | P1 | 완료 | Ops workspace redesign | `/ops` home, channels/source health, event feed, runtime/dashboard 화면의 시각 계층과 반복 운영 흐름을 재정리합니다. | [v220-ops-workspace-redesign.md](./v220-ops-workspace-redesign.md), Ops direct browser smoke, `verify-v220-ops-workspace-redesign`, `verify-ops-click-e2e`, `verify-ops-client-ui --screenshots`, `git diff --check` |
 | 6 | V220-S06 | P1 | 예정 | Rules workspace redesign | `/ops/rules`의 rule/profile/scenario 편집, preview, smoke selector, 저장 feedback을 반응형 shell 기준으로 재배치합니다. | `/ops/rules` direct browser review, `verify-rule-ui`, `verify-ops-rules-roundtrip`, `git diff --check` |
 | 7 | V220-S07 | P1 | 예정 | Client live redesign | `/client` viewer는 운영자 debug를 숨긴 상태로 video/status/event review 흐름을 정리하고 작은 화면에서 viewer-first 동선을 보장합니다. | Client direct browser review, viewer redaction check, `verify-ops-client-ui --screenshots`, `git diff --check` |
 | 8 | V220-S08 | P2 | 예정 | Auth/setup redesign | `/setup`, `/login`, admin/auth 관련 화면을 같은 token과 responsive form layout으로 정리하되 auth route guard와 scope를 유지합니다. | `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, auth UI direct review, `git diff --check` |
@@ -296,6 +296,43 @@ longrun은 S04 완료 근거가 아닙니다.
   세션의 명시적 Chrome fallback 예외로 재실행했습니다. `verify-ops-client-ui
   --screenshots`와 `verify-rule-ui`도 같은 명시적 fallback 예외로 실행했습니다. Auth
   verifier는 실행자 제공 throwaway 환경변수로 단독 순서 실행했습니다.
+
+### V220-S05 Ops workspace redesign 종료 기준
+
+직접 답: v2.2.0 Ops workspace redesign의 source-of-truth는
+[v220-ops-workspace-redesign.md](./v220-ops-workspace-redesign.md),
+`src/ingress/webrtc_http_server.cpp`의 `/ops/home`, `/ops/dashboard`, `/ops/events`
+HTML builder, `src/ingress/product_ui_css.cpp`의 `ops-workspace*` layout class,
+`scripts/internal/verify_v220_ops_workspace_redesign.mjs`입니다.
+
+S05는 `/ops/home`, `/ops/dashboard`, `/ops/events` route의 visual hierarchy와
+responsive workspace 구조를 다룹니다. `/ops/sources`, `/ops/rules`, `/ops/users`,
+`/client`, `/setup`, `/login`의 전면 재배치는 후속 S06~S08 범위입니다.
+
+2026-06-03 S05 closure evidence:
+
+- PASS: `./server.sh build`, `verify-v220-ops-workspace-redesign`,
+  `verify-v220-component-primitives`, `verify-product-ui-token-drift`,
+  `verify-ops-click-e2e`, `verify-ops-client-ui`,
+  `verify-ops-client-ui --screenshots`, `verify-rule-ui`,
+  `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`,
+  `verify-docs-links`, `verify-docs-ui-assets`, `verify-script-inventory`,
+  `verify-code-comments`, `verify-release-metadata`, `git diff --check`
+- 산출물: [v220-ops-workspace-redesign.md](./v220-ops-workspace-redesign.md),
+  `docs/superpowers/specs/2026-06-03-v220-s05-ops-workspace-redesign-design.md`,
+  `docs/superpowers/plans/2026-06-03-v220-s05-ops-workspace-redesign.md`,
+  `scripts/internal/verify_v220_ops_workspace_redesign.mjs`
+- 구현 범위: `/ops/home`에 `ops-workspace-home` action grid, `/ops/dashboard`에
+  `ops-workspace-dashboard` diagnostic grid, `/ops/events`에 `ops-workspace-events`
+  event workbench class를 추가하고, 기존 JS hook과 `data-testid`를 유지했습니다.
+- 미실행: 브라우저 UI 풀테스트, 30분 soak, 120분 longrun, published metadata 재검증
+- 이슈 처리: `verify-ops-click-e2e`는 기본 실행에서 Chrome executable 미탐지,
+  서버 미기동 `ECONNREFUSED`, RTSP fixture port 불일치로 실패했습니다. auth-off
+  isolated 서버를 `8081/8555`로 띄운 뒤 `MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT=8555`
+  와 Codex 세션의 명시적 Chrome fallback 예외로 재실행해 PASS했습니다.
+  `verify-ops-client-ui --screenshots`는 S05에서 바꾼 `/ops/events` 안내 문구가 기존
+  smoke 기대 문구를 지워 FAIL했고, 기존 문구를 보존한 뒤 새 빌드로 서버를 재시작해
+  PASS했습니다. Auth verifier는 실행자 제공 throwaway 환경변수로 단독 순서 실행했습니다.
 
 ## 완료 roadmap: v2.1.0 VLM Runtime Opt-in Stabilization
 

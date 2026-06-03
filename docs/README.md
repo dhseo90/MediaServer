@@ -13,6 +13,7 @@
 | v2.2.0 반응형 task shell | [v220-responsive-task-shell.md](v220-responsive-task-shell.md) |
 | v2.2.0 design token refresh | [v220-design-token-refresh.md](v220-design-token-refresh.md) |
 | v2.2.0 component primitives | [v220-component-primitives.md](v220-component-primitives.md) |
+| v2.2.0 Ops workspace redesign | [v220-ops-workspace-redesign.md](v220-ops-workspace-redesign.md) |
 | UI 풀테스트 기준/체크리스트/결과 | [manual-ui-fulltest.md](manual-ui-fulltest.md), [manual-ui-checklist.md](manual-ui-checklist.md), [manual-ui-result-template.md](manual-ui-result-template.md), [manual-ui-result-2026-05-25-ui-fulltest-restart.md](manual-ui-result-2026-05-25-ui-fulltest-restart.md), [manual-ui-result-2026-06-01-v200-inapp-fulltest.md](manual-ui-result-2026-06-01-v200-inapp-fulltest.md), [manual-ui-result-2026-06-03-v210-inapp-fulltest.md](manual-ui-result-2026-06-03-v210-inapp-fulltest.md) |
 | 기능별 UI 필요/테스트 영역 inventory | [project-feature-test-inventory.md](project-feature-test-inventory.md) |
 | RTSP/WebRTC/VA 구조 | [media-server-architecture.md](media-server-architecture.md) |
