@@ -599,6 +599,28 @@ scope, responsive 기준, 변경 금지 경계를 담고, `/ops/home`, `/ops/das
 브라우저 UI 풀테스트, 30분 soak, 120분 longrun, published metadata 재검증은 S05
 PASS로 대체하지 않습니다.
 
+v2.2.0 Rules workspace redesign은 S06에서 `/ops/rules` route를 readiness, assist,
+catalog, detail editor 흐름으로 재배치합니다. 이 단계는 rule/profile/scenario 편집,
+preview, smoke selector, 저장 roundtrip의 visual hierarchy를 바꾸지만
+Rule/Profile payload schema, Event POST, WebRTC/SSE/WS metadata schema,
+RTSP/WebRTC media path, Auth/session/scope는 변경하지 않습니다.
+
+```bash
+./server.sh verify-v220-rules-workspace-redesign
+./server.sh verify-rule-ui
+./server.sh verify-ops-rules-roundtrip
+./server.sh verify-ops-rule-conflict-ui
+./server.sh verify-ops-rule-validation-matrix
+./server.sh verify-ops-client-ui --screenshots
+git diff --check
+```
+
+이 묶음은 [v220-rules-workspace-redesign.md](./v220-rules-workspace-redesign.md)가 S06 route
+scope, responsive 기준, 변경 금지 경계를 담고, `/ops/rules`가 S06 workspace class와
+기존 smoke/save/preview/audit hook을 함께 유지하는지 확인합니다. 브라우저 UI
+풀테스트, 30분 soak, 120분 longrun, published metadata 재검증은 S06 PASS로 대체하지
+않습니다.
+
 v2.1.0 S01 VLM runtime opt-in contract는 profile 저장 계약 안에서 runtime 상태만
 고정합니다. 실제 local/cloud runtime 호출이 아니라 default-off 상태 분리 gate입니다.
 

@@ -3011,8 +3011,8 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
 }
 
 void AppendOpsRulesPage(std::ostringstream& out) {
-    out << R"(    <section class="panel" data-ops-panel="rules" data-testid="ops-rules-page">
-      <div class="toolbar panel-title-toolbar">
+    out << R"(    <section class="panel ops-workspace rules-workspace" data-ops-panel="rules" data-testid="ops-rules-page">
+      <div class="toolbar panel-title-toolbar ops-workspace-hero">
         <div>
           <h2>룰 설정</h2>
           <p>종류를 고르고 목록을 관리합니다.</p>
@@ -3026,6 +3026,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
         <div class="metric-card"><span>프로파일</span><strong id="rulesProfileCount">-</strong></div>
         <div class="metric-card"><span>채널 연결</span><strong id="rulesViewBindingCount">-</strong></div>
       </div>
+      <div class="rules-workspace-readiness-grid">
       <section class="section-card" data-testid="ops-rules-validation-panel">
         <div class="toolbar">
           <div>
@@ -3089,6 +3090,8 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           </article>
         </div>
       </section>
+      </div>
+      <div class="rules-workspace-assist-grid">
       <section class="section-card ops-scenario-builder" data-testid="ops-scenario-builder" data-scenario-builder-contract="ui-only-no-engine-change">
         <div class="toolbar">
           <div>
@@ -3163,7 +3166,9 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           <div class="empty">후보를 불러오는 중입니다.</div>
         </div>
       </section>
-      <section class="section-card">
+      </div>
+      <div class="rules-workspace-catalog-grid">
+      <section class="section-card rules-workspace-mode-panel">
         <div class="toolbar">
           <div>
             <h3>설정 종류</h3>
@@ -3179,7 +3184,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           <button id="opsAddProfileBtn" class="button-secondary rule-mode-button" type="button" aria-pressed="false">분석 프로파일</button>
         </div>
       </section>
-      <section id="opsVaRulesSection" class="section-card">
+      <section id="opsVaRulesSection" class="section-card rules-workspace-table-panel">
         <div class="toolbar">
           <div>
             <h3>채널 분석 설정</h3>
@@ -3219,7 +3224,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           </table>
         </div>
       </section>
-      <section id="opsEventRulesSection" class="section-card">
+      <section id="opsEventRulesSection" class="section-card rules-workspace-table-panel">
         <div class="toolbar">
           <div>
             <h3>이벤트 템플릿</h3>
@@ -3253,7 +3258,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           </table>
         </div>
       </section>
-      <section id="opsProfileRulesSection" class="section-card">
+      <section id="opsProfileRulesSection" class="section-card rules-workspace-table-panel">
         <div class="toolbar">
           <div>
             <h3>분석 프로파일</h3>
@@ -3289,7 +3294,8 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           </table>
         </div>
       </section>
-      <section id="opsRulesDetailPanel" class="section-card ops-detail-panel" hidden>
+      </div>
+      <section id="opsRulesDetailPanel" class="section-card ops-detail-panel rules-workspace-detail-panel" hidden>
         <div class="toolbar">
           <div>
             <div class="badge-row"><span id="opsRulesDetailMode" class="chip info">상세</span><span id="opsRulesDetailId" class="chip">-</span></div>
@@ -3606,7 +3612,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
 	          <p id="opsProfileSummaryText" class="form-note">검출기, FPS, 신뢰도, 입력 크기와 추적 대상 같은 분석 엔진 설정을 정의합니다.</p>
         </form>
       </section>
-      <section class="section-card ops-audit-panel">
+      <section class="section-card ops-audit-panel rules-workspace-audit-panel">
         <div class="toolbar">
           <div>
             <h3>변경 이력</h3>

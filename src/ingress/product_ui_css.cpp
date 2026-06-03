@@ -623,6 +623,37 @@ std::string ProductUiCss() {
     body.ops-shell .ops-workspace-wide {
       grid-column: 1 / -1;
     }
+    body.ops-shell .rules-workspace {
+      display: grid;
+      gap: var(--space-4);
+    }
+    body.ops-shell .rules-workspace-readiness-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+      gap: var(--space-3);
+      align-items: start;
+    }
+    body.ops-shell .rules-workspace-assist-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-3);
+      align-items: stretch;
+    }
+    body.ops-shell .rules-workspace-catalog-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-3);
+      align-items: start;
+    }
+    body.ops-shell .rules-workspace-mode-panel,
+    body.ops-shell .rules-workspace-table-panel,
+    body.ops-shell .rules-workspace-detail-panel,
+    body.ops-shell .rules-workspace-audit-panel {
+      min-width: 0;
+    }
+    body.ops-shell .rules-workspace-detail-panel {
+      scroll-margin-top: 96px;
+    }
     .app-header {
       display: grid;
       gap: var(--space-3);
@@ -2750,6 +2781,9 @@ std::string ProductUiCss() {
       body.ops-shell .ops-workspace-action-grid,
       body.ops-shell .ops-workspace-diagnostic-grid,
       body.ops-shell .ops-workspace-event-grid,
+      body.ops-shell .rules-workspace-readiness-grid,
+      body.ops-shell .rules-workspace-assist-grid,
+      body.ops-shell .rules-workspace-catalog-grid,
       body.ops-shell .ops-metric-grid,
       body.ops-shell .ops-dashboard-card-grid {
         grid-template-columns: minmax(0, 1fr);
@@ -2779,6 +2813,16 @@ std::string ProductUiCss() {
       }
       body.ops-shell .ops-workspace .toolbar {
         align-items: stretch;
+      }
+      body.ops-shell .rules-workspace .rule-mode-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      body.ops-shell .rules-workspace .rule-mode-button,
+      body.ops-shell .rules-workspace input,
+      body.ops-shell .rules-workspace select,
+      body.ops-shell .rules-workspace textarea {
+        width: 100%;
+        min-width: 0;
       }
     }
     @media (max-width: 860px) {

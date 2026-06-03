@@ -121,7 +121,7 @@ tablet/panel 전환 기준, 1180px 이상은 밀도 높은 운영 콘솔 기준�
 | 3 | V220-S03 | P0 | 완료 | Design token refresh | light/dark theme-aware token, spacing, density, typography, button/input/table/badge/debug details 기준을 단일 source로 정리합니다. | [v220-design-token-refresh.md](./v220-design-token-refresh.md), token diff review, theme contrast review, `verify-v220-design-token-refresh`, `verify-product-ui-token-drift`, `verify-ops-client-ui`, `git diff --check` |
 | 4 | V220-S04 | P1 | 완료 | Component primitives | card, toolbar, tab, segmented control, table, drawer, form row, status badge, empty/loading/error state를 반복 사용 가능한 C++ helper 단위로 묶습니다. | [v220-component-primitives.md](./v220-component-primitives.md), component snapshot review, route smoke, `verify-v220-component-primitives`, `verify-ops-tables-layout`, `git diff --check` |
 | 5 | V220-S05 | P1 | 완료 | Ops workspace redesign | `/ops` home, channels/source health, event feed, runtime/dashboard 화면의 시각 계층과 반복 운영 흐름을 재정리합니다. | [v220-ops-workspace-redesign.md](./v220-ops-workspace-redesign.md), Ops direct browser smoke, `verify-v220-ops-workspace-redesign`, `verify-ops-click-e2e`, `verify-ops-client-ui --screenshots`, `git diff --check` |
-| 6 | V220-S06 | P1 | 예정 | Rules workspace redesign | `/ops/rules`의 rule/profile/scenario 편집, preview, smoke selector, 저장 feedback을 반응형 shell 기준으로 재배치합니다. | `/ops/rules` direct browser review, `verify-rule-ui`, `verify-ops-rules-roundtrip`, `git diff --check` |
+| 6 | V220-S06 | P1 | 완료 | Rules workspace redesign | `/ops/rules`의 rule/profile/scenario 편집, preview, smoke selector, 저장 feedback을 반응형 shell 기준으로 재배치합니다. | [v220-rules-workspace-redesign.md](./v220-rules-workspace-redesign.md), `/ops/rules` smoke, `verify-v220-rules-workspace-redesign`, `verify-rule-ui`, `verify-ops-rules-roundtrip`, `git diff --check` |
 | 7 | V220-S07 | P1 | 예정 | Client live redesign | `/client` viewer는 운영자 debug를 숨긴 상태로 video/status/event review 흐름을 정리하고 작은 화면에서 viewer-first 동선을 보장합니다. | Client direct browser review, viewer redaction check, `verify-ops-client-ui --screenshots`, `git diff --check` |
 | 8 | V220-S08 | P2 | 예정 | Auth/setup redesign | `/setup`, `/login`, admin/auth 관련 화면을 같은 token과 responsive form layout으로 정리하되 auth route guard와 scope를 유지합니다. | `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, auth UI direct review, `git diff --check` |
 | 9 | V220-S09 | P2 | 예정 | UI fulltest matrix / evidence | v2.2.0 UI 변경 기능을 action/route/control 단위로 feature inventory와 manual UI fulltest checklist에 연결합니다. | `verify-manual-ui-evidence-runner`, `verify-docs-ui-assets`, manual UI checklist review, `git diff --check` |
@@ -333,6 +333,50 @@ responsive workspace 구조를 다룹니다. `/ops/sources`, `/ops/rules`, `/ops
   `verify-ops-client-ui --screenshots`는 S05에서 바꾼 `/ops/events` 안내 문구가 기존
   smoke 기대 문구를 지워 FAIL했고, 기존 문구를 보존한 뒤 새 빌드로 서버를 재시작해
   PASS했습니다. Auth verifier는 실행자 제공 throwaway 환경변수로 단독 순서 실행했습니다.
+
+### V220-S06 Rules workspace redesign 종료 기준
+
+직접 답: v2.2.0 Rules workspace redesign의 source-of-truth는
+[v220-rules-workspace-redesign.md](./v220-rules-workspace-redesign.md),
+`src/ingress/webrtc_http_server.cpp`의 `/ops/rules` HTML builder,
+`src/ingress/product_ui_css.cpp`의 `rules-workspace*` layout class,
+`scripts/internal/verify_v220_rules_workspace_redesign.mjs`입니다.
+
+S06은 `/ops/rules` route의 readiness, assist, catalog, detail editor 흐름을
+responsive workspace 기준으로 재배치합니다. `/ops/home`, `/ops/dashboard`,
+`/ops/events`, `/ops/sources`, `/ops/users`, `/client`, `/setup`, `/login`의 전면
+재배치는 이번 단계 범위가 아닙니다.
+
+2026-06-03 S06 closure evidence:
+
+- PASS: `./server.sh build`, `verify-v220-rules-workspace-redesign`,
+  `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-rule-conflict-ui`,
+  `verify-ops-rule-validation-matrix`, `verify-ops-client-ui`,
+  `verify-ops-client-ui --screenshots`, `verify-auth-bootstrap`,
+  `verify-auth-users`, `verify-auth-routes`, `verify-v220-component-primitives`,
+  `verify-v220-ops-workspace-redesign`, `verify-product-ui-token-drift`,
+  `verify-docs-links`, `verify-docs-ui-assets`, `verify-script-inventory`,
+  `verify-feature-inventory-coverage`, `verify-code-comments`,
+  `verify-release-metadata`, `git diff --check`
+- 산출물: [v220-rules-workspace-redesign.md](./v220-rules-workspace-redesign.md),
+  `docs/superpowers/specs/2026-06-03-v220-s06-rules-workspace-redesign-design.md`,
+  `docs/superpowers/plans/2026-06-03-v220-s06-rules-workspace-redesign.md`,
+  `scripts/internal/verify_v220_rules_workspace_redesign.mjs`
+- 구현 범위: `/ops/rules`에 `rules-workspace` root, readiness/assist/catalog/detail
+  layout class를 추가하고, 기존 smoke selector, 저장 버튼, validation panel,
+  scenario builder, VLM draft, geometry preview, audit trail hook을 유지했습니다.
+- 미실행: 브라우저 UI 풀테스트, 30분 soak, 120분 longrun, published metadata 재검증
+- 이슈 처리: `verify-rule-ui`는 Codex browser evidence gate, sandbox localhost
+  `EPERM`, auth-on 401을 순서대로 확인한 뒤 auth-off isolated 서버 `8081/8555`와
+  명시적 Chrome fallback 예외로 재실행해 PASS했습니다. `verify-ops-rules-roundtrip`
+  은 sandbox localhost `EPERM` 후 같은 auth-off 서버에 대해 sandbox 밖에서 PASS했습니다.
+  `verify-ops-client-ui --screenshots`도 sandbox fetch/evidence gate 후 명시적 Chrome
+  fallback 예외로 PASS했습니다. `verify-docs-links`는 S05 superpowers spec/plan 색인
+  누락을 `docs/README.md`에 보정한 뒤 PASS했습니다.
+- 변경 금지 확인: Rule/Profile payload schema, Event POST/WebRTC/SSE/WS metadata
+  schema, RTSP/WebRTC media path, Auth/session/scope, VLM draft 자동 저장/자동 적용,
+  client/viewer source/debug/raw/editor 비노출 경계를 S06 구현 범위에서 변경하지
+  않았습니다.
 
 ## 완료 roadmap: v2.1.0 VLM Runtime Opt-in Stabilization
 
