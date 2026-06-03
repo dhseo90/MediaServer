@@ -59,8 +59,8 @@ baseline으로 유지합니다.
   review action workflow, rule suggestion draft workflow, VA coverage evidence,
   evaluation fixture harness, event evidence refs, VLMObservation sidecar, event explanation,
   Ops event review panel, summary/rule suggestion 후보
-- Release: source-only readiness, bundle/license guardrail, release evidence, manual UI evidence,
-  GitHub Actions warning/Node 24 gate, UI evidence runner, feature coverage, release close-out runbook
+- Release: source-only readiness, bundle/license guardrail, release evidence, manual UI fulltest result,
+  GitHub Actions warning/Node 24 gate, feature coverage, release close-out runbook
 - Research boundary: Re-ID/tracker default-off, OC-SORT manifest-only sandbox, YouTube lab-only 유지
 
 명시적 비범위:
@@ -124,26 +124,22 @@ tablet/panel 전환 기준, 1180px 이상은 밀도 높은 운영 콘솔 기준�
 | 6 | V220-S06 | P1 | 완료 | Rules workspace redesign | `/ops/rules`의 rule/profile/scenario 편집, preview, smoke selector, 저장 feedback을 반응형 shell 기준으로 재배치합니다. | [v220-rules-workspace-redesign.md](./v220-rules-workspace-redesign.md), `/ops/rules` smoke, `verify-v220-rules-workspace-redesign`, `verify-rule-ui`, `verify-ops-rules-roundtrip`, `git diff --check` |
 | 7 | V220-S07 | P1 | 완료 | Client live redesign | `/client` viewer는 운영자 debug를 숨긴 상태로 video/status/event review 흐름을 정리하고 작은 화면에서 viewer-first 동선을 보장합니다. | [v220-client-live-redesign.md](./v220-client-live-redesign.md), Client direct browser review, viewer redaction check, `verify-v220-client-live-redesign`, `verify-ops-client-ui --screenshots`, `git diff --check` |
 | 8 | V220-S08 | P2 | 완료 | Auth/setup redesign | `/setup`, `/login`, admin/auth 관련 화면을 같은 token과 responsive form layout으로 정리하되 auth route guard와 scope를 유지합니다. | [v220-auth-setup-redesign.md](./v220-auth-setup-redesign.md), `verify-v220-auth-setup-redesign`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, auth UI direct review, `git diff --check` |
-| 9 | V220-S09 | P2 | 완료 | UI fulltest matrix / evidence | v2.2.0 UI 변경 기능을 action/route/control 단위로 feature inventory와 manual UI fulltest checklist에 연결합니다. | [v220-ui-fulltest-matrix-evidence.md](./v220-ui-fulltest-matrix-evidence.md), `verify-v220-ui-fulltest-matrix-evidence`, `verify-manual-ui-evidence-runner`, `verify-docs-ui-assets`, `git diff --check` |
 
 v2.2.0 후속 작업:
 
-1. S00~S09의 roadmap/matrix 구현은 닫혔지만, 실제 v2.2.0 전체 UI 풀테스트 PASS는
-   아직 아닙니다. 현재 partial 결과 문서는
-   [manual-ui-result-2026-06-03-v220-inapp-partial.md](./manual-ui-result-2026-06-03-v220-inapp-partial.md)
-   이며, `244개 UI 대상 기능 ID 중 0 PASS, 244 FAIL`로 남겨 전수 evidence
-   미완료를 명확히 기록합니다.
-2. 다음 실제 후속은 `media-server.manual-ui-evidence-input.v1` evidence JSON을
-   작성하고 `./server.sh verify-manual-ui-evidence-runner --evidence <json>`와
-   `./server.sh verify-manual-ui-evidence --result <result.md>`를 통과시키는 것입니다.
-   이때 누락 기능 ID, raw JSON/API-only 확인, screenshot-only 확인은 모두 `FAIL`
-   로 남깁니다.
-3. full UI evidence에서 특히 남은 P0/P1 확인 축은 viewer role guard, invite setup
-   end-to-end, `/ops/users` access request 승인/거절, VA seed apply, event key별
-   `/ops/events` EventRecord 발생 이력 대조입니다.
+1. S00~S08의 UI redesign 구현은 닫혔지만, 실제 v2.2.0 전체 UI 풀테스트 PASS는
+   아직 아닙니다. 강화 matrix/evidence 기준과 partial 결과 문서는 현재 기준에서
+   폐기합니다.
+2. 다음 실제 후속은 AGENTS.md와 [manual-ui-fulltest.md](./manual-ui-fulltest.md)에
+   적힌 기존 UI 풀테스트를 인앱 브라우저에서 직접 수행하고,
+   [manual-ui-result-template.md](./manual-ui-result-template.md)에 최종 실행 결과만
+   남기는 것입니다.
+3. 특히 남은 P0/P1 확인 축은 viewer role guard, invite setup end-to-end,
+   `/ops/users` access request 승인/거절, VA seed apply, event key별 `/ops/events`
+   EventRecord 발생 이력 대조입니다.
 4. 30분 soak, 120분 longrun, published metadata 재검증, release close-out은 아직
    미실행입니다. 장시간 테스트와 release close-out은 사용자 명시 지시가 있을 때만
-   실행하며, one-shot wrapper PASS나 partial UI evidence로 대체하지 않습니다.
+   실행하며, one-shot wrapper PASS나 partial 결과로 대체하지 않습니다.
 5. 푸시/PR/릴리즈 준비는 별도 지시에 따라 수행합니다. 현재 문서 evidence는
    v2.2.0 UI 기반 개편 산출물과 남은 release gate를 분리하기 위한 상태 기록입니다.
 
@@ -486,50 +482,12 @@ S08은 `/setup`, `/login`, `/password/change`, `/invite/setup`,
   invite token, access request API schema/rate limit, RTSP/WebRTC media path,
   Event POST/WebRTC/SSE/WS metadata schema를 S08 구현 범위에서 변경하지 않았습니다.
 
-### V220-S09 UI fulltest matrix / evidence 종료 기준
-
-직접 답: v2.2.0 UI fulltest matrix의 source-of-truth는
-[v220-ui-fulltest-matrix-evidence.md](./v220-ui-fulltest-matrix-evidence.md)의
-`media-server.v220-ui-fulltest-matrix.v1`입니다. S09는 S05~S08 route redesign을
-기능 ID와 `media-server.manual-ui-evidence-input.v1` 필드에 연결합니다.
-
-S09는 matrix/evidence 준비 단계입니다. 실제 인앱 브라우저 UI 풀테스트 PASS,
-30분 soak, 120분 longrun, published metadata 재검증, release close-out은 이번 단계
-완료 근거가 아닙니다.
-
-2026-06-03 S09 closure evidence:
-
-- PASS: `./server.sh verify-v220-ui-fulltest-matrix-evidence`,
-  `./server.sh verify-manual-ui-evidence`,
-  `./server.sh verify-manual-ui-evidence-runner`,
-  `./server.sh verify-docs-links`,
-  `./server.sh verify-docs-ui-assets`,
-  `./server.sh verify-feature-inventory-coverage`,
-  `./server.sh verify-script-inventory`,
-  `./server.sh verify-release-metadata`,
-  `node --check scripts/internal/verify_v220_ui_fulltest_matrix_evidence.mjs`
-- 산출물: [v220-ui-fulltest-matrix-evidence.md](./v220-ui-fulltest-matrix-evidence.md),
-  `docs/superpowers/specs/2026-06-03-v220-s09-ui-fulltest-matrix-evidence-design.md`,
-  `docs/superpowers/plans/2026-06-03-v220-s09-ui-fulltest-matrix-evidence.md`,
-  `scripts/internal/verify_v220_ui_fulltest_matrix_evidence.mjs`
-- 구현 범위: S05~S08 route redesign을 `media-server.v220-ui-fulltest-matrix.v1`과
-  `media-server.manual-ui-evidence-input.v1` 필드에 연결하고, manual UI 기준 문서,
-  feature inventory, stream verification에 S09 matrix 경계를 추가했습니다.
-
-미실행으로 남기는 범위:
-
-- 브라우저 UI 풀테스트 실행
-- 30분 soak
-- 120분 longrun
-- published metadata 재검증
-- release close-out, main merge, tag, GitHub Release
-
 ## 완료 roadmap: v2.1.0 VLM Runtime Opt-in Stabilization
 
 v2.1.0은 v2.0.0의 VLM review-assist source-only baseline을 유지하면서,
 운영자가 명시적으로 켠 경우에만 실제 VLM runtime/provider 연결을 검증 가능한
 opt-in 기능으로 여는 stabilization roadmap입니다. 이 roadmap은 `v2.1.0` branch에서
-진행했고, 아래 표의 S00~S12는 완료됐습니다. v2.0.0 release 완료 상태나 `v2.0.0`
+진행했고, 아래 표의 S00~S11은 완료됐습니다. v2.0.0 release 완료 상태나 `v2.0.0`
 tag를 다시 해석하지 않습니다.
 
 핵심 원칙:
@@ -572,7 +530,6 @@ tag를 다시 해석하지 않습니다.
 | 9 | V210-S09 | P1 | 완료 | VA coverage evidence report | rule, scenario, event type, EventRecord 발생 이력, invalid combination을 조합 단위 evidence로 출력합니다. | VA replay matrix, EventRecord history report, `verify-va-event-coverage-report`, `verify-va-events`, `verify-va-replay`, `git diff --check` |
 | 10 | V210-S10 | P2 | 완료 | External TURN/WHEP field gate | external TURN/WHEP credential 운영 검증을 별도 field smoke로 분리하고, 기본 release PASS와 혼동하지 않게 합니다. 실제 외부 endpoint/credential 성공은 미실행/별도 field evidence로 남깁니다. | `verify-external-turn-whep-field-gate`, external field smoke checklist, WebRTC ICE review, `verify-webrtc-ice`, 미실행/제외 기록, `git diff --check` |
 | 11 | V210-S11 | P2 | 완료 | Runtime/model bundle RC rehearsal | 실제 bundle release 없이 hash/provenance/license, GPL-risk binary exclusion, release asset 금지 기준을 RC rehearsal로만 확인합니다. 기본 결정값은 source-only 유지입니다. | `verify-runtime-model-bundle-rc-rehearsal`, `verify-bundle-policy`, `verify-release-bundle-dry-run --candidate source-only`, dependency snapshot review, bundle dry-run policy, `git diff --check` |
-| 12 | V210-S12 | P2 | 완료 | UI fulltest evidence runner 개선 | 기능 ID별 클릭, 입력, 상태 반영, 관련 로그 확인 report를 보강해 UI 풀테스트 누락을 줄입니다. 이 완료는 runner 개선이며 실제 UI 풀테스트 PASS가 아닙니다. | `verify-manual-ui-evidence-runner`, feature inventory mapping, UI evidence report, manual spot review field, `verify-ops-client-ui --screenshots`, `verify-rule-ui`, `git diff --check` |
 
 v2.1.0 완료 gate:
 
@@ -619,7 +576,7 @@ close-out 작업 순서:
 3. 문서 이미지 리뷰 및 업데이트: managed UI PNG와 VA 이미지를 직접 열어 crop,
    viewport, debug/source/raw/auth material 노출 여부를 확인하고 필요한 경우 recapture합니다.
 4. 로컬 release gate: `./server.sh build`, 문서 링크, UI asset, release metadata,
-   evidence/index, manual UI evidence runner, release closeout helper dry-run을 실행합니다.
+   evidence/index, manual UI result 검증, release closeout helper dry-run을 실행합니다.
 5. 커밋/branch push: 변경을 커밋하고 `v2.1.0` branch를 push합니다.
 6. PR/main merge: required check, warning/failure annotation 상태를 분리 확인한 뒤
    main으로 merge합니다.
@@ -964,43 +921,6 @@ S11은 ONNX Runtime package, FFmpeg/GStreamer GPL-risk runtime, YOLO/Re-ID/VLM m
 artifact, download token, binary/runtime/model release asset을 repo, bundle, GitHub
 Release에 포함하지 않습니다. Event POST/WebRTC DataChannel/SSE/WS metadata schema,
 RTSP/WebRTC media path, 제품 UI도 변경하지 않습니다.
-
-### V210-S12 UI fulltest evidence runner 개선 종료 기준
-
-직접 답: S12의 산출물은 `verify-manual-ui-evidence-runner`가 생성하는
-`media-server.manual-ui-evidence-report.v1` report 강화입니다. UI 풀테스트 자체를
-실행하거나 UI PASS를 새로 만드는 단계가 아닙니다.
-
-개선된 PASS row는 각 UI 대상 기능 ID마다 아래를 요구합니다.
-
-- `route`
-- `control`
-- `interaction`
-- `input` 또는 `inputNotApplicableReason`
-- `expected`
-- `actual`
-- `stateReflected=true`
-- `artifacts`
-- `logChecked`, `eventRecordChecked`, 또는 `logNotApplicableReason`
-
-`manualSpotReviews`는 사람이 확인한 보조 범위와 artifact를 보존하지만, 누락된 기능
-ID, raw JSON/API-only 확인, route/control/input/state/log/artifact 누락을 PASS로
-바꾸지 않습니다.
-
-```bash
-./server.sh verify-manual-ui-evidence-runner \
-  --report /tmp/media_server_manual_ui_evidence_runner_selftest.md \
-  --json-report /tmp/media_server_manual_ui_evidence_runner_selftest.json
-./server.sh verify-feature-inventory-coverage
-./server.sh verify-ops-client-ui --screenshots
-./server.sh verify-rule-ui
-git diff --check
-```
-
-S12는 제품 UI, Auth/session/scope, Event POST/WebRTC/SSE/WS metadata schema,
-RTSP/WebRTC media path를 변경하지 않습니다. `verify-ops-client-ui --screenshots`와
-`verify-rule-ui`는 smoke/script evidence이며, 인앱 브라우저에서 전체 UI 기능을 직접
-클릭한 UI 풀테스트 PASS를 대체하지 않습니다.
 
 ## v2.0.0 Release Close-out
 
@@ -1966,9 +1886,8 @@ line-crossing, intrusion-dwell, zone-occupancy 후보를 만드는 단계입니�
 - VLM default-off, model/runtime bundle 금지, cloud opt-in, redaction, sidecar 분리,
   no-auto-apply, viewer/client 비노출, media path non-blocking, Ops-only debug details
   경계를 `SAFE-025`~`SAFE-033`로 분리했습니다.
-- `verify-project-inventory`, `verify-feature-inventory-coverage`,
-  `verify-manual-ui-evidence-runner`의 row count, UI target count, verifier mapping을
-  새 inventory 기준으로 갱신했습니다.
+- `verify-project-inventory`, `verify-feature-inventory-coverage`의 row count,
+  UI target count, verifier mapping을 새 inventory 기준으로 갱신했습니다.
 
 이번 범위에서 하지 않는 일:
 
@@ -1988,9 +1907,7 @@ line-crossing, intrusion-dwell, zone-occupancy 후보를 만드는 단계입니�
 - `./server.sh verify-project-inventory`가 369개 feature row, 238개 UI target,
   V200-S14 확장 행, summary count, coverage boundary wording을 검증했습니다.
 - `./server.sh verify-feature-inventory-coverage`가 369개 feature ID 모두 verifier,
-  UI evidence, longrun approval, field exclusion 중 하나에 연결됐음을 검증했습니다.
-- `./server.sh verify-manual-ui-evidence-runner`가 새 UI target count 238개를 기준으로
-  누락 UI evidence를 FAIL로 산출하는 self-test를 통과했습니다.
+  manual UI fulltest, longrun approval, field exclusion 중 하나에 연결됐음을 검증했습니다.
 - `./server.sh verify-vlm-install-connection-scope-gate`가 S14 이후 늘어난 inventory
   count/range와 현재 VLM 계약을 기준으로 PASS했습니다.
 - `./server.sh verify-vlm-pc-capability`, `./server.sh verify-vlm-recommendation-engine`,
@@ -2250,7 +2167,7 @@ maintenance-first roadmap입니다. v1.8.0에서 닫은 source-only/live-only �
 유지하고, 새 제품 기능은 owner가 별도 승인하기 전까지 active roadmap으로 승격하지
 않습니다.
 v1.9.0의 목표는 새 제품 기능 확장이 아니라 GitHub Actions warning/Node 24 기준,
-UI evidence runner, feature inventory coverage, contract/schema freeze, fixture cleanup,
+feature inventory coverage, contract/schema freeze, fixture cleanup,
 CI/local gate parity, published release evidence, auth/session/scope matrix, final baseline
 report를 v2.0.0 진입 전에 고정하는 것입니다.
 
@@ -2267,8 +2184,8 @@ report를 v2.0.0 진입 전에 고정하는 것입니다.
 | --- | --- | --- | --- | --- |
 | V190-P0-01 | P0 | GitHub Actions warning annotation gate | main check-run은 success여도 Node.js 20 actions deprecation warning annotation이 남을 수 있으므로, warning을 release gate에서 허용할지 차단할지 기준을 명확히 정합니다. | GitHub check-runs annotations API review, release gate policy review, `verify-actions-security`, Preflight/static-gates/guardrails, `git diff --check` |
 | V190-P0-02 | P0 | GitHub Actions Node 24 readiness | `actions/checkout@v5`, `actions/upload-artifact@v6`의 Node 24 runtime baseline, `verify-actions-security`의 허용 정책, Dependabot major ignore 정책을 함께 검토한 뒤 workflow와 verifier 정책을 일관되게 유지합니다. | upstream action version/changelog review, `.github/dependabot.yml` review, `verify-actions-security`, Preflight/static-gates/guardrails, `git diff --check` |
-| V190-P0-03 | P0 | UI 풀테스트 evidence runner | inventory 기능 ID별 클릭, 입력, 상태 반영, 관련 로그 확인 결과를 자동 산출하고 미실행 ID를 FAIL로 남기는 evidence runner를 정리합니다. 수동 클릭 의존을 줄이고 UI 풀테스트 완료/미완료 판정을 기능 ID 단위로 남깁니다. | feature inventory fixture review, autonomous UI runner, per-ID evidence report, manual spot review, `verify-ops-client-ui --screenshots`, `verify-rule-ui`, `git diff --check` |
-| V190-P0-04 | P0 | Feature inventory coverage gate | `project-feature-test-inventory.md`의 기능 ID가 실제 verifier, UI evidence, 장시간 승인 gate, 또는 명시적 제외 기록과 연결되지 않으면 release gate에서 잡도록 coverage mapping을 고정합니다. | `verify-feature-inventory-coverage` inventory-to-verifier mapping report, missing-ID FAIL check, `verify-script-inventory`, release gate dry-run, `git diff --check` |
+| V190-P0-03 | P0 | UI 풀테스트 결과 기준 | inventory 기능 ID별 직접 클릭/입력/상태 반영 결과를 manual result 문서에 남기는 기준을 정리합니다. 자동 산출 runner를 기본 UI 풀테스트 기준으로 삼지 않습니다. | feature inventory fixture review, manual UI result review, `verify-ops-client-ui --screenshots`, `verify-rule-ui`, `git diff --check` |
+| V190-P0-04 | P0 | Feature inventory coverage gate | `project-feature-test-inventory.md`의 기능 ID가 실제 verifier, manual UI fulltest, 장시간 승인 gate, 또는 명시적 제외 기록과 연결되지 않으면 release gate에서 잡도록 coverage mapping을 고정합니다. | `verify-feature-inventory-coverage` inventory-to-verifier mapping report, missing-ID FAIL check, `verify-script-inventory`, release gate dry-run, `git diff --check` |
 | V190-P0-05 | P0 | v2.0.0 entry contract/schema freeze gate | v2.0.0 신규 기능 개발 전 WebRTC DataChannel, SSE/WS metadata, Event POST, Auth/session/scope, SourceRegistry/PublishedView, Rule/Profile payload 기준선을 `freeze-baseline.json`으로 고정하고 변경 징후를 즉시 잡는 freeze gate를 정리합니다. | contract artifact review, schema/payload sample diff, `verify-integrator-contract-artifact`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-event-post`, `git diff --check` |
 | V190-P0-06 | P0 | Test state isolation cleanup gate | UI runner, VA seed, EventRecord, auth users, source/view registry, analysis registry, port/server lifecycle이 테스트 후 항상 복원되거나 throwaway 경로로 격리되는지 `media-server.fixture-cleanup-contracts.v1` gate로 통합 확인합니다. | fixture cleanup matrix, throwaway state path review, `verify-fixture-cleanup-contracts`, access request cleanup, EventRecord cleanup, port cleanup check, `git diff --check` |
 | V190-P0-07 | P0 | CI/local gate parity | 로컬에서 통과하는 verifier와 GitHub Actions에서 실제로 막는 required/static/guardrail gate를 `media-server.ci-local-gate-parity.v1`으로 대조해 v2.0.0 기능 PR 전에 CI 누락을 줄입니다. | local-vs-CI gate matrix, `.github/workflows/*` review, `verify-ci-local-gate-parity`, `verify-script-inventory`, `verify-actions-security`, Preflight/static-gates/guardrails, `git diff --check` |

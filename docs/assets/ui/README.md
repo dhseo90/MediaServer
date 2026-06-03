@@ -42,7 +42,7 @@ v2.1.0 close-out 문서 리뷰에서 문서가 참조하는 전체 이미지 20�
   bbox/label, 영역/라인 control이 잘리지 않습니다.
 - VLM 전용 `/ops/vlm`, `/ops/events` review-assist 화면은 이 대표 이미지 세트로
   대체하지 않고, [manual-ui-result-2026-06-03-v210-inapp-fulltest.md](../../manual-ui-result-2026-06-03-v210-inapp-fulltest.md)
-  및 `verify-manual-ui-evidence-runner` evidence로 분리합니다.
+  같은 수동 UI 풀테스트 결과 문서로 분리합니다.
 - 이번 리뷰에서 recapture가 필요한 이미지 이슈는 없었습니다.
 
 직접 이미지 검수 checklist:

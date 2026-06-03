@@ -115,6 +115,7 @@ function checkDocsIndexCoverage() {
   const docsIndex = fs.readFileSync(docsIndexPath, "utf8");
   const trackedDocs = gitLsFiles(["docs"])
     .filter((file) => file.endsWith(".md"))
+    .filter((file) => fs.existsSync(path.join(rootDir, file)))
     .filter((file) => file !== "docs/README.md");
   docsIndexCount = trackedDocs.length;
   const missing = [];

@@ -6,11 +6,6 @@
 삼고, 실행 순서는 [manual-ui-checklist.md](./manual-ui-checklist.md), 결과 기록은
 [manual-ui-result-template.md](./manual-ui-result-template.md)를 사용합니다.
 현재 제품 UI 기준은 release 목표 `v2.1.0`입니다. 지원 가능한 모든 기능을 실제 UI 조작으로 확인하지 않은 경우에는 완료로 쓰지 않습니다.
-v2.2.0 Responsive UI Foundation의 UI 풀테스트 준비 matrix는
-[v220-ui-fulltest-matrix-evidence.md](./v220-ui-fulltest-matrix-evidence.md)의
-`media-server.v220-ui-fulltest-matrix.v1`을 함께 사용합니다. 이 matrix도
-`media-server.manual-ui-evidence-input.v1`과 `verify-manual-ui-evidence-runner`
-입력 기준을 따르며, matrix 작성만으로 UI 풀테스트 PASS가 되지 않습니다.
 
 ## 1. 정의
 
@@ -171,23 +166,14 @@ UI 풀테스트 결과는 모든 개별 기능, route, control, action 단위로
 않고, `RULE-041 presence EventRecord 발생`, `AUTH-022 reset 후 must-change`,
 `UI-004 password change 임시 pw 로그인`처럼 개별 행으로 기록합니다.
 요약은 개별 행 이후에만 둘 수 있고, 요약이 개별 결과를 대체할 수 없습니다.
-자율 브라우저 또는 직접 조작 결과를 JSON으로 남길 때는
-`media-server.manual-ui-evidence-input.v1` schema를 사용하고
-`./server.sh verify-manual-ui-evidence-runner --evidence <json> --report <report.md>`
-로 기능 ID별 PASS/FAIL report를 생성합니다. 누락된 UI 대상 기능 ID는 `FAIL`이며,
+열어보지 않은 화면, 누르지 않은 기능, 일부 조건만 확인한 기능은 `FAIL`입니다.
 제외 항목은 판정표 밖 `Exclusions`에만 둡니다.
-각 PASS row에는 `route`, `control`, `interaction`, `input` 또는
-`inputNotApplicableReason`, `expected`, `actual`, `stateReflected=true`,
-`artifacts`, 그리고 `logChecked`, `eventRecordChecked`, 또는
-`logNotApplicableReason` 중 하나가 있어야 합니다. `manualSpotReviews`는 사람이
-보조로 spot review한 범위를 보존하지만, 누락된 기능 ID를 PASS로 바꾸는 대체
-증거가 아닙니다.
 
 풀테스트 harness 자체를 한 번에 실행할 때는
 `./server.sh verify-ui-fulltest-one-shot`을 사용합니다. 이 명령은 전용
 throwaway registry/users/event 경로와 격리 포트로 core/auth 서버를 띄운 뒤
-manual evidence runner, native/blocking dialog guard, feature inventory coverage,
-Ops/Client screenshot smoke, Rules smoke, route/rules/table guard, core/auth click
+native/blocking dialog guard, feature inventory coverage, Ops/Client screenshot smoke,
+Rules smoke, route/rules/table guard, core/auth click
 E2E를 순서대로 실행하고 `summary.json`과 `summary.md`를 남깁니다. 이 wrapper는
 `verify-predev --soak-minutes 30`, `verify-predev --soak-minutes 120`,
 `verify-va-runtime-console-longrun --duration-minutes 120`을 실행하지 않습니다.
@@ -362,7 +348,6 @@ UI 풀테스트는 기능 검수와 같은 비중으로 시각 품질을 봅니�
 - `./server.sh verify-docs-ui-assets`
 - `./server.sh verify-release-metadata`
 - `./server.sh verify-manual-ui-evidence`
-- `./server.sh verify-manual-ui-evidence-runner`
 
 장시간 테스트와 `verify-predev`는 사용자가 명시 요청하지 않으면 실행하지 않습니다.
 실행하지 않은 스크립트는 실행하지 않았다고 사실 기록만 남기며, UI 풀테스트의

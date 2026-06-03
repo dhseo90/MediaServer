@@ -165,7 +165,6 @@ try {
   await waitForHealth("core-ui-health", `http://127.0.0.1:${ports.coreHttp}/health`);
   appendDiagnosticLogTailFixture();
 
-  await runCommand("score-ui-evidence-runner", ["./server.sh", "verify-manual-ui-evidence-runner"]);
   await runCommand("guard-native-dialogs", ["./server.sh", "verify-product-ui-no-native-dialogs"]);
   await runCommand("guard-blocking-dialog-policy", ["./server.sh", "verify-ui-blocking-dialog-policy"]);
   await runCommand("feature-inventory-coverage", ["./server.sh", "verify-feature-inventory-coverage"]);

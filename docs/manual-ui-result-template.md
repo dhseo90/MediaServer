@@ -7,10 +7,6 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 기능별 UI 필요 여부와 테스트 영역은
 [project-feature-test-inventory.md](./project-feature-test-inventory.md), 실행 순서는
 [manual-ui-checklist.md](./manual-ui-checklist.md)를 봅니다.
-v2.2.0 Responsive UI Foundation 결과를 기록할 때는
-[v220-ui-fulltest-matrix-evidence.md](./v220-ui-fulltest-matrix-evidence.md)의
-`media-server.v220-ui-fulltest-matrix.v1`과
-`media-server.manual-ui-evidence-input.v1` 필드를 함께 대조합니다.
 
 ## 검수 메타데이터
 
@@ -32,12 +28,6 @@ v2.2.0 Responsive UI Foundation 결과를 기록할 때는
 - evidence index:
 - 문서 파악 범위:
 - feature inventory revision:
-- manual evidence schema: `media-server.manual-ui-evidence-input.v1`
-- v2.2.0 UI matrix schema: `media-server.v220-ui-fulltest-matrix.v1`
-- manual evidence required fields: `id`, `verdict`, `route`, `control`,
-  `interaction`, `input` 또는 `inputNotApplicableReason`, `expected`, `actual`,
-  `stateReflected`, `artifacts`, `logChecked`/`eventRecordChecked`/`logNotApplicableReason`
-- manualSpotReviews:
 - token usage source:
 - token start:
 - token end:
@@ -119,7 +109,6 @@ v2.2.0 Responsive UI Foundation 결과를 기록할 때는
   - `./server.sh verify-ops-click-e2e --auth-ui-flow --auth-users-file <path>`:
   - `./server.sh verify-rule-ui`:
   - `./server.sh verify-manual-ui-evidence`:
-  - `./server.sh verify-manual-ui-evidence-runner --evidence <json> --report <report.md>`:
   - `git diff --check`:
 - 안정화/장시간:
   - `./server.sh verify-predev --soak-minutes 30`:
@@ -138,16 +127,6 @@ v2.2.0 Responsive UI Foundation 결과를 기록할 때는
 - 반응형/테마 범위:
 - 시각 품질 확인:
 - 제외 기록:
-
-### Manual UI Evidence Runner Fields
-
-`verify-manual-ui-evidence-runner` report는 기능 ID별로 아래 필드를 출력합니다.
-누락된 UI 대상 기능 ID 또는 아래 PASS 필드가 빠진 행은 `FAIL`입니다.
-`manualSpotReviews`는 사람이 확인한 보조 범위를 남기지만 개별 기능 ID의
-route/control/input/state/log/artifact 누락을 대체하지 않습니다.
-
-| feature ID | route | control | interaction | input/inputNotApplicableReason | expected | actual | stateReflected | log/event evidence | artifacts | verdict |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 
 ### VLM UI Criteria
 
@@ -337,9 +316,6 @@ evidence이며, UI에서 열지 않은 경우 `FAIL`입니다.
 사용합니다. route를 열었더라도 해당 기능 ID의 control/action을 직접 조작하지
 않았으면 `FAIL`로 남깁니다. 카테고리 묶음 판정은 금지합니다. 아래 행은 예시이며,
 실제 결과 문서에서는 inventory의 대상 기능 ID를 빠짐없이 한 행씩 추가합니다.
-runner 입력 JSON은 `media-server.manual-ui-evidence-input.v1` schema를 사용합니다.
-`./server.sh verify-manual-ui-evidence-runner`는 누락된 UI 대상 기능 ID는 `FAIL`로
-기록하고, 제외 항목은 판정표 밖 `Exclusions`에만 둡니다.
 
 | 기능 ID | 영역 | 클릭/타이핑으로 확인한 항목 | 기대 결과 | 실제 결과 | 판정 | 비고 |
 | --- | --- | --- | --- | --- | --- | --- |

@@ -7,14 +7,7 @@ source-of-truth로 삼고, 기능별 UI 필요 여부와 테스트 영역은
 합니다. 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를
 사용합니다. 현재 release 목표는 `v2.1.0`이며, UI 풀테스트 기준도 이 버전의
 제품 route, 권한, 기능 baseline만 대상으로 합니다.
-v2.2.0 Responsive UI Foundation 검수 준비는
-[v220-ui-fulltest-matrix-evidence.md](./v220-ui-fulltest-matrix-evidence.md)의
-`media-server.v220-ui-fulltest-matrix.v1`을 추가로 확인합니다.
 문서 구조와 evidence 경계는 `./server.sh verify-manual-ui-evidence`로 확인합니다.
-기능 ID별 UI evidence JSON을 만든 경우에는
-`./server.sh verify-manual-ui-evidence-runner --evidence <json> --report <report.md>`를
-실행해 inventory의 UI 대상 기능을 전수 report로 변환합니다.
-누락된 UI 대상 기능 ID는 `FAIL`이고, 제외 항목은 판정표 밖에만 남깁니다.
 현재 제품 UI 직접 조작 evidence 없이 완료 판정에 포함하지 않습니다.
 전용 throwaway 서버부터 core/auth 클릭 검증까지 한 번에 실행해야 할 때는
 `./server.sh verify-ui-fulltest-one-shot --output-dir <dir>`을 사용합니다.

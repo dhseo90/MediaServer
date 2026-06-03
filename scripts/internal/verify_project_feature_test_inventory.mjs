@@ -84,7 +84,7 @@ check("required sections exist", () => {
 
 check("summary counts match current feature IDs", () => {
   const rows = parseFeatureRows(inventory);
-  assert(rows.length === 392, `expected 392 feature rows, found ${rows.length}`);
+  assert(rows.length === 390, `expected 390 feature rows, found ${rows.length}`);
   const ids = rows.map(row => row.id);
   assert(new Set(ids).size === ids.length, "duplicate feature IDs in inventory");
   for (const prefix of ["UI", "AUTH", "SRC", "RULE", "EVT", "CLIENT", "MEDIA", "LAB", "SAFE"]) {
@@ -141,13 +141,13 @@ check("coverage wording separates mapping from execution", () => {
     "실제 안정화 테스트,",
     "UI 풀테스트를 실행했다는 뜻이 아닙니다.",
     "| 제품 UI 위치 |",
-    "| UI 풀테스트 evidence |",
+    "| UI 풀테스트 결과 |",
     "| VA seed 데이터 |",
     "dry-run 준비 가능, 서버 적용 evidence 없음",
     "Verifier Coverage Map",
     "실제 UI 이벤트 발생 전수 evidence 없음",
     "inventory 단독으로 UI PASS 판정 불가",
-    "evidence 문서 없이 inventory만으로 UI PASS 판정 불가",
+    "결과 문서 없이 inventory만으로 UI PASS 판정 불가",
   ]) {
     requireText(inventory, phrase, `inventory missing coverage boundary wording: ${phrase}`);
   }
@@ -194,7 +194,6 @@ check("current VLM feature expansion rows exist", () => {
     "LAB-060",
     "LAB-061",
     "LAB-062",
-    "LAB-063",
     "SAFE-025",
     "SAFE-026",
     "SAFE-027",
@@ -211,7 +210,6 @@ check("current VLM feature expansion rows exist", () => {
     "SAFE-038",
     "SAFE-039",
     "SAFE-040",
-    "SAFE-041",
   ];
   const ids = new Set(parseFeatureRows(inventory).map(row => row.id));
   for (const id of requiredRows) {
@@ -221,8 +219,8 @@ check("current VLM feature expansion rows exist", () => {
     "`UI-001`~`UI-018`, `UI-022`~`UI-036`",
     "`EVT-001`~`EVT-036`",
     "`MEDIA-001`~`MEDIA-021`",
-    "`LAB-001`~`LAB-063`",
-    "`SAFE-001`~`SAFE-041`",
+    "`LAB-001`~`LAB-062`",
+    "`SAFE-001`~`SAFE-040`",
     "V200-S00~S18 및 V210-S00~S12 변경분",
     "VLM route, control, action, runtime state, sidecar, privacy guard",
   ]) {

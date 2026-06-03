@@ -131,9 +131,9 @@ Real close-out checklist:
 tag/push/GitHub Release를 완료로 쓰지 않습니다.
 v2.1.0 source-only release에서는
 [development-backlog.md](./development-backlog.md)의
-`v2.1.0 Release Close-out` 기준으로 VLM runtime opt-in stabilization S00~S12 구현,
+`v2.1.0 Release Close-out` 기준으로 VLM runtime opt-in stabilization S00~S11 구현,
 인앱 브라우저 UI 풀테스트 evidence, release metadata/docs/static gate, GitHub Actions
-warning/Node 24 baseline, UI evidence runner, feature inventory coverage,
+warning/Node 24 baseline, feature inventory coverage,
 contract/schema freeze, fixture cleanup, CI/local gate parity, published release
 evidence, auth/scope matrix의 확인됨/미실행/미확인 상태를 분리합니다.
 Client/Ops UI-first workflow와 기존 live media path는 제품 baseline으로 유지합니다.
@@ -222,7 +222,7 @@ Licensing and Artifact Guardrails/guardrails, RC Release Gate workflow에 들어
 
 - Live media relay and live VA event focus remain unchanged
 - VLM remains an Ops-only event review assist layer: runtime opt-in contract, local runtime smoke gate, cloud provider field smoke gate, queue/backpressure stability, runtime status UI, evaluation result workflow, review action workflow, manual-only rule suggestion draft flow, VA coverage evidence, and runtime/model bundle RC rehearsal
-- v2.1.0 close-out: VLM S00-S12 verifier PASS, in-app UI fulltest evidence, release evidence index, manual UI evidence runner, feature inventory coverage, release metadata, and release close-out one-shot dry-run
+- v2.1.0 close-out: VLM S00-S11 verifier PASS, in-app UI fulltest evidence, release evidence index, feature inventory coverage, release metadata, and release close-out one-shot dry-run
 - EventRecord/snapshot/clip: short event evidence helper, not the main product message
 
 ## Non-goals

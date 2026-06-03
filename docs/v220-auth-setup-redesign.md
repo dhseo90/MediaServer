@@ -6,8 +6,7 @@ layout과 design token 기준으로 정리하는 것입니다.
 
 S08은 auth form의 visual structure와 responsive CSS만 다룹니다. auth route guard,
 session/scope/role 정책, password policy, invite token 처리, access request API schema는
-변경하지 않습니다. `/ops/users` lifecycle UI와 v2.2.0 UI fulltest matrix는 후속 S09
-범위입니다.
+변경하지 않습니다. `/ops/users` lifecycle UI는 S08 범위가 아닙니다.
 
 ## Source Of Truth
 

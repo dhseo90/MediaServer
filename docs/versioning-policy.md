@@ -77,7 +77,7 @@
 - Release evidence index
 - Feature scope decision gate
 - GitHub Actions warning annotation gate와 Node 24 action baseline
-- UI fulltest evidence runner와 one-shot wrapper
+- UI fulltest one-shot wrapper
 - Feature inventory coverage gate와 fixture cleanup contract gate
 - v2.0.0 entry contract/schema freeze gate
 - CI/local gate parity와 release close-out one-shot dry-run gate
@@ -92,8 +92,7 @@
 - VLM runtime opt-in contract, local runtime smoke gate, cloud provider field smoke
   gate, queue/backpressure stability, runtime status UI, evaluation result workflow,
   review action workflow, Rule suggestion draft workflow, VA coverage evidence,
-  external TURN/WHEP field gate, runtime/model bundle RC rehearsal, UI fulltest
-  evidence runner hardening과 2026-06-03 UI fulltest evidence
+  external TURN/WHEP field gate, runtime/model bundle RC rehearsal과 2026-06-03 UI fulltest evidence
 
 ## `v2.1.0`에 포함하지 않는 범위
 

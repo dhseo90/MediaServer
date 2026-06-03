@@ -80,7 +80,6 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-manual-ui-evidence
-./server.sh verify-manual-ui-evidence-runner
 ./server.sh verify-ui-fulltest-one-shot --output-dir /tmp/media_server_ui_fulltest_one_shot
 ./server.sh verify-actions-security
 ./server.sh verify-actions-security --annotations-json <annotations.json>
@@ -128,35 +127,16 @@ GitHub Actions Node 24 baseline은 `actions/checkout@v5`와
 self-hosted runner는 minimum Actions Runner version `2.327.1` 이상이어야 합니다.
 `.github/dependabot.yml`은 future major update 자동 병합을 막고,
 `verify-actions-security`는 이 baseline과 SHA pin/local action만 허용합니다.
-Manual UI evidence runner는 UI 풀테스트 자체를 실행하지 않습니다. 대신
-`media-server.manual-ui-evidence-input.v1` JSON을 받아
-`project-feature-test-inventory.md`의 UI 대상 기능 ID별 PASS/FAIL report를 생성합니다.
-누락된 UI 대상 기능 ID는 `FAIL`로 남기고, 제외 항목은 판정표 밖 `Exclusions`
-section에만 기록합니다.
-PASS row에는 `route`, `control`, `interaction`, `input` 또는
-`inputNotApplicableReason`, expected/actual, `stateReflected=true`, artifact, 그리고
-log/EventRecord/not-applicable evidence가 필요합니다. `manualSpotReviews`는 manual
-spot review 보조 evidence로 report에 보존하지만, 누락된 UI 기능 ID나 raw JSON/API-only
-확인을 PASS로 바꾸지 않습니다.
-
-```bash
-./server.sh verify-manual-ui-evidence-runner \
-  --evidence <manual-ui-evidence.json> \
-  --report <manual-ui-evidence-report.md> \
-  --json-report <manual-ui-evidence-report.json>
-```
-
 UI 풀테스트 one-shot wrapper는 실제 UI verifier 묶음을 실행하는 harness입니다.
 전용 throwaway seed, core auth-off 서버, auth-auto 서버를 분리해 띄우고,
-manual evidence runner, native/blocking dialog guard, feature inventory coverage,
-Ops/Client screenshot smoke, Rules/route/rules/table verifier, core/auth click E2E를
+native/blocking dialog guard, feature inventory coverage, Ops/Client screenshot smoke,
+Rules/route/rules/table verifier, core/auth click E2E를
 순서대로 실행합니다. 이 wrapper는 30분 soak, 120분 predev, 120분 runtime console
 longrun을 실행하지 않고 summary에 `not-run`으로 남깁니다.
 `--manual-result <result.md>`를 지정하면 기존 manual result 문서 구조까지 함께
 검증합니다. manual result 구조 검증은 opt-in이며, manual result를 지정하지 않으면
 해당 step은 `manual result not provided`로 skip됩니다. wrapper PASS는 full UI 풀테스트 PASS가 아닙니다.
-full UI PASS는 `media-server.manual-ui-evidence-input.v1`
-전수 evidence와 manual result 문서가 모두 PASS일 때만 별도로 판단합니다.
+full UI PASS는 인앱 브라우저에서 직접 조작한 manual result 문서가 PASS일 때만 별도로 판단합니다.
 auth UI flow를 포함하므로 아래 환경변수는 실행자가 직접 지정해야 합니다.
 
 - `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`
@@ -172,7 +152,7 @@ auth UI flow를 포함하므로 아래 환경변수는 실행자가 직접 지�
 ```
 
 Feature inventory coverage gate는 `media-server.feature-inventory-coverage.v1`
-report로 모든 기능 ID가 안정화 verifier, UI evidence runner, 30분/120분 승인 gate,
+report로 모든 기능 ID가 안정화 verifier, manual UI fulltest, 30분/120분 승인 gate,
 또는 field exclusion 경계에 연결됐는지 확인합니다. coverage mapping에서 빠진 ID는
 `missing coverage target`으로 기록하며, 누락 ID는 release gate에서 FAIL입니다.
 
@@ -671,26 +651,6 @@ scope, auth route guard, responsive 기준, 변경 금지 경계를 담고, auth
 form class와 기존 action/input/session hook을 함께 유지하는지 확인합니다. 브라우저 UI
 풀테스트, 30분 soak, 120분 longrun, published metadata 재검증은 S08 PASS로 대체하지
 않습니다.
-
-v2.2.0 UI fulltest matrix는 S09에서 S05~S08 route redesign을 manual UI evidence
-runner가 요구하는 기능 ID, route, control, interaction, input/state/log/artifact
-필드에 연결합니다. 이 단계는 UI 풀테스트 실행이 아니라 실행 전 coverage matrix
-gate입니다.
-
-```bash
-./server.sh verify-v220-ui-fulltest-matrix-evidence
-./server.sh verify-manual-ui-evidence
-./server.sh verify-manual-ui-evidence-runner
-./server.sh verify-docs-ui-assets
-./server.sh verify-feature-inventory-coverage
-git diff --check
-```
-
-이 묶음은 [v220-ui-fulltest-matrix-evidence.md](./v220-ui-fulltest-matrix-evidence.md)의
-`media-server.v220-ui-fulltest-matrix.v1`이
-`media-server.manual-ui-evidence-input.v1`과 `verify-manual-ui-evidence-runner`
-경계를 유지하는지 확인합니다. 브라우저 UI 풀테스트, 30분 soak, 120분 longrun,
-published metadata 재검증은 S09 PASS로 대체하지 않습니다.
 
 v2.1.0 S01 VLM runtime opt-in contract는 profile 저장 계약 안에서 runtime 상태만
 고정합니다. 실제 local/cloud runtime 호출이 아니라 default-off 상태 분리 gate입니다.

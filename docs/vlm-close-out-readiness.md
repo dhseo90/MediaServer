@@ -63,8 +63,7 @@ UI 풀테스트: 미실행
   확인합니다.
 - VLM model/prompt/raw response/provider/internal review card가 client/viewer에
   노출되지 않는지 직접 확인합니다.
-- 기능 ID별 PASS/FAIL evidence를 `manual-ui-result-template.md` 또는
-  `media-server.manual-ui-evidence-input.v1`으로 남깁니다.
+- 기능 ID별 PASS/FAIL 결과를 `manual-ui-result-template.md` 기준으로 남깁니다.
 
 ## 30-Minute And 120-Minute Status
 
