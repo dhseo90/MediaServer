@@ -652,6 +652,26 @@ form class와 기존 action/input/session hook을 함께 유지하는지 확인�
 풀테스트, 30분 soak, 120분 longrun, published metadata 재검증은 S08 PASS로 대체하지
 않습니다.
 
+v2.2.0 Ops Channels Workspace 재배치는 F02에서 `/ops/sources` route를 채널 목록,
+source detail, ONVIF/WHEP/WHIP 입력, PublishedView, audit 흐름으로 정리합니다. 이
+단계는 `/ops/sources` visual hierarchy와 layout class를 바꾸지만 SourceRegistry,
+PublishedView API 계약, ONVIF probe/import payload, RTSP/WebRTC media path,
+Auth/session/scope, Event POST/WebRTC/SSE/WS metadata schema는 변경하지 않습니다.
+
+```bash
+./server.sh verify-v220-ops-channels-workspace
+./server.sh verify-ops-client-ui --screenshots
+./server.sh verify-ops-source-lifecycle
+./server.sh verify-ops-source-group-site-management
+git diff --check
+```
+
+이 묶음은 [v220-ops-channels-workspace.md](./v220-ops-channels-workspace.md)가 F02 route
+scope, 작업 단위, responsive 기준, 변경 금지 경계를 담고, `/ops/sources`가 기존
+채널 table/source detail/ONVIF/WHEP/WHIP/PublishedView/audit hook을 유지하는지
+확인합니다. 브라우저 UI 풀테스트, 30분 soak, 120분 longrun, ONVIF 실장비 field
+smoke는 실행하지 않으면 미실행으로 분리합니다.
+
 v2.1.0 S01 VLM runtime opt-in contract는 profile 저장 계약 안에서 runtime 상태만
 고정합니다. 실제 local/cloud runtime 호출이 아니라 default-off 상태 분리 gate입니다.
 

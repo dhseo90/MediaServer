@@ -5073,14 +5073,15 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
                         principal,
                         "sources",
                         "운영 채널을 관리합니다.");
-    out << R"OPS(    <section class="panel" data-testid="ops-sources-page">
-      <div class="toolbar">
+    out << R"OPS(    <section class="panel ops-channels-workspace" data-ops-panel="sources" data-testid="ops-sources-page" data-channel-workspace="task-units">
+      <div class="toolbar panel-title-toolbar ops-workspace-hero">
         <div>
           <h2>채널</h2>
-          <p>채널과 PublishedView를 관리합니다.</p>
+          <p>채널 목록, source detail, 입력 준비, PublishedView, audit을 작업 단위로 관리합니다.</p>
         </div>
       </div>
-      <section class="section-card">
+      <div class="ops-channels-main-grid">
+      <section class="section-card ops-channels-list-panel" data-channel-task="list">
         <div class="toolbar">
           <div>
             <h3>채널 목록</h3>
@@ -5117,7 +5118,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
         <p class="hint" style="margin-top:12px;">RTSP/WHEP는 운영 확인용입니다. 브라우저 재생은 <code>/client/live</code>에서 확인합니다.</p>
       </section>
 
-      <section id="channel-detail-panel" class="section-card ops-detail-panel" hidden>
+      <section id="channel-detail-panel" class="section-card ops-detail-panel ops-channels-detail-panel" data-channel-task="detail" hidden>
         <div class="toolbar">
           <div>
             <div class="badge-row"><span id="channel-editor-mode" class="chip info">보기</span><span id="channel-editor-id" class="chip">-</span></div>
@@ -5134,6 +5135,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
           <div class="channel-editor-intro">
             <p><strong>ONVIF 카메라</strong>는 ONVIF 프로파일에서 선택한 라이브 스트림 URI를 연결합니다. <strong>외부 WHEP</strong>는 URL 입력, <strong>Published WebRTC 소스</strong>는 저장된 <code>sourceId</code> 연결입니다.</p>
           </div>
+          <div class="ops-channels-detail-grid" data-channel-task="published-view" data-scope-contract="view-read-scopes-unchanged">
           <div class="row">
             <div class="generated-id-control">
               <span class="form-label">채널 ID</span>
@@ -5152,20 +5154,22 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
               </select>
             </label>
           </div>
-          <div class="row" data-testid="source-group-site-management" data-scope-contract="view-read-scopes-unchanged">
+          <div class="row" data-testid="source-group-site-management">
             <label>사이트<input name="site" placeholder="예: 본사" /></label>
             <label>그룹<input name="group" placeholder="예: 주차장" /></label>
             <label>층<input name="floor" placeholder="예: B1" /></label>
             <label>구역<input name="zone" placeholder="예: 출입구" /></label>
           </div>
-          <label data-source-kind="file">파일
+          </div>
+          <div class="ops-channels-input-grid" data-channel-task="inputs">
+          <label data-source-kind="file" data-channel-input-group="file">파일
             <select name="file" id="channel-file-select" aria-label="파일">
               <option value="sample_h264.mp4">sample_h264.mp4</option>
             </select>
           </label>
-          <label data-source-kind="onvif">ONVIF 스트림 URI<input name="onvifStreamUrl" placeholder="rtsp://camera/live 또는 https://camera/live.m3u8" /></label>
-          <p data-source-kind="onvif" class="hint">지원 제외: WS-Discovery 자동 검색, PTZ 제어, ONVIF Events/PullPoint, Profile G/Recording/Replay는 제공하지 않습니다. 운영자가 확인한 live URI 또는 probe fixture를 사용합니다.</p>
-          <div data-source-kind="onvif" class="form-grid" data-testid="onvif-probe-draft-tool">
+          <label data-source-kind="onvif" data-channel-input-group="onvif">ONVIF 스트림 URI<input name="onvifStreamUrl" placeholder="rtsp://camera/live 또는 https://camera/live.m3u8" /></label>
+          <p data-source-kind="onvif" data-channel-input-group="onvif" class="hint">지원 제외: WS-Discovery 자동 검색, PTZ 제어, ONVIF Events/PullPoint, Profile G/Recording/Replay는 제공하지 않습니다. 운영자가 확인한 live URI 또는 probe fixture를 사용합니다.</p>
+          <div data-source-kind="onvif" data-channel-input-group="onvif" class="form-grid" data-testid="onvif-probe-draft-tool">
             <label>ONVIF probe fixture
               <textarea id="onvifProbeDraftInput" rows="5" spellcheck="false" autocomplete="off" placeholder="test/fixtures/onvif_probe_result_stub.json 내용을 붙여넣기"></textarea>
             </label>
@@ -5180,16 +5184,18 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
             </div>
             <p id="onvifProbeDraftStatus" class="hint" aria-live="polite"></p>
           </div>
-          <label data-source-kind="rtsp">RTSP URL<input name="rtspUrl" placeholder="rtsp://camera/live" /></label>
-          <label data-source-kind="whep">외부 WHEP URL<input name="whepUrl" placeholder="https://example.com/whep/stream" /></label>
-          <p data-source-kind="whep" class="hint">외부 WebRTC playback endpoint를 서버가 WHEP pull source로 연결합니다. URL 자체가 입력값입니다.</p>
-          <label data-source-kind="webrtc">발행 sourceId<input name="webrtcSourceId" placeholder="published-source-id" /></label>
-          <p data-source-kind="webrtc" class="hint">외부 URL을 넣는 항목이 아닙니다. 이 서버의 WHIP publish endpoint로 이미 등록된 sourceId를 연결합니다.</p>
-          <label data-source-kind="http">HTTP/HLS URL<input name="httpUrl" /></label>
+          <label data-source-kind="rtsp" data-channel-input-group="rtsp">RTSP URL<input name="rtspUrl" placeholder="rtsp://camera/live" /></label>
+          <label data-source-kind="whep" data-channel-input-group="whep">외부 WHEP URL<input name="whepUrl" placeholder="https://example.com/whep/stream" /></label>
+          <p data-source-kind="whep" data-channel-input-group="whep" class="hint">외부 WebRTC playback endpoint를 서버가 WHEP pull source로 연결합니다. URL 자체가 입력값입니다.</p>
+          <label data-source-kind="webrtc" data-channel-input-group="whip">발행 sourceId<input name="webrtcSourceId" placeholder="published-source-id" /></label>
+          <p data-source-kind="webrtc" data-channel-input-group="whip" class="hint">외부 URL을 넣는 항목이 아닙니다. 이 서버의 WHIP publish endpoint로 이미 등록된 sourceId를 연결합니다.</p>
+          <label data-source-kind="http" data-channel-input-group="http">HTTP/HLS URL<input name="httpUrl" /></label>
           <p id="channel-validation" class="hint"></p>
+          </div>
         </form>
       </section>
-      <section class="section-card ops-audit-panel">
+      </div>
+      <section class="section-card ops-audit-panel ops-channels-audit-panel" data-channel-task="audit">
         <div class="toolbar">
           <div>
             <h3>변경 이력</h3>

@@ -623,6 +623,39 @@ std::string ProductUiCss() {
     body.ops-shell .ops-workspace-wide {
       grid-column: 1 / -1;
     }
+    body.ops-shell .ops-channels-workspace {
+      display: grid;
+      gap: var(--space-4);
+    }
+    body.ops-shell .ops-channels-main-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+      gap: var(--space-3);
+      align-items: start;
+    }
+    body.ops-shell .ops-channels-list-panel,
+    body.ops-shell .ops-channels-detail-panel,
+    body.ops-shell .ops-channels-audit-panel {
+      min-width: 0;
+    }
+    body.ops-shell .ops-channels-detail-panel {
+      scroll-margin-top: 96px;
+    }
+    body.ops-shell .ops-channels-detail-grid,
+    body.ops-shell .ops-channels-input-grid {
+      display: grid;
+      gap: var(--space-3);
+      min-width: 0;
+    }
+    body.ops-shell .ops-channels-detail-grid {
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-subtle);
+    }
+    body.ops-shell .ops-channels-input-grid [data-channel-input-group] {
+      min-width: 0;
+    }
     body.ops-shell .rules-workspace {
       display: grid;
       gap: var(--space-4);
@@ -2834,6 +2867,7 @@ std::string ProductUiCss() {
       body.ops-shell .ops-workspace-action-grid,
       body.ops-shell .ops-workspace-diagnostic-grid,
       body.ops-shell .ops-workspace-event-grid,
+      body.ops-shell .ops-channels-main-grid,
       body.ops-shell .rules-workspace-readiness-grid,
       body.ops-shell .rules-workspace-assist-grid,
       body.ops-shell .rules-workspace-catalog-grid,
@@ -2848,6 +2882,7 @@ std::string ProductUiCss() {
       }
       body.ops-shell .ops-workspace-hero .actions,
       body.ops-shell .ops-workspace .actions,
+      body.ops-shell .ops-channels-workspace .actions,
       body.ops-shell .incident-timeline-controls,
       body.ops-shell .event-review-controls,
       body.ops-shell .event-record-controls {
@@ -2858,6 +2893,7 @@ std::string ProductUiCss() {
       }
       body.ops-shell .ops-workspace-hero .actions > *,
       body.ops-shell .ops-workspace .actions > *,
+      body.ops-shell .ops-channels-workspace .actions > *,
       body.ops-shell .incident-timeline-controls > *,
       body.ops-shell .event-review-controls > *,
       body.ops-shell .event-record-controls > * {

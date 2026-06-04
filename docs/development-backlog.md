@@ -134,6 +134,23 @@ QA 절차입니다.
 | 7 | V220-S07 | P1 | 완료 | Client live redesign | `/client/live`, `/client/dashboard`, `/client/events`를 viewer-first/video-first 구조로 재배치하고 source URL, raw JSON, debugCounters, rule/profile editor 노출 금지 경계를 유지합니다. | [v220-client-live-redesign.md](./v220-client-live-redesign.md), Client direct browser review, viewer redaction check, `verify-v220-client-live-redesign`, `verify-ops-client-ui --screenshots`, `git diff --check` |
 | 8 | V220-S08 | P2 | 완료 | Auth/setup redesign | `/setup`, `/login`, `/password/change`, `/invite/setup`, `/client/request-access`를 같은 form layout/token 기반으로 정리하고 auth route guard, session/scope/role, password policy를 유지합니다. | [v220-auth-setup-redesign.md](./v220-auth-setup-redesign.md), `verify-v220-auth-setup-redesign`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, auth UI direct review, `git diff --check` |
 
+### v2.2.0 follow-up 작업 단위 재배치
+
+아래 항목은 2026-06-04 사용자 지정 범위입니다. 기존 `V220-S00`~`V220-S08`의
+완료 상태를 재해석하지 않고, 같은 변경 금지 contract 안에서 추가 UI containment와
+작업 단위 재배치만 다룹니다.
+
+| 순서 | ID | 우선순위 | 상태 | 영역 | 목표 | 예상 검증 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 2 | V220-F02 | P1 | 진행 | Ops Channels Workspace 재배치 | `/ops/sources`의 채널 목록, source detail, ONVIF/WHEP/WHIP 입력, PublishedView, audit 흐름을 작업 단위로 재배치합니다. | [v220-ops-channels-workspace.md](./v220-ops-channels-workspace.md), `verify-v220-ops-channels-workspace`, `verify-ops-client-ui --screenshots`, `verify-ops-source-lifecycle`, `verify-ops-source-group-site-management`, `git diff --check` |
+
+### V220-F02 Ops Channels Workspace 재배치 종료 기준
+
+F02는 `/ops/sources`의 route 구조를 채널 목록, source detail, ONVIF/WHEP/WHIP 입력,
+PublishedView, audit 작업 단위로 재배치합니다. 완료 판정은 전용 verifier와 관련
+source/UI smoke가 통과하고, 실행하지 않은 UI 풀테스트/장시간/field smoke가 분리
+보고된 경우에만 가능합니다.
+
 최종 포함 내용:
 
 - UI 구조 기준 정리: C++ 문자열 기반 UI inventory, `/ops`, `/client`, `/setup`,
