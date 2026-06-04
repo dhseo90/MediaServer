@@ -3250,6 +3250,12 @@ std::string ProductUiCss() {
         height: 30px;
       }
     }
+    @media (max-width: 1180px) {
+      body.ops-shell .ops-channels-main-grid,
+      body.ops-shell .ops-users-access-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
     @media (max-width: 1040px) {
       .ops-metric-grid,
       .ops-dashboard-card-grid {
