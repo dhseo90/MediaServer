@@ -71,6 +71,7 @@ close-out에서 실제 실행한 evidence는 [release-evidence-index.md](release
 | v2.2.0 F03 Ops Users / Access Workspace 재배치 | 기존 `AUTH-*`, `UI-007`, `UI-008`, `UI-013`을 사용자, 접근 요청, 초대, role/scope, audit 작업 단위 기준에 연결 | `verify-v220-ops-users-access-workspace`와 Auth/UI smoke는 안정화 evidence이며, 인앱 브라우저 UI 풀테스트 결과를 대체하지 않음 |
 | v2.2.0 F04 Ops VLM UI containment 정리 | 기존 `/ops/vlm`, `UI-022`~`UI-034`, `SAFE-022`~`SAFE-025`를 Ops 보조 작업, privacy, default-off, profile 상태 containment 기준에 연결 | `verify-v220-ops-vlm-containment`와 기존 VLM verifier는 안정화 evidence이며, provider field smoke와 인앱 브라우저 UI 풀테스트 결과를 대체하지 않음 |
 | v2.2.0 F05 Client Preview / Viewer Redaction 재검수 | 기존 `UI-015`, `UI-016`, `UI-017`, `SRC-028`, `SRC-029`, `CLIENT-014`, `CLIENT-015`, `CLIENT-018`, `SAFE-018`을 admin preview와 viewer-safe 비노출 재검수 기준에 연결 | `verify-v220-client-preview-redaction-review`와 Client/UI smoke는 안정화 evidence이며, 인앱 브라우저 UI 풀테스트 결과를 대체하지 않음 |
+| v2.2.0 F06 UI Evidence Close-out 준비 | 기능 inventory, [manual-ui-checklist.md](manual-ui-checklist.md), [manual-ui-result-template.md](manual-ui-result-template.md)를 새 로드맵 기준으로 연결 | `verify-v220-ui-evidence-closeout`와 `verify-manual-ui-evidence`는 close-out 준비 기준이며, inventory 자체는 실행 evidence가 아님 |
 | current pre-test update list | 안정화/30분/120분/UI 풀테스트 실행 전 V200-S00~S18 및 V210-S00~S12 변경분을 아래 `Current Pre-Test Update List`에 반영 | 테스트 실행 결과가 아니며, 실제 실행 전 누락 방지용 목록 |
 
 브라우저 선택 기준: Codex 세션에서는 인앱 브라우저 evidence를 기본으로 하며, 자동

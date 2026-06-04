@@ -135,6 +135,28 @@ preflight 실패는 긴 테스트 실패로 과장하지 않습니다. 문서/li
 고친 뒤 짧은 gate만 다시 확인하고, 아직 시작하지 않은 30분/120분/UI 결과는
 `미실행`으로 남깁니다.
 
+### v2.2.0 UI Evidence Close-out preflight
+
+v2.2.0 UI Evidence Close-out은 새 로드맵 기준에서 기능 inventory,
+manual-ui-result-template.md, manual UI checklist가 같은 범위를 가리키는지 먼저
+확인하는 준비 단계입니다. 이 단계의 기준은
+[v220-ui-evidence-closeout.md](./v220-ui-evidence-closeout.md)와
+`./server.sh verify-v220-ui-evidence-closeout`입니다.
+
+UI 풀테스트 결과 문서를 쓰기 전에는 아래 항목이 개별 route/control/action row로
+분리돼 있는지 확인합니다. 이 목록은 실행 evidence가 아니라 누락 방지 목록입니다.
+
+| 로드맵 항목 | 결과 기록 기준 |
+| --- | --- |
+| V220-F02 | `/ops/sources` 채널 목록, source detail, ONVIF/WHEP/WHIP 입력, PublishedView, audit |
+| V220-F03 | `/ops/users`, `/client/request-access`, `/invite/setup` 사용자, 초대, 승인, role/scope, audit |
+| V220-F04 | `/ops/vlm` privacy, default-off, profile 상태, Ops-only raw/debug containment |
+| V220-F05 | `/client/live`, `/client/dashboard`, `/client/events` admin preview, viewer-safe 비노출 |
+| V220-F06 | 기능 inventory, manual UI checklist, UI 풀테스트 결과 기록 기준 |
+
+30분 soak, 120분 longrun, 인앱 브라우저 UI 풀테스트를 실행하지 않았으면 결과 문서의
+스크립트 테스트 또는 UI 풀테스트 영역에 PASS로 쓰지 않고 `미실행`으로 남깁니다.
+
 ## 3. 실행 원칙
 
 - 모든 웹 UI 검수는 인앱 브라우저에서 수행합니다.

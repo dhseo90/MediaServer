@@ -82,6 +82,26 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 - retained artifact로 재판정 가능한 항목:
 - retained artifact가 부족해 미확인으로 남길 항목:
 
+## v2.2.0 UI Evidence Close-out 기록 기준
+
+이 표는 새 로드맵 기준에 맞춘 close-out 준비 기록입니다. 기능 inventory와 문서
+연결은 실행 evidence가 아니며, 실제 UI 풀테스트 판정은 아래 `UI 풀테스트 기록`의
+개별 기능 행에서만 `PASS` 또는 `FAIL`로 씁니다.
+
+| 로드맵 항목 | 준비 기준 | 실행 evidence | 판정 |
+| --- | --- | --- | --- |
+| V220-F02 | `/ops/sources` 채널 목록/source detail/ONVIF/WHEP/WHIP/PublishedView/audit row 분리 | 인앱 브라우저 직접 조작 또는 명시 예외 Chrome/CDP evidence | PASS/FAIL |
+| V220-F03 | `/ops/users`, `/client/request-access`, `/invite/setup` 사용자/초대/승인/role/scope/audit row 분리 | 인앱 브라우저 직접 조작 또는 명시 예외 Chrome/CDP evidence | PASS/FAIL |
+| V220-F04 | `/ops/vlm` privacy/default-off/profile state/Ops-only raw debug row 분리 | 인앱 브라우저 직접 조작 또는 명시 예외 Chrome/CDP evidence | PASS/FAIL |
+| V220-F05 | `/client/live`, `/client/dashboard`, `/client/events` admin preview/viewer-safe 비노출 row 분리 | 인앱 브라우저 직접 조작 또는 명시 예외 Chrome/CDP evidence | PASS/FAIL |
+| V220-F06 | 기능 inventory, manual UI checklist, UI 풀테스트 결과 기록 기준 연결 | `verify-v220-ui-evidence-closeout`, `verify-manual-ui-evidence` | PASS/FAIL |
+
+- F06 문서/verifier PASS:
+- 30분 테스트: 판정은 PASS 또는 FAIL, 실행하지 않았으면 미실행 사유
+- 120분 테스트: 판정은 PASS 또는 FAIL, 실행하지 않았으면 미실행 사유
+- 인앱 브라우저 UI 풀테스트: 판정은 PASS 또는 FAIL, 실행하지 않았으면 미실행 사유
+- field smoke: 판정은 PASS 또는 FAIL, 실행하지 않았으면 미실행 또는 제외 사유
+
 ## 현재 보존 증적
 
 아래 표에는 최종 판정에 사용하는 retained artifact만 적습니다. command log에

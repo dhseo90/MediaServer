@@ -741,6 +741,26 @@ client forbidden-text smoke가 source locator/raw debug/internal material 노출
 차단하는지 확인합니다. 인앱 브라우저 UI 풀테스트, 30분 soak, 120분 longrun은 실행하지
 않으면 미실행으로 분리합니다.
 
+v2.2.0 UI Evidence Close-out 준비는 F06에서 기능 inventory, manual UI checklist,
+UI 풀테스트 결과 기록 기준을 새 로드맵 기준으로 연결합니다. 이 단계는 제품 route,
+API schema, Event POST/WebRTC/SSE/WS metadata schema, RTSP/WebRTC media path를
+변경하지 않고, F02~F05 follow-up을 UI evidence close-out preflight와 result template에
+반영합니다.
+
+```bash
+./server.sh verify-v220-ui-evidence-closeout
+./server.sh verify-manual-ui-evidence
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-project-inventory
+git diff --check
+```
+
+이 묶음은 [v220-ui-evidence-closeout.md](./v220-ui-evidence-closeout.md)가 F06의
+inventory/checklist/result-template 연결 기준을 담고, manual UI evidence verifier가
+기존 PASS/FAIL 및 개별 기능 기록 구조를 유지하는지 확인합니다. 이 검증 PASS는
+UI 풀테스트 PASS가 아닙니다. 인앱 브라우저 UI 풀테스트, 30분 soak, 120분 longrun,
+실장비/외부 provider field smoke는 실제 실행 결과가 없으면 미실행으로 분리합니다.
+
 v2.1.0 S01 VLM runtime opt-in contract는 profile 저장 계약 안에서 runtime 상태만
 고정합니다. 실제 local/cloud runtime 호출이 아니라 default-off 상태 분리 gate입니다.
 

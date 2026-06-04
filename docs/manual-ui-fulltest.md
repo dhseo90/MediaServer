@@ -113,6 +113,12 @@ UI 풀테스트 판정값은 `PASS`와 `FAIL`만 사용합니다. 모든 기능�
 inventory에 행이 있다는 이유만으로 해당 기능의 UI 풀테스트나 안정화 테스트가
 완료됐다고 쓰지 않습니다.
 
+v2.2.0 UI Evidence Close-out은 F02~F06 follow-up을 기능 inventory, manual UI checklist,
+result template에 연결하는 준비 기준입니다. F06는 UI 풀테스트 실행 결과가 아니라
+결과 기록 기준 정리 단계이므로, F06 verifier PASS를 인앱 브라우저 UI 풀테스트 PASS로
+쓰지 않습니다. 30분 또는 120분 장시간 테스트를 실행하지 않았으면 manual result의
+별도 영역에 `미실행`으로 기록합니다.
+
 ## 4. 데이터 리셋
 
 UI 풀테스트는 운영 데이터가 아닌 throwaway data reset 상태에서 시작합니다.

@@ -146,6 +146,7 @@ QA 절차입니다.
 | 3 | V220-F03 | P1 | 진행 | Ops Users / Access Workspace 재배치 | `/ops/users`, `/client/request-access`, `/invite/setup`의 사용자, 초대, 승인, role/scope 흐름을 작업 단위로 재배치합니다. | [v220-ops-users-access-workspace.md](./v220-ops-users-access-workspace.md), `verify-v220-ops-users-access-workspace`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker`, `verify-ops-client-ui --screenshots`, `git diff --check` |
 | 4 | V220-F04 | P1 | 진행 | Ops VLM UI containment 정리 | `/ops/vlm`을 Ops 보조 작업으로 유지하면서 privacy, default-off, profile 상태를 읽기 쉽게 정리합니다. | [v220-ops-vlm-containment.md](./v220-ops-vlm-containment.md), `verify-v220-ops-vlm-containment`, `verify-vlm-runtime-opt-in-contract`, `verify-vlm-runtime-status-ui`, `verify-vlm-profile-storage`, `verify-vlm-privacy-transfer-guard`, `verify-vlm-install-connection-ui`, `verify-ops-client-ui --screenshots`, `git diff --check` |
 | 5 | V220-F05 | P1 | 진행 | Client Preview / Viewer Redaction 재검수 중심 정리 | `/client/live`, `/client/dashboard`, `/client/events`에서 admin preview와 viewer-safe 비노출 경계를 재정리합니다. | [v220-client-preview-redaction-review.md](./v220-client-preview-redaction-review.md), `verify-v220-client-preview-redaction-review`, `verify-v220-client-live-redesign`, `verify-ops-client-ui --screenshots`, `verify-auth-routes`, `git diff --check` |
+| 6 | V220-F06 | P1 | 진행 | UI Evidence Close-out 준비 | 기능 inventory, manual UI checklist, UI 풀테스트 결과 기록 기준을 새 로드맵 기준으로 정리합니다. | [v220-ui-evidence-closeout.md](./v220-ui-evidence-closeout.md), `verify-v220-ui-evidence-closeout`, `verify-manual-ui-evidence`, `verify-feature-inventory-coverage`, `verify-project-inventory`, `git diff --check` |
 
 ### V220-F02 Ops Channels Workspace 재배치 종료 기준
 
@@ -175,6 +176,22 @@ F05는 `/client/live`, `/client/dashboard`, `/client/events`에서 admin preview
 viewer-safe 비노출 경계를 재검수 중심 marker로 정리합니다. 완료 판정은 전용
 verifier와 S07 Client verifier, Ops/Client UI forbidden-text smoke, auth route guard가
 통과하고, 실행하지 않은 UI 풀테스트/장시간 테스트가 분리 보고된 경우에만 가능합니다.
+
+### V220-F06 UI Evidence Close-out 준비 종료 기준
+
+F06는 기능 inventory, manual UI checklist, UI 풀테스트 결과 기록 기준을 새 로드맵
+기준으로 정리합니다. 직접 답: F06의 산출물은
+[v220-ui-evidence-closeout.md](./v220-ui-evidence-closeout.md),
+[project-feature-test-inventory.md](./project-feature-test-inventory.md),
+[manual-ui-checklist.md](./manual-ui-checklist.md),
+[manual-ui-fulltest.md](./manual-ui-fulltest.md),
+[manual-ui-result-template.md](./manual-ui-result-template.md)와
+`verify-v220-ui-evidence-closeout` 연결입니다.
+
+완료 판정은 전용 verifier와 manual evidence 구조 verifier, inventory verifier,
+`git diff --check`가 통과하고, 실행하지 않은 인앱 브라우저 UI 풀테스트, 30분 soak,
+120분 longrun, field smoke를 `미실행` 또는 `제외 기록`으로 분리해 보고한 경우에만
+가능합니다. F06 문서 준비 PASS는 UI 풀테스트 PASS가 아닙니다.
 
 최종 포함 내용:
 
