@@ -66,8 +66,9 @@ UI 풀테스트 판정값은 `PASS`와 `FAIL`만 사용합니다. 모든 기능�
 30분, 120분, UI 풀테스트는 시작 전에 실패 가능성이 높은 준비 문제를 먼저 끊어냅니다.
 아래 항목이 정리되지 않으면 긴 테스트를 시작하지 않습니다.
 
-- `project-feature-test-inventory.md`의 `Current Pre-Test Update List`와
-  `Longrun/UI Fail-Fast Preflight`를 확인해 누락된 route/control/action을 먼저 고칩니다.
+- `project-feature-test-inventory.md`의 `Four-Stage Coverage Mapping`과
+  `Four-Stage Start Conditions`를 확인해 누락된
+  route/control/action을 먼저 고칩니다.
 - `/ops/vlm`, `/ops/events`, `/client/live`, `/client/dashboard`, `/client/events`의
   VLM 관련 UI/비노출 항목이 result template에 없으면 UI 풀테스트를 시작하지 않습니다.
 - auth 테스트 비밀번호 환경변수, throwaway users/source/view/analysis/event/snapshot/clip
@@ -79,8 +80,8 @@ UI 풀테스트 판정값은 `PASS`와 `FAIL`만 사용합니다. 모든 기능�
 
 실패 후 재검수 범위:
 
-- preflight/list/fixture/auth env/output dir 실패는 긴 테스트 실패로 기록하지 않고,
-  해당 짧은 gate 또는 문서만 고친 뒤 다시 확인합니다.
+- 시작 조건, fixture, auth env, output dir 실패는 긴 테스트 실패로 기록하지 않고,
+  해당 안정화 조건 또는 문서만 고친 뒤 다시 확인합니다.
 - 제품 runtime, media path, auth/session, registry seed를 바꾼 경우에는 영향을 받은
   phase부터 재검수합니다. 최종 UI PASS는 모든 UI 대상 기능 ID의 evidence가 다시
   충족될 때만 가능합니다.
@@ -187,7 +188,7 @@ E2E를 순서대로 실행하고 `summary.json`과 `summary.md`를 남깁니다.
 `verify-va-runtime-console-longrun --duration-minutes 120`을 실행하지 않습니다.
 `--manual-result <result.md>`를 지정하면 기존 manual result 문서 구조를 함께
 검증합니다. manual result 구조 검증은 opt-in이며, manual result를 지정하지 않으면
-해당 step은 skip됩니다. wrapper PASS는 full UI 풀테스트 PASS가 아닙니다.
+해당 step은 skip됩니다. helper PASS는 full UI 풀테스트 PASS가 아닙니다.
 auth UI flow를 포함하므로 아래 환경변수는 실행자가 직접 지정해야 합니다.
 
 - `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`

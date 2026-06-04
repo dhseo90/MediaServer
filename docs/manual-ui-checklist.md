@@ -82,7 +82,7 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
   명시해 현재 PublishedView/Rule seed를 기준으로 실행합니다.
   `--manual-result <result.md>`를 지정하면 기존 manual result 문서 구조까지 함께
   검증합니다. manual result 구조 검증은 opt-in이며, manual result를 지정하지 않으면
-  해당 step은 skip됩니다. wrapper PASS는 full UI 풀테스트 PASS가 아닙니다.
+  해당 step은 skip됩니다. helper PASS는 full UI 풀테스트 PASS가 아닙니다.
   auth UI flow를 포함하므로 아래 환경변수는 실행자가 직접 지정해야 합니다.
   - `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`
   - `MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD`
@@ -101,9 +101,9 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
   EventRecord evidence와 함께 확인하고, `/client/live`, `/client/dashboard`,
   `/client/events`에서 VLM model/prompt/raw response/provider/internal review card가
   보이지 않는지 확인합니다.
-- current pre-test 반영 목록은 [project-feature-test-inventory.md](./project-feature-test-inventory.md)의
-  `Current Pre-Test Update List`를 기준으로 확인합니다. 이 목록은 실행 결과가 아니라
-  안정화/30분/120분/UI 풀테스트에 포함할 대상을 빠뜨리지 않기 위한 사전 목록입니다.
+- four-stage mapping은 [project-feature-test-inventory.md](./project-feature-test-inventory.md)의
+  `Four-Stage Coverage Mapping`을 기준으로 확인합니다. 이 mapping은 실행 결과가 아니라
+  안정화/30분/120분/UI 풀테스트에 포함할 대상을 빠뜨리지 않기 위한 기준입니다.
 - destructive action은 throwaway 계정, 채널, 접근 요청으로만 수행합니다.
 - UI smoke 전용 HTML selector 검증은 필요 시 별도 서버에서
   `./server.sh verify-ops-client-ui --screenshots`로 실행하되, 이 결과만으로
@@ -116,30 +116,30 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
   Computer Use visible UI 조작 순서로 시도하고 실패 지점과 대체 smoke를 분리해
   기록합니다. raw JSON/API-only 확인은 수동 UI 클릭 evidence로 쓰지 않습니다.
 
-### 긴 테스트 시작 전 fail-fast 확인
+### 긴 테스트 시작 조건 확인
 
 아래 항목이 하나라도 비어 있으면 30분, 120분, UI 풀테스트를 시작하지 않습니다.
 
-- 기능/route/control/action 목록: `Current Pre-Test Update List`,
-  `Longrun/UI Fail-Fast Preflight`, `/ops/vlm`, `/client/events`, VLM client redaction.
+- 기능/route/control/action mapping: `Four-Stage Coverage Mapping`,
+  `Four-Stage Start Conditions`, `/ops/vlm`, `/client/events`, VLM client redaction.
 - auth/env: auth verifier password env 5개가 `SET`인지, users file과 session state가
   throwaway인지 확인합니다.
 - fixture/output: source/view/analysis/event/snapshot/clip 경로, seed dry-run 결과,
   output dir, summary/report/log/evidence JSON 경로를 시작 전에 고정합니다.
 - UI blocker: native dialog guard, blocking dialog policy, browser automation 권한,
   viewport/theme 목록을 먼저 확인합니다.
-- longrun blocker: 120분은 30분 또는 high-risk short gate PASS, 사용자 승인,
+- longrun blocker: 120분은 30분 또는 high-risk 안정화 조건 PASS, 사용자 승인,
   RC/high-risk 사유, memory/runtime 관찰 항목이 모두 있어야 시작합니다.
 
-preflight 실패는 긴 테스트 실패로 과장하지 않습니다. 문서/list/fixture/env 문제를
-고친 뒤 짧은 gate만 다시 확인하고, 아직 시작하지 않은 30분/120분/UI 결과는
+시작 조건 실패는 긴 테스트 실패로 과장하지 않습니다. 문서/mapping/fixture/env 문제를
+고친 뒤 해당 안정화 조건만 다시 확인하고, 아직 시작하지 않은 30분/120분/UI 결과는
 `미실행`으로 남깁니다.
 
-### v2.2.0 UI Evidence Close-out preflight
+### v2.2.0 UI Evidence Close-out four-stage mapping
 
 v2.2.0 UI Evidence Close-out은 새 로드맵 기준에서 기능 inventory,
 manual-ui-result-template.md, manual UI checklist가 같은 범위를 가리키는지 먼저
-확인하는 준비 단계입니다. 이 단계의 기준은
+확인하는 준비 단계입니다. 이 mapping은 새 테스트 영역이 아니며 기준은
 [v220-ui-evidence-closeout.md](./v220-ui-evidence-closeout.md)와
 `./server.sh verify-v220-ui-evidence-closeout`입니다.
 

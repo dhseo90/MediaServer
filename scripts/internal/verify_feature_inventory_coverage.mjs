@@ -27,8 +27,8 @@ Checks:
   - every docs/project-feature-test-inventory.md feature ID has a coverage target
   - stability rows map to a verifier family
   - UI rows map to the manual UI fulltest standard/checklist
-  - 30/120-minute rows map to explicit approval-only longrun gates
-  - field-only rows map to an exclusion/field-smoke boundary
+  - 30/120-minute rows map to explicit approval-only longrun conditions
+  - rows outside stability/30-minute/120-minute/UI are rejected
   - a missing-ID negative fixture produces FAIL rows
 `);
 }
@@ -55,6 +55,18 @@ const stabilityVerifierByPrefix = {
 check("inventory row count is stable", () => {
   assert(rows.length === 390, `expected 390 feature rows, found ${rows.length}`);
   assert(new Set(rows.map(row => row.id)).size === rows.length, "duplicate feature ID exists");
+});
+
+check("inventory uses only the four approved test areas", () => {
+  const allowedAreas = new Set(["안정화", "30분", "120분", "UI"]);
+  for (const row of rows) {
+    for (const area of splitAreas(row.area)) {
+      assert(allowedAreas.has(area), `feature ${row.id} uses unsupported test area: ${area}`);
+    }
+  }
+  for (const forbidden of ["필드 별도", "field 별도", "30분 조건부", "120분 조건부", "field-smoke-or-exclusion"]) {
+    assert(!inventory.includes(forbidden), `inventory must not contain unsupported test area wording: ${forbidden}`);
+  }
 });
 
 check("coverage docs and server command are wired", () => {
@@ -165,40 +177,11 @@ function coverageTargets(row, verifierMap) {
   if (hasArea(row.area, "30분")) {
     targets.push({ kind: "30-minute", command: "./server.sh verify-predev --soak-minutes 30", approval: "required" });
   }
-  if (hasArea(row.area, "120분 조건부")) {
+  if (hasArea(row.area, "120분")) {
     targets.push({ kind: "120-minute", command: "./server.sh verify-predev --soak-minutes 120", approval: "required" });
     targets.push({ kind: "120-minute", command: "./server.sh verify-va-runtime-console-longrun --duration-minutes 120", approval: "conditional" });
   }
-  if (hasFieldArea(row.area)) {
-    targets.push(fieldCoverageTarget(row));
-  }
   return targets;
-}
-
-function hasFieldArea(area) {
-  return hasArea(area, "필드 별도") || hasArea(area, "field 별도");
-}
-
-function fieldCoverageTarget(row) {
-  if (row.id === "LAB-057" || row.id === "SAFE-035") {
-    return {
-      kind: "field-exclusion",
-      command: "./server.sh verify-vlm-cloud-provider-field-smoke-gate",
-      approval: "cloud provider credential and manual approval required",
-    };
-  }
-  if (row.id === "MEDIA-021" || row.id === "SAFE-039") {
-    return {
-      kind: "field-exclusion",
-      command: "./server.sh verify-external-turn-whep-field-gate",
-      approval: "external TURN/WHEP endpoint and credential required",
-    };
-  }
-  return {
-    kind: "field-exclusion",
-    command: "./server.sh verify-onvif-field-smoke-gate",
-    approval: "field endpoint required",
-  };
 }
 
 function parseFeatureRows(text) {
@@ -219,7 +202,11 @@ function parseFeatureRows(text) {
 }
 
 function hasArea(area, token) {
-  return area.split(",").map(item => item.trim()).includes(token);
+  return splitAreas(area).includes(token);
+}
+
+function splitAreas(area) {
+  return area.split(",").map(item => item.trim()).filter(Boolean);
 }
 
 function renderMarkdown(report) {

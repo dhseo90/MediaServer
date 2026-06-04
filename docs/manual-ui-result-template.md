@@ -56,14 +56,14 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 `source`를 함께 기록합니다. Codex goal usage 같은 자동 집계값이 있으면 그 값을
 우선하고, 집계값이 없으면 미집계 사유를 적습니다.
 
-## 긴 테스트 Preflight / 재시작 경계
+## 네 단계 시작 조건 / 재시작 경계
 
 30분, 120분, UI 풀테스트를 시작하기 전에 채웁니다. 아래 항목 누락은 긴 테스트
-실패가 아니라 preflight 실패입니다.
+실패가 아니라 시작 조건 실패입니다.
 
 | 항목 | 기대 상태 | 실제 상태 | 판정 | 후속 |
 | --- | --- | --- | --- | --- |
-| 기능 목록 freeze | `Current Pre-Test Update List`와 기능 ID 목록 확인 |  | PASS/FAIL |  |
+| 기능 목록 freeze | `Four-Stage Coverage Mapping`과 기능 ID 목록 확인 |  | PASS/FAIL |  |
 | VLM UI 대상 | `/ops/vlm`, `/ops/events`, `/client/live`, `/client/dashboard`, `/client/events` 결과 행 존재 |  | PASS/FAIL |  |
 | auth verifier env | auth test password env 5개 모두 `SET` |  | PASS/FAIL |  |
 | throwaway fixture | users/source/view/analysis/event/snapshot/clip 경로 고정 |  | PASS/FAIL |  |
@@ -71,9 +71,9 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 | output artifact | summary/report/log/screenshot/evidence JSON 경로 고정 |  | PASS/FAIL |  |
 | UI blocker guard | native dialog/blocking dialog/browser permission 확인 계획 있음 |  | PASS/FAIL |  |
 | 30분 시작 조건 | 안정화 gate PASS 또는 미실행 사유, VLM queue/runtime/media 변경 여부 기록 |  | PASS/FAIL |  |
-| 120분 시작 조건 | 사용자 승인, RC/high-risk 사유, 30분 또는 high-risk short gate, memory/runtime 관찰 항목 기록 |  | PASS/FAIL |  |
+| 120분 시작 조건 | 사용자 승인, RC/high-risk 사유, 30분 또는 high-risk 안정화 조건, memory/runtime 관찰 항목 기록 |  | PASS/FAIL |  |
 
-- preflight 실패:
+- 시작 조건 실패:
 - 긴 테스트 시작 여부:
 - 긴 테스트 미시작 항목:
 - 제품 runtime/media/auth/session/registry 수정 여부:
@@ -94,13 +94,13 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 | V220-F03 | `/ops/users`, `/client/request-access`, `/invite/setup` 사용자/초대/승인/role/scope/audit row 분리 | 인앱 브라우저 직접 조작 또는 명시 예외 Chrome/CDP evidence | PASS/FAIL |
 | V220-F04 | `/ops/vlm` privacy/default-off/profile state/Ops-only raw debug row 분리 | 인앱 브라우저 직접 조작 또는 명시 예외 Chrome/CDP evidence | PASS/FAIL |
 | V220-F05 | `/client/live`, `/client/dashboard`, `/client/events` admin preview/viewer-safe 비노출 row 분리 | 인앱 브라우저 직접 조작 또는 명시 예외 Chrome/CDP evidence | PASS/FAIL |
-| V220-F06 | 기능 inventory, manual UI checklist, UI 풀테스트 결과 기록 기준 연결 | `verify-v220-ui-evidence-closeout`, `verify-manual-ui-evidence` | PASS/FAIL |
+| V220-F06 | 기능 inventory, manual UI checklist, UI 풀테스트 결과 기록 기준 연결 | 안정화 verifier: `verify-v220-ui-evidence-closeout`, `verify-manual-ui-evidence` | PASS/FAIL |
 
 - F06 문서/verifier PASS:
 - 30분 테스트: 판정은 PASS 또는 FAIL, 실행하지 않았으면 미실행 사유
 - 120분 테스트: 판정은 PASS 또는 FAIL, 실행하지 않았으면 미실행 사유
 - 인앱 브라우저 UI 풀테스트: 판정은 PASS 또는 FAIL, 실행하지 않았으면 미실행 사유
-- field smoke: 판정은 PASS 또는 FAIL, 실행하지 않았으면 미실행 또는 제외 사유
+- 실기기/외부 credential 조건: 별도 테스트 영역으로 쓰지 않고 안정화/UI 제외 기록에 사유
 
 ## 현재 보존 증적
 
@@ -200,7 +200,7 @@ evidence가 아닙니다.
 | account: integrator | integrator scope/API 정책 확인 |  | PASS/FAIL |
 | source: file sample | file sample source 표시/선택 가능 |  | PASS/FAIL |
 | source: VA sample | VA event sample source 표시/선택 가능 |  | PASS/FAIL |
-| source: field source | field 별도 source가 sample과 구분됨 |  | PASS/FAIL |
+| source: external condition source | 외부 endpoint/credential 조건 source가 sample과 구분됨 |  | PASS/FAIL |
 | profile: tracker `none` + Re-ID `off` | 저장/반영 확인 |  | PASS/FAIL |
 | profile: tracker `lite` + Re-ID `off` | 저장/반영 확인 |  | PASS/FAIL |
 | profile: tracker `kalman-lite` + Re-ID `off` | 저장/반영 확인 |  | PASS/FAIL |

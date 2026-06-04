@@ -31,7 +31,7 @@
 | release/version 기준 | [release-policy.md](release-policy.md), [versioning-policy.md](versioning-policy.md), [release-evidence-index.md](release-evidence-index.md) |
 | v2.0.0 테스트 실행 기록 | [v200-test-record-2026-05-31.md](v200-test-record-2026-05-31.md) |
 | 현재 release/active roadmap/archive | [development-backlog.md](development-backlog.md) |
-| v2.0.0/V2.1.0 VLM 모델 선택/PC 사양 감지 기준, 추천 엔진, 설치/연결 dry-run, profile 저장, runtime opt-in contract, local runtime smoke, cloud provider field smoke gate, queue/backpressure stability, external TURN/WHEP field gate, runtime/model bundle RC rehearsal, runtime status UI, evaluation result workflow, review action workflow, 평가 harness, event evidence 추출, observation sidecar, 이벤트 설명/오탐 힌트, Ops 리뷰 UI, Privacy/전송 guard, summary 검색 후보, Rule 추천 보조 후보, 테스트 리허설, 안정화/장시간/UI 기준 및 close-out readiness | [vlm-model-selection.md](vlm-model-selection.md), [vlm-recommendation-engine.md](vlm-recommendation-engine.md), [vlm-install-connection-dry-run.md](vlm-install-connection-dry-run.md), [vlm-profile-storage.md](vlm-profile-storage.md), [vlm-runtime-opt-in-contract.md](vlm-runtime-opt-in-contract.md), [vlm-local-runtime-connection-smoke.md](vlm-local-runtime-connection-smoke.md), [vlm-cloud-provider-field-smoke-gate.md](vlm-cloud-provider-field-smoke-gate.md), [vlm-queue-backpressure-stability.md](vlm-queue-backpressure-stability.md), [external-turn-whep-field-gate.md](external-turn-whep-field-gate.md), [runtime-model-bundle-rc-rehearsal.md](runtime-model-bundle-rc-rehearsal.md), [vlm-runtime-status-ui.md](vlm-runtime-status-ui.md), [vlm-evaluation-result-workflow.md](vlm-evaluation-result-workflow.md), [vlm-review-action-workflow.md](vlm-review-action-workflow.md), [vlm-evaluation-harness.md](vlm-evaluation-harness.md), [vlm-event-evidence-extraction.md](vlm-event-evidence-extraction.md), [vlm-observation-sidecar.md](vlm-observation-sidecar.md), [vlm-event-explanation-hints.md](vlm-event-explanation-hints.md), [vlm-ops-event-review-ui.md](vlm-ops-event-review-ui.md), [vlm-privacy-transfer-guard.md](vlm-privacy-transfer-guard.md), [vlm-summary-search-candidates.md](vlm-summary-search-candidates.md), [vlm-rule-suggestion-candidates.md](vlm-rule-suggestion-candidates.md), [vlm-test-rehearsal.md](vlm-test-rehearsal.md), [vlm-stabilization-longrun-ui-criteria.md](vlm-stabilization-longrun-ui-criteria.md), [vlm-close-out-readiness.md](vlm-close-out-readiness.md), [development-backlog.md](development-backlog.md) |
+| v2.0.0/V2.1.0 VLM 모델 선택/PC 사양 감지 기준, 추천 엔진, 설치/연결 dry-run, profile 저장, runtime opt-in contract, local runtime smoke, cloud provider credential condition, queue/backpressure stability, external TURN/WHEP credential condition, runtime/model bundle RC rehearsal, runtime status UI, evaluation result workflow, review action workflow, 평가 harness, event evidence 추출, observation sidecar, 이벤트 설명/오탐 힌트, Ops 리뷰 UI, Privacy/전송 guard, summary 검색 후보, Rule 추천 보조 후보, 테스트 리허설, 안정화/장시간/UI 기준 및 close-out readiness | [vlm-model-selection.md](vlm-model-selection.md), [vlm-recommendation-engine.md](vlm-recommendation-engine.md), [vlm-install-connection-dry-run.md](vlm-install-connection-dry-run.md), [vlm-profile-storage.md](vlm-profile-storage.md), [vlm-runtime-opt-in-contract.md](vlm-runtime-opt-in-contract.md), [vlm-local-runtime-connection-smoke.md](vlm-local-runtime-connection-smoke.md), [vlm-cloud-provider-field-smoke-gate.md](vlm-cloud-provider-field-smoke-gate.md), [vlm-queue-backpressure-stability.md](vlm-queue-backpressure-stability.md), [external-turn-whep-field-gate.md](external-turn-whep-field-gate.md), [runtime-model-bundle-rc-rehearsal.md](runtime-model-bundle-rc-rehearsal.md), [vlm-runtime-status-ui.md](vlm-runtime-status-ui.md), [vlm-evaluation-result-workflow.md](vlm-evaluation-result-workflow.md), [vlm-review-action-workflow.md](vlm-review-action-workflow.md), [vlm-evaluation-harness.md](vlm-evaluation-harness.md), [vlm-event-evidence-extraction.md](vlm-event-evidence-extraction.md), [vlm-observation-sidecar.md](vlm-observation-sidecar.md), [vlm-event-explanation-hints.md](vlm-event-explanation-hints.md), [vlm-ops-event-review-ui.md](vlm-ops-event-review-ui.md), [vlm-privacy-transfer-guard.md](vlm-privacy-transfer-guard.md), [vlm-summary-search-candidates.md](vlm-summary-search-candidates.md), [vlm-rule-suggestion-candidates.md](vlm-rule-suggestion-candidates.md), [vlm-test-rehearsal.md](vlm-test-rehearsal.md), [vlm-stabilization-longrun-ui-criteria.md](vlm-stabilization-longrun-ui-criteria.md), [vlm-close-out-readiness.md](vlm-close-out-readiness.md), [development-backlog.md](development-backlog.md) |
 | 영어 문서 진입점 | [en/README.md](en/README.md) |
 
 ## 현재 제품 경계
@@ -62,7 +62,7 @@ evidence로만 보관합니다.
 최신 v2.1.0 UI 풀테스트 evidence는
 [manual-ui-result-2026-06-03-v210-inapp-fulltest.md](manual-ui-result-2026-06-03-v210-inapp-fulltest.md)에
 둡니다. 안정화 테스트, 30분 soak, 인앱 브라우저 UI 풀테스트, 120분 longrun은
-서로를 대체하지 않습니다. real cloud provider call, external TURN field gate,
+서로를 대체하지 않습니다. real cloud provider call, external TURN credential condition,
 VLM model/runtime bundle은 v2.1.0 release 완료 근거가 아닙니다.
 
 v2.2.0 문서 기준에서 README와 UI guide의 대표 이미지는 제품 흐름을 설명하는
@@ -87,7 +87,7 @@ v2.1.0 release publish는 이 close-out에서 PR/main merge, signed annotated ta
 GitHub Release, published metadata verifier 순서로 진행합니다. 완료 전에는
 tag/push/GitHub Release를 PASS evidence로 쓰지 않습니다.
 `verify-va-runtime-console-longrun --duration-minutes 120`, real cloud provider call,
-external TURN field gate는 별도 미실행으로 남깁니다.
+external TURN credential condition은 안정화/UI 기록 안의 미실행 또는 제외 사유로 남깁니다.
 현재 v2.1.0 제품 회귀와 UI 풀테스트 gate는
 [stream-verification.md](stream-verification.md)와
 [manual-ui-checklist.md](manual-ui-checklist.md)의 버전 중립 명령만 기준으로
@@ -101,7 +101,7 @@ external TURN field gate는 별도 미실행으로 남깁니다.
 | 영역 | 문서 |
 | --- | --- |
 | ONVIF live source | [onvif-live-source-support.md](onvif-live-source-support.md) |
-| ONVIF no-device/field smoke | [onvif-no-device-verification.md](onvif-no-device-verification.md), [onvif-field-smoke-gate.md](onvif-field-smoke-gate.md) |
+| ONVIF no-device/external endpoint condition | [onvif-no-device-verification.md](onvif-no-device-verification.md), [onvif-field-smoke-gate.md](onvif-field-smoke-gate.md) |
 | ONVIF protocol/security policy | [onvif-protocol-support-matrix.md](onvif-protocol-support-matrix.md), [onvif-auth-injection-design.md](onvif-auth-injection-design.md), [onvif-credential-reference-policy.md](onvif-credential-reference-policy.md), [onvif-unsupported-api-guard.md](onvif-unsupported-api-guard.md) |
 | ONVIF credential/TLS/RTSPS details | [onvif-credential-store-integration-design.md](onvif-credential-store-integration-design.md), [onvif-https-soap-transport-design.md](onvif-https-soap-transport-design.md), [onvif-https-tls-fixture-harness-design.md](onvif-https-tls-fixture-harness-design.md), [onvif-tls-transport-policy.md](onvif-tls-transport-policy.md), [onvif-rtsps-draft-policy.md](onvif-rtsps-draft-policy.md), [onvif-field-smoke-artifact-redaction.md](onvif-field-smoke-artifact-redaction.md) |
 | Live source health | [live-source-health.md](live-source-health.md) |

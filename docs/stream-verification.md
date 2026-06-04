@@ -9,7 +9,7 @@
 - TrackStateManager, SceneContextBuilder, EventManager, ScenarioEngine, cleanup 정책이 다채널 환경에서 무한 증가하지 않는지 확인합니다.
 - 신규 VA 기능이 media pipeline을 blocking하지 않는지 확인합니다.
 - 검증 명령은 로컬 재현성을 우선하고, 외부 source/TURN/장시간 테스트는 별도 gate로 분리합니다.
-- 현재 기본 테스트 환경에는 ONVIF camera, 외부 RTSP upstream, 외부 WHEP/WebRTC publisher처럼 원본 영상을 제공할 실물 장비가 없습니다. 장비가 필요한 항목은 검증 가능한 공개 URL, 로컬 fixture/simulator, loopback publisher, no-device suite 같은 대체 테스트로 실행하고, 실장비 검증은 미수행/후속 field smoke로 분리합니다.
+- 현재 기본 테스트 환경에는 ONVIF camera, 외부 RTSP upstream, 외부 WHEP/WebRTC publisher처럼 원본 영상을 제공할 실물 장비가 없습니다. 장비가 필요한 항목은 검증 가능한 공개 URL, 로컬 fixture/simulator, loopback publisher, no-device suite 같은 대체 테스트로 실행하고, 실장비 조건은 별도 테스트 영역으로 빼지 않고 안정화 조건 또는 UI 제외 기록에 남깁니다.
 
 ## 테스트 모드 요약
 
@@ -127,7 +127,7 @@ GitHub Actions Node 24 baseline은 `actions/checkout@v5`와
 self-hosted runner는 minimum Actions Runner version `2.327.1` 이상이어야 합니다.
 `.github/dependabot.yml`은 future major update 자동 병합을 막고,
 `verify-actions-security`는 이 baseline과 SHA pin/local action만 허용합니다.
-UI 풀테스트 one-shot wrapper는 실제 UI verifier 묶음을 실행하는 harness입니다.
+UI 풀테스트 one-shot helper는 실제 UI verifier 묶음을 실행하는 harness입니다.
 전용 throwaway seed, core auth-off 서버, auth-auto 서버를 분리해 띄우고,
 native/blocking dialog guard, feature inventory coverage, Ops/Client screenshot smoke,
 Rules/route/rules/table verifier, core/auth click E2E를
@@ -135,7 +135,7 @@ Rules/route/rules/table verifier, core/auth click E2E를
 longrun을 실행하지 않고 summary에 `not-run`으로 남깁니다.
 `--manual-result <result.md>`를 지정하면 기존 manual result 문서 구조까지 함께
 검증합니다. manual result 구조 검증은 opt-in이며, manual result를 지정하지 않으면
-해당 step은 `manual result not provided`로 skip됩니다. wrapper PASS는 full UI 풀테스트 PASS가 아닙니다.
+해당 step은 `manual result not provided`로 skip됩니다. helper PASS는 full UI 풀테스트 PASS가 아닙니다.
 full UI PASS는 인앱 브라우저에서 직접 조작한 manual result 문서가 PASS일 때만 별도로 판단합니다.
 auth UI flow를 포함하므로 아래 환경변수는 실행자가 직접 지정해야 합니다.
 
@@ -152,8 +152,8 @@ auth UI flow를 포함하므로 아래 환경변수는 실행자가 직접 지�
 ```
 
 Feature inventory coverage gate는 `media-server.feature-inventory-coverage.v1`
-report로 모든 기능 ID가 안정화 verifier, manual UI fulltest, 30분/120분 승인 gate,
-또는 field exclusion 경계에 연결됐는지 확인합니다. coverage mapping에서 빠진 ID는
+report로 모든 기능 ID가 안정화 verifier, manual UI fulltest, 30분/120분 승인 조건에
+연결됐는지 확인하고 네 테스트 영역 밖 분류를 거부합니다. coverage mapping에서 빠진 ID는
 `missing coverage target`으로 기록하며, 누락 ID는 release gate에서 FAIL입니다.
 
 ```bash
@@ -372,7 +372,7 @@ sidecar 저장, Event/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경
 VLM close-out readiness는 `V200-S18`의 release evidence 분리 report입니다. 세부
 기준은 [vlm-close-out-readiness.md](./vlm-close-out-readiness.md)에 둡니다.
 `media-server.vlm-close-out-readiness.v1` report는 스크립트 테스트, UI 풀테스트,
-30분, 120분, provider field smoke, publish gate를 서로 대체하지 않고 `PASS`,
+30분, 120분, provider credential 조건, publish gate를 서로 대체하지 않고 `PASS`,
 `미실행`, `manual-not-run`, `제외`, `미확인`으로 분리합니다. 이 검증은 GitHub
 Release publish, 30분/120분 longrun, UI 풀테스트를 실행하지 않습니다.
 
@@ -744,7 +744,7 @@ client forbidden-text smoke가 source locator/raw debug/internal material 노출
 v2.2.0 UI Evidence Close-out 준비는 F06에서 기능 inventory, manual UI checklist,
 UI 풀테스트 결과 기록 기준을 새 로드맵 기준으로 연결합니다. 이 단계는 제품 route,
 API schema, Event POST/WebRTC/SSE/WS metadata schema, RTSP/WebRTC media path를
-변경하지 않고, F02~F05 follow-up을 UI evidence close-out preflight와 result template에
+변경하지 않고, F02~F05 follow-up을 UI evidence close-out four-stage mapping과 result template에
 반영합니다.
 
 ```bash
@@ -759,7 +759,8 @@ git diff --check
 inventory/checklist/result-template 연결 기준을 담고, manual UI evidence verifier가
 기존 PASS/FAIL 및 개별 기능 기록 구조를 유지하는지 확인합니다. 이 검증 PASS는
 UI 풀테스트 PASS가 아닙니다. 인앱 브라우저 UI 풀테스트, 30분 soak, 120분 longrun,
-실장비/외부 provider field smoke는 실제 실행 결과가 없으면 미실행으로 분리합니다.
+실장비/외부 provider credential 조건은 실제 실행 결과가 없으면 안정화/UI 기록 안에서
+미실행 또는 제외 사유로 분리합니다.
 
 v2.1.0 S01 VLM runtime opt-in contract는 profile 저장 계약 안에서 runtime 상태만
 고정합니다. 실제 local/cloud runtime 호출이 아니라 default-off 상태 분리 gate입니다.
@@ -775,7 +776,8 @@ git diff --check
 이 묶음은 `media-server.vlm-runtime-opt-in-contract.v1`의 `disabled`,
 `local-runtime`, `cloud-provider`, `missing-model`, `invalid-output`, `timeout`
 상태와 `defaultEnabled=false`를 확인합니다. local runtime smoke와 cloud provider
-field smoke는 S02/S03 이후 별도 evidence이며, S01 PASS로 대체하지 않습니다.
+credential 조건은 S02/S03 이후 안정화/제외 기록 안의 evidence이며, S01 PASS로
+대체하지 않습니다.
 
 v2.1.0 S02 Local VLM runtime connection smoke는 실제 external model 품질 평가가
 아니라 loopback local endpoint fixture를 bind해 HTTP roundtrip, timeout abort, queue
@@ -792,10 +794,10 @@ git diff --check
 `media-server.vlm-local-runtime-smoke-report.v1`은 `ollama-loopback-chat-pass`,
 `vllm-openai-compatible-pass`, `api-compatible-local-pass`, `missing-runtime-fallback`,
 `timeout-queue-cleanup`, `invalid-output-fallback` case를 분리합니다. 이 report는
-cloud provider field smoke, provider credential 저장, 실제 사용자 model 품질, UI
+cloud provider credential 실행, provider credential 저장, 실제 사용자 model 품질, UI
 풀테스트, 30분/120분 longrun, release close-out PASS를 대신하지 않습니다.
 
-v2.1.0 S03 Cloud provider field smoke gate는 `gemini-2.5-flash` 같은 cloud opt-in
+v2.1.0 S03 Cloud provider credential stability는 `gemini-2.5-flash` 같은 cloud opt-in
 provider 호출을 credential 저장 없이 env/manual 승인 기반으로만 허용합니다.
 
 ```bash
@@ -806,7 +808,7 @@ provider 호출을 credential 저장 없이 env/manual 승인 기반으로만 �
 git diff --check
 ```
 
-기본 gate PASS는 provider field smoke PASS가 아닙니다. 실제 field call은
+기본 gate PASS는 provider credential 실행 PASS가 아닙니다. 실제 provider call은
 `--allow-field-call`, `MEDIA_SERVER_VLM_CLOUD_FIELD_SMOKE_APPROVED=1`, env credential이
 모두 있을 때만 실행합니다. 미실행, missing credential, provider timeout/failure는
 `releasePassEligible=false`이며 local runtime smoke PASS나 privacy guard PASS로
@@ -835,7 +837,7 @@ missing-model, invalid-output, timeout, metadata fanout, Event POST dispatch cas
 브라우저 UI 직접 확인 evidence가 아닙니다. 30분 soak는 runtime path나
 queue/backpressure 제품 경로 변경이 있을 때만 실행합니다.
 
-v2.1.0 S10 External TURN/WHEP field gate는 운영 TURN credential과 외부 WHEP
+v2.1.0 S10 External TURN/WHEP credential stability는 운영 TURN credential과 외부 WHEP
 playback endpoint 성공을 기본 release PASS와 분리합니다.
 
 ```bash
@@ -849,10 +851,10 @@ git diff --check
 `media-server.external-turn-whep-field-gate-report.v1`은 기본 실행에서 외부
 network call을 하지 않고 `fieldSmokeStatus=not-run`,
 `defaultReleasePassClaimAllowed=false`를 기록합니다. 실제 TURN relay/auth 또는
-외부 WHEP playback field smoke는 접근 가능한 endpoint, env credential, 운영 승인,
-redacted report가 모두 있을 때만 별도 field evidence로 남깁니다. `verify-webrtc-ice`
+외부 WHEP playback은 접근 가능한 endpoint, env credential, 운영 승인,
+redacted report가 모두 있을 때만 안정화 evidence로 남깁니다. `verify-webrtc-ice`
 기본 PASS, local coturn PASS, UI 풀테스트, 30분/120분 longrun은 external TURN/WHEP
-field PASS를 대체하지 않습니다.
+credential 실행 PASS를 대체하지 않습니다.
 
 v2.1.0 S11 Runtime/model bundle RC rehearsal은 source-only default를 유지하면서
 runtime/model 포함 bundle의 hash/provenance/license/source-offer 차단 기준만 확인합니다.
@@ -1087,7 +1089,7 @@ accepted baseline run, 교체 이유, 수동 비노출 검토 결과를 PR/릴�
 baseline을 새로 채택하거나 교체할 때는
 [UI Visual Release Baseline Approval Log](./ui-visual-release-baseline-approval-template.md)
 템플릿에 manifest/index, diff report, 320/390/760/1180px 수동 검토,
-client/viewer source/debug/raw 비노출 확인, 미실행 field smoke를 함께 남깁니다.
+client/viewer source/debug/raw 비노출 확인, 미실행 외부 endpoint/credential 조건을 함께 남깁니다.
 template presence와 CI 연결은 `./server.sh verify-ui-release-baseline-approval-log`로 확인합니다.
 작성 형식 예시는 `test/fixtures/ui_visual_release_baseline_approval_log_sample.md`에
 sample-only fixture로 고정하며, 실제 approval/pass evidence로 사용하지 않습니다.
@@ -1633,8 +1635,9 @@ event POST 반복 안정성:
 ### Runtime/media longrun trigger matrix
 
 `media-server.runtime-media-longrun-trigger-matrix.v1`은 변경 유형별로 안정화,
-30분 soak, 120분 predev, VA runtime longrun, field smoke/exclusion trigger를
-분리합니다. 이 matrix는 장시간 테스트를 실행하지 않고 실행 조건과 승인 경계를
+30분 soak, 120분 predev, VA runtime longrun 조건을 분리합니다. 실기기/외부
+credential 조건은 별도 테스트 영역이 아니라 안정화 조건 또는 제외 기록으로만
+검증합니다. 이 matrix는 장시간 테스트를 실행하지 않고 실행 조건과 승인 경계를
 검증합니다.
 
 ```bash
@@ -1653,11 +1656,11 @@ event POST 반복 안정성:
 | `event-post-queue-recovery` | Event POST queue/recovery/cooldown | short stability, event POST longrun, 30분 soak | RC/high-risk 시 120분 판단 | 조건부 |
 | `vlm-docs-fixture-only` | VLM docs/fixture/verifier wording | short stability | 없음 | 불필요 |
 | `vlm-model-install-state` | VLM model install readiness/missing-model state | short stability, UI evidence | 없음 | 불필요 |
-| `vlm-provider-timeout-cloud` | VLM cloud provider timeout/retry/opt-in | short stability, field-smoke-or-exclusion | local soak로 대체 금지 | 필요 |
+| `vlm-provider-timeout-cloud` | VLM cloud provider timeout/retry/opt-in | short stability, external credential exclusion record | local soak로 대체 금지 | 필요 |
 | `vlm-queue-timeout-nonblocking` | VLM queue/backpressure/timeout worker | short stability, 30분 soak | VA runtime 120분 longrun | 필요 |
 | `vlm-memory-runtime-cache` | VLM runtime cache/frame retention/memory ownership | short stability, 30분 soak | 120분 predev | 필요 |
 | `va-tracker-reid-scenario-runtime` | VA tracker/Re-ID/scenario runtime | short stability, 30분 soak | VA runtime 120분 longrun | 필요 |
-| `external-field-endpoints` | External TURN/WHEP/ONVIF/YouTube real endpoint | field-smoke-or-exclusion | local soak로 대체 금지 | 필요 |
+| `external-endpoints` | External TURN/WHEP/ONVIF/YouTube real endpoint | short stability, external endpoint exclusion record | local soak로 대체 금지 | 필요 |
 | `release-candidate-closeout` | Release candidate close-out | short stability, 30분 soak | 120분 predev와 VA runtime longrun | 필요 |
 
 30분 soak는 120분 longrun PASS를 대체하지 않습니다. 120분 longrun도 UI 풀테스트
@@ -1681,7 +1684,7 @@ VLM queue, memory, provider timeout, model install state의 상세 기준은
 non-blocking, active RSS, cleanup drift가 얽힐 수 있으므로 30분 soak 대상이며,
 120분은 사용자 승인 또는 RC/high-risk gate에서만 실행합니다. `vlm-provider-timeout-cloud`는
 provider credential/endpoint가 필요하므로 local 30분/120분 PASS로 cloud 성공을
-대체하지 않고 field smoke 또는 제외 기록으로 남깁니다. `vlm-model-install-state`는
+대체하지 않고 안정화 조건 또는 제외 기록으로 남깁니다. `vlm-model-install-state`는
 기본적으로 UI/profile 상태 기준이며 model download나 runtime cache ownership이
 없으면 120분 longrun 대상이 아닙니다.
 

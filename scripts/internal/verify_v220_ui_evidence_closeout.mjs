@@ -78,8 +78,8 @@ check(
     'V220-F05 Client Preview / Viewer Redaction',
     'V220-F06 UI Evidence Close-out',
   ].every(needle => inventory.includes(needle)) &&
-    inventory.includes('Current Pre-Test Update List') &&
-    inventory.includes('Longrun/UI Fail-Fast Preflight')
+    inventory.includes('Four-Stage Coverage Mapping') &&
+    inventory.includes('Four-Stage Start Conditions')
 );
 
 check(
@@ -89,6 +89,27 @@ check(
     checklist.includes('새 로드맵 기준') &&
     checklist.includes('manual-ui-result-template.md') &&
     checklist.includes('verify-v220-ui-evidence-closeout')
+);
+
+check(
+  'F06 docs keep tests inside the four approved areas',
+  [
+    '필드 별도',
+    'field smoke:',
+    'field-smoke-or-exclusion',
+    'field exclusion',
+    '30분 조건부',
+    '120분 조건부',
+    'Current Pre-Test Update List',
+    'Longrun/UI Fail-Fast Preflight',
+  ].every(forbidden =>
+    !inventory.includes(forbidden) &&
+      !checklist.includes(forbidden) &&
+      !template.includes(forbidden) &&
+      !docs.includes(forbidden)
+  ) &&
+    inventory.includes('테스트 영역은 `안정화`, `30분`, `120분`, `UI` 네 가지만 사용합니다.') &&
+    docs.includes('별도 테스트 영역으로 만들지 않고 안정화 또는 UI 제외 기록에 남깁니다.')
 );
 
 check(
