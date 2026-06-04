@@ -25,7 +25,7 @@ Options:
   --one-shot-dry-run    main merge/tag/release/latest/branch cleanup/next branch 순서를 one-shot gate로 요약합니다.
   --release-branch <name>  release branch 이름입니다. 기본은 현재 branch입니다.
   --target-branch <name>   merge/tag 기준 branch입니다. 기본 main입니다.
-  --next-branch <name>     다음 개발 branch 이름입니다. 기본 v2.1.0입니다.
+  --next-branch <name>     다음 개발 branch 이름입니다. 기본은 현재 release의 다음 minor입니다.
   --report <path>       Markdown 리포트를 저장합니다.
   --json-report <path>  JSON 리포트를 저장합니다.
   -h, --help            도움말 출력
@@ -47,7 +47,9 @@ const jsonReportPath = args.jsonReport ? path.resolve(rootDir, args.jsonReport) 
 const currentBranch = runGitValue(["branch", "--show-current"]) || "<detached>";
 const releaseBranch = args.releaseBranch || process.env.MEDIA_SERVER_RELEASE_BRANCH || currentBranch;
 const targetBranch = args.targetBranch || process.env.MEDIA_SERVER_RELEASE_TARGET_BRANCH || "main";
-const nextBranch = args.nextBranch || process.env.MEDIA_SERVER_RELEASE_NEXT_BRANCH || "v2.1.0";
+const currentVersion = readText("VERSION").trim();
+const currentTag = `v${currentVersion}`;
+const nextBranch = args.nextBranch || process.env.MEDIA_SERVER_RELEASE_NEXT_BRANCH || defaultNextBranch(currentVersion);
 const server = readText("server.sh");
 const releasePolicy = readText("docs/release-policy.md");
 const versioningPolicy = readText("docs/versioning-policy.md");
@@ -57,8 +59,6 @@ const streamVerification = readText("docs/stream-verification.md");
 const uiGuide = readText("docs/ui-guide.md");
 const prTemplate = readText(".github/PULL_REQUEST_TEMPLATE.md");
 const preflight = readText(".github/workflows/preflight.yml");
-const currentVersion = readText("VERSION").trim();
-const currentTag = `v${currentVersion}`;
 
 const localCommands = [
   "./server.sh verify-release-metadata",
@@ -373,7 +373,7 @@ function buildOneShotGate() {
       id: "create-tag",
       action: "Create annotated tag on verified target branch commit",
       status: "manual-not-run",
-      command: "git tag -a <current-tag> -m <release-note-title>",
+      command: "git tag -s <current-tag> -m <release-note-title>",
       haltOnFailure: true,
       mutatesRepository: true,
       requiresApproval: true,
@@ -534,6 +534,15 @@ function runGitStatus() {
   });
   if (result.status !== 0) return [`git status failed: ${result.stderr || result.stdout}`.trim()];
   return result.stdout.split("\n").map(line => line.trim()).filter(Boolean);
+}
+
+function defaultNextBranch(version) {
+  const match = /^(\d+)\.(\d+)\.(\d+)$/.exec(String(version || ""));
+  if (!match) return "v0.1.0";
+  const major = Number(match[1]);
+  const minor = Number(match[2]);
+  if (minor >= 9) return `v${major + 1}.0.0`;
+  return `v${major}.${minor + 1}.0`;
 }
 
 function runGitValue(args) {

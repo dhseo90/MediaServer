@@ -58,6 +58,7 @@
 #include "ingress/onvif_live_import.h"
 #include "ingress/request_parser.h"
 #include "ingress/product_ui_assets.h"
+#include "ingress/product_ui_components.h"
 #include "ingress/product_ui_css.h"
 #include "ingress/product_ui_js.h"
 #include "ingress/product_ui_page_scripts.h"
@@ -2655,9 +2656,9 @@ void AppendAuthShellStart(std::ostringstream& out,
   <title>)" << HtmlEscape(title) << R"(</title>
 )" << ProductThemeBootScript() << ProductUiCss() << ProductSharedUiScript() << R"(
 </head>
-<body class="auth-shell">
-  <div class="auth-theme-control">)" << ProductThemeToggleButtonHtml() << ProductLanguageSelectHtml() << R"(</div>
-  <main class="auth-card)" << (card_extra_class.empty() ? "" : " " + HtmlEscape(card_extra_class)) << R"(">
+<body class="auth-shell auth-responsive-shell" data-auth-shell="responsive-form">
+  <div class="auth-theme-control auth-responsive-control">)" << ProductThemeToggleButtonHtml() << ProductLanguageSelectHtml() << R"(</div>
+  <main class="auth-card auth-responsive-card)" << (card_extra_class.empty() ? "" : " " + HtmlEscape(card_extra_class)) << R"(">
     <div class="auth-actions">
       <p class="eyebrow">)" << HtmlEscape(eyebrow) << R"(</p>
     </div>
@@ -2672,22 +2673,28 @@ void AppendAuthShellEnd(std::ostringstream& out) {
 </html>)";
 }
 
+std::string AuthMessageHtml(const std::string& message, bool failed) {
+    if (message.empty()) {
+        return std::string();
+    }
+    return "<div class=\"message auth-message" + std::string(failed ? " error" : "") +
+           "\" data-testid=\"auth-message\">" + HtmlEscape(message) + "</div>\n";
+}
+
 std::string LoginPageHtml(const std::string& message, bool failed) {
     std::ostringstream out;
     AppendAuthShellStart(out, "MediaServer Login", "MediaServer");
-    out << R"(    <form class="auth-form" method="post" action="/login">
+    out << R"(    <form class="auth-form auth-form-grid" method="post" action="/login" data-testid="auth-login-form">
       <h1>로그인</h1>
 )";
-    if (!message.empty()) {
-        out << "      <div class=\"message" << (failed ? " error" : "") << "\">"
-            << HtmlEscape(message) << "</div>\n";
-    }
-    out << R"(      <label>계정명
-        <input name="username" autocomplete="username" required />
-      </label>
-      <label>비밀번호
-        <input name="password" type="password" autocomplete="current-password" required />
-      </label>
+    out << AuthMessageHtml(message, failed);
+    out << "      " << ProductUiFormRowHtml("계정명",
+                                             R"(<input name="username" autocomplete="username" required />)")
+        << "\n";
+    out << "      " << ProductUiFormRowHtml("비밀번호",
+                                             R"(<input name="password" type="password" autocomplete="current-password" required />)")
+        << "\n";
+    out << R"(
       <button class="primary" type="submit">로그인</button>
     </form>
 )";
@@ -2696,30 +2703,27 @@ std::string LoginPageHtml(const std::string& message, bool failed) {
 }
 
 std::string PasswordPolicyHintHtml() {
-    return R"(<p class="hint">기본 kr-privacy 정책: 대문자/소문자/숫자/특수문자 중 3종류 이상이면 최소 8자, 2종류 조합이면 최소 10자입니다. username, 반복 문자, 연속 숫자, 키보드 배열, 흔한 비밀번호, 이전 비밀번호 재사용은 허용하지 않습니다.</p>)";
+    return R"(<div class="auth-helper-panel auth-policy-hint" data-testid="auth-password-policy"><p class="hint">기본 kr-privacy 정책: 대문자/소문자/숫자/특수문자 중 3종류 이상이면 최소 8자, 2종류 조합이면 최소 10자입니다. username, 반복 문자, 연속 숫자, 키보드 배열, 흔한 비밀번호, 이전 비밀번호 재사용은 허용하지 않습니다.</p></div>)";
 }
 
 std::string SetupPageHtml(const std::string& message, bool failed) {
     std::ostringstream out;
     AppendAuthShellStart(out, "MediaServer Setup", "Initial Setup");
-    out << R"(    <form class="auth-form" method="post" action="/setup">
+    out << R"(    <form class="auth-form auth-form-grid" method="post" action="/setup" data-testid="auth-setup-form">
       <h1>관리자 설정</h1>
       <p>기본 admin 계정에 강한 비밀번호를 설정한 뒤 제품 화면으로 이동합니다.</p>
 )";
-    if (!message.empty()) {
-        out << "      <div class=\"message" << (failed ? " error" : "") << "\">"
-            << HtmlEscape(message) << "</div>\n";
-    }
-    out << R"(      <label>계정명
-        <input name="username" value="admin" readonly />
-      </label>
-      <label>비밀번호
-        <input name="password" type="password" autocomplete="new-password" required />
-      </label>
-      <label>비밀번호 확인
-        <input name="confirm" type="password" autocomplete="new-password" required />
-      </label>
-      )" << PasswordPolicyHintHtml() << R"(
+    out << AuthMessageHtml(message, failed);
+    out << "      " << ProductUiFormRowHtml("계정명",
+                                             R"(<input name="username" value="admin" readonly />)")
+        << "\n";
+    out << "      " << ProductUiFormRowHtml("비밀번호",
+                                             R"(<input name="password" type="password" autocomplete="new-password" required />)")
+        << "\n";
+    out << "      " << ProductUiFormRowHtml("비밀번호 확인",
+                                             R"(<input name="confirm" type="password" autocomplete="new-password" required />)")
+        << "\n";
+    out << "      " << PasswordPolicyHintHtml() << R"(
       <button class="primary" type="submit">관리자 비밀번호 설정</button>
     </form>
 )";
@@ -2732,25 +2736,24 @@ std::string InviteSetupPageHtml(const std::string& token,
                                 bool failed) {
     std::ostringstream out;
     AppendAuthShellStart(out, "초대 설정", "Invite Setup");
-    out << R"(    <form class="auth-form" method="post" action="/invite/setup">
+    out << R"(    <form class="auth-form auth-form-grid" method="post" action="/invite/setup" data-testid="auth-invite-setup-form" data-access-route="invite-setup">
       <h1>초대 계정 설정</h1>
       <p>관리자가 발급한 초대 토큰으로 비밀번호를 설정합니다.</p>
 )";
-    if (!message.empty()) {
-        out << "      <div class=\"message" << (failed ? " error" : "") << "\">"
-            << HtmlEscape(message) << "</div>\n";
-    }
-    out << R"(      <label>초대 토큰
-        <input name="token" value=")" << HtmlEscape(token) << R"(" autocomplete="off" required />
-      </label>
-      <label>비밀번호
-        <input name="password" type="password" autocomplete="new-password" required />
-      </label>
-      <label>비밀번호 확인
-        <input name="confirm" type="password" autocomplete="new-password" required />
-      </label>
-      )" << PasswordPolicyHintHtml() << R"(
-      <button type="submit">비밀번호 설정</button>
+    out << AuthMessageHtml(message, failed);
+    out << "      " << ProductUiFormRowHtml("초대 토큰",
+                                             std::string(R"(<input name="token" value=")") +
+                                                 HtmlEscape(token) +
+                                                 R"(" autocomplete="off" required />)")
+        << "\n";
+    out << "      " << ProductUiFormRowHtml("비밀번호",
+                                             R"(<input name="password" type="password" autocomplete="new-password" required />)")
+        << "\n";
+    out << "      " << ProductUiFormRowHtml("비밀번호 확인",
+                                             R"(<input name="confirm" type="password" autocomplete="new-password" required />)")
+        << "\n";
+    out << "      " << PasswordPolicyHintHtml() << R"(
+      <button class="primary" type="submit">비밀번호 설정</button>
     </form>
 )";
     AppendAuthShellEnd(out);
@@ -2760,15 +2763,20 @@ std::string InviteSetupPageHtml(const std::string& token,
 std::string ClientAccessRequestPageHtml() {
     std::ostringstream out;
     AppendAuthShellStart(out, "시청 권한 요청", "Client Access", "auth-card-wide");
-    out << R"(    <form id="request-form" class="auth-form">
+    out << R"(    <form id="request-form" class="auth-form auth-form-grid" data-testid="auth-access-request-form" data-access-route="request-access">
       <h1>시청 권한 요청</h1>
       <p>요청은 승인 대기 상태로 저장되며 관리자 승인 전에는 로그인이나 채널 접근이 허용되지 않습니다.</p>
-      <div id="message" class="message" hidden></div>
-      <label>계정명<input name="username" autocomplete="username" required /></label>
-      <label>표시 이름<input name="displayName" /></label>
-      <label>연락처<input name="contact" autocomplete="email" /></label>
-      <label>요청 채널 ID<input name="viewId" placeholder="선택 사항" /></label>
-      <label>사유<textarea name="reason" required></textarea></label>
+      <div id="message" class="message auth-message" data-testid="auth-message" hidden></div>
+      )" << ProductUiFormRowHtml("계정명", R"(<input name="username" autocomplete="username" required />)")
+          << R"(
+      )" << ProductUiFormRowHtml("표시 이름", R"(<input name="displayName" />)")
+          << R"(
+      )" << ProductUiFormRowHtml("연락처", R"(<input name="contact" autocomplete="email" />)")
+          << R"(
+      )" << ProductUiFormRowHtml("요청 채널 ID", R"(<input name="viewId" placeholder="선택 사항" />)")
+          << R"(
+      )" << ProductUiFormRowHtml("사유", R"(<textarea name="reason" required></textarea>)")
+          << R"(
       <button type="submit">요청 제출</button>
     </form>
 )";
@@ -2782,25 +2790,22 @@ std::string PasswordChangePageHtml(const auth::Principal& principal,
                                    bool failed) {
     std::ostringstream out;
     AppendAuthShellStart(out, "비밀번호 변경", "Password Change");
-    out << R"(    <form class="auth-form" method="post" action="/password/change">
+    out << R"(    <form class="auth-form auth-form-grid" method="post" action="/password/change" data-testid="auth-password-change-form">
       <h1>비밀번호 변경</h1>
       <p>)" << HtmlEscape(principal.display_name) << R"( 계정의 비밀번호를 새 정책에 맞게 변경합니다.</p>
 )";
-    if (!message.empty()) {
-        out << "      <div class=\"message" << (failed ? " error" : "") << "\">"
-            << HtmlEscape(message) << "</div>\n";
-    }
-    out << R"(      <label>현재 비밀번호
-        <input name="currentPassword" type="password" autocomplete="current-password" required />
-      </label>
-      <label>새 비밀번호
-        <input name="password" type="password" autocomplete="new-password" required />
-      </label>
-      <label>새 비밀번호 확인
-        <input name="confirm" type="password" autocomplete="new-password" required />
-      </label>
-      )" << PasswordPolicyHintHtml() << R"(
-      <button type="submit">비밀번호 변경</button>
+    out << AuthMessageHtml(message, failed);
+    out << "      " << ProductUiFormRowHtml("현재 비밀번호",
+                                             R"(<input name="currentPassword" type="password" autocomplete="current-password" required />)")
+        << "\n";
+    out << "      " << ProductUiFormRowHtml("새 비밀번호",
+                                             R"(<input name="password" type="password" autocomplete="new-password" required />)")
+        << "\n";
+    out << "      " << ProductUiFormRowHtml("새 비밀번호 확인",
+                                             R"(<input name="confirm" type="password" autocomplete="new-password" required />)")
+        << "\n";
+    out << "      " << PasswordPolicyHintHtml() << R"(
+      <button class="primary" type="submit">비밀번호 변경</button>
     </form>
 )";
     AppendAuthShellEnd(out);
@@ -2836,8 +2841,8 @@ std::string AuthLandingPageHtml(const auth::Principal& principal,
     <section class="panel">
       <strong>)" << HtmlEscape(principal.display_name) << R"(</strong>
       <div class="meta">
-        <span class="chip">권한: )" << HtmlEscape(principal.role) << R"(</span>
-        <span class="chip">인증: )" << HtmlEscape(principal.auth_mode) << R"(</span>
+        )" << ProductUiStatusBadgeHtml("권한: " + principal.role)
+            << ProductUiStatusBadgeHtml("인증: " + principal.auth_mode) << R"(
       </div>
       <p>)";
     for (std::size_t i = 0; i < principal.scopes.size(); ++i) {
@@ -2862,13 +2867,12 @@ std::string AuthLandingPageHtml(const auth::Principal& principal,
 }
 
 void AppendOpsDashboardPage(std::ostringstream& out) {
-    out << R"(    <section class="panel" data-ops-panel="dashboard" data-testid="ops-dashboard-page">
-      <div class="toolbar panel-title-toolbar">
-        <div>
-          <h2>운영 대시보드</h2>
-          <p>현재 상태를 한눈에 봅니다.</p>
-        </div>
-        )" << RefreshIconButtonHtml("opsDashboardRefresh", "button-secondary", "새로고침") << R"(
+    out << R"(    <section class="panel ops-workspace ops-workspace-dashboard" data-ops-panel="dashboard" data-testid="ops-dashboard-page">
+      <div class="ops-workspace-hero">
+      )" << ProductUiToolbarHtml("운영 대시보드",
+                                  "Source, runtime, event evidence를 같은 진단 흐름에서 판독합니다.",
+                                  RefreshIconButtonHtml("opsDashboardRefresh", "button-secondary", "새로고침"),
+                                  "panel-title-toolbar") << R"(
       </div>
       <div class="grid ops-metric-grid">
         <div class="metric-card"><span>활성 세션</span><strong id="dashActiveSessions">-</strong></div>
@@ -2877,27 +2881,32 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
         <div class="metric-card"><span>WHIP 소스</span><strong id="dashPublishSources">-</strong></div>
       </div>
       <div class="grid ops-dashboard-card-grid">
-        <section class="section-card">
-          <h3>상태 요약</h3>
-          <div id="dashHealthBadges" class="badge-row"><span class="chip">로딩 중</span></div>
-          <p id="dashHealthText">불러오는 중</p>
-        </section>
-        <section class="section-card">
-          <h3>분석 재사용</h3>
-          <div id="dashRuntimeRows" class="badge-row"><span class="chip">로딩 중</span></div>
-          <p id="dashRuntimeText">불러오는 중</p>
-        </section>
-        <section class="section-card">
-          <h3>메타데이터 전송</h3>
-          <div id="dashBackpressureRows" class="badge-row"><span class="chip">로딩 중</span></div>
-          <p id="dashBackpressureText">불러오는 중</p>
-        </section>
-        <section class="section-card">
-          <h3>정리 상태</h3>
-          <div id="dashCleanupRows" class="badge-row"><span class="chip">로딩 중</span></div>
-          <p id="dashCleanupText">불러오는 중</p>
-        </section>
+        )" << ProductUiSectionCardHtml("상태 요약",
+                                        std::string(),
+                                        ProductUiBadgeRowHtml({{"로딩 중", std::string()}},
+                                                              std::string(),
+                                                              "dashHealthBadges") +
+                                            R"(<p id="dashHealthText">불러오는 중</p>)") << R"(
+        )" << ProductUiSectionCardHtml("분석 재사용",
+                                        std::string(),
+                                        ProductUiBadgeRowHtml({{"로딩 중", std::string()}},
+                                                              std::string(),
+                                                              "dashRuntimeRows") +
+                                            R"(<p id="dashRuntimeText">불러오는 중</p>)") << R"(
+        )" << ProductUiSectionCardHtml("메타데이터 전송",
+                                        std::string(),
+                                        ProductUiBadgeRowHtml({{"로딩 중", std::string()}},
+                                                              std::string(),
+                                                              "dashBackpressureRows") +
+                                            R"(<p id="dashBackpressureText">불러오는 중</p>)") << R"(
+        )" << ProductUiSectionCardHtml("정리 상태",
+                                        std::string(),
+                                        ProductUiBadgeRowHtml({{"로딩 중", std::string()}},
+                                                              std::string(),
+                                                              "dashCleanupRows") +
+                                            R"(<p id="dashCleanupText">불러오는 중</p>)") << R"(
       </div>
+      <div class="ops-workspace-diagnostic-grid">
       <section class="section-card" data-testid="ops-root-cause-panel">
         <div class="toolbar">
           <div>
@@ -2908,7 +2917,7 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
         <div id="dashRootCauseBadges" class="badge-row"><span class="chip">로딩 중</span></div>
         <p id="dashRootCauseText">불러오는 중</p>
         <div id="dashRootCauseList" class="root-cause-list">
-          <div class="empty">런타임 상태를 불러오는 중입니다.</div>
+          )" << ProductUiEmptyStateHtml("런타임 상태를 불러오는 중입니다.") << R"(
         </div>
         <div id="dashRootCauseActionOutput" class="root-cause-action-output" hidden></div>
       </section>
@@ -2942,7 +2951,7 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
           <div class="empty">최근 인시던트 단서를 불러오는 중입니다.</div>
         </div>
       </section>
-      <section class="section-card" data-testid="ops-runtime-operations-console">
+      <section class="section-card ops-workspace-wide" data-testid="ops-runtime-operations-console">
         <div class="toolbar">
           <div>
             <h3>런타임 운영 판독</h3>
@@ -2955,7 +2964,8 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
           <div class="empty">런타임 운영 판독 대기 중입니다.</div>
         </div>
       </section>
-      <section class="section-card">
+      </div>
+      <section class="section-card ops-workspace-wide">
         <div class="toolbar">
           <div>
             <h3>운영 상세</h3>
@@ -2972,7 +2982,7 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
         </div>
         <p id="dashDetailText">불러오는 중</p>
       </section>
-      <section class="section-card" data-testid="ops-va-quality-panel">
+      <section class="section-card ops-workspace-wide" data-testid="ops-va-quality-panel">
         <div class="toolbar">
           <div>
             <h3>라이브 VA 이벤트 품질</h3>
@@ -3004,8 +3014,8 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
 }
 
 void AppendOpsRulesPage(std::ostringstream& out) {
-    out << R"(    <section class="panel" data-ops-panel="rules" data-testid="ops-rules-page">
-      <div class="toolbar panel-title-toolbar">
+    out << R"(    <section class="panel ops-workspace rules-workspace" data-ops-panel="rules" data-testid="ops-rules-page">
+      <div class="toolbar panel-title-toolbar ops-workspace-hero">
         <div>
           <h2>룰 설정</h2>
           <p>종류를 고르고 목록을 관리합니다.</p>
@@ -3019,6 +3029,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
         <div class="metric-card"><span>프로파일</span><strong id="rulesProfileCount">-</strong></div>
         <div class="metric-card"><span>채널 연결</span><strong id="rulesViewBindingCount">-</strong></div>
       </div>
+      <div class="rules-workspace-readiness-grid">
       <section class="section-card" data-testid="ops-rules-validation-panel">
         <div class="toolbar">
           <div>
@@ -3082,6 +3093,8 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           </article>
         </div>
       </section>
+      </div>
+      <div class="rules-workspace-assist-grid">
       <section class="section-card ops-scenario-builder" data-testid="ops-scenario-builder" data-scenario-builder-contract="ui-only-no-engine-change">
         <div class="toolbar">
           <div>
@@ -3156,7 +3169,9 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           <div class="empty">후보를 불러오는 중입니다.</div>
         </div>
       </section>
-      <section class="section-card">
+      </div>
+      <div class="rules-workspace-catalog-grid">
+      <section class="section-card rules-workspace-mode-panel">
         <div class="toolbar">
           <div>
             <h3>설정 종류</h3>
@@ -3172,7 +3187,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           <button id="opsAddProfileBtn" class="button-secondary rule-mode-button" type="button" aria-pressed="false">분석 프로파일</button>
         </div>
       </section>
-      <section id="opsVaRulesSection" class="section-card">
+      <section id="opsVaRulesSection" class="section-card rules-workspace-table-panel">
         <div class="toolbar">
           <div>
             <h3>채널 분석 설정</h3>
@@ -3212,7 +3227,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           </table>
         </div>
       </section>
-      <section id="opsEventRulesSection" class="section-card">
+      <section id="opsEventRulesSection" class="section-card rules-workspace-table-panel">
         <div class="toolbar">
           <div>
             <h3>이벤트 템플릿</h3>
@@ -3246,7 +3261,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           </table>
         </div>
       </section>
-      <section id="opsProfileRulesSection" class="section-card">
+      <section id="opsProfileRulesSection" class="section-card rules-workspace-table-panel">
         <div class="toolbar">
           <div>
             <h3>분석 프로파일</h3>
@@ -3282,7 +3297,8 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           </table>
         </div>
       </section>
-      <section id="opsRulesDetailPanel" class="section-card ops-detail-panel" hidden>
+      </div>
+      <section id="opsRulesDetailPanel" class="section-card ops-detail-panel rules-workspace-detail-panel" hidden>
         <div class="toolbar">
           <div>
             <div class="badge-row"><span id="opsRulesDetailMode" class="chip info">상세</span><span id="opsRulesDetailId" class="chip">-</span></div>
@@ -3599,7 +3615,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
 	          <p id="opsProfileSummaryText" class="form-note">검출기, FPS, 신뢰도, 입력 크기와 추적 대상 같은 분석 엔진 설정을 정의합니다.</p>
         </form>
       </section>
-      <section class="section-card ops-audit-panel">
+      <section class="section-card ops-audit-panel rules-workspace-audit-panel">
         <div class="toolbar">
           <div>
             <h3>변경 이력</h3>
@@ -3614,11 +3630,11 @@ void AppendOpsRulesPage(std::ostringstream& out) {
 }
 
 void AppendOpsEventsPage(std::ostringstream& out) {
-    out << R"(    <section class="panel" data-ops-panel="events" data-testid="ops-events-page" data-route-scope="direct-diagnostic">
-      <div class="toolbar">
+    out << R"(    <section class="panel ops-workspace ops-workspace-events" data-ops-panel="events" data-testid="ops-events-page" data-route-scope="direct-diagnostic">
+      <div class="toolbar panel-title-toolbar ops-workspace-hero">
         <div>
           <h2>이벤트 상태</h2>
-          <p>Primary nav에는 표시하지 않는 direct/diagnostic route입니다. 이벤트 조건은 Rules에서, 운영 요약은 Dashboard에서 확인합니다.</p>
+          <p>Primary nav에는 표시하지 않는 direct/diagnostic route입니다. Event storage, delivery, review inbox, evidence records를 한 작업대에서 확인합니다.</p>
         </div>
         <div class="actions">
           <a class="button button-secondary" href="/ops/dashboard">대시보드</a>
@@ -3626,7 +3642,7 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           )" << RefreshIconButtonHtml("opsEventsRefresh", "button-secondary", "새로고침") << R"(
         </div>
       </div>
-      <div class="grid">
+      <div class="grid ops-workspace-event-grid">
         <section class="section-card">
           <h3>이벤트 저장소</h3>
           <div id="eventStorageBadges" class="badge-row"><span class="chip">로딩 중</span></div>
@@ -3648,7 +3664,7 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <p id="eventExportPolicyText">증거 export와 삭제 권한을 확인합니다.</p>
         </section>
       </div>
-      <section class="section-card" data-testid="ops-alert-delivery-integrations" data-alert-contract="separate-from-event-post-payload">
+      <section class="section-card ops-workspace-wide" data-testid="ops-alert-delivery-integrations" data-alert-contract="separate-from-event-post-payload">
         <div class="toolbar">
           <div>
             <h3>Alert Delivery Integrations</h3>
@@ -3707,7 +3723,7 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           </table>
         </div>
       </section>
-      <section class="section-card" data-testid="ops-event-review-inbox" data-review-state="separate-from-event-post-payload" data-vlm-review-state="ops-only-event-record-evidence" data-vlm-review-action-workflow="ops-only-review-state">
+      <section class="section-card ops-workspace-wide" data-testid="ops-event-review-inbox" data-review-state="separate-from-event-post-payload" data-vlm-review-state="ops-only-event-record-evidence" data-vlm-review-action-workflow="ops-only-review-state">
         <div class="toolbar">
           <div>
             <h3>Rule Event Review Inbox</h3>
@@ -3752,7 +3768,7 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           </table>
         </div>
       </section>
-      <section class="section-card">
+      <section class="section-card ops-workspace-wide">
         <div class="toolbar">
           <div>
             <h3>최근 이벤트 기록</h3>
@@ -3805,14 +3821,15 @@ void AppendOpsEventsPage(std::ostringstream& out) {
 }
 
 void AppendOpsHomePage(std::ostringstream& out) {
-    out << R"(    <section class="panel" data-ops-panel="home" data-testid="ops-home-page">
-      <div class="toolbar panel-title-toolbar">
+    out << R"(    <section class="panel ops-workspace ops-workspace-home" data-ops-panel="home" data-testid="ops-home-page">
+      <div class="toolbar panel-title-toolbar ops-workspace-hero">
         <div>
           <h2>운영 홈</h2>
-          <p>운영 구성과 현재 상태를 함께 봅니다.</p>
+          <p>구성, 런타임 상태, 위험 신호와 다음 조치를 한 화면에서 선택합니다.</p>
         </div>
         )" << RefreshIconButtonHtml("opsHomeRefresh", "button-secondary", "새로고침") << R"(
       </div>
+      <div class="ops-workspace-action-grid">
       <section class="section-card compact-card">
         <div class="toolbar">
           <div>
@@ -3859,21 +3876,22 @@ void AppendOpsHomePage(std::ostringstream& out) {
           <span class="chip">runtime 호출 없음</span>
         </div>
       </section>
+      </div>
     </section>
 )";
 }
 
 void AppendOpsVlmInstallConnectionPage(std::ostringstream& out) {
-    out << R"(    <section class="panel" data-ops-panel="vlm" data-testid="ops-vlm-page">
-      <div class="toolbar panel-title-toolbar">
+    out << R"(    <section class="panel ops-vlm-containment-workspace" data-ops-panel="vlm" data-testid="ops-vlm-page" data-vlm-containment="ops-aux-default-off">
+      <div class="toolbar panel-title-toolbar ops-workspace-hero">
         <div>
           <h2>VLM 설치/연결 준비</h2>
-          <p>추천 결과를 설치/연결 후보로 변환하되 실행과 저장은 하지 않습니다.</p>
+          <p>Ops 보조 작업으로 유지하며 privacy, default-off, profile 상태를 읽기 전용 경계와 저장 경계로 분리합니다.</p>
         </div>
         )" << RefreshIconButtonHtml("opsVlmRefresh", "button-secondary", "새로고침") << R"(
       </div>
       <div id="opsVlmStatus" class="message" hidden></div>
-      <section class="section-card" data-testid="ops-vlm-controls">
+      <section class="section-card ops-vlm-aux-panel" data-testid="ops-vlm-controls" data-vlm-task="ops-aux">
         <div class="toolbar">
           <div>
             <h3>입력 조건</h3>
@@ -3910,13 +3928,14 @@ void AppendOpsVlmInstallConnectionPage(std::ostringstream& out) {
           </label>
         </div>
       </section>
-      <div class="grid ops-metric-grid">
+      <div class="grid ops-metric-grid ops-vlm-default-off-summary" data-vlm-task="default-off">
         <div class="metric-card"><span>상태</span><strong id="opsVlmDecisionStatus">-</strong></div>
         <div class="metric-card"><span>선택 후보</span><strong id="opsVlmSelectableCount">-</strong></div>
         <div class="metric-card"><span>PC 등급</span><strong id="opsVlmHardwareSummary">-</strong></div>
         <div class="metric-card"><span>외부 전송</span><strong id="opsVlmTransferSummary">-</strong></div>
       </div>
-      <section class="section-card" data-testid="ops-vlm-runtime-status-panel" data-vlm-runtime-status="ops-only-default-off">
+      <div class="ops-vlm-containment-grid">
+      <section class="section-card ops-vlm-default-off-panel" data-testid="ops-vlm-runtime-status-panel" data-vlm-runtime-status="ops-only-default-off" data-vlm-task="default-off">
         <div class="toolbar">
           <div>
             <h3>VLM runtime status</h3>
@@ -3938,7 +3957,7 @@ void AppendOpsVlmInstallConnectionPage(std::ostringstream& out) {
           <div class="empty">VLM runtime status를 불러오는 중입니다.</div>
         </div>
       </section>
-      <section class="section-card" data-testid="ops-vlm-evaluation-result-workflow" data-vlm-evaluation-workflow="fixture-result-profile-selection">
+      <section class="section-card ops-vlm-aux-panel ops-vlm-evaluation-panel" data-testid="ops-vlm-evaluation-result-workflow" data-vlm-evaluation-workflow="fixture-result-profile-selection" data-vlm-task="ops-aux">
         <div class="toolbar">
           <div>
             <h3>Evaluation result workflow</h3>
@@ -3969,7 +3988,7 @@ void AppendOpsVlmInstallConnectionPage(std::ostringstream& out) {
         </div>
         <p id="opsVlmEvaluationSelectionSummary">평가 후보를 profile draft에 반영하지 않았습니다.</p>
       </section>
-      <section class="section-card" data-testid="ops-vlm-options-panel">
+      <section class="section-card ops-vlm-aux-panel ops-vlm-options-panel" data-testid="ops-vlm-options-panel" data-vlm-task="ops-aux">
         <div class="toolbar">
           <div>
             <h3>설치/연결 dry-run 후보</h3>
@@ -3993,11 +4012,11 @@ void AppendOpsVlmInstallConnectionPage(std::ostringstream& out) {
         </div>
         <p id="opsVlmSelectionSummary">선택한 후보 없음</p>
       </section>
-      <section class="section-card" data-testid="ops-vlm-privacy-transfer-guard-panel">
+      <section class="section-card ops-vlm-privacy-panel" data-testid="ops-vlm-privacy-transfer-guard-panel" data-vlm-task="privacy">
         <div class="toolbar">
           <div>
             <h3>Privacy/전송 guard</h3>
-            <p>Cloud 후보는 외부 전송 경고와 provider logging/retention 검토가 끝나야 profile 활성화 후보가 됩니다.</p>
+            <p>Cloud 후보는 외부 전송 경고와 provider logging/retention 검토가 끝나야 profile 활성화 후보가 됩니다. credential, prompt, raw response, source URL, raw frame bytes는 profile, sidecar, viewer/client에 저장하거나 노출하지 않습니다.</p>
           </div>
         </div>
         <div id="opsVlmPrivacyGuardBadges" class="badge-row">
@@ -4017,7 +4036,7 @@ void AppendOpsVlmInstallConnectionPage(std::ostringstream& out) {
           <div class="empty">privacy guard를 불러오는 중입니다.</div>
         </div>
       </section>
-      <section class="section-card" data-testid="ops-vlm-profile-panel">
+      <section class="section-card ops-vlm-profile-state-panel" data-testid="ops-vlm-profile-panel" data-vlm-task="profile-state">
         <div class="toolbar">
           <div>
             <h3>VLM profile 저장</h3>
@@ -4079,7 +4098,7 @@ void AppendOpsVlmInstallConnectionPage(std::ostringstream& out) {
           </table>
         </div>
       </section>
-      <section class="section-card" data-testid="ops-vlm-boundary-panel">
+      <section class="section-card ops-vlm-boundary-containment-panel" data-testid="ops-vlm-boundary-panel" data-vlm-task="boundary">
         <div class="toolbar">
           <div>
             <h3>실행 경계</h3>
@@ -4097,7 +4116,8 @@ void AppendOpsVlmInstallConnectionPage(std::ostringstream& out) {
           <div class="empty">비추천 후보를 불러오는 중입니다.</div>
         </div>
       </section>
-      <details id="opsVlmRawDetails" class="debug-details">
+      </div>
+      <details id="opsVlmRawDetails" class="debug-details ops-vlm-raw-debug-panel" data-vlm-task="raw-debug">
         <summary>dry-run JSON</summary>
         <label class="check-inline"><input id="opsVlmPretty" type="checkbox" checked> pretty</label>
         <pre id="opsVlmRaw">{}</pre>
@@ -4964,7 +4984,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
   <title>클라이언트 포털</title>
 )" << ProductThemeBootScript() << ProductUiCss() << ProductSharedUiScript() << ClientShellCss() << R"(
 </head>
-<body class="product-shell client-shell sketch-shell" data-client-preview=")" << (preview_mode ? "true" : "false") << R"(" data-client-active=")" << HtmlEscape(active) << R"(">
+<body class="product-shell client-shell sketch-shell" data-client-preview=")" << (preview_mode ? "true" : "false") << R"(" data-client-preview-boundary="admin-preview-viewer-safe" data-client-active=")" << HtmlEscape(active) << R"(">
   <main class="product-page">
     <header class="app-chrome sketch-topbar">
       <div class="app-header-top">
@@ -4992,15 +5012,19 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
 )";
 
     out << R"(
-    <section class="workspace client-workspace-shell" data-testid="client-shell-page">
-      <div class="panel client-channel-dock">
+    <section class="workspace client-workspace-shell client-viewer-workspace" data-testid="client-shell-page" data-client-workspace="viewer-first" data-client-redaction-review="viewer-safe-no-locator-debug">
+      <div class="client-preview-redaction-strip" data-client-review="admin-preview" data-admin-preview-state=")" << (preview_mode ? "true" : "false") << R"(">
+        <span class="chip client-redaction-review-chip">)" << (preview_mode ? "관리자 preview" : "viewer-safe") << R"(</span>
+        <span class="client-redaction-review-copy">viewer-safe 경계 확인</span>
+      </div>
+      <div class="panel client-channel-dock client-viewer-dock" data-client-redaction="viewer-safe-dock">
         <div class="toolbar panel-title-toolbar">
           <h2>할당 채널</h2>
 	          )" << RefreshIconButtonHtml("refresh", "ghost", "새로고침") << R"(
         </div>
         <div id="views" class="views"></div>
       </div>
-      <div class="panel client-detail-panel" id="detail">
+      <div class="panel client-detail-panel client-viewer-detail" id="detail">
         <div class="empty"><h3>채널을 선택하세요</h3><p>허용된 채널을 선택하면 이 영역에 상태가 표시됩니다.</p></div>
       </div>
     </section>
@@ -5039,7 +5063,10 @@ bool IsClientShellRoute(const std::string& path) {
 }
 
 std::string ClientShellActiveForPath(const std::string& path) {
-    if (path == "/client/dashboard" || path == "/client/events") {
+    if (path == "/client/events") {
+        return "events";
+    }
+    if (path == "/client/dashboard") {
         return "dashboard";
     }
     return "live";
@@ -5052,14 +5079,15 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
                         principal,
                         "sources",
                         "운영 채널을 관리합니다.");
-    out << R"OPS(    <section class="panel" data-testid="ops-sources-page">
-      <div class="toolbar">
+    out << R"OPS(    <section class="panel ops-channels-workspace" data-ops-panel="sources" data-testid="ops-sources-page" data-channel-workspace="task-units">
+      <div class="toolbar panel-title-toolbar ops-workspace-hero">
         <div>
           <h2>채널</h2>
-          <p>채널과 PublishedView를 관리합니다.</p>
+          <p>채널 목록, source detail, 입력 준비, PublishedView, audit을 작업 단위로 관리합니다.</p>
         </div>
       </div>
-      <section class="section-card">
+      <div class="ops-channels-main-grid">
+      <section class="section-card ops-channels-list-panel" data-channel-task="list">
         <div class="toolbar">
           <div>
             <h3>채널 목록</h3>
@@ -5096,7 +5124,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
         <p class="hint" style="margin-top:12px;">RTSP/WHEP는 운영 확인용입니다. 브라우저 재생은 <code>/client/live</code>에서 확인합니다.</p>
       </section>
 
-      <section id="channel-detail-panel" class="section-card ops-detail-panel" hidden>
+      <section id="channel-detail-panel" class="section-card ops-detail-panel ops-channels-detail-panel" data-channel-task="detail" hidden>
         <div class="toolbar">
           <div>
             <div class="badge-row"><span id="channel-editor-mode" class="chip info">보기</span><span id="channel-editor-id" class="chip">-</span></div>
@@ -5113,6 +5141,7 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
           <div class="channel-editor-intro">
             <p><strong>ONVIF 카메라</strong>는 ONVIF 프로파일에서 선택한 라이브 스트림 URI를 연결합니다. <strong>외부 WHEP</strong>는 URL 입력, <strong>Published WebRTC 소스</strong>는 저장된 <code>sourceId</code> 연결입니다.</p>
           </div>
+          <div class="ops-channels-detail-grid" data-channel-task="published-view" data-scope-contract="view-read-scopes-unchanged">
           <div class="row">
             <div class="generated-id-control">
               <span class="form-label">채널 ID</span>
@@ -5131,20 +5160,22 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
               </select>
             </label>
           </div>
-          <div class="row" data-testid="source-group-site-management" data-scope-contract="view-read-scopes-unchanged">
+          <div class="row" data-testid="source-group-site-management">
             <label>사이트<input name="site" placeholder="예: 본사" /></label>
             <label>그룹<input name="group" placeholder="예: 주차장" /></label>
             <label>층<input name="floor" placeholder="예: B1" /></label>
             <label>구역<input name="zone" placeholder="예: 출입구" /></label>
           </div>
-          <label data-source-kind="file">파일
+          </div>
+          <div class="ops-channels-input-grid" data-channel-task="inputs">
+          <label data-source-kind="file" data-channel-input-group="file">파일
             <select name="file" id="channel-file-select" aria-label="파일">
               <option value="sample_h264.mp4">sample_h264.mp4</option>
             </select>
           </label>
-          <label data-source-kind="onvif">ONVIF 스트림 URI<input name="onvifStreamUrl" placeholder="rtsp://camera/live 또는 https://camera/live.m3u8" /></label>
-          <p data-source-kind="onvif" class="hint">지원 제외: WS-Discovery 자동 검색, PTZ 제어, ONVIF Events/PullPoint, Profile G/Recording/Replay는 제공하지 않습니다. 운영자가 확인한 live URI 또는 probe fixture를 사용합니다.</p>
-          <div data-source-kind="onvif" class="form-grid" data-testid="onvif-probe-draft-tool">
+          <label data-source-kind="onvif" data-channel-input-group="onvif">ONVIF 스트림 URI<input name="onvifStreamUrl" placeholder="rtsp://camera/live 또는 https://camera/live.m3u8" /></label>
+          <p data-source-kind="onvif" data-channel-input-group="onvif" class="hint">지원 제외: WS-Discovery 자동 검색, PTZ 제어, ONVIF Events/PullPoint, Profile G/Recording/Replay는 제공하지 않습니다. 운영자가 확인한 live URI 또는 probe fixture를 사용합니다.</p>
+          <div data-source-kind="onvif" data-channel-input-group="onvif" class="form-grid" data-testid="onvif-probe-draft-tool">
             <label>ONVIF probe fixture
               <textarea id="onvifProbeDraftInput" rows="5" spellcheck="false" autocomplete="off" placeholder="test/fixtures/onvif_probe_result_stub.json 내용을 붙여넣기"></textarea>
             </label>
@@ -5159,16 +5190,18 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
             </div>
             <p id="onvifProbeDraftStatus" class="hint" aria-live="polite"></p>
           </div>
-          <label data-source-kind="rtsp">RTSP URL<input name="rtspUrl" placeholder="rtsp://camera/live" /></label>
-          <label data-source-kind="whep">외부 WHEP URL<input name="whepUrl" placeholder="https://example.com/whep/stream" /></label>
-          <p data-source-kind="whep" class="hint">외부 WebRTC playback endpoint를 서버가 WHEP pull source로 연결합니다. URL 자체가 입력값입니다.</p>
-          <label data-source-kind="webrtc">발행 sourceId<input name="webrtcSourceId" placeholder="published-source-id" /></label>
-          <p data-source-kind="webrtc" class="hint">외부 URL을 넣는 항목이 아닙니다. 이 서버의 WHIP publish endpoint로 이미 등록된 sourceId를 연결합니다.</p>
-          <label data-source-kind="http">HTTP/HLS URL<input name="httpUrl" /></label>
+          <label data-source-kind="rtsp" data-channel-input-group="rtsp">RTSP URL<input name="rtspUrl" placeholder="rtsp://camera/live" /></label>
+          <label data-source-kind="whep" data-channel-input-group="whep">외부 WHEP URL<input name="whepUrl" placeholder="https://example.com/whep/stream" /></label>
+          <p data-source-kind="whep" data-channel-input-group="whep" class="hint">외부 WebRTC playback endpoint를 서버가 WHEP pull source로 연결합니다. URL 자체가 입력값입니다.</p>
+          <label data-source-kind="webrtc" data-channel-input-group="whip">발행 sourceId<input name="webrtcSourceId" placeholder="published-source-id" /></label>
+          <p data-source-kind="webrtc" data-channel-input-group="whip" class="hint">외부 URL을 넣는 항목이 아닙니다. 이 서버의 WHIP publish endpoint로 이미 등록된 sourceId를 연결합니다.</p>
+          <label data-source-kind="http" data-channel-input-group="http">HTTP/HLS URL<input name="httpUrl" /></label>
           <p id="channel-validation" class="hint"></p>
+          </div>
         </form>
       </section>
-      <section class="section-card ops-audit-panel">
+      </div>
+      <section class="section-card ops-audit-panel ops-channels-audit-panel" data-channel-task="audit">
         <div class="toolbar">
           <div>
             <h3>변경 이력</h3>
@@ -5192,11 +5225,11 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
                         principal,
                         "users",
                         "관리자가 사용자 계정과 접근 범위를 관리합니다.");
-    out << R"USERS(    <section class="panel" data-testid="ops-users-page">
-      <div class="toolbar">
+    out << R"USERS(    <section class="panel ops-users-access-workspace" data-ops-panel="users" data-testid="ops-users-page" data-access-workspace="task-units">
+      <div class="toolbar panel-title-toolbar ops-workspace-hero">
         <div>
           <h2>사용자 관리</h2>
-          <p>사용자와 권한 범위를 관리합니다.</p>
+          <p>사용자, 초대, 승인, role/scope, audit 흐름을 작업 단위로 관리합니다.</p>
         </div>
         <div class="actions">
           <button id="add-user-btn" class="button-primary" type="button">사용자 추가</button>
@@ -5204,7 +5237,7 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
           <span id="status" class="status"></span>
         </div>
       </div>
-      <section class="section-card user-lifecycle-policy" data-testid="user-lifecycle-policy">
+      <section class="section-card user-lifecycle-policy ops-users-lifecycle-policy" data-testid="user-lifecycle-policy">
         <div class="toolbar">
           <div>
             <h2>계정 라이프사이클 정책</h2>
@@ -5232,7 +5265,8 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         </div>
         <p class="hint">초대 링크는 기본 24시간 동안만 유효하며, 만료 후에는 새 초대를 발급합니다. 비밀번호 초기화는 임시 비밀번호를 설정하고 기존 세션을 회수합니다. 복구 시 로그인 잠금과 실패 횟수는 초기화됩니다.</p>
       </section>
-      <section class="section-card">
+      <div class="ops-users-access-grid">
+      <section class="section-card ops-users-lifecycle-panel" data-access-task="users">
         <h2>사용자 목록</h2>
         <div class="table-wrap">
           <table class="ops-data-table ops-responsive-table user-table">
@@ -5255,7 +5289,7 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         </div>
       </section>
 
-      <section class="section-card">
+      <section class="section-card ops-users-request-panel" data-access-task="requests">
         <div class="toolbar">
           <div>
             <h2>승인 대기 요청</h2>
@@ -5284,7 +5318,7 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         </div>
       </section>
 
-      <section class="section-card" data-testid="ops-invites-panel">
+      <section class="section-card ops-users-invite-panel" data-access-task="invites" data-testid="ops-invites-panel">
         <div class="toolbar">
           <div>
             <h2>초대 발급</h2>
@@ -5327,7 +5361,9 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         </div>
       </section>
 
-      <section id="user-detail-panel" class="section-card ops-detail-panel" hidden>
+      </div>
+
+      <section id="user-detail-panel" class="section-card ops-detail-panel ops-users-role-scope-panel" data-access-task="role-scope" data-scope-contract="role-scope-unchanged" hidden>
         <div class="toolbar">
           <div>
             <div class="badge-row"><span id="user-editor-mode" class="chip info">상세</span><span id="user-editor-id" class="chip">@-</span></div>
@@ -5395,7 +5431,7 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
           </div>
         </div>
       </section>
-      <section class="section-card ops-audit-panel">
+      <section class="section-card ops-audit-panel ops-users-audit-panel" data-access-task="audit">
         <div class="toolbar">
           <div>
             <h2>변경 이력</h2>

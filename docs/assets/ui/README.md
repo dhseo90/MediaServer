@@ -2,12 +2,14 @@
 
 이 디렉터리는 README와 `docs/ui-guide.md`에서 사용할 제품 UI 스크린샷을 역할 기준 파일명으로 보관합니다.
 
-현재 대표 제품 이미지는 2026-05-23 캡처 자산을 current v2.1.0 release baseline의
-대표 shell 화면으로 유지합니다. 특히 Client Live 이미지는 source tree, dock event feed,
-workspace preset, tile-level disconnect/action, VA overlay tile이 보이는 제품 구조를
-기준으로 합니다. 단, 이 대표 이미지는 VLM 전용 `/ops/vlm`, `/ops/events` 리뷰 보조
-화면의 전체 UI 증거가 아닙니다. VLM 화면 직접 검수는 manual UI evidence 문서와
-`verify-vlm-*`/`verify-manual-ui-evidence` 계열 gate에서 별도로 확인합니다.
+현재 대표 제품 이미지는 2026-05-23 캡처 자산을 최신 공개 release `v2.2.0`의
+`v2.2.0 release baseline` 대표 shell 설명 이미지로 유지합니다. 특히
+Client Live 이미지는 source tree, dock event feed, workspace preset,
+tile-level disconnect/action, VA overlay tile이 보이는 제품 구조를 기준으로 합니다.
+단, 이 대표 이미지는 VLM 전용 `/ops/vlm`, `/ops/events` 리뷰 보조 화면의 전체 UI
+증거가 아니며, v2.2.0 UI 풀테스트 PASS 증거도 아닙니다. VLM 화면 직접 검수는
+manual UI evidence 문서와 `verify-vlm-*`/`verify-manual-ui-evidence` 계열 gate에서
+별도로 확인합니다.
 
 README, README.en, `docs/ui-guide.md`, `docs/video-analysis.md`에서 참조하는 UI/VA
 이미지는 `verify-docs-ui-assets` 정적 gate로 관리합니다. 정적 gate만 실행하고
@@ -16,21 +18,27 @@ README, README.en, `docs/ui-guide.md`, `docs/video-analysis.md`에서 참조하�
 `config/docs_ui_assets.json`의 managed asset list에서 단일 관리합니다.
 `ops-rules-preview`는 전체 페이지 캡처가 아니라 Rule preview/editor 대표 구간
 캡처로 유지합니다.
-재캡처는 `scripts/internal/capture_docs_ui_assets.mjs` 기준으로 관리합니다.
+재캡처는 `scripts/internal/capture_docs_ui_assets.mjs` 기준으로 관리하되, Codex
+세션에서는 AGENTS.md의 인앱 브라우저 기준을 우선합니다. Chrome/CDP fallback
+재캡처는 사용자가 명시 승인한 예외일 때만 문서 산출물 후보로 둡니다.
 기준 검증은 `./server.sh verify-docs-ui-assets`로 수행합니다.
 `ops-rules-preview` 캡처와 `verify-rule-ui` smoke는
 `scripts/internal/rule_preview_fixture_helpers.mjs`의 공통 profile/event/VA rule
 fixture를 사용해 preview prerequisite drift를 막습니다.
 
-## v2.1.0 Image Review - 2026-06-03
+## v2.2.0 Docs Image Review - 2026-06-03
 
-v2.1.0 close-out 문서 리뷰에서 문서가 참조하는 전체 이미지 20개를 직접 열어
-확인했습니다. 대상은 한국어 UI PNG 9개, English UI PNG 9개,
+v2.2.0 문서 정리에서는 문서가 참조하는 전체 이미지 20개를 직접 열어 확인하고
+관리 대상으로 유지합니다.
+대상은 한국어 UI PNG 9개, English UI PNG 9개,
 `docs/assets/va-four-scene-overlay-ko.jpg`, `docs/assets/va-four-scene-sample.png`입니다.
+Chrome/CDP로 생성된 재캡처 산출물은 대표 이미지로 채택하지 않고 폐기합니다.
 
 결론:
 
-- 기존 2026-05-23 대표 제품 shell 캡처를 v2.1.0 대표 이미지로 유지합니다.
+- 기존 2026-05-23 대표 제품 shell 캡처를 v2.2.0 문서 대표 이미지로 유지합니다.
+- 운영 QA registry가 섞여 200개 채널을 길게 보여주는 캡처는 제품 대표 이미지로
+  쓰지 않습니다.
 - README/README.en 대표 이미지 12개는 crop 없이 핵심 화면과 control이 보입니다.
 - `client-live`, `client-dashboard` 계열 screenshot은 source URL, Developer URL,
   raw JSON, debug counter, BBox diagnostics, model path, credential, session material을
@@ -42,13 +50,14 @@ v2.1.0 close-out 문서 리뷰에서 문서가 참조하는 전체 이미지 20�
   bbox/label, 영역/라인 control이 잘리지 않습니다.
 - VLM 전용 `/ops/vlm`, `/ops/events` review-assist 화면은 이 대표 이미지 세트로
   대체하지 않고, [manual-ui-result-2026-06-03-v210-inapp-fulltest.md](../../manual-ui-result-2026-06-03-v210-inapp-fulltest.md)
-  및 `verify-manual-ui-evidence-runner` evidence로 분리합니다.
-- 이번 리뷰에서 recapture가 필요한 이미지 이슈는 없었습니다.
+  같은 수동 UI 풀테스트 결과 문서로 분리합니다.
+- 이번 문서 정리에서는 이미지 파일을 새로 교체하지 않습니다.
 
 직접 이미지 검수 checklist:
 
 - 재캡처 뒤 한국어/영어 PNG를 모두 직접 엽니다.
-- 현재 v2.1.0 release baseline의 대표 shell 화면 구조와 맞는지 확인합니다.
+- 최신 공개 release `v2.2.0`의 대표 shell 화면 구조와
+  맞는지 확인합니다.
 - VLM 전용 화면이 필요한 release evidence로 이 대표 이미지를 대신 쓰지 않습니다.
 - 영상 screenshot은 video viewport, control, status, VA overlay가 잘리지 않는지 확인합니다.
 - client/viewer screenshot에 source URL, Developer URL, raw JSON, debug counter,
@@ -69,6 +78,8 @@ English visual copy QA checklist:
 node scripts/internal/capture_docs_ui_assets.mjs --lang=ko
 node scripts/internal/capture_docs_ui_assets.mjs --lang=en
 ```
+
+Codex 세션에서 위 Chrome/CDP 기반 재캡처를 사용하려면 먼저 사용자 승인을 받습니다.
 
 기본 기준:
 

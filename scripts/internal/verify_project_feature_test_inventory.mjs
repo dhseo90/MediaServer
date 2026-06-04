@@ -22,7 +22,7 @@ Checks:
   - docs/project-feature-test-inventory.md is indexed
   - inventory pins the current release and states it is not execution evidence
   - all feature IDs use the current UI/test-area matrix shape
-  - coverage, verifier, VA seed, 30-minute, 120-minute, and field-smoke boundaries exist
+  - coverage, verifier, VA seed, 30-minute, 120-minute, and four-area boundaries exist
   - manual UI docs reference the feature inventory
   - the manual UI VA seed matrix fixture covers API-ready numeric IDs, basic events, scenarios, presets, tracker/Re-ID policies, and invalid policy cases
   - the manual UI seed dry-run command is documented as preparation, not evidence
@@ -84,7 +84,7 @@ check("required sections exist", () => {
 
 check("summary counts match current feature IDs", () => {
   const rows = parseFeatureRows(inventory);
-  assert(rows.length === 392, `expected 392 feature rows, found ${rows.length}`);
+  assert(rows.length === 390, `expected 390 feature rows, found ${rows.length}`);
   const ids = rows.map(row => row.id);
   assert(new Set(ids).size === ids.length, "duplicate feature IDs in inventory");
   for (const prefix of ["UI", "AUTH", "SRC", "RULE", "EVT", "CLIENT", "MEDIA", "LAB", "SAFE"]) {
@@ -99,8 +99,7 @@ check("summary counts match current feature IDs", () => {
     stability: rows.filter(row => hasArea(row.area, "안정화")).length,
     ui: rows.filter(row => hasArea(row.area, "UI")).length,
     soak30: rows.filter(row => hasArea(row.area, "30분")).length,
-    soak120: rows.filter(row => hasArea(row.area, "120분 조건부")).length,
-    field: rows.filter(row => hasArea(row.area, "필드 별도")).length,
+    soak120: rows.filter(row => hasArea(row.area, "120분")).length,
   };
   const expected = [
     ["전체 기능 항목", counts.total],
@@ -111,8 +110,7 @@ check("summary counts match current feature IDs", () => {
     ["안정화 대상", counts.stability],
     ["UI 풀테스트 대상", counts.ui],
     ["30분 soak 대상", counts.soak30],
-    ["120분 조건부 대상", counts.soak120],
-    ["필드 별도 조건 포함", counts.field],
+    ["120분 대상", counts.soak120],
   ];
   for (const [label, count] of expected) {
     requireText(inventory, `| ${label} | ${count} |`, `summary count mismatch for ${label}: ${count}`);
@@ -121,12 +119,16 @@ check("summary counts match current feature IDs", () => {
 });
 
 check("feature rows have required matrix columns", () => {
+  const allowedAreas = new Set(["안정화", "30분", "120분", "UI"]);
   for (const row of parseFeatureRows(inventory)) {
     assert(row.id, "feature row missing ID");
     assert(row.feature, `feature row ${row.id} missing feature`);
     assert(["필요", "간접", "비대상"].includes(row.uiNeed), `feature row ${row.id} has invalid UI need: ${row.uiNeed}`);
     assert(row.testNeed === "필요", `feature row ${row.id} must mark test need as 필요`);
     assert(row.area, `feature row ${row.id} missing test area`);
+    for (const area of splitAreas(row.area)) {
+      assert(allowedAreas.has(area), `feature row ${row.id} has unsupported test area: ${area}`);
+    }
     assert(row.pass, `feature row ${row.id} missing PASS criteria`);
     console.log(`[pass] feature ${row.id} name present`);
     console.log(`[pass] feature ${row.id} UI need ${row.uiNeed}`);
@@ -136,18 +138,31 @@ check("feature rows have required matrix columns", () => {
   }
 });
 
+check("inventory rejects separate test-area labels", () => {
+  for (const forbidden of [
+    "필드 별도",
+    "field 별도",
+    "30분 조건부",
+    "120분 조건부",
+    "field-smoke-or-exclusion",
+    "field exclusion",
+  ]) {
+    assert(!inventory.includes(forbidden), `inventory must not contain unsupported test-area wording: ${forbidden}`);
+  }
+});
+
 check("coverage wording separates mapping from execution", () => {
   for (const phrase of [
     "실제 안정화 테스트,",
     "UI 풀테스트를 실행했다는 뜻이 아닙니다.",
     "| 제품 UI 위치 |",
-    "| UI 풀테스트 evidence |",
+    "| UI 풀테스트 결과 |",
     "| VA seed 데이터 |",
     "dry-run 준비 가능, 서버 적용 evidence 없음",
     "Verifier Coverage Map",
     "실제 UI 이벤트 발생 전수 evidence 없음",
     "inventory 단독으로 UI PASS 판정 불가",
-    "evidence 문서 없이 inventory만으로 UI PASS 판정 불가",
+    "결과 문서 없이 inventory만으로 UI PASS 판정 불가",
   ]) {
     requireText(inventory, phrase, `inventory missing coverage boundary wording: ${phrase}`);
   }
@@ -194,7 +209,6 @@ check("current VLM feature expansion rows exist", () => {
     "LAB-060",
     "LAB-061",
     "LAB-062",
-    "LAB-063",
     "SAFE-025",
     "SAFE-026",
     "SAFE-027",
@@ -211,7 +225,6 @@ check("current VLM feature expansion rows exist", () => {
     "SAFE-038",
     "SAFE-039",
     "SAFE-040",
-    "SAFE-041",
   ];
   const ids = new Set(parseFeatureRows(inventory).map(row => row.id));
   for (const id of requiredRows) {
@@ -221,8 +234,8 @@ check("current VLM feature expansion rows exist", () => {
     "`UI-001`~`UI-018`, `UI-022`~`UI-036`",
     "`EVT-001`~`EVT-036`",
     "`MEDIA-001`~`MEDIA-021`",
-    "`LAB-001`~`LAB-063`",
-    "`SAFE-001`~`SAFE-041`",
+    "`LAB-001`~`LAB-062`",
+    "`SAFE-001`~`SAFE-040`",
     "V200-S00~S18 및 V210-S00~S12 변경분",
     "VLM route, control, action, runtime state, sidecar, privacy guard",
   ]) {
@@ -370,7 +383,11 @@ function parseFeatureRows(text) {
 }
 
 function hasArea(area, token) {
-  return area.split(",").map(item => item.trim()).includes(token);
+  return splitAreas(area).includes(token);
+}
+
+function splitAreas(area) {
+  return area.split(",").map(item => item.trim()).filter(Boolean);
 }
 
 function readText(relativePath) {

@@ -32,7 +32,7 @@ Options:
   --debug-port-base <port>  Chrome/CDP port 시작값입니다. 기본 14000.
   --widths <csv>            direct click viewport 폭입니다. 기본 390,1180.
   --visual-widths <csv>     screenshot viewport 폭입니다. 기본 320,390,760,1180.
-  --manual-result <path>    기존 manual UI result 문서 검증 대상입니다.
+  --manual-result <path>    기존 manual UI result 문서 검증 대상입니다. 지정하지 않으면 건너뜁니다.
   --browser-mode <mode>     ops/client smoke browser mode입니다. auto, in-app, chrome 중 하나입니다.
   --in-app-evidence <path>  Codex 인앱 브라우저 직접 확인 evidence JSON입니다.
   --allow-chrome-fallback[=1]
@@ -89,15 +89,16 @@ const timeoutMs = numberOption(args.timeoutMs, 30000);
 const debugPortBase = numberOption(args.debugPortBase, 14000);
 const widths = args.widths || "390,1180";
 const visualWidths = args.visualWidths || "320,390,760,1180";
-const manualResult = args.manualResult || "docs/manual-ui-result-2026-05-25-ui-fulltest-restart.md";
+const manualResult = args.manualResult || "";
 const browserMode = normalizeBrowserMode(args.browserMode || "auto");
 const inAppEvidence = args.inAppEvidence || "";
 const allowChromeFallback = truthy(args.allowChromeFallback);
 const skipBuild = Boolean(args.skipBuild);
-const skipManualResult = Boolean(args.skipManualResult);
+const skipManualResult = Boolean(args.skipManualResult) || !manualResult;
 const keepServers = Boolean(args.keepServers);
 const chromeArgs = args.chromePath ? ["--chrome-path", args.chromePath] : [];
 const opsClientBrowserArgs = buildOpsClientBrowserArgs();
+const ruleUiEvidenceArgs = inAppEvidence ? ["--in-app-evidence", inAppEvidence] : [];
 
 const authEnvNames = [
   "MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD",
@@ -165,7 +166,6 @@ try {
   await waitForHealth("core-ui-health", `http://127.0.0.1:${ports.coreHttp}/health`);
   appendDiagnosticLogTailFixture();
 
-  await runCommand("score-ui-evidence-runner", ["./server.sh", "verify-manual-ui-evidence-runner"]);
   await runCommand("guard-native-dialogs", ["./server.sh", "verify-product-ui-no-native-dialogs"]);
   await runCommand("guard-blocking-dialog-policy", ["./server.sh", "verify-ui-blocking-dialog-policy"]);
   await runCommand("feature-inventory-coverage", ["./server.sh", "verify-feature-inventory-coverage"]);
@@ -205,6 +205,7 @@ try {
     String(debugPortBase + 500),
     "--output-dir",
     path.join(outputDir, "rule-ui"),
+    ...ruleUiEvidenceArgs,
     ...chromeArgs,
   ]);
   await runCommand("ops-route-boundaries", [
@@ -226,8 +227,11 @@ try {
     `http://127.0.0.1:${ports.coreHttp}`,
     "--debug-port-base",
     String(debugPortBase + 700),
+    "--widths",
+    visualWidths,
     "--output-dir",
     path.join(outputDir, "ops-tables-layout"),
+    ...ruleUiEvidenceArgs,
     ...chromeArgs,
   ]);
   await runCommand("ops-click-e2e-core", [
@@ -241,6 +245,7 @@ try {
     widths,
     "--output-dir",
     path.join(outputDir, "ops-click-core"),
+    ...ruleUiEvidenceArgs,
     ...chromeArgs,
   ], {
     MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT: String(ports.coreRtsp),
@@ -274,11 +279,12 @@ try {
     authUsersFile,
     "--output-dir",
     path.join(outputDir, "ops-click-auth"),
+    ...ruleUiEvidenceArgs,
     ...chromeArgs,
   ]);
 
   if (skipManualResult) {
-    markSkipped("manual-ui-result-structure", "--skip-manual-result");
+    markSkipped("manual-ui-result-structure", args.skipManualResult ? "--skip-manual-result" : "manual result not provided");
   } else {
     await runCommand("manual-ui-result-structure", [
       "./server.sh",

@@ -68,6 +68,28 @@ Usage:
                  UI visual artifact를 retention policy 기준으로 dry-run/보관/정리합니다.
   verify-product-ui-token-drift
                  제품 UI CSS가 design token 밖 raw color를 추가하지 않는지 검증합니다.
+  verify-v220-design-token-refresh
+                 v2.2.0 design token refresh 계약과 token 소비 지점을 검증합니다.
+  verify-v220-component-primitives
+                 v2.2.0 component primitive helper 경계와 소비 지점을 검증합니다.
+  verify-v220-ops-workspace-redesign
+                 v2.2.0 Ops workspace redesign route/CSS/문서 연결을 검증합니다.
+  verify-v220-rules-workspace-redesign
+                 v2.2.0 Rules workspace redesign route/CSS/문서 연결을 검증합니다.
+  verify-v220-client-live-redesign
+                 v2.2.0 Client live redesign route/CSS/문서 연결을 검증합니다.
+  verify-v220-auth-setup-redesign
+                 v2.2.0 Auth/setup redesign route/CSS/문서 연결을 검증합니다.
+  verify-v220-ops-channels-workspace
+                 v2.2.0 Ops Channels Workspace route/CSS/문서 연결을 검증합니다.
+  verify-v220-ops-users-access-workspace
+                 v2.2.0 Ops Users / Access Workspace route/CSS/문서 연결을 검증합니다.
+  verify-v220-ops-vlm-containment
+                 v2.2.0 Ops VLM containment route/CSS/문서 연결을 검증합니다.
+  verify-v220-client-preview-redaction-review
+                 v2.2.0 Client preview/redaction route/CSS/문서 연결을 검증합니다.
+  verify-v220-ui-evidence-closeout
+                 v2.2.0 UI evidence close-out 문서/checklist/result 기준 연결을 검증합니다.
   verify-product-shell-examples
                  제품 shell/component 예시 문서와 UI guide 연결을 검증합니다.
   verify-ops-route-boundaries
@@ -122,8 +144,6 @@ Usage:
                  README/UI guide screenshot 자산과 자동 캡처 기준을 검증합니다.
   verify-manual-ui-evidence
                  수동 UI 검수 결과가 확인/미확인/건너뜀을 분리해 기록됐는지 검증합니다.
-  verify-manual-ui-evidence-runner
-                 기능 ID별 UI evidence JSON을 PASS/FAIL report로 변환하고 누락 ID를 FAIL로 검증합니다.
   verify-product-ui-no-native-dialogs
                  제품 UI가 alert/confirm/prompt native dialog로 자동 UI 검수를 멈추지 않는지 검증합니다.
   verify-ui-blocking-dialog-policy
@@ -210,6 +230,12 @@ Usage:
                  v1.9.0 종료와 v2.0.0 진입 baseline report 구획을 검증합니다.
   verify-v210-entry-baseline
                  v2.0.0 published evidence를 v2.1.0 진입 baseline으로 고정합니다.
+  verify-v220-entry-boundary
+                 v2.2.0 responsive UI foundation 진입 경계와 변경 금지 contract를 검증합니다.
+  verify-v220-ui-architecture-inventory
+                 v2.2.0 UI architecture inventory와 S01 roadmap 연결을 검증합니다.
+  verify-v220-responsive-task-shell
+                 v2.2.0 responsive task shell 계약과 S02 roadmap 연결을 검증합니다.
   verify-feature-scope-gate
                  v1.8.0 안정화 범위에서 새 기능 후보를 구현으로 승격하지 않는 decision gate를 검증합니다.
   verify-script-inventory
@@ -260,6 +286,10 @@ Usage:
                  admin 계정 관리, viewer scope 제한, lockout, invite/request를 검증합니다.
   verify-auth-routes
                  root/login/ops/client와 Lab API role 기반 route 정책을 검증합니다.
+  verify-auth-ui-smoke
+                 실행 중인 auth shell 페이지의 selector와 선택 visual smoke를 검증합니다.
+  verify-auth-scope-picker
+                 실행 중인 /ops/users 권한 범위 템플릿 UI를 admin 세션으로 검증합니다.
   verify-auth-regression-matrix
                  Auth/session/scope regression matrix와 verifier coverage를 검증합니다.
   verify-vlm-boundary
@@ -673,10 +703,6 @@ case "${cmd}" in
     require_internal verify_manual_ui_evidence.mjs
     exec "${INTERNAL_DIR}/verify_manual_ui_evidence.mjs" "$@"
     ;;
-  verify-manual-ui-evidence-runner)
-    require_internal verify_manual_ui_evidence_runner.mjs
-    exec "${INTERNAL_DIR}/verify_manual_ui_evidence_runner.mjs" "$@"
-    ;;
   verify-product-ui-no-native-dialogs)
     require_internal verify_product_ui_no_native_dialogs.mjs
     exec "${INTERNAL_DIR}/verify_product_ui_no_native_dialogs.mjs" "$@"
@@ -845,6 +871,62 @@ case "${cmd}" in
     require_internal verify_v210_entry_baseline.mjs
     exec "${INTERNAL_DIR}/verify_v210_entry_baseline.mjs" "$@"
     ;;
+  verify-v220-entry-boundary)
+    require_internal verify_v220_entry_boundary.mjs
+    exec "${INTERNAL_DIR}/verify_v220_entry_boundary.mjs" "$@"
+    ;;
+  verify-v220-ui-architecture-inventory)
+    require_internal verify_v220_ui_architecture_inventory.mjs
+    exec "${INTERNAL_DIR}/verify_v220_ui_architecture_inventory.mjs" "$@"
+    ;;
+  verify-v220-responsive-task-shell)
+    require_internal verify_v220_responsive_task_shell.mjs
+    exec "${INTERNAL_DIR}/verify_v220_responsive_task_shell.mjs" "$@"
+    ;;
+  verify-v220-design-token-refresh)
+    require_internal verify_v220_design_token_refresh.mjs
+    exec "${INTERNAL_DIR}/verify_v220_design_token_refresh.mjs" "$@"
+    ;;
+  verify-v220-component-primitives)
+    require_internal verify_v220_component_primitives.mjs
+    exec "${INTERNAL_DIR}/verify_v220_component_primitives.mjs" "$@"
+    ;;
+  verify-v220-ops-workspace-redesign)
+    require_internal verify_v220_ops_workspace_redesign.mjs
+    exec "${INTERNAL_DIR}/verify_v220_ops_workspace_redesign.mjs" "$@"
+    ;;
+  verify-v220-rules-workspace-redesign)
+    require_internal verify_v220_rules_workspace_redesign.mjs
+    exec "${INTERNAL_DIR}/verify_v220_rules_workspace_redesign.mjs" "$@"
+    ;;
+  verify-v220-client-live-redesign)
+    require_internal verify_v220_client_live_redesign.mjs
+    exec "${INTERNAL_DIR}/verify_v220_client_live_redesign.mjs" "$@"
+    ;;
+  verify-v220-auth-setup-redesign)
+    require_internal verify_v220_auth_setup_redesign.mjs
+    exec "${INTERNAL_DIR}/verify_v220_auth_setup_redesign.mjs" "$@"
+    ;;
+  verify-v220-ops-channels-workspace)
+    require_internal verify_v220_ops_channels_workspace.mjs
+    exec "${INTERNAL_DIR}/verify_v220_ops_channels_workspace.mjs" "$@"
+    ;;
+  verify-v220-ops-users-access-workspace)
+    require_internal verify_v220_ops_users_access_workspace.mjs
+    exec "${INTERNAL_DIR}/verify_v220_ops_users_access_workspace.mjs" "$@"
+    ;;
+  verify-v220-ops-vlm-containment)
+    require_internal verify_v220_ops_vlm_containment.mjs
+    exec "${INTERNAL_DIR}/verify_v220_ops_vlm_containment.mjs" "$@"
+    ;;
+  verify-v220-client-preview-redaction-review)
+    require_internal verify_v220_client_preview_redaction_review.mjs
+    exec "${INTERNAL_DIR}/verify_v220_client_preview_redaction_review.mjs" "$@"
+    ;;
+  verify-v220-ui-evidence-closeout)
+    require_internal verify_v220_ui_evidence_closeout.mjs
+    exec "${INTERNAL_DIR}/verify_v220_ui_evidence_closeout.mjs" "$@"
+    ;;
   verify-feature-scope-gate)
     require_internal verify_feature_scope_decision_gate.mjs
     exec "${INTERNAL_DIR}/verify_feature_scope_decision_gate.mjs" "$@"
@@ -944,6 +1026,14 @@ case "${cmd}" in
   verify-auth-routes)
     require_internal verify_auth_routes.sh
     exec "${INTERNAL_DIR}/verify_auth_routes.sh" "$@"
+    ;;
+  verify-auth-ui-smoke)
+    require_internal verify_auth_ui_smoke.mjs
+    exec "${INTERNAL_DIR}/verify_auth_ui_smoke.mjs" "$@"
+    ;;
+  verify-auth-scope-picker)
+    require_internal verify_auth_scope_picker.mjs
+    exec "${INTERNAL_DIR}/verify_auth_scope_picker.mjs" "$@"
     ;;
   verify-auth-regression-matrix)
     require_internal verify_auth_regression_matrix.mjs

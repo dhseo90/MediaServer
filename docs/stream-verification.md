@@ -9,7 +9,7 @@
 - TrackStateManager, SceneContextBuilder, EventManager, ScenarioEngine, cleanup 정책이 다채널 환경에서 무한 증가하지 않는지 확인합니다.
 - 신규 VA 기능이 media pipeline을 blocking하지 않는지 확인합니다.
 - 검증 명령은 로컬 재현성을 우선하고, 외부 source/TURN/장시간 테스트는 별도 gate로 분리합니다.
-- 현재 기본 테스트 환경에는 ONVIF camera, 외부 RTSP upstream, 외부 WHEP/WebRTC publisher처럼 원본 영상을 제공할 실물 장비가 없습니다. 장비가 필요한 항목은 검증 가능한 공개 URL, 로컬 fixture/simulator, loopback publisher, no-device suite 같은 대체 테스트로 실행하고, 실장비 검증은 미수행/후속 field smoke로 분리합니다.
+- 현재 기본 테스트 환경에는 ONVIF camera, 외부 RTSP upstream, 외부 WHEP/WebRTC publisher처럼 원본 영상을 제공할 실물 장비가 없습니다. 장비가 필요한 항목은 검증 가능한 공개 URL, 로컬 fixture/simulator, loopback publisher, no-device suite 같은 대체 테스트로 실행하고, 실장비 조건은 별도 테스트 영역으로 빼지 않고 안정화 조건 또는 UI 제외 기록에 남깁니다.
 
 ## 테스트 모드 요약
 
@@ -80,7 +80,6 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-manual-ui-evidence
-./server.sh verify-manual-ui-evidence-runner
 ./server.sh verify-ui-fulltest-one-shot --output-dir /tmp/media_server_ui_fulltest_one_shot
 ./server.sh verify-actions-security
 ./server.sh verify-actions-security --annotations-json <annotations.json>
@@ -128,39 +127,33 @@ GitHub Actions Node 24 baseline은 `actions/checkout@v5`와
 self-hosted runner는 minimum Actions Runner version `2.327.1` 이상이어야 합니다.
 `.github/dependabot.yml`은 future major update 자동 병합을 막고,
 `verify-actions-security`는 이 baseline과 SHA pin/local action만 허용합니다.
-Manual UI evidence runner는 UI 풀테스트 자체를 실행하지 않습니다. 대신
-`media-server.manual-ui-evidence-input.v1` JSON을 받아
-`project-feature-test-inventory.md`의 UI 대상 기능 ID별 PASS/FAIL report를 생성합니다.
-누락된 UI 대상 기능 ID는 `FAIL`로 남기고, 제외 항목은 판정표 밖 `Exclusions`
-section에만 기록합니다.
-PASS row에는 `route`, `control`, `interaction`, `input` 또는
-`inputNotApplicableReason`, expected/actual, `stateReflected=true`, artifact, 그리고
-log/EventRecord/not-applicable evidence가 필요합니다. `manualSpotReviews`는 manual
-spot review 보조 evidence로 report에 보존하지만, 누락된 UI 기능 ID나 raw JSON/API-only
-확인을 PASS로 바꾸지 않습니다.
-
-```bash
-./server.sh verify-manual-ui-evidence-runner \
-  --evidence <manual-ui-evidence.json> \
-  --report <manual-ui-evidence-report.md> \
-  --json-report <manual-ui-evidence-report.json>
-```
-
-UI 풀테스트 one-shot wrapper는 실제 UI verifier 묶음을 실행하는 harness입니다.
+UI 풀테스트 one-shot helper는 실제 UI verifier 묶음을 실행하는 harness입니다.
 전용 throwaway seed, core auth-off 서버, auth-auto 서버를 분리해 띄우고,
-manual evidence runner, native/blocking dialog guard, feature inventory coverage,
-Ops/Client screenshot smoke, Rules/route/rules/table verifier, core/auth click E2E를
+native/blocking dialog guard, feature inventory coverage, Ops/Client screenshot smoke,
+Rules/route/rules/table verifier, core/auth click E2E를
 순서대로 실행합니다. 이 wrapper는 30분 soak, 120분 predev, 120분 runtime console
 longrun을 실행하지 않고 summary에 `not-run`으로 남깁니다.
+`--manual-result <result.md>`를 지정하면 기존 manual result 문서 구조까지 함께
+검증합니다. manual result 구조 검증은 opt-in이며, manual result를 지정하지 않으면
+해당 step은 `manual result not provided`로 skip됩니다. helper PASS는 full UI 풀테스트 PASS가 아닙니다.
+full UI PASS는 인앱 브라우저에서 직접 조작한 manual result 문서가 PASS일 때만 별도로 판단합니다.
+auth UI flow를 포함하므로 아래 환경변수는 실행자가 직접 지정해야 합니다.
+
+- `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`
+- `MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD`
+- `MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD`
+- `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE`
+- `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO`
 
 ```bash
 ./server.sh verify-ui-fulltest-one-shot \
-  --output-dir /tmp/media_server_ui_fulltest_one_shot
+  --output-dir /tmp/media_server_ui_fulltest_one_shot \
+  --manual-result <result.md>
 ```
 
 Feature inventory coverage gate는 `media-server.feature-inventory-coverage.v1`
-report로 모든 기능 ID가 안정화 verifier, UI evidence runner, 30분/120분 승인 gate,
-또는 field exclusion 경계에 연결됐는지 확인합니다. coverage mapping에서 빠진 ID는
+report로 모든 기능 ID가 안정화 verifier, manual UI fulltest, 30분/120분 승인 조건에
+연결됐는지 확인하고 네 테스트 영역 밖 분류를 거부합니다. coverage mapping에서 빠진 ID는
 `missing coverage target`으로 기록하며, 누락 ID는 release gate에서 FAIL입니다.
 
 ```bash
@@ -379,7 +372,7 @@ sidecar 저장, Event/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경
 VLM close-out readiness는 `V200-S18`의 release evidence 분리 report입니다. 세부
 기준은 [vlm-close-out-readiness.md](./vlm-close-out-readiness.md)에 둡니다.
 `media-server.vlm-close-out-readiness.v1` report는 스크립트 테스트, UI 풀테스트,
-30분, 120분, provider field smoke, publish gate를 서로 대체하지 않고 `PASS`,
+30분, 120분, provider credential 조건, publish gate를 서로 대체하지 않고 `PASS`,
 `미실행`, `manual-not-run`, `제외`, `미확인`으로 분리합니다. 이 검증은 GitHub
 Release publish, 30분/120분 longrun, UI 풀테스트를 실행하지 않습니다.
 
@@ -480,6 +473,295 @@ v2.1.0 entry baseline은 v2.0.0 published evidence를 시작점으로 고정하�
 UI 풀테스트, 30분 soak, 120분 longrun, published GitHub live metadata 확인은 별도
 명시 지시나 release 후보 gate에서만 실행하고, 이 report의 PASS로 대체하지 않습니다.
 
+v2.2.0 Responsive UI Foundation entry boundary는 v2.1.0 source-only release baseline을
+제품 contract로 고정하고, UI 기반 재설계가 route/API/schema/media path 변경으로
+번지지 않도록 시작 경계를 확인합니다. `media-server.v220-entry-boundary-report.v1`
+report는 아래 명령으로 생성합니다.
+
+```bash
+./server.sh verify-v220-entry-boundary \
+  --report /tmp/media_server_v220_entry_boundary.md \
+  --json-report /tmp/media_server_v220_entry_boundary.json
+./server.sh verify-integrator-contract-artifact
+./server.sh verify-event-post
+./server.sh verify-auth-routes
+./server.sh verify-webrtc-va-metadata
+./server.sh verify-va-metadata-sidechannel
+./server.sh verify-ws-metadata
+./server.sh verify-docs-links
+./server.sh verify-script-inventory
+```
+
+이 묶음은 v2.2.0 S00의 roadmap review와 contract boundary review입니다.
+320/390/760/1180+ responsive task shell은 active roadmap의 완료 기준으로 고정하지만,
+S00은 UI 구현이나 visual redesign mockup을 만들지 않습니다. UI 풀테스트, 30분 soak,
+120분 longrun, published GitHub live metadata 확인은 별도 명시 지시나 release 후보
+gate에서만 실행하고, 이 report의 PASS로 대체하지 않습니다.
+
+v2.2.0 UI architecture inventory는 S01에서 현재 C++ 문자열 UI 구조, route/template
+경계, public helper API, component primitive 후보를 문서화합니다. 이 단계는 UI 구현이
+아니며, 정적 UI shell contract smoke만 연결합니다.
+
+```bash
+./server.sh verify-v220-ui-architecture-inventory
+./server.sh verify-ops-client-ui --browser-mode static
+./server.sh verify-docs-links
+./server.sh verify-script-inventory
+```
+
+이 묶음은 [v220-ui-architecture-inventory.md](./v220-ui-architecture-inventory.md)가
+`/ops`, `/client`, `/setup`, `/login` route 경계와 현재 `product_ui_*` helper를
+빠짐없이 연결하는지 확인합니다. 실제 브라우저 UI 풀테스트, visual redesign mockup,
+30분 soak, 120분 longrun은 S01 PASS로 대체하지 않습니다.
+
+v2.2.0 responsive task shell은 S02에서 route별 primary task, secondary action,
+drawer/panel 전환 기준과 320/390/760/1180+ viewport 완료 기준을 고정합니다. 이
+단계는 HTML/CSS/JavaScript 재배치 구현이 아니라 layout contract review입니다.
+
+```bash
+./server.sh verify-v220-responsive-task-shell
+./server.sh verify-ops-client-ui --browser-mode static
+./server.sh verify-docs-links
+./server.sh verify-script-inventory
+```
+
+이 묶음은 [v220-responsive-task-shell.md](./v220-responsive-task-shell.md)가
+responsive task shell 계약과 후속 S03/S04 입력값을 담는지 확인합니다. screenshot
+evidence, 브라우저 UI 풀테스트, visual redesign mockup, 30분 soak, 120분 longrun은
+S02 PASS로 대체하지 않습니다.
+
+v2.2.0 design token refresh는 S03에서 light/dark theme-aware token, typography,
+density, spacing, button/input/table/badge/debug details 기준을
+`ProductDesignTokensCss()` 단일 source로 정리합니다. 이 단계는 route별 화면
+재배치가 아니라 S04 component primitive와 S05~S08 route redesign의 token 입력값을
+고정하는 작업입니다.
+
+```bash
+./server.sh verify-v220-design-token-refresh
+./server.sh verify-product-ui-token-drift
+./server.sh verify-ops-client-ui --browser-mode static
+./server.sh verify-docs-links
+./server.sh verify-script-inventory
+```
+
+이 묶음은 [v220-design-token-refresh.md](./v220-design-token-refresh.md)가 S03 범위와
+변경 금지 경계를 담고, 제품 CSS가 typography/density/component token을 실제 common
+control에서 소비하는지 확인합니다. screenshot evidence, 브라우저 UI 풀테스트,
+visual redesign mockup, 30분 soak, 120분 longrun은 S03 PASS로 대체하지 않습니다.
+
+v2.2.0 component primitive는 S04에서 card, toolbar, tab, segmented control, table,
+drawer/details panel, form row, status badge, empty/loading/error state를 C++ helper
+API로 묶고 정적 서버 template의 최소 소비 지점을 연결합니다. 이 단계는 route별
+화면 재배치가 아니라 S05~S08 route redesign의 helper 입력값을 고정하는 작업입니다.
+
+```bash
+./server.sh verify-v220-component-primitives
+./server.sh verify-v220-design-token-refresh
+./server.sh verify-product-ui-token-drift
+./server.sh verify-ops-tables-layout
+./server.sh verify-ops-client-ui --browser-mode static
+./server.sh verify-docs-links
+./server.sh verify-script-inventory
+```
+
+이 묶음은 [v220-component-primitives.md](./v220-component-primitives.md)가 helper API와
+변경 금지 경계를 담고, `product_ui_components`가 빌드에 연결됐으며 static product
+template이 helper를 실제 소비하는지 확인합니다. screenshot evidence, 브라우저 UI
+풀테스트, visual redesign mockup, 30분 soak, 120분 longrun은 S04 PASS로 대체하지
+않습니다.
+
+v2.2.0 Ops workspace redesign은 S05에서 `/ops/home`, `/ops/dashboard`, `/ops/events`
+route를 운영자 작업 흐름과 responsive shell 기준으로 재배치합니다. 이 단계는
+Ops overview route의 visual hierarchy와 layout class를 바꾸지만 Event POST,
+WebRTC/SSE/WS metadata schema, RTSP/WebRTC media path, Auth/session/scope,
+Rule/Profile payload schema는 변경하지 않습니다.
+
+```bash
+./server.sh verify-v220-ops-workspace-redesign
+./server.sh verify-v220-component-primitives
+./server.sh verify-product-ui-token-drift
+./server.sh verify-ops-click-e2e
+./server.sh verify-ops-client-ui --screenshots
+./server.sh verify-rule-ui
+git diff --check
+```
+
+이 묶음은 [v220-ops-workspace-redesign.md](./v220-ops-workspace-redesign.md)가 S05 route
+scope, responsive 기준, 변경 금지 경계를 담고, `/ops/home`, `/ops/dashboard`,
+`/ops/events`가 S05 workspace class와 기존 JS hook을 함께 유지하는지 확인합니다.
+브라우저 UI 풀테스트, 30분 soak, 120분 longrun, published metadata 재검증은 S05
+PASS로 대체하지 않습니다.
+
+v2.2.0 Rules workspace redesign은 S06에서 `/ops/rules` route를 readiness, assist,
+catalog, detail editor 흐름으로 재배치합니다. 이 단계는 rule/profile/scenario 편집,
+preview, smoke selector, 저장 roundtrip의 visual hierarchy를 바꾸지만
+Rule/Profile payload schema, Event POST, WebRTC/SSE/WS metadata schema,
+RTSP/WebRTC media path, Auth/session/scope는 변경하지 않습니다.
+
+```bash
+./server.sh verify-v220-rules-workspace-redesign
+./server.sh verify-rule-ui
+./server.sh verify-ops-rules-roundtrip
+./server.sh verify-ops-rule-conflict-ui
+./server.sh verify-ops-rule-validation-matrix
+./server.sh verify-ops-client-ui --screenshots
+git diff --check
+```
+
+이 묶음은 [v220-rules-workspace-redesign.md](./v220-rules-workspace-redesign.md)가 S06 route
+scope, responsive 기준, 변경 금지 경계를 담고, `/ops/rules`가 S06 workspace class와
+기존 smoke/save/preview/audit hook을 함께 유지하는지 확인합니다. 브라우저 UI
+풀테스트, 30분 soak, 120분 longrun, published metadata 재검증은 S06 PASS로 대체하지
+않습니다.
+
+v2.2.0 Client live redesign은 S07에서 `/client/live`, `/client/dashboard`,
+`/client/events` route를 viewer-first video/status/event review 흐름으로 재배치합니다.
+이 단계는 client viewer layout class와 redaction marker를 바꾸지만 Event POST,
+WebRTC/SSE/WS metadata schema, RTSP/WebRTC media path, Auth/session/scope,
+Rule/Profile payload schema는 변경하지 않습니다.
+
+```bash
+./server.sh verify-v220-client-live-redesign
+./server.sh verify-ops-client-ui --screenshots
+git diff --check
+```
+
+이 묶음은 [v220-client-live-redesign.md](./v220-client-live-redesign.md)가 S07 route
+scope, viewer redaction, responsive 기준, 변경 금지 경계를 담고, `/client/live`,
+`/client/dashboard`, `/client/events`가 S07 viewer class와 기존 live/dashboard/event
+hook을 함께 유지하는지 확인합니다. 브라우저 UI 풀테스트, 30분 soak, 120분 longrun,
+published metadata 재검증은 S07 PASS로 대체하지 않습니다.
+
+v2.2.0 Auth/setup redesign은 S08에서 `/setup`, `/login`, `/password/change`,
+`/invite/setup`, `/client/request-access` route를 같은 responsive form layout과
+component primitive 기준으로 정리합니다. 이 단계는 auth form visual hierarchy와
+layout class를 바꾸지만 Auth/session/scope/role contract, password policy, invite
+token, access request API schema/rate limit는 변경하지 않습니다.
+
+```bash
+./server.sh verify-v220-auth-setup-redesign
+./server.sh verify-auth-bootstrap
+./server.sh verify-auth-users
+./server.sh verify-auth-routes
+git diff --check
+```
+
+이 묶음은 [v220-auth-setup-redesign.md](./v220-auth-setup-redesign.md)가 S08 route
+scope, auth route guard, responsive 기준, 변경 금지 경계를 담고, auth route들이 S08
+form class와 기존 action/input/session hook을 함께 유지하는지 확인합니다. 브라우저 UI
+풀테스트, 30분 soak, 120분 longrun, published metadata 재검증은 S08 PASS로 대체하지
+않습니다.
+
+v2.2.0 Ops Channels Workspace 재배치는 F02에서 `/ops/sources` route를 채널 목록,
+source detail, ONVIF/WHEP/WHIP 입력, PublishedView, audit 흐름으로 정리합니다. 이
+단계는 `/ops/sources` visual hierarchy와 layout class를 바꾸지만 SourceRegistry,
+PublishedView API 계약, ONVIF probe/import payload, RTSP/WebRTC media path,
+Auth/session/scope, Event POST/WebRTC/SSE/WS metadata schema는 변경하지 않습니다.
+
+```bash
+./server.sh verify-v220-ops-channels-workspace
+./server.sh verify-ops-client-ui --screenshots
+./server.sh verify-ops-source-lifecycle
+./server.sh verify-ops-source-group-site-management
+git diff --check
+```
+
+이 묶음은 [v220-ops-channels-workspace.md](./v220-ops-channels-workspace.md)가 F02 route
+scope, 작업 단위, responsive 기준, 변경 금지 경계를 담고, `/ops/sources`가 기존
+채널 table/source detail/ONVIF/WHEP/WHIP/PublishedView/audit hook을 유지하는지
+확인합니다. 브라우저 UI 풀테스트, 30분 soak, 120분 longrun, ONVIF 실장비 field
+smoke는 실행하지 않으면 미실행으로 분리합니다.
+
+v2.2.0 Ops Users / Access Workspace 재배치는 F03에서 `/ops/users`,
+`/client/request-access`, `/invite/setup` route를 사용자 목록, 접근 요청, 초대,
+승인/거절, role/scope, audit 작업 단위로 정리합니다. 이 단계는 route layout class와
+task marker를 바꾸지만 Auth/session/scope/role contract, password policy, invite
+token, access request API schema/rate limit, Event POST/WebRTC/SSE/WS metadata schema,
+RTSP/WebRTC media path는 변경하지 않습니다.
+
+```bash
+./server.sh verify-v220-ops-users-access-workspace
+./server.sh verify-auth-bootstrap
+./server.sh verify-auth-users
+./server.sh verify-auth-routes
+./server.sh verify-auth-ui-smoke
+./server.sh verify-auth-scope-picker
+./server.sh verify-ops-client-ui --screenshots
+git diff --check
+```
+
+이 묶음은 [v220-ops-users-access-workspace.md](./v220-ops-users-access-workspace.md)가
+F03 route scope, 작업 단위, responsive 기준, 변경 금지 경계를 담고, `/ops/users`가
+기존 user table/detail, access request approve/reject, invite issue/list, role/scope
+template, user audit hook을 유지하는지 확인합니다. 인앱 브라우저 UI 풀테스트, 30분
+soak, 120분 longrun은 실행하지 않으면 미실행으로 분리합니다.
+
+v2.2.0 Ops VLM UI containment 정리는 F04에서 `/ops/vlm`을 Ops 보조 작업으로 유지하면서
+privacy, default-off, profile 상태를 containment 작업 단위로 정리합니다. 이 단계는
+route layout class와 task marker를 바꾸지만 VLM runtime opt-in, profile storage,
+privacy/transfer guard, dry-run/evaluation fixture, Auth/session/scope, Event
+POST/WebRTC/SSE/WS metadata schema, RTSP/WebRTC media path, client/viewer 비노출
+경계는 변경하지 않습니다.
+
+```bash
+./server.sh verify-v220-ops-vlm-containment
+./server.sh verify-vlm-runtime-opt-in-contract
+./server.sh verify-vlm-runtime-status-ui
+./server.sh verify-vlm-profile-storage
+./server.sh verify-vlm-privacy-transfer-guard
+./server.sh verify-vlm-install-connection-ui
+./server.sh verify-ops-client-ui --screenshots
+git diff --check
+```
+
+이 묶음은 [v220-ops-vlm-containment.md](./v220-ops-vlm-containment.md)가 F04 route
+scope, 작업 단위, default-off/profile/privacy 상태, 변경 금지 경계를 담고,
+`/ops/vlm`이 기존 dry-run/runtime status/privacy guard/profile storage/boundary/raw
+debug hook을 유지하는지 확인합니다. 실제 provider 호출, model 설치, 30분 soak, 120분
+longrun, 인앱 브라우저 UI 풀테스트는 실행하지 않으면 미실행으로 분리합니다.
+
+v2.2.0 Client Preview / Viewer Redaction 재검수 정리는 F05에서 `/client/live`,
+`/client/dashboard`, `/client/events` route의 admin preview 상태와 viewer-safe
+비노출 경계를 검수 marker로 정리합니다. 이 단계는 client route layout marker와 review
+strip을 바꾸지만 PublishedView API schema, client WebRTC wrapper/session alias,
+Auth/session/scope, Event POST/WebRTC/SSE/WS metadata schema, RTSP/WebRTC media path는
+변경하지 않습니다.
+
+```bash
+./server.sh verify-v220-client-preview-redaction-review
+./server.sh verify-v220-client-live-redesign
+./server.sh verify-ops-client-ui --screenshots
+./server.sh verify-auth-routes
+git diff --check
+```
+
+이 묶음은 [v220-client-preview-redaction-review.md](./v220-client-preview-redaction-review.md)가
+F05 route scope, admin preview marker, viewer-safe 비노출 경계, 변경 금지 조건을 담고,
+client forbidden-text smoke가 source locator/raw debug/internal material 노출을 계속
+차단하는지 확인합니다. 인앱 브라우저 UI 풀테스트, 30분 soak, 120분 longrun은 실행하지
+않으면 미실행으로 분리합니다.
+
+v2.2.0 UI Evidence Close-out 준비는 F06에서 기능 inventory, manual UI checklist,
+UI 풀테스트 결과 기록 기준을 새 로드맵 기준으로 연결합니다. 이 단계는 제품 route,
+API schema, Event POST/WebRTC/SSE/WS metadata schema, RTSP/WebRTC media path를
+변경하지 않고, F02~F05 follow-up을 UI evidence close-out four-stage mapping과 result template에
+반영합니다.
+
+```bash
+./server.sh verify-v220-ui-evidence-closeout
+./server.sh verify-manual-ui-evidence
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-project-inventory
+git diff --check
+```
+
+이 묶음은 [v220-ui-evidence-closeout.md](./v220-ui-evidence-closeout.md)가 F06의
+inventory/checklist/result-template 연결 기준을 담고, manual UI evidence verifier가
+기존 PASS/FAIL 및 개별 기능 기록 구조를 유지하는지 확인합니다. 이 검증 PASS는
+UI 풀테스트 PASS가 아닙니다. 인앱 브라우저 UI 풀테스트, 30분 soak, 120분 longrun,
+실장비/외부 provider credential 조건은 실제 실행 결과가 없으면 안정화/UI 기록 안에서
+미실행 또는 제외 사유로 분리합니다.
+
 v2.1.0 S01 VLM runtime opt-in contract는 profile 저장 계약 안에서 runtime 상태만
 고정합니다. 실제 local/cloud runtime 호출이 아니라 default-off 상태 분리 gate입니다.
 
@@ -494,7 +776,8 @@ git diff --check
 이 묶음은 `media-server.vlm-runtime-opt-in-contract.v1`의 `disabled`,
 `local-runtime`, `cloud-provider`, `missing-model`, `invalid-output`, `timeout`
 상태와 `defaultEnabled=false`를 확인합니다. local runtime smoke와 cloud provider
-field smoke는 S02/S03 이후 별도 evidence이며, S01 PASS로 대체하지 않습니다.
+credential 조건은 S02/S03 이후 안정화/제외 기록 안의 evidence이며, S01 PASS로
+대체하지 않습니다.
 
 v2.1.0 S02 Local VLM runtime connection smoke는 실제 external model 품질 평가가
 아니라 loopback local endpoint fixture를 bind해 HTTP roundtrip, timeout abort, queue
@@ -511,10 +794,10 @@ git diff --check
 `media-server.vlm-local-runtime-smoke-report.v1`은 `ollama-loopback-chat-pass`,
 `vllm-openai-compatible-pass`, `api-compatible-local-pass`, `missing-runtime-fallback`,
 `timeout-queue-cleanup`, `invalid-output-fallback` case를 분리합니다. 이 report는
-cloud provider field smoke, provider credential 저장, 실제 사용자 model 품질, UI
+cloud provider credential 실행, provider credential 저장, 실제 사용자 model 품질, UI
 풀테스트, 30분/120분 longrun, release close-out PASS를 대신하지 않습니다.
 
-v2.1.0 S03 Cloud provider field smoke gate는 `gemini-2.5-flash` 같은 cloud opt-in
+v2.1.0 S03 Cloud provider credential stability는 `gemini-2.5-flash` 같은 cloud opt-in
 provider 호출을 credential 저장 없이 env/manual 승인 기반으로만 허용합니다.
 
 ```bash
@@ -525,7 +808,7 @@ provider 호출을 credential 저장 없이 env/manual 승인 기반으로만 �
 git diff --check
 ```
 
-기본 gate PASS는 provider field smoke PASS가 아닙니다. 실제 field call은
+기본 gate PASS는 provider credential 실행 PASS가 아닙니다. 실제 provider call은
 `--allow-field-call`, `MEDIA_SERVER_VLM_CLOUD_FIELD_SMOKE_APPROVED=1`, env credential이
 모두 있을 때만 실행합니다. 미실행, missing credential, provider timeout/failure는
 `releasePassEligible=false`이며 local runtime smoke PASS나 privacy guard PASS로
@@ -554,7 +837,7 @@ missing-model, invalid-output, timeout, metadata fanout, Event POST dispatch cas
 브라우저 UI 직접 확인 evidence가 아닙니다. 30분 soak는 runtime path나
 queue/backpressure 제품 경로 변경이 있을 때만 실행합니다.
 
-v2.1.0 S10 External TURN/WHEP field gate는 운영 TURN credential과 외부 WHEP
+v2.1.0 S10 External TURN/WHEP credential stability는 운영 TURN credential과 외부 WHEP
 playback endpoint 성공을 기본 release PASS와 분리합니다.
 
 ```bash
@@ -568,10 +851,10 @@ git diff --check
 `media-server.external-turn-whep-field-gate-report.v1`은 기본 실행에서 외부
 network call을 하지 않고 `fieldSmokeStatus=not-run`,
 `defaultReleasePassClaimAllowed=false`를 기록합니다. 실제 TURN relay/auth 또는
-외부 WHEP playback field smoke는 접근 가능한 endpoint, env credential, 운영 승인,
-redacted report가 모두 있을 때만 별도 field evidence로 남깁니다. `verify-webrtc-ice`
+외부 WHEP playback은 접근 가능한 endpoint, env credential, 운영 승인,
+redacted report가 모두 있을 때만 안정화 evidence로 남깁니다. `verify-webrtc-ice`
 기본 PASS, local coturn PASS, UI 풀테스트, 30분/120분 longrun은 external TURN/WHEP
-field PASS를 대체하지 않습니다.
+credential 실행 PASS를 대체하지 않습니다.
 
 v2.1.0 S11 Runtime/model bundle RC rehearsal은 source-only default를 유지하면서
 runtime/model 포함 bundle의 hash/provenance/license/source-offer 차단 기준만 확인합니다.
@@ -806,7 +1089,7 @@ accepted baseline run, 교체 이유, 수동 비노출 검토 결과를 PR/릴�
 baseline을 새로 채택하거나 교체할 때는
 [UI Visual Release Baseline Approval Log](./ui-visual-release-baseline-approval-template.md)
 템플릿에 manifest/index, diff report, 320/390/760/1180px 수동 검토,
-client/viewer source/debug/raw 비노출 확인, 미실행 field smoke를 함께 남깁니다.
+client/viewer source/debug/raw 비노출 확인, 미실행 외부 endpoint/credential 조건을 함께 남깁니다.
 template presence와 CI 연결은 `./server.sh verify-ui-release-baseline-approval-log`로 확인합니다.
 작성 형식 예시는 `test/fixtures/ui_visual_release_baseline_approval_log_sample.md`에
 sample-only fixture로 고정하며, 실제 approval/pass evidence로 사용하지 않습니다.
@@ -1352,8 +1635,9 @@ event POST 반복 안정성:
 ### Runtime/media longrun trigger matrix
 
 `media-server.runtime-media-longrun-trigger-matrix.v1`은 변경 유형별로 안정화,
-30분 soak, 120분 predev, VA runtime longrun, field smoke/exclusion trigger를
-분리합니다. 이 matrix는 장시간 테스트를 실행하지 않고 실행 조건과 승인 경계를
+30분 soak, 120분 predev, VA runtime longrun 조건을 분리합니다. 실기기/외부
+credential 조건은 별도 테스트 영역이 아니라 안정화 조건 또는 제외 기록으로만
+검증합니다. 이 matrix는 장시간 테스트를 실행하지 않고 실행 조건과 승인 경계를
 검증합니다.
 
 ```bash
@@ -1372,11 +1656,11 @@ event POST 반복 안정성:
 | `event-post-queue-recovery` | Event POST queue/recovery/cooldown | short stability, event POST longrun, 30분 soak | RC/high-risk 시 120분 판단 | 조건부 |
 | `vlm-docs-fixture-only` | VLM docs/fixture/verifier wording | short stability | 없음 | 불필요 |
 | `vlm-model-install-state` | VLM model install readiness/missing-model state | short stability, UI evidence | 없음 | 불필요 |
-| `vlm-provider-timeout-cloud` | VLM cloud provider timeout/retry/opt-in | short stability, field-smoke-or-exclusion | local soak로 대체 금지 | 필요 |
+| `vlm-provider-timeout-cloud` | VLM cloud provider timeout/retry/opt-in | short stability, external credential exclusion record | local soak로 대체 금지 | 필요 |
 | `vlm-queue-timeout-nonblocking` | VLM queue/backpressure/timeout worker | short stability, 30분 soak | VA runtime 120분 longrun | 필요 |
 | `vlm-memory-runtime-cache` | VLM runtime cache/frame retention/memory ownership | short stability, 30분 soak | 120분 predev | 필요 |
 | `va-tracker-reid-scenario-runtime` | VA tracker/Re-ID/scenario runtime | short stability, 30분 soak | VA runtime 120분 longrun | 필요 |
-| `external-field-endpoints` | External TURN/WHEP/ONVIF/YouTube real endpoint | field-smoke-or-exclusion | local soak로 대체 금지 | 필요 |
+| `external-endpoints` | External TURN/WHEP/ONVIF/YouTube real endpoint | short stability, external endpoint exclusion record | local soak로 대체 금지 | 필요 |
 | `release-candidate-closeout` | Release candidate close-out | short stability, 30분 soak | 120분 predev와 VA runtime longrun | 필요 |
 
 30분 soak는 120분 longrun PASS를 대체하지 않습니다. 120분 longrun도 UI 풀테스트
@@ -1400,7 +1684,7 @@ VLM queue, memory, provider timeout, model install state의 상세 기준은
 non-blocking, active RSS, cleanup drift가 얽힐 수 있으므로 30분 soak 대상이며,
 120분은 사용자 승인 또는 RC/high-risk gate에서만 실행합니다. `vlm-provider-timeout-cloud`는
 provider credential/endpoint가 필요하므로 local 30분/120분 PASS로 cloud 성공을
-대체하지 않고 field smoke 또는 제외 기록으로 남깁니다. `vlm-model-install-state`는
+대체하지 않고 안정화 조건 또는 제외 기록으로 남깁니다. `vlm-model-install-state`는
 기본적으로 UI/profile 상태 기준이며 model download나 runtime cache ownership이
 없으면 120분 longrun 대상이 아닙니다.
 

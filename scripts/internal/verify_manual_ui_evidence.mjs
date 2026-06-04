@@ -312,6 +312,31 @@ check("manual template links evidence verifier", () => {
   ], "docs/manual-ui-result-template.md");
 });
 
+check("manual UI docs link v2.2.0 UI Evidence Close-out", () => {
+  assertIncludes(checklist, [
+    "v2.2.0 UI Evidence Close-out",
+    "V220-F02",
+    "V220-F03",
+    "V220-F04",
+    "V220-F05",
+    "V220-F06",
+    "verify-v220-ui-evidence-closeout",
+  ], "docs/manual-ui-checklist.md");
+  assertIncludes(fulltest, [
+    "v2.2.0 UI Evidence Close-out",
+    "F06는 UI 풀테스트 실행 결과가 아니라",
+    "기능 inventory",
+    "manual UI checklist",
+    "result template",
+  ], "docs/manual-ui-fulltest.md");
+  assertIncludes(template, [
+    "## v2.2.0 UI Evidence Close-out 기록 기준",
+    "로드맵 항목",
+    "실행 evidence",
+    "V220-F06",
+  ], "docs/manual-ui-result-template.md");
+});
+
 check("roadmap links evidence verifier", () => {
   assertIncludes(backlog, [
     "| V180-P0-03 |",

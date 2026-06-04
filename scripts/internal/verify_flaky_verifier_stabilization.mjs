@@ -30,10 +30,13 @@ Checks:
 assertKnownOptions(rawArgs, ["h", "help"]);
 
 const click = readText("scripts/internal/verify_ops_ui_click_e2e.mjs");
+const oneShot = readText("scripts/internal/verify_ui_fulltest_one_shot.mjs");
 const rule = readText("scripts/internal/verify_ops_rules_embed_smoke.mjs");
 const helper = readText("scripts/internal/rule_preview_fixture_helpers.mjs");
 const cleanup = readText("scripts/internal/verify_fixture_cleanup_contracts.mjs");
 const stream = readText("docs/stream-verification.md");
+const manualFulltest = readText("docs/manual-ui-fulltest.md");
+const manualChecklist = readText("docs/manual-ui-checklist.md");
 const clipboardDocs = readText("docs/browser-use-clipboard-diagnostics.md");
 const server = readText("server.sh");
 const inventory = readText("scripts/internal/verify_script_inventory.mjs");
@@ -98,11 +101,46 @@ check("browser route smoke keeps deterministic waits", () => {
   ], "verify_ops_ui_click_e2e.mjs");
 });
 
+check("ops click E2E exits explicitly after writing summary", () => {
+  assertIncludes(click, [
+    "exitAfterSummary",
+    "await exitAfterSummary(0)",
+    "await exitAfterSummary(1)",
+  ], "verify_ops_ui_click_e2e.mjs");
+});
+
+check("UI fulltest one-shot manual result verification is opt-in", () => {
+  assertIncludes(oneShot, [
+    "const manualResult = args.manualResult || \"\"",
+    "const skipManualResult = Boolean(args.skipManualResult) || !manualResult",
+    "manual result not provided",
+  ], "verify_ui_fulltest_one_shot.mjs");
+  assertNotIncludes(oneShot, [
+    "docs/manual-ui-result-2026-05-25-ui-fulltest-restart.md",
+  ], "verify_ui_fulltest_one_shot.mjs");
+});
+
+check("UI fulltest one-shot docs expose auth env and manual-result boundaries", () => {
+  for (const text of [stream, manualFulltest, manualChecklist]) {
+    assertIncludes(text, [
+      "--manual-result <result.md>",
+      "manual result 구조 검증은 opt-in",
+      "manual result를 지정하지 않으면",
+      "MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD",
+      "MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD",
+      "MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD",
+      "MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE",
+      "MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO",
+      "wrapper PASS는 full UI 풀테스트 PASS가 아닙니다",
+    ], "one-shot UI docs");
+  }
+});
+
 check("rule preview smoke uses shared fixture helper", () => {
   assertIncludes(rule, [
     "ensureRulePreviewPrerequisites",
     "cleanupRulePreviewPrerequisites",
-    "const seededPrereqs = await ensureRulePreviewPrerequisites({ httpBase })",
+    "const seededPrereqs = await ensureRulePreviewPrerequisites({",
     "finally {",
     "await cleanupRulePreviewPrerequisites({ httpBase, created: seededPrereqs })",
     "preSaveValidation",
@@ -124,7 +162,9 @@ check("rule preview smoke uses shared fixture helper", () => {
 check("fixture cleanup verifier exposes stabilization contract", () => {
   assertIncludes(cleanup, [
     "ops click E2E restores access request fixture",
-    "ops event records smoke restores storage, audit, and evidence fixtures",
+    "ops event records smoke restores storage fixture",
+    "ops event records smoke restores audit fixture",
+    "ops event records smoke removes evidence fixtures",
     "stream verification docs expose cleanup-sensitive commands",
   ], "verify_fixture_cleanup_contracts.mjs");
   assertIncludes(stream, [
@@ -132,11 +172,11 @@ check("fixture cleanup verifier exposes stabilization contract", () => {
     "Access approval",
     "rule preview save",
     "clipboard fallback",
-    "Browser/Computer Use fallback",
     "raw JSON/API-only",
     "fixture cleanup",
     "browser route smoke",
-    "sandbox local fetch/CDP 제한",
+    "Chrome/CDP fallback",
+    "sandbox local fetch/browser automation 제한",
     "./server.sh verify-flaky-verifiers",
   ], "docs/stream-verification.md");
 });
@@ -182,5 +222,12 @@ function assertIncludes(text, terms, label) {
   const missing = terms.filter(term => !text.includes(term));
   if (missing.length > 0) {
     throw new Error(`${label} missing required wording: ${missing.join(", ")}`);
+  }
+}
+
+function assertNotIncludes(text, terms, label) {
+  const found = terms.filter(term => text.includes(term));
+  if (found.length > 0) {
+    throw new Error(`${label} contains forbidden wording: ${found.join(", ")}`);
   }
 }

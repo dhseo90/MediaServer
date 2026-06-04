@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 // 파일 용도: 운영자 룰 화면을 실제 브라우저로 열어 embed script와 탭 이동 안정성을 smoke 검증한다.
 
+import fs from "node:fs";
 import path from "node:path";
 import process from "node:process";
 
@@ -29,6 +30,8 @@ Options:
   --chrome-path <path>  Chrome/Chromium 실행 파일 경로입니다.
                         Codex 세션에서는 기본적으로 인앱 브라우저 evidence를 사용해야 하며,
                         Chrome fallback은 명시 예외 환경변수 지정 시에만 허용합니다.
+  --in-app-evidence <path>
+                        Codex 인앱 브라우저 직접 확인 evidence JSON입니다.
   --debug-port <port>   Chrome CDP port입니다. 기본 9899.
   --output-dir <path>   screenshot/log 출력 디렉터리입니다.
   -h, --help            도움말 출력
@@ -38,6 +41,7 @@ assertKnownOptions(rawArgs, [
   "http-base",
   "timeout-ms",
   "chrome-path",
+  "in-app-evidence",
   "debug-port",
   "output-dir",
   "h",
@@ -47,8 +51,14 @@ const args = parseArgs(rawArgs);
 const httpBase = String(args.httpBase || "http://127.0.0.1:8081").replace(/\/+$/, "");
 const timeoutMs = Number(args.timeoutMs || 12000);
 const chromePath = args.chromePath || findChrome();
+const inAppEvidencePath = args.inAppEvidence || process.env.MEDIA_SERVER_IN_APP_BROWSER_EVIDENCE || "";
 const debugPort = Number(args.debugPort || 9899);
 const outputDir = args.outputDir || path.join("/tmp", `media_server_ops_rules_native_${Date.now()}_${process.pid}`);
+
+if (inAppEvidencePath) {
+  assertInAppRuleEvidence(inAppEvidencePath);
+  process.exit(0);
+}
 
 if (!chromeFallbackAvailableForThisEnvironment() || !chromePath) {
   console.error(`[fail] ${browserFallbackUnavailableMessage()}`);
@@ -124,6 +134,63 @@ function parseArgs(argv) {
 
 function toCamel(value) {
   return value.replace(/-([a-z])/g, (_match, chr) => chr.toUpperCase());
+}
+
+function assertInAppRuleEvidence(evidencePath) {
+  const resolved = path.resolve(evidencePath);
+  let evidence;
+  try {
+    evidence = JSON.parse(fs.readFileSync(resolved, "utf8"));
+  } catch (error) {
+    console.error(`[fail] invalid in-app browser evidence ${resolved}: ${error.message}`);
+    process.exit(1);
+  }
+  const failures = [];
+  const fail = (message) => failures.push(message);
+  if (evidence?.schema !== "media-server.in-app-browser-ui-evidence.v1") {
+    fail(`invalid evidence schema: ${evidence?.schema || "(missing)"}`);
+  }
+  const browserName = String(evidence?.browser || evidence?.browserId || evidence?.source || "");
+  if (!/in-app|iab|codex/i.test(browserName)) {
+    fail("evidence must identify Codex in-app browser/iab");
+  }
+  const routes = Array.isArray(evidence?.routes) ? evidence.routes : [];
+  const interactions = Array.isArray(evidence?.interactions) ? evidence.interactions : [];
+  const routeByPath = new Map(routes.map((route) => [route?.path, route]));
+  const rulesRoute = routeByPath.get("/ops/rules");
+  if (!rulesRoute) {
+    fail("missing /ops/rules route evidence");
+  } else {
+    if (rulesRoute?.checks?.visualLayoutPass !== true) fail("/ops/rules visualLayoutPass is not true");
+    if (!Array.isArray(rulesRoute?.screenshots) || rulesRoute.screenshots.length === 0) {
+      fail("/ops/rules screenshot evidence missing");
+    }
+  }
+  for (const pathName of ["/ops/users", "/ops/sources"]) {
+    const route = routeByPath.get(pathName);
+    if (!route?.checks?.visualLayoutPass) {
+      fail(`${pathName} route evidence missing or visualLayoutPass is not true`);
+    }
+  }
+  const generatedIdEvidence = interactions.find((entry) => entry?.id === "ops-rules-generated-id-displays");
+  if (generatedIdEvidence?.pass !== true) {
+    fail("ops-rules-generated-id-displays interaction evidence missing or failing");
+  }
+  if (failures.length > 0) {
+    console.error("[fail] in-app rule UI evidence invalid");
+    for (const failure of failures) console.error(`- ${failure}`);
+    process.exit(1);
+  }
+  console.log("[pass] in-app /ops/rules route evidence");
+  console.log("[pass] in-app /ops/rules generated ID interaction evidence");
+  console.log("[pass] in-app /ops/users and /ops/sources nav return evidence");
+  console.log("[summary] ops-rules-native-smoke complete");
+  console.log(JSON.stringify({
+    mode: "in-app-evidence",
+    evidence: resolved,
+    route: "/ops/rules",
+    screenshots: rulesRoute.screenshots.length,
+  }, null, 2));
 }
 
 async function clickNavAndWait(browser, path) {

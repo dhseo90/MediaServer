@@ -5,13 +5,12 @@
 source-of-truth로 삼고, 기능별 UI 필요 여부와 테스트 영역은
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 합니다. 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를
-사용합니다. 현재 release 목표는 `v2.1.0`이며, UI 풀테스트 기준도 이 버전의
-제품 route, 권한, 기능 baseline만 대상으로 합니다.
+사용합니다. 최신 공개 release 기준은 `v2.2.0`이며, UI 문서 기준은
+`v2.2.0 Responsive UI Foundation`입니다. UI 풀테스트 기준은 해당 작업
+범위에 포함된 제품 route, 권한, 기능 baseline만 대상으로 합니다.
+현재 release 목표는 `v2.2.0`이라는 gate 문구는 최신 공개 release baseline을
+뜻하며, UI 재배치 문서 준비나 자동 smoke만으로 UI 풀테스트 PASS를 뜻하지 않습니다.
 문서 구조와 evidence 경계는 `./server.sh verify-manual-ui-evidence`로 확인합니다.
-기능 ID별 UI evidence JSON을 만든 경우에는
-`./server.sh verify-manual-ui-evidence-runner --evidence <json> --report <report.md>`를
-실행해 inventory의 UI 대상 기능을 전수 report로 변환합니다.
-누락된 UI 대상 기능 ID는 `FAIL`이고, 제외 항목은 판정표 밖에만 남깁니다.
 현재 제품 UI 직접 조작 evidence 없이 완료 판정에 포함하지 않습니다.
 전용 throwaway 서버부터 core/auth 클릭 검증까지 한 번에 실행해야 할 때는
 `./server.sh verify-ui-fulltest-one-shot --output-dir <dir>`을 사용합니다.
@@ -81,6 +80,15 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
   event/snapshot/clip 경로를 output dir 아래에 직접 만들고, `--http-base`,
   `MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT`, `--auth-users-file`을 각 verifier에
   명시해 현재 PublishedView/Rule seed를 기준으로 실행합니다.
+  `--manual-result <result.md>`를 지정하면 기존 manual result 문서 구조까지 함께
+  검증합니다. manual result 구조 검증은 opt-in이며, manual result를 지정하지 않으면
+  해당 step은 skip됩니다. helper PASS는 full UI 풀테스트 PASS가 아닙니다.
+  auth UI flow를 포함하므로 아래 환경변수는 실행자가 직접 지정해야 합니다.
+  - `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`
+  - `MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD`
+  - `MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD`
+  - `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE`
+  - `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO`
 - seed를 서버에 넣는 동작은 실제 테스트 지시 후에만
   `./server.sh prepare-manual-ui-fulltest-seed --apply --confirm-throwaway-data --http-base <url>`
   형태로 수행합니다.
@@ -93,9 +101,9 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
   EventRecord evidence와 함께 확인하고, `/client/live`, `/client/dashboard`,
   `/client/events`에서 VLM model/prompt/raw response/provider/internal review card가
   보이지 않는지 확인합니다.
-- current pre-test 반영 목록은 [project-feature-test-inventory.md](./project-feature-test-inventory.md)의
-  `Current Pre-Test Update List`를 기준으로 확인합니다. 이 목록은 실행 결과가 아니라
-  안정화/30분/120분/UI 풀테스트에 포함할 대상을 빠뜨리지 않기 위한 사전 목록입니다.
+- four-stage mapping은 [project-feature-test-inventory.md](./project-feature-test-inventory.md)의
+  `Four-Stage Coverage Mapping`을 기준으로 확인합니다. 이 mapping은 실행 결과가 아니라
+  안정화/30분/120분/UI 풀테스트에 포함할 대상을 빠뜨리지 않기 위한 기준입니다.
 - destructive action은 throwaway 계정, 채널, 접근 요청으로만 수행합니다.
 - UI smoke 전용 HTML selector 검증은 필요 시 별도 서버에서
   `./server.sh verify-ops-client-ui --screenshots`로 실행하되, 이 결과만으로
@@ -108,24 +116,46 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
   Computer Use visible UI 조작 순서로 시도하고 실패 지점과 대체 smoke를 분리해
   기록합니다. raw JSON/API-only 확인은 수동 UI 클릭 evidence로 쓰지 않습니다.
 
-### 긴 테스트 시작 전 fail-fast 확인
+### 긴 테스트 시작 조건 확인
 
 아래 항목이 하나라도 비어 있으면 30분, 120분, UI 풀테스트를 시작하지 않습니다.
 
-- 기능/route/control/action 목록: `Current Pre-Test Update List`,
-  `Longrun/UI Fail-Fast Preflight`, `/ops/vlm`, `/client/events`, VLM client redaction.
+- 기능/route/control/action mapping: `Four-Stage Coverage Mapping`,
+  `Four-Stage Start Conditions`, `/ops/vlm`, `/client/events`, VLM client redaction.
 - auth/env: auth verifier password env 5개가 `SET`인지, users file과 session state가
   throwaway인지 확인합니다.
 - fixture/output: source/view/analysis/event/snapshot/clip 경로, seed dry-run 결과,
   output dir, summary/report/log/evidence JSON 경로를 시작 전에 고정합니다.
 - UI blocker: native dialog guard, blocking dialog policy, browser automation 권한,
   viewport/theme 목록을 먼저 확인합니다.
-- longrun blocker: 120분은 30분 또는 high-risk short gate PASS, 사용자 승인,
+- longrun blocker: 120분은 30분 또는 high-risk 안정화 조건 PASS, 사용자 승인,
   RC/high-risk 사유, memory/runtime 관찰 항목이 모두 있어야 시작합니다.
 
-preflight 실패는 긴 테스트 실패로 과장하지 않습니다. 문서/list/fixture/env 문제를
-고친 뒤 짧은 gate만 다시 확인하고, 아직 시작하지 않은 30분/120분/UI 결과는
+시작 조건 실패는 긴 테스트 실패로 과장하지 않습니다. 문서/mapping/fixture/env 문제를
+고친 뒤 해당 안정화 조건만 다시 확인하고, 아직 시작하지 않은 30분/120분/UI 결과는
 `미실행`으로 남깁니다.
+
+### v2.2.0 UI Evidence Close-out four-stage mapping
+
+v2.2.0 UI Evidence Close-out은 새 로드맵 기준에서 기능 inventory,
+manual-ui-result-template.md, manual UI checklist가 같은 범위를 가리키는지 먼저
+확인하는 준비 단계입니다. 이 mapping은 새 테스트 영역이 아니며 기준은
+[v220-ui-evidence-closeout.md](./v220-ui-evidence-closeout.md)와
+`./server.sh verify-v220-ui-evidence-closeout`입니다.
+
+UI 풀테스트 결과 문서를 쓰기 전에는 아래 항목이 개별 route/control/action row로
+분리돼 있는지 확인합니다. 이 목록은 실행 evidence가 아니라 누락 방지 목록입니다.
+
+| 로드맵 항목 | 결과 기록 기준 |
+| --- | --- |
+| V220-F02 | `/ops/sources` 채널 목록, source detail, ONVIF/WHEP/WHIP 입력, PublishedView, audit |
+| V220-F03 | `/ops/users`, `/client/request-access`, `/invite/setup` 사용자, 초대, 승인, role/scope, audit |
+| V220-F04 | `/ops/vlm` privacy, default-off, profile 상태, Ops-only raw/debug containment |
+| V220-F05 | `/client/live`, `/client/dashboard`, `/client/events` admin preview, viewer-safe 비노출 |
+| V220-F06 | 기능 inventory, manual UI checklist, UI 풀테스트 결과 기록 기준 |
+
+30분 soak, 120분 longrun, 인앱 브라우저 UI 풀테스트를 실행하지 않았으면 결과 문서의
+스크립트 테스트 또는 UI 풀테스트 영역에 PASS로 쓰지 않고 `미실행`으로 남깁니다.
 
 ## 3. 실행 원칙
 
@@ -161,9 +191,9 @@ preflight 실패는 긴 테스트 실패로 과장하지 않습니다. 문서/li
 - 실패 후 고친 화면은 같은 조작으로 재검수하고, 최초 실패와 재확인 결과를 모두
   남깁니다.
 
-### v2.1.0 release UI gate
+### v2.2.0 release UI gate
 
-v2.1.0 release close-out에서는 자동 smoke와 별도로 아래 화면을 브라우저에서 직접
+v2.2.0 release close-out에서는 자동 smoke와 별도로 아래 화면을 브라우저에서 직접
 열고 클릭한 Evidence index를 남깁니다. 자동 screenshot 생성이나 raw JSON/API-only 확인만
 있으면 해당 개별 기능은 `FAIL`입니다.
 
@@ -180,10 +210,11 @@ Evidence index에는 route, 계정/권한, 직접 조작, screenshot/artifact, �
 남깁니다. 사용자가 의도적으로 제외한 항목은 Evidence index가 아니라 `제외 기록`에
 남깁니다.
 
-UI 조작 evidence는 프로젝트 verifier가 자체 Chrome/CDP 세션에서 클릭/타이핑/팝업
-처리를 완료한 기록을 우선합니다. Codex 인앱 브라우저에서 사람이 직접 누르는 방식은
-보조 재현 수단입니다. 테스트가 사용자 클릭이나 팝업 버튼 수동 확인을 기다리면
-해당 항목은 harness 실패로 기록하고 PASS 처리하지 않습니다.
+Codex 세션의 UI 조작 evidence는 인앱 브라우저 직접 조작을 우선합니다.
+프로젝트 verifier가 자체 Chrome/CDP 세션에서 클릭/타이핑/팝업 처리를 완료한 기록은
+명시 승인된 예외나 Codex 밖 실행의 보조 evidence로만 씁니다. 테스트가 사용자 클릭이나
+팝업 버튼 수동 확인을 기다리면 해당 항목은 harness 실패로 기록하고 PASS 처리하지
+않습니다.
 
 ## 4. Auth Shell
 

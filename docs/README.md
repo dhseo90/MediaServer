@@ -9,7 +9,21 @@
 | --- | --- |
 | 설치, 빌드, 실행 | [development-guide.md](development-guide.md) |
 | 운영자/클라이언트 UI | [ui-guide.md](ui-guide.md) |
-| UI 풀테스트 기준/체크리스트/결과 | [manual-ui-fulltest.md](manual-ui-fulltest.md), [manual-ui-checklist.md](manual-ui-checklist.md), [manual-ui-result-template.md](manual-ui-result-template.md), [manual-ui-result-2026-05-25-ui-fulltest-restart.md](manual-ui-result-2026-05-25-ui-fulltest-restart.md), [manual-ui-result-2026-06-01-v200-inapp-fulltest.md](manual-ui-result-2026-06-01-v200-inapp-fulltest.md), [manual-ui-result-2026-06-03-v210-inapp-fulltest.md](manual-ui-result-2026-06-03-v210-inapp-fulltest.md) |
+| v2.2.0 UI 구조 inventory | [v220-ui-architecture-inventory.md](v220-ui-architecture-inventory.md) |
+| v2.2.0 반응형 task shell | [v220-responsive-task-shell.md](v220-responsive-task-shell.md) |
+| v2.2.0 design token refresh | [v220-design-token-refresh.md](v220-design-token-refresh.md) |
+| v2.2.0 component primitives | [v220-component-primitives.md](v220-component-primitives.md) |
+| v2.2.0 Ops workspace redesign | [v220-ops-workspace-redesign.md](v220-ops-workspace-redesign.md) |
+| v2.2.0 Rules workspace redesign | [v220-rules-workspace-redesign.md](v220-rules-workspace-redesign.md) |
+| v2.2.0 Client live redesign | [v220-client-live-redesign.md](v220-client-live-redesign.md) |
+| v2.2.0 Auth/setup redesign | [v220-auth-setup-redesign.md](v220-auth-setup-redesign.md) |
+| v2.2.0 Ops Channels Workspace follow-up | [v220-ops-channels-workspace.md](v220-ops-channels-workspace.md) |
+| v2.2.0 Ops Users / Access Workspace follow-up | [v220-ops-users-access-workspace.md](v220-ops-users-access-workspace.md) |
+| v2.2.0 Ops VLM containment follow-up | [v220-ops-vlm-containment.md](v220-ops-vlm-containment.md) |
+| v2.2.0 Client preview/redaction follow-up | [v220-client-preview-redaction-review.md](v220-client-preview-redaction-review.md) |
+| v2.2.0 UI evidence close-out | [v220-ui-evidence-closeout.md](v220-ui-evidence-closeout.md) |
+| v2.2.0 UI superpowers 설계/계획 | [superpowers/specs/2026-06-03-v220-s05-ops-workspace-redesign-design.md](superpowers/specs/2026-06-03-v220-s05-ops-workspace-redesign-design.md), [superpowers/plans/2026-06-03-v220-s05-ops-workspace-redesign.md](superpowers/plans/2026-06-03-v220-s05-ops-workspace-redesign.md), [superpowers/specs/2026-06-03-v220-s06-rules-workspace-redesign-design.md](superpowers/specs/2026-06-03-v220-s06-rules-workspace-redesign-design.md), [superpowers/plans/2026-06-03-v220-s06-rules-workspace-redesign.md](superpowers/plans/2026-06-03-v220-s06-rules-workspace-redesign.md), [superpowers/specs/2026-06-03-v220-s07-client-live-redesign-design.md](superpowers/specs/2026-06-03-v220-s07-client-live-redesign-design.md), [superpowers/plans/2026-06-03-v220-s07-client-live-redesign.md](superpowers/plans/2026-06-03-v220-s07-client-live-redesign.md), [superpowers/specs/2026-06-03-v220-s08-auth-setup-redesign-design.md](superpowers/specs/2026-06-03-v220-s08-auth-setup-redesign-design.md), [superpowers/plans/2026-06-03-v220-s08-auth-setup-redesign.md](superpowers/plans/2026-06-03-v220-s08-auth-setup-redesign.md) |
+| UI 풀테스트 기준/체크리스트/결과 | [manual-ui-fulltest.md](manual-ui-fulltest.md), [manual-ui-checklist.md](manual-ui-checklist.md), [manual-ui-result-template.md](manual-ui-result-template.md), [manual-ui-result-2026-05-25-ui-fulltest-restart.md](manual-ui-result-2026-05-25-ui-fulltest-restart.md), [manual-ui-result-2026-06-01-v200-inapp-fulltest.md](manual-ui-result-2026-06-01-v200-inapp-fulltest.md), [manual-ui-result-2026-06-03-v210-inapp-fulltest.md](manual-ui-result-2026-06-03-v210-inapp-fulltest.md), [manual-ui-result-2026-06-04-v220-inapp-fulltest.md](manual-ui-result-2026-06-04-v220-inapp-fulltest.md) |
 | 기능별 UI 필요/테스트 영역 inventory | [project-feature-test-inventory.md](project-feature-test-inventory.md) |
 | RTSP/WebRTC/VA 구조 | [media-server-architecture.md](media-server-architecture.md) |
 | 영상 분석, tracking, scenario | [video-analysis.md](video-analysis.md) |
@@ -17,16 +31,18 @@
 | release/version 기준 | [release-policy.md](release-policy.md), [versioning-policy.md](versioning-policy.md), [release-evidence-index.md](release-evidence-index.md) |
 | v2.0.0 테스트 실행 기록 | [v200-test-record-2026-05-31.md](v200-test-record-2026-05-31.md) |
 | 현재 release/active roadmap/archive | [development-backlog.md](development-backlog.md) |
-| v2.0.0/V2.1.0 VLM 모델 선택/PC 사양 감지 기준, 추천 엔진, 설치/연결 dry-run, profile 저장, runtime opt-in contract, local runtime smoke, cloud provider field smoke gate, queue/backpressure stability, external TURN/WHEP field gate, runtime/model bundle RC rehearsal, runtime status UI, evaluation result workflow, review action workflow, 평가 harness, event evidence 추출, observation sidecar, 이벤트 설명/오탐 힌트, Ops 리뷰 UI, Privacy/전송 guard, summary 검색 후보, Rule 추천 보조 후보, 테스트 리허설, 안정화/장시간/UI 기준 및 close-out readiness | [vlm-model-selection.md](vlm-model-selection.md), [vlm-recommendation-engine.md](vlm-recommendation-engine.md), [vlm-install-connection-dry-run.md](vlm-install-connection-dry-run.md), [vlm-profile-storage.md](vlm-profile-storage.md), [vlm-runtime-opt-in-contract.md](vlm-runtime-opt-in-contract.md), [vlm-local-runtime-connection-smoke.md](vlm-local-runtime-connection-smoke.md), [vlm-cloud-provider-field-smoke-gate.md](vlm-cloud-provider-field-smoke-gate.md), [vlm-queue-backpressure-stability.md](vlm-queue-backpressure-stability.md), [external-turn-whep-field-gate.md](external-turn-whep-field-gate.md), [runtime-model-bundle-rc-rehearsal.md](runtime-model-bundle-rc-rehearsal.md), [vlm-runtime-status-ui.md](vlm-runtime-status-ui.md), [vlm-evaluation-result-workflow.md](vlm-evaluation-result-workflow.md), [vlm-review-action-workflow.md](vlm-review-action-workflow.md), [vlm-evaluation-harness.md](vlm-evaluation-harness.md), [vlm-event-evidence-extraction.md](vlm-event-evidence-extraction.md), [vlm-observation-sidecar.md](vlm-observation-sidecar.md), [vlm-event-explanation-hints.md](vlm-event-explanation-hints.md), [vlm-ops-event-review-ui.md](vlm-ops-event-review-ui.md), [vlm-privacy-transfer-guard.md](vlm-privacy-transfer-guard.md), [vlm-summary-search-candidates.md](vlm-summary-search-candidates.md), [vlm-rule-suggestion-candidates.md](vlm-rule-suggestion-candidates.md), [vlm-test-rehearsal.md](vlm-test-rehearsal.md), [vlm-stabilization-longrun-ui-criteria.md](vlm-stabilization-longrun-ui-criteria.md), [vlm-close-out-readiness.md](vlm-close-out-readiness.md), [development-backlog.md](development-backlog.md) |
+| v2.0.0/V2.1.0 VLM 모델 선택/PC 사양 감지 기준, 추천 엔진, 설치/연결 dry-run, profile 저장, runtime opt-in contract, local runtime smoke, cloud provider credential condition, queue/backpressure stability, external TURN/WHEP credential condition, runtime/model bundle RC rehearsal, runtime status UI, evaluation result workflow, review action workflow, 평가 harness, event evidence 추출, observation sidecar, 이벤트 설명/오탐 힌트, Ops 리뷰 UI, Privacy/전송 guard, summary 검색 후보, Rule 추천 보조 후보, 테스트 리허설, 안정화/장시간/UI 기준 및 close-out readiness | [vlm-model-selection.md](vlm-model-selection.md), [vlm-recommendation-engine.md](vlm-recommendation-engine.md), [vlm-install-connection-dry-run.md](vlm-install-connection-dry-run.md), [vlm-profile-storage.md](vlm-profile-storage.md), [vlm-runtime-opt-in-contract.md](vlm-runtime-opt-in-contract.md), [vlm-local-runtime-connection-smoke.md](vlm-local-runtime-connection-smoke.md), [vlm-cloud-provider-field-smoke-gate.md](vlm-cloud-provider-field-smoke-gate.md), [vlm-queue-backpressure-stability.md](vlm-queue-backpressure-stability.md), [external-turn-whep-field-gate.md](external-turn-whep-field-gate.md), [runtime-model-bundle-rc-rehearsal.md](runtime-model-bundle-rc-rehearsal.md), [vlm-runtime-status-ui.md](vlm-runtime-status-ui.md), [vlm-evaluation-result-workflow.md](vlm-evaluation-result-workflow.md), [vlm-review-action-workflow.md](vlm-review-action-workflow.md), [vlm-evaluation-harness.md](vlm-evaluation-harness.md), [vlm-event-evidence-extraction.md](vlm-event-evidence-extraction.md), [vlm-observation-sidecar.md](vlm-observation-sidecar.md), [vlm-event-explanation-hints.md](vlm-event-explanation-hints.md), [vlm-ops-event-review-ui.md](vlm-ops-event-review-ui.md), [vlm-privacy-transfer-guard.md](vlm-privacy-transfer-guard.md), [vlm-summary-search-candidates.md](vlm-summary-search-candidates.md), [vlm-rule-suggestion-candidates.md](vlm-rule-suggestion-candidates.md), [vlm-test-rehearsal.md](vlm-test-rehearsal.md), [vlm-stabilization-longrun-ui-criteria.md](vlm-stabilization-longrun-ui-criteria.md), [vlm-close-out-readiness.md](vlm-close-out-readiness.md), [development-backlog.md](development-backlog.md) |
 | 영어 문서 진입점 | [en/README.md](en/README.md) |
 
 ## 현재 제품 경계
 
-- 현재 release: [`v2.1.0`](https://github.com/dhseo90/MediaServer/releases/tag/v2.1.0)
-- release close-out: `v2.1.0` VLM runtime opt-in stabilization은
-  [development-backlog.md](development-backlog.md)의 `v2.1.0 Release Close-out`에서 관리함
-- 다음 branch: `v2.2.0`은 release 종료 후 생성만 하며, 사용자가 생각해 둔 개발
-  방향은 후속 명시 지시 전까지 문서화하거나 착수하지 않음
+- 최신 공개 release: [`v2.2.0`](https://github.com/dhseo90/MediaServer/releases/tag/v2.2.0)
+- release close-out: `v2.2.0` Responsive UI Foundation은
+  [development-backlog.md](development-backlog.md)의 `v2.2.0 Release Close-out`에서 관리함
+- 완료 roadmap: `v2.2.0 Responsive UI Foundation`
+- 현재 릴리즈 기준: `v2.2.0 Responsive UI Foundation`은
+  [development-backlog.md](development-backlog.md)의 완료 roadmap에서 관리하며,
+  UI 기반 재설계, 반응형 task shell, C++ 문자열 UI 구조 한계 완화를 다룸
 - 중심 범위: live source onboarding, live source health, live VA event 품질
 - 기본 release 형태: source-only
 - 명시적 비범위: 장기 녹화, VMS/NVR, playback/search, ONVIF Profile G
@@ -37,37 +53,48 @@
 [versioning-policy.md](versioning-policy.md),
 [release-policy.md](release-policy.md)를 봅니다.
 
-v2.1.0 VLM runtime opt-in stabilization release close-out 결과는
-[development-backlog.md](development-backlog.md)의 `v2.1.0 Release Close-out`
+v2.2.0 Responsive UI Foundation release close-out 결과는
+[development-backlog.md](development-backlog.md)의 `v2.2.0 Release Close-out`
 섹션과 [release-evidence-index.md](release-evidence-index.md)에 보존합니다.
-v2.0.0 release tag/GitHub Release와 entry baseline 증적은 같은 문서의 historical
-evidence로만 보관합니다.
+v2.0.0/v2.1.0 release tag/GitHub Release와 entry baseline 증적은 같은 문서의
+historical evidence로만 보관합니다.
 
-최신 v2.1.0 UI 풀테스트 evidence는
+v2.1.0 UI 풀테스트 evidence는 archive evidence로
 [manual-ui-result-2026-06-03-v210-inapp-fulltest.md](manual-ui-result-2026-06-03-v210-inapp-fulltest.md)에
-둡니다. 안정화 테스트, 30분 soak, 인앱 브라우저 UI 풀테스트, 120분 longrun은
-서로를 대체하지 않습니다. real cloud provider call, external TURN field gate,
-VLM model/runtime bundle은 v2.1.0 release 완료 근거가 아닙니다.
+보존합니다. v2.2.0 F02~F06 follow-up UI 직접 검수 evidence는
+[manual-ui-result-2026-06-04-v220-inapp-fulltest.md](manual-ui-result-2026-06-04-v220-inapp-fulltest.md)에
+둡니다. 이 결과는 F02~F06 인앱 브라우저 route/control/action 범위이며,
+30분/120분 longrun, 실장비/외부 endpoint, full VA event-key occurrence matrix,
+legacy 244 UI-target full inventory result gate를 PASS로 대체하지 않습니다.
+안정화 테스트, 30분 soak, 인앱 브라우저 UI 풀테스트, 120분 longrun은 서로를
+대체하지 않습니다. real cloud provider call, external TURN credential condition,
+VLM model/runtime bundle은 v2.2.0 release 완료 근거가 아닙니다.
+
+v2.2.0 문서 기준에서 README와 UI guide의 대표 이미지는 제품 흐름을 설명하는
+문서용 자산입니다. 운영 QA registry가 섞인 긴 캡처, Chrome/CDP 예외 캡처, 자동
+screenshot 생성만으로 만든 산출물은 인앱 브라우저 확인 없이 대표 이미지나 UI
+풀테스트 evidence로 승격하지 않습니다.
 
 ## Current Release Close-Out
 
-v2.1.0 release close-out 기준은 [development-backlog.md](development-backlog.md)의
-`v2.1.0 Release Close-out` 섹션에서 관리합니다. 이 release는 기존 live-only 제품
-경계와 VLM event review 보조 계층을 유지하면서 runtime/provider 연결을 명시 opt-in
-source-only stabilization 범위로 닫되, runtime/model bundle, cloud provider 성공
-보장, default-on 승격은 release 범위 밖으로 분리합니다.
-VLM source-only release 경계는 실제 runtime/model 배포 완료와 구분합니다.
+v2.2.0 release close-out 기준은 [development-backlog.md](development-backlog.md)의
+`v2.2.0 Release Close-out` 섹션에서 관리합니다. 이 release는 기존 live-only 제품
+경계와 VLM event review 보조 계층을 유지하면서 Ops/Rules/Client/Auth responsive
+workspace 기반을 닫되, runtime/model bundle, cloud provider 성공 보장,
+default-on 승격은 release 범위 밖으로 분리합니다.
+VLM source-only 경계와 responsive UI foundation은 실제 runtime/model 배포 완료와
+구분합니다.
 Release close-out runbook과 tag/push 수동 gate는
-[release-policy.md](release-policy.md)의 `v2.1.0 Release Close-out Runbook`에
+[release-policy.md](release-policy.md)의 `v2.2.0 Release Close-out Runbook`에
 보존합니다.
 Release evidence의 실행/미실행/미확인 색인은
 [release-evidence-index.md](release-evidence-index.md)에 둡니다.
-v2.1.0 release publish는 이 close-out에서 PR/main merge, signed annotated tag,
+v2.2.0 release publish는 이 close-out에서 PR/main merge, signed annotated tag,
 GitHub Release, published metadata verifier 순서로 진행합니다. 완료 전에는
 tag/push/GitHub Release를 PASS evidence로 쓰지 않습니다.
 `verify-va-runtime-console-longrun --duration-minutes 120`, real cloud provider call,
-external TURN field gate는 별도 미실행으로 남깁니다.
-현재 v2.1.0 제품 회귀와 UI 풀테스트 gate는
+external TURN credential condition은 안정화/UI 기록 안의 미실행 또는 제외 사유로 남깁니다.
+현재 v2.2.0 제품 회귀와 UI 풀테스트 gate는
 [stream-verification.md](stream-verification.md)와
 [manual-ui-checklist.md](manual-ui-checklist.md)의 버전 중립 명령만 기준으로
 확인합니다.
@@ -80,7 +107,7 @@ external TURN field gate는 별도 미실행으로 남깁니다.
 | 영역 | 문서 |
 | --- | --- |
 | ONVIF live source | [onvif-live-source-support.md](onvif-live-source-support.md) |
-| ONVIF no-device/field smoke | [onvif-no-device-verification.md](onvif-no-device-verification.md), [onvif-field-smoke-gate.md](onvif-field-smoke-gate.md) |
+| ONVIF no-device/external endpoint condition | [onvif-no-device-verification.md](onvif-no-device-verification.md), [onvif-field-smoke-gate.md](onvif-field-smoke-gate.md) |
 | ONVIF protocol/security policy | [onvif-protocol-support-matrix.md](onvif-protocol-support-matrix.md), [onvif-auth-injection-design.md](onvif-auth-injection-design.md), [onvif-credential-reference-policy.md](onvif-credential-reference-policy.md), [onvif-unsupported-api-guard.md](onvif-unsupported-api-guard.md) |
 | ONVIF credential/TLS/RTSPS details | [onvif-credential-store-integration-design.md](onvif-credential-store-integration-design.md), [onvif-https-soap-transport-design.md](onvif-https-soap-transport-design.md), [onvif-https-tls-fixture-harness-design.md](onvif-https-tls-fixture-harness-design.md), [onvif-tls-transport-policy.md](onvif-tls-transport-policy.md), [onvif-rtsps-draft-policy.md](onvif-rtsps-draft-policy.md), [onvif-field-smoke-artifact-redaction.md](onvif-field-smoke-artifact-redaction.md) |
 | Live source health | [live-source-health.md](live-source-health.md) |

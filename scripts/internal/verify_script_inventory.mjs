@@ -553,6 +553,7 @@ function parseServerDispatches() {
 
 function walkDocsAndScripts() {
   return gitLsFiles(["README.md", "docs", "scripts"])
+    .filter(fileExists)
     .filter(file => /\.(md|sh|mjs|py)$/.test(file))
     .map(file => path.join(rootDir, file));
 }

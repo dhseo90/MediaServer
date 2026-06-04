@@ -36,7 +36,8 @@ for (const spec of pageSpecs) {
   try {
     const html = await requestText(page.path, page.cookieFile);
     assertContains(page.name, html, [
-      'class="auth-shell"',
+      'class="auth-shell auth-responsive-shell"',
+      'data-auth-shell="responsive-form"',
       'id="themeToggleBtn"',
       "window.MediaServerUi",
       ...(page.must || []),

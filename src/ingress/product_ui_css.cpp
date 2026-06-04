@@ -90,6 +90,7 @@ std::string ProductDesignTokensCss() {
       --radius-lg: 8px;
       --shadow-sm: 0 1px 2px rgba(23, 28, 31, 0.06);
       --shadow-md: 0 12px 28px rgba(23, 28, 31, 0.11);
+      --shadow-lg: 0 18px 44px rgba(23, 28, 31, 0.14);
       --space-1: 4px;
       --space-2: 8px;
       --space-3: 12px;
@@ -97,6 +98,40 @@ std::string ProductDesignTokensCss() {
       --space-5: 20px;
       --space-6: 24px;
       --space-8: 32px;
+      --font-ui: "Avenir Next", "Pretendard", "Noto Sans KR", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      --font-size-xs: 11px;
+      --font-size-sm: 12px;
+      --font-size-md: 13px;
+      --font-size-lg: 18px;
+      --font-size-xl: 28px;
+      --line-height-tight: 1.12;
+      --line-height-base: 1.45;
+      --line-height-relaxed: 1.55;
+      --control-height-sm: 34px;
+      --control-height-md: 38px;
+      --control-height-lg: 44px;
+      --icon-button-size: 40px;
+      --panel-padding: var(--space-4);
+      --card-padding: 18px;
+      --button-radius: var(--radius-md);
+      --button-padding-y: var(--space-2);
+      --button-padding-x: var(--space-3);
+      --input-height: var(--control-height-md);
+      --input-radius: var(--radius-md);
+      --input-padding-y: var(--space-2);
+      --input-padding-x: 10px;
+      --table-row-min-height: 42px;
+      --table-cell-padding-y: var(--space-2);
+      --table-cell-padding-x: 9px;
+      --badge-height: 24px;
+      --badge-radius: 999px;
+      --badge-padding-y: 3px;
+      --badge-padding-x: var(--space-2);
+      --debug-details-bg: var(--color-code-bg);
+      --debug-details-border: var(--color-debug-border);
+      --debug-details-text: var(--color-code-text);
+      --debug-details-padding: var(--space-4);
       --bg: var(--color-bg);
       --panel: var(--color-surface);
       --panel2: var(--color-surface-muted);
@@ -167,6 +202,7 @@ std::string ProductDesignTokensCss() {
       --overlay-label-bg: rgba(2, 6, 23, 0.86);
       --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.22);
       --shadow-md: 0 10px 24px rgba(0, 0, 0, 0.28);
+      --shadow-lg: 0 18px 44px rgba(0, 0, 0, 0.34);
     }
 )CSS";
 }
@@ -186,7 +222,7 @@ std::string ProductUiCss() {
     body.auth-shell {
       margin: 0;
       min-height: 100vh;
-      font-family: "Avenir Next", "Pretendard", "Noto Sans KR", Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: var(--font-ui);
       color: var(--color-text);
       background: var(--color-bg);
     }
@@ -545,6 +581,159 @@ std::string ProductUiCss() {
     body.ops-shell .ops-metric-grid {
       gap: 12px;
     }
+    body.ops-shell .ops-workspace {
+      display: grid;
+      gap: var(--space-4);
+    }
+    body.ops-shell .ops-workspace-hero {
+      min-width: 0;
+    }
+    body.ops-shell .ops-workspace-hero > .panel-title-toolbar,
+    body.ops-shell [data-ops-panel] > .ops-workspace-hero.panel-title-toolbar {
+      min-width: 0;
+      min-height: 68px;
+      padding: 16px 18px;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--color-surface-raised) 96%, transparent);
+      box-shadow: var(--shadow-sm);
+    }
+    body.ops-shell .ops-workspace-action-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: var(--space-3);
+      align-items: stretch;
+    }
+    body.ops-shell .ops-workspace-action-grid > .section-card,
+    body.ops-shell .ops-workspace-event-grid > .section-card {
+      min-height: 100%;
+    }
+    body.ops-shell .ops-workspace-diagnostic-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(0, 0.92fr);
+      gap: var(--space-3);
+      align-items: start;
+    }
+    body.ops-shell .ops-workspace-event-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--space-3);
+      align-items: stretch;
+    }
+    body.ops-shell .ops-workspace-wide {
+      grid-column: 1 / -1;
+    }
+    body.ops-shell .ops-channels-workspace {
+      display: grid;
+      gap: var(--space-4);
+    }
+    body.ops-shell .ops-channels-main-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.92fr);
+      gap: var(--space-3);
+      align-items: start;
+    }
+    body.ops-shell .ops-channels-list-panel,
+    body.ops-shell .ops-channels-detail-panel,
+    body.ops-shell .ops-channels-audit-panel {
+      min-width: 0;
+    }
+    body.ops-shell .ops-channels-detail-panel {
+      scroll-margin-top: 96px;
+    }
+    body.ops-shell .ops-channels-detail-grid,
+    body.ops-shell .ops-channels-input-grid {
+      display: grid;
+      gap: var(--space-3);
+      min-width: 0;
+    }
+    body.ops-shell .ops-channels-detail-grid {
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-subtle);
+    }
+    body.ops-shell .ops-channels-input-grid [data-channel-input-group] {
+      min-width: 0;
+    }
+    body.ops-shell .ops-users-access-workspace {
+      display: grid;
+      gap: var(--space-4);
+    }
+    body.ops-shell .ops-users-access-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-3);
+      align-items: start;
+    }
+    body.ops-shell .ops-users-lifecycle-panel {
+      grid-column: 1 / -1;
+    }
+    body.ops-shell .ops-users-lifecycle-panel,
+    body.ops-shell .ops-users-request-panel,
+    body.ops-shell .ops-users-invite-panel,
+    body.ops-shell .ops-users-role-scope-panel,
+    body.ops-shell .ops-users-audit-panel {
+      min-width: 0;
+    }
+    body.ops-shell .ops-users-role-scope-panel {
+      scroll-margin-top: 96px;
+    }
+    body.ops-shell .ops-vlm-containment-workspace {
+      display: grid;
+      gap: var(--space-4);
+    }
+    body.ops-shell .ops-vlm-containment-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-3);
+      align-items: start;
+    }
+    body.ops-shell .ops-vlm-aux-panel,
+    body.ops-shell .ops-vlm-default-off-panel,
+    body.ops-shell .ops-vlm-privacy-panel,
+    body.ops-shell .ops-vlm-profile-state-panel,
+    body.ops-shell .ops-vlm-boundary-containment-panel,
+    body.ops-shell .ops-vlm-raw-debug-panel {
+      min-width: 0;
+    }
+    body.ops-shell .ops-vlm-default-off-panel,
+    body.ops-shell .ops-vlm-evaluation-panel,
+    body.ops-shell .ops-vlm-options-panel,
+    body.ops-shell .ops-vlm-boundary-containment-panel {
+      grid-column: 1 / -1;
+    }
+    body.ops-shell .rules-workspace {
+      display: grid;
+      gap: var(--space-4);
+    }
+    body.ops-shell .rules-workspace-readiness-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
+      gap: var(--space-3);
+      align-items: start;
+    }
+    body.ops-shell .rules-workspace-assist-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-3);
+      align-items: stretch;
+    }
+    body.ops-shell .rules-workspace-catalog-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-3);
+      align-items: start;
+    }
+    body.ops-shell .rules-workspace-mode-panel,
+    body.ops-shell .rules-workspace-table-panel,
+    body.ops-shell .rules-workspace-detail-panel,
+    body.ops-shell .rules-workspace-audit-panel {
+      min-width: 0;
+    }
+    body.ops-shell .rules-workspace-detail-panel {
+      scroll-margin-top: 96px;
+    }
     .app-header {
       display: grid;
       gap: var(--space-3);
@@ -634,7 +823,7 @@ std::string ProductUiCss() {
       align-items: center;
     }
     .app-title-block { display: grid; gap: var(--space-1); }
-    .shell-title-block h1 { font-size: clamp(22px, 2.2vw, 28px); }
+    .shell-title-block h1 { font-size: var(--font-size-xl); }
     .shell-title-block p:not(.eyebrow) { max-width: 760px; }
     .header-utilities {
       display: flex;
@@ -787,10 +976,10 @@ std::string ProductUiCss() {
       font-size: 12px;
     }
     h1, h2, h3 { margin: 0; letter-spacing: 0; }
-    h1 { font-size: clamp(24px, 2.2vw, 32px); line-height: 1.08; }
-    h2 { font-size: 19px; }
+    h1 { font-size: var(--font-size-xl); line-height: var(--line-height-tight); }
+    h2 { font-size: var(--font-size-lg); }
     h3 { font-size: 15px; }
-    p { margin: 0; color: var(--color-text-muted); line-height: 1.55; }
+    p { margin: 0; color: var(--color-text-muted); line-height: var(--line-height-relaxed); }
     .eyebrow {
       margin: 0;
       color: var(--color-primary);
@@ -817,14 +1006,14 @@ std::string ProductUiCss() {
     .nav,
     .button,
     button {
-      min-height: 36px;
+      min-height: var(--control-height-md);
       display: inline-flex;
       align-items: center;
       justify-content: center;
       gap: var(--space-2);
       border: 1px solid var(--color-border);
-      border-radius: var(--radius-md);
-      padding: 8px 12px;
+      border-radius: var(--button-radius);
+      padding: var(--button-padding-y) var(--button-padding-x);
       background: var(--color-bg-elevated);
       color: var(--color-text);
       font: inherit;
@@ -919,7 +1108,7 @@ std::string ProductUiCss() {
     }
     .language-select {
       width: 100%;
-      min-height: 34px;
+      min-height: var(--control-height-sm);
       height: 34px;
       padding: 5px 8px;
       border-radius: var(--radius-md);
@@ -966,7 +1155,7 @@ std::string ProductUiCss() {
     .card {
       display: grid;
       gap: var(--space-4);
-      padding: 18px;
+      padding: var(--card-padding);
     }
     .panel > *,
     .section-card > *,
@@ -1072,9 +1261,9 @@ std::string ProductUiCss() {
     .pill {
       display: inline-flex;
       align-items: center;
-      min-height: 24px;
-      padding: 3px 8px;
-      border-radius: 999px;
+      min-height: var(--badge-height);
+      padding: var(--badge-padding-y) var(--badge-padding-x);
+      border-radius: var(--badge-radius);
       background: var(--color-primary-weak-bg);
       color: var(--color-primary-weak-text);
       font-size: 11px;
@@ -1133,10 +1322,10 @@ std::string ProductUiCss() {
       width: 100%;
       min-width: 0;
       max-width: 100%;
-      min-height: 38px;
+      min-height: var(--input-height);
       border: 1px solid var(--color-input-border);
-      border-radius: var(--radius-md);
-      padding: 8px 10px;
+      border-radius: var(--input-radius);
+      padding: var(--input-padding-y) var(--input-padding-x);
       background: var(--color-input-bg);
       color: var(--color-text);
       font: inherit;
@@ -1544,7 +1733,7 @@ std::string ProductUiCss() {
     th,
     td {
       border-bottom: 1px solid var(--color-table-border);
-      padding: 8px 9px;
+      padding: var(--table-cell-padding-y) var(--table-cell-padding-x);
       text-align: left;
       vertical-align: top;
     }
@@ -1568,13 +1757,13 @@ std::string ProductUiCss() {
       white-space: pre-wrap;
       word-break: break-word;
       margin: 0;
-      padding: var(--space-4);
-      border: 1px solid var(--color-debug-border);
+      padding: var(--debug-details-padding);
+      border: 1px solid var(--debug-details-border);
       border-radius: var(--radius-md);
-      background: var(--color-code-bg);
-      color: var(--color-code-text);
+      background: var(--debug-details-bg);
+      color: var(--debug-details-text);
       font-size: 12px;
-      line-height: 1.45;
+      line-height: var(--line-height-base);
       max-height: 420px;
       overflow: auto;
     }
@@ -1782,12 +1971,12 @@ std::string ProductUiCss() {
       font-size: 12px;
       overflow-wrap: anywhere;
     }
-    .root-cause-evidence {
+    .root-cause-item .root-cause-evidence {
       grid-column: 1 / -1;
       color: var(--color-text);
       font-weight: 600;
     }
-    .root-cause-log {
+    .root-cause-item .root-cause-log {
       grid-column: 1 / -1;
       padding: 8px;
       border: 1px solid var(--color-border);
@@ -1873,7 +2062,7 @@ std::string ProductUiCss() {
       color: var(--color-text-muted);
     }
     .table-cell-code {
-      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      font-family: var(--font-mono);
       overflow-wrap: anywhere;
     }
     .table-empty {
@@ -2648,16 +2837,69 @@ std::string ProductUiCss() {
       place-items: center;
       padding: var(--space-5);
     }
+    .auth-responsive-shell {
+      min-width: 0;
+      align-items: center;
+      justify-items: center;
+    }
+    .auth-responsive-control {
+      width: min(520px, 100%);
+      display: flex;
+      justify-content: flex-end;
+      gap: var(--space-2);
+      min-width: 0;
+    }
     .auth-card {
       width: min(460px, 100%);
       display: grid;
       gap: var(--space-4);
       padding: var(--space-5);
     }
+    .auth-responsive-card {
+      min-width: 0;
+      align-self: start;
+    }
     .auth-card-wide {
       width: min(520px, 100%);
     }
-    .auth-form { display: grid; gap: var(--space-3); }
+    .auth-form {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .auth-form-grid {
+      min-width: 0;
+    }
+    .auth-form-grid > h1,
+    .auth-form-grid > p,
+    .auth-form-grid .form-grid,
+    .auth-form-grid .auth-message,
+    .auth-form-grid .auth-helper-panel {
+      min-width: 0;
+    }
+    .auth-form-grid > h1 {
+      font-size: 26px;
+      line-height: 1.12;
+    }
+    .auth-helper-panel {
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-subtle);
+    }
+    .auth-helper-panel .hint {
+      margin: 0;
+    }
+    .auth-message {
+      padding: 10px 12px;
+      border: 1px solid color-mix(in srgb, var(--color-info) 34%, var(--color-border));
+      border-radius: var(--radius-md);
+      background: var(--color-info-bg);
+      overflow-wrap: anywhere;
+    }
+    .auth-message.error {
+      border-color: color-mix(in srgb, var(--color-danger) 48%, var(--color-border));
+      background: var(--color-danger-bg);
+    }
     .auth-actions {
       display: flex;
       align-items: center;
@@ -2666,7 +2908,112 @@ std::string ProductUiCss() {
     }
     .token {
       overflow-wrap: anywhere;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+      font-family: var(--font-mono);
+    }
+    @media (max-width: 760px) {
+      body.ops-shell .ops-workspace-action-grid,
+      body.ops-shell .ops-workspace-diagnostic-grid,
+      body.ops-shell .ops-workspace-event-grid,
+      body.ops-shell .ops-channels-main-grid,
+      body.ops-shell .ops-users-access-grid,
+      body.ops-shell .ops-vlm-containment-grid,
+      body.ops-shell .rules-workspace-readiness-grid,
+      body.ops-shell .rules-workspace-assist-grid,
+      body.ops-shell .rules-workspace-catalog-grid,
+      body.ops-shell .ops-metric-grid,
+      body.ops-shell .ops-dashboard-card-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      body.ops-shell .ops-workspace-hero.panel-title-toolbar,
+      body.ops-shell .ops-workspace-hero > .panel-title-toolbar {
+        align-items: stretch;
+        padding: 14px;
+      }
+      body.ops-shell .ops-workspace-hero .actions,
+      body.ops-shell .ops-workspace .actions,
+      body.ops-shell .ops-channels-workspace .actions,
+      body.ops-shell .ops-users-access-workspace .actions,
+      body.ops-shell .ops-vlm-containment-workspace .actions,
+      body.ops-shell .incident-timeline-controls,
+      body.ops-shell .event-review-controls,
+      body.ops-shell .event-record-controls {
+        width: 100%;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr);
+        justify-items: stretch;
+      }
+      body.ops-shell .ops-workspace-hero .actions > *,
+      body.ops-shell .ops-workspace .actions > *,
+      body.ops-shell .ops-channels-workspace .actions > *,
+      body.ops-shell .ops-users-access-workspace .actions > *,
+      body.ops-shell .ops-vlm-containment-workspace .actions > *,
+      body.ops-shell .incident-timeline-controls > *,
+      body.ops-shell .event-review-controls > *,
+      body.ops-shell .event-record-controls > * {
+        width: 100%;
+        min-width: 0;
+      }
+      body.ops-shell .ops-workspace .toolbar {
+        align-items: stretch;
+      }
+      body.ops-shell .rules-workspace .rule-mode-grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      body.ops-shell .rules-workspace .rule-mode-button,
+      body.ops-shell .rules-workspace input,
+      body.ops-shell .rules-workspace select,
+      body.ops-shell .rules-workspace textarea {
+        width: 100%;
+        min-width: 0;
+      }
+      body.auth-shell.auth-responsive-shell {
+        place-items: start center;
+        padding: var(--space-4);
+      }
+      body.auth-shell .auth-responsive-control,
+      body.auth-shell .auth-responsive-card {
+        width: min(100%, 560px);
+      }
+    }
+    @media (max-width: 560px) {
+      body.auth-shell.auth-responsive-shell {
+        padding: var(--space-3);
+      }
+      body.auth-shell .auth-responsive-control {
+        left: var(--space-3);
+        right: var(--space-3);
+        justify-content: stretch;
+        display: grid;
+        grid-template-columns: 34px minmax(0, 1fr);
+        width: auto;
+        align-items: end;
+      }
+      body.auth-shell .auth-responsive-control > * {
+        width: auto;
+        min-width: 0;
+      }
+      body.auth-shell .auth-responsive-control > .theme-toggle {
+        width: 34px;
+        min-width: 34px;
+        justify-self: start;
+      }
+      body.auth-shell .auth-responsive-control > .language-control {
+        width: 100%;
+      }
+      body.auth-shell .auth-responsive-card {
+        margin-top: calc(var(--space-6) + var(--control-height-sm));
+        padding: var(--space-4);
+        border-radius: var(--radius-md);
+      }
+      body.auth-shell .auth-form-grid > h1 {
+        font-size: 22px;
+      }
+      body.auth-shell .auth-form-grid button,
+      body.auth-shell .auth-form-grid input,
+      body.auth-shell .auth-form-grid textarea {
+        width: 100%;
+        min-width: 0;
+      }
     }
     @media (max-width: 860px) {
       .product-page { width: min(100% - 20px, 760px); padding-top: var(--space-5); }
@@ -2901,6 +3248,12 @@ std::string ProductUiCss() {
         min-width: 30px;
         min-height: 30px;
         height: 30px;
+      }
+    }
+    @media (max-width: 1180px) {
+      body.ops-shell .ops-channels-main-grid,
+      body.ops-shell .ops-users-access-grid {
+        grid-template-columns: minmax(0, 1fr);
       }
     }
     @media (max-width: 1040px) {
@@ -3245,15 +3598,15 @@ std::string ClientShellCss() {
       --warn-soft: var(--color-warning-bg);
       --bad: var(--color-danger);
       --bad-soft: var(--color-danger-bg);
-      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-family: var(--font-ui);
     }
     body { margin: 0; background: var(--bg); color: var(--text); }
     main { max-width: 1440px; margin: 0 auto; padding: 18px 14px 40px; display: grid; gap: 16px; }
     h1, h2, h3 { margin: 0; }
-    h1 { font-size: 28px; }
-    h2 { font-size: 18px; }
+    h1 { font-size: var(--font-size-xl); }
+    h2 { font-size: var(--font-size-lg); }
     h3 { font-size: 16px; }
-    p { margin: 0; color: var(--muted); line-height: 1.5; }
+    p { margin: 0; color: var(--muted); line-height: var(--line-height-base); }
     header.app-chrome {
       display: grid;
       gap: var(--space-2);
@@ -3388,7 +3741,7 @@ std::string ClientShellCss() {
       min-height: 120px;
       box-sizing: border-box;
       resize: vertical;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;
+      font-family: var(--font-mono);
       font-size: 12px;
       line-height: 1.45;
     }
@@ -3959,6 +4312,85 @@ std::string ClientShellCss() {
     }
     body.client-shell .client-dashboard-shell .summary {
       grid-template-columns: repeat(auto-fit, minmax(164px, 1fr));
+    }
+    body.client-shell .client-viewer-workspace,
+    body.client-shell .client-viewer-dock,
+    body.client-shell .client-viewer-detail,
+    body.client-shell .client-live-workspace,
+    body.client-shell .client-live-layout,
+    body.client-shell .client-live-primary,
+    body.client-shell .client-live-video-grid,
+    body.client-shell .client-live-dock,
+    body.client-shell .client-live-event-dock,
+    body.client-shell .client-viewer-dashboard,
+    body.client-shell .client-viewer-events {
+      min-width: 0;
+    }
+    body.client-shell .client-viewer-workspace {
+      align-items: start;
+    }
+    body.client-shell .client-preview-redaction-strip {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      min-width: 0;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-soft);
+    }
+    body.client-shell .client-redaction-review-chip {
+      flex: 0 0 auto;
+    }
+    body.client-shell .client-redaction-review-copy {
+      min-width: 0;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+      overflow-wrap: anywhere;
+    }
+    body.client-shell .client-viewer-detail {
+      overflow: clip;
+    }
+    body.client-shell .client-live-primary {
+      display: grid;
+      align-content: start;
+      gap: 12px;
+      min-height: calc(100vh - 60px);
+    }
+    body.client-shell .client-live-video-grid {
+      width: 100%;
+    }
+    body.client-shell .client-live-dock {
+      display: grid;
+      grid-template-rows: auto auto minmax(0, 1fr) auto;
+    }
+    body.client-shell .client-live-event-dock {
+      min-height: 0;
+      overflow: auto;
+    }
+    body.client-shell .client-viewer-dashboard,
+    body.client-shell .client-viewer-events {
+      display: grid;
+      gap: 14px;
+    }
+    body.client-shell .client-events-head,
+    body.client-shell .client-viewer-event-feed {
+      min-width: 0;
+      padding: 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow-sm);
+    }
+    body.client-shell .client-viewer-events > .meta {
+      min-width: 0;
+      padding: 12px 16px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
     }
     body.client-shell .live-monitor {
       position: relative;
@@ -4597,6 +5029,16 @@ std::string ClientShellCss() {
         border-left: 0;
         border-bottom: 1px solid var(--line);
       }
+      body.client-shell .client-live-layout .client-live-dock,
+      body.client-shell .client-live-layout[data-dock-side] .client-live-dock,
+      body.client-shell .client-live-layout[data-dock-side="right"] .client-live-dock {
+        order: 2;
+      }
+      body.client-shell .client-live-layout .client-live-primary,
+      body.client-shell .client-live-layout[data-dock-side] .client-live-primary,
+      body.client-shell .client-live-layout[data-dock-side="right"] .client-live-primary {
+        order: 1;
+      }
       body.client-shell .live-source-tree {
         max-height: 260px;
         overflow: auto;
@@ -4613,6 +5055,14 @@ std::string ClientShellCss() {
         justify-content: flex-start;
         flex-wrap: wrap;
         margin-bottom: 12px;
+      }
+      body.client-shell .client-live-toolbar label,
+      body.client-shell .client-live-toolbar .live-copy-actions,
+      body.client-shell .client-live-toolbar .workspace-actions {
+        min-width: 0;
+      }
+      body.client-shell .client-live-toolbar .live-copy-actions {
+        flex-wrap: wrap;
       }
       body.client-shell .live-grid,
       body.client-shell .live-grid[data-grid-size],
@@ -4650,6 +5100,15 @@ std::string ClientShellCss() {
       body.client-shell .client-dashboard-head .client-copy-actions button {
         min-width: 0;
       }
+      body.client-shell .client-events-head {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+      body.client-shell .client-events-head .meta,
+      body.client-shell .client-events-head .client-copy-actions {
+        justify-content: flex-start;
+      }
     }
     @media (max-width: 560px) {
       .live-grid, .live-grid[data-grid-size] { grid-template-columns: 1fr; }
@@ -4685,6 +5144,30 @@ std::string ClientShellCss() {
         min-width: 44px;
         height: 44px;
         min-height: 44px;
+      }
+      body.client-shell .client-live-toolbar {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 8px;
+      }
+      body.client-shell .client-live-toolbar label,
+      body.client-shell .client-live-toolbar label select,
+      body.client-shell .client-live-toolbar .live-copy-actions,
+      body.client-shell .client-live-toolbar .live-copy-actions button,
+      body.client-shell .client-live-toolbar .workspace-actions,
+      body.client-shell .client-live-toolbar .workspace-actions summary {
+        width: 100%;
+        max-width: none;
+      }
+      body.client-shell .client-live-toolbar .live-info-toggle {
+        width: 100%;
+        max-width: none;
+        flex-basis: auto;
+      }
+      body.client-shell .client-viewer-workspace,
+      body.client-shell .client-viewer-dashboard,
+      body.client-shell .client-viewer-events {
+        gap: 10px;
       }
       body.client-shell .tile-mode-button {
         min-width: 48px;

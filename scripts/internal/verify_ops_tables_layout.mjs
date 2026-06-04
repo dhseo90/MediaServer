@@ -25,6 +25,7 @@ Options:
   --http-base <url>         실행 중인 서버 HTTP base입니다. 기본 http://127.0.0.1:8081.
   --timeout-ms <ms>         브라우저 대기 시간입니다. 기본 15000.
   --chrome-path <path>      Chrome/Chromium 실행 파일 경로입니다.
+  --in-app-evidence <path>  Codex 인앱 브라우저 직접 확인 evidence JSON입니다.
   --widths <csv>            반응형 검증 viewport 폭 목록입니다.
   --height <px>             viewport 높이입니다. 기본 900.
   --debug-port-base <port>  Chrome CDP port 시작값입니다. 기본 9790.
@@ -36,6 +37,7 @@ assertKnownOptions(rawArgs, [
   "http-base",
   "timeout-ms",
   "chrome-path",
+  "in-app-evidence",
   "widths",
   "height",
   "debug-port-base",
@@ -47,6 +49,7 @@ const args = parseArgs(rawArgs);
 const httpBase = String(args.httpBase || "http://127.0.0.1:8081").replace(/\/+$/, "");
 const timeoutMs = Number(args.timeoutMs || 15000);
 const chromePath = args.chromePath || findChrome();
+const inAppEvidencePath = args.inAppEvidence || process.env.MEDIA_SERVER_IN_APP_BROWSER_EVIDENCE || "";
 const widths = parseWidthList(args.widths || "1180,900,760,560,390,320,760,1180");
 const height = Number(args.height || 900);
 const debugPortBase = Number(args.debugPortBase || 9790);
@@ -85,6 +88,11 @@ const checks = [
     auditSelector: "#user-audit-list",
   },
 ];
+
+if (inAppEvidencePath) {
+  assertInAppTableEvidence(inAppEvidencePath, widths);
+  process.exit(0);
+}
 
 if (!chromePath) {
   console.error("[fail] Chrome executable not found");
@@ -450,4 +458,74 @@ function parseArgs(argv) {
     }
   }
   return parsed;
+}
+
+function assertInAppTableEvidence(evidencePath, expectedWidths) {
+  const resolved = path.resolve(evidencePath);
+  let evidence;
+  try {
+    evidence = JSON.parse(fs.readFileSync(resolved, "utf8"));
+  } catch (error) {
+    console.error(`[fail] invalid in-app browser evidence ${resolved}: ${error.message}`);
+    process.exit(1);
+  }
+  const failures = [];
+  const fail = (message) => failures.push(message);
+  if (evidence?.schema !== "media-server.in-app-browser-ui-evidence.v1") {
+    fail(`invalid evidence schema: ${evidence?.schema || "(missing)"}`);
+  }
+  const browserName = String(evidence?.browser || evidence?.browserId || evidence?.source || "");
+  if (!/in-app|iab|codex/i.test(browserName)) {
+    fail("evidence must identify Codex in-app browser/iab");
+  }
+  const routes = Array.isArray(evidence?.routes) ? evidence.routes : [];
+  const routeByPath = new Map(routes.map((route) => [route?.path, route]));
+  for (const check of checks) {
+    const route = routeByPath.get(check.path);
+    if (!route) {
+      fail(`missing ${check.path} route evidence`);
+      continue;
+    }
+    if (route?.checks?.visualLayoutPass !== true) {
+      fail(`${check.path} visualLayoutPass is not true`);
+    }
+    if (route?.checks?.noHorizontalOverflow !== true) {
+      fail(`${check.path} noHorizontalOverflow is not true`);
+    }
+    const screenshots = Array.isArray(route?.screenshots) ? route.screenshots : [];
+    const missingWidths = expectedWidths.filter((width) => !screenshots.some((item) => String(item).includes(`_${width}.`)));
+    if (missingWidths.length > 0) {
+      fail(`${check.path} screenshot evidence missing widths: ${missingWidths.join(",")}`);
+    }
+  }
+  const passingInteractions = new Set((Array.isArray(evidence?.interactions) ? evidence.interactions : [])
+    .filter((entry) => entry?.pass === true)
+    .map((entry) => entry.id));
+  for (const id of [
+    "ops-sources-generated-channel-id",
+    "ops-rules-generated-id-displays",
+    "ops-users-multi-channel-assignment",
+  ]) {
+    if (!passingInteractions.has(id)) {
+      fail(`${id} interaction evidence missing or failing`);
+    }
+  }
+  if (failures.length > 0) {
+    console.error("[fail] in-app table layout evidence invalid");
+    for (const failure of failures) console.error(`- ${failure}`);
+    process.exit(1);
+  }
+  console.log("[pass] in-app /ops/sources table layout evidence");
+  console.log("[pass] in-app /ops/rules table layout evidence");
+  console.log("[pass] in-app /ops/users table layout evidence");
+  console.log("[pass] in-app table generated-id and assignment interactions");
+  console.log("");
+  console.log("== Ops 데이터 테이블 레이아웃 요약 ==");
+  console.log("- 통과: 4");
+  console.log("- 실패: 0");
+  console.log(JSON.stringify({
+    mode: "in-app-evidence",
+    evidence: resolved,
+    widths: expectedWidths,
+  }, null, 2));
 }

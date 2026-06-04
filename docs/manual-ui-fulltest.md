@@ -5,7 +5,8 @@
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 삼고, 실행 순서는 [manual-ui-checklist.md](./manual-ui-checklist.md), 결과 기록은
 [manual-ui-result-template.md](./manual-ui-result-template.md)를 사용합니다.
-현재 제품 UI 기준은 release 목표 `v2.1.0`입니다. 지원 가능한 모든 기능을 실제 UI 조작으로 확인하지 않은 경우에는 완료로 쓰지 않습니다.
+현재 제품 UI 기준은 최신 공개 release `v2.2.0`이고, UI 문서 기준은
+`v2.2.0 Responsive UI Foundation`입니다. 지원 가능한 모든 기능을 실제 UI 조작으로 확인하지 않은 경우에는 완료로 쓰지 않습니다.
 
 ## 1. 정의
 
@@ -13,7 +14,8 @@ UI 풀테스트는 API smoke가 아니라 제품 웹 UI를 실제 브라우저�
 클릭과 타이핑으로 문서에 설명된 기능을 하나하나 확인하는 검수입니다.
 Codex 세션에서는 인앱 브라우저 직접 조작을 기본 evidence로 사용합니다.
 인앱 브라우저를 사용할 수 없는 외부 자동화 환경에서만 Chrome/CDP fallback을
-명시적으로 사용합니다. 사용자에게 pane 열기, 버튼 클릭, 팝업 확인을
+명시적으로 사용합니다. Codex 세션에서 Chrome/CDP fallback을 사용하려면 사용자
+승인이 먼저 필요합니다. 사용자에게 pane 열기, 버튼 클릭, 팝업 확인을
 요청해야만 진행되는 테스트는 UI 풀테스트 PASS evidence가 아닙니다.
 API 응답, raw JSON, screenshot 생성, 스크립트 통과만으로는 UI 풀테스트를 완료했다고
 기록하지 않습니다.
@@ -38,7 +40,7 @@ UI 풀테스트는 `스크립트 테스트`와 별도 영역입니다. 스크립
 | 안정화 테스트 | 30분/120분/UI 테스트의 선수 테스트입니다. 로드맵 각 스텝 종료 시 먼저 수행합니다. 실패하면 UI 풀테스트로 넘어가지 않습니다. |
 | 30분 테스트 | 장기간 테스트 지시 시 기본으로 수행하고, 각 버전별 로드맵 개발이 끝나면 수행합니다. UI 클릭/타이핑 evidence를 대체하지 않습니다. |
 | 120분 테스트 | 메모리 릭, 장시간 누수, runtime drift 감시용입니다. 무조건 실행하지 않고 필요하면 사용자에게 먼저 알립니다. UI 풀테스트 PASS를 대체하지 않습니다. |
-| UI 풀테스트 | Codex 세션에서는 인앱 브라우저 직접 조작, Codex 밖 사용자 실행에서는 자율 Chrome/CDP 조작도 허용하는 role별 화면, 반응형, 시각 품질 evidence입니다. 30분/120분 안정화 PASS를 대체하지 않습니다. |
+| UI 풀테스트 | Codex 세션에서는 인앱 브라우저 직접 조작을 사용합니다. Codex 밖 사용자 실행 또는 명시 승인된 예외에서만 Chrome/CDP 조작을 별도 evidence로 기록합니다. role별 화면, 반응형, 시각 품질 evidence이며 30분/120분 안정화 PASS를 대체하지 않습니다. |
 
 따라서 결과 문서에는 `스크립트 테스트`와 `UI 풀테스트` 판정을 따로 적습니다.
 UI 풀테스트 판정값은 `PASS`와 `FAIL`만 사용합니다. 모든 기능을 실제 브라우저에서
@@ -64,8 +66,9 @@ UI 풀테스트 판정값은 `PASS`와 `FAIL`만 사용합니다. 모든 기능�
 30분, 120분, UI 풀테스트는 시작 전에 실패 가능성이 높은 준비 문제를 먼저 끊어냅니다.
 아래 항목이 정리되지 않으면 긴 테스트를 시작하지 않습니다.
 
-- `project-feature-test-inventory.md`의 `Current Pre-Test Update List`와
-  `Longrun/UI Fail-Fast Preflight`를 확인해 누락된 route/control/action을 먼저 고칩니다.
+- `project-feature-test-inventory.md`의 `Four-Stage Coverage Mapping`과
+  `Four-Stage Start Conditions`를 확인해 누락된
+  route/control/action을 먼저 고칩니다.
 - `/ops/vlm`, `/ops/events`, `/client/live`, `/client/dashboard`, `/client/events`의
   VLM 관련 UI/비노출 항목이 result template에 없으면 UI 풀테스트를 시작하지 않습니다.
 - auth 테스트 비밀번호 환경변수, throwaway users/source/view/analysis/event/snapshot/clip
@@ -77,8 +80,8 @@ UI 풀테스트 판정값은 `PASS`와 `FAIL`만 사용합니다. 모든 기능�
 
 실패 후 재검수 범위:
 
-- preflight/list/fixture/auth env/output dir 실패는 긴 테스트 실패로 기록하지 않고,
-  해당 짧은 gate 또는 문서만 고친 뒤 다시 확인합니다.
+- 시작 조건, fixture, auth env, output dir 실패는 긴 테스트 실패로 기록하지 않고,
+  해당 안정화 조건 또는 문서만 고친 뒤 다시 확인합니다.
 - 제품 runtime, media path, auth/session, registry seed를 바꾼 경우에는 영향을 받은
   phase부터 재검수합니다. 최종 UI PASS는 모든 UI 대상 기능 ID의 evidence가 다시
   충족될 때만 가능합니다.
@@ -110,6 +113,12 @@ UI 풀테스트 판정값은 `PASS`와 `FAIL`만 사용합니다. 모든 기능�
 `테스트 필요 여부`, `테스트 영역`, `PASS 판정 기준`을 고정하는 문서입니다. 따라서
 inventory에 행이 있다는 이유만으로 해당 기능의 UI 풀테스트나 안정화 테스트가
 완료됐다고 쓰지 않습니다.
+
+v2.2.0 UI Evidence Close-out은 F02~F06 follow-up을 기능 inventory, manual UI checklist,
+result template에 연결하는 준비 기준입니다. F06는 UI 풀테스트 실행 결과가 아니라
+결과 기록 기준 정리 단계이므로, F06 verifier PASS를 인앱 브라우저 UI 풀테스트 PASS로
+쓰지 않습니다. 30분 또는 120분 장시간 테스트를 실행하지 않았으면 manual result의
+별도 영역에 `미실행`으로 기록합니다.
 
 ## 4. 데이터 리셋
 
@@ -166,26 +175,27 @@ UI 풀테스트 결과는 모든 개별 기능, route, control, action 단위로
 않고, `RULE-041 presence EventRecord 발생`, `AUTH-022 reset 후 must-change`,
 `UI-004 password change 임시 pw 로그인`처럼 개별 행으로 기록합니다.
 요약은 개별 행 이후에만 둘 수 있고, 요약이 개별 결과를 대체할 수 없습니다.
-자율 브라우저 또는 직접 조작 결과를 JSON으로 남길 때는
-`media-server.manual-ui-evidence-input.v1` schema를 사용하고
-`./server.sh verify-manual-ui-evidence-runner --evidence <json> --report <report.md>`
-로 기능 ID별 PASS/FAIL report를 생성합니다. 누락된 UI 대상 기능 ID는 `FAIL`이며,
+열어보지 않은 화면, 누르지 않은 기능, 일부 조건만 확인한 기능은 `FAIL`입니다.
 제외 항목은 판정표 밖 `Exclusions`에만 둡니다.
-각 PASS row에는 `route`, `control`, `interaction`, `input` 또는
-`inputNotApplicableReason`, `expected`, `actual`, `stateReflected=true`,
-`artifacts`, 그리고 `logChecked`, `eventRecordChecked`, 또는
-`logNotApplicableReason` 중 하나가 있어야 합니다. `manualSpotReviews`는 사람이
-보조로 spot review한 범위를 보존하지만, 누락된 기능 ID를 PASS로 바꾸는 대체
-증거가 아닙니다.
 
 풀테스트 harness 자체를 한 번에 실행할 때는
 `./server.sh verify-ui-fulltest-one-shot`을 사용합니다. 이 명령은 전용
 throwaway registry/users/event 경로와 격리 포트로 core/auth 서버를 띄운 뒤
-manual evidence runner, native/blocking dialog guard, feature inventory coverage,
-Ops/Client screenshot smoke, Rules smoke, route/rules/table guard, core/auth click
+native/blocking dialog guard, feature inventory coverage, Ops/Client screenshot smoke,
+Rules smoke, route/rules/table guard, core/auth click
 E2E를 순서대로 실행하고 `summary.json`과 `summary.md`를 남깁니다. 이 wrapper는
 `verify-predev --soak-minutes 30`, `verify-predev --soak-minutes 120`,
 `verify-va-runtime-console-longrun --duration-minutes 120`을 실행하지 않습니다.
+`--manual-result <result.md>`를 지정하면 기존 manual result 문서 구조를 함께
+검증합니다. manual result 구조 검증은 opt-in이며, manual result를 지정하지 않으면
+해당 step은 skip됩니다. helper PASS는 full UI 풀테스트 PASS가 아닙니다.
+auth UI flow를 포함하므로 아래 환경변수는 실행자가 직접 지정해야 합니다.
+
+- `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`
+- `MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD`
+- `MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD`
+- `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE`
+- `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO`
 
 다음은 `확인됨`으로 쓰지 않으며, UI 풀테스트 대상이면 `FAIL`입니다.
 
@@ -347,7 +357,6 @@ UI 풀테스트는 기능 검수와 같은 비중으로 시각 품질을 봅니�
 - `./server.sh verify-docs-ui-assets`
 - `./server.sh verify-release-metadata`
 - `./server.sh verify-manual-ui-evidence`
-- `./server.sh verify-manual-ui-evidence-runner`
 
 장시간 테스트와 `verify-predev`는 사용자가 명시 요청하지 않으면 실행하지 않습니다.
 실행하지 않은 스크립트는 실행하지 않았다고 사실 기록만 남기며, UI 풀테스트의

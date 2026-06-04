@@ -411,15 +411,15 @@ run_bootstrap() {
   start_server auto lab
   expect_eq "$(header_status_location "${BASE}/")" "302:/setup" "missing users root redirect"
   expect_page_contains "setup auth shell selectors" "${BASE}/setup" \
-    'class="auth-shell"' 'id="themeToggleBtn"' 'name="username"' 'name="password"' 'name="confirm"' '기본 kr-privacy 정책'
+    'class="auth-shell auth-responsive-shell"' 'id="themeToggleBtn"' 'name="username"' 'name="password"' 'name="confirm"' '기본 kr-privacy 정책'
   auth_ui_smoke "setup" "/setup" "form.auth-form" "" 'name="confirm"'
   setup_admin
   expect_eq "$(header_status_location "${BASE}/")" "302:/login" "unauthenticated root redirect"
   expect_page_contains "login auth shell selectors" "${BASE}/login" \
-    'class="auth-shell"' 'id="themeToggleBtn"' 'name="username"' 'name="password"' 'autocomplete="current-password"'
+    'class="auth-shell auth-responsive-shell"' 'id="themeToggleBtn"' 'name="username"' 'name="password"' 'autocomplete="current-password"'
   auth_ui_smoke "login" "/login" "form.auth-form" "" 'autocomplete="current-password"'
   expect_page_contains "client access request auth shell selectors" "${BASE}/client/request-access" \
-    'class="auth-shell"' 'id="request-form"' 'name="username"' 'name="contact"' 'name="reason"' \
+    'class="auth-shell auth-responsive-shell"' 'id="request-form"' 'name="username"' 'name="contact"' 'name="reason"' \
     '승인 전에는 로그인/채널 접근이 열리지 않습니다' 'window.MediaServerUi'
   auth_ui_smoke "client-request-access" "/client/request-access" "#request-form" "" 'name="reason"'
   login_admin
@@ -498,7 +498,7 @@ run_users() {
   landing="$(login_landing "${VIEWER_COOKIE}" "viewer-smoke" "${TEST_PASSWORD}")"
   expect_eq "${landing}" "302:/password/change" "mustChangePassword landing"
   expect_cookie_page_contains "password change auth shell selectors" "${VIEWER_COOKIE}" "${BASE}/password/change" \
-    'class="auth-shell"' 'id="themeToggleBtn"' 'name="currentPassword"' 'name="password"' 'name="confirm"' '기본 kr-privacy 정책'
+    'class="auth-shell auth-responsive-shell"' 'id="themeToggleBtn"' 'name="currentPassword"' 'name="password"' 'name="confirm"' '기본 kr-privacy 정책'
   auth_ui_smoke "password-change" "/password/change" "form.auth-form" "${VIEWER_COOKIE}" 'name="currentPassword"'
   change_reuse_code="$(http_code -b "${VIEWER_COOKIE}" -c "${VIEWER_COOKIE}" \
     -X POST \
@@ -547,7 +547,7 @@ run_users() {
   expect_eq "${preserve_reset}" "200" "users-only save after pending invite"
   expect_auth_store_contains "pending invite preserved across users save" "\"inviteId\": \"${invite_id}\""
   expect_page_contains "invite setup auth shell selectors" "${BASE}/invite/setup?token=${invite_token}" \
-    'class="auth-shell"' 'id="themeToggleBtn"' 'name="token"' 'name="password"' 'name="confirm"' '기본 kr-privacy 정책'
+    'class="auth-shell auth-responsive-shell"' 'id="themeToggleBtn"' 'name="token"' 'name="password"' 'name="confirm"' '기본 kr-privacy 정책'
   auth_ui_smoke "invite-setup" "/invite/setup?token=${invite_token}" "form.auth-form" "" 'name="token"'
   invite_setup="$(http_code -X POST --data-urlencode "token=${invite_token}" \
     --data-urlencode "password=${TEST_PASSWORD}" --data-urlencode "confirm=${TEST_PASSWORD}" "${BASE}/invite/setup")"
