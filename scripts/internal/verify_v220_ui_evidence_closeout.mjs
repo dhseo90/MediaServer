@@ -70,6 +70,19 @@ check(
 );
 
 check(
+  'existing UI pre-test list includes explicit F02-F06 rows',
+  [
+    'V220-F02 Ops Channels Workspace',
+    'V220-F03 Ops Users / Access Workspace',
+    'V220-F04 Ops VLM UI containment',
+    'V220-F05 Client Preview / Viewer Redaction',
+    'V220-F06 UI Evidence Close-out',
+  ].every(needle => inventory.includes(needle)) &&
+    inventory.includes('Current Pre-Test Update List') &&
+    inventory.includes('Longrun/UI Fail-Fast Preflight')
+);
+
+check(
   'manual checklist includes F02-F06 close-out preflight scope',
   checklist.includes('v2.2.0 UI Evidence Close-out') &&
     ['V220-F02', 'V220-F03', 'V220-F04', 'V220-F05', 'V220-F06'].every(needle => checklist.includes(needle)) &&
