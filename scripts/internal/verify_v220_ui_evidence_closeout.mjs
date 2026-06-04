@@ -44,12 +44,14 @@ check(
 );
 
 check(
-  'roadmap records V220-F06 row without marking it complete',
+  'roadmap records V220-F06 row with close-out status boundary',
   backlog.includes('| 6 | V220-F06 |') &&
     backlog.includes('UI Evidence Close-out 준비') &&
     backlog.includes('기능 inventory, manual UI checklist, UI 풀테스트 결과 기록 기준') &&
     backlog.includes('verify-v220-ui-evidence-closeout') &&
-    backlog.includes('| 6 | V220-F06 | P1 | 진행 |')
+    backlog.includes('| 6 | V220-F06 | P1 | 완료 |') &&
+    backlog.includes('상태 `완료`는 각 follow-up 산출물과 정적/스크립트 verifier') &&
+    backlog.includes('인앱 브라우저 UI 풀테스트, 30분 soak, 120분 longrun은 아직')
 );
 
 check(

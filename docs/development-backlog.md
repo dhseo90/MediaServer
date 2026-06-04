@@ -54,7 +54,7 @@ baseline으로 유지합니다.
   incident timeline, viewer debug/source 비노출
 - Auth: setup/login/session, role/scope, admin user console, invite/request approval
 - VLM: 모델 선택 기준, PC capability, 추천 엔진, `/ops/vlm` dry-run/profile/privacy UI,
-  runtime opt-in contract, local runtime smoke gate, cloud provider field smoke gate,
+  runtime opt-in contract, local runtime smoke gate, cloud provider credential 조건,
   queue/backpressure stability, runtime status UI, evaluation result workflow,
   review action workflow, rule suggestion draft workflow, VA coverage evidence,
   evaluation fixture harness, event evidence refs, VLMObservation sidecar, event explanation,
@@ -142,32 +142,36 @@ QA 절차입니다.
 
 | 순서 | ID | 우선순위 | 상태 | 영역 | 목표 | 예상 검증 |
 | --- | --- | --- | --- | --- | --- | --- |
-| 2 | V220-F02 | P1 | 진행 | Ops Channels Workspace 재배치 | `/ops/sources`의 채널 목록, source detail, ONVIF/WHEP/WHIP 입력, PublishedView, audit 흐름을 작업 단위로 재배치합니다. | [v220-ops-channels-workspace.md](./v220-ops-channels-workspace.md), `verify-v220-ops-channels-workspace`, `verify-ops-client-ui --screenshots`, `verify-ops-source-lifecycle`, `verify-ops-source-group-site-management`, `git diff --check` |
-| 3 | V220-F03 | P1 | 진행 | Ops Users / Access Workspace 재배치 | `/ops/users`, `/client/request-access`, `/invite/setup`의 사용자, 초대, 승인, role/scope 흐름을 작업 단위로 재배치합니다. | [v220-ops-users-access-workspace.md](./v220-ops-users-access-workspace.md), `verify-v220-ops-users-access-workspace`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker`, `verify-ops-client-ui --screenshots`, `git diff --check` |
-| 4 | V220-F04 | P1 | 진행 | Ops VLM UI containment 정리 | `/ops/vlm`을 Ops 보조 작업으로 유지하면서 privacy, default-off, profile 상태를 읽기 쉽게 정리합니다. | [v220-ops-vlm-containment.md](./v220-ops-vlm-containment.md), `verify-v220-ops-vlm-containment`, `verify-vlm-runtime-opt-in-contract`, `verify-vlm-runtime-status-ui`, `verify-vlm-profile-storage`, `verify-vlm-privacy-transfer-guard`, `verify-vlm-install-connection-ui`, `verify-ops-client-ui --screenshots`, `git diff --check` |
-| 5 | V220-F05 | P1 | 진행 | Client Preview / Viewer Redaction 재검수 중심 정리 | `/client/live`, `/client/dashboard`, `/client/events`에서 admin preview와 viewer-safe 비노출 경계를 재정리합니다. | [v220-client-preview-redaction-review.md](./v220-client-preview-redaction-review.md), `verify-v220-client-preview-redaction-review`, `verify-v220-client-live-redesign`, `verify-ops-client-ui --screenshots`, `verify-auth-routes`, `git diff --check` |
-| 6 | V220-F06 | P1 | 진행 | UI Evidence Close-out 준비 | 기능 inventory, manual UI checklist, UI 풀테스트 결과 기록 기준을 새 로드맵 기준으로 정리합니다. | [v220-ui-evidence-closeout.md](./v220-ui-evidence-closeout.md), `verify-v220-ui-evidence-closeout`, `verify-manual-ui-evidence`, `verify-feature-inventory-coverage`, `verify-project-inventory`, `git diff --check` |
+| 2 | V220-F02 | P1 | 완료 | Ops Channels Workspace 재배치 | `/ops/sources`의 채널 목록, source detail, ONVIF/WHEP/WHIP 입력, PublishedView, audit 흐름을 작업 단위로 재배치합니다. | [v220-ops-channels-workspace.md](./v220-ops-channels-workspace.md), `verify-v220-ops-channels-workspace`, `verify-ops-client-ui --screenshots`, `verify-ops-source-lifecycle`, `verify-ops-source-group-site-management`, `git diff --check` |
+| 3 | V220-F03 | P1 | 완료 | Ops Users / Access Workspace 재배치 | `/ops/users`, `/client/request-access`, `/invite/setup`의 사용자, 초대, 승인, role/scope 흐름을 작업 단위로 재배치합니다. | [v220-ops-users-access-workspace.md](./v220-ops-users-access-workspace.md), `verify-v220-ops-users-access-workspace`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker`, `verify-ops-client-ui --screenshots`, `git diff --check` |
+| 4 | V220-F04 | P1 | 완료 | Ops VLM UI containment 정리 | `/ops/vlm`을 Ops 보조 작업으로 유지하면서 privacy, default-off, profile 상태를 읽기 쉽게 정리합니다. | [v220-ops-vlm-containment.md](./v220-ops-vlm-containment.md), `verify-v220-ops-vlm-containment`, `verify-vlm-runtime-opt-in-contract`, `verify-vlm-runtime-status-ui`, `verify-vlm-profile-storage`, `verify-vlm-privacy-transfer-guard`, `verify-vlm-install-connection-ui`, `verify-ops-client-ui --screenshots`, `git diff --check` |
+| 5 | V220-F05 | P1 | 완료 | Client Preview / Viewer Redaction 재검수 중심 정리 | `/client/live`, `/client/dashboard`, `/client/events`에서 admin preview와 viewer-safe 비노출 경계를 재정리합니다. | [v220-client-preview-redaction-review.md](./v220-client-preview-redaction-review.md), `verify-v220-client-preview-redaction-review`, `verify-v220-client-live-redesign`, `verify-ops-client-ui --screenshots`, `verify-auth-routes`, `git diff --check` |
+| 6 | V220-F06 | P1 | 완료 | UI Evidence Close-out 준비 | 기능 inventory, manual UI checklist, UI 풀테스트 결과 기록 기준을 새 로드맵 기준으로 정리합니다. | [v220-ui-evidence-closeout.md](./v220-ui-evidence-closeout.md), `verify-v220-ui-evidence-closeout`, `verify-manual-ui-evidence`, `verify-feature-inventory-coverage`, `verify-project-inventory`, `git diff --check` |
+
+상태 `완료`는 각 follow-up 산출물과 정적/스크립트 verifier, 문서 검증, 커밋 evidence가
+있는 범위를 뜻합니다. 인앱 브라우저 UI 풀테스트, 30분 soak, 120분 longrun은 아직
+실행 evidence가 없으며 네 단계 테스트 기록에서만 별도 판정합니다.
 
 ### V220-F02 Ops Channels Workspace 재배치 종료 기준
 
 F02는 `/ops/sources`의 route 구조를 채널 목록, source detail, ONVIF/WHEP/WHIP 입력,
 PublishedView, audit 작업 단위로 재배치합니다. 완료 판정은 전용 verifier와 관련
-source/UI smoke가 통과하고, 실행하지 않은 UI 풀테스트/장시간/field smoke가 분리
-보고된 경우에만 가능합니다.
+source/UI smoke가 통과하고, 실행하지 않은 UI 풀테스트/30분/120분/실장비 ONVIF
+endpoint 조건이 분리 보고된 경우에만 가능합니다.
 
 ### V220-F03 Ops Users / Access Workspace 재배치 종료 기준
 
 F03는 `/ops/users`, `/client/request-access`, `/invite/setup`의 사용자 목록,
 접근 요청, 초대 발급/설정, 승인/거절, role/scope 템플릿, audit 흐름을 작업 단위로
 재배치합니다. 완료 판정은 전용 verifier와 Auth/users/routes/scope/UI smoke가
-통과하고, 실행하지 않은 UI 풀테스트/장시간 테스트가 분리 보고된 경우에만 가능합니다.
+통과하고, 실행하지 않은 UI 풀테스트/30분/120분이 분리 보고된 경우에만 가능합니다.
 
 ### V220-F04 Ops VLM UI containment 정리 종료 기준
 
 F04는 `/ops/vlm`을 Ops 보조 작업으로 유지하면서 privacy, default-off, profile 상태,
 runtime status, raw debug details를 읽기 쉬운 containment 작업 단위로 정리합니다.
 완료 판정은 전용 verifier와 기존 VLM runtime/profile/privacy/install UI verifier,
-Ops/Client UI smoke가 통과하고, 실행하지 않은 provider field smoke/장시간/UI
+Ops/Client UI smoke가 통과하고, 실행하지 않은 provider credential 조건/30분/120분/UI
 풀테스트가 분리 보고된 경우에만 가능합니다.
 
 ### V220-F05 Client Preview / Viewer Redaction 재검수 정리 종료 기준
@@ -175,7 +179,7 @@ Ops/Client UI smoke가 통과하고, 실행하지 않은 provider field smoke/�
 F05는 `/client/live`, `/client/dashboard`, `/client/events`에서 admin preview 상태와
 viewer-safe 비노출 경계를 재검수 중심 marker로 정리합니다. 완료 판정은 전용
 verifier와 S07 Client verifier, Ops/Client UI forbidden-text smoke, auth route guard가
-통과하고, 실행하지 않은 UI 풀테스트/장시간 테스트가 분리 보고된 경우에만 가능합니다.
+통과하고, 실행하지 않은 UI 풀테스트/30분/120분이 분리 보고된 경우에만 가능합니다.
 
 ### V220-F06 UI Evidence Close-out 준비 종료 기준
 
@@ -190,8 +194,8 @@ F06는 기능 inventory, manual UI checklist, UI 풀테스트 결과 기록 기�
 
 완료 판정은 전용 verifier와 manual evidence 구조 verifier, inventory verifier,
 `git diff --check`가 통과하고, 실행하지 않은 인앱 브라우저 UI 풀테스트, 30분 soak,
-120분 longrun, field smoke를 `미실행` 또는 `제외 기록`으로 분리해 보고한 경우에만
-가능합니다. F06 문서 준비 PASS는 UI 풀테스트 PASS가 아닙니다.
+120분 longrun, 실기기/외부 credential 조건을 `미실행` 또는 `제외 기록`으로 분리해
+보고한 경우에만 가능합니다. F06 문서 준비 PASS는 UI 풀테스트 PASS가 아닙니다.
 
 최종 포함 내용:
 

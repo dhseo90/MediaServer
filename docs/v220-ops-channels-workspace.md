@@ -64,5 +64,5 @@ git diff --check
 ```
 
 이 검증은 `/ops/sources` static contract와 기존 route/source smoke를 확인합니다.
-인앱 브라우저 UI 풀테스트, 30분 soak, 120분 longrun, 실장비 ONVIF field smoke는
-실행하지 않으면 미실행으로 분리합니다.
+인앱 브라우저 UI 풀테스트, 30분 soak, 120분 longrun, 실장비 ONVIF endpoint/credential
+조건은 실행하지 않으면 미실행 또는 제외 기록으로 분리합니다.
