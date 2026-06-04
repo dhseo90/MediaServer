@@ -4,23 +4,23 @@
 
 ## 현재 기준
 
-- 현재 기준 버전: `v2.1.0`
-- 현재 작업 브랜치 기준: `v2.2.0 Responsive UI Foundation`
+- 현재 기준 버전: `v2.2.0`
+- 현재 release branch 기준: `v2.2.0 Responsive UI Foundation`
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
-- release close-out 전까지 `VERSION`/`CMakeLists.txt` metadata는 최신 공개 release
-  기준을 유지하며, active branch roadmap 이름만으로 제품 release publish를 완료한
-  것으로 보지 않습니다.
-- `v2.1.0`은 직전 release까지 닫은 source-only/live-only 제품 경계를 유지하면서
-  VLM을 이벤트 해석/리뷰 보조 계층과 runtime/provider opt-in stabilization 범위로
-  닫는 source-only release입니다.
+- release close-out에서 branch baseline을 닫은 뒤에는 `VERSION`/`CMakeLists.txt`
+  metadata를 현재 release target과 맞추며, tag/GitHub Release publish 전에는
+  published metadata 완료로 보지 않습니다.
+- `v2.2.0`은 직전 release까지 닫은 source-only/live-only 제품 경계를 유지하면서
+  VLM review-assist source-only 경계 위에 responsive Ops/Rules/Client/Auth
+  workspace foundation을 닫는 source-only release입니다.
   Client Live workspace, source tree/dock event feed, tile disconnect, event review,
   source group/site, tile info overlay, saved layout, incident timeline, alert delivery,
   scenario builder, Ops/Client declutter는 현재 UI-first 제품 baseline으로 유지합니다.
-- 현재 제품 경계와 v2.1.0 종료 판정은 [development-backlog.md](./development-backlog.md)를
+- 현재 제품 경계와 v2.2.0 종료 판정은 [development-backlog.md](./development-backlog.md)를
   기준으로 합니다. 이전 release evidence는 현재 release pass/fail 기준으로
   재사용하지 않습니다.
 
-## `v2.1.0`에 포함되는 범위
+## `v2.2.0`에 포함되는 범위
 
 - Apache-2.0 소스 코드
 - 문서, 설정 예시, 검증 스크립트
@@ -97,8 +97,12 @@
   gate, queue/backpressure stability, runtime status UI, evaluation result workflow,
   review action workflow, Rule suggestion draft workflow, VA coverage evidence,
   external TURN/WHEP field gate, runtime/model bundle RC rehearsal과 2026-06-03 UI fulltest evidence
+- v2.2.0 Responsive UI Foundation S00-S08과 F02-F06: UI architecture inventory,
+  responsive task shell, design token refresh, component primitives, Ops/Rules/Client/Auth
+  workspace redesign, Channels/Users/VLM containment/client redaction follow-up,
+  UI evidence close-out, 2026-06-04 F02-F06 인앱 브라우저 UI evidence
 
-## `v2.1.0`에 포함하지 않는 범위
+## `v2.2.0`에 포함하지 않는 범위
 
 - FFmpeg/GStreamer/ONNX Runtime/YOLO model binary bundle
 - VLM model/runtime bundle, VLM default-on, production runtime/provider 성공 보장
@@ -132,7 +136,7 @@
 
 ## Tag와 release 기준
 
-- 현재 source-only release 기준 tag는 `v2.1.0`입니다.
+- 현재 source-only release 기준 tag는 `v2.2.0`입니다.
 - tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만 붙입니다.
 - 다음 신규 release tag는 signed annotated tag로 생성합니다. unsigned annotated tag와
   lightweight tag는 새 release tag로 사용하지 않습니다.

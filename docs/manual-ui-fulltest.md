@@ -5,8 +5,8 @@
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 삼고, 실행 순서는 [manual-ui-checklist.md](./manual-ui-checklist.md), 결과 기록은
 [manual-ui-result-template.md](./manual-ui-result-template.md)를 사용합니다.
-현재 제품 UI 기준은 최신 공개 release `v2.1.0`이고, 현재 작업 브랜치의 UI 문서
-기준은 `v2.2.0 Responsive UI Foundation`입니다. 지원 가능한 모든 기능을 실제 UI 조작으로 확인하지 않은 경우에는 완료로 쓰지 않습니다.
+현재 제품 UI 기준은 최신 공개 release `v2.2.0`이고, UI 문서 기준은
+`v2.2.0 Responsive UI Foundation`입니다. 지원 가능한 모든 기능을 실제 UI 조작으로 확인하지 않은 경우에는 완료로 쓰지 않습니다.
 
 ## 1. 정의
 

@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Release](https://img.shields.io/badge/release-v2.1.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.1.0)
+[![Release](https://img.shields.io/badge/release-v2.2.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.2.0)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
 video analytics overlays and rule/scenario live events when analytics are enabled.
@@ -13,8 +13,8 @@ runtime/model bundle distribution are outside the default release scope.
 
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
-- Current release: [v2.1.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.1.0)
-- Active branch baseline: `v2.2.0 Responsive UI Foundation`
+- Current release: [v2.2.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.2.0)
+- Release baseline: `v2.2.0 Responsive UI Foundation`
 
 ## At a Glance
 
@@ -30,7 +30,7 @@ runtime/model bundle distribution are outside the default release scope.
 - **Product UI**: routes users to Ops or Client views based on account
   permissions. There is no Lab product screen; lab endpoints remain available
   for API and verification workflows.
-  The active `v2.2.0` branch is a UI foundation and responsive workspace update;
+  `v2.2.0` is a UI foundation and responsive workspace update;
   it does not expand backend media paths, event schemas, or auth policy.
 - **Auth and scopes**: supports first-admin setup, session login, role/scope,
   admin user management, and viewer invite/request approval.
@@ -42,12 +42,11 @@ runtime/model bundle distribution are outside the default release scope.
 
 ## VLM Review Assist
 
-v2.1.0 keeps VLM as an operator review-assist layer, not as the final decision
-engine, and closes the opt-in runtime/provider stabilization scope as a
-source-only release. YOLO/Rule/Scenario still create the events; VLM adds
-explanations, false-positive hints, evidence summaries, and rule suggestion
-candidates while keeping the existing Event POST, WebRTC, SSE/WS metadata
-schemas and media paths.
+v2.2.0 keeps the v2.1.0 VLM review-assist source-only boundary and closes the
+responsive Ops/Client/Auth workspace foundation. YOLO/Rule/Scenario still create
+the events; VLM adds explanations, false-positive hints, evidence summaries, and
+rule suggestion candidates while keeping the existing Event POST, WebRTC, SSE/WS
+metadata schemas and media paths.
 
 Model recommendation is based on both PC capability and privacy mode. The current
 baseline is `Qwen/Qwen3-VL-8B-Instruct` for local standard hardware,
@@ -140,8 +139,8 @@ release evidence live in dedicated docs.
 - Release/version policy: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - Release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
-- Release notes: [v2.1.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.1.0)
-- Active UI roadmap: `v2.2.0 Responsive UI Foundation` in
+- Release notes: [v2.2.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.2.0)
+- Completed UI roadmap: `v2.2.0 Responsive UI Foundation` in
   [docs/development-backlog.md](docs/development-backlog.md)
 
 ## UI Preview

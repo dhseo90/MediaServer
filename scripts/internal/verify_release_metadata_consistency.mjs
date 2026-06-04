@@ -333,7 +333,7 @@ check("release policy pins source-only tag baseline", () => {
   const doc = readText("docs/release-policy.md");
   for (const snippet of [
     `현재 source-only release 기준 tag는 \`${currentTag}\`입니다.`,
-    `\`${currentTag}\`은 live-only media path를 유지하면서 VLM review assist를 source-only baseline으로 유지하고 runtime/provider opt-in stabilization을 닫는 release`,
+    `\`${currentTag}\`은 live-only media path를 유지하면서 VLM review assist source-only baseline을 보존하고 responsive UI foundation을 닫는 release`,
   ]) {
     assert(doc.includes(snippet), `docs/release-policy.md missing snippet: ${snippet}`);
   }
@@ -371,22 +371,22 @@ check("release policies require future signed tags", () => {
   return { files: docs.map(([file]) => file) };
 });
 
-check("development backlog separates current baseline from active v2.2.0 roadmap gates", () => {
+check("development backlog pins current close-out and completed v2.2.0 roadmap gates", () => {
   const doc = readText("docs/development-backlog.md");
   for (const snippet of [
     `## 현재 기준: ${currentTag} Source Release Baseline`,
     `${currentTag}은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서`,
-    "## 활성 roadmap: v2.2.0 Responsive UI Foundation",
+    "## 다음 roadmap: v2.3.0 준비 전",
+    "v2.3.0 branch는 v2.2.0 GitHub Release와 published metadata 재검증이 끝난 뒤",
+    "## 완료 roadmap: v2.2.0 Responsive UI Foundation",
     "작업 단위 반응형 셸",
     "V220-S00",
     "verify-v220-entry-boundary",
     `## ${currentTag} Release Close-out`,
-    "## 완료 roadmap: v2.1.0 VLM Runtime Opt-in Stabilization",
-    "VLM을 이벤트 해석/리뷰 보조 계층과 runtime/provider opt-in stabilization 범위",
-    "이 roadmap은 `v2.1.0` branch에서",
     "실제 tag/push는 이 release close-out 지시에 한해 수행합니다",
-    "v2.2.0 branch는 v2.1.0 GitHub Release와 published metadata 재검증이 끝난 뒤",
-    "v2.2.0 개발 방향은 상단의 `활성 roadmap: v2.2.0 Responsive UI",
+    "## 완료 roadmap: v2.1.0 VLM Runtime Opt-in Stabilization",
+    "운영자가 명시적으로 켠 경우에만 실제 VLM runtime/provider 연결을 검증 가능한",
+    "이 roadmap은 `v2.1.0` branch에서",
   ]) {
     assert(doc.includes(snippet), `docs/development-backlog.md missing snippet: ${snippet}`);
   }
@@ -436,7 +436,7 @@ check("public entry docs keep release evidence source-of-truth deduped", () => {
   for (const snippet of [
     "Current Release Close-Out",
     `${currentTag} Release Close-out`,
-    "VLM source-only",
+    "responsive UI foundation",
     `${currentTag} Release Close-out Runbook`,
     "release-policy.md",
   ]) {

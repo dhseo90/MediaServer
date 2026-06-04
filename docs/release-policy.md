@@ -101,7 +101,7 @@ future tag, push, GitHub Release, accepted baseline 채택, 320/390/760/1180px
 screenshot review는 리포트에 manual/not-run으로 남기며, 실제 실행 및 링크가
 없는 항목을 pass로 쓰지 않습니다.
 
-## v2.1.0 Release Close-out Runbook
+## v2.2.0 Release Close-out Runbook
 
 이 runbook은 순서가 evidence입니다. dry-run에서는 실행 가능 여부와 수동 gate만
 점검하고, real close-out에서는 아래 순서를 건너뛰지 않습니다.
@@ -129,9 +129,9 @@ Real close-out checklist:
 위 순서 중 실행하지 않은 항목은 테스트 결과 행을 만들지 않고 release evidence 실행
 상태에 `미실행` 또는 `manual-not-run`으로 남기며, 실행하지 않은
 tag/push/GitHub Release를 완료로 쓰지 않습니다.
-v2.1.0 source-only release에서는
+v2.2.0 source-only release에서는
 [development-backlog.md](./development-backlog.md)의
-`v2.1.0 Release Close-out` 기준으로 VLM runtime opt-in stabilization S00~S11 구현,
+`v2.2.0 Release Close-out` 기준으로 Responsive UI Foundation S00~S08와 F02~F06 구현,
 인앱 브라우저 UI 풀테스트 evidence, release metadata/docs/static gate, GitHub Actions
 warning/Node 24 baseline, feature inventory coverage,
 contract/schema freeze, fixture cleanup, CI/local gate parity, published release
@@ -142,19 +142,19 @@ Client/Ops UI-first workflow와 기존 live media path는 제품 baseline으로 
 [manual-ui-result-template.md](./manual-ui-result-template.md),
 [project-feature-test-inventory.md](./project-feature-test-inventory.md),
 [ui-visual-release-baseline-approval-template.md](./ui-visual-release-baseline-approval-template.md)를
-source-of-truth로 삼습니다. 현재 `v2.1.0` release pass/fail 기준은 이 evidence와
+source-of-truth로 삼습니다. 현재 `v2.2.0` release pass/fail 기준은 이 evidence와
 통합 검증 명령으로 판단합니다.
 
 ## Tag 전략
 
-- 현재 source-only release 기준 tag는 `v2.1.0`입니다.
+- 현재 source-only release 기준 tag는 `v2.2.0`입니다.
 - public-readiness, bundle policy, Actions status check가 모두 통과한 커밋에만 tag를 붙입니다.
 - 다음 신규 release tag는 signed annotated tag로 생성합니다. `git tag -s <tag> <commit>`
   또는 GitHub가 검증 가능한 SSH/S/MIME signing 설정만 허용합니다.
 - signed tag evidence는 GitHub Tags/Releases의 Verified 표시 또는 GitHub API tag
   verification `verified=true`/`reason=valid`로 확인합니다.
-- `v2.1.0`은 live-only media path를 유지하면서 VLM review assist를 source-only baseline으로 유지하고 runtime/provider opt-in stabilization을 닫는 release이며, binary/runtime/model bundle의 운영 배포 완료를 뜻하지 않습니다.
-- route/API/config/schema migration이 필요한 후속 변경은 `v2.2.0` 이후 후보로 분리합니다.
+- `v2.2.0`은 live-only media path를 유지하면서 VLM review assist source-only baseline을 보존하고 responsive UI foundation을 닫는 release이며, binary/runtime/model bundle의 운영 배포 완료를 뜻하지 않습니다.
+- route/API/config/schema migration이 필요한 후속 변경은 `v2.3.0` 이후 후보로 분리합니다.
 - tag release에는 generated sample pack, YOLO model, FFmpeg/GStreamer runtime bundle을 붙이지 않습니다.
 
 ## Actions update 정책
@@ -211,18 +211,18 @@ Licensing and Artifact Guardrails/guardrails, RC Release Gate workflow에 들어
 ## Release Note Template
 
 ```markdown
-# Media Server v2.1.0
+# Media Server v2.2.0
 
 ## Scope
 
-- Live-only media path plus VLM review-assist runtime opt-in stabilization source/doc release
+- Live-only media path plus VLM review-assist source boundary and responsive UI foundation source/doc release
 - Binary/runtime/model bundle: not included
 
 ## Live-only Scope
 
 - Live media relay and live VA event focus remain unchanged
 - VLM remains an Ops-only event review assist layer: runtime opt-in contract, local runtime smoke gate, cloud provider field smoke gate, queue/backpressure stability, runtime status UI, evaluation result workflow, review action workflow, manual-only rule suggestion draft flow, VA coverage evidence, and runtime/model bundle RC rehearsal
-- v2.1.0 close-out: VLM S00-S11 verifier PASS, in-app UI fulltest evidence, release evidence index, feature inventory coverage, release metadata, and release close-out one-shot dry-run
+- v2.2.0 close-out: Responsive UI Foundation S00-S08/F02-F06 verifier PASS, in-app UI fulltest evidence, release evidence index, feature inventory coverage, release metadata, and release close-out one-shot dry-run
 - EventRecord/snapshot/clip: short event evidence helper, not the main product message
 
 ## Non-goals
@@ -264,5 +264,5 @@ Do not list an item as pass unless it was actually executed for this release cut
 ## Known Limitations
 
 - 장기 soak/RC 검증은 별도 workflow_dispatch 기준입니다.
-- ONVIF 실장비 field smoke, YouTube 실제 URL relay, Re-ID default-on, tracker default-on, OC-SORT runtime promotion, VLM runtime/model bundle, real cloud provider call은 v2.1.0 완료 근거가 아닙니다.
+- ONVIF 실장비 field smoke, YouTube 실제 URL relay, Re-ID default-on, tracker default-on, OC-SORT runtime promotion, VLM runtime/model bundle, real cloud provider call은 v2.2.0 완료 근거가 아닙니다.
 ```

@@ -2,9 +2,8 @@
 
 이 디렉터리는 README와 `docs/ui-guide.md`에서 사용할 제품 UI 스크린샷을 역할 기준 파일명으로 보관합니다.
 
-현재 대표 제품 이미지는 2026-05-23 캡처 자산을 최신 공개 release `v2.1.0`의
-`v2.1.0 release baseline`으로 유지하고, 현재 작업 기준
-`v2.2.0 Responsive UI Foundation`의 대표 shell 설명 이미지로도 사용합니다. 특히
+현재 대표 제품 이미지는 2026-05-23 캡처 자산을 최신 공개 release `v2.2.0`의
+`v2.2.0 release baseline` 대표 shell 설명 이미지로 유지합니다. 특히
 Client Live 이미지는 source tree, dock event feed, workspace preset,
 tile-level disconnect/action, VA overlay tile이 보이는 제품 구조를 기준으로 합니다.
 단, 이 대표 이미지는 VLM 전용 `/ops/vlm`, `/ops/events` 리뷰 보조 화면의 전체 UI
@@ -57,7 +56,7 @@ Chrome/CDP로 생성된 재캡처 산출물은 대표 이미지로 채택하지 
 직접 이미지 검수 checklist:
 
 - 재캡처 뒤 한국어/영어 PNG를 모두 직접 엽니다.
-- 최신 공개 release `v2.1.0`과 현재 작업 기준 `v2.2.0`의 대표 shell 화면 구조와
+- 최신 공개 release `v2.2.0`의 대표 shell 화면 구조와
   맞는지 확인합니다.
 - VLM 전용 화면이 필요한 release evidence로 이 대표 이미지를 대신 쓰지 않습니다.
 - 영상 screenshot은 video viewport, control, status, VA overlay가 잘리지 않는지 확인합니다.
