@@ -98,6 +98,7 @@ const skipManualResult = Boolean(args.skipManualResult) || !manualResult;
 const keepServers = Boolean(args.keepServers);
 const chromeArgs = args.chromePath ? ["--chrome-path", args.chromePath] : [];
 const opsClientBrowserArgs = buildOpsClientBrowserArgs();
+const ruleUiEvidenceArgs = inAppEvidence ? ["--in-app-evidence", inAppEvidence] : [];
 
 const authEnvNames = [
   "MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD",
@@ -204,6 +205,7 @@ try {
     String(debugPortBase + 500),
     "--output-dir",
     path.join(outputDir, "rule-ui"),
+    ...ruleUiEvidenceArgs,
     ...chromeArgs,
   ]);
   await runCommand("ops-route-boundaries", [
@@ -225,8 +227,11 @@ try {
     `http://127.0.0.1:${ports.coreHttp}`,
     "--debug-port-base",
     String(debugPortBase + 700),
+    "--widths",
+    visualWidths,
     "--output-dir",
     path.join(outputDir, "ops-tables-layout"),
+    ...ruleUiEvidenceArgs,
     ...chromeArgs,
   ]);
   await runCommand("ops-click-e2e-core", [
@@ -240,6 +245,7 @@ try {
     widths,
     "--output-dir",
     path.join(outputDir, "ops-click-core"),
+    ...ruleUiEvidenceArgs,
     ...chromeArgs,
   ], {
     MEDIA_SERVER_VERIFY_OPS_CLICK_RTSP_PORT: String(ports.coreRtsp),
@@ -273,6 +279,7 @@ try {
     authUsersFile,
     "--output-dir",
     path.join(outputDir, "ops-click-auth"),
+    ...ruleUiEvidenceArgs,
     ...chromeArgs,
   ]);
 

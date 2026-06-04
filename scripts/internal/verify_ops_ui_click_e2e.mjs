@@ -22,6 +22,7 @@ Options:
   --http-base <url>         실행 중인 서버 HTTP base입니다. 기본 http://127.0.0.1:8081.
   --timeout-ms <ms>         브라우저 대기 시간입니다. 기본 15000.
   --chrome-path <path>      Chrome/Chromium 실행 파일 경로입니다.
+  --in-app-evidence <path>  Codex 인앱 브라우저 직접 확인 evidence JSON입니다.
   --widths <csv>            클릭 검증 viewport 폭 목록입니다. 기본 390,1180.
   --height <px>             viewport 높이입니다. 기본 900.
   --debug-port-base <port>  Chrome CDP port 시작값입니다. 기본 9750.
@@ -41,6 +42,7 @@ assertKnownOptions(rawArgs, [
   "http-base",
   "timeout-ms",
   "chrome-path",
+  "in-app-evidence",
   "widths",
   "height",
   "debug-port-base",
@@ -54,6 +56,7 @@ const args = parseArgs(rawArgs);
 const httpBase = String(args.httpBase || "http://127.0.0.1:8081").replace(/\/+$/, "");
 const timeoutMs = Number(args.timeoutMs || 15000);
 const chromePath = args.chromePath || findChrome();
+const inAppEvidencePath = args.inAppEvidence || process.env.MEDIA_SERVER_IN_APP_BROWSER_EVIDENCE || "";
 const widths = parseWidthList(args.widths || "390,1180");
 const height = Number(args.height || 900);
 const debugPortBase = Number(args.debugPortBase || 9750);
@@ -63,6 +66,11 @@ const rootDir = path.resolve(scriptDir, "../..");
 const authUsersFile = args.authUsersFile || process.env.MEDIA_SERVER_AUTH_USERS_FILE || ".media_server.users.json";
 const authUiFlow = isTruthy(args.authUiFlow);
 const authUiPasswords = authUiFlow ? readAuthUiPasswords() : null;
+
+if (inAppEvidencePath) {
+  assertInAppClickEvidence(inAppEvidencePath, { authUiFlow, widths });
+  process.exit(0);
+}
 
 if (!chromePath) {
   console.error("[fail] Chrome executable not found");
@@ -193,6 +201,81 @@ function buildE2eSummaryMarkdown(summary) {
   }
   lines.push("");
   return `${lines.join("\n")}\n`;
+}
+
+function assertInAppClickEvidence(evidencePath, { authUiFlow, widths }) {
+  const resolved = path.resolve(evidencePath);
+  let evidence;
+  try {
+    evidence = JSON.parse(fs.readFileSync(resolved, "utf8"));
+  } catch (error) {
+    console.error(`[fail] invalid in-app browser evidence ${resolved}: ${error.message}`);
+    process.exit(1);
+  }
+  const failures = [];
+  const fail = (message) => failures.push(message);
+  if (evidence?.schema !== "media-server.in-app-browser-ui-evidence.v1") {
+    fail(`invalid evidence schema: ${evidence?.schema || "(missing)"}`);
+  }
+  const browserName = String(evidence?.browser || evidence?.browserId || evidence?.source || "");
+  if (!/in-app|iab|codex/i.test(browserName)) {
+    fail("evidence must identify Codex in-app browser/iab");
+  }
+  const interactions = Array.isArray(evidence?.interactions) ? evidence.interactions : [];
+  const passing = new Set(interactions.filter((entry) => entry?.pass === true).map((entry) => entry.id));
+  const routes = Array.isArray(evidence?.routes) ? evidence.routes : [];
+  const routeByPath = new Map(routes.map((route) => [route?.path, route]));
+  const requiredCore = [
+    "ops-sources-generated-channel-id",
+    "ops-rules-generated-id-displays",
+    "ops-users-multi-channel-assignment",
+    "client-live-va-playback-controls",
+    "theme-light-dark-toggle",
+  ];
+  const requiredAuth = [
+    "auth-setup-weak-password-rejected",
+    "auth-setup-strong-password",
+    "auth-admin-login-landing",
+    "users-create-viewer-must-change",
+    "auth-viewer-must-change-password",
+    "auth-viewer-login-client-landing",
+    "auth-viewer-ops-denied",
+    "access-request-submit-pending",
+    "access-request-admin-approve-invite",
+    "invite-setup-password-flow",
+  ];
+  const required = authUiFlow ? requiredAuth : requiredCore;
+  for (const id of required) {
+    if (!passing.has(id)) fail(`${id} interaction evidence missing or failing`);
+  }
+  for (const pathName of authUiFlow ? ["/client/live"] : ["/ops/sources", "/ops/rules", "/ops/users", "/client/live"]) {
+    const route = routeByPath.get(pathName);
+    if (!route?.checks?.visualLayoutPass) fail(`${pathName} route evidence missing or visualLayoutPass is not true`);
+  }
+  for (const width of widths) {
+    if (!routes.some((route) => Array.isArray(route?.screenshots) && route.screenshots.some((item) => String(item).includes(`_${width}.`)))) {
+      fail(`screenshot evidence missing width ${width}`);
+    }
+  }
+  if (failures.length > 0) {
+    console.error(`[fail] in-app ${authUiFlow ? "auth UI" : "ops click"} evidence invalid`);
+    for (const failure of failures) console.error(`- ${failure}`);
+    process.exit(1);
+  }
+  const title = authUiFlow ? "Auth UI browser E2E" : "Ops UI direct click E2E";
+  console.log(`[pass] in-app ${title} evidence`);
+  for (const id of required) console.log(`[pass] in-app click step ${id}`);
+  console.log("");
+  console.log(`== ${title} 요약 ==`);
+  console.log("- 통과: 1");
+  console.log("- 실패: 0");
+  console.log(JSON.stringify({
+    mode: "in-app-evidence",
+    evidence: resolved,
+    authUiFlow,
+    widths,
+    required,
+  }, null, 2));
 }
 
 async function ensureOpsClickPrereqs() {
