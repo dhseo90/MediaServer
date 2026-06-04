@@ -2736,7 +2736,7 @@ std::string InviteSetupPageHtml(const std::string& token,
                                 bool failed) {
     std::ostringstream out;
     AppendAuthShellStart(out, "초대 설정", "Invite Setup");
-    out << R"(    <form class="auth-form auth-form-grid" method="post" action="/invite/setup" data-testid="auth-invite-setup-form">
+    out << R"(    <form class="auth-form auth-form-grid" method="post" action="/invite/setup" data-testid="auth-invite-setup-form" data-access-route="invite-setup">
       <h1>초대 계정 설정</h1>
       <p>관리자가 발급한 초대 토큰으로 비밀번호를 설정합니다.</p>
 )";
@@ -2763,7 +2763,7 @@ std::string InviteSetupPageHtml(const std::string& token,
 std::string ClientAccessRequestPageHtml() {
     std::ostringstream out;
     AppendAuthShellStart(out, "시청 권한 요청", "Client Access", "auth-card-wide");
-    out << R"(    <form id="request-form" class="auth-form auth-form-grid" data-testid="auth-access-request-form">
+    out << R"(    <form id="request-form" class="auth-form auth-form-grid" data-testid="auth-access-request-form" data-access-route="request-access">
       <h1>시청 권한 요청</h1>
       <p>요청은 승인 대기 상태로 저장되며 관리자 승인 전에는 로그인이나 채널 접근이 허용되지 않습니다.</p>
       <div id="message" class="message auth-message" data-testid="auth-message" hidden></div>
@@ -5219,11 +5219,11 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
                         principal,
                         "users",
                         "관리자가 사용자 계정과 접근 범위를 관리합니다.");
-    out << R"USERS(    <section class="panel" data-testid="ops-users-page">
-      <div class="toolbar">
+    out << R"USERS(    <section class="panel ops-users-access-workspace" data-ops-panel="users" data-testid="ops-users-page" data-access-workspace="task-units">
+      <div class="toolbar panel-title-toolbar ops-workspace-hero">
         <div>
           <h2>사용자 관리</h2>
-          <p>사용자와 권한 범위를 관리합니다.</p>
+          <p>사용자, 초대, 승인, role/scope, audit 흐름을 작업 단위로 관리합니다.</p>
         </div>
         <div class="actions">
           <button id="add-user-btn" class="button-primary" type="button">사용자 추가</button>
@@ -5231,7 +5231,7 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
           <span id="status" class="status"></span>
         </div>
       </div>
-      <section class="section-card user-lifecycle-policy" data-testid="user-lifecycle-policy">
+      <section class="section-card user-lifecycle-policy ops-users-lifecycle-policy" data-testid="user-lifecycle-policy">
         <div class="toolbar">
           <div>
             <h2>계정 라이프사이클 정책</h2>
@@ -5259,7 +5259,8 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         </div>
         <p class="hint">초대 링크는 기본 24시간 동안만 유효하며, 만료 후에는 새 초대를 발급합니다. 비밀번호 초기화는 임시 비밀번호를 설정하고 기존 세션을 회수합니다. 복구 시 로그인 잠금과 실패 횟수는 초기화됩니다.</p>
       </section>
-      <section class="section-card">
+      <div class="ops-users-access-grid">
+      <section class="section-card ops-users-lifecycle-panel" data-access-task="users">
         <h2>사용자 목록</h2>
         <div class="table-wrap">
           <table class="ops-data-table ops-responsive-table user-table">
@@ -5282,7 +5283,7 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         </div>
       </section>
 
-      <section class="section-card">
+      <section class="section-card ops-users-request-panel" data-access-task="requests">
         <div class="toolbar">
           <div>
             <h2>승인 대기 요청</h2>
@@ -5311,7 +5312,7 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         </div>
       </section>
 
-      <section class="section-card" data-testid="ops-invites-panel">
+      <section class="section-card ops-users-invite-panel" data-access-task="invites" data-testid="ops-invites-panel">
         <div class="toolbar">
           <div>
             <h2>초대 발급</h2>
@@ -5354,7 +5355,9 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
         </div>
       </section>
 
-      <section id="user-detail-panel" class="section-card ops-detail-panel" hidden>
+      </div>
+
+      <section id="user-detail-panel" class="section-card ops-detail-panel ops-users-role-scope-panel" data-access-task="role-scope" data-scope-contract="role-scope-unchanged" hidden>
         <div class="toolbar">
           <div>
             <div class="badge-row"><span id="user-editor-mode" class="chip info">상세</span><span id="user-editor-id" class="chip">@-</span></div>
@@ -5422,7 +5425,7 @@ std::string BuildOpsUsersPageHtml(const auth::Principal& principal) {
           </div>
         </div>
       </section>
-      <section class="section-card ops-audit-panel">
+      <section class="section-card ops-audit-panel ops-users-audit-panel" data-access-task="audit">
         <div class="toolbar">
           <div>
             <h2>변경 이력</h2>

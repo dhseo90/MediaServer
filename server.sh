@@ -82,6 +82,8 @@ Usage:
                  v2.2.0 Auth/setup redesign route/CSS/문서 연결을 검증합니다.
   verify-v220-ops-channels-workspace
                  v2.2.0 Ops Channels Workspace route/CSS/문서 연결을 검증합니다.
+  verify-v220-ops-users-access-workspace
+                 v2.2.0 Ops Users / Access Workspace route/CSS/문서 연결을 검증합니다.
   verify-product-shell-examples
                  제품 shell/component 예시 문서와 UI guide 연결을 검증합니다.
   verify-ops-route-boundaries
@@ -278,6 +280,10 @@ Usage:
                  admin 계정 관리, viewer scope 제한, lockout, invite/request를 검증합니다.
   verify-auth-routes
                  root/login/ops/client와 Lab API role 기반 route 정책을 검증합니다.
+  verify-auth-ui-smoke
+                 실행 중인 auth shell 페이지의 selector와 선택 visual smoke를 검증합니다.
+  verify-auth-scope-picker
+                 실행 중인 /ops/users 권한 범위 템플릿 UI를 admin 세션으로 검증합니다.
   verify-auth-regression-matrix
                  Auth/session/scope regression matrix와 verifier coverage를 검증합니다.
   verify-vlm-boundary
@@ -899,6 +905,10 @@ case "${cmd}" in
     require_internal verify_v220_ops_channels_workspace.mjs
     exec "${INTERNAL_DIR}/verify_v220_ops_channels_workspace.mjs" "$@"
     ;;
+  verify-v220-ops-users-access-workspace)
+    require_internal verify_v220_ops_users_access_workspace.mjs
+    exec "${INTERNAL_DIR}/verify_v220_ops_users_access_workspace.mjs" "$@"
+    ;;
   verify-feature-scope-gate)
     require_internal verify_feature_scope_decision_gate.mjs
     exec "${INTERNAL_DIR}/verify_feature_scope_decision_gate.mjs" "$@"
@@ -998,6 +1008,14 @@ case "${cmd}" in
   verify-auth-routes)
     require_internal verify_auth_routes.sh
     exec "${INTERNAL_DIR}/verify_auth_routes.sh" "$@"
+    ;;
+  verify-auth-ui-smoke)
+    require_internal verify_auth_ui_smoke.mjs
+    exec "${INTERNAL_DIR}/verify_auth_ui_smoke.mjs" "$@"
+    ;;
+  verify-auth-scope-picker)
+    require_internal verify_auth_scope_picker.mjs
+    exec "${INTERNAL_DIR}/verify_auth_scope_picker.mjs" "$@"
     ;;
   verify-auth-regression-matrix)
     require_internal verify_auth_regression_matrix.mjs

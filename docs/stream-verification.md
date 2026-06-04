@@ -672,6 +672,30 @@ scope, 작업 단위, responsive 기준, 변경 금지 경계를 담고, `/ops/s
 확인합니다. 브라우저 UI 풀테스트, 30분 soak, 120분 longrun, ONVIF 실장비 field
 smoke는 실행하지 않으면 미실행으로 분리합니다.
 
+v2.2.0 Ops Users / Access Workspace 재배치는 F03에서 `/ops/users`,
+`/client/request-access`, `/invite/setup` route를 사용자 목록, 접근 요청, 초대,
+승인/거절, role/scope, audit 작업 단위로 정리합니다. 이 단계는 route layout class와
+task marker를 바꾸지만 Auth/session/scope/role contract, password policy, invite
+token, access request API schema/rate limit, Event POST/WebRTC/SSE/WS metadata schema,
+RTSP/WebRTC media path는 변경하지 않습니다.
+
+```bash
+./server.sh verify-v220-ops-users-access-workspace
+./server.sh verify-auth-bootstrap
+./server.sh verify-auth-users
+./server.sh verify-auth-routes
+./server.sh verify-auth-ui-smoke
+./server.sh verify-auth-scope-picker
+./server.sh verify-ops-client-ui --screenshots
+git diff --check
+```
+
+이 묶음은 [v220-ops-users-access-workspace.md](./v220-ops-users-access-workspace.md)가
+F03 route scope, 작업 단위, responsive 기준, 변경 금지 경계를 담고, `/ops/users`가
+기존 user table/detail, access request approve/reject, invite issue/list, role/scope
+template, user audit hook을 유지하는지 확인합니다. 인앱 브라우저 UI 풀테스트, 30분
+soak, 120분 longrun은 실행하지 않으면 미실행으로 분리합니다.
+
 v2.1.0 S01 VLM runtime opt-in contract는 profile 저장 계약 안에서 runtime 상태만
 고정합니다. 실제 local/cloud runtime 호출이 아니라 default-off 상태 분리 gate입니다.
 
