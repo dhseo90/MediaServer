@@ -696,6 +696,30 @@ F03 route scope, 작업 단위, responsive 기준, 변경 금지 경계를 담�
 template, user audit hook을 유지하는지 확인합니다. 인앱 브라우저 UI 풀테스트, 30분
 soak, 120분 longrun은 실행하지 않으면 미실행으로 분리합니다.
 
+v2.2.0 Ops VLM UI containment 정리는 F04에서 `/ops/vlm`을 Ops 보조 작업으로 유지하면서
+privacy, default-off, profile 상태를 containment 작업 단위로 정리합니다. 이 단계는
+route layout class와 task marker를 바꾸지만 VLM runtime opt-in, profile storage,
+privacy/transfer guard, dry-run/evaluation fixture, Auth/session/scope, Event
+POST/WebRTC/SSE/WS metadata schema, RTSP/WebRTC media path, client/viewer 비노출
+경계는 변경하지 않습니다.
+
+```bash
+./server.sh verify-v220-ops-vlm-containment
+./server.sh verify-vlm-runtime-opt-in-contract
+./server.sh verify-vlm-runtime-status-ui
+./server.sh verify-vlm-profile-storage
+./server.sh verify-vlm-privacy-transfer-guard
+./server.sh verify-vlm-install-connection-ui
+./server.sh verify-ops-client-ui --screenshots
+git diff --check
+```
+
+이 묶음은 [v220-ops-vlm-containment.md](./v220-ops-vlm-containment.md)가 F04 route
+scope, 작업 단위, default-off/profile/privacy 상태, 변경 금지 경계를 담고,
+`/ops/vlm`이 기존 dry-run/runtime status/privacy guard/profile storage/boundary/raw
+debug hook을 유지하는지 확인합니다. 실제 provider 호출, model 설치, 30분 soak, 120분
+longrun, 인앱 브라우저 UI 풀테스트는 실행하지 않으면 미실행으로 분리합니다.
+
 v2.1.0 S01 VLM runtime opt-in contract는 profile 저장 계약 안에서 runtime 상태만
 고정합니다. 실제 local/cloud runtime 호출이 아니라 default-off 상태 분리 gate입니다.
 

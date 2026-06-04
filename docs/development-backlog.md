@@ -144,6 +144,7 @@ QA 절차입니다.
 | --- | --- | --- | --- | --- | --- | --- |
 | 2 | V220-F02 | P1 | 진행 | Ops Channels Workspace 재배치 | `/ops/sources`의 채널 목록, source detail, ONVIF/WHEP/WHIP 입력, PublishedView, audit 흐름을 작업 단위로 재배치합니다. | [v220-ops-channels-workspace.md](./v220-ops-channels-workspace.md), `verify-v220-ops-channels-workspace`, `verify-ops-client-ui --screenshots`, `verify-ops-source-lifecycle`, `verify-ops-source-group-site-management`, `git diff --check` |
 | 3 | V220-F03 | P1 | 진행 | Ops Users / Access Workspace 재배치 | `/ops/users`, `/client/request-access`, `/invite/setup`의 사용자, 초대, 승인, role/scope 흐름을 작업 단위로 재배치합니다. | [v220-ops-users-access-workspace.md](./v220-ops-users-access-workspace.md), `verify-v220-ops-users-access-workspace`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker`, `verify-ops-client-ui --screenshots`, `git diff --check` |
+| 4 | V220-F04 | P1 | 진행 | Ops VLM UI containment 정리 | `/ops/vlm`을 Ops 보조 작업으로 유지하면서 privacy, default-off, profile 상태를 읽기 쉽게 정리합니다. | [v220-ops-vlm-containment.md](./v220-ops-vlm-containment.md), `verify-v220-ops-vlm-containment`, `verify-vlm-runtime-opt-in-contract`, `verify-vlm-runtime-status-ui`, `verify-vlm-profile-storage`, `verify-vlm-privacy-transfer-guard`, `verify-vlm-install-connection-ui`, `verify-ops-client-ui --screenshots`, `git diff --check` |
 
 ### V220-F02 Ops Channels Workspace 재배치 종료 기준
 
@@ -158,6 +159,14 @@ F03는 `/ops/users`, `/client/request-access`, `/invite/setup`의 사용자 목�
 접근 요청, 초대 발급/설정, 승인/거절, role/scope 템플릿, audit 흐름을 작업 단위로
 재배치합니다. 완료 판정은 전용 verifier와 Auth/users/routes/scope/UI smoke가
 통과하고, 실행하지 않은 UI 풀테스트/장시간 테스트가 분리 보고된 경우에만 가능합니다.
+
+### V220-F04 Ops VLM UI containment 정리 종료 기준
+
+F04는 `/ops/vlm`을 Ops 보조 작업으로 유지하면서 privacy, default-off, profile 상태,
+runtime status, raw debug details를 읽기 쉬운 containment 작업 단위로 정리합니다.
+완료 판정은 전용 verifier와 기존 VLM runtime/profile/privacy/install UI verifier,
+Ops/Client UI smoke가 통과하고, 실행하지 않은 provider field smoke/장시간/UI
+풀테스트가 분리 보고된 경우에만 가능합니다.
 
 최종 포함 내용:
 

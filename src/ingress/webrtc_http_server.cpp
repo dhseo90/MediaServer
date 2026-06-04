@@ -3882,16 +3882,16 @@ void AppendOpsHomePage(std::ostringstream& out) {
 }
 
 void AppendOpsVlmInstallConnectionPage(std::ostringstream& out) {
-    out << R"(    <section class="panel" data-ops-panel="vlm" data-testid="ops-vlm-page">
-      <div class="toolbar panel-title-toolbar">
+    out << R"(    <section class="panel ops-vlm-containment-workspace" data-ops-panel="vlm" data-testid="ops-vlm-page" data-vlm-containment="ops-aux-default-off">
+      <div class="toolbar panel-title-toolbar ops-workspace-hero">
         <div>
           <h2>VLM 설치/연결 준비</h2>
-          <p>추천 결과를 설치/연결 후보로 변환하되 실행과 저장은 하지 않습니다.</p>
+          <p>Ops 보조 작업으로 유지하며 privacy, default-off, profile 상태를 읽기 전용 경계와 저장 경계로 분리합니다.</p>
         </div>
         )" << RefreshIconButtonHtml("opsVlmRefresh", "button-secondary", "새로고침") << R"(
       </div>
       <div id="opsVlmStatus" class="message" hidden></div>
-      <section class="section-card" data-testid="ops-vlm-controls">
+      <section class="section-card ops-vlm-aux-panel" data-testid="ops-vlm-controls" data-vlm-task="ops-aux">
         <div class="toolbar">
           <div>
             <h3>입력 조건</h3>
@@ -3928,13 +3928,14 @@ void AppendOpsVlmInstallConnectionPage(std::ostringstream& out) {
           </label>
         </div>
       </section>
-      <div class="grid ops-metric-grid">
+      <div class="grid ops-metric-grid ops-vlm-default-off-summary" data-vlm-task="default-off">
         <div class="metric-card"><span>상태</span><strong id="opsVlmDecisionStatus">-</strong></div>
         <div class="metric-card"><span>선택 후보</span><strong id="opsVlmSelectableCount">-</strong></div>
         <div class="metric-card"><span>PC 등급</span><strong id="opsVlmHardwareSummary">-</strong></div>
         <div class="metric-card"><span>외부 전송</span><strong id="opsVlmTransferSummary">-</strong></div>
       </div>
-      <section class="section-card" data-testid="ops-vlm-runtime-status-panel" data-vlm-runtime-status="ops-only-default-off">
+      <div class="ops-vlm-containment-grid">
+      <section class="section-card ops-vlm-default-off-panel" data-testid="ops-vlm-runtime-status-panel" data-vlm-runtime-status="ops-only-default-off" data-vlm-task="default-off">
         <div class="toolbar">
           <div>
             <h3>VLM runtime status</h3>
@@ -3956,7 +3957,7 @@ void AppendOpsVlmInstallConnectionPage(std::ostringstream& out) {
           <div class="empty">VLM runtime status를 불러오는 중입니다.</div>
         </div>
       </section>
-      <section class="section-card" data-testid="ops-vlm-evaluation-result-workflow" data-vlm-evaluation-workflow="fixture-result-profile-selection">
+      <section class="section-card ops-vlm-aux-panel ops-vlm-evaluation-panel" data-testid="ops-vlm-evaluation-result-workflow" data-vlm-evaluation-workflow="fixture-result-profile-selection" data-vlm-task="ops-aux">
         <div class="toolbar">
           <div>
             <h3>Evaluation result workflow</h3>
@@ -3987,7 +3988,7 @@ void AppendOpsVlmInstallConnectionPage(std::ostringstream& out) {
         </div>
         <p id="opsVlmEvaluationSelectionSummary">평가 후보를 profile draft에 반영하지 않았습니다.</p>
       </section>
-      <section class="section-card" data-testid="ops-vlm-options-panel">
+      <section class="section-card ops-vlm-aux-panel ops-vlm-options-panel" data-testid="ops-vlm-options-panel" data-vlm-task="ops-aux">
         <div class="toolbar">
           <div>
             <h3>설치/연결 dry-run 후보</h3>
@@ -4011,11 +4012,11 @@ void AppendOpsVlmInstallConnectionPage(std::ostringstream& out) {
         </div>
         <p id="opsVlmSelectionSummary">선택한 후보 없음</p>
       </section>
-      <section class="section-card" data-testid="ops-vlm-privacy-transfer-guard-panel">
+      <section class="section-card ops-vlm-privacy-panel" data-testid="ops-vlm-privacy-transfer-guard-panel" data-vlm-task="privacy">
         <div class="toolbar">
           <div>
             <h3>Privacy/전송 guard</h3>
-            <p>Cloud 후보는 외부 전송 경고와 provider logging/retention 검토가 끝나야 profile 활성화 후보가 됩니다.</p>
+            <p>Cloud 후보는 외부 전송 경고와 provider logging/retention 검토가 끝나야 profile 활성화 후보가 됩니다. credential, prompt, raw response, source URL, raw frame bytes는 profile, sidecar, viewer/client에 저장하거나 노출하지 않습니다.</p>
           </div>
         </div>
         <div id="opsVlmPrivacyGuardBadges" class="badge-row">
@@ -4035,7 +4036,7 @@ void AppendOpsVlmInstallConnectionPage(std::ostringstream& out) {
           <div class="empty">privacy guard를 불러오는 중입니다.</div>
         </div>
       </section>
-      <section class="section-card" data-testid="ops-vlm-profile-panel">
+      <section class="section-card ops-vlm-profile-state-panel" data-testid="ops-vlm-profile-panel" data-vlm-task="profile-state">
         <div class="toolbar">
           <div>
             <h3>VLM profile 저장</h3>
@@ -4097,7 +4098,7 @@ void AppendOpsVlmInstallConnectionPage(std::ostringstream& out) {
           </table>
         </div>
       </section>
-      <section class="section-card" data-testid="ops-vlm-boundary-panel">
+      <section class="section-card ops-vlm-boundary-containment-panel" data-testid="ops-vlm-boundary-panel" data-vlm-task="boundary">
         <div class="toolbar">
           <div>
             <h3>실행 경계</h3>
@@ -4115,7 +4116,8 @@ void AppendOpsVlmInstallConnectionPage(std::ostringstream& out) {
           <div class="empty">비추천 후보를 불러오는 중입니다.</div>
         </div>
       </section>
-      <details id="opsVlmRawDetails" class="debug-details">
+      </div>
+      <details id="opsVlmRawDetails" class="debug-details ops-vlm-raw-debug-panel" data-vlm-task="raw-debug">
         <summary>dry-run JSON</summary>
         <label class="check-inline"><input id="opsVlmPretty" type="checkbox" checked> pretty</label>
         <pre id="opsVlmRaw">{}</pre>

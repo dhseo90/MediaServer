@@ -679,6 +679,30 @@ std::string ProductUiCss() {
     body.ops-shell .ops-users-role-scope-panel {
       scroll-margin-top: 96px;
     }
+    body.ops-shell .ops-vlm-containment-workspace {
+      display: grid;
+      gap: var(--space-4);
+    }
+    body.ops-shell .ops-vlm-containment-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-3);
+      align-items: start;
+    }
+    body.ops-shell .ops-vlm-aux-panel,
+    body.ops-shell .ops-vlm-default-off-panel,
+    body.ops-shell .ops-vlm-privacy-panel,
+    body.ops-shell .ops-vlm-profile-state-panel,
+    body.ops-shell .ops-vlm-boundary-containment-panel,
+    body.ops-shell .ops-vlm-raw-debug-panel {
+      min-width: 0;
+    }
+    body.ops-shell .ops-vlm-default-off-panel,
+    body.ops-shell .ops-vlm-evaluation-panel,
+    body.ops-shell .ops-vlm-options-panel,
+    body.ops-shell .ops-vlm-boundary-containment-panel {
+      grid-column: 1 / -1;
+    }
     body.ops-shell .rules-workspace {
       display: grid;
       gap: var(--space-4);
@@ -2892,6 +2916,7 @@ std::string ProductUiCss() {
       body.ops-shell .ops-workspace-event-grid,
       body.ops-shell .ops-channels-main-grid,
       body.ops-shell .ops-users-access-grid,
+      body.ops-shell .ops-vlm-containment-grid,
       body.ops-shell .rules-workspace-readiness-grid,
       body.ops-shell .rules-workspace-assist-grid,
       body.ops-shell .rules-workspace-catalog-grid,
@@ -2908,6 +2933,7 @@ std::string ProductUiCss() {
       body.ops-shell .ops-workspace .actions,
       body.ops-shell .ops-channels-workspace .actions,
       body.ops-shell .ops-users-access-workspace .actions,
+      body.ops-shell .ops-vlm-containment-workspace .actions,
       body.ops-shell .incident-timeline-controls,
       body.ops-shell .event-review-controls,
       body.ops-shell .event-record-controls {
@@ -2920,6 +2946,7 @@ std::string ProductUiCss() {
       body.ops-shell .ops-workspace .actions > *,
       body.ops-shell .ops-channels-workspace .actions > *,
       body.ops-shell .ops-users-access-workspace .actions > *,
+      body.ops-shell .ops-vlm-containment-workspace .actions > *,
       body.ops-shell .incident-timeline-controls > *,
       body.ops-shell .event-review-controls > *,
       body.ops-shell .event-record-controls > * {
