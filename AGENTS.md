@@ -536,6 +536,15 @@ git diff --check
 테스트 보고와 완료 판정은 `스크립트 테스트`와 `UI 풀테스트`를 반드시 분리한다.
 두 영역은 서로 보완 evidence일 뿐, 서로를 대체하지 않는다.
 
+테스트 영역은 앞으로도 `안정화 테스트`, `30분 테스트`, `120분 테스트`,
+`UI 풀테스트` 네 가지로만 분류한다. `preflight`, `gate`, `wrapper`, `rehearsal`,
+`field smoke`, `external credential`, `no-device` 같은 명령/조건/준비 절차는
+독립 테스트 리스트나 다섯 번째 테스트 영역으로 만들지 않는다. 해당 항목은
+안정화 테스트의 조건부 verifier/시작 조건, 30분/120분 실행 조건, UI 풀테스트
+제외 기록 중 적절한 위치에 편입한다. 새 문서, inventory, checklist, result
+template, verifier를 만들 때 별도 테스트 영역이 생기면 완료 전에 네 영역 기준으로
+정규화한다.
+
 | 영역 | 역할 | 완료로 인정되는 evidence | 완료로 인정하지 않는 것 |
 | --- | --- | --- | --- |
 | 안정화 테스트 | build, static, API/schema, auth route, media path, verifier 중심의 선수 테스트. 30분/120분/UI 테스트 전에 먼저 통과해야 하며, 로드맵 각 스텝 종료 시 수행 | 실제 실행한 명령, exit code, summary/report, 로그, 실패/skip 사유 | 30분/120분 장시간 PASS, 브라우저 UI 직접 조작 주장 |
