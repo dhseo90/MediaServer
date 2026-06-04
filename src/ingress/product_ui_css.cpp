@@ -4323,6 +4323,28 @@ std::string ClientShellCss() {
     body.client-shell .client-viewer-workspace {
       align-items: start;
     }
+    body.client-shell .client-preview-redaction-strip {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+      min-width: 0;
+      padding: 8px 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel-soft);
+    }
+    body.client-shell .client-redaction-review-chip {
+      flex: 0 0 auto;
+    }
+    body.client-shell .client-redaction-review-copy {
+      min-width: 0;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+      overflow-wrap: anywhere;
+    }
     body.client-shell .client-viewer-detail {
       overflow: clip;
     }

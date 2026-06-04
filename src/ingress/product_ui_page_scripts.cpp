@@ -626,7 +626,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	      const dashboardRuleId = tileRuleId(assignedView);
         const fieldState = dashboardFieldState(health, events);
 	      detail.innerHTML = `
-	        <div class="client-dashboard-shell client-viewer-dashboard" data-testid="client-dashboard-shell" data-viewer-flow="status-events">
+	        <div class="client-dashboard-shell client-viewer-dashboard" data-testid="client-dashboard-shell" data-viewer-flow="status-events" data-client-redaction-review="viewer-safe-no-locator-debug" data-admin-preview-review="preview-aware">
 	        <div class="toolbar client-dashboard-head">
           <div>
             <h2>${escapeHtml(view.displayName || view.viewId || '대시보드')}</h2>
@@ -774,7 +774,7 @@ void AppendClientShellScript(std::ostringstream& out) {
       const view = payload.view || {};
       const events = payload.events || {};
       detail.innerHTML = `
-        <div class="client-viewer-events" data-viewer-flow="events-first">
+        <div class="client-viewer-events" data-viewer-flow="events-first" data-client-redaction-review="viewer-safe-no-locator-debug" data-admin-preview-review="preview-aware">
         <div class="toolbar client-events-head">
           <div>
             <h2>${escapeHtml(view.displayName || view.viewId || '이벤트')}</h2>
@@ -1403,7 +1403,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	    function liveSourceTreeHtml() {
 	      const groups = liveSourceTreeGroups();
 	      return `
-	        <aside class="live-source-dock client-live-dock" data-testid="client-live-source-tree" data-viewer-redaction="source-url-hidden" aria-label="라이브 소스 트리">
+	        <aside class="live-source-dock client-live-dock" data-testid="client-live-source-tree" data-viewer-redaction="source-url-hidden" data-client-redaction-review="viewer-safe-no-locator-debug" data-admin-preview-review="preview-aware" aria-label="라이브 소스 트리">
 	          <div class="live-source-dock-head">
 	            <div>
 	              <h3>카메라</h3>
@@ -1430,7 +1430,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	              </details>
 	            `).join('')}
 	          </div>
-	          <section class="live-dock-event-feed client-live-event-dock" data-testid="client-live-dock-event-feed" data-redaction="viewer-safe-events" aria-live="polite">
+	          <section class="live-dock-event-feed client-live-event-dock" data-testid="client-live-dock-event-feed" data-redaction="viewer-safe-events" data-client-redaction-review="viewer-safe-no-locator-debug" data-admin-preview-review="preview-aware" aria-live="polite">
 	            <div class="live-dock-event-head">
 	              <h3>이벤트</h3>
 	              <span class="chip" data-role="event-feed-status">대기</span>
@@ -1525,7 +1525,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	    }
 	    function liveMonitorHtml() {
 	      return `
-	        <div class="live-monitor live-sketch-monitor client-live-workspace" data-testid="client-live-action-reduction" data-viewer-flow="video-first" data-action-model="source-drag,tile-selection,icon-actions,keyboard-shortcuts" data-disconnect-contract="tile-disconnect-clears-slot,workspace-disconnect-keeps-layout">
+	        <div class="live-monitor live-sketch-monitor client-live-workspace" data-testid="client-live-action-reduction" data-viewer-flow="video-first" data-client-redaction-review="viewer-safe-no-locator-debug" data-admin-preview-review="preview-aware" data-action-model="source-drag,tile-selection,icon-actions,keyboard-shortcuts" data-disconnect-contract="tile-disconnect-clears-slot,workspace-disconnect-keeps-layout">
 	          <div class="live-workspace-layout live-sketch-layout client-live-layout" data-testid="client-live-workspace" data-workspace-model="source-tree,drag-drop-grid,multi-source" data-dock-side="${escapeHtml(liveDockSide)}">
 	            ${liveSourceTreeHtml()}
 	            <section class="live-workspace-main live-sketch-workspace client-live-primary" aria-label="라이브 워크스페이스">

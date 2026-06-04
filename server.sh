@@ -86,6 +86,8 @@ Usage:
                  v2.2.0 Ops Users / Access Workspace route/CSS/문서 연결을 검증합니다.
   verify-v220-ops-vlm-containment
                  v2.2.0 Ops VLM containment route/CSS/문서 연결을 검증합니다.
+  verify-v220-client-preview-redaction-review
+                 v2.2.0 Client preview/redaction route/CSS/문서 연결을 검증합니다.
   verify-product-shell-examples
                  제품 shell/component 예시 문서와 UI guide 연결을 검증합니다.
   verify-ops-route-boundaries
@@ -914,6 +916,10 @@ case "${cmd}" in
   verify-v220-ops-vlm-containment)
     require_internal verify_v220_ops_vlm_containment.mjs
     exec "${INTERNAL_DIR}/verify_v220_ops_vlm_containment.mjs" "$@"
+    ;;
+  verify-v220-client-preview-redaction-review)
+    require_internal verify_v220_client_preview_redaction_review.mjs
+    exec "${INTERNAL_DIR}/verify_v220_client_preview_redaction_review.mjs" "$@"
     ;;
   verify-feature-scope-gate)
     require_internal verify_feature_scope_decision_gate.mjs

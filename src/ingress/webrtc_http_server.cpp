@@ -4984,7 +4984,7 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
   <title>클라이언트 포털</title>
 )" << ProductThemeBootScript() << ProductUiCss() << ProductSharedUiScript() << ClientShellCss() << R"(
 </head>
-<body class="product-shell client-shell sketch-shell" data-client-preview=")" << (preview_mode ? "true" : "false") << R"(" data-client-active=")" << HtmlEscape(active) << R"(">
+<body class="product-shell client-shell sketch-shell" data-client-preview=")" << (preview_mode ? "true" : "false") << R"(" data-client-preview-boundary="admin-preview-viewer-safe" data-client-active=")" << HtmlEscape(active) << R"(">
   <main class="product-page">
     <header class="app-chrome sketch-topbar">
       <div class="app-header-top">
@@ -5012,7 +5012,11 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
 )";
 
     out << R"(
-    <section class="workspace client-workspace-shell client-viewer-workspace" data-testid="client-shell-page" data-client-workspace="viewer-first">
+    <section class="workspace client-workspace-shell client-viewer-workspace" data-testid="client-shell-page" data-client-workspace="viewer-first" data-client-redaction-review="viewer-safe-no-locator-debug">
+      <div class="client-preview-redaction-strip" data-client-review="admin-preview" data-admin-preview-state=")" << (preview_mode ? "true" : "false") << R"(">
+        <span class="chip client-redaction-review-chip">)" << (preview_mode ? "관리자 preview" : "viewer-safe") << R"(</span>
+        <span class="client-redaction-review-copy">viewer-safe 경계 확인</span>
+      </div>
       <div class="panel client-channel-dock client-viewer-dock" data-client-redaction="viewer-safe-dock">
         <div class="toolbar panel-title-toolbar">
           <h2>할당 채널</h2>

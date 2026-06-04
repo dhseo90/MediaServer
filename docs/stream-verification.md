@@ -720,6 +720,27 @@ scope, 작업 단위, default-off/profile/privacy 상태, 변경 금지 경계�
 debug hook을 유지하는지 확인합니다. 실제 provider 호출, model 설치, 30분 soak, 120분
 longrun, 인앱 브라우저 UI 풀테스트는 실행하지 않으면 미실행으로 분리합니다.
 
+v2.2.0 Client Preview / Viewer Redaction 재검수 정리는 F05에서 `/client/live`,
+`/client/dashboard`, `/client/events` route의 admin preview 상태와 viewer-safe
+비노출 경계를 검수 marker로 정리합니다. 이 단계는 client route layout marker와 review
+strip을 바꾸지만 PublishedView API schema, client WebRTC wrapper/session alias,
+Auth/session/scope, Event POST/WebRTC/SSE/WS metadata schema, RTSP/WebRTC media path는
+변경하지 않습니다.
+
+```bash
+./server.sh verify-v220-client-preview-redaction-review
+./server.sh verify-v220-client-live-redesign
+./server.sh verify-ops-client-ui --screenshots
+./server.sh verify-auth-routes
+git diff --check
+```
+
+이 묶음은 [v220-client-preview-redaction-review.md](./v220-client-preview-redaction-review.md)가
+F05 route scope, admin preview marker, viewer-safe 비노출 경계, 변경 금지 조건을 담고,
+client forbidden-text smoke가 source locator/raw debug/internal material 노출을 계속
+차단하는지 확인합니다. 인앱 브라우저 UI 풀테스트, 30분 soak, 120분 longrun은 실행하지
+않으면 미실행으로 분리합니다.
+
 v2.1.0 S01 VLM runtime opt-in contract는 profile 저장 계약 안에서 runtime 상태만
 고정합니다. 실제 local/cloud runtime 호출이 아니라 default-off 상태 분리 gate입니다.
 
