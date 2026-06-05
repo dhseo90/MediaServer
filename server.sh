@@ -330,6 +330,8 @@ Usage:
                  v2.1.0 Local VLM runtime connection smoke의 loopback endpoint/timeout/cleanup/fallback을 검증합니다.
   verify-vlm-cloud-provider-field-smoke-gate
                  v2.1.0 Cloud provider field smoke gate의 승인/credential/redaction/PASS 분리 기준을 검증합니다.
+  verify-v230-vlm-opt-in-operational-evidence
+                 v2.3.0 VLM opt-in operational evidence와 default-off/provider-not-run 경계를 검증합니다.
   verify-vlm-queue-backpressure-stability
                  v2.1.0 VLM queue/backpressure가 media/Event/metadata/Event POST 경로를 막지 않는지 검증합니다.
   verify-vlm-runtime-status-ui
@@ -1124,6 +1126,10 @@ case "${cmd}" in
   verify-vlm-cloud-provider-field-smoke-gate)
     require_internal verify_vlm_cloud_provider_field_smoke_gate.mjs
     exec "${INTERNAL_DIR}/verify_vlm_cloud_provider_field_smoke_gate.mjs" "$@"
+    ;;
+  verify-v230-vlm-opt-in-operational-evidence)
+    require_internal verify_v230_vlm_opt_in_operational_evidence.mjs
+    exec "${INTERNAL_DIR}/verify_v230_vlm_opt_in_operational_evidence.mjs" "$@"
     ;;
   verify-vlm-queue-backpressure-stability)
     require_internal verify_vlm_queue_backpressure_stability.mjs

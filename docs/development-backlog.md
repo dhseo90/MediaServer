@@ -125,7 +125,7 @@ release 준비/close-out에서만 현재 release target으로 올립니다.
 | 2 | V230-S02 | P0 | 완료 | 4대 테스트 evidence 정합성 | 안정화, 30분, 120분, UI 풀테스트의 실행/미실행/제외 기록을 release evidence와 feature inventory에서 같은 기준으로 맞췄습니다. 새 테스트 영역은 만들지 않습니다. | `verify-v230-test-evidence-consistency`, `verify-release-evidence-index`, `verify-feature-inventory-coverage`, `verify-longrun-separation`, `verify-manual-ui-evidence`, `git diff --check` |
 | 3 | V230-S03 | P1 | 완료 | UI renderer/module decomposition | `webrtc_http_server.cpp`, `product_ui_css.cpp`, `product_ui_page_scripts.cpp`의 큰 문자열 UI 경계를 route renderer, CSS module, JS controller 단위로 더 나눠 유지보수 위험을 낮춥니다. | [v230-ui-renderer-module-decomposition.md](./v230-ui-renderer-module-decomposition.md), `verify-v230-ui-renderer-module-decomposition`, route smoke, `verify-ops-client-ui`, `verify-rule-ui`, `git diff --check` |
 | 4 | V230-S04 | P1 | 완료 | 조건부 ONVIF/external TURN/WHEP evidence | 실장비/외부 credential 성공을 release PASS와 혼동하지 않고, 승인된 환경이 있을 때만 redacted field report로 기록합니다. 미실행이면 안정화 테스트 조건부 항목으로 남깁니다. | `verify-v230-conditional-field-evidence`, `verify-onvif-field-smoke-gate`, `verify-external-turn-whep-field-gate`, redaction review, 미실행/제외 기록, `git diff --check` |
-| 5 | V230-S05 | P1 | 예정 | VLM opt-in operational evidence | VLM default-on이 아니라 operator-approved profile promotion, local/provider smoke intake, privacy/default-off evidence를 강화합니다. Sidecar는 EventRecord/API schema에 섞지 않습니다. | `verify-vlm-runtime-opt-in-contract`, `verify-vlm-local-runtime-smoke`, `verify-vlm-cloud-provider-field-smoke-gate`, `verify-vlm-privacy-transfer-guard`, `git diff --check` |
+| 5 | V230-S05 | P1 | 완료 | VLM opt-in operational evidence | VLM default-on이 아니라 operator-approved profile promotion, local/provider smoke intake, privacy/default-off evidence를 강화했습니다. Sidecar는 EventRecord/API schema에 섞지 않습니다. | `verify-v230-vlm-opt-in-operational-evidence`, `verify-vlm-runtime-opt-in-contract`, `verify-vlm-local-runtime-smoke`, `verify-vlm-cloud-provider-field-smoke-gate`, `verify-vlm-privacy-transfer-guard`, `git diff --check` |
 | 6 | V230-S06 | P2 | 완료 | Ops backup/recovery evidence lifecycle | dry-run 중심의 백업/복구 절차를 staging drill, redacted evidence bundle, cleanup/retention 확인으로 강화하되 운영 데이터 백업 완료로 확대 보고하지 않습니다. | `verify-v230-ops-backup-recovery-lifecycle`, `verify-ops-backup-recovery-guide`, `verify-ops-backup-restore-dry-run`, `verify-ops-evidence-retention-cleanup`, `git diff --check` |
 | 7 | V230-S07 | P2 | 완료 | Integrator contract conformance | Event POST/WebRTC/SSE/WS payload schema 변경 없이 sample bundle, checksum, runtime delivery smoke, client redaction evidence를 보강했습니다. | `verify-integrator-contract-artifact`, `verify-event-post`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `git diff --check` |
 
@@ -373,6 +373,63 @@ S04 실행 결과:
   main merge, release tag, GitHub Release 생성, push.
 - 토큰 사용량: token start `217,343`, token end `274,119`, token consumed `56,776`,
   elapsed `279s`, source `Codex goal usage snapshot at S04 start/end`.
+
+### V230-S05 VLM opt-in operational evidence 종료 기준
+
+직접 답: S05 완료는 VLM default-on이나 실제 provider 성공이 아니라
+`media-server.v230-vlm-opt-in-operational-evidence.v1` gate로 기존 VLM runtime
+opt-in contract, local runtime loopback smoke, cloud provider field gate 기본 not-run,
+privacy/transfer guard를 운영 증적 lifecycle로 묶은 것입니다. 이 gate는
+`operator-approved profile promotion`, `local/provider smoke intake`,
+`privacy/default-off evidence`를 강화하지만 `no VLM default-on`을 유지합니다.
+Sidecar is not mixed into EventRecord/API schema; Event POST/WebRTC DataChannel,
+SSE/WS metadata, Auth/session/scope, Rule/Profile payload, RTSP/WebRTC media path도
+변경하지 않습니다.
+
+S05 완료 evidence는 아래 안정화 verifier입니다. 이 단계는 실제 cloud provider call,
+provider credential 저장, model/runtime bundle, 실제 사용자 모델 품질 판정, sidecar
+write, UI 풀테스트, 30분 테스트, 120분 테스트를 실행했다는 뜻이 아닙니다.
+
+```bash
+./server.sh verify-v230-vlm-opt-in-operational-evidence
+./server.sh verify-vlm-runtime-opt-in-contract
+./server.sh verify-vlm-local-runtime-smoke
+./server.sh verify-vlm-cloud-provider-field-smoke-gate
+./server.sh verify-vlm-privacy-transfer-guard
+./server.sh verify-release-evidence-index
+./server.sh verify-feature-inventory-coverage
+git diff --check
+```
+
+S05 실행 결과:
+
+- PASS: `./server.sh verify-v230-vlm-opt-in-operational-evidence`
+  - `media-server.v230-vlm-opt-in-operational-evidence.v1`
+  - runtime opt-in contract: `defaultEnabled=false`, `runtimeCallAllowed=false`,
+    `providerCallAllowed=false`
+  - local runtime smoke: loopback HTTP roundtrip 3 cases, missing-runtime fallback 1,
+    timeout cleanup 1, invalid-output fallback 1
+  - cloud provider field gate 기본 실행: `providerApiCalled=false`,
+    `fieldSmoke.status=not-run`, `releasePassEligible=false`
+  - privacy/transfer guard: credential, prompt, raw provider/runtime response, source
+    URL, raw frame material redaction 유지
+- PASS: `./server.sh verify-vlm-runtime-opt-in-contract`
+- PASS: `./server.sh verify-vlm-local-runtime-smoke`
+  - 최초 sandbox 실행은 `listen EPERM: operation not permitted 127.0.0.1`로 실패했고,
+    loopback fixture bind가 필요한 verifier라 sandbox 밖에서 같은 명령을 재실행해 PASS
+- PASS: `./server.sh verify-vlm-cloud-provider-field-smoke-gate`
+- PASS: `./server.sh verify-vlm-privacy-transfer-guard`
+- PASS: `./server.sh verify-release-evidence-index`
+- PASS: `./server.sh verify-feature-inventory-coverage`
+- PASS: `./server.sh verify-project-inventory`
+- PASS: `git diff --check`
+- 미실행: UI 풀테스트 직접 조작, 30분 테스트, 120분 테스트,
+  `verify-va-runtime-console-longrun --duration-minutes 120`, 실제 VLM runtime call,
+  real cloud provider call, provider credential 저장, provider logging/retention 최신
+  정책 수동 승인, model/runtime download 또는 bundle, VLM default-on, Sidecar write,
+  main merge, release tag, GitHub Release 생성, push.
+- 토큰 사용량: token start `295,763`, token end `490,164`, token consumed `194,401`,
+  elapsed `715s`, source `Codex goal usage snapshot at S05 start/end`.
 
 ### V230-S06 Ops backup/recovery evidence lifecycle 종료 기준
 
