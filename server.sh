@@ -236,6 +236,8 @@ Usage:
                  v2.3.0 operational evidence baseline과 4대 테스트 영역 유지 계약을 검증합니다.
   verify-v230-test-evidence-consistency
                  v2.3.0 S02 4대 테스트 evidence 정합성과 미실행/제외 기록 경계를 검증합니다.
+  verify-v230-ui-renderer-module-decomposition
+                 v2.3.0 S03 UI renderer/module decomposition 산출물과 계약 경계를 검증합니다.
   verify-v220-ui-architecture-inventory
                  v2.2.0 UI architecture inventory와 S01 roadmap 연결을 검증합니다.
   verify-v220-responsive-task-shell
@@ -886,6 +888,10 @@ case "${cmd}" in
   verify-v230-test-evidence-consistency)
     require_internal verify_v230_test_evidence_consistency.mjs
     exec "${INTERNAL_DIR}/verify_v230_test_evidence_consistency.mjs" "$@"
+    ;;
+  verify-v230-ui-renderer-module-decomposition)
+    require_internal verify_v230_ui_renderer_module_decomposition.mjs
+    exec "${INTERNAL_DIR}/verify_v230_ui_renderer_module_decomposition.mjs" "$@"
     ;;
   verify-v220-ui-architecture-inventory)
     require_internal verify_v220_ui_architecture_inventory.mjs

@@ -497,6 +497,22 @@ external credential 조건도 별도 테스트 영역이 아니라 안정화 조
 UI 풀테스트 제외 기록으로만 남깁니다. S02 PASS는 evidence 정합성 PASS이며 장시간
 soak, UI 직접 조작, release publish evidence를 대체하지 않습니다.
 
+v2.3.0 S03 UI renderer/module decomposition은 C++ 문자열 UI 경계를 route renderer,
+CSS module, JS controller 단위로 나누되 API/schema/Event POST/WebRTC/SSE/WS/media
+계약을 바꾸지 않습니다. module inventory와 source ownership은 아래 정적 gate로
+확인합니다.
+
+```bash
+./server.sh verify-v230-ui-renderer-module-decomposition
+./server.sh verify-ops-client-ui
+./server.sh verify-rule-ui
+git diff --check
+```
+
+`verify-v230-ui-renderer-module-decomposition`은 module inventory/source ownership
+gate입니다. route smoke와 UI 직접 조작, 30분 테스트, 120분 테스트, UI 풀테스트를
+실행했다는 뜻이 아닙니다.
+
 v2.1.0 entry baseline은 v2.0.0 published evidence를 시작점으로 고정하되,
 신규 VLM runtime/provider 호출이나 UI/장시간 테스트 PASS를 만들지 않습니다.
 `media-server.v210-entry-baseline-report.v1` report는 아래 명령으로 생성합니다.

@@ -60,9 +60,14 @@ add_executable(media_server
     src/ingress/rtsp_request_context.cpp
     src/ingress/request_parser.cpp
     src/ingress/product_ui_assets.cpp
+    src/ingress/product_ui_auth_pages.cpp
     src/ingress/product_ui_components.cpp
+    src/ingress/product_ui_client_css.cpp
+    src/ingress/product_ui_client_scripts.cpp
     src/ingress/product_ui_css.cpp
     src/ingress/product_ui_js.cpp
+    src/ingress/product_ui_ops_sources_script.cpp
+    src/ingress/product_ui_ops_users_script.cpp
     src/ingress/product_ui_page_scripts.cpp
     src/ingress/rtsp_egress_session.cpp
     src/ingress/source_view_registry.cpp

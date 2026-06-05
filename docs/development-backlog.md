@@ -123,7 +123,7 @@ release 준비/close-out에서만 현재 release target으로 올립니다.
 | 0 | V230-S00 | P0 | 완료 | v2.3.0 entry baseline | v2.2.0 source-only/live-only baseline을 v2.3.0 시작 기준으로 고정하고, Event POST/WebRTC/SSE/WS/Auth/Rule/media path freeze와 viewer redaction 경계를 재확인합니다. | roadmap review, `verify-v230-entry-baseline`, `verify-release-metadata`, `verify-release-evidence-index`, `verify-integrator-contract-artifact`, `verify-event-post --mode schema --http-base <enabled auth-off server>`, metadata verifier, `verify-auth-routes`, `git diff --check` |
 | 1 | V230-S01 | P0 | 완료 | Full VA EventRecord occurrence matrix | v2.2 UI fulltest에서 presence 중심으로 남은 gap을 닫기 위해 enter/exit/line-crossing/scenario 계열 12-key EventRecord occurrence를 `/ops/events`, `/ops/rules`, UI evidence에서 개별 PASS/FAIL로 확인했습니다. | `verify-va-event-coverage-report --event-history-coverage-json <event-history-coverage.json> --require-occurrence-matrix`, `verify-va-events`, `verify-va-replay`, EventRecord UI 풀테스트, `git diff --check` |
 | 2 | V230-S02 | P0 | 완료 | 4대 테스트 evidence 정합성 | 안정화, 30분, 120분, UI 풀테스트의 실행/미실행/제외 기록을 release evidence와 feature inventory에서 같은 기준으로 맞췄습니다. 새 테스트 영역은 만들지 않습니다. | `verify-v230-test-evidence-consistency`, `verify-release-evidence-index`, `verify-feature-inventory-coverage`, `verify-longrun-separation`, `verify-manual-ui-evidence`, `git diff --check` |
-| 3 | V230-S03 | P1 | 예정 | UI renderer/module decomposition | `webrtc_http_server.cpp`, `product_ui_css.cpp`, `product_ui_page_scripts.cpp`의 큰 문자열 UI 경계를 route renderer, CSS module, JS controller 단위로 더 나눠 유지보수 위험을 낮춥니다. | module inventory, route smoke, `verify-ops-client-ui`, `verify-rule-ui`, `git diff --check` |
+| 3 | V230-S03 | P1 | 완료 | UI renderer/module decomposition | `webrtc_http_server.cpp`, `product_ui_css.cpp`, `product_ui_page_scripts.cpp`의 큰 문자열 UI 경계를 route renderer, CSS module, JS controller 단위로 더 나눠 유지보수 위험을 낮춥니다. | [v230-ui-renderer-module-decomposition.md](./v230-ui-renderer-module-decomposition.md), `verify-v230-ui-renderer-module-decomposition`, route smoke, `verify-ops-client-ui`, `verify-rule-ui`, `git diff --check` |
 | 4 | V230-S04 | P1 | 예정 | 조건부 ONVIF/external TURN/WHEP evidence | 실장비/외부 credential 성공을 release PASS와 혼동하지 않고, 승인된 환경이 있을 때만 redacted field report로 기록합니다. 미실행이면 안정화 테스트 조건부 항목으로 남깁니다. | `verify-onvif-field-smoke-gate`, `verify-external-turn-whep-field-gate`, redaction review, 미실행/제외 기록, `git diff --check` |
 | 5 | V230-S05 | P1 | 예정 | VLM opt-in operational evidence | VLM default-on이 아니라 operator-approved profile promotion, local/provider smoke intake, privacy/default-off evidence를 강화합니다. Sidecar는 EventRecord/API schema에 섞지 않습니다. | `verify-vlm-runtime-opt-in-contract`, `verify-vlm-local-runtime-smoke`, `verify-vlm-cloud-provider-field-smoke-gate`, `verify-vlm-privacy-transfer-guard`, `git diff --check` |
 | 6 | V230-S06 | P2 | 예정 | Ops backup/recovery evidence lifecycle | dry-run 중심의 백업/복구 절차를 staging drill, redacted evidence bundle, cleanup/retention 확인으로 강화하되 운영 데이터 백업 완료로 확대 보고하지 않습니다. | `verify-ops-backup-recovery-guide`, `verify-ops-backup-restore-dry-run`, `verify-ops-evidence-retention-cleanup`, `git diff --check` |
@@ -284,6 +284,56 @@ S02 실행 결과:
   main merge, release tag, GitHub Release 생성, push.
 - 토큰 사용량: token start `24,603`, token end `190,554`, token consumed `165,951`,
   elapsed `472s`, source `Codex goal usage snapshot at S02 evidence update`.
+
+### V230-S03 UI renderer/module decomposition 종료 기준
+
+직접 답: S03 완료는 UI 동작이나 schema 변경이 아니라 C++ 문자열 UI owner를 route
+renderer, CSS module, JS controller 파일 경계로 분해하고, 기존 route smoke와
+Rules smoke가 같은 제품 route를 유지함을 확인하는 것입니다.
+
+S03 module inventory는 [v230-ui-renderer-module-decomposition.md](./v230-ui-renderer-module-decomposition.md)입니다.
+`webrtc_http_server.cpp`의 auth route HTML은 `product_ui_auth_pages.*`로,
+client CSS는 `product_ui_client_css.cpp`로, client/sources/users JS controller는
+각 전용 source로 분리했습니다. Event POST payload, WebRTC DataChannel payload,
+SSE/WS metadata schema, RTSP/WebRTC media path, Auth/session/scope contract,
+Rule/Profile payload schema는 변경하지 않습니다.
+
+S03 실행 결과:
+
+- PASS: `./server.sh verify-v230-ui-renderer-module-decomposition`
+  - pass=8, fail=0
+  - module inventory, CMake source, old/new owner boundary, server.sh entrypoint 확인
+- 최초 FAIL 후 PASS: `./server.sh build`
+  - 최초 실패: `product_ui_auth_pages.cpp`가 `ProductThemeToggleButtonHtml`,
+    `ProductLanguageSelectHtml` 선언을 보지 못함
+  - 수정: `ingress/product_ui_assets.h` include 추가
+  - 재실행 PASS: 새 module source 5개와 `webrtc_http_server.cpp` 컴파일/링크 완료
+- PASS: `./server.sh verify-ops-client-ui --browser-mode static --http-base http://127.0.0.1:8081`
+  - auth-off 127.0.0.1 격리 서버, Chrome/브라우저 렌더링 없는 route/API static smoke
+  - 통과=18, 실패=0
+- PASS: `MEDIA_SERVER_UI_BROWSER_MODE=chrome MEDIA_SERVER_ALLOW_CHROME_FALLBACK=1 ./server.sh verify-ops-client-ui --screenshots --browser-mode chrome --allow-chrome-fallback --http-base http://127.0.0.1:8081 --output-dir /tmp/media_server_v230_s03_ops_client_ui_screenshots`
+  - route/rendered leak/admin form smoke 통과=24, 실패=0
+  - screenshot smoke 통과=32, 실패=0
+  - shell/account/header/client keyboard/audit/ONVIF hint/preview 하위 smoke 모두 실패=0
+  - artifact: `/tmp/media_server_v230_s03_ops_client_ui_screenshots/index.md`
+- 최초 FAIL 후 PASS: `verify-rule-ui`
+  - 최초 실패: Codex 환경에서 in-app evidence 또는 명시 Chrome fallback 필요
+  - 재실행 PASS: `MEDIA_SERVER_UI_BROWSER_MODE=chrome MEDIA_SERVER_ALLOW_CHROME_FALLBACK=1 ./server.sh verify-rule-ui --http-base http://127.0.0.1:8081`
+- PASS: `./server.sh verify-docs-links`
+- PASS: `./server.sh verify-feature-inventory-coverage`
+- 미실행: `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`
+  - 이유: `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`,
+    `MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD`,
+    `MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD`,
+    `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE`,
+    `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO` 환경변수 없음. AGENTS 규칙상 고정 기본
+    비밀번호를 만들지 않고 auth verifier를 시작하지 않았습니다.
+- 미실행: 30분 테스트, 120분 테스트,
+  `verify-va-runtime-console-longrun --duration-minutes 120`, 인앱 브라우저 UI 풀테스트
+  직접 조작 PASS 판정, real ONVIF device, external WHEP/WHIP/TURN endpoint,
+  real cloud provider call, main merge, release tag, GitHub Release 생성, push.
+- 토큰 사용량: token start `238,904`, token end `287,022`, token consumed `48,118`,
+  elapsed `355s`, source `Codex goal usage snapshot at S03 evidence update`.
 
 ### V230-S07 Integrator contract conformance 종료 기준
 
