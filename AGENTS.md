@@ -356,6 +356,28 @@ push/PR/main merge/tag/GitHub Release/후속 브랜치 생성에만 적용한다
 조치는 사용자가 별도로 명시하지 않으면 수행하지 않는다. 각 단계는 순서대로 진행하고
 실패한 뒤 단계는 모두 중단한다.
 
+릴리즈 준비는 버전 번호만 바꿔 반복 적용하는 공통 close-out으로 취급한다. 아래
+항목은 현재 릴리즈 버전의 verifier 이름과 문서 경로로 치환해 적용한다.
+
+- 릴리즈 테스트는 자동으로 넓혀 실행하지 않는다. 안정화 테스트, 30분 테스트,
+  UI 풀테스트, 120분 테스트는 사용자가 직접 어느 묶음을 실행하라고 지시했거나,
+  에이전트가 실행 여부와 범위를 물어 사용자가 승인한 경우에만 실행한다.
+- 사용자가 `필수 로컬 안정화 전체`처럼 묶음 실행을 지시한 경우에는 `./server.sh build`,
+  `git diff --check`, 현재 버전 entry/baseline verifier, release metadata/evidence,
+  docs links/assets, feature/script inventory, release close-out dry-run을 포함한다.
+  명령이 없거나 현재 버전 범위가 아니면 PASS로 대체하지 말고 `미실행` 또는
+  `비대상`으로 보고한다.
+- 제품 회귀 묶음은 Auth/scope, contract/schema/media, UI smoke, 현재 버전 기능
+  verifier로 나눈다. Auth verifier는 7.6의 password env var 조건이 충족되지 않으면
+  실행하지 않고 실패/미실행 사유를 보고한다.
+- external TURN/WHEP, cloud provider, ONVIF 실기기, 외부 VLM/provider 호출처럼
+  credential/endpoint/실기기가 필요한 항목은 기본 release PASS가 아니다. 사용자가
+  endpoint와 실행 승인을 제공한 경우에만 field smoke로 실행하고, 아니면
+  release notes와 evidence에 `미실행/제외`로 분리한다.
+- 릴리즈 후보 evidence는 안정화, 30분, UI 풀테스트, 필요 시 120분을 서로 대체하지
+  않는다. 각 영역은 실행한 경우에만 PASS/FAIL을 보고하고, 실행하지 않은 영역은
+  `미실행`으로 남긴다.
+
 1. 사전 상태와 현재 릴리즈 버전 확인
    - `git status --short --branch`, 현재 branch, upstream tracking, ahead/behind,
      local/remote tag 존재 여부, main 최신 여부, 미커밋/미추적 파일 여부를 확인한다.
@@ -374,12 +396,24 @@ push/PR/main merge/tag/GitHub Release/후속 브랜치 생성에만 적용한다
 3. 전체 문서 업데이트
    - README, `README.en.md`, `docs/README.md`, release evidence, backlog/roadmap,
      UI/fulltest 문서, config/operation 문서를 현재 릴리즈 브랜치 기준으로 갱신한다.
+   - 문서에 남아 있는 구버전 기능 설명, deprecated route, 예전 verifier, 이전 UI 흐름,
+     이전 릴리즈 기준 상태 설명을 검사하고 현재 릴리즈에 맞게 삭제하거나 수정한다.
+   - 현재 릴리즈 준비 버전으로 표기해야 하는 위치가 이전 버전으로 남아 있으면
+     release blocker로 보고하고 수정한다. 단, historical evidence, archive, 과거 실행
+     로그처럼 보존 목적의 버전 표기는 현재 기준으로 덮어쓰지 않는다.
    - README는 공개 첫 화면이므로 제품 정체성, 현재 release, 빠른 시작, 대표 이미지,
      핵심 문서 링크가 가독성 있게 보이는지 최우선으로 확인한다.
    - README에 들어가야 할 새 기능/상태/이미지가 있으면 추가하고, README가 과밀해지면
      세부 내용은 `docs/README.md` 또는 전용 문서로 넘긴 뒤 대표 링크만 둔다.
+   - README, `README.en.md`, `docs/README.md` 등에 표출하는 대표 이미지와 스크린샷은
+     현재 릴리즈 UI를 대표해야 한다. 메뉴, 버튼, label, table/card 구성, 상태 표시,
+     영상/overlay/control이 현재 제품과 다르면 반드시 새 이미지로 교체한다.
    - 문서 이미지와 스크린샷은 현재 UI와 맞아야 하며, 새로 추가/교체한 이미지는 잘림,
-     source URL/debug/raw JSON/auth material 노출 여부를 확인한다.
+     흐림, source URL/debug/raw JSON/auth material 노출 여부를 확인한다. verifier
+     통과만으로 현재 UI 일치 확인을 대체하지 않는다.
+   - 문서 첫 화면과 색인은 사람이 읽는 순서, 섹션 밀도, 긴 표/목록의 필요성,
+     중복 링크 여부를 함께 점검한다. 가독성이 떨어지면 세부 내용은 전용 문서로
+     분리하고 README에는 대표 링크만 둔다.
    - 이전 버전에서만 유효하고 현재 릴리즈에서 deprecated된 route, 기능, 검증 명령,
      스크린샷, 상태 설명은 남겨두지 말고 삭제하거나 현재 기준으로 바꾼다.
    - `release-evidence-index`, backlog close-out, post-release reconciliation 문서,
@@ -388,16 +422,19 @@ push/PR/main merge/tag/GitHub Release/후속 브랜치 생성에만 적용한다
      갱신하고, 없으면 “변경 이력 파일 없음”으로 보고한다.
    - 실행하지 않은 테스트, 미완료 기능, release 후속 작업을 완료처럼 쓰지 않는다.
 4. 빌드와 릴리즈 검증
-   - 최소 `./server.sh build`, 문서 검증, release metadata/evidence 검증,
-     현재 릴리즈 범위의 안정화 테스트를 실행한다.
+   - 실행 전 이번 릴리즈에서 수행할 테스트 묶음을 확인한다. 사용자가 이미 구체적으로
+     지시했다면 그 범위만 실행하고, 지시가 없으면 안정화 테스트, 30분 테스트,
+     UI 풀테스트, 120분 테스트 중 무엇을 실행할지 먼저 물어본다.
+   - 안정화 테스트 실행이 승인되면 최소 `./server.sh build`, 문서 검증,
+     release metadata/evidence 검증, 현재 릴리즈 범위의 verifier를 실행한다.
    - GitHub Actions required check와 warning/failure annotation gate를 분리해 확인한다.
      annotation JSON을 확보한 경우 `./server.sh verify-actions-security --annotations-json <annotations.json>`를
      실행하고, 확보하지 못했으면 annotation 상태를 `미확인`으로 보고한다.
    - PR check, required check, optional check, warning annotation, local verifier 결과를
      서로 대체하지 않고 각각 PASS/FAIL/미확인으로 기록한다.
-   - 30분/120분/UI 풀테스트는 사용자가 릴리즈 준비 지시와 함께 실행을 승인했거나,
-     별도 지시가 있는 경우에만 실행한다. 실행하지 않은 장시간/UI 테스트는 미실행으로
-     분리해 보고한다.
+   - 30분 테스트, UI 풀테스트, 120분 테스트는 사용자가 릴리즈 준비 지시와 함께
+     실행을 승인했거나 별도 지시가 있는 경우에만 실행한다. 실행하지 않은 장시간/UI
+     테스트는 미실행으로 분리해 보고한다.
    - 빌드 또는 핵심 release gate가 실패하면 PR, main merge, tag, GitHub Release,
      후속 브랜치 생성을 진행하지 않는다.
 5. PR 생성과 main 머지
@@ -550,8 +587,8 @@ template, verifier를 만들 때 별도 테스트 영역이 생기면 완료 전
 
 | 영역 | 역할 | 완료로 인정되는 evidence | 완료로 인정하지 않는 것 |
 | --- | --- | --- | --- |
-| 안정화 테스트 | build, static, API/schema, auth route, media path, verifier 중심의 선수 테스트. 30분/120분/UI 테스트 전에 먼저 통과해야 하며, 로드맵 각 스텝 종료 시 수행 | 실제 실행한 명령, exit code, summary/report, 로그, 실패/skip 사유 | 30분/120분 장시간 PASS, 브라우저 UI 직접 조작 주장 |
-| 30분 테스트 | 장기간 테스트 지시 시 기본으로 수행하는 soak. 각 버전별 로드맵 개발 완료 시 수행 | `verify-predev --soak-minutes 30` summary/report/log | 안정화 테스트, 120분 메모리 감시, UI 풀테스트 |
+| 안정화 테스트 | build, static, API/schema, auth route, media path, verifier 중심의 선수 테스트. 30분/120분/UI 테스트 전에 먼저 통과해야 하며, 로드맵 각 스텝 종료 시 수행 대상이다. 릴리즈 close-out에서는 사용자 지시 또는 승인 범위만 실행한다 | 실제 실행한 명령, exit code, summary/report, 로그, 실패/skip 사유 | 30분/120분 장시간 PASS, 브라우저 UI 직접 조작 주장 |
+| 30분 테스트 | 장기간 테스트 지시 시 기본으로 수행하는 soak. 각 버전별 로드맵 개발 완료 시 수행 대상이지만 사용자 승인 없이 자동 실행하지 않는다 | `verify-predev --soak-minutes 30` summary/report/log | 안정화 테스트, 120분 메모리 감시, UI 풀테스트 |
 | 120분 테스트 | 메모리 릭, 장시간 누수, runtime drift 감시용. 무조건 실행하지 않고 필요 시 사용자에게 먼저 말한다 | `verify-predev --soak-minutes 120`, `verify-va-runtime-console-longrun --duration-minutes 120` summary/report/log | 안정화 테스트, 30분 기본 soak, UI 풀테스트 |
 | UI 풀테스트 | 인앱 브라우저에서 제품 화면을 직접 열고 클릭/타이핑/선택/반응형/시각 품질/role guard 확인 | 실제 조작한 route, 계정/권한, viewport/theme, screenshot/artifact, 재검수 결과 | 30분/120분 안정화 통과, raw JSON/API-only 확인, 자동 screenshot만 생성 |
 
@@ -578,11 +615,14 @@ UI 풀테스트:
 집계값이 있으면 그 값을 우선하고, 집계값이 없으면 미집계 사유를 기록한다.
 
 안정화 테스트가 실패하면 30분/120분/UI 테스트로 넘어가지 않는다.
+안정화 테스트, 30분 테스트, UI 풀테스트, 120분 테스트는 릴리즈/로드맵 close-out에서
+자동 실행하지 않는다. 사용자가 직접 어느 묶음을 실행하라고 지시했거나, 에이전트가
+진행 여부를 물어 사용자가 승인한 범위만 실행한다.
 30분 테스트는 장기간 테스트 지시가 있을 때의 기본 soak이다. 버전별 로드맵 완료
-close-out에서도 사용자 승인 없이 자동 실행하지 않고, 실행하지 않았으면 미실행으로
-분리해 보고한다.
+close-out에서도 실행하지 않았으면 미실행으로 분리해 보고한다.
 120분 테스트는 메모리 릭/장시간 누수 감시가 필요할 때 사용자에게 먼저 말하고 지시를 받은 뒤 수행한다.
-UI 풀테스트도 버전별 로드맵 개발 완료 시 수행한다.
+UI 풀테스트도 버전별 로드맵 개발 완료 시 수행 대상이지만, 실행 전 사용자 지시 또는
+승인을 확인한다.
 30분/120분 테스트를 통과해도 UI 풀테스트 완료가 아니며, UI 풀테스트를 모두 수행해도
 30분/120분 안정화 테스트 완료가 아니다.
 
@@ -628,7 +668,8 @@ verify-predev: 실행하지 않음
 ### 7.8 버전 로드맵 완료 후 UI 풀테스트
 
 해당 버전의 로드맵에 명시된 개발 내용을 모두 마친 경우, 완료 판정은 스크립트만으로
-대체하지 않는다.
+대체하지 않는다. 단, UI 풀테스트 실행은 사용자가 직접 지시했거나 에이전트가
+진행 여부를 물어 승인받은 경우에만 수행한다.
 
 1. 브라우저에서 제품 UI를 직접 열고 로드맵에 포함된 기능을 하나하나 눌러 실행한다.
 2. `/setup`, `/login`, `/ops`, `/client`, 관련 rule/source/dashboard 흐름을 해당
