@@ -962,7 +962,8 @@ VA rule/scenario/event type/EventRecord 조합표는 아래 report verifier가 �
 이 report는 `media-server.va-rule-event-coverage-report.v1` schema로 basic event,
 line direction, scenario replay, EventRecord history key, invalid/negative 조합을
 개별 행으로 나눕니다. expected invalid 조합은 `FAIL` row로 남기며 PASS 범주에
-섞지 않습니다.
+섞지 않습니다. 기본 실행은 exact 12-key EventRecord occurrence matrix 구조를
+출력하지만, 실제 occurrence 완료 evidence로 쓰지는 않습니다.
 
 ```bash
 ./server.sh verify-va-event-coverage-report \
@@ -974,6 +975,23 @@ line direction, scenario replay, EventRecord history key, invalid/negative 조�
 ./server.sh verify-ops-event-records-scope \
   --http-base <storage-enabled-server> \
   --event-history-dir <manual-ui-event-history-dir>
+```
+
+Full VA EventRecord occurrence matrix 완료 gate로 사용할 때는
+`verify-ops-event-records-scope`가 생성한 `event-history-coverage.json`을 같은
+report verifier에 입력하고 `--require-occurrence-matrix`를 붙입니다. 이 모드는
+`presence`, `enter`, `exit`, `line-crossing:any`, `line-crossing:forward`,
+`line-crossing:reverse`, `intrusion-dwell`, `re-entry`, `wrong-direction`,
+`intrusion-after-line-crossing`, `loitering`, `zone-occupancy` 12개 key 각각에
+registry rule row, `/ops/events` UI seen type, EventRecord JSON Lines count,
+sample event id가 있어야 통과합니다.
+
+```bash
+./server.sh verify-va-event-coverage-report \
+  --event-history-coverage-json <event-history-output-dir>/event-history-coverage.json \
+  --require-occurrence-matrix \
+  --report /tmp/media_server_va_eventrecord_occurrence_matrix.md \
+  --json-report /tmp/media_server_va_eventrecord_occurrence_matrix.json
 ```
 
 release prep branch에서 tag/GitHub Release가 아직 생성 전이면

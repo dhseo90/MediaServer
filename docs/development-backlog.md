@@ -121,7 +121,7 @@ release 준비/close-out에서만 현재 release target으로 올립니다.
 | 순서 | ID | 우선순위 | 상태 | 영역 | 목표 | 예상 검증 |
 | --- | --- | --- | --- | --- | --- | --- |
 | 0 | V230-S00 | P0 | 완료 | v2.3.0 entry baseline | v2.2.0 source-only/live-only baseline을 v2.3.0 시작 기준으로 고정하고, Event POST/WebRTC/SSE/WS/Auth/Rule/media path freeze와 viewer redaction 경계를 재확인합니다. | roadmap review, `verify-v230-entry-baseline`, `verify-release-metadata`, `verify-release-evidence-index`, `verify-integrator-contract-artifact`, `verify-event-post --mode schema --http-base <enabled auth-off server>`, metadata verifier, `verify-auth-routes`, `git diff --check` |
-| 1 | V230-S01 | P0 | 예정 | Full VA EventRecord occurrence matrix | v2.2 UI fulltest에서 presence 중심으로 남은 gap을 닫기 위해 enter/exit/line-crossing/scenario 계열 12-key EventRecord occurrence를 `/ops/events`, `/ops/rules`, UI evidence에서 개별 PASS/FAIL로 확인합니다. | `verify-va-event-coverage-report`, `verify-va-events`, `verify-va-replay`, EventRecord UI 풀테스트, `git diff --check` |
+| 1 | V230-S01 | P0 | 진행 | Full VA EventRecord occurrence matrix | v2.2 UI fulltest에서 presence 중심으로 남은 gap을 닫기 위해 enter/exit/line-crossing/scenario 계열 12-key EventRecord occurrence를 `/ops/events`, `/ops/rules`, UI evidence에서 개별 PASS/FAIL로 확인합니다. | `verify-va-event-coverage-report --event-history-coverage-json <event-history-coverage.json> --require-occurrence-matrix`, `verify-va-events`, `verify-va-replay`, EventRecord UI 풀테스트, `git diff --check` |
 | 2 | V230-S02 | P0 | 예정 | 4대 테스트 evidence 정합성 | 안정화, 30분, 120분, UI 풀테스트의 실행/미실행/제외 기록을 release evidence와 feature inventory에서 같은 기준으로 맞춥니다. 새 테스트 영역은 만들지 않습니다. | `verify-release-evidence-index`, `verify-feature-inventory-coverage`, `verify-longrun-separation`, `verify-manual-ui-evidence`, `git diff --check` |
 | 3 | V230-S03 | P1 | 예정 | UI renderer/module decomposition | `webrtc_http_server.cpp`, `product_ui_css.cpp`, `product_ui_page_scripts.cpp`의 큰 문자열 UI 경계를 route renderer, CSS module, JS controller 단위로 더 나눠 유지보수 위험을 낮춥니다. | module inventory, route smoke, `verify-ops-client-ui`, `verify-rule-ui`, `git diff --check` |
 | 4 | V230-S04 | P1 | 예정 | 조건부 ONVIF/external TURN/WHEP evidence | 실장비/외부 credential 성공을 release PASS와 혼동하지 않고, 승인된 환경이 있을 때만 redacted field report로 기록합니다. 미실행이면 안정화 테스트 조건부 항목으로 남깁니다. | `verify-onvif-field-smoke-gate`, `verify-external-turn-whep-field-gate`, redaction review, 미실행/제외 기록, `git diff --check` |
@@ -178,6 +178,41 @@ S00 실행 결과:
   TURN/WHEP, real cloud provider call, published metadata 재검증.
 - 토큰 사용량: token start `미집계`, token end `미집계`, token consumed `미집계`,
   elapsed `command output 기준`, source `manual-not-available`.
+
+### V230-S01 Full VA EventRecord occurrence matrix 종료 기준
+
+직접 답: S01의 matrix gate는 `media-server.va-eventrecord-occurrence-matrix.v1`
+입니다. `verify-va-event-coverage-report` 기본 실행은 12개 exact key matrix 구조와
+정적 coverage 연결을 확인하지만, 실제 EventRecord occurrence 완료 evidence로 쓰지
+않습니다. S01 완료 판정에는 같은 storage-enabled UI/event run에서 생성된
+`event-history-coverage.json`을 입력으로 넣고 `--require-occurrence-matrix`를
+통과해야 합니다.
+
+필수 exact key는 `presence`, `enter`, `exit`, `line-crossing:any`,
+`line-crossing:forward`, `line-crossing:reverse`, `intrusion-dwell`, `re-entry`,
+`wrong-direction`, `intrusion-after-line-crossing`, `loitering`, `zone-occupancy`
+12개입니다. 각 key는 registry rule row, `/ops/events` UI seen type, EventRecord
+JSON Lines record count, sample event id가 모두 있어야 PASS입니다.
+
+```bash
+./server.sh verify-ops-event-records-scope \
+  --http-base <storage-enabled-server> \
+  --event-history-dir <manual-ui-event-history-dir> \
+  --output-dir <event-history-output-dir>
+./server.sh verify-va-event-coverage-report \
+  --event-history-coverage-json <event-history-output-dir>/event-history-coverage.json \
+  --require-occurrence-matrix \
+  --report /tmp/media_server_v230_s01_va_eventrecord_matrix.md \
+  --json-report /tmp/media_server_v230_s01_va_eventrecord_matrix.json
+./server.sh verify-va-events --dispatch-records
+./server.sh verify-va-replay
+git diff --check
+```
+
+정적 report 구조 통과, 과거 release artifact 입력 통과, seed fixture 준비,
+`/ops/rules` 저장 확인만으로는 S01 완료가 아닙니다. 현재 v2.3.0 S01 완료 보고에는
+새로 실행한 EventRecord UI 풀테스트에서 12개 key별 PASS/FAIL 행과 위 require gate
+PASS evidence가 함께 있어야 합니다.
 
 ## 완료 roadmap: v2.2.0 Responsive UI Foundation
 
