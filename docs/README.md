@@ -23,7 +23,7 @@
 | v2.2.0 Client preview/redaction follow-up | [v220-client-preview-redaction-review.md](v220-client-preview-redaction-review.md) |
 | v2.2.0 UI evidence close-out | [v220-ui-evidence-closeout.md](v220-ui-evidence-closeout.md) |
 | v2.2.0 UI superpowers 설계/계획 | [superpowers/specs/2026-06-03-v220-s05-ops-workspace-redesign-design.md](superpowers/specs/2026-06-03-v220-s05-ops-workspace-redesign-design.md), [superpowers/plans/2026-06-03-v220-s05-ops-workspace-redesign.md](superpowers/plans/2026-06-03-v220-s05-ops-workspace-redesign.md), [superpowers/specs/2026-06-03-v220-s06-rules-workspace-redesign-design.md](superpowers/specs/2026-06-03-v220-s06-rules-workspace-redesign-design.md), [superpowers/plans/2026-06-03-v220-s06-rules-workspace-redesign.md](superpowers/plans/2026-06-03-v220-s06-rules-workspace-redesign.md), [superpowers/specs/2026-06-03-v220-s07-client-live-redesign-design.md](superpowers/specs/2026-06-03-v220-s07-client-live-redesign-design.md), [superpowers/plans/2026-06-03-v220-s07-client-live-redesign.md](superpowers/plans/2026-06-03-v220-s07-client-live-redesign.md), [superpowers/specs/2026-06-03-v220-s08-auth-setup-redesign-design.md](superpowers/specs/2026-06-03-v220-s08-auth-setup-redesign-design.md), [superpowers/plans/2026-06-03-v220-s08-auth-setup-redesign.md](superpowers/plans/2026-06-03-v220-s08-auth-setup-redesign.md) |
-| UI 풀테스트 기준/체크리스트/결과 | [manual-ui-fulltest.md](manual-ui-fulltest.md), [manual-ui-checklist.md](manual-ui-checklist.md), [manual-ui-result-template.md](manual-ui-result-template.md), [manual-ui-result-2026-05-25-ui-fulltest-restart.md](manual-ui-result-2026-05-25-ui-fulltest-restart.md), [manual-ui-result-2026-06-01-v200-inapp-fulltest.md](manual-ui-result-2026-06-01-v200-inapp-fulltest.md), [manual-ui-result-2026-06-03-v210-inapp-fulltest.md](manual-ui-result-2026-06-03-v210-inapp-fulltest.md), [manual-ui-result-2026-06-04-v220-inapp-fulltest.md](manual-ui-result-2026-06-04-v220-inapp-fulltest.md) |
+| UI 풀테스트 기준/체크리스트/결과 | [manual-ui-fulltest.md](manual-ui-fulltest.md), [manual-ui-checklist.md](manual-ui-checklist.md), [manual-ui-result-template.md](manual-ui-result-template.md), [manual-ui-result-2026-05-25-ui-fulltest-restart.md](manual-ui-result-2026-05-25-ui-fulltest-restart.md), [manual-ui-result-2026-06-01-v200-inapp-fulltest.md](manual-ui-result-2026-06-01-v200-inapp-fulltest.md), [manual-ui-result-2026-06-03-v210-inapp-fulltest.md](manual-ui-result-2026-06-03-v210-inapp-fulltest.md), [manual-ui-result-2026-06-04-v220-inapp-fulltest.md](manual-ui-result-2026-06-04-v220-inapp-fulltest.md), [manual-ui-result-2026-06-05-v230-s01-eventrecord-matrix.md](manual-ui-result-2026-06-05-v230-s01-eventrecord-matrix.md) |
 | 기능별 UI 필요/테스트 영역 inventory | [project-feature-test-inventory.md](project-feature-test-inventory.md) |
 | RTSP/WebRTC/VA 구조 | [media-server-architecture.md](media-server-architecture.md) |
 | 영상 분석, tracking, scenario | [video-analysis.md](video-analysis.md) |
@@ -73,6 +73,14 @@ legacy 244 UI-target full inventory result gate를 PASS로 대체하지 않습�
 안정화 테스트, 30분 soak, 인앱 브라우저 UI 풀테스트, 120분 longrun은 서로를
 대체하지 않습니다. real cloud provider call, external TURN credential condition,
 VLM model/runtime bundle은 v2.2.0 release 완료 근거가 아닙니다.
+
+v2.3.0 S01 Full VA EventRecord occurrence matrix evidence는
+[manual-ui-result-2026-06-05-v230-s01-eventrecord-matrix.md](manual-ui-result-2026-06-05-v230-s01-eventrecord-matrix.md)에
+보존합니다. 이 결과는 12개 exact key별 EventRecord JSON Lines sample,
+`/ops/events` 인앱 브라우저 row 확인, clean `event-history-coverage.json`,
+`--require-occurrence-matrix`, `verify-va-events --dispatch-records`,
+`verify-va-replay`를 S01 범위로 분리한 evidence입니다. 30분/120분 longrun과
+실장비/외부 endpoint field gate는 실행하지 않았습니다.
 
 v2.2.0 문서 기준에서 README와 UI guide의 대표 이미지는 제품 흐름을 설명하는
 문서용 자산입니다. 운영 QA registry가 섞인 긴 캡처, Chrome/CDP 예외 캡처, 자동

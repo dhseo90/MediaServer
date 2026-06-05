@@ -121,7 +121,7 @@ release 준비/close-out에서만 현재 release target으로 올립니다.
 | 순서 | ID | 우선순위 | 상태 | 영역 | 목표 | 예상 검증 |
 | --- | --- | --- | --- | --- | --- | --- |
 | 0 | V230-S00 | P0 | 완료 | v2.3.0 entry baseline | v2.2.0 source-only/live-only baseline을 v2.3.0 시작 기준으로 고정하고, Event POST/WebRTC/SSE/WS/Auth/Rule/media path freeze와 viewer redaction 경계를 재확인합니다. | roadmap review, `verify-v230-entry-baseline`, `verify-release-metadata`, `verify-release-evidence-index`, `verify-integrator-contract-artifact`, `verify-event-post --mode schema --http-base <enabled auth-off server>`, metadata verifier, `verify-auth-routes`, `git diff --check` |
-| 1 | V230-S01 | P0 | 진행 | Full VA EventRecord occurrence matrix | v2.2 UI fulltest에서 presence 중심으로 남은 gap을 닫기 위해 enter/exit/line-crossing/scenario 계열 12-key EventRecord occurrence를 `/ops/events`, `/ops/rules`, UI evidence에서 개별 PASS/FAIL로 확인합니다. | `verify-va-event-coverage-report --event-history-coverage-json <event-history-coverage.json> --require-occurrence-matrix`, `verify-va-events`, `verify-va-replay`, EventRecord UI 풀테스트, `git diff --check` |
+| 1 | V230-S01 | P0 | 완료 | Full VA EventRecord occurrence matrix | v2.2 UI fulltest에서 presence 중심으로 남은 gap을 닫기 위해 enter/exit/line-crossing/scenario 계열 12-key EventRecord occurrence를 `/ops/events`, `/ops/rules`, UI evidence에서 개별 PASS/FAIL로 확인했습니다. | `verify-va-event-coverage-report --event-history-coverage-json <event-history-coverage.json> --require-occurrence-matrix`, `verify-va-events`, `verify-va-replay`, EventRecord UI 풀테스트, `git diff --check` |
 | 2 | V230-S02 | P0 | 예정 | 4대 테스트 evidence 정합성 | 안정화, 30분, 120분, UI 풀테스트의 실행/미실행/제외 기록을 release evidence와 feature inventory에서 같은 기준으로 맞춥니다. 새 테스트 영역은 만들지 않습니다. | `verify-release-evidence-index`, `verify-feature-inventory-coverage`, `verify-longrun-separation`, `verify-manual-ui-evidence`, `git diff --check` |
 | 3 | V230-S03 | P1 | 예정 | UI renderer/module decomposition | `webrtc_http_server.cpp`, `product_ui_css.cpp`, `product_ui_page_scripts.cpp`의 큰 문자열 UI 경계를 route renderer, CSS module, JS controller 단위로 더 나눠 유지보수 위험을 낮춥니다. | module inventory, route smoke, `verify-ops-client-ui`, `verify-rule-ui`, `git diff --check` |
 | 4 | V230-S04 | P1 | 예정 | 조건부 ONVIF/external TURN/WHEP evidence | 실장비/외부 credential 성공을 release PASS와 혼동하지 않고, 승인된 환경이 있을 때만 redacted field report로 기록합니다. 미실행이면 안정화 테스트 조건부 항목으로 남깁니다. | `verify-onvif-field-smoke-gate`, `verify-external-turn-whep-field-gate`, redaction review, 미실행/제외 기록, `git diff --check` |
@@ -213,6 +213,35 @@ git diff --check
 `/ops/rules` 저장 확인만으로는 S01 완료가 아닙니다. 현재 v2.3.0 S01 완료 보고에는
 새로 실행한 EventRecord UI 풀테스트에서 12개 key별 PASS/FAIL 행과 위 require gate
 PASS evidence가 함께 있어야 합니다.
+
+S01 실행 결과:
+
+- PASS: Codex 인앱 브라우저 `/ops/events` 직접 확인
+  `/tmp/media_server_v230_s01_inapp_events_evidence_20260605_203256/in-app-ops-events-evidence.json`
+  - 390px/1180px viewport overflowX=0
+  - `v230-s01-ui-history-01`~`v230-s01-ui-history-12` row 확인
+  - 10개 event type seen: `presence`, `enter`, `exit`, `line-crossing`,
+    `intrusion-dwell`, `re-entry`, `wrong-direction`,
+    `intrusion-after-line-crossing`, `loitering`, `zone-occupancy`
+- PASS: `MEDIA_SERVER_UI_BROWSER_MODE=chrome MEDIA_SERVER_ALLOW_CHROME_FALLBACK=1 ./server.sh verify-ops-event-records-scope --http-base http://127.0.0.1:8081 --event-history-dir /tmp/media_server_v230_s01_event_history_20260605_203256 --output-dir /tmp/media_server_v230_s01_event_history_scope_clean_20260605_203256 --debug-port 9913`
+- PASS: `./server.sh verify-va-event-coverage-report --event-history-coverage-json /tmp/media_server_v230_s01_event_history_scope_clean_20260605_203256/event-history-coverage.json --require-occurrence-matrix --report /tmp/media_server_v230_s01_va_eventrecord_matrix_clean_20260605_203256.md --json-report /tmp/media_server_v230_s01_va_eventrecord_matrix_clean_20260605_203256.json`
+  - `media-server.va-eventrecord-occurrence-matrix.v1`
+  - rows=12, passRows=12, failRows=0
+- PASS: `MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_PORT=8555 ./server.sh verify-va-events --dispatch-records`
+  - records-only retry에서 stored=2026, failed=0, dropped=0
+- PASS: `./server.sh verify-va-replay`
+  - cases=14
+- 보정: 최초 `verify-ops-event-records-scope`는 Codex 환경에서 Chrome fallback env가 없어
+  브라우저 단계에서 실패했습니다. 인앱 브라우저 evidence를 별도 확보한 뒤 명시
+  fallback env로 보조 verifier를 재실행했습니다.
+- 보정: 최초 `verify-va-events --dispatch-records`는 snapshot/clip hook까지 켠 상태에서
+  EventRecord queue drain timeout으로 실패했습니다. 저장 실패와 drop은 0이었고,
+  records-only storage로 재실행해 PASS했습니다.
+- 문서 evidence: [manual-ui-result-2026-06-05-v230-s01-eventrecord-matrix.md](./manual-ui-result-2026-06-05-v230-s01-eventrecord-matrix.md)
+- 미실행: 30분 테스트, 120분 테스트, `verify-va-runtime-console-longrun --duration-minutes 120`,
+  실장비/외부 endpoint field gate.
+- 토큰 사용량: token start `0`, token end `895,242`, token consumed `895,242`,
+  elapsed `2,396s`, source `Codex goal usage snapshot at evidence update`.
 
 ## 완료 roadmap: v2.2.0 Responsive UI Foundation
 
