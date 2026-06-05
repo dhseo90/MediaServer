@@ -477,6 +477,26 @@ Event POST schema smoke는 `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1` 및
 `MEDIA_SERVER_AUTH_MODE=off` 격리 서버에서 실행합니다. 서버 미기동 또는 auth 401은
 실행 전제 실패로 기록하고 같은 build를 보정 서버로 띄워 재검증합니다.
 
+v2.3.0 S02 4대 테스트 evidence 정합성은 release evidence, feature inventory,
+longrun separation, manual UI evidence 기준이 안정화, 30분, 120분, UI 풀테스트 네
+영역만 쓰는지 확인합니다. `media-server.v230-test-evidence-consistency.v1` report는
+아래 명령으로 생성합니다.
+
+```bash
+./server.sh verify-v230-test-evidence-consistency \
+  --report /tmp/media_server_v230_s02_evidence_consistency.md \
+  --json-report /tmp/media_server_v230_s02_evidence_consistency.json
+./server.sh verify-release-evidence-index
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-longrun-separation
+./server.sh verify-manual-ui-evidence
+```
+
+이 verifier는 30분/120분/UI 풀테스트를 실행하지 않습니다. field/provider/no-device,
+external credential 조건도 별도 테스트 영역이 아니라 안정화 조건부 verifier 또는
+UI 풀테스트 제외 기록으로만 남깁니다. S02 PASS는 evidence 정합성 PASS이며 장시간
+soak, UI 직접 조작, release publish evidence를 대체하지 않습니다.
+
 v2.1.0 entry baseline은 v2.0.0 published evidence를 시작점으로 고정하되,
 신규 VLM runtime/provider 호출이나 UI/장시간 테스트 PASS를 만들지 않습니다.
 `media-server.v210-entry-baseline-report.v1` report는 아래 명령으로 생성합니다.

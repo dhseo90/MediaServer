@@ -122,7 +122,7 @@ release 준비/close-out에서만 현재 release target으로 올립니다.
 | --- | --- | --- | --- | --- | --- | --- |
 | 0 | V230-S00 | P0 | 완료 | v2.3.0 entry baseline | v2.2.0 source-only/live-only baseline을 v2.3.0 시작 기준으로 고정하고, Event POST/WebRTC/SSE/WS/Auth/Rule/media path freeze와 viewer redaction 경계를 재확인합니다. | roadmap review, `verify-v230-entry-baseline`, `verify-release-metadata`, `verify-release-evidence-index`, `verify-integrator-contract-artifact`, `verify-event-post --mode schema --http-base <enabled auth-off server>`, metadata verifier, `verify-auth-routes`, `git diff --check` |
 | 1 | V230-S01 | P0 | 완료 | Full VA EventRecord occurrence matrix | v2.2 UI fulltest에서 presence 중심으로 남은 gap을 닫기 위해 enter/exit/line-crossing/scenario 계열 12-key EventRecord occurrence를 `/ops/events`, `/ops/rules`, UI evidence에서 개별 PASS/FAIL로 확인했습니다. | `verify-va-event-coverage-report --event-history-coverage-json <event-history-coverage.json> --require-occurrence-matrix`, `verify-va-events`, `verify-va-replay`, EventRecord UI 풀테스트, `git diff --check` |
-| 2 | V230-S02 | P0 | 예정 | 4대 테스트 evidence 정합성 | 안정화, 30분, 120분, UI 풀테스트의 실행/미실행/제외 기록을 release evidence와 feature inventory에서 같은 기준으로 맞춥니다. 새 테스트 영역은 만들지 않습니다. | `verify-release-evidence-index`, `verify-feature-inventory-coverage`, `verify-longrun-separation`, `verify-manual-ui-evidence`, `git diff --check` |
+| 2 | V230-S02 | P0 | 완료 | 4대 테스트 evidence 정합성 | 안정화, 30분, 120분, UI 풀테스트의 실행/미실행/제외 기록을 release evidence와 feature inventory에서 같은 기준으로 맞췄습니다. 새 테스트 영역은 만들지 않습니다. | `verify-v230-test-evidence-consistency`, `verify-release-evidence-index`, `verify-feature-inventory-coverage`, `verify-longrun-separation`, `verify-manual-ui-evidence`, `git diff --check` |
 | 3 | V230-S03 | P1 | 예정 | UI renderer/module decomposition | `webrtc_http_server.cpp`, `product_ui_css.cpp`, `product_ui_page_scripts.cpp`의 큰 문자열 UI 경계를 route renderer, CSS module, JS controller 단위로 더 나눠 유지보수 위험을 낮춥니다. | module inventory, route smoke, `verify-ops-client-ui`, `verify-rule-ui`, `git diff --check` |
 | 4 | V230-S04 | P1 | 예정 | 조건부 ONVIF/external TURN/WHEP evidence | 실장비/외부 credential 성공을 release PASS와 혼동하지 않고, 승인된 환경이 있을 때만 redacted field report로 기록합니다. 미실행이면 안정화 테스트 조건부 항목으로 남깁니다. | `verify-onvif-field-smoke-gate`, `verify-external-turn-whep-field-gate`, redaction review, 미실행/제외 기록, `git diff --check` |
 | 5 | V230-S05 | P1 | 예정 | VLM opt-in operational evidence | VLM default-on이 아니라 operator-approved profile promotion, local/provider smoke intake, privacy/default-off evidence를 강화합니다. Sidecar는 EventRecord/API schema에 섞지 않습니다. | `verify-vlm-runtime-opt-in-contract`, `verify-vlm-local-runtime-smoke`, `verify-vlm-cloud-provider-field-smoke-gate`, `verify-vlm-privacy-transfer-guard`, `git diff --check` |
@@ -242,6 +242,48 @@ S01 실행 결과:
   실장비/외부 endpoint field gate.
 - 토큰 사용량: token start `0`, token end `895,242`, token consumed `895,242`,
   elapsed `2,396s`, source `Codex goal usage snapshot at evidence update`.
+
+### V230-S02 4대 테스트 evidence 정합성 종료 기준
+
+직접 답: S02 완료는 네 테스트 영역의 evidence 기록 기준 정합성 완료입니다.
+안정화 테스트, 30분 테스트, 120분 테스트, UI 풀테스트의 실행/미실행/제외 기록을
+`release-evidence-index.md`, `project-feature-test-inventory.md`,
+`manual-ui-fulltest.md`, `manual-ui-result-template.md`, `stream-verification.md`에서
+같은 기준으로 연결했습니다. 새 테스트 영역은 만들지 않습니다.
+
+S02 완료 evidence는 `media-server.v230-test-evidence-consistency.v1` report와
+아래 companion verifier입니다. 이 단계는 30분 테스트, 120분 테스트, UI 풀테스트를 실행했다는 뜻이 아닙니다. field/provider/no-device/external credential 조건도 별도
+다섯 번째 테스트 영역이 아니라 안정화 테스트 조건부 verifier 또는 UI 풀테스트 제외
+기록 안에만 둡니다.
+
+```bash
+./server.sh verify-v230-test-evidence-consistency \
+  --report /tmp/media_server_v230_s02_evidence_consistency.md \
+  --json-report /tmp/media_server_v230_s02_evidence_consistency.json
+./server.sh verify-release-evidence-index
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-longrun-separation
+./server.sh verify-manual-ui-evidence
+git diff --check
+```
+
+S02 실행 결과:
+
+- PASS: `./server.sh verify-v230-test-evidence-consistency --report /tmp/media_server_v230_s02_evidence_consistency.md --json-report /tmp/media_server_v230_s02_evidence_consistency.json`
+  - `media-server.v230-test-evidence-consistency.v1`
+  - evidenceRows=8
+  - 네 영역: 안정화 테스트, 30분 테스트, 120분 테스트, UI 풀테스트
+- PASS: `./server.sh verify-release-evidence-index`
+- PASS: `./server.sh verify-feature-inventory-coverage`
+- PASS: `./server.sh verify-longrun-separation`
+- PASS: `./server.sh verify-manual-ui-evidence`
+- PASS: `git diff --check`
+- 미실행: 30분 테스트, 120분 테스트,
+  `verify-va-runtime-console-longrun --duration-minutes 120`, UI 풀테스트 직접 조작,
+  real ONVIF device, external WHEP/WHIP/TURN endpoint, real cloud provider call,
+  main merge, release tag, GitHub Release 생성, push.
+- 토큰 사용량: token start `24,603`, token end `190,554`, token consumed `165,951`,
+  elapsed `472s`, source `Codex goal usage snapshot at S02 evidence update`.
 
 ## 완료 roadmap: v2.2.0 Responsive UI Foundation
 

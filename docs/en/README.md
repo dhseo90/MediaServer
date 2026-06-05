@@ -34,6 +34,9 @@ path short enough to scan. The full index is `docs/README.md`.
 - v2.3.0 keeps the stability, 30-minute, 120-minute, and UI fulltest areas as
   the only test areas. Field/provider/longrun triggers are recorded inside those
   areas or as exclusions, not as a fifth test category.
+- v2.3.0 S02 evidence consistency is checked by
+  `./server.sh verify-v230-test-evidence-consistency`; it does not execute
+  30-minute, 120-minute, or UI fulltest runs.
 - Binary, runtime, and model bundles are excluded from the default release.
 - Long-term recording, VMS/NVR, playback/search, ONVIF Profile G
   recording/replay, Re-ID default-on, and tracker default-on remain out of scope.
@@ -64,6 +67,7 @@ representative images or UI fulltest evidence without in-app browser review.
 ```bash
 ./server.sh verify-docs-links
 ./server.sh verify-release-metadata
+./server.sh verify-v230-test-evidence-consistency
 ./server.sh verify-manual-ui-evidence
 ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
 ./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json

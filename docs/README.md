@@ -36,6 +36,7 @@
 | v2.3.0 active roadmap / entry baseline | [development-backlog.md](development-backlog.md), [stream-verification.md](stream-verification.md), [release-evidence-index.md](release-evidence-index.md) |
 | Current Release Close-Out / responsive UI foundation | [development-backlog.md](development-backlog.md)의 `v2.2.0 Release Close-out`, [release-policy.md](release-policy.md)의 `v2.2.0 Release Close-out Runbook`, [release-evidence-index.md](release-evidence-index.md) |
 | v2.3.0 S01 EventRecord occurrence matrix | [manual-ui-result-2026-06-05-v230-s01-eventrecord-matrix.md](manual-ui-result-2026-06-05-v230-s01-eventrecord-matrix.md) |
+| v2.3.0 S02 4대 테스트 evidence 정합성 | [development-backlog.md](development-backlog.md), [release-evidence-index.md](release-evidence-index.md), [project-feature-test-inventory.md](project-feature-test-inventory.md), [stream-verification.md](stream-verification.md) |
 | 기능별 UI 필요/테스트 영역 inventory | [project-feature-test-inventory.md](project-feature-test-inventory.md) |
 | UI 풀테스트 기준/체크리스트/결과 템플릿 | [manual-ui-fulltest.md](manual-ui-fulltest.md), [manual-ui-checklist.md](manual-ui-checklist.md), [manual-ui-result-template.md](manual-ui-result-template.md) |
 | Runtime dashboard longrun evidence template | [runtime-dashboard-longrun-evidence-template.md](runtime-dashboard-longrun-evidence-template.md) |
