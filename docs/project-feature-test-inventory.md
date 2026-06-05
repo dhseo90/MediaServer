@@ -2,6 +2,9 @@
 
 이 문서는 현재 release 목표 `v2.2.0` 기준의 기능별 테스트 분류
 source-of-truth입니다.
+여기서 `현재 release 목표`는 `VERSION`/CMake가 고정한 최신 공개 release
+baseline을 뜻합니다. active roadmap은 `v2.3.0 Operational Evidence & Contract
+Baseline`이며, 두 기준은 완료 판정에서 분리합니다.
 
 중요한 경계:
 
@@ -21,7 +24,7 @@ source-of-truth입니다.
 | 영역 | 역할 | PASS evidence | 대체 불가 |
 | --- | --- | --- | --- |
 | 안정화 | build, static, API/schema, auth route, media path, verifier 중심의 선수 테스트 | 실제 명령, exit code 0, summary/report fail 0, 실패/skip 사유 | 30분/120분 장시간 PASS, UI 직접 조작 evidence |
-| 30분 | 장기간 테스트 지시 시 기본 soak, 버전 로드맵 완료 후 soak | `verify-predev --soak-minutes 30` 또는 해당 long session report | 안정화, 120분, UI 풀테스트 |
+| 30분 | 장기간 테스트 지시 시 기본 soak, 버전 close-out에서 필요 항목으로 기록 | `verify-predev --soak-minutes 30` 또는 해당 long session report | 안정화, 120분, UI 풀테스트 |
 | 120분 | 메모리 릭, 장시간 누수, runtime drift 감시 | 사용자 승인 후 120분 longrun report | 안정화, 30분, UI 풀테스트 |
 | UI | 인앱 브라우저에서 직접 클릭/타이핑/선택/반응형/시각 품질/role guard 확인 | route, 계정/권한, viewport/theme, 직접 조작, screenshot/artifact, 재검수 결과 | 스크립트 smoke, raw JSON/API-only 확인 |
 
@@ -134,7 +137,7 @@ Rule scenario/event 발생 검수는 분리합니다.
 
 | 영역 | 대상 기능 | 실행 기준 |
 | --- | --- | --- |
-| 30분 soak | `UI-015`, `SRC-002`~`SRC-005`, `SRC-012`, `SRC-024`, `RULE-035`~`RULE-037`, `RULE-039`, `RULE-099`, `EVT-001`~`EVT-003`, `EVT-006`, `EVT-024`, `EVT-026`, `CLIENT-002`~`CLIENT-005`, `CLIENT-019`, `CLIENT-021`, `MEDIA-001`~`MEDIA-004`, `MEDIA-008`~`MEDIA-013`, `MEDIA-016`~`MEDIA-020`, `LAB-015`, `LAB-016`, `LAB-020`, VLM queue/backpressure 또는 runtime cache 변경 시 `LAB-038`~`LAB-044`, `LAB-058`, `SAFE-032`, `SAFE-036` | 사용자 장기간 테스트 지시, 버전 로드맵 완료, VLM queue/backpressure/runtime cache/media non-blocking 변경 후 `verify-predev --soak-minutes 30` 계열 |
+| 30분 soak | `UI-015`, `SRC-002`~`SRC-005`, `SRC-012`, `SRC-024`, `RULE-035`~`RULE-037`, `RULE-039`, `RULE-099`, `EVT-001`~`EVT-003`, `EVT-006`, `EVT-024`, `EVT-026`, `CLIENT-002`~`CLIENT-005`, `CLIENT-019`, `CLIENT-021`, `MEDIA-001`~`MEDIA-004`, `MEDIA-008`~`MEDIA-013`, `MEDIA-016`~`MEDIA-020`, `LAB-015`, `LAB-016`, `LAB-020`, VLM queue/backpressure 또는 runtime cache 변경 시 `LAB-038`~`LAB-044`, `LAB-058`, `SAFE-032`, `SAFE-036` | 사용자 장기간 테스트 지시 또는 버전 close-out에서 명시 요청된 경우 `verify-predev --soak-minutes 30` 계열. 요청이 없으면 미실행으로 기록 |
 | 120분 | `MEDIA-001`~`MEDIA-004`, `MEDIA-011`, `MEDIA-012`, `SAFE-014`, VLM memory/runtime cache 또는 queue drift 고위험 변경 시 `SAFE-032`, `SAFE-036` | memory growth, runtime drift, fanout/media path 고위험 변경, VLM active RSS high-water 또는 queue cleanup drift 시 사용자에게 먼저 말하고 승인 후 실행 |
 
 ## Four-Stage Coverage Mapping
