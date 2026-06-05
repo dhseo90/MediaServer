@@ -141,3 +141,26 @@ v1.8.0 (2)의 개발 범위는 실제 장비 성공을 만드는 것이 아니�
 - Digest 또는 WS-Security 구현
 - WS-Discovery 자동 검색
 - Profile G / Recording / Replay
+
+## v2.3.0 Conditional field evidence
+
+`media-server.v230-conditional-field-evidence.v1`은 이 ONVIF gate를 v2.3.0 S04
+조건부 field evidence 기준으로 다시 연결합니다. 이 기준은 `approved environment only`
+원칙을 따르며, 운영자가 승인한 장비/네트워크/credential reference가 있을 때만
+실제 field smoke 결과를 `redacted field report`로 남깁니다.
+
+- `not-run is not PASS`: 실장비 endpoint가 없으면 `gateDecision=not-run`,
+  `realDeviceEndpointSuccess=unverified`, `playbackStatus=skipped`로 남기며
+  default release PASS로 쓰지 않습니다.
+- 실제 ONVIF 성공은 redacted field report에만 남기고, `verify-onvif-no-device-suite`,
+  local loopback, static verifier, UI 풀테스트, 30분/120분 longrun PASS로 대체하지 않습니다.
+- report에는 endpoint/source URL, stream URI, raw SOAP/header, credential material,
+  raw diagnostic JSON을 저장하지 않습니다.
+- 이 gate는 RTSP/WebRTC media path, SourceRegistry/PublishedView payload schema,
+  Event POST/WebRTC DataChannel/SSE/WS metadata schema를 변경하지 않습니다.
+
+v2.3.0 연결 검증:
+
+```bash
+./server.sh verify-v230-conditional-field-evidence
+```

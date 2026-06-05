@@ -114,3 +114,28 @@ S10 개발 완료는 아래가 모두 참일 때만 보고합니다.
 - 외부 TURN/WHEP 실제 성공을 완료로 보고하지 않음
 - 미실행/제외 항목이 feature inventory와 release evidence에서 PASS 행으로 섞이지 않음
 - RTSP/WebRTC media path, Event POST, WebRTC/SSE/WS metadata schema를 변경하지 않음
+
+## v2.3.0 Conditional field evidence
+
+`media-server.v230-conditional-field-evidence.v1`은 external TURN/WHEP gate를
+v2.3.0 S04 조건부 field evidence 기준으로 다시 연결합니다. 이 기준은
+`approved environment only` 원칙을 따르며, 운영자가 승인한 TURN relay credential,
+WHEP playback endpoint, 방화벽/relay 권한이 있을 때만 실제 field smoke 결과를
+`redacted field report`로 남깁니다.
+
+- `not-run is not PASS`: 승인된 endpoint/credential이 없으면
+  `fieldSmokeStatus=not-run`, `turnRelayStatus=not-run`,
+  `whepPlaybackStatus=not-run`으로 남기며 default release PASS로 쓰지 않습니다.
+- external TURN relay/auth 또는 external WHEP playback 성공은 redacted field report에만
+  남기고, local ICE, local coturn, loopback WHEP, UI 풀테스트, 30분/120분 longrun PASS로
+  대체하지 않습니다.
+- report에는 raw TURN server, credential, raw WHEP URL, raw ICE candidate, source URL,
+  auth token을 저장하지 않습니다.
+- 이 gate는 RTSP/WebRTC media path, Event POST payload, WebRTC DataChannel schema,
+  SSE/WS metadata schema를 변경하지 않습니다.
+
+v2.3.0 연결 검증:
+
+```bash
+./server.sh verify-v230-conditional-field-evidence
+```

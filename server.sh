@@ -238,6 +238,8 @@ Usage:
                  v2.3.0 S02 4대 테스트 evidence 정합성과 미실행/제외 기록 경계를 검증합니다.
   verify-v230-ui-renderer-module-decomposition
                  v2.3.0 S03 UI renderer/module decomposition 산출물과 계약 경계를 검증합니다.
+  verify-v230-conditional-field-evidence
+                 v2.3.0 S04 조건부 ONVIF/external TURN/WHEP field evidence gate를 검증합니다.
   verify-v230-ops-backup-recovery-lifecycle
                  v2.3.0 S06 Ops backup/recovery evidence lifecycle gate를 검증합니다.
   verify-v220-ui-architecture-inventory
@@ -894,6 +896,10 @@ case "${cmd}" in
   verify-v230-ui-renderer-module-decomposition)
     require_internal verify_v230_ui_renderer_module_decomposition.mjs
     exec "${INTERNAL_DIR}/verify_v230_ui_renderer_module_decomposition.mjs" "$@"
+    ;;
+  verify-v230-conditional-field-evidence)
+    require_internal verify_v230_conditional_field_evidence.mjs
+    exec "${INTERNAL_DIR}/verify_v230_conditional_field_evidence.mjs" "$@"
     ;;
   verify-v230-ops-backup-recovery-lifecycle)
     require_internal verify_v230_ops_backup_recovery_lifecycle.mjs
