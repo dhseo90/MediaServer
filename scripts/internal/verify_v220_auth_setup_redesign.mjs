@@ -30,10 +30,8 @@ check(
     docs.includes('auth route guard')
 );
 check(
-  'docs index links S08 source-of-truth and superpowers artifacts',
-  docsIndex.includes('v220-auth-setup-redesign.md') &&
-    docsIndex.includes('2026-06-03-v220-s08-auth-setup-redesign-design.md') &&
-    docsIndex.includes('2026-06-03-v220-s08-auth-setup-redesign.md')
+  'docs index links S08 source-of-truth',
+  docsIndex.includes('v220-auth-setup-redesign.md')
 );
 check(
   'auth shell exposes responsive form markers',

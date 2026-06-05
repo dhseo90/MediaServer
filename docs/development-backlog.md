@@ -565,8 +565,6 @@ responsive workspace 구조를 다룹니다. `/ops/sources`, `/ops/rules`, `/ops
   `verify-docs-links`, `verify-docs-ui-assets`, `verify-script-inventory`,
   `verify-code-comments`, `verify-release-metadata`, `git diff --check`
 - 산출물: [v220-ops-workspace-redesign.md](./v220-ops-workspace-redesign.md),
-  `docs/superpowers/specs/2026-06-03-v220-s05-ops-workspace-redesign-design.md`,
-  `docs/superpowers/plans/2026-06-03-v220-s05-ops-workspace-redesign.md`,
   `scripts/internal/verify_v220_ops_workspace_redesign.mjs`
 - 구현 범위: `/ops/home`에 `ops-workspace-home` action grid, `/ops/dashboard`에
   `ops-workspace-dashboard` diagnostic grid, `/ops/events`에 `ops-workspace-events`
@@ -605,8 +603,6 @@ responsive workspace 기준으로 재배치합니다. `/ops/home`, `/ops/dashboa
   `verify-feature-inventory-coverage`, `verify-code-comments`,
   `verify-release-metadata`, `git diff --check`
 - 산출물: [v220-rules-workspace-redesign.md](./v220-rules-workspace-redesign.md),
-  `docs/superpowers/specs/2026-06-03-v220-s06-rules-workspace-redesign-design.md`,
-  `docs/superpowers/plans/2026-06-03-v220-s06-rules-workspace-redesign.md`,
   `scripts/internal/verify_v220_rules_workspace_redesign.mjs`
 - 구현 범위: `/ops/rules`에 `rules-workspace` root, readiness/assist/catalog/detail
   layout class를 추가하고, 기존 smoke selector, 저장 버튼, validation panel,
@@ -654,8 +650,6 @@ layout과 redaction marker를 다룹니다. `/setup`, `/login`, `/password/chang
   `verify-feature-inventory-coverage`, `verify-code-comments`,
   `verify-release-metadata`, `git diff --check`
 - 산출물: [v220-client-live-redesign.md](./v220-client-live-redesign.md),
-  `docs/superpowers/specs/2026-06-03-v220-s07-client-live-redesign-design.md`,
-  `docs/superpowers/plans/2026-06-03-v220-s07-client-live-redesign.md`,
   `scripts/internal/verify_v220_client_live_redesign.mjs`
 - 구현 범위: `/client` shell에 `client-viewer-workspace`, `client-viewer-dock`,
   `client-viewer-detail`을 추가하고, live renderer에 `client-live-workspace`,
@@ -704,8 +698,6 @@ S08은 `/setup`, `/login`, `/password/change`, `/invite/setup`,
   `./server.sh verify-ops-rules-roundtrip`,
   `node --check scripts/internal/verify_auth_scope_picker.mjs`
 - 산출물: [v220-auth-setup-redesign.md](./v220-auth-setup-redesign.md),
-  `docs/superpowers/specs/2026-06-03-v220-s08-auth-setup-redesign-design.md`,
-  `docs/superpowers/plans/2026-06-03-v220-s08-auth-setup-redesign.md`,
   `scripts/internal/verify_v220_auth_setup_redesign.mjs`
 - 구현 범위: 공통 auth shell에 `auth-responsive-shell`, `auth-responsive-card`,
   `data-auth-shell="responsive-form"`을 추가하고, setup/login/password/invite/access
