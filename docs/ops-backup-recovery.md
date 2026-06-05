@@ -124,3 +124,30 @@ EventRecord storage나 snapshot/clip hook을 운영에서 꺼 둔 환경은
 - Auth store가 읽히지 않으면 임시 admin을 만들기 전에 기존 store 사본, 권한, owner, hash format을 먼저 확인합니다.
 - model/label/sample 누락은 `/ops` 설정 문제가 아니라 asset 준비 문제로 분리하고, registry를 임의 수정하지 않습니다.
 - evidence bundle은 signed token 기반 임시 export입니다. 복구 대상은 원본 snapshot/clip/EventRecord이고, 만료된 bundle URL은 복구하지 않습니다.
+
+## v2.3.0 Ops backup/recovery evidence lifecycle
+
+`media-server.v230-ops-backup-recovery-lifecycle.v1`은 운영자가 실제 운영 데이터를
+백업했다는 보고가 아니라, 백업/복구 evidence lifecycle의 staging drill과 보존
+정리 경계를 검증하는 안정화 gate입니다. 이 gate는 `staging drill`,
+`redacted evidence bundle`, `retention cleanup`을 한 묶음으로 확인하되,
+운영 데이터 백업 완료로 확대 보고하지 않습니다.
+
+검증 명령:
+
+```bash
+./server.sh verify-v230-ops-backup-recovery-lifecycle
+```
+
+이 명령은 아래를 fixture 기반으로 실행합니다.
+
+| lifecycle 항목 | 확인 evidence | 완료로 보지 않는 것 |
+| --- | --- | --- |
+| staging drill | `verify-ops-backup-restore-dry-run`이 만든 `manifest.json`, `SHA256SUMS`, `restore-validation-plan.md`, auth store `0600` 권한 | 실제 운영 runtime 복구, production restore cutover |
+| redacted evidence bundle | dry-run manifest의 auth/source/view/analysis/event/snapshot/clip/env-summary 항목과 checksum | plaintext secret, source URL, provider credential, raw media archive 보관 |
+| retention cleanup | `ops-evidence-cleanup` fixture dry-run/apply report, `retention-cleanup` audit payload, `token-expiry-no-server-file` bundle 만료 정책 | UI/API evidence 원본 DELETE 허용, 장기 영상 녹화 백업, external storage replication |
+
+미실행이면 이 항목은 안정화 테스트의 조건부 미실행으로 남깁니다. UI 풀테스트가
+필요한 복구 리허설은 별도 브라우저 증적에서 `/setup`, `/login`, `/ops`, `/client`
+route/action 단위로 확인해야 하며, 이 static/runtime fixture gate가 UI 직접 확인을
+대체하지 않습니다.

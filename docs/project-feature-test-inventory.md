@@ -36,12 +36,12 @@ Baseline`이며, 두 기준은 완료 판정에서 분리합니다.
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 390 |
+| 전체 기능 항목 | 391 |
 | UI 직접 필요 | 226 |
 | UI 간접 필요 | 29 |
-| UI 비대상 | 135 |
-| 테스트 필요 | 390 |
-| 안정화 대상 | 380 |
+| UI 비대상 | 136 |
+| 테스트 필요 | 391 |
+| 안정화 대상 | 381 |
 | UI 풀테스트 대상 | 244 |
 | 30분 soak 대상 | 47 |
 | 120분 대상 | 7 |
@@ -56,7 +56,7 @@ close-out과 과거 UI 풀테스트 실행 evidence는
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 390개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 391개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정했지만, 각 행의 line-level 증적은 별도 대조 필요 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리했지만, inventory 자체는 브라우저 직접 조작 evidence를 보관하지 않음 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -79,6 +79,7 @@ close-out과 과거 UI 풀테스트 실행 evidence는
 | four-stage coverage mapping | 안정화/30분/120분/UI 풀테스트 실행 전 V200-S00~S18 및 V210-S00~S12 변경분을 아래 `Four-Stage Coverage Mapping`에 반영 | 테스트 실행 결과가 아니며, 네 단계 안의 누락 방지용 mapping |
 | v2.3.0 S02 4대 테스트 evidence 정합성 | release evidence index, feature inventory coverage, longrun separation, manual UI evidence 기준을 같은 네 영역으로 연결 | `verify-v230-test-evidence-consistency`가 정합성 gate를 검증합니다. 새 테스트 영역이 아니며 실행 evidence가 아님 |
 | v2.3.0 S03 UI renderer/module decomposition | 기존 `UI-*`, `AUTH-*`, `SRC-*`, `CLIENT-*`, `SAFE-*` owner source를 route renderer, CSS module, JS controller 파일 경계로 분리 | `verify-v230-ui-renderer-module-decomposition`은 module inventory/source ownership 안정화 gate이며, UI 직접 확인이나 30분/120분 longrun을 대체하지 않음 |
+| v2.3.0 S06 Ops backup/recovery evidence lifecycle | `OPS-035`, [ops-backup-recovery.md](./ops-backup-recovery.md), `media-server.v230-ops-backup-recovery-lifecycle.v1`을 staging drill, redacted evidence bundle, retention cleanup 기준에 연결 | `verify-v230-ops-backup-recovery-lifecycle`은 안정화 gate이며, 운영 데이터 백업 완료, UI 직접 확인, 30분/120분 longrun을 대체하지 않음 |
 | v2.3.0 S07 Integrator contract conformance | 기존 `SAFE-001`~`SAFE-004`, `SAFE-018`, live Event POST/WebRTC/SSE/WS contract artifact를 checksum/conformance companion에 연결 | `verify-integrator-contract-artifact`와 runtime delivery smoke는 안정화 evidence이며, UI 직접 확인이나 30분/120분 longrun을 대체하지 않음 |
 
 브라우저 선택 기준: Codex 세션에서는 인앱 브라우저 evidence를 기본으로 하며, 자동
@@ -99,6 +100,7 @@ Codex 밖에서 사용자가 직접 실행하는 자동 검수는 Chrome/CDP를 
 | `MEDIA-*` | `src/core/session_manager.cpp`, `src/core/source_factory.cpp`, `src/core/stream_registry.cpp`, `src/ingress/webrtc_egress_session.cpp`, `src/ingress/rtsp_adapter.cpp` | `/client/live` only where video is visible | `verify-codecs`, `verify-webrtc-ice`, `verify-external-turn-whep-field-gate`, `verify-webrtc-va-metadata`, `verify-uri-source-longrun`, `verify-predev` |
 | `LAB-*` | `src/ingress/analysis_query.cpp`, `src/ingress/webrtc_http_server.cpp`, `src/analysis/vlm_observation_store.cpp`, local detector/recommendation/evaluation scripts | 비대상 | `verify-analysis-state`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-image-analysis`, `verify-vlm-boundary`, `verify-vlm-selection-decision`, `verify-vlm-pc-capability`, `verify-vlm-recommendation-engine`, `verify-vlm-install-connection-dry-run`, `verify-vlm-profile-storage`, `verify-vlm-runtime-opt-in-contract`, `verify-vlm-local-runtime-smoke`, `verify-vlm-cloud-provider-field-smoke-gate`, `verify-vlm-queue-backpressure-stability`, `verify-runtime-model-bundle-rc-rehearsal`, `verify-vlm-evaluation-harness`, `verify-vlm-evaluation-result-workflow`, `verify-vlm-review-action-workflow`, `verify-vlm-observation-sidecar`, `verify-vlm-event-explanation-hints`, `verify-vlm-privacy-transfer-guard`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates`, `verify-vlm-rule-suggestion-draft-workflow` |
 | `SAFE-*` | schema/payload/media/auth/UI test 경계 owner 전체 | route guard와 client 비노출 화면 | `verify-v230-ui-renderer-module-decomposition`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-ui-blocking-dialog-policy`, `verify-integrator-contract-artifact`, `verify-webrtc-va-metadata`, `verify-ws-metadata`, `verify-event-post-*`, `verify-external-turn-whep-field-gate`, `verify-runtime-model-bundle-rc-rehearsal`, `verify-vlm-boundary`, `verify-vlm-install-connection-scope-gate`, `verify-vlm-profile-storage`, `verify-vlm-runtime-opt-in-contract`, `verify-vlm-local-runtime-smoke`, `verify-vlm-cloud-provider-field-smoke-gate`, `verify-vlm-queue-backpressure-stability`, `verify-vlm-review-action-workflow`, `verify-vlm-observation-sidecar`, `verify-vlm-privacy-transfer-guard`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates`, `verify-vlm-rule-suggestion-draft-workflow` |
+| `OPS-*` | `scripts/internal/verify_ops_backup_restore_dry_run.mjs`, `scripts/internal/run_ops_evidence_retention_cleanup.mjs`, `docs/ops-backup-recovery.md` | 비대상 | `verify-v230-ops-backup-recovery-lifecycle`, `verify-ops-backup-recovery-guide`, `verify-ops-backup-restore-dry-run`, `verify-ops-evidence-retention-cleanup` |
 
 ## Verifier Coverage Map
 
@@ -114,6 +116,7 @@ Codex 밖에서 사용자가 직접 실행하는 자동 검수는 Chrome/CDP를 
 | `MEDIA-001`~`MEDIA-021` | `verify-codecs`, `verify-webrtc-ice`, `verify-external-turn-whep-field-gate`, `verify-webrtc-va-metadata`, `verify-uri-source-longrun`, `verify-predev` | 30분/120분은 실행 지시 필요. `MEDIA-021` external TURN/WHEP endpoint 성공은 endpoint/credential 조건이 준비된 안정화 실행 없으면 PASS 아님 |
 | `LAB-001`~`LAB-062` | `verify-analysis-state`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-image-analysis`, `verify-vlm-boundary`, `verify-vlm-selection-decision`, `verify-vlm-pc-capability`, `verify-vlm-recommendation-engine`, `verify-vlm-install-connection-dry-run`, `verify-vlm-profile-storage`, `verify-vlm-runtime-opt-in-contract`, `verify-vlm-local-runtime-smoke`, `verify-vlm-cloud-provider-field-smoke-gate`, `verify-vlm-queue-backpressure-stability`, `verify-runtime-model-bundle-rc-rehearsal`, `verify-vlm-evaluation-harness`, `verify-vlm-evaluation-result-workflow`, `verify-vlm-review-action-workflow`, `verify-vlm-observation-sidecar`, `verify-vlm-event-explanation-hints`, `verify-vlm-privacy-transfer-guard`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates`, `verify-vlm-rule-suggestion-draft-workflow` | 제품 UI 비대상 |
 | `SAFE-001`~`SAFE-040` | `verify-v230-ui-renderer-module-decomposition`, `verify-integrator-contract-artifact`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-ui-blocking-dialog-policy`, `verify-event-post-dispatch`, `verify-webrtc-va-metadata`, `verify-ws-metadata`, `verify-rtsp-va-overlay-policy`, `verify-external-turn-whep-field-gate`, `verify-runtime-model-bundle-rc-rehearsal`, `verify-vlm-boundary`, `verify-vlm-install-connection-scope-gate`, `verify-vlm-profile-storage`, `verify-vlm-runtime-opt-in-contract`, `verify-vlm-local-runtime-smoke`, `verify-vlm-cloud-provider-field-smoke-gate`, `verify-vlm-queue-backpressure-stability`, `verify-vlm-review-action-workflow`, `verify-vlm-observation-sidecar`, `verify-vlm-event-explanation-hints`, `verify-vlm-privacy-transfer-guard`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates`, `verify-vlm-rule-suggestion-draft-workflow` | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035` | `verify-v230-ops-backup-recovery-lifecycle`, `verify-ops-backup-restore-dry-run`, `verify-ops-evidence-retention-cleanup` | v2.3.0 S06 backup lifecycle는 안정화 gate이며 real operational backup이나 UI 풀테스트 evidence가 아님 |
 
 ## VA Manual UI Seed Matrix
 
@@ -473,6 +476,7 @@ v2.1.0 completed roadmap과 v2.2.0 completed roadmap에서 늘어난 검수 대�
 | EVT-031 | VLM explanation/hint review state | 필요 | 필요 | 안정화, UI | summary, eventExplanation, falsePositiveHints, operatorReviewQuestions가 Ops review 상태에 표시되고 provider raw response/prompt는 표시하지 않음 |
 | EVT-032 | VLM summary search candidate state | 비대상 | 필요 | 안정화 | summary search 후보는 sidecar summary와 EventRecord `eventId` correlation만 사용하고 제품 검색 UI, vector index, provider rerank는 만들지 않음 |
 | EVT-033 | VLM rule suggestion candidate state | 비대상 | 필요 | 안정화 | line/intrusion/zone rule suggestion 후보는 manual review 상태로만 산출하고 rule/profile registry write와 auto-apply는 발생하지 않음 |
+| OPS-035 | v2.3.0 S06 Ops backup/recovery evidence lifecycle | 비대상 | 필요 | 안정화 | 비대상: UI 없어야 정상. `verify-v230-ops-backup-recovery-lifecycle`이 staging drill manifest/checksum/restore-validation-plan, redacted evidence bundle, retention cleanup dry-run/apply/audit를 확인하고 30분/120분/UI 실행 PASS로 대체하지 않음 |
 | EVT-034 | VLM runtime disabled/queue readiness state | 비대상 | 필요 | 안정화 | profile/recommendation 상태가 runtime disabled, missing model, queue not started를 명확히 표시하고 media path나 Event POST dispatch를 block하지 않음 |
 | EVT-035 | VLM review action state correlation | 간접 | 필요 | 안정화 | `media-server.ops.vlm-review-action-state.v1`은 Ops review state에서 `eventId`로만 EventRecord와 상관되고 EventRecord top-level payload나 Event POST payload에 action field를 추가하지 않음 |
 | EVT-036 | VLM rule suggestion draft correlation state | 간접 | 필요 | 안정화, UI | `media-server.vlm-rule-suggestion-draft-workflow.v1`은 V200-S13 sidecar candidate를 `sourceCandidateReport`로만 참조하고 EventRecord/Event POST/WebRTC/SSE/WS payload에 draft field를 추가하지 않음 |

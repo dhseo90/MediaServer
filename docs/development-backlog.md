@@ -126,7 +126,7 @@ release 준비/close-out에서만 현재 release target으로 올립니다.
 | 3 | V230-S03 | P1 | 완료 | UI renderer/module decomposition | `webrtc_http_server.cpp`, `product_ui_css.cpp`, `product_ui_page_scripts.cpp`의 큰 문자열 UI 경계를 route renderer, CSS module, JS controller 단위로 더 나눠 유지보수 위험을 낮춥니다. | [v230-ui-renderer-module-decomposition.md](./v230-ui-renderer-module-decomposition.md), `verify-v230-ui-renderer-module-decomposition`, route smoke, `verify-ops-client-ui`, `verify-rule-ui`, `git diff --check` |
 | 4 | V230-S04 | P1 | 예정 | 조건부 ONVIF/external TURN/WHEP evidence | 실장비/외부 credential 성공을 release PASS와 혼동하지 않고, 승인된 환경이 있을 때만 redacted field report로 기록합니다. 미실행이면 안정화 테스트 조건부 항목으로 남깁니다. | `verify-onvif-field-smoke-gate`, `verify-external-turn-whep-field-gate`, redaction review, 미실행/제외 기록, `git diff --check` |
 | 5 | V230-S05 | P1 | 예정 | VLM opt-in operational evidence | VLM default-on이 아니라 operator-approved profile promotion, local/provider smoke intake, privacy/default-off evidence를 강화합니다. Sidecar는 EventRecord/API schema에 섞지 않습니다. | `verify-vlm-runtime-opt-in-contract`, `verify-vlm-local-runtime-smoke`, `verify-vlm-cloud-provider-field-smoke-gate`, `verify-vlm-privacy-transfer-guard`, `git diff --check` |
-| 6 | V230-S06 | P2 | 예정 | Ops backup/recovery evidence lifecycle | dry-run 중심의 백업/복구 절차를 staging drill, redacted evidence bundle, cleanup/retention 확인으로 강화하되 운영 데이터 백업 완료로 확대 보고하지 않습니다. | `verify-ops-backup-recovery-guide`, `verify-ops-backup-restore-dry-run`, `verify-ops-evidence-retention-cleanup`, `git diff --check` |
+| 6 | V230-S06 | P2 | 완료 | Ops backup/recovery evidence lifecycle | dry-run 중심의 백업/복구 절차를 staging drill, redacted evidence bundle, cleanup/retention 확인으로 강화하되 운영 데이터 백업 완료로 확대 보고하지 않습니다. | `verify-v230-ops-backup-recovery-lifecycle`, `verify-ops-backup-recovery-guide`, `verify-ops-backup-restore-dry-run`, `verify-ops-evidence-retention-cleanup`, `git diff --check` |
 | 7 | V230-S07 | P2 | 완료 | Integrator contract conformance | Event POST/WebRTC/SSE/WS payload schema 변경 없이 sample bundle, checksum, runtime delivery smoke, client redaction evidence를 보강했습니다. | `verify-integrator-contract-artifact`, `verify-event-post`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `git diff --check` |
 
 ### V230-S00 v2.3.0 entry baseline 종료 기준
@@ -334,6 +334,49 @@ S03 실행 결과:
   real cloud provider call, main merge, release tag, GitHub Release 생성, push.
 - 토큰 사용량: token start `238,904`, token end `287,022`, token consumed `48,118`,
   elapsed `355s`, source `Codex goal usage snapshot at S03 evidence update`.
+
+### V230-S06 Ops backup/recovery evidence lifecycle 종료 기준
+
+직접 답: S06 완료는 운영 데이터 백업 완료가 아니라
+`media-server.v230-ops-backup-recovery-lifecycle.v1` gate로 staging drill,
+redacted evidence bundle, retention cleanup 경계를 fixture 기반으로 닫은 것입니다.
+`verify-v230-ops-backup-recovery-lifecycle`은 기존
+`verify-ops-backup-restore-dry-run`과 `verify-ops-evidence-retention-cleanup`을 실행해
+`manifest.json`, `SHA256SUMS`, `restore-validation-plan.md`, retention cleanup dry-run/apply
+report, `retention-cleanup` audit payload, `token-expiry-no-server-file` 정책을 직접
+확인합니다. 이 결과는 장기 영상 녹화 백업, production restore cutover,
+external storage replication, 운영 데이터 백업 완료로 확대 보고하지 않습니다.
+
+S06 완료 evidence는 아래 안정화 verifier입니다. 이 단계는 30분 테스트, 120분 테스트,
+UI 풀테스트, 실제 운영 백업, external storage replication을 실행했다는 뜻이 아닙니다.
+
+```bash
+./server.sh verify-v230-ops-backup-recovery-lifecycle
+./server.sh verify-ops-backup-recovery-guide
+./server.sh verify-ops-backup-restore-dry-run
+./server.sh verify-ops-evidence-retention-cleanup
+./server.sh verify-release-evidence-index
+./server.sh verify-feature-inventory-coverage
+git diff --check
+```
+
+S06 실행 결과:
+
+- PASS: `./server.sh verify-v230-ops-backup-recovery-lifecycle`
+- PASS: `./server.sh verify-ops-backup-recovery-guide`
+- PASS: `./server.sh verify-ops-backup-restore-dry-run`
+- PASS: `./server.sh verify-ops-evidence-retention-cleanup`
+- PASS: `./server.sh verify-release-evidence-index`
+- PASS: `./server.sh verify-feature-inventory-coverage`
+- PASS: `./server.sh verify-project-inventory`
+- PASS: `git diff --check`
+- 미실행: UI 풀테스트 직접 조작, 30분 테스트, 120분 테스트,
+  `verify-va-runtime-console-longrun --duration-minutes 120`, 실제 운영 데이터 백업,
+  production restore cutover, 장기 영상 녹화 백업, external storage replication,
+  real ONVIF device, external WHEP/WHIP/TURN endpoint, real cloud provider call,
+  main merge, release tag, GitHub Release 생성, push.
+- 토큰 사용량: token start `96,792`, token end `183,079`, token consumed `86,287`,
+  elapsed `434s`, source `Codex goal usage snapshot at S06 start/end`.
 
 ### V230-S07 Integrator contract conformance 종료 기준
 

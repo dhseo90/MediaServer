@@ -50,10 +50,11 @@ const stabilityVerifierByPrefix = {
   MEDIA: ["verify-codecs", "verify-webrtc-ice", "verify-external-turn-whep-field-gate", "verify-webrtc-va-metadata"],
   LAB: ["verify-analysis-state", "verify-va-metadata-sidechannel", "verify-ws-metadata", "verify-image-analysis", "verify-vlm-boundary", "verify-vlm-selection-decision", "verify-vlm-pc-capability", "verify-vlm-recommendation-engine", "verify-vlm-install-connection-dry-run", "verify-vlm-profile-storage", "verify-vlm-runtime-opt-in-contract", "verify-vlm-local-runtime-smoke", "verify-vlm-cloud-provider-field-smoke-gate", "verify-vlm-queue-backpressure-stability", "verify-runtime-model-bundle-rc-rehearsal", "verify-vlm-evaluation-harness", "verify-vlm-evaluation-result-workflow", "verify-vlm-review-action-workflow", "verify-vlm-observation-sidecar", "verify-vlm-event-explanation-hints", "verify-vlm-privacy-transfer-guard", "verify-vlm-summary-search-candidates", "verify-vlm-rule-suggestion-candidates", "verify-vlm-rule-suggestion-draft-workflow"],
   SAFE: ["verify-integrator-contract-artifact", "verify-auth-routes", "verify-ops-client-ui", "verify-ui-blocking-dialog-policy", "verify-event-post", "verify-webrtc-va-metadata", "verify-ws-metadata", "verify-external-turn-whep-field-gate", "verify-runtime-model-bundle-rc-rehearsal", "verify-vlm-boundary", "verify-vlm-install-connection-scope-gate", "verify-vlm-profile-storage", "verify-vlm-runtime-opt-in-contract", "verify-vlm-local-runtime-smoke", "verify-vlm-cloud-provider-field-smoke-gate", "verify-vlm-queue-backpressure-stability", "verify-vlm-review-action-workflow", "verify-vlm-observation-sidecar", "verify-vlm-privacy-transfer-guard", "verify-vlm-summary-search-candidates", "verify-vlm-rule-suggestion-candidates", "verify-vlm-rule-suggestion-draft-workflow"],
+  OPS: ["verify-v230-ops-backup-recovery-lifecycle", "verify-ops-backup-recovery-guide", "verify-ops-backup-restore-dry-run", "verify-ops-evidence-retention-cleanup"],
 };
 
 check("inventory row count is stable", () => {
-  assert(rows.length === 390, `expected 390 feature rows, found ${rows.length}`);
+  assert(rows.length === 391, `expected 391 feature rows, found ${rows.length}`);
   assert(new Set(rows.map(row => row.id)).size === rows.length, "duplicate feature ID exists");
 });
 
@@ -187,7 +188,7 @@ function coverageTargets(row, verifierMap) {
 function parseFeatureRows(text) {
   return text
     .split(/\r?\n/)
-    .filter(line => /^\| (UI|AUTH|SRC|RULE|EVT|CLIENT|MEDIA|LAB|SAFE)-\d+ \|/.test(line))
+    .filter(line => /^\| (UI|AUTH|SRC|RULE|EVT|CLIENT|MEDIA|LAB|SAFE|OPS)-\d+ \|/.test(line))
     .map(line => {
       const cells = line.split("|").slice(1, -1).map(cell => cell.trim());
       return {
