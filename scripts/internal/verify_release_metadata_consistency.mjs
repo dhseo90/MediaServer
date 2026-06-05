@@ -333,7 +333,8 @@ check("release policy pins source-only tag baseline", () => {
   const doc = readText("docs/release-policy.md");
   for (const snippet of [
     `현재 source-only release 기준 tag는 \`${currentTag}\`입니다.`,
-    `\`${currentTag}\`은 live-only media path를 유지하면서 VLM review assist source-only baseline을 보존하고 responsive UI foundation을 닫는 release`,
+    `\`${currentTag}\`은 live-only media path를 유지하면서 EventRecord evidence, 테스트 evidence`,
+    "integrator contract conformance를 닫는 release",
   ]) {
     assert(doc.includes(snippet), `docs/release-policy.md missing snippet: ${snippet}`);
   }
@@ -376,6 +377,7 @@ check("development backlog pins current close-out and completed v2.2.0 roadmap g
   for (const snippet of [
     `## 현재 기준: ${currentTag} Source Release Baseline`,
     `${currentTag}은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서`,
+    "Operational Evidence & Contract Baseline을 닫는 source-only release입니다.",
     "## 활성 roadmap: v2.3.0 Operational Evidence & Contract Baseline",
     "기존 네 영역인 안정화 테스트, 30분 테스트, 120분 테스트, UI 풀테스트",
     "V230-S00",
@@ -438,7 +440,7 @@ check("public entry docs keep release evidence source-of-truth deduped", () => {
   for (const snippet of [
     "Current Release Close-Out",
     `${currentTag} Release Close-out`,
-    "responsive UI foundation",
+    "Operational Evidence & Contract Baseline",
     `${currentTag} Release Close-out Runbook`,
     "release-policy.md",
   ]) {

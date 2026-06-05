@@ -34,11 +34,10 @@ source-of-truth가 아닙니다. 현재 기준은 이 문서와 기능별 상세
 
 `완료`는 운영 배포 ready, 장기 안정성 보장, 외부 연동 ready를 뜻하지 않습니다.
 
-## 현재 기준: v2.2.0 Source Release Baseline
+## 현재 기준: v2.3.0 Source Release Baseline
 
-v2.2.0은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서
-VLM review-assist source-only 경계 위에 Responsive UI Foundation을 닫는
-source-only release입니다.
+v2.3.0은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서
+Operational Evidence & Contract Baseline을 닫는 source-only release입니다.
 Client Live workspace, source tree/dock event feed, tile disconnect, event review,
 source group/site, tile info overlay, saved layout, incident timeline, alert delivery,
 scenario builder, Ops/Client declutter는 이전 UI-first close-out에서 닫은 제품
@@ -62,6 +61,10 @@ baseline으로 유지합니다.
 - UI foundation: UI architecture inventory, responsive task shell, design token refresh,
   component primitives, Ops/Rules/Client/Auth responsive workspace, Channels/Users/VLM
   containment/client redaction follow-up, UI evidence close-out
+- v2.3.0 operational evidence: Full VA EventRecord occurrence matrix, 4대 테스트 evidence
+  정합성, UI renderer/module decomposition, 조건부 ONVIF/external TURN/WHEP evidence,
+  VLM opt-in operational evidence, Ops backup/recovery evidence lifecycle, integrator
+  contract conformance
 - Release: source-only readiness, bundle/license guardrail, release evidence, manual UI fulltest result,
   GitHub Actions warning/Node 24 gate, feature coverage, release close-out runbook
 - Research boundary: Re-ID/tracker default-off, OC-SORT manifest-only sandbox, YouTube lab-only 유지
@@ -77,7 +80,7 @@ baseline으로 유지합니다.
 - field sample scheduler, dataset ingest, tracker replacement benchmark 실행
 - 별도 Phase의 실제 기능 개발, tracker replacement product review
 
-세부 종료 증적은 아래 v2.2.0 Release Close-out 섹션을 봅니다.
+세부 종료 증적은 아래 v2.3.0 Release Close-out 섹션을 봅니다.
 과거 release evidence는 standalone current 문서가 아니라 이 문서의 archive 섹션에만
 보존합니다.
 
@@ -88,10 +91,9 @@ v2.3.0은 v2.2.0 source-only/live-only 제품 baseline을 유지하면서, 새 �
 증적 정합성과 운영 field-readiness를 강화하는 roadmap입니다.
 
 이 roadmap은 기능 확장보다 contract 보존, EventRecord evidence 보강, 운영 증적
-정리, C++ 문자열 UI 유지보수 경계 완화를 우선합니다. `VERSION`과 CMake project
-version은 v2.3.0 release source-of-truth 업데이트 전까지 현재 공개 release인
-`2.2.0`을 유지합니다. 이 값은 v2.3.0 active roadmap이 열렸다는 뜻과 별개이며,
-release 준비/close-out에서만 현재 release target으로 올립니다.
+정리, C++ 문자열 UI 유지보수 경계 완화를 우선합니다. v2.3.0 release 준비에서는
+`VERSION`, CMake project version, README, release/version 문서를 현재 release target인
+`2.3.0`/`v2.3.0` 기준으로 맞춥니다.
 
 핵심 원칙:
 
@@ -526,6 +528,68 @@ S07 실행 결과:
   GitHub Release 생성, push.
 - 토큰 사용량: token start `97,176`, token end `199,847`, token consumed `102,671`,
   elapsed `501s`, source `Codex goal usage snapshot at S07 evidence update`.
+
+## v2.3.0 Release Close-out
+
+v2.3.0 release close-out은 위 `활성 roadmap: v2.3.0 Operational Evidence & Contract
+Baseline` 범위를 기준으로 문서/source-of-truth, representative UI asset baseline,
+release metadata, 로컬 release gate, PR/main merge, signed annotated tag,
+GitHub Release, published metadata 재검증, 후속 `v2.4.0` branch 생성을 순서대로
+닫는 단계입니다.
+
+v2.3.0은 live-only media path, Event POST/WebRTC DataChannel/SSE/WS metadata,
+Auth/session/scope, Rule/Profile payload schema를 변경하지 않습니다. 이 release의
+완료 범위는 EventRecord occurrence matrix, 4대 테스트 evidence 정합성, UI
+renderer/module decomposition, 조건부 ONVIF/external TURN/WHEP evidence, VLM
+opt-in operational evidence, Ops backup/recovery evidence lifecycle, integrator
+contract conformance입니다. runtime/model bundle release, real cloud provider
+success, external TURN/WHEP credential operation, ONVIF 실장비 success, long-term
+recording/VMS/NVR, route/API/config/schema migration은 release 완료 근거가 아닙니다.
+
+실제 tag/push는 수동 승인 후에만 수행합니다. 실패가 발생하면 원인/실패 명령/영향
+파일을 기록하고, 같은 v2.3.0 범위에서 수정 가능한 경우 수정 후 해당 gate부터
+재검증합니다. 해결 불가능하거나 사용자 결정이 필요한 경우에만 중단하고 뒤 단계는
+건너뜁니다.
+
+v2.4.0 branch는 v2.3.0 GitHub Release와 published metadata 재검증이 끝난 뒤
+최신 `main`에서 생성합니다. patch branch는 사용자 지시가 없는 한 만들지 않습니다.
+release branch 삭제, force push, tag force update, GitHub Release 삭제는 별도 명시
+지시 없이는 수행하지 않습니다.
+
+close-out 작업 순서:
+
+1. 사전 상태/버전 확인: branch, upstream, local/remote tag, main sync,
+   `VERSION`/CMake/docs 기준을 확인합니다.
+2. 문서/source-of-truth 업데이트: README, README.en.md, docs index, release/version
+   policy, backlog, evidence, manual UI, feature inventory, UI asset policy를 v2.3.0
+   기준으로 맞춥니다.
+3. 문서 이미지 리뷰 및 업데이트: managed UI PNG와 VA 이미지는 문서 대표 자산으로만
+   다루고, crop, viewport, debug/source/raw/auth material 노출 여부를 확인합니다.
+   새 이미지 채택은 직접 검수 evidence 없이는 PASS로 쓰지 않습니다.
+4. 테스트 실행 범위 확인: 안정화 테스트, 30분 테스트, UI 풀테스트, 120분 테스트는
+   사용자가 직접 지시했거나 에이전트가 진행 여부를 물어 승인받은 범위만 실행합니다.
+5. 로컬 release gate: 승인된 테스트 범위에 따라 `./server.sh build`, 문서 링크,
+   UI asset, release metadata, evidence/index, release closeout helper dry-run,
+   현재 release verifier를 실행합니다.
+6. 커밋/branch push: 변경을 커밋하고 `v2.3.0` branch를 push합니다.
+7. PR/main merge: required check, warning/failure annotation 상태를 분리 확인한 뒤
+   main으로 merge합니다.
+8. signed annotated tag: main release commit에 `v2.3.0` signed annotated tag를 만들고
+   push합니다.
+9. GitHub Release: source-only release note를 생성하고 sample/model/runtime binary를
+   업로드하지 않습니다.
+10. published metadata: `./server.sh verify-release-metadata --published`로 GitHub
+    Latest Release, remote tag, release branch/head 상태를 재검증합니다.
+11. next branch: 최신 main에서 `v2.4.0` branch를 생성하고 push만 수행합니다.
+
+미실행/제외:
+
+- 안정화 테스트, 30분 soak, UI 풀테스트, 120분 longrun은 서로 대체하지 않습니다.
+  실행하지 않은 묶음은 미실행으로 기록합니다.
+- real provider call, external endpoint/credential, 실장비 ONVIF는 승인된 환경이 있을
+  때만 redacted field report로 기록하며, 미실행이면 PASS evidence가 아닙니다.
+- v2.3.0 S01 인앱 브라우저 EventRecord matrix evidence는 해당 matrix 범위입니다.
+  전체 release UI 풀테스트나 30분/120분 longrun을 대체하지 않습니다.
 
 ## 완료 roadmap: v2.2.0 Responsive UI Foundation
 
@@ -2864,7 +2928,7 @@ Decision record 최소 필드:
 
 ## Archived: v1.7.0 UI-first Close-out
 
-이 섹션은 v1.7.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v2.2.0
+이 섹션은 v1.7.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v2.3.0
 Release Close-out입니다.
 
 v1.7.0 close-out 당시에는 Client Live workspace와 Ops workflow 보강을 완료 기준으로 둡니다.
@@ -2902,7 +2966,7 @@ UI 원칙:
 2. 이벤트 검토, source group/site, layout 저장을 붙여 실제 운영 흐름을 닫았습니다.
 3. 알림 연동, Scenario Builder, Incident Timeline을 기본 UI 위에 확장했습니다.
 4. v1.7.0 close-out 당시 README/UI guide 대표 screenshot asset을 UI-first
-   화면으로 한국어/영어 모두 재캡처했습니다. 현재 문서 대표 이미지는 상단 v2.0.0
+   화면으로 한국어/영어 모두 재캡처했습니다. 현재 문서 대표 이미지는 상단 v2.3.0
    release 기준에서 다시 관리합니다.
 
 | ID | 우선순위 | 영역 | 목표 | 예상 검증 |
@@ -2942,7 +3006,7 @@ v1.7.0 비범위:
 
 ## Archived: v1.6.0 Stabilization Close-out
 
-이 섹션은 v1.6.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v2.2.0
+이 섹션은 v1.6.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v2.3.0
 Release Close-out입니다.
 
 v1.6.0 close-out 당시에는 새 제품 기능을 여는 minor release가 아니라, v1.5.0까지 닫은 기능을

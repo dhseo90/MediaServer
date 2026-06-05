@@ -19,14 +19,10 @@ path short enough to scan. The full index is `docs/README.md`.
 
 ## Current Boundary
 
-- v2.2.0 is the latest published source-only release target:
-  <https://github.com/dhseo90/MediaServer/releases/tag/v2.2.0>.
-- v2.2.0 release close-out is tracked in
+- Current release: [v2.3.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.3.0).
+- v2.3.0 release close-out is tracked in
   [../development-backlog.md](../development-backlog.md).
-- v2.2.0 completed roadmap is tracked in
-  [../development-backlog.md](../development-backlog.md) as Responsive UI
-  Foundation.
-- v2.3.0 active roadmap is tracked in
+- v2.3.0 completed roadmap is tracked in
   [../development-backlog.md](../development-backlog.md) as Operational Evidence
   & Contract Baseline.
 - The main product boundary is live source onboarding, live source health, and
@@ -41,15 +37,15 @@ path short enough to scan. The full index is `docs/README.md`.
 - Long-term recording, VMS/NVR, playback/search, ONVIF Profile G
   recording/replay, Re-ID default-on, and tracker default-on remain out of scope.
 
-v2.2.0 branch-level close-out evidence and historical in-app browser UI
+v2.3.0 branch-level close-out evidence and historical in-app browser UI
 fulltest summaries are tracked in
 [../release-evidence-index.md](../release-evidence-index.md).
 Script stability, 30-minute soak, UI fulltest, and 120-minute longrun evidence do
 not replace one another. Real cloud provider calls, external TURN field gates,
-and VLM model/runtime bundles remain outside the v2.2.0 completion evidence.
+and VLM model/runtime bundles remain outside the v2.3.0 completion evidence.
 
-v2.2.0 release close-out details are in [../development-backlog.md](../development-backlog.md).
-For the v2.2.0 documentation baseline, UI preview images are
+v2.3.0 release close-out details are in [../development-backlog.md](../development-backlog.md).
+For the v2.3.0 documentation baseline, UI preview images are
 documentation assets only. QA-registry-heavy recaptures, unapproved Chrome/CDP
 fallback captures, and screenshot-only artifacts are not promoted to
 representative images or UI fulltest evidence without in-app browser review.

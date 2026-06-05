@@ -20,8 +20,8 @@
 
 ## 현재 제품 경계
 
-- 최신 공개 release: [`v2.2.0`](https://github.com/dhseo90/MediaServer/releases/tag/v2.2.0)
-- 활성 roadmap: `v2.3.0 Operational Evidence & Contract Baseline`
+- 최신 공개 release: [`v2.3.0`](https://github.com/dhseo90/MediaServer/releases/tag/v2.3.0)
+- 현재 release close-out: `v2.3.0 Operational Evidence & Contract Baseline`
 - 기본 release 형태: source-only
 - 중심 범위: live source onboarding, live source health, live VA event 품질
 - 테스트 영역: 안정화 테스트, 30분 테스트, 120분 테스트, UI 풀테스트
@@ -33,8 +33,8 @@
 
 | 범위 | 문서 |
 | --- | --- |
+| Current Release Close-Out / v2.3.0 operational evidence baseline | [development-backlog.md](development-backlog.md)의 `v2.3.0 Release Close-out`, [release-policy.md](release-policy.md)의 `v2.3.0 Release Close-out Runbook`, [release-evidence-index.md](release-evidence-index.md) |
 | v2.3.0 active roadmap / entry baseline | [development-backlog.md](development-backlog.md), [stream-verification.md](stream-verification.md), [release-evidence-index.md](release-evidence-index.md) |
-| Current Release Close-Out / responsive UI foundation | [development-backlog.md](development-backlog.md)의 `v2.2.0 Release Close-out`, [release-policy.md](release-policy.md)의 `v2.2.0 Release Close-out Runbook`, [release-evidence-index.md](release-evidence-index.md) |
 | v2.3.0 S01 EventRecord occurrence matrix | [manual-ui-result-2026-06-05-v230-s01-eventrecord-matrix.md](manual-ui-result-2026-06-05-v230-s01-eventrecord-matrix.md) |
 | v2.3.0 S02 4대 테스트 evidence 정합성 | [development-backlog.md](development-backlog.md), [release-evidence-index.md](release-evidence-index.md), [project-feature-test-inventory.md](project-feature-test-inventory.md), [stream-verification.md](stream-verification.md) |
 | v2.3.0 S03 UI renderer/module decomposition | [v230-ui-renderer-module-decomposition.md](v230-ui-renderer-module-decomposition.md), [development-backlog.md](development-backlog.md), [stream-verification.md](stream-verification.md) |
@@ -86,8 +86,9 @@ default-on 승격 근거로 쓰지 않습니다.
 
 ## UI / 이미지 / 문구 문서
 
-프로젝트 소개와 이미지 관련 문서는 v2.3.0 종료 후 다시 정리할 예정입니다. 현재는
-검증기와 README 이미지 참조를 깨지 않는 범위에서만 보존합니다.
+프로젝트 소개와 이미지 관련 문서는 v2.3.0 release close-out에서 현재 README 대표
+이미지와 UI asset policy를 함께 확인합니다. 직접 UI 풀테스트 전에는 screenshot
+검증기를 통과해도 현재 UI 직접 확인 PASS로 확대하지 않습니다.
 
 | 영역 | 문서 |
 | --- | --- |

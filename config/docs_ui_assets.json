@@ -1,7 +1,7 @@
 {
   "schema": "media-server.docs-ui-assets.v1",
   "baseline": {
-    "release": "v2.2.0",
+    "release": "v2.3.0",
     "capturedAt": "2026-05-23",
     "theme": "dark",
     "sampleVideo": "va_four_scene_sample.mp4",
@@ -11,7 +11,7 @@
   "verificationCommand": "./server.sh verify-docs-ui-assets",
   "directReviewChecklist": [
     "Open every Korean and English PNG after recapture.",
-    "Confirm the visible UI matches the current v2.2.0 release baseline representative shell; VLM-specific screens require separate manual UI evidence.",
+    "Confirm the visible UI matches the current v2.3.0 release baseline representative shell; VLM-specific screens require separate manual UI evidence.",
     "Confirm video screenshots show the full video viewport, controls, status, and VA overlay when available.",
     "Confirm client/viewer screenshots do not expose source URLs, Developer URLs, raw JSON, debug counters, BBox diagnostics, model paths, credentials, or session material.",
     "Record any screen that was not opened as unverified rather than pass."
