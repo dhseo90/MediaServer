@@ -10,7 +10,7 @@
 
 ## Artifact Layout
 
-기본 sample bundle:
+기본 sample bundle과 V230 companion files:
 
 ```text
 test/fixtures/integrator_contract_artifact/
@@ -19,6 +19,8 @@ test/fixtures/integrator_contract_artifact/
   field-index.json
   schema-review-checklist.md
   freeze-baseline.json
+  checksums.json              # V230 companion, self-reference 때문에 manifest.files에는 넣지 않음
+  v230-conformance.json       # V230 companion, checksum manifest가 별도로 고정
   manifest.json
   schemas/
     event-post.schema.json
@@ -44,6 +46,14 @@ Auth/session/scope, SourceRegistry/PublishedView, Rule/Profile payload 기준 �
 SHA-256을 고정하며, drift가 있으면 schema review 없이 v2.0.0 신규 기능으로
 넘어가지 않습니다.
 
+`checksums.json`은 `media-server.integrator-contract-checksums.v1` schema의
+V230-S07 checksum companion입니다. `manifest.json`에 포함된 sample/schema/support
+파일과 `v230-conformance.json`의 현재 SHA-256을 고정하되, 자기 자신은
+self-reference를 피하기 위해 제외합니다. `v230-conformance.json`은
+`media-server.integrator-contract-conformance.v1` schema로 V230-S07의
+runtime delivery smoke, checksum, client redaction evidence 경계를 묶습니다.
+이 파일은 payload field를 추가하거나 삭제하지 않습니다.
+
 | 영역 | Identifier | Sample | Runtime 검증 |
 | --- | --- | --- | --- |
 | Event POST | `media-server.va.event.v1` | `samples/event-post.json` | `./server.sh verify-event-post --mode schema` |
@@ -62,6 +72,8 @@ SHA-256을 고정하며, drift가 있으면 schema review 없이 v2.0.0 신규 �
 - WebSocket subscribe/status/reset 계열 control ack sample과 JSON Schema
 - artifact manifest와 정적 검증 명령
 - v2.0.0 entry freeze gate용 `freeze-baseline.json`
+- V230-S07 checksum companion `checksums.json`
+- V230-S07 conformance companion `v230-conformance.json`
 - Auth/session/scope, SourceRegistry/PublishedView, Rule/Profile payload 기준선의
   drift 감지 목록
 
@@ -104,6 +116,10 @@ artifact 자체 검증:
   포함되고 manifest와 일치함
 - `freeze-baseline.json`의 SHA-256 pin이 artifact와 source contract 문서의 현재
   내용과 일치하며, intentional drift는 schema review가 필요함
+- `checksums.json`이 현재 bundle file과 `v230-conformance.json`의 SHA-256을
+  일치하게 고정함
+- `v230-conformance.json`이 runtime delivery smoke와 client redaction evidence를
+  실제 실행 evidence 없이 PASS로 확대 보고하지 않도록 고정함
 
 Runtime delivery smoke는 별도입니다. 위 artifact 검증만 실행했다면 Event POST,
 WebRTC, SSE, WebSocket delivery가 실제로 재검증됐다고 보고하지 않습니다.

@@ -54,6 +54,62 @@ check("manifest files are present", () => {
   }
 });
 
+check("v2.3.0 conformance artifact pins checksum/runtime/redaction evidence", () => {
+  const manifest = readJson(manifestPath);
+  const conformance = readJson(path.join(artifactDir, "v230-conformance.json"));
+  assert(conformance.schema === "media-server.integrator-contract-conformance.v1", "conformance schema mismatch");
+  assert(conformance.roadmapId === "V230-S07", "conformance roadmapId mismatch");
+  assert(conformance.artifactVersion === manifest.artifactVersion, "conformance artifactVersion mismatch");
+  assert(conformance.payloadSchemaMutationAllowed === false, "conformance must not allow payload schema mutation");
+  assert(conformance.checksumManifest === "checksums.json", "conformance checksum manifest mismatch");
+  assert(conformance.artifactOnlyVerification === "./server.sh verify-integrator-contract-artifact", "artifact verification command mismatch");
+  assert(conformance.runtimeDeliverySmokeRequiredWhenClaimed === true, "runtime delivery smoke must be required when claimed");
+  assert(conformance.directClientUiEvidenceRequiredWhenClaimed === true, "direct client UI evidence must be required when claimed");
+  assert(Array.isArray(conformance.requiredRuntimeSmokeCommands), "runtime smoke commands missing");
+  for (const command of [
+    "./server.sh verify-event-post",
+    "./server.sh verify-webrtc-va-metadata",
+    "./server.sh verify-va-metadata-sidechannel",
+    "./server.sh verify-ws-metadata",
+  ]) {
+    assert(conformance.requiredRuntimeSmokeCommands.includes(command), `runtime smoke command missing: ${command}`);
+  }
+  assert(Array.isArray(conformance.clientRedactionEvidence), "client redaction evidence list missing");
+  for (const evidence of [
+    "data-client-redaction-review=\"viewer-safe-no-locator-debug\"",
+    "data-viewer-redaction=\"source-url-hidden\"",
+    "data-redaction=\"viewer-safe-events\"",
+    "./server.sh verify-v220-client-preview-redaction-review",
+  ]) {
+    assert(conformance.clientRedactionEvidence.includes(evidence), `client redaction evidence missing: ${evidence}`);
+  }
+  assert(Array.isArray(conformance.contractInvariants), "contract invariants missing");
+  for (const invariant of [
+    "eventPostPayloadSchemaChanged=false",
+    "webrtcDataChannelSchemaChanged=false",
+    "sseMetadataSchemaChanged=false",
+    "wsMetadataSchemaChanged=false",
+    "clientViewerDebugExposureAdded=false",
+  ]) {
+    assert(conformance.contractInvariants.includes(invariant), `contract invariant missing: ${invariant}`);
+  }
+});
+
+check("v2.3.0 checksum manifest matches current bundle files", () => {
+  const manifest = readJson(manifestPath);
+  const checksumManifest = readJson(path.join(artifactDir, "checksums.json"));
+  const failures = checksumManifestFailures(checksumManifest, manifest);
+  assert(failures.length === 0, failures.join("; "));
+});
+
+check("v2.3.0 checksum manifest negative fixture fails", () => {
+  const manifest = readJson(manifestPath);
+  const checksumManifest = cloneJson(readJson(path.join(artifactDir, "checksums.json")));
+  checksumManifest.entries[0].sha256 = "0".repeat(64);
+  const failures = checksumManifestFailures(checksumManifest, manifest);
+  assert(failures.some((failure) => failure.includes("sha256 mismatch")), "negative checksum fixture should fail on sha256 mismatch");
+});
+
 check("bundle support docs pin review boundaries", () => {
   const manifest = readJson(manifestPath);
   const readme = readBundleText("README.md");
@@ -176,12 +232,17 @@ check("documentation references integrator artifact", () => {
   const inventory = readText("scripts/internal/verify_script_inventory.mjs");
   for (const snippet of [
     "media-server.integrator-contract-artifact.v1",
+    "media-server.integrator-contract-conformance.v1",
+    "media-server.integrator-contract-checksums.v1",
     "media-server.v200-contract-schema-freeze.v1",
     "test/fixtures/integrator_contract_artifact/",
+    "v230-conformance.json",
+    "checksums.json",
     "freeze-baseline.json",
     "field-index.json",
     "schema-review-checklist.md",
     "v2.0.0 entry freeze gate",
+    "V230-S07",
     "./server.sh verify-integrator-contract-artifact",
     "payload field를 추가하거나 삭제하지 않습니다"
   ]) {
@@ -341,6 +402,57 @@ function freezeBaselineFailures(baseline, manifest) {
   }
   for (const group of requiredGroups) {
     if (!entriesByGroup.has(group)) failures.push(`freeze baseline group has no entries: ${group}`);
+  }
+  return failures;
+}
+
+function checksumManifestFailures(checksumManifest, manifest) {
+  const failures = [];
+  if (checksumManifest.schema !== "media-server.integrator-contract-checksums.v1") {
+    failures.push("checksum manifest schema mismatch");
+  }
+  if (checksumManifest.artifactVersion !== manifest.artifactVersion) {
+    failures.push("checksum manifest artifactVersion mismatch");
+  }
+  if (checksumManifest.algorithm !== "sha256") {
+    failures.push("checksum manifest algorithm must be sha256");
+  }
+  if (checksumManifest.generatedFor !== "V230-S07") {
+    failures.push("checksum manifest generatedFor mismatch");
+  }
+  if (!Array.isArray(checksumManifest.entries) || checksumManifest.entries.length === 0) {
+    failures.push("checksum manifest entries missing");
+    return failures;
+  }
+
+  const requiredPaths = new Set([...manifest.files, "v230-conformance.json"]);
+  requiredPaths.delete("checksums.json");
+  const entryByPath = new Map();
+  for (const entry of checksumManifest.entries) {
+    if (!entry.path || entryByPath.has(entry.path)) {
+      failures.push(`checksum duplicate or missing path: ${entry.path || "(missing)"}`);
+      continue;
+    }
+    entryByPath.set(entry.path, entry);
+    if (!requiredPaths.has(entry.path)) {
+      failures.push(`${entry.path}: unexpected checksum target`);
+    }
+    if (!/^[a-f0-9]{64}$/.test(entry.sha256 || "")) {
+      failures.push(`${entry.path}: invalid sha256`);
+      continue;
+    }
+    const absolutePath = path.join(artifactDir, entry.path);
+    if (!fs.existsSync(absolutePath)) {
+      failures.push(`${entry.path}: missing checksum target`);
+      continue;
+    }
+    const actualHash = sha256File(absolutePath);
+    if (actualHash !== entry.sha256) {
+      failures.push(`${entry.path}: sha256 mismatch ${actualHash} != ${entry.sha256}`);
+    }
+  }
+  for (const target of requiredPaths) {
+    if (!entryByPath.has(target)) failures.push(`checksum manifest missing target: ${target}`);
   }
   return failures;
 }

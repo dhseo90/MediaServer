@@ -1,0 +1,78 @@
+{
+  "schema": "media-server.integrator-contract-checksums.v1",
+  "generatedFor": "V230-S07",
+  "targetRelease": "v2.3.0",
+  "artifactVersion": "v1.8.0-integrator-contract-artifact.1",
+  "algorithm": "sha256",
+  "coverage": "manifest.files plus v230-conformance.json; checksums.json is excluded to avoid self-reference",
+  "entries": [
+    {
+      "path": "README.md",
+      "sha256": "1ff879d454ef50bfcd5330b4146aecc137ce466cef3ee5d5b4b92d4f5c9c25ef"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "sha256": "c7dfa30e28560cf8d371efaaf5188a683b858b27467532f190516b0459ff1a2f"
+    },
+    {
+      "path": "field-index.json",
+      "sha256": "3950454586af3e04603272063869c06ff377cf22c014199db1ddb8d0ea170a72"
+    },
+    {
+      "path": "schema-review-checklist.md",
+      "sha256": "cd441a56d9776f5b108c360e24ce7d8b285654fe758192b38edef3950aec522f"
+    },
+    {
+      "path": "freeze-baseline.json",
+      "sha256": "7454641cc0c8590cb556e2b6460b8f9b894fbcc27f19dd9798bed34413cd0ea0"
+    },
+    {
+      "path": "manifest.json",
+      "sha256": "771e3f49114785d40e9b27138ffeb2cf7016a4c71909c9601aaad84a2fc32796"
+    },
+    {
+      "path": "schemas/common.json",
+      "sha256": "46f36462f6e43f67de12cd43627d70450207c22f1d854f0bfb8c3fb71d934fc5"
+    },
+    {
+      "path": "schemas/event-post.schema.json",
+      "sha256": "c88f0d383208bda3cb13646acd2e053bf7beab325e41b80bc5c995a29e27f505"
+    },
+    {
+      "path": "schemas/webrtc-va-metadata.schema.json",
+      "sha256": "2bb8ee3dfe01da92e93ad6fe6bbb37a26ea5528734af9555146f842650c0d0b9"
+    },
+    {
+      "path": "schemas/runtime-metadata.schema.json",
+      "sha256": "fc22900e3c58dceee0792d6fa58fe960a1258cbf93971c5ea5c14ad5ec5991d6"
+    },
+    {
+      "path": "schemas/metadata-control.schema.json",
+      "sha256": "7aeb130d372651d92582d2d93640b37101f75757609adb91034dcdb3388f4899"
+    },
+    {
+      "path": "samples/event-post.json",
+      "sha256": "64a00c27193e5762e2788ade21ab320d671b38a689a365dde177c6f63564471b"
+    },
+    {
+      "path": "samples/webrtc-va-metadata.json",
+      "sha256": "6e043430562886af2259e48d572d9421506a81387ab4b954c053363a248d1645"
+    },
+    {
+      "path": "samples/runtime-metadata-sse.json",
+      "sha256": "f0d81df567f1a081ae03850b1fa9e01e3671086a5af65b3b960abdfc2d21b3fa"
+    },
+    {
+      "path": "samples/runtime-metadata-ws.json",
+      "sha256": "a88cf6d0e74d601d904263e785155582e8436e383adc50a4d6a47135feae949a"
+    },
+    {
+      "path": "samples/metadata-control-subscribe-ack.json",
+      "sha256": "4188f10f319430423e94989f57df495e241d84e92023687eed1c9351c1c573f2"
+    },
+    {
+      "path": "v230-conformance.json",
+      "sha256": "6fdbb4a678f575d0db1bf5d79fe0b7c1c20a71c40ea42cdf7c30afb37298e392"
+    }
+  ]
+}

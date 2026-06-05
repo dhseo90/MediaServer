@@ -127,7 +127,7 @@ release 준비/close-out에서만 현재 release target으로 올립니다.
 | 4 | V230-S04 | P1 | 예정 | 조건부 ONVIF/external TURN/WHEP evidence | 실장비/외부 credential 성공을 release PASS와 혼동하지 않고, 승인된 환경이 있을 때만 redacted field report로 기록합니다. 미실행이면 안정화 테스트 조건부 항목으로 남깁니다. | `verify-onvif-field-smoke-gate`, `verify-external-turn-whep-field-gate`, redaction review, 미실행/제외 기록, `git diff --check` |
 | 5 | V230-S05 | P1 | 예정 | VLM opt-in operational evidence | VLM default-on이 아니라 operator-approved profile promotion, local/provider smoke intake, privacy/default-off evidence를 강화합니다. Sidecar는 EventRecord/API schema에 섞지 않습니다. | `verify-vlm-runtime-opt-in-contract`, `verify-vlm-local-runtime-smoke`, `verify-vlm-cloud-provider-field-smoke-gate`, `verify-vlm-privacy-transfer-guard`, `git diff --check` |
 | 6 | V230-S06 | P2 | 예정 | Ops backup/recovery evidence lifecycle | dry-run 중심의 백업/복구 절차를 staging drill, redacted evidence bundle, cleanup/retention 확인으로 강화하되 운영 데이터 백업 완료로 확대 보고하지 않습니다. | `verify-ops-backup-recovery-guide`, `verify-ops-backup-restore-dry-run`, `verify-ops-evidence-retention-cleanup`, `git diff --check` |
-| 7 | V230-S07 | P2 | 예정 | Integrator contract conformance | Event POST/WebRTC/SSE/WS payload schema 변경 없이 sample bundle, checksum, runtime delivery smoke, client redaction evidence를 보강합니다. | `verify-integrator-contract-artifact`, `verify-event-post`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `git diff --check` |
+| 7 | V230-S07 | P2 | 완료 | Integrator contract conformance | Event POST/WebRTC/SSE/WS payload schema 변경 없이 sample bundle, checksum, runtime delivery smoke, client redaction evidence를 보강했습니다. | `verify-integrator-contract-artifact`, `verify-event-post`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `git diff --check` |
 
 ### V230-S00 v2.3.0 entry baseline 종료 기준
 
@@ -284,6 +284,59 @@ S02 실행 결과:
   main merge, release tag, GitHub Release 생성, push.
 - 토큰 사용량: token start `24,603`, token end `190,554`, token consumed `165,951`,
   elapsed `472s`, source `Codex goal usage snapshot at S02 evidence update`.
+
+### V230-S07 Integrator contract conformance 종료 기준
+
+직접 답: S07은 기존 Event POST/WebRTC DataChannel/SSE/WS payload schema를 바꾸지
+않고 외부 integrator용 contract bundle의 conformance evidence를 강화하는 단계입니다.
+`test/fixtures/integrator_contract_artifact/checksums.json`은
+`media-server.integrator-contract-checksums.v1` schema로 현재 bundle file과
+`v230-conformance.json`의 SHA-256을 고정합니다. `v230-conformance.json`은
+`media-server.integrator-contract-conformance.v1` schema로 runtime delivery smoke와
+client redaction evidence를 실제 실행 evidence 없이 PASS로 확대 보고하지 않도록
+고정합니다.
+
+S07 완료 evidence는 아래 안정화 verifier와 runtime delivery smoke입니다. 이 단계는
+UI 풀테스트 직접 조작, 30분 soak, 120분 longrun, field endpoint 성공, published
+metadata 재검증을 실행했다는 뜻이 아닙니다.
+
+```bash
+./server.sh build
+./server.sh verify-integrator-contract-artifact
+./server.sh verify-event-post --http-base http://127.0.0.1:8081
+./server.sh verify-webrtc-va-metadata --http-base http://127.0.0.1:8081
+./server.sh verify-va-metadata-sidechannel --http-base http://127.0.0.1:8081
+./server.sh verify-ws-metadata --http-base http://127.0.0.1:8081
+./server.sh verify-v220-client-preview-redaction-review
+git diff --check
+```
+
+S07 실행 결과:
+
+- PASS: `./server.sh build`
+- PASS: `./server.sh verify-integrator-contract-artifact`
+  - `v230-conformance.json`, `checksums.json`, freeze-baseline, schema/sample,
+    forbidden exposure candidate, 문서/entrypoint 연결 확인
+- PASS: `./server.sh verify-event-post --http-base http://127.0.0.1:8081`
+  - 최초 실행은 서버 미기동으로 실패했고, Event POST enabled/auth-off 보정 서버에서
+    재실행해 PASS
+- PASS: `./server.sh verify-webrtc-va-metadata --http-base http://127.0.0.1:8081`
+  - 최초 실행은 sandbox Node fetch 실패였고, 같은 보정 서버를 대상으로 권한 승인
+    재실행해 PASS
+- PASS: `./server.sh verify-va-metadata-sidechannel --http-base http://127.0.0.1:8081`
+- PASS: `./server.sh verify-ws-metadata --http-base http://127.0.0.1:8081`
+  - 최초 실행은 sandbox Node fetch `EPERM`이었고, 같은 보정 서버를 대상으로 권한
+    승인 재실행해 PASS
+- PASS: `./server.sh verify-v220-client-preview-redaction-review`
+- PASS: `git diff --check`
+- 실패/제외: `./server.sh verify-ops-client-ui`는 Codex 환경에서
+  `--in-app-evidence`가 없어 실패했으며, S07 완료 evidence로 사용하지 않았습니다.
+- 미실행: UI 풀테스트 직접 조작, 30분 테스트, 120분 테스트,
+  `verify-va-runtime-console-longrun --duration-minutes 120`, real ONVIF device,
+  external WHEP/WHIP/TURN endpoint, real cloud provider call, main merge, release tag,
+  GitHub Release 생성, push.
+- 토큰 사용량: token start `97,176`, token end `199,847`, token consumed `102,671`,
+  elapsed `501s`, source `Codex goal usage snapshot at S07 evidence update`.
 
 ## 완료 roadmap: v2.2.0 Responsive UI Foundation
 

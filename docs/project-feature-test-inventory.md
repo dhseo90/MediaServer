@@ -78,6 +78,7 @@ close-out과 과거 UI 풀테스트 실행 evidence는
 | v2.2.0 F06 UI Evidence Close-out 준비 | 기능 inventory, [manual-ui-checklist.md](manual-ui-checklist.md), [manual-ui-result-template.md](manual-ui-result-template.md)를 새 로드맵 기준으로 연결 | `verify-v220-ui-evidence-closeout`와 `verify-manual-ui-evidence`는 close-out 준비 기준이며, inventory 자체는 실행 evidence가 아님 |
 | four-stage coverage mapping | 안정화/30분/120분/UI 풀테스트 실행 전 V200-S00~S18 및 V210-S00~S12 변경분을 아래 `Four-Stage Coverage Mapping`에 반영 | 테스트 실행 결과가 아니며, 네 단계 안의 누락 방지용 mapping |
 | v2.3.0 S02 4대 테스트 evidence 정합성 | release evidence index, feature inventory coverage, longrun separation, manual UI evidence 기준을 같은 네 영역으로 연결 | `verify-v230-test-evidence-consistency`가 정합성 gate를 검증합니다. 새 테스트 영역이 아니며 실행 evidence가 아님 |
+| v2.3.0 S07 Integrator contract conformance | 기존 `SAFE-001`~`SAFE-004`, `SAFE-018`, live Event POST/WebRTC/SSE/WS contract artifact를 checksum/conformance companion에 연결 | `verify-integrator-contract-artifact`와 runtime delivery smoke는 안정화 evidence이며, UI 직접 확인이나 30분/120분 longrun을 대체하지 않음 |
 
 브라우저 선택 기준: Codex 세션에서는 인앱 브라우저 evidence를 기본으로 하며, 자동
 Chrome/CDP는 `MEDIA_SERVER_UI_BROWSER_MODE=chrome`과
