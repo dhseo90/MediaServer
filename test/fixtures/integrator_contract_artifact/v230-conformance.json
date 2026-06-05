@@ -1,0 +1,36 @@
+{
+  "schema": "media-server.integrator-contract-conformance.v1",
+  "roadmapId": "V230-S07",
+  "targetRelease": "v2.3.0",
+  "artifactVersion": "v1.8.0-integrator-contract-artifact.1",
+  "purpose": "Pin v2.3.0 integrator-facing contract conformance without changing Event POST, WebRTC DataChannel, SSE, or WebSocket runtime payload schemas.",
+  "checksumManifest": "checksums.json",
+  "artifactOnlyVerification": "./server.sh verify-integrator-contract-artifact",
+  "runtimeDeliverySmokeRequiredWhenClaimed": true,
+  "directClientUiEvidenceRequiredWhenClaimed": true,
+  "payloadSchemaMutationAllowed": false,
+  "requiredRuntimeSmokeCommands": [
+    "./server.sh verify-event-post",
+    "./server.sh verify-webrtc-va-metadata",
+    "./server.sh verify-va-metadata-sidechannel",
+    "./server.sh verify-ws-metadata"
+  ],
+  "clientRedactionEvidence": [
+    "data-client-redaction-review=\"viewer-safe-no-locator-debug\"",
+    "data-viewer-redaction=\"source-url-hidden\"",
+    "data-redaction=\"viewer-safe-events\"",
+    "./server.sh verify-v220-client-preview-redaction-review"
+  ],
+  "contractInvariants": [
+    "eventPostPayloadSchemaChanged=false",
+    "webrtcDataChannelSchemaChanged=false",
+    "sseMetadataSchemaChanged=false",
+    "wsMetadataSchemaChanged=false",
+    "clientViewerDebugExposureAdded=false"
+  ],
+  "reportingBoundary": {
+    "artifactVerifierOnly": "Passing verify-integrator-contract-artifact only proves bundle/schema/sample/checksum and evidence-boundary conformance.",
+    "runtimeDelivery": "Runtime delivery PASS can be reported only for the runtime smoke commands that were actually executed.",
+    "clientUiRedaction": "Client UI redaction PASS can be reported only after direct UI evidence or an explicit client UI verifier run is recorded."
+  }
+}

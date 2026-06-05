@@ -232,6 +232,16 @@ Usage:
                  v2.0.0 published evidence를 v2.1.0 진입 baseline으로 고정합니다.
   verify-v220-entry-boundary
                  v2.2.0 responsive UI foundation 진입 경계와 변경 금지 contract를 검증합니다.
+  verify-v230-entry-baseline
+                 v2.3.0 operational evidence baseline과 4대 테스트 영역 유지 계약을 검증합니다.
+  verify-v230-test-evidence-consistency
+                 v2.3.0 S02 4대 테스트 evidence 정합성과 미실행/제외 기록 경계를 검증합니다.
+  verify-v230-ui-renderer-module-decomposition
+                 v2.3.0 S03 UI renderer/module decomposition 산출물과 계약 경계를 검증합니다.
+  verify-v230-conditional-field-evidence
+                 v2.3.0 S04 조건부 ONVIF/external TURN/WHEP field evidence gate를 검증합니다.
+  verify-v230-ops-backup-recovery-lifecycle
+                 v2.3.0 S06 Ops backup/recovery evidence lifecycle gate를 검증합니다.
   verify-v220-ui-architecture-inventory
                  v2.2.0 UI architecture inventory와 S01 roadmap 연결을 검증합니다.
   verify-v220-responsive-task-shell
@@ -320,6 +330,8 @@ Usage:
                  v2.1.0 Local VLM runtime connection smoke의 loopback endpoint/timeout/cleanup/fallback을 검증합니다.
   verify-vlm-cloud-provider-field-smoke-gate
                  v2.1.0 Cloud provider field smoke gate의 승인/credential/redaction/PASS 분리 기준을 검증합니다.
+  verify-v230-vlm-opt-in-operational-evidence
+                 v2.3.0 VLM opt-in operational evidence와 default-off/provider-not-run 경계를 검증합니다.
   verify-vlm-queue-backpressure-stability
                  v2.1.0 VLM queue/backpressure가 media/Event/metadata/Event POST 경로를 막지 않는지 검증합니다.
   verify-vlm-runtime-status-ui
@@ -875,6 +887,26 @@ case "${cmd}" in
     require_internal verify_v220_entry_boundary.mjs
     exec "${INTERNAL_DIR}/verify_v220_entry_boundary.mjs" "$@"
     ;;
+  verify-v230-entry-baseline)
+    require_internal verify_v230_entry_baseline.mjs
+    exec "${INTERNAL_DIR}/verify_v230_entry_baseline.mjs" "$@"
+    ;;
+  verify-v230-test-evidence-consistency)
+    require_internal verify_v230_test_evidence_consistency.mjs
+    exec "${INTERNAL_DIR}/verify_v230_test_evidence_consistency.mjs" "$@"
+    ;;
+  verify-v230-ui-renderer-module-decomposition)
+    require_internal verify_v230_ui_renderer_module_decomposition.mjs
+    exec "${INTERNAL_DIR}/verify_v230_ui_renderer_module_decomposition.mjs" "$@"
+    ;;
+  verify-v230-conditional-field-evidence)
+    require_internal verify_v230_conditional_field_evidence.mjs
+    exec "${INTERNAL_DIR}/verify_v230_conditional_field_evidence.mjs" "$@"
+    ;;
+  verify-v230-ops-backup-recovery-lifecycle)
+    require_internal verify_v230_ops_backup_recovery_lifecycle.mjs
+    exec "${INTERNAL_DIR}/verify_v230_ops_backup_recovery_lifecycle.mjs" "$@"
+    ;;
   verify-v220-ui-architecture-inventory)
     require_internal verify_v220_ui_architecture_inventory.mjs
     exec "${INTERNAL_DIR}/verify_v220_ui_architecture_inventory.mjs" "$@"
@@ -1094,6 +1126,10 @@ case "${cmd}" in
   verify-vlm-cloud-provider-field-smoke-gate)
     require_internal verify_vlm_cloud_provider_field_smoke_gate.mjs
     exec "${INTERNAL_DIR}/verify_vlm_cloud_provider_field_smoke_gate.mjs" "$@"
+    ;;
+  verify-v230-vlm-opt-in-operational-evidence)
+    require_internal verify_v230_vlm_opt_in_operational_evidence.mjs
+    exec "${INTERNAL_DIR}/verify_v230_vlm_opt_in_operational_evidence.mjs" "$@"
     ;;
   verify-vlm-queue-backpressure-stability)
     require_internal verify_vlm_queue_backpressure_stability.mjs

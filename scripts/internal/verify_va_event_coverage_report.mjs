@@ -21,6 +21,12 @@ Usage:
 Options:
   --report <path>       Markdown coverage report를 저장합니다.
   --json-report <path>  JSON coverage report를 저장합니다.
+  --event-history-coverage-json <path>
+                        verify-ops-event-records-scope가 생성한 event-history-coverage.json을 읽어
+                        exact 12-key EventRecord occurrence matrix를 검증합니다.
+  --require-occurrence-matrix
+                        event-history-coverage-json 입력이 없거나 12-key row 중 하나라도
+                        미발생이면 실패합니다.
   -h, --help            도움말 출력
 
 Checks:
@@ -29,11 +35,20 @@ Checks:
 `);
 }
 
-assertKnownOptions(rawArgs, ["report", "json-report", "h", "help"]);
+assertKnownOptions(rawArgs, [
+  "report",
+  "json-report",
+  "event-history-coverage-json",
+  "require-occurrence-matrix",
+  "h",
+  "help",
+]);
 
 const args = parseArgs(rawArgs);
 const reportPath = args.report ? path.resolve(rootDir, args.report) : "";
 const jsonReportPath = args.jsonReport ? path.resolve(rootDir, args.jsonReport) : "";
+const eventHistoryCoveragePath = args.eventHistoryCoverageJson ? path.resolve(rootDir, args.eventHistoryCoverageJson) : "";
+const requireOccurrenceMatrix = args.requireOccurrenceMatrix === "1" || args.requireOccurrenceMatrix === true;
 const rows = coverageRows();
 const checks = [];
 
@@ -105,6 +120,24 @@ check("project inventory maps VA coverage report into RULE/EVT verifier families
   assert(eventRange && Number(eventRange[1]) >= 26, "project feature inventory EVT range must include S09 event coverage baseline");
 });
 
+check("coverage report exposes exact 12-key EventRecord occurrence matrix", () => {
+  const expectedKeys = exactEventRecordOccurrenceKeys();
+  assert(report.eventRecordOccurrenceMatrix?.schema === "media-server.va-eventrecord-occurrence-matrix.v1",
+    "coverage report missing exact EventRecord occurrence matrix schema");
+  const rowsByKey = new Map((report.eventRecordOccurrenceMatrix.rows || []).map(row => [row.key, row]));
+  const missing = expectedKeys.filter(key => !rowsByKey.has(key));
+  assert(missing.length === 0, `coverage report missing exact EventRecord occurrence rows: ${missing.join(", ")}`);
+});
+
+check("EventRecord occurrence matrix input gate is enforced when requested", () => {
+  if (!requireOccurrenceMatrix && !eventHistoryCoveragePath) return;
+  assert(eventHistoryCoveragePath, "event-history-coverage-json is required for exact occurrence matrix verification");
+  const matrix = report.eventRecordOccurrenceMatrix;
+  assert(matrix.status === "pass", `EventRecord occurrence matrix status is ${matrix.status}`);
+  const failing = matrix.rows.filter(row => row.status !== "pass");
+  assert(failing.length === 0, `EventRecord occurrence matrix failing rows: ${failing.map(row => `${row.key}:${row.status}`).join(", ")}`);
+});
+
 const report = {
   schema: "media-server.va-rule-event-coverage-report.v1",
   generatedAt: new Date().toISOString(),
@@ -118,6 +151,7 @@ const report = {
     invalidRows: rows.filter(row => row.invalidCombination).length,
   },
   rows,
+  eventRecordOccurrenceMatrix: buildEventRecordOccurrenceMatrix(eventHistoryCoveragePath),
   checks: [],
 };
 
@@ -142,6 +176,8 @@ console.log("== VA event coverage report summary ==");
 console.log(`- rows: ${report.summary.rows}`);
 console.log(`- expected PASS rows: ${report.summary.passRows}`);
 console.log(`- expected FAIL rows: ${report.summary.failRows}`);
+console.log(`- occurrence matrix status: ${report.eventRecordOccurrenceMatrix.status}`);
+console.log(`- occurrence matrix rows: ${report.eventRecordOccurrenceMatrix.summary.rows}`);
 console.log(`- pass: ${pass}`);
 console.log(`- fail: ${fail}`);
 
@@ -177,6 +213,118 @@ function coverageRows() {
     invalid("negative.event-record.invalid-evidence-query", "", "EventRecord", "verify-ops-event-records-scope must reject invalid evidence query"),
     invalid("negative.line-crossing.direction-split-mismatch", "", "line-crossing", "verify-va-events must fail if any != forward + reverse"),
   ];
+}
+
+function exactEventRecordOccurrenceKeys() {
+  return [
+    "presence",
+    "enter",
+    "exit",
+    "line-crossing:any",
+    "line-crossing:forward",
+    "line-crossing:reverse",
+    "intrusion-dwell",
+    "re-entry",
+    "wrong-direction",
+    "intrusion-after-line-crossing",
+    "loitering",
+    "zone-occupancy",
+  ];
+}
+
+function buildEventRecordOccurrenceMatrix(coveragePath) {
+  const expectedKeys = exactEventRecordOccurrenceKeys();
+  const input = coveragePath ? readCoverageInput(coveragePath) : null;
+  const rows = expectedKeys.map(key => buildOccurrenceRow(key, input));
+  const passRows = rows.filter(row => row.status === "pass").length;
+  const failRows = rows.filter(row => row.status === "fail").length;
+  return {
+    schema: "media-server.va-eventrecord-occurrence-matrix.v1",
+    generatedAt: new Date().toISOString(),
+    status: input ? (failRows === 0 ? "pass" : "fail") : "needs-event-history-coverage-json",
+    source: input
+      ? {
+          path: coveragePath,
+          schema: input.schema,
+          historyDir: input.historyDir || "",
+          registryPath: input.registryPath || "",
+          eventsPath: input.eventsPath || "",
+          pagingPath: input.pagingPath || "",
+        }
+      : {
+          path: "",
+          schema: "",
+          historyDir: "",
+          registryPath: "",
+          eventsPath: "",
+          pagingPath: "",
+        },
+    summary: {
+      rows: rows.length,
+      passRows,
+      failRows,
+      inputProvided: Boolean(input),
+      requiredKeys: expectedKeys,
+    },
+    rows,
+  };
+}
+
+function readCoverageInput(coveragePath) {
+  const payload = JSON.parse(fs.readFileSync(coveragePath, "utf8"));
+  if (payload?.schema !== "media-server.manual-ui-event-history-coverage.v1") {
+    throw new Error(`event-history coverage schema mismatch: ${payload?.schema || "(missing)"}`);
+  }
+  if (!Array.isArray(payload.coverage)) {
+    throw new Error("event-history coverage missing coverage array");
+  }
+  return payload;
+}
+
+function buildOccurrenceRow(key, input) {
+  const eventType = key.split(":")[0];
+  if (!input) {
+    return {
+      key,
+      eventType,
+      status: "needs-event-history-coverage-json",
+      ruleIds: [],
+      uiSeenType: false,
+      recordCount: 0,
+      sampleEventIds: [],
+      evidence: "event-history-coverage-json not supplied",
+    };
+  }
+  const coverage = input.coverage.filter(item => String(item?.key || "") === key);
+  const recordCount = coverage.reduce((sum, item) => sum + Number(item?.count || 0), 0);
+  const sampleEventIds = coverage
+    .map(item => String(item?.sampleEventId || ""))
+    .filter(Boolean);
+  const ruleIds = coverage
+    .map(item => String(item?.ruleId || ""))
+    .filter(Boolean);
+  const seenTypes = Array.isArray(input.seenTypes) ? input.seenTypes.map(String) : [];
+  const uiSeenType = seenTypes.includes(eventType);
+  const status = coverage.length > 0 && recordCount > 0 && sampleEventIds.length > 0 && uiSeenType
+    ? "pass"
+    : "fail";
+  const missing = [];
+  if (coverage.length === 0) missing.push("registry-row");
+  if (recordCount <= 0) missing.push("event-record");
+  if (sampleEventIds.length === 0) missing.push("sample-event-id");
+  if (!uiSeenType) missing.push("ops-events-ui-type");
+  return {
+    key,
+    eventType,
+    status,
+    ruleIds,
+    uiSeenType,
+    recordCount,
+    sampleEventIds,
+    evidence: status === "pass"
+      ? "registry rule, /ops/events seen type, and EventRecord JSON Lines sample are present"
+      : `missing ${missing.join(", ")}`,
+  };
 }
 
 function runtime(id, ruleAlias, eventType, direction = "", lineSide = "") {
@@ -262,6 +410,29 @@ function renderMarkdown(payload) {
       row.occurrenceEvidence,
       row.eventRecordEvidence,
       row.expectedVerdict,
+    ].map(cell).join(" | ").replace(/^/, "| ").replace(/$/, " |"));
+  }
+  lines.push(
+    "",
+    "## Full VA EventRecord Occurrence Matrix",
+    "",
+    `- schema: ${payload.eventRecordOccurrenceMatrix.schema}`,
+    `- status: ${payload.eventRecordOccurrenceMatrix.status}`,
+    `- source: ${payload.eventRecordOccurrenceMatrix.source.path || "not supplied"}`,
+    "",
+    "| Event key | Event type | Status | Rule IDs | UI seen type | Records | Samples | Evidence |",
+    "| --- | --- | --- | --- | --- | ---: | --- | --- |",
+  );
+  for (const row of payload.eventRecordOccurrenceMatrix.rows) {
+    lines.push([
+      row.key,
+      row.eventType,
+      row.status,
+      row.ruleIds.length > 0 ? row.ruleIds.join(", ") : "-",
+      row.uiSeenType ? "yes" : "no",
+      row.recordCount,
+      row.sampleEventIds.length > 0 ? row.sampleEventIds.join(", ") : "-",
+      row.evidence,
     ].map(cell).join(" | ").replace(/^/, "| ").replace(/$/, " |"));
   }
   lines.push("");

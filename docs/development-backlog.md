@@ -34,11 +34,10 @@ source-of-truth가 아닙니다. 현재 기준은 이 문서와 기능별 상세
 
 `완료`는 운영 배포 ready, 장기 안정성 보장, 외부 연동 ready를 뜻하지 않습니다.
 
-## 현재 기준: v2.2.0 Source Release Baseline
+## 현재 기준: v2.3.0 Source Release Baseline
 
-v2.2.0은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서
-VLM review-assist source-only 경계 위에 Responsive UI Foundation을 닫는
-source-only release입니다.
+v2.3.0은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서
+Operational Evidence & Contract Baseline을 닫는 source-only release입니다.
 Client Live workspace, source tree/dock event feed, tile disconnect, event review,
 source group/site, tile info overlay, saved layout, incident timeline, alert delivery,
 scenario builder, Ops/Client declutter는 이전 UI-first close-out에서 닫은 제품
@@ -62,6 +61,10 @@ baseline으로 유지합니다.
 - UI foundation: UI architecture inventory, responsive task shell, design token refresh,
   component primitives, Ops/Rules/Client/Auth responsive workspace, Channels/Users/VLM
   containment/client redaction follow-up, UI evidence close-out
+- v2.3.0 operational evidence: Full VA EventRecord occurrence matrix, 4대 테스트 evidence
+  정합성, UI renderer/module decomposition, 조건부 ONVIF/external TURN/WHEP evidence,
+  VLM opt-in operational evidence, Ops backup/recovery evidence lifecycle, integrator
+  contract conformance
 - Release: source-only readiness, bundle/license guardrail, release evidence, manual UI fulltest result,
   GitHub Actions warning/Node 24 gate, feature coverage, release close-out runbook
 - Research boundary: Re-ID/tracker default-off, OC-SORT manifest-only sandbox, YouTube lab-only 유지
@@ -77,15 +80,516 @@ baseline으로 유지합니다.
 - field sample scheduler, dataset ingest, tracker replacement benchmark 실행
 - 별도 Phase의 실제 기능 개발, tracker replacement product review
 
-세부 종료 증적은 아래 v2.2.0 Release Close-out 섹션을 봅니다.
+세부 종료 증적은 아래 v2.3.0 Release Close-out 섹션을 봅니다.
 과거 release evidence는 standalone current 문서가 아니라 이 문서의 archive 섹션에만
 보존합니다.
 
-## 다음 roadmap: v2.3.0 준비 전
+## 활성 roadmap: v2.3.0 Operational Evidence & Contract Baseline
 
-v2.3.0의 실제 개발 범위는 아직 이 문서에 active roadmap으로 열지 않습니다.
-v2.3.0 branch는 v2.2.0 GitHub Release와 published metadata 재검증이 끝난 뒤
+v2.3.0은 v2.2.0 source-only/live-only 제품 baseline을 유지하면서, 새 테스트 영역을
+추가하지 않고 기존 네 영역인 안정화 테스트, 30분 테스트, 120분 테스트, UI 풀테스트의
+증적 정합성과 운영 field-readiness를 강화하는 roadmap입니다.
+
+이 roadmap은 기능 확장보다 contract 보존, EventRecord evidence 보강, 운영 증적
+정리, C++ 문자열 UI 유지보수 경계 완화를 우선합니다. v2.3.0 release 준비에서는
+`VERSION`, CMake project version, README, release/version 문서를 현재 release target인
+`2.3.0`/`v2.3.0` 기준으로 맞춥니다.
+
+핵심 원칙:
+
+- v2.3.0 S00~S07은 Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC
+  media path, Auth/session/scope, Rule/Profile payload schema를 변경하지 않습니다.
+- client/viewer에는 source URL, Developer URL, raw JSON, debugCounters, BBox
+  diagnostics, prompt/raw response/provider credential/model internals/Re-ID identity
+  material을 노출하지 않습니다.
+- field gate, provider smoke, runtime longrun trigger는 별도 다섯 번째 테스트 영역이
+  아니라 안정화 테스트의 조건부 verifier, UI 풀테스트의 제외 기록, 또는 release
+  evidence의 `미실행`/`미확인` 항목으로만 기록합니다.
+- 30분 테스트와 120분 테스트는 서로 대체하지 않습니다. 120분 테스트는 사용자 승인
+  없이 실행하지 않습니다.
+- UI 풀테스트는 자동 smoke, screenshot 생성, raw JSON/API 확인으로 대체하지 않고
+  인앱 브라우저 직접 조작 evidence로만 판정합니다.
+
+명시적 비범위:
+
+- 장기 녹화, MP4 recorder, VMS/NVR archive, playback/search
+- Event POST/WebRTC/SSE/WS 외부 payload schema 변경
+- RTSP/WebRTC media pipeline 구조 변경
+- VLM default-on, VLM runtime/model bundle, provider credential 저장
+- Re-ID/tracker default-on, OC-SORT/BoT-SORT/DeepSORT runtime tracker 승격
+- ONVIF Profile G recording/replay, WS-Discovery, Digest/WS-Security 운영 보장
+- external TURN/WHEP credential 운영 성공 보장, 실장비 ONVIF 성공 보장
+
+| 순서 | ID | 우선순위 | 상태 | 영역 | 목표 | 예상 검증 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0 | V230-S00 | P0 | 완료 | v2.3.0 entry baseline | v2.2.0 source-only/live-only baseline을 v2.3.0 시작 기준으로 고정하고, Event POST/WebRTC/SSE/WS/Auth/Rule/media path freeze와 viewer redaction 경계를 재확인합니다. | roadmap review, `verify-v230-entry-baseline`, `verify-release-metadata`, `verify-release-evidence-index`, `verify-integrator-contract-artifact`, `verify-event-post --mode schema --http-base <enabled auth-off server>`, metadata verifier, `verify-auth-routes`, `git diff --check` |
+| 1 | V230-S01 | P0 | 완료 | Full VA EventRecord occurrence matrix | v2.2 UI fulltest에서 presence 중심으로 남은 gap을 닫기 위해 enter/exit/line-crossing/scenario 계열 12-key EventRecord occurrence를 `/ops/events`, `/ops/rules`, UI evidence에서 개별 PASS/FAIL로 확인했습니다. | `verify-va-event-coverage-report --event-history-coverage-json <event-history-coverage.json> --require-occurrence-matrix`, `verify-va-events`, `verify-va-replay`, EventRecord UI 풀테스트, `git diff --check` |
+| 2 | V230-S02 | P0 | 완료 | 4대 테스트 evidence 정합성 | 안정화, 30분, 120분, UI 풀테스트의 실행/미실행/제외 기록을 release evidence와 feature inventory에서 같은 기준으로 맞췄습니다. 새 테스트 영역은 만들지 않습니다. | `verify-v230-test-evidence-consistency`, `verify-release-evidence-index`, `verify-feature-inventory-coverage`, `verify-longrun-separation`, `verify-manual-ui-evidence`, `git diff --check` |
+| 3 | V230-S03 | P1 | 완료 | UI renderer/module decomposition | `webrtc_http_server.cpp`, `product_ui_css.cpp`, `product_ui_page_scripts.cpp`의 큰 문자열 UI 경계를 route renderer, CSS module, JS controller 단위로 더 나눠 유지보수 위험을 낮춥니다. | [v230-ui-renderer-module-decomposition.md](./v230-ui-renderer-module-decomposition.md), `verify-v230-ui-renderer-module-decomposition`, route smoke, `verify-ops-client-ui`, `verify-rule-ui`, `git diff --check` |
+| 4 | V230-S04 | P1 | 완료 | 조건부 ONVIF/external TURN/WHEP evidence | 실장비/외부 credential 성공을 release PASS와 혼동하지 않고, 승인된 환경이 있을 때만 redacted field report로 기록합니다. 미실행이면 안정화 테스트 조건부 항목으로 남깁니다. | `verify-v230-conditional-field-evidence`, `verify-onvif-field-smoke-gate`, `verify-external-turn-whep-field-gate`, redaction review, 미실행/제외 기록, `git diff --check` |
+| 5 | V230-S05 | P1 | 완료 | VLM opt-in operational evidence | VLM default-on이 아니라 operator-approved profile promotion, local/provider smoke intake, privacy/default-off evidence를 강화했습니다. Sidecar는 EventRecord/API schema에 섞지 않습니다. | `verify-v230-vlm-opt-in-operational-evidence`, `verify-vlm-runtime-opt-in-contract`, `verify-vlm-local-runtime-smoke`, `verify-vlm-cloud-provider-field-smoke-gate`, `verify-vlm-privacy-transfer-guard`, `git diff --check` |
+| 6 | V230-S06 | P2 | 완료 | Ops backup/recovery evidence lifecycle | dry-run 중심의 백업/복구 절차를 staging drill, redacted evidence bundle, cleanup/retention 확인으로 강화하되 운영 데이터 백업 완료로 확대 보고하지 않습니다. | `verify-v230-ops-backup-recovery-lifecycle`, `verify-ops-backup-recovery-guide`, `verify-ops-backup-restore-dry-run`, `verify-ops-evidence-retention-cleanup`, `git diff --check` |
+| 7 | V230-S07 | P2 | 완료 | Integrator contract conformance | Event POST/WebRTC/SSE/WS payload schema 변경 없이 sample bundle, checksum, runtime delivery smoke, client redaction evidence를 보강했습니다. | `verify-integrator-contract-artifact`, `verify-event-post`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `git diff --check` |
+
+### V230-S00 v2.3.0 entry baseline 종료 기준
+
+직접 답: v2.3.0의 entry baseline은 `v2.2.0` source-only/live-only release baseline과
+2026-06-04 v2.2.0 F02~F06 인앱 브라우저 UI evidence를 시작점으로 사용합니다.
+다만 이 UI evidence는 F02~F06 route/control/action 범위이며, full 12-key VA
+EventRecord occurrence matrix, 30분 soak, 120분 longrun, 실장비/외부 credential
+성공을 PASS로 대체하지 않습니다.
+
+S00 완료 evidence는 `verify-v230-entry-baseline`, `verify-release-metadata`,
+`verify-release-evidence-index`, `verify-integrator-contract-artifact`,
+`verify-event-post --mode schema --http-base <enabled auth-off server>`,
+`verify-auth-routes`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`,
+`verify-ws-metadata`, `verify-docs-links`, `verify-script-inventory`,
+`git diff --check`입니다. `verify-v230-entry-baseline`은
+`media-server.v230-entry-baseline-report.v1` schema의 baseline report를 생성할 수
+있고, 안정화/UI/30분/120분/field/published metadata 상태를 서로 대체하지 않게
+분리합니다. Event POST schema smoke는 `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1`
+및 `MEDIA_SERVER_AUTH_MODE=off` 격리 서버에서 실행하고, 서버 미기동 또는 auth 401은
+제품 회귀가 아니라 실행 전제 실패로 기록합니다.
+
+S00은 UI 구현, VA matrix 실행, VLM runtime/provider 호출, Event POST/WebRTC/SSE/WS
+payload 변경, Auth/session/scope 변경, Rule/Profile payload 변경, RTSP/WebRTC
+media path 변경을 수행하지 않습니다. 제외 대상은 VLM default-on, runtime/model bundle,
+provider credential 저장, real cloud provider call, 실장비 ONVIF, external
+TURN/WHEP credential 성공, UI 풀테스트, 30분 soak, 120분 longrun입니다.
+
+S00 실행 결과:
+
+- PASS: `./server.sh build`
+- PASS: `./server.sh verify-v230-entry-baseline --report /tmp/media_server_v230_entry_baseline.md --json-report /tmp/media_server_v230_entry_baseline.json`
+- PASS: `./server.sh verify-release-metadata`
+- PASS: `./server.sh verify-release-evidence-index`
+- PASS: `./server.sh verify-integrator-contract-artifact`
+- PASS: `./server.sh verify-event-post --mode schema --http-base http://127.0.0.1:8082`
+- PASS: `./server.sh verify-auth-routes`
+- PASS: `./server.sh verify-webrtc-va-metadata --http-base http://127.0.0.1:8082`
+- PASS: `./server.sh verify-va-metadata-sidechannel --http-base http://127.0.0.1:8082`
+- PASS: `./server.sh verify-ws-metadata --http-base http://127.0.0.1:8082`
+- PASS: `./server.sh verify-docs-links`
+- PASS: `./server.sh verify-script-inventory`
+- PASS: `git diff --check`
+- 보정: `verify-event-post`는 서버 미기동과 auth 401 전제 실패를 분리한 뒤
+  `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1`, `MEDIA_SERVER_AUTH_MODE=off` 격리
+  서버에서 재실행했습니다. RTSP/HTTP bind와 Node/Chrome 기반 metadata verifier는
+  sandbox 제한 때문에 같은 명령을 외부 실행으로 재검증했습니다.
+- 미실행: 30분 테스트, 120분 테스트, UI 풀테스트, real ONVIF, external
+  TURN/WHEP, real cloud provider call, published metadata 재검증.
+- 토큰 사용량: token start `미집계`, token end `미집계`, token consumed `미집계`,
+  elapsed `command output 기준`, source `manual-not-available`.
+
+### V230-S01 Full VA EventRecord occurrence matrix 종료 기준
+
+직접 답: S01의 matrix gate는 `media-server.va-eventrecord-occurrence-matrix.v1`
+입니다. `verify-va-event-coverage-report` 기본 실행은 12개 exact key matrix 구조와
+정적 coverage 연결을 확인하지만, 실제 EventRecord occurrence 완료 evidence로 쓰지
+않습니다. S01 완료 판정에는 같은 storage-enabled UI/event run에서 생성된
+`event-history-coverage.json`을 입력으로 넣고 `--require-occurrence-matrix`를
+통과해야 합니다.
+
+필수 exact key는 `presence`, `enter`, `exit`, `line-crossing:any`,
+`line-crossing:forward`, `line-crossing:reverse`, `intrusion-dwell`, `re-entry`,
+`wrong-direction`, `intrusion-after-line-crossing`, `loitering`, `zone-occupancy`
+12개입니다. 각 key는 registry rule row, `/ops/events` UI seen type, EventRecord
+JSON Lines record count, sample event id가 모두 있어야 PASS입니다.
+
+```bash
+./server.sh verify-ops-event-records-scope \
+  --http-base <storage-enabled-server> \
+  --event-history-dir <manual-ui-event-history-dir> \
+  --output-dir <event-history-output-dir>
+./server.sh verify-va-event-coverage-report \
+  --event-history-coverage-json <event-history-output-dir>/event-history-coverage.json \
+  --require-occurrence-matrix \
+  --report /tmp/media_server_v230_s01_va_eventrecord_matrix.md \
+  --json-report /tmp/media_server_v230_s01_va_eventrecord_matrix.json
+./server.sh verify-va-events --dispatch-records
+./server.sh verify-va-replay
+git diff --check
+```
+
+정적 report 구조 통과, 과거 release artifact 입력 통과, seed fixture 준비,
+`/ops/rules` 저장 확인만으로는 S01 완료가 아닙니다. 현재 v2.3.0 S01 완료 보고에는
+새로 실행한 EventRecord UI 풀테스트에서 12개 key별 PASS/FAIL 행과 위 require gate
+PASS evidence가 함께 있어야 합니다.
+
+S01 실행 결과:
+
+- PASS: Codex 인앱 브라우저 `/ops/events` 직접 확인
+  `/tmp/media_server_v230_s01_inapp_events_evidence_20260605_203256/in-app-ops-events-evidence.json`
+  - 390px/1180px viewport overflowX=0
+  - `v230-s01-ui-history-01`~`v230-s01-ui-history-12` row 확인
+  - 10개 event type seen: `presence`, `enter`, `exit`, `line-crossing`,
+    `intrusion-dwell`, `re-entry`, `wrong-direction`,
+    `intrusion-after-line-crossing`, `loitering`, `zone-occupancy`
+- PASS: `MEDIA_SERVER_UI_BROWSER_MODE=chrome MEDIA_SERVER_ALLOW_CHROME_FALLBACK=1 ./server.sh verify-ops-event-records-scope --http-base http://127.0.0.1:8081 --event-history-dir /tmp/media_server_v230_s01_event_history_20260605_203256 --output-dir /tmp/media_server_v230_s01_event_history_scope_clean_20260605_203256 --debug-port 9913`
+- PASS: `./server.sh verify-va-event-coverage-report --event-history-coverage-json /tmp/media_server_v230_s01_event_history_scope_clean_20260605_203256/event-history-coverage.json --require-occurrence-matrix --report /tmp/media_server_v230_s01_va_eventrecord_matrix_clean_20260605_203256.md --json-report /tmp/media_server_v230_s01_va_eventrecord_matrix_clean_20260605_203256.json`
+  - `media-server.va-eventrecord-occurrence-matrix.v1`
+  - rows=12, passRows=12, failRows=0
+- PASS: `MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 MEDIA_SERVER_LISTEN_PORT=8555 ./server.sh verify-va-events --dispatch-records`
+  - records-only retry에서 stored=2026, failed=0, dropped=0
+- PASS: `./server.sh verify-va-replay`
+  - cases=14
+- 보정: 최초 `verify-ops-event-records-scope`는 Codex 환경에서 Chrome fallback env가 없어
+  브라우저 단계에서 실패했습니다. 인앱 브라우저 evidence를 별도 확보한 뒤 명시
+  fallback env로 보조 verifier를 재실행했습니다.
+- 보정: 최초 `verify-va-events --dispatch-records`는 snapshot/clip hook까지 켠 상태에서
+  EventRecord queue drain timeout으로 실패했습니다. 저장 실패와 drop은 0이었고,
+  records-only storage로 재실행해 PASS했습니다.
+- 문서 evidence: [manual-ui-result-2026-06-05-v230-s01-eventrecord-matrix.md](./manual-ui-result-2026-06-05-v230-s01-eventrecord-matrix.md)
+- 미실행: 30분 테스트, 120분 테스트, `verify-va-runtime-console-longrun --duration-minutes 120`,
+  실장비/외부 endpoint field gate.
+- 토큰 사용량: token start `0`, token end `895,242`, token consumed `895,242`,
+  elapsed `2,396s`, source `Codex goal usage snapshot at evidence update`.
+
+### V230-S02 4대 테스트 evidence 정합성 종료 기준
+
+직접 답: S02 완료는 네 테스트 영역의 evidence 기록 기준 정합성 완료입니다.
+안정화 테스트, 30분 테스트, 120분 테스트, UI 풀테스트의 실행/미실행/제외 기록을
+`release-evidence-index.md`, `project-feature-test-inventory.md`,
+`manual-ui-fulltest.md`, `manual-ui-result-template.md`, `stream-verification.md`에서
+같은 기준으로 연결했습니다. 새 테스트 영역은 만들지 않습니다.
+
+S02 완료 evidence는 `media-server.v230-test-evidence-consistency.v1` report와
+아래 companion verifier입니다. 이 단계는 30분 테스트, 120분 테스트, UI 풀테스트를 실행했다는 뜻이 아닙니다. field/provider/no-device/external credential 조건도 별도
+다섯 번째 테스트 영역이 아니라 안정화 테스트 조건부 verifier 또는 UI 풀테스트 제외
+기록 안에만 둡니다.
+
+```bash
+./server.sh verify-v230-test-evidence-consistency \
+  --report /tmp/media_server_v230_s02_evidence_consistency.md \
+  --json-report /tmp/media_server_v230_s02_evidence_consistency.json
+./server.sh verify-release-evidence-index
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-longrun-separation
+./server.sh verify-manual-ui-evidence
+git diff --check
+```
+
+S02 실행 결과:
+
+- PASS: `./server.sh verify-v230-test-evidence-consistency --report /tmp/media_server_v230_s02_evidence_consistency.md --json-report /tmp/media_server_v230_s02_evidence_consistency.json`
+  - `media-server.v230-test-evidence-consistency.v1`
+  - evidenceRows=8
+  - 네 영역: 안정화 테스트, 30분 테스트, 120분 테스트, UI 풀테스트
+- PASS: `./server.sh verify-release-evidence-index`
+- PASS: `./server.sh verify-feature-inventory-coverage`
+- PASS: `./server.sh verify-longrun-separation`
+- PASS: `./server.sh verify-manual-ui-evidence`
+- PASS: `git diff --check`
+- 미실행: 30분 테스트, 120분 테스트,
+  `verify-va-runtime-console-longrun --duration-minutes 120`, UI 풀테스트 직접 조작,
+  real ONVIF device, external WHEP/WHIP/TURN endpoint, real cloud provider call,
+  main merge, release tag, GitHub Release 생성, push.
+- 토큰 사용량: token start `24,603`, token end `190,554`, token consumed `165,951`,
+  elapsed `472s`, source `Codex goal usage snapshot at S02 evidence update`.
+
+### V230-S03 UI renderer/module decomposition 종료 기준
+
+직접 답: S03 완료는 UI 동작이나 schema 변경이 아니라 C++ 문자열 UI owner를 route
+renderer, CSS module, JS controller 파일 경계로 분해하고, 기존 route smoke와
+Rules smoke가 같은 제품 route를 유지함을 확인하는 것입니다.
+
+S03 module inventory는 [v230-ui-renderer-module-decomposition.md](./v230-ui-renderer-module-decomposition.md)입니다.
+`webrtc_http_server.cpp`의 auth route HTML은 `product_ui_auth_pages.*`로,
+client CSS는 `product_ui_client_css.cpp`로, client/sources/users JS controller는
+각 전용 source로 분리했습니다. Event POST payload, WebRTC DataChannel payload,
+SSE/WS metadata schema, RTSP/WebRTC media path, Auth/session/scope contract,
+Rule/Profile payload schema는 변경하지 않습니다.
+
+S03 실행 결과:
+
+- PASS: `./server.sh verify-v230-ui-renderer-module-decomposition`
+  - pass=8, fail=0
+  - module inventory, CMake source, old/new owner boundary, server.sh entrypoint 확인
+- 최초 FAIL 후 PASS: `./server.sh build`
+  - 최초 실패: `product_ui_auth_pages.cpp`가 `ProductThemeToggleButtonHtml`,
+    `ProductLanguageSelectHtml` 선언을 보지 못함
+  - 수정: `ingress/product_ui_assets.h` include 추가
+  - 재실행 PASS: 새 module source 5개와 `webrtc_http_server.cpp` 컴파일/링크 완료
+- PASS: `./server.sh verify-ops-client-ui --browser-mode static --http-base http://127.0.0.1:8081`
+  - auth-off 127.0.0.1 격리 서버, Chrome/브라우저 렌더링 없는 route/API static smoke
+  - 통과=18, 실패=0
+- PASS: `MEDIA_SERVER_UI_BROWSER_MODE=chrome MEDIA_SERVER_ALLOW_CHROME_FALLBACK=1 ./server.sh verify-ops-client-ui --screenshots --browser-mode chrome --allow-chrome-fallback --http-base http://127.0.0.1:8081 --output-dir /tmp/media_server_v230_s03_ops_client_ui_screenshots`
+  - route/rendered leak/admin form smoke 통과=24, 실패=0
+  - screenshot smoke 통과=32, 실패=0
+  - shell/account/header/client keyboard/audit/ONVIF hint/preview 하위 smoke 모두 실패=0
+  - artifact: `/tmp/media_server_v230_s03_ops_client_ui_screenshots/index.md`
+- 최초 FAIL 후 PASS: `verify-rule-ui`
+  - 최초 실패: Codex 환경에서 in-app evidence 또는 명시 Chrome fallback 필요
+  - 재실행 PASS: `MEDIA_SERVER_UI_BROWSER_MODE=chrome MEDIA_SERVER_ALLOW_CHROME_FALLBACK=1 ./server.sh verify-rule-ui --http-base http://127.0.0.1:8081`
+- PASS: `./server.sh verify-docs-links`
+- PASS: `./server.sh verify-feature-inventory-coverage`
+- 미실행: `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`
+  - 이유: `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`,
+    `MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD`,
+    `MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD`,
+    `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE`,
+    `MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO` 환경변수 없음. AGENTS 규칙상 고정 기본
+    비밀번호를 만들지 않고 auth verifier를 시작하지 않았습니다.
+- 미실행: 30분 테스트, 120분 테스트,
+  `verify-va-runtime-console-longrun --duration-minutes 120`, 인앱 브라우저 UI 풀테스트
+  직접 조작 PASS 판정, real ONVIF device, external WHEP/WHIP/TURN endpoint,
+  real cloud provider call, main merge, release tag, GitHub Release 생성, push.
+- 토큰 사용량: token start `238,904`, token end `287,022`, token consumed `48,118`,
+  elapsed `355s`, source `Codex goal usage snapshot at S03 evidence update`.
+
+### V230-S04 조건부 ONVIF/external TURN/WHEP evidence 종료 기준
+
+직접 답: S04 완료는 실장비 ONVIF 성공이나 external TURN/WHEP credential 성공이 아니라
+`media-server.v230-conditional-field-evidence.v1` gate로 기존 ONVIF field smoke gate와
+external TURN/WHEP field gate를 v2.3.0 조건부 evidence 기준에 연결한 것입니다.
+실제 field evidence는 `approved environment only`에서만 실행하며, 공유 가능한
+산출물은 `redacted field report`여야 합니다. `not-run is not PASS`이며, 미실행은
+안정화 테스트 조건부 미실행으로 남기고 default release PASS로 쓰지 않습니다.
+
+S04 완료 evidence는 아래 안정화 verifier입니다. 이 단계는 real ONVIF device,
+external WHEP/WHIP/TURN endpoint, external TURN/WHEP credential operation,
+30분 테스트, 120분 테스트, UI 풀테스트를 실행했다는 뜻이 아닙니다.
+
+```bash
+./server.sh verify-v230-conditional-field-evidence
+./server.sh verify-onvif-field-smoke-gate
+./server.sh verify-external-turn-whep-field-gate
+./server.sh verify-release-evidence-index
+./server.sh verify-feature-inventory-coverage
+git diff --check
+```
+
+S04 실행 결과:
+
+- PASS: `./server.sh verify-v230-conditional-field-evidence`
+- PASS: `./server.sh verify-onvif-field-smoke-gate`
+- PASS: `./server.sh verify-external-turn-whep-field-gate`
+- PASS: `./server.sh verify-release-evidence-index`
+- PASS: `./server.sh verify-feature-inventory-coverage`
+- PASS: `./server.sh verify-project-inventory`
+- PASS: `git diff --check`
+- 미실행: real ONVIF device, 실장비 ONVIF endpoint/credential handshake,
+  실제 RTSP/RTSPS playback field smoke, external TURN/WHEP credential operation,
+  external WHEP playback endpoint, UI 풀테스트 직접 조작, 30분 테스트, 120분 테스트,
+  `verify-va-runtime-console-longrun --duration-minutes 120`, real cloud provider call,
+  main merge, release tag, GitHub Release 생성, push.
+- 토큰 사용량: token start `217,343`, token end `274,119`, token consumed `56,776`,
+  elapsed `279s`, source `Codex goal usage snapshot at S04 start/end`.
+
+### V230-S05 VLM opt-in operational evidence 종료 기준
+
+직접 답: S05 완료는 VLM default-on이나 실제 provider 성공이 아니라
+`media-server.v230-vlm-opt-in-operational-evidence.v1` gate로 기존 VLM runtime
+opt-in contract, local runtime loopback smoke, cloud provider field gate 기본 not-run,
+privacy/transfer guard를 운영 증적 lifecycle로 묶은 것입니다. 이 gate는
+`operator-approved profile promotion`, `local/provider smoke intake`,
+`privacy/default-off evidence`를 강화하지만 `no VLM default-on`을 유지합니다.
+Sidecar is not mixed into EventRecord/API schema; Event POST/WebRTC DataChannel,
+SSE/WS metadata, Auth/session/scope, Rule/Profile payload, RTSP/WebRTC media path도
+변경하지 않습니다.
+
+S05 완료 evidence는 아래 안정화 verifier입니다. 이 단계는 실제 cloud provider call,
+provider credential 저장, model/runtime bundle, 실제 사용자 모델 품질 판정, sidecar
+write, UI 풀테스트, 30분 테스트, 120분 테스트를 실행했다는 뜻이 아닙니다.
+
+```bash
+./server.sh verify-v230-vlm-opt-in-operational-evidence
+./server.sh verify-vlm-runtime-opt-in-contract
+./server.sh verify-vlm-local-runtime-smoke
+./server.sh verify-vlm-cloud-provider-field-smoke-gate
+./server.sh verify-vlm-privacy-transfer-guard
+./server.sh verify-release-evidence-index
+./server.sh verify-feature-inventory-coverage
+git diff --check
+```
+
+S05 실행 결과:
+
+- PASS: `./server.sh verify-v230-vlm-opt-in-operational-evidence`
+  - `media-server.v230-vlm-opt-in-operational-evidence.v1`
+  - runtime opt-in contract: `defaultEnabled=false`, `runtimeCallAllowed=false`,
+    `providerCallAllowed=false`
+  - local runtime smoke: loopback HTTP roundtrip 3 cases, missing-runtime fallback 1,
+    timeout cleanup 1, invalid-output fallback 1
+  - cloud provider field gate 기본 실행: `providerApiCalled=false`,
+    `fieldSmoke.status=not-run`, `releasePassEligible=false`
+  - privacy/transfer guard: credential, prompt, raw provider/runtime response, source
+    URL, raw frame material redaction 유지
+- PASS: `./server.sh verify-vlm-runtime-opt-in-contract`
+- PASS: `./server.sh verify-vlm-local-runtime-smoke`
+  - 최초 sandbox 실행은 `listen EPERM: operation not permitted 127.0.0.1`로 실패했고,
+    loopback fixture bind가 필요한 verifier라 sandbox 밖에서 같은 명령을 재실행해 PASS
+- PASS: `./server.sh verify-vlm-cloud-provider-field-smoke-gate`
+- PASS: `./server.sh verify-vlm-privacy-transfer-guard`
+- PASS: `./server.sh verify-release-evidence-index`
+- PASS: `./server.sh verify-feature-inventory-coverage`
+- PASS: `./server.sh verify-project-inventory`
+- PASS: `git diff --check`
+- 미실행: UI 풀테스트 직접 조작, 30분 테스트, 120분 테스트,
+  `verify-va-runtime-console-longrun --duration-minutes 120`, 실제 VLM runtime call,
+  real cloud provider call, provider credential 저장, provider logging/retention 최신
+  정책 수동 승인, model/runtime download 또는 bundle, VLM default-on, Sidecar write,
+  main merge, release tag, GitHub Release 생성, push.
+- 토큰 사용량: token start `295,763`, token end `490,164`, token consumed `194,401`,
+  elapsed `715s`, source `Codex goal usage snapshot at S05 start/end`.
+
+### V230-S06 Ops backup/recovery evidence lifecycle 종료 기준
+
+직접 답: S06 완료는 운영 데이터 백업 완료가 아니라
+`media-server.v230-ops-backup-recovery-lifecycle.v1` gate로 staging drill,
+redacted evidence bundle, retention cleanup 경계를 fixture 기반으로 닫은 것입니다.
+`verify-v230-ops-backup-recovery-lifecycle`은 기존
+`verify-ops-backup-restore-dry-run`과 `verify-ops-evidence-retention-cleanup`을 실행해
+`manifest.json`, `SHA256SUMS`, `restore-validation-plan.md`, retention cleanup dry-run/apply
+report, `retention-cleanup` audit payload, `token-expiry-no-server-file` 정책을 직접
+확인합니다. 이 결과는 장기 영상 녹화 백업, production restore cutover,
+external storage replication, 운영 데이터 백업 완료로 확대 보고하지 않습니다.
+
+S06 완료 evidence는 아래 안정화 verifier입니다. 이 단계는 30분 테스트, 120분 테스트,
+UI 풀테스트, 실제 운영 백업, external storage replication을 실행했다는 뜻이 아닙니다.
+
+```bash
+./server.sh verify-v230-ops-backup-recovery-lifecycle
+./server.sh verify-ops-backup-recovery-guide
+./server.sh verify-ops-backup-restore-dry-run
+./server.sh verify-ops-evidence-retention-cleanup
+./server.sh verify-release-evidence-index
+./server.sh verify-feature-inventory-coverage
+git diff --check
+```
+
+S06 실행 결과:
+
+- PASS: `./server.sh verify-v230-ops-backup-recovery-lifecycle`
+- PASS: `./server.sh verify-ops-backup-recovery-guide`
+- PASS: `./server.sh verify-ops-backup-restore-dry-run`
+- PASS: `./server.sh verify-ops-evidence-retention-cleanup`
+- PASS: `./server.sh verify-release-evidence-index`
+- PASS: `./server.sh verify-feature-inventory-coverage`
+- PASS: `./server.sh verify-project-inventory`
+- PASS: `git diff --check`
+- 미실행: UI 풀테스트 직접 조작, 30분 테스트, 120분 테스트,
+  `verify-va-runtime-console-longrun --duration-minutes 120`, 실제 운영 데이터 백업,
+  production restore cutover, 장기 영상 녹화 백업, external storage replication,
+  real ONVIF device, external WHEP/WHIP/TURN endpoint, real cloud provider call,
+  main merge, release tag, GitHub Release 생성, push.
+- 토큰 사용량: token start `96,792`, token end `183,079`, token consumed `86,287`,
+  elapsed `434s`, source `Codex goal usage snapshot at S06 start/end`.
+
+### V230-S07 Integrator contract conformance 종료 기준
+
+직접 답: S07은 기존 Event POST/WebRTC DataChannel/SSE/WS payload schema를 바꾸지
+않고 외부 integrator용 contract bundle의 conformance evidence를 강화하는 단계입니다.
+`test/fixtures/integrator_contract_artifact/checksums.json`은
+`media-server.integrator-contract-checksums.v1` schema로 현재 bundle file과
+`v230-conformance.json`의 SHA-256을 고정합니다. `v230-conformance.json`은
+`media-server.integrator-contract-conformance.v1` schema로 runtime delivery smoke와
+client redaction evidence를 실제 실행 evidence 없이 PASS로 확대 보고하지 않도록
+고정합니다.
+
+S07 완료 evidence는 아래 안정화 verifier와 runtime delivery smoke입니다. 이 단계는
+UI 풀테스트 직접 조작, 30분 soak, 120분 longrun, field endpoint 성공, published
+metadata 재검증을 실행했다는 뜻이 아닙니다.
+
+```bash
+./server.sh build
+./server.sh verify-integrator-contract-artifact
+./server.sh verify-event-post --http-base http://127.0.0.1:8081
+./server.sh verify-webrtc-va-metadata --http-base http://127.0.0.1:8081
+./server.sh verify-va-metadata-sidechannel --http-base http://127.0.0.1:8081
+./server.sh verify-ws-metadata --http-base http://127.0.0.1:8081
+./server.sh verify-v220-client-preview-redaction-review
+git diff --check
+```
+
+S07 실행 결과:
+
+- PASS: `./server.sh build`
+- PASS: `./server.sh verify-integrator-contract-artifact`
+  - `v230-conformance.json`, `checksums.json`, freeze-baseline, schema/sample,
+    forbidden exposure candidate, 문서/entrypoint 연결 확인
+- PASS: `./server.sh verify-event-post --http-base http://127.0.0.1:8081`
+  - 최초 실행은 서버 미기동으로 실패했고, Event POST enabled/auth-off 보정 서버에서
+    재실행해 PASS
+- PASS: `./server.sh verify-webrtc-va-metadata --http-base http://127.0.0.1:8081`
+  - 최초 실행은 sandbox Node fetch 실패였고, 같은 보정 서버를 대상으로 권한 승인
+    재실행해 PASS
+- PASS: `./server.sh verify-va-metadata-sidechannel --http-base http://127.0.0.1:8081`
+- PASS: `./server.sh verify-ws-metadata --http-base http://127.0.0.1:8081`
+  - 최초 실행은 sandbox Node fetch `EPERM`이었고, 같은 보정 서버를 대상으로 권한
+    승인 재실행해 PASS
+- PASS: `./server.sh verify-v220-client-preview-redaction-review`
+- PASS: `git diff --check`
+- 실패/제외: `./server.sh verify-ops-client-ui`는 Codex 환경에서
+  `--in-app-evidence`가 없어 실패했으며, S07 완료 evidence로 사용하지 않았습니다.
+- 미실행: UI 풀테스트 직접 조작, 30분 테스트, 120분 테스트,
+  `verify-va-runtime-console-longrun --duration-minutes 120`, real ONVIF device,
+  external WHEP/WHIP/TURN endpoint, real cloud provider call, main merge, release tag,
+  GitHub Release 생성, push.
+- 토큰 사용량: token start `97,176`, token end `199,847`, token consumed `102,671`,
+  elapsed `501s`, source `Codex goal usage snapshot at S07 evidence update`.
+
+## v2.3.0 Release Close-out
+
+v2.3.0 release close-out은 위 `활성 roadmap: v2.3.0 Operational Evidence & Contract
+Baseline` 범위를 기준으로 문서/source-of-truth, representative UI asset baseline,
+release metadata, 로컬 release gate, PR/main merge, signed annotated tag,
+GitHub Release, published metadata 재검증, 후속 `v2.4.0` branch 생성을 순서대로
+닫는 단계입니다.
+
+v2.3.0은 live-only media path, Event POST/WebRTC DataChannel/SSE/WS metadata,
+Auth/session/scope, Rule/Profile payload schema를 변경하지 않습니다. 이 release의
+완료 범위는 EventRecord occurrence matrix, 4대 테스트 evidence 정합성, UI
+renderer/module decomposition, 조건부 ONVIF/external TURN/WHEP evidence, VLM
+opt-in operational evidence, Ops backup/recovery evidence lifecycle, integrator
+contract conformance입니다. runtime/model bundle release, real cloud provider
+success, external TURN/WHEP credential operation, ONVIF 실장비 success, long-term
+recording/VMS/NVR, route/API/config/schema migration은 release 완료 근거가 아닙니다.
+
+실제 tag/push는 수동 승인 후에만 수행합니다. 실패가 발생하면 원인/실패 명령/영향
+파일을 기록하고, 같은 v2.3.0 범위에서 수정 가능한 경우 수정 후 해당 gate부터
+재검증합니다. 해결 불가능하거나 사용자 결정이 필요한 경우에만 중단하고 뒤 단계는
+건너뜁니다.
+
+v2.4.0 branch는 v2.3.0 GitHub Release와 published metadata 재검증이 끝난 뒤
 최신 `main`에서 생성합니다. patch branch는 사용자 지시가 없는 한 만들지 않습니다.
+release branch 삭제, force push, tag force update, GitHub Release 삭제는 별도 명시
+지시 없이는 수행하지 않습니다.
+
+close-out 작업 순서:
+
+1. 사전 상태/버전 확인: branch, upstream, local/remote tag, main sync,
+   `VERSION`/CMake/docs 기준을 확인합니다.
+2. 문서/source-of-truth 업데이트: README, README.en.md, docs index, release/version
+   policy, backlog, evidence, manual UI, feature inventory, UI asset policy를 v2.3.0
+   기준으로 맞춥니다.
+3. 문서 이미지 리뷰 및 업데이트: managed UI PNG와 VA 이미지는 문서 대표 자산으로만
+   다루고, crop, viewport, debug/source/raw/auth material 노출 여부를 확인합니다.
+   새 이미지 채택은 직접 검수 evidence 없이는 PASS로 쓰지 않습니다.
+4. 테스트 실행 범위 확인: 안정화 테스트, 30분 테스트, UI 풀테스트, 120분 테스트는
+   사용자가 직접 지시했거나 에이전트가 진행 여부를 물어 승인받은 범위만 실행합니다.
+5. 로컬 release gate: 승인된 테스트 범위에 따라 `./server.sh build`, 문서 링크,
+   UI asset, release metadata, evidence/index, release closeout helper dry-run,
+   현재 release verifier를 실행합니다.
+6. 커밋/branch push: 변경을 커밋하고 `v2.3.0` branch를 push합니다.
+7. PR/main merge: required check, warning/failure annotation 상태를 분리 확인한 뒤
+   main으로 merge합니다.
+8. signed annotated tag: main release commit에 `v2.3.0` signed annotated tag를 만들고
+   push합니다.
+9. GitHub Release: source-only release note를 생성하고 sample/model/runtime binary를
+   업로드하지 않습니다.
+10. published metadata: `./server.sh verify-release-metadata --published`로 GitHub
+    Latest Release, remote tag, release branch/head 상태를 재검증합니다.
+11. next branch: 최신 main에서 `v2.4.0` branch를 생성하고 push만 수행합니다.
+
+미실행/제외:
+
+- 안정화 테스트, 30분 soak, UI 풀테스트, 120분 longrun은 서로 대체하지 않습니다.
+  실행하지 않은 묶음은 미실행으로 기록합니다.
+- real provider call, external endpoint/credential, 실장비 ONVIF는 승인된 환경이 있을
+  때만 redacted field report로 기록하며, 미실행이면 PASS evidence가 아닙니다.
+- v2.3.0 S01 인앱 브라우저 EventRecord matrix evidence는 해당 matrix 범위입니다.
+  전체 release UI 풀테스트나 30분/120분 longrun을 대체하지 않습니다.
 
 ## 완료 roadmap: v2.2.0 Responsive UI Foundation
 
@@ -409,8 +913,6 @@ responsive workspace 구조를 다룹니다. `/ops/sources`, `/ops/rules`, `/ops
   `verify-docs-links`, `verify-docs-ui-assets`, `verify-script-inventory`,
   `verify-code-comments`, `verify-release-metadata`, `git diff --check`
 - 산출물: [v220-ops-workspace-redesign.md](./v220-ops-workspace-redesign.md),
-  `docs/superpowers/specs/2026-06-03-v220-s05-ops-workspace-redesign-design.md`,
-  `docs/superpowers/plans/2026-06-03-v220-s05-ops-workspace-redesign.md`,
   `scripts/internal/verify_v220_ops_workspace_redesign.mjs`
 - 구현 범위: `/ops/home`에 `ops-workspace-home` action grid, `/ops/dashboard`에
   `ops-workspace-dashboard` diagnostic grid, `/ops/events`에 `ops-workspace-events`
@@ -449,8 +951,6 @@ responsive workspace 기준으로 재배치합니다. `/ops/home`, `/ops/dashboa
   `verify-feature-inventory-coverage`, `verify-code-comments`,
   `verify-release-metadata`, `git diff --check`
 - 산출물: [v220-rules-workspace-redesign.md](./v220-rules-workspace-redesign.md),
-  `docs/superpowers/specs/2026-06-03-v220-s06-rules-workspace-redesign-design.md`,
-  `docs/superpowers/plans/2026-06-03-v220-s06-rules-workspace-redesign.md`,
   `scripts/internal/verify_v220_rules_workspace_redesign.mjs`
 - 구현 범위: `/ops/rules`에 `rules-workspace` root, readiness/assist/catalog/detail
   layout class를 추가하고, 기존 smoke selector, 저장 버튼, validation panel,
@@ -498,8 +998,6 @@ layout과 redaction marker를 다룹니다. `/setup`, `/login`, `/password/chang
   `verify-feature-inventory-coverage`, `verify-code-comments`,
   `verify-release-metadata`, `git diff --check`
 - 산출물: [v220-client-live-redesign.md](./v220-client-live-redesign.md),
-  `docs/superpowers/specs/2026-06-03-v220-s07-client-live-redesign-design.md`,
-  `docs/superpowers/plans/2026-06-03-v220-s07-client-live-redesign.md`,
   `scripts/internal/verify_v220_client_live_redesign.mjs`
 - 구현 범위: `/client` shell에 `client-viewer-workspace`, `client-viewer-dock`,
   `client-viewer-detail`을 추가하고, live renderer에 `client-live-workspace`,
@@ -548,8 +1046,6 @@ S08은 `/setup`, `/login`, `/password/change`, `/invite/setup`,
   `./server.sh verify-ops-rules-roundtrip`,
   `node --check scripts/internal/verify_auth_scope_picker.mjs`
 - 산출물: [v220-auth-setup-redesign.md](./v220-auth-setup-redesign.md),
-  `docs/superpowers/specs/2026-06-03-v220-s08-auth-setup-redesign-design.md`,
-  `docs/superpowers/plans/2026-06-03-v220-s08-auth-setup-redesign.md`,
   `scripts/internal/verify_v220_auth_setup_redesign.mjs`
 - 구현 범위: 공통 auth shell에 `auth-responsive-shell`, `auth-responsive-card`,
   `data-auth-shell="responsive-form"`을 추가하고, setup/login/password/invite/access
@@ -2432,7 +2928,7 @@ Decision record 최소 필드:
 
 ## Archived: v1.7.0 UI-first Close-out
 
-이 섹션은 v1.7.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v2.2.0
+이 섹션은 v1.7.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v2.3.0
 Release Close-out입니다.
 
 v1.7.0 close-out 당시에는 Client Live workspace와 Ops workflow 보강을 완료 기준으로 둡니다.
@@ -2470,7 +2966,7 @@ UI 원칙:
 2. 이벤트 검토, source group/site, layout 저장을 붙여 실제 운영 흐름을 닫았습니다.
 3. 알림 연동, Scenario Builder, Incident Timeline을 기본 UI 위에 확장했습니다.
 4. v1.7.0 close-out 당시 README/UI guide 대표 screenshot asset을 UI-first
-   화면으로 한국어/영어 모두 재캡처했습니다. 현재 문서 대표 이미지는 상단 v2.0.0
+   화면으로 한국어/영어 모두 재캡처했습니다. 현재 문서 대표 이미지는 상단 v2.3.0
    release 기준에서 다시 관리합니다.
 
 | ID | 우선순위 | 영역 | 목표 | 예상 검증 |
@@ -2510,7 +3006,7 @@ v1.7.0 비범위:
 
 ## Archived: v1.6.0 Stabilization Close-out
 
-이 섹션은 v1.6.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v2.2.0
+이 섹션은 v1.6.0 close-out 증적 보존용이며, 현재 release 기준은 상단 v2.3.0
 Release Close-out입니다.
 
 v1.6.0 close-out 당시에는 새 제품 기능을 여는 minor release가 아니라, v1.5.0까지 닫은 기능을

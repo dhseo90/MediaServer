@@ -35,7 +35,7 @@ UI 풀테스트를 시작하기 전에는 아래 항목을 기능별로 확인�
 
 - `verify-v220-ui-evidence-closeout` PASS는 문서와 verifier 연결 기준 PASS입니다.
 - `verify-manual-ui-evidence` PASS는 manual UI checklist/template 구조 기준 PASS입니다.
-- `verify-ui-fulltest-one-shot` PASS는 보조 helper PASS이며 UI 풀테스트 PASS가 아닙니다.
+- `verify-ui-fulltest-one-shot` PASS는 보조 wrapper PASS이며 UI 풀테스트 PASS가 아닙니다.
 - Chrome/CDP fallback screenshot smoke는 인앱 브라우저 직접 UI 풀테스트 PASS를 대체하지 않습니다.
 - raw JSON/API-only 확인은 제품 UI 직접 조작 evidence가 아닙니다.
 - 실기기/외부 endpoint/credential이 필요한 ONVIF/WHEP/WHIP/VLM provider 조건은 별도 테스트 영역으로 만들지 않고 안정화 또는 UI 제외 기록에 남깁니다.

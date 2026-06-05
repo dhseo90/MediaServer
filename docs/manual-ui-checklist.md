@@ -5,10 +5,10 @@
 source-of-truth로 삼고, 기능별 UI 필요 여부와 테스트 영역은
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 합니다. 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를
-사용합니다. 최신 공개 release 기준은 `v2.2.0`이며, UI 문서 기준은
-`v2.2.0 Responsive UI Foundation`입니다. UI 풀테스트 기준은 해당 작업
+사용합니다. 최신 공개 release 기준은 `v2.3.0`이며, UI 문서 기준은
+`v2.3.0 Operational Evidence & Contract Baseline`입니다. UI 풀테스트 기준은 해당 작업
 범위에 포함된 제품 route, 권한, 기능 baseline만 대상으로 합니다.
-현재 release 목표는 `v2.2.0`이라는 gate 문구는 최신 공개 release baseline을
+현재 release 목표는 `v2.3.0`이라는 gate 문구는 최신 공개 release baseline을
 뜻하며, UI 재배치 문서 준비나 자동 smoke만으로 UI 풀테스트 PASS를 뜻하지 않습니다.
 문서 구조와 evidence 경계는 `./server.sh verify-manual-ui-evidence`로 확인합니다.
 현재 제품 UI 직접 조작 evidence 없이 완료 판정에 포함하지 않습니다.
@@ -24,9 +24,10 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
 [stream-verification.md](./stream-verification.md)의 별도 영역입니다. UI 풀테스트와
 스크립트 안정화 테스트는 서로 대체하지 않으며 결과 문서에서 판정을 분리합니다.
 안정화 테스트는 30분/120분/UI 테스트의 선수 테스트이며, 로드맵 각 스텝 종료 시
-수행합니다. 30분 테스트는 장기간 테스트 지시의 기본값이고 버전 로드맵 완료 시
-수행합니다. 120분 테스트는 메모리 릭/장시간 누수 감시가 필요할 때 사용자에게
-먼저 말한 뒤 수행합니다. UI 풀테스트도 버전 로드맵 완료 시 수행합니다.
+수행합니다. 30분 테스트는 장기간 테스트 지시의 기본값이고, 버전 로드맵 완료 후
+close-out에서도 명시 요청/승인이 없으면 미실행으로 기록합니다. 120분 테스트는
+메모리 릭/장시간 누수 감시가 필요할 때 사용자에게 먼저 말한 뒤 수행합니다.
+UI 풀테스트도 버전 로드맵 완료 시 수행합니다.
 
 ## 1. 사전 파악
 
@@ -82,7 +83,7 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
   명시해 현재 PublishedView/Rule seed를 기준으로 실행합니다.
   `--manual-result <result.md>`를 지정하면 기존 manual result 문서 구조까지 함께
   검증합니다. manual result 구조 검증은 opt-in이며, manual result를 지정하지 않으면
-  해당 step은 skip됩니다. helper PASS는 full UI 풀테스트 PASS가 아닙니다.
+  해당 step은 skip됩니다. wrapper PASS는 full UI 풀테스트 PASS가 아닙니다.
   auth UI flow를 포함하므로 아래 환경변수는 실행자가 직접 지정해야 합니다.
   - `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`
   - `MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD`
@@ -191,9 +192,9 @@ UI 풀테스트 결과 문서를 쓰기 전에는 아래 항목이 개별 route/
 - 실패 후 고친 화면은 같은 조작으로 재검수하고, 최초 실패와 재확인 결과를 모두
   남깁니다.
 
-### v2.2.0 release UI gate
+### v2.3.0 release UI gate
 
-v2.2.0 release close-out에서는 자동 smoke와 별도로 아래 화면을 브라우저에서 직접
+v2.3.0 release close-out에서는 자동 smoke와 별도로 아래 화면을 브라우저에서 직접
 열고 클릭한 Evidence index를 남깁니다. 자동 screenshot 생성이나 raw JSON/API-only 확인만
 있으면 해당 개별 기능은 `FAIL`입니다.
 

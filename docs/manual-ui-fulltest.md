@@ -38,7 +38,7 @@ UI 풀테스트는 `스크립트 테스트`와 별도 영역입니다. 스크립
 | 영역 | UI 풀테스트에서의 취급 |
 | --- | --- |
 | 안정화 테스트 | 30분/120분/UI 테스트의 선수 테스트입니다. 로드맵 각 스텝 종료 시 먼저 수행합니다. 실패하면 UI 풀테스트로 넘어가지 않습니다. |
-| 30분 테스트 | 장기간 테스트 지시 시 기본으로 수행하고, 각 버전별 로드맵 개발이 끝나면 수행합니다. UI 클릭/타이핑 evidence를 대체하지 않습니다. |
+| 30분 테스트 | 장기간 테스트 지시 시 기본으로 수행하되, 버전별 로드맵 개발 완료 뒤에도 명시 요청/close-out 승인 없으면 미실행으로 기록합니다. UI 클릭/타이핑 evidence를 대체하지 않습니다. |
 | 120분 테스트 | 메모리 릭, 장시간 누수, runtime drift 감시용입니다. 무조건 실행하지 않고 필요하면 사용자에게 먼저 알립니다. UI 풀테스트 PASS를 대체하지 않습니다. |
 | UI 풀테스트 | Codex 세션에서는 인앱 브라우저 직접 조작을 사용합니다. Codex 밖 사용자 실행 또는 명시 승인된 예외에서만 Chrome/CDP 조작을 별도 evidence로 기록합니다. role별 화면, 반응형, 시각 품질 evidence이며 30분/120분 안정화 PASS를 대체하지 않습니다. |
 
@@ -147,10 +147,11 @@ invite token 원문, session cookie, generated password suggestion을 남기지 
 
 ## 5. 자율 브라우저 직접 조작
 
-UI 풀테스트는 사용자가 직접 누르는 절차가 아니라 테스트 runner가 자체 브라우저를
-제어해 수행하는 절차를 기본값으로 둡니다. Codex 인앱 브라우저는 사람이 화면을
-재현하거나 보조 확인할 때만 사용합니다. 다음 행위가 자동 또는 직접 브라우저에서
-실제로 수행되어야 `확인됨`입니다.
+UI 풀테스트는 사용자가 직접 누르는 절차가 아니라 테스트 주체가 브라우저를
+제어해 수행하는 절차를 기본값으로 둡니다. Codex 세션에서는 인앱 브라우저 직접
+조작을 기본 evidence로 사용하고, Codex 밖 사용자 실행 또는 명시 승인된 예외에서만
+Chrome/CDP runner evidence를 별도로 기록합니다. 다음 행위가 자동 또는 직접
+브라우저에서 실제로 수행되어야 `확인됨`입니다.
 
 - route를 실제로 열기
 - nav/tab/button/menu/details를 클릭하기
@@ -188,7 +189,7 @@ E2E를 순서대로 실행하고 `summary.json`과 `summary.md`를 남깁니다.
 `verify-va-runtime-console-longrun --duration-minutes 120`을 실행하지 않습니다.
 `--manual-result <result.md>`를 지정하면 기존 manual result 문서 구조를 함께
 검증합니다. manual result 구조 검증은 opt-in이며, manual result를 지정하지 않으면
-해당 step은 skip됩니다. helper PASS는 full UI 풀테스트 PASS가 아닙니다.
+해당 step은 skip됩니다. wrapper PASS는 full UI 풀테스트 PASS가 아닙니다.
 auth UI flow를 포함하므로 아래 환경변수는 실행자가 직접 지정해야 합니다.
 
 - `MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD`

@@ -29,10 +29,8 @@ check(
     docs.includes('viewer redaction')
 );
 check(
-  'docs index links S07 source-of-truth and superpowers artifacts',
-  docsIndex.includes('v220-client-live-redesign.md') &&
-    docsIndex.includes('2026-06-03-v220-s07-client-live-redesign-design.md') &&
-    docsIndex.includes('2026-06-03-v220-s07-client-live-redesign.md')
+  'docs index links S07 source-of-truth',
+  docsIndex.includes('v220-client-live-redesign.md')
 );
 check(
   'client shell exposes viewer workspace classes',

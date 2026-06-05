@@ -1,6 +1,6 @@
 # 파일 용도: CMake 빌드 옵션과 GStreamer 연동 타깃을 정의한다.
 cmake_minimum_required(VERSION 3.16)
-project(media_server VERSION 2.2.0 LANGUAGES CXX)
+project(media_server VERSION 2.3.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -60,9 +60,14 @@ add_executable(media_server
     src/ingress/rtsp_request_context.cpp
     src/ingress/request_parser.cpp
     src/ingress/product_ui_assets.cpp
+    src/ingress/product_ui_auth_pages.cpp
     src/ingress/product_ui_components.cpp
+    src/ingress/product_ui_client_css.cpp
+    src/ingress/product_ui_client_scripts.cpp
     src/ingress/product_ui_css.cpp
     src/ingress/product_ui_js.cpp
+    src/ingress/product_ui_ops_sources_script.cpp
+    src/ingress/product_ui_ops_users_script.cpp
     src/ingress/product_ui_page_scripts.cpp
     src/ingress/rtsp_egress_session.cpp
     src/ingress/source_view_registry.cpp

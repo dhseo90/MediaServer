@@ -84,10 +84,10 @@ check("required sections exist", () => {
 
 check("summary counts match current feature IDs", () => {
   const rows = parseFeatureRows(inventory);
-  assert(rows.length === 390, `expected 390 feature rows, found ${rows.length}`);
+  assert(rows.length === 391, `expected 391 feature rows, found ${rows.length}`);
   const ids = rows.map(row => row.id);
   assert(new Set(ids).size === ids.length, "duplicate feature IDs in inventory");
-  for (const prefix of ["UI", "AUTH", "SRC", "RULE", "EVT", "CLIENT", "MEDIA", "LAB", "SAFE"]) {
+  for (const prefix of ["UI", "AUTH", "SRC", "RULE", "EVT", "CLIENT", "MEDIA", "LAB", "SAFE", "OPS"]) {
     assert(ids.some(id => id.startsWith(`${prefix}-`)), `missing ${prefix}-* feature IDs`);
   }
   const counts = {
@@ -368,7 +368,7 @@ runChecks();
 function parseFeatureRows(text) {
   return text
     .split(/\r?\n/)
-    .filter(line => /^\| (UI|AUTH|SRC|RULE|EVT|CLIENT|MEDIA|LAB|SAFE)-\d+ \|/.test(line))
+    .filter(line => /^\| (UI|AUTH|SRC|RULE|EVT|CLIENT|MEDIA|LAB|SAFE|OPS)-\d+ \|/.test(line))
     .map(line => {
       const cells = line.split("|").slice(1, -1).map(cell => cell.trim());
       return {

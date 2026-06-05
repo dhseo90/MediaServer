@@ -76,6 +76,7 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-va-event-coverage-report
 ./server.sh verify-code-comments
 ./server.sh verify-release-metadata
+./server.sh verify-v230-entry-baseline --report /tmp/media_server_v230_entry_baseline.md --json-report /tmp/media_server_v230_entry_baseline.json
 ./server.sh verify-v190-entry-baseline --report /tmp/media_server_v190_entry_baseline.md --json-report /tmp/media_server_v190_entry_baseline.json
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
@@ -127,7 +128,7 @@ GitHub Actions Node 24 baseline은 `actions/checkout@v5`와
 self-hosted runner는 minimum Actions Runner version `2.327.1` 이상이어야 합니다.
 `.github/dependabot.yml`은 future major update 자동 병합을 막고,
 `verify-actions-security`는 이 baseline과 SHA pin/local action만 허용합니다.
-UI 풀테스트 one-shot helper는 실제 UI verifier 묶음을 실행하는 harness입니다.
+UI 풀테스트 one-shot wrapper는 실제 UI verifier 묶음을 실행하는 harness입니다.
 전용 throwaway seed, core auth-off 서버, auth-auto 서버를 분리해 띄우고,
 native/blocking dialog guard, feature inventory coverage, Ops/Client screenshot smoke,
 Rules/route/rules/table verifier, core/auth click E2E를
@@ -135,7 +136,7 @@ Rules/route/rules/table verifier, core/auth click E2E를
 longrun을 실행하지 않고 summary에 `not-run`으로 남깁니다.
 `--manual-result <result.md>`를 지정하면 기존 manual result 문서 구조까지 함께
 검증합니다. manual result 구조 검증은 opt-in이며, manual result를 지정하지 않으면
-해당 step은 `manual result not provided`로 skip됩니다. helper PASS는 full UI 풀테스트 PASS가 아닙니다.
+해당 step은 `manual result not provided`로 skip됩니다. wrapper PASS는 full UI 풀테스트 PASS가 아닙니다.
 full UI PASS는 인앱 브라우저에서 직접 조작한 manual result 문서가 PASS일 때만 별도로 판단합니다.
 auth UI flow를 포함하므로 아래 환경변수는 실행자가 직접 지정해야 합니다.
 
@@ -413,7 +414,7 @@ fallback까지 실패하면 `media-server.github-metadata-fallback-policy.v1` �
 `failure-class=tool-unavailable`, `failure-class=external-github-access` 중 하나로
 보고하고 제품 runtime/media 회귀와 분리합니다.
 
-현재 v2.1.0 제품 회귀 gate, UI 풀테스트 gate, release close-out gate는 아래
+현재 제품 회귀 gate, UI 풀테스트 gate, release close-out gate는 아래
 통합 명령으로만 확인합니다.
 
 ```bash
@@ -448,6 +449,69 @@ fallback까지 실패하면 `media-server.github-metadata-fallback-policy.v1` �
 ./server.sh verify-docs-links
 ./server.sh verify-release-metadata
 ```
+
+v2.3.0 entry baseline은 v2.2.0 source-only/live-only release baseline을 시작점으로
+고정하되, 새 테스트 영역을 만들지 않고 안정화, 30분, 120분, UI 풀테스트 네 영역을
+그대로 유지합니다. `media-server.v230-entry-baseline-report.v1` report는 아래
+명령으로 생성합니다.
+
+```bash
+./server.sh verify-v230-entry-baseline \
+  --report /tmp/media_server_v230_entry_baseline.md \
+  --json-report /tmp/media_server_v230_entry_baseline.json
+./server.sh verify-release-metadata
+./server.sh verify-release-evidence-index
+./server.sh verify-integrator-contract-artifact
+./server.sh verify-event-post --mode schema --http-base <enabled-auth-off-http-base>
+./server.sh verify-auth-routes
+./server.sh verify-webrtc-va-metadata
+./server.sh verify-va-metadata-sidechannel
+./server.sh verify-ws-metadata
+```
+
+이 묶음은 v2.3.0 S00의 roadmap review와 Event POST/WebRTC/SSE/WS/Auth/Rule/media
+path freeze 선수 gate입니다. UI 풀테스트, 30분 soak, 120분 longrun, real ONVIF,
+external TURN/WHEP, VLM provider smoke, published GitHub live metadata 확인은 별도
+명시 지시나 release 후보 gate에서만 실행하고, 이 report의 PASS로 대체하지 않습니다.
+Event POST schema smoke는 `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1` 및
+`MEDIA_SERVER_AUTH_MODE=off` 격리 서버에서 실행합니다. 서버 미기동 또는 auth 401은
+실행 전제 실패로 기록하고 같은 build를 보정 서버로 띄워 재검증합니다.
+
+v2.3.0 S02 4대 테스트 evidence 정합성은 release evidence, feature inventory,
+longrun separation, manual UI evidence 기준이 안정화, 30분, 120분, UI 풀테스트 네
+영역만 쓰는지 확인합니다. `media-server.v230-test-evidence-consistency.v1` report는
+아래 명령으로 생성합니다.
+
+```bash
+./server.sh verify-v230-test-evidence-consistency \
+  --report /tmp/media_server_v230_s02_evidence_consistency.md \
+  --json-report /tmp/media_server_v230_s02_evidence_consistency.json
+./server.sh verify-release-evidence-index
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-longrun-separation
+./server.sh verify-manual-ui-evidence
+```
+
+이 verifier는 30분/120분/UI 풀테스트를 실행하지 않습니다. field/provider/no-device,
+external credential 조건도 별도 테스트 영역이 아니라 안정화 조건부 verifier 또는
+UI 풀테스트 제외 기록으로만 남깁니다. S02 PASS는 evidence 정합성 PASS이며 장시간
+soak, UI 직접 조작, release publish evidence를 대체하지 않습니다.
+
+v2.3.0 S03 UI renderer/module decomposition은 C++ 문자열 UI 경계를 route renderer,
+CSS module, JS controller 단위로 나누되 API/schema/Event POST/WebRTC/SSE/WS/media
+계약을 바꾸지 않습니다. module inventory와 source ownership은 아래 정적 gate로
+확인합니다.
+
+```bash
+./server.sh verify-v230-ui-renderer-module-decomposition
+./server.sh verify-ops-client-ui
+./server.sh verify-rule-ui
+git diff --check
+```
+
+`verify-v230-ui-renderer-module-decomposition`은 module inventory/source ownership
+gate입니다. route smoke와 UI 직접 조작, 30분 테스트, 120분 테스트, UI 풀테스트를
+실행했다는 뜻이 아닙니다.
 
 v2.1.0 entry baseline은 v2.0.0 published evidence를 시작점으로 고정하되,
 신규 VLM runtime/provider 호출이나 UI/장시간 테스트 PASS를 만들지 않습니다.
@@ -934,7 +998,8 @@ VA rule/scenario/event type/EventRecord 조합표는 아래 report verifier가 �
 이 report는 `media-server.va-rule-event-coverage-report.v1` schema로 basic event,
 line direction, scenario replay, EventRecord history key, invalid/negative 조합을
 개별 행으로 나눕니다. expected invalid 조합은 `FAIL` row로 남기며 PASS 범주에
-섞지 않습니다.
+섞지 않습니다. 기본 실행은 exact 12-key EventRecord occurrence matrix 구조를
+출력하지만, 실제 occurrence 완료 evidence로 쓰지는 않습니다.
 
 ```bash
 ./server.sh verify-va-event-coverage-report \
@@ -946,6 +1011,23 @@ line direction, scenario replay, EventRecord history key, invalid/negative 조�
 ./server.sh verify-ops-event-records-scope \
   --http-base <storage-enabled-server> \
   --event-history-dir <manual-ui-event-history-dir>
+```
+
+Full VA EventRecord occurrence matrix 완료 gate로 사용할 때는
+`verify-ops-event-records-scope`가 생성한 `event-history-coverage.json`을 같은
+report verifier에 입력하고 `--require-occurrence-matrix`를 붙입니다. 이 모드는
+`presence`, `enter`, `exit`, `line-crossing:any`, `line-crossing:forward`,
+`line-crossing:reverse`, `intrusion-dwell`, `re-entry`, `wrong-direction`,
+`intrusion-after-line-crossing`, `loitering`, `zone-occupancy` 12개 key 각각에
+registry rule row, `/ops/events` UI seen type, EventRecord JSON Lines count,
+sample event id가 있어야 통과합니다.
+
+```bash
+./server.sh verify-va-event-coverage-report \
+  --event-history-coverage-json <event-history-output-dir>/event-history-coverage.json \
+  --require-occurrence-matrix \
+  --report /tmp/media_server_va_eventrecord_occurrence_matrix.md \
+  --json-report /tmp/media_server_va_eventrecord_occurrence_matrix.json
 ```
 
 release prep branch에서 tag/GitHub Release가 아직 생성 전이면
