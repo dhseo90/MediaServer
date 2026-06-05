@@ -376,8 +376,10 @@ check("development backlog pins current close-out and completed v2.2.0 roadmap g
   for (const snippet of [
     `## 현재 기준: ${currentTag} Source Release Baseline`,
     `${currentTag}은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서`,
-    "## 다음 roadmap: v2.3.0 준비 전",
-    "v2.3.0 branch는 v2.2.0 GitHub Release와 published metadata 재검증이 끝난 뒤",
+    "## 활성 roadmap: v2.3.0 Operational Evidence & Contract Baseline",
+    "기존 네 영역인 안정화 테스트, 30분 테스트, 120분 테스트, UI 풀테스트",
+    "V230-S00",
+    "verify-v230-entry-baseline",
     "## 완료 roadmap: v2.2.0 Responsive UI Foundation",
     "작업 단위 반응형 셸",
     "V220-S00",

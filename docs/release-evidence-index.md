@@ -85,6 +85,36 @@ Release publication was later completed by `v200-release-publication-20260601`.
 Per-test "not run" rows above remain scoped to the individual test run that did
 not perform publication actions.
 
+## v2.3.0 Entry Baseline Report
+
+v2.3.0 개발 진입 전에는 `media-server.v230-entry-baseline-report.v1` report로
+v2.2.0 source-only/live-only release baseline, active `v2.3.0` branch, 그리고
+Event POST/WebRTC/SSE/WS/Auth/Rule/media path freeze를 분리해 기록합니다. 이
+report는 v2.3.0 active roadmap을 열지만, UI 풀테스트, 30분 soak, 120분 longrun,
+field smoke, published GitHub metadata를 자동 실행하거나 PASS로 대체하지 않습니다.
+
+```bash
+./server.sh verify-v230-entry-baseline \
+  --report /tmp/media_server_v230_entry_baseline.md \
+  --json-report /tmp/media_server_v230_entry_baseline.json
+```
+
+- 기준 release: `v2.2.0`; 기준 branch: `v2.3.0`.
+- baseline primary: v2.2.0 source-only/live-only release baseline, v2.2.0 F02~F06
+  인앱 브라우저 UI evidence, `verify-integrator-contract-artifact` freeze artifact.
+- baseline fallback: live GitHub published state나 field endpoint를 현재 환경에서 확인하지
+  못하면 해당 상태는 `미확인` 또는 `manual-not-run`으로 남기고, recorded/local evidence만
+  baseline으로 사용합니다.
+- 제외: UI 구현, full 12-key VA occurrence 실행, VLM runtime/provider 호출,
+  provider credential 저장, Event POST/WebRTC/SSE/WS payload 변경, Auth/session/scope
+  변경, Rule/Profile payload 변경, RTSP/WebRTC media path 변경.
+- current-run companion gates: `verify-release-metadata`,
+  `verify-release-evidence-index`, `verify-integrator-contract-artifact`,
+  `verify-event-post --mode schema --http-base <enabled auth-off server>`,
+  `verify-auth-routes`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`,
+  `verify-ws-metadata`, `git diff --check`.
+- 안정화/UI/30분/120분/field/published metadata 상태를 서로 대체하지 않습니다.
+
 ## v2.0.0 Test Restart 2026-05-31
 
 사용자 지시 범위는 `기존 테스트 기록 리스트 삭제 후 다시 만들기`,

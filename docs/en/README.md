@@ -26,8 +26,14 @@ path short enough to scan. The full index is `docs/README.md`.
 - v2.2.0 completed roadmap is tracked in
   [../development-backlog.md](../development-backlog.md) as Responsive UI
   Foundation.
+- v2.3.0 active roadmap is tracked in
+  [../development-backlog.md](../development-backlog.md) as Operational Evidence
+  & Contract Baseline.
 - The main product boundary is live source onboarding, live source health, and
   live VA event quality.
+- v2.3.0 keeps the stability, 30-minute, 120-minute, and UI fulltest areas as
+  the only test areas. Field/provider/longrun triggers are recorded inside those
+  areas or as exclusions, not as a fifth test category.
 - Binary, runtime, and model bundles are excluded from the default release.
 - Long-term recording, VMS/NVR, playback/search, ONVIF Profile G
   recording/replay, Re-ID default-on, and tracker default-on remain out of scope.

@@ -232,6 +232,8 @@ Usage:
                  v2.0.0 published evidence를 v2.1.0 진입 baseline으로 고정합니다.
   verify-v220-entry-boundary
                  v2.2.0 responsive UI foundation 진입 경계와 변경 금지 contract를 검증합니다.
+  verify-v230-entry-baseline
+                 v2.3.0 operational evidence baseline과 4대 테스트 영역 유지 계약을 검증합니다.
   verify-v220-ui-architecture-inventory
                  v2.2.0 UI architecture inventory와 S01 roadmap 연결을 검증합니다.
   verify-v220-responsive-task-shell
@@ -874,6 +876,10 @@ case "${cmd}" in
   verify-v220-entry-boundary)
     require_internal verify_v220_entry_boundary.mjs
     exec "${INTERNAL_DIR}/verify_v220_entry_boundary.mjs" "$@"
+    ;;
+  verify-v230-entry-baseline)
+    require_internal verify_v230_entry_baseline.mjs
+    exec "${INTERNAL_DIR}/verify_v230_entry_baseline.mjs" "$@"
     ;;
   verify-v220-ui-architecture-inventory)
     require_internal verify_v220_ui_architecture_inventory.mjs

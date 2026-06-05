@@ -81,11 +81,103 @@ baseline으로 유지합니다.
 과거 release evidence는 standalone current 문서가 아니라 이 문서의 archive 섹션에만
 보존합니다.
 
-## 다음 roadmap: v2.3.0 준비 전
+## 활성 roadmap: v2.3.0 Operational Evidence & Contract Baseline
 
-v2.3.0의 실제 개발 범위는 아직 이 문서에 active roadmap으로 열지 않습니다.
-v2.3.0 branch는 v2.2.0 GitHub Release와 published metadata 재검증이 끝난 뒤
-최신 `main`에서 생성합니다. patch branch는 사용자 지시가 없는 한 만들지 않습니다.
+v2.3.0은 v2.2.0 source-only/live-only 제품 baseline을 유지하면서, 새 테스트 영역을
+추가하지 않고 기존 네 영역인 안정화 테스트, 30분 테스트, 120분 테스트, UI 풀테스트의
+증적 정합성과 운영 field-readiness를 강화하는 roadmap입니다.
+
+이 roadmap은 기능 확장보다 contract 보존, EventRecord evidence 보강, 운영 증적
+정리, C++ 문자열 UI 유지보수 경계 완화를 우선합니다. `VERSION`과 CMake project
+version은 v2.3.0 release source-of-truth 업데이트 전까지 현재 공개 release인
+`2.2.0`을 유지합니다. 이 값은 v2.3.0 active roadmap이 열렸다는 뜻과 별개이며,
+release 준비/close-out에서만 현재 release target으로 올립니다.
+
+핵심 원칙:
+
+- v2.3.0 S00~S07은 Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC
+  media path, Auth/session/scope, Rule/Profile payload schema를 변경하지 않습니다.
+- client/viewer에는 source URL, Developer URL, raw JSON, debugCounters, BBox
+  diagnostics, prompt/raw response/provider credential/model internals/Re-ID identity
+  material을 노출하지 않습니다.
+- field gate, provider smoke, runtime longrun trigger는 별도 다섯 번째 테스트 영역이
+  아니라 안정화 테스트의 조건부 verifier, UI 풀테스트의 제외 기록, 또는 release
+  evidence의 `미실행`/`미확인` 항목으로만 기록합니다.
+- 30분 테스트와 120분 테스트는 서로 대체하지 않습니다. 120분 테스트는 사용자 승인
+  없이 실행하지 않습니다.
+- UI 풀테스트는 자동 smoke, screenshot 생성, raw JSON/API 확인으로 대체하지 않고
+  인앱 브라우저 직접 조작 evidence로만 판정합니다.
+
+명시적 비범위:
+
+- 장기 녹화, MP4 recorder, VMS/NVR archive, playback/search
+- Event POST/WebRTC/SSE/WS 외부 payload schema 변경
+- RTSP/WebRTC media pipeline 구조 변경
+- VLM default-on, VLM runtime/model bundle, provider credential 저장
+- Re-ID/tracker default-on, OC-SORT/BoT-SORT/DeepSORT runtime tracker 승격
+- ONVIF Profile G recording/replay, WS-Discovery, Digest/WS-Security 운영 보장
+- external TURN/WHEP credential 운영 성공 보장, 실장비 ONVIF 성공 보장
+
+| 순서 | ID | 우선순위 | 상태 | 영역 | 목표 | 예상 검증 |
+| --- | --- | --- | --- | --- | --- | --- |
+| 0 | V230-S00 | P0 | 완료 | v2.3.0 entry baseline | v2.2.0 source-only/live-only baseline을 v2.3.0 시작 기준으로 고정하고, Event POST/WebRTC/SSE/WS/Auth/Rule/media path freeze와 viewer redaction 경계를 재확인합니다. | roadmap review, `verify-v230-entry-baseline`, `verify-release-metadata`, `verify-release-evidence-index`, `verify-integrator-contract-artifact`, `verify-event-post --mode schema --http-base <enabled auth-off server>`, metadata verifier, `verify-auth-routes`, `git diff --check` |
+| 1 | V230-S01 | P0 | 예정 | Full VA EventRecord occurrence matrix | v2.2 UI fulltest에서 presence 중심으로 남은 gap을 닫기 위해 enter/exit/line-crossing/scenario 계열 12-key EventRecord occurrence를 `/ops/events`, `/ops/rules`, UI evidence에서 개별 PASS/FAIL로 확인합니다. | `verify-va-event-coverage-report`, `verify-va-events`, `verify-va-replay`, EventRecord UI 풀테스트, `git diff --check` |
+| 2 | V230-S02 | P0 | 예정 | 4대 테스트 evidence 정합성 | 안정화, 30분, 120분, UI 풀테스트의 실행/미실행/제외 기록을 release evidence와 feature inventory에서 같은 기준으로 맞춥니다. 새 테스트 영역은 만들지 않습니다. | `verify-release-evidence-index`, `verify-feature-inventory-coverage`, `verify-longrun-separation`, `verify-manual-ui-evidence`, `git diff --check` |
+| 3 | V230-S03 | P1 | 예정 | UI renderer/module decomposition | `webrtc_http_server.cpp`, `product_ui_css.cpp`, `product_ui_page_scripts.cpp`의 큰 문자열 UI 경계를 route renderer, CSS module, JS controller 단위로 더 나눠 유지보수 위험을 낮춥니다. | module inventory, route smoke, `verify-ops-client-ui`, `verify-rule-ui`, `git diff --check` |
+| 4 | V230-S04 | P1 | 예정 | 조건부 ONVIF/external TURN/WHEP evidence | 실장비/외부 credential 성공을 release PASS와 혼동하지 않고, 승인된 환경이 있을 때만 redacted field report로 기록합니다. 미실행이면 안정화 테스트 조건부 항목으로 남깁니다. | `verify-onvif-field-smoke-gate`, `verify-external-turn-whep-field-gate`, redaction review, 미실행/제외 기록, `git diff --check` |
+| 5 | V230-S05 | P1 | 예정 | VLM opt-in operational evidence | VLM default-on이 아니라 operator-approved profile promotion, local/provider smoke intake, privacy/default-off evidence를 강화합니다. Sidecar는 EventRecord/API schema에 섞지 않습니다. | `verify-vlm-runtime-opt-in-contract`, `verify-vlm-local-runtime-smoke`, `verify-vlm-cloud-provider-field-smoke-gate`, `verify-vlm-privacy-transfer-guard`, `git diff --check` |
+| 6 | V230-S06 | P2 | 예정 | Ops backup/recovery evidence lifecycle | dry-run 중심의 백업/복구 절차를 staging drill, redacted evidence bundle, cleanup/retention 확인으로 강화하되 운영 데이터 백업 완료로 확대 보고하지 않습니다. | `verify-ops-backup-recovery-guide`, `verify-ops-backup-restore-dry-run`, `verify-ops-evidence-retention-cleanup`, `git diff --check` |
+| 7 | V230-S07 | P2 | 예정 | Integrator contract conformance | Event POST/WebRTC/SSE/WS payload schema 변경 없이 sample bundle, checksum, runtime delivery smoke, client redaction evidence를 보강합니다. | `verify-integrator-contract-artifact`, `verify-event-post`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `git diff --check` |
+
+### V230-S00 v2.3.0 entry baseline 종료 기준
+
+직접 답: v2.3.0의 entry baseline은 `v2.2.0` source-only/live-only release baseline과
+2026-06-04 v2.2.0 F02~F06 인앱 브라우저 UI evidence를 시작점으로 사용합니다.
+다만 이 UI evidence는 F02~F06 route/control/action 범위이며, full 12-key VA
+EventRecord occurrence matrix, 30분 soak, 120분 longrun, 실장비/외부 credential
+성공을 PASS로 대체하지 않습니다.
+
+S00 완료 evidence는 `verify-v230-entry-baseline`, `verify-release-metadata`,
+`verify-release-evidence-index`, `verify-integrator-contract-artifact`,
+`verify-event-post --mode schema --http-base <enabled auth-off server>`,
+`verify-auth-routes`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`,
+`verify-ws-metadata`, `verify-docs-links`, `verify-script-inventory`,
+`git diff --check`입니다. `verify-v230-entry-baseline`은
+`media-server.v230-entry-baseline-report.v1` schema의 baseline report를 생성할 수
+있고, 안정화/UI/30분/120분/field/published metadata 상태를 서로 대체하지 않게
+분리합니다. Event POST schema smoke는 `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1`
+및 `MEDIA_SERVER_AUTH_MODE=off` 격리 서버에서 실행하고, 서버 미기동 또는 auth 401은
+제품 회귀가 아니라 실행 전제 실패로 기록합니다.
+
+S00은 UI 구현, VA matrix 실행, VLM runtime/provider 호출, Event POST/WebRTC/SSE/WS
+payload 변경, Auth/session/scope 변경, Rule/Profile payload 변경, RTSP/WebRTC
+media path 변경을 수행하지 않습니다. 제외 대상은 VLM default-on, runtime/model bundle,
+provider credential 저장, real cloud provider call, 실장비 ONVIF, external
+TURN/WHEP credential 성공, UI 풀테스트, 30분 soak, 120분 longrun입니다.
+
+S00 실행 결과:
+
+- PASS: `./server.sh build`
+- PASS: `./server.sh verify-v230-entry-baseline --report /tmp/media_server_v230_entry_baseline.md --json-report /tmp/media_server_v230_entry_baseline.json`
+- PASS: `./server.sh verify-release-metadata`
+- PASS: `./server.sh verify-release-evidence-index`
+- PASS: `./server.sh verify-integrator-contract-artifact`
+- PASS: `./server.sh verify-event-post --mode schema --http-base http://127.0.0.1:8082`
+- PASS: `./server.sh verify-auth-routes`
+- PASS: `./server.sh verify-webrtc-va-metadata --http-base http://127.0.0.1:8082`
+- PASS: `./server.sh verify-va-metadata-sidechannel --http-base http://127.0.0.1:8082`
+- PASS: `./server.sh verify-ws-metadata --http-base http://127.0.0.1:8082`
+- PASS: `./server.sh verify-docs-links`
+- PASS: `./server.sh verify-script-inventory`
+- PASS: `git diff --check`
+- 보정: `verify-event-post`는 서버 미기동과 auth 401 전제 실패를 분리한 뒤
+  `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1`, `MEDIA_SERVER_AUTH_MODE=off` 격리
+  서버에서 재실행했습니다. RTSP/HTTP bind와 Node/Chrome 기반 metadata verifier는
+  sandbox 제한 때문에 같은 명령을 외부 실행으로 재검증했습니다.
+- 미실행: 30분 테스트, 120분 테스트, UI 풀테스트, real ONVIF, external
+  TURN/WHEP, real cloud provider call, published metadata 재검증.
+- 토큰 사용량: token start `미집계`, token end `미집계`, token consumed `미집계`,
+  elapsed `command output 기준`, source `manual-not-available`.
 
 ## 완료 roadmap: v2.2.0 Responsive UI Foundation
 

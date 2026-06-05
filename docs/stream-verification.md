@@ -76,6 +76,7 @@ git diff --check -- README.md NOTICE THIRD_PARTY_NOTICES.md DEPENDENCY_SNAPSHOT.
 ./server.sh verify-va-event-coverage-report
 ./server.sh verify-code-comments
 ./server.sh verify-release-metadata
+./server.sh verify-v230-entry-baseline --report /tmp/media_server_v230_entry_baseline.md --json-report /tmp/media_server_v230_entry_baseline.json
 ./server.sh verify-v190-entry-baseline --report /tmp/media_server_v190_entry_baseline.md --json-report /tmp/media_server_v190_entry_baseline.json
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
@@ -413,7 +414,7 @@ fallback까지 실패하면 `media-server.github-metadata-fallback-policy.v1` �
 `failure-class=tool-unavailable`, `failure-class=external-github-access` 중 하나로
 보고하고 제품 runtime/media 회귀와 분리합니다.
 
-현재 v2.1.0 제품 회귀 gate, UI 풀테스트 gate, release close-out gate는 아래
+현재 제품 회귀 gate, UI 풀테스트 gate, release close-out gate는 아래
 통합 명령으로만 확인합니다.
 
 ```bash
@@ -448,6 +449,33 @@ fallback까지 실패하면 `media-server.github-metadata-fallback-policy.v1` �
 ./server.sh verify-docs-links
 ./server.sh verify-release-metadata
 ```
+
+v2.3.0 entry baseline은 v2.2.0 source-only/live-only release baseline을 시작점으로
+고정하되, 새 테스트 영역을 만들지 않고 안정화, 30분, 120분, UI 풀테스트 네 영역을
+그대로 유지합니다. `media-server.v230-entry-baseline-report.v1` report는 아래
+명령으로 생성합니다.
+
+```bash
+./server.sh verify-v230-entry-baseline \
+  --report /tmp/media_server_v230_entry_baseline.md \
+  --json-report /tmp/media_server_v230_entry_baseline.json
+./server.sh verify-release-metadata
+./server.sh verify-release-evidence-index
+./server.sh verify-integrator-contract-artifact
+./server.sh verify-event-post --mode schema --http-base <enabled-auth-off-http-base>
+./server.sh verify-auth-routes
+./server.sh verify-webrtc-va-metadata
+./server.sh verify-va-metadata-sidechannel
+./server.sh verify-ws-metadata
+```
+
+이 묶음은 v2.3.0 S00의 roadmap review와 Event POST/WebRTC/SSE/WS/Auth/Rule/media
+path freeze 선수 gate입니다. UI 풀테스트, 30분 soak, 120분 longrun, real ONVIF,
+external TURN/WHEP, VLM provider smoke, published GitHub live metadata 확인은 별도
+명시 지시나 release 후보 gate에서만 실행하고, 이 report의 PASS로 대체하지 않습니다.
+Event POST schema smoke는 `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1` 및
+`MEDIA_SERVER_AUTH_MODE=off` 격리 서버에서 실행합니다. 서버 미기동 또는 auth 401은
+실행 전제 실패로 기록하고 같은 build를 보정 서버로 띄워 재검증합니다.
 
 v2.1.0 entry baseline은 v2.0.0 published evidence를 시작점으로 고정하되,
 신규 VLM runtime/provider 호출이나 UI/장시간 테스트 PASS를 만들지 않습니다.
