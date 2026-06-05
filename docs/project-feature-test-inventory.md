@@ -61,7 +61,7 @@ close-out과 과거 UI 풀테스트 실행 evidence는
 | 120분 테스트 매핑 | memory leak/runtime drift 조건부 대상 7개 분리 | 기준표 작성 완료 |
 | VA seed 데이터 | `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`로 numeric ID/API payload 기준 full UI seed matrix를 고정 | 준비 기준일 뿐 실행 증거 아님 |
 | UI 풀테스트 결과 | 기능 ID별 result template 기록란 추가. 실행 결과는 release evidence 문서에서 관리 | 결과 문서 없이 inventory만으로 UI PASS 판정 불가 |
-| UI fulltest one-shot helper | `./server.sh verify-ui-fulltest-one-shot`이 throwaway core/auth 서버와 UI verifier 묶음을 순차 실행 | 30분/120분 longrun은 실행하지 않으며, helper PASS만으로 장시간 안정화 PASS가 되지 않음 |
+| UI fulltest one-shot wrapper | `./server.sh verify-ui-fulltest-one-shot`이 throwaway core/auth 서버와 UI verifier 묶음을 순차 실행 | 30분/120분 longrun은 실행하지 않으며, wrapper PASS만으로 장시간 안정화 PASS가 되지 않음 |
 | Coverage gate | `./server.sh verify-feature-inventory-coverage`가 `media-server.feature-inventory-coverage.v1` report로 기능 ID별 verifier/UI evidence/longrun 연결을 점검하고 네 테스트 영역 밖 분류를 거부 | `missing coverage target` 누락 ID는 release gate에서 FAIL |
 | VLM route, control, action, runtime state, sidecar, privacy guard | V200-S14~V210-S12 기준으로 `/ops/vlm`, `/ops/events` VLM review, `/ops/rules` draft, VLMObservation sidecar, summary/rule suggestion 후보, privacy/redaction/no-auto-apply 경계를 기능 ID 단위로 확장 | 실행 evidence가 아니며, 실제 UI 풀테스트와 장시간 안정화는 별도 단계에서 PASS/FAIL로 기록 |
 | v2.2.0 S05 Ops workspace redesign | 기존 `UI-009`, `UI-010`, `UI-014`를 `/ops/home`, `/ops/dashboard`, `/ops/events` responsive workspace 기준에 연결 | `verify-v220-ops-workspace-redesign`과 Ops UI smoke는 안정화 evidence이며, 인앱 브라우저 UI 풀테스트 결과를 대체하지 않음 |
