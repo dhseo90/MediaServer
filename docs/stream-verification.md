@@ -128,7 +128,7 @@ GitHub Actions Node 24 baseline은 `actions/checkout@v5`와
 self-hosted runner는 minimum Actions Runner version `2.327.1` 이상이어야 합니다.
 `.github/dependabot.yml`은 future major update 자동 병합을 막고,
 `verify-actions-security`는 이 baseline과 SHA pin/local action만 허용합니다.
-UI 풀테스트 one-shot helper는 실제 UI verifier 묶음을 실행하는 harness입니다.
+UI 풀테스트 one-shot wrapper는 실제 UI verifier 묶음을 실행하는 harness입니다.
 전용 throwaway seed, core auth-off 서버, auth-auto 서버를 분리해 띄우고,
 native/blocking dialog guard, feature inventory coverage, Ops/Client screenshot smoke,
 Rules/route/rules/table verifier, core/auth click E2E를
