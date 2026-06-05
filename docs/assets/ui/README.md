@@ -49,8 +49,8 @@ Chrome/CDP로 생성된 재캡처 산출물은 대표 이미지로 채택하지 
 - `ops-rules-preview`와 VA overlay 이미지는 4분할 sample video viewport, VA overlay,
   bbox/label, 영역/라인 control이 잘리지 않습니다.
 - VLM 전용 `/ops/vlm`, `/ops/events` review-assist 화면은 이 대표 이미지 세트로
-  대체하지 않고, [manual-ui-result-2026-06-03-v210-inapp-fulltest.md](../../manual-ui-result-2026-06-03-v210-inapp-fulltest.md)
-  같은 수동 UI 풀테스트 결과 문서로 분리합니다.
+  대체하지 않고, [release-evidence-index.md](../../release-evidence-index.md)의
+  historical UI 풀테스트 기록으로 분리합니다.
 - 이번 문서 정리에서는 이미지 파일을 새로 교체하지 않습니다.
 
 직접 이미지 검수 checklist:

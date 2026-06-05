@@ -38,10 +38,9 @@ path short enough to scan. The full index is `docs/README.md`.
 - Long-term recording, VMS/NVR, playback/search, ONVIF Profile G
   recording/replay, Re-ID default-on, and tracker default-on remain out of scope.
 
-v2.2.0 branch-level close-out evidence is tracked in
-[../release-evidence-index.md](../release-evidence-index.md). The 2026-06-04
-in-app browser UI fulltest result is tracked in
-[../manual-ui-result-2026-06-04-v220-inapp-fulltest.md](../manual-ui-result-2026-06-04-v220-inapp-fulltest.md).
+v2.2.0 branch-level close-out evidence and historical in-app browser UI
+fulltest summaries are tracked in
+[../release-evidence-index.md](../release-evidence-index.md).
 Script stability, 30-minute soak, UI fulltest, and 120-minute longrun evidence do
 not replace one another. Real cloud provider calls, external TURN field gates,
 and VLM model/runtime bundles remain outside the v2.2.0 completion evidence.
@@ -65,7 +64,7 @@ representative images or UI fulltest evidence without in-app browser review.
 ```bash
 ./server.sh verify-docs-links
 ./server.sh verify-release-metadata
-./server.sh verify-manual-ui-evidence --result docs/manual-ui-result-2026-05-25-ui-fulltest-restart.md
+./server.sh verify-manual-ui-evidence
 ./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
 ./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
 ```

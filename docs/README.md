@@ -105,14 +105,10 @@ source-of-truth가 아니라, verifier와 historical evidence 보존용입니다
 
 ## Historical Evidence Archive
 
-과거 version-named standalone 결과 문서는 현재 기준이나 새 작업 source-of-truth가
-아닙니다. 삭제/병합은 해당 verifier와 release evidence 참조를 함께 정리할 때만
-진행합니다.
-
-| 범위 | 문서 |
-| --- | --- |
-| UI fulltest evidence | [manual-ui-result-2026-05-25-ui-fulltest-restart.md](manual-ui-result-2026-05-25-ui-fulltest-restart.md), [manual-ui-result-2026-06-01-v200-inapp-fulltest.md](manual-ui-result-2026-06-01-v200-inapp-fulltest.md), [manual-ui-result-2026-06-03-v210-inapp-fulltest.md](manual-ui-result-2026-06-03-v210-inapp-fulltest.md), [manual-ui-result-2026-06-04-v220-inapp-fulltest.md](manual-ui-result-2026-06-04-v220-inapp-fulltest.md) |
-| v2.0.0 test record | [v200-test-record-2026-05-31.md](v200-test-record-2026-05-31.md) |
+과거 version-named standalone UI 결과와 v2.0.0 테스트 기록 문서는
+[release-evidence-index.md](release-evidence-index.md)의 Test Token Usage Ledger로
+병합했습니다. 현재 작업 source-of-truth는 이 색인, 현재 v2.3.0 결과 문서, 그리고
+로드맵 문서입니다.
 
 ## Research / Experimental Boundaries
 

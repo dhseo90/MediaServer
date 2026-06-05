@@ -47,11 +47,9 @@ source-of-truth입니다.
 
 이 절은 inventory 문서 자체의 coverage 상태입니다. 실제 안정화 테스트,
 30분 soak, 120분 longrun, UI 풀테스트를 실행했다는 뜻이 아닙니다. v2.2.0 release
-close-out에서 실제 실행한 evidence는 [release-evidence-index.md](release-evidence-index.md),
-[v200-test-record-2026-05-31.md](v200-test-record-2026-05-31.md),
-[manual-ui-result-2026-06-01-v200-inapp-fulltest.md](manual-ui-result-2026-06-01-v200-inapp-fulltest.md),
-[manual-ui-result-2026-06-03-v210-inapp-fulltest.md](manual-ui-result-2026-06-03-v210-inapp-fulltest.md)를
-함께 보되, inventory 자체는 현재 release UI gate를 대체하지 않습니다.
+close-out과 과거 UI 풀테스트 실행 evidence는
+[release-evidence-index.md](release-evidence-index.md)의 Test Token Usage Ledger로
+병합해 보관하며, inventory 자체는 현재 release UI gate를 대체하지 않습니다.
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |

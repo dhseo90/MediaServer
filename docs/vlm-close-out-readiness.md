@@ -117,8 +117,8 @@ Codex goal usage는 최종 보고에서 별도로 확인합니다. 문서에는 
 
 | 후속 test area | 실행 상태 | evidence | 경계 |
 | --- | --- | --- | --- |
-| 30분 soak | PASS | [v200-test-record-2026-05-31.md](./v200-test-record-2026-05-31.md), `/private/tmp/media_server_v200_inapp_30min_20260601_summary.json` | S18 readiness PASS를 대체하지 않고 별도 evidence |
-| UI 풀테스트 | PASS | [manual-ui-result-2026-06-01-v200-inapp-fulltest.md](./manual-ui-result-2026-06-01-v200-inapp-fulltest.md) | 직접 UI evidence이며 30분/120분을 대체하지 않음 |
+| 30분 soak | PASS | [release-evidence-index.md](./release-evidence-index.md), `/private/tmp/media_server_v200_inapp_30min_20260601_summary.json` | S18 readiness PASS를 대체하지 않고 별도 evidence |
+| UI 풀테스트 | PASS | [release-evidence-index.md](./release-evidence-index.md) | 직접 UI evidence이며 30분/120분을 대체하지 않음 |
 | predev 120-minute longrun | PASS | [release-evidence-index.md](./release-evidence-index.md), `/private/tmp/media_server_v200_120min_20260601_retry2_summary.json` | `verify-va-runtime-console-longrun --duration-minutes 120`은 별도 미실행 |
 
 ## Completion Boundary
