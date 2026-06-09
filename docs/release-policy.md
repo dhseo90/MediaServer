@@ -101,7 +101,7 @@ future tag, push, GitHub Release, accepted baseline 채택, 320/390/760/1180px
 screenshot review는 리포트에 manual/not-run으로 남기며, 실제 실행 및 링크가
 없는 항목을 pass로 쓰지 않습니다.
 
-## v2.3.0 Release Close-out Runbook
+## v2.4.0 Release Target Runbook
 
 이 runbook은 순서가 evidence입니다. dry-run에서는 실행 가능 여부와 수동 gate만
 점검하고, real close-out에서는 아래 순서를 건너뛰지 않습니다.
@@ -129,37 +129,34 @@ Real close-out checklist:
 위 순서 중 실행하지 않은 항목은 테스트 결과 행을 만들지 않고 release evidence 실행
 상태에 `미실행` 또는 `manual-not-run`으로 남기며, 실행하지 않은
 tag/push/GitHub Release를 완료로 쓰지 않습니다.
-v2.3.0 source-only release에서는
+v2.4.0 source-only release target에서는
 [development-backlog.md](./development-backlog.md)의
-`v2.3.0 Release Close-out` 기준으로 Operational Evidence & Contract Baseline S00~S07,
-EventRecord occurrence matrix, 4대 테스트 evidence 정합성, UI renderer/module
-decomposition, 조건부 ONVIF/external TURN/WHEP evidence, VLM opt-in 운영 증적,
-Ops backup/recovery evidence lifecycle, integrator contract conformance,
-release metadata/docs/static gate, GitHub Actions warning/Node 24 baseline,
-feature inventory coverage, published release evidence의 확인됨/미실행/미확인 상태를
-분리합니다.
+`활성 roadmap: v2.4.0 Operator Event Review & Action Workflow` 기준으로 Operator
+Event Review Inbox, incident/action workflow, alert dry-run, client-safe event summary,
+rule/scenario review loop, evidence/inventory mapping, release metadata/docs/static gate의
+확인됨/미실행/미확인 상태를 분리합니다.
 Client/Ops UI-first workflow와 기존 live media path는 제품 baseline으로 유지합니다.
 현재 release evidence는 [release-evidence-index.md](./release-evidence-index.md),
 [manual-ui-checklist.md](./manual-ui-checklist.md),
 [manual-ui-result-template.md](./manual-ui-result-template.md),
 [project-feature-test-inventory.md](./project-feature-test-inventory.md),
 [ui-visual-release-baseline-approval-template.md](./ui-visual-release-baseline-approval-template.md)를
-source-of-truth로 삼습니다. 현재 `v2.3.0` release pass/fail 기준은 이 evidence와
+source-of-truth로 삼습니다. 현재 `v2.4.0` release target pass/fail 기준은 이 evidence와
 통합 검증 명령으로 판단합니다.
 
 ## Tag 전략
 
-- 현재 source-only release 기준 tag는 `v2.3.0`입니다.
+- 현재 source-only release 기준 tag는 `v2.4.0`입니다.
 - public-readiness, bundle policy, Actions status check가 모두 통과한 커밋에만 tag를 붙입니다.
 - 다음 신규 release tag는 signed annotated tag로 생성합니다. `git tag -s <tag> <commit>`
   또는 GitHub가 검증 가능한 SSH/S/MIME signing 설정만 허용합니다.
 - signed tag evidence는 GitHub Tags/Releases의 Verified 표시 또는 GitHub API tag
   verification `verified=true`/`reason=valid`로 확인합니다.
-- `v2.3.0`은 live-only media path를 유지하면서 EventRecord evidence, 테스트 evidence
-  정합성, 조건부 field evidence, VLM opt-in 운영 증적, Ops backup/recovery evidence
-  lifecycle, integrator contract conformance를 닫는 release이며, binary/runtime/model
-  bundle의 운영 배포 완료를 뜻하지 않습니다.
-- route/API/config/schema migration이 필요한 후속 변경은 `v2.4.0` 이후 후보로 분리합니다.
+- `v2.4.0`은 live-only media path를 유지하면서 Operator Event Review Inbox,
+  incident/action workflow, alert dry-run, client-safe event summary를 닫는 release
+  target이며, binary/runtime/model bundle의 운영 배포 완료를 뜻하지 않습니다.
+- route/API/config/schema migration이 필요한 후속 변경은 `v2.4.0`의 명시된 step
+  범위 밖 후보로 분리합니다.
 - tag release에는 generated sample pack, YOLO model, FFmpeg/GStreamer runtime bundle을 붙이지 않습니다.
 
 ## Actions update 정책
@@ -216,18 +213,18 @@ Licensing and Artifact Guardrails/guardrails, RC Release Gate workflow에 들어
 ## Release Note Template
 
 ```markdown
-# Media Server v2.3.0
+# Media Server v2.4.0
 
 ## Scope
 
-- Live-only media path plus operational evidence and contract baseline source/doc release
+- Live-only media path plus Operator Event Review & Action Workflow source/doc release target
 - Binary/runtime/model bundle: not included
 
 ## Live-only Scope
 
 - Live media relay and live VA event focus remain unchanged
 - VLM remains an Ops-only event review assist layer: runtime opt-in contract, local runtime smoke gate, provider field smoke gate boundary, privacy/default-off evidence, and manual-only promotion evidence
-- v2.3.0 close-out: Operational Evidence & Contract Baseline S00-S07 verifier evidence, EventRecord occurrence matrix, release evidence index, feature inventory coverage, release metadata, and release close-out one-shot dry-run
+- v2.4.0 target: Operator Event Review Inbox, incident/action workflow, alert dry-run, client-safe event summary, release evidence index, feature inventory coverage, release metadata, and release close-out one-shot dry-run
 - EventRecord/snapshot/clip: short event evidence helper, not the main product message
 
 ## Non-goals

@@ -2,7 +2,8 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Release](https://img.shields.io/badge/release-v2.3.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.3.0)
+[![Published Release](https://img.shields.io/badge/published-v2.3.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.3.0)
+[![Release Target](https://img.shields.io/badge/target-v2.4.0-informational)](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
 video analytics overlays and rule/scenario live events when analytics are enabled.
@@ -13,8 +14,9 @@ runtime/model bundle distribution are outside the default release scope.
 
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
-- Current release: [v2.3.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.3.0)
-- Release baseline: `v2.3.0 Operational Evidence & Contract Baseline`
+- Latest published release: [v2.3.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.3.0)
+- Current release target: [v2.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
+- Release baseline: `v2.4.0 Operator Event Review & Action Workflow`
 
 ## At a Glance
 
@@ -30,10 +32,9 @@ runtime/model bundle distribution are outside the default release scope.
 - **Product UI**: routes users to Ops or Client views based on account
   permissions. There is no Lab product screen; lab endpoints remain available
   for API and verification workflows.
-  `v2.3.0` strengthens EventRecord evidence, test evidence consistency,
-  conditional field gates, VLM opt-in operational evidence, backup/recovery
-  lifecycle evidence, and integrator contract conformance without expanding
-  backend media paths, event schemas, or auth policy.
+  `v2.4.0` turns Operator Event Review into the active product workflow for
+  review inbox, incident/action state, alert dry-run, and client-safe event
+  summaries without expanding backend media paths, event schemas, or auth policy.
 - **Auth and scopes**: supports first-admin setup, session login, role/scope,
   admin user management, and viewer invite/request approval.
 - **Verification**: `./server.sh` provides UI/Auth smoke tests, VA replay checks,
@@ -44,11 +45,11 @@ runtime/model bundle distribution are outside the default release scope.
 
 ## VLM Review Assist
 
-v2.3.0 keeps the v2.2.0 responsive Ops/Client/Auth foundation and records VLM
-review-assist as default-off operational evidence. YOLO/Rule/Scenario still
-create the events; VLM adds explanations, false-positive hints, evidence
-summaries, and rule suggestion candidates while keeping the existing Event POST,
-WebRTC, SSE/WS metadata schemas and media paths.
+v2.4.0 keeps the v2.3.0 source-only/live-only baseline and VLM review-assist
+default-off boundary while turning Operator Event Review into an active product
+workflow. YOLO/Rule/Scenario still create the events; VLM adds explanations,
+false-positive hints, evidence summaries, and rule suggestion candidates while
+keeping the existing Event POST, WebRTC, SSE/WS metadata schemas and media paths.
 
 Model recommendation is based on both PC capability and privacy mode. The current
 baseline is `Qwen/Qwen3-VL-8B-Instruct` for local standard hardware,
@@ -141,14 +142,15 @@ release evidence live in dedicated docs.
 - Release/version policy: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - Release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
-- Release notes: [v2.3.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.3.0)
-- Completed roadmap: `v2.3.0 Operational Evidence & Contract Baseline` in
+- Release notes target: [v2.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
+- Latest published release notes: [v2.3.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.3.0)
+- Active roadmap: `v2.4.0 Operator Event Review & Action Workflow` in
   [docs/development-backlog.md](docs/development-backlog.md)
 
 ## UI Preview
 
 These images are documentation preview assets, not UI fulltest PASS evidence.
-For the active `v2.3.0` docs baseline, QA-registry-heavy recaptures and
+For the active `v2.4.0` docs baseline, QA-registry-heavy recaptures and
 unapproved Chrome/CDP fallback captures are not used as representative assets.
 
 **Ops Home**

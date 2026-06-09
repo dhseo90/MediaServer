@@ -2,7 +2,8 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Release](https://img.shields.io/badge/release-v2.3.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.3.0)
+[![Published Release](https://img.shields.io/badge/published-v2.3.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.3.0)
+[![Release Target](https://img.shields.io/badge/target-v2.4.0-informational)](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
 
 RTSP/WebRTC live stream을 받아 다시 내보내고, 필요할 때 YOLO/ONNX 영상 분석
 overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다.
@@ -13,8 +14,9 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 
 - English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 - 전체 문서 색인: [docs/README.md](docs/README.md)
-- 현재 릴리즈: [v2.3.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.3.0)
-- 릴리즈 기준: `v2.3.0 Operational Evidence & Contract Baseline`
+- 최신 공개 release: [v2.3.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.3.0)
+- 현재 릴리즈 target: [v2.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
+- 릴리즈 기준: `v2.4.0 Operator Event Review & Action Workflow`
 
 ## 한눈에 보기
 
@@ -25,9 +27,9 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
   VLM model/runtime bundle과 cloud provider 실제 호출은 기본 release에 포함하지 않습니다.
 - **제품 화면**: 같은 메인 주소에서 계정 권한에 따라 운영자 화면 또는 클라이언트 화면으로 이동합니다.
   검증/연동 API는 제품 화면과 분리해 유지합니다.
-  `v2.3.0`에서는 backend/media/schema 확장이 아니라 EventRecord evidence,
-  테스트 evidence 정합성, 조건부 field gate, VLM opt-in 운영 증적, 백업/복구
-  lifecycle, integrator contract conformance를 강화합니다.
+  `v2.4.0`에서는 backend/media/schema 확장이 아니라 Operator Event Review Inbox,
+  incident/action workflow, alert dry-run, client-safe event summary를 운영 흐름으로
+  정리합니다.
 - **계정/권한**: 최초 관리자 설정, session 로그인, role/scope, admin 사용자 관리, viewer invite/request 승인 흐름을 사용합니다.
 - **검증**: UI/Auth smoke, VA replay, runtime state, 백업/복구 리허설, RC gate artifact 검증 명령을 `./server.sh`에서 제공합니다.
   장기 soak/부하 검증은 기본 smoke와 분리해 [docs/stream-verification.md](docs/stream-verification.md)의 longrun gate 기준으로만 다룹니다.
@@ -35,8 +37,8 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 
 ## VLM 리뷰 보조
 
-v2.3.0은 v2.2.0의 responsive Ops/Client/Auth 기반을 유지하면서 VLM review-assist를
-default-off 운영 증적 경계로 정리한 source-only release입니다. YOLO/Rule/Scenario가
+v2.4.0은 v2.3.0의 source-only/live-only baseline과 VLM review-assist default-off
+경계를 유지하면서 Operator Event Review를 제품 workflow로 정리하는 active target입니다. YOLO/Rule/Scenario가
 만든 이벤트에 대해 설명, 오탐 가능성 힌트, evidence 요약, Rule 추천 후보를
 보조 정보로 제공하고, 기존 Event POST/WebRTC/SSE/WS schema와 media path는
 유지합니다.
@@ -122,16 +124,17 @@ README는 제품을 빠르게 파악하기 위한 문서입니다. 세부 정책
 - release/version 기준: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
-- release notes: [v2.3.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.3.0)
-- 완료 roadmap: [docs/development-backlog.md](docs/development-backlog.md)의
-  `v2.3.0 Operational Evidence & Contract Baseline`
+- release notes: [v2.4.0 target](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
+- 최신 공개 release notes: [v2.3.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.3.0)
+- 활성 roadmap: [docs/development-backlog.md](docs/development-backlog.md)의
+  `v2.4.0 Operator Event Review & Action Workflow`
 
 ## 대표 UI 미리보기
 
 README에는 전체 흐름이 바로 읽히는 대표 제품 화면만 배치합니다.
 개발 진단과 분석 편집 상세는 [docs/ui-guide.md](docs/ui-guide.md)에서 따로 다룹니다.
 대표 이미지는 문서용 역할 이미지이며 UI 풀테스트 PASS 증거가 아닙니다. 현재
-`v2.3.0` 문서 기준에서는 운영 QA registry가 섞인 재캡처나 Chrome/CDP 예외 캡처를
+`v2.4.0` 문서 기준에서는 운영 QA registry가 섞인 재캡처나 Chrome/CDP 예외 캡처를
 대표 이미지로 사용하지 않습니다.
 
 **Ops Home**

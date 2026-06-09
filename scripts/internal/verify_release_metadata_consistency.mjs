@@ -116,8 +116,8 @@ check("VERSION matches CMake project VERSION", () => {
 
 check("README.md current release link points at current tag", () => {
   const readme = readText("README.md");
-  assert(readme.includes(`현재 릴리즈: [${currentTag}](${expectedReleaseUrl})`), "README.md current release link drifted");
-  assertSingleReleaseLink(readme, "README.md");
+  assert(readme.includes(`현재 릴리즈 target: [${currentTag}](${expectedReleaseUrl})`), "README.md current release target link drifted");
+  assertAllowedReleaseLinks(readme, "README.md", currentTag);
   return { file: "README.md", currentTag, expectedReleaseUrl };
 });
 
@@ -130,8 +130,8 @@ check("README.md keeps release source-of-truth links lightweight", () => {
 
 check("README.en.md current release link points at current tag", () => {
   const readmeEn = readText("README.en.md");
-  assert(readmeEn.includes(`Current release: [${currentTag}](${expectedReleaseUrl})`), "README.en.md current release link drifted");
-  assertSingleReleaseLink(readmeEn, "README.en.md");
+  assert(readmeEn.includes(`Current release target: [${currentTag}](${expectedReleaseUrl})`), "README.en.md current release target link drifted");
+  assertAllowedReleaseLinks(readmeEn, "README.en.md", currentTag);
   return { file: "README.en.md", currentTag, expectedReleaseUrl };
 });
 
@@ -333,8 +333,8 @@ check("release policy pins source-only tag baseline", () => {
   const doc = readText("docs/release-policy.md");
   for (const snippet of [
     `현재 source-only release 기준 tag는 \`${currentTag}\`입니다.`,
-    `\`${currentTag}\`은 live-only media path를 유지하면서 EventRecord evidence, 테스트 evidence`,
-    "integrator contract conformance를 닫는 release",
+    `\`${currentTag}\`은 live-only media path를 유지하면서 Operator Event Review Inbox,`,
+    "incident/action workflow, alert dry-run, client-safe event summary를 닫는 release",
   ]) {
     assert(doc.includes(snippet), `docs/release-policy.md missing snippet: ${snippet}`);
   }
@@ -375,25 +375,23 @@ check("release policies require future signed tags", () => {
 check("development backlog pins current close-out and completed v2.2.0 roadmap gates", () => {
   const doc = readText("docs/development-backlog.md");
   for (const snippet of [
-    `## 현재 기준: ${currentTag} Source Release Baseline`,
-    `${currentTag}은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서`,
+    "## 활성 roadmap: v2.4.0 Operator Event Review & Action Workflow",
+    "Operator Event Review Inbox",
+    "| 0 | V240-S00 | P0 |",
+    "## 현재 기준: v2.3.0 Source Release Baseline",
+    "v2.3.0은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서",
     "Operational Evidence & Contract Baseline을 닫는 source-only release입니다.",
-    "## 활성 roadmap: v2.3.0 Operational Evidence & Contract Baseline",
     "기존 네 영역인 안정화 테스트, 30분 테스트, 120분 테스트, UI 풀테스트",
     "V230-S00",
     "verify-v230-entry-baseline",
-    "## 완료 roadmap: v2.2.0 Responsive UI Foundation",
-    "작업 단위 반응형 셸",
-    "V220-S00",
-    "verify-v220-entry-boundary",
-    `## ${currentTag} Release Close-out`,
+    "## 완료 roadmap: v2.3.0 Operational Evidence & Contract Baseline",
+    "## v2.3.0 Release Close-out",
     "실제 tag/push는 이 release close-out 지시에 한해 수행합니다",
-    "## 완료 roadmap: v2.1.0 VLM Runtime Opt-in Stabilization",
-    "운영자가 명시적으로 켠 경우에만 실제 VLM runtime/provider 연결을 검증 가능한",
-    "이 roadmap은 `v2.1.0` branch에서",
   ]) {
     assert(doc.includes(snippet), `docs/development-backlog.md missing snippet: ${snippet}`);
   }
+  assert(/\| 0 \| V240-S00 \| P0 \| (진행|완료) \| v2\.4\.0 baseline \| v2\.4\.0 기준 정렬 \|/.test(doc),
+    "docs/development-backlog.md V240-S00 row must be 진행 or 완료");
   return { file: "docs/development-backlog.md", currentTag };
 });
 
@@ -409,10 +407,11 @@ check("docs index points to backlog as current release source of truth", () => {
     assert(text.includes("docs/development-backlog.md") || text.includes("../development-backlog.md"), `${label} missing development backlog link`);
     assert(
       text.includes(`${currentTag} release close-out`) ||
+        text.includes(`${currentTag} release target`) ||
         text.includes(`${currentTag} 종료 판정`) ||
         text.includes(`${currentTag} patch close-out`) ||
-        text.includes(`현재 릴리즈: [${currentTag}]`) ||
-        text.includes(`Current release: [${currentTag}]`),
+        text.includes(`현재 릴리즈 target: [${currentTag}]`) ||
+        text.includes(`Current release target: [${currentTag}]`),
       `${label} missing current release wording`
     );
   }
@@ -438,16 +437,16 @@ check("public entry docs keep release evidence source-of-truth deduped", () => {
     }
   }
   for (const snippet of [
-    "Current Release Close-Out",
-    `${currentTag} Release Close-out`,
-    "Operational Evidence & Contract Baseline",
-    `${currentTag} Release Close-out Runbook`,
+    "Current Release Target",
+    `${currentTag} operator event review roadmap`,
+    "Operator Event Review & Action Workflow",
+    `${currentTag} Release Target Runbook`,
     "release-policy.md",
   ]) {
     assert(docsIndex.includes(snippet), `docs/README.md missing source-of-truth link snippet: ${snippet}`);
   }
-  assert(releasePolicy.includes(`## ${currentTag} Release Close-out Runbook`), `release policy must own the ${currentTag} close-out runbook`);
-  assert(backlog.includes(`## ${currentTag} Release Close-out`), `development backlog must own the ${currentTag} release close-out`);
+  assert(releasePolicy.includes(`## ${currentTag} Release Target Runbook`), `release policy must own the ${currentTag} target runbook`);
+  assert(backlog.includes(`## 활성 roadmap: ${currentTag} Operator Event Review & Action Workflow`), `development backlog must own the ${currentTag} active roadmap`);
   return {
     publicEntrypoints: ["README.md", "README.en.md"],
     sourceOfTruth: ["docs/README.md", "docs/development-backlog.md", "docs/release-policy.md"],
@@ -456,7 +455,7 @@ check("public entry docs keep release evidence source-of-truth deduped", () => {
 
 check("public review pins current release wording", () => {
   const publicReview = readText("docs/public-repo-final-review.md");
-  assert(publicReview.includes(`현재 source-only release: \`${currentTag}\``), "docs/public-repo-final-review.md current release drifted");
+  assert(publicReview.includes(`현재 source-only release target: \`${currentTag}\``), "docs/public-repo-final-review.md current release target drifted");
   assertNoOtherCurrentTag(publicReview, "docs/public-repo-final-review.md", currentTag);
   return { file: "docs/public-repo-final-review.md", currentTag };
 });
@@ -511,10 +510,14 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-function assertSingleReleaseLink(text, label) {
+function assertAllowedReleaseLinks(text, label, expectedTag) {
   const links = [...text.matchAll(/releases\/tag\/(v\d+\.\d+\.\d+)/g)].map(match => match[1]);
-  const unexpected = links.filter(tag => tag !== currentTag);
-  assert(unexpected.length === 0, `${label} has release tag link(s) other than ${currentTag}: ${unexpected.join(", ")}`);
+  const publishedTagMatches = [
+    ...text.matchAll(/(?:최신 공개 release|Latest published release|최신 공개 release notes|Latest published release notes): \[(v\d+\.\d+\.\d+)/g),
+  ].map(match => match[1]);
+  const allowed = new Set([expectedTag, ...publishedTagMatches]);
+  const unexpected = links.filter(tag => !allowed.has(tag));
+  assert(unexpected.length === 0, `${label} has release tag link(s) outside current target/published release: ${unexpected.join(", ")}`);
 }
 
 function assertNoOtherCurrentTag(text, label, expectedTag) {
