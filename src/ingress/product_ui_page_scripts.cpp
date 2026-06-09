@@ -2188,7 +2188,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           <span class="ops-rule-note">확인: ${escapeHtml(questionText)}</span>
           <div class="ops-vlm-review-action-controls" data-testid="ops-vlm-review-action-controls" data-vlm-review-action-workflow="ops-only-review-state">
             <label>VLM action ${eventReviewSelectHtml('vlmAction', VLM_REVIEW_ACTIONS, vlmAction.action || 'not-reviewed')}</label>
-            <label>Target ${eventReviewSelectHtml('vlmActionTarget', VLM_REVIEW_ACTION_TARGETS, vlmAction.target || 'eventExplanation')}</label>
+            <label>Action target ${eventReviewSelectHtml('vlmActionTarget', VLM_REVIEW_ACTION_TARGETS, vlmAction.target || 'eventExplanation')}</label>
             <input class="event-review-note-input" data-event-review-field="vlmActionNote" maxlength="300" value="${escapeHtml(vlmAction.note || '')}" placeholder="VLM action note" />
           </div>
         </div>`;
@@ -2214,7 +2214,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           const note = String(review.note || '');
           const noteHtml = `<input class="event-review-note-input" data-event-review-field="note" maxlength="500" value="${escapeHtml(note)}" placeholder="운영자 메모" />`;
           const updated = review.updatedAtMs ? `${eventRecordTime(review.updatedAtMs)} · ${display(review.actor || '-')}` : '미검토';
-          return `<tr data-event-review-row data-event-id="${escapeHtml(eventId)}">
+          return `<tr data-event-review-row data-event-id="${escapeHtml(eventId)}" data-event-review-detail="event-list-detail" data-event-review-action-target="false-positive-or-vlm-target">
             ${tableCellHtml('이벤트', eventHtml)}
             ${tableCellHtml('리뷰', eventReviewSelectHtml('reviewStatus', EVENT_REVIEW_STATUSES, review.reviewStatus || 'new'))}
             ${tableCellHtml('분류', eventReviewSelectHtml('classification', EVENT_REVIEW_CLASSES, review.classification || 'unclassified'))}

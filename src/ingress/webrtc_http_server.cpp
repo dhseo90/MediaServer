@@ -3409,11 +3409,11 @@ void AppendOpsRulesPage(std::ostringstream& out) {
 }
 
 void AppendOpsEventsPage(std::ostringstream& out) {
-    out << R"(    <section class="panel ops-workspace ops-workspace-events" data-ops-panel="events" data-testid="ops-events-page" data-route-scope="direct-diagnostic">
+    out << R"(    <section class="panel ops-workspace ops-workspace-events" data-ops-panel="events" data-testid="ops-events-page" data-route-scope="operator-event-review" data-event-review-workflow="operator-inbox">
       <div class="toolbar panel-title-toolbar ops-workspace-hero">
         <div>
-          <h2>이벤트 상태</h2>
-          <p>Primary nav에는 표시하지 않는 direct/diagnostic route입니다. Event storage, delivery, review inbox, evidence records를 한 작업대에서 확인합니다.</p>
+          <h2>Operator Event Review Inbox</h2>
+          <p>Primary nav에는 표시하지 않는 운영자 event review direct route입니다. EventRecord list/detail, evidence refs, review state, operator note, false-positive/action target을 한 작업대에서 확인합니다.</p>
         </div>
         <div class="actions">
           <a class="button button-secondary" href="/ops/dashboard">대시보드</a>
@@ -3502,7 +3502,7 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           </table>
         </div>
       </section>
-      <section class="section-card ops-workspace-wide" data-testid="ops-event-review-inbox" data-review-state="separate-from-event-post-payload" data-vlm-review-state="ops-only-event-record-evidence" data-vlm-review-action-workflow="ops-only-review-state">
+      <section class="section-card ops-workspace-wide" data-testid="ops-event-review-inbox" data-event-review-workflow="operator-inbox" data-review-state="separate-from-event-post-payload" data-vlm-review-state="ops-only-event-record-evidence" data-vlm-review-action-workflow="ops-only-review-state">
         <div class="toolbar">
           <div>
             <h3>Rule Event Review Inbox</h3>

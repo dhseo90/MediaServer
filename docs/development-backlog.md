@@ -76,7 +76,7 @@ metadata schema와 RTSP/WebRTC media path는 변경하지 않습니다.
 | 순서 | ID | 우선순위 | 상태 | 영역 | 제목 | 목표 | 예상 검증 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 0 | V240-S00 | P0 | 완료 | v2.4.0 baseline | v2.4.0 기준 정렬 | `VERSION`, CMake, README, docs index, backlog, release/version 문서의 v2.4.0 source-of-truth를 정렬하고, v2.3.0 release baseline과 v2.4.0 active roadmap을 분리합니다. | roadmap review, `verify-release-metadata`, `verify-docs-links`, `verify-release-evidence-index`, `git diff --check` |
-| 1 | V240-S01 | P0 | 예정 | Operator Event Review | Operator Event Review Inbox | `/ops/events`를 운영자 event review inbox로 제품화하고, event list/detail, evidence refs, review state, operator note, false-positive/action target을 route/control/action 단위로 관리합니다. | `verify-ops-event-review-inbox`, `verify-vlm-ops-event-review-ui`, EventRecord UI 직접 검수, `verify-manual-ui-evidence`, `git diff --check` |
+| 1 | V240-S01 | P0 | 완료 | Operator Event Review | Operator Event Review Inbox | `/ops/events`를 운영자 event review inbox로 제품화하고, event list/detail, evidence refs, review state, operator note, false-positive/action target을 route/control/action 단위로 관리합니다. | `verify-ops-event-review-inbox`, `verify-vlm-ops-event-review-ui`, EventRecord UI 직접 검수, `verify-manual-ui-evidence`, `git diff --check` |
 | 2 | V240-S02 | P0 | 예정 | Incident Action | Event Action and Incident Workflow | EventRecord를 incident/action 상태로 묶고, `new`, `review-needed`, `acknowledged`, `in-progress`, `closed`, `false-positive` 같은 운영 상태와 audit trail을 저장/표시합니다. | event review state fixture, audit persistence verifier, `verify-ops-audit-trail`, `verify-ops-audit-persistence`, UI 직접 검수, `git diff --check` |
 | 3 | V240-S03 | P1 | 예정 | Alert dry-run | Alert Dry-run and Delivery Attempt Log | 실제 외부 전송을 기본 기능으로 열지 않고, alert target draft, payload preview, dry-run result, delivery attempt log를 Ops 전용으로 제공합니다. | alert dry-run fixture, delivery attempt log verifier, redaction review, `verify-ops-alert-delivery-integrations`, `git diff --check` |
 | 4 | V240-S04 | P1 | 예정 | Client-safe summary | Client-safe Event and Status Summary | `/client/dashboard`와 `/client/live`에 viewer-safe 최근 이벤트, source health, incident status 요약을 제공하고 원본 locator/debug/raw JSON 비노출 경계를 재확인합니다. | `verify-client-dashboard-polish`, `verify-v220-client-preview-redaction-review`, viewer role UI 직접 검수, `verify-auth-routes`, `git diff --check` |
@@ -84,6 +84,38 @@ metadata schema와 RTSP/WebRTC media path는 변경하지 않습니다.
 | 6 | V240-S06 | P1 | 예정 | UI/API decomposition | Ops Event Route and UI Owner Decomposition | `webrtc_http_server.cpp`의 Ops Events, event review/action API, client summary route, alert dry-run route owner를 분리해 후속 기능 개발 비용을 낮춥니다. | build, route smoke, `verify-v230-ui-renderer-module-decomposition`, `verify-ops-client-ui`, `verify-ops-route-boundaries`, `git diff --check` |
 | 7 | V240-S07 | P2 | 예정 | Evidence / inventory | v2.4.0 Evidence and Inventory Mapping | Event review inbox, incident action, alert dry-run, client-safe summary, rule review loop의 feature inventory, manual UI checklist, release evidence row를 추가합니다. | `verify-feature-inventory-coverage`, `verify-manual-ui-evidence`, `verify-release-evidence-index`, `verify-project-inventory`, `git diff --check` |
 | 8 | V240-S08 | P2 | 예정 | Release readiness | v2.4.0 Release Readiness Gate | v2.4.0 완료 범위의 문서 링크/assets, release metadata, close-out dry-run, CI/local parity, 미실행/제외 테스트 기록을 정리합니다. | `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-ci-local-gate-parity`, `verify-release-closeout-helper --dry-run`, `git diff --check` |
+
+### V240-S01 Operator Event Review Inbox 종료 기준
+
+직접 답: v2.4.0 S01의 1차 선택값은 `/ops/events`를 raw 진단 route가 아니라
+`Operator Event Review Inbox`로 두는 것입니다. 이 route는 primary nav에는 노출하지
+않되, 운영자가 EventRecord list/detail, evidence refs, review state, operator note,
+false-positive/action target을 한 화면에서 확인하고 별도 review state로 저장하는
+workflow입니다.
+
+S01 실행 결과:
+
+- PASS: `./server.sh verify-ops-event-review-inbox`
+- PASS: `MEDIA_SERVER_UI_BROWSER_MODE=chrome MEDIA_SERVER_ALLOW_CHROME_FALLBACK=1 ./server.sh verify-ops-event-review-inbox --roundtrip-smoke --browser-smoke --http-base http://127.0.0.1:8081 --debug-port 9941`
+  - EventRecord payload를 review state로 오염시키지 않음
+  - review state list/update와 event review audit redaction 확인
+  - 브라우저에서 review inbox render와 redaction boundary 확인
+- PASS: `./server.sh verify-vlm-ops-event-review-ui`
+- PASS: Codex 인앱 브라우저 `/ops/events` 직접 확인
+  `/tmp/media_server_v240_s01_inapp_evidence.json`
+  - `data-route-scope="operator-event-review"`
+  - `data-event-review-workflow="operator-inbox"`
+  - `/ops/events` primary nav 비노출 boundary 확인
+- PASS: `./server.sh verify-manual-ui-evidence`
+- PASS: `./server.sh verify-feature-inventory-coverage`
+- PASS: `./server.sh verify-project-inventory`
+- PASS: `git diff --check`
+- 미실행: 30분 테스트, 120분 테스트, 전체 UI 풀테스트.
+
+S01 완료 판정은 위 Operator Event Review Inbox route/control/action과 review state
+저장 경계에 한정합니다. Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC
+media path, Auth/session/scope, Rule/Profile payload schema는 S01 완료 범위에서
+변경하지 않습니다.
 
 ## 현재 기준: v2.3.0 Source Release Baseline
 

@@ -1,10 +1,11 @@
 # Project Feature Test Inventory
 
-이 문서는 현재 release 목표 `v2.2.0` 기준의 기능별 테스트 분류
+이 문서는 현재 release 목표 `v2.4.0` 기준의 기능별 테스트 분류
 source-of-truth입니다.
-여기서 `현재 release 목표`는 `VERSION`/CMake가 고정한 최신 공개 release
-baseline을 뜻합니다. active roadmap은 `v2.3.0 Operational Evidence & Contract
-Baseline`이며, 두 기준은 완료 판정에서 분리합니다.
+여기서 `현재 release 목표`는 `VERSION`/CMake가 고정한 active release target을
+뜻합니다. 최신 공개 release baseline은 `v2.3.0`이고, active roadmap은
+`v2.4.0 Operator Event Review & Action Workflow`이며, 두 기준은 완료 판정에서
+분리합니다.
 
 중요한 경계:
 
@@ -12,6 +13,7 @@ Baseline`이며, 두 기준은 완료 판정에서 분리합니다.
 - 이 문서는 **현재 테스트가 존재한다는 증거가 아닙니다**.
 - 이 문서는 각 기능에 대해 `UI 필요 여부`, `테스트 필요 여부`, `테스트 영역`,
   `PASS 판정 기준`을 먼저 고정합니다.
+- coverage 대조 전에는 `테스트 있음`, `UI 있음`, `완료`라고 보고하지 않습니다.
 - 실제 coverage는 별도 대조에서 `코드 로직`, `제품 UI`, `안정화`, `30분`,
   `120분`, `UI 풀테스트 evidence` 존재 여부를 확인해야 합니다.
 - raw JSON/API-only 확인은 UI 풀테스트 evidence가 아닙니다.
@@ -229,7 +231,7 @@ v2.1.0 completed roadmap과 v2.2.0 completed roadmap에서 늘어난 검수 대�
 | UI-011 | `/ops/sources` 채널 / 소스 관리 | 필요 | 필요 | 안정화, UI | source/view CRUD와 validation을 직접 조작 |
 | UI-012 | `/ops/rules` VA 룰 / 프로파일 / 이벤트 템플릿 관리 | 필요 | 필요 | 안정화, UI | rule/template/profile CRUD, validation, preview, S06 `rules-workspace` readiness/assist/catalog/detail flow와 320/390/760/1180 overflow 확인 |
 | UI-013 | `/ops/users` 사용자 관리 | 필요 | 필요 | 안정화, UI | user/invite/access request/role/scope flow 확인 |
-| UI-014 | `/ops/events` 이벤트 진단 route | 필요 | 필요 | 안정화, UI | event filter/pagination/evidence action과 S05 `ops-workspace-events` event workbench 표시 확인 |
+| UI-014 | `/ops/events` Operator Event Review Inbox | 필요 | 필요 | 안정화, UI | operator review inbox list/detail, evidence refs, review state, operator note, false-positive/action target 저장 흐름과 primary nav 비노출 경계 확인 |
 | UI-015 | `/client/live` 시청자 Live | 필요 | 필요 | 안정화, UI, 30분 | video viewport/control/status/overlay, S07 `client-live-workspace` video-first grid, viewer redaction, session 지속성 확인 |
 | UI-016 | `/client/dashboard` 시청자 Dashboard | 필요 | 필요 | 안정화, UI | viewer scope 내 dashboard/filter/sort/copy와 S07 `client-viewer-dashboard` status/event summary 확인 |
 | UI-017 | `/client/events` 시청자 이벤트 route | 필요 | 필요 | 안정화, UI | viewer scope 내 events 표시, S07 `client-viewer-events` direct route, 비노출 경계 확인 |
@@ -463,9 +465,9 @@ v2.1.0 completed roadmap과 v2.2.0 completed roadmap에서 늘어난 검수 대�
 | EVT-016 | ops events status | 필요 | 필요 | 안정화, UI | events status panel/API 일치 |
 | EVT-017 | alert deliveries 조회 | 필요 | 필요 | 안정화, UI | `/ops/events` Alert Delivery list에서 검색/kind/status filter와 empty filter 상태를 표시 |
 | EVT-018 | alert delivery test | 필요 | 필요 | 안정화, UI | `/ops/events` Alert Delivery에서 integration 저장 후 Fixture/test action을 클릭하면 최근 시도에 `delivered · fixture`가 표시되고 endpoint token은 redacted 상태로 유지 |
-| EVT-019 | event review 목록 | 필요 | 필요 | 안정화, UI | review inbox list 표시 |
-| EVT-020 | event review 상세 | 필요 | 필요 | 안정화, UI | review detail/status 표시 |
-| EVT-021 | event review 상태 변경 | 필요 | 필요 | 안정화, UI | status change 저장과 audit 반영 |
+| EVT-019 | Operator event review 목록 | 필요 | 필요 | 안정화, UI | review inbox list가 EventRecord와 별도 review state를 함께 표시 |
+| EVT-020 | Operator event review 상세 | 필요 | 필요 | 안정화, UI | event list/detail, evidence refs, review status, operator note 표시 |
+| EVT-021 | Operator event review 상태/action 저장 | 필요 | 필요 | 안정화, UI | status/classification/note/false-positive 또는 VLM action target 저장과 audit 반영 |
 | EVT-022 | audit log 조회 | 필요 | 필요 | 안정화, UI | audit list/filter/export 표시 |
 | EVT-023 | dashboard event 요약 | 필요 | 필요 | 안정화, UI | event summary count/status 표시 |
 | EVT-024 | dashboard runtime 요약 | 필요 | 필요 | 안정화, UI, 30분 | runtime summary가 장시간 drift 없이 유지 |

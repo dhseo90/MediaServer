@@ -5,11 +5,11 @@
 source-of-truth로 삼고, 기능별 UI 필요 여부와 테스트 영역은
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 합니다. 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를
-사용합니다. 최신 공개 release 기준은 `v2.3.0`이며, UI 문서 기준은
-`v2.3.0 Operational Evidence & Contract Baseline`입니다. UI 풀테스트 기준은 해당 작업
-범위에 포함된 제품 route, 권한, 기능 baseline만 대상으로 합니다.
-현재 release 목표는 `v2.3.0`이라는 gate 문구는 최신 공개 release baseline을
-뜻하며, UI 재배치 문서 준비나 자동 smoke만으로 UI 풀테스트 PASS를 뜻하지 않습니다.
+사용합니다. 최신 공개 release 기준은 `v2.3.0`이며, 현재 release 목표는 `v2.4.0`,
+UI 문서 기준은 `v2.4.0 Operator Event Review & Action Workflow`입니다. UI 풀테스트
+기준은 해당 작업 범위에 포함된 제품 route, 권한, 기능 baseline만 대상으로 합니다.
+`v2.4.0` release gate 문구는 현재 release target의 UI evidence 경계를 뜻하며, UI
+재배치 문서 준비나 자동 smoke만으로 UI 풀테스트 PASS를 뜻하지 않습니다.
 문서 구조와 evidence 경계는 `./server.sh verify-manual-ui-evidence`로 확인합니다.
 현재 제품 UI 직접 조작 evidence 없이 완료 판정에 포함하지 않습니다.
 전용 throwaway 서버부터 core/auth 클릭 검증까지 한 번에 실행해야 할 때는
@@ -192,9 +192,9 @@ UI 풀테스트 결과 문서를 쓰기 전에는 아래 항목이 개별 route/
 - 실패 후 고친 화면은 같은 조작으로 재검수하고, 최초 실패와 재확인 결과를 모두
   남깁니다.
 
-### v2.3.0 release UI gate
+### v2.4.0 release UI gate
 
-v2.3.0 release close-out에서는 자동 smoke와 별도로 아래 화면을 브라우저에서 직접
+v2.4.0 release close-out에서는 자동 smoke와 별도로 아래 화면을 브라우저에서 직접
 열고 클릭한 Evidence index를 남깁니다. 자동 screenshot 생성이나 raw JSON/API-only 확인만
 있으면 해당 개별 기능은 `FAIL`입니다.
 
@@ -203,6 +203,7 @@ v2.3.0 release close-out에서는 자동 smoke와 별도로 아래 화면을 브
 - `/ops`: primary nav(Home, Dashboard, Channels, Rules, Users, Client Preview) 이동을 직접 확인합니다.
 - `/client`: viewer/admin preview에서 Live/Dashboard nav만 보이는지 확인합니다.
 - `/ops/rules`: Rule/Profile/Scenario 저장 전 validation, preview 시작, `vaRule` 저장 flow를 직접 확인합니다.
+- `/ops/events`: Operator Event Review Inbox list/detail, evidence refs, review state, operator note, false-positive/action target 저장 flow와 primary nav 비노출 경계를 직접 확인합니다.
 - `/client/live`: source tree, drag/drop 또는 선택, tile start/reconnect/stop, dock 좌/우 전환, 정보 overlay, viewer-safe 비노출을 직접 확인합니다.
 
 Evidence index에는 route, 계정/권한, 직접 조작, screenshot/artifact, 자동 검증 연결,
