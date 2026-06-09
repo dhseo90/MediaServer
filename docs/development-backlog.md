@@ -34,6 +34,57 @@ source-of-truth가 아닙니다. 현재 기준은 이 문서와 기능별 상세
 
 `완료`는 운영 배포 ready, 장기 안정성 보장, 외부 연동 ready를 뜻하지 않습니다.
 
+## 활성 roadmap: v2.4.0 Operator Event Review & Action Workflow
+
+v2.4.0은 v2.3.0 source-only/live-only baseline 위에서 새 media path나 장기 녹화
+제품을 열지 않고, live VA event를 운영자가 확인하고 조치할 수 있는 제품 흐름으로
+정리하는 중기 roadmap입니다. 핵심 제품 방향은 **Operator Event Review Inbox**,
+incident/action 상태, alert dry-run, client-safe event summary입니다.
+
+v2.4.0의 1차 선택값은 `/ops/events`를 raw 진단 route가 아니라 운영자 event review
+inbox로 제품화하는 것입니다. 기존 EventRecord, evidence reference, VLM review hint,
+audit trail, Client redaction 기준은 유지하고, Event POST/WebRTC DataChannel/SSE/WS
+metadata schema와 RTSP/WebRTC media path는 변경하지 않습니다.
+
+핵심 원칙:
+
+- v2.4.0은 Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path,
+  Auth/session/scope, Rule/Profile payload schema를 변경하지 않습니다.
+- 실기기 ONVIF 성공, external TURN/WHEP credential 운영 성공, real cloud provider
+  call은 기본 release PASS가 아닙니다. 실기기가 없는 기본 개발 조건에서는 no-device,
+  fixture, dry-run, redacted report 경계만 다룹니다.
+- 상시 녹화, MP4 recorder, VMS/NVR archive, playback/search는 v2.4.0 구상에
+  포함하지 않습니다.
+- client/viewer에는 source URL, Developer URL, raw JSON, debugCounters, BBox
+  diagnostics, prompt/raw response/provider credential/model internals/Re-ID identity
+  material을 노출하지 않습니다.
+- alert provider는 v2.4.0에서 dry-run과 delivery attempt log를 우선하며, 실제 외부
+  전송 성공 보장은 별도 승인된 후속 범위로 둡니다.
+- 30분 테스트와 120분 테스트는 서로 대체하지 않습니다. UI 풀테스트도 자동 smoke,
+  screenshot 생성, raw JSON/API 확인으로 대체하지 않습니다.
+
+명시적 비범위:
+
+- 장기 녹화, MP4 recorder, VMS/NVR archive, playback/search
+- ONVIF Profile G recording/replay, 실기기 ONVIF 성공 보장
+- Event POST/WebRTC/SSE/WS 외부 payload schema 변경
+- RTSP/WebRTC media pipeline 구조 변경
+- VLM default-on, VLM runtime/model bundle, provider credential 저장
+- Re-ID/tracker default-on, OC-SORT/BoT-SORT/DeepSORT runtime tracker 승격
+- external TURN/WHEP credential 운영 성공 보장, real cloud provider call 성공 보장
+
+| 순서 | ID | 우선순위 | 상태 | 영역 | 제목 | 목표 | 예상 검증 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 0 | V240-S00 | P0 | 예정 | v2.4.0 baseline | v2.4.0 기준 정렬 | `VERSION`, CMake, README, docs index, backlog, release/version 문서의 v2.4.0 source-of-truth를 정렬하고, v2.3.0 release baseline과 v2.4.0 active roadmap을 분리합니다. | roadmap review, `verify-release-metadata`, `verify-docs-links`, `verify-release-evidence-index`, `git diff --check` |
+| 1 | V240-S01 | P0 | 예정 | Operator Event Review | Operator Event Review Inbox | `/ops/events`를 운영자 event review inbox로 제품화하고, event list/detail, evidence refs, review state, operator note, false-positive/action target을 route/control/action 단위로 관리합니다. | `verify-ops-event-review-inbox`, `verify-vlm-ops-event-review-ui`, EventRecord UI 직접 검수, `verify-manual-ui-evidence`, `git diff --check` |
+| 2 | V240-S02 | P0 | 예정 | Incident Action | Event Action and Incident Workflow | EventRecord를 incident/action 상태로 묶고, `new`, `review-needed`, `acknowledged`, `in-progress`, `closed`, `false-positive` 같은 운영 상태와 audit trail을 저장/표시합니다. | event review state fixture, audit persistence verifier, `verify-ops-audit-trail`, `verify-ops-audit-persistence`, UI 직접 검수, `git diff --check` |
+| 3 | V240-S03 | P1 | 예정 | Alert dry-run | Alert Dry-run and Delivery Attempt Log | 실제 외부 전송을 기본 기능으로 열지 않고, alert target draft, payload preview, dry-run result, delivery attempt log를 Ops 전용으로 제공합니다. | alert dry-run fixture, delivery attempt log verifier, redaction review, `verify-ops-alert-delivery-integrations`, `git diff --check` |
+| 4 | V240-S04 | P1 | 예정 | Client-safe summary | Client-safe Event and Status Summary | `/client/dashboard`와 `/client/live`에 viewer-safe 최근 이벤트, source health, incident status 요약을 제공하고 원본 locator/debug/raw JSON 비노출 경계를 재확인합니다. | `verify-client-dashboard-polish`, `verify-v220-client-preview-redaction-review`, viewer role UI 직접 검수, `verify-auth-routes`, `git diff --check` |
+| 5 | V240-S05 | P1 | 예정 | Rule/Scenario review | Rule and Scenario Review Loop | `/ops/rules`에서 저장 전 예상 event type, conflict, missing reference, scenario preset 영향, EventRecord coverage 연결을 더 명확히 표시합니다. | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-rule-validation-matrix`, `verify-va-event-coverage-report`, `git diff --check` |
+| 6 | V240-S06 | P1 | 예정 | UI/API decomposition | Ops Event Route and UI Owner Decomposition | `webrtc_http_server.cpp`의 Ops Events, event review/action API, client summary route, alert dry-run route owner를 분리해 후속 기능 개발 비용을 낮춥니다. | build, route smoke, `verify-v230-ui-renderer-module-decomposition`, `verify-ops-client-ui`, `verify-ops-route-boundaries`, `git diff --check` |
+| 7 | V240-S07 | P2 | 예정 | Evidence / inventory | v2.4.0 Evidence and Inventory Mapping | Event review inbox, incident action, alert dry-run, client-safe summary, rule review loop의 feature inventory, manual UI checklist, release evidence row를 추가합니다. | `verify-feature-inventory-coverage`, `verify-manual-ui-evidence`, `verify-release-evidence-index`, `verify-project-inventory`, `git diff --check` |
+| 8 | V240-S08 | P2 | 예정 | Release readiness | v2.4.0 Release Readiness Gate | v2.4.0 완료 범위의 문서 링크/assets, release metadata, close-out dry-run, CI/local parity, 미실행/제외 테스트 기록을 정리합니다. | `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-ci-local-gate-parity`, `verify-release-closeout-helper --dry-run`, `git diff --check` |
+
 ## 현재 기준: v2.3.0 Source Release Baseline
 
 v2.3.0은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서
@@ -84,7 +135,7 @@ baseline으로 유지합니다.
 과거 release evidence는 standalone current 문서가 아니라 이 문서의 archive 섹션에만
 보존합니다.
 
-## 활성 roadmap: v2.3.0 Operational Evidence & Contract Baseline
+## 완료 roadmap: v2.3.0 Operational Evidence & Contract Baseline
 
 v2.3.0은 v2.2.0 source-only/live-only 제품 baseline을 유지하면서, 새 테스트 영역을
 추가하지 않고 기존 네 영역인 안정화 테스트, 30분 테스트, 120분 테스트, UI 풀테스트의
