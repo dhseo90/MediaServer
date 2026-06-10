@@ -282,6 +282,8 @@ Usage:
                  v2.4.0 S06 Ops Events/action/client summary/alert dry-run route owner 분리를 검증합니다.
   verify-v240-evidence-inventory-mapping
                  v2.4.0 S07 feature inventory/manual UI/release evidence 매핑을 검증합니다.
+  verify-v240-release-readiness-gate
+                 v2.4.0 S08 release metadata/docs/assets/CI parity/close-out dry-run evidence를 검증합니다.
   verify-ops-scenario-builder-ui
                  Scenario Builder UI의 Event Rule 폼 적용과 engine 비변경 계약을 검증합니다.
   verify-ops-client-shared-declutter
@@ -1036,6 +1038,10 @@ case "${cmd}" in
   verify-v240-evidence-inventory-mapping)
     require_internal verify_v240_evidence_inventory_mapping.mjs
     exec "${INTERNAL_DIR}/verify_v240_evidence_inventory_mapping.mjs" "$@"
+    ;;
+  verify-v240-release-readiness-gate)
+    require_internal verify_v240_release_readiness_gate.mjs
+    exec "${INTERNAL_DIR}/verify_v240_release_readiness_gate.mjs" "$@"
     ;;
   verify-ops-scenario-builder-ui)
     require_internal verify_ops_scenario_builder_ui.mjs

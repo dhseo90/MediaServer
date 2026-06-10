@@ -83,7 +83,7 @@ metadata schema와 RTSP/WebRTC media path는 변경하지 않습니다.
 | 5 | V240-S05 | P1 | 완료 | Rule/Scenario review | Rule and Scenario Review Loop | `/ops/rules`에서 저장 전 예상 event type, conflict, missing reference, scenario preset 영향, EventRecord coverage 연결을 더 명확히 표시합니다. | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-rule-validation-matrix`, `verify-va-event-coverage-report`, `git diff --check` |
 | 6 | V240-S06 | P1 | 완료 | UI/API decomposition | Ops Event Route and UI Owner Decomposition | `webrtc_http_server.cpp`의 Ops Events, event review/action API, client summary route, alert dry-run route owner를 분리해 후속 기능 개발 비용을 낮춥니다. | build, route smoke, `verify-v240-ops-event-route-owner-decomposition`, `verify-v230-ui-renderer-module-decomposition`, `verify-ops-client-ui`, `verify-ops-route-boundaries`, `git diff --check` |
 | 7 | V240-S07 | P2 | 완료 | Evidence / inventory | v2.4.0 Evidence and Inventory Mapping | Event review inbox, incident action, alert dry-run, client-safe summary, rule review loop의 feature inventory, manual UI checklist, release evidence row를 추가합니다. | `verify-v240-evidence-inventory-mapping`, `verify-feature-inventory-coverage`, `verify-manual-ui-evidence`, `verify-release-evidence-index`, `verify-project-inventory`, `git diff --check` |
-| 8 | V240-S08 | P2 | 예정 | Release readiness | v2.4.0 Release Readiness Gate | v2.4.0 완료 범위의 문서 링크/assets, release metadata, close-out dry-run, CI/local parity, 미실행/제외 테스트 기록을 정리합니다. | `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-ci-local-gate-parity`, `verify-release-closeout-helper --dry-run`, `git diff --check` |
+| 8 | V240-S08 | P2 | 완료 | Release readiness | v2.4.0 Release Readiness Gate | v2.4.0 완료 범위의 문서 링크/assets, release metadata, close-out dry-run, CI/local parity, 미실행/제외 테스트 기록을 정리합니다. | `verify-v240-release-readiness-gate`, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-ci-local-gate-parity`, `verify-release-closeout-helper --dry-run`, `git diff --check` |
 
 ### V240-S01 Operator Event Review Inbox 종료 기준
 
@@ -251,6 +251,56 @@ S07 완료 판정은 v2.4.0 기능 mapping과 evidence/inventory 문서 연결�
 성공 evidence를 대체하지 않습니다. Event POST, WebRTC DataChannel, SSE/WS metadata,
 RTSP/WebRTC media path, Auth/session/scope, Rule/Profile payload schema는 S07 완료
 범위에서 변경하지 않습니다.
+
+### V240-S08 v2.4.0 Release Readiness Gate 종료 기준
+
+S08 실행 결과:
+
+- PASS: `./server.sh verify-v240-release-readiness-gate`
+  - `media-server.v240-release-readiness-gate.v1` 기준으로 문서 링크/assets,
+    release metadata, CI/local parity, close-out dry-run, 미실행/제외 기록 연결을
+    확인합니다.
+- PASS: `./server.sh verify-release-metadata`
+  - current version `2.4.0`, current tag `v2.4.0`, local release metadata 16 PASS.
+  - 기본 모드는 GitHub Latest Release/tag/remote branch를 확인하지 않으며,
+    published metadata는 publish 후 `--published`로 분리합니다.
+- PASS: `./server.sh verify-docs-links`
+  - markdown files 99, local links 528, local images 22, anchors 2, indexed docs 91,
+    failures 0.
+- PASS: `./server.sh verify-docs-ui-assets`
+  - 최초 실행은 `config/docs_ui_assets.json` baseline release가 `v2.3.0`으로 남아
+    있고 `docs/assets/ui/README.md`가 `v2.4.0 release baseline`을 말하지 않아
+    FAIL했습니다.
+  - 같은 S08 범위에서 UI asset manifest와 docs asset policy를 v2.4.0 static
+    baseline으로 정렬한 뒤 재실행해 10 PASS / 0 FAIL로 닫았습니다.
+  - 이 결과는 static docs asset gate이며, 제품 UI 직접 조작/재캡처 PASS가 아닙니다.
+- PASS: `./server.sh verify-ci-local-gate-parity`
+  - schema `media-server.ci-local-gate-parity.v1`, preflight commands 12,
+    guardrail commands 5, rc commands 4, 6 PASS / 0 FAIL.
+- PASS: `./server.sh verify-release-closeout-helper --dry-run --report /tmp/media_server_v240_s08_release_closeout_helper.md --json-report /tmp/media_server_v240_s08_release_closeout_helper.json`
+  - 최초 실행은 `docs/release-policy.md`에 `v2.4.0 Release Close-out Runbook`
+    참조 문구가 없어 FAIL했습니다.
+  - `v2.4.0 Release Target Runbook` heading은 release metadata verifier의 기준이라
+    유지하고, 같은 절이 `v2.4.0 Release Close-out Runbook`의 source-of-truth임을
+    추가한 뒤 재실행해 PASS했습니다.
+  - dry-run은 tag 생성, push, GitHub Release 생성, release branch 삭제를 수행하지
+    않고 manual-not-run으로 기록합니다.
+- PASS: `git diff --check`
+- 미실행: UI 풀테스트 직접 조작, 30분 테스트, 120분 테스트,
+  `verify-va-runtime-console-longrun --duration-minutes 120`,
+  `verify-release-metadata --published`, PR merge, main sync, tag, push,
+  GitHub Release 생성, release branch 삭제, next branch sync, real ONVIF,
+  external TURN/WHEP, real cloud provider call.
+- 토큰 사용량: token start `657,863`, token end `699,640`,
+  token consumed `41,777`, elapsed `goal snapshot delta 184s`,
+  source `Codex goal usage snapshot at S08 close-out update`.
+
+S08 완료 판정은 v2.4.0 release readiness local gate 정리와 실행한 verifier 범위에
+한정합니다. published metadata, PR/main merge, tag, push, GitHub Release, UI 풀테스트,
+30분/120분 longrun, 실기기/외부 credential 성공은 S08 완료 evidence가 아닙니다.
+Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path,
+Auth/session/scope, Rule/Profile payload schema는 S08 완료 범위에서 변경하지
+않습니다.
 
 ## 현재 기준: v2.3.0 Source Release Baseline
 

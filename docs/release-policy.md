@@ -103,6 +103,7 @@ screenshot review는 리포트에 manual/not-run으로 남기며, 실제 실행 
 
 ## v2.4.0 Release Target Runbook
 
+이 절은 `v2.4.0 Release Close-out Runbook`의 source-of-truth입니다.
 이 runbook은 순서가 evidence입니다. dry-run에서는 실행 가능 여부와 수동 gate만
 점검하고, real close-out에서는 아래 순서를 건너뛰지 않습니다.
 
@@ -143,6 +144,38 @@ Client/Ops UI-first workflow와 기존 live media path는 제품 baseline으로 
 [ui-visual-release-baseline-approval-template.md](./ui-visual-release-baseline-approval-template.md)를
 source-of-truth로 삼습니다. 현재 `v2.4.0` release target pass/fail 기준은 이 evidence와
 통합 검증 명령으로 판단합니다.
+
+## v2.4.0 Release Readiness Gate
+
+`media-server.v240-release-readiness-gate.v1`은 v2.4.0 완료 범위의 문서 링크/assets,
+release metadata, CI/local parity, close-out dry-run을 한 안정화 gate로 묶습니다.
+이 gate는 release publish가 아니며 tag/push/GitHub Release 생성 미수행 상태를
+`manual-not-run`으로 남깁니다. published metadata는 publish 이후 `--published`
+모드에서만 확인하며, 기본 local readiness PASS로 대체하지 않습니다.
+
+실행 command set:
+
+```bash
+./server.sh verify-v240-release-readiness-gate
+./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-ci-local-gate-parity
+./server.sh verify-release-closeout-helper --dry-run
+git diff --check
+```
+
+미실행/제외 경계:
+
+- UI 풀테스트 직접 조작 미실행: local readiness gate PASS로 대체하지 않습니다.
+- 30분 테스트 미실행: `verify-predev --soak-minutes 30`은 별도 승인 후 실행합니다.
+- 120분 테스트 미실행: `verify-predev --soak-minutes 120`과
+  `verify-va-runtime-console-longrun --duration-minutes 120`은 별도 승인 후 실행합니다.
+- real ONVIF, external TURN/WHEP, real cloud provider call은 credential/endpoint 승인
+  없이 release PASS로 쓰지 않습니다.
+- tag/push/GitHub Release 생성 미수행, PR merge/main sync/next branch sync 미수행,
+  `verify-release-metadata --published` 미실행 상태를 release evidence index에
+  별도로 남깁니다.
 
 ## Tag 전략
 
