@@ -183,6 +183,7 @@ v2.1.0 completed roadmap과 v2.2.0 completed roadmap에서 늘어난 검수 대�
 | V210-S07 VLM review action workflow | `UI-035`, `EVT-035`, `LAB-060`, `SAFE-037`, [vlm-review-action-workflow.md](./vlm-review-action-workflow.md) | `verify-vlm-review-action-workflow`, `verify-ops-event-review-inbox`, `verify-vlm-ops-event-review-ui`, Event POST/metadata guard | EventRecord storage/fanout 또는 runtime queue 변경 없음. review state/UI-only 변경이면 미실행 | 미실행. metadata fanout/media path 고위험 변경 없음 | `/ops/events` VLM review action/target/note 저장, audit 반영, client/viewer 비노출을 직접 확인 | 실제 VLM runtime/provider 호출, sidecar write, 자동 Rule/Profile 적용, Event POST/WebRTC/SSE/WS schema 변경, raw JSON/API-only UI PASS 대체 금지 |
 | V240-S02 Event Action and Incident Workflow | `UI-037`, `EVT-037`, `SAFE-041`, [development-backlog.md](./development-backlog.md) V240-S02 | `verify-ops-event-action-incident-workflow`, `verify-ops-event-review-inbox`, `verify-ops-audit-trail`, `verify-ops-audit-persistence`, Event POST/metadata guard | EventRecord storage/fanout 또는 runtime queue 변경 없음. Ops-only review state/UI 변경이면 미실행 | 미실행. metadata fanout/media path 고위험 변경 없음 | `/ops/events` incident status/id/action target 저장, events audit trail 반영, client/viewer 비노출을 직접 확인 | EventRecord/Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경, raw JSON/API-only UI PASS 대체 금지 |
 | V240-S03 Alert Dry-run and Delivery Attempt Log | `UI-038`, `EVT-038`, `SAFE-042`, [development-backlog.md](./development-backlog.md) V240-S03 | `verify-ops-alert-delivery-integrations`, `verify-ops-client-ui`, Event POST/metadata guard | EventRecord storage/fanout 또는 runtime queue 변경 없음. Ops-only alert delivery dry-run/UI 변경이면 미실행 | 미실행. metadata fanout/media path 고위험 변경 없음 | `/ops/events` alert target draft dry-run, payload preview, dry-run result, delivery attempt log, endpoint redaction을 직접 확인 | 외부 provider/webhook/email/slack 전송 없음, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경, raw JSON/API-only UI PASS 대체 금지 |
+| V240-S04 Client-safe Event and Status Summary | `CLIENT-006`, `CLIENT-007`, `CLIENT-014`, `CLIENT-015`, `CLIENT-022`, `SRC-012`, `EVT-023`, [development-backlog.md](./development-backlog.md) V240-S04 | `verify-client-dashboard-polish`, `verify-v220-client-preview-redaction-review`, `verify-ops-client-ui`, `verify-auth-routes` | client UI summary-only 변경이면 미실행. client session/media path 변경 없음 | 미실행. media/runtime drift 고위험 변경 없음 | `/client/dashboard`와 `/client/live`에서 viewer-safe event/status/source health/incident summary, copy text, redaction boundary를 직접 확인 | source URL, Developer URL, raw JSON, debugCounters, BBox diagnostics, rule/profile editor, Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path 변경 금지 |
 | S15 안정화 사전 fixture 확인 | [vlm-test-rehearsal.md](./vlm-test-rehearsal.md), `media-server.vlm-test-rehearsal-report.v1` | 안정화 실행 전 짧은 verifier 목록에 포함 | 미실행. 30분 PASS 대체 금지 | 미실행. 120분 PASS 대체 금지 | 미실행. UI PASS 대체 금지 | fixture-only 확인이며 runtime/provider/UI/longrun evidence가 아님 |
 | S16 기존 테스트 side effect 점검 | [development-backlog.md](./development-backlog.md) S16 evidence | build/auth/Ops/Client/Rule/VA/WebRTC/SSE/WS/Event POST/media path verifier를 안정화 선수 목록에 포함 | VLM 변경이 media/runtime에 닿았거나 release close-out에서 지시되면 포함 | schema/media path 고위험 회귀 신호가 있으면 승인 후 포함 | side-effect script PASS는 UI 직접 조작 PASS가 아님. UI 변경 route는 별도 클릭 대상 | verifier가 검사하지 않은 UI/장시간/provider 범위는 미확인으로 남김 |
 | S17 안정화/장시간/UI 기준 | [vlm-stabilization-longrun-ui-criteria.md](./vlm-stabilization-longrun-ui-criteria.md) | `verify-runtime-media-longrun-trigger-matrix`, `verify-longrun-separation`, `verify-manual-ui-evidence`를 사전 목록에 포함 | trigger matrix상 필요 또는 버전 close-out 지시 시 포함 | RC/high-risk/user approval 시 포함 | VLM UI 변경이 있으면 `/ops/vlm`, `/ops/events`, client redaction route를 직접 확인 | 실행하지 않은 장시간/UI 항목은 `미실행`으로 기록 |
@@ -321,7 +322,7 @@ v2.1.0 completed roadmap과 v2.2.0 completed roadmap에서 늘어난 검수 대�
 | SRC-009 | source 수정 | 필요 | 필요 | 안정화, UI | edit save 후 변경 값 반영 |
 | SRC-010 | source 삭제 | 필요 | 필요 | 안정화, UI | delete 후 목록/view 참조 정리 확인 |
 | SRC-011 | source 활성/비활성 상태 | 필요 | 필요 | 안정화, UI | disabled source가 view/session/rule에서 차단됨 |
-| SRC-012 | source health 조회 | 필요 | 필요 | 안정화, UI, 30분 | health status가 dashboard/list에 반영 |
+| SRC-012 | source health 조회 | 필요 | 필요 | 안정화, UI, 30분 | health status가 dashboard/list와 V240-S04 client-safe source health summary에 반영 |
 | SRC-013 | source health bulk 조회 | 간접 | 필요 | 안정화 | bulk response schema와 status 집계 확인 |
 | SRC-014 | ONVIF import draft | 필요 | 필요 | 안정화, UI | no-device 경계와 실기기 endpoint 조건을 안정화/UI 기록 안에서 분리하고 V230-S04 `verify-v230-conditional-field-evidence`에서 approved environment only, redacted field report, not-run is not PASS 경계를 확인 |
 | SRC-015 | channel bulk API | 비대상 | 필요 | 안정화 | 제품 `/ops/sources`에는 channel bulk UI가 없어야 정상이며, `/ops/api/channels/bulk` payload/schema/status/partial failure/rollback/retry 계약이 `verify-ops-channel-bulk`에서 통과 |
@@ -473,7 +474,7 @@ v2.1.0 completed roadmap과 v2.2.0 completed roadmap에서 늘어난 검수 대�
 | EVT-020 | Operator event review 상세 | 필요 | 필요 | 안정화, UI | event list/detail, evidence refs, review status, operator note 표시 |
 | EVT-021 | Operator event review 상태/action 저장 | 필요 | 필요 | 안정화, UI | status/classification/note/false-positive 또는 VLM action target 저장과 audit 반영 |
 | EVT-022 | audit log 조회 | 필요 | 필요 | 안정화, UI | audit list/filter/export 표시 |
-| EVT-023 | dashboard event 요약 | 필요 | 필요 | 안정화, UI | event summary count/status 표시 |
+| EVT-023 | dashboard event 요약 | 필요 | 필요 | 안정화, UI | event summary count/status와 V240-S04 viewer-safe incident summary가 raw/debug/source locator 없이 표시 |
 | EVT-024 | dashboard runtime 요약 | 필요 | 필요 | 안정화, UI, 30분 | runtime summary가 장시간 drift 없이 유지 |
 | EVT-025 | dashboard source/channel 요약 | 필요 | 필요 | 안정화, UI | source/channel summary count/status 표시 |
 | EVT-026 | dashboard VA 상태 요약 | 필요 | 필요 | 안정화, UI, 30분 | VA status/tap/event summary 표시와 안정성 확인 |
@@ -500,8 +501,8 @@ v2.1.0 completed roadmap과 v2.2.0 completed roadmap에서 늘어난 검수 대�
 | CLIENT-003 | viewer live SDP answer 처리 | 간접 | 필요 | 안정화, 30분 | answer exchange와 session state 확인 |
 | CLIENT-004 | viewer live ICE candidate 처리 | 간접 | 필요 | 안정화, 30분 | ICE candidate 처리와 media path 확인 |
 | CLIENT-005 | viewer live session 종료 | 필요 | 필요 | 안정화, UI, 30분 | stop/reconnect/logout 후 session cleanup 확인 |
-| CLIENT-006 | viewer dashboard 조회 | 필요 | 필요 | 안정화, UI | dashboard가 viewer scope 안의 data만 표시 |
-| CLIENT-007 | viewer events 조회 | 필요 | 필요 | 안정화, UI | events가 viewer scope 안의 data만 표시 |
+| CLIENT-006 | viewer dashboard 조회 | 필요 | 필요 | 안정화, UI | dashboard가 viewer scope 안의 data와 V240-S04 event/status/source health/incident summary만 표시 |
+| CLIENT-007 | viewer events 조회 | 필요 | 필요 | 안정화, UI | events와 client-safe summary가 viewer scope 안의 data만 표시 |
 | CLIENT-008 | viewer metadata 조회 | 간접 | 필요 | 안정화 | metadata schema와 scope filtering 확인 |
 | CLIENT-009 | live layout preference 저장 | 필요 | 필요 | 안정화, UI | grid/density/dock preference 저장 |
 | CLIENT-010 | live layout preference 조회 | 필요 | 필요 | 안정화, UI | reload 후 preference 복원 |
@@ -516,7 +517,7 @@ v2.1.0 completed roadmap과 v2.2.0 completed roadmap에서 늘어난 검수 대�
 | CLIENT-019 | video viewport 표시 | 필요 | 필요 | UI, 30분 | video viewport가 재생되고 잘리지 않음 |
 | CLIENT-020 | video control 표시 | 필요 | 필요 | UI | start/stop/reconnect/control 조작 확인 |
 | CLIENT-021 | VA overlay 표시 | 필요 | 필요 | 안정화, UI, 30분 | overlay toggle/status/metadata 일치 |
-| CLIENT-022 | status/caption 표시 | 필요 | 필요 | UI | caption/status가 viewport를 가리지 않고 표시 |
+| CLIENT-022 | status/caption 표시 | 필요 | 필요 | UI | caption/status와 V240-S04 live selected-tile client-safe status summary가 viewport를 가리지 않고 표시 |
 
 ## G. Media And Streaming
 

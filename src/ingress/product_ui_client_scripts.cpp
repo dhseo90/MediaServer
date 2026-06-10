@@ -244,9 +244,12 @@ void AppendClientShellScript(std::ostringstream& out) {
       const connection = payload.connection || {};
       const events = payload.events || {};
       const fieldState = dashboardFieldState(health, events);
+      const incident = clientIncidentStatusSummary(payload);
       return [
         `채널: ${view.displayName || view.viewId || '미제공'}`,
         `현장 상태: ${fieldState.text}`,
+        `인시던트: ${incident.label}`,
+        `인시던트 근거: ${incident.detail}`,
         `상태 요약: ${clientHealthSummaryLabel(health.summary || health.status)}`,
         `연결: ${clientStatusLabel(health.connectionStatus || health.status)}`,
         `영상: ${clientStatusLabel(health.videoFrameStatus || health.status)}`,
@@ -391,6 +394,87 @@ void AppendClientShellScript(std::ostringstream& out) {
       if (['stale', 'warning'].includes(metadataStatus)) return { text: '메타데이터 지연', tone: 'warn' };
       if (status === 'unavailable') return { text: '신호 미제공', tone: 'bad' };
       return { text: '정상 관제 중', tone: '' };
+    };
+    const clientIncidentStatusSummary = (dashboardPayload = {}) => {
+      const health = dashboardPayload.health || {};
+      const analysis = dashboardPayload.analysis || {};
+      const events = dashboardPayload.events || {};
+      const recent = Array.isArray(events.recent) ? events.recent : [];
+      const counts = Array.isArray(events.countsByType) ? events.countsByType : [];
+      const activeCount = numberValue(analysis.activeEventCount);
+      const fieldState = dashboardFieldState(health, events);
+      const leadEventType = String(recent[0]?.eventType || counts[0]?.eventType || '').trim();
+      if (events.provided === false) {
+        return {
+          label: '이벤트 미제공',
+          tone: 'info',
+          detail: '이 view는 이벤트 요약 권한이 꺼져 있어 상태와 신호만 표시합니다.',
+          eventType: '',
+          count: 0
+        };
+      }
+      if (events.warning || activeCount > 0 || recent.length > 0) {
+        const countText = activeCount > 0 ? `${activeCount}건 활성` : `${recent.length}건 최근`;
+        return {
+          label: events.warning ? '확인 필요' : '최근 이벤트 있음',
+          tone: 'warn',
+          detail: `${leadEventType || 'event'} · ${countText}`,
+          eventType: leadEventType,
+          count: activeCount || recent.length
+        };
+      }
+      if (fieldState.tone === 'warn' || fieldState.tone === 'bad') {
+        return {
+          label: '상태 확인',
+          tone: fieldState.tone,
+          detail: fieldState.text,
+          eventType: '',
+          count: 0
+        };
+      }
+      if (fieldState.tone === 'info') {
+        return {
+          label: '신호 확인 중',
+          tone: 'info',
+          detail: fieldState.text,
+          eventType: '',
+          count: 0
+        };
+      }
+      return {
+        label: '인시던트 없음',
+        tone: '',
+        detail: '최근 이벤트와 source health가 viewer-safe 정상 범위입니다.',
+        eventType: '',
+        count: 0
+      };
+    };
+    const clientSafeStatusSummaryHtml = (dashboardPayload = {}, options = {}) => {
+      const health = dashboardPayload.health || {};
+      const analysis = dashboardPayload.analysis || {};
+      const events = dashboardPayload.events || {};
+      const incident = clientIncidentStatusSummary(dashboardPayload);
+      const latest = analysis.latestEventTime ?? events.latestEventTime;
+      const testId = options.testId || 'client-safe-status-summary';
+      const title = options.title || 'Client-safe 상태 요약';
+      return `
+        <section class="events client-safe-status-summary" data-testid="${escapeHtml(testId)}" data-client-summary-contract="viewer-safe-event-source-health-incident" data-client-redaction-review="viewer-safe-no-locator-debug">
+          <div class="client-incident-banner${incident.tone ? ` ${incident.tone}` : ''}">
+            <div>
+              <span>인시던트 상태</span>
+              <strong>${escapeHtml(incident.label)}</strong>
+            </div>
+            <p>${escapeHtml(incident.detail)}</p>
+          </div>
+          <h3>${escapeHtml(title)}</h3>
+          <div class="summary client-status-evidence">
+            <div class="metric"><span>Source health</span><strong>${escapeHtml(clientHealthSummaryLabel(health.summary || health.status))}</strong></div>
+            <div class="metric"><span>영상 신호</span><strong>${escapeHtml(clientStatusLabel(health.videoFrameStatus || health.status))}</strong></div>
+            <div class="metric"><span>메타데이터</span><strong>${escapeHtml(clientStatusLabel(health.metadataStatus))}</strong></div>
+            <div class="metric"><span>최근 이벤트</span><strong>${escapeHtml(formatTime(latest))}</strong></div>
+          </div>
+        </section>
+      `;
     };
     let clientDashboardCompareFilter = localStorage.getItem('mediaServerClientDashboardCompareFilter') || 'all';
     let clientDashboardCompareSort = localStorage.getItem('mediaServerClientDashboardCompareSort') || 'priority';
@@ -618,6 +702,7 @@ void AppendClientShellScript(std::ostringstream& out) {
             <div class="metric"><span>데이터 지연</span><strong>${escapeHtml(ms(health.metadataAgeMs))}</strong></div>
           </div>
         </section>
+        ${clientSafeStatusSummaryHtml(payload, { testId: 'client-dashboard-safe-summary', title: 'Viewer-safe event/status summary' })}
         <div class="summary">
           <div class="metric"><span>연결 상태</span><strong>${escapeHtml(clientStatusLabel(health.connectionStatus))}</strong></div>
           <div class="metric"><span>영상 프레임</span><strong>${escapeHtml(clientStatusLabel(health.videoFrameStatus))}</strong></div>
@@ -2272,6 +2357,7 @@ void AppendClientShellScript(std::ostringstream& out) {
             <div class="metric"><span>시나리오</span><strong>${escapeHtml(display(analysis.scenarioCount))}</strong></div>
             <div class="metric"><span>경고</span><strong>${events.warning ? '경고' : '정상'}</strong></div>
           </div>
+          ${clientSafeStatusSummaryHtml(payload, { testId: 'client-live-safe-summary', title: '선택 타일 event/status summary' })}
         `;
         bindClientCopyButtons(payload, container);
         const liveCopyActions = document.querySelector('#liveCopyActions');

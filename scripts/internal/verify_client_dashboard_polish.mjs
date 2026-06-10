@@ -11,7 +11,7 @@ const rootDir = path.resolve(scriptDir, "../..");
 const checks = [];
 
 check("client dashboard script renders field summary", () => {
-  const script = readText("src/ingress/product_ui_page_scripts.cpp");
+  const script = readText("src/ingress/product_ui_client_scripts.cpp");
   const required = [
     "dashboardFieldState",
     "clientHealthSummaryLabel",
@@ -27,7 +27,7 @@ check("client dashboard script renders field summary", () => {
 });
 
 check("client dashboard script renders comparison", () => {
-  const script = readText("src/ingress/product_ui_page_scripts.cpp");
+  const script = readText("src/ingress/product_ui_client_scripts.cpp");
   const required = [
     "renderDashboardCompare",
     "loadClientDashboardCompare",
@@ -68,7 +68,7 @@ check("client dashboard script renders comparison", () => {
 });
 
 check("client dashboard script renders copy controls", () => {
-  const script = readText("src/ingress/product_ui_page_scripts.cpp");
+  const script = readText("src/ingress/product_ui_client_scripts.cpp");
   const required = [
     "copyClientText",
     "clientStatusSummaryText",
@@ -86,7 +86,7 @@ check("client dashboard script renders copy controls", () => {
 });
 
 check("client dashboard has loading empty error wording", () => {
-  const script = readText("src/ingress/product_ui_page_scripts.cpp");
+  const script = readText("src/ingress/product_ui_client_scripts.cpp");
   const required = [
     "현장 상태 불러오는 중",
     "상태를 불러오지 못했습니다",
@@ -103,7 +103,7 @@ check("client dashboard has loading empty error wording", () => {
 });
 
 check("client live empty state is present", () => {
-  const script = readText("src/ingress/product_ui_page_scripts.cpp");
+  const script = readText("src/ingress/product_ui_client_scripts.cpp");
   const required = [
     "Live view가 없습니다",
     "할당된 PublishedView가 없습니다",
@@ -115,7 +115,7 @@ check("client live empty state is present", () => {
 });
 
 check("client live reduced workspace controls are present", () => {
-  const script = readText("src/ingress/product_ui_page_scripts.cpp");
+  const script = readText("src/ingress/product_ui_client_scripts.cpp");
   const required = [
     'data-testid="client-live-action-reduction"',
     "workspace-actions",
@@ -133,7 +133,7 @@ check("client live reduced workspace controls are present", () => {
 });
 
 check("client dashboard comparison is responsive", () => {
-  const css = readText("src/ingress/product_ui_css.cpp");
+  const css = readText("src/ingress/product_ui_client_css.cpp");
   const required = [
     ".client-dashboard-compare",
     ".client-compare-toolbar",
@@ -147,6 +147,34 @@ check("client dashboard comparison is responsive", () => {
   ];
   for (const snippet of required) {
     assert(css.includes(snippet), `client dashboard CSS is missing snippet: ${snippet}`);
+  }
+});
+
+check("client dashboard and live render client-safe event/status summary", () => {
+  const script = readText("src/ingress/product_ui_client_scripts.cpp");
+  const css = readText("src/ingress/product_ui_client_css.cpp");
+  const requiredScript = [
+    "clientIncidentStatusSummary",
+    "clientSafeStatusSummaryHtml",
+    'data-testid="${escapeHtml(testId)}"',
+    "viewer-safe-event-source-health-incident",
+    "client-dashboard-safe-summary",
+    "client-live-safe-summary",
+    "Viewer-safe event/status summary",
+    "인시던트 상태",
+    "Source health",
+    "최근 이벤트",
+  ];
+  for (const snippet of requiredScript) {
+    assert(script.includes(snippet), `client-safe summary is missing script snippet: ${snippet}`);
+  }
+  const requiredCss = [
+    ".client-safe-status-summary",
+    ".client-incident-banner",
+    ".client-status-evidence",
+  ];
+  for (const snippet of requiredCss) {
+    assert(css.includes(snippet), `client-safe summary is missing CSS snippet: ${snippet}`);
   }
 });
 
