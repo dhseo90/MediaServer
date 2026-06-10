@@ -2156,6 +2156,7 @@ void AppendOpsShellScript(std::ostringstream& out,
       }
       const EVENT_REVIEW_STATUSES = ['new', 'reviewing', 'confirmed', 'dismissed', 'needs-follow-up'];
       const EVENT_REVIEW_CLASSES = ['unclassified', 'true-positive', 'false-positive', 'duplicate', 'needs-tuning'];
+      const INCIDENT_WORKFLOW_STATUSES = ['new', 'review-needed', 'acknowledged', 'in-progress', 'closed', 'false-positive'];
       const VLM_REVIEW_ACTIONS = ['not-reviewed', 'accept', 'dismiss', 'review-needed'];
       const VLM_REVIEW_ACTION_TARGETS = ['summary', 'eventExplanation', 'falsePositiveHints', 'operatorReviewQuestions'];
       const eventReviewSelectHtml = (name, values, selected) => {
@@ -2164,6 +2165,17 @@ void AppendOpsShellScript(std::ostringstream& out,
           ${values.map(item => `<option value="${escapeHtml(item)}"${item === value ? ' selected' : ''}>${escapeHtml(item)}</option>`).join('')}
         </select>`;
       };
+      function eventReviewIncidentHtml(review = {}) {
+        const workflow = review?.incidentWorkflow || {};
+        const incidentId = String(workflow.incidentId || review.incidentId || '').trim();
+        const status = workflow.status || review.incidentStatus || 'new';
+        const actionTarget = String(workflow.actionTarget || review.actionTarget || 'operator-triage').trim();
+        return `<div class="event-incident-action-controls" data-testid="ops-event-incident-action-controls" data-incident-action-workflow="ops-only-incident-state">
+          <label>Incident ${eventReviewSelectHtml('incidentStatus', INCIDENT_WORKFLOW_STATUSES, status)}</label>
+          <input class="event-review-note-input" data-event-review-field="incidentId" maxlength="160" value="${escapeHtml(incidentId)}" placeholder="incident:<eventId>" />
+          <input class="event-review-note-input" data-event-review-field="actionTarget" maxlength="160" value="${escapeHtml(actionTarget)}" placeholder="operator-triage" />
+        </div>`;
+      }
       function eventReviewVlmHtml(entry = {}) {
         const vlm = entry?.vlmReview || {};
         const review = entry?.review || {};
@@ -2197,7 +2209,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         const tbody = document.getElementById('eventReviewRows');
         if (!tbody) return;
         if (!Array.isArray(items) || items.length === 0) {
-          setTableEmpty(tbody, 6, '검토할 Rule/Scenario 이벤트가 없습니다.');
+          setTableEmpty(tbody, 7, '검토할 Rule/Scenario 이벤트가 없습니다.');
           return;
         }
         tbody.innerHTML = items.map(entry => {
@@ -2218,6 +2230,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             ${tableCellHtml('이벤트', eventHtml)}
             ${tableCellHtml('리뷰', eventReviewSelectHtml('reviewStatus', EVENT_REVIEW_STATUSES, review.reviewStatus || 'new'))}
             ${tableCellHtml('분류', eventReviewSelectHtml('classification', EVENT_REVIEW_CLASSES, review.classification || 'unclassified'))}
+            ${tableCellHtml('Incident / Action', eventReviewIncidentHtml(review))}
             ${tableCellHtml('메모', noteHtml)}
             ${tableCellHtml('Evidence / VLM', eventReviewVlmHtml(entry))}
             ${tableCellHtml('업데이트', `<div class="event-review-actions"><span>${escapeHtml(updated)}</span><button type="button" class="button button-secondary button-compact" data-event-review-save ${eventId ? '' : 'disabled'}>저장</button></div>`)}
@@ -2237,6 +2250,9 @@ void AppendOpsShellScript(std::ostringstream& out,
             const payload = {
               reviewStatus: row.querySelector('[data-event-review-field="reviewStatus"]')?.value || 'reviewing',
               classification: row.querySelector('[data-event-review-field="classification"]')?.value || 'unclassified',
+              incidentId: row.querySelector('[data-event-review-field="incidentId"]')?.value || '',
+              incidentStatus: row.querySelector('[data-event-review-field="incidentStatus"]')?.value || 'new',
+              actionTarget: row.querySelector('[data-event-review-field="actionTarget"]')?.value || 'operator-triage',
               note: row.querySelector('[data-event-review-field="note"]')?.value || '',
               vlmAction: {
                 schema: 'media-server.ops.vlm-review-action-state.v1',
@@ -2252,7 +2268,8 @@ void AppendOpsShellScript(std::ostringstream& out,
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
               });
-              setText('eventReviewSummary', `${eventId} review 저장됨 · ${result.review?.reviewStatus || payload.reviewStatus} · VLM ${result.review?.vlmAction?.action || payload.vlmAction.action}`);
+              setText('eventReviewSummary', `${eventId} review 저장됨 · incident ${result.review?.incidentStatus || payload.incidentStatus} · VLM ${result.review?.vlmAction?.action || payload.vlmAction.action}`);
+              renderOpsAuditTrail('event-review-audit-list', 'events', { action: 'incident-action-update' });
               await refreshEvents();
             } catch (error) {
               setText('eventReviewSummary', `review 저장 실패: ${error.message}`);
@@ -2295,8 +2312,10 @@ void AppendOpsShellScript(std::ostringstream& out,
         const reviewParams = new URLSearchParams(eventParams.toString());
         const reviewStatus = String(document.getElementById('eventReviewStatusFilter')?.value || '').trim();
         const classification = String(document.getElementById('eventReviewClassFilter')?.value || '').trim();
+        const incidentStatus = String(document.getElementById('eventReviewIncidentStatusFilter')?.value || '').trim();
         if (reviewStatus) reviewParams.set('reviewStatus', reviewStatus);
         if (classification) reviewParams.set('classification', classification);
+        if (incidentStatus) reviewParams.set('incidentStatus', incidentStatus);
         return reviewParams;
       }
       function alertDeliveryBodyFromForm() {
@@ -2499,7 +2518,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           'eventReviewSummary',
           reviewPayload.error
             ? `review 조회 실패: ${reviewPayload.error}`
-            : `review ${reviewItems.length}개 · VLM review panel ${reviewItems.filter(item => item?.vlmReview).length}개 · Event POST payload 변경 없음 · audit action event-review-update`
+            : `review ${reviewItems.length}개 · incident/action workflow · VLM review panel ${reviewItems.filter(item => item?.vlmReview).length}개 · Event POST payload 변경 없음 · audit action event-review-update/incident-action-update`
         );
         renderEventReviewRows(reviewItems);
         const prevButton = document.getElementById('eventRecordsPrev');
@@ -6200,6 +6219,11 @@ void AppendOpsShellScript(std::ostringstream& out,
           opsEventRecordsOffset = 0;
           refreshEvents().catch(error => setText('eventReviewSummary', error.message));
         });
+        document.getElementById('eventReviewIncidentStatusFilter')?.addEventListener('change', () => {
+          opsEventRecordsOffset = 0;
+          refreshEvents().catch(error => setText('eventReviewSummary', error.message));
+        });
+        document.getElementById('eventReviewAuditRefresh')?.addEventListener('click', () => renderOpsAuditTrail('event-review-audit-list', 'events'));
         document.getElementById('alertDeliverySave')?.addEventListener('click', async () => {
           try {
             await saveAlertDeliveryIntegration();
@@ -6241,6 +6265,7 @@ void AppendOpsShellScript(std::ostringstream& out,
       if (activeOpsPage === 'dashboard') {
         refreshDashboard().catch(error => setText('dashHealthText', error.message));
       } else if (activeOpsPage === 'events') {
+        renderOpsAuditTrail('event-review-audit-list', 'events');
         refreshEvents().catch(error => setText('eventRecordSummary', error.message));
       } else if (activeOpsPage === 'rules') {
         renderOpsAuditTrail('ops-rules-audit-list', 'rules');

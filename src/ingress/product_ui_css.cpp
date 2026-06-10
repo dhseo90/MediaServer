@@ -2414,6 +2414,18 @@ std::string ProductUiCss() {
       gap: var(--space-2);
       justify-items: start;
     }
+    .event-incident-action-controls {
+      display: grid;
+      gap: 6px;
+      min-width: 180px;
+    }
+    .event-incident-action-controls label {
+      display: grid;
+      gap: 3px;
+      min-width: 0;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
     .ops-vlm-event-review {
       display: grid;
       gap: 6px;

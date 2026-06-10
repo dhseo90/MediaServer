@@ -3502,11 +3502,11 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           </table>
         </div>
       </section>
-      <section class="section-card ops-workspace-wide" data-testid="ops-event-review-inbox" data-event-review-workflow="operator-inbox" data-review-state="separate-from-event-post-payload" data-vlm-review-state="ops-only-event-record-evidence" data-vlm-review-action-workflow="ops-only-review-state">
+      <section class="section-card ops-workspace-wide" data-testid="ops-event-review-inbox" data-event-review-workflow="operator-inbox" data-review-state="separate-from-event-post-payload" data-vlm-review-state="ops-only-event-record-evidence" data-vlm-review-action-workflow="ops-only-review-state" data-incident-action-workflow="ops-only-incident-state">
         <div class="toolbar">
           <div>
             <h3>Rule Event Review Inbox</h3>
-            <p id="eventReviewSummary">Rule/Scenario 이벤트의 확인, 분류, 메모, 상태와 EventRecord evidence, VLM 설명/action을 Ops 전용 review state로 관리합니다.</p>
+            <p id="eventReviewSummary">Rule/Scenario 이벤트의 확인, 분류, 메모, incident/action 상태와 EventRecord evidence, VLM 설명/action을 Ops 전용 review state로 관리합니다.</p>
           </div>
           <div class="actions event-review-controls">
             <label>Review 상태
@@ -3529,6 +3529,17 @@ void AppendOpsEventsPage(std::ostringstream& out) {
                 <option value="needs-tuning">needs-tuning</option>
               </select>
             </label>
+            <label>Incident 상태
+              <select id="eventReviewIncidentStatusFilter">
+                <option value="">전체</option>
+                <option value="new">new</option>
+                <option value="review-needed">review-needed</option>
+                <option value="acknowledged">acknowledged</option>
+                <option value="in-progress">in-progress</option>
+                <option value="closed">closed</option>
+                <option value="false-positive">false-positive</option>
+              </select>
+            </label>
           </div>
         </div>
         <div class="table-wrap">
@@ -3538,14 +3549,25 @@ void AppendOpsEventsPage(std::ostringstream& out) {
                 <th>이벤트</th>
                 <th>리뷰</th>
                 <th>분류</th>
+                <th>Incident / Action</th>
                 <th>메모</th>
                 <th>Evidence / VLM</th>
                 <th>업데이트</th>
               </tr>
             </thead>
-            <tbody id="eventReviewRows"><tr><td colspan="6">로딩 중</td></tr></tbody>
+            <tbody id="eventReviewRows"><tr><td colspan="7">로딩 중</td></tr></tbody>
           </table>
         </div>
+      </section>
+      <section class="section-card ops-audit-panel ops-workspace-wide" data-testid="ops-event-incident-workflow" data-incident-audit="events">
+        <div class="toolbar">
+          <div>
+            <h3>Incident / Action Audit Trail</h3>
+            <p>incident/action 상태 변경은 EventRecord payload와 분리된 Ops audit trail로 표시합니다.</p>
+          </div>
+          <button id="eventReviewAuditRefresh" class="button-secondary" type="button">새로고침</button>
+        </div>
+        <div id="event-review-audit-list" class="audit-list" data-audit-area="events"></div>
       </section>
       <section class="section-card ops-workspace-wide">
         <div class="toolbar">
@@ -9750,6 +9772,9 @@ struct OpsEventReviewState {
     std::string event_id;
     std::string review_status{"new"};
     std::string classification{"unclassified"};
+    std::string incident_id;
+    std::string incident_status{"new"};
+    std::string action_target{"operator-triage"};
     std::string note;
     std::string vlm_action{"not-reviewed"};
     std::string vlm_action_target{"eventExplanation"};
@@ -9824,6 +9849,18 @@ bool OpsVlmReviewActionTargetAllowed(const std::string& value) {
     return kAllowed.count(value) != 0;
 }
 
+bool OpsIncidentStatusAllowed(const std::string& value) {
+    static const std::unordered_set<std::string> kAllowed = {
+        "new",
+        "review-needed",
+        "acknowledged",
+        "in-progress",
+        "closed",
+        "false-positive",
+    };
+    return kAllowed.count(value) != 0;
+}
+
 std::string NormalizeOpsEventReviewStatus(std::string value) {
     value = LowerAscii(Trim(std::move(value)));
     return OpsEventReviewStatusAllowed(value) ? value : "new";
@@ -9842,6 +9879,44 @@ std::string NormalizeOpsVlmReviewAction(std::string value) {
 std::string NormalizeOpsVlmReviewActionTarget(std::string value) {
     value = Trim(std::move(value));
     return OpsVlmReviewActionTargetAllowed(value) ? value : "eventExplanation";
+}
+
+std::string NormalizeOpsIncidentStatus(std::string value) {
+    value = LowerAscii(Trim(std::move(value)));
+    return OpsIncidentStatusAllowed(value) ? value : "new";
+}
+
+std::string NormalizeOpsIncidentId(std::string value, const std::string& event_id) {
+    value = Trim(std::move(value));
+    if (!OpsEventReviewEventIdAllowed(value)) {
+        return OpsEventReviewEventIdAllowed(event_id) ? "incident:" + event_id : "";
+    }
+    return value;
+}
+
+bool OpsEventReviewNoteContainsSensitiveMaterial(const std::string& value);
+
+std::string NormalizeOpsEventActionTarget(std::string value) {
+    value = Trim(std::move(value));
+    for (char& ch : value) {
+        if (ch == '\r' || ch == '\n' || ch == '\t' ||
+            static_cast<unsigned char>(ch) < 0x20) {
+            ch = ' ';
+        }
+    }
+    value = Trim(std::move(value));
+    constexpr std::size_t kMaxActionTargetBytes = 160;
+    if (value.size() > kMaxActionTargetBytes) {
+        value.resize(kMaxActionTargetBytes);
+        value = Trim(std::move(value));
+    }
+    if (value.empty()) {
+        return "operator-triage";
+    }
+    if (OpsEventReviewNoteContainsSensitiveMaterial(value)) {
+        return "[redacted-action-target]";
+    }
+    return value;
 }
 
 bool OpsEventReviewNoteContainsSensitiveMaterial(const std::string& value) {
@@ -9898,6 +9973,20 @@ OpsEventReviewState OpsEventReviewStateFromJsonLine(const std::string& line) {
         ParseStringField(line, "reviewStatus").value_or("new"));
     state.classification = NormalizeOpsEventReviewClassification(
         ParseStringField(line, "classification").value_or("unclassified"));
+    if (const auto incident = ExtractObjectField(line, "incidentWorkflow"); incident.has_value()) {
+        state.incident_id = NormalizeOpsIncidentId(
+            ParseStringField(*incident, "incidentId").value_or(""), state.event_id);
+        state.incident_status = NormalizeOpsIncidentStatus(
+            ParseStringField(*incident, "status").value_or("new"));
+        state.action_target =
+            NormalizeOpsEventActionTarget(ParseStringField(*incident, "actionTarget").value_or(""));
+    }
+    state.incident_id = NormalizeOpsIncidentId(
+        ParseStringField(line, "incidentId").value_or(state.incident_id), state.event_id);
+    state.incident_status = NormalizeOpsIncidentStatus(
+        ParseStringField(line, "incidentStatus").value_or(state.incident_status));
+    state.action_target =
+        NormalizeOpsEventActionTarget(ParseStringField(line, "actionTarget").value_or(state.action_target));
     state.note = NormalizeOpsEventReviewNote(ParseStringField(line, "note").value_or(""));
     if (const auto vlm_action = ExtractObjectField(line, "vlmAction"); vlm_action.has_value()) {
         state.vlm_action = NormalizeOpsVlmReviewAction(
@@ -9927,6 +10016,37 @@ std::string OpsEventReviewStateJson(const OpsEventReviewState& state) {
                                                      ? "unclassified"
                                                      : state.classification)
         << "\","
+        << "\"incidentId\":\"" << JsonEscape(state.incident_id.empty()
+                                                 ? (state.event_id.empty() ? "" : "incident:" + state.event_id)
+                                                 : state.incident_id)
+        << "\","
+        << "\"incidentStatus\":\"" << JsonEscape(state.incident_status.empty()
+                                                     ? "new"
+                                                     : state.incident_status)
+        << "\","
+        << "\"actionTarget\":\"" << JsonEscape(state.action_target.empty()
+                                                   ? "operator-triage"
+                                                   : state.action_target)
+        << "\","
+        << "\"incidentWorkflow\":{"
+        << "\"schema\":\"media-server.ops.incident-action-state.v1\","
+        << "\"incidentId\":\"" << JsonEscape(state.incident_id.empty()
+                                                 ? (state.event_id.empty() ? "" : "incident:" + state.event_id)
+                                                 : state.incident_id)
+        << "\","
+        << "\"status\":\"" << JsonEscape(state.incident_status.empty() ? "new"
+                                                                        : state.incident_status)
+        << "\","
+        << "\"actionTarget\":\"" << JsonEscape(state.action_target.empty()
+                                                   ? "operator-triage"
+                                                   : state.action_target)
+        << "\","
+        << "\"persistent\":true,"
+        << "\"auditAction\":\"incident-action-update\","
+        << "\"separateFromEventRecords\":true,"
+        << "\"separateFromEventPostPayload\":true,"
+        << "\"eventPostPayloadChanged\":false"
+        << "},"
         << "\"note\":\"" << JsonEscape(state.note) << "\","
         << "\"vlmAction\":{"
         << "\"schema\":\"media-server.ops.vlm-review-action-state.v1\","
@@ -9955,6 +10075,9 @@ OpsEventReviewState DefaultOpsEventReviewState(std::string event_id) {
     state.present = false;
     state.review_status = "new";
     state.classification = "unclassified";
+    state.incident_id = OpsEventReviewEventIdAllowed(state.event_id) ? "incident:" + state.event_id : "";
+    state.incident_status = "new";
+    state.action_target = "operator-triage";
     state.vlm_action = "not-reviewed";
     state.vlm_action_target = "eventExplanation";
     return state;
@@ -10015,6 +10138,9 @@ bool UpsertOpsEventReviewState(const app::AppConfig& config,
     next.present = true;
     next.review_status = NormalizeOpsEventReviewStatus(next.review_status);
     next.classification = NormalizeOpsEventReviewClassification(next.classification);
+    next.incident_id = NormalizeOpsIncidentId(next.incident_id, next.event_id);
+    next.incident_status = NormalizeOpsIncidentStatus(next.incident_status);
+    next.action_target = NormalizeOpsEventActionTarget(next.action_target);
     next.note = NormalizeOpsEventReviewNote(next.note);
     next.vlm_action = NormalizeOpsVlmReviewAction(next.vlm_action);
     next.vlm_action_target = NormalizeOpsVlmReviewActionTarget(next.vlm_action_target);
@@ -10061,19 +10187,26 @@ std::string OpsEventReviewCatalogJson() {
            "\"needs-follow-up\"],\"classifications\":[\"unclassified\",\"true-positive\","
            "\"false-positive\",\"duplicate\",\"needs-tuning\"],\"vlmActions\":[\"not-reviewed\","
            "\"accept\",\"dismiss\",\"review-needed\"],\"vlmActionTargets\":[\"summary\","
-           "\"eventExplanation\",\"falsePositiveHints\",\"operatorReviewQuestions\"]}";
+           "\"eventExplanation\",\"falsePositiveHints\",\"operatorReviewQuestions\"],"
+           "\"incidentStatuses\":[\"new\",\"review-needed\",\"acknowledged\",\"in-progress\","
+           "\"closed\",\"false-positive\"]}";
 }
 
 bool OpsEventReviewMatchesFilters(const OpsEventReviewState& state,
                                   const std::string& review_status,
-                                  const std::string& classification) {
+                                  const std::string& classification,
+                                  const std::string& incident_status) {
     const std::string wanted_status = NormalizeOpsEventReviewStatus(review_status);
     const std::string wanted_classification =
         NormalizeOpsEventReviewClassification(classification);
+    const std::string wanted_incident_status = NormalizeOpsIncidentStatus(incident_status);
     if (!Trim(review_status).empty() && state.review_status != wanted_status) {
         return false;
     }
     if (!Trim(classification).empty() && state.classification != wanted_classification) {
+        return false;
+    }
+    if (!Trim(incident_status).empty() && state.incident_status != wanted_incident_status) {
         return false;
     }
     return true;
@@ -11965,6 +12098,8 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         query.count("reviewStatus") != 0 ? Trim(query.at("reviewStatus")) : std::string();
     const std::string classification_filter =
         query.count("classification") != 0 ? Trim(query.at("classification")) : std::string();
+    const std::string incident_status_filter =
+        query.count("incidentStatus") != 0 ? Trim(query.at("incidentStatus")) : std::string();
     const std::string requested_event_id =
         query.count("eventId") != 0 ? Trim(query.at("eventId")) : std::string();
 
@@ -11978,7 +12113,8 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         auto review_it = reviews.find(event_id);
         OpsEventReviewState review =
             review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
-        if (!OpsEventReviewMatchesFilters(review, review_status_filter, classification_filter)) {
+        if (!OpsEventReviewMatchesFilters(
+                review, review_status_filter, classification_filter, incident_status_filter)) {
             continue;
         }
         included_event_ids.insert(event_id);
@@ -11988,7 +12124,10 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         included_event_ids.count(requested_event_id) == 0) {
         const auto review_it = reviews.find(requested_event_id);
         if (review_it != reviews.end() &&
-            OpsEventReviewMatchesFilters(review_it->second, review_status_filter, classification_filter)) {
+            OpsEventReviewMatchesFilters(review_it->second,
+                                         review_status_filter,
+                                         classification_filter,
+                                         incident_status_filter)) {
             items.push_back(OpsEventReviewInboxItemJson("", review_it->second));
         }
     }
@@ -12004,8 +12143,11 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         << "\"eventPostPayloadChanged\":false,"
         << "\"vlmReviewActionSchema\":\"media-server.ops.vlm-review-action-state.v1\","
         << "\"vlmReviewActionPersistent\":true,"
+        << "\"incidentActionSchema\":\"media-server.ops.incident-action-state.v1\","
+        << "\"incidentActionPersistent\":true,"
         << "\"auditArea\":\"events\","
-        << "\"auditAction\":\"event-review-update\""
+        << "\"auditAction\":\"event-review-update\","
+        << "\"incidentAuditAction\":\"incident-action-update\""
         << "},"
         << "\"catalog\":" << OpsEventReviewCatalogJson() << ","
         << "\"records\":[";
@@ -14564,6 +14706,25 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                                                       .value_or("reviewing"));
 	                                next.classification = ParseStringField(request.body, "classification")
 	                                                          .value_or("unclassified");
+	                                next.incident_id = ParseStringField(request.body, "incidentId").value_or("");
+	                                next.incident_status =
+	                                    ParseStringField(request.body, "incidentStatus")
+	                                        .value_or(ParseStringField(request.body, "actionStatus").value_or("new"));
+	                                next.action_target =
+	                                    ParseStringField(request.body, "actionTarget").value_or("operator-triage");
+	                                if (const auto incident_workflow =
+	                                        ExtractObjectField(request.body, "incidentWorkflow");
+	                                    incident_workflow.has_value()) {
+	                                    next.incident_id =
+	                                        ParseStringField(*incident_workflow, "incidentId")
+	                                            .value_or(next.incident_id);
+	                                    next.incident_status =
+	                                        ParseStringField(*incident_workflow, "status")
+	                                            .value_or(next.incident_status);
+	                                    next.action_target =
+	                                        ParseStringField(*incident_workflow, "actionTarget")
+	                                            .value_or(next.action_target);
+	                                }
 	                                next.note = ParseStringField(request.body, "note").value_or("");
 	                                if (const auto vlm_action = ExtractObjectField(request.body, "vlmAction");
 	                                    vlm_action.has_value()) {
@@ -14606,6 +14767,27 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                (void)AppendOpsAuditRecord(
 	                                    config,
 	                                    OpsAuditRecordJson(audit_body.str(), principal_result.principal),
+	                                    &audit_error);
+	                                std::ostringstream incident_audit_body;
+	                                incident_audit_body
+	                                    << "{"
+	                                    << "\"area\":\"events\","
+	                                    << "\"action\":\"incident-action-update\","
+	                                    << "\"target\":\""
+	                                    << JsonEscape(saved.incident_id.empty()
+	                                                      ? "incident:" + event_id
+	                                                      : saved.incident_id)
+	                                    << "\","
+	                                    << "\"summary\":\"Incident action workflow updated\","
+	                                    << "\"before\":"
+	                                    << (previous.present ? OpsEventReviewStateJson(previous)
+	                                                         : std::string("null"))
+	                                    << ",\"after\":" << OpsEventReviewStateJson(saved)
+	                                    << "}";
+	                                (void)AppendOpsAuditRecord(
+	                                    config,
+	                                    OpsAuditRecordJson(incident_audit_body.str(),
+	                                                       principal_result.principal),
 	                                    &audit_error);
 	                                HttpResponse ok = JsonResponse(
 	                                    200,

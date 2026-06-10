@@ -57,7 +57,11 @@ check("ops pages expose audit panels", () => {
 });
 
 check("ops page scripts record audited mutations", () => {
-  const script = readText("src/ingress/product_ui_page_scripts.cpp");
+  const script = [
+    "src/ingress/product_ui_page_scripts.cpp",
+    "src/ingress/product_ui_ops_sources_script.cpp",
+    "src/ingress/product_ui_ops_users_script.cpp",
+  ].map(readText).join("\n");
   const required = [
     "area: 'channels'",
     "target: `channel:${channelId}`",
@@ -72,7 +76,7 @@ check("ops page scripts record audited mutations", () => {
     "target: `request:${request.requestId}`",
   ];
   for (const snippet of required) {
-    assert(script.includes(snippet), `product_ui_page_scripts.cpp is missing audit mutation snippet: ${snippet}`);
+    assert(script.includes(snippet), `ops page scripts are missing audit mutation snippet: ${snippet}`);
   }
 });
 

@@ -274,6 +274,8 @@ Usage:
                  Client Live tile/workspace disconnect 계약을 검증합니다.
   verify-ops-event-review-inbox
                  Rule Event Review Inbox의 별도 review state/audit/redaction 계약을 검증합니다.
+  verify-ops-event-action-incident-workflow
+                 Event Action/Incident Workflow의 Ops-only state/audit/UI 계약을 검증합니다.
   verify-ops-alert-delivery-integrations
                  Alert Delivery Integration의 payload 분리/retry/audit 계약을 검증합니다.
   verify-ops-scenario-builder-ui
@@ -1014,6 +1016,10 @@ case "${cmd}" in
   verify-ops-event-review-inbox)
     require_internal verify_ops_event_review_inbox.mjs
     exec "${INTERNAL_DIR}/verify_ops_event_review_inbox.mjs" "$@"
+    ;;
+  verify-ops-event-action-incident-workflow)
+    require_internal verify_ops_event_action_incident_workflow.mjs
+    exec "${INTERNAL_DIR}/verify_ops_event_action_incident_workflow.mjs" "$@"
     ;;
   verify-ops-alert-delivery-integrations)
     require_internal verify_ops_alert_delivery_integrations.mjs
