@@ -12,6 +12,8 @@ const args = parseArgs(process.argv.slice(2));
 const failures = [];
 
 const server = readText("src/ingress/webrtc_http_server.cpp");
+const routeOwner = readText("src/ingress/ops_event_route_owner.cpp");
+const serverContract = server + routeOwner;
 const script = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
@@ -34,7 +36,7 @@ check("alert delivery state is separate from Event POST payload", () => {
     "OpsAlertDeliveryPayloadPreviewJson",
     "DispatchOpsAlertDeliveryDryRun",
   ]) {
-    assertIncludes(server, snippet, "alert delivery server contract");
+    assertIncludes(serverContract, snippet, "alert delivery server contract");
   }
   assert(!eventPost.includes("alert-delivery"), "Event POST dispatcher must not own alert delivery");
   assert(!eventPost.includes("OpsAlertDelivery"), "Event POST dispatcher must not change for alert delivery");
