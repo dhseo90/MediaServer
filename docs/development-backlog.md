@@ -81,7 +81,7 @@ metadata schema와 RTSP/WebRTC media path는 변경하지 않습니다.
 | 3 | V240-S03 | P1 | 예정 | Alert dry-run | Alert Dry-run and Delivery Attempt Log | 실제 외부 전송을 기본 기능으로 열지 않고, alert target draft, payload preview, dry-run result, delivery attempt log를 Ops 전용으로 제공합니다. | alert dry-run fixture, delivery attempt log verifier, redaction review, `verify-ops-alert-delivery-integrations`, `git diff --check` |
 | 4 | V240-S04 | P1 | 완료 | Client-safe summary | Client-safe Event and Status Summary | `/client/dashboard`와 `/client/live`에 viewer-safe 최근 이벤트, source health, incident status 요약을 제공하고 원본 locator/debug/raw JSON 비노출 경계를 재확인합니다. | `verify-client-dashboard-polish`, `verify-v220-client-preview-redaction-review`, viewer role UI 직접 검수, `verify-auth-routes`, `git diff --check` |
 | 5 | V240-S05 | P1 | 완료 | Rule/Scenario review | Rule and Scenario Review Loop | `/ops/rules`에서 저장 전 예상 event type, conflict, missing reference, scenario preset 영향, EventRecord coverage 연결을 더 명확히 표시합니다. | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-rule-validation-matrix`, `verify-va-event-coverage-report`, `git diff --check` |
-| 6 | V240-S06 | P1 | 예정 | UI/API decomposition | Ops Event Route and UI Owner Decomposition | `webrtc_http_server.cpp`의 Ops Events, event review/action API, client summary route, alert dry-run route owner를 분리해 후속 기능 개발 비용을 낮춥니다. | build, route smoke, `verify-v230-ui-renderer-module-decomposition`, `verify-ops-client-ui`, `verify-ops-route-boundaries`, `git diff --check` |
+| 6 | V240-S06 | P1 | 완료 | UI/API decomposition | Ops Event Route and UI Owner Decomposition | `webrtc_http_server.cpp`의 Ops Events, event review/action API, client summary route, alert dry-run route owner를 분리해 후속 기능 개발 비용을 낮춥니다. | build, route smoke, `verify-v240-ops-event-route-owner-decomposition`, `verify-v230-ui-renderer-module-decomposition`, `verify-ops-client-ui`, `verify-ops-route-boundaries`, `git diff --check` |
 | 7 | V240-S07 | P2 | 예정 | Evidence / inventory | v2.4.0 Evidence and Inventory Mapping | Event review inbox, incident action, alert dry-run, client-safe summary, rule review loop의 feature inventory, manual UI checklist, release evidence row를 추가합니다. | `verify-feature-inventory-coverage`, `verify-manual-ui-evidence`, `verify-release-evidence-index`, `verify-project-inventory`, `git diff --check` |
 | 8 | V240-S08 | P2 | 예정 | Release readiness | v2.4.0 Release Readiness Gate | v2.4.0 완료 범위의 문서 링크/assets, release metadata, close-out dry-run, CI/local parity, 미실행/제외 테스트 기록을 정리합니다. | `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-ci-local-gate-parity`, `verify-release-closeout-helper --dry-run`, `git diff --check` |
 
@@ -176,6 +176,44 @@ S05 완료 판정은 `/ops/rules` 상세 편집기의 저장 전 Rule/Scenario r
 기존 rule validation/roundtrip/EventRecord coverage verifier 연결에 한정합니다.
 ScenarioEngine 판단 로직, Event POST/WebRTC/SSE/WS metadata schema, EventRecord payload,
 Rule/Profile 저장 payload 계약, RTSP/WebRTC media path는 S05 완료 범위에서 변경하지
+않습니다.
+
+### V240-S06 Ops Event Route and UI Owner Decomposition 종료 기준
+
+S06 실행 결과:
+
+- PASS: `./server.sh verify-v240-ops-event-route-owner-decomposition`
+  - `include/ingress/ops_event_route_owner.h`,
+    `src/ingress/ops_event_route_owner.cpp`가 Ops Events page, event status/review,
+    alert delivery dry-run/test, client dashboard/events/metadata summary route matching을
+    소유합니다.
+  - `webrtc_http_server.cpp`는 해당 route 비교를 owner helper로 위임합니다.
+  - Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema,
+    RTSP/WebRTC media path 변경 없음 경계를 verifier가 확인합니다.
+- PASS: `./server.sh build`
+- PASS: `./server.sh verify-v230-ui-renderer-module-decomposition`
+- PASS: `./server.sh verify-ops-client-ui --browser-mode static --http-base http://127.0.0.1:8081`
+  - 최초 실행은 서버 미기동과 인앱 evidence 미제공으로 실패했습니다.
+  - 서버 기동 후 sandbox 안 fetch 제한으로 실패했고, sandbox 밖 재실행에서는 auth
+    필요 상태로 실패했습니다.
+  - 같은 S06 범위에서 `MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground` 서버를
+    sandbox 밖에서 기동한 뒤 static route smoke로 재실행해 PASS했습니다.
+  - 이 결과는 브라우저 직접 UI 풀테스트 PASS가 아니라 제품 shell/API static smoke
+    PASS입니다.
+- PASS: `./server.sh verify-ops-route-boundaries --http-base http://127.0.0.1:8081`
+  - 최초 실행은 verifier가 v2.4.0 S01 이전의 `/ops/events`
+    `data-route-scope="direct-diagnostic"` 기대값을 사용해 실패했습니다.
+  - verifier 기대값을 현재 `operator-event-review` route 기준으로 갱신 후 재실행해
+    PASS했습니다.
+- PASS: `git diff --check`
+- 미실행: 30분 테스트, 120분 테스트, UI 풀테스트 직접 조작, screenshots smoke,
+  real ONVIF, external TURN/WHEP, real cloud provider call.
+- 토큰 사용량: token start `26,984`, token end `372,610`, token consumed `345,626`,
+  elapsed `574s`, source `Codex goal usage snapshot at S06 verification`.
+
+S06 완료 판정은 route owner matching 분리와 기존 static route smoke 유지에 한정합니다.
+Ops event/review/alert/client summary API schema, EventRecord payload, Auth/session/scope,
+Rule/Profile payload 계약, RTSP/WebRTC media path는 S06 완료 범위에서 변경하지
 않습니다.
 
 ## 현재 기준: v2.3.0 Source Release Baseline

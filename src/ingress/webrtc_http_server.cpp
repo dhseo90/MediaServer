@@ -56,6 +56,7 @@
 #include "ingress/analysis_rule_registry.h"
 #include "ingress/http_auth.h"
 #include "ingress/onvif_live_import.h"
+#include "ingress/ops_event_route_owner.h"
 #include "ingress/request_parser.h"
 #include "ingress/product_ui_assets.h"
 #include "ingress/product_ui_auth_pages.h"
@@ -4889,14 +4890,14 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
 
 bool IsOpsOverviewShellRoute(const std::string& path) {
     return path == "/ops" || path == "/ops/home" || path == "/ops/dashboard" ||
-           path == "/ops/events" || path == "/ops/vlm";
+           path == "/ops/vlm";
 }
 
 std::string OpsOverviewActiveForPath(const std::string& path) {
     if (path == "/ops/dashboard") {
         return "dashboard";
     }
-    if (path == "/ops/events") {
+    if (IsOpsEventsPageRoute(path)) {
         return "events";
     }
     if (path == "/ops/vlm") {
@@ -14796,7 +14797,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            return ok;
 	                        }
 
-	                        if (request.method == "GET" && request.path == "/ops/api/events/status") {
+	                        if (IsOpsEventStatusRoute(request.method, request.path)) {
 	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
 	                                return *auth_response;
 	                            }
@@ -14824,7 +14825,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            return ok;
 	                        }
 
-	                        if (request.path == "/ops/api/alerts/deliveries") {
+	                        if (IsOpsAlertDeliveryCollectionRoute(request.path)) {
 	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
 	                                return *auth_response;
 	                            }
@@ -14875,8 +14876,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                                "{\"error\":\"method not allowed\"}");
 	                        }
 
-	                        if (request.method == "POST" &&
-	                            request.path == "/ops/api/alerts/deliveries/dry-run") {
+	                        if (IsOpsAlertDeliveryDryRunRoute(request.method, request.path)) {
 	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
 	                                return *auth_response;
 	                            }
@@ -14900,7 +14900,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            return ok;
 	                        }
 
-	                        if (request.method == "POST" && request.path == "/ops/api/alerts/deliveries/test") {
+	                        if (IsOpsAlertDeliveryFixtureRoute(request.method, request.path)) {
 	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
 	                                return *auth_response;
 	                            }
@@ -14917,7 +14917,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            return ok;
 	                        }
 
-	                        if (request.method == "GET" && request.path == "/ops/api/events/reviews") {
+	                        if (IsOpsEventReviewCollectionRoute(request.method, request.path)) {
 	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
 	                                return *auth_response;
 	                            }
@@ -14933,12 +14933,12 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            return ok;
 	                        }
 
-	                        if (request.path.rfind("/ops/api/events/reviews/", 0) == 0) {
+	                        if (IsOpsEventReviewItemRoute(request.path)) {
 	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
 	                                return *auth_response;
 	                            }
-	                            const std::string event_id = UrlDecode(
-	                                request.path.substr(std::string("/ops/api/events/reviews/").size()));
+	                            const std::string event_id =
+                                    UrlDecode(OpsEventReviewItemIdFromPath(request.path));
 	                            if (!OpsEventReviewEventIdAllowed(event_id)) {
 	                                return JsonResponse(400,
 	                                                    "Bad Request",
@@ -15612,7 +15612,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     "{\"error\":\"client WebRTC session resource not found\"}");
                             }
                             if (request.method == "GET") {
-                                if (subresource == "dashboard") {
+                                if (IsClientViewSummaryRoute(subresource) &&
+                                    IsClientViewDashboardSummaryRoute(subresource)) {
                                     SourceViewRegistry::ClientViewAccess access;
                                     const auto access_result =
                                         SourceViewRegistry::Instance().ResolveClientViewAccess(
@@ -15636,7 +15637,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                             principal_result.principal,
                                             impl_->session_manager.AnalysisTapSnapshots()));
                                 }
-                                if (subresource == "events") {
+                                if (IsClientViewSummaryRoute(subresource) &&
+                                    IsClientViewEventsSummaryRoute(subresource)) {
                                     SourceViewRegistry::ClientViewAccess access;
                                     const auto access_result =
                                         SourceViewRegistry::Instance().ResolveClientViewAccess(
@@ -15656,7 +15658,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     const int limit = ParseClampedIntQuery(event_query, "limit", 20, 1, 50);
                                     return JsonResponse(200, "OK", ClientViewEventsJson(access, limit));
                                 }
-                                if (subresource == "metadata") {
+                                if (IsClientViewSummaryRoute(subresource) &&
+                                    IsClientViewMetadataSummaryRoute(subresource)) {
                                     SourceViewRegistry::ClientViewAccess access;
                                     const auto access_result =
                                         SourceViewRegistry::Instance().ResolveClientViewAccess(
@@ -15690,7 +15693,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                         }
 
-                        if (request.method == "GET" && IsOpsOverviewShellRoute(request.path)) {
+                        if (request.method == "GET" &&
+                            (IsOpsOverviewShellRoute(request.path) ||
+                             IsOpsEventsPageRoute(request.path))) {
                             if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
                                 if (!principal_result.ok && session_auth_mode && config.enable_ops) {
                                     return RedirectResponse("/login");

@@ -98,11 +98,12 @@ const checks = [
     ], opsShellMustNot),
   },
   {
-    name: "ops-events-direct-route-shell",
+    name: "ops-events-operator-review-route-shell",
     run: async () => assertHtmlContract("/ops/events", opsShellMust, [
       'data-testid="ops-events-page"',
-      'data-route-scope="direct-diagnostic"',
-      "Primary nav에는 표시하지 않는 direct/diagnostic route",
+      'data-route-scope="operator-event-review"',
+      'data-event-review-workflow="operator-inbox"',
+      "Primary nav에는 표시하지 않는 운영자 event review direct route",
       'id="opsEventsRefresh"',
       "/ops/api/events/status",
     ], opsShellMustNot),
