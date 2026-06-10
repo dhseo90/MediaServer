@@ -77,7 +77,7 @@ metadata schema와 RTSP/WebRTC media path는 변경하지 않습니다.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 0 | V240-S00 | P0 | 완료 | v2.4.0 baseline | v2.4.0 기준 정렬 | `VERSION`, CMake, README, docs index, backlog, release/version 문서의 v2.4.0 source-of-truth를 정렬하고, v2.3.0 release baseline과 v2.4.0 active roadmap을 분리합니다. | roadmap review, `verify-release-metadata`, `verify-docs-links`, `verify-release-evidence-index`, `git diff --check` |
 | 1 | V240-S01 | P0 | 완료 | Operator Event Review | Operator Event Review Inbox | `/ops/events`를 운영자 event review inbox로 제품화하고, event list/detail, evidence refs, review state, operator note, false-positive/action target을 route/control/action 단위로 관리합니다. | `verify-ops-event-review-inbox`, `verify-vlm-ops-event-review-ui`, EventRecord UI 직접 검수, `verify-manual-ui-evidence`, `git diff --check` |
-| 2 | V240-S02 | P0 | 예정 | Incident Action | Event Action and Incident Workflow | EventRecord를 incident/action 상태로 묶고, `new`, `review-needed`, `acknowledged`, `in-progress`, `closed`, `false-positive` 같은 운영 상태와 audit trail을 저장/표시합니다. | event review state fixture, audit persistence verifier, `verify-ops-audit-trail`, `verify-ops-audit-persistence`, UI 직접 검수, `git diff --check` |
+| 2 | V240-S02 | P0 | 진행 | Incident Action | Event Action and Incident Workflow | EventRecord를 incident/action 상태로 묶고, `new`, `review-needed`, `acknowledged`, `in-progress`, `closed`, `false-positive` 같은 운영 상태와 audit trail을 저장/표시합니다. | event review state fixture, audit persistence verifier, `verify-ops-audit-trail`, `verify-ops-audit-persistence`, UI 직접 검수, `git diff --check` |
 | 3 | V240-S03 | P1 | 예정 | Alert dry-run | Alert Dry-run and Delivery Attempt Log | 실제 외부 전송을 기본 기능으로 열지 않고, alert target draft, payload preview, dry-run result, delivery attempt log를 Ops 전용으로 제공합니다. | alert dry-run fixture, delivery attempt log verifier, redaction review, `verify-ops-alert-delivery-integrations`, `git diff --check` |
 | 4 | V240-S04 | P1 | 완료 | Client-safe summary | Client-safe Event and Status Summary | `/client/dashboard`와 `/client/live`에 viewer-safe 최근 이벤트, source health, incident status 요약을 제공하고 원본 locator/debug/raw JSON 비노출 경계를 재확인합니다. | `verify-client-dashboard-polish`, `verify-v220-client-preview-redaction-review`, viewer role UI 직접 검수, `verify-auth-routes`, `git diff --check` |
 | 5 | V240-S05 | P1 | 완료 | Rule/Scenario review | Rule and Scenario Review Loop | `/ops/rules`에서 저장 전 예상 event type, conflict, missing reference, scenario preset 영향, EventRecord coverage 연결을 더 명확히 표시합니다. | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-rule-validation-matrix`, `verify-va-event-coverage-report`, `git diff --check` |
@@ -116,6 +116,36 @@ S01 완료 판정은 위 Operator Event Review Inbox route/control/action과 rev
 저장 경계에 한정합니다. Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC
 media path, Auth/session/scope, Rule/Profile payload schema는 S01 완료 범위에서
 변경하지 않습니다.
+
+### V240-S02 Event Action and Incident Workflow 선행 준비 기준
+
+직접 답: 안정화, 30분, UI 풀테스트, 필요시 120분 테스트 전에 확인할 S02 선행
+상태는 `진행`입니다. Ops-only incident/action 상태 저장, `incident-action-update`
+audit trail, EventRecord/Event POST payload 비오염, `/ops/events` UI marker와
+inventory 연결은 스크립트 verifier로 확인했습니다. 다만 `/ops/events`에서 incident
+status/id/action target 저장과 audit trail 반영을 인앱 브라우저로 직접 조작한
+UI 풀테스트 evidence는 아직 없으므로 이 단계는 `완료`로 승격하지 않습니다.
+
+S02 선행 실행 결과:
+
+- PASS: `./server.sh verify-ops-event-action-incident-workflow`
+  - Ops-only review storage에 `media-server.ops.incident-action-state.v1` 상태를
+    저장하고, `new`, `review-needed`, `acknowledged`, `in-progress`, `closed`,
+    `false-positive` 상태 set을 확인했습니다.
+  - `incident-action-update` audit trail을 EventRecord payload와 분리해 저장하는
+    경계를 확인했습니다.
+  - `/ops/events` incident/action control과 audit trail UI marker, UI smoke marker,
+    `UI-037`/`EVT-037`/`SAFE-041` inventory 연결을 확인했습니다.
+- PASS: `./server.sh verify-ops-audit-trail`
+- PASS: `./server.sh verify-ops-audit-persistence`
+- 미실행: `/ops/events` incident/action UI 직접 조작, 30분 테스트, 120분 테스트,
+  전체 UI 풀테스트, real ONVIF, external TURN/WHEP, real cloud provider call.
+
+S02 현재 판정은 안정화 전 스크립트 gate 준비 완료이며, 완료 판정은 후속 UI
+풀테스트에서 incident status/id/action target 저장, events audit trail 반영,
+client/viewer 비노출을 직접 확인한 뒤에만 갱신합니다. EventRecord payload, Event
+POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path, Auth/session/scope,
+Rule/Profile payload schema는 S02 선행 준비 범위에서 변경하지 않습니다.
 
 ### V240-S04 Client-safe Event and Status Summary 종료 기준
 
