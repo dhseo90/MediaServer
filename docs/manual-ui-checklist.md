@@ -206,6 +206,21 @@ v2.4.0 release close-out에서는 자동 smoke와 별도로 아래 화면을 브
 - `/ops/events`: Operator Event Review Inbox list/detail, evidence refs, review state, operator note, false-positive/action target 저장 flow와 primary nav 비노출 경계를 직접 확인합니다.
 - `/client/live`: source tree, drag/drop 또는 선택, tile start/reconnect/stop, dock 좌/우 전환, 정보 overlay, viewer-safe 비노출을 직접 확인합니다.
 
+### v2.4.0 기능별 UI evidence mapping
+
+아래 표는 route/control/action 단위 누락을 막기 위한 mapping입니다. 각 행은 인앱
+브라우저에서 직접 클릭/타이핑/선택하고 결과가 제품 상태와 로그/evidence에 반영됐을
+때만 UI 풀테스트 PASS로 기록합니다. raw JSON/API-only 확인은 UI 풀테스트 evidence가 아님을
+유지하고, 열지 않은 화면은 FAIL입니다.
+
+| Roadmap scope | Feature IDs | Route | 직접 확인할 control/action | 자동 verifier 연결 |
+| --- | --- | --- | --- | --- |
+| V240-S01 Operator Event Review Inbox | `UI-014`, `EVT-019`, `EVT-020`, `EVT-021` | `/ops/events` | event list/detail, evidence refs, review status/classification/note, false-positive/action target 저장, primary nav 비노출 | `verify-ops-event-review-inbox`, `verify-vlm-ops-event-review-ui` |
+| V240-S02 Event Action and Incident Workflow | `UI-037`, `EVT-037`, `SAFE-041` | `/ops/events` | incident status/id/action target 저장, `incident-action-update` audit trail, EventRecord/Event POST/metadata/media path 불변 확인 | `verify-ops-event-action-incident-workflow`, `verify-ops-audit-trail`, `verify-ops-audit-persistence` |
+| V240-S03 Alert Dry-run and Delivery Attempt Log | `UI-038`, `EVT-017`, `EVT-018`, `EVT-038`, `SAFE-042` | `/ops/events` | alert target draft, payload preview, dry-run result, delivery attempt log, endpoint redaction, 외부 전송 없음 확인 | `verify-ops-alert-delivery-integrations`, `verify-ops-client-ui` |
+| V240-S04 Client-safe Event and Status Summary | `CLIENT-006`, `CLIENT-007`, `CLIENT-014`, `CLIENT-015`, `CLIENT-022`, `SRC-012`, `EVT-023` | `/client/dashboard`, `/client/live`, `/client/events` | viewer-safe event/status/source health/incident summary, copy text, source URL/Developer URL/raw JSON/debugCounters/BBox diagnostics 비노출 | `verify-client-dashboard-polish`, `verify-v220-client-preview-redaction-review`, `verify-ops-client-ui`, `verify-auth-routes` |
+| V240-S05 Rule and Scenario Review Loop | `RULE-041`, `RULE-102`, `EVT-001`, `EVT-026` | `/ops/rules` | 저장 전 예상 event type, conflict, missing reference, scenario preset 영향, `/ops/events` EventRecord coverage link | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-rule-validation-matrix`, `verify-va-event-coverage-report` |
+
 Evidence index에는 route, 계정/권한, 직접 조작, screenshot/artifact, 자동 검증 연결,
 판정을 개별 기능 단위로 한 줄씩 기록합니다. 판정은 `PASS` 또는 `FAIL`만 사용합니다.
 열지 않은 화면은 `FAIL`이고, 실패 후 재검수한 경우 최초 실패와 재확인 결과를 함께

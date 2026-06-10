@@ -82,7 +82,7 @@ metadata schema와 RTSP/WebRTC media path는 변경하지 않습니다.
 | 4 | V240-S04 | P1 | 완료 | Client-safe summary | Client-safe Event and Status Summary | `/client/dashboard`와 `/client/live`에 viewer-safe 최근 이벤트, source health, incident status 요약을 제공하고 원본 locator/debug/raw JSON 비노출 경계를 재확인합니다. | `verify-client-dashboard-polish`, `verify-v220-client-preview-redaction-review`, viewer role UI 직접 검수, `verify-auth-routes`, `git diff --check` |
 | 5 | V240-S05 | P1 | 완료 | Rule/Scenario review | Rule and Scenario Review Loop | `/ops/rules`에서 저장 전 예상 event type, conflict, missing reference, scenario preset 영향, EventRecord coverage 연결을 더 명확히 표시합니다. | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-rule-validation-matrix`, `verify-va-event-coverage-report`, `git diff --check` |
 | 6 | V240-S06 | P1 | 완료 | UI/API decomposition | Ops Event Route and UI Owner Decomposition | `webrtc_http_server.cpp`의 Ops Events, event review/action API, client summary route, alert dry-run route owner를 분리해 후속 기능 개발 비용을 낮춥니다. | build, route smoke, `verify-v240-ops-event-route-owner-decomposition`, `verify-v230-ui-renderer-module-decomposition`, `verify-ops-client-ui`, `verify-ops-route-boundaries`, `git diff --check` |
-| 7 | V240-S07 | P2 | 예정 | Evidence / inventory | v2.4.0 Evidence and Inventory Mapping | Event review inbox, incident action, alert dry-run, client-safe summary, rule review loop의 feature inventory, manual UI checklist, release evidence row를 추가합니다. | `verify-feature-inventory-coverage`, `verify-manual-ui-evidence`, `verify-release-evidence-index`, `verify-project-inventory`, `git diff --check` |
+| 7 | V240-S07 | P2 | 완료 | Evidence / inventory | v2.4.0 Evidence and Inventory Mapping | Event review inbox, incident action, alert dry-run, client-safe summary, rule review loop의 feature inventory, manual UI checklist, release evidence row를 추가합니다. | `verify-v240-evidence-inventory-mapping`, `verify-feature-inventory-coverage`, `verify-manual-ui-evidence`, `verify-release-evidence-index`, `verify-project-inventory`, `git diff --check` |
 | 8 | V240-S08 | P2 | 예정 | Release readiness | v2.4.0 Release Readiness Gate | v2.4.0 완료 범위의 문서 링크/assets, release metadata, close-out dry-run, CI/local parity, 미실행/제외 테스트 기록을 정리합니다. | `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-ci-local-gate-parity`, `verify-release-closeout-helper --dry-run`, `git diff --check` |
 
 ### V240-S01 Operator Event Review Inbox 종료 기준
@@ -215,6 +215,42 @@ S06 완료 판정은 route owner matching 분리와 기존 static route smoke �
 Ops event/review/alert/client summary API schema, EventRecord payload, Auth/session/scope,
 Rule/Profile payload 계약, RTSP/WebRTC media path는 S06 완료 범위에서 변경하지
 않습니다.
+
+### V240-S07 v2.4.0 Evidence and Inventory Mapping 종료 기준
+
+S07 실행 결과:
+
+- PASS: `./server.sh verify-v240-evidence-inventory-mapping`
+  - `docs/project-feature-test-inventory.md`에 v2.4.0 S01~S05 기능과 feature ID,
+    대표 안정화 verifier, manual UI route/control/action, release evidence boundary를
+    연결했습니다.
+  - `docs/manual-ui-checklist.md`에 같은 기능을 route/control/action 단위 직접 조작
+    evidence 기준으로 연결했습니다.
+  - `docs/release-evidence-index.md`에 S07 mapping gate row를 추가했습니다.
+- PASS: `./server.sh verify-feature-inventory-coverage`
+- PASS: `./server.sh verify-manual-ui-evidence`
+  - template/checklist 기준 검증이며, 제품 UI 직접 조작 PASS가 아닙니다.
+- PASS: `./server.sh verify-release-evidence-index`
+- PASS: `./server.sh verify-project-inventory`
+  - 최초 실행은 `verify_project_feature_test_inventory.mjs`의 stale expected row count
+    397과 실제 398 불일치로 실패했습니다.
+  - 이후 inventory summary의 UI 직접 필요, 안정화 대상, UI 풀테스트 대상 count가
+    실제 row 계산과 불일치해 실패했습니다.
+  - 같은 S07 범위에서 expected count와 summary count를 398개 기능 ID,
+    UI 직접 필요 233개, 안정화 대상 388개, UI 풀테스트 대상 251개로 보정한 뒤
+    재실행해 PASS했습니다.
+- PASS: `git diff --check`
+- 미실행: 30분 테스트, 120분 테스트, UI 풀테스트 직접 조작, 브라우저 화면 열람,
+  real ONVIF, external TURN/WHEP, real cloud provider call.
+- 토큰 사용량: token start `448,644`, token end `581,086`,
+  token consumed `132,442`, elapsed `goal snapshot delta 292s`,
+  source `Codex goal usage snapshot at S07 close-out update`.
+
+S07 완료 판정은 v2.4.0 기능 mapping과 evidence/inventory 문서 연결에 한정합니다.
+이 mapping은 UI 풀테스트 직접 조작 PASS, 30분/120분 longrun PASS, 외부 provider/실기기
+성공 evidence를 대체하지 않습니다. Event POST, WebRTC DataChannel, SSE/WS metadata,
+RTSP/WebRTC media path, Auth/session/scope, Rule/Profile payload schema는 S07 완료
+범위에서 변경하지 않습니다.
 
 ## 현재 기준: v2.3.0 Source Release Baseline
 

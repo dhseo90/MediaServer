@@ -39,12 +39,12 @@ source-of-truth입니다.
 | 항목 | 수 |
 | --- | ---: |
 | 전체 기능 항목 | 398 |
-| UI 직접 필요 | 232 |
+| UI 직접 필요 | 233 |
 | UI 간접 필요 | 29 |
 | UI 비대상 | 136 |
 | 테스트 필요 | 398 |
-| 안정화 대상 | 387 |
-| UI 풀테스트 대상 | 250 |
+| 안정화 대상 | 388 |
+| UI 풀테스트 대상 | 251 |
 | 30분 soak 대상 | 47 |
 | 120분 대상 | 7 |
 
@@ -85,6 +85,21 @@ close-out과 과거 UI 풀테스트 실행 evidence는
 | v2.3.0 S05 VLM opt-in operational evidence | 기존 `LAB-038`, `LAB-042`, `LAB-056`, `LAB-057`, `SAFE-025`, `SAFE-027`, `SAFE-029`, `SAFE-034`, `SAFE-035`, [vlm-runtime-opt-in-contract.md](./vlm-runtime-opt-in-contract.md), [vlm-local-runtime-connection-smoke.md](./vlm-local-runtime-connection-smoke.md), [vlm-cloud-provider-field-smoke-gate.md](./vlm-cloud-provider-field-smoke-gate.md), [vlm-privacy-transfer-guard.md](./vlm-privacy-transfer-guard.md)를 operator-approved profile promotion, local/provider smoke intake, privacy/default-off evidence 기준에 연결 | `verify-v230-vlm-opt-in-operational-evidence`는 no VLM default-on, provider call 미실행은 PASS가 아님, Sidecar/EventRecord/API schema 분리를 검증하며 실제 provider/model 품질, UI 직접 확인, 30분/120분 longrun을 대체하지 않음 |
 | v2.3.0 S06 Ops backup/recovery evidence lifecycle | `OPS-035`, [ops-backup-recovery.md](./ops-backup-recovery.md), `media-server.v230-ops-backup-recovery-lifecycle.v1`을 staging drill, redacted evidence bundle, retention cleanup 기준에 연결 | `verify-v230-ops-backup-recovery-lifecycle`은 안정화 gate이며, 운영 데이터 백업 완료, UI 직접 확인, 30분/120분 longrun을 대체하지 않음 |
 | v2.3.0 S07 Integrator contract conformance | 기존 `SAFE-001`~`SAFE-004`, `SAFE-018`, live Event POST/WebRTC/SSE/WS contract artifact를 checksum/conformance companion에 연결 | `verify-integrator-contract-artifact`와 runtime delivery smoke는 안정화 evidence이며, UI 직접 확인이나 30분/120분 longrun을 대체하지 않음 |
+
+## v2.4.0 Operator Event Review Evidence Mapping
+
+이 절은 `mapping-only-not-execution-evidence`입니다. v2.4.0 S01~S05 기능을 기능 ID,
+대표 안정화 verifier, manual UI route/control/action, release evidence boundary로
+연결하지만 UI 풀테스트 직접 조작 PASS가 아님을 명시합니다.
+30분/120분 longrun 미실행은 PASS가 아님을 명시하고, 새 테스트 영역 없음 원칙을 유지합니다.
+
+| Roadmap scope | Feature IDs | 대표 안정화 verifier | manual UI route/control/action | release evidence boundary |
+| --- | --- | --- | --- | --- |
+| V240-S01 Operator Event Review Inbox | `UI-014`, `EVT-019`, `EVT-020`, `EVT-021` | `verify-ops-event-review-inbox`, `verify-vlm-ops-event-review-ui`, `verify-manual-ui-evidence` | `/ops/events` list/detail, evidence refs, review status/classification/note, false-positive/action target 저장 | Operator review state와 EventRecord/Event POST/metadata/media path 분리. mapping row는 UI 직접 조작 PASS나 30분/120분 evidence가 아님 |
+| V240-S02 Event Action and Incident Workflow | `UI-037`, `EVT-037`, `SAFE-041` | `verify-ops-event-action-incident-workflow`, `verify-ops-audit-trail`, `verify-ops-audit-persistence` | `/ops/events` incident status/id/action target, `incident-action-update` audit trail, client/viewer 비노출 | S02 row는 incident/action Ops-only state mapping이며 EventRecord/Event POST/WebRTC/SSE/WS schema 변경 완료를 뜻하지 않음 |
+| V240-S03 Alert Dry-run and Delivery Attempt Log | `UI-038`, `EVT-017`, `EVT-018`, `EVT-038`, `SAFE-042` | `verify-ops-alert-delivery-integrations`, `verify-ops-client-ui` | `/ops/events` alert target draft, payload preview, dry-run result, delivery attempt log, endpoint redaction | alert dry-run은 외부 webhook/email/slack 전송 PASS가 아니며 Event POST payload 변경 evidence가 아님 |
+| V240-S04 Client-safe Event and Status Summary | `CLIENT-006`, `CLIENT-007`, `CLIENT-014`, `CLIENT-015`, `CLIENT-022`, `SRC-012`, `EVT-023` | `verify-client-dashboard-polish`, `verify-v220-client-preview-redaction-review`, `verify-ops-client-ui`, `verify-auth-routes` | `/client/dashboard`, `/client/live`, `/client/events` viewer-safe event/status/source health/incident summary와 source/debug/raw 비노출 | client-safe summary mapping은 viewer 직접 UI 풀테스트, video playback, 30분 client session soak를 대체하지 않음 |
+| V240-S05 Rule and Scenario Review Loop | `RULE-041`, `RULE-102`, `EVT-001`, `EVT-026` | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-rule-validation-matrix`, `verify-va-event-coverage-report` | `/ops/rules` 저장 전 예상 event type, conflict, missing reference, scenario preset 영향, `/ops/events` EventRecord coverage link | Rule/Scenario review loop mapping은 ScenarioEngine 판단 로직, EventRecord payload, Rule/Profile 저장 payload 변경 evidence가 아님 |
 
 브라우저 선택 기준: Codex 세션에서는 인앱 브라우저 evidence를 기본으로 하며, 자동
 Chrome/CDP는 `MEDIA_SERVER_UI_BROWSER_MODE=chrome`과
