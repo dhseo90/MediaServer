@@ -1918,6 +1918,48 @@ std::string ProductUiCss() {
     .validation-item.bad {
       border-color: color-mix(in srgb, var(--color-danger) 56%, var(--color-border));
     }
+    .ops-rule-review-loop {
+      display: grid;
+      gap: var(--space-3);
+      padding: var(--space-4);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface-muted);
+    }
+    .ops-rule-review-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: var(--space-3);
+    }
+    .ops-rule-review-item {
+      display: grid;
+      align-content: start;
+      gap: 8px;
+      min-width: 0;
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-raised);
+    }
+    .ops-rule-review-item.info {
+      border-color: color-mix(in srgb, var(--color-info) 44%, var(--color-border));
+    }
+    .ops-rule-review-item.warn {
+      border-color: color-mix(in srgb, var(--color-warning) 56%, var(--color-border));
+    }
+    .ops-rule-review-item.bad {
+      border-color: color-mix(in srgb, var(--color-danger) 56%, var(--color-border));
+    }
+    .ops-rule-review-item strong {
+      overflow-wrap: anywhere;
+    }
+    .ops-rule-review-item p {
+      margin: 0;
+      color: var(--color-text-muted);
+      font-size: 13px;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
     .event-evidence-actions {
       display: flex;
       gap: var(--space-2);
@@ -3525,6 +3567,9 @@ std::string ProductUiCss() {
         grid-template-columns: 1fr;
       }
       .scenario-builder-review {
+        grid-template-columns: 1fr;
+      }
+      .ops-rule-review-grid {
         grid-template-columns: 1fr;
       }
       .ops-geometry-status-grid {

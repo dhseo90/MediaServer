@@ -80,7 +80,7 @@ metadata schema와 RTSP/WebRTC media path는 변경하지 않습니다.
 | 2 | V240-S02 | P0 | 예정 | Incident Action | Event Action and Incident Workflow | EventRecord를 incident/action 상태로 묶고, `new`, `review-needed`, `acknowledged`, `in-progress`, `closed`, `false-positive` 같은 운영 상태와 audit trail을 저장/표시합니다. | event review state fixture, audit persistence verifier, `verify-ops-audit-trail`, `verify-ops-audit-persistence`, UI 직접 검수, `git diff --check` |
 | 3 | V240-S03 | P1 | 예정 | Alert dry-run | Alert Dry-run and Delivery Attempt Log | 실제 외부 전송을 기본 기능으로 열지 않고, alert target draft, payload preview, dry-run result, delivery attempt log를 Ops 전용으로 제공합니다. | alert dry-run fixture, delivery attempt log verifier, redaction review, `verify-ops-alert-delivery-integrations`, `git diff --check` |
 | 4 | V240-S04 | P1 | 완료 | Client-safe summary | Client-safe Event and Status Summary | `/client/dashboard`와 `/client/live`에 viewer-safe 최근 이벤트, source health, incident status 요약을 제공하고 원본 locator/debug/raw JSON 비노출 경계를 재확인합니다. | `verify-client-dashboard-polish`, `verify-v220-client-preview-redaction-review`, viewer role UI 직접 검수, `verify-auth-routes`, `git diff --check` |
-| 5 | V240-S05 | P1 | 예정 | Rule/Scenario review | Rule and Scenario Review Loop | `/ops/rules`에서 저장 전 예상 event type, conflict, missing reference, scenario preset 영향, EventRecord coverage 연결을 더 명확히 표시합니다. | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-rule-validation-matrix`, `verify-va-event-coverage-report`, `git diff --check` |
+| 5 | V240-S05 | P1 | 완료 | Rule/Scenario review | Rule and Scenario Review Loop | `/ops/rules`에서 저장 전 예상 event type, conflict, missing reference, scenario preset 영향, EventRecord coverage 연결을 더 명확히 표시합니다. | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-rule-validation-matrix`, `verify-va-event-coverage-report`, `git diff --check` |
 | 6 | V240-S06 | P1 | 예정 | UI/API decomposition | Ops Event Route and UI Owner Decomposition | `webrtc_http_server.cpp`의 Ops Events, event review/action API, client summary route, alert dry-run route owner를 분리해 후속 기능 개발 비용을 낮춥니다. | build, route smoke, `verify-v230-ui-renderer-module-decomposition`, `verify-ops-client-ui`, `verify-ops-route-boundaries`, `git diff --check` |
 | 7 | V240-S07 | P2 | 예정 | Evidence / inventory | v2.4.0 Evidence and Inventory Mapping | Event review inbox, incident action, alert dry-run, client-safe summary, rule review loop의 feature inventory, manual UI checklist, release evidence row를 추가합니다. | `verify-feature-inventory-coverage`, `verify-manual-ui-evidence`, `verify-release-evidence-index`, `verify-project-inventory`, `git diff --check` |
 | 8 | V240-S08 | P2 | 예정 | Release readiness | v2.4.0 Release Readiness Gate | v2.4.0 완료 범위의 문서 링크/assets, release metadata, close-out dry-run, CI/local parity, 미실행/제외 테스트 기록을 정리합니다. | `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-ci-local-gate-parity`, `verify-release-closeout-helper --dry-run`, `git diff --check` |
@@ -146,6 +146,37 @@ S04 완료 판정은 `/client/dashboard`와 `/client/live`의 viewer-safe event/
 health/incident summary, copy text, client rendered redaction evidence에 한정합니다.
 Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path, Auth/session/scope,
 Rule/Profile payload schema는 S04 완료 범위에서 변경하지 않습니다.
+
+### V240-S05 Rule and Scenario Review Loop 종료 기준
+
+S05 실행 결과:
+
+- PASS: `./server.sh build`
+- PASS: `./server.sh verify-rule-ui --in-app-evidence /tmp/media_server_s05_inapp_evidence/s05-rule-review-loop-evidence.json`
+- PASS: `./server.sh verify-ops-rules-roundtrip --http-base http://127.0.0.1:8081`
+  - 최초 sandbox 실행은 localhost `EPERM`으로 실패했고, 같은 명령을 sandbox 밖에서
+    재실행해 PASS로 닫았습니다.
+- PASS: `./server.sh verify-ops-rule-validation-matrix`
+- PASS: `./server.sh verify-va-event-coverage-report`
+- PASS: `./server.sh verify-feature-inventory-coverage`
+  - S05에서 `RULE-102`가 추가되어 inventory row count를 398로 갱신했습니다.
+- PASS: `git diff --check`
+- PASS: Codex 인앱 브라우저 `/ops/rules`, `/ops/users`, `/ops/sources` 직접 확인
+  evidence `/tmp/media_server_s05_inapp_evidence/s05-rule-review-loop-evidence.json`
+  - `/ops/rules`: `data-testid="ops-rule-scenario-review-loop"`
+  - 저장 전 review loop: 예상 event type, conflict, missing reference, preset 영향,
+    `/ops/events` EventRecord coverage link 표시
+  - screenshot evidence:
+    `/tmp/media_server_s05_inapp_evidence/ops-rules-review-loop.png`,
+    `/tmp/media_server_s05_inapp_evidence/ops-users.png`,
+    `/tmp/media_server_s05_inapp_evidence/ops-sources.png`
+- 미실행: 30분 테스트, 120분 테스트, 전체 UI 풀테스트.
+
+S05 완료 판정은 `/ops/rules` 상세 편집기의 저장 전 Rule/Scenario review loop와
+기존 rule validation/roundtrip/EventRecord coverage verifier 연결에 한정합니다.
+ScenarioEngine 판단 로직, Event POST/WebRTC/SSE/WS metadata schema, EventRecord payload,
+Rule/Profile 저장 payload 계약, RTSP/WebRTC media path는 S05 완료 범위에서 변경하지
+않습니다.
 
 ## 현재 기준: v2.3.0 Source Release Baseline
 

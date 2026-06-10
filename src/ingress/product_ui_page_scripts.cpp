@@ -2772,6 +2772,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         opsRulesDetailRecordId = String(recordId || '');
         if (!config || detailMode === 'closed') {
           setOpsDetailPanelOpen(panel, false);
+          opsRulesUpdateReviewLoop();
           return;
         }
         setOpsDetailPanelOpen(panel, true);
@@ -2794,6 +2795,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           save.hidden = detailMode === 'view';
           save.textContent = '저장';
         }
+        opsRulesUpdateReviewLoop();
       }
       function opsVaRuleStartMeta(item) {
         const inferred = opsRulesInferTemplateForVaRule(item);
@@ -3028,6 +3030,186 @@ void AppendOpsShellScript(std::ostringstream& out,
         const baselineText = opsRulesPresetBaselineSummary(currentType, currentBaseline);
         const warningText = opsRulesPresetWarningText(currentType);
         summary.textContent = `${label} preset · ${baselineText || '기본 시작값'} · ${warningText}`;
+      }
+      function opsRulesReviewIssueText(messages = [], emptyText = '확인된 항목 없음') {
+        const clean = messages.map(item => String(item || '').trim()).filter(Boolean);
+        if (clean.length === 0) return emptyText;
+        const head = clean.slice(0, 3).join(' / ');
+        return clean.length > 3 ? `${head} 외 ${clean.length - 3}개` : head;
+      }
+      function opsRulesReviewSetCard(key, chipId, titleId, detailId, chipText, title, detail, tone = '') {
+        const item = document.querySelector(`[data-rule-review-item="${key}"]`);
+        const chip = document.getElementById(chipId);
+        if (item) {
+          item.classList.toggle('warn', tone === 'warn');
+          item.classList.toggle('bad', tone === 'bad');
+          item.classList.toggle('info', tone === 'info');
+        }
+        if (chip) {
+          chip.textContent = chipText;
+          chip.classList.toggle('warn', tone === 'warn');
+          chip.classList.toggle('bad', tone === 'bad');
+          chip.classList.toggle('info', tone === 'info');
+        }
+        setText(titleId, title);
+        setText(detailId, detail);
+      }
+      function opsRulesReviewEventType(payload = {}, template = null) {
+        return String(template?.scenario?.type || template?.event?.type || payload?.scenario?.type || payload?.event?.type || payload?.eventType || '').trim();
+      }
+      function opsRulesReviewCoverageHref(eventType = '') {
+        const params = new URLSearchParams();
+        const normalized = String(eventType || '').trim();
+        if (normalized) params.set('eventType', normalized);
+        params.set('from', 'ops-rules-review');
+        const hash = params.toString();
+        return hash ? `/ops/events#${hash}` : '/ops/events';
+      }
+      function opsRulesReviewPresetImpact(mode, payload = {}, template = null) {
+        const source = mode === 'va-rule' ? (template || payload) : payload;
+        const eventType = opsRulesReviewEventType(source);
+        const scenario = source?.scenario || null;
+        const presetId = String(scenario?.presetId || document.getElementById('opsEventRulePresetSelect')?.value || 'default').trim();
+        if (scenario || opsRulesIsScenarioType(eventType) || eventType === 'line-crossing') {
+          const label = opsScenarioPresetLabels[presetId] || presetId || '기본';
+          const baseline = opsRulesScenarioBaseline(eventType, presetId);
+          const baselineText = opsRulesPresetBaselineSummary(eventType, baseline) || '기본 시작값';
+          return `${label} preset · ${baselineText}`;
+        }
+        return 'basic event 템플릿은 scenario preset 숫자 조건을 적용하지 않습니다.';
+      }
+      function opsRulesReviewMissingReferences(mode, payload = {}, channel = null) {
+        const messages = [];
+        if (mode === 'va-rule') {
+          const profileId = String(payload?.analysis?.profileId || '').trim();
+          const templateId = String(payload?.templateStart?.ruleId || '').trim();
+          const profile = profileId ? findOpsProfileById(profileId) : null;
+          const template = templateId ? findOpsEventTemplateById(templateId) : null;
+          if (!channel) messages.push('채널 reference 없음');
+          else if (!channel.view) messages.push('PublishedView reference 없음');
+          if (!profileId || !profile) messages.push(`분석 프로파일 ${profileId || '(비어 있음)'} reference 없음`);
+          if (!templateId || !template) messages.push(`이벤트 템플릿 ${templateId || '(비어 있음)'} reference 없음`);
+          if (profile && opsRulesDocumentInactive(profile)) messages.push(`분석 프로파일 ${profileId} 비활성`);
+          if (template && opsRulesDocumentInactive(template)) messages.push(`이벤트 템플릿 ${templateId} 비활성`);
+        }
+        return messages;
+      }
+      function opsRulesReviewConflictMessages(allIssues = [], missingIssues = []) {
+        const missingSet = new Set(missingIssues);
+        return allIssues.filter(item => !missingSet.has(item));
+      }
+      function opsRulesBuildDraftReview(mode) {
+        const current = opsRulesCurrentRecord?.item || {};
+        if (mode === 'va-rule') {
+          const forcedId = String(document.getElementById('opsVaRuleIdInput')?.value || '').trim() || opsRulesNextNumericId(opsCatalogVaRules, 1);
+          const { payload, channel } = opsRulesReadVaRuleForm(current, forcedId);
+          const templateId = String(payload?.templateStart?.ruleId || '').trim();
+          const template = templateId ? findOpsEventTemplateById(templateId) : null;
+          const eventType = opsRulesReviewEventType(payload, template);
+          const allIssues = opsRulesDraftBlockingIssues(mode, payload, current, channel);
+          const missingIssues = opsRulesReviewMissingReferences(mode, payload, channel);
+          return { mode, payload, channel, template, eventType, allIssues, missingIssues };
+        }
+        if (mode === 'event-rule') {
+          const forcedId = String(document.getElementById('opsEventRuleIdInput')?.value || '').trim() || opsRulesNextNumericId(opsCatalogEventTemplates, 1);
+          const payload = opsRulesReadEventTemplateForm(current, forcedId);
+          const allIssues = opsRulesDraftBlockingIssues(mode, payload, current);
+          try {
+            opsRulesValidateEventTemplatePayload(payload);
+          } catch (error) {
+            allIssues.push(error.message || '이벤트 템플릿 값 검증 실패');
+          }
+          return { mode, payload, template: payload, eventType: opsRulesReviewEventType(payload), allIssues, missingIssues: [] };
+        }
+        if (mode === 'profile') {
+          const payload = opsRulesReadProfileForm(current);
+          const allIssues = opsRulesDraftBlockingIssues(mode, payload, current);
+          return { mode, payload, template: null, eventType: '', allIssues, missingIssues: [] };
+        }
+        return null;
+      }
+      function opsRulesUpdateReviewLoop() {
+        const panel = document.getElementById('opsRulesReviewLoop');
+        if (!panel) return;
+        const mode = opsRulesCurrentRecord?.mode || '';
+        if (!opsRulesModeConfig(mode) || opsRulesDetailMode === 'closed') {
+          panel.hidden = true;
+          return;
+        }
+        panel.hidden = false;
+        let review = null;
+        try {
+          review = opsRulesBuildDraftReview(mode);
+        } catch (error) {
+          opsRulesReviewSetCard('event-type', 'opsRulesReviewEventTypeChip', 'opsRulesReviewEventTypeTitle', 'opsRulesReviewEventTypeDetail', 'draft', 'Draft 계산 실패', error.message || '폼 값을 읽지 못했습니다.', 'bad');
+          opsRulesReviewSetCard('conflict', 'opsRulesReviewConflictChip', 'opsRulesReviewConflictTitle', 'opsRulesReviewConflictDetail', 'error', '검토 필요', '저장 전 검토 루프가 draft를 계산하지 못했습니다.', 'bad');
+          return;
+        }
+        if (!review) return;
+        const eventType = review.eventType;
+        const eventLabel = eventType ? opsRuleEventTypeLabel(eventType) : (mode === 'profile' ? '프로파일' : '미정');
+        const modeLabel = mode === 'va-rule' ? '채널 분석 설정' : (mode === 'event-rule' ? '이벤트 템플릿' : '분석 프로파일');
+        const conflictIssues = opsRulesReviewConflictMessages(review.allIssues, review.missingIssues);
+        const coverageHref = opsRulesReviewCoverageHref(eventType);
+        const coverageLink = document.getElementById('opsRulesReviewEventRecordLink');
+        if (coverageLink) {
+          coverageLink.href = coverageHref;
+          coverageLink.dataset.eventRecordCoverageLink = coverageHref;
+          coverageLink.textContent = eventType ? `${opsRuleEventTypeLabel(eventType)} EventRecord` : 'EventRecord 열기';
+        }
+        setText('opsRulesReviewSummary', `${modeLabel} draft를 저장하기 전 event type, reference, conflict, preset 영향, EventRecord coverage를 확인합니다.`);
+        opsRulesReviewSetCard(
+          'event-type',
+          'opsRulesReviewEventTypeChip',
+          'opsRulesReviewEventTypeTitle',
+          'opsRulesReviewEventTypeDetail',
+          eventType || 'profile',
+          eventLabel,
+          eventType ? `저장 후 EventRecord eventType 후보는 ${eventType}입니다.` : '프로파일은 직접 EventRecord type을 만들지 않고 연결된 룰의 분석 대상에 영향을 줍니다.',
+          'info'
+        );
+        opsRulesReviewSetCard(
+          'conflict',
+          'opsRulesReviewConflictChip',
+          'opsRulesReviewConflictTitle',
+          'opsRulesReviewConflictDetail',
+          conflictIssues.length ? `${conflictIssues.length}개` : '0개',
+          conflictIssues.length ? '충돌 확인 필요' : '충돌 없음',
+          opsRulesReviewIssueText(conflictIssues, '중복 ID, priority, source/class 충돌이 없습니다.'),
+          conflictIssues.length ? 'bad' : 'info'
+        );
+        opsRulesReviewSetCard(
+          'missing-reference',
+          'opsRulesReviewMissingChip',
+          'opsRulesReviewMissingTitle',
+          'opsRulesReviewMissingDetail',
+          review.missingIssues.length ? `${review.missingIssues.length}개` : '0개',
+          review.missingIssues.length ? '참조 확인 필요' : '참조 준비됨',
+          opsRulesReviewIssueText(review.missingIssues, mode === 'va-rule' ? '채널, PublishedView, 템플릿, 프로파일 참조가 준비됐습니다.' : '이 draft는 별도 참조 누락이 없습니다.'),
+          review.missingIssues.length ? 'bad' : 'info'
+        );
+        opsRulesReviewSetCard(
+          'preset-impact',
+          'opsRulesReviewPresetChip',
+          'opsRulesReviewPresetTitle',
+          'opsRulesReviewPresetDetail',
+          eventType && (review.payload?.scenario || review.template?.scenario || eventType === 'line-crossing') ? '적용' : '비대상',
+          'Preset 영향',
+          opsRulesReviewPresetImpact(mode, review.payload, review.template),
+          'info'
+        );
+        opsRulesReviewSetCard(
+          'event-record-coverage',
+          'opsRulesReviewCoverageChip',
+          'opsRulesReviewCoverageTitle',
+          'opsRulesReviewCoverageDetail',
+          eventType ? '연결' : '간접',
+          eventType ? `${eventLabel} coverage` : '간접 coverage',
+          eventType
+            ? `${coverageHref}에서 status/evidence를 확인하고 verify-va-event-coverage-report matrix와 연결합니다.`
+            : '프로파일은 채널 분석 설정을 통해 EventRecord 대상 class와 quality에 간접 반영됩니다.',
+          'info'
+        );
       }
       function opsRulesClone(value) {
         return JSON.parse(JSON.stringify(value ?? {}));
@@ -3918,16 +4100,19 @@ void AppendOpsShellScript(std::ostringstream& out,
           opsVaRuleTemplateId = '';
           opsRulesUpdateVaRuleFormSummary();
           opsRulesRefreshVaGeometryUi(true);
+          opsRulesUpdateReviewLoop();
           return;
         }
         const template = findOpsEventTemplateById(id);
         if (!template) {
           opsRulesUpdateVaRuleFormSummary();
+          opsRulesUpdateReviewLoop();
           return;
         }
         opsVaRuleTemplateId = id;
         opsRulesUpdateVaRuleFormSummary();
         opsRulesRefreshVaGeometryUi(true);
+        opsRulesUpdateReviewLoop();
       }
       function opsEventRuleToggleField(fieldId, visible) {
         const field = document.getElementById(fieldId);
@@ -3983,13 +4168,17 @@ void AppendOpsShellScript(std::ostringstream& out,
         opsEventRuleToggleField('opsEventRuleRestrictedZonesField', mode === 'scenario' && (dwellMode || loiteringMode || zoneOccupancyMode));
         opsEventRuleToggleField('opsEventRuleReEntryZonesField', mode === 'scenario' && reEntryMode);
         opsEventRuleUpdatePresetSummary(type, document.getElementById('opsEventRulePresetSelect')?.value || 'default');
+        opsRulesUpdateReviewLoop();
       }
       function opsEventRuleApplyPresetToInputs(presetId = '') {
         const type = String(document.getElementById('opsEventRuleTypeSelect')?.value || 'intrusion-dwell');
         const selected = String(presetId || document.getElementById('opsEventRulePresetSelect')?.value || 'default');
         const baseline = opsRulesScenarioBaseline(type, selected);
         opsEventRuleUpdatePresetSummary(type, selected, baseline);
-        if (selected === 'custom') return;
+        if (selected === 'custom') {
+          opsRulesUpdateReviewLoop();
+          return;
+        }
         const setNumber = (id, value) => {
           const input = document.getElementById(id);
           if (input && value !== undefined) input.value = String(value);
@@ -4010,6 +4199,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         setChecked('opsEventRuleLoiteringGroundPlaneToggle', baseline.useGroundPlaneMovementRadius);
         setNumber('opsEventRuleZoneThresholdInput', baseline.occupancyThreshold);
         setNumber('opsEventRuleZoneDwellInput', baseline.minDwellTimeMs);
+        opsRulesUpdateReviewLoop();
       }
       function opsRulesCurrentForm(mode) {
         return ({
@@ -4101,6 +4291,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           }
         }
         opsRulesUpdateTrackingPolicyUi();
+        opsRulesUpdateReviewLoop();
       }
       function opsRulesVaGeometryTypeFromItem(item = {}) {
         const templateId = String(document.getElementById('opsVaRuleTemplateSeedSelect')?.value || item?.templateStart?.ruleId || '').trim();
@@ -6203,6 +6394,8 @@ void AppendOpsShellScript(std::ostringstream& out,
           applyOpsVlmRuleSuggestionDraft(button.dataset.vlmRuleDraftIndex || '0')
             .catch(error => setFeedback(document.getElementById('opsRulesStatus'), error.message, true, { collapseEmpty: true }));
         });
+        document.getElementById('opsRulesDetailPanel')?.addEventListener('input', () => opsRulesUpdateReviewLoop());
+        document.getElementById('opsRulesDetailPanel')?.addEventListener('change', () => opsRulesUpdateReviewLoop());
         document.getElementById('opsVaRuleTemplateSeedSelect')?.addEventListener('change', (event) => opsRulesApplyVaRuleTemplateSeed(event.target.value || ''));
         document.getElementById('opsVaRuleChannelSelect')?.addEventListener('change', () => {
           opsRulesUpdateVaRuleFormSummary();

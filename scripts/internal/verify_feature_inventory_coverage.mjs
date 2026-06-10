@@ -54,7 +54,7 @@ const stabilityVerifierByPrefix = {
 };
 
 check("inventory row count is stable", () => {
-  assert(rows.length === 397, `expected 397 feature rows, found ${rows.length}`);
+  assert(rows.length === 398, `expected 398 feature rows, found ${rows.length}`);
   assert(new Set(rows.map(row => row.id)).size === rows.length, "duplicate feature ID exists");
 });
 

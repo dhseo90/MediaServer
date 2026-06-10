@@ -38,11 +38,11 @@ source-of-truth입니다.
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 397 |
+| 전체 기능 항목 | 398 |
 | UI 직접 필요 | 232 |
 | UI 간접 필요 | 29 |
 | UI 비대상 | 136 |
-| 테스트 필요 | 397 |
+| 테스트 필요 | 398 |
 | 안정화 대상 | 387 |
 | UI 풀테스트 대상 | 250 |
 | 30분 soak 대상 | 47 |
@@ -58,7 +58,7 @@ close-out과 과거 UI 풀테스트 실행 evidence는
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 397개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 398개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정했지만, 각 행의 line-level 증적은 별도 대조 필요 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리했지만, inventory 자체는 브라우저 직접 조작 evidence를 보관하지 않음 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -114,7 +114,7 @@ Codex 밖에서 사용자가 직접 실행하는 자동 검수는 Chrome/CDP를 
 | `UI-019`~`UI-021` | Codex 인앱 브라우저 evidence, 인앱 브라우저 부재 외부 환경의 `verify-ops-client-ui --screenshots`, `verify-docs-ui-assets`, `verify-product-ui-token-drift` | 시각 품질은 수동 UI evidence 필요 |
 | `AUTH-001`~`AUTH-042` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
 | `SRC-001`~`SRC-030` | `verify-v230-conditional-field-evidence`, `verify-ops-source-lifecycle`, `verify-ops-source-health-bulk`, `verify-ops-channel-bulk`, `verify-onvif-*`, `verify-ops-client-ui` | ONVIF field success는 제외. approved environment only redacted field report 없으면 not-run is not PASS |
-| `RULE-001`~`RULE-101` | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-rule-validation-matrix`, `verify-ops-scenario-builder-ui`, `verify-ops-scenario-presets`, `verify-va-event-coverage-report`, `verify-va-replay`, `verify-analysis-state`, `verify-reid-advanced-tracking`, `verify-tracker-stability` | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
+| `RULE-001`~`RULE-102` | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-rule-validation-matrix`, `verify-ops-scenario-builder-ui`, `verify-ops-scenario-presets`, `verify-va-event-coverage-report`, `verify-va-replay`, `verify-analysis-state`, `verify-reid-advanced-tracking`, `verify-tracker-stability` | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
 | `EVT-001`~`EVT-038` | `verify-va-event-coverage-report`, `verify-va-events`, `verify-ops-event-review-inbox`, `verify-ops-event-records-scope`, `verify-ops-alert-delivery-integrations`, `verify-ops-event-action-incident-workflow`, `verify-va-runtime-console`, `verify-vlm-event-evidence-extraction`, `verify-vlm-observation-sidecar`, `verify-vlm-event-explanation-hints`, `verify-vlm-review-action-workflow`, `verify-vlm-ops-event-review-ui`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates`, `verify-vlm-rule-suggestion-draft-workflow` | event log 육안 확인은 UI 풀테스트 |
 | `CLIENT-001`~`CLIENT-022` | `verify-v230-ui-renderer-module-decomposition`, `verify-client-live-workspace`, `verify-client-dashboard-polish`, `verify-client-source-dock-events`, `verify-client-tile-disconnect-contract`, `verify-client-tile-info-overlay-health`, `verify-ops-client-ui` | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-021` | `verify-v230-conditional-field-evidence`, `verify-codecs`, `verify-webrtc-ice`, `verify-external-turn-whep-field-gate`, `verify-webrtc-va-metadata`, `verify-uri-source-longrun`, `verify-predev` | 30분/120분은 실행 지시 필요. `MEDIA-021` external TURN/WHEP endpoint 성공은 endpoint/credential 조건이 준비된 안정화 실행 없으면 PASS 아님 |
@@ -184,6 +184,7 @@ v2.1.0 completed roadmap과 v2.2.0 completed roadmap에서 늘어난 검수 대�
 | V240-S02 Event Action and Incident Workflow | `UI-037`, `EVT-037`, `SAFE-041`, [development-backlog.md](./development-backlog.md) V240-S02 | `verify-ops-event-action-incident-workflow`, `verify-ops-event-review-inbox`, `verify-ops-audit-trail`, `verify-ops-audit-persistence`, Event POST/metadata guard | EventRecord storage/fanout 또는 runtime queue 변경 없음. Ops-only review state/UI 변경이면 미실행 | 미실행. metadata fanout/media path 고위험 변경 없음 | `/ops/events` incident status/id/action target 저장, events audit trail 반영, client/viewer 비노출을 직접 확인 | EventRecord/Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경, raw JSON/API-only UI PASS 대체 금지 |
 | V240-S03 Alert Dry-run and Delivery Attempt Log | `UI-038`, `EVT-038`, `SAFE-042`, [development-backlog.md](./development-backlog.md) V240-S03 | `verify-ops-alert-delivery-integrations`, `verify-ops-client-ui`, Event POST/metadata guard | EventRecord storage/fanout 또는 runtime queue 변경 없음. Ops-only alert delivery dry-run/UI 변경이면 미실행 | 미실행. metadata fanout/media path 고위험 변경 없음 | `/ops/events` alert target draft dry-run, payload preview, dry-run result, delivery attempt log, endpoint redaction을 직접 확인 | 외부 provider/webhook/email/slack 전송 없음, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경, raw JSON/API-only UI PASS 대체 금지 |
 | V240-S04 Client-safe Event and Status Summary | `CLIENT-006`, `CLIENT-007`, `CLIENT-014`, `CLIENT-015`, `CLIENT-022`, `SRC-012`, `EVT-023`, [development-backlog.md](./development-backlog.md) V240-S04 | `verify-client-dashboard-polish`, `verify-v220-client-preview-redaction-review`, `verify-ops-client-ui`, `verify-auth-routes` | client UI summary-only 변경이면 미실행. client session/media path 변경 없음 | 미실행. media/runtime drift 고위험 변경 없음 | `/client/dashboard`와 `/client/live`에서 viewer-safe event/status/source health/incident summary, copy text, redaction boundary를 직접 확인 | source URL, Developer URL, raw JSON, debugCounters, BBox diagnostics, rule/profile editor, Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path 변경 금지 |
+| V240-S05 Rule and Scenario Review Loop | `RULE-041`~`RULE-102`, `EVT-001`~`EVT-026`, [development-backlog.md](./development-backlog.md) V240-S05 | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-rule-validation-matrix`, `verify-va-event-coverage-report` | rule/scenario review UI-only 변경이면 미실행. EventRecord payload/fanout 변경 없음 | 미실행. media/runtime drift 고위험 변경 없음 | `/ops/rules` 상세 편집기의 저장 전 review loop에서 예상 event type, conflict, missing reference, preset 영향, `/ops/events` EventRecord coverage link를 직접 확인 | Event POST/WebRTC/SSE/WS schema, ScenarioEngine 판단 로직, EventRecord payload, RTSP/WebRTC media path 변경 금지 |
 | S15 안정화 사전 fixture 확인 | [vlm-test-rehearsal.md](./vlm-test-rehearsal.md), `media-server.vlm-test-rehearsal-report.v1` | 안정화 실행 전 짧은 verifier 목록에 포함 | 미실행. 30분 PASS 대체 금지 | 미실행. 120분 PASS 대체 금지 | 미실행. UI PASS 대체 금지 | fixture-only 확인이며 runtime/provider/UI/longrun evidence가 아님 |
 | S16 기존 테스트 side effect 점검 | [development-backlog.md](./development-backlog.md) S16 evidence | build/auth/Ops/Client/Rule/VA/WebRTC/SSE/WS/Event POST/media path verifier를 안정화 선수 목록에 포함 | VLM 변경이 media/runtime에 닿았거나 release close-out에서 지시되면 포함 | schema/media path 고위험 회귀 신호가 있으면 승인 후 포함 | side-effect script PASS는 UI 직접 조작 PASS가 아님. UI 변경 route는 별도 클릭 대상 | verifier가 검사하지 않은 UI/장시간/provider 범위는 미확인으로 남김 |
 | S17 안정화/장시간/UI 기준 | [vlm-stabilization-longrun-ui-criteria.md](./vlm-stabilization-longrun-ui-criteria.md) | `verify-runtime-media-longrun-trigger-matrix`, `verify-longrun-separation`, `verify-manual-ui-evidence`를 사전 목록에 포함 | trigger matrix상 필요 또는 버전 close-out 지시 시 포함 | RC/high-risk/user approval 시 포함 | VLM UI 변경이 있으면 `/ops/vlm`, `/ops/events`, client redaction route를 직접 확인 | 실행하지 않은 장시간/UI 항목은 `미실행`으로 기록 |
@@ -447,6 +448,7 @@ v2.1.0 completed roadmap과 v2.2.0 completed roadmap에서 늘어난 검수 대�
 | RULE-099 | existing connection allowed rule 검증 | 간접 | 필요 | 안정화, 30분 | 연결 생성 후 PublishedView `allowedRuleIds`에서 해당 rule을 제거해도 기존 client session ICE/DELETE는 200으로 유지되고, 같은 rule의 신규 `va-rule` session은 `allowed vaRule is required for va-rule mode`로 거부 |
 | RULE-100 | same channel/priority conflict 검증 | 필요 | 필요 | 안정화, UI | `/ops/rules` validation matrix가 `priority-conflict`를 표시하고, 같은 source+priority의 두 번째 VA rule 저장 API가 `vaRule priority conflicts with existing rule on same source`로 거부 |
 | RULE-101 | class mismatch 검증 | 필요 | 필요 | 안정화, UI | `/ops/rules` 저장 전 검증이 profile/template class mismatch를 쓰기 없이 차단하고, 서버가 `analysis.classes`/profile classes가 template classes를 포함하지 않는 VA rule 저장을 각각 거부 |
+| RULE-102 | Rule/Scenario 저장 전 review loop | 필요 | 필요 | 안정화, UI | `/ops/rules` 상세 편집기가 저장 전 예상 event type, conflict, missing reference, scenario preset 영향, `/ops/events` EventRecord coverage link를 표시하고, `verify-rule-ui` 인앱 evidence `v240-s05-rule-scenario-review-loop`와 `verify-ops-rule-validation-matrix`가 확인 |
 
 ## E. Runtime, Dashboard, Events
 

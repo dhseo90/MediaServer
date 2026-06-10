@@ -176,6 +176,10 @@ function assertInAppRuleEvidence(evidencePath) {
   if (generatedIdEvidence?.pass !== true) {
     fail("ops-rules-generated-id-displays interaction evidence missing or failing");
   }
+  const reviewLoopEvidence = interactions.find((entry) => entry?.id === "v240-s05-rule-scenario-review-loop");
+  if (reviewLoopEvidence?.pass !== true) {
+    fail("v240-s05-rule-scenario-review-loop interaction evidence missing or failing");
+  }
   if (failures.length > 0) {
     console.error("[fail] in-app rule UI evidence invalid");
     for (const failure of failures) console.error(`- ${failure}`);
@@ -183,6 +187,7 @@ function assertInAppRuleEvidence(evidencePath) {
   }
   console.log("[pass] in-app /ops/rules route evidence");
   console.log("[pass] in-app /ops/rules generated ID interaction evidence");
+  console.log("[pass] in-app /ops/rules S05 review loop evidence");
   console.log("[pass] in-app /ops/users and /ops/sources nav return evidence");
   console.log("[summary] ops-rules-native-smoke complete");
   console.log(JSON.stringify({
@@ -287,6 +292,29 @@ function buildRulesOpenExpression(seededPrereqs = {}) {
       const optionTexts = Array.from(vaChannelSelect?.options || []).map(option => option.textContent || '');
       if (!optionTexts.some(text => text.includes('Sample H264'))) {
         return fail('channel options missing expected source', { optionTexts });
+      }
+      const reviewLoop = (() => {
+        const panel = document.querySelector('[data-testid="ops-rule-scenario-review-loop"]');
+        const link = document.getElementById('opsRulesReviewEventRecordLink');
+        const summary = document.getElementById('opsRulesReviewSummary')?.textContent || '';
+        const eventType = document.getElementById('opsRulesReviewEventTypeDetail')?.textContent || '';
+        const conflict = document.getElementById('opsRulesReviewConflictDetail')?.textContent || '';
+        const missing = document.getElementById('opsRulesReviewMissingDetail')?.textContent || '';
+        const preset = document.getElementById('opsRulesReviewPresetDetail')?.textContent || '';
+        const coverage = document.getElementById('opsRulesReviewCoverageDetail')?.textContent || '';
+        const href = link?.getAttribute('href') || '';
+        const ok = visible(panel) &&
+          summary.includes('EventRecord coverage') &&
+          eventType.includes('EventRecord eventType') &&
+          conflict.length > 0 &&
+          missing.length > 0 &&
+          preset.length > 0 &&
+          coverage.includes('verify-va-event-coverage-report') &&
+          href.includes('/ops/events');
+        return { ok, summary, eventType, conflict, missing, preset, coverage, href };
+      })();
+      if (!reviewLoop.ok) {
+        return fail('S05 rule/scenario review loop did not render before save', reviewLoop);
       }
       const trackerSelect = document.getElementById('opsVaRuleTrackerSelect');
       const reidSelect = document.getElementById('opsVaRuleReidSelect');
@@ -771,6 +799,7 @@ function buildRulesOpenExpression(seededPrereqs = {}) {
         preSaveInactiveProfileValidation,
         preSaveInactiveTemplateValidation,
         preSaveClassMismatchValidation,
+        reviewLoop,
         vlmDraftWorkflow,
         presetQuality,
         navHref: Array.from(document.querySelectorAll('a[href="/ops/users"]')).find(node => visible(node))?.getAttribute('href') || '',

@@ -187,6 +187,38 @@ check("UI validation covers every matrix fixture", () => {
   }
 });
 
+check("UI exposes S05 rule/scenario review loop before save", () => {
+  const html = readText("src/ingress/webrtc_http_server.cpp");
+  const script = readText("src/ingress/product_ui_page_scripts.cpp");
+  const css = readText("src/ingress/product_ui_css.cpp");
+  for (const snippet of [
+    'data-testid="ops-rule-scenario-review-loop"',
+    'data-review-loop="expected-event-type-conflict-missing-reference-preset-eventrecord-coverage"',
+    'id="opsRulesReviewEventRecordLink"',
+    'data-event-record-coverage-link="/ops/events"',
+  ]) {
+    assert(html.includes(snippet), `rules page missing S05 review loop snippet: ${snippet}`);
+  }
+  for (const snippet of [
+    "opsRulesBuildDraftReview",
+    "opsRulesUpdateReviewLoop",
+    "opsRulesReviewEventType",
+    "opsRulesReviewMissingReferences",
+    "opsRulesReviewPresetImpact",
+    "opsRulesReviewCoverageHref",
+    "verify-va-event-coverage-report matrix",
+  ]) {
+    assert(script.includes(snippet), `rules script missing S05 review loop snippet: ${snippet}`);
+  }
+  for (const snippet of [
+    ".ops-rule-review-loop",
+    ".ops-rule-review-grid",
+    ".ops-rule-review-item",
+  ]) {
+    assert(css.includes(snippet), `rules CSS missing S05 review loop snippet: ${snippet}`);
+  }
+});
+
 check("server validation covers server-owned fixtures", () => {
   const server = [
     readText("src/ingress/webrtc_http_server.cpp"),

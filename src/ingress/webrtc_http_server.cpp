@@ -3091,6 +3091,42 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           </div>
         </div>
         <div id="opsRulesComposerSteps" class="rule-step-strip" aria-label="현재 작성 단계" hidden></div>
+        <section id="opsRulesReviewLoop" class="ops-rule-review-loop" data-testid="ops-rule-scenario-review-loop" data-rule-review-contract="draft-only-no-schema-change" data-review-loop="expected-event-type-conflict-missing-reference-preset-eventrecord-coverage" hidden>
+          <div class="toolbar compact-toolbar">
+            <div>
+              <strong>저장 전 검토</strong>
+              <p id="opsRulesReviewSummary" class="form-note">예상 event type, 참조/충돌, preset 영향, EventRecord coverage 연결을 저장 전에 확인합니다.</p>
+            </div>
+            <a id="opsRulesReviewEventRecordLink" class="button-secondary" href="/ops/events" data-event-record-coverage-link="/ops/events">EventRecord 열기</a>
+          </div>
+          <div class="ops-rule-review-grid">
+            <article class="ops-rule-review-item" data-rule-review-item="event-type">
+              <span id="opsRulesReviewEventTypeChip" class="chip info">event</span>
+              <strong id="opsRulesReviewEventTypeTitle">-</strong>
+              <p id="opsRulesReviewEventTypeDetail">저장될 이벤트 종류를 계산합니다.</p>
+            </article>
+            <article class="ops-rule-review-item" data-rule-review-item="conflict">
+              <span id="opsRulesReviewConflictChip" class="chip">conflict</span>
+              <strong id="opsRulesReviewConflictTitle">-</strong>
+              <p id="opsRulesReviewConflictDetail">중복 ID, priority, source/class 충돌을 확인합니다.</p>
+            </article>
+            <article class="ops-rule-review-item" data-rule-review-item="missing-reference">
+              <span id="opsRulesReviewMissingChip" class="chip">reference</span>
+              <strong id="opsRulesReviewMissingTitle">-</strong>
+              <p id="opsRulesReviewMissingDetail">채널, PublishedView, 템플릿, 프로파일 참조를 확인합니다.</p>
+            </article>
+            <article class="ops-rule-review-item" data-rule-review-item="preset-impact">
+              <span id="opsRulesReviewPresetChip" class="chip">preset</span>
+              <strong id="opsRulesReviewPresetTitle">-</strong>
+              <p id="opsRulesReviewPresetDetail">시나리오 preset이 숫자 조건에 주는 영향을 표시합니다.</p>
+            </article>
+            <article class="ops-rule-review-item" data-rule-review-item="event-record-coverage">
+              <span id="opsRulesReviewCoverageChip" class="chip">coverage</span>
+              <strong id="opsRulesReviewCoverageTitle">-</strong>
+              <p id="opsRulesReviewCoverageDetail">EventRecord coverage 확인 위치를 연결합니다.</p>
+            </article>
+          </div>
+        </section>
         <form id="opsVaRuleForm" hidden>
           <div class="row">
             <div class="generated-id-control">
