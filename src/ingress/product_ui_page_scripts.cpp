@@ -2390,11 +2390,35 @@ void AppendOpsShellScript(std::ostringstream& out,
             ${tableCellHtml('상태', badge(item?.enabled ? '활성' : '비활성', item?.enabled ? '' : 'warn'), 'status')}
             ${tableCellHtml('Retry', escapeHtml(`${display(retry.maxAttempts)}회 · ${display(retry.backoffMs)}ms`))}
             ${tableCellHtml('최근 시도', `
-              <div class="table-cell-note">${escapeHtml(display(attempt?.status || '미제공'))}${attempt?.transport ? ` · ${escapeHtml(display(attempt.transport))}` : ''}</div>
-              ${opsRowActionsHtml(`<button class="button-secondary" type="button" data-alert-delivery-test="${escapeHtml(item?.id || '')}">Fixture</button>`, 'table-actions')}`, 'actions')}
+              <div class="table-cell-note">${escapeHtml(display(attempt?.status || '미제공'))}${attempt?.transport ? ` · ${escapeHtml(display(attempt.transport))}` : ''}${attempt?.dryRun ? ' · dry-run' : ''}${attempt?.externalDeliveryPerformed === false ? ' · 외부 전송 없음' : ''}</div>
+              ${opsRowActionsHtml(`
+                <button class="button-secondary" type="button" data-alert-delivery-dry-run="${escapeHtml(item?.id || '')}">Dry-run</button>
+                <button class="button-secondary" type="button" data-alert-delivery-test="${escapeHtml(item?.id || '')}">Fixture</button>
+              `, 'table-actions')}`, 'actions')}
           </tr>`;
         }).join('');
         bindAlertDeliveryRowActions();
+      }
+      function renderAlertDeliveryDryRun(payload = {}) {
+        const previews = Array.isArray(payload.payloadPreviews) ? payload.payloadPreviews : [];
+        const attempts = Array.isArray(payload.attempts) ? payload.attempts : [];
+        const first = previews[0] || {};
+        const firstEvent = first.event || {};
+        const previewLines = previews.length
+          ? [
+              `schema ${display(first.schema)}`,
+              `target ${display(first.deliveryId)} · ${display(first.kind)} · ${display(first.endpointMasked)}`,
+              `event ${display(firstEvent.eventId)} · ${display(firstEvent.eventType)} · ${display(firstEvent.sourceId)}`,
+              `payload redacted ${first.payloadRedacted === true ? 'yes' : 'check'} · Event POST 변경 없음`
+            ]
+          : ['payload preview 미생성'];
+        const resultLines = [
+          `dry-run ${payload?.dryRun === true ? 'true' : 'false'} · attempts ${attempts.length}`,
+          `external delivery ${payload?.externalDeliveryPerformed === false ? 'not performed' : 'check'}`,
+          `attempt log ${payload?.contract?.deliveryAttemptLog ? 'recorded' : 'check'} · audit ${display(payload?.audit?.action)}`
+        ];
+        setText('alertDeliveryPayloadPreview', previewLines.join(' | '));
+        setText('alertDeliveryDryRunResult', resultLines.join(' | '));
       }
       function renderAlertDelivery(payload = {}) {
         alertDeliveryPayloadCache = payload;
@@ -2408,13 +2432,14 @@ void AppendOpsShellScript(std::ostringstream& out,
           { text: `활성 ${enabledCount}`, tone: enabledCount > 0 ? '' : 'warn' },
           { text: `시도 ${attempts.length}` },
           { text: payload?.contract?.eventPostPayloadChanged === false ? 'Event POST 변경 없음' : '계약 확인 필요', tone: payload?.contract?.eventPostPayloadChanged === false ? 'info' : 'warn' },
+          { text: payload?.contract?.dryRunOnly ? 'dry-run only' : 'dry-run 확인 필요', tone: payload?.contract?.dryRunOnly ? 'info' : 'warn' },
           { text: payload?.contract?.auditMasking ? 'audit masking' : 'audit 확인 필요', tone: payload?.contract?.auditMasking ? 'info' : 'warn' }
         ]);
         setText(
           'alertDeliverySummary',
           payload.error
             ? `alert delivery 조회 실패: ${payload.error}`
-            : `transports webhook/email/slack · list/filter ${filteredCount}/${integrations.length} · bounded retry · fixture smoke · Event POST payload 변경 없음`
+            : `transports webhook/email/slack · list/filter ${filteredCount}/${integrations.length} · bounded retry · dry-run preview · attempt log · Event POST payload 변경 없음`
         );
         renderAlertDeliveryRows(payload);
       }
@@ -2430,6 +2455,17 @@ void AppendOpsShellScript(std::ostringstream& out,
           body: JSON.stringify(alertDeliveryBodyFromForm())
         });
         showToast?.('Alert delivery 저장 완료');
+        return payload;
+      }
+      async function dryRunAlertDeliveryIntegration(id = '') {
+        const body = id ? { deliveryId: id } : alertDeliveryBodyFromForm();
+        const payload = await requestJson('/ops/api/alerts/deliveries/dry-run', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body)
+        });
+        renderAlertDeliveryDryRun(payload);
+        showToast?.('Alert delivery dry-run 완료');
         return payload;
       }
       async function testAlertDeliveryIntegration(id = '') {
@@ -2452,6 +2488,18 @@ void AppendOpsShellScript(std::ostringstream& out,
               await refreshEvents();
             } catch (error) {
               setText('alertDeliverySummary', `fixture 전송 실패: ${error.message}`);
+            }
+          });
+        });
+        document.querySelectorAll('[data-alert-delivery-dry-run]').forEach(button => {
+          if (button.dataset.boundAlertDeliveryDryRun === '1') return;
+          button.dataset.boundAlertDeliveryDryRun = '1';
+          button.addEventListener('click', async () => {
+            try {
+              await dryRunAlertDeliveryIntegration(button.dataset.alertDeliveryDryRun || '');
+              await refreshEvents();
+            } catch (error) {
+              setText('alertDeliverySummary', `dry-run 실패: ${error.message}`);
             }
           });
         });
@@ -6230,6 +6278,14 @@ void AppendOpsShellScript(std::ostringstream& out,
             await refreshEvents();
           } catch (error) {
             setText('alertDeliverySummary', `저장 실패: ${error.message}`);
+          }
+        });
+        document.getElementById('alertDeliveryDryRun')?.addEventListener('click', async () => {
+          try {
+            await dryRunAlertDeliveryIntegration();
+            await refreshEvents();
+          } catch (error) {
+            setText('alertDeliverySummary', `dry-run 실패: ${error.message}`);
           }
         });
         document.getElementById('alertDeliveryTest')?.addEventListener('click', async () => {

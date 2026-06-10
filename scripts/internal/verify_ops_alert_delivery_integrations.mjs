@@ -29,7 +29,10 @@ check("alert delivery state is separate from Event POST payload", () => {
     "separateFromEventPostPayload",
     "eventPostPayloadChanged",
     "/ops/api/alerts/deliveries",
+    "/ops/api/alerts/deliveries/dry-run",
     "/ops/api/alerts/deliveries/test",
+    "OpsAlertDeliveryPayloadPreviewJson",
+    "DispatchOpsAlertDeliveryDryRun",
   ]) {
     assertIncludes(server, snippet, "alert delivery server contract");
   }
@@ -57,6 +60,24 @@ check("alert delivery test audit action is declared", () => {
   assertIncludes(server, "alert-delivery-test", "alert delivery policy/audit contract");
 });
 
+check("alert delivery dry-run audit action is declared", () => {
+  assertIncludes(server, "alert-delivery-dry-run", "alert delivery policy/audit contract");
+});
+
+check("alert delivery dry-run never performs external delivery", () => {
+  for (const snippet of [
+    "externalDeliveryPerformed",
+    "externalDeliveryPerformedByDefault",
+    "dryRunOnly",
+    "payloadPreview",
+    "deliveryAttemptLog",
+    "media-server.ops.alert-delivery-payload-preview.v1",
+    "media-server.ops.alert-delivery-dry-run.v1",
+  ]) {
+    assertIncludes(server, snippet, "alert delivery dry-run contract");
+  }
+});
+
 check("alert delivery masked endpoint helper is declared", () => {
   assertIncludes(server, "OpsAlertDeliveryMaskedEndpoint", "alert delivery policy/audit contract");
 });
@@ -72,14 +93,23 @@ check("alert delivery audit record writer is declared", () => {
 for (const [label, snippet] of [
   ["ops events UI exposes alert delivery panel", 'data-testid="ops-alert-delivery-integrations"'],
   ["ops events UI exposes alert delivery contract marker", 'data-alert-contract="separate-from-event-post-payload"'],
+  ["ops events UI exposes alert dry-run marker", 'data-alert-dry-run="ops-only-no-external-delivery"'],
+  ["ops events UI exposes delivery attempt log marker", 'data-delivery-attempt-log="ops-local-attempt-log"'],
   ["ops events UI exposes alert delivery save control", 'id="alertDeliverySave"'],
+  ["ops events UI exposes alert delivery dry-run control", 'id="alertDeliveryDryRun"'],
   ["ops events UI exposes alert delivery test control", 'id="alertDeliveryTest"'],
+  ["ops events UI exposes alert delivery payload preview", 'id="alertDeliveryPayloadPreview"'],
+  ["ops events UI exposes alert delivery dry-run result", 'id="alertDeliveryDryRunResult"'],
   ["ops events UI renders alert delivery function", "renderAlertDelivery"],
+  ["ops events UI renders alert delivery dry-run function", "renderAlertDeliveryDryRun"],
   ["ops events UI saves alert delivery function", "saveAlertDeliveryIntegration"],
+  ["ops events UI dry-runs alert delivery function", "dryRunAlertDeliveryIntegration"],
   ["ops events UI tests alert delivery function", "testAlertDeliveryIntegration"],
   ["ops events UI uses alert delivery list endpoint", "/ops/api/alerts/deliveries"],
+  ["ops events UI uses alert delivery dry-run endpoint", "/ops/api/alerts/deliveries/dry-run"],
   ["ops events UI uses alert delivery test endpoint", "/ops/api/alerts/deliveries/test"],
   ["ops events UI styles alert delivery form", ".ops-alert-delivery-form"],
+  ["ops events UI styles alert delivery dry-run panel", ".alert-delivery-dry-run"],
   ["ops events UI styles alert delivery table", ".alert-delivery-table"],
 ]) {
   check(label, () => {
@@ -141,6 +171,10 @@ check("ops UI smoke tracks alert delivery panel", () => {
 
 check("ops UI smoke tracks alert delivery API route", () => {
   assertIncludes(uiSmoke + serverSh + gitignore, "/ops/api/alerts/deliveries", "alert delivery smoke wiring");
+});
+
+check("ops UI smoke tracks alert delivery dry-run API route", () => {
+  assertIncludes(uiSmoke + serverSh + gitignore, "/ops/api/alerts/deliveries/dry-run", "alert delivery smoke wiring");
 });
 
 check("gitignore tracks alert delivery config store", () => {
@@ -286,10 +320,23 @@ async function runRoundtripSmoke() {
     assert(Array.isArray(fixture.attempts) && fixture.attempts.length === 1, "fixture attempt missing");
     assert(fixture.eventPostPayloadChanged === false, "fixture changed Event POST payload contract");
     assert(JSON.stringify(fixture).includes("secret-token") === false, "fixture response leaked endpoint token");
+    const dryRun = await requestJson("/ops/api/alerts/deliveries/dry-run", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ deliveryId: runId, eventId: `${runId}-dry-run-event` }),
+    });
+    assert(dryRun.status === "ops-alert-delivery-dry-run", "dry-run status mismatch");
+    assert(dryRun.dryRun === true, "dry-run flag missing");
+    assert(dryRun.externalDeliveryPerformed === false, "dry-run performed external delivery");
+    assert(dryRun.eventPostPayloadChanged === false, "dry-run changed Event POST payload contract");
+    assert(Array.isArray(dryRun.payloadPreviews) && dryRun.payloadPreviews.length === 1, "dry-run payload preview missing");
+    assert(Array.isArray(dryRun.attempts) && dryRun.attempts.some(item => item.deliveryId === runId && item.dryRun === true), "dry-run attempt missing");
+    assert(JSON.stringify(dryRun).includes("secret-token") === false, "dry-run response leaked endpoint token");
     const listed = await requestJson("/ops/api/alerts/deliveries");
     assert(Array.isArray(listed.integrations), "list integrations missing");
     assert(listed.integrations.some(item => item.id === runId && item.endpointRedacted === true), "listed delivery missing/redaction missing");
     assert(Array.isArray(listed.attempts) && listed.attempts.some(item => item.deliveryId === runId), "listed attempt missing");
+    assert(listed.attempts.some(item => item.deliveryId === runId && item.dryRun === true), "listed dry-run attempt missing");
   });
 }
 
@@ -364,6 +411,15 @@ function buildAlertDeliveryUiSmokeExpression(runId) {
       if (!savedText.includes('Alert UI smoke') || !savedText.includes('[redacted-alert-target]')) {
         return { ok: false, message: 'saved row did not render label/redacted endpoint', savedText };
       }
+      click('alertDeliveryDryRun');
+      const dryRunText = await waitFor(() => {
+        const preview = document.getElementById('alertDeliveryPayloadPreview')?.textContent || '';
+        const result = document.getElementById('alertDeliveryDryRunResult')?.textContent || '';
+        return preview.includes(runId) && result.includes('not performed') ? { preview, result } : null;
+      }, 'dry-run preview result');
+      if (!dryRunText.preview.includes('[redacted-alert-target]')) {
+        return { ok: false, message: 'dry-run preview did not redact endpoint', dryRunText };
+      }
       const rowButton = savedRow.querySelector('[data-alert-delivery-test="' + runId + '"]');
       rowButton.click();
       const deliveredRow = await waitFor(() => {
@@ -380,6 +436,7 @@ function buildAlertDeliveryUiSmokeExpression(runId) {
         ok: true,
         runId,
         savedText,
+        dryRunText,
         deliveredText,
         summary: document.getElementById('alertDeliverySummary')?.textContent || '',
         badges: document.getElementById('alertDeliveryBadges')?.textContent || ''

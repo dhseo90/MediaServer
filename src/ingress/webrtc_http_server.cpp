@@ -3443,11 +3443,11 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <p id="eventExportPolicyText">증거 export와 삭제 권한을 확인합니다.</p>
         </section>
       </div>
-      <section class="section-card ops-workspace-wide" data-testid="ops-alert-delivery-integrations" data-alert-contract="separate-from-event-post-payload">
+      <section class="section-card ops-workspace-wide" data-testid="ops-alert-delivery-integrations" data-alert-contract="separate-from-event-post-payload" data-alert-dry-run="ops-only-no-external-delivery" data-delivery-attempt-log="ops-local-attempt-log">
         <div class="toolbar">
           <div>
             <h3>Alert Delivery Integrations</h3>
-            <p id="alertDeliverySummary">Rule event 알림은 Event POST payload와 분리된 delivery state, retry policy, audit로 관리합니다.</p>
+            <p id="alertDeliverySummary">Rule event 알림은 Event POST payload와 분리된 delivery state, retry policy, dry-run, audit로 관리합니다.</p>
           </div>
           <div id="alertDeliveryBadges" class="badge-row"><span class="chip">로딩 중</span></div>
         </div>
@@ -3485,7 +3485,18 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <label class="check-inline"><input id="alertDeliveryEnabled" type="checkbox" checked /> 활성</label>
           <div class="actions">
             <button id="alertDeliverySave" class="button-primary" type="button">저장</button>
+            <button id="alertDeliveryDryRun" class="button-secondary" type="button">Dry-run</button>
             <button id="alertDeliveryTest" class="button-secondary" type="button">Fixture 전송</button>
+          </div>
+        </div>
+        <div class="alert-delivery-dry-run" data-testid="ops-alert-dry-run-result">
+          <div class="alert-delivery-preview" data-alert-preview="payload">
+            <div class="alert-delivery-preview-title">Payload Preview</div>
+            <div id="alertDeliveryPayloadPreview" class="alert-delivery-preview-body">미실행</div>
+          </div>
+          <div class="alert-delivery-preview" data-alert-preview="result">
+            <div class="alert-delivery-preview-title">Dry-run Result</div>
+            <div id="alertDeliveryDryRunResult" class="alert-delivery-preview-body">미실행</div>
           </div>
         </div>
         <div class="table-wrap">
@@ -10717,7 +10728,10 @@ std::string OpsAlertDeliveryAttemptJson(const OpsAlertDeliveryConfig& delivery,
                                         const std::string& source_id,
                                         const std::string& status,
                                         const std::string& transport,
-                                        std::int64_t now_ms) {
+                                        std::int64_t now_ms,
+                                        bool dry_run = false,
+                                        bool external_delivery_performed = false,
+                                        const std::string& payload_preview_json = "") {
     std::ostringstream out;
     out << "{"
         << "\"schema\":\"media-server.ops.alert-delivery-attempt.v1\","
@@ -10732,9 +10746,15 @@ std::string OpsAlertDeliveryAttemptJson(const OpsAlertDeliveryConfig& delivery,
         << "\"retryPolicy\":{\"maxAttempts\":" << delivery.retry_max
         << ",\"backoffMs\":" << delivery.retry_backoff_ms
         << ",\"bounded\":true},"
+        << "\"dryRun\":" << (dry_run ? "true" : "false") << ","
+        << "\"externalDeliveryPerformed\":"
+        << (external_delivery_performed ? "true" : "false") << ","
         << "\"eventPostPayloadChanged\":false,"
-        << "\"attemptedAtMs\":" << now_ms
-        << "}";
+        << "\"attemptedAtMs\":" << now_ms;
+    if (!payload_preview_json.empty()) {
+        out << ",\"payloadPreview\":" << payload_preview_json;
+    }
+    out << "}";
     return out.str();
 }
 
@@ -10804,9 +10824,14 @@ std::string OpsAlertDeliveryListJson(const app::AppConfig& config) {
         << "\"contract\":{\"separateFromEventPostPayload\":true,"
         << "\"eventPostPayloadChanged\":false,"
         << "\"auditMasking\":true,"
+        << "\"dryRunOnly\":true,"
+        << "\"payloadPreview\":true,"
+        << "\"deliveryAttemptLog\":true,"
+        << "\"externalDeliveryPerformedByDefault\":false,"
         << "\"retryPolicy\":true},"
         << "\"policy\":{\"transports\":[\"webhook\",\"email\",\"slack\"],"
         << "\"deliveryFixtureSmoke\":true,"
+        << "\"dryRunEndpoint\":\"/ops/api/alerts/deliveries/dry-run\","
         << "\"boundedRetry\":true,"
         << "\"clientViewerExposure\":false},"
         << "\"integrations\":[";
@@ -10828,6 +10853,187 @@ std::string OpsAlertDeliveryListJson(const app::AppConfig& config) {
         out << ",\"warning\":\"" << JsonEscape(error_message) << "\"";
     }
     out << "}";
+    return out.str();
+}
+
+std::string OpsAlertDeliveryPayloadPreviewJson(const OpsAlertDeliveryConfig& delivery,
+                                               const std::string& event_id,
+                                               const std::string& event_type,
+                                               const std::string& source_id) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.alert-delivery-payload-preview.v1\","
+        << "\"deliveryId\":\"" << JsonEscape(delivery.id) << "\","
+        << "\"kind\":\"" << JsonEscape(delivery.kind) << "\","
+        << "\"label\":\"" << JsonEscape(delivery.label) << "\","
+        << "\"endpointMasked\":\"" << JsonEscape(OpsAlertDeliveryMaskedEndpoint(delivery)) << "\","
+        << "\"payloadRedacted\":true,"
+        << "\"event\":{\"eventId\":\"" << JsonEscape(event_id) << "\","
+        << "\"eventType\":\"" << JsonEscape(event_type) << "\","
+        << "\"sourceId\":\"" << JsonEscape(source_id) << "\"},"
+        << "\"body\":{\"deliveryId\":\"" << JsonEscape(delivery.id) << "\","
+        << "\"kind\":\"" << JsonEscape(delivery.kind) << "\","
+        << "\"eventId\":\"" << JsonEscape(event_id) << "\","
+        << "\"eventType\":\"" << JsonEscape(event_type) << "\","
+        << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
+        << "\"endpoint\":\"[redacted-alert-target]\"},"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"externalDeliveryPerformed\":false"
+        << "}";
+    return out.str();
+}
+
+bool OpsAlertDeliveryBodyLooksLikeDraft(const std::string& body) {
+    return ParseStringField(body, "endpoint").has_value() ||
+           ParseStringField(body, "webhookUrl").has_value() ||
+           ParseStringField(body, "emailTo").has_value() ||
+           ParseStringField(body, "slackChannel").has_value() ||
+           ParseStringField(body, "kind").has_value() ||
+           ParseStringField(body, "label").has_value();
+}
+
+bool OpsAlertDeliveryDraftFromBody(const std::string& body,
+                                   OpsAlertDeliveryConfig* draft,
+                                   std::string* error_message) {
+    if (draft == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "alert delivery draft is required";
+        }
+        return false;
+    }
+    OpsAlertDeliveryConfig next;
+    next.id = Trim(ParseStringField(body, "id").value_or(
+        ParseStringField(body, "deliveryId").value_or("")));
+    if (!OpsAlertDeliveryIdAllowed(next.id)) {
+        if (error_message != nullptr) {
+            *error_message = "alert delivery id is required for dry-run";
+        }
+        return false;
+    }
+    next.kind = NormalizeOpsAlertDeliveryKind(ParseStringField(body, "kind").value_or("webhook"));
+    next.enabled = ParseBoolField(body, "enabled").value_or(true);
+    next.label = Trim(ParseStringField(body, "label").value_or(next.id));
+    next.endpoint = OpsAlertDeliveryEndpointFromBody(body, next.kind);
+    if (next.endpoint.empty()) {
+        if (error_message != nullptr) {
+            *error_message = "alert delivery endpoint is required for dry-run";
+        }
+        return false;
+    }
+    next.retry_max = ClampOpsAlertDeliveryInt(ParseInt64Field(body, "retryMax"), 3, 0, 8);
+    next.retry_backoff_ms =
+        ClampOpsAlertDeliveryInt(ParseInt64Field(body, "retryBackoffMs"), 2000, 250, 60000);
+    next.updated_at_ms = NowUnixMs();
+    next.present = true;
+    *draft = std::move(next);
+    return true;
+}
+
+std::string DispatchOpsAlertDeliveryDryRun(const app::AppConfig& config,
+                                           const auth::Principal& principal,
+                                           const std::string& body,
+                                           std::string* error_message) {
+    const std::string wanted_id = Trim(ParseStringField(body, "id").value_or(
+        ParseStringField(body, "deliveryId").value_or("")));
+    const std::string event_id = Trim(ParseStringField(body, "eventId").value_or(
+        "alert-dry-run-" + std::to_string(NowUnixMs())));
+    const std::string event_type =
+        Trim(ParseStringField(body, "eventType").value_or("intrusion"));
+    const std::string source_id = Trim(ParseStringField(body, "sourceId").value_or("sample"));
+
+    std::vector<OpsAlertDeliveryConfig> deliveries;
+    if (OpsAlertDeliveryBodyLooksLikeDraft(body)) {
+        OpsAlertDeliveryConfig draft;
+        if (!OpsAlertDeliveryDraftFromBody(body, &draft, error_message)) {
+            return "";
+        }
+        deliveries.push_back(std::move(draft));
+    } else {
+        std::unordered_map<std::string, OpsAlertDeliveryConfig> configs;
+        if (!LoadOpsAlertDeliveryConfigs(config, &configs, error_message)) {
+            return "";
+        }
+        for (const auto& [_, delivery] : configs) {
+            if (!wanted_id.empty() && delivery.id != wanted_id) {
+                continue;
+            }
+            deliveries.push_back(delivery);
+        }
+    }
+    if (deliveries.empty()) {
+        if (error_message != nullptr) {
+            *error_message = "no alert delivery target found for dry-run";
+        }
+        return "";
+    }
+
+    std::vector<std::string> attempts;
+    std::vector<std::string> payload_previews;
+    const std::int64_t now_ms = NowUnixMs();
+    for (const auto& delivery : deliveries) {
+        const std::string preview =
+            OpsAlertDeliveryPayloadPreviewJson(delivery, event_id, event_type, source_id);
+        const std::string attempt = OpsAlertDeliveryAttemptJson(delivery,
+                                                                event_id,
+                                                                event_type,
+                                                                source_id,
+                                                                "dry-run",
+                                                                "dry-run",
+                                                                now_ms,
+                                                                true,
+                                                                false,
+                                                                preview);
+        if (!AppendOpsAlertDeliveryAttempt(config, attempt, error_message)) {
+            return "";
+        }
+        payload_previews.push_back(preview);
+        attempts.push_back(attempt);
+    }
+
+    std::ostringstream audit_body;
+    audit_body << "{"
+               << "\"area\":\"events\","
+               << "\"action\":\"alert-delivery-dry-run\","
+               << "\"target\":\"alert-delivery:" << JsonEscape(wanted_id.empty() ? "draft" : wanted_id)
+               << "\","
+               << "\"summary\":\"Alert delivery dry-run preview generated\","
+               << "\"after\":{\"eventId\":\"" << JsonEscape(event_id) << "\","
+               << "\"attempts\":" << attempts.size() << ","
+               << "\"payloadPreview\":true,"
+               << "\"dryRun\":true,"
+               << "\"externalDeliveryPerformed\":false,"
+               << "\"endpoint\":\"[redacted-alert-target]\"}"
+               << "}";
+    std::string audit_error;
+    (void)AppendOpsAuditRecord(config, OpsAuditRecordJson(audit_body.str(), principal), &audit_error);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"status\":\"ops-alert-delivery-dry-run\","
+        << "\"schema\":\"media-server.ops.alert-delivery-dry-run.v1\","
+        << "\"dryRun\":true,"
+        << "\"externalDeliveryPerformed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"contract\":{\"alertTargetDraft\":true,"
+        << "\"payloadPreview\":true,"
+        << "\"deliveryAttemptLog\":true,"
+        << "\"separateFromEventPostPayload\":true},"
+        << "\"audit\":{\"area\":\"events\",\"action\":\"alert-delivery-dry-run\"},"
+        << "\"payloadPreviews\":[";
+    for (std::size_t i = 0; i < payload_previews.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << payload_previews[i];
+    }
+    out << "],\"attempts\":[";
+    for (std::size_t i = 0; i < attempts.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << attempts[i];
+    }
+    out << "]}";
     return out.str();
 }
 
@@ -14631,6 +14837,31 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            return JsonResponse(405,
 	                                                "Method Not Allowed",
 	                                                "{\"error\":\"method not allowed\"}");
+	                        }
+
+	                        if (request.method == "POST" &&
+	                            request.path == "/ops/api/alerts/deliveries/dry-run") {
+	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+	                                return *auth_response;
+	                            }
+	                            constexpr std::size_t kOpsAlertDeliveryDryRunMaxBodyBytes = 64 * 1024;
+	                            if (request.body.size() > kOpsAlertDeliveryDryRunMaxBodyBytes) {
+	                                return JsonResponse(
+	                                    413,
+	                                    "Payload Too Large",
+	                                    "{\"error\":\"alert delivery dry-run body is too large\"}");
+	                            }
+	                            std::string error_message;
+	                            const std::string body = DispatchOpsAlertDeliveryDryRun(
+	                                config, principal_result.principal, request.body, &error_message);
+	                            if (body.empty()) {
+	                                return JsonResponse(400,
+	                                                    "Bad Request",
+	                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+	                            }
+	                            HttpResponse ok = JsonResponse(200, "OK", body);
+	                            ok.headers["Cache-Control"] = "no-store";
+	                            return ok;
 	                        }
 
 	                        if (request.method == "POST" && request.path == "/ops/api/alerts/deliveries/test") {

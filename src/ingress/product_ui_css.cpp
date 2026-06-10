@@ -2451,6 +2451,31 @@ std::string ProductUiCss() {
       gap: var(--space-2);
       flex-wrap: wrap;
     }
+    .alert-delivery-dry-run {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-3);
+      margin: var(--space-3) 0;
+    }
+    .alert-delivery-preview {
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-subtle);
+      padding: var(--space-3);
+      min-width: 0;
+    }
+    .alert-delivery-preview-title {
+      color: var(--color-text-muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .alert-delivery-preview-body {
+      color: var(--color-text);
+      font-size: 0.9rem;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
     .alert-delivery-table .table-cell-note {
       overflow-wrap: anywhere;
     }
