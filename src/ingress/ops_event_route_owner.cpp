@@ -1,9 +1,9 @@
-// File purpose: owns route matching for v2.4.0 Ops event review/action routes.
-// V240-S06 owner-only route matching. Event POST payload unchanged.
-// WebRTC DataChannel schema unchanged. SSE/WS metadata schema unchanged.
-// RTSP/WebRTC media path unchanged.
-// Client summary owners: /client/api/views/{id}/dashboard,
-// /client/api/views/{id}/events, /client/api/views/{id}/metadata.
+// 파일 용도: v2.4.0 Ops 이벤트 review/action route의 owner 매칭 구현.
+// V240-S06 owner-only route matching이며 Event POST payload는 변경하지 않는다.
+// WebRTC DataChannel schema와 SSE/WS metadata schema도 변경하지 않는다.
+// RTSP/WebRTC media path 역시 변경하지 않는다.
+// Client summary owner는 /client/api/views/{id}/dashboard,
+// /client/api/views/{id}/events, /client/api/views/{id}/metadata를 담당한다.
 #include "ingress/ops_event_route_owner.h"
 
 namespace ingress {

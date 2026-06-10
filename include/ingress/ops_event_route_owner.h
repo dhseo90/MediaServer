@@ -1,4 +1,4 @@
-// File purpose: declares owner-only route matching for v2.4.0 Ops event routes.
+// 파일 용도: v2.4.0 Ops 이벤트 route의 owner 전용 매칭 선언.
 #pragma once
 
 #include <string>

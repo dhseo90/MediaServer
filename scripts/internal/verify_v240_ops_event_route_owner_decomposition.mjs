@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// File purpose: verify v2.4.0 S06 Ops event route owner decomposition wiring.
+// 파일 용도: v2.4.0 S06 Ops 이벤트 route owner decomposition wiring을 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// File purpose: verify v2.4.0 S08 release readiness gate mapping.
+// 파일 용도: v2.4.0 S08 release readiness gate mapping을 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";
