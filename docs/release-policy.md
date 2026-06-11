@@ -177,6 +177,25 @@ git diff --check
   `verify-release-metadata --published` 미실행 상태를 release evidence index에
   별도로 남깁니다.
 
+2026-06-11 release test close-out evidence:
+
+- 30분 테스트: `v240-release-30min-20260611` PASS.
+  `verify-predev --soak-minutes 30` summary는 status pass, pass 119, fail 0,
+  skip 1, durationSec 2380입니다.
+- UI 풀테스트: `v240-release-ui-fulltest-20260611` PASS. Codex 인앱 브라우저로
+  setup/login/password/invite/request-access, Ops route, Client route, alert
+  dry-run, EventRecord review/incident UI를 직접 확인했습니다. Throwaway evidence의
+  빈-row note와 실제 외부 alert delivery 미수행은 PASS로 확대하지 않습니다.
+- 120분 테스트: `v240-release-120min-20260611` PASS.
+  `verify-predev --soak-minutes 120` summary는 status pass, pass 444, fail 0,
+  skip 1, durationSec 7788입니다.
+  `verify-va-runtime-console-longrun --duration-minutes 120 --include-rtsp`
+  summary는 ok true, pass 11, fail 0, durationSec 7200, portsClean true,
+  runtimeIdle true입니다.
+- 제외/미실행: real ONVIF, external TURN/WHEP, real cloud provider call, 실제 외부
+  alert delivery는 credential/endpoint/실기기 승인 범위가 아니므로 release PASS로
+  쓰지 않습니다.
+
 ## Tag 전략
 
 - 현재 source-only release 기준 tag는 `v2.4.0`입니다.
