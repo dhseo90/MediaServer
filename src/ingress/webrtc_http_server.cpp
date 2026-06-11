@@ -3521,6 +3521,18 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <p class="ops-rule-note">검색어를 입력하면 EventRecord/review projection의 matched evidence highlight가 표시됩니다.</p>
         </div>
       </section>
+      <section class="section-card ops-workspace-wide incident-timeline-graph" data-testid="ops-incident-timeline-graph" data-incident-timeline-graph="source-event-action-alert-close">
+        <div class="toolbar">
+          <div>
+            <h3>Incident Timeline Graph</h3>
+            <p id="opsIncidentTimelineGraphSummary">source state → event → operator action → alert dry-run → close 상태 연결을 확인합니다.</p>
+          </div>
+          <div id="opsIncidentTimelineGraphBadges" class="badge-row"><span class="chip">timeline graph</span></div>
+        </div>
+        <div id="opsIncidentTimelineGraphRows" class="incident-timeline-graph-rail">
+          <p class="ops-rule-note">EventRecord와 review state를 불러오면 incident timeline graph가 표시됩니다.</p>
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide" data-testid="ops-alert-delivery-integrations" data-alert-contract="separate-from-event-post-payload" data-alert-dry-run="ops-only-no-external-delivery" data-delivery-attempt-log="ops-local-attempt-log">
         <div class="toolbar">
           <div>
@@ -12578,6 +12590,213 @@ std::string OpsIncidentMemorySearchViewJson(
     return out.str();
 }
 
+std::string OpsIncidentTimelineGraphSourceId(const std::string& event_json) {
+    for (const char* key : {"sourceId", "streamId", "channelId"}) {
+        const std::string value = Trim(ParseStringField(event_json, key).value_or(""));
+        if (!value.empty() && !OpsEventReviewNoteContainsSensitiveMaterial(value)) {
+            return value;
+        }
+    }
+    return "unknown-source";
+}
+
+std::string OpsIncidentTimelineGraphEventStatus(const std::string& event_json) {
+    const std::string status = Trim(ParseStringField(event_json, "status").value_or(""));
+    return status.empty() ? "recorded" : status;
+}
+
+std::int64_t OpsIncidentTimelineGraphEventTimeMs(const std::string& event_json) {
+    for (const char* key : {"timestampMs", "createdAtMs", "receivedAtMs"}) {
+        if (const auto parsed = ParseInt64Field(event_json, key); parsed.has_value()) {
+            return *parsed;
+        }
+    }
+    return 0;
+}
+
+std::string OpsIncidentTimelineGraphNodeJson(const std::string& id,
+                                             const std::string& stage,
+                                             const std::string& title,
+                                             const std::string& detail,
+                                             const std::string& status,
+                                             std::int64_t time_ms) {
+    std::ostringstream out;
+    out << "{"
+        << "\"id\":\"" << JsonEscape(id) << "\","
+        << "\"stage\":\"" << JsonEscape(stage) << "\","
+        << "\"title\":\"" << JsonEscape(title) << "\","
+        << "\"detail\":\"" << JsonEscape(detail) << "\","
+        << "\"status\":\"" << JsonEscape(status) << "\","
+        << "\"timeMs\":" << time_ms
+        << "}";
+    return out.str();
+}
+
+std::string OpsIncidentTimelineGraphEdgeJson(const std::string& from,
+                                             const std::string& to,
+                                             const std::string& label) {
+    std::ostringstream out;
+    out << "{"
+        << "\"from\":\"" << JsonEscape(from) << "\","
+        << "\"to\":\"" << JsonEscape(to) << "\","
+        << "\"label\":\"" << JsonEscape(label) << "\""
+        << "}";
+    return out.str();
+}
+
+std::string OpsIncidentTimelineGraphAlertAttempt(
+    const std::vector<std::string>& attempts,
+    const std::string& event_id,
+    const std::string& source_id) {
+    for (const std::string& attempt : attempts) {
+        const std::string attempt_event_id = Trim(ParseStringField(attempt, "eventId").value_or(""));
+        const std::string attempt_source_id = Trim(ParseStringField(attempt, "sourceId").value_or(""));
+        if ((!event_id.empty() && attempt_event_id == event_id) ||
+            (!source_id.empty() && attempt_source_id == source_id)) {
+            return attempt;
+        }
+    }
+    return "";
+}
+
+std::string OpsIncidentTimelineGraphViewJson(
+    const app::AppConfig& config,
+    const std::vector<std::string>& event_json_records,
+    const std::unordered_map<std::string, OpsEventReviewState>& reviews) {
+    const std::vector<std::string> alert_attempts = LoadRecentOpsAlertDeliveryAttempts(config, 80);
+    std::vector<std::string> nodes;
+    std::vector<std::string> edges;
+    std::size_t graph_count = 0;
+    constexpr std::size_t kMaxTimelineGraphs = 10;
+
+    for (std::size_t index = 0; index < event_json_records.size() &&
+                                graph_count < kMaxTimelineGraphs; ++index) {
+        const std::string& event_json = event_json_records[index];
+        std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+        if (!OpsEventReviewEventIdAllowed(event_id)) {
+            event_id = "event-" + std::to_string(index + 1);
+        }
+        const std::string event_type =
+            Trim(ParseStringField(event_json, "eventType").value_or("event"));
+        const std::string source_id = OpsIncidentTimelineGraphSourceId(event_json);
+        const std::string event_status = OpsIncidentTimelineGraphEventStatus(event_json);
+        const std::int64_t event_time_ms = OpsIncidentTimelineGraphEventTimeMs(event_json);
+        const auto review_it = reviews.find(event_id);
+        const OpsEventReviewState review =
+            review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
+        const std::string incident_id = review.incident_id.empty() ? "incident:" + event_id
+                                                                   : review.incident_id;
+        const std::string alert_attempt =
+            OpsIncidentTimelineGraphAlertAttempt(alert_attempts, event_id, source_id);
+        const std::string graph_prefix = "incident-timeline:" + event_id + ":";
+        const std::string source_node = graph_prefix + "source-state";
+        const std::string event_node = graph_prefix + "event-record";
+        const std::string action_node = graph_prefix + "operator-action";
+        const std::string alert_node = graph_prefix + "alert-dry-run";
+        const std::string close_node = graph_prefix + "close-state";
+
+        nodes.push_back(OpsIncidentTimelineGraphNodeJson(
+            source_node,
+            "source-state",
+            "source state " + source_id,
+            "source state from EventRecord scope; source locator and raw diagnostics are not exposed",
+            source_id == "unknown-source" ? "unknown" : "scoped",
+            event_time_ms));
+        nodes.push_back(OpsIncidentTimelineGraphNodeJson(
+            event_node,
+            "event-record",
+            "event " + event_type,
+            "EventRecord " + event_id + " status " + event_status,
+            event_status,
+            event_time_ms));
+        nodes.push_back(OpsIncidentTimelineGraphNodeJson(
+            action_node,
+            "operator-action",
+            "operator action " + (review.action_target.empty() ? "operator-triage"
+                                                                 : review.action_target),
+            "review " + review.review_status + " classification " + review.classification +
+                " audit event-review-update/incident-action-update",
+            review.review_status,
+            review.updated_at_ms));
+        if (!alert_attempt.empty()) {
+            const std::string alert_status =
+                Trim(ParseStringField(alert_attempt, "status").value_or("attempted"));
+            const std::string delivery_id =
+                Trim(ParseStringField(alert_attempt, "deliveryId").value_or("delivery"));
+            const std::string kind = Trim(ParseStringField(alert_attempt, "kind").value_or("alert"));
+            const bool dry_run = ParseBoolField(alert_attempt, "dryRun").value_or(false);
+            const bool external_delivery =
+                ParseBoolField(alert_attempt, "externalDeliveryPerformed").value_or(false);
+            nodes.push_back(OpsIncidentTimelineGraphNodeJson(
+                alert_node,
+                "alert-dry-run",
+                "alert " + alert_status,
+                delivery_id + " " + kind + (dry_run ? " dry-run" : " attempt") +
+                    (external_delivery ? " external delivery performed" : " external delivery not performed"),
+                alert_status,
+                ParseInt64Field(alert_attempt, "attemptedAtMs").value_or(0)));
+        } else {
+            nodes.push_back(OpsIncidentTimelineGraphNodeJson(
+                alert_node,
+                "alert-dry-run",
+                "alert dry-run pending",
+                "no dry-run attempt yet; alert delivery remains separate from Event POST payload",
+                "pending",
+                0));
+        }
+        nodes.push_back(OpsIncidentTimelineGraphNodeJson(
+            close_node,
+            "close-state",
+            "incident " + review.incident_status,
+            incident_id + " close state " + review.incident_status +
+                " eventPostPayloadChanged false",
+            review.incident_status,
+            review.updated_at_ms));
+
+        edges.push_back(OpsIncidentTimelineGraphEdgeJson(
+            source_node, event_node, "source-state->event-record"));
+        edges.push_back(OpsIncidentTimelineGraphEdgeJson(
+            event_node, action_node, "event-record->operator-action"));
+        edges.push_back(OpsIncidentTimelineGraphEdgeJson(
+            action_node, alert_node, "operator-action->alert-dry-run"));
+        edges.push_back(OpsIncidentTimelineGraphEdgeJson(
+            alert_node, close_node, "alert-dry-run->close-state"));
+        ++graph_count;
+    }
+
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.incident-timeline-graph.v1\","
+        << "\"status\":\"ops-incident-timeline-graph\","
+        << "\"graphCount\":" << graph_count << ","
+        << "\"nodeCount\":" << nodes.size() << ","
+        << "\"edgeCount\":" << edges.size() << ","
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"auditLinkage\":{"
+        << "\"eventReviewAction\":\"event-review-update\","
+        << "\"incidentAction\":\"incident-action-update\","
+        << "\"alertDryRunAction\":\"alert-delivery-dry-run\","
+        << "\"separateFromEventPostPayload\":true"
+        << "},"
+        << "\"nodes\":[";
+    for (std::size_t i = 0; i < nodes.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << nodes[i];
+    }
+    out << "],\"edges\":[";
+    for (std::size_t i = 0; i < edges.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << edges[i];
+    }
+    out << "]}";
+    return out.str();
+}
+
 bool OpsEventReviewInboxJson(const app::AppConfig& config,
                              const std::unordered_map<std::string, std::string>& query,
                              std::string* body,
@@ -12669,6 +12888,8 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         << "},"
         << "\"catalog\":" << OpsEventReviewCatalogJson() << ","
         << "\"memorySearch\":" << OpsIncidentMemorySearchViewJson(event_result.records_json, reviews, query)
+        << ","
+        << "\"timelineGraph\":" << OpsIncidentTimelineGraphViewJson(config, event_result.records_json, reviews)
         << ","
         << "\"records\":[";
     for (std::size_t i = 0; i < items.size(); ++i) {

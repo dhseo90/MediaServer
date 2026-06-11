@@ -2474,6 +2474,62 @@ std::string ProductUiCss() {
       color: var(--color-text);
       font-weight: 800;
     }
+    .incident-timeline-graph {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .incident-timeline-graph-rail {
+      display: grid;
+      gap: var(--space-2);
+    }
+    .incident-timeline-graph-item {
+      min-width: 0;
+      display: grid;
+      gap: var(--space-2);
+    }
+    .incident-timeline-node {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: minmax(68px, 0.18fr) minmax(0, 0.28fr) minmax(0, 1fr);
+      gap: var(--space-2);
+      align-items: center;
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-left: 5px solid var(--color-primary);
+      border-radius: 8px;
+      background: var(--color-surface-subtle);
+    }
+    .incident-timeline-node span {
+      color: var(--color-text-muted);
+      font-size: var(--font-size-sm);
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    .incident-timeline-node strong,
+    .incident-timeline-node p {
+      min-width: 0;
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+    .incident-timeline-node p {
+      color: var(--color-text-muted);
+      font-size: var(--font-size-sm);
+    }
+    .incident-timeline-node[data-stage="alert-dry-run"] {
+      border-left-color: var(--color-warning);
+    }
+    .incident-timeline-node[data-stage="close-state"] {
+      border-left-color: var(--color-success);
+    }
+    .incident-timeline-edge {
+      margin-left: 22px;
+      padding-left: var(--space-3);
+      border-left: 2px solid var(--color-border-strong);
+      color: var(--color-text-muted);
+      font-size: var(--font-size-sm);
+      font-weight: 800;
+      overflow-wrap: anywhere;
+    }
     .event-review-table select,
     .event-review-note-input {
       width: 100%;
@@ -3594,6 +3650,12 @@ std::string ProductUiCss() {
       }
       .incident-timeline-controls button {
         flex: 1 1 120px;
+      }
+      .incident-timeline-node {
+        grid-template-columns: 1fr;
+      }
+      .incident-timeline-edge {
+        margin-left: 10px;
       }
     }
     @media (max-width: 560px) {

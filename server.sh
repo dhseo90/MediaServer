@@ -290,6 +290,8 @@ Usage:
                  v2.5.0 Local incident memory index의 SQLite FTS5 primary/JSONL BM25 fallback을 검증합니다.
   verify-v250-ops-events-semantic-search-ui
                  v2.5.0 /ops/events semantic search UI와 Ops-only search view model을 검증합니다.
+  verify-v250-incident-timeline-graph
+                 v2.5.0 incident timeline graph와 action/audit linkage를 검증합니다.
   verify-ops-scenario-builder-ui
                  Scenario Builder UI의 Event Rule 폼 적용과 engine 비변경 계약을 검증합니다.
   verify-ops-client-shared-declutter
@@ -1060,6 +1062,10 @@ case "${cmd}" in
   verify-v250-ops-events-semantic-search-ui)
     require_internal verify_v250_ops_events_semantic_search_ui.mjs
     exec "${INTERNAL_DIR}/verify_v250_ops_events_semantic_search_ui.mjs" "$@"
+    ;;
+  verify-v250-incident-timeline-graph)
+    require_internal verify_v250_incident_timeline_graph.mjs
+    exec "${INTERNAL_DIR}/verify_v250_incident_timeline_graph.mjs" "$@"
     ;;
   verify-ops-scenario-builder-ui)
     require_internal verify_ops_scenario_builder_ui.mjs

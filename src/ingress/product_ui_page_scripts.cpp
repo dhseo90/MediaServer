@@ -2385,6 +2385,54 @@ void AppendOpsShellScript(std::ostringstream& out,
           </article>`;
         }).join('');
       }
+      function incidentTimelineStageLabel(stage) {
+        const normalized = String(stage || '').trim();
+        if (normalized === 'source-state') return 'Source';
+        if (normalized === 'event-record') return 'Event';
+        if (normalized === 'operator-action') return 'Action';
+        if (normalized === 'alert-dry-run') return 'Alert';
+        if (normalized === 'close-state') return 'Close';
+        return display(normalized || 'stage');
+      }
+      function renderIncidentTimelineGraph(timelineGraph = {}) {
+        const root = document.getElementById('opsIncidentTimelineGraphRows');
+        if (!root) return;
+        const nodes = Array.isArray(timelineGraph.nodes) ? timelineGraph.nodes : [];
+        const edges = Array.isArray(timelineGraph.edges) ? timelineGraph.edges : [];
+        const auditLinkage = timelineGraph.auditLinkage || {};
+        renderBadges('opsIncidentTimelineGraphBadges', [
+          { text: `graphs ${timelineGraph.graphCount ?? 0}` },
+          { text: `nodes ${nodes.length}` },
+          { text: `edges ${edges.length}` },
+          { text: timelineGraph.eventPostPayloadChanged === false ? 'Event POST 변경 없음' : 'payload 확인 필요', tone: timelineGraph.eventPostPayloadChanged === false ? 'info' : 'warn' },
+          { text: timelineGraph.viewerClientExposureAdded === false ? 'Ops only' : '노출 확인 필요', tone: timelineGraph.viewerClientExposureAdded === false ? 'info' : 'warn' }
+        ]);
+        setText(
+          'opsIncidentTimelineGraphSummary',
+          timelineGraph.error
+            ? `timeline graph 조회 실패: ${timelineGraph.error}`
+            : `source state → event → operator action → alert dry-run → close · audit ${display(auditLinkage.incidentAction || 'incident-action-update')}`
+        );
+        if (nodes.length === 0) {
+          root.innerHTML = '<p class="ops-rule-note">표시할 incident timeline graph가 없습니다.</p>';
+          return;
+        }
+        const edgeByFrom = new Map(edges.map(edge => [String(edge?.from || ''), edge]));
+        root.innerHTML = nodes.map((node, index) => {
+          const edge = edgeByFrom.get(String(node?.id || ''));
+          const edgeHtml = edge
+            ? `<div class="incident-timeline-edge" data-incident-timeline-edge="${escapeHtml(edge.from || '')}:${escapeHtml(edge.to || '')}">${escapeHtml(display(edge.label || 'linked'))}</div>`
+            : '';
+          return `<div class="incident-timeline-graph-item">
+            <article class="incident-timeline-node" data-incident-timeline-node="${escapeHtml(node?.id || '')}" data-stage="${escapeHtml(node?.stage || '')}">
+              <span>${escapeHtml(incidentTimelineStageLabel(node?.stage))}</span>
+              <strong>${escapeHtml(display(node?.title || node?.id || `node ${index + 1}`))}</strong>
+              <p>${escapeHtml(display(node?.detail || node?.status || 'linked'))}</p>
+            </article>
+            ${edgeHtml}
+          </div>`;
+        }).join('');
+      }
       function alertDeliveryBodyFromForm() {
         const kind = String(document.getElementById('alertDeliveryKind')?.value || 'webhook').trim();
         const endpoint = String(document.getElementById('alertDeliveryEndpoint')?.value || '').trim();
@@ -2637,12 +2685,13 @@ void AppendOpsShellScript(std::ostringstream& out,
         );
         renderEventReviewRows(reviewItems);
         renderIncidentMemorySearch(reviewPayload.memorySearch || {});
+        renderIncidentTimelineGraph(reviewPayload.timelineGraph || {});
         const prevButton = document.getElementById('eventRecordsPrev');
         const nextButton = document.getElementById('eventRecordsNext');
         if (prevButton) prevButton.disabled = opsEventRecordsOffset <= 0;
         if (nextButton) nextButton.disabled = !records.hasMore;
         if (records.nextOffset != null) nextButton?.setAttribute('data-next-offset', String(records.nextOffset));
-        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, memorySearch: reviewPayload.memorySearch || {} });
+        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, memorySearch: reviewPayload.memorySearch || {}, timelineGraph: reviewPayload.timelineGraph || {} });
       }
       const itemId = item => display(item?.id || item?.ruleId || item?.profileId || '-');
       const opsRulesIdText = value => {
