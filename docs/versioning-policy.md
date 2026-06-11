@@ -4,24 +4,26 @@
 
 ## 현재 기준
 
-- 현재 기준 버전: `v2.4.0`
-- 현재 release branch 기준: `v2.4.0 Operator Event Review & Action Workflow`
-- 최신 공개 release 기준: `v2.3.0 Operational Evidence & Contract Baseline`
+- 현재 기준 버전: `v2.5.0`
+- 현재 release branch 기준: `v2.5.0 Semantic Incident Memory`
+- 최신 공개 release 기준: `v2.4.0 Operator Event Review & Action Workflow`
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
 - release close-out에서 branch baseline을 닫은 뒤에는 `VERSION`/`CMakeLists.txt`
   metadata를 현재 release target과 맞추며, tag/GitHub Release publish 전에는
   published metadata 완료로 보지 않습니다.
-- `v2.4.0`은 직전 `v2.3.0` source-only/live-only 제품 경계를 유지하면서
-  Operator Event Review Inbox, incident/action workflow, alert dry-run, client-safe
-  event summary를 운영 흐름으로 정리하는 active target입니다.
+- `v2.5.0`은 직전 `v2.4.0` source-only/live-only 제품 경계를 유지하면서
+  EventRecord, audit trail, source health, alert dry-run을 검색 가능한 local incident
+  memory로 투영하고 `/ops/events` semantic search, timeline, explainable brief,
+  similar incident lookup, client-safe digest, redacted evidence bundle을 운영 흐름으로
+  정리하는 active target입니다.
   Client Live workspace, source tree/dock event feed, tile disconnect, event review,
   source group/site, tile info overlay, saved layout, incident timeline, alert delivery,
   scenario builder, Ops/Client declutter는 현재 UI-first 제품 baseline으로 유지합니다.
-- 현재 제품 경계와 v2.4.0 종료 판정은 [development-backlog.md](./development-backlog.md)를
+- 현재 제품 경계와 v2.5.0 종료 판정은 [development-backlog.md](./development-backlog.md)를
   기준으로 합니다. 이전 release evidence는 현재 release pass/fail 기준으로
   재사용하지 않습니다.
 
-## `v2.4.0`에 포함되는 범위
+## `v2.5.0`에 포함되는 범위
 
 - Apache-2.0 소스 코드
 - 문서, 설정 예시, 검증 스크립트
@@ -110,8 +112,12 @@
 - v2.4.0 Operator Event Review & Action Workflow: Operator Event Review Inbox,
   incident/action workflow, alert dry-run, client-safe event summary, rule/scenario
   review loop, Ops event route ownership 정리, evidence/inventory mapping
+- v2.5.0 Semantic Incident Memory: Event/incident text projection, local incident
+  memory index, `/ops/events` search UI, incident timeline graph, explainable
+  incident brief, similar incident lookup, client-safe digest, redacted evidence
+  bundle, event memory/search owner decomposition과 release readiness
 
-## `v2.4.0`에 포함하지 않는 범위
+## `v2.5.0`에 포함하지 않는 범위
 
 - FFmpeg/GStreamer/ONNX Runtime/YOLO model binary bundle
 - VLM model/runtime bundle, VLM default-on, production runtime/provider 성공 보장
@@ -129,6 +135,8 @@
 - field sample history review workflow
 - 별도 Phase의 실제 기능 개발, tracker replacement product review, runtime/model
   bundle 배포 승인
+- LLM/VLM embedding provider를 기본 의존성으로 두는 semantic search, real cloud
+  provider call 성공 보장, 실기기/외부 endpoint 성공을 v2.5.0 release PASS로 쓰는 것
 
 ## 다음 minor에도 기본 제외되는 범위
 
@@ -145,7 +153,7 @@
 
 ## Tag와 release 기준
 
-- 현재 source-only release 기준 tag는 `v2.4.0`입니다.
+- 현재 source-only release 기준 tag는 `v2.5.0`입니다.
 - tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만 붙입니다.
 - 다음 신규 release tag는 signed annotated tag로 생성합니다. unsigned annotated tag와
   lightweight tag는 새 release tag로 사용하지 않습니다.

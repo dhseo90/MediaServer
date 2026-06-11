@@ -34,7 +34,106 @@ source-of-truth가 아닙니다. 현재 기준은 이 문서와 기능별 상세
 
 `완료`는 운영 배포 ready, 장기 안정성 보장, 외부 연동 ready를 뜻하지 않습니다.
 
-## 활성 roadmap: v2.4.0 Operator Event Review & Action Workflow
+## 활성 roadmap: v2.5.0 Semantic Incident Memory
+
+v2.5.0은 v2.4.0 source-only/live-only baseline 위에서 새 media path나 장기 녹화
+제품을 열지 않고, 운영자가 이미 생성된 EventRecord와 운영 조치 이력을 검색하고
+설명할 수 있는 **Semantic Incident Memory**를 만드는 중기 roadmap입니다. 핵심 제품
+방향은 Event/incident text projection, local incident memory index, `/ops/events`
+search UI, incident timeline, explainable incident brief, similar incident lookup,
+client-safe digest, redacted evidence bundle입니다.
+
+직접 답: v2.5.0의 1차 선택값은 `/ops/events`를 단순 review inbox에서 검색 가능한
+incident memory workspace로 확장하는 것입니다. EventRecord, audit trail, source
+health, alert dry-run을 redacted text projection으로 만들고, primary index는 local
+SQLite FTS5로 둡니다. SQLite FTS5를 사용할 수 없는 build/runtime에서는 JSONL
+projection과 local BM25 fallback을 사용합니다. model dependency는 기본값이 아니며,
+VLM enrichment는 default-off 보조 후보입니다.
+
+핵심 원칙:
+
+- v2.5.0은 Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path,
+  Auth/session/scope, Rule/Profile payload schema를 변경하지 않습니다.
+- local incident memory는 제품 서버가 이미 보유한 EventRecord, audit trail,
+  source health, alert dry-run, operator action 상태만 입력으로 사용합니다.
+- incident memory index는 local-only source artifact입니다. 외부 embedding provider,
+  real cloud provider call, 실기기 ONVIF 성공, external TURN/WHEP credential 운영
+  성공은 기본 release PASS가 아닙니다.
+- client/viewer에는 source URL, Developer URL, raw JSON, debugCounters, BBox
+  diagnostics, prompt/raw response/provider credential/model internals/Re-ID identity
+  material, raw source locator를 노출하지 않습니다.
+- VLM enrichment는 explainable brief의 optional/default-off 보조 계층이며, 모델 설치,
+  provider 호출 성공, runtime/model bundle 배포를 완료 조건으로 쓰지 않습니다.
+- 30분 테스트와 120분 테스트는 서로 대체하지 않습니다. UI 풀테스트도 자동 smoke,
+  screenshot 생성, raw JSON/API 확인으로 대체하지 않습니다.
+
+명시적 비범위:
+
+- 장기 녹화, MP4 recorder, VMS/NVR archive, video playback/archive search
+- ONVIF Profile G recording/replay, 실기기 ONVIF 성공 보장
+- Event POST/WebRTC/SSE/WS 외부 payload schema 변경
+- RTSP/WebRTC media pipeline 구조 변경
+- VLM default-on, VLM runtime/model bundle, provider credential 저장
+- external embedding/cloud provider를 기본 search dependency로 두는 구현
+- Re-ID/tracker default-on, OC-SORT/BoT-SORT/DeepSORT runtime tracker 승격
+- external TURN/WHEP credential 운영 성공 보장, real cloud provider call 성공 보장
+
+| 순서 | ID | 우선순위 | 상태 | 영역 | 제목 | 목표 | 예상 검증 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 0 | V250-S00 | P0 | 완료 | v2.5.0 baseline | v2.5.0 baseline/source-of-truth 정렬 | `VERSION`, CMake, README, docs index, backlog, release/version 문서와 release metadata verifier를 v2.5.0 Semantic Incident Memory 기준으로 정렬하고, v2.4.0 published baseline과 v2.5.0 active roadmap을 분리합니다. | roadmap review, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-project-inventory`, `git diff --check` |
+| 1 | V250-S01 | P0 | 예정 | Event text projection | Event/incident text projection | EventRecord, audit, source health, alert dry-run을 검색 가능한 redacted document 형태로 투영하고, source locator/raw/debug/provider material은 projection에서 제외합니다. | projection fixture, redaction guard, `verify-release-evidence-index`, `git diff --check` |
+| 2 | V250-S02 | P0 | 예정 | Local memory index | Local incident memory index | SQLite FTS5 primary, JSONL+BM25 fallback 기반 local search index를 추가하고 model/provider 의존성 없이 deterministic search를 제공합니다. | local index fixture, FTS/BM25 parity smoke, no-model-dependency guard, `git diff --check` |
+| 3 | V250-S03 | P0 | 예정 | Ops search UI | `/ops/events` semantic search UI | 자연어/키워드 검색, rule/source/status/time filter, matched evidence highlight를 `/ops/events` 운영 화면에서 제공합니다. | route smoke, UI 직접 검수, redaction review, `verify-ops-client-ui`, `git diff --check` |
+| 4 | V250-S04 | P1 | 예정 | Timeline graph | Incident timeline graph | source state → event → operator action → alert dry-run → close 상태 연결을 timeline graph로 보여줍니다. | timeline fixture, action/audit linkage verifier, UI 직접 검수, `git diff --check` |
+| 5 | V250-S05 | P1 | 예정 | Explainability | Explainable incident brief | action/object/context/environment slot 기반 incident brief를 만들고 VLM enrichment는 default-off로 둡니다. | brief fixture, no-provider-default guard, privacy/redaction verifier, `git diff --check` |
+| 6 | V250-S06 | P1 | 예정 | Similarity | Similar incident lookup | 같은 rule/scenario/source/status 패턴으로 유사 이벤트를 찾아 운영자가 재발 패턴을 볼 수 있게 합니다. | similarity fixture, deterministic scoring smoke, UI 직접 검수, `git diff --check` |
+| 7 | V250-S07 | P1 | 예정 | Client-safe digest | Client-safe incident digest | viewer에게 안전한 요약만 노출하고 source locator/raw/debug/provider material 비노출 경계를 유지합니다. | client redaction verifier, viewer role UI 직접 검수, `verify-auth-routes`, `git diff --check` |
+| 8 | V250-S08 | P2 | 예정 | Evidence export | Redacted incident evidence bundle | 검색 결과와 timeline을 release-safe bundle로 export하되 raw evidence, credential, source URL, provider internals를 제외합니다. | bundle redaction verifier, export fixture, `verify-bundle-policy`, `git diff --check` |
+| 9 | V250-S09 | P2 | 예정 | Release readiness | Owner decomposition/release readiness | event memory/search route owner를 분리하고 evidence inventory, UI 풀테스트 기준, release readiness gate를 정리합니다. | owner decomposition verifier, inventory gate, release metadata/docs/static gate, UI 풀테스트 기준 review, `git diff --check` |
+
+### V250-S00 v2.5.0 baseline/source-of-truth 정렬 종료 기준
+
+직접 답: V250-S00의 완료 산출물은 실제 incident memory 기능 구현이 아니라 현재
+branch의 source-of-truth가 v2.5.0 Semantic Incident Memory를 가리키도록 정렬된
+문서/metadata/verifier입니다. v2.5.0에서 실제로 쓰기로 한 1차 index 선택은
+local SQLite FTS5이며, fallback은 JSONL+BM25입니다. 외부 embedding provider나 VLM은
+default-off enrichment 후보로만 둡니다.
+
+V250-S00 완료 판정은 `VERSION`, CMake project version, README/README.en,
+`docs/README.md`, `docs/en/README.md`, `docs/versioning-policy.md`,
+`docs/release-policy.md`, 이 backlog, `docs/project-feature-test-inventory.md`,
+UI asset manifest, release metadata verifier가 같은 current target을 말하는지에
+한정합니다. V250-S01~S09 기능 구현, UI 직접 조작, 30분/120분 장시간 테스트,
+published metadata, PR/main merge, tag, push, GitHub Release는 S00 완료 evidence가
+아닙니다.
+
+## 현재 기준: v2.4.0 Source Release Baseline
+
+v2.4.0은 직전 v2.3.0 source-only/live-only 제품 경계를 유지하면서 Operator Event Review & Action Workflow를 닫은 source-only release입니다. 이 기준은 v2.5.0의
+시작 baseline이며, v2.5.0의 incident memory 기능 완료 evidence로 재사용하지
+않습니다.
+
+핵심 완료 범위:
+
+- Operator Event Review Inbox
+- incident/action workflow
+- alert dry-run and delivery attempt log
+- client-safe event/status summary
+- rule/scenario review loop
+- Ops event route owner decomposition
+- evidence/inventory mapping
+- release readiness local gate와 2026-06-11 release 후보 테스트 evidence
+
+명시적 비범위:
+
+- 장기 녹화, MP4 recorder, VMS/NVR archive, video playback/archive search
+- ONVIF Profile G recording/replay, 실기기 ONVIF 성공 보장
+- Event POST/WebRTC/SSE/WS 외부 payload schema 변경
+- RTSP/WebRTC media pipeline 구조 변경
+- VLM default-on, VLM runtime/model bundle, provider credential 저장
+- external TURN/WHEP credential 운영 성공 보장, real cloud provider call 성공 보장
+
+## 완료 roadmap: v2.4.0 Operator Event Review & Action Workflow
 
 v2.4.0은 v2.3.0 source-only/live-only baseline 위에서 새 media path나 장기 녹화
 제품을 열지 않고, live VA event를 운영자가 확인하고 조치할 수 있는 제품 흐름으로
@@ -387,7 +486,7 @@ Auth/session/scope, Rule/Profile payload schema는 S08 완료 범위에서 변�
   alert delivery는 credential/endpoint/실기기 승인 범위가 아니므로 기본 release
   PASS로 쓰지 않습니다.
 
-## 현재 기준: v2.3.0 Source Release Baseline
+## 이전 기준: v2.3.0 Source Release Baseline
 
 v2.3.0은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서
 Operational Evidence & Contract Baseline을 닫는 source-only release입니다.

@@ -333,8 +333,8 @@ check("release policy pins source-only tag baseline", () => {
   const doc = readText("docs/release-policy.md");
   for (const snippet of [
     `현재 source-only release 기준 tag는 \`${currentTag}\`입니다.`,
-    `\`${currentTag}\`은 live-only media path를 유지하면서 Operator Event Review Inbox,`,
-    "incident/action workflow, alert dry-run, client-safe event summary를 닫는 release",
+    `\`${currentTag}\`은 live-only media path를 유지하면서 Semantic Incident Memory,`,
+    "local incident memory index, `/ops/events` search/timeline/brief workflow를 닫는 release",
   ]) {
     assert(doc.includes(snippet), `docs/release-policy.md missing snippet: ${snippet}`);
   }
@@ -375,23 +375,24 @@ check("release policies require future signed tags", () => {
 check("development backlog pins current close-out and completed v2.2.0 roadmap gates", () => {
   const doc = readText("docs/development-backlog.md");
   for (const snippet of [
-    "## 활성 roadmap: v2.4.0 Operator Event Review & Action Workflow",
-    "Operator Event Review Inbox",
-    "| 0 | V240-S00 | P0 |",
-    "## 현재 기준: v2.3.0 Source Release Baseline",
-    "v2.3.0은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서",
-    "Operational Evidence & Contract Baseline을 닫는 source-only release입니다.",
+    "## 활성 roadmap: v2.5.0 Semantic Incident Memory",
+    "Local incident memory index",
+    "| 0 | V250-S00 | P0 |",
+    "## 현재 기준: v2.4.0 Source Release Baseline",
+    "v2.4.0은 직전 v2.3.0 source-only/live-only 제품 경계를 유지하면서",
+    "Operator Event Review & Action Workflow를 닫은 source-only release입니다.",
     "기존 네 영역인 안정화 테스트, 30분 테스트, 120분 테스트, UI 풀테스트",
     "V230-S00",
     "verify-v230-entry-baseline",
+    "## 완료 roadmap: v2.4.0 Operator Event Review & Action Workflow",
     "## 완료 roadmap: v2.3.0 Operational Evidence & Contract Baseline",
     "## v2.3.0 Release Close-out",
     "실제 tag/push는 이 release close-out 지시에 한해 수행합니다",
   ]) {
     assert(doc.includes(snippet), `docs/development-backlog.md missing snippet: ${snippet}`);
   }
-  assert(/\| 0 \| V240-S00 \| P0 \| (진행|완료) \| v2\.4\.0 baseline \| v2\.4\.0 기준 정렬 \|/.test(doc),
-    "docs/development-backlog.md V240-S00 row must be 진행 or 완료");
+  assert(/\| 0 \| V250-S00 \| P0 \| (진행|완료) \| v2\.5\.0 baseline \| v2\.5\.0 baseline\/source-of-truth 정렬 \|/.test(doc),
+    "docs/development-backlog.md V250-S00 row must be 진행 or 완료");
   return { file: "docs/development-backlog.md", currentTag };
 });
 
@@ -438,15 +439,15 @@ check("public entry docs keep release evidence source-of-truth deduped", () => {
   }
   for (const snippet of [
     "Current Release Target",
-    `${currentTag} operator event review roadmap`,
-    "Operator Event Review & Action Workflow",
+    `${currentTag} semantic incident memory roadmap`,
+    "Semantic Incident Memory",
     `${currentTag} Release Target Runbook`,
     "release-policy.md",
   ]) {
     assert(docsIndex.includes(snippet), `docs/README.md missing source-of-truth link snippet: ${snippet}`);
   }
   assert(releasePolicy.includes(`## ${currentTag} Release Target Runbook`), `release policy must own the ${currentTag} target runbook`);
-  assert(backlog.includes(`## 활성 roadmap: ${currentTag} Operator Event Review & Action Workflow`), `development backlog must own the ${currentTag} active roadmap`);
+  assert(backlog.includes(`## 활성 roadmap: ${currentTag} Semantic Incident Memory`), `development backlog must own the ${currentTag} active roadmap`);
   return {
     publicEntrypoints: ["README.md", "README.en.md"],
     sourceOfTruth: ["docs/README.md", "docs/development-backlog.md", "docs/release-policy.md"],

@@ -1,10 +1,10 @@
 # Project Feature Test Inventory
 
-이 문서는 현재 release 목표 `v2.4.0` 기준의 기능별 테스트 분류
+이 문서는 현재 release 목표 `v2.5.0` 기준의 기능별 테스트 분류
 source-of-truth입니다.
 여기서 `현재 release 목표`는 `VERSION`/CMake가 고정한 active release target을
-뜻합니다. 최신 공개 release baseline은 `v2.3.0`이고, active roadmap은
-`v2.4.0 Operator Event Review & Action Workflow`이며, 두 기준은 완료 판정에서
+뜻합니다. 최신 공개 release baseline은 `v2.4.0`이고, active roadmap은
+`v2.5.0 Semantic Incident Memory`이며, 두 기준은 완료 판정에서
 분리합니다.
 
 중요한 경계:
@@ -85,6 +85,26 @@ close-out과 과거 UI 풀테스트 실행 evidence는
 | v2.3.0 S05 VLM opt-in operational evidence | 기존 `LAB-038`, `LAB-042`, `LAB-056`, `LAB-057`, `SAFE-025`, `SAFE-027`, `SAFE-029`, `SAFE-034`, `SAFE-035`, [vlm-runtime-opt-in-contract.md](./vlm-runtime-opt-in-contract.md), [vlm-local-runtime-connection-smoke.md](./vlm-local-runtime-connection-smoke.md), [vlm-cloud-provider-field-smoke-gate.md](./vlm-cloud-provider-field-smoke-gate.md), [vlm-privacy-transfer-guard.md](./vlm-privacy-transfer-guard.md)를 operator-approved profile promotion, local/provider smoke intake, privacy/default-off evidence 기준에 연결 | `verify-v230-vlm-opt-in-operational-evidence`는 no VLM default-on, provider call 미실행은 PASS가 아님, Sidecar/EventRecord/API schema 분리를 검증하며 실제 provider/model 품질, UI 직접 확인, 30분/120분 longrun을 대체하지 않음 |
 | v2.3.0 S06 Ops backup/recovery evidence lifecycle | `OPS-035`, [ops-backup-recovery.md](./ops-backup-recovery.md), `media-server.v230-ops-backup-recovery-lifecycle.v1`을 staging drill, redacted evidence bundle, retention cleanup 기준에 연결 | `verify-v230-ops-backup-recovery-lifecycle`은 안정화 gate이며, 운영 데이터 백업 완료, UI 직접 확인, 30분/120분 longrun을 대체하지 않음 |
 | v2.3.0 S07 Integrator contract conformance | 기존 `SAFE-001`~`SAFE-004`, `SAFE-018`, live Event POST/WebRTC/SSE/WS contract artifact를 checksum/conformance companion에 연결 | `verify-integrator-contract-artifact`와 runtime delivery smoke는 안정화 evidence이며, UI 직접 확인이나 30분/120분 longrun을 대체하지 않음 |
+
+## v2.5.0 Semantic Incident Memory Planned Mapping
+
+이 절은 `planning-only-not-execution-evidence`입니다. v2.5.0 S01~S09는 실제 기능
+구현 단계에서 feature ID, route/control/action, verifier, UI 풀테스트 행을 추가합니다.
+이번 S00 기준 정렬에서는 신규 feature row 수를 늘리지 않고, active roadmap이 어떤
+inventory 확장을 요구하는지만 고정합니다. 이 절만으로 `테스트 있음`, `UI 있음`,
+`완료`, `UI 풀테스트 PASS`라고 보고하지 않습니다.
+
+| Roadmap scope | Inventory decision | release evidence boundary |
+| --- | --- | --- |
+| V250-S01 Event/incident text projection | 기존 EventRecord/audit/source health/alert dry-run owner를 바탕으로 projection owner와 redaction guard feature ID를 구현 단계에서 배정 | projection fixture 작성 전에는 실행 evidence가 아님 |
+| V250-S02 Local incident memory index | primary SQLite FTS5, fallback JSONL+BM25 search feature ID를 구현 단계에서 배정 | model/provider dependency 없음 guard가 통과하기 전에는 search 완료 evidence가 아님 |
+| V250-S03 `/ops/events` semantic search UI | `/ops/events` 검색 입력, filter, highlight, result detail route/control/action ID를 구현 단계에서 배정 | 브라우저 직접 조작과 검색 결과 반영 확인 전에는 UI PASS가 아님 |
+| V250-S04 Incident timeline graph | source state, EventRecord, operator action, alert dry-run, close 상태 연결 ID를 구현 단계에서 배정 | timeline graph fixture와 UI 확인 전에는 완료 evidence가 아님 |
+| V250-S05 Explainable incident brief | action/object/context/environment slot과 VLM default-off guard ID를 구현 단계에서 배정 | 실제 provider 호출 성공이나 VLM default-on 근거가 아님 |
+| V250-S06 Similar incident lookup | rule/scenario/source/status pattern similarity ID를 구현 단계에서 배정 | deterministic scoring fixture 전에는 similarity PASS가 아님 |
+| V250-S07 Client-safe incident digest | viewer-safe digest와 raw/source/debug/provider material 비노출 ID를 구현 단계에서 배정 | viewer role UI 직접 확인 전에는 client-safe PASS가 아님 |
+| V250-S08 Redacted incident evidence bundle | export bundle, redaction, bundle policy ID를 구현 단계에서 배정 | raw evidence/source URL/credential/provider internals 검수 전에는 release-safe export PASS가 아님 |
+| V250-S09 Owner decomposition/release readiness | event memory/search route owner, inventory, manual UI criteria, release readiness ID를 구현 단계에서 배정 | close-out gate와 UI 풀테스트 기준 정리 전에는 release readiness PASS가 아님 |
 
 ## v2.4.0 Operator Event Review Evidence Mapping
 
