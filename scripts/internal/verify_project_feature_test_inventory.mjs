@@ -192,6 +192,7 @@ check("current VLM feature expansion rows exist", () => {
     "EVT-035",
     "EVT-036",
     "EVT-039",
+    "EVT-040",
     "MEDIA-021",
     "LAB-045",
     "LAB-046",
@@ -212,6 +213,7 @@ check("current VLM feature expansion rows exist", () => {
     "LAB-061",
     "LAB-062",
     "LAB-063",
+    "LAB-064",
     "SAFE-025",
     "SAFE-026",
     "SAFE-027",
@@ -229,6 +231,7 @@ check("current VLM feature expansion rows exist", () => {
     "SAFE-039",
     "SAFE-040",
     "SAFE-043",
+    "SAFE-044",
   ];
   const ids = new Set(parseFeatureRows(inventory).map(row => row.id));
   for (const id of requiredRows) {
@@ -236,10 +239,10 @@ check("current VLM feature expansion rows exist", () => {
   }
   for (const snippet of [
     "`UI-001`~`UI-018`, `UI-022`~`UI-038`",
-    "`EVT-001`~`EVT-039`",
+    "`EVT-001`~`EVT-040`",
     "`MEDIA-001`~`MEDIA-021`",
-    "`LAB-001`~`LAB-063`",
-    "`SAFE-001`~`SAFE-043`",
+    "`LAB-001`~`LAB-064`",
+    "`SAFE-001`~`SAFE-044`",
     "V200-S00~S18 및 V210-S00~S12 변경분",
     "VLM route, control, action, runtime state, sidecar, privacy guard",
   ]) {

@@ -38,12 +38,12 @@ source-of-truth입니다.
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 401 |
+| 전체 기능 항목 | 404 |
 | UI 직접 필요 | 233 |
 | UI 간접 필요 | 29 |
-| UI 비대상 | 139 |
-| 테스트 필요 | 401 |
-| 안정화 대상 | 391 |
+| UI 비대상 | 142 |
+| 테스트 필요 | 404 |
+| 안정화 대상 | 394 |
 | UI 풀테스트 대상 | 251 |
 | 30분 soak 대상 | 47 |
 | 120분 대상 | 7 |
@@ -58,7 +58,7 @@ close-out과 과거 UI 풀테스트 실행 evidence는
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 401개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 404개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정했지만, 각 행의 line-level 증적은 별도 대조 필요 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리했지만, inventory 자체는 브라우저 직접 조작 evidence를 보관하지 않음 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -88,17 +88,18 @@ close-out과 과거 UI 풀테스트 실행 evidence는
 
 ## v2.5.0 Semantic Incident Memory Planned Mapping
 
-이 절은 `planning-only-not-execution-evidence`입니다. v2.5.0 S02~S09는 실제 기능
+이 절은 `planning-only-not-execution-evidence`입니다. v2.5.0 S03~S09는 실제 기능
 구현 단계에서 feature ID, route/control/action, verifier, UI 풀테스트 행을 추가합니다.
 V250-S01은 구현 단계에서 `EVT-039`, `LAB-063`, `SAFE-043`과
-`verify-v250-incident-text-projection`으로 승격됐습니다. 남은 planning-only 행만으로
-`테스트 있음`, `UI 있음`,
+`verify-v250-incident-text-projection`으로 승격됐고, V250-S02는 `EVT-040`,
+`LAB-064`, `SAFE-044`와 `verify-v250-incident-memory-index`로 승격됐습니다.
+남은 planning-only 행만으로 `테스트 있음`, `UI 있음`,
 `완료`, `UI 풀테스트 PASS`라고 보고하지 않습니다.
 
 | Roadmap scope | Inventory decision | release evidence boundary |
 | --- | --- | --- |
 | V250-S01 Event/incident text projection | `EVT-039`, `LAB-063`, `SAFE-043`으로 projection owner, fixture smoke, redaction boundary를 배정하고 `verify-v250-incident-text-projection`으로 검증 | 검색 UI/SQLite index/model provider 실행 evidence가 아니며 Event POST/WebRTC/SSE/WS/media path schema 변경 evidence도 아님 |
-| V250-S02 Local incident memory index | primary SQLite FTS5, fallback JSONL+BM25 search feature ID를 구현 단계에서 배정 | model/provider dependency 없음 guard가 통과하기 전에는 search 완료 evidence가 아님 |
+| V250-S02 Local incident memory index | `EVT-040`, `LAB-064`, `SAFE-044`로 SQLite FTS5 primary, JSONL+BM25 fallback, no model/provider dependency guard를 배정하고 `verify-v250-incident-memory-index`로 검증 | `/ops/events` 검색 UI/API, similarity/timeline/brief, external embedding/provider 실행 evidence가 아님 |
 | V250-S03 `/ops/events` semantic search UI | `/ops/events` 검색 입력, filter, highlight, result detail route/control/action ID를 구현 단계에서 배정 | 브라우저 직접 조작과 검색 결과 반영 확인 전에는 UI PASS가 아님 |
 | V250-S04 Incident timeline graph | source state, EventRecord, operator action, alert dry-run, close 상태 연결 ID를 구현 단계에서 배정 | timeline graph fixture와 UI 확인 전에는 완료 evidence가 아님 |
 | V250-S05 Explainable incident brief | action/object/context/environment slot과 VLM default-off guard ID를 구현 단계에서 배정 | 실제 provider 호출 성공이나 VLM default-on 근거가 아님 |
@@ -151,11 +152,11 @@ Codex 밖에서 사용자가 직접 실행하는 자동 검수는 Chrome/CDP를 
 | `AUTH-001`~`AUTH-042` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
 | `SRC-001`~`SRC-030` | `verify-v230-conditional-field-evidence`, `verify-ops-source-lifecycle`, `verify-ops-source-health-bulk`, `verify-ops-channel-bulk`, `verify-onvif-*`, `verify-ops-client-ui` | ONVIF field success는 제외. approved environment only redacted field report 없으면 not-run is not PASS |
 | `RULE-001`~`RULE-102` | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-rule-validation-matrix`, `verify-ops-scenario-builder-ui`, `verify-ops-scenario-presets`, `verify-va-event-coverage-report`, `verify-va-replay`, `verify-analysis-state`, `verify-reid-advanced-tracking`, `verify-tracker-stability` | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
-| `EVT-001`~`EVT-039` | `verify-va-event-coverage-report`, `verify-va-events`, `verify-ops-event-review-inbox`, `verify-ops-event-records-scope`, `verify-ops-alert-delivery-integrations`, `verify-ops-event-action-incident-workflow`, `verify-va-runtime-console`, `verify-vlm-event-evidence-extraction`, `verify-vlm-observation-sidecar`, `verify-vlm-event-explanation-hints`, `verify-vlm-review-action-workflow`, `verify-vlm-ops-event-review-ui`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-v250-incident-text-projection` | event log 육안 확인은 UI 풀테스트 |
+| `EVT-001`~`EVT-040` | `verify-va-event-coverage-report`, `verify-va-events`, `verify-ops-event-review-inbox`, `verify-ops-event-records-scope`, `verify-ops-alert-delivery-integrations`, `verify-ops-event-action-incident-workflow`, `verify-va-runtime-console`, `verify-vlm-event-evidence-extraction`, `verify-vlm-observation-sidecar`, `verify-vlm-event-explanation-hints`, `verify-vlm-review-action-workflow`, `verify-vlm-ops-event-review-ui`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-v250-incident-text-projection`, `verify-v250-incident-memory-index` | event log 육안 확인은 UI 풀테스트 |
 | `CLIENT-001`~`CLIENT-022` | `verify-v230-ui-renderer-module-decomposition`, `verify-client-live-workspace`, `verify-client-dashboard-polish`, `verify-client-source-dock-events`, `verify-client-tile-disconnect-contract`, `verify-client-tile-info-overlay-health`, `verify-ops-client-ui` | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-021` | `verify-v230-conditional-field-evidence`, `verify-codecs`, `verify-webrtc-ice`, `verify-external-turn-whep-field-gate`, `verify-webrtc-va-metadata`, `verify-uri-source-longrun`, `verify-predev` | 30분/120분은 실행 지시 필요. `MEDIA-021` external TURN/WHEP endpoint 성공은 endpoint/credential 조건이 준비된 안정화 실행 없으면 PASS 아님 |
-| `LAB-001`~`LAB-063` | `verify-analysis-state`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-image-analysis`, `verify-vlm-boundary`, `verify-vlm-selection-decision`, `verify-vlm-pc-capability`, `verify-vlm-recommendation-engine`, `verify-vlm-install-connection-dry-run`, `verify-vlm-profile-storage`, `verify-vlm-runtime-opt-in-contract`, `verify-v230-vlm-opt-in-operational-evidence`, `verify-vlm-local-runtime-smoke`, `verify-vlm-cloud-provider-field-smoke-gate`, `verify-vlm-queue-backpressure-stability`, `verify-runtime-model-bundle-rc-rehearsal`, `verify-vlm-evaluation-harness`, `verify-vlm-evaluation-result-workflow`, `verify-vlm-review-action-workflow`, `verify-vlm-observation-sidecar`, `verify-vlm-event-explanation-hints`, `verify-vlm-privacy-transfer-guard`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-v250-incident-text-projection` | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-043` | `verify-v230-conditional-field-evidence`, `verify-v230-ui-renderer-module-decomposition`, `verify-integrator-contract-artifact`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-ui-blocking-dialog-policy`, `verify-event-post-dispatch`, `verify-webrtc-va-metadata`, `verify-ws-metadata`, `verify-rtsp-va-overlay-policy`, `verify-external-turn-whep-field-gate`, `verify-runtime-model-bundle-rc-rehearsal`, `verify-vlm-boundary`, `verify-vlm-install-connection-scope-gate`, `verify-vlm-profile-storage`, `verify-vlm-runtime-opt-in-contract`, `verify-v230-vlm-opt-in-operational-evidence`, `verify-vlm-local-runtime-smoke`, `verify-vlm-cloud-provider-field-smoke-gate`, `verify-vlm-queue-backpressure-stability`, `verify-vlm-review-action-workflow`, `verify-vlm-observation-sidecar`, `verify-vlm-event-explanation-hints`, `verify-vlm-privacy-transfer-guard`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-ops-event-action-incident-workflow`, `verify-ops-alert-delivery-integrations`, `verify-v250-incident-text-projection` | schema/media/auth/UI automation 불변 조건 |
+| `LAB-001`~`LAB-064` | `verify-analysis-state`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-image-analysis`, `verify-vlm-boundary`, `verify-vlm-selection-decision`, `verify-vlm-pc-capability`, `verify-vlm-recommendation-engine`, `verify-vlm-install-connection-dry-run`, `verify-vlm-profile-storage`, `verify-vlm-runtime-opt-in-contract`, `verify-v230-vlm-opt-in-operational-evidence`, `verify-vlm-local-runtime-smoke`, `verify-vlm-cloud-provider-field-smoke-gate`, `verify-vlm-queue-backpressure-stability`, `verify-runtime-model-bundle-rc-rehearsal`, `verify-vlm-evaluation-harness`, `verify-vlm-evaluation-result-workflow`, `verify-vlm-review-action-workflow`, `verify-vlm-observation-sidecar`, `verify-vlm-event-explanation-hints`, `verify-vlm-privacy-transfer-guard`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-v250-incident-text-projection`, `verify-v250-incident-memory-index` | 제품 UI 비대상 |
+| `SAFE-001`~`SAFE-044` | `verify-v230-conditional-field-evidence`, `verify-v230-ui-renderer-module-decomposition`, `verify-integrator-contract-artifact`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-ui-blocking-dialog-policy`, `verify-event-post-dispatch`, `verify-webrtc-va-metadata`, `verify-ws-metadata`, `verify-rtsp-va-overlay-policy`, `verify-external-turn-whep-field-gate`, `verify-runtime-model-bundle-rc-rehearsal`, `verify-vlm-boundary`, `verify-vlm-install-connection-scope-gate`, `verify-vlm-profile-storage`, `verify-vlm-runtime-opt-in-contract`, `verify-v230-vlm-opt-in-operational-evidence`, `verify-vlm-local-runtime-smoke`, `verify-vlm-cloud-provider-field-smoke-gate`, `verify-vlm-queue-backpressure-stability`, `verify-vlm-review-action-workflow`, `verify-vlm-observation-sidecar`, `verify-vlm-event-explanation-hints`, `verify-vlm-privacy-transfer-guard`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-ops-event-action-incident-workflow`, `verify-ops-alert-delivery-integrations`, `verify-v250-incident-text-projection`, `verify-v250-incident-memory-index` | schema/media/auth/UI automation 불변 조건 |
 | `OPS-035` | `verify-v230-ops-backup-recovery-lifecycle`, `verify-ops-backup-restore-dry-run`, `verify-ops-evidence-retention-cleanup` | v2.3.0 S06 backup lifecycle는 안정화 gate이며 real operational backup이나 UI 풀테스트 evidence가 아님 |
 
 ## VA Manual UI Seed Matrix
@@ -530,6 +531,7 @@ v2.1.0 completed roadmap과 v2.2.0 completed roadmap에서 늘어난 검수 대�
 | EVT-037 | Event Action and Incident Workflow state | 필요 | 필요 | 안정화, UI | `media-server.ops.incident-action-state.v1`은 Ops review JSONL/audit에만 저장되고 `eventId`/`incidentId`로 EventRecord와 상관되며 EventRecord top-level payload나 Event POST payload에 incident/action field를 추가하지 않음 |
 | EVT-038 | Alert dry-run payload preview and delivery attempt log state | 필요 | 필요 | 안정화, UI | `media-server.ops.alert-delivery-dry-run.v1`과 `media-server.ops.alert-delivery-payload-preview.v1`은 Ops alert delivery attempt JSONL/audit에만 남고 Event POST payload, EventRecord, WebRTC/SSE/WS metadata에 섞이지 않음 |
 | EVT-039 | Event/incident text projection document | 비대상 | 필요 | 안정화 | `media-server.incident-text-projection.v1` 문서가 EventRecord, Ops audit, source health, alert dry-run을 searchable text/terms로 투영하고 Event POST/WebRTC/SSE/WS/media path payload를 변경하지 않음 |
+| EVT-040 | Local incident memory search index state | 비대상 | 필요 | 안정화 | `media-server.incident-memory-index.v1` report가 SQLite FTS5 primary와 JSONL+BM25 fallback을 분리하고 동일 projection documents에 대해 deterministic query result parity를 보장함 |
 
 ## F. Client And Viewer
 
@@ -651,6 +653,7 @@ v2.1.0 completed roadmap과 v2.2.0 completed roadmap에서 늘어난 검수 대�
 | LAB-061 | VLM rule suggestion draft workflow API/fixture | 비대상 | 필요 | 안정화 | `media-server.vlm-rule-suggestion-draft-workflow.v1` API와 fixture가 V200-S13 후보를 `/ops/rules` draft-only/manual-save contract로 감싸고 sourceCandidateReport, excluded auto-apply count, no runtime/provider/schema/media side-effect를 보존 |
 | LAB-062 | Runtime/model bundle RC rehearsal fixture | 비대상 | 필요 | 안정화 | `media-server.runtime-model-bundle-rc-rehearsal-report.v1`이 source-only default, RC-only no-runtime/no-model dry-run 후보, runtime/model/GPL-risk/release asset blocked 후보, hash/provenance/license/source-offer review boundary를 실제 bundle 생성 없이 보존 |
 | LAB-063 | Incident text projection fixture smoke | 비대상 | 필요 | 안정화 | `verify-v250-incident-text-projection`이 C++ fixture만 사용해 EventRecord/audit/source health/alert dry-run projection과 deterministic JSON을 검증하고 model/provider/runtime dependency를 만들지 않음 |
+| LAB-064 | Incident memory index fixture smoke | 비대상 | 필요 | 안정화 | `verify-v250-incident-memory-index`가 SQLite FTS5 primary, forced JSONL+BM25 fallback, fallback JSONL materialization, query parity, deterministic ordering을 C++ fixture로 검증함 |
 
 ## I. Safety, Boundary, Invariant Contract
 
@@ -699,6 +702,7 @@ v2.1.0 completed roadmap과 v2.2.0 completed roadmap에서 늘어난 검수 대�
 | SAFE-041 | V240-S02 EventRecord/Event POST incident workflow boundary | 필요 | 필요 | 안정화, UI | incident/action workflow는 Ops review JSONL와 `/ops/api/audit`에만 저장되고 EventRecord storage, Event POST payload, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path, client/viewer에 incident/action field나 raw note를 노출하지 않음 |
 | SAFE-042 | V240-S03 alert dry-run external delivery boundary | 필요 | 필요 | 안정화, UI | alert dry-run은 payload preview와 delivery attempt log만 생성하고 webhook/email/slack 외부 전송, Event POST payload 변경, EventRecord/metadata/media path 변경, endpoint secret/client-viewer 노출을 만들지 않음 |
 | SAFE-043 | V250-S01 incident projection redaction boundary | 비대상 | 필요 | 안정화 | projection JSON/searchable text가 source URL, Developer URL, raw JSON/debugCounters/BBox diagnostics, auth material, model/provider internals를 저장하지 않고 EventRecord/Event POST/WebRTC/SSE/WS/media path schema를 변경하지 않음 |
+| SAFE-044 | V250-S02 incident memory index dependency boundary | 비대상 | 필요 | 안정화 | local incident memory index가 external embedding/model/provider credential/runtime call을 만들지 않고 EventRecord/Event POST/WebRTC/SSE/WS/media path schema를 변경하지 않으며 SQLite unavailable 시 JSONL+BM25 fallback으로 제한됨 |
 
 ## Coverage Review To Do
 

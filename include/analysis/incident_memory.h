@@ -3,6 +3,7 @@
 #pragma once
 
 #include <cstdint>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -29,6 +30,61 @@ struct IncidentProjectionDocument {
     std::vector<IncidentProjectionField> fields;
     std::vector<std::string> redacted_fields;
     bool redaction_applied{false};
+};
+
+struct IncidentMemoryIndexConfig {
+    std::string sqlite_path;
+    std::string jsonl_path;
+    bool prefer_sqlite_fts5{true};
+    bool force_jsonl_bm25_fallback{false};
+};
+
+struct IncidentMemoryIndexReport {
+    std::string schema{"media-server.incident-memory-index.v1"};
+    std::string backend;
+    std::string sqlite_path;
+    std::string jsonl_path;
+    bool sqlite_fts5_available{false};
+    bool fallback_active{false};
+    bool model_provider_dependency{false};
+    std::size_t document_count{0};
+};
+
+struct IncidentMemorySearchOptions {
+    std::string query;
+    std::size_t limit{10};
+};
+
+struct IncidentMemorySearchHit {
+    std::string document_id;
+    std::string source_kind;
+    std::string incident_id;
+    std::string source_id;
+    std::string title;
+    std::string summary;
+    double score{0.0};
+    std::vector<std::string> matched_terms;
+};
+
+class IncidentMemoryIndexImpl;
+
+class IncidentMemoryIndex {
+public:
+    IncidentMemoryIndex();
+    ~IncidentMemoryIndex();
+
+    IncidentMemoryIndex(const IncidentMemoryIndex&) = delete;
+    IncidentMemoryIndex& operator=(const IncidentMemoryIndex&) = delete;
+
+    bool Open(const IncidentMemoryIndexConfig& config, std::string* error_message);
+    bool Upsert(const IncidentProjectionDocument& document, std::string* error_message);
+    bool Search(const IncidentMemorySearchOptions& options,
+                std::vector<IncidentMemorySearchHit>* hits,
+                std::string* error_message) const;
+    IncidentMemoryIndexReport Report() const;
+
+private:
+    std::unique_ptr<IncidentMemoryIndexImpl> impl_;
 };
 
 IncidentProjectionDocument ProjectEventRecordIncidentText(const std::string& event_record_json);

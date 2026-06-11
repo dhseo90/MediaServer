@@ -286,6 +286,8 @@ Usage:
                  v2.4.0 S08 release metadata/docs/assets/CI parity/close-out dry-run evidence를 검증합니다.
   verify-v250-incident-text-projection
                  v2.5.0 Event/incident text projection과 redaction guard를 검증합니다.
+  verify-v250-incident-memory-index
+                 v2.5.0 Local incident memory index의 SQLite FTS5 primary/JSONL BM25 fallback을 검증합니다.
   verify-ops-scenario-builder-ui
                  Scenario Builder UI의 Event Rule 폼 적용과 engine 비변경 계약을 검증합니다.
   verify-ops-client-shared-declutter
@@ -1048,6 +1050,10 @@ case "${cmd}" in
   verify-v250-incident-text-projection)
     require_internal verify_v250_incident_text_projection.sh
     exec "${INTERNAL_DIR}/verify_v250_incident_text_projection.sh" "$@"
+    ;;
+  verify-v250-incident-memory-index)
+    require_internal verify_v250_incident_memory_index.sh
+    exec "${INTERNAL_DIR}/verify_v250_incident_memory_index.sh" "$@"
     ;;
   verify-ops-scenario-builder-ui)
     require_internal verify_ops_scenario_builder_ui.mjs

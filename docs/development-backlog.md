@@ -82,7 +82,7 @@ VLM enrichment는 default-off 보조 후보입니다.
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 0 | V250-S00 | P0 | 완료 | v2.5.0 baseline | v2.5.0 baseline/source-of-truth 정렬 | `VERSION`, CMake, README, docs index, backlog, release/version 문서와 release metadata verifier를 v2.5.0 Semantic Incident Memory 기준으로 정렬하고, v2.4.0 published baseline과 v2.5.0 active roadmap을 분리합니다. | roadmap review, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-project-inventory`, `git diff --check` |
 | 1 | V250-S01 | P0 | 완료 | Event text projection | Event/incident text projection | EventRecord, audit, source health, alert dry-run을 검색 가능한 redacted document 형태로 투영하고, source locator/raw/debug/provider material은 projection에서 제외합니다. | `verify-v250-incident-text-projection`, projection fixture, redaction guard, `verify-release-evidence-index`, `git diff --check` |
-| 2 | V250-S02 | P0 | 예정 | Local memory index | Local incident memory index | SQLite FTS5 primary, JSONL+BM25 fallback 기반 local search index를 추가하고 model/provider 의존성 없이 deterministic search를 제공합니다. | local index fixture, FTS/BM25 parity smoke, no-model-dependency guard, `git diff --check` |
+| 2 | V250-S02 | P0 | 완료 | Local memory index | Local incident memory index | SQLite FTS5 primary, JSONL+BM25 fallback 기반 local search index를 추가하고 model/provider 의존성 없이 deterministic search를 제공합니다. | `verify-v250-incident-memory-index`, local index fixture, FTS/BM25 parity smoke, no-model-dependency guard, `git diff --check` |
 | 3 | V250-S03 | P0 | 예정 | Ops search UI | `/ops/events` semantic search UI | 자연어/키워드 검색, rule/source/status/time filter, matched evidence highlight를 `/ops/events` 운영 화면에서 제공합니다. | route smoke, UI 직접 검수, redaction review, `verify-ops-client-ui`, `git diff --check` |
 | 4 | V250-S04 | P1 | 예정 | Timeline graph | Incident timeline graph | source state → event → operator action → alert dry-run → close 상태 연결을 timeline graph로 보여줍니다. | timeline fixture, action/audit linkage verifier, UI 직접 검수, `git diff --check` |
 | 5 | V250-S05 | P1 | 예정 | Explainability | Explainable incident brief | action/object/context/environment slot 기반 incident brief를 만들고 VLM enrichment는 default-off로 둡니다. | brief fixture, no-provider-default guard, privacy/redaction verifier, `git diff --check` |
@@ -131,6 +131,26 @@ graph, explainable brief, client-safe digest, 외부 embedding/provider 호출, 
 payload schema 변경, WebRTC DataChannel/SSE/WS metadata schema 변경, RTSP/WebRTC media
 path 변경입니다. 해당 항목은 V250-S02 이후 단계 evidence 없이는 완료로 보고하지
 않습니다.
+
+### V250-S02 Local incident memory index 종료 기준
+
+직접 답: V250-S02의 완료 산출물은 S01 projection document를 적재/검색하는
+local-only `IncidentMemoryIndex`와 `verify-v250-incident-memory-index` fixture입니다.
+1차 선택값은 SQLite FTS5 primary입니다. SQLite FTS5를 사용할 수 없거나
+`force_jsonl_bm25_fallback`이 켜진 경우 fallback은 JSONL persistence와 C++ deterministic
+BM25 ranking입니다.
+
+V250-S02 완료 판정은 `verify-v250-incident-memory-index`가 SQLite FTS5 primary backend,
+JSONL+BM25 fallback backend, 두 backend의 query result parity, deterministic ordering,
+fallback JSONL materialization, model/provider dependency false 상태를 확인하는 데
+한정합니다.
+
+명시적 비범위는 `/ops/events` 검색 UI, HTTP 검색 API, similarity lookup, timeline
+graph, explainable brief, client-safe digest, external embedding/provider call,
+EventRecord/Event POST/WebRTC/SSE/WS payload schema 변경, RTSP/WebRTC media path
+변경입니다. CMake는 SQLite가 있는 빌드에서 primary를 켜고, 없는 빌드에서는
+JSONL+BM25 fallback으로 동작합니다. 외부 모델, provider credential, runtime bundle은
+이 단계의 dependency가 아닙니다.
 
 ## 현재 기준: v2.4.0 Source Release Baseline
 

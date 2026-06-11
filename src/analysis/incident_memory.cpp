@@ -4,10 +4,27 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cmath>
+#include <filesystem>
+#include <fstream>
+#include <map>
+#include <memory>
 #include <optional>
 #include <set>
 #include <sstream>
+#include <unordered_map>
+#include <unordered_set>
 #include <utility>
+
+#ifndef MEDIA_SERVER_USE_SQLITE3
+#define MEDIA_SERVER_USE_SQLITE3 0
+#endif
+
+#if MEDIA_SERVER_USE_SQLITE3
+#include <sqlite3.h>
+#else
+struct sqlite3_stmt;
+#endif
 
 namespace analysis {
 namespace {
@@ -445,6 +462,28 @@ std::string RequiredString(const std::string& json,
     return value.empty() ? fallback : value;
 }
 
+std::optional<IncidentProjectionDocument> ParseProjectionDocumentJson(const std::string& json) {
+    if (ExtractString(json, "schema").value_or("") != "media-server.incident-text-projection.v1") {
+        return std::nullopt;
+    }
+    IncidentProjectionDocument document;
+    document.document_id = RequiredString(json, "documentId", "");
+    document.source_kind = RequiredString(json, "sourceKind", "");
+    document.record_id = RequiredString(json, "recordId", "");
+    document.event_id = RequiredString(json, "eventId", "");
+    document.incident_id = RequiredString(json, "incidentId", "");
+    document.source_id = RequiredString(json, "sourceId", "");
+    document.timestamp_ms = ExtractInt64(json, "timestampMs").value_or(0);
+    document.title = RequiredString(json, "title", "");
+    document.summary = RequiredString(json, "summary", "");
+    document.searchable_text = RequiredString(json, "searchableText", "");
+    if (document.document_id.empty() || document.searchable_text.empty()) {
+        return std::nullopt;
+    }
+    document.tokens = IncidentProjectionTokens(document.searchable_text);
+    return document;
+}
+
 void AppendJsonStringField(std::ostringstream& out,
                            bool* first,
                            const std::string& name,
@@ -458,7 +497,569 @@ void AppendJsonStringField(std::ostringstream& out,
     out << "\"" << JsonEscape(name) << "\":\"" << JsonEscape(value) << "\"";
 }
 
+std::string JoinOrFtsQuery(const std::vector<std::string>& terms) {
+    std::ostringstream out;
+    for (std::size_t index = 0; index < terms.size(); ++index) {
+        if (index > 0) {
+            out << " OR ";
+        }
+        out << "\"" << terms[index] << "\"";
+    }
+    return out.str();
+}
+
+void SetError(std::string* error_message, const std::string& message) {
+    if (error_message != nullptr) {
+        *error_message = message;
+    }
+}
+
 }  // namespace
+
+class IncidentMemoryIndexImpl {
+public:
+    IncidentMemoryIndexImpl() = default;
+    ~IncidentMemoryIndexImpl() {
+        CloseSqlite();
+    }
+
+    bool Open(const IncidentMemoryIndexConfig& config, std::string* error_message) {
+        CloseSqlite();
+        config_ = config;
+        documents_.clear();
+        report_ = IncidentMemoryIndexReport{};
+        report_.sqlite_path = config.sqlite_path;
+        report_.jsonl_path = config.jsonl_path;
+
+        if (!config.force_jsonl_bm25_fallback && config.prefer_sqlite_fts5 &&
+            TryOpenSqlite(config.sqlite_path, error_message)) {
+            report_.backend = "sqlite-fts5";
+            report_.sqlite_fts5_available = true;
+            report_.fallback_active = false;
+            report_.model_provider_dependency = false;
+            report_.document_count = documents_.size();
+            return true;
+        }
+
+        report_.backend = "jsonl-bm25";
+        report_.sqlite_fts5_available = false;
+        report_.fallback_active = true;
+        report_.model_provider_dependency = false;
+        if (!LoadJsonl(error_message)) {
+            return false;
+        }
+        report_.document_count = documents_.size();
+        return true;
+    }
+
+    bool Upsert(const IncidentProjectionDocument& document, std::string* error_message) {
+        if (document.document_id.empty()) {
+            SetError(error_message, "document_id is required");
+            return false;
+        }
+        if (document.searchable_text.empty()) {
+            SetError(error_message, "searchable_text is required");
+            return false;
+        }
+        UpsertMemory(document);
+        if (report_.backend == "sqlite-fts5") {
+            if (!UpsertSqlite(document, error_message)) {
+                return false;
+            }
+        }
+        if (!config_.jsonl_path.empty() && !PersistJsonl(error_message)) {
+            return false;
+        }
+        report_.document_count = documents_.size();
+        return true;
+    }
+
+    bool Search(const IncidentMemorySearchOptions& options,
+                std::vector<IncidentMemorySearchHit>* hits,
+                std::string* error_message) const {
+        if (hits == nullptr) {
+            SetError(error_message, "hits output is required");
+            return false;
+        }
+        hits->clear();
+        std::vector<std::string> terms = IncidentProjectionTokens(options.query);
+        if (terms.empty() || options.limit == 0) {
+            return true;
+        }
+
+        std::unordered_set<std::string> candidate_ids;
+        if (report_.backend == "sqlite-fts5") {
+            if (!CollectSqliteCandidates(terms, &candidate_ids, error_message)) {
+                return false;
+            }
+        }
+        std::vector<const IncidentProjectionDocument*> candidates;
+        candidates.reserve(documents_.size());
+        for (const auto& document : documents_) {
+            if (report_.backend != "sqlite-fts5" || candidate_ids.count(document.document_id) > 0) {
+                candidates.push_back(&document);
+            }
+        }
+
+        *hits = RankCandidates(candidates, terms);
+        if (hits->size() > options.limit) {
+            hits->resize(options.limit);
+        }
+        return true;
+    }
+
+    IncidentMemoryIndexReport Report() const {
+        IncidentMemoryIndexReport copy = report_;
+        copy.document_count = documents_.size();
+        return copy;
+    }
+
+private:
+    void UpsertMemory(IncidentProjectionDocument document) {
+        document.tokens = IncidentProjectionTokens(document.searchable_text);
+        for (auto& existing : documents_) {
+            if (existing.document_id == document.document_id) {
+                existing = std::move(document);
+                SortDocuments();
+                return;
+            }
+        }
+        documents_.push_back(std::move(document));
+        SortDocuments();
+    }
+
+    void SortDocuments() {
+        std::sort(documents_.begin(),
+                  documents_.end(),
+                  [](const auto& lhs, const auto& rhs) {
+                      return lhs.document_id < rhs.document_id;
+                  });
+    }
+
+    bool LoadJsonl(std::string* error_message) {
+        if (config_.jsonl_path.empty() || !std::filesystem::exists(config_.jsonl_path)) {
+            return true;
+        }
+        std::ifstream in(config_.jsonl_path);
+        if (!in) {
+            SetError(error_message, "failed to open JSONL fallback index: " + config_.jsonl_path);
+            return false;
+        }
+        std::string line;
+        while (std::getline(in, line)) {
+            const auto parsed = ParseProjectionDocumentJson(line);
+            if (parsed.has_value()) {
+                UpsertMemory(*parsed);
+            }
+        }
+        return true;
+    }
+
+    bool PersistJsonl(std::string* error_message) const {
+        const std::filesystem::path output(config_.jsonl_path);
+        const std::filesystem::path parent = output.parent_path();
+        if (!parent.empty()) {
+            std::filesystem::create_directories(parent);
+        }
+        std::ofstream out(config_.jsonl_path, std::ios::trunc);
+        if (!out) {
+            SetError(error_message, "failed to write JSONL fallback index: " + config_.jsonl_path);
+            return false;
+        }
+        for (const auto& document : documents_) {
+            out << IncidentProjectionDocumentJson(document) << "\n";
+        }
+        return true;
+    }
+
+    std::vector<IncidentMemorySearchHit> RankCandidates(
+        const std::vector<const IncidentProjectionDocument*>& candidates,
+        const std::vector<std::string>& terms) const {
+        std::vector<IncidentMemorySearchHit> hits;
+        if (candidates.empty()) {
+            return hits;
+        }
+        std::map<std::string, std::size_t> document_frequency;
+        double total_length = 0.0;
+        for (const auto* document : candidates) {
+            const auto counts = TokenCounts(*document);
+            total_length += static_cast<double>(DocumentLength(counts));
+            for (const auto& term : terms) {
+                if (counts.count(term) > 0) {
+                    document_frequency[term] += 1;
+                }
+            }
+        }
+        const double average_length =
+            std::max(1.0, total_length / static_cast<double>(candidates.size()));
+        for (const auto* document : candidates) {
+            const auto counts = TokenCounts(*document);
+            const double length = std::max(1.0, static_cast<double>(DocumentLength(counts)));
+            double score = 0.0;
+            std::vector<std::string> matched;
+            for (const auto& term : terms) {
+                const auto count_iter = counts.find(term);
+                if (count_iter == counts.end() || count_iter->second == 0) {
+                    continue;
+                }
+                matched.push_back(term);
+                const double tf = static_cast<double>(count_iter->second);
+                const double df = static_cast<double>(std::max<std::size_t>(1, document_frequency[term]));
+                const double n = static_cast<double>(candidates.size());
+                const double idf = std::log((n - df + 0.5) / (df + 0.5) + 1.0);
+                constexpr double k1 = 1.2;
+                constexpr double b = 0.75;
+                score += idf * ((tf * (k1 + 1.0)) /
+                                (tf + k1 * (1.0 - b + b * (length / average_length))));
+            }
+            if (score <= 0.0) {
+                continue;
+            }
+            IncidentMemorySearchHit hit;
+            hit.document_id = document->document_id;
+            hit.source_kind = document->source_kind;
+            hit.incident_id = document->incident_id;
+            hit.source_id = document->source_id;
+            hit.title = document->title;
+            hit.summary = document->summary;
+            hit.score = score;
+            hit.matched_terms = std::move(matched);
+            hits.push_back(std::move(hit));
+        }
+        std::sort(hits.begin(), hits.end(), [](const auto& lhs, const auto& rhs) {
+            if (lhs.matched_terms.size() != rhs.matched_terms.size()) {
+                return lhs.matched_terms.size() > rhs.matched_terms.size();
+            }
+            if (SourceKindPriority(lhs.source_kind) != SourceKindPriority(rhs.source_kind)) {
+                return SourceKindPriority(lhs.source_kind) < SourceKindPriority(rhs.source_kind);
+            }
+            if (std::fabs(lhs.score - rhs.score) > 0.000001) {
+                return lhs.score > rhs.score;
+            }
+            return lhs.document_id < rhs.document_id;
+        });
+        return hits;
+    }
+
+    static int SourceKindPriority(const std::string& source_kind) {
+        if (source_kind == "event-record") {
+            return 0;
+        }
+        if (source_kind == "ops-audit") {
+            return 1;
+        }
+        if (source_kind == "alert-dry-run") {
+            return 2;
+        }
+        if (source_kind == "source-health") {
+            return 3;
+        }
+        return 10;
+    }
+
+    static std::unordered_map<std::string, std::size_t> TokenCounts(
+        const IncidentProjectionDocument& document) {
+        std::unordered_map<std::string, std::size_t> counts;
+        for (const auto& token : IncidentProjectionTokens(document.searchable_text)) {
+            counts[token] += 1;
+        }
+        return counts;
+    }
+
+    static std::size_t DocumentLength(const std::unordered_map<std::string, std::size_t>& counts) {
+        std::size_t total = 0;
+        for (const auto& item : counts) {
+            total += item.second;
+        }
+        return total;
+    }
+
+    bool TryOpenSqlite(const std::string& sqlite_path, std::string* error_message) {
+#if MEDIA_SERVER_USE_SQLITE3
+        const std::string path = sqlite_path.empty() ? std::string(":memory:") : sqlite_path;
+        if (!sqlite_path.empty()) {
+            const std::filesystem::path db_path(sqlite_path);
+            if (!db_path.parent_path().empty()) {
+                std::filesystem::create_directories(db_path.parent_path());
+            }
+        }
+        sqlite3* db = nullptr;
+        if (sqlite3_open(path.c_str(), &db) != SQLITE_OK) {
+            SetError(error_message, sqlite3_errmsg(db));
+            if (db != nullptr) {
+                sqlite3_close(db);
+            }
+            return false;
+        }
+        sqlite_db_ = db;
+        if (!ExecSql("CREATE TABLE IF NOT EXISTS incident_memory_documents ("
+                     "document_id TEXT PRIMARY KEY,"
+                     "source_kind TEXT,"
+                     "incident_id TEXT,"
+                     "source_id TEXT,"
+                     "title TEXT,"
+                     "summary TEXT,"
+                     "searchable_text TEXT,"
+                     "document_json TEXT NOT NULL"
+                     ");",
+                     error_message) ||
+            !ExecSql("CREATE VIRTUAL TABLE IF NOT EXISTS incident_memory_fts "
+                     "USING fts5(document_id UNINDEXED, searchable_text, title, summary);",
+                     error_message) ||
+            !LoadSqliteDocuments(error_message)) {
+            CloseSqlite();
+            return false;
+        }
+        return true;
+#else
+        (void)sqlite_path;
+        SetError(error_message, "sqlite3 support is not compiled");
+        return false;
+#endif
+    }
+
+    bool ExecSql(const std::string& sql, std::string* error_message) const {
+#if MEDIA_SERVER_USE_SQLITE3
+        char* raw_error = nullptr;
+        const int rc = sqlite3_exec(sqlite_db_, sql.c_str(), nullptr, nullptr, &raw_error);
+        if (rc != SQLITE_OK) {
+            const std::string message = raw_error != nullptr ? raw_error : sqlite3_errmsg(sqlite_db_);
+            sqlite3_free(raw_error);
+            SetError(error_message, message);
+            return false;
+        }
+        return true;
+#else
+        (void)sql;
+        SetError(error_message, "sqlite3 support is not compiled");
+        return false;
+#endif
+    }
+
+    bool LoadSqliteDocuments(std::string* error_message) {
+#if MEDIA_SERVER_USE_SQLITE3
+        sqlite3_stmt* stmt = nullptr;
+        const char* sql =
+            "SELECT document_json FROM incident_memory_documents ORDER BY document_id ASC;";
+        if (sqlite3_prepare_v2(sqlite_db_, sql, -1, &stmt, nullptr) != SQLITE_OK) {
+            SetError(error_message, sqlite3_errmsg(sqlite_db_));
+            return false;
+        }
+        while (sqlite3_step(stmt) == SQLITE_ROW) {
+            const unsigned char* text = sqlite3_column_text(stmt, 0);
+            if (text != nullptr) {
+                const auto parsed =
+                    ParseProjectionDocumentJson(reinterpret_cast<const char*>(text));
+                if (parsed.has_value()) {
+                    UpsertMemory(*parsed);
+                }
+            }
+        }
+        const int rc = sqlite3_finalize(stmt);
+        if (rc != SQLITE_OK) {
+            SetError(error_message, sqlite3_errmsg(sqlite_db_));
+            return false;
+        }
+        return true;
+#else
+        (void)error_message;
+        return false;
+#endif
+    }
+
+    bool UpsertSqlite(const IncidentProjectionDocument& document, std::string* error_message) {
+#if MEDIA_SERVER_USE_SQLITE3
+        sqlite3_stmt* stmt = nullptr;
+        const char* upsert_sql =
+            "REPLACE INTO incident_memory_documents "
+            "(document_id, source_kind, incident_id, source_id, title, summary, searchable_text, document_json) "
+            "VALUES (?, ?, ?, ?, ?, ?, ?, ?);";
+        if (!Prepare(upsert_sql, &stmt, error_message)) {
+            return false;
+        }
+        const std::string json = IncidentProjectionDocumentJson(document);
+        BindText(stmt, 1, document.document_id);
+        BindText(stmt, 2, document.source_kind);
+        BindText(stmt, 3, document.incident_id);
+        BindText(stmt, 4, document.source_id);
+        BindText(stmt, 5, document.title);
+        BindText(stmt, 6, document.summary);
+        BindText(stmt, 7, document.searchable_text);
+        BindText(stmt, 8, json);
+        if (!StepDone(stmt, error_message)) {
+            return false;
+        }
+        if (!ExecSql("DELETE FROM incident_memory_fts WHERE document_id = '" +
+                         SqlQuote(document.document_id) + "';",
+                     error_message)) {
+            return false;
+        }
+        const char* fts_sql =
+            "INSERT INTO incident_memory_fts (document_id, searchable_text, title, summary) "
+            "VALUES (?, ?, ?, ?);";
+        if (!Prepare(fts_sql, &stmt, error_message)) {
+            return false;
+        }
+        BindText(stmt, 1, document.document_id);
+        BindText(stmt, 2, document.searchable_text);
+        BindText(stmt, 3, document.title);
+        BindText(stmt, 4, document.summary);
+        return StepDone(stmt, error_message);
+#else
+        (void)document;
+        SetError(error_message, "sqlite3 support is not compiled");
+        return false;
+#endif
+    }
+
+    bool CollectSqliteCandidates(const std::vector<std::string>& terms,
+                                 std::unordered_set<std::string>* candidate_ids,
+                                 std::string* error_message) const {
+#if MEDIA_SERVER_USE_SQLITE3
+        if (candidate_ids == nullptr) {
+            SetError(error_message, "candidate output is required");
+            return false;
+        }
+        candidate_ids->clear();
+        const std::string query = JoinOrFtsQuery(terms);
+        sqlite3_stmt* stmt = nullptr;
+        const char* sql =
+            "SELECT document_id FROM incident_memory_fts "
+            "WHERE incident_memory_fts MATCH ? "
+            "ORDER BY document_id ASC;";
+        if (!Prepare(sql, &stmt, error_message)) {
+            return false;
+        }
+        BindText(stmt, 1, query);
+        while (true) {
+            const int rc = sqlite3_step(stmt);
+            if (rc == SQLITE_ROW) {
+                const unsigned char* text = sqlite3_column_text(stmt, 0);
+                if (text != nullptr) {
+                    candidate_ids->insert(reinterpret_cast<const char*>(text));
+                }
+                continue;
+            }
+            if (rc == SQLITE_DONE) {
+                break;
+            }
+            SetError(error_message, sqlite3_errmsg(sqlite_db_));
+            sqlite3_finalize(stmt);
+            return false;
+        }
+        const int finalize_rc = sqlite3_finalize(stmt);
+        if (finalize_rc != SQLITE_OK) {
+            SetError(error_message, sqlite3_errmsg(sqlite_db_));
+            return false;
+        }
+        return true;
+#else
+        (void)terms;
+        (void)candidate_ids;
+        SetError(error_message, "sqlite3 support is not compiled");
+        return false;
+#endif
+    }
+
+    bool Prepare(const char* sql, sqlite3_stmt** stmt, std::string* error_message) const {
+#if MEDIA_SERVER_USE_SQLITE3
+        if (sqlite3_prepare_v2(sqlite_db_, sql, -1, stmt, nullptr) != SQLITE_OK) {
+            SetError(error_message, sqlite3_errmsg(sqlite_db_));
+            return false;
+        }
+        return true;
+#else
+        (void)sql;
+        (void)stmt;
+        SetError(error_message, "sqlite3 support is not compiled");
+        return false;
+#endif
+    }
+
+    bool StepDone(sqlite3_stmt* stmt, std::string* error_message) const {
+#if MEDIA_SERVER_USE_SQLITE3
+        const int rc = sqlite3_step(stmt);
+        if (rc != SQLITE_DONE) {
+            SetError(error_message, sqlite3_errmsg(sqlite_db_));
+            sqlite3_finalize(stmt);
+            return false;
+        }
+        const int finalize_rc = sqlite3_finalize(stmt);
+        if (finalize_rc != SQLITE_OK) {
+            SetError(error_message, sqlite3_errmsg(sqlite_db_));
+            return false;
+        }
+        return true;
+#else
+        (void)stmt;
+        SetError(error_message, "sqlite3 support is not compiled");
+        return false;
+#endif
+    }
+
+    static void BindText(sqlite3_stmt* stmt, int index, const std::string& value) {
+#if MEDIA_SERVER_USE_SQLITE3
+        sqlite3_bind_text(stmt, index, value.c_str(), -1, SQLITE_TRANSIENT);
+#else
+        (void)stmt;
+        (void)index;
+        (void)value;
+#endif
+    }
+
+    static std::string SqlQuote(const std::string& value) {
+        std::string out;
+        out.reserve(value.size() + 8);
+        for (const char ch : value) {
+            if (ch == '\'') {
+                out += "''";
+            } else {
+                out.push_back(ch);
+            }
+        }
+        return out;
+    }
+
+    void CloseSqlite() {
+#if MEDIA_SERVER_USE_SQLITE3
+        if (sqlite_db_ != nullptr) {
+            sqlite3_close(sqlite_db_);
+            sqlite_db_ = nullptr;
+        }
+#endif
+    }
+
+    IncidentMemoryIndexConfig config_;
+    IncidentMemoryIndexReport report_;
+    std::vector<IncidentProjectionDocument> documents_;
+#if MEDIA_SERVER_USE_SQLITE3
+    sqlite3* sqlite_db_{nullptr};
+#endif
+};
+
+IncidentMemoryIndex::IncidentMemoryIndex() : impl_(std::make_unique<IncidentMemoryIndexImpl>()) {}
+
+IncidentMemoryIndex::~IncidentMemoryIndex() = default;
+
+bool IncidentMemoryIndex::Open(const IncidentMemoryIndexConfig& config,
+                               std::string* error_message) {
+    return impl_->Open(config, error_message);
+}
+
+bool IncidentMemoryIndex::Upsert(const IncidentProjectionDocument& document,
+                                 std::string* error_message) {
+    return impl_->Upsert(document, error_message);
+}
+
+bool IncidentMemoryIndex::Search(const IncidentMemorySearchOptions& options,
+                                 std::vector<IncidentMemorySearchHit>* hits,
+                                 std::string* error_message) const {
+    return impl_->Search(options, hits, error_message);
+}
+
+IncidentMemoryIndexReport IncidentMemoryIndex::Report() const {
+    return impl_->Report();
+}
 
 bool IncidentProjectionContainsForbiddenMaterial(const std::string& value) {
     const std::string lowered = LowerAscii(value);

@@ -174,6 +174,16 @@ RTSP/WebRTC media path 변경을 실행하거나 완료 evidence로 대체하지
 ./server.sh verify-v250-incident-text-projection
 ```
 
+v2.5.0 S02 incident memory index gate는 S01 projection document를 SQLite FTS5 primary
+index와 forced JSONL+BM25 fallback index에 적재하고, 같은 query가 같은 deterministic
+ordering을 내는지 확인합니다. 이 명령은 `/ops/events` 검색 UI/API, similarity lookup,
+timeline graph, external embedding/provider 호출, Event POST/WebRTC/SSE/WS schema,
+RTSP/WebRTC media path 변경을 실행하거나 완료 evidence로 대체하지 않습니다.
+
+```bash
+./server.sh verify-v250-incident-memory-index
+```
+
 v2.0.0 entry freeze gate는 integrator contract artifact 안의
 `freeze-baseline.json`을 사용합니다. report schema는
 `media-server.v200-contract-schema-freeze.v1`이며, Event POST/WebRTC/SSE/WS
