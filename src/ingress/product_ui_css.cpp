@@ -2433,6 +2433,47 @@ std::string ProductUiCss() {
     .event-review-controls label {
       min-width: 142px;
     }
+    .incident-memory-search {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .incident-memory-search-grid {
+      align-items: end;
+    }
+    .incident-memory-search-grid label {
+      min-width: 150px;
+    }
+    .incident-memory-results {
+      display: grid;
+      gap: var(--space-2);
+    }
+    .incident-memory-result {
+      display: grid;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-subtle);
+      min-width: 0;
+    }
+    .incident-memory-fragments {
+      display: grid;
+      gap: 4px;
+    }
+    .incident-memory-fragments p {
+      margin: 0;
+      color: var(--color-text-muted);
+      font-size: 0.9rem;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
+    .incident-memory-highlight {
+      padding: 0 3px;
+      border-radius: 4px;
+      background: color-mix(in srgb, var(--color-primary) 20%, transparent);
+      color: var(--color-text);
+      font-weight: 800;
+    }
     .event-review-table select,
     .event-review-note-input {
       width: 100%;

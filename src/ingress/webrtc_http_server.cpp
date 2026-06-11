@@ -44,6 +44,7 @@
 #include "analysis/event_rule_engine.h"
 #include "analysis/event_storage.h"
 #include "analysis/image_frame_loader.h"
+#include "analysis/incident_memory.h"
 #include "analysis/metadata_subscription_filter.h"
 #include "analysis/object_tracker.h"
 #include "analysis/overlay_renderer.h"
@@ -3480,6 +3481,46 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <p id="eventExportPolicyText">증거 export와 삭제 권한을 확인합니다.</p>
         </section>
       </div>
+      <section class="section-card ops-workspace-wide incident-memory-search" data-testid="ops-events-semantic-search" data-incident-memory-search="local-index">
+        <div class="toolbar">
+          <div>
+            <h3>Incident Memory Search</h3>
+            <p id="opsIncidentSearchSummary">자연어/키워드 검색과 rule/source/status/time filter로 matched evidence highlight를 확인합니다.</p>
+          </div>
+          <div id="opsIncidentSearchBadges" class="badge-row"><span class="chip">local-only</span></div>
+        </div>
+        <div class="actions event-review-controls incident-memory-search-grid">
+          <label>검색
+            <input id="opsIncidentSearchInput" placeholder="loading bay acknowledged, stale metadata..." />
+          </label>
+          <label>Rule
+            <input id="opsIncidentSearchRuleFilter" placeholder="ruleId" />
+          </label>
+          <label>Source
+            <input id="opsIncidentSearchSourceFilter" placeholder="sourceId/streamId" />
+          </label>
+          <label>Incident 상태
+            <select id="opsIncidentSearchStatusFilter">
+              <option value="">전체</option>
+              <option value="new">new</option>
+              <option value="review-needed">review-needed</option>
+              <option value="acknowledged">acknowledged</option>
+              <option value="in-progress">in-progress</option>
+              <option value="closed">closed</option>
+              <option value="false-positive">false-positive</option>
+            </select>
+          </label>
+          <label>시작(ms)
+            <input id="opsIncidentSearchStartTime" inputmode="numeric" placeholder="startTimeMs" />
+          </label>
+          <label>종료(ms)
+            <input id="opsIncidentSearchEndTime" inputmode="numeric" placeholder="endTimeMs" />
+          </label>
+        </div>
+        <div id="opsIncidentSearchRows" class="incident-memory-results" data-incident-memory-results="matched-evidence-highlight">
+          <p class="ops-rule-note">검색어를 입력하면 EventRecord/review projection의 matched evidence highlight가 표시됩니다.</p>
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide" data-testid="ops-alert-delivery-integrations" data-alert-contract="separate-from-event-post-payload" data-alert-dry-run="ops-only-no-external-delivery" data-delivery-attempt-log="ops-local-attempt-log">
         <div class="toolbar">
           <div>
@@ -12311,6 +12352,232 @@ std::string OpsEventReviewInboxItemJson(const std::string& event_json,
     return out.str();
 }
 
+std::string OpsIncidentMemoryStringArrayJson(const std::vector<std::string>& values) {
+    std::ostringstream out;
+    out << "[";
+    for (std::size_t i = 0; i < values.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "\"" << JsonEscape(values[i]) << "\"";
+    }
+    out << "]";
+    return out.str();
+}
+
+std::string OpsIncidentMemoryQueryValue(
+    const std::unordered_map<std::string, std::string>& query,
+    const std::string& key) {
+    const auto it = query.find(key);
+    return it == query.end() ? std::string() : Trim(it->second);
+}
+
+std::string OpsIncidentMemoryEventRuleId(const std::string& event_json) {
+    if (const auto rule_id = ParseStringField(event_json, "ruleId");
+        rule_id.has_value() && !Trim(*rule_id).empty()) {
+        return Trim(*rule_id);
+    }
+    if (const auto va_rule_id = ParseStringField(event_json, "vaRuleId");
+        va_rule_id.has_value() && !Trim(*va_rule_id).empty()) {
+        return Trim(*va_rule_id);
+    }
+    if (const auto metadata = ExtractObjectField(event_json, "metadata"); metadata.has_value()) {
+        if (const auto metadata_rule = ParseStringField(*metadata, "ruleId");
+            metadata_rule.has_value() && !Trim(*metadata_rule).empty()) {
+            return Trim(*metadata_rule);
+        }
+        if (const auto metadata_va_rule = ParseStringField(*metadata, "vaRuleId");
+            metadata_va_rule.has_value() && !Trim(*metadata_va_rule).empty()) {
+            return Trim(*metadata_va_rule);
+        }
+    }
+    return "";
+}
+
+bool OpsIncidentMemoryRecordMatchesFilters(const std::string& event_json,
+                                           const OpsEventReviewState& review,
+                                           const std::string& rule_id,
+                                           const std::string& source_id,
+                                           const std::string& incident_status) {
+    if (!rule_id.empty() && OpsIncidentMemoryEventRuleId(event_json) != rule_id) {
+        return false;
+    }
+    if (!source_id.empty()) {
+        const std::string stream_id = Trim(ParseStringField(event_json, "streamId").value_or(""));
+        const std::string channel_id = Trim(ParseStringField(event_json, "channelId").value_or(""));
+        const std::string event_source_id =
+            Trim(ParseStringField(event_json, "sourceId").value_or(""));
+        if (source_id != stream_id && source_id != channel_id && source_id != event_source_id) {
+            return false;
+        }
+    }
+    if (!incident_status.empty() &&
+        NormalizeOpsIncidentStatus(review.incident_status) != NormalizeOpsIncidentStatus(incident_status)) {
+        return false;
+    }
+    return true;
+}
+
+std::string OpsIncidentReviewProjectionJson(const OpsEventReviewState& review) {
+    const std::string incident_id = review.incident_id.empty() ? "incident:" + review.event_id
+                                                               : review.incident_id;
+    std::ostringstream out;
+    out << "{"
+        << "\"id\":\"review-" << JsonEscape(review.event_id) << "\","
+        << "\"receivedAtMs\":" << review.updated_at_ms << ","
+        << "\"action\":\"event-review-state\","
+        << "\"target\":\"" << JsonEscape(incident_id) << "\","
+        << "\"summary\":\"review " << JsonEscape(review.review_status)
+        << " classification " << JsonEscape(review.classification)
+        << " incident " << JsonEscape(review.incident_status)
+        << " action " << JsonEscape(review.action_target) << "\""
+        << "}";
+    return out.str();
+}
+
+std::vector<std::string> OpsIncidentMemoryHighlightFragments(
+    const analysis::IncidentProjectionDocument& document,
+    const std::vector<std::string>& matched_terms) {
+    std::vector<std::string> fragments;
+    const std::string text = document.searchable_text.empty()
+                                 ? (document.title + " " + document.summary)
+                                 : document.searchable_text;
+    const std::string lowered = LowerAscii(text);
+    for (const std::string& term : matched_terms) {
+        const std::string lowered_term = LowerAscii(term);
+        const std::size_t pos = lowered.find(lowered_term);
+        if (pos == std::string::npos) {
+            continue;
+        }
+        const std::size_t start = pos > 42 ? pos - 42 : 0;
+        const std::size_t count = std::min<std::size_t>(text.size() - start, 120);
+        std::string fragment = Trim(text.substr(start, count));
+        if (start > 0) {
+            fragment = "..." + fragment;
+        }
+        if (start + count < text.size()) {
+            fragment += "...";
+        }
+        if (!fragment.empty() &&
+            !analysis::IncidentProjectionContainsForbiddenMaterial(fragment)) {
+            fragments.push_back(std::move(fragment));
+        }
+        if (fragments.size() >= 3) {
+            break;
+        }
+    }
+    if (fragments.empty() && !document.summary.empty() &&
+        !analysis::IncidentProjectionContainsForbiddenMaterial(document.summary)) {
+        fragments.push_back(document.summary);
+    }
+    return fragments;
+}
+
+std::string OpsIncidentMemorySearchViewJson(
+    const std::vector<std::string>& event_json_records,
+    const std::unordered_map<std::string, OpsEventReviewState>& reviews,
+    const std::unordered_map<std::string, std::string>& query) {
+    const std::string search_query = OpsIncidentMemoryQueryValue(query, "q");
+    const std::string rule_id = OpsIncidentMemoryQueryValue(query, "ruleId");
+    const std::string source_id = OpsIncidentMemoryQueryValue(query, "sourceId");
+    const std::string incident_status = OpsIncidentMemoryQueryValue(query, "incidentStatus");
+    const std::string start_time_ms = OpsIncidentMemoryQueryValue(query, "startTimeMs");
+    const std::string end_time_ms = OpsIncidentMemoryQueryValue(query, "endTimeMs");
+
+    analysis::IncidentMemoryIndex index;
+    analysis::IncidentMemoryIndexConfig config;
+    config.prefer_sqlite_fts5 = false;
+    config.force_jsonl_bm25_fallback = true;
+    std::string error_message;
+    (void)index.Open(config, &error_message);
+
+    std::vector<analysis::IncidentProjectionDocument> documents;
+    documents.reserve(event_json_records.size() * 2);
+    for (const std::string& event_json : event_json_records) {
+        const std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+        const auto review_it = reviews.find(event_id);
+        const OpsEventReviewState review =
+            review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
+        if (!OpsIncidentMemoryRecordMatchesFilters(
+                event_json, review, rule_id, source_id, incident_status)) {
+            continue;
+        }
+        analysis::IncidentProjectionDocument event_doc =
+            analysis::ProjectEventRecordIncidentText(event_json);
+        if (!analysis::IncidentProjectionContainsForbiddenMaterial(event_doc.searchable_text)) {
+            (void)index.Upsert(event_doc, nullptr);
+            documents.push_back(std::move(event_doc));
+        }
+        if (review.present) {
+            analysis::IncidentProjectionDocument review_doc =
+                analysis::ProjectOpsAuditIncidentText(OpsIncidentReviewProjectionJson(review));
+            if (!analysis::IncidentProjectionContainsForbiddenMaterial(review_doc.searchable_text)) {
+                (void)index.Upsert(review_doc, nullptr);
+                documents.push_back(std::move(review_doc));
+            }
+        }
+    }
+
+    std::vector<analysis::IncidentMemorySearchHit> hits;
+    if (!search_query.empty()) {
+        analysis::IncidentMemorySearchOptions options;
+        options.query = search_query;
+        options.limit = 12;
+        if (!index.Search(options, &hits, &error_message)) {
+            hits.clear();
+        }
+    }
+
+    std::ostringstream out;
+    const auto report = index.Report();
+    out << "{"
+        << "\"schema\":\"media-server.ops.incident-memory-search-view.v1\","
+        << "\"status\":\"ops-incident-memory-search\","
+        << "\"query\":\"" << JsonEscape(search_query) << "\","
+        << "\"backend\":\"" << JsonEscape(report.backend) << "\","
+        << "\"documentCount\":" << documents.size() << ","
+        << "\"hitCount\":" << hits.size() << ","
+        << "\"modelProviderDependency\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"filters\":{"
+        << "\"ruleId\":\"" << JsonEscape(rule_id) << "\","
+        << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
+        << "\"incidentStatus\":\"" << JsonEscape(incident_status) << "\","
+        << "\"startTimeMs\":\"" << JsonEscape(start_time_ms) << "\","
+        << "\"endTimeMs\":\"" << JsonEscape(end_time_ms) << "\""
+        << "},"
+        << "\"hits\":[";
+    for (std::size_t i = 0; i < hits.size(); ++i) {
+        const auto& hit = hits[i];
+        if (i != 0) {
+            out << ",";
+        }
+        const auto doc_it =
+            std::find_if(documents.begin(), documents.end(), [&](const auto& document) {
+                return document.document_id == hit.document_id;
+            });
+        const std::vector<std::string> highlights =
+            doc_it == documents.end()
+                ? std::vector<std::string>{hit.summary}
+                : OpsIncidentMemoryHighlightFragments(*doc_it, hit.matched_terms);
+        out << "{"
+            << "\"documentId\":\"" << JsonEscape(hit.document_id) << "\","
+            << "\"sourceKind\":\"" << JsonEscape(hit.source_kind) << "\","
+            << "\"incidentId\":\"" << JsonEscape(hit.incident_id) << "\","
+            << "\"sourceId\":\"" << JsonEscape(hit.source_id) << "\","
+            << "\"title\":\"" << JsonEscape(hit.title) << "\","
+            << "\"summary\":\"" << JsonEscape(hit.summary) << "\","
+            << "\"score\":" << hit.score << ","
+            << "\"matchedTerms\":" << OpsIncidentMemoryStringArrayJson(hit.matched_terms)
+            << ",\"highlightFragments\":"
+            << OpsIncidentMemoryStringArrayJson(highlights)
+            << "}";
+    }
+    out << "]"
+        << "}";
+    return out.str();
+}
+
 bool OpsEventReviewInboxJson(const app::AppConfig& config,
                              const std::unordered_map<std::string, std::string>& query,
                              std::string* body,
@@ -12345,6 +12612,10 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         query.count("incidentStatus") != 0 ? Trim(query.at("incidentStatus")) : std::string();
     const std::string requested_event_id =
         query.count("eventId") != 0 ? Trim(query.at("eventId")) : std::string();
+    const std::string rule_id_filter =
+        query.count("ruleId") != 0 ? Trim(query.at("ruleId")) : std::string();
+    const std::string source_id_filter =
+        query.count("sourceId") != 0 ? Trim(query.at("sourceId")) : std::string();
 
     std::vector<std::string> items;
     std::set<std::string> included_event_ids;
@@ -12358,6 +12629,10 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
             review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
         if (!OpsEventReviewMatchesFilters(
                 review, review_status_filter, classification_filter, incident_status_filter)) {
+            continue;
+        }
+        if (!OpsIncidentMemoryRecordMatchesFilters(
+                raw_event, review, rule_id_filter, source_id_filter, incident_status_filter)) {
             continue;
         }
         included_event_ids.insert(event_id);
@@ -12393,6 +12668,8 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         << "\"incidentAuditAction\":\"incident-action-update\""
         << "},"
         << "\"catalog\":" << OpsEventReviewCatalogJson() << ","
+        << "\"memorySearch\":" << OpsIncidentMemorySearchViewJson(event_result.records_json, reviews, query)
+        << ","
         << "\"records\":[";
     for (std::size_t i = 0; i < items.size(); ++i) {
         if (i != 0) {

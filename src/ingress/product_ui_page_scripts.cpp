@@ -2318,6 +2318,73 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (incidentStatus) reviewParams.set('incidentStatus', incidentStatus);
         return reviewParams;
       }
+      function incidentMemoryQueryParams(eventParams) {
+        const memoryParams = new URLSearchParams(eventParams.toString());
+        const q = String(document.getElementById('opsIncidentSearchInput')?.value || '').trim();
+        const ruleId = String(document.getElementById('opsIncidentSearchRuleFilter')?.value || '').trim();
+        const sourceId = String(document.getElementById('opsIncidentSearchSourceFilter')?.value || '').trim();
+        const incidentStatus = String(document.getElementById('opsIncidentSearchStatusFilter')?.value || '').trim();
+        const startTimeMs = String(document.getElementById('opsIncidentSearchStartTime')?.value || '').trim();
+        const endTimeMs = String(document.getElementById('opsIncidentSearchEndTime')?.value || '').trim();
+        if (q) memoryParams.set('q', q);
+        if (ruleId) memoryParams.set('ruleId', ruleId);
+        if (sourceId) memoryParams.set('sourceId', sourceId);
+        if (incidentStatus) memoryParams.set('incidentStatus', incidentStatus);
+        if (startTimeMs) memoryParams.set('startTimeMs', startTimeMs);
+        if (endTimeMs) memoryParams.set('endTimeMs', endTimeMs);
+        return memoryParams;
+      }
+      function incidentMemoryHighlightHtml(fragment, matchedTerms = []) {
+        let html = escapeHtml(display(fragment || ''));
+        for (const term of matchedTerms) {
+          const needle = String(term || '').trim();
+          if (!needle) continue;
+          const escapedNeedle = needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          html = html.replace(new RegExp(`(${escapedNeedle})`, 'ig'), '<mark class="incident-memory-highlight">$1</mark>');
+        }
+        return html;
+      }
+      function renderIncidentMemorySearch(memorySearch = {}) {
+        const root = document.getElementById('opsIncidentSearchRows');
+        if (!root) return;
+        const hits = Array.isArray(memorySearch.hits) ? memorySearch.hits : [];
+        const q = String(memorySearch.query || document.getElementById('opsIncidentSearchInput')?.value || '').trim();
+        renderBadges('opsIncidentSearchBadges', [
+          { text: `backend ${display(memorySearch.backend || 'jsonl-bm25')}`, tone: 'info' },
+          { text: `docs ${memorySearch.documentCount ?? 0}` },
+          { text: `hits ${hits.length}`, tone: hits.length > 0 ? '' : 'warn' },
+          { text: memorySearch.modelProviderDependency === false ? 'no provider' : 'provider 확인 필요', tone: memorySearch.modelProviderDependency === false ? 'info' : 'warn' },
+          { text: memorySearch.viewerClientExposureAdded === false ? 'Ops only' : '노출 확인 필요', tone: memorySearch.viewerClientExposureAdded === false ? 'info' : 'warn' }
+        ]);
+        setText(
+          'opsIncidentSearchSummary',
+          q
+            ? `query "${q}" · ${hits.length} hit · local incident memory · matched evidence highlight`
+            : '검색어를 입력하면 local incident memory에서 matched evidence highlight를 표시합니다.'
+        );
+        if (!q) {
+          root.innerHTML = '<p class="ops-rule-note">검색어를 입력하면 EventRecord/review projection의 matched evidence highlight가 표시됩니다.</p>';
+          return;
+        }
+        if (hits.length === 0) {
+          root.innerHTML = '<p class="ops-rule-note">필터에 맞는 incident memory 검색 결과가 없습니다.</p>';
+          return;
+        }
+        root.innerHTML = hits.map(hit => {
+          const matchedTerms = Array.isArray(hit.matchedTerms) ? hit.matchedTerms : [];
+          const fragments = Array.isArray(hit.highlightFragments) && hit.highlightFragments.length
+            ? hit.highlightFragments
+            : [hit.summary || hit.title || hit.documentId || 'matched evidence'];
+          return `<article class="incident-memory-result" data-incident-memory-hit="${escapeHtml(hit.documentId || '')}" data-source-kind="${escapeHtml(hit.sourceKind || '')}">
+            <div class="table-cell-main">
+              <strong>${escapeHtml(display(hit.title || hit.documentId || 'incident memory'))}</strong>
+              <span>${escapeHtml(display(hit.sourceKind || 'document'))} · ${escapeHtml(display(hit.incidentId || '-'))} · ${escapeHtml(display(hit.sourceId || '-'))}</span>
+            </div>
+            <div class="badge-row">${matchedTerms.map(term => `<span class="chip info">${escapeHtml(term)}</span>`).join('')}</div>
+            <div class="incident-memory-fragments">${fragments.map(fragment => `<p>${incidentMemoryHighlightHtml(fragment, matchedTerms)}</p>`).join('')}</div>
+          </article>`;
+        }).join('');
+      }
       function alertDeliveryBodyFromForm() {
         const kind = String(document.getElementById('alertDeliveryKind')?.value || 'webhook').trim();
         const endpoint = String(document.getElementById('alertDeliveryEndpoint')?.value || '').trim();
@@ -2510,7 +2577,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           requestJson(`/ops/api/events/status?${eventParams.toString()}`),
           requestJson('/ops/api/alerts/deliveries').catch(error => ({ error: error.message, integrations: [], attempts: [] }))
         ]);
-        const reviewParams = eventReviewQueryParams(eventParams);
+        const reviewParams = incidentMemoryQueryParams(eventReviewQueryParams(eventParams));
         const reviewPayload = await requestJson(`/ops/api/events/reviews?${reviewParams.toString()}`)
           .catch(error => ({ error: error.message, records: [] }));
         const storage = payload.storage || {};
@@ -2569,12 +2636,13 @@ void AppendOpsShellScript(std::ostringstream& out,
             : `review ${reviewItems.length}개 · incident/action workflow · VLM review panel ${reviewItems.filter(item => item?.vlmReview).length}개 · Event POST payload 변경 없음 · audit action event-review-update/incident-action-update`
         );
         renderEventReviewRows(reviewItems);
+        renderIncidentMemorySearch(reviewPayload.memorySearch || {});
         const prevButton = document.getElementById('eventRecordsPrev');
         const nextButton = document.getElementById('eventRecordsNext');
         if (prevButton) prevButton.disabled = opsEventRecordsOffset <= 0;
         if (nextButton) nextButton.disabled = !records.hasMore;
         if (records.nextOffset != null) nextButton?.setAttribute('data-next-offset', String(records.nextOffset));
-        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload });
+        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, memorySearch: reviewPayload.memorySearch || {} });
       }
       const itemId = item => display(item?.id || item?.ruleId || item?.profileId || '-');
       const opsRulesIdText = value => {
@@ -6463,6 +6531,16 @@ void AppendOpsShellScript(std::ostringstream& out,
         document.getElementById('eventReviewIncidentStatusFilter')?.addEventListener('change', () => {
           opsEventRecordsOffset = 0;
           refreshEvents().catch(error => setText('eventReviewSummary', error.message));
+        });
+        ['opsIncidentSearchInput', 'opsIncidentSearchRuleFilter', 'opsIncidentSearchSourceFilter', 'opsIncidentSearchStartTime', 'opsIncidentSearchEndTime'].forEach(id => {
+          document.getElementById(id)?.addEventListener('input', () => {
+            opsEventRecordsOffset = 0;
+            refreshEvents().catch(error => setText('opsIncidentSearchSummary', error.message));
+          });
+        });
+        document.getElementById('opsIncidentSearchStatusFilter')?.addEventListener('change', () => {
+          opsEventRecordsOffset = 0;
+          refreshEvents().catch(error => setText('opsIncidentSearchSummary', error.message));
         });
         document.getElementById('eventReviewAuditRefresh')?.addEventListener('click', () => renderOpsAuditTrail('event-review-audit-list', 'events'));
         document.getElementById('alertDeliverySave')?.addEventListener('click', async () => {
