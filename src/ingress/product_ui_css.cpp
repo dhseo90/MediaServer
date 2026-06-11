@@ -1275,6 +1275,37 @@ std::string ProductUiCss() {
     .badge.bad { background: var(--color-danger-bg); color: var(--color-danger); }
     .chip.info,
     .badge.info { background: var(--color-info-bg); color: var(--color-info); }
+    .client-safe-incident-digest,
+    .client-safe-digest-list {
+      display: grid;
+      gap: var(--space-3);
+      min-width: 0;
+    }
+    .client-safe-incident-digest {
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-subtle);
+    }
+    .client-safe-digest-item {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: var(--space-2);
+      align-items: center;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-raised);
+    }
+    .client-safe-digest-item div {
+      min-width: 0;
+      display: grid;
+      gap: 2px;
+    }
+    .client-safe-digest-item span {
+      color: var(--color-text-muted);
+      overflow-wrap: anywhere;
+    }
     form,
     .form-grid {
       display: grid;
@@ -3222,6 +3253,9 @@ std::string ProductUiCss() {
         align-items: stretch;
       }
       body.ops-shell .similar-incident-related {
+        grid-template-columns: minmax(0, 1fr);
+      }
+      .client-safe-digest-item {
         grid-template-columns: minmax(0, 1fr);
       }
       body.ops-shell .rules-workspace .rule-mode-grid {

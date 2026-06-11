@@ -4250,6 +4250,14 @@ struct ClientEventSummary {
     std::optional<std::int64_t> latest_event_time_ms;
 };
 
+std::string ClientSafeDigestValue(const std::string& value, const std::string& fallback) {
+    const std::string trimmed = Trim(value);
+    if (trimmed.empty() || analysis::IncidentProjectionContainsForbiddenMaterial(trimmed)) {
+        return fallback;
+    }
+    return trimmed;
+}
+
 bool ClientEventStatusIsActive(const std::string& status) {
     if (status.empty()) {
         return false;
@@ -4386,6 +4394,59 @@ void AppendClientEventItemJson(std::ostringstream& out, const ClientEventItem& i
         << "}";
 }
 
+std::string ClientSafeIncidentDigestSeverity(const ClientEventItem& item) {
+    return ClientEventStatusIsActive(item.status) ? "attention" : "normal";
+}
+
+std::string ClientSafeIncidentDigestSummaryText(const ClientEventItem& item) {
+    std::string label = ClientSafeDigestValue(item.scenario_name, "");
+    if (label.empty()) {
+        label = ClientSafeDigestValue(item.class_name, "");
+    }
+    if (label.empty()) {
+        label = ClientSafeDigestValue(item.event_type, "event");
+    }
+    const std::string status = ClientSafeDigestValue(item.status, "recorded");
+    std::string summary = label + " / " + status;
+    if (analysis::IncidentProjectionContainsForbiddenMaterial(summary)) {
+        summary = "viewer-safe event summary";
+    }
+    return summary;
+}
+
+void AppendClientSafeIncidentDigestJson(std::ostringstream& out,
+                                        const ClientEventSummary& summary) {
+    out << "{"
+        << "\"schema\":\"media-server.client.incident-digest.v1\","
+        << "\"provided\":" << (summary.provided ? "true" : "false") << ","
+        << "\"viewerSafe\":true,"
+        << "\"sourceLocatorIncluded\":false,"
+        << "\"rawEvidenceIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"providerMaterialIncluded\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"itemCount\":" << summary.recent.size() << ","
+        << "\"digestItems\":[";
+    const std::size_t limit = std::min<std::size_t>(summary.recent.size(), 5);
+    for (std::size_t i = 0; i < limit; ++i) {
+        const auto& item = summary.recent[i];
+        if (i != 0) {
+            out << ",";
+        }
+        out << "{"
+            << "\"digestId\":\"client-incident-" << (i + 1) << "\","
+            << "\"eventType\":\"" << JsonEscape(ClientSafeDigestValue(item.event_type, "event")) << "\","
+            << "\"status\":\"" << JsonEscape(ClientSafeDigestValue(item.status, "recorded")) << "\","
+            << "\"severity\":\"" << JsonEscape(ClientSafeIncidentDigestSeverity(item)) << "\","
+            << "\"summaryText\":\"" << JsonEscape(ClientSafeIncidentDigestSummaryText(item)) << "\","
+            << "\"time\":";
+        AppendNullableInt64(out, item.update_time_ms.has_value() ? item.update_time_ms
+                                                                 : item.start_time_ms);
+        out << "}";
+    }
+    out << "]}";
+}
+
 void AppendClientEventSummaryJson(std::ostringstream& out, const ClientEventSummary& summary) {
     out << "{"
         << "\"provided\":" << (summary.provided ? "true" : "false") << ","
@@ -4413,7 +4474,9 @@ void AppendClientEventSummaryJson(std::ostringstream& out, const ClientEventSumm
         }
         AppendClientEventItemJson(out, summary.recent[i]);
     }
-    out << "]}";
+    out << "],\"incidentDigest\":";
+    AppendClientSafeIncidentDigestJson(out, summary);
+    out << "}";
 }
 
 void AppendClientViewIdentityJson(std::ostringstream& out,

@@ -296,6 +296,8 @@ Usage:
                  v2.5.0 explainable incident brief와 VLM default-off 경계를 검증합니다.
   verify-v250-similar-incident-lookup
                  v2.5.0 similar incident lookup과 deterministic scoring/redaction 경계를 검증합니다.
+  verify-v250-client-safe-incident-digest
+                 v2.5.0 client-safe incident digest와 viewer redaction 경계를 검증합니다.
   verify-ops-scenario-builder-ui
                  Scenario Builder UI의 Event Rule 폼 적용과 engine 비변경 계약을 검증합니다.
   verify-ops-client-shared-declutter
@@ -1078,6 +1080,10 @@ case "${cmd}" in
   verify-v250-similar-incident-lookup)
     require_internal verify_v250_similar_incident_lookup.mjs
     exec "${INTERNAL_DIR}/verify_v250_similar_incident_lookup.mjs" "$@"
+    ;;
+  verify-v250-client-safe-incident-digest)
+    require_internal verify_v250_client_safe_incident_digest.mjs
+    exec "${INTERNAL_DIR}/verify_v250_client_safe_incident_digest.mjs" "$@"
     ;;
   verify-ops-scenario-builder-ui)
     require_internal verify_ops_scenario_builder_ui.mjs
