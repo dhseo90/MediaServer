@@ -269,6 +269,14 @@ Role/scope:
 - v2.1.0 client redaction: `/client/live`, `/client/dashboard`, `/client/events`에서
   VLM model, prompt, raw response, provider, internal review card, source/debug JSON이
   보이지 않는지 기능 ID별로 확인
+- v2.5.0 Semantic Incident Memory UI 풀테스트 기준: `/ops/events`에서 `UI-039`
+  semantic search 입력/filter/matched evidence highlight, `UI-040` timeline graph,
+  `UI-041` explainable incident brief, `UI-042` similar incident lookup, `UI-043`
+  raw signed bundle과 별도 `release-safe bundle`, `UI-044` owner/release readiness
+  기준을 기능 ID별로 확인합니다. raw JSON/API-only 확인, 자동 smoke, screenshot
+  생성만으로는 UI 풀테스트 PASS로 쓰지 않습니다. release-safe bundle은 실제 버튼
+  조작, token 요청, manifest-only/redaction policy 확인, raw evidence/source
+  locator/provider material 비노출 확인을 분리해 기록합니다.
 
 위 목록은 실행 순서 요약입니다. 실제 기능 단위 범위는
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)의 기능 ID를

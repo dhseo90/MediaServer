@@ -16806,7 +16806,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             return JsonResponse(200, "OK", response_body);
                         }
 
-                        if (request.method == "GET" && request.path == "/lab/analysis/events/evidence/bundle-token") {
+                        if (IsLabEventEvidenceBundleTokenRoute(request.method, request.path)) {
                             std::string error_message;
                             const std::string response_body = EventEvidenceBundleTokenJson(query, &error_message);
                             if (response_body.empty()) {
@@ -16819,7 +16819,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             return ok;
                         }
 
-                        if (request.method == "GET" && request.path == "/lab/analysis/events/evidence/bundle") {
+                        if (IsLabEventEvidenceBundleDownloadRoute(request.method, request.path)) {
                             std::string zip_body;
                             std::string download_name;
                             std::string error_message;

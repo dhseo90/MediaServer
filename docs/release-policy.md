@@ -152,6 +152,40 @@ RTSP/WebRTC media path 변경을 기본 release PASS로 쓰지 않습니다. sem
 local text projection과 local index를 기본으로 하며 model/provider 의존성은
 default-off enrichment 후보로만 둡니다.
 
+## v2.5.0 소유권 분리 / 릴리즈 준비 게이트
+
+`media-server.v250-owner-release-readiness.v1`은 v2.5.0 S09의 local readiness
+gate입니다. 이 gate는 event memory/search route owner catalog, release-safe evidence
+bundle route matcher, feature inventory, manual UI criteria, release evidence index,
+문서 링크/assets, release metadata, close-out dry-run을 한 안정화 gate로 묶습니다.
+
+실행 command set:
+
+```bash
+./server.sh verify-v250-owner-release-readiness
+./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-manual-ui-evidence
+./server.sh verify-release-evidence-index
+./server.sh verify-release-closeout-helper --dry-run
+git diff --check
+```
+
+미실행/제외 경계:
+
+- UI 풀테스트 직접 조작 미실행: local readiness gate PASS로 대체하지 않습니다.
+- 30분 테스트 미실행: `verify-predev --soak-minutes 30`은 별도 승인 후 실행합니다.
+- 120분 테스트 미실행: `verify-predev --soak-minutes 120`과
+  `verify-va-runtime-console-longrun --duration-minutes 120`은 별도 승인 후 실행합니다.
+- tag/push/GitHub Release manual-not-run, PR merge/main sync/next branch sync 미수행,
+  `verify-release-metadata --published` 미실행 상태는 release evidence index에
+  별도로 남깁니다.
+- real ONVIF, external TURN/WHEP, real cloud provider call, VLM/model/runtime bundle,
+  provider credential field smoke는 credential/endpoint/실기기 승인 없이 release PASS로
+  쓰지 않습니다.
+
 ## v2.4.0 Release Readiness Gate
 
 `media-server.v240-release-readiness-gate.v1`은 v2.4.0 완료 범위의 문서 링크/assets,

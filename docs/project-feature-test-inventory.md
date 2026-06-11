@@ -38,13 +38,13 @@ source-of-truth입니다.
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 425 |
-| UI 직접 필요 | 246 |
+| 전체 기능 항목 | 428 |
+| UI 직접 필요 | 247 |
 | UI 간접 필요 | 29 |
-| UI 비대상 | 147 |
-| 테스트 필요 | 422 |
-| 안정화 대상 | 412 |
-| UI 풀테스트 대상 | 264 |
+| UI 비대상 | 149 |
+| 테스트 필요 | 425 |
+| 안정화 대상 | 415 |
+| UI 풀테스트 대상 | 265 |
 | 30분 soak 대상 | 47 |
 | 120분 대상 | 7 |
 
@@ -58,7 +58,7 @@ close-out과 과거 UI 풀테스트 실행 evidence는
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 414개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 417개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정했지만, 각 행의 line-level 증적은 별도 대조 필요 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리했지만, inventory 자체는 브라우저 직접 조작 evidence를 보관하지 않음 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -101,6 +101,12 @@ V250-S05는 `UI-041`, `EVT-043`, `LAB-066`, `SAFE-047`과
 `verify-v250-explainable-incident-brief`로 승격됐습니다.
 V250-S06은 `UI-042`, `EVT-044`, `LAB-067`, `SAFE-048`과
 `verify-v250-similar-incident-lookup`으로 승격됐습니다.
+V250-S07은 `CLIENT-023`, `SAFE-049`와 `verify-v250-client-safe-incident-digest`로
+승격됐습니다.
+V250-S08은 `UI-043`, `EVT-045`, `LAB-068`, `SAFE-050`과
+`verify-v250-redacted-incident-evidence-bundle`로 승격됐습니다.
+V250-S09는 `UI-044`, `OPS-036`, `SAFE-051`과
+`verify-v250-owner-release-readiness`로 승격됐습니다.
 남은 planning-only 행만으로 `테스트 있음`, `UI 있음`,
 `완료`, `UI 풀테스트 PASS`라고 보고하지 않습니다.
 
@@ -114,7 +120,7 @@ V250-S06은 `UI-042`, `EVT-044`, `LAB-067`, `SAFE-048`과
 | V250-S06 Similar incident lookup | `UI-042`, `EVT-044`, `LAB-067`, `SAFE-048`로 rule/scenario/source/status pattern similarity, deterministic scoring, redaction boundary를 배정하고 `verify-v250-similar-incident-lookup`으로 검증 | 브라우저 직접 조작과 실제 운영 데이터 비교 전에는 UI PASS가 아니며 external embedding/provider 실행 evidence도 아님 |
 | V250-S07 Client-safe incident digest | `CLIENT-023`, `SAFE-049`로 `/client/api/views/{id}/events` incident digest와 viewer-safe redaction boundary를 배정하고 `verify-v250-client-safe-incident-digest`로 검증 | viewer role UI 직접 확인 전에는 UI PASS가 아니며 auth route/scope 직접 evidence도 아님 |
 | V250-S08 Redacted incident evidence bundle | `UI-043`, `EVT-045`, `LAB-068`, `SAFE-050`으로 release-safe bundle action, redacted export manifest, fixture guard, raw/source/provider exclusion boundary를 배정하고 `verify-v250-redacted-incident-evidence-bundle`로 검증 | 실제 다운로드 파일 육안 검수와 UI 직접 조작 전에는 UI PASS가 아니며 raw bundle 검증을 release-safe PASS로 대체하지 않음 |
-| V250-S09 Owner decomposition/release readiness | event memory/search route owner, inventory, manual UI criteria, release readiness ID를 구현 단계에서 배정 | close-out gate와 UI 풀테스트 기준 정리 전에는 release readiness PASS가 아님 |
+| V250-S09 Owner decomposition/release readiness | `UI-044`, `OPS-036`, `SAFE-051`로 event memory/search route owner catalog, manual UI criteria, release readiness gate를 배정하고 `verify-v250-owner-release-readiness`로 검증 | close-out gate와 UI 풀테스트 기준 정리는 안정화 evidence이며 실제 UI 직접 조작, 30분/120분, tag/push/GitHub Release PASS가 아님 |
 
 ## v2.4.0 Operator Event Review Evidence Mapping
 
@@ -155,7 +161,7 @@ Codex 밖에서 사용자가 직접 실행하는 자동 검수는 Chrome/CDP를 
 
 | 기능 ID 범위 | 안정화 verifier 후보 | 비고 |
 | --- | --- | --- |
-| `UI-001`~`UI-018`, `UI-022`~`UI-043` | `verify-v230-ui-renderer-module-decomposition`, `verify-auth-bootstrap`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-ops-route-boundaries`, `verify-v220-ops-workspace-redesign`, `verify-v220-rules-workspace-redesign`, `verify-v220-client-live-redesign`, `verify-vlm-install-connection-ui`, `verify-vlm-profile-storage`, `verify-vlm-runtime-status-ui`, `verify-vlm-evaluation-result-workflow`, `verify-vlm-review-action-workflow`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-vlm-ops-event-review-ui`, `verify-vlm-privacy-transfer-guard`, `verify-ops-event-action-incident-workflow`, `verify-ops-alert-delivery-integrations`, `verify-v250-ops-events-semantic-search-ui`, `verify-v250-incident-timeline-graph`, `verify-v250-explainable-incident-brief`, `verify-v250-similar-incident-lookup`, `verify-v250-redacted-incident-evidence-bundle` | route/shell/404/Ops workspace/Rules workspace/Client viewer workspace/VLM dry-run/profile/privacy/runtime status/evaluation result/event review/action/rule draft/incident action/alert dry-run/semantic incident search/timeline graph/explainable brief/similar incident lookup/redacted bundle guard UI 경계 |
+| `UI-001`~`UI-018`, `UI-022`~`UI-044` | `verify-v230-ui-renderer-module-decomposition`, `verify-auth-bootstrap`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-ops-route-boundaries`, `verify-v220-ops-workspace-redesign`, `verify-v220-rules-workspace-redesign`, `verify-v220-client-live-redesign`, `verify-vlm-install-connection-ui`, `verify-vlm-profile-storage`, `verify-vlm-runtime-status-ui`, `verify-vlm-evaluation-result-workflow`, `verify-vlm-review-action-workflow`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-vlm-ops-event-review-ui`, `verify-vlm-privacy-transfer-guard`, `verify-ops-event-action-incident-workflow`, `verify-ops-alert-delivery-integrations`, `verify-v250-ops-events-semantic-search-ui`, `verify-v250-incident-timeline-graph`, `verify-v250-explainable-incident-brief`, `verify-v250-similar-incident-lookup`, `verify-v250-redacted-incident-evidence-bundle`, `verify-v250-owner-release-readiness` | route/shell/404/Ops workspace/Rules workspace/Client viewer workspace/VLM dry-run/profile/privacy/runtime status/evaluation result/event review/action/rule draft/incident action/alert dry-run/semantic incident search/timeline graph/explainable brief/similar incident lookup/redacted bundle guard/S09 UI 풀테스트 기준 경계 |
 | `UI-019`~`UI-021` | Codex 인앱 브라우저 evidence, 인앱 브라우저 부재 외부 환경의 `verify-ops-client-ui --screenshots`, `verify-docs-ui-assets`, `verify-product-ui-token-drift` | 시각 품질은 수동 UI evidence 필요 |
 | `AUTH-001`~`AUTH-042` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
 | `SRC-001`~`SRC-030` | `verify-v230-conditional-field-evidence`, `verify-ops-source-lifecycle`, `verify-ops-source-health-bulk`, `verify-ops-channel-bulk`, `verify-onvif-*`, `verify-ops-client-ui` | ONVIF field success는 제외. approved environment only redacted field report 없으면 not-run is not PASS |
@@ -164,8 +170,8 @@ Codex 밖에서 사용자가 직접 실행하는 자동 검수는 Chrome/CDP를 
 | `CLIENT-001`~`CLIENT-023` | `verify-v230-ui-renderer-module-decomposition`, `verify-client-live-workspace`, `verify-client-dashboard-polish`, `verify-client-source-dock-events`, `verify-client-tile-disconnect-contract`, `verify-client-tile-info-overlay-health`, `verify-ops-client-ui`, `verify-v250-client-safe-incident-digest` | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-021` | `verify-v230-conditional-field-evidence`, `verify-codecs`, `verify-webrtc-ice`, `verify-external-turn-whep-field-gate`, `verify-webrtc-va-metadata`, `verify-uri-source-longrun`, `verify-predev` | 30분/120분은 실행 지시 필요. `MEDIA-021` external TURN/WHEP endpoint 성공은 endpoint/credential 조건이 준비된 안정화 실행 없으면 PASS 아님 |
 | `LAB-001`~`LAB-068` | `verify-analysis-state`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-image-analysis`, `verify-vlm-boundary`, `verify-vlm-selection-decision`, `verify-vlm-pc-capability`, `verify-vlm-recommendation-engine`, `verify-vlm-install-connection-dry-run`, `verify-vlm-profile-storage`, `verify-vlm-runtime-opt-in-contract`, `verify-v230-vlm-opt-in-operational-evidence`, `verify-vlm-local-runtime-smoke`, `verify-vlm-cloud-provider-field-smoke-gate`, `verify-vlm-queue-backpressure-stability`, `verify-runtime-model-bundle-rc-rehearsal`, `verify-vlm-evaluation-harness`, `verify-vlm-evaluation-result-workflow`, `verify-vlm-review-action-workflow`, `verify-vlm-observation-sidecar`, `verify-vlm-event-explanation-hints`, `verify-vlm-privacy-transfer-guard`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-v250-incident-text-projection`, `verify-v250-incident-memory-index`, `verify-v250-incident-timeline-graph`, `verify-v250-explainable-incident-brief`, `verify-v250-similar-incident-lookup`, `verify-v250-redacted-incident-evidence-bundle` | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-050` | `verify-v230-conditional-field-evidence`, `verify-v230-ui-renderer-module-decomposition`, `verify-integrator-contract-artifact`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-ui-blocking-dialog-policy`, `verify-event-post-dispatch`, `verify-webrtc-va-metadata`, `verify-ws-metadata`, `verify-rtsp-va-overlay-policy`, `verify-external-turn-whep-field-gate`, `verify-runtime-model-bundle-rc-rehearsal`, `verify-vlm-boundary`, `verify-vlm-install-connection-scope-gate`, `verify-vlm-profile-storage`, `verify-vlm-runtime-opt-in-contract`, `verify-v230-vlm-opt-in-operational-evidence`, `verify-vlm-local-runtime-smoke`, `verify-vlm-cloud-provider-field-smoke-gate`, `verify-vlm-queue-backpressure-stability`, `verify-vlm-review-action-workflow`, `verify-vlm-observation-sidecar`, `verify-vlm-event-explanation-hints`, `verify-vlm-privacy-transfer-guard`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-ops-event-action-incident-workflow`, `verify-ops-alert-delivery-integrations`, `verify-v250-incident-text-projection`, `verify-v250-incident-memory-index`, `verify-v250-ops-events-semantic-search-ui`, `verify-v250-incident-timeline-graph`, `verify-v250-explainable-incident-brief`, `verify-v250-similar-incident-lookup`, `verify-v250-client-safe-incident-digest`, `verify-v250-redacted-incident-evidence-bundle` | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035` | `verify-v230-ops-backup-recovery-lifecycle`, `verify-ops-backup-restore-dry-run`, `verify-ops-evidence-retention-cleanup` | v2.3.0 S06 backup lifecycle는 안정화 gate이며 real operational backup이나 UI 풀테스트 evidence가 아님 |
+| `SAFE-001`~`SAFE-051` | `verify-v230-conditional-field-evidence`, `verify-v230-ui-renderer-module-decomposition`, `verify-integrator-contract-artifact`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-ui-blocking-dialog-policy`, `verify-event-post-dispatch`, `verify-webrtc-va-metadata`, `verify-ws-metadata`, `verify-rtsp-va-overlay-policy`, `verify-external-turn-whep-field-gate`, `verify-runtime-model-bundle-rc-rehearsal`, `verify-vlm-boundary`, `verify-vlm-install-connection-scope-gate`, `verify-vlm-profile-storage`, `verify-vlm-runtime-opt-in-contract`, `verify-v230-vlm-opt-in-operational-evidence`, `verify-vlm-local-runtime-smoke`, `verify-vlm-cloud-provider-field-smoke-gate`, `verify-vlm-queue-backpressure-stability`, `verify-vlm-review-action-workflow`, `verify-vlm-observation-sidecar`, `verify-vlm-event-explanation-hints`, `verify-vlm-privacy-transfer-guard`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-ops-event-action-incident-workflow`, `verify-ops-alert-delivery-integrations`, `verify-v250-incident-text-projection`, `verify-v250-incident-memory-index`, `verify-v250-ops-events-semantic-search-ui`, `verify-v250-incident-timeline-graph`, `verify-v250-explainable-incident-brief`, `verify-v250-similar-incident-lookup`, `verify-v250-client-safe-incident-digest`, `verify-v250-redacted-incident-evidence-bundle`, `verify-v250-owner-release-readiness` | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-036` | `verify-v230-ops-backup-recovery-lifecycle`, `verify-ops-backup-restore-dry-run`, `verify-ops-evidence-retention-cleanup`, `verify-v250-owner-release-readiness` | Ops evidence/readiness gate이며 real operational backup, release publish, UI 풀테스트 evidence가 아님 |
 
 ## VA Manual UI Seed Matrix
 
@@ -310,6 +316,7 @@ v2.1.0 completed roadmap과 v2.2.0 completed roadmap에서 늘어난 검수 대�
 | UI-041 | `/ops/events` Explainable Incident Brief | 필요 | 필요 | 안정화, UI | action/object/context/environment slot 기반 brief가 `/ops/events`에 Ops-only로 표시되고 VLM enrichment는 default-off, provider call 없음, client/viewer 노출 없음으로 표시됨 |
 | UI-042 | `/ops/events` Similar Incident Lookup | 필요 | 필요 | 안정화, UI | rule/scenario/source/status/action target 기반 similar incident lookup group이 `/ops/events`에 Ops-only로 표시되고 raw JSON/source URL/debug/provider material 없이 deterministic score와 explanation term만 표시됨 |
 | UI-043 | `/ops/events` Redacted Incident Evidence Bundle | 필요 | 필요 | 안정화, UI | `/ops/events` evidence action이 raw signed bundle과 별도로 release-safe bundle 버튼을 제공하고 redacted manifest-only export 경계를 표시함 |
+| UI-044 | `/ops/events` Semantic Incident Memory UI 풀테스트 준비 기준 | 필요 | 필요 | 안정화, UI | semantic search, timeline graph, explainable brief, similar lookup, release-safe bundle을 route/control/action 단위 UI 풀테스트 기준으로 분리하고 자동 smoke나 raw JSON/API-only 확인을 UI PASS로 쓰지 않음 |
 
 ## B. Auth, Account, Role, Scope
 
@@ -538,6 +545,7 @@ v2.1.0 completed roadmap과 v2.2.0 completed roadmap에서 늘어난 검수 대�
 | EVT-032 | VLM summary search candidate state | 비대상 | 필요 | 안정화 | summary search 후보는 sidecar summary와 EventRecord `eventId` correlation만 사용하고 제품 검색 UI, vector index, provider rerank는 만들지 않음 |
 | EVT-033 | VLM rule suggestion candidate state | 비대상 | 필요 | 안정화 | line/intrusion/zone rule suggestion 후보는 manual review 상태로만 산출하고 rule/profile registry write와 auto-apply는 발생하지 않음 |
 | OPS-035 | v2.3.0 S06 Ops backup/recovery evidence lifecycle | 비대상 | 필요 | 안정화 | 비대상: UI 없어야 정상. `verify-v230-ops-backup-recovery-lifecycle`이 staging drill manifest/checksum/restore-validation-plan, redacted evidence bundle, retention cleanup dry-run/apply/audit를 확인하고 30분/120분/UI 실행 PASS로 대체하지 않음 |
+| OPS-036 | V250-S09 incident memory route owner 분리 게이트 | 비대상 | 필요 | 안정화 | `verify-v250-owner-release-readiness`가 event memory/search route owner catalog, release-safe evidence bundle route matcher, release readiness 문서 연결을 확인하되 PR/tag/push/GitHub Release 실행 PASS로 대체하지 않음 |
 | EVT-034 | VLM runtime disabled/queue readiness state | 비대상 | 필요 | 안정화 | profile/recommendation 상태가 runtime disabled, missing model, queue not started를 명확히 표시하고 media path나 Event POST dispatch를 block하지 않음 |
 | EVT-035 | VLM review action state correlation | 간접 | 필요 | 안정화 | `media-server.ops.vlm-review-action-state.v1`은 Ops review state에서 `eventId`로만 EventRecord와 상관되고 EventRecord top-level payload나 Event POST payload에 action field를 추가하지 않음 |
 | EVT-036 | VLM rule suggestion draft correlation state | 간접 | 필요 | 안정화, UI | `media-server.vlm-rule-suggestion-draft-workflow.v1`은 V200-S13 sidecar candidate를 `sourceCandidateReport`로만 참조하고 EventRecord/Event POST/WebRTC/SSE/WS payload에 draft field를 추가하지 않음 |
@@ -732,6 +740,7 @@ v2.1.0 completed roadmap과 v2.2.0 completed roadmap에서 늘어난 검수 대�
 | SAFE-048 | V250-S06 similar incident lookup boundary | 필요 | 필요 | 안정화, UI | similar incident lookup은 rule/scenario/source/status/action target 기반 score와 explanation term만 표시하고 source URL, Developer URL, raw JSON/debugCounters/BBox diagnostics, auth/model/provider material, Event POST/WebRTC/SSE/WS/media path schema를 변경하지 않음 |
 | SAFE-049 | V250-S07 client-safe incident digest boundary | 필요 | 필요 | 안정화, UI | client-safe incident digest는 viewer-safe summaryText/severity/event type/status/time만 표시하고 source locator, raw evidence, debug material, provider material, Event POST/WebRTC/SSE/WS/media path schema를 변경하지 않음 |
 | SAFE-050 | V250-S08 redacted incident evidence bundle boundary | 필요 | 필요 | 안정화, UI | release-safe incident evidence bundle은 manifest/searchResults/timelineSummary/redactionPolicy만 포함하고 snapshot/clip raw evidence, source URL, credential, debug material, provider material, Event POST/WebRTC/SSE/WS/media path schema를 변경하지 않음 |
+| SAFE-051 | V250-S09 릴리즈 준비 경계 | 비대상 | 필요 | 안정화 | owner decomposition/release readiness gate는 Event POST/WebRTC/SSE/WS/RTSP/WebRTC media path/Auth/Rule/Profile payload schema를 바꾸지 않고 UI 풀테스트/30분/120분/published metadata/tag/push/GitHub Release 미실행을 PASS로 승격하지 않음 |
 
 ## Coverage Review To Do
 

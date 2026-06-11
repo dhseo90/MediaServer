@@ -86,10 +86,41 @@ VLM enrichment는 default-off 보조 후보입니다.
 | 3 | V250-S03 | P0 | 예정 | Ops search UI | `/ops/events` semantic search UI | 자연어/키워드 검색, rule/source/status/time filter, matched evidence highlight를 `/ops/events` 운영 화면에서 제공합니다. | route smoke, UI 직접 검수, redaction review, `verify-ops-client-ui`, `git diff --check` |
 | 4 | V250-S04 | P1 | 예정 | Timeline graph | Incident timeline graph | source state → event → operator action → alert dry-run → close 상태 연결을 timeline graph로 보여줍니다. | timeline fixture, action/audit linkage verifier, UI 직접 검수, `git diff --check` |
 | 5 | V250-S05 | P1 | 예정 | Explainability | Explainable incident brief | action/object/context/environment slot 기반 incident brief를 만들고 VLM enrichment는 default-off로 둡니다. | brief fixture, no-provider-default guard, privacy/redaction verifier, `git diff --check` |
-| 6 | V250-S06 | P1 | 예정 | Similarity | Similar incident lookup | 같은 rule/scenario/source/status 패턴으로 유사 이벤트를 찾아 운영자가 재발 패턴을 볼 수 있게 합니다. | similarity fixture, deterministic scoring smoke, UI 직접 검수, `git diff --check` |
-| 7 | V250-S07 | P1 | 예정 | Client-safe digest | Client-safe incident digest | viewer에게 안전한 요약만 노출하고 source locator/raw/debug/provider material 비노출 경계를 유지합니다. | client redaction verifier, viewer role UI 직접 검수, `verify-auth-routes`, `git diff --check` |
-| 8 | V250-S08 | P2 | 예정 | Evidence export | Redacted incident evidence bundle | 검색 결과와 timeline을 release-safe bundle로 export하되 raw evidence, credential, source URL, provider internals를 제외합니다. | bundle redaction verifier, export fixture, `verify-bundle-policy`, `git diff --check` |
-| 9 | V250-S09 | P2 | 예정 | Release readiness | Owner decomposition/release readiness | event memory/search route owner를 분리하고 evidence inventory, UI 풀테스트 기준, release readiness gate를 정리합니다. | owner decomposition verifier, inventory gate, release metadata/docs/static gate, UI 풀테스트 기준 review, `git diff --check` |
+| 6 | V250-S06 | P1 | 완료 | Similarity | Similar incident lookup | 같은 rule/scenario/source/status 패턴으로 유사 이벤트를 찾아 운영자가 재발 패턴을 볼 수 있게 합니다. | `verify-v250-similar-incident-lookup`, deterministic scoring smoke, `verify-feature-inventory-coverage`, `verify-ops-client-ui`, `git diff --check`; UI 풀테스트 직접 조작은 별도 |
+| 7 | V250-S07 | P1 | 완료 | Client-safe digest | Client-safe incident digest | viewer에게 안전한 요약만 노출하고 source locator/raw/debug/provider material 비노출 경계를 유지합니다. | `verify-v250-client-safe-incident-digest`, client redaction verifier, `verify-feature-inventory-coverage`, `verify-ops-client-ui`, `git diff --check`; viewer role UI 직접 검수와 `verify-auth-routes`는 auth env 필요 |
+| 8 | V250-S08 | P2 | 완료 | Evidence export | Redacted incident evidence bundle | 검색 결과와 timeline을 release-safe bundle로 export하되 raw evidence, credential, source URL, provider internals를 제외합니다. | `verify-v250-redacted-incident-evidence-bundle`, `verify-ops-event-records-scope`, `verify-bundle-policy`, `verify-feature-inventory-coverage`, `git diff --check`; 실제 다운로드 육안 검수는 UI 풀테스트 별도 |
+| 9 | V250-S09 | P2 | 완료 | 릴리즈 준비 | 소유권 분리/릴리즈 준비 | event memory/search route owner를 분리하고 evidence inventory, UI 풀테스트 기준, release readiness gate를 정리합니다. | `verify-v250-owner-release-readiness`, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-feature-inventory-coverage`, `verify-manual-ui-evidence`, `verify-release-evidence-index`, `verify-release-closeout-helper --dry-run`, `git diff --check` |
+
+### V250-S06~S09 incident memory close-out 경계
+
+직접 답: 이번 범위의 완료 산출물은 S06 similar incident lookup, S07 client-safe
+incident digest, S08 redacted incident evidence bundle, S09 owner decomposition/release
+readiness local gate입니다. 이 close-out은 `media-server.v250-owner-release-readiness.v1`
+기준으로 event memory/search route owner, inventory, manual UI criteria, release
+readiness command set을 연결합니다.
+
+S09 local readiness command set:
+
+```bash
+./server.sh verify-v250-owner-release-readiness
+./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-manual-ui-evidence
+./server.sh verify-release-evidence-index
+./server.sh verify-release-closeout-helper --dry-run
+git diff --check
+```
+
+미실행/별도 evidence 경계:
+
+- UI 풀테스트 직접 조작 미실행은 S09 local readiness PASS로 대체하지 않습니다.
+- 30분 테스트 미실행과 120분 테스트 미실행은 S09 local readiness PASS로 대체하지 않습니다.
+- tag/push/GitHub Release, PR merge/main sync, `verify-release-metadata --published`는
+  별도 release close-out/published metadata evidence입니다.
+- real ONVIF, external TURN/WHEP, real cloud provider call, VLM/model/runtime bundle은
+  v2.5.0 기본 release PASS가 아닙니다.
 
 ### V250-S00 v2.5.0 baseline/source-of-truth 정렬 종료 기준
 

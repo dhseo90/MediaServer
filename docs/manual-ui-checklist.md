@@ -5,10 +5,10 @@
 source-of-truth로 삼고, 기능별 UI 필요 여부와 테스트 영역은
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 합니다. 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를
-사용합니다. 최신 공개 release 기준은 `v2.3.0`이며, 현재 release 목표는 `v2.4.0`,
-UI 문서 기준은 `v2.4.0 Operator Event Review & Action Workflow`입니다. UI 풀테스트
+사용합니다. 최신 공개 release 기준은 `v2.4.0`이며, 현재 release 목표는 `v2.5.0`,
+UI 문서 기준은 `v2.5.0 Semantic Incident Memory`입니다. UI 풀테스트
 기준은 해당 작업 범위에 포함된 제품 route, 권한, 기능 baseline만 대상으로 합니다.
-`v2.4.0` release gate 문구는 현재 release target의 UI evidence 경계를 뜻하며, UI
+`v2.5.0 release UI gate` 문구는 현재 release target의 UI evidence 경계를 뜻하며, UI
 재배치 문서 준비나 자동 smoke만으로 UI 풀테스트 PASS를 뜻하지 않습니다.
 문서 구조와 evidence 경계는 `./server.sh verify-manual-ui-evidence`로 확인합니다.
 현재 제품 UI 직접 조작 evidence 없이 완료 판정에 포함하지 않습니다.
@@ -192,6 +192,21 @@ UI 풀테스트 결과 문서를 쓰기 전에는 아래 항목이 개별 route/
 - 실패 후 고친 화면은 같은 조작으로 재검수하고, 최초 실패와 재확인 결과를 모두
   남깁니다.
 
+### v2.5.0 release UI gate
+
+v2.5.0 release close-out에서는 자동 smoke와 별도로 `/ops/events`의 semantic incident
+memory 흐름을 브라우저에서 직접 열고 클릭한 Evidence index를 남깁니다. 자동 screenshot
+생성이나 raw JSON/API-only 확인만 있으면 해당 개별 기능은 `FAIL`입니다.
+
+- `/ops/events`: semantic search 입력/filter/highlight, timeline graph, explainable
+  brief, similar incident lookup, raw signed bundle과 별도 `release-safe bundle`,
+  redaction badge, Event POST/WebRTC/SSE/WS/media path 불변 경계를 직접 확인합니다.
+- `/client/dashboard`, `/client/live`, `/client/events`: client-safe incident digest가
+  viewer-safe summary만 표시하고 source locator/raw/debug/provider material을 보이지
+  않는지 직접 확인합니다.
+- release readiness: `UI-044`, `OPS-036`, `SAFE-051`은 기준 정리 행입니다. 실제
+  UI 풀테스트 직접 조작 미실행 상태를 PASS로 쓰지 않습니다.
+
 ### v2.4.0 release UI gate
 
 v2.4.0 release close-out에서는 자동 smoke와 별도로 아래 화면을 브라우저에서 직접
@@ -232,6 +247,22 @@ Codex 세션의 UI 조작 evidence는 인앱 브라우저 직접 조작을 우�
 명시 승인된 예외나 Codex 밖 실행의 보조 evidence로만 씁니다. 테스트가 사용자 클릭이나
 팝업 버튼 수동 확인을 기다리면 해당 항목은 harness 실패로 기록하고 PASS 처리하지
 않습니다.
+
+### v2.5.0 Semantic Incident Memory UI 풀테스트 기준
+
+아래 표는 route/control/action 누락을 막기 위한 기준입니다. 각 행은 인앱 브라우저에서
+직접 클릭/타이핑/선택하고, 실제 결과가 화면 상태와 관련 로그 또는 EventRecord/감사
+이력에 반영됐을 때만 `PASS`입니다. raw JSON/API-only 확인, 자동 smoke, screenshot
+생성만으로는 UI 풀테스트 PASS로 쓰지 않습니다.
+
+| Roadmap scope | Feature IDs | Route | 직접 확인할 control/action | 자동 verifier 연결 |
+| --- | --- | --- | --- | --- |
+| V250-S03 Semantic Incident Search | `UI-039`, `EVT-041`, `SAFE-045` | `/ops/events` | 검색어 입력, rule/source/incident status/time filter, matched evidence highlight, Ops-only 표시, client/viewer 비노출 | `verify-v250-ops-events-semantic-search-ui`, `verify-ops-client-ui` |
+| V250-S04 Incident Timeline Graph | `UI-040`, `EVT-042`, `LAB-065`, `SAFE-046` | `/ops/events` | source state, EventRecord, operator action, alert dry-run, close state node/edge 표시와 source URL/raw/debug/provider material 비노출 | `verify-v250-incident-timeline-graph` |
+| V250-S05 Explainable Incident Brief | `UI-041`, `EVT-043`, `LAB-066`, `SAFE-047` | `/ops/events` | action/object/context/environment slot 표시, VLM default-off badge, provider call 없음, client/viewer 비노출 | `verify-v250-explainable-incident-brief` |
+| V250-S06 Similar Incident Lookup | `UI-042`, `EVT-044`, `LAB-067`, `SAFE-048` | `/ops/events` | similar incident group, deterministic score, explanation term, source/raw/debug/provider material 비노출 | `verify-v250-similar-incident-lookup` |
+| V250-S08 Redacted Incident Evidence Bundle | `UI-043`, `EVT-045`, `LAB-068`, `SAFE-050` | `/ops/events` | raw signed bundle과 별도 `release-safe bundle` 버튼, token 요청, manifest-only/redaction policy, raw evidence/source locator/provider material 제외 | `verify-v250-redacted-incident-evidence-bundle`, `verify-ops-event-records-scope` |
+| V250-S09 Owner Decomposition/Release Readiness | `UI-044`, `OPS-036`, `SAFE-051` | `/ops/events`, release evidence 문서 | event memory/search route owner catalog와 UI 풀테스트 기준 연결 확인. 이 행은 기준 정리이며 실제 UI 직접 조작 미실행 상태를 PASS로 쓰지 않음 | `verify-v250-owner-release-readiness`, `verify-feature-inventory-coverage`, `verify-release-evidence-index` |
 
 ## 4. Auth Shell
 

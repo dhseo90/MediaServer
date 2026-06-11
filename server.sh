@@ -300,6 +300,8 @@ Usage:
                  v2.5.0 client-safe incident digest와 viewer redaction 경계를 검증합니다.
   verify-v250-redacted-incident-evidence-bundle
                  v2.5.0 redacted incident evidence bundle과 release-safe export 경계를 검증합니다.
+  verify-v250-owner-release-readiness
+                 v2.5.0 owner decomposition/release readiness gate를 검증합니다.
   verify-ops-scenario-builder-ui
                  Scenario Builder UI의 Event Rule 폼 적용과 engine 비변경 계약을 검증합니다.
   verify-ops-client-shared-declutter
@@ -1090,6 +1092,10 @@ case "${cmd}" in
   verify-v250-redacted-incident-evidence-bundle)
     require_internal verify_v250_redacted_incident_evidence_bundle.mjs
     exec "${INTERNAL_DIR}/verify_v250_redacted_incident_evidence_bundle.mjs" "$@"
+    ;;
+  verify-v250-owner-release-readiness)
+    require_internal verify_v250_owner_release_readiness.mjs
+    exec "${INTERNAL_DIR}/verify_v250_owner_release_readiness.mjs" "$@"
     ;;
   verify-ops-scenario-builder-ui)
     require_internal verify_ops_scenario_builder_ui.mjs
