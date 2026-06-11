@@ -3521,6 +3521,18 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <p class="ops-rule-note">검색어를 입력하면 EventRecord/review projection의 matched evidence highlight가 표시됩니다.</p>
         </div>
       </section>
+      <section class="section-card ops-workspace-wide similar-incident-panel" data-testid="ops-similar-incident-lookup" data-similar-incident-lookup="rule-scenario-source-status">
+        <div class="toolbar">
+          <div>
+            <h3>Similar Incident Lookup</h3>
+            <p id="opsSimilarIncidentSummary">같은 rule/scenario/source/status 패턴으로 재발 인시던트 후보를 확인합니다.</p>
+          </div>
+          <div id="opsSimilarIncidentBadges" class="badge-row"><span class="chip">deterministic</span></div>
+        </div>
+        <div id="opsSimilarIncidentRows" class="similar-incident-list">
+          <p class="ops-rule-note">EventRecord와 review state를 불러오면 similar incident lookup이 표시됩니다.</p>
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide incident-timeline-graph" data-testid="ops-incident-timeline-graph" data-incident-timeline-graph="source-event-action-alert-close">
         <div class="toolbar">
           <div>
@@ -12602,6 +12614,227 @@ std::string OpsIncidentMemorySearchViewJson(
     return out.str();
 }
 
+std::string OpsSimilarIncidentSafeValue(const std::string& value, const std::string& fallback) {
+    const std::string trimmed = Trim(value);
+    if (trimmed.empty() || OpsEventReviewNoteContainsSensitiveMaterial(trimmed) ||
+        analysis::IncidentProjectionContainsForbiddenMaterial(trimmed)) {
+        return fallback;
+    }
+    return trimmed;
+}
+
+std::string OpsSimilarIncidentSourceId(const std::string& event_json) {
+    for (const char* key : {"sourceId", "streamId", "channelId"}) {
+        const std::string value = Trim(ParseStringField(event_json, key).value_or(""));
+        if (!value.empty()) {
+            return OpsSimilarIncidentSafeValue(value, "unknown-source");
+        }
+    }
+    return "unknown-source";
+}
+
+std::string OpsSimilarIncidentScenario(const std::string& event_json) {
+    for (const char* key : {"scenarioType", "scenario", "eventType"}) {
+        const std::string value = Trim(ParseStringField(event_json, key).value_or(""));
+        if (!value.empty()) {
+            return OpsSimilarIncidentSafeValue(value, "event");
+        }
+    }
+    if (const auto metadata = ExtractObjectField(event_json, "metadata"); metadata.has_value()) {
+        for (const char* key : {"scenarioType", "scenario", "eventType"}) {
+            const std::string value = Trim(ParseStringField(*metadata, key).value_or(""));
+            if (!value.empty()) {
+                return OpsSimilarIncidentSafeValue(value, "event");
+            }
+        }
+    }
+    return "event";
+}
+
+struct OpsSimilarIncidentCandidate {
+    std::string event_id;
+    std::string incident_id;
+    std::string rule_id;
+    std::string scenario;
+    std::string source_id;
+    std::string event_status;
+    std::string incident_status;
+    std::string action_target;
+};
+
+OpsSimilarIncidentCandidate OpsSimilarIncidentCandidateFromEvent(
+    const std::string& event_json,
+    const OpsEventReviewState& review,
+    const std::size_t index) {
+    OpsSimilarIncidentCandidate candidate;
+    candidate.event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+    if (!OpsEventReviewEventIdAllowed(candidate.event_id)) {
+        candidate.event_id = "event-" + std::to_string(index + 1);
+    }
+    candidate.incident_id = review.incident_id.empty()
+                                ? "incident:" + candidate.event_id
+                                : OpsSimilarIncidentSafeValue(
+                                      review.incident_id, "incident:" + candidate.event_id);
+    candidate.rule_id = OpsSimilarIncidentSafeValue(
+        OpsIncidentMemoryEventRuleId(event_json), "unmapped-rule");
+    candidate.scenario = OpsSimilarIncidentScenario(event_json);
+    candidate.source_id = OpsSimilarIncidentSourceId(event_json);
+    candidate.event_status = OpsSimilarIncidentSafeValue(
+        Trim(ParseStringField(event_json, "status").value_or("recorded")), "recorded");
+    candidate.incident_status = NormalizeOpsIncidentStatus(review.incident_status);
+    candidate.action_target = OpsSimilarIncidentSafeValue(
+        review.action_target.empty() ? "operator-triage" : review.action_target,
+        "operator-triage");
+    return candidate;
+}
+
+int OpsSimilarIncidentScore(const OpsSimilarIncidentCandidate& base,
+                            const OpsSimilarIncidentCandidate& related,
+                            std::vector<std::string>* explanation_terms) {
+    int score = 0;
+    if (explanation_terms != nullptr) {
+        explanation_terms->clear();
+    }
+    const auto add = [&](const char* term, int weight) {
+        score += weight;
+        if (explanation_terms != nullptr) {
+            explanation_terms->push_back(term);
+        }
+    };
+    if (base.rule_id == related.rule_id && base.rule_id != "unmapped-rule") {
+        add("rule", 35);
+    }
+    if (base.scenario == related.scenario && base.scenario != "event") {
+        add("scenario", 25);
+    }
+    if (base.source_id == related.source_id && base.source_id != "unknown-source") {
+        add("source", 20);
+    }
+    if (base.event_status == related.event_status) {
+        add("event-status", 8);
+    }
+    if (base.incident_status == related.incident_status) {
+        add("incident-status", 8);
+    }
+    if (base.action_target == related.action_target &&
+        base.action_target != "operator-triage") {
+        add("action-target", 4);
+    }
+    return score;
+}
+
+std::string OpsSimilarIncidentLookupViewJson(
+    const std::vector<std::string>& event_json_records,
+    const std::unordered_map<std::string, OpsEventReviewState>& reviews) {
+    std::vector<OpsSimilarIncidentCandidate> candidates;
+    candidates.reserve(event_json_records.size());
+    for (std::size_t index = 0; index < event_json_records.size(); ++index) {
+        const std::string event_id =
+            Trim(ParseStringField(event_json_records[index], "eventId").value_or(""));
+        const auto review_it = reviews.find(event_id);
+        const OpsEventReviewState review =
+            review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
+        candidates.push_back(
+            OpsSimilarIncidentCandidateFromEvent(event_json_records[index], review, index));
+    }
+
+    constexpr std::size_t kMaxSimilarGroups = 8;
+    constexpr std::size_t kMaxRelatedPerGroup = 4;
+    std::vector<std::string> groups;
+    for (std::size_t base_index = 0;
+         base_index < candidates.size() && groups.size() < kMaxSimilarGroups;
+         ++base_index) {
+        const auto& base = candidates[base_index];
+        struct Related {
+            OpsSimilarIncidentCandidate candidate;
+            int score{0};
+            std::vector<std::string> terms;
+        };
+        std::vector<Related> related;
+        for (std::size_t related_index = 0; related_index < candidates.size(); ++related_index) {
+            if (base_index == related_index) {
+                continue;
+            }
+            std::vector<std::string> terms;
+            const int score = OpsSimilarIncidentScore(base, candidates[related_index], &terms);
+            if (score < 35 || terms.empty()) {
+                continue;
+            }
+            related.push_back({candidates[related_index], score, std::move(terms)});
+        }
+        std::sort(related.begin(), related.end(), [](const Related& lhs, const Related& rhs) {
+            if (lhs.score != rhs.score) {
+                return lhs.score > rhs.score;
+            }
+            return lhs.candidate.event_id < rhs.candidate.event_id;
+        });
+        if (related.size() > kMaxRelatedPerGroup) {
+            related.resize(kMaxRelatedPerGroup);
+        }
+        if (related.empty()) {
+            continue;
+        }
+
+        std::ostringstream group;
+        group << "{"
+              << "\"baseEventId\":\"" << JsonEscape(base.event_id) << "\","
+              << "\"baseIncidentId\":\"" << JsonEscape(base.incident_id) << "\","
+              << "\"baseSourceId\":\"" << JsonEscape(base.source_id) << "\","
+              << "\"baseScenario\":\"" << JsonEscape(base.scenario) << "\","
+              << "\"baseRuleId\":\"" << JsonEscape(base.rule_id) << "\","
+              << "\"related\":[";
+        for (std::size_t i = 0; i < related.size(); ++i) {
+            if (i != 0) {
+                group << ",";
+            }
+            group << "{"
+                  << "\"eventId\":\"" << JsonEscape(related[i].candidate.event_id) << "\","
+                  << "\"incidentId\":\"" << JsonEscape(related[i].candidate.incident_id) << "\","
+                  << "\"sourceId\":\"" << JsonEscape(related[i].candidate.source_id) << "\","
+                  << "\"scenario\":\"" << JsonEscape(related[i].candidate.scenario) << "\","
+                  << "\"ruleId\":\"" << JsonEscape(related[i].candidate.rule_id) << "\","
+                  << "\"eventStatus\":\"" << JsonEscape(related[i].candidate.event_status)
+                  << "\","
+                  << "\"incidentStatus\":\""
+                  << JsonEscape(related[i].candidate.incident_status) << "\","
+                  << "\"score\":" << related[i].score << ","
+                  << "\"explanationTerms\":"
+                  << OpsIncidentMemoryStringArrayJson(related[i].terms)
+                  << "}";
+        }
+        group << "]}";
+        groups.push_back(group.str());
+    }
+
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.similar-incident-lookup.v1\","
+        << "\"status\":\"ops-similar-incident-lookup\","
+        << "\"groupCount\":" << groups.size() << ","
+        << "\"candidateCount\":" << candidates.size() << ","
+        << "\"deterministicScoring\":true,"
+        << "\"modelProviderDependency\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"scoreWeights\":{"
+        << "\"rule\":35,"
+        << "\"scenario\":25,"
+        << "\"source\":20,"
+        << "\"event-status\":8,"
+        << "\"incident-status\":8,"
+        << "\"action-target\":4"
+        << "},"
+        << "\"groups\":[";
+    for (std::size_t i = 0; i < groups.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << groups[i];
+    }
+    out << "]}";
+    return out.str();
+}
+
 std::string OpsIncidentTimelineGraphSourceId(const std::string& event_json) {
     for (const char* key : {"sourceId", "streamId", "channelId"}) {
         const std::string value = Trim(ParseStringField(event_json, key).value_or(""));
@@ -13014,6 +13247,8 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         << "},"
         << "\"catalog\":" << OpsEventReviewCatalogJson() << ","
         << "\"memorySearch\":" << OpsIncidentMemorySearchViewJson(event_result.records_json, reviews, query)
+        << ","
+        << "\"similarIncidents\":" << OpsSimilarIncidentLookupViewJson(event_result.records_json, reviews)
         << ","
         << "\"timelineGraph\":" << OpsIncidentTimelineGraphViewJson(config, event_result.records_json, reviews)
         << ","

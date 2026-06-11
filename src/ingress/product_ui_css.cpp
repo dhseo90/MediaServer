@@ -2474,6 +2474,47 @@ std::string ProductUiCss() {
       color: var(--color-text);
       font-weight: 800;
     }
+    .similar-incident-panel {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .similar-incident-list {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .similar-incident-group {
+      min-width: 0;
+      display: grid;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-subtle);
+    }
+    .similar-incident-related-list {
+      display: grid;
+      gap: var(--space-2);
+    }
+    .similar-incident-related {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto minmax(160px, 0.35fr);
+      gap: var(--space-2);
+      align-items: center;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-raised);
+    }
+    .similar-incident-score {
+      min-width: 44px;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--color-primary) 12%, var(--color-surface-raised));
+      color: var(--color-text);
+      font-weight: 900;
+      text-align: center;
+    }
     .incident-timeline-graph {
       display: grid;
       gap: var(--space-3);
@@ -3179,6 +3220,9 @@ std::string ProductUiCss() {
       }
       body.ops-shell .ops-workspace .toolbar {
         align-items: stretch;
+      }
+      body.ops-shell .similar-incident-related {
+        grid-template-columns: minmax(0, 1fr);
       }
       body.ops-shell .rules-workspace .rule-mode-grid {
         grid-template-columns: minmax(0, 1fr);

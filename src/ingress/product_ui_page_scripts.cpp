@@ -2385,6 +2385,51 @@ void AppendOpsShellScript(std::ostringstream& out,
           </article>`;
         }).join('');
       }
+      function renderSimilarIncidentLookup(similarIncidents = {}) {
+        const root = document.getElementById('opsSimilarIncidentRows');
+        if (!root) return;
+        const groups = Array.isArray(similarIncidents.groups) ? similarIncidents.groups : [];
+        renderBadges('opsSimilarIncidentBadges', [
+          { text: `groups ${similarIncidents.groupCount ?? groups.length}` },
+          { text: `candidates ${similarIncidents.candidateCount ?? 0}` },
+          { text: similarIncidents.deterministicScoring === true ? 'deterministic' : 'score 확인 필요', tone: similarIncidents.deterministicScoring === true ? 'info' : 'warn' },
+          { text: similarIncidents.modelProviderDependency === false ? 'no provider' : 'provider 확인 필요', tone: similarIncidents.modelProviderDependency === false ? 'info' : 'warn' },
+          { text: similarIncidents.eventPostPayloadChanged === false ? 'Event POST 변경 없음' : 'payload 확인 필요', tone: similarIncidents.eventPostPayloadChanged === false ? 'info' : 'warn' },
+          { text: similarIncidents.viewerClientExposureAdded === false ? 'Ops only' : '노출 확인 필요', tone: similarIncidents.viewerClientExposureAdded === false ? 'info' : 'warn' }
+        ]);
+        setText(
+          'opsSimilarIncidentSummary',
+          similarIncidents.error
+            ? `similar incident lookup 실패: ${similarIncidents.error}`
+            : `같은 rule/scenario/source/status 패턴 · ${groups.length} group · local deterministic scoring`
+        );
+        if (groups.length === 0) {
+          root.innerHTML = '<p class="ops-rule-note">표시할 similar incident lookup 결과가 없습니다.</p>';
+          return;
+        }
+        root.innerHTML = groups.map(group => {
+          const related = Array.isArray(group?.related) ? group.related : [];
+          return `<article class="similar-incident-group" data-similar-incident-group="${escapeHtml(group?.baseEventId || '')}">
+            <div class="table-cell-main">
+              <strong>${escapeHtml(display(group?.baseEventId || 'base event'))}</strong>
+              <span>${escapeHtml(display(group?.baseIncidentId || '-'))} · ${escapeHtml(display(group?.baseSourceId || '-'))} · ${escapeHtml(display(group?.baseScenario || '-'))}</span>
+            </div>
+            <div class="similar-incident-related-list">
+              ${related.map(item => {
+                const terms = Array.isArray(item?.explanationTerms) ? item.explanationTerms : [];
+                return `<div class="similar-incident-related" data-similar-incident-related="${escapeHtml(item?.eventId || '')}">
+                  <div class="table-cell-main">
+                    <strong>${escapeHtml(display(item?.eventId || 'related event'))}</strong>
+                    <span>${escapeHtml(display(item?.incidentId || '-'))} · ${escapeHtml(display(item?.sourceId || '-'))} · ${escapeHtml(display(item?.scenario || '-'))} · ${escapeHtml(display(item?.incidentStatus || '-'))}</span>
+                  </div>
+                  <span class="similar-incident-score">${escapeHtml(display(item?.score ?? 0))}</span>
+                  <div class="badge-row">${terms.map(term => `<span class="chip info">${escapeHtml(term)}</span>`).join('')}</div>
+                </div>`;
+              }).join('')}
+            </div>
+          </article>`;
+        }).join('');
+      }
       function incidentTimelineStageLabel(stage) {
         const normalized = String(stage || '').trim();
         if (normalized === 'source-state') return 'Source';
@@ -2732,6 +2777,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         );
         renderEventReviewRows(reviewItems);
         renderIncidentMemorySearch(reviewPayload.memorySearch || {});
+        renderSimilarIncidentLookup(reviewPayload.similarIncidents || {});
         renderIncidentTimelineGraph(reviewPayload.timelineGraph || {});
         renderExplainableIncidentBrief(reviewPayload.incidentBrief || {});
         const prevButton = document.getElementById('eventRecordsPrev');
@@ -2739,7 +2785,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (prevButton) prevButton.disabled = opsEventRecordsOffset <= 0;
         if (nextButton) nextButton.disabled = !records.hasMore;
         if (records.nextOffset != null) nextButton?.setAttribute('data-next-offset', String(records.nextOffset));
-        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, memorySearch: reviewPayload.memorySearch || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
+        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, memorySearch: reviewPayload.memorySearch || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
       }
       const itemId = item => display(item?.id || item?.ruleId || item?.profileId || '-');
       const opsRulesIdText = value => {
