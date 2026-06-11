@@ -2530,6 +2530,54 @@ std::string ProductUiCss() {
       font-weight: 800;
       overflow-wrap: anywhere;
     }
+    .incident-brief-panel {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .incident-brief-list {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .incident-brief-card {
+      min-width: 0;
+      display: grid;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-subtle);
+    }
+    .incident-brief-slot-grid {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: var(--space-2);
+    }
+    .incident-brief-slot {
+      min-width: 0;
+      display: grid;
+      gap: 4px;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-raised);
+    }
+    .incident-brief-slot span {
+      color: var(--color-text-muted);
+      font-size: var(--font-size-sm);
+      font-weight: 900;
+      text-transform: uppercase;
+    }
+    .incident-brief-slot strong,
+    .incident-brief-slot p {
+      min-width: 0;
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
+    .incident-brief-slot p {
+      color: var(--color-text-muted);
+      font-size: var(--font-size-sm);
+    }
     .event-review-table select,
     .event-review-note-input {
       width: 100%;
@@ -3656,6 +3704,9 @@ std::string ProductUiCss() {
       }
       .incident-timeline-edge {
         margin-left: 10px;
+      }
+      .incident-brief-slot-grid {
+        grid-template-columns: 1fr;
       }
     }
     @media (max-width: 560px) {

@@ -2433,6 +2433,53 @@ void AppendOpsShellScript(std::ostringstream& out,
           </div>`;
         }).join('');
       }
+      function incidentBriefSlotLabel(slot = {}) {
+        const key = String(slot.key || '').trim();
+        if (key === 'action') return 'Action';
+        if (key === 'object') return 'Object';
+        if (key === 'context') return 'Context';
+        if (key === 'environment') return 'Environment';
+        return display(slot.label || key || 'Slot');
+      }
+      function renderExplainableIncidentBrief(incidentBrief = {}) {
+        const root = document.getElementById('opsIncidentBriefRows');
+        if (!root) return;
+        const briefs = Array.isArray(incidentBrief.briefs) ? incidentBrief.briefs : [];
+        renderBadges('opsIncidentBriefBadges', [
+          { text: `briefs ${briefs.length}` },
+          { text: incidentBrief.defaultVlmEnrichmentEnabled === false ? 'VLM default-off' : 'VLM 확인 필요', tone: incidentBrief.defaultVlmEnrichmentEnabled === false ? 'info' : 'warn' },
+          { text: incidentBrief.modelProviderDependency === false ? 'no provider' : 'provider 확인 필요', tone: incidentBrief.modelProviderDependency === false ? 'info' : 'warn' },
+          { text: incidentBrief.eventPostPayloadChanged === false ? 'Event POST 변경 없음' : 'payload 확인 필요', tone: incidentBrief.eventPostPayloadChanged === false ? 'info' : 'warn' },
+          { text: incidentBrief.viewerClientExposureAdded === false ? 'Ops only' : '노출 확인 필요', tone: incidentBrief.viewerClientExposureAdded === false ? 'info' : 'warn' }
+        ]);
+        setText(
+          'opsIncidentBriefSummary',
+          incidentBrief.error
+            ? `incident brief 조회 실패: ${incidentBrief.error}`
+            : `action/object/context/environment slots · VLM enrichment ${incidentBrief.defaultVlmEnrichmentEnabled === false ? 'default-off' : '확인 필요'}`
+        );
+        if (briefs.length === 0) {
+          root.innerHTML = '<p class="ops-rule-note">표시할 explainable incident brief가 없습니다.</p>';
+          return;
+        }
+        const slotKeys = ['actionSlot', 'objectSlot', 'contextSlot', 'environmentSlot'];
+        root.innerHTML = briefs.map(brief => {
+          const slots = slotKeys.map(key => brief?.[key]).filter(Boolean);
+          return `<article class="incident-brief-card" data-incident-brief-card="${escapeHtml(brief?.eventId || '')}">
+            <div class="table-cell-main">
+              <strong>${escapeHtml(display(brief?.title || brief?.incidentId || 'incident brief'))}</strong>
+              <span>${escapeHtml(display(brief?.incidentId || '-'))} · review ${escapeHtml(display(brief?.reviewStatus || '-'))} · incident ${escapeHtml(display(brief?.incidentStatus || '-'))}</span>
+            </div>
+            <div class="incident-brief-slot-grid">
+              ${slots.map(slot => `<div class="incident-brief-slot" data-incident-brief-slot="${escapeHtml(slot?.key || '')}">
+                <span>${escapeHtml(incidentBriefSlotLabel(slot))}</span>
+                <strong>${escapeHtml(display(slot?.value || '-'))}</strong>
+                <p>${escapeHtml(display(slot?.evidence || 'local evidence'))}</p>
+              </div>`).join('')}
+            </div>
+          </article>`;
+        }).join('');
+      }
       function alertDeliveryBodyFromForm() {
         const kind = String(document.getElementById('alertDeliveryKind')?.value || 'webhook').trim();
         const endpoint = String(document.getElementById('alertDeliveryEndpoint')?.value || '').trim();
@@ -2686,12 +2733,13 @@ void AppendOpsShellScript(std::ostringstream& out,
         renderEventReviewRows(reviewItems);
         renderIncidentMemorySearch(reviewPayload.memorySearch || {});
         renderIncidentTimelineGraph(reviewPayload.timelineGraph || {});
+        renderExplainableIncidentBrief(reviewPayload.incidentBrief || {});
         const prevButton = document.getElementById('eventRecordsPrev');
         const nextButton = document.getElementById('eventRecordsNext');
         if (prevButton) prevButton.disabled = opsEventRecordsOffset <= 0;
         if (nextButton) nextButton.disabled = !records.hasMore;
         if (records.nextOffset != null) nextButton?.setAttribute('data-next-offset', String(records.nextOffset));
-        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, memorySearch: reviewPayload.memorySearch || {}, timelineGraph: reviewPayload.timelineGraph || {} });
+        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, memorySearch: reviewPayload.memorySearch || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
       }
       const itemId = item => display(item?.id || item?.ruleId || item?.profileId || '-');
       const opsRulesIdText = value => {

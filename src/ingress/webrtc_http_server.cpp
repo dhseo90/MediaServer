@@ -3533,6 +3533,18 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <p class="ops-rule-note">EventRecord와 review state를 불러오면 incident timeline graph가 표시됩니다.</p>
         </div>
       </section>
+      <section class="section-card ops-workspace-wide incident-brief-panel" data-testid="ops-explainable-incident-brief" data-incident-brief="action-object-context-environment">
+        <div class="toolbar">
+          <div>
+            <h3>Explainable Incident Brief</h3>
+            <p id="opsIncidentBriefSummary">action/object/context/environment slot으로 incident brief를 설명하고 VLM enrichment는 default-off로 유지합니다.</p>
+          </div>
+          <div id="opsIncidentBriefBadges" class="badge-row"><span class="chip">default-off</span></div>
+        </div>
+        <div id="opsIncidentBriefRows" class="incident-brief-list">
+          <p class="ops-rule-note">EventRecord와 review state를 불러오면 explainable incident brief가 표시됩니다.</p>
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide" data-testid="ops-alert-delivery-integrations" data-alert-contract="separate-from-event-post-payload" data-alert-dry-run="ops-only-no-external-delivery" data-delivery-attempt-log="ops-local-attempt-log">
         <div class="toolbar">
           <div>
@@ -12797,6 +12809,120 @@ std::string OpsIncidentTimelineGraphViewJson(
     return out.str();
 }
 
+std::string OpsExplainableIncidentBriefValueOrFallback(const std::string& value,
+                                                       const std::string& fallback) {
+    const std::string trimmed = Trim(value);
+    if (trimmed.empty() || OpsEventReviewNoteContainsSensitiveMaterial(trimmed)) {
+        return fallback;
+    }
+    return trimmed;
+}
+
+std::string OpsExplainableIncidentBriefObjectSlot(const std::string& event_json) {
+    for (const char* key : {"objectClass", "class", "label", "category"}) {
+        const std::string value = Trim(ParseStringField(event_json, key).value_or(""));
+        if (!value.empty() && !OpsEventReviewNoteContainsSensitiveMaterial(value)) {
+            return value;
+        }
+    }
+    if (const auto metadata = ExtractObjectField(event_json, "metadata"); metadata.has_value()) {
+        for (const char* key : {"objectClass", "class", "label", "category"}) {
+            const std::string value = Trim(ParseStringField(*metadata, key).value_or(""));
+            if (!value.empty() && !OpsEventReviewNoteContainsSensitiveMaterial(value)) {
+                return value;
+            }
+        }
+    }
+    return "tracked object";
+}
+
+std::string OpsExplainableIncidentBriefSlotJson(const std::string& key,
+                                                const std::string& label,
+                                                const std::string& value,
+                                                const std::string& evidence) {
+    std::ostringstream out;
+    out << "{"
+        << "\"key\":\"" << JsonEscape(key) << "\","
+        << "\"label\":\"" << JsonEscape(label) << "\","
+        << "\"value\":\"" << JsonEscape(value) << "\","
+        << "\"evidence\":\"" << JsonEscape(evidence) << "\""
+        << "}";
+    return out.str();
+}
+
+std::string OpsExplainableIncidentBriefViewJson(
+    const std::vector<std::string>& event_json_records,
+    const std::unordered_map<std::string, OpsEventReviewState>& reviews) {
+    std::vector<std::string> briefs;
+    constexpr std::size_t kMaxIncidentBriefs = 10;
+    for (std::size_t index = 0; index < event_json_records.size() &&
+                                briefs.size() < kMaxIncidentBriefs; ++index) {
+        const std::string& event_json = event_json_records[index];
+        std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+        if (!OpsEventReviewEventIdAllowed(event_id)) {
+            event_id = "event-" + std::to_string(index + 1);
+        }
+        const std::string event_type = OpsExplainableIncidentBriefValueOrFallback(
+            ParseStringField(event_json, "eventType").value_or(""), "event");
+        const std::string status = OpsIncidentTimelineGraphEventStatus(event_json);
+        const std::string source_id = OpsIncidentTimelineGraphSourceId(event_json);
+        const std::string rule_id = OpsExplainableIncidentBriefValueOrFallback(
+            OpsIncidentMemoryEventRuleId(event_json), "unmapped-rule");
+        const auto review_it = reviews.find(event_id);
+        const OpsEventReviewState review =
+            review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
+        const std::string incident_id = review.incident_id.empty() ? "incident:" + event_id
+                                                                   : review.incident_id;
+        const std::string action_value = OpsExplainableIncidentBriefValueOrFallback(
+            review.action_target.empty() ? event_type : review.action_target, "operator-triage");
+        const std::string object_value = OpsExplainableIncidentBriefObjectSlot(event_json);
+        const std::string context_value = "source " + source_id + " rule " + rule_id +
+                                          " status " + status;
+        const std::string environment_value =
+            "local EventRecord/review state only; VLM enrichment default-off";
+
+        std::ostringstream out;
+        out << "{"
+            << "\"eventId\":\"" << JsonEscape(event_id) << "\","
+            << "\"incidentId\":\"" << JsonEscape(incident_id) << "\","
+            << "\"title\":\"" << JsonEscape(event_type + " brief") << "\","
+            << "\"reviewStatus\":\"" << JsonEscape(review.review_status) << "\","
+            << "\"incidentStatus\":\"" << JsonEscape(review.incident_status) << "\","
+            << "\"actionSlot\":" << OpsExplainableIncidentBriefSlotJson(
+                   "action", "Action", action_value, "review action target or event type")
+            << ",\"objectSlot\":" << OpsExplainableIncidentBriefSlotJson(
+                   "object", "Object", object_value, "redacted EventRecord object/category")
+            << ",\"contextSlot\":" << OpsExplainableIncidentBriefSlotJson(
+                   "context", "Context", context_value, "source/rule/status identifiers only")
+            << ",\"environmentSlot\":" << OpsExplainableIncidentBriefSlotJson(
+                   "environment", "Environment", environment_value, "provider-free local brief")
+            << "}";
+        briefs.push_back(out.str());
+    }
+
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.explainable-incident-brief.v1\","
+        << "\"status\":\"ops-explainable-incident-brief\","
+        << "\"briefCount\":" << briefs.size() << ","
+        << "\"defaultVlmEnrichmentEnabled\":false,"
+        << "\"modelProviderDependency\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"providerEnrichment\":{\"enabledByDefault\":false,"
+        << "\"requiresOperatorOptIn\":true,"
+        << "\"defaultState\":\"off\"},"
+        << "\"briefs\":[";
+    for (std::size_t i = 0; i < briefs.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << briefs[i];
+    }
+    out << "]}";
+    return out.str();
+}
+
 bool OpsEventReviewInboxJson(const app::AppConfig& config,
                              const std::unordered_map<std::string, std::string>& query,
                              std::string* body,
@@ -12890,6 +13016,8 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         << "\"memorySearch\":" << OpsIncidentMemorySearchViewJson(event_result.records_json, reviews, query)
         << ","
         << "\"timelineGraph\":" << OpsIncidentTimelineGraphViewJson(config, event_result.records_json, reviews)
+        << ","
+        << "\"incidentBrief\":" << OpsExplainableIncidentBriefViewJson(event_result.records_json, reviews)
         << ","
         << "\"records\":[";
     for (std::size_t i = 0; i < items.size(); ++i) {
