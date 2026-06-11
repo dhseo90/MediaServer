@@ -23,6 +23,7 @@ add_executable(media_server
     src/analysis/event_post_dispatcher.cpp
     src/analysis/event_rule_engine.cpp
     src/analysis/event_storage.cpp
+    src/analysis/incident_memory.cpp
     src/analysis/image_frame_loader.cpp
     src/analysis/intrusion_after_line_crossing_scenario.cpp
     src/analysis/intrusion_dwell_scenario.cpp

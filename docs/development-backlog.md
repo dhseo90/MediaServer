@@ -81,7 +81,7 @@ VLM enrichment는 default-off 보조 후보입니다.
 | 순서 | ID | 우선순위 | 상태 | 영역 | 제목 | 목표 | 예상 검증 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 0 | V250-S00 | P0 | 완료 | v2.5.0 baseline | v2.5.0 baseline/source-of-truth 정렬 | `VERSION`, CMake, README, docs index, backlog, release/version 문서와 release metadata verifier를 v2.5.0 Semantic Incident Memory 기준으로 정렬하고, v2.4.0 published baseline과 v2.5.0 active roadmap을 분리합니다. | roadmap review, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-project-inventory`, `git diff --check` |
-| 1 | V250-S01 | P0 | 예정 | Event text projection | Event/incident text projection | EventRecord, audit, source health, alert dry-run을 검색 가능한 redacted document 형태로 투영하고, source locator/raw/debug/provider material은 projection에서 제외합니다. | projection fixture, redaction guard, `verify-release-evidence-index`, `git diff --check` |
+| 1 | V250-S01 | P0 | 완료 | Event text projection | Event/incident text projection | EventRecord, audit, source health, alert dry-run을 검색 가능한 redacted document 형태로 투영하고, source locator/raw/debug/provider material은 projection에서 제외합니다. | `verify-v250-incident-text-projection`, projection fixture, redaction guard, `verify-release-evidence-index`, `git diff --check` |
 | 2 | V250-S02 | P0 | 예정 | Local memory index | Local incident memory index | SQLite FTS5 primary, JSONL+BM25 fallback 기반 local search index를 추가하고 model/provider 의존성 없이 deterministic search를 제공합니다. | local index fixture, FTS/BM25 parity smoke, no-model-dependency guard, `git diff --check` |
 | 3 | V250-S03 | P0 | 예정 | Ops search UI | `/ops/events` semantic search UI | 자연어/키워드 검색, rule/source/status/time filter, matched evidence highlight를 `/ops/events` 운영 화면에서 제공합니다. | route smoke, UI 직접 검수, redaction review, `verify-ops-client-ui`, `git diff --check` |
 | 4 | V250-S04 | P1 | 예정 | Timeline graph | Incident timeline graph | source state → event → operator action → alert dry-run → close 상태 연결을 timeline graph로 보여줍니다. | timeline fixture, action/audit linkage verifier, UI 직접 검수, `git diff --check` |
@@ -106,6 +106,31 @@ UI asset manifest, release metadata verifier가 같은 current target을 말하�
 한정합니다. V250-S01~S09 기능 구현, UI 직접 조작, 30분/120분 장시간 테스트,
 published metadata, PR/main merge, tag, push, GitHub Release는 S00 완료 evidence가
 아닙니다.
+
+### V250-S01 Event/incident text projection 종료 기준
+
+직접 답: V250-S01의 완료 산출물은 EventRecord, Ops audit, source health, alert
+delivery dry-run JSON을 `media-server.incident-text-projection.v1` 문서로 투영하는
+local-only `analysis/incident_memory` 모듈과 `verify-v250-incident-text-projection`
+fixture입니다.
+
+V250-S01은 검색 UI나 저장 index를 만들지 않습니다. 이번 단계의 1차 선택값은
+기존 EventRecord/audit/source health/alert dry-run owner에서 안전한 사건 텍스트와
+terms를 뽑는 deterministic projection이며, fallback은 동일 모듈의 redaction guard가
+허용하지 않는 source locator, Developer URL, raw/debug/provider/auth/model material을
+projection에서 제외하는 것입니다.
+
+V250-S01 완료 판정은 `verify-v250-incident-text-projection`이 EventRecord, Ops audit,
+source health, alert dry-run fixture를 모두 통과하고 projection JSON/searchable text에
+source URL, Developer URL, raw JSON, debug counters, bbox diagnostics, auth material,
+model path/checksum, prompt/response/provider internals가 남지 않는 것을 확인하는 데
+한정합니다.
+
+명시적 비범위는 `/ops/events` 검색 UI, SQLite/FTS index, similarity lookup, timeline
+graph, explainable brief, client-safe digest, 외부 embedding/provider 호출, Event POST
+payload schema 변경, WebRTC DataChannel/SSE/WS metadata schema 변경, RTSP/WebRTC media
+path 변경입니다. 해당 항목은 V250-S02 이후 단계 evidence 없이는 완료로 보고하지
+않습니다.
 
 ## 현재 기준: v2.4.0 Source Release Baseline
 

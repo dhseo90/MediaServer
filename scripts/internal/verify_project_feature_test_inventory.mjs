@@ -84,7 +84,8 @@ check("required sections exist", () => {
 
 check("summary counts match current feature IDs", () => {
   const rows = parseFeatureRows(inventory);
-  assert(rows.length === 398, `expected 398 feature rows, found ${rows.length}`);
+  const declaredTotal = summaryCount(inventory, "전체 기능 항목");
+  assert(rows.length === declaredTotal, `expected ${declaredTotal} feature rows, found ${rows.length}`);
   const ids = rows.map(row => row.id);
   assert(new Set(ids).size === ids.length, "duplicate feature IDs in inventory");
   for (const prefix of ["UI", "AUTH", "SRC", "RULE", "EVT", "CLIENT", "MEDIA", "LAB", "SAFE", "OPS"]) {
@@ -190,6 +191,7 @@ check("current VLM feature expansion rows exist", () => {
     "EVT-034",
     "EVT-035",
     "EVT-036",
+    "EVT-039",
     "MEDIA-021",
     "LAB-045",
     "LAB-046",
@@ -209,6 +211,7 @@ check("current VLM feature expansion rows exist", () => {
     "LAB-060",
     "LAB-061",
     "LAB-062",
+    "LAB-063",
     "SAFE-025",
     "SAFE-026",
     "SAFE-027",
@@ -225,6 +228,7 @@ check("current VLM feature expansion rows exist", () => {
     "SAFE-038",
     "SAFE-039",
     "SAFE-040",
+    "SAFE-043",
   ];
   const ids = new Set(parseFeatureRows(inventory).map(row => row.id));
   for (const id of requiredRows) {
@@ -232,10 +236,10 @@ check("current VLM feature expansion rows exist", () => {
   }
   for (const snippet of [
     "`UI-001`~`UI-018`, `UI-022`~`UI-038`",
-    "`EVT-001`~`EVT-038`",
+    "`EVT-001`~`EVT-039`",
     "`MEDIA-001`~`MEDIA-021`",
-    "`LAB-001`~`LAB-062`",
-    "`SAFE-001`~`SAFE-042`",
+    "`LAB-001`~`LAB-063`",
+    "`SAFE-001`~`SAFE-043`",
     "V200-S00~S18 및 V210-S00~S12 변경분",
     "VLM route, control, action, runtime state, sidecar, privacy guard",
   ]) {
@@ -388,6 +392,17 @@ function hasArea(area, token) {
 
 function splitAreas(area) {
   return area.split(",").map(item => item.trim()).filter(Boolean);
+}
+
+function summaryCount(text, label) {
+  const pattern = new RegExp(`^\\| ${escapeRegex(label)} \\| (\\d+) \\|$`, "m");
+  const match = text.match(pattern);
+  assert(match, `missing summary count for ${label}`);
+  return Number(match[1]);
+}
+
+function escapeRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function readText(relativePath) {

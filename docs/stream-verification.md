@@ -163,6 +163,17 @@ report로 모든 기능 ID가 안정화 verifier, manual UI fulltest, 30분/120�
   --json-report <feature-inventory-coverage.json>
 ```
 
+v2.5.0 S01 incident text projection gate는 EventRecord, Ops audit, source health,
+alert dry-run fixture를 `media-server.incident-text-projection.v1` 문서로 투영하고,
+searchable text/terms와 deterministic JSON에서 source URL, Developer URL, raw/debug,
+auth, model/provider material이 빠지는지 확인합니다. 이 명령은 `/ops/events` 검색 UI,
+SQLite/FTS index, external embedding/provider 호출, Event POST/WebRTC/SSE/WS schema,
+RTSP/WebRTC media path 변경을 실행하거나 완료 evidence로 대체하지 않습니다.
+
+```bash
+./server.sh verify-v250-incident-text-projection
+```
+
 v2.0.0 entry freeze gate는 integrator contract artifact 안의
 `freeze-baseline.json`을 사용합니다. report schema는
 `media-server.v200-contract-schema-freeze.v1`이며, Event POST/WebRTC/SSE/WS
