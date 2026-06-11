@@ -2,14 +2,14 @@
 
 이 디렉터리는 README와 `docs/ui-guide.md`에서 사용할 제품 UI 스크린샷을 역할 기준 파일명으로 보관합니다.
 
-현재 대표 제품 이미지는 2026-05-23 캡처 자산을 최신 공개 release `v2.3.0`의
-`v2.3.0 release baseline` 대표 shell 설명 이미지로 유지합니다. 특히
+현재 대표 제품 이미지는 2026-05-23 캡처 자산을 현재 release target `v2.4.0`의
+`v2.4.0 release baseline` 대표 shell 설명 이미지로 유지합니다. 특히
 Client Live 이미지는 source tree, dock event feed, workspace preset,
 tile-level disconnect/action, VA overlay tile이 보이는 제품 구조를 기준으로 합니다.
 단, 이 대표 이미지는 VLM 전용 `/ops/vlm`, `/ops/events` 리뷰 보조 화면의 전체 UI
-증거가 아니며, v2.3.0 UI 풀테스트 PASS 증거도 아닙니다. VLM 화면 직접 검수는
-manual UI evidence 문서와 `verify-vlm-*`/`verify-manual-ui-evidence` 계열 gate에서
-별도로 확인합니다.
+증거가 아니며, v2.4.0 UI 풀테스트 PASS 증거도 아닙니다. Operator Event Review와
+VLM 화면 직접 검수는 manual UI evidence 문서와 `verify-vlm-*`/
+`verify-manual-ui-evidence` 계열 gate에서 별도로 확인합니다.
 
 README, README.en, `docs/ui-guide.md`, `docs/video-analysis.md`에서 참조하는 UI/VA
 이미지는 `verify-docs-ui-assets` 정적 gate로 관리합니다. 정적 gate만 실행하고
@@ -26,18 +26,19 @@ README, README.en, `docs/ui-guide.md`, `docs/video-analysis.md`에서 참조하�
 `scripts/internal/rule_preview_fixture_helpers.mjs`의 공통 profile/event/VA rule
 fixture를 사용해 preview prerequisite drift를 막습니다.
 
-## v2.3.0 Docs Image Review - 2026-06-06
+## v2.4.0 Docs Image Review - 2026-06-10
 
-v2.3.0 문서 정리에서는 문서가 참조하는 전체 이미지 20개를 release baseline 관리
-대상으로 유지합니다. 실제 제품 UI 직접 조작과 현재 화면 대조는 UI 풀테스트 승인 후
-별도 evidence로 남깁니다.
+v2.4.0 문서 정리에서는 문서가 참조하는 전체 이미지 20개를 release baseline 관리
+대상으로 유지합니다. 이번 S08 static gate는 manifest와 링크/assets 기준 정리이며,
+실제 제품 UI 직접 조작과 현재 화면 대조는 UI 풀테스트 승인 후 별도 evidence로
+남깁니다.
 대상은 한국어 UI PNG 9개, English UI PNG 9개,
 `docs/assets/va-four-scene-overlay-ko.jpg`, `docs/assets/va-four-scene-sample.png`입니다.
 Chrome/CDP로 생성된 재캡처 산출물은 대표 이미지로 채택하지 않고 폐기합니다.
 
 결론:
 
-- 기존 2026-05-23 대표 제품 shell 캡처를 v2.3.0 문서 대표 이미지로 유지합니다.
+- 기존 2026-05-23 대표 제품 shell 캡처를 v2.4.0 문서 대표 이미지로 유지합니다.
 - 운영 QA registry가 섞여 200개 채널을 길게 보여주는 캡처는 제품 대표 이미지로
   쓰지 않습니다.
 - README/README.en 대표 이미지 12개는 crop 없이 핵심 화면과 control이 보입니다.
@@ -57,7 +58,7 @@ Chrome/CDP로 생성된 재캡처 산출물은 대표 이미지로 채택하지 
 직접 이미지 검수 checklist:
 
 - 재캡처 뒤 한국어/영어 PNG를 모두 직접 엽니다.
-- 최신 공개 release `v2.3.0`의 대표 shell 화면 구조와
+- 현재 release target `v2.4.0`의 대표 shell 화면 구조와
   맞는지 확인합니다.
 - VLM 전용 화면이 필요한 release evidence로 이 대표 이미지를 대신 쓰지 않습니다.
 - 영상 screenshot은 video viewport, control, status, VA overlay가 잘리지 않는지 확인합니다.

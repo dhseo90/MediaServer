@@ -84,7 +84,7 @@ check("required sections exist", () => {
 
 check("summary counts match current feature IDs", () => {
   const rows = parseFeatureRows(inventory);
-  assert(rows.length === 391, `expected 391 feature rows, found ${rows.length}`);
+  assert(rows.length === 398, `expected 398 feature rows, found ${rows.length}`);
   const ids = rows.map(row => row.id);
   assert(new Set(ids).size === ids.length, "duplicate feature IDs in inventory");
   for (const prefix of ["UI", "AUTH", "SRC", "RULE", "EVT", "CLIENT", "MEDIA", "LAB", "SAFE", "OPS"]) {
@@ -231,11 +231,11 @@ check("current VLM feature expansion rows exist", () => {
     assert(ids.has(id), `missing current VLM expanded feature row: ${id}`);
   }
   for (const snippet of [
-    "`UI-001`~`UI-018`, `UI-022`~`UI-036`",
-    "`EVT-001`~`EVT-036`",
+    "`UI-001`~`UI-018`, `UI-022`~`UI-038`",
+    "`EVT-001`~`EVT-038`",
     "`MEDIA-001`~`MEDIA-021`",
     "`LAB-001`~`LAB-062`",
-    "`SAFE-001`~`SAFE-040`",
+    "`SAFE-001`~`SAFE-042`",
     "V200-S00~S18 및 V210-S00~S12 변경분",
     "VLM route, control, action, runtime state, sidecar, privacy guard",
   ]) {

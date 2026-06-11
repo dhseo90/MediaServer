@@ -129,6 +129,58 @@ std::string ClientShellCss() {
       font-size: 17px;
       overflow-wrap: anywhere;
     }
+    .client-safe-status-summary {
+      min-width: 0;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 12px;
+      background: var(--panel-soft);
+    }
+    .client-safe-status-summary h3 {
+      font-size: 15px;
+    }
+    .client-incident-banner {
+      display: grid;
+      grid-template-columns: minmax(0, 0.42fr) minmax(0, 1fr);
+      gap: 10px;
+      align-items: center;
+      border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--line));
+      border-radius: 8px;
+      padding: 10px;
+      background: var(--bg);
+    }
+    .client-incident-banner.warn {
+      border-color: color-mix(in srgb, var(--warn) 54%, var(--line));
+      background: var(--warn-soft);
+    }
+    .client-incident-banner.bad {
+      border-color: color-mix(in srgb, var(--bad) 54%, var(--line));
+      background: var(--bad-soft);
+    }
+    .client-incident-banner.info {
+      border-color: color-mix(in srgb, var(--accent) 40%, var(--line));
+    }
+    .client-incident-banner span {
+      display: block;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 850;
+    }
+    .client-incident-banner strong,
+    .client-incident-banner p {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .client-incident-banner strong {
+      font-size: 18px;
+    }
+    .client-status-evidence .metric {
+      min-height: 66px;
+    }
+    .client-status-evidence .metric strong {
+      font-size: 16px;
+      overflow-wrap: anywhere;
+    }
     .client-dashboard-compare {
       min-width: 0;
     }
@@ -1620,6 +1672,9 @@ std::string ClientShellCss() {
     @media (max-width: 560px) {
       .client-compare-head,
       .client-compare-metrics {
+        grid-template-columns: 1fr;
+      }
+      .client-incident-banner {
         grid-template-columns: 1fr;
       }
     }

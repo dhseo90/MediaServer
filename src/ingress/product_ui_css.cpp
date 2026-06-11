@@ -1918,6 +1918,48 @@ std::string ProductUiCss() {
     .validation-item.bad {
       border-color: color-mix(in srgb, var(--color-danger) 56%, var(--color-border));
     }
+    .ops-rule-review-loop {
+      display: grid;
+      gap: var(--space-3);
+      padding: var(--space-4);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-lg);
+      background: var(--color-surface-muted);
+    }
+    .ops-rule-review-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+      gap: var(--space-3);
+    }
+    .ops-rule-review-item {
+      display: grid;
+      align-content: start;
+      gap: 8px;
+      min-width: 0;
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-raised);
+    }
+    .ops-rule-review-item.info {
+      border-color: color-mix(in srgb, var(--color-info) 44%, var(--color-border));
+    }
+    .ops-rule-review-item.warn {
+      border-color: color-mix(in srgb, var(--color-warning) 56%, var(--color-border));
+    }
+    .ops-rule-review-item.bad {
+      border-color: color-mix(in srgb, var(--color-danger) 56%, var(--color-border));
+    }
+    .ops-rule-review-item strong {
+      overflow-wrap: anywhere;
+    }
+    .ops-rule-review-item p {
+      margin: 0;
+      color: var(--color-text-muted);
+      font-size: 13px;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
     .event-evidence-actions {
       display: flex;
       gap: var(--space-2);
@@ -2414,6 +2456,18 @@ std::string ProductUiCss() {
       gap: var(--space-2);
       justify-items: start;
     }
+    .event-incident-action-controls {
+      display: grid;
+      gap: 6px;
+      min-width: 180px;
+    }
+    .event-incident-action-controls label {
+      display: grid;
+      gap: 3px;
+      min-width: 0;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
     .ops-vlm-event-review {
       display: grid;
       gap: 6px;
@@ -2438,6 +2492,31 @@ std::string ProductUiCss() {
       display: flex;
       gap: var(--space-2);
       flex-wrap: wrap;
+    }
+    .alert-delivery-dry-run {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-3);
+      margin: var(--space-3) 0;
+    }
+    .alert-delivery-preview {
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-subtle);
+      padding: var(--space-3);
+      min-width: 0;
+    }
+    .alert-delivery-preview-title {
+      color: var(--color-text-muted);
+      font-size: 0.82rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+    .alert-delivery-preview-body {
+      color: var(--color-text);
+      font-size: 0.9rem;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
     }
     .alert-delivery-table .table-cell-note {
       overflow-wrap: anywhere;
@@ -3488,6 +3567,9 @@ std::string ProductUiCss() {
         grid-template-columns: 1fr;
       }
       .scenario-builder-review {
+        grid-template-columns: 1fr;
+      }
+      .ops-rule-review-grid {
         grid-template-columns: 1fr;
       }
       .ops-geometry-status-grid {

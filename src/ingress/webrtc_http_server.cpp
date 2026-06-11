@@ -56,6 +56,7 @@
 #include "ingress/analysis_rule_registry.h"
 #include "ingress/http_auth.h"
 #include "ingress/onvif_live_import.h"
+#include "ingress/ops_event_route_owner.h"
 #include "ingress/request_parser.h"
 #include "ingress/product_ui_assets.h"
 #include "ingress/product_ui_auth_pages.h"
@@ -3091,6 +3092,42 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           </div>
         </div>
         <div id="opsRulesComposerSteps" class="rule-step-strip" aria-label="현재 작성 단계" hidden></div>
+        <section id="opsRulesReviewLoop" class="ops-rule-review-loop" data-testid="ops-rule-scenario-review-loop" data-rule-review-contract="draft-only-no-schema-change" data-review-loop="expected-event-type-conflict-missing-reference-preset-eventrecord-coverage" hidden>
+          <div class="toolbar compact-toolbar">
+            <div>
+              <strong>저장 전 검토</strong>
+              <p id="opsRulesReviewSummary" class="form-note">예상 event type, 참조/충돌, preset 영향, EventRecord coverage 연결을 저장 전에 확인합니다.</p>
+            </div>
+            <a id="opsRulesReviewEventRecordLink" class="button-secondary" href="/ops/events" data-event-record-coverage-link="/ops/events">EventRecord 열기</a>
+          </div>
+          <div class="ops-rule-review-grid">
+            <article class="ops-rule-review-item" data-rule-review-item="event-type">
+              <span id="opsRulesReviewEventTypeChip" class="chip info">event</span>
+              <strong id="opsRulesReviewEventTypeTitle">-</strong>
+              <p id="opsRulesReviewEventTypeDetail">저장될 이벤트 종류를 계산합니다.</p>
+            </article>
+            <article class="ops-rule-review-item" data-rule-review-item="conflict">
+              <span id="opsRulesReviewConflictChip" class="chip">conflict</span>
+              <strong id="opsRulesReviewConflictTitle">-</strong>
+              <p id="opsRulesReviewConflictDetail">중복 ID, priority, source/class 충돌을 확인합니다.</p>
+            </article>
+            <article class="ops-rule-review-item" data-rule-review-item="missing-reference">
+              <span id="opsRulesReviewMissingChip" class="chip">reference</span>
+              <strong id="opsRulesReviewMissingTitle">-</strong>
+              <p id="opsRulesReviewMissingDetail">채널, PublishedView, 템플릿, 프로파일 참조를 확인합니다.</p>
+            </article>
+            <article class="ops-rule-review-item" data-rule-review-item="preset-impact">
+              <span id="opsRulesReviewPresetChip" class="chip">preset</span>
+              <strong id="opsRulesReviewPresetTitle">-</strong>
+              <p id="opsRulesReviewPresetDetail">시나리오 preset이 숫자 조건에 주는 영향을 표시합니다.</p>
+            </article>
+            <article class="ops-rule-review-item" data-rule-review-item="event-record-coverage">
+              <span id="opsRulesReviewCoverageChip" class="chip">coverage</span>
+              <strong id="opsRulesReviewCoverageTitle">-</strong>
+              <p id="opsRulesReviewCoverageDetail">EventRecord coverage 확인 위치를 연결합니다.</p>
+            </article>
+          </div>
+        </section>
         <form id="opsVaRuleForm" hidden>
           <div class="row">
             <div class="generated-id-control">
@@ -3409,11 +3446,11 @@ void AppendOpsRulesPage(std::ostringstream& out) {
 }
 
 void AppendOpsEventsPage(std::ostringstream& out) {
-    out << R"(    <section class="panel ops-workspace ops-workspace-events" data-ops-panel="events" data-testid="ops-events-page" data-route-scope="direct-diagnostic">
+    out << R"(    <section class="panel ops-workspace ops-workspace-events" data-ops-panel="events" data-testid="ops-events-page" data-route-scope="operator-event-review" data-event-review-workflow="operator-inbox">
       <div class="toolbar panel-title-toolbar ops-workspace-hero">
         <div>
-          <h2>이벤트 상태</h2>
-          <p>Primary nav에는 표시하지 않는 direct/diagnostic route입니다. Event storage, delivery, review inbox, evidence records를 한 작업대에서 확인합니다.</p>
+          <h2>Operator Event Review Inbox</h2>
+          <p>Primary nav에는 표시하지 않는 운영자 event review direct route입니다. EventRecord list/detail, evidence refs, review state, operator note, false-positive/action target을 한 작업대에서 확인합니다.</p>
         </div>
         <div class="actions">
           <a class="button button-secondary" href="/ops/dashboard">대시보드</a>
@@ -3443,11 +3480,11 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <p id="eventExportPolicyText">증거 export와 삭제 권한을 확인합니다.</p>
         </section>
       </div>
-      <section class="section-card ops-workspace-wide" data-testid="ops-alert-delivery-integrations" data-alert-contract="separate-from-event-post-payload">
+      <section class="section-card ops-workspace-wide" data-testid="ops-alert-delivery-integrations" data-alert-contract="separate-from-event-post-payload" data-alert-dry-run="ops-only-no-external-delivery" data-delivery-attempt-log="ops-local-attempt-log">
         <div class="toolbar">
           <div>
             <h3>Alert Delivery Integrations</h3>
-            <p id="alertDeliverySummary">Rule event 알림은 Event POST payload와 분리된 delivery state, retry policy, audit로 관리합니다.</p>
+            <p id="alertDeliverySummary">Rule event 알림은 Event POST payload와 분리된 delivery state, retry policy, dry-run, audit로 관리합니다.</p>
           </div>
           <div id="alertDeliveryBadges" class="badge-row"><span class="chip">로딩 중</span></div>
         </div>
@@ -3485,7 +3522,18 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <label class="check-inline"><input id="alertDeliveryEnabled" type="checkbox" checked /> 활성</label>
           <div class="actions">
             <button id="alertDeliverySave" class="button-primary" type="button">저장</button>
+            <button id="alertDeliveryDryRun" class="button-secondary" type="button">Dry-run</button>
             <button id="alertDeliveryTest" class="button-secondary" type="button">Fixture 전송</button>
+          </div>
+        </div>
+        <div class="alert-delivery-dry-run" data-testid="ops-alert-dry-run-result">
+          <div class="alert-delivery-preview" data-alert-preview="payload">
+            <div class="alert-delivery-preview-title">Payload Preview</div>
+            <div id="alertDeliveryPayloadPreview" class="alert-delivery-preview-body">미실행</div>
+          </div>
+          <div class="alert-delivery-preview" data-alert-preview="result">
+            <div class="alert-delivery-preview-title">Dry-run Result</div>
+            <div id="alertDeliveryDryRunResult" class="alert-delivery-preview-body">미실행</div>
           </div>
         </div>
         <div class="table-wrap">
@@ -3502,11 +3550,11 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           </table>
         </div>
       </section>
-      <section class="section-card ops-workspace-wide" data-testid="ops-event-review-inbox" data-review-state="separate-from-event-post-payload" data-vlm-review-state="ops-only-event-record-evidence" data-vlm-review-action-workflow="ops-only-review-state">
+      <section class="section-card ops-workspace-wide" data-testid="ops-event-review-inbox" data-event-review-workflow="operator-inbox" data-review-state="separate-from-event-post-payload" data-vlm-review-state="ops-only-event-record-evidence" data-vlm-review-action-workflow="ops-only-review-state" data-incident-action-workflow="ops-only-incident-state">
         <div class="toolbar">
           <div>
             <h3>Rule Event Review Inbox</h3>
-            <p id="eventReviewSummary">Rule/Scenario 이벤트의 확인, 분류, 메모, 상태와 EventRecord evidence, VLM 설명/action을 Ops 전용 review state로 관리합니다.</p>
+            <p id="eventReviewSummary">Rule/Scenario 이벤트의 확인, 분류, 메모, incident/action 상태와 EventRecord evidence, VLM 설명/action을 Ops 전용 review state로 관리합니다.</p>
           </div>
           <div class="actions event-review-controls">
             <label>Review 상태
@@ -3529,6 +3577,17 @@ void AppendOpsEventsPage(std::ostringstream& out) {
                 <option value="needs-tuning">needs-tuning</option>
               </select>
             </label>
+            <label>Incident 상태
+              <select id="eventReviewIncidentStatusFilter">
+                <option value="">전체</option>
+                <option value="new">new</option>
+                <option value="review-needed">review-needed</option>
+                <option value="acknowledged">acknowledged</option>
+                <option value="in-progress">in-progress</option>
+                <option value="closed">closed</option>
+                <option value="false-positive">false-positive</option>
+              </select>
+            </label>
           </div>
         </div>
         <div class="table-wrap">
@@ -3538,14 +3597,25 @@ void AppendOpsEventsPage(std::ostringstream& out) {
                 <th>이벤트</th>
                 <th>리뷰</th>
                 <th>분류</th>
+                <th>Incident / Action</th>
                 <th>메모</th>
                 <th>Evidence / VLM</th>
                 <th>업데이트</th>
               </tr>
             </thead>
-            <tbody id="eventReviewRows"><tr><td colspan="6">로딩 중</td></tr></tbody>
+            <tbody id="eventReviewRows"><tr><td colspan="7">로딩 중</td></tr></tbody>
           </table>
         </div>
+      </section>
+      <section class="section-card ops-audit-panel ops-workspace-wide" data-testid="ops-event-incident-workflow" data-incident-audit="events">
+        <div class="toolbar">
+          <div>
+            <h3>Incident / Action Audit Trail</h3>
+            <p>incident/action 상태 변경은 EventRecord payload와 분리된 Ops audit trail로 표시합니다.</p>
+          </div>
+          <button id="eventReviewAuditRefresh" class="button-secondary" type="button">새로고침</button>
+        </div>
+        <div id="event-review-audit-list" class="audit-list" data-audit-area="events"></div>
       </section>
       <section class="section-card ops-workspace-wide">
         <div class="toolbar">
@@ -4820,14 +4890,14 @@ std::string ClientShellPageHtml(const auth::Principal& principal, const std::str
 
 bool IsOpsOverviewShellRoute(const std::string& path) {
     return path == "/ops" || path == "/ops/home" || path == "/ops/dashboard" ||
-           path == "/ops/events" || path == "/ops/vlm";
+           path == "/ops/vlm";
 }
 
 std::string OpsOverviewActiveForPath(const std::string& path) {
     if (path == "/ops/dashboard") {
         return "dashboard";
     }
-    if (path == "/ops/events") {
+    if (IsOpsEventsPageRoute(path)) {
         return "events";
     }
     if (path == "/ops/vlm") {
@@ -9750,6 +9820,9 @@ struct OpsEventReviewState {
     std::string event_id;
     std::string review_status{"new"};
     std::string classification{"unclassified"};
+    std::string incident_id;
+    std::string incident_status{"new"};
+    std::string action_target{"operator-triage"};
     std::string note;
     std::string vlm_action{"not-reviewed"};
     std::string vlm_action_target{"eventExplanation"};
@@ -9824,6 +9897,18 @@ bool OpsVlmReviewActionTargetAllowed(const std::string& value) {
     return kAllowed.count(value) != 0;
 }
 
+bool OpsIncidentStatusAllowed(const std::string& value) {
+    static const std::unordered_set<std::string> kAllowed = {
+        "new",
+        "review-needed",
+        "acknowledged",
+        "in-progress",
+        "closed",
+        "false-positive",
+    };
+    return kAllowed.count(value) != 0;
+}
+
 std::string NormalizeOpsEventReviewStatus(std::string value) {
     value = LowerAscii(Trim(std::move(value)));
     return OpsEventReviewStatusAllowed(value) ? value : "new";
@@ -9842,6 +9927,44 @@ std::string NormalizeOpsVlmReviewAction(std::string value) {
 std::string NormalizeOpsVlmReviewActionTarget(std::string value) {
     value = Trim(std::move(value));
     return OpsVlmReviewActionTargetAllowed(value) ? value : "eventExplanation";
+}
+
+std::string NormalizeOpsIncidentStatus(std::string value) {
+    value = LowerAscii(Trim(std::move(value)));
+    return OpsIncidentStatusAllowed(value) ? value : "new";
+}
+
+std::string NormalizeOpsIncidentId(std::string value, const std::string& event_id) {
+    value = Trim(std::move(value));
+    if (!OpsEventReviewEventIdAllowed(value)) {
+        return OpsEventReviewEventIdAllowed(event_id) ? "incident:" + event_id : "";
+    }
+    return value;
+}
+
+bool OpsEventReviewNoteContainsSensitiveMaterial(const std::string& value);
+
+std::string NormalizeOpsEventActionTarget(std::string value) {
+    value = Trim(std::move(value));
+    for (char& ch : value) {
+        if (ch == '\r' || ch == '\n' || ch == '\t' ||
+            static_cast<unsigned char>(ch) < 0x20) {
+            ch = ' ';
+        }
+    }
+    value = Trim(std::move(value));
+    constexpr std::size_t kMaxActionTargetBytes = 160;
+    if (value.size() > kMaxActionTargetBytes) {
+        value.resize(kMaxActionTargetBytes);
+        value = Trim(std::move(value));
+    }
+    if (value.empty()) {
+        return "operator-triage";
+    }
+    if (OpsEventReviewNoteContainsSensitiveMaterial(value)) {
+        return "[redacted-action-target]";
+    }
+    return value;
 }
 
 bool OpsEventReviewNoteContainsSensitiveMaterial(const std::string& value) {
@@ -9898,6 +10021,20 @@ OpsEventReviewState OpsEventReviewStateFromJsonLine(const std::string& line) {
         ParseStringField(line, "reviewStatus").value_or("new"));
     state.classification = NormalizeOpsEventReviewClassification(
         ParseStringField(line, "classification").value_or("unclassified"));
+    if (const auto incident = ExtractObjectField(line, "incidentWorkflow"); incident.has_value()) {
+        state.incident_id = NormalizeOpsIncidentId(
+            ParseStringField(*incident, "incidentId").value_or(""), state.event_id);
+        state.incident_status = NormalizeOpsIncidentStatus(
+            ParseStringField(*incident, "status").value_or("new"));
+        state.action_target =
+            NormalizeOpsEventActionTarget(ParseStringField(*incident, "actionTarget").value_or(""));
+    }
+    state.incident_id = NormalizeOpsIncidentId(
+        ParseStringField(line, "incidentId").value_or(state.incident_id), state.event_id);
+    state.incident_status = NormalizeOpsIncidentStatus(
+        ParseStringField(line, "incidentStatus").value_or(state.incident_status));
+    state.action_target =
+        NormalizeOpsEventActionTarget(ParseStringField(line, "actionTarget").value_or(state.action_target));
     state.note = NormalizeOpsEventReviewNote(ParseStringField(line, "note").value_or(""));
     if (const auto vlm_action = ExtractObjectField(line, "vlmAction"); vlm_action.has_value()) {
         state.vlm_action = NormalizeOpsVlmReviewAction(
@@ -9927,6 +10064,37 @@ std::string OpsEventReviewStateJson(const OpsEventReviewState& state) {
                                                      ? "unclassified"
                                                      : state.classification)
         << "\","
+        << "\"incidentId\":\"" << JsonEscape(state.incident_id.empty()
+                                                 ? (state.event_id.empty() ? "" : "incident:" + state.event_id)
+                                                 : state.incident_id)
+        << "\","
+        << "\"incidentStatus\":\"" << JsonEscape(state.incident_status.empty()
+                                                     ? "new"
+                                                     : state.incident_status)
+        << "\","
+        << "\"actionTarget\":\"" << JsonEscape(state.action_target.empty()
+                                                   ? "operator-triage"
+                                                   : state.action_target)
+        << "\","
+        << "\"incidentWorkflow\":{"
+        << "\"schema\":\"media-server.ops.incident-action-state.v1\","
+        << "\"incidentId\":\"" << JsonEscape(state.incident_id.empty()
+                                                 ? (state.event_id.empty() ? "" : "incident:" + state.event_id)
+                                                 : state.incident_id)
+        << "\","
+        << "\"status\":\"" << JsonEscape(state.incident_status.empty() ? "new"
+                                                                        : state.incident_status)
+        << "\","
+        << "\"actionTarget\":\"" << JsonEscape(state.action_target.empty()
+                                                   ? "operator-triage"
+                                                   : state.action_target)
+        << "\","
+        << "\"persistent\":true,"
+        << "\"auditAction\":\"incident-action-update\","
+        << "\"separateFromEventRecords\":true,"
+        << "\"separateFromEventPostPayload\":true,"
+        << "\"eventPostPayloadChanged\":false"
+        << "},"
         << "\"note\":\"" << JsonEscape(state.note) << "\","
         << "\"vlmAction\":{"
         << "\"schema\":\"media-server.ops.vlm-review-action-state.v1\","
@@ -9955,6 +10123,9 @@ OpsEventReviewState DefaultOpsEventReviewState(std::string event_id) {
     state.present = false;
     state.review_status = "new";
     state.classification = "unclassified";
+    state.incident_id = OpsEventReviewEventIdAllowed(state.event_id) ? "incident:" + state.event_id : "";
+    state.incident_status = "new";
+    state.action_target = "operator-triage";
     state.vlm_action = "not-reviewed";
     state.vlm_action_target = "eventExplanation";
     return state;
@@ -10015,6 +10186,9 @@ bool UpsertOpsEventReviewState(const app::AppConfig& config,
     next.present = true;
     next.review_status = NormalizeOpsEventReviewStatus(next.review_status);
     next.classification = NormalizeOpsEventReviewClassification(next.classification);
+    next.incident_id = NormalizeOpsIncidentId(next.incident_id, next.event_id);
+    next.incident_status = NormalizeOpsIncidentStatus(next.incident_status);
+    next.action_target = NormalizeOpsEventActionTarget(next.action_target);
     next.note = NormalizeOpsEventReviewNote(next.note);
     next.vlm_action = NormalizeOpsVlmReviewAction(next.vlm_action);
     next.vlm_action_target = NormalizeOpsVlmReviewActionTarget(next.vlm_action_target);
@@ -10061,19 +10235,26 @@ std::string OpsEventReviewCatalogJson() {
            "\"needs-follow-up\"],\"classifications\":[\"unclassified\",\"true-positive\","
            "\"false-positive\",\"duplicate\",\"needs-tuning\"],\"vlmActions\":[\"not-reviewed\","
            "\"accept\",\"dismiss\",\"review-needed\"],\"vlmActionTargets\":[\"summary\","
-           "\"eventExplanation\",\"falsePositiveHints\",\"operatorReviewQuestions\"]}";
+           "\"eventExplanation\",\"falsePositiveHints\",\"operatorReviewQuestions\"],"
+           "\"incidentStatuses\":[\"new\",\"review-needed\",\"acknowledged\",\"in-progress\","
+           "\"closed\",\"false-positive\"]}";
 }
 
 bool OpsEventReviewMatchesFilters(const OpsEventReviewState& state,
                                   const std::string& review_status,
-                                  const std::string& classification) {
+                                  const std::string& classification,
+                                  const std::string& incident_status) {
     const std::string wanted_status = NormalizeOpsEventReviewStatus(review_status);
     const std::string wanted_classification =
         NormalizeOpsEventReviewClassification(classification);
+    const std::string wanted_incident_status = NormalizeOpsIncidentStatus(incident_status);
     if (!Trim(review_status).empty() && state.review_status != wanted_status) {
         return false;
     }
     if (!Trim(classification).empty() && state.classification != wanted_classification) {
+        return false;
+    }
+    if (!Trim(incident_status).empty() && state.incident_status != wanted_incident_status) {
         return false;
     }
     return true;
@@ -10584,7 +10765,10 @@ std::string OpsAlertDeliveryAttemptJson(const OpsAlertDeliveryConfig& delivery,
                                         const std::string& source_id,
                                         const std::string& status,
                                         const std::string& transport,
-                                        std::int64_t now_ms) {
+                                        std::int64_t now_ms,
+                                        bool dry_run = false,
+                                        bool external_delivery_performed = false,
+                                        const std::string& payload_preview_json = "") {
     std::ostringstream out;
     out << "{"
         << "\"schema\":\"media-server.ops.alert-delivery-attempt.v1\","
@@ -10599,9 +10783,15 @@ std::string OpsAlertDeliveryAttemptJson(const OpsAlertDeliveryConfig& delivery,
         << "\"retryPolicy\":{\"maxAttempts\":" << delivery.retry_max
         << ",\"backoffMs\":" << delivery.retry_backoff_ms
         << ",\"bounded\":true},"
+        << "\"dryRun\":" << (dry_run ? "true" : "false") << ","
+        << "\"externalDeliveryPerformed\":"
+        << (external_delivery_performed ? "true" : "false") << ","
         << "\"eventPostPayloadChanged\":false,"
-        << "\"attemptedAtMs\":" << now_ms
-        << "}";
+        << "\"attemptedAtMs\":" << now_ms;
+    if (!payload_preview_json.empty()) {
+        out << ",\"payloadPreview\":" << payload_preview_json;
+    }
+    out << "}";
     return out.str();
 }
 
@@ -10671,9 +10861,14 @@ std::string OpsAlertDeliveryListJson(const app::AppConfig& config) {
         << "\"contract\":{\"separateFromEventPostPayload\":true,"
         << "\"eventPostPayloadChanged\":false,"
         << "\"auditMasking\":true,"
+        << "\"dryRunOnly\":true,"
+        << "\"payloadPreview\":true,"
+        << "\"deliveryAttemptLog\":true,"
+        << "\"externalDeliveryPerformedByDefault\":false,"
         << "\"retryPolicy\":true},"
         << "\"policy\":{\"transports\":[\"webhook\",\"email\",\"slack\"],"
         << "\"deliveryFixtureSmoke\":true,"
+        << "\"dryRunEndpoint\":\"/ops/api/alerts/deliveries/dry-run\","
         << "\"boundedRetry\":true,"
         << "\"clientViewerExposure\":false},"
         << "\"integrations\":[";
@@ -10695,6 +10890,187 @@ std::string OpsAlertDeliveryListJson(const app::AppConfig& config) {
         out << ",\"warning\":\"" << JsonEscape(error_message) << "\"";
     }
     out << "}";
+    return out.str();
+}
+
+std::string OpsAlertDeliveryPayloadPreviewJson(const OpsAlertDeliveryConfig& delivery,
+                                               const std::string& event_id,
+                                               const std::string& event_type,
+                                               const std::string& source_id) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.alert-delivery-payload-preview.v1\","
+        << "\"deliveryId\":\"" << JsonEscape(delivery.id) << "\","
+        << "\"kind\":\"" << JsonEscape(delivery.kind) << "\","
+        << "\"label\":\"" << JsonEscape(delivery.label) << "\","
+        << "\"endpointMasked\":\"" << JsonEscape(OpsAlertDeliveryMaskedEndpoint(delivery)) << "\","
+        << "\"payloadRedacted\":true,"
+        << "\"event\":{\"eventId\":\"" << JsonEscape(event_id) << "\","
+        << "\"eventType\":\"" << JsonEscape(event_type) << "\","
+        << "\"sourceId\":\"" << JsonEscape(source_id) << "\"},"
+        << "\"body\":{\"deliveryId\":\"" << JsonEscape(delivery.id) << "\","
+        << "\"kind\":\"" << JsonEscape(delivery.kind) << "\","
+        << "\"eventId\":\"" << JsonEscape(event_id) << "\","
+        << "\"eventType\":\"" << JsonEscape(event_type) << "\","
+        << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
+        << "\"endpoint\":\"[redacted-alert-target]\"},"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"externalDeliveryPerformed\":false"
+        << "}";
+    return out.str();
+}
+
+bool OpsAlertDeliveryBodyLooksLikeDraft(const std::string& body) {
+    return ParseStringField(body, "endpoint").has_value() ||
+           ParseStringField(body, "webhookUrl").has_value() ||
+           ParseStringField(body, "emailTo").has_value() ||
+           ParseStringField(body, "slackChannel").has_value() ||
+           ParseStringField(body, "kind").has_value() ||
+           ParseStringField(body, "label").has_value();
+}
+
+bool OpsAlertDeliveryDraftFromBody(const std::string& body,
+                                   OpsAlertDeliveryConfig* draft,
+                                   std::string* error_message) {
+    if (draft == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "alert delivery draft is required";
+        }
+        return false;
+    }
+    OpsAlertDeliveryConfig next;
+    next.id = Trim(ParseStringField(body, "id").value_or(
+        ParseStringField(body, "deliveryId").value_or("")));
+    if (!OpsAlertDeliveryIdAllowed(next.id)) {
+        if (error_message != nullptr) {
+            *error_message = "alert delivery id is required for dry-run";
+        }
+        return false;
+    }
+    next.kind = NormalizeOpsAlertDeliveryKind(ParseStringField(body, "kind").value_or("webhook"));
+    next.enabled = ParseBoolField(body, "enabled").value_or(true);
+    next.label = Trim(ParseStringField(body, "label").value_or(next.id));
+    next.endpoint = OpsAlertDeliveryEndpointFromBody(body, next.kind);
+    if (next.endpoint.empty()) {
+        if (error_message != nullptr) {
+            *error_message = "alert delivery endpoint is required for dry-run";
+        }
+        return false;
+    }
+    next.retry_max = ClampOpsAlertDeliveryInt(ParseInt64Field(body, "retryMax"), 3, 0, 8);
+    next.retry_backoff_ms =
+        ClampOpsAlertDeliveryInt(ParseInt64Field(body, "retryBackoffMs"), 2000, 250, 60000);
+    next.updated_at_ms = NowUnixMs();
+    next.present = true;
+    *draft = std::move(next);
+    return true;
+}
+
+std::string DispatchOpsAlertDeliveryDryRun(const app::AppConfig& config,
+                                           const auth::Principal& principal,
+                                           const std::string& body,
+                                           std::string* error_message) {
+    const std::string wanted_id = Trim(ParseStringField(body, "id").value_or(
+        ParseStringField(body, "deliveryId").value_or("")));
+    const std::string event_id = Trim(ParseStringField(body, "eventId").value_or(
+        "alert-dry-run-" + std::to_string(NowUnixMs())));
+    const std::string event_type =
+        Trim(ParseStringField(body, "eventType").value_or("intrusion"));
+    const std::string source_id = Trim(ParseStringField(body, "sourceId").value_or("sample"));
+
+    std::vector<OpsAlertDeliveryConfig> deliveries;
+    if (OpsAlertDeliveryBodyLooksLikeDraft(body)) {
+        OpsAlertDeliveryConfig draft;
+        if (!OpsAlertDeliveryDraftFromBody(body, &draft, error_message)) {
+            return "";
+        }
+        deliveries.push_back(std::move(draft));
+    } else {
+        std::unordered_map<std::string, OpsAlertDeliveryConfig> configs;
+        if (!LoadOpsAlertDeliveryConfigs(config, &configs, error_message)) {
+            return "";
+        }
+        for (const auto& [_, delivery] : configs) {
+            if (!wanted_id.empty() && delivery.id != wanted_id) {
+                continue;
+            }
+            deliveries.push_back(delivery);
+        }
+    }
+    if (deliveries.empty()) {
+        if (error_message != nullptr) {
+            *error_message = "no alert delivery target found for dry-run";
+        }
+        return "";
+    }
+
+    std::vector<std::string> attempts;
+    std::vector<std::string> payload_previews;
+    const std::int64_t now_ms = NowUnixMs();
+    for (const auto& delivery : deliveries) {
+        const std::string preview =
+            OpsAlertDeliveryPayloadPreviewJson(delivery, event_id, event_type, source_id);
+        const std::string attempt = OpsAlertDeliveryAttemptJson(delivery,
+                                                                event_id,
+                                                                event_type,
+                                                                source_id,
+                                                                "dry-run",
+                                                                "dry-run",
+                                                                now_ms,
+                                                                true,
+                                                                false,
+                                                                preview);
+        if (!AppendOpsAlertDeliveryAttempt(config, attempt, error_message)) {
+            return "";
+        }
+        payload_previews.push_back(preview);
+        attempts.push_back(attempt);
+    }
+
+    std::ostringstream audit_body;
+    audit_body << "{"
+               << "\"area\":\"events\","
+               << "\"action\":\"alert-delivery-dry-run\","
+               << "\"target\":\"alert-delivery:" << JsonEscape(wanted_id.empty() ? "draft" : wanted_id)
+               << "\","
+               << "\"summary\":\"Alert delivery dry-run preview generated\","
+               << "\"after\":{\"eventId\":\"" << JsonEscape(event_id) << "\","
+               << "\"attempts\":" << attempts.size() << ","
+               << "\"payloadPreview\":true,"
+               << "\"dryRun\":true,"
+               << "\"externalDeliveryPerformed\":false,"
+               << "\"endpoint\":\"[redacted-alert-target]\"}"
+               << "}";
+    std::string audit_error;
+    (void)AppendOpsAuditRecord(config, OpsAuditRecordJson(audit_body.str(), principal), &audit_error);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"status\":\"ops-alert-delivery-dry-run\","
+        << "\"schema\":\"media-server.ops.alert-delivery-dry-run.v1\","
+        << "\"dryRun\":true,"
+        << "\"externalDeliveryPerformed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"contract\":{\"alertTargetDraft\":true,"
+        << "\"payloadPreview\":true,"
+        << "\"deliveryAttemptLog\":true,"
+        << "\"separateFromEventPostPayload\":true},"
+        << "\"audit\":{\"area\":\"events\",\"action\":\"alert-delivery-dry-run\"},"
+        << "\"payloadPreviews\":[";
+    for (std::size_t i = 0; i < payload_previews.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << payload_previews[i];
+    }
+    out << "],\"attempts\":[";
+    for (std::size_t i = 0; i < attempts.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << attempts[i];
+    }
+    out << "]}";
     return out.str();
 }
 
@@ -11965,6 +12341,8 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         query.count("reviewStatus") != 0 ? Trim(query.at("reviewStatus")) : std::string();
     const std::string classification_filter =
         query.count("classification") != 0 ? Trim(query.at("classification")) : std::string();
+    const std::string incident_status_filter =
+        query.count("incidentStatus") != 0 ? Trim(query.at("incidentStatus")) : std::string();
     const std::string requested_event_id =
         query.count("eventId") != 0 ? Trim(query.at("eventId")) : std::string();
 
@@ -11978,7 +12356,8 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         auto review_it = reviews.find(event_id);
         OpsEventReviewState review =
             review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
-        if (!OpsEventReviewMatchesFilters(review, review_status_filter, classification_filter)) {
+        if (!OpsEventReviewMatchesFilters(
+                review, review_status_filter, classification_filter, incident_status_filter)) {
             continue;
         }
         included_event_ids.insert(event_id);
@@ -11988,7 +12367,10 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         included_event_ids.count(requested_event_id) == 0) {
         const auto review_it = reviews.find(requested_event_id);
         if (review_it != reviews.end() &&
-            OpsEventReviewMatchesFilters(review_it->second, review_status_filter, classification_filter)) {
+            OpsEventReviewMatchesFilters(review_it->second,
+                                         review_status_filter,
+                                         classification_filter,
+                                         incident_status_filter)) {
             items.push_back(OpsEventReviewInboxItemJson("", review_it->second));
         }
     }
@@ -12004,8 +12386,11 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         << "\"eventPostPayloadChanged\":false,"
         << "\"vlmReviewActionSchema\":\"media-server.ops.vlm-review-action-state.v1\","
         << "\"vlmReviewActionPersistent\":true,"
+        << "\"incidentActionSchema\":\"media-server.ops.incident-action-state.v1\","
+        << "\"incidentActionPersistent\":true,"
         << "\"auditArea\":\"events\","
-        << "\"auditAction\":\"event-review-update\""
+        << "\"auditAction\":\"event-review-update\","
+        << "\"incidentAuditAction\":\"incident-action-update\""
         << "},"
         << "\"catalog\":" << OpsEventReviewCatalogJson() << ","
         << "\"records\":[";
@@ -14412,7 +14797,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            return ok;
 	                        }
 
-	                        if (request.method == "GET" && request.path == "/ops/api/events/status") {
+	                        if (IsOpsEventStatusRoute(request.method, request.path)) {
 	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
 	                                return *auth_response;
 	                            }
@@ -14440,7 +14825,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            return ok;
 	                        }
 
-	                        if (request.path == "/ops/api/alerts/deliveries") {
+	                        if (IsOpsAlertDeliveryCollectionRoute(request.path)) {
 	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
 	                                return *auth_response;
 	                            }
@@ -14491,7 +14876,31 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                                "{\"error\":\"method not allowed\"}");
 	                        }
 
-	                        if (request.method == "POST" && request.path == "/ops/api/alerts/deliveries/test") {
+	                        if (IsOpsAlertDeliveryDryRunRoute(request.method, request.path)) {
+	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+	                                return *auth_response;
+	                            }
+	                            constexpr std::size_t kOpsAlertDeliveryDryRunMaxBodyBytes = 64 * 1024;
+	                            if (request.body.size() > kOpsAlertDeliveryDryRunMaxBodyBytes) {
+	                                return JsonResponse(
+	                                    413,
+	                                    "Payload Too Large",
+	                                    "{\"error\":\"alert delivery dry-run body is too large\"}");
+	                            }
+	                            std::string error_message;
+	                            const std::string body = DispatchOpsAlertDeliveryDryRun(
+	                                config, principal_result.principal, request.body, &error_message);
+	                            if (body.empty()) {
+	                                return JsonResponse(400,
+	                                                    "Bad Request",
+	                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
+	                            }
+	                            HttpResponse ok = JsonResponse(200, "OK", body);
+	                            ok.headers["Cache-Control"] = "no-store";
+	                            return ok;
+	                        }
+
+	                        if (IsOpsAlertDeliveryFixtureRoute(request.method, request.path)) {
 	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
 	                                return *auth_response;
 	                            }
@@ -14508,7 +14917,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            return ok;
 	                        }
 
-	                        if (request.method == "GET" && request.path == "/ops/api/events/reviews") {
+	                        if (IsOpsEventReviewCollectionRoute(request.method, request.path)) {
 	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
 	                                return *auth_response;
 	                            }
@@ -14524,12 +14933,12 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            return ok;
 	                        }
 
-	                        if (request.path.rfind("/ops/api/events/reviews/", 0) == 0) {
+	                        if (IsOpsEventReviewItemRoute(request.path)) {
 	                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
 	                                return *auth_response;
 	                            }
-	                            const std::string event_id = UrlDecode(
-	                                request.path.substr(std::string("/ops/api/events/reviews/").size()));
+	                            const std::string event_id =
+                                    UrlDecode(OpsEventReviewItemIdFromPath(request.path));
 	                            if (!OpsEventReviewEventIdAllowed(event_id)) {
 	                                return JsonResponse(400,
 	                                                    "Bad Request",
@@ -14564,6 +14973,25 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                                                       .value_or("reviewing"));
 	                                next.classification = ParseStringField(request.body, "classification")
 	                                                          .value_or("unclassified");
+	                                next.incident_id = ParseStringField(request.body, "incidentId").value_or("");
+	                                next.incident_status =
+	                                    ParseStringField(request.body, "incidentStatus")
+	                                        .value_or(ParseStringField(request.body, "actionStatus").value_or("new"));
+	                                next.action_target =
+	                                    ParseStringField(request.body, "actionTarget").value_or("operator-triage");
+	                                if (const auto incident_workflow =
+	                                        ExtractObjectField(request.body, "incidentWorkflow");
+	                                    incident_workflow.has_value()) {
+	                                    next.incident_id =
+	                                        ParseStringField(*incident_workflow, "incidentId")
+	                                            .value_or(next.incident_id);
+	                                    next.incident_status =
+	                                        ParseStringField(*incident_workflow, "status")
+	                                            .value_or(next.incident_status);
+	                                    next.action_target =
+	                                        ParseStringField(*incident_workflow, "actionTarget")
+	                                            .value_or(next.action_target);
+	                                }
 	                                next.note = ParseStringField(request.body, "note").value_or("");
 	                                if (const auto vlm_action = ExtractObjectField(request.body, "vlmAction");
 	                                    vlm_action.has_value()) {
@@ -14606,6 +15034,27 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                (void)AppendOpsAuditRecord(
 	                                    config,
 	                                    OpsAuditRecordJson(audit_body.str(), principal_result.principal),
+	                                    &audit_error);
+	                                std::ostringstream incident_audit_body;
+	                                incident_audit_body
+	                                    << "{"
+	                                    << "\"area\":\"events\","
+	                                    << "\"action\":\"incident-action-update\","
+	                                    << "\"target\":\""
+	                                    << JsonEscape(saved.incident_id.empty()
+	                                                      ? "incident:" + event_id
+	                                                      : saved.incident_id)
+	                                    << "\","
+	                                    << "\"summary\":\"Incident action workflow updated\","
+	                                    << "\"before\":"
+	                                    << (previous.present ? OpsEventReviewStateJson(previous)
+	                                                         : std::string("null"))
+	                                    << ",\"after\":" << OpsEventReviewStateJson(saved)
+	                                    << "}";
+	                                (void)AppendOpsAuditRecord(
+	                                    config,
+	                                    OpsAuditRecordJson(incident_audit_body.str(),
+	                                                       principal_result.principal),
 	                                    &audit_error);
 	                                HttpResponse ok = JsonResponse(
 	                                    200,
@@ -15163,7 +15612,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     "{\"error\":\"client WebRTC session resource not found\"}");
                             }
                             if (request.method == "GET") {
-                                if (subresource == "dashboard") {
+                                if (IsClientViewSummaryRoute(subresource) &&
+                                    IsClientViewDashboardSummaryRoute(subresource)) {
                                     SourceViewRegistry::ClientViewAccess access;
                                     const auto access_result =
                                         SourceViewRegistry::Instance().ResolveClientViewAccess(
@@ -15187,7 +15637,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                             principal_result.principal,
                                             impl_->session_manager.AnalysisTapSnapshots()));
                                 }
-                                if (subresource == "events") {
+                                if (IsClientViewSummaryRoute(subresource) &&
+                                    IsClientViewEventsSummaryRoute(subresource)) {
                                     SourceViewRegistry::ClientViewAccess access;
                                     const auto access_result =
                                         SourceViewRegistry::Instance().ResolveClientViewAccess(
@@ -15207,7 +15658,8 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     const int limit = ParseClampedIntQuery(event_query, "limit", 20, 1, 50);
                                     return JsonResponse(200, "OK", ClientViewEventsJson(access, limit));
                                 }
-                                if (subresource == "metadata") {
+                                if (IsClientViewSummaryRoute(subresource) &&
+                                    IsClientViewMetadataSummaryRoute(subresource)) {
                                     SourceViewRegistry::ClientViewAccess access;
                                     const auto access_result =
                                         SourceViewRegistry::Instance().ResolveClientViewAccess(
@@ -15241,7 +15693,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                         }
 
-                        if (request.method == "GET" && IsOpsOverviewShellRoute(request.path)) {
+                        if (request.method == "GET" &&
+                            (IsOpsOverviewShellRoute(request.path) ||
+                             IsOpsEventsPageRoute(request.path))) {
                             if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
                                 if (!principal_result.ok && session_auth_mode && config.enable_ops) {
                                     return RedirectResponse("/login");

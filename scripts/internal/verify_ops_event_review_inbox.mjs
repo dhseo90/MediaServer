@@ -16,6 +16,7 @@ const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
 const eventStorage = readText("src/analysis/event_storage.cpp");
 const eventPost = readText("src/analysis/event_post_dispatcher.cpp");
 const serverSh = readText("server.sh");
+const featureInventory = readText("docs/project-feature-test-inventory.md");
 
 check("server stores review state outside event payloads", () => {
   assertIncludes(server, ".media_server.event_reviews.jsonl", "review state storage");
@@ -43,6 +44,9 @@ check("event payload storage excludes review fields", () => {
 
 check("ops events UI exposes review inbox controls", () => {
   assertIncludes(server, 'data-testid="ops-event-review-inbox"', "ops events review inbox marker");
+  assertIncludes(server, 'data-route-scope="operator-event-review"', "ops events operator review route scope");
+  assertIncludes(server, 'data-event-review-workflow="operator-inbox"', "ops events operator inbox workflow marker");
+  assertIncludes(server, "<h2>Operator Event Review Inbox</h2>", "ops events operator inbox title");
   assertIncludes(server, 'data-review-state="separate-from-event-post-payload"', "review state marker");
   assertIncludes(server, 'data-vlm-review-action-workflow="ops-only-review-state"', "VLM review action marker");
   assertIncludes(server, 'id="eventReviewStatusFilter"', "review status filter");
@@ -50,6 +54,8 @@ check("ops events UI exposes review inbox controls", () => {
   assertIncludes(server, 'id="eventReviewRows"', "review rows");
   assertIncludes(pageScript, "renderEventReviewRows", "review table renderer");
   assertIncludes(pageScript, "bindEventReviewActions", "review save binding");
+  assertIncludes(pageScript, 'data-event-review-detail="event-list-detail"', "event list/detail row marker");
+  assertIncludes(pageScript, 'data-event-review-action-target="false-positive-or-vlm-target"', "review action target marker");
   assertIncludes(pageScript, "vlmAction", "VLM review action save binding");
   assertIncludes(pageScript, "media-server.ops.vlm-review-action-state.v1", "VLM review action save schema");
   assertIncludes(pageScript, "/ops/api/events/reviews/", "review save endpoint");
@@ -60,9 +66,18 @@ check("ops events UI exposes review inbox controls", () => {
 
 check("ops client UI smoke tracks event review inbox", () => {
   assertIncludes(uiSmoke, 'data-testid="ops-event-review-inbox"', "ops events smoke marker");
+  assertIncludes(uiSmoke, 'data-route-scope="operator-event-review"', "ops events smoke operator route marker");
+  assertIncludes(uiSmoke, 'data-event-review-workflow="operator-inbox"', "ops events smoke operator workflow marker");
   assertIncludes(uiSmoke, 'data-review-state="separate-from-event-post-payload"', "ops events smoke state marker");
   assertIncludes(uiSmoke, 'data-vlm-review-action-workflow="ops-only-review-state"', "ops events smoke VLM action marker");
   assertIncludes(uiSmoke, "/ops/api/events/reviews", "ops events smoke endpoint");
+});
+
+check("feature inventory names ops events as operator review inbox", () => {
+  assertIncludes(featureInventory, "| UI-014 | `/ops/events` Operator Event Review Inbox |", "UI inventory operator inbox row");
+  assertIncludes(featureInventory, "| EVT-019 | Operator event review 목록 |", "EVT review list inventory row");
+  assertIncludes(featureInventory, "| EVT-020 | Operator event review 상세 |", "EVT review detail inventory row");
+  assertIncludes(featureInventory, "| EVT-021 | Operator event review 상태/action 저장 |", "EVT review action inventory row");
 });
 
 check("server command is registered", () => {

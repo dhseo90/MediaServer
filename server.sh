@@ -274,8 +274,16 @@ Usage:
                  Client Live tile/workspace disconnect 계약을 검증합니다.
   verify-ops-event-review-inbox
                  Rule Event Review Inbox의 별도 review state/audit/redaction 계약을 검증합니다.
+  verify-ops-event-action-incident-workflow
+                 Event Action/Incident Workflow의 Ops-only state/audit/UI 계약을 검증합니다.
   verify-ops-alert-delivery-integrations
                  Alert Delivery Integration의 payload 분리/retry/audit 계약을 검증합니다.
+  verify-v240-ops-event-route-owner-decomposition
+                 v2.4.0 S06 Ops Events/action/client summary/alert dry-run route owner 분리를 검증합니다.
+  verify-v240-evidence-inventory-mapping
+                 v2.4.0 S07 feature inventory/manual UI/release evidence 매핑을 검증합니다.
+  verify-v240-release-readiness-gate
+                 v2.4.0 S08 release metadata/docs/assets/CI parity/close-out dry-run evidence를 검증합니다.
   verify-ops-scenario-builder-ui
                  Scenario Builder UI의 Event Rule 폼 적용과 engine 비변경 계약을 검증합니다.
   verify-ops-client-shared-declutter
@@ -1015,9 +1023,25 @@ case "${cmd}" in
     require_internal verify_ops_event_review_inbox.mjs
     exec "${INTERNAL_DIR}/verify_ops_event_review_inbox.mjs" "$@"
     ;;
+  verify-ops-event-action-incident-workflow)
+    require_internal verify_ops_event_action_incident_workflow.mjs
+    exec "${INTERNAL_DIR}/verify_ops_event_action_incident_workflow.mjs" "$@"
+    ;;
   verify-ops-alert-delivery-integrations)
     require_internal verify_ops_alert_delivery_integrations.mjs
     exec "${INTERNAL_DIR}/verify_ops_alert_delivery_integrations.mjs" "$@"
+    ;;
+  verify-v240-ops-event-route-owner-decomposition)
+    require_internal verify_v240_ops_event_route_owner_decomposition.mjs
+    exec "${INTERNAL_DIR}/verify_v240_ops_event_route_owner_decomposition.mjs" "$@"
+    ;;
+  verify-v240-evidence-inventory-mapping)
+    require_internal verify_v240_evidence_inventory_mapping.mjs
+    exec "${INTERNAL_DIR}/verify_v240_evidence_inventory_mapping.mjs" "$@"
+    ;;
+  verify-v240-release-readiness-gate)
+    require_internal verify_v240_release_readiness_gate.mjs
+    exec "${INTERNAL_DIR}/verify_v240_release_readiness_gate.mjs" "$@"
     ;;
   verify-ops-scenario-builder-ui)
     require_internal verify_ops_scenario_builder_ui.mjs

@@ -53,7 +53,7 @@ v1.8.0에서 도입되어 v1.9.0에서도 유지되는 product shell은 ERP/운�
 
 ### 1.1 Design token/component inventory
 
-현재 v2.3.0까지의 UI 변경과 `v2.2.0 Responsive UI Foundation`,
+현재 v2.4.0까지의 UI 변경과 `v2.2.0 Responsive UI Foundation`,
 `v2.3.0 UI renderer/module decomposition`의 UI 정리는 아래 inventory를 기준으로 합니다.
 새 색상, radius, spacing, shadow, table row, detail panel, client tile을 추가하기 전에
 먼저 같은 계층의 기존 token/class/helper로 표현할 수 있는지 확인합니다.
@@ -792,6 +792,13 @@ Rule validation matrix는 duplicate id, missing reference, inactive profile/temp
 unauthorized view, VA class mismatch, source mismatch를 fixture 기준으로 고정합니다.
 UI 저장 전 차단과 서버 저장 API 차단 메시지가 따로 흔들리지 않도록
 `verify-ops-rule-validation-matrix`에서 검증합니다.
+
+v2.4.0 S05부터 `/ops/rules` 상세 편집기는 저장 버튼 위에 Rule/Scenario review loop를
+표시합니다. 이 루프는 새 schema 없이 draft form 값을 읽어 예상 event type,
+conflict, missing reference, scenario preset 영향, `/ops/events` EventRecord coverage
+연결을 한 번에 보여줍니다. `verify-rule-ui`는 인앱 브라우저 evidence에서
+`v240-s05-rule-scenario-review-loop` 직접 확인을 요구하고,
+`verify-ops-rule-validation-matrix`는 정적 UI/JS/CSS 연결을 확인합니다.
 
 ## 7. 분석 Profile
 

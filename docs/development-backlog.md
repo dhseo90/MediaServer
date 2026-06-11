@@ -34,6 +34,359 @@ source-of-truth가 아닙니다. 현재 기준은 이 문서와 기능별 상세
 
 `완료`는 운영 배포 ready, 장기 안정성 보장, 외부 연동 ready를 뜻하지 않습니다.
 
+## 활성 roadmap: v2.4.0 Operator Event Review & Action Workflow
+
+v2.4.0은 v2.3.0 source-only/live-only baseline 위에서 새 media path나 장기 녹화
+제품을 열지 않고, live VA event를 운영자가 확인하고 조치할 수 있는 제품 흐름으로
+정리하는 중기 roadmap입니다. 핵심 제품 방향은 **Operator Event Review Inbox**,
+incident/action 상태, alert dry-run, client-safe event summary입니다.
+
+v2.4.0의 1차 선택값은 `/ops/events`를 raw 진단 route가 아니라 운영자 event review
+inbox로 제품화하는 것입니다. 기존 EventRecord, evidence reference, VLM review hint,
+audit trail, Client redaction 기준은 유지하고, Event POST/WebRTC DataChannel/SSE/WS
+metadata schema와 RTSP/WebRTC media path는 변경하지 않습니다.
+
+핵심 원칙:
+
+- v2.4.0은 Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path,
+  Auth/session/scope, Rule/Profile payload schema를 변경하지 않습니다.
+- 실기기 ONVIF 성공, external TURN/WHEP credential 운영 성공, real cloud provider
+  call은 기본 release PASS가 아닙니다. 실기기가 없는 기본 개발 조건에서는 no-device,
+  fixture, dry-run, redacted report 경계만 다룹니다.
+- 상시 녹화, MP4 recorder, VMS/NVR archive, playback/search는 v2.4.0 구상에
+  포함하지 않습니다.
+- client/viewer에는 source URL, Developer URL, raw JSON, debugCounters, BBox
+  diagnostics, prompt/raw response/provider credential/model internals/Re-ID identity
+  material을 노출하지 않습니다.
+- alert provider는 v2.4.0에서 dry-run과 delivery attempt log를 우선하며, 실제 외부
+  전송 성공 보장은 별도 승인된 후속 범위로 둡니다.
+- 30분 테스트와 120분 테스트는 서로 대체하지 않습니다. UI 풀테스트도 자동 smoke,
+  screenshot 생성, raw JSON/API 확인으로 대체하지 않습니다.
+
+명시적 비범위:
+
+- 장기 녹화, MP4 recorder, VMS/NVR archive, playback/search
+- ONVIF Profile G recording/replay, 실기기 ONVIF 성공 보장
+- Event POST/WebRTC/SSE/WS 외부 payload schema 변경
+- RTSP/WebRTC media pipeline 구조 변경
+- VLM default-on, VLM runtime/model bundle, provider credential 저장
+- Re-ID/tracker default-on, OC-SORT/BoT-SORT/DeepSORT runtime tracker 승격
+- external TURN/WHEP credential 운영 성공 보장, real cloud provider call 성공 보장
+
+| 순서 | ID | 우선순위 | 상태 | 영역 | 제목 | 목표 | 예상 검증 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 0 | V240-S00 | P0 | 완료 | v2.4.0 baseline | v2.4.0 기준 정렬 | `VERSION`, CMake, README, docs index, backlog, release/version 문서의 v2.4.0 source-of-truth를 정렬하고, v2.3.0 release baseline과 v2.4.0 active roadmap을 분리합니다. | roadmap review, `verify-release-metadata`, `verify-docs-links`, `verify-release-evidence-index`, `git diff --check` |
+| 1 | V240-S01 | P0 | 완료 | Operator Event Review | Operator Event Review Inbox | `/ops/events`를 운영자 event review inbox로 제품화하고, event list/detail, evidence refs, review state, operator note, false-positive/action target을 route/control/action 단위로 관리합니다. | `verify-ops-event-review-inbox`, `verify-vlm-ops-event-review-ui`, EventRecord UI 직접 검수, `verify-manual-ui-evidence`, `git diff --check` |
+| 2 | V240-S02 | P0 | 진행 | Incident Action | Event Action and Incident Workflow | EventRecord를 incident/action 상태로 묶고, `new`, `review-needed`, `acknowledged`, `in-progress`, `closed`, `false-positive` 같은 운영 상태와 audit trail을 저장/표시합니다. | event review state fixture, audit persistence verifier, `verify-ops-audit-trail`, `verify-ops-audit-persistence`, UI 직접 검수, `git diff --check` |
+| 3 | V240-S03 | P1 | 진행 | Alert dry-run | Alert Dry-run and Delivery Attempt Log | 실제 외부 전송을 기본 기능으로 열지 않고, alert target draft, payload preview, dry-run result, delivery attempt log를 Ops 전용으로 제공합니다. | alert dry-run fixture, delivery attempt log verifier, redaction review, `verify-ops-alert-delivery-integrations`, `git diff --check` |
+| 4 | V240-S04 | P1 | 완료 | Client-safe summary | Client-safe Event and Status Summary | `/client/dashboard`와 `/client/live`에 viewer-safe 최근 이벤트, source health, incident status 요약을 제공하고 원본 locator/debug/raw JSON 비노출 경계를 재확인합니다. | `verify-client-dashboard-polish`, `verify-v220-client-preview-redaction-review`, viewer role UI 직접 검수, `verify-auth-routes`, `git diff --check` |
+| 5 | V240-S05 | P1 | 완료 | Rule/Scenario review | Rule and Scenario Review Loop | `/ops/rules`에서 저장 전 예상 event type, conflict, missing reference, scenario preset 영향, EventRecord coverage 연결을 더 명확히 표시합니다. | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-rule-validation-matrix`, `verify-va-event-coverage-report`, `git diff --check` |
+| 6 | V240-S06 | P1 | 완료 | UI/API decomposition | Ops Event Route and UI Owner Decomposition | `webrtc_http_server.cpp`의 Ops Events, event review/action API, client summary route, alert dry-run route owner를 분리해 후속 기능 개발 비용을 낮춥니다. | build, route smoke, `verify-v240-ops-event-route-owner-decomposition`, `verify-v230-ui-renderer-module-decomposition`, `verify-ops-client-ui`, `verify-ops-route-boundaries`, `git diff --check` |
+| 7 | V240-S07 | P2 | 완료 | Evidence / inventory | v2.4.0 Evidence and Inventory Mapping | Event review inbox, incident action, alert dry-run, client-safe summary, rule review loop의 feature inventory, manual UI checklist, release evidence row를 추가합니다. | `verify-v240-evidence-inventory-mapping`, `verify-feature-inventory-coverage`, `verify-manual-ui-evidence`, `verify-release-evidence-index`, `verify-project-inventory`, `git diff --check` |
+| 8 | V240-S08 | P2 | 완료 | Release readiness | v2.4.0 Release Readiness Gate | v2.4.0 완료 범위의 문서 링크/assets, release metadata, close-out dry-run, CI/local parity, 미실행/제외 테스트 기록을 정리합니다. | `verify-v240-release-readiness-gate`, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-ci-local-gate-parity`, `verify-release-closeout-helper --dry-run`, `git diff --check` |
+
+### V240-S01 Operator Event Review Inbox 종료 기준
+
+직접 답: v2.4.0 S01의 1차 선택값은 `/ops/events`를 raw 진단 route가 아니라
+`Operator Event Review Inbox`로 두는 것입니다. 이 route는 primary nav에는 노출하지
+않되, 운영자가 EventRecord list/detail, evidence refs, review state, operator note,
+false-positive/action target을 한 화면에서 확인하고 별도 review state로 저장하는
+workflow입니다.
+
+S01 실행 결과:
+
+- PASS: `./server.sh verify-ops-event-review-inbox`
+- PASS: `MEDIA_SERVER_UI_BROWSER_MODE=chrome MEDIA_SERVER_ALLOW_CHROME_FALLBACK=1 ./server.sh verify-ops-event-review-inbox --roundtrip-smoke --browser-smoke --http-base http://127.0.0.1:8081 --debug-port 9941`
+  - EventRecord payload를 review state로 오염시키지 않음
+  - review state list/update와 event review audit redaction 확인
+  - 브라우저에서 review inbox render와 redaction boundary 확인
+- PASS: `./server.sh verify-vlm-ops-event-review-ui`
+- PASS: Codex 인앱 브라우저 `/ops/events` 직접 확인
+  `/tmp/media_server_v240_s01_inapp_evidence.json`
+  - `data-route-scope="operator-event-review"`
+  - `data-event-review-workflow="operator-inbox"`
+  - `/ops/events` primary nav 비노출 boundary 확인
+- PASS: `./server.sh verify-manual-ui-evidence`
+- PASS: `./server.sh verify-feature-inventory-coverage`
+- PASS: `./server.sh verify-project-inventory`
+- PASS: `git diff --check`
+- 미실행: 30분 테스트, 120분 테스트, 전체 UI 풀테스트.
+
+S01 완료 판정은 위 Operator Event Review Inbox route/control/action과 review state
+저장 경계에 한정합니다. Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC
+media path, Auth/session/scope, Rule/Profile payload schema는 S01 완료 범위에서
+변경하지 않습니다.
+
+### V240-S02 Event Action and Incident Workflow 선행 준비 기준
+
+직접 답: 안정화, 30분, UI 풀테스트, 필요시 120분 테스트 전에 확인할 S02 선행
+상태는 `진행`입니다. Ops-only incident/action 상태 저장, `incident-action-update`
+audit trail, EventRecord/Event POST payload 비오염, `/ops/events` UI marker와
+inventory 연결은 스크립트 verifier로 확인했습니다. 다만 `/ops/events`에서 incident
+status/id/action target 저장과 audit trail 반영을 인앱 브라우저로 직접 조작한
+UI 풀테스트 evidence는 아직 없으므로 이 단계는 `완료`로 승격하지 않습니다.
+
+S02 선행 실행 결과:
+
+- PASS: `./server.sh verify-ops-event-action-incident-workflow`
+  - Ops-only review storage에 `media-server.ops.incident-action-state.v1` 상태를
+    저장하고, `new`, `review-needed`, `acknowledged`, `in-progress`, `closed`,
+    `false-positive` 상태 set을 확인했습니다.
+  - `incident-action-update` audit trail을 EventRecord payload와 분리해 저장하는
+    경계를 확인했습니다.
+  - `/ops/events` incident/action control과 audit trail UI marker, UI smoke marker,
+    `UI-037`/`EVT-037`/`SAFE-041` inventory 연결을 확인했습니다.
+- PASS: `./server.sh verify-ops-audit-trail`
+- PASS: `./server.sh verify-ops-audit-persistence`
+- 미실행: `/ops/events` incident/action UI 직접 조작, 30분 테스트, 120분 테스트,
+  전체 UI 풀테스트, real ONVIF, external TURN/WHEP, real cloud provider call.
+
+S02 현재 판정은 안정화 전 스크립트 gate 준비 완료이며, 완료 판정은 후속 UI
+풀테스트에서 incident status/id/action target 저장, events audit trail 반영,
+client/viewer 비노출을 직접 확인한 뒤에만 갱신합니다. EventRecord payload, Event
+POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path, Auth/session/scope,
+Rule/Profile payload schema는 S02 선행 준비 범위에서 변경하지 않습니다.
+
+### V240-S03 Alert Dry-run and Delivery Attempt Log 선행 준비 기준
+
+직접 답: 안정화, 30분, UI 풀테스트, 필요시 120분 테스트 전에 확인할 S03 선행
+상태는 `진행`입니다. Alert delivery config/attempt state는 Event POST payload와
+분리되어 있고, dry-run은 `externalDeliveryPerformed=false`와 payload preview,
+delivery attempt log만 남기며, `/ops/events` UI marker와 redaction guard는 스크립트
+verifier로 확인했습니다. 다만 `/ops/events`에서 alert target draft 저장, payload
+preview, dry-run result, delivery attempt log, endpoint redaction을 인앱 브라우저로
+직접 조작한 UI 풀테스트 evidence는 아직 없으므로 이 단계는 `완료`로 승격하지
+않습니다.
+
+S03 선행 실행 결과:
+
+- 최초 FAIL: `./server.sh verify-ops-alert-delivery-integrations`
+  - 실패 원인: S06에서 `/ops/api/alerts/deliveries/test` literal이
+    `ops_event_route_owner.cpp`로 분리됐지만 S03 verifier가 route owner 파일을
+    server contract source로 읽지 않아 missing snippet으로 판정했습니다.
+- 수정: `scripts/internal/verify_ops_alert_delivery_integrations.mjs`가
+  `src/ingress/ops_event_route_owner.cpp`를 함께 읽어 alert delivery route owner
+  분리를 server contract 검증 범위에 포함하게 했습니다.
+- PASS: `./server.sh verify-ops-alert-delivery-integrations`
+  - alert delivery state와 Event POST payload 분리, retry/fixture/dry-run audit,
+    dry-run 외부 전송 금지, masked endpoint, redaction marker, UI control/marker,
+    attempt log store 연결을 확인했습니다.
+- PASS: `git diff --check`
+- 미실행: `/ops/events` alert delivery UI 직접 조작, alert delivery roundtrip smoke,
+  UI smoke, 30분 테스트, 120분 테스트, 전체 UI 풀테스트, real ONVIF,
+  external TURN/WHEP, real cloud provider call.
+
+S03 현재 판정은 안정화 전 스크립트 gate 준비 완료이며, 완료 판정은 후속 UI
+풀테스트에서 alert target draft, payload preview, dry-run result, delivery attempt
+log, endpoint redaction, 외부 전송 없음 상태를 직접 확인한 뒤에만 갱신합니다.
+EventRecord payload, Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC
+media path, Auth/session/scope, Rule/Profile payload schema는 S03 선행 준비 범위에서
+변경하지 않습니다.
+
+### V240-S04 Client-safe Event and Status Summary 종료 기준
+
+S04 실행 결과:
+
+- PASS: `./server.sh build`
+- PASS: `./server.sh verify-client-dashboard-polish`
+- PASS: `./server.sh verify-v220-client-preview-redaction-review`
+- PASS: `./server.sh verify-auth-bootstrap`
+- PASS: `./server.sh verify-auth-users`
+- PASS: `./server.sh verify-auth-routes`
+  - 최초 sandbox 실행은 RTSP port bind 제한으로 실패했고, 같은 명령을 sandbox 밖에서
+    재실행해 PASS로 닫았습니다.
+- PASS: `./server.sh verify-ops-client-ui --http-base http://127.0.0.1:8081 --in-app-evidence /tmp/media_server_s04_inapp_evidence/s04-ops-client-ui-evidence.json`
+- PASS: `./server.sh verify-ops-client-ui --screenshots --http-base http://127.0.0.1:8081 --in-app-evidence /tmp/media_server_s04_inapp_evidence/s04-ops-client-ui-evidence.json`
+- PASS: `./server.sh verify-rule-ui --in-app-evidence /tmp/media_server_s04_inapp_evidence/s04-ops-client-ui-evidence.json`
+- PASS: Codex 인앱 브라우저 `/client/dashboard`, `/client/live`, `/client/events`
+  직접 확인 evidence
+  `/tmp/media_server_s04_inapp_evidence/s04-ops-client-ui-evidence.json`
+  - `/client/dashboard`: `data-testid="client-dashboard-safe-summary"`
+  - `/client/live`: `data-testid="client-live-safe-summary"`
+  - `/client/live`, `/client/dashboard`, `/client/events`: client forbidden text count 0
+  - screenshot evidence: `/ops/home`, `/ops/dashboard`, `/ops/rules`, `/ops/sources`,
+    `/ops/users`, `/ops/vlm`, `/client/live`, `/client/dashboard`
+- 미실행: 30분 테스트, 120분 테스트, 전체 UI 풀테스트.
+
+S04 완료 판정은 `/client/dashboard`와 `/client/live`의 viewer-safe event/status/source
+health/incident summary, copy text, client rendered redaction evidence에 한정합니다.
+Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path, Auth/session/scope,
+Rule/Profile payload schema는 S04 완료 범위에서 변경하지 않습니다.
+
+### V240-S05 Rule and Scenario Review Loop 종료 기준
+
+S05 실행 결과:
+
+- PASS: `./server.sh build`
+- PASS: `./server.sh verify-rule-ui --in-app-evidence /tmp/media_server_s05_inapp_evidence/s05-rule-review-loop-evidence.json`
+- PASS: `./server.sh verify-ops-rules-roundtrip --http-base http://127.0.0.1:8081`
+  - 최초 sandbox 실행은 localhost `EPERM`으로 실패했고, 같은 명령을 sandbox 밖에서
+    재실행해 PASS로 닫았습니다.
+- PASS: `./server.sh verify-ops-rule-validation-matrix`
+- PASS: `./server.sh verify-va-event-coverage-report`
+- PASS: `./server.sh verify-feature-inventory-coverage`
+  - S05에서 `RULE-102`가 추가되어 inventory row count를 398로 갱신했습니다.
+- PASS: `git diff --check`
+- PASS: Codex 인앱 브라우저 `/ops/rules`, `/ops/users`, `/ops/sources` 직접 확인
+  evidence `/tmp/media_server_s05_inapp_evidence/s05-rule-review-loop-evidence.json`
+  - `/ops/rules`: `data-testid="ops-rule-scenario-review-loop"`
+  - 저장 전 review loop: 예상 event type, conflict, missing reference, preset 영향,
+    `/ops/events` EventRecord coverage link 표시
+  - screenshot evidence:
+    `/tmp/media_server_s05_inapp_evidence/ops-rules-review-loop.png`,
+    `/tmp/media_server_s05_inapp_evidence/ops-users.png`,
+    `/tmp/media_server_s05_inapp_evidence/ops-sources.png`
+- 미실행: 30분 테스트, 120분 테스트, 전체 UI 풀테스트.
+
+S05 완료 판정은 `/ops/rules` 상세 편집기의 저장 전 Rule/Scenario review loop와
+기존 rule validation/roundtrip/EventRecord coverage verifier 연결에 한정합니다.
+ScenarioEngine 판단 로직, Event POST/WebRTC/SSE/WS metadata schema, EventRecord payload,
+Rule/Profile 저장 payload 계약, RTSP/WebRTC media path는 S05 완료 범위에서 변경하지
+않습니다.
+
+### V240-S06 Ops Event Route and UI Owner Decomposition 종료 기준
+
+S06 실행 결과:
+
+- PASS: `./server.sh verify-v240-ops-event-route-owner-decomposition`
+  - `include/ingress/ops_event_route_owner.h`,
+    `src/ingress/ops_event_route_owner.cpp`가 Ops Events page, event status/review,
+    alert delivery dry-run/test, client dashboard/events/metadata summary route matching을
+    소유합니다.
+  - `webrtc_http_server.cpp`는 해당 route 비교를 owner helper로 위임합니다.
+  - Event POST payload, WebRTC DataChannel schema, SSE/WS metadata schema,
+    RTSP/WebRTC media path 변경 없음 경계를 verifier가 확인합니다.
+- PASS: `./server.sh build`
+- PASS: `./server.sh verify-v230-ui-renderer-module-decomposition`
+- PASS: `./server.sh verify-ops-client-ui --browser-mode static --http-base http://127.0.0.1:8081`
+  - 최초 실행은 서버 미기동과 인앱 evidence 미제공으로 실패했습니다.
+  - 서버 기동 후 sandbox 안 fetch 제한으로 실패했고, sandbox 밖 재실행에서는 auth
+    필요 상태로 실패했습니다.
+  - 같은 S06 범위에서 `MEDIA_SERVER_AUTH_MODE=off ./server.sh foreground` 서버를
+    sandbox 밖에서 기동한 뒤 static route smoke로 재실행해 PASS했습니다.
+  - 이 결과는 브라우저 직접 UI 풀테스트 PASS가 아니라 제품 shell/API static smoke
+    PASS입니다.
+- PASS: `./server.sh verify-ops-route-boundaries --http-base http://127.0.0.1:8081`
+  - 최초 실행은 verifier가 v2.4.0 S01 이전의 `/ops/events`
+    `data-route-scope="direct-diagnostic"` 기대값을 사용해 실패했습니다.
+  - verifier 기대값을 현재 `operator-event-review` route 기준으로 갱신 후 재실행해
+    PASS했습니다.
+- PASS: `git diff --check`
+- 미실행: 30분 테스트, 120분 테스트, UI 풀테스트 직접 조작, screenshots smoke,
+  real ONVIF, external TURN/WHEP, real cloud provider call.
+- 토큰 사용량: token start `26,984`, token end `372,610`, token consumed `345,626`,
+  elapsed `574s`, source `Codex goal usage snapshot at S06 verification`.
+
+S06 완료 판정은 route owner matching 분리와 기존 static route smoke 유지에 한정합니다.
+Ops event/review/alert/client summary API schema, EventRecord payload, Auth/session/scope,
+Rule/Profile payload 계약, RTSP/WebRTC media path는 S06 완료 범위에서 변경하지
+않습니다.
+
+### V240-S07 v2.4.0 Evidence and Inventory Mapping 종료 기준
+
+S07 실행 결과:
+
+- PASS: `./server.sh verify-v240-evidence-inventory-mapping`
+  - `docs/project-feature-test-inventory.md`에 v2.4.0 S01~S05 기능과 feature ID,
+    대표 안정화 verifier, manual UI route/control/action, release evidence boundary를
+    연결했습니다.
+  - `docs/manual-ui-checklist.md`에 같은 기능을 route/control/action 단위 직접 조작
+    evidence 기준으로 연결했습니다.
+  - `docs/release-evidence-index.md`에 S07 mapping gate row를 추가했습니다.
+- PASS: `./server.sh verify-feature-inventory-coverage`
+- PASS: `./server.sh verify-manual-ui-evidence`
+  - template/checklist 기준 검증이며, 제품 UI 직접 조작 PASS가 아닙니다.
+- PASS: `./server.sh verify-release-evidence-index`
+- PASS: `./server.sh verify-project-inventory`
+  - 최초 실행은 `verify_project_feature_test_inventory.mjs`의 stale expected row count
+    397과 실제 398 불일치로 실패했습니다.
+  - 이후 inventory summary의 UI 직접 필요, 안정화 대상, UI 풀테스트 대상 count가
+    실제 row 계산과 불일치해 실패했습니다.
+  - 같은 S07 범위에서 expected count와 summary count를 398개 기능 ID,
+    UI 직접 필요 233개, 안정화 대상 388개, UI 풀테스트 대상 251개로 보정한 뒤
+    재실행해 PASS했습니다.
+- PASS: `git diff --check`
+- 미실행: 30분 테스트, 120분 테스트, UI 풀테스트 직접 조작, 브라우저 화면 열람,
+  real ONVIF, external TURN/WHEP, real cloud provider call.
+- 토큰 사용량: token start `448,644`, token end `581,086`,
+  token consumed `132,442`, elapsed `goal snapshot delta 292s`,
+  source `Codex goal usage snapshot at S07 close-out update`.
+
+S07 완료 판정은 v2.4.0 기능 mapping과 evidence/inventory 문서 연결에 한정합니다.
+이 mapping은 UI 풀테스트 직접 조작 PASS, 30분/120분 longrun PASS, 외부 provider/실기기
+성공 evidence를 대체하지 않습니다. Event POST, WebRTC DataChannel, SSE/WS metadata,
+RTSP/WebRTC media path, Auth/session/scope, Rule/Profile payload schema는 S07 완료
+범위에서 변경하지 않습니다.
+
+### V240-S08 v2.4.0 Release Readiness Gate 종료 기준
+
+S08 실행 결과:
+
+- PASS: `./server.sh verify-v240-release-readiness-gate`
+  - `media-server.v240-release-readiness-gate.v1` 기준으로 문서 링크/assets,
+    release metadata, CI/local parity, close-out dry-run, 미실행/제외 기록 연결을
+    확인합니다.
+- PASS: `./server.sh verify-release-metadata`
+  - current version `2.4.0`, current tag `v2.4.0`, local release metadata 16 PASS.
+  - 기본 모드는 GitHub Latest Release/tag/remote branch를 확인하지 않으며,
+    published metadata는 publish 후 `--published`로 분리합니다.
+- PASS: `./server.sh verify-docs-links`
+  - markdown files 99, local links 528, local images 22, anchors 2, indexed docs 91,
+    failures 0.
+- PASS: `./server.sh verify-docs-ui-assets`
+  - 최초 실행은 `config/docs_ui_assets.json` baseline release가 `v2.3.0`으로 남아
+    있고 `docs/assets/ui/README.md`가 `v2.4.0 release baseline`을 말하지 않아
+    FAIL했습니다.
+  - 같은 S08 범위에서 UI asset manifest와 docs asset policy를 v2.4.0 static
+    baseline으로 정렬한 뒤 재실행해 10 PASS / 0 FAIL로 닫았습니다.
+  - 이 결과는 static docs asset gate이며, 제품 UI 직접 조작/재캡처 PASS가 아닙니다.
+- PASS: `./server.sh verify-ci-local-gate-parity`
+  - schema `media-server.ci-local-gate-parity.v1`, preflight commands 12,
+    guardrail commands 5, rc commands 4, 6 PASS / 0 FAIL.
+- PASS: `./server.sh verify-release-closeout-helper --dry-run --report /tmp/media_server_v240_s08_release_closeout_helper.md --json-report /tmp/media_server_v240_s08_release_closeout_helper.json`
+  - 최초 실행은 `docs/release-policy.md`에 `v2.4.0 Release Close-out Runbook`
+    참조 문구가 없어 FAIL했습니다.
+  - `v2.4.0 Release Target Runbook` heading은 release metadata verifier의 기준이라
+    유지하고, 같은 절이 `v2.4.0 Release Close-out Runbook`의 source-of-truth임을
+    추가한 뒤 재실행해 PASS했습니다.
+  - dry-run은 tag 생성, push, GitHub Release 생성, release branch 삭제를 수행하지
+    않고 manual-not-run으로 기록합니다.
+- PASS: `git diff --check`
+- 미실행: UI 풀테스트 직접 조작, 30분 테스트, 120분 테스트,
+  `verify-va-runtime-console-longrun --duration-minutes 120`,
+  `verify-release-metadata --published`, PR merge, main sync, tag, push,
+  GitHub Release 생성, release branch 삭제, next branch sync, real ONVIF,
+  external TURN/WHEP, real cloud provider call.
+- 토큰 사용량: token start `657,863`, token end `699,640`,
+  token consumed `41,777`, elapsed `goal snapshot delta 184s`,
+  source `Codex goal usage snapshot at S08 close-out update`.
+
+S08 완료 판정은 v2.4.0 release readiness local gate 정리와 실행한 verifier 범위에
+한정합니다. published metadata, PR/main merge, tag, push, GitHub Release, UI 풀테스트,
+30분/120분 longrun, 실기기/외부 credential 성공은 S08 완료 evidence가 아닙니다.
+Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path,
+Auth/session/scope, Rule/Profile payload schema는 S08 완료 범위에서 변경하지
+않습니다.
+
+2026-06-11 release 후보 테스트 실행 결과:
+
+- PASS: 30분 테스트 `v240-release-30min-20260611`.
+  `verify-predev --soak-minutes 30` status pass, pass 119, fail 0, skip 1,
+  durationSec 2380.
+- PASS: UI 풀테스트 `v240-release-ui-fulltest-20260611`.
+  Codex 인앱 브라우저로 setup/login/password/invite/request-access, Ops route,
+  Client route, alert dry-run, EventRecord review/incident UI를 직접 확인했습니다.
+  Throwaway evidence의 빈-row note와 실제 외부 alert delivery 미수행은 PASS로
+  확대하지 않습니다.
+- PASS: 120분 테스트 `v240-release-120min-20260611`.
+  `verify-predev --soak-minutes 120` status pass, pass 444, fail 0, skip 1,
+  durationSec 7788. `verify-va-runtime-console-longrun --duration-minutes 120
+  --include-rtsp` ok true, pass 11, fail 0, durationSec 7200, portsClean true,
+  runtimeIdle true.
+- 제외/미실행: real ONVIF, external TURN/WHEP, real cloud provider call, 실제 외부
+  alert delivery는 credential/endpoint/실기기 승인 범위가 아니므로 기본 release
+  PASS로 쓰지 않습니다.
+
 ## 현재 기준: v2.3.0 Source Release Baseline
 
 v2.3.0은 직전 release까지 닫은 source-only/live-only 제품 범위를 유지하면서
@@ -84,7 +437,7 @@ baseline으로 유지합니다.
 과거 release evidence는 standalone current 문서가 아니라 이 문서의 archive 섹션에만
 보존합니다.
 
-## 활성 roadmap: v2.3.0 Operational Evidence & Contract Baseline
+## 완료 roadmap: v2.3.0 Operational Evidence & Contract Baseline
 
 v2.3.0은 v2.2.0 source-only/live-only 제품 baseline을 유지하면서, 새 테스트 영역을
 추가하지 않고 기존 네 영역인 안정화 테스트, 30분 테스트, 120분 테스트, UI 풀테스트의
