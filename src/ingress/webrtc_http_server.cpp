@@ -13718,6 +13718,11 @@ std::string EvidenceBundleEntryName(const std::filesystem::path& path, const std
 
 constexpr std::int64_t kEvidenceBundleMaxAgeMs = 24LL * 60LL * 60LL * 1000LL;
 
+bool EvidenceBundleReleaseSafeRequested(const std::unordered_map<std::string, std::string>& query) {
+    const std::string value = LowerAscii(Trim(query.find("releaseSafe") == query.end() ? "" : query.at("releaseSafe")));
+    return value == "1" || value == "true" || value == "yes";
+}
+
 bool ParseEvidenceBundleExpiresAtMs(const std::unordered_map<std::string, std::string>& query,
                                     std::int64_t now_ms,
                                     std::int64_t* expires_at_ms,
@@ -13766,22 +13771,25 @@ std::uint64_t EvidenceBundleFnv1a64(const std::string& value) {
 std::string EvidenceBundleTokenPayload(const std::string& event_id,
                                        const std::filesystem::path& snapshot_path,
                                        const std::filesystem::path& clip_path,
-                                       std::int64_t expires_at_ms) {
+                                       std::int64_t expires_at_ms,
+                                       bool release_safe) {
     std::ostringstream payload;
     payload << "eventId=" << event_id << "\n"
             << "snapshotPath=" << snapshot_path.string() << "\n"
             << "clipPath=" << clip_path.string() << "\n"
-            << "expiresAtMs=" << expires_at_ms;
+            << "expiresAtMs=" << expires_at_ms << "\n"
+            << "releaseSafe=" << (release_safe ? "1" : "0");
     return payload.str();
 }
 
 std::string EvidenceBundleTokenFor(const std::string& event_id,
                                    const std::filesystem::path& snapshot_path,
                                    const std::filesystem::path& clip_path,
-                                   std::int64_t expires_at_ms) {
+                                   std::int64_t expires_at_ms,
+                                   bool release_safe) {
     std::ostringstream out;
     out << std::hex << std::setw(16) << std::setfill('0')
-        << EvidenceBundleFnv1a64(EvidenceBundleTokenPayload(event_id, snapshot_path, clip_path, expires_at_ms) +
+        << EvidenceBundleFnv1a64(EvidenceBundleTokenPayload(event_id, snapshot_path, clip_path, expires_at_ms, release_safe) +
                                  "\nsecret=" + EvidenceBundleTokenSecret());
     return out.str();
 }
@@ -13824,6 +13832,7 @@ bool ValidateEvidenceBundleToken(const std::unordered_map<std::string, std::stri
                                  const std::filesystem::path& snapshot_path,
                                  const std::filesystem::path& clip_path,
                                  std::int64_t expires_at_ms,
+                                 bool release_safe,
                                  std::string* error_message) {
     const std::string token = Trim(query.find("token") == query.end() ? "" : query.at("token"));
     if (token.empty()) {
@@ -13832,7 +13841,7 @@ bool ValidateEvidenceBundleToken(const std::unordered_map<std::string, std::stri
         }
         return false;
     }
-    const std::string expected = EvidenceBundleTokenFor(event_id, snapshot_path, clip_path, expires_at_ms);
+    const std::string expected = EvidenceBundleTokenFor(event_id, snapshot_path, clip_path, expires_at_ms, release_safe);
     if (token != expected) {
         if (error_message != nullptr) {
             *error_message = "evidence bundle token is invalid";
@@ -13858,12 +13867,16 @@ std::string EventEvidenceBundleTokenJson(const std::unordered_map<std::string, s
                                       error_message)) {
         return {};
     }
-    const std::string token = EvidenceBundleTokenFor(event_id, snapshot_path, clip_path, expires_at_ms);
+    const bool release_safe_requested = EvidenceBundleReleaseSafeRequested(query);
+    const std::string token = EvidenceBundleTokenFor(event_id, snapshot_path, clip_path, expires_at_ms, release_safe_requested);
     std::ostringstream params;
     params << "eventId=" << UrlEncode(event_id)
            << "&expiresAtMs=" << expires_at_ms
            << "&token=" << UrlEncode(token)
            << "&download=1";
+    if (release_safe_requested) {
+        params << "&releaseSafe=1";
+    }
     if (!snapshot_path.empty()) {
         params << "&snapshotPath=" << UrlEncode(snapshot_path.string());
     }
@@ -13873,10 +13886,89 @@ std::string EventEvidenceBundleTokenJson(const std::unordered_map<std::string, s
     std::ostringstream out;
     out << "{\"status\":\"event-evidence-bundle-token\","
         << "\"token\":\"" << JsonEscape(token) << "\","
+        << "\"releaseSafe\":" << (release_safe_requested ? "true" : "false") << ","
         << "\"expiresAtMs\":" << expires_at_ms << ","
         << "\"maxAgeMs\":" << kEvidenceBundleMaxAgeMs << ","
         << "\"cleanupPolicy\":\"token-expiry-no-server-file\","
         << "\"bundleUrl\":\"/lab/analysis/events/evidence/bundle?" << JsonEscape(params.str()) << "\"}";
+    return out.str();
+}
+
+std::string EvidenceBundleRedactedValue(const std::string& value, const std::string& fallback) {
+    const std::string trimmed = Trim(value);
+    if (trimmed.empty() || analysis::IncidentProjectionContainsForbiddenMaterial(trimmed)) {
+        return fallback;
+    }
+    return trimmed;
+}
+
+std::string BuildReleaseSafeIncidentEvidenceBundleManifest(const std::string& event_id,
+                                                           bool snapshot_requested,
+                                                           bool clip_requested,
+                                                           std::int64_t now_ms,
+                                                           std::int64_t expires_at_ms) {
+    std::string summary = "redacted incident evidence bundle";
+    std::vector<std::string> terms;
+    std::vector<std::string> redacted_fields;
+    if (!event_id.empty()) {
+        analysis::EventRecordQueryOptions options;
+        options.event_id = event_id;
+        options.limit = 1;
+        options.include_archives = true;
+        analysis::EventRecordQueryResult result;
+        std::string query_error;
+        if (analysis::QueryEventRecords(options, &result, &query_error) && !result.records_json.empty()) {
+            const auto document = analysis::ProjectEventRecordIncidentText(result.records_json.front());
+            summary = EvidenceBundleRedactedValue(document.summary, summary);
+            terms = document.tokens;
+            if (terms.size() > 12) {
+                terms.resize(12);
+            }
+            redacted_fields = document.redacted_fields;
+        }
+    }
+
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.v250.redacted-incident-evidence-bundle.v1\","
+        << "\"releaseSafe\":true,"
+        << "\"createdAtMs\":" << now_ms << ","
+        << "\"expiresAtMs\":" << expires_at_ms << ","
+        << "\"eventId\":\"" << JsonEscape(event_id) << "\","
+        << "\"scope\":\"release-safe-redacted-incident-evidence\","
+        << "\"bundleFormat\":\"zip\","
+        << "\"rawEvidenceIncluded\":false,"
+        << "\"sourceLocatorIncluded\":false,"
+        << "\"credentialIncluded\":false,"
+        << "\"providerMaterialIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"inputEvidence\":{\"snapshotProvided\":" << (snapshot_requested ? "true" : "false")
+        << ",\"clipProvided\":" << (clip_requested ? "true" : "false") << "},"
+        << "\"searchResults\":[{\"eventId\":\"" << JsonEscape(event_id)
+        << "\",\"summaryText\":\"" << JsonEscape(summary) << "\",\"terms\":";
+    out << OpsIncidentMemoryStringArrayJson(terms)
+        << "}],"
+        << "\"timelineSummary\":["
+        << "{\"stage\":\"event-record\",\"summaryText\":\"" << JsonEscape(summary) << "\"},"
+        << "{\"stage\":\"release-safe-export\",\"summaryText\":\"raw evidence files excluded\"}"
+        << "],"
+        << "\"redactionPolicy\":{\"excludedMaterials\":["
+        << "\"raw-evidence\","
+        << "\"snapshot-file\","
+        << "\"clip-frame-file\","
+        << "\"source-url\","
+        << "\"developer-url\","
+        << "\"credential\","
+        << "\"debug-counters\","
+        << "\"provider-prompt-response\"],"
+        << "\"redactedFields\":";
+    out << OpsIncidentMemoryStringArrayJson(redacted_fields)
+        << "}}";
     return out.str();
 }
 
@@ -13892,6 +13984,7 @@ bool BuildEventEvidenceBundleZip(const std::unordered_map<std::string, std::stri
     std::string event_id;
     std::filesystem::path snapshot_path;
     std::filesystem::path clip_path;
+    const bool release_safe_requested = EvidenceBundleReleaseSafeRequested(query);
     if (!ExtractEvidenceBundleRequest(query,
                                       now_ms,
                                       &event_id,
@@ -13904,109 +13997,117 @@ bool BuildEventEvidenceBundleZip(const std::unordered_map<std::string, std::stri
                                      snapshot_path,
                                      clip_path,
                                      expires_at_ms,
+                                     release_safe_requested,
                                      error_message)) {
         return false;
     }
 
     std::string zip;
     std::vector<ZipCentralDirectoryEntry> entries;
-    if (!event_id.empty()) {
-        analysis::EventRecordQueryOptions options;
-        options.event_id = event_id;
-        options.limit = 1;
-        options.include_archives = true;
-        analysis::EventRecordQueryResult result;
-        std::string query_error;
-        if (analysis::QueryEventRecords(options, &result, &query_error) && !result.records_json.empty()) {
-            if (!AppendZipEntry(&zip, &entries, "event-record.json", result.records_json.front(), error_message)) {
-                return false;
+    if (!release_safe_requested) {
+        if (!event_id.empty()) {
+            analysis::EventRecordQueryOptions options;
+            options.event_id = event_id;
+            options.limit = 1;
+            options.include_archives = true;
+            analysis::EventRecordQueryResult result;
+            std::string query_error;
+            if (analysis::QueryEventRecords(options, &result, &query_error) && !result.records_json.empty()) {
+                if (!AppendZipEntry(&zip, &entries, "event-record.json", result.records_json.front(), error_message)) {
+                    return false;
+                }
             }
         }
-    }
 
-    if (!snapshot_path.empty() &&
-        !AppendEvidenceFileToZip(&zip,
-                                 &entries,
-                                 snapshot_path,
-                                 EvidenceBundleEntryName(snapshot_path, "evidence/snapshot"),
-                                 error_message)) {
-        return false;
-    }
-
-    if (!clip_path.empty()) {
-        const std::string clip_root = "evidence/clip/" + clip_path.parent_path().filename().string();
-        if (!AppendEvidenceFileToZip(&zip,
+        if (!snapshot_path.empty() &&
+            !AppendEvidenceFileToZip(&zip,
                                      &entries,
-                                     clip_path,
-                                     clip_root + "/" + clip_path.filename().string(),
+                                     snapshot_path,
+                                     EvidenceBundleEntryName(snapshot_path, "evidence/snapshot"),
                                      error_message)) {
             return false;
         }
-        if (std::filesystem::is_regular_file(clip_path)) {
-            std::error_code ec;
-            std::vector<std::filesystem::path> clip_files;
-            for (const auto& entry : std::filesystem::directory_iterator(clip_path.parent_path(), ec)) {
-                if (ec || !entry.is_regular_file()) {
-                    continue;
-                }
-                const auto candidate = entry.path();
-                if (candidate == clip_path) {
-                    continue;
-                }
-                std::filesystem::path resolved;
-                std::string content_type;
-                if (IsSafeEventEvidencePath(candidate, &resolved, &content_type)) {
-                    clip_files.push_back(resolved);
-                }
+
+        if (!clip_path.empty()) {
+            const std::string clip_root = "evidence/clip/" + clip_path.parent_path().filename().string();
+            if (!AppendEvidenceFileToZip(&zip,
+                                         &entries,
+                                         clip_path,
+                                         clip_root + "/" + clip_path.filename().string(),
+                                         error_message)) {
+                return false;
             }
-            std::sort(clip_files.begin(), clip_files.end());
-            constexpr std::size_t kMaxClipFilesInBundle = 200;
-            if (clip_files.size() > kMaxClipFilesInBundle) {
-                clip_files.resize(kMaxClipFilesInBundle);
-            }
-            for (const auto& file : clip_files) {
-                if (!AppendEvidenceFileToZip(&zip,
-                                             &entries,
-                                             file,
-                                             clip_root + "/" + file.filename().string(),
-                                             error_message)) {
-                    return false;
+            if (std::filesystem::is_regular_file(clip_path)) {
+                std::error_code ec;
+                std::vector<std::filesystem::path> clip_files;
+                for (const auto& entry : std::filesystem::directory_iterator(clip_path.parent_path(), ec)) {
+                    if (ec || !entry.is_regular_file()) {
+                        continue;
+                    }
+                    const auto candidate = entry.path();
+                    if (candidate == clip_path) {
+                        continue;
+                    }
+                    std::filesystem::path resolved;
+                    std::string content_type;
+                    if (IsSafeEventEvidencePath(candidate, &resolved, &content_type)) {
+                        clip_files.push_back(resolved);
+                    }
+                }
+                std::sort(clip_files.begin(), clip_files.end());
+                constexpr std::size_t kMaxClipFilesInBundle = 200;
+                if (clip_files.size() > kMaxClipFilesInBundle) {
+                    clip_files.resize(kMaxClipFilesInBundle);
+                }
+                for (const auto& file : clip_files) {
+                    if (!AppendEvidenceFileToZip(&zip,
+                                                 &entries,
+                                                 file,
+                                                 clip_root + "/" + file.filename().string(),
+                                                 error_message)) {
+                        return false;
+                    }
                 }
             }
         }
     }
 
     std::ostringstream manifest;
-    manifest << "{"
-             << "\"schema\":\"media-server.va.event-evidence-bundle.v1\","
-             << "\"createdAtMs\":" << now_ms << ","
-             << "\"expiresAtMs\":" << expires_at_ms << ","
-             << "\"eventId\":\"" << JsonEscape(event_id) << "\","
-             << "\"scope\":\"event-short-evidence\","
-             << "\"longRecording\":false,"
-             << "\"bundleFormat\":\"zip\","
-             << "\"retentionPolicy\":{\"bundleMaxAgeMs\":" << kEvidenceBundleMaxAgeMs
-             << ",\"bundleExpiry\":\"signed-token-expiresAtMs\","
-             << "\"expiredBundleCleanup\":\"token-expiry-no-server-file\"},"
-             << "\"exportPolicy\":{\"bundleSignedToken\":true,\"tokenParam\":\"token\"},"
-             << "\"deletePolicy\":{\"evidenceFileDelete\":false,\"evidenceFileDeletePermission\":\"blocked-for-all-roles\"},"
-             << "\"snapshotPath\":\"" << JsonEscape(snapshot_path.string()) << "\","
-             << "\"clipPath\":\"" << JsonEscape(clip_path.string()) << "\","
-             << "\"entries\":[";
-    for (std::size_t index = 0; index < entries.size(); ++index) {
-        if (index != 0) {
-            manifest << ",";
+    if (release_safe_requested) {
+        manifest << BuildReleaseSafeIncidentEvidenceBundleManifest(
+            event_id, !snapshot_path.empty(), !clip_path.empty(), now_ms, expires_at_ms);
+    } else {
+        manifest << "{"
+                 << "\"schema\":\"media-server.va.event-evidence-bundle.v1\","
+                 << "\"createdAtMs\":" << now_ms << ","
+                 << "\"expiresAtMs\":" << expires_at_ms << ","
+                 << "\"eventId\":\"" << JsonEscape(event_id) << "\","
+                 << "\"scope\":\"event-short-evidence\","
+                 << "\"longRecording\":false,"
+                 << "\"bundleFormat\":\"zip\","
+                 << "\"retentionPolicy\":{\"bundleMaxAgeMs\":" << kEvidenceBundleMaxAgeMs
+                 << ",\"bundleExpiry\":\"signed-token-expiresAtMs\","
+                 << "\"expiredBundleCleanup\":\"token-expiry-no-server-file\"},"
+                 << "\"exportPolicy\":{\"bundleSignedToken\":true,\"tokenParam\":\"token\"},"
+                 << "\"deletePolicy\":{\"evidenceFileDelete\":false,\"evidenceFileDeletePermission\":\"blocked-for-all-roles\"},"
+                 << "\"snapshotPath\":\"" << JsonEscape(snapshot_path.string()) << "\","
+                 << "\"clipPath\":\"" << JsonEscape(clip_path.string()) << "\","
+                 << "\"entries\":[";
+        for (std::size_t index = 0; index < entries.size(); ++index) {
+            if (index != 0) {
+                manifest << ",";
+            }
+            manifest << "\"" << JsonEscape(entries[index].name) << "\"";
         }
-        manifest << "\"" << JsonEscape(entries[index].name) << "\"";
+        manifest << "]}";
     }
-    manifest << "]}";
     if (!AppendZipEntry(&zip, &entries, "manifest.json", manifest.str(), error_message) ||
         !FinalizeZip(&zip, entries, error_message)) {
         return false;
     }
 
     const std::string safe_id = event_id.empty() ? std::to_string(NowUnixMs()) : event_id;
-    *download_name = "event-evidence-" + safe_id + ".zip";
+    *download_name = std::string(release_safe_requested ? "redacted-incident-evidence-" : "event-evidence-") + safe_id + ".zip";
     *zip_body = std::move(zip);
     return true;
 }

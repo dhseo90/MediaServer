@@ -2116,10 +2116,16 @@ void AppendOpsShellScript(std::ostringstream& out,
           params.set('download', '1');
           return Object.fromEntries(params.entries());
         };
+        const releaseSafeBundlePayload = item => {
+          const payload = bundlePayload(item);
+          payload.releaseSafe = '1';
+          return payload;
+        };
         const actions = [
           snapshotPath ? `<a class="button button-secondary button-compact" href="${escapeHtml(evidenceHref(snapshotPath))}">snapshot 다운로드</a>` : '',
           clipPath ? `<a class="button button-secondary button-compact" href="${escapeHtml(evidenceHref(clipPath))}">clip manifest</a>` : '',
-          (snapshotPath || clipPath) ? `<button type="button" class="button button-secondary button-compact" data-evidence-bundle="${escapeHtml(JSON.stringify(bundlePayload(item)))}">signed bundle zip</button>` : ''
+          (snapshotPath || clipPath) ? `<button type="button" class="button button-secondary button-compact" data-evidence-bundle="${escapeHtml(JSON.stringify(bundlePayload(item)))}">signed bundle zip</button>` : '',
+          (snapshotPath || clipPath) ? `<button type="button" class="button button-secondary button-compact" data-release-safe-evidence-bundle="redacted incident evidence bundle" data-evidence-bundle="${escapeHtml(JSON.stringify(releaseSafeBundlePayload(item)))}">release-safe bundle</button>` : ''
         ].filter(Boolean).join('');
         return `<div class="event-evidence-cell">
           <div class="badge-row">${badges.join('')}</div>
