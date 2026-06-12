@@ -589,7 +589,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | SAFE-018 | client/viewer debug 정보 비노출 | 필요 | 필요 | 안정화, UI | client 화면/API에 debug/source/raw 정보 없음 |
 | SAFE-019 | auth material 비노출 | 필요 | 필요 | 안정화, UI | password/token/session material이 artifact/UI/API에 없음 |
 | SAFE-020 | 운영 UI와 client UI 권한 경계 분리 | 필요 | 필요 | 안정화, UI | ops/client nav, route, action guard가 role별로 분리 |
-| SAFE-021 | UI blocking dialog policy | 필요 | 필요 | 안정화, UI | native alert/confirm/prompt와 blocking beforeunload는 금지하고, allowlisted read-only dialog와 제품 화면 안 2회 확인 흐름만 허용 |
+| SAFE-021 | UI blocking dialog policy | 필요 | 필요 | 안정화, UI | `verify-ui-blocking-dialog-policy`가 native alert/confirm/prompt와 blocking beforeunload 금지, allowlisted read-only dialog, 제품 화면 안 2회 확인 흐름만 허용하는 정책을 확인 |
 | SAFE-022 | VLM 설치/연결 UI scope gate | 비대상 | 필요 | 안정화 | `verify-vlm-install-connection-scope-gate`가 Ops-only S04 UI 준비 허용, profile 저장/VLM runtime 호출/sidecar 저장/cloud provider API 호출/schema/media path 변경 금지, viewer/client 비노출 경계를 확인 |
 | SAFE-023 | VLM profile 저장 scope gate | 비대상 | 필요 | 안정화 | `verify-vlm-profile-storage`가 S05 profile 저장만 허용하고 VLM runtime 호출, sidecar 저장, cloud provider API 호출, credential/prompt/raw response/source URL 저장, Event/WebRTC/SSE/WS schema와 media path 변경을 금지 |
 | SAFE-024 | VLM Privacy/전송 guard | 필요 | 필요 | 안정화, UI | `verify-vlm-privacy-transfer-guard`와 Ops/Client UI leak guard가 cloud 외부 전송 경고, provider logging/retention accepted review, credential/prompt/raw response/source URL/raw frame bytes 비노출을 확인 |
