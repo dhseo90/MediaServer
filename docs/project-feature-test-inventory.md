@@ -39,12 +39,12 @@ source-of-truth입니다.
 | 항목 | 수 |
 | --- | ---: |
 | 전체 기능 항목 | 428 |
-| UI 직접 필요 | 247 |
+| UI 직접 필요 | 250 |
 | UI 간접 필요 | 29 |
 | UI 비대상 | 149 |
-| 테스트 필요 | 425 |
-| 안정화 대상 | 415 |
-| UI 풀테스트 대상 | 265 |
+| 테스트 필요 | 428 |
+| 안정화 대상 | 418 |
+| UI 풀테스트 대상 | 268 |
 | 30분 soak 대상 | 47 |
 | 120분 대상 | 7 |
 
@@ -58,7 +58,7 @@ close-out과 과거 UI 풀테스트 실행 evidence는
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 417개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 428개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정했지만, 각 행의 line-level 증적은 별도 대조 필요 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리했지만, inventory 자체는 브라우저 직접 조작 evidence를 보관하지 않음 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -86,10 +86,11 @@ close-out과 과거 UI 풀테스트 실행 evidence는
 | v2.3.0 S06 Ops backup/recovery evidence lifecycle | `OPS-035`, [ops-backup-recovery.md](./ops-backup-recovery.md), `media-server.v230-ops-backup-recovery-lifecycle.v1`을 staging drill, redacted evidence bundle, retention cleanup 기준에 연결 | `verify-v230-ops-backup-recovery-lifecycle`은 안정화 gate이며, 운영 데이터 백업 완료, UI 직접 확인, 30분/120분 longrun을 대체하지 않음 |
 | v2.3.0 S07 Integrator contract conformance | 기존 `SAFE-001`~`SAFE-004`, `SAFE-018`, live Event POST/WebRTC/SSE/WS contract artifact를 checksum/conformance companion에 연결 | `verify-integrator-contract-artifact`와 runtime delivery smoke는 안정화 evidence이며, UI 직접 확인이나 30분/120분 longrun을 대체하지 않음 |
 
-## v2.5.0 Semantic Incident Memory Planned Mapping
+## v2.5.0 Semantic Incident Memory Coverage Mapping
 
-이 절은 `planning-only-not-execution-evidence`입니다. v2.5.0 S03~S09는 실제 기능
-구현 단계에서 feature ID, route/control/action, verifier, UI 풀테스트 행을 추가합니다.
+이 절은 `mapping-only-not-execution-evidence`입니다. v2.5.0 S01~S09는 실제 기능
+구현 단계에서 feature ID, route/control/action, verifier, UI 풀테스트 기준으로
+승격됐습니다.
 V250-S01은 구현 단계에서 `EVT-039`, `LAB-063`, `SAFE-043`과
 `verify-v250-incident-text-projection`으로 승격됐고, V250-S02는 `EVT-040`,
 `LAB-064`, `SAFE-044`와 `verify-v250-incident-memory-index`로 승격됐습니다.
