@@ -1,6 +1,6 @@
 # VLM Event Explanation And False-Positive Hints
 
-이 문서는 `v2.0.0 V200-S09 이벤트 설명/오탐 힌트`의 source-of-truth입니다.
+이 문서는 `v2.0.0 V200-S09 이벤트 설명/오탐 힌트`의 세부 기준 문서입니다.
 S09는 S07 evidence reference와 S08 observation 저장 계약 위에서 이벤트 설명,
 화면 내 객체/영역 관계, 오탐 가능성, 운영자 확인 질문을 fixture 기반으로 생성합니다.
 

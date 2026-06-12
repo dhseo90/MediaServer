@@ -1,7 +1,7 @@
 # Runtime/Model Bundle RC Rehearsal
 
 이 문서는 `v2.1.0 V210-S11 Runtime/model bundle RC rehearsal`의
-source-of-truth입니다. 실제 binary/runtime/model bundle을 만들거나 release asset을
+세부 rehearsal 기준입니다. 실제 binary/runtime/model bundle을 만들거나 release asset을
 업로드하지 않고, 향후 RC에서 runtime/model 포함 배포를 검토할 때 필요한 차단 조건과
 evidence 구조만 rehearsal합니다.
 

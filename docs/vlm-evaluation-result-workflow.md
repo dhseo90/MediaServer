@@ -1,6 +1,6 @@
 # VLM Evaluation Result Workflow
 
-이 문서는 `v2.1.0 V210-S06 VLM evaluation result workflow`의 source-of-truth입니다.
+이 문서는 `v2.1.0 V210-S06 VLM evaluation result workflow`의 세부 기준 문서입니다.
 S06은 기존 `media-server.vlm-evaluation-report.v1` fixture 평가 결과를 `/ops/vlm`
 운영 화면에서 비교하고, 운영자가 model/prompt profile 후보를 profile draft에 반영할
 수 있게 합니다.

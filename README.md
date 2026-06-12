@@ -3,7 +3,7 @@
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
 [![Published Release](https://img.shields.io/badge/published-v2.4.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
-[![Release Target](https://img.shields.io/badge/target-v2.5.0-informational)](https://github.com/dhseo90/MediaServer/releases/tag/v2.5.0)
+![Release Target](https://img.shields.io/badge/target-v2.5.0-informational)
 
 RTSP/WebRTC live stream을 받아 다시 내보내고, 필요할 때 YOLO/ONNX 영상 분석
 overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다.
@@ -15,7 +15,7 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 - English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 - 전체 문서 색인: [docs/README.md](docs/README.md)
 - 최신 공개 release: [v2.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
-- 현재 릴리즈 target: [v2.5.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.5.0)
+- 현재 릴리즈 target: `v2.5.0` (GitHub Release publish 전 target이며 release 링크로 쓰지 않음)
 - 릴리즈 기준: `v2.5.0 Semantic Incident Memory`
 
 ## 한눈에 보기
@@ -125,7 +125,7 @@ README는 제품을 빠르게 파악하기 위한 문서입니다. 세부 정책
 - release/version 기준: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
-- release notes target: [v2.5.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.5.0)
+- release notes target: `v2.5.0` (GitHub Release publish 전에는 release notes 링크 없음)
 - 최신 공개 release notes: [v2.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
 - 활성 roadmap: [docs/development-backlog.md](docs/development-backlog.md)의
   `v2.5.0 Semantic Incident Memory`

@@ -1,6 +1,6 @@
 # VLM Event Evidence Extraction
 
-이 문서는 `v2.0.0 V200-S07 이벤트 evidence 추출`의 source-of-truth입니다.
+이 문서는 `v2.0.0 V200-S07 이벤트 evidence 추출`의 세부 기준 문서입니다.
 S07는 YOLO/Rule/Scenario 이벤트가 이미 발생한 뒤, VLM 입력 후보로 쓸 수 있는
 짧은 evidence reference를 EventRecord 내부 metadata에 분리합니다.
 

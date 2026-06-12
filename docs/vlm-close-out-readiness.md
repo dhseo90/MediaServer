@@ -3,9 +3,9 @@
 schema: `media-server.vlm-close-out-readiness.v1`
 targetStep: `V200-S18`
 status: `readiness-recorded`
-updated: 2026-05-31
+updated: 2026-06-12
 
-이 문서는 `v2.0.0 V200-S18 v2.0.0 close-out readiness`의 source-of-truth입니다.
+이 문서는 `v2.0.0 V200-S18 v2.0.0 close-out readiness`의 readiness 기록입니다.
 S18은 v2.0.0 VLM 로드맵의 스크립트 테스트, UI 풀테스트, 30분, 120분, 미실행,
 제외, 미확인을 서로 대체하지 않도록 release evidence로 정리하는 단계입니다.
 이 문서는 release tag, GitHub Release, main merge, runtime/model bundle release,
@@ -26,8 +26,8 @@ S18에서 닫는 것은 `v2.0.0 VLM 기반 AI 대형 업데이트`의 close-out 
   RC/high-risk gate가 있을 때만 실행합니다.
 - Cloud/provider field smoke: provider credential과 external endpoint가 없으므로
   실행하지 않습니다. local smoke PASS로 provider 성공을 대체하지 않습니다.
-- Push: 사용자가 S18 완료 후 push를 명시했으므로, S18 안정성 검토가 PASS이고
-  미커밋 변경이 없으면 commit 후 push합니다.
+- Push: 이 항목은 S18 당시의 push 지시 기록일 뿐이며, 현재 작업의 commit/push
+  권한으로 재사용하지 않습니다. 현재 권한은 AGENTS.md와 최신 사용자 지시에 따릅니다.
 
 Fallback은 문서/fixture/verifier 기반 close-out readiness입니다. 30분/UI/120분을
 실행하지 않은 상태는 `미실행`으로 보존하며, release 완료나 UI PASS로 승격하지

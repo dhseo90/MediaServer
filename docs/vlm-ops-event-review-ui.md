@@ -1,6 +1,6 @@
 # VLM Ops Event Review UI
 
-이 문서는 `v2.0.0 V200-S10 Ops 이벤트 리뷰 UI`의 source-of-truth입니다.
+이 문서는 `v2.0.0 V200-S10 Ops 이벤트 리뷰 UI`의 세부 기준 문서입니다.
 S10은 `/ops/events`의 Rule Event Review Inbox에서 EventRecord, snapshot/short clip
 evidence 상태, VLM 설명/오탐 힌트/운영자 질문을 함께 보여주는 Ops 전용 화면 작업입니다.
 

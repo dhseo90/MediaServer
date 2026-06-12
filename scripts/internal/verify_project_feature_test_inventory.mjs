@@ -67,6 +67,7 @@ check("required sections exist", () => {
     "## Verifier Coverage Map",
     "## VA Manual UI Seed Matrix",
     "## 30-Minute And 120-Minute Mapping",
+    "## Coverage Start Conditions",
     "## A. Screen And Route",
     "## B. Auth, Account, Role, Scope",
     "## C. Channel, Source, Published View",
@@ -273,7 +274,6 @@ check("current feature expansion rows exist", () => {
     "`MEDIA-001`~`MEDIA-021`",
     "`LAB-001`~`LAB-068`",
     "`SAFE-001`~`SAFE-051`",
-    "V200-S00~S18 및 V210-S00~S12 변경분",
     "VLM route, control, action, runtime state, sidecar, privacy guard",
   ]) {
     requireText(inventory, snippet, `inventory missing current expansion snippet: ${snippet}`);

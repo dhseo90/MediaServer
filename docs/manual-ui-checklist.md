@@ -2,7 +2,7 @@
 
 이 문서는 앞으로 "UI 풀테스트"라고 부르는 작업의 실행 체크리스트입니다.
 기준 정의와 범위는 [manual-ui-fulltest.md](./manual-ui-fulltest.md)를
-source-of-truth로 삼고, 기능별 UI 필요 여부와 테스트 영역은
+세부 기준으로 삼고, 기능별 UI 필요 여부와 테스트 영역은
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 합니다. 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를
 사용합니다. 최신 공개 release 기준은 `v2.4.0`이며, 현재 release 목표는 `v2.5.0`,
@@ -27,7 +27,8 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
 수행합니다. 30분 테스트는 장기간 테스트 지시의 기본값이고, 버전 로드맵 완료 후
 close-out에서도 명시 요청/승인이 없으면 미실행으로 기록합니다. 120분 테스트는
 메모리 릭/장시간 누수 감시가 필요할 때 사용자에게 먼저 말한 뒤 수행합니다.
-UI 풀테스트도 버전 로드맵 완료 시 수행합니다.
+UI 풀테스트도 버전 로드맵 완료 시 수행 대상이지만, 실제 실행은 사용자 지시 또는
+명시 승인 후에만 진행합니다.
 
 ## 1. 사전 파악
 
@@ -102,9 +103,10 @@ UI 풀테스트도 버전 로드맵 완료 시 수행합니다.
   EventRecord evidence와 함께 확인하고, `/client/live`, `/client/dashboard`,
   `/client/events`에서 VLM model/prompt/raw response/provider/internal review card가
   보이지 않는지 확인합니다.
-- four-stage mapping은 [project-feature-test-inventory.md](./project-feature-test-inventory.md)의
-  `Four-Stage Coverage Mapping`을 기준으로 확인합니다. 이 mapping은 실행 결과가 아니라
-  안정화/30분/120분/UI 풀테스트에 포함할 대상을 빠뜨리지 않기 위한 기준입니다.
+- coverage mapping은 [project-feature-test-inventory.md](./project-feature-test-inventory.md)의
+  `v2.5.0 Semantic Incident Memory Coverage Mapping`과 `Coverage Start Conditions`를
+  기준으로 확인합니다. 이 mapping은 실행 결과가 아니라 안정화/30분/120분/UI
+  풀테스트에 포함할 대상을 빠뜨리지 않기 위한 기준입니다.
 - destructive action은 throwaway 계정, 채널, 접근 요청으로만 수행합니다.
 - UI smoke 전용 HTML selector 검증은 필요 시 별도 서버에서
   `./server.sh verify-ops-client-ui --screenshots`로 실행하되, 이 결과만으로
@@ -121,8 +123,8 @@ UI 풀테스트도 버전 로드맵 완료 시 수행합니다.
 
 아래 항목이 하나라도 비어 있으면 30분, 120분, UI 풀테스트를 시작하지 않습니다.
 
-- 기능/route/control/action mapping: `Four-Stage Coverage Mapping`,
-  `Four-Stage Start Conditions`, `/ops/vlm`, `/client/events`, VLM client redaction.
+- 기능/route/control/action mapping: `v2.5.0 Semantic Incident Memory Coverage Mapping`,
+  `Coverage Start Conditions`, `/ops/vlm`, `/client/events`, VLM client redaction.
 - auth/env: auth verifier password env 5개가 `SET`인지, users file과 session state가
   throwaway인지 확인합니다.
 - fixture/output: source/view/analysis/event/snapshot/clip 경로, seed dry-run 결과,
@@ -136,7 +138,7 @@ UI 풀테스트도 버전 로드맵 완료 시 수행합니다.
 고친 뒤 해당 안정화 조건만 다시 확인하고, 아직 시작하지 않은 30분/120분/UI 결과는
 `미실행`으로 남깁니다.
 
-### v2.2.0 UI Evidence Close-out four-stage mapping
+### v2.2.0 UI Evidence Close-out coverage mapping
 
 v2.2.0 UI Evidence Close-out은 새 로드맵 기준에서 기능 inventory,
 manual-ui-result-template.md, manual UI checklist가 같은 범위를 가리키는지 먼저
@@ -364,7 +366,8 @@ Codex 세션의 UI 조작 evidence는 인앱 브라우저 직접 조작을 우�
 - 결과는 [manual-ui-result-template.md](./manual-ui-result-template.md)에 기록합니다.
 - 기능별 조작 결과는 [project-feature-test-inventory.md](./project-feature-test-inventory.md)의
   ID를 함께 적어, route 단위 PASS가 기능 단위 PASS로 과장되지 않게 합니다.
-- 확인됨: 실제 클릭한 화면, 통과한 명령, 생성한 fixture, 수정/커밋 파일
+- 확인됨: 실제 클릭한 화면, 통과한 명령, 생성한 fixture, 수정 파일,
+  사용자 승인으로 커밋한 경우 커밋 파일
 - 개별 UI 결과: 모든 기능 ID/route/control/action을 묶지 않고 `PASS` 또는 `FAIL`로 기록
 - 제외 기록: 사용자가 명시 제외한 실기기/외부 credential/scope 밖 항목만 별도 기록
 - 실패: PASS 조건을 충족하지 못한 모든 개별 UI 기능, 실패 명령, 원인, 영향 범위,

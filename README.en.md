@@ -3,7 +3,7 @@
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
 [![Published Release](https://img.shields.io/badge/published-v2.4.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
-[![Release Target](https://img.shields.io/badge/target-v2.5.0-informational)](https://github.com/dhseo90/MediaServer/releases/tag/v2.5.0)
+![Release Target](https://img.shields.io/badge/target-v2.5.0-informational)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
 video analytics overlays and rule/scenario live events when analytics are enabled.
@@ -15,7 +15,7 @@ runtime/model bundle distribution are outside the default release scope.
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
 - Latest published release: [v2.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
-- Current release target: [v2.5.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.5.0)
+- Current release target: `v2.5.0` (target only before GitHub Release publish; not a release link)
 - Release baseline: `v2.5.0 Semantic Incident Memory`
 
 ## At a Glance
@@ -145,7 +145,7 @@ release evidence live in dedicated docs.
 - Release/version policy: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - Release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
-- Release notes target: [v2.5.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.5.0)
+- Release notes target: `v2.5.0` (no release notes link before GitHub Release publish)
 - Latest published release notes: [v2.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
 - Active roadmap: `v2.5.0 Semantic Incident Memory` in
   [docs/development-backlog.md](docs/development-backlog.md)

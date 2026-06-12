@@ -1,6 +1,6 @@
 # VLM Rule Suggestion Candidates
 
-이 문서는 `v2.0.0 V200-S13 Rule 추천 보조 후보`의 source-of-truth입니다.
+이 문서는 `v2.0.0 V200-S13 Rule 추천 보조 후보`의 세부 기준 문서입니다.
 S13은 S08 VLMObservation sidecar에 이미 저장된 `ruleSuggestion` object를 읽어
 line-crossing, intrusion-dwell, zone-occupancy 후보를 산출합니다. 후보는 운영자
 검토와 `/ops/rules` 수동 저장을 돕기 위한 것이며, 자동 Rule/Profile 생성이나 적용은

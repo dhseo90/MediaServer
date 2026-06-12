@@ -1,6 +1,6 @@
 # VLM Summary Search Candidates
 
-이 문서는 `v2.0.0 V200-S12 VLM summary 검색 후보`의 source-of-truth입니다.
+이 문서는 `v2.0.0 V200-S12 VLM summary 검색 후보`의 세부 기준 문서입니다.
 S12는 S08 VLMObservation sidecar에 이미 저장된 `summary`, `eventExplanation`,
 `falsePositiveHints[]`, `operatorReviewQuestions[]`를 이용해 semantic event search
 후보를 산출합니다. 검색은 후보 단계이며 제품 검색 UI, vector index, provider rerank,

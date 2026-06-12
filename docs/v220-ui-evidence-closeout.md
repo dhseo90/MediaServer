@@ -19,7 +19,7 @@ credential 조건이 PASS가 됐다는 뜻이 아닙니다. 실행하지 않은 
 | UI 결과 기록 | [manual-ui-result-template.md](./manual-ui-result-template.md)가 F02~F06 로드맵 항목, 직접 UI 조작, 스크립트 테스트, 30분/120분, 제외 기록을 분리해 기록하게 합니다. |
 | 안정성 verifier | `verify-v220-ui-evidence-closeout`이 이 연결을 정적 검증하고, `verify-manual-ui-evidence`가 기존 manual UI result 구조를 계속 검증합니다. |
 
-## F02~F06 Four-Stage Mapping
+## F02~F06 Coverage Mapping
 
 UI 풀테스트를 시작하기 전에는 아래 항목을 기능별로 확인합니다.
 

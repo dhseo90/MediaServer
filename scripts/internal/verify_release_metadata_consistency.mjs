@@ -114,9 +114,11 @@ check("VERSION matches CMake project VERSION", () => {
   return { version };
 });
 
-check("README.md current release link points at current tag", () => {
+check("README.md current release target is not an unpublished release link", () => {
   const readme = readText("README.md");
-  assert(readme.includes(`현재 릴리즈 target: [${currentTag}](${expectedReleaseUrl})`), "README.md current release target link drifted");
+  assert(readme.includes(`현재 릴리즈 target: \`${currentTag}\``), "README.md current release target wording drifted");
+  assert(!readme.includes(`현재 릴리즈 target: [${currentTag}](${expectedReleaseUrl})`), "README.md must not link unpublished current target as a release");
+  assert(!readme.includes(`release notes target: [${currentTag}](${expectedReleaseUrl})`), "README.md must not link unpublished release notes target");
   assertAllowedReleaseLinks(readme, "README.md", currentTag);
   return { file: "README.md", currentTag, expectedReleaseUrl };
 });
@@ -128,9 +130,11 @@ check("README.md keeps release source-of-truth links lightweight", () => {
   return { file: "README.md", currentTag };
 });
 
-check("README.en.md current release link points at current tag", () => {
+check("README.en.md current release target is not an unpublished release link", () => {
   const readmeEn = readText("README.en.md");
-  assert(readmeEn.includes(`Current release target: [${currentTag}](${expectedReleaseUrl})`), "README.en.md current release target link drifted");
+  assert(readmeEn.includes(`Current release target: \`${currentTag}\``), "README.en.md current release target wording drifted");
+  assert(!readmeEn.includes(`Current release target: [${currentTag}](${expectedReleaseUrl})`), "README.en.md must not link unpublished current target as a release");
+  assert(!readmeEn.includes(`Release notes target: [${currentTag}](${expectedReleaseUrl})`), "README.en.md must not link unpublished release notes target");
   assertAllowedReleaseLinks(readmeEn, "README.en.md", currentTag);
   return { file: "README.en.md", currentTag, expectedReleaseUrl };
 });
@@ -412,7 +416,10 @@ check("docs index points to backlog as current release source of truth", () => {
         text.includes(`${currentTag} 종료 판정`) ||
         text.includes(`${currentTag} patch close-out`) ||
         text.includes(`현재 릴리즈 target: [${currentTag}]`) ||
-        text.includes(`Current release target: [${currentTag}]`),
+        text.includes(`Current release target: [${currentTag}]`) ||
+        text.includes(`현재 릴리즈 target: \`${currentTag}\``) ||
+        text.includes(`Current release target: \`${currentTag}\``) ||
+        text.includes(`Current release target: ${currentTag}`),
       `${label} missing current release wording`
     );
   }

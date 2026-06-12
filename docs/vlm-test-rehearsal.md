@@ -1,6 +1,6 @@
 # VLM Test Rehearsal
 
-이 문서는 `v2.0.0 V200-S15 간이 테스트 리허설`의 source-of-truth입니다.
+이 문서는 `v2.0.0 V200-S15 간이 테스트 리허설`의 세부 기준 문서입니다.
 S15는 안정화, 30분, 120분, UI 풀테스트를 실행하기 전에 VLM 전용 짧은 smoke와
 failure fixture가 막히지 않는지 확인하는 단계입니다. 이 문서와 verifier는
 실제 VLM runtime 호출, model download, cloud provider API 호출, longrun, UI

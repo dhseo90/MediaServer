@@ -80,8 +80,8 @@ check(
     'V220-F05 Client Preview / Viewer Redaction',
     'V220-F06 UI Evidence Close-out',
   ].every(needle => inventory.includes(needle)) &&
-    inventory.includes('Four-Stage Coverage Mapping') &&
-    inventory.includes('Four-Stage Start Conditions')
+    inventory.includes('v2.5.0 Semantic Incident Memory Coverage Mapping') &&
+    inventory.includes('Coverage Start Conditions')
 );
 
 check(

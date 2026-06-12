@@ -1,6 +1,6 @@
 # VLM Evaluation Harness
 
-이 문서는 `v2.0.0 V200-S06 VLM 평가 harness`의 source-of-truth입니다.
+이 문서는 `v2.0.0 V200-S06 VLM 평가 harness`의 세부 기준 문서입니다.
 S06는 실제 모델을 자동 설치하거나 provider API를 호출하지 않고,
 `fixture-captured-output-only` 방식으로 latency, 설명 품질, hallucination, JSON 안정성,
 한국어/영어 출력 품질을 비교하는 평가 harness를 고정합니다.

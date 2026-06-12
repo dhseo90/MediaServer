@@ -1,38 +1,26 @@
 # Project Feature Test Inventory
 
-이 문서는 현재 release 목표 `v2.5.0` 기준의 기능별 테스트 분류
-source-of-truth입니다.
-여기서 `현재 release 목표`는 `VERSION`/CMake가 고정한 active release target을
-뜻합니다. 최신 공개 release baseline은 `v2.4.0`이고, active roadmap은
-`v2.5.0 Semantic Incident Memory`이며, 두 기준은 완료 판정에서
-분리합니다.
+이 문서는 현재 release 목표 `v2.5.0` 기준의 기능별 테스트 분류 기준표입니다.
+독자는 개발/테스트 에이전트이며, lifecycle은 active release target 동안 유지되는 test inventory입니다.
+AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, 이 문서는 기능 ID와 테스트 영역만 관리합니다.
 
 중요한 경계:
 
 - 이 문서는 **테스트 실행 결과 문서가 아닙니다**.
 - 이 문서는 **현재 테스트가 존재한다는 증거가 아닙니다**.
-- 이 문서는 각 기능에 대해 `UI 필요 여부`, `테스트 필요 여부`, `테스트 영역`,
-  `PASS 판정 기준`을 먼저 고정합니다.
 - coverage 대조 전에는 `테스트 있음`, `UI 있음`, `완료`라고 보고하지 않습니다.
-- 실제 coverage는 별도 대조에서 `코드 로직`, `제품 UI`, `안정화`, `30분`,
-  `120분`, `UI 풀테스트 evidence` 존재 여부를 확인해야 합니다.
 - raw JSON/API-only 확인은 UI 풀테스트 evidence가 아닙니다.
 - 테스트 영역은 `안정화`, `30분`, `120분`, `UI` 네 가지만 사용합니다.
-  실기기/외부 endpoint/credential 조건은 다섯 번째 테스트 영역으로 빼지 않고
-  안정화의 조건부 verifier 또는 UI 풀테스트 제외 기록에 편입합니다.
+- 실기기/외부 endpoint/credential 조건은 별도 영역이 아니라 안정화 조건 또는 UI 제외 기록에 편입합니다.
 
 ## Test Area Roles
 
 | 영역 | 역할 | PASS evidence | 대체 불가 |
 | --- | --- | --- | --- |
-| 안정화 | build, static, API/schema, auth route, media path, verifier 중심의 선수 테스트 | 실제 명령, exit code 0, summary/report fail 0, 실패/skip 사유 | 30분/120분 장시간 PASS, UI 직접 조작 evidence |
-| 30분 | 장기간 테스트 지시 시 기본 soak, 버전 close-out에서 필요 항목으로 기록 | `verify-predev --soak-minutes 30` 또는 해당 long session report | 안정화, 120분, UI 풀테스트 |
+| 안정화 | build, static, API/schema, auth route, media path, verifier 중심 선수 테스트 | 실제 명령, exit code 0, summary/report fail 0, 실패/skip 사유 | 30분/120분 장시간 PASS, UI 직접 조작 evidence |
+| 30분 | 장기간 테스트 지시 시 기본 soak | `verify-predev --soak-minutes 30` 또는 해당 long session report | 안정화, 120분, UI 풀테스트 |
 | 120분 | 메모리 릭, 장시간 누수, runtime drift 감시 | 사용자 승인 후 120분 longrun report | 안정화, 30분, UI 풀테스트 |
-| UI | 인앱 브라우저에서 직접 클릭/타이핑/선택/반응형/시각 품질/role guard 확인 | route, 계정/권한, viewport/theme, 직접 조작, screenshot/artifact, 재검수 결과 | 스크립트 smoke, raw JSON/API-only 확인 |
-
-실기기/외부 endpoint/credential 조건은 위 표 밖의 별도 테스트 영역이 아닙니다.
-해당 명령 이름에 `field`가 포함돼도 실행/미실행/제외 사유는 `안정화` 또는
-`UI 풀테스트` 기록 안에 남깁니다.
+| UI | 인앱 브라우저 직접 클릭/타이핑/선택/반응형/시각 품질/role guard 확인 | route, 계정/권한, viewport/theme, 직접 조작, screenshot/artifact, 재검수 결과 | 스크립트 smoke, raw JSON/API-only 확인 |
 
 ## Summary
 
@@ -50,215 +38,107 @@ source-of-truth입니다.
 
 ## Current Coverage Status
 
-이 절은 inventory 문서 자체의 coverage 상태입니다. 실제 안정화 테스트,
-30분 soak, 120분 longrun, UI 풀테스트를 실행했다는 뜻이 아닙니다. v2.2.0 release
-close-out과 과거 UI 풀테스트 실행 evidence는
-[release-evidence-index.md](release-evidence-index.md)의 Test Token Usage Ledger로
-병합해 보관하며, inventory 자체는 현재 release UI gate를 대체하지 않습니다.
+이 절은 inventory 문서 자체의 coverage 상태입니다. 실제 안정화 테스트, 30분 soak, 120분 longrun, UI 풀테스트를 실행했다는 뜻이 아닙니다.
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
 | 기능 ID 목록 | 428개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
-| 코드 로직 위치 | ID prefix별 owner source를 지정했지만, 각 행의 line-level 증적은 별도 대조 필요 | 실행 증거 아님 |
-| 제품 UI 위치 | UI 필요/간접/비대상을 분리했지만, inventory 자체는 브라우저 직접 조작 evidence를 보관하지 않음 | inventory 단독으로 UI PASS 판정 불가 |
+| 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
+| 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
 | 30분 테스트 매핑 | 30분 대상 기능을 media/session/runtime 중심으로 분리 | 기준표 작성 완료 |
-| 120분 테스트 매핑 | memory leak/runtime drift 조건부 대상 7개 분리 | 기준표 작성 완료 |
+| 120분 테스트 매핑 | memory leak/runtime drift 조건부 대상 분리 | 기준표 작성 완료 |
 | VA seed 데이터 | `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`로 numeric ID/API payload 기준 full UI seed matrix를 고정 | 준비 기준일 뿐 실행 증거 아님 |
-| UI 풀테스트 결과 | 기능 ID별 result template 기록란 추가. 실행 결과는 release evidence 문서에서 관리 | 결과 문서 없이 inventory만으로 UI PASS 판정 불가 |
-| UI fulltest one-shot wrapper | `./server.sh verify-ui-fulltest-one-shot`이 throwaway core/auth 서버와 UI verifier 묶음을 순차 실행 | 30분/120분 longrun은 실행하지 않으며, wrapper PASS만으로 장시간 안정화 PASS가 되지 않음 |
-| Coverage gate | `./server.sh verify-feature-inventory-coverage`가 `media-server.feature-inventory-coverage.v1` report로 기능 ID별 verifier/UI evidence/longrun 연결을 점검하고 네 테스트 영역 밖 분류를 거부 | `missing coverage target` 누락 ID는 release gate에서 FAIL |
-| VLM route, control, action, runtime state, sidecar, privacy guard | V200-S14~V210-S12 기준으로 `/ops/vlm`, `/ops/events` VLM review, `/ops/rules` draft, VLMObservation sidecar, summary/rule suggestion 후보, privacy/redaction/no-auto-apply 경계를 기능 ID 단위로 확장 | 실행 evidence가 아니며, 실제 UI 풀테스트와 장시간 안정화는 별도 단계에서 PASS/FAIL로 기록 |
-| v2.2.0 S05 Ops workspace redesign | 기존 `UI-009`, `UI-010`, `UI-014`를 `/ops/home`, `/ops/dashboard`, `/ops/events` responsive workspace 기준에 연결 | `verify-v220-ops-workspace-redesign`과 Ops UI smoke는 안정화 evidence이며, 인앱 브라우저 UI 풀테스트 결과를 대체하지 않음 |
-| v2.2.0 S06 Rules workspace redesign | 기존 `UI-012`를 `/ops/rules` readiness/assist/catalog/detail responsive workspace 기준에 연결 | `verify-v220-rules-workspace-redesign`과 Rules UI smoke는 안정화 evidence이며, 인앱 브라우저 UI 풀테스트 결과를 대체하지 않음 |
-| v2.2.0 S07 Client live redesign | 기존 `UI-015`, `UI-016`, `UI-017`을 `/client/live`, `/client/dashboard`, `/client/events` viewer-first responsive workspace 기준에 연결 | `verify-v220-client-live-redesign`과 Client UI smoke는 안정화 evidence이며, 인앱 브라우저 UI 풀테스트 결과를 대체하지 않음 |
-| v2.2.0 S08 Auth/setup redesign | 기존 `UI-002`, `UI-003`, `UI-004`, `UI-007`, `UI-008`을 auth/setup responsive form 기준에 연결 | `verify-v220-auth-setup-redesign`과 Auth smoke는 안정화 evidence이며, 인앱 브라우저 UI 풀테스트 결과를 대체하지 않음 |
-| v2.2.0 F02 Ops Channels Workspace 재배치 | 기존 `SRC-*`와 `/ops/sources` UI를 채널 목록, source detail, 입력, PublishedView, audit 작업 단위 기준에 연결 | `verify-v220-ops-channels-workspace`와 Source/UI smoke는 안정화 evidence이며, 인앱 브라우저 UI 풀테스트 결과를 대체하지 않음 |
-| v2.2.0 F03 Ops Users / Access Workspace 재배치 | 기존 `AUTH-*`, `UI-007`, `UI-008`, `UI-013`을 사용자, 접근 요청, 초대, role/scope, audit 작업 단위 기준에 연결 | `verify-v220-ops-users-access-workspace`와 Auth/UI smoke는 안정화 evidence이며, 인앱 브라우저 UI 풀테스트 결과를 대체하지 않음 |
-| v2.2.0 F04 Ops VLM UI containment 정리 | 기존 `/ops/vlm`, `UI-022`~`UI-034`, `SAFE-022`~`SAFE-025`를 Ops 보조 작업, privacy, default-off, profile 상태 containment 기준에 연결 | `verify-v220-ops-vlm-containment`와 기존 VLM verifier는 안정화 evidence이며, provider credential 실행 조건과 인앱 브라우저 UI 풀테스트 결과를 대체하지 않음 |
-| v2.2.0 F05 Client Preview / Viewer Redaction 재검수 | 기존 `UI-015`, `UI-016`, `UI-017`, `SRC-028`, `SRC-029`, `CLIENT-014`, `CLIENT-015`, `CLIENT-018`, `SAFE-018`을 admin preview와 viewer-safe 비노출 재검수 기준에 연결 | `verify-v220-client-preview-redaction-review`와 Client/UI smoke는 안정화 evidence이며, 인앱 브라우저 UI 풀테스트 결과를 대체하지 않음 |
-| v2.2.0 F06 UI Evidence Close-out 준비 | 기능 inventory, [manual-ui-checklist.md](manual-ui-checklist.md), [manual-ui-result-template.md](manual-ui-result-template.md)를 새 로드맵 기준으로 연결 | `verify-v220-ui-evidence-closeout`와 `verify-manual-ui-evidence`는 close-out 준비 기준이며, inventory 자체는 실행 evidence가 아님 |
-| four-stage coverage mapping | 안정화/30분/120분/UI 풀테스트 실행 전 V200-S00~S18 및 V210-S00~S12 변경분을 아래 `Four-Stage Coverage Mapping`에 반영 | 테스트 실행 결과가 아니며, 네 단계 안의 누락 방지용 mapping |
-| v2.3.0 S02 4대 테스트 evidence 정합성 | release evidence index, feature inventory coverage, longrun separation, manual UI evidence 기준을 같은 네 영역으로 연결 | `verify-v230-test-evidence-consistency`가 정합성 gate를 검증합니다. 새 테스트 영역이 아니며 실행 evidence가 아님 |
-| v2.3.0 S03 UI renderer/module decomposition | 기존 `UI-*`, `AUTH-*`, `SRC-*`, `CLIENT-*`, `SAFE-*` owner source를 route renderer, CSS module, JS controller 파일 경계로 분리 | `verify-v230-ui-renderer-module-decomposition`은 module inventory/source ownership 안정화 gate이며, UI 직접 확인이나 30분/120분 longrun을 대체하지 않음 |
-| v2.3.0 S04 조건부 ONVIF/external TURN/WHEP evidence | 기존 `SRC-014`, `MEDIA-021`, `SAFE-039`, [onvif-field-smoke-gate.md](./onvif-field-smoke-gate.md), [external-turn-whep-field-gate.md](./external-turn-whep-field-gate.md)를 조건부 field evidence 기준에 연결 | `verify-v230-conditional-field-evidence`는 approved environment only, redacted field report, not-run is not PASS 경계를 검증하며 실장비 ONVIF 성공과 external TURN/WHEP credential 성공을 기본 release PASS로 쓰지 않음 |
-| v2.3.0 S05 VLM opt-in operational evidence | 기존 `LAB-038`, `LAB-042`, `LAB-056`, `LAB-057`, `SAFE-025`, `SAFE-027`, `SAFE-029`, `SAFE-034`, `SAFE-035`, [vlm-runtime-opt-in-contract.md](./vlm-runtime-opt-in-contract.md), [vlm-local-runtime-connection-smoke.md](./vlm-local-runtime-connection-smoke.md), [vlm-cloud-provider-field-smoke-gate.md](./vlm-cloud-provider-field-smoke-gate.md), [vlm-privacy-transfer-guard.md](./vlm-privacy-transfer-guard.md)를 operator-approved profile promotion, local/provider smoke intake, privacy/default-off evidence 기준에 연결 | `verify-v230-vlm-opt-in-operational-evidence`는 no VLM default-on, provider call 미실행은 PASS가 아님, Sidecar/EventRecord/API schema 분리를 검증하며 실제 provider/model 품질, UI 직접 확인, 30분/120분 longrun을 대체하지 않음 |
-| v2.3.0 S06 Ops backup/recovery evidence lifecycle | `OPS-035`, [ops-backup-recovery.md](./ops-backup-recovery.md), `media-server.v230-ops-backup-recovery-lifecycle.v1`을 staging drill, redacted evidence bundle, retention cleanup 기준에 연결 | `verify-v230-ops-backup-recovery-lifecycle`은 안정화 gate이며, 운영 데이터 백업 완료, UI 직접 확인, 30분/120분 longrun을 대체하지 않음 |
-| v2.3.0 S07 Integrator contract conformance | 기존 `SAFE-001`~`SAFE-004`, `SAFE-018`, live Event POST/WebRTC/SSE/WS contract artifact를 checksum/conformance companion에 연결 | `verify-integrator-contract-artifact`와 runtime delivery smoke는 안정화 evidence이며, UI 직접 확인이나 30분/120분 longrun을 대체하지 않음 |
+| UI 풀테스트 결과 | 기능 ID별 result template 기록란은 별도 문서가 관리 | 결과 문서 없이 inventory만으로 UI PASS 판정 불가 |
+| Coverage gate | `./server.sh verify-feature-inventory-coverage`가 `media-server.feature-inventory-coverage.v1` report로 기능 ID별 연결을 점검 | `missing coverage target` 누락 ID는 release gate에서 FAIL |
+| VLM current expansion | VLM route, control, action, runtime state, sidecar, privacy guard를 현재 기능 ID에 연결 | 실행 증거 아님 |
 
 ## v2.5.0 Semantic Incident Memory Coverage Mapping
 
-이 절은 `mapping-only-not-execution-evidence`입니다. v2.5.0 S01~S09는 실제 기능
-구현 단계에서 feature ID, route/control/action, verifier, UI 풀테스트 기준으로
-승격됐습니다.
-V250-S01은 구현 단계에서 `EVT-039`, `LAB-063`, `SAFE-043`과
-`verify-v250-incident-text-projection`으로 승격됐고, V250-S02는 `EVT-040`,
-`LAB-064`, `SAFE-044`와 `verify-v250-incident-memory-index`로 승격됐습니다.
-V250-S03은 `UI-039`, `EVT-041`, `SAFE-045`와
-`verify-v250-ops-events-semantic-search-ui`로 승격됐습니다.
-V250-S04는 `UI-040`, `EVT-042`, `LAB-065`, `SAFE-046`과
-`verify-v250-incident-timeline-graph`로 승격됐습니다.
-V250-S05는 `UI-041`, `EVT-043`, `LAB-066`, `SAFE-047`과
-`verify-v250-explainable-incident-brief`로 승격됐습니다.
-V250-S06은 `UI-042`, `EVT-044`, `LAB-067`, `SAFE-048`과
-`verify-v250-similar-incident-lookup`으로 승격됐습니다.
-V250-S07은 `CLIENT-023`, `SAFE-049`와 `verify-v250-client-safe-incident-digest`로
-승격됐습니다.
-V250-S08은 `UI-043`, `EVT-045`, `LAB-068`, `SAFE-050`과
-`verify-v250-redacted-incident-evidence-bundle`로 승격됐습니다.
-V250-S09는 `UI-044`, `OPS-036`, `SAFE-051`과
-`verify-v250-owner-release-readiness`로 승격됐습니다.
-남은 planning-only 행만으로 `테스트 있음`, `UI 있음`,
-`완료`, `UI 풀테스트 PASS`라고 보고하지 않습니다.
+이 절은 현재 active target의 기능 ID 연결만 남깁니다. 아래 행은 실행 evidence가 아니며, UI 풀테스트/30분/120분 PASS로 대체하지 않습니다.
 
-| Roadmap scope | Inventory decision | release evidence boundary |
-| --- | --- | --- |
-| V250-S01 Event/incident text projection | `EVT-039`, `LAB-063`, `SAFE-043`으로 projection owner, fixture smoke, redaction boundary를 배정하고 `verify-v250-incident-text-projection`으로 검증 | 검색 UI/SQLite index/model provider 실행 evidence가 아니며 Event POST/WebRTC/SSE/WS/media path schema 변경 evidence도 아님 |
-| V250-S02 Local incident memory index | `EVT-040`, `LAB-064`, `SAFE-044`로 SQLite FTS5 primary, JSONL+BM25 fallback, no model/provider dependency guard를 배정하고 `verify-v250-incident-memory-index`로 검증 | `/ops/events` 검색 UI/API, similarity/timeline/brief, external embedding/provider 실행 evidence가 아님 |
-| V250-S03 `/ops/events` semantic search UI | `UI-039`, `EVT-041`, `SAFE-045`로 `/ops/events` 검색 입력, rule/source/status/time filter, matched evidence highlight, Ops-only search view model을 배정하고 `verify-v250-ops-events-semantic-search-ui`로 검증 | 브라우저 직접 조작과 검색 결과 반영 확인 전에는 UI PASS가 아니며 external embedding/provider 실행 evidence도 아님 |
-| V250-S04 Incident timeline graph | `UI-040`, `EVT-042`, `LAB-065`, `SAFE-046`으로 source state → EventRecord → operator action → alert dry-run → close state graph와 action/audit linkage를 배정하고 `verify-v250-incident-timeline-graph`로 검증 | 브라우저 직접 조작과 실제 운영 데이터 graph 판독 전에는 UI PASS가 아니며 Event POST/WebRTC/SSE/WS/media path schema 변경 evidence도 아님 |
-| V250-S05 Explainable incident brief | `UI-041`, `EVT-043`, `LAB-066`, `SAFE-047`로 action/object/context/environment slot과 VLM default-off guard를 배정하고 `verify-v250-explainable-incident-brief`로 검증 | 실제 provider 호출 성공이나 VLM default-on 근거가 아니며 브라우저 직접 조작 전에는 UI PASS가 아님 |
-| V250-S06 Similar incident lookup | `UI-042`, `EVT-044`, `LAB-067`, `SAFE-048`로 rule/scenario/source/status pattern similarity, deterministic scoring, redaction boundary를 배정하고 `verify-v250-similar-incident-lookup`으로 검증 | 브라우저 직접 조작과 실제 운영 데이터 비교 전에는 UI PASS가 아니며 external embedding/provider 실행 evidence도 아님 |
-| V250-S07 Client-safe incident digest | `CLIENT-023`, `SAFE-049`로 `/client/api/views/{id}/events` incident digest와 viewer-safe redaction boundary를 배정하고 `verify-v250-client-safe-incident-digest`로 검증 | viewer role UI 직접 확인 전에는 UI PASS가 아니며 auth route/scope 직접 evidence도 아님 |
-| V250-S08 Redacted incident evidence bundle | `UI-043`, `EVT-045`, `LAB-068`, `SAFE-050`으로 release-safe bundle action, redacted export manifest, fixture guard, raw/source/provider exclusion boundary를 배정하고 `verify-v250-redacted-incident-evidence-bundle`로 검증 | 실제 다운로드 파일 육안 검수와 UI 직접 조작 전에는 UI PASS가 아니며 raw bundle 검증을 release-safe PASS로 대체하지 않음 |
-| V250-S09 Owner decomposition/release readiness | `UI-044`, `OPS-036`, `SAFE-051`로 event memory/search route owner catalog, manual UI criteria, release readiness gate를 배정하고 `verify-v250-owner-release-readiness`로 검증 | close-out gate와 UI 풀테스트 기준 정리는 안정화 evidence이며 실제 UI 직접 조작, 30분/120분, tag/push/GitHub Release PASS가 아님 |
+| Roadmap scope | Feature IDs | 대표 안정화 verifier | release evidence boundary |
+| --- | --- | --- | --- |
+| V250-S01 Event/incident text projection | `EVT-039`, `LAB-063`, `SAFE-043` | `verify-v250-incident-text-projection` | 검색 UI/SQLite index/model provider 실행 evidence가 아님 |
+| V250-S02 Local incident memory index | `EVT-040`, `LAB-064`, `SAFE-044` | `verify-v250-incident-memory-index` | `/ops/events` UI/API, similarity/timeline/brief, external embedding/provider 실행 evidence가 아님 |
+| V250-S03 `/ops/events` semantic search UI | `UI-039`, `EVT-041`, `SAFE-045` | `verify-v250-ops-events-semantic-search-ui` | 브라우저 직접 조작 전 UI PASS가 아님 |
+| V250-S04 Incident timeline graph | `UI-040`, `EVT-042`, `LAB-065`, `SAFE-046` | `verify-v250-incident-timeline-graph` | 브라우저 직접 조작과 운영 데이터 graph 판독 전 UI PASS가 아님 |
+| V250-S05 Explainable incident brief | `UI-041`, `EVT-043`, `LAB-066`, `SAFE-047` | `verify-v250-explainable-incident-brief` | provider 호출 성공이나 VLM default-on 근거가 아님 |
+| V250-S06 Similar incident lookup | `UI-042`, `EVT-044`, `LAB-067`, `SAFE-048` | `verify-v250-similar-incident-lookup` | external embedding/provider 실행 evidence가 아님 |
+| V250-S07 Client-safe incident digest | `CLIENT-023`, `SAFE-049` | `verify-v250-client-safe-incident-digest` | viewer role UI 직접 확인 전 UI PASS가 아님 |
+| V250-S08 Redacted incident evidence bundle | `UI-043`, `EVT-045`, `LAB-068`, `SAFE-050` | `verify-v250-redacted-incident-evidence-bundle` | 실제 다운로드 파일 육안 검수 전 UI PASS가 아님 |
+| V250-S09 Owner decomposition/release readiness | `UI-044`, `OPS-036`, `SAFE-051` | `verify-v250-owner-release-readiness` | close-out gate와 UI 풀테스트 기준 정리. 실제 UI 직접 조작, 30분/120분, tag/push/GitHub Release PASS가 아님 |
 
-## v2.4.0 Operator Event Review Evidence Mapping
+## Historical UI Evidence Close-out Compatibility
 
-이 절은 `mapping-only-not-execution-evidence`입니다. v2.4.0 S01~S05 기능을 기능 ID,
-대표 안정화 verifier, manual UI route/control/action, release evidence boundary로
-연결하지만 UI 풀테스트 직접 조작 PASS가 아님을 명시합니다.
-30분/120분 longrun 미실행은 PASS가 아님을 명시하고, 새 테스트 영역 없음 원칙을 유지합니다.
+이 절은 v2.2.0 F06 UI Evidence Close-out 준비 verifier 호환용 cross-reference입니다. 현재 v2.5.0 완료 근거가 아니며, inventory 자체는 실행 evidence가 아님.
 
-| Roadmap scope | Feature IDs | 대표 안정화 verifier | manual UI route/control/action | release evidence boundary |
-| --- | --- | --- | --- | --- |
-| V240-S01 Operator Event Review Inbox | `UI-014`, `EVT-019`, `EVT-020`, `EVT-021` | `verify-ops-event-review-inbox`, `verify-vlm-ops-event-review-ui`, `verify-manual-ui-evidence` | `/ops/events` list/detail, evidence refs, review status/classification/note, false-positive/action target 저장 | Operator review state와 EventRecord/Event POST/metadata/media path 분리. mapping row는 UI 직접 조작 PASS나 30분/120분 evidence가 아님 |
-| V240-S02 Event Action and Incident Workflow | `UI-037`, `EVT-037`, `SAFE-041` | `verify-ops-event-action-incident-workflow`, `verify-ops-audit-trail`, `verify-ops-audit-persistence` | `/ops/events` incident status/id/action target, `incident-action-update` audit trail, client/viewer 비노출 | S02 row는 incident/action Ops-only state mapping이며 EventRecord/Event POST/WebRTC/SSE/WS schema 변경 완료를 뜻하지 않음 |
-| V240-S03 Alert Dry-run and Delivery Attempt Log | `UI-038`, `EVT-017`, `EVT-018`, `EVT-038`, `SAFE-042` | `verify-ops-alert-delivery-integrations`, `verify-ops-client-ui` | `/ops/events` alert target draft, payload preview, dry-run result, delivery attempt log, endpoint redaction | alert dry-run은 외부 webhook/email/slack 전송 PASS가 아니며 Event POST payload 변경 evidence가 아님 |
-| V240-S04 Client-safe Event and Status Summary | `CLIENT-006`, `CLIENT-007`, `CLIENT-014`, `CLIENT-015`, `CLIENT-022`, `SRC-012`, `EVT-023` | `verify-client-dashboard-polish`, `verify-v220-client-preview-redaction-review`, `verify-ops-client-ui`, `verify-auth-routes` | `/client/dashboard`, `/client/live`, `/client/events` viewer-safe event/status/source health/incident summary와 source/debug/raw 비노출 | client-safe summary mapping은 viewer 직접 UI 풀테스트, video playback, 30분 client session soak를 대체하지 않음 |
-| V240-S05 Rule and Scenario Review Loop | `RULE-041`, `RULE-102`, `EVT-001`, `EVT-026` | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-rule-validation-matrix`, `verify-va-event-coverage-report` | `/ops/rules` 저장 전 예상 event type, conflict, missing reference, scenario preset 영향, `/ops/events` EventRecord coverage link | Rule/Scenario review loop mapping은 ScenarioEngine 판단 로직, EventRecord payload, Rule/Profile 저장 payload 변경 evidence가 아님 |
-
-브라우저 선택 기준: Codex 세션에서는 인앱 브라우저 evidence를 기본으로 하며, 자동
-Chrome/CDP는 `MEDIA_SERVER_UI_BROWSER_MODE=chrome`과
-`MEDIA_SERVER_ALLOW_CHROME_FALLBACK=1`을 함께 지정한 명시 예외일 때만 사용합니다.
-Codex 밖에서 사용자가 직접 실행하는 자동 검수는 Chrome/CDP를 사용할 수 있습니다.
+| Row | 연결 문서 | verifier | 경계 |
+| --- | --- | --- | --- |
+| V220-F02 Ops Channels Workspace | [manual-ui-checklist.md](./manual-ui-checklist.md), [manual-ui-result-template.md](./manual-ui-result-template.md) | `verify-v220-ui-evidence-closeout` | F02 UI 실행 PASS가 아님 |
+| V220-F03 Ops Users / Access Workspace | [manual-ui-checklist.md](./manual-ui-checklist.md), [manual-ui-result-template.md](./manual-ui-result-template.md) | `verify-v220-ui-evidence-closeout` | F03 UI 실행 PASS가 아님 |
+| V220-F04 Ops VLM UI containment | [manual-ui-checklist.md](./manual-ui-checklist.md), [manual-ui-result-template.md](./manual-ui-result-template.md) | `verify-v220-ui-evidence-closeout` | F04 UI 실행 PASS가 아님 |
+| V220-F05 Client Preview / Viewer Redaction | [manual-ui-checklist.md](./manual-ui-checklist.md), [manual-ui-result-template.md](./manual-ui-result-template.md) | `verify-v220-ui-evidence-closeout` | F05 UI 실행 PASS가 아님 |
+| V220-F06 UI Evidence Close-out | [manual-ui-checklist.md](./manual-ui-checklist.md), [manual-ui-result-template.md](./manual-ui-result-template.md) | `verify-v220-ui-evidence-closeout` | F06는 결과 기록 기준 정리이며 UI 풀테스트 PASS가 아님 |
 
 ## Owner Source Map
 
 | ID prefix | 코드 로직 owner | 제품 UI owner | 대표 verifier family |
 | --- | --- | --- | --- |
-| `UI-*` | `src/ingress/webrtc_http_server.cpp`, `src/ingress/product_ui_auth_pages.cpp`, `src/ingress/product_ui_page_scripts.cpp`, `src/ingress/product_ui_client_scripts.cpp`, `src/ingress/product_ui_ops_sources_script.cpp`, `src/ingress/product_ui_ops_users_script.cpp` | Auth/Ops/Client shell | `verify-v230-ui-renderer-module-decomposition`, `verify-auth-bootstrap`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-ops-click-e2e`, `verify-ops-route-boundaries`, `verify-v220-ops-workspace-redesign`, `verify-v220-rules-workspace-redesign`, `verify-v220-client-live-redesign`, `verify-v220-ops-vlm-containment`, `verify-vlm-install-connection-ui`, `verify-vlm-profile-storage`, `verify-vlm-review-action-workflow`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-vlm-ops-event-review-ui`, `verify-vlm-privacy-transfer-guard` |
-| `AUTH-*` | `src/ingress/http_auth.cpp`, `src/ingress/webrtc_http_server.cpp`, `src/ingress/product_ui_auth_pages.cpp`, `src/ingress/product_ui_ops_users_script.cpp` | `/setup`, `/login`, `/password/change`, `/invite/setup`, `/ops/users` | `verify-v230-ui-renderer-module-decomposition`, `verify-v220-auth-setup-redesign`, `verify-v220-ops-users-access-workspace`, `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker`, `verify-ops-click-e2e` |
-| `SRC-*` | `src/ingress/source_view_registry.cpp`, `src/core/source_factory.cpp`, `src/ingress/onvif_live_import.cpp`, `src/ingress/product_ui_ops_sources_script.cpp` | `/ops/sources`, `/client/live`, `/client/dashboard` | `verify-v230-ui-renderer-module-decomposition`, `verify-v220-ops-channels-workspace`, `verify-ops-source-lifecycle`, `verify-ops-client-ui`, `verify-onvif-*`, `verify-ops-source-health-bulk` |
-| `RULE-*` | `src/ingress/analysis_query.cpp`, `src/analysis/*scenario.cpp`, `src/analysis/event_rule_engine.cpp` | `/ops/rules`, `/client/live` overlay | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-scenario-builder-ui`, `verify-ops-scenario-presets`, `verify-va-event-coverage-report`, `verify-va-replay`, `verify-analysis-state` |
-| `EVT-*` | `src/analysis/event_manager.cpp`, `src/analysis/event_storage.cpp`, `src/ingress/webrtc_http_server.cpp` | `/ops/dashboard`, `/ops/events`, `/ops/home` | `verify-va-event-coverage-report`, `verify-va-events`, `verify-ops-event-review-inbox`, `verify-ops-event-records-scope`, `verify-ops-alert-delivery-integrations`, `verify-va-runtime-console`, `verify-vlm-event-evidence-extraction`, `verify-vlm-observation-sidecar`, `verify-vlm-event-explanation-hints`, `verify-vlm-review-action-workflow`, `verify-vlm-ops-event-review-ui`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates`, `verify-vlm-rule-suggestion-draft-workflow` |
-| `CLIENT-*` | `src/ingress/product_ui_client_scripts.cpp`, `src/ingress/product_ui_client_css.cpp`, `src/ingress/product_ui_auth_pages.cpp`, `src/ingress/webrtc_http_server.cpp`, `src/ingress/webrtc_egress_session.cpp` | `/client/live`, `/client/dashboard`, `/client/request-access` | `verify-v230-ui-renderer-module-decomposition`, `verify-v220-client-preview-redaction-review`, `verify-client-live-workspace`, `verify-client-dashboard-polish`, `verify-client-source-dock-events`, `verify-client-tile-*`, `verify-ops-client-ui`, `verify-ops-click-e2e` |
-| `MEDIA-*` | `src/core/session_manager.cpp`, `src/core/source_factory.cpp`, `src/core/stream_registry.cpp`, `src/ingress/webrtc_egress_session.cpp`, `src/ingress/rtsp_adapter.cpp` | `/client/live` only where video is visible | `verify-codecs`, `verify-webrtc-ice`, `verify-external-turn-whep-field-gate`, `verify-webrtc-va-metadata`, `verify-uri-source-longrun`, `verify-predev` |
-| `LAB-*` | `src/ingress/analysis_query.cpp`, `src/ingress/webrtc_http_server.cpp`, `src/analysis/vlm_observation_store.cpp`, local detector/recommendation/evaluation scripts | 비대상 | `verify-analysis-state`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-image-analysis`, `verify-vlm-boundary`, `verify-vlm-selection-decision`, `verify-vlm-pc-capability`, `verify-vlm-recommendation-engine`, `verify-vlm-install-connection-dry-run`, `verify-vlm-profile-storage`, `verify-vlm-runtime-opt-in-contract`, `verify-v230-vlm-opt-in-operational-evidence`, `verify-vlm-local-runtime-smoke`, `verify-vlm-cloud-provider-field-smoke-gate`, `verify-vlm-queue-backpressure-stability`, `verify-runtime-model-bundle-rc-rehearsal`, `verify-vlm-evaluation-harness`, `verify-vlm-evaluation-result-workflow`, `verify-vlm-review-action-workflow`, `verify-vlm-observation-sidecar`, `verify-vlm-event-explanation-hints`, `verify-vlm-privacy-transfer-guard`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates`, `verify-vlm-rule-suggestion-draft-workflow` |
-| `SAFE-*` | schema/payload/media/auth/UI test 경계 owner 전체 | route guard와 client 비노출 화면 | `verify-v230-ui-renderer-module-decomposition`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-ui-blocking-dialog-policy`, `verify-integrator-contract-artifact`, `verify-webrtc-va-metadata`, `verify-ws-metadata`, `verify-event-post-*`, `verify-external-turn-whep-field-gate`, `verify-runtime-model-bundle-rc-rehearsal`, `verify-vlm-boundary`, `verify-vlm-install-connection-scope-gate`, `verify-vlm-profile-storage`, `verify-vlm-runtime-opt-in-contract`, `verify-v230-vlm-opt-in-operational-evidence`, `verify-vlm-local-runtime-smoke`, `verify-vlm-cloud-provider-field-smoke-gate`, `verify-vlm-queue-backpressure-stability`, `verify-vlm-review-action-workflow`, `verify-vlm-observation-sidecar`, `verify-vlm-privacy-transfer-guard`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates`, `verify-vlm-rule-suggestion-draft-workflow` |
-| `OPS-*` | `scripts/internal/verify_ops_backup_restore_dry_run.mjs`, `scripts/internal/run_ops_evidence_retention_cleanup.mjs`, `docs/ops-backup-recovery.md` | 비대상 | `verify-v230-ops-backup-recovery-lifecycle`, `verify-ops-backup-recovery-guide`, `verify-ops-backup-restore-dry-run`, `verify-ops-evidence-retention-cleanup` |
+| `UI-*` | `src/ingress/product_ui_*`, `src/ingress/webrtc_http_server.cpp` | Auth/Ops/Client shell | UI/auth/ops/v250 verifier family |
+| `AUTH-*` | `src/ingress/http_auth.cpp`, product auth pages/users scripts | `/setup`, `/login`, `/password/change`, `/invite/setup`, `/ops/users` | auth verifier family |
+| `SRC-*` | source registry/factory/ONVIF import/ops source scripts | `/ops/sources`, `/client/live`, `/client/dashboard` | source/ONVIF/UI verifier family |
+| `RULE-*` | analysis query/scenario/rule engine | `/ops/rules`, `/client/live` overlay | rule/VA verifier family |
+| `EVT-*` | event manager/storage/webrtc HTTP server | `/ops/dashboard`, `/ops/events`, `/ops/home` | event/VLM/v250 verifier family |
+| `CLIENT-*` | client UI scripts/CSS, WebRTC egress/session | `/client/live`, `/client/dashboard`, `/client/request-access` | client/UI verifier family |
+| `MEDIA-*` | session manager, source factory, stream registry, RTSP/WebRTC adapters | video-visible client routes only | codec/WebRTC/longrun verifier family |
+| `LAB-*` | analysis query, VLM local stores, internal scripts | 비대상 | lab/VLM fixture verifier family |
+| `SAFE-*` | schema/payload/media/auth/UI boundary owners | route guard와 client 비노출 화면 | safety/boundary verifier family |
+| `OPS-*` | ops backup/evidence/release readiness scripts | 비대상 | ops evidence/readiness verifier family |
 
 ## Verifier Coverage Map
 
 | 기능 ID 범위 | 안정화 verifier 후보 | 비고 |
 | --- | --- | --- |
-| `UI-001`~`UI-018`, `UI-022`~`UI-044` | `verify-v230-ui-renderer-module-decomposition`, `verify-auth-bootstrap`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-ops-route-boundaries`, `verify-v220-ops-workspace-redesign`, `verify-v220-rules-workspace-redesign`, `verify-v220-client-live-redesign`, `verify-vlm-install-connection-ui`, `verify-vlm-profile-storage`, `verify-vlm-runtime-status-ui`, `verify-vlm-evaluation-result-workflow`, `verify-vlm-review-action-workflow`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-vlm-ops-event-review-ui`, `verify-vlm-privacy-transfer-guard`, `verify-ops-event-action-incident-workflow`, `verify-ops-alert-delivery-integrations`, `verify-v250-ops-events-semantic-search-ui`, `verify-v250-incident-timeline-graph`, `verify-v250-explainable-incident-brief`, `verify-v250-similar-incident-lookup`, `verify-v250-redacted-incident-evidence-bundle`, `verify-v250-owner-release-readiness` | route/shell/404/Ops workspace/Rules workspace/Client viewer workspace/VLM dry-run/profile/privacy/runtime status/evaluation result/event review/action/rule draft/incident action/alert dry-run/semantic incident search/timeline graph/explainable brief/similar incident lookup/redacted bundle guard/S09 UI 풀테스트 기준 경계 |
-| `UI-019`~`UI-021` | Codex 인앱 브라우저 evidence, 인앱 브라우저 부재 외부 환경의 `verify-ops-client-ui --screenshots`, `verify-docs-ui-assets`, `verify-product-ui-token-drift` | 시각 품질은 수동 UI evidence 필요 |
+| `UI-001`~`UI-018`, `UI-022`~`UI-044` | auth/Ops/Client/VLM/v250 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
 | `AUTH-001`~`AUTH-042` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
-| `SRC-001`~`SRC-030` | `verify-v230-conditional-field-evidence`, `verify-ops-source-lifecycle`, `verify-ops-source-health-bulk`, `verify-ops-channel-bulk`, `verify-onvif-*`, `verify-ops-client-ui` | ONVIF field success는 제외. approved environment only redacted field report 없으면 not-run is not PASS |
-| `RULE-001`~`RULE-102` | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-rule-validation-matrix`, `verify-ops-scenario-builder-ui`, `verify-ops-scenario-presets`, `verify-va-event-coverage-report`, `verify-va-replay`, `verify-analysis-state`, `verify-reid-advanced-tracking`, `verify-tracker-stability` | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
-| `EVT-001`~`EVT-045` | `verify-va-event-coverage-report`, `verify-va-events`, `verify-ops-event-review-inbox`, `verify-ops-event-records-scope`, `verify-ops-alert-delivery-integrations`, `verify-ops-event-action-incident-workflow`, `verify-va-runtime-console`, `verify-vlm-event-evidence-extraction`, `verify-vlm-observation-sidecar`, `verify-vlm-event-explanation-hints`, `verify-vlm-review-action-workflow`, `verify-vlm-ops-event-review-ui`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-v250-incident-text-projection`, `verify-v250-incident-memory-index`, `verify-v250-ops-events-semantic-search-ui`, `verify-v250-incident-timeline-graph`, `verify-v250-explainable-incident-brief`, `verify-v250-similar-incident-lookup`, `verify-v250-redacted-incident-evidence-bundle` | event log 육안 확인은 UI 풀테스트 |
-| `CLIENT-001`~`CLIENT-023` | `verify-v230-ui-renderer-module-decomposition`, `verify-client-live-workspace`, `verify-client-dashboard-polish`, `verify-client-source-dock-events`, `verify-client-tile-disconnect-contract`, `verify-client-tile-info-overlay-health`, `verify-ops-client-ui`, `verify-v250-client-safe-incident-digest` | viewer 비노출은 브라우저 확인 필요 |
-| `MEDIA-001`~`MEDIA-021` | `verify-v230-conditional-field-evidence`, `verify-codecs`, `verify-webrtc-ice`, `verify-external-turn-whep-field-gate`, `verify-webrtc-va-metadata`, `verify-uri-source-longrun`, `verify-predev` | 30분/120분은 실행 지시 필요. `MEDIA-021` external TURN/WHEP endpoint 성공은 endpoint/credential 조건이 준비된 안정화 실행 없으면 PASS 아님 |
-| `LAB-001`~`LAB-068` | `verify-analysis-state`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-image-analysis`, `verify-vlm-boundary`, `verify-vlm-selection-decision`, `verify-vlm-pc-capability`, `verify-vlm-recommendation-engine`, `verify-vlm-install-connection-dry-run`, `verify-vlm-profile-storage`, `verify-vlm-runtime-opt-in-contract`, `verify-v230-vlm-opt-in-operational-evidence`, `verify-vlm-local-runtime-smoke`, `verify-vlm-cloud-provider-field-smoke-gate`, `verify-vlm-queue-backpressure-stability`, `verify-runtime-model-bundle-rc-rehearsal`, `verify-vlm-evaluation-harness`, `verify-vlm-evaluation-result-workflow`, `verify-vlm-review-action-workflow`, `verify-vlm-observation-sidecar`, `verify-vlm-event-explanation-hints`, `verify-vlm-privacy-transfer-guard`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-v250-incident-text-projection`, `verify-v250-incident-memory-index`, `verify-v250-incident-timeline-graph`, `verify-v250-explainable-incident-brief`, `verify-v250-similar-incident-lookup`, `verify-v250-redacted-incident-evidence-bundle` | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-051` | `verify-v230-conditional-field-evidence`, `verify-v230-ui-renderer-module-decomposition`, `verify-integrator-contract-artifact`, `verify-auth-routes`, `verify-ops-client-ui`, `verify-ui-blocking-dialog-policy`, `verify-event-post-dispatch`, `verify-webrtc-va-metadata`, `verify-ws-metadata`, `verify-rtsp-va-overlay-policy`, `verify-external-turn-whep-field-gate`, `verify-runtime-model-bundle-rc-rehearsal`, `verify-vlm-boundary`, `verify-vlm-install-connection-scope-gate`, `verify-vlm-profile-storage`, `verify-vlm-runtime-opt-in-contract`, `verify-v230-vlm-opt-in-operational-evidence`, `verify-vlm-local-runtime-smoke`, `verify-vlm-cloud-provider-field-smoke-gate`, `verify-vlm-queue-backpressure-stability`, `verify-vlm-review-action-workflow`, `verify-vlm-observation-sidecar`, `verify-vlm-event-explanation-hints`, `verify-vlm-privacy-transfer-guard`, `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-ops-event-action-incident-workflow`, `verify-ops-alert-delivery-integrations`, `verify-v250-incident-text-projection`, `verify-v250-incident-memory-index`, `verify-v250-ops-events-semantic-search-ui`, `verify-v250-incident-timeline-graph`, `verify-v250-explainable-incident-brief`, `verify-v250-similar-incident-lookup`, `verify-v250-client-safe-incident-digest`, `verify-v250-redacted-incident-evidence-bundle`, `verify-v250-owner-release-readiness` | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-036` | `verify-v230-ops-backup-recovery-lifecycle`, `verify-ops-backup-restore-dry-run`, `verify-ops-evidence-retention-cleanup`, `verify-v250-owner-release-readiness` | Ops evidence/readiness gate이며 real operational backup, release publish, UI 풀테스트 evidence가 아님 |
+| `SRC-001`~`SRC-030` | source/ONVIF/UI verifier family | ONVIF field success는 approved environment only |
+| `RULE-001`~`RULE-102` | rule/VA verifier family | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
+| `EVT-001`~`EVT-045` | event/VLM/v250 verifier family | event log 육안 확인은 UI 풀테스트 |
+| `CLIENT-001`~`CLIENT-023` | client/UI verifier family | viewer 비노출은 브라우저 확인 필요 |
+| `MEDIA-001`~`MEDIA-021` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
+| `LAB-001`~`LAB-068` | lab/VLM/v250 fixture verifier family | 제품 UI 비대상 |
+| `SAFE-001`~`SAFE-051` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-036` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
 
 ## VA Manual UI Seed Matrix
-
-UI 풀테스트 데이터는 운영 데이터가 아니라 throwaway fixture로만 준비합니다.
-최종 상태는 event log 육안 확인을 위해 삭제하지 않고 남겨야 하며, Rule CRUD와
-Rule scenario/event 발생 검수는 분리합니다.
 
 | 항목 | 기준 |
 | --- | --- |
 | fixture | `test/fixtures/manual_ui_fulltest_va_seed_matrix.json` |
 | dry-run 준비 | `./server.sh prepare-manual-ui-fulltest-seed --dry-run`은 HTTP 요청 없이 numeric ID, payload 참조, media file 존재, coverage를 확인합니다. 이 결과는 UI/event evidence가 아닙니다. 상태 표기는 `dry-run 준비 가능, 서버 적용 evidence 없음`으로 남깁니다. |
-| registry 파일 준비 | `./server.sh prepare-manual-ui-fulltest-seed --dry-run --emit-registry-dir <dir>`은 `sources.json`, `views.json`, `analysis.json`, `preconditions.json`을 같은 throwaway 디렉터리에 생성합니다. 이 결과도 UI/event evidence가 아닙니다. |
+| registry 파일 준비 | `./server.sh prepare-manual-ui-fulltest-seed --dry-run --emit-registry-dir <dir>`은 throwaway registry 파일을 생성합니다. 이 결과도 UI/event evidence가 아닙니다. |
+| registry preconditions file | `preconditions.json`은 throwaway registry 시작 조건 파일입니다. 파일 생성은 서버 적용, 제품 UI 조작, EventRecord 확인 evidence가 아닙니다. |
 | apply 경계 | 실제 서버 적용은 사용자 지시 후 `--apply --confirm-throwaway-data --http-base <url>`로만 수행하며, 적용 후에도 인앱 브라우저 확인 전에는 UI PASS가 아닙니다. |
-| ID 정책 | profile/rule/vaRule registry id는 numeric string만 사용하며 built-in profile `1`~`5`는 쓰지 않습니다. |
-| 기본 event template | `presence`, `enter`, `exit`, `line-crossing:any`, `line-crossing:forward`, `line-crossing:reverse` |
-| scenario template | `intrusion-dwell`, `re-entry`, `wrong-direction`, `intrusion-after-line-crossing`, `loitering`, `zone-occupancy` |
-| scenario preset | `default`, `road`, `retail`, `park`, `indoor`, `lobby`, `platform`, `entrance`, `doorway`, `parking`, `elevator`, `custom` |
-| tracker policy | `none/off`, `lite/off`, `kalman-lite/off`, `bytetrack/off`, `lite/assist`, `kalman-lite/assist`, `bytetrack/assist` |
-| invalid policy | `tracker=none` + `reid=assist`는 저장 거부 또는 `reid=off` 정규화 |
 | final state | profiles, event templates, VA rules가 모두 남아 있어야 하며 event log 확인 전 삭제하지 않음 |
-| 제외 | OC-SORT, BoT-SORT, DeepSORT, Re-ID default-on, 실제 Re-ID model bundle은 v1.9.0 제품 UI seed가 아님 |
 
 ## 30-Minute And 120-Minute Mapping
 
 | 영역 | 대상 기능 | 실행 기준 |
 | --- | --- | --- |
-| 30분 soak | `UI-015`, `SRC-002`~`SRC-005`, `SRC-012`, `SRC-024`, `RULE-035`~`RULE-037`, `RULE-039`, `RULE-099`, `EVT-001`~`EVT-003`, `EVT-006`, `EVT-024`, `EVT-026`, `CLIENT-002`~`CLIENT-005`, `CLIENT-019`, `CLIENT-021`, `MEDIA-001`~`MEDIA-004`, `MEDIA-008`~`MEDIA-013`, `MEDIA-016`~`MEDIA-020`, `LAB-015`, `LAB-016`, `LAB-020`, VLM queue/backpressure 또는 runtime cache 변경 시 `LAB-038`~`LAB-044`, `LAB-058`, `SAFE-032`, `SAFE-036` | 사용자 장기간 테스트 지시 또는 버전 close-out에서 명시 요청된 경우 `verify-predev --soak-minutes 30` 계열. 요청이 없으면 미실행으로 기록 |
-| 120분 | `MEDIA-001`~`MEDIA-004`, `MEDIA-011`, `MEDIA-012`, `SAFE-014`, VLM memory/runtime cache 또는 queue drift 고위험 변경 시 `SAFE-032`, `SAFE-036` | memory growth, runtime drift, fanout/media path 고위험 변경, VLM active RSS high-water 또는 queue cleanup drift 시 사용자에게 먼저 말하고 승인 후 실행 |
+| 30분 soak | media/session/runtime, client live, selected rule/event/runtime queue rows | 사용자 장기간 테스트 지시 또는 명시 요청된 경우 `verify-predev --soak-minutes 30` 계열. 요청이 없으면 미실행으로 기록 |
+| 120분 | media fanout, source worker lifecycle, non-blocking safety, runtime/cache drift high-risk rows | memory growth/runtime drift 고위험 변경 시 사용자에게 먼저 말하고 승인 후 실행 |
 
-## Four-Stage Coverage Mapping
+## Coverage Start Conditions
 
-이 절은 안정화/30분/120분/UI 풀테스트를 실제로 실행하기 전에 v2.0.0 baseline과
-v2.1.0 completed roadmap과 v2.2.0 completed roadmap에서 늘어난 검수 대상을
-누락하지 않기 위한 목록입니다.
-아래 행은 테스트 실행 결과가 아니며,
-`PASS` 증거로 쓰지 않습니다. 기존 기능 ID 표의 상세 PASS 기준은 그대로 유지하고,
-여기서는 네 테스트 영역 중 어디에 포함해야 하는지만 고정합니다.
+30분, 120분, UI 풀테스트는 실패 후 재시작 비용이 크므로 아래 항목이 먼저 `PASS` 또는 명시 제외로 정리되지 않으면 시작하지 않습니다.
 
-| 변경 묶음 | 연결 기능 ID/문서 | 안정화 리스트 반영 | 30분 리스트 반영 | 120분 리스트 반영 | UI 풀테스트 리스트 반영 | 실행 전 기록 |
-| --- | --- | --- | --- | --- | --- | --- |
-| V230-S02 4대 테스트 evidence 정합성 | [development-backlog.md](./development-backlog.md) S02, [release-evidence-index.md](./release-evidence-index.md), 이 문서, [manual-ui-fulltest.md](./manual-ui-fulltest.md), [manual-ui-result-template.md](./manual-ui-result-template.md), `media-server.v230-test-evidence-consistency.v1` | `verify-v230-test-evidence-consistency`, `verify-release-evidence-index`, `verify-feature-inventory-coverage`, `verify-longrun-separation`, `verify-manual-ui-evidence`로 안정화/30분/120분/UI 풀테스트 evidence 정합성 확인 | 실행하지 않음. S02는 30분 PASS로 대체하지 않음 | 실행하지 않음. 120분은 사용자 승인 전 미실행 | 직접 조작하지 않음. S02는 UI 풀테스트 PASS로 대체하지 않음 | field/provider/no-device/external credential 조건은 안정화 조건부 verifier 또는 UI 제외 기록이며, 30분/120분/UI 실행 PASS로 대체하지 않음 |
-| V220-F02 Ops Channels Workspace | `SRC-*`, `UI-011`, `SRC-028`, `SRC-029`, [v220-ops-channels-workspace.md](./v220-ops-channels-workspace.md) | `verify-v220-ops-channels-workspace`, `verify-ops-source-lifecycle`, `verify-ops-source-group-site-management`, `verify-ops-client-ui --screenshots` | source/session/media path 변경 없음이면 미실행. 버전 close-out 지시 시 별도 판단 | RTSP/WebRTC/media path 또는 source lifecycle drift 고위험 변경이 있을 때 승인 후 포함 | `/ops/sources` 채널 목록, source detail, file/ONVIF/WHEP/WHIP 입력, PublishedView, audit를 개별 row로 직접 확인 | ONVIF 실장비/외부 WHEP/WHIP endpoint는 안정화 조건부 실행 또는 UI 제외 기록으로 남김 |
-| V220-F03 Ops Users / Access Workspace | `AUTH-*`, `UI-007`, `UI-008`, `UI-013`, [v220-ops-users-access-workspace.md](./v220-ops-users-access-workspace.md) | `verify-v220-ops-users-access-workspace`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | auth/session runtime 변경 없음이면 미실행. 버전 close-out 지시 시 별도 판단 | auth/session memory/runtime 고위험 변경이 있을 때 승인 후 포함 | `/ops/users`, `/client/request-access`, `/invite/setup`의 사용자, 접근 요청, 초대, 승인/거절, role/scope, audit를 개별 row로 직접 확인 | auth verifier password env 5개가 없으면 시작하지 않고 FAIL/미실행 사유 분리 |
-| V220-F04 Ops VLM UI containment | `UI-022`~`UI-034`, `SAFE-022`~`SAFE-025`, `SAFE-028`, `SAFE-031`, `SAFE-033`, [v220-ops-vlm-containment.md](./v220-ops-vlm-containment.md) | `verify-v220-ops-vlm-containment`, `verify-vlm-runtime-opt-in-contract`, `verify-vlm-runtime-status-ui`, `verify-vlm-profile-storage`, `verify-vlm-privacy-transfer-guard`, `verify-vlm-install-connection-ui` | VLM runtime/queue/cache/media 변경 없음이면 미실행. 버전 close-out 지시 시 별도 판단 | provider retry/queue drift, active RSS high-water, memory ownership 변경 시 승인 후 포함 | `/ops/vlm` privacy, default-off, profile state, runtime status, raw debug details containment를 직접 조작하고 client/viewer 비노출 확인 | 실제 provider 호출, credential 저장, model install은 안정화 조건부 실행 또는 UI 제외 기록으로 남김 |
-| V220-F05 Client Preview / Viewer Redaction | `UI-015`~`UI-017`, `SRC-028`, `SRC-029`, `CLIENT-014`, `CLIENT-015`, `CLIENT-018`, `SAFE-018`, [v220-client-preview-redaction-review.md](./v220-client-preview-redaction-review.md) | `verify-v220-client-preview-redaction-review`, `verify-v220-client-live-redesign`, `verify-ops-client-ui --screenshots`, `verify-auth-routes` | client session/media path 변경 없음이면 미실행. 버전 close-out 지시 시 별도 판단 | client media playback/runtime drift 고위험 변경 시 승인 후 포함 | `/client/live`, `/client/dashboard`, `/client/events` admin preview와 viewer-safe 비노출을 admin/viewer 권한별로 직접 확인 | source URL, Developer URL, raw JSON, debug counters, rule/profile editor, VLM internal material 비노출을 개별 row로 기록 |
-| V220-F06 UI Evidence Close-out | [v220-ui-evidence-closeout.md](./v220-ui-evidence-closeout.md), [manual-ui-checklist.md](./manual-ui-checklist.md), [manual-ui-result-template.md](./manual-ui-result-template.md) | `verify-v220-ui-evidence-closeout`, `verify-manual-ui-evidence`, `verify-feature-inventory-coverage`, `verify-project-inventory` | 실행 결과가 아니라 준비 기준이므로 30분 PASS로 쓰지 않음 | 실행 결과가 아니라 준비 기준이므로 120분 PASS로 쓰지 않음 | F02~F05 UI result row가 누락 없이 준비됐는지 확인. F06 자체는 문서/verifier close-out 기준 row로 기록 | inventory/checklist/template PASS는 UI 풀테스트 PASS가 아니며 인앱 브라우저/30분/120분 미실행을 분리 |
-| VLM 도입 경계, 모델 선택, PC capability, recommendation | `LAB-035`~`LAB-049`, `SAFE-025`~`SAFE-027`, [vlm-model-selection.md](./vlm-model-selection.md), [vlm-recommendation-engine.md](./vlm-recommendation-engine.md) | `verify-vlm-boundary`, `verify-vlm-selection-decision`, `verify-vlm-pc-capability`, `verify-vlm-recommendation-engine`, bundle/privacy guard | runtime/queue/cache/media 변경이 없으면 미실행 | high-risk signal 없으면 미실행 | UI 변경 없음. `/ops/vlm` 요약 copy가 바뀐 경우 `UI-025` 확인 | 모델/runtime download, provider credential, cloud call은 안정화 조건부 실행 또는 UI 제외 기록으로 남김 |
-| `/ops/vlm` install/profile/privacy/runtime/evaluation controls | `UI-022`~`UI-031`, `UI-033`, `UI-034`, `LAB-037`, `LAB-038`, `LAB-050`, `LAB-051`, `LAB-059`, `SAFE-022`~`SAFE-024`, `SAFE-028`, `SAFE-033` | `verify-vlm-install-connection-ui`, `verify-vlm-install-connection-dry-run`, `verify-vlm-profile-storage`, `verify-vlm-runtime-status-ui`, `verify-vlm-evaluation-result-workflow`, `verify-vlm-privacy-transfer-guard`, auth/ops shell guard | queue/backpressure/runtime cache 변경이 있거나 release close-out에서 지시되면 포함 | provider retry/queue drift, active RSS high-water, memory ownership 변경 시 승인 후 포함 | `/ops/vlm` local/cloud dry-run, opt-in guard, profile save/activate/fallback/disable/delete, runtime status panel, evaluation result profile draft 반영, raw details 접힘 영역을 직접 조작 | 실제 provider 호출, credential 저장, model install은 안정화/UI 실행 전 제외 또는 미실행 사유 기록 |
-| VLM evidence extraction, sidecar, event explanation, Ops review | `UI-032`, `EVT-027`~`EVT-031`, `LAB-039`~`LAB-042`, `LAB-052`, `LAB-053`, `SAFE-028`, `SAFE-029`, `SAFE-031` | `verify-vlm-evaluation-harness`, `verify-vlm-event-evidence-extraction`, `verify-vlm-observation-sidecar`, `verify-vlm-event-explanation-hints`, `verify-vlm-ops-event-review-ui`, Event POST/WebRTC/SSE/WS metadata guard | EventRecord storage/fanout 또는 runtime queue 변경 시 포함 | metadata fanout/media path 고위험 변경 시 승인 후 포함 | `/ops/events` VLM review detail, evidence availability, sidecar matching/missing state를 확인하고 `/client/live`, `/client/dashboard`, `/client/events` 비노출 확인 | raw prompt/response/source URL/credential/raw media 비저장과 schema/media path 불변 조건 기록 |
-| VLM summary search 후보와 Rule 추천 보조 후보 | `EVT-032`, `EVT-033`, `LAB-043`~`LAB-055`, `SAFE-030` | `verify-vlm-summary-search-candidates`, `verify-vlm-rule-suggestion-candidates`, `verify-rule-ui` no-auto-apply guard | runtime queue/cache 또는 rule/event fanout 변경 시 포함 | high-risk rule/event fanout 변경 시 승인 후 포함 | 제품 검색 UI나 자동 적용 UI가 없어야 정상. `/ops/events` 후보 표시가 생기면 개별 UI 행으로 기록 | 후보 단계, 수동 저장 전 registry write 없음, 자동 적용 금지 기록 |
-| V210-S08 Rule suggestion draft workflow | `UI-036`, `EVT-036`, `LAB-061`, `SAFE-038`, [vlm-rule-suggestion-candidates.md](./vlm-rule-suggestion-candidates.md) | `verify-vlm-rule-suggestion-draft-workflow`, `verify-vlm-rule-suggestion-candidates`, `verify-rule-ui` draft write guard | UI/API draft-only 변경이면 미실행. runtime queue/cache 제품 경로 변경 시 별도 포함 | 미실행. rule/event fanout이나 media path 변경 없음 | `/ops/rules` VLM Rule draft 후보 refresh, kind filter, `폼에 적용`, 이벤트 템플릿 draft 반영, 저장 전 write 없음, client/viewer 비노출을 직접 확인 | draft 적용은 자동 저장/운영 승인 PASS가 아니며 기존 저장 버튼 수동 조작 전 registry write 없음 |
-| VLM runtime disabled, missing-model, cloud-disabled, provider timeout | `EVT-034`, `SAFE-025`, `SAFE-027`, `SAFE-032`, [vlm-test-rehearsal.md](./vlm-test-rehearsal.md) | `verify-vlm-test-rehearsal`, side-effect verifier, media/metadata guard | queue/backpressure/timeout worker 또는 media non-blocking 변경 시 포함 | provider retry queue drift, active RSS high-water, cleanup drift 발생 시 승인 후 포함 | `/ops/vlm` missing-model/cloud-disabled/provider-timeout copy가 바뀌면 직접 확인 | missing model/provider disabled는 media path FAIL이 아니며 provider credential 조건은 안정화/UI 기록 안에서 분리 |
-| V210-S02 local runtime smoke | `LAB-056`, `SAFE-034`, [vlm-local-runtime-connection-smoke.md](./vlm-local-runtime-connection-smoke.md), `media-server.vlm-local-runtime-smoke-report.v1` | `verify-vlm-test-rehearsal`, `verify-vlm-local-runtime-smoke` | 제품 runtime queue/cache 변경이 아니면 미실행. local loopback smoke PASS로 30분 PASS 대체 금지 | high-risk runtime worker 변경이 없으면 미실행. timeout cleanup drift가 제품 queue에 닿으면 승인 후 포함 | UI 변경 없음. `/ops/vlm` runtime status UI는 V210-S05 범위 | loopback local endpoint smoke이며 cloud provider credential/model 품질/UI/longrun evidence가 아님 |
-| V210-S03 cloud provider credential stability | `LAB-057`, `SAFE-035`, [vlm-cloud-provider-field-smoke-gate.md](./vlm-cloud-provider-field-smoke-gate.md), `media-server.vlm-cloud-provider-field-smoke-gate-report.v1` | `verify-vlm-cloud-provider-field-smoke-gate`, `verify-vlm-privacy-transfer-guard` | local soak로 대체 금지. provider call 미실행은 30분 PASS가 아님 | provider retry/timeout drift나 credential 운영 검증은 사용자 승인 후 120분/안정화 조건에 포함 | UI 변경 없음. cloud status UI는 V210-S05 범위 | env/manual 승인과 env credential이 모두 있는 실제 provider PASS만 release eligible이며 미실행/실패는 PASS가 아님 |
-| V210-S04 VLM queue/backpressure stability | `LAB-058`, `SAFE-036`, [vlm-queue-backpressure-stability.md](./vlm-queue-backpressure-stability.md), `media-server.vlm-queue-backpressure-stability-report.v1` | `verify-vlm-queue-backpressure-stability`, `verify-va-events`, `verify-event-post`, metadata verifier | runtime path나 queue/backpressure 제품 경로 변경 시 포함. fixture/static 변경만이면 미실행 | active RSS high-water, retry queue drift, media/fanout high-risk signal 또는 RC 승인 시 포함 | `/ops/vlm` runtime status UI는 V210-S05에서 직접 확인 | VLM-only failure가 media/Event/metadata/Event POST 실패로 번지지 않는지 확인하며 30분/UI PASS로 과장하지 않음 |
-| V210-S10 external TURN/WHEP credential stability | `MEDIA-021`, `SAFE-039`, [external-turn-whep-field-gate.md](./external-turn-whep-field-gate.md), `media-server.external-turn-whep-field-gate-report.v1` | `verify-external-turn-whep-field-gate`, `verify-webrtc-ice` | local soak로 대체 금지. external TURN/WHEP 실행 미실행은 30분 PASS가 아님 | TURN relay drift, WHEP playback endpoint drift, firewall/credential 운영 검증은 사용자 승인 후 안정화/120분 조건에 포함 | UI 변경 없음. external source UX는 기존 `/ops/sources`/`/client/live` 범위 | endpoint/credential 준비가 있는 실제 external TURN/WHEP PASS만 release eligible이며 기본 release PASS로 쓰지 않음 |
-| V210-S11 runtime/model bundle RC rehearsal | `LAB-062`, `SAFE-040`, [runtime-model-bundle-rc-rehearsal.md](./runtime-model-bundle-rc-rehearsal.md), `media-server.runtime-model-bundle-rc-rehearsal-report.v1` | `verify-runtime-model-bundle-rc-rehearsal`, `verify-bundle-policy`, `verify-release-bundle-dry-run`, `dependency-snapshot` | local soak 대상 아님. runtime/model bundle rehearsal PASS는 30분 PASS가 아님 | 실제 runtime/model 포함 RC, source offer, license review, release asset 검토는 별도 승인 후 판단 | UI 변경 없음 | source-only default를 유지하고 runtime/model/GPL-risk/release asset 후보를 blocked로 남김 |
-| V210-S05 Ops VLM runtime status UI | `UI-033`, [vlm-runtime-status-ui.md](./vlm-runtime-status-ui.md) | `verify-vlm-runtime-status-ui`, `verify-ops-client-ui`, auth/ops shell guard | UI-only 변경이면 미실행. runtime queue/cache 제품 경로 변경 시 별도 포함 | 미실행. provider retry/queue drift나 RSS high-water 변경 없음 | `/ops/vlm` runtime status panel, local/cloud 상태 변경, 저장 profile Last evaluation 렌더링 경계, `/client/live` 비노출을 직접 확인 | 실제 runtime/provider 호출, credential 저장, model install, raw JSON/API-only UI PASS 대체 금지 |
-| V210-S06 VLM evaluation result workflow | `UI-034`, `LAB-059`, [vlm-evaluation-result-workflow.md](./vlm-evaluation-result-workflow.md) | `verify-vlm-evaluation-result-workflow`, `verify-vlm-evaluation-harness`, `verify-vlm-recommendation-engine`, `verify-vlm-profile-storage` | UI/profile workflow-only 변경이면 미실행. runtime queue/cache 제품 경로 변경 시 별도 포함 | 미실행. provider retry/queue drift나 RSS high-water 변경 없음 | `/ops/vlm` evaluation result panel, profile draft 반영, 저장 전/후 profile evaluation source 표시, client/viewer 비노출을 직접 확인 | 실제 runtime/provider 호출, 자동 profile 저장/활성화, sidecar write, raw JSON/API-only UI PASS 대체 금지 |
-| V210-S07 VLM review action workflow | `UI-035`, `EVT-035`, `LAB-060`, `SAFE-037`, [vlm-review-action-workflow.md](./vlm-review-action-workflow.md) | `verify-vlm-review-action-workflow`, `verify-ops-event-review-inbox`, `verify-vlm-ops-event-review-ui`, Event POST/metadata guard | EventRecord storage/fanout 또는 runtime queue 변경 없음. review state/UI-only 변경이면 미실행 | 미실행. metadata fanout/media path 고위험 변경 없음 | `/ops/events` VLM review action/target/note 저장, audit 반영, client/viewer 비노출을 직접 확인 | 실제 VLM runtime/provider 호출, sidecar write, 자동 Rule/Profile 적용, Event POST/WebRTC/SSE/WS schema 변경, raw JSON/API-only UI PASS 대체 금지 |
-| V240-S02 Event Action and Incident Workflow | `UI-037`, `EVT-037`, `SAFE-041`, [development-backlog.md](./development-backlog.md) V240-S02 | `verify-ops-event-action-incident-workflow`, `verify-ops-event-review-inbox`, `verify-ops-audit-trail`, `verify-ops-audit-persistence`, Event POST/metadata guard | EventRecord storage/fanout 또는 runtime queue 변경 없음. Ops-only review state/UI 변경이면 미실행 | 미실행. metadata fanout/media path 고위험 변경 없음 | `/ops/events` incident status/id/action target 저장, events audit trail 반영, client/viewer 비노출을 직접 확인 | EventRecord/Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경, raw JSON/API-only UI PASS 대체 금지 |
-| V240-S03 Alert Dry-run and Delivery Attempt Log | `UI-038`, `EVT-038`, `SAFE-042`, [development-backlog.md](./development-backlog.md) V240-S03 | `verify-ops-alert-delivery-integrations`, `verify-ops-client-ui`, Event POST/metadata guard | EventRecord storage/fanout 또는 runtime queue 변경 없음. Ops-only alert delivery dry-run/UI 변경이면 미실행 | 미실행. metadata fanout/media path 고위험 변경 없음 | `/ops/events` alert target draft dry-run, payload preview, dry-run result, delivery attempt log, endpoint redaction을 직접 확인 | 외부 provider/webhook/email/slack 전송 없음, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경, raw JSON/API-only UI PASS 대체 금지 |
-| V240-S04 Client-safe Event and Status Summary | `CLIENT-006`, `CLIENT-007`, `CLIENT-014`, `CLIENT-015`, `CLIENT-022`, `SRC-012`, `EVT-023`, [development-backlog.md](./development-backlog.md) V240-S04 | `verify-client-dashboard-polish`, `verify-v220-client-preview-redaction-review`, `verify-ops-client-ui`, `verify-auth-routes` | client UI summary-only 변경이면 미실행. client session/media path 변경 없음 | 미실행. media/runtime drift 고위험 변경 없음 | `/client/dashboard`와 `/client/live`에서 viewer-safe event/status/source health/incident summary, copy text, redaction boundary를 직접 확인 | source URL, Developer URL, raw JSON, debugCounters, BBox diagnostics, rule/profile editor, Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path 변경 금지 |
-| V240-S05 Rule and Scenario Review Loop | `RULE-041`~`RULE-102`, `EVT-001`~`EVT-026`, [development-backlog.md](./development-backlog.md) V240-S05 | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-rule-validation-matrix`, `verify-va-event-coverage-report` | rule/scenario review UI-only 변경이면 미실행. EventRecord payload/fanout 변경 없음 | 미실행. media/runtime drift 고위험 변경 없음 | `/ops/rules` 상세 편집기의 저장 전 review loop에서 예상 event type, conflict, missing reference, preset 영향, `/ops/events` EventRecord coverage link를 직접 확인 | Event POST/WebRTC/SSE/WS schema, ScenarioEngine 판단 로직, EventRecord payload, RTSP/WebRTC media path 변경 금지 |
-| S15 안정화 사전 fixture 확인 | [vlm-test-rehearsal.md](./vlm-test-rehearsal.md), `media-server.vlm-test-rehearsal-report.v1` | 안정화 실행 전 짧은 verifier 목록에 포함 | 미실행. 30분 PASS 대체 금지 | 미실행. 120분 PASS 대체 금지 | 미실행. UI PASS 대체 금지 | fixture-only 확인이며 runtime/provider/UI/longrun evidence가 아님 |
-| S16 기존 테스트 side effect 점검 | [development-backlog.md](./development-backlog.md) S16 evidence | build/auth/Ops/Client/Rule/VA/WebRTC/SSE/WS/Event POST/media path verifier를 안정화 선수 목록에 포함 | VLM 변경이 media/runtime에 닿았거나 release close-out에서 지시되면 포함 | schema/media path 고위험 회귀 신호가 있으면 승인 후 포함 | side-effect script PASS는 UI 직접 조작 PASS가 아님. UI 변경 route는 별도 클릭 대상 | verifier가 검사하지 않은 UI/장시간/provider 범위는 미확인으로 남김 |
-| S17 안정화/장시간/UI 기준 | [vlm-stabilization-longrun-ui-criteria.md](./vlm-stabilization-longrun-ui-criteria.md) | `verify-runtime-media-longrun-trigger-matrix`, `verify-longrun-separation`, `verify-manual-ui-evidence`를 사전 목록에 포함 | trigger matrix상 필요 또는 버전 close-out 지시 시 포함 | RC/high-risk/user approval 시 포함 | VLM UI 변경이 있으면 `/ops/vlm`, `/ops/events`, client redaction route를 직접 확인 | 실행하지 않은 장시간/UI 항목은 `미실행`으로 기록 |
-| S18 close-out readiness/evidence 분리 | [vlm-close-out-readiness.md](./vlm-close-out-readiness.md), [release-evidence-index.md](./release-evidence-index.md) | `verify-vlm-closeout-readiness`, `verify-release-evidence-index`, `verify-release-metadata`, docs/index guard를 목록에 포함 | 실제 실행 지시가 없으면 미실행으로 기록 | 실제 승인 없으면 미실행으로 기록 | 직접 브라우저 조작 없으면 UI 풀테스트 PASS로 쓰지 않음 | release tag, main merge, GitHub Release publish와 구분 |
-
-## Four-Stage Start Conditions
-
-30분, 120분, UI 풀테스트는 실패 후 재시작 비용이 크므로 아래 항목이 먼저
-`PASS` 또는 명시 제외로 정리되지 않으면 시작하지 않습니다. 이 절은 긴 테스트를
-실행했다는 증거가 아니라, 네 단계 시작 전 중단 기준입니다.
-
-| 시작 조건 | 긴 테스트 전 확인 | 실패 시 처리 | 재시작 경계 |
-| --- | --- | --- | --- |
-| 기능/route 목록 freeze | `Four-Stage Coverage Mapping`, `V220-F02`~`V220-F06`, `UI-022`~`UI-038`, `/ops/sources`, `/ops/users`, `/ops/vlm`, `/ops/events`, `/ops/rules`, `/client/live`, `/client/dashboard`, `/client/events`, client redaction route가 결과 템플릿에 있음 | mapping/template 수정 후 긴 테스트 시작 전 재검수 | 긴 테스트 미시작 상태이므로 30분/120분/UI 재시작 없음 |
-| 짧은 VLM fixture 확인 | `verify-vlm-test-rehearsal`과 missing-model/cloud-disabled/invalid-output/queue-timeout fixture가 먼저 준비됨 | fixture 또는 harness 수정 후 안정화 조건만 재확인 | fixture 실패는 30분/120분/UI PASS/FAIL로 기록하지 않음 |
-| side-effect 선수 gate | build/auth/Ops/Client/Rule/VA/WebRTC/SSE/WS/Event POST/media path verifier 목록이 실행 계획에 있음 | 선수 gate 실패를 제품 회귀/환경 문제로 분리하고 긴 테스트 중단 | 선수 gate 실패 후에는 30분/120분/UI를 시작하지 않음 |
-| throwaway fixture와 auth env | users/source/view/analysis/event/snapshot/clip 경로, auth test password env `SET/MISSING`, seed dry-run/registry dir가 결과 템플릿에 있음 | fixture/env 누락이면 긴 테스트 시작 전 중단 | env/fixture 누락은 120분 재시작 사유가 아니라 시작 조건 실패 |
-| output artifact 보존 | summary/report/log/screenshot/evidence JSON output dir가 시작 전에 정해짐 | artifact 경로 누락이면 시작 전 중단 | 결과 파일만 누락된 경우 기존 raw evidence가 요구 범위를 증명하지 못하면 PASS 금지 |
-| native/blocking dialog guard | `verify-product-ui-no-native-dialogs`, `verify-ui-blocking-dialog-policy`가 UI 전 선수로 계획됨 | native dialog가 남으면 UI 풀테스트 시작 전 수정 | dialog guard 실패는 UI 전체 재시작 전 early failure로 기록 |
-| 30분 선행 조건 | 안정화 gate PASS, VLM queue/runtime/media 변경 여부, 제외/미실행 사유가 기록됨 | 안정화 실패 또는 범위 미정이면 30분 시작 금지 | 30분 실행 중 제품 runtime 수정이 있으면 같은 30분 범위 재실행 |
-| 120분 선행 조건 | 30분 또는 해당 high-risk short gate PASS, 사용자 승인, RC/high-risk 사유, memory/runtime 측정 항목이 기록됨 | 승인/사유/측정 항목 누락이면 120분 시작 금지 | 문서/리포트 누락만으로는 120분 재실행하지 않고 retained artifact가 범위를 증명하는지 먼저 확인 |
-| UI phase order | Auth/setup, route/nav, fixture seed, VLM redaction, VA EventRecord, responsive/theme 순서로 early failure를 앞에 둠 | 앞 phase 실패 시 뒤 phase로 진행하지 않음 | shared auth/session/registry/media 수정이면 영향 phase부터 재검수, 전체 PASS는 모든 기능 ID evidence가 있을 때만 |
+| 시작 조건 | 긴 테스트 전 확인 | 실패 시 처리 |
+| --- | --- | --- |
+| 기능/route 목록 freeze | 현재 문서의 기능 ID 목록과 result template route/control/action 목록이 맞음 | mapping/template 수정 후 긴 테스트 시작 전 재검수 |
+| side-effect 선수 gate | build/auth/Ops/Client/Rule/VA/WebRTC/SSE/WS/Event POST/media path verifier 목록이 실행 계획에 있음 | 선수 gate 실패 시 30분/120분/UI 시작 금지 |
+| auth/env/fixture | auth password env, throwaway registry, output artifact 경로 기록 | 누락이면 긴 테스트 시작 전 중단 |
+| UI phase order | Auth/setup, route/nav, fixture seed, VLM redaction, VA EventRecord, responsive/theme 순서로 early failure를 앞에 둠 | 앞 phase 실패 시 뒤 phase로 진행하지 않음 |
 
 ## Classification Rules
 
@@ -268,7 +148,7 @@ v2.1.0 completed roadmap과 v2.2.0 completed roadmap에서 늘어난 검수 대�
 | UI 필요: 간접 | 별도 제품 화면은 아니지만 화면 상태, redirect, nav, scope, session 결과로 확인되어야 합니다. |
 | UI 필요: 비대상 | 제품 UI를 만들면 안 되거나 API/정책/backend/계약 기능입니다. |
 | 테스트 필요: 필요 | 해당 기능은 하나 이상의 테스트 영역에 반드시 들어갑니다. |
-| PASS 기준 | 이 문서의 PASS 기준은 요구 조건입니다. 실제 PASS 보고는 실행 evidence가 있을 때만 가능합니다. |
+| PASS 기준 | 요구 조건입니다. 실제 PASS 보고는 실행 evidence가 있을 때만 가능합니다. |
 
 ## A. Screen And Route
 
@@ -545,8 +425,6 @@ v2.1.0 completed roadmap과 v2.2.0 completed roadmap에서 늘어난 검수 대�
 | EVT-031 | VLM explanation/hint review state | 필요 | 필요 | 안정화, UI | summary, eventExplanation, falsePositiveHints, operatorReviewQuestions가 Ops review 상태에 표시되고 provider raw response/prompt는 표시하지 않음 |
 | EVT-032 | VLM summary search candidate state | 비대상 | 필요 | 안정화 | summary search 후보는 sidecar summary와 EventRecord `eventId` correlation만 사용하고 제품 검색 UI, vector index, provider rerank는 만들지 않음 |
 | EVT-033 | VLM rule suggestion candidate state | 비대상 | 필요 | 안정화 | line/intrusion/zone rule suggestion 후보는 manual review 상태로만 산출하고 rule/profile registry write와 auto-apply는 발생하지 않음 |
-| OPS-035 | v2.3.0 S06 Ops backup/recovery evidence lifecycle | 비대상 | 필요 | 안정화 | 비대상: UI 없어야 정상. `verify-v230-ops-backup-recovery-lifecycle`이 staging drill manifest/checksum/restore-validation-plan, redacted evidence bundle, retention cleanup dry-run/apply/audit를 확인하고 30분/120분/UI 실행 PASS로 대체하지 않음 |
-| OPS-036 | V250-S09 incident memory route owner 분리 게이트 | 비대상 | 필요 | 안정화 | `verify-v250-owner-release-readiness`가 event memory/search route owner catalog, release-safe evidence bundle route matcher, release readiness 문서 연결을 확인하되 PR/tag/push/GitHub Release 실행 PASS로 대체하지 않음 |
 | EVT-034 | VLM runtime disabled/queue readiness state | 비대상 | 필요 | 안정화 | profile/recommendation 상태가 runtime disabled, missing model, queue not started를 명확히 표시하고 media path나 Event POST dispatch를 block하지 않음 |
 | EVT-035 | VLM review action state correlation | 간접 | 필요 | 안정화 | `media-server.ops.vlm-review-action-state.v1`은 Ops review state에서 `eventId`로만 EventRecord와 상관되고 EventRecord top-level payload나 Event POST payload에 action field를 추가하지 않음 |
 | EVT-036 | VLM rule suggestion draft correlation state | 간접 | 필요 | 안정화, UI | `media-server.vlm-rule-suggestion-draft-workflow.v1`은 V200-S13 sidecar candidate를 `sourceCandidateReport`로만 참조하고 EventRecord/Event POST/WebRTC/SSE/WS payload에 draft field를 추가하지 않음 |
@@ -743,6 +621,13 @@ v2.1.0 completed roadmap과 v2.2.0 completed roadmap에서 늘어난 검수 대�
 | SAFE-050 | V250-S08 redacted incident evidence bundle boundary | 필요 | 필요 | 안정화, UI | release-safe incident evidence bundle은 manifest/searchResults/timelineSummary/redactionPolicy만 포함하고 snapshot/clip raw evidence, source URL, credential, debug material, provider material, Event POST/WebRTC/SSE/WS/media path schema를 변경하지 않음 |
 | SAFE-051 | V250-S09 릴리즈 준비 경계 | 비대상 | 필요 | 안정화 | owner decomposition/release readiness gate는 Event POST/WebRTC/SSE/WS/RTSP/WebRTC media path/Auth/Rule/Profile payload schema를 바꾸지 않고 UI 풀테스트/30분/120분/published metadata/tag/push/GitHub Release 미실행을 PASS로 승격하지 않음 |
 
+## J. Ops Evidence And Release Readiness
+
+| ID | 기능 | UI 필요 | 테스트 필요 | 테스트 영역 | PASS 기준 |
+| --- | --- | --- | --- | --- | --- |
+| OPS-035 | v2.3.0 S06 Ops backup/recovery evidence lifecycle | 비대상 | 필요 | 안정화 | 비대상: UI 없어야 정상. `verify-v230-ops-backup-recovery-lifecycle`이 staging drill manifest/checksum/restore-validation-plan, redacted evidence bundle, retention cleanup dry-run/apply/audit를 확인하고 30분/120분/UI 실행 PASS로 대체하지 않음 |
+| OPS-036 | V250-S09 incident memory route owner 분리 게이트 | 비대상 | 필요 | 안정화 | `verify-v250-owner-release-readiness`가 event memory/search route owner catalog, release-safe evidence bundle route matcher, release readiness 문서 연결을 확인하되 PR/tag/push/GitHub Release 실행 PASS로 대체하지 않음 |
+
 ## Coverage Review To Do
 
 이 문서 다음 단계는 실행이 아니라 대조입니다.
@@ -757,14 +642,8 @@ v2.1.0 completed roadmap과 v2.2.0 completed roadmap에서 늘어난 검수 대�
 | UI 풀테스트 항목 대조 | 기능 ID별 직접 클릭/타이핑/viewport/theme evidence 항목 |
 
 coverage 대조 전에는 `테스트 있음`, `UI 있음`, `완료`라고 보고하지 않습니다.
-정적 대조는 `./server.sh verify-feature-inventory-coverage`로 수행하며, 새 기능 ID가
-안정화 verifier, manual UI fulltest, 30분/120분 승인 조건 중 어디에도 연결되지
-않으면 누락 ID는 release gate에서 FAIL입니다. 네 테스트 영역 밖 분류는 coverage
-대조에서 거부합니다.
+정적 대조는 `./server.sh verify-feature-inventory-coverage`로 수행하며, 새 기능 ID가 안정화 verifier, manual UI fulltest, 30분/120분 승인 조건 중 어디에도 연결되지 않으면 누락 ID는 release gate에서 FAIL입니다. 네 테스트 영역 밖 분류는 coverage 대조에서 거부합니다.
 
 ## Script Inventory Boundary
 
-이 문서는 기능별 UI 필요 여부와 테스트 영역을 관리합니다. `server.sh` command
-dispatch, `scripts/internal/*`, `scripts/examples/*`, helper script 전체 목록은
-`./server.sh verify-script-inventory`가 source-of-truth입니다. script 파일 하나하나를
-기능 row로 다시 나열하지 않습니다.
+이 문서는 기능별 UI 필요 여부와 테스트 영역을 관리합니다. `server.sh` command dispatch, `scripts/internal/*`, `scripts/examples/*`, helper script 전체 목록은 `./server.sh verify-script-inventory`가 전용 검증 기준입니다. script 파일 하나하나를 기능 row로 다시 나열하지 않습니다.

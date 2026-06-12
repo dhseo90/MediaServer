@@ -1,6 +1,6 @@
 # VLM Runtime Opt-in Contract
 
-이 문서는 `v2.1.0 V210-S01 VLM runtime opt-in contract`의 source-of-truth입니다.
+이 문서는 `v2.1.0 V210-S01 VLM runtime opt-in contract`의 세부 계약 문서입니다.
 S01은 실제 VLM runtime/provider를 호출하지 않고, 운영자가 명시적으로 켜기 전까지
 모든 profile이 default-off임을 저장 계약으로 고정합니다.
 

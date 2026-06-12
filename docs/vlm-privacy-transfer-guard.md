@@ -1,6 +1,6 @@
 # VLM Privacy/Transfer Guard
 
-이 문서는 `v2.0.0 V200-S11 Privacy/전송 guard`의 source-of-truth입니다.
+이 문서는 `v2.0.0 V200-S11 Privacy/전송 guard`의 세부 guard 기준입니다.
 S11은 cloud VLM 후보가 실제 provider 호출로 이어지기 전 외부 전송 경고, redaction,
 provider logging/retention 검토를 강제하는 단계입니다. 실제 VLM runtime 호출,
 cloud provider API 호출, sidecar 저장, Event POST/WebRTC/SSE/WS metadata schema 변경은

@@ -5,8 +5,8 @@
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 삼고, 실행 순서는 [manual-ui-checklist.md](./manual-ui-checklist.md), 결과 기록은
 [manual-ui-result-template.md](./manual-ui-result-template.md)를 사용합니다.
-현재 제품 UI 기준은 최신 공개 release `v2.2.0`이고, UI 문서 기준은
-`v2.2.0 Responsive UI Foundation`입니다. 지원 가능한 모든 기능을 실제 UI 조작으로 확인하지 않은 경우에는 완료로 쓰지 않습니다.
+최신 공개 release 기준은 `v2.4.0`이며, 현재 release 목표와 UI 문서 기준은
+`v2.5.0 Semantic Incident Memory`입니다. 현재 제품 UI 기준으로 지원 가능한 모든 기능을 실제 UI 조작으로 확인하지 않은 경우에는 완료로 쓰지 않습니다.
 
 ## 1. 정의
 
@@ -66,8 +66,8 @@ UI 풀테스트 판정값은 `PASS`와 `FAIL`만 사용합니다. 모든 기능�
 30분, 120분, UI 풀테스트는 시작 전에 실패 가능성이 높은 준비 문제를 먼저 끊어냅니다.
 아래 항목이 정리되지 않으면 긴 테스트를 시작하지 않습니다.
 
-- `project-feature-test-inventory.md`의 `Four-Stage Coverage Mapping`과
-  `Four-Stage Start Conditions`를 확인해 누락된
+- `project-feature-test-inventory.md`의 `v2.5.0 Semantic Incident Memory Coverage Mapping`과
+  `Coverage Start Conditions`를 확인해 누락된
   route/control/action을 먼저 고칩니다.
 - `/ops/vlm`, `/ops/events`, `/client/live`, `/client/dashboard`, `/client/events`의
   VLM 관련 UI/비노출 항목이 result template에 없으면 UI 풀테스트를 시작하지 않습니다.
@@ -417,7 +417,7 @@ VLM UI 기준:
 ## 12. 문서 비교/병합 결과
 
 이번 재작성에서는 기존 [manual-ui-checklist.md](./manual-ui-checklist.md)를 실행
-runbook으로 전면 정리하고, 이 문서를 UI 풀테스트 기준 source-of-truth로 새로
+runbook으로 전면 정리하고, 이 문서를 UI 풀테스트 세부 기준 문서로 새로
 작성했습니다. 두 문서를 비교해 중복된 정의는 이 문서에 병합했고, route별 실행
 항목과 종료 체크는 checklist에 남겼습니다. 결과 기록 항목은
 [manual-ui-result-template.md](./manual-ui-result-template.md)에 병합했습니다.

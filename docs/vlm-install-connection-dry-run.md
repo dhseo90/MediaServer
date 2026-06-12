@@ -1,7 +1,7 @@
 # VLM Install/Connection Dry-run Contract
 
 이 문서는 `v2.0.0 V200-S04 VLM 설치/연결 UI`의 dry-run contract
-source-of-truth입니다. 목표는 S03 추천 결과를 Ops UI가 표시할 수 있는 선택 후보로
+세부 기준 문서입니다. 목표는 S03 추천 결과를 Ops UI가 표시할 수 있는 선택 후보로
 바꾸되, 실제 설치, profile 저장, cloud provider API 호출, VLM runtime 호출,
 sidecar 저장을 하지 않는 것입니다.
 

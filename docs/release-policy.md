@@ -103,7 +103,7 @@ screenshot review는 리포트에 manual/not-run으로 남기며, 실제 실행 
 
 ## v2.5.0 Release Target Runbook
 
-이 절은 `v2.5.0 Release Close-out Runbook`의 source-of-truth입니다.
+이 절은 `v2.5.0 Release Close-out Runbook`의 세부 runbook입니다.
 이 runbook은 순서가 evidence입니다. dry-run에서는 실행 가능 여부와 수동 gate만
 점검하고, real close-out에서는 아래 순서를 건너뛰지 않습니다.
 
@@ -116,16 +116,20 @@ Dry-run checklist:
 
 Real close-out checklist:
 
+아래 항목은 AGENTS.md 6.1의 권한 경계를 따릅니다. `릴리즈 준비`만으로 실행하지
+않고, PR merge, main sync, tag, push, GitHub Release, 후속 브랜치 생성은 각각 최신
+사용자 요청에서 명시 승인된 경우에만 수행합니다.
+
 1. Branch close: release branch의 모든 단계 커밋과 최종 검증 결과를 확인합니다.
-2. PR merge: required checks와 review 상태를 확인하고 main으로 merge합니다.
-3. Main fast-forward/sync: 로컬 main을 원격 main 최신 commit으로 맞추고 release commit을 다시 확인합니다.
-4. Tag: 검증된 main commit에만 signed annotated release tag를 생성합니다.
+2. PR merge: 명시 승인된 경우에만 required checks와 review 상태를 확인하고 main으로 merge합니다.
+3. Main fast-forward/sync: 명시 승인된 경우에만 로컬 main을 원격 main 최신 commit으로 맞추고 release commit을 다시 확인합니다.
+4. Tag: 명시 승인된 경우에만 검증된 main commit에 signed annotated release tag를 생성합니다.
    unsigned annotated tag와 lightweight tag는 새 release tag로 쓰지 않습니다.
 5. Push: tag와 필요한 branch를 명시 승인 후 push합니다.
-6. GitHub Release: source-only release note를 만들고 sample/model/runtime binary를 업로드하지 않습니다.
-7. Latest 확인: GitHub Releases latest, `/releases/latest`, repository page Releases/Latest link, remote tag/branch를 `verify-release-metadata --published --report <report.md> --json-report <report.json>`로 확인합니다. README의 release URL은 GitHub Release publish 후에만 current release 링크로 둡니다.
+6. GitHub Release: 명시 승인된 경우에만 source-only release note를 만들고 sample/model/runtime binary를 업로드하지 않습니다.
+7. Latest 확인: GitHub Release publish가 명시 승인되어 실제 수행된 뒤에만 GitHub Releases latest, `/releases/latest`, repository page Releases/Latest link, remote tag/branch를 `verify-release-metadata --published --report <report.md> --json-report <report.json>`로 확인합니다. README의 release URL은 GitHub Release publish 후에만 current release 링크로 둡니다.
 8. Release branch 삭제: published metadata가 통과한 뒤에만 release branch 삭제를 수동 승인합니다.
-9. Next branch sync: 다음 작업 branch를 main 최신 release fix 위로 동기화한 뒤 미커밋 변경이 없는지 확인합니다.
+9. Next branch sync: 명시 승인된 경우에만 다음 작업 branch를 main 최신 release fix 위로 동기화한 뒤 미커밋 변경이 없는지 확인합니다.
 
 위 순서 중 실행하지 않은 항목은 테스트 결과 행을 만들지 않고 release evidence 실행
 상태에 `미실행` 또는 `manual-not-run`으로 남기며, 실행하지 않은
@@ -143,7 +147,7 @@ Client/Ops UI-first workflow와 기존 live media path는 제품 baseline으로 
 [manual-ui-result-template.md](./manual-ui-result-template.md),
 [project-feature-test-inventory.md](./project-feature-test-inventory.md),
 [ui-visual-release-baseline-approval-template.md](./ui-visual-release-baseline-approval-template.md)를
-source-of-truth로 삼습니다. 현재 `v2.5.0` release target pass/fail 기준은 이 evidence와
+기준 문서로 삼습니다. 현재 `v2.5.0` release target pass/fail 기준은 이 evidence와
 통합 검증 명령으로 판단합니다.
 
 v2.5.0은 real ONVIF device, external TURN/WHEP credential operation, real cloud
