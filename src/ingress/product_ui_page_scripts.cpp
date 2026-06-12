@@ -74,6 +74,29 @@ void AppendOpsShellScript(std::ostringstream& out,
       } = window.MediaServerUi;
       const opsText = value => translateText ? translateText(value) : display(value);
       const opsHtml = value => escapeHtml(opsText(value));
+      const opsContainsSensitiveSourceMaterial = value => {
+        const text = String(value || '').trim().toLowerCase();
+        return /(?:rtsp|rtsps|whep|wheps):\/\//.test(text) ||
+          text.includes('file::') ||
+          text.includes('file://') ||
+          text.includes('/users/') ||
+          text.includes('\\users\\') ||
+          text.includes('/home/') ||
+          text.includes('\\home\\') ||
+          text.includes('/tmp/') ||
+          text.includes('\\tmp\\') ||
+          text.includes('/private/') ||
+          text.includes('\\private\\') ||
+          text.includes('sourceurl') ||
+          text.includes('developerurl') ||
+          text.includes('debugcounters') ||
+          text.includes('bbox diagnostics');
+      };
+      const opsSafeSourceLabel = value => {
+        const text = String(value || '').trim();
+        if (!text || text === '-') return text || '-';
+        return opsContainsSensitiveSourceMaterial(text) ? 'unknown-source' : display(text);
+      };
       const opsHashParams = () => new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
       const opsViewRuleId = view =>
         String(view?.defaultRuleId || (Array.isArray(view?.allowedRuleIds) ? view.allowedRuleIds[0] : '') || '').trim();
@@ -755,6 +778,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             const status = String(item?.status || '').toLowerCase();
             const level = ['failed', 'failure', 'error'].includes(status) ? 'warn' : 'info';
             const stream = item?.streamId || item?.channelId || '스트림 미제공';
+            const streamLabel = dashboardRuntimeStreamLabel(stream);
             const scenario = [item?.scenarioName, item?.scenarioPhase].filter(Boolean).map(display).join(' · ');
             return {
               level,
@@ -762,13 +786,13 @@ void AppendOpsShellScript(std::ostringstream& out,
               time: dashboardIncidentTimeLabel(item),
               sort: dashboardIncidentSortValue(item),
               incidentId: `event:${item?.eventId || item?.trackId || item?.streamId || index}`,
-              sourceId: stream,
+              sourceId: streamLabel,
               title: `${display(item?.eventType || 'event')} · ${display(item?.status || '상태 미제공')}`,
-              detail: `${display(stream)}${item?.trackId ? ` · track ${display(item.trackId)}` : ''}${scenario ? ` · ${scenario}` : ''}`,
+              detail: `${display(streamLabel)}${item?.trackId ? ` · track ${display(item.trackId)}` : ''}${scenario ? ` · ${scenario}` : ''}`,
               evidence: item?.eventId ? `eventId ${display(item.eventId)}` : 'eventId 미제공',
               correlationId: item?.eventId || item?.trackId || '',
               cause: `EventRecord status ${display(item?.status || '미제공')}`,
-              impact: `${display(stream)}${item?.trackId ? ` · track ${display(item.trackId)}` : ''}`,
+              impact: `${display(streamLabel)}${item?.trackId ? ` · track ${display(item.trackId)}` : ''}`,
               nextAction: 'EventRecord 저장/POST 상태와 source health 단서를 함께 확인합니다.',
               actionHref: '/ops/events'
             };
@@ -2142,6 +2166,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         }
         tbody.innerHTML = items.map(item => {
           const ruleId = display(item?.metadata?.ruleId || item?.ruleId || item?.vaRuleId || '');
+          const streamLabel = opsSafeSourceLabel(item?.streamId || item?.channelId || '-');
           const eventHtml = `<div class="ops-rule-value-stack">
             <span class="table-identity-pill table-identity-id">${escapeHtml(display(item?.eventId || '-'))}</span>
             <span class="ops-rule-note">${escapeHtml(display(item?.eventType || 'event'))}</span>
@@ -2151,7 +2176,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           return `<tr>
             ${tableCellHtml('이벤트', eventHtml)}
             ${tableCellHtml('상태', badge(item?.status || '미제공', item?.status === 'ended' ? 'info' : ''), 'table-cell-status')}
-            ${tableCellHtml('스트림', escapeHtml(display(item?.streamId || item?.channelId || '-')))}
+            ${tableCellHtml('스트림', escapeHtml(streamLabel))}
             ${tableCellHtml('트랙', escapeHtml(display(item?.trackId ?? '-')))}
             ${tableCellHtml('시나리오', escapeHtml(scenarioParts.join(' · ') || display(item?.className || '-')))}
             ${tableCellHtml('증거', eventRecordEvidence(item))}

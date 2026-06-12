@@ -462,6 +462,14 @@ std::string RequiredString(const std::string& json,
     return value.empty() ? fallback : value;
 }
 
+std::string SafeProjectionSourceId(std::string value, const std::string& fallback) {
+    value = Trim(std::move(value));
+    if (value.empty() || IncidentProjectionContainsForbiddenMaterial(value)) {
+        return fallback;
+    }
+    return value;
+}
+
 std::optional<IncidentProjectionDocument> ParseProjectionDocumentJson(const std::string& json) {
     if (ExtractString(json, "schema").value_or("") != "media-server.incident-text-projection.v1") {
         return std::nullopt;
@@ -1085,6 +1093,16 @@ bool IncidentProjectionContainsForbiddenMaterial(const std::string& value) {
              "rawjson",
              "rawprompt",
              "rawresponse",
+             "file::",
+             "file://",
+             "/users/",
+             "\\users\\",
+             "/home/",
+             "\\home\\",
+             "/tmp/",
+             "\\tmp\\",
+             "/private/",
+             "\\private\\",
              "/models/",
              "\\models\\",
              ".onnx",
@@ -1125,7 +1143,9 @@ IncidentProjectionDocument ProjectEventRecordIncidentText(const std::string& eve
     document.event_id = RequiredString(event_record_json, "eventId", "unknown-event");
     document.record_id = document.event_id;
     document.document_id = "event-record:" + document.event_id;
-    document.source_id = RequiredString(event_record_json, "streamId", "");
+    document.source_id =
+        SafeProjectionSourceId(RequiredString(event_record_json, "streamId", ""),
+                               "unknown-source");
     document.timestamp_ms = ExtractInt64(event_record_json, "startTime").value_or(
         ExtractInt64(event_record_json, "updateTime").value_or(0));
     const std::string event_type = RequiredString(event_record_json, "eventType", "event");
@@ -1178,7 +1198,9 @@ IncidentProjectionDocument ProjectOpsAuditIncidentText(const std::string& audit_
 IncidentProjectionDocument ProjectSourceHealthIncidentText(const std::string& source_health_json) {
     IncidentProjectionDocument document;
     document.source_kind = "source-health";
-    document.source_id = RequiredString(source_health_json, "sourceId", "unknown-source");
+    document.source_id =
+        SafeProjectionSourceId(RequiredString(source_health_json, "sourceId", "unknown-source"),
+                               "unknown-source");
     const std::string status = RequiredString(source_health_json, "status", "unknown");
     const std::string reason = RequiredString(source_health_json, "reason", "unspecified");
     document.record_id = document.source_id + ":" + status + ":" + reason;

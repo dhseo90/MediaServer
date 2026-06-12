@@ -43,6 +43,8 @@ void ExpectNoForbiddenMaterial(const analysis::IncidentProjectionDocument& docum
              "modelChecksum",
              "rawPrompt",
              "rawResponse",
+             "file::",
+             "/Users/",
          }) {
         ExpectNotContains(document.searchable_text, forbidden, label + " searchable text");
         ExpectNotContains(json, forbidden, label + " JSON");
@@ -71,6 +73,8 @@ int main() {
         R"({"schema":"media-server.ops.source-health.item.v1","sourceId":"dock-cam","status":"stale","reason":"metadata-aged","summary":"metadata delay","lastFrameAgeMs":1200,"lastMetadataAgeMs":45000,"sourceUrl":"rtsp://camera.local/secret","developerUrl":"https://debug.invalid/source"})";
     const std::string alert_dry_run =
         R"({"schema":"media-server.ops.alert-delivery-dry-run.v1","id":"alert-dry-run-101","deliveryId":"alert-main","eventId":"evt-101","transport":"webhook","status":"dry-run","externalDeliveryPerformed":false,"payloadPreview":{"eventId":"evt-101","endpoint":"https://example.invalid/hook","token":"secret"},"audit":{"action":"alert-delivery-dry-run"}})";
+    const std::string local_file_event_record =
+        R"({"schema":"media-server.va.event-record.v1","eventId":"evt-102","eventType":"presence","streamId":"file::/Users/dhseo/Desktop/workspace/codexTest/mediaServer/video/imports/va_tracking_event_1280x720_30fps_h264.mp4","channelId":"file::/Users/dhseo/Desktop/workspace/codexTest/mediaServer/video/imports/va_tracking_event_1280x720_30fps_h264.mp4","trackId":2,"className":"person","status":"confirmed","zoneId":"loading-bay","confidence":0.82,"startTime":1710000002000})";
 
     const auto event_doc = analysis::ProjectEventRecordIncidentText(event_record);
     Expect(event_doc.source_kind == "event-record", "event source kind");
@@ -102,6 +106,12 @@ int main() {
     ExpectContains(alert_doc.searchable_text, "alert-delivery-dry-run", "alert searchable text");
     ExpectContains(alert_doc.searchable_text, "externalDeliveryPerformed false", "alert searchable text");
     ExpectNoForbiddenMaterial(alert_doc, "alert projection");
+
+    const auto local_file_event_doc =
+        analysis::ProjectEventRecordIncidentText(local_file_event_record);
+    Expect(local_file_event_doc.source_id == "unknown-source",
+           "local file source locator must be redacted from source id");
+    ExpectNoForbiddenMaterial(local_file_event_doc, "local file event projection");
 
     const auto event_doc_again = analysis::ProjectEventRecordIncidentText(event_record);
     Expect(analysis::IncidentProjectionDocumentJson(event_doc) ==

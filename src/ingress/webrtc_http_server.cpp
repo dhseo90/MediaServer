@@ -10128,6 +10128,16 @@ bool OpsEventReviewNoteContainsSensitiveMaterial(const std::string& value) {
         "raw json",
         "debugcounters",
         "bbox diagnostics",
+        "file::",
+        "file://",
+        "/users/",
+        "\\users\\",
+        "/home/",
+        "\\home\\",
+        "/tmp/",
+        "\\tmp\\",
+        "/private/",
+        "\\private\\",
     };
     return std::any_of(kNeedles.begin(), kNeedles.end(), [&](const std::string& needle) {
         return lowered.find(needle) != std::string::npos;
