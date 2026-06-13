@@ -2,8 +2,8 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Published Release](https://img.shields.io/badge/published-v2.3.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.3.0)
-[![Release Target](https://img.shields.io/badge/target-v2.4.0-informational)](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
+[![Published Release](https://img.shields.io/badge/published-v2.4.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
+![Release Target](https://img.shields.io/badge/target-v2.5.0-informational)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
 video analytics overlays and rule/scenario live events when analytics are enabled.
@@ -14,9 +14,9 @@ runtime/model bundle distribution are outside the default release scope.
 
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
-- Latest published release: [v2.3.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.3.0)
-- Current release target: [v2.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
-- Release baseline: `v2.4.0 Operator Event Review & Action Workflow`
+- Latest published release: [v2.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
+- Current release target: `v2.5.0` (target only before GitHub Release publish; not a release link)
+- Release baseline: `v2.5.0 Semantic Incident Memory`
 
 ## At a Glance
 
@@ -32,9 +32,10 @@ runtime/model bundle distribution are outside the default release scope.
 - **Product UI**: routes users to Ops or Client views based on account
   permissions. There is no Lab product screen; lab endpoints remain available
   for API and verification workflows.
-  `v2.4.0` turns Operator Event Review into the active product workflow for
-  review inbox, incident/action state, alert dry-run, and client-safe event
-  summaries without expanding backend media paths, event schemas, or auth policy.
+  `v2.5.0` turns EventRecord, audit, source health, and alert dry-run data into
+  searchable incident memory for `/ops/events` search, timelines, explainable
+  briefs, and similar-incident lookup without expanding backend media paths,
+  event schemas, or auth policy.
 - **Auth and scopes**: supports first-admin setup, session login, role/scope,
   admin user management, and viewer invite/request approval.
 - **Verification**: `./server.sh` provides UI/Auth smoke tests, VA replay checks,
@@ -43,13 +44,15 @@ runtime/model bundle distribution are outside the default release scope.
   documentation. Binary, runtime, and model bundles are not published unless
   separate guardrails pass.
 
-## VLM Review Assist
+## Semantic Incident Memory
 
-v2.4.0 keeps the v2.3.0 source-only/live-only baseline and VLM review-assist
-default-off boundary while turning Operator Event Review into an active product
-workflow. YOLO/Rule/Scenario still create the events; VLM adds explanations,
-false-positive hints, evidence summaries, and rule suggestion candidates while
-keeping the existing Event POST, WebRTC, SSE/WS metadata schemas and media paths.
+v2.5.0 keeps the v2.4.0 source-only/live-only baseline and VLM review-assist
+default-off boundary while extending Operator Event Review into searchable
+incident memory. YOLO/Rule/Scenario still create EventRecords; local text
+projection and indexing connect EventRecord, audit, source health, and alert
+dry-run evidence for search, timelines, similar incidents, viewer-safe digests,
+and redacted evidence bundles while keeping the existing Event POST, WebRTC,
+SSE/WS metadata schemas and media paths.
 
 Model recommendation is based on both PC capability and privacy mode. The current
 baseline is `Qwen/Qwen3-VL-8B-Instruct` for local standard hardware,
@@ -142,15 +145,15 @@ release evidence live in dedicated docs.
 - Release/version policy: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - Release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
-- Release notes target: [v2.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
-- Latest published release notes: [v2.3.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.3.0)
-- Active roadmap: `v2.4.0 Operator Event Review & Action Workflow` in
+- Release notes target: `v2.5.0` (no release notes link before GitHub Release publish)
+- Latest published release notes: [v2.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
+- Active roadmap: `v2.5.0 Semantic Incident Memory` in
   [docs/development-backlog.md](docs/development-backlog.md)
 
 ## UI Preview
 
 These images are documentation preview assets, not UI fulltest PASS evidence.
-For the active `v2.4.0` docs baseline, QA-registry-heavy recaptures and
+For the active `v2.5.0` docs baseline, QA-registry-heavy recaptures and
 unapproved Chrome/CDP fallback captures are not used as representative assets.
 
 **Ops Home**

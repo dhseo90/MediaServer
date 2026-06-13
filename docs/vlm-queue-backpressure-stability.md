@@ -1,6 +1,6 @@
 # VLM Queue/Backpressure Stability
 
-이 문서는 `v2.1.0 V210-S04 VLM queue/backpressure stability`의 source-of-truth입니다.
+이 문서는 `v2.1.0 V210-S04 VLM queue/backpressure stability`의 세부 기준 문서입니다.
 S04는 VLM worker 상태가 RTSP/WebRTC media path, EventRecord, metadata fanout,
 Event POST dispatch를 막지 않는지 fixture와 기존 stability verifier로 확인합니다.
 

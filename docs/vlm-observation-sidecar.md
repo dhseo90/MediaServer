@@ -1,6 +1,6 @@
 # VLMObservation Sidecar
 
-이 문서는 `v2.0.0 V200-S08 VLMObservation sidecar`의 source-of-truth입니다.
+이 문서는 `v2.0.0 V200-S08 VLMObservation sidecar`의 세부 계약 문서입니다.
 S08은 EventRecord와 기존 live event/metadata payload를 바꾸지 않고, VLM 결과를
 별도 JSONL observation 저장소에 기록하는 단계입니다.
 

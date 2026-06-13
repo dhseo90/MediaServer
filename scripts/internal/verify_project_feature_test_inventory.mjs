@@ -67,6 +67,7 @@ check("required sections exist", () => {
     "## Verifier Coverage Map",
     "## VA Manual UI Seed Matrix",
     "## 30-Minute And 120-Minute Mapping",
+    "## Coverage Start Conditions",
     "## A. Screen And Route",
     "## B. Auth, Account, Role, Scope",
     "## C. Channel, Source, Published View",
@@ -84,7 +85,8 @@ check("required sections exist", () => {
 
 check("summary counts match current feature IDs", () => {
   const rows = parseFeatureRows(inventory);
-  assert(rows.length === 398, `expected 398 feature rows, found ${rows.length}`);
+  const declaredTotal = summaryCount(inventory, "전체 기능 항목");
+  assert(rows.length === declaredTotal, `expected ${declaredTotal} feature rows, found ${rows.length}`);
   const ids = rows.map(row => row.id);
   assert(new Set(ids).size === ids.length, "duplicate feature IDs in inventory");
   for (const prefix of ["UI", "AUTH", "SRC", "RULE", "EVT", "CLIENT", "MEDIA", "LAB", "SAFE", "OPS"]) {
@@ -168,7 +170,7 @@ check("coverage wording separates mapping from execution", () => {
   }
 });
 
-check("current VLM feature expansion rows exist", () => {
+check("current feature expansion rows exist", () => {
   const requiredRows = [
     "UI-025",
     "UI-026",
@@ -182,6 +184,14 @@ check("current VLM feature expansion rows exist", () => {
     "UI-034",
     "UI-035",
     "UI-036",
+    "UI-037",
+    "UI-038",
+    "UI-039",
+    "UI-040",
+    "UI-041",
+    "UI-042",
+    "UI-043",
+    "UI-044",
     "EVT-029",
     "EVT-030",
     "EVT-031",
@@ -190,6 +200,17 @@ check("current VLM feature expansion rows exist", () => {
     "EVT-034",
     "EVT-035",
     "EVT-036",
+    "EVT-037",
+    "EVT-038",
+    "EVT-039",
+    "EVT-040",
+    "EVT-041",
+    "EVT-042",
+    "EVT-043",
+    "EVT-044",
+    "EVT-045",
+    "CLIENT-023",
+    "OPS-036",
     "MEDIA-021",
     "LAB-045",
     "LAB-046",
@@ -209,6 +230,12 @@ check("current VLM feature expansion rows exist", () => {
     "LAB-060",
     "LAB-061",
     "LAB-062",
+    "LAB-063",
+    "LAB-064",
+    "LAB-065",
+    "LAB-066",
+    "LAB-067",
+    "LAB-068",
     "SAFE-025",
     "SAFE-026",
     "SAFE-027",
@@ -225,21 +252,31 @@ check("current VLM feature expansion rows exist", () => {
     "SAFE-038",
     "SAFE-039",
     "SAFE-040",
+    "SAFE-041",
+    "SAFE-042",
+    "SAFE-043",
+    "SAFE-044",
+    "SAFE-045",
+    "SAFE-046",
+    "SAFE-047",
+    "SAFE-048",
+    "SAFE-049",
+    "SAFE-050",
+    "SAFE-051",
   ];
   const ids = new Set(parseFeatureRows(inventory).map(row => row.id));
   for (const id of requiredRows) {
-    assert(ids.has(id), `missing current VLM expanded feature row: ${id}`);
+    assert(ids.has(id), `missing current expanded feature row: ${id}`);
   }
   for (const snippet of [
-    "`UI-001`~`UI-018`, `UI-022`~`UI-038`",
-    "`EVT-001`~`EVT-038`",
+    "`UI-001`~`UI-018`, `UI-022`~`UI-044`",
+    "`EVT-001`~`EVT-045`",
     "`MEDIA-001`~`MEDIA-021`",
-    "`LAB-001`~`LAB-062`",
-    "`SAFE-001`~`SAFE-042`",
-    "V200-S00~S18 및 V210-S00~S12 변경분",
+    "`LAB-001`~`LAB-068`",
+    "`SAFE-001`~`SAFE-051`",
     "VLM route, control, action, runtime state, sidecar, privacy guard",
   ]) {
-    requireText(inventory, snippet, `inventory missing current VLM expansion snippet: ${snippet}`);
+    requireText(inventory, snippet, `inventory missing current expansion snippet: ${snippet}`);
   }
 });
 
@@ -388,6 +425,17 @@ function hasArea(area, token) {
 
 function splitAreas(area) {
   return area.split(",").map(item => item.trim()).filter(Boolean);
+}
+
+function summaryCount(text, label) {
+  const pattern = new RegExp(`^\\| ${escapeRegex(label)} \\| (\\d+) \\|$`, "m");
+  const match = text.match(pattern);
+  assert(match, `missing summary count for ${label}`);
+  return Number(match[1]);
+}
+
+function escapeRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 function readText(relativePath) {

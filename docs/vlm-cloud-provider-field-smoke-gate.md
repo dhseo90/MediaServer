@@ -1,7 +1,7 @@
 # VLM Cloud Provider Field Smoke Gate
 
 이 문서는 `v2.1.0 V210-S03 Cloud provider field smoke gate`의
-source-of-truth입니다. S03은 cloud provider를 기본 release PASS로 자동 승격하지 않고,
+세부 gate 기준입니다. S03은 cloud provider를 기본 release PASS로 자동 승격하지 않고,
 credential 저장 없이 명시 승인과 env credential이 있을 때만 실제 field smoke를
 수행하게 하는 gate입니다.
 

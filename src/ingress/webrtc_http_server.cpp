@@ -44,6 +44,7 @@
 #include "analysis/event_rule_engine.h"
 #include "analysis/event_storage.h"
 #include "analysis/image_frame_loader.h"
+#include "analysis/incident_memory.h"
 #include "analysis/metadata_subscription_filter.h"
 #include "analysis/object_tracker.h"
 #include "analysis/overlay_renderer.h"
@@ -3480,6 +3481,82 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <p id="eventExportPolicyText">증거 export와 삭제 권한을 확인합니다.</p>
         </section>
       </div>
+      <section class="section-card ops-workspace-wide incident-memory-search" data-testid="ops-events-semantic-search" data-incident-memory-search="local-index">
+        <div class="toolbar">
+          <div>
+            <h3>Incident Memory Search</h3>
+            <p id="opsIncidentSearchSummary">자연어/키워드 검색과 rule/source/status/time filter로 matched evidence highlight를 확인합니다.</p>
+          </div>
+          <div id="opsIncidentSearchBadges" class="badge-row"><span class="chip">local-only</span></div>
+        </div>
+        <div class="actions event-review-controls incident-memory-search-grid">
+          <label>검색
+            <input id="opsIncidentSearchInput" placeholder="loading bay acknowledged, stale metadata..." />
+          </label>
+          <label>Rule
+            <input id="opsIncidentSearchRuleFilter" placeholder="ruleId" />
+          </label>
+          <label>Source
+            <input id="opsIncidentSearchSourceFilter" placeholder="sourceId/streamId" />
+          </label>
+          <label>Incident 상태
+            <select id="opsIncidentSearchStatusFilter">
+              <option value="">전체</option>
+              <option value="new">new</option>
+              <option value="review-needed">review-needed</option>
+              <option value="acknowledged">acknowledged</option>
+              <option value="in-progress">in-progress</option>
+              <option value="closed">closed</option>
+              <option value="false-positive">false-positive</option>
+            </select>
+          </label>
+          <label>시작(ms)
+            <input id="opsIncidentSearchStartTime" inputmode="numeric" placeholder="startTimeMs" />
+          </label>
+          <label>종료(ms)
+            <input id="opsIncidentSearchEndTime" inputmode="numeric" placeholder="endTimeMs" />
+          </label>
+        </div>
+        <div id="opsIncidentSearchRows" class="incident-memory-results" data-incident-memory-results="matched-evidence-highlight">
+          <p class="ops-rule-note">검색어를 입력하면 EventRecord/review projection의 matched evidence highlight가 표시됩니다.</p>
+        </div>
+      </section>
+      <section class="section-card ops-workspace-wide similar-incident-panel" data-testid="ops-similar-incident-lookup" data-similar-incident-lookup="rule-scenario-source-status">
+        <div class="toolbar">
+          <div>
+            <h3>Similar Incident Lookup</h3>
+            <p id="opsSimilarIncidentSummary">같은 rule/scenario/source/status 패턴으로 재발 인시던트 후보를 확인합니다.</p>
+          </div>
+          <div id="opsSimilarIncidentBadges" class="badge-row"><span class="chip">deterministic</span></div>
+        </div>
+        <div id="opsSimilarIncidentRows" class="similar-incident-list">
+          <p class="ops-rule-note">EventRecord와 review state를 불러오면 similar incident lookup이 표시됩니다.</p>
+        </div>
+      </section>
+      <section class="section-card ops-workspace-wide incident-timeline-graph" data-testid="ops-incident-timeline-graph" data-incident-timeline-graph="source-event-action-alert-close">
+        <div class="toolbar">
+          <div>
+            <h3>Incident Timeline Graph</h3>
+            <p id="opsIncidentTimelineGraphSummary">source state → event → operator action → alert dry-run → close 상태 연결을 확인합니다.</p>
+          </div>
+          <div id="opsIncidentTimelineGraphBadges" class="badge-row"><span class="chip">timeline graph</span></div>
+        </div>
+        <div id="opsIncidentTimelineGraphRows" class="incident-timeline-graph-rail">
+          <p class="ops-rule-note">EventRecord와 review state를 불러오면 incident timeline graph가 표시됩니다.</p>
+        </div>
+      </section>
+      <section class="section-card ops-workspace-wide incident-brief-panel" data-testid="ops-explainable-incident-brief" data-incident-brief="action-object-context-environment">
+        <div class="toolbar">
+          <div>
+            <h3>Explainable Incident Brief</h3>
+            <p id="opsIncidentBriefSummary">action/object/context/environment slot으로 incident brief를 설명하고 VLM enrichment는 default-off로 유지합니다.</p>
+          </div>
+          <div id="opsIncidentBriefBadges" class="badge-row"><span class="chip">default-off</span></div>
+        </div>
+        <div id="opsIncidentBriefRows" class="incident-brief-list">
+          <p class="ops-rule-note">EventRecord와 review state를 불러오면 explainable incident brief가 표시됩니다.</p>
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide" data-testid="ops-alert-delivery-integrations" data-alert-contract="separate-from-event-post-payload" data-alert-dry-run="ops-only-no-external-delivery" data-delivery-attempt-log="ops-local-attempt-log">
         <div class="toolbar">
           <div>
@@ -4173,6 +4250,14 @@ struct ClientEventSummary {
     std::optional<std::int64_t> latest_event_time_ms;
 };
 
+std::string ClientSafeDigestValue(const std::string& value, const std::string& fallback) {
+    const std::string trimmed = Trim(value);
+    if (trimmed.empty() || analysis::IncidentProjectionContainsForbiddenMaterial(trimmed)) {
+        return fallback;
+    }
+    return trimmed;
+}
+
 bool ClientEventStatusIsActive(const std::string& status) {
     if (status.empty()) {
         return false;
@@ -4309,6 +4394,59 @@ void AppendClientEventItemJson(std::ostringstream& out, const ClientEventItem& i
         << "}";
 }
 
+std::string ClientSafeIncidentDigestSeverity(const ClientEventItem& item) {
+    return ClientEventStatusIsActive(item.status) ? "attention" : "normal";
+}
+
+std::string ClientSafeIncidentDigestSummaryText(const ClientEventItem& item) {
+    std::string label = ClientSafeDigestValue(item.scenario_name, "");
+    if (label.empty()) {
+        label = ClientSafeDigestValue(item.class_name, "");
+    }
+    if (label.empty()) {
+        label = ClientSafeDigestValue(item.event_type, "event");
+    }
+    const std::string status = ClientSafeDigestValue(item.status, "recorded");
+    std::string summary = label + " / " + status;
+    if (analysis::IncidentProjectionContainsForbiddenMaterial(summary)) {
+        summary = "viewer-safe event summary";
+    }
+    return summary;
+}
+
+void AppendClientSafeIncidentDigestJson(std::ostringstream& out,
+                                        const ClientEventSummary& summary) {
+    out << "{"
+        << "\"schema\":\"media-server.client.incident-digest.v1\","
+        << "\"provided\":" << (summary.provided ? "true" : "false") << ","
+        << "\"viewerSafe\":true,"
+        << "\"sourceLocatorIncluded\":false,"
+        << "\"rawEvidenceIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"providerMaterialIncluded\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"itemCount\":" << summary.recent.size() << ","
+        << "\"digestItems\":[";
+    const std::size_t limit = std::min<std::size_t>(summary.recent.size(), 5);
+    for (std::size_t i = 0; i < limit; ++i) {
+        const auto& item = summary.recent[i];
+        if (i != 0) {
+            out << ",";
+        }
+        out << "{"
+            << "\"digestId\":\"client-incident-" << (i + 1) << "\","
+            << "\"eventType\":\"" << JsonEscape(ClientSafeDigestValue(item.event_type, "event")) << "\","
+            << "\"status\":\"" << JsonEscape(ClientSafeDigestValue(item.status, "recorded")) << "\","
+            << "\"severity\":\"" << JsonEscape(ClientSafeIncidentDigestSeverity(item)) << "\","
+            << "\"summaryText\":\"" << JsonEscape(ClientSafeIncidentDigestSummaryText(item)) << "\","
+            << "\"time\":";
+        AppendNullableInt64(out, item.update_time_ms.has_value() ? item.update_time_ms
+                                                                 : item.start_time_ms);
+        out << "}";
+    }
+    out << "]}";
+}
+
 void AppendClientEventSummaryJson(std::ostringstream& out, const ClientEventSummary& summary) {
     out << "{"
         << "\"provided\":" << (summary.provided ? "true" : "false") << ","
@@ -4336,7 +4474,9 @@ void AppendClientEventSummaryJson(std::ostringstream& out, const ClientEventSumm
         }
         AppendClientEventItemJson(out, summary.recent[i]);
     }
-    out << "]}";
+    out << "],\"incidentDigest\":";
+    AppendClientSafeIncidentDigestJson(out, summary);
+    out << "}";
 }
 
 void AppendClientViewIdentityJson(std::ostringstream& out,
@@ -9988,6 +10128,16 @@ bool OpsEventReviewNoteContainsSensitiveMaterial(const std::string& value) {
         "raw json",
         "debugcounters",
         "bbox diagnostics",
+        "file::",
+        "file://",
+        "/users/",
+        "\\users\\",
+        "/home/",
+        "\\home\\",
+        "/tmp/",
+        "\\tmp\\",
+        "/private/",
+        "\\private\\",
     };
     return std::any_of(kNeedles.begin(), kNeedles.end(), [&](const std::string& needle) {
         return lowered.find(needle) != std::string::npos;
@@ -12311,6 +12461,774 @@ std::string OpsEventReviewInboxItemJson(const std::string& event_json,
     return out.str();
 }
 
+std::string OpsIncidentMemoryStringArrayJson(const std::vector<std::string>& values) {
+    std::ostringstream out;
+    out << "[";
+    for (std::size_t i = 0; i < values.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "\"" << JsonEscape(values[i]) << "\"";
+    }
+    out << "]";
+    return out.str();
+}
+
+std::string OpsIncidentMemoryQueryValue(
+    const std::unordered_map<std::string, std::string>& query,
+    const std::string& key) {
+    const auto it = query.find(key);
+    return it == query.end() ? std::string() : Trim(it->second);
+}
+
+std::string OpsIncidentMemoryEventRuleId(const std::string& event_json) {
+    if (const auto rule_id = ParseStringField(event_json, "ruleId");
+        rule_id.has_value() && !Trim(*rule_id).empty()) {
+        return Trim(*rule_id);
+    }
+    if (const auto va_rule_id = ParseStringField(event_json, "vaRuleId");
+        va_rule_id.has_value() && !Trim(*va_rule_id).empty()) {
+        return Trim(*va_rule_id);
+    }
+    if (const auto metadata = ExtractObjectField(event_json, "metadata"); metadata.has_value()) {
+        if (const auto metadata_rule = ParseStringField(*metadata, "ruleId");
+            metadata_rule.has_value() && !Trim(*metadata_rule).empty()) {
+            return Trim(*metadata_rule);
+        }
+        if (const auto metadata_va_rule = ParseStringField(*metadata, "vaRuleId");
+            metadata_va_rule.has_value() && !Trim(*metadata_va_rule).empty()) {
+            return Trim(*metadata_va_rule);
+        }
+    }
+    return "";
+}
+
+bool OpsIncidentMemoryRecordMatchesFilters(const std::string& event_json,
+                                           const OpsEventReviewState& review,
+                                           const std::string& rule_id,
+                                           const std::string& source_id,
+                                           const std::string& incident_status) {
+    if (!rule_id.empty() && OpsIncidentMemoryEventRuleId(event_json) != rule_id) {
+        return false;
+    }
+    if (!source_id.empty()) {
+        const std::string stream_id = Trim(ParseStringField(event_json, "streamId").value_or(""));
+        const std::string channel_id = Trim(ParseStringField(event_json, "channelId").value_or(""));
+        const std::string event_source_id =
+            Trim(ParseStringField(event_json, "sourceId").value_or(""));
+        if (source_id != stream_id && source_id != channel_id && source_id != event_source_id) {
+            return false;
+        }
+    }
+    if (!incident_status.empty() &&
+        NormalizeOpsIncidentStatus(review.incident_status) != NormalizeOpsIncidentStatus(incident_status)) {
+        return false;
+    }
+    return true;
+}
+
+std::string OpsIncidentReviewProjectionJson(const OpsEventReviewState& review) {
+    const std::string incident_id = review.incident_id.empty() ? "incident:" + review.event_id
+                                                               : review.incident_id;
+    std::ostringstream out;
+    out << "{"
+        << "\"id\":\"review-" << JsonEscape(review.event_id) << "\","
+        << "\"receivedAtMs\":" << review.updated_at_ms << ","
+        << "\"action\":\"event-review-state\","
+        << "\"target\":\"" << JsonEscape(incident_id) << "\","
+        << "\"summary\":\"review " << JsonEscape(review.review_status)
+        << " classification " << JsonEscape(review.classification)
+        << " incident " << JsonEscape(review.incident_status)
+        << " action " << JsonEscape(review.action_target) << "\""
+        << "}";
+    return out.str();
+}
+
+std::vector<std::string> OpsIncidentMemoryHighlightFragments(
+    const analysis::IncidentProjectionDocument& document,
+    const std::vector<std::string>& matched_terms) {
+    std::vector<std::string> fragments;
+    const std::string text = document.searchable_text.empty()
+                                 ? (document.title + " " + document.summary)
+                                 : document.searchable_text;
+    const std::string lowered = LowerAscii(text);
+    for (const std::string& term : matched_terms) {
+        const std::string lowered_term = LowerAscii(term);
+        const std::size_t pos = lowered.find(lowered_term);
+        if (pos == std::string::npos) {
+            continue;
+        }
+        const std::size_t start = pos > 42 ? pos - 42 : 0;
+        const std::size_t count = std::min<std::size_t>(text.size() - start, 120);
+        std::string fragment = Trim(text.substr(start, count));
+        if (start > 0) {
+            fragment = "..." + fragment;
+        }
+        if (start + count < text.size()) {
+            fragment += "...";
+        }
+        if (!fragment.empty() &&
+            !analysis::IncidentProjectionContainsForbiddenMaterial(fragment)) {
+            fragments.push_back(std::move(fragment));
+        }
+        if (fragments.size() >= 3) {
+            break;
+        }
+    }
+    if (fragments.empty() && !document.summary.empty() &&
+        !analysis::IncidentProjectionContainsForbiddenMaterial(document.summary)) {
+        fragments.push_back(document.summary);
+    }
+    return fragments;
+}
+
+std::string OpsIncidentMemorySearchViewJson(
+    const std::vector<std::string>& event_json_records,
+    const std::unordered_map<std::string, OpsEventReviewState>& reviews,
+    const std::unordered_map<std::string, std::string>& query) {
+    const std::string search_query = OpsIncidentMemoryQueryValue(query, "q");
+    const std::string rule_id = OpsIncidentMemoryQueryValue(query, "ruleId");
+    const std::string source_id = OpsIncidentMemoryQueryValue(query, "sourceId");
+    const std::string incident_status = OpsIncidentMemoryQueryValue(query, "incidentStatus");
+    const std::string start_time_ms = OpsIncidentMemoryQueryValue(query, "startTimeMs");
+    const std::string end_time_ms = OpsIncidentMemoryQueryValue(query, "endTimeMs");
+
+    analysis::IncidentMemoryIndex index;
+    analysis::IncidentMemoryIndexConfig config;
+    config.prefer_sqlite_fts5 = false;
+    config.force_jsonl_bm25_fallback = true;
+    std::string error_message;
+    (void)index.Open(config, &error_message);
+
+    std::vector<analysis::IncidentProjectionDocument> documents;
+    documents.reserve(event_json_records.size() * 2);
+    for (const std::string& event_json : event_json_records) {
+        const std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+        const auto review_it = reviews.find(event_id);
+        const OpsEventReviewState review =
+            review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
+        if (!OpsIncidentMemoryRecordMatchesFilters(
+                event_json, review, rule_id, source_id, incident_status)) {
+            continue;
+        }
+        analysis::IncidentProjectionDocument event_doc =
+            analysis::ProjectEventRecordIncidentText(event_json);
+        if (!analysis::IncidentProjectionContainsForbiddenMaterial(event_doc.searchable_text)) {
+            (void)index.Upsert(event_doc, nullptr);
+            documents.push_back(std::move(event_doc));
+        }
+        if (review.present) {
+            analysis::IncidentProjectionDocument review_doc =
+                analysis::ProjectOpsAuditIncidentText(OpsIncidentReviewProjectionJson(review));
+            if (!analysis::IncidentProjectionContainsForbiddenMaterial(review_doc.searchable_text)) {
+                (void)index.Upsert(review_doc, nullptr);
+                documents.push_back(std::move(review_doc));
+            }
+        }
+    }
+
+    std::vector<analysis::IncidentMemorySearchHit> hits;
+    if (!search_query.empty()) {
+        analysis::IncidentMemorySearchOptions options;
+        options.query = search_query;
+        options.limit = 12;
+        if (!index.Search(options, &hits, &error_message)) {
+            hits.clear();
+        }
+    }
+
+    std::ostringstream out;
+    const auto report = index.Report();
+    out << "{"
+        << "\"schema\":\"media-server.ops.incident-memory-search-view.v1\","
+        << "\"status\":\"ops-incident-memory-search\","
+        << "\"query\":\"" << JsonEscape(search_query) << "\","
+        << "\"backend\":\"" << JsonEscape(report.backend) << "\","
+        << "\"documentCount\":" << documents.size() << ","
+        << "\"hitCount\":" << hits.size() << ","
+        << "\"modelProviderDependency\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"filters\":{"
+        << "\"ruleId\":\"" << JsonEscape(rule_id) << "\","
+        << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
+        << "\"incidentStatus\":\"" << JsonEscape(incident_status) << "\","
+        << "\"startTimeMs\":\"" << JsonEscape(start_time_ms) << "\","
+        << "\"endTimeMs\":\"" << JsonEscape(end_time_ms) << "\""
+        << "},"
+        << "\"hits\":[";
+    for (std::size_t i = 0; i < hits.size(); ++i) {
+        const auto& hit = hits[i];
+        if (i != 0) {
+            out << ",";
+        }
+        const auto doc_it =
+            std::find_if(documents.begin(), documents.end(), [&](const auto& document) {
+                return document.document_id == hit.document_id;
+            });
+        const std::vector<std::string> highlights =
+            doc_it == documents.end()
+                ? std::vector<std::string>{hit.summary}
+                : OpsIncidentMemoryHighlightFragments(*doc_it, hit.matched_terms);
+        out << "{"
+            << "\"documentId\":\"" << JsonEscape(hit.document_id) << "\","
+            << "\"sourceKind\":\"" << JsonEscape(hit.source_kind) << "\","
+            << "\"incidentId\":\"" << JsonEscape(hit.incident_id) << "\","
+            << "\"sourceId\":\"" << JsonEscape(hit.source_id) << "\","
+            << "\"title\":\"" << JsonEscape(hit.title) << "\","
+            << "\"summary\":\"" << JsonEscape(hit.summary) << "\","
+            << "\"score\":" << hit.score << ","
+            << "\"matchedTerms\":" << OpsIncidentMemoryStringArrayJson(hit.matched_terms)
+            << ",\"highlightFragments\":"
+            << OpsIncidentMemoryStringArrayJson(highlights)
+            << "}";
+    }
+    out << "]"
+        << "}";
+    return out.str();
+}
+
+std::string OpsSimilarIncidentSafeValue(const std::string& value, const std::string& fallback) {
+    const std::string trimmed = Trim(value);
+    if (trimmed.empty() || OpsEventReviewNoteContainsSensitiveMaterial(trimmed) ||
+        analysis::IncidentProjectionContainsForbiddenMaterial(trimmed)) {
+        return fallback;
+    }
+    return trimmed;
+}
+
+std::string OpsSimilarIncidentSourceId(const std::string& event_json) {
+    for (const char* key : {"sourceId", "streamId", "channelId"}) {
+        const std::string value = Trim(ParseStringField(event_json, key).value_or(""));
+        if (!value.empty()) {
+            return OpsSimilarIncidentSafeValue(value, "unknown-source");
+        }
+    }
+    return "unknown-source";
+}
+
+std::string OpsSimilarIncidentScenario(const std::string& event_json) {
+    for (const char* key : {"scenarioType", "scenario", "eventType"}) {
+        const std::string value = Trim(ParseStringField(event_json, key).value_or(""));
+        if (!value.empty()) {
+            return OpsSimilarIncidentSafeValue(value, "event");
+        }
+    }
+    if (const auto metadata = ExtractObjectField(event_json, "metadata"); metadata.has_value()) {
+        for (const char* key : {"scenarioType", "scenario", "eventType"}) {
+            const std::string value = Trim(ParseStringField(*metadata, key).value_or(""));
+            if (!value.empty()) {
+                return OpsSimilarIncidentSafeValue(value, "event");
+            }
+        }
+    }
+    return "event";
+}
+
+struct OpsSimilarIncidentCandidate {
+    std::string event_id;
+    std::string incident_id;
+    std::string rule_id;
+    std::string scenario;
+    std::string source_id;
+    std::string event_status;
+    std::string incident_status;
+    std::string action_target;
+};
+
+OpsSimilarIncidentCandidate OpsSimilarIncidentCandidateFromEvent(
+    const std::string& event_json,
+    const OpsEventReviewState& review,
+    const std::size_t index) {
+    OpsSimilarIncidentCandidate candidate;
+    candidate.event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+    if (!OpsEventReviewEventIdAllowed(candidate.event_id)) {
+        candidate.event_id = "event-" + std::to_string(index + 1);
+    }
+    candidate.incident_id = review.incident_id.empty()
+                                ? "incident:" + candidate.event_id
+                                : OpsSimilarIncidentSafeValue(
+                                      review.incident_id, "incident:" + candidate.event_id);
+    candidate.rule_id = OpsSimilarIncidentSafeValue(
+        OpsIncidentMemoryEventRuleId(event_json), "unmapped-rule");
+    candidate.scenario = OpsSimilarIncidentScenario(event_json);
+    candidate.source_id = OpsSimilarIncidentSourceId(event_json);
+    candidate.event_status = OpsSimilarIncidentSafeValue(
+        Trim(ParseStringField(event_json, "status").value_or("recorded")), "recorded");
+    candidate.incident_status = NormalizeOpsIncidentStatus(review.incident_status);
+    candidate.action_target = OpsSimilarIncidentSafeValue(
+        review.action_target.empty() ? "operator-triage" : review.action_target,
+        "operator-triage");
+    return candidate;
+}
+
+int OpsSimilarIncidentScore(const OpsSimilarIncidentCandidate& base,
+                            const OpsSimilarIncidentCandidate& related,
+                            std::vector<std::string>* explanation_terms) {
+    int score = 0;
+    if (explanation_terms != nullptr) {
+        explanation_terms->clear();
+    }
+    const auto add = [&](const char* term, int weight) {
+        score += weight;
+        if (explanation_terms != nullptr) {
+            explanation_terms->push_back(term);
+        }
+    };
+    if (base.rule_id == related.rule_id && base.rule_id != "unmapped-rule") {
+        add("rule", 35);
+    }
+    if (base.scenario == related.scenario && base.scenario != "event") {
+        add("scenario", 25);
+    }
+    if (base.source_id == related.source_id && base.source_id != "unknown-source") {
+        add("source", 20);
+    }
+    if (base.event_status == related.event_status) {
+        add("event-status", 8);
+    }
+    if (base.incident_status == related.incident_status) {
+        add("incident-status", 8);
+    }
+    if (base.action_target == related.action_target &&
+        base.action_target != "operator-triage") {
+        add("action-target", 4);
+    }
+    return score;
+}
+
+std::string OpsSimilarIncidentLookupViewJson(
+    const std::vector<std::string>& event_json_records,
+    const std::unordered_map<std::string, OpsEventReviewState>& reviews) {
+    std::vector<OpsSimilarIncidentCandidate> candidates;
+    candidates.reserve(event_json_records.size());
+    for (std::size_t index = 0; index < event_json_records.size(); ++index) {
+        const std::string event_id =
+            Trim(ParseStringField(event_json_records[index], "eventId").value_or(""));
+        const auto review_it = reviews.find(event_id);
+        const OpsEventReviewState review =
+            review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
+        candidates.push_back(
+            OpsSimilarIncidentCandidateFromEvent(event_json_records[index], review, index));
+    }
+
+    constexpr std::size_t kMaxSimilarGroups = 8;
+    constexpr std::size_t kMaxRelatedPerGroup = 4;
+    std::vector<std::string> groups;
+    for (std::size_t base_index = 0;
+         base_index < candidates.size() && groups.size() < kMaxSimilarGroups;
+         ++base_index) {
+        const auto& base = candidates[base_index];
+        struct Related {
+            OpsSimilarIncidentCandidate candidate;
+            int score{0};
+            std::vector<std::string> terms;
+        };
+        std::vector<Related> related;
+        for (std::size_t related_index = 0; related_index < candidates.size(); ++related_index) {
+            if (base_index == related_index) {
+                continue;
+            }
+            std::vector<std::string> terms;
+            const int score = OpsSimilarIncidentScore(base, candidates[related_index], &terms);
+            if (score < 35 || terms.empty()) {
+                continue;
+            }
+            related.push_back({candidates[related_index], score, std::move(terms)});
+        }
+        std::sort(related.begin(), related.end(), [](const Related& lhs, const Related& rhs) {
+            if (lhs.score != rhs.score) {
+                return lhs.score > rhs.score;
+            }
+            return lhs.candidate.event_id < rhs.candidate.event_id;
+        });
+        if (related.size() > kMaxRelatedPerGroup) {
+            related.resize(kMaxRelatedPerGroup);
+        }
+        if (related.empty()) {
+            continue;
+        }
+
+        std::ostringstream group;
+        group << "{"
+              << "\"baseEventId\":\"" << JsonEscape(base.event_id) << "\","
+              << "\"baseIncidentId\":\"" << JsonEscape(base.incident_id) << "\","
+              << "\"baseSourceId\":\"" << JsonEscape(base.source_id) << "\","
+              << "\"baseScenario\":\"" << JsonEscape(base.scenario) << "\","
+              << "\"baseRuleId\":\"" << JsonEscape(base.rule_id) << "\","
+              << "\"related\":[";
+        for (std::size_t i = 0; i < related.size(); ++i) {
+            if (i != 0) {
+                group << ",";
+            }
+            group << "{"
+                  << "\"eventId\":\"" << JsonEscape(related[i].candidate.event_id) << "\","
+                  << "\"incidentId\":\"" << JsonEscape(related[i].candidate.incident_id) << "\","
+                  << "\"sourceId\":\"" << JsonEscape(related[i].candidate.source_id) << "\","
+                  << "\"scenario\":\"" << JsonEscape(related[i].candidate.scenario) << "\","
+                  << "\"ruleId\":\"" << JsonEscape(related[i].candidate.rule_id) << "\","
+                  << "\"eventStatus\":\"" << JsonEscape(related[i].candidate.event_status)
+                  << "\","
+                  << "\"incidentStatus\":\""
+                  << JsonEscape(related[i].candidate.incident_status) << "\","
+                  << "\"score\":" << related[i].score << ","
+                  << "\"explanationTerms\":"
+                  << OpsIncidentMemoryStringArrayJson(related[i].terms)
+                  << "}";
+        }
+        group << "]}";
+        groups.push_back(group.str());
+    }
+
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.similar-incident-lookup.v1\","
+        << "\"status\":\"ops-similar-incident-lookup\","
+        << "\"groupCount\":" << groups.size() << ","
+        << "\"candidateCount\":" << candidates.size() << ","
+        << "\"deterministicScoring\":true,"
+        << "\"modelProviderDependency\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"scoreWeights\":{"
+        << "\"rule\":35,"
+        << "\"scenario\":25,"
+        << "\"source\":20,"
+        << "\"event-status\":8,"
+        << "\"incident-status\":8,"
+        << "\"action-target\":4"
+        << "},"
+        << "\"groups\":[";
+    for (std::size_t i = 0; i < groups.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << groups[i];
+    }
+    out << "]}";
+    return out.str();
+}
+
+std::string OpsIncidentTimelineGraphSourceId(const std::string& event_json) {
+    for (const char* key : {"sourceId", "streamId", "channelId"}) {
+        const std::string value = Trim(ParseStringField(event_json, key).value_or(""));
+        if (!value.empty() && !OpsEventReviewNoteContainsSensitiveMaterial(value)) {
+            return value;
+        }
+    }
+    return "unknown-source";
+}
+
+std::string OpsIncidentTimelineGraphEventStatus(const std::string& event_json) {
+    const std::string status = Trim(ParseStringField(event_json, "status").value_or(""));
+    return status.empty() ? "recorded" : status;
+}
+
+std::int64_t OpsIncidentTimelineGraphEventTimeMs(const std::string& event_json) {
+    for (const char* key : {"timestampMs", "createdAtMs", "receivedAtMs"}) {
+        if (const auto parsed = ParseInt64Field(event_json, key); parsed.has_value()) {
+            return *parsed;
+        }
+    }
+    return 0;
+}
+
+std::string OpsIncidentTimelineGraphNodeJson(const std::string& id,
+                                             const std::string& stage,
+                                             const std::string& title,
+                                             const std::string& detail,
+                                             const std::string& status,
+                                             std::int64_t time_ms) {
+    std::ostringstream out;
+    out << "{"
+        << "\"id\":\"" << JsonEscape(id) << "\","
+        << "\"stage\":\"" << JsonEscape(stage) << "\","
+        << "\"title\":\"" << JsonEscape(title) << "\","
+        << "\"detail\":\"" << JsonEscape(detail) << "\","
+        << "\"status\":\"" << JsonEscape(status) << "\","
+        << "\"timeMs\":" << time_ms
+        << "}";
+    return out.str();
+}
+
+std::string OpsIncidentTimelineGraphEdgeJson(const std::string& from,
+                                             const std::string& to,
+                                             const std::string& label) {
+    std::ostringstream out;
+    out << "{"
+        << "\"from\":\"" << JsonEscape(from) << "\","
+        << "\"to\":\"" << JsonEscape(to) << "\","
+        << "\"label\":\"" << JsonEscape(label) << "\""
+        << "}";
+    return out.str();
+}
+
+std::string OpsIncidentTimelineGraphAlertAttempt(
+    const std::vector<std::string>& attempts,
+    const std::string& event_id,
+    const std::string& source_id) {
+    for (const std::string& attempt : attempts) {
+        const std::string attempt_event_id = Trim(ParseStringField(attempt, "eventId").value_or(""));
+        const std::string attempt_source_id = Trim(ParseStringField(attempt, "sourceId").value_or(""));
+        if ((!event_id.empty() && attempt_event_id == event_id) ||
+            (!source_id.empty() && attempt_source_id == source_id)) {
+            return attempt;
+        }
+    }
+    return "";
+}
+
+std::string OpsIncidentTimelineGraphViewJson(
+    const app::AppConfig& config,
+    const std::vector<std::string>& event_json_records,
+    const std::unordered_map<std::string, OpsEventReviewState>& reviews) {
+    const std::vector<std::string> alert_attempts = LoadRecentOpsAlertDeliveryAttempts(config, 80);
+    std::vector<std::string> nodes;
+    std::vector<std::string> edges;
+    std::size_t graph_count = 0;
+    constexpr std::size_t kMaxTimelineGraphs = 10;
+
+    for (std::size_t index = 0; index < event_json_records.size() &&
+                                graph_count < kMaxTimelineGraphs; ++index) {
+        const std::string& event_json = event_json_records[index];
+        std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+        if (!OpsEventReviewEventIdAllowed(event_id)) {
+            event_id = "event-" + std::to_string(index + 1);
+        }
+        const std::string event_type =
+            Trim(ParseStringField(event_json, "eventType").value_or("event"));
+        const std::string source_id = OpsIncidentTimelineGraphSourceId(event_json);
+        const std::string event_status = OpsIncidentTimelineGraphEventStatus(event_json);
+        const std::int64_t event_time_ms = OpsIncidentTimelineGraphEventTimeMs(event_json);
+        const auto review_it = reviews.find(event_id);
+        const OpsEventReviewState review =
+            review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
+        const std::string incident_id = review.incident_id.empty() ? "incident:" + event_id
+                                                                   : review.incident_id;
+        const std::string alert_attempt =
+            OpsIncidentTimelineGraphAlertAttempt(alert_attempts, event_id, source_id);
+        const std::string graph_prefix = "incident-timeline:" + event_id + ":";
+        const std::string source_node = graph_prefix + "source-state";
+        const std::string event_node = graph_prefix + "event-record";
+        const std::string action_node = graph_prefix + "operator-action";
+        const std::string alert_node = graph_prefix + "alert-dry-run";
+        const std::string close_node = graph_prefix + "close-state";
+
+        nodes.push_back(OpsIncidentTimelineGraphNodeJson(
+            source_node,
+            "source-state",
+            "source state " + source_id,
+            "source state from EventRecord scope; source locator and raw diagnostics are not exposed",
+            source_id == "unknown-source" ? "unknown" : "scoped",
+            event_time_ms));
+        nodes.push_back(OpsIncidentTimelineGraphNodeJson(
+            event_node,
+            "event-record",
+            "event " + event_type,
+            "EventRecord " + event_id + " status " + event_status,
+            event_status,
+            event_time_ms));
+        nodes.push_back(OpsIncidentTimelineGraphNodeJson(
+            action_node,
+            "operator-action",
+            "operator action " + (review.action_target.empty() ? "operator-triage"
+                                                                 : review.action_target),
+            "review " + review.review_status + " classification " + review.classification +
+                " audit event-review-update/incident-action-update",
+            review.review_status,
+            review.updated_at_ms));
+        if (!alert_attempt.empty()) {
+            const std::string alert_status =
+                Trim(ParseStringField(alert_attempt, "status").value_or("attempted"));
+            const std::string delivery_id =
+                Trim(ParseStringField(alert_attempt, "deliveryId").value_or("delivery"));
+            const std::string kind = Trim(ParseStringField(alert_attempt, "kind").value_or("alert"));
+            const bool dry_run = ParseBoolField(alert_attempt, "dryRun").value_or(false);
+            const bool external_delivery =
+                ParseBoolField(alert_attempt, "externalDeliveryPerformed").value_or(false);
+            nodes.push_back(OpsIncidentTimelineGraphNodeJson(
+                alert_node,
+                "alert-dry-run",
+                "alert " + alert_status,
+                delivery_id + " " + kind + (dry_run ? " dry-run" : " attempt") +
+                    (external_delivery ? " external delivery performed" : " external delivery not performed"),
+                alert_status,
+                ParseInt64Field(alert_attempt, "attemptedAtMs").value_or(0)));
+        } else {
+            nodes.push_back(OpsIncidentTimelineGraphNodeJson(
+                alert_node,
+                "alert-dry-run",
+                "alert dry-run pending",
+                "no dry-run attempt yet; alert delivery remains separate from Event POST payload",
+                "pending",
+                0));
+        }
+        nodes.push_back(OpsIncidentTimelineGraphNodeJson(
+            close_node,
+            "close-state",
+            "incident " + review.incident_status,
+            incident_id + " close state " + review.incident_status +
+                " eventPostPayloadChanged false",
+            review.incident_status,
+            review.updated_at_ms));
+
+        edges.push_back(OpsIncidentTimelineGraphEdgeJson(
+            source_node, event_node, "source-state->event-record"));
+        edges.push_back(OpsIncidentTimelineGraphEdgeJson(
+            event_node, action_node, "event-record->operator-action"));
+        edges.push_back(OpsIncidentTimelineGraphEdgeJson(
+            action_node, alert_node, "operator-action->alert-dry-run"));
+        edges.push_back(OpsIncidentTimelineGraphEdgeJson(
+            alert_node, close_node, "alert-dry-run->close-state"));
+        ++graph_count;
+    }
+
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.incident-timeline-graph.v1\","
+        << "\"status\":\"ops-incident-timeline-graph\","
+        << "\"graphCount\":" << graph_count << ","
+        << "\"nodeCount\":" << nodes.size() << ","
+        << "\"edgeCount\":" << edges.size() << ","
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"auditLinkage\":{"
+        << "\"eventReviewAction\":\"event-review-update\","
+        << "\"incidentAction\":\"incident-action-update\","
+        << "\"alertDryRunAction\":\"alert-delivery-dry-run\","
+        << "\"separateFromEventPostPayload\":true"
+        << "},"
+        << "\"nodes\":[";
+    for (std::size_t i = 0; i < nodes.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << nodes[i];
+    }
+    out << "],\"edges\":[";
+    for (std::size_t i = 0; i < edges.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << edges[i];
+    }
+    out << "]}";
+    return out.str();
+}
+
+std::string OpsExplainableIncidentBriefValueOrFallback(const std::string& value,
+                                                       const std::string& fallback) {
+    const std::string trimmed = Trim(value);
+    if (trimmed.empty() || OpsEventReviewNoteContainsSensitiveMaterial(trimmed)) {
+        return fallback;
+    }
+    return trimmed;
+}
+
+std::string OpsExplainableIncidentBriefObjectSlot(const std::string& event_json) {
+    for (const char* key : {"objectClass", "class", "label", "category"}) {
+        const std::string value = Trim(ParseStringField(event_json, key).value_or(""));
+        if (!value.empty() && !OpsEventReviewNoteContainsSensitiveMaterial(value)) {
+            return value;
+        }
+    }
+    if (const auto metadata = ExtractObjectField(event_json, "metadata"); metadata.has_value()) {
+        for (const char* key : {"objectClass", "class", "label", "category"}) {
+            const std::string value = Trim(ParseStringField(*metadata, key).value_or(""));
+            if (!value.empty() && !OpsEventReviewNoteContainsSensitiveMaterial(value)) {
+                return value;
+            }
+        }
+    }
+    return "tracked object";
+}
+
+std::string OpsExplainableIncidentBriefSlotJson(const std::string& key,
+                                                const std::string& label,
+                                                const std::string& value,
+                                                const std::string& evidence) {
+    std::ostringstream out;
+    out << "{"
+        << "\"key\":\"" << JsonEscape(key) << "\","
+        << "\"label\":\"" << JsonEscape(label) << "\","
+        << "\"value\":\"" << JsonEscape(value) << "\","
+        << "\"evidence\":\"" << JsonEscape(evidence) << "\""
+        << "}";
+    return out.str();
+}
+
+std::string OpsExplainableIncidentBriefViewJson(
+    const std::vector<std::string>& event_json_records,
+    const std::unordered_map<std::string, OpsEventReviewState>& reviews) {
+    std::vector<std::string> briefs;
+    constexpr std::size_t kMaxIncidentBriefs = 10;
+    for (std::size_t index = 0; index < event_json_records.size() &&
+                                briefs.size() < kMaxIncidentBriefs; ++index) {
+        const std::string& event_json = event_json_records[index];
+        std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+        if (!OpsEventReviewEventIdAllowed(event_id)) {
+            event_id = "event-" + std::to_string(index + 1);
+        }
+        const std::string event_type = OpsExplainableIncidentBriefValueOrFallback(
+            ParseStringField(event_json, "eventType").value_or(""), "event");
+        const std::string status = OpsIncidentTimelineGraphEventStatus(event_json);
+        const std::string source_id = OpsIncidentTimelineGraphSourceId(event_json);
+        const std::string rule_id = OpsExplainableIncidentBriefValueOrFallback(
+            OpsIncidentMemoryEventRuleId(event_json), "unmapped-rule");
+        const auto review_it = reviews.find(event_id);
+        const OpsEventReviewState review =
+            review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
+        const std::string incident_id = review.incident_id.empty() ? "incident:" + event_id
+                                                                   : review.incident_id;
+        const std::string action_value = OpsExplainableIncidentBriefValueOrFallback(
+            review.action_target.empty() ? event_type : review.action_target, "operator-triage");
+        const std::string object_value = OpsExplainableIncidentBriefObjectSlot(event_json);
+        const std::string context_value = "source " + source_id + " rule " + rule_id +
+                                          " status " + status;
+        const std::string environment_value =
+            "local EventRecord/review state only; VLM enrichment default-off";
+
+        std::ostringstream out;
+        out << "{"
+            << "\"eventId\":\"" << JsonEscape(event_id) << "\","
+            << "\"incidentId\":\"" << JsonEscape(incident_id) << "\","
+            << "\"title\":\"" << JsonEscape(event_type + " brief") << "\","
+            << "\"reviewStatus\":\"" << JsonEscape(review.review_status) << "\","
+            << "\"incidentStatus\":\"" << JsonEscape(review.incident_status) << "\","
+            << "\"actionSlot\":" << OpsExplainableIncidentBriefSlotJson(
+                   "action", "Action", action_value, "review action target or event type")
+            << ",\"objectSlot\":" << OpsExplainableIncidentBriefSlotJson(
+                   "object", "Object", object_value, "redacted EventRecord object/category")
+            << ",\"contextSlot\":" << OpsExplainableIncidentBriefSlotJson(
+                   "context", "Context", context_value, "source/rule/status identifiers only")
+            << ",\"environmentSlot\":" << OpsExplainableIncidentBriefSlotJson(
+                   "environment", "Environment", environment_value, "provider-free local brief")
+            << "}";
+        briefs.push_back(out.str());
+    }
+
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.explainable-incident-brief.v1\","
+        << "\"status\":\"ops-explainable-incident-brief\","
+        << "\"briefCount\":" << briefs.size() << ","
+        << "\"defaultVlmEnrichmentEnabled\":false,"
+        << "\"modelProviderDependency\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"providerEnrichment\":{\"enabledByDefault\":false,"
+        << "\"requiresOperatorOptIn\":true,"
+        << "\"defaultState\":\"off\"},"
+        << "\"briefs\":[";
+    for (std::size_t i = 0; i < briefs.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << briefs[i];
+    }
+    out << "]}";
+    return out.str();
+}
+
 bool OpsEventReviewInboxJson(const app::AppConfig& config,
                              const std::unordered_map<std::string, std::string>& query,
                              std::string* body,
@@ -12345,6 +13263,10 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         query.count("incidentStatus") != 0 ? Trim(query.at("incidentStatus")) : std::string();
     const std::string requested_event_id =
         query.count("eventId") != 0 ? Trim(query.at("eventId")) : std::string();
+    const std::string rule_id_filter =
+        query.count("ruleId") != 0 ? Trim(query.at("ruleId")) : std::string();
+    const std::string source_id_filter =
+        query.count("sourceId") != 0 ? Trim(query.at("sourceId")) : std::string();
 
     std::vector<std::string> items;
     std::set<std::string> included_event_ids;
@@ -12358,6 +13280,10 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
             review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
         if (!OpsEventReviewMatchesFilters(
                 review, review_status_filter, classification_filter, incident_status_filter)) {
+            continue;
+        }
+        if (!OpsIncidentMemoryRecordMatchesFilters(
+                raw_event, review, rule_id_filter, source_id_filter, incident_status_filter)) {
             continue;
         }
         included_event_ids.insert(event_id);
@@ -12393,6 +13319,14 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         << "\"incidentAuditAction\":\"incident-action-update\""
         << "},"
         << "\"catalog\":" << OpsEventReviewCatalogJson() << ","
+        << "\"memorySearch\":" << OpsIncidentMemorySearchViewJson(event_result.records_json, reviews, query)
+        << ","
+        << "\"similarIncidents\":" << OpsSimilarIncidentLookupViewJson(event_result.records_json, reviews)
+        << ","
+        << "\"timelineGraph\":" << OpsIncidentTimelineGraphViewJson(config, event_result.records_json, reviews)
+        << ","
+        << "\"incidentBrief\":" << OpsExplainableIncidentBriefViewJson(event_result.records_json, reviews)
+        << ","
         << "\"records\":[";
     for (std::size_t i = 0; i < items.size(); ++i) {
         if (i != 0) {
@@ -12794,6 +13728,11 @@ std::string EvidenceBundleEntryName(const std::filesystem::path& path, const std
 
 constexpr std::int64_t kEvidenceBundleMaxAgeMs = 24LL * 60LL * 60LL * 1000LL;
 
+bool EvidenceBundleReleaseSafeRequested(const std::unordered_map<std::string, std::string>& query) {
+    const std::string value = LowerAscii(Trim(query.find("releaseSafe") == query.end() ? "" : query.at("releaseSafe")));
+    return value == "1" || value == "true" || value == "yes";
+}
+
 bool ParseEvidenceBundleExpiresAtMs(const std::unordered_map<std::string, std::string>& query,
                                     std::int64_t now_ms,
                                     std::int64_t* expires_at_ms,
@@ -12842,22 +13781,25 @@ std::uint64_t EvidenceBundleFnv1a64(const std::string& value) {
 std::string EvidenceBundleTokenPayload(const std::string& event_id,
                                        const std::filesystem::path& snapshot_path,
                                        const std::filesystem::path& clip_path,
-                                       std::int64_t expires_at_ms) {
+                                       std::int64_t expires_at_ms,
+                                       bool release_safe) {
     std::ostringstream payload;
     payload << "eventId=" << event_id << "\n"
             << "snapshotPath=" << snapshot_path.string() << "\n"
             << "clipPath=" << clip_path.string() << "\n"
-            << "expiresAtMs=" << expires_at_ms;
+            << "expiresAtMs=" << expires_at_ms << "\n"
+            << "releaseSafe=" << (release_safe ? "1" : "0");
     return payload.str();
 }
 
 std::string EvidenceBundleTokenFor(const std::string& event_id,
                                    const std::filesystem::path& snapshot_path,
                                    const std::filesystem::path& clip_path,
-                                   std::int64_t expires_at_ms) {
+                                   std::int64_t expires_at_ms,
+                                   bool release_safe) {
     std::ostringstream out;
     out << std::hex << std::setw(16) << std::setfill('0')
-        << EvidenceBundleFnv1a64(EvidenceBundleTokenPayload(event_id, snapshot_path, clip_path, expires_at_ms) +
+        << EvidenceBundleFnv1a64(EvidenceBundleTokenPayload(event_id, snapshot_path, clip_path, expires_at_ms, release_safe) +
                                  "\nsecret=" + EvidenceBundleTokenSecret());
     return out.str();
 }
@@ -12900,6 +13842,7 @@ bool ValidateEvidenceBundleToken(const std::unordered_map<std::string, std::stri
                                  const std::filesystem::path& snapshot_path,
                                  const std::filesystem::path& clip_path,
                                  std::int64_t expires_at_ms,
+                                 bool release_safe,
                                  std::string* error_message) {
     const std::string token = Trim(query.find("token") == query.end() ? "" : query.at("token"));
     if (token.empty()) {
@@ -12908,7 +13851,7 @@ bool ValidateEvidenceBundleToken(const std::unordered_map<std::string, std::stri
         }
         return false;
     }
-    const std::string expected = EvidenceBundleTokenFor(event_id, snapshot_path, clip_path, expires_at_ms);
+    const std::string expected = EvidenceBundleTokenFor(event_id, snapshot_path, clip_path, expires_at_ms, release_safe);
     if (token != expected) {
         if (error_message != nullptr) {
             *error_message = "evidence bundle token is invalid";
@@ -12934,12 +13877,16 @@ std::string EventEvidenceBundleTokenJson(const std::unordered_map<std::string, s
                                       error_message)) {
         return {};
     }
-    const std::string token = EvidenceBundleTokenFor(event_id, snapshot_path, clip_path, expires_at_ms);
+    const bool release_safe_requested = EvidenceBundleReleaseSafeRequested(query);
+    const std::string token = EvidenceBundleTokenFor(event_id, snapshot_path, clip_path, expires_at_ms, release_safe_requested);
     std::ostringstream params;
     params << "eventId=" << UrlEncode(event_id)
            << "&expiresAtMs=" << expires_at_ms
            << "&token=" << UrlEncode(token)
            << "&download=1";
+    if (release_safe_requested) {
+        params << "&releaseSafe=1";
+    }
     if (!snapshot_path.empty()) {
         params << "&snapshotPath=" << UrlEncode(snapshot_path.string());
     }
@@ -12949,10 +13896,89 @@ std::string EventEvidenceBundleTokenJson(const std::unordered_map<std::string, s
     std::ostringstream out;
     out << "{\"status\":\"event-evidence-bundle-token\","
         << "\"token\":\"" << JsonEscape(token) << "\","
+        << "\"releaseSafe\":" << (release_safe_requested ? "true" : "false") << ","
         << "\"expiresAtMs\":" << expires_at_ms << ","
         << "\"maxAgeMs\":" << kEvidenceBundleMaxAgeMs << ","
         << "\"cleanupPolicy\":\"token-expiry-no-server-file\","
         << "\"bundleUrl\":\"/lab/analysis/events/evidence/bundle?" << JsonEscape(params.str()) << "\"}";
+    return out.str();
+}
+
+std::string EvidenceBundleRedactedValue(const std::string& value, const std::string& fallback) {
+    const std::string trimmed = Trim(value);
+    if (trimmed.empty() || analysis::IncidentProjectionContainsForbiddenMaterial(trimmed)) {
+        return fallback;
+    }
+    return trimmed;
+}
+
+std::string BuildReleaseSafeIncidentEvidenceBundleManifest(const std::string& event_id,
+                                                           bool snapshot_requested,
+                                                           bool clip_requested,
+                                                           std::int64_t now_ms,
+                                                           std::int64_t expires_at_ms) {
+    std::string summary = "redacted incident evidence bundle";
+    std::vector<std::string> terms;
+    std::vector<std::string> redacted_fields;
+    if (!event_id.empty()) {
+        analysis::EventRecordQueryOptions options;
+        options.event_id = event_id;
+        options.limit = 1;
+        options.include_archives = true;
+        analysis::EventRecordQueryResult result;
+        std::string query_error;
+        if (analysis::QueryEventRecords(options, &result, &query_error) && !result.records_json.empty()) {
+            const auto document = analysis::ProjectEventRecordIncidentText(result.records_json.front());
+            summary = EvidenceBundleRedactedValue(document.summary, summary);
+            terms = document.tokens;
+            if (terms.size() > 12) {
+                terms.resize(12);
+            }
+            redacted_fields = document.redacted_fields;
+        }
+    }
+
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.v250.redacted-incident-evidence-bundle.v1\","
+        << "\"releaseSafe\":true,"
+        << "\"createdAtMs\":" << now_ms << ","
+        << "\"expiresAtMs\":" << expires_at_ms << ","
+        << "\"eventId\":\"" << JsonEscape(event_id) << "\","
+        << "\"scope\":\"release-safe-redacted-incident-evidence\","
+        << "\"bundleFormat\":\"zip\","
+        << "\"rawEvidenceIncluded\":false,"
+        << "\"sourceLocatorIncluded\":false,"
+        << "\"credentialIncluded\":false,"
+        << "\"providerMaterialIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"inputEvidence\":{\"snapshotProvided\":" << (snapshot_requested ? "true" : "false")
+        << ",\"clipProvided\":" << (clip_requested ? "true" : "false") << "},"
+        << "\"searchResults\":[{\"eventId\":\"" << JsonEscape(event_id)
+        << "\",\"summaryText\":\"" << JsonEscape(summary) << "\",\"terms\":";
+    out << OpsIncidentMemoryStringArrayJson(terms)
+        << "}],"
+        << "\"timelineSummary\":["
+        << "{\"stage\":\"event-record\",\"summaryText\":\"" << JsonEscape(summary) << "\"},"
+        << "{\"stage\":\"release-safe-export\",\"summaryText\":\"raw evidence files excluded\"}"
+        << "],"
+        << "\"redactionPolicy\":{\"excludedMaterials\":["
+        << "\"raw-evidence\","
+        << "\"snapshot-file\","
+        << "\"clip-frame-file\","
+        << "\"source-url\","
+        << "\"developer-url\","
+        << "\"credential\","
+        << "\"debug-counters\","
+        << "\"provider-prompt-response\"],"
+        << "\"redactedFields\":";
+    out << OpsIncidentMemoryStringArrayJson(redacted_fields)
+        << "}}";
     return out.str();
 }
 
@@ -12968,6 +13994,7 @@ bool BuildEventEvidenceBundleZip(const std::unordered_map<std::string, std::stri
     std::string event_id;
     std::filesystem::path snapshot_path;
     std::filesystem::path clip_path;
+    const bool release_safe_requested = EvidenceBundleReleaseSafeRequested(query);
     if (!ExtractEvidenceBundleRequest(query,
                                       now_ms,
                                       &event_id,
@@ -12980,109 +14007,117 @@ bool BuildEventEvidenceBundleZip(const std::unordered_map<std::string, std::stri
                                      snapshot_path,
                                      clip_path,
                                      expires_at_ms,
+                                     release_safe_requested,
                                      error_message)) {
         return false;
     }
 
     std::string zip;
     std::vector<ZipCentralDirectoryEntry> entries;
-    if (!event_id.empty()) {
-        analysis::EventRecordQueryOptions options;
-        options.event_id = event_id;
-        options.limit = 1;
-        options.include_archives = true;
-        analysis::EventRecordQueryResult result;
-        std::string query_error;
-        if (analysis::QueryEventRecords(options, &result, &query_error) && !result.records_json.empty()) {
-            if (!AppendZipEntry(&zip, &entries, "event-record.json", result.records_json.front(), error_message)) {
-                return false;
+    if (!release_safe_requested) {
+        if (!event_id.empty()) {
+            analysis::EventRecordQueryOptions options;
+            options.event_id = event_id;
+            options.limit = 1;
+            options.include_archives = true;
+            analysis::EventRecordQueryResult result;
+            std::string query_error;
+            if (analysis::QueryEventRecords(options, &result, &query_error) && !result.records_json.empty()) {
+                if (!AppendZipEntry(&zip, &entries, "event-record.json", result.records_json.front(), error_message)) {
+                    return false;
+                }
             }
         }
-    }
 
-    if (!snapshot_path.empty() &&
-        !AppendEvidenceFileToZip(&zip,
-                                 &entries,
-                                 snapshot_path,
-                                 EvidenceBundleEntryName(snapshot_path, "evidence/snapshot"),
-                                 error_message)) {
-        return false;
-    }
-
-    if (!clip_path.empty()) {
-        const std::string clip_root = "evidence/clip/" + clip_path.parent_path().filename().string();
-        if (!AppendEvidenceFileToZip(&zip,
+        if (!snapshot_path.empty() &&
+            !AppendEvidenceFileToZip(&zip,
                                      &entries,
-                                     clip_path,
-                                     clip_root + "/" + clip_path.filename().string(),
+                                     snapshot_path,
+                                     EvidenceBundleEntryName(snapshot_path, "evidence/snapshot"),
                                      error_message)) {
             return false;
         }
-        if (std::filesystem::is_regular_file(clip_path)) {
-            std::error_code ec;
-            std::vector<std::filesystem::path> clip_files;
-            for (const auto& entry : std::filesystem::directory_iterator(clip_path.parent_path(), ec)) {
-                if (ec || !entry.is_regular_file()) {
-                    continue;
-                }
-                const auto candidate = entry.path();
-                if (candidate == clip_path) {
-                    continue;
-                }
-                std::filesystem::path resolved;
-                std::string content_type;
-                if (IsSafeEventEvidencePath(candidate, &resolved, &content_type)) {
-                    clip_files.push_back(resolved);
-                }
+
+        if (!clip_path.empty()) {
+            const std::string clip_root = "evidence/clip/" + clip_path.parent_path().filename().string();
+            if (!AppendEvidenceFileToZip(&zip,
+                                         &entries,
+                                         clip_path,
+                                         clip_root + "/" + clip_path.filename().string(),
+                                         error_message)) {
+                return false;
             }
-            std::sort(clip_files.begin(), clip_files.end());
-            constexpr std::size_t kMaxClipFilesInBundle = 200;
-            if (clip_files.size() > kMaxClipFilesInBundle) {
-                clip_files.resize(kMaxClipFilesInBundle);
-            }
-            for (const auto& file : clip_files) {
-                if (!AppendEvidenceFileToZip(&zip,
-                                             &entries,
-                                             file,
-                                             clip_root + "/" + file.filename().string(),
-                                             error_message)) {
-                    return false;
+            if (std::filesystem::is_regular_file(clip_path)) {
+                std::error_code ec;
+                std::vector<std::filesystem::path> clip_files;
+                for (const auto& entry : std::filesystem::directory_iterator(clip_path.parent_path(), ec)) {
+                    if (ec || !entry.is_regular_file()) {
+                        continue;
+                    }
+                    const auto candidate = entry.path();
+                    if (candidate == clip_path) {
+                        continue;
+                    }
+                    std::filesystem::path resolved;
+                    std::string content_type;
+                    if (IsSafeEventEvidencePath(candidate, &resolved, &content_type)) {
+                        clip_files.push_back(resolved);
+                    }
+                }
+                std::sort(clip_files.begin(), clip_files.end());
+                constexpr std::size_t kMaxClipFilesInBundle = 200;
+                if (clip_files.size() > kMaxClipFilesInBundle) {
+                    clip_files.resize(kMaxClipFilesInBundle);
+                }
+                for (const auto& file : clip_files) {
+                    if (!AppendEvidenceFileToZip(&zip,
+                                                 &entries,
+                                                 file,
+                                                 clip_root + "/" + file.filename().string(),
+                                                 error_message)) {
+                        return false;
+                    }
                 }
             }
         }
     }
 
     std::ostringstream manifest;
-    manifest << "{"
-             << "\"schema\":\"media-server.va.event-evidence-bundle.v1\","
-             << "\"createdAtMs\":" << now_ms << ","
-             << "\"expiresAtMs\":" << expires_at_ms << ","
-             << "\"eventId\":\"" << JsonEscape(event_id) << "\","
-             << "\"scope\":\"event-short-evidence\","
-             << "\"longRecording\":false,"
-             << "\"bundleFormat\":\"zip\","
-             << "\"retentionPolicy\":{\"bundleMaxAgeMs\":" << kEvidenceBundleMaxAgeMs
-             << ",\"bundleExpiry\":\"signed-token-expiresAtMs\","
-             << "\"expiredBundleCleanup\":\"token-expiry-no-server-file\"},"
-             << "\"exportPolicy\":{\"bundleSignedToken\":true,\"tokenParam\":\"token\"},"
-             << "\"deletePolicy\":{\"evidenceFileDelete\":false,\"evidenceFileDeletePermission\":\"blocked-for-all-roles\"},"
-             << "\"snapshotPath\":\"" << JsonEscape(snapshot_path.string()) << "\","
-             << "\"clipPath\":\"" << JsonEscape(clip_path.string()) << "\","
-             << "\"entries\":[";
-    for (std::size_t index = 0; index < entries.size(); ++index) {
-        if (index != 0) {
-            manifest << ",";
+    if (release_safe_requested) {
+        manifest << BuildReleaseSafeIncidentEvidenceBundleManifest(
+            event_id, !snapshot_path.empty(), !clip_path.empty(), now_ms, expires_at_ms);
+    } else {
+        manifest << "{"
+                 << "\"schema\":\"media-server.va.event-evidence-bundle.v1\","
+                 << "\"createdAtMs\":" << now_ms << ","
+                 << "\"expiresAtMs\":" << expires_at_ms << ","
+                 << "\"eventId\":\"" << JsonEscape(event_id) << "\","
+                 << "\"scope\":\"event-short-evidence\","
+                 << "\"longRecording\":false,"
+                 << "\"bundleFormat\":\"zip\","
+                 << "\"retentionPolicy\":{\"bundleMaxAgeMs\":" << kEvidenceBundleMaxAgeMs
+                 << ",\"bundleExpiry\":\"signed-token-expiresAtMs\","
+                 << "\"expiredBundleCleanup\":\"token-expiry-no-server-file\"},"
+                 << "\"exportPolicy\":{\"bundleSignedToken\":true,\"tokenParam\":\"token\"},"
+                 << "\"deletePolicy\":{\"evidenceFileDelete\":false,\"evidenceFileDeletePermission\":\"blocked-for-all-roles\"},"
+                 << "\"snapshotPath\":\"" << JsonEscape(snapshot_path.string()) << "\","
+                 << "\"clipPath\":\"" << JsonEscape(clip_path.string()) << "\","
+                 << "\"entries\":[";
+        for (std::size_t index = 0; index < entries.size(); ++index) {
+            if (index != 0) {
+                manifest << ",";
+            }
+            manifest << "\"" << JsonEscape(entries[index].name) << "\"";
         }
-        manifest << "\"" << JsonEscape(entries[index].name) << "\"";
+        manifest << "]}";
     }
-    manifest << "]}";
     if (!AppendZipEntry(&zip, &entries, "manifest.json", manifest.str(), error_message) ||
         !FinalizeZip(&zip, entries, error_message)) {
         return false;
     }
 
     const std::string safe_id = event_id.empty() ? std::to_string(NowUnixMs()) : event_id;
-    *download_name = "event-evidence-" + safe_id + ".zip";
+    *download_name = std::string(release_safe_requested ? "redacted-incident-evidence-" : "event-evidence-") + safe_id + ".zip";
     *zip_body = std::move(zip);
     return true;
 }
@@ -15781,7 +16816,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             return JsonResponse(200, "OK", response_body);
                         }
 
-                        if (request.method == "GET" && request.path == "/lab/analysis/events/evidence/bundle-token") {
+                        if (IsLabEventEvidenceBundleTokenRoute(request.method, request.path)) {
                             std::string error_message;
                             const std::string response_body = EventEvidenceBundleTokenJson(query, &error_message);
                             if (response_body.empty()) {
@@ -15794,7 +16829,7 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             return ok;
                         }
 
-                        if (request.method == "GET" && request.path == "/lab/analysis/events/evidence/bundle") {
+                        if (IsLabEventEvidenceBundleDownloadRoute(request.method, request.path)) {
                             std::string zip_body;
                             std::string download_name;
                             std::string error_message;

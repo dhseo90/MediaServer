@@ -284,6 +284,24 @@ Usage:
                  v2.4.0 S07 feature inventory/manual UI/release evidence 매핑을 검증합니다.
   verify-v240-release-readiness-gate
                  v2.4.0 S08 release metadata/docs/assets/CI parity/close-out dry-run evidence를 검증합니다.
+  verify-v250-incident-text-projection
+                 v2.5.0 Event/incident text projection과 redaction guard를 검증합니다.
+  verify-v250-incident-memory-index
+                 v2.5.0 Local incident memory index의 SQLite FTS5 primary/JSONL BM25 fallback을 검증합니다.
+  verify-v250-ops-events-semantic-search-ui
+                 v2.5.0 /ops/events semantic search UI와 Ops-only search view model을 검증합니다.
+  verify-v250-incident-timeline-graph
+                 v2.5.0 incident timeline graph와 action/audit linkage를 검증합니다.
+  verify-v250-explainable-incident-brief
+                 v2.5.0 explainable incident brief와 VLM default-off 경계를 검증합니다.
+  verify-v250-similar-incident-lookup
+                 v2.5.0 similar incident lookup과 deterministic scoring/redaction 경계를 검증합니다.
+  verify-v250-client-safe-incident-digest
+                 v2.5.0 client-safe incident digest와 viewer redaction 경계를 검증합니다.
+  verify-v250-redacted-incident-evidence-bundle
+                 v2.5.0 redacted incident evidence bundle과 release-safe export 경계를 검증합니다.
+  verify-v250-owner-release-readiness
+                 v2.5.0 owner decomposition/release readiness gate를 검증합니다.
   verify-ops-scenario-builder-ui
                  Scenario Builder UI의 Event Rule 폼 적용과 engine 비변경 계약을 검증합니다.
   verify-ops-client-shared-declutter
@@ -1042,6 +1060,42 @@ case "${cmd}" in
   verify-v240-release-readiness-gate)
     require_internal verify_v240_release_readiness_gate.mjs
     exec "${INTERNAL_DIR}/verify_v240_release_readiness_gate.mjs" "$@"
+    ;;
+  verify-v250-incident-text-projection)
+    require_internal verify_v250_incident_text_projection.sh
+    exec "${INTERNAL_DIR}/verify_v250_incident_text_projection.sh" "$@"
+    ;;
+  verify-v250-incident-memory-index)
+    require_internal verify_v250_incident_memory_index.sh
+    exec "${INTERNAL_DIR}/verify_v250_incident_memory_index.sh" "$@"
+    ;;
+  verify-v250-ops-events-semantic-search-ui)
+    require_internal verify_v250_ops_events_semantic_search_ui.mjs
+    exec "${INTERNAL_DIR}/verify_v250_ops_events_semantic_search_ui.mjs" "$@"
+    ;;
+  verify-v250-incident-timeline-graph)
+    require_internal verify_v250_incident_timeline_graph.mjs
+    exec "${INTERNAL_DIR}/verify_v250_incident_timeline_graph.mjs" "$@"
+    ;;
+  verify-v250-explainable-incident-brief)
+    require_internal verify_v250_explainable_incident_brief.mjs
+    exec "${INTERNAL_DIR}/verify_v250_explainable_incident_brief.mjs" "$@"
+    ;;
+  verify-v250-similar-incident-lookup)
+    require_internal verify_v250_similar_incident_lookup.mjs
+    exec "${INTERNAL_DIR}/verify_v250_similar_incident_lookup.mjs" "$@"
+    ;;
+  verify-v250-client-safe-incident-digest)
+    require_internal verify_v250_client_safe_incident_digest.mjs
+    exec "${INTERNAL_DIR}/verify_v250_client_safe_incident_digest.mjs" "$@"
+    ;;
+  verify-v250-redacted-incident-evidence-bundle)
+    require_internal verify_v250_redacted_incident_evidence_bundle.mjs
+    exec "${INTERNAL_DIR}/verify_v250_redacted_incident_evidence_bundle.mjs" "$@"
+    ;;
+  verify-v250-owner-release-readiness)
+    require_internal verify_v250_owner_release_readiness.mjs
+    exec "${INTERNAL_DIR}/verify_v250_owner_release_readiness.mjs" "$@"
     ;;
   verify-ops-scenario-builder-ui)
     require_internal verify_ops_scenario_builder_ui.mjs

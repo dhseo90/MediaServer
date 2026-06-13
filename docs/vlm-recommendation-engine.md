@@ -1,6 +1,6 @@
 # VLM Recommendation Engine
 
-이 문서는 `v2.0.0 V200-S03 VLM 추천 엔진`의 source-of-truth입니다.
+이 문서는 `v2.0.0 V200-S03 VLM 추천 엔진`의 세부 기준 문서입니다.
 추천 엔진은 `media-server.vlm-pc-capability.v1` PC 사양 감지 결과와
 `media-server.vlm-selection-decision.v1` 모델 선택 결정을 입력으로 받아
 privacy mode별 추천 모델, 대안 모델, 비추천 사유, 예상 memory/disk/latency/cost를

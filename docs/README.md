@@ -20,13 +20,15 @@
 
 ## 현재 제품 경계
 
-- 최신 공개 release: [`v2.3.0`](https://github.com/dhseo90/MediaServer/releases/tag/v2.3.0)
-- 현재 release target: [`v2.4.0`](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
-- 활성 roadmap: `v2.4.0 Operator Event Review & Action Workflow`
+- 최신 공개 release: [`v2.4.0`](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
+- 현재 release target: `v2.5.0` (GitHub Release publish 전 target이며 release 링크로 쓰지 않음)
+- 활성 roadmap: `v2.5.0 Semantic Incident Memory`
 - 기본 release 형태: source-only
-- 중심 범위: live source onboarding, live source health, live VA event 품질
+- 중심 범위: live source onboarding, live source health, live VA event 품질,
+  operator incident memory/search
 - 테스트 영역: 안정화 테스트, 30분 테스트, 120분 테스트, UI 풀테스트
-- 비범위: 장기 녹화, VMS/NVR, playback/search, ONVIF Profile G recording/replay,
+- 비범위: 장기 녹화, VMS/NVR, video playback/archive search,
+  ONVIF Profile G recording/replay,
   Re-ID/tracker default-on, VLM default-on, VLM model/runtime bundle release,
   binary/runtime/model bundle release
 
@@ -34,14 +36,9 @@
 
 | 범위 | 문서 |
 | --- | --- |
-| Current Release Target / v2.4.0 operator event review roadmap | [development-backlog.md](development-backlog.md)의 `활성 roadmap: v2.4.0 Operator Event Review & Action Workflow`, [release-policy.md](release-policy.md)의 `v2.4.0 Release Target Runbook`, [release-evidence-index.md](release-evidence-index.md) |
-| Previous published release / v2.3.0 operational evidence baseline | [development-backlog.md](development-backlog.md)의 `현재 기준: v2.3.0 Source Release Baseline`, [release-policy.md](release-policy.md), [release-evidence-index.md](release-evidence-index.md) |
-| v2.4.0 S00 기준 정렬 | [development-backlog.md](development-backlog.md), [versioning-policy.md](versioning-policy.md), [release-policy.md](release-policy.md), [release-evidence-index.md](release-evidence-index.md) |
-| v2.3.0 S01 EventRecord occurrence matrix | [manual-ui-result-2026-06-05-v230-s01-eventrecord-matrix.md](manual-ui-result-2026-06-05-v230-s01-eventrecord-matrix.md) |
-| v2.3.0 S02 4대 테스트 evidence 정합성 | [development-backlog.md](development-backlog.md), [release-evidence-index.md](release-evidence-index.md), [project-feature-test-inventory.md](project-feature-test-inventory.md), [stream-verification.md](stream-verification.md) |
-| v2.3.0 S03 UI renderer/module decomposition | [v230-ui-renderer-module-decomposition.md](v230-ui-renderer-module-decomposition.md), [development-backlog.md](development-backlog.md), [stream-verification.md](stream-verification.md) |
-| v2.3.0 S05-S07 operational evidence implementation plan | [superpowers/plans/2026-06-05-v230-operational-evidence-steps-5-7.md](superpowers/plans/2026-06-05-v230-operational-evidence-steps-5-7.md) |
-| v2.3.0 S07 Integrator contract conformance | [development-backlog.md](development-backlog.md), [integrator-contract-artifact.md](integrator-contract-artifact.md), [release-evidence-index.md](release-evidence-index.md) |
+| Current Release Target / v2.5.0 semantic incident memory roadmap | [development-backlog.md](development-backlog.md)의 `활성 roadmap: v2.5.0 Semantic Incident Memory`, [release-policy.md](release-policy.md)의 `v2.5.0 Release Target Runbook`, [release-evidence-index.md](release-evidence-index.md) |
+| Latest published release / v2.4.0 operator event review baseline | [development-backlog.md](development-backlog.md)의 `현재 기준: v2.4.0 Source Release Baseline`, [release-policy.md](release-policy.md), [release-evidence-index.md](release-evidence-index.md) |
+| v2.5.0 S00 기준 정렬 | [development-backlog.md](development-backlog.md), [versioning-policy.md](versioning-policy.md), [release-policy.md](release-policy.md), [release-evidence-index.md](release-evidence-index.md) |
 | 기능별 UI 필요/테스트 영역 inventory | [project-feature-test-inventory.md](project-feature-test-inventory.md) |
 | UI 풀테스트 기준/체크리스트/결과 템플릿 | [manual-ui-fulltest.md](manual-ui-fulltest.md), [manual-ui-checklist.md](manual-ui-checklist.md), [manual-ui-result-template.md](manual-ui-result-template.md) |
 | Runtime dashboard longrun evidence template | [runtime-dashboard-longrun-evidence-template.md](runtime-dashboard-longrun-evidence-template.md) |
@@ -88,7 +85,7 @@ default-on 승격 근거로 쓰지 않습니다.
 
 ## UI / 이미지 / 문구 문서
 
-프로젝트 소개와 이미지 관련 문서는 v2.4.0 active target에서 현재 README 대표
+프로젝트 소개와 이미지 관련 문서는 v2.5.0 active target에서 현재 README 대표
 이미지와 UI asset policy를 함께 확인합니다. 직접 UI 풀테스트 전에는 screenshot
 검증기를 통과해도 현재 UI 직접 확인 PASS로 확대하지 않습니다.
 
@@ -102,8 +99,8 @@ default-on 승격 근거로 쓰지 않습니다.
 
 ## v2.2.0 UI Foundation Archive
 
-이 섹션의 문서는 완료된 v2.2.0 UI foundation 증적입니다. 현재 v2.4.0 작업의
-source-of-truth가 아니라, verifier와 historical evidence 보존용입니다.
+이 섹션의 문서는 완료된 v2.2.0 UI foundation 증적입니다. 현재 v2.5.0 작업의
+현재 기준이 아니라, verifier와 historical evidence 보존용입니다.
 
 | 범위 | 문서 |
 | --- | --- |
@@ -115,8 +112,14 @@ source-of-truth가 아니라, verifier와 historical evidence 보존용입니다
 
 과거 version-named standalone UI 결과와 v2.0.0 테스트 기록 문서는
 [release-evidence-index.md](release-evidence-index.md)의 Test Token Usage Ledger로
-병합했습니다. 현재 작업 source-of-truth는 이 색인, 현재 v2.4.0 roadmap, 그리고
-로드맵 문서입니다.
+병합했습니다. v2.3.0 S01~S07 evidence 정합성, UI renderer/module decomposition,
+operational evidence implementation plan, integrator contract conformance 문서는
+historical evidence로만 취급하며 현재 v2.5.0 완료 근거로 쓰지 않습니다. 현재 작업
+기준은 이 색인, 현재 v2.5.0 roadmap, 그리고 로드맵 문서입니다.
+
+| 범위 | 문서 |
+| --- | --- |
+| v2.3.0 UI renderer/module decomposition | [v230-ui-renderer-module-decomposition.md](v230-ui-renderer-module-decomposition.md) |
 
 ## Research / Experimental Boundaries
 

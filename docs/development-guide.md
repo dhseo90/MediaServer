@@ -421,7 +421,7 @@ git diff --stat
 git diff --check
 ```
 
-커밋 시에는 작업한 파일만 stage합니다.
+사용자가 최신 요청에서 커밋을 명시 승인한 경우에만, 승인된 작업 파일만 stage합니다.
 
 ```bash
 git add README.md docs/development-guide.md docs/config-reference.md

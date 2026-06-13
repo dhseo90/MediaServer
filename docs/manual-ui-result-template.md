@@ -63,7 +63,7 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 
 | 항목 | 기대 상태 | 실제 상태 | 판정 | 후속 |
 | --- | --- | --- | --- | --- |
-| 기능 목록 freeze | `Four-Stage Coverage Mapping`과 기능 ID 목록 확인 |  | PASS/FAIL |  |
+| 기능 목록 freeze | `v2.5.0 Semantic Incident Memory Coverage Mapping`과 기능 ID 목록 확인 |  | PASS/FAIL |  |
 | VLM UI 대상 | `/ops/vlm`, `/ops/events`, `/client/live`, `/client/dashboard`, `/client/events` 결과 행 존재 |  | PASS/FAIL |  |
 | auth verifier env | auth test password env 5개 모두 `SET` |  | PASS/FAIL |  |
 | throwaway fixture | users/source/view/analysis/event/snapshot/clip 경로 고정 |  | PASS/FAIL |  |
@@ -101,6 +101,31 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 - 120분 테스트: 판정은 PASS 또는 FAIL, 실행하지 않았으면 미실행 사유
 - 인앱 브라우저 UI 풀테스트: 판정은 PASS 또는 FAIL, 실행하지 않았으면 미실행 사유
 - 실기기/외부 credential 조건: 별도 테스트 영역으로 쓰지 않고 안정화/UI 제외 기록에 사유
+
+## v2.5.0 Release Evidence Index
+
+이 섹션은 현재 release UI gate에서 직접 조작 evidence를 route/control/action 단위로
+남기는 자리입니다. 자동 smoke나 raw JSON 확인만으로 채우지 않습니다.
+카테고리 묶음 판정은 금지합니다.
+
+| route | 직접 조작 | 반영 상태/로그 확인 | 판정 | 증적 |
+| --- | --- | --- | --- | --- |
+| `/setup` |  |  | PASS/FAIL |  |
+| `/login` |  |  | PASS/FAIL |  |
+| `/ops/home` |  |  | PASS/FAIL |  |
+| `/ops/dashboard` |  |  | PASS/FAIL |  |
+| `/ops/sources` |  |  | PASS/FAIL |  |
+| `/ops/users` |  |  | PASS/FAIL |  |
+| `/ops/events` | semantic search, timeline graph, explainable brief, similar lookup, release-safe bundle | EventRecord/audit/log, redaction badge, source/raw/provider 비노출 | PASS/FAIL |  |
+| `/ops/rules` |  |  | PASS/FAIL |  |
+| `/client/live` | client/viewer 비노출 재확인 | source locator/raw/debug/provider material 없음 | PASS/FAIL |  |
+| `/client/dashboard` | client/viewer 비노출 재확인 | incident digest viewer-safe summary만 표시 | PASS/FAIL |  |
+| `/client/events` | client/viewer 비노출 재확인 | incident digest viewer-safe summary만 표시 | PASS/FAIL |  |
+
+- 직접 열어보지 않은 화면:
+- 실패 후 재검수한 화면:
+- raw JSON/API-only 또는 자동 smoke만 확인한 항목:
+- UI 풀테스트 직접 조작 미실행 항목:
 
 ## 현재 보존 증적
 

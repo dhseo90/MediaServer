@@ -1,8 +1,8 @@
 # English Documentation
 
-This is the English entry point for Media Server. The detailed source-of-truth
-documents are maintained in Korean under `docs/`; this page keeps the English
-path short enough to scan. The full index is `docs/README.md`.
+This is the English entry point for Media Server. The detailed Korean
+documentation is maintained under `docs/`; this page keeps the English path
+short enough to scan. The full index is `docs/README.md`.
 
 ## Start Here
 
@@ -19,34 +19,32 @@ path short enough to scan. The full index is `docs/README.md`.
 
 ## Current Boundary
 
-- Latest published release: [v2.3.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.3.0).
-- Current release target: [v2.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0).
-- v2.4.0 active roadmap is tracked in
+- Latest published release: [v2.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0).
+- Current release target: `v2.5.0` (target only before GitHub Release publish; not a release link).
+- v2.5.0 active roadmap is tracked in
   [../development-backlog.md](../development-backlog.md).
-- v2.3.0 completed roadmap is tracked in
+- v2.4.0 completed roadmap is tracked in
   [../development-backlog.md](../development-backlog.md) as Operational Evidence
-  & Contract Baseline.
+  & Operator Event Review baseline.
 - The main product boundary is live source onboarding, live source health, and
-  live VA event quality.
-- v2.4.0 keeps the stability, 30-minute, 120-minute, and UI fulltest areas as
+  live VA event quality, plus local operator incident memory/search.
+- v2.5.0 keeps the stability, 30-minute, 120-minute, and UI fulltest areas as
   the only test areas. Field/provider/longrun triggers are recorded inside those
   areas or as exclusions, not as a fifth test category.
-- v2.3.0 S02 evidence consistency is checked by
-  `./server.sh verify-v230-test-evidence-consistency`; it does not execute
-  30-minute, 120-minute, or UI fulltest runs.
 - Binary, runtime, and model bundles are excluded from the default release.
 - Long-term recording, VMS/NVR, playback/search, ONVIF Profile G
   recording/replay, Re-ID default-on, and tracker default-on remain out of scope.
 
-v2.3.0 branch-level close-out evidence and historical in-app browser UI
-fulltest summaries are tracked in
-[../release-evidence-index.md](../release-evidence-index.md).
+Historical branch-level close-out evidence and in-app browser UI fulltest
+summaries are tracked in [../release-evidence-index.md](../release-evidence-index.md).
 Script stability, 30-minute soak, UI fulltest, and 120-minute longrun evidence do
 not replace one another. Real cloud provider calls, external TURN field gates,
-and VLM model/runtime bundles remain outside the default v2.4.0 target evidence.
+and VLM model/runtime bundles remain outside the default v2.5.0 target evidence.
+For v2.5.0, real-device ONVIF success, external TURN/WHEP credential operations,
+and real cloud provider calls are not default release PASS evidence.
 
-v2.4.0 active roadmap details are in [../development-backlog.md](../development-backlog.md).
-For the v2.4.0 documentation baseline, UI preview images are
+v2.5.0 active roadmap details are in [../development-backlog.md](../development-backlog.md).
+For the v2.5.0 documentation baseline, UI preview images are
 documentation assets only. QA-registry-heavy recaptures, unapproved Chrome/CDP
 fallback captures, and screenshot-only artifacts are not promoted to
 representative images or UI fulltest evidence without in-app browser review.

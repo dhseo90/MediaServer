@@ -53,8 +53,12 @@ v1.8.0에서 도입되어 v1.9.0에서도 유지되는 product shell은 ERP/운�
 
 ### 1.1 Design token/component inventory
 
-현재 v2.4.0까지의 UI 변경과 `v2.2.0 Responsive UI Foundation`,
-`v2.3.0 UI renderer/module decomposition`의 UI 정리는 아래 inventory를 기준으로 합니다.
+현재 v2.5.0까지의 UI 변경과 `v2.2.0 Responsive UI Foundation`,
+`v2.3.0 UI renderer/module decomposition`, `v2.4.0 Operator Event Review`의
+UI 정리는 아래 inventory를 기준으로 합니다.
+v2.5.0 Semantic Incident Memory 전용 검색/timeline/brief UI는 구현 단계에서
+route/control/action evidence를 별도로 추가해야 하며, 현재 대표 screenshot은 UI
+풀테스트 PASS 증거가 아닙니다.
 새 색상, radius, spacing, shadow, table row, detail panel, client tile을 추가하기 전에
 먼저 같은 계층의 기존 token/class/helper로 표현할 수 있는지 확인합니다.
 
@@ -408,8 +412,8 @@ Ops/Client/Lab API guard를 확인합니다.
   artifact로 `visual-baseline-diff.json`, `visual-baseline-diff.md`,
   `visual-baseline-comment.md`를 업로드해 PR에서 baseline diff/comment 출력 형식을
   바로 확인하게 합니다. 같은 comment 본문은 `GITHUB_STEP_SUMMARY`에도 자동으로
-  게시되어 PR check summary에서 확인할 수 있으며, summary에는 Actions artifact
-  download 링크도 함께 표시합니다.
+  게시되어 PR check summary에서 확인할 수 있으며, summary에는 Actions
+  artifact download 링크도 함께 표시합니다.
 - 오래된 UI artifact 보관/정리는
   `./server.sh ui-visual-artifact-maintenance --artifact-root <artifact-root> --archive-dir <archive-dir> --report <report.json>`
   로 먼저 dry-run합니다. 실제 복사/삭제는 `--apply`를 명시한 경우에만 수행하며,
@@ -1509,7 +1513,7 @@ Screenshot 관리 정책:
 | 파일명 | 역할 기반 이름 사용 |
 | 기본 theme | dark mode 대표 화면 |
 | 링크 정책 | 새 이미지가 없으면 broken link 대신 “이미지 추가 예정” 문구 사용 |
-| 현재 대표 이미지 | 2026-05-23 캡처 자산을 최신 공개 release v2.3.0의 대표 shell 설명 이미지로 유지. Client Live는 source tree, dock event feed, workspace preset, tile action/VA overlay 구조를 포함 |
+| 현재 대표 이미지 | 2026-05-23 캡처 자산을 최신 공개 release v2.4.0과 현재 v2.5.0 문서 baseline의 대표 shell 설명 이미지로 유지. Client Live는 source tree, dock event feed, workspace preset, tile action/VA overlay 구조를 포함 |
 | 관리 목록 | `config/docs_ui_assets.json`의 managed asset list가 파일명, capture task, 최소 크기, direct review checklist를 고정 |
 | 재캡처 | `node scripts/internal/capture_docs_ui_assets.mjs --http-base http://127.0.0.1:8082`. Codex 세션에서는 인앱 브라우저 확인을 우선하고, Chrome/CDP fallback 재캡처는 사용자 명시 승인 후에만 사용 |
 | 기준 검증 | `./server.sh verify-docs-ui-assets` |

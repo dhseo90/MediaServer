@@ -107,7 +107,7 @@ check("tracked scripts are classified and referenced", () => {
 check("project inventory delegates script file inventory to this verifier", () => {
   for (const phrase of [
     "## Script Inventory Boundary",
-    "`./server.sh verify-script-inventory`가 source-of-truth",
+    "`./server.sh verify-script-inventory`가 전용 검증 기준",
     "script 파일 하나하나를",
     "기능 row로 다시 나열하지 않습니다",
   ]) {

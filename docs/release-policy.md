@@ -101,9 +101,9 @@ future tag, push, GitHub Release, accepted baseline 채택, 320/390/760/1180px
 screenshot review는 리포트에 manual/not-run으로 남기며, 실제 실행 및 링크가
 없는 항목을 pass로 쓰지 않습니다.
 
-## v2.4.0 Release Target Runbook
+## v2.5.0 Release Target Runbook
 
-이 절은 `v2.4.0 Release Close-out Runbook`의 source-of-truth입니다.
+이 절은 `v2.5.0 Release Close-out Runbook`의 세부 runbook입니다.
 이 runbook은 순서가 evidence입니다. dry-run에서는 실행 가능 여부와 수동 gate만
 점검하고, real close-out에서는 아래 순서를 건너뛰지 않습니다.
 
@@ -116,25 +116,30 @@ Dry-run checklist:
 
 Real close-out checklist:
 
+아래 항목은 AGENTS.md 6.1의 권한 경계를 따릅니다. `릴리즈 준비`만으로 실행하지
+않고, PR merge, main sync, tag, push, GitHub Release, 후속 브랜치 생성은 각각 최신
+사용자 요청에서 명시 승인된 경우에만 수행합니다.
+
 1. Branch close: release branch의 모든 단계 커밋과 최종 검증 결과를 확인합니다.
-2. PR merge: required checks와 review 상태를 확인하고 main으로 merge합니다.
-3. Main fast-forward/sync: 로컬 main을 원격 main 최신 commit으로 맞추고 release commit을 다시 확인합니다.
-4. Tag: 검증된 main commit에만 signed annotated release tag를 생성합니다.
+2. PR merge: 명시 승인된 경우에만 required checks와 review 상태를 확인하고 main으로 merge합니다.
+3. Main fast-forward/sync: 명시 승인된 경우에만 로컬 main을 원격 main 최신 commit으로 맞추고 release commit을 다시 확인합니다.
+4. Tag: 명시 승인된 경우에만 검증된 main commit에 signed annotated release tag를 생성합니다.
    unsigned annotated tag와 lightweight tag는 새 release tag로 쓰지 않습니다.
 5. Push: tag와 필요한 branch를 명시 승인 후 push합니다.
-6. GitHub Release: source-only release note를 만들고 sample/model/runtime binary를 업로드하지 않습니다.
-7. Latest 확인: GitHub Releases latest, `/releases/latest`, repository page Releases/Latest link, remote tag/branch를 `verify-release-metadata --published --report <report.md> --json-report <report.json>`로 확인합니다. README의 release URL은 GitHub Release publish 후에만 current release 링크로 둡니다.
+6. GitHub Release: 명시 승인된 경우에만 source-only release note를 만들고 sample/model/runtime binary를 업로드하지 않습니다.
+7. Latest 확인: GitHub Release publish가 명시 승인되어 실제 수행된 뒤에만 GitHub Releases latest, `/releases/latest`, repository page Releases/Latest link, remote tag/branch를 `verify-release-metadata --published --report <report.md> --json-report <report.json>`로 확인합니다. README의 release URL은 GitHub Release publish 후에만 current release 링크로 둡니다.
 8. Release branch 삭제: published metadata가 통과한 뒤에만 release branch 삭제를 수동 승인합니다.
-9. Next branch sync: 다음 작업 branch를 main 최신 release fix 위로 동기화한 뒤 미커밋 변경이 없는지 확인합니다.
+9. Next branch sync: 명시 승인된 경우에만 다음 작업 branch를 main 최신 release fix 위로 동기화한 뒤 미커밋 변경이 없는지 확인합니다.
 
 위 순서 중 실행하지 않은 항목은 테스트 결과 행을 만들지 않고 release evidence 실행
 상태에 `미실행` 또는 `manual-not-run`으로 남기며, 실행하지 않은
 tag/push/GitHub Release를 완료로 쓰지 않습니다.
-v2.4.0 source-only release target에서는
+v2.5.0 source-only release target에서는
 [development-backlog.md](./development-backlog.md)의
-`활성 roadmap: v2.4.0 Operator Event Review & Action Workflow` 기준으로 Operator
-Event Review Inbox, incident/action workflow, alert dry-run, client-safe event summary,
-rule/scenario review loop, evidence/inventory mapping, release metadata/docs/static gate의
+`활성 roadmap: v2.5.0 Semantic Incident Memory` 기준으로 Event/incident text
+projection, local incident memory index, `/ops/events` search UI, incident timeline,
+explainable incident brief, similar incident lookup, client-safe digest, redacted
+evidence bundle, owner decomposition/release readiness의
 확인됨/미실행/미확인 상태를 분리합니다.
 Client/Ops UI-first workflow와 기존 live media path는 제품 baseline으로 유지합니다.
 현재 release evidence는 [release-evidence-index.md](./release-evidence-index.md),
@@ -142,8 +147,48 @@ Client/Ops UI-first workflow와 기존 live media path는 제품 baseline으로 
 [manual-ui-result-template.md](./manual-ui-result-template.md),
 [project-feature-test-inventory.md](./project-feature-test-inventory.md),
 [ui-visual-release-baseline-approval-template.md](./ui-visual-release-baseline-approval-template.md)를
-source-of-truth로 삼습니다. 현재 `v2.4.0` release target pass/fail 기준은 이 evidence와
+기준 문서로 삼습니다. 현재 `v2.5.0` release target pass/fail 기준은 이 evidence와
 통합 검증 명령으로 판단합니다.
+
+v2.5.0은 real ONVIF device, external TURN/WHEP credential operation, real cloud
+provider call, VLM/model/runtime bundle, Event POST/WebRTC/SSE/WS schema 변경,
+RTSP/WebRTC media path 변경을 기본 release PASS로 쓰지 않습니다. semantic search는
+local text projection과 local index를 기본으로 하며 model/provider 의존성은
+default-off enrichment 후보로만 둡니다.
+
+## v2.5.0 소유권 분리 / 릴리즈 준비 게이트
+
+`media-server.v250-owner-release-readiness.v1`은 v2.5.0 S09의 local readiness
+gate입니다. 이 gate는 event memory/search route owner catalog, release-safe evidence
+bundle route matcher, feature inventory, manual UI criteria, release evidence index,
+문서 링크/assets, release metadata, close-out dry-run을 한 안정화 gate로 묶습니다.
+
+실행 command set:
+
+```bash
+./server.sh verify-v250-owner-release-readiness
+./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-manual-ui-evidence
+./server.sh verify-release-evidence-index
+./server.sh verify-release-closeout-helper --dry-run
+git diff --check
+```
+
+미실행/제외 경계:
+
+- UI 풀테스트 직접 조작 미실행: local readiness gate PASS로 대체하지 않습니다.
+- 30분 테스트 미실행: `verify-predev --soak-minutes 30`은 별도 승인 후 실행합니다.
+- 120분 테스트 미실행: `verify-predev --soak-minutes 120`과
+  `verify-va-runtime-console-longrun --duration-minutes 120`은 별도 승인 후 실행합니다.
+- tag/push/GitHub Release manual-not-run, PR merge/main sync/next branch sync 미수행,
+  `verify-release-metadata --published` 미실행 상태는 release evidence index에
+  별도로 남깁니다.
+- real ONVIF, external TURN/WHEP, real cloud provider call, VLM/model/runtime bundle,
+  provider credential field smoke는 credential/endpoint/실기기 승인 없이 release PASS로
+  쓰지 않습니다.
 
 ## v2.4.0 Release Readiness Gate
 
@@ -198,16 +243,16 @@ git diff --check
 
 ## Tag 전략
 
-- 현재 source-only release 기준 tag는 `v2.4.0`입니다.
+- 현재 source-only release 기준 tag는 `v2.5.0`입니다.
 - public-readiness, bundle policy, Actions status check가 모두 통과한 커밋에만 tag를 붙입니다.
 - 다음 신규 release tag는 signed annotated tag로 생성합니다. `git tag -s <tag> <commit>`
   또는 GitHub가 검증 가능한 SSH/S/MIME signing 설정만 허용합니다.
 - signed tag evidence는 GitHub Tags/Releases의 Verified 표시 또는 GitHub API tag
   verification `verified=true`/`reason=valid`로 확인합니다.
-- `v2.4.0`은 live-only media path를 유지하면서 Operator Event Review Inbox,
-  incident/action workflow, alert dry-run, client-safe event summary를 닫는 release
+- `v2.5.0`은 live-only media path를 유지하면서 Semantic Incident Memory,
+  local incident memory index, `/ops/events` search/timeline/brief workflow를 닫는 release
   target이며, binary/runtime/model bundle의 운영 배포 완료를 뜻하지 않습니다.
-- route/API/config/schema migration이 필요한 후속 변경은 `v2.4.0`의 명시된 step
+- route/API/config/schema migration이 필요한 후속 변경은 `v2.5.0`의 명시된 step
   범위 밖 후보로 분리합니다.
 - tag release에는 generated sample pack, YOLO model, FFmpeg/GStreamer runtime bundle을 붙이지 않습니다.
 
@@ -265,18 +310,18 @@ Licensing and Artifact Guardrails/guardrails, RC Release Gate workflow에 들어
 ## Release Note Template
 
 ```markdown
-# Media Server v2.4.0
+# Media Server v2.5.0
 
 ## Scope
 
-- Live-only media path plus Operator Event Review & Action Workflow source/doc release target
+- Live-only media path plus Semantic Incident Memory source/doc release target
 - Binary/runtime/model bundle: not included
 
 ## Live-only Scope
 
 - Live media relay and live VA event focus remain unchanged
 - VLM remains an Ops-only event review assist layer: runtime opt-in contract, local runtime smoke gate, provider field smoke gate boundary, privacy/default-off evidence, and manual-only promotion evidence
-- v2.4.0 target: Operator Event Review Inbox, incident/action workflow, alert dry-run, client-safe event summary, release evidence index, feature inventory coverage, release metadata, and release close-out one-shot dry-run
+- v2.5.0 target: event/incident text projection, local incident memory index, `/ops/events` search UI, incident timeline graph, explainable incident brief, similar incident lookup, client-safe digest, redacted evidence bundle, release evidence index, feature inventory coverage, release metadata, and release close-out one-shot dry-run
 - EventRecord/snapshot/clip: short event evidence helper, not the main product message
 
 ## Non-goals

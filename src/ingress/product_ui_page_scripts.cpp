@@ -74,6 +74,29 @@ void AppendOpsShellScript(std::ostringstream& out,
       } = window.MediaServerUi;
       const opsText = value => translateText ? translateText(value) : display(value);
       const opsHtml = value => escapeHtml(opsText(value));
+      const opsContainsSensitiveSourceMaterial = value => {
+        const text = String(value || '').trim().toLowerCase();
+        return /(?:rtsp|rtsps|whep|wheps):\/\//.test(text) ||
+          text.includes('file::') ||
+          text.includes('file://') ||
+          text.includes('/users/') ||
+          text.includes('\\users\\') ||
+          text.includes('/home/') ||
+          text.includes('\\home\\') ||
+          text.includes('/tmp/') ||
+          text.includes('\\tmp\\') ||
+          text.includes('/private/') ||
+          text.includes('\\private\\') ||
+          text.includes('sourceurl') ||
+          text.includes('developerurl') ||
+          text.includes('debugcounters') ||
+          text.includes('bbox diagnostics');
+      };
+      const opsSafeSourceLabel = value => {
+        const text = String(value || '').trim();
+        if (!text || text === '-') return text || '-';
+        return opsContainsSensitiveSourceMaterial(text) ? 'unknown-source' : display(text);
+      };
       const opsHashParams = () => new URLSearchParams(String(window.location.hash || '').replace(/^#/, ''));
       const opsViewRuleId = view =>
         String(view?.defaultRuleId || (Array.isArray(view?.allowedRuleIds) ? view.allowedRuleIds[0] : '') || '').trim();
@@ -755,6 +778,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             const status = String(item?.status || '').toLowerCase();
             const level = ['failed', 'failure', 'error'].includes(status) ? 'warn' : 'info';
             const stream = item?.streamId || item?.channelId || '스트림 미제공';
+            const streamLabel = dashboardRuntimeStreamLabel(stream);
             const scenario = [item?.scenarioName, item?.scenarioPhase].filter(Boolean).map(display).join(' · ');
             return {
               level,
@@ -762,13 +786,13 @@ void AppendOpsShellScript(std::ostringstream& out,
               time: dashboardIncidentTimeLabel(item),
               sort: dashboardIncidentSortValue(item),
               incidentId: `event:${item?.eventId || item?.trackId || item?.streamId || index}`,
-              sourceId: stream,
+              sourceId: streamLabel,
               title: `${display(item?.eventType || 'event')} · ${display(item?.status || '상태 미제공')}`,
-              detail: `${display(stream)}${item?.trackId ? ` · track ${display(item.trackId)}` : ''}${scenario ? ` · ${scenario}` : ''}`,
+              detail: `${display(streamLabel)}${item?.trackId ? ` · track ${display(item.trackId)}` : ''}${scenario ? ` · ${scenario}` : ''}`,
               evidence: item?.eventId ? `eventId ${display(item.eventId)}` : 'eventId 미제공',
               correlationId: item?.eventId || item?.trackId || '',
               cause: `EventRecord status ${display(item?.status || '미제공')}`,
-              impact: `${display(stream)}${item?.trackId ? ` · track ${display(item.trackId)}` : ''}`,
+              impact: `${display(streamLabel)}${item?.trackId ? ` · track ${display(item.trackId)}` : ''}`,
               nextAction: 'EventRecord 저장/POST 상태와 source health 단서를 함께 확인합니다.',
               actionHref: '/ops/events'
             };
@@ -2116,10 +2140,16 @@ void AppendOpsShellScript(std::ostringstream& out,
           params.set('download', '1');
           return Object.fromEntries(params.entries());
         };
+        const releaseSafeBundlePayload = item => {
+          const payload = bundlePayload(item);
+          payload.releaseSafe = '1';
+          return payload;
+        };
         const actions = [
           snapshotPath ? `<a class="button button-secondary button-compact" href="${escapeHtml(evidenceHref(snapshotPath))}">snapshot 다운로드</a>` : '',
           clipPath ? `<a class="button button-secondary button-compact" href="${escapeHtml(evidenceHref(clipPath))}">clip manifest</a>` : '',
-          (snapshotPath || clipPath) ? `<button type="button" class="button button-secondary button-compact" data-evidence-bundle="${escapeHtml(JSON.stringify(bundlePayload(item)))}">signed bundle zip</button>` : ''
+          (snapshotPath || clipPath) ? `<button type="button" class="button button-secondary button-compact" data-evidence-bundle="${escapeHtml(JSON.stringify(bundlePayload(item)))}">signed bundle zip</button>` : '',
+          (snapshotPath || clipPath) ? `<button type="button" class="button button-secondary button-compact" data-release-safe-evidence-bundle="redacted incident evidence bundle" data-evidence-bundle="${escapeHtml(JSON.stringify(releaseSafeBundlePayload(item)))}">release-safe bundle</button>` : ''
         ].filter(Boolean).join('');
         return `<div class="event-evidence-cell">
           <div class="badge-row">${badges.join('')}</div>
@@ -2136,6 +2166,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         }
         tbody.innerHTML = items.map(item => {
           const ruleId = display(item?.metadata?.ruleId || item?.ruleId || item?.vaRuleId || '');
+          const streamLabel = opsSafeSourceLabel(item?.streamId || item?.channelId || '-');
           const eventHtml = `<div class="ops-rule-value-stack">
             <span class="table-identity-pill table-identity-id">${escapeHtml(display(item?.eventId || '-'))}</span>
             <span class="ops-rule-note">${escapeHtml(display(item?.eventType || 'event'))}</span>
@@ -2145,7 +2176,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           return `<tr>
             ${tableCellHtml('이벤트', eventHtml)}
             ${tableCellHtml('상태', badge(item?.status || '미제공', item?.status === 'ended' ? 'info' : ''), 'table-cell-status')}
-            ${tableCellHtml('스트림', escapeHtml(display(item?.streamId || item?.channelId || '-')))}
+            ${tableCellHtml('스트림', escapeHtml(streamLabel))}
             ${tableCellHtml('트랙', escapeHtml(display(item?.trackId ?? '-')))}
             ${tableCellHtml('시나리오', escapeHtml(scenarioParts.join(' · ') || display(item?.className || '-')))}
             ${tableCellHtml('증거', eventRecordEvidence(item))}
@@ -2317,6 +2348,213 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (classification) reviewParams.set('classification', classification);
         if (incidentStatus) reviewParams.set('incidentStatus', incidentStatus);
         return reviewParams;
+      }
+      function incidentMemoryQueryParams(eventParams) {
+        const memoryParams = new URLSearchParams(eventParams.toString());
+        const q = String(document.getElementById('opsIncidentSearchInput')?.value || '').trim();
+        const ruleId = String(document.getElementById('opsIncidentSearchRuleFilter')?.value || '').trim();
+        const sourceId = String(document.getElementById('opsIncidentSearchSourceFilter')?.value || '').trim();
+        const incidentStatus = String(document.getElementById('opsIncidentSearchStatusFilter')?.value || '').trim();
+        const startTimeMs = String(document.getElementById('opsIncidentSearchStartTime')?.value || '').trim();
+        const endTimeMs = String(document.getElementById('opsIncidentSearchEndTime')?.value || '').trim();
+        if (q) memoryParams.set('q', q);
+        if (ruleId) memoryParams.set('ruleId', ruleId);
+        if (sourceId) memoryParams.set('sourceId', sourceId);
+        if (incidentStatus) memoryParams.set('incidentStatus', incidentStatus);
+        if (startTimeMs) memoryParams.set('startTimeMs', startTimeMs);
+        if (endTimeMs) memoryParams.set('endTimeMs', endTimeMs);
+        return memoryParams;
+      }
+      function incidentMemoryHighlightHtml(fragment, matchedTerms = []) {
+        let html = escapeHtml(display(fragment || ''));
+        for (const term of matchedTerms) {
+          const needle = String(term || '').trim();
+          if (!needle) continue;
+          const escapedNeedle = needle.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          html = html.replace(new RegExp(`(${escapedNeedle})`, 'ig'), '<mark class="incident-memory-highlight">$1</mark>');
+        }
+        return html;
+      }
+      function renderIncidentMemorySearch(memorySearch = {}) {
+        const root = document.getElementById('opsIncidentSearchRows');
+        if (!root) return;
+        const hits = Array.isArray(memorySearch.hits) ? memorySearch.hits : [];
+        const q = String(memorySearch.query || document.getElementById('opsIncidentSearchInput')?.value || '').trim();
+        renderBadges('opsIncidentSearchBadges', [
+          { text: `backend ${display(memorySearch.backend || 'jsonl-bm25')}`, tone: 'info' },
+          { text: `docs ${memorySearch.documentCount ?? 0}` },
+          { text: `hits ${hits.length}`, tone: hits.length > 0 ? '' : 'warn' },
+          { text: memorySearch.modelProviderDependency === false ? 'no provider' : 'provider 확인 필요', tone: memorySearch.modelProviderDependency === false ? 'info' : 'warn' },
+          { text: memorySearch.viewerClientExposureAdded === false ? 'Ops only' : '노출 확인 필요', tone: memorySearch.viewerClientExposureAdded === false ? 'info' : 'warn' }
+        ]);
+        setText(
+          'opsIncidentSearchSummary',
+          q
+            ? `query "${q}" · ${hits.length} hit · local incident memory · matched evidence highlight`
+            : '검색어를 입력하면 local incident memory에서 matched evidence highlight를 표시합니다.'
+        );
+        if (!q) {
+          root.innerHTML = '<p class="ops-rule-note">검색어를 입력하면 EventRecord/review projection의 matched evidence highlight가 표시됩니다.</p>';
+          return;
+        }
+        if (hits.length === 0) {
+          root.innerHTML = '<p class="ops-rule-note">필터에 맞는 incident memory 검색 결과가 없습니다.</p>';
+          return;
+        }
+        root.innerHTML = hits.map(hit => {
+          const matchedTerms = Array.isArray(hit.matchedTerms) ? hit.matchedTerms : [];
+          const fragments = Array.isArray(hit.highlightFragments) && hit.highlightFragments.length
+            ? hit.highlightFragments
+            : [hit.summary || hit.title || hit.documentId || 'matched evidence'];
+          return `<article class="incident-memory-result" data-incident-memory-hit="${escapeHtml(hit.documentId || '')}" data-source-kind="${escapeHtml(hit.sourceKind || '')}">
+            <div class="table-cell-main">
+              <strong>${escapeHtml(display(hit.title || hit.documentId || 'incident memory'))}</strong>
+              <span>${escapeHtml(display(hit.sourceKind || 'document'))} · ${escapeHtml(display(hit.incidentId || '-'))} · ${escapeHtml(display(hit.sourceId || '-'))}</span>
+            </div>
+            <div class="badge-row">${matchedTerms.map(term => `<span class="chip info">${escapeHtml(term)}</span>`).join('')}</div>
+            <div class="incident-memory-fragments">${fragments.map(fragment => `<p>${incidentMemoryHighlightHtml(fragment, matchedTerms)}</p>`).join('')}</div>
+          </article>`;
+        }).join('');
+      }
+      function renderSimilarIncidentLookup(similarIncidents = {}) {
+        const root = document.getElementById('opsSimilarIncidentRows');
+        if (!root) return;
+        const groups = Array.isArray(similarIncidents.groups) ? similarIncidents.groups : [];
+        renderBadges('opsSimilarIncidentBadges', [
+          { text: `groups ${similarIncidents.groupCount ?? groups.length}` },
+          { text: `candidates ${similarIncidents.candidateCount ?? 0}` },
+          { text: similarIncidents.deterministicScoring === true ? 'deterministic' : 'score 확인 필요', tone: similarIncidents.deterministicScoring === true ? 'info' : 'warn' },
+          { text: similarIncidents.modelProviderDependency === false ? 'no provider' : 'provider 확인 필요', tone: similarIncidents.modelProviderDependency === false ? 'info' : 'warn' },
+          { text: similarIncidents.eventPostPayloadChanged === false ? 'Event POST 변경 없음' : 'payload 확인 필요', tone: similarIncidents.eventPostPayloadChanged === false ? 'info' : 'warn' },
+          { text: similarIncidents.viewerClientExposureAdded === false ? 'Ops only' : '노출 확인 필요', tone: similarIncidents.viewerClientExposureAdded === false ? 'info' : 'warn' }
+        ]);
+        setText(
+          'opsSimilarIncidentSummary',
+          similarIncidents.error
+            ? `similar incident lookup 실패: ${similarIncidents.error}`
+            : `같은 rule/scenario/source/status 패턴 · ${groups.length} group · local deterministic scoring`
+        );
+        if (groups.length === 0) {
+          root.innerHTML = '<p class="ops-rule-note">표시할 similar incident lookup 결과가 없습니다.</p>';
+          return;
+        }
+        root.innerHTML = groups.map(group => {
+          const related = Array.isArray(group?.related) ? group.related : [];
+          return `<article class="similar-incident-group" data-similar-incident-group="${escapeHtml(group?.baseEventId || '')}">
+            <div class="table-cell-main">
+              <strong>${escapeHtml(display(group?.baseEventId || 'base event'))}</strong>
+              <span>${escapeHtml(display(group?.baseIncidentId || '-'))} · ${escapeHtml(display(group?.baseSourceId || '-'))} · ${escapeHtml(display(group?.baseScenario || '-'))}</span>
+            </div>
+            <div class="similar-incident-related-list">
+              ${related.map(item => {
+                const terms = Array.isArray(item?.explanationTerms) ? item.explanationTerms : [];
+                return `<div class="similar-incident-related" data-similar-incident-related="${escapeHtml(item?.eventId || '')}">
+                  <div class="table-cell-main">
+                    <strong>${escapeHtml(display(item?.eventId || 'related event'))}</strong>
+                    <span>${escapeHtml(display(item?.incidentId || '-'))} · ${escapeHtml(display(item?.sourceId || '-'))} · ${escapeHtml(display(item?.scenario || '-'))} · ${escapeHtml(display(item?.incidentStatus || '-'))}</span>
+                  </div>
+                  <span class="similar-incident-score">${escapeHtml(display(item?.score ?? 0))}</span>
+                  <div class="badge-row">${terms.map(term => `<span class="chip info">${escapeHtml(term)}</span>`).join('')}</div>
+                </div>`;
+              }).join('')}
+            </div>
+          </article>`;
+        }).join('');
+      }
+      function incidentTimelineStageLabel(stage) {
+        const normalized = String(stage || '').trim();
+        if (normalized === 'source-state') return 'Source';
+        if (normalized === 'event-record') return 'Event';
+        if (normalized === 'operator-action') return 'Action';
+        if (normalized === 'alert-dry-run') return 'Alert';
+        if (normalized === 'close-state') return 'Close';
+        return display(normalized || 'stage');
+      }
+      function renderIncidentTimelineGraph(timelineGraph = {}) {
+        const root = document.getElementById('opsIncidentTimelineGraphRows');
+        if (!root) return;
+        const nodes = Array.isArray(timelineGraph.nodes) ? timelineGraph.nodes : [];
+        const edges = Array.isArray(timelineGraph.edges) ? timelineGraph.edges : [];
+        const auditLinkage = timelineGraph.auditLinkage || {};
+        renderBadges('opsIncidentTimelineGraphBadges', [
+          { text: `graphs ${timelineGraph.graphCount ?? 0}` },
+          { text: `nodes ${nodes.length}` },
+          { text: `edges ${edges.length}` },
+          { text: timelineGraph.eventPostPayloadChanged === false ? 'Event POST 변경 없음' : 'payload 확인 필요', tone: timelineGraph.eventPostPayloadChanged === false ? 'info' : 'warn' },
+          { text: timelineGraph.viewerClientExposureAdded === false ? 'Ops only' : '노출 확인 필요', tone: timelineGraph.viewerClientExposureAdded === false ? 'info' : 'warn' }
+        ]);
+        setText(
+          'opsIncidentTimelineGraphSummary',
+          timelineGraph.error
+            ? `timeline graph 조회 실패: ${timelineGraph.error}`
+            : `source state → event → operator action → alert dry-run → close · audit ${display(auditLinkage.incidentAction || 'incident-action-update')}`
+        );
+        if (nodes.length === 0) {
+          root.innerHTML = '<p class="ops-rule-note">표시할 incident timeline graph가 없습니다.</p>';
+          return;
+        }
+        const edgeByFrom = new Map(edges.map(edge => [String(edge?.from || ''), edge]));
+        root.innerHTML = nodes.map((node, index) => {
+          const edge = edgeByFrom.get(String(node?.id || ''));
+          const edgeHtml = edge
+            ? `<div class="incident-timeline-edge" data-incident-timeline-edge="${escapeHtml(edge.from || '')}:${escapeHtml(edge.to || '')}">${escapeHtml(display(edge.label || 'linked'))}</div>`
+            : '';
+          return `<div class="incident-timeline-graph-item">
+            <article class="incident-timeline-node" data-incident-timeline-node="${escapeHtml(node?.id || '')}" data-stage="${escapeHtml(node?.stage || '')}">
+              <span>${escapeHtml(incidentTimelineStageLabel(node?.stage))}</span>
+              <strong>${escapeHtml(display(node?.title || node?.id || `node ${index + 1}`))}</strong>
+              <p>${escapeHtml(display(node?.detail || node?.status || 'linked'))}</p>
+            </article>
+            ${edgeHtml}
+          </div>`;
+        }).join('');
+      }
+      function incidentBriefSlotLabel(slot = {}) {
+        const key = String(slot.key || '').trim();
+        if (key === 'action') return 'Action';
+        if (key === 'object') return 'Object';
+        if (key === 'context') return 'Context';
+        if (key === 'environment') return 'Environment';
+        return display(slot.label || key || 'Slot');
+      }
+      function renderExplainableIncidentBrief(incidentBrief = {}) {
+        const root = document.getElementById('opsIncidentBriefRows');
+        if (!root) return;
+        const briefs = Array.isArray(incidentBrief.briefs) ? incidentBrief.briefs : [];
+        renderBadges('opsIncidentBriefBadges', [
+          { text: `briefs ${briefs.length}` },
+          { text: incidentBrief.defaultVlmEnrichmentEnabled === false ? 'VLM default-off' : 'VLM 확인 필요', tone: incidentBrief.defaultVlmEnrichmentEnabled === false ? 'info' : 'warn' },
+          { text: incidentBrief.modelProviderDependency === false ? 'no provider' : 'provider 확인 필요', tone: incidentBrief.modelProviderDependency === false ? 'info' : 'warn' },
+          { text: incidentBrief.eventPostPayloadChanged === false ? 'Event POST 변경 없음' : 'payload 확인 필요', tone: incidentBrief.eventPostPayloadChanged === false ? 'info' : 'warn' },
+          { text: incidentBrief.viewerClientExposureAdded === false ? 'Ops only' : '노출 확인 필요', tone: incidentBrief.viewerClientExposureAdded === false ? 'info' : 'warn' }
+        ]);
+        setText(
+          'opsIncidentBriefSummary',
+          incidentBrief.error
+            ? `incident brief 조회 실패: ${incidentBrief.error}`
+            : `action/object/context/environment slots · VLM enrichment ${incidentBrief.defaultVlmEnrichmentEnabled === false ? 'default-off' : '확인 필요'}`
+        );
+        if (briefs.length === 0) {
+          root.innerHTML = '<p class="ops-rule-note">표시할 explainable incident brief가 없습니다.</p>';
+          return;
+        }
+        const slotKeys = ['actionSlot', 'objectSlot', 'contextSlot', 'environmentSlot'];
+        root.innerHTML = briefs.map(brief => {
+          const slots = slotKeys.map(key => brief?.[key]).filter(Boolean);
+          return `<article class="incident-brief-card" data-incident-brief-card="${escapeHtml(brief?.eventId || '')}">
+            <div class="table-cell-main">
+              <strong>${escapeHtml(display(brief?.title || brief?.incidentId || 'incident brief'))}</strong>
+              <span>${escapeHtml(display(brief?.incidentId || '-'))} · review ${escapeHtml(display(brief?.reviewStatus || '-'))} · incident ${escapeHtml(display(brief?.incidentStatus || '-'))}</span>
+            </div>
+            <div class="incident-brief-slot-grid">
+              ${slots.map(slot => `<div class="incident-brief-slot" data-incident-brief-slot="${escapeHtml(slot?.key || '')}">
+                <span>${escapeHtml(incidentBriefSlotLabel(slot))}</span>
+                <strong>${escapeHtml(display(slot?.value || '-'))}</strong>
+                <p>${escapeHtml(display(slot?.evidence || 'local evidence'))}</p>
+              </div>`).join('')}
+            </div>
+          </article>`;
+        }).join('');
       }
       function alertDeliveryBodyFromForm() {
         const kind = String(document.getElementById('alertDeliveryKind')?.value || 'webhook').trim();
@@ -2510,7 +2748,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           requestJson(`/ops/api/events/status?${eventParams.toString()}`),
           requestJson('/ops/api/alerts/deliveries').catch(error => ({ error: error.message, integrations: [], attempts: [] }))
         ]);
-        const reviewParams = eventReviewQueryParams(eventParams);
+        const reviewParams = incidentMemoryQueryParams(eventReviewQueryParams(eventParams));
         const reviewPayload = await requestJson(`/ops/api/events/reviews?${reviewParams.toString()}`)
           .catch(error => ({ error: error.message, records: [] }));
         const storage = payload.storage || {};
@@ -2569,12 +2807,16 @@ void AppendOpsShellScript(std::ostringstream& out,
             : `review ${reviewItems.length}개 · incident/action workflow · VLM review panel ${reviewItems.filter(item => item?.vlmReview).length}개 · Event POST payload 변경 없음 · audit action event-review-update/incident-action-update`
         );
         renderEventReviewRows(reviewItems);
+        renderIncidentMemorySearch(reviewPayload.memorySearch || {});
+        renderSimilarIncidentLookup(reviewPayload.similarIncidents || {});
+        renderIncidentTimelineGraph(reviewPayload.timelineGraph || {});
+        renderExplainableIncidentBrief(reviewPayload.incidentBrief || {});
         const prevButton = document.getElementById('eventRecordsPrev');
         const nextButton = document.getElementById('eventRecordsNext');
         if (prevButton) prevButton.disabled = opsEventRecordsOffset <= 0;
         if (nextButton) nextButton.disabled = !records.hasMore;
         if (records.nextOffset != null) nextButton?.setAttribute('data-next-offset', String(records.nextOffset));
-        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload });
+        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, memorySearch: reviewPayload.memorySearch || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
       }
       const itemId = item => display(item?.id || item?.ruleId || item?.profileId || '-');
       const opsRulesIdText = value => {
@@ -6463,6 +6705,16 @@ void AppendOpsShellScript(std::ostringstream& out,
         document.getElementById('eventReviewIncidentStatusFilter')?.addEventListener('change', () => {
           opsEventRecordsOffset = 0;
           refreshEvents().catch(error => setText('eventReviewSummary', error.message));
+        });
+        ['opsIncidentSearchInput', 'opsIncidentSearchRuleFilter', 'opsIncidentSearchSourceFilter', 'opsIncidentSearchStartTime', 'opsIncidentSearchEndTime'].forEach(id => {
+          document.getElementById(id)?.addEventListener('input', () => {
+            opsEventRecordsOffset = 0;
+            refreshEvents().catch(error => setText('opsIncidentSearchSummary', error.message));
+          });
+        });
+        document.getElementById('opsIncidentSearchStatusFilter')?.addEventListener('change', () => {
+          opsEventRecordsOffset = 0;
+          refreshEvents().catch(error => setText('opsIncidentSearchSummary', error.message));
         });
         document.getElementById('eventReviewAuditRefresh')?.addEventListener('click', () => renderOpsAuditTrail('event-review-audit-list', 'events'));
         document.getElementById('alertDeliverySave')?.addEventListener('click', async () => {

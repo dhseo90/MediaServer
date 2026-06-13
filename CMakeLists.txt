@@ -1,6 +1,6 @@
 # 파일 용도: CMake 빌드 옵션과 GStreamer 연동 타깃을 정의한다.
 cmake_minimum_required(VERSION 3.16)
-project(media_server VERSION 2.4.0 LANGUAGES CXX)
+project(media_server VERSION 2.5.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -23,6 +23,7 @@ add_executable(media_server
     src/analysis/event_post_dispatcher.cpp
     src/analysis/event_rule_engine.cpp
     src/analysis/event_storage.cpp
+    src/analysis/incident_memory.cpp
     src/analysis/image_frame_loader.cpp
     src/analysis/intrusion_after_line_crossing_scenario.cpp
     src/analysis/intrusion_dwell_scenario.cpp
@@ -115,6 +116,16 @@ if(PANGOCAIRO_FOUND)
     target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_PANGOCAIRO=1)
 else()
     target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_PANGOCAIRO=0)
+endif()
+
+if(PkgConfig_FOUND)
+    pkg_check_modules(SQLITE3 QUIET IMPORTED_TARGET sqlite3)
+endif()
+if(SQLITE3_FOUND)
+    target_link_libraries(media_server PRIVATE PkgConfig::SQLITE3)
+    target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_SQLITE3=1)
+else()
+    target_compile_definitions(media_server PRIVATE MEDIA_SERVER_USE_SQLITE3=0)
 endif()
 
 if(PkgConfig_FOUND)

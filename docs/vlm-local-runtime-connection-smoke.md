@@ -1,7 +1,7 @@
 # VLM Local Runtime Connection Smoke
 
 이 문서는 `v2.1.0 V210-S02 Local VLM runtime connection smoke`의
-source-of-truth입니다. S02는 S01의 default-off 계약을 유지하면서, 실제 외부 모델
+세부 smoke 기준입니다. S02는 S01의 default-off 계약을 유지하면서, 실제 외부 모델
 품질 평가가 아니라 격리 loopback local runtime fixture에 HTTP roundtrip을 보내는
 짧은 연결 smoke입니다.
 

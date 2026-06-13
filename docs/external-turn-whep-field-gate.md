@@ -1,6 +1,6 @@
 # External TURN/WHEP Field Gate
 
-이 문서는 `v2.1.0 V210-S10 External TURN/WHEP field gate`의 source-of-truth입니다.
+이 문서는 `v2.1.0 V210-S10 External TURN/WHEP field gate`의 세부 gate 기준입니다.
 기본 release 검증과 외부 TURN/WHEP credential 운영 검증을 분리해, 미실행 또는
 실패한 external field smoke를 release PASS로 과장하지 않게 합니다.
 

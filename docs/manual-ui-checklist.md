@@ -2,13 +2,13 @@
 
 이 문서는 앞으로 "UI 풀테스트"라고 부르는 작업의 실행 체크리스트입니다.
 기준 정의와 범위는 [manual-ui-fulltest.md](./manual-ui-fulltest.md)를
-source-of-truth로 삼고, 기능별 UI 필요 여부와 테스트 영역은
+세부 기준으로 삼고, 기능별 UI 필요 여부와 테스트 영역은
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 합니다. 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를
-사용합니다. 최신 공개 release 기준은 `v2.3.0`이며, 현재 release 목표는 `v2.4.0`,
-UI 문서 기준은 `v2.4.0 Operator Event Review & Action Workflow`입니다. UI 풀테스트
+사용합니다. 최신 공개 release 기준은 `v2.4.0`이며, 현재 release 목표는 `v2.5.0`,
+UI 문서 기준은 `v2.5.0 Semantic Incident Memory`입니다. UI 풀테스트
 기준은 해당 작업 범위에 포함된 제품 route, 권한, 기능 baseline만 대상으로 합니다.
-`v2.4.0` release gate 문구는 현재 release target의 UI evidence 경계를 뜻하며, UI
+`v2.5.0 release UI gate` 문구는 현재 release target의 UI evidence 경계를 뜻하며, UI
 재배치 문서 준비나 자동 smoke만으로 UI 풀테스트 PASS를 뜻하지 않습니다.
 문서 구조와 evidence 경계는 `./server.sh verify-manual-ui-evidence`로 확인합니다.
 현재 제품 UI 직접 조작 evidence 없이 완료 판정에 포함하지 않습니다.
@@ -27,7 +27,8 @@ UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라�
 수행합니다. 30분 테스트는 장기간 테스트 지시의 기본값이고, 버전 로드맵 완료 후
 close-out에서도 명시 요청/승인이 없으면 미실행으로 기록합니다. 120분 테스트는
 메모리 릭/장시간 누수 감시가 필요할 때 사용자에게 먼저 말한 뒤 수행합니다.
-UI 풀테스트도 버전 로드맵 완료 시 수행합니다.
+UI 풀테스트도 버전 로드맵 완료 시 수행 대상이지만, 실제 실행은 사용자 지시 또는
+명시 승인 후에만 진행합니다.
 
 ## 1. 사전 파악
 
@@ -102,9 +103,10 @@ UI 풀테스트도 버전 로드맵 완료 시 수행합니다.
   EventRecord evidence와 함께 확인하고, `/client/live`, `/client/dashboard`,
   `/client/events`에서 VLM model/prompt/raw response/provider/internal review card가
   보이지 않는지 확인합니다.
-- four-stage mapping은 [project-feature-test-inventory.md](./project-feature-test-inventory.md)의
-  `Four-Stage Coverage Mapping`을 기준으로 확인합니다. 이 mapping은 실행 결과가 아니라
-  안정화/30분/120분/UI 풀테스트에 포함할 대상을 빠뜨리지 않기 위한 기준입니다.
+- coverage mapping은 [project-feature-test-inventory.md](./project-feature-test-inventory.md)의
+  `v2.5.0 Semantic Incident Memory Coverage Mapping`과 `Coverage Start Conditions`를
+  기준으로 확인합니다. 이 mapping은 실행 결과가 아니라 안정화/30분/120분/UI
+  풀테스트에 포함할 대상을 빠뜨리지 않기 위한 기준입니다.
 - destructive action은 throwaway 계정, 채널, 접근 요청으로만 수행합니다.
 - UI smoke 전용 HTML selector 검증은 필요 시 별도 서버에서
   `./server.sh verify-ops-client-ui --screenshots`로 실행하되, 이 결과만으로
@@ -121,8 +123,8 @@ UI 풀테스트도 버전 로드맵 완료 시 수행합니다.
 
 아래 항목이 하나라도 비어 있으면 30분, 120분, UI 풀테스트를 시작하지 않습니다.
 
-- 기능/route/control/action mapping: `Four-Stage Coverage Mapping`,
-  `Four-Stage Start Conditions`, `/ops/vlm`, `/client/events`, VLM client redaction.
+- 기능/route/control/action mapping: `v2.5.0 Semantic Incident Memory Coverage Mapping`,
+  `Coverage Start Conditions`, `/ops/vlm`, `/client/events`, VLM client redaction.
 - auth/env: auth verifier password env 5개가 `SET`인지, users file과 session state가
   throwaway인지 확인합니다.
 - fixture/output: source/view/analysis/event/snapshot/clip 경로, seed dry-run 결과,
@@ -136,7 +138,7 @@ UI 풀테스트도 버전 로드맵 완료 시 수행합니다.
 고친 뒤 해당 안정화 조건만 다시 확인하고, 아직 시작하지 않은 30분/120분/UI 결과는
 `미실행`으로 남깁니다.
 
-### v2.2.0 UI Evidence Close-out four-stage mapping
+### v2.2.0 UI Evidence Close-out coverage mapping
 
 v2.2.0 UI Evidence Close-out은 새 로드맵 기준에서 기능 inventory,
 manual-ui-result-template.md, manual UI checklist가 같은 범위를 가리키는지 먼저
@@ -192,6 +194,21 @@ UI 풀테스트 결과 문서를 쓰기 전에는 아래 항목이 개별 route/
 - 실패 후 고친 화면은 같은 조작으로 재검수하고, 최초 실패와 재확인 결과를 모두
   남깁니다.
 
+### v2.5.0 release UI gate
+
+v2.5.0 release close-out에서는 자동 smoke와 별도로 `/ops/events`의 semantic incident
+memory 흐름을 브라우저에서 직접 열고 클릭한 Evidence index를 남깁니다. 자동 screenshot
+생성이나 raw JSON/API-only 확인만 있으면 해당 개별 기능은 `FAIL`입니다.
+
+- `/ops/events`: semantic search 입력/filter/highlight, timeline graph, explainable
+  brief, similar incident lookup, raw signed bundle과 별도 `release-safe bundle`,
+  redaction badge, Event POST/WebRTC/SSE/WS/media path 불변 경계를 직접 확인합니다.
+- `/client/dashboard`, `/client/live`, `/client/events`: client-safe incident digest가
+  viewer-safe summary만 표시하고 source locator/raw/debug/provider material을 보이지
+  않는지 직접 확인합니다.
+- release readiness: `UI-044`, `OPS-036`, `SAFE-051`은 기준 정리 행입니다. 실제
+  UI 풀테스트 직접 조작 미실행 상태를 PASS로 쓰지 않습니다.
+
 ### v2.4.0 release UI gate
 
 v2.4.0 release close-out에서는 자동 smoke와 별도로 아래 화면을 브라우저에서 직접
@@ -232,6 +249,22 @@ Codex 세션의 UI 조작 evidence는 인앱 브라우저 직접 조작을 우�
 명시 승인된 예외나 Codex 밖 실행의 보조 evidence로만 씁니다. 테스트가 사용자 클릭이나
 팝업 버튼 수동 확인을 기다리면 해당 항목은 harness 실패로 기록하고 PASS 처리하지
 않습니다.
+
+### v2.5.0 Semantic Incident Memory UI 풀테스트 기준
+
+아래 표는 route/control/action 누락을 막기 위한 기준입니다. 각 행은 인앱 브라우저에서
+직접 클릭/타이핑/선택하고, 실제 결과가 화면 상태와 관련 로그 또는 EventRecord/감사
+이력에 반영됐을 때만 `PASS`입니다. raw JSON/API-only 확인, 자동 smoke, screenshot
+생성만으로는 UI 풀테스트 PASS로 쓰지 않습니다.
+
+| Roadmap scope | Feature IDs | Route | 직접 확인할 control/action | 자동 verifier 연결 |
+| --- | --- | --- | --- | --- |
+| V250-S03 Semantic Incident Search | `UI-039`, `EVT-041`, `SAFE-045` | `/ops/events` | 검색어 입력, rule/source/incident status/time filter, matched evidence highlight, Ops-only 표시, client/viewer 비노출 | `verify-v250-ops-events-semantic-search-ui`, `verify-ops-client-ui` |
+| V250-S04 Incident Timeline Graph | `UI-040`, `EVT-042`, `LAB-065`, `SAFE-046` | `/ops/events` | source state, EventRecord, operator action, alert dry-run, close state node/edge 표시와 source URL/raw/debug/provider material 비노출 | `verify-v250-incident-timeline-graph` |
+| V250-S05 Explainable Incident Brief | `UI-041`, `EVT-043`, `LAB-066`, `SAFE-047` | `/ops/events` | action/object/context/environment slot 표시, VLM default-off badge, provider call 없음, client/viewer 비노출 | `verify-v250-explainable-incident-brief` |
+| V250-S06 Similar Incident Lookup | `UI-042`, `EVT-044`, `LAB-067`, `SAFE-048` | `/ops/events` | similar incident group, deterministic score, explanation term, source/raw/debug/provider material 비노출 | `verify-v250-similar-incident-lookup` |
+| V250-S08 Redacted Incident Evidence Bundle | `UI-043`, `EVT-045`, `LAB-068`, `SAFE-050` | `/ops/events` | raw signed bundle과 별도 `release-safe bundle` 버튼, token 요청, manifest-only/redaction policy, raw evidence/source locator/provider material 제외 | `verify-v250-redacted-incident-evidence-bundle`, `verify-ops-event-records-scope` |
+| V250-S09 Owner Decomposition/Release Readiness | `UI-044`, `OPS-036`, `SAFE-051` | `/ops/events`, release evidence 문서 | event memory/search route owner catalog와 UI 풀테스트 기준 연결 확인. 이 행은 기준 정리이며 실제 UI 직접 조작 미실행 상태를 PASS로 쓰지 않음 | `verify-v250-owner-release-readiness`, `verify-feature-inventory-coverage`, `verify-release-evidence-index` |
 
 ## 4. Auth Shell
 
@@ -333,7 +366,8 @@ Codex 세션의 UI 조작 evidence는 인앱 브라우저 직접 조작을 우�
 - 결과는 [manual-ui-result-template.md](./manual-ui-result-template.md)에 기록합니다.
 - 기능별 조작 결과는 [project-feature-test-inventory.md](./project-feature-test-inventory.md)의
   ID를 함께 적어, route 단위 PASS가 기능 단위 PASS로 과장되지 않게 합니다.
-- 확인됨: 실제 클릭한 화면, 통과한 명령, 생성한 fixture, 수정/커밋 파일
+- 확인됨: 실제 클릭한 화면, 통과한 명령, 생성한 fixture, 수정 파일,
+  사용자 승인으로 커밋한 경우 커밋 파일
 - 개별 UI 결과: 모든 기능 ID/route/control/action을 묶지 않고 `PASS` 또는 `FAIL`로 기록
 - 제외 기록: 사용자가 명시 제외한 실기기/외부 credential/scope 밖 항목만 별도 기록
 - 실패: PASS 조건을 충족하지 못한 모든 개별 UI 기능, 실패 명령, 원인, 영향 범위,

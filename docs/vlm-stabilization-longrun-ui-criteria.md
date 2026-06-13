@@ -1,6 +1,6 @@
 # VLM Stabilization, Longrun, And UI Criteria
 
-이 문서는 `v2.0.0 V200-S17 안정화/장시간/UI 기준 정리`의 source-of-truth입니다.
+이 문서는 `v2.0.0 V200-S17 안정화/장시간/UI 기준 정리`의 세부 기준 문서입니다.
 VLM queue, memory, provider timeout, model install 상태가 바뀌었을 때 어떤 검증을
 실행하고, 어떤 검증은 실행하지 않았다고 분리 보고할지 고정합니다.
 

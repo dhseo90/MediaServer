@@ -1,6 +1,6 @@
 # VLM Profile Storage
 
-이 문서는 `v2.0.0 V200-S05 VLM profile 저장`의 source-of-truth입니다.
+이 문서는 `v2.0.0 V200-S05 VLM profile 저장`의 세부 기준 문서입니다.
 S05는 S04 dry-run에서 운영자가 선택한 후보를 저장 가능한 profile로 고정하되,
 VLM runtime 호출, cloud provider API 호출, VLMObservation sidecar 저장은 하지 않습니다.
 

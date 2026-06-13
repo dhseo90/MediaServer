@@ -1,6 +1,6 @@
 # VLM Runtime Status UI
 
-이 문서는 `v2.1.0 V210-S05 Ops VLM runtime status UI`의 source-of-truth입니다.
+이 문서는 `v2.1.0 V210-S05 Ops VLM runtime status UI`의 세부 기준 문서입니다.
 S05는 `/ops/vlm`에서 provider 상태, runtime 연결 상태, 마지막 evaluation, 실패 사유,
 privacy mode, default-off 상태를 운영자가 확인할 수 있게 합니다.
 

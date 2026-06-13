@@ -23,7 +23,8 @@ Checks:
   - repository root의 *.md와 docs/**/*.md의 로컬 Markdown 링크가 존재하는 파일을 가리킴
   - 로컬 이미지 참조가 존재하고 확장자가 이미지 형식임
   - 로컬 Markdown anchor가 실제 heading anchor와 일치함
-  - docs/README.md가 tracked docs Markdown 문서를 모두 색인함
+  - docs/README.md가 tracked docs Markdown 정보 문서를 색인함
+  - release/test 실행 기록, 재감사, Superpowers plan 같은 개발 산출물은 색인 강제 대상에서 제외
   - 외부 URL, mailto 링크는 파일 존재 검사에서 제외
 `);
 }
@@ -35,6 +36,7 @@ let linkCount = 0;
 let imageCount = 0;
 let anchorCount = 0;
 let docsIndexCount = 0;
+let docsIndexExcludedCount = 0;
 const anchorCache = new Map();
 
 for (const file of markdownFiles) {
@@ -90,6 +92,7 @@ console.log(`- local links: ${linkCount}`);
 console.log(`- local images: ${imageCount}`);
 console.log(`- local anchors: ${anchorCount}`);
 console.log(`- indexed docs: ${docsIndexCount}`);
+console.log(`- index coverage exclusions: ${docsIndexExcludedCount}`);
 console.log(`- failures: ${failures.length}`);
 
 if (failures.length > 0) process.exit(1);
@@ -117,14 +120,25 @@ function checkDocsIndexCoverage() {
     .filter((file) => file.endsWith(".md"))
     .filter((file) => fs.existsSync(path.join(rootDir, file)))
     .filter((file) => file !== "docs/README.md");
-  docsIndexCount = trackedDocs.length;
+  const indexRequiredDocs = trackedDocs.filter((file) => !isDocsIndexCoverageExcluded(file));
+  docsIndexExcludedCount = trackedDocs.length - indexRequiredDocs.length;
+  docsIndexCount = indexRequiredDocs.length;
   const missing = [];
-  for (const file of trackedDocs) {
+  for (const file of indexRequiredDocs) {
     const rel = file.slice("docs/".length);
     const linkPattern = new RegExp(`\\]\\(${escapeRegex(rel)}(?:#[^)]+)?\\)`);
     if (!linkPattern.test(docsIndex)) missing.push(file);
   }
   return missing.map((file) => `docs/README.md: 전체 문서 색인 누락: ${file}`);
+}
+
+function isDocsIndexCoverageExcluded(file) {
+  const normalized = file.replaceAll(path.sep, "/");
+  return (
+    normalized.startsWith("docs/superpowers/plans/") ||
+    /^docs\/manual-ui-result-\d{4}-\d{2}-\d{2}-.+\.md$/.test(normalized) ||
+    /^docs\/release-verification-reaudit(?:[-\w]*)?\.md$/.test(normalized)
+  );
 }
 
 function gitLsFiles(args) {
