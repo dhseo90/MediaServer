@@ -412,8 +412,8 @@ Ops/Client/Lab API guard를 확인합니다.
   artifact로 `visual-baseline-diff.json`, `visual-baseline-diff.md`,
   `visual-baseline-comment.md`를 업로드해 PR에서 baseline diff/comment 출력 형식을
   바로 확인하게 합니다. 같은 comment 본문은 `GITHUB_STEP_SUMMARY`에도 자동으로
-  게시되어 PR check summary에서 확인할 수 있으며, summary에는 Actions artifact
-  download 링크도 함께 표시합니다.
+  게시되어 PR check summary에서 확인할 수 있으며, summary에는 Actions
+  artifact download 링크도 함께 표시합니다.
 - 오래된 UI artifact 보관/정리는
   `./server.sh ui-visual-artifact-maintenance --artifact-root <artifact-root> --archive-dir <archive-dir> --report <report.json>`
   로 먼저 dry-run합니다. 실제 복사/삭제는 `--apply`를 명시한 경우에만 수행하며,
