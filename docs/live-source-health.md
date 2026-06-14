@@ -11,6 +11,20 @@
 - [Media Server Architecture](./media-server-architecture.md)
 - [UI Guide](./ui-guide.md)
 
+## 목차
+
+| 섹션 | 내용 |
+| --- | --- |
+| [범위](#범위) | 포함/비범위 |
+| [1차 구현 상태](#1차-구현-상태) | 현재 구현 상태 |
+| [상태 모델](#상태-모델) | health 상태 |
+| [Ops Health Fields](#ops-health-fields) | 운영자 노출 field |
+| [Client Sanitized Health](#client-sanitized-health) | client 노출 field |
+| [Operator Diagnostics](#operator-diagnostics) | 운영 진단 |
+| [Source Health Incident Workflow](#source-health-incident-workflow) | incident workflow |
+| [Source Health Audit](#source-health-audit) | audit |
+| [Verification Plan](#verification-plan) | 검증 계획 |
+
 ## 범위
 
 포함:

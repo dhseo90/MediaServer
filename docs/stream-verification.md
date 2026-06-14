@@ -1,6 +1,8 @@
 # Stream Verification
 
-이 문서는 현재 Media Server의 검증 명령 진입점과 테스트 영역 경계를 정리합니다. 명령 실행 결과나 release evidence는 [release-evidence-index.md](./release-evidence-index.md)에 보관하고, 기능별 테스트 필요 여부는 [project-feature-test-inventory.md](./project-feature-test-inventory.md)에 둡니다.
+이 문서는 현재 Media Server의 검증 명령 진입점과 테스트 영역 경계를 정리합니다.
+내부 release evidence ledger와 수동 UI 결과 템플릿은 공개 첫 진입점에서 제외하며,
+실제 PASS 보고는 실행한 명령 output과 별도 보존된 실행 기록으로만 판단합니다.
 
 ## 역할과 경계
 
@@ -20,7 +22,6 @@
 | `./server.sh verify-docs-ui-assets` | README/UI screenshot asset guard |
 | `./server.sh verify-project-inventory` | feature/test inventory 구조 guard |
 | `./server.sh verify-feature-inventory-coverage` | `media-server.feature-inventory-coverage.v1`, `missing coverage target`, 누락 ID는 release gate에서 FAIL |
-| `./server.sh verify-release-evidence-index` | release evidence index wording/token fields guard |
 | `./server.sh verify-release-metadata` | VERSION/CMake/release docs consistency guard |
 | `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>` | release close-out dry-run. tag/push/GitHub Release 생성 없음 |
 
@@ -54,14 +55,12 @@
 | `./server.sh verify-runtime-media-longrun-trigger-matrix` | `media-server.runtime-media-longrun-trigger-matrix.v1` trigger matrix |
 | `./server.sh verify-rc-release-gate` | RC release gate summary |
 
-## Runtime Dashboard Longrun Evidence Template
+## Runtime Dashboard Longrun Evidence
 
-- Template: [runtime-dashboard-longrun-evidence-template.md](./runtime-dashboard-longrun-evidence-template.md)
-- 이 템플릿은 longrun 실행 증거가 아니며, 실행 report가 없으면 PASS evidence가 아닙니다.
+- longrun template이나 sample fixture는 실행 증거가 아니며, 실행 report가 없으면 PASS evidence가 아닙니다.
 - 120분 미실행 기록은 30분 또는 short smoke PASS로 대체하지 않습니다.
 - 30분 longrun, cycle 검증, sample fixture를 120분 PASS evidence로 쓰지 않음.
 - RC artifact 또는 외부 archive 보존 위치와 retention days를 기록합니다.
-- Sample fixture: `test/fixtures/runtime_dashboard_longrun_evidence_sample`, `runtime_dashboard_longrun_evidence_sample`.
 
 ## EventRecord Dispatch Verification
 
@@ -78,7 +77,7 @@
 | Product UI | `verify-ops-client-ui`, `verify-ops-client-ui --screenshots`, `verify-ops-click-e2e`, `verify-ops-route-boundaries`, `verify-product-ui-no-native-dialogs`, `verify-ui-blocking-dialog-policy` |
 | Rules/VA | `verify-rule-ui`, `verify-ops-rules-roundtrip`, `verify-ops-rule-validation-matrix`, `verify-va-replay`, `verify-va-events`, `verify-va-event-coverage-report`, `verify-analysis-state` |
 | Media/metadata | `verify-codecs`, `verify-webrtc-ice`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-event-post`, `verify-event-post --mode schema`, `verify-event-post --mode recovery` |
-| Release/docs | `verify-release-metadata`, `verify-release-evidence-index`, `verify-release-closeout-helper`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-script-inventory` |
+| Release/docs | `verify-release-metadata`, `verify-release-closeout-helper`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-script-inventory` |
 
 Auth verifier는 고정 기본 비밀번호를 문서나 스크립트에 두지 않습니다. 테스트 실행자가 아래 env를 모두 제공하지 않으면 auth 테스트를 시작하지 않고 실패로 기록합니다.
 
@@ -101,7 +100,31 @@ Auth verifier는 고정 기본 비밀번호를 문서나 스크립트에 두지 
 
 ## VLM / Runtime Boundary Commands
 
-`./server.sh verify-vlm-boundary`, `./server.sh verify-vlm-selection-decision`, `./server.sh verify-vlm-pc-capability`, `./server.sh verify-vlm-recommendation-engine`, `./server.sh verify-vlm-install-connection-dry-run`, `./server.sh verify-vlm-install-connection-ui`, `./server.sh verify-vlm-install-connection-scope-gate`, `./server.sh verify-vlm-profile-storage`, `./server.sh verify-vlm-runtime-opt-in-contract`, `./server.sh verify-vlm-runtime-status-ui`, `./server.sh verify-vlm-evaluation-harness`, `./server.sh verify-vlm-evaluation-result-workflow`, `./server.sh verify-vlm-review-action-workflow`, `./server.sh verify-vlm-rule-suggestion-draft-workflow`, `./server.sh verify-vlm-observation-sidecar`, `./server.sh verify-vlm-event-evidence-extraction`, `./server.sh verify-vlm-event-explanation-hints`, `./server.sh verify-vlm-privacy-transfer-guard`, `./server.sh verify-vlm-summary-search-candidates`, `./server.sh verify-vlm-rule-suggestion-candidates`, `./server.sh verify-vlm-test-rehearsal`, `./server.sh verify-vlm-queue-backpressure-stability`, `./server.sh verify-runtime-model-bundle-rc-rehearsal`.
+핵심 VLM/runtime verifier는 아래처럼 범위별로 나눠 실행합니다.
+
+- 선택/추천: `./server.sh verify-vlm-boundary`,
+  `./server.sh verify-vlm-selection-decision`,
+  `./server.sh verify-vlm-pc-capability`,
+  `./server.sh verify-vlm-recommendation-engine`
+- 설치/연결: `./server.sh verify-vlm-install-connection-dry-run`,
+  `./server.sh verify-vlm-install-connection-ui`,
+  `./server.sh verify-vlm-install-connection-scope-gate`
+- profile/runtime: `./server.sh verify-vlm-profile-storage`,
+  `./server.sh verify-vlm-runtime-opt-in-contract`,
+  `./server.sh verify-vlm-runtime-status-ui`
+- 평가/workflow: `./server.sh verify-vlm-evaluation-harness`,
+  `./server.sh verify-vlm-evaluation-result-workflow`,
+  `./server.sh verify-vlm-review-action-workflow`,
+  `./server.sh verify-vlm-rule-suggestion-draft-workflow`
+- sidecar/evidence: `./server.sh verify-vlm-observation-sidecar`,
+  `./server.sh verify-vlm-event-evidence-extraction`,
+  `./server.sh verify-vlm-event-explanation-hints`
+- privacy/search/stability: `./server.sh verify-vlm-privacy-transfer-guard`,
+  `./server.sh verify-vlm-summary-search-candidates`,
+  `./server.sh verify-vlm-rule-suggestion-candidates`,
+  `./server.sh verify-vlm-test-rehearsal`,
+  `./server.sh verify-vlm-queue-backpressure-stability`,
+  `./server.sh verify-runtime-model-bundle-rc-rehearsal`
 
 모델 선택 결정 자체는 `verify-vlm-selection-decision`의 범위이며, runtime/model bundle 생성이나 provider 품질 PASS가 아닙니다.
 
@@ -118,14 +141,7 @@ Release / Visual Baseline Readiness는 release 준비에서 screenshot artifact�
 - `write-ui-visual-qa-issue-links`
 - `ui-visual-artifact-maintenance`
 
-## Historical Verifier Names Kept As Compatibility Index
+## Historical Verifier Boundary
 
-아래 이름은 과거 verifier가 command 존재 여부를 확인할 때 쓰는 compatibility index입니다. 현재 v2.5.0 완료 근거가 아닙니다.
-
-`verify-v220-ui-architecture-inventory`, `verify-v220-responsive-task-shell`, `verify-v220-design-token-refresh`, `verify-v220-component-primitives`, `verify-v220-ops-workspace-redesign`, `verify-v220-rules-workspace-redesign`, `verify-v220-client-live-redesign`, `verify-v220-auth-setup-redesign`, `verify-v220-ops-channels-workspace`, `verify-v220-ops-users-access-workspace`, `verify-v220-ops-vlm-containment`, `verify-v220-client-preview-redaction-review`, `verify-v220-ui-evidence-closeout`, `verify-v230-entry-baseline`, `verify-v230-test-evidence-consistency`, `verify-v230-ui-renderer-module-decomposition`, `verify-v230-conditional-field-evidence`, `verify-v230-vlm-opt-in-operational-evidence`, `verify-v230-ops-backup-recovery-lifecycle`, `verify-v240-release-readiness-gate`.
-
-v2.2.0 UI Evidence Close-out 준비와 `./server.sh verify-v220-ui-evidence-closeout`는 historical compatibility index입니다. 이 verifier PASS는 UI 풀테스트 PASS가 아닙니다.
-
-## v2.2.0 UI Evidence Close-out Compatibility
-
-v2.2.0 UI Evidence Close-out 준비는 기능 inventory, manual UI checklist, UI 풀테스트 결과 기록 기준을 연결한 historical gate입니다. `./server.sh verify-v220-ui-evidence-closeout`와 `verify-manual-ui-evidence`는 문서/템플릿 연결을 확인하지만, 인앱 브라우저 직접 조작이 없으면 UI 풀테스트 PASS가 아닙니다.
+과거 버전 verifier는 내부 호환성 확인에만 사용합니다. 공개 release PASS, UI 풀테스트
+PASS, 장시간 테스트 PASS로 재사용하지 않습니다.

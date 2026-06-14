@@ -4,6 +4,24 @@
 실제 기본값의 source of truth는 `include/stdafx.h`, `src/app_config.cpp`,
 `scripts/internal/*.sh`입니다.
 
+## 목차
+
+| 섹션 | 내용 |
+| --- | --- |
+| [기본 규칙](#기본-규칙) | 환경변수 표기와 경로 해석 |
+| [Config Presets](#config-presets) | dev/staging/production 예시 |
+| [서버 기본 env](#서버-기본-env) | HTTP/RTSP/auth 기본값 |
+| [RTSP/WebRTC env](#rtspwebrtc-env) | RTSP, WebRTC, ICE 설정 |
+| [Source env](#source-env) | source registry와 file root |
+| [VA detector env](#va-detector-env) | detector/model/overlay 설정 |
+| [Tracking env](#tracking-env) | tracker와 Re-ID hook |
+| [Scenario env](#scenario-env) | scenario/rule 관련 설정 |
+| [Event POST env](#event-post-env) | Event POST 전송 |
+| [EventStorage env](#eventstorage-env) | EventRecord 저장 |
+| [WebRTC metadata env](#webrtc-metadata-env) | DataChannel metadata |
+| [Debug/Metrics env](#debugmetrics-env) | debug와 metrics |
+| [YouTube experimental env](#youtube-experimental-env) | lab-only YouTube 실험 |
+
 ## 기본 규칙
 
 - boolean 값은 보통 `1/0`, `true/false`를 허용합니다.

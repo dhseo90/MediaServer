@@ -136,6 +136,18 @@ function isDocsIndexCoverageExcluded(file) {
   const normalized = file.replaceAll(path.sep, "/");
   return (
     normalized.startsWith("docs/superpowers/plans/") ||
+    normalized.startsWith("docs/v220-") ||
+    normalized.startsWith("docs/v230-") ||
+    normalized === "docs/release-evidence-index.md" ||
+    normalized === "docs/project-feature-test-inventory.md" ||
+    normalized === "docs/runtime-dashboard-longrun-evidence-template.md" ||
+    normalized === "docs/ui-visual-release-baseline-approval-template.md" ||
+    normalized === "docs/manual-ui-checklist.md" ||
+    normalized === "docs/manual-ui-fulltest.md" ||
+    normalized === "docs/manual-ui-result-template.md" ||
+    normalized === "docs/vlm-close-out-readiness.md" ||
+    normalized === "docs/vlm-stabilization-longrun-ui-criteria.md" ||
+    normalized === "docs/vlm-test-rehearsal.md" ||
     /^docs\/manual-ui-result-\d{4}-\d{2}-\d{2}-.+\.md$/.test(normalized) ||
     /^docs\/release-verification-reaudit(?:[-\w]*)?\.md$/.test(normalized)
   );

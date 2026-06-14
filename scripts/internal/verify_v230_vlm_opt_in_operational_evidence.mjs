@@ -127,7 +127,7 @@ check("privacy transfer guard keeps VLM operational evidence redacted and Ops-on
   };
 });
 
-check("VLM docs expose the v2.3.0 opt-in operational evidence boundary", () => {
+check("VLM public docs expose the current opt-in/default-off boundary", () => {
   const docs = [
     ["runtime contract", readText("docs/vlm-runtime-opt-in-contract.md")],
     ["local runtime smoke", readText("docs/vlm-local-runtime-connection-smoke.md")],
@@ -136,46 +136,35 @@ check("VLM docs expose the v2.3.0 opt-in operational evidence boundary", () => {
   ];
   for (const [label, text] of docs) {
     for (const snippet of [
-      "## v2.3.0 VLM opt-in operational evidence",
-      "media-server.v230-vlm-opt-in-operational-evidence.v1",
+      "## 운영 증적 경계",
       "operator-approved profile promotion",
       "local/provider smoke intake",
       "privacy/default-off evidence",
       "no VLM default-on",
-      "Sidecar is not mixed into EventRecord/API schema",
-      "verify-v230-vlm-opt-in-operational-evidence",
+      "Sidecar는 EventRecord/API schema에 섞지",
+      "Event POST/WebRTC DataChannel/SSE/WS metadata와 RTSP/WebRTC media path",
     ]) {
-      assert(text.includes(snippet), `${label} doc missing v2.3.0 VLM evidence snippet: ${snippet}`);
+      assert(text.includes(snippet), `${label} doc missing VLM opt-in boundary snippet: ${snippet}`);
     }
   }
 });
 
-check("roadmap records V230-S05 completion boundary and exclusions", () => {
+check("current public roadmap keeps VLM evidence within source/local boundaries", () => {
   const backlog = readText("docs/development-backlog.md");
-  assert(/\| 5 \| V230-S05 \| P1 \| 완료 \| VLM opt-in operational evidence \|/.test(backlog),
-    "backlog V230-S05 row must be 완료 after VLM opt-in evidence gate closure");
   for (const snippet of [
-    "### V230-S05 VLM opt-in operational evidence 종료 기준",
-    "직접 답: S05 완료는 VLM default-on이나 실제 provider 성공이 아니라",
-    "media-server.v230-vlm-opt-in-operational-evidence.v1",
-    "operator-approved profile promotion",
-    "local/provider smoke intake",
-    "privacy/default-off evidence",
-    "Sidecar is not mixed into EventRecord/API schema",
-    "verify-v230-vlm-opt-in-operational-evidence",
-    "verify-vlm-runtime-opt-in-contract",
-    "verify-vlm-local-runtime-smoke",
-    "verify-vlm-cloud-provider-field-smoke-gate",
-    "verify-vlm-privacy-transfer-guard",
-    "VLM default-on",
-    "provider credential 저장",
-    "model/runtime bundle",
+    "현재 source roadmap: v2.5.0 Semantic Incident Memory",
+    "GitHub Release와 tag는 취소되어 현재 공개 릴리즈가 아닙니다",
+    "VLM default-off guard",
+    "provider call evidence 아님",
+    "UI 풀테스트 직접 조작은 별도",
     "30분 테스트",
     "120분 테스트",
-    "UI 풀테스트",
+    "verify-release-metadata --published",
   ]) {
-    assert(backlog.includes(snippet), `backlog missing S05 VLM evidence snippet: ${snippet}`);
+    assert(backlog.includes(snippet), `backlog missing current VLM/source boundary snippet: ${snippet}`);
   }
+  assert(!backlog.includes("### V230-S05 VLM opt-in operational evidence 종료 기준"),
+    "public backlog must not expose archived V230-S05 evidence as current roadmap content");
 });
 
 check("release evidence index records S05 without promoting provider/model success", () => {
@@ -201,10 +190,8 @@ check("release evidence index records S05 without promoting provider/model succe
 check("feature inventory maps VLM opt-in evidence to existing rows and four test areas", () => {
   const inventory = readText("docs/project-feature-test-inventory.md");
   for (const snippet of [
-    "v2.3.0 S05 VLM opt-in operational evidence",
     "verify-v230-vlm-opt-in-operational-evidence",
     "operator-approved profile promotion",
-    "local/provider smoke intake",
     "privacy/default-off evidence",
     "LAB-038",
     "LAB-042",
@@ -215,7 +202,8 @@ check("feature inventory maps VLM opt-in evidence to existing rows and four test
     "SAFE-029",
     "SAFE-034",
     "SAFE-035",
-    "no VLM default-on",
+    "no runtime-call/sidecar/schema/media path boundary",
+    "cloud/provider/model quality/UI/longrun PASS로 과장하지 않음",
     "provider call 미실행은 PASS가 아님",
   ]) {
     assert(inventory.includes(snippet), `project feature inventory missing S05 snippet: ${snippet}`);

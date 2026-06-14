@@ -11,6 +11,30 @@ Event POST, WebRTC DataChannel, SSE, WebSocket live metadata contract의
 분리해 관리합니다. 이 문서는 VA pipeline과 payload 예시를 설명하되,
 contract 변경 판단의 기준 문서는 아닙니다.
 
+## 목차
+
+| 섹션 | 내용 |
+| --- | --- |
+| [1. VA 개요](#1-va-개요) | 지원 입력/출력과 기본 호출 |
+| [2. VA Pipeline](#2-va-pipeline) | detector, tracker, event flow |
+| [3. 분석 Profile](#3-분석-profile) | profile 구조 |
+| [4. Rule 구조](#4-rule-구조) | rule 저장 구조 |
+| [5. 기본 이벤트](#5-기본-이벤트) | 기본 event 종류 |
+| [6. 상황 기반 시나리오](#6-상황-기반-시나리오) | scenario event |
+| [7. TrackState / TrackHealth](#7-trackstate-trackhealth) | tracking state |
+| [8. Appearance / Re-ID Hook](#8-appearance-re-id-hook) | default-off Re-ID hook |
+| [9. Homography / Ground-Plane](#9-homography-ground-plane) | ground-plane 보정 |
+| [10. Event Payload](#10-event-payload) | event payload 예시 |
+| [11. EventRecord / Snapshot / Clip Hook](#11-eventrecord-snapshot-clip-hook) | short evidence hook |
+| [12. VA Runtime Metadata](#12-va-runtime-metadata) | runtime metadata |
+| [13. WebRTC VA Metadata DataChannel](#13-webrtc-va-metadata-datachannel) | DataChannel metadata |
+| [14. SSE Metadata Side-Channel](#14-sse-metadata-side-channel) | SSE side-channel |
+| [15. WebSocket Metadata Side-Channel](#15-websocket-metadata-side-channel) | WS side-channel |
+| [16. Client-side Overlay / Server-side Overlay 정책](#16-client-side-overlay-server-side-overlay-정책) | overlay 정책 |
+| [17. Debug Overlay / State Dump](#17-debug-overlay-state-dump) | debug output |
+| [18. Replay 검증](#18-replay-검증) | replay verification |
+| [19. 제한사항](#19-제한사항) | non-goals |
+
 ## 1. VA 개요
 
 VA는 기존 RTSP/WebRTC relay path를 대체하지 않고, 같은 source stream에 선택적으로 붙는 분석 계층입니다.

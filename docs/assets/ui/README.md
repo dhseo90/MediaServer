@@ -1,16 +1,14 @@
 # UI Screenshot Assets
 
-이 디렉터리는 README와 `docs/ui-guide.md`에서 사용할 제품 UI 스크린샷을 역할 기준 파일명으로 보관합니다.
+이 디렉터리는 README와 `docs/ui-guide.md`에서 사용할 제품 UI 스크린샷을 역할 기준
+파일명으로 보관합니다.
 
-현재 대표 제품 이미지는 2026-05-23 캡처 자산을 현재 release target `v2.5.0`의
-`v2.5.0 release baseline` 대표 shell 설명 이미지로 유지합니다. 특히
+현재 README 대표 이미지는 제품 shell 설명용입니다. `v2.5.0` GitHub Release/tag는
+취소되어 있으므로, 이 이미지를 v2.5.0 공개 릴리즈 증거로 쓰지 않습니다. 특히
 Client Live 이미지는 source tree, dock event feed, workspace preset,
-tile-level disconnect/action, VA overlay tile이 보이는 제품 구조를 기준으로 합니다.
-단, 이 대표 이미지는 v2.5.0 Semantic Incident Memory 검색/timeline/brief 화면,
-VLM 전용 `/ops/vlm`, `/ops/events` 리뷰 보조 화면의 전체 UI 증거가 아니며,
-v2.5.0 UI 풀테스트 PASS 증거도 아닙니다. Semantic Incident Memory, Operator Event
-Review, VLM 화면 직접 검수는 manual UI evidence 문서와 `verify-vlm-*`/
-`verify-manual-ui-evidence` 계열 gate에서 별도로 확인합니다.
+tile-level disconnect/action, VA overlay tile이 보이는 제품 구조를 설명합니다.
+Semantic Incident Memory 검색/timeline/brief 화면, VLM 전용 `/ops/vlm`, `/ops/events`
+리뷰 보조 화면의 전체 UI 증거도 아니며, UI 풀테스트 PASS 증거도 아닙니다.
 
 README, README.en, `docs/ui-guide.md`, `docs/video-analysis.md`에서 참조하는 UI/VA
 이미지는 `verify-docs-ui-assets` 정적 gate로 관리합니다. 정적 gate만 실행하고
@@ -27,19 +25,18 @@ README, README.en, `docs/ui-guide.md`, `docs/video-analysis.md`에서 참조하�
 `scripts/internal/rule_preview_fixture_helpers.mjs`의 공통 profile/event/VA rule
 fixture를 사용해 preview prerequisite drift를 막습니다.
 
-## v2.4.0 Docs Image Review - 2026-06-10
+## Docs Image Review 기준
 
-v2.4.0 문서 정리에서는 문서가 참조하는 전체 이미지 20개를 release baseline 관리
-대상으로 유지합니다. 이번 S08 static gate는 manifest와 링크/assets 기준 정리이며,
-실제 제품 UI 직접 조작과 현재 화면 대조는 UI 풀테스트 승인 후 별도 evidence로
-남깁니다.
+문서가 참조하는 전체 이미지 20개는 manifest 관리 대상입니다. static gate는
+manifest와 링크/assets 기준만 확인하며, 실제 제품 UI 직접 조작과 현재 화면 대조는
+UI 풀테스트 승인 후 별도 evidence로 남깁니다.
 대상은 한국어 UI PNG 9개, English UI PNG 9개,
 `docs/assets/va-four-scene-overlay-ko.jpg`, `docs/assets/va-four-scene-sample.png`입니다.
 Chrome/CDP로 생성된 재캡처 산출물은 대표 이미지로 채택하지 않고 폐기합니다.
 
 결론:
 
-- 기존 2026-05-23 대표 제품 shell 캡처를 v2.5.0 문서 대표 이미지로 유지합니다.
+- 기존 2026-05-23 대표 제품 shell 캡처를 README 대표 이미지로 유지합니다.
 - 운영 QA registry가 섞여 200개 채널을 길게 보여주는 캡처는 제품 대표 이미지로
   쓰지 않습니다.
 - README/README.en 대표 이미지 12개는 crop 없이 핵심 화면과 control이 보입니다.
@@ -52,15 +49,13 @@ Chrome/CDP로 생성된 재캡처 산출물은 대표 이미지로 채택하지 
 - `ops-rules-preview`와 VA overlay 이미지는 4분할 sample video viewport, VA overlay,
   bbox/label, 영역/라인 control이 잘리지 않습니다.
 - VLM 전용 `/ops/vlm`, `/ops/events` review-assist 화면은 이 대표 이미지 세트로
-  대체하지 않고, [release-evidence-index.md](../../release-evidence-index.md)의
-  historical UI 풀테스트 기록으로 분리합니다.
+  대체하지 않습니다.
 - 이번 문서 정리에서는 이미지 파일을 새로 교체하지 않습니다.
 
 직접 이미지 검수 checklist:
 
 - 재캡처 뒤 한국어/영어 PNG를 모두 직접 엽니다.
-- 현재 release target `v2.5.0`의 대표 shell 화면 구조와
-  맞는지 확인합니다.
+- 현재 source tree의 대표 shell 화면 구조와 맞는지 확인합니다.
 - Semantic Incident Memory 또는 VLM 전용 화면이 필요한 release evidence로 이 대표
   이미지를 대신 쓰지 않습니다.
 - 영상 screenshot은 video viewport, control, status, VA overlay가 잘리지 않는지 확인합니다.

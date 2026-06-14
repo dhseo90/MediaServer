@@ -1,72 +1,58 @@
 # English Documentation
 
-This is the English entry point for Media Server. The detailed Korean
-documentation is maintained under `docs/`; this page keeps the English path
-short enough to scan. The full index is `docs/README.md`.
+This is the English entry point for Media Server. The detailed documentation is
+maintained in Korean under `docs/`; this page keeps the English path short and
+points to the current public sources.
+
+## Current Status
+
+- Latest published GitHub Release: [v2.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
+- Current source version: `2.5.0`
+- v2.5.0 public status: the GitHub Release and tag were cancelled, so v2.5.0 is
+  not linked as a public release.
+- Current documentation cleanup baseline: `v2.5.0 Semantic Incident Memory`
+- Default public distribution: source-only
 
 ## Start Here
 
 | Need | Document |
 | --- | --- |
 | Product overview | [../../README.en.md](../../README.en.md) |
+| Korean product overview | [../../README.md](../../README.md) |
 | Full documentation index | [../README.md](../README.md) |
 | Setup, build, and run | [../development-guide.md](../development-guide.md) |
+| Configuration | [../config-reference.md](../config-reference.md) |
 | Ops and Client UI | [../ui-guide.md](../ui-guide.md) |
 | RTSP/WebRTC/VA architecture | [../media-server-architecture.md](../media-server-architecture.md) |
 | Video analytics and scenarios | [../video-analysis.md](../video-analysis.md) |
 | Verification commands | [../stream-verification.md](../stream-verification.md) |
 | Release/version policy | [../release-policy.md](../release-policy.md), [../versioning-policy.md](../versioning-policy.md) |
+| Current roadmap summary | [../development-backlog.md](../development-backlog.md) |
 
-## Current Boundary
+## Product Boundary
 
-- Latest published release: [v2.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0).
-- Current release target: `v2.5.0` (target only before GitHub Release publish; not a release link).
-- v2.5.0 active roadmap is tracked in
-  [../development-backlog.md](../development-backlog.md).
-- v2.4.0 completed roadmap is tracked in
-  [../development-backlog.md](../development-backlog.md) as Operational Evidence
-  & Operator Event Review baseline.
 - The main product boundary is live source onboarding, live source health, and
-  live VA event quality, plus local operator incident memory/search.
-- v2.5.0 keeps the stability, 30-minute, 120-minute, and UI fulltest areas as
-  the only test areas. Field/provider/longrun triggers are recorded inside those
-  areas or as exclusions, not as a fifth test category.
-- Binary, runtime, and model bundles are excluded from the default release.
-- Long-term recording, VMS/NVR, playback/search, ONVIF Profile G
-  recording/replay, Re-ID default-on, and tracker default-on remain out of scope.
-
-Historical branch-level close-out evidence and in-app browser UI fulltest
-summaries are tracked in [../release-evidence-index.md](../release-evidence-index.md).
-Script stability, 30-minute soak, UI fulltest, and 120-minute longrun evidence do
-not replace one another. Real cloud provider calls, external TURN field gates,
-and VLM model/runtime bundles remain outside the default v2.5.0 target evidence.
-For v2.5.0, real-device ONVIF success, external TURN/WHEP credential operations,
-and real cloud provider calls are not default release PASS evidence.
-
-v2.5.0 active roadmap details are in [../development-backlog.md](../development-backlog.md).
-For the v2.5.0 documentation baseline, UI preview images are
-documentation assets only. QA-registry-heavy recaptures, unapproved Chrome/CDP
-fallback captures, and screenshot-only artifacts are not promoted to
-representative images or UI fulltest evidence without in-app browser review.
-
-## Public Repository Boundary
-
-- Public content: Apache-2.0 source, documentation, configuration examples,
-  scripts, and allowlisted generated fixtures.
-- Excluded content: runtime binaries, YOLO model binaries, customer media,
-  operations evidence, local auth stores, credentials, and logs.
-- Repository visibility changes are owner-only operations.
+  live VA event quality.
+- The current source tree also contains local operator incident memory/search
+  work for `/ops/events`.
+- Binary, runtime, and model bundles are excluded from the default public release.
+- Long-term recording, VMS/NVR, playback/archive search, ONVIF Profile G
+  recording/replay, Re-ID default-on, tracker default-on, and VLM default-on
+  remain out of scope.
+- Real cloud provider calls, external TURN/WHEP credential operations, and real
+  ONVIF device success are not default release PASS evidence.
 
 ## Verification Entry Points
 
+Use these commands for documentation-oriented checks:
+
 ```bash
+git diff --check
 ./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
 ./server.sh verify-release-metadata
-./server.sh verify-v230-test-evidence-consistency
-./server.sh verify-manual-ui-evidence
-./server.sh verify-public-repo-readiness --report /tmp/media_server_public_repo_readiness.md
-./server.sh verify-bundle-policy --output /tmp/media_server_bundle_policy.md --json-output /tmp/media_server_bundle_policy.json
 ```
 
-The full verification list is maintained in [../stream-verification.md](../stream-verification.md).
-Published release metadata is checked with `./server.sh verify-release-metadata --published`.
+`./server.sh verify-release-metadata --published` is only for a real GitHub
+Release publish check. It should not be used to claim v2.5.0 is published while
+the v2.5.0 release/tag is absent.

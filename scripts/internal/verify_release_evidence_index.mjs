@@ -106,20 +106,15 @@ check("test evidence records include token usage fields", () => {
   assert(releaseEvidence.includes("147,501"), "release evidence index missing latest stability token usage");
 });
 
-check("docs entrypoints link evidence index without overcrowding README", () => {
+check("public docs do not expose evidence ledger as a front-door document", () => {
   const readme = readText("README.md");
   const readmeEn = readText("README.en.md");
   const docsIndex = readText("docs/README.md");
   const releasePolicy = readText("docs/release-policy.md");
   const streamVerification = readText("docs/stream-verification.md");
-  for (const snippet of [
-    "release-evidence-index.md",
-    "Release evidence의 실행/미실행/미확인 색인",
-  ]) {
-    assert(docsIndex.includes(snippet), `docs/README.md missing evidence index link: ${snippet}`);
-  }
-  assert(releasePolicy.includes("release-evidence-index.md"), "release policy missing evidence index link");
-  assert(streamVerification.includes("./server.sh verify-release-evidence-index"), "stream verification missing verifier command");
+  assert(!docsIndex.includes("release-evidence-index.md"), "docs/README.md must not expose release evidence ledger as a public front-door link");
+  assert(!releasePolicy.includes("release-evidence-index.md"), "release policy must not require public readers to open the evidence ledger");
+  assert(!streamVerification.includes("./server.sh verify-release-evidence-index"), "stream verification public guide must not list internal evidence ledger verifier");
   for (const [label, text] of [["README.md", readme], ["README.en.md", readmeEn]]) {
     for (const snippet of [
       "Release Evidence Index",

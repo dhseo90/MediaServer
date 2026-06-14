@@ -3,56 +3,43 @@
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
 [![Published Release](https://img.shields.io/badge/published-v2.4.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
-![Release Target](https://img.shields.io/badge/target-v2.5.0-informational)
+![Source Version](https://img.shields.io/badge/source-2.5.0-informational)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
 video analytics overlays and rule/scenario live events when analytics are enabled.
 
 The current product boundary is **live source onboarding, live source health, and
-live VA event quality**. Long-term recording, VMS/NVR, playback/search, and
-runtime/model bundle distribution are outside the default release scope.
+live VA event quality**. Long-term recording, VMS/NVR, playback/archive search,
+and runtime/model bundle distribution are outside the default public release.
 
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
-- Latest published release: [v2.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
-- Current release target: `v2.5.0` (target only before GitHub Release publish; not a release link)
-- Release baseline: `v2.5.0 Semantic Incident Memory`
+- Latest published GitHub Release: [v2.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
+- Current source version: `2.5.0`
+- v2.5.0 public status: the GitHub Release and tag were cancelled, so v2.5.0 is not linked as a public release.
+- Current documentation cleanup baseline: `v2.5.0 Semantic Incident Memory`
 
 ## At a Glance
 
-- **Streaming**: exposes file, RTSP pull, WHEP pull, WHIP publish, and HTTP/HLS
+- **Live relay**: exposes file, RTSP pull, WHEP pull, WHIP publish, and HTTP/HLS
   sources through RTSP and WebRTC/WHEP outputs.
+- **Product UI**: `/ops` is the operator console, `/client` is the viewer live
+  surface, and `/lab/analysis/*` is for verification/integration APIs.
 - **Video analytics**: supports `va=1` overlays, saved rules through
-  `vaRule=<id>`, Rule/Profile/Scenario models, live Event POST, and runtime
-  metadata. EventRecord, snapshot, and clip hooks are short event evidence
-  helpers, not the central product message.
-- **VLM review assist**: adds Ops-only review assistance for event explanations,
-  false-positive hints, and suggestion candidates. VLM model/runtime bundles and
-  real cloud provider calls are not part of the default release.
-- **Product UI**: routes users to Ops or Client views based on account
-  permissions. There is no Lab product screen; lab endpoints remain available
-  for API and verification workflows.
-  `v2.5.0` turns EventRecord, audit, source health, and alert dry-run data into
-  searchable incident memory for `/ops/events` search, timelines, explainable
-  briefs, and similar-incident lookup without expanding backend media paths,
-  event schemas, or auth policy.
-- **Auth and scopes**: supports first-admin setup, session login, role/scope,
-  admin user management, and viewer invite/request approval.
-- **Verification**: `./server.sh` provides UI/Auth smoke tests, VA replay checks,
-  runtime state checks, backup/restore rehearsal, and RC gate artifact checks.
-- **Distribution boundary**: the default public release contains source code and
-  documentation. Binary, runtime, and model bundles are not published unless
-  separate guardrails pass.
+  `vaRule=<id>`, Rule/Profile/Scenario models, live Event POST, and runtime metadata.
+- **Incident memory**: the current source tree projects EventRecord, audit, source
+  health, and alert dry-run data into `/ops/events` search, timelines, explainable
+  briefs, and similar-incident lookup.
+- **Out of scope**: VMS/NVR, long-term recording, playback/archive search, VLM
+  default-on, model/runtime bundle distribution, and guaranteed real-device or
+  external-provider success are not included in the default public release.
 
 ## Semantic Incident Memory
 
-v2.5.0 keeps the v2.4.0 source-only/live-only baseline and VLM review-assist
-default-off boundary while extending Operator Event Review into searchable
-incident memory. YOLO/Rule/Scenario still create EventRecords; local text
-projection and indexing connect EventRecord, audit, source health, and alert
-dry-run evidence for search, timelines, similar incidents, viewer-safe digests,
-and redacted evidence bundles while keeping the existing Event POST, WebRTC,
-SSE/WS metadata schemas and media paths.
+Current source version `2.5.0` keeps the v2.4.0 source-only/live-only baseline and
+VLM review-assist default-off boundary while extending Operator Event Review into
+searchable incident memory. Existing Event POST, WebRTC DataChannel, SSE/WS
+metadata schemas, and RTSP/WebRTC media paths remain unchanged.
 
 Model recommendation is based on both PC capability and privacy mode. The current
 baseline is `Qwen/Qwen3-VL-8B-Instruct` for local standard hardware,
@@ -62,7 +49,7 @@ baseline is `Qwen/Qwen3-VL-8B-Instruct` for local standard hardware,
 installation, guaranteed cloud provider success, model/runtime bundle
 distribution, and default-on promotion are outside the default release.
 
-Details:
+Related docs:
 
 - Model selection: [docs/vlm-model-selection.md](docs/vlm-model-selection.md)
 - PC-based recommendation engine: [docs/vlm-recommendation-engine.md](docs/vlm-recommendation-engine.md)
@@ -132,8 +119,8 @@ from the consolidated [docs/en/README.md](docs/en/README.md).
 
 ## Documentation Guide
 
-This README is the product overview. Detailed policies, verification history, and
-release evidence live in dedicated docs.
+This README is the product overview. Detailed policies and internal verification
+records live in dedicated docs.
 
 - Full index: [docs/README.md](docs/README.md)
 - Setup, build, and run: [docs/development-guide.md](docs/development-guide.md)
@@ -145,16 +132,14 @@ release evidence live in dedicated docs.
 - Release/version policy: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - Release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
-- Release notes target: `v2.5.0` (no release notes link before GitHub Release publish)
 - Latest published release notes: [v2.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
-- Active roadmap: `v2.5.0 Semantic Incident Memory` in
+- Current documentation cleanup baseline: `v2.5.0 Semantic Incident Memory` in
   [docs/development-backlog.md](docs/development-backlog.md)
 
 ## UI Preview
 
-These images are documentation preview assets, not UI fulltest PASS evidence.
-For the active `v2.5.0` docs baseline, QA-registry-heavy recaptures and
-unapproved Chrome/CDP fallback captures are not used as representative assets.
+These images are documentation preview assets. They are not UI fulltest PASS
+evidence, v2.5.0 publication evidence, or a replacement for current UI review.
 
 **Ops Home**
 
@@ -203,9 +188,8 @@ git diff --check
 ./server.sh verify-docs-links
 ```
 
-After main/tag/GitHub Release publication, run
-`./server.sh verify-release-metadata --published` to check GitHub Latest Release
-and the remote tag.
+After publishing a GitHub Release again, run `./server.sh verify-release-metadata --published`
+to check GitHub Latest Release and the remote tag.
 
 Release-local baseline:
 

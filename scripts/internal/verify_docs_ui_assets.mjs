@@ -82,7 +82,9 @@ check("docs UI asset policy documents capture rules", () => {
 
 check("managed UI asset manifest stays complete", () => {
   assert(manifest.schema === "media-server.docs-ui-assets.v1", "docs UI asset manifest schema mismatch");
-  assert(manifest.baseline?.release === currentTag, "docs UI asset manifest baseline release drifted");
+  assert(manifest.baseline?.sourceVersion === currentVersion, "docs UI asset manifest source version drifted");
+  assert(manifest.baseline?.publishedRelease === "v2.4.0", "docs UI asset manifest published release drifted");
+  assert(manifest.baseline?.publicReleaseStatus === `${currentTag}-cancelled`, "docs UI asset manifest public release status drifted");
   assert(manifest.baseline?.capturedAt === "2026-05-23", "docs UI asset manifest capture date drifted");
   assert(manifest.baseline?.theme === "dark", "docs UI asset manifest theme drifted");
   assert(manifest.baseline?.sampleVideo === "va_four_scene_sample.mp4", "docs UI asset manifest sample video drifted");
@@ -92,7 +94,7 @@ check("managed UI asset manifest stays complete", () => {
   assert(Array.isArray(manifest.directReviewChecklist) && manifest.directReviewChecklist.length >= 5, "direct review checklist is too small");
   for (const snippet of [
     "Open every Korean and English PNG",
-    `current ${currentTag} release baseline`,
+    "current source tree representative shell",
     "full video viewport",
     "source URLs",
     "unverified rather than pass",
@@ -173,7 +175,8 @@ check("docs capture covers current screenshots", () => {
   for (const snippet of requiredTranslations) {
     assert(i18n.includes(snippet), `product English i18n is missing screenshot-visible copy: ${snippet}`);
   }
-  assert(policy.includes(`${currentTag} release baseline`), `docs/assets/ui/README.md does not state the ${currentTag} screenshot baseline`);
+  assert(policy.includes("제품 shell 설명용"), "docs/assets/ui/README.md must describe screenshots as representative shell assets");
+  assert(policy.includes("공개 릴리즈 증거로 쓰지 않습니다"), "docs/assets/ui/README.md must not describe screenshots as v2.5.0 publication evidence");
 });
 
 check("representative screenshot docs do not point at stale visual baselines", () => {

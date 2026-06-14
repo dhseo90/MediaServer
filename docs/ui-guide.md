@@ -1,14 +1,33 @@
 # UI Guide
 
 이 문서는 Auth, Ops, Client 제품 UI의 현재 화면 구조와 운영 기준을 설명합니다.
-서버 실행/검증 명령은 [development-guide.md](./development-guide.md),
-UI 풀테스트 기준은 [manual-ui-fulltest.md](./manual-ui-fulltest.md),
-브라우저 수동 검수 순서는 [manual-ui-checklist.md](./manual-ui-checklist.md),
-수동 검수 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md),
-기능별 UI 필요/테스트 영역 분류는
-[project-feature-test-inventory.md](./project-feature-test-inventory.md),
-VA 내부 구조는 [video-analysis.md](./video-analysis.md)를 봅니다.
+서버 실행은 [development-guide.md](./development-guide.md), 검증 명령은
+[stream-verification.md](./stream-verification.md), VA 내부 구조는
+[video-analysis.md](./video-analysis.md)를 봅니다.
 제품 화면은 Ops/Client 기준으로 두고, 개발/검증 API는 별도로 유지합니다.
+
+현재 소스 버전은 `2.5.0`입니다. `v2.5.0` GitHub Release와 tag는 취소되어 현재 공개
+릴리즈가 아니며, 이 문서는 현재 source tree의 UI 구조를 설명합니다.
+
+## 목차
+
+| 섹션 | 내용 |
+| --- | --- |
+| [1. UI 개요](#1-ui-개요) | route, shell, design token |
+| [2. Login / Session](#2-login-session) | setup, login, password, invite/request |
+| [3. Admin User Management](#3-admin-user-management) | 사용자 목록, 상태 관리 |
+| [4. SourceRegistry / PublishedView](#4-sourceregistry-publishedview) | source와 viewer 공개 view |
+| [5. 룰 관리 목록](#5-룰-관리-목록) | rule list |
+| [6. 채널 분석 설정 흐름](#6-채널-분석-설정-흐름) | rule 편집 흐름 |
+| [7. 분석 Profile](#7-분석-profile) | profile 설정 |
+| [8. 기본 이벤트](#8-기본-이벤트) | 기본 rule event |
+| [9. 시나리오 이벤트](#9-시나리오-이벤트) | scenario event |
+| [10. 영역/라인 캔버스](#10-영역라인-캔버스) | polygon/line canvas |
+| [11. 이벤트 발생 시 동작](#11-이벤트-발생-시-동작) | Event POST와 action |
+| [12. 미리보기와 메타데이터 확인](#12-미리보기와-메타데이터-확인) | preview와 metadata |
+| [13. VA 런타임 대시보드](#13-va-런타임-대시보드) | runtime dashboard |
+| [14. 자주 발생하는 오류](#14-자주-발생하는-오류) | 흔한 오류와 처리 |
+| [Screenshot 자산](#screenshot-자산) | 문서 이미지 정책 |
 
 ## 1. UI 개요
 
@@ -38,7 +57,7 @@ card, button, form, table, badge는 같은 semantic color 규칙을 공유합니
 제품 shell에 직접 노출하지 않고 API와 검증 명령에서 확인합니다.
 client/viewer shell에는 내부 진단 응답, debug 정보, developer/source URL을 노출하지 않습니다.
 
-v1.8.0에서 도입되어 v1.9.0에서도 유지되는 product shell은 ERP/운영 콘솔형 밀도를 따릅니다.
+현재 product shell은 ERP/운영 콘솔형 밀도를 따릅니다.
 상단에는 compact brand/nav/account header를 두고,
 본문은 metric card, dense table, form section, right/detail panel을 같은
 8px 이하 radius와 semantic token으로 맞춥니다. 장식용 hero, 큰 카드 나열,
@@ -439,13 +458,9 @@ Ops/Client/Lab API guard를 확인합니다.
   public release asset 또는 candidate 통과 증빙이 아니며, baseline 교체 시에는
   accepted baseline run, 교체 이유, 수동 비노출 검토 결과를 PR/릴리스 기록에
   연결합니다.
-- baseline을 채택/교체할 때는
-  [UI Visual Release Baseline Approval Log](./ui-visual-release-baseline-approval-template.md)
-  템플릿에 manifest/index, baseline diff, 수동 비노출 검토, 미실행 field smoke를
-  남깁니다. template presence와 CI 연결은
-  `./server.sh verify-ui-release-baseline-approval-log`로 확인합니다. 작성 형식 예시는
-  `test/fixtures/ui_visual_release_baseline_approval_log_sample.md`에 sample-only
-  fixture로 고정합니다.
+- baseline을 채택/교체할 때는 내부 승인 기록에 manifest/index, baseline diff,
+  수동 비노출 검토, 미실행 field smoke를 남깁니다. template presence와 CI 연결은
+  `./server.sh verify-ui-release-baseline-approval-log`로 확인합니다.
 - Release / Visual Baseline Readiness는
   `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>`
   리포트로 묶습니다. JSON report의 visual automation 영역은
@@ -1513,7 +1528,7 @@ Screenshot 관리 정책:
 | 파일명 | 역할 기반 이름 사용 |
 | 기본 theme | dark mode 대표 화면 |
 | 링크 정책 | 새 이미지가 없으면 broken link 대신 “이미지 추가 예정” 문구 사용 |
-| 현재 대표 이미지 | 2026-05-23 캡처 자산을 최신 공개 release v2.4.0과 현재 v2.5.0 문서 baseline의 대표 shell 설명 이미지로 유지. Client Live는 source tree, dock event feed, workspace preset, tile action/VA overlay 구조를 포함 |
+| 현재 대표 이미지 | 2026-05-23 캡처 자산을 대표 shell 설명 이미지로 유지. 이 이미지는 v2.5.0 공개 릴리즈 증거나 UI 풀테스트 PASS 증거가 아님. Client Live는 source tree, dock event feed, workspace preset, tile action/VA overlay 구조를 포함 |
 | 관리 목록 | `config/docs_ui_assets.json`의 managed asset list가 파일명, capture task, 최소 크기, direct review checklist를 고정 |
 | 재캡처 | `node scripts/internal/capture_docs_ui_assets.mjs --http-base http://127.0.0.1:8082`. Codex 세션에서는 인앱 브라우저 확인을 우선하고, Chrome/CDP fallback 재캡처는 사용자 명시 승인 후에만 사용 |
 | 기준 검증 | `./server.sh verify-docs-ui-assets` |
