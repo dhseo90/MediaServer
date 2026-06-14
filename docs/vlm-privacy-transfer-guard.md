@@ -55,22 +55,21 @@ payload에 저장하거나 노출하지 않습니다.
 S11은 provider 정책의 현재 내용을 프로젝트 문서에 복제하지 않습니다. 운영자가 해당
 provider의 현재 logging/retention/terms를 검토했다는 상태만 profile guard에 저장합니다.
 
-## v2.3.0 VLM opt-in operational evidence
+## 운영 증적 경계
 
-`media-server.v230-vlm-opt-in-operational-evidence.v1` gate는 이 privacy/transfer guard를
-v2.3.0 S05의 `privacy/default-off evidence`로 사용합니다. S05의 직접 답은 VLM
-default-on이 아니라 `operator-approved profile promotion`, `local/provider smoke
-intake`, `privacy/default-off evidence`를 같은 안정화 증적 묶음으로 연결하는 것입니다.
+이 guard는 cloud provider 전송을 자동으로 허용하거나 provider 성공을 release PASS로
+승격하지 않습니다. 관련 안정화 증적은 아래 경계를 함께 확인합니다.
 
-S05에서 `verify-v230-vlm-opt-in-operational-evidence`는 cloud profile의 external
-transfer warning, provider logging/retention review, credential/prompt/raw response/source
-URL/raw frame redaction이 유지되는지 확인합니다. 이 PASS는 `no VLM default-on` 및
-redacted Ops-only guard 증적이며, 실제 cloud provider call, provider success, provider
-credential 저장, model/runtime bundle, sidecar write, UI 풀테스트, 30분/120분 longrun
-실행을 뜻하지 않습니다. Sidecar is not mixed into EventRecord/API schema, and Event
-POST/WebRTC DataChannel/SSE/WS metadata와 RTSP/WebRTC media path도 변경하지 않습니다.
+- operator-approved profile promotion
+- local/provider smoke intake
+- privacy/default-off evidence
+- no VLM default-on
 
-S05 evidence keywords: operator-approved profile promotion; local/provider smoke intake; privacy/default-off evidence; no VLM default-on. Sidecar is not mixed into EventRecord/API schema.
+PASS는 redacted Ops-only guard 증적입니다. 실제 cloud provider call, provider success,
+provider credential 저장, model/runtime bundle, sidecar write, UI 풀테스트, 30분/120분
+longrun 실행을 뜻하지 않습니다. Sidecar는 EventRecord/API schema에 섞지 않고,
+Event POST/WebRTC DataChannel/SSE/WS metadata와 RTSP/WebRTC media path도 바꾸지
+않습니다.
 
 ## Verification
 

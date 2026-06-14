@@ -39,23 +39,22 @@ S01은 실제 VLM runtime/provider를 호출하지 않고, 운영자가 명시�
 - Event POST/WebRTC/SSE/WS payload 변경
 - client/viewer 노출
 
-## v2.3.0 VLM opt-in operational evidence
+## 운영 증적 경계
 
-`media-server.v230-vlm-opt-in-operational-evidence.v1` gate는 이 default-off
-runtime contract를 v2.3.0 S05 운영 증적의 첫 단계로 사용합니다. S05의 직접 답은
-VLM default-on이 아니라 `operator-approved profile promotion`, `local/provider smoke
-intake`, `privacy/default-off evidence`를 같은 안정화 evidence 묶음으로 연결하는
-것입니다.
+이 contract는 VLM runtime/provider를 자동으로 켜지 않는 default-off 경계를 고정합니다.
+관련 안정화 증적은 아래 경계를 함께 확인합니다.
 
-S05에서 `verify-v230-vlm-opt-in-operational-evidence`는 `defaultEnabled=false`,
-`runtimeCallAllowed=false`, `providerCallAllowed=false`를 다시 확인합니다. 이 PASS는
-`no VLM default-on` 증적이며, 실제 VLM runtime call, cloud provider success,
-provider credential 저장, model/runtime bundle, sidecar write, UI 풀테스트, 30분/120분
-longrun 실행을 뜻하지 않습니다. Sidecar is not mixed into EventRecord/API schema, and
-Event POST/WebRTC DataChannel/SSE/WS metadata와 RTSP/WebRTC media path도 변경하지
-않습니다.
+- operator-approved profile promotion
+- local/provider smoke intake
+- privacy/default-off evidence
+- no VLM default-on
 
-S05 evidence keywords: operator-approved profile promotion; local/provider smoke intake; privacy/default-off evidence; no VLM default-on. Sidecar is not mixed into EventRecord/API schema.
+PASS는 `defaultEnabled=false`, `runtimeCallAllowed=false`,
+`providerCallAllowed=false` 경계 증적입니다. 실제 VLM runtime call, cloud provider
+success, provider credential 저장, model/runtime bundle, sidecar write, UI 풀테스트,
+30분/120분 longrun 실행을 뜻하지 않습니다. Sidecar는 EventRecord/API schema에 섞지
+않고, Event POST/WebRTC DataChannel/SSE/WS metadata와 RTSP/WebRTC media path도
+바꾸지 않습니다.
 
 ## Profile 저장 규칙
 

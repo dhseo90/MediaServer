@@ -9,6 +9,23 @@
 - VA 상세: [video-analysis.md](./video-analysis.md)
 - YouTube 실험 기능: [youtube-import.md](./youtube-import.md)
 
+## 목차
+
+| 섹션 | 내용 |
+| --- | --- |
+| [1. 목표](#1-목표) | 서버 목표와 제품 경계 |
+| [2. 전체 연결 모델](#2-전체-연결-모델) | client/server/source 연결 |
+| [3. 주요 컴포넌트](#3-주요-컴포넌트) | 핵심 class/module |
+| [4. Source 종류](#4-source-종류) | file, RTSP, WHEP, WHIP, HTTP/HLS |
+| [5. StreamKey / SharedStream / Fan-Out](#5-streamkey-sharedstream-fan-out) | stream key와 fan-out |
+| [6. 동시성 모델](#6-동시성-모델) | thread와 async 경계 |
+| [7. RTSP/WebRTC 요청 흐름](#7-rtspwebrtc-요청-흐름) | ingress 요청 흐름 |
+| [8. VA Pipeline 배치](#8-va-pipeline-배치) | 분석 pipeline 위치 |
+| [9. State 관리](#9-state-관리) | runtime state |
+| [10. Cleanup 정책](#10-cleanup-정책) | cleanup과 제한 |
+| [11. Metrics / Runtime Status](#11-metrics-runtime-status) | metrics와 status |
+| [12. 확장 포인트](#12-확장-포인트) | 추가 개발 시 주의 |
+
 ## 1. 목표
 
 - macOS/Linux에서 동작하는 C++17 기반 RTSP/WebRTC 미디어 중계 서버

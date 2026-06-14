@@ -5,6 +5,22 @@
 스트림 검증 기준은 [stream-verification.md](./stream-verification.md),
 UI 사용법은 [ui-guide.md](./ui-guide.md)를 봅니다.
 
+## 목차
+
+| 섹션 | 내용 |
+| --- | --- |
+| [요구 환경](#요구-환경) | OS, build, media runtime |
+| [설치](#설치) | install script |
+| [빌드](#빌드) | CMake build |
+| [실행](#실행) | server start/foreground |
+| [중지/재시작/status/diagnose](#중지재시작statusdiagnose) | 운영 command |
+| [로그 확인](#로그-확인) | log 확인 |
+| [기본 테스트](#기본-테스트) | smoke와 verifier |
+| [Auth Bootstrap 개발 확인](#auth-bootstrap-개발-확인) | auth bootstrap 검증 |
+| [UI 개발 시 검증 명령](#ui-개발-시-검증-명령) | UI 변경 시 verifier |
+| [코드 변경 전후 체크리스트](#코드-변경-전후-체크리스트) | 변경 전후 확인 |
+| [git/commit 주의](#gitcommit-주의) | commit 관련 주의 |
+
 ## 요구 환경
 
 - OS: macOS 또는 Linux

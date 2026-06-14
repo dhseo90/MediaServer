@@ -114,11 +114,11 @@ check("VERSION matches CMake project VERSION", () => {
   return { version };
 });
 
-check("README.md current release target is not an unpublished release link", () => {
+check("README.md separates source version from published release", () => {
   const readme = readText("README.md");
-  assert(readme.includes(`현재 릴리즈 target: \`${currentTag}\``), "README.md current release target wording drifted");
-  assert(!readme.includes(`현재 릴리즈 target: [${currentTag}](${expectedReleaseUrl})`), "README.md must not link unpublished current target as a release");
-  assert(!readme.includes(`release notes target: [${currentTag}](${expectedReleaseUrl})`), "README.md must not link unpublished release notes target");
+  assert(readme.includes(`현재 소스 버전: \`${version}\``), "README.md source version wording drifted");
+  assert(readme.includes(`${currentTag} 공개 상태: GitHub Release와 tag는 취소`), "README.md missing cancelled v2.5.0 publication wording");
+  assert(!readme.includes(`[${currentTag}](${expectedReleaseUrl})`), "README.md must not link cancelled v2.5.0 as a release");
   assertAllowedReleaseLinks(readme, "README.md", currentTag);
   return { file: "README.md", currentTag, expectedReleaseUrl };
 });
@@ -130,11 +130,11 @@ check("README.md keeps release source-of-truth links lightweight", () => {
   return { file: "README.md", currentTag };
 });
 
-check("README.en.md current release target is not an unpublished release link", () => {
+check("README.en.md separates source version from published release", () => {
   const readmeEn = readText("README.en.md");
-  assert(readmeEn.includes(`Current release target: \`${currentTag}\``), "README.en.md current release target wording drifted");
-  assert(!readmeEn.includes(`Current release target: [${currentTag}](${expectedReleaseUrl})`), "README.en.md must not link unpublished current target as a release");
-  assert(!readmeEn.includes(`Release notes target: [${currentTag}](${expectedReleaseUrl})`), "README.en.md must not link unpublished release notes target");
+  assert(readmeEn.includes(`Current source version: \`${version}\``), "README.en.md source version wording drifted");
+  assert(readmeEn.includes(`${currentTag} public status: the GitHub Release and tag were cancelled`), "README.en.md missing cancelled v2.5.0 publication wording");
+  assert(!readmeEn.includes(`[${currentTag}](${expectedReleaseUrl})`), "README.en.md must not link cancelled v2.5.0 as a release");
   assertAllowedReleaseLinks(readmeEn, "README.en.md", currentTag);
   return { file: "README.en.md", currentTag, expectedReleaseUrl };
 });
@@ -308,15 +308,15 @@ if (!publishedMode) {
   });
 }
 
-check("versioning policy pins current release tag", () => {
+check("versioning policy separates source version and published release", () => {
   const doc = readText("docs/versioning-policy.md");
   for (const snippet of [
-    `현재 기준 버전: \`${currentTag}\``,
-    `현재 source-only release 기준 tag는 \`${currentTag}\`입니다.`,
+    `현재 소스 버전: \`${version}\``,
+    "최신 공개 GitHub Release: `v2.4.0 Operator Event Review & Action Workflow`",
+    "GitHub Release와 tag는 취소되어 현재 공개 릴리즈가 아님",
   ]) {
     assert(doc.includes(snippet), `docs/versioning-policy.md missing snippet: ${snippet}`);
   }
-  assertNoOtherCurrentTag(doc, "docs/versioning-policy.md", currentTag);
   return { file: "docs/versioning-policy.md" };
 });
 
@@ -329,32 +329,30 @@ check("versioning policy pins semver source fields", () => {
   ]) {
     assert(doc.includes(snippet), `docs/versioning-policy.md missing snippet: ${snippet}`);
   }
-  assertNoOtherCurrentTag(doc, "docs/versioning-policy.md", currentTag);
   return { file: "docs/versioning-policy.md" };
 });
 
-check("release policy pins source-only tag baseline", () => {
+check("release policy separates source version and published release", () => {
   const doc = readText("docs/release-policy.md");
   for (const snippet of [
-    `현재 source-only release 기준 tag는 \`${currentTag}\`입니다.`,
-    `\`${currentTag}\`은 live-only media path를 유지하면서 Semantic Incident Memory,`,
-    "local incident memory index, `/ops/events` search/timeline/brief workflow를 닫는 release",
+    `현재 소스 버전: \`${version}\``,
+    "최신 공개 GitHub Release: `v2.4.0`",
+    "GitHub Release와 tag는 취소되어 현재 공개 릴리즈가 아닙니다.",
+    "현재 공개 release tag 기준은 `v2.4.0`입니다.",
   ]) {
     assert(doc.includes(snippet), `docs/release-policy.md missing snippet: ${snippet}`);
   }
-  assertNoOtherCurrentTag(doc, "docs/release-policy.md", currentTag);
   return { file: "docs/release-policy.md" };
 });
 
-check("release policy pins release note template", () => {
+check("release policy pins future release note template", () => {
   const doc = readText("docs/release-policy.md");
   for (const snippet of [
     `# Media Server ${currentTag}`,
-    "source-only release에는 sample/model/runtime binary를 추가 업로드하지 않습니다.",
+    "아래 템플릿은 v2.5.0을 다시 publish하기 전 검토용 초안입니다.",
   ]) {
     assert(doc.includes(snippet), `docs/release-policy.md missing snippet: ${snippet}`);
   }
-  assertNoOtherCurrentTag(doc, "docs/release-policy.md", currentTag);
   return { file: "docs/release-policy.md" };
 });
 
@@ -376,22 +374,17 @@ check("release policies require future signed tags", () => {
   return { files: docs.map(([file]) => file) };
 });
 
-check("development backlog pins current close-out and completed v2.2.0 roadmap gates", () => {
+check("development backlog pins current source roadmap and public release boundary", () => {
   const doc = readText("docs/development-backlog.md");
   for (const snippet of [
-    "## 활성 roadmap: v2.5.0 Semantic Incident Memory",
+    "## 현재 source roadmap: v2.5.0 Semantic Incident Memory",
     "Local incident memory index",
     "| 0 | V250-S00 | P0 |",
-    "## 현재 기준: v2.4.0 Source Release Baseline",
-    "v2.4.0은 직전 v2.3.0 source-only/live-only 제품 경계를 유지하면서",
-    "Operator Event Review & Action Workflow를 닫은 source-only release입니다.",
+    "## 최신 공개 기준: v2.4.0 Source Release Baseline",
+    "Operator Event Review & Action",
     "기존 네 영역인 안정화 테스트, 30분 테스트, 120분 테스트, UI 풀테스트",
-    "V230-S00",
-    "verify-v230-entry-baseline",
     "## 완료 roadmap: v2.4.0 Operator Event Review & Action Workflow",
-    "## 완료 roadmap: v2.3.0 Operational Evidence & Contract Baseline",
-    "## v2.3.0 Release Close-out",
-    "실제 tag/push는 이 release close-out 지시에 한해 수행합니다",
+    "tag와 GitHub Release는 현재 공개 기준으로 존재하지 않습니다.",
   ]) {
     assert(doc.includes(snippet), `docs/development-backlog.md missing snippet: ${snippet}`);
   }
@@ -411,16 +404,9 @@ check("docs index points to backlog as current release source of truth", () => {
   ]) {
     assert(text.includes("docs/development-backlog.md") || text.includes("../development-backlog.md"), `${label} missing development backlog link`);
     assert(
-      text.includes(`${currentTag} release close-out`) ||
-        text.includes(`${currentTag} release target`) ||
-        text.includes(`${currentTag} 종료 판정`) ||
-        text.includes(`${currentTag} patch close-out`) ||
-        text.includes(`현재 릴리즈 target: [${currentTag}]`) ||
-        text.includes(`Current release target: [${currentTag}]`) ||
-        text.includes(`현재 릴리즈 target: \`${currentTag}\``) ||
-        text.includes(`Current release target: \`${currentTag}\``) ||
-        text.includes(`Current release target: ${currentTag}`),
-      `${label} missing current release wording`
+      text.includes(`현재 소스 버전: \`${version}\``) ||
+        text.includes(`Current source version: \`${version}\``),
+      `${label} missing current source version wording`
     );
   }
   return { files: ["README.md", "README.en.md", "docs/en/README.md"] };
@@ -445,16 +431,15 @@ check("public entry docs keep release evidence source-of-truth deduped", () => {
     }
   }
   for (const snippet of [
-    "Current Release Target",
-    `${currentTag} semantic incident memory roadmap`,
+    "현재 문서 재정리 기준",
+    "v2.5.0 Semantic Incident Memory",
     "Semantic Incident Memory",
-    `${currentTag} Release Target Runbook`,
     "release-policy.md",
   ]) {
     assert(docsIndex.includes(snippet), `docs/README.md missing source-of-truth link snippet: ${snippet}`);
   }
-  assert(releasePolicy.includes(`## ${currentTag} Release Target Runbook`), `release policy must own the ${currentTag} target runbook`);
-  assert(backlog.includes(`## 활성 roadmap: ${currentTag} Semantic Incident Memory`), `development backlog must own the ${currentTag} active roadmap`);
+  assert(releasePolicy.includes("## v2.5.0 Source Close-out"), "release policy must own the v2.5.0 source close-out boundary");
+  assert(backlog.includes(`## 현재 source roadmap: ${currentTag} Semantic Incident Memory`), `development backlog must own the ${currentTag} source roadmap`);
   return {
     publicEntrypoints: ["README.md", "README.en.md"],
     sourceOfTruth: ["docs/README.md", "docs/development-backlog.md", "docs/release-policy.md"],
@@ -463,15 +448,15 @@ check("public entry docs keep release evidence source-of-truth deduped", () => {
 
 check("public review pins current release wording", () => {
   const publicReview = readText("docs/public-repo-final-review.md");
-  assert(publicReview.includes(`현재 source-only release target: \`${currentTag}\``), "docs/public-repo-final-review.md current release target drifted");
-  assertNoOtherCurrentTag(publicReview, "docs/public-repo-final-review.md", currentTag);
+  assert(publicReview.includes(`현재 소스 버전: \`${version}\``), "docs/public-repo-final-review.md source version drifted");
+  assert(publicReview.includes("GitHub Release와 tag는 취소"), "docs/public-repo-final-review.md cancelled release wording drifted");
   return { file: "docs/public-repo-final-review.md", currentTag };
 });
 
 check("UI guide pins current release wording", () => {
   const uiGuide = readText("docs/ui-guide.md");
-  assert(uiGuide.includes(`현재 ${currentTag}까지의 UI 변경`), "docs/ui-guide.md UI inventory current version drifted");
-  assertNoOtherCurrentTag(uiGuide, "docs/ui-guide.md", currentTag);
+  assert(uiGuide.includes(`현재 소스 버전은 \`${version}\`입니다.`), "docs/ui-guide.md source version drifted");
+  assert(uiGuide.includes("GitHub Release와 tag는 취소"), "docs/ui-guide.md cancelled release wording drifted");
   return { file: "docs/ui-guide.md", currentTag };
 });
 
@@ -521,7 +506,7 @@ function assert(condition, message) {
 function assertAllowedReleaseLinks(text, label, expectedTag) {
   const links = [...text.matchAll(/releases\/tag\/(v\d+\.\d+\.\d+)/g)].map(match => match[1]);
   const publishedTagMatches = [
-    ...text.matchAll(/(?:최신 공개 release|Latest published release|최신 공개 release notes|Latest published release notes): \[(v\d+\.\d+\.\d+)/g),
+    ...text.matchAll(/(?:최신 공개 release|최신 공개 GitHub Release|Latest published release|Latest published GitHub Release|최신 공개 release notes|Latest published release notes): \[(v\d+\.\d+\.\d+)/g),
   ].map(match => match[1]);
   const allowed = new Set([expectedTag, ...publishedTagMatches]);
   const unexpected = links.filter(tag => !allowed.has(tag));

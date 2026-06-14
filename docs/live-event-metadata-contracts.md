@@ -18,6 +18,21 @@ schema를 변경하지 않고, 각 소비 경로의 역할과 검증 기준을 �
 - [Integrator Contract Artifact](./integrator-contract-artifact.md)
 - [Stream Verification](./stream-verification.md)
 
+## 목차
+
+| 섹션 | 내용 |
+| --- | --- |
+| [Document Ownership](#document-ownership) | contract 기준 문서 |
+| [Contract Boundary](#contract-boundary) | 변경 금지 경계 |
+| [Event POST](#event-post) | Event POST payload |
+| [WebRTC DataChannel Metadata](#webrtc-datachannel-metadata) | WebRTC metadata |
+| [SSE Runtime Metadata](#sse-runtime-metadata) | SSE metadata |
+| [WebSocket Runtime Metadata](#websocket-runtime-metadata) | WebSocket metadata |
+| [Shared Rules](#shared-rules) | 공통 규칙 |
+| [Acceptance Criteria](#acceptance-criteria) | 수용 기준 |
+| [Verification Matrix](#verification-matrix) | 검증 matrix |
+| [Smoke Matrix Maintenance Rules](#smoke-matrix-maintenance-rules) | smoke 유지 규칙 |
+
 ## Document Ownership
 
 이 문서는 Event POST, WebRTC DataChannel, SSE, WebSocket의 live delivery

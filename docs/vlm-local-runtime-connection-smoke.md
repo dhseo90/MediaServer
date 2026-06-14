@@ -32,23 +32,21 @@ Fallback과 제외 대상:
   download 또는 bundle, VLMObservation sidecar write, Event POST/WebRTC/SSE/WS
   schema 변경, RTSP/WebRTC media path 변경, viewer/client 노출.
 
-## v2.3.0 VLM opt-in operational evidence
+## 운영 증적 경계
 
-`media-server.v230-vlm-opt-in-operational-evidence.v1` gate는 이 loopback local runtime
-smoke를 v2.3.0 S05의 `local/provider smoke intake` 중 local intake로 사용합니다.
-S05의 직접 답은 VLM default-on이 아니라 `operator-approved profile promotion`,
-`local/provider smoke intake`, `privacy/default-off evidence`를 하나의 안정화 증적
-묶음으로 기록하는 것입니다.
+이 smoke는 VLM runtime을 자동으로 켜거나 provider/model 품질을 release PASS로
+승격하지 않습니다. 관련 안정화 증적은 아래 경계를 함께 확인합니다.
 
-S05에서 `verify-v230-vlm-opt-in-operational-evidence`는 local smoke report가 실제
-loopback HTTP roundtrip, missing-runtime fallback, timeout cleanup, invalid-output
-fallback을 기록하는지 확인합니다. 이 PASS는 `no VLM default-on` 및 local fixture
-연결 증적이며, 실제 사용자 모델 품질, cloud provider success, provider credential
-저장, model/runtime bundle, sidecar write, UI 풀테스트, 30분/120분 longrun 실행을
-뜻하지 않습니다. Sidecar is not mixed into EventRecord/API schema, and Event
-POST/WebRTC DataChannel/SSE/WS metadata와 RTSP/WebRTC media path도 변경하지 않습니다.
+- operator-approved profile promotion
+- local/provider smoke intake
+- privacy/default-off evidence
+- no VLM default-on
 
-S05 evidence keywords: operator-approved profile promotion; local/provider smoke intake; privacy/default-off evidence; no VLM default-on. Sidecar is not mixed into EventRecord/API schema.
+PASS는 local fixture 연결 증적입니다. 실제 사용자 모델 품질, cloud provider success,
+provider credential 저장, model/runtime bundle, sidecar write, UI 풀테스트, 30분/120분
+longrun 실행을 뜻하지 않습니다. Sidecar는 EventRecord/API schema에 섞지 않고,
+Event POST/WebRTC DataChannel/SSE/WS metadata와 RTSP/WebRTC media path도 바꾸지
+않습니다.
 
 ## Fixture Matrix
 
