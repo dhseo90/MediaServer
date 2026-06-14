@@ -131,8 +131,7 @@ check("release docs require approval log evidence", () => {
     readText("docs/ui-guide.md"),
   ].join("\n");
   for (const snippet of [
-    "ui-visual-release-baseline-approval-template.md",
-    "test/fixtures/ui_visual_release_baseline_approval_log_sample.md",
+    "Release / Visual Baseline Readiness",
     "accepted baseline run",
     "approved comparator",
     "./server.sh verify-ui-release-baseline-approval-log",
