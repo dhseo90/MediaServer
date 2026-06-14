@@ -117,6 +117,9 @@ model provenance, checksum manifest를 release note에 연결합니다.
 
 ## GitHub Actions 정책
 
+- GitHub Actions Node 24 baseline은 `actions/checkout@v5`,
+  `actions/upload-artifact@v6`, Node.js 24, minimum Actions Runner version `2.327.1`,
+  `.github/dependabot.yml` 관리 기준을 함께 뜻합니다.
 - 현재 GitHub Actions 공식 action baseline은 `actions/checkout@v5`와
   `actions/upload-artifact@v6`입니다.
 - 두 action은 Node.js 24 runtime 경로이며, self-hosted runner는 minimum Actions Runner
@@ -124,8 +127,9 @@ model provenance, checksum manifest를 release note에 연결합니다.
 - `verify-actions-security`는 `actions/checkout@v5`, `actions/upload-artifact@v6`,
   SHA pin, local action만 허용합니다.
 - GitHub Actions warning/failure annotation은 release gate PASS evidence로 대체하지
-  않습니다. warning/failure annotation은 차단하거나 owner가 별도 정책으로 허용 범위와
-  만료일을 승인해야 합니다.
+  않습니다. warning/failure annotation은 PASS evidence로 대체하지 않습니다.
+  warning/failure annotation은 차단하거나 owner가 별도 정책으로 허용 범위와 만료일을
+  승인해야 합니다.
 
 Annotation JSON을 확보한 경우:
 
