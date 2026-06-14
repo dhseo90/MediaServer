@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Published Release](https://img.shields.io/badge/published-v2.4.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
+[![Published Release](https://img.shields.io/badge/published-v2.5.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.5.0)
 ![Source Version](https://img.shields.io/badge/source-2.5.0-informational)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
@@ -14,10 +14,10 @@ and runtime/model bundle distribution are outside the default public release.
 
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
-- Latest published GitHub Release: [v2.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
+- Latest published GitHub Release: [v2.5.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.5.0)
 - Current source version: `2.5.0`
-- v2.5.0 public status: the GitHub Release and tag were cancelled, so v2.5.0 is not linked as a public release.
-- Current documentation cleanup baseline: `v2.5.0 Semantic Incident Memory`
+- v2.5.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
+- Current release baseline: `v2.5.0 Semantic Incident Memory`
 
 ## At a Glance
 
@@ -36,7 +36,7 @@ and runtime/model bundle distribution are outside the default public release.
 
 ## Semantic Incident Memory
 
-Current source version `2.5.0` keeps the v2.4.0 source-only/live-only baseline and
+Current published version `2.5.0` keeps the v2.4.0 source-only/live-only baseline and
 VLM review-assist default-off boundary while extending Operator Event Review into
 searchable incident memory. Existing Event POST, WebRTC DataChannel, SSE/WS
 metadata schemas, and RTSP/WebRTC media paths remain unchanged.
@@ -132,14 +132,14 @@ records live in dedicated docs.
 - Release/version policy: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - Release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
-- Latest published release notes: [v2.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
-- Current documentation cleanup baseline: `v2.5.0 Semantic Incident Memory` in
+- Latest published release notes: [v2.5.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.5.0)
+- Current release roadmap: `v2.5.0 Semantic Incident Memory` in
   [docs/development-backlog.md](docs/development-backlog.md)
 
 ## UI Preview
 
 These images are documentation preview assets. They are not UI fulltest PASS
-evidence, v2.5.0 publication evidence, or a replacement for current UI review.
+evidence, GitHub Release publish evidence, or a replacement for current UI review.
 
 **Ops Home**
 
@@ -188,7 +188,7 @@ git diff --check
 ./server.sh verify-docs-links
 ```
 
-After publishing a GitHub Release again, run `./server.sh verify-release-metadata --published`
+After publishing a GitHub Release, run `./server.sh verify-release-metadata --published`
 to check GitHub Latest Release and the remote tag.
 
 Release-local baseline:

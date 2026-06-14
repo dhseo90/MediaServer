@@ -6,11 +6,11 @@ points to the current public sources.
 
 ## Current Status
 
-- Latest published GitHub Release: [v2.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
+- Latest published GitHub Release: [v2.5.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.5.0)
 - Current source version: `2.5.0`
-- v2.5.0 public status: the GitHub Release and tag were cancelled, so v2.5.0 is
-  not linked as a public release.
-- Current documentation cleanup baseline: `v2.5.0 Semantic Incident Memory`
+- v2.5.0 public status: source-only GitHub Release. Binary, runtime, and model
+  bundles are not included.
+- Current release baseline: `v2.5.0 Semantic Incident Memory`
 - Default public distribution: source-only
 
 ## Start Here
@@ -54,5 +54,5 @@ git diff --check
 ```
 
 `./server.sh verify-release-metadata --published` is only for a real GitHub
-Release publish check. It should not be used to claim v2.5.0 is published while
-the v2.5.0 release/tag is absent.
+Release publish check. It should not be used to claim UI fulltest, 30-minute,
+or 120-minute coverage unless those test areas were actually executed.

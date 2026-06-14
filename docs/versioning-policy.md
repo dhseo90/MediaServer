@@ -6,16 +6,17 @@
 ## 현재 기준
 
 - 현재 소스 버전: `2.5.0`
-- 현재 문서 재정리 기준: `v2.5.0 Semantic Incident Memory`
-- 최신 공개 GitHub Release: `v2.4.0 Operator Event Review & Action Workflow`
-- v2.5.0 공개 상태: GitHub Release와 tag는 취소되어 현재 공개 릴리즈가 아님
+- 현재 release 기준: `v2.5.0 Semantic Incident Memory`
+- 최신 공개 GitHub Release: `v2.5.0 Semantic Incident Memory`
+- v2.5.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
 
 현재 소스 트리의 `2.5.0` 기능은 v2.4.0 source-only/live-only baseline 위에서
 EventRecord, audit, source health, alert dry-run을 local incident memory/search workflow로
-정리합니다. 이 상태는 공개 GitHub Release가 아니라 source tree 상태입니다.
+정리합니다. 이 release는 source-only GitHub Release이며 binary/runtime/model bundle을
+공개 asset으로 포함하지 않습니다.
 
-## 2.5.0 소스 포함 범위
+## 2.5.0 source-only release 포함 범위
 
 - Apache-2.0 source code, 문서, 설정 예시, 검증 스크립트
 - RTSP/WebRTC relay, Ops/Client UI, Auth/Role/Scope, Rule/Profile/Scenario
@@ -45,10 +46,10 @@ EventRecord, audit, source health, alert dry-run을 local incident memory/search
 
 ## Tag와 GitHub Release 기준
 
-- 현재 공개 release tag 기준: `v2.4.0`
+- 현재 공개 release tag 기준: `v2.5.0`
 - source-only release 기준 tag는 public readiness, bundle policy, required Actions가
   통과한 `main` 커밋에만 붙입니다.
-- `v2.5.0` tag와 GitHub Release는 현재 공개 기준으로 존재하지 않습니다.
+- `v2.5.0` release tag는 signed annotated tag로 생성합니다.
 - 다음 신규 release tag는 signed annotated tag로 생성합니다.
 - unsigned annotated tag와 lightweight tag는 새 release tag로 사용하지 않습니다.
 - tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만 붙입니다.

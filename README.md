@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Published Release](https://img.shields.io/badge/published-v2.4.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
+[![Published Release](https://img.shields.io/badge/published-v2.5.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.5.0)
 ![Source Version](https://img.shields.io/badge/source-2.5.0-informational)
 
 RTSP/WebRTC live stream을 받아 다시 내보내고, 필요할 때 YOLO/ONNX 영상 분석
@@ -14,10 +14,10 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 
 - English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 - 전체 문서 색인: [docs/README.md](docs/README.md)
-- 최신 공개 GitHub Release: [v2.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
+- 최신 공개 GitHub Release: [v2.5.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.5.0)
 - 현재 소스 버전: `2.5.0`
-- v2.5.0 공개 상태: GitHub Release와 tag는 취소되어 공개 릴리즈 링크로 안내하지 않음
-- 현재 문서 재정리 기준: `v2.5.0 Semantic Incident Memory`
+- v2.5.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
+- 현재 release 기준: `v2.5.0 Semantic Incident Memory`
 
 ## 한눈에 보기
 
@@ -34,7 +34,7 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 
 ## Semantic Incident Memory
 
-현재 소스 버전 `2.5.0`은 v2.4.0의 source-only/live-only baseline과 VLM review-assist
+현재 공개 버전 `2.5.0`은 v2.4.0의 source-only/live-only baseline과 VLM review-assist
 default-off 경계를 유지하면서 Operator Event Review를 검색 가능한 incident memory로
 확장합니다. 기존 Event POST, WebRTC DataChannel, SSE/WS metadata schema와 RTSP/WebRTC
 media path는 유지합니다.
@@ -120,16 +120,16 @@ README는 제품 개요와 빠른 시작만 담습니다. 세부 정책과 내�
 - release/version 기준: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
-- 최신 공개 릴리즈 노트: [v2.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.4.0)
-- 현재 문서 재정리 기준: [docs/development-backlog.md](docs/development-backlog.md)의
+- 최신 공개 릴리즈 노트: [v2.5.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.5.0)
+- 현재 release roadmap: [docs/development-backlog.md](docs/development-backlog.md)의
   `v2.5.0 Semantic Incident Memory`
 
 ## 대표 UI 미리보기
 
 README에는 전체 흐름이 바로 읽히는 대표 제품 화면만 배치합니다.
 개발 진단과 분석 편집 상세는 [docs/ui-guide.md](docs/ui-guide.md)에서 따로 다룹니다.
-대표 이미지는 문서용 역할 이미지입니다. UI 풀테스트 PASS 증거, v2.5.0 공개 릴리즈
-증거, 운영 QA registry가 섞인 재캡처를 대신하지 않습니다.
+대표 이미지는 문서용 역할 이미지입니다. UI 풀테스트 PASS 증거, GitHub Release publish
+evidence, 운영 QA registry가 섞인 재캡처를 대신하지 않습니다.
 
 **Ops Home**
 
@@ -206,7 +206,7 @@ git diff --check
 ./server.sh verify-docs-links
 ```
 
-GitHub Release를 다시 publish한 뒤에는 GitHub Latest Release와 원격 tag까지 확인하는
+GitHub Release publish 직후에는 GitHub Latest Release와 원격 tag까지 확인하는
 `./server.sh verify-release-metadata --published`를 실행합니다.
 
 release 전 로컬 기준선:
