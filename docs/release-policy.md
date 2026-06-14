@@ -7,10 +7,10 @@
 ## 현재 공개 상태
 
 - 현재 소스 버전: `2.5.0`
-- 최신 공개 GitHub Release: `v2.4.0`
-- `v2.5.0` GitHub Release와 tag는 취소되어 현재 공개 릴리즈가 아닙니다.
-- `v2.5.0` 문서는 source tree와 문서 재정리 기준을 설명하며, 공개 release URL로
-  안내하지 않습니다.
+- 최신 공개 GitHub Release: `v2.5.0`
+- `v2.5.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
+  포함하지 않습니다.
+- `v2.5.0` 문서는 source-only release 범위와 not-run/excluded 테스트 경계를 설명합니다.
 
 ## 기본 공개 범위
 
@@ -97,10 +97,11 @@ Do not list an item as pass unless it was actually executed. tag, GitHub Release
 published metadata, release branch 삭제, Next branch sync는 각각 실행 evidence가
 있을 때만 완료로 기록합니다.
 
-## v2.5.0 Source Close-out
+## v2.5.0 Source Release Scope
 
-현재 `v2.5.0`은 source tree 상태와 문서 재정리 기준입니다. 다시 release하려면 아래
-항목을 완료/미실행/제외로 분리해야 합니다.
+현재 `v2.5.0` source-only release는 아래 항목을 source 기능과 local verifier 기준으로
+정리합니다. UI 풀테스트, 30분, 120분, 외부 endpoint field smoke는 실행한 경우에만
+release evidence로 기록합니다.
 
 - Event/incident text projection
 - local incident memory index
@@ -112,13 +113,13 @@ published metadata, release branch 삭제, Next branch sync는 각각 실행 evi
 - redacted incident evidence bundle
 - owner decomposition/release readiness
 
-`v2.5.0` source close-out은 GitHub Release publish 완료를 뜻하지 않습니다. publish 여부는
-published metadata 검증이 통과하기 전까지 완료로 쓰지 않습니다.
+`v2.5.0` publish 완료 여부는 tag, GitHub Release, published metadata 검증 evidence가
+있을 때만 완료로 기록합니다.
 
 ## Tag 전략
 
-- 현재 공개 release tag 기준은 `v2.4.0`입니다.
-- `v2.5.0` tag와 GitHub Release는 현재 공개 기준으로 존재하지 않습니다.
+- 현재 공개 release tag 기준은 `v2.5.0`입니다.
+- `v2.5.0` release tag는 signed annotated tag로 생성합니다.
 - 다음 신규 release tag는 signed annotated tag로 생성합니다.
 - unsigned annotated tag와 lightweight tag는 새 release tag로 사용하지 않습니다.
 - tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만
@@ -168,11 +169,10 @@ Annotation JSON을 확보한 경우:
 ./server.sh verify-actions-security --annotations-json <annotations.json>
 ```
 
-## Future v2.5.0 Release Note Template
+## v2.5.0 Release Note Template
 
-아래 템플릿은 v2.5.0을 다시 publish하기 전 검토용 초안입니다. 현재 공개 GitHub
-Release가 아니며, tag/release가 실제로 생성되기 전에는 release note 링크로 안내하지
-않습니다.
+아래 템플릿은 v2.5.0 source-only GitHub Release note 기준입니다. 실행하지 않은
+장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다.
 
 ```markdown
 # Media Server v2.5.0

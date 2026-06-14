@@ -3,8 +3,8 @@
 이 디렉터리는 README와 `docs/ui-guide.md`에서 사용할 제품 UI 스크린샷을 역할 기준
 파일명으로 보관합니다.
 
-현재 README 대표 이미지는 제품 shell 설명용입니다. `v2.5.0` GitHub Release/tag는
-취소되어 있으므로, 이 이미지를 v2.5.0 공개 릴리즈 증거로 쓰지 않습니다. 특히
+현재 README 대표 이미지는 제품 shell 설명용입니다. `v2.5.0`은 source-only GitHub
+Release이지만, 이 이미지를 v2.5.0 공개 릴리즈 증거로 쓰지 않습니다. 특히
 Client Live 이미지는 source tree, dock event feed, workspace preset,
 tile-level disconnect/action, VA overlay tile이 보이는 제품 구조를 설명합니다.
 Semantic Incident Memory 검색/timeline/brief 화면, VLM 전용 `/ops/vlm`, `/ops/events`
