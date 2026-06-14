@@ -47,6 +47,10 @@ public/release readiness를 로컬 또는 CI에서 확인할 때 실행합니다
 ./server.sh source-offer-checklist --stable --bundle-policy-report /tmp/media_server_bundle_policy.json --output /tmp/media_server_source_offer_checklist.md
 ```
 
+CI/local gate parity는 `media-server.ci-local-gate-parity.v1` 기준입니다.
+`./server.sh verify-ci-local-gate-parity`는 Preflight/static-gates/guardrails workflow와
+로컬 release gate 명령이 서로 빠지지 않았는지 확인합니다.
+
 GitHub check-run annotation JSON을 확보한 경우에만 아래 gate를 추가합니다.
 
 ```bash
