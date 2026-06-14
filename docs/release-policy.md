@@ -66,6 +66,37 @@ published metadata 확인에는 GitHub Releases list/view/latest, GitHub API
 포함됩니다. 네트워크, GitHub CLI, auth, remote ref 조회 실패는 published metadata
 gate 실패 또는 미확인으로 보고하며 제품 runtime/media 회귀와 섞지 않습니다.
 
+## GitHub Releases 운영
+
+### v2.5.0 Release Close-out Runbook
+
+아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
+순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
+
+Dry-run checklist:
+
+- `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>`
+- `./server.sh verify-release-closeout-helper --one-shot-dry-run`
+- one-shot schema: `media-server.release-closeout-one-shot-gate.v1`
+- fail-stop: 실패 단계 이후의 release action은 건너뜁니다.
+
+Real close-out checklist:
+
+- Branch close
+- PR merge
+- Main fast-forward/sync
+- public-readiness, bundle policy, Actions status check
+- Tag 전략에 맞춘 signed annotated tag 생성
+- GitHub Release 생성/갱신
+- Latest 확인
+- published metadata 재검증
+- release branch 삭제
+- Next branch sync
+
+Do not list an item as pass unless it was actually executed. tag, GitHub Release,
+published metadata, release branch 삭제, Next branch sync는 각각 실행 evidence가
+있을 때만 완료로 기록합니다.
+
 ## v2.5.0 Source Close-out
 
 현재 `v2.5.0`은 source tree 상태와 문서 재정리 기준입니다. 다시 release하려면 아래

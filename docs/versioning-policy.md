@@ -46,6 +46,8 @@ EventRecord, audit, source health, alert dry-run을 local incident memory/search
 ## Tag와 GitHub Release 기준
 
 - 현재 공개 release tag 기준: `v2.4.0`
+- source-only release 기준 tag는 public readiness, bundle policy, required Actions가
+  통과한 `main` 커밋에만 붙입니다.
 - `v2.5.0` tag와 GitHub Release는 현재 공개 기준으로 존재하지 않습니다.
 - 다음 신규 release tag는 signed annotated tag로 생성합니다.
 - unsigned annotated tag와 lightweight tag는 새 release tag로 사용하지 않습니다.
