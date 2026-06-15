@@ -6,11 +6,12 @@
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `2.5.0`
+- 현재 소스 버전: `2.6.0`
 - 최신 공개 GitHub Release: `v2.5.0`
 - `v2.5.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- `v2.5.0` 문서는 source-only release 범위와 not-run/excluded 테스트 경계를 설명합니다.
+- 현재 source roadmap은 `v2.6.0 Operational Hardening & Incident Memory Productization`입니다.
+- `v2.6.0`은 아직 GitHub Release로 publish되지 않았습니다.
 
 ## 기본 공개 범위
 
@@ -68,7 +69,7 @@ gate 실패 또는 미확인으로 보고하며 제품 runtime/media 회귀와 �
 
 ## GitHub Releases 운영
 
-### v2.5.0 Release Close-out Runbook
+### v2.6.0 Release Close-out Runbook
 
 아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
 순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
@@ -97,28 +98,27 @@ Do not list an item as pass unless it was actually executed. tag, GitHub Release
 published metadata, release branch 삭제, Next branch sync는 각각 실행 evidence가
 있을 때만 완료로 기록합니다.
 
-## v2.5.0 Source Release Scope
+## v2.6.0 Source Roadmap Scope
 
-현재 `v2.5.0` source-only release는 아래 항목을 source 기능과 local verifier 기준으로
-정리합니다. UI 풀테스트, 30분, 120분, 외부 endpoint field smoke는 실행한 경우에만
-release evidence로 기록합니다.
+현재 `2.6.0` source tree는 아래 roadmap 후보를 source 기능과 local verifier 기준으로
+정리합니다. 각 항목은 구현과 직접 evidence가 생긴 뒤에만 완료로 기록합니다. UI
+풀테스트, 30분, 120분, 외부 endpoint field smoke는 실행한 경우에만 release evidence로
+기록합니다.
 
-- Event/incident text projection
-- local incident memory index
-- `/ops/events` search UI
-- incident timeline graph
-- explainable incident brief
-- similar incident lookup
-- client-safe digest
-- redacted incident evidence bundle
-- owner decomposition/release readiness
+- v2.6.0 source-of-truth/bootstrap 정렬
+- VLM summary candidate의 Ops-only incident memory productization
+- Rule suggestion 후보의 manual review/draft workflow 연결
+- ONVIF credential binding/store gate 설계와 redaction guard
+- Runtime dashboard baseline/sparkline 고도화 후보
+- ScenarioEngine cross-zone re-entry 후보
 
-`v2.5.0` publish 완료 여부는 tag, GitHub Release, published metadata 검증 evidence가
-있을 때만 완료로 기록합니다.
+`v2.6.0` publish 완료 여부는 tag, GitHub Release, published metadata 검증 evidence가
+있을 때만 완료로 기록합니다. 현재 latest published release는 `v2.5.0`입니다.
 
 ## Tag 전략
 
 - 현재 공개 release tag 기준은 `v2.5.0`입니다.
+- 다음 준비 중인 source tag 기준은 `v2.6.0`입니다.
 - `v2.5.0` release tag는 signed annotated tag로 생성합니다.
 - 다음 신규 release tag는 signed annotated tag로 생성합니다.
 - unsigned annotated tag와 lightweight tag는 새 release tag로 사용하지 않습니다.
@@ -169,18 +169,18 @@ Annotation JSON을 확보한 경우:
 ./server.sh verify-actions-security --annotations-json <annotations.json>
 ```
 
-## v2.5.0 Release Note Template
+## v2.6.0 Release Note Template
 
-아래 템플릿은 v2.5.0 source-only GitHub Release note 기준입니다. 실행하지 않은
+아래 템플릿은 v2.6.0 source-only GitHub Release note 기준입니다. 실행하지 않은
 장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다.
 
 ```markdown
-# Media Server v2.5.0
+# Media Server v2.6.0
 
 ## Scope
 
 - Source-only live media server release
-- Semantic Incident Memory source scope
+- Operational hardening and incident memory productization source scope
 - Binary/runtime/model bundle: not included
 
 ## Verification

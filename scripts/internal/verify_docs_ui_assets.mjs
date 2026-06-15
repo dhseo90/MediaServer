@@ -83,8 +83,8 @@ check("docs UI asset policy documents capture rules", () => {
 check("managed UI asset manifest stays complete", () => {
   assert(manifest.schema === "media-server.docs-ui-assets.v1", "docs UI asset manifest schema mismatch");
   assert(manifest.baseline?.sourceVersion === currentVersion, "docs UI asset manifest source version drifted");
-  assert(manifest.baseline?.publishedRelease === currentTag, "docs UI asset manifest published release drifted");
-  assert(manifest.baseline?.publicReleaseStatus === `${currentTag}-published-source-only`, "docs UI asset manifest public release status drifted");
+  assert(manifest.baseline?.publishedRelease === "v2.5.0", "docs UI asset manifest published release drifted");
+  assert(manifest.baseline?.publicReleaseStatus === "v2.5.0-published-source-only", "docs UI asset manifest public release status drifted");
   assert(manifest.baseline?.capturedAt === "2026-05-23", "docs UI asset manifest capture date drifted");
   assert(manifest.baseline?.theme === "dark", "docs UI asset manifest theme drifted");
   assert(manifest.baseline?.sampleVideo === "va_four_scene_sample.mp4", "docs UI asset manifest sample video drifted");

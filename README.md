@@ -3,7 +3,7 @@
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
 [![Published Release](https://img.shields.io/badge/published-v2.5.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.5.0)
-![Source Version](https://img.shields.io/badge/source-2.5.0-informational)
+![Source Version](https://img.shields.io/badge/source-2.6.0-informational)
 
 RTSP/WebRTC live stream을 받아 다시 내보내고, 필요할 때 YOLO/ONNX 영상 분석
 overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다.
@@ -15,9 +15,9 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 - English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 - 전체 문서 색인: [docs/README.md](docs/README.md)
 - 최신 공개 GitHub Release: [v2.5.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.5.0)
-- 현재 소스 버전: `2.5.0`
+- 현재 소스 버전: `2.6.0`
 - v2.5.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- 현재 release 기준: `v2.5.0 Semantic Incident Memory`
+- 현재 source roadmap: `v2.6.0 Operational Hardening & Incident Memory Productization`
 
 ## 한눈에 보기
 
@@ -34,10 +34,13 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 
 ## Semantic Incident Memory
 
-현재 공개 버전 `2.5.0`은 v2.4.0의 source-only/live-only baseline과 VLM review-assist
+최신 공개 버전 `2.5.0`은 v2.4.0의 source-only/live-only baseline과 VLM review-assist
 default-off 경계를 유지하면서 Operator Event Review를 검색 가능한 incident memory로
-확장합니다. 기존 Event POST, WebRTC DataChannel, SSE/WS metadata schema와 RTSP/WebRTC
-media path는 유지합니다.
+확장한 source-only GitHub Release입니다. 현재 `2.6.0` source roadmap은 그 기준 위에서
+incident memory의 운영 productization, ONVIF credential gate, runtime dashboard
+trend, ScenarioEngine cross-zone 후보를 단계별로 검토합니다. 기존 Event POST,
+WebRTC DataChannel, SSE/WS metadata schema와 RTSP/WebRTC media path는 요청 없이
+변경하지 않습니다.
 
 모델 선택 기준은 PC 사양과 privacy mode를 함께 봅니다. 현재 기준은 local standard
 `Qwen/Qwen3-VL-8B-Instruct`, low-spec fallback `Qwen/Qwen3-VL-4B-Instruct`,
@@ -121,8 +124,8 @@ README는 제품 개요와 빠른 시작만 담습니다. 세부 정책과 내�
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
 - 최신 공개 릴리즈 노트: [v2.5.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.5.0)
-- 현재 release roadmap: [docs/development-backlog.md](docs/development-backlog.md)의
-  `v2.5.0 Semantic Incident Memory`
+- 현재 source roadmap: [docs/development-backlog.md](docs/development-backlog.md)의
+  `v2.6.0 Operational Hardening & Incident Memory Productization`
 
 ## 대표 UI 미리보기
 
