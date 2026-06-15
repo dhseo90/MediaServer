@@ -90,6 +90,20 @@ bool IsRtspOrRtspsUri(const std::string& value) {
     return value.rfind("rtsp://", 0) == 0 || value.rfind("rtsps://", 0) == 0;
 }
 
+bool UriContainsAuthorityCredential(const std::string& value) {
+    const std::string trimmed = Trim(value);
+    const std::size_t scheme_pos = trimmed.find("://");
+    if (scheme_pos == std::string::npos) {
+        return false;
+    }
+    const std::size_t authority_start = scheme_pos + 3;
+    const std::size_t authority_end = trimmed.find_first_of("/?#", authority_start);
+    const std::string authority = authority_end == std::string::npos
+        ? trimmed.substr(authority_start)
+        : trimmed.substr(authority_start, authority_end - authority_start);
+    return authority.find('@') != std::string::npos;
+}
+
 std::optional<std::string> ParseStringField(const std::string& body, const std::string& field) {
     const std::string needle = "\"" + field + "\"";
     std::size_t pos = body.find(needle);
@@ -378,6 +392,48 @@ std::string OnvifDraftPreviewContractJson() {
            "\"endpointIncluded\":false,"
            "\"diagnosticJsonIncluded\":false"
            "}";
+}
+
+std::string OnvifCredentialGateJson(bool auth_required, bool credential_ref_present) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.onvif-credential-binding-gate.v1\","
+        << "\"targetStep\":\"V260-S03\","
+        << "\"status\":\"credential-reference-only-store-deferred\","
+        << "\"primaryStoreProvider\":\"none\","
+        << "\"primaryStoreDecision\":\"defer-product-persistent-store\","
+        << "\"fallbackProviders\":[\"in-memory-fixture\"],"
+        << "\"excludedProviders\":[\"local-encrypted\",\"external-secret-manager\"],"
+        << "\"sourceWriteRequired\":true,"
+        << "\"requiredScope\":\"source:write\","
+        << "\"authRequired\":" << (auth_required ? "true" : "false") << ","
+        << "\"credentialRefPresent\":" << (credential_ref_present ? "true" : "false") << ","
+        << "\"credentialReferenceStatus\":\""
+        << (credential_ref_present ? "reference-present-redacted" : "reference-absent") << "\","
+        << "\"productPersistentSecretStoreEnabled\":false,"
+        << "\"externalSecretManagerEnabled\":false,"
+        << "\"credentialBindingStoreEnabled\":false,"
+        << "\"secretMaterialStored\":false,"
+        << "\"referenceValueExposed\":false,"
+        << "\"redactionGuard\":{"
+        << "\"urlCredentialsRejected\":true,"
+        << "\"draftApiOmitsCredentialRef\":true,"
+        << "\"sourceRegistrySecretFields\":false,"
+        << "\"publishedViewSecretFields\":false,"
+        << "\"clientViewerExposureAdded\":false,"
+        << "\"authHeaderMaterialIncluded\":false,"
+        << "\"soapSecurityHeaderIncluded\":false"
+        << "},"
+        << "\"contract\":{"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"authRoleScopeChanged\":false"
+        << "}"
+        << "}";
+    return out.str();
 }
 
 bool IsNumericRegistryDraftId(const std::string& value) {
@@ -1348,6 +1404,12 @@ RegistryResult BuildOnvifLiveImportDraft(const std::string& body) {
             "Bad Request",
             "{\"error\":\"selected profile must provide an RTSP/RTSPS streamUri\"}"};
     }
+    if (UriContainsAuthorityCredential(stream_uri)) {
+        return RegistryResult{
+            400,
+            "Bad Request",
+            "{\"error\":\"selected profile streamUri must not include credentials\"}"};
+    }
 
     const auto source_raw = ExtractObjectField(*decision, "expectedSourceDraft");
     const auto view_raw = ExtractObjectField(*decision, "expectedPublishedViewDraft");
@@ -1393,6 +1455,7 @@ RegistryResult BuildOnvifLiveImportDraft(const std::string& body) {
     const auto device = ExtractObjectField(body, "device").value_or("{}");
     const auto auth = ExtractObjectField(body, "auth").value_or("{}");
     const bool credential_ref_present = !Trim(ParseStringField(auth, "credentialRef").value_or("")).empty();
+    const bool auth_required = ParseBoolField(auth, "required").value_or(false);
     const bool plaintext_secret_included = ParseBoolField(auth, "plaintextSecretIncluded").value_or(false);
     if (plaintext_secret_included) {
         return RegistryResult{
@@ -1431,10 +1494,11 @@ RegistryResult BuildOnvifLiveImportDraft(const std::string& body) {
         << "\"transport\":\"RTSP\""
         << "},"
         << "\"auth\":{"
-        << "\"required\":" << (ParseBoolField(auth, "required").value_or(false) ? "true" : "false") << ","
+        << "\"required\":" << (auth_required ? "true" : "false") << ","
         << "\"credentialRefPresent\":" << (credential_ref_present ? "true" : "false") << ","
         << "\"plaintextSecretIncluded\":false"
         << "},"
+        << "\"credentialGate\":" << OnvifCredentialGateJson(auth_required, credential_ref_present) << ","
         << "\"sourceDraft\":{"
         << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
         << "\"displayName\":\"" << JsonEscape(display_name.empty() ? source_id : display_name) << "\","

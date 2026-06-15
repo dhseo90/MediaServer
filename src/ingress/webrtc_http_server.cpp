@@ -5177,6 +5177,14 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
           <label data-source-kind="onvif" data-channel-input-group="onvif">ONVIF 스트림 URI<input name="onvifStreamUrl" placeholder="rtsp://camera/live 또는 https://camera/live.m3u8" /></label>
           <p data-source-kind="onvif" data-channel-input-group="onvif" class="hint">지원 제외: WS-Discovery 자동 검색, PTZ 제어, ONVIF Events/PullPoint, Profile G/Recording/Replay는 제공하지 않습니다. 운영자가 확인한 live URI 또는 probe fixture를 사용합니다.</p>
           <div data-source-kind="onvif" data-channel-input-group="onvif" class="form-grid" data-testid="onvif-probe-draft-tool">
+            <div class="onvif-credential-gate" data-testid="onvif-credential-gate" data-credential-store="deferred-product-store" data-redaction="credential-reference-only" data-source-write-required="true">
+              <div class="badge-row">
+                <span class="chip info">source:write</span>
+                <span class="chip">reference-only</span>
+                <span class="chip warn">secret store off</span>
+              </div>
+              <p id="onvifCredentialGateStatus" class="hint" aria-live="polite">primaryStoreProvider: none / credentialRef redacted / URL credential reject</p>
+            </div>
             <label>ONVIF probe fixture
               <textarea id="onvifProbeDraftInput" rows="5" spellcheck="false" autocomplete="off" placeholder="test/fixtures/onvif_probe_result_stub.json 내용을 붙여넣기"></textarea>
             </label>

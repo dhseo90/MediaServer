@@ -136,7 +136,7 @@ const pageChecks = [
     name: "ops-sources",
     path: "/ops/sources",
     visualSelector: '[data-testid="ops-sources-page"]',
-    must: ['data-testid="ops-sources-page"', 'id="channels-body"', 'id="channel-detail-panel"', 'id="channel-id-display"', 'data-generated-id="channel"', 'name="channelId" type="hidden"', 'name="kind"', 'value="onvif"', 'data-source-kind="onvif"', 'data-testid="source-group-site-management"', 'data-scope-contract="view-read-scopes-unchanged"', 'name="site"', 'name="group"', 'name="floor"', 'name="zone"', 'data-testid="onvif-probe-draft-tool"', 'id="onvifProbeDraftInput"', 'id="onvifProbeProfileSelect"', 'id="onvifProbeDraftApply"', 'name="onvifStreamUrl"', 'name="whepUrl"', "ONVIF 카메라", "ONVIF 스트림 URI", "ONVIF probe fixture", "ONVIF profile", "Probe draft 적용", "외부 WHEP URL", "Published WebRTC 소스", "발행 sourceId", "라이브 URL", "VA URL"],
+    must: ['data-testid="ops-sources-page"', 'id="channels-body"', 'id="channel-detail-panel"', 'id="channel-id-display"', 'data-generated-id="channel"', 'name="channelId" type="hidden"', 'name="kind"', 'value="onvif"', 'data-source-kind="onvif"', 'data-testid="source-group-site-management"', 'data-scope-contract="view-read-scopes-unchanged"', 'name="site"', 'name="group"', 'name="floor"', 'name="zone"', 'data-testid="onvif-probe-draft-tool"', 'data-testid="onvif-credential-gate"', 'data-credential-store="deferred-product-store"', 'data-redaction="credential-reference-only"', 'id="onvifCredentialGateStatus"', 'id="onvifProbeDraftInput"', 'id="onvifProbeProfileSelect"', 'id="onvifProbeDraftApply"', 'name="onvifStreamUrl"', 'name="whepUrl"', "ONVIF 카메라", "ONVIF 스트림 URI", "ONVIF probe fixture", "ONVIF profile", "Probe draft 적용", "primaryStoreProvider: none", "외부 WHEP URL", "Published WebRTC 소스", "발행 sourceId", "라이브 URL", "VA URL"],
     mustNot: ['AppendTableHead(', 'R"OPS(', 'WHIP Published Source ID', "Registry raw JSON", 'sources-json', 'views-json', 'client-views-json', 'data-testid="onvif-import-panel"', 'id="onvif-import-stub"', 'id="onvifImportSummary"', "ONVIF Live Source import", 'data-testid="channel-bulk-panel"', 'id="channel-bulk-select-all"', 'id="channelBulkDiagnostics"', 'data-testid="source-health-panel"', 'id="channelHealthSummary"', 'id="channelHealthDiagnostics"', 'id="channel-detail-health"', 'name="channelId" type="number"', 'inputmode="numeric" placeholder="1" required'],
   },
   {
@@ -1631,6 +1631,8 @@ function onvifPreviewToolVisibleExpression() {
       const applyButton = document.querySelector('#onvifProbeDraftApply');
       const clearButton = document.querySelector('#onvifProbeDraftClear');
       const status = document.querySelector('#onvifProbeDraftStatus');
+      const credentialGate = document.querySelector('[data-testid="onvif-credential-gate"]');
+      const credentialGateStatus = document.querySelector('#onvifCredentialGateStatus');
       const streamInput = document.querySelector('[name="onvifStreamUrl"]');
       if (!tool) issues.push('ONVIF preview tool missing');
       if (!fixtureInput) issues.push('fixture textarea missing');
@@ -1638,13 +1640,20 @@ function onvifPreviewToolVisibleExpression() {
       if (!applyButton) issues.push('apply button missing');
       if (!clearButton) issues.push('clear button missing');
       if (!status) issues.push('status node missing');
+      if (!credentialGate) issues.push('credential gate missing');
+      if (!credentialGateStatus) issues.push('credential gate status missing');
       if (!streamInput) issues.push('ONVIF stream URI input missing');
-      if (!tool || !fixtureInput || !profileSelect || !applyButton || !clearButton || !status || !streamInput) {
+      if (!tool || !fixtureInput || !profileSelect || !applyButton || !clearButton || !status || !credentialGate || !credentialGateStatus || !streamInput) {
         return { ok: false, issues, overflowX: 0, toolHeight: 0 };
       }
       if (profileSelect.disabled) issues.push('profile select is disabled after fixture input');
       if (profileSelect.value !== 'field-sub-h264') issues.push('selected profile mismatch: ' + profileSelect.value);
       if (!status.textContent.includes('Probe draft 적용')) issues.push('draft apply status missing');
+      if (credentialGate.dataset.credentialStore !== 'deferred-product-store') issues.push('credential gate store marker mismatch');
+      if (credentialGate.dataset.redaction !== 'credential-reference-only') issues.push('credential gate redaction marker mismatch');
+      if (!credentialGateStatus.textContent.includes('reference-present-redacted')) {
+        issues.push('credential gate status missing redacted reference state');
+      }
       if (String(streamInput.value || '').trim() !== 'rtsp://192.0.2.20/live/sub') {
         issues.push('drafted ONVIF stream URI mismatch: ' + streamInput.value);
       }
@@ -1660,6 +1669,8 @@ function onvifPreviewToolVisibleExpression() {
         ['applyButton', applyButton],
         ['clearButton', clearButton],
         ['status', status],
+        ['credentialGate', credentialGate],
+        ['credentialGateStatus', credentialGateStatus],
         ['streamInput', streamInput],
       ]) {
         const rect = element.getBoundingClientRect();

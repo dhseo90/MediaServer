@@ -1311,6 +1311,19 @@ std::string ProductUiCss() {
       display: grid;
       gap: var(--space-3);
     }
+    .onvif-credential-gate {
+      display: grid;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-subtle);
+      min-width: 0;
+    }
+    .onvif-credential-gate .hint {
+      margin: 0;
+      overflow-wrap: anywhere;
+    }
     label {
       display: grid;
       gap: 6px;

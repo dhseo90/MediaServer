@@ -94,6 +94,11 @@ await expectBadDraft("non-RTSP selected profile", mutateFixture((next) => {
   selected.transport = "HTTP";
   selected.streamUri = "https://192.0.2.10/live/main.m3u8";
 }), "selected profile must provide an RTSP/RTSPS streamUri");
+await expectBadDraft("URL credential rejected", mutateFixture((next) => {
+  const selected = next.profiles.find((profile) => profile.token === next.importDecision.selectedProfileToken);
+  selected.streamUri = "rtsp://operator:secret@192.0.2.10/live/main";
+  next.importDecision.expectedSourceDraft.rtspUrl = selected.streamUri;
+}), "streamUri must not include credentials");
 await expectBadDraft("plaintext credential rejected", mutateFixture((next) => {
   next.auth.plaintextSecretIncluded = true;
 }), "plaintext credentials are not allowed");
