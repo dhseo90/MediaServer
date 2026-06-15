@@ -51,6 +51,9 @@ ReEntryScenario::ReEntryScenario(ReEntryScenarioOptions options) : options_(std:
     if (options_.target_class_tokens.empty()) {
         options_.target_class_tokens.push_back("person");
     }
+    if (options_.re_entry_mode != "configured-zones") {
+        options_.re_entry_mode = "same-zone";
+    }
 }
 
 std::string ReEntryScenario::ScenarioId() const {
@@ -153,7 +156,11 @@ bool ReEntryScenario::MatchesTargetClass(const TrackSceneContext& track_context)
     return false;
 }
 
-bool ReEntryScenario::ZoneAllowed(const std::string& zone_id) const {
+bool ReEntryScenario::ConfiguredZoneMode() const {
+    return options_.re_entry_mode == "configured-zones";
+}
+
+bool ReEntryScenario::SourceZoneAllowed(const std::string& zone_id) const {
     if (options_.target_zone_ids.empty()) {
         return true;
     }
@@ -165,18 +172,33 @@ bool ReEntryScenario::ZoneAllowed(const std::string& zone_id) const {
                        });
 }
 
+bool ReEntryScenario::EntryZoneAllowed(const std::string& zone_id) const {
+    const auto& zone_ids = ConfiguredZoneMode() && !options_.re_entry_zone_ids.empty()
+                               ? options_.re_entry_zone_ids
+                               : options_.target_zone_ids;
+    if (zone_ids.empty()) {
+        return true;
+    }
+    const std::string normalized_zone_id = NormalizeZoneId(zone_id);
+    return std::any_of(zone_ids.begin(),
+                       zone_ids.end(),
+                       [&](const std::string& allowed) {
+                           return IsWildcardToken(allowed) || NormalizeZoneId(allowed) == normalized_zone_id;
+                       });
+}
+
 const ZoneState* ReEntryScenario::ActiveTargetZone(const TrackSceneContext& track_context) const {
     for (const auto& zone_state : track_context.zone_states) {
         if (zone_state.current_zone.empty() || !zone_state.is_inside_restricted_zone) {
             continue;
         }
-        if (ZoneAllowed(zone_state.current_zone)) {
+        if (EntryZoneAllowed(zone_state.current_zone)) {
             return &zone_state;
         }
     }
     if (!track_context.zone_state.current_zone.empty() &&
         track_context.zone_state.is_inside_restricted_zone &&
-        ZoneAllowed(track_context.zone_state.current_zone)) {
+        EntryZoneAllowed(track_context.zone_state.current_zone)) {
         return &track_context.zone_state;
     }
     return nullptr;
@@ -187,7 +209,7 @@ void ReEntryScenario::RecordZoneExits(const SceneContext& scene_context,
     const std::string channel_id = ResolveChannelId(scene_context, track_context);
     for (const auto& zone_state : track_context.zone_states) {
         if (!zone_state.changed || !zone_state.current_zone.empty() ||
-            zone_state.previous_zone.empty() || !ZoneAllowed(zone_state.previous_zone)) {
+            zone_state.previous_zone.empty() || !SourceZoneAllowed(zone_state.previous_zone)) {
             continue;
         }
         ExitRecord record;
@@ -206,6 +228,19 @@ ReEntryScenario::ExitRecord* ReEntryScenario::FindRecentExit(
     const SceneContext& scene_context,
     const TrackSceneContext& track_context,
     const std::string& zone_id) {
+    if (ConfiguredZoneMode()) {
+        const std::string channel_id = ResolveChannelId(scene_context, track_context);
+        for (auto& [key, record] : exit_records_) {
+            (void)key;
+            if (record.channel_id != channel_id || record.track_id != track_context.track_id ||
+                !SourceZoneAllowed(record.zone_id) || !IsRecentExitRecord(scene_context, track_context, record)) {
+                continue;
+            }
+            return &record;
+        }
+        return nullptr;
+    }
+
     const std::string key = BuildExitKey(ResolveChannelId(scene_context, track_context),
                                          track_context.track_id,
                                          zone_id);
@@ -213,15 +248,24 @@ ReEntryScenario::ExitRecord* ReEntryScenario::FindRecentExit(
     if (it == exit_records_.end() || it->second.exited_at_ns <= 0) {
         return nullptr;
     }
+    return IsRecentExitRecord(scene_context, track_context, it->second) ? &it->second : nullptr;
+}
+
+bool ReEntryScenario::IsRecentExitRecord(const SceneContext& scene_context,
+                                         const TrackSceneContext& track_context,
+                                         const ExitRecord& record) const {
+    (void)track_context;
+    if (record.exited_at_ns <= 0) {
+        return false;
+    }
     const std::int64_t window_ns = MsToNs(options_.re_entry_window_ms);
     if (window_ns <= 0) {
-        return nullptr;
+        return false;
     }
-    if (scene_context.timestamp_ns < it->second.exited_at_ns) {
-        return nullptr;
+    if (scene_context.timestamp_ns < record.exited_at_ns) {
+        return false;
     }
-    return scene_context.timestamp_ns <= it->second.exited_at_ns + window_ns ? &it->second
-                                                                             : nullptr;
+    return scene_context.timestamp_ns <= record.exited_at_ns + window_ns;
 }
 
 void ReEntryScenario::CleanupExitRecords(std::int64_t timestamp_ns) {

@@ -20,6 +20,8 @@ struct ReEntryScenarioOptions {
     bool require_stable_track{false};
     std::vector<std::string> target_class_tokens{"person"};
     std::vector<std::string> target_zone_ids;
+    std::string re_entry_mode{"same-zone"};
+    std::vector<std::string> re_entry_zone_ids;
 };
 
 ReEntryScenarioOptions BuildReEntryScenarioOptionsFromConfig(const app::AppConfig& config);
@@ -47,12 +49,17 @@ private:
     };
 
     bool MatchesTargetClass(const TrackSceneContext& track_context) const;
-    bool ZoneAllowed(const std::string& zone_id) const;
+    bool ConfiguredZoneMode() const;
+    bool SourceZoneAllowed(const std::string& zone_id) const;
+    bool EntryZoneAllowed(const std::string& zone_id) const;
     const ZoneState* ActiveTargetZone(const TrackSceneContext& track_context) const;
     void RecordZoneExits(const SceneContext& scene_context, const TrackSceneContext& track_context);
     ExitRecord* FindRecentExit(const SceneContext& scene_context,
                                const TrackSceneContext& track_context,
                                const std::string& zone_id);
+    bool IsRecentExitRecord(const SceneContext& scene_context,
+                            const TrackSceneContext& track_context,
+                            const ExitRecord& record) const;
     void CleanupExitRecords(std::int64_t timestamp_ns);
     AnalysisEvent BuildEvent(const TrackSceneContext& track_context, const std::string& zone_id) const;
     std::string BuildExitKey(const std::string& channel_id,

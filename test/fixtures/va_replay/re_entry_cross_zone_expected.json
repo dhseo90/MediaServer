@@ -1,0 +1,32 @@
+{
+  "timestampToleranceMs": 250,
+  "events": [
+    {
+      "streamId": "baseline-re-entry-cross-zone",
+      "channelId": "baseline-re-entry-cross-zone",
+      "frameId": 3,
+      "timestampMs": 3200,
+      "type": "re-entry",
+      "zoneId": "destination-zone",
+      "trackId": 72
+    }
+  ],
+  "frames": [
+    {
+      "streamId": "baseline-re-entry-cross-zone",
+      "channelId": "baseline-re-entry-cross-zone",
+      "frameId": 3,
+      "eventCount": 1,
+      "activeRuleCount": 2,
+      "trackState": { "total": 1, "active": 1, "lost": 0, "terminated": 0 }
+    },
+    {
+      "streamId": "baseline-re-entry-cross-zone",
+      "channelId": "baseline-re-entry-cross-zone",
+      "frameId": 4,
+      "eventCount": 0,
+      "activeRuleCount": 2,
+      "trackState": { "total": 1, "active": 1, "lost": 0, "terminated": 0 }
+    }
+  ]
+}

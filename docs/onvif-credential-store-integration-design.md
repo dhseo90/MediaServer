@@ -122,9 +122,24 @@ security header, provider path를 포함하지 않아야 합니다.
 - passwordless ONVIF probe 성공 처리
 - raw auth header 또는 raw SOAP security header artifact 저장
 
+## v2.6.0 S03 gate decision
+
+`V260-S03`는 `media-server.onvif-credential-binding-gate.v1` fixture로 binding/store
+gate를 고정합니다. 제품 선택값은 `primaryStoreProvider: none`입니다. fallback은
+`fallbackProviders: in-memory-fixture`로 제한해 local verifier와 loopback smoke에서만
+사용합니다. `local-encrypted 제외`와 `external-secret-manager 제외`는 구현 포기가
+아니라 v2.6.0 source-only 범위 밖으로 분리한 결정입니다.
+
+운영 제약은 `source:write` scope, URL credential reject, reference-presence-only
+summary, draft API credentialRef redaction입니다. local encrypted store나 external
+secret manager를 열려면 schema review, provider 선택, rotation/expiry/audit 정책,
+auth/SOAP header redaction matrix, 실장비 credential smoke의 redacted artifact가
+먼저 필요합니다.
+
 ## 검증
 
 ```bash
+./server.sh verify-v260-onvif-credential-gate
 ./server.sh verify-onvif-credential-reference-policy
 ./server.sh verify-onvif-auth-injection-design
 ./server.sh verify-onvif-auth-injection-loopback

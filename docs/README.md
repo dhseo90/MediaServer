@@ -6,10 +6,12 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 
 ## 현재 상태
 
-- 최신 공개 GitHub Release: [`v2.5.0`](https://github.com/dhseo90/MediaServer/releases/tag/v2.5.0)
-- 현재 소스 버전: `2.5.0`
-- v2.5.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- 현재 release 기준: `v2.5.0 Semantic Incident Memory`
+- 최신 공개 GitHub Release: [`v2.6.0`](https://github.com/dhseo90/MediaServer/releases/tag/v2.6.0)
+- 최신 published baseline: `v2.6.0 Operational Hardening & Incident Memory Productization`
+- 직전 published baseline: `v2.5.0 Semantic Incident Memory`
+- 현재 소스 버전: `2.6.0`
+- v2.6.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
+- 현재 source roadmap: `v2.6.0 Operational Hardening & Incident Memory Productization`
 - 기본 공개 형태: source-only
 
 ## 먼저 볼 문서
@@ -59,6 +61,7 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 | --- | --- |
 | [media-server-architecture.md](media-server-architecture.md) | 서버 구조와 요청 흐름 |
 | [stream-verification.md](stream-verification.md) | 검증 명령과 테스트 영역 경계 |
+| [project-feature-test-inventory.md](project-feature-test-inventory.md) | 기능별 테스트 영역 inventory. 실행 evidence가 아니라 coverage 기준 |
 | [video-analysis.md](video-analysis.md) | VA pipeline, rule, scenario, metadata |
 | [analysis-threshold-baselines.md](analysis-threshold-baselines.md) | 분석 threshold baseline |
 | [live-source-health.md](live-source-health.md) | live source health 상태 모델 |

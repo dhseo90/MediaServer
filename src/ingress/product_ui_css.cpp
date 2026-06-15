@@ -1177,6 +1177,30 @@ std::string ProductUiCss() {
       min-height: 142px;
       align-content: start;
     }
+    .runtime-trend-card {
+      display: grid;
+      gap: var(--space-2);
+    }
+    .runtime-sparkline {
+      display: flex;
+      align-items: end;
+      gap: 3px;
+      min-height: 46px;
+      padding: 6px 0 2px;
+    }
+    .runtime-spark-bar {
+      flex: 1 1 0;
+      min-width: 5px;
+      max-width: 16px;
+      border-radius: 4px 4px 1px 1px;
+      background: var(--color-accent);
+      opacity: 0.86;
+    }
+    .runtime-spark-empty,
+    .runtime-trend-baseline {
+      color: var(--color-text-muted);
+      font-size: 12px;
+    }
     .split-grid {
       display: grid;
       grid-template-columns: minmax(280px, 420px) minmax(0, 1fr);
@@ -1310,6 +1334,19 @@ std::string ProductUiCss() {
     .form-grid {
       display: grid;
       gap: var(--space-3);
+    }
+    .onvif-credential-gate {
+      display: grid;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-subtle);
+      min-width: 0;
+    }
+    .onvif-credential-gate .hint {
+      margin: 0;
+      overflow-wrap: anywhere;
     }
     label {
       display: grid;
@@ -2505,6 +2542,32 @@ std::string ProductUiCss() {
       color: var(--color-text);
       font-weight: 800;
     }
+    .vlm-summary-candidate-review {
+      display: grid;
+      gap: var(--space-2);
+      padding-top: var(--space-2);
+      border-top: 1px solid var(--color-border);
+    }
+    .vlm-summary-candidate-list {
+      display: grid;
+      gap: var(--space-2);
+    }
+    .vlm-summary-candidate-card {
+      display: grid;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface);
+      min-width: 0;
+    }
+    .vlm-summary-candidate-card p {
+      margin: 0;
+      color: var(--color-text-muted);
+      font-size: 0.9rem;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
     .similar-incident-panel {
       display: grid;
       gap: var(--space-3);
@@ -2697,6 +2760,17 @@ std::string ProductUiCss() {
     .ops-vlm-event-review > strong {
       font-size: 13px;
       line-height: 1.35;
+      overflow-wrap: anywhere;
+    }
+    .ops-incident-rule-suggestion-review {
+      display: grid;
+      gap: 6px;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid var(--color-border);
+      min-width: 0;
+    }
+    .ops-incident-rule-suggestion-card {
       overflow-wrap: anywhere;
     }
     .ops-alert-delivery-form {

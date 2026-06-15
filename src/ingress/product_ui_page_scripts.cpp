@@ -142,6 +142,68 @@ void AppendOpsShellScript(std::ostringstream& out,
           debugCounters: runtime?.debugCounters || {}
         };
       };
+      const MAX_RUNTIME_TREND_SAMPLES = 12;
+      let dashboardRuntimeTrendSamples = [];
+      const runtimeTrendSampleFrom = (runtime = {}, sourceHealth = {}, eventsStatus = {}) => {
+        const counts = runtimeCounts(runtime);
+        const metadata = runtime?.webrtcHttp?.metadataDataChannel || {};
+        const sideChannel = runtime?.webrtcHttp?.metadataSideChannel || {};
+        const sourceCounts = dashboardSourceHealthCounts(sourceHealth);
+        const records = dashboardIncidentEventRecords(eventsStatus);
+        const metadataClients = numberValue(sideChannel.activeSseClients) +
+          numberValue(sideChannel.activeWebSocketClients) +
+          (Array.isArray(metadata.channels) ? metadata.channels.length : 0);
+        return {
+          sampledAt: Date.now(),
+          sessions: counts.sessions,
+          streams: counts.streams,
+          taps: counts.taps,
+          metadataClients,
+          liveSources: sourceCounts.live,
+          sourceTotal: sourceCounts.total,
+          eventRecords: records.length,
+          loadScore: counts.sessions + counts.streams + counts.taps + metadataClients + records.length
+        };
+      };
+      const runtimeTrendDeltaText = (latest, baseline, key, label) => {
+        const delta = numberValue(latest?.[key]) - numberValue(baseline?.[key]);
+        if (delta === 0) return `${label} 변동 없음`;
+        return `${label} ${delta > 0 ? '+' : ''}${delta}`;
+      };
+      const runtimeTrendSparklineHtml = (samples = []) => {
+        if (!samples.length) return '<span class="runtime-spark-empty">sample 대기</span>';
+        const values = samples.map(sample => numberValue(sample.loadScore));
+        const maxValue = Math.max(1, ...values);
+        return values.map((value, index) => {
+          const height = Math.max(12, Math.round((value / maxValue) * 100));
+          return `<span class="runtime-spark-bar" style="height:${height}%" title="sample ${index + 1}: ${value}" aria-label="sample ${index + 1} value ${value}"></span>`;
+        }).join('');
+      };
+      const renderDashboardRuntimeTrend = (runtime = {}, sourceHealth = {}, eventsStatus = {}) => {
+        const sample = runtimeTrendSampleFrom(runtime, sourceHealth, eventsStatus);
+        dashboardRuntimeTrendSamples = [...dashboardRuntimeTrendSamples, sample].slice(-MAX_RUNTIME_TREND_SAMPLES);
+        const baseline = dashboardRuntimeTrendSamples[0] || sample;
+        const latest = dashboardRuntimeTrendSamples[dashboardRuntimeTrendSamples.length - 1] || sample;
+        const sparkline = document.getElementById('dashRuntimeTrendSparkline');
+        if (sparkline) {
+          sparkline.innerHTML = runtimeTrendSparklineHtml(dashboardRuntimeTrendSamples);
+          sparkline.setAttribute('aria-label', `runtime trend sparkline ${dashboardRuntimeTrendSamples.length} page-session-only samples`);
+        }
+        renderBadges('dashRuntimeTrendBadges', [
+          { text: `sample ${dashboardRuntimeTrendSamples.length}/${MAX_RUNTIME_TREND_SAMPLES}` },
+          { text: 'page-session-only', tone: 'info' },
+          { text: 'longrun evidence 아님', tone: 'warn' }
+        ]);
+        setText('dashRuntimeTrendText', [
+          runtimeTrendDeltaText(latest, baseline, 'sessions', '세션'),
+          runtimeTrendDeltaText(latest, baseline, 'streams', '스트림'),
+          runtimeTrendDeltaText(latest, baseline, 'taps', '분석'),
+          runtimeTrendDeltaText(latest, baseline, 'metadataClients', '메타데이터')
+        ].join(' · '));
+        setText('dashRuntimeTrendBaseline',
+          `baseline ${baseline.sessions}/${baseline.streams}/${baseline.taps} · latest ${latest.sessions}/${latest.streams}/${latest.taps} · source ${latest.liveSources}/${latest.sourceTotal} · EventRecord ${latest.eventRecords}`);
+        return { baseline, latest, samples: dashboardRuntimeTrendSamples };
+      };
       const rootCauseCorrelationId = (line, fallbackKey = 'root-cause') => {
         const text = String(line || '');
         const direct = text.match(/\b(?:cid|correlationId|requestId|sessionId|tapId|sourceId)=([A-Za-z0-9_.:-]+)/i);
@@ -1426,6 +1488,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           { text: `라이브 소스 ${sourceHealthCounts.live}/${sourceHealthCounts.total}`, tone: sourceHealthCounts.offline > 0 ? 'bad' : (sourceHealthCounts.stale > 0 ? 'warn' : 'info') }
         ]);
         setText('dashHealthText', `세션 ${counts.sessions} · 스트림 ${counts.streams} · 분석 ${counts.taps} · ${dashboardSourceHealthStatusText(sourceHealth)}`);
+        renderDashboardRuntimeTrend(runtime, sourceHealth, eventsStatus);
         renderBadges('dashRuntimeRows', [
           { text: `송출 ${counts.egress}` },
           { text: `발행 ${counts.publish}` },
@@ -2207,6 +2270,37 @@ void AppendOpsShellScript(std::ostringstream& out,
           <input class="event-review-note-input" data-event-review-field="actionTarget" maxlength="160" value="${escapeHtml(actionTarget)}" placeholder="operator-triage" />
         </div>`;
       }
+      function renderIncidentRuleSuggestionReview(entry = {}) {
+        const review = entry?.incidentRuleSuggestionReview || {};
+        const report = review.sourceCandidateReport || {};
+        const candidates = Array.isArray(report.candidates) ? report.candidates : [];
+        const suggestion = review.matchingRuleSuggestion || {};
+        const draft = suggestion.draftRule || {};
+        const hasSuggestion = review.matchingRuleSuggestionPresent === true;
+        const kind = review.proposedRuleKind || suggestion.kind || draft.eventType || 'rule suggestion';
+        const draftRoute = review.manualDraftRoute || suggestion.targetRoute || '/ops/rules';
+        const draftApiRoute = review.draftApiRoute || '/ops/api/vlm/rule-suggestion-drafts';
+        const count = report.matchedCandidates ?? candidates.length;
+        const classes = Array.isArray(draft.classes) ? draft.classes : [];
+        const classesText = classes.length ? classes.map(display).join(', ') : '대상 클래스 확인 필요';
+        const badges = [
+          { text: review.candidateStatus || 'no-rule-suggestion-candidate', tone: hasSuggestion ? 'info' : 'warn' },
+          { text: `source candidates ${count}`, tone: count > 0 ? '' : 'warn' },
+          { text: review.sourceCandidateSchema || 'media-server.vlm-rule-suggestion-candidates.v1' },
+          { text: review.contract?.ruleRegistryWritePerformed === false ? 'draft only' : 'write 확인 필요', tone: review.contract?.ruleRegistryWritePerformed === false ? 'info' : 'warn' },
+          { text: review.contract?.autoRuleApplied === false ? 'no auto apply' : 'auto 확인 필요', tone: review.contract?.autoRuleApplied === false ? 'info' : 'warn' }
+        ];
+        const body = hasSuggestion
+          ? `${display(kind)} · ${classesText} · ${display(suggestion.rationale || '운영자가 geometry와 조건을 검토한 뒤 수동 저장합니다.')}`
+          : 'matching VLM rule suggestion 후보가 없습니다. /ops/rules draft workflow에서 전체 후보를 다시 조회할 수 있습니다.';
+        return `<div class="ops-incident-rule-suggestion-review ops-incident-rule-suggestion-card" data-testid="ops-incident-rule-suggestion-review" data-incident-rule-suggestion-review="ops-only-draft-route">
+          <div class="badge-row">${badges.map(item => `<span class="chip${item.tone ? ` ${escapeHtml(item.tone)}` : ''}">${escapeHtml(item.text)}</span>`).join('')}</div>
+          <strong>Incident-to-rule manual review</strong>
+          <span class="ops-rule-note">${escapeHtml(body)}</span>
+          <span class="ops-rule-note">draft API ${escapeHtml(draftApiRoute)} · 저장은 /ops/rules 수동 저장 버튼에서만 수행합니다.</span>
+          <a class="button button-secondary button-compact" data-incident-rule-draft-route href="${escapeHtml(draftRoute)}">룰 draft 검토</a>
+        </div>`;
+      }
       function eventReviewVlmHtml(entry = {}) {
         const vlm = entry?.vlmReview || {};
         const review = entry?.review || {};
@@ -2234,7 +2328,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             <label>Action target ${eventReviewSelectHtml('vlmActionTarget', VLM_REVIEW_ACTION_TARGETS, vlmAction.target || 'eventExplanation')}</label>
             <input class="event-review-note-input" data-event-review-field="vlmActionNote" maxlength="300" value="${escapeHtml(vlmAction.note || '')}" placeholder="VLM action note" />
           </div>
-        </div>`;
+        </div>${renderIncidentRuleSuggestionReview(entry)}`;
       }
       function renderEventReviewRows(items) {
         const tbody = document.getElementById('eventReviewRows');
@@ -2413,6 +2507,48 @@ void AppendOpsShellScript(std::ostringstream& out,
             </div>
             <div class="badge-row">${matchedTerms.map(term => `<span class="chip info">${escapeHtml(term)}</span>`).join('')}</div>
             <div class="incident-memory-fragments">${fragments.map(fragment => `<p>${incidentMemoryHighlightHtml(fragment, matchedTerms)}</p>`).join('')}</div>
+          </article>`;
+        }).join('');
+      }
+      function renderVlmSummaryCandidateReview(vlmSummaryCandidateReview = {}) {
+        const root = document.getElementById('opsVlmSummaryCandidateRows');
+        if (!root) return;
+        const report = vlmSummaryCandidateReview.sourceCandidateReport || {};
+        const candidates = Array.isArray(report.candidates) ? report.candidates : [];
+        const q = String(vlmSummaryCandidateReview.query || report.query || document.getElementById('opsIncidentSearchInput')?.value || '').trim();
+        renderBadges('opsVlmSummaryCandidateBadges', [
+          { text: vlmSummaryCandidateReview.candidateStatus || 'ops-manual-review-not-auto-applied', tone: 'info' },
+          { text: `candidates ${candidates.length}`, tone: candidates.length > 0 ? '' : 'warn' },
+          { text: report.schema || vlmSummaryCandidateReview.sourceCandidateSchema || 'media-server.vlm-summary-search-candidates.v1' },
+          { text: vlmSummaryCandidateReview.manualReviewRoute || '/ops/events' },
+          { text: vlmSummaryCandidateReview.contract?.viewerClientExposureAdded === false ? 'Ops only' : '노출 확인 필요', tone: vlmSummaryCandidateReview.contract?.viewerClientExposureAdded === false ? 'info' : 'warn' }
+        ]);
+        if (!q) {
+          setText('opsVlmSummaryCandidateSummary', '검색어를 입력하면 sidecar summary candidate를 sourceCandidateReport로 감싸 manual review 후보로 표시합니다.');
+          root.innerHTML = '<p class="ops-rule-note">검색어를 입력하면 VLM summary candidate review가 표시됩니다.</p>';
+          return;
+        }
+        if (vlmSummaryCandidateReview.error) {
+          setText('opsVlmSummaryCandidateSummary', `VLM summary candidate review 실패: ${vlmSummaryCandidateReview.error}`);
+          root.innerHTML = '<p class="ops-rule-note">candidate report를 불러오지 못했습니다.</p>';
+          return;
+        }
+        setText('opsVlmSummaryCandidateSummary', `query "${q}" · ${candidates.length} VLM summary candidate · manual review only · 자동 적용 없음`);
+        if (candidates.length === 0) {
+          root.innerHTML = '<p class="ops-rule-note">표시할 VLM summary candidate가 없습니다.</p>';
+          return;
+        }
+        root.innerHTML = candidates.map(candidate => {
+          const matchedTerms = Array.isArray(candidate.matchedTerms) ? candidate.matchedTerms : [];
+          const summary = candidate.summary || candidate.eventExplanation || 'summary candidate';
+          return `<article class="vlm-summary-candidate-card" data-vlm-summary-candidate-event="${escapeHtml(candidate.eventId || '')}">
+            <div class="table-cell-main">
+              <strong>${escapeHtml(display(candidate.eventId || candidate.observationId || 'vlm summary candidate'))}</strong>
+              <span>${escapeHtml(display(candidate.sourceId || '-'))} · ${escapeHtml(display(candidate.ruleId || '-'))} · score ${escapeHtml(display(candidate.matchScore ?? '-'))}</span>
+            </div>
+            <div class="badge-row">${matchedTerms.map(term => `<span class="chip info">${escapeHtml(term)}</span>`).join('')}</div>
+            <p>${escapeHtml(display(summary))}</p>
+            <p class="form-note">manualReviewRoute ${escapeHtml(display(vlmSummaryCandidateReview.manualReviewRoute || '/ops/events'))} · sourceCandidateReport preserved · auto apply false</p>
           </article>`;
         }).join('');
       }
@@ -2808,6 +2944,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         );
         renderEventReviewRows(reviewItems);
         renderIncidentMemorySearch(reviewPayload.memorySearch || {});
+        renderVlmSummaryCandidateReview(reviewPayload.memorySearch?.vlmSummaryCandidateReview || {});
         renderSimilarIncidentLookup(reviewPayload.similarIncidents || {});
         renderIncidentTimelineGraph(reviewPayload.timelineGraph || {});
         renderExplainableIncidentBrief(reviewPayload.incidentBrief || {});
@@ -2816,7 +2953,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (prevButton) prevButton.disabled = opsEventRecordsOffset <= 0;
         if (nextButton) nextButton.disabled = !records.hasMore;
         if (records.nextOffset != null) nextButton?.setAttribute('data-next-offset', String(records.nextOffset));
-        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, memorySearch: reviewPayload.memorySearch || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
+        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, memorySearch: reviewPayload.memorySearch || {}, vlmSummaryCandidateReview: reviewPayload.memorySearch?.vlmSummaryCandidateReview || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
       }
       const itemId = item => display(item?.id || item?.ruleId || item?.profileId || '-');
       const opsRulesIdText = value => {
@@ -3248,6 +3385,9 @@ void AppendOpsShellScript(std::ostringstream& out,
         }
         if (normalizedType === 'zone-occupancy') {
           return '점유 preset은 polygon이 병목 구간만 포함한다는 전제입니다. 정상 피크에서 confirmed가 반복되면 threshold를 올리세요.';
+        }
+        if (normalizedType === 're-entry') {
+          return '지정 영역 기준은 source zone 이탈 후 reEntryZoneIds destination 진입을 보는 A→B 후보입니다. Event/metadata schema는 그대로 유지합니다.';
         }
         return 'Preset은 시작값입니다. 저장 전 현장 영상, geometry, 대상 객체를 확인하세요.';
       }
@@ -6090,7 +6230,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           const windowLabel = opsRulesMsLabel(scenario?.reEntryWindowMs);
           if (windowLabel) details.push(`window ${windowLabel}`);
           if (scenario?.reEntryMode) {
-            details.push(scenario.reEntryMode === 'configured-zones' ? '지정 영역' : '같은 영역');
+            details.push(scenario.reEntryMode === 'configured-zones' ? 'A→B 지정 영역' : '같은 영역');
           }
           const zones = opsRulesZoneIdSummary(scenario?.reEntryZoneIds || []);
           if (zones) details.push(`재진입 ${zones}`);

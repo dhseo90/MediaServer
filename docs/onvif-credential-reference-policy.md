@@ -92,9 +92,29 @@ credential reference 저장/주입을 추가할 때는 별도 단계에서 아�
 - 실패 문구는 `verify-onvif-probe-error-wording`과 같은 redaction matrix로
   고정합니다.
 
+## v2.6.0 S03 credential binding/store gate
+
+`V260-S03`의 직접 답은 제품 persistent credential store를 열지 않는 것입니다.
+`media-server.onvif-credential-binding-gate.v1` 기준 선택값은
+`primaryStoreProvider: none`이고, 검증 fallback은 `fallbackProviders: in-memory-fixture`
+입니다. `local-encrypted 제외` 사유는 key lifecycle, rotation, expiry, audit 정책이
+이번 source-only 범위에서 승인되지 않았기 때문입니다. `external-secret-manager 제외`
+사유는 provider credential, endpoint, retry, field smoke evidence가 운영자 설정과
+별도 승인을 필요로 하기 때문입니다.
+
+S03 gate는 `/ops/api/onvif/import-draft`의 기존 `source:write` guard를 유지하고,
+draft response에 reference 값이 아닌 `credentialGate` summary만 표시합니다. URL credential
+형식(`rtsp://user:pass@host/...`)은 draft 변환과 `/ops/sources` form validation에서
+차단합니다. SourceRegistry, PublishedView, client/viewer API, field artifact에는
+credential reference 값, username, password, auth header, SOAP security header를
+저장하거나 노출하지 않습니다. 이 gate는 실제 ONVIF 장비 credential 성공, encrypted
+local store, external secret manager adapter, Digest/WS-Security 자동 fallback 완료
+evidence가 아닙니다.
+
 ## 검증
 
 ```bash
+./server.sh verify-v260-onvif-credential-gate
 ./server.sh verify-onvif-auth-injection-design
 ./server.sh verify-onvif-auth-injection-loopback
 ./server.sh verify-onvif-credential-reference-policy

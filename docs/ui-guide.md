@@ -6,9 +6,9 @@
 [video-analysis.md](./video-analysis.md)를 봅니다.
 제품 화면은 Ops/Client 기준으로 두고, 개발/검증 API는 별도로 유지합니다.
 
-현재 소스 버전은 `2.5.0`입니다. `v2.5.0`은 source-only GitHub Release이며, 이 문서는
-현재 source tree의 UI 구조를 설명합니다. UI 풀테스트 직접 조작 evidence는 별도 실행한
-경우에만 PASS로 기록합니다.
+현재 소스 버전은 `2.6.0`입니다. 최신 공개 GitHub Release는 `v2.6.0` source-only
+release이며, 이 문서는 현재 source tree의 UI 구조와 v2.6.0 roadmap 경계를 설명합니다.
+UI 풀테스트 직접 조작 evidence는 별도 실행한 경우에만 PASS로 기록합니다.
 
 ## 목차
 
@@ -73,10 +73,11 @@ client/viewer shell에는 내부 진단 응답, debug 정보, developer/source U
 
 ### 1.1 Design token/component inventory
 
-현재 v2.5.0까지의 UI 변경과 `v2.2.0 Responsive UI Foundation`,
+현재 v2.6.0까지의 UI 변경과 `v2.2.0 Responsive UI Foundation`,
 `v2.3.0 UI renderer/module decomposition`, `v2.4.0 Operator Event Review`의
 UI 정리는 아래 inventory를 기준으로 합니다.
-v2.5.0 Semantic Incident Memory 전용 검색/timeline/brief UI는 구현 단계에서
+v2.5.0 Semantic Incident Memory 전용 검색/timeline/brief UI와 v2.6.0 Operational
+Hardening 전용 review/draft/credential/trend/re-entry UI는 실행 단계에서
 route/control/action evidence를 별도로 추가해야 하며, 현재 대표 screenshot은 UI
 풀테스트 PASS 증거가 아닙니다.
 새 색상, radius, spacing, shadow, table row, detail panel, client tile을 추가하기 전에
@@ -903,10 +904,9 @@ ReEntry UI 정책:
 
 - 같은 track이 polygon zone을 이탈한 뒤 `reEntryWindowMs` 안에 같은 zone으로 다시 들어오면 `re-entry` scenario event를 1회 발생시킵니다.
 - `같은 zone`은 현재 그린 polygon 또는 `targetZoneIds`로 저장된 zone을 그대로 사용합니다.
-- `지정 zone`은 `targetZoneIds`/`reEntryZoneIds`에 대상 zone 목록을 명시합니다.
-  현재 1차 UI는 같은-zone 재진입을 명시하는 용도입니다.
-  cross-zone A→B 재진입 판단은 후속 ScenarioEngine 확장 범위입니다.
-- Event POST payload schema, WebRTC/SSE/WS metadata schema, ScenarioEngine 판단 로직은 변경하지 않습니다.
+- `지정 zone`은 `targetZoneIds`를 source zone, `reEntryZoneIds`를 destination zone으로 명시합니다.
+  `configured-zones` 기준은 A→B 재진입 후보를 만들되 event type은 기존 `re-entry`를 그대로 사용합니다.
+- Event POST payload schema, WebRTC/SSE/WS metadata schema는 변경하지 않습니다.
 
 WrongDirection UI 정책:
 

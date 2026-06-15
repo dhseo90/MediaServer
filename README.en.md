@@ -2,8 +2,8 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Published Release](https://img.shields.io/badge/published-v2.5.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.5.0)
-![Source Version](https://img.shields.io/badge/source-2.5.0-informational)
+[![Published Release](https://img.shields.io/badge/published-v2.6.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.6.0)
+![Source Version](https://img.shields.io/badge/source-2.6.0-informational)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
 video analytics overlays and rule/scenario live events when analytics are enabled.
@@ -14,10 +14,10 @@ and runtime/model bundle distribution are outside the default public release.
 
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
-- Latest published GitHub Release: [v2.5.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.5.0)
-- Current source version: `2.5.0`
-- v2.5.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
-- Current release baseline: `v2.5.0 Semantic Incident Memory`
+- Latest published GitHub Release: [v2.6.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.6.0)
+- Current source version: `2.6.0`
+- v2.6.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
+- Current source roadmap: `v2.6.0 Operational Hardening & Incident Memory Productization`
 
 ## At a Glance
 
@@ -36,10 +36,12 @@ and runtime/model bundle distribution are outside the default public release.
 
 ## Semantic Incident Memory
 
-Current published version `2.5.0` keeps the v2.4.0 source-only/live-only baseline and
-VLM review-assist default-off boundary while extending Operator Event Review into
-searchable incident memory. Existing Event POST, WebRTC DataChannel, SSE/WS
-metadata schemas, and RTSP/WebRTC media paths remain unchanged.
+Latest published version `2.6.0` starts from the v2.5.0 source-only/live-only
+incident memory baseline and scopes incident-memory productization, ONVIF
+credential gates, runtime dashboard trends, and ScenarioEngine cross-zone
+candidates as a source-only GitHub Release. Existing
+Event POST, WebRTC DataChannel, SSE/WS metadata schemas, and RTSP/WebRTC media
+paths remain unchanged unless explicitly requested.
 
 Model recommendation is based on both PC capability and privacy mode. The current
 baseline is `Qwen/Qwen3-VL-8B-Instruct` for local standard hardware,
@@ -132,8 +134,8 @@ records live in dedicated docs.
 - Release/version policy: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - Release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
-- Latest published release notes: [v2.5.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.5.0)
-- Current release roadmap: `v2.5.0 Semantic Incident Memory` in
+- Latest published release notes: [v2.6.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.6.0)
+- Current source roadmap: `v2.6.0 Operational Hardening & Incident Memory Productization` in
   [docs/development-backlog.md](docs/development-backlog.md)
 
 ## UI Preview

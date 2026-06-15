@@ -10,21 +10,24 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `2.5.0`
-- 최신 공개 GitHub Release: `v2.5.0`
-- `v2.5.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
+- 현재 소스 버전: `2.6.0`
+- 최신 공개 GitHub Release: `v2.6.0`
+- `v2.6.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 이 문서의 `v2.5.0` 항목은 source-only release 범위와 local verifier 기준입니다.
+- 현재 source roadmap: `v2.6.0 Operational Hardening & Incident Memory Productization`
 
-## 현재 source roadmap: v2.5.0 Semantic Incident Memory
+## 현재 source roadmap: v2.6.0 Operational Hardening & Incident Memory Productization
 
-v2.5.0은 v2.4.0 source-only/live-only baseline 위에서 새 media path나 장기 녹화
-범위를 만들지 않습니다. 이번 source tree의 범위는 EventRecord, audit, source health,
-alert dry-run을 검색 가능한 local incident memory로 정리하는 것입니다.
+v2.6.0은 v2.5.0 source-only/live-only incident memory baseline 위에서 새 media path나
+장기 녹화 범위를 만들지 않습니다. 이번 source tree의 범위는 `/ops/events` incident
+memory를 운영 workflow로 더 안전하게 productize하고, ONVIF credential gate, runtime
+dashboard trend, ScenarioEngine cross-zone 후보를 검증 가능한 작은 단계로 나누는
+것입니다.
 
-직접 답: v2.5.0의 1차 선택값은 `/ops/events`를 단순 review inbox에서 검색 가능한
-운영 incident memory 화면으로 확장하는 것입니다. local index는 SQLite FTS5 primary,
-JSONL+BM25 fallback이며 model/provider 의존성은 기본값이 아닙니다.
+직접 답: v2.6.0의 1차 선택값은 v2.5.0의 local incident memory를 유지하면서
+VLM summary/rule suggestion 후보를 Ops-only manual review 흐름으로 승격할지 검증하는
+것입니다. external embedding/provider 호출, 자동 Rule/Profile 적용, VLM default-on은
+기본값이 아닙니다.
 
 불변 조건:
 
@@ -35,44 +38,144 @@ JSONL+BM25 fallback이며 model/provider 의존성은 기본값이 아닙니다.
 
 | Step | ID | Priority | 상태 | 묶음 | 개발 내용 | 완료 산출물 | 검증/evidence 경계 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 0 | V250-S00 | P0 | 완료 | v2.5.0 baseline | v2.5.0 baseline/source-of-truth 정렬 | VERSION/CMake/README/docs index/release metadata가 v2.5.0 Semantic Incident Memory를 가리킴 | roadmap review, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-project-inventory`, `git diff --check` |
-| 1 | V250-S01 | P0 | 완료 | Event text projection | Event/incident text projection | EventRecord, audit, source health, alert dry-run을 redacted searchable document로 투영 | `verify-v250-incident-text-projection`; 검색 UI/index/provider evidence 아님 |
-| 2 | V250-S02 | P0 | 완료 | Local memory index | Local incident memory index | SQLite FTS5 primary, JSONL+BM25 fallback local index | `verify-v250-incident-memory-index`; external embedding/provider evidence 아님 |
-| 3 | V250-S03 | P0 | 완료 | Ops search UI | `/ops/events` semantic search UI | search/filter/highlight view model과 Ops-only UI control | `verify-v250-ops-events-semantic-search-ui`; UI 풀테스트 직접 조작은 별도 |
-| 4 | V250-S04 | P1 | 완료 | Timeline graph | Incident timeline graph | source state → event → operator action → alert dry-run → close state graph | `verify-v250-incident-timeline-graph`; UI 풀테스트 직접 조작은 별도 |
-| 5 | V250-S05 | P1 | 완료 | Explainability | Explainable incident brief | action/object/context/environment slot brief, VLM default-off guard | `verify-v250-explainable-incident-brief`; provider call evidence 아님 |
-| 6 | V250-S06 | P1 | 완료 | Similarity | Similar incident lookup | deterministic similar incident scoring and explanation terms | `verify-v250-similar-incident-lookup`, `verify-feature-inventory-coverage`; UI 풀테스트 직접 조작은 별도 |
-| 7 | V250-S07 | P1 | 완료 | Client-safe digest | Client-safe incident digest | viewer-safe incident summary and redaction boundary | `verify-v250-client-safe-incident-digest`; viewer role UI 직접 검수는 별도 |
-| 8 | V250-S08 | P2 | 완료 | Evidence export | Redacted incident evidence bundle | release-safe manifest-only bundle, raw/source/provider exclusion | `verify-v250-redacted-incident-evidence-bundle`; 실제 다운로드 육안 검수는 UI 풀테스트 별도 |
-| 9 | V250-S09 | P2 | 완료 | 릴리즈 준비 | 소유권 분리/릴리즈 준비 | event memory/search route owner catalog, UI criteria, release readiness gate | local readiness verifier와 문서 gate 기준. UI 직접 조작, 장시간 테스트, published metadata는 별도 실행 전까지 완료 근거가 아님 |
+| 0 | V260-S00 | P0 | 완료 | v2.6.0 baseline | v2.6.0 branch/source-of-truth 정렬 | VERSION/CMake/README/docs index/release metadata가 source `2.6.0`과 published `v2.6.0` 기준으로 정렬됨 | roadmap review, `verify-release-metadata`, `verify-docs-links`, `git diff --check` |
+| 1 | V260-S01 | P0 | 완료 | Incident memory productization | VLM summary candidate를 `/ops/events` incident memory에 Ops-only 검색/검토 흐름으로 연결 | `memorySearch.vlmSummaryCandidateReview`가 candidate-only `media-server.vlm-summary-search-candidates.v1`를 `sourceCandidateReport`로 감싸고 Ops-only manual review 상태를 표시하며 viewer/client 비노출 유지 | `verify-vlm-summary-search-candidates`, `verify-v260-incident-memory-productization`, `verify-ops-client-ui --browser-mode static`, `verify-rule-ui --in-app-evidence`, auth/Event POST/WS metadata guard |
+| 2 | V260-S02 | P1 | 완료 | Rule suggestion review | Rule suggestion 후보를 incident-to-rule manual review/draft workflow로 연결 | `/ops/events` review item이 matching sidecar rule suggestion을 Ops-only 검토 카드로 표시하고 `/ops/rules` draft-only manual save workflow로만 연결 | `verify-vlm-rule-suggestion-candidates`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-v260-rule-suggestion-review`, `verify-ops-client-ui --browser-mode static`, `verify-rule-ui`, auth/Event POST/WS metadata guard |
+| 3 | V260-S03 | P1 | 완료 | ONVIF credential gate | ONVIF credential binding/store gate 설계와 redaction guard | `primaryStoreProvider: none`, fallback `in-memory-fixture`, `source:write` gate, URL credential reject, draft `credentialGate` redaction summary를 고정 | `verify-v260-onvif-credential-gate`, `verify-onvif-credential-reference-policy`, auth/scope verifier, ONVIF draft/redaction fixture |
+| 4 | V260-S04 | P2 | 완료 | Runtime dashboard trends | Runtime dashboard baseline/sparkline 고도화 후보 | 장기 녹화 없이 `/ops/dashboard`가 page-session-only runtime/VA 상태 추세를 운영 card로 요약 | `verify-v260-runtime-dashboard-trends`, `verify-va-runtime-console`, dashboard UI smoke, metadata schema guard, 장시간 테스트는 별도 승인 |
+| 5 | V260-S05 | P2 | 완료 | Scenario extension | ScenarioEngine cross-zone re-entry 후보 | 기존 event/schema를 유지하면서 A→B 재진입 판단 후보와 rule UI 기준 정리 | `verify-v260-scenario-cross-zone-reentry`, `verify-analysis-state`, `verify-va-replay`, `verify-rule-ui`, schema guard |
+| 6 | V260-S06 | P2 | 완료 | 릴리즈 준비 | v2.6.0 소유권 분리/릴리즈 준비 | feature inventory, UI criteria, release readiness gate, not-run/excluded 경계 정리 | `verify-v260-owner-release-readiness`, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-feature-inventory-coverage`, `verify-manual-ui-evidence`, `verify-release-evidence-index`, `verify-release-closeout-helper --dry-run`, `verify-project-inventory`, `verify-script-inventory`, `git diff --check`; UI/longrun/published metadata는 별도 evidence |
 
-## v2.5.0 publish/test 제외 경계
+## v2.6.0 S01 개발 기록
 
-- UI 풀테스트 직접 조작 미실행은 owner/readiness gate PASS로 대체하지 않습니다.
+- `src/ingress/webrtc_http_server.cpp`: `OpsVlmSummaryCandidateReviewJson`를 추가해 기존 VLM summary search candidate report를 `/ops/api/events/reviews`의 `memorySearch.vlmSummaryCandidateReview` Ops-only wrapper로 연결하고, `/ops/events` HTML에 candidate review panel shell을 추가했습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderVlmSummaryCandidateReview`가 `sourceCandidateReport.candidates`, matched terms, manual review route, no-auto-apply 상태를 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`: `/ops/events` candidate review panel/list/card 스타일을 추가했습니다.
+- `scripts/internal/verify_v260_incident_memory_productization.mjs`, `server.sh`: S01 schema/wrapper/UI marker/docs/inventory/static smoke wiring guard를 추가했습니다.
+- `scripts/internal/verify_ops_client_ui_smoke.mjs`, `docs/project-feature-test-inventory.md`: `/ops/events` S01 UI marker와 `UI-045`/`EVT-046`/`LAB-069`/`SAFE-052` coverage를 추가했습니다.
+- 검증: `./server.sh build`, `verify-v260-incident-memory-productization`, `verify-vlm-summary-search-candidates`, `verify-ops-client-ui --browser-mode static`, `verify-rule-ui --in-app-evidence`, `verify-event-post --mode disabled`, `verify-ws-metadata`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `git diff --check`.
+- 미실행/비대체: UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, provider/cloud 호출, 자동 Rule/Profile 적용은 S01 완료 근거가 아닙니다.
+
+## v2.6.0 S02 개발 기록
+
+- `src/ingress/webrtc_http_server.cpp`: `OpsIncidentRuleSuggestionReviewJson`를 추가해 `/ops/api/events/reviews` item마다 matching VLM sidecar `ruleSuggestion`과 기존 `media-server.vlm-rule-suggestion-candidates.v1` candidate report를 `media-server.ops.incident-rule-suggestion-review.v1` Ops-only wrapper로 감쌌습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderIncidentRuleSuggestionReview`가 `/ops/events` review row 안에 incident-to-rule 검토 카드, candidate status, source candidate count, `/ops/rules` draft-only 링크를 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`: incident-to-rule 검토 카드를 기존 event review/VLM review 카드와 같은 밀도로 보이도록 스타일을 추가했습니다.
+- `scripts/internal/verify_v260_rule_suggestion_review.mjs`, `server.sh`: S02 wrapper schema, matching `ruleSuggestion`, `/ops/events` marker, `/ops/rules` draft-only 링크, docs/inventory wiring, client/provider/auto-rule 비범위를 검증하는 verifier를 추가했습니다.
+- `scripts/internal/verify_ops_client_ui_smoke.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `docs/project-feature-test-inventory.md`: S02 UI/API marker와 `UI-046`/`EVT-047`/`LAB-070`/`SAFE-053` coverage를 추가했습니다.
+- 검증: `./server.sh build`, `verify-v260-rule-suggestion-review`, `verify-vlm-rule-suggestion-candidates`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-ops-client-ui --browser-mode static`, `verify-ops-client-ui --browser-mode static --screenshots`, `verify-rule-ui --in-app-evidence`, `verify-event-post --mode disabled`, `verify-ws-metadata`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-docs-links`, `verify-docs-ui-assets`, `git diff --check`.
+- 수정한 이슈: 기존 inventory 요약 문구 `Ops/Client/VLM`이 S08 verifier의 `/client/vlm` 금지 패턴에 걸려 false positive가 발생했으므로, 의미를 유지한 채 `auth, Ops, Client, VLM, v250` 문구로 정리했습니다.
+- 미실행/비대체: UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, provider/cloud 호출, 자동 Rule/Profile 저장, GitHub Release publish는 S02 완료 근거가 아닙니다.
+
+## v2.6.0 S03 개발 기록
+
+- `src/ingress/onvif_live_import.cpp`: `UriContainsAuthorityCredential`와 `OnvifCredentialGateJson`를 추가해 `/ops/api/onvif/import-draft` draft response에 `credentialGate` summary를 붙이고, 선택 profile `streamUri` authority에 username/password가 있으면 draft 생성을 거부합니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/sources` ONVIF probe draft tool에 `data-testid="onvif-credential-gate"` 패널과 `source:write`, `primaryStoreProvider: none`, `reference-only`, secret store off 상태를 표시했습니다.
+- `src/ingress/product_ui_ops_sources_script.cpp`: `renderOnvifCredentialGate`와 form validation을 추가해 ONVIF stream URI의 URL credential 입력을 제품 UI에서 차단하고, draft 적용 후 redacted `credentialGate` 상태만 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`: `/ops/sources` credential gate panel의 compact status/card 스타일을 추가했습니다.
+- `test/fixtures/onvif_credential_binding_gate.json`: 1차 선택값 `none`, fallback `in-memory-fixture`, 제외 대상 `local-encrypted`/`external-secret-manager`, license/provenance/privacy/운영 제약, redaction guard를 기록했습니다.
+- `scripts/internal/verify_v260_onvif_credential_gate.mjs`, `server.sh`: S03 fixture, C++ gate, `/ops/sources` marker, URL credential reject, docs/inventory/command wiring, persistent store/client/schema/media 비범위 guard를 검증하는 명령을 추가했습니다.
+- `scripts/internal/verify_onvif_import_draft_api.mjs`, `scripts/internal/verify_onvif_probe_draft_api.mjs`: `rtsp://user:pass@...` profile URL credential negative case를 추가했습니다.
+- `scripts/internal/verify_ops_client_ui_smoke.mjs`, `docs/project-feature-test-inventory.md`: `/ops/sources` static smoke marker와 `UI-047`/`SRC-031`/`LAB-071`/`SAFE-054` feature coverage를 추가했습니다.
+- `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_project_feature_test_inventory.mjs`: S03 feature inventory coverage와 row/range 검증 기준을 갱신했습니다.
+- 검증: `./server.sh build`, `verify-v260-onvif-credential-gate`, `verify-onvif-credential-reference-policy`, `verify-onvif-auth-injection-design`, `verify-onvif-field-smoke-redaction`, `verify-onvif-auth-injection-loopback`, `verify-onvif-import-draft-api`, `verify-onvif-probe-draft-api`, `verify-ops-client-ui --browser-mode static`, `verify-ops-client-ui --browser-mode static --screenshots`, `verify-rule-ui --in-app-evidence`, `verify-event-post --mode disabled`, `verify-ws-metadata`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-onvif-live-import-contract`, `verify-onvif-probe-fixture-contract`, `verify-onvif-protocol-support-matrix`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-docs-links`, `verify-docs-ui-assets`, `git diff --check`.
+- 수정한 이슈: 최초 S03 verifier는 fixture/코드/UI marker가 없어 실패했고, 구현 후 재실행했습니다. 이후 `SRC-030` 중복과 inventory range verifier 불일치를 확인해 S03 source row를 `SRC-031`로 옮기고 verifier range를 갱신한 뒤 관련 inventory 검증을 다시 실행했습니다.
+- 미실행/비대체: UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, 실기기 ONVIF credential field smoke, persistent credential store 구현, external secret manager 연동, GitHub Release publish는 S03 완료 근거가 아닙니다.
+
+## v2.6.0 S04 개발 기록
+
+- `src/ingress/webrtc_http_server.cpp`: `/ops/dashboard` card grid에 `data-testid="ops-runtime-trend-card"` runtime trend card를 추가하고 `data-runtime-trend-scope="page-session-only"`, `data-longrun-evidence="not-provided"`로 장기 evidence가 아님을 표시했습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `dashboardRuntimeTrendSamples`, `runtimeTrendSampleFrom`, `runtimeTrendSparklineHtml`, `renderDashboardRuntimeTrend`를 추가해 `/ops/api/runtime/status`, source health, events status 응답을 browser page session 안에서만 최대 12개 sample로 요약합니다.
+- `src/ingress/product_ui_css.cpp`: `.runtime-sparkline`, `.runtime-spark-bar`, `.runtime-trend-baseline` 스타일을 추가해 compact dashboard card 안에서 layout shift 없이 sparkline 후보를 표시합니다.
+- `scripts/internal/verify_v260_runtime_dashboard_trends.mjs`, `server.sh`: S04 dashboard marker, page-local sample buffer, CSS/UI smoke/docs/inventory wiring, longrun/schema/media/client 비범위를 검증하는 명령을 추가했습니다.
+- `scripts/internal/verify_ops_client_ui_smoke.mjs`, `docs/project-feature-test-inventory.md`: `/ops/dashboard` static smoke marker와 `UI-048`/`EVT-048`/`LAB-072`/`SAFE-055` coverage를 추가했습니다.
+- `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_project_feature_test_inventory.mjs`: S04 feature inventory coverage와 row/range 검증 기준을 갱신했습니다.
+- 검증: `./server.sh build`, `verify-v260-runtime-dashboard-trends`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-ops-client-ui --browser-mode static`, `verify-ops-client-ui --browser-mode static --screenshots`, `verify-va-runtime-console`, `verify-ws-metadata`, `verify-va-metadata-sidechannel`, `verify-webrtc-va-metadata`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `git diff --check`.
+- 수정한 이슈: 최초 S04 verifier는 roadmap/UI/script/CSS/inventory wiring 누락으로 실패했습니다. verifier의 `120분 PASS` 금지 패턴이 “PASS로 보고하지 않는다” 문구까지 잡는 오탐을 내서 금지 문구를 정확히 좁힌 뒤 다시 RED를 확인했습니다. auth verifier는 최초 env 미지정으로 시작 전 실패했고, 일회성 test operator env를 넣은 뒤 sandbox 포트 바인딩 실패가 발생해 승인 실행으로 재검증했습니다.
+- 미실행/비대체: UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, Runtime Dashboard longrun/cycle evidence, persistent trend store, server trend API, client/viewer trend 노출, GitHub Release publish는 S04 완료 근거가 아닙니다.
+
+## v2.6.0 S05 개발 기록
+
+- `include/analysis/re_entry_scenario.h`, `src/analysis/re_entry_scenario.cpp`: `re_entry_mode`, `re_entry_zone_ids`, source/destination zone 필터를 추가해 기본 `same-zone`은 유지하고 `configured-zones`에서 source zone A 이탈 후 destination zone B 진입 후보를 기존 `re-entry` event type으로 확정합니다.
+- `src/analysis/event_rule_engine.cpp`: 저장 rule scenario payload의 기존 `reEntryMode`와 `reEntryZoneIds`를 ReEntryScenario runtime option으로 연결했습니다.
+- `scripts/internal/analysis_state_smoke.cpp`: `configured-zones` A→B positive case와 destination 밖 negative case를 추가했습니다.
+- `test/fixtures/va_replay/re_entry_cross_zone_*`, `scripts/internal/verify_va_replay_baselines.sh`: A→B cross-zone replay fixture와 expected EventRecord `zoneId=destination-zone` case를 `verify-va-replay` baseline에 추가했습니다.
+- `src/ingress/webrtc_http_server.cpp`, `src/ingress/product_ui_page_scripts.cpp`: `/ops/rules` ReEntry 기준 select/condition summary/preset warning에 `지정 영역 A→B 후보`와 source/destination 기준을 표시했습니다.
+- `scripts/internal/verify_v260_scenario_cross_zone_reentry.mjs`, `server.sh`: S05 C++ option/parser, analysis-state, va-replay fixture, UI/docs/inventory wiring, schema/media/client 비범위를 검증하는 명령을 추가했습니다.
+- `docs/video-analysis.md`, `docs/ui-guide.md`, `docs/config-reference.md`, `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`: S05 candidate 범위, UI 기준, inventory `UI-049`/`RULE-103`/`EVT-049`/`LAB-073`/`SAFE-056`, command catalog를 갱신했습니다.
+- 검증: `verify-analysis-state` RED 후 구현, `./server.sh build`, `verify-v260-scenario-cross-zone-reentry`, `verify-analysis-state`, `verify-va-replay`, `verify-rule-ui` Chrome fallback smoke, `verify-event-post --mode schema`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-docs-links`, `git diff --check`를 실행했습니다.
+- 수정한 이슈: 새 replay fixture는 EventRuleEngine output은 정상 생성했지만 direct ScenarioEngine metric까지 expected로 요구해 최초 실패했습니다. S05 evidence 범위가 rule replay EventRecord 후보임을 반영해 expected에서 direct metric 요구를 제거하고 재검증했습니다. `verify-rule-ui` 기본 실행은 Codex 인앱 evidence 파일이 없어 시작 전 실패했고, 실행 중인 auth-off 서버와 명시 Chrome fallback으로 보조 smoke를 재실행해 통과했습니다. `verify-event-post --mode schema`는 dispatcher disabled 서버에서 사전조건 실패 후 `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1` 서버로 재실행해 통과했습니다.
+- 미실행/비대체: UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, 새 event type, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경, client/viewer 노출, GitHub Release publish는 S05 완료 근거가 아닙니다.
+
+## v2.6.0 S06 개발 기록
+
+- `scripts/internal/verify_v260_owner_release_readiness.mjs`, `server.sh`: `media-server.v260-owner-release-readiness.v1` local readiness verifier와 `verify-v260-owner-release-readiness` command dispatch를 추가했습니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_project_feature_test_inventory.mjs`: S06 mapping row, `OPS-037` release readiness gate, `SAFE-057` release boundary, `SAFE-001`~`SAFE-057`/`OPS-035`~`OPS-037` coverage range를 추가했습니다.
+- `docs/manual-ui-checklist.md`, `docs/manual-ui-fulltest.md`: `UI-045`~`UI-049` Operational Hardening UI 기준을 수동 UI 풀테스트 항목으로 묶고 raw JSON/API-only/static smoke/Chrome fallback이 UI 풀테스트 PASS가 아님을 명시했습니다.
+- `docs/release-policy.md`, `docs/release-evidence-index.md`, `docs/stream-verification.md`: S06 local readiness companion gate와 UI 풀테스트 직접 조작, 30분/120분, published metadata, tag/push/GitHub Release, PR/main/후속 브랜치 미실행 경계를 분리했습니다.
+- 검증: `verify-v260-owner-release-readiness` RED 후 문서/스크립트 연결을 구현했고, `verify-v260-owner-release-readiness`, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-feature-inventory-coverage`, `verify-manual-ui-evidence`, `verify-release-evidence-index`, `verify-release-closeout-helper --dry-run`, `verify-project-inventory`, `verify-script-inventory`, `git diff --check`를 실행했습니다.
+- 수정한 이슈: 최초 `verify-v260-owner-release-readiness`는 S06 inventory/manual UI/release evidence/stream command 연결이 없어 실패했습니다. `verify-manual-ui-evidence`는 current release UI gate 문구와 `## v2.6.0 Release Evidence Index` 템플릿이 없어 실패했고, manual UI checklist/result template/backlog cross-reference를 보강한 뒤 재실행 PASS했습니다.
+- 미실행/비대체: UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, `verify-release-metadata --published`, tag/push/GitHub Release, PR merge/main sync/후속 브랜치 생성은 S06 local readiness 완료 근거가 아닙니다.
+
+## v2.6.0 publish/test 제외 경계
+
+- `V260-S00` source-of-truth 정렬은 2.6.0 GitHub Release publish 완료가 아닙니다.
+- 예정 항목은 구현과 직접 evidence가 생기기 전까지 완료로 쓰지 않습니다.
+- UI 풀테스트 직접 조작 미실행은 local verifier PASS로 대체하지 않습니다.
 - 30분 테스트 미실행은 `verify-predev --soak-minutes 30` PASS로 보고하지 않습니다.
 - 120분 테스트 미실행은 `verify-predev --soak-minutes 120` 또는 `verify-va-runtime-console-longrun --duration-minutes 120` PASS로 보고하지 않습니다.
-- `v2.5.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
+- `v2.6.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
 - PR merge/main sync/next branch sync는 별도 명시 승인과 실제 실행 evidence가 있기 전까지 완료로 쓰지 않습니다.
 
-## 직전 공개 기준: v2.4.0 Source Release Baseline
+## Historical UI Evidence Gate Cross-reference
+
+아래 행은 현재 v2.6.0 개발 범위가 아니라 `verify-manual-ui-evidence` 호환을 위한
+과거 UI evidence gate 참조입니다. 실행 evidence나 현재 release 완료 근거가 아닙니다.
+
+| ID | verifier | 경계 |
+| --- | --- | --- |
+| V180-P0-03 | Manual UI evidence checklist hardening / `verify-manual-ui-evidence` | `/setup`, `/login`, `/ops`, `/client`, `/ops/rules`, `/client/live` evidence index 문서가 PASS/FAIL, 제외 기록, raw JSON/API-only 비대체 경계를 유지하는지 확인 |
+
+## 직전 공개 기준: v2.5.0 Source Release Baseline
+
+v2.5.0은 source-only/live-only 제품 경계를 유지하면서 Semantic Incident Memory를 닫은
+직전 공개 릴리즈입니다. 이 기준은 v2.6.0의 시작 baseline이며, v2.6.0의 예정 항목
+완료 evidence로 재사용하지 않습니다.
+
+## 완료 roadmap: v2.5.0 Semantic Incident Memory
+
+| ID | 상태 | 요약 | 현재 해석 |
+| --- | --- | --- | --- |
+| V250-S00 | 완료 | v2.5.0 baseline/source-of-truth 정렬 | 직전 published baseline, v2.6.0 완료 근거 아님 |
+| V250-S01 | 완료 | Event/incident text projection | 직전 published baseline, v2.6.0 완료 근거 아님 |
+| V250-S02 | 완료 | Local incident memory index | 직전 published baseline, v2.6.0 완료 근거 아님 |
+| V250-S03 | 완료 | `/ops/events` semantic search UI | 직전 published baseline, v2.6.0 완료 근거 아님 |
+| V250-S04 | 완료 | Incident timeline graph | 직전 published baseline, v2.6.0 완료 근거 아님 |
+| V250-S05 | 완료 | Explainable incident brief | 직전 published baseline, v2.6.0 완료 근거 아님 |
+| V250-S06 | 완료 | Similar incident lookup | 직전 published baseline, v2.6.0 완료 근거 아님 |
+| V250-S07 | 완료 | Client-safe incident digest | 직전 published baseline, v2.6.0 완료 근거 아님 |
+| V250-S08 | 완료 | Redacted incident evidence bundle | 직전 published baseline, v2.6.0 완료 근거 아님 |
+| V250-S09 | 완료 | Owner decomposition/release readiness | 직전 published baseline, v2.6.0 완료 근거 아님 |
+
+## 이전 공개 기준: v2.4.0 Source Release Baseline
 
 v2.4.0은 source-only/live-only 제품 경계를 유지하면서 Operator Event Review & Action
-Workflow를 닫은 직전 공개 릴리즈입니다. 이 기준은 v2.5.0의 시작 baseline이며,
-v2.5.0의 incident memory 기능 완료 evidence로 재사용하지 않습니다.
+Workflow를 닫은 이전 공개 릴리즈입니다. 이 기준은 historical baseline이며,
+v2.6.0의 예정 항목 완료 evidence로 재사용하지 않습니다.
 
 ## 완료 roadmap: v2.4.0 Operator Event Review & Action Workflow
 
 | ID | 상태 | 요약 | 현재 해석 |
 | --- | --- | --- | --- |
-| V240-S01 | 완료 | Operator Event Review Inbox | 현재 baseline, v2.5.0 완료 근거 아님 |
-| V240-S02 | 완료 | Event Action and Incident Workflow | 현재 baseline, v2.5.0 완료 근거 아님 |
-| V240-S03 | 완료 | Alert Dry-run and Delivery Attempt Log | 현재 baseline, v2.5.0 완료 근거 아님 |
-| V240-S04 | 완료 | Client-safe Event and Status Summary | 현재 baseline, v2.5.0 완료 근거 아님 |
-| V240-S05 | 완료 | Rule and Scenario Review Loop | 현재 baseline, v2.5.0 완료 근거 아님 |
+| V240-S01 | 완료 | Operator Event Review Inbox | 과거 baseline, v2.6.0 완료 근거 아님 |
+| V240-S02 | 완료 | Event Action and Incident Workflow | 과거 baseline, v2.6.0 완료 근거 아님 |
+| V240-S03 | 완료 | Alert Dry-run and Delivery Attempt Log | 과거 baseline, v2.6.0 완료 근거 아님 |
+| V240-S04 | 완료 | Client-safe Event and Status Summary | 과거 baseline, v2.6.0 완료 근거 아님 |
+| V240-S05 | 완료 | Rule and Scenario Review Loop | 과거 baseline, v2.6.0 완료 근거 아님 |
 | V240-S08 | 완료 | release readiness gate | `verify-v240-release-readiness-gate` local readiness이며 publish evidence가 아님 |
 
 ## 후속 이슈 추천 규칙
 
-후속 이슈는 현재 `2.5.0` source tree와 현재 스텝 범위 안에서 실제로 처리 가능한 항목만
+후속 이슈는 현재 `2.6.0` source tree와 현재 스텝 범위 안에서 실제로 처리 가능한 항목만
 기록합니다. 다음 버전 후보, 별도 Phase 후보, 사용자 승인이 필요한 새 제품 범위는 이
 문서에 추천하지 않습니다.

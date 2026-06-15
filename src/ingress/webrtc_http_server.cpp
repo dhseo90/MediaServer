@@ -2668,6 +2668,16 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
                                                               std::string(),
                                                               "dashHealthBadges") +
                                             R"(<p id="dashHealthText">불러오는 중</p>)") << R"(
+        <section class="section-card runtime-trend-card" data-testid="ops-runtime-trend-card" data-runtime-trend-scope="page-session-only" data-longrun-evidence="not-provided">
+          <div>
+            <h3>런타임 추세</h3>
+            <p>현재 페이지 세션의 refresh sample만 baseline/sparkline 후보로 봅니다.</p>
+          </div>
+          <div id="dashRuntimeTrendBadges" class="badge-row"><span class="chip">sample 대기</span></div>
+          <div id="dashRuntimeTrendSparkline" class="runtime-sparkline" aria-label="runtime trend sparkline"></div>
+          <p id="dashRuntimeTrendText">장기 녹화 없이 현재 화면에서 수집한 sample을 기다립니다.</p>
+          <p id="dashRuntimeTrendBaseline" class="runtime-trend-baseline">baseline: page-session-only · longrun evidence 아님</p>
+        </section>
         )" << ProductUiSectionCardHtml("분석 재사용",
                                         std::string(),
                                         ProductUiBadgeRowHtml({{"로딩 중", std::string()}},
@@ -3336,7 +3346,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
               <label id="opsEventRuleReEntryModeField" hidden>재진입 기준
                 <select id="opsEventRuleReEntryModeSelect" aria-label="재진입 기준">
                   <option value="same-zone">같은 영역</option>
-                  <option value="configured-zones">지정 영역</option>
+                  <option value="configured-zones">지정 영역 A→B 후보</option>
                 </select>
               </label>
               <label id="opsEventRuleLineDelayField" hidden>라인 후 최대 지연(ms)
@@ -3519,6 +3529,18 @@ void AppendOpsEventsPage(std::ostringstream& out) {
         </div>
         <div id="opsIncidentSearchRows" class="incident-memory-results" data-incident-memory-results="matched-evidence-highlight">
           <p class="ops-rule-note">검색어를 입력하면 EventRecord/review projection의 matched evidence highlight가 표시됩니다.</p>
+        </div>
+        <div class="vlm-summary-candidate-review" data-testid="ops-vlm-summary-candidate-review" data-vlm-summary-candidate-review="ops-only-manual-review">
+          <div class="toolbar">
+            <div>
+              <h4>VLM Summary Candidate Review</h4>
+              <p id="opsVlmSummaryCandidateSummary">같은 검색어로 VLM summary candidate를 Ops-only manual review 후보로 확인합니다.</p>
+            </div>
+            <div id="opsVlmSummaryCandidateBadges" class="badge-row"><span class="chip">ops-only</span></div>
+          </div>
+          <div id="opsVlmSummaryCandidateRows" class="vlm-summary-candidate-list">
+            <p class="ops-rule-note">검색어를 입력하면 sidecar summary candidate가 자동 적용 없이 표시됩니다.</p>
+          </div>
         </div>
       </section>
       <section class="section-card ops-workspace-wide similar-incident-panel" data-testid="ops-similar-incident-lookup" data-similar-incident-lookup="rule-scenario-source-status">
@@ -5165,6 +5187,14 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
           <label data-source-kind="onvif" data-channel-input-group="onvif">ONVIF 스트림 URI<input name="onvifStreamUrl" placeholder="rtsp://camera/live 또는 https://camera/live.m3u8" /></label>
           <p data-source-kind="onvif" data-channel-input-group="onvif" class="hint">지원 제외: WS-Discovery 자동 검색, PTZ 제어, ONVIF Events/PullPoint, Profile G/Recording/Replay는 제공하지 않습니다. 운영자가 확인한 live URI 또는 probe fixture를 사용합니다.</p>
           <div data-source-kind="onvif" data-channel-input-group="onvif" class="form-grid" data-testid="onvif-probe-draft-tool">
+            <div class="onvif-credential-gate" data-testid="onvif-credential-gate" data-credential-store="deferred-product-store" data-redaction="credential-reference-only" data-source-write-required="true">
+              <div class="badge-row">
+                <span class="chip info">source:write</span>
+                <span class="chip">reference-only</span>
+                <span class="chip warn">secret store off</span>
+              </div>
+              <p id="onvifCredentialGateStatus" class="hint" aria-live="polite">primaryStoreProvider: none / credentialRef redacted / URL credential reject</p>
+            </div>
             <label>ONVIF probe fixture
               <textarea id="onvifProbeDraftInput" rows="5" spellcheck="false" autocomplete="off" placeholder="test/fixtures/onvif_probe_result_stub.json 내용을 붙여넣기"></textarea>
             </label>
@@ -12445,6 +12475,115 @@ std::string OpsVlmRuleSuggestionDraftWorkflowJson(
     return out.str();
 }
 
+std::string OpsJsonObjectOrNull(const std::string& value) {
+    const std::string trimmed = Trim(value);
+    if (trimmed.size() >= 2 && trimmed.front() == '{' && trimmed.back() == '}') {
+        return trimmed;
+    }
+    return "null";
+}
+
+std::string OpsIncidentRuleSuggestionSourceId(const std::string& event_json) {
+    for (const char* key : {"sourceId", "streamId", "channelId"}) {
+        const std::string value = Trim(ParseStringField(event_json, key).value_or(""));
+        if (!value.empty()) {
+            return value;
+        }
+    }
+    if (const auto metadata = ExtractObjectField(event_json, "metadata"); metadata.has_value()) {
+        for (const char* key : {"sourceId", "streamId", "channelId"}) {
+            const std::string value = Trim(ParseStringField(*metadata, key).value_or(""));
+            if (!value.empty()) {
+                return value;
+            }
+        }
+    }
+    return "";
+}
+
+std::string OpsIncidentRuleSuggestionReviewJson(const std::string& event_json) {
+    const std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+    const std::string source_id = OpsIncidentRuleSuggestionSourceId(event_json);
+
+    analysis::VlmObservationQueryResult observation_result;
+    std::string observation_error;
+    bool observation_query_ok = false;
+    if (!event_id.empty()) {
+        analysis::VlmObservationQueryOptions observation_options;
+        observation_options.event_id = event_id;
+        observation_options.limit = 1;
+        observation_query_ok = analysis::QueryVlmObservations(
+            analysis::DefaultVlmObservationStorePath(), observation_options, &observation_result, &observation_error);
+    }
+    const std::string observation_json =
+        observation_query_ok && !observation_result.observations_json.empty()
+            ? observation_result.observations_json.front()
+            : std::string();
+    const std::string rule_suggestion_json = OpsJsonObjectOrNull(
+        ExtractJsonValueField(observation_json, "ruleSuggestion").value_or("null"));
+    const bool rule_suggestion_present = rule_suggestion_json != "null";
+    const std::string proposed_rule_kind =
+        rule_suggestion_present
+            ? Trim(ParseStringField(rule_suggestion_json, "kind")
+                       .value_or(ParseStringField(rule_suggestion_json, "candidateId").value_or("")))
+            : std::string();
+    const std::string target_route =
+        rule_suggestion_present
+            ? Trim(ParseStringField(rule_suggestion_json, "targetRoute").value_or("/ops/rules"))
+            : "/ops/rules";
+
+    analysis::VlmRuleSuggestionOptions candidate_options;
+    candidate_options.source_id = source_id;
+    candidate_options.limit = 6;
+    std::string candidate_report;
+    std::string candidate_error;
+    const bool candidate_report_ready = analysis::BuildVlmRuleSuggestionCandidatesJson(
+        analysis::DefaultVlmObservationStorePath(), candidate_options, &candidate_report, &candidate_error);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.incident-rule-suggestion-review.v1\","
+        << "\"status\":\"incident-to-rule-manual-review\","
+        << "\"eventId\":\"" << JsonEscape(event_id) << "\","
+        << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
+        << "\"observationPresent\":" << (observation_json.empty() ? "false" : "true") << ","
+        << "\"observationStoreExists\":" << (observation_result.file_exists ? "true" : "false") << ","
+        << "\"observationQueryOk\":" << (observation_query_ok ? "true" : "false") << ","
+        << "\"observationError\":\"" << JsonEscape(observation_query_ok ? "" : observation_error) << "\","
+        << "\"matchingRuleSuggestionPresent\":" << (rule_suggestion_present ? "true" : "false") << ","
+        << "\"candidateStatus\":\""
+        << (rule_suggestion_present ? "candidate-only-manual-rule-save" : "no-rule-suggestion-candidate")
+        << "\","
+        << "\"proposedRuleKind\":\"" << JsonEscape(proposed_rule_kind) << "\","
+        << "\"sourceCandidateSchema\":\"media-server.vlm-rule-suggestion-candidates.v1\","
+        << "\"manualReviewRoute\":\"/ops/events\","
+        << "\"manualDraftRoute\":\"/ops/rules\","
+        << "\"targetRoute\":\"" << JsonEscape(target_route.empty() ? "/ops/rules" : target_route) << "\","
+        << "\"draftApiRoute\":\"/ops/api/vlm/rule-suggestion-drafts\","
+        << "\"sourceCandidateReport\":" << (candidate_report_ready ? candidate_report : "null") << ","
+        << "\"sourceCandidateError\":\"" << JsonEscape(candidate_report_ready ? "" : candidate_error) << "\","
+        << "\"matchingRuleSuggestion\":" << rule_suggestion_json << ","
+        << "\"contract\":{"
+        << "\"opsOnly\":true,"
+        << "\"draftOnly\":true,"
+        << "\"manualSaveRequired\":true,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"runtimeVlmCallPerformed\":false,"
+        << "\"cloudProviderApiCalled\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"autoRuleApplied\":false,"
+        << "\"autoProfileApplied\":false"
+        << "}"
+        << "}";
+    return out.str();
+}
+
 std::string OpsEventReviewInboxItemJson(const std::string& event_json,
                                         const OpsEventReviewState& review) {
     std::ostringstream out;
@@ -12456,6 +12595,7 @@ std::string OpsEventReviewInboxItemJson(const std::string& event_json,
         out << event_json;
     }
     out << ",\"review\":" << OpsEventReviewStateJson(review)
+        << ",\"incidentRuleSuggestionReview\":" << OpsIncidentRuleSuggestionReviewJson(event_json)
         << ",\"vlmReview\":" << OpsVlmEventReviewJson(event_json)
         << "}";
     return out.str();
@@ -12582,6 +12722,48 @@ std::vector<std::string> OpsIncidentMemoryHighlightFragments(
     return fragments;
 }
 
+std::string OpsVlmSummaryCandidateReviewJson(const std::string& search_query,
+                                             const std::string& source_id) {
+    std::string candidate_report;
+    std::string error_message;
+    bool report_ready = false;
+    if (!search_query.empty()) {
+        analysis::VlmSummarySearchOptions options;
+        options.query = search_query;
+        options.source_id = source_id;
+        options.limit = 6;
+        report_ready = analysis::BuildVlmSummarySearchCandidatesJson(
+            analysis::DefaultVlmObservationStorePath(), options, &candidate_report, &error_message);
+    }
+
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.vlm-summary-candidate-review.v1\","
+        << "\"status\":\"ops-vlm-summary-candidate-review\","
+        << "\"candidateStatus\":\"ops-manual-review-not-auto-applied\","
+        << "\"sourceCandidateSchema\":\"media-server.vlm-summary-search-candidates.v1\","
+        << "\"manualReviewRoute\":\"/ops/events\","
+        << "\"opsOnly\":true,"
+        << "\"query\":\"" << JsonEscape(search_query) << "\","
+        << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
+        << "\"sourceCandidateReport\":" << (report_ready ? candidate_report : "null") << ","
+        << "\"error\":\"" << JsonEscape(search_query.empty() ? "" : error_message) << "\","
+        << "\"contract\":{"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"runtimeVlmCallPerformed\":false,"
+        << "\"cloudProviderApiCalled\":false,"
+        << "\"autoRuleApplied\":false"
+        << "}"
+        << "}";
+    return out.str();
+}
+
 std::string OpsIncidentMemorySearchViewJson(
     const std::vector<std::string>& event_json_records,
     const std::unordered_map<std::string, OpsEventReviewState>& reviews,
@@ -12655,6 +12837,9 @@ std::string OpsIncidentMemorySearchViewJson(
         << "\"startTimeMs\":\"" << JsonEscape(start_time_ms) << "\","
         << "\"endTimeMs\":\"" << JsonEscape(end_time_ms) << "\""
         << "},"
+        << "\"vlmSummaryCandidateReview\":"
+        << OpsVlmSummaryCandidateReviewJson(search_query, source_id)
+        << ","
         << "\"hits\":[";
     for (std::size_t i = 0; i < hits.size(); ++i) {
         const auto& hit = hits[i];

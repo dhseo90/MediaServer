@@ -116,13 +116,13 @@ const pageChecks = [
     name: "ops-dashboard",
     path: "/ops/dashboard",
     visualSelector: '[data-testid="ops-dashboard-page"]',
-    must: ['data-testid="ops-dashboard-page"', 'data-testid="ops-root-cause-panel"', 'data-testid="ops-incident-timeline-panel"', 'data-testid="ops-runtime-operations-console"', 'data-testid="ops-va-quality-panel"', 'id="dashActiveSessions"', 'id="dashHealthBadges"', 'id="dashRootCauseList"', 'id="dashIncidentTimelineSearch"', 'id="dashIncidentTimelineSource"', 'id="dashIncidentTimeline"', 'option value="rule-warning"', 'option value="runtime-status"', 'dashboardRuleWarningItems', 'dashboardRuntimeStatusIncidentItems', 'data-incident-workflow', 'id="dashRuntimeOpsBadges"', 'id="dashRuntimeOpsList"', 'id="dashVaQualityFilterInput"', 'id="dashScenarioTimeline"', 'id="dashTrackingIssueGroups"', '/ops/api/runtime/status', '/ops/api/source-health', '/ops/api/rules/catalog', '라이브 소스 상태', '최근 인시던트 흐름', '런타임 운영 판독', '라이브 VA 이벤트 품질'],
+    must: ['data-testid="ops-dashboard-page"', 'data-testid="ops-root-cause-panel"', 'data-testid="ops-incident-timeline-panel"', 'data-testid="ops-runtime-operations-console"', 'data-testid="ops-runtime-trend-card"', 'data-testid="ops-va-quality-panel"', 'id="dashActiveSessions"', 'id="dashHealthBadges"', 'id="dashRuntimeTrendSparkline"', 'id="dashRuntimeTrendBaseline"', 'id="dashRootCauseList"', 'id="dashIncidentTimelineSearch"', 'id="dashIncidentTimelineSource"', 'id="dashIncidentTimeline"', 'option value="rule-warning"', 'option value="runtime-status"', 'dashboardRuleWarningItems', 'dashboardRuntimeStatusIncidentItems', 'runtimeTrendSparklineHtml', 'data-incident-workflow', 'id="dashRuntimeOpsBadges"', 'id="dashRuntimeOpsList"', 'id="dashVaQualityFilterInput"', 'id="dashScenarioTimeline"', 'id="dashTrackingIssueGroups"', '/ops/api/runtime/status', '/ops/api/source-health', '/ops/api/rules/catalog', '라이브 소스 상태', '런타임 추세', '최근 인시던트 흐름', '런타임 운영 판독', '라이브 VA 이벤트 품질'],
     mustNot: ['/lab/runtime/status'],
   },
   {
     name: "ops-events",
     path: "/ops/events",
-    must: ['data-testid="ops-events-page"', 'data-route-scope="operator-event-review"', 'data-event-review-workflow="operator-inbox"', 'Operator Event Review Inbox', 'id="opsEventsRefresh"', '/ops/api/events/status', 'data-testid="ops-events-semantic-search"', 'id="opsIncidentSearchInput"', 'id="opsIncidentSearchRows"', 'memorySearch', 'data-testid="ops-similar-incident-lookup"', 'id="opsSimilarIncidentRows"', 'similarIncidents', 'data-testid="ops-incident-timeline-graph"', 'id="opsIncidentTimelineGraphRows"', 'timelineGraph', 'data-testid="ops-explainable-incident-brief"', 'id="opsIncidentBriefRows"', 'incidentBrief', 'data-release-safe-evidence-bundle', 'release-safe bundle', 'redacted incident evidence bundle', 'data-testid="ops-alert-delivery-integrations"', 'data-alert-contract="separate-from-event-post-payload"', 'data-alert-dry-run="ops-only-no-external-delivery"', 'data-delivery-attempt-log="ops-local-attempt-log"', 'id="alertDeliverySave"', 'id="alertDeliveryDryRun"', 'id="alertDeliveryTest"', 'id="alertDeliveryPayloadPreview"', 'id="alertDeliveryDryRunResult"', '/ops/api/alerts/deliveries', '/ops/api/alerts/deliveries/dry-run', '/ops/api/alerts/deliveries/test', 'data-testid="ops-event-review-inbox"', 'data-review-state="separate-from-event-post-payload"', 'data-vlm-review-state="ops-only-event-record-evidence"', 'data-vlm-review-action-workflow="ops-only-review-state"', 'data-incident-action-workflow="ops-only-incident-state"', 'data-testid="ops-event-incident-workflow"', 'id="eventReviewStatusFilter"', 'id="eventReviewIncidentStatusFilter"', 'id="event-review-audit-list"', '/ops/api/events/reviews'],
+    must: ['data-testid="ops-events-page"', 'data-route-scope="operator-event-review"', 'data-event-review-workflow="operator-inbox"', 'Operator Event Review Inbox', 'id="opsEventsRefresh"', '/ops/api/events/status', 'data-testid="ops-events-semantic-search"', 'id="opsIncidentSearchInput"', 'id="opsIncidentSearchRows"', 'memorySearch', 'data-testid="ops-vlm-summary-candidate-review"', 'id="opsVlmSummaryCandidateRows"', 'vlmSummaryCandidateReview', 'data-testid="ops-similar-incident-lookup"', 'id="opsSimilarIncidentRows"', 'similarIncidents', 'data-testid="ops-incident-timeline-graph"', 'id="opsIncidentTimelineGraphRows"', 'timelineGraph', 'data-testid="ops-explainable-incident-brief"', 'id="opsIncidentBriefRows"', 'incidentBrief', 'data-release-safe-evidence-bundle', 'release-safe bundle', 'redacted incident evidence bundle', 'data-testid="ops-alert-delivery-integrations"', 'data-alert-contract="separate-from-event-post-payload"', 'data-alert-dry-run="ops-only-no-external-delivery"', 'data-delivery-attempt-log="ops-local-attempt-log"', 'id="alertDeliverySave"', 'id="alertDeliveryDryRun"', 'id="alertDeliveryTest"', 'id="alertDeliveryPayloadPreview"', 'id="alertDeliveryDryRunResult"', '/ops/api/alerts/deliveries', '/ops/api/alerts/deliveries/dry-run', '/ops/api/alerts/deliveries/test', 'data-testid="ops-event-review-inbox"', 'data-review-state="separate-from-event-post-payload"', 'data-vlm-review-state="ops-only-event-record-evidence"', 'data-vlm-review-action-workflow="ops-only-review-state"', 'data-testid="ops-incident-rule-suggestion-review"', 'incidentRuleSuggestionReview', 'data-incident-rule-draft-route', 'data-incident-action-workflow="ops-only-incident-state"', 'data-testid="ops-event-incident-workflow"', 'id="eventReviewStatusFilter"', 'id="eventReviewIncidentStatusFilter"', 'id="event-review-audit-list"', '/ops/api/events/reviews'],
     mustNot: ['href="/ops/events"'],
   },
   {
@@ -136,7 +136,7 @@ const pageChecks = [
     name: "ops-sources",
     path: "/ops/sources",
     visualSelector: '[data-testid="ops-sources-page"]',
-    must: ['data-testid="ops-sources-page"', 'id="channels-body"', 'id="channel-detail-panel"', 'id="channel-id-display"', 'data-generated-id="channel"', 'name="channelId" type="hidden"', 'name="kind"', 'value="onvif"', 'data-source-kind="onvif"', 'data-testid="source-group-site-management"', 'data-scope-contract="view-read-scopes-unchanged"', 'name="site"', 'name="group"', 'name="floor"', 'name="zone"', 'data-testid="onvif-probe-draft-tool"', 'id="onvifProbeDraftInput"', 'id="onvifProbeProfileSelect"', 'id="onvifProbeDraftApply"', 'name="onvifStreamUrl"', 'name="whepUrl"', "ONVIF 카메라", "ONVIF 스트림 URI", "ONVIF probe fixture", "ONVIF profile", "Probe draft 적용", "외부 WHEP URL", "Published WebRTC 소스", "발행 sourceId", "라이브 URL", "VA URL"],
+    must: ['data-testid="ops-sources-page"', 'id="channels-body"', 'id="channel-detail-panel"', 'id="channel-id-display"', 'data-generated-id="channel"', 'name="channelId" type="hidden"', 'name="kind"', 'value="onvif"', 'data-source-kind="onvif"', 'data-testid="source-group-site-management"', 'data-scope-contract="view-read-scopes-unchanged"', 'name="site"', 'name="group"', 'name="floor"', 'name="zone"', 'data-testid="onvif-probe-draft-tool"', 'data-testid="onvif-credential-gate"', 'data-credential-store="deferred-product-store"', 'data-redaction="credential-reference-only"', 'id="onvifCredentialGateStatus"', 'id="onvifProbeDraftInput"', 'id="onvifProbeProfileSelect"', 'id="onvifProbeDraftApply"', 'name="onvifStreamUrl"', 'name="whepUrl"', "ONVIF 카메라", "ONVIF 스트림 URI", "ONVIF probe fixture", "ONVIF profile", "Probe draft 적용", "primaryStoreProvider: none", "외부 WHEP URL", "Published WebRTC 소스", "발행 sourceId", "라이브 URL", "VA URL"],
     mustNot: ['AppendTableHead(', 'R"OPS(', 'WHIP Published Source ID', "Registry raw JSON", 'sources-json', 'views-json', 'client-views-json', 'data-testid="onvif-import-panel"', 'id="onvif-import-stub"', 'id="onvifImportSummary"', "ONVIF Live Source import", 'data-testid="channel-bulk-panel"', 'id="channel-bulk-select-all"', 'id="channelBulkDiagnostics"', 'data-testid="source-health-panel"', 'id="channelHealthSummary"', 'id="channelHealthDiagnostics"', 'id="channel-detail-health"', 'name="channelId" type="number"', 'inputmode="numeric" placeholder="1" required'],
   },
   {
@@ -1631,6 +1631,8 @@ function onvifPreviewToolVisibleExpression() {
       const applyButton = document.querySelector('#onvifProbeDraftApply');
       const clearButton = document.querySelector('#onvifProbeDraftClear');
       const status = document.querySelector('#onvifProbeDraftStatus');
+      const credentialGate = document.querySelector('[data-testid="onvif-credential-gate"]');
+      const credentialGateStatus = document.querySelector('#onvifCredentialGateStatus');
       const streamInput = document.querySelector('[name="onvifStreamUrl"]');
       if (!tool) issues.push('ONVIF preview tool missing');
       if (!fixtureInput) issues.push('fixture textarea missing');
@@ -1638,13 +1640,20 @@ function onvifPreviewToolVisibleExpression() {
       if (!applyButton) issues.push('apply button missing');
       if (!clearButton) issues.push('clear button missing');
       if (!status) issues.push('status node missing');
+      if (!credentialGate) issues.push('credential gate missing');
+      if (!credentialGateStatus) issues.push('credential gate status missing');
       if (!streamInput) issues.push('ONVIF stream URI input missing');
-      if (!tool || !fixtureInput || !profileSelect || !applyButton || !clearButton || !status || !streamInput) {
+      if (!tool || !fixtureInput || !profileSelect || !applyButton || !clearButton || !status || !credentialGate || !credentialGateStatus || !streamInput) {
         return { ok: false, issues, overflowX: 0, toolHeight: 0 };
       }
       if (profileSelect.disabled) issues.push('profile select is disabled after fixture input');
       if (profileSelect.value !== 'field-sub-h264') issues.push('selected profile mismatch: ' + profileSelect.value);
       if (!status.textContent.includes('Probe draft 적용')) issues.push('draft apply status missing');
+      if (credentialGate.dataset.credentialStore !== 'deferred-product-store') issues.push('credential gate store marker mismatch');
+      if (credentialGate.dataset.redaction !== 'credential-reference-only') issues.push('credential gate redaction marker mismatch');
+      if (!credentialGateStatus.textContent.includes('reference-present-redacted')) {
+        issues.push('credential gate status missing redacted reference state');
+      }
       if (String(streamInput.value || '').trim() !== 'rtsp://192.0.2.20/live/sub') {
         issues.push('drafted ONVIF stream URI mismatch: ' + streamInput.value);
       }
@@ -1660,6 +1669,8 @@ function onvifPreviewToolVisibleExpression() {
         ['applyButton', applyButton],
         ['clearButton', clearButton],
         ['status', status],
+        ['credentialGate', credentialGate],
+        ['credentialGateStatus', credentialGateStatus],
         ['streamInput', streamInput],
       ]) {
         const rect = element.getBoundingClientRect();

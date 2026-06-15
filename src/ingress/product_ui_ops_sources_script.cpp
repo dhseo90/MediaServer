@@ -25,6 +25,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     const onvifProbeDraftApplyButton = document.querySelector('#onvifProbeDraftApply');
     const onvifProbeDraftClearButton = document.querySelector('#onvifProbeDraftClear');
     const onvifProbeDraftStatus = document.querySelector('#onvifProbeDraftStatus');
+    const onvifCredentialGateStatus = document.querySelector('#onvifCredentialGateStatus');
     const streamRoute = ")OPSSOURCES" << stream_route_json << R"OPSSOURCES(";
     const rtspPort = )OPSSOURCES" << rtsp_port << R"OPSSOURCES(;
     let loadedSources = [];
@@ -70,6 +71,19 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     const setOnvifProbeDraftStatus = (message, failed = false) => {
       setFeedback(onvifProbeDraftStatus, message, failed, { collapseEmpty: true });
     };
+    function renderOnvifCredentialGate(gate = null) {
+      const provider = String(gate?.primaryStoreProvider || 'none').trim() || 'none';
+      const decision = String(gate?.primaryStoreDecision || 'defer-product-persistent-store').trim() ||
+        'defer-product-persistent-store';
+      const referenceStatus = String(gate?.credentialReferenceStatus || 'reference-absent').trim() ||
+        'reference-absent';
+      setFeedback(
+        onvifCredentialGateStatus,
+        `primaryStoreProvider: ${provider} / ${decision} / ${referenceStatus}`,
+        false,
+        { collapseEmpty: false }
+      );
+    }
     const opsPrincipalScopes = () => Array.isArray(opsPrincipal?.scopes) ? opsPrincipal.scopes.map(item => String(item || '')) : [];
     const opsPrincipalHasScope = scope => opsPrincipal?.role === 'admin' || opsPrincipalScopes().includes('*') || opsPrincipalScopes().includes(scope);
     const canWriteSources = () => opsPrincipalHasScope('source:write');
@@ -658,6 +672,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       setOnvifProbeDraftStatus(
         `Probe draft 적용: 채널 #${channelId}${profileText ? ` (${profileText})` : ''}`
       );
+      renderOnvifCredentialGate(payload?.credentialGate);
       setStatus('');
       showToast(`ONVIF probe draft 적용 완료: 채널 #${channelId}`);
     }
@@ -711,6 +726,9 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       if (kind === 'onvif' && !onvifTransportFromUri(data.onvifStreamUrl)) {
         return 'ONVIF 스트림 URI는 rtsp://, rtsps://, http://, https:// 중 하나로 시작해야 합니다.';
       }
+      if (kind === 'onvif' && uriContainsAuthorityCredential(data.onvifStreamUrl)) {
+        return 'ONVIF stream URI에는 username/password를 포함할 수 없습니다.';
+      }
       return '';
     }
     function onvifTransportFromUri(value) {
@@ -723,6 +741,17 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         return { kind: lower.includes('.m3u8') ? 'hls' : 'http', httpUrl: uri };
       }
       return null;
+    }
+    function uriContainsAuthorityCredential(value) {
+      const uri = String(value || '').trim();
+      const marker = uri.indexOf('://');
+      if (marker < 0) return false;
+      const authorityStart = marker + 3;
+      const authorityEndValues = ['/', '?', '#']
+        .map(ch => uri.indexOf(ch, authorityStart))
+        .filter(index => index >= 0);
+      const authorityEnd = authorityEndValues.length ? Math.min(...authorityEndValues) : uri.length;
+      return uri.slice(authorityStart, authorityEnd).includes('@');
     }
     function channelPayloadsFromFormData(data) {
       const channelId = data.channelId.trim();
@@ -899,11 +928,13 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     onvifProbeDraftClearButton?.addEventListener('click', () => {
       onvifProbeDraftInput.value = '';
       renderOnvifProbeProfiles(null);
+      renderOnvifCredentialGate();
       setOnvifProbeDraftStatus('');
     });
     document.querySelector('#refresh').addEventListener('click', () => loadAll().catch(error => setStatus(error.message, true)));
     document.querySelector('#channel-audit-refresh')?.addEventListener('click', () => renderOpsAuditTrail('channel-audit-list', 'channels'));
     renderOpsAuditTrail('channel-audit-list', 'channels');
+    renderOnvifCredentialGate();
     loadAll().catch(error => setStatus(error.message, true));
   </script>
 )OPSSOURCES";

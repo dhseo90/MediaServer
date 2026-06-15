@@ -176,7 +176,7 @@ check("docs capture covers current screenshots", () => {
     assert(i18n.includes(snippet), `product English i18n is missing screenshot-visible copy: ${snippet}`);
   }
   assert(policy.includes("제품 shell 설명용"), "docs/assets/ui/README.md must describe screenshots as representative shell assets");
-  assert(policy.includes("공개 릴리즈 증거로 쓰지 않습니다"), "docs/assets/ui/README.md must not describe screenshots as v2.5.0 publication evidence");
+  assert(policy.includes("공개 릴리즈 증거로 쓰지 않습니다"), "docs/assets/ui/README.md must not describe screenshots as publication evidence");
 });
 
 check("representative screenshot docs do not point at stale visual baselines", () => {
