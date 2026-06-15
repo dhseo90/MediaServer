@@ -3386,6 +3386,9 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (normalizedType === 'zone-occupancy') {
           return '점유 preset은 polygon이 병목 구간만 포함한다는 전제입니다. 정상 피크에서 confirmed가 반복되면 threshold를 올리세요.';
         }
+        if (normalizedType === 're-entry') {
+          return '지정 영역 기준은 source zone 이탈 후 reEntryZoneIds destination 진입을 보는 A→B 후보입니다. Event/metadata schema는 그대로 유지합니다.';
+        }
         return 'Preset은 시작값입니다. 저장 전 현장 영상, geometry, 대상 객체를 확인하세요.';
       }
       function opsEventRulePresetVisible(mode, type) {
@@ -6227,7 +6230,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           const windowLabel = opsRulesMsLabel(scenario?.reEntryWindowMs);
           if (windowLabel) details.push(`window ${windowLabel}`);
           if (scenario?.reEntryMode) {
-            details.push(scenario.reEntryMode === 'configured-zones' ? '지정 영역' : '같은 영역');
+            details.push(scenario.reEntryMode === 'configured-zones' ? 'A→B 지정 영역' : '같은 영역');
           }
           const zones = opsRulesZoneIdSummary(scenario?.reEntryZoneIds || []);
           if (zones) details.push(`재진입 ${zones}`);

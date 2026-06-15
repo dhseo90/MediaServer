@@ -428,6 +428,9 @@ Idle -> Candidate -> Observing -> Confirmed -> Cooldown -> Ended
 ### ReEntry
 
 같은 track이 target zone을 이탈한 뒤 설정 window 안에 같은 zone으로 재진입하면 `re-entry` 이벤트를 1회 발생시킵니다.
+`configured-zones` 후보에서는 source zone A를 이탈한 같은 track이 `reEntryZoneIds`
+destination zone B에 window 안에 들어오는 A→B 흐름도 같은 `re-entry` event type으로
+확정합니다.
 
 흐름:
 
@@ -447,9 +450,9 @@ Inside -> Exited -> ReEntryCandidate -> Confirmed -> Cooldown -> Ended
 | unstable track exclude | 불안정 track 후보 제외 |
 
 `지정 zone`은 저장 payload의 `targetZoneIds`/`reEntryZoneIds`에
-대상 zone 목록을 명시합니다.
-현재 1차 UI는 같은-zone 재진입 대상을 명시하는 범위입니다.
-cross-zone A→B 재진입 판단은 후속 ScenarioEngine 확장입니다.
+source/destination zone 목록을 명시합니다.
+기본 `same-zone`은 기존 동작을 유지하고, `configured-zones`는 A→B 재진입 후보를
+운영자 검토용 rule UI 기준으로 노출합니다.
 기존 Event POST payload schema, WebRTC/SSE/WS metadata schema,
 scenario event type은 변경하지 않습니다.
 

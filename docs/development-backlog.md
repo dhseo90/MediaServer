@@ -44,7 +44,7 @@ VLM summary/rule suggestion 후보를 Ops-only manual review 흐름으로 승격
 | 2 | V260-S02 | P1 | 완료 | Rule suggestion review | Rule suggestion 후보를 incident-to-rule manual review/draft workflow로 연결 | `/ops/events` review item이 matching sidecar rule suggestion을 Ops-only 검토 카드로 표시하고 `/ops/rules` draft-only manual save workflow로만 연결 | `verify-vlm-rule-suggestion-candidates`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-v260-rule-suggestion-review`, `verify-ops-client-ui --browser-mode static`, `verify-rule-ui`, auth/Event POST/WS metadata guard |
 | 3 | V260-S03 | P1 | 완료 | ONVIF credential gate | ONVIF credential binding/store gate 설계와 redaction guard | `primaryStoreProvider: none`, fallback `in-memory-fixture`, `source:write` gate, URL credential reject, draft `credentialGate` redaction summary를 고정 | `verify-v260-onvif-credential-gate`, `verify-onvif-credential-reference-policy`, auth/scope verifier, ONVIF draft/redaction fixture |
 | 4 | V260-S04 | P2 | 완료 | Runtime dashboard trends | Runtime dashboard baseline/sparkline 고도화 후보 | 장기 녹화 없이 `/ops/dashboard`가 page-session-only runtime/VA 상태 추세를 운영 card로 요약 | `verify-v260-runtime-dashboard-trends`, `verify-va-runtime-console`, dashboard UI smoke, metadata schema guard, 장시간 테스트는 별도 승인 |
-| 5 | V260-S05 | P2 | 예정 | Scenario extension | ScenarioEngine cross-zone re-entry 후보 | 기존 event/schema를 유지하면서 A→B 재진입 판단 후보와 rule UI 기준 정리 | `verify-analysis-state`, `verify-va-replay`, `verify-rule-ui`, schema guard |
+| 5 | V260-S05 | P2 | 완료 | Scenario extension | ScenarioEngine cross-zone re-entry 후보 | 기존 event/schema를 유지하면서 A→B 재진입 판단 후보와 rule UI 기준 정리 | `verify-v260-scenario-cross-zone-reentry`, `verify-analysis-state`, `verify-va-replay`, `verify-rule-ui`, schema guard |
 | 6 | V260-S06 | P2 | 예정 | 릴리즈 준비 | v2.6.0 소유권 분리/릴리즈 준비 | feature inventory, UI criteria, release readiness gate, not-run/excluded 경계 정리 | local readiness verifier, `verify-release-metadata`, docs links/assets, UI/longrun은 별도 evidence |
 
 ## v2.6.0 S01 개발 기록
@@ -94,6 +94,19 @@ VLM summary/rule suggestion 후보를 Ops-only manual review 흐름으로 승격
 - 검증: `./server.sh build`, `verify-v260-runtime-dashboard-trends`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-ops-client-ui --browser-mode static`, `verify-ops-client-ui --browser-mode static --screenshots`, `verify-va-runtime-console`, `verify-ws-metadata`, `verify-va-metadata-sidechannel`, `verify-webrtc-va-metadata`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `git diff --check`.
 - 수정한 이슈: 최초 S04 verifier는 roadmap/UI/script/CSS/inventory wiring 누락으로 실패했습니다. verifier의 `120분 PASS` 금지 패턴이 “PASS로 보고하지 않는다” 문구까지 잡는 오탐을 내서 금지 문구를 정확히 좁힌 뒤 다시 RED를 확인했습니다. auth verifier는 최초 env 미지정으로 시작 전 실패했고, 일회성 test operator env를 넣은 뒤 sandbox 포트 바인딩 실패가 발생해 승인 실행으로 재검증했습니다.
 - 미실행/비대체: UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, Runtime Dashboard longrun/cycle evidence, persistent trend store, server trend API, client/viewer trend 노출, GitHub Release publish는 S04 완료 근거가 아닙니다.
+
+## v2.6.0 S05 개발 기록
+
+- `include/analysis/re_entry_scenario.h`, `src/analysis/re_entry_scenario.cpp`: `re_entry_mode`, `re_entry_zone_ids`, source/destination zone 필터를 추가해 기본 `same-zone`은 유지하고 `configured-zones`에서 source zone A 이탈 후 destination zone B 진입 후보를 기존 `re-entry` event type으로 확정합니다.
+- `src/analysis/event_rule_engine.cpp`: 저장 rule scenario payload의 기존 `reEntryMode`와 `reEntryZoneIds`를 ReEntryScenario runtime option으로 연결했습니다.
+- `scripts/internal/analysis_state_smoke.cpp`: `configured-zones` A→B positive case와 destination 밖 negative case를 추가했습니다.
+- `test/fixtures/va_replay/re_entry_cross_zone_*`, `scripts/internal/verify_va_replay_baselines.sh`: A→B cross-zone replay fixture와 expected EventRecord `zoneId=destination-zone` case를 `verify-va-replay` baseline에 추가했습니다.
+- `src/ingress/webrtc_http_server.cpp`, `src/ingress/product_ui_page_scripts.cpp`: `/ops/rules` ReEntry 기준 select/condition summary/preset warning에 `지정 영역 A→B 후보`와 source/destination 기준을 표시했습니다.
+- `scripts/internal/verify_v260_scenario_cross_zone_reentry.mjs`, `server.sh`: S05 C++ option/parser, analysis-state, va-replay fixture, UI/docs/inventory wiring, schema/media/client 비범위를 검증하는 명령을 추가했습니다.
+- `docs/video-analysis.md`, `docs/ui-guide.md`, `docs/config-reference.md`, `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`: S05 candidate 범위, UI 기준, inventory `UI-049`/`RULE-103`/`EVT-049`/`LAB-073`/`SAFE-056`, command catalog를 갱신했습니다.
+- 검증: `verify-analysis-state` RED 후 구현, `./server.sh build`, `verify-v260-scenario-cross-zone-reentry`, `verify-analysis-state`, `verify-va-replay`, `verify-rule-ui` Chrome fallback smoke, `verify-event-post --mode schema`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-docs-links`, `git diff --check`를 실행했습니다.
+- 수정한 이슈: 새 replay fixture는 EventRuleEngine output은 정상 생성했지만 direct ScenarioEngine metric까지 expected로 요구해 최초 실패했습니다. S05 evidence 범위가 rule replay EventRecord 후보임을 반영해 expected에서 direct metric 요구를 제거하고 재검증했습니다. `verify-rule-ui` 기본 실행은 Codex 인앱 evidence 파일이 없어 시작 전 실패했고, 실행 중인 auth-off 서버와 명시 Chrome fallback으로 보조 smoke를 재실행해 통과했습니다. `verify-event-post --mode schema`는 dispatcher disabled 서버에서 사전조건 실패 후 `MEDIA_SERVER_ANALYSIS_EVENT_POST_ENABLED=1` 서버로 재실행해 통과했습니다.
+- 미실행/비대체: UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, 새 event type, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경, client/viewer 노출, GitHub Release publish는 S05 완료 근거가 아닙니다.
 
 ## v2.6.0 publish/test 제외 경계
 

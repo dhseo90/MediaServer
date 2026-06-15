@@ -1218,6 +1218,52 @@ void VerifyReEntryScenario() {
     Pass("ReEntryScenario emits re-entry candidate");
     Pass("ReEntryScenario enforces cooldown");
     Pass("ReEntryScenario enforces re-entry window");
+
+    ReEntryScenarioOptions cross_zone_options;
+    cross_zone_options.enabled = true;
+    cross_zone_options.re_entry_window_ms = 4000;
+    cross_zone_options.cooldown_ms = 1000;
+    cross_zone_options.target_class_tokens = {"person"};
+    cross_zone_options.target_zone_ids = {"restricted-a"};
+    cross_zone_options.re_entry_mode = "configured-zones";
+    cross_zone_options.re_entry_zone_ids = {"restricted-b"};
+
+    ScenarioEngine cross_zone_engine(engine_options);
+    cross_zone_engine.RegisterScenario(std::make_unique<ReEntryScenario>(cross_zone_options));
+    EventManager cross_zone_events;
+
+    auto cross_zone_exit = MakeTrackContext(9, 1000, false, 0, "restricted-a");
+    cross_zone_exit.zone_state.previous_zone = "restricted-a";
+    cross_zone_exit.zone_state.exited_at_ns = Ms(1000);
+    cross_zone_exit.zone_state.exited_at_ms = 1000;
+    cross_zone_exit.zone_state.changed = true;
+    cross_zone_exit.zone_states[0] = cross_zone_exit.zone_state;
+    events = cross_zone_engine.Evaluate(MakeSceneContext(1000, {cross_zone_exit}), &cross_zone_events);
+    Expect(events.empty(), "Cross-zone ReEntry must record source zone exit without emitting");
+
+    events = cross_zone_engine.Evaluate(
+        MakeSceneContext(2500, {MakeTrackContext(9, 2500, true, 0, "restricted-b")}),
+        &cross_zone_events);
+    Expect(events.size() == 1 && events[0].event_type == "re-entry" &&
+               events[0].track_id == 9 && events[0].zone_id == "restricted-b",
+           "Cross-zone ReEntry must emit when a track exits A and enters configured B inside the window");
+
+    auto wrong_destination_exit = MakeTrackContext(10, 1000, false, 0, "restricted-a");
+    wrong_destination_exit.zone_state.previous_zone = "restricted-a";
+    wrong_destination_exit.zone_state.exited_at_ns = Ms(1000);
+    wrong_destination_exit.zone_state.exited_at_ms = 1000;
+    wrong_destination_exit.zone_state.changed = true;
+    wrong_destination_exit.zone_states[0] = wrong_destination_exit.zone_state;
+    events = cross_zone_engine.Evaluate(MakeSceneContext(1000, {wrong_destination_exit}),
+                                        &cross_zone_events);
+    Expect(events.empty(), "Cross-zone ReEntry wrong-destination setup must not emit");
+    events = cross_zone_engine.Evaluate(
+        MakeSceneContext(2500, {MakeTrackContext(10, 2500, true, 0, "restricted-c")}),
+        &cross_zone_events);
+    Expect(events.empty(), "Cross-zone ReEntry must ignore destinations outside reEntryZoneIds");
+
+    Pass("ReEntryScenario emits configured cross-zone re-entry candidate");
+    Pass("ReEntryScenario filters configured cross-zone destinations");
 }
 
 LineCrossState MakeLineState(const std::string& line_id,

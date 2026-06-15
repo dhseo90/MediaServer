@@ -1,0 +1,72 @@
+{
+  "frames": [
+    {
+      "streamId": "baseline-re-entry-cross-zone",
+      "channelId": "baseline-re-entry-cross-zone",
+      "frameId": 1,
+      "timestampMs": 1000,
+      "objects": [
+        {
+          "trackId": 72,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.95,
+          "bbox": { "x": 0.15, "y": 0.15, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.2, "y": 0.2 },
+          "direction": "right"
+        }
+      ]
+    },
+    {
+      "streamId": "baseline-re-entry-cross-zone",
+      "channelId": "baseline-re-entry-cross-zone",
+      "frameId": 2,
+      "timestampMs": 2000,
+      "objects": [
+        {
+          "trackId": 72,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.95,
+          "bbox": { "x": 0.5, "y": 0.15, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.55, "y": 0.2 },
+          "direction": "right"
+        }
+      ]
+    },
+    {
+      "streamId": "baseline-re-entry-cross-zone",
+      "channelId": "baseline-re-entry-cross-zone",
+      "frameId": 3,
+      "timestampMs": 3200,
+      "objects": [
+        {
+          "trackId": 72,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.95,
+          "bbox": { "x": 0.72, "y": 0.15, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.77, "y": 0.2 },
+          "direction": "right"
+        }
+      ]
+    },
+    {
+      "streamId": "baseline-re-entry-cross-zone",
+      "channelId": "baseline-re-entry-cross-zone",
+      "frameId": 4,
+      "timestampMs": 3400,
+      "objects": [
+        {
+          "trackId": 72,
+          "classId": 0,
+          "className": "person",
+          "confidence": 0.95,
+          "bbox": { "x": 0.74, "y": 0.15, "width": 0.1, "height": 0.1 },
+          "center": { "x": 0.79, "y": 0.2 },
+          "direction": "right"
+        }
+      ]
+    }
+  ]
+}

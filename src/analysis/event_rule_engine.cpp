@@ -845,6 +845,10 @@ std::vector<std::unique_ptr<IScenario>> BuildRuleRuntimeScenarios(
             options.require_stable_track = require_stable_track;
             options.target_class_tokens = ScenarioTargetClasses(document, *rule, options.target_class_tokens);
             options.target_zone_ids = zone_ids;
+            options.re_entry_mode =
+                ToLower(Trim(ParseStringField(scenario, "reEntryMode").value_or(options.re_entry_mode)));
+            options.re_entry_zone_ids =
+                ParseStringListFromFields(scenario, {"reEntryZoneIds"}, {"reEntryZoneId"});
             if (const auto value = ParseNonNegativeIntField(scenario, "reEntryWindowMs"); value.has_value()) {
                 options.re_entry_window_ms = *value;
             }

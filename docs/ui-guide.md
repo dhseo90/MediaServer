@@ -903,10 +903,9 @@ ReEntry UI 정책:
 
 - 같은 track이 polygon zone을 이탈한 뒤 `reEntryWindowMs` 안에 같은 zone으로 다시 들어오면 `re-entry` scenario event를 1회 발생시킵니다.
 - `같은 zone`은 현재 그린 polygon 또는 `targetZoneIds`로 저장된 zone을 그대로 사용합니다.
-- `지정 zone`은 `targetZoneIds`/`reEntryZoneIds`에 대상 zone 목록을 명시합니다.
-  현재 1차 UI는 같은-zone 재진입을 명시하는 용도입니다.
-  cross-zone A→B 재진입 판단은 후속 ScenarioEngine 확장 범위입니다.
-- Event POST payload schema, WebRTC/SSE/WS metadata schema, ScenarioEngine 판단 로직은 변경하지 않습니다.
+- `지정 zone`은 `targetZoneIds`를 source zone, `reEntryZoneIds`를 destination zone으로 명시합니다.
+  `configured-zones` 기준은 A→B 재진입 후보를 만들되 event type은 기존 `re-entry`를 그대로 사용합니다.
+- Event POST payload schema, WebRTC/SSE/WS metadata schema는 변경하지 않습니다.
 
 WrongDirection UI 정책:
 

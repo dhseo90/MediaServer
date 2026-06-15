@@ -1,0 +1,61 @@
+[
+  {
+    "id": "source-zone",
+    "enabled": true,
+    "match": {
+      "sourceKind": "*",
+      "route": "*"
+    },
+    "ruleKind": "scenario",
+    "analysis": {
+      "classes": ["person"]
+    },
+    "event": {
+      "type": "re-entry",
+      "minConfidence": 0.1,
+      "region": {
+        "type": "polygon",
+        "points": [
+          { "x": 0.1, "y": 0.1 },
+          { "x": 0.4, "y": 0.1 },
+          { "x": 0.4, "y": 0.5 },
+          { "x": 0.1, "y": 0.5 }
+        ]
+      }
+    },
+    "scenario": {
+      "type": "re-entry",
+      "enabled": true,
+      "reEntryMode": "configured-zones",
+      "reEntryZoneIds": ["destination-zone"],
+      "reEntryWindowMs": 3000,
+      "cooldownMs": 1000,
+      "targetClasses": ["person"]
+    }
+  },
+  {
+    "id": "destination-zone",
+    "enabled": true,
+    "match": {
+      "sourceKind": "*",
+      "route": "*"
+    },
+    "analysis": {
+      "classes": ["person"]
+    },
+    "event": {
+      "type": "presence",
+      "minConfidence": 0.99,
+      "minDurationMs": 0,
+      "region": {
+        "type": "polygon",
+        "points": [
+          { "x": 0.7, "y": 0.1 },
+          { "x": 0.9, "y": 0.1 },
+          { "x": 0.9, "y": 0.5 },
+          { "x": 0.7, "y": 0.5 }
+        ]
+      }
+    }
+  }
+]

@@ -631,7 +631,9 @@ BoT-SORT/DeepSORT의 dependency/privacy/bundle research 경계는
 ReEntry 상태:
 
 - 룰 편집 UI에서 선택 가능
-- Event POST payload schema, WebRTC/SSE/WS metadata schema, ScenarioEngine 판단 로직 변경 없음
+- 기본 `same-zone` 판단은 유지
+- 저장 scenario payload의 `reEntryMode=configured-zones`와 `reEntryZoneIds`를 사용하면 A→B cross-zone 재진입 후보를 판단
+- Event POST payload schema, WebRTC/SSE/WS metadata schema 변경 없음
 
 ### WrongDirection
 

@@ -3346,7 +3346,7 @@ void AppendOpsRulesPage(std::ostringstream& out) {
               <label id="opsEventRuleReEntryModeField" hidden>재진입 기준
                 <select id="opsEventRuleReEntryModeSelect" aria-label="재진입 기준">
                   <option value="same-zone">같은 영역</option>
-                  <option value="configured-zones">지정 영역</option>
+                  <option value="configured-zones">지정 영역 A→B 후보</option>
                 </select>
               </label>
               <label id="opsEventRuleLineDelayField" hidden>라인 후 최대 지연(ms)
