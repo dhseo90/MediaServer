@@ -67,10 +67,12 @@ const report = {
 const version = readText("VERSION").trim();
 assert(/^\d+\.\d+\.\d+$/.test(version), `VERSION must be semver, got ${version}`);
 const currentTag = `v${version}`;
-const latestPublishedTag = "v2.5.0";
+const latestPublishedTag = currentTag;
 const latestPublishedVersion = latestPublishedTag.replace(/^v/, "");
 const currentRoadmap = `${currentTag} Operational Hardening & Incident Memory Productization`;
-const latestPublishedBaseline = `${latestPublishedTag} Semantic Incident Memory`;
+const latestPublishedBaseline = currentRoadmap;
+const previousPublishedTag = "v2.5.0";
+const previousPublishedBaseline = `${previousPublishedTag} Semantic Incident Memory`;
 const githubRepository = resolveGithubRepository();
 const repositoryUrl = `https://github.com/${githubRepository}`;
 const expectedReleaseUrl = `https://github.com/${githubRepository}/releases/tag/${latestPublishedTag}`;
@@ -322,7 +324,8 @@ check("versioning policy separates source version and published release", () => 
     `현재 source roadmap: \`${currentRoadmap}\``,
     `최신 공개 GitHub Release: \`${latestPublishedBaseline}\``,
     `${latestPublishedTag} 공개 상태: source-only GitHub Release`,
-    `\`${version}\`은 아직\nGitHub Release로 publish되지 않았으며`,
+    `현재 소스 트리의 \`${version}\` roadmap은 ${previousPublishedTag} source-only/live-only incident memory`,
+    `## ${latestPublishedVersion} published source-only release 범위`,
   ]) {
     assert(doc.includes(snippet), `docs/versioning-policy.md missing snippet: ${snippet}`);
   }
@@ -348,9 +351,9 @@ check("release policy separates source version and published release", () => {
     `최신 공개 GitHub Release: \`${latestPublishedTag}\``,
     `\`${latestPublishedTag}\` 공개 상태: source-only GitHub Release`,
     `현재 source roadmap은 \`${currentRoadmap}\`입니다.`,
-    `\`${currentTag}\`은 아직 GitHub Release로 publish되지 않았습니다.`,
+    `현재 latest published release는 \`${latestPublishedTag}\`입니다.`,
     `현재 공개 release tag 기준은 \`${latestPublishedTag}\`입니다.`,
-    `다음 준비 중인 source tag 기준은 \`${currentTag}\`입니다.`,
+    "다음 준비 중인 source tag 기준은 미정입니다.",
   ]) {
     assert(doc.includes(snippet), `docs/release-policy.md missing snippet: ${snippet}`);
   }
@@ -395,7 +398,7 @@ check("development backlog pins current source roadmap and public release bounda
     "ONVIF credential binding/store gate 설계와 redaction guard",
     "Runtime dashboard baseline/sparkline 고도화 후보",
     "ScenarioEngine cross-zone re-entry 후보",
-    `## 직전 공개 기준: ${latestPublishedTag} Source Release Baseline`,
+    `## 직전 공개 기준: ${previousPublishedTag} Source Release Baseline`,
     "## 완료 roadmap: v2.5.0 Semantic Incident Memory",
     "Operator Event Review & Action",
     "기존 네 영역인 안정화 테스트, 30분 테스트, 120분 테스트, UI 풀테스트",
@@ -405,7 +408,7 @@ check("development backlog pins current source roadmap and public release bounda
   }
   assert(/\| 0 \| V260-S00 \| P0 \| (진행|완료) \| v2\.6\.0 baseline \| v2\.6\.0 branch\/source-of-truth 정렬 \|/.test(doc),
     "docs/development-backlog.md V260-S00 row must be 진행 or 완료");
-  return { file: "docs/development-backlog.md", currentTag, latestPublishedTag };
+  return { file: "docs/development-backlog.md", currentTag, latestPublishedTag, previousPublishedTag };
 });
 
 check("docs index points to backlog as current release source of truth", () => {
@@ -449,14 +452,14 @@ check("public entry docs keep release evidence source-of-truth deduped", () => {
     "현재 source roadmap",
     currentRoadmap,
     latestPublishedBaseline,
-    "Semantic Incident Memory",
+    previousPublishedBaseline,
     "release-policy.md",
   ]) {
     assert(docsIndex.includes(snippet), `docs/README.md missing source-of-truth link snippet: ${snippet}`);
   }
   assert(releasePolicy.includes("## v2.6.0 Source Roadmap Scope"), "release policy must own the v2.6.0 source roadmap boundary");
   assert(backlog.includes(`## 현재 source roadmap: ${currentRoadmap}`), `development backlog must own the ${currentTag} source roadmap`);
-  assert(backlog.includes(`최신 공개 릴리즈입니다.`), "development backlog must preserve latest published release boundary");
+  assert(backlog.includes(`직전 공개 릴리즈입니다.`), "development backlog must preserve previous published release boundary");
   return {
     publicEntrypoints: ["README.md", "README.en.md"],
     sourceOfTruth: ["docs/README.md", "docs/development-backlog.md", "docs/release-policy.md"],

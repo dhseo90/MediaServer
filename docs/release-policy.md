@@ -7,11 +7,10 @@
 ## 현재 공개 상태
 
 - 현재 소스 버전: `2.6.0`
-- 최신 공개 GitHub Release: `v2.5.0`
-- `v2.5.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
+- 최신 공개 GitHub Release: `v2.6.0`
+- `v2.6.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
 - 현재 source roadmap은 `v2.6.0 Operational Hardening & Incident Memory Productization`입니다.
-- `v2.6.0`은 아직 GitHub Release로 publish되지 않았습니다.
 
 ## 기본 공개 범위
 
@@ -113,7 +112,7 @@ published metadata, release branch 삭제, Next branch sync는 각각 실행 evi
 - ScenarioEngine cross-zone re-entry 후보
 
 `v2.6.0` publish 완료 여부는 tag, GitHub Release, published metadata 검증 evidence가
-있을 때만 완료로 기록합니다. 현재 latest published release는 `v2.5.0`입니다.
+있을 때만 완료로 기록합니다. 현재 latest published release는 `v2.6.0`입니다.
 
 ## v2.6.0 소유권 분리 / 릴리즈 준비 게이트
 
@@ -141,16 +140,16 @@ Not-run/excluded boundary:
 - UI 풀테스트 직접 조작 미실행은 `verify-v260-owner-release-readiness` PASS로 대체하지 않습니다.
 - 30분 테스트 미실행은 local readiness PASS가 아닙니다.
 - 120분 테스트 미실행은 local readiness PASS가 아닙니다.
-- tag/push/GitHub Release manual-not-run 상태는 S06 gate PASS 후에도 그대로 유지합니다.
+- tag/push/GitHub Release 실행은 S06 gate PASS로 대체하지 않습니다.
 - `verify-release-metadata --published` 미실행 상태는 GitHub Release publish 전에는 PASS로 기록하지 않습니다.
 - PR merge/main sync/후속 브랜치 생성은 별도 명시 승인과 실행 evidence가 있을 때만 완료로 기록합니다.
 - ONVIF 실기기, external TURN/WHEP, real cloud/VLM provider 호출은 endpoint/credential/승인 없이는 제외 상태입니다.
 
 ## Tag 전략
 
-- 현재 공개 release tag 기준은 `v2.5.0`입니다.
-- 다음 준비 중인 source tag 기준은 `v2.6.0`입니다.
-- `v2.5.0` release tag는 signed annotated tag로 생성합니다.
+- 현재 공개 release tag 기준은 `v2.6.0`입니다.
+- 다음 준비 중인 source tag 기준은 미정입니다.
+- `v2.6.0` release tag는 signed annotated tag로 생성합니다.
 - 다음 신규 release tag는 signed annotated tag로 생성합니다.
 - unsigned annotated tag와 lightweight tag는 새 release tag로 사용하지 않습니다.
 - tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만

@@ -6,9 +6,10 @@ points to the current public sources.
 
 ## Current Status
 
-- Latest published GitHub Release: [v2.5.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.5.0)
+- Latest published GitHub Release: [v2.6.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.6.0)
+- Previous published baseline: `v2.5.0 Semantic Incident Memory`
 - Current source version: `2.6.0`
-- v2.5.0 public status: source-only GitHub Release. Binary, runtime, and model
+- v2.6.0 public status: source-only GitHub Release. Binary, runtime, and model
   bundles are not included.
 - Current source roadmap: `v2.6.0 Operational Hardening & Incident Memory Productization`
 - Default public distribution: source-only

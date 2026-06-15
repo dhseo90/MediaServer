@@ -7,17 +7,17 @@
 
 - 현재 소스 버전: `2.6.0`
 - 현재 source roadmap: `v2.6.0 Operational Hardening & Incident Memory Productization`
-- 최신 공개 GitHub Release: `v2.5.0 Semantic Incident Memory`
-- v2.5.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
+- 최신 공개 GitHub Release: `v2.6.0 Operational Hardening & Incident Memory Productization`
+- v2.6.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
 
 현재 소스 트리의 `2.6.0` roadmap은 v2.5.0 source-only/live-only incident memory
-baseline 위에서 운영 productization과 hardening 후보를 정리합니다. `2.6.0`은 아직
-GitHub Release로 publish되지 않았으며, latest published release는 `v2.5.0`입니다.
+baseline 위에서 운영 productization과 hardening 후보를 정리한 published source-only
+GitHub Release입니다.
 기본 공개 형태는 계속 source-only이며 binary/runtime/model bundle을 공개 asset으로
 포함하지 않습니다.
 
-## 2.6.0 source roadmap 범위
+## 2.6.0 published source-only release 범위
 
 - v2.6.0 source-of-truth/bootstrap 정렬
 - VLM summary candidate의 Ops-only incident memory productization
@@ -30,7 +30,7 @@ GitHub Release로 publish되지 않았으며, latest published release는 `v2.5.
 tag, 30분/120분 장시간 테스트, UI 풀테스트, 외부 field smoke는 별도 실행 evidence가
 있을 때만 완료로 씁니다.
 
-## v2.5.0 published source-only release 포함 범위
+## v2.5.0 historical published source-only release 포함 범위
 
 - Apache-2.0 source code, 문서, 설정 예시, 검증 스크립트
 - RTSP/WebRTC relay, Ops/Client UI, Auth/Role/Scope, Rule/Profile/Scenario
@@ -60,11 +60,11 @@ tag, 30분/120분 장시간 테스트, UI 풀테스트, 외부 field smoke는 �
 
 ## Tag와 GitHub Release 기준
 
-- 현재 공개 release tag 기준: `v2.5.0`
-- 다음 준비 중인 source tag 기준: `v2.6.0`
+- 현재 공개 release tag 기준: `v2.6.0`
+- 다음 준비 중인 source tag 기준: 미정
 - source-only release 기준 tag는 public readiness, bundle policy, required Actions가
   통과한 `main` 커밋에만 붙입니다.
-- `v2.5.0` release tag는 signed annotated tag로 생성합니다.
+- `v2.6.0` release tag는 signed annotated tag로 생성합니다.
 - 다음 신규 release tag는 signed annotated tag로 생성합니다.
 - unsigned annotated tag와 lightweight tag는 새 release tag로 사용하지 않습니다.
 - tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만 붙입니다.

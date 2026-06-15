@@ -11,11 +11,10 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 ## 현재 공개 상태
 
 - 현재 소스 버전: `2.6.0`
-- 최신 공개 GitHub Release: `v2.5.0`
-- `v2.5.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
+- 최신 공개 GitHub Release: `v2.6.0`
+- `v2.6.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
 - 현재 source roadmap: `v2.6.0 Operational Hardening & Incident Memory Productization`
-- `v2.6.0`은 아직 GitHub Release로 publish되지 않았습니다.
 
 ## 현재 source roadmap: v2.6.0 Operational Hardening & Incident Memory Productization
 
@@ -39,7 +38,7 @@ VLM summary/rule suggestion 후보를 Ops-only manual review 흐름으로 승격
 
 | Step | ID | Priority | 상태 | 묶음 | 개발 내용 | 완료 산출물 | 검증/evidence 경계 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 0 | V260-S00 | P0 | 완료 | v2.6.0 baseline | v2.6.0 branch/source-of-truth 정렬 | VERSION/CMake/README/docs index/release metadata가 source `2.6.0`, latest published `v2.5.0`을 분리함 | roadmap review, `verify-release-metadata`, `verify-docs-links`, `git diff --check` |
+| 0 | V260-S00 | P0 | 완료 | v2.6.0 baseline | v2.6.0 branch/source-of-truth 정렬 | VERSION/CMake/README/docs index/release metadata가 source `2.6.0`과 published `v2.6.0` 기준으로 정렬됨 | roadmap review, `verify-release-metadata`, `verify-docs-links`, `git diff --check` |
 | 1 | V260-S01 | P0 | 완료 | Incident memory productization | VLM summary candidate를 `/ops/events` incident memory에 Ops-only 검색/검토 흐름으로 연결 | `memorySearch.vlmSummaryCandidateReview`가 candidate-only `media-server.vlm-summary-search-candidates.v1`를 `sourceCandidateReport`로 감싸고 Ops-only manual review 상태를 표시하며 viewer/client 비노출 유지 | `verify-vlm-summary-search-candidates`, `verify-v260-incident-memory-productization`, `verify-ops-client-ui --browser-mode static`, `verify-rule-ui --in-app-evidence`, auth/Event POST/WS metadata guard |
 | 2 | V260-S02 | P1 | 완료 | Rule suggestion review | Rule suggestion 후보를 incident-to-rule manual review/draft workflow로 연결 | `/ops/events` review item이 matching sidecar rule suggestion을 Ops-only 검토 카드로 표시하고 `/ops/rules` draft-only manual save workflow로만 연결 | `verify-vlm-rule-suggestion-candidates`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-v260-rule-suggestion-review`, `verify-ops-client-ui --browser-mode static`, `verify-rule-ui`, auth/Event POST/WS metadata guard |
 | 3 | V260-S03 | P1 | 완료 | ONVIF credential gate | ONVIF credential binding/store gate 설계와 redaction guard | `primaryStoreProvider: none`, fallback `in-memory-fixture`, `source:write` gate, URL credential reject, draft `credentialGate` redaction summary를 고정 | `verify-v260-onvif-credential-gate`, `verify-onvif-credential-reference-policy`, auth/scope verifier, ONVIF draft/redaction fixture |
@@ -140,23 +139,23 @@ VLM summary/rule suggestion 후보를 Ops-only manual review 흐름으로 승격
 ## 직전 공개 기준: v2.5.0 Source Release Baseline
 
 v2.5.0은 source-only/live-only 제품 경계를 유지하면서 Semantic Incident Memory를 닫은
-최신 공개 릴리즈입니다. 이 기준은 v2.6.0의 시작 baseline이며, v2.6.0의 예정 항목
+직전 공개 릴리즈입니다. 이 기준은 v2.6.0의 시작 baseline이며, v2.6.0의 예정 항목
 완료 evidence로 재사용하지 않습니다.
 
 ## 완료 roadmap: v2.5.0 Semantic Incident Memory
 
 | ID | 상태 | 요약 | 현재 해석 |
 | --- | --- | --- | --- |
-| V250-S00 | 완료 | v2.5.0 baseline/source-of-truth 정렬 | 최신 published baseline, v2.6.0 완료 근거 아님 |
-| V250-S01 | 완료 | Event/incident text projection | 최신 published baseline, v2.6.0 완료 근거 아님 |
-| V250-S02 | 완료 | Local incident memory index | 최신 published baseline, v2.6.0 완료 근거 아님 |
-| V250-S03 | 완료 | `/ops/events` semantic search UI | 최신 published baseline, v2.6.0 완료 근거 아님 |
-| V250-S04 | 완료 | Incident timeline graph | 최신 published baseline, v2.6.0 완료 근거 아님 |
-| V250-S05 | 완료 | Explainable incident brief | 최신 published baseline, v2.6.0 완료 근거 아님 |
-| V250-S06 | 완료 | Similar incident lookup | 최신 published baseline, v2.6.0 완료 근거 아님 |
-| V250-S07 | 완료 | Client-safe incident digest | 최신 published baseline, v2.6.0 완료 근거 아님 |
-| V250-S08 | 완료 | Redacted incident evidence bundle | 최신 published baseline, v2.6.0 완료 근거 아님 |
-| V250-S09 | 완료 | Owner decomposition/release readiness | 최신 published baseline, v2.6.0 완료 근거 아님 |
+| V250-S00 | 완료 | v2.5.0 baseline/source-of-truth 정렬 | 직전 published baseline, v2.6.0 완료 근거 아님 |
+| V250-S01 | 완료 | Event/incident text projection | 직전 published baseline, v2.6.0 완료 근거 아님 |
+| V250-S02 | 완료 | Local incident memory index | 직전 published baseline, v2.6.0 완료 근거 아님 |
+| V250-S03 | 완료 | `/ops/events` semantic search UI | 직전 published baseline, v2.6.0 완료 근거 아님 |
+| V250-S04 | 완료 | Incident timeline graph | 직전 published baseline, v2.6.0 완료 근거 아님 |
+| V250-S05 | 완료 | Explainable incident brief | 직전 published baseline, v2.6.0 완료 근거 아님 |
+| V250-S06 | 완료 | Similar incident lookup | 직전 published baseline, v2.6.0 완료 근거 아님 |
+| V250-S07 | 완료 | Client-safe incident digest | 직전 published baseline, v2.6.0 완료 근거 아님 |
+| V250-S08 | 완료 | Redacted incident evidence bundle | 직전 published baseline, v2.6.0 완료 근거 아님 |
+| V250-S09 | 완료 | Owner decomposition/release readiness | 직전 published baseline, v2.6.0 완료 근거 아님 |
 
 ## 이전 공개 기준: v2.4.0 Source Release Baseline
 

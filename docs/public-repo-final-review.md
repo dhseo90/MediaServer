@@ -6,8 +6,8 @@ Settings 화면에서 직접 눌러야 하는 항목은 자동화하지 않고 �
 ## 현재 공개 상태
 
 - 현재 소스 버전: `2.6.0`
-- 최신 공개 GitHub Release: `v2.5.0`
-- `v2.5.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않습니다.
+- 최신 공개 GitHub Release: `v2.6.0`
+- `v2.6.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않습니다.
 - 현재 source roadmap: `v2.6.0 Operational Hardening & Incident Memory Productization`
 - public repository 기준은 source-only 공개입니다.
 

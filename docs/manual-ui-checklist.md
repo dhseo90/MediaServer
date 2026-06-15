@@ -5,8 +5,8 @@
 세부 기준으로 삼고, 기능별 UI 필요 여부와 테스트 영역은
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 합니다. 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를
-사용합니다. 최신 공개 release 기준은 `v2.5.0`이며, 현재 release 목표는 `v2.6.0`,
-UI 문서 기준은 `v2.6.0 Operational Hardening`입니다. UI 풀테스트
+사용합니다. 최신 공개 release 기준과 현재 release 목표는 `v2.6.0`이며,
+UI 문서 기준은 `v2.6.0 Operational Hardening & Incident Memory Productization`입니다. UI 풀테스트
 기준은 해당 작업 범위에 포함된 제품 route, 권한, 기능 baseline만 대상으로 합니다.
 현재 release 목표는 `v2.6.0`, v2.6.0 release UI gate는 현재 release target의 UI evidence 경계를 뜻하며, UI
 재배치 문서 준비나 자동 smoke만으로 UI 풀테스트 PASS를 뜻하지 않습니다.
@@ -106,7 +106,7 @@ UI 풀테스트도 버전 로드맵 완료 시 수행 대상이지만, 실제 �
   `/client/events`에서 VLM model/prompt/raw response/provider/internal review card가
   보이지 않는지 확인합니다.
 - coverage mapping은 [project-feature-test-inventory.md](./project-feature-test-inventory.md)의
-  `v2.5.0 Semantic Incident Memory Coverage Mapping`과 `Coverage Start Conditions`를
+  `v2.6.0 Operational Hardening Coverage Mapping`과 `Coverage Start Conditions`를
   기준으로 확인합니다. 이 mapping은 실행 결과가 아니라 안정화/30분/120분/UI
   풀테스트에 포함할 대상을 빠뜨리지 않기 위한 기준입니다.
 - destructive action은 throwaway 계정, 채널, 접근 요청으로만 수행합니다.
@@ -125,7 +125,7 @@ UI 풀테스트도 버전 로드맵 완료 시 수행 대상이지만, 실제 �
 
 아래 항목이 하나라도 비어 있으면 30분, 120분, UI 풀테스트를 시작하지 않습니다.
 
-- 기능/route/control/action mapping: `v2.5.0 Semantic Incident Memory Coverage Mapping`,
+- 기능/route/control/action mapping: `v2.6.0 Operational Hardening Coverage Mapping`,
   `Coverage Start Conditions`, `/ops/vlm`, `/client/events`, VLM client redaction.
 - auth/env: auth verifier password env 5개가 `SET`인지, users file과 session state가
   throwaway인지 확인합니다.

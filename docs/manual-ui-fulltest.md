@@ -5,8 +5,8 @@
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 삼고, 실행 순서는 [manual-ui-checklist.md](./manual-ui-checklist.md), 결과 기록은
 [manual-ui-result-template.md](./manual-ui-result-template.md)를 사용합니다.
-최신 공개 release 기준은 `v2.4.0`이며, 현재 release 목표와 UI 문서 기준은
-`v2.5.0 Semantic Incident Memory`입니다. 현재 제품 UI 기준으로 지원 가능한 모든 기능을 실제 UI 조작으로 확인하지 않은 경우에는 완료로 쓰지 않습니다.
+최신 공개 release 기준과 현재 release 목표, UI 문서 기준은
+`v2.6.0 Operational Hardening & Incident Memory Productization`입니다. 현재 제품 UI 기준으로 지원 가능한 모든 기능을 실제 UI 조작으로 확인하지 않은 경우에는 완료로 쓰지 않습니다.
 
 ## 1. 정의
 
@@ -66,7 +66,7 @@ UI 풀테스트 판정값은 `PASS`와 `FAIL`만 사용합니다. 모든 기능�
 30분, 120분, UI 풀테스트는 시작 전에 실패 가능성이 높은 준비 문제를 먼저 끊어냅니다.
 아래 항목이 정리되지 않으면 긴 테스트를 시작하지 않습니다.
 
-- `project-feature-test-inventory.md`의 `v2.5.0 Semantic Incident Memory Coverage Mapping`과
+- `project-feature-test-inventory.md`의 `v2.6.0 Operational Hardening Coverage Mapping`과
   `Coverage Start Conditions`를 확인해 누락된
   route/control/action을 먼저 고칩니다.
 - `/ops/vlm`, `/ops/events`, `/client/live`, `/client/dashboard`, `/client/events`의

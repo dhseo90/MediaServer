@@ -21,7 +21,7 @@ Usage:
 Checks:
   - v2.6.0 S06 feature inventory, release policy, evidence index, manual UI criteria가 같은 local readiness gate를 가리키는지 확인
   - local readiness verifier와 release metadata/docs/assets/coverage/evidence/close-out dry-run companion command가 문서화됐는지 확인
-  - UI 풀테스트, 30분/120분, published metadata, tag/push/GitHub Release 미실행 경계가 PASS로 승격되지 않는지 확인
+  - UI 풀테스트, 30분/120분, published metadata, tag/push/GitHub Release 경계가 S06 local readiness PASS로 승격되지 않는지 확인
   - server.sh가 S06 verifier를 노출하는지 확인
 `);
 }
@@ -99,7 +99,7 @@ check("release policy and evidence index record S06 readiness without promoting 
     "UI 풀테스트 직접 조작 미실행",
     "30분 테스트 미실행",
     "120분 테스트 미실행",
-    "tag/push/GitHub Release manual-not-run",
+    "tag/push/GitHub Release 실행은 S06 gate PASS로 대체하지 않습니다.",
     "`verify-release-metadata --published` 미실행",
   ]) {
     assert(policy.includes(snippet), `release policy missing S06 readiness snippet: ${snippet}`);
