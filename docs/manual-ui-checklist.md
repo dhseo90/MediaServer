@@ -5,10 +5,10 @@
 세부 기준으로 삼고, 기능별 UI 필요 여부와 테스트 영역은
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 합니다. 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를
-사용합니다. 최신 공개 release 기준은 `v2.4.0`이며, 현재 release 목표는 `v2.5.0`,
-UI 문서 기준은 `v2.5.0 Semantic Incident Memory`입니다. UI 풀테스트
+사용합니다. 최신 공개 release 기준은 `v2.5.0`이며, 현재 release 목표는 `v2.6.0`,
+UI 문서 기준은 `v2.6.0 Operational Hardening`입니다. UI 풀테스트
 기준은 해당 작업 범위에 포함된 제품 route, 권한, 기능 baseline만 대상으로 합니다.
-`v2.5.0 release UI gate` 문구는 현재 release target의 UI evidence 경계를 뜻하며, UI
+현재 release 목표는 `v2.6.0`, v2.6.0 release UI gate는 현재 release target의 UI evidence 경계를 뜻하며, UI
 재배치 문서 준비나 자동 smoke만으로 UI 풀테스트 PASS를 뜻하지 않습니다.
 문서 구조와 evidence 경계는 `./server.sh verify-manual-ui-evidence`로 확인합니다.
 현재 제품 UI 직접 조작 evidence 없이 완료 판정에 포함하지 않습니다.
@@ -19,7 +19,9 @@ UI 문서 기준은 `v2.5.0 Semantic Incident Memory`입니다. UI 풀테스트
 
 UI 풀테스트는 자동 smoke나 raw JSON 확인이 아니라, 인앱 브라우저에서 제품
 화면을 직접 열고 클릭과 타이핑으로 수행하는 end-to-end 검수입니다. API-only
-확인, screenshot 생성만 있는 항목, 열지 않은 화면은 `FAIL`입니다.
+확인, screenshot 생성만 있는 항목, 열지 않은 화면은 `FAIL`입니다. Evidence index에는
+`/setup`, `/login`, `/ops`, `/client`, `/ops/rules`, `/client/live` route를 포함해 실제로
+열고 조작한 화면만 기록합니다. raw JSON/API-only 확인만 있는 항목의 판정은 `PASS` 또는 `FAIL`만 사용합니다.
 스크립트 테스트, 30분 안정화, 120분 장시간 테스트는
 [stream-verification.md](./stream-verification.md)의 별도 영역입니다. UI 풀테스트와
 스크립트 안정화 테스트는 서로 대체하지 않으며 결과 문서에서 판정을 분리합니다.
@@ -265,6 +267,21 @@ Codex 세션의 UI 조작 evidence는 인앱 브라우저 직접 조작을 우�
 | V250-S06 Similar Incident Lookup | `UI-042`, `EVT-044`, `LAB-067`, `SAFE-048` | `/ops/events` | similar incident group, deterministic score, explanation term, source/raw/debug/provider material 비노출 | `verify-v250-similar-incident-lookup` |
 | V250-S08 Redacted Incident Evidence Bundle | `UI-043`, `EVT-045`, `LAB-068`, `SAFE-050` | `/ops/events` | raw signed bundle과 별도 `release-safe bundle` 버튼, token 요청, manifest-only/redaction policy, raw evidence/source locator/provider material 제외 | `verify-v250-redacted-incident-evidence-bundle`, `verify-ops-event-records-scope` |
 | V250-S09 Owner Decomposition/Release Readiness | `UI-044`, `OPS-036`, `SAFE-051` | `/ops/events`, release evidence 문서 | event memory/search route owner catalog와 UI 풀테스트 기준 연결 확인. 이 행은 기준 정리이며 실제 UI 직접 조작 미실행 상태를 PASS로 쓰지 않음 | `verify-v250-owner-release-readiness`, `verify-feature-inventory-coverage`, `verify-release-evidence-index` |
+
+### v2.6.0 Operational Hardening UI 풀테스트 기준
+
+아래 표는 v2.6.0 UI route/control/action 누락을 막기 위한 기준입니다. 각 행은 인앱
+브라우저에서 직접 클릭/타이핑/선택하고, 실제 화면 상태와 관련 로그 또는 EventRecord/
+감사 이력에 반영됐을 때만 `PASS`입니다. raw JSON/API-only/static smoke/Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다.
+
+| Roadmap scope | Feature IDs | Route | 직접 확인할 control/action | 자동 verifier 연결 |
+| --- | --- | --- | --- | --- |
+| V260-S01 Incident Memory Productization | `UI-045`, `EVT-046`, `LAB-069`, `SAFE-052` | `/ops/events` | VLM summary candidate review card, Ops-only manual review 상태, client/viewer 비노출 | `verify-v260-incident-memory-productization`, `verify-ops-client-ui` |
+| V260-S02 Rule Suggestion Review | `UI-046`, `EVT-047`, `LAB-070`, `SAFE-053` | `/ops/events`, `/ops/rules` | incident-to-rule card, draft-only 링크, 수동 저장 전 registry write 없음, client/viewer 비노출 | `verify-v260-rule-suggestion-review`, `verify-vlm-rule-suggestion-draft-workflow` |
+| V260-S03 ONVIF Credential Gate | `UI-047`, `SRC-031`, `LAB-071`, `SAFE-054` | `/ops/sources` | credential gate panel, URL credential reject, redacted credentialGate summary, source:write guard | `verify-v260-onvif-credential-gate`, `verify-onvif-import-draft-api` |
+| V260-S04 Runtime Dashboard Trends | `UI-048`, `EVT-048`, `LAB-072`, `SAFE-055` | `/ops/dashboard` | page-session-only trend card, sparkline 상태, longrun evidence 아님 표시, client/viewer 비노출 | `verify-v260-runtime-dashboard-trends`, `verify-va-runtime-console` |
+| V260-S05 Scenario Cross-zone Re-entry | `UI-049`, `RULE-103`, `EVT-049`, `LAB-073`, `SAFE-056` | `/ops/rules` | configured-zones A->B candidate option, source/destination zone 표시, 기존 event type/schema 유지 | `verify-v260-scenario-cross-zone-reentry`, `verify-va-replay` |
+| V260-S06 Release Readiness | `OPS-037`, `SAFE-057` | `/ops/events`, `/ops/sources`, `/ops/dashboard`, `/ops/rules`, release evidence 문서 | `UI-045`~`UI-049` 기준과 release evidence/not-run 경계 연결 확인. 이 행은 기준 정리이며 실제 UI 직접 조작 미실행 상태를 PASS로 쓰지 않음 | `verify-v260-owner-release-readiness`, `verify-feature-inventory-coverage`, `verify-release-evidence-index` |
 
 ## 4. Auth Shell
 

@@ -115,6 +115,37 @@ published metadata, release branch 삭제, Next branch sync는 각각 실행 evi
 `v2.6.0` publish 완료 여부는 tag, GitHub Release, published metadata 검증 evidence가
 있을 때만 완료로 기록합니다. 현재 latest published release는 `v2.5.0`입니다.
 
+## v2.6.0 소유권 분리 / 릴리즈 준비 게이트
+
+S06 local readiness gate는 `media-server.v260-owner-release-readiness.v1` 기준으로
+v2.6.0 Operational Hardening Coverage Mapping, 수동 UI criteria, release evidence index,
+release close-out dry-run command를 같은 범위로 묶습니다. 이 절은 source tree 준비
+상태를 확인할 뿐 release action을 승인하거나 실행하지 않습니다.
+
+Companion local gates:
+
+```bash
+./server.sh verify-v260-owner-release-readiness
+./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-manual-ui-evidence
+./server.sh verify-release-evidence-index
+./server.sh verify-release-closeout-helper --dry-run
+git diff --check
+```
+
+Not-run/excluded boundary:
+
+- UI 풀테스트 직접 조작 미실행은 `verify-v260-owner-release-readiness` PASS로 대체하지 않습니다.
+- 30분 테스트 미실행은 local readiness PASS가 아닙니다.
+- 120분 테스트 미실행은 local readiness PASS가 아닙니다.
+- tag/push/GitHub Release manual-not-run 상태는 S06 gate PASS 후에도 그대로 유지합니다.
+- `verify-release-metadata --published` 미실행 상태는 GitHub Release publish 전에는 PASS로 기록하지 않습니다.
+- PR merge/main sync/후속 브랜치 생성은 별도 명시 승인과 실행 evidence가 있을 때만 완료로 기록합니다.
+- ONVIF 실기기, external TURN/WHEP, real cloud/VLM provider 호출은 endpoint/credential/승인 없이는 제외 상태입니다.
+
 ## Tag 전략
 
 - 현재 공개 release tag 기준은 `v2.5.0`입니다.

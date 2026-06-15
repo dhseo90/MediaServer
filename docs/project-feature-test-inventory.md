@@ -26,12 +26,12 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 449 |
+| 전체 기능 항목 | 451 |
 | UI 직접 필요 | 265 |
 | UI 간접 필요 | 30 |
-| UI 비대상 | 154 |
-| 테스트 필요 | 449 |
-| 안정화 대상 | 439 |
+| UI 비대상 | 156 |
+| 테스트 필요 | 451 |
+| 안정화 대상 | 441 |
 | UI 풀테스트 대상 | 284 |
 | 30분 soak 대상 | 47 |
 | 120분 대상 | 7 |
@@ -42,7 +42,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 449개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 451개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -64,6 +64,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | V260-S03 ONVIF credential gate | `UI-047`, `SRC-031`, `LAB-071`, `SAFE-054` | `verify-v260-onvif-credential-gate` | `/ops/sources` credential gate와 `/ops/api/onvif/import-draft` redaction guard 기준. persistent store, external secret manager, 실장비 credential 성공, UI 풀테스트 evidence가 아님 |
 | V260-S04 Runtime dashboard trends | `UI-048`, `EVT-048`, `LAB-072`, `SAFE-055` | `verify-v260-runtime-dashboard-trends` | `/ops/dashboard` page-session-only runtime trend card와 static smoke 기준. 장기 녹화, 30분/120분, UI 풀테스트, schema/media/client 변경 evidence가 아님 |
 | V260-S05 Scenario extension | `UI-049`, `RULE-103`, `EVT-049`, `LAB-073`, `SAFE-056` | `verify-v260-scenario-cross-zone-reentry` | `/ops/rules` configured-zones A→B 후보, analysis-state, va-replay fixture 기준. Event POST/WebRTC/SSE/WS schema, media path, client 노출, UI 풀테스트 evidence가 아님 |
+| V260-S06 Release readiness | `UI-045`, `UI-046`, `UI-047`, `UI-048`, `UI-049`, `OPS-037`, `SAFE-057` | `verify-v260-owner-release-readiness` | v2.6.0 Operational Hardening local release readiness gate 기준. UI 풀테스트 직접 조작, 30분/120분, published metadata, tag/push/GitHub Release evidence가 아님 |
 
 ## v2.5.0 Semantic Incident Memory Coverage Mapping
 
@@ -120,8 +121,8 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | `CLIENT-001`~`CLIENT-023` | client/UI verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-021` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
 | `LAB-001`~`LAB-073` | lab/VLM/v250/v260 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-056` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-036` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
+| `SAFE-001`~`SAFE-057` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-037` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
 
 ## VA Manual UI Seed Matrix
 
@@ -653,6 +654,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | SAFE-054 | V260-S03 ONVIF credential redaction boundary | 필요 | 필요 | 안정화, UI | ONVIF credential gate는 primary `none` provider와 fixture fallback만 허용하고 URL credential, credentialRef 원문, username/password/auth header/SOAP security header, SourceRegistry/PublishedView/client secret 노출, Event POST/WebRTC/SSE/WS/media path schema 변경을 만들지 않음 |
 | SAFE-055 | V260-S04 runtime trend storage/schema boundary | 필요 | 필요 | 안정화, UI | runtime trend card는 현재 browser page session의 sample만 사용하고 localStorage/sessionStorage/indexedDB/server trend API, 장기 녹화, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경, client/viewer exposure를 만들지 않음 |
 | SAFE-056 | V260-S05 scenario schema/media boundary | 필요 | 필요 | 안정화, UI | cross-zone re-entry 후보는 저장 rule scenario payload의 기존 field만 사용하고 새 event type, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경, client/viewer exposure를 만들지 않음 |
+| SAFE-057 | V260-S06 릴리즈 준비 경계 | 비대상 | 필요 | 안정화 | release readiness gate는 UI 풀테스트 직접 조작, 30분/120분, `verify-release-metadata --published`, tag/push/GitHub Release, PR merge/main sync/후속 브랜치 생성을 local verifier PASS로 승격하지 않음 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -660,6 +662,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | --- | --- | --- | --- | --- | --- |
 | OPS-035 | v2.3.0 S06 Ops backup/recovery evidence lifecycle | 비대상 | 필요 | 안정화 | 비대상: UI 없어야 정상. `verify-v230-ops-backup-recovery-lifecycle`이 staging drill manifest/checksum/restore-validation-plan, redacted evidence bundle, retention cleanup dry-run/apply/audit를 확인하고 30분/120분/UI 실행 PASS로 대체하지 않음 |
 | OPS-036 | V250-S09 incident memory route owner 분리 게이트 | 비대상 | 필요 | 안정화 | `verify-v250-owner-release-readiness`가 event memory/search route owner catalog, release-safe evidence bundle route matcher, release readiness 문서 연결을 확인하되 PR/tag/push/GitHub Release 실행 PASS로 대체하지 않음 |
+| OPS-037 | V260-S06 릴리즈 준비 게이트 | 비대상 | 필요 | 안정화 | `verify-v260-owner-release-readiness`가 v2.6.0 feature inventory, UI criteria, release policy/evidence, close-out dry-run companion command를 연결하되 release publish, PR/main/tag/push, UI/longrun 실행 PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 

@@ -164,6 +164,8 @@ Usage:
                  v2.6.0 S04 Runtime dashboard baseline/sparkline 후보와 비범위 경계를 검증합니다.
   verify-v260-scenario-cross-zone-reentry
                  v2.6.0 S05 ScenarioEngine cross-zone re-entry 후보와 schema 불변 경계를 검증합니다.
+  verify-v260-owner-release-readiness
+                 v2.6.0 S06 release readiness gate와 미실행/제외 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -1030,6 +1032,10 @@ case "${cmd}" in
   verify-v260-scenario-cross-zone-reentry)
     require_internal verify_v260_scenario_cross_zone_reentry.mjs
     exec "${INTERNAL_DIR}/verify_v260_scenario_cross_zone_reentry.mjs" "$@"
+    ;;
+  verify-v260-owner-release-readiness)
+    require_internal verify_v260_owner_release_readiness.mjs
+    exec "${INTERNAL_DIR}/verify_v260_owner_release_readiness.mjs" "$@"
     ;;
   verify-actions-security)
     require_internal verify_actions_security.mjs
