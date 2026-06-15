@@ -142,6 +142,68 @@ void AppendOpsShellScript(std::ostringstream& out,
           debugCounters: runtime?.debugCounters || {}
         };
       };
+      const MAX_RUNTIME_TREND_SAMPLES = 12;
+      let dashboardRuntimeTrendSamples = [];
+      const runtimeTrendSampleFrom = (runtime = {}, sourceHealth = {}, eventsStatus = {}) => {
+        const counts = runtimeCounts(runtime);
+        const metadata = runtime?.webrtcHttp?.metadataDataChannel || {};
+        const sideChannel = runtime?.webrtcHttp?.metadataSideChannel || {};
+        const sourceCounts = dashboardSourceHealthCounts(sourceHealth);
+        const records = dashboardIncidentEventRecords(eventsStatus);
+        const metadataClients = numberValue(sideChannel.activeSseClients) +
+          numberValue(sideChannel.activeWebSocketClients) +
+          (Array.isArray(metadata.channels) ? metadata.channels.length : 0);
+        return {
+          sampledAt: Date.now(),
+          sessions: counts.sessions,
+          streams: counts.streams,
+          taps: counts.taps,
+          metadataClients,
+          liveSources: sourceCounts.live,
+          sourceTotal: sourceCounts.total,
+          eventRecords: records.length,
+          loadScore: counts.sessions + counts.streams + counts.taps + metadataClients + records.length
+        };
+      };
+      const runtimeTrendDeltaText = (latest, baseline, key, label) => {
+        const delta = numberValue(latest?.[key]) - numberValue(baseline?.[key]);
+        if (delta === 0) return `${label} 변동 없음`;
+        return `${label} ${delta > 0 ? '+' : ''}${delta}`;
+      };
+      const runtimeTrendSparklineHtml = (samples = []) => {
+        if (!samples.length) return '<span class="runtime-spark-empty">sample 대기</span>';
+        const values = samples.map(sample => numberValue(sample.loadScore));
+        const maxValue = Math.max(1, ...values);
+        return values.map((value, index) => {
+          const height = Math.max(12, Math.round((value / maxValue) * 100));
+          return `<span class="runtime-spark-bar" style="height:${height}%" title="sample ${index + 1}: ${value}" aria-label="sample ${index + 1} value ${value}"></span>`;
+        }).join('');
+      };
+      const renderDashboardRuntimeTrend = (runtime = {}, sourceHealth = {}, eventsStatus = {}) => {
+        const sample = runtimeTrendSampleFrom(runtime, sourceHealth, eventsStatus);
+        dashboardRuntimeTrendSamples = [...dashboardRuntimeTrendSamples, sample].slice(-MAX_RUNTIME_TREND_SAMPLES);
+        const baseline = dashboardRuntimeTrendSamples[0] || sample;
+        const latest = dashboardRuntimeTrendSamples[dashboardRuntimeTrendSamples.length - 1] || sample;
+        const sparkline = document.getElementById('dashRuntimeTrendSparkline');
+        if (sparkline) {
+          sparkline.innerHTML = runtimeTrendSparklineHtml(dashboardRuntimeTrendSamples);
+          sparkline.setAttribute('aria-label', `runtime trend sparkline ${dashboardRuntimeTrendSamples.length} page-session-only samples`);
+        }
+        renderBadges('dashRuntimeTrendBadges', [
+          { text: `sample ${dashboardRuntimeTrendSamples.length}/${MAX_RUNTIME_TREND_SAMPLES}` },
+          { text: 'page-session-only', tone: 'info' },
+          { text: 'longrun evidence 아님', tone: 'warn' }
+        ]);
+        setText('dashRuntimeTrendText', [
+          runtimeTrendDeltaText(latest, baseline, 'sessions', '세션'),
+          runtimeTrendDeltaText(latest, baseline, 'streams', '스트림'),
+          runtimeTrendDeltaText(latest, baseline, 'taps', '분석'),
+          runtimeTrendDeltaText(latest, baseline, 'metadataClients', '메타데이터')
+        ].join(' · '));
+        setText('dashRuntimeTrendBaseline',
+          `baseline ${baseline.sessions}/${baseline.streams}/${baseline.taps} · latest ${latest.sessions}/${latest.streams}/${latest.taps} · source ${latest.liveSources}/${latest.sourceTotal} · EventRecord ${latest.eventRecords}`);
+        return { baseline, latest, samples: dashboardRuntimeTrendSamples };
+      };
       const rootCauseCorrelationId = (line, fallbackKey = 'root-cause') => {
         const text = String(line || '');
         const direct = text.match(/\b(?:cid|correlationId|requestId|sessionId|tapId|sourceId)=([A-Za-z0-9_.:-]+)/i);
@@ -1426,6 +1488,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           { text: `라이브 소스 ${sourceHealthCounts.live}/${sourceHealthCounts.total}`, tone: sourceHealthCounts.offline > 0 ? 'bad' : (sourceHealthCounts.stale > 0 ? 'warn' : 'info') }
         ]);
         setText('dashHealthText', `세션 ${counts.sessions} · 스트림 ${counts.streams} · 분석 ${counts.taps} · ${dashboardSourceHealthStatusText(sourceHealth)}`);
+        renderDashboardRuntimeTrend(runtime, sourceHealth, eventsStatus);
         renderBadges('dashRuntimeRows', [
           { text: `송출 ${counts.egress}` },
           { text: `발행 ${counts.publish}` },

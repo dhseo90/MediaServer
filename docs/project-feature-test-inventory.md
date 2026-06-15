@@ -26,13 +26,13 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 440 |
-| UI 직접 필요 | 258 |
+| 전체 기능 항목 | 444 |
+| UI 직접 필요 | 261 |
 | UI 간접 필요 | 30 |
-| UI 비대상 | 152 |
-| 테스트 필요 | 440 |
-| 안정화 대상 | 430 |
-| UI 풀테스트 대상 | 277 |
+| UI 비대상 | 153 |
+| 테스트 필요 | 444 |
+| 안정화 대상 | 434 |
+| UI 풀테스트 대상 | 280 |
 | 30분 soak 대상 | 47 |
 | 120분 대상 | 7 |
 
@@ -42,7 +42,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 440개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 444개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -62,6 +62,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | V260-S01 Incident memory productization | `UI-045`, `EVT-046`, `LAB-069`, `SAFE-052` | `verify-v260-incident-memory-productization` | `/ops/events` Ops-only wrapper/static smoke 기준. 브라우저 직접 조작, provider 호출, auto rule 적용, 장시간 테스트 evidence가 아님 |
 | V260-S02 Rule suggestion review | `UI-046`, `EVT-047`, `LAB-070`, `SAFE-053` | `verify-v260-rule-suggestion-review` | `/ops/events` incident-to-rule review wrapper와 `/ops/rules` draft-only 링크 기준. 자동 저장, provider 호출, schema/media 변경, UI 풀테스트 evidence가 아님 |
 | V260-S03 ONVIF credential gate | `UI-047`, `SRC-031`, `LAB-071`, `SAFE-054` | `verify-v260-onvif-credential-gate` | `/ops/sources` credential gate와 `/ops/api/onvif/import-draft` redaction guard 기준. persistent store, external secret manager, 실장비 credential 성공, UI 풀테스트 evidence가 아님 |
+| V260-S04 Runtime dashboard trends | `UI-048`, `EVT-048`, `LAB-072`, `SAFE-055` | `verify-v260-runtime-dashboard-trends` | `/ops/dashboard` page-session-only runtime trend card와 static smoke 기준. 장기 녹화, 30분/120분, UI 풀테스트, schema/media/client 변경 evidence가 아님 |
 
 ## v2.5.0 Semantic Incident Memory Coverage Mapping
 
@@ -110,15 +111,15 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 기능 ID 범위 | 안정화 verifier 후보 | 비고 |
 | --- | --- | --- |
-| `UI-001`~`UI-018`, `UI-022`~`UI-047` | auth, Ops, Client, VLM, v250/v260 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
+| `UI-001`~`UI-018`, `UI-022`~`UI-048` | auth, Ops, Client, VLM, v250/v260 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
 | `AUTH-001`~`AUTH-042` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
 | `SRC-001`~`SRC-031` | source/ONVIF/UI verifier family | ONVIF field success는 approved environment only |
 | `RULE-001`~`RULE-102` | rule/VA verifier family | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
-| `EVT-001`~`EVT-047` | event/VLM/v250/v260 verifier family | event log 육안 확인은 UI 풀테스트 |
+| `EVT-001`~`EVT-048` | event/VLM/v250/v260 verifier family | event log 육안 확인은 UI 풀테스트 |
 | `CLIENT-001`~`CLIENT-023` | client/UI verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-021` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
-| `LAB-001`~`LAB-071` | lab/VLM/v250/v260 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-054` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `LAB-001`~`LAB-072` | lab/VLM/v250/v260 fixture verifier family | 제품 UI 비대상 |
+| `SAFE-001`~`SAFE-055` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
 | `OPS-035`~`OPS-036` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
 
 ## VA Manual UI Seed Matrix
@@ -211,6 +212,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | UI-045 | `/ops/events` VLM Summary Candidate Review | 필요 | 필요 | 안정화, UI | VLM summary candidate review panel이 `media-server.ops.vlm-summary-candidate-review.v1` wrapper, candidate count, matched terms, manual review route를 Ops-only로 표시하고 client/viewer에는 노출되지 않음 |
 | UI-046 | `/ops/events` Incident-to-rule suggestion review | 필요 | 필요 | 안정화, UI | Event review row가 matching VLM rule suggestion을 `media-server.ops.incident-rule-suggestion-review.v1` 카드로 표시하고 `/ops/rules` draft-only manual save route로만 연결함 |
 | UI-047 | `/ops/sources` ONVIF credential gate | 필요 | 필요 | 안정화, UI | ONVIF probe draft tool이 `media-server.onvif-credential-binding-gate.v1` gate status를 표시하고 secret input/reference echo 없이 source:write/reference-only/store-off 경계를 보여줌 |
+| UI-048 | `/ops/dashboard` Runtime dashboard trend card | 필요 | 필요 | 안정화, UI | `/ops/dashboard`가 page-session-only sample로 runtime baseline/sparkline 후보, delta, longrun evidence 아님 상태를 운영 card에 표시하고 persistent trend store를 만들지 않음 |
 
 ## B. Auth, Account, Role, Scope
 
@@ -453,6 +455,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | EVT-045 | Redacted incident evidence bundle export | 비대상 | 필요 | 안정화 | `/lab/analysis/events/evidence/bundle-token`과 `/lab/analysis/events/evidence/bundle`이 `releaseSafe=1` token binding과 `media-server.v250.redacted-incident-evidence-bundle.v1` manifest-only export를 제공하되 기존 raw evidence bundle mode를 release-safe PASS로 대체하지 않음 |
 | EVT-046 | Ops VLM summary candidate review view model | 필요 | 필요 | 안정화, UI | `/ops/api/events/reviews` 응답의 `memorySearch.vlmSummaryCandidateReview`가 기존 `media-server.vlm-summary-search-candidates.v1`를 `sourceCandidateReport`로 감싸고 EventRecord/Event POST/WebRTC/SSE/WS/media path/client viewer 노출을 바꾸지 않음 |
 | EVT-047 | Ops incident-to-rule suggestion review view model | 필요 | 필요 | 안정화, UI | `/ops/api/events/reviews` item의 `incidentRuleSuggestionReview`가 matching sidecar `ruleSuggestion`과 기존 candidate report를 Ops-only wrapper로 감싸고 EventRecord/Event POST/WebRTC/SSE/WS/media path/client viewer 노출을 바꾸지 않음 |
+| EVT-048 | dashboard runtime baseline/sparkline summary | 필요 | 필요 | 안정화, UI | `/ops/dashboard`가 `/ops/api/runtime/status`, source health, events status 응답을 page-local sample로 요약해 baseline 대비 delta와 sparkline 후보를 표시하고 Event POST/WebRTC/SSE/WS payload, RTSP/WebRTC media path, client API를 바꾸지 않음 |
 
 ## F. Client And Viewer
 
@@ -583,6 +586,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | LAB-069 | V260-S01 VLM summary productization fixture/static guard | 비대상 | 필요 | 안정화 | `verify-v260-incident-memory-productization`이 VLM summary candidate wrapper schema, sourceCandidateReport 보존, `/ops/events` UI marker, command/docs/inventory wiring, client/provider/auto-rule 비범위를 정적 검증함 |
 | LAB-070 | V260-S02 rule suggestion review static guard | 비대상 | 필요 | 안정화 | `verify-v260-rule-suggestion-review`이 incident-to-rule wrapper schema, matching ruleSuggestion 보존, `/ops/events` UI marker, `/ops/rules` draft-only 링크, command/docs/inventory wiring, client/provider/auto-rule 비범위를 정적 검증함 |
 | LAB-071 | V260-S03 ONVIF credential gate static guard | 비대상 | 필요 | 안정화 | `verify-v260-onvif-credential-gate`가 credential binding fixture, provider 선택값, 제외 사유, `/ops/sources` marker, URL credential reject, docs/inventory/command wiring, persistent store 비범위를 정적 검증함 |
+| LAB-072 | V260-S04 runtime dashboard trend static guard | 비대상 | 필요 | 안정화 | `verify-v260-runtime-dashboard-trends`가 `/ops/dashboard` trend card marker, page-session-only sample buffer, sparkline rendering, command/docs/inventory wiring, longrun/schema/media/client 비범위를 정적 검증함 |
 
 ## I. Safety, Boundary, Invariant Contract
 
@@ -642,6 +646,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | SAFE-052 | V260-S01 VLM summary candidate productization boundary | 필요 | 필요 | 안정화, UI | `/ops/events` VLM summary candidate review는 Ops-only manual review wrapper만 추가하고 viewer/client route, EventRecord/Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path, runtime VLM 호출, cloud provider 호출, 자동 Rule/Profile 적용을 만들지 않음 |
 | SAFE-053 | V260-S02 incident-to-rule draft-only boundary | 필요 | 필요 | 안정화, UI | `/ops/events` incident-to-rule card는 matching rule suggestion을 표시하고 `/ops/rules` draft workflow로만 연결하며 Rule/Profile registry write, auto apply, client/viewer 노출, provider 호출, EventRecord/Event POST/WebRTC/SSE/WS/media path schema 변경을 만들지 않음 |
 | SAFE-054 | V260-S03 ONVIF credential redaction boundary | 필요 | 필요 | 안정화, UI | ONVIF credential gate는 primary `none` provider와 fixture fallback만 허용하고 URL credential, credentialRef 원문, username/password/auth header/SOAP security header, SourceRegistry/PublishedView/client secret 노출, Event POST/WebRTC/SSE/WS/media path schema 변경을 만들지 않음 |
+| SAFE-055 | V260-S04 runtime trend storage/schema boundary | 필요 | 필요 | 안정화, UI | runtime trend card는 현재 browser page session의 sample만 사용하고 localStorage/sessionStorage/indexedDB/server trend API, 장기 녹화, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경, client/viewer exposure를 만들지 않음 |
 
 ## J. Ops Evidence And Release Readiness
 

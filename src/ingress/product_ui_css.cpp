@@ -1177,6 +1177,30 @@ std::string ProductUiCss() {
       min-height: 142px;
       align-content: start;
     }
+    .runtime-trend-card {
+      display: grid;
+      gap: var(--space-2);
+    }
+    .runtime-sparkline {
+      display: flex;
+      align-items: end;
+      gap: 3px;
+      min-height: 46px;
+      padding: 6px 0 2px;
+    }
+    .runtime-spark-bar {
+      flex: 1 1 0;
+      min-width: 5px;
+      max-width: 16px;
+      border-radius: 4px 4px 1px 1px;
+      background: var(--color-accent);
+      opacity: 0.86;
+    }
+    .runtime-spark-empty,
+    .runtime-trend-baseline {
+      color: var(--color-text-muted);
+      font-size: 12px;
+    }
     .split-grid {
       display: grid;
       grid-template-columns: minmax(280px, 420px) minmax(0, 1fr);

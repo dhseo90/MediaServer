@@ -2668,6 +2668,16 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
                                                               std::string(),
                                                               "dashHealthBadges") +
                                             R"(<p id="dashHealthText">불러오는 중</p>)") << R"(
+        <section class="section-card runtime-trend-card" data-testid="ops-runtime-trend-card" data-runtime-trend-scope="page-session-only" data-longrun-evidence="not-provided">
+          <div>
+            <h3>런타임 추세</h3>
+            <p>현재 페이지 세션의 refresh sample만 baseline/sparkline 후보로 봅니다.</p>
+          </div>
+          <div id="dashRuntimeTrendBadges" class="badge-row"><span class="chip">sample 대기</span></div>
+          <div id="dashRuntimeTrendSparkline" class="runtime-sparkline" aria-label="runtime trend sparkline"></div>
+          <p id="dashRuntimeTrendText">장기 녹화 없이 현재 화면에서 수집한 sample을 기다립니다.</p>
+          <p id="dashRuntimeTrendBaseline" class="runtime-trend-baseline">baseline: page-session-only · longrun evidence 아님</p>
+        </section>
         )" << ProductUiSectionCardHtml("분석 재사용",
                                         std::string(),
                                         ProductUiBadgeRowHtml({{"로딩 중", std::string()}},
