@@ -3520,6 +3520,18 @@ void AppendOpsEventsPage(std::ostringstream& out) {
         <div id="opsIncidentSearchRows" class="incident-memory-results" data-incident-memory-results="matched-evidence-highlight">
           <p class="ops-rule-note">검색어를 입력하면 EventRecord/review projection의 matched evidence highlight가 표시됩니다.</p>
         </div>
+        <div class="vlm-summary-candidate-review" data-testid="ops-vlm-summary-candidate-review" data-vlm-summary-candidate-review="ops-only-manual-review">
+          <div class="toolbar">
+            <div>
+              <h4>VLM Summary Candidate Review</h4>
+              <p id="opsVlmSummaryCandidateSummary">같은 검색어로 VLM summary candidate를 Ops-only manual review 후보로 확인합니다.</p>
+            </div>
+            <div id="opsVlmSummaryCandidateBadges" class="badge-row"><span class="chip">ops-only</span></div>
+          </div>
+          <div id="opsVlmSummaryCandidateRows" class="vlm-summary-candidate-list">
+            <p class="ops-rule-note">검색어를 입력하면 sidecar summary candidate가 자동 적용 없이 표시됩니다.</p>
+          </div>
+        </div>
       </section>
       <section class="section-card ops-workspace-wide similar-incident-panel" data-testid="ops-similar-incident-lookup" data-similar-incident-lookup="rule-scenario-source-status">
         <div class="toolbar">
@@ -12582,6 +12594,48 @@ std::vector<std::string> OpsIncidentMemoryHighlightFragments(
     return fragments;
 }
 
+std::string OpsVlmSummaryCandidateReviewJson(const std::string& search_query,
+                                             const std::string& source_id) {
+    std::string candidate_report;
+    std::string error_message;
+    bool report_ready = false;
+    if (!search_query.empty()) {
+        analysis::VlmSummarySearchOptions options;
+        options.query = search_query;
+        options.source_id = source_id;
+        options.limit = 6;
+        report_ready = analysis::BuildVlmSummarySearchCandidatesJson(
+            analysis::DefaultVlmObservationStorePath(), options, &candidate_report, &error_message);
+    }
+
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.vlm-summary-candidate-review.v1\","
+        << "\"status\":\"ops-vlm-summary-candidate-review\","
+        << "\"candidateStatus\":\"ops-manual-review-not-auto-applied\","
+        << "\"sourceCandidateSchema\":\"media-server.vlm-summary-search-candidates.v1\","
+        << "\"manualReviewRoute\":\"/ops/events\","
+        << "\"opsOnly\":true,"
+        << "\"query\":\"" << JsonEscape(search_query) << "\","
+        << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
+        << "\"sourceCandidateReport\":" << (report_ready ? candidate_report : "null") << ","
+        << "\"error\":\"" << JsonEscape(search_query.empty() ? "" : error_message) << "\","
+        << "\"contract\":{"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"runtimeVlmCallPerformed\":false,"
+        << "\"cloudProviderApiCalled\":false,"
+        << "\"autoRuleApplied\":false"
+        << "}"
+        << "}";
+    return out.str();
+}
+
 std::string OpsIncidentMemorySearchViewJson(
     const std::vector<std::string>& event_json_records,
     const std::unordered_map<std::string, OpsEventReviewState>& reviews,
@@ -12655,6 +12709,9 @@ std::string OpsIncidentMemorySearchViewJson(
         << "\"startTimeMs\":\"" << JsonEscape(start_time_ms) << "\","
         << "\"endTimeMs\":\"" << JsonEscape(end_time_ms) << "\""
         << "},"
+        << "\"vlmSummaryCandidateReview\":"
+        << OpsVlmSummaryCandidateReviewJson(search_query, source_id)
+        << ","
         << "\"hits\":[";
     for (std::size_t i = 0; i < hits.size(); ++i) {
         const auto& hit = hits[i];

@@ -2505,6 +2505,32 @@ std::string ProductUiCss() {
       color: var(--color-text);
       font-weight: 800;
     }
+    .vlm-summary-candidate-review {
+      display: grid;
+      gap: var(--space-2);
+      padding-top: var(--space-2);
+      border-top: 1px solid var(--color-border);
+    }
+    .vlm-summary-candidate-list {
+      display: grid;
+      gap: var(--space-2);
+    }
+    .vlm-summary-candidate-card {
+      display: grid;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface);
+      min-width: 0;
+    }
+    .vlm-summary-candidate-card p {
+      margin: 0;
+      color: var(--color-text-muted);
+      font-size: 0.9rem;
+      line-height: 1.45;
+      overflow-wrap: anywhere;
+    }
     .similar-incident-panel {
       display: grid;
       gap: var(--space-3);

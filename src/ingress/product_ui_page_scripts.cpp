@@ -2416,6 +2416,48 @@ void AppendOpsShellScript(std::ostringstream& out,
           </article>`;
         }).join('');
       }
+      function renderVlmSummaryCandidateReview(vlmSummaryCandidateReview = {}) {
+        const root = document.getElementById('opsVlmSummaryCandidateRows');
+        if (!root) return;
+        const report = vlmSummaryCandidateReview.sourceCandidateReport || {};
+        const candidates = Array.isArray(report.candidates) ? report.candidates : [];
+        const q = String(vlmSummaryCandidateReview.query || report.query || document.getElementById('opsIncidentSearchInput')?.value || '').trim();
+        renderBadges('opsVlmSummaryCandidateBadges', [
+          { text: vlmSummaryCandidateReview.candidateStatus || 'ops-manual-review-not-auto-applied', tone: 'info' },
+          { text: `candidates ${candidates.length}`, tone: candidates.length > 0 ? '' : 'warn' },
+          { text: report.schema || vlmSummaryCandidateReview.sourceCandidateSchema || 'media-server.vlm-summary-search-candidates.v1' },
+          { text: vlmSummaryCandidateReview.manualReviewRoute || '/ops/events' },
+          { text: vlmSummaryCandidateReview.contract?.viewerClientExposureAdded === false ? 'Ops only' : '노출 확인 필요', tone: vlmSummaryCandidateReview.contract?.viewerClientExposureAdded === false ? 'info' : 'warn' }
+        ]);
+        if (!q) {
+          setText('opsVlmSummaryCandidateSummary', '검색어를 입력하면 sidecar summary candidate를 sourceCandidateReport로 감싸 manual review 후보로 표시합니다.');
+          root.innerHTML = '<p class="ops-rule-note">검색어를 입력하면 VLM summary candidate review가 표시됩니다.</p>';
+          return;
+        }
+        if (vlmSummaryCandidateReview.error) {
+          setText('opsVlmSummaryCandidateSummary', `VLM summary candidate review 실패: ${vlmSummaryCandidateReview.error}`);
+          root.innerHTML = '<p class="ops-rule-note">candidate report를 불러오지 못했습니다.</p>';
+          return;
+        }
+        setText('opsVlmSummaryCandidateSummary', `query "${q}" · ${candidates.length} VLM summary candidate · manual review only · 자동 적용 없음`);
+        if (candidates.length === 0) {
+          root.innerHTML = '<p class="ops-rule-note">표시할 VLM summary candidate가 없습니다.</p>';
+          return;
+        }
+        root.innerHTML = candidates.map(candidate => {
+          const matchedTerms = Array.isArray(candidate.matchedTerms) ? candidate.matchedTerms : [];
+          const summary = candidate.summary || candidate.eventExplanation || 'summary candidate';
+          return `<article class="vlm-summary-candidate-card" data-vlm-summary-candidate-event="${escapeHtml(candidate.eventId || '')}">
+            <div class="table-cell-main">
+              <strong>${escapeHtml(display(candidate.eventId || candidate.observationId || 'vlm summary candidate'))}</strong>
+              <span>${escapeHtml(display(candidate.sourceId || '-'))} · ${escapeHtml(display(candidate.ruleId || '-'))} · score ${escapeHtml(display(candidate.matchScore ?? '-'))}</span>
+            </div>
+            <div class="badge-row">${matchedTerms.map(term => `<span class="chip info">${escapeHtml(term)}</span>`).join('')}</div>
+            <p>${escapeHtml(display(summary))}</p>
+            <p class="form-note">manualReviewRoute ${escapeHtml(display(vlmSummaryCandidateReview.manualReviewRoute || '/ops/events'))} · sourceCandidateReport preserved · auto apply false</p>
+          </article>`;
+        }).join('');
+      }
       function renderSimilarIncidentLookup(similarIncidents = {}) {
         const root = document.getElementById('opsSimilarIncidentRows');
         if (!root) return;
@@ -2808,6 +2850,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         );
         renderEventReviewRows(reviewItems);
         renderIncidentMemorySearch(reviewPayload.memorySearch || {});
+        renderVlmSummaryCandidateReview(reviewPayload.memorySearch?.vlmSummaryCandidateReview || {});
         renderSimilarIncidentLookup(reviewPayload.similarIncidents || {});
         renderIncidentTimelineGraph(reviewPayload.timelineGraph || {});
         renderExplainableIncidentBrief(reviewPayload.incidentBrief || {});
@@ -2816,7 +2859,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (prevButton) prevButton.disabled = opsEventRecordsOffset <= 0;
         if (nextButton) nextButton.disabled = !records.hasMore;
         if (records.nextOffset != null) nextButton?.setAttribute('data-next-offset', String(records.nextOffset));
-        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, memorySearch: reviewPayload.memorySearch || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
+        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, memorySearch: reviewPayload.memorySearch || {}, vlmSummaryCandidateReview: reviewPayload.memorySearch?.vlmSummaryCandidateReview || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
       }
       const itemId = item => display(item?.id || item?.ruleId || item?.profileId || '-');
       const opsRulesIdText = value => {

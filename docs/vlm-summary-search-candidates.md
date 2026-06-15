@@ -100,3 +100,30 @@ S12에서 하지 않는 일:
 
 이 검증은 제품 검색 UI, semantic 품질 평가, vector/rerank 품질, 장시간 안정화,
 UI 풀테스트, V200-S13 rule suggestion 완료를 대신하지 않습니다.
+
+## v2.6.0 S01 Productization Boundary
+
+`V260-S01`은 S12의 `media-server.vlm-summary-search-candidates.v1` 후보를
+`/ops/events` incident memory 안의 Ops-only manual review view model로 감쌉니다.
+새 wrapper schema는 `media-server.ops.vlm-summary-candidate-review.v1`이고,
+`sourceCandidateReport`에 기존 candidate-only report를 그대로 보존합니다.
+
+운영 기본값은 `ops-manual-review-not-auto-applied`입니다. 운영자는 `/ops/events`에서
+summary candidate를 incident memory 검색 결과와 나란히 검토할 수 있지만, 이 단계는
+viewer/client 비노출을 유지하고 자동 Rule/Profile 적용, runtime VLM 재호출, cloud
+provider API 호출, EventRecord/Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media
+path 변경을 수행하지 않습니다.
+
+검증:
+
+```bash
+./server.sh verify-v260-incident-memory-productization
+./server.sh verify-vlm-summary-search-candidates
+./server.sh verify-ops-client-ui
+./server.sh verify-event-post
+./server.sh verify-ws-metadata
+git diff --check
+```
+
+이 검증은 브라우저 UI 직접 조작, 30분/120분 장시간 안정화, provider 품질 평가,
+실제 자동 rule 적용 evidence를 대신하지 않습니다.

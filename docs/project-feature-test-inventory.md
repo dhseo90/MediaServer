@@ -1,6 +1,6 @@
 # Project Feature Test Inventory
 
-이 문서는 현재 release 목표 `v2.5.0` 기준의 기능별 테스트 분류 기준표입니다.
+이 문서는 현재 release 목표 `v2.6.0` 기준의 기능별 테스트 분류 기준표입니다.
 독자는 개발/테스트 에이전트이며, lifecycle은 active release target 동안 유지되는 test inventory입니다.
 AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, 이 문서는 기능 ID와 테스트 영역만 관리합니다.
 
@@ -26,13 +26,13 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 428 |
-| UI 직접 필요 | 250 |
+| 전체 기능 항목 | 432 |
+| UI 직접 필요 | 253 |
 | UI 간접 필요 | 29 |
-| UI 비대상 | 149 |
-| 테스트 필요 | 428 |
-| 안정화 대상 | 418 |
-| UI 풀테스트 대상 | 268 |
+| UI 비대상 | 150 |
+| 테스트 필요 | 432 |
+| 안정화 대상 | 422 |
+| UI 풀테스트 대상 | 271 |
 | 30분 soak 대상 | 47 |
 | 120분 대상 | 7 |
 
@@ -52,6 +52,14 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | UI 풀테스트 결과 | 기능 ID별 result template 기록란은 별도 문서가 관리 | 결과 문서 없이 inventory만으로 UI PASS 판정 불가 |
 | Coverage gate | `./server.sh verify-feature-inventory-coverage`가 `media-server.feature-inventory-coverage.v1` report로 기능 ID별 연결을 점검 | `missing coverage target` 누락 ID는 release gate에서 FAIL |
 | VLM current expansion | VLM route, control, action, runtime state, sidecar, privacy guard를 현재 기능 ID에 연결 | 실행 증거 아님 |
+
+## v2.6.0 Operational Hardening Coverage Mapping
+
+이 절은 현재 active target의 기능 ID 연결만 남깁니다. 아래 행은 실행 evidence가 아니며, UI 풀테스트/30분/120분 PASS로 대체하지 않습니다.
+
+| Roadmap scope | Feature IDs | 대표 안정화 verifier | release evidence boundary |
+| --- | --- | --- | --- |
+| V260-S01 Incident memory productization | `UI-045`, `EVT-046`, `LAB-069`, `SAFE-052` | `verify-v260-incident-memory-productization` | `/ops/events` Ops-only wrapper/static smoke 기준. 브라우저 직접 조작, provider 호출, auto rule 적용, 장시간 테스트 evidence가 아님 |
 
 ## v2.5.0 Semantic Incident Memory Coverage Mapping
 
@@ -198,6 +206,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | UI-042 | `/ops/events` Similar Incident Lookup | 필요 | 필요 | 안정화, UI | rule/scenario/source/status/action target 기반 similar incident lookup group이 `/ops/events`에 Ops-only로 표시되고 raw JSON/source URL/debug/provider material 없이 deterministic score와 explanation term만 표시됨 |
 | UI-043 | `/ops/events` Redacted Incident Evidence Bundle | 필요 | 필요 | 안정화, UI | `/ops/events` evidence action이 raw signed bundle과 별도로 release-safe bundle 버튼을 제공하고 redacted manifest-only export 경계를 표시함 |
 | UI-044 | `/ops/events` Semantic Incident Memory UI 풀테스트 준비 기준 | 필요 | 필요 | 안정화, UI | semantic search, timeline graph, explainable brief, similar lookup, release-safe bundle을 route/control/action 단위 UI 풀테스트 기준으로 분리하고 자동 smoke나 raw JSON/API-only 확인을 UI PASS로 쓰지 않음 |
+| UI-045 | `/ops/events` VLM Summary Candidate Review | 필요 | 필요 | 안정화, UI | VLM summary candidate review panel이 `media-server.ops.vlm-summary-candidate-review.v1` wrapper, candidate count, matched terms, manual review route를 Ops-only로 표시하고 client/viewer에는 노출되지 않음 |
 
 ## B. Auth, Account, Role, Scope
 
@@ -437,6 +446,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | EVT-043 | Ops explainable incident brief view model | 필요 | 필요 | 안정화, UI | `/ops/api/events/reviews` 응답의 `media-server.ops.explainable-incident-brief.v1` `incidentBrief`가 action/object/context/environment slot과 provider enrichment default-off 상태를 제공하되 EventRecord/Event POST payload와 client/viewer exposure를 바꾸지 않음 |
 | EVT-044 | Ops similar incident lookup view model | 필요 | 필요 | 안정화, UI | `/ops/api/events/reviews` 응답의 `media-server.ops.similar-incident-lookup.v1` `similarIncidents`가 rule/scenario/source/status/action target 기반 deterministic score와 explanation terms를 제공하되 EventRecord/Event POST payload와 client/viewer exposure를 바꾸지 않음 |
 | EVT-045 | Redacted incident evidence bundle export | 비대상 | 필요 | 안정화 | `/lab/analysis/events/evidence/bundle-token`과 `/lab/analysis/events/evidence/bundle`이 `releaseSafe=1` token binding과 `media-server.v250.redacted-incident-evidence-bundle.v1` manifest-only export를 제공하되 기존 raw evidence bundle mode를 release-safe PASS로 대체하지 않음 |
+| EVT-046 | Ops VLM summary candidate review view model | 필요 | 필요 | 안정화, UI | `/ops/api/events/reviews` 응답의 `memorySearch.vlmSummaryCandidateReview`가 기존 `media-server.vlm-summary-search-candidates.v1`를 `sourceCandidateReport`로 감싸고 EventRecord/Event POST/WebRTC/SSE/WS/media path/client viewer 노출을 바꾸지 않음 |
 
 ## F. Client And Viewer
 
@@ -564,6 +574,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | LAB-066 | Explainable incident brief fixture guard | 비대상 | 필요 | 안정화 | `verify-v250-explainable-incident-brief`가 action/object/context/environment slot, VLM default-off, no provider dependency, no Event POST/WebRTC/SSE/WS/media path schema change를 fixture/static guard로 검증함 |
 | LAB-067 | Similar incident deterministic scoring fixture | 비대상 | 필요 | 안정화 | `verify-v250-similar-incident-lookup`이 rule/scenario/source/status/action target score weights, deterministic ordering, no provider dependency, no Event POST/WebRTC/SSE/WS/media path schema change를 fixture/static guard로 검증함 |
 | LAB-068 | Release-safe incident evidence bundle fixture | 비대상 | 필요 | 안정화 | `verify-v250-redacted-incident-evidence-bundle`이 release-safe manifest schema, token releaseSafe binding, raw evidence file exclusion, searchResults/timelineSummary redaction policy를 fixture/static guard로 검증함 |
+| LAB-069 | V260-S01 VLM summary productization fixture/static guard | 비대상 | 필요 | 안정화 | `verify-v260-incident-memory-productization`이 VLM summary candidate wrapper schema, sourceCandidateReport 보존, `/ops/events` UI marker, command/docs/inventory wiring, client/provider/auto-rule 비범위를 정적 검증함 |
 
 ## I. Safety, Boundary, Invariant Contract
 
@@ -620,6 +631,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | SAFE-049 | V250-S07 client-safe incident digest boundary | 필요 | 필요 | 안정화, UI | client-safe incident digest는 viewer-safe summaryText/severity/event type/status/time만 표시하고 source locator, raw evidence, debug material, provider material, Event POST/WebRTC/SSE/WS/media path schema를 변경하지 않음 |
 | SAFE-050 | V250-S08 redacted incident evidence bundle boundary | 필요 | 필요 | 안정화, UI | release-safe incident evidence bundle은 manifest/searchResults/timelineSummary/redactionPolicy만 포함하고 snapshot/clip raw evidence, source URL, credential, debug material, provider material, Event POST/WebRTC/SSE/WS/media path schema를 변경하지 않음 |
 | SAFE-051 | V250-S09 릴리즈 준비 경계 | 비대상 | 필요 | 안정화 | owner decomposition/release readiness gate는 Event POST/WebRTC/SSE/WS/RTSP/WebRTC media path/Auth/Rule/Profile payload schema를 바꾸지 않고 UI 풀테스트/30분/120분/published metadata/tag/push/GitHub Release 미실행을 PASS로 승격하지 않음 |
+| SAFE-052 | V260-S01 VLM summary candidate productization boundary | 필요 | 필요 | 안정화, UI | `/ops/events` VLM summary candidate review는 Ops-only manual review wrapper만 추가하고 viewer/client route, EventRecord/Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path, runtime VLM 호출, cloud provider 호출, 자동 Rule/Profile 적용을 만들지 않음 |
 
 ## J. Ops Evidence And Release Readiness
 

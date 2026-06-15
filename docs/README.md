@@ -60,6 +60,7 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 | --- | --- |
 | [media-server-architecture.md](media-server-architecture.md) | 서버 구조와 요청 흐름 |
 | [stream-verification.md](stream-verification.md) | 검증 명령과 테스트 영역 경계 |
+| [project-feature-test-inventory.md](project-feature-test-inventory.md) | 기능별 테스트 영역 inventory. 실행 evidence가 아니라 coverage 기준 |
 | [video-analysis.md](video-analysis.md) | VA pipeline, rule, scenario, metadata |
 | [analysis-threshold-baselines.md](analysis-threshold-baselines.md) | 분석 threshold baseline |
 | [live-source-health.md](live-source-health.md) | live source health 상태 모델 |

@@ -154,6 +154,8 @@ Usage:
                  수동 UI 풀테스트용 VA seed fixture를 dry-run 검증하고, 명시 승인 시 throwaway 서버에 적용합니다.
   verify-docs-links
                  README/docs Markdown 링크와 이미지 파일 참조를 검증합니다.
+  verify-v260-incident-memory-productization
+                 v2.6.0 S01 VLM summary candidate의 Ops incident memory productization 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -1000,6 +1002,10 @@ case "${cmd}" in
   verify-feature-inventory-coverage)
     require_internal verify_feature_inventory_coverage.mjs
     exec "${INTERNAL_DIR}/verify_feature_inventory_coverage.mjs" "$@"
+    ;;
+  verify-v260-incident-memory-productization)
+    require_internal verify_v260_incident_memory_productization.mjs
+    exec "${INTERNAL_DIR}/verify_v260_incident_memory_productization.mjs" "$@"
     ;;
   verify-actions-security)
     require_internal verify_actions_security.mjs
