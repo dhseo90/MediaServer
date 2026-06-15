@@ -12457,6 +12457,115 @@ std::string OpsVlmRuleSuggestionDraftWorkflowJson(
     return out.str();
 }
 
+std::string OpsJsonObjectOrNull(const std::string& value) {
+    const std::string trimmed = Trim(value);
+    if (trimmed.size() >= 2 && trimmed.front() == '{' && trimmed.back() == '}') {
+        return trimmed;
+    }
+    return "null";
+}
+
+std::string OpsIncidentRuleSuggestionSourceId(const std::string& event_json) {
+    for (const char* key : {"sourceId", "streamId", "channelId"}) {
+        const std::string value = Trim(ParseStringField(event_json, key).value_or(""));
+        if (!value.empty()) {
+            return value;
+        }
+    }
+    if (const auto metadata = ExtractObjectField(event_json, "metadata"); metadata.has_value()) {
+        for (const char* key : {"sourceId", "streamId", "channelId"}) {
+            const std::string value = Trim(ParseStringField(*metadata, key).value_or(""));
+            if (!value.empty()) {
+                return value;
+            }
+        }
+    }
+    return "";
+}
+
+std::string OpsIncidentRuleSuggestionReviewJson(const std::string& event_json) {
+    const std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+    const std::string source_id = OpsIncidentRuleSuggestionSourceId(event_json);
+
+    analysis::VlmObservationQueryResult observation_result;
+    std::string observation_error;
+    bool observation_query_ok = false;
+    if (!event_id.empty()) {
+        analysis::VlmObservationQueryOptions observation_options;
+        observation_options.event_id = event_id;
+        observation_options.limit = 1;
+        observation_query_ok = analysis::QueryVlmObservations(
+            analysis::DefaultVlmObservationStorePath(), observation_options, &observation_result, &observation_error);
+    }
+    const std::string observation_json =
+        observation_query_ok && !observation_result.observations_json.empty()
+            ? observation_result.observations_json.front()
+            : std::string();
+    const std::string rule_suggestion_json = OpsJsonObjectOrNull(
+        ExtractJsonValueField(observation_json, "ruleSuggestion").value_or("null"));
+    const bool rule_suggestion_present = rule_suggestion_json != "null";
+    const std::string proposed_rule_kind =
+        rule_suggestion_present
+            ? Trim(ParseStringField(rule_suggestion_json, "kind")
+                       .value_or(ParseStringField(rule_suggestion_json, "candidateId").value_or("")))
+            : std::string();
+    const std::string target_route =
+        rule_suggestion_present
+            ? Trim(ParseStringField(rule_suggestion_json, "targetRoute").value_or("/ops/rules"))
+            : "/ops/rules";
+
+    analysis::VlmRuleSuggestionOptions candidate_options;
+    candidate_options.source_id = source_id;
+    candidate_options.limit = 6;
+    std::string candidate_report;
+    std::string candidate_error;
+    const bool candidate_report_ready = analysis::BuildVlmRuleSuggestionCandidatesJson(
+        analysis::DefaultVlmObservationStorePath(), candidate_options, &candidate_report, &candidate_error);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.incident-rule-suggestion-review.v1\","
+        << "\"status\":\"incident-to-rule-manual-review\","
+        << "\"eventId\":\"" << JsonEscape(event_id) << "\","
+        << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
+        << "\"observationPresent\":" << (observation_json.empty() ? "false" : "true") << ","
+        << "\"observationStoreExists\":" << (observation_result.file_exists ? "true" : "false") << ","
+        << "\"observationQueryOk\":" << (observation_query_ok ? "true" : "false") << ","
+        << "\"observationError\":\"" << JsonEscape(observation_query_ok ? "" : observation_error) << "\","
+        << "\"matchingRuleSuggestionPresent\":" << (rule_suggestion_present ? "true" : "false") << ","
+        << "\"candidateStatus\":\""
+        << (rule_suggestion_present ? "candidate-only-manual-rule-save" : "no-rule-suggestion-candidate")
+        << "\","
+        << "\"proposedRuleKind\":\"" << JsonEscape(proposed_rule_kind) << "\","
+        << "\"sourceCandidateSchema\":\"media-server.vlm-rule-suggestion-candidates.v1\","
+        << "\"manualReviewRoute\":\"/ops/events\","
+        << "\"manualDraftRoute\":\"/ops/rules\","
+        << "\"targetRoute\":\"" << JsonEscape(target_route.empty() ? "/ops/rules" : target_route) << "\","
+        << "\"draftApiRoute\":\"/ops/api/vlm/rule-suggestion-drafts\","
+        << "\"sourceCandidateReport\":" << (candidate_report_ready ? candidate_report : "null") << ","
+        << "\"sourceCandidateError\":\"" << JsonEscape(candidate_report_ready ? "" : candidate_error) << "\","
+        << "\"matchingRuleSuggestion\":" << rule_suggestion_json << ","
+        << "\"contract\":{"
+        << "\"opsOnly\":true,"
+        << "\"draftOnly\":true,"
+        << "\"manualSaveRequired\":true,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"runtimeVlmCallPerformed\":false,"
+        << "\"cloudProviderApiCalled\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"autoRuleApplied\":false,"
+        << "\"autoProfileApplied\":false"
+        << "}"
+        << "}";
+    return out.str();
+}
+
 std::string OpsEventReviewInboxItemJson(const std::string& event_json,
                                         const OpsEventReviewState& review) {
     std::ostringstream out;
@@ -12468,6 +12577,7 @@ std::string OpsEventReviewInboxItemJson(const std::string& event_json,
         out << event_json;
     }
     out << ",\"review\":" << OpsEventReviewStateJson(review)
+        << ",\"incidentRuleSuggestionReview\":" << OpsIncidentRuleSuggestionReviewJson(event_json)
         << ",\"vlmReview\":" << OpsVlmEventReviewJson(event_json)
         << "}";
     return out.str();

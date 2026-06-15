@@ -90,6 +90,39 @@ draft로만 가져갑니다. API schema는
 VLM runtime/provider 호출, EventRecord/Event POST/WebRTC/SSE/WS schema 변경,
 RTSP/WebRTC media path 변경, client/viewer 노출을 수행하지 않습니다.
 
+## v2.6.0 S02 Incident-to-rule Review
+
+`V260-S02`는 기존 V200-S13 candidate와 V210-S08 draft workflow를 새 schema로
+바꾸지 않고, `/ops/events` incident review row 안에 Ops-only 검토 연결만 추가합니다.
+wrapper schema는 `media-server.ops.incident-rule-suggestion-review.v1`입니다.
+
+직접 답: rule suggestion 후보의 제품 연결 기본값은
+`incident-to-rule manual review`입니다. 운영자는 `/ops/events`에서 matching sidecar
+`ruleSuggestion`을 보고, `draft-only manual save` 경계가 유지되는 `/ops/rules`
+draft workflow로 이동해 기존 저장 버튼을 수동으로 누를 때만 rule/template을 저장합니다.
+
+S02 wrapper는 아래 값을 표시합니다.
+
+- `matchingRuleSuggestion`: matching eventId sidecar observation의 `ruleSuggestion`
+- `sourceCandidateReport`: 기존 `media-server.vlm-rule-suggestion-candidates.v1` report
+- `manualReviewRoute`: `/ops/events`
+- `manualDraftRoute`: `/ops/rules`
+- `draftApiRoute`: `/ops/api/vlm/rule-suggestion-drafts`
+- `candidateStatus`: `candidate-only-manual-rule-save` 또는 `no-rule-suggestion-candidate`
+
+S02는 자동 Rule/Profile 적용, rule registry write, runtime VLM 호출, cloud provider
+호출, EventRecord/Event POST/WebRTC/SSE/WS payload/schema 변경, RTSP/WebRTC media path
+변경, client/viewer 노출을 수행하지 않습니다.
+
+검증:
+
+```bash
+./server.sh verify-v260-rule-suggestion-review
+./server.sh verify-vlm-rule-suggestion-candidates
+./server.sh verify-vlm-rule-suggestion-draft-workflow
+./server.sh verify-rule-ui
+```
+
 ## Non-Scope
 
 S13에서 하지 않는 일:

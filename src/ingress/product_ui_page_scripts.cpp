@@ -2207,6 +2207,37 @@ void AppendOpsShellScript(std::ostringstream& out,
           <input class="event-review-note-input" data-event-review-field="actionTarget" maxlength="160" value="${escapeHtml(actionTarget)}" placeholder="operator-triage" />
         </div>`;
       }
+      function renderIncidentRuleSuggestionReview(entry = {}) {
+        const review = entry?.incidentRuleSuggestionReview || {};
+        const report = review.sourceCandidateReport || {};
+        const candidates = Array.isArray(report.candidates) ? report.candidates : [];
+        const suggestion = review.matchingRuleSuggestion || {};
+        const draft = suggestion.draftRule || {};
+        const hasSuggestion = review.matchingRuleSuggestionPresent === true;
+        const kind = review.proposedRuleKind || suggestion.kind || draft.eventType || 'rule suggestion';
+        const draftRoute = review.manualDraftRoute || suggestion.targetRoute || '/ops/rules';
+        const draftApiRoute = review.draftApiRoute || '/ops/api/vlm/rule-suggestion-drafts';
+        const count = report.matchedCandidates ?? candidates.length;
+        const classes = Array.isArray(draft.classes) ? draft.classes : [];
+        const classesText = classes.length ? classes.map(display).join(', ') : '대상 클래스 확인 필요';
+        const badges = [
+          { text: review.candidateStatus || 'no-rule-suggestion-candidate', tone: hasSuggestion ? 'info' : 'warn' },
+          { text: `source candidates ${count}`, tone: count > 0 ? '' : 'warn' },
+          { text: review.sourceCandidateSchema || 'media-server.vlm-rule-suggestion-candidates.v1' },
+          { text: review.contract?.ruleRegistryWritePerformed === false ? 'draft only' : 'write 확인 필요', tone: review.contract?.ruleRegistryWritePerformed === false ? 'info' : 'warn' },
+          { text: review.contract?.autoRuleApplied === false ? 'no auto apply' : 'auto 확인 필요', tone: review.contract?.autoRuleApplied === false ? 'info' : 'warn' }
+        ];
+        const body = hasSuggestion
+          ? `${display(kind)} · ${classesText} · ${display(suggestion.rationale || '운영자가 geometry와 조건을 검토한 뒤 수동 저장합니다.')}`
+          : 'matching VLM rule suggestion 후보가 없습니다. /ops/rules draft workflow에서 전체 후보를 다시 조회할 수 있습니다.';
+        return `<div class="ops-incident-rule-suggestion-review ops-incident-rule-suggestion-card" data-testid="ops-incident-rule-suggestion-review" data-incident-rule-suggestion-review="ops-only-draft-route">
+          <div class="badge-row">${badges.map(item => `<span class="chip${item.tone ? ` ${escapeHtml(item.tone)}` : ''}">${escapeHtml(item.text)}</span>`).join('')}</div>
+          <strong>Incident-to-rule manual review</strong>
+          <span class="ops-rule-note">${escapeHtml(body)}</span>
+          <span class="ops-rule-note">draft API ${escapeHtml(draftApiRoute)} · 저장은 /ops/rules 수동 저장 버튼에서만 수행합니다.</span>
+          <a class="button button-secondary button-compact" data-incident-rule-draft-route href="${escapeHtml(draftRoute)}">룰 draft 검토</a>
+        </div>`;
+      }
       function eventReviewVlmHtml(entry = {}) {
         const vlm = entry?.vlmReview || {};
         const review = entry?.review || {};
@@ -2234,7 +2265,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             <label>Action target ${eventReviewSelectHtml('vlmActionTarget', VLM_REVIEW_ACTION_TARGETS, vlmAction.target || 'eventExplanation')}</label>
             <input class="event-review-note-input" data-event-review-field="vlmActionNote" maxlength="300" value="${escapeHtml(vlmAction.note || '')}" placeholder="VLM action note" />
           </div>
-        </div>`;
+        </div>${renderIncidentRuleSuggestionReview(entry)}`;
       }
       function renderEventReviewRows(items) {
         const tbody = document.getElementById('eventReviewRows');

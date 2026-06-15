@@ -2725,6 +2725,17 @@ std::string ProductUiCss() {
       line-height: 1.35;
       overflow-wrap: anywhere;
     }
+    .ops-incident-rule-suggestion-review {
+      display: grid;
+      gap: 6px;
+      margin-top: 6px;
+      padding-top: 6px;
+      border-top: 1px solid var(--color-border);
+      min-width: 0;
+    }
+    .ops-incident-rule-suggestion-card {
+      overflow-wrap: anywhere;
+    }
     .ops-alert-delivery-form {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));

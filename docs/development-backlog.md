@@ -41,7 +41,7 @@ VLM summary/rule suggestion 후보를 Ops-only manual review 흐름으로 승격
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 0 | V260-S00 | P0 | 완료 | v2.6.0 baseline | v2.6.0 branch/source-of-truth 정렬 | VERSION/CMake/README/docs index/release metadata가 source `2.6.0`, latest published `v2.5.0`을 분리함 | roadmap review, `verify-release-metadata`, `verify-docs-links`, `git diff --check` |
 | 1 | V260-S01 | P0 | 완료 | Incident memory productization | VLM summary candidate를 `/ops/events` incident memory에 Ops-only 검색/검토 흐름으로 연결 | `memorySearch.vlmSummaryCandidateReview`가 candidate-only `media-server.vlm-summary-search-candidates.v1`를 `sourceCandidateReport`로 감싸고 Ops-only manual review 상태를 표시하며 viewer/client 비노출 유지 | `verify-vlm-summary-search-candidates`, `verify-v260-incident-memory-productization`, `verify-ops-client-ui --browser-mode static`, `verify-rule-ui --in-app-evidence`, auth/Event POST/WS metadata guard |
-| 2 | V260-S02 | P1 | 예정 | Rule suggestion review | Rule suggestion 후보를 incident-to-rule manual review/draft workflow로 연결 | 자동 Rule/Profile 적용 없이 `/ops/rules` 수동 저장 draft와 audit/redaction 경계 정리 | `verify-vlm-rule-suggestion-candidates`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-rule-ui` |
+| 2 | V260-S02 | P1 | 완료 | Rule suggestion review | Rule suggestion 후보를 incident-to-rule manual review/draft workflow로 연결 | `/ops/events` review item이 matching sidecar rule suggestion을 Ops-only 검토 카드로 표시하고 `/ops/rules` draft-only manual save workflow로만 연결 | `verify-vlm-rule-suggestion-candidates`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-v260-rule-suggestion-review`, `verify-ops-client-ui --browser-mode static`, `verify-rule-ui`, auth/Event POST/WS metadata guard |
 | 3 | V260-S03 | P1 | 예정 | ONVIF credential gate | ONVIF credential binding/store gate 설계와 redaction guard | `source:write` guard, encrypted/local 또는 external secret manager 선택, rotation/expiry/audit 기준 | `verify-onvif-credential-reference-policy`, auth/scope verifier, redaction fixture |
 | 4 | V260-S04 | P2 | 예정 | Runtime dashboard trends | Runtime dashboard baseline/sparkline 고도화 후보 | 장기 녹화 없이 runtime/VA 상태 추세를 운영 card로 요약 | `verify-va-runtime-console`, dashboard UI smoke, 장시간 테스트는 별도 승인 |
 | 5 | V260-S05 | P2 | 예정 | Scenario extension | ScenarioEngine cross-zone re-entry 후보 | 기존 event/schema를 유지하면서 A→B 재진입 판단 후보와 rule UI 기준 정리 | `verify-analysis-state`, `verify-va-replay`, `verify-rule-ui`, schema guard |
@@ -56,6 +56,17 @@ VLM summary/rule suggestion 후보를 Ops-only manual review 흐름으로 승격
 - `scripts/internal/verify_ops_client_ui_smoke.mjs`, `docs/project-feature-test-inventory.md`: `/ops/events` S01 UI marker와 `UI-045`/`EVT-046`/`LAB-069`/`SAFE-052` coverage를 추가했습니다.
 - 검증: `./server.sh build`, `verify-v260-incident-memory-productization`, `verify-vlm-summary-search-candidates`, `verify-ops-client-ui --browser-mode static`, `verify-rule-ui --in-app-evidence`, `verify-event-post --mode disabled`, `verify-ws-metadata`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `git diff --check`.
 - 미실행/비대체: UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, provider/cloud 호출, 자동 Rule/Profile 적용은 S01 완료 근거가 아닙니다.
+
+## v2.6.0 S02 개발 기록
+
+- `src/ingress/webrtc_http_server.cpp`: `OpsIncidentRuleSuggestionReviewJson`를 추가해 `/ops/api/events/reviews` item마다 matching VLM sidecar `ruleSuggestion`과 기존 `media-server.vlm-rule-suggestion-candidates.v1` candidate report를 `media-server.ops.incident-rule-suggestion-review.v1` Ops-only wrapper로 감쌌습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderIncidentRuleSuggestionReview`가 `/ops/events` review row 안에 incident-to-rule 검토 카드, candidate status, source candidate count, `/ops/rules` draft-only 링크를 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`: incident-to-rule 검토 카드를 기존 event review/VLM review 카드와 같은 밀도로 보이도록 스타일을 추가했습니다.
+- `scripts/internal/verify_v260_rule_suggestion_review.mjs`, `server.sh`: S02 wrapper schema, matching `ruleSuggestion`, `/ops/events` marker, `/ops/rules` draft-only 링크, docs/inventory wiring, client/provider/auto-rule 비범위를 검증하는 verifier를 추가했습니다.
+- `scripts/internal/verify_ops_client_ui_smoke.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `docs/project-feature-test-inventory.md`: S02 UI/API marker와 `UI-046`/`EVT-047`/`LAB-070`/`SAFE-053` coverage를 추가했습니다.
+- 검증: `./server.sh build`, `verify-v260-rule-suggestion-review`, `verify-vlm-rule-suggestion-candidates`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-ops-client-ui --browser-mode static`, `verify-ops-client-ui --browser-mode static --screenshots`, `verify-rule-ui --in-app-evidence`, `verify-event-post --mode disabled`, `verify-ws-metadata`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-docs-links`, `verify-docs-ui-assets`, `git diff --check`.
+- 수정한 이슈: 기존 inventory 요약 문구 `Ops/Client/VLM`이 S08 verifier의 `/client/vlm` 금지 패턴에 걸려 false positive가 발생했으므로, 의미를 유지한 채 `auth, Ops, Client, VLM, v250` 문구로 정리했습니다.
+- 미실행/비대체: UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, provider/cloud 호출, 자동 Rule/Profile 저장, GitHub Release publish는 S02 완료 근거가 아닙니다.
 
 ## v2.6.0 publish/test 제외 경계
 

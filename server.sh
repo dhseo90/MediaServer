@@ -156,6 +156,8 @@ Usage:
                  README/docs Markdown 링크와 이미지 파일 참조를 검증합니다.
   verify-v260-incident-memory-productization
                  v2.6.0 S01 VLM summary candidate의 Ops incident memory productization 경계를 검증합니다.
+  verify-v260-rule-suggestion-review
+                 v2.6.0 S02 Rule suggestion 후보의 incident-to-rule manual review/draft 연결 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -1006,6 +1008,10 @@ case "${cmd}" in
   verify-v260-incident-memory-productization)
     require_internal verify_v260_incident_memory_productization.mjs
     exec "${INTERNAL_DIR}/verify_v260_incident_memory_productization.mjs" "$@"
+    ;;
+  verify-v260-rule-suggestion-review)
+    require_internal verify_v260_rule_suggestion_review.mjs
+    exec "${INTERNAL_DIR}/verify_v260_rule_suggestion_review.mjs" "$@"
     ;;
   verify-actions-security)
     require_internal verify_actions_security.mjs
