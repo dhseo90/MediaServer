@@ -277,6 +277,7 @@ Codex 세션의 UI 조작 evidence는 인앱 브라우저 직접 조작을 우�
 | Roadmap scope | Feature IDs | Route | 직접 확인할 control/action | 자동 verifier 연결 |
 | --- | --- | --- | --- | --- |
 | V270-S01 Incident Triage Board | `UI-050`, `EVT-050`, `LAB-074`, `SAFE-058` | `/ops/events` | Incident Triage Board card, lane filter, priority filter, priority/review-age/event-time sort, source/rule/scenario/similar incident/VLM candidate 표시, client/viewer 비노출 | `verify-v270-incident-triage-board`, `verify-ops-client-ui` |
+| V270-S02 Decision scorecard | `UI-051`, `EVT-051`, `LAB-075`, `SAFE-059` | `/ops/events` | Decision Scorecard card, priority reason chips, EventRecord/source health/similar incident/VLM summary/rule candidate/operator review age 표시, raw JSON/source URL/provider material 비노출, client/viewer 비노출 | `verify-v270-incident-decision-scorecard`, `verify-ops-client-ui` |
 
 ### v2.6.0 Operational Hardening UI 풀테스트 기준
 

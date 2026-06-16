@@ -2620,6 +2620,49 @@ void AppendOpsShellScript(std::ostringstream& out,
           </section>`;
         }).join('');
       }
+      function renderIncidentDecisionScorecard(incidentDecisionScorecard = {}) {
+        const root = document.getElementById('opsIncidentDecisionScorecardRows');
+        if (!root) return;
+        const scorecards = Array.isArray(incidentDecisionScorecard.scorecards) ? incidentDecisionScorecard.scorecards : [];
+        renderBadges('opsIncidentDecisionScorecardBadges', [
+          { text: incidentDecisionScorecard.schema || 'media-server.ops.incident-decision-scorecard.v1' },
+          { text: `scorecards ${scorecards.length}`, tone: scorecards.length > 0 ? '' : 'warn' },
+          { text: incidentDecisionScorecard.deterministicPriorityReasons === true ? 'deterministic' : 'reason 확인 필요', tone: incidentDecisionScorecard.deterministicPriorityReasons === true ? 'info' : 'warn' },
+          { text: incidentDecisionScorecard.contract?.rawJsonExposed === false ? 'raw payload hidden' : 'raw payload 확인 필요', tone: incidentDecisionScorecard.contract?.rawJsonExposed === false ? 'info' : 'warn' },
+          { text: incidentDecisionScorecard.contract?.sourceUrlExposed === false ? 'source URL hidden' : 'source URL 확인 필요', tone: incidentDecisionScorecard.contract?.sourceUrlExposed === false ? 'info' : 'warn' }
+        ]);
+        setText(
+          'opsIncidentDecisionScorecardSummary',
+          scorecards.length
+            ? `EventRecord/sourceHealth/similarIncident/VLM summary/rule candidate/operator review age · ${scorecards.length} scorecard`
+            : 'EventRecord와 review state를 불러오면 deterministic priority reason chip이 표시됩니다.'
+        );
+        if (scorecards.length === 0) {
+          root.innerHTML = '<p class="ops-rule-note">표시할 decision scorecard가 없습니다.</p>';
+          return;
+        }
+        root.innerHTML = scorecards.map(card => {
+          const chips = Array.isArray(card?.priorityReasonChips) ? card.priorityReasonChips : [];
+          const eventBasis = card?.eventRecordBasis || {};
+          const sourceBasis = card?.sourceHealthBasis || {};
+          const similarBasis = card?.similarIncidentBasis || {};
+          return `<article class="incident-decision-scorecard-card" data-incident-decision-scorecard-event="${escapeHtml(card?.eventId || '')}">
+            <div class="table-cell-main">
+              <strong>${escapeHtml(display(card?.eventId || 'event'))}</strong>
+              <span>EventRecord ${escapeHtml(display(eventBasis.eventType || 'event'))} · ${escapeHtml(display(eventBasis.status || 'unknown'))}</span>
+            </div>
+            <div class="badge-row">
+              ${chips.map(chip => `<span class="chip priority-reason-chip ${chip?.tone ? escapeHtml(chip.tone) : ''}">${escapeHtml(display(chip?.label || chip))}</span>`).join('')}
+            </div>
+            <div class="incident-decision-basis-grid">
+              <p><strong>sourceHealthBasis</strong><span>${escapeHtml(display(sourceBasis.sourceId || '-'))} · ${escapeHtml(display(sourceBasis.status || '-'))}</span></p>
+              <p><strong>similarIncidentBasis</strong><span>${escapeHtml(display(similarBasis.similarIncidentKey || '-'))}</span></p>
+              <p><strong>VLM</strong><span>summary ${escapeHtml(display(card?.vlmSummaryCandidateStatus || '-'))} · rule ${escapeHtml(display(card?.vlmRuleCandidateStatus || '-'))}</span></p>
+              <p><strong>operatorReviewAgeMs</strong><span>${escapeHtml(display(card?.operatorReviewAgeMs ?? '-'))}</span></p>
+            </div>
+          </article>`;
+        }).join('');
+      }
       function renderSimilarIncidentLookup(similarIncidents = {}) {
         const root = document.getElementById('opsSimilarIncidentRows');
         if (!root) return;
@@ -3012,6 +3055,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         );
         renderEventReviewRows(reviewItems);
         renderIncidentTriageBoard(reviewPayload.incidentTriageBoard || {});
+        renderIncidentDecisionScorecard(reviewPayload.incidentDecisionScorecard || {});
         renderIncidentMemorySearch(reviewPayload.memorySearch || {});
         renderVlmSummaryCandidateReview(reviewPayload.memorySearch?.vlmSummaryCandidateReview || {});
         renderSimilarIncidentLookup(reviewPayload.similarIncidents || {});
@@ -3022,7 +3066,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (prevButton) prevButton.disabled = opsEventRecordsOffset <= 0;
         if (nextButton) nextButton.disabled = !records.hasMore;
         if (records.nextOffset != null) nextButton?.setAttribute('data-next-offset', String(records.nextOffset));
-        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, incidentTriageBoard: reviewPayload.incidentTriageBoard || {}, memorySearch: reviewPayload.memorySearch || {}, vlmSummaryCandidateReview: reviewPayload.memorySearch?.vlmSummaryCandidateReview || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
+        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, incidentTriageBoard: reviewPayload.incidentTriageBoard || {}, incidentDecisionScorecard: reviewPayload.incidentDecisionScorecard || {}, memorySearch: reviewPayload.memorySearch || {}, vlmSummaryCandidateReview: reviewPayload.memorySearch?.vlmSummaryCandidateReview || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
       }
       const itemId = item => display(item?.id || item?.ruleId || item?.profileId || '-');
       const opsRulesIdText = value => {

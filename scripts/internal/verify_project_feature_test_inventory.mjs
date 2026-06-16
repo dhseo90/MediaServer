@@ -198,6 +198,7 @@ check("current feature expansion rows exist", () => {
     "UI-048",
     "UI-049",
     "UI-050",
+    "UI-051",
     "SRC-031",
     "RULE-103",
     "EVT-029",
@@ -222,6 +223,7 @@ check("current feature expansion rows exist", () => {
     "EVT-048",
     "EVT-049",
     "EVT-050",
+    "EVT-051",
     "CLIENT-023",
     "OPS-036",
     "OPS-037",
@@ -256,6 +258,7 @@ check("current feature expansion rows exist", () => {
     "LAB-072",
     "LAB-073",
     "LAB-074",
+    "LAB-075",
     "SAFE-025",
     "SAFE-026",
     "SAFE-027",
@@ -290,17 +293,18 @@ check("current feature expansion rows exist", () => {
     "SAFE-056",
     "SAFE-057",
     "SAFE-058",
+    "SAFE-059",
   ];
   const ids = new Set(parseFeatureRows(inventory).map(row => row.id));
   for (const id of requiredRows) {
     assert(ids.has(id), `missing current expanded feature row: ${id}`);
   }
   for (const snippet of [
-    "`UI-001`~`UI-018`, `UI-022`~`UI-050`",
-    "`EVT-001`~`EVT-050`",
+    "`UI-001`~`UI-018`, `UI-022`~`UI-051`",
+    "`EVT-001`~`EVT-051`",
     "`MEDIA-001`~`MEDIA-021`",
-    "`LAB-001`~`LAB-074`",
-    "`SAFE-001`~`SAFE-058`",
+    "`LAB-001`~`LAB-075`",
+    "`SAFE-001`~`SAFE-059`",
     "`OPS-035`~`OPS-037`",
     "VLM route, control, action, runtime state, sidecar, privacy guard",
   ]) {

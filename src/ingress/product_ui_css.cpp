@@ -2609,6 +2609,49 @@ std::string ProductUiCss() {
     .incident-triage-card[data-priority="urgent"] {
       border-left-color: var(--color-warning);
     }
+    .incident-decision-scorecard {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .incident-decision-scorecard-list {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .incident-decision-scorecard-card {
+      min-width: 0;
+      display: grid;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-subtle);
+      overflow-wrap: anywhere;
+    }
+    .priority-reason-chip {
+      max-width: 100%;
+      overflow-wrap: anywhere;
+    }
+    .incident-decision-basis-grid {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: var(--space-2);
+    }
+    .incident-decision-basis-grid p {
+      min-width: 0;
+      display: grid;
+      gap: 4px;
+      margin: 0;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-raised);
+    }
+    .incident-decision-basis-grid strong,
+    .incident-decision-basis-grid span {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
     .similar-incident-panel {
       display: grid;
       gap: var(--space-3);

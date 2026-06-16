@@ -3582,6 +3582,18 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <p class="ops-rule-note">EventRecord와 review state를 불러오면 Incident Triage Board가 표시됩니다.</p>
         </div>
       </section>
+      <section class="section-card ops-workspace-wide incident-decision-scorecard" data-testid="ops-incident-decision-scorecard" data-incident-decision-scorecard="deterministic-priority-reasons">
+        <div class="toolbar">
+          <div>
+            <h3>Decision Scorecard</h3>
+            <p id="opsIncidentDecisionScorecardSummary">EventRecord, source health, similar incident, VLM candidate, operator review age를 deterministic priority reason으로 요약합니다.</p>
+          </div>
+          <div id="opsIncidentDecisionScorecardBadges" class="badge-row"><span class="chip">media-server.ops.incident-decision-scorecard.v1</span></div>
+        </div>
+        <div id="opsIncidentDecisionScorecardRows" class="incident-decision-scorecard-list">
+          <p class="ops-rule-note">EventRecord와 review state를 불러오면 Decision Scorecard가 표시됩니다.</p>
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide similar-incident-panel" data-testid="ops-similar-incident-lookup" data-similar-incident-lookup="rule-scenario-source-status">
         <div class="toolbar">
           <div>
@@ -12821,6 +12833,136 @@ std::string OpsIncidentTriageBoardViewJson(
     return out.str();
 }
 
+std::string OpsIncidentDecisionScorecardReasonChipsJson(const std::vector<std::string>& reasons) {
+    std::ostringstream out;
+    out << "[";
+    for (std::size_t i = 0; i < reasons.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        const std::string& reason = reasons[i];
+        const std::string tone =
+            reason.find("missing") != std::string::npos || reason.find("stale") != std::string::npos
+                ? "warn"
+                : "info";
+        out << "{"
+            << "\"label\":\"" << JsonEscape(reason) << "\","
+            << "\"tone\":\"" << JsonEscape(tone) << "\""
+            << "}";
+    }
+    out << "]";
+    return out.str();
+}
+
+std::string OpsIncidentDecisionScorecardJson(const std::string& event_json,
+                                             const OpsEventReviewState& review) {
+    const std::string event_id = review.event_id.empty()
+                                     ? Trim(ParseStringField(event_json, "eventId").value_or(""))
+                                     : review.event_id;
+    const std::string event_type = Trim(ParseStringField(event_json, "eventType")
+                                            .value_or(ParseStringField(event_json, "className").value_or("event")));
+    const std::string event_status = Trim(ParseStringField(event_json, "status").value_or("unknown"));
+    const std::string source_id = OpsIncidentTriageBoardSourceId(event_json);
+    const std::string rule_id = OpsIncidentMemoryEventRuleId(event_json);
+    const std::string scenario = OpsIncidentTriageBoardScenario(event_json);
+    const std::string similar_key = OpsIncidentTriageBoardSimilarIncidentKey(
+        source_id.empty() ? "unknown-source" : source_id,
+        rule_id.empty() ? "unmapped-rule" : rule_id,
+        scenario,
+        review);
+    const std::string rule_review = OpsIncidentRuleSuggestionReviewJson(event_json);
+    const std::string vlm_rule_status = OpsIncidentTriageBoardVlmCandidateStatus(rule_review);
+    const std::int64_t event_time_ms = OpsIncidentTriageBoardEventTimeMs(event_json, review);
+    const std::int64_t operator_review_age_ms =
+        review.updated_at_ms > 0 ? std::max<std::int64_t>(0, event_time_ms - review.updated_at_ms) : -1;
+    const std::string source_health_status = source_id.empty() ? "source-missing" : "source-linked";
+    const std::string vlm_summary_status = "memory-search-query-dependent";
+
+    std::vector<std::string> reasons;
+    reasons.push_back(event_status == "unknown" ? "event-record-status-missing" : "event-record:" + event_status);
+    reasons.push_back(source_health_status);
+    reasons.push_back("similar:" + similar_key);
+    reasons.push_back("vlm-summary:" + vlm_summary_status);
+    reasons.push_back("vlm-rule:" + vlm_rule_status);
+    reasons.push_back(operator_review_age_ms < 0 ? "operator-review:not-reviewed"
+                                                 : "operator-review-age:" + std::to_string(operator_review_age_ms));
+
+    std::ostringstream out;
+    out << "{"
+        << "\"eventId\":\"" << JsonEscape(event_id) << "\","
+        << "\"eventRecordBasis\":{"
+        << "\"eventType\":\"" << JsonEscape(event_type.empty() ? "event" : event_type) << "\","
+        << "\"status\":\"" << JsonEscape(event_status) << "\","
+        << "\"eventTimeMs\":" << event_time_ms
+        << "},"
+        << "\"sourceHealthBasis\":{"
+        << "\"sourceId\":\"" << JsonEscape(source_id.empty() ? "unknown-source" : source_id) << "\","
+        << "\"status\":\"" << JsonEscape(source_health_status) << "\","
+        << "\"sourceUrlExposed\":false"
+        << "},"
+        << "\"similarIncidentBasis\":{"
+        << "\"similarIncidentKey\":\"" << JsonEscape(similar_key) << "\","
+        << "\"ruleId\":\"" << JsonEscape(rule_id.empty() ? "unmapped-rule" : rule_id) << "\","
+        << "\"scenario\":\"" << JsonEscape(scenario) << "\""
+        << "},"
+        << "\"vlmSummaryCandidateStatus\":\"" << JsonEscape(vlm_summary_status) << "\","
+        << "\"vlmRuleCandidateStatus\":\"" << JsonEscape(vlm_rule_status) << "\","
+        << "\"operatorReviewAgeMs\":" << operator_review_age_ms << ","
+        << "\"priorityReasonChips\":" << OpsIncidentDecisionScorecardReasonChipsJson(reasons) << ","
+        << "\"rawJsonExposed\":false,"
+        << "\"sourceUrlExposed\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsIncidentDecisionScorecardViewJson(
+    const std::vector<std::string>& event_json_records,
+    const std::unordered_map<std::string, OpsEventReviewState>& reviews) {
+    std::vector<std::string> scorecards;
+    scorecards.reserve(event_json_records.size());
+    for (const std::string& event_json : event_json_records) {
+        const std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+        if (!OpsEventReviewEventIdAllowed(event_id)) {
+            continue;
+        }
+        const auto review_it = reviews.find(event_id);
+        const OpsEventReviewState review =
+            review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
+        scorecards.push_back(OpsIncidentDecisionScorecardJson(event_json, review));
+    }
+
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.incident-decision-scorecard.v1\","
+        << "\"status\":\"ops-incident-decision-scorecard\","
+        << "\"deterministicPriorityReasons\":true,"
+        << "\"scorecards\":[";
+    for (std::size_t i = 0; i < scorecards.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << scorecards[i];
+    }
+    out << "],"
+        << "\"scorecardCount\":" << scorecards.size() << ","
+        << "\"contract\":{"
+        << "\"opsOnly\":true,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"runtimeVlmCallPerformed\":false,"
+        << "\"cloudProviderApiCalled\":false"
+        << "}"
+        << "}";
+    return out.str();
+}
+
 std::string OpsEventReviewInboxItemJson(const std::string& event_json,
                                         const OpsEventReviewState& review) {
     std::ostringstream out;
@@ -13742,6 +13884,9 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         << "},"
         << "\"catalog\":" << OpsEventReviewCatalogJson() << ","
         << "\"incidentTriageBoard\":" << OpsIncidentTriageBoardViewJson(event_result.records_json, reviews)
+        << ","
+        << "\"incidentDecisionScorecard\":"
+        << OpsIncidentDecisionScorecardViewJson(event_result.records_json, reviews)
         << ","
         << "\"memorySearch\":" << OpsIncidentMemorySearchViewJson(event_result.records_json, reviews, query)
         << ","
