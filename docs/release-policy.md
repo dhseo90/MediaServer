@@ -68,7 +68,7 @@ gate 실패 또는 미확인으로 보고하며 제품 runtime/media 회귀와 �
 
 ## GitHub Releases 운영
 
-### v2.7.0 Release Target Runbook
+### v2.7.0 Release Close-out Runbook
 
 아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
 순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
@@ -117,8 +117,8 @@ published metadata, release branch 삭제, Next branch sync는 각각 실행 evi
 
 ## v2.7.0 소유권 분리 / 릴리즈 준비 게이트
 
-S06 local readiness gate는 예정 `media-server.v270-owner-release-readiness.v1` 기준으로
-v2.7.0 Operational Incident Command Loop coverage mapping, 수동 UI criteria, release
+S06 local readiness gate는 `media-server.v270-owner-release-readiness.v1` 기준으로
+v2.7.0 Operational Incident Command Loop Coverage Mapping, 수동 UI criteria, release
 evidence index, release close-out dry-run command를 같은 범위로 묶습니다. 이 절은
 source tree 준비 상태를 확인할 뿐 release action을 승인하거나 실행하지 않습니다.
 

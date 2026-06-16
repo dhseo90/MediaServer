@@ -2663,6 +2663,164 @@ void AppendOpsShellScript(std::ostringstream& out,
           </article>`;
         }).join('');
       }
+      function renderOperationalActionPack(operationalActionPack = {}) {
+        const root = document.getElementById('opsOperationalActionPackRows');
+        if (!root) return;
+        const items = Array.isArray(operationalActionPack.items) ? operationalActionPack.items : [];
+        renderBadges('opsOperationalActionPackBadges', [
+          { text: operationalActionPack.schema || 'media-server.ops.operational-action-pack.v1' },
+          { text: `actions ${items.length}`, tone: items.length > 0 ? '' : 'warn' },
+          { text: operationalActionPack.contract?.externalDeliveryPerformed === false ? 'external delivery 미수행' : 'delivery 확인 필요', tone: operationalActionPack.contract?.externalDeliveryPerformed === false ? 'info' : 'warn' },
+          { text: operationalActionPack.contract?.ruleRegistryWritePerformed === false ? 'rule write 없음' : 'rule write 확인 필요', tone: operationalActionPack.contract?.ruleRegistryWritePerformed === false ? 'info' : 'warn' },
+          { text: operationalActionPack.contract?.sourceHealthWritePerformed === false ? 'source write 없음' : 'source write 확인 필요', tone: operationalActionPack.contract?.sourceHealthWritePerformed === false ? 'info' : 'warn' }
+        ]);
+        setText(
+          'opsOperationalActionPackSummary',
+          items.length
+            ? `release-safe evidence bundle/rule draft/alert dry-run/source health recheck · ${items.length} action pack`
+            : 'EventRecord와 review state를 불러오면 수동 조치 pack이 표시됩니다.'
+        );
+        if (items.length === 0) {
+          root.innerHTML = '<p class="ops-rule-note">표시할 Operational Action Pack이 없습니다.</p>';
+          return;
+        }
+        root.innerHTML = items.map(item => {
+          const actions = item?.actions || {};
+          const evidence = actions.releaseSafeEvidenceBundle || {};
+          const ruleDraftRoute = actions.ruleDraftRoute || {};
+          const alertDryRunRoute = actions.alertDryRunRoute || {};
+          const sourceHealthRecheck = actions.sourceHealthRecheck || {};
+          const bundlePayload = JSON.stringify(evidence.bundlePayload || { releaseSafe: '1', eventId: item?.eventId || '' });
+          const actionButtons = [
+            evidence.available ? `<button type="button" class="button button-secondary button-compact" data-release-safe-evidence-bundle="redacted incident evidence bundle" data-evidence-bundle="${escapeHtml(bundlePayload)}">release-safe bundle</button>` : `<span class="chip warn">evidence 없음</span>`,
+            ruleDraftRoute.available ? `<a class="button button-secondary button-compact" data-rule-draft-route="manual-draft-only" href="${escapeHtml(ruleDraftRoute.route || '/ops/rules')}">rule draft</a>` : `<span class="chip warn">rule draft 대기</span>`,
+            alertDryRunRoute.available ? `<button type="button" class="button button-secondary button-compact" data-action-pack-alert-dry-run="${escapeHtml(item?.eventId || '')}">alert dry-run</button>` : '',
+            sourceHealthRecheck.available ? `<a class="button button-secondary button-compact" data-source-health-recheck="dry-run" href="/ops/dashboard">source health recheck</a>` : `<span class="chip warn">source health 대기</span>`
+          ].filter(Boolean).join('');
+          return `<article class="operational-action-pack-card" data-operational-action-pack-event="${escapeHtml(item?.eventId || '')}">
+            <div class="table-cell-main">
+              <strong>${escapeHtml(display(item?.eventId || 'event'))}</strong>
+              <span>${escapeHtml(display(item?.sourceId || '-'))} · ${escapeHtml(display(item?.ruleId || '-'))} · ${escapeHtml(display(item?.scenario || '-'))}</span>
+            </div>
+            <div class="badge-row">
+              <span class="chip">${escapeHtml(display(item?.incidentStatus || 'new'))}</span>
+              <span class="chip">${evidence.releaseSafe === true ? 'release-safe' : 'bundle 확인 필요'}</span>
+              <span class="chip">${ruleDraftRoute.ruleRegistryWritePerformed === false ? 'manual draft only' : 'rule write 확인 필요'}</span>
+              <span class="chip">${alertDryRunRoute.externalDeliveryPerformed === false ? 'dry-run only' : 'delivery 확인 필요'}</span>
+              <span class="chip">${sourceHealthRecheck.sourceHealthWritePerformed === false ? 'source check only' : 'source write 확인 필요'}</span>
+            </div>
+            <div class="operational-action-pack-actions">${actionButtons}</div>
+          </article>`;
+        }).join('');
+        document.querySelectorAll('[data-action-pack-alert-dry-run]').forEach(button => {
+          if (button.dataset.boundActionPackAlertDryRun === '1') return;
+          button.dataset.boundActionPackAlertDryRun = '1';
+          button.addEventListener('click', async () => {
+            try {
+              await dryRunAlertDeliveryIntegration('');
+              await refreshEvents();
+            } catch (error) {
+              setText('opsOperationalActionPackSummary', `alert dry-run 실패: ${error.message}`);
+            }
+          });
+        });
+      }
+      function renderRuleWhatIfPreview(ruleWhatIfPreview = {}) {
+        const root = document.getElementById('opsRuleWhatIfPreviewRows');
+        if (!root) return;
+        const items = Array.isArray(ruleWhatIfPreview.items) ? ruleWhatIfPreview.items : [];
+        renderBadges('opsRuleWhatIfPreviewBadges', [
+          { text: ruleWhatIfPreview.schema || 'media-server.ops.rule-what-if-preview.v1' },
+          { text: `previews ${items.length}`, tone: items.length > 0 ? '' : 'warn' },
+          { text: ruleWhatIfPreview.contract?.fullReplayEngineExecuted === false ? 'no full replay' : 'replay 확인 필요', tone: ruleWhatIfPreview.contract?.fullReplayEngineExecuted === false ? 'info' : 'warn' },
+          { text: ruleWhatIfPreview.contract?.ruleRegistryWritePerformed === false ? 'rule write 없음' : 'rule write 확인 필요', tone: ruleWhatIfPreview.contract?.ruleRegistryWritePerformed === false ? 'info' : 'warn' },
+          { text: ruleWhatIfPreview.contract?.autoRuleApplied === false ? 'no auto apply' : 'auto 확인 필요', tone: ruleWhatIfPreview.contract?.autoRuleApplied === false ? 'info' : 'warn' }
+        ]);
+        setText(
+          'opsRuleWhatIfPreviewSummary',
+          items.length
+            ? `selected incident/EventRecord와 rule suggestion 후보 · ${items.length} condition preview`
+            : 'EventRecord와 review state를 불러오면 rule what-if preview가 표시됩니다.'
+        );
+        if (items.length === 0) {
+          root.innerHTML = '<p class="ops-rule-note">표시할 Rule What-if Preview가 없습니다.</p>';
+          return;
+        }
+        root.innerHTML = items.map(item => {
+          const preview = item?.preview || {};
+          const draftComparison = preview.draftComparison || {};
+          const conditionPreview = preview.conditionPreview || {};
+          const classes = Array.isArray(conditionPreview.classes) ? conditionPreview.classes : [];
+          const manualDraftRoute = preview.manualDraftRoute || `/ops/rules?draftEventId=${encodeURIComponent(preview.eventId || item?.eventId || '')}&whatIfPreview=1`;
+          return `<article class="rule-what-if-preview-card" data-rule-what-if-preview-event="${escapeHtml(preview.eventId || item?.eventId || '')}">
+            <div class="table-cell-main">
+              <strong>${escapeHtml(display(preview.eventId || item?.eventId || 'event'))}</strong>
+              <span>${escapeHtml(display(preview.sourceId || '-'))} · ${escapeHtml(display(preview.ruleId || '-'))} · ${escapeHtml(display(preview.scenario || '-'))}</span>
+            </div>
+            <div class="badge-row">
+              <span class="chip ${preview.matchingRuleSuggestionPresent ? 'info' : 'warn'}">${escapeHtml(display(preview.candidateStatus || 'no-rule-suggestion-candidate'))}</span>
+              <span class="chip">${preview.draftOnly === true ? 'draft-only' : 'draft 확인 필요'}</span>
+              <span class="chip">${preview.manualSaveRequired === true ? 'manual save' : 'save 확인 필요'}</span>
+              <span class="chip">${draftComparison.fullReplayEngineExecuted === false ? 'no full replay' : 'replay 확인 필요'}</span>
+              <span class="chip">${preview.ruleRegistryWritePerformed === false ? 'rule write 없음' : 'rule write 확인 필요'}</span>
+            </div>
+            <div class="rule-what-if-preview-comparison">
+              <p><strong>draftComparison</strong><span>${escapeHtml(display(draftComparison.sourceEventType || '-'))} → ${escapeHtml(display(draftComparison.proposedRuleKind || '-'))} · ${escapeHtml(display(draftComparison.comparisonResult || '-'))}</span></p>
+              <p><strong>conditionPreview</strong><span>${escapeHtml(display(conditionPreview.eventType || '-'))} · ${escapeHtml(classes.map(display).join(', ') || '대상 클래스 확인 필요')} · confidence ${escapeHtml(display(conditionPreview.minConfidence ?? '-'))} · duration ${escapeHtml(display(conditionPreview.minDurationMs ?? '-'))}</span></p>
+            </div>
+            <div class="operational-action-pack-actions">
+              <a class="button button-secondary button-compact" data-rule-what-if-draft-route="draft-only-manual-save" href="${escapeHtml(manualDraftRoute)}">/ops/rules draft-only 검토</a>
+            </div>
+          </article>`;
+        }).join('');
+      }
+      function renderOperatorOutcomeMemory(operatorOutcomeMemory = {}) {
+        const root = document.getElementById('opsOperatorOutcomeMemoryRows');
+        if (!root) return;
+        const items = Array.isArray(operatorOutcomeMemory.items) ? operatorOutcomeMemory.items : [];
+        const counts = operatorOutcomeMemory.aggregateOutcomeCounts || {};
+        renderBadges('opsOperatorOutcomeMemoryBadges', [
+          { text: operatorOutcomeMemory.schema || 'media-server.ops.operator-outcome-memory.v1' },
+          { text: `accepted ${counts.acceptedCount ?? 0}` },
+          { text: `dismissed ${counts.dismissedCount ?? 0}` },
+          { text: `review-needed ${counts.reviewNeededCount ?? 0}` },
+          { text: operatorOutcomeMemory.contract?.operatorOutcomeMemoryPersistentWrite === false ? 'read-only' : 'write 확인 필요', tone: operatorOutcomeMemory.contract?.operatorOutcomeMemoryPersistentWrite === false ? 'info' : 'warn' },
+          { text: operatorOutcomeMemory.contract?.viewerClientExposureAdded === false ? 'Ops only' : '노출 확인 필요', tone: operatorOutcomeMemory.contract?.viewerClientExposureAdded === false ? 'info' : 'warn' }
+        ]);
+        setText(
+          'opsOperatorOutcomeMemorySummary',
+          items.length
+            ? `accept/dismiss/review-needed outcome · review state/audit action 기반 deterministic history hint · ${items.length}개`
+            : 'EventRecord와 review state를 불러오면 operator outcome history hint가 표시됩니다.'
+        );
+        if (items.length === 0) {
+          root.innerHTML = '<p class="ops-rule-note">표시할 Operator Outcome Memory가 없습니다.</p>';
+          return;
+        }
+        root.innerHTML = items.map(item => {
+          const hint = item?.deterministicHistoryHint || {};
+          const basis = item?.reviewStateBasis || {};
+          const audit = item?.auditActionRefs || {};
+          const itemCounts = item?.outcomeCounts || {};
+          return `<article class="operator-outcome-memory-card" data-operator-outcome-memory-event="${escapeHtml(item?.eventId || '')}">
+            <div class="table-cell-main">
+              <strong>${escapeHtml(display(item?.eventId || 'event'))}</strong>
+              <span>${escapeHtml(display(item?.sourceId || '-'))} · ${escapeHtml(display(item?.ruleId || '-'))} · ${escapeHtml(display(item?.scenario || '-'))}</span>
+            </div>
+            <div class="badge-row">
+              <span class="chip ${item?.currentOutcome === 'dismiss' ? 'warn' : 'info'}">${escapeHtml(display(item?.currentOutcome || 'not-reviewed'))}</span>
+              <span class="chip">accepted ${escapeHtml(display(itemCounts.acceptedCount ?? 0))}</span>
+              <span class="chip">dismissed ${escapeHtml(display(itemCounts.dismissedCount ?? 0))}</span>
+              <span class="chip">review-needed ${escapeHtml(display(itemCounts.reviewNeededCount ?? 0))}</span>
+            </div>
+            <div class="operator-outcome-memory-hint">
+              <p><strong>deterministicHistoryHint</strong><span>${escapeHtml(display(hint.deterministicHistoryHint || '-'))}</span></p>
+              <p><strong>reviewStateBasis</strong><span>${escapeHtml(display(basis.reviewStatus || '-'))} · ${escapeHtml(display(basis.incidentStatus || '-'))} · ${escapeHtml(display(basis.classification || '-'))} · ${escapeHtml(display(basis.vlmAction || '-'))}</span></p>
+              <p><strong>auditActionRefs</strong><span>${escapeHtml(display(audit.eventReviewUpdate || 'event-review-update'))} · ${escapeHtml(display(audit.incidentActionUpdate || 'incident-action-update'))}</span></p>
+            </div>
+          </article>`;
+        }).join('');
+      }
       function renderSimilarIncidentLookup(similarIncidents = {}) {
         const root = document.getElementById('opsSimilarIncidentRows');
         if (!root) return;
@@ -3056,6 +3214,9 @@ void AppendOpsShellScript(std::ostringstream& out,
         renderEventReviewRows(reviewItems);
         renderIncidentTriageBoard(reviewPayload.incidentTriageBoard || {});
         renderIncidentDecisionScorecard(reviewPayload.incidentDecisionScorecard || {});
+        renderOperationalActionPack(reviewPayload.operationalActionPack || {});
+        renderRuleWhatIfPreview(reviewPayload.ruleWhatIfPreview || {});
+        renderOperatorOutcomeMemory(reviewPayload.operatorOutcomeMemory || {});
         renderIncidentMemorySearch(reviewPayload.memorySearch || {});
         renderVlmSummaryCandidateReview(reviewPayload.memorySearch?.vlmSummaryCandidateReview || {});
         renderSimilarIncidentLookup(reviewPayload.similarIncidents || {});
@@ -3066,7 +3227,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (prevButton) prevButton.disabled = opsEventRecordsOffset <= 0;
         if (nextButton) nextButton.disabled = !records.hasMore;
         if (records.nextOffset != null) nextButton?.setAttribute('data-next-offset', String(records.nextOffset));
-        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, incidentTriageBoard: reviewPayload.incidentTriageBoard || {}, incidentDecisionScorecard: reviewPayload.incidentDecisionScorecard || {}, memorySearch: reviewPayload.memorySearch || {}, vlmSummaryCandidateReview: reviewPayload.memorySearch?.vlmSummaryCandidateReview || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
+        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, incidentTriageBoard: reviewPayload.incidentTriageBoard || {}, incidentDecisionScorecard: reviewPayload.incidentDecisionScorecard || {}, operationalActionPack: reviewPayload.operationalActionPack || {}, ruleWhatIfPreview: reviewPayload.ruleWhatIfPreview || {}, operatorOutcomeMemory: reviewPayload.operatorOutcomeMemory || {}, memorySearch: reviewPayload.memorySearch || {}, vlmSummaryCandidateReview: reviewPayload.memorySearch?.vlmSummaryCandidateReview || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
       }
       const itemId = item => display(item?.id || item?.ruleId || item?.profileId || '-');
       const opsRulesIdText = value => {
@@ -3135,6 +3296,22 @@ void AppendOpsShellScript(std::ostringstream& out,
       let opsVaRuleTemplateId = '';
       let opsRulesCurrentRecord = null;
       let opsVlmRuleDraftPayload = null;
+      function opsRuleWhatIfDraftContextFromLocation() {
+        const params = new URLSearchParams(window.location.search || '');
+        const draftEventId = String(params.get('draftEventId') || '').trim();
+        const whatIfPreview = params.get('whatIfPreview') === '1';
+        return { draftEventId, whatIfPreview, enabled: Boolean(draftEventId && whatIfPreview) };
+      }
+      function renderOpsRuleWhatIfDraftContext() {
+        const target = document.getElementById('opsRuleWhatIfDraftContext');
+        if (!target) return;
+        const context = opsRuleWhatIfDraftContextFromLocation();
+        if (!context.enabled) {
+          target.textContent = 'draftEventId와 whatIfPreview=1 query가 있으면 selected incident preview context를 표시합니다. 저장은 운영자가 수동으로 실행해야 합니다.';
+          return;
+        }
+        target.innerHTML = `selected incident <strong>${escapeHtml(context.draftEventId)}</strong>의 Rule What-if Preview context입니다. 조건과 geometry는 아래 draft form에서 운영자가 확인하고, 저장은 운영자가 수동으로 실행해야 합니다.`;
+      }
       const opsVaRulePreviewState = {
         viewId: '',
         sessionId: '',
@@ -6859,6 +7036,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         setText('opsProfileSummary', `총 ${filteredProfiles.length}/${allProfiles.length}개`);
         refreshOpsVaTemplateAssistOptions();
         renderOpsScenarioBuilder();
+        renderOpsRuleWhatIfDraftContext();
         refreshOpsVlmRuleDrafts().catch((error) => renderOpsVlmRuleDrafts({ error: error.message || 'VLM rule draft 후보 로드 실패' }));
         renderOpsVaRules(filteredVaRules);
         renderOpsEventRules(filteredRules);

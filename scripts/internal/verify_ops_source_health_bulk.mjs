@@ -54,8 +54,7 @@ check("documentation describes bulk retry policy", () => {
 
 check("ops sources UI omits source health bulk controls", () => {
   const html = readText("src/ingress/webrtc_http_server.cpp");
-  const script = readText("src/ingress/product_ui_page_scripts.cpp");
-  const opsSourcesScript = extractRange(script, "void AppendOpsSourcesPageScript", "void AppendOpsUsersPageScript");
+  const opsSourcesScript = readText("src/ingress/product_ui_ops_sources_script.cpp");
   const forbiddenHtml = [
     'id="channel-health-bulk-check"',
     'id="channel-health-bulk-retry"',
@@ -132,12 +131,4 @@ function assert(condition, message) {
 
 function readText(relativePath) {
   return fs.readFileSync(path.join(rootDir, relativePath), "utf8");
-}
-
-function extractRange(text, startNeedle, endNeedle) {
-  const start = text.indexOf(startNeedle);
-  assert(start >= 0, `missing range start: ${startNeedle}`);
-  const end = text.indexOf(endNeedle, start + startNeedle.length);
-  assert(end > start, `missing range end: ${endNeedle}`);
-  return text.slice(start, end);
 }

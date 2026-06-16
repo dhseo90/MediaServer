@@ -2652,6 +2652,109 @@ std::string ProductUiCss() {
       min-width: 0;
       overflow-wrap: anywhere;
     }
+    .operational-action-pack {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .operational-action-pack-list {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .operational-action-pack-card {
+      min-width: 0;
+      display: grid;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-subtle);
+      overflow-wrap: anywhere;
+    }
+    .operational-action-pack-actions {
+      min-width: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      align-items: center;
+    }
+    .rule-what-if-preview {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .rule-what-if-preview-list {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .rule-what-if-preview-card {
+      min-width: 0;
+      display: grid;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-subtle);
+      overflow-wrap: anywhere;
+    }
+    .rule-what-if-preview-comparison {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: var(--space-2);
+    }
+    .rule-what-if-preview-comparison p {
+      min-width: 0;
+      display: grid;
+      gap: 4px;
+      margin: 0;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-raised);
+    }
+    .rule-what-if-preview-comparison strong,
+    .rule-what-if-preview-comparison span {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .operator-outcome-memory {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .operator-outcome-memory-list {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .operator-outcome-memory-card {
+      min-width: 0;
+      display: grid;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-subtle);
+      overflow-wrap: anywhere;
+    }
+    .operator-outcome-memory-hint {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: var(--space-2);
+    }
+    .operator-outcome-memory-hint p {
+      min-width: 0;
+      display: grid;
+      gap: 4px;
+      margin: 0;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-raised);
+    }
+    .operator-outcome-memory-hint strong,
+    .operator-outcome-memory-hint span {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
     .similar-incident-panel {
       display: grid;
       gap: var(--space-3);

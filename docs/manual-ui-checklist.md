@@ -5,10 +5,10 @@
 세부 기준으로 삼고, 기능별 UI 필요 여부와 테스트 영역은
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 합니다. 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를
-사용합니다. 최신 공개 release 기준과 현재 release 목표는 `v2.6.0`이며,
-UI 문서 기준은 `v2.6.0 Operational Hardening & Incident Memory Productization`입니다. UI 풀테스트
+사용합니다. 최신 공개 release 기준은 `v2.6.0`이고 현재 release 목표는 `v2.7.0`이며,
+UI 문서 기준은 `v2.7.0 Operational Incident Command Loop`입니다. UI 풀테스트
 기준은 해당 작업 범위에 포함된 제품 route, 권한, 기능 baseline만 대상으로 합니다.
-현재 release 목표는 `v2.6.0`, v2.6.0 release UI gate는 현재 release target의 UI evidence 경계를 뜻하며, UI
+현재 release 목표는 `v2.7.0`, v2.7.0 release UI gate는 현재 release target의 UI evidence 경계를 뜻하며, UI
 재배치 문서 준비나 자동 smoke만으로 UI 풀테스트 PASS를 뜻하지 않습니다.
 문서 구조와 evidence 경계는 `./server.sh verify-manual-ui-evidence`로 확인합니다.
 현재 제품 UI 직접 조작 evidence 없이 완료 판정에 포함하지 않습니다.
@@ -278,6 +278,10 @@ Codex 세션의 UI 조작 evidence는 인앱 브라우저 직접 조작을 우�
 | --- | --- | --- | --- | --- |
 | V270-S01 Incident Triage Board | `UI-050`, `EVT-050`, `LAB-074`, `SAFE-058` | `/ops/events` | Incident Triage Board card, lane filter, priority filter, priority/review-age/event-time sort, source/rule/scenario/similar incident/VLM candidate 표시, client/viewer 비노출 | `verify-v270-incident-triage-board`, `verify-ops-client-ui` |
 | V270-S02 Decision scorecard | `UI-051`, `EVT-051`, `LAB-075`, `SAFE-059` | `/ops/events` | Decision Scorecard card, priority reason chips, EventRecord/source health/similar incident/VLM summary/rule candidate/operator review age 표시, raw JSON/source URL/provider material 비노출, client/viewer 비노출 | `verify-v270-incident-decision-scorecard`, `verify-ops-client-ui` |
+| V270-S03 Operational Action Pack | `UI-052`, `EVT-052`, `LAB-076`, `SAFE-060` | `/ops/events` | Operational Action Pack card, release-safe bundle, rule draft route, alert dry-run, source health recheck dry-run 표시, 외부 실제 발송/자동 rule write 없음, client/viewer 비노출 | `verify-v270-operational-action-pack`, `verify-ops-client-ui` |
+| V270-S04 Rule What-if Preview | `UI-053`, `EVT-053`, `LAB-077`, `SAFE-061` | `/ops/events`, `/ops/rules` | Rule What-if Preview card, selected incident/EventRecord, rule suggestion condition preview, draft comparison, `/ops/rules` draft-only context, full replay/자동 저장/자동 적용 없음, client/viewer 비노출 | `verify-v270-rule-what-if-preview`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-rule-ui`, `verify-ops-client-ui` |
+| V270-S05 Operator outcome memory | `UI-054`, `EVT-054`, `LAB-078`, `SAFE-062` | `/ops/events` | Operator Outcome Memory card, accept/dismiss/review-needed outcome count, deterministic history hint, review state/audit action 기반 표시, 새 저장소/자동 학습/EventRecord top-level 변경 없음, client/viewer 비노출 | `verify-v270-operator-outcome-memory`, `verify-vlm-review-action-workflow`, `verify-ops-client-ui` |
+| V270-S06 Release Readiness | `UI-050`~`UI-054`, `OPS-038`, `SAFE-063` | `/ops/events`, `/ops/rules`, release evidence 문서 | S01~S05 UI 기준과 release evidence/not-run 경계 연결 확인. 이 행은 기준 정리이며 실제 UI 직접 조작 미실행 상태를 PASS로 쓰지 않음 | `verify-v270-owner-release-readiness`, `verify-feature-inventory-coverage`, `verify-release-evidence-index` |
 
 ### v2.6.0 Operational Hardening UI 풀테스트 기준
 
