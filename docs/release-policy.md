@@ -218,12 +218,12 @@ Annotation JSON을 확보한 경우:
 
 - Preflight:
 - Licensing and Artifact Guardrails:
+- GitHub Actions status check:
 - Local docs/release metadata:
 - UI fulltest:
-- 30-minute soak:
-- 120-minute longrun:
+- Longrun / soak:
 
-## Not Run / Excluded
+## Not Run / Unverified
 
 - Real ONVIF device field smoke:
 - External TURN/WHEP credential operation:
@@ -231,7 +231,7 @@ Annotation JSON을 확보한 경우:
 - VLM model/runtime bundle:
 - YouTube real URL relay:
 
-Do not list an item as PASS unless it was actually executed for this release cut.
+Do not list an item as pass unless it was actually executed for this release cut.
 ```
 
 ## 관련 문서

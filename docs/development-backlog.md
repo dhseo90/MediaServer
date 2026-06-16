@@ -249,6 +249,7 @@ Incident Memory Productization을 닫은 직전 공개 릴리즈입니다. 이 �
 | ID | verifier | 경계 |
 | --- | --- | --- |
 | V180-P0-03 | Manual UI evidence checklist hardening / `verify-manual-ui-evidence` | `/setup`, `/login`, `/ops`, `/client`, `/ops/rules`, `/client/live` evidence index 문서가 PASS/FAIL, 제외 기록, raw JSON/API-only 비대체 경계를 유지하는지 확인 |
+| V180-P1-03 | Release evidence index / `verify-release-evidence-index` | longrun, UI evidence, PR checks, release notes, skipped tests를 evidence index review 대상으로 묶되 실행하지 않은 release action을 PASS로 승격하지 않음 |
 
 ## 이전 공개 기준: v2.5.0 Source Release Baseline
 

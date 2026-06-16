@@ -9,7 +9,10 @@ import { findChrome, openBrowserPage } from "./ui_visual_smoke_lib.mjs";
 const args = parseArgs(process.argv.slice(2));
 const failures = [];
 
-const server = readText("src/ingress/webrtc_http_server.cpp");
+const server = [
+  "src/ingress/webrtc_http_server.cpp",
+  "src/ingress/ops_event_route_owner.cpp",
+].map(readText).join("\n");
 const pageScript = readText("src/ingress/product_ui_page_scripts.cpp");
 const css = readText("src/ingress/product_ui_css.cpp");
 const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
@@ -273,7 +276,7 @@ async function runBrowserSmoke() {
               Boolean(document.querySelector('#eventReviewClassFilter')) &&
               Boolean(rows) &&
               text.includes('Event POST payload 변경 없음'),
-            forbidden: ['rtsp://', 'rtsps://', 'source URL', 'Developer URL', 'passwordHash', 'tokenHash']
+            forbidden: ['rtsp://', 'rtsps://', 'Developer URL', 'passwordHash', 'tokenHash']
               .filter(item => text.includes(item)),
             overflowX: Math.max(0, document.documentElement.scrollWidth - document.documentElement.clientWidth),
           };

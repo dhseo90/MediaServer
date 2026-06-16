@@ -219,7 +219,8 @@ async function verifyBrowserUi(fixture) {
     const actionResult = await browser.evaluate(
       `
         (async () => {
-          const button = document.querySelector('[data-evidence-bundle]');
+          const button = Array.from(document.querySelectorAll('#eventRecordRows [data-evidence-bundle]'))
+            .find(item => !item.disabled && item.textContent.includes('signed bundle'));
           if (!button) return { ok: false, reason: 'missing evidence bundle button' };
           const originalFetch = window.fetch.bind(window);
           window.__opsEventBundleFetches = [];

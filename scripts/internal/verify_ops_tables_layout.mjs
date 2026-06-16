@@ -407,7 +407,11 @@ function detailAndAuditCheckExpression(check) {
 
 function assertSharedTableHelpers() {
   const shared = fs.readFileSync("src/ingress/product_ui_js.cpp", "utf8");
-  const pages = fs.readFileSync("src/ingress/product_ui_page_scripts.cpp", "utf8");
+  const pages = [
+    "src/ingress/product_ui_page_scripts.cpp",
+    "src/ingress/product_ui_ops_sources_script.cpp",
+    "src/ingress/product_ui_ops_users_script.cpp",
+  ].map(file => fs.readFileSync(file, "utf8")).join("\n");
   const requiredShared = [
     "opsRowActionsHtml",
     "opsTableRowHtml",
