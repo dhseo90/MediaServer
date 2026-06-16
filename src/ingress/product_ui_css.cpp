@@ -2568,6 +2568,47 @@ std::string ProductUiCss() {
       line-height: 1.45;
       overflow-wrap: anywhere;
     }
+    .incident-triage-board {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .incident-triage-controls label {
+      min-width: 140px;
+    }
+    .incident-triage-board-lanes {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+      gap: var(--space-3);
+      align-items: stretch;
+    }
+    .incident-triage-lane {
+      min-width: 0;
+      display: grid;
+      align-content: start;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-subtle);
+    }
+    .incident-triage-card-list {
+      display: grid;
+      gap: var(--space-2);
+    }
+    .incident-triage-card {
+      min-width: 0;
+      display: grid;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-left: 5px solid var(--color-primary);
+      border-radius: 8px;
+      background: var(--color-surface-raised);
+      overflow-wrap: anywhere;
+    }
+    .incident-triage-card[data-priority="urgent"] {
+      border-left-color: var(--color-warning);
+    }
     .similar-incident-panel {
       display: grid;
       gap: var(--space-3);

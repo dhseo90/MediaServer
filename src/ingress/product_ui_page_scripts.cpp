@@ -2552,6 +2552,74 @@ void AppendOpsShellScript(std::ostringstream& out,
           </article>`;
         }).join('');
       }
+      function renderIncidentTriageBoard(incidentTriageBoard = {}) {
+        const root = document.getElementById('opsIncidentTriageBoardRows');
+        if (!root) return;
+        const cards = Array.isArray(incidentTriageBoard.cards) ? [...incidentTriageBoard.cards] : [];
+        const laneFilter = String(document.getElementById('opsIncidentTriageLaneFilter')?.value || 'all');
+        const priorityFilter = String(document.getElementById('opsIncidentTriagePriorityFilter')?.value || 'all');
+        const sortMode = String(document.getElementById('opsIncidentTriageSort')?.value || 'priority');
+        const filtered = cards
+          .filter(card => laneFilter === 'all' || String(card?.lane || '') === laneFilter)
+          .filter(card => priorityFilter === 'all' || String(card?.priority || '') === priorityFilter);
+        filtered.sort((left, right) => {
+          if (sortMode === 'review-age') {
+            return numberValue(right?.reviewUpdatedAtMs) - numberValue(left?.reviewUpdatedAtMs);
+          }
+          if (sortMode === 'event-time') {
+            return numberValue(right?.eventTimeMs) - numberValue(left?.eventTimeMs);
+          }
+          return numberValue(right?.priorityRank) - numberValue(left?.priorityRank);
+        });
+        const lanes = Array.isArray(incidentTriageBoard.laneFilters)
+          ? incidentTriageBoard.laneFilters.filter(item => item !== 'all')
+          : ['needs-triage', 'in-progress', 'watchlist', 'resolved'];
+        renderBadges('opsIncidentTriageBoardBadges', [
+          { text: incidentTriageBoard.schema || 'media-server.ops.incident-triage-board.v1' },
+          { text: `cards ${filtered.length}/${cards.length}`, tone: filtered.length > 0 ? '' : 'warn' },
+          { text: `lane ${laneFilter}` },
+          { text: `sort ${sortMode}` },
+          { text: incidentTriageBoard.contract?.viewerClientExposureAdded === false ? 'Ops only' : '노출 확인 필요', tone: incidentTriageBoard.contract?.viewerClientExposureAdded === false ? 'info' : 'warn' }
+        ]);
+        setText(
+          'opsIncidentTriageBoardSummary',
+          cards.length
+            ? `priority/reviewState/sourceId/ruleId/scenario/similarIncidentKey/vlmCandidateStatus 기준 · ${filtered.length}개 표시`
+            : 'EventRecord와 review state를 불러오면 lane/filter/sort board가 표시됩니다.'
+        );
+        if (filtered.length === 0) {
+          root.innerHTML = '<p class="ops-rule-note">현재 필터에 맞는 triage card가 없습니다.</p>';
+          return;
+        }
+        root.innerHTML = lanes.map(lane => {
+          const laneCards = filtered.filter(card => String(card?.lane || 'watchlist') === lane);
+          return `<section class="incident-triage-lane" data-incident-triage-lane="${escapeHtml(lane)}">
+            <div class="toolbar">
+              <h4>${escapeHtml(lane)}</h4>
+              <span class="chip">${laneCards.length}</span>
+            </div>
+            <div class="incident-triage-card-list">
+              ${laneCards.length ? laneCards.map(card => {
+                const reasons = Array.isArray(card?.priorityReasons) ? card.priorityReasons : [];
+                return `<article class="incident-triage-card" data-incident-triage-card="${escapeHtml(card?.eventId || '')}" data-priority="${escapeHtml(card?.priority || 'low')}">
+                  <div class="table-cell-main">
+                    <strong>${escapeHtml(display(card?.eventId || 'event'))}</strong>
+                    <span>${escapeHtml(display(card?.sourceId || '-'))} · ${escapeHtml(display(card?.ruleId || '-'))} · ${escapeHtml(display(card?.scenario || '-'))}</span>
+                  </div>
+                  <div class="badge-row">
+                    <span class="chip ${card?.priority === 'urgent' ? 'warn' : 'info'}">${escapeHtml(display(card?.priority || 'low'))}</span>
+                    <span class="chip">${escapeHtml(display(card?.reviewState || 'new'))}</span>
+                    <span class="chip">${escapeHtml(display(card?.incidentStatus || 'new'))}</span>
+                  </div>
+                  <p class="ops-rule-note">similarIncidentKey ${escapeHtml(display(card?.similarIncidentKey || '-'))}</p>
+                  <p class="ops-rule-note">vlmCandidateStatus ${escapeHtml(display(card?.vlmCandidateStatus || 'no-rule-suggestion-candidate'))}</p>
+                  <div class="badge-row">${reasons.map(reason => `<span class="chip">${escapeHtml(display(reason))}</span>`).join('')}</div>
+                </article>`;
+              }).join('') : '<p class="ops-rule-note">이 lane에는 card가 없습니다.</p>'}
+            </div>
+          </section>`;
+        }).join('');
+      }
       function renderSimilarIncidentLookup(similarIncidents = {}) {
         const root = document.getElementById('opsSimilarIncidentRows');
         if (!root) return;
@@ -2943,6 +3011,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             : `review ${reviewItems.length}개 · incident/action workflow · VLM review panel ${reviewItems.filter(item => item?.vlmReview).length}개 · Event POST payload 변경 없음 · audit action event-review-update/incident-action-update`
         );
         renderEventReviewRows(reviewItems);
+        renderIncidentTriageBoard(reviewPayload.incidentTriageBoard || {});
         renderIncidentMemorySearch(reviewPayload.memorySearch || {});
         renderVlmSummaryCandidateReview(reviewPayload.memorySearch?.vlmSummaryCandidateReview || {});
         renderSimilarIncidentLookup(reviewPayload.similarIncidents || {});
@@ -2953,7 +3022,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (prevButton) prevButton.disabled = opsEventRecordsOffset <= 0;
         if (nextButton) nextButton.disabled = !records.hasMore;
         if (records.nextOffset != null) nextButton?.setAttribute('data-next-offset', String(records.nextOffset));
-        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, memorySearch: reviewPayload.memorySearch || {}, vlmSummaryCandidateReview: reviewPayload.memorySearch?.vlmSummaryCandidateReview || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
+        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, incidentTriageBoard: reviewPayload.incidentTriageBoard || {}, memorySearch: reviewPayload.memorySearch || {}, vlmSummaryCandidateReview: reviewPayload.memorySearch?.vlmSummaryCandidateReview || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
       }
       const itemId = item => display(item?.id || item?.ruleId || item?.profileId || '-');
       const opsRulesIdText = value => {
@@ -6855,6 +6924,11 @@ void AppendOpsShellScript(std::ostringstream& out,
         document.getElementById('opsIncidentSearchStatusFilter')?.addEventListener('change', () => {
           opsEventRecordsOffset = 0;
           refreshEvents().catch(error => setText('opsIncidentSearchSummary', error.message));
+        });
+        ['opsIncidentTriageLaneFilter', 'opsIncidentTriagePriorityFilter', 'opsIncidentTriageSort'].forEach(id => {
+          document.getElementById(id)?.addEventListener('change', () => {
+            refreshEvents().catch(error => setText('opsIncidentTriageBoardSummary', error.message));
+          });
         });
         document.getElementById('eventReviewAuditRefresh')?.addEventListener('click', () => renderOpsAuditTrail('event-review-audit-list', 'events'));
         document.getElementById('alertDeliverySave')?.addEventListener('click', async () => {

@@ -26,13 +26,13 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 451 |
-| UI 직접 필요 | 265 |
+| 전체 기능 항목 | 455 |
+| UI 직접 필요 | 268 |
 | UI 간접 필요 | 30 |
-| UI 비대상 | 156 |
-| 테스트 필요 | 451 |
-| 안정화 대상 | 441 |
-| UI 풀테스트 대상 | 284 |
+| UI 비대상 | 157 |
+| 테스트 필요 | 455 |
+| 안정화 대상 | 445 |
+| UI 풀테스트 대상 | 287 |
 | 30분 soak 대상 | 47 |
 | 120분 대상 | 7 |
 
@@ -42,7 +42,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 451개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 455개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -62,7 +62,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | Roadmap scope | Feature IDs | 대표 안정화 verifier | release evidence boundary |
 | --- | --- | --- | --- |
-| V270-S01 Incident Triage Board | 구현 전 추가 예정 | 예정 `verify-v270-incident-triage-board` | `/ops/events` board view, lane/filter/sort UI, viewer/client 비노출 기준. 브라우저 직접 조작 전 UI PASS가 아님 |
+| V270-S01 Incident Triage Board | `UI-050`, `EVT-050`, `LAB-074`, `SAFE-058` | `verify-v270-incident-triage-board` | `/ops/events` board view, lane/filter/sort UI, viewer/client 비노출 기준. 브라우저 직접 조작 전 UI PASS가 아님 |
 | V270-S02 Decision scorecard | 구현 전 추가 예정 | 예정 `verify-v270-incident-decision-scorecard` | deterministic scorecard 기준. provider 호출, raw JSON/source URL 노출, schema/media 변경 evidence가 아님 |
 | V270-S03 Operational Action Pack | 구현 전 추가 예정 | 예정 `verify-v270-operational-action-pack` | evidence bundle/rule draft/alert dry-run/source health recheck 연결 기준. 외부 실제 발송과 자동 rule write는 비범위 |
 | V270-S04 Rule What-if Preview | 구현 전 추가 예정 | 예정 `verify-v270-rule-what-if-preview` | selected incident/rule suggestion preview 기준. full replay engine, 자동 저장, 자동 적용 evidence가 아님 |
@@ -130,15 +130,15 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 
 | 기능 ID 범위 | 안정화 verifier 후보 | 비고 |
 | --- | --- | --- |
-| `UI-001`~`UI-018`, `UI-022`~`UI-049` | auth, Ops, Client, VLM, v250/v260 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
+| `UI-001`~`UI-018`, `UI-022`~`UI-050` | auth, Ops, Client, VLM, v250/v260/v270 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
 | `AUTH-001`~`AUTH-042` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
 | `SRC-001`~`SRC-031` | source/ONVIF/UI verifier family | ONVIF field success는 approved environment only |
 | `RULE-001`~`RULE-102` | rule/VA verifier family | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
-| `EVT-001`~`EVT-049` | event/VLM/v250/v260 verifier family | event log 육안 확인은 UI 풀테스트 |
+| `EVT-001`~`EVT-050` | event/VLM/v250/v260/v270 verifier family | event log 육안 확인은 UI 풀테스트 |
 | `CLIENT-001`~`CLIENT-023` | client/UI verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-021` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
-| `LAB-001`~`LAB-073` | lab/VLM/v250/v260 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-057` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `LAB-001`~`LAB-074` | lab/VLM/v250/v260/v270 fixture verifier family | 제품 UI 비대상 |
+| `SAFE-001`~`SAFE-058` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
 | `OPS-035`~`OPS-037` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
 
 ## VA Manual UI Seed Matrix
@@ -233,6 +233,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | UI-047 | `/ops/sources` ONVIF credential gate | 필요 | 필요 | 안정화, UI | ONVIF probe draft tool이 `media-server.onvif-credential-binding-gate.v1` gate status를 표시하고 secret input/reference echo 없이 source:write/reference-only/store-off 경계를 보여줌 |
 | UI-048 | `/ops/dashboard` Runtime dashboard trend card | 필요 | 필요 | 안정화, UI | `/ops/dashboard`가 page-session-only sample로 runtime baseline/sparkline 후보, delta, longrun evidence 아님 상태를 운영 card에 표시하고 persistent trend store를 만들지 않음 |
 | UI-049 | `/ops/rules` ReEntry cross-zone review control | 필요 | 필요 | 안정화, UI | ReEntry `configured-zones` 기준이 source zone A 이탈 후 `reEntryZoneIds` destination B 진입 후보임을 select/summary/review copy로 표시하고 event/schema/media/client 경계를 바꾸지 않음 |
+| UI-050 | `/ops/events` Incident Triage Board | 필요 | 필요 | 안정화, UI | `/ops/events`가 priority/review state/source/rule/scenario/similar incident/VLM candidate 기준의 lane/filter/sort board를 `media-server.ops.incident-triage-board.v1`로 표시하고 client/viewer에는 노출하지 않음 |
 
 ## B. Auth, Account, Role, Scope
 
@@ -478,6 +479,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | EVT-047 | Ops incident-to-rule suggestion review view model | 필요 | 필요 | 안정화, UI | `/ops/api/events/reviews` item의 `incidentRuleSuggestionReview`가 matching sidecar `ruleSuggestion`과 기존 candidate report를 Ops-only wrapper로 감싸고 EventRecord/Event POST/WebRTC/SSE/WS/media path/client viewer 노출을 바꾸지 않음 |
 | EVT-048 | dashboard runtime baseline/sparkline summary | 필요 | 필요 | 안정화, UI | `/ops/dashboard`가 `/ops/api/runtime/status`, source health, events status 응답을 page-local sample로 요약해 baseline 대비 delta와 sparkline 후보를 표시하고 Event POST/WebRTC/SSE/WS payload, RTSP/WebRTC media path, client API를 바꾸지 않음 |
 | EVT-049 | ScenarioEngine cross-zone re-entry candidate | 필요 | 필요 | 안정화, UI | A zone 이탈 후 B zone 진입 replay가 기존 `re-entry` EventRecord 후보를 만들고 Event POST/WebRTC/SSE/WS payload, RTSP/WebRTC media path, client API를 바꾸지 않음 |
+| EVT-050 | Ops incident triage board view model | 필요 | 필요 | 안정화, UI | `/ops/api/events/reviews` 응답의 `incidentTriageBoard`가 기존 EventRecord/review/VLM candidate 상태를 Ops-only board card로 요약하고 EventRecord/Event POST/WebRTC/SSE/WS/media path/client viewer 노출을 바꾸지 않음 |
 
 ## F. Client And Viewer
 
@@ -610,6 +612,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | LAB-071 | V260-S03 ONVIF credential gate static guard | 비대상 | 필요 | 안정화 | `verify-v260-onvif-credential-gate`가 credential binding fixture, provider 선택값, 제외 사유, `/ops/sources` marker, URL credential reject, docs/inventory/command wiring, persistent store 비범위를 정적 검증함 |
 | LAB-072 | V260-S04 runtime dashboard trend static guard | 비대상 | 필요 | 안정화 | `verify-v260-runtime-dashboard-trends`가 `/ops/dashboard` trend card marker, page-session-only sample buffer, sparkline rendering, command/docs/inventory wiring, longrun/schema/media/client 비범위를 정적 검증함 |
 | LAB-073 | V260-S05 cross-zone re-entry replay/static guard | 비대상 | 필요 | 안정화 | `verify-v260-scenario-cross-zone-reentry`가 ReEntryScenario source/destination 분리, EventRuleEngine parser, analysis-state A→B case, va-replay fixture, UI/docs/inventory wiring, schema/media/client 비범위를 검증함 |
+| LAB-074 | V270-S01 incident triage board static guard | 비대상 | 필요 | 안정화 | `verify-v270-incident-triage-board`가 triage board wrapper schema, lane/filter/sort UI marker, priority/review/source/rule/scenario/similar/VLM 기준, command/docs/inventory wiring, client/provider/auto-action 비범위를 정적 검증함 |
 
 ## I. Safety, Boundary, Invariant Contract
 
@@ -672,6 +675,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | SAFE-055 | V260-S04 runtime trend storage/schema boundary | 필요 | 필요 | 안정화, UI | runtime trend card는 현재 browser page session의 sample만 사용하고 localStorage/sessionStorage/indexedDB/server trend API, 장기 녹화, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경, client/viewer exposure를 만들지 않음 |
 | SAFE-056 | V260-S05 scenario schema/media boundary | 필요 | 필요 | 안정화, UI | cross-zone re-entry 후보는 저장 rule scenario payload의 기존 field만 사용하고 새 event type, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경, client/viewer exposure를 만들지 않음 |
 | SAFE-057 | V260-S06 릴리즈 준비 경계 | 비대상 | 필요 | 안정화 | release readiness gate는 UI 풀테스트 직접 조작, 30분/120분, `verify-release-metadata --published`, tag/push/GitHub Release, PR merge/main sync/후속 브랜치 생성을 local verifier PASS로 승격하지 않음 |
+| SAFE-058 | V270-S01 incident triage board boundary | 필요 | 필요 | 안정화, UI | Incident Triage Board는 `/ops/events` Ops-only view model/UI만 추가하고 viewer/client route, EventRecord/Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path, runtime VLM 호출, cloud provider 호출, 자동 조치 적용을 만들지 않음 |
 
 ## J. Ops Evidence And Release Readiness
 

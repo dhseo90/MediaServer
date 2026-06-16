@@ -1,0 +1,169 @@
+#!/usr/bin/env node
+// 파일 용도: v2.7.0 S01 Incident Triage Board view model/UI와 비범위 경계를 검증한다.
+
+import fs from "node:fs";
+import process from "node:process";
+
+const failures = [];
+
+const server = readText("src/ingress/webrtc_http_server.cpp");
+const script = readText("src/ingress/product_ui_page_scripts.cpp");
+const css = readText("src/ingress/product_ui_css.cpp");
+const uiSmoke = readText("scripts/internal/verify_ops_client_ui_smoke.mjs");
+const inventory = readText("docs/project-feature-test-inventory.md");
+const backlog = readText("docs/development-backlog.md");
+const streamVerification = readText("docs/stream-verification.md");
+const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
+const serverSh = readText("server.sh");
+
+check("roadmap records V270-S01 as active/completed Incident Triage Board work", () => {
+  assert(/\| 1 \| V270-S01 \| P0 \| (진행|완료) \| Incident Triage Board \|/.test(backlog),
+    "backlog V270-S01 row must be 진행 or 완료 while S01 is under development");
+  for (const snippet of [
+    "media-server.ops.incident-triage-board.v1",
+    "board lane/filter/sort UI",
+    "viewer/client 비노출",
+    "verify-v270-incident-triage-board",
+  ]) {
+    assertIncludes(backlog, snippet, "V270-S01 backlog");
+  }
+});
+
+check("Ops events API exposes deterministic Ops-only triage board view model", () => {
+  for (const snippet of [
+    "OpsIncidentTriageBoardViewJson",
+    "OpsIncidentTriageBoardCardJson",
+    "OpsIncidentTriageBoardLane",
+    "OpsIncidentTriageBoardPriority",
+    "media-server.ops.incident-triage-board.v1",
+    "\\\"incidentTriageBoard\\\":",
+    "\\\"laneFilters\\\":[\\\"all\\\",\\\"needs-triage\\\",\\\"in-progress\\\",\\\"watchlist\\\",\\\"resolved\\\"]",
+    "\\\"sortOptions\\\":[\\\"priority\\\",\\\"review-age\\\",\\\"event-time\\\"]",
+    "\\\"reviewState\\\":",
+    "\\\"sourceId\\\":",
+    "\\\"ruleId\\\":",
+    "\\\"scenario\\\":",
+    "\\\"similarIncidentKey\\\":",
+    "\\\"vlmCandidateStatus\\\":",
+    "\\\"viewerClientExposureAdded\\\":false",
+    "\\\"eventPostPayloadChanged\\\":false",
+    "\\\"webrtcDataChannelSchemaChanged\\\":false",
+    "\\\"sseMetadataSchemaChanged\\\":false",
+    "\\\"wsMetadataSchemaChanged\\\":false",
+    "\\\"rtspOrWebrtcMediaPathChanged\\\":false",
+    "\\\"runtimeVlmCallPerformed\\\":false",
+    "\\\"cloudProviderApiCalled\\\":false",
+    "\\\"autoActionApplied\\\":false",
+  ]) {
+    assertIncludes(server, snippet, "Ops incident triage board API");
+  }
+});
+
+check("/ops/events UI renders triage board lanes, filters, and sort controls", () => {
+  for (const snippet of [
+    'data-testid="ops-incident-triage-board"',
+    'data-incident-triage-board="lane-filter-sort"',
+    'id="opsIncidentTriageLaneFilter"',
+    'id="opsIncidentTriagePriorityFilter"',
+    'id="opsIncidentTriageSort"',
+    'id="opsIncidentTriageBoardBadges"',
+    'id="opsIncidentTriageBoardRows"',
+    "Incident Triage Board",
+  ]) {
+    assertIncludes(server, snippet, "Ops incident triage board shell");
+  }
+  for (const snippet of [
+    "renderIncidentTriageBoard",
+    "incidentTriageBoard",
+    "opsIncidentTriageBoardRows",
+    "opsIncidentTriageLaneFilter",
+    "opsIncidentTriagePriorityFilter",
+    "opsIncidentTriageSort",
+    "similarIncidentKey",
+    "vlmCandidateStatus",
+  ]) {
+    assertIncludes(script, snippet, "Ops incident triage board script");
+  }
+  for (const snippet of [
+    ".incident-triage-board",
+    ".incident-triage-board-lanes",
+    ".incident-triage-lane",
+    ".incident-triage-card",
+  ]) {
+    assertIncludes(css, snippet, "Ops incident triage board CSS");
+  }
+});
+
+check("smoke, inventory, coverage, and command catalog track S01", () => {
+  for (const snippet of [
+    'data-testid="ops-incident-triage-board"',
+    'id="opsIncidentTriageBoardRows"',
+    "incidentTriageBoard",
+    "opsIncidentTriageLaneFilter",
+    "opsIncidentTriageSort",
+  ]) {
+    assertIncludes(uiSmoke, snippet, "ops UI smoke marker");
+  }
+  for (const snippet of [
+    "| V270-S01 Incident Triage Board | `UI-050`, `EVT-050`, `LAB-074`, `SAFE-058` | `verify-v270-incident-triage-board` |",
+    "| UI-050 | `/ops/events` Incident Triage Board |",
+    "| EVT-050 | Ops incident triage board view model |",
+    "| LAB-074 | V270-S01 incident triage board static guard |",
+    "| SAFE-058 | V270-S01 incident triage board boundary |",
+    "verify-v270-incident-triage-board",
+  ]) {
+    assertIncludes(inventory, snippet, "feature inventory S01 row");
+  }
+  assertIncludes(coverageVerifier, "verify-v270-incident-triage-board", "feature inventory coverage S01 command");
+  assertIncludes(streamVerification, "verify-v270-incident-triage-board", "stream verification S01 command");
+  assertIncludes(serverSh, "verify-v270-incident-triage-board", "server.sh S01 command");
+  assertIncludes(serverSh, "verify_v270_incident_triage_board.mjs", "server.sh S01 script target");
+});
+
+check("S01 keeps forbidden client/runtime/schema/media side effects absent", () => {
+  for (const forbidden of [
+    "/client/api/incident-triage-board",
+    "runtimeVlmCallPerformed\\\":true",
+    "cloudProviderApiCalled\\\":true",
+    "autoActionApplied\\\":true",
+    "Event POST payload 변경 완료",
+    "WebRTC DataChannel schema 변경 완료",
+    "SSE/WS metadata schema 변경 완료",
+    "RTSP/WebRTC media path 변경 완료",
+  ]) {
+    assert(!server.includes(forbidden) && !script.includes(forbidden) && !backlog.includes(forbidden),
+      `forbidden S01 snippet present: ${forbidden}`);
+  }
+});
+
+if (failures.length > 0) {
+  console.log("");
+  console.log("== v2.7.0 S01 incident triage board 실패 ==");
+  for (const failure of failures) console.log(`- ${failure}`);
+  process.exit(1);
+}
+
+console.log("");
+console.log("== v2.7.0 S01 incident triage board 통과 ==");
+
+function readText(filePath) {
+  return fs.readFileSync(filePath, "utf8");
+}
+
+function check(name, fn) {
+  try {
+    fn();
+    console.log(`[pass] ${name}`);
+  } catch (error) {
+    failures.push(`${name}: ${error.message}`);
+    console.log(`[fail] ${name}: ${error.message}`);
+  }
+}
+
+function assert(condition, message) {
+  if (!condition) throw new Error(message);
+}
+
+function assertIncludes(text, needle, label) {
+  assert(text.includes(needle), `${label} missing snippet: ${needle}`);
+}

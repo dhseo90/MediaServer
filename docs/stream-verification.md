@@ -40,13 +40,13 @@
 | V250-S08 | `./server.sh verify-v250-redacted-incident-evidence-bundle` | release-safe manifest-only evidence bundle guard |
 | V250-S09 | `./server.sh verify-v250-owner-release-readiness` | owner decomposition/release readiness local gate |
 
-## 현재 v2.7.0 planned verifier
+## 현재 v2.7.0 verifier
 
-아래 명령은 v2.7.0 roadmap 구현 단계에서 추가할 예정인 verifier 이름입니다. 아직
-구현되지 않은 명령은 PASS 근거가 아니며, 실제 실행 가능 여부는 각 스텝 구현 때
-`server.sh` wiring과 script inventory로 확인해야 합니다.
+아래 명령은 v2.7.0 roadmap 구현 단계의 verifier 이름입니다. 아직 구현되지 않은
+명령은 PASS 근거가 아니며, 실제 실행 가능 여부는 각 스텝 구현 때 `server.sh`
+wiring과 script inventory로 확인해야 합니다.
 
-| Step | Planned command | Scope |
+| Step | Command | Scope |
 | --- | --- | --- |
 | V270-S01 | `./server.sh verify-v270-incident-triage-board` | `/ops/events` Incident Triage Board view model/UI marker, lane/filter/sort, client/viewer 비노출, provider/auto-action 비범위 |
 | V270-S02 | `./server.sh verify-v270-incident-decision-scorecard` | deterministic priority reason, source health/similar incident/VLM candidate 연결, raw JSON/source URL 비노출 |

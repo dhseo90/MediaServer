@@ -3543,6 +3543,45 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           </div>
         </div>
       </section>
+      <section class="section-card ops-workspace-wide incident-triage-board" data-testid="ops-incident-triage-board" data-incident-triage-board="lane-filter-sort">
+        <div class="toolbar">
+          <div>
+            <h3>Incident Triage Board</h3>
+            <p id="opsIncidentTriageBoardSummary">priority, review state, source, rule, scenario, similar incident, VLM candidate 기준으로 사건을 정렬합니다.</p>
+          </div>
+          <div id="opsIncidentTriageBoardBadges" class="badge-row"><span class="chip">media-server.ops.incident-triage-board.v1</span></div>
+        </div>
+        <div class="actions event-review-controls incident-triage-controls">
+          <label>Lane
+            <select id="opsIncidentTriageLaneFilter">
+              <option value="all">전체</option>
+              <option value="needs-triage">needs-triage</option>
+              <option value="in-progress">in-progress</option>
+              <option value="watchlist">watchlist</option>
+              <option value="resolved">resolved</option>
+            </select>
+          </label>
+          <label>Priority
+            <select id="opsIncidentTriagePriorityFilter">
+              <option value="all">전체</option>
+              <option value="urgent">urgent</option>
+              <option value="high">high</option>
+              <option value="medium">medium</option>
+              <option value="low">low</option>
+            </select>
+          </label>
+          <label>Sort
+            <select id="opsIncidentTriageSort">
+              <option value="priority">priority</option>
+              <option value="review-age">review age</option>
+              <option value="event-time">event time</option>
+            </select>
+          </label>
+        </div>
+        <div id="opsIncidentTriageBoardRows" class="incident-triage-board-lanes">
+          <p class="ops-rule-note">EventRecord와 review state를 불러오면 Incident Triage Board가 표시됩니다.</p>
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide similar-incident-panel" data-testid="ops-similar-incident-lookup" data-similar-incident-lookup="rule-scenario-source-status">
         <div class="toolbar">
           <div>
@@ -12584,6 +12623,204 @@ std::string OpsIncidentRuleSuggestionReviewJson(const std::string& event_json) {
     return out.str();
 }
 
+std::string OpsIncidentMemoryEventRuleId(const std::string& event_json);
+
+std::string OpsIncidentTriageBoardSourceId(const std::string& event_json) {
+    return OpsIncidentRuleSuggestionSourceId(event_json);
+}
+
+std::string OpsIncidentTriageBoardScenario(const std::string& event_json) {
+    for (const char* key : {"scenarioName", "scenarioPhase", "eventType", "className"}) {
+        const std::string value = Trim(ParseStringField(event_json, key).value_or(""));
+        if (!value.empty()) {
+            return value;
+        }
+    }
+    if (const auto scenario = ExtractObjectField(event_json, "scenario"); scenario.has_value()) {
+        for (const char* key : {"name", "phase", "type"}) {
+            const std::string value = Trim(ParseStringField(*scenario, key).value_or(""));
+            if (!value.empty()) {
+                return value;
+            }
+        }
+    }
+    return "unmapped-scenario";
+}
+
+std::int64_t OpsIncidentTriageBoardEventTimeMs(const std::string& event_json,
+                                               const OpsEventReviewState& review) {
+    for (const char* key : {"updateTime", "endTime", "startTime", "timestampMs"}) {
+        if (const auto value = ParseInt64Field(event_json, key); value.has_value()) {
+            return *value;
+        }
+    }
+    return review.updated_at_ms;
+}
+
+std::string OpsIncidentTriageBoardLane(const OpsEventReviewState& review) {
+    const std::string review_status = Trim(review.review_status);
+    const std::string incident_status = NormalizeOpsIncidentStatus(review.incident_status);
+    if (review_status == "confirmed" || review_status == "dismissed" ||
+        incident_status == "closed" || incident_status == "false-positive") {
+        return "resolved";
+    }
+    if (review_status == "reviewing" || incident_status == "in-progress" ||
+        incident_status == "acknowledged") {
+        return "in-progress";
+    }
+    if (review_status == "new" || review_status == "needs-follow-up" ||
+        incident_status == "review-needed") {
+        return "needs-triage";
+    }
+    return "watchlist";
+}
+
+std::string OpsIncidentTriageBoardPriority(int score) {
+    if (score >= 70) {
+        return "urgent";
+    }
+    if (score >= 45) {
+        return "high";
+    }
+    if (score >= 25) {
+        return "medium";
+    }
+    return "low";
+}
+
+std::string OpsIncidentTriageBoardVlmCandidateStatus(const std::string& rule_review_json) {
+    return ParseStringField(rule_review_json, "candidateStatus")
+        .value_or("no-rule-suggestion-candidate");
+}
+
+std::string OpsIncidentTriageBoardSimilarIncidentKey(const std::string& source_id,
+                                                     const std::string& rule_id,
+                                                     const std::string& scenario,
+                                                     const OpsEventReviewState& review) {
+    return source_id + "|" + rule_id + "|" + scenario + "|" +
+           NormalizeOpsIncidentStatus(review.incident_status);
+}
+
+std::string OpsIncidentTriageBoardCardJson(const std::string& event_json,
+                                           const OpsEventReviewState& review) {
+    const std::string event_id = review.event_id.empty()
+                                     ? Trim(ParseStringField(event_json, "eventId").value_or(""))
+                                     : review.event_id;
+    const std::string source_id = OpsIncidentTriageBoardSourceId(event_json);
+    const std::string rule_id = OpsIncidentMemoryEventRuleId(event_json);
+    const std::string scenario = OpsIncidentTriageBoardScenario(event_json);
+    const std::string lane = OpsIncidentTriageBoardLane(review);
+    const std::string incident_status = NormalizeOpsIncidentStatus(review.incident_status);
+    const std::string review_state = review.review_status.empty() ? "new" : review.review_status;
+    const std::string rule_review = OpsIncidentRuleSuggestionReviewJson(event_json);
+    const std::string vlm_candidate_status = OpsIncidentTriageBoardVlmCandidateStatus(rule_review);
+    const bool has_snapshot = !Trim(ParseStringField(event_json, "snapshotPath").value_or("")).empty();
+    const bool has_clip = !Trim(ParseStringField(event_json, "clipPath").value_or("")).empty();
+    int score = 20;
+    std::vector<std::string> reasons;
+    if (lane == "needs-triage") {
+        score += 35;
+        reasons.push_back("lane:needs-triage");
+    } else if (lane == "in-progress") {
+        score += 20;
+        reasons.push_back("lane:in-progress");
+    }
+    if (review_state == "needs-follow-up" || incident_status == "review-needed") {
+        score += 20;
+        reasons.push_back("review-follow-up");
+    }
+    if (has_snapshot || has_clip) {
+        score += 10;
+        reasons.push_back("evidence-present");
+    }
+    if (!rule_id.empty()) {
+        score += 8;
+        reasons.push_back("rule-linked");
+    }
+    if (vlm_candidate_status != "no-rule-suggestion-candidate") {
+        score += 7;
+        reasons.push_back("vlm-candidate");
+    }
+    if (reasons.empty()) {
+        reasons.push_back("default-watch");
+    }
+    const std::string priority = OpsIncidentTriageBoardPriority(score);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"eventId\":\"" << JsonEscape(event_id) << "\","
+        << "\"lane\":\"" << JsonEscape(lane) << "\","
+        << "\"priority\":\"" << JsonEscape(priority) << "\","
+        << "\"priorityRank\":" << score << ","
+        << "\"priorityReasons\":" << JsonStringArray(reasons) << ","
+        << "\"reviewState\":\"" << JsonEscape(review_state) << "\","
+        << "\"incidentStatus\":\"" << JsonEscape(incident_status) << "\","
+        << "\"sourceId\":\"" << JsonEscape(source_id.empty() ? "unknown-source" : source_id) << "\","
+        << "\"ruleId\":\"" << JsonEscape(rule_id.empty() ? "unmapped-rule" : rule_id) << "\","
+        << "\"scenario\":\"" << JsonEscape(scenario) << "\","
+        << "\"similarIncidentKey\":\""
+        << JsonEscape(OpsIncidentTriageBoardSimilarIncidentKey(
+               source_id.empty() ? "unknown-source" : source_id,
+               rule_id.empty() ? "unmapped-rule" : rule_id,
+               scenario,
+               review))
+        << "\","
+        << "\"vlmCandidateStatus\":\"" << JsonEscape(vlm_candidate_status) << "\","
+        << "\"eventTimeMs\":" << OpsIncidentTriageBoardEventTimeMs(event_json, review) << ","
+        << "\"reviewUpdatedAtMs\":" << review.updated_at_ms
+        << "}";
+    return out.str();
+}
+
+std::string OpsIncidentTriageBoardViewJson(
+    const std::vector<std::string>& event_json_records,
+    const std::unordered_map<std::string, OpsEventReviewState>& reviews) {
+    std::vector<std::string> cards;
+    cards.reserve(event_json_records.size());
+    for (const std::string& event_json : event_json_records) {
+        const std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+        if (!OpsEventReviewEventIdAllowed(event_id)) {
+            continue;
+        }
+        const auto review_it = reviews.find(event_id);
+        const OpsEventReviewState review =
+            review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
+        cards.push_back(OpsIncidentTriageBoardCardJson(event_json, review));
+    }
+
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.incident-triage-board.v1\","
+        << "\"status\":\"ops-incident-triage-board\","
+        << "\"laneFilters\":[\"all\",\"needs-triage\",\"in-progress\",\"watchlist\",\"resolved\"],"
+        << "\"priorityFilters\":[\"all\",\"urgent\",\"high\",\"medium\",\"low\"],"
+        << "\"sortOptions\":[\"priority\",\"review-age\",\"event-time\"],"
+        << "\"cards\":[";
+    for (std::size_t i = 0; i < cards.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << cards[i];
+    }
+    out << "],"
+        << "\"cardCount\":" << cards.size() << ","
+        << "\"contract\":{"
+        << "\"opsOnly\":true,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"runtimeVlmCallPerformed\":false,"
+        << "\"cloudProviderApiCalled\":false,"
+        << "\"autoActionApplied\":false"
+        << "}"
+        << "}";
+    return out.str();
+}
+
 std::string OpsEventReviewInboxItemJson(const std::string& event_json,
                                         const OpsEventReviewState& review) {
     std::ostringstream out;
@@ -13504,6 +13741,8 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         << "\"incidentAuditAction\":\"incident-action-update\""
         << "},"
         << "\"catalog\":" << OpsEventReviewCatalogJson() << ","
+        << "\"incidentTriageBoard\":" << OpsIncidentTriageBoardViewJson(event_result.records_json, reviews)
+        << ","
         << "\"memorySearch\":" << OpsIncidentMemorySearchViewJson(event_result.records_json, reviews, query)
         << ","
         << "\"similarIncidents\":" << OpsSimilarIncidentLookupViewJson(event_result.records_json, reviews)

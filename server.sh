@@ -166,6 +166,8 @@ Usage:
                  v2.6.0 S05 ScenarioEngine cross-zone re-entry 후보와 schema 불변 경계를 검증합니다.
   verify-v260-owner-release-readiness
                  v2.6.0 S06 release readiness gate와 미실행/제외 경계를 검증합니다.
+  verify-v270-incident-triage-board
+                 v2.7.0 S01 Incident Triage Board view model/UI와 비범위 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -1036,6 +1038,10 @@ case "${cmd}" in
   verify-v260-owner-release-readiness)
     require_internal verify_v260_owner_release_readiness.mjs
     exec "${INTERNAL_DIR}/verify_v260_owner_release_readiness.mjs" "$@"
+    ;;
+  verify-v270-incident-triage-board)
+    require_internal verify_v270_incident_triage_board.mjs
+    exec "${INTERNAL_DIR}/verify_v270_incident_triage_board.mjs" "$@"
     ;;
   verify-actions-security)
     require_internal verify_actions_security.mjs

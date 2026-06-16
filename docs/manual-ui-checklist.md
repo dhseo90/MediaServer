@@ -268,6 +268,16 @@ Codex 세션의 UI 조작 evidence는 인앱 브라우저 직접 조작을 우�
 | V250-S08 Redacted Incident Evidence Bundle | `UI-043`, `EVT-045`, `LAB-068`, `SAFE-050` | `/ops/events` | raw signed bundle과 별도 `release-safe bundle` 버튼, token 요청, manifest-only/redaction policy, raw evidence/source locator/provider material 제외 | `verify-v250-redacted-incident-evidence-bundle`, `verify-ops-event-records-scope` |
 | V250-S09 Owner Decomposition/Release Readiness | `UI-044`, `OPS-036`, `SAFE-051` | `/ops/events`, release evidence 문서 | event memory/search route owner catalog와 UI 풀테스트 기준 연결 확인. 이 행은 기준 정리이며 실제 UI 직접 조작 미실행 상태를 PASS로 쓰지 않음 | `verify-v250-owner-release-readiness`, `verify-feature-inventory-coverage`, `verify-release-evidence-index` |
 
+### v2.7.0 Operational Incident Command Loop UI 풀테스트 기준
+
+아래 표는 v2.7.0 UI route/control/action 누락을 막기 위한 기준입니다. 각 행은 인앱
+브라우저에서 직접 클릭/타이핑/선택하고, 실제 화면 상태와 관련 로그 또는 EventRecord/
+감사 이력에 반영됐을 때만 `PASS`입니다. raw JSON/API-only/static smoke/Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다.
+
+| Roadmap scope | Feature IDs | Route | 직접 확인할 control/action | 자동 verifier 연결 |
+| --- | --- | --- | --- | --- |
+| V270-S01 Incident Triage Board | `UI-050`, `EVT-050`, `LAB-074`, `SAFE-058` | `/ops/events` | Incident Triage Board card, lane filter, priority filter, priority/review-age/event-time sort, source/rule/scenario/similar incident/VLM candidate 표시, client/viewer 비노출 | `verify-v270-incident-triage-board`, `verify-ops-client-ui` |
+
 ### v2.6.0 Operational Hardening UI 풀테스트 기준
 
 아래 표는 v2.6.0 UI route/control/action 누락을 막기 위한 기준입니다. 각 행은 인앱
