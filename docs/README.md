@@ -9,9 +9,9 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 - 최신 공개 GitHub Release: [`v2.6.0`](https://github.com/dhseo90/MediaServer/releases/tag/v2.6.0)
 - 최신 published baseline: `v2.6.0 Operational Hardening & Incident Memory Productization`
 - 직전 published baseline: `v2.5.0 Semantic Incident Memory`
-- 현재 소스 버전: `2.6.0`
+- 현재 소스 버전: `2.7.0`
 - v2.6.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- 현재 source roadmap: `v2.6.0 Operational Hardening & Incident Memory Productization`
+- 현재 source roadmap: `v2.7.0 Operational Incident Command Loop`
 - 기본 공개 형태: source-only
 
 ## 먼저 볼 문서

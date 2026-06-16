@@ -40,7 +40,22 @@
 | V250-S08 | `./server.sh verify-v250-redacted-incident-evidence-bundle` | release-safe manifest-only evidence bundle guard |
 | V250-S09 | `./server.sh verify-v250-owner-release-readiness` | owner decomposition/release readiness local gate |
 
-## 현재 v2.6.0 verifier
+## 현재 v2.7.0 verifier
+
+아래 명령은 v2.7.0 roadmap 구현 단계의 verifier 이름입니다. 아직 구현되지 않은
+명령은 PASS 근거가 아니며, 실제 실행 가능 여부는 각 스텝 구현 때 `server.sh`
+wiring과 script inventory로 확인해야 합니다.
+
+| Step | Command | Scope |
+| --- | --- | --- |
+| V270-S01 | `./server.sh verify-v270-incident-triage-board` | `/ops/events` Incident Triage Board view model/UI marker, lane/filter/sort, client/viewer 비노출, provider/auto-action 비범위 |
+| V270-S02 | `./server.sh verify-v270-incident-decision-scorecard` | deterministic priority reason, source health/similar incident/VLM candidate 연결, raw JSON/source URL 비노출 |
+| V270-S03 | `./server.sh verify-v270-operational-action-pack` | evidence bundle/rule draft/alert dry-run/source health recheck 연결과 외부 실제 발송/자동 rule write 비범위 |
+| V270-S04 | `./server.sh verify-v270-rule-what-if-preview` | selected incident/rule suggestion preview, `/ops/rules` draft-only 연결, full replay engine/auto apply 비범위 |
+| V270-S05 | `./server.sh verify-v270-operator-outcome-memory` | 기존 Ops review state/audit 기반 history hint, EventRecord top-level/client viewer 비노출 |
+| V270-S06 | `./server.sh verify-v270-owner-release-readiness` | v2.7.0 local release readiness, feature inventory, UI criteria, not-run/published boundary |
+
+## 직전 v2.6.0 verifier
 
 | Step | Command | Scope |
 | --- | --- | --- |

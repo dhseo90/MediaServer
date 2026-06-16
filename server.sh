@@ -166,6 +166,18 @@ Usage:
                  v2.6.0 S05 ScenarioEngine cross-zone re-entry 후보와 schema 불변 경계를 검증합니다.
   verify-v260-owner-release-readiness
                  v2.6.0 S06 release readiness gate와 미실행/제외 경계를 검증합니다.
+  verify-v270-incident-triage-board
+                 v2.7.0 S01 Incident Triage Board view model/UI와 비범위 경계를 검증합니다.
+  verify-v270-incident-decision-scorecard
+                 v2.7.0 S02 Incident Decision Scorecard와 deterministic priority reason 경계를 검증합니다.
+  verify-v270-operational-action-pack
+                 v2.7.0 S03 Operational Action Pack과 기존 수동 workflow 연결 경계를 검증합니다.
+  verify-v270-rule-what-if-preview
+                 v2.7.0 S04 Rule What-if Preview와 draft-only/manual-save 경계를 검증합니다.
+  verify-v270-operator-outcome-memory
+                 v2.7.0 S05 Operator outcome memory와 review/audit history hint 경계를 검증합니다.
+  verify-v270-owner-release-readiness
+                 v2.7.0 S06 release readiness gate와 미실행/제외 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -1036,6 +1048,30 @@ case "${cmd}" in
   verify-v260-owner-release-readiness)
     require_internal verify_v260_owner_release_readiness.mjs
     exec "${INTERNAL_DIR}/verify_v260_owner_release_readiness.mjs" "$@"
+    ;;
+  verify-v270-incident-triage-board)
+    require_internal verify_v270_incident_triage_board.mjs
+    exec "${INTERNAL_DIR}/verify_v270_incident_triage_board.mjs" "$@"
+    ;;
+  verify-v270-incident-decision-scorecard)
+    require_internal verify_v270_incident_decision_scorecard.mjs
+    exec "${INTERNAL_DIR}/verify_v270_incident_decision_scorecard.mjs" "$@"
+    ;;
+  verify-v270-operational-action-pack)
+    require_internal verify_v270_operational_action_pack.mjs
+    exec "${INTERNAL_DIR}/verify_v270_operational_action_pack.mjs" "$@"
+    ;;
+  verify-v270-rule-what-if-preview)
+    require_internal verify_v270_rule_what_if_preview.mjs
+    exec "${INTERNAL_DIR}/verify_v270_rule_what_if_preview.mjs" "$@"
+    ;;
+  verify-v270-operator-outcome-memory)
+    require_internal verify_v270_operator_outcome_memory.mjs
+    exec "${INTERNAL_DIR}/verify_v270_operator_outcome_memory.mjs" "$@"
+    ;;
+  verify-v270-owner-release-readiness)
+    require_internal verify_v270_owner_release_readiness.mjs
+    exec "${INTERNAL_DIR}/verify_v270_owner_release_readiness.mjs" "$@"
     ;;
   verify-actions-security)
     require_internal verify_actions_security.mjs

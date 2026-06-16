@@ -277,6 +277,13 @@ Role/scope:
   생성만으로는 UI 풀테스트 PASS로 쓰지 않습니다. release-safe bundle은 실제 버튼
   조작, token 요청, manifest-only/redaction policy 확인, raw evidence/source
   locator/provider material 비노출 확인을 분리해 기록합니다.
+- v2.7.0 Operational Incident Command Loop UI 풀테스트 기준: `/ops/events`에서
+  `UI-050` Incident Triage Board, `UI-051` Decision scorecard, `UI-052`
+  Operational Action Pack, `UI-053` Rule What-if Preview, `UI-054` Operator
+  outcome memory를 기능 ID별로 확인합니다. S06 release readiness는 `OPS-038`과
+  `SAFE-063` 기준으로 S01~S05 UI criteria, release evidence 문서, not-run/published
+  metadata 경계가 같은 범위를 가리키는지 확인하는 기준 정리입니다.
+  raw JSON/API-only/static smoke/Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다.
 - v2.6.0 Operational Hardening UI 풀테스트 기준: `/ops/events`에서 `UI-045`
   VLM summary candidate review와 `UI-046` incident-to-rule draft-only 연결을,
   `/ops/sources`에서 `UI-047` ONVIF credential gate를, `/ops/dashboard`에서
