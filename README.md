@@ -3,7 +3,7 @@
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
 [![Published Release](https://img.shields.io/badge/published-v2.6.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.6.0)
-![Source Version](https://img.shields.io/badge/source-2.6.0-informational)
+![Source Version](https://img.shields.io/badge/source-2.7.0-informational)
 
 RTSP/WebRTC live stream을 받아 다시 내보내고, 필요할 때 YOLO/ONNX 영상 분석
 overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다.
@@ -15,9 +15,9 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 - English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 - 전체 문서 색인: [docs/README.md](docs/README.md)
 - 최신 공개 GitHub Release: [v2.6.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.6.0)
-- 현재 소스 버전: `2.6.0`
+- 현재 소스 버전: `2.7.0`
 - v2.6.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- 현재 source roadmap: `v2.6.0 Operational Hardening & Incident Memory Productization`
+- 현재 source roadmap: `v2.7.0 Operational Incident Command Loop`
 
 ## 한눈에 보기
 
@@ -32,11 +32,15 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 - **제외 범위**: VMS/NVR, 장기 녹화, playback/archive search, VLM default-on,
   model/runtime bundle 배포, 실기기/외부 provider 성공 보장은 기본 공개 릴리즈에 포함하지 않습니다.
 
-## Semantic Incident Memory
+## Operational Incident Command Loop
 
 최신 공개 버전 `2.6.0`은 v2.5.0의 source-only/live-only incident memory baseline 위에서
 incident memory의 운영 productization, ONVIF credential gate, runtime dashboard
 trend, ScenarioEngine cross-zone 후보를 source-only 범위로 정리한 GitHub Release입니다.
+현재 `v2.7.0` source roadmap은 그 기준 위에서 `/ops/events`를 Incident Triage Board로
+확장하고, Rule What-if Preview와 Operational Action Pack을 보조 workflow로 묶는
+운영 판단 루프를 계획합니다. 자동 Rule/Profile 적용, provider 재호출,
+Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경은 기본 범위가 아닙니다.
 기존 Event POST,
 WebRTC DataChannel, SSE/WS metadata schema와 RTSP/WebRTC media path는 요청 없이
 변경하지 않습니다.
@@ -124,7 +128,7 @@ README는 제품 개요와 빠른 시작만 담습니다. 세부 정책과 내�
 - release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
 - 최신 공개 릴리즈 노트: [v2.6.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.6.0)
 - 현재 source roadmap: [docs/development-backlog.md](docs/development-backlog.md)의
-  `v2.6.0 Operational Hardening & Incident Memory Productization`
+  `v2.7.0 Operational Incident Command Loop`
 
 ## 대표 UI 미리보기
 

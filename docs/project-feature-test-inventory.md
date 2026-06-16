@@ -1,6 +1,6 @@
 # Project Feature Test Inventory
 
-이 문서는 현재 release 목표 `v2.6.0` 기준의 기능별 테스트 분류 기준표입니다.
+이 문서는 현재 release 목표 `v2.7.0` 기준의 기능별 테스트 분류 기준표입니다.
 독자는 개발/테스트 에이전트이며, lifecycle은 active release target 동안 유지되는 test inventory입니다.
 AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, 이 문서는 기능 ID와 테스트 영역만 관리합니다.
 
@@ -53,9 +53,26 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | Coverage gate | `./server.sh verify-feature-inventory-coverage`가 `media-server.feature-inventory-coverage.v1` report로 기능 ID별 연결을 점검 | `missing coverage target` 누락 ID는 release gate에서 FAIL |
 | VLM current expansion | VLM route, control, action, runtime state, sidecar, privacy guard를 현재 기능 ID에 연결 | 실행 증거 아님 |
 
+## v2.7.0 Operational Incident Command Loop Coverage Mapping
+
+이 절은 현재 active target의 계획 단계 연결만 남깁니다. 아래 행은 실행 evidence가
+아니며, 기능 구현 전에는 실제 기능 ID, route/control/action, verifier command를
+추가해야 합니다. 신규 기능 ID가 추가되지 않은 상태에서 안정화/UI 테스트를 PASS로
+보고하지 않습니다.
+
+| Roadmap scope | Feature IDs | 대표 안정화 verifier | release evidence boundary |
+| --- | --- | --- | --- |
+| V270-S01 Incident Triage Board | 구현 전 추가 예정 | 예정 `verify-v270-incident-triage-board` | `/ops/events` board view, lane/filter/sort UI, viewer/client 비노출 기준. 브라우저 직접 조작 전 UI PASS가 아님 |
+| V270-S02 Decision scorecard | 구현 전 추가 예정 | 예정 `verify-v270-incident-decision-scorecard` | deterministic scorecard 기준. provider 호출, raw JSON/source URL 노출, schema/media 변경 evidence가 아님 |
+| V270-S03 Operational Action Pack | 구현 전 추가 예정 | 예정 `verify-v270-operational-action-pack` | evidence bundle/rule draft/alert dry-run/source health recheck 연결 기준. 외부 실제 발송과 자동 rule write는 비범위 |
+| V270-S04 Rule What-if Preview | 구현 전 추가 예정 | 예정 `verify-v270-rule-what-if-preview` | selected incident/rule suggestion preview 기준. full replay engine, 자동 저장, 자동 적용 evidence가 아님 |
+| V270-S05 Operator outcome memory | 구현 전 추가 예정 | 예정 `verify-v270-operator-outcome-memory` | 기존 Ops review state/audit 기반 history hint 기준. EventRecord top-level 변경과 client/viewer 노출은 비범위 |
+| V270-S06 Release readiness | 구현 전 추가 예정 | 예정 `verify-v270-owner-release-readiness` | v2.7.0 local release readiness gate 기준. UI 풀테스트 직접 조작, 30분/120분, published metadata, tag/push/GitHub Release evidence가 아님 |
+
 ## v2.6.0 Operational Hardening Coverage Mapping
 
-이 절은 현재 active target의 기능 ID 연결만 남깁니다. 아래 행은 실행 evidence가 아니며, UI 풀테스트/30분/120분 PASS로 대체하지 않습니다.
+이 절은 직전 published baseline의 기능 ID 연결입니다. 아래 행은 실행 evidence가 아니며,
+v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 않습니다.
 
 | Roadmap scope | Feature IDs | 대표 안정화 verifier | release evidence boundary |
 | --- | --- | --- | --- |
