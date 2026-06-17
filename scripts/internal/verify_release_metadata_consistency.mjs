@@ -67,11 +67,12 @@ const report = {
 const version = readText("VERSION").trim();
 assert(/^\d+\.\d+\.\d+$/.test(version), `VERSION must be semver, got ${version}`);
 const currentTag = `v${version}`;
-const latestPublishedTag = "v2.6.0";
+const latestPublishedTag = currentTag;
+const latestPublishedVersion = latestPublishedTag.replace(/^v/, "");
 const currentRoadmap = `${currentTag} Operational Incident Command Loop`;
-const latestPublishedBaseline = `${latestPublishedTag} Operational Hardening & Incident Memory Productization`;
-const previousPublishedTag = "v2.5.0";
-const previousPublishedBaseline = `${previousPublishedTag} Semantic Incident Memory`;
+const latestPublishedBaseline = currentRoadmap;
+const previousPublishedTag = "v2.6.0";
+const previousPublishedBaseline = `${previousPublishedTag} Operational Hardening & Incident Memory Productization`;
 const githubRepository = resolveGithubRepository();
 const repositoryUrl = `https://github.com/${githubRepository}`;
 const expectedReleaseUrl = `https://github.com/${githubRepository}/releases/tag/${latestPublishedTag}`;
@@ -323,8 +324,8 @@ check("versioning policy separates source version and published release", () => 
     `현재 source roadmap: \`${currentRoadmap}\``,
     `최신 공개 GitHub Release: \`${latestPublishedBaseline}\``,
     `${latestPublishedTag} 공개 상태: source-only GitHub Release`,
-    `현재 소스 트리의 \`${version}\` roadmap은 ${latestPublishedTag} source-only/live-only operational hardening`,
-    `## ${version} active source roadmap 범위`,
+    `현재 소스 트리의 \`${version}\` roadmap은 ${previousPublishedTag} source-only/live-only operational hardening`,
+    `## ${latestPublishedVersion} published source-only release 범위`,
   ]) {
     assert(doc.includes(snippet), `docs/versioning-policy.md missing snippet: ${snippet}`);
   }
@@ -352,7 +353,7 @@ check("release policy separates source version and published release", () => {
     `현재 source roadmap은 \`${currentRoadmap}\`입니다.`,
     `현재 latest published release는 \`${latestPublishedTag}\`입니다.`,
     `현재 공개 release tag 기준은 \`${latestPublishedTag}\`입니다.`,
-    `다음 준비 중인 source tag 기준은 \`${currentTag}\`입니다.`,
+    "다음 준비 중인 source tag 기준은 미정입니다.",
   ]) {
     assert(doc.includes(snippet), `docs/release-policy.md missing snippet: ${snippet}`);
   }
@@ -392,11 +393,11 @@ check("development backlog pins current source roadmap and public release bounda
   const doc = readText("docs/development-backlog.md");
   for (const snippet of [
     `## 현재 source roadmap: ${currentRoadmap}`,
-    "| 0 | V270-S00 | P0 | 진행 | v2.7.0 baseline |",
+    "| 0 | V270-S00 | P0 | 완료 | v2.7.0 baseline |",
     "Incident Triage Board",
     "Rule What-if Preview",
     "Operational Action Pack",
-    `## 직전 공개 기준: ${latestPublishedTag} Source Release Baseline`,
+    `## 직전 공개 기준: ${previousPublishedTag} Source Release Baseline`,
     "## 완료 roadmap: v2.6.0 Operational Hardening & Incident Memory Productization",
     "## 이전 공개 기준: v2.5.0 Source Release Baseline",
     "Operator Event Review & Action",

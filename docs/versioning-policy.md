@@ -7,18 +7,18 @@
 
 - 현재 소스 버전: `2.7.0`
 - 현재 source roadmap: `v2.7.0 Operational Incident Command Loop`
-- 최신 공개 GitHub Release: `v2.6.0 Operational Hardening & Incident Memory Productization`
-- v2.6.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
+- 최신 공개 GitHub Release: `v2.7.0 Operational Incident Command Loop`
+- v2.7.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
 
 현재 소스 트리의 `2.7.0` roadmap은 v2.6.0 source-only/live-only operational hardening
 baseline 위에서 운영 triage board와 사건별 조치 workflow를 계획하는 active source
-roadmap입니다. v2.7.0은 아직 published GitHub Release가 아니며, v2.6.0 published
+roadmap입니다. v2.7.0은 published source-only GitHub Release이며, v2.6.0 published
 evidence를 v2.7.0 완료 evidence로 재사용하지 않습니다.
 기본 공개 형태는 계속 source-only이며 binary/runtime/model bundle을 공개 asset으로
 포함하지 않습니다.
 
-## 2.7.0 active source roadmap 범위
+## 2.7.0 published source-only release 범위
 
 - v2.7.0 source-of-truth/bootstrap 정렬
 - Incident Triage Board
@@ -73,11 +73,11 @@ tag, 30분/120분 장시간 테스트, UI 풀테스트, 외부 field smoke는 �
 
 ## Tag와 GitHub Release 기준
 
-- 현재 공개 release tag 기준: `v2.6.0`
-- 다음 준비 중인 source tag 기준: `v2.7.0`
+- 현재 공개 release tag 기준: `v2.7.0`
+- 다음 준비 중인 source tag 기준은 미정입니다.
 - source-only release 기준 tag는 public readiness, bundle policy, required Actions가
   통과한 `main` 커밋에만 붙입니다.
-- `v2.6.0` release tag는 signed annotated tag로 생성합니다.
+- `v2.7.0` release tag는 signed annotated tag로 생성합니다.
 - 다음 신규 release tag는 signed annotated tag로 생성합니다.
 - unsigned annotated tag와 lightweight tag는 새 release tag로 사용하지 않습니다.
 - tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만 붙입니다.
