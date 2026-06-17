@@ -11,8 +11,8 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 ## 현재 공개 상태
 
 - 현재 소스 버전: `2.7.0`
-- 최신 공개 GitHub Release: `v2.6.0`
-- `v2.6.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
+- 최신 공개 GitHub Release: `v2.7.0`
+- `v2.7.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
 - 현재 source roadmap: `v2.7.0 Operational Incident Command Loop`
 
@@ -51,7 +51,7 @@ default-on, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변�
 
 | Step | ID | Priority | 상태 | 묶음 | 개발 내용 | 완료 산출물 | 검증/evidence 경계 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 0 | V270-S00 | P0 | 진행 | v2.7.0 baseline | v2.7.0 branch/source-of-truth 정렬 | VERSION/CMake/README/docs index/release metadata가 source `2.7.0`, latest published `v2.6.0`, current roadmap `v2.7.0 Operational Incident Command Loop` 기준으로 정렬됨 | roadmap review, `verify-release-metadata`, `verify-docs-links`, `git diff --check`; published metadata는 GitHub Release 전 미실행 |
+| 0 | V270-S00 | P0 | 완료 | v2.7.0 baseline | v2.7.0 branch/source-of-truth 정렬 | VERSION/CMake/README/docs index/release metadata가 source `2.7.0`, latest published `v2.7.0`, current roadmap `v2.7.0 Operational Incident Command Loop` 기준으로 정렬됨 | roadmap review, `verify-release-metadata`, `verify-docs-links`, `git diff --check`, `verify-release-metadata --published`; UI/30분/120분 evidence는 별도 |
 | 1 | V270-S01 | P0 | 완료 | Incident Triage Board | `/ops/events`를 priority/review state/source/rule/scenario/similar incident/VLM candidate 기준으로 정렬하는 board view로 확장 | `media-server.ops.incident-triage-board.v1` view model, board lane/filter/sort UI, viewer/client 비노출, feature inventory/UI criteria | `verify-v270-incident-triage-board`, `verify-ops-client-ui`, auth/Event POST/WS metadata guard; UI 풀테스트 직접 조작은 별도 evidence |
 | 2 | V270-S02 | P0 | 완료 | Decision scorecard | EventRecord, source health, similar incident, VLM summary/rule candidate, operator review age를 deterministic priority reason으로 요약 | `media-server.ops.incident-decision-scorecard.v1` scorecard, priority reason chips, provider 호출 없음, raw JSON/source URL 비노출 | `verify-v270-incident-decision-scorecard`, `verify-ops-client-ui`, auth/Event POST/WS metadata guard; UI 풀테스트 직접 조작은 별도 evidence |
 | 3 | V270-S03 | P1 | 완료 | Operational Action Pack | incident detail에서 evidence bundle, rule draft, alert dry-run, source health recheck로 이어지는 조치 패널 제공 | `media-server.ops.operational-action-pack.v1` panel, 기존 수동 workflow 연결, external delivery 미수행 상태, rule registry 자동 write 없음, source health recheck dry-run only | `verify-v270-operational-action-pack`, `verify-v250-redacted-incident-evidence-bundle`, alert dry-run/source health verifier, UI 풀테스트 별도 |
