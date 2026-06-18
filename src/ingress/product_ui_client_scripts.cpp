@@ -317,6 +317,33 @@ void AppendClientShellScript(std::ostringstream& out) {
         </div>
       </section>`;
     }
+    function renderClientSafeFollowUpDigest(followUpDigest = {}) {
+      const items = Array.isArray(followUpDigest.digestItems) ? followUpDigest.digestItems : [];
+      return `<section class="client-safe-followup-digest" data-testid="client-safe-followup-digest" data-client-followup-digest="viewer-safe" aria-label="viewer-safe follow-up digest">
+        <div class="toolbar">
+          <div>
+            <h3>후속 조치 요약</h3>
+            <p>${followUpDigest.viewerSafe === true ? '허용된 view의 상태만 표시됩니다.' : '후속 조치 요약 확인이 필요합니다.'}</p>
+          </div>
+          <div class="meta">
+            <span class="chip ${followUpDigest.viewerSafe === true ? 'info' : 'warn'}">viewer-safe</span>
+            <span class="chip ${followUpDigest.publishedViewScoped === true ? 'info' : 'warn'}">view scope</span>
+            <span class="chip ${followUpDigest.rawEvidenceIncluded === false ? 'info' : 'warn'}">raw ${followUpDigest.rawEvidenceIncluded === false ? '숨김' : '확인'}</span>
+          </div>
+        </div>
+        <div class="client-safe-digest-list">
+          ${items.length === 0
+            ? emptyState('후속 조치 요약 없음', '표시할 viewer-safe follow-up digest가 없습니다.')
+            : items.map(item => `<article class="client-safe-digest-item">
+              <div>
+                <strong>${escapeHtml(item.followUpStatus || 'recorded')}</strong>
+                <span>${escapeHtml(formatTime(item.time))}</span>
+              </div>
+              <span class="chip ${item.severity === 'attention' ? 'warn' : 'info'}">${escapeHtml(item.severity || 'normal')}</span>
+            </article>`).join('')}
+        </div>
+      </section>`;
+    }
     applyPrincipalVisibility().catch(() => {});
     const normalizeOverlayMode = mode => {
       const raw = String(mode || '').trim().toLowerCase();
@@ -791,6 +818,7 @@ void AppendClientShellScript(std::ostringstream& out) {
             ${(events.countsByType || []).map(item => `<span class="chip">${escapeHtml(item.eventType || '이벤트')} ${escapeHtml(item.count)}</span>`).join('') || '<span class="chip info">이벤트 없음</span>'}
           </div>
           ${renderClientSafeIncidentDigest(events.incidentDigest || {})}
+          ${renderClientSafeFollowUpDigest(events.followUpDigest || {})}
           ${renderEvents(events.recent || [])}
 	        </section>
 	        </div>
@@ -871,6 +899,7 @@ void AppendClientShellScript(std::ostringstream& out) {
           ${(events.countsByType || []).map(item => `<span class="chip">${escapeHtml(item.eventType || '이벤트')} ${escapeHtml(item.count)}</span>`).join('') || '<span class="chip info">이벤트 없음</span>'}
         </div>
         ${renderClientSafeIncidentDigest(events.incidentDigest || {})}
+        ${renderClientSafeFollowUpDigest(events.followUpDigest || {})}
         <section class="events client-viewer-event-feed">${renderEvents(events.recent || [])}</section>
         </div>
       `;
@@ -1901,6 +1930,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	          ${(events.countsByType || []).map(item => `<span class="chip">${escapeHtml(item.eventType || '이벤트')} ${escapeHtml(item.count)}</span>`).join('') || '<span class="chip info">이벤트 없음</span>'}
 	        </div>
 	        ${renderClientSafeIncidentDigest(events.incidentDigest || {})}
+	        ${renderClientSafeFollowUpDigest(events.followUpDigest || {})}
 	        <section class="live-dock-events">${liveDockEventItemsHtml(events.recent || [])}</section>
 	      `;
 	    }

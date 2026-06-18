@@ -4625,6 +4625,55 @@ void AppendClientSafeIncidentDigestJson(std::ostringstream& out,
     out << "]}";
 }
 
+std::string ClientSafeFollowUpDigestStatus(const ClientEventItem& item) {
+    const std::string status = ClientSafeDigestValue(item.status, "recorded");
+    if (status == "ended" || status == "resolved" || status == "closed" ||
+        status == "completed" || status == "inactive") {
+        return "closed";
+    }
+    if (status == "new" || status == "open" || status == "active" ||
+        status == "needs-follow-up" || status == "review-needed") {
+        return "follow-up-needed";
+    }
+    return status;
+}
+
+void AppendClientSafeFollowUpDigestJson(std::ostringstream& out,
+                                        const ClientEventSummary& summary) {
+    out << "{"
+        << "\"schema\":\"media-server.client.follow-up-digest.v1\","
+        << "\"provided\":" << (summary.provided ? "true" : "false") << ","
+        << "\"viewerSafe\":true,"
+        << "\"publishedViewScoped\":true,"
+        << "\"sourceUrlIncluded\":false,"
+        << "\"rawEvidenceIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"providerMaterialIncluded\":false,"
+        << "\"ruleEditorIncluded\":false,"
+        << "\"actionControlsIncluded\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventSchemaChanged\":false,"
+        << "\"mediaPathChanged\":false,"
+        << "\"itemCount\":" << summary.recent.size() << ","
+        << "\"digestItems\":[";
+    const std::size_t limit = std::min<std::size_t>(summary.recent.size(), 5);
+    for (std::size_t i = 0; i < limit; ++i) {
+        const auto& item = summary.recent[i];
+        if (i != 0) {
+            out << ",";
+        }
+        out << "{"
+            << "\"digestId\":\"client-follow-up-" << (i + 1) << "\","
+            << "\"followUpStatus\":\"" << JsonEscape(ClientSafeFollowUpDigestStatus(item)) << "\","
+            << "\"severity\":\"" << JsonEscape(ClientSafeIncidentDigestSeverity(item)) << "\","
+            << "\"time\":";
+        AppendNullableInt64(out, item.update_time_ms.has_value() ? item.update_time_ms
+                                                                 : item.start_time_ms);
+        out << "}";
+    }
+    out << "]}";
+}
+
 void AppendClientEventSummaryJson(std::ostringstream& out, const ClientEventSummary& summary) {
     out << "{"
         << "\"provided\":" << (summary.provided ? "true" : "false") << ","
@@ -4654,6 +4703,8 @@ void AppendClientEventSummaryJson(std::ostringstream& out, const ClientEventSumm
     }
     out << "],\"incidentDigest\":";
     AppendClientSafeIncidentDigestJson(out, summary);
+    out << ",\"followUpDigest\":";
+    AppendClientSafeFollowUpDigestJson(out, summary);
     out << "}";
 }
 

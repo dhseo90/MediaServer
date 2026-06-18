@@ -68,7 +68,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | V280-S03 Approval-gated Rule Draft Readiness | `UI-056`, `RULE-104`, `EVT-056`, `LAB-080`, `SAFE-066` | `verify-v280-approval-gated-rule-draft` | 수동 approval/staged draft 기준. full replay, 자동 저장, 자동 적용 evidence가 아님 |
 | V280-S04 Evidence Intake and Field Readiness | `UI-057`, `SRC-032`, `EVT-057`, `LAB-081`, `SAFE-067` | `verify-v280-evidence-intake-field-readiness` | redacted intake와 field precondition 기준. endpoint/credential 없는 field PASS가 아님 |
 | V280-S05 Runtime Evidence Window | `UI-058`, `EVT-058`, `LAB-082`, `SAFE-068` | `verify-v280-runtime-evidence-window` | bounded runtime evidence window 기준. 30분/120분/장기 녹화 evidence가 아님 |
-| V280-S06 Client-safe Follow-up Digest | `CLIENT-024`, `SAFE-069` | `verify-v280-client-safe-followup-digest` 후보 | viewer-safe digest 기준. source/raw/debug/rule editor 비노출은 브라우저 직접 확인 전 UI PASS가 아님 |
+| V280-S06 Client-safe Follow-up Digest | `CLIENT-024`, `SAFE-069` | `verify-v280-client-safe-followup-digest` | viewer-safe follow-up digest 기준. source/raw/debug/provider/rule editor/action control 비노출은 브라우저 직접 확인 전 UI PASS가 아님 |
 | V280-S07 Release readiness | `UI-055`, `UI-056`, `UI-057`, `UI-058`, `CLIENT-024`, `OPS-040`, `SAFE-070` | `verify-v280-owner-release-readiness` 후보 | v2.8.0 local readiness 후보. UI 풀테스트 직접 조작, 30분/120분, published metadata, tag/push/GitHub Release evidence가 아님 |
 
 ## v2.7.0 Operational Incident Command Loop Coverage Mapping

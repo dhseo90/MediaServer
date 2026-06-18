@@ -1300,12 +1300,14 @@ std::string ProductUiCss() {
     .chip.info,
     .badge.info { background: var(--color-info-bg); color: var(--color-info); }
     .client-safe-incident-digest,
+    .client-safe-followup-digest,
     .client-safe-digest-list {
       display: grid;
       gap: var(--space-3);
       min-width: 0;
     }
-    .client-safe-incident-digest {
+    .client-safe-incident-digest,
+    .client-safe-followup-digest {
       padding: var(--space-3);
       border: 1px solid var(--color-border);
       border-radius: 8px;
