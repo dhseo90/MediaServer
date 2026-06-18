@@ -2766,6 +2766,50 @@ std::string ProductUiCss() {
       min-width: 0;
       overflow-wrap: anywhere;
     }
+    .approval-gated-rule-draft-readiness,
+    .ops-approval-gated-rule-draft-readiness {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .approval-gated-rule-draft-readiness-list,
+    .ops-approval-gated-rule-draft-list {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .approval-gated-rule-draft-readiness-card,
+    .ops-approval-gated-rule-draft-card {
+      min-width: 0;
+      display: grid;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-subtle);
+      overflow-wrap: anywhere;
+    }
+    .approval-gated-rule-draft-grid {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: var(--space-2);
+    }
+    .approval-gated-rule-draft-grid p {
+      min-width: 0;
+      display: grid;
+      gap: 4px;
+      margin: 0;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-raised);
+    }
+    .approval-gated-rule-draft-grid strong,
+    .approval-gated-rule-draft-grid span,
+    .ops-approval-gated-rule-draft-card strong,
+    .ops-approval-gated-rule-draft-card span {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
     .operator-outcome-memory {
       display: grid;
       gap: var(--space-3);

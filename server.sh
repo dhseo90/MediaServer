@@ -180,6 +180,8 @@ Usage:
                  v2.7.0 S06 release readiness gate와 미실행/제외 경계를 검증합니다.
   verify-v280-incident-action-readiness-queue
                  v2.8.0 S02 Incident Action Readiness Queue와 external delivery/auto write 비범위 경계를 검증합니다.
+  verify-v280-approval-gated-rule-draft
+                 v2.8.0 S03 Approval-gated Rule Draft Readiness와 no-auto-save/no-auto-apply 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -1078,6 +1080,10 @@ case "${cmd}" in
   verify-v280-incident-action-readiness-queue)
     require_internal verify_v280_incident_action_readiness_queue.mjs
     exec "${INTERNAL_DIR}/verify_v280_incident_action_readiness_queue.mjs" "$@"
+    ;;
+  verify-v280-approval-gated-rule-draft)
+    require_internal verify_v280_approval_gated_rule_draft.mjs
+    exec "${INTERNAL_DIR}/verify_v280_approval_gated_rule_draft.mjs" "$@"
     ;;
   verify-actions-security)
     require_internal verify_actions_security.mjs

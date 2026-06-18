@@ -2830,6 +2830,61 @@ void AppendOpsShellScript(std::ostringstream& out,
           </article>`;
         }).join('');
       }
+      function renderApprovalGatedRuleDraftReadiness(approvalGatedRuleDraftReadiness = {}) {
+        const root = document.getElementById('opsApprovalGatedRuleDraftReadinessRows');
+        if (!root) return;
+        const items = Array.isArray(approvalGatedRuleDraftReadiness.items) ? approvalGatedRuleDraftReadiness.items : [];
+        const counts = approvalGatedRuleDraftReadiness.readinessCounts || {};
+        renderBadges('opsApprovalGatedRuleDraftReadinessBadges', [
+          { text: approvalGatedRuleDraftReadiness.schema || 'media-server.ops.approval-gated-rule-draft-readiness.v1' },
+          { text: `staged drafts ${items.length}`, tone: items.length > 0 ? '' : 'warn' },
+          { text: `ready ${counts.readyForApproval || 0}`, tone: counts.readyForApproval > 0 ? 'info' : '' },
+          { text: `blocked ${counts.blocked || 0}`, tone: counts.blocked > 0 ? 'warn' : '' },
+          { text: approvalGatedRuleDraftReadiness.contract?.noAutoSave === true ? 'no auto save' : 'auto save 확인 필요', tone: approvalGatedRuleDraftReadiness.contract?.noAutoSave === true ? 'info' : 'warn' },
+          { text: approvalGatedRuleDraftReadiness.contract?.noAutoApply === true ? 'no auto apply' : 'auto apply 확인 필요', tone: approvalGatedRuleDraftReadiness.contract?.noAutoApply === true ? 'info' : 'warn' },
+          { text: approvalGatedRuleDraftReadiness.contract?.ruleRegistryWritePerformed === false ? 'rule write 없음' : 'rule write 확인 필요', tone: approvalGatedRuleDraftReadiness.contract?.ruleRegistryWritePerformed === false ? 'info' : 'warn' }
+        ]);
+        setText(
+          'opsApprovalGatedRuleDraftReadinessSummary',
+          items.length
+            ? `approval-required ${counts.readyForApproval || 0} · blocked ${counts.blocked || 0} · staged draft manual save only`
+            : 'EventRecord와 review state를 불러오면 approval-gated staged draft readiness가 표시됩니다.'
+        );
+        if (items.length === 0) {
+          root.innerHTML = '<p class="ops-rule-note">표시할 Approval-gated Rule Draft Readiness가 없습니다.</p>';
+          return;
+        }
+        root.innerHTML = items.map(item => {
+          const validation = item?.validationSummary || {};
+          const stagedDraft = item?.stagedDraft || {};
+          const issues = Array.isArray(validation.issues) ? validation.issues : [];
+          const approvalState = item?.approvalState || 'blocked';
+          const validationState = item?.validationState || validation.status || 'not-run';
+          const manualDraftRoute = stagedDraft.manualDraftRoute || `/ops/rules?draftEventId=${encodeURIComponent(item?.eventId || '')}&whatIfPreview=1&approvalDraft=1&approvalState=${encodeURIComponent(approvalState)}`;
+          return `<article class="approval-gated-rule-draft-readiness-card" data-approval-gated-rule-draft-event="${escapeHtml(item?.eventId || '')}">
+            <div class="table-cell-main">
+              <strong>${escapeHtml(display(item?.eventId || 'event'))}</strong>
+              <span>${escapeHtml(display(item?.sourceId || '-'))} · ${escapeHtml(display(item?.ruleId || '-'))} · ${escapeHtml(display(item?.scenario || '-'))}</span>
+            </div>
+            <div class="badge-row">
+              <span class="chip ${approvalState === 'approval-required' ? 'info' : 'warn'}">approvalState ${escapeHtml(display(approvalState))}</span>
+              <span class="chip ${validationState === 'ready-for-approval' ? 'info' : 'warn'}">validationSummary ${escapeHtml(display(validationState))}</span>
+              <span class="chip">${item?.manualApprovalRequired === true ? 'manual approval required' : 'approval 확인 필요'}</span>
+              <span class="chip">${stagedDraft.noAutoSave === true ? 'noAutoSave true' : 'auto save 확인 필요'}</span>
+              <span class="chip">${stagedDraft.noAutoApply === true ? 'noAutoApply true' : 'auto apply 확인 필요'}</span>
+              <span class="chip">${stagedDraft.ruleRegistryWritePerformed === false ? 'ruleRegistryWritePerformed false' : 'rule write 확인 필요'}</span>
+            </div>
+            <div class="approval-gated-rule-draft-grid">
+              <p><strong>validationSummary</strong><span>${escapeHtml(issues.length ? issues.map(display).join(', ') : 'ready-for-manual-approval')}</span></p>
+              <p><strong>stagedDraft</strong><span>${escapeHtml(display(stagedDraft.eventType || '-'))} · ${escapeHtml(Array.isArray(stagedDraft.classes) ? stagedDraft.classes.map(display).join(', ') : 'classes 확인 필요')} · confidence ${escapeHtml(display(stagedDraft.minConfidence ?? '-'))}</span></p>
+              <p><strong>full replay</strong><span>${validation.fullReplayEngineExecuted === false ? 'not-run · manual evidence required before apply' : 'replay 확인 필요'}</span></p>
+            </div>
+            <div class="operational-action-pack-actions">
+              <a class="button button-secondary button-compact" data-approval-gated-rule-draft-route="manual-approval-staged-only" href="${escapeHtml(manualDraftRoute)}">/ops/rules approval draft 검토</a>
+            </div>
+          </article>`;
+        }).join('');
+      }
       function renderOperatorOutcomeMemory(operatorOutcomeMemory = {}) {
         const root = document.getElementById('opsOperatorOutcomeMemoryRows');
         if (!root) return;
@@ -3273,6 +3328,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         renderOperationalActionPack(reviewPayload.operationalActionPack || {});
         renderIncidentActionReadinessQueue(reviewPayload.incidentActionReadinessQueue || {});
         renderRuleWhatIfPreview(reviewPayload.ruleWhatIfPreview || {});
+        renderApprovalGatedRuleDraftReadiness(reviewPayload.approvalGatedRuleDraftReadiness || {});
         renderOperatorOutcomeMemory(reviewPayload.operatorOutcomeMemory || {});
         renderIncidentMemorySearch(reviewPayload.memorySearch || {});
         renderVlmSummaryCandidateReview(reviewPayload.memorySearch?.vlmSummaryCandidateReview || {});
@@ -3284,7 +3340,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (prevButton) prevButton.disabled = opsEventRecordsOffset <= 0;
         if (nextButton) nextButton.disabled = !records.hasMore;
         if (records.nextOffset != null) nextButton?.setAttribute('data-next-offset', String(records.nextOffset));
-        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, incidentTriageBoard: reviewPayload.incidentTriageBoard || {}, incidentDecisionScorecard: reviewPayload.incidentDecisionScorecard || {}, operationalActionPack: reviewPayload.operationalActionPack || {}, incidentActionReadinessQueue: reviewPayload.incidentActionReadinessQueue || {}, ruleWhatIfPreview: reviewPayload.ruleWhatIfPreview || {}, operatorOutcomeMemory: reviewPayload.operatorOutcomeMemory || {}, memorySearch: reviewPayload.memorySearch || {}, vlmSummaryCandidateReview: reviewPayload.memorySearch?.vlmSummaryCandidateReview || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
+        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, incidentTriageBoard: reviewPayload.incidentTriageBoard || {}, incidentDecisionScorecard: reviewPayload.incidentDecisionScorecard || {}, operationalActionPack: reviewPayload.operationalActionPack || {}, incidentActionReadinessQueue: reviewPayload.incidentActionReadinessQueue || {}, ruleWhatIfPreview: reviewPayload.ruleWhatIfPreview || {}, approvalGatedRuleDraftReadiness: reviewPayload.approvalGatedRuleDraftReadiness || {}, operatorOutcomeMemory: reviewPayload.operatorOutcomeMemory || {}, memorySearch: reviewPayload.memorySearch || {}, vlmSummaryCandidateReview: reviewPayload.memorySearch?.vlmSummaryCandidateReview || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
       }
       const itemId = item => display(item?.id || item?.ruleId || item?.profileId || '-');
       const opsRulesIdText = value => {
@@ -3357,7 +3413,9 @@ void AppendOpsShellScript(std::ostringstream& out,
         const params = new URLSearchParams(window.location.search || '');
         const draftEventId = String(params.get('draftEventId') || '').trim();
         const whatIfPreview = params.get('whatIfPreview') === '1';
-        return { draftEventId, whatIfPreview, enabled: Boolean(draftEventId && whatIfPreview) };
+        const approvalDraft = params.get('approvalDraft') === '1';
+        const approvalState = String(params.get('approvalState') || 'approval-required').trim();
+        return { draftEventId, whatIfPreview, approvalDraft, approvalState, enabled: Boolean(draftEventId && whatIfPreview) };
       }
       function renderOpsRuleWhatIfDraftContext() {
         const target = document.getElementById('opsRuleWhatIfDraftContext');
@@ -3368,6 +3426,40 @@ void AppendOpsShellScript(std::ostringstream& out,
           return;
         }
         target.innerHTML = `selected incident <strong>${escapeHtml(context.draftEventId)}</strong>의 Rule What-if Preview context입니다. 조건과 geometry는 아래 draft form에서 운영자가 확인하고, 저장은 운영자가 수동으로 실행해야 합니다.`;
+      }
+      function renderOpsApprovalGatedRuleDraftContext() {
+        const target = document.getElementById('opsApprovalGatedRuleDraftContext');
+        const rows = document.getElementById('opsApprovalGatedRuleDraftRows');
+        if (!target || !rows) return;
+        const context = opsRuleWhatIfDraftContextFromLocation();
+        renderBadges('opsApprovalGatedRuleDraftBadges', [
+          { text: 'media-server.ops.approval-gated-rule-draft-readiness.v1' },
+          { text: context.approvalDraft ? 'approvalDraft=1' : 'approvalDraft 대기', tone: context.approvalDraft ? 'info' : 'warn' },
+          { text: `approvalState ${context.approvalState || 'approval-required'}` },
+          { text: 'no-auto-save', tone: 'info' },
+          { text: 'no-auto-apply', tone: 'info' },
+          { text: 'rule write 없음', tone: 'info' }
+        ]);
+        if (!context.enabled || !context.approvalDraft) {
+          target.textContent = 'approvalDraft=1 query가 있으면 저장 전 approval state, validation summary, staged draft context를 표시합니다.';
+          rows.innerHTML = '<p class="ops-rule-note">저장은 기존 `/ops/rules` 수동 저장 버튼에서만 수행됩니다.</p>';
+          return;
+        }
+        target.innerHTML = `selected incident <strong>${escapeHtml(context.draftEventId)}</strong>의 approval-gated staged draft context입니다. approval state와 validation summary를 확인한 뒤 운영자가 수동 저장해야 합니다.`;
+        rows.innerHTML = `<article class="ops-approval-gated-rule-draft-card" data-approval-state="${escapeHtml(context.approvalState || 'approval-required')}">
+          <div class="table-cell-main">
+            <strong>${escapeHtml(context.draftEventId)}</strong>
+            <span>approvalState ${escapeHtml(context.approvalState || 'approval-required')} · staged draft · validation summary required</span>
+          </div>
+          <div class="badge-row">
+            <span class="chip info">manual approval required</span>
+            <span class="chip info">noAutoSave true</span>
+            <span class="chip info">noAutoApply true</span>
+            <span class="chip info">ruleRegistryWritePerformed false</span>
+            <span class="chip info">fullReplayEngineExecuted false</span>
+          </div>
+          <p class="ops-rule-note">이 context는 draft form을 자동 저장하거나 rule/profile registry를 쓰지 않습니다. 운영자는 아래 form에서 조건, geometry, conflict를 확인하고 기존 저장 버튼을 직접 실행해야 합니다.</p>
+        </article>`;
       }
       const opsVaRulePreviewState = {
         viewId: '',
@@ -7094,6 +7186,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         refreshOpsVaTemplateAssistOptions();
         renderOpsScenarioBuilder();
         renderOpsRuleWhatIfDraftContext();
+        renderOpsApprovalGatedRuleDraftContext();
         refreshOpsVlmRuleDrafts().catch((error) => renderOpsVlmRuleDrafts({ error: error.message || 'VLM rule draft 후보 로드 실패' }));
         renderOpsVaRules(filteredVaRules);
         renderOpsEventRules(filteredRules);

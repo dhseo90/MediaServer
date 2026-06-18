@@ -2969,6 +2969,18 @@ void AppendOpsRulesPage(std::ostringstream& out) {
           <div class="badge-row"><span class="chip">draft-only</span><span class="chip">no auto apply</span></div>
         </div>
       </section>
+      <section class="section-card ops-approval-gated-rule-draft-readiness" data-testid="ops-approval-gated-rule-draft-readiness" data-approval-gated-rule-draft="manual-approval-staged-only">
+        <div class="toolbar">
+          <div>
+            <h3>Approval-gated Rule Draft Readiness</h3>
+            <p id="opsApprovalGatedRuleDraftContext">approvalDraft=1 query가 있으면 저장 전 approval state, validation summary, staged draft context를 표시합니다.</p>
+          </div>
+          <div id="opsApprovalGatedRuleDraftBadges" class="badge-row"><span class="chip">no-auto-save</span><span class="chip">no-auto-apply</span></div>
+        </div>
+        <div id="opsApprovalGatedRuleDraftRows" class="ops-approval-gated-rule-draft-list">
+          <p class="ops-rule-note">저장은 기존 `/ops/rules` 수동 저장 버튼에서만 수행됩니다.</p>
+        </div>
+      </section>
       </div>
       <div class="rules-workspace-catalog-grid">
       <section class="section-card rules-workspace-mode-panel">
@@ -3637,6 +3649,18 @@ void AppendOpsEventsPage(std::ostringstream& out) {
         </div>
         <div id="opsRuleWhatIfPreviewRows" class="rule-what-if-preview-list">
           <p class="ops-rule-note">EventRecord와 review state를 불러오면 Rule What-if Preview가 표시됩니다.</p>
+        </div>
+      </section>
+      <section class="section-card ops-workspace-wide approval-gated-rule-draft-readiness" data-testid="ops-approval-gated-rule-draft-readiness-events" data-approval-gated-rule-draft="events-to-rules-manual-approval">
+        <div class="toolbar">
+          <div>
+            <h3>Approval-gated Rule Draft Readiness</h3>
+            <p id="opsApprovalGatedRuleDraftReadinessSummary">incident-to-rule 후보를 approval state, validation summary, staged draft로 분리합니다.</p>
+          </div>
+          <div id="opsApprovalGatedRuleDraftReadinessBadges" class="badge-row"><span class="chip">media-server.ops.approval-gated-rule-draft-readiness.v1</span></div>
+        </div>
+        <div id="opsApprovalGatedRuleDraftReadinessRows" class="approval-gated-rule-draft-readiness-list">
+          <p class="ops-rule-note">EventRecord와 review state를 불러오면 approval-gated staged draft readiness가 표시됩니다.</p>
         </div>
       </section>
       <section class="section-card ops-workspace-wide operator-outcome-memory" data-testid="ops-operator-outcome-memory" data-operator-outcome-memory="review-audit-history-hint">
@@ -13507,6 +13531,202 @@ std::string OpsRuleWhatIfPreviewViewJson(
     return out.str();
 }
 
+std::string OpsApprovalGatedRuleDraftIssuesJson(const std::vector<std::string>& issues) {
+    std::ostringstream out;
+    out << "[";
+    for (std::size_t i = 0; i < issues.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "\"" << JsonEscape(issues[i]) << "\"";
+    }
+    out << "]";
+    return out.str();
+}
+
+std::string OpsApprovalGatedRuleDraftValidationState(const std::string& event_json,
+                                                     const OpsEventReviewState& review) {
+    const std::string event_id = review.event_id.empty()
+                                     ? Trim(ParseStringField(event_json, "eventId").value_or(""))
+                                     : review.event_id;
+    const std::string rule_review = OpsIncidentRuleSuggestionReviewJson(event_json);
+    const bool matching_present =
+        ExtractJsonValueField(rule_review, "matchingRuleSuggestionPresent").value_or("false") == "true";
+    if (event_id.empty() || !matching_present) {
+        return "blocked";
+    }
+    return "ready-for-approval";
+}
+
+std::string OpsApprovalGatedRuleDraftReadinessItemJson(const std::string& event_json,
+                                                       const OpsEventReviewState& review) {
+    const std::string event_id = review.event_id.empty()
+                                     ? Trim(ParseStringField(event_json, "eventId").value_or(""))
+                                     : review.event_id;
+    const std::string source_id = OpsIncidentTriageBoardSourceId(event_json);
+    const std::string rule_id = OpsIncidentMemoryEventRuleId(event_json);
+    const std::string scenario = OpsIncidentTriageBoardScenario(event_json);
+    const std::string rule_review = OpsIncidentRuleSuggestionReviewJson(event_json);
+    const std::string matching_suggestion =
+        ExtractObjectField(rule_review, "matchingRuleSuggestion").value_or("{}");
+    const std::string draft_rule = ExtractObjectField(matching_suggestion, "draftRule").value_or("{}");
+    const bool matching_present =
+        ExtractJsonValueField(rule_review, "matchingRuleSuggestionPresent").value_or("false") == "true";
+    const std::string candidate_status =
+        Trim(ParseStringField(rule_review, "candidateStatus").value_or("no-rule-suggestion-candidate"));
+    const std::string source_event_type =
+        Trim(ParseStringField(event_json, "eventType")
+                 .value_or(ParseStringField(event_json, "className").value_or("event")));
+    const std::string draft_event_type =
+        Trim(ParseStringField(draft_rule, "eventType")
+                 .value_or(ParseStringField(draft_rule, "type")
+                               .value_or(ParseStringField(matching_suggestion, "kind")
+                                             .value_or(source_event_type))));
+    const std::string classes_json = OpsRuleWhatIfPreviewJsonArrayOrFallback(
+        ExtractJsonValueField(draft_rule, "classes")
+            .value_or(ExtractJsonValueField(draft_rule, "targetClasses").value_or("")),
+        "[\"person\"]");
+    const std::string min_confidence = ExtractJsonValueField(draft_rule, "minConfidence").value_or("null");
+    const std::string min_duration_ms = ExtractJsonValueField(draft_rule, "minDurationMs").value_or("null");
+    const std::string line_direction =
+        Trim(ParseStringField(draft_rule, "direction")
+                 .value_or(ParseStringField(draft_rule, "lineDirection")
+                               .value_or(ParseStringField(draft_rule, "allowedDirection").value_or("any"))));
+    const std::string validation_state = OpsApprovalGatedRuleDraftValidationState(event_json, review);
+    const std::string approval_state =
+        validation_state == "ready-for-approval" ? "approval-required" : "blocked";
+    const std::string manual_draft_route =
+        "/ops/rules?draftEventId=" + UrlEncode(event_id) +
+        "&whatIfPreview=1&approvalDraft=1&approvalState=" + UrlEncode(approval_state);
+
+    std::vector<std::string> issues;
+    if (event_id.empty()) {
+        issues.push_back("event-id-missing");
+    }
+    if (!matching_present) {
+        issues.push_back("rule-suggestion-candidate-missing");
+    }
+
+    std::ostringstream out;
+    out << "{"
+        << "\"eventId\":\"" << JsonEscape(event_id) << "\","
+        << "\"sourceId\":\"" << JsonEscape(source_id.empty() ? "unknown-source" : source_id) << "\","
+        << "\"ruleId\":\"" << JsonEscape(rule_id.empty() ? "unmapped-rule" : rule_id) << "\","
+        << "\"scenario\":\"" << JsonEscape(scenario) << "\","
+        << "\"candidateStatus\":\"" << JsonEscape(candidate_status) << "\","
+        << "\"approvalState\":\"" << JsonEscape(approval_state) << "\","
+        << "\"validationState\":\"" << JsonEscape(validation_state) << "\","
+        << "\"validationSummary\":{"
+        << "\"status\":\"" << JsonEscape(validation_state) << "\","
+        << "\"issues\":" << OpsApprovalGatedRuleDraftIssuesJson(issues) << ","
+        << "\"matchingRuleSuggestionPresent\":" << (matching_present ? "true" : "false") << ","
+        << "\"manualApprovalRequired\":true,"
+        << "\"operatorValidationRequired\":true,"
+        << "\"geometryReviewRequired\":true,"
+        << "\"fullReplayEvidenceStatus\":\"not-run\","
+        << "\"fullReplayEngineExecuted\":false"
+        << "},"
+        << "\"stagedDraft\":{"
+        << "\"eventType\":\"" << JsonEscape(draft_event_type.empty() ? source_event_type : draft_event_type)
+        << "\","
+        << "\"classes\":" << classes_json << ","
+        << "\"minConfidence\":" << min_confidence << ","
+        << "\"minDurationMs\":" << min_duration_ms << ","
+        << "\"lineDirection\":\"" << JsonEscape(line_direction.empty() ? "any" : line_direction) << "\","
+        << "\"manualDraftRoute\":\"" << JsonEscape(manual_draft_route) << "\","
+        << "\"draftOnly\":true,"
+        << "\"stagedOnly\":true,"
+        << "\"manualSaveRequired\":true,"
+        << "\"noAutoSave\":true,"
+        << "\"noAutoApply\":true,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"profileRegistryWritePerformed\":false,"
+        << "\"autoRuleApplied\":false,"
+        << "\"autoProfileApplied\":false"
+        << "},"
+        << "\"manualApprovalRequired\":true,"
+        << "\"noAutoSave\":true,"
+        << "\"noAutoApply\":true,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"profileRegistryWritePerformed\":false,"
+        << "\"fullReplayEngineExecuted\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsApprovalGatedRuleDraftReadinessViewJson(
+    const std::vector<std::string>& event_json_records,
+    const std::unordered_map<std::string, OpsEventReviewState>& reviews) {
+    std::vector<std::string> items;
+    items.reserve(event_json_records.size());
+    int ready_for_approval_count = 0;
+    int blocked_count = 0;
+    int not_run_count = 0;
+    for (const std::string& event_json : event_json_records) {
+        const std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+        if (!OpsEventReviewEventIdAllowed(event_id)) {
+            continue;
+        }
+        const auto review_it = reviews.find(event_id);
+        const OpsEventReviewState review =
+            review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
+        const std::string validation_state = OpsApprovalGatedRuleDraftValidationState(event_json, review);
+        if (validation_state == "ready-for-approval") {
+            ++ready_for_approval_count;
+        } else if (validation_state == "blocked") {
+            ++blocked_count;
+        } else {
+            ++not_run_count;
+        }
+        items.push_back(OpsApprovalGatedRuleDraftReadinessItemJson(event_json, review));
+    }
+
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.approval-gated-rule-draft-readiness.v1\","
+        << "\"status\":\"ops-approval-gated-rule-draft-readiness\","
+        << "\"workflow\":\"approval-gated-staged-draft\","
+        << "\"readinessCounts\":{"
+        << "\"readyForApproval\":" << ready_for_approval_count << ","
+        << "\"blocked\":" << blocked_count << ","
+        << "\"notRun\":" << not_run_count
+        << "},"
+        << "\"items\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << items[i];
+    }
+    out << "],"
+        << "\"itemCount\":" << items.size() << ","
+        << "\"contract\":{"
+        << "\"opsOnly\":true,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"manualApprovalRequired\":true,"
+        << "\"manualSaveRequired\":true,"
+        << "\"draftOnly\":true,"
+        << "\"stagedOnly\":true,"
+        << "\"noAutoSave\":true,"
+        << "\"noAutoApply\":true,"
+        << "\"fullReplayEngineExecuted\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"profileRegistryWritePerformed\":false,"
+        << "\"autoRuleApplied\":false,"
+        << "\"autoProfileApplied\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"runtimeVlmCallPerformed\":false,"
+        << "\"cloudProviderApiCalled\":false"
+        << "}"
+        << "}";
+    return out.str();
+}
+
 std::string OpsEventReviewInboxItemJson(const std::string& event_json,
                                         const OpsEventReviewState& review) {
     std::ostringstream out;
@@ -14671,6 +14891,9 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         << ","
         << "\"ruleWhatIfPreview\":"
         << OpsRuleWhatIfPreviewViewJson(event_result.records_json, reviews)
+        << ","
+        << "\"approvalGatedRuleDraftReadiness\":"
+        << OpsApprovalGatedRuleDraftReadinessViewJson(event_result.records_json, reviews)
         << ","
         << "\"operatorOutcomeMemory\":"
         << OpsOperatorOutcomeMemoryViewJson(event_result.records_json, reviews)

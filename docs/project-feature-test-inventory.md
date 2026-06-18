@@ -65,7 +65,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | V280-S00 Baseline/source-of-truth | `OPS-039`, `SAFE-064` | `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets` | source `2.8.0`, latest published `v2.7.0`, current roadmap `v2.8.0` 정렬 기준. GitHub Release publish evidence가 아님 |
 | V280-S01 2.x runway boundary | `OPS-039`, `SAFE-064` | 문서 gate 기준 | `2.8.0`/`2.9.0`/`3.0.0` 경계 문서화 기준. 3.0 설계 완료나 migration 구현 evidence가 아님 |
 | V280-S02 Incident Action Readiness Queue | `UI-055`, `EVT-055`, `LAB-079`, `SAFE-065` | `verify-v280-incident-action-readiness-queue` | Ops-only readiness queue 기준. 외부 실제 발송, 자동 action write, UI 직접 조작 PASS가 아님 |
-| V280-S03 Approval-gated Rule Draft Readiness | `UI-056`, `RULE-104`, `EVT-056`, `LAB-080`, `SAFE-066` | `verify-v280-approval-gated-rule-draft` 후보 | 수동 approval/staged draft 기준. full replay, 자동 저장, 자동 적용 evidence가 아님 |
+| V280-S03 Approval-gated Rule Draft Readiness | `UI-056`, `RULE-104`, `EVT-056`, `LAB-080`, `SAFE-066` | `verify-v280-approval-gated-rule-draft` | 수동 approval/staged draft 기준. full replay, 자동 저장, 자동 적용 evidence가 아님 |
 | V280-S04 Evidence Intake and Field Readiness | `UI-057`, `SRC-032`, `EVT-057`, `LAB-081`, `SAFE-067` | `verify-v280-evidence-intake-field-readiness` 후보 | redacted intake와 field precondition 기준. endpoint/credential 없는 field PASS가 아님 |
 | V280-S05 Runtime Evidence Window | `UI-058`, `EVT-058`, `LAB-082`, `SAFE-068` | `verify-v280-runtime-evidence-window` 후보 | bounded runtime evidence window 기준. 30분/120분/장기 녹화 evidence가 아님 |
 | V280-S06 Client-safe Follow-up Digest | `CLIENT-024`, `SAFE-069` | `verify-v280-client-safe-followup-digest` 후보 | viewer-safe digest 기준. source/raw/debug/rule editor 비노출은 브라우저 직접 확인 전 UI PASS가 아님 |
