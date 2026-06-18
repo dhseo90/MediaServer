@@ -5,10 +5,10 @@
 세부 기준으로 삼고, 기능별 UI 필요 여부와 테스트 영역은
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 합니다. 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를
-사용합니다. 최신 공개 release 기준은 `v2.6.0`이고 현재 release 목표는 `v2.7.0`이며,
-UI 문서 기준은 `v2.7.0 Operational Incident Command Loop`입니다. UI 풀테스트
+사용합니다. 최신 공개 release 기준은 `v2.7.0`이고 현재 release 목표는 `v2.8.0`이며,
+UI 문서 기준은 `v2.8.0 Operator-Supervised Action Readiness`입니다. UI 풀테스트
 기준은 해당 작업 범위에 포함된 제품 route, 권한, 기능 baseline만 대상으로 합니다.
-현재 release 목표는 `v2.7.0`, v2.7.0 release UI gate는 현재 release target의 UI evidence 경계를 뜻하며, UI
+현재 release 목표는 `v2.8.0`, v2.8.0 release UI gate는 현재 release target의 UI evidence 경계를 뜻하며, UI
 재배치 문서 준비나 자동 smoke만으로 UI 풀테스트 PASS를 뜻하지 않습니다.
 문서 구조와 evidence 경계는 `./server.sh verify-manual-ui-evidence`로 확인합니다.
 현재 제품 UI 직접 조작 evidence 없이 완료 판정에 포함하지 않습니다.
@@ -282,11 +282,17 @@ Codex 세션의 UI 조작 evidence는 인앱 브라우저 직접 조작을 우�
 | V270-S04 Rule What-if Preview | `UI-053`, `EVT-053`, `LAB-077`, `SAFE-061` | `/ops/events`, `/ops/rules` | Rule What-if Preview card, selected incident/EventRecord, rule suggestion condition preview, draft comparison, `/ops/rules` draft-only context, full replay/자동 저장/자동 적용 없음, client/viewer 비노출 | `verify-v270-rule-what-if-preview`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-rule-ui`, `verify-ops-client-ui` |
 | V270-S05 Operator outcome memory | `UI-054`, `EVT-054`, `LAB-078`, `SAFE-062` | `/ops/events` | Operator Outcome Memory card, accept/dismiss/review-needed outcome count, deterministic history hint, review state/audit action 기반 표시, 새 저장소/자동 학습/EventRecord top-level 변경 없음, client/viewer 비노출 | `verify-v270-operator-outcome-memory`, `verify-vlm-review-action-workflow`, `verify-ops-client-ui` |
 | V270-S06 Release Readiness | `UI-050`~`UI-054`, `OPS-038`, `SAFE-063` | `/ops/events`, `/ops/rules`, release evidence 문서 | S01~S05 UI 기준과 release evidence/not-run 경계 연결 확인. 이 행은 기준 정리이며 실제 UI 직접 조작 미실행 상태를 PASS로 쓰지 않음 | `verify-v270-owner-release-readiness`, `verify-feature-inventory-coverage`, `verify-release-evidence-index` |
+
+아래 표는 v2.8.0 Operator-Supervised Action Readiness UI 풀테스트 기준입니다. 각 행은 인앱
+브라우저에서 직접 클릭/타이핑/선택하고, 실제 화면 상태와 관련 로그 또는 EventRecord/
+감사 이력에 반영됐을 때만 `PASS`입니다. raw JSON/API-only/static smoke/Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다.
+
 | V280-S02 Incident Action Readiness Queue | `UI-055`, `EVT-055`, `LAB-079`, `SAFE-065` | `/ops/events` | Incident Action Readiness Queue card, ready/blocked/field-smoke-needed/not-run count, blockerReasons, fieldSmokeRequired, follow-up 후보, manual approval required, external delivery/auto action write 없음, client/viewer 비노출 | `verify-v280-incident-action-readiness-queue`, `verify-ops-client-ui` |
 | V280-S03 Approval-gated Rule Draft Readiness | `UI-056`, `RULE-104`, `EVT-056`, `LAB-080`, `SAFE-066` | `/ops/events`, `/ops/rules` | Approval-gated Rule Draft Readiness card, approvalState, validationSummary, stagedDraft, `/ops/rules` approvalDraft context, no-auto-save/no-auto-apply, full replay 미실행, rule/profile registry 자동 write 없음, client/viewer 비노출 | `verify-v280-approval-gated-rule-draft`, `verify-v270-rule-what-if-preview`, `verify-rule-ui`, `verify-ops-client-ui` |
 | V280-S04 Evidence Intake and Field Readiness | `UI-057`, `SRC-032`, `EVT-057`, `LAB-081`, `SAFE-067` | `/ops/events` | Evidence Intake and Field Readiness card, evidenceIntakeStatus/sourceHealthReadiness/fieldSmokeStatus, endpointCredentialRequired, fieldSmokeCredentialStatus, redactedEvidenceBundleStatus, credential/source/raw/debug/provider material 비노출, endpoint/credential 없는 field PASS 없음, client/viewer 비노출 | `verify-v280-evidence-intake-field-readiness`, `verify-v250-redacted-incident-evidence-bundle`, `verify-ops-source-health-bulk`, `verify-ops-client-ui` |
 | V280-S05 Runtime Evidence Window | `UI-058`, `EVT-058`, `LAB-082`, `SAFE-068` | `/ops/events` | Runtime Evidence Window card, runtimeEvidencePacket, boundedLocalBuffer/pageSessionOnly, eventWindowMs, runtime/source/event window summary, persistentArchiveCreated false, longrunSubstitute false, 30분/120분 PASS claim 없음, client/viewer 비노출 | `verify-v280-runtime-evidence-window`, `verify-v260-runtime-dashboard-trends`, `verify-ops-client-ui` |
 | V280-S06 Client-safe Follow-up Digest | `CLIENT-024`, `SAFE-069` | `/client/live`, `/client/dashboard`, `/client/events` | Client-safe Follow-up Digest card, `followUpDigest`, `media-server.client.follow-up-digest.v1`, followUpStatus/severity/time만 표시, source/raw/debug/provider/rule editor/action control 비노출, viewer PublishedView scope 유지 | `verify-v280-client-safe-followup-digest`, `verify-v250-client-safe-incident-digest`, `verify-ops-client-ui` |
+| V280-S07 Release Readiness | `UI-055`~`UI-058`, `CLIENT-024`, `OPS-040`, `SAFE-070` | `/ops/events`, `/ops/rules`, `/client/live`, `/client/dashboard`, `/client/events`, release evidence 문서 | S02~S06 UI 기준과 release evidence/not-run 경계 연결 확인. 이 행은 기준 정리이며 실제 UI 직접 조작 미실행 상태를 PASS로 쓰지 않음 | `verify-v280-owner-release-readiness`, `verify-feature-inventory-coverage`, `verify-release-evidence-index` |
 
 ### v2.6.0 Operational Hardening UI 풀테스트 기준
 

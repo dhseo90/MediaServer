@@ -127,13 +127,13 @@ published metadata, release branch 삭제, Next branch sync는 각각 실행 evi
 
 ## v2.8.0 소유권 분리 / 릴리즈 준비 게이트
 
-S07 local readiness gate는 구현 시 `media-server.v280-owner-release-readiness.v1`
+S07 local readiness gate는 `media-server.v280-owner-release-readiness.v1`
 기준으로 v2.8.0 Operator-Supervised Action Readiness Coverage Mapping, 수동 UI
 criteria, release evidence index, release close-out dry-run command를 같은 범위로
 묶습니다. 이 절은 source tree 준비 상태를 확인할 뿐 release action을 승인하거나
 실행하지 않습니다.
 
-Companion local gate 후보:
+Companion local gate:
 
 ```bash
 ./server.sh verify-v280-owner-release-readiness
@@ -147,9 +147,9 @@ Companion local gate 후보:
 git diff --check
 ```
 
-`verify-v280-owner-release-readiness`는 아직 구현 후보 이름입니다. 스텝 구현 전에는
-PASS 근거가 아니며, 실제 command wiring과 script inventory가 추가된 뒤에만 실행
-evidence로 사용할 수 있습니다.
+`verify-v280-owner-release-readiness`는 S07 local readiness gate입니다. 이 PASS는
+아래 companion local gate와 문서 경계 연결만 뜻하며, publish/tag/push/UI/장시간
+테스트 PASS로 승격하지 않습니다.
 
 Not-run/excluded boundary:
 

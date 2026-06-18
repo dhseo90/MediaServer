@@ -10,6 +10,8 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 
 ## 검수 메타데이터
 
+## v2.8.0 Release Evidence Index
+
 - run id:
 - 검수자:
 - 날짜/시간:

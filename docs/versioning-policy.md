@@ -9,6 +9,7 @@
 - 현재 source roadmap: `v2.8.0 Operator-Supervised Action Readiness`
 - 최신 공개 GitHub Release: `v2.7.0 Operational Incident Command Loop`
 - v2.7.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
+- source-only release 기준 tag는 published tag `v2.7.0`와 준비 중인 source tag `v2.8.0`를 분리해 기록합니다.
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
 
 현재 소스 트리의 `2.8.0` roadmap은 v2.7.0 source-only/live-only Operational Incident Command
