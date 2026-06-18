@@ -3651,6 +3651,18 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <p class="ops-rule-note">EventRecord와 review state를 불러오면 Evidence Intake and Field Readiness가 표시됩니다.</p>
         </div>
       </section>
+      <section class="section-card ops-workspace-wide runtime-evidence-window" data-testid="ops-runtime-evidence-window" data-runtime-evidence-window="bounded-ops-only-packet">
+        <div class="toolbar">
+          <div>
+            <h3>Runtime Evidence Window</h3>
+            <p id="opsRuntimeEvidenceWindowSummary">incident-linked runtime/source/event evidence window를 bounded local buffer로 표시하며 longrun substitute나 persistent archive가 아닙니다.</p>
+          </div>
+          <div id="opsRuntimeEvidenceWindowBadges" class="badge-row"><span class="chip">media-server.ops.runtime-evidence-window.v1</span></div>
+        </div>
+        <div id="opsRuntimeEvidenceWindowRows" class="runtime-evidence-window-list">
+          <p class="ops-rule-note">EventRecord와 review state를 불러오면 Runtime Evidence Window가 표시됩니다.</p>
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide rule-what-if-preview" data-testid="ops-rule-what-if-preview" data-rule-what-if-preview="selected-incident-draft-only">
         <div class="toolbar">
           <div>
@@ -13603,6 +13615,157 @@ std::string OpsEvidenceIntakeFieldReadinessViewJson(
     return out.str();
 }
 
+std::int64_t OpsRuntimeEvidenceWindowEventTimeMs(const std::string& event_json,
+                                                 const OpsEventReviewState& review) {
+    const std::int64_t event_time = OpsIncidentTriageBoardEventTimeMs(event_json, review);
+    return event_time < 0 ? 0 : event_time;
+}
+
+std::string OpsRuntimeEvidenceWindowPacketJson(const std::string& event_json,
+                                               const OpsEventReviewState& review) {
+    constexpr std::int64_t kRuntimeEvidenceWindowMs = 15000;
+    const std::string event_id = review.event_id.empty()
+                                     ? Trim(ParseStringField(event_json, "eventId").value_or(""))
+                                     : review.event_id;
+    const std::string source_id = OpsIncidentTriageBoardSourceId(event_json);
+    const std::string rule_id = OpsIncidentMemoryEventRuleId(event_json);
+    const std::string scenario = OpsIncidentTriageBoardScenario(event_json);
+    const std::string incident_status = review.incident_status.empty() ? "new" : review.incident_status;
+    const std::int64_t event_time_ms = OpsRuntimeEvidenceWindowEventTimeMs(event_json, review);
+    const std::int64_t window_start_ms = event_time_ms > kRuntimeEvidenceWindowMs
+                                             ? event_time_ms - kRuntimeEvidenceWindowMs
+                                             : 0;
+    const std::int64_t window_end_ms = event_time_ms + kRuntimeEvidenceWindowMs;
+    const bool event_record_present = !Trim(event_json).empty();
+    const bool source_present = !source_id.empty();
+    const bool snapshot_present = !Trim(ParseStringField(event_json, "snapshotPath").value_or("")).empty();
+    const bool clip_present = !Trim(ParseStringField(event_json, "clipPath").value_or("")).empty();
+
+    std::ostringstream out;
+    out << "{"
+        << "\"windowScope\":\"bounded-local-runtime-source-event\","
+        << "\"boundedLocalBuffer\":true,"
+        << "\"pageSessionOnly\":true,"
+        << "\"eventWindowMs\":" << kRuntimeEvidenceWindowMs << ","
+        << "\"windowStartMs\":" << window_start_ms << ","
+        << "\"windowEndMs\":" << window_end_ms << ","
+        << "\"eventTimeMs\":" << event_time_ms << ","
+        << "\"eventRecordPresent\":" << (event_record_present ? "true" : "false") << ","
+        << "\"sourceRuntimeStatus\":\"" << JsonEscape(source_present ? "source-linked-not-polled" : "source-missing")
+        << "\","
+        << "\"eventBufferStatus\":\"" << JsonEscape(event_record_present ? "event-record-bounded" : "event-record-missing")
+        << "\","
+        << "\"metadataWindowStatus\":\"not-run\","
+        << "\"snapshotPathPresent\":" << (snapshot_present ? "true" : "false") << ","
+        << "\"clipPathPresent\":" << (clip_present ? "true" : "false") << ","
+        << "\"persistentArchiveCreated\":false,"
+        << "\"longrunSubstitute\":false,"
+        << "\"thirtyMinutePassClaimed\":false,"
+        << "\"oneHundredTwentyMinutePassClaimed\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsRuntimeEvidenceWindowItemJson(const std::string& event_json,
+                                             const OpsEventReviewState& review) {
+    const std::string event_id = review.event_id.empty()
+                                     ? Trim(ParseStringField(event_json, "eventId").value_or(""))
+                                     : review.event_id;
+    const std::string source_id = OpsIncidentTriageBoardSourceId(event_json);
+    const std::string rule_id = OpsIncidentMemoryEventRuleId(event_json);
+    const std::string scenario = OpsIncidentTriageBoardScenario(event_json);
+    const std::string incident_status = review.incident_status.empty() ? "new" : review.incident_status;
+    const bool event_record_present = !Trim(event_json).empty();
+    const bool source_present = !source_id.empty();
+    const std::string readiness_status =
+        event_record_present && source_present ? "bounded" : "blocked";
+
+    std::ostringstream out;
+    out << "{"
+        << "\"eventId\":\"" << JsonEscape(event_id) << "\","
+        << "\"sourceId\":\"" << JsonEscape(source_id.empty() ? "unknown-source" : source_id) << "\","
+        << "\"ruleId\":\"" << JsonEscape(rule_id.empty() ? "unmapped-rule" : rule_id) << "\","
+        << "\"scenario\":\"" << JsonEscape(scenario) << "\","
+        << "\"incidentStatus\":\"" << JsonEscape(incident_status) << "\","
+        << "\"runtimeWindowStatus\":\"" << JsonEscape(readiness_status) << "\","
+        << "\"runtimeEvidencePacket\":" << OpsRuntimeEvidenceWindowPacketJson(event_json, review)
+        << "}";
+    return out.str();
+}
+
+std::string OpsRuntimeEvidenceWindowViewJson(
+    const std::vector<std::string>& event_json_records,
+    const std::unordered_map<std::string, OpsEventReviewState>& reviews) {
+    std::vector<std::string> items;
+    items.reserve(event_json_records.size());
+    int bounded_count = 0;
+    int blocked_count = 0;
+    int not_run_count = 0;
+    for (const std::string& event_json : event_json_records) {
+        const std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+        if (!OpsEventReviewEventIdAllowed(event_id)) {
+            continue;
+        }
+        const auto review_it = reviews.find(event_id);
+        const OpsEventReviewState review =
+            review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
+        const std::string item = OpsRuntimeEvidenceWindowItemJson(event_json, review);
+        const std::string status = Trim(ParseStringField(item, "runtimeWindowStatus").value_or("not-run"));
+        if (status == "bounded") {
+            ++bounded_count;
+        } else if (status == "blocked") {
+            ++blocked_count;
+        } else {
+            ++not_run_count;
+        }
+        items.push_back(item);
+    }
+
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.runtime-evidence-window.v1\","
+        << "\"status\":\"ops-runtime-evidence-window\","
+        << "\"workflow\":\"bounded-runtime-source-event-window\","
+        << "\"windowScope\":\"bounded-local-runtime-source-event\","
+        << "\"boundedLocalBuffer\":true,"
+        << "\"pageSessionOnly\":true,"
+        << "\"eventWindowMs\":15000,"
+        << "\"windowCounts\":{"
+        << "\"bounded\":" << bounded_count << ","
+        << "\"blocked\":" << blocked_count << ","
+        << "\"notRun\":" << not_run_count
+        << "},"
+        << "\"items\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << items[i];
+    }
+    out << "],"
+        << "\"itemCount\":" << items.size() << ","
+        << "\"contract\":{"
+        << "\"opsOnly\":true,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"boundedLocalBuffer\":true,"
+        << "\"pageSessionOnly\":true,"
+        << "\"persistentArchiveCreated\":false,"
+        << "\"longrunSubstitute\":false,"
+        << "\"thirtyMinutePassClaimed\":false,"
+        << "\"oneHundredTwentyMinutePassClaimed\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"runtimeVlmCallPerformed\":false,"
+        << "\"cloudProviderApiCalled\":false"
+        << "}"
+        << "}";
+    return out.str();
+}
+
 std::string OpsRuleWhatIfPreviewJsonArrayOrFallback(const std::string& value,
                                                     const std::string& fallback) {
     const std::string trimmed = Trim(value);
@@ -15109,6 +15272,9 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         << ","
         << "\"evidenceIntakeFieldReadiness\":"
         << OpsEvidenceIntakeFieldReadinessViewJson(event_result.records_json, reviews)
+        << ","
+        << "\"runtimeEvidenceWindow\":"
+        << OpsRuntimeEvidenceWindowViewJson(event_result.records_json, reviews)
         << ","
         << "\"ruleWhatIfPreview\":"
         << OpsRuleWhatIfPreviewViewJson(event_result.records_json, reviews)

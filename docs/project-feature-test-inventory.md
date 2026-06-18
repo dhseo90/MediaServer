@@ -67,7 +67,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | V280-S02 Incident Action Readiness Queue | `UI-055`, `EVT-055`, `LAB-079`, `SAFE-065` | `verify-v280-incident-action-readiness-queue` | Ops-only readiness queue 기준. 외부 실제 발송, 자동 action write, UI 직접 조작 PASS가 아님 |
 | V280-S03 Approval-gated Rule Draft Readiness | `UI-056`, `RULE-104`, `EVT-056`, `LAB-080`, `SAFE-066` | `verify-v280-approval-gated-rule-draft` | 수동 approval/staged draft 기준. full replay, 자동 저장, 자동 적용 evidence가 아님 |
 | V280-S04 Evidence Intake and Field Readiness | `UI-057`, `SRC-032`, `EVT-057`, `LAB-081`, `SAFE-067` | `verify-v280-evidence-intake-field-readiness` | redacted intake와 field precondition 기준. endpoint/credential 없는 field PASS가 아님 |
-| V280-S05 Runtime Evidence Window | `UI-058`, `EVT-058`, `LAB-082`, `SAFE-068` | `verify-v280-runtime-evidence-window` 후보 | bounded runtime evidence window 기준. 30분/120분/장기 녹화 evidence가 아님 |
+| V280-S05 Runtime Evidence Window | `UI-058`, `EVT-058`, `LAB-082`, `SAFE-068` | `verify-v280-runtime-evidence-window` | bounded runtime evidence window 기준. 30분/120분/장기 녹화 evidence가 아님 |
 | V280-S06 Client-safe Follow-up Digest | `CLIENT-024`, `SAFE-069` | `verify-v280-client-safe-followup-digest` 후보 | viewer-safe digest 기준. source/raw/debug/rule editor 비노출은 브라우저 직접 확인 전 UI PASS가 아님 |
 | V280-S07 Release readiness | `UI-055`, `UI-056`, `UI-057`, `UI-058`, `CLIENT-024`, `OPS-040`, `SAFE-070` | `verify-v280-owner-release-readiness` 후보 | v2.8.0 local readiness 후보. UI 풀테스트 직접 조작, 30분/120분, published metadata, tag/push/GitHub Release evidence가 아님 |
 
@@ -257,7 +257,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | UI-055 | `/ops/events` Incident Action Readiness Queue | 필요 | 필요 | 안정화, UI | `/ops/events`가 operator 승인 가능한 follow-up 후보를 ready/blocked/field-smoke-needed/not-run 상태로 분리해 표시하고 외부 실제 발송, 자동 action write, EventRecord/Event POST/WebRTC/SSE/WS/media path 변경 없이 Ops-only로 유지함 |
 | UI-056 | `/ops/rules` Approval-gated Rule Draft Readiness | 필요 | 필요 | 안정화, UI | `/ops/rules`가 incident/rule suggestion 후보를 approval state, validation summary, staged draft context로 표시하고 수동 저장 전 Rule/Profile registry write, 자동 저장, 자동 적용을 만들지 않음 |
 | UI-057 | `/ops/events` Evidence Intake and Field Readiness | 필요 | 필요 | 안정화, UI | `/ops/events`가 redacted evidence intake, source health recheck, field smoke precondition을 passed/failed/blocked/not-run으로 구분하고 credential/source/raw/debug material을 노출하지 않음 |
-| UI-058 | `/ops/dashboard` Runtime Evidence Window | 필요 | 필요 | 안정화, UI | `/ops/dashboard` 또는 incident detail이 bounded runtime/source/event evidence window를 Ops-only로 표시하되 장기 저장소, 30분/120분 evidence, client/viewer exposure를 만들지 않음 |
+| UI-058 | `/ops/events` Runtime Evidence Window | 필요 | 필요 | 안정화, UI | `/ops/events` incident detail이 bounded runtime/source/event evidence window를 Ops-only로 표시하되 장기 저장소, 30분/120분 evidence, client/viewer exposure를 만들지 않음 |
 
 ## B. Auth, Account, Role, Scope
 

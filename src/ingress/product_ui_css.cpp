@@ -2809,6 +2809,54 @@ std::string ProductUiCss() {
       min-width: 0;
       overflow-wrap: anywhere;
     }
+    .runtime-evidence-window {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .runtime-evidence-window-list {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .runtime-evidence-window-card {
+      min-width: 0;
+      display: grid;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-subtle);
+      overflow-wrap: anywhere;
+    }
+    .runtime-evidence-window-grid {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: var(--space-2);
+    }
+    .runtime-evidence-window-grid p {
+      min-width: 0;
+      display: grid;
+      gap: 4px;
+      margin: 0;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-raised);
+    }
+    .runtime-evidence-packet {
+      min-width: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      color: var(--color-text-muted);
+      font-size: 12px;
+    }
+    .runtime-evidence-window-grid strong,
+    .runtime-evidence-window-grid span,
+    .runtime-evidence-packet span {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
     .approval-gated-rule-draft-readiness,
     .ops-approval-gated-rule-draft-readiness {
       display: grid;

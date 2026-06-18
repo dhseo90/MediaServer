@@ -2839,6 +2839,61 @@ void AppendOpsShellScript(std::ostringstream& out,
           </article>`;
         }).join('');
       }
+      function renderRuntimeEvidenceWindow(runtimeEvidenceWindow = {}) {
+        const root = document.getElementById('opsRuntimeEvidenceWindowRows');
+        if (!root) return;
+        const items = Array.isArray(runtimeEvidenceWindow.items) ? runtimeEvidenceWindow.items : [];
+        const counts = runtimeEvidenceWindow.windowCounts || {};
+        renderBadges('opsRuntimeEvidenceWindowBadges', [
+          { text: runtimeEvidenceWindow.schema || 'media-server.ops.runtime-evidence-window.v1' },
+          { text: `items ${items.length}`, tone: items.length > 0 ? '' : 'warn' },
+          { text: `bounded ${counts.bounded || 0}`, tone: counts.bounded > 0 ? 'info' : '' },
+          { text: `blocked ${counts.blocked || 0}`, tone: counts.blocked > 0 ? 'warn' : '' },
+          { text: `not-run ${counts.notRun || 0}`, tone: counts.notRun > 0 ? 'warn' : '' },
+          { text: runtimeEvidenceWindow.boundedLocalBuffer === true ? 'boundedLocalBuffer' : 'buffer 확인 필요', tone: runtimeEvidenceWindow.boundedLocalBuffer === true ? 'info' : 'warn' },
+          { text: runtimeEvidenceWindow.pageSessionOnly === true ? 'pageSessionOnly' : 'session 확인 필요', tone: runtimeEvidenceWindow.pageSessionOnly === true ? 'info' : 'warn' },
+          { text: runtimeEvidenceWindow.contract?.longrunSubstitute === false ? 'longrun substitute 아님' : 'longrun 확인 필요', tone: runtimeEvidenceWindow.contract?.longrunSubstitute === false ? 'info' : 'warn' },
+          { text: runtimeEvidenceWindow.contract?.persistentArchiveCreated === false ? 'no persistent archive' : 'archive 확인 필요', tone: runtimeEvidenceWindow.contract?.persistentArchiveCreated === false ? 'info' : 'warn' }
+        ]);
+        setText(
+          'opsRuntimeEvidenceWindowSummary',
+          items.length
+            ? `bounded runtime/source/event evidence window · ${runtimeEvidenceWindow.eventWindowMs || 0}ms · longrun substitute 아님 · persistent archive 없음`
+            : 'EventRecord와 review state를 불러오면 Runtime Evidence Window가 표시됩니다.'
+        );
+        if (items.length === 0) {
+          root.innerHTML = '<p class="ops-rule-note">표시할 Runtime Evidence Window가 없습니다.</p>';
+          return;
+        }
+        root.innerHTML = items.map(item => {
+          const packet = item?.runtimeEvidencePacket || {};
+          const status = item?.runtimeWindowStatus || 'not-run';
+          return `<article class="runtime-evidence-window-card" data-runtime-evidence-event="${escapeHtml(item?.eventId || '')}">
+            <div class="table-cell-main">
+              <strong>${escapeHtml(display(item?.eventId || 'event'))}</strong>
+              <span>${escapeHtml(display(item?.sourceId || '-'))} · ${escapeHtml(display(item?.ruleId || '-'))} · ${escapeHtml(display(item?.scenario || '-'))}</span>
+            </div>
+            <div class="badge-row">
+              <span class="chip ${status === 'bounded' ? 'info' : status === 'blocked' ? 'warn' : ''}">runtimeWindowStatus ${escapeHtml(display(status))}</span>
+              <span class="chip">${packet.boundedLocalBuffer === true ? 'boundedLocalBuffer true' : 'buffer 확인 필요'}</span>
+              <span class="chip">${packet.pageSessionOnly === true ? 'pageSessionOnly true' : 'session 확인 필요'}</span>
+              <span class="chip">${packet.longrunSubstitute === false ? 'longrunSubstitute false' : 'longrun 확인 필요'}</span>
+              <span class="chip">${packet.persistentArchiveCreated === false ? 'persistentArchiveCreated false' : 'archive 확인 필요'}</span>
+            </div>
+            <div class="runtime-evidence-window-grid">
+              <p><strong>windowScope</strong><span>${escapeHtml(display(packet.windowScope || runtimeEvidenceWindow.windowScope || '-'))}</span></p>
+              <p><strong>eventWindowMs</strong><span>${escapeHtml(display(packet.eventWindowMs ?? runtimeEvidenceWindow.eventWindowMs ?? '-'))} · ${escapeHtml(display(packet.windowStartMs ?? '-'))} → ${escapeHtml(display(packet.windowEndMs ?? '-'))}</span></p>
+              <p><strong>runtime/source/event</strong><span>${escapeHtml(display(packet.sourceRuntimeStatus || '-'))} · ${escapeHtml(display(packet.eventBufferStatus || '-'))} · ${escapeHtml(display(packet.metadataWindowStatus || '-'))}</span></p>
+            </div>
+            <div class="runtime-evidence-packet">
+              <span>snapshot ${packet.snapshotPathPresent === true ? 'present' : 'missing'}</span>
+              <span>clip ${packet.clipPathPresent === true ? 'present' : 'missing'}</span>
+              <span>thirtyMinutePassClaimed ${packet.thirtyMinutePassClaimed === false ? 'false' : 'check'}</span>
+              <span>oneHundredTwentyMinutePassClaimed ${packet.oneHundredTwentyMinutePassClaimed === false ? 'false' : 'check'}</span>
+            </div>
+          </article>`;
+        }).join('');
+      }
       function renderRuleWhatIfPreview(ruleWhatIfPreview = {}) {
         const root = document.getElementById('opsRuleWhatIfPreviewRows');
         if (!root) return;
@@ -3386,6 +3441,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         renderOperationalActionPack(reviewPayload.operationalActionPack || {});
         renderIncidentActionReadinessQueue(reviewPayload.incidentActionReadinessQueue || {});
         renderEvidenceIntakeFieldReadiness(reviewPayload.evidenceIntakeFieldReadiness || {});
+        renderRuntimeEvidenceWindow(reviewPayload.runtimeEvidenceWindow || {});
         renderRuleWhatIfPreview(reviewPayload.ruleWhatIfPreview || {});
         renderApprovalGatedRuleDraftReadiness(reviewPayload.approvalGatedRuleDraftReadiness || {});
         renderOperatorOutcomeMemory(reviewPayload.operatorOutcomeMemory || {});
@@ -3399,7 +3455,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (prevButton) prevButton.disabled = opsEventRecordsOffset <= 0;
         if (nextButton) nextButton.disabled = !records.hasMore;
         if (records.nextOffset != null) nextButton?.setAttribute('data-next-offset', String(records.nextOffset));
-        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, incidentTriageBoard: reviewPayload.incidentTriageBoard || {}, incidentDecisionScorecard: reviewPayload.incidentDecisionScorecard || {}, operationalActionPack: reviewPayload.operationalActionPack || {}, incidentActionReadinessQueue: reviewPayload.incidentActionReadinessQueue || {}, evidenceIntakeFieldReadiness: reviewPayload.evidenceIntakeFieldReadiness || {}, ruleWhatIfPreview: reviewPayload.ruleWhatIfPreview || {}, approvalGatedRuleDraftReadiness: reviewPayload.approvalGatedRuleDraftReadiness || {}, operatorOutcomeMemory: reviewPayload.operatorOutcomeMemory || {}, memorySearch: reviewPayload.memorySearch || {}, vlmSummaryCandidateReview: reviewPayload.memorySearch?.vlmSummaryCandidateReview || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
+        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, incidentTriageBoard: reviewPayload.incidentTriageBoard || {}, incidentDecisionScorecard: reviewPayload.incidentDecisionScorecard || {}, operationalActionPack: reviewPayload.operationalActionPack || {}, incidentActionReadinessQueue: reviewPayload.incidentActionReadinessQueue || {}, evidenceIntakeFieldReadiness: reviewPayload.evidenceIntakeFieldReadiness || {}, runtimeEvidenceWindow: reviewPayload.runtimeEvidenceWindow || {}, ruleWhatIfPreview: reviewPayload.ruleWhatIfPreview || {}, approvalGatedRuleDraftReadiness: reviewPayload.approvalGatedRuleDraftReadiness || {}, operatorOutcomeMemory: reviewPayload.operatorOutcomeMemory || {}, memorySearch: reviewPayload.memorySearch || {}, vlmSummaryCandidateReview: reviewPayload.memorySearch?.vlmSummaryCandidateReview || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
       }
       const itemId = item => display(item?.id || item?.ruleId || item?.profileId || '-');
       const opsRulesIdText = value => {
