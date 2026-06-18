@@ -9,9 +9,9 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 - 최신 공개 GitHub Release: [`v2.7.0`](https://github.com/dhseo90/MediaServer/releases/tag/v2.7.0)
 - 최신 published baseline: `v2.7.0 Operational Incident Command Loop`
 - 직전 published baseline: `v2.6.0 Operational Hardening & Incident Memory Productization`
-- 현재 소스 버전: `2.7.0`
+- 현재 소스 버전: `2.8.0`
 - v2.7.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- 현재 source roadmap: `v2.7.0 Operational Incident Command Loop`
+- 현재 source roadmap: `v2.8.0 Operator-Supervised Action Readiness`
 - 기본 공개 형태: source-only
 
 ## 먼저 볼 문서
@@ -39,6 +39,7 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 | [config-reference.md](config-reference.md) | 서버, RTSP/WebRTC, source, VA, event storage 설정 |
 | [distribution-policy.md](distribution-policy.md) | source-only, bundle, container 배포 경계 |
 | [release-policy.md](release-policy.md) | release 권한, tag, GitHub Release, not-run 경계 |
+| [release-test-records.md](release-test-records.md) | 릴리즈 테스트 항목과 버전별 pass/fail 기록 |
 | [versioning-policy.md](versioning-policy.md) | 소스 버전, 공개 릴리즈, semver 기준 |
 | [public-repo-final-review.md](public-repo-final-review.md) | 공개 저장소 점검 기준 |
 | [ops-backup-recovery.md](ops-backup-recovery.md) | 운영 설정 백업과 복구 |

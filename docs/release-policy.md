@@ -6,11 +6,11 @@
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `2.7.0`
+- 현재 소스 버전: `2.8.0`
 - 최신 공개 GitHub Release: `v2.7.0`
 - `v2.7.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap은 `v2.7.0 Operational Incident Command Loop`입니다.
+- 현재 source roadmap은 `v2.8.0 Operator-Supervised Action Readiness`입니다.
 
 ## 기본 공개 범위
 
@@ -53,6 +53,19 @@ git diff --check
 이 명령은 local 문서/버전 기준과 dry-run gate를 확인합니다. tag, push, GitHub Release,
 main merge를 수행하지 않습니다.
 
+## 릴리즈 테스트 기록
+
+테스트 항목 상세와 버전별 테스트 결과는
+[release-test-records.md](release-test-records.md)에 남깁니다.
+`release-evidence-index.md`는 색인이고, 어떤 항목을 어떻게 확인했는지와
+버전별 `pass`/`fail` 결과는 release test records가 source-of-truth입니다.
+
+릴리즈 테스트가 만든 `/tmp`, `/private/tmp`, `$TMPDIR` 산출물은 최종 evidence가
+아닙니다. summary/report/log/screenshot/evidence JSON의 필요한 값은 저장소 문서로
+이관한 뒤 cleanup 대상에 넣습니다. 보존해야 하는 증거물은 임시 경로 밖
+`docs/release-artifacts/<version>/<run-id>/` 같은 저장소 보존 위치로 이동하고,
+redaction/크기/보존 사유를 기록합니다.
+
 ## Published Release 확인
 
 GitHub Release를 실제 publish한 뒤에만 아래 명령으로 외부 공개 상태를 확인합니다.
@@ -68,7 +81,7 @@ gate 실패 또는 미확인으로 보고하며 제품 runtime/media 회귀와 �
 
 ## GitHub Releases 운영
 
-### v2.7.0 Release Close-out Runbook
+### v2.8.0 Release Close-out Runbook
 
 아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
 순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
@@ -97,36 +110,46 @@ Do not list an item as pass unless it was actually executed. tag, GitHub Release
 published metadata, release branch 삭제, Next branch sync는 각각 실행 evidence가
 있을 때만 완료로 기록합니다.
 
-## v2.7.0 Source Roadmap Scope
+## v2.8.0 Source Roadmap Scope
 
-현재 `2.7.0` source tree는 아래 roadmap 후보를 source 기능과 local verifier 기준으로
+현재 `2.8.0` source tree는 아래 roadmap 후보를 source 기능과 local verifier 기준으로
 정리합니다. 각 항목은 구현과 직접 evidence가 생긴 뒤에만 완료로 기록합니다. UI
 풀테스트, 30분, 120분, 외부 endpoint field smoke는 실행한 경우에만 release evidence로
 기록합니다.
 
-- v2.7.0 source-of-truth/bootstrap 정렬
-- Incident Triage Board
-- Incident Decision Scorecard
-- Operational Action Pack
-- Rule What-if Preview
-- Operator outcome memory
-- v2.7.0 owner release readiness
+- v2.8.0 source-of-truth/bootstrap 정렬
+- 2.x runway / 3.0 major-change boundary
+- Incident Action Readiness Queue
+- Approval-gated Rule Draft Readiness
+- Evidence Intake and Field Readiness
+- Runtime Evidence Window
+- Client-safe Follow-up Digest
+- v2.8.0 owner release readiness
 
-`v2.7.0` publish 완료 여부는 tag, GitHub Release, published metadata 검증 evidence가
+`v2.8.0` publish 완료 여부는 tag, GitHub Release, published metadata 검증 evidence가
 있을 때만 완료로 기록합니다. 현재 latest published release는 `v2.7.0`입니다.
-현재 공개 release tag 기준은 `v2.7.0`입니다. 다음 준비 중인 source tag 기준은 미정입니다.
+현재 공개 release tag 기준은 `v2.7.0`입니다. 다음 준비 중인 source tag 기준은 `v2.8.0`입니다.
 
-## v2.7.0 소유권 분리 / 릴리즈 준비 게이트
+## 2.x runway / 3.0 전환 경계
 
-S06 local readiness gate는 `media-server.v270-owner-release-readiness.v1` 기준으로
-v2.7.0 Operational Incident Command Loop Coverage Mapping, 수동 UI criteria, release
-evidence index, release close-out dry-run command를 같은 범위로 묶습니다. 이 절은
-source tree 준비 상태를 확인할 뿐 release action을 승인하거나 실행하지 않습니다.
+- 2.x 라인은 `2.8.0`과 `2.9.0`까지만 유지합니다.
+- `2.8.0`은 기존 계약을 유지한 operator-supervised action readiness입니다.
+- `2.9.0`은 2.x의 마지막 안정화와 3.0 transition readiness입니다.
+- `3.0.0`은 route/API/config/schema, registry/storage, auth/scope, evidence storage,
+  RTSP/WebRTC media path 같은 큰 변경을 별도 설계와 승인 후 다루는 major line입니다.
 
-Companion local gates:
+## v2.8.0 소유권 분리 / 릴리즈 준비 게이트
+
+S07 local readiness gate는 `media-server.v280-owner-release-readiness.v1`
+기준으로 v2.8.0 Operator-Supervised Action Readiness Coverage Mapping, 수동 UI
+criteria, release evidence index, release close-out dry-run command를 같은 범위로
+묶습니다. 이 절은 source tree 준비 상태를 확인할 뿐 release action을 승인하거나
+실행하지 않습니다.
+
+Companion local gate:
 
 ```bash
-./server.sh verify-v270-owner-release-readiness
+./server.sh verify-v280-owner-release-readiness
 ./server.sh verify-release-metadata
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
@@ -137,21 +160,25 @@ Companion local gates:
 git diff --check
 ```
 
+`verify-v280-owner-release-readiness`는 S07 local readiness gate입니다. 이 PASS는
+아래 companion local gate와 문서 경계 연결만 뜻하며, publish/tag/push/UI/장시간
+테스트 PASS로 승격하지 않습니다.
+
 Not-run/excluded boundary:
 
-- UI 풀테스트 직접 조작 미실행은 `verify-v270-owner-release-readiness` PASS로 대체하지 않습니다.
+- UI 풀테스트 직접 조작 미실행은 local readiness PASS로 대체하지 않습니다.
 - 30분 테스트 미실행은 local readiness PASS가 아닙니다.
 - 120분 테스트 미실행은 local readiness PASS가 아닙니다.
-- tag/push/GitHub Release 실행은 S06 gate PASS로 대체하지 않습니다.
+- tag/push/GitHub Release 실행은 S07 gate PASS로 대체하지 않습니다.
 - `verify-release-metadata --published` 미실행 상태는 GitHub Release publish 전에는 PASS로 기록하지 않습니다.
 - PR merge/main sync/후속 브랜치 생성은 별도 명시 승인과 실행 evidence가 있을 때만 완료로 기록합니다.
 - ONVIF 실기기, external TURN/WHEP, real cloud/VLM provider 호출은 endpoint/credential/승인 없이는 제외 상태입니다.
 
 ## Tag 전략
 
-- 현재 공개 release tag 기준은 `v2.6.0`입니다.
-- 다음 준비 중인 source tag 기준은 `v2.7.0`입니다.
-- `v2.6.0` release tag는 signed annotated tag로 생성합니다.
+- 현재 공개 release tag 기준은 `v2.7.0`입니다.
+- 다음 준비 중인 source tag 기준은 `v2.8.0`입니다.
+- `v2.8.0` release tag는 signed annotated tag로 생성합니다.
 - 다음 신규 release tag는 signed annotated tag로 생성합니다.
 - unsigned annotated tag와 lightweight tag는 새 release tag로 사용하지 않습니다.
 - tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만
@@ -201,36 +228,46 @@ Annotation JSON을 확보한 경우:
 ./server.sh verify-actions-security --annotations-json <annotations.json>
 ```
 
-## v2.7.0 Release Note Template
+## v2.8.0 Release Note Template
 
-아래 템플릿은 v2.7.0 source-only GitHub Release note 기준입니다. 실행하지 않은
+아래 템플릿은 v2.8.0 source-only GitHub Release note 기준입니다. 실행하지 않은
 장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다.
 
 ```markdown
-# Media Server v2.7.0
+# Media Server v2.8.0
 
 ## Scope
 
 - Source-only live media server release
-- Operational incident command loop source scope
+- Operator-supervised action readiness source scope
+- 2.x runway: 2.8.0 and 2.9.0 only; 3.0.0 reserved for major changes
 - Binary/runtime/model bundle: not included
 
 ## Verification
 
-- Preflight:
-- Licensing and Artifact Guardrails:
-- GitHub Actions status check:
-- Local docs/release metadata:
-- UI fulltest:
-- Longrun / soak:
+- Local release gates: `v280-release-local-gates-20260618` PASS
+- Local docs/release metadata: `verify-release-metadata`, `verify-docs-links`,
+  `verify-docs-ui-assets`, `verify-release-evidence-index` PASS
+- Local close-out dry-run: `verify-release-closeout-helper --dry-run` and
+  `verify-release-closeout-helper --dry-run --one-shot-dry-run` PASS
+- PR / GitHub Actions status check: <fill after PR checks>
+- Licensing and Artifact Guardrails: <fill after required check>
+- UI fulltest: `v280-release-ui-fulltest-20260618` PASS. Codex in-app
+  evidence route 10, screenshots 32, interaction 16; one-shot wrapper rerun
+  PASS after table-layout evidence supplementation. Detailed item results are
+  retained in `docs/release-test-records.md`; temporary `/tmp` outputs are not
+  release evidence.
+- 30-minute soak: <fill if executed for this release cut>
 
 ## Not Run / Unverified
 
+- Release tag / GitHub Release / published metadata: not run until publish step
 - Real ONVIF device field smoke:
 - External TURN/WHEP credential operation:
 - Real cloud provider call:
 - VLM model/runtime bundle:
 - YouTube real URL relay:
+- 120-minute longrun: not required by current v2.8.0 release test judgment
 
 Do not list an item as pass unless it was actually executed for this release cut.
 ```

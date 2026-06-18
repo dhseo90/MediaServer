@@ -9,10 +9,10 @@ points to the current public sources.
 - Latest published GitHub Release: [v2.7.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.7.0)
 - Latest published baseline: `v2.7.0 Operational Incident Command Loop`
 - Previous published baseline: `v2.6.0 Operational Hardening & Incident Memory Productization`
-- Current source version: `2.7.0`
+- Current source version: `2.8.0`
 - v2.7.0 public status: source-only GitHub Release. Binary, runtime, and model
   bundles are not included.
-- Current source roadmap: `v2.7.0 Operational Incident Command Loop`
+- Current source roadmap: `v2.8.0 Operator-Supervised Action Readiness`
 - Default public distribution: source-only
 
 ## Start Here
@@ -35,9 +35,9 @@ points to the current public sources.
 
 - The main product boundary is live source onboarding, live source health, and
   live VA event quality.
-- The current source tree publishes the `v2.7.0` roadmap as a source-only
-  release with an Ops-only Incident Triage Board, Rule What-if Preview, and
-  Operational Action Pack.
+- The current source tree tracks the `v2.8.0` roadmap as a source-only
+  development target focused on operator-supervised action readiness. `2.9.0`
+  remains the last 2.x stabilization and 3.0 transition step.
 - Binary, runtime, and model bundles are excluded from the default public release.
 - Long-term recording, VMS/NVR, playback/archive search, ONVIF Profile G
   recording/replay, Re-ID default-on, tracker default-on, and VLM default-on

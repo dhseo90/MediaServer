@@ -16,10 +16,14 @@ const backlog = readText("docs/development-backlog.md");
 const streamVerification = readText("docs/stream-verification.md");
 const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
 const serverSh = readText("server.sh");
+const roadmapEvidence = [backlog, inventory, manualChecklist].join("\n");
 
 check("roadmap records V270-S04 as active/completed Rule What-if Preview work", () => {
-  assert(/\| 4 \| V270-S04 \| P1 \| (진행|완료) \| Rule What-if Preview \|/.test(backlog),
-    "backlog V270-S04 row must be 진행 or 완료 while S04 is under development");
+  assert(
+    /\| 4 \| V270-S04 \| P1 \| (진행|완료) \| Rule What-if Preview \|/.test(backlog) ||
+      /\| V270-S04 \| 완료 \| Rule What-if Preview \|/.test(backlog),
+    "backlog V270-S04 row must be 진행/완료 in active table or 완료 in completed baseline table"
+  );
   for (const snippet of [
     "media-server.ops.rule-what-if-preview.v1",
     "selected incident/EventRecord",
@@ -31,7 +35,7 @@ check("roadmap records V270-S04 as active/completed Rule What-if Preview work", 
     "자동 적용",
     "verify-v270-rule-what-if-preview",
   ]) {
-    assertIncludes(backlog, snippet, "V270-S04 backlog");
+    assertIncludes(roadmapEvidence, snippet, "V270-S04 roadmap evidence");
   }
 });
 

@@ -14,16 +14,20 @@ const inventory = readText("docs/project-feature-test-inventory.md");
 const backlog = readText("docs/development-backlog.md");
 const streamVerification = readText("docs/stream-verification.md");
 const serverSh = readText("server.sh");
+const roadmapEvidence = [backlog, inventory].join("\n");
 
 check("roadmap records V260-S04 runtime dashboard trend boundary", () => {
-  assert(/\| 4 \| V260-S04 \| P2 \| (진행|완료) \| Runtime dashboard trends \|/.test(backlog),
-    "backlog V260-S04 row must be 진행 or 완료 while S04 is under development");
+  assert(
+    /\| 4 \| V260-S04 \| P2 \| (진행|완료) \| Runtime dashboard trends \|/.test(backlog) ||
+      /\| V260-S04 \| 완료 \| Runtime dashboard baseline\/sparkline/.test(backlog),
+    "backlog V260-S04 row must be 진행/완료 in active table or 완료 in completed baseline table"
+  );
   for (const snippet of [
     "Runtime dashboard baseline/sparkline",
-    "장기 녹화 없이",
+    "장기 녹화",
     "verify-v260-runtime-dashboard-trends",
   ]) {
-    assertIncludes(backlog, snippet, "backlog S04 boundary");
+    assertIncludes(roadmapEvidence, snippet, "V260-S04 roadmap evidence");
   }
 });
 

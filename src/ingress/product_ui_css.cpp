@@ -1300,12 +1300,14 @@ std::string ProductUiCss() {
     .chip.info,
     .badge.info { background: var(--color-info-bg); color: var(--color-info); }
     .client-safe-incident-digest,
+    .client-safe-followup-digest,
     .client-safe-digest-list {
       display: grid;
       gap: var(--space-3);
       min-width: 0;
     }
-    .client-safe-incident-digest {
+    .client-safe-incident-digest,
+    .client-safe-followup-digest {
       padding: var(--space-3);
       border: 1px solid var(--color-border);
       border-radius: 8px;
@@ -2677,6 +2679,56 @@ std::string ProductUiCss() {
       gap: var(--space-2);
       align-items: center;
     }
+    .incident-action-readiness-queue {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .incident-action-readiness-queue-list {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .incident-action-readiness-queue-card {
+      min-width: 0;
+      display: grid;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-subtle);
+      overflow-wrap: anywhere;
+    }
+    .incident-action-readiness-blockers {
+      min-width: 0;
+      display: grid;
+      gap: 4px;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-raised);
+    }
+    .incident-action-readiness-followups {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: var(--space-2);
+    }
+    .incident-action-readiness-followup {
+      min-width: 0;
+      display: grid;
+      gap: 4px;
+      margin: 0;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-raised);
+    }
+    .incident-action-readiness-blockers strong,
+    .incident-action-readiness-blockers span,
+    .incident-action-readiness-followup strong,
+    .incident-action-readiness-followup span {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
     .rule-what-if-preview {
       display: grid;
       gap: var(--space-3);
@@ -2713,6 +2765,141 @@ std::string ProductUiCss() {
     }
     .rule-what-if-preview-comparison strong,
     .rule-what-if-preview-comparison span {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .evidence-intake-field-readiness {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .evidence-intake-field-readiness-list {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .evidence-intake-field-readiness-card {
+      min-width: 0;
+      display: grid;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-subtle);
+      overflow-wrap: anywhere;
+    }
+    .evidence-intake-field-readiness-grid,
+    .evidence-intake-field-preconditions {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: var(--space-2);
+    }
+    .evidence-intake-field-readiness-grid p,
+    .evidence-intake-field-precondition {
+      min-width: 0;
+      display: grid;
+      gap: 4px;
+      margin: 0;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-raised);
+    }
+    .evidence-intake-field-readiness-grid strong,
+    .evidence-intake-field-readiness-grid span,
+    .evidence-intake-field-precondition strong,
+    .evidence-intake-field-precondition span {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .runtime-evidence-window {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .runtime-evidence-window-list {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .runtime-evidence-window-card {
+      min-width: 0;
+      display: grid;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-subtle);
+      overflow-wrap: anywhere;
+    }
+    .runtime-evidence-window-grid {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: var(--space-2);
+    }
+    .runtime-evidence-window-grid p {
+      min-width: 0;
+      display: grid;
+      gap: 4px;
+      margin: 0;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-raised);
+    }
+    .runtime-evidence-packet {
+      min-width: 0;
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      color: var(--color-text-muted);
+      font-size: 12px;
+    }
+    .runtime-evidence-window-grid strong,
+    .runtime-evidence-window-grid span,
+    .runtime-evidence-packet span {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .approval-gated-rule-draft-readiness,
+    .ops-approval-gated-rule-draft-readiness {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .approval-gated-rule-draft-readiness-list,
+    .ops-approval-gated-rule-draft-list {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .approval-gated-rule-draft-readiness-card,
+    .ops-approval-gated-rule-draft-card {
+      min-width: 0;
+      display: grid;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-subtle);
+      overflow-wrap: anywhere;
+    }
+    .approval-gated-rule-draft-grid {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: var(--space-2);
+    }
+    .approval-gated-rule-draft-grid p {
+      min-width: 0;
+      display: grid;
+      gap: 4px;
+      margin: 0;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-raised);
+    }
+    .approval-gated-rule-draft-grid strong,
+    .approval-gated-rule-draft-grid span,
+    .ops-approval-gated-rule-draft-card strong,
+    .ops-approval-gated-rule-draft-card span {
       min-width: 0;
       overflow-wrap: anywhere;
     }

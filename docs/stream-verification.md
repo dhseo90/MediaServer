@@ -26,7 +26,7 @@
 | `./server.sh verify-release-metadata` | VERSION/CMake/release docs consistency guard |
 | `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>` | release close-out dry-run. tag/push/GitHub Release 생성 없음 |
 
-## 현재 v2.5.0 verifier
+## 과거 v2.5.0 verifier
 
 | Step | Command | Scope |
 | --- | --- | --- |
@@ -40,11 +40,26 @@
 | V250-S08 | `./server.sh verify-v250-redacted-incident-evidence-bundle` | release-safe manifest-only evidence bundle guard |
 | V250-S09 | `./server.sh verify-v250-owner-release-readiness` | owner decomposition/release readiness local gate |
 
-## 현재 v2.7.0 verifier
+## 현재 v2.8.0 verifier
 
-아래 명령은 v2.7.0 roadmap 구현 단계의 verifier 이름입니다. 아직 구현되지 않은
-명령은 PASS 근거가 아니며, 실제 실행 가능 여부는 각 스텝 구현 때 `server.sh`
-wiring과 script inventory로 확인해야 합니다.
+아래 명령은 v2.8.0 roadmap 구현 단계에서 추가된 verifier입니다. 아직 구현되지 않은
+S01은 문서 gate로만 남기며 PASS 근거가 아닙니다. 실제 실행 가능 여부는 각 스텝 구현 때
+`server.sh` wiring과 script inventory로 확인합니다.
+
+| Step | Command | Scope |
+| --- | --- | --- |
+| V280-S01 | 문서 gate, command 미구현 | `2.8.0`/`2.9.0`/`3.0.0` 경계, source-only/latest published/source tag 정렬, 3.0 migration 구현 비범위 |
+| V280-S02 | `./server.sh verify-v280-incident-action-readiness-queue` | `/ops/events` action readiness queue, ready/blocked/field-smoke-needed/not-run 상태, external delivery/auto write 비범위 |
+| V280-S03 | `./server.sh verify-v280-approval-gated-rule-draft` | approval state, staged rule draft, validation summary, no-auto-save/no-auto-apply/full replay 비범위 |
+| V280-S04 | `./server.sh verify-v280-evidence-intake-field-readiness` | redacted evidence intake, source health recheck, field smoke precondition, endpoint/credential 없는 field PASS 금지 |
+| V280-S05 | `./server.sh verify-v280-runtime-evidence-window` | bounded runtime/source/event evidence window, no longrun substitute, no persistent archive |
+| V280-S06 | `./server.sh verify-v280-client-safe-followup-digest` | viewer-safe follow-up digest, source/raw/debug/provider/rule editor 비노출 |
+| V280-S07 | `./server.sh verify-v280-owner-release-readiness` | v2.8.0 local release readiness, feature inventory, UI criteria, not-run/published boundary |
+
+## 직전 v2.7.0 verifier
+
+아래 명령은 최신 published baseline인 v2.7.0 verifier입니다. v2.8.0 예정 항목의
+완료 evidence로 재사용하지 않습니다.
 
 | Step | Command | Scope |
 | --- | --- | --- |

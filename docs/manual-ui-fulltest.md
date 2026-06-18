@@ -5,8 +5,9 @@
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 삼고, 실행 순서는 [manual-ui-checklist.md](./manual-ui-checklist.md), 결과 기록은
 [manual-ui-result-template.md](./manual-ui-result-template.md)를 사용합니다.
-최신 공개 release 기준과 현재 release 목표, UI 문서 기준은
-`v2.6.0 Operational Hardening & Incident Memory Productization`입니다. 현재 제품 UI 기준으로 지원 가능한 모든 기능을 실제 UI 조작으로 확인하지 않은 경우에는 완료로 쓰지 않습니다.
+최신 공개 release 기준은 `v2.7.0 Operational Incident Command Loop`이고 현재 release
+목표와 UI 문서 기준은 `v2.8.0 Operator-Supervised Action Readiness`입니다. 현재 제품 UI 기준으로
+지원 가능한 모든 기능을 실제 UI 조작으로 확인하지 않은 경우에는 완료로 쓰지 않습니다.
 
 ## 1. 정의
 
@@ -277,6 +278,15 @@ Role/scope:
   생성만으로는 UI 풀테스트 PASS로 쓰지 않습니다. release-safe bundle은 실제 버튼
   조작, token 요청, manifest-only/redaction policy 확인, raw evidence/source
   locator/provider material 비노출 확인을 분리해 기록합니다.
+- v2.8.0 Operator-Supervised Action Readiness UI 풀테스트 기준: `/ops/events`에서
+  `UI-055` Incident Action Readiness Queue, `UI-057` Evidence Intake and Field
+  Readiness, `UI-058` Runtime Evidence Window를, `/ops/rules`에서 `UI-056`
+  Approval-gated Rule Draft Readiness를, `/client/live`, `/client/dashboard`,
+  `/client/events`에서 `CLIENT-024` Client-safe Follow-up Digest를 기능 ID별로
+  확인합니다. S07 release readiness는 `OPS-040`과 `SAFE-070` 기준으로 S02~S06
+  UI criteria, release evidence 문서, not-run/published metadata 경계가 같은
+  범위를 가리키는지 확인하는 기준 정리입니다.
+  raw JSON/API-only/static smoke/Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다.
 - v2.7.0 Operational Incident Command Loop UI 풀테스트 기준: `/ops/events`에서
   `UI-050` Incident Triage Board, `UI-051` Decision scorecard, `UI-052`
   Operational Action Pack, `UI-053` Rule What-if Preview, `UI-054` Operator
