@@ -20,6 +20,8 @@ Usage:
 
 Checks:
   - release evidence index가 longrun, UI evidence, PR checks, release notes, skipped tests를 분리하는지 확인
+  - release test records가 상세 항목/ deprecated 항목/버전별 결과를 저장소 보존형으로 기록하는지 확인
+  - Test Token Usage Ledger의 최종 evidence 칸이 임시 경로를 증거로 보존하지 않는지 확인
   - README 첫 화면이 evidence matrix를 반복하지 않고 docs index로 연결하는지 확인
   - 미실행, manual-not-run, 미확인, 제외를 기능별 PASS/FAIL 판정과 구분하는 문구가 유지되는지 확인
 `);
@@ -50,12 +52,47 @@ check("release evidence index owns required evidence categories", () => {
     "Release notes",
     "30분 soak",
     "장시간/외부 gate",
+    "release-test-records.md",
+    "`/tmp`, `/private/tmp`, `$TMPDIR` 경로는 최종 evidence로 링크하지",
     "Test Token Usage Ledger",
     "token consumed",
     "`PASS` 또는 `FAIL`",
     "./server.sh verify-release-evidence-index",
   ]) {
     assert(doc.includes(snippet), `release evidence index missing snippet: ${snippet}`);
+  }
+});
+
+check("release test records own detailed item and result tables", () => {
+  const records = readText("docs/release-test-records.md");
+  for (const snippet of [
+    "# Release Test Records",
+    "| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |",
+    "| 제목 | 수행내용 | 수행 상세 내용(확인방법) | 몇버전부터 deprecated되었는지 |",
+    "| 제목 | 수행내용 | 결과(pass/fail) |",
+    "`/tmp`, `/private/tmp`, `$TMPDIR` 경로는 최종 evidence가 아닙니다.",
+    "docs/release-artifacts/<version>/<run-id>/",
+    "### v2.5.0",
+    "### v2.6.0",
+    "### v2.7.0",
+    "### v2.8.0",
+    "v280 UI wrapper rerun",
+    "임시 산출물 정리 기록",
+  ]) {
+    assert(records.includes(snippet), `release test records missing snippet: ${snippet}`);
+  }
+});
+
+check("token usage ledger final evidence excludes temporary paths", () => {
+  const doc = readText("docs/release-evidence-index.md");
+  for (const line of doc.split(/\r?\n/)) {
+    if (!line.startsWith("| 2026-")) continue;
+    const cells = line.split("|").map((cell) => cell.trim());
+    const runId = cells[2] ?? "<unknown>";
+    const evidence = cells[11] ?? "";
+    for (const marker of ["/tmp", "/private/tmp", "$TMPDIR"]) {
+      assert(!evidence.includes(marker), `${runId} evidence cell keeps temporary path marker: ${marker}`);
+    }
   }
 });
 
@@ -110,10 +147,8 @@ check("public docs do not expose evidence ledger as a front-door document", () =
   const readme = readText("README.md");
   const readmeEn = readText("README.en.md");
   const docsIndex = readText("docs/README.md");
-  const releasePolicy = readText("docs/release-policy.md");
   const streamVerification = readText("docs/stream-verification.md");
   assert(!docsIndex.includes("release-evidence-index.md"), "docs/README.md must not expose release evidence ledger as a public front-door link");
-  assert(!releasePolicy.includes("release-evidence-index.md"), "release policy must not require public readers to open the evidence ledger");
   assert(!streamVerification.includes("./server.sh verify-release-evidence-index"), "stream verification public guide must not list internal evidence ledger verifier");
   for (const [label, text] of [["README.md", readme], ["README.en.md", readmeEn]]) {
     for (const snippet of [

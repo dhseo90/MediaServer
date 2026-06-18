@@ -725,6 +725,54 @@ template, verifier를 만들 때 별도 테스트 영역이 생기면 완료 전
    `README.md`, `README.en.md`, `docs/README.md`, `docs/en/README.md` 같은 README
    색인에 별도 링크를 추가하지 않는다.
 
+#### 7.6.1.1 저장소 보존형 테스트 기록
+
+`v2.8.0`부터 테스트 기록의 source-of-truth는
+`docs/release-test-records.md`다. `docs/release-evidence-index.md`는 색인 역할만
+하며, 어떤 테스트를 어떻게 확인했는지와 버전별 결과는 아래 세 표로 남긴다.
+기존에 기록 중인 버전도 이 형식으로 이관한다.
+
+테스트 항목 상세 기록은 기능/테스트 항목의 정의다. 새 기능, 새 verifier, 새 route,
+새 control, 새 action, 새 longrun check가 생기면 테스트 실행 전에 아래 표에 먼저
+추가한다.
+
+```text
+| 제목 | 수행내용 | 수행 상세 내용(확인 방법) | 몇버전부터 들어갔는지 |
+| --- | --- | --- | --- |
+```
+
+deprecated 항목은 삭제하거나 결과표에서 몰래 빼지 않는다. 특정 버전부터 더 이상
+쓰지 않는 테스트 항목, 증거 방식, UI 흐름, route, verifier, 기록 방식은 아래 별도
+표에 남긴다.
+
+```text
+| 제목 | 수행내용 | 수행 상세 내용(확인방법) | 몇버전부터 deprecated되었는지 |
+| --- | --- | --- | --- |
+```
+
+버전 테스트를 실행하면 해당 버전 섹션에 결과를 남긴다. 결과표는 실행한 항목만
+대상으로 하며, 결과 값은 `pass` 또는 `fail`만 쓴다.
+
+```text
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+```
+
+실행하지 않은 항목, 사용자가 명시 제외한 항목, credential/endpoint/실기기 부재로
+수행하지 않은 항목은 결과표에 `pass`, `조건부 pass`, `skip`으로 쓰지 않는다.
+버전별 `미실행/제외` 표에 제목, 수행내용, 사유, 완료 evidence로 사용할 수 없다는
+경계를 남긴다.
+
+`/tmp`, `/private/tmp`, `$TMPDIR` 경로는 최종 evidence가 아니다. 테스트 도중 생성된
+summary/report/log/screenshot/evidence JSON의 필요한 값은
+`docs/release-test-records.md` 또는 전용 저장소 보존 문서로 이관한 뒤 삭제한다.
+보존해야 하는 증거물로 판단하면 그것은 더 이상 임시 파일이 아니므로, redaction,
+크기, 보존 사유를 확인하고 `docs/release-artifacts/<version>/<run-id>/` 같은
+저장소 보존 위치로 옮긴 뒤 링크한다. 이 판단과 보존 위치도 기록한다.
+
+테스트 지시를 받았는데 해당 테스트 항목 상세 기록이 없거나, 버전별 테스트 결과가
+남지 않거나, 임시 산출물 cleanup 결과가 없으면 테스트 완료로 보고하지 않는다.
+
 #### 7.6.2 테스트 필요성 판정 고정 규칙
 
 테스트 필요성 여부 판단은 릴리즈 품질과 사용자 승인 범위에 직접 영향을 주는
@@ -887,6 +935,10 @@ verify-predev: 실행하지 않음
 
 테스트가 끝나면 성공, 실패, 중단 여부와 관계없이 임시 산출물을 정리한다.
 릴리즈 준비 전에는 예외 없이 이 절을 확인한다.
+`/tmp`, `/private/tmp`, `$TMPDIR` 경로는 최종 evidence가 아니며, release evidence나
+테스트 결과 문서의 최종 증거 링크로 남기지 않는다. 필요한 값은 저장소 문서로
+이관하고 임시 파일은 삭제한다. 저장소에 보존해야 하는 증거물은 임시 경로 밖으로
+옮긴 뒤 보존 사유와 redaction/크기 확인 결과를 남긴다.
 
 1. 테스트 실행 중 만든 모든 output dir, temp dir, screenshot dir, registry dir,
    event storage dir, event clip/snapshot dir, zip/report 임시 파일을 목록화한다.

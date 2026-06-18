@@ -53,6 +53,19 @@ git diff --check
 이 명령은 local 문서/버전 기준과 dry-run gate를 확인합니다. tag, push, GitHub Release,
 main merge를 수행하지 않습니다.
 
+## 릴리즈 테스트 기록
+
+테스트 항목 상세와 버전별 테스트 결과는
+[release-test-records.md](release-test-records.md)에 남깁니다.
+`release-evidence-index.md`는 색인이고, 어떤 항목을 어떻게 확인했는지와
+버전별 `pass`/`fail` 결과는 release test records가 source-of-truth입니다.
+
+릴리즈 테스트가 만든 `/tmp`, `/private/tmp`, `$TMPDIR` 산출물은 최종 evidence가
+아닙니다. summary/report/log/screenshot/evidence JSON의 필요한 값은 저장소 문서로
+이관한 뒤 cleanup 대상에 넣습니다. 보존해야 하는 증거물은 임시 경로 밖
+`docs/release-artifacts/<version>/<run-id>/` 같은 저장소 보존 위치로 이동하고,
+redaction/크기/보존 사유를 기록합니다.
+
 ## Published Release 확인
 
 GitHub Release를 실제 publish한 뒤에만 아래 명령으로 외부 공개 상태를 확인합니다.
@@ -232,20 +245,29 @@ Annotation JSON을 확보한 경우:
 
 ## Verification
 
-- Preflight:
-- Licensing and Artifact Guardrails:
-- GitHub Actions status check:
-- Local docs/release metadata:
-- UI fulltest:
-- Longrun / soak:
+- Local release gates: `v280-release-local-gates-20260618` PASS
+- Local docs/release metadata: `verify-release-metadata`, `verify-docs-links`,
+  `verify-docs-ui-assets`, `verify-release-evidence-index` PASS
+- Local close-out dry-run: `verify-release-closeout-helper --dry-run` and
+  `verify-release-closeout-helper --dry-run --one-shot-dry-run` PASS
+- PR / GitHub Actions status check: <fill after PR checks>
+- Licensing and Artifact Guardrails: <fill after required check>
+- UI fulltest: `v280-release-ui-fulltest-20260618` PASS. Codex in-app
+  evidence route 10, screenshots 32, interaction 16; one-shot wrapper rerun
+  PASS after table-layout evidence supplementation. Detailed item results are
+  retained in `docs/release-test-records.md`; temporary `/tmp` outputs are not
+  release evidence.
+- 30-minute soak: <fill if executed for this release cut>
 
 ## Not Run / Unverified
 
+- Release tag / GitHub Release / published metadata: not run until publish step
 - Real ONVIF device field smoke:
 - External TURN/WHEP credential operation:
 - Real cloud provider call:
 - VLM model/runtime bundle:
 - YouTube real URL relay:
+- 120-minute longrun: not required by current v2.8.0 release test judgment
 
 Do not list an item as pass unless it was actually executed for this release cut.
 ```
