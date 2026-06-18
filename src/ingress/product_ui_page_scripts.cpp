@@ -2725,6 +2725,62 @@ void AppendOpsShellScript(std::ostringstream& out,
           });
         });
       }
+      function renderIncidentActionReadinessQueue(incidentActionReadinessQueue = {}) {
+        const root = document.getElementById('opsIncidentActionReadinessQueueRows');
+        if (!root) return;
+        const items = Array.isArray(incidentActionReadinessQueue.items) ? incidentActionReadinessQueue.items : [];
+        const counts = incidentActionReadinessQueue.readinessCounts || {};
+        renderBadges('opsIncidentActionReadinessQueueBadges', [
+          { text: incidentActionReadinessQueue.schema || 'media-server.ops.incident-action-readiness-queue.v1' },
+          { text: `items ${items.length}`, tone: items.length > 0 ? '' : 'warn' },
+          { text: `ready ${counts.ready || 0}`, tone: counts.ready > 0 ? 'info' : '' },
+          { text: `blocked ${counts.blocked || 0}`, tone: counts.blocked > 0 ? 'warn' : '' },
+          { text: `field-smoke-needed ${counts.fieldSmokeNeeded || 0}`, tone: counts.fieldSmokeNeeded > 0 ? 'warn' : '' },
+          { text: `not-run ${counts.notRun || 0}`, tone: counts.notRun > 0 ? 'warn' : '' },
+          { text: incidentActionReadinessQueue.contract?.externalDeliveryPerformed === false ? 'external delivery 미수행' : 'delivery 확인 필요', tone: incidentActionReadinessQueue.contract?.externalDeliveryPerformed === false ? 'info' : 'warn' },
+          { text: incidentActionReadinessQueue.contract?.autoActionWritePerformed === false ? 'auto action write 없음' : 'action write 확인 필요', tone: incidentActionReadinessQueue.contract?.autoActionWritePerformed === false ? 'info' : 'warn' }
+        ]);
+        setText(
+          'opsIncidentActionReadinessQueueSummary',
+          items.length
+            ? `ready ${counts.ready || 0} · blocked ${counts.blocked || 0} · field-smoke-needed ${counts.fieldSmokeNeeded || 0} · not-run ${counts.notRun || 0} · operator approval required`
+            : 'EventRecord와 review state를 불러오면 readiness queue가 표시됩니다.'
+        );
+        if (items.length === 0) {
+          root.innerHTML = '<p class="ops-rule-note">표시할 Incident Action Readiness Queue가 없습니다.</p>';
+          return;
+        }
+        root.innerHTML = items.map(item => {
+          const followUps = Array.isArray(item?.followUps) ? item.followUps : [];
+          const blockers = Array.isArray(item?.blockerReasons) ? item.blockerReasons : [];
+          const status = item?.readinessStatus || 'not-run';
+          return `<article class="incident-action-readiness-queue-card" data-incident-action-readiness-event="${escapeHtml(item?.eventId || '')}">
+            <div class="table-cell-main">
+              <strong>${escapeHtml(display(item?.eventId || 'event'))}</strong>
+              <span>${escapeHtml(display(item?.sourceId || '-'))} · ${escapeHtml(display(item?.ruleId || '-'))} · ${escapeHtml(display(item?.scenario || '-'))}</span>
+            </div>
+            <div class="badge-row">
+              <span class="chip ${status === 'ready' ? 'info' : status === 'blocked' || status === 'field-smoke-needed' ? 'warn' : ''}">readinessStatus ${escapeHtml(display(status))}</span>
+              <span class="chip">${item?.fieldSmokeRequired === true ? 'fieldSmokeRequired true' : 'fieldSmokeRequired false'}</span>
+              <span class="chip">${item?.manualApprovalRequired === true ? 'manual approval required' : 'approval 확인 필요'}</span>
+              <span class="chip">${item?.autoActionWritePerformed === false ? 'autoActionWritePerformed false' : 'action write 확인 필요'}</span>
+              <span class="chip">${item?.externalDeliveryPerformed === false ? 'externalDeliveryPerformed false' : 'delivery 확인 필요'}</span>
+            </div>
+            <div class="incident-action-readiness-blockers">
+              <strong>blockerReasons</strong>
+              <span>${escapeHtml(blockers.length ? blockers.map(display).join(', ') : 'none')}</span>
+            </div>
+            <div class="incident-action-readiness-followups">
+              ${followUps.map(followUp => `<p class="incident-action-readiness-followup" data-readiness-follow-up="${escapeHtml(followUp?.type || '')}">
+                <strong>${escapeHtml(display(followUp?.label || followUp?.type || 'follow-up'))}</strong>
+                <span>${escapeHtml(display(followUp?.status || 'not-run'))} · ${escapeHtml(display(followUp?.route || '-'))}</span>
+                <span>${followUp?.fieldSmokeRequired === true ? 'field smoke required' : 'field smoke not required'} · ${followUp?.externalDeliveryPerformed === false ? 'external delivery 미수행' : 'delivery 확인 필요'} · ${followUp?.autoActionWritePerformed === false ? 'auto action write 없음' : 'action write 확인 필요'}</span>
+                ${followUp?.blocker ? `<span class="muted">${escapeHtml(display(followUp.blocker))}</span>` : ''}
+              </p>`).join('')}
+            </div>
+          </article>`;
+        }).join('');
+      }
       function renderRuleWhatIfPreview(ruleWhatIfPreview = {}) {
         const root = document.getElementById('opsRuleWhatIfPreviewRows');
         if (!root) return;
@@ -3215,6 +3271,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         renderIncidentTriageBoard(reviewPayload.incidentTriageBoard || {});
         renderIncidentDecisionScorecard(reviewPayload.incidentDecisionScorecard || {});
         renderOperationalActionPack(reviewPayload.operationalActionPack || {});
+        renderIncidentActionReadinessQueue(reviewPayload.incidentActionReadinessQueue || {});
         renderRuleWhatIfPreview(reviewPayload.ruleWhatIfPreview || {});
         renderOperatorOutcomeMemory(reviewPayload.operatorOutcomeMemory || {});
         renderIncidentMemorySearch(reviewPayload.memorySearch || {});
@@ -3227,7 +3284,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (prevButton) prevButton.disabled = opsEventRecordsOffset <= 0;
         if (nextButton) nextButton.disabled = !records.hasMore;
         if (records.nextOffset != null) nextButton?.setAttribute('data-next-offset', String(records.nextOffset));
-        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, incidentTriageBoard: reviewPayload.incidentTriageBoard || {}, incidentDecisionScorecard: reviewPayload.incidentDecisionScorecard || {}, operationalActionPack: reviewPayload.operationalActionPack || {}, ruleWhatIfPreview: reviewPayload.ruleWhatIfPreview || {}, operatorOutcomeMemory: reviewPayload.operatorOutcomeMemory || {}, memorySearch: reviewPayload.memorySearch || {}, vlmSummaryCandidateReview: reviewPayload.memorySearch?.vlmSummaryCandidateReview || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
+        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, incidentTriageBoard: reviewPayload.incidentTriageBoard || {}, incidentDecisionScorecard: reviewPayload.incidentDecisionScorecard || {}, operationalActionPack: reviewPayload.operationalActionPack || {}, incidentActionReadinessQueue: reviewPayload.incidentActionReadinessQueue || {}, ruleWhatIfPreview: reviewPayload.ruleWhatIfPreview || {}, operatorOutcomeMemory: reviewPayload.operatorOutcomeMemory || {}, memorySearch: reviewPayload.memorySearch || {}, vlmSummaryCandidateReview: reviewPayload.memorySearch?.vlmSummaryCandidateReview || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
       }
       const itemId = item => display(item?.id || item?.ruleId || item?.profileId || '-');
       const opsRulesIdText = value => {

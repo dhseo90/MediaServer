@@ -2677,6 +2677,56 @@ std::string ProductUiCss() {
       gap: var(--space-2);
       align-items: center;
     }
+    .incident-action-readiness-queue {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .incident-action-readiness-queue-list {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .incident-action-readiness-queue-card {
+      min-width: 0;
+      display: grid;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-subtle);
+      overflow-wrap: anywhere;
+    }
+    .incident-action-readiness-blockers {
+      min-width: 0;
+      display: grid;
+      gap: 4px;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-raised);
+    }
+    .incident-action-readiness-followups {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: var(--space-2);
+    }
+    .incident-action-readiness-followup {
+      min-width: 0;
+      display: grid;
+      gap: 4px;
+      margin: 0;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-raised);
+    }
+    .incident-action-readiness-blockers strong,
+    .incident-action-readiness-blockers span,
+    .incident-action-readiness-followup strong,
+    .incident-action-readiness-followup span {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
     .rule-what-if-preview {
       display: grid;
       gap: var(--space-3);

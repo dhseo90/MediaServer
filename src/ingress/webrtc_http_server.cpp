@@ -3615,6 +3615,18 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <p class="ops-rule-note">EventRecord와 review state를 불러오면 Operational Action Pack이 표시됩니다.</p>
         </div>
       </section>
+      <section class="section-card ops-workspace-wide incident-action-readiness-queue" data-testid="ops-incident-action-readiness-queue" data-incident-action-readiness-queue="operator-supervised-follow-ups">
+        <div class="toolbar">
+          <div>
+            <h3>Incident Action Readiness Queue</h3>
+            <p id="opsIncidentActionReadinessQueueSummary">operator 승인 전 follow-up 후보를 ready/blocked/field-smoke-needed/not-run 상태로 분리합니다.</p>
+          </div>
+          <div id="opsIncidentActionReadinessQueueBadges" class="badge-row"><span class="chip">media-server.ops.incident-action-readiness-queue.v1</span></div>
+        </div>
+        <div id="opsIncidentActionReadinessQueueRows" class="incident-action-readiness-queue-list">
+          <p class="ops-rule-note">EventRecord와 review state를 불러오면 Incident Action Readiness Queue가 표시됩니다.</p>
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide rule-what-if-preview" data-testid="ops-rule-what-if-preview" data-rule-what-if-preview="selected-incident-draft-only">
         <div class="toolbar">
           <div>
@@ -13145,6 +13157,210 @@ std::string OpsOperationalActionPackViewJson(
     return out.str();
 }
 
+std::string OpsIncidentActionReadinessFollowUpJson(const std::string& type,
+                                                   const std::string& label,
+                                                   const std::string& status,
+                                                   const std::string& route,
+                                                   bool field_smoke_required,
+                                                   const std::string& blocker) {
+    std::ostringstream out;
+    out << "{"
+        << "\"type\":\"" << JsonEscape(type) << "\","
+        << "\"label\":\"" << JsonEscape(label) << "\","
+        << "\"status\":\"" << JsonEscape(status) << "\","
+        << "\"route\":\"" << JsonEscape(route) << "\","
+        << "\"operatorApprovalRequired\":true,"
+        << "\"fieldSmokeRequired\":" << (field_smoke_required ? "true" : "false") << ","
+        << "\"blocker\":\"" << JsonEscape(blocker) << "\","
+        << "\"externalDeliveryPerformed\":false,"
+        << "\"autoActionWritePerformed\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsIncidentActionReadinessStatus(const std::vector<std::string>& blockers,
+                                             bool field_smoke_required) {
+    if (!blockers.empty()) {
+        return "blocked";
+    }
+    if (field_smoke_required) {
+        return "field-smoke-needed";
+    }
+    return "ready";
+}
+
+std::string OpsIncidentActionReadinessQueueItemJson(const std::string& event_json,
+                                                    const OpsEventReviewState& review) {
+    const std::string event_id = review.event_id.empty()
+                                     ? Trim(ParseStringField(event_json, "eventId").value_or(""))
+                                     : review.event_id;
+    const std::string source_id = OpsIncidentTriageBoardSourceId(event_json);
+    const std::string rule_id = OpsIncidentMemoryEventRuleId(event_json);
+    const std::string scenario = OpsIncidentTriageBoardScenario(event_json);
+    const std::string incident_status = review.incident_status.empty() ? "new" : review.incident_status;
+    const std::string review_status = review.review_status.empty() ? "new" : review.review_status;
+    const std::string action_target = review.action_target.empty() ? "operator-follow-up" : review.action_target;
+    const std::string snapshot_path = Trim(ParseStringField(event_json, "snapshotPath").value_or(""));
+    const std::string clip_path = Trim(ParseStringField(event_json, "clipPath").value_or(""));
+    const bool evidence_available = !snapshot_path.empty() || !clip_path.empty();
+
+    std::vector<std::string> blockers;
+    if (event_id.empty()) {
+        blockers.push_back("event-id-missing");
+    }
+    if (source_id.empty()) {
+        blockers.push_back("source-id-missing");
+    }
+    if (!evidence_available) {
+        blockers.push_back("release-safe-evidence-missing");
+    }
+
+    const bool field_smoke_required =
+        incident_status == "in-progress" || action_target == "alert" ||
+        action_target == "notify" || action_target == "external-alert";
+    const std::string readiness_status =
+        OpsIncidentActionReadinessStatus(blockers, field_smoke_required);
+
+    std::vector<std::string> followups;
+    followups.push_back(OpsIncidentActionReadinessFollowUpJson(
+        "release-safe-evidence-bundle",
+        "Release-safe evidence bundle",
+        evidence_available ? "ready" : "blocked",
+        "/lab/analysis/events/evidence/bundle",
+        false,
+        evidence_available ? "" : "snapshot-or-clip-evidence-missing"));
+    followups.push_back(OpsIncidentActionReadinessFollowUpJson(
+        "manual-rule-draft",
+        "Manual rule draft",
+        event_id.empty() ? "blocked" : "ready",
+        "/ops/rules?draftEventId=" + UrlEncode(event_id),
+        false,
+        event_id.empty() ? "event-id-missing" : ""));
+    followups.push_back(OpsIncidentActionReadinessFollowUpJson(
+        "alert-dry-run",
+        "Alert dry-run",
+        field_smoke_required ? "field-smoke-needed" : "ready",
+        "/ops/api/alerts/deliveries/dry-run",
+        field_smoke_required,
+        field_smoke_required ? "external-endpoint-credential-field-smoke-required" : ""));
+    followups.push_back(OpsIncidentActionReadinessFollowUpJson(
+        "source-health-recheck",
+        "Source health recheck",
+        source_id.empty() ? "blocked" : "ready",
+        "/ops/api/source-health",
+        false,
+        source_id.empty() ? "source-id-missing" : ""));
+
+    std::ostringstream blockers_json;
+    blockers_json << "[";
+    for (std::size_t i = 0; i < blockers.size(); ++i) {
+        if (i != 0) {
+            blockers_json << ",";
+        }
+        blockers_json << "\"" << JsonEscape(blockers[i]) << "\"";
+    }
+    blockers_json << "]";
+
+    std::ostringstream out;
+    out << "{"
+        << "\"eventId\":\"" << JsonEscape(event_id) << "\","
+        << "\"sourceId\":\"" << JsonEscape(source_id.empty() ? "unknown-source" : source_id) << "\","
+        << "\"ruleId\":\"" << JsonEscape(rule_id.empty() ? "unmapped-rule" : rule_id) << "\","
+        << "\"scenario\":\"" << JsonEscape(scenario) << "\","
+        << "\"reviewStatus\":\"" << JsonEscape(review_status) << "\","
+        << "\"incidentStatus\":\"" << JsonEscape(incident_status) << "\","
+        << "\"actionTarget\":\"" << JsonEscape(action_target) << "\","
+        << "\"readinessStatus\":\"" << JsonEscape(readiness_status) << "\","
+        << "\"blockerReasons\":" << blockers_json.str() << ","
+        << "\"fieldSmokeRequired\":" << (field_smoke_required ? "true" : "false") << ","
+        << "\"manualApprovalRequired\":true,"
+        << "\"autoActionWritePerformed\":false,"
+        << "\"externalDeliveryPerformed\":false,"
+        << "\"followUps\":[";
+    for (std::size_t i = 0; i < followups.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << followups[i];
+    }
+    out << "]"
+        << "}";
+    return out.str();
+}
+
+std::string OpsIncidentActionReadinessQueueViewJson(
+    const std::vector<std::string>& event_json_records,
+    const std::unordered_map<std::string, OpsEventReviewState>& reviews) {
+    std::vector<std::string> items;
+    items.reserve(event_json_records.size());
+    int ready_count = 0;
+    int blocked_count = 0;
+    int field_smoke_needed_count = 0;
+    int not_run_count = 0;
+    for (const std::string& event_json : event_json_records) {
+        const std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+        if (!OpsEventReviewEventIdAllowed(event_id)) {
+            continue;
+        }
+        const auto review_it = reviews.find(event_id);
+        const OpsEventReviewState review =
+            review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
+        const std::string item = OpsIncidentActionReadinessQueueItemJson(event_json, review);
+        const std::string status =
+            Trim(ParseStringField(item, "readinessStatus").value_or("not-run"));
+        if (status == "ready") {
+            ++ready_count;
+        } else if (status == "blocked") {
+            ++blocked_count;
+        } else if (status == "field-smoke-needed") {
+            ++field_smoke_needed_count;
+        } else {
+            ++not_run_count;
+        }
+        items.push_back(item);
+    }
+
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.incident-action-readiness-queue.v1\","
+        << "\"status\":\"ops-incident-action-readiness-queue\","
+        << "\"workflow\":\"operator-supervised-action-readiness\","
+        << "\"readinessCounts\":{"
+        << "\"ready\":" << ready_count << ","
+        << "\"blocked\":" << blocked_count << ","
+        << "\"fieldSmokeNeeded\":" << field_smoke_needed_count << ","
+        << "\"notRun\":" << not_run_count
+        << "},"
+        << "\"items\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << items[i];
+    }
+    out << "],"
+        << "\"itemCount\":" << items.size() << ","
+        << "\"contract\":{"
+        << "\"opsOnly\":true,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"manualApprovalRequired\":true,"
+        << "\"externalDeliveryPerformed\":false,"
+        << "\"autoActionWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"sourceHealthWritePerformed\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"runtimeVlmCallPerformed\":false,"
+        << "\"cloudProviderApiCalled\":false"
+        << "}"
+        << "}";
+    return out.str();
+}
+
 std::string OpsRuleWhatIfPreviewJsonArrayOrFallback(const std::string& value,
                                                     const std::string& fallback) {
     const std::string trimmed = Trim(value);
@@ -14449,6 +14665,9 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         << ","
         << "\"operationalActionPack\":"
         << OpsOperationalActionPackViewJson(event_result.records_json, reviews)
+        << ","
+        << "\"incidentActionReadinessQueue\":"
+        << OpsIncidentActionReadinessQueueViewJson(event_result.records_json, reviews)
         << ","
         << "\"ruleWhatIfPreview\":"
         << OpsRuleWhatIfPreviewViewJson(event_result.records_json, reviews)
