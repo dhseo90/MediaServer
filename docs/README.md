@@ -39,6 +39,7 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 | [config-reference.md](config-reference.md) | 서버, RTSP/WebRTC, source, VA, event storage 설정 |
 | [distribution-policy.md](distribution-policy.md) | source-only, bundle, container 배포 경계 |
 | [release-policy.md](release-policy.md) | release 권한, tag, GitHub Release, not-run 경계 |
+| [release-test-records.md](release-test-records.md) | 릴리즈 테스트 항목과 버전별 pass/fail 기록 |
 | [versioning-policy.md](versioning-policy.md) | 소스 버전, 공개 릴리즈, semver 기준 |
 | [public-repo-final-review.md](public-repo-final-review.md) | 공개 저장소 점검 기준 |
 | [ops-backup-recovery.md](ops-backup-recovery.md) | 운영 설정 백업과 복구 |
