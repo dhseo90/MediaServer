@@ -3639,6 +3639,18 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <p class="ops-rule-note">EventRecord와 review state를 불러오면 Incident Action Readiness Queue가 표시됩니다.</p>
         </div>
       </section>
+      <section class="section-card ops-workspace-wide evidence-intake-field-readiness" data-testid="ops-evidence-intake-field-readiness" data-evidence-intake-field-readiness="redacted-field-preconditions">
+        <div class="toolbar">
+          <div>
+            <h3>Evidence Intake and Field Readiness</h3>
+            <p id="opsEvidenceIntakeFieldReadinessSummary">redacted evidence intake, source health recheck, field smoke precondition을 passed/failed/blocked/not-run으로 분리합니다.</p>
+          </div>
+          <div id="opsEvidenceIntakeFieldReadinessBadges" class="badge-row"><span class="chip">media-server.ops.evidence-intake-field-readiness.v1</span></div>
+        </div>
+        <div id="opsEvidenceIntakeFieldReadinessRows" class="evidence-intake-field-readiness-list">
+          <p class="ops-rule-note">EventRecord와 review state를 불러오면 Evidence Intake and Field Readiness가 표시됩니다.</p>
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide rule-what-if-preview" data-testid="ops-rule-what-if-preview" data-rule-what-if-preview="selected-incident-draft-only">
         <div class="toolbar">
           <div>
@@ -13385,6 +13397,212 @@ std::string OpsIncidentActionReadinessQueueViewJson(
     return out.str();
 }
 
+std::string OpsEvidenceIntakeFieldPreconditionJson(const std::string& type,
+                                                   const std::string& label,
+                                                   const std::string& status,
+                                                   const std::string& detail,
+                                                   bool operator_follow_up_required) {
+    std::ostringstream out;
+    out << "{"
+        << "\"type\":\"" << JsonEscape(type) << "\","
+        << "\"label\":\"" << JsonEscape(label) << "\","
+        << "\"status\":\"" << JsonEscape(status) << "\","
+        << "\"detail\":\"" << JsonEscape(detail) << "\","
+        << "\"operatorFollowUpRequired\":" << (operator_follow_up_required ? "true" : "false")
+        << "}";
+    return out.str();
+}
+
+std::string OpsEvidenceIntakeFieldReadinessItemJson(const std::string& event_json,
+                                                    const OpsEventReviewState& review) {
+    const std::string event_id = review.event_id.empty()
+                                     ? Trim(ParseStringField(event_json, "eventId").value_or(""))
+                                     : review.event_id;
+    const std::string source_id = OpsIncidentTriageBoardSourceId(event_json);
+    const std::string rule_id = OpsIncidentMemoryEventRuleId(event_json);
+    const std::string scenario = OpsIncidentTriageBoardScenario(event_json);
+    const std::string incident_status = review.incident_status.empty() ? "new" : review.incident_status;
+    const std::string action_target = review.action_target.empty() ? "operator-follow-up" : review.action_target;
+    const std::string snapshot_path = Trim(ParseStringField(event_json, "snapshotPath").value_or(""));
+    const std::string clip_path = Trim(ParseStringField(event_json, "clipPath").value_or(""));
+    const bool evidence_available = !snapshot_path.empty() || !clip_path.empty();
+    const bool endpoint_credential_required =
+        incident_status == "in-progress" || action_target == "alert" ||
+        action_target == "notify" || action_target == "external-alert";
+
+    const std::string evidence_intake_status = evidence_available ? "passed" : "blocked";
+    const std::string source_health_readiness = source_id.empty() ? "blocked" : "not-run";
+    const std::string field_smoke_status = endpoint_credential_required ? "blocked" : "not-run";
+    const std::string field_smoke_credential_status =
+        endpoint_credential_required ? "required-not-provided" : "not-required";
+    const std::string redacted_evidence_bundle_status =
+        evidence_available ? "release-safe-redacted-ready" : "redacted-evidence-missing";
+
+    std::vector<std::string> preconditions;
+    preconditions.push_back(OpsEvidenceIntakeFieldPreconditionJson(
+        "redacted-evidence-intake",
+        "Redacted evidence intake",
+        evidence_intake_status,
+        evidence_available ? "snapshot-or-clip reference present; raw path hidden from readiness UI"
+                           : "snapshot-or-clip evidence missing",
+        !evidence_available));
+    preconditions.push_back(OpsEvidenceIntakeFieldPreconditionJson(
+        "source-health-recheck",
+        "Source health recheck",
+        source_health_readiness,
+        source_id.empty() ? "source-id-missing" : "dry-run recheck required before release evidence",
+        true));
+    preconditions.push_back(OpsEvidenceIntakeFieldPreconditionJson(
+        "field-smoke-precondition",
+        "Field smoke precondition",
+        field_smoke_status,
+        endpoint_credential_required ? "endpoint/credential required; no field PASS claimed"
+                                     : "field smoke not required for this incident state",
+        endpoint_credential_required));
+
+    std::ostringstream out;
+    out << "{"
+        << "\"eventId\":\"" << JsonEscape(event_id) << "\","
+        << "\"sourceId\":\"" << JsonEscape(source_id.empty() ? "unknown-source" : source_id) << "\","
+        << "\"ruleId\":\"" << JsonEscape(rule_id.empty() ? "unmapped-rule" : rule_id) << "\","
+        << "\"scenario\":\"" << JsonEscape(scenario) << "\","
+        << "\"incidentStatus\":\"" << JsonEscape(incident_status) << "\","
+        << "\"actionTarget\":\"" << JsonEscape(action_target) << "\","
+        << "\"evidenceIntakeStatus\":\"" << JsonEscape(evidence_intake_status) << "\","
+        << "\"sourceHealthReadiness\":\"" << JsonEscape(source_health_readiness) << "\","
+        << "\"fieldSmokeStatus\":\"" << JsonEscape(field_smoke_status) << "\","
+        << "\"endpointCredentialRequired\":" << (endpoint_credential_required ? "true" : "false") << ","
+        << "\"fieldSmokeCredentialStatus\":\"" << JsonEscape(field_smoke_credential_status) << "\","
+        << "\"redactedEvidenceBundleStatus\":\"" << JsonEscape(redacted_evidence_bundle_status) << "\","
+        << "\"releaseSafeEvidenceIntake\":{"
+        << "\"snapshotPathPresent\":" << (snapshot_path.empty() ? "false" : "true") << ","
+        << "\"clipPathPresent\":" << (clip_path.empty() ? "false" : "true") << ","
+        << "\"redactedEvidenceBundleStatus\":\"" << JsonEscape(redacted_evidence_bundle_status) << "\","
+        << "\"rawEvidenceIncluded\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"sourceUrlMaterialExposed\":false,"
+        << "\"rawEvidenceMaterialExposed\":false,"
+        << "\"debugMaterialExposed\":false,"
+        << "\"providerMaterialExposed\":false"
+        << "},"
+        << "\"preconditions\":[";
+    for (std::size_t i = 0; i < preconditions.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << preconditions[i];
+    }
+    out << "],"
+        << "\"redaction\":{"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"sourceUrlMaterialExposed\":false,"
+        << "\"rawEvidenceMaterialExposed\":false,"
+        << "\"debugMaterialExposed\":false,"
+        << "\"providerMaterialExposed\":false,"
+        << "\"endpointCredentialFieldPassClaimed\":false"
+        << "}"
+        << "}";
+    return out.str();
+}
+
+void OpsEvidenceIntakeFieldReadinessCountStatus(const std::string& status,
+                                                int* passed_count,
+                                                int* failed_count,
+                                                int* blocked_count,
+                                                int* not_run_count) {
+    if (status == "passed") {
+        ++(*passed_count);
+    } else if (status == "failed") {
+        ++(*failed_count);
+    } else if (status == "blocked") {
+        ++(*blocked_count);
+    } else {
+        ++(*not_run_count);
+    }
+}
+
+std::string OpsEvidenceIntakeFieldReadinessViewJson(
+    const std::vector<std::string>& event_json_records,
+    const std::unordered_map<std::string, OpsEventReviewState>& reviews) {
+    std::vector<std::string> items;
+    items.reserve(event_json_records.size());
+    int passed_count = 0;
+    int failed_count = 0;
+    int blocked_count = 0;
+    int not_run_count = 0;
+    for (const std::string& event_json : event_json_records) {
+        const std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+        if (!OpsEventReviewEventIdAllowed(event_id)) {
+            continue;
+        }
+        const auto review_it = reviews.find(event_id);
+        const OpsEventReviewState review =
+            review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
+        const std::string item = OpsEvidenceIntakeFieldReadinessItemJson(event_json, review);
+        OpsEvidenceIntakeFieldReadinessCountStatus(
+            Trim(ParseStringField(item, "evidenceIntakeStatus").value_or("not-run")),
+            &passed_count,
+            &failed_count,
+            &blocked_count,
+            &not_run_count);
+        OpsEvidenceIntakeFieldReadinessCountStatus(
+            Trim(ParseStringField(item, "sourceHealthReadiness").value_or("not-run")),
+            &passed_count,
+            &failed_count,
+            &blocked_count,
+            &not_run_count);
+        OpsEvidenceIntakeFieldReadinessCountStatus(
+            Trim(ParseStringField(item, "fieldSmokeStatus").value_or("not-run")),
+            &passed_count,
+            &failed_count,
+            &blocked_count,
+            &not_run_count);
+        items.push_back(item);
+    }
+
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.evidence-intake-field-readiness.v1\","
+        << "\"status\":\"ops-evidence-intake-field-readiness\","
+        << "\"workflow\":\"redacted-evidence-field-readiness\","
+        << "\"readinessCounts\":{"
+        << "\"passed\":" << passed_count << ","
+        << "\"failed\":" << failed_count << ","
+        << "\"blocked\":" << blocked_count << ","
+        << "\"notRun\":" << not_run_count
+        << "},"
+        << "\"items\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << items[i];
+    }
+    out << "],"
+        << "\"itemCount\":" << items.size() << ","
+        << "\"contract\":{"
+        << "\"opsOnly\":true,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"releaseSafeEvidenceIntake\":true,"
+        << "\"endpointCredentialFieldPassClaimed\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"sourceUrlMaterialExposed\":false,"
+        << "\"rawEvidenceMaterialExposed\":false,"
+        << "\"debugMaterialExposed\":false,"
+        << "\"providerMaterialExposed\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"runtimeVlmCallPerformed\":false,"
+        << "\"cloudProviderApiCalled\":false"
+        << "}"
+        << "}";
+    return out.str();
+}
+
 std::string OpsRuleWhatIfPreviewJsonArrayOrFallback(const std::string& value,
                                                     const std::string& fallback) {
     const std::string trimmed = Trim(value);
@@ -14888,6 +15106,9 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         << ","
         << "\"incidentActionReadinessQueue\":"
         << OpsIncidentActionReadinessQueueViewJson(event_result.records_json, reviews)
+        << ","
+        << "\"evidenceIntakeFieldReadiness\":"
+        << OpsEvidenceIntakeFieldReadinessViewJson(event_result.records_json, reviews)
         << ","
         << "\"ruleWhatIfPreview\":"
         << OpsRuleWhatIfPreviewViewJson(event_result.records_json, reviews)

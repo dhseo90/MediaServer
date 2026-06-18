@@ -66,7 +66,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | V280-S01 2.x runway boundary | `OPS-039`, `SAFE-064` | 문서 gate 기준 | `2.8.0`/`2.9.0`/`3.0.0` 경계 문서화 기준. 3.0 설계 완료나 migration 구현 evidence가 아님 |
 | V280-S02 Incident Action Readiness Queue | `UI-055`, `EVT-055`, `LAB-079`, `SAFE-065` | `verify-v280-incident-action-readiness-queue` | Ops-only readiness queue 기준. 외부 실제 발송, 자동 action write, UI 직접 조작 PASS가 아님 |
 | V280-S03 Approval-gated Rule Draft Readiness | `UI-056`, `RULE-104`, `EVT-056`, `LAB-080`, `SAFE-066` | `verify-v280-approval-gated-rule-draft` | 수동 approval/staged draft 기준. full replay, 자동 저장, 자동 적용 evidence가 아님 |
-| V280-S04 Evidence Intake and Field Readiness | `UI-057`, `SRC-032`, `EVT-057`, `LAB-081`, `SAFE-067` | `verify-v280-evidence-intake-field-readiness` 후보 | redacted intake와 field precondition 기준. endpoint/credential 없는 field PASS가 아님 |
+| V280-S04 Evidence Intake and Field Readiness | `UI-057`, `SRC-032`, `EVT-057`, `LAB-081`, `SAFE-067` | `verify-v280-evidence-intake-field-readiness` | redacted intake와 field precondition 기준. endpoint/credential 없는 field PASS가 아님 |
 | V280-S05 Runtime Evidence Window | `UI-058`, `EVT-058`, `LAB-082`, `SAFE-068` | `verify-v280-runtime-evidence-window` 후보 | bounded runtime evidence window 기준. 30분/120분/장기 녹화 evidence가 아님 |
 | V280-S06 Client-safe Follow-up Digest | `CLIENT-024`, `SAFE-069` | `verify-v280-client-safe-followup-digest` 후보 | viewer-safe digest 기준. source/raw/debug/rule editor 비노출은 브라우저 직접 확인 전 UI PASS가 아님 |
 | V280-S07 Release readiness | `UI-055`, `UI-056`, `UI-057`, `UI-058`, `CLIENT-024`, `OPS-040`, `SAFE-070` | `verify-v280-owner-release-readiness` 후보 | v2.8.0 local readiness 후보. UI 풀테스트 직접 조작, 30분/120분, published metadata, tag/push/GitHub Release evidence가 아님 |
@@ -341,7 +341,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | SRC-029 | viewer에게 source URL 비노출 | 필요 | 필요 | 안정화, UI | client 화면/API에 source URL이 보이지 않음 |
 | SRC-030 | viewer에게 developer URL 비노출 | 필요 | 필요 | 안정화, UI | client 화면에 Developer URL이 보이지 않음 |
 | SRC-031 | ONVIF credential binding/store gate | 간접 | 필요 | 안정화, UI | `/ops/api/onvif/import-draft`가 `credentialGate` summary만 반환하고 `source:write` guard, URL credential reject, SourceRegistry/PublishedView secret field 비저장을 유지함 |
-| SRC-032 | field readiness source health recheck boundary | 간접 | 필요 | 안정화, UI | v2.8.0 evidence intake가 source health recheck 준비 상태를 표시하되 source registry write, credential 원문 저장, external endpoint 성공 보장, Event POST/WebRTC/SSE/WS/media path 변경을 만들지 않음 |
+| SRC-032 | Evidence intake source health readiness | 간접 | 필요 | 안정화, UI | v2.8.0 evidence intake가 source health recheck 준비 상태를 표시하되 source registry write, credential 원문 저장, external endpoint 성공 보장, Event POST/WebRTC/SSE/WS/media path 변경을 만들지 않음 |
 
 ## D. Rule, Profile, Scenario, Tracker
 
@@ -512,7 +512,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | EVT-054 | Ops operator outcome memory view model | 필요 | 필요 | 안정화, UI | `/ops/api/events/reviews` 응답의 `operatorOutcomeMemory`가 기존 review state의 accept/dismiss/review-needed 결과와 audit action reference를 deterministic history hint로 요약하고 EventRecord/Event POST/WebRTC/SSE/WS/media path/client viewer 노출을 바꾸지 않음 |
 | EVT-055 | Ops incident action readiness queue view model | 필요 | 필요 | 안정화, UI | `/ops/api/events/reviews` 또는 후속 Ops API가 follow-up 후보를 ready/blocked/field-smoke-needed/not-run으로 요약하되 EventRecord/Event POST/WebRTC/SSE/WS/media path/client viewer 노출을 바꾸지 않음 |
 | EVT-056 | Ops approval-gated rule draft readiness state | 필요 | 필요 | 안정화, UI | staged rule draft readiness가 approval state와 validation summary만 제공하고 EventRecord top-level, Event POST/WebRTC/SSE/WS payload, Rule/Profile registry 자동 write를 만들지 않음 |
-| EVT-057 | Ops evidence intake and field readiness state | 필요 | 필요 | 안정화, UI | evidence intake/field readiness 상태가 passed/failed/blocked/not-run을 분리하고 credential/source/raw/debug/provider material을 EventRecord/Event POST/WebRTC/SSE/WS/client에 노출하지 않음 |
+| EVT-057 | Ops evidence intake field readiness view model | 필요 | 필요 | 안정화, UI | evidence intake/field readiness 상태가 passed/failed/blocked/not-run을 분리하고 credential/source/raw/debug/provider material을 EventRecord/Event POST/WebRTC/SSE/WS/client에 노출하지 않음 |
 | EVT-058 | Ops runtime evidence window view model | 필요 | 필요 | 안정화, UI | incident-linked runtime/source/event evidence window가 bounded summary만 제공하고 장기 저장소, 30분/120분 PASS, Event POST/WebRTC/SSE/WS/media path/client viewer 변경을 만들지 않음 |
 
 ## F. Client And Viewer

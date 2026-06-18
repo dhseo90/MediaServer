@@ -2781,6 +2781,64 @@ void AppendOpsShellScript(std::ostringstream& out,
           </article>`;
         }).join('');
       }
+      function renderEvidenceIntakeFieldReadiness(evidenceIntakeFieldReadiness = {}) {
+        const root = document.getElementById('opsEvidenceIntakeFieldReadinessRows');
+        if (!root) return;
+        const items = Array.isArray(evidenceIntakeFieldReadiness.items) ? evidenceIntakeFieldReadiness.items : [];
+        const counts = evidenceIntakeFieldReadiness.readinessCounts || {};
+        renderBadges('opsEvidenceIntakeFieldReadinessBadges', [
+          { text: evidenceIntakeFieldReadiness.schema || 'media-server.ops.evidence-intake-field-readiness.v1' },
+          { text: `items ${items.length}`, tone: items.length > 0 ? '' : 'warn' },
+          { text: `passed ${counts.passed || 0}`, tone: counts.passed > 0 ? 'info' : '' },
+          { text: `failed ${counts.failed || 0}`, tone: counts.failed > 0 ? 'bad' : '' },
+          { text: `blocked ${counts.blocked || 0}`, tone: counts.blocked > 0 ? 'warn' : '' },
+          { text: `not-run ${counts.notRun || 0}`, tone: counts.notRun > 0 ? 'warn' : '' },
+          { text: evidenceIntakeFieldReadiness.contract?.endpointCredentialFieldPassClaimed === false ? 'no endpoint field PASS' : 'field PASS 확인 필요', tone: evidenceIntakeFieldReadiness.contract?.endpointCredentialFieldPassClaimed === false ? 'info' : 'warn' },
+          { text: evidenceIntakeFieldReadiness.contract?.credentialMaterialExposed === false ? 'credential redacted' : 'credential 확인 필요', tone: evidenceIntakeFieldReadiness.contract?.credentialMaterialExposed === false ? 'info' : 'warn' },
+          { text: evidenceIntakeFieldReadiness.contract?.rawEvidenceMaterialExposed === false ? 'raw evidence hidden' : 'raw evidence 확인 필요', tone: evidenceIntakeFieldReadiness.contract?.rawEvidenceMaterialExposed === false ? 'info' : 'warn' }
+        ]);
+        setText(
+          'opsEvidenceIntakeFieldReadinessSummary',
+          items.length
+            ? `redacted evidence/source health/field smoke precondition · passed ${counts.passed || 0} · failed ${counts.failed || 0} · blocked ${counts.blocked || 0} · not-run ${counts.notRun || 0}`
+            : 'EventRecord와 review state를 불러오면 Evidence Intake and Field Readiness가 표시됩니다.'
+        );
+        if (items.length === 0) {
+          root.innerHTML = '<p class="ops-rule-note">표시할 Evidence Intake and Field Readiness가 없습니다.</p>';
+          return;
+        }
+        root.innerHTML = items.map(item => {
+          const preconditions = Array.isArray(item?.preconditions) ? item.preconditions : [];
+          const redaction = item?.redaction || {};
+          const releaseSafe = item?.releaseSafeEvidenceIntake || {};
+          const statusTone = status => status === 'passed' ? 'info' : (status === 'failed' || status === 'blocked' ? 'warn' : '');
+          return `<article class="evidence-intake-field-readiness-card" data-evidence-intake-field-event="${escapeHtml(item?.eventId || '')}">
+            <div class="table-cell-main">
+              <strong>${escapeHtml(display(item?.eventId || 'event'))}</strong>
+              <span>${escapeHtml(display(item?.sourceId || '-'))} · ${escapeHtml(display(item?.ruleId || '-'))} · ${escapeHtml(display(item?.scenario || '-'))}</span>
+            </div>
+            <div class="badge-row">
+              <span class="chip ${statusTone(item?.evidenceIntakeStatus)}">evidenceIntakeStatus ${escapeHtml(display(item?.evidenceIntakeStatus || 'not-run'))}</span>
+              <span class="chip ${statusTone(item?.sourceHealthReadiness)}">sourceHealthReadiness ${escapeHtml(display(item?.sourceHealthReadiness || 'not-run'))}</span>
+              <span class="chip ${statusTone(item?.fieldSmokeStatus)}">fieldSmokeStatus ${escapeHtml(display(item?.fieldSmokeStatus || 'not-run'))}</span>
+              <span class="chip">${item?.endpointCredentialRequired === true ? 'endpointCredentialRequired true' : 'endpointCredentialRequired false'}</span>
+              <span class="chip">${escapeHtml(display(item?.fieldSmokeCredentialStatus || 'not-required'))}</span>
+            </div>
+            <div class="evidence-intake-field-readiness-grid">
+              <p><strong>redactedEvidenceBundleStatus</strong><span>${escapeHtml(display(item?.redactedEvidenceBundleStatus || '-'))}</span></p>
+              <p><strong>snapshot/clip</strong><span>snapshot ${releaseSafe.snapshotPathPresent === true ? 'present' : 'missing'} · clip ${releaseSafe.clipPathPresent === true ? 'present' : 'missing'}</span></p>
+              <p><strong>redaction</strong><span>credentialMaterialExposed ${redaction.credentialMaterialExposed === false ? 'false' : 'check'} · rawEvidenceMaterialExposed ${redaction.rawEvidenceMaterialExposed === false ? 'false' : 'check'} · endpointCredentialFieldPassClaimed ${redaction.endpointCredentialFieldPassClaimed === false ? 'false' : 'check'}</span></p>
+            </div>
+            <div class="evidence-intake-field-preconditions">
+              ${preconditions.map(precondition => `<p class="evidence-intake-field-precondition" data-evidence-intake-precondition="${escapeHtml(precondition?.type || '')}">
+                <strong>${escapeHtml(display(precondition?.label || precondition?.type || 'precondition'))}</strong>
+                <span>${escapeHtml(display(precondition?.status || 'not-run'))} · ${escapeHtml(display(precondition?.detail || '-'))}</span>
+                <span>${precondition?.operatorFollowUpRequired === true ? 'operator follow-up required' : 'operator follow-up optional'}</span>
+              </p>`).join('')}
+            </div>
+          </article>`;
+        }).join('');
+      }
       function renderRuleWhatIfPreview(ruleWhatIfPreview = {}) {
         const root = document.getElementById('opsRuleWhatIfPreviewRows');
         if (!root) return;
@@ -3327,6 +3385,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         renderIncidentDecisionScorecard(reviewPayload.incidentDecisionScorecard || {});
         renderOperationalActionPack(reviewPayload.operationalActionPack || {});
         renderIncidentActionReadinessQueue(reviewPayload.incidentActionReadinessQueue || {});
+        renderEvidenceIntakeFieldReadiness(reviewPayload.evidenceIntakeFieldReadiness || {});
         renderRuleWhatIfPreview(reviewPayload.ruleWhatIfPreview || {});
         renderApprovalGatedRuleDraftReadiness(reviewPayload.approvalGatedRuleDraftReadiness || {});
         renderOperatorOutcomeMemory(reviewPayload.operatorOutcomeMemory || {});
@@ -3340,7 +3399,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (prevButton) prevButton.disabled = opsEventRecordsOffset <= 0;
         if (nextButton) nextButton.disabled = !records.hasMore;
         if (records.nextOffset != null) nextButton?.setAttribute('data-next-offset', String(records.nextOffset));
-        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, incidentTriageBoard: reviewPayload.incidentTriageBoard || {}, incidentDecisionScorecard: reviewPayload.incidentDecisionScorecard || {}, operationalActionPack: reviewPayload.operationalActionPack || {}, incidentActionReadinessQueue: reviewPayload.incidentActionReadinessQueue || {}, ruleWhatIfPreview: reviewPayload.ruleWhatIfPreview || {}, approvalGatedRuleDraftReadiness: reviewPayload.approvalGatedRuleDraftReadiness || {}, operatorOutcomeMemory: reviewPayload.operatorOutcomeMemory || {}, memorySearch: reviewPayload.memorySearch || {}, vlmSummaryCandidateReview: reviewPayload.memorySearch?.vlmSummaryCandidateReview || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
+        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, incidentTriageBoard: reviewPayload.incidentTriageBoard || {}, incidentDecisionScorecard: reviewPayload.incidentDecisionScorecard || {}, operationalActionPack: reviewPayload.operationalActionPack || {}, incidentActionReadinessQueue: reviewPayload.incidentActionReadinessQueue || {}, evidenceIntakeFieldReadiness: reviewPayload.evidenceIntakeFieldReadiness || {}, ruleWhatIfPreview: reviewPayload.ruleWhatIfPreview || {}, approvalGatedRuleDraftReadiness: reviewPayload.approvalGatedRuleDraftReadiness || {}, operatorOutcomeMemory: reviewPayload.operatorOutcomeMemory || {}, memorySearch: reviewPayload.memorySearch || {}, vlmSummaryCandidateReview: reviewPayload.memorySearch?.vlmSummaryCandidateReview || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
       }
       const itemId = item => display(item?.id || item?.ruleId || item?.profileId || '-');
       const opsRulesIdText = value => {

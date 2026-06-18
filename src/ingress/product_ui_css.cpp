@@ -2766,6 +2766,49 @@ std::string ProductUiCss() {
       min-width: 0;
       overflow-wrap: anywhere;
     }
+    .evidence-intake-field-readiness {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .evidence-intake-field-readiness-list {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .evidence-intake-field-readiness-card {
+      min-width: 0;
+      display: grid;
+      gap: var(--space-3);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-subtle);
+      overflow-wrap: anywhere;
+    }
+    .evidence-intake-field-readiness-grid,
+    .evidence-intake-field-preconditions {
+      min-width: 0;
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: var(--space-2);
+    }
+    .evidence-intake-field-readiness-grid p,
+    .evidence-intake-field-precondition {
+      min-width: 0;
+      display: grid;
+      gap: 4px;
+      margin: 0;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-raised);
+    }
+    .evidence-intake-field-readiness-grid strong,
+    .evidence-intake-field-readiness-grid span,
+    .evidence-intake-field-precondition strong,
+    .evidence-intake-field-precondition span {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
     .approval-gated-rule-draft-readiness,
     .ops-approval-gated-rule-draft-readiness {
       display: grid;
