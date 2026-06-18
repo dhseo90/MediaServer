@@ -1,6 +1,6 @@
 # Project Feature Test Inventory
 
-이 문서는 현재 release 목표 `v2.7.0` 기준의 기능별 테스트 분류 기준표입니다.
+이 문서는 현재 release 목표 `v2.8.0` 기준의 기능별 테스트 분류 기준표입니다.
 독자는 개발/테스트 에이전트이며, lifecycle은 active release target 동안 유지되는 test inventory입니다.
 AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, 이 문서는 기능 ID와 테스트 영역만 관리합니다.
 
@@ -26,13 +26,13 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 473 |
-| UI 직접 필요 | 280 |
-| UI 간접 필요 | 30 |
-| UI 비대상 | 163 |
-| 테스트 필요 | 473 |
-| 안정화 대상 | 463 |
-| UI 풀테스트 대상 | 299 |
+| 전체 기능 항목 | 497 |
+| UI 직접 필요 | 295 |
+| UI 간접 필요 | 31 |
+| UI 비대상 | 171 |
+| 테스트 필요 | 497 |
+| 안정화 대상 | 487 |
+| UI 풀테스트 대상 | 315 |
 | 30분 soak 대상 | 47 |
 | 120분 대상 | 7 |
 
@@ -42,7 +42,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 473개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 497개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -53,12 +53,28 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | Coverage gate | `./server.sh verify-feature-inventory-coverage`가 `media-server.feature-inventory-coverage.v1` report로 기능 ID별 연결을 점검 | `missing coverage target` 누락 ID는 release gate에서 FAIL |
 | VLM current expansion | VLM route, control, action, runtime state, sidecar, privacy guard를 현재 기능 ID에 연결 | 실행 증거 아님 |
 
-## v2.7.0 Operational Incident Command Loop Coverage Mapping
+## v2.8.0 Operator-Supervised Action Readiness Coverage Mapping
 
 이 절은 현재 active target의 계획 단계 연결만 남깁니다. 아래 행은 실행 evidence가
 아니며, 기능 구현 전에는 실제 기능 ID, route/control/action, verifier command를
-추가해야 합니다. 신규 기능 ID가 추가되지 않은 상태에서 안정화/UI 테스트를 PASS로
-보고하지 않습니다.
+추가해야 합니다. 신규 기능 ID가 예약되어 있어도 안정화/UI 테스트를 PASS로 보고하지
+않습니다.
+
+| Roadmap scope | Feature IDs | 대표 안정화 verifier | release evidence boundary |
+| --- | --- | --- | --- |
+| V280-S00 Baseline/source-of-truth | `OPS-039`, `SAFE-064` | `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets` | source `2.8.0`, latest published `v2.7.0`, current roadmap `v2.8.0` 정렬 기준. GitHub Release publish evidence가 아님 |
+| V280-S01 2.x runway boundary | `OPS-039`, `SAFE-064` | 문서 gate 기준 | `2.8.0`/`2.9.0`/`3.0.0` 경계 문서화 기준. 3.0 설계 완료나 migration 구현 evidence가 아님 |
+| V280-S02 Incident Action Readiness Queue | `UI-055`, `EVT-055`, `LAB-079`, `SAFE-065` | `verify-v280-incident-action-readiness-queue` 후보 | Ops-only readiness queue 기준. 외부 실제 발송, 자동 action write, UI 직접 조작 PASS가 아님 |
+| V280-S03 Approval-gated Rule Draft Readiness | `UI-056`, `RULE-104`, `EVT-056`, `LAB-080`, `SAFE-066` | `verify-v280-approval-gated-rule-draft` 후보 | 수동 approval/staged draft 기준. full replay, 자동 저장, 자동 적용 evidence가 아님 |
+| V280-S04 Evidence Intake and Field Readiness | `UI-057`, `SRC-032`, `EVT-057`, `LAB-081`, `SAFE-067` | `verify-v280-evidence-intake-field-readiness` 후보 | redacted intake와 field precondition 기준. endpoint/credential 없는 field PASS가 아님 |
+| V280-S05 Runtime Evidence Window | `UI-058`, `EVT-058`, `LAB-082`, `SAFE-068` | `verify-v280-runtime-evidence-window` 후보 | bounded runtime evidence window 기준. 30분/120분/장기 녹화 evidence가 아님 |
+| V280-S06 Client-safe Follow-up Digest | `CLIENT-024`, `SAFE-069` | `verify-v280-client-safe-followup-digest` 후보 | viewer-safe digest 기준. source/raw/debug/rule editor 비노출은 브라우저 직접 확인 전 UI PASS가 아님 |
+| V280-S07 Release readiness | `UI-055`, `UI-056`, `UI-057`, `UI-058`, `CLIENT-024`, `OPS-040`, `SAFE-070` | `verify-v280-owner-release-readiness` 후보 | v2.8.0 local readiness 후보. UI 풀테스트 직접 조작, 30분/120분, published metadata, tag/push/GitHub Release evidence가 아님 |
+
+## v2.7.0 Operational Incident Command Loop Coverage Mapping
+
+이 절은 최신 published baseline의 기능 ID 연결입니다. 아래 행은 실행 evidence가
+아니며, v2.8.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 않습니다.
 
 | Roadmap scope | Feature IDs | 대표 안정화 verifier | release evidence boundary |
 | --- | --- | --- | --- |
@@ -130,16 +146,16 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 
 | 기능 ID 범위 | 안정화 verifier 후보 | 비고 |
 | --- | --- | --- |
-| `UI-001`~`UI-018`, `UI-022`~`UI-054` | auth, Ops, Client, VLM, v250/v260/v270 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
+| `UI-001`~`UI-018`, `UI-022`~`UI-058` | auth, Ops, Client, VLM, v250/v260/v270/v280 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
 | `AUTH-001`~`AUTH-042` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
-| `SRC-001`~`SRC-031` | source/ONVIF/UI verifier family | ONVIF field success는 approved environment only |
-| `RULE-001`~`RULE-102` | rule/VA verifier family | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
-| `EVT-001`~`EVT-054` | event/VLM/v250/v260/v270 verifier family | event log 육안 확인은 UI 풀테스트 |
-| `CLIENT-001`~`CLIENT-023` | client/UI verifier family | viewer 비노출은 브라우저 확인 필요 |
+| `SRC-001`~`SRC-032` | source/ONVIF/UI verifier family | ONVIF field success는 approved environment only |
+| `RULE-001`~`RULE-104` | rule/VA verifier family | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
+| `EVT-001`~`EVT-058` | event/VLM/v250/v260/v270/v280 verifier family | event log 육안 확인은 UI 풀테스트 |
+| `CLIENT-001`~`CLIENT-024` | client/UI verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-021` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
-| `LAB-001`~`LAB-078` | lab/VLM/v250/v260/v270 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-063` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-038` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
+| `LAB-001`~`LAB-082` | lab/VLM/v250/v260/v270/v280 fixture verifier family | 제품 UI 비대상 |
+| `SAFE-001`~`SAFE-070` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-040` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
 
 ## VA Manual UI Seed Matrix
 
@@ -238,6 +254,10 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | UI-052 | `/ops/events` Operational Action Pack | 필요 | 필요 | 안정화, UI | `/ops/events`가 release-safe evidence bundle, `/ops/rules` draft route, alert dry-run, source health recheck dry-run을 한 action pack card로 표시하고 외부 실제 발송/자동 rule write 없이 Ops-only로 유지함 |
 | UI-053 | `/ops/events` Rule What-if Preview | 필요 | 필요 | 안정화, UI | `/ops/events`가 selected incident/EventRecord와 rule suggestion 후보를 저장 전 condition preview/draft comparison으로 표시하고 `/ops/rules` draft-only 수동 저장 경로로만 연결하며 full replay engine/자동 저장/자동 적용 없이 Ops-only로 유지함 |
 | UI-054 | `/ops/events` Operator Outcome Memory | 필요 | 필요 | 안정화, UI | `/ops/events`가 accept/dismiss/review-needed outcome과 기존 Ops review/audit 상태를 deterministic history hint로 표시하고 새 저장소/자동 학습/client viewer 노출 없이 Ops-only로 유지함 |
+| UI-055 | `/ops/events` Incident Action Readiness Queue | 필요 | 필요 | 안정화, UI | `/ops/events`가 operator 승인 가능한 follow-up 후보를 ready/blocked/field-smoke-needed/not-run 상태로 분리해 표시하고 외부 실제 발송, 자동 action write, EventRecord/Event POST/WebRTC/SSE/WS/media path 변경 없이 Ops-only로 유지함 |
+| UI-056 | `/ops/rules` Approval-gated Rule Draft Readiness | 필요 | 필요 | 안정화, UI | `/ops/rules`가 incident/rule suggestion 후보를 approval state, validation summary, staged draft context로 표시하고 수동 저장 전 Rule/Profile registry write, 자동 저장, 자동 적용을 만들지 않음 |
+| UI-057 | `/ops/events` Evidence Intake and Field Readiness | 필요 | 필요 | 안정화, UI | `/ops/events`가 redacted evidence intake, source health recheck, field smoke precondition을 passed/failed/blocked/not-run으로 구분하고 credential/source/raw/debug material을 노출하지 않음 |
+| UI-058 | `/ops/dashboard` Runtime Evidence Window | 필요 | 필요 | 안정화, UI | `/ops/dashboard` 또는 incident detail이 bounded runtime/source/event evidence window를 Ops-only로 표시하되 장기 저장소, 30분/120분 evidence, client/viewer exposure를 만들지 않음 |
 
 ## B. Auth, Account, Role, Scope
 
@@ -321,6 +341,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | SRC-029 | viewer에게 source URL 비노출 | 필요 | 필요 | 안정화, UI | client 화면/API에 source URL이 보이지 않음 |
 | SRC-030 | viewer에게 developer URL 비노출 | 필요 | 필요 | 안정화, UI | client 화면에 Developer URL이 보이지 않음 |
 | SRC-031 | ONVIF credential binding/store gate | 간접 | 필요 | 안정화, UI | `/ops/api/onvif/import-draft`가 `credentialGate` summary만 반환하고 `source:write` guard, URL credential reject, SourceRegistry/PublishedView secret field 비저장을 유지함 |
+| SRC-032 | field readiness source health recheck boundary | 간접 | 필요 | 안정화, UI | v2.8.0 evidence intake가 source health recheck 준비 상태를 표시하되 source registry write, credential 원문 저장, external endpoint 성공 보장, Event POST/WebRTC/SSE/WS/media path 변경을 만들지 않음 |
 
 ## D. Rule, Profile, Scenario, Tracker
 
@@ -429,6 +450,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | RULE-101 | class mismatch 검증 | 필요 | 필요 | 안정화, UI | `/ops/rules` 저장 전 검증이 profile/template class mismatch를 쓰기 없이 차단하고, 서버가 `analysis.classes`/profile classes가 template classes를 포함하지 않는 VA rule 저장을 각각 거부 |
 | RULE-102 | Rule/Scenario 저장 전 review loop | 필요 | 필요 | 안정화, UI | `/ops/rules` 상세 편집기가 저장 전 예상 event type, conflict, missing reference, scenario preset 영향, `/ops/events` EventRecord coverage link를 표시하고, `verify-rule-ui` 인앱 evidence `v240-s05-rule-scenario-review-loop`와 `verify-ops-rule-validation-matrix`가 확인 |
 | RULE-103 | re-entry cross-zone A→B 후보 | 필요 | 필요 | 안정화, UI | 저장 scenario payload의 `reEntryMode=configured-zones`와 `reEntryZoneIds`가 runtime ReEntryScenario source/destination zone 후보로 반영되고 기본 `same-zone` 동작과 event type `re-entry`는 유지 |
+| RULE-104 | approval-gated staged rule draft 후보 | 필요 | 필요 | 안정화, UI | incident/rule suggestion 후보가 approval state와 validation summary를 가진 staged draft로만 표시되고 기존 저장 버튼 전에는 Rule/Profile registry write, 자동 적용, full replay execution, Event POST/WebRTC/SSE/WS/media path 변경을 만들지 않음 |
 
 ## E. Runtime, Dashboard, Events
 
@@ -488,6 +510,10 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | EVT-052 | Ops operational action pack view model | 필요 | 필요 | 안정화, UI | `/ops/api/events/reviews` 응답의 `operationalActionPack`이 release-safe bundle/rule draft/alert dry-run/source health recheck 수동 workflow link를 요약하고 EventRecord/Event POST/WebRTC/SSE/WS/media path/client viewer 노출을 바꾸지 않음 |
 | EVT-053 | Ops rule what-if preview view model | 필요 | 필요 | 안정화, UI | `/ops/api/events/reviews` 응답의 `ruleWhatIfPreview`가 selected incident/EventRecord와 matching rule suggestion 후보의 condition preview/draft comparison/manual draft route를 요약하고 EventRecord/Event POST/WebRTC/SSE/WS/media path/client viewer 노출을 바꾸지 않음 |
 | EVT-054 | Ops operator outcome memory view model | 필요 | 필요 | 안정화, UI | `/ops/api/events/reviews` 응답의 `operatorOutcomeMemory`가 기존 review state의 accept/dismiss/review-needed 결과와 audit action reference를 deterministic history hint로 요약하고 EventRecord/Event POST/WebRTC/SSE/WS/media path/client viewer 노출을 바꾸지 않음 |
+| EVT-055 | Ops incident action readiness queue view model | 필요 | 필요 | 안정화, UI | `/ops/api/events/reviews` 또는 후속 Ops API가 follow-up 후보를 ready/blocked/field-smoke-needed/not-run으로 요약하되 EventRecord/Event POST/WebRTC/SSE/WS/media path/client viewer 노출을 바꾸지 않음 |
+| EVT-056 | Ops approval-gated rule draft readiness state | 필요 | 필요 | 안정화, UI | staged rule draft readiness가 approval state와 validation summary만 제공하고 EventRecord top-level, Event POST/WebRTC/SSE/WS payload, Rule/Profile registry 자동 write를 만들지 않음 |
+| EVT-057 | Ops evidence intake and field readiness state | 필요 | 필요 | 안정화, UI | evidence intake/field readiness 상태가 passed/failed/blocked/not-run을 분리하고 credential/source/raw/debug/provider material을 EventRecord/Event POST/WebRTC/SSE/WS/client에 노출하지 않음 |
+| EVT-058 | Ops runtime evidence window view model | 필요 | 필요 | 안정화, UI | incident-linked runtime/source/event evidence window가 bounded summary만 제공하고 장기 저장소, 30분/120분 PASS, Event POST/WebRTC/SSE/WS/media path/client viewer 변경을 만들지 않음 |
 
 ## F. Client And Viewer
 
@@ -516,6 +542,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | CLIENT-021 | VA overlay 표시 | 필요 | 필요 | 안정화, UI, 30분 | overlay toggle/status/metadata 일치 |
 | CLIENT-022 | status/caption 표시 | 필요 | 필요 | UI | caption/status와 V240-S04 live selected-tile client-safe status summary가 viewport를 가리지 않고 표시 |
 | CLIENT-023 | Client-safe incident digest API/UI | 필요 | 필요 | 안정화, UI | `/client/api/views/{id}/events`와 client dashboard/events/live dock이 `media-server.client.incident-digest.v1` digest를 viewer-safe 요약으로 표시하고 source locator/raw evidence/debug/provider material을 포함하지 않음 |
+| CLIENT-024 | Client-safe follow-up digest API/UI | 필요 | 필요 | 안정화, UI | viewer 할당 PublishedView 범위 안에서 follow-up status/severity/time만 `media-server.client.follow-up-digest.v1` 후보로 표시하고 source URL, raw evidence, debug material, provider material, rule editor/action controls를 노출하지 않음 |
 
 ## G. Media And Streaming
 
@@ -625,6 +652,10 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | LAB-076 | V270-S03 operational action pack static guard | 비대상 | 필요 | 안정화 | `verify-v270-operational-action-pack`이 action pack wrapper schema, release-safe bundle/rule draft/alert dry-run/source health recheck 연결, command/docs/inventory wiring, external delivery/auto rule/schema/media 비범위를 정적 검증함 |
 | LAB-077 | V270-S04 rule what-if preview static guard | 비대상 | 필요 | 안정화 | `verify-v270-rule-what-if-preview`가 rule what-if preview wrapper schema, selected incident/rule suggestion condition preview, `/ops/rules` draft-only link, command/docs/inventory wiring, full replay/auto apply/schema/media 비범위를 정적 검증함 |
 | LAB-078 | V270-S05 operator outcome memory static guard | 비대상 | 필요 | 안정화 | `verify-v270-operator-outcome-memory`이 operator outcome memory wrapper schema, review state/audit action 기반 deterministic history hint, command/docs/inventory wiring, persistent write/client/schema/media 비범위를 정적 검증함 |
+| LAB-079 | V280-S02 incident action readiness queue static guard | 비대상 | 필요 | 안정화 | 후보 `verify-v280-incident-action-readiness-queue`가 readiness queue wrapper schema, ready/blocked/not-run status, command/docs/inventory wiring, external delivery/auto write/schema/media 비범위를 정적 검증해야 함 |
+| LAB-080 | V280-S03 approval-gated rule draft static guard | 비대상 | 필요 | 안정화 | 후보 `verify-v280-approval-gated-rule-draft`가 approval state, staged draft, validation summary, command/docs/inventory wiring, auto save/auto apply/full replay/schema/media 비범위를 정적 검증해야 함 |
+| LAB-081 | V280-S04 evidence intake field readiness static guard | 비대상 | 필요 | 안정화 | 후보 `verify-v280-evidence-intake-field-readiness`가 redacted intake, source health recheck, field smoke precondition, credential/source/raw redaction, endpoint/credential 미실행 경계를 정적 검증해야 함 |
+| LAB-082 | V280-S05 runtime evidence window static guard | 비대상 | 필요 | 안정화 | 후보 `verify-v280-runtime-evidence-window`가 bounded runtime/source/event evidence window, no longrun substitute, no persistent archive, command/docs/inventory wiring을 정적 검증해야 함 |
 
 ## I. Safety, Boundary, Invariant Contract
 
@@ -693,6 +724,13 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | SAFE-061 | V270-S04 rule what-if preview boundary | 필요 | 필요 | 안정화, UI | Rule What-if Preview는 selected incident/EventRecord와 rule suggestion 후보의 저장 전 condition preview만 `/ops/events`와 `/ops/rules` draft context에 표시하고 full replay engine, 자동 rule/profile 저장, 자동 적용, viewer/client route, EventRecord/Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path 변경을 만들지 않음 |
 | SAFE-062 | V270-S05 operator outcome memory boundary | 필요 | 필요 | 안정화, UI | Operator Outcome Memory는 기존 Ops review JSONL와 audit action reference만 읽어 accept/dismiss/review-needed history hint를 표시하고 새 persistent outcome store, 자동 학습/적용, viewer/client route, EventRecord/Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path 변경을 만들지 않음 |
 | SAFE-063 | V270-S06 릴리즈 준비 경계 | 비대상 | 필요 | 안정화 | `verify-v270-owner-release-readiness`는 v2.7.0 S01~S05 feature inventory, manual UI criteria, release policy/evidence, close-out dry-run companion command를 연결하되 UI 풀테스트 직접 조작, 30분/120분, `verify-release-metadata --published`, tag/push/GitHub Release, PR merge/main sync/후속 브랜치 생성을 local verifier PASS로 승격하지 않음 |
+| SAFE-064 | V280-S00/S01 2.x runway and source-of-truth boundary | 비대상 | 필요 | 안정화 | source `2.8.0`, latest published `v2.7.0`, 2.x는 `2.8.0`/`2.9.0`까지만 유지, `3.0.0` major-change line을 분리하되 3.0 설계 완료나 publish/tag evidence로 승격하지 않음 |
+| SAFE-065 | V280-S02 incident action readiness queue boundary | 필요 | 필요 | 안정화, UI | readiness queue는 Ops-only 준비 상태만 표시하고 외부 실제 발송, 자동 action write, EventRecord/Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path, client/viewer 노출을 만들지 않음 |
+| SAFE-066 | V280-S03 approval-gated rule draft boundary | 필요 | 필요 | 안정화, UI | staged rule draft readiness는 수동 approval 전 Rule/Profile registry write, 자동 저장, 자동 적용, full replay, EventRecord/Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path 변경을 만들지 않음 |
+| SAFE-067 | V280-S04 evidence intake field readiness boundary | 필요 | 필요 | 안정화, UI | evidence intake와 field readiness는 redacted 준비 상태만 표시하고 endpoint/credential 없는 field PASS, credential/source/raw/debug/provider material 노출, Event POST/WebRTC/SSE/WS/media path 변경을 만들지 않음 |
+| SAFE-068 | V280-S05 runtime evidence window boundary | 필요 | 필요 | 안정화, UI | runtime evidence window는 bounded Ops-only summary이며 장기 녹화, persistent archive, 30분/120분 PASS, Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path, client/viewer 노출을 만들지 않음 |
+| SAFE-069 | V280-S06 client-safe follow-up digest boundary | 필요 | 필요 | 안정화, UI | client follow-up digest는 viewer-safe status/severity/time만 표시하고 source URL, raw evidence, debug material, provider material, rule editor/action controls를 노출하지 않음 |
+| SAFE-070 | V280-S07 릴리즈 준비 경계 | 비대상 | 필요 | 안정화 | 후보 `verify-v280-owner-release-readiness`는 v2.8.0 feature inventory, manual UI criteria, release policy/evidence, close-out dry-run companion command를 연결하되 UI 풀테스트 직접 조작, 30분/120분, `verify-release-metadata --published`, tag/push/GitHub Release, PR merge/main sync/후속 브랜치 생성을 local verifier PASS로 승격하지 않아야 함 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -702,6 +740,8 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | OPS-036 | V250-S09 incident memory route owner 분리 게이트 | 비대상 | 필요 | 안정화 | `verify-v250-owner-release-readiness`가 event memory/search route owner catalog, release-safe evidence bundle route matcher, release readiness 문서 연결을 확인하되 PR/tag/push/GitHub Release 실행 PASS로 대체하지 않음 |
 | OPS-037 | V260-S06 릴리즈 준비 게이트 | 비대상 | 필요 | 안정화 | `verify-v260-owner-release-readiness`가 v2.6.0 feature inventory, UI criteria, release policy/evidence, close-out dry-run companion command를 연결하되 release publish, PR/main/tag/push, UI/longrun 실행 PASS로 대체하지 않음 |
 | OPS-038 | V270-S06 릴리즈 준비 게이트 | 비대상 | 필요 | 안정화 | `verify-v270-owner-release-readiness`가 v2.7.0 S01~S05 feature inventory, manual UI criteria, release policy/evidence, close-out dry-run companion command를 연결하되 release publish, PR/main/tag/push, UI/longrun 실행 PASS로 대체하지 않음 |
+| OPS-039 | V280-S00/S01 source-of-truth와 2.x runway 게이트 | 비대상 | 필요 | 안정화 | source `2.8.0`, latest published `v2.7.0`, next source tag `v2.8.0`, 2.x runway/3.0 major boundary 문서가 서로 일치하는지 확인하되 release publish, PR/main/tag/push, UI/longrun 실행 PASS로 대체하지 않음 |
+| OPS-040 | V280-S07 릴리즈 준비 게이트 | 비대상 | 필요 | 안정화 | 후보 `verify-v280-owner-release-readiness`가 v2.8.0 S02~S06 feature inventory, manual UI criteria, release policy/evidence, close-out dry-run companion command를 연결하되 release publish, PR/main/tag/push, UI/longrun 실행 PASS로 대체하지 않아야 함 |
 
 ## Coverage Review To Do
 

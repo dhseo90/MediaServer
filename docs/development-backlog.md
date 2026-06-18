@@ -10,37 +10,52 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `2.7.0`
+- 현재 소스 버전: `2.8.0`
 - 최신 공개 GitHub Release: `v2.7.0`
 - `v2.7.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap: `v2.7.0 Operational Incident Command Loop`
+- 현재 source roadmap: `v2.8.0 Operator-Supervised Action Readiness`
 
-## 현재 source roadmap: v2.7.0 Operational Incident Command Loop
+## 현재 source roadmap: v2.8.0 Operator-Supervised Action Readiness
 
-v2.7.0은 v2.6.0 source-only/live-only operational hardening baseline 위에서 새 media
-path나 장기 녹화 범위를 만들지 않습니다. 이번 source tree의 범위는 `/ops/events`를
-Incident Triage Board로 확장하고, Rule What-if Preview와 Operational Action Pack을
-보조 workflow로 묶어 운영자가 사건 우선순위, 판단 근거, 다음 조치를 한 화면에서
-정리하게 하는 것입니다.
+v2.8.0은 v2.7.0 source-only Operational Incident Command Loop 위에서 새 media path,
+장기 녹화, 외부 provider 성공 보장, 자동 실행형 rule 적용을 만들지 않습니다. 이번
+source tree의 범위는 2.x 라인을 `2.8.0`과 `2.9.0`까지만 유지한다는 전제에서,
+3.0.0의 대대적인 route/API/config/schema/storage/auth/media 변경 전에 운영자가
+직접 승인할 수 있는 action 준비 상태를 제품과 evidence 경계로 분리하는 것입니다.
 
-직접 답: v2.7.0의 1차 선택값은 `Incident Triage Board`입니다. `Rule What-if Preview`와
-`Operational Action Pack`은 독립 대형 기능이 아니라 triage board 안의 얇은 보조
-workflow로 포함합니다. 자동 Rule/Profile 적용, provider 재호출/rerank, VLM
-default-on, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경은
-기본값이 아닙니다.
+직접 답: v2.8.0의 1차 선택값은 `Operator-Supervised Action Readiness`입니다.
+fallback 또는 축소 대안은 `Runtime Evidence Window`입니다. 즉시 자동 적용 가능한
+실행 플랫폼으로 키우지 않고, `/ops/events`와 `/ops/rules` 안에서 “무엇을 할 준비가
+됐는가, 무엇은 아직 승인/field smoke/credential이 필요한가”를 명확히 보여주는
+방향을 선택합니다.
 
-신규 기능 포함 범위:
+2.x runway:
 
-- `Incident Triage Board`: `/ops/events`에서 priority, review state, source/rule/scenario,
-  similar incident, VLM summary/rule suggestion candidate, 조치 필요 여부를 한눈에
-  정렬/필터하는 대표 신규 기능입니다.
-- `Rule What-if Preview`: 선택한 incident/EventRecord와 rule suggestion 후보를 저장
-  전에 비교해 어떤 조건을 만들게 되는지 보여주는 preview입니다. full replay engine,
-  자동 저장, 자동 적용은 하지 않습니다.
-- `Operational Action Pack`: incident row/detail에서 release-safe evidence bundle,
-  rule draft, alert dry-run, source health recheck 같은 기존 수동 workflow로 이어지는
-  조치 패널입니다. 외부 알림 실제 발송이나 field action 성공 보장은 포함하지 않습니다.
+- `2.8.0`: 기존 Event POST/WebRTC/SSE/WS metadata, RTSP/WebRTC media path,
+  Auth/Role/Scope, Rule/Profile payload schema를 유지한 operator-supervised action
+  readiness입니다.
+- `2.9.0`: 2.x의 마지막 안정화, release evidence 정리, 3.0 migration/readiness
+  설계 준비입니다.
+- `3.0.0`: route/API/config/schema, registry/storage, auth/scope, evidence 저장 형식,
+  RTSP/WebRTC media path 같은 대규모 변경을 별도 3.0 설계와 명시 승인 후 다루는
+  major line입니다.
+
+v2.8.0 제외 대상과 사유:
+
+- 자동 Rule/Profile 저장/적용: 3.0 전에는 operator approval 없는 write path를 늘리지 않습니다.
+- 외부 alert 실제 발송 성공 보장: endpoint/credential/field smoke가 필요한 운영 항목입니다.
+- VLM default-on 또는 provider 재호출/rerank: privacy/provider 비용과 evidence 경계가 큽니다.
+- ONVIF persistent credential store 완료 선언: 별도 credential provider 설계와 field evidence가 필요합니다.
+- Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path 변경: 2.x 호환성 유지 조건입니다.
+- runtime/model bundle default 배포: source-only release 기본 정책을 유지합니다.
+
+license/provenance/privacy/운영 제약:
+
+- 기본 공개 형태는 source-only이며 FFmpeg/GStreamer/ONNX/VLM/YOLO runtime/model binary를 release asset에 포함하지 않습니다.
+- provider credential, prompt/raw response/source URL/raw frame bytes는 문서, UI, client, event payload, release evidence에 원문 노출하지 않습니다.
+- external TURN/WHEP, ONVIF 실기기, real cloud/VLM provider는 endpoint/credential/명시 승인 없이는 field PASS 근거가 아닙니다.
+- 안정화, UI 풀테스트, 30분, 120분, published metadata는 서로 대체하지 않습니다.
 
 불변 조건:
 
@@ -51,23 +66,43 @@ default-on, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변�
 
 | Step | ID | Priority | 상태 | 묶음 | 개발 내용 | 완료 산출물 | 검증/evidence 경계 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 0 | V270-S00 | P0 | 완료 | v2.7.0 baseline | v2.7.0 branch/source-of-truth 정렬 | VERSION/CMake/README/docs index/release metadata가 source `2.7.0`, latest published `v2.7.0`, current roadmap `v2.7.0 Operational Incident Command Loop` 기준으로 정렬됨 | roadmap review, `verify-release-metadata`, `verify-docs-links`, `git diff --check`, `verify-release-metadata --published`; UI/30분/120분 evidence는 별도 |
-| 1 | V270-S01 | P0 | 완료 | Incident Triage Board | `/ops/events`를 priority/review state/source/rule/scenario/similar incident/VLM candidate 기준으로 정렬하는 board view로 확장 | `media-server.ops.incident-triage-board.v1` view model, board lane/filter/sort UI, viewer/client 비노출, feature inventory/UI criteria | `verify-v270-incident-triage-board`, `verify-ops-client-ui`, auth/Event POST/WS metadata guard; UI 풀테스트 직접 조작은 별도 evidence |
-| 2 | V270-S02 | P0 | 완료 | Decision scorecard | EventRecord, source health, similar incident, VLM summary/rule candidate, operator review age를 deterministic priority reason으로 요약 | `media-server.ops.incident-decision-scorecard.v1` scorecard, priority reason chips, provider 호출 없음, raw JSON/source URL 비노출 | `verify-v270-incident-decision-scorecard`, `verify-ops-client-ui`, auth/Event POST/WS metadata guard; UI 풀테스트 직접 조작은 별도 evidence |
-| 3 | V270-S03 | P1 | 완료 | Operational Action Pack | incident detail에서 evidence bundle, rule draft, alert dry-run, source health recheck로 이어지는 조치 패널 제공 | `media-server.ops.operational-action-pack.v1` panel, 기존 수동 workflow 연결, external delivery 미수행 상태, rule registry 자동 write 없음, source health recheck dry-run only | `verify-v270-operational-action-pack`, `verify-v250-redacted-incident-evidence-bundle`, alert dry-run/source health verifier, UI 풀테스트 별도 |
-| 4 | V270-S04 | P1 | 완료 | Rule What-if Preview | selected incident/EventRecord와 rule suggestion 후보를 저장 전 조건 preview로 비교 | `media-server.ops.rule-what-if-preview.v1` preview, `/ops/rules` draft-only 연결, full replay engine/auto apply 제외, 자동 저장/자동 적용 제외 | `verify-v270-rule-what-if-preview`, `verify-vlm-rule-suggestion-draft-workflow`, `verify-rule-ui`, `verify-va-replay` fixture 경계 |
-| 5 | V270-S05 | P1 | 완료 | Operator outcome memory | accept/dismiss/review-needed 결과를 triage board의 deterministic history hint로 요약 | `media-server.ops.operator-outcome-memory.v1` view model, 기존 Ops review state/audit 기반 outcome summary, EventRecord top-level 변경 없음, client/viewer 비노출 | `verify-v270-operator-outcome-memory`, `verify-vlm-review-action-workflow`, audit/redaction guard |
-| 6 | V270-S06 | P2 | 완료 | 릴리즈 준비 | v2.7.0 소유권 분리/릴리즈 준비 | feature inventory, manual UI criteria, release readiness gate, not-run/excluded 경계 정리 | `verify-v270-owner-release-readiness`, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-feature-inventory-coverage`, `verify-manual-ui-evidence`, `verify-release-evidence-index`, `verify-release-closeout-helper --dry-run`, `git diff --check`; UI/30분/120분/published metadata는 별도 승인/evidence |
+| 0 | V280-S00 | P0 | 완료 | v2.8.0 baseline | v2.8.0 branch/source-of-truth 정렬 | VERSION/CMake/README/docs index/release metadata가 source `2.8.0`, latest published `v2.7.0`, current roadmap `v2.8.0 Operator-Supervised Action Readiness` 기준으로 정렬됨 | roadmap review, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `git diff --check`; UI/30분/120분/published metadata는 별도 |
+| 1 | V280-S01 | P0 | 예정 | 2.x runway boundary | `2.8.0`/`2.9.0`까지만 2.x를 유지하고 `3.0.0` major-change line을 별도 설계/승인 대상으로 분리 | roadmap/version/release/inventory가 2.x runway와 3.0 boundary를 같은 문구로 설명 | 문서 gate 기준. 3.0 설계 완료나 migration 구현 evidence가 아님 |
+| 2 | V280-S02 | P0 | 예정 | Incident Action Readiness Queue | `/ops/events`에서 operator가 승인 가능한 follow-up 후보를 readiness queue로 묶고, not-ready/blocker/field-smoke-needed 상태를 분리 | Ops-only action readiness view model/UI, external delivery 미수행 상태, 자동 action write 없음 | 후보 verifier `verify-v280-incident-action-readiness-queue`; UI 풀테스트 직접 조작과 외부 alert 성공은 별도 |
+| 3 | V280-S03 | P0 | 예정 | Approval-gated Rule Draft Readiness | Rule What-if/incident-to-rule 후보를 저장 전 approval state, validation summary, staged draft로 분리 | `/ops/rules` 수동 draft context, no-auto-save/no-auto-apply boundary, rule registry 자동 write 없음 | 후보 verifier `verify-v280-approval-gated-rule-draft`; full replay/자동 저장/자동 적용 evidence가 아님 |
+| 4 | V280-S04 | P1 | 예정 | Evidence Intake and Field Readiness | redacted evidence/source health/field smoke precondition을 준비 상태로 모아 passed/failed/blocked/not-run을 분리 | field readiness panel, credential/endpoint required 상태, release-safe evidence intake 기준 | 후보 verifier `verify-v280-evidence-intake-field-readiness`; endpoint/credential 없는 field PASS가 아님 |
+| 5 | V280-S05 | P1 | 예정 | Runtime Evidence Window | 기존 runtime/source/event buffer에서 incident-linked 짧은 evidence window를 보여주되 장기 저장소를 만들지 않음 | Ops-only runtime evidence packet, page/session or bounded local buffer, longrun substitute 아님 표기 | 후보 verifier `verify-v280-runtime-evidence-window`; 30분/120분/장기 녹화 evidence가 아님 |
+| 6 | V280-S06 | P2 | 예정 | Client-safe Follow-up Digest | viewer에게 허용된 PublishedView 범위에서 후속 조치 상태만 redacted digest로 표시 | `media-server.client.follow-up-digest.v1` 후보, source/raw/debug/rule editor 비노출 | 후보 verifier `verify-v280-client-safe-followup-digest`; viewer 브라우저 직접 확인 전 UI PASS가 아님 |
+| 7 | V280-S07 | P2 | 예정 | 릴리즈 준비 | v2.8.0 소유권 분리/릴리즈 준비 | feature inventory, manual UI criteria, release readiness gate, not-run/excluded 경계 정리 | 후보 verifier `verify-v280-owner-release-readiness`; UI/30분/120분/published metadata/tag/push/GitHub Release evidence는 별도 승인/evidence |
 
-## v2.7.0 publish/test 제외 경계
+## v2.8.0 publish/test 제외 경계
 
-- `V270-S00` source-of-truth 정렬은 2.7.0 GitHub Release publish 완료가 아닙니다.
+- `V280-S00` source-of-truth 정렬은 2.8.0 GitHub Release publish 완료가 아닙니다.
 - 예정 항목은 구현과 직접 evidence가 생기기 전까지 완료로 쓰지 않습니다.
+- 후보 verifier 이름은 구현 전 PASS 근거가 아니며, 각 스텝 구현 시 `server.sh` wiring과 script inventory를 함께 추가해야 합니다.
 - UI 풀테스트 직접 조작 미실행은 local verifier PASS로 대체하지 않습니다.
 - 30분 테스트 미실행은 `verify-predev --soak-minutes 30` PASS로 보고하지 않습니다.
 - 120분 테스트 미실행은 `verify-predev --soak-minutes 120` 또는 `verify-va-runtime-console-longrun --duration-minutes 120` PASS로 보고하지 않습니다.
-- `v2.7.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
+- `v2.8.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
 - PR merge/main sync/next branch sync는 별도 명시 승인과 실제 실행 evidence가 있기 전까지 완료로 쓰지 않습니다.
+
+## 직전 공개 기준: v2.7.0 Source Release Baseline
+
+v2.7.0은 source-only/live-only 제품 경계를 유지하면서 Operational Incident Command
+Loop를 닫은 최신 공개 릴리즈입니다. 이 기준은 v2.8.0의 시작 baseline이며,
+v2.8.0의 예정 항목 완료 evidence로 재사용하지 않습니다.
+
+## 완료 roadmap: v2.7.0 Operational Incident Command Loop
+
+| ID | 상태 | 요약 | 현재 해석 |
+| --- | --- | --- | --- |
+| V270-S00 | 완료 | v2.7.0 baseline/source-of-truth 정렬 | 최신 published baseline, v2.8.0 완료 근거 아님 |
+| V270-S01 | 완료 | Incident Triage Board | 최신 published baseline, v2.8.0 완료 근거 아님 |
+| V270-S02 | 완료 | Incident Decision Scorecard | 최신 published baseline, v2.8.0 완료 근거 아님 |
+| V270-S03 | 완료 | Operational Action Pack | 최신 published baseline, v2.8.0 완료 근거 아님 |
+| V270-S04 | 완료 | Rule What-if Preview | 최신 published baseline, v2.8.0 완료 근거 아님 |
+| V270-S05 | 완료 | Operator outcome memory | 최신 published baseline, v2.8.0 완료 근거 아님 |
+| V270-S06 | 완료 | v2.7.0 owner release readiness local gate | 최신 published baseline, v2.8.0 완료 근거 아님 |
 
 ## v2.7.0 S01 개발 기록
 
@@ -291,6 +326,6 @@ v2.7.0의 예정 항목 완료 evidence로 재사용하지 않습니다.
 
 ## 후속 이슈 추천 규칙
 
-후속 이슈는 현재 `2.7.0` source tree와 현재 스텝 범위 안에서 실제로 처리 가능한 항목만
+후속 이슈는 현재 `2.8.0` source tree와 현재 스텝 범위 안에서 실제로 처리 가능한 항목만
 기록합니다. 다음 버전 후보, 별도 Phase 후보, 사용자 승인이 필요한 새 제품 범위는 이
 문서에 추천하지 않습니다.

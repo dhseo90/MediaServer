@@ -3,7 +3,7 @@
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
 [![Published Release](https://img.shields.io/badge/published-v2.7.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.7.0)
-![Source Version](https://img.shields.io/badge/source-2.7.0-informational)
+![Source Version](https://img.shields.io/badge/source-2.8.0-informational)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
 video analytics overlays and rule/scenario live events when analytics are enabled.
@@ -15,9 +15,9 @@ and runtime/model bundle distribution are outside the default public release.
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
 - Latest published GitHub Release: [v2.7.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.7.0)
-- Current source version: `2.7.0`
+- Current source version: `2.8.0`
 - v2.7.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
-- Current source roadmap: `v2.7.0 Operational Incident Command Loop`
+- Current source roadmap: `v2.8.0 Operator-Supervised Action Readiness`
 
 ## At a Glance
 
@@ -34,16 +34,24 @@ and runtime/model bundle distribution are outside the default public release.
   default-on, model/runtime bundle distribution, and guaranteed real-device or
   external-provider success are not included in the default public release.
 
-## Operational Incident Command Loop
+## Operator-Supervised Action Readiness
 
-Latest published version `2.7.0` starts from the v2.6.0 source-only/live-only
-operational-hardening baseline and expands `/ops/events` into an Incident
-Triage Board, with Rule What-if Preview and an Operational Action Pack as
-supporting workflows in a source-only GitHub Release.
-Automatic Rule/Profile application, provider re-query, Event POST/WebRTC/SSE/WS
-schema changes, and RTSP/WebRTC media-path changes are outside the default scope.
+Latest published version `2.7.0` closes the `/ops/events` Incident Triage Board,
+Rule What-if Preview, and Operational Action Pack scope as a source-only GitHub
+Release. The current `2.8.0` source tree assumes the 2.x line continues only
+through `2.8.0` and `2.9.0`, then reserves `3.0.0` for larger separately
+designed changes. The `2.8.0` roadmap focuses on operator-approved action
+readiness under the existing contracts.
+Automatic Rule/Profile application, provider re-query, real external alert
+delivery guarantees, Event POST/WebRTC/SSE/WS schema changes, and RTSP/WebRTC
+media-path changes are outside the default scope.
 Existing Event POST, WebRTC DataChannel, SSE/WS metadata schemas, and
 RTSP/WebRTC media paths remain unchanged unless explicitly requested.
+
+The 2.x runway is intentionally narrow: `2.8.0` is for action readiness under
+existing contracts, `2.9.0` is the final stabilization and 3.0 transition release,
+and `3.0.0` is the line for approved major route/API/config/schema, storage,
+auth/scope, and media-path changes.
 
 Model recommendation is based on both PC capability and privacy mode. The current
 baseline is `Qwen/Qwen3-VL-8B-Instruct` for local standard hardware,
@@ -137,7 +145,7 @@ records live in dedicated docs.
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - Release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
 - Latest published release notes: [v2.7.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.7.0)
-- Current source roadmap: `v2.7.0 Operational Incident Command Loop` in
+- Current source roadmap: `v2.8.0 Operator-Supervised Action Readiness` in
   [docs/development-backlog.md](docs/development-backlog.md)
 
 ## UI Preview

@@ -6,11 +6,11 @@
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `2.7.0`
+- 현재 소스 버전: `2.8.0`
 - 최신 공개 GitHub Release: `v2.7.0`
 - `v2.7.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap은 `v2.7.0 Operational Incident Command Loop`입니다.
+- 현재 source roadmap은 `v2.8.0 Operator-Supervised Action Readiness`입니다.
 
 ## 기본 공개 범위
 
@@ -68,7 +68,7 @@ gate 실패 또는 미확인으로 보고하며 제품 runtime/media 회귀와 �
 
 ## GitHub Releases 운영
 
-### v2.7.0 Release Close-out Runbook
+### v2.8.0 Release Close-out Runbook
 
 아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
 순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
@@ -97,36 +97,46 @@ Do not list an item as pass unless it was actually executed. tag, GitHub Release
 published metadata, release branch 삭제, Next branch sync는 각각 실행 evidence가
 있을 때만 완료로 기록합니다.
 
-## v2.7.0 Source Roadmap Scope
+## v2.8.0 Source Roadmap Scope
 
-현재 `2.7.0` source tree는 아래 roadmap 후보를 source 기능과 local verifier 기준으로
+현재 `2.8.0` source tree는 아래 roadmap 후보를 source 기능과 local verifier 기준으로
 정리합니다. 각 항목은 구현과 직접 evidence가 생긴 뒤에만 완료로 기록합니다. UI
 풀테스트, 30분, 120분, 외부 endpoint field smoke는 실행한 경우에만 release evidence로
 기록합니다.
 
-- v2.7.0 source-of-truth/bootstrap 정렬
-- Incident Triage Board
-- Incident Decision Scorecard
-- Operational Action Pack
-- Rule What-if Preview
-- Operator outcome memory
-- v2.7.0 owner release readiness
+- v2.8.0 source-of-truth/bootstrap 정렬
+- 2.x runway / 3.0 major-change boundary
+- Incident Action Readiness Queue
+- Approval-gated Rule Draft Readiness
+- Evidence Intake and Field Readiness
+- Runtime Evidence Window
+- Client-safe Follow-up Digest
+- v2.8.0 owner release readiness
 
-`v2.7.0` publish 완료 여부는 tag, GitHub Release, published metadata 검증 evidence가
+`v2.8.0` publish 완료 여부는 tag, GitHub Release, published metadata 검증 evidence가
 있을 때만 완료로 기록합니다. 현재 latest published release는 `v2.7.0`입니다.
-현재 공개 release tag 기준은 `v2.7.0`입니다. 다음 준비 중인 source tag 기준은 미정입니다.
+현재 공개 release tag 기준은 `v2.7.0`입니다. 다음 준비 중인 source tag 기준은 `v2.8.0`입니다.
 
-## v2.7.0 소유권 분리 / 릴리즈 준비 게이트
+## 2.x runway / 3.0 전환 경계
 
-S06 local readiness gate는 `media-server.v270-owner-release-readiness.v1` 기준으로
-v2.7.0 Operational Incident Command Loop Coverage Mapping, 수동 UI criteria, release
-evidence index, release close-out dry-run command를 같은 범위로 묶습니다. 이 절은
-source tree 준비 상태를 확인할 뿐 release action을 승인하거나 실행하지 않습니다.
+- 2.x 라인은 `2.8.0`과 `2.9.0`까지만 유지합니다.
+- `2.8.0`은 기존 계약을 유지한 operator-supervised action readiness입니다.
+- `2.9.0`은 2.x의 마지막 안정화와 3.0 transition readiness입니다.
+- `3.0.0`은 route/API/config/schema, registry/storage, auth/scope, evidence storage,
+  RTSP/WebRTC media path 같은 큰 변경을 별도 설계와 승인 후 다루는 major line입니다.
 
-Companion local gates:
+## v2.8.0 소유권 분리 / 릴리즈 준비 게이트
+
+S07 local readiness gate는 구현 시 `media-server.v280-owner-release-readiness.v1`
+기준으로 v2.8.0 Operator-Supervised Action Readiness Coverage Mapping, 수동 UI
+criteria, release evidence index, release close-out dry-run command를 같은 범위로
+묶습니다. 이 절은 source tree 준비 상태를 확인할 뿐 release action을 승인하거나
+실행하지 않습니다.
+
+Companion local gate 후보:
 
 ```bash
-./server.sh verify-v270-owner-release-readiness
+./server.sh verify-v280-owner-release-readiness
 ./server.sh verify-release-metadata
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
@@ -137,21 +147,25 @@ Companion local gates:
 git diff --check
 ```
 
+`verify-v280-owner-release-readiness`는 아직 구현 후보 이름입니다. 스텝 구현 전에는
+PASS 근거가 아니며, 실제 command wiring과 script inventory가 추가된 뒤에만 실행
+evidence로 사용할 수 있습니다.
+
 Not-run/excluded boundary:
 
-- UI 풀테스트 직접 조작 미실행은 `verify-v270-owner-release-readiness` PASS로 대체하지 않습니다.
+- UI 풀테스트 직접 조작 미실행은 local readiness PASS로 대체하지 않습니다.
 - 30분 테스트 미실행은 local readiness PASS가 아닙니다.
 - 120분 테스트 미실행은 local readiness PASS가 아닙니다.
-- tag/push/GitHub Release 실행은 S06 gate PASS로 대체하지 않습니다.
+- tag/push/GitHub Release 실행은 S07 gate PASS로 대체하지 않습니다.
 - `verify-release-metadata --published` 미실행 상태는 GitHub Release publish 전에는 PASS로 기록하지 않습니다.
 - PR merge/main sync/후속 브랜치 생성은 별도 명시 승인과 실행 evidence가 있을 때만 완료로 기록합니다.
 - ONVIF 실기기, external TURN/WHEP, real cloud/VLM provider 호출은 endpoint/credential/승인 없이는 제외 상태입니다.
 
 ## Tag 전략
 
-- 현재 공개 release tag 기준은 `v2.6.0`입니다.
-- 다음 준비 중인 source tag 기준은 `v2.7.0`입니다.
-- `v2.6.0` release tag는 signed annotated tag로 생성합니다.
+- 현재 공개 release tag 기준은 `v2.7.0`입니다.
+- 다음 준비 중인 source tag 기준은 `v2.8.0`입니다.
+- `v2.8.0` release tag는 signed annotated tag로 생성합니다.
 - 다음 신규 release tag는 signed annotated tag로 생성합니다.
 - unsigned annotated tag와 lightweight tag는 새 release tag로 사용하지 않습니다.
 - tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만
@@ -201,18 +215,19 @@ Annotation JSON을 확보한 경우:
 ./server.sh verify-actions-security --annotations-json <annotations.json>
 ```
 
-## v2.7.0 Release Note Template
+## v2.8.0 Release Note Template
 
-아래 템플릿은 v2.7.0 source-only GitHub Release note 기준입니다. 실행하지 않은
+아래 템플릿은 v2.8.0 source-only GitHub Release note 기준입니다. 실행하지 않은
 장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다.
 
 ```markdown
-# Media Server v2.7.0
+# Media Server v2.8.0
 
 ## Scope
 
 - Source-only live media server release
-- Operational incident command loop source scope
+- Operator-supervised action readiness source scope
+- 2.x runway: 2.8.0 and 2.9.0 only; 3.0.0 reserved for major changes
 - Binary/runtime/model bundle: not included
 
 ## Verification
