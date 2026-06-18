@@ -6,11 +6,11 @@ points to the current public sources.
 
 ## Current Status
 
-- Latest published GitHub Release: [v2.7.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.7.0)
-- Latest published baseline: `v2.7.0 Operational Incident Command Loop`
-- Previous published baseline: `v2.6.0 Operational Hardening & Incident Memory Productization`
+- Latest published GitHub Release: [v2.8.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.8.0)
+- Latest published baseline: `v2.8.0 Operator-Supervised Action Readiness`
+- Previous published baseline: `v2.7.0 Operational Incident Command Loop`
 - Current source version: `2.8.0`
-- v2.7.0 public status: source-only GitHub Release. Binary, runtime, and model
+- v2.8.0 public status: source-only GitHub Release. Binary, runtime, and model
   bundles are not included.
 - Current source roadmap: `v2.8.0 Operator-Supervised Action Readiness`
 - Default public distribution: source-only

@@ -6,11 +6,11 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 
 ## 현재 상태
 
-- 최신 공개 GitHub Release: [`v2.7.0`](https://github.com/dhseo90/MediaServer/releases/tag/v2.7.0)
-- 최신 published baseline: `v2.7.0 Operational Incident Command Loop`
-- 직전 published baseline: `v2.6.0 Operational Hardening & Incident Memory Productization`
+- 최신 공개 GitHub Release: [`v2.8.0`](https://github.com/dhseo90/MediaServer/releases/tag/v2.8.0)
+- 최신 published baseline: `v2.8.0 Operator-Supervised Action Readiness`
+- 직전 published baseline: `v2.7.0 Operational Incident Command Loop`
 - 현재 소스 버전: `2.8.0`
-- v2.7.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
+- v2.8.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
 - 현재 source roadmap: `v2.8.0 Operator-Supervised Action Readiness`
 - 기본 공개 형태: source-only
 
