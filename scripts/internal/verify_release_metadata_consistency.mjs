@@ -67,12 +67,12 @@ const report = {
 const version = readText("VERSION").trim();
 assert(/^\d+\.\d+\.\d+$/.test(version), `VERSION must be semver, got ${version}`);
 const currentTag = `v${version}`;
-const latestPublishedTag = "v2.7.0";
+const latestPublishedTag = currentTag;
 const latestPublishedVersion = latestPublishedTag.replace(/^v/, "");
 const currentRoadmap = `${currentTag} Operator-Supervised Action Readiness`;
-const latestPublishedBaseline = `${latestPublishedTag} Operational Incident Command Loop`;
-const previousPublishedTag = "v2.6.0";
-const previousPublishedBaseline = `${previousPublishedTag} Operational Hardening & Incident Memory Productization`;
+const latestPublishedBaseline = `${latestPublishedTag} Operator-Supervised Action Readiness`;
+const previousPublishedTag = "v2.7.0";
+const previousPublishedBaseline = `${previousPublishedTag} Operational Incident Command Loop`;
 const githubRepository = resolveGithubRepository();
 const repositoryUrl = `https://github.com/${githubRepository}`;
 const expectedReleaseUrl = `https://github.com/${githubRepository}/releases/tag/${latestPublishedTag}`;
@@ -324,7 +324,7 @@ check("versioning policy separates source version and published release", () => 
     `현재 source roadmap: \`${currentRoadmap}\``,
     `최신 공개 GitHub Release: \`${latestPublishedBaseline}\``,
     `${latestPublishedTag} 공개 상태: source-only GitHub Release`,
-    `현재 소스 트리의 \`${version}\` roadmap은 v2.7.0 source-only/live-only Operational Incident Command`,
+    `현재 소스 트리의 \`${version}\` roadmap은 ${latestPublishedTag} source-only/live-only Operator-Supervised Action Readiness`,
     "## 2.x runway / 3.0 전환 정책",
     `## ${version} active source roadmap 범위`,
   ]) {

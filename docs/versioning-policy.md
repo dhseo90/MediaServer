@@ -7,14 +7,13 @@
 
 - 현재 소스 버전: `2.8.0`
 - 현재 source roadmap: `v2.8.0 Operator-Supervised Action Readiness`
-- 최신 공개 GitHub Release: `v2.7.0 Operational Incident Command Loop`
-- v2.7.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- source-only release 기준 tag는 published tag `v2.7.0`와 준비 중인 source tag `v2.8.0`를 분리해 기록합니다.
+- 최신 공개 GitHub Release: `v2.8.0 Operator-Supervised Action Readiness`
+- v2.8.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
+- source-only release 기준 tag는 published tag `v2.8.0`와 현재 source tag `v2.8.0`를 분리해 기록합니다.
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
 
-현재 소스 트리의 `2.8.0` roadmap은 v2.7.0 source-only/live-only Operational Incident Command
-Loop baseline 위에서 운영자가 승인할 수 있는 action 준비 상태를 정리하는 active
-source roadmap입니다. v2.7.0 published evidence를 v2.8.0 완료 evidence로 재사용하지
+현재 소스 트리의 `2.8.0` roadmap은 v2.8.0 source-only/live-only Operator-Supervised Action Readiness
+baseline으로 publish됐습니다. v2.7.0 published evidence를 v2.8.0 완료 evidence로 재사용하지
 않습니다. 기본 공개 형태는 계속 source-only이며 binary/runtime/model bundle을 공개
 asset으로 포함하지 않습니다.
 
@@ -47,7 +46,7 @@ asset으로 포함하지 않습니다.
 tag, 30분/120분 장시간 테스트, UI 풀테스트, 외부 field smoke는 별도 실행 evidence가
 있을 때만 완료로 씁니다.
 
-## v2.7.0 published source-only release 범위
+## v2.7.0 historical published source-only release 범위
 
 - v2.7.0 source-of-truth/bootstrap 정렬
 - Incident Triage Board
@@ -57,7 +56,7 @@ tag, 30분/120분 장시간 테스트, UI 풀테스트, 외부 field smoke는 �
 - Operator outcome memory
 - v2.7.0 owner release readiness
 
-위 항목은 최신 published baseline이며, v2.8.0 신규 기능 완료 근거가 아닙니다.
+위 항목은 historical published baseline이며, v2.8.0 신규 기능 완료 근거가 아닙니다.
 
 ## v2.6.0 historical published source-only release 포함 범위
 
@@ -100,8 +99,8 @@ tag, 30분/120분 장시간 테스트, UI 풀테스트, 외부 field smoke는 �
 
 ## Tag와 GitHub Release 기준
 
-- 현재 공개 release tag 기준: `v2.7.0`
-- 다음 준비 중인 source tag 기준: `v2.8.0`
+- 현재 공개 release tag 기준: `v2.8.0`
+- 현재 source tag 기준: `v2.8.0`
 - `v2.8.0` release tag는 public readiness, bundle policy, required Actions가 통과한
   `main` 커밋에만 붙입니다.
 - `v2.8.0` release tag는 signed annotated tag로 생성합니다.

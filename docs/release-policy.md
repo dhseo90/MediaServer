@@ -7,8 +7,8 @@
 ## 현재 공개 상태
 
 - 현재 소스 버전: `2.8.0`
-- 최신 공개 GitHub Release: `v2.7.0`
-- `v2.7.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
+- 최신 공개 GitHub Release: `v2.8.0`
+- `v2.8.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
 - 현재 source roadmap은 `v2.8.0 Operator-Supervised Action Readiness`입니다.
 
@@ -127,8 +127,8 @@ published metadata, release branch 삭제, Next branch sync는 각각 실행 evi
 - v2.8.0 owner release readiness
 
 `v2.8.0` publish 완료 여부는 tag, GitHub Release, published metadata 검증 evidence가
-있을 때만 완료로 기록합니다. 현재 latest published release는 `v2.7.0`입니다.
-현재 공개 release tag 기준은 `v2.7.0`입니다. 다음 준비 중인 source tag 기준은 `v2.8.0`입니다.
+있을 때만 완료로 기록합니다. 현재 latest published release는 `v2.8.0`입니다.
+현재 공개 release tag 기준은 `v2.8.0`입니다. 다음 준비 중인 source tag 기준은 `v2.8.0`입니다.
 
 ## 2.x runway / 3.0 전환 경계
 
@@ -176,7 +176,7 @@ Not-run/excluded boundary:
 
 ## Tag 전략
 
-- 현재 공개 release tag 기준은 `v2.7.0`입니다.
+- 현재 공개 release tag 기준은 `v2.8.0`입니다.
 - 다음 준비 중인 source tag 기준은 `v2.8.0`입니다.
 - `v2.8.0` release tag는 signed annotated tag로 생성합니다.
 - 다음 신규 release tag는 signed annotated tag로 생성합니다.

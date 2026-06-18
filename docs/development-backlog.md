@@ -11,8 +11,8 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 ## 현재 공개 상태
 
 - 현재 소스 버전: `2.8.0`
-- 최신 공개 GitHub Release: `v2.7.0`
-- `v2.7.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
+- 최신 공개 GitHub Release: `v2.8.0`
+- `v2.8.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
 - 현재 source roadmap: `v2.8.0 Operator-Supervised Action Readiness`
 
@@ -66,7 +66,7 @@ license/provenance/privacy/운영 제약:
 
 | Step | ID | Priority | 상태 | 묶음 | 개발 내용 | 완료 산출물 | 검증/evidence 경계 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 0 | V280-S00 | P0 | 완료 | v2.8.0 baseline | v2.8.0 branch/source-of-truth 정렬 | VERSION/CMake/README/docs index/release metadata가 source `2.8.0`, latest published `v2.7.0`, current roadmap `v2.8.0 Operator-Supervised Action Readiness` 기준으로 정렬됨 | roadmap review, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `git diff --check`; UI/30분/120분/published metadata는 별도 |
+| 0 | V280-S00 | P0 | 완료 | v2.8.0 baseline | v2.8.0 branch/source-of-truth 정렬 | VERSION/CMake/README/docs index/release metadata가 source `2.8.0`, latest published `v2.8.0`, current roadmap `v2.8.0 Operator-Supervised Action Readiness` 기준으로 정렬됨 | roadmap review, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `git diff --check`; UI/30분/120분/published metadata는 별도 |
 | 1 | V280-S01 | P0 | 완료 | 2.x runway boundary | `2.8.0`/`2.9.0`까지만 2.x를 유지하고 `3.0.0` major-change line을 별도 설계/승인 대상으로 분리 | roadmap/version/release/inventory가 2.x runway와 3.0 boundary를 같은 문구로 설명 | 문서 gate 기준. 3.0 설계 완료나 migration 구현 evidence가 아님 |
 | 2 | V280-S02 | P0 | 완료 | Incident Action Readiness Queue | `/ops/events`에서 operator가 승인 가능한 follow-up 후보를 readiness queue로 묶고, ready/blocked/field-smoke-needed/not-run 상태를 분리 | Ops-only action readiness view model/UI, external delivery 미수행 상태, 자동 action write 없음 | verifier `verify-v280-incident-action-readiness-queue`; UI 풀테스트 직접 조작과 외부 alert 성공은 별도 |
 | 3 | V280-S03 | P0 | 완료 | Approval-gated Rule Draft Readiness | Rule What-if/incident-to-rule 후보를 저장 전 approval state, validation summary, staged draft로 분리 | `/ops/rules` 수동 draft context, no-auto-save/no-auto-apply boundary, rule registry 자동 write 없음 | verifier `verify-v280-approval-gated-rule-draft`; full replay/자동 저장/자동 적용 evidence가 아님 |
@@ -75,16 +75,18 @@ license/provenance/privacy/운영 제약:
 | 6 | V280-S06 | P2 | 완료 | Client-safe Follow-up Digest | viewer에게 허용된 PublishedView 범위에서 후속 조치 상태만 redacted digest로 표시 | `/client/api/views/{id}/events`의 `followUpDigest`, `media-server.client.follow-up-digest.v1`, source/raw/debug/provider/rule editor/action control 비노출 | verifier `verify-v280-client-safe-followup-digest`; viewer 브라우저 직접 확인 전 UI PASS가 아님 |
 | 7 | V280-S07 | P2 | 완료 | 릴리즈 준비 | v2.8.0 소유권 분리/릴리즈 준비 | feature inventory, manual UI criteria, release readiness gate, not-run/excluded 경계 정리, `media-server.v280-owner-release-readiness.v1` | verifier `verify-v280-owner-release-readiness`; UI/30분/120분/published metadata/tag/push/GitHub Release evidence는 별도 승인/evidence |
 
-## v2.8.0 publish/test 제외 경계
+## v2.8.0 publish/test evidence 경계
 
-- `V280-S00` source-of-truth 정렬은 2.8.0 GitHub Release publish 완료가 아닙니다.
+- `V280-S00` source-of-truth 정렬 자체만으로는 2.8.0 GitHub Release publish 완료가
+  아닙니다. publish 완료 evidence는 PR merge, signed tag, GitHub Release,
+  `verify-release-metadata --published` 결과로 분리합니다.
 - 예정 항목은 구현과 직접 evidence가 생기기 전까지 완료로 쓰지 않습니다.
 - 후보 verifier 이름은 구현 전 PASS 근거가 아니며, 각 스텝 구현 시 `server.sh` wiring과 script inventory를 함께 추가해야 합니다.
 - UI 풀테스트 직접 조작 미실행은 local verifier PASS로 대체하지 않습니다.
 - 30분 테스트 미실행은 `verify-predev --soak-minutes 30` PASS로 보고하지 않습니다.
 - 120분 테스트 미실행은 `verify-predev --soak-minutes 120` 또는 `verify-va-runtime-console-longrun --duration-minutes 120` PASS로 보고하지 않습니다.
 - `v2.8.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
-- PR merge/main sync/next branch sync는 별도 명시 승인과 실제 실행 evidence가 있기 전까지 완료로 쓰지 않습니다.
+- PR merge/main sync/next branch sync는 실제 실행 evidence가 있을 때만 완료로 씁니다.
 
 ## v2.8.0 S02 개발 기록
 
@@ -150,10 +152,16 @@ license/provenance/privacy/운영 제약:
 - 검증: `verify-v280-owner-release-readiness` 최초 RED는 S07 feature inventory mapping, manual UI criteria, backlog/evidence 진행 기록 누락으로 실패했고, 문서/inventory/server wiring 반영 후 GREEN으로 재실행합니다.
 - 미실행/비대체: UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, `verify-release-metadata --published`, tag/push/GitHub Release, PR merge/main sync/후속 브랜치 생성, 실기기 ONVIF, external TURN/WHEP, real cloud/VLM provider 호출은 S07 local readiness 완료 근거가 아닙니다.
 
-## 직전 공개 기준: v2.7.0 Source Release Baseline
+## 직전 공개 기준: v2.8.0 Source Release Baseline
+
+v2.8.0은 source-only/live-only 제품 경계를 유지하면서 Operator-Supervised Action
+Readiness를 닫은 최신 공개 릴리즈입니다. 이 기준은 v2.9.0의 시작 baseline이며,
+v2.9.0의 예정 항목 완료 evidence로 재사용하지 않습니다.
+
+## 이전 공개 기준: v2.7.0 Source Release Baseline
 
 v2.7.0은 source-only/live-only 제품 경계를 유지하면서 Operational Incident Command
-Loop를 닫은 최신 공개 릴리즈입니다. 이 기준은 v2.8.0의 시작 baseline이며,
+Loop를 닫은 이전 공개 릴리즈입니다. 이 기준은 v2.8.0의 시작 baseline이며,
 v2.8.0의 예정 항목 완료 evidence로 재사용하지 않습니다.
 
 ## 완료 roadmap: v2.7.0 Operational Incident Command Loop
