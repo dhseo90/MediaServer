@@ -88,6 +88,7 @@
 | V290 2.x compatibility baseline | v2.5~v2.8 핵심 verifier를 v2.9 source tree에서 재실행했는지 확인 | `./server.sh verify-v290-2x-compatibility-baseline`이 v2.5 핵심 feature verifier 8개, v2.6 핵심 feature verifier 5개, v2.7 핵심 feature verifier 5개, `verify-v290-final-contract-freeze`, `verify-v290-v28-regression-bundle`을 순차 실행하는지 확인. owner release readiness, UI 풀테스트, 30분/120분, published metadata PASS로 승격하지 않음 | v2.9.0 |
 | V290 release test records enforcement | v2.9 저장소 보존형 테스트 기록 체계가 항목/결과/deprecated/미실행/cleanup/token 경계를 분리하는지 확인 | `./server.sh verify-v290-release-test-records-enforcement`로 `docs/release-test-records.md`의 기록 원칙, 테스트 항목 상세 기록, deprecated 항목, v2.9 결과/미실행, token/time, cleanup 섹션과 `OPS-045`/`SAFE-075` inventory 연결을 확인. UI 풀테스트, 30분/120분, published metadata PASS로 승격하지 않음 | v2.9.0 |
 | V290 UI fulltest criteria freeze | v2.9 UI 풀테스트 route/control/action/role/viewport/theme 기준이 manual UI 문서와 result template에 고정됐는지 확인 | `./server.sh verify-v290-ui-fulltest-criteria-freeze`와 `./server.sh verify-manual-ui-evidence`로 v2.9 current target, latest published v2.8 baseline, route/control/action/role/viewport/theme 기준, raw JSON/API-only/static smoke/screenshot-only/Chrome fallback 비승격 경계를 확인. 실제 UI 풀테스트 PASS로 승격하지 않음 | v2.9.0 |
+| V290 release evidence hygiene | release evidence index, release test records, feature inventory, script inventory, manual UI evidence 연결과 PASS/FAIL vs 미실행/제외 경계를 확인 | `./server.sh verify-v290-release-evidence-hygiene`, `./server.sh verify-release-evidence-index`, `./server.sh verify-script-inventory`, `./server.sh verify-feature-inventory-coverage`로 evidence 색인/상세 기록/inventory/server command/manual UI criteria 연결을 확인. 실제 UI 풀테스트, 30분/120분, published metadata, tag/push/GitHub Release PASS로 승격하지 않음 | v2.9.0 |
 
 ## Deprecated 테스트 항목
 
@@ -273,6 +274,17 @@
 | v290 S05 docs links | `./server.sh verify-docs-links` 실행. markdown files 101, local links 548, images 22, anchors 96, failures 0 | pass |
 | v290 S05 build | `./server.sh build` 실행. build-gst-onnx configure/build exit 0, media_server target built | pass |
 | v290 S05 diff check | `git diff --check` 실행. whitespace error 없음 | pass |
+| v290 S06 RED command precheck | 최초 `./server.sh verify-v290-release-evidence-hygiene`는 command 미구현으로 fail. S06 verifier/entrypoint 추가 전 기대 실패로 확인 | fail |
+| v290 S06 release evidence hygiene | `./server.sh verify-v290-release-evidence-hygiene` 실행. roadmap/stream verification, release evidence index, release records, release evidence verifier, `OPS-047`/`SAFE-077`, server entrypoint 확인, pass 6/fail 0 | pass |
+| v290 S06 release evidence index | `./server.sh verify-release-evidence-index` 실행. required categories, detailed records, token ledger temporary path exclusion, skipped/unverified wording, token usage fields, public docs non-front-door, server entrypoint 확인, pass 8/fail 0 | pass |
+| v290 S06 project inventory | `./server.sh verify-project-inventory` 실행. featureRows 511, seed fixture `v2.9.0`, pass 13/fail 0 | pass |
+| v290 S06 feature inventory coverage | `./server.sh verify-feature-inventory-coverage` 실행. featureRows 511, covered 511, missing 0, pass 5/fail 0 | pass |
+| v290 S06 script inventory | `./server.sh verify-script-inventory` 실행. pass 11/fail 0 | pass |
+| v290 S06 S04 records gate rerun | `./server.sh verify-v290-release-test-records-enforcement` 실행. pass 7/fail 0 | pass |
+| v290 S06 S05 UI criteria gate rerun | `./server.sh verify-v290-ui-fulltest-criteria-freeze` 실행. pass 7/fail 0 | pass |
+| v290 S06 docs links | `./server.sh verify-docs-links` 실행. markdown files 101, local links 552, images 22, anchors 96, failures 0 | pass |
+| v290 S06 build | `./server.sh build` 실행. build-gst-onnx configure/build exit 0, media_server target built | pass |
+| v290 S06 diff check | `git diff --check` 실행. whitespace error 없음 | pass |
 
 미실행/제외:
 
@@ -300,6 +312,9 @@
 | v290 S05 UI 풀테스트 | 인앱 브라우저 route/control/action 직접 조작 | S05는 UI 풀테스트 기준 freeze입니다. 실제 UI 직접 조작 실행 승인/증거 없음. S05 verifier PASS로 대체하지 않음 |
 | v290 S05 30분/120분 longrun | `verify-predev --soak-minutes 30`, `verify-predev --soak-minutes 120`, `verify-va-runtime-console-longrun --duration-minutes 120` | 장시간 테스트 실행 승인 없음. S05 criteria gate PASS로 대체하지 않음 |
 | v290 S05 published metadata | `./server.sh verify-release-metadata --published`, tag/push/GitHub Release | S05는 local source tree criteria gate입니다. published metadata, tag, push, GitHub Release evidence로 보지 않음 |
+| v290 S06 UI 풀테스트 | 인앱 브라우저 route/control/action 직접 조작 | S06은 release evidence hygiene gate입니다. 실제 UI 직접 조작 실행 승인/증거 없음. S06 verifier PASS로 대체하지 않음 |
+| v290 S06 30분/120분 longrun | `verify-predev --soak-minutes 30`, `verify-predev --soak-minutes 120`, `verify-va-runtime-console-longrun --duration-minutes 120` | 장시간 테스트 실행 승인 없음. S06 evidence hygiene PASS로 대체하지 않음 |
+| v290 S06 published metadata | `./server.sh verify-release-metadata --published`, tag/push/GitHub Release | S06은 local source tree evidence hygiene gate입니다. published metadata, tag, push, GitHub Release evidence로 보지 않음 |
 
 ### v2.8.0
 
@@ -392,6 +407,7 @@
 | v290 S00 local source-of-truth | 안정화 테스트 | 미집계 | 211,496 | 미집계 | goal snapshot 444s | Codex goal usage snapshot after S00 local gates; token start not captured |
 | v290 S04 local records gate | 안정화 테스트 | 미집계 | 미집계 | 미집계 | command summaries only | S04 command-level elapsed/token split not captured; final goal snapshot에서 별도 보고 |
 | v290 S05 UI criteria gate | 안정화 테스트 | 미집계 | 미집계 | 미집계 | command summaries only | S05 command-level elapsed/token split not captured; final goal snapshot에서 별도 보고 |
+| v290 S06 release evidence hygiene | 안정화 테스트 | 미집계 | 미집계 | 미집계 | command summaries only | S06 command-level elapsed/token split not captured; final goal snapshot에서 별도 보고 |
 | v280 release local gates | 안정화 테스트 | 미집계 | 320,781 | 미집계 | goal snapshot 683s | Codex goal usage end snapshot; token start not captured |
 | v280 release UI fulltest | UI 풀테스트 | 320,781 | 649,423 | 328,642 | goal snapshot delta 1216s | Codex goal usage snapshots plus in-app evidence and wrapper output |
 
@@ -403,6 +419,7 @@
 | v2.9.0 S00 local gates | 없음 | `./server.sh build`, release/docs/inventory verifier, `git diff --check` 실행 중 최종 evidence로 보존할 `/tmp`/`/private/tmp` summary, screenshot, report를 생성하지 않음 | 삭제 대상 없음 | 없음 |
 | v2.9.0 S04 local records gate | 없음 | `verify-v290-release-test-records-enforcement`, inventory/docs/script verifier, build, `git diff --check` 실행 중 최종 evidence로 보존할 `/tmp`/`/private/tmp` summary, screenshot, report를 생성하지 않음 | 삭제 대상 없음 | 없음 |
 | v2.9.0 S05 UI criteria gate | 없음 | `verify-v290-ui-fulltest-criteria-freeze`, `verify-manual-ui-evidence`, inventory/docs/script verifier, build, `git diff --check` 실행 중 최종 evidence로 보존할 `/tmp`/`/private/tmp` summary, screenshot, report를 생성하지 않음 | 삭제 대상 없음 | 없음 |
+| v2.9.0 S06 release evidence hygiene | 없음 | `verify-v290-release-evidence-hygiene`, release evidence/index/inventory/docs/script verifier, build, `git diff --check` 실행 중 최종 evidence로 보존할 `/tmp`/`/private/tmp` summary, screenshot, report를 생성하지 않음 | 삭제 대상 없음 | 없음 |
 | v2.8.0 UI wrapper | `/private/tmp/media_server_v280_ui_fulltest_wrapper_20260618_codex`, `/tmp/media_server_v280_ui_fulltest_wrapper_20260618_codex_rerun` | wrapper summary 임시 디렉터리, 삭제 전 240KB와 252KB | 이 문서로 결과 이관 후 삭제 | 삭제 완료. 삭제 후 경로 없음 확인 |
 | v2.7.0 release reports | `/tmp/media_server_v270_release_*`, `/tmp/media_server_v270_ui_fulltest_20260616`, `/private/tmp/media_server_v270*` | 과거 release summary/report/work dir, UI dir 삭제 전 3.2MB, runtime work dir 삭제 전 1.4MB, publication/closeout 임시 파일 합계 164KB | 이 문서로 결과 이관 후 삭제 | 삭제 완료. 확인한 report/summary/html/work/UI/publication/closeout 경로 없음 |
 | v2.6.0 release reports | `/tmp/media_server_v260_release_*`, `/tmp/media_server_v260_ui_fulltest_20260615`, `/private/tmp/media_server_v260*` | 과거 release summary/report/UI dir, UI dir 삭제 전 9.7MB, publication/closeout/seed/evidence 임시 파일 합계 284KB | 이 문서로 결과 이관 후 삭제 | 삭제 완료. 확인한 report/summary/html/UI/publication/closeout/seed/evidence 경로 없음 |

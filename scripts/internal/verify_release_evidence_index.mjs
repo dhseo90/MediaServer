@@ -57,6 +57,9 @@ check("release evidence index owns required evidence categories", () => {
     "Test Token Usage Ledger",
     "token consumed",
     "`PASS` 또는 `FAIL`",
+    "v2.9.0 Release Evidence Hygiene",
+    "verify-v290-release-evidence-hygiene",
+    "미실행/제외/manual-not-run/미확인",
     "./server.sh verify-release-evidence-index",
   ]) {
     assert(doc.includes(snippet), `release evidence index missing snippet: ${snippet}`);

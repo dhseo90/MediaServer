@@ -52,6 +52,28 @@
 | 30분 soak | 사용자 명시 요청 시 30분 안정성 테스트 | `./server.sh verify-predev --soak-minutes 30` | 실행한 테스트 행은 `PASS` 또는 `FAIL`; 요청이 없으면 별도 `미실행` |
 | 장시간/외부 gate | 120분 longrun, real ONVIF, external TURN/WHEP, YouTube real URL | release runbook/manual report | 실행한 테스트 행은 `PASS` 또는 `FAIL`; 제외/미실행/미확인은 별도 기록 |
 
+## v2.9.0 Release Evidence Hygiene
+
+S06은 index hygiene gate이며 실제 안정화/UI/30분/120분/published metadata 실행 evidence가 아닙니다.
+이 절은 release evidence 색인, 상세 테스트 기록, 기능 inventory, script inventory, manual UI
+evidence 기준이 서로 다른 역할을 갖는다는 점만 고정합니다.
+
+| 대상 | 연결 | PASS/FAIL 결과표 위치 | 미실행/제외/manual-not-run/미확인 위치 | 대체 금지 |
+| --- | --- | --- | --- | --- |
+| release evidence index | 이 문서와 `./server.sh verify-v290-release-evidence-hygiene` | release cut에서 실제 실행한 색인/게이트 행만 `PASS` 또는 `FAIL` | 실행하지 않은 publish/UI/longrun/field 상태는 이 문서의 실행 상태 또는 제외 기록 | UI 풀테스트 직접 조작, 30분/120분, published metadata 실행 evidence |
+| release test records | [release-test-records.md](./release-test-records.md) | 상세 테스트 항목과 버전별 결과 행 | S06 not-run row와 cleanup/token 기록 | summary-only, 임시 파일 링크, 이전 release evidence 재사용 |
+| feature inventory | [project-feature-test-inventory.md](./project-feature-test-inventory.md) | 기능 ID별 PASS 기준이 아니라 테스트 영역/owner 기준표 | inventory 단독으로 실행 결과를 만들지 않음 | 기능 ID 존재를 기능 완료나 UI PASS로 승격 |
+| script inventory | `./server.sh verify-script-inventory` | server command/dispatch/script 옵션 검증 실행 결과 | 문서에만 있는 미구현 command는 FAIL | command 존재를 실제 제품/UI/media 실행으로 승격 |
+| manual UI evidence | [manual-ui-fulltest.md](./manual-ui-fulltest.md), [manual-ui-checklist.md](./manual-ui-checklist.md), `./server.sh verify-manual-ui-evidence` | 직접 브라우저 조작 결과가 있는 UI 풀테스트 행만 `PASS` 또는 `FAIL` | 직접 열지 않은 화면, screenshot 미확인, auth env 미충족은 미실행/미확인/FAIL로 분리 | raw JSON/API-only/static smoke/screenshot-only/Chrome fallback을 UI PASS로 승격 |
+
+- `verify-release-evidence-index`, `verify-script-inventory`, `verify-manual-ui-evidence`,
+  `verify-v290-release-evidence-hygiene`는 서로 다른 문서/명령 연결을 확인합니다.
+  이 명령들의 PASS는 `미실행/제외/manual-not-run/미확인`을 PASS로 바꾸지 않습니다.
+- `/tmp`, `/private/tmp`, `$TMPDIR` 경로는 최종 evidence로 링크하지 않고,
+  필요한 값만 저장소 보존형 기록에 이관합니다.
+- S06 이후 release evidence를 작성할 때 `PASS`/`FAIL` 결과표와
+  미실행/제외/manual-not-run/미확인 실행 상태를 같은 행의 같은 판정값처럼 섞지 않습니다.
+
 ## Test Token Usage Ledger
 
 테스트 실행 기록은 평균 비용 산출을 위해 아래 형식으로 누적합니다. 테스트 결과와
