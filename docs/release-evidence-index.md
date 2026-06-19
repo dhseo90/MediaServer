@@ -74,6 +74,21 @@ evidence 기준이 서로 다른 역할을 갖는다는 점만 고정합니다.
 - S06 이후 release evidence를 작성할 때 `PASS`/`FAIL` 결과표와
   미실행/제외/manual-not-run/미확인 실행 상태를 같은 행의 같은 판정값처럼 섞지 않습니다.
 
+## v2.9.0 S08 final stabilization run
+
+S08 final stabilization run은 local script stability gate입니다. build, auth,
+Ops/Client UI smoke, rule UI, Event POST, SSE/WS metadata, media/schema, docs/inventory
+명령을 release 순서대로 실행하고 [release-test-records.md](./release-test-records.md)에
+결과를 남깁니다. UI 풀테스트/30분/120분/published metadata 실행 evidence가 아닙니다.
+
+- `./server.sh verify-v290-final-stabilization-run`은 S08 결과 기록과 경계 문구가
+  존재하는지만 확인합니다.
+- S08 PASS는 UI 풀테스트 직접 조작, 30분 soak, 120분 longrun, published metadata,
+  external TURN/WHEP, ONVIF 실기기, real cloud/VLM provider field smoke를 PASS로
+  승격하지 않습니다.
+- 실행하지 않은 field/publish/longrun/UI 항목은 S08 PASS/FAIL 표가 아니라
+  미실행/제외 기록으로 남깁니다.
+
 ## Test Token Usage Ledger
 
 테스트 실행 기록은 평균 비용 산출을 위해 아래 형식으로 누적합니다. 테스트 결과와

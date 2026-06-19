@@ -90,6 +90,7 @@
 | V290 UI fulltest criteria freeze | v2.9 UI 풀테스트 route/control/action/role/viewport/theme 기준이 manual UI 문서와 result template에 고정됐는지 확인 | `./server.sh verify-v290-ui-fulltest-criteria-freeze`와 `./server.sh verify-manual-ui-evidence`로 v2.9 current target, latest published v2.8 baseline, route/control/action/role/viewport/theme 기준, raw JSON/API-only/static smoke/screenshot-only/Chrome fallback 비승격 경계를 확인. 실제 UI 풀테스트 PASS로 승격하지 않음 | v2.9.0 |
 | V290 release evidence hygiene | release evidence index, release test records, feature inventory, script inventory, manual UI evidence 연결과 PASS/FAIL vs 미실행/제외 경계를 확인 | `./server.sh verify-v290-release-evidence-hygiene`, `./server.sh verify-release-evidence-index`, `./server.sh verify-script-inventory`, `./server.sh verify-feature-inventory-coverage`로 evidence 색인/상세 기록/inventory/server command/manual UI criteria 연결을 확인. 실제 UI 풀테스트, 30분/120분, published metadata, tag/push/GitHub Release PASS로 승격하지 않음 | v2.9.0 |
 | V290 public docs/assets refresh | README, README.en, docs index, release/version policy, stream verification, UI guide, docs asset policy가 v2.9 source와 v2.8 published baseline을 분리하는지 확인 | `./server.sh verify-v290-public-docs-assets-refresh`, `./server.sh verify-docs-ui-assets`, `./server.sh verify-docs-links`, `./server.sh verify-release-metadata`로 public docs와 managed UI asset set을 확인. 대표 이미지 직접 재캡처, 직접 브라우저 검수, UI 풀테스트, 30분/120분, published metadata PASS로 승격하지 않음 | v2.9.0 |
+| V290 final stabilization run | v2.9 release 전 build/auth/Ops-Client UI/rule/event/metadata/media-schema/docs-inventory 안정화 묶음을 release 순서대로 실행했는지 확인 | `./server.sh build`, auth 3종, `verify-ops-client-ui`, `verify-rule-ui`, `verify-event-post`, metadata/media/schema/docs/inventory verifier, `./server.sh verify-v290-final-stabilization-run`, `git diff --check` 결과를 기록. UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, field smoke PASS로 승격하지 않음 | v2.9.0 |
 
 ## Deprecated 테스트 항목
 
@@ -299,6 +300,29 @@
 | v290 S07 S04 records gate rerun | `./server.sh verify-v290-release-test-records-enforcement` 실행. pass 7/fail 0 | pass |
 | v290 S07 build | `./server.sh build` 실행. build-gst-onnx configure/build exit 0, media_server target built | pass |
 | v290 S07 diff check | `git diff --check` 실행. whitespace error 없음 | pass |
+| v290 S08 RED command precheck | 최초 `./server.sh verify-v290-final-stabilization-run`는 command 미구현으로 fail. S08 verifier/entrypoint 추가 전 기대 실패로 확인 | fail |
+| v290 S08 auth bootstrap sandbox precheck | 최초 `MEDIA_SERVER_VERIFY_AUTH_* ./server.sh verify-auth-bootstrap`는 sandbox RTSP bind `Operation not permitted`로 fail. 제품 회귀가 아니라 sandbox 포트 바인딩 제한으로 판정하고 권한 실행으로 재검증 | fail |
+| v290 S08 ops/client UI default precheck | 최초 `./server.sh verify-ops-client-ui`는 실행 중인 server base와 Codex 인앱 evidence가 없어 fetch/in-app evidence 전제 미충족으로 fail. S08 안정화 범위에서는 throwaway server와 static mode로 재실행 | fail |
+| v290 S08 ops/client UI sandbox precheck | `./server.sh verify-ops-client-ui --browser-mode static --http-base http://127.0.0.1:8081` 기본 sandbox 실행은 local fetch 제한으로 fail. 권한 실행으로 재검증 | fail |
+| v290 S08 rule UI default precheck | `./server.sh verify-rule-ui --http-base http://127.0.0.1:8081` 기본 실행은 Codex 인앱 evidence 또는 명시 Chrome fallback 전제 미충족으로 fail. S08에서는 Chrome fallback 예외를 명시해 재실행 | fail |
+| v290 S08 codec default-port precheck | `./server.sh verify-codecs --help`는 help가 아니라 기본 8554/8080 server check로 들어가 현재 S08 throwaway server 포트 8555/8081과 맞지 않아 fail. 포트 env를 명시해 재실행 | fail |
+| v290 S08 build | `./server.sh build` 실행. build-gst-onnx configure/build exit 0, media_server target built | pass |
+| v290 S08 auth bootstrap | throwaway auth password env 5개를 명령 환경에만 주입해 `./server.sh verify-auth-bootstrap` 권한 재실행. server health, setup/login/logout/session, password policy 확인, 통과 14/실패 0 | pass |
+| v290 S08 auth users | throwaway auth password env 5개를 명령 환경에만 주입해 `./server.sh verify-auth-users` 권한 실행. user management, viewer scope, lockout, invite/request flow 확인, 통과 58/실패 0 | pass |
+| v290 S08 auth routes | throwaway auth password env 5개를 명령 환경에만 주입해 `./server.sh verify-auth-routes` 권한 실행. route guard/scope/CORS/WebRTC capability/client wrapper 확인, 통과 135/실패 0 | pass |
+| v290 S08 ops/client UI | auth-off S08 throwaway server `http://127.0.0.1:8081`에서 `./server.sh verify-ops-client-ui --browser-mode static --http-base http://127.0.0.1:8081` 권한 실행. route/API/redaction contract 확인, 통과 18/실패 0. static mode라 렌더링 검사는 skip이며 UI 풀테스트 PASS가 아님 | pass |
+| v290 S08 rule UI | S08 throwaway server에서 `MEDIA_SERVER_UI_BROWSER_MODE=chrome MEDIA_SERVER_ALLOW_CHROME_FALLBACK=1 ./server.sh verify-rule-ui --http-base http://127.0.0.1:8081` 권한 실행. `/ops/rules` native smoke, validation, draft workflow, nav return 확인, exit 0 | pass |
+| v290 S08 event POST | S08 throwaway server에서 `./server.sh verify-event-post --mode disabled --http-base http://127.0.0.1:8081` 권한 실행. HTTP health와 dispatcher disabled 상태 확인, 통과 2/실패 0/건너뜀 0 | pass |
+| v290 S08 codec/media matrix | S08 throwaway server 포트에 맞춰 `MEDIA_SERVER_LISTEN_PORT=8555 MEDIA_SERVER_HTTP_LISTEN_PORT=8081 ./server.sh verify-codecs` 권한 실행. file/http/hls/rtsp/webrtc publish local source와 RTSP profile/WebRTC signaling 확인, pass 67/fail 0/skip 3 | pass |
+| v290 S08 WebRTC ICE | S08 throwaway server 포트에 맞춰 `./server.sh verify-webrtc-ice` 권한 실행. browser ICE config, WebRTC session, candidate 수집, policy, WHIP publish signaling 확인, pass 8/fail 0/skip 0 | pass |
+| v290 S08 SSE metadata | S08 throwaway server에서 `./server.sh verify-va-metadata-sidechannel --http-base http://127.0.0.1:8081` 권한 실행. SSE schema/tracks/events/scenarios/metrics와 temp analysis tap cleanup 확인, summary pass 5/fail 0 | pass |
+| v290 S08 WS metadata | S08 throwaway server에서 `./server.sh verify-ws-metadata --http-base http://127.0.0.1:8081` 권한 실행. handshake/open/schema/control ack/reset cleanup 확인, summary pass 9/fail 0 | pass |
+| v290 S08 WebRTC VA metadata | S08 throwaway server에서 `./server.sh verify-webrtc-va-metadata --http-base http://127.0.0.1:8081` 권한 실행. video track, ICE connected, DataChannel open/label, metadata schema/tracks/events/sync diagnostics 확인, pass 8/fail 0 | pass |
+| v290 S08 RTSP VA overlay policy | S08 throwaway server에서 `./server.sh verify-rtsp-va-overlay-policy --http-base http://127.0.0.1:8081 --rtsp-base rtsp://127.0.0.1:8555/dhseo` 권한 실행. raw/overlay/SSE 분리와 raw/overlay 짧은 decode 확인, pass 6/fail 0/skip 0 | pass |
+| v290 S08 integrator contract artifact | `./server.sh verify-integrator-contract-artifact` 실행. manifest/checksum/sample/schema/freeze baseline 확인, pass 11/fail 0 | pass |
+| v290 S08 docs/inventory gates | `./server.sh verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory` 실행. release metadata pass 16/fail 0, docs links markdown 101/local links 554/images 22/anchors 96/failures 0, docs UI assets pass 10/fail 0, project inventory featureRows 515/pass 13/fail 0, feature coverage 515/515/pass 5/fail 0, script inventory pass 11/fail 0 | pass |
+| v290 S08 compatibility and records gates | `./server.sh verify-v290-2x-compatibility-baseline`, `verify-v290-release-test-records-enforcement`, `verify-v290-ui-fulltest-criteria-freeze`, `verify-v290-release-evidence-hygiene`, `verify-v290-public-docs-assets-refresh` 재실행. S03 docPass 5/docFail 0/subcommandPass 20/subcommandFail 0, S04 pass 7/fail 0, S05 pass 7/fail 0, S06 pass 6/fail 0, S07 pass 8/fail 0 | pass |
+| v290 S08 final stabilization run | `./server.sh verify-v290-final-stabilization-run` 실행. roadmap/stream verification, `OPS-049`/`SAFE-079`, release records, not-run boundary, server entrypoint 확인, pass 5/fail 0 | pass |
 
 미실행/제외:
 
@@ -333,6 +357,11 @@
 | v290 S07 UI 풀테스트 | 인앱 브라우저 route/control/action 직접 조작 | S07은 public docs/assets refresh gate입니다. 실제 UI 직접 조작 실행 승인/증거 없음. S07 verifier PASS로 대체하지 않음 |
 | v290 S07 30분/120분 longrun | `verify-predev --soak-minutes 30`, `verify-predev --soak-minutes 120`, `verify-va-runtime-console-longrun --duration-minutes 120` | 장시간 테스트 실행 승인 없음. S07 docs/assets PASS로 대체하지 않음 |
 | v290 S07 published metadata | `./server.sh verify-release-metadata --published`, tag/push/GitHub Release | S07은 local source tree public docs/assets gate입니다. published metadata, tag, push, GitHub Release evidence로 보지 않음 |
+| v290 S08 UI 풀테스트 | 인앱 브라우저 route/control/action 직접 조작, viewport/theme 전수 확인 | S08은 final stabilization script run입니다. `verify-ops-client-ui --browser-mode static`와 Rule UI Chrome fallback smoke는 UI 풀테스트 직접 조작 PASS가 아니며, S08 final stabilization PASS로 대체하지 않음 |
+| v290 S08 30분/120분 longrun | `verify-predev --soak-minutes 30`, `verify-predev --soak-minutes 120`, `verify-va-runtime-console-longrun --duration-minutes 120` | 장시간 테스트 실행 승인 없음. S08 final stabilization PASS로 대체하지 않음 |
+| v290 S08 published metadata | `./server.sh verify-release-metadata --published`, tag/push/GitHub Release | S08은 local source tree 안정화 run입니다. published metadata, tag, push, GitHub Release evidence로 보지 않음 |
+| v290 S08 field smoke | external TURN/WHEP, real ONVIF device, real cloud/VLM provider call | endpoint/credential/실기기 조건 미제공. S08 final stabilization PASS로 대체하지 않음 |
+| v290 S08 Event POST schema/recovery | `./server.sh verify-event-post --mode schema`, `./server.sh verify-event-post --mode recovery` | S08에서는 auth-off 기본 dispatcher disabled smoke만 실행했습니다. Event POST enabled schema/recovery는 별도 event-post enabled 서버 조건이 필요하며 S08 disabled smoke PASS로 대체하지 않음 |
 
 ### v2.8.0
 
@@ -427,6 +456,7 @@
 | v290 S05 UI criteria gate | 안정화 테스트 | 미집계 | 미집계 | 미집계 | command summaries only | S05 command-level elapsed/token split not captured; final goal snapshot에서 별도 보고 |
 | v290 S06 release evidence hygiene | 안정화 테스트 | 미집계 | 미집계 | 미집계 | command summaries only | S06 command-level elapsed/token split not captured; final goal snapshot에서 별도 보고 |
 | v290 S07 public docs/assets refresh | 안정화 테스트 | 미집계 | 미집계 | 미집계 | command summaries only | S07 command-level elapsed/token split not captured; final goal snapshot에서 별도 보고 |
+| v290 S08 final stabilization run | 안정화 테스트 | 미집계 | 미집계 | 미집계 | command summaries only | S08 command-level elapsed/token split not captured; final goal snapshot에서 별도 보고 |
 | v280 release local gates | 안정화 테스트 | 미집계 | 320,781 | 미집계 | goal snapshot 683s | Codex goal usage end snapshot; token start not captured |
 | v280 release UI fulltest | UI 풀테스트 | 320,781 | 649,423 | 328,642 | goal snapshot delta 1216s | Codex goal usage snapshots plus in-app evidence and wrapper output |
 
@@ -440,6 +470,7 @@
 | v2.9.0 S05 UI criteria gate | 없음 | `verify-v290-ui-fulltest-criteria-freeze`, `verify-manual-ui-evidence`, inventory/docs/script verifier, build, `git diff --check` 실행 중 최종 evidence로 보존할 `/tmp`/`/private/tmp` summary, screenshot, report를 생성하지 않음 | 삭제 대상 없음 | 없음 |
 | v2.9.0 S06 release evidence hygiene | 없음 | `verify-v290-release-evidence-hygiene`, release evidence/index/inventory/docs/script verifier, build, `git diff --check` 실행 중 최종 evidence로 보존할 `/tmp`/`/private/tmp` summary, screenshot, report를 생성하지 않음 | 삭제 대상 없음 | 없음 |
 | v2.9.0 S07 public docs/assets refresh | 없음 | `verify-v290-public-docs-assets-refresh`, docs UI assets, release metadata, docs links, inventory/docs/script verifier, build, `git diff --check` 실행 중 최종 evidence로 보존할 `/tmp`/`/private/tmp` summary, screenshot, report를 생성하지 않음. image recapture도 실행하지 않음 | 삭제 대상 없음 | 없음 |
+| v2.9.0 S08 final stabilization run | `$TMPDIR/media_server_webrtc_va_metadata_summary_1781876018818.json` | S08 WebRTC VA metadata summary JSON, 삭제 전 4KB. Event POST/ICE/RTSP overlay verifier가 출력한 임시 summary 경로와 codec launcher log는 cleanup scan에서 S08 신규 보존 대상 없음으로 확인 | 결과 수치를 이 문서로 이관 후 삭제 | 삭제 완료. 삭제 후 `$TMPDIR/media_server_webrtc_va_metadata_summary_1781876018818.json` 없음 확인 |
 | v2.8.0 UI wrapper | `/private/tmp/media_server_v280_ui_fulltest_wrapper_20260618_codex`, `/tmp/media_server_v280_ui_fulltest_wrapper_20260618_codex_rerun` | wrapper summary 임시 디렉터리, 삭제 전 240KB와 252KB | 이 문서로 결과 이관 후 삭제 | 삭제 완료. 삭제 후 경로 없음 확인 |
 | v2.7.0 release reports | `/tmp/media_server_v270_release_*`, `/tmp/media_server_v270_ui_fulltest_20260616`, `/private/tmp/media_server_v270*` | 과거 release summary/report/work dir, UI dir 삭제 전 3.2MB, runtime work dir 삭제 전 1.4MB, publication/closeout 임시 파일 합계 164KB | 이 문서로 결과 이관 후 삭제 | 삭제 완료. 확인한 report/summary/html/work/UI/publication/closeout 경로 없음 |
 | v2.6.0 release reports | `/tmp/media_server_v260_release_*`, `/tmp/media_server_v260_ui_fulltest_20260615`, `/private/tmp/media_server_v260*` | 과거 release summary/report/UI dir, UI dir 삭제 전 9.7MB, publication/closeout/seed/evidence 임시 파일 합계 284KB | 이 문서로 결과 이관 후 삭제 | 삭제 완료. 확인한 report/summary/html/UI/publication/closeout/seed/evidence 경로 없음 |
