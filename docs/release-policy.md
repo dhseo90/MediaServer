@@ -127,12 +127,14 @@ Real close-out checklist:
 - GitHub Release 생성/갱신
 - Latest 확인
 - published metadata 재검증
-- release branch 삭제
+- release branch 삭제(별도 명시 승인 시에만)
 - Next branch sync
 
 Do not list an item as pass unless it was actually executed. tag, GitHub Release,
 published metadata, release branch 삭제, Next branch sync는 각각 실행 evidence가
-있을 때만 완료로 기록합니다.
+있을 때만 완료로 기록합니다. AGENTS.md 우선 규칙상 release branch 삭제는 릴리즈
+close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 삭제 승인이 없으면
+수행하지 않습니다.
 
 ## v2.9.0 Source Roadmap Scope
 
@@ -311,29 +313,43 @@ Annotation JSON을 확보한 경우:
 
 ## Verification
 
-- Local release gates: `v280-release-local-gates-20260618` PASS
+- Local release gates: `v290-s09-owner-release-readiness-20260619` PASS
 - Local docs/release metadata: `verify-release-metadata`, `verify-docs-links`,
   `verify-docs-ui-assets`, `verify-release-evidence-index` PASS
 - Local close-out dry-run: `verify-release-closeout-helper --dry-run` and
   `verify-release-closeout-helper --dry-run --one-shot-dry-run` PASS
 - PR / GitHub Actions status check: <fill after PR checks>
 - Licensing and Artifact Guardrails: <fill after required check>
-- UI fulltest: `v280-release-ui-fulltest-20260618` PASS. Codex in-app
-  evidence route 10, screenshots 32, interaction 16; one-shot wrapper rerun
-  PASS after table-layout evidence supplementation. Detailed item results are
-  retained in `docs/release-test-records.md`; temporary `/tmp` outputs are not
-  release evidence.
-- 30-minute soak: <fill if executed for this release cut>
+- UI fulltest: `v290-release-ui-fulltest-20260619` PASS. Codex in-app
+  evidence route 16, interaction 17, failingInteractions 0; one-shot wrapper
+  PASS with widths 390/1180 and visualWidths 320/390/760/1180. Detailed item
+  results are retained in `docs/release-test-records.md`; temporary `/tmp`
+  outputs were deleted after value migration.
+- 30-minute soak: `v290-release-30min-20260619` PASS. status pass,
+  pass 119/fail 0/skip 1, durationSec 2363, soakMinutes 30, includeRedaction
+  true. External TURN hard gate was not requested, so it remains skipped and is
+  not PASS.
+- 120-minute predev: `v290-release-120min-predev-20260619` PASS. status pass,
+  pass 444/fail 0/skip 1, durationSec 7773, soakMinutes 120, 87 soak
+  iterations, ports-clean PASS. External TURN hard gate was not requested, so it
+  remains skipped and is not PASS.
+- 120-minute runtime console: `v290-release-runtime-console-120min-20260619`
+  PASS. status pass, pass 9/fail 0/skip 1, durationSec 7200, dashboard and
+  sidechannel included, runtimeIdle true, portsClean true, maxRssKb 457856.
+  RTSP overlay was intentionally not included in this run and is not PASS.
 
 ## Not Run / Unverified
 
 - Release tag / GitHub Release / published metadata: not run until publish step
-- Real ONVIF device field smoke:
-- External TURN/WHEP credential operation:
-- Real cloud provider call:
-- VLM model/runtime bundle:
-- YouTube real URL relay:
-- 120-minute longrun: not required by current v2.8.0 release test judgment
+- Real ONVIF device field smoke: not run; endpoint/device not provided
+- External TURN/WHEP credential operation: not run; endpoint/credential not
+  provided
+- Real cloud/VLM provider call: not run; credential/provider approval not
+  provided
+- VLM model/runtime bundle: not included in source-only release artifact
+- YouTube real URL relay: not run; external URL field evidence not provided
+- External alert delivery: not run; external destination/credential not
+  provided
 
 Do not list an item as pass unless it was actually executed for this release cut.
 ```
