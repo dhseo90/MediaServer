@@ -190,6 +190,8 @@ Usage:
                  v2.8.0 S06 Client-safe Follow-up Digest와 viewer redaction 경계를 검증합니다.
   verify-v280-owner-release-readiness
                  v2.8.0 S07 release readiness gate와 미실행/제외 경계를 검증합니다.
+  verify-v290-final-contract-freeze
+                 v2.9.0 S01 2.x final contract freeze 문서/검증 기준과 schema/media/auth/rule payload 불변 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -1036,6 +1038,10 @@ case "${cmd}" in
   verify-feature-inventory-coverage)
     require_internal verify_feature_inventory_coverage.mjs
     exec "${INTERNAL_DIR}/verify_feature_inventory_coverage.mjs" "$@"
+    ;;
+  verify-v290-final-contract-freeze)
+    require_internal verify_v290_final_contract_freeze.mjs
+    exec "${INTERNAL_DIR}/verify_v290_final_contract_freeze.mjs" "$@"
     ;;
   verify-v260-incident-memory-productization)
     require_internal verify_v260_incident_memory_productization.mjs

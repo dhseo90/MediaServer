@@ -49,9 +49,9 @@
 | Step | Command | Scope |
 | --- | --- | --- |
 | V290-S00 | `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | source `2.9.0`, latest published `v2.8.0`, current roadmap `v2.9.0 Final 2.x Closure & Compatibility Baseline` 정렬. published metadata, tag, push, GitHub Release evidence가 아님 |
-| V290-S01 | 후보 | 2.x final contract freeze 문서/검증 기준. 3.0 신규 기능 구현이나 migration 완료 evidence가 아님 |
+| V290-S01 | `./server.sh verify-v290-final-contract-freeze` | 2.x final contract freeze 문서/검증 기준. Event POST/WebRTC/SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload의 static freeze gate이며 3.0 신규 기능 구현이나 migration 완료 evidence가 아님 |
 | V290-S02 | 후보 | v2.8 기능군 regression gate. v2.8 완료 evidence 재사용이 아니라 v2.9 기준 재실행 evidence |
-| V290-S03 | 후보 `./server.sh verify-v290-2x-compatibility-baseline` | v2.5~v2.8 핵심 verifier를 v2.9 release gate에서 추적. 각 하위 verifier가 실제 실행한 범위만 PASS |
+| V290-S03 | 후보 command 미구현 | v2.5~v2.8 핵심 verifier를 v2.9 release gate에서 추적. 각 하위 verifier가 실제 실행한 범위만 PASS |
 
 ## 최신 published baseline v2.8.0 verifier
 

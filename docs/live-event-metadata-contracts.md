@@ -91,6 +91,34 @@ Contract 기준선에서 허용되는 변경은 문서, 검증 명령, 운영 �
 하는 범위입니다. payload field 추가/삭제, event type 이름 변경, source locator
 노출, credential reference 노출은 별도 schema review 없이는 진행하지 않습니다.
 
+## v2.9.0 2.x Final Contract Freeze
+
+직접 답: v2.9.0에서 닫는 2.x 최종 계약은 아래 live contract set입니다. 이 절은
+3.0 신규 기능 구현, OpenAPI/VMS migration, archive/playback/search API, 저장 schema
+개편, Auth/Role/Scope migration 완료 evidence가 아닙니다. `verify-v290-final-contract-freeze`
+는 문서/entrypoint/freeze-baseline 연결을 확인하는 local static guard이며, runtime smoke,
+UI 풀테스트, 30분/120분 장시간 테스트, published metadata 재검증을 대체하지 않습니다.
+
+| Freeze area | Frozen 2.x contract | Primary guard | 변경 금지 경계 |
+| --- | --- | --- | --- |
+| Event POST | `media-server.va.event.v1` | `./server.sh verify-event-post --mode schema`, `./server.sh verify-event-post --mode recovery`, `./server.sh verify-v290-final-contract-freeze` | Event POST payload field 추가/삭제/rename/retype, event type 변경, storage schema 승격 금지 |
+| WebRTC DataChannel | `media-server.webrtc.va-metadata.v1`, label `va-metadata` | `./server.sh verify-webrtc-va-metadata`, `./server.sh verify-v290-final-contract-freeze` | dashboard/internal field 추가, source locator/debug/auth/provider material 노출, DataChannel 실패의 media path 전파 금지 |
+| SSE runtime metadata | `media-server.va.runtime-metadata.v1` | `./server.sh verify-va-metadata-sidechannel`, `./server.sh verify-v290-final-contract-freeze` | query filter/include/limit 밖 payload field 변경 금지, 실패를 RTSP/WebRTC media path 실패로 확대 금지 |
+| WebSocket runtime metadata/control | `media-server.va.runtime-metadata.v1`, `media-server.va.metadata-control.v1` | `./server.sh verify-ws-metadata`, `./server.sh verify-v290-final-contract-freeze` | SSE와 다른 payload shape, control ack field mutation, subscription command 자동 저장 금지 |
+| RTSP/WebRTC media path | 기존 live relay path, VA/metadata side-channel은 media와 분리 | `./server.sh verify-codecs`, `./server.sh verify-webrtc-ice`, `./server.sh verify-rtsp-va-overlay-policy`, `./server.sh verify-v290-final-contract-freeze` | VMS archive/playback/search, persistent recording path, metadata failure의 media blocking 전파 금지 |
+| Auth/Role/Scope | 기본 auth mode `auto`, role `admin/operator/viewer/integrator`, scope `view:read:*`, `source:read:*`, `rule:read:*`, `event:read:*`, `metadata:read:*`, `dashboard:read:*`, `debug:read`, `rule:write`, `source:write`, `ops:read`, `lab:read` | `./server.sh verify-auth-bootstrap`, `./server.sh verify-auth-users`, `./server.sh verify-auth-routes`, `./server.sh verify-auth-regression-matrix`, `./server.sh verify-v290-final-contract-freeze` | role/scope default migration, credential/session material 노출, integrator를 제품 UI 권한으로 승격 금지 |
+| Rule/Profile payload | 기존 Rule/Profile/Event Template/VA Rule 저장 payload와 `rule:write` gate | `./server.sh verify-rule-ui`, `./server.sh verify-ops-rules-roundtrip`, `./server.sh verify-ops-rule-validation-matrix`, `./server.sh verify-ops-rule-relationships`, `./server.sh verify-v290-final-contract-freeze` | Rule/Profile 자동 저장/자동 적용, full replay engine 의존, Event POST/WebRTC/SSE/WS schema mutation, media path 변경 금지 |
+
+Freeze non-goals:
+
+- OpenAPI/VMS archive/playback/search API를 2.x live contract에 추가하지 않습니다.
+- Event POST/WebRTC DataChannel/SSE/WS payload field를 새 기능 편의로 변경하지 않습니다.
+- RTSP/WebRTC media path, codec route, relay lifecycle을 contract freeze 명목으로 바꾸지 않습니다.
+- Auth/Role/Scope default나 integrator 권한을 migration하지 않습니다.
+- Rule/Profile draft를 자동 저장/자동 적용하거나 payload schema를 넓히지 않습니다.
+- `verify-v290-final-contract-freeze` PASS를 runtime delivery, UI 직접 조작, 30분/120분,
+  published GitHub Release metadata PASS로 보고하지 않습니다.
+
 ### Integrator Distribution Artifact
 
 v1.8.0 integrator 배포용 sample bundle은
@@ -102,6 +130,8 @@ schema를 사용하는 v2.0.0 entry freeze gate입니다. Event POST, WebRTC Dat
 SSE/WS metadata, WebSocket control ack sample, 이 문서 계열 source contract 문서,
 Auth/session/scope, SourceRegistry/PublishedView, Rule/Profile payload 기준 파일의
 SHA-256을 고정해 schema/payload sample diff를 즉시 실패로 보고합니다.
+v2.9.0 S01에서 이 문서의 final freeze 절을 추가하면서 `docs/live-event-metadata-contracts.md`
+hash를 갱신하더라도 sample schema/payload hash는 변경하지 않습니다.
 
 ```bash
 ./server.sh verify-integrator-contract-artifact

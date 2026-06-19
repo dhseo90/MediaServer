@@ -83,6 +83,7 @@
 | V280 client-safe follow-up digest | viewer-safe follow-up digest 확인 | `verify-v280-client-safe-followup-digest`, `/client/live`, `/client/dashboard`, `/client/events`에서 source/raw/debug/provider/rule editor/action control 비노출 확인 | v2.8.0 |
 | V280 owner release readiness | v2.8.0 readiness coverage와 release boundary 확인 | `verify-v280-owner-release-readiness`와 companion local gates를 실행하고 UI/30분/120분/published metadata를 대체하지 않는 문구 확인 | v2.8.0 |
 | V290 source-of-truth split | v2.9.0 source version과 latest published v2.8.0 기준 분리 확인 | `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, `./server.sh verify-feature-inventory-coverage`, `git diff --check`로 source `2.9.0`, latest published `v2.8.0`, current roadmap `v2.9.0 Final 2.x Closure & Compatibility Baseline`을 확인. published metadata, tag/push/GitHub Release, UI 풀테스트, 30분/120분 PASS로 승격하지 않음 | v2.9.0 |
+| V290 final contract freeze | Event POST/WebRTC/SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload의 2.x 최종 freeze gate 확인 | `./server.sh verify-v290-final-contract-freeze`, `./server.sh verify-integrator-contract-artifact`, `./server.sh verify-script-inventory`, `./server.sh verify-feature-inventory-coverage`, `git diff --check`로 contract 문서, server command, feature inventory, freeze-baseline hash 연결을 확인. runtime smoke, UI 풀테스트, 30분/120분, published metadata PASS로 승격하지 않음 | v2.9.0 |
 
 ## Deprecated 테스트 항목
 
@@ -208,6 +209,17 @@
 | v290 S00 docs UI assets | 최초 `./server.sh verify-docs-ui-assets`는 docs UI asset manifest source version drift로 fail. manifest/verifier/policy를 source `2.9.0`, published `v2.8.0`으로 정렬 후 재실행 pass 10/fail 0 | pass |
 | v290 S00 feature inventory coverage | `./server.sh verify-feature-inventory-coverage` 실행. featureRows 499, covered 499, missing 0, pass 5/fail 0 | pass |
 | v290 S00 diff check | `git diff --check` 실행. whitespace error 없음 | pass |
+| v290 S01 RED command precheck | 최초 `./server.sh verify-v290-final-contract-freeze`는 command 미구현으로 fail. S01 verifier/entrypoint 추가 전 기대 실패로 확인 | fail |
+| v290 S01 verifier implementation correction | 구현 직후 첫 `./server.sh verify-v290-final-contract-freeze`는 auth source snippet 기대값이 실제 `DefaultScopesForRole()` 구현과 맞지 않아 pass 7/fail 1로 fail. verifier 기대값을 실제 함수 구조와 scope 값 기준으로 수정 | fail |
+| v290 S01 integrator artifact correction | 첫 `./server.sh verify-integrator-contract-artifact`는 `freeze-baseline.json` checksum과 기존 `docs/media-server-architecture.md` freeze hash drift로 pass 9/fail 2. 현재 파일 기준 freeze baseline/checksum 갱신 후 재실행 필요 | fail |
+| v290 S01 script inventory correction | 첫 `./server.sh verify-script-inventory`는 미구현 S03 후보 명령이 실제 server command처럼 문서화되어 pass 10/fail 1. 후보/미구현 표현으로 보정 후 재실행 필요 | fail |
+| v290 S01 final contract freeze | `./server.sh verify-v290-final-contract-freeze` 재실행. contract 문서/freeze matrix/auth scope/server wiring/roadmap/stream/inventory/release records/freeze-baseline hash 확인, pass 8/fail 0 | pass |
+| v290 S01 integrator contract artifact | `./server.sh verify-integrator-contract-artifact` 재실행. manifest, conformance, checksum, schema/sample identifier, exposure guard, freeze baseline 확인, pass 11/fail 0 | pass |
+| v290 S01 script inventory | `./server.sh verify-script-inventory` 재실행. dispatch target executable, documented command resolution, script classification, option parser guard 확인, pass 11/fail 0 | pass |
+| v290 S01 feature inventory coverage | `./server.sh verify-feature-inventory-coverage` 실행. featureRows 501, covered 501, missing 0, pass 5/fail 0 | pass |
+| v290 S01 docs links | `./server.sh verify-docs-links` 실행. markdown files 101, local links 548, images 22, anchors 96, failures 0 | pass |
+| v290 S01 build | `./server.sh build` 실행. build-gst-onnx configure/build exit 0, media_server target built | pass |
+| v290 S01 diff check | `git diff --check` 실행. whitespace error 없음 | pass |
 
 미실행/제외:
 
@@ -218,6 +230,10 @@
 | v290 S00 30분 soak | `verify-predev --soak-minutes 30` | 장시간 테스트 실행 승인 없음. S00 안정화 PASS로 대체하지 않음 |
 | v290 S00 120분 longrun | `verify-predev --soak-minutes 120`, `verify-va-runtime-console-longrun --duration-minutes 120` | 120분 직접 매핑 또는 high-risk signal 없음. 실행하지 않음 |
 | v290 S00 field smoke | real ONVIF, external TURN/WHEP, real cloud/VLM provider call | endpoint/credential/실기기 조건 미제공. S00 완료 evidence로 사용하지 않음 |
+| v290 S01 runtime smoke | `verify-event-post`, `verify-webrtc-va-metadata`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-codecs`, `verify-webrtc-ice`, `verify-rtsp-va-overlay-policy` | S01은 local static contract freeze gate입니다. runtime delivery/media smoke를 실행하지 않았고 S01 PASS로 대체하지 않음 |
+| v290 S01 UI 풀테스트 | 인앱 브라우저 route/control/action 직접 조작 | S01은 UI 변경이 아닌 contract freeze 문서/verifier 범위입니다. UI 직접 조작 PASS로 대체하지 않음 |
+| v290 S01 30분/120분 longrun | `verify-predev --soak-minutes 30`, `verify-predev --soak-minutes 120`, `verify-va-runtime-console-longrun --duration-minutes 120` | 장시간 테스트 실행 승인 없음. S01 local gate PASS로 대체하지 않음 |
+| v290 S01 published metadata | `./server.sh verify-release-metadata --published`, tag/push/GitHub Release | S01은 local source tree gate입니다. published metadata, tag, push, GitHub Release evidence로 보지 않음 |
 
 ### v2.8.0
 
