@@ -63,7 +63,7 @@ v2.9.0 제외 대상과 사유:
 | 0 | V290-S00 | P0 | 완료 | v2.9.0 baseline | VERSION/CMake/README/docs index/release metadata를 `2.9.0` source target과 latest published `v2.8.0` 기준으로 분리 정렬 | source `2.9.0`, latest published `v2.8.0`, current roadmap `v2.9.0 Final 2.x Closure & Compatibility Baseline` 정렬 | `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-feature-inventory-coverage`, `./server.sh build`, `git diff --check`; published metadata는 별도 |
 | 1 | V290-S01 | P0 | 완료 | 2.x final contract freeze | Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload의 2.x 최종 계약을 문서/검증 기준으로 고정 | `./server.sh verify-v290-final-contract-freeze` local verifier와 freeze-baseline 문서 hash 연결 | 3.0 신규 기능 구현이나 migration 완료 evidence가 아님 |
 | 2 | V290-S02 | P0 | 완료 | v2.8 feature regression bundle | v2.8 Action Readiness Queue, approval-gated rule draft, field readiness, runtime evidence window, client-safe digest를 v2.9 기준 회귀 묶음으로 재검증 | `./server.sh verify-v290-v28-regression-bundle`이 v2.8 S02~S06 verifier를 현재 source tree에서 재실행 | v2.8 완료 evidence 재사용이 아니라 v2.9 기준 재실행 evidence |
-| 3 | V290-S03 | P0 | 예정 | 2.x compatibility gate | v2.5~v2.8 핵심 verifier를 v2.9 release gate에서 추적할 수 있게 묶음 | `verify-v290-2x-compatibility-baseline` 후보 | 각 하위 verifier가 실제 실행한 범위만 PASS |
+| 3 | V290-S03 | P0 | 완료 | 2.x compatibility gate | v2.5~v2.8 핵심 verifier를 v2.9 release gate에서 추적할 수 있게 묶음 | `./server.sh verify-v290-2x-compatibility-baseline`이 v2.5~v2.7 핵심 feature verifier와 v2.9 S01/S02 gate를 현재 source tree에서 재실행 | 각 하위 verifier가 실제 실행한 범위만 PASS |
 | 4 | V290-S04 | P1 | 예정 | release test records enforcement | v2.8에서 개편한 테스트 기록 방식을 v2.9 기본 release 절차로 적용 | 안정화/30분/120분/UI 풀테스트별 `제목/수행내용/결과` 기록 기준과 v2.9 결과 섹션 | `/tmp` 증거 금지, summary-only 기록 금지 |
 | 5 | V290-S05 | P1 | 예정 | UI fulltest criteria freeze | v2.9 기준 route/control/action/UI role/viewport/theme 확인 항목을 확정 | v2.9 UI fulltest checklist/result section | 자동 smoke나 raw JSON을 UI PASS로 승격하지 않음 |
 | 6 | V290-S06 | P1 | 예정 | release evidence hygiene | release evidence index, release test records, feature inventory, script inventory, manual UI evidence 연결을 정리 | release evidence가 항목 단위로 추적 가능한 상태 | 미실행/제외 항목은 PASS/FAIL 표에서 분리 |
@@ -116,6 +116,15 @@ v2.9.0 제외 대상과 사유:
 - `docs/stream-verification.md`, `docs/release-test-records.md`: S02 명령과 최초 RED 실패, UI/30분/120분/published metadata 비대체 경계를 기록했습니다.
 - 검증: 최초 `./server.sh verify-v290-v28-regression-bundle`은 command 미구현으로 FAIL했습니다. 구현 후 `./server.sh verify-v290-v28-regression-bundle`은 docPass 5/docFail 0, subcommandPass 5/subcommandFail 0으로 PASS했고, v2.8 S02~S06 verifier 5개가 모두 현재 v2.9 source tree에서 exit 0으로 재실행됐습니다. 이후 `./server.sh verify-project-inventory`는 기존 verifier의 `SAFE-070`/`OPS-040` 기대 범위와 manual UI seed fixture `v2.8.0` target drift로 FAIL했고, 현재 S02 기준 `SAFE-073`/`OPS-043` 및 seed `v2.9.0` target으로 보정했습니다. 최종 재검증은 `./server.sh verify-v290-v28-regression-bundle`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh verify-docs-links`, `./server.sh build`, `git diff --check` 기준 PASS입니다.
 - 미실행/비대체: S02 bundle은 v2.8 S02~S06 verifier 재실행 evidence이며, v2.8 완료 evidence 재사용, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, tag/push/GitHub Release evidence가 아닙니다.
+
+## v2.9.0 S03 개발 기록
+
+- 범위: 필수/P0 `V290-S03 2.x compatibility gate`.
+- `scripts/internal/verify_v290_2x_compatibility_baseline.mjs`, `server.sh`: `./server.sh verify-v290-2x-compatibility-baseline` 명령을 추가해 v2.5 핵심 feature verifier 8개, v2.6 핵심 feature verifier 5개, v2.7 핵심 feature verifier 5개, v2.9 S01/S02 gate 2개를 현재 source tree에서 순차 실행하도록 했습니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_project_feature_test_inventory.mjs`: `OPS-044`, `SAFE-074`를 추가해 S03 compatibility baseline이 안정화 gate로 추적되도록 했습니다.
+- `docs/stream-verification.md`, `docs/release-test-records.md`: S03 명령과 최초 RED 실패, UI/30분/120분/published metadata 비대체 경계를 기록했습니다.
+- 검증: 최초 `./server.sh verify-v290-2x-compatibility-baseline`은 command 미구현으로 FAIL했습니다. 구현 후 재실행 중 기존 v2.6/v2.7 하위 verifier 일부가 현재 archived roadmap 형식과 분리된 roadmap evidence 문구를 읽지 못해 FAIL했고, S01/S02 bridge verifier가 S03 이후 feature inventory 총계/range 증가를 과거 고정값 drift로 오판해 FAIL했습니다. 제품 로직/API/schema/media path는 변경하지 않고 하위 verifier가 현재 문서 구조와 누적 feature inventory를 허용하도록 보정했습니다. 최종 `./server.sh verify-v290-2x-compatibility-baseline`은 docPass 5/docFail 0, subcommandPass 20/subcommandFail 0으로 PASS했습니다.
+- 미실행/비대체: S03 compatibility baseline은 하위 verifier 실행 범위만 PASS로 기록하며, owner release readiness, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, tag/push/GitHub Release evidence가 아닙니다.
 
 ## 완료 roadmap: v2.8.0 Operator-Supervised Action Readiness
 

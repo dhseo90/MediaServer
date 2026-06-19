@@ -194,6 +194,8 @@ Usage:
                  v2.9.0 S01 2.x final contract freeze 문서/검증 기준과 schema/media/auth/rule payload 불변 경계를 검증합니다.
   verify-v290-v28-regression-bundle
                  v2.9.0 S02 v2.8 기능군 verifier를 현재 source tree에서 재실행해 regression bundle을 검증합니다.
+  verify-v290-2x-compatibility-baseline
+                 v2.9.0 S03 v2.5~v2.8 핵심 compatibility verifier를 현재 source tree에서 재실행합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -1048,6 +1050,10 @@ case "${cmd}" in
   verify-v290-v28-regression-bundle)
     require_internal verify_v290_v28_regression_bundle.mjs
     exec "${INTERNAL_DIR}/verify_v290_v28_regression_bundle.mjs" "$@"
+    ;;
+  verify-v290-2x-compatibility-baseline)
+    require_internal verify_v290_2x_compatibility_baseline.mjs
+    exec "${INTERNAL_DIR}/verify_v290_2x_compatibility_baseline.mjs" "$@"
     ;;
   verify-v260-incident-memory-productization)
     require_internal verify_v260_incident_memory_productization.mjs

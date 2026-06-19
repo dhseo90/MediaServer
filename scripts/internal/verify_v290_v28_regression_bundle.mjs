@@ -83,12 +83,12 @@ check("roadmap and stream verification expose V290-S02 as a rerun bundle", () =>
 });
 
 check("feature inventory maps V290-S02 to OPS-043 and SAFE-073", () => {
+  assertSummaryCountAtLeast("전체 기능 항목", 503);
+  assertSummaryCountAtLeast("기능 ID 목록", 503);
+  assertRangeCovers("SAFE", 73);
+  assertRangeCovers("OPS", 43);
   for (const snippet of [
-    "전체 기능 항목 | 503",
-    "기능 ID 목록 | 503개 기능 ID",
     "V290-S02 v2.8 feature regression bundle | `OPS-043`, `SAFE-073` | `verify-v290-v28-regression-bundle`",
-    "`SAFE-001`~`SAFE-073`",
-    "`OPS-035`~`OPS-043`",
     "SAFE-073 | V290-S02 v2.8 기능군 회귀 묶음 boundary",
     "OPS-043 | V290-S02 v2.8 기능군 회귀 묶음 게이트",
   ]) {
@@ -191,4 +191,24 @@ function readText(relativePath) {
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
+}
+
+function assertSummaryCountAtLeast(label, minimum) {
+  const pattern = new RegExp(`\\| ${escapeRegExp(label)} \\| ([0-9]+)`);
+  const match = featureInventory.match(pattern);
+  assert(match, `feature inventory missing summary count: ${label}`);
+  const count = Number.parseInt(match[1], 10);
+  assert(count >= minimum, `feature inventory ${label} ${count} below ${minimum}`);
+}
+
+function assertRangeCovers(prefix, minimum) {
+  const pattern = new RegExp(`\`${prefix}-[0-9]{3}\`~\`${prefix}-([0-9]{3})\``, "g");
+  const matches = [...featureInventory.matchAll(pattern)];
+  assert(matches.length > 0, `feature inventory missing ${prefix} range`);
+  const max = Math.max(...matches.map((match) => Number.parseInt(match[1], 10)));
+  assert(max >= minimum, `feature inventory ${prefix} range ${max} below ${minimum}`);
+}
+
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

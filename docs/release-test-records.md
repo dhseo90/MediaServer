@@ -85,6 +85,7 @@
 | V290 source-of-truth split | v2.9.0 source version과 latest published v2.8.0 기준 분리 확인 | `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, `./server.sh verify-feature-inventory-coverage`, `git diff --check`로 source `2.9.0`, latest published `v2.8.0`, current roadmap `v2.9.0 Final 2.x Closure & Compatibility Baseline`을 확인. published metadata, tag/push/GitHub Release, UI 풀테스트, 30분/120분 PASS로 승격하지 않음 | v2.9.0 |
 | V290 final contract freeze | Event POST/WebRTC/SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload의 2.x 최종 freeze gate 확인 | `./server.sh verify-v290-final-contract-freeze`, `./server.sh verify-integrator-contract-artifact`, `./server.sh verify-script-inventory`, `./server.sh verify-feature-inventory-coverage`, `git diff --check`로 contract 문서, server command, feature inventory, freeze-baseline hash 연결을 확인. runtime smoke, UI 풀테스트, 30분/120분, published metadata PASS로 승격하지 않음 | v2.9.0 |
 | V290 v2.8 regression bundle | v2.8 기능군 verifier를 v2.9 source tree에서 재실행했는지 확인 | `./server.sh verify-v290-v28-regression-bundle`이 `verify-v280-incident-action-readiness-queue`, `verify-v280-approval-gated-rule-draft`, `verify-v280-evidence-intake-field-readiness`, `verify-v280-runtime-evidence-window`, `verify-v280-client-safe-followup-digest`를 순차 실행하는지 확인. v2.8 완료 evidence, UI 풀테스트, 30분/120분, published metadata PASS로 승격하지 않음 | v2.9.0 |
+| V290 2.x compatibility baseline | v2.5~v2.8 핵심 verifier를 v2.9 source tree에서 재실행했는지 확인 | `./server.sh verify-v290-2x-compatibility-baseline`이 v2.5 핵심 feature verifier 8개, v2.6 핵심 feature verifier 5개, v2.7 핵심 feature verifier 5개, `verify-v290-final-contract-freeze`, `verify-v290-v28-regression-bundle`을 순차 실행하는지 확인. owner release readiness, UI 풀테스트, 30분/120분, published metadata PASS로 승격하지 않음 | v2.9.0 |
 
 ## Deprecated 테스트 항목
 
@@ -235,6 +236,19 @@
 | v290 S02 docs links | `./server.sh verify-docs-links` 실행. markdown files 101, local links 548, images 22, anchors 96, failures 0 | pass |
 | v290 S02 build | `./server.sh build` 실행. build-gst-onnx configure/build exit 0, media_server target built | pass |
 | v290 S02 diff check | `git diff --check` 실행. whitespace error 없음 | pass |
+| v290 S03 RED command precheck | 최초 `./server.sh verify-v290-2x-compatibility-baseline`는 command 미구현으로 fail. S03 verifier/entrypoint 추가 전 기대 실패로 확인 | fail |
+| v290 S03 compatibility verifier correction | 구현 후 `./server.sh verify-v290-2x-compatibility-baseline` 재실행 중 v2.6/v2.7 하위 verifier 일부가 현재 archived roadmap 형식/분리된 roadmap evidence 문구를 읽지 못해 fail했고, S01/S02 bridge verifier가 S03 이후 feature inventory 총계/range 증가를 과거 고정값 drift로 fail 처리함. 제품 로직/API/schema/media path 변경 없이 verifier 기대값을 현재 문서 구조와 누적 inventory 기준으로 보정 | fail |
+| v290 S03 2x compatibility baseline | `./server.sh verify-v290-2x-compatibility-baseline` 실행. docPass 5/docFail 0, subcommandPass 20/subcommandFail 0 | pass |
+| v290 S03 v2.5 compatibility reruns | bundle 안에서 v2.5 핵심 verifier 8개(`verify-v250-incident-text-projection`, `verify-v250-incident-memory-index`, `verify-v250-ops-events-semantic-search-ui`, `verify-v250-incident-timeline-graph`, `verify-v250-explainable-incident-brief`, `verify-v250-similar-incident-lookup`, `verify-v250-client-safe-incident-digest`, `verify-v250-redacted-incident-evidence-bundle`) 재실행, 모두 exit 0 | pass |
+| v290 S03 v2.6 compatibility reruns | bundle 안에서 v2.6 핵심 verifier 5개(`verify-v260-incident-memory-productization`, `verify-v260-rule-suggestion-review`, `verify-v260-onvif-credential-gate`, `verify-v260-runtime-dashboard-trends`, `verify-v260-scenario-cross-zone-reentry`) 재실행, 모두 exit 0 | pass |
+| v290 S03 v2.7 compatibility reruns | bundle 안에서 v2.7 핵심 verifier 5개(`verify-v270-incident-triage-board`, `verify-v270-incident-decision-scorecard`, `verify-v270-operational-action-pack`, `verify-v270-rule-what-if-preview`, `verify-v270-operator-outcome-memory`) 재실행, 모두 exit 0 | pass |
+| v290 S03 v2.9 bridge reruns | bundle 안에서 `verify-v290-final-contract-freeze`, `verify-v290-v28-regression-bundle` 재실행, 모두 exit 0 | pass |
+| v290 S03 project inventory | `./server.sh verify-project-inventory` 실행. featureRows 505, seed fixture `v2.9.0`, pass 13/fail 0 | pass |
+| v290 S03 feature inventory coverage | `./server.sh verify-feature-inventory-coverage` 실행. featureRows 505, covered 505, missing 0, pass 5/fail 0 | pass |
+| v290 S03 script inventory | `./server.sh verify-script-inventory` 실행. pass 11/fail 0 | pass |
+| v290 S03 docs links | `./server.sh verify-docs-links` 실행. markdown files 101, local links 548, images 22, anchors 96, failures 0 | pass |
+| v290 S03 build | `./server.sh build` 실행. build-gst-onnx configure/build exit 0, media_server target built | pass |
+| v290 S03 diff check | `git diff --check` 실행. whitespace error 없음 | pass |
 
 미실행/제외:
 
@@ -252,6 +266,10 @@
 | v290 S02 UI 풀테스트 | 인앱 브라우저 route/control/action 직접 조작 | S02 bundle은 v2.8 S02~S06 verifier 재실행 범위입니다. UI 직접 조작 PASS로 대체하지 않음 |
 | v290 S02 30분/120분 longrun | `verify-predev --soak-minutes 30`, `verify-predev --soak-minutes 120`, `verify-va-runtime-console-longrun --duration-minutes 120` | 장시간 테스트 실행 승인 없음. S02 regression bundle PASS로 대체하지 않음 |
 | v290 S02 published metadata | `./server.sh verify-release-metadata --published`, tag/push/GitHub Release | S02는 local source tree regression gate입니다. published metadata, tag, push, GitHub Release evidence로 보지 않음 |
+| v290 S03 owner release readiness | `verify-v250-owner-release-readiness`, `verify-v260-owner-release-readiness`, `verify-v270-owner-release-readiness`, `verify-v280-owner-release-readiness` | S03 compatibility baseline은 핵심 feature verifier와 v2.9 S01/S02 gate 재실행 범위입니다. owner release readiness 묶음 PASS로 대체하지 않음 |
+| v290 S03 UI 풀테스트 | 인앱 브라우저 route/control/action 직접 조작 | S03 compatibility baseline은 하위 verifier 재실행 범위입니다. UI 직접 조작 PASS로 대체하지 않음 |
+| v290 S03 30분/120분 longrun | `verify-predev --soak-minutes 30`, `verify-predev --soak-minutes 120`, `verify-va-runtime-console-longrun --duration-minutes 120` | 장시간 테스트 실행 승인 없음. S03 compatibility baseline PASS로 대체하지 않음 |
+| v290 S03 published metadata | `./server.sh verify-release-metadata --published`, tag/push/GitHub Release | S03는 local source tree compatibility gate입니다. published metadata, tag, push, GitHub Release evidence로 보지 않음 |
 
 ### v2.8.0
 

@@ -342,8 +342,8 @@ check("current feature expansion rows exist", () => {
     "`EVT-001`~`EVT-058`",
     "`MEDIA-001`~`MEDIA-021`",
     "`LAB-001`~`LAB-082`",
-    "`SAFE-001`~`SAFE-073`",
-    "`OPS-035`~`OPS-043`",
+    "`SAFE-001`~`SAFE-074`",
+    "`OPS-035`~`OPS-044`",
     "VLM route, control, action, runtime state, sidecar, privacy guard",
   ]) {
     requireText(inventory, snippet, `inventory missing current expansion snippet: ${snippet}`);

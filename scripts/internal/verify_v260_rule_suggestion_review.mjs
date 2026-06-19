@@ -18,8 +18,10 @@ const streamVerification = readText("docs/stream-verification.md");
 const serverSh = readText("server.sh");
 
 check("roadmap and docs record V260-S02 incident-to-rule boundary", () => {
-  assert(/\| 2 \| V260-S02 \| P1 \| (진행|완료) \| Rule suggestion review \|/.test(backlog),
-    "backlog V260-S02 row must be 진행 or 완료 while S02 is under development");
+  const hasCurrentRoadmapRow = /\| 2 \| V260-S02 \| P1 \| (진행|완료) \| Rule suggestion review \|/.test(backlog);
+  const hasArchivedRoadmapRow = backlog.includes("| V260-S02 | 완료 | Rule suggestion 후보의 manual review/draft workflow 연결 |");
+  assert(hasCurrentRoadmapRow || hasArchivedRoadmapRow,
+    "backlog V260-S02 row must be present in current or archived roadmap format");
   for (const snippet of [
     "media-server.ops.incident-rule-suggestion-review.v1",
     "incident-to-rule manual review",

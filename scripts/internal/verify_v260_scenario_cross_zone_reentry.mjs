@@ -24,8 +24,10 @@ const streamVerification = readText("docs/stream-verification.md");
 const serverSh = readText("server.sh");
 
 check("roadmap records V260-S05 scenario extension boundary", () => {
-  assert(/\| 5 \| V260-S05 \| P2 \| (진행|완료) \| Scenario extension \|/.test(backlog),
-    "backlog V260-S05 row must be 진행 or 완료 while S05 is under development");
+  const hasCurrentRoadmapRow = /\| 5 \| V260-S05 \| P2 \| (진행|완료) \| Scenario extension \|/.test(backlog);
+  const hasArchivedRoadmapRow = backlog.includes("| V260-S05 | 완료 | ScenarioEngine cross-zone re-entry 후보 |");
+  assert(hasCurrentRoadmapRow || hasArchivedRoadmapRow,
+    "backlog V260-S05 row must be present in current or archived roadmap format");
   for (const snippet of [
     "ScenarioEngine cross-zone re-entry",
     "A→B",

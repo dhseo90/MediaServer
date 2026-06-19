@@ -16,10 +16,13 @@ const backlog = readText("docs/development-backlog.md");
 const streamVerification = readText("docs/stream-verification.md");
 const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
 const serverSh = readText("server.sh");
+const roadmapEvidence = [backlog, inventory, manualChecklist, streamVerification].join("\n");
 
 check("roadmap records V270-S05 as active/completed Operator outcome memory work", () => {
-  assert(/\| 5 \| V270-S05 \| P1 \| (진행|완료) \| Operator outcome memory \|/.test(backlog),
-    "backlog V270-S05 row must be 진행 or 완료 while S05 is under development");
+  const hasCurrentRoadmapRow = /\| 5 \| V270-S05 \| P1 \| (진행|완료) \| Operator outcome memory \|/.test(backlog);
+  const hasArchivedRoadmapRow = backlog.includes("| V270-S05 | 완료 | Operator outcome memory |");
+  assert(hasCurrentRoadmapRow || hasArchivedRoadmapRow,
+    "backlog V270-S05 row must be present in current or archived roadmap format");
   for (const snippet of [
     "media-server.ops.operator-outcome-memory.v1",
     "accept/dismiss/review-needed",
@@ -29,7 +32,7 @@ check("roadmap records V270-S05 as active/completed Operator outcome memory work
     "client/viewer 비노출",
     "verify-v270-operator-outcome-memory",
   ]) {
-    assertIncludes(backlog, snippet, "V270-S05 backlog");
+    assertIncludes(roadmapEvidence, snippet, "V270-S05 roadmap evidence");
   }
 });
 

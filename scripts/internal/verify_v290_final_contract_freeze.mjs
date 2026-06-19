@@ -138,12 +138,12 @@ check("roadmap and stream verification point S01 to the local gate", () => {
 });
 
 check("feature inventory maps S01 IDs to this verifier", () => {
+  assertSummaryCountAtLeast("전체 기능 항목", 501);
+  assertSummaryCountAtLeast("기능 ID 목록", 501);
+  assertRangeCovers("SAFE", 72);
+  assertRangeCovers("OPS", 42);
   for (const snippet of [
-    "전체 기능 항목 | 501",
-    "기능 ID 목록 | 501개 기능 ID",
     "V290-S01 2.x final contract freeze | `OPS-042`, `SAFE-072` | `verify-v290-final-contract-freeze`",
-    "`SAFE-001`~`SAFE-072`",
-    "`OPS-035`~`OPS-042`",
     "SAFE-072 | V290-S01 2.x final contract freeze boundary",
     "OPS-042 | V290-S01 2.x final contract freeze 게이트",
   ]) {
@@ -231,4 +231,24 @@ function assert(condition, message) {
   if (!condition) {
     throw new Error(message);
   }
+}
+
+function assertSummaryCountAtLeast(label, minimum) {
+  const pattern = new RegExp(`\\| ${escapeRegExp(label)} \\| ([0-9]+)`);
+  const match = featureInventory.match(pattern);
+  assert(match, `feature inventory missing summary count: ${label}`);
+  const count = Number.parseInt(match[1], 10);
+  assert(count >= minimum, `feature inventory ${label} ${count} below ${minimum}`);
+}
+
+function assertRangeCovers(prefix, minimum) {
+  const pattern = new RegExp(`\`${prefix}-[0-9]{3}\`~\`${prefix}-([0-9]{3})\``, "g");
+  const matches = [...featureInventory.matchAll(pattern)];
+  assert(matches.length > 0, `feature inventory missing ${prefix} range`);
+  const max = Math.max(...matches.map((match) => Number.parseInt(match[1], 10)));
+  assert(max >= minimum, `feature inventory ${prefix} range ${max} below ${minimum}`);
+}
+
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

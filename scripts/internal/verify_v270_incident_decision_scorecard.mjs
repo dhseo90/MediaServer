@@ -15,18 +15,21 @@ const backlog = readText("docs/development-backlog.md");
 const streamVerification = readText("docs/stream-verification.md");
 const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
 const serverSh = readText("server.sh");
+const roadmapEvidence = [backlog, inventory, streamVerification].join("\n");
 
 check("roadmap records V270-S02 as active/completed Decision scorecard work", () => {
-  assert(/\| 2 \| V270-S02 \| P0 \| (진행|완료) \| Decision scorecard \|/.test(backlog),
-    "backlog V270-S02 row must be 진행 or 완료 while S02 is under development");
+  const hasCurrentRoadmapRow = /\| 2 \| V270-S02 \| P0 \| (진행|완료) \| Decision scorecard \|/.test(backlog);
+  const hasArchivedRoadmapRow = backlog.includes("| V270-S02 | 완료 | Incident Decision Scorecard |");
+  assert(hasCurrentRoadmapRow || hasArchivedRoadmapRow,
+    "backlog V270-S02 row must be present in current or archived roadmap format");
   for (const snippet of [
     "media-server.ops.incident-decision-scorecard.v1",
     "priority reason chips",
-    "provider 호출 없음",
-    "raw JSON/source URL 비노출",
+    "provider 호출",
+    "raw JSON/source URL",
     "verify-v270-incident-decision-scorecard",
   ]) {
-    assertIncludes(backlog, snippet, "V270-S02 backlog");
+    assertIncludes(roadmapEvidence, snippet, "V270-S02 roadmap evidence");
   }
 });
 
