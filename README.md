@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Published Release](https://img.shields.io/badge/published-v2.8.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.8.0)
+[![Published Release](https://img.shields.io/badge/published-v2.9.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.9.0)
 ![Source Version](https://img.shields.io/badge/source-2.9.0-informational)
 
 RTSP/WebRTC live stream을 받아 다시 내보내고, 필요할 때 YOLO/ONNX 영상 분석
@@ -14,9 +14,9 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 
 - English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 - 전체 문서 색인: [docs/README.md](docs/README.md)
-- 최신 공개 GitHub Release: [v2.8.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.8.0)
+- 최신 공개 GitHub Release: [v2.9.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.9.0)
 - 현재 소스 버전: `2.9.0`
-- v2.8.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
+- v2.9.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
 - 현재 source roadmap: `v2.9.0 Final 2.x Closure & Compatibility Baseline`
 
 ## 한눈에 보기
@@ -34,10 +34,10 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 
 ## Final 2.x Closure & Compatibility Baseline
 
-최신 공개 버전 `2.8.0`은 Operator-Supervised Action Readiness를 닫은
+최신 공개 버전 `2.9.0`은 Final 2.x Closure & Compatibility Baseline을 닫은
 source-only GitHub Release입니다. 현재 source tree `2.9.0`은 2.x 라인의 마지막
 source-of-truth 정렬, compatibility freeze, v2.8 기능군 회귀 묶음, release evidence
-정리를 수행하는 roadmap입니다. 자동 Rule/Profile 적용, provider 재호출, 외부 알림
+정리를 완료한 baseline입니다. 자동 Rule/Profile 적용, provider 재호출, 외부 알림
 실제 발송 보장, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경은
 기본 범위가 아닙니다.
 기존 Event POST,
@@ -129,7 +129,7 @@ README는 제품 개요와 빠른 시작만 담습니다. 세부 정책과 내�
 - release/version 기준: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
-- 최신 공개 릴리즈 노트: [v2.8.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.8.0)
+- 최신 공개 릴리즈 노트: [v2.9.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.9.0)
 - 현재 source roadmap: [docs/development-backlog.md](docs/development-backlog.md)의
   `v2.9.0 Final 2.x Closure & Compatibility Baseline`
 

@@ -67,12 +67,12 @@ const report = {
 const version = readText("VERSION").trim();
 assert(/^\d+\.\d+\.\d+$/.test(version), `VERSION must be semver, got ${version}`);
 const currentTag = `v${version}`;
-const latestPublishedTag = "v2.8.0";
+const latestPublishedTag = currentTag;
 const latestPublishedVersion = latestPublishedTag.replace(/^v/, "");
 const currentRoadmap = `${currentTag} Final 2.x Closure & Compatibility Baseline`;
-const latestPublishedBaseline = `${latestPublishedTag} Operator-Supervised Action Readiness`;
-const previousPublishedTag = "v2.7.0";
-const previousPublishedBaseline = `${previousPublishedTag} Operational Incident Command Loop`;
+const latestPublishedBaseline = `${latestPublishedTag} Final 2.x Closure & Compatibility Baseline`;
+const previousPublishedTag = "v2.8.0";
+const previousPublishedBaseline = `${previousPublishedTag} Operator-Supervised Action Readiness`;
 const githubRepository = resolveGithubRepository();
 const repositoryUrl = `https://github.com/${githubRepository}`;
 const expectedReleaseUrl = `https://github.com/${githubRepository}/releases/tag/${latestPublishedTag}`;
@@ -324,7 +324,7 @@ check("versioning policy separates source version and published release", () => 
     `현재 source roadmap: \`${currentRoadmap}\``,
     `최신 공개 GitHub Release: \`${latestPublishedBaseline}\``,
     `${latestPublishedTag} 공개 상태: source-only GitHub Release`,
-    `현재 소스 트리의 \`${version}\` roadmap은 ${latestPublishedTag} source-only/live-only Operator-Supervised Action Readiness`,
+    `현재 소스 트리의 \`${version}\` roadmap은 ${latestPublishedTag} source-only/live-only Final 2.x Closure & Compatibility Baseline`,
     `published tag \`${latestPublishedTag}\`와 현재 source tag \`${currentTag}\``,
     "## 2.x runway / 3.0 전환 정책",
     `## ${version} active source roadmap 범위`,
@@ -399,7 +399,8 @@ check("development backlog pins current source roadmap and public release bounda
     "Operator-Supervised Action Readiness",
     "2.x final contract freeze",
     "v2.8 feature regression bundle",
-    `## 직전 공개 기준: ${latestPublishedTag} Source Release Baseline`,
+    `## 최신 공개 기준: ${latestPublishedTag} Source Release Baseline`,
+    `## 직전 공개 기준: ${previousPublishedTag} Source Release Baseline`,
     "## 완료 roadmap: v2.7.0 Operational Incident Command Loop",
     "## 완료 roadmap: v2.6.0 Operational Hardening & Incident Memory Productization",
     "## 이전 공개 기준: v2.5.0 Source Release Baseline",

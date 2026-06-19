@@ -6,17 +6,18 @@ points to the current public sources.
 
 ## Current Status
 
-- Latest published GitHub Release: [v2.8.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.8.0)
-- Latest published baseline: `v2.8.0 Operator-Supervised Action Readiness`
-- Previous published baseline: `v2.7.0 Operational Incident Command Loop`
+- Latest published GitHub Release: [v2.9.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.9.0)
+- Latest published baseline: `v2.9.0 Final 2.x Closure & Compatibility Baseline`
+- Previous published baseline: `v2.8.0 Operator-Supervised Action Readiness`
 - Current source version: `2.9.0`
-- v2.8.0 public status: source-only GitHub Release. Binary, runtime, and model
+- v2.9.0 public status: source-only GitHub Release. Binary, runtime, and model
   bundles are not included.
 - Current source roadmap: `v2.9.0 Final 2.x Closure & Compatibility Baseline`
 - Default public distribution: source-only
 - Public docs/assets baseline: `README.md`, `README.en.md`, `docs/README.md`,
   `docs/en/README.md`, `docs/ui-guide.md`, and `docs/assets/ui/README.md`
-  separate the v2.9 source tree from the v2.8 published baseline. Representative
+  align the v2.9 source tree with the v2.9 published baseline while keeping the
+  v2.8 baseline as historical reference. Representative
   screenshots are managed by `config/docs_ui_assets.json` and
   `./server.sh verify-docs-ui-assets`; replacements require a separate direct
   image review record.

@@ -7,14 +7,13 @@
 
 - 현재 소스 버전: `2.9.0`
 - 현재 source roadmap: `v2.9.0 Final 2.x Closure & Compatibility Baseline`
-- 최신 공개 GitHub Release: `v2.8.0 Operator-Supervised Action Readiness`
-- v2.8.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- source-only release 기준 tag는 published tag `v2.8.0`와 현재 source tag `v2.9.0`를 분리해 기록합니다.
+- 최신 공개 GitHub Release: `v2.9.0 Final 2.x Closure & Compatibility Baseline`
+- v2.9.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
+- source-only release 기준 tag는 published tag `v2.9.0`와 현재 source tag `v2.9.0`를 분리해 기록합니다.
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
 
-현재 소스 트리의 `2.9.0` roadmap은 v2.8.0 source-only/live-only Operator-Supervised Action Readiness
-published baseline 위에서 2.x final closure와 compatibility baseline을 정리합니다.
-v2.8.0 published evidence를 v2.9.0 완료 evidence로 재사용하지 않습니다. 기본 공개
+현재 소스 트리의 `2.9.0` roadmap은 v2.9.0 source-only/live-only Final 2.x Closure & Compatibility Baseline
+published baseline입니다. v2.8.0 published evidence를 v2.9.0 완료 evidence로 재사용하지 않습니다. 기본 공개
 형태는 계속 source-only이며 binary/runtime/model bundle을 공개 asset으로 포함하지 않습니다.
 
 ## 2.x runway / 3.0 전환 정책
@@ -50,8 +49,8 @@ tag, 30분/120분 장시간 테스트, UI 풀테스트, 외부 field smoke는 �
 
 `public docs/assets refresh`는 `README.md`, `README.en.md`, `docs/README.md`,
 `docs/en/README.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`,
-release/version policy가 같은 v2.9 source와 v2.8 published baseline을 말하는지
-확인하는 local gate입니다. 대표 UI 이미지는 `config/docs_ui_assets.json`의 managed
+release/version policy가 같은 v2.9 source와 v2.9 published baseline을 말하는지
+확인하는 local gate입니다. 직전 v2.8 baseline은 historical reference입니다. 대표 UI 이미지는 `config/docs_ui_assets.json`의 managed
 asset list로 관리하며, image recapture, 직접 브라우저 검수 PASS, UI 풀테스트,
 published metadata, tag/push/GitHub Release는 `verify-v290-public-docs-assets-refresh`
 PASS로 대체하지 않습니다.
