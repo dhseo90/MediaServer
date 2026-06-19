@@ -1,6 +1,6 @@
 # Project Feature Test Inventory
 
-이 문서는 현재 release 목표 `v2.8.0` 기준의 기능별 테스트 분류 기준표입니다.
+이 문서는 현재 release 목표 `v2.9.0` 기준의 기능별 테스트 분류 기준표입니다.
 독자는 개발/테스트 에이전트이며, lifecycle은 active release target 동안 유지되는 test inventory입니다.
 AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, 이 문서는 기능 ID와 테스트 영역만 관리합니다.
 
@@ -26,12 +26,12 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 497 |
+| 전체 기능 항목 | 499 |
 | UI 직접 필요 | 295 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 171 |
-| 테스트 필요 | 497 |
-| 안정화 대상 | 487 |
+| UI 비대상 | 173 |
+| 테스트 필요 | 499 |
+| 안정화 대상 | 489 |
 | UI 풀테스트 대상 | 315 |
 | 30분 soak 대상 | 47 |
 | 120분 대상 | 7 |
@@ -53,12 +53,24 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | Coverage gate | `./server.sh verify-feature-inventory-coverage`가 `media-server.feature-inventory-coverage.v1` report로 기능 ID별 연결을 점검 | `missing coverage target` 누락 ID는 release gate에서 FAIL |
 | VLM current expansion | VLM route, control, action, runtime state, sidecar, privacy guard를 현재 기능 ID에 연결 | 실행 증거 아님 |
 
-## v2.8.0 Operator-Supervised Action Readiness Coverage Mapping
+## v2.9.0 Final 2.x Closure & Compatibility Baseline Coverage Mapping
 
 이 절은 현재 active target의 계획 단계 연결만 남깁니다. 아래 행은 실행 evidence가
 아니며, 기능 구현 전에는 실제 기능 ID, route/control/action, verifier command를
 추가해야 합니다. 신규 기능 ID가 예약되어 있어도 안정화/UI 테스트를 PASS로 보고하지
 않습니다.
+
+| Roadmap scope | Feature IDs | 대표 안정화 verifier | release evidence boundary |
+| --- | --- | --- | --- |
+| V290-S00 Baseline/source-of-truth | `OPS-041`, `SAFE-071` | `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets` | source `2.9.0`, latest published `v2.8.0`, current roadmap `v2.9.0` 정렬 기준. GitHub Release publish evidence가 아님 |
+| V290-S01 2.x final contract freeze | 후보 | 후보 | Event POST/WebRTC/SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload의 2.x 최종 계약 기준. 3.0 migration 구현 evidence가 아님 |
+| V290-S02 v2.8 feature regression bundle | 후보 | 후보 | v2.8 완료 evidence 재사용이 아니라 v2.9 기준 재실행 evidence |
+| V290-S03 2.x compatibility gate | 후보 | 후보 `verify-v290-2x-compatibility-baseline` | v2.5~v2.8 하위 verifier가 실제 실행한 범위만 PASS |
+
+## v2.8.0 Operator-Supervised Action Readiness Coverage Mapping
+
+이 절은 최신 published baseline의 기능 ID 연결입니다. 아래 행은 실행 evidence가
+아니며, v2.9.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 않습니다.
 
 | Roadmap scope | Feature IDs | 대표 안정화 verifier | release evidence boundary |
 | --- | --- | --- | --- |
@@ -731,6 +743,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | SAFE-068 | V280-S05 runtime evidence window boundary | 필요 | 필요 | 안정화, UI | runtime evidence window는 bounded Ops-only summary이며 장기 녹화, persistent archive, 30분/120분 PASS, Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path, client/viewer 노출을 만들지 않음 |
 | SAFE-069 | V280-S06 client-safe follow-up digest boundary | 필요 | 필요 | 안정화, UI | client follow-up digest는 viewer-safe status/severity/time만 표시하고 source URL, raw evidence, debug material, provider material, rule editor/action controls를 노출하지 않음 |
 | SAFE-070 | V280-S07 릴리즈 준비 경계 | 비대상 | 필요 | 안정화 | `verify-v280-owner-release-readiness`는 v2.8.0 feature inventory, manual UI criteria, release policy/evidence, close-out dry-run companion command를 연결하되 UI 풀테스트 직접 조작, 30분/120분, `verify-release-metadata --published`, tag/push/GitHub Release, PR merge/main sync/후속 브랜치 생성을 local verifier PASS로 승격하지 않음 |
+| SAFE-071 | V290-S00 source-of-truth boundary | 비대상 | 필요 | 안정화 | source `2.9.0`, latest published `v2.8.0`, current roadmap `v2.9.0 Final 2.x Closure & Compatibility Baseline`을 분리 정렬하되 published metadata, tag/push/GitHub Release, UI 풀테스트, 30분/120분 PASS로 승격하지 않음 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -742,6 +755,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | OPS-038 | V270-S06 릴리즈 준비 게이트 | 비대상 | 필요 | 안정화 | `verify-v270-owner-release-readiness`가 v2.7.0 S01~S05 feature inventory, manual UI criteria, release policy/evidence, close-out dry-run companion command를 연결하되 release publish, PR/main/tag/push, UI/longrun 실행 PASS로 대체하지 않음 |
 | OPS-039 | V280-S00/S01 source-of-truth와 2.x runway 게이트 | 비대상 | 필요 | 안정화 | source `2.8.0`, latest published `v2.7.0`, next source tag `v2.8.0`, 2.x runway/3.0 major boundary 문서가 서로 일치하는지 확인하되 release publish, PR/main/tag/push, UI/longrun 실행 PASS로 대체하지 않음 |
 | OPS-040 | V280-S07 릴리즈 준비 게이트 | 비대상 | 필요 | 안정화 | `verify-v280-owner-release-readiness`가 v2.8.0 S02~S06 feature inventory, manual UI criteria, release policy/evidence, close-out dry-run companion command를 연결하되 release publish, PR/main/tag/push, UI/longrun 실행 PASS로 대체하지 않음 |
+| OPS-041 | V290-S00 source-of-truth와 latest published 분리 게이트 | 비대상 | 필요 | 안정화 | `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`가 source `2.9.0`, latest published `v2.8.0`, current roadmap `v2.9.0 Final 2.x Closure & Compatibility Baseline`을 확인하되 published metadata, PR/main/tag/push, UI/longrun 실행 PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 

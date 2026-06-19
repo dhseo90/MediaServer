@@ -82,6 +82,7 @@
 | V280 runtime evidence window | bounded runtime/source/event evidence window 확인 | `verify-v280-runtime-evidence-window`, `/ops/events` UI에서 incident-linked short window와 장기 저장소 아님을 확인 | v2.8.0 |
 | V280 client-safe follow-up digest | viewer-safe follow-up digest 확인 | `verify-v280-client-safe-followup-digest`, `/client/live`, `/client/dashboard`, `/client/events`에서 source/raw/debug/provider/rule editor/action control 비노출 확인 | v2.8.0 |
 | V280 owner release readiness | v2.8.0 readiness coverage와 release boundary 확인 | `verify-v280-owner-release-readiness`와 companion local gates를 실행하고 UI/30분/120분/published metadata를 대체하지 않는 문구 확인 | v2.8.0 |
+| V290 source-of-truth split | v2.9.0 source version과 latest published v2.8.0 기준 분리 확인 | `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, `./server.sh verify-feature-inventory-coverage`, `git diff --check`로 source `2.9.0`, latest published `v2.8.0`, current roadmap `v2.9.0 Final 2.x Closure & Compatibility Baseline`을 확인. published metadata, tag/push/GitHub Release, UI 풀테스트, 30분/120분 PASS로 승격하지 않음 | v2.9.0 |
 
 ## Deprecated 테스트 항목
 
@@ -197,6 +198,27 @@
 | v270 publication | PR/main/tag/GitHub Release/published metadata | 이 release test run에서 실행하지 않음 |
 | v270 field smoke | real ONVIF, external WHEP/WHIP/TURN, real cloud/VLM provider call | endpoint/credential/실기기 조건 미제공 |
 
+### v2.9.0
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| v290 S00 build | `./server.sh build` 실행. build-gst-onnx configure/build exit 0, media_server target built | pass |
+| v290 S00 release metadata | 최초 `./server.sh verify-release-metadata`는 backlog current roadmap drift로 fail. source `2.9.0`, latest published `v2.8.0`, current roadmap `v2.9.0 Final 2.x Closure & Compatibility Baseline` 분리 구현 후 재실행 pass 16/fail 0 | pass |
+| v290 S00 docs links | `./server.sh verify-docs-links` 실행. markdown files 101, local links 548, images 22, anchors 96, failures 0 | pass |
+| v290 S00 docs UI assets | 최초 `./server.sh verify-docs-ui-assets`는 docs UI asset manifest source version drift로 fail. manifest/verifier/policy를 source `2.9.0`, published `v2.8.0`으로 정렬 후 재실행 pass 10/fail 0 | pass |
+| v290 S00 feature inventory coverage | `./server.sh verify-feature-inventory-coverage` 실행. featureRows 499, covered 499, missing 0, pass 5/fail 0 | pass |
+| v290 S00 diff check | `git diff --check` 실행. whitespace error 없음 | pass |
+
+미실행/제외:
+
+| 제목 | 수행내용 | 사유 |
+| --- | --- | --- |
+| v290 S00 published metadata | `./server.sh verify-release-metadata --published` | GitHub Release publish 이후 외부 상태 확인용입니다. S00 local source-of-truth 완료 evidence로 사용하지 않음 |
+| v290 S00 UI 풀테스트 | 인앱 브라우저 route/control/action 직접 조작 | S00은 문서/source metadata 정렬 범위입니다. UI 직접 조작 PASS로 대체하지 않음 |
+| v290 S00 30분 soak | `verify-predev --soak-minutes 30` | 장시간 테스트 실행 승인 없음. S00 안정화 PASS로 대체하지 않음 |
+| v290 S00 120분 longrun | `verify-predev --soak-minutes 120`, `verify-va-runtime-console-longrun --duration-minutes 120` | 120분 직접 매핑 또는 high-risk signal 없음. 실행하지 않음 |
+| v290 S00 field smoke | real ONVIF, external TURN/WHEP, real cloud/VLM provider call | endpoint/credential/실기기 조건 미제공. S00 완료 evidence로 사용하지 않음 |
+
 ### v2.8.0
 
 | 제목 | 수행내용 | 결과(pass/fail) |
@@ -285,6 +307,7 @@
 | v270 release 30분 | 30분 soak | 미집계 | 미집계 | 미집계 | durationSec 2366 | command summary/report; token snapshot unavailable |
 | v270 release 120분 | 120분 longrun | 미집계 | 미집계 | 미집계 | durationSec 7749 | command summary/report; token snapshot unavailable |
 | v270 runtime console 120분 | 120분 runtime console | 미집계 | 미집계 | 미집계 | durationSec 7200 | command summary/report; token snapshot unavailable |
+| v290 S00 local source-of-truth | 안정화 테스트 | 미집계 | 211,496 | 미집계 | goal snapshot 444s | Codex goal usage snapshot after S00 local gates; token start not captured |
 | v280 release local gates | 안정화 테스트 | 미집계 | 320,781 | 미집계 | goal snapshot 683s | Codex goal usage end snapshot; token start not captured |
 | v280 release UI fulltest | UI 풀테스트 | 320,781 | 649,423 | 328,642 | goal snapshot delta 1216s | Codex goal usage snapshots plus in-app evidence and wrapper output |
 
@@ -293,6 +316,7 @@
 | 버전/run | 경로 | 종류 | 조치 | 삭제/보존 결과 |
 | --- | --- | --- | --- | --- |
 | v2.8.0 UI fulltest | `/tmp/media_server_v280_ui_fulltest_20260618_codex` | 인앱 evidence/screenshot 임시 디렉터리, 삭제 전 8.2MB | 이 문서로 결과 이관 후 삭제 | 삭제 완료. 삭제 후 경로 없음 확인 |
+| v2.9.0 S00 local gates | 없음 | `./server.sh build`, release/docs/inventory verifier, `git diff --check` 실행 중 최종 evidence로 보존할 `/tmp`/`/private/tmp` summary, screenshot, report를 생성하지 않음 | 삭제 대상 없음 | 없음 |
 | v2.8.0 UI wrapper | `/private/tmp/media_server_v280_ui_fulltest_wrapper_20260618_codex`, `/tmp/media_server_v280_ui_fulltest_wrapper_20260618_codex_rerun` | wrapper summary 임시 디렉터리, 삭제 전 240KB와 252KB | 이 문서로 결과 이관 후 삭제 | 삭제 완료. 삭제 후 경로 없음 확인 |
 | v2.7.0 release reports | `/tmp/media_server_v270_release_*`, `/tmp/media_server_v270_ui_fulltest_20260616`, `/private/tmp/media_server_v270*` | 과거 release summary/report/work dir, UI dir 삭제 전 3.2MB, runtime work dir 삭제 전 1.4MB, publication/closeout 임시 파일 합계 164KB | 이 문서로 결과 이관 후 삭제 | 삭제 완료. 확인한 report/summary/html/work/UI/publication/closeout 경로 없음 |
 | v2.6.0 release reports | `/tmp/media_server_v260_release_*`, `/tmp/media_server_v260_ui_fulltest_20260615`, `/private/tmp/media_server_v260*` | 과거 release summary/report/UI dir, UI dir 삭제 전 9.7MB, publication/closeout/seed/evidence 임시 파일 합계 284KB | 이 문서로 결과 이관 후 삭제 | 삭제 완료. 확인한 report/summary/html/UI/publication/closeout/seed/evidence 경로 없음 |

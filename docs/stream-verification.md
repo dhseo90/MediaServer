@@ -40,11 +40,23 @@
 | V250-S08 | `./server.sh verify-v250-redacted-incident-evidence-bundle` | release-safe manifest-only evidence bundle guard |
 | V250-S09 | `./server.sh verify-v250-owner-release-readiness` | owner decomposition/release readiness local gate |
 
-## 현재 v2.8.0 verifier
+## 현재 v2.9.0 verifier
 
-아래 명령은 v2.8.0 roadmap 구현 단계에서 추가된 verifier입니다. 아직 구현되지 않은
-S01은 문서 gate로만 남기며 PASS 근거가 아닙니다. 실제 실행 가능 여부는 각 스텝 구현 때
+아래 명령은 v2.9.0 roadmap 구현 단계에서 추가되는 verifier입니다. 아직 구현되지 않은
+항목은 문서 gate 또는 후보로만 남기며 PASS 근거가 아닙니다. 실제 실행 가능 여부는 각 스텝 구현 때
 `server.sh` wiring과 script inventory로 확인합니다.
+
+| Step | Command | Scope |
+| --- | --- | --- |
+| V290-S00 | `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | source `2.9.0`, latest published `v2.8.0`, current roadmap `v2.9.0 Final 2.x Closure & Compatibility Baseline` 정렬. published metadata, tag, push, GitHub Release evidence가 아님 |
+| V290-S01 | 후보 | 2.x final contract freeze 문서/검증 기준. 3.0 신규 기능 구현이나 migration 완료 evidence가 아님 |
+| V290-S02 | 후보 | v2.8 기능군 regression gate. v2.8 완료 evidence 재사용이 아니라 v2.9 기준 재실행 evidence |
+| V290-S03 | 후보 `./server.sh verify-v290-2x-compatibility-baseline` | v2.5~v2.8 핵심 verifier를 v2.9 release gate에서 추적. 각 하위 verifier가 실제 실행한 범위만 PASS |
+
+## 최신 published baseline v2.8.0 verifier
+
+아래 명령은 v2.8.0 roadmap 구현 단계에서 추가된 verifier입니다. v2.9.0 완료
+evidence로 재사용하지 않습니다.
 
 | Step | Command | Scope |
 | --- | --- | --- |

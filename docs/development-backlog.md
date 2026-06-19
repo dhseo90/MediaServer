@@ -10,13 +10,95 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `2.8.0`
+- 현재 소스 버전: `2.9.0`
 - 최신 공개 GitHub Release: `v2.8.0`
 - `v2.8.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap: `v2.8.0 Operator-Supervised Action Readiness`
+- 현재 source roadmap: `v2.9.0 Final 2.x Closure & Compatibility Baseline`
 
-## 현재 source roadmap: v2.8.0 Operator-Supervised Action Readiness
+## 현재 source roadmap: v2.9.0 Final 2.x Closure & Compatibility Baseline
+
+v2.9.0은 2.x 라인의 마지막 개발 릴리즈입니다. 3.0.0에서 다룰 녹화, VLM 검색,
+외부 VLM 연동 서버 연결 같은 대규모 기능은 v2.9.0에서 설계/구현하지 않습니다.
+이번 source tree의 범위는 v2.8.0 Operator-Supervised Action Readiness 위에서 2.x
+계약과 테스트/evidence 체계를 닫고, 3.0.0 본작업으로 넘어갈 수 있는 안정적인
+compatibility baseline을 남기는 것입니다.
+
+직접 답: v2.9.0의 1차 선택값은 `Final 2.x Closure & Compatibility Baseline`입니다.
+fallback 또는 축소 대안은 `Release Evidence and Compatibility Hardening`입니다. 새
+저장소, 녹화 path, VLM 검색 index, 외부 VLM server connector를 2.x에 미리 넣지 않고,
+2.x의 공개 계약/테스트/문서/릴리즈 경계를 명확히 닫는 방향을 선택합니다.
+
+2.x 종료 기준:
+
+- `2.8.0`: 기존 Event POST/WebRTC/SSE/WS metadata, RTSP/WebRTC media path,
+  Auth/Role/Scope, Rule/Profile payload schema를 유지한 operator-supervised action
+  readiness입니다.
+- `2.9.0`: 2.x의 마지막 source-of-truth 정렬, compatibility freeze, v2.8 기능군
+  회귀 묶음, release test records 적용, public docs/assets refresh, release readiness입니다.
+- `3.0.0`: 녹화, VLM 검색, 외부 VLM 연동 서버 연결, route/API/config/schema,
+  registry/storage, auth/scope, evidence 저장 형식, RTSP/WebRTC media path 같은 큰
+  변경을 별도 설계와 명시 승인 후 다루는 major line입니다.
+
+v2.9.0 제외 대상과 사유:
+
+- 녹화 기능 구현: storage/media path/evidence retention 변화가 커서 3.0.0 본작업입니다.
+- VLM 검색 구현: index/storage/provider/privacy 경계가 커서 3.0.0 본작업입니다.
+- 외부 VLM 연동 서버 connector 구현: credential, network, provider error model,
+  privacy transfer guard가 필요하므로 3.0.0 본작업입니다.
+- Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path 변경: 2.x 최종 호환성
+  기준을 깨지 않습니다.
+- runtime/model bundle default 배포: source-only release 기본 정책을 유지합니다.
+
+불변 조건:
+
+- v2.9.0의 예정 항목은 구현과 직접 evidence가 생기기 전까지 완료로 쓰지 않습니다.
+- v2.8.0 완료 evidence를 v2.9.0 완료 evidence로 재사용하지 않습니다.
+- 안정화, UI 풀테스트, 30분, 120분, published metadata는 서로 대체하지 않습니다.
+- 실제 tag/push/PR/GitHub Release는 수동 승인 후에만 수행합니다.
+- `v2.9.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
+
+| Step | ID | Priority | 상태 | 묶음 | 개발 내용 | 완료 산출물 | 검증/evidence 경계 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 0 | V290-S00 | P0 | 완료 | v2.9.0 baseline | VERSION/CMake/README/docs index/release metadata를 `2.9.0` source target과 latest published `v2.8.0` 기준으로 분리 정렬 | source `2.9.0`, latest published `v2.8.0`, current roadmap `v2.9.0 Final 2.x Closure & Compatibility Baseline` 정렬 | `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-feature-inventory-coverage`, `./server.sh build`, `git diff --check`; published metadata는 별도 |
+| 1 | V290-S01 | P0 | 예정 | 2.x final contract freeze | Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload의 2.x 최종 계약을 문서/검증 기준으로 고정 | 2.x final contract freeze 문서와 local verifier | 3.0 신규 기능 구현이나 migration 완료 evidence가 아님 |
+| 2 | V290-S02 | P0 | 예정 | v2.8 feature regression bundle | v2.8 Action Readiness Queue, approval-gated rule draft, field readiness, runtime evidence window, client-safe digest를 v2.9 기준 회귀 묶음으로 재검증 | v2.8 기능군 regression gate | v2.8 완료 evidence 재사용이 아니라 v2.9 기준 재실행 evidence |
+| 3 | V290-S03 | P0 | 예정 | 2.x compatibility gate | v2.5~v2.8 핵심 verifier를 v2.9 release gate에서 추적할 수 있게 묶음 | `verify-v290-2x-compatibility-baseline` 후보 | 각 하위 verifier가 실제 실행한 범위만 PASS |
+| 4 | V290-S04 | P1 | 예정 | release test records enforcement | v2.8에서 개편한 테스트 기록 방식을 v2.9 기본 release 절차로 적용 | 안정화/30분/120분/UI 풀테스트별 `제목/수행내용/결과` 기록 기준과 v2.9 결과 섹션 | `/tmp` 증거 금지, summary-only 기록 금지 |
+| 5 | V290-S05 | P1 | 예정 | UI fulltest criteria freeze | v2.9 기준 route/control/action/UI role/viewport/theme 확인 항목을 확정 | v2.9 UI fulltest checklist/result section | 자동 smoke나 raw JSON을 UI PASS로 승격하지 않음 |
+| 6 | V290-S06 | P1 | 예정 | release evidence hygiene | release evidence index, release test records, feature inventory, script inventory, manual UI evidence 연결을 정리 | release evidence가 항목 단위로 추적 가능한 상태 | 미실행/제외 항목은 PASS/FAIL 표에서 분리 |
+| 7 | V290-S07 | P1 | 예정 | public docs/assets refresh | README, README.en, docs index, release/version policy, stream verification, UI guide를 v2.9 기준으로 정리 | 공개 첫 화면과 문서 색인 최신화 | 대표 이미지가 현재 UI와 맞는지 별도 확인 |
+| 8 | V290-S08 | P0 | 예정 | final stabilization | build, auth, Ops/Client UI, rule, event, metadata, media/schema, docs/inventory gate를 release 순서대로 실행 | v2.9 안정화 결과 기록 | 30분/120분/UI 풀테스트는 실행한 경우만 별도 PASS |
+| 9 | V290-S09 | P0 | 예정 | owner release readiness | v2.9 release readiness gate와 close-out 준비 | `verify-v290-owner-release-readiness` 후보, release close-out checklist | PR/tag/GitHub Release/published metadata는 실제 실행 후 별도 완료 |
+
+## v2.9.0 개발 우선순위
+
+| 순서 | ID | 중요도 | 개발 리스트 | 이유 | 선수 조건 |
+| --- | --- | --- | --- | --- | --- |
+| 1 | V290-S00 | 필수/P0 | v2.9.0 source-of-truth 정렬 | 모든 문서/verifier/release 판단의 기준점 | clean branch, latest published `v2.8.0` 확인 |
+| 2 | V290-S01 | 필수/P0 | 2.x final contract freeze | 3.0 전에 깨지면 안 되는 계약을 닫음 | V290-S00 |
+| 3 | V290-S02 | 필수/P0 | v2.8 기능군 회귀 묶음 | 최신 기능이 v2.9 baseline에서 유지되는지 확인 | V290-S01 |
+| 4 | V290-S03 | 필수/P0 | 2.x compatibility gate | v2.5~v2.8 핵심 기능을 릴리즈 gate로 묶음 | V290-S02 |
+| 5 | V290-S04 | 중요/P1 | v2.9 테스트 기록 체계 적용 | 테스트를 했는지 사람이 읽을 수 있게 남김 | V290-S03 |
+| 6 | V290-S05 | 중요/P1 | UI 풀테스트 기준 freeze | UI 직접 조작/route/control/action 누락 방지 | V290-S04 |
+| 7 | V290-S06 | 중요/P1 | release evidence hygiene | PASS/FAIL/미실행/제외 경계를 문서에 고정 | V290-S04 |
+| 8 | V290-S07 | 중요/P1 | public docs/assets refresh | 마지막 2.x 공개 문서 품질 정리 | V290-S06 |
+| 9 | V290-S08 | 필수/P0 | final stabilization run | 릴리즈 전 실제 안정화 검증 | V290-S00~S07 |
+| 10 | V290-S09 | 필수/P0 | owner release readiness | close-out 전 최종 gate | V290-S08 |
+
+## v2.9.0 S00 개발 기록
+
+- 범위: 필수/P0 `V290-S00 v2.9.0 source-of-truth 정렬`.
+- `VERSION`, `CMakeLists.txt`: 현재 source version과 CMake project version을 `2.9.0`으로 정렬했습니다.
+- `README.md`, `README.en.md`, `docs/README.md`, `docs/en/README.md`, `docs/versioning-policy.md`, `docs/release-policy.md`, `docs/public-repo-final-review.md`, `docs/ui-guide.md`: 현재 source roadmap을 `v2.9.0 Final 2.x Closure & Compatibility Baseline`으로 전환하고 latest published release는 `v2.8.0` source-only GitHub Release로 분리했습니다.
+- `docs/development-backlog.md`: V290 roadmap을 현재 source roadmap으로 승격하고 `V290-S00` 완료 상태, latest published `v2.8.0`, v2.9 publish evidence 경계를 기록했습니다.
+- `scripts/internal/verify_release_metadata_consistency.mjs`: `verify-release-metadata`가 source `2.9.0`, current roadmap `v2.9.0 Final 2.x Closure & Compatibility Baseline`, latest published `v2.8.0`을 분리 검증하도록 보정했습니다.
+- `config/docs_ui_assets.json`, `scripts/internal/verify_docs_ui_assets.mjs`, `docs/assets/ui/README.md`: docs UI asset baseline의 source version을 `2.9.0`, latest published 기준을 `v2.8.0`으로 정렬했습니다. 이미지는 교체하지 않았고 대표 이미지가 UI 풀테스트/PASS/published evidence가 아니라는 경계는 유지했습니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`: `OPS-041`, `SAFE-071`, V290-S00 안정화 verifier, 저장소 보존형 테스트 결과를 추가했습니다.
+- 검증: 최초 `./server.sh verify-release-metadata`는 backlog가 아직 v2.8 current roadmap을 요구하는 상태라 FAIL했습니다. source/published 분리 구현 후 PASS했습니다. 최초 `./server.sh verify-docs-ui-assets`는 manifest source version drift로 FAIL했고, manifest/verifier/policy 정렬 후 PASS했습니다. 최종 재검증은 `./server.sh build`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, `./server.sh verify-feature-inventory-coverage`, `git diff --check` 기준 PASS입니다.
+- 미실행/비대체: `verify-release-metadata --published`, tag/push/GitHub Release, PR/main merge, 30분/120분 장시간 테스트, UI 풀테스트 직접 조작, external TURN/WHEP, ONVIF 실기기, real cloud/VLM provider 호출은 S00 완료 근거가 아닙니다.
+
+## 완료 roadmap: v2.8.0 Operator-Supervised Action Readiness
 
 v2.8.0은 v2.7.0 source-only Operational Incident Command Loop 위에서 새 media path,
 장기 녹화, 외부 provider 성공 보장, 자동 실행형 rule 적용을 만들지 않습니다. 이번

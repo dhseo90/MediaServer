@@ -6,11 +6,11 @@
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `2.8.0`
+- 현재 소스 버전: `2.9.0`
 - 최신 공개 GitHub Release: `v2.8.0`
 - `v2.8.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap은 `v2.8.0 Operator-Supervised Action Readiness`입니다.
+- 현재 source roadmap은 `v2.9.0 Final 2.x Closure & Compatibility Baseline`입니다.
 
 ## 기본 공개 범위
 
@@ -81,7 +81,7 @@ gate 실패 또는 미확인으로 보고하며 제품 runtime/media 회귀와 �
 
 ## GitHub Releases 운영
 
-### v2.8.0 Release Close-out Runbook
+### v2.9.0 Release Close-out Runbook
 
 아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
 순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
@@ -110,31 +110,34 @@ Do not list an item as pass unless it was actually executed. tag, GitHub Release
 published metadata, release branch 삭제, Next branch sync는 각각 실행 evidence가
 있을 때만 완료로 기록합니다.
 
-## v2.8.0 Source Roadmap Scope
+## v2.9.0 Source Roadmap Scope
 
-현재 `2.8.0` source tree는 아래 roadmap 후보를 source 기능과 local verifier 기준으로
+현재 `2.9.0` source tree는 아래 roadmap 후보를 source 기능과 local verifier 기준으로
 정리합니다. 각 항목은 구현과 직접 evidence가 생긴 뒤에만 완료로 기록합니다. UI
 풀테스트, 30분, 120분, 외부 endpoint field smoke는 실행한 경우에만 release evidence로
 기록합니다.
 
-- v2.8.0 source-of-truth/bootstrap 정렬
-- 2.x runway / 3.0 major-change boundary
-- Incident Action Readiness Queue
-- Approval-gated Rule Draft Readiness
-- Evidence Intake and Field Readiness
-- Runtime Evidence Window
-- Client-safe Follow-up Digest
-- v2.8.0 owner release readiness
+- v2.9.0 source-of-truth 정렬
+- 2.x final contract freeze
+- v2.8 기능군 회귀 묶음
+- 2.x compatibility gate
+- release test records enforcement
+- UI fulltest criteria freeze
+- release evidence hygiene
+- public docs/assets refresh
+- final stabilization
+- v2.9.0 owner release readiness
 
-`v2.8.0` publish 완료 여부는 tag, GitHub Release, published metadata 검증 evidence가
+`v2.9.0` publish 완료 여부는 tag, GitHub Release, published metadata 검증 evidence가
 있을 때만 완료로 기록합니다. 현재 latest published release는 `v2.8.0`입니다.
-현재 공개 release tag 기준은 `v2.8.0`입니다. 다음 준비 중인 source tag 기준은 `v2.8.0`입니다.
+현재 공개 release tag 기준은 `v2.8.0`입니다. 다음 준비 중인 source tag 기준은 `v2.9.0`입니다.
 
 ## 2.x runway / 3.0 전환 경계
 
 - 2.x 라인은 `2.8.0`과 `2.9.0`까지만 유지합니다.
 - `2.8.0`은 기존 계약을 유지한 operator-supervised action readiness입니다.
-- `2.9.0`은 2.x의 마지막 안정화와 3.0 transition readiness입니다.
+- `2.9.0`은 2.x의 마지막 source-of-truth 정렬, compatibility freeze, v2.8 기능군 회귀
+  묶음, release evidence 정리입니다.
 - `3.0.0`은 route/API/config/schema, registry/storage, auth/scope, evidence storage,
   RTSP/WebRTC media path 같은 큰 변경을 별도 설계와 승인 후 다루는 major line입니다.
 
@@ -177,8 +180,8 @@ Not-run/excluded boundary:
 ## Tag 전략
 
 - 현재 공개 release tag 기준은 `v2.8.0`입니다.
-- 다음 준비 중인 source tag 기준은 `v2.8.0`입니다.
-- `v2.8.0` release tag는 signed annotated tag로 생성합니다.
+- 다음 준비 중인 source tag 기준은 `v2.9.0`입니다.
+- `v2.9.0` release tag는 signed annotated tag로 생성합니다.
 - 다음 신규 release tag는 signed annotated tag로 생성합니다.
 - unsigned annotated tag와 lightweight tag는 새 release tag로 사용하지 않습니다.
 - tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만
@@ -228,19 +231,19 @@ Annotation JSON을 확보한 경우:
 ./server.sh verify-actions-security --annotations-json <annotations.json>
 ```
 
-## v2.8.0 Release Note Template
+## v2.9.0 Release Note Template
 
-아래 템플릿은 v2.8.0 source-only GitHub Release note 기준입니다. 실행하지 않은
+아래 템플릿은 v2.9.0 source-only GitHub Release note 기준입니다. 실행하지 않은
 장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다.
 
 ```markdown
-# Media Server v2.8.0
+# Media Server v2.9.0
 
 ## Scope
 
 - Source-only live media server release
-- Operator-supervised action readiness source scope
-- 2.x runway: 2.8.0 and 2.9.0 only; 3.0.0 reserved for major changes
+- Final 2.x closure and compatibility baseline source scope
+- 2.x final line: 2.9.0; 3.0.0 reserved for approved major changes
 - Binary/runtime/model bundle: not included
 
 ## Verification

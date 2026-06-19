@@ -3,7 +3,7 @@
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
 [![Published Release](https://img.shields.io/badge/published-v2.8.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.8.0)
-![Source Version](https://img.shields.io/badge/source-2.8.0-informational)
+![Source Version](https://img.shields.io/badge/source-2.9.0-informational)
 
 RTSP/WebRTC live stream을 받아 다시 내보내고, 필요할 때 YOLO/ONNX 영상 분석
 overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다.
@@ -15,9 +15,9 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 - English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 - 전체 문서 색인: [docs/README.md](docs/README.md)
 - 최신 공개 GitHub Release: [v2.8.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.8.0)
-- 현재 소스 버전: `2.8.0`
+- 현재 소스 버전: `2.9.0`
 - v2.8.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- 현재 source roadmap: `v2.8.0 Operator-Supervised Action Readiness`
+- 현재 source roadmap: `v2.9.0 Final 2.x Closure & Compatibility Baseline`
 
 ## 한눈에 보기
 
@@ -32,13 +32,14 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 - **제외 범위**: VMS/NVR, 장기 녹화, playback/archive search, VLM default-on,
   model/runtime bundle 배포, 실기기/외부 provider 성공 보장은 기본 공개 릴리즈에 포함하지 않습니다.
 
-## Operator-Supervised Action Readiness
+## Final 2.x Closure & Compatibility Baseline
 
 최신 공개 버전 `2.8.0`은 Operator-Supervised Action Readiness를 닫은
-source-only GitHub Release입니다. 현재 source tree `2.8.0`은 2.x 라인을 `2.8.0`과 `2.9.0`까지만 유지한다는 전제에서, 3.0의 대규모
-변경 전에 운영자가 직접 승인할 수 있는 action 준비 상태를 더 명확히 만드는
-roadmap입니다. 자동 Rule/Profile 적용, provider 재호출, 외부 알림 실제 발송 보장,
-Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경은 기본 범위가 아닙니다.
+source-only GitHub Release입니다. 현재 source tree `2.9.0`은 2.x 라인의 마지막
+source-of-truth 정렬, compatibility freeze, v2.8 기능군 회귀 묶음, release evidence
+정리를 수행하는 roadmap입니다. 자동 Rule/Profile 적용, provider 재호출, 외부 알림
+실제 발송 보장, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경은
+기본 범위가 아닙니다.
 기존 Event POST,
 WebRTC DataChannel, SSE/WS metadata schema와 RTSP/WebRTC media path는 요청 없이
 변경하지 않습니다.
@@ -130,7 +131,7 @@ README는 제품 개요와 빠른 시작만 담습니다. 세부 정책과 내�
 - release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
 - 최신 공개 릴리즈 노트: [v2.8.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.8.0)
 - 현재 source roadmap: [docs/development-backlog.md](docs/development-backlog.md)의
-  `v2.8.0 Operator-Supervised Action Readiness`
+  `v2.9.0 Final 2.x Closure & Compatibility Baseline`
 
 ## 대표 UI 미리보기
 
