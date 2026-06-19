@@ -7,8 +7,8 @@
 ## 현재 공개 상태
 
 - 현재 소스 버전: `2.9.0`
-- 최신 공개 GitHub Release: `v2.8.0`
-- `v2.8.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
+- 최신 공개 GitHub Release: `v2.9.0`
+- `v2.9.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
 - 현재 source roadmap은 `v2.9.0 Final 2.x Closure & Compatibility Baseline`입니다.
 
@@ -155,8 +155,8 @@ close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 �
 - v2.9.0 owner release readiness
 
 `v2.9.0` publish 완료 여부는 tag, GitHub Release, published metadata 검증 evidence가
-있을 때만 완료로 기록합니다. 현재 latest published release는 `v2.8.0`입니다.
-현재 공개 release tag 기준은 `v2.8.0`입니다. 다음 준비 중인 source tag 기준은 `v2.9.0`입니다.
+있을 때만 완료로 기록합니다. 현재 latest published release는 `v2.9.0`입니다.
+현재 공개 release tag 기준은 `v2.9.0`입니다. 다음 준비 중인 source tag 기준은 `v2.9.0`입니다.
 
 ## 2.x runway / 3.0 전환 경계
 
@@ -340,7 +340,8 @@ Annotation JSON을 확보한 경우:
 
 ## Not Run / Unverified
 
-- Release tag / GitHub Release / published metadata: not run until publish step
+- Release tag / GitHub Release / published metadata: completed for this release
+  cut; future release notes must only mark these as PASS after execution
 - Real ONVIF device field smoke: not run; endpoint/device not provided
 - External TURN/WHEP credential operation: not run; endpoint/credential not
   provided

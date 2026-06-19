@@ -2,8 +2,8 @@
   "schema": "media-server.docs-ui-assets.v1",
   "baseline": {
     "sourceVersion": "2.9.0",
-    "publishedRelease": "v2.8.0",
-    "publicReleaseStatus": "v2.8.0-published-source-only",
+    "publishedRelease": "v2.9.0",
+    "publicReleaseStatus": "v2.9.0-published-source-only",
     "capturedAt": "2026-05-23",
     "theme": "dark",
     "sampleVideo": "va_four_scene_sample.mp4",

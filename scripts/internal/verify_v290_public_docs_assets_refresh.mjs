@@ -19,7 +19,7 @@ Usage:
   ./server.sh verify-v290-public-docs-assets-refresh
 
 Checks:
-  - README, README.en, docs index, English docs index가 v2.9 source/v2.8 published/source-only 기준을 공유하는지 확인
+  - README, README.en, docs index, English docs index가 v2.9 source/v2.9 published/source-only 기준을 공유하는지 확인
   - release/version policy, UI guide, docs UI asset policy가 public docs/assets refresh 경계를 고정하는지 확인
   - 대표 UI 이미지가 managed asset set으로만 참조되고 recapture/direct review 경계를 과장하지 않는지 확인
   - feature inventory가 OPS-048/SAFE-078을 S07 public docs/assets refresh gate에 매핑하는지 확인
@@ -70,9 +70,10 @@ check("roadmap and stream verification expose V290-S07 public docs/assets refres
   }
 });
 
-check("public entry docs share v2.9 source and v2.8 published baseline", () => {
+check("public entry docs share v2.9 source and published baseline", () => {
   for (const snippet of [
     "v2.9.0 Final 2.x Closure & Compatibility Baseline",
+    "source-only GitHub Release",
     "v2.8.0 Operator-Supervised Action Readiness",
     "source-only GitHub Release",
     "Public docs/assets baseline",

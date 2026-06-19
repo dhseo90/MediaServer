@@ -11,8 +11,8 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 ## 현재 공개 상태
 
 - 현재 소스 버전: `2.9.0`
-- 최신 공개 GitHub Release: `v2.8.0`
-- `v2.8.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
+- 최신 공개 GitHub Release: `v2.9.0`
+- `v2.9.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
 - 현재 source roadmap: `v2.9.0 Final 2.x Closure & Compatibility Baseline`
 
@@ -60,7 +60,7 @@ v2.9.0 제외 대상과 사유:
 
 | Step | ID | Priority | 상태 | 묶음 | 개발 내용 | 완료 산출물 | 검증/evidence 경계 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 0 | V290-S00 | P0 | 완료 | v2.9.0 baseline | VERSION/CMake/README/docs index/release metadata를 `2.9.0` source target과 latest published `v2.8.0` 기준으로 분리 정렬 | source `2.9.0`, latest published `v2.8.0`, current roadmap `v2.9.0 Final 2.x Closure & Compatibility Baseline` 정렬 | `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-feature-inventory-coverage`, `./server.sh build`, `git diff --check`; published metadata는 별도 |
+| 0 | V290-S00 | P0 | 완료 | v2.9.0 baseline | VERSION/CMake/README/docs index/release metadata를 `2.9.0` source target과 published release 기준으로 정렬 | source `2.9.0`, latest published `v2.9.0`, current roadmap `v2.9.0 Final 2.x Closure & Compatibility Baseline` 정렬 | `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-feature-inventory-coverage`, `./server.sh build`, `git diff --check`; published metadata는 release publication evidence로 별도 |
 | 1 | V290-S01 | P0 | 완료 | 2.x final contract freeze | Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload의 2.x 최종 계약을 문서/검증 기준으로 고정 | `./server.sh verify-v290-final-contract-freeze` local verifier와 freeze-baseline 문서 hash 연결 | 3.0 신규 기능 구현이나 migration 완료 evidence가 아님 |
 | 2 | V290-S02 | P0 | 완료 | v2.8 feature regression bundle | v2.8 Action Readiness Queue, approval-gated rule draft, field readiness, runtime evidence window, client-safe digest를 v2.9 기준 회귀 묶음으로 재검증 | `./server.sh verify-v290-v28-regression-bundle`이 v2.8 S02~S06 verifier를 현재 source tree에서 재실행 | v2.8 완료 evidence 재사용이 아니라 v2.9 기준 재실행 evidence |
 | 3 | V290-S03 | P0 | 완료 | 2.x compatibility gate | v2.5~v2.8 핵심 verifier를 v2.9 release gate에서 추적할 수 있게 묶음 | `./server.sh verify-v290-2x-compatibility-baseline`이 v2.5~v2.7 핵심 feature verifier와 v2.9 S01/S02 gate를 현재 source tree에서 재실행 | 각 하위 verifier가 실제 실행한 범위만 PASS |
@@ -75,7 +75,7 @@ v2.9.0 제외 대상과 사유:
 
 | 순서 | ID | 중요도 | 개발 리스트 | 이유 | 선수 조건 |
 | --- | --- | --- | --- | --- | --- |
-| 1 | V290-S00 | 필수/P0 | v2.9.0 source-of-truth 정렬 | 모든 문서/verifier/release 판단의 기준점 | clean branch, latest published `v2.8.0` 확인 |
+| 1 | V290-S00 | 필수/P0 | v2.9.0 source-of-truth 정렬 | 모든 문서/verifier/release 판단의 기준점 | clean branch, latest published `v2.9.0` 확인 |
 | 2 | V290-S01 | 필수/P0 | 2.x final contract freeze | 3.0 전에 깨지면 안 되는 계약을 닫음 | V290-S00 |
 | 3 | V290-S02 | 필수/P0 | v2.8 기능군 회귀 묶음 | 최신 기능이 v2.9 baseline에서 유지되는지 확인 | V290-S01 |
 | 4 | V290-S03 | 필수/P0 | 2.x compatibility gate | v2.5~v2.8 핵심 기능을 릴리즈 gate로 묶음 | V290-S02 |
@@ -331,10 +331,16 @@ license/provenance/privacy/운영 제약:
 - 검증: `verify-v280-owner-release-readiness` 최초 RED는 S07 feature inventory mapping, manual UI criteria, backlog/evidence 진행 기록 누락으로 실패했고, 문서/inventory/server wiring 반영 후 GREEN으로 재실행합니다.
 - 미실행/비대체: UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, `verify-release-metadata --published`, tag/push/GitHub Release, PR merge/main sync/후속 브랜치 생성, 실기기 ONVIF, external TURN/WHEP, real cloud/VLM provider 호출은 S07 local readiness 완료 근거가 아닙니다.
 
+## 최신 공개 기준: v2.9.0 Source Release Baseline
+
+v2.9.0은 source-only/live-only 제품 경계를 유지하면서 Final 2.x Closure &
+Compatibility Baseline을 닫은 최신 공개 릴리즈입니다. 이 기준은 2.x final line의
+published baseline이며, 3.0.0 major work의 완료 evidence로 재사용하지 않습니다.
+
 ## 직전 공개 기준: v2.8.0 Source Release Baseline
 
 v2.8.0은 source-only/live-only 제품 경계를 유지하면서 Operator-Supervised Action
-Readiness를 닫은 최신 공개 릴리즈입니다. 이 기준은 v2.9.0의 시작 baseline이며,
+Readiness를 닫은 직전 공개 릴리즈입니다. 이 기준은 v2.9.0의 시작 baseline이며,
 v2.9.0의 예정 항목 완료 evidence로 재사용하지 않습니다.
 
 ## 이전 공개 기준: v2.7.0 Source Release Baseline

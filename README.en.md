@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Published Release](https://img.shields.io/badge/published-v2.8.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.8.0)
+[![Published Release](https://img.shields.io/badge/published-v2.9.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.9.0)
 ![Source Version](https://img.shields.io/badge/source-2.9.0-informational)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
@@ -14,9 +14,9 @@ and runtime/model bundle distribution are outside the default public release.
 
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
-- Latest published GitHub Release: [v2.8.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.8.0)
+- Latest published GitHub Release: [v2.9.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.9.0)
 - Current source version: `2.9.0`
-- v2.8.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
+- v2.9.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
 - Current source roadmap: `v2.9.0 Final 2.x Closure & Compatibility Baseline`
 
 ## At a Glance
@@ -36,10 +36,10 @@ and runtime/model bundle distribution are outside the default public release.
 
 ## Final 2.x Closure & Compatibility Baseline
 
-Latest published version `2.8.0` closes the Operator-Supervised Action Readiness
-scope as a source-only GitHub Release. The current `2.9.0` source tree is the
-final 2.x roadmap for source-of-truth alignment, compatibility freeze, v2.8
-feature regression grouping, and release evidence cleanup before separately
+Latest published version `2.9.0` closes the Final 2.x Closure & Compatibility
+Baseline scope as a source-only GitHub Release. The current `2.9.0` source tree
+is the final 2.x baseline for source-of-truth alignment, compatibility freeze,
+v2.8 feature regression grouping, and release evidence cleanup before separately
 approved 3.0.0 work.
 Automatic Rule/Profile application, provider re-query, real external alert
 delivery guarantees, Event POST/WebRTC/SSE/WS schema changes, and RTSP/WebRTC
@@ -143,7 +143,7 @@ records live in dedicated docs.
 - Release/version policy: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - Release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
-- Latest published release notes: [v2.8.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.8.0)
+- Latest published release notes: [v2.9.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.9.0)
 - Current source roadmap: `v2.9.0 Final 2.x Closure & Compatibility Baseline` in
   [docs/development-backlog.md](docs/development-backlog.md)
 
