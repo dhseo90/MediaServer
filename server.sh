@@ -206,6 +206,8 @@ Usage:
                  v2.9.0 S07 public README/docs index/UI asset refresh 경계를 검증합니다.
   verify-v290-final-stabilization-run
                  v2.9.0 S08 final stabilization run 결과와 미실행 경계를 검증합니다.
+  verify-v290-owner-release-readiness
+                 v2.9.0 S09 owner release readiness와 close-out 준비 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -1156,6 +1158,10 @@ case "${cmd}" in
   verify-v280-owner-release-readiness)
     require_internal verify_v280_owner_release_readiness.mjs
     exec "${INTERNAL_DIR}/verify_v280_owner_release_readiness.mjs" "$@"
+    ;;
+  verify-v290-owner-release-readiness)
+    require_internal verify_v290_owner_release_readiness.mjs
+    exec "${INTERNAL_DIR}/verify_v290_owner_release_readiness.mjs" "$@"
     ;;
   verify-actions-security)
     require_internal verify_actions_security.mjs
