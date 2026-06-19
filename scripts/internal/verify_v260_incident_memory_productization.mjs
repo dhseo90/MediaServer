@@ -17,8 +17,10 @@ const streamVerification = readText("docs/stream-verification.md");
 const serverSh = readText("server.sh");
 
 check("roadmap and docs record V260-S01 productization boundary", () => {
-  assert(/\| 1 \| V260-S01 \| P0 \| (진행|완료) \| Incident memory productization \|/.test(backlog),
-    "backlog V260-S01 row must be 진행 or 완료 while S01 is under development");
+  const hasCurrentRoadmapRow = /\| 1 \| V260-S01 \| P0 \| (진행|완료) \| Incident memory productization \|/.test(backlog);
+  const hasArchivedRoadmapRow = backlog.includes("| V260-S01 | 완료 | VLM summary candidate의 Ops-only incident memory productization |");
+  assert(hasCurrentRoadmapRow || hasArchivedRoadmapRow,
+    "backlog V260-S01 row must be present in current or archived roadmap format");
   for (const snippet of [
     "media-server.ops.vlm-summary-candidate-review.v1",
     "ops-manual-review-not-auto-applied",

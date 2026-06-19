@@ -5,8 +5,8 @@
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 삼고, 실행 순서는 [manual-ui-checklist.md](./manual-ui-checklist.md), 결과 기록은
 [manual-ui-result-template.md](./manual-ui-result-template.md)를 사용합니다.
-최신 공개 release 기준은 `v2.7.0 Operational Incident Command Loop`이고 현재 release
-목표와 UI 문서 기준은 `v2.8.0 Operator-Supervised Action Readiness`입니다. 현재 제품 UI 기준으로
+최신 공개 release 기준은 `v2.8.0 Operator-Supervised Action Readiness`이고 현재 release
+목표와 UI 문서 기준은 `v2.9.0 Final 2.x Closure & Compatibility Baseline`입니다. 현재 제품 UI 기준으로
 지원 가능한 모든 기능을 실제 UI 조작으로 확인하지 않은 경우에는 완료로 쓰지 않습니다.
 
 ## 1. 정의
@@ -287,6 +287,18 @@ Role/scope:
   UI criteria, release evidence 문서, not-run/published metadata 경계가 같은
   범위를 가리키는지 확인하는 기준 정리입니다.
   raw JSON/API-only/static smoke/Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다.
+- v2.9.0 Final 2.x Closure UI 풀테스트 기준: v2.9.0은 새 제품 UI route를 추가하지
+  않고 현재 2.x route/control/action/role/viewport/theme 기준을 freeze합니다. UI
+  직접 대상은 `project-feature-test-inventory.md`의 현재 UI 대상 기능 ID 전체와
+  `/setup`, `/login`, `/password/change`, `/invite/setup`, `/ops/home`,
+  `/ops/dashboard`, `/ops/sources`, `/ops/rules`, `/ops/users`, `/ops/events`,
+  `/ops/vlm`, `/client/live`, `/client/dashboard`, `/client/events`,
+  `/client/request-access`입니다. admin/operator/viewer/integrator role guard,
+  320px/390px/760px/1180px viewport, light/dark theme, nav/tab/button/menu/details,
+  textbox/textarea/password, select/checkbox/toggle/segmented control, copy/export/
+  preview/play/stop/reconnect action을 개별 기능 행으로 확인합니다. S05는 기준
+  freeze이며 실제 UI 풀테스트 실행 PASS가 아닙니다. raw JSON/API-only/static smoke/
+  screenshot-only/Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다.
 - v2.7.0 Operational Incident Command Loop UI 풀테스트 기준: `/ops/events`에서
   `UI-050` Incident Triage Board, `UI-051` Decision scorecard, `UI-052`
   Operational Action Pack, `UI-053` Rule What-if Preview, `UI-054` Operator

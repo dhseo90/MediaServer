@@ -106,8 +106,10 @@ check("source:write guard remains the only write gate for ONVIF credential bindi
 });
 
 check("docs, inventory, smoke, and command catalog track S03", () => {
-  assert(/\| 3 \| V260-S03 \| P1 \| (진행|완료) \| ONVIF credential gate \|/.test(backlog),
-    "backlog V260-S03 row must be 진행 or 완료 while S03 is under development");
+  const hasCurrentRoadmapRow = /\| 3 \| V260-S03 \| P1 \| (진행|완료) \| ONVIF credential gate \|/.test(backlog);
+  const hasArchivedRoadmapRow = backlog.includes("| V260-S03 | 완료 | ONVIF credential binding/store gate 설계와 redaction guard |");
+  assert(hasCurrentRoadmapRow || hasArchivedRoadmapRow,
+    "backlog V260-S03 row must be present in current or archived roadmap format");
   for (const snippet of [
     "media-server.onvif-credential-binding-gate.v1",
     "V260-S03",

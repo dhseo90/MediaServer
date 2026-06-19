@@ -107,7 +107,7 @@
     {
       "group": "live-event-metadata",
       "path": "docs/live-event-metadata-contracts.md",
-      "sha256": "0bc35bfb603526ec15b81ff8883d8b1a346be01f0b65d34f0d1a50378e695323"
+      "sha256": "c71ac2c4f59a0192c66cd73bab86dd5c3249f9ce2cdc5789a67a2f157458ccd6"
     },
     {
       "group": "live-event-metadata",
@@ -117,7 +117,7 @@
     {
       "group": "auth-session-scope",
       "path": "docs/media-server-architecture.md",
-      "sha256": "10003ca24c60d9e7f8a7fe1d6911343545af69c986ffd4edac8e219b6db2fe7a"
+      "sha256": "e4865a5fa680fc87bbfe7d311996f6e4c56cf447e0227a8a931d169e5f291ffd"
     },
     {
       "group": "auth-session-scope",

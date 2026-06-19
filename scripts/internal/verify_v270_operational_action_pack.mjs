@@ -16,10 +16,13 @@ const backlog = readText("docs/development-backlog.md");
 const streamVerification = readText("docs/stream-verification.md");
 const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
 const serverSh = readText("server.sh");
+const roadmapEvidence = [backlog, inventory, manualChecklist, streamVerification].join("\n");
 
 check("roadmap records V270-S03 as active/completed Operational Action Pack work", () => {
-  assert(/\| 3 \| V270-S03 \| P1 \| (진행|완료) \| Operational Action Pack \|/.test(backlog),
-    "backlog V270-S03 row must be 진행 or 완료 while S03 is under development");
+  const hasCurrentRoadmapRow = /\| 3 \| V270-S03 \| P1 \| (진행|완료) \| Operational Action Pack \|/.test(backlog);
+  const hasArchivedRoadmapRow = backlog.includes("| V270-S03 | 완료 | Operational Action Pack |");
+  assert(hasCurrentRoadmapRow || hasArchivedRoadmapRow,
+    "backlog V270-S03 row must be present in current or archived roadmap format");
   for (const snippet of [
     "media-server.ops.operational-action-pack.v1",
     "evidence bundle",
@@ -30,7 +33,7 @@ check("roadmap records V270-S03 as active/completed Operational Action Pack work
     "rule registry 자동 write 없음",
     "verify-v270-operational-action-pack",
   ]) {
-    assertIncludes(backlog, snippet, "V270-S03 backlog");
+    assertIncludes(roadmapEvidence, snippet, "V270-S03 roadmap evidence");
   }
 });
 

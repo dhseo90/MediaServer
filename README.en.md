@@ -3,7 +3,7 @@
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
 [![Published Release](https://img.shields.io/badge/published-v2.8.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.8.0)
-![Source Version](https://img.shields.io/badge/source-2.8.0-informational)
+![Source Version](https://img.shields.io/badge/source-2.9.0-informational)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
 video analytics overlays and rule/scenario live events when analytics are enabled.
@@ -15,9 +15,9 @@ and runtime/model bundle distribution are outside the default public release.
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
 - Latest published GitHub Release: [v2.8.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.8.0)
-- Current source version: `2.8.0`
+- Current source version: `2.9.0`
 - v2.8.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
-- Current source roadmap: `v2.8.0 Operator-Supervised Action Readiness`
+- Current source roadmap: `v2.9.0 Final 2.x Closure & Compatibility Baseline`
 
 ## At a Glance
 
@@ -34,14 +34,13 @@ and runtime/model bundle distribution are outside the default public release.
   default-on, model/runtime bundle distribution, and guaranteed real-device or
   external-provider success are not included in the default public release.
 
-## Operator-Supervised Action Readiness
+## Final 2.x Closure & Compatibility Baseline
 
-Latest published version `2.7.0` closes the `/ops/events` Incident Triage Board,
-Rule What-if Preview, and Operational Action Pack scope as a source-only GitHub
-Release. The current `2.8.0` source tree assumes the 2.x line continues only
-through `2.8.0` and `2.9.0`, then reserves `3.0.0` for larger separately
-designed changes. The `2.8.0` roadmap focuses on operator-approved action
-readiness under the existing contracts.
+Latest published version `2.8.0` closes the Operator-Supervised Action Readiness
+scope as a source-only GitHub Release. The current `2.9.0` source tree is the
+final 2.x roadmap for source-of-truth alignment, compatibility freeze, v2.8
+feature regression grouping, and release evidence cleanup before separately
+approved 3.0.0 work.
 Automatic Rule/Profile application, provider re-query, real external alert
 delivery guarantees, Event POST/WebRTC/SSE/WS schema changes, and RTSP/WebRTC
 media-path changes are outside the default scope.
@@ -145,13 +144,17 @@ records live in dedicated docs.
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - Release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
 - Latest published release notes: [v2.8.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.8.0)
-- Current source roadmap: `v2.8.0 Operator-Supervised Action Readiness` in
+- Current source roadmap: `v2.9.0 Final 2.x Closure & Compatibility Baseline` in
   [docs/development-backlog.md](docs/development-backlog.md)
 
 ## UI Preview
 
 These images are documentation preview assets. They are not UI fulltest PASS
 evidence, GitHub Release publish evidence, or a replacement for current UI review.
+The Public docs/assets baseline is managed by `config/docs_ui_assets.json` and
+`./server.sh verify-docs-ui-assets`. The S07 public docs/assets refresh keeps the
+current representative screenshots; replacing images requires direct image review
+plus link/asset verification and a separate record.
 
 **Ops Home**
 

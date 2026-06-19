@@ -9,11 +9,17 @@ points to the current public sources.
 - Latest published GitHub Release: [v2.8.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.8.0)
 - Latest published baseline: `v2.8.0 Operator-Supervised Action Readiness`
 - Previous published baseline: `v2.7.0 Operational Incident Command Loop`
-- Current source version: `2.8.0`
+- Current source version: `2.9.0`
 - v2.8.0 public status: source-only GitHub Release. Binary, runtime, and model
   bundles are not included.
-- Current source roadmap: `v2.8.0 Operator-Supervised Action Readiness`
+- Current source roadmap: `v2.9.0 Final 2.x Closure & Compatibility Baseline`
 - Default public distribution: source-only
+- Public docs/assets baseline: `README.md`, `README.en.md`, `docs/README.md`,
+  `docs/en/README.md`, `docs/ui-guide.md`, and `docs/assets/ui/README.md`
+  separate the v2.9 source tree from the v2.8 published baseline. Representative
+  screenshots are managed by `config/docs_ui_assets.json` and
+  `./server.sh verify-docs-ui-assets`; replacements require a separate direct
+  image review record.
 
 ## Start Here
 
@@ -35,9 +41,8 @@ points to the current public sources.
 
 - The main product boundary is live source onboarding, live source health, and
   live VA event quality.
-- The current source tree tracks the `v2.8.0` roadmap as a source-only
-  development target focused on operator-supervised action readiness. `2.9.0`
-  remains the last 2.x stabilization and 3.0 transition step.
+- The current source tree tracks the `v2.9.0` roadmap as the final 2.x
+  source-of-truth, compatibility, regression, and release evidence baseline.
 - Binary, runtime, and model bundles are excluded from the default public release.
 - Long-term recording, VMS/NVR, playback/archive search, ONVIF Profile G
   recording/replay, Re-ID default-on, tracker default-on, and VLM default-on

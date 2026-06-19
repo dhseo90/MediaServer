@@ -15,17 +15,20 @@ const backlog = readText("docs/development-backlog.md");
 const streamVerification = readText("docs/stream-verification.md");
 const coverageVerifier = readText("scripts/internal/verify_feature_inventory_coverage.mjs");
 const serverSh = readText("server.sh");
+const roadmapEvidence = [backlog, inventory, streamVerification].join("\n");
 
 check("roadmap records V270-S01 as active/completed Incident Triage Board work", () => {
-  assert(/\| 1 \| V270-S01 \| P0 \| (진행|완료) \| Incident Triage Board \|/.test(backlog),
-    "backlog V270-S01 row must be 진행 or 완료 while S01 is under development");
+  const hasCurrentRoadmapRow = /\| 1 \| V270-S01 \| P0 \| (진행|완료) \| Incident Triage Board \|/.test(backlog);
+  const hasArchivedRoadmapRow = backlog.includes("| V270-S01 | 완료 | Incident Triage Board |");
+  assert(hasCurrentRoadmapRow || hasArchivedRoadmapRow,
+    "backlog V270-S01 row must be present in current or archived roadmap format");
   for (const snippet of [
     "media-server.ops.incident-triage-board.v1",
-    "board lane/filter/sort UI",
+    "lane/filter/sort",
     "viewer/client 비노출",
     "verify-v270-incident-triage-board",
   ]) {
-    assertIncludes(backlog, snippet, "V270-S01 backlog");
+    assertIncludes(roadmapEvidence, snippet, "V270-S01 roadmap evidence");
   }
 });
 

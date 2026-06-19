@@ -10,13 +10,192 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `2.8.0`
+- 현재 소스 버전: `2.9.0`
 - 최신 공개 GitHub Release: `v2.8.0`
 - `v2.8.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap: `v2.8.0 Operator-Supervised Action Readiness`
+- 현재 source roadmap: `v2.9.0 Final 2.x Closure & Compatibility Baseline`
 
-## 현재 source roadmap: v2.8.0 Operator-Supervised Action Readiness
+## 현재 source roadmap: v2.9.0 Final 2.x Closure & Compatibility Baseline
+
+v2.9.0은 2.x 라인의 마지막 개발 릴리즈입니다. 3.0.0에서 다룰 녹화, VLM 검색,
+외부 VLM 연동 서버 연결 같은 대규모 기능은 v2.9.0에서 설계/구현하지 않습니다.
+이번 source tree의 범위는 v2.8.0 Operator-Supervised Action Readiness 위에서 2.x
+계약과 테스트/evidence 체계를 닫고, 3.0.0 본작업으로 넘어갈 수 있는 안정적인
+compatibility baseline을 남기는 것입니다.
+
+직접 답: v2.9.0의 1차 선택값은 `Final 2.x Closure & Compatibility Baseline`입니다.
+fallback 또는 축소 대안은 `Release Evidence and Compatibility Hardening`입니다. 새
+저장소, 녹화 path, VLM 검색 index, 외부 VLM server connector를 2.x에 미리 넣지 않고,
+2.x의 공개 계약/테스트/문서/릴리즈 경계를 명확히 닫는 방향을 선택합니다.
+
+2.x 종료 기준:
+
+- `2.8.0`: 기존 Event POST/WebRTC/SSE/WS metadata, RTSP/WebRTC media path,
+  Auth/Role/Scope, Rule/Profile payload schema를 유지한 operator-supervised action
+  readiness입니다.
+- `2.9.0`: 2.x의 마지막 source-of-truth 정렬, compatibility freeze, v2.8 기능군
+  회귀 묶음, release test records 적용, public docs/assets refresh, release readiness입니다.
+- `3.0.0`: 녹화, VLM 검색, 외부 VLM 연동 서버 연결, route/API/config/schema,
+  registry/storage, auth/scope, evidence 저장 형식, RTSP/WebRTC media path 같은 큰
+  변경을 별도 설계와 명시 승인 후 다루는 major line입니다.
+
+v2.9.0 제외 대상과 사유:
+
+- 녹화 기능 구현: storage/media path/evidence retention 변화가 커서 3.0.0 본작업입니다.
+- VLM 검색 구현: index/storage/provider/privacy 경계가 커서 3.0.0 본작업입니다.
+- 외부 VLM 연동 서버 connector 구현: credential, network, provider error model,
+  privacy transfer guard가 필요하므로 3.0.0 본작업입니다.
+- Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path 변경: 2.x 최종 호환성
+  기준을 깨지 않습니다.
+- runtime/model bundle default 배포: source-only release 기본 정책을 유지합니다.
+
+불변 조건:
+
+- v2.9.0의 예정 항목은 구현과 직접 evidence가 생기기 전까지 완료로 쓰지 않습니다.
+- v2.8.0 완료 evidence를 v2.9.0 완료 evidence로 재사용하지 않습니다.
+- 안정화, UI 풀테스트, 30분, 120분, published metadata는 서로 대체하지 않습니다.
+- 실제 tag/push/PR/GitHub Release는 수동 승인 후에만 수행합니다.
+- `v2.9.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
+
+| Step | ID | Priority | 상태 | 묶음 | 개발 내용 | 완료 산출물 | 검증/evidence 경계 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 0 | V290-S00 | P0 | 완료 | v2.9.0 baseline | VERSION/CMake/README/docs index/release metadata를 `2.9.0` source target과 latest published `v2.8.0` 기준으로 분리 정렬 | source `2.9.0`, latest published `v2.8.0`, current roadmap `v2.9.0 Final 2.x Closure & Compatibility Baseline` 정렬 | `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-feature-inventory-coverage`, `./server.sh build`, `git diff --check`; published metadata는 별도 |
+| 1 | V290-S01 | P0 | 완료 | 2.x final contract freeze | Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload의 2.x 최종 계약을 문서/검증 기준으로 고정 | `./server.sh verify-v290-final-contract-freeze` local verifier와 freeze-baseline 문서 hash 연결 | 3.0 신규 기능 구현이나 migration 완료 evidence가 아님 |
+| 2 | V290-S02 | P0 | 완료 | v2.8 feature regression bundle | v2.8 Action Readiness Queue, approval-gated rule draft, field readiness, runtime evidence window, client-safe digest를 v2.9 기준 회귀 묶음으로 재검증 | `./server.sh verify-v290-v28-regression-bundle`이 v2.8 S02~S06 verifier를 현재 source tree에서 재실행 | v2.8 완료 evidence 재사용이 아니라 v2.9 기준 재실행 evidence |
+| 3 | V290-S03 | P0 | 완료 | 2.x compatibility gate | v2.5~v2.8 핵심 verifier를 v2.9 release gate에서 추적할 수 있게 묶음 | `./server.sh verify-v290-2x-compatibility-baseline`이 v2.5~v2.7 핵심 feature verifier와 v2.9 S01/S02 gate를 현재 source tree에서 재실행 | 각 하위 verifier가 실제 실행한 범위만 PASS |
+| 4 | V290-S04 | P1 | 완료 | release test records enforcement | v2.8에서 개편한 테스트 기록 방식을 v2.9 기본 release 절차로 적용 | 안정화/30분/120분/UI 풀테스트별 `제목/수행내용/결과` 기록 기준과 v2.9 결과 섹션, `./server.sh verify-v290-release-test-records-enforcement` | `/tmp` 증거 금지, summary-only 기록 금지 |
+| 5 | V290-S05 | P1 | 완료 | UI fulltest criteria freeze | v2.9 기준 route/control/action/UI role/viewport/theme 확인 항목을 확정 | v2.9 UI fulltest checklist/result section, `./server.sh verify-v290-ui-fulltest-criteria-freeze`, `./server.sh verify-manual-ui-evidence` | 자동 smoke나 raw JSON을 UI PASS로 승격하지 않음 |
+| 6 | V290-S06 | P1 | 완료 | release evidence hygiene | release evidence index, release test records, feature inventory, script inventory, manual UI evidence 연결을 정리 | `./server.sh verify-v290-release-evidence-hygiene`, `OPS-047`/`SAFE-077`, S06 evidence hygiene index/records/inventory 연결 | 미실행/제외 항목은 PASS/FAIL 표에서 분리 |
+| 7 | V290-S07 | P1 | 완료 | public docs/assets refresh | README, README.en, docs index, release/version policy, stream verification, UI guide를 v2.9 기준으로 정리 | `./server.sh verify-v290-public-docs-assets-refresh`, `OPS-048`/`SAFE-078`, public docs/assets baseline 정리 | 대표 이미지 교체 없이 managed asset set과 직접 검수 경계를 고정 |
+| 8 | V290-S08 | P0 | 완료 | final stabilization | build, auth, Ops/Client UI, rule, event, metadata, media/schema, docs/inventory gate를 release 순서대로 실행 | `./server.sh verify-v290-final-stabilization-run`, `OPS-049`/`SAFE-079`, v2.9 안정화 결과 기록 | 30분/120분/UI 풀테스트/published metadata/field smoke는 실행한 경우만 별도 PASS |
+| 9 | V290-S09 | P0 | 완료 | owner release readiness | v2.9 release readiness gate와 close-out 준비 | `./server.sh verify-v290-owner-release-readiness`, `OPS-050`/`SAFE-080`, release close-out dry-run checklist | PR/tag/GitHub Release/published metadata는 실제 실행 후 별도 완료 |
+
+## v2.9.0 개발 우선순위
+
+| 순서 | ID | 중요도 | 개발 리스트 | 이유 | 선수 조건 |
+| --- | --- | --- | --- | --- | --- |
+| 1 | V290-S00 | 필수/P0 | v2.9.0 source-of-truth 정렬 | 모든 문서/verifier/release 판단의 기준점 | clean branch, latest published `v2.8.0` 확인 |
+| 2 | V290-S01 | 필수/P0 | 2.x final contract freeze | 3.0 전에 깨지면 안 되는 계약을 닫음 | V290-S00 |
+| 3 | V290-S02 | 필수/P0 | v2.8 기능군 회귀 묶음 | 최신 기능이 v2.9 baseline에서 유지되는지 확인 | V290-S01 |
+| 4 | V290-S03 | 필수/P0 | 2.x compatibility gate | v2.5~v2.8 핵심 기능을 릴리즈 gate로 묶음 | V290-S02 |
+| 5 | V290-S04 | 중요/P1 | v2.9 테스트 기록 체계 적용 | 테스트를 했는지 사람이 읽을 수 있게 남김 | V290-S03 |
+| 6 | V290-S05 | 중요/P1 | UI 풀테스트 기준 freeze | UI 직접 조작/route/control/action 누락 방지 | V290-S04 |
+| 7 | V290-S06 | 중요/P1 | release evidence hygiene | PASS/FAIL/미실행/제외 경계를 문서에 고정 | V290-S04 |
+| 8 | V290-S07 | 중요/P1 | public docs/assets refresh | 마지막 2.x 공개 문서 품질 정리 | V290-S06 |
+| 9 | V290-S08 | 필수/P0 | final stabilization run | 릴리즈 전 실제 안정화 검증 | V290-S00~S07 |
+| 10 | V290-S09 | 필수/P0 | owner release readiness | close-out 전 최종 gate | V290-S08 |
+
+## v2.9.0 S00 개발 기록
+
+- 범위: 필수/P0 `V290-S00 v2.9.0 source-of-truth 정렬`.
+- `VERSION`, `CMakeLists.txt`: 현재 source version과 CMake project version을 `2.9.0`으로 정렬했습니다.
+- `README.md`, `README.en.md`, `docs/README.md`, `docs/en/README.md`, `docs/versioning-policy.md`, `docs/release-policy.md`, `docs/public-repo-final-review.md`, `docs/ui-guide.md`: 현재 source roadmap을 `v2.9.0 Final 2.x Closure & Compatibility Baseline`으로 전환하고 latest published release는 `v2.8.0` source-only GitHub Release로 분리했습니다.
+- `docs/development-backlog.md`: V290 roadmap을 현재 source roadmap으로 승격하고 `V290-S00` 완료 상태, latest published `v2.8.0`, v2.9 publish evidence 경계를 기록했습니다.
+- `scripts/internal/verify_release_metadata_consistency.mjs`: `verify-release-metadata`가 source `2.9.0`, current roadmap `v2.9.0 Final 2.x Closure & Compatibility Baseline`, latest published `v2.8.0`을 분리 검증하도록 보정했습니다.
+- `config/docs_ui_assets.json`, `scripts/internal/verify_docs_ui_assets.mjs`, `docs/assets/ui/README.md`: docs UI asset baseline의 source version을 `2.9.0`, latest published 기준을 `v2.8.0`으로 정렬했습니다. 이미지는 교체하지 않았고 대표 이미지가 UI 풀테스트/PASS/published evidence가 아니라는 경계는 유지했습니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`: `OPS-041`, `SAFE-071`, V290-S00 안정화 verifier, 저장소 보존형 테스트 결과를 추가했습니다.
+- 검증: 최초 `./server.sh verify-release-metadata`는 backlog가 아직 v2.8 current roadmap을 요구하는 상태라 FAIL했습니다. source/published 분리 구현 후 PASS했습니다. 최초 `./server.sh verify-docs-ui-assets`는 manifest source version drift로 FAIL했고, manifest/verifier/policy 정렬 후 PASS했습니다. 최종 재검증은 `./server.sh build`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, `./server.sh verify-feature-inventory-coverage`, `git diff --check` 기준 PASS입니다.
+- 미실행/비대체: `verify-release-metadata --published`, tag/push/GitHub Release, PR/main merge, 30분/120분 장시간 테스트, UI 풀테스트 직접 조작, external TURN/WHEP, ONVIF 실기기, real cloud/VLM provider 호출은 S00 완료 근거가 아닙니다.
+
+## v2.9.0 S01 개발 기록
+
+- 범위: 필수/P0 `V290-S01 2.x final contract freeze`.
+- `docs/live-event-metadata-contracts.md`: Event POST `media-server.va.event.v1`, WebRTC DataChannel `media-server.webrtc.va-metadata.v1`/`va-metadata`, SSE/WS `media-server.va.runtime-metadata.v1`, WS control `media-server.va.metadata-control.v1`, RTSP/WebRTC live media path, Auth/Role/Scope, Rule/Profile payload의 2.x 최종 freeze matrix를 추가했습니다.
+- `scripts/internal/verify_v290_final_contract_freeze.mjs`, `server.sh`: `./server.sh verify-v290-final-contract-freeze` 명령을 추가해 contract 문서, server command, stream verification, feature inventory, backlog, release test records, freeze-baseline hash 연결을 정적 검증하도록 했습니다.
+- `test/fixtures/integrator_contract_artifact/freeze-baseline.json`: S01 문서 freeze 절 추가에 따른 `docs/live-event-metadata-contracts.md` SHA-256만 갱신했습니다. Event POST/WebRTC/SSE/WS schema/sample payload hash는 변경하지 않았습니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`: `OPS-042`, `SAFE-072`, S01 verifier, 최초 RED 실패, runtime/UI/longrun/published metadata 비대체 경계를 추가했습니다.
+- 검증: 최초 `./server.sh verify-v290-final-contract-freeze`는 command 미구현으로 FAIL했습니다. 구현 직후 첫 재실행은 verifier가 auth scope 배열 이름을 실제 `DefaultScopesForRole()` 구현과 다르게 가정해 FAIL했고, verifier 기대값을 실제 함수 구조와 scope 값 기준으로 보정했습니다. `./server.sh verify-integrator-contract-artifact` 최초 재실행은 `freeze-baseline.json` checksum과 기존 `docs/media-server-architecture.md` hash drift로 FAIL했고, 현재 파일 기준 freeze baseline/checksum을 갱신했습니다. `./server.sh verify-script-inventory` 최초 재실행은 미구현 S03 후보 명령이 `./server.sh` 명령처럼 문서화되어 FAIL했고, 후보/미구현 표현으로 되돌렸습니다. 최종 재검증은 `./server.sh verify-v290-final-contract-freeze`, `./server.sh verify-integrator-contract-artifact`, `./server.sh verify-script-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-docs-links`, `./server.sh build`, `git diff --check` 기준 PASS입니다.
+- 미실행/비대체: Event POST/WebRTC/SSE/WS runtime smoke, RTSP/WebRTC 실제 media smoke, Auth 환경변수 기반 workflow, Rule UI browser smoke, 30분/120분 장시간 테스트, UI 풀테스트 직접 조작, published metadata, tag/push/GitHub Release는 S01 local freeze gate 완료 근거가 아닙니다.
+
+## v2.9.0 S02 개발 기록
+
+- 범위: 필수/P0 `V290-S02 v2.8 기능군 회귀 묶음`.
+- `scripts/internal/verify_v290_v28_regression_bundle.mjs`, `server.sh`: `./server.sh verify-v290-v28-regression-bundle` 명령을 추가해 `verify-v280-incident-action-readiness-queue`, `verify-v280-approval-gated-rule-draft`, `verify-v280-evidence-intake-field-readiness`, `verify-v280-runtime-evidence-window`, `verify-v280-client-safe-followup-digest`를 현재 v2.9 source tree에서 순차 재실행하도록 했습니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_feature_inventory_coverage.mjs`: `OPS-043`, `SAFE-073`을 추가해 S02 bundle이 안정화 gate로 추적되도록 했습니다.
+- `docs/stream-verification.md`, `docs/release-test-records.md`: S02 명령과 최초 RED 실패, UI/30분/120분/published metadata 비대체 경계를 기록했습니다.
+- 검증: 최초 `./server.sh verify-v290-v28-regression-bundle`은 command 미구현으로 FAIL했습니다. 구현 후 `./server.sh verify-v290-v28-regression-bundle`은 docPass 5/docFail 0, subcommandPass 5/subcommandFail 0으로 PASS했고, v2.8 S02~S06 verifier 5개가 모두 현재 v2.9 source tree에서 exit 0으로 재실행됐습니다. 이후 `./server.sh verify-project-inventory`는 기존 verifier의 `SAFE-070`/`OPS-040` 기대 범위와 manual UI seed fixture `v2.8.0` target drift로 FAIL했고, 현재 S02 기준 `SAFE-073`/`OPS-043` 및 seed `v2.9.0` target으로 보정했습니다. 최종 재검증은 `./server.sh verify-v290-v28-regression-bundle`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh verify-docs-links`, `./server.sh build`, `git diff --check` 기준 PASS입니다.
+- 미실행/비대체: S02 bundle은 v2.8 S02~S06 verifier 재실행 evidence이며, v2.8 완료 evidence 재사용, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, tag/push/GitHub Release evidence가 아닙니다.
+
+## v2.9.0 S03 개발 기록
+
+- 범위: 필수/P0 `V290-S03 2.x compatibility gate`.
+- `scripts/internal/verify_v290_2x_compatibility_baseline.mjs`, `server.sh`: `./server.sh verify-v290-2x-compatibility-baseline` 명령을 추가해 v2.5 핵심 feature verifier 8개, v2.6 핵심 feature verifier 5개, v2.7 핵심 feature verifier 5개, v2.9 S01/S02 gate 2개를 현재 source tree에서 순차 실행하도록 했습니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_project_feature_test_inventory.mjs`: `OPS-044`, `SAFE-074`를 추가해 S03 compatibility baseline이 안정화 gate로 추적되도록 했습니다.
+- `docs/stream-verification.md`, `docs/release-test-records.md`: S03 명령과 최초 RED 실패, UI/30분/120분/published metadata 비대체 경계를 기록했습니다.
+- 검증: 최초 `./server.sh verify-v290-2x-compatibility-baseline`은 command 미구현으로 FAIL했습니다. 구현 후 재실행 중 기존 v2.6/v2.7 하위 verifier 일부가 현재 archived roadmap 형식과 분리된 roadmap evidence 문구를 읽지 못해 FAIL했고, S01/S02 bridge verifier가 S03 이후 feature inventory 총계/range 증가를 과거 고정값 drift로 오판해 FAIL했습니다. 제품 로직/API/schema/media path는 변경하지 않고 하위 verifier가 현재 문서 구조와 누적 feature inventory를 허용하도록 보정했습니다. 최종 `./server.sh verify-v290-2x-compatibility-baseline`은 docPass 5/docFail 0, subcommandPass 20/subcommandFail 0으로 PASS했습니다.
+- 미실행/비대체: S03 compatibility baseline은 하위 verifier 실행 범위만 PASS로 기록하며, owner release readiness, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, tag/push/GitHub Release evidence가 아닙니다.
+
+## v2.9.0 S04 개발 기록
+
+- 범위: 중요/P1 `V290-S04 v2.9 테스트 기록 체계 적용`.
+- `scripts/internal/verify_v290_release_test_records_enforcement.mjs`, `server.sh`: `./server.sh verify-v290-release-test-records-enforcement` 명령을 추가해 `docs/release-test-records.md`의 기록 원칙, 테스트 항목 상세 기록, deprecated 항목, v2.9 결과/미실행, token/time, cleanup 섹션을 정적 검증하도록 했습니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_project_feature_test_inventory.mjs`: `OPS-045`, `SAFE-075`를 추가해 S04 records enforcement가 안정화 gate로 추적되도록 했습니다.
+- `scripts/internal/verify_v290_2x_compatibility_baseline.mjs`: S04 이후 누적 inventory 증가가 S03 compatibility verifier를 깨지 않도록 S03 자체 연결은 최소 범위 이상인지 확인하도록 보정했습니다.
+- `docs/stream-verification.md`, `docs/release-test-records.md`: S04 명령, 최초 RED 실패, UI/30분/120분/published metadata 비대체 경계를 기록했습니다.
+- 검증: 최초 `./server.sh verify-v290-release-test-records-enforcement`는 command 미구현으로 FAIL했습니다. 구현 직후 첫 재실행은 release records 원칙 문장 줄바꿈 때문에 pass 6/fail 1로 FAIL했고, verifier가 Markdown 줄바꿈에 흔들리지 않도록 공백 정규화 후 재실행했습니다. 최종 재검증은 `./server.sh verify-v290-release-test-records-enforcement`, `./server.sh verify-v290-2x-compatibility-baseline`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh verify-docs-links`, `./server.sh build`, `git diff --check` 기준 PASS입니다.
+- 미실행/비대체: S04 records gate는 저장소 보존형 기록 체계 enforcement이며, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, tag/push/GitHub Release evidence가 아닙니다.
+
+## v2.9.0 S05 개발 기록
+
+- 범위: 중요/P1 `V290-S05 UI 풀테스트 기준 freeze`.
+- `docs/manual-ui-fulltest.md`, `docs/manual-ui-checklist.md`, `docs/manual-ui-result-template.md`: 현재 UI 문서 기준을 `v2.9.0 Final 2.x Closure & Compatibility Baseline`으로 정렬하고, latest published baseline을 `v2.8.0 Operator-Supervised Action Readiness`로 분리했습니다.
+- `docs/manual-ui-fulltest.md`, `docs/manual-ui-checklist.md`, `docs/manual-ui-result-template.md`: v2.9 route/control/action/role/viewport/theme freeze 기준을 `/setup`, `/login`, `/password/change`, `/invite/setup`, `/ops/home`, `/ops/dashboard`, `/ops/sources`, `/ops/rules`, `/ops/users`, `/ops/events`, `/ops/vlm`, `/client/live`, `/client/dashboard`, `/client/events`, `/client/request-access`, admin/operator/viewer/integrator, 320px/390px/760px/1180px, light/dark, nav/tab/button/menu/details, textbox/textarea/password, select/checkbox/toggle/segmented control, copy/export/preview/play/stop/reconnect 단위로 기록했습니다.
+- `scripts/internal/verify_v290_ui_fulltest_criteria_freeze.mjs`, `server.sh`: `./server.sh verify-v290-ui-fulltest-criteria-freeze` 명령을 추가해 manual UI 기준 freeze와 raw JSON/API-only/static smoke/screenshot-only/Chrome fallback 비승격 경계를 검증하도록 했습니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_project_feature_test_inventory.mjs`: `OPS-046`, `SAFE-076`을 추가해 S05 criteria freeze가 안정화 gate로 추적되도록 했습니다.
+- `scripts/internal/verify_v290_release_test_records_enforcement.mjs`: S05 이후 누적 inventory 증가가 S04 records verifier를 깨지 않도록 S04 자체 연결은 최소 범위 이상인지 확인하도록 보정했습니다.
+- `docs/stream-verification.md`, `docs/release-test-records.md`: S05 명령, 최초 RED 실패, manual UI v2.8 baseline drift 실패, UI/30분/120분/published metadata 비대체 경계를 기록했습니다.
+- 검증: 최초 `./server.sh verify-v290-ui-fulltest-criteria-freeze`는 command 미구현으로 FAIL했습니다. 최초 `./server.sh verify-manual-ui-evidence`는 manual UI 문서가 v2.8 기준이라 FAIL했습니다. 구현 후 첫 S05 verifier는 stream verification이 S05 명령 PASS 자체가 실제 인앱 브라우저 직접 조작 PASS가 아님을 명시하지 않아 pass 6/fail 1로 FAIL했고, 경계 문구를 보강했습니다. 최종 재검증은 `./server.sh verify-v290-ui-fulltest-criteria-freeze`, `./server.sh verify-manual-ui-evidence`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh verify-v290-release-test-records-enforcement`, `./server.sh verify-docs-links`, `./server.sh build`, `git diff --check` 기준 PASS입니다.
+- 미실행/비대체: S05 criteria freeze는 실제 UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, tag/push/GitHub Release evidence가 아닙니다.
+
+## v2.9.0 S06 개발 기록
+
+- 범위: 중요/P1 `V290-S06 release evidence hygiene`.
+- `docs/release-evidence-index.md`: `## v2.9.0 Release Evidence Hygiene` 절을 추가해 release evidence index, release test records, feature inventory, script inventory, manual UI evidence의 역할을 분리했습니다. 이 절은 `PASS/FAIL` 결과표와 `미실행/제외/manual-not-run/미확인` 실행 상태를 섞지 않고, `/tmp`, `/private/tmp`, `$TMPDIR` final evidence 금지를 유지합니다.
+- `scripts/internal/verify_v290_release_evidence_hygiene.mjs`, `server.sh`: `./server.sh verify-v290-release-evidence-hygiene` 명령을 추가해 roadmap/stream verification, release evidence index, release test records, feature inventory, release evidence index verifier, server entrypoint 연결을 검증하도록 했습니다.
+- `scripts/internal/verify_release_evidence_index.mjs`: 기존 `./server.sh verify-release-evidence-index`가 S06 hygiene 절과 `verify-v290-release-evidence-hygiene` 연결을 함께 확인하도록 보강했습니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_project_feature_test_inventory.mjs`: `OPS-047`, `SAFE-077`을 추가해 S06 evidence hygiene이 안정화 gate로 추적되도록 했습니다.
+- `docs/stream-verification.md`, `docs/release-test-records.md`: S06 명령, 최초 RED 실패, UI/30분/120분/published metadata 비대체 경계를 기록했습니다.
+- 검증: 최초 `./server.sh verify-v290-release-evidence-hygiene`는 command 미구현으로 FAIL했습니다. 최종 재검증은 `./server.sh verify-v290-release-evidence-hygiene`, `./server.sh verify-release-evidence-index`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh verify-v290-release-test-records-enforcement`, `./server.sh verify-v290-ui-fulltest-criteria-freeze`, `./server.sh verify-docs-links`, `./server.sh build`, `git diff --check` 기준 PASS입니다.
+- 미실행/비대체: S06 evidence hygiene gate는 실제 UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, tag/push/GitHub Release evidence가 아닙니다.
+
+## v2.9.0 S07 개발 기록
+
+- 범위: 중요/P1 `V290-S07 public docs/assets refresh`.
+- `README.md`, `README.en.md`: 대표 UI 이미지가 문서용 preview asset이며 `config/docs_ui_assets.json`과 `./server.sh verify-docs-ui-assets`로 관리된다는 public docs/assets baseline을 추가했습니다. 이번 S07에서는 이미지 파일을 새로 교체하지 않았고, 이미지 교체는 직접 이미지 검수와 링크/asset 검증 후 별도 기록하도록 했습니다.
+- `docs/README.md`, `docs/en/README.md`: 공개 문서 entrypoint가 v2.9 source tree와 v2.8 published source-only baseline을 분리하고, 대표 image set의 managed asset 기준을 함께 가리키도록 했습니다.
+- `docs/ui-guide.md`, `docs/assets/ui/README.md`: screenshot asset policy의 stale v2.5 evidence 표현을 v2.9 source 기준으로 정리하고, `v2.9.0 S07 public docs/assets refresh` 절에서 이미지 재캡처/직접 브라우저 검수/UI 풀테스트/30분/120분/published metadata 비대체 경계를 고정했습니다.
+- `docs/release-policy.md`, `docs/versioning-policy.md`: S07 local gate, 대상 공개 문서, companion verifier, publication/UI/longrun 비대체 경계를 기록했습니다.
+- `scripts/internal/verify_v290_public_docs_assets_refresh.mjs`, `server.sh`: `./server.sh verify-v290-public-docs-assets-refresh` 명령을 추가해 public README/docs index/UI guide/docs asset policy/release-version policy, managed asset set, release records, inventory, server entrypoint 연결을 검증하도록 했습니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_project_feature_test_inventory.mjs`: `OPS-048`, `SAFE-078`을 추가해 S07 public docs/assets refresh가 안정화 gate로 추적되도록 했습니다.
+- `docs/stream-verification.md`, `docs/release-test-records.md`: S07 명령, 최초 RED 실패, image recapture/UI/30분/120분/published metadata 비대체 경계를 기록했습니다.
+- 검증: 최초 `./server.sh verify-v290-public-docs-assets-refresh`는 command 미구현으로 FAIL했습니다. 구현 후 첫 재실행은 backlog 문구와 release/version policy path 문구의 verifier 기대값이 실제 줄바꿈/표현과 달라 pass 6/fail 2로 FAIL했고, 문서 문구와 verifier path 확인 방식을 보정했습니다. 최종 재검증은 `./server.sh verify-v290-public-docs-assets-refresh`, `./server.sh verify-docs-ui-assets`, `./server.sh verify-docs-links`, `./server.sh verify-release-metadata`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh verify-v290-release-evidence-hygiene`, `./server.sh verify-v290-ui-fulltest-criteria-freeze`, `./server.sh verify-v290-release-test-records-enforcement`, `./server.sh build`, `git diff --check` 기준 PASS입니다.
+- 미실행/비대체: S07 public docs/assets gate는 새 image recapture, 직접 브라우저 검수 PASS, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, tag/push/GitHub Release evidence가 아닙니다.
+
+## v2.9.0 S08 개발 기록
+
+- 범위: 필수/P0 `V290-S08 final stabilization run`.
+- `scripts/internal/verify_v290_final_stabilization_run.mjs`, `server.sh`: `./server.sh verify-v290-final-stabilization-run` 명령을 추가해 roadmap/stream verification, release test records, release evidence index, feature inventory, server entrypoint가 S08 final stabilization 결과와 미실행 경계를 같은 기준으로 가리키는지 검증하도록 했습니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_project_feature_test_inventory.mjs`: `OPS-049`, `SAFE-079`를 추가하고 전체 기능 항목 515개, UI 비대상 189개, 안정화 대상 505개, `SAFE-001`~`SAFE-079`, `OPS-035`~`OPS-049` 범위로 확장했습니다.
+- `docs/stream-verification.md`, `docs/release-evidence-index.md`: S08가 build/auth/Ops-Client UI/rule/event/metadata/media-schema/docs-inventory local script stability gate이며 UI 풀테스트, 30분/120분, published metadata, field smoke를 대체하지 않는다는 경계를 추가했습니다.
+- `docs/release-test-records.md`: S08 테스트 항목, RED command precheck, sandbox/전제 미충족/포트 mismatch 실패와 재검증 결과, build/auth/UI/rule/event/metadata/media/schema/docs/inventory 실행 결과, 미실행/제외, token/time, cleanup 기록을 추가했습니다.
+- 검증: 최초 `./server.sh verify-v290-final-stabilization-run`는 command 미구현으로 FAIL했습니다. S08 실행 중 `verify-auth-bootstrap` 기본 sandbox 실행은 RTSP bind `Operation not permitted`로 FAIL했고 권한 실행으로 PASS했습니다. `verify-ops-client-ui` 기본 실행은 server base/in-app evidence 전제 미충족으로 FAIL했고, static mode 기본 sandbox 실행은 local fetch 제한으로 FAIL한 뒤 권한 실행으로 PASS했습니다. `verify-rule-ui` 기본 실행은 Codex 인앱 evidence 또는 명시 Chrome fallback 전제 미충족으로 FAIL했고, 명시 Chrome fallback으로 PASS했습니다. `verify-codecs --help`는 help가 아니라 기본 8554/8080 check로 들어가 S08 server 포트와 맞지 않아 FAIL했고, 8555/8081 env를 명시해 PASS했습니다.
+- 최종 재검증은 `./server.sh build`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-ops-client-ui --browser-mode static --http-base http://127.0.0.1:8081`, `MEDIA_SERVER_UI_BROWSER_MODE=chrome MEDIA_SERVER_ALLOW_CHROME_FALLBACK=1 ./server.sh verify-rule-ui --http-base http://127.0.0.1:8081`, `verify-event-post --mode disabled --http-base http://127.0.0.1:8081`, `verify-codecs` with 8555/8081 env, `verify-webrtc-ice`, `verify-va-metadata-sidechannel`, `verify-ws-metadata`, `verify-webrtc-va-metadata`, `verify-rtsp-va-overlay-policy`, `verify-integrator-contract-artifact`, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`, `verify-v290-2x-compatibility-baseline`, `verify-v290-release-test-records-enforcement`, `verify-v290-ui-fulltest-criteria-freeze`, `verify-v290-release-evidence-hygiene`, `verify-v290-public-docs-assets-refresh` 기준 PASS입니다.
+- 임시 산출물: S08 throwaway server는 종료했고 8081/8555 listener 없음 확인했습니다. S08에서 새로 남은 `$TMPDIR/media_server_webrtc_va_metadata_summary_1781876018818.json`은 결과 이관 후 삭제했고, 삭제 후 경로 없음 확인했습니다.
+- 미실행/비대체: S08 final stabilization run은 UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, `verify-release-metadata --published`, tag/push/GitHub Release, external TURN/WHEP, ONVIF 실기기, real cloud/VLM provider 호출, Event POST enabled schema/recovery 완료 evidence가 아닙니다.
+
+## v2.9.0 S09 개발 기록
+
+- 범위: 필수/P0 `V290-S09 owner release readiness`.
+- `scripts/internal/verify_v290_owner_release_readiness.mjs`, `server.sh`: `./server.sh verify-v290-owner-release-readiness` 명령을 추가해 roadmap/stream verification, release policy, release evidence index, release test records, feature inventory, manual UI criteria, server entrypoint가 S09 owner readiness 결과와 미실행 경계를 같은 기준으로 가리키는지 검증하도록 했습니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_project_feature_test_inventory.mjs`: `OPS-050`, `SAFE-080`을 추가하고 전체 기능 항목 517개, UI 비대상 191개, 안정화 대상 507개, `SAFE-001`~`SAFE-080`, `OPS-035`~`OPS-050` 범위로 확장했습니다.
+- `docs/release-policy.md`, `docs/release-evidence-index.md`, `docs/release-test-records.md`, `docs/stream-verification.md`: S09가 local owner release readiness와 release close-out dry-run gate이며 UI 풀테스트, 30분/120분, published metadata, PR/main/tag/GitHub Release, field smoke를 대체하지 않는다는 경계를 추가했습니다.
+- Companion local gates: `./server.sh verify-v290-owner-release-readiness`, `./server.sh build`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-manual-ui-evidence`, `./server.sh verify-release-evidence-index`, `./server.sh verify-release-closeout-helper --dry-run`, `./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run`, `./server.sh verify-script-inventory`, `git diff --check`.
+- 검증: 최초 `./server.sh verify-v290-owner-release-readiness`는 command 미구현으로 FAIL했습니다. 구현 후 위 companion local gates와 git/tag/remote preflight를 재실행해 S09 local readiness 범위를 확인했습니다.
+- 임시 산출물: S09 local readiness/docs/inventory/evidence/closeout dry-run verifier 실행 중 최종 evidence로 보존할 `/tmp`/`/private/tmp` summary, screenshot, report를 생성하지 않았습니다.
+- 미실행/비대체: S09 owner release readiness는 UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, `verify-release-metadata --published`, PR/main/tag/GitHub Release 생성/갱신, external TURN/WHEP, ONVIF 실기기, real cloud/VLM provider 호출 완료 evidence가 아닙니다.
+
+## 완료 roadmap: v2.8.0 Operator-Supervised Action Readiness
 
 v2.8.0은 v2.7.0 source-only Operational Incident Command Loop 위에서 새 media path,
 장기 녹화, 외부 provider 성공 보장, 자동 실행형 rule 적용을 만들지 않습니다. 이번
