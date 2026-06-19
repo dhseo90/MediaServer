@@ -84,6 +84,7 @@
 | V280 owner release readiness | v2.8.0 readiness coverage와 release boundary 확인 | `verify-v280-owner-release-readiness`와 companion local gates를 실행하고 UI/30분/120분/published metadata를 대체하지 않는 문구 확인 | v2.8.0 |
 | V290 source-of-truth split | v2.9.0 source version과 latest published v2.8.0 기준 분리 확인 | `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, `./server.sh verify-feature-inventory-coverage`, `git diff --check`로 source `2.9.0`, latest published `v2.8.0`, current roadmap `v2.9.0 Final 2.x Closure & Compatibility Baseline`을 확인. published metadata, tag/push/GitHub Release, UI 풀테스트, 30분/120분 PASS로 승격하지 않음 | v2.9.0 |
 | V290 final contract freeze | Event POST/WebRTC/SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload의 2.x 최종 freeze gate 확인 | `./server.sh verify-v290-final-contract-freeze`, `./server.sh verify-integrator-contract-artifact`, `./server.sh verify-script-inventory`, `./server.sh verify-feature-inventory-coverage`, `git diff --check`로 contract 문서, server command, feature inventory, freeze-baseline hash 연결을 확인. runtime smoke, UI 풀테스트, 30분/120분, published metadata PASS로 승격하지 않음 | v2.9.0 |
+| V290 v2.8 regression bundle | v2.8 기능군 verifier를 v2.9 source tree에서 재실행했는지 확인 | `./server.sh verify-v290-v28-regression-bundle`이 `verify-v280-incident-action-readiness-queue`, `verify-v280-approval-gated-rule-draft`, `verify-v280-evidence-intake-field-readiness`, `verify-v280-runtime-evidence-window`, `verify-v280-client-safe-followup-digest`를 순차 실행하는지 확인. v2.8 완료 evidence, UI 풀테스트, 30분/120분, published metadata PASS로 승격하지 않음 | v2.9.0 |
 
 ## Deprecated 테스트 항목
 
@@ -220,6 +221,20 @@
 | v290 S01 docs links | `./server.sh verify-docs-links` 실행. markdown files 101, local links 548, images 22, anchors 96, failures 0 | pass |
 | v290 S01 build | `./server.sh build` 실행. build-gst-onnx configure/build exit 0, media_server target built | pass |
 | v290 S01 diff check | `git diff --check` 실행. whitespace error 없음 | pass |
+| v290 S02 RED command precheck | 최초 `./server.sh verify-v290-v28-regression-bundle`는 command 미구현으로 fail. S02 verifier/entrypoint 추가 전 기대 실패로 확인 | fail |
+| v290 S02 v2.8 regression bundle | `./server.sh verify-v290-v28-regression-bundle` 실행. docPass 5/docFail 0, subcommandPass 5/subcommandFail 0 | pass |
+| v290 S02 V280-S02 rerun | bundle 안에서 `verify-v280-incident-action-readiness-queue` 재실행, exit 0 | pass |
+| v290 S02 V280-S03 rerun | bundle 안에서 `verify-v280-approval-gated-rule-draft` 재실행, exit 0 | pass |
+| v290 S02 V280-S04 rerun | bundle 안에서 `verify-v280-evidence-intake-field-readiness` 재실행, exit 0 | pass |
+| v290 S02 V280-S05 rerun | bundle 안에서 `verify-v280-runtime-evidence-window` 재실행, exit 0 | pass |
+| v290 S02 V280-S06 rerun | bundle 안에서 `verify-v280-client-safe-followup-digest` 재실행, exit 0 | pass |
+| v290 S02 project inventory correction | 첫 `./server.sh verify-project-inventory`는 verifier 기대 범위가 `SAFE-070`/`OPS-040`에 남고 manual UI seed fixture가 `v2.8.0` target이라 fail. `SAFE-073`/`OPS-043` 및 seed `v2.9.0`으로 보정 후 재실행 필요 | fail |
+| v290 S02 project inventory | `./server.sh verify-project-inventory` 재실행. featureRows 503, seed fixture `v2.9.0`, pass 13/fail 0 | pass |
+| v290 S02 feature inventory coverage | `./server.sh verify-feature-inventory-coverage` 실행. featureRows 503, covered 503, missing 0, pass 5/fail 0 | pass |
+| v290 S02 script inventory | `./server.sh verify-script-inventory` 실행. pass 11/fail 0 | pass |
+| v290 S02 docs links | `./server.sh verify-docs-links` 실행. markdown files 101, local links 548, images 22, anchors 96, failures 0 | pass |
+| v290 S02 build | `./server.sh build` 실행. build-gst-onnx configure/build exit 0, media_server target built | pass |
+| v290 S02 diff check | `git diff --check` 실행. whitespace error 없음 | pass |
 
 미실행/제외:
 
@@ -234,6 +249,9 @@
 | v290 S01 UI 풀테스트 | 인앱 브라우저 route/control/action 직접 조작 | S01은 UI 변경이 아닌 contract freeze 문서/verifier 범위입니다. UI 직접 조작 PASS로 대체하지 않음 |
 | v290 S01 30분/120분 longrun | `verify-predev --soak-minutes 30`, `verify-predev --soak-minutes 120`, `verify-va-runtime-console-longrun --duration-minutes 120` | 장시간 테스트 실행 승인 없음. S01 local gate PASS로 대체하지 않음 |
 | v290 S01 published metadata | `./server.sh verify-release-metadata --published`, tag/push/GitHub Release | S01은 local source tree gate입니다. published metadata, tag, push, GitHub Release evidence로 보지 않음 |
+| v290 S02 UI 풀테스트 | 인앱 브라우저 route/control/action 직접 조작 | S02 bundle은 v2.8 S02~S06 verifier 재실행 범위입니다. UI 직접 조작 PASS로 대체하지 않음 |
+| v290 S02 30분/120분 longrun | `verify-predev --soak-minutes 30`, `verify-predev --soak-minutes 120`, `verify-va-runtime-console-longrun --duration-minutes 120` | 장시간 테스트 실행 승인 없음. S02 regression bundle PASS로 대체하지 않음 |
+| v290 S02 published metadata | `./server.sh verify-release-metadata --published`, tag/push/GitHub Release | S02는 local source tree regression gate입니다. published metadata, tag, push, GitHub Release evidence로 보지 않음 |
 
 ### v2.8.0
 
