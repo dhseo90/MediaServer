@@ -14,6 +14,12 @@ points to the current public sources.
   bundles are not included.
 - Current source roadmap: `v2.9.0 Final 2.x Closure & Compatibility Baseline`
 - Default public distribution: source-only
+- Public docs/assets baseline: `README.md`, `README.en.md`, `docs/README.md`,
+  `docs/en/README.md`, `docs/ui-guide.md`, and `docs/assets/ui/README.md`
+  separate the v2.9 source tree from the v2.8 published baseline. Representative
+  screenshots are managed by `config/docs_ui_assets.json` and
+  `./server.sh verify-docs-ui-assets`; replacements require a separate direct
+  image review record.
 
 ## Start Here
 

@@ -53,6 +53,30 @@ git diff --check
 이 명령은 local 문서/버전 기준과 dry-run gate를 확인합니다. tag, push, GitHub Release,
 main merge를 수행하지 않습니다.
 
+## Public Docs / Assets Refresh
+
+v2.9.0 S07 public docs/assets refresh는 공개 첫 진입점과 대표 UI 이미지 policy를
+정리하는 local gate입니다. 대상 문서는 `README.md`, `README.en.md`,
+`docs/README.md`, `docs/en/README.md`, `docs/ui-guide.md`,
+`docs/assets/ui/README.md`, 이 정책 문서, [versioning-policy.md](versioning-policy.md)입니다.
+
+Companion local gate:
+
+```bash
+./server.sh verify-v290-public-docs-assets-refresh
+./server.sh verify-docs-ui-assets
+./server.sh verify-docs-links
+./server.sh verify-release-metadata
+git diff --check
+```
+
+대표 UI 이미지는 `config/docs_ui_assets.json`의 managed asset list로 관리합니다.
+이 gate PASS는 image recapture, 직접 브라우저 검수 PASS, UI 풀테스트 PASS,
+30분/120분 longrun PASS, published metadata, tag/push/GitHub Release 완료가 아닙니다.
+이미지 재캡처나 직접 브라우저 검수 PASS가 아닙니다. 이미지 교체가 필요하면 직접
+이미지 검수와 `verify-docs-ui-assets` 재실행 결과를 별도 release test record에
+남깁니다.
+
 ## 릴리즈 테스트 기록
 
 테스트 항목 상세와 버전별 테스트 결과는

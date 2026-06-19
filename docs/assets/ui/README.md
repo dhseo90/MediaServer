@@ -26,6 +26,32 @@ README, README.en, `docs/ui-guide.md`, `docs/video-analysis.md`에서 참조하�
 `scripts/internal/rule_preview_fixture_helpers.mjs`의 공통 profile/event/VA rule
 fixture를 사용해 preview prerequisite drift를 막습니다.
 
+## v2.9.0 S07 public docs/assets refresh
+
+이번 S07에서는 이미지 파일을 새로 교체하지 않았습니다. public entry 문서와
+UI guide가 같은 managed asset set을 참조하는지, 그리고 대표 이미지가 release
+publish evidence나 UI 풀테스트 PASS로 쓰이지 않는지 문서 기준을 정리합니다.
+대표 이미지 교체는 직접 이미지 검수와 `./server.sh verify-docs-ui-assets` 재실행
+후에만 기록합니다. 열지 않은 이미지는 PASS가 아니라 `미확인`으로 남깁니다.
+
+S07 기준 공개 문서 묶음:
+
+- `README.md`
+- `README.en.md`
+- `docs/README.md`
+- `docs/en/README.md`
+- `docs/ui-guide.md`
+- `docs/assets/ui/README.md`
+
+S07 기준:
+
+- v2.9.0 source tree와 v2.8.0 published source-only baseline을 분리합니다.
+- 대표 이미지는 `config/docs_ui_assets.json`의 managed asset list 안에서만 README와
+  UI guide에 노출합니다.
+- Chrome/CDP fallback 재캡처는 사용자가 명시 승인한 예외일 때만 후보로 둡니다.
+- image recapture, 직접 브라우저 검수, UI 풀테스트, 30분/120분, published metadata는
+  `verify-v290-public-docs-assets-refresh` PASS로 대체하지 않습니다.
+
 ## Docs Image Review 기준
 
 문서가 참조하는 전체 이미지 20개는 manifest 관리 대상입니다. static gate는
@@ -51,7 +77,7 @@ Chrome/CDP로 생성된 재캡처 산출물은 대표 이미지로 채택하지 
   bbox/label, 영역/라인 control이 잘리지 않습니다.
 - VLM 전용 `/ops/vlm`, `/ops/events` review-assist 화면은 이 대표 이미지 세트로
   대체하지 않습니다.
-- 이번 문서 정리에서는 이미지 파일을 새로 교체하지 않습니다.
+- 이번 S07 public docs/assets refresh에서는 이미지 파일을 새로 교체하지 않았습니다.
 
 직접 이미지 검수 checklist:
 

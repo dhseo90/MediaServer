@@ -48,6 +48,14 @@ v2.8.0 published evidence를 v2.9.0 완료 evidence로 재사용하지 않습니
 tag, 30분/120분 장시간 테스트, UI 풀테스트, 외부 field smoke는 별도 실행 evidence가
 있을 때만 완료로 씁니다.
 
+`public docs/assets refresh`는 `README.md`, `README.en.md`, `docs/README.md`,
+`docs/en/README.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`,
+release/version policy가 같은 v2.9 source와 v2.8 published baseline을 말하는지
+확인하는 local gate입니다. 대표 UI 이미지는 `config/docs_ui_assets.json`의 managed
+asset list로 관리하며, image recapture, 직접 브라우저 검수 PASS, UI 풀테스트,
+published metadata, tag/push/GitHub Release는 `verify-v290-public-docs-assets-refresh`
+PASS로 대체하지 않습니다.
+
 ## v2.7.0 historical published source-only release 범위
 
 - v2.7.0 source-of-truth/bootstrap 정렬

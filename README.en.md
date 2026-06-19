@@ -151,6 +151,10 @@ records live in dedicated docs.
 
 These images are documentation preview assets. They are not UI fulltest PASS
 evidence, GitHub Release publish evidence, or a replacement for current UI review.
+The Public docs/assets baseline is managed by `config/docs_ui_assets.json` and
+`./server.sh verify-docs-ui-assets`. The S07 public docs/assets refresh keeps the
+current representative screenshots; replacing images requires direct image review
+plus link/asset verification and a separate record.
 
 **Ops Home**
 

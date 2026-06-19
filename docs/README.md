@@ -13,6 +13,11 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 - v2.8.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
 - 현재 source roadmap: `v2.9.0 Final 2.x Closure & Compatibility Baseline`
 - 기본 공개 형태: source-only
+- 공개 문서/대표 asset 기준: `README.md`, `README.en.md`, `docs/README.md`,
+  `docs/en/README.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`는 v2.9
+  source와 v2.8 published baseline을 분리합니다. 대표 이미지는
+  `config/docs_ui_assets.json`과 `./server.sh verify-docs-ui-assets`로 관리하고,
+  교체 시 직접 이미지 검수 기록을 별도로 남깁니다.
 
 ## 먼저 볼 문서
 

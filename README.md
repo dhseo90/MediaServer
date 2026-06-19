@@ -139,6 +139,10 @@ README에는 전체 흐름이 바로 읽히는 대표 제품 화면만 배치합
 개발 진단과 분석 편집 상세는 [docs/ui-guide.md](docs/ui-guide.md)에서 따로 다룹니다.
 대표 이미지는 문서용 역할 이미지입니다. UI 풀테스트 PASS 증거, GitHub Release publish
 evidence, 운영 QA registry가 섞인 재캡처를 대신하지 않습니다.
+공개 문서/대표 asset 기준은 `config/docs_ui_assets.json`과
+`./server.sh verify-docs-ui-assets`로 관리합니다. 현재 S07 public docs/assets
+refresh에서는 기존 대표 이미지를 유지하며, 새 이미지 교체는 직접 이미지 검수와
+링크/asset 검증 후 별도 기록합니다.
 
 **Ops Home**
 

@@ -67,7 +67,7 @@ v2.9.0 제외 대상과 사유:
 | 4 | V290-S04 | P1 | 완료 | release test records enforcement | v2.8에서 개편한 테스트 기록 방식을 v2.9 기본 release 절차로 적용 | 안정화/30분/120분/UI 풀테스트별 `제목/수행내용/결과` 기록 기준과 v2.9 결과 섹션, `./server.sh verify-v290-release-test-records-enforcement` | `/tmp` 증거 금지, summary-only 기록 금지 |
 | 5 | V290-S05 | P1 | 완료 | UI fulltest criteria freeze | v2.9 기준 route/control/action/UI role/viewport/theme 확인 항목을 확정 | v2.9 UI fulltest checklist/result section, `./server.sh verify-v290-ui-fulltest-criteria-freeze`, `./server.sh verify-manual-ui-evidence` | 자동 smoke나 raw JSON을 UI PASS로 승격하지 않음 |
 | 6 | V290-S06 | P1 | 완료 | release evidence hygiene | release evidence index, release test records, feature inventory, script inventory, manual UI evidence 연결을 정리 | `./server.sh verify-v290-release-evidence-hygiene`, `OPS-047`/`SAFE-077`, S06 evidence hygiene index/records/inventory 연결 | 미실행/제외 항목은 PASS/FAIL 표에서 분리 |
-| 7 | V290-S07 | P1 | 예정 | public docs/assets refresh | README, README.en, docs index, release/version policy, stream verification, UI guide를 v2.9 기준으로 정리 | 공개 첫 화면과 문서 색인 최신화 | 대표 이미지가 현재 UI와 맞는지 별도 확인 |
+| 7 | V290-S07 | P1 | 완료 | public docs/assets refresh | README, README.en, docs index, release/version policy, stream verification, UI guide를 v2.9 기준으로 정리 | `./server.sh verify-v290-public-docs-assets-refresh`, `OPS-048`/`SAFE-078`, public docs/assets baseline 정리 | 대표 이미지 교체 없이 managed asset set과 직접 검수 경계를 고정 |
 | 8 | V290-S08 | P0 | 예정 | final stabilization | build, auth, Ops/Client UI, rule, event, metadata, media/schema, docs/inventory gate를 release 순서대로 실행 | v2.9 안정화 결과 기록 | 30분/120분/UI 풀테스트는 실행한 경우만 별도 PASS |
 | 9 | V290-S09 | P0 | 예정 | owner release readiness | v2.9 release readiness gate와 close-out 준비 | `verify-v290-owner-release-readiness` 후보, release close-out checklist | PR/tag/GitHub Release/published metadata는 실제 실행 후 별도 완료 |
 
@@ -158,6 +158,19 @@ v2.9.0 제외 대상과 사유:
 - `docs/stream-verification.md`, `docs/release-test-records.md`: S06 명령, 최초 RED 실패, UI/30분/120분/published metadata 비대체 경계를 기록했습니다.
 - 검증: 최초 `./server.sh verify-v290-release-evidence-hygiene`는 command 미구현으로 FAIL했습니다. 최종 재검증은 `./server.sh verify-v290-release-evidence-hygiene`, `./server.sh verify-release-evidence-index`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh verify-v290-release-test-records-enforcement`, `./server.sh verify-v290-ui-fulltest-criteria-freeze`, `./server.sh verify-docs-links`, `./server.sh build`, `git diff --check` 기준 PASS입니다.
 - 미실행/비대체: S06 evidence hygiene gate는 실제 UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, tag/push/GitHub Release evidence가 아닙니다.
+
+## v2.9.0 S07 개발 기록
+
+- 범위: 중요/P1 `V290-S07 public docs/assets refresh`.
+- `README.md`, `README.en.md`: 대표 UI 이미지가 문서용 preview asset이며 `config/docs_ui_assets.json`과 `./server.sh verify-docs-ui-assets`로 관리된다는 public docs/assets baseline을 추가했습니다. 이번 S07에서는 이미지 파일을 새로 교체하지 않았고, 이미지 교체는 직접 이미지 검수와 링크/asset 검증 후 별도 기록하도록 했습니다.
+- `docs/README.md`, `docs/en/README.md`: 공개 문서 entrypoint가 v2.9 source tree와 v2.8 published source-only baseline을 분리하고, 대표 image set의 managed asset 기준을 함께 가리키도록 했습니다.
+- `docs/ui-guide.md`, `docs/assets/ui/README.md`: screenshot asset policy의 stale v2.5 evidence 표현을 v2.9 source 기준으로 정리하고, `v2.9.0 S07 public docs/assets refresh` 절에서 이미지 재캡처/직접 브라우저 검수/UI 풀테스트/30분/120분/published metadata 비대체 경계를 고정했습니다.
+- `docs/release-policy.md`, `docs/versioning-policy.md`: S07 local gate, 대상 공개 문서, companion verifier, publication/UI/longrun 비대체 경계를 기록했습니다.
+- `scripts/internal/verify_v290_public_docs_assets_refresh.mjs`, `server.sh`: `./server.sh verify-v290-public-docs-assets-refresh` 명령을 추가해 public README/docs index/UI guide/docs asset policy/release-version policy, managed asset set, release records, inventory, server entrypoint 연결을 검증하도록 했습니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_project_feature_test_inventory.mjs`: `OPS-048`, `SAFE-078`을 추가해 S07 public docs/assets refresh가 안정화 gate로 추적되도록 했습니다.
+- `docs/stream-verification.md`, `docs/release-test-records.md`: S07 명령, 최초 RED 실패, image recapture/UI/30분/120분/published metadata 비대체 경계를 기록했습니다.
+- 검증: 최초 `./server.sh verify-v290-public-docs-assets-refresh`는 command 미구현으로 FAIL했습니다. 구현 후 첫 재실행은 backlog 문구와 release/version policy path 문구의 verifier 기대값이 실제 줄바꿈/표현과 달라 pass 6/fail 2로 FAIL했고, 문서 문구와 verifier path 확인 방식을 보정했습니다. 최종 재검증은 `./server.sh verify-v290-public-docs-assets-refresh`, `./server.sh verify-docs-ui-assets`, `./server.sh verify-docs-links`, `./server.sh verify-release-metadata`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh verify-v290-release-evidence-hygiene`, `./server.sh verify-v290-ui-fulltest-criteria-freeze`, `./server.sh verify-v290-release-test-records-enforcement`, `./server.sh build`, `git diff --check` 기준 PASS입니다.
+- 미실행/비대체: S07 public docs/assets gate는 새 image recapture, 직접 브라우저 검수 PASS, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, tag/push/GitHub Release evidence가 아닙니다.
 
 ## 완료 roadmap: v2.8.0 Operator-Supervised Action Readiness
 
