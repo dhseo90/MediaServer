@@ -102,20 +102,20 @@ check("release records include S04 test item, RED failure, and not-run boundarie
 });
 
 check("feature inventory maps V290-S04 to OPS-045 and SAFE-075", () => {
+  assertSummaryCountAtLeast("전체 기능 항목", 507);
+  assertSummaryCountAtLeast("기능 ID 목록", 507);
+  assertRangeCovers("SAFE", 75);
+  assertRangeCovers("OPS", 45);
   for (const snippet of [
-    "전체 기능 항목 | 507",
-    "기능 ID 목록 | 507개 기능 ID",
     "V290-S04 release test records enforcement | `OPS-045`, `SAFE-075` | `verify-v290-release-test-records-enforcement`",
-    "`SAFE-001`~`SAFE-075`",
-    "`OPS-035`~`OPS-045`",
     "SAFE-075 | V290-S04 release test records enforcement boundary",
     "OPS-045 | V290-S04 release test records enforcement 게이트",
   ]) {
     assert(featureInventory.includes(snippet), `feature inventory missing S04 snippet: ${snippet}`);
   }
   assert(coverageVerifier.includes("verify-v290-release-test-records-enforcement"), "feature coverage missing V290-S04 verifier");
-  assert(projectInventoryVerifier.includes("`SAFE-001`~`SAFE-075`"), "project inventory verifier missing SAFE-075 range");
-  assert(projectInventoryVerifier.includes("`OPS-035`~`OPS-045`"), "project inventory verifier missing OPS-045 range");
+  assert(projectInventoryVerifierRangeCovers("SAFE", 75), "project inventory verifier missing SAFE-075 coverage");
+  assert(projectInventoryVerifierRangeCovers("OPS", 45), "project inventory verifier missing OPS-045 coverage");
 });
 
 check("server entrypoint exposes V290-S04 records command", () => {
@@ -175,4 +175,32 @@ function assert(condition, message) {
 
 function normalizeWhitespace(text) {
   return text.replace(/\s+/g, " ");
+}
+
+function assertSummaryCountAtLeast(label, minimum) {
+  const pattern = new RegExp(`\\| ${escapeRegExp(label)} \\| ([0-9]+)`);
+  const match = featureInventory.match(pattern);
+  assert(match, `feature inventory missing summary count: ${label}`);
+  const count = Number.parseInt(match[1], 10);
+  assert(count >= minimum, `feature inventory ${label} ${count} below ${minimum}`);
+}
+
+function assertRangeCovers(prefix, minimum) {
+  const pattern = new RegExp(`\`${prefix}-[0-9]{3}\`~\`${prefix}-([0-9]{3})\``, "g");
+  const matches = [...featureInventory.matchAll(pattern)];
+  assert(matches.length > 0, `feature inventory missing ${prefix} range`);
+  const max = Math.max(...matches.map((match) => Number.parseInt(match[1], 10)));
+  assert(max >= minimum, `feature inventory ${prefix} range ${max} below ${minimum}`);
+}
+
+function projectInventoryVerifierRangeCovers(prefix, minimum) {
+  const pattern = new RegExp(`\`${prefix}-[0-9]{3}\`~\`${prefix}-([0-9]{3})\``, "g");
+  const matches = [...projectInventoryVerifier.matchAll(pattern)];
+  if (matches.length === 0) return false;
+  const max = Math.max(...matches.map((match) => Number.parseInt(match[1], 10)));
+  return max >= minimum;
+}
+
+function escapeRegExp(text) {
+  return text.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }

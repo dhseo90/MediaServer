@@ -10,7 +10,7 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 
 ## 검수 메타데이터
 
-## v2.8.0 Release Evidence Index
+## v2.9.0 Release Evidence Index
 
 - run id:
 - 검수자:
@@ -65,7 +65,7 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 
 | 항목 | 기대 상태 | 실제 상태 | 판정 | 후속 |
 | --- | --- | --- | --- | --- |
-| 기능 목록 freeze | `v2.7.0 Operational Incident Command Loop Coverage Mapping`과 기능 ID 목록 확인 |  | PASS/FAIL |  |
+| 기능 목록 freeze | `v2.9.0 Final 2.x Closure & Compatibility Baseline`과 기능 ID 목록 확인 |  | PASS/FAIL |  |
 | VLM UI 대상 | `/ops/vlm`, `/ops/events`, `/client/live`, `/client/dashboard`, `/client/events` 결과 행 존재 |  | PASS/FAIL |  |
 | auth verifier env | auth test password env 5개 모두 `SET` |  | PASS/FAIL |  |
 | throwaway fixture | users/source/view/analysis/event/snapshot/clip 경로 고정 |  | PASS/FAIL |  |
@@ -128,6 +128,25 @@ screenshot artifact, raw JSON 확인만으로 이 문서를 채우지 않습니�
 - 실패 후 재검수한 화면:
 - raw JSON/API-only 또는 자동 smoke만 확인한 항목:
 - UI 풀테스트 직접 조작 미실행 항목:
+
+## v2.9.0 UI Fulltest Criteria Freeze
+
+이 섹션은 S05 기준 freeze입니다. 실제 UI 풀테스트 PASS가 아니라, UI 풀테스트를
+실행할 때 빠뜨리면 안 되는 route/control/action/role/viewport/theme 기준을 고정합니다.
+raw JSON/API-only/static smoke/screenshot-only/Chrome fallback은 UI 풀테스트 PASS로
+쓰지 않습니다.
+
+| 기준 | 대상 | 기록 방식 | 판정 |
+| --- | --- | --- | --- |
+| route | `/setup`, `/login`, `/password/change`, `/invite/setup`, `/ops/home`, `/ops/dashboard`, `/ops/sources`, `/ops/rules`, `/ops/users`, `/ops/events`, `/ops/vlm`, `/client/live`, `/client/dashboard`, `/client/events`, `/client/request-access` | 실제로 열고 직접 조작한 화면만 evidence index와 기능 ID 행에 기록 | PASS/FAIL |
+| role | admin, operator, viewer, integrator | route guard, 허용/거부 landing, client/viewer redaction을 계정별로 기록 | PASS/FAIL |
+| viewport/theme | 320px, 390px, 760px, 1180px, light, dark | overflow, clipping, contrast, focus/hover/selected/disabled 상태를 화면별로 기록 | PASS/FAIL |
+| controls/actions | nav/tab/button/menu/details, textbox/textarea/password, select/checkbox/toggle/segmented control, copy/export/preview/play/stop/reconnect | 클릭/타이핑/선택과 반영 상태, 로그/EventRecord 대조를 개별 기능 ID로 기록 | PASS/FAIL |
+
+- 자동 smoke로만 확인한 route/control/action:
+- raw JSON/API-only로만 확인한 기능 ID:
+- screenshot-only 또는 Chrome fallback-only 항목:
+- 인앱 브라우저 직접 조작 미실행 항목:
 
 ## 현재 보존 증적
 

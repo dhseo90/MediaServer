@@ -198,6 +198,8 @@ Usage:
                  v2.9.0 S03 v2.5~v2.8 핵심 compatibility verifier를 현재 source tree에서 재실행합니다.
   verify-v290-release-test-records-enforcement
                  v2.9.0 S04 release test records enforcement와 테스트 기록/미실행 경계를 검증합니다.
+  verify-v290-ui-fulltest-criteria-freeze
+                 v2.9.0 S05 UI 풀테스트 route/control/action/role/viewport/theme 기준 freeze를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -1060,6 +1062,10 @@ case "${cmd}" in
   verify-v290-release-test-records-enforcement)
     require_internal verify_v290_release_test_records_enforcement.mjs
     exec "${INTERNAL_DIR}/verify_v290_release_test_records_enforcement.mjs" "$@"
+    ;;
+  verify-v290-ui-fulltest-criteria-freeze)
+    require_internal verify_v290_ui_fulltest_criteria_freeze.mjs
+    exec "${INTERNAL_DIR}/verify_v290_ui_fulltest_criteria_freeze.mjs" "$@"
     ;;
   verify-v260-incident-memory-productization)
     require_internal verify_v260_incident_memory_productization.mjs

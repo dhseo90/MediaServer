@@ -5,10 +5,10 @@
 세부 기준으로 삼고, 기능별 UI 필요 여부와 테스트 영역은
 [project-feature-test-inventory.md](./project-feature-test-inventory.md)를 기준으로
 합니다. 결과 기록은 [manual-ui-result-template.md](./manual-ui-result-template.md)를
-사용합니다. 최신 공개 release 기준은 `v2.7.0`이고 현재 release 목표는 `v2.8.0`이며,
-UI 문서 기준은 `v2.8.0 Operator-Supervised Action Readiness`입니다. UI 풀테스트
+사용합니다. 최신 공개 release 기준은 `v2.8.0`이고 현재 release 목표는 `v2.9.0`이며,
+UI 문서 기준은 `v2.9.0 Final 2.x Closure & Compatibility Baseline`입니다. UI 풀테스트
 기준은 해당 작업 범위에 포함된 제품 route, 권한, 기능 baseline만 대상으로 합니다.
-현재 release 목표는 `v2.8.0`, v2.8.0 release UI gate는 현재 release target의 UI evidence 경계를 뜻하며, UI
+현재 release 목표는 `v2.9.0`, v2.9.0 release UI gate는 현재 release target의 UI evidence 경계를 뜻하며, UI
 재배치 문서 준비나 자동 smoke만으로 UI 풀테스트 PASS를 뜻하지 않습니다.
 문서 구조와 evidence 경계는 `./server.sh verify-manual-ui-evidence`로 확인합니다.
 현재 제품 UI 직접 조작 evidence 없이 완료 판정에 포함하지 않습니다.
@@ -55,6 +55,16 @@ UI 풀테스트도 버전 로드맵 완료 시 수행 대상이지만, 실제 �
   아니므로, 행이 있다는 이유만으로 완료 처리하지 않습니다.
 - 현재 scope 밖 기능, release 비범위, 실장비/외부 credential이 필요한 흐름은
   임의로 확장하지 않습니다.
+- v2.9.0 release UI gate는 새 route 추가가 아니라 현재 2.x route/control/action/
+  role/viewport/theme freeze입니다. `/setup`, `/login`, `/password/change`,
+  `/invite/setup`, `/ops/home`, `/ops/dashboard`, `/ops/sources`, `/ops/rules`,
+  `/ops/users`, `/ops/events`, `/ops/vlm`, `/client/live`, `/client/dashboard`,
+  `/client/events`, `/client/request-access`를 실제로 열고, admin/operator/viewer/
+  integrator role guard, 320px/390px/760px/1180px viewport, light/dark theme,
+  nav/tab/button/menu/details, textbox/textarea/password, select/checkbox/toggle/
+  segmented control, copy/export/preview/play/stop/reconnect action을 개별 기능
+  행으로 기록합니다. raw JSON/API-only/static smoke/screenshot-only/Chrome fallback은
+  UI 풀테스트 PASS로 쓰지 않습니다.
 
 ## 2. 데이터 리셋과 서버 준비
 
