@@ -26,12 +26,12 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 505 |
+| 전체 기능 항목 | 507 |
 | UI 직접 필요 | 295 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 179 |
-| 테스트 필요 | 505 |
-| 안정화 대상 | 495 |
+| UI 비대상 | 181 |
+| 테스트 필요 | 507 |
+| 안정화 대상 | 497 |
 | UI 풀테스트 대상 | 315 |
 | 30분 soak 대상 | 47 |
 | 120분 대상 | 7 |
@@ -42,7 +42,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 505개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 507개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -66,6 +66,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | V290-S01 2.x final contract freeze | `OPS-042`, `SAFE-072` | `verify-v290-final-contract-freeze` | Event POST/WebRTC/SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload의 2.x 최종 계약 기준. 3.0 migration 구현 evidence가 아님 |
 | V290-S02 v2.8 feature regression bundle | `OPS-043`, `SAFE-073` | `verify-v290-v28-regression-bundle` | v2.8 완료 evidence 재사용이 아니라 v2.9 기준 재실행 evidence |
 | V290-S03 2.x compatibility gate | `OPS-044`, `SAFE-074` | `verify-v290-2x-compatibility-baseline` | v2.5~v2.8 하위 verifier가 실제 실행한 범위만 PASS |
+| V290-S04 release test records enforcement | `OPS-045`, `SAFE-075` | `verify-v290-release-test-records-enforcement` | 저장소 보존형 테스트 기록 체계, pass/fail 결과표, 미실행/제외 분리, cleanup/token 기록 기준. UI/30분/120분/published metadata 실행 evidence가 아님 |
 
 ## v2.8.0 Operator-Supervised Action Readiness Coverage Mapping
 
@@ -166,8 +167,8 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | `CLIENT-001`~`CLIENT-024` | client/UI verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-021` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
 | `LAB-001`~`LAB-082` | lab/VLM/v250/v260/v270/v280 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-074` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-044` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
+| `SAFE-001`~`SAFE-075` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-045` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
 
 ## VA Manual UI Seed Matrix
 
@@ -747,6 +748,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | SAFE-072 | V290-S01 2.x final contract freeze boundary | 비대상 | 필요 | 안정화 | `verify-v290-final-contract-freeze`가 Event POST/WebRTC/SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload의 2.x freeze 문서와 freeze-baseline hash 연결을 확인하되 runtime smoke, UI 풀테스트, 30분/120분, published metadata PASS로 승격하지 않음 |
 | SAFE-073 | V290-S02 v2.8 기능군 회귀 묶음 boundary | 비대상 | 필요 | 안정화 | `verify-v290-v28-regression-bundle`이 v2.8 S02~S06 verifier를 v2.9 source tree에서 재실행하되 v2.8 완료 evidence 재사용, UI 직접 조작 PASS, 30분/120분, published metadata PASS로 승격하지 않음 |
 | SAFE-074 | V290-S03 2.x compatibility baseline boundary | 비대상 | 필요 | 안정화 | `verify-v290-2x-compatibility-baseline`이 v2.5~v2.8 핵심 verifier와 v2.9 S01/S02 gate를 현재 source tree에서 재실행하되 각 하위 verifier 실행 범위만 PASS로 기록하고 UI/30분/120분/published metadata PASS로 승격하지 않음 |
+| SAFE-075 | V290-S04 release test records enforcement boundary | 비대상 | 필요 | 안정화 | `verify-v290-release-test-records-enforcement`가 저장소 보존형 테스트 기록의 pass/fail 결과표, 미실행/제외 분리, `/tmp` final evidence 금지, summary-only 금지, cleanup/token 기록 경계를 확인하되 UI/30분/120분/published metadata PASS로 대체하지 않음 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -762,6 +764,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | OPS-042 | V290-S01 2.x final contract freeze 게이트 | 비대상 | 필요 | 안정화 | `verify-v290-final-contract-freeze`가 contract freeze 문서, server command, stream verification, feature inventory, release test records, integrator freeze-baseline 연결을 확인하되 PR/main/tag/push/GitHub Release, UI/longrun 실행 PASS로 대체하지 않음 |
 | OPS-043 | V290-S02 v2.8 기능군 회귀 묶음 게이트 | 비대상 | 필요 | 안정화 | `verify-v290-v28-regression-bundle`이 `verify-v280-incident-action-readiness-queue`, `verify-v280-approval-gated-rule-draft`, `verify-v280-evidence-intake-field-readiness`, `verify-v280-runtime-evidence-window`, `verify-v280-client-safe-followup-digest`를 현재 source tree에서 재실행하되 release publish, PR/main/tag/push, UI/longrun 실행 PASS로 대체하지 않음 |
 | OPS-044 | V290-S03 2.x compatibility baseline 게이트 | 비대상 | 필요 | 안정화 | `verify-v290-2x-compatibility-baseline`이 v2.5/v2.6/v2.7 핵심 feature verifier와 `verify-v290-final-contract-freeze`, `verify-v290-v28-regression-bundle`을 현재 source tree에서 재실행하되 owner release readiness, PR/main/tag/push/GitHub Release, UI/longrun 실행 PASS로 대체하지 않음 |
+| OPS-045 | V290-S04 release test records enforcement 게이트 | 비대상 | 필요 | 안정화 | `verify-v290-release-test-records-enforcement`가 `docs/release-test-records.md`의 테스트 항목/결과/deprecated/미실행/cleanup/token 기록 구조를 확인하되 실제 안정화/UI/30분/120분/published metadata 실행 완료로 대체하지 않음 |
 
 ## Coverage Review To Do
 

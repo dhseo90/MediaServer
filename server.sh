@@ -196,6 +196,8 @@ Usage:
                  v2.9.0 S02 v2.8 기능군 verifier를 현재 source tree에서 재실행해 regression bundle을 검증합니다.
   verify-v290-2x-compatibility-baseline
                  v2.9.0 S03 v2.5~v2.8 핵심 compatibility verifier를 현재 source tree에서 재실행합니다.
+  verify-v290-release-test-records-enforcement
+                 v2.9.0 S04 release test records enforcement와 테스트 기록/미실행 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -1054,6 +1056,10 @@ case "${cmd}" in
   verify-v290-2x-compatibility-baseline)
     require_internal verify_v290_2x_compatibility_baseline.mjs
     exec "${INTERNAL_DIR}/verify_v290_2x_compatibility_baseline.mjs" "$@"
+    ;;
+  verify-v290-release-test-records-enforcement)
+    require_internal verify_v290_release_test_records_enforcement.mjs
+    exec "${INTERNAL_DIR}/verify_v290_release_test_records_enforcement.mjs" "$@"
     ;;
   verify-v260-incident-memory-productization)
     require_internal verify_v260_incident_memory_productization.mjs
