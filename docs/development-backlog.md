@@ -16,6 +16,104 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
   포함하지 않습니다.
 - 현재 source roadmap: `v2.9.0 Final 2.x Closure & Compatibility Baseline`
 
+## 계획 roadmap: v3.0.0 Event Evidence Search MVP
+
+상태: 계획 확정, 구현 전. 이 절은 v3.0.0 기능 완료 evidence가 아니며, 현재 source
+version을 `3.0.0`으로 승격하지 않습니다. 실제 구현은 각 Step별 코드/UI/API/검증
+evidence가 생긴 뒤에만 완료로 기록합니다.
+
+직접 답: v3.0.0의 1차 선택값은 `Event Evidence Search MVP`입니다. 이 방향은
+MediaServer를 VMS/NVR로 확장하지 않고, 실시간 VA 이벤트에서 검색 가능한 evidence
+bundle과 비식별 VLM feature를 생성해 운영자가 `/ops/events`에서 자연어로 사건을
+찾고 근거 frame을 검토할 수 있게 합니다.
+
+설계 기록: [docs/superpowers/specs/2026-06-20-v300-v310-event-evidence-search-roadmap-design.md](superpowers/specs/2026-06-20-v300-v310-event-evidence-search-roadmap-design.md)
+
+포함 범위:
+
+- 상시녹화가 아닌 이벤트 중심 evidence 저장
+- event frame 필수 저장, representative image 선택 저장
+- bbox crop, pre/event/post frame bundle, FrameRef contract
+- 확장 가능한 비식별 VLM feature schema
+- raw LLM/VLM prompt와 raw response 미저장
+- background-first VLM feature queue와 lazy fallback
+- 자연어 query를 제한된 Search DSL로 변환
+- text/tags/filter 기반 `/ops/events` 검색과 evidence detail UI
+- 기본 7일 retention, pin 보존, 운영자 설정 가능 cleanup
+
+제외 범위:
+
+- 24/7 상시녹화, VMS/NVR archive API
+- encoded MP4/WebM event clip과 clip playback
+- 얼굴 인식, 신원 식별, watchlist, face embedding
+- raw prompt/response/provider request body 보관
+- client/viewer 노출, cloud provider default-on, vector search 기본 탑재
+
+리스크와 대응:
+
+- VMS/NVR 범위 확장 위험: 상시녹화와 broad archive/playback API를 제외합니다.
+- VLM 지연/실패 위험: media/EventRecord/evidence 경로와 VLM queue를 분리하고
+  VLM-only failure로 기록합니다.
+- privacy 노출 위험: feature-only retention을 사용하고 raw prompt/response를 저장하지
+  않습니다.
+- 재생/근거 추적 위험: evidence와 feature provenance에 FrameRef를 필수로 둡니다.
+- 검색 품질 검증 위험: v3.0은 설명 가능한 text/tags/filter 검색으로 시작하고,
+  vector search는 v3.1 optional default-off 후보로 둡니다.
+
+| Step | ID | Priority | 상태 | 묶음 | 개발 내용 | 완료 산출물 | 검증/evidence 경계 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 0 | V300-S00 | P0 | 계획 | v3.0 baseline | VERSION/CMake/README/docs/backlog/source roadmap을 v3.0 작업 기준으로 정렬 | v3.0 source-of-truth 정렬, current/published 경계 분리 | release metadata/source version 정렬 gate. 기능 구현 완료 evidence가 아님 |
+| 1 | V300-S01 | P0 | 계획 | Event Evidence Contract | EvidenceManifest, FrameRef, retention lifecycle, non-VMS boundary 정의 | evidence contract와 frame/time/source 매핑 문서/fixture/verifier | encoded clip, playback, VMS API 완료 evidence가 아님 |
+| 2 | V300-S02 | P0 | 계획 | Frame Bundle Extraction | event frame 필수, representative image 선택, bbox crop, pre/event/post frame bundle 생성 | eventFrame/representativeImage/bboxCrop/frameBundle manifest | 영상 파일 playback 또는 MP4/WebM encoded clip evidence가 아님 |
+| 3 | V300-S03 | P0 | 계획 | Feature Schema and Privacy Policy | namespace 기반 feature envelope, 비식별 feature 허용, identity feature 금지 | feature schema, allowed/disallowed matrix, privacy guard | 얼굴 인식/신원 식별/model 품질 PASS가 아님 |
+| 4 | V300-S04 | P0 | 계획 | VLM Feature Queue | background queue, lazy trigger, timeout/invalid-output/missing-runtime 상태 분리 | VLM-only failure와 media/event 경로 분리 | real provider success나 default-on evidence가 아님 |
+| 5 | V300-S05 | P0 | 계획 | Feature-only Retention | raw prompt/response non-retention, feature revision, reanalysis policy | feature revision store, prompt/response redaction guard | raw response 보관이나 provider replay evidence가 아님 |
+| 6 | V300-S06 | P0 | 계획 | Search DSL and Query Convert | 자연어를 제한된 Search DSL JSON으로 변환하고 text/tags/filter 검색 수행 | query DSL, strict structured output guard, VA-only fallback | raw LLM response 저장 또는 vector search 완료 evidence가 아님 |
+| 7 | V300-S07 | P1 | 계획 | Feature/Search Index | EventRecord, FeatureSet, EvidenceManifest, operator review state 검색 | index/rebuild/report와 stale result guard | 장시간 품질 평가나 semantic provider rerank evidence가 아님 |
+| 8 | V300-S08 | P1 | 계획 | Ops Events UI | `/ops/events` 검색, evidence timeline, feature 근거, retry, pin, retention status | Ops-only search/detail UI와 client/viewer 비노출 | UI 직접 조작/브라우저 evidence 없이는 UI PASS가 아님 |
+| 9 | V300-S09 | P1 | 계획 | Retention/Pin/Cleanup | 7일 기본 retention, pin 제외, 설정 가능 cleanup, dry-run/audit | lifecycle cleanup, cleanup dry-run, audit trail | destructive cleanup 실행은 별도 승인과 evidence 필요 |
+| 10 | V300-S10 | P0 | 계획 | Stabilization and Release Readiness | build/docs/verifier/UI 기준과 release readiness 기록 | v3.0 local stabilization, release evidence/not-run 경계 | UI 풀테스트/30분/120분/published metadata는 실행한 경우만 PASS |
+
+## 계획 roadmap: v3.1.0 Evidence Replay and Sharing Expansion
+
+상태: 계획 확정, 구현 전. v3.1.0은 v3.0.0의 Event Evidence Search MVP가 구현되고
+검증된 뒤 진행하는 후속 확장입니다. 이 절은 v3.1.0 기능 완료 evidence가 아닙니다.
+
+직접 답: v3.1.0의 1차 선택값은 `Evidence Replay and Sharing Expansion`입니다.
+v3.0의 evidence/search 기반을 유지하면서 encoded event clip, 안전한 공유 요약,
+scoped 연동 API, 운영자 feature 보정, 선택적 vector search를 확장합니다.
+
+포함 범위:
+
+- encoded event clip 생성과 playback/replay timeline
+- frame bundle과 encoded clip의 FrameRef/PTS 매핑
+- client-safe event digest
+- scoped integrator search API
+- operator feature correction/alias/reanalysis 요청
+- optional vector/embedding index
+- encoded clip 포함 lifecycle cleanup/export/audit hardening
+
+제외 범위:
+
+- 24/7 상시녹화, VMS/NVR archive API
+- 얼굴 인식, 신원 식별, watchlist, face embedding
+- raw prompt/response 보관
+- client에게 내부 feature/provenance/raw evidence 전체 노출
+- 자동 rule 적용, cloud provider default-on
+
+| Step | ID | Priority | 상태 | 묶음 | 개발 내용 | 완료 산출물 | 검증/evidence 경계 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 0 | V310-S00 | P0 | 계획 | v3.1 baseline | VERSION/CMake/README/docs/backlog/source roadmap을 v3.1 작업 기준으로 정렬 | v3.1 source-of-truth 정렬 | v3.1 기능 구현 완료 evidence가 아님 |
+| 1 | V310-S01 | P0 | 계획 | Encoded Event Clip Contract | MP4/WebM clip manifest, FrameRef/PTS 매핑, non-VMS boundary | encoded clip contract와 verifier | 24/7 recording/VMS API 완료 evidence가 아님 |
+| 2 | V310-S02 | P0 | 계획 | Event Clip Encoder Pipeline | frame bundle 또는 bounded short segment에서 encoded clip 생성 | clip generation queue/status/cleanup | 장시간 recorder나 상시녹화 evidence가 아님 |
+| 3 | V310-S03 | P0 | 계획 | Replay Timeline UI | event frame, representative image, frame bundle, encoded clip timeline 표출 | `/ops/events` replay timeline UI | 직접 브라우저 UI evidence 없이는 UI PASS가 아님 |
+| 4 | V310-S04 | P1 | 계획 | Client-safe Event Digest | viewer-safe redacted summary 제공 | client-safe digest schema/UI/API guard | 내부 feature/provenance/raw evidence 노출 evidence가 아님 |
+| 5 | V310-S05 | P1 | 계획 | Scoped Integrator Search API | scope 기반 외부 연동 검색 API | scoped search contract와 redaction guard | broad public archive API가 아님 |
+| 6 | V310-S06 | P1 | 계획 | Operator Feature Correction | feature correction, alias, reanalysis 요청 | correction audit와 index update policy | 자동 학습/자동 rule 적용 evidence가 아님 |
+| 7 | V310-S07 | P2 | 계획 | Optional Vector Search | default-off embedding index, rebuild/quality gate | vector index optional gate | default search 또는 provider rerank PASS가 아님 |
+| 8 | V310-S08 | P1 | 계획 | Retention/Export Hardening | encoded clip 포함 lifecycle cleanup, export bundle, audit | export/redaction/cleanup verifier | raw evidence 무제한 export evidence가 아님 |
+| 9 | V310-S09 | P0 | 계획 | Stabilization and Release Readiness | build/docs/verifier/UI 기준과 release readiness 기록 | v3.1 local stabilization, release evidence/not-run 경계 | UI 풀테스트/30분/120분/published metadata는 실행한 경우만 PASS |
+
 ## 현재 source roadmap: v2.9.0 Final 2.x Closure & Compatibility Baseline
 
 v2.9.0은 2.x 라인의 마지막 개발 릴리즈입니다. 3.0.0에서 다룰 녹화, VLM 검색,
