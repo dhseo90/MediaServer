@@ -14,6 +14,7 @@
 #include "analysis/scene_context_builder.h"
 #include "analysis/track_state_manager.h"
 #include "analysis/va_runtime_metadata.h"
+#include "analysis/vlm_feature_retention.h"
 #include "analysis/vlm_feature_queue.h"
 #include "analysis/vlm_observation_store.h"
 #include "analysis/wrong_direction_scenario.h"
@@ -2011,6 +2012,105 @@ void VerifyV300VlmFeatureQueue() {
     Pass("V300 S04 invalid output is discarded without FeatureSet retention");
 }
 
+void VerifyV300FeatureOnlyRetention() {
+    VlmFeatureQueueTask task;
+    task.task_id = "vlm-feature-retention-task-evt-v300-s05";
+    task.event_id = "evt-v300-s05-line-001";
+    task.source_id = "cam-lobby";
+    task.channel_id = "main";
+    task.trigger_mode = "background";
+    task.input_evidence_refs_json =
+        "{\"schema\":\"media-server.vlm-event-evidence-refs.v1\","
+        "\"evidenceManifest\":{\"path\":\"events/evt-v300-s05-line-001/evidence-manifest.json\"},"
+        "\"eventFrame\":{\"path\":\"events/evt-v300-s05-line-001/event-frame.jpg\"}}";
+
+    VlmFeatureRetentionStore store;
+    VlmFeatureRetentionRequest request;
+    request.event_id = task.event_id;
+    request.feature_set_id = "features-evt-v300-s05-line-001-r1";
+    request.source_evidence_refs_json = task.input_evidence_refs_json;
+    request.requested_revision = 1;
+
+    const VlmFeatureRetentionOutcome stored =
+        store.StoreRevision(request, BuildVlmFeatureSetFixtureJson(task, 1));
+    Expect(stored.status == "stored" && stored.retention_action == "store-feature-revision" &&
+               stored.feature_set_stored && stored.feature_revision == 1 &&
+               store.RevisionCount(task.event_id) == 1,
+           "V300 S05 feature retention must store a structured FeatureSet revision");
+    Expect(stored.record_json.find("\"retentionMode\":\"feature-only-structured-non-identifying\"") !=
+                   std::string::npos &&
+               stored.record_json.find("\"rawPromptStored\":false") != std::string::npos &&
+               stored.record_json.find("\"rawProviderResponseStored\":false") != std::string::npos &&
+               stored.record_json.find("\"providerRequestBodyStored\":false") != std::string::npos,
+           "V300 S05 retention record must remain feature-only without raw provider material");
+    Expect(stored.record_json.find("\"rawPrompt\":\"") == std::string::npos &&
+               stored.record_json.find("\"rawProviderResponse\":\"") == std::string::npos &&
+               stored.record_json.find("\"providerRequestBody\":\"") == std::string::npos,
+           "V300 S05 retained record must not embed raw prompt, raw response, or provider request bodies");
+
+    const std::string raw_prompt_feature_set =
+        "{\"schema\":\"media-server.event-feature-set.v1\","
+        "\"eventId\":\"evt-v300-s05-line-001\","
+        "\"featureRevision\":2,"
+        "\"rawPrompt\":\"describe identifiable person\","
+        "\"privacy\":{\"rawPromptStored\":true,"
+        "\"rawProviderResponseStored\":false,"
+        "\"identityFeaturesAllowed\":false}}";
+    const VlmFeatureRetentionOutcome raw_prompt = store.StoreRevision(request, raw_prompt_feature_set);
+    Expect(raw_prompt.status == "rejected" &&
+               raw_prompt.retention_action == "reject-raw-provider-material" &&
+               raw_prompt.failure_reason == "raw-provider-material" &&
+               !raw_prompt.feature_set_stored && store.RevisionCount(task.event_id) == 1,
+           "V300 S05 raw prompt material must be rejected without creating a new revision");
+
+    const std::string raw_response_feature_set =
+        "{\"schema\":\"media-server.event-feature-set.v1\","
+        "\"eventId\":\"evt-v300-s05-line-001\","
+        "\"featureRevision\":2,"
+        "\"rawProviderResponse\":\"provider says raw narrative\","
+        "\"privacy\":{\"rawPromptStored\":false,"
+        "\"rawProviderResponseStored\":true,"
+        "\"identityFeaturesAllowed\":false}}";
+    const VlmFeatureRetentionOutcome raw_response =
+        store.StoreRevision(request, raw_response_feature_set);
+    Expect(raw_response.status == "rejected" &&
+               raw_response.retention_action == "reject-raw-provider-material" &&
+               raw_response.failure_reason == "raw-provider-material" &&
+               !raw_response.feature_set_stored && store.RevisionCount(task.event_id) == 1,
+           "V300 S05 raw provider response material must be rejected without creating a new revision");
+
+    VlmFeatureQueueTask reanalysis_task = task;
+    reanalysis_task.task_id = "vlm-feature-retention-task-evt-v300-s05-reanalysis";
+    VlmFeatureRetentionRequest reanalysis_request = request;
+    reanalysis_request.feature_set_id = "features-evt-v300-s05-line-001-r2";
+    reanalysis_request.reanalysis_reason = "operator-requested-action-context-refinement";
+    reanalysis_request.requested_revision = 2;
+    const VlmFeatureRetentionOutcome reanalysis =
+        store.RequestReanalysis(reanalysis_request, BuildVlmFeatureSetFixtureJson(reanalysis_task, 2));
+    Expect(reanalysis.status == "stored" &&
+               reanalysis.retention_action == "store-reanalysis-revision" &&
+               reanalysis.feature_revision == 2 && reanalysis.previous_revision == 1 &&
+               store.RevisionCount(task.event_id) == 2,
+           "V300 S05 reanalysis must create a new FeatureSet revision and preserve the previous revision");
+    Expect(reanalysis.record_json.find("\"runtimeProviderReplayPerformed\":false") !=
+                   std::string::npos &&
+               !reanalysis.runtime_provider_replay_performed &&
+               !reanalysis.event_post_payload_changed &&
+               !reanalysis.webrtc_data_channel_schema_changed &&
+               !reanalysis.sse_ws_metadata_schema_changed &&
+               !reanalysis.rtsp_webrtc_media_path_changed,
+           "V300 S05 reanalysis must not replay provider raw material or change external schemas/media path");
+    Expect(store.LatestRevision(task.event_id) == 2 &&
+               reanalysis.record_json.find("\"previousRevision\":1") != std::string::npos,
+           "V300 S05 previous revision must remain linked for review history");
+
+    Pass("V300 S05 stores feature-only revision without raw prompt or response");
+    Pass("V300 S05 rejects raw prompt retention material");
+    Pass("V300 S05 rejects raw provider response retention material");
+    Pass("V300 S05 reanalysis creates a new revision without provider replay");
+    Pass("V300 S05 previous revision is preserved for review history");
+}
+
 void VerifyEventRecorderMediaHooks() {
     const auto snapshot = GetEventStorageSnapshot();
     const std::filesystem::path active_path(snapshot.active_path.empty() ? snapshot.path
@@ -2488,6 +2588,7 @@ int main() {
         VerifyEventStorageArchiveCompaction();
         VerifyVlmObservationStore();
         VerifyV300VlmFeatureQueue();
+        VerifyV300FeatureOnlyRetention();
         VerifyEventRecorderMediaHooks();
         VerifyVaRuntimeMetadataBuilder();
         VerifyVaMetadataSubscriptionFilter();

@@ -39,6 +39,7 @@ add_executable(media_server
     src/analysis/track_state_manager.cpp
     src/analysis/tracked_object_metadata.cpp
     src/analysis/va_runtime_metadata.cpp
+    src/analysis/vlm_feature_retention.cpp
     src/analysis/vlm_feature_queue.cpp
     src/analysis/vlm_observation_store.cpp
     src/analysis/wrong_direction_scenario.cpp

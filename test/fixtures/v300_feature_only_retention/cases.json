@@ -1,0 +1,157 @@
+{
+  "schema": "media-server.v300-feature-only-retention-fixtures.v1",
+  "targetStep": "V300-S05",
+  "purpose": "Feature-only durable retention cases for v3.0 Event Evidence Search MVP. These fixtures prove FeatureSet revision storage, raw prompt/response rejection, and reanalysis revision policy without provider replay or cleanup lifecycle execution.",
+  "requiredCommands": [
+    "./server.sh build",
+    "./server.sh verify-analysis-state",
+    "./server.sh verify-v300-feature-only-retention",
+    "./server.sh verify-project-inventory",
+    "./server.sh verify-feature-inventory-coverage",
+    "./server.sh verify-script-inventory",
+    "./server.sh verify-docs-links",
+    "git diff --check"
+  ],
+  "cases": [
+    {
+      "id": "store-feature-revision-only",
+      "kind": "feature-revision-store",
+      "input": {
+        "featureSetSchema": "media-server.event-feature-set.v1",
+        "featureRevision": 1,
+        "evidenceRefsSchema": "media-server.vlm-event-evidence-refs.v1",
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false
+      },
+      "expected": {
+        "status": "stored",
+        "retentionAction": "store-feature-revision",
+        "recordSchema": "media-server.vlm-feature-retention-record.v1",
+        "retentionMode": "feature-only-structured-non-identifying",
+        "featureRevision": 1
+      },
+      "contractInvariants": {
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "providerRequestBodyStored": false,
+        "credentialStored": false,
+        "sourceUrlStored": false,
+        "runtimeProviderReplayPerformed": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelSchemaChanged": false,
+        "sseWsMetadataSchemaChanged": false,
+        "rtspWebrtcMediaPathChanged": false
+      }
+    },
+    {
+      "id": "reject-raw-prompt",
+      "kind": "raw-prompt-rejection",
+      "input": {
+        "featureSetSchema": "media-server.event-feature-set.v1",
+        "rawPrompt": "must-not-be-retained",
+        "rawPromptStored": true
+      },
+      "expected": {
+        "status": "rejected",
+        "retentionAction": "reject-raw-provider-material",
+        "failureReason": "raw-provider-material",
+        "featureSetStored": false
+      },
+      "contractInvariants": {
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "providerRequestBodyStored": false,
+        "credentialStored": false,
+        "sourceUrlStored": false,
+        "runtimeProviderReplayPerformed": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelSchemaChanged": false,
+        "sseWsMetadataSchemaChanged": false,
+        "rtspWebrtcMediaPathChanged": false
+      }
+    },
+    {
+      "id": "reject-raw-provider-response",
+      "kind": "raw-provider-response-rejection",
+      "input": {
+        "featureSetSchema": "media-server.event-feature-set.v1",
+        "rawProviderResponse": "must-not-be-retained",
+        "rawProviderResponseStored": true
+      },
+      "expected": {
+        "status": "rejected",
+        "retentionAction": "reject-raw-provider-material",
+        "failureReason": "raw-provider-material",
+        "featureSetStored": false
+      },
+      "contractInvariants": {
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "providerRequestBodyStored": false,
+        "credentialStored": false,
+        "sourceUrlStored": false,
+        "runtimeProviderReplayPerformed": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelSchemaChanged": false,
+        "sseWsMetadataSchemaChanged": false,
+        "rtspWebrtcMediaPathChanged": false
+      }
+    },
+    {
+      "id": "reanalysis-new-revision",
+      "kind": "reanalysis-policy",
+      "input": {
+        "existingFeatureRevision": 1,
+        "requestedFeatureRevision": 2,
+        "reanalysisReason": "operator-requested-action-context-refinement"
+      },
+      "expected": {
+        "status": "stored",
+        "retentionAction": "store-reanalysis-revision",
+        "previousRevision": 1,
+        "featureRevision": 2,
+        "runtimeProviderReplayPerformed": false
+      },
+      "contractInvariants": {
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "providerRequestBodyStored": false,
+        "credentialStored": false,
+        "sourceUrlStored": false,
+        "runtimeProviderReplayPerformed": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelSchemaChanged": false,
+        "sseWsMetadataSchemaChanged": false,
+        "rtspWebrtcMediaPathChanged": false
+      }
+    },
+    {
+      "id": "preserve-previous-revision",
+      "kind": "revision-history",
+      "input": {
+        "existingFeatureRevision": 1,
+        "newFeatureRevision": 2,
+        "previousRevisionPreserved": true
+      },
+      "expected": {
+        "status": "stored",
+        "retentionAction": "store-reanalysis-revision",
+        "previousRevision": 1,
+        "latestRevision": 2,
+        "previousRevisionPreserved": true
+      },
+      "contractInvariants": {
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "providerRequestBodyStored": false,
+        "credentialStored": false,
+        "sourceUrlStored": false,
+        "runtimeProviderReplayPerformed": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelSchemaChanged": false,
+        "sseWsMetadataSchemaChanged": false,
+        "rtspWebrtcMediaPathChanged": false
+      }
+    }
+  ]
+}
