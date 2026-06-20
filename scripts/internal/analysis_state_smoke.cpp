@@ -4,6 +4,7 @@
 #include "analysis/appearance_extractor.h"
 #include "analysis/event_manager.h"
 #include "analysis/event_feature_search_index.h"
+#include "analysis/event_retention_cleanup.h"
 #include "analysis/event_storage.h"
 #include "analysis/intrusion_after_line_crossing_scenario.h"
 #include "analysis/intrusion_dwell_scenario.h"
@@ -2385,6 +2386,58 @@ void VerifyV300FeatureSearchIndex() {
     Pass("V300 S07 preserves provider/schema/media/UI boundary invariants");
 }
 
+void VerifyV300RetentionPinCleanup() {
+    EventRetentionCleanupPolicy policy;
+    policy.default_retention_days = 7;
+    policy.source_retention_days["cam-loading"] = 3;
+    policy.rule_retention_days["after-hours"] = 14;
+
+    EventRetentionCleanupRequest request;
+    request.now_ms = 1781950200000LL;
+    request.dry_run = true;
+    request.policy = policy;
+    request.items.push_back(MakeRetentionCleanupItem(
+        "evt-v300-s09-expired", "cam-loading", "main", "after-hours",
+        request.now_ms - (15LL * 24LL * 60LL * 60LL * 1000LL), false));
+    request.items.push_back(MakeRetentionCleanupItem(
+        "evt-v300-s09-pinned", "cam-loading", "main", "after-hours",
+        request.now_ms - (30LL * 24LL * 60LL * 60LL * 1000LL), true));
+    request.items.push_back(MakeRetentionCleanupItem(
+        "evt-v300-s09-fresh", "cam-loading", "main", "after-hours",
+        request.now_ms - (2LL * 24LL * 60LL * 60LL * 1000LL), false));
+
+    const EventRetentionCleanupResult dry_run = BuildEventRetentionCleanupPlan(request);
+    Expect(dry_run.schema == "media-server.v300-retention-cleanup-report.v1",
+           "V300 S09 cleanup report schema must identify retention/pin/cleanup");
+    Expect(dry_run.dry_run && !dry_run.destructive_cleanup_executed,
+           "V300 S09 dry-run must not execute destructive cleanup");
+    Expect(dry_run.expired_candidates == 1 && dry_run.pinned_retained == 1 &&
+               dry_run.retained_count == 2,
+           "V300 S09 dry-run must select only expired non-pinned events");
+    Expect(HasRetentionCleanupAction(dry_run, "evt-v300-s09-expired", "would-delete") &&
+               HasRetentionCleanupAction(dry_run, "evt-v300-s09-pinned", "retain-pinned") &&
+               HasRetentionCleanupAction(dry_run, "evt-v300-s09-fresh", "retain-active-window"),
+           "V300 S09 cleanup plan must separate delete, pinned, and fresh events");
+    Expect(dry_run.audit_action == "retention-cleanup-dry-run" &&
+               dry_run.audit_entries.size() == 1,
+           "V300 S09 dry-run must emit audit trail without apply side effects");
+
+    request.dry_run = false;
+    const EventRetentionCleanupResult applied = BuildEventRetentionCleanupPlan(request);
+    Expect(!applied.dry_run && applied.destructive_cleanup_executed,
+           "V300 S09 apply mode must mark lifecycle cleanup as executed");
+    Expect(applied.deleted_event_records == 1 && applied.deleted_evidence_manifests == 1 &&
+               applied.deleted_feature_revisions == 2 && applied.deindexed_search_entries == 1,
+           "V300 S09 apply must delete EventRecord/Evidence/Feature/SearchIndex lifecycle entries together");
+    Expect(!EventRetentionCleanupResultContainsForbiddenMaterial(applied),
+           "V300 S09 cleanup must preserve provider/schema/media/viewer boundary invariants");
+    Pass("V300 S09 dry-run selects expired non-pinned events only");
+    Pass("V300 S09 pin exclusion preserves pinned evidence");
+    Pass("V300 S09 apply deletes evidence feature and search lifecycle together");
+    Pass("V300 S09 audit trail records dry-run and apply cleanup boundaries");
+    Pass("V300 S09 preserves provider/schema/media/viewer boundary invariants");
+}
+
 void VerifyEventRecorderMediaHooks() {
     const auto snapshot = GetEventStorageSnapshot();
     const std::filesystem::path active_path(snapshot.active_path.empty() ? snapshot.path
@@ -2865,6 +2918,7 @@ int main() {
         VerifyV300FeatureOnlyRetention();
         VerifyV300SearchDslQueryConvert();
         VerifyV300FeatureSearchIndex();
+        VerifyV300RetentionPinCleanup();
         VerifyEventRecorderMediaHooks();
         VerifyVaRuntimeMetadataBuilder();
         VerifyVaMetadataSubscriptionFilter();

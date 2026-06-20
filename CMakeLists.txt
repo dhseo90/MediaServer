@@ -22,6 +22,7 @@ add_executable(media_server
     src/analysis/event_manager.cpp
     src/analysis/event_feature_search_index.cpp
     src/analysis/event_post_dispatcher.cpp
+    src/analysis/event_retention_cleanup.cpp
     src/analysis/event_rule_engine.cpp
     src/analysis/event_search_query.cpp
     src/analysis/event_storage.cpp

@@ -75,6 +75,7 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 | [event-feature-schema-privacy.md](event-feature-schema-privacy.md) | v3.0 FeatureSet schema와 비식별 privacy guard |
 | [v300-search-dsl-query-convert.md](v300-search-dsl-query-convert.md) | v3.0 Search DSL/query convert 경계 |
 | [v300-feature-search-index.md](v300-feature-search-index.md) | v3.0 Feature/Search Index와 stale result guard 경계 |
+| [v300-retention-pin-cleanup.md](v300-retention-pin-cleanup.md) | v3.0 Retention/Pin/Cleanup lifecycle와 audit 경계 |
 | [analysis-threshold-baselines.md](analysis-threshold-baselines.md) | 분석 threshold baseline |
 | [live-source-health.md](live-source-health.md) | live source health 상태 모델 |
 | [live-event-metadata-contracts.md](live-event-metadata-contracts.md) | Event POST, WebRTC, SSE, WS metadata contract |
