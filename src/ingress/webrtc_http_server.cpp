@@ -40,6 +40,7 @@
 #include "app_config.h"
 #include "analysis/category_tokens.h"
 #include "analysis/detector.h"
+#include "analysis/event_feature_search_index.h"
 #include "analysis/event_post_dispatcher.h"
 #include "analysis/event_rule_engine.h"
 #include "analysis/event_storage.h"
@@ -3562,6 +3563,31 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <div id="opsVlmSummaryCandidateRows" class="vlm-summary-candidate-list">
             <p class="ops-rule-note">검색어를 입력하면 sidecar summary candidate가 자동 적용 없이 표시됩니다.</p>
           </div>
+        </div>
+      </section>
+      <section class="section-card ops-workspace-wide v300-event-evidence-search-ui" data-testid="ops-v300-event-evidence-search-ui" data-v300-ops-events-ui="event-evidence-search-detail">
+        <div class="toolbar">
+          <div>
+            <h3>Feature/Search Evidence Detail</h3>
+            <p id="opsV300EventEvidenceSearchSummary">V300 Feature/Search Index projection으로 evidence timeline, feature reasons, retry, pin, retention status를 확인합니다.</p>
+          </div>
+          <div id="opsV300EventEvidenceSearchBadges" class="badge-row"><span class="chip">media-server.ops.v300-event-evidence-search-ui.v1</span></div>
+        </div>
+        <div class="actions event-review-controls incident-memory-search-grid">
+          <label>V300 검색
+            <input id="opsV300EventEvidenceSearchInput" placeholder="tag:evidence:bboxcrop review:needs-review pinned..." />
+          </label>
+          <label>Retry
+            <select id="opsV300EventEvidenceRetryFilter">
+              <option value="">전체</option>
+              <option value="retryable">retryable</option>
+              <option value="blocked">blocked</option>
+            </select>
+          </label>
+          <label class="check-inline"><input id="opsV300EventEvidencePinnedOnly" type="checkbox" /> pinned only</label>
+        </div>
+        <div id="opsV300EventEvidenceRows" class="v300-event-evidence-results">
+          <p class="ops-rule-note">EventRecord, FeatureSet, EvidenceManifest, review state를 불러오면 V300 evidence detail이 표시됩니다.</p>
         </div>
       </section>
       <section class="section-card ops-workspace-wide incident-triage-board" data-testid="ops-incident-triage-board" data-incident-triage-board="lane-filter-sort">
@@ -14678,6 +14704,425 @@ std::string OpsIncidentMemorySearchViewJson(
     return out.str();
 }
 
+std::string OpsV300EventEvidenceSearchQueryValue(
+    const std::unordered_map<std::string, std::string>& query,
+    const std::string& primary_key,
+    const std::string& fallback_key = "") {
+    const auto primary = query.find(primary_key);
+    if (primary != query.end() && !Trim(primary->second).empty()) {
+        return Trim(primary->second);
+    }
+    if (!fallback_key.empty()) {
+        const auto fallback = query.find(fallback_key);
+        if (fallback != query.end()) {
+            return Trim(fallback->second);
+        }
+    }
+    return "";
+}
+
+bool OpsV300EventEvidenceSearchBoolQuery(
+    const std::unordered_map<std::string, std::string>& query,
+    const std::string& key) {
+    const std::string value = LowerAscii(OpsV300EventEvidenceSearchQueryValue(query, key));
+    return value == "1" || value == "true" || value == "yes" || value == "pinned";
+}
+
+std::string OpsV300NestedRefPath(const std::string& object_json, const std::string& key) {
+    if (const auto nested = ExtractObjectField(object_json, key); nested.has_value()) {
+        return Trim(ParseStringField(*nested, "path").value_or(""));
+    }
+    return Trim(ParseStringField(object_json, key).value_or(""));
+}
+
+std::string OpsV300EvidenceRefPath(const std::string& event_json, const std::string& key) {
+    const std::string direct = OpsV300NestedRefPath(event_json, key);
+    if (!direct.empty()) {
+        return direct;
+    }
+    if (const auto refs = ExtractObjectField(event_json, "vlmEvidenceRefs"); refs.has_value()) {
+        return OpsV300NestedRefPath(*refs, key);
+    }
+    return "";
+}
+
+analysis::EventSearchIndexEventRecord OpsV300IndexEventRecordFromJson(
+    const std::string& event_json,
+    const std::size_t index) {
+    analysis::EventSearchIndexEventRecord event;
+    event.event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+    if (!OpsEventReviewEventIdAllowed(event.event_id)) {
+        event.event_id = "event-" + std::to_string(index + 1);
+    }
+    event.source_id = OpsIncidentTriageBoardSourceId(event_json);
+    if (event.source_id.empty()) {
+        event.source_id = "unknown-source";
+    }
+    event.channel_id = Trim(ParseStringField(event_json, "channelId").value_or(""));
+    event.event_type = Trim(ParseStringField(event_json, "eventType").value_or(""));
+    if (event.event_type.empty()) {
+        event.event_type = Trim(ParseStringField(event_json, "className").value_or("event"));
+    }
+    event.scenario = OpsIncidentTriageBoardScenario(event_json);
+    event.status = Trim(ParseStringField(event_json, "status").value_or("recorded"));
+    event.zone_id = Trim(ParseStringField(event_json, "zoneId").value_or(""));
+    event.line_id = Trim(ParseStringField(event_json, "lineId").value_or(""));
+    event.class_name = Trim(ParseStringField(event_json, "className").value_or(""));
+    for (const char* key : {"timestampMs", "createdAtMs", "receivedAtMs"}) {
+        if (const auto parsed = ParseInt64Field(event_json, key); parsed.has_value()) {
+            event.timestamp_ms = *parsed;
+            break;
+        }
+    }
+    event.event_post_payload_changed = false;
+    event.webrtc_data_channel_schema_changed = false;
+    event.sse_ws_metadata_schema_changed = false;
+    event.rtsp_webrtc_media_path_changed = false;
+    event.viewer_client_exposure_added = false;
+    return event;
+}
+
+void OpsV300AddIndexFeature(analysis::EventSearchIndexFeatureSet* feature_set,
+                            const std::string& namespace_name,
+                            const std::string& name,
+                            const std::string& value,
+                            const std::string& evidence_ref) {
+    if (feature_set == nullptr || Trim(value).empty()) {
+        return;
+    }
+    analysis::EventSearchIndexFeature feature;
+    feature.namespace_name = namespace_name;
+    feature.name = name;
+    feature.value = value;
+    feature.evidence_ref = evidence_ref;
+    feature.searchable = true;
+    feature.identity_feature = false;
+    feature.raw_prompt_fragment_stored = false;
+    feature.raw_provider_response_fragment_stored = false;
+    feature_set->features.push_back(std::move(feature));
+}
+
+analysis::EventSearchIndexFeatureSet OpsV300IndexFeatureSetFromJson(
+    const std::string& event_json,
+    const OpsEventReviewState& review,
+    const analysis::EventSearchIndexEventRecord& event_record) {
+    analysis::EventSearchIndexFeatureSet feature_set;
+    feature_set.event_id = event_record.event_id;
+    feature_set.feature_set_id = "ops-v300-ui-" + event_record.event_id;
+    feature_set.feature_revision = 1;
+    const std::string evidence_ref =
+        OpsV300EvidenceRefPath(event_json, "evidenceManifest").empty()
+            ? OpsV300EvidenceRefPath(event_json, "snapshotPath")
+            : OpsV300EvidenceRefPath(event_json, "evidenceManifest");
+    OpsV300AddIndexFeature(&feature_set, "event", "eventType", event_record.event_type, evidence_ref);
+    OpsV300AddIndexFeature(&feature_set, "event", "status", event_record.status, evidence_ref);
+    OpsV300AddIndexFeature(&feature_set, "scene", "source", event_record.source_id, evidence_ref);
+    OpsV300AddIndexFeature(&feature_set, "scene", "scenario", event_record.scenario, evidence_ref);
+    OpsV300AddIndexFeature(&feature_set, "action", "rule", OpsIncidentMemoryEventRuleId(event_json), evidence_ref);
+    OpsV300AddIndexFeature(&feature_set, "operator", "reviewState", review.review_status, evidence_ref);
+    OpsV300AddIndexFeature(&feature_set, "operator", "incidentStatus", review.incident_status, evidence_ref);
+    feature_set.raw_prompt_stored = false;
+    feature_set.raw_provider_response_stored = false;
+    feature_set.provider_request_body_stored = false;
+    feature_set.credential_stored = false;
+    feature_set.source_url_stored = false;
+    feature_set.raw_frame_bytes_stored = false;
+    feature_set.identity_features_allowed = false;
+    return feature_set;
+}
+
+analysis::EventSearchIndexEvidenceManifest OpsV300IndexEvidenceManifestFromJson(
+    const std::string& event_json,
+    const std::string& event_id) {
+    analysis::EventSearchIndexEvidenceManifest evidence;
+    evidence.event_id = event_id;
+    const std::string snapshot_path = OpsV300EvidenceRefPath(event_json, "snapshotPath");
+    const std::string evidence_manifest = OpsV300EvidenceRefPath(event_json, "evidenceManifest");
+    const std::string frame_bundle_manifest = OpsV300EvidenceRefPath(event_json, "frameBundleManifest");
+    const std::string bbox_crop = OpsV300EvidenceRefPath(event_json, "bboxCrop");
+    evidence.manifest_path = evidence_manifest.empty() ? "ops-v300-ui-derived:" + event_id
+                                                       : evidence_manifest;
+    evidence.event_frame_present = !snapshot_path.empty() || !evidence_manifest.empty();
+    evidence.representative_image_present = !snapshot_path.empty();
+    evidence.bbox_crop_count = bbox_crop.empty() ? 0 : 1;
+    evidence.frame_bundle_present = !frame_bundle_manifest.empty();
+    evidence.raw_prompt_stored = false;
+    evidence.raw_provider_response_stored = false;
+    evidence.identity_features_allowed = false;
+    evidence.archive_api = false;
+    return evidence;
+}
+
+analysis::EventSearchIndexReviewState OpsV300IndexReviewStateFromReview(
+    const std::string& event_json,
+    const OpsEventReviewState& review,
+    const std::string& event_id) {
+    analysis::EventSearchIndexReviewState state;
+    state.event_id = event_id;
+    state.review_state = review.review_status.empty() ? "new" : review.review_status;
+    state.classification = review.classification.empty() ? "unclassified" : review.classification;
+    state.incident_status = review.incident_status.empty() ? "new" : review.incident_status;
+    state.pinned = ParseBoolField(event_json, "pinned").value_or(false);
+    return state;
+}
+
+std::string OpsV300EntryFeatureValue(const analysis::EventSearchIndexEntry& entry,
+                                     const std::string& field) {
+    for (const auto& value : entry.document.features) {
+        if (value.field == field) {
+            return value.value;
+        }
+    }
+    return "";
+}
+
+bool OpsV300EntryHasFeature(const analysis::EventSearchIndexEntry& entry,
+                            const std::string& field) {
+    return !OpsV300EntryFeatureValue(entry, field).empty();
+}
+
+std::string OpsV300EvidenceTimelineJson(const analysis::EventSearchIndexEntry& entry,
+                                        const std::string& event_json) {
+    const std::string snapshot_path = OpsV300EvidenceRefPath(event_json, "snapshotPath");
+    const std::string bbox_crop = OpsV300EvidenceRefPath(event_json, "bboxCrop");
+    const std::string frame_bundle = OpsV300EvidenceRefPath(event_json, "frameBundleManifest");
+    const std::string evidence_manifest = OpsV300EvidenceRefPath(event_json, "evidenceManifest");
+    struct TimelineItem {
+        std::string phase;
+        std::string status;
+        std::string ref;
+        std::string reason;
+    };
+    const std::vector<TimelineItem> items = {
+        {"eventFrame",
+         OpsV300EntryHasFeature(entry, "evidence.eventFrame") ? "present" : "missing",
+         snapshot_path.empty() ? evidence_manifest : snapshot_path,
+         "trigger-time evidence"},
+        {"representativeImage",
+         OpsV300EntryHasFeature(entry, "evidence.representativeImage") ? "selected" : "not-selected",
+         snapshot_path,
+         "better VLM input only when available"},
+        {"bboxCrop",
+         OpsV300EntryHasFeature(entry, "evidence.bboxCrop") ? "present" : "missing",
+         bbox_crop,
+         "object-local review evidence"},
+        {"frameBundle",
+         OpsV300EntryHasFeature(entry, "evidence.frameBundle") ? "present" : "missing",
+         frame_bundle,
+         "pre/event/post FrameRef context"},
+    };
+    std::ostringstream out;
+    out << "[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "{"
+            << "\"phase\":\"" << JsonEscape(items[i].phase) << "\","
+            << "\"status\":\"" << JsonEscape(items[i].status) << "\","
+            << "\"ref\":\"" << JsonEscape(items[i].ref.empty() ? "not-available" : items[i].ref) << "\","
+            << "\"reason\":\"" << JsonEscape(items[i].reason) << "\""
+            << "}";
+    }
+    out << "]";
+    return out.str();
+}
+
+std::string OpsV300FeatureReasonsJson(const analysis::EventSearchIndexEntry& entry) {
+    std::ostringstream out;
+    out << "[";
+    std::size_t written = 0;
+    constexpr std::size_t kMaxReasons = 10;
+    for (const auto& feature : entry.document.features) {
+        if (feature.field.empty() || feature.value.empty()) {
+            continue;
+        }
+        if (written != 0) {
+            out << ",";
+        }
+        out << "{"
+            << "\"field\":\"" << JsonEscape(feature.field) << "\","
+            << "\"value\":\"" << JsonEscape(feature.value) << "\","
+            << "\"basis\":\"local Feature/Search Index projection\""
+            << "}";
+        ++written;
+        if (written >= kMaxReasons) {
+            break;
+        }
+    }
+    out << "]";
+    return out.str();
+}
+
+bool OpsV300EntryRetryable(const analysis::EventSearchIndexEntry& entry) {
+    return entry.has_event_record && entry.has_evidence_manifest;
+}
+
+std::string OpsV300RetryActionsJson(const analysis::EventSearchIndexEntry& entry) {
+    const bool retryable = OpsV300EntryRetryable(entry);
+    std::ostringstream out;
+    out << "{"
+        << "\"status\":\"" << (retryable ? "retryable" : "blocked") << "\","
+        << "\"route\":\"/ops/events#retry-v300-feature-extraction\","
+        << "\"manualOnly\":true,"
+        << "\"retryWritePerformed\":false,"
+        << "\"providerCallPerformed\":false,"
+        << "\"blockedReason\":\"" << (retryable ? "" : "missing-event-evidence") << "\""
+        << "}";
+    return out.str();
+}
+
+std::string OpsV300PinStatusJson(const analysis::EventSearchIndexEntry& entry) {
+    std::ostringstream out;
+    out << "{"
+        << "\"pinned\":" << (entry.document.pinned ? "true" : "false") << ","
+        << "\"pinEligible\":true,"
+        << "\"pinActionAvailable\":true,"
+        << "\"pinWritePerformed\":false,"
+        << "\"status\":\"" << (entry.document.pinned ? "pinned" : "eligible-not-pinned") << "\""
+        << "}";
+    return out.str();
+}
+
+std::string OpsV300RetentionStatusJson(const analysis::EventSearchIndexEntry& entry) {
+    std::ostringstream out;
+    out << "{"
+        << "\"defaultRetentionDays\":7,"
+        << "\"pinnedExcludesAutomaticCleanup\":true,"
+        << "\"status\":\"" << (entry.document.pinned ? "pinned-excluded" : "seven-day-window") << "\","
+        << "\"cleanupExecutionRequired\":false,"
+        << "\"retentionCleanupExecuted\":false,"
+        << "\"s09LifecycleRequired\":true"
+        << "}";
+    return out.str();
+}
+
+std::string OpsV300EventEvidenceSearchItemJson(const analysis::EventSearchIndexEntry& entry,
+                                               const std::string& event_json) {
+    std::ostringstream out;
+    out << "{"
+        << "\"eventId\":\"" << JsonEscape(entry.event_id) << "\","
+        << "\"sourceId\":\"" << JsonEscape(entry.document.source_id.empty() ? "unknown-source"
+                                                                            : entry.document.source_id) << "\","
+        << "\"eventType\":\"" << JsonEscape(entry.document.event_type.empty() ? "event"
+                                                                              : entry.document.event_type) << "\","
+        << "\"scenario\":\"" << JsonEscape(entry.document.scenario.empty() ? "event"
+                                                                           : entry.document.scenario) << "\","
+        << "\"reviewState\":\"" << JsonEscape(entry.document.review_state.empty() ? "new"
+                                                                                   : entry.document.review_state) << "\","
+        << "\"featureRevision\":" << entry.feature_revision << ","
+        << "\"featureReasons\":" << OpsV300FeatureReasonsJson(entry) << ","
+        << "\"evidenceTimeline\":" << OpsV300EvidenceTimelineJson(entry, event_json) << ","
+        << "\"retryActions\":" << OpsV300RetryActionsJson(entry) << ","
+        << "\"pinStatus\":" << OpsV300PinStatusJson(entry) << ","
+        << "\"retentionStatus\":" << OpsV300RetentionStatusJson(entry) << ","
+        << "\"evidenceRefs\":" << OpsIncidentMemoryStringArrayJson(entry.evidence_refs) << ","
+        << "\"rawPromptStored\":false,"
+        << "\"rawProviderResponseStored\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"debugMaterialExposed\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsV300EventEvidenceSearchUiJson(
+    const std::vector<std::string>& event_json_records,
+    const std::unordered_map<std::string, OpsEventReviewState>& reviews,
+    const std::unordered_map<std::string, std::string>& query) {
+    const std::string search_query =
+        OpsV300EventEvidenceSearchQueryValue(query, "v300Q", "q");
+    const bool pinned_only = OpsV300EventEvidenceSearchBoolQuery(query, "v300PinnedOnly");
+    const std::string retry_filter =
+        LowerAscii(OpsV300EventEvidenceSearchQueryValue(query, "v300RetryFilter"));
+
+    analysis::EventFeatureSearchIndexRebuildInput input;
+    std::unordered_map<std::string, std::string> event_by_id;
+    input.events.reserve(event_json_records.size());
+    input.feature_sets.reserve(event_json_records.size());
+    input.evidence_manifests.reserve(event_json_records.size());
+    input.review_states.reserve(event_json_records.size());
+    for (std::size_t index = 0; index < event_json_records.size(); ++index) {
+        const std::string& event_json = event_json_records[index];
+        analysis::EventSearchIndexEventRecord event_record =
+            OpsV300IndexEventRecordFromJson(event_json, index);
+        const auto review_it = reviews.find(event_record.event_id);
+        const OpsEventReviewState review =
+            review_it == reviews.end() ? DefaultOpsEventReviewState(event_record.event_id)
+                                       : review_it->second;
+        event_by_id[event_record.event_id] = event_json;
+        input.evidence_manifests.push_back(
+            OpsV300IndexEvidenceManifestFromJson(event_json, event_record.event_id));
+        input.feature_sets.push_back(
+            OpsV300IndexFeatureSetFromJson(event_json, review, event_record));
+        input.review_states.push_back(
+            OpsV300IndexReviewStateFromReview(event_json, review, event_record.event_id));
+        input.events.push_back(std::move(event_record));
+    }
+
+    analysis::EventFeatureSearchIndex index;
+    const analysis::EventSearchIndexReport report = index.Rebuild(input);
+    analysis::EventSearchQueryOptions options;
+    options.default_limit = 12;
+    options.max_limit = 24;
+    analysis::EventSearchDsl dsl = analysis::ConvertEventSearchQueryToDsl(search_query, options);
+    dsl.limit = 12;
+    dsl.search_index_required = true;
+    dsl.ops_events_ui_required = true;
+    if (pinned_only) {
+        dsl.filters.push_back({"pinned", "eq", "true"});
+    }
+
+    std::vector<analysis::EventSearchIndexEntry> hits = dsl.valid ? index.Search(dsl)
+                                                                  : std::vector<analysis::EventSearchIndexEntry>{};
+    std::vector<std::string> items;
+    items.reserve(hits.size());
+    for (const auto& hit : hits) {
+        const bool retryable = OpsV300EntryRetryable(hit);
+        if (retry_filter == "retryable" && !retryable) {
+            continue;
+        }
+        if (retry_filter == "blocked" && retryable) {
+            continue;
+        }
+        const auto event_it = event_by_id.find(hit.event_id);
+        items.push_back(OpsV300EventEvidenceSearchItemJson(
+            hit, event_it == event_by_id.end() ? std::string() : event_it->second));
+    }
+
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v300-event-evidence-search-ui.v1\","
+        << "\"status\":\"ops-v300-event-evidence-search-ui\","
+        << "\"query\":\"" << JsonEscape(search_query) << "\","
+        << "\"pinnedOnly\":" << (pinned_only ? "true" : "false") << ","
+        << "\"retryFilter\":\"" << JsonEscape(retry_filter) << "\","
+        << "\"featureSearchIndexBacked\":true,"
+        << "\"searchDslValid\":" << (dsl.valid ? "true" : "false") << ","
+        << "\"rejectionReason\":\"" << JsonEscape(dsl.rejection_reason) << "\","
+        << "\"generation\":" << report.generation << ","
+        << "\"indexedEntries\":" << report.indexed_entries << ","
+        << "\"hitCount\":" << items.size() << ","
+        << "\"modelProviderDependency\":false,"
+        << "\"vectorSearchPerformed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"retentionCleanupExecuted\":false,"
+        << "\"s09RetentionLifecycleRequired\":true,"
+        << "\"items\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << items[i];
+    }
+    out << "]}";
+    return out.str();
+}
+
 std::string OpsSimilarIncidentSafeValue(const std::string& value, const std::string& fallback) {
     const std::string trimmed = Trim(value);
     if (trimmed.empty() || OpsEventReviewNoteContainsSensitiveMaterial(trimmed) ||
@@ -15335,6 +15780,9 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         << ","
         << "\"operatorOutcomeMemory\":"
         << OpsOperatorOutcomeMemoryViewJson(event_result.records_json, reviews)
+        << ","
+        << "\"eventEvidenceSearch\":"
+        << OpsV300EventEvidenceSearchUiJson(event_result.records_json, reviews, query)
         << ","
         << "\"memorySearch\":" << OpsIncidentMemorySearchViewJson(event_result.records_json, reviews, query)
         << ","

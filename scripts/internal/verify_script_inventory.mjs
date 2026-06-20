@@ -423,6 +423,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_v300_feature_only_retention.mjs",
     "verify_v300_search_dsl_query_convert.mjs",
     "verify_v300_feature_search_index.mjs",
+    "verify_v300_ops_events_ui.mjs",
     "verify_external_turn_whep_field_gate.mjs",
     "verify_vlm_runtime_status_ui.mjs",
     "verify_vlm_evaluation_result_workflow.mjs",

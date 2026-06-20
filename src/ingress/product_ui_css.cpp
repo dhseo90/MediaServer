@@ -2513,6 +2513,67 @@ std::string ProductUiCss() {
     .incident-memory-search-grid label {
       min-width: 150px;
     }
+    .v300-event-evidence-search-ui {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .v300-event-evidence-results {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .v300-event-evidence-card {
+      display: grid;
+      gap: var(--space-3);
+      min-width: 0;
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-bg-elevated);
+    }
+    .v300-evidence-timeline,
+    .v300-feature-reason-grid,
+    .v300-retention-status-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: var(--space-2);
+    }
+    .v300-evidence-timeline-point,
+    .v300-feature-reason-grid p,
+    .v300-retention-status-grid p {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+      margin: 0;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: var(--color-surface-subtle);
+    }
+    .v300-evidence-timeline-point span,
+    .v300-feature-reason-grid span,
+    .v300-retention-status-grid span,
+    .v300-evidence-timeline-point p {
+      overflow-wrap: anywhere;
+    }
+    .v300-evidence-timeline-point > span,
+    .v300-feature-reason-grid strong,
+    .v300-retention-status-grid strong {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+    .v300-evidence-timeline-point p {
+      margin: 0;
+      color: var(--color-text-muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .v300-retry-action-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      align-items: center;
+    }
     .incident-memory-results {
       display: grid;
       gap: var(--space-2);
