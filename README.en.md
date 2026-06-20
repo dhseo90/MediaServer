@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Published Release](https://img.shields.io/badge/published-v2.9.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v2.9.0)
+[![Published Release](https://img.shields.io/badge/published-v3.0.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v3.0.0)
 ![Source Version](https://img.shields.io/badge/source-3.0.0-informational)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
@@ -14,9 +14,9 @@ and runtime/model bundle distribution are outside the default public release.
 
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
-- Latest published GitHub Release: [v2.9.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.9.0)
+- Latest published GitHub Release: [v3.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.0.0)
 - Current source version: `3.0.0`
-- v2.9.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
+- v3.0.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
 - Current source roadmap: `v3.0.0 Event Evidence Search MVP`
 
 ## At a Glance
@@ -36,10 +36,10 @@ and runtime/model bundle distribution are outside the default public release.
 
 ## v3.0 Event Evidence Search MVP Baseline
 
-Latest published version `2.9.0` closes the Final 2.x Closure & Compatibility
-Baseline scope as a source-only GitHub Release. The current `3.0.0` source tree
-starts the Event Evidence Search MVP source-of-truth baseline. This baseline
-aligns version, docs, backlog, and verifier gates for v3.0 work; Event Evidence
+Latest published version `3.0.0` is the Event Evidence Search MVP source-only
+GitHub Release. The current `3.0.0` source tree publishes the Event Evidence
+Search MVP source-of-truth baseline. This baseline aligns version, docs, backlog,
+and verifier gates for v3.0 work; Event Evidence
 Contract, frame bundles, feature schemas, search DSL, and new `/ops/events`
 behavior are complete only after their own V300 code/UI/API/verifier evidence
 exists.
@@ -145,7 +145,7 @@ records live in dedicated docs.
 - Release/version policy: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - Release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
-- Latest published release notes: [v2.9.0](https://github.com/dhseo90/MediaServer/releases/tag/v2.9.0)
+- Latest published release notes: [v3.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.0.0)
 - Current source roadmap: `v3.0.0 Event Evidence Search MVP` in
   [docs/development-backlog.md](docs/development-backlog.md)
 

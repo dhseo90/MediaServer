@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v3.0.0 S00 source baseline 정렬과 published v2.9.0 경계 분리를 검증한다.
+// 파일 용도: v3.0.0 S00 source baseline 정렬과 v3.0.0 published metadata 경계를 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -19,7 +19,7 @@ Usage:
   ./server.sh verify-v300-entry-baseline
 
 Checks:
-  - VERSION/CMake and public docs identify source 3.0.0 while latest published release remains v2.9.0
+  - VERSION/CMake and public docs identify source 3.0.0 while latest published release is v3.0.0
   - v3.0.0 roadmap selection is Event Evidence Search MVP with explicit fallback/exclusions
   - V300-S00 is recorded as completed local source baseline alignment, not feature/UI/longrun/published evidence
   - server entrypoint, stream verification, feature inventory, and release records expose this gate
@@ -31,9 +31,9 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 const checks = [];
 const version = readText("VERSION").trim();
 const currentTag = "v3.0.0";
-const latestPublishedTag = "v2.9.0";
+const latestPublishedTag = "v3.0.0";
 const currentRoadmap = "v3.0.0 Event Evidence Search MVP";
-const latestPublishedBaseline = "v2.9.0 Final 2.x Closure & Compatibility Baseline";
+const latestPublishedBaseline = "v3.0.0 Event Evidence Search MVP";
 
 const files = {
   cmake: readText("CMakeLists.txt"),
@@ -61,7 +61,7 @@ check("source version is v3.0.0 and CMake matches", () => {
   assert(files.cmake.includes("project(media_server VERSION 3.0.0 LANGUAGES CXX)"), "CMake project version must be 3.0.0");
 });
 
-check("public entry docs split source v3.0.0 from published v2.9.0", () => {
+check("public entry docs pin source v3.0.0 and published v3.0.0", () => {
   for (const [label, text, sourceSnippet, roadmapSnippet] of [
     ["README.md", files.readme, "현재 소스 버전: `3.0.0`", "현재 source roadmap: `v3.0.0 Event Evidence Search MVP`"],
     ["README.en.md", files.readmeEn, "Current source version: `3.0.0`", "Current source roadmap: `v3.0.0 Event Evidence Search MVP`"],
@@ -69,11 +69,11 @@ check("public entry docs split source v3.0.0 from published v2.9.0", () => {
   ]) {
     assert(text.includes(sourceSnippet), `${label} missing source snippet: ${sourceSnippet}`);
     assert(text.includes(roadmapSnippet), `${label} missing roadmap snippet: ${roadmapSnippet}`);
-    assert(text.includes("v2.9.0") && text.includes("source-only"), `${label} must preserve v2.9.0 source-only published boundary`);
+    assert(text.includes(latestPublishedTag) && text.includes("source-only"), `${label} must preserve ${latestPublishedTag} source-only published boundary`);
   }
 });
 
-check("policy docs pin v3.0 active source and v2.9 published release", () => {
+check("policy docs pin v3.0 active source and v3.0 published release", () => {
   for (const [label, text] of [
     ["docs/versioning-policy.md", files.versioning],
     ["docs/release-policy.md", files.releasePolicy],
@@ -105,19 +105,19 @@ check("roadmap records V300-S00 as completed baseline alignment only", () => {
   }
 });
 
-check("release metadata and docs UI asset verifiers know source/published split", () => {
-  assert(files.releaseMetadataVerifier.includes('const latestPublishedTag = "v2.9.0";'), "release metadata verifier must pin latest published v2.9.0 during v3.0 source work");
+check("release metadata and docs UI asset verifiers know published v3.0 baseline", () => {
+  assert(files.releaseMetadataVerifier.includes('const latestPublishedTag = "v3.0.0";'), "release metadata verifier must pin latest published v3.0.0 after publish");
   assert(files.releaseMetadataVerifier.includes('const currentRoadmap = "v3.0.0 Event Evidence Search MVP";'), "release metadata verifier missing v3.0 current roadmap");
-  assert(files.docsUiAssetsVerifier.includes('const latestPublishedTag = "v2.9.0";'), "docs UI assets verifier must preserve latest published v2.9.0");
+  assert(files.docsUiAssetsVerifier.includes('const latestPublishedTag = "v3.0.0";'), "docs UI assets verifier must preserve latest published v3.0.0");
   const manifest = JSON.parse(files.docsUiAssetsManifest);
   assert(manifest.baseline?.sourceVersion === "3.0.0", "docs UI asset manifest source version must be 3.0.0");
-  assert(manifest.baseline?.publishedRelease === latestPublishedTag, "docs UI asset manifest published release must stay v2.9.0");
+  assert(manifest.baseline?.publishedRelease === latestPublishedTag, "docs UI asset manifest published release must stay v3.0.0");
 });
 
 check("stream verification, feature inventory, and release records expose V300-S00 gate", () => {
   for (const snippet of [
     "| V300-S00 | `./server.sh verify-v300-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` |",
-    "source `3.0.0`, latest published `v2.9.0`, current roadmap `v3.0.0 Event Evidence Search MVP` 정렬",
+    "source `3.0.0`, latest published `v3.0.0`, current roadmap `v3.0.0 Event Evidence Search MVP` 정렬",
   ]) {
     assert(files.streamVerification.includes(snippet), `stream verification missing snippet: ${snippet}`);
   }

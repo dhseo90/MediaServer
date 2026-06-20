@@ -4,8 +4,8 @@
 파일명으로 보관합니다.
 
 현재 README 대표 이미지는 제품 shell 설명용입니다. 현재 source tree와 최신 공개
-GitHub Release는 `v2.9.0` Final 2.x Closure & Compatibility Baseline을 가리키지만,
-이 이미지를 v3.0.0 source baseline 또는 v2.9.0 공개 릴리즈 증거로 쓰지 않습니다. 특히
+GitHub Release는 `v3.0.0` Event Evidence Search MVP를 가리키지만,
+이 이미지를 v3.0.0 source baseline 또는 v3.0.0 공개 릴리즈 증거로 쓰지 않습니다. 특히
 Client Live 이미지는 source tree, dock event feed, workspace preset,
 tile-level disconnect/action, VA overlay tile이 보이는 제품 구조를 설명합니다.
 Semantic Incident Memory 검색/timeline/brief 화면, VLM 전용 `/ops/vlm`, `/ops/events`
@@ -45,8 +45,8 @@ S00 기준 공개 문서 묶음:
 
 S00 기준:
 
-- v3.0.0 source tree와 v2.9.0 published source-only baseline을 분리하고, 직전
-  v2.8.0 baseline은 historical reference로만 둡니다.
+- v3.0.0 source tree와 v3.0.0 published source-only baseline을 정렬하고, 직전
+  v2.9.0 baseline은 historical reference로만 둡니다.
 - 대표 이미지는 `config/docs_ui_assets.json`의 managed asset list 안에서만 README와
   UI guide에 노출합니다.
 - Chrome/CDP fallback 재캡처는 사용자가 명시 승인한 예외일 때만 후보로 둡니다.
