@@ -3,6 +3,7 @@
 // Appearance hook, cleanup 정책을 mock metadata로 직접 검증한다.
 #include "analysis/appearance_extractor.h"
 #include "analysis/event_manager.h"
+#include "analysis/event_feature_search_index.h"
 #include "analysis/event_storage.h"
 #include "analysis/intrusion_after_line_crossing_scenario.h"
 #include "analysis/intrusion_dwell_scenario.h"
@@ -2248,6 +2249,142 @@ void VerifyV300SearchDslQueryConvert() {
     Pass("V300 S06 preserves provider/schema/media boundary invariants");
 }
 
+bool HasIndexTag(const EventSearchIndexEntry& entry, const std::string& tag) {
+    return std::find(entry.document.tags.begin(), entry.document.tags.end(), tag) !=
+           entry.document.tags.end();
+}
+
+bool HasIndexFeatureValue(const EventSearchIndexEntry& entry, const std::string& field, const std::string& value) {
+    for (const auto& feature : entry.document.features) {
+        if (feature.field == field && feature.value == value) {
+            return true;
+        }
+    }
+    return false;
+}
+
+EventSearchIndexEventRecord MakeSearchIndexEvent(const std::string& event_id,
+                                                 const std::string& source_id,
+                                                 const std::string& zone_id,
+                                                 std::int64_t timestamp_ms) {
+    EventSearchIndexEventRecord event;
+    event.event_id = event_id;
+    event.source_id = source_id;
+    event.channel_id = "main";
+    event.event_type = "intrusion";
+    event.scenario = "line-crossing";
+    event.status = "open";
+    event.zone_id = zone_id;
+    event.class_name = "person";
+    event.timestamp_ms = timestamp_ms;
+    return event;
+}
+
+EventSearchIndexFeatureSet MakeSearchIndexFeatureSet(const std::string& event_id,
+                                                     int revision,
+                                                     const std::string& value) {
+    EventSearchIndexFeatureSet feature_set;
+    feature_set.event_id = event_id;
+    feature_set.feature_set_id = "features-" + event_id + "-r" + std::to_string(revision);
+    feature_set.feature_revision = revision;
+
+    EventSearchIndexFeature feature;
+    feature.namespace_name = "appearance";
+    feature.name = "clothingColor";
+    feature.value = value;
+    feature.evidence_ref = "bboxCrop";
+    feature.searchable = true;
+    feature_set.features.push_back(feature);
+    return feature_set;
+}
+
+EventSearchIndexEvidenceManifest MakeSearchIndexEvidence(const std::string& event_id) {
+    EventSearchIndexEvidenceManifest evidence;
+    evidence.event_id = event_id;
+    evidence.manifest_path = "events/" + event_id + "/evidence-manifest.json";
+    evidence.event_frame_present = true;
+    evidence.representative_image_present = true;
+    evidence.bbox_crop_count = 1;
+    evidence.frame_bundle_present = true;
+    return evidence;
+}
+
+EventSearchIndexReviewState MakeSearchIndexReview(const std::string& event_id) {
+    EventSearchIndexReviewState review;
+    review.event_id = event_id;
+    review.review_state = "needs-review";
+    review.classification = "unclassified";
+    review.incident_status = "open";
+    review.pinned = true;
+    return review;
+}
+
+void VerifyV300FeatureSearchIndex() {
+    EventFeatureSearchIndex index;
+    EventFeatureSearchIndexRebuildInput input;
+    input.events.push_back(MakeSearchIndexEvent("evt-v300-s07-hit", "cam-lobby", "loading", 1781950201000LL));
+    input.events.push_back(MakeSearchIndexEvent("evt-v300-s07-miss", "cam-yard", "yard", 1781950200000LL));
+    input.feature_sets.push_back(MakeSearchIndexFeatureSet("evt-v300-s07-hit", 1, "blue jacket"));
+    input.feature_sets.push_back(MakeSearchIndexFeatureSet("evt-v300-s07-hit", 2, "red jacket"));
+    input.feature_sets.push_back(MakeSearchIndexFeatureSet("evt-v300-s07-miss", 1, "yellow vest"));
+    input.feature_sets.push_back(MakeSearchIndexFeatureSet("evt-v300-s07-orphan", 1, "green coat"));
+    input.evidence_manifests.push_back(MakeSearchIndexEvidence("evt-v300-s07-hit"));
+    input.evidence_manifests.push_back(MakeSearchIndexEvidence("evt-v300-s07-orphan"));
+    input.review_states.push_back(MakeSearchIndexReview("evt-v300-s07-hit"));
+    input.review_states.push_back(MakeSearchIndexReview("evt-v300-s07-orphan"));
+
+    EventSearchIndexFeatureSet raw_feature_set =
+        MakeSearchIndexFeatureSet("evt-v300-s07-miss", 2, "raw prompt leaked");
+    raw_feature_set.raw_prompt_stored = true;
+    input.feature_sets.push_back(raw_feature_set);
+
+    const EventSearchIndexReport report = index.Rebuild(input);
+    Expect(report.schema == "media-server.v300-feature-search-index-report.v1",
+           "V300 S07 report schema must identify the feature/search index");
+    Expect(report.indexed_entries == 2,
+           "V300 S07 must index EventRecord-backed entries only");
+    Expect(report.latest_feature_sets_indexed == 2 &&
+               report.stale_feature_sets_skipped == 1,
+           "V300 S07 must index only the latest FeatureSet revision");
+    Expect(report.orphan_feature_sets_skipped == 1 &&
+               report.orphan_evidence_manifests_skipped == 1 &&
+               report.orphan_review_states_skipped == 1,
+           "V300 S07 must skip orphan index inputs without EventRecord");
+    Expect(report.privacy_rejected_records == 1,
+           "V300 S07 must reject raw prompt/response or identity-bearing index inputs");
+    Expect(report.stale_result_guard_active,
+           "V300 S07 rebuild report must expose stale result guard state");
+
+    const EventSearchDsl dsl = ConvertEventSearchQueryToDsl(
+        "person red jacket tag:evidence:bboxcrop source:cam-lobby review:needs-review zone:loading pinned");
+    const auto hits = index.Search(dsl);
+    Expect(hits.size() == 1 && hits[0].event_id == "evt-v300-s07-hit",
+           "V300 S07 must search across event, feature, evidence, and review projection");
+    Expect(HasIndexTag(hits[0], "feature:appearance") &&
+               HasIndexTag(hits[0], "feature:clothingcolor") &&
+               HasIndexTag(hits[0], "evidence:eventframe") &&
+               HasIndexTag(hits[0], "evidence:bboxcrop"),
+           "V300 S07 index entry must expose feature and evidence search tags");
+    Expect(HasIndexFeatureValue(hits[0], "appearance.clothingColor", "red jacket") &&
+               !HasIndexFeatureValue(hits[0], "appearance.clothingColor", "blue jacket"),
+           "V300 S07 search entry must contain latest FeatureSet values only");
+
+    EventFeatureSearchIndexRebuildInput replacement;
+    replacement.events.push_back(MakeSearchIndexEvent("evt-v300-s07-new", "cam-lobby", "loading", 1781950202000LL));
+    replacement.feature_sets.push_back(MakeSearchIndexFeatureSet("evt-v300-s07-new", 1, "black jacket"));
+    index.Rebuild(replacement);
+    const auto old_hits = index.Search(ConvertEventSearchQueryToDsl("evt-v300-s07-hit"));
+    Expect(old_hits.empty(), "V300 S07 rebuild must clear stale search results");
+    Expect(!EventFeatureSearchIndexReportContainsForbiddenMaterial(index.Report()),
+           "V300 S07 index report must preserve provider/schema/media/UI boundary invariants");
+
+    Pass("V300 S07 indexes EventRecord FeatureSet EvidenceManifest and review state");
+    Pass("V300 S07 indexes only latest FeatureSet revision");
+    Pass("V300 S07 skips orphan and privacy rejected records");
+    Pass("V300 S07 rebuild clears stale search results");
+    Pass("V300 S07 preserves provider/schema/media/UI boundary invariants");
+}
+
 void VerifyEventRecorderMediaHooks() {
     const auto snapshot = GetEventStorageSnapshot();
     const std::filesystem::path active_path(snapshot.active_path.empty() ? snapshot.path
@@ -2727,6 +2864,7 @@ int main() {
         VerifyV300VlmFeatureQueue();
         VerifyV300FeatureOnlyRetention();
         VerifyV300SearchDslQueryConvert();
+        VerifyV300FeatureSearchIndex();
         VerifyEventRecorderMediaHooks();
         VerifyVaRuntimeMetadataBuilder();
         VerifyVaMetadataSubscriptionFilter();

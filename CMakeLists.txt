@@ -20,6 +20,7 @@ add_executable(media_server
     src/analysis/detector_factory.cpp
     src/analysis/dummy_detector.cpp
     src/analysis/event_manager.cpp
+    src/analysis/event_feature_search_index.cpp
     src/analysis/event_post_dispatcher.cpp
     src/analysis/event_rule_engine.cpp
     src/analysis/event_search_query.cpp

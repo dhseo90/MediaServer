@@ -220,6 +220,8 @@ Usage:
                  v3.0.0 S05 Feature-only Retention과 raw prompt/response non-retention 경계를 검증합니다.
   verify-v300-search-dsl-query-convert
                  v3.0.0 S06 Search DSL and Query Convert와 text/tags/filter 경계를 검증합니다.
+  verify-v300-feature-search-index
+                 v3.0.0 S07 Feature/Search Index와 stale result guard 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -332,6 +334,8 @@ Usage:
                  v3.0.0 S05 Feature-only Retention과 raw prompt/response non-retention 경계를 검증합니다.
   verify-v300-search-dsl-query-convert
                  v3.0.0 S06 Search DSL and Query Convert와 text/tags/filter 경계를 검증합니다.
+  verify-v300-feature-search-index
+                 v3.0.0 S07 Feature/Search Index와 stale result guard 경계를 검증합니다.
   verify-actions-security
                  GitHub Actions workflow 권한과 action 사용 정책을 검증합니다.
   verify-ci-local-gate-parity
@@ -1130,6 +1134,10 @@ case "${cmd}" in
   verify-v300-search-dsl-query-convert)
     require_internal verify_v300_search_dsl_query_convert.mjs
     exec "${INTERNAL_DIR}/verify_v300_search_dsl_query_convert.mjs" "$@"
+    ;;
+  verify-v300-feature-search-index)
+    require_internal verify_v300_feature_search_index.mjs
+    exec "${INTERNAL_DIR}/verify_v300_feature_search_index.mjs" "$@"
     ;;
   verify-v290-final-stabilization-run)
     require_internal verify_v290_final_stabilization_run.mjs

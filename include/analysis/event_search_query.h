@@ -58,6 +58,9 @@ struct EventSearchDocument {
     std::string event_type;
     std::string scenario;
     std::string status;
+    std::string zone_id;
+    std::string line_id;
+    std::string class_name;
     std::string review_state;
     std::int64_t timestamp_ms{0};
     bool pinned{false};

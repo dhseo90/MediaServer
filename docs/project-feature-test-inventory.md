@@ -26,12 +26,12 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 537 |
+| 전체 기능 항목 | 540 |
 | UI 직접 필요 | 295 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 211 |
-| 테스트 필요 | 537 |
-| 안정화 대상 | 527 |
+| UI 비대상 | 214 |
+| 테스트 필요 | 540 |
+| 안정화 대상 | 530 |
 | UI 풀테스트 대상 | 315 |
 | 30분 soak 대상 | 49 |
 | 120분 대상 | 7 |
@@ -42,7 +42,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 534개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 540개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -69,6 +69,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | V300-S04 VLM Feature Queue | `LAB-084`, `SAFE-086`, `OPS-054` | `verify-v300-vlm-feature-queue`, `verify-analysis-state` | Background queue, lazy trigger, missing-runtime/queue-timeout/invalid-output VLM-only failure, structured FeatureSet revision 경계를 확인합니다. real provider success, Search DSL, `/ops/events` UI, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
 | V300-S05 Feature-only Retention | `LAB-085`, `SAFE-087`, `OPS-055` | `verify-v300-feature-only-retention`, `verify-analysis-state` | Feature-only durable retention, raw prompt/response rejection, FeatureSet revision store, reanalysis revision policy를 확인합니다. Search DSL, Retention/Pin/Cleanup, `/ops/events` UI, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
 | V300-S06 Search DSL and Query Convert | `LAB-086`, `SAFE-088`, `OPS-056` | `verify-v300-search-dsl-query-convert`, `verify-analysis-state` | Natural-language query conversion to constrained Search DSL, text/tags/filter matching, strict structured output, identity-query rejection을 확인합니다. Feature/Search Index, `/ops/events` UI, vector search, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
+| V300-S07 Feature/Search Index | `LAB-087`, `SAFE-089`, `OPS-057` | `verify-v300-feature-search-index`, `verify-analysis-state` | EventRecord, FeatureSet, EvidenceManifest, operator review state projection과 index/rebuild/report, stale result guard를 확인합니다. `/ops/events` UI, vector search, semantic provider rerank, retention cleanup execution, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
 | V310-S02 Event Clip Encoder Pipeline | `EVT-059`, `SAFE-083` | `verify-analysis-state`, `./server.sh build`, `git diff --check` | 기존 frame-bundle hook에서 bounded encoded clip artifact, queue/status manifest, partial cleanup, non-VMS boundary를 확인합니다. v3.1 baseline/S01 contract, replay UI, client digest, VMS/NVR archive API, 24/7 recording, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
 
 ## v2.9.0 Final 2.x Closure & Compatibility Baseline Coverage Mapping
@@ -187,9 +188,9 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | `EVT-001`~`EVT-060` | event/VLM/v250/v260/v270/v280/v300/v310 verifier family | event log 육안 확인은 UI 풀테스트 |
 | `CLIENT-001`~`CLIENT-024` | client/UI verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-021` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
-| `LAB-001`~`LAB-086` | lab/VLM/v250/v260/v270/v280/v300 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-088` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-056` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
+| `LAB-001`~`LAB-087` | lab/VLM/v250/v260/v270/v280/v300 fixture verifier family | 제품 UI 비대상 |
+| `SAFE-001`~`SAFE-089` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-057` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
 
 ## VA Manual UI Seed Matrix
 
@@ -696,6 +697,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | LAB-084 | V300-S04 VLM feature queue fixture | 비대상 | 필요 | 안정화, 30분 | `verify-v300-vlm-feature-queue`와 `verify-analysis-state`가 background queue, lazy trigger, missing-runtime, queue-timeout, invalid-output outcome과 structured FeatureSet revision을 검증하되 real provider call, Search DSL, `/ops/events` UI를 만들지 않음 |
 | LAB-085 | V300-S05 feature-only retention fixture | 비대상 | 필요 | 안정화 | `verify-v300-feature-only-retention`와 `verify-analysis-state`가 FeatureSet revision store, raw prompt/response rejection, reanalysis revision policy, previous revision preservation을 검증하되 Search DSL, Retention/Pin/Cleanup, `/ops/events` UI를 만들지 않음 |
 | LAB-086 | V300-S06 search DSL/query convert fixture | 비대상 | 필요 | 안정화 | `verify-v300-search-dsl-query-convert`와 `verify-analysis-state`가 natural language to constrained Search DSL, strict structured output, text/tags/filter matching, identity-query rejection을 검증하되 Feature/Search Index, `/ops/events` UI, vector search를 만들지 않음 |
+| LAB-087 | V300-S07 feature/search index fixture | 비대상 | 필요 | 안정화 | `verify-v300-feature-search-index`와 `verify-analysis-state`가 EventRecord, FeatureSet, EvidenceManifest, operator review state projection, latest revision selection, orphan/privacy guard, stale result guard를 검증하되 `/ops/events` UI, vector search, provider rerank를 만들지 않음 |
 
 ## I. Safety, Boundary, Invariant Contract
 
@@ -789,6 +791,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | SAFE-086 | V300-S04 VLM feature queue isolation boundary | 비대상 | 필요 | 안정화, 30분 | `verify-v300-vlm-feature-queue`가 missing-runtime, queue-timeout, invalid-output을 VLM-only failure로 닫고 media path, EventRecord, metadata fanout, Event POST dispatch, Event POST/WebRTC/SSE/WS schema, raw prompt/response retention으로 전파하지 않음을 확인함 |
 | SAFE-087 | V300-S05 raw prompt/response non-retention boundary | 비대상 | 필요 | 안정화 | `verify-v300-feature-only-retention`가 raw prompt, raw provider response, provider request body, credential, source URL, raw frame bytes를 durable FeatureSet retention에서 거부하고 provider replay, Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path 변경으로 전파하지 않음을 확인함 |
 | SAFE-088 | V300-S06 query convert privacy and boundary | 비대상 | 필요 | 안정화 | `verify-v300-search-dsl-query-convert`가 query conversion 중 raw prompt/raw provider response를 보존하지 않고 runtime provider call, vector search, Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path 변경으로 전파하지 않으며 identity/watchlist query를 거부함 |
+| SAFE-089 | V300-S07 search index privacy and boundary | 비대상 | 필요 | 안정화 | `verify-v300-feature-search-index`가 Feature/Search Index projection 중 raw prompt/raw provider response, identity feature, provider call, vector search, Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path 변경, viewer/client 노출을 만들지 않음을 확인함 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -816,6 +819,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | OPS-054 | V300-S04 VLM feature queue 게이트 | 비대상 | 필요 | 안정화 | `verify-v300-vlm-feature-queue`가 docs/v300-vlm-feature-queue.md, fixture, analysis smoke, stream verification, roadmap, release records, feature inventory, server dispatch 연결을 확인하되 provider success, Search DSL, `/ops/events` UI, release publish, UI/longrun 실행 PASS로 대체하지 않음 |
 | OPS-055 | V300-S05 feature-only retention 게이트 | 비대상 | 필요 | 안정화 | `verify-v300-feature-only-retention`가 docs/v300-feature-only-retention.md, fixture, analysis smoke, stream verification, roadmap, release records, feature inventory, server dispatch 연결을 확인하되 Search DSL, Retention/Pin/Cleanup, `/ops/events` UI, release publish, UI/longrun 실행 PASS로 대체하지 않음 |
 | OPS-056 | V300-S06 search DSL/query convert 게이트 | 비대상 | 필요 | 안정화 | `verify-v300-search-dsl-query-convert`가 docs/v300-search-dsl-query-convert.md, fixture, analysis smoke, stream verification, roadmap, release records, feature inventory, server dispatch 연결을 확인하되 Feature/Search Index, `/ops/events` UI, vector search, release publish, UI/longrun 실행 PASS로 대체하지 않음 |
+| OPS-057 | V300-S07 feature/search index 게이트 | 비대상 | 필요 | 안정화 | `verify-v300-feature-search-index`가 docs/v300-feature-search-index.md, fixture, analysis smoke, stream verification, roadmap, release records, feature inventory, server dispatch 연결을 확인하되 `/ops/events` UI, vector search, semantic provider rerank, retention cleanup execution, release publish, UI/longrun 실행 PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 

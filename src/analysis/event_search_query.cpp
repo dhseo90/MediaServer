@@ -197,6 +197,15 @@ std::string FieldValue(const EventSearchDocument& document, const std::string& f
     if (field == "status") {
         return document.status;
     }
+    if (field == "zoneId") {
+        return document.zone_id;
+    }
+    if (field == "lineId") {
+        return document.line_id;
+    }
+    if (field == "className") {
+        return document.class_name;
+    }
     if (field == "reviewState") {
         return document.review_state;
     }
@@ -260,7 +269,9 @@ bool TermMatches(const EventSearchDocument& document, const std::string& term) {
     std::string haystack = LowerAscii(document.searchable_text + " " + document.event_id + " " +
                                       document.source_id + " " + document.channel_id + " " +
                                       document.event_type + " " + document.scenario + " " +
-                                      document.status + " " + document.review_state);
+                                      document.status + " " + document.zone_id + " " +
+                                      document.line_id + " " + document.class_name + " " +
+                                      document.review_state);
     if (Contains(haystack, lower_term)) {
         return true;
     }
