@@ -6,11 +6,11 @@
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.0.0`
+- 현재 소스 버전: `3.1.0`
 - 최신 공개 GitHub Release: `v3.0.0`
 - `v3.0.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap은 `v3.0.0 Event Evidence Search MVP`입니다.
+- 현재 source roadmap은 `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`입니다.
 
 ## 기본 공개 범위
 
@@ -55,8 +55,8 @@ main merge를 수행하지 않습니다.
 
 ## Public Docs / Assets Refresh
 
-v3.0.0 S00 source baseline alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
-source `3.0.0`, latest published `v3.0.0` 기준으로 정렬하는 local gate입니다.
+v3.1.0 S00 source baseline alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
+source `3.1.0`, latest published `v3.0.0` 기준으로 분리 정렬하는 local gate입니다.
 대상 문서는 `README.md`, `README.en.md`,
 `docs/README.md`, `docs/en/README.md`, `docs/ui-guide.md`,
 `docs/assets/ui/README.md`, 이 정책 문서, [versioning-policy.md](versioning-policy.md)입니다.
@@ -64,7 +64,7 @@ source `3.0.0`, latest published `v3.0.0` 기준으로 정렬하는 local gate�
 Companion local gate:
 
 ```bash
-./server.sh verify-v300-entry-baseline
+./server.sh verify-v310-entry-baseline
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-docs-links
 ./server.sh verify-release-metadata
@@ -106,7 +106,7 @@ gate 실패 또는 미확인으로 보고하며 제품 runtime/media 회귀와 �
 
 ## GitHub Releases 운영
 
-### v3.0.0 Release Close-out Runbook
+### v3.1.0 Release Close-out Runbook
 
 아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
 순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
@@ -137,28 +137,33 @@ published metadata, release branch 삭제, Next branch sync는 각각 실행 evi
 close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 삭제 승인이 없으면
 수행하지 않습니다.
 
-## v3.0.0 Source Roadmap Scope
+## v3.1.0 Source Roadmap Scope
 
-현재 `3.0.0` source tree는 아래 roadmap 후보를 source 기능과 local verifier 기준으로
+현재 `3.1.0` source tree는 아래 roadmap 후보를 source 기능과 local verifier 기준으로
 정리합니다. 각 항목은 구현과 직접 evidence가 생긴 뒤에만 완료로 기록합니다. UI
 풀테스트, 30분, 120분, 외부 endpoint field smoke는 실행한 경우에만 release evidence로
 기록합니다.
 
-- v3.0.0 source-of-truth 정렬
-- Event Evidence Contract
-- Frame Bundle Extraction
-- Feature Schema and Privacy Policy
-- VLM Feature Queue
-- Feature-only Retention
-- Search DSL and Query Convert
-- Feature/Search Index
-- Ops Events UI
-- Retention/Pin/Cleanup
+- v3.1.0 source-of-truth 정렬
+- Encoded Event Clip Contract
+- Event Clip Encoder Pipeline
+- Replay Timeline UI
+- Client-safe Event Digest
+- Scoped Integrator Search API
+- Operator Feature Correction
+- Optional Vector Search
+- Retention/Export Hardening
 - Stabilization and Release Readiness
 
-`v3.0.0` publish 완료 여부는 tag, GitHub Release, published metadata 검증 evidence가
+`v3.1.0` publish 완료 여부는 tag, GitHub Release, published metadata 검증 evidence가
 있을 때만 완료로 기록합니다. 현재 latest published release는 `v3.0.0`입니다.
-현재 공개 release tag 기준은 `v3.0.0`입니다. 다음 준비 중인 source tag 기준은 `v3.0.0`입니다.
+현재 공개 release tag 기준은 `v3.0.0`입니다. 다음 준비 중인 source tag 기준은 `v3.1.0`입니다.
+
+## v3.0.0 Latest Published Baseline Scope
+
+`v3.0.0`은 Event Evidence Search MVP source-only published baseline입니다. 이 범위는
+v3.1.0 신규 기능 완료 evidence가 아니며, v3.1.0 S00에서는 최신 공개 기준으로만
+참조합니다.
 
 ## v3.0.0 stabilization and release readiness
 
@@ -213,18 +218,18 @@ Not-run/excluded boundary:
 - `3.0.0`은 route/API/config/schema, registry/storage, auth/scope, evidence storage,
   RTSP/WebRTC media path 같은 큰 변경을 별도 설계와 승인 후 다루는 major line입니다.
 
-## v3.0.0 baseline alignment
+## v3.1.0 baseline alignment
 
-S00 local baseline gate는 `media-server.v300-entry-baseline.v1` 기준으로
-source `3.0.0`, latest published `v3.0.0`, current roadmap
-`v3.0.0 Event Evidence Search MVP`, feature inventory, release test records,
-stream verification을 같은 범위로 묶습니다. 이 절은 source tree의 v3.0 진입 기준을
+S00 local baseline gate는 `media-server.v310-entry-baseline.v1` 기준으로
+source `3.1.0`, latest published `v3.0.0`, current roadmap
+`v3.1.0 Encoded Event Clip and Safe Sharing Expansion`, feature inventory, release test records,
+stream verification을 같은 범위로 묶습니다. 이 절은 source tree의 v3.1 진입 기준을
 확인할 뿐 release action을 승인하거나 실행하지 않습니다.
 
 Companion local gate:
 
 ```bash
-./server.sh verify-v300-entry-baseline
+./server.sh verify-v310-entry-baseline
 ./server.sh build
 ./server.sh verify-release-metadata
 ./server.sh verify-docs-links
@@ -235,7 +240,7 @@ Companion local gate:
 git diff --check
 ```
 
-`verify-v300-entry-baseline`은 S00 local baseline gate입니다. 이 PASS는
+`verify-v310-entry-baseline`은 S00 local baseline gate입니다. 이 PASS는
 위 companion local gate와 문서 경계 연결만 뜻하며, 기능 구현, publish/tag/push/UI/장시간
 테스트 PASS로 승격하지 않습니다.
 
@@ -287,8 +292,8 @@ Not-run/excluded boundary:
 ## Tag 전략
 
 - 현재 공개 release tag 기준은 `v3.0.0`입니다.
-- 다음 준비 중인 source tag 기준은 `v3.0.0`입니다.
-- `v3.0.0` release tag는 signed annotated tag로 생성합니다.
+- 다음 준비 중인 source tag 기준은 `v3.1.0`입니다.
+- `v3.1.0` release tag는 signed annotated tag로 생성합니다.
 - 다음 신규 release tag는 signed annotated tag로 생성합니다.
 - unsigned annotated tag와 lightweight tag는 새 release tag로 사용하지 않습니다.
 - tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만
@@ -338,24 +343,24 @@ Annotation JSON을 확보한 경우:
 ./server.sh verify-actions-security --annotations-json <annotations.json>
 ```
 
-## v3.0.0 Release Note Template
+## v3.1.0 Release Note Template
 
-아래 템플릿은 v3.0.0 source-only GitHub Release note 기준입니다. 실행하지 않은
+아래 템플릿은 v3.1.0 source-only GitHub Release note 기준입니다. 실행하지 않은
 장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다.
 
 ```markdown
-# Media Server v3.0.0
+# Media Server v3.1.0
 
 ## Scope
 
 - Source-only live media server release
-- Event Evidence Search MVP source scope
-- Latest published baseline before this release: v2.9.0
+- Encoded Event Clip and Safe Sharing Expansion source scope
+- Latest published baseline before this release: v3.0.0
 - Binary/runtime/model bundle: not included
 
 ## Verification
 
-- V300-S00 baseline gate: <fill after `verify-v300-entry-baseline`>
+- V310-S00 baseline gate: <fill after `verify-v310-entry-baseline`>
 - Local docs/release metadata: <fill after `verify-release-metadata`,
   `verify-docs-links`, `verify-docs-ui-assets`, and required inventory gates>
 - Build: <fill after `./server.sh build`>

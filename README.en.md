@@ -3,7 +3,7 @@
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
 [![Published Release](https://img.shields.io/badge/published-v3.0.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v3.0.0)
-![Source Version](https://img.shields.io/badge/source-3.0.0-informational)
+![Source Version](https://img.shields.io/badge/source-3.1.0-informational)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
 video analytics overlays and rule/scenario live events when analytics are enabled.
@@ -15,9 +15,9 @@ and runtime/model bundle distribution are outside the default public release.
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
 - Latest published GitHub Release: [v3.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.0.0)
-- Current source version: `3.0.0`
+- Current source version: `3.1.0`
 - v3.0.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
-- Current source roadmap: `v3.0.0 Event Evidence Search MVP`
+- Current source roadmap: `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`
 
 ## At a Glance
 
@@ -30,24 +30,26 @@ and runtime/model bundle distribution are outside the default public release.
 - **Incident memory**: the current source tree projects EventRecord, audit, source
   health, and alert dry-run data into `/ops/events` search, timelines, explainable
   briefs, and similar-incident lookup.
-- **Out of scope**: VMS/NVR, long-term recording, playback/archive search, VLM
+- **Out of scope**: VMS/NVR, long-term recording, broad archive playback/search, VLM
   default-on, model/runtime bundle distribution, and guaranteed real-device or
   external-provider success are not included in the default public release.
 
-## v3.0 Event Evidence Search MVP Baseline
+## v3.1 Encoded Event Clip And Safe Sharing Baseline
 
 Latest published version `3.0.0` is the Event Evidence Search MVP source-only
-GitHub Release. The current `3.0.0` source tree publishes the Event Evidence
-Search MVP source-of-truth baseline. This baseline aligns version, docs, backlog,
-and verifier gates for v3.0 work; Event Evidence
-Contract, frame bundles, feature schemas, search DSL, and new `/ops/events`
-behavior are complete only after their own V300 code/UI/API/verifier evidence
+GitHub Release. The current `3.1.0` source tree publishes the v3.1 Encoded Event
+Clip and Safe Sharing Expansion source-of-truth baseline. This baseline aligns
+version, docs, backlog, and verifier gates for v3.1 work; encoded event clip
+contracts, encoder pipeline, replay timeline, client-safe digest, scoped
+integrator API, operator correction, optional vector search, and retention/export
+hardening are complete only after their own V310 code/UI/API/verifier evidence
 exists.
 
-The primary v3.0 choice is `Event Evidence Search MVP`. The fallback is
-`Conservative Foundation`, while encoded event clips and playback expansion are
-kept for v3.1. Existing Event POST, WebRTC DataChannel, SSE/WS metadata schemas,
-and RTSP/WebRTC media paths remain unchanged unless explicitly requested.
+The primary v3.1 choice is `Encoded Event Clip and Safe Sharing Expansion`. The
+fallback is `Encoded Clip Foundation`; safe sharing/API/correction/vector work is
+promoted only with step-level evidence. Existing Event POST, WebRTC DataChannel,
+SSE/WS metadata schemas, and RTSP/WebRTC media paths remain unchanged unless
+explicitly requested.
 
 The 2.x runway is intentionally narrow: `2.8.0` is for action readiness under
 existing contracts, `2.9.0` is the final stabilization and 3.0 transition release,

@@ -3,9 +3,10 @@
 이 디렉터리는 README와 `docs/ui-guide.md`에서 사용할 제품 UI 스크린샷을 역할 기준
 파일명으로 보관합니다.
 
-현재 README 대표 이미지는 제품 shell 설명용입니다. 현재 source tree와 최신 공개
-GitHub Release는 `v3.0.0` Event Evidence Search MVP를 가리키지만,
-이 이미지를 v3.0.0 source baseline 또는 v3.0.0 공개 릴리즈 증거로 쓰지 않습니다. 특히
+현재 README 대표 이미지는 제품 shell 설명용입니다. 현재 source tree는 `v3.1.0`
+Encoded Event Clip and Safe Sharing Expansion을, 최신 공개 GitHub Release는 `v3.0.0`
+Event Evidence Search MVP를 가리키지만, 이 이미지를 v3.1.0 source baseline 또는
+v3.0.0 공개 릴리즈 증거로 쓰지 않습니다. 특히
 Client Live 이미지는 source tree, dock event feed, workspace preset,
 tile-level disconnect/action, VA overlay tile이 보이는 제품 구조를 설명합니다.
 Semantic Incident Memory 검색/timeline/brief 화면, VLM 전용 `/ops/vlm`, `/ops/events`
@@ -26,7 +27,7 @@ README, README.en, `docs/ui-guide.md`, `docs/video-analysis.md`에서 참조하�
 `scripts/internal/rule_preview_fixture_helpers.mjs`의 공통 profile/event/VA rule
 fixture를 사용해 preview prerequisite drift를 막습니다.
 
-## v3.0.0 S00 source baseline alignment
+## v3.1.0 S00 source baseline alignment
 
 이번 S00에서는 이미지 파일을 새로 교체하지 않았습니다. public entry 문서와
 UI guide가 같은 managed asset set을 참조하는지, 그리고 대표 이미지가 release
@@ -45,13 +46,13 @@ S00 기준 공개 문서 묶음:
 
 S00 기준:
 
-- v3.0.0 source tree와 v3.0.0 published source-only baseline을 정렬하고, 직전
+- v3.1.0 source tree와 v3.0.0 published source-only baseline을 분리 정렬하고, 직전
   v2.9.0 baseline은 historical reference로만 둡니다.
 - 대표 이미지는 `config/docs_ui_assets.json`의 managed asset list 안에서만 README와
   UI guide에 노출합니다.
 - Chrome/CDP fallback 재캡처는 사용자가 명시 승인한 예외일 때만 후보로 둡니다.
 - image recapture, 직접 브라우저 검수, UI 풀테스트, 30분/120분, published metadata는
-  `verify-v300-entry-baseline` PASS로 대체하지 않습니다.
+  `verify-v310-entry-baseline` PASS로 대체하지 않습니다.
 
 ## Docs Image Review 기준
 

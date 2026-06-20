@@ -10,13 +10,105 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.0.0`
+- 현재 소스 버전: `3.1.0`
 - 최신 공개 GitHub Release: `v3.0.0`
 - `v3.0.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap: `v3.0.0 Event Evidence Search MVP`
+- 현재 source roadmap: `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`
 
-## 현재 source roadmap: v3.0.0 Event Evidence Search MVP
+## 현재 source roadmap: v3.1.0 Encoded Event Clip and Safe Sharing Expansion
+
+상태: `V310-S00` source baseline 정렬 완료. 이 절은 v3.1.0 전체 기능 완료 evidence가
+아니며, 실제 기능 구현은 각 Step별 코드/UI/API/검증 evidence가 생긴 뒤에만 완료로
+기록합니다. V310-S00 baseline 정렬 자체는 기능 구현 완료 evidence가 아닙니다.
+
+직접 답: v3.1.0의 1차 선택값은 `Encoded Event Clip and Safe Sharing Expansion`입니다.
+이 방향은 v3.0 Event Evidence Search MVP 위에 event-centered encoded clip,
+safe sharing, scoped integrator access, operator correction, optional vector search를
+단계별로 얹되, MediaServer를 VMS/NVR이나 상시 녹화 제품으로 확장하지 않습니다.
+
+fallback 또는 축소 대안은 `Encoded Clip Foundation`입니다. 이 대안은 encoded clip
+contract, bounded encoder pipeline, FrameRef/PTS mapping만 먼저 닫고 safe sharing,
+scoped API, operator correction, vector search는 후속 step evidence가 생길 때까지
+보류합니다. 제품 체감은 작지만 VMS/NVR 범위 확장 위험을 가장 낮춥니다.
+
+설계 기록: [docs/superpowers/specs/2026-06-20-v300-v310-event-evidence-search-roadmap-design.md](superpowers/specs/2026-06-20-v300-v310-event-evidence-search-roadmap-design.md)
+
+포함 범위:
+
+- encoded event clip contract와 generation
+- `/ops/events` replay timeline
+- frame bundle과 encoded clip 사이의 FrameRef/PTS mapping
+- client-safe event digest
+- scoped integrator search API
+- operator feature correction과 aliases
+- optional vector/embedding index default-off
+- encoded clip lifecycle cleanup과 export hardening
+
+제외 범위:
+
+- 24/7 상시녹화와 VMS/NVR archive API
+- broad archive playback/search
+- 얼굴 인식, 신원 식별, watchlist, face embedding
+- raw prompt/response retention
+- client/viewer에 internal feature/provenance/raw evidence 전체 노출
+- 자동 rule 적용
+- cloud provider default-on
+
+제외 대상과 제외 사유:
+
+- 24/7 상시녹화와 VMS/NVR archive API: 제품 정체성을 VMS/NVR로 확장하므로 제외합니다.
+- broad archive playback/search: event-centered clip/replay 범위를 넘어 장기 archive 제품이 되므로 제외합니다.
+- 얼굴 인식, 신원 식별, watchlist, face embedding: 비식별 feature 정책을 깨므로 제외합니다.
+- raw prompt/response retention: privacy와 provider retention 위험이 커서 feature/evidence reference 중심으로 제한합니다.
+- full internal feature/provenance/raw evidence client exposure: viewer-safe digest 경계를 깨므로 제외합니다.
+- 자동 rule 적용: operator correction/review와 별개로 approval 없는 write path를 늘리므로 제외합니다.
+- cloud provider default-on: local-first와 explicit opt-in 경계를 유지합니다.
+- `codex/v310-event-clip-encoder`의 선개발 Event Clip Encoder Pipeline: V310-S02 범위이므로 S00 baseline 정렬에서는 merge하거나 완료 evidence로 쓰지 않습니다.
+
+license/provenance/privacy/운영 제약:
+
+- 기본 공개 형태는 source-only이며 FFmpeg/GStreamer/ONNX/VLM/YOLO runtime/model binary를 release asset에 포함하지 않습니다.
+- encoded clip은 이후 step에서 event-centered bounded evidence로만 다루며 24/7 녹화나 broad archive API로 승격하지 않습니다.
+- provider credential, prompt/raw response/source URL/raw frame bytes는 문서, UI, client, event payload, release evidence에 원문 노출하지 않습니다.
+- external TURN/WHEP, ONVIF 실기기, real cloud/VLM provider는 endpoint/credential/명시 승인 없이는 field PASS 근거가 아닙니다.
+- 안정화, UI 풀테스트, 30분, 120분, published metadata는 서로 대체하지 않습니다.
+
+불변 조건:
+
+- Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload schema를 요청 없이 바꾸지 않습니다.
+- viewer/client에 source URL, raw JSON, debug counter, internal feature/provenance/raw evidence를 노출하지 않습니다.
+- 실제 tag/push/PR/GitHub Release는 수동 승인 후에만 수행합니다.
+- `v3.1.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
+
+| Step | ID | Priority | 상태 | 묶음 | 개발 내용 | 완료 산출물 | 검증/evidence 경계 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 0 | V310-S00 | P0 | 완료 | v3.1 baseline | VERSION/CMake/README/docs/backlog/source roadmap을 v3.1 작업 기준으로 정렬 | source `3.1.0`, latest published `v3.0.0`, current roadmap `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`, V310-S00 verifier 연결 | `./server.sh verify-v310-entry-baseline`, `verify-release-metadata`, docs/inventory gates. 기능 구현 완료 evidence가 아님 |
+| 1 | V310-S01 | P0 | 예정 | Encoded Event Clip Contract | MP4/WebM clip manifest, FrameRef/PTS mapping, non-VMS boundary | 미구현 | S00 완료 evidence가 아님 |
+| 2 | V310-S02 | P0 | 예정 | Event Clip Encoder Pipeline | bounded short segment 또는 frame bundle 기반 encoded clip generation, queue/status/cleanup | 미구현. 선개발 백업 branch `codex/v310-event-clip-encoder`는 S00에서 merge하지 않음 | S00 완료 evidence가 아님 |
+| 3 | V310-S03 | P0 | 예정 | Replay Timeline UI | `/ops/events` event frame, representative image, frame bundle, encoded clip timeline | 미구현 | S00 완료 evidence가 아님 |
+| 4 | V310-S04 | P1 | 예정 | Client-safe Event Digest | redacted viewer-safe summary | 미구현 | S00 완료 evidence가 아님 |
+| 5 | V310-S05 | P1 | 예정 | Scoped Integrator Search API | scope-gated search API와 redaction guard | 미구현 | S00 완료 evidence가 아님 |
+| 6 | V310-S06 | P1 | 예정 | Operator Feature Correction | feature correction, aliases, reanalysis request | 미구현 | S00 완료 evidence가 아님 |
+| 7 | V310-S07 | P2 | 예정 | Optional Vector Search | default-off embedding index, rebuild, quality gates | 미구현 | S00 완료 evidence가 아님 |
+| 8 | V310-S08 | P1 | 예정 | Retention/Export Hardening | encoded clip lifecycle cleanup, export bundle, audit | 미구현 | S00 완료 evidence가 아님 |
+| 9 | V310-S09 | P0 | 예정 | Stabilization and Release Readiness | build/docs/verifier/UI evidence boundary와 release readiness records | 미구현 | S00 완료 evidence가 아님 |
+
+## v3.1.0 S00 개발 기록
+
+- 범위: P0 `V310-S00 v3.1 baseline`.
+- `VERSION`, `CMakeLists.txt`: 현재 source version과 CMake project version을 `3.1.0`으로 정렬했습니다.
+- `README.md`, `README.en.md`, `docs/README.md`, `docs/en/README.md`, `docs/versioning-policy.md`, `docs/release-policy.md`, `docs/public-repo-final-review.md`, `docs/ui-guide.md`: 현재 source roadmap을 `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`으로 전환하고 latest published release는 `v3.0.0` source-only GitHub Release로 분리했습니다.
+- `docs/development-backlog.md`: V310 roadmap을 현재 source roadmap으로 승격하고 `V310-S00` 완료 상태, latest published `v3.0.0`, v3.1 기능 구현 미완료 경계를 기록했습니다.
+- `scripts/internal/verify_v310_entry_baseline.mjs`, `server.sh`: `./server.sh verify-v310-entry-baseline` 명령을 추가해 source `3.1.0`, latest published `v3.0.0`, current roadmap `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`, 1차 선택값/fallback/제외 대상, license/provenance/privacy/운영 제약, feature inventory, release test records 연결을 정적 검증합니다.
+- `scripts/internal/verify_release_metadata_consistency.mjs`: `verify-release-metadata`가 source `3.1.0`, current roadmap `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`, latest published `v3.0.0`을 분리 검증하도록 보정했습니다.
+- `config/docs_ui_assets.json`, `docs/assets/ui/README.md`: docs UI asset baseline의 source version을 `3.1.0`, latest published 기준을 `v3.0.0`으로 정렬했습니다. 이미지는 교체하지 않았고 대표 이미지가 UI 풀테스트/PASS/published evidence가 아니라는 경계는 유지했습니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`: `OPS-061`, `SAFE-093`, V310-S00 안정화 verifier, 저장소 보존형 테스트 결과를 추가했습니다.
+- `codex/v310-event-clip-encoder`에 백업된 선개발 Event Clip Encoder Pipeline은 V310-S02 범위이므로 이번 S00에서 merge하지 않았고 S00 완료 evidence로 사용하지 않습니다.
+- 검증: 최초 `./server.sh verify-v310-entry-baseline`는 VERSION/CMake/docs/backlog/inventory가 아직 v3.0 기준이라 `pass=0 fail=7`로 FAIL했습니다. 구현 후 `./server.sh verify-v310-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh build`, `git diff --check` 기준으로 재검증합니다.
+- 미실행/비대체: `verify-release-metadata --published`, tag/push/GitHub Release, PR/main merge, V310-S01~S09 기능 구현, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, external TURN/WHEP, ONVIF 실기기, real cloud/VLM provider 호출은 S00 완료 근거가 아닙니다.
+
+## 최신 공개 기준 상세: v3.0.0 Event Evidence Search MVP
 
 상태: `V300-S00` source baseline 정렬 완료, `V300-S01` Event Evidence Contract
 완료, `V300-S02` Frame Bundle Extraction 완료, `V300-S03` Feature Schema and

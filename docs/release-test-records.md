@@ -103,6 +103,7 @@
 | V300 Ops Events UI | `/ops/events` search/detail UI, evidence timeline, feature reasons, retry, pin, retention status 확인 | `./server.sh verify-v300-ops-events-ui`, `./server.sh verify-ops-client-ui`, `./server.sh build`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `git diff --check`로 `/ops/events` V300 UI shell, `eventEvidenceSearch` view model, product JS rendering, CSS, `UI-059`, `SAFE-090`, `OPS-058`, server dispatch 연결을 확인. UI 풀테스트 직접 조작, 30분/120분, Retention/Pin/Cleanup lifecycle execution, published metadata PASS로 승격하지 않음 | v3.0.0 |
 | V300 Retention/Pin/Cleanup | default 7-day retention, source/rule override, pinned exclusion, dry-run/apply lifecycle cleanup, audit trail 확인 | `./server.sh verify-analysis-state`, `./server.sh verify-v300-retention-pin-cleanup`, `./server.sh build`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh verify-docs-links`, `git diff --check`로 `include/analysis/event_retention_cleanup.h`, `src/analysis/event_retention_cleanup.cpp`, `scripts/internal/analysis_state_smoke.cpp`, `docs/v300-retention-pin-cleanup.md`, `test/fixtures/v300_retention_pin_cleanup/cases.json`, `LAB-088`, `SAFE-091`, `OPS-059`, server dispatch 연결을 확인. destructive 운영 cleanup 실행, UI 풀테스트, 30분/120분, published metadata PASS로 승격하지 않음 | v3.0.0 |
 | V300 stabilization and release readiness | v3.0.0 local stabilization gate와 release evidence/not-run 경계 확인 | `./server.sh verify-v300-stabilization-release-readiness`, `./server.sh build`, `./server.sh verify-v300-entry-baseline`, `./server.sh verify-v300-event-evidence-contract`, `./server.sh verify-v300-feature-schema-privacy`, `./server.sh verify-v300-vlm-feature-queue`, `./server.sh verify-v300-feature-only-retention`, `./server.sh verify-v300-search-dsl-query-convert`, `./server.sh verify-v300-feature-search-index`, `./server.sh verify-v300-ops-events-ui`, `./server.sh verify-v300-retention-pin-cleanup`, `./server.sh verify-analysis-state`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-release-evidence-index`, `./server.sh verify-release-closeout-helper --dry-run`, `./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run`, `./server.sh verify-script-inventory`, `git diff --check`로 V300-S00~S09 local gate, release policy/evidence/records, `SAFE-092`, `OPS-060`, server dispatch 연결을 확인. UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release, field smoke PASS로 승격하지 않음 | v3.0.0 |
+| V310 source-of-truth split | v3.1.0 source version과 latest published v3.0.0 기준 분리 확인 | `./server.sh verify-v310-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh build`, `git diff --check`로 source `3.1.0`, latest published `v3.0.0`, current roadmap `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`을 확인. v3.1 기능 구현, published metadata, tag/push/GitHub Release, UI 풀테스트, 30분/120분 PASS로 승격하지 않음 | v3.1.0 |
 ## Deprecated 테스트 항목
 
 | 제목 | 수행내용 | 수행 상세 내용(확인방법) | 몇버전부터 deprecated되었는지 |
@@ -113,6 +114,32 @@
 | 미실행 항목을 결과표 PASS/FAIL에 섞기 | 실행하지 않은 30분/120분/UI/field smoke를 결과표에 조건부 통과처럼 기록 | 결과표는 pass/fail만 쓰고, 미실행/제외는 별도 표에 사유와 완료 evidence로 쓸 수 없다는 경계를 기록 | v2.8.0 |
 
 ## 버전별 테스트 결과 기록
+
+### v3.1.0
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| v310 S00 RED command precheck | 최초 `./server.sh verify-v310-entry-baseline`는 VERSION/CMake/docs/backlog/inventory가 아직 v3.0 기준이라 pass 0/fail 7로 fail. V310-S00 verifier/entrypoint 추가 후 v3.1 baseline 문서 정렬 전 기대 실패로 확인 | fail |
+| v310 S00 project inventory fixture fix | 첫 `./server.sh verify-project-inventory`는 manual UI VA seed matrix가 아직 `v3.0.0` target이라 fail. seed fixture description/releaseTarget을 `v3.1.0`으로 정렬하고 재검증 | fail |
+| v310 S00 entry baseline final | `./server.sh verify-v310-entry-baseline` 실행. source `3.1.0`, latest published `v3.0.0`, current roadmap `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`, pass 7/fail 0 확인. 기능 구현/UI/longrun/published metadata는 not-run으로 분리 | pass |
+| v310 S00 release metadata final | `./server.sh verify-release-metadata` 실행. current version `3.1.0`, current tag `v3.1.0`, pass 16/fail 0으로 source/published boundary 확인 | pass |
+| v310 S00 docs links final | `./server.sh verify-docs-links` 실행. markdown 109, local links 590, local images 22, local anchors 96, indexed docs 74, failures 0 확인 | pass |
+| v310 S00 docs UI assets final | `./server.sh verify-docs-ui-assets` 실행. managed UI asset manifest와 representative screenshot policy pass 10/fail 0 확인. 새 이미지 재캡처는 실행하지 않음 | pass |
+| v310 S00 project inventory final | `./server.sh verify-project-inventory` 실행. featureRows 548, seed fixture `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`, pass 13/fail 0 확인 | pass |
+| v310 S00 feature inventory coverage final | `./server.sh verify-feature-inventory-coverage` 실행. featureRows 548, covered 548, missing 0, pass 5/fail 0 확인 | pass |
+| v310 S00 script inventory final | `./server.sh verify-script-inventory` 실행. `verify-v310-entry-baseline` dispatch/executable/documented command 정합성 포함 pass 11/fail 0 확인 | pass |
+| v310 S00 build final | `./server.sh build` 실행. CMake configure/generate 후 `build-gst-onnx/media_server` target built 확인 | pass |
+| v310 S00 diff check final | `git diff --check` 실행. whitespace error output 없음 확인 | pass |
+
+미실행/제외:
+
+| 제목 | 수행내용 | 사유 |
+| --- | --- | --- |
+| v310 S00 published metadata | `./server.sh verify-release-metadata --published` | GitHub Release publish 이후 외부 상태 확인용입니다. S00 local source-of-truth 완료 evidence로 사용하지 않음 |
+| v310 S00 UI 풀테스트 | 인앱 브라우저 route/control/action 직접 조작 | S00은 문서/source metadata 정렬 범위입니다. UI 직접 조작 PASS로 대체하지 않음 |
+| v310 S00 30분/120분 longrun | `verify-predev --soak-minutes 30`, `verify-predev --soak-minutes 120`, `verify-va-runtime-console-longrun --duration-minutes 120` | S00 source-of-truth 정렬 gate 자체에서는 실행하지 않음 |
+| v310 S00 field smoke | real ONVIF, external TURN/WHEP, real cloud/VLM provider call | endpoint/credential/실기기 조건 미제공. S00 완료 evidence로 사용하지 않음 |
+| v310 S00 V310-S01~S09 기능 구현 | encoded clip contract/pipeline/replay UI/client digest/scoped API/operator correction/vector search/export hardening 구현 | 이번 스텝은 V310-S00 baseline 정렬입니다. 다른 V310 step 완료 evidence로 사용하지 않음 |
 
 ### v3.0.0
 
@@ -650,6 +677,7 @@
 | v280 release local gates | 안정화 테스트 | 미집계 | 320,781 | 미집계 | goal snapshot 683s | Codex goal usage end snapshot; token start not captured |
 | v280 release UI fulltest | UI 풀테스트 | 320,781 | 649,423 | 328,642 | goal snapshot delta 1216s | Codex goal usage snapshots plus in-app evidence and wrapper output |
 | v300 S00 baseline alignment | 안정화 테스트 | 미집계 | 미집계 | 미집계 | command summaries only | V300-S00 command-level verification; token snapshot not captured in this document |
+| v310 S00 baseline alignment | 안정화 테스트 | 미집계 | 미집계 | 미집계 | command summaries only | V310-S00 command-level verification; token snapshot not captured in this document |
 | v300 S01 Event Evidence Contract | 안정화 테스트 | 142,050 | 219,879 | 77,829 | goal snapshot delta 409s | Codex goal usage snapshots around S01 verifier/docs/inventory/script/build/diff gates |
 | v300 S07 Feature/Search Index | 안정화 테스트 | 미집계 | 269,810 | 미집계 | goal snapshot 779s | Codex goal usage snapshot after S07 verifier/docs/inventory/script/build/diff gates; token start not captured |
 | v300 release candidate local gates/30분/UI wrapper | 안정화 테스트 + 30분 soak + 자동 UI wrapper | 177,346 | 780,685 | 603,339 | goal snapshot 6070s; 30분 command durationSec 2358; UI wrapper runId `ui-fulltest-one-shot-1781964349798-16922` | Codex goal snapshot after v3.1 split cleanup through release candidate tests, temp cleanup, and release-records gate reruns. Start snapshot comes from this goal's compacted pre-release state; command-level per-area token split not captured |
@@ -667,6 +695,7 @@
 | v2.9.0 S08 final stabilization run | `$TMPDIR/media_server_webrtc_va_metadata_summary_1781876018818.json` | S08 WebRTC VA metadata summary JSON, 삭제 전 4KB. Event POST/ICE/RTSP overlay verifier가 출력한 임시 summary 경로와 codec launcher log는 cleanup scan에서 S08 신규 보존 대상 없음으로 확인 | 결과 수치를 이 문서로 이관 후 삭제 | 삭제 완료. 삭제 후 `$TMPDIR/media_server_webrtc_va_metadata_summary_1781876018818.json` 없음 확인 |
 | v2.9.0 S09 owner release readiness | 없음 | S09 local readiness/docs/inventory/evidence/closeout dry-run verifier 실행 중 최종 evidence로 보존할 `/tmp`/`/private/tmp` summary, screenshot, report를 생성하지 않음 | 삭제 대상 없음 | 없음 |
 | v3.0.0 S00 baseline alignment | 없음 | `verify-v300-entry-baseline`, release/docs/inventory/script verifier, `./server.sh build`, `git diff --check` 실행 중 최종 evidence로 보존할 `/tmp`/`/private/tmp` summary, screenshot, report를 생성하지 않음. UI screenshot recapture도 실행하지 않음 | 삭제 대상 없음 | 없음 |
+| v3.1.0 S00 baseline alignment | 없음 | `verify-v310-entry-baseline`, release/docs/inventory/script verifier, `./server.sh build`, `git diff --check` 실행 중 최종 evidence로 보존할 `/tmp`/`/private/tmp` summary, screenshot, report를 생성하지 않음. UI screenshot recapture도 실행하지 않음 | 삭제 대상 없음 | 없음 |
 | v3.0.0 S01 Event Evidence Contract | 없음 | `verify-v300-event-evidence-contract`, inventory/docs/script verifier, `./server.sh build`, `git diff --check` 실행 중 최종 evidence로 보존할 `/tmp`/`/private/tmp` summary, screenshot, report를 생성하지 않음. UI screenshot recapture도 실행하지 않음 | 삭제 대상 없음 | 없음 |
 | v3.0.0 S10 stabilization/release readiness | `/tmp/media_server_analysis_state_smoke-52065`, `/tmp/media_server_analysis_state_dep_scan.txt` | S10 `verify-analysis-state` 임시 smoke build dir 4.4MB와 dependency scan 0B | 결과 수치를 이 문서로 이관 후 삭제 | 삭제 완료. 삭제 후 두 경로 없음 확인 |
 | v3.0.0 S07 Feature/Search Index | `/private/tmp/media_server_analysis_state_smoke-*`, `/private/tmp/media_server_analysis_state_dep_scan.txt` | `verify-analysis-state` smoke build/dep scan 임시 산출물. 삭제 전 0B 디렉터리와 약 3.7MB~4.3MB smoke build 디렉터리들이 혼재 | 결과 수치를 이 문서로 이관 후 삭제 | 삭제 완료. 삭제 후 대상 패턴 없음 확인 |
