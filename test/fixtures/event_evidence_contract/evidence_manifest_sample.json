@@ -1,0 +1,131 @@
+{
+  "schema": "media-server.event-evidence-contract.v1",
+  "contractVersion": 1,
+  "eventId": "event-20260620-0001",
+  "sourceId": "cam-lobby",
+  "channelId": "main",
+  "streamEpochId": "stream-20260620-153000",
+  "createdAtMs": 1781950200456,
+  "artifacts": {
+    "eventFrame": {
+      "artifactId": "artifact-event-frame",
+      "role": "eventFrame",
+      "required": true,
+      "mediaType": "image/jpeg",
+      "storageKey": "events/event-20260620-0001/event-frame.jpg",
+      "frameRef": {
+        "sourceId": "cam-lobby",
+        "channelId": "main",
+        "streamEpochId": "stream-20260620-153000",
+        "frameSeq": 18342,
+        "ptsMs": 918210,
+        "wallClockMs": 1781950200123,
+        "relativeToEventMs": 0
+      }
+    },
+    "representativeImage": {
+      "artifactId": "artifact-representative-image",
+      "role": "representativeImage",
+      "required": false,
+      "mediaType": "image/jpeg",
+      "storageKey": "events/event-20260620-0001/representative.jpg",
+      "selectionReason": "object-centered-frame-for-vlm-input",
+      "frameRef": {
+        "sourceId": "cam-lobby",
+        "channelId": "main",
+        "streamEpochId": "stream-20260620-153000",
+        "frameSeq": 18339,
+        "ptsMs": 918110,
+        "wallClockMs": 1781950200023,
+        "relativeToEventMs": -100
+      }
+    },
+    "bboxCrops": [
+      {
+        "artifactId": "artifact-crop-person-1",
+        "role": "bboxCrop",
+        "required": false,
+        "mediaType": "image/jpeg",
+        "storageKey": "events/event-20260620-0001/crops/person-1.jpg",
+        "parentArtifactId": "artifact-event-frame",
+        "bbox": {
+          "x": 0.42,
+          "y": 0.18,
+          "width": 0.16,
+          "height": 0.54,
+          "coordinateSpace": "normalized"
+        },
+        "frameRef": {
+          "sourceId": "cam-lobby",
+          "channelId": "main",
+          "streamEpochId": "stream-20260620-153000",
+          "frameSeq": 18342,
+          "ptsMs": 918210,
+          "wallClockMs": 1781950200123,
+          "relativeToEventMs": 0
+        }
+      }
+    ],
+    "frameBundle": {
+      "artifactId": "artifact-frame-bundle",
+      "role": "frameBundle",
+      "required": false,
+      "phases": {
+        "pre": [
+          {
+            "sourceId": "cam-lobby",
+            "channelId": "main",
+            "streamEpochId": "stream-20260620-153000",
+            "frameSeq": 18330,
+            "ptsMs": 917810,
+            "wallClockMs": 1781950199723,
+            "relativeToEventMs": -400
+          }
+        ],
+        "event": [
+          {
+            "sourceId": "cam-lobby",
+            "channelId": "main",
+            "streamEpochId": "stream-20260620-153000",
+            "frameSeq": 18342,
+            "ptsMs": 918210,
+            "wallClockMs": 1781950200123,
+            "relativeToEventMs": 0
+          }
+        ],
+        "post": [
+          {
+            "sourceId": "cam-lobby",
+            "channelId": "main",
+            "streamEpochId": "stream-20260620-153000",
+            "frameSeq": 18354,
+            "ptsMs": 918610,
+            "wallClockMs": 1781950200523,
+            "relativeToEventMs": 400
+          }
+        ]
+      }
+    }
+  },
+  "retention": {
+    "defaultDays": 7,
+    "pinned": false,
+    "pinnedExcludesAutomaticCleanup": true,
+    "cleanupRequiresDryRun": true,
+    "operatorConfigurable": true
+  },
+  "privacy": {
+    "rawPromptStored": false,
+    "rawProviderResponseStored": false,
+    "identityFeaturesAllowed": false,
+    "allowedDurableFeatureMode": "structured-non-identifying-feature-only"
+  },
+  "nonVmsBoundary": {
+    "alwaysOnRecording": false,
+    "vmsArchiveApi": false,
+    "encodedEventClip": false,
+    "clipPlayback": false,
+    "clientViewerExposure": false,
+    "cloudProviderDefaultOn": false
+  }
+}
