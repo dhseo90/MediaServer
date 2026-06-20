@@ -106,7 +106,7 @@ gate 실패 또는 미확인으로 보고하며 제품 runtime/media 회귀와 �
 
 ## GitHub Releases 운영
 
-### v2.9.0 Release Close-out Runbook
+### v3.0.0 Release Close-out Runbook
 
 아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
 순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
@@ -159,6 +159,50 @@ close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 �
 `v3.0.0` publish 완료 여부는 tag, GitHub Release, published metadata 검증 evidence가
 있을 때만 완료로 기록합니다. 현재 latest published release는 `v2.9.0`입니다.
 현재 공개 release tag 기준은 `v2.9.0`입니다. 다음 준비 중인 source tag 기준은 `v3.0.0`입니다.
+
+## v3.0.0 stabilization and release readiness
+
+V300-S10 local readiness gate는 `media-server.v300-stabilization-release-readiness.v1`
+기준으로 v3.0.0 Event Evidence Search MVP의 S00~S09 local gates, release policy,
+release evidence index, release test records, close-out dry-run command를 같은 범위로
+묶습니다. 이 절은 source tree 준비 상태를 확인할 뿐 release action을 승인하거나
+실행하지 않습니다.
+
+Companion local gate:
+
+```bash
+./server.sh verify-v300-stabilization-release-readiness
+./server.sh build
+./server.sh verify-v300-entry-baseline
+./server.sh verify-v300-event-evidence-contract
+./server.sh verify-v300-feature-schema-privacy
+./server.sh verify-v300-vlm-feature-queue
+./server.sh verify-v300-feature-only-retention
+./server.sh verify-v300-search-dsl-query-convert
+./server.sh verify-v300-feature-search-index
+./server.sh verify-v300-ops-events-ui
+./server.sh verify-v300-retention-pin-cleanup
+./server.sh verify-analysis-state
+./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-project-inventory
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-release-evidence-index
+./server.sh verify-release-closeout-helper --dry-run
+./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
+./server.sh verify-script-inventory
+git diff --check
+```
+
+Not-run/excluded boundary:
+
+- UI 풀테스트 직접 조작 미실행은 S10 local readiness PASS로 대체하지 않습니다.
+- 30분 테스트 미실행은 S10 local readiness PASS가 아닙니다.
+- 120분 테스트 미실행은 S10 local readiness PASS가 아닙니다.
+- PR merge/main sync/tag/push/GitHub Release 실행은 S10 local readiness gate PASS로 대체하지 않습니다.
+- `verify-release-metadata --published` 미실행 상태는 GitHub Release publish 전에는 PASS로 기록하지 않습니다.
+- ONVIF 실기기, external TURN/WHEP, real cloud/VLM provider 호출은 endpoint/credential/승인 없이는 제외 상태입니다.
 
 ## 2.x runway / 3.0 전환 경계
 

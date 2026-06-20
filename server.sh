@@ -226,6 +226,8 @@ Usage:
                  v3.0.0 S08 Ops Events UI와 evidence timeline/feature reason/retry/pin/retention UI 경계를 검증합니다.
   verify-v300-retention-pin-cleanup
                  v3.0.0 S09 Retention/Pin/Cleanup과 pin 제외/dry-run/audit 경계를 검증합니다.
+  verify-v300-stabilization-release-readiness
+                 v3.0.0 S10 Stabilization and Release Readiness와 local release gate 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -344,6 +346,8 @@ Usage:
                  v3.0.0 S08 Ops Events UI와 evidence timeline/feature reason/retry/pin/retention UI 경계를 검증합니다.
   verify-v300-retention-pin-cleanup
                  v3.0.0 S09 Retention/Pin/Cleanup과 pin 제외/dry-run/audit 경계를 검증합니다.
+  verify-v300-stabilization-release-readiness
+                 v3.0.0 S10 Stabilization and Release Readiness와 local release gate 경계를 검증합니다.
   verify-actions-security
                  GitHub Actions workflow 권한과 action 사용 정책을 검증합니다.
   verify-ci-local-gate-parity
@@ -1154,6 +1158,10 @@ case "${cmd}" in
   verify-v300-retention-pin-cleanup)
     require_internal verify_v300_retention_pin_cleanup.mjs
     exec "${INTERNAL_DIR}/verify_v300_retention_pin_cleanup.mjs" "$@"
+    ;;
+  verify-v300-stabilization-release-readiness)
+    require_internal verify_v300_stabilization_release_readiness.mjs
+    exec "${INTERNAL_DIR}/verify_v300_stabilization_release_readiness.mjs" "$@"
     ;;
   verify-v290-final-stabilization-run)
     require_internal verify_v290_final_stabilization_run.mjs
