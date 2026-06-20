@@ -60,16 +60,6 @@
 | V300-S09 | `./server.sh verify-v300-retention-pin-cleanup` | Configurable retention, pin exclusion, dry-run/apply lifecycle cleanup, and audit trail. destructive operational cleanup, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
 | V300-S10 | `./server.sh verify-v300-stabilization-release-readiness` | v3.0.0 local stabilization and release readiness records, companion gate wiring, release evidence/not-run boundary, close-out dry-run 연결을 확인합니다. UI 풀테스트 직접 조작, 30분/120분, published metadata, release action evidence를 대체하지 않음 |
 
-## v3.1.0 verifier
-
-아래 명령은 v3.1.0 roadmap 구현 단계에서 추가되거나 재사용되는 verifier입니다. 각
-명령의 PASS는 해당 Scope에 적힌 범위만 의미하며 v3.1 전체 완료, UI 풀테스트,
-30분/120분, published metadata를 대체하지 않습니다.
-
-| Step | Command | Scope |
-| --- | --- | --- |
-| V310-S02 | `./server.sh verify-analysis-state` | Event recorder media hook이 bounded frame-bundle clip에서 `media-server.va.encoded-event-clip.v1` status manifest와 encoded clip artifact, frameMap, queueName/status, partial cleanup, non-VMS boundary를 생성하는지 확인합니다. V310-S00/S01, replay UI, client digest, scoped API, 24/7 recording, VMS/NVR archive API 완료 evidence가 아님 |
-
 ## 최신 published baseline v2.9.0 verifier
 
 아래 명령은 v2.9.0 roadmap 구현 단계에서 추가되는 verifier입니다. 아직 구현되지 않은

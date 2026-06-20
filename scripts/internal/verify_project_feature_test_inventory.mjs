@@ -241,7 +241,6 @@ check("current feature expansion rows exist", () => {
     "EVT-056",
     "EVT-057",
     "EVT-058",
-    "EVT-059",
     "EVT-060",
     "CLIENT-023",
     "CLIENT-024",
@@ -372,7 +371,6 @@ check("current feature expansion rows exist", () => {
     "SAFE-080",
     "SAFE-081",
     "SAFE-082",
-    "SAFE-083",
     "SAFE-084",
     "SAFE-085",
     "SAFE-086",
@@ -403,7 +401,6 @@ check("current feature expansion rows exist", () => {
     "V300-S07 Feature/Search Index",
     "V300-S09 Retention/Pin/Cleanup",
     "V300-S10 Stabilization and Release Readiness",
-    "V310-S02 Event Clip Encoder Pipeline",
   ]) {
     requireText(inventory, snippet, `inventory missing current expansion snippet: ${snippet}`);
   }

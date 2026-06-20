@@ -38,6 +38,8 @@ const coverageVerifier = readText("scripts/internal/verify_feature_inventory_cov
 const projectInventoryVerifier = readText("scripts/internal/verify_project_feature_test_inventory.mjs");
 const scriptInventory = readText("scripts/internal/verify_script_inventory.mjs");
 const serverSh = readText("server.sh");
+const eventStorage = readText("src/analysis/event_storage.cpp");
+const analysisStateSmoke = readText("scripts/internal/analysis_state_smoke.cpp");
 const normalizedRecords = normalizeWhitespace(releaseRecords);
 
 const command = "./server.sh verify-v300-stabilization-release-readiness";
@@ -85,8 +87,8 @@ check("roadmap and stream verification expose V300-S10 stabilization readiness",
 });
 
 check("feature inventory maps V300-S10 to SAFE-092 and OPS-060", () => {
-  assertSummaryCountAtLeast("전체 기능 항목", 548);
-  assertSummaryCountAtLeast("기능 ID 목록", 548);
+  assertSummaryCountAtLeast("전체 기능 항목", 546);
+  assertSummaryCountAtLeast("기능 ID 목록", 546);
   assertRangeCovers("SAFE", 92);
   assertRangeCovers("OPS", 60);
   for (const snippet of [
@@ -163,6 +165,30 @@ check("server and script inventory expose S10 readiness command", () => {
     "tracked scripts are classified and referenced",
   ]) {
     assert(scriptInventory.includes(snippet), `script inventory verifier missing generic dispatch coverage snippet: ${snippet}`);
+  }
+});
+
+check("v3.0 source tree does not include V310 encoded clip pipeline scope", () => {
+  for (const [name, text] of [
+    ["event storage", eventStorage],
+    ["analysis state smoke", analysisStateSmoke],
+    ["backlog", backlog],
+    ["stream verification", streamVerification],
+    ["feature inventory", featureInventory],
+    ["release records", releaseRecords],
+  ]) {
+    assert(!text.includes("media-server.va.encoded-event-clip.v1"), `${name} still references V310 encoded clip schema`);
+    assert(!text.includes("event-clip.avi"), `${name} still references V310 encoded clip artifact`);
+  }
+  for (const [name, text] of [
+    ["backlog", backlog],
+    ["stream verification", streamVerification],
+    ["feature inventory", featureInventory],
+    ["release records", releaseRecords],
+  ]) {
+    assert(!text.includes("V310-S02"), `${name} still records V310-S02 in v3.0 branch`);
+    assert(!text.includes("EVT-059"), `${name} still maps V310 EVT-059 in v3.0 branch`);
+    assert(!text.includes("SAFE-083"), `${name} still maps V310 SAFE-083 in v3.0 branch`);
   }
 });
 
