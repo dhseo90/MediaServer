@@ -214,6 +214,8 @@ Usage:
                  v3.0.0 S01 Event Evidence Contract와 FrameRef/retention/non-VMS 경계를 검증합니다.
   verify-v300-feature-schema-privacy
                  v3.0.0 S03 Feature Schema and Privacy Policy와 identity/privacy 경계를 검증합니다.
+  verify-v300-vlm-feature-queue
+                 v3.0.0 S04 VLM Feature Queue와 VLM-only failure 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -320,6 +322,8 @@ Usage:
                  v3.0.0 S01 Event Evidence Contract와 FrameRef/retention/non-VMS 경계를 검증합니다.
   verify-v300-feature-schema-privacy
                  v3.0.0 S03 Feature Schema and Privacy Policy와 identity/privacy 경계를 검증합니다.
+  verify-v300-vlm-feature-queue
+                 v3.0.0 S04 VLM Feature Queue와 VLM-only failure 경계를 검증합니다.
   verify-actions-security
                  GitHub Actions workflow 권한과 action 사용 정책을 검증합니다.
   verify-ci-local-gate-parity
@@ -1106,6 +1110,10 @@ case "${cmd}" in
   verify-v300-feature-schema-privacy)
     require_internal verify_v300_feature_schema_privacy.mjs
     exec "${INTERNAL_DIR}/verify_v300_feature_schema_privacy.mjs" "$@"
+    ;;
+  verify-v300-vlm-feature-queue)
+    require_internal verify_v300_vlm_feature_queue.mjs
+    exec "${INTERNAL_DIR}/verify_v300_vlm_feature_queue.mjs" "$@"
     ;;
   verify-v290-final-stabilization-run)
     require_internal verify_v290_final_stabilization_run.mjs

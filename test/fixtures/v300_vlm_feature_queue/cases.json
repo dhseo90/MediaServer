@@ -1,0 +1,179 @@
+{
+  "schema": "media-server.v300-vlm-feature-queue-fixtures.v1",
+  "targetStep": "V300-S04",
+  "purpose": "Background-first VLM feature queue cases for v3.0 Event Evidence Search MVP. These fixtures prove queue outcomes and side-effect boundaries without real provider calls.",
+  "requiredCommands": [
+    "./server.sh build",
+    "./server.sh verify-analysis-state",
+    "./server.sh verify-v300-vlm-feature-queue",
+    "./server.sh verify-project-inventory",
+    "./server.sh verify-feature-inventory-coverage",
+    "./server.sh verify-script-inventory",
+    "./server.sh verify-docs-links",
+    "git diff --check"
+  ],
+  "cases": [
+    {
+      "id": "background-queue-feature-revision",
+      "kind": "background-queue",
+      "triggerMode": "background",
+      "input": {
+        "queueState": "available",
+        "queueDepth": 0,
+        "queueCapacity": 4,
+        "runtimeAvailable": true,
+        "operatorOptInAcknowledged": true,
+        "evidenceRefsSchema": "media-server.vlm-event-evidence-refs.v1"
+      },
+      "expected": {
+        "status": "completed",
+        "queueAction": "enqueue-background",
+        "featureSetSchema": "media-server.event-feature-set.v1",
+        "featureRevision": 1
+      },
+      "contractInvariants": {
+        "runtimeProviderCallPerformed": false,
+        "mediaPathBlocked": false,
+        "eventRecordBlocked": false,
+        "metadataFanoutBlocked": false,
+        "eventPostDispatchBlocked": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelSchemaChanged": false,
+        "sseWsMetadataSchemaChanged": false,
+        "rtspWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false,
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "credentialStored": false
+      }
+    },
+    {
+      "id": "lazy-trigger-feature-revision",
+      "kind": "lazy-trigger",
+      "triggerMode": "lazy",
+      "input": {
+        "queueState": "empty",
+        "runtimeAvailable": true,
+        "operatorOptInAcknowledged": true,
+        "requestedBy": "ops-search-lazy-fallback"
+      },
+      "expected": {
+        "status": "completed",
+        "queueAction": "run-lazy-trigger",
+        "featureSetSchema": "media-server.event-feature-set.v1",
+        "featureRevision": 2
+      },
+      "contractInvariants": {
+        "runtimeProviderCallPerformed": false,
+        "mediaPathBlocked": false,
+        "eventRecordBlocked": false,
+        "metadataFanoutBlocked": false,
+        "eventPostDispatchBlocked": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelSchemaChanged": false,
+        "sseWsMetadataSchemaChanged": false,
+        "rtspWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false,
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "credentialStored": false
+      }
+    },
+    {
+      "id": "missing-runtime-vlm-only",
+      "kind": "missing-runtime",
+      "triggerMode": "background",
+      "input": {
+        "queueState": "not-started",
+        "runtimeAvailable": false,
+        "operatorOptInAcknowledged": true
+      },
+      "expected": {
+        "status": "blocked",
+        "queueAction": "do-not-enqueue",
+        "failureReason": "missing-runtime",
+        "featureSetStored": false
+      },
+      "contractInvariants": {
+        "runtimeProviderCallPerformed": false,
+        "mediaPathBlocked": false,
+        "eventRecordBlocked": false,
+        "metadataFanoutBlocked": false,
+        "eventPostDispatchBlocked": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelSchemaChanged": false,
+        "sseWsMetadataSchemaChanged": false,
+        "rtspWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false,
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "credentialStored": false
+      }
+    },
+    {
+      "id": "queue-timeout-drop-vlm-only",
+      "kind": "queue-timeout",
+      "triggerMode": "background",
+      "input": {
+        "queueState": "full",
+        "queueDepth": 4,
+        "queueCapacity": 4,
+        "queueWaitMs": 5200,
+        "queueTimeoutMs": 3000,
+        "dropPolicy": "drop-vlm-task"
+      },
+      "expected": {
+        "status": "failed",
+        "queueAction": "drop-vlm-task",
+        "failureReason": "queue-timeout",
+        "featureSetStored": false
+      },
+      "contractInvariants": {
+        "runtimeProviderCallPerformed": false,
+        "mediaPathBlocked": false,
+        "eventRecordBlocked": false,
+        "metadataFanoutBlocked": false,
+        "eventPostDispatchBlocked": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelSchemaChanged": false,
+        "sseWsMetadataSchemaChanged": false,
+        "rtspWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false,
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "credentialStored": false
+      }
+    },
+    {
+      "id": "invalid-output-discarded",
+      "kind": "invalid-output",
+      "triggerMode": "lazy",
+      "input": {
+        "queueState": "drained",
+        "runtimeAvailable": true,
+        "capturedOutputKind": "invalid-json"
+      },
+      "expected": {
+        "status": "failed",
+        "queueAction": "discard-invalid-output",
+        "failureReason": "invalid-output",
+        "featureSetStored": false
+      },
+      "contractInvariants": {
+        "runtimeProviderCallPerformed": false,
+        "mediaPathBlocked": false,
+        "eventRecordBlocked": false,
+        "metadataFanoutBlocked": false,
+        "eventPostDispatchBlocked": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelSchemaChanged": false,
+        "sseWsMetadataSchemaChanged": false,
+        "rtspWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false,
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "credentialStored": false
+      }
+    }
+  ]
+}

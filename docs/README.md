@@ -113,6 +113,7 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 | [vlm-privacy-transfer-guard.md](vlm-privacy-transfer-guard.md) | privacy/transfer guard |
 | [vlm-cloud-provider-field-smoke-gate.md](vlm-cloud-provider-field-smoke-gate.md) | cloud provider field smoke gate |
 | [vlm-queue-backpressure-stability.md](vlm-queue-backpressure-stability.md) | queue/backpressure stability |
+| [v300-vlm-feature-queue.md](v300-vlm-feature-queue.md) | v3.0 VLM feature queue |
 | [vlm-evaluation-harness.md](vlm-evaluation-harness.md) | evaluation harness |
 | [vlm-evaluation-result-workflow.md](vlm-evaluation-result-workflow.md) | evaluation result workflow |
 | [vlm-review-action-workflow.md](vlm-review-action-workflow.md) | review action workflow |
