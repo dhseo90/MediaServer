@@ -1,0 +1,85 @@
+{
+  "schema": "media-server.v300-feature-search-index-fixtures.v1",
+  "targetStep": "V300-S07",
+  "cases": [
+    {
+      "id": "event-feature-evidence-review-projection",
+      "expected": {
+        "status": "indexed",
+        "schema": "media-server.v300-feature-search-index-report.v1",
+        "matchedEventIds": ["evt-v300-s07-hit"],
+        "indexedProjectionSources": ["EventRecord", "FeatureSet", "EvidenceManifest", "operatorReviewState"],
+        "tags": ["feature:appearance", "feature:clothingcolor", "evidence:eventframe", "evidence:bboxcrop"]
+      },
+      "contractInvariants": {
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "runtimeProviderCallPerformed": false,
+        "vectorSearchPerformed": false,
+        "opsEventsUiRequired": false,
+        "eventPostPayloadChanged": false,
+        "rtspWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false
+      }
+    },
+    {
+      "id": "latest-feature-revision-only",
+      "expected": {
+        "status": "indexed",
+        "latestFeatureRevision": 2,
+        "staleFeatureRevisionsSkipped": 1,
+        "excludedFeatureValues": ["blue jacket"],
+        "matchedFeatureValues": ["red jacket"]
+      },
+      "contractInvariants": {
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "runtimeProviderCallPerformed": false,
+        "vectorSearchPerformed": false,
+        "opsEventsUiRequired": false,
+        "eventPostPayloadChanged": false,
+        "rtspWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false
+      }
+    },
+    {
+      "id": "orphan-and-privacy-guard",
+      "expected": {
+        "status": "guarded",
+        "orphanFeatureSetsSkipped": 1,
+        "orphanEvidenceManifestsSkipped": 1,
+        "orphanReviewStatesSkipped": 1,
+        "privacyRejectedRecords": 1
+      },
+      "contractInvariants": {
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "runtimeProviderCallPerformed": false,
+        "vectorSearchPerformed": false,
+        "opsEventsUiRequired": false,
+        "eventPostPayloadChanged": false,
+        "rtspWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false
+      }
+    },
+    {
+      "id": "rebuild-stale-result-guard",
+      "expected": {
+        "status": "guarded",
+        "staleResultGuardActive": true,
+        "oldEventId": "evt-v300-s07-hit",
+        "oldEventSearchAfterRebuild": []
+      },
+      "contractInvariants": {
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "runtimeProviderCallPerformed": false,
+        "vectorSearchPerformed": false,
+        "opsEventsUiRequired": false,
+        "eventPostPayloadChanged": false,
+        "rtspWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false
+      }
+    }
+  ]
+}

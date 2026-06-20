@@ -1,0 +1,81 @@
+{
+  "schema": "media-server.v300-retention-pin-cleanup-fixtures.v1",
+  "targetStep": "V300-S09",
+  "cases": [
+    {
+      "id": "default-seven-day-expired-candidate",
+      "policy": {"defaultRetentionDays": 7},
+      "input": {"eventId": "evt-expired", "ageDays": 8, "pinned": false},
+      "expected": {"status": "would-delete", "dryRun": true},
+      "contractInvariants": {
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "eventPostPayloadChanged": false,
+        "rtspWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false
+      }
+    },
+    {
+      "id": "pinned-event-excluded-from-cleanup",
+      "policy": {"defaultRetentionDays": 7, "pinnedExcludesAutomaticCleanup": true},
+      "input": {"eventId": "evt-pinned", "ageDays": 30, "pinned": true},
+      "expected": {"status": "retain-pinned", "dryRun": true},
+      "contractInvariants": {
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "eventPostPayloadChanged": false,
+        "rtspWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false
+      }
+    },
+    {
+      "id": "source-and-rule-retention-override",
+      "policy": {
+        "defaultRetentionDays": 7,
+        "sourceRetentionDays": {"cam-loading": 3},
+        "ruleRetentionDays": {"after-hours": 14}
+      },
+      "input": {"eventId": "evt-rule-override", "sourceId": "cam-loading", "ruleId": "after-hours", "ageDays": 15, "pinned": false},
+      "expected": {"status": "would-delete", "retentionDays": 14},
+      "contractInvariants": {
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "eventPostPayloadChanged": false,
+        "rtspWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false
+      }
+    },
+    {
+      "id": "apply-lifecycle-delete-and-deindex",
+      "policy": {"defaultRetentionDays": 7},
+      "input": {"eventId": "evt-apply", "ageDays": 9, "pinned": false, "featureRevisions": 2, "searchIndexed": true},
+      "expected": {
+        "status": "deleted",
+        "deletedEventRecords": 1,
+        "deletedEvidenceManifests": 1,
+        "deletedFeatureRevisions": 2,
+        "deindexedSearchEntries": 1
+      },
+      "contractInvariants": {
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "eventPostPayloadChanged": false,
+        "rtspWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false
+      }
+    },
+    {
+      "id": "cleanup-audit-trail",
+      "policy": {"defaultRetentionDays": 7},
+      "input": {"eventId": "evt-audit", "ageDays": 10, "pinned": false},
+      "expected": {"status": "audit-recorded", "auditActions": ["retention-cleanup-dry-run", "retention-cleanup-apply"]},
+      "contractInvariants": {
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "eventPostPayloadChanged": false,
+        "rtspWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false
+      }
+    }
+  ]
+}

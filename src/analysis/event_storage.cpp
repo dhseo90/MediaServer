@@ -803,10 +803,27 @@ bool ParseEventRecordLine(const std::string& line, ParsedEventRecordLine* record
 }
 
 std::string BuildVlmEvidenceRefsJson(const EventRecord& record) {
+    const std::filesystem::path clip_manifest_path(record.clip_path);
+    const bool has_clip_manifest = !record.clip_path.empty();
+    const bool has_frame_bundle_manifest =
+        has_clip_manifest && clip_manifest_path.filename().string() == "manifest.json" &&
+        clip_manifest_path.parent_path().filename().string().find(".clip") != std::string::npos;
+    const std::filesystem::path frame_bundle_manifest_path =
+        has_frame_bundle_manifest ? clip_manifest_path.parent_path() / "frame-bundle-manifest.json"
+                                  : std::filesystem::path();
+    const std::filesystem::path evidence_manifest_path =
+        has_frame_bundle_manifest ? clip_manifest_path.parent_path() / "evidence-manifest.json"
+                                  : std::filesystem::path();
     std::ostringstream out;
     out << "{"
         << "\"schema\":\"media-server.vlm-event-evidence-refs.v1\","
         << "\"inputMode\":\"event-short-evidence-ref-only\","
+        << "\"evidenceManifest\":{"
+        << "\"kind\":\"evidence-manifest\","
+        << "\"available\":" << (has_frame_bundle_manifest ? "true" : "false") << ","
+        << "\"path\":\"" << JsonEscape(evidence_manifest_path.string()) << "\","
+        << "\"schema\":\"media-server.event-evidence-contract.v1\""
+        << "},"
         << "\"eventFrame\":{"
         << "\"kind\":\"snapshot\","
         << "\"available\":" << (record.snapshot_path.empty() ? "false" : "true") << ","
@@ -829,7 +846,8 @@ std::string BuildVlmEvidenceRefsJson(const EventRecord& record) {
         << "\"path\":\"" << JsonEscape(record.clip_path) << "\","
         << "\"previousFrameRef\":\"vlmInputRefs.previousFrame\","
         << "\"eventFrameRef\":\"vlmInputRefs.eventFrame\","
-        << "\"nextFrameRef\":\"vlmInputRefs.nextFrame\""
+        << "\"nextFrameRef\":\"vlmInputRefs.nextFrame\","
+        << "\"frameBundleManifest\":\"" << JsonEscape(frame_bundle_manifest_path.string()) << "\""
         << "},"
         << "\"rawMediaEmbedded\":false,"
         << "\"sourceUrlExposed\":false,"
@@ -1314,6 +1332,239 @@ bool WriteBinaryFile(const std::filesystem::path& path,
     return true;
 }
 
+std::string FrameStreamEpochId(const EventRecord& record) {
+    const std::string source = record.stream_id.empty() ? "unknown-source" : record.stream_id;
+    const std::string channel = record.channel_id.empty() ? "main" : record.channel_id;
+    return "event-buffer-" + SanitizePathToken(source + "-" + channel);
+}
+
+const char* FrameBundlePhase(std::size_t index, std::size_t event_frame_index) {
+    if (index < event_frame_index) {
+        return "pre";
+    }
+    if (index == event_frame_index) {
+        return "event";
+    }
+    return "post";
+}
+
+void WriteFrameRefJson(std::ostream& out,
+                       const EventRecord& record,
+                       const BufferedEventFrame& frame) {
+    out << "{"
+        << "\"sourceId\":\"" << JsonEscape(record.stream_id.empty() ? "unknown-source" : record.stream_id) << "\","
+        << "\"channelId\":\"" << JsonEscape(record.channel_id.empty() ? "main" : record.channel_id) << "\","
+        << "\"streamEpochId\":\"" << JsonEscape(FrameStreamEpochId(record)) << "\","
+        << "\"frameSeq\":" << frame.sequence << ","
+        << "\"ptsMs\":" << frame.timestamp_ms << ","
+        << "\"wallClockMs\":" << frame.timestamp_ms << ","
+        << "\"relativeToEventMs\":" << (frame.timestamp_ms - record.update_time_ms)
+        << "}";
+}
+
+void WriteFrameArtifactJson(std::ostream& out,
+                            const EventRecord& record,
+                            const std::pair<BufferedEventFrame, std::filesystem::path>& item,
+                            std::size_t index,
+                            std::size_t event_frame_index) {
+    out << "{"
+        << "\"index\":" << index << ","
+        << "\"artifactId\":\"frame-" << std::setw(4) << std::setfill('0') << (index + 1)
+        << std::setfill(' ') << "\","
+        << "\"phase\":\"" << FrameBundlePhase(index, event_frame_index) << "\","
+        << "\"path\":\"" << JsonEscape(item.second.string()) << "\","
+        << "\"frameRef\":";
+    WriteFrameRefJson(out, record, item.first);
+    out << "}";
+}
+
+bool WriteFrameBundleManifest(
+    const EventRecord& record,
+    const EventMediaHookOptions& options,
+    const std::filesystem::path& manifest_path,
+    const std::vector<std::pair<BufferedEventFrame, std::filesystem::path>>& frames,
+    std::size_t event_frame_index,
+    std::string* error_message) {
+    if (frames.empty() || event_frame_index >= frames.size()) {
+        if (error_message != nullptr) {
+            *error_message = "missing frame bundle frames";
+        }
+        return false;
+    }
+    if (!EnsureParentDirectory(manifest_path, error_message)) {
+        return false;
+    }
+    std::ofstream manifest(manifest_path, std::ios::out | std::ios::trunc);
+    if (!manifest.good()) {
+        if (error_message != nullptr) {
+            *error_message = "failed to open frame bundle manifest";
+        }
+        return false;
+    }
+    std::size_t pre_count = 0;
+    std::size_t event_count = 0;
+    std::size_t post_count = 0;
+    for (std::size_t index = 0; index < frames.size(); ++index) {
+        const std::string phase = FrameBundlePhase(index, event_frame_index);
+        if (phase == "pre") {
+            ++pre_count;
+        } else if (phase == "event") {
+            ++event_count;
+        } else {
+            ++post_count;
+        }
+    }
+    const std::int64_t start_ms = std::max<std::int64_t>(0, record.update_time_ms - options.pre_event_ms);
+    const std::int64_t end_ms = std::max<std::int64_t>(record.update_time_ms,
+                                                       record.update_time_ms + options.post_event_ms);
+    manifest << "{"
+             << "\"schema\":\"media-server.va.frame-bundle.v1\","
+             << "\"eventId\":\"" << JsonEscape(record.event_id) << "\","
+             << "\"eventType\":\"" << JsonEscape(record.event_type) << "\","
+             << "\"sourceId\":\"" << JsonEscape(record.stream_id.empty() ? "unknown-source" : record.stream_id)
+             << "\","
+             << "\"channelId\":\"" << JsonEscape(record.channel_id.empty() ? "main" : record.channel_id)
+             << "\","
+             << "\"streamEpochId\":\"" << JsonEscape(FrameStreamEpochId(record)) << "\","
+             << "\"captureWindow\":{"
+             << "\"startMs\":" << start_ms
+             << ",\"eventMs\":" << record.update_time_ms
+             << ",\"endMs\":" << end_ms
+             << "},"
+             << "\"frameCount\":" << frames.size() << ","
+             << "\"phaseCounts\":{"
+             << "\"pre\":" << pre_count << ","
+             << "\"event\":" << event_count << ","
+             << "\"post\":" << post_count
+             << "},"
+             << "\"frames\":[";
+    for (std::size_t index = 0; index < frames.size(); ++index) {
+        if (index != 0) {
+            manifest << ",";
+        }
+        WriteFrameArtifactJson(manifest, record, frames[index], index, event_frame_index);
+    }
+    manifest << "]"
+             << "}\n";
+    if (!manifest.good()) {
+        if (error_message != nullptr) {
+            *error_message = "failed to write frame bundle manifest";
+        }
+        return false;
+    }
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+}
+
+bool WriteEvidenceManifest(
+    const EventRecord& record,
+    const std::filesystem::path& manifest_path,
+    const std::filesystem::path& frame_bundle_manifest_path,
+    const std::vector<std::pair<BufferedEventFrame, std::filesystem::path>>& frames,
+    std::size_t event_frame_index,
+    std::string* error_message) {
+    if (frames.empty() || event_frame_index >= frames.size()) {
+        if (error_message != nullptr) {
+            *error_message = "missing evidence frames";
+        }
+        return false;
+    }
+    if (!EnsureParentDirectory(manifest_path, error_message)) {
+        return false;
+    }
+    std::ofstream manifest(manifest_path, std::ios::out | std::ios::trunc);
+    if (!manifest.good()) {
+        if (error_message != nullptr) {
+            *error_message = "failed to open event evidence manifest";
+        }
+        return false;
+    }
+    const auto& event_frame = frames[event_frame_index];
+    manifest << "{"
+             << "\"schema\":\"media-server.event-evidence-contract.v1\","
+             << "\"contractVersion\":1,"
+             << "\"eventId\":\"" << JsonEscape(record.event_id) << "\","
+             << "\"sourceId\":\"" << JsonEscape(record.stream_id.empty() ? "unknown-source" : record.stream_id)
+             << "\","
+             << "\"channelId\":\"" << JsonEscape(record.channel_id.empty() ? "main" : record.channel_id)
+             << "\","
+             << "\"streamEpochId\":\"" << JsonEscape(FrameStreamEpochId(record)) << "\","
+             << "\"createdAtMs\":" << NowMs() << ","
+             << "\"artifacts\":{"
+             << "\"eventFrame\":{"
+             << "\"artifactId\":\"event-frame\","
+             << "\"role\":\"eventFrame\","
+             << "\"required\":true,"
+             << "\"path\":\"" << JsonEscape(event_frame.second.string()) << "\","
+             << "\"frameRef\":";
+    WriteFrameRefJson(manifest, record, event_frame.first);
+    manifest << "},"
+             << "\"representativeImage\":{"
+             << "\"artifactId\":\"representative-image\","
+             << "\"selected\":true,"
+             << "\"sameAsEventFrame\":true,"
+             << "\"retainedAsSeparateArtifact\":false,"
+             << "\"selectionReason\":\"event-frame-is-trigger-time-evidence\","
+             << "\"path\":\"" << JsonEscape(event_frame.second.string()) << "\","
+             << "\"frameRef\":";
+    WriteFrameRefJson(manifest, record, event_frame.first);
+    manifest << "},"
+             << "\"bboxCrops\":[";
+    if (!record.bbox_crop_path.empty()) {
+        manifest << "{"
+                 << "\"artifactId\":\"bbox-crop-1\","
+                 << "\"parentArtifactId\":\"event-frame\","
+                 << "\"path\":\"" << JsonEscape(record.bbox_crop_path) << "\","
+                 << "\"bbox\":{"
+                 << "\"x\":" << record.bbox.x << ","
+                 << "\"y\":" << record.bbox.y << ","
+                 << "\"width\":" << record.bbox.width << ","
+                 << "\"height\":" << record.bbox.height
+                 << "},"
+                 << "\"frameRef\":";
+        WriteFrameRefJson(manifest, record, event_frame.first);
+        manifest << "}";
+    }
+    manifest << "],"
+             << "\"frameBundle\":{"
+             << "\"artifactId\":\"frame-bundle\","
+             << "\"schema\":\"media-server.va.frame-bundle.v1\","
+             << "\"manifestPath\":\"" << JsonEscape(frame_bundle_manifest_path.string()) << "\""
+             << "}"
+             << "},"
+             << "\"retention\":{"
+             << "\"defaultRetentionDays\":7,"
+             << "\"pinned\":false,"
+             << "\"cleanupRequiresDryRun\":true"
+             << "},"
+             << "\"privacy\":{"
+             << "\"rawPromptStored\":false,"
+             << "\"rawResponseStored\":false,"
+             << "\"providerRequestBodyStored\":false,"
+             << "\"identityFeaturesAllowed\":false,"
+             << "\"faceRecognitionAllowed\":false"
+             << "},"
+             << "\"nonVmsBoundary\":{"
+             << "\"continuousRecording\":false,"
+             << "\"archiveApi\":false,"
+             << "\"vmsNvrArchiveApi\":false,"
+             << "\"encodedClipPlayback\":false"
+             << "}"
+             << "}\n";
+    if (!manifest.good()) {
+        if (error_message != nullptr) {
+            *error_message = "failed to write event evidence manifest";
+        }
+        return false;
+    }
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+}
+
 class EventFrameBuffer {
 public:
     void Record(const std::string& stream_id, const std::string& channel_id, const RawVideoFrame& frame) {
@@ -1728,17 +1979,6 @@ bool WriteClipMedia(const EventRecord& record,
         written_frames.push_back({frames[index], frame_path});
     }
 
-    const std::filesystem::path manifest_path = clip_dir / "manifest.json";
-    std::ofstream manifest(manifest_path, std::ios::out | std::ios::trunc);
-    if (!manifest.good()) {
-        if (error_message != nullptr) {
-            *error_message = "failed to open clip recorder manifest";
-        }
-        return false;
-    }
-    const std::int64_t start_ms = std::max<std::int64_t>(0, record.update_time_ms - options.pre_event_ms);
-    const std::int64_t end_ms = std::max<std::int64_t>(record.update_time_ms,
-                                                       record.update_time_ms + options.post_event_ms);
     auto closest_frame_index = [&]() {
         std::size_t best = 0;
         std::int64_t best_delta =
@@ -1753,6 +1993,35 @@ bool WriteClipMedia(const EventRecord& record,
         return best;
     };
     const std::size_t event_frame_index = closest_frame_index();
+    const std::filesystem::path manifest_path = clip_dir / "manifest.json";
+    const std::filesystem::path frame_bundle_manifest_path = clip_dir / "frame-bundle-manifest.json";
+    const std::filesystem::path evidence_manifest_path = clip_dir / "evidence-manifest.json";
+    if (!WriteFrameBundleManifest(record,
+                                  options,
+                                  frame_bundle_manifest_path,
+                                  written_frames,
+                                  event_frame_index,
+                                  error_message)) {
+        return false;
+    }
+    if (!WriteEvidenceManifest(record,
+                               evidence_manifest_path,
+                               frame_bundle_manifest_path,
+                               written_frames,
+                               event_frame_index,
+                               error_message)) {
+        return false;
+    }
+    std::ofstream manifest(manifest_path, std::ios::out | std::ios::trunc);
+    if (!manifest.good()) {
+        if (error_message != nullptr) {
+            *error_message = "failed to open clip recorder manifest";
+        }
+        return false;
+    }
+    const std::int64_t start_ms = std::max<std::int64_t>(0, record.update_time_ms - options.pre_event_ms);
+    const std::int64_t end_ms = std::max<std::int64_t>(record.update_time_ms,
+                                                       record.update_time_ms + options.post_event_ms);
     std::size_t previous_frame_index = event_frame_index;
     std::size_t next_frame_index = event_frame_index;
     for (std::size_t index = 0; index < written_frames.size(); ++index) {
@@ -1791,6 +2060,8 @@ bool WriteClipMedia(const EventRecord& record,
              << "\"frameCount\":" << written_frames.size() << ","
              << "\"fallbackEncoder\":" << (used_fallback ? "true" : "false") << ","
              << "\"fallbackReason\":\"" << JsonEscape(last_fallback_reason) << "\","
+             << "\"frameBundleManifest\":\"" << JsonEscape(frame_bundle_manifest_path.string()) << "\","
+             << "\"evidenceManifest\":\"" << JsonEscape(evidence_manifest_path.string()) << "\","
              << "\"frames\":[";
     for (std::size_t index = 0; index < written_frames.size(); ++index) {
         if (index != 0) {

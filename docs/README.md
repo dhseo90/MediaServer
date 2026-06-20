@@ -9,14 +9,14 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 - 최신 공개 GitHub Release: [`v2.9.0`](https://github.com/dhseo90/MediaServer/releases/tag/v2.9.0)
 - 최신 published baseline: `v2.9.0 Final 2.x Closure & Compatibility Baseline`
 - 직전 published baseline: `v2.8.0 Operator-Supervised Action Readiness`
-- 현재 소스 버전: `2.9.0`
+- 현재 소스 버전: `3.0.0`
 - v2.9.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- 현재 source roadmap: `v2.9.0 Final 2.x Closure & Compatibility Baseline`
+- 현재 source roadmap: `v3.0.0 Event Evidence Search MVP`
 - 기본 공개 형태: source-only
 - 공개 문서/대표 asset 기준: `README.md`, `README.en.md`, `docs/README.md`,
-  `docs/en/README.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`는 v2.9
-  source와 v2.9 published baseline을 맞추고 직전 v2.8 baseline은 historical
-  reference로 분리합니다. 대표 이미지는
+  `docs/en/README.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`는 v3.0
+  source baseline과 v2.9 published baseline을 분리하고 직전 v2.8 baseline은
+  historical reference로 유지합니다. 대표 이미지는
   `config/docs_ui_assets.json`과 `./server.sh verify-docs-ui-assets`로 관리하고,
   교체 시 직접 이미지 검수 기록을 별도로 남깁니다.
 
@@ -48,6 +48,7 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 | [release-test-records.md](release-test-records.md) | 릴리즈 테스트 항목과 버전별 pass/fail 기록 |
 | [versioning-policy.md](versioning-policy.md) | 소스 버전, 공개 릴리즈, semver 기준 |
 | [public-repo-final-review.md](public-repo-final-review.md) | 공개 저장소 점검 기준 |
+| [superpowers/specs/2026-06-20-v300-v310-event-evidence-search-roadmap-design.md](superpowers/specs/2026-06-20-v300-v310-event-evidence-search-roadmap-design.md) | v3.0/v3.1 event evidence search roadmap design |
 | [ops-backup-recovery.md](ops-backup-recovery.md) | 운영 설정 백업과 복구 |
 | [sample-fixture-provenance.md](sample-fixture-provenance.md) | sample fixture 공개 판단 |
 | [runtime-model-bundle-rc-rehearsal.md](runtime-model-bundle-rc-rehearsal.md) | runtime/model bundle RC rehearsal 경계 |
@@ -70,6 +71,11 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 | [stream-verification.md](stream-verification.md) | 검증 명령과 테스트 영역 경계 |
 | [project-feature-test-inventory.md](project-feature-test-inventory.md) | 기능별 테스트 영역 inventory. 실행 evidence가 아니라 coverage 기준 |
 | [video-analysis.md](video-analysis.md) | VA pipeline, rule, scenario, metadata |
+| [event-evidence-contract.md](event-evidence-contract.md) | v3.0 Event Evidence Contract와 FrameRef/retention/non-VMS 경계 |
+| [event-feature-schema-privacy.md](event-feature-schema-privacy.md) | v3.0 FeatureSet schema와 비식별 privacy guard |
+| [v300-search-dsl-query-convert.md](v300-search-dsl-query-convert.md) | v3.0 Search DSL/query convert 경계 |
+| [v300-feature-search-index.md](v300-feature-search-index.md) | v3.0 Feature/Search Index와 stale result guard 경계 |
+| [v300-retention-pin-cleanup.md](v300-retention-pin-cleanup.md) | v3.0 Retention/Pin/Cleanup lifecycle와 audit 경계 |
 | [analysis-threshold-baselines.md](analysis-threshold-baselines.md) | 분석 threshold baseline |
 | [live-source-health.md](live-source-health.md) | live source health 상태 모델 |
 | [live-event-metadata-contracts.md](live-event-metadata-contracts.md) | Event POST, WebRTC, SSE, WS metadata contract |
@@ -110,6 +116,8 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 | [vlm-privacy-transfer-guard.md](vlm-privacy-transfer-guard.md) | privacy/transfer guard |
 | [vlm-cloud-provider-field-smoke-gate.md](vlm-cloud-provider-field-smoke-gate.md) | cloud provider field smoke gate |
 | [vlm-queue-backpressure-stability.md](vlm-queue-backpressure-stability.md) | queue/backpressure stability |
+| [v300-vlm-feature-queue.md](v300-vlm-feature-queue.md) | v3.0 VLM feature queue |
+| [v300-feature-only-retention.md](v300-feature-only-retention.md) | v3.0 feature-only retention |
 | [vlm-evaluation-harness.md](vlm-evaluation-harness.md) | evaluation harness |
 | [vlm-evaluation-result-workflow.md](vlm-evaluation-result-workflow.md) | evaluation result workflow |
 | [vlm-review-action-workflow.md](vlm-review-action-workflow.md) | review action workflow |

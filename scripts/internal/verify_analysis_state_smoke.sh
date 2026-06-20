@@ -16,7 +16,10 @@ echo "[verify] build analysis state smoke: ${BUILD_DIR}"
   "${ROOT_DIR}/src/analysis/appearance_extractor.cpp" \
   "${ROOT_DIR}/src/analysis/category_tokens.cpp" \
   "${ROOT_DIR}/src/analysis/event_manager.cpp" \
+  "${ROOT_DIR}/src/analysis/event_feature_search_index.cpp" \
+  "${ROOT_DIR}/src/analysis/event_retention_cleanup.cpp" \
   "${ROOT_DIR}/src/analysis/event_storage.cpp" \
+  "${ROOT_DIR}/src/analysis/event_search_query.cpp" \
   "${ROOT_DIR}/src/analysis/intrusion_after_line_crossing_scenario.cpp" \
   "${ROOT_DIR}/src/analysis/intrusion_dwell_scenario.cpp" \
   "${ROOT_DIR}/src/analysis/loitering_scenario.cpp" \
@@ -28,6 +31,8 @@ echo "[verify] build analysis state smoke: ${BUILD_DIR}"
   "${ROOT_DIR}/src/analysis/snapshot_encoder.cpp" \
   "${ROOT_DIR}/src/analysis/track_state_manager.cpp" \
   "${ROOT_DIR}/src/analysis/va_runtime_metadata.cpp" \
+  "${ROOT_DIR}/src/analysis/vlm_feature_retention.cpp" \
+  "${ROOT_DIR}/src/analysis/vlm_feature_queue.cpp" \
   "${ROOT_DIR}/src/analysis/vlm_observation_store.cpp" \
   "${ROOT_DIR}/src/analysis/wrong_direction_scenario.cpp" \
   "${ROOT_DIR}/src/analysis/zone_occupancy_scenario.cpp" \

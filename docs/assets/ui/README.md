@@ -5,7 +5,7 @@
 
 현재 README 대표 이미지는 제품 shell 설명용입니다. 현재 source tree와 최신 공개
 GitHub Release는 `v2.9.0` Final 2.x Closure & Compatibility Baseline을 가리키지만,
-이 이미지를 v2.9.0 공개 릴리즈 증거로 쓰지 않습니다. 특히
+이 이미지를 v3.0.0 source baseline 또는 v2.9.0 공개 릴리즈 증거로 쓰지 않습니다. 특히
 Client Live 이미지는 source tree, dock event feed, workspace preset,
 tile-level disconnect/action, VA overlay tile이 보이는 제품 구조를 설명합니다.
 Semantic Incident Memory 검색/timeline/brief 화면, VLM 전용 `/ops/vlm`, `/ops/events`
@@ -26,15 +26,15 @@ README, README.en, `docs/ui-guide.md`, `docs/video-analysis.md`에서 참조하�
 `scripts/internal/rule_preview_fixture_helpers.mjs`의 공통 profile/event/VA rule
 fixture를 사용해 preview prerequisite drift를 막습니다.
 
-## v2.9.0 S07 public docs/assets refresh
+## v3.0.0 S00 source baseline alignment
 
-이번 S07에서는 이미지 파일을 새로 교체하지 않았습니다. public entry 문서와
+이번 S00에서는 이미지 파일을 새로 교체하지 않았습니다. public entry 문서와
 UI guide가 같은 managed asset set을 참조하는지, 그리고 대표 이미지가 release
 publish evidence나 UI 풀테스트 PASS로 쓰이지 않는지 문서 기준을 정리합니다.
 대표 이미지 교체는 직접 이미지 검수와 `./server.sh verify-docs-ui-assets` 재실행
 후에만 기록합니다. 열지 않은 이미지는 PASS가 아니라 `미확인`으로 남깁니다.
 
-S07 기준 공개 문서 묶음:
+S00 기준 공개 문서 묶음:
 
 - `README.md`
 - `README.en.md`
@@ -43,15 +43,15 @@ S07 기준 공개 문서 묶음:
 - `docs/ui-guide.md`
 - `docs/assets/ui/README.md`
 
-S07 기준:
+S00 기준:
 
-- v2.9.0 source tree와 v2.9.0 published source-only baseline을 맞추고, 직전
+- v3.0.0 source tree와 v2.9.0 published source-only baseline을 분리하고, 직전
   v2.8.0 baseline은 historical reference로만 둡니다.
 - 대표 이미지는 `config/docs_ui_assets.json`의 managed asset list 안에서만 README와
   UI guide에 노출합니다.
 - Chrome/CDP fallback 재캡처는 사용자가 명시 승인한 예외일 때만 후보로 둡니다.
 - image recapture, 직접 브라우저 검수, UI 풀테스트, 30분/120분, published metadata는
-  `verify-v290-public-docs-assets-refresh` PASS로 대체하지 않습니다.
+  `verify-v300-entry-baseline` PASS로 대체하지 않습니다.
 
 ## Docs Image Review 기준
 

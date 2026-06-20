@@ -3,6 +3,8 @@
 // Appearance hook, cleanup 정책을 mock metadata로 직접 검증한다.
 #include "analysis/appearance_extractor.h"
 #include "analysis/event_manager.h"
+#include "analysis/event_feature_search_index.h"
+#include "analysis/event_retention_cleanup.h"
 #include "analysis/event_storage.h"
 #include "analysis/intrusion_after_line_crossing_scenario.h"
 #include "analysis/intrusion_dwell_scenario.h"
@@ -10,10 +12,13 @@
 #include "analysis/metadata_subscription_filter.h"
 #include "analysis/object_tracker.h"
 #include "analysis/re_entry_scenario.h"
+#include "analysis/event_search_query.h"
 #include "analysis/scenario_engine.h"
 #include "analysis/scene_context_builder.h"
 #include "analysis/track_state_manager.h"
 #include "analysis/va_runtime_metadata.h"
+#include "analysis/vlm_feature_retention.h"
+#include "analysis/vlm_feature_queue.h"
 #include "analysis/vlm_observation_store.h"
 #include "analysis/wrong_direction_scenario.h"
 #include "analysis/zone_occupancy_scenario.h"
@@ -65,6 +70,22 @@ bool HasLifecycleCounters(const std::vector<EventLifecycleStateSnapshot>& states
         }
     }
     return false;
+}
+
+bool HasFilter(const EventSearchDsl& dsl,
+               const std::string& field,
+               const std::string& op,
+               const std::string& value) {
+    for (const auto& filter : dsl.filters) {
+        if (filter.field == field && filter.op == op && filter.value == value) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool HasTerm(const std::vector<std::string>& terms, const std::string& value) {
+    return std::find(terms.begin(), terms.end(), value) != terms.end();
 }
 
 TrackedObjectMetadata MakeObject(std::uint64_t track_id,
@@ -173,7 +194,7 @@ void ConfigureEventStorageSmokeEnv() {
     ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_CLIP_HOOK_ENABLED", "1", 1);
     ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_CLIP_DIR", clip_dir.c_str(), 1);
     ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_PRE_EVENT_MS", "200", 1);
-    ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_POST_EVENT_MS", "0", 1);
+    ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_POST_EVENT_MS", "100", 1);
     ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_CLIP_BUFFER_MS", "1000", 1);
 }
 
@@ -1919,6 +1940,504 @@ void VerifyVlmObservationStore() {
     Pass("VLM rule suggestion preserves no-auto-apply boundary");
 }
 
+void VerifyV300VlmFeatureQueue() {
+    VlmFeatureQueueOptions options;
+    options.background_enabled = true;
+    options.lazy_trigger_enabled = true;
+    options.operator_opt_in_acknowledged = true;
+    options.runtime_available = true;
+    options.max_queue_size = 1;
+    options.queue_timeout_ms = 3000;
+
+    VlmFeatureQueue queue(options);
+    VlmFeatureQueueTask task;
+    task.task_id = "vlm-feature-task-evt-v300-s04";
+    task.event_id = "evt-v300-s04-line-001";
+    task.source_id = "cam-lobby";
+    task.channel_id = "main";
+    task.trigger_mode = "background";
+    task.queue_wait_ms = 10;
+    task.input_evidence_refs_json =
+        "{\"schema\":\"media-server.vlm-event-evidence-refs.v1\","
+        "\"evidenceManifest\":{\"path\":\"events/evt-v300-s04-line-001/evidence-manifest.json\"},"
+        "\"eventFrame\":{\"path\":\"events/evt-v300-s04-line-001/event-frame.jpg\"}}";
+
+    const VlmFeatureQueueOutcome queued = queue.EnqueueBackgroundTask(task);
+    Expect(queued.status == "queued" && queued.queue_action == "enqueue-background" &&
+               queue.PendingSize() == 1,
+           "V300 S04 background feature queue must enqueue evidence tasks without running provider calls");
+    Expect(!queued.media_path_blocked && !queued.event_record_blocked && !queued.metadata_fanout_blocked &&
+               !queued.event_post_dispatch_blocked,
+           "V300 S04 queued task must keep media/EventRecord/metadata/Event POST paths independent");
+
+    const std::string feature_set = BuildVlmFeatureSetFixtureJson(task, 1);
+    const VlmFeatureQueueOutcome completed = queue.RunNext(feature_set);
+    Expect(completed.status == "completed" && completed.feature_set_stored &&
+               completed.feature_set_json.find("\"schema\":\"media-server.event-feature-set.v1\"") !=
+                   std::string::npos &&
+               completed.feature_set_json.find("\"featureRevision\":1") != std::string::npos,
+           "V300 S04 queue worker must complete a structured FeatureSet revision");
+    Expect(completed.feature_set_json.find("\"rawPromptStored\":false") != std::string::npos &&
+               completed.feature_set_json.find("\"rawProviderResponseStored\":false") !=
+                   std::string::npos,
+           "V300 S04 FeatureSet must not retain raw prompt or raw provider response");
+
+    VlmFeatureQueueTask lazy_task = task;
+    lazy_task.task_id = "vlm-feature-task-evt-v300-s04-lazy";
+    lazy_task.event_id = "evt-v300-s04-lazy-001";
+    lazy_task.trigger_mode = "lazy";
+    const VlmFeatureQueueOutcome lazy_completed =
+        queue.RunLazyTask(lazy_task, BuildVlmFeatureSetFixtureJson(lazy_task, 2));
+    Expect(lazy_completed.status == "completed" &&
+               lazy_completed.queue_action == "run-lazy-trigger" &&
+               lazy_completed.trigger_mode == "lazy",
+           "V300 S04 lazy trigger must produce a FeatureSet without requiring a background queue backlog");
+
+    VlmFeatureQueueOptions missing_options = options;
+    missing_options.runtime_available = false;
+    VlmFeatureQueue missing_runtime_queue(missing_options);
+    const VlmFeatureQueueOutcome missing = missing_runtime_queue.EnqueueBackgroundTask(task);
+    Expect(missing.status == "blocked" && missing.failure_reason == "missing-runtime" &&
+               missing.queue_action == "do-not-enqueue" && missing_runtime_queue.PendingSize() == 0,
+           "V300 S04 missing runtime must be a VLM-only blocked state");
+    Expect(!missing.feature_set_stored && !missing.media_path_blocked && !missing.event_record_blocked,
+           "V300 S04 missing runtime must not store FeatureSet or block event paths");
+
+    VlmFeatureQueue timeout_queue(options);
+    Expect(timeout_queue.EnqueueBackgroundTask(task).status == "queued",
+           "V300 S04 timeout fixture must seed one pending task");
+    VlmFeatureQueueTask timeout_task = task;
+    timeout_task.task_id = "vlm-feature-task-evt-v300-s04-timeout";
+    timeout_task.event_id = "evt-v300-s04-timeout-001";
+    timeout_task.queue_wait_ms = 5200;
+    const VlmFeatureQueueOutcome timeout = timeout_queue.EnqueueBackgroundTask(timeout_task);
+    Expect(timeout.status == "failed" && timeout.failure_reason == "queue-timeout" &&
+               timeout.queue_action == "drop-vlm-task" && timeout_queue.PendingSize() == 1,
+           "V300 S04 queue timeout must drop only the VLM task and leave existing queue state bounded");
+    Expect(!timeout.media_path_blocked && !timeout.event_record_blocked &&
+               !timeout.metadata_fanout_blocked && !timeout.event_post_dispatch_blocked,
+           "V300 S04 timeout must not propagate backpressure to media or fanout paths");
+
+    const VlmFeatureQueueOutcome invalid = queue.RunLazyTask(lazy_task, "{\"notFeatureSet\":true}");
+    Expect(invalid.status == "failed" && invalid.failure_reason == "invalid-output" &&
+               invalid.queue_action == "discard-invalid-output" && !invalid.feature_set_stored,
+           "V300 S04 invalid structured output must be rejected without sidecar FeatureSet retention");
+
+    Pass("V300 S04 background feature queue enqueues evidence tasks");
+    Pass("V300 S04 queue worker stores structured FeatureSet revision");
+    Pass("V300 S04 lazy trigger runs without default-on provider behavior");
+    Pass("V300 S04 missing-runtime stays VLM-only");
+    Pass("V300 S04 timeout drops VLM task without media backpressure");
+    Pass("V300 S04 invalid output is discarded without FeatureSet retention");
+}
+
+void VerifyV300FeatureOnlyRetention() {
+    VlmFeatureQueueTask task;
+    task.task_id = "vlm-feature-retention-task-evt-v300-s05";
+    task.event_id = "evt-v300-s05-line-001";
+    task.source_id = "cam-lobby";
+    task.channel_id = "main";
+    task.trigger_mode = "background";
+    task.input_evidence_refs_json =
+        "{\"schema\":\"media-server.vlm-event-evidence-refs.v1\","
+        "\"evidenceManifest\":{\"path\":\"events/evt-v300-s05-line-001/evidence-manifest.json\"},"
+        "\"eventFrame\":{\"path\":\"events/evt-v300-s05-line-001/event-frame.jpg\"}}";
+
+    VlmFeatureRetentionStore store;
+    VlmFeatureRetentionRequest request;
+    request.event_id = task.event_id;
+    request.feature_set_id = "features-evt-v300-s05-line-001-r1";
+    request.source_evidence_refs_json = task.input_evidence_refs_json;
+    request.requested_revision = 1;
+
+    const VlmFeatureRetentionOutcome stored =
+        store.StoreRevision(request, BuildVlmFeatureSetFixtureJson(task, 1));
+    Expect(stored.status == "stored" && stored.retention_action == "store-feature-revision" &&
+               stored.feature_set_stored && stored.feature_revision == 1 &&
+               store.RevisionCount(task.event_id) == 1,
+           "V300 S05 feature retention must store a structured FeatureSet revision");
+    Expect(stored.record_json.find("\"retentionMode\":\"feature-only-structured-non-identifying\"") !=
+                   std::string::npos &&
+               stored.record_json.find("\"rawPromptStored\":false") != std::string::npos &&
+               stored.record_json.find("\"rawProviderResponseStored\":false") != std::string::npos &&
+               stored.record_json.find("\"providerRequestBodyStored\":false") != std::string::npos,
+           "V300 S05 retention record must remain feature-only without raw provider material");
+    Expect(stored.record_json.find("\"rawPrompt\":\"") == std::string::npos &&
+               stored.record_json.find("\"rawProviderResponse\":\"") == std::string::npos &&
+               stored.record_json.find("\"providerRequestBody\":\"") == std::string::npos,
+           "V300 S05 retained record must not embed raw prompt, raw response, or provider request bodies");
+
+    const std::string raw_prompt_feature_set =
+        "{\"schema\":\"media-server.event-feature-set.v1\","
+        "\"eventId\":\"evt-v300-s05-line-001\","
+        "\"featureRevision\":2,"
+        "\"rawPrompt\":\"describe identifiable person\","
+        "\"privacy\":{\"rawPromptStored\":true,"
+        "\"rawProviderResponseStored\":false,"
+        "\"identityFeaturesAllowed\":false}}";
+    const VlmFeatureRetentionOutcome raw_prompt = store.StoreRevision(request, raw_prompt_feature_set);
+    Expect(raw_prompt.status == "rejected" &&
+               raw_prompt.retention_action == "reject-raw-provider-material" &&
+               raw_prompt.failure_reason == "raw-provider-material" &&
+               !raw_prompt.feature_set_stored && store.RevisionCount(task.event_id) == 1,
+           "V300 S05 raw prompt material must be rejected without creating a new revision");
+
+    const std::string raw_response_feature_set =
+        "{\"schema\":\"media-server.event-feature-set.v1\","
+        "\"eventId\":\"evt-v300-s05-line-001\","
+        "\"featureRevision\":2,"
+        "\"rawProviderResponse\":\"provider says raw narrative\","
+        "\"privacy\":{\"rawPromptStored\":false,"
+        "\"rawProviderResponseStored\":true,"
+        "\"identityFeaturesAllowed\":false}}";
+    const VlmFeatureRetentionOutcome raw_response =
+        store.StoreRevision(request, raw_response_feature_set);
+    Expect(raw_response.status == "rejected" &&
+               raw_response.retention_action == "reject-raw-provider-material" &&
+               raw_response.failure_reason == "raw-provider-material" &&
+               !raw_response.feature_set_stored && store.RevisionCount(task.event_id) == 1,
+           "V300 S05 raw provider response material must be rejected without creating a new revision");
+
+    VlmFeatureRetentionRequest raw_evidence_refs = request;
+    raw_evidence_refs.source_evidence_refs_json =
+        "{\"schema\":\"media-server.vlm-event-evidence-refs.v1\","
+        "\"sourceUrl\":\"rtsp://operator:secret@example.invalid/live\"}";
+    const VlmFeatureRetentionOutcome raw_refs =
+        store.StoreRevision(raw_evidence_refs, BuildVlmFeatureSetFixtureJson(task, 2));
+    Expect(raw_refs.status == "rejected" &&
+               raw_refs.retention_action == "reject-raw-provider-material" &&
+               raw_refs.failure_reason == "raw-provider-material" &&
+               !raw_refs.feature_set_stored && store.RevisionCount(task.event_id) == 1,
+           "V300 S05 source evidence refs with raw source URL must be rejected before record retention");
+
+    const std::string spaced_provider_body_feature_set =
+        "{\"schema\":\"media-server.event-feature-set.v1\","
+        "\"eventId\":\"evt-v300-s05-line-001\","
+        "\"featureRevision\":2,"
+        "\"rawPromptStored\":false,"
+        "\"rawProviderResponseStored\":false,"
+        "\"identityFeaturesAllowed\":false,"
+        "\"providerRequestBody\" : {\"prompt\":\"must-not-be-retained\"}}";
+    const VlmFeatureRetentionOutcome spaced_provider_body =
+        store.StoreRevision(request, spaced_provider_body_feature_set);
+    Expect(spaced_provider_body.status == "rejected" &&
+               spaced_provider_body.retention_action == "reject-raw-provider-material" &&
+               spaced_provider_body.failure_reason == "raw-provider-material" &&
+               !spaced_provider_body.feature_set_stored && store.RevisionCount(task.event_id) == 1,
+           "V300 S05 raw material guard must reject provider request body with JSON whitespace");
+
+    VlmFeatureQueueTask reanalysis_task = task;
+    reanalysis_task.task_id = "vlm-feature-retention-task-evt-v300-s05-reanalysis";
+    VlmFeatureRetentionRequest reanalysis_request = request;
+    reanalysis_request.feature_set_id = "features-evt-v300-s05-line-001-r2";
+    reanalysis_request.reanalysis_reason = "operator-requested-action-context-refinement";
+    reanalysis_request.requested_revision = 2;
+    const VlmFeatureRetentionOutcome reanalysis =
+        store.RequestReanalysis(reanalysis_request, BuildVlmFeatureSetFixtureJson(reanalysis_task, 2));
+    Expect(reanalysis.status == "stored" &&
+               reanalysis.retention_action == "store-reanalysis-revision" &&
+               reanalysis.feature_revision == 2 && reanalysis.previous_revision == 1 &&
+               store.RevisionCount(task.event_id) == 2,
+           "V300 S05 reanalysis must create a new FeatureSet revision and preserve the previous revision");
+    Expect(reanalysis.record_json.find("\"runtimeProviderReplayPerformed\":false") !=
+                   std::string::npos &&
+               !reanalysis.runtime_provider_replay_performed &&
+               !reanalysis.event_post_payload_changed &&
+               !reanalysis.webrtc_data_channel_schema_changed &&
+               !reanalysis.sse_ws_metadata_schema_changed &&
+               !reanalysis.rtsp_webrtc_media_path_changed,
+           "V300 S05 reanalysis must not replay provider raw material or change external schemas/media path");
+    Expect(store.LatestRevision(task.event_id) == 2 &&
+               reanalysis.record_json.find("\"previousRevision\":1") != std::string::npos,
+           "V300 S05 previous revision must remain linked for review history");
+
+    VlmFeatureRetentionRequest stale_reanalysis_request = reanalysis_request;
+    stale_reanalysis_request.feature_set_id = "features-evt-v300-s05-line-001-r2-duplicate";
+    const VlmFeatureRetentionOutcome stale_reanalysis =
+        store.RequestReanalysis(stale_reanalysis_request, BuildVlmFeatureSetFixtureJson(reanalysis_task, 2));
+    Expect(stale_reanalysis.status == "rejected" &&
+               stale_reanalysis.retention_action == "reject-stale-reanalysis-revision" &&
+               stale_reanalysis.failure_reason == "stale-reanalysis-revision" &&
+               !stale_reanalysis.feature_set_stored && store.RevisionCount(task.event_id) == 2,
+           "V300 S05 reanalysis must reject stale revisions that do not advance latest revision");
+
+    Pass("V300 S05 stores feature-only revision without raw prompt or response");
+    Pass("V300 S05 rejects raw prompt retention material");
+    Pass("V300 S05 rejects raw provider response retention material");
+    Pass("V300 S05 rejects raw evidence reference retention material");
+    Pass("V300 S05 rejects raw provider request bodies with whitespace");
+    Pass("V300 S05 reanalysis creates a new revision without provider replay");
+    Pass("V300 S05 previous revision is preserved for review history");
+    Pass("V300 S05 stale reanalysis revision is rejected");
+}
+
+void VerifyV300SearchDslQueryConvert() {
+    EventSearchQueryOptions options;
+    options.default_limit = 25;
+    options.max_limit = 100;
+    options.max_offset = 1000;
+
+    const EventSearchDsl dsl = ConvertEventSearchQueryToDsl(
+        "person red jacket tag:intrusion status:open source:cam-lobby after:1781950200000 pinned",
+        options);
+    Expect(dsl.valid && dsl.schema == "media-server.event-search-dsl.v1",
+           "V300 S06 natural language query must convert to a valid constrained Search DSL");
+    Expect(dsl.limit == 25 && dsl.offset == 0 && dsl.sort == "eventTimeDesc",
+           "V300 S06 DSL must apply bounded defaults");
+    Expect(HasTerm(dsl.text_terms, "person") && HasTerm(dsl.text_terms, "red") &&
+               HasTerm(dsl.text_terms, "jacket"),
+           "V300 S06 DSL must preserve searchable text terms");
+    Expect(HasTerm(dsl.tags, "intrusion") &&
+               HasFilter(dsl, "status", "eq", "open") &&
+               HasFilter(dsl, "sourceId", "eq", "cam-lobby") &&
+               HasFilter(dsl, "timestampMs", "gte", "1781950200000") &&
+               HasFilter(dsl, "pinned", "eq", "true"),
+           "V300 S06 DSL must constrain tags and allowed filters only");
+    Expect(!dsl.raw_llm_prompt_stored && !dsl.raw_provider_response_stored &&
+               !dsl.runtime_provider_call_performed && !dsl.vector_search_performed,
+           "V300 S06 query conversion must not retain raw prompts or call provider/vector search");
+
+    const EventSearchDsl bounded_dsl =
+        ConvertEventSearchQueryToDsl("vehicle zone:loading limit:999 offset:999999 sort:oldest", options);
+    Expect(bounded_dsl.valid && bounded_dsl.limit == 100 && bounded_dsl.offset == 1000 &&
+               bounded_dsl.sort == "eventTimeAsc" &&
+               HasFilter(bounded_dsl, "zoneId", "eq", "loading"),
+           "V300 S06 DSL must bound limit and offset while preserving allowed filters");
+
+    EventSearchDocument hit;
+    hit.event_id = "evt-v300-s06-hit";
+    hit.source_id = "cam-lobby";
+    hit.channel_id = "main";
+    hit.event_type = "intrusion";
+    hit.status = "open";
+    hit.review_state = "needs-review";
+    hit.timestamp_ms = 1781950200123LL;
+    hit.pinned = true;
+    hit.searchable_text = "person red jacket crossing lobby line";
+    hit.tags = {"intrusion", "person"};
+    hit.features = {{"appearance.color", "red"}, {"appearance.clothing", "jacket"}};
+
+    EventSearchDocument miss = hit;
+    miss.event_id = "evt-v300-s06-miss";
+    miss.source_id = "cam-roof";
+    miss.searchable_text = "vehicle blue driveway";
+    miss.tags = {"vehicle"};
+    miss.features = {{"appearance.color", "blue"}};
+
+    const std::vector<EventSearchDocument> results = SearchEventDocuments({hit, miss}, dsl);
+    Expect(results.size() == 1 && results[0].event_id == hit.event_id,
+           "V300 S06 text/tags/filter search must return only matching event documents");
+
+    const std::string dsl_json = EventSearchDslJson(dsl);
+    Expect(dsl_json.find("\"schema\":\"media-server.event-search-dsl.v1\"") != std::string::npos &&
+               dsl_json.find("\"strictStructuredOutput\":true") != std::string::npos &&
+               dsl_json.find("\"rawPromptStored\":false") != std::string::npos &&
+               dsl_json.find("\"rawProviderResponseStored\":false") != std::string::npos &&
+               dsl_json.find("\"vectorSearchPerformed\":false") != std::string::npos &&
+               dsl_json.find("\"eventPostPayloadChanged\":false") != std::string::npos &&
+               dsl_json.find("\"rtspWebrtcMediaPathChanged\":false") != std::string::npos,
+           "V300 S06 DSL JSON must expose strict structured and boundary invariants");
+
+    const EventSearchDsl rejected =
+        ConvertEventSearchQueryToDsl("face recognition match john watchlist", options);
+    Expect(!rejected.valid && rejected.rejection_reason == "identity-search-disallowed" &&
+               !rejected.runtime_provider_call_performed && !rejected.event_post_payload_changed,
+           "V300 S06 query conversion must reject identity/watchlist queries without side effects");
+
+    Pass("V300 S06 natural language query converts to constrained Search DSL");
+    Pass("V300 S06 text tags and filters match event documents");
+    Pass("V300 S06 rejects identity or watchlist search");
+    Pass("V300 S06 preserves provider/schema/media boundary invariants");
+}
+
+bool HasIndexTag(const EventSearchIndexEntry& entry, const std::string& tag) {
+    return std::find(entry.document.tags.begin(), entry.document.tags.end(), tag) !=
+           entry.document.tags.end();
+}
+
+bool HasIndexFeatureValue(const EventSearchIndexEntry& entry, const std::string& field, const std::string& value) {
+    for (const auto& feature : entry.document.features) {
+        if (feature.field == field && feature.value == value) {
+            return true;
+        }
+    }
+    return false;
+}
+
+EventSearchIndexEventRecord MakeSearchIndexEvent(const std::string& event_id,
+                                                 const std::string& source_id,
+                                                 const std::string& zone_id,
+                                                 std::int64_t timestamp_ms) {
+    EventSearchIndexEventRecord event;
+    event.event_id = event_id;
+    event.source_id = source_id;
+    event.channel_id = "main";
+    event.event_type = "intrusion";
+    event.scenario = "line-crossing";
+    event.status = "open";
+    event.zone_id = zone_id;
+    event.class_name = "person";
+    event.timestamp_ms = timestamp_ms;
+    return event;
+}
+
+EventSearchIndexFeatureSet MakeSearchIndexFeatureSet(const std::string& event_id,
+                                                     int revision,
+                                                     const std::string& value) {
+    EventSearchIndexFeatureSet feature_set;
+    feature_set.event_id = event_id;
+    feature_set.feature_set_id = "features-" + event_id + "-r" + std::to_string(revision);
+    feature_set.feature_revision = revision;
+
+    EventSearchIndexFeature feature;
+    feature.namespace_name = "appearance";
+    feature.name = "clothingColor";
+    feature.value = value;
+    feature.evidence_ref = "bboxCrop";
+    feature.searchable = true;
+    feature_set.features.push_back(feature);
+    return feature_set;
+}
+
+EventSearchIndexEvidenceManifest MakeSearchIndexEvidence(const std::string& event_id) {
+    EventSearchIndexEvidenceManifest evidence;
+    evidence.event_id = event_id;
+    evidence.manifest_path = "events/" + event_id + "/evidence-manifest.json";
+    evidence.event_frame_present = true;
+    evidence.representative_image_present = true;
+    evidence.bbox_crop_count = 1;
+    evidence.frame_bundle_present = true;
+    return evidence;
+}
+
+EventSearchIndexReviewState MakeSearchIndexReview(const std::string& event_id) {
+    EventSearchIndexReviewState review;
+    review.event_id = event_id;
+    review.review_state = "needs-review";
+    review.classification = "unclassified";
+    review.incident_status = "open";
+    review.pinned = true;
+    return review;
+}
+
+void VerifyV300FeatureSearchIndex() {
+    EventFeatureSearchIndex index;
+    EventFeatureSearchIndexRebuildInput input;
+    input.events.push_back(MakeSearchIndexEvent("evt-v300-s07-hit", "cam-lobby", "loading", 1781950201000LL));
+    input.events.push_back(MakeSearchIndexEvent("evt-v300-s07-miss", "cam-yard", "yard", 1781950200000LL));
+    input.feature_sets.push_back(MakeSearchIndexFeatureSet("evt-v300-s07-hit", 1, "blue jacket"));
+    input.feature_sets.push_back(MakeSearchIndexFeatureSet("evt-v300-s07-hit", 2, "red jacket"));
+    input.feature_sets.push_back(MakeSearchIndexFeatureSet("evt-v300-s07-miss", 1, "yellow vest"));
+    input.feature_sets.push_back(MakeSearchIndexFeatureSet("evt-v300-s07-orphan", 1, "green coat"));
+    input.evidence_manifests.push_back(MakeSearchIndexEvidence("evt-v300-s07-hit"));
+    input.evidence_manifests.push_back(MakeSearchIndexEvidence("evt-v300-s07-orphan"));
+    input.review_states.push_back(MakeSearchIndexReview("evt-v300-s07-hit"));
+    input.review_states.push_back(MakeSearchIndexReview("evt-v300-s07-orphan"));
+
+    EventSearchIndexFeatureSet raw_feature_set =
+        MakeSearchIndexFeatureSet("evt-v300-s07-miss", 2, "raw prompt leaked");
+    raw_feature_set.raw_prompt_stored = true;
+    input.feature_sets.push_back(raw_feature_set);
+
+    const EventSearchIndexReport report = index.Rebuild(input);
+    Expect(report.schema == "media-server.v300-feature-search-index-report.v1",
+           "V300 S07 report schema must identify the feature/search index");
+    Expect(report.indexed_entries == 2,
+           "V300 S07 must index EventRecord-backed entries only");
+    Expect(report.latest_feature_sets_indexed == 2 &&
+               report.stale_feature_sets_skipped == 1,
+           "V300 S07 must index only the latest FeatureSet revision");
+    Expect(report.orphan_feature_sets_skipped == 1 &&
+               report.orphan_evidence_manifests_skipped == 1 &&
+               report.orphan_review_states_skipped == 1,
+           "V300 S07 must skip orphan index inputs without EventRecord");
+    Expect(report.privacy_rejected_records == 1,
+           "V300 S07 must reject raw prompt/response or identity-bearing index inputs");
+    Expect(report.stale_result_guard_active,
+           "V300 S07 rebuild report must expose stale result guard state");
+
+    const EventSearchDsl dsl = ConvertEventSearchQueryToDsl(
+        "person red jacket tag:evidence:bboxcrop source:cam-lobby review:needs-review zone:loading pinned");
+    const auto hits = index.Search(dsl);
+    Expect(hits.size() == 1 && hits[0].event_id == "evt-v300-s07-hit",
+           "V300 S07 must search across event, feature, evidence, and review projection");
+    Expect(HasIndexTag(hits[0], "feature:appearance") &&
+               HasIndexTag(hits[0], "feature:clothingcolor") &&
+               HasIndexTag(hits[0], "evidence:eventframe") &&
+               HasIndexTag(hits[0], "evidence:bboxcrop"),
+           "V300 S07 index entry must expose feature and evidence search tags");
+    Expect(HasIndexFeatureValue(hits[0], "appearance.clothingColor", "red jacket") &&
+               !HasIndexFeatureValue(hits[0], "appearance.clothingColor", "blue jacket"),
+           "V300 S07 search entry must contain latest FeatureSet values only");
+
+    EventFeatureSearchIndexRebuildInput replacement;
+    replacement.events.push_back(MakeSearchIndexEvent("evt-v300-s07-new", "cam-lobby", "loading", 1781950202000LL));
+    replacement.feature_sets.push_back(MakeSearchIndexFeatureSet("evt-v300-s07-new", 1, "black jacket"));
+    index.Rebuild(replacement);
+    const auto old_hits = index.Search(ConvertEventSearchQueryToDsl("evt-v300-s07-hit"));
+    Expect(old_hits.empty(), "V300 S07 rebuild must clear stale search results");
+    Expect(!EventFeatureSearchIndexReportContainsForbiddenMaterial(index.Report()),
+           "V300 S07 index report must preserve provider/schema/media/UI boundary invariants");
+
+    Pass("V300 S07 indexes EventRecord FeatureSet EvidenceManifest and review state");
+    Pass("V300 S07 indexes only latest FeatureSet revision");
+    Pass("V300 S07 skips orphan and privacy rejected records");
+    Pass("V300 S07 rebuild clears stale search results");
+    Pass("V300 S07 preserves provider/schema/media/UI boundary invariants");
+}
+
+void VerifyV300RetentionPinCleanup() {
+    EventRetentionCleanupPolicy policy;
+    policy.default_retention_days = 7;
+    policy.source_retention_days["cam-loading"] = 3;
+    policy.rule_retention_days["after-hours"] = 14;
+
+    EventRetentionCleanupRequest request;
+    request.now_ms = 1781950200000LL;
+    request.dry_run = true;
+    request.policy = policy;
+    request.items.push_back(MakeRetentionCleanupItem(
+        "evt-v300-s09-expired", "cam-loading", "main", "after-hours",
+        request.now_ms - (15LL * 24LL * 60LL * 60LL * 1000LL), false));
+    request.items.push_back(MakeRetentionCleanupItem(
+        "evt-v300-s09-pinned", "cam-loading", "main", "after-hours",
+        request.now_ms - (30LL * 24LL * 60LL * 60LL * 1000LL), true));
+    request.items.push_back(MakeRetentionCleanupItem(
+        "evt-v300-s09-fresh", "cam-loading", "main", "after-hours",
+        request.now_ms - (2LL * 24LL * 60LL * 60LL * 1000LL), false));
+
+    const EventRetentionCleanupResult dry_run = BuildEventRetentionCleanupPlan(request);
+    Expect(dry_run.schema == "media-server.v300-retention-cleanup-report.v1",
+           "V300 S09 cleanup report schema must identify retention/pin/cleanup");
+    Expect(dry_run.dry_run && !dry_run.destructive_cleanup_executed,
+           "V300 S09 dry-run must not execute destructive cleanup");
+    Expect(dry_run.expired_candidates == 1 && dry_run.pinned_retained == 1 &&
+               dry_run.retained_count == 2,
+           "V300 S09 dry-run must select only expired non-pinned events");
+    Expect(HasRetentionCleanupAction(dry_run, "evt-v300-s09-expired", "would-delete") &&
+               HasRetentionCleanupAction(dry_run, "evt-v300-s09-pinned", "retain-pinned") &&
+               HasRetentionCleanupAction(dry_run, "evt-v300-s09-fresh", "retain-active-window"),
+           "V300 S09 cleanup plan must separate delete, pinned, and fresh events");
+    Expect(dry_run.audit_action == "retention-cleanup-dry-run" &&
+               dry_run.audit_entries.size() == 1,
+           "V300 S09 dry-run must emit audit trail without apply side effects");
+
+    request.dry_run = false;
+    const EventRetentionCleanupResult applied = BuildEventRetentionCleanupPlan(request);
+    Expect(!applied.dry_run && applied.destructive_cleanup_executed,
+           "V300 S09 apply mode must mark lifecycle cleanup as executed");
+    Expect(applied.deleted_event_records == 1 && applied.deleted_evidence_manifests == 1 &&
+               applied.deleted_feature_revisions == 2 && applied.deindexed_search_entries == 1,
+           "V300 S09 apply must delete EventRecord/Evidence/Feature/SearchIndex lifecycle entries together");
+    Expect(!EventRetentionCleanupResultContainsForbiddenMaterial(applied),
+           "V300 S09 cleanup must preserve provider/schema/media/viewer boundary invariants");
+    Pass("V300 S09 dry-run selects expired non-pinned events only");
+    Pass("V300 S09 pin exclusion preserves pinned evidence");
+    Pass("V300 S09 apply deletes evidence feature and search lifecycle together");
+    Pass("V300 S09 audit trail records dry-run and apply cleanup boundaries");
+    Pass("V300 S09 preserves provider/schema/media/viewer boundary invariants");
+}
+
 void VerifyEventRecorderMediaHooks() {
     const auto snapshot = GetEventStorageSnapshot();
     const std::filesystem::path active_path(snapshot.active_path.empty() ? snapshot.path
@@ -1982,6 +2501,10 @@ void VerifyEventRecorderMediaHooks() {
     Expect(record_json.find("\"bboxCrop\"") != std::string::npos &&
                record_json.find(".bbox-crop.") != std::string::npos,
            "Event recorder metadata must include bbox crop evidence reference");
+    Expect(record_json.find("\"evidenceManifest\"") != std::string::npos &&
+               record_json.find("evidence-manifest.json") != std::string::npos &&
+               record_json.find("frame-bundle-manifest.json") != std::string::npos,
+           "Event recorder metadata must include V300 evidence manifest and frame bundle references");
     Expect(record_json.find("\"rawMediaEmbedded\":false") != std::string::npos &&
                record_json.find("\"sourceUrlExposed\":false") != std::string::npos,
            "Event recorder VLM evidence refs must keep raw media/source URL redacted");
@@ -2014,6 +2537,46 @@ void VerifyEventRecorderMediaHooks() {
                manifest.find("\"nextFrame\"") != std::string::npos,
            "Event recorder must write clip manifest and frame bytes");
 
+    const std::filesystem::path evidence_manifest =
+        std::filesystem::path(snapshot.clip_dir) / "evt-recorder-smoke.clip" /
+        "evidence-manifest.json";
+    const std::filesystem::path frame_bundle_manifest =
+        std::filesystem::path(snapshot.clip_dir) / "evt-recorder-smoke.clip" /
+        "frame-bundle-manifest.json";
+    std::ifstream evidence_input(evidence_manifest);
+    std::string evidence_json((std::istreambuf_iterator<char>(evidence_input)),
+                              std::istreambuf_iterator<char>());
+    std::ifstream bundle_input(frame_bundle_manifest);
+    std::string bundle_json((std::istreambuf_iterator<char>(bundle_input)),
+                            std::istreambuf_iterator<char>());
+    Expect(std::filesystem::exists(evidence_manifest, ec) && !ec &&
+               std::filesystem::exists(frame_bundle_manifest, ec) && !ec,
+           "Event recorder must write V300 evidence and frame bundle manifests");
+    Expect(evidence_json.find("\"schema\":\"media-server.event-evidence-contract.v1\"") !=
+               std::string::npos &&
+               evidence_json.find("\"eventFrame\"") != std::string::npos &&
+               evidence_json.find("\"representativeImage\"") != std::string::npos &&
+               evidence_json.find("\"selectionReason\"") != std::string::npos &&
+               evidence_json.find("\"bboxCrops\"") != std::string::npos &&
+               evidence_json.find("\"frameBundle\"") != std::string::npos &&
+               evidence_json.find("\"rawPromptStored\":false") != std::string::npos &&
+               evidence_json.find("\"identityFeaturesAllowed\":false") != std::string::npos &&
+               evidence_json.find("\"archiveApi\":false") != std::string::npos,
+           "Event recorder evidence manifest must include event frame, representative selection, bbox crop, frame bundle, privacy, and non-VMS guards");
+    Expect(bundle_json.find("\"schema\":\"media-server.va.frame-bundle.v1\"") !=
+               std::string::npos &&
+               bundle_json.find("\"phase\":\"pre\"") != std::string::npos &&
+               bundle_json.find("\"phase\":\"event\"") != std::string::npos &&
+               bundle_json.find("\"phase\":\"post\"") != std::string::npos &&
+               bundle_json.find("\"sourceId\":\"stream-a\"") != std::string::npos &&
+               bundle_json.find("\"channelId\":\"stream-a\"") != std::string::npos &&
+               bundle_json.find("\"streamEpochId\"") != std::string::npos &&
+               bundle_json.find("\"frameSeq\"") != std::string::npos &&
+               bundle_json.find("\"relativeToEventMs\":-100") != std::string::npos &&
+               bundle_json.find("\"relativeToEventMs\":0") != std::string::npos &&
+               bundle_json.find("\"relativeToEventMs\":100") != std::string::npos,
+           "Event recorder frame bundle manifest must include pre/event/post FrameRef entries");
+
     std::filesystem::remove(active_path, ec);
     ec.clear();
     std::filesystem::remove_all(snapshot.snapshot_dir, ec);
@@ -2023,6 +2586,8 @@ void VerifyEventRecorderMediaHooks() {
     Pass("Event recorder writes snapshot media");
     Pass("Event recorder writes bbox crop media");
     Pass("Event recorder writes clip media");
+    Pass("Event recorder writes V300 evidence manifest");
+    Pass("Event recorder writes pre-event-post frame bundle manifest");
     Pass("Event recorder records snapshot evidence path");
     Pass("Event recorder records VLM evidence refs");
     Pass("Event recorder records clip evidence path");
@@ -2316,6 +2881,11 @@ int main() {
         VerifyZoneOccupancyScenario();
         VerifyEventStorageArchiveCompaction();
         VerifyVlmObservationStore();
+        VerifyV300VlmFeatureQueue();
+        VerifyV300FeatureOnlyRetention();
+        VerifyV300SearchDslQueryConvert();
+        VerifyV300FeatureSearchIndex();
+        VerifyV300RetentionPinCleanup();
         VerifyEventRecorderMediaHooks();
         VerifyVaRuntimeMetadataBuilder();
         VerifyVaMetadataSubscriptionFilter();

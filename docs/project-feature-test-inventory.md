@@ -1,6 +1,6 @@
 # Project Feature Test Inventory
 
-이 문서는 현재 release 목표 `v2.9.0` 기준의 기능별 테스트 분류 기준표입니다.
+이 문서는 현재 release 목표 `v3.0.0` 기준의 기능별 테스트 분류 기준표입니다.
 독자는 개발/테스트 에이전트이며, lifecycle은 active release target 동안 유지되는 test inventory입니다.
 AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, 이 문서는 기능 ID와 테스트 영역만 관리합니다.
 
@@ -26,14 +26,14 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 517 |
-| UI 직접 필요 | 295 |
+| 전체 기능 항목 | 546 |
+| UI 직접 필요 | 296 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 191 |
-| 테스트 필요 | 517 |
-| 안정화 대상 | 507 |
-| UI 풀테스트 대상 | 315 |
-| 30분 soak 대상 | 47 |
+| UI 비대상 | 219 |
+| 테스트 필요 | 546 |
+| 안정화 대상 | 536 |
+| UI 풀테스트 대상 | 316 |
+| 30분 soak 대상 | 49 |
 | 120분 대상 | 7 |
 
 ## Current Coverage Status
@@ -42,7 +42,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 517개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 546개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -51,14 +51,32 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | VA seed 데이터 | `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`로 numeric ID/API payload 기준 full UI seed matrix를 고정 | 준비 기준일 뿐 실행 증거 아님 |
 | UI 풀테스트 결과 | 기능 ID별 result template 기록란은 별도 문서가 관리 | 결과 문서 없이 inventory만으로 UI PASS 판정 불가 |
 | Coverage gate | `./server.sh verify-feature-inventory-coverage`가 `media-server.feature-inventory-coverage.v1` report로 기능 ID별 연결을 점검 | `missing coverage target` 누락 ID는 release gate에서 FAIL |
-| VLM current expansion | VLM route, control, action, runtime state, sidecar, privacy guard를 현재 기능 ID에 연결 | 실행 증거 아님 |
+| VLM current expansion | VLM route, control, action, runtime state, sidecar, privacy guard, feature-only retention을 현재 기능 ID에 연결 | 실행 증거 아님 |
 
-## v2.9.0 Final 2.x Closure & Compatibility Baseline Coverage Mapping
+## v3.0.0 Event Evidence Search MVP Coverage Mapping
 
 이 절은 현재 active target의 계획 단계 연결만 남깁니다. 아래 행은 실행 evidence가
 아니며, 기능 구현 전에는 실제 기능 ID, route/control/action, verifier command를
 추가해야 합니다. 신규 기능 ID가 예약되어 있어도 안정화/UI 테스트를 PASS로 보고하지
 않습니다.
+
+| Roadmap scope | Feature IDs | 대표 안정화 verifier | release evidence boundary |
+| --- | --- | --- | --- |
+| V300-S00 Baseline/source-of-truth | `OPS-051`, `SAFE-081` | `verify-v300-entry-baseline`, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets` | source `3.0.0`, latest published `v2.9.0`, current roadmap `v3.0.0 Event Evidence Search MVP` 정렬 기준. v3.0 기능 구현, UI 풀테스트, 30분/120분, GitHub Release publish evidence가 아님 |
+| V300-S01 Event Evidence Contract | `OPS-052`, `SAFE-082` | `verify-v300-event-evidence-contract` | EvidenceManifest, FrameRef, retention lifecycle, privacy/non-VMS boundary, fixture, docs/inventory/release records 연결 기준. frame extraction, encoded clip/playback, Search DSL, `/ops/events` UI, UI 풀테스트, 30분/120분, GitHub Release publish evidence가 아님 |
+| V300-S02 Frame Bundle Extraction | `EVT-060`, `SAFE-084` | `verify-analysis-state`, `./server.sh build`, `git diff --check` | EventRecord recorder가 eventFrame, representativeImage selection, bboxCrop, pre/event/post frameBundle manifest, EvidenceManifest sidecar를 생성하는지 확인합니다. encoded clip/playback, Search DSL, `/ops/events` UI, VMS/NVR archive API, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
+| V300-S03 Feature Schema and Privacy Policy | `LAB-083`, `SAFE-085`, `OPS-053` | `verify-v300-feature-schema-privacy` | FeatureSet envelope, namespace allowed/disallowed matrix, raw prompt/response non-retention, identity feature prohibition, privacy guard fixture와 문서 연결 기준. VLM queue/runtime/provider success, Search DSL, `/ops/events` UI, 얼굴 인식/신원 식별/model 품질 PASS, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
+| V300-S04 VLM Feature Queue | `LAB-084`, `SAFE-086`, `OPS-054` | `verify-v300-vlm-feature-queue`, `verify-analysis-state` | Background queue, lazy trigger, missing-runtime/queue-timeout/invalid-output VLM-only failure, structured FeatureSet revision 경계를 확인합니다. real provider success, Search DSL, `/ops/events` UI, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
+| V300-S05 Feature-only Retention | `LAB-085`, `SAFE-087`, `OPS-055` | `verify-v300-feature-only-retention`, `verify-analysis-state` | Feature-only durable retention, raw prompt/response rejection, FeatureSet revision store, reanalysis revision policy를 확인합니다. Search DSL, Retention/Pin/Cleanup, `/ops/events` UI, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
+| V300-S06 Search DSL and Query Convert | `LAB-086`, `SAFE-088`, `OPS-056` | `verify-v300-search-dsl-query-convert`, `verify-analysis-state` | Natural-language query conversion to constrained Search DSL, text/tags/filter matching, strict structured output, identity-query rejection을 확인합니다. Feature/Search Index, `/ops/events` UI, vector search, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
+| V300-S07 Feature/Search Index | `LAB-087`, `SAFE-089`, `OPS-057` | `verify-v300-feature-search-index`, `verify-analysis-state` | EventRecord, FeatureSet, EvidenceManifest, operator review state projection과 index/rebuild/report, stale result guard를 확인합니다. `/ops/events` UI, vector search, semantic provider rerank, retention cleanup execution, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
+| V300-S08 Ops Events UI | `UI-059`, `SAFE-090`, `OPS-058` | `verify-v300-ops-events-ui`, `verify-ops-client-ui` | `/ops/events` Ops-only search/detail UI가 evidence timeline, feature reasons, retry, pin, retention status를 표시하는지 확인합니다. UI 풀테스트 직접 조작, 30분/120분, Retention/Pin/Cleanup lifecycle execution, published metadata evidence가 아님 |
+| V300-S09 Retention/Pin/Cleanup | `LAB-088`, `SAFE-091`, `OPS-059` | `verify-v300-retention-pin-cleanup`, `verify-analysis-state` | 기본 7일 retention, operator-configurable override, pinned event cleanup 제외, dry-run/apply lifecycle delete plan, audit trail을 확인합니다. destructive cleanup 실운영 실행, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
+| V300-S10 Stabilization and Release Readiness | `SAFE-092`, `OPS-060` | `verify-v300-stabilization-release-readiness`, `verify-release-metadata`, `verify-release-evidence-index`, `verify-release-closeout-helper --dry-run` | v3.0 local stabilization gate, release evidence/not-run boundary, close-out dry-run 기록을 확인합니다. UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release 실행 evidence가 아님 |
+## v2.9.0 Final 2.x Closure & Compatibility Baseline Coverage Mapping
+
+이 절은 latest published baseline의 기능 ID 연결입니다. 아래 행은 실행 evidence가
+아니며, v3.0.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 않습니다.
 
 | Roadmap scope | Feature IDs | 대표 안정화 verifier | release evidence boundary |
 | --- | --- | --- | --- |
@@ -164,16 +182,16 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 
 | 기능 ID 범위 | 안정화 verifier 후보 | 비고 |
 | --- | --- | --- |
-| `UI-001`~`UI-018`, `UI-022`~`UI-058` | auth, Ops, Client, VLM, v250/v260/v270/v280 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
+| `UI-001`~`UI-018`, `UI-022`~`UI-059` | auth, Ops, Client, VLM, v250/v260/v270/v280/v300 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
 | `AUTH-001`~`AUTH-042` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
 | `SRC-001`~`SRC-032` | source/ONVIF/UI verifier family | ONVIF field success는 approved environment only |
 | `RULE-001`~`RULE-104` | rule/VA verifier family | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
-| `EVT-001`~`EVT-058` | event/VLM/v250/v260/v270/v280 verifier family | event log 육안 확인은 UI 풀테스트 |
+| `EVT-001`~`EVT-060` | event/VLM/v250/v260/v270/v280/v300/v310 verifier family | event log 육안 확인은 UI 풀테스트 |
 | `CLIENT-001`~`CLIENT-024` | client/UI verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-021` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
-| `LAB-001`~`LAB-082` | lab/VLM/v250/v260/v270/v280 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-080` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-050` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
+| `LAB-001`~`LAB-088` | lab/VLM/v250/v260/v270/v280/v300 fixture verifier family | 제품 UI 비대상 |
+| `SAFE-001`~`SAFE-092` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-060` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
 
 ## VA Manual UI Seed Matrix
 
@@ -276,6 +294,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | UI-056 | `/ops/rules` Approval-gated Rule Draft Readiness | 필요 | 필요 | 안정화, UI | `/ops/rules`가 incident/rule suggestion 후보를 approval state, validation summary, staged draft context로 표시하고 수동 저장 전 Rule/Profile registry write, 자동 저장, 자동 적용을 만들지 않음 |
 | UI-057 | `/ops/events` Evidence Intake and Field Readiness | 필요 | 필요 | 안정화, UI | `/ops/events`가 redacted evidence intake, source health recheck, field smoke precondition을 passed/failed/blocked/not-run으로 구분하고 credential/source/raw/debug material을 노출하지 않음 |
 | UI-058 | `/ops/events` Runtime Evidence Window | 필요 | 필요 | 안정화, UI | `/ops/events` incident detail이 bounded runtime/source/event evidence window를 Ops-only로 표시하되 장기 저장소, 30분/120분 evidence, client/viewer exposure를 만들지 않음 |
+| UI-059 | `/ops/events` V300 Event Evidence Search UI | 필요 | 필요 | 안정화, UI | `/ops/events`가 V300 Feature/Search Index 기반의 search/detail UI를 Ops-only로 표시하고 evidence timeline, feature reasons, retry action, pin status, retention status를 source URL/raw provider/debug/client exposure 없이 보여줌 |
 
 ## B. Auth, Account, Role, Scope
 
@@ -532,6 +551,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | EVT-056 | Ops approval-gated rule draft readiness state | 필요 | 필요 | 안정화, UI | staged rule draft readiness가 approval state와 validation summary만 제공하고 EventRecord top-level, Event POST/WebRTC/SSE/WS payload, Rule/Profile registry 자동 write를 만들지 않음 |
 | EVT-057 | Ops evidence intake field readiness view model | 필요 | 필요 | 안정화, UI | evidence intake/field readiness 상태가 passed/failed/blocked/not-run을 분리하고 credential/source/raw/debug/provider material을 EventRecord/Event POST/WebRTC/SSE/WS/client에 노출하지 않음 |
 | EVT-058 | Ops runtime evidence window view model | 필요 | 필요 | 안정화, UI | incident-linked runtime/source/event evidence window가 bounded summary만 제공하고 장기 저장소, 30분/120분 PASS, Event POST/WebRTC/SSE/WS/media path/client viewer 변경을 만들지 않음 |
+| EVT-060 | V300-S02 frame bundle extraction sidecar | 비대상 | 필요 | 안정화 | EventRecord recorder가 trigger-time eventFrame, representativeImage selection status, bboxCrop reference, pre/event/post frameBundle manifest, EvidenceManifest sidecar를 생성하고 FrameRef를 source/channel/stream epoch/frame/time/relative event 기준으로 남기며 EventRecord top-level, Event POST/WebRTC/SSE/WS payload, RTSP/WebRTC media path를 바꾸지 않음 |
 
 ## F. Client And Viewer
 
@@ -674,6 +694,12 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | LAB-080 | V280-S03 approval-gated rule draft static guard | 비대상 | 필요 | 안정화 | 후보 `verify-v280-approval-gated-rule-draft`가 approval state, staged draft, validation summary, command/docs/inventory wiring, auto save/auto apply/full replay/schema/media 비범위를 정적 검증해야 함 |
 | LAB-081 | V280-S04 evidence intake field readiness static guard | 비대상 | 필요 | 안정화 | 후보 `verify-v280-evidence-intake-field-readiness`가 redacted intake, source health recheck, field smoke precondition, credential/source/raw redaction, endpoint/credential 미실행 경계를 정적 검증해야 함 |
 | LAB-082 | V280-S05 runtime evidence window static guard | 비대상 | 필요 | 안정화 | 후보 `verify-v280-runtime-evidence-window`가 bounded runtime/source/event evidence window, no longrun substitute, no persistent archive, command/docs/inventory wiring을 정적 검증해야 함 |
+| LAB-083 | V300-S03 feature schema fixture | 비대상 | 필요 | 안정화 | `verify-v300-feature-schema-privacy`가 `media-server.event-feature-set.v1` fixture의 FeatureSet envelope, allowed namespace feature values, confidence/uncertainty/evidenceRef, raw prompt/response non-retention, disallowed identity feature matrix를 검증하되 VLM runtime/provider call, Search DSL, `/ops/events` UI를 만들지 않음 |
+| LAB-084 | V300-S04 VLM feature queue fixture | 비대상 | 필요 | 안정화, 30분 | `verify-v300-vlm-feature-queue`와 `verify-analysis-state`가 background queue, lazy trigger, missing-runtime, queue-timeout, invalid-output outcome과 structured FeatureSet revision을 검증하되 real provider call, Search DSL, `/ops/events` UI를 만들지 않음 |
+| LAB-085 | V300-S05 feature-only retention fixture | 비대상 | 필요 | 안정화 | `verify-v300-feature-only-retention`와 `verify-analysis-state`가 FeatureSet revision store, raw prompt/response rejection, reanalysis revision policy, previous revision preservation을 검증하되 Search DSL, Retention/Pin/Cleanup, `/ops/events` UI를 만들지 않음 |
+| LAB-086 | V300-S06 search DSL/query convert fixture | 비대상 | 필요 | 안정화 | `verify-v300-search-dsl-query-convert`와 `verify-analysis-state`가 natural language to constrained Search DSL, strict structured output, text/tags/filter matching, identity-query rejection을 검증하되 Feature/Search Index, `/ops/events` UI, vector search를 만들지 않음 |
+| LAB-087 | V300-S07 feature/search index fixture | 비대상 | 필요 | 안정화 | `verify-v300-feature-search-index`와 `verify-analysis-state`가 EventRecord, FeatureSet, EvidenceManifest, operator review state projection, latest revision selection, orphan/privacy guard, stale result guard를 검증하되 `/ops/events` UI, vector search, provider rerank를 만들지 않음 |
+| LAB-088 | V300-S09 retention/pin/cleanup fixture | 비대상 | 필요 | 안정화 | `verify-v300-retention-pin-cleanup`와 `verify-analysis-state`가 7일 기본 retention, source/rule override, pinned event cleanup 제외, dry-run 후보 산출, apply lifecycle delete/de-index, audit trail을 검증하되 destructive 운영 삭제, UI 풀테스트, 30분/120분을 만들지 않음 |
 
 ## I. Safety, Boundary, Invariant Contract
 
@@ -759,6 +785,17 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | SAFE-078 | V290-S07 public docs/assets refresh boundary | 비대상 | 필요 | 안정화 | `verify-v290-public-docs-assets-refresh`가 README/README.en/docs index/UI guide/docs asset policy/release-version policy와 managed asset set을 확인하되 대표 이미지 직접 재캡처, 직접 브라우저 검수 PASS, UI 풀테스트, 30분/120분, published metadata, tag/push/GitHub Release PASS로 대체하지 않음 |
 | SAFE-079 | V290-S08 final stabilization run boundary | 비대상 | 필요 | 안정화 | `verify-v290-final-stabilization-run`가 build/auth/Ops-Client UI/rule/event/metadata/media-schema/docs-inventory 안정화 실행 기록과 미실행 경계를 확인하되 UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, field smoke, tag/push/GitHub Release PASS로 대체하지 않음 |
 | SAFE-080 | V290-S09 owner release readiness boundary | 비대상 | 필요 | 안정화 | `verify-v290-owner-release-readiness`가 v2.9.0 local readiness, release close-out dry-run, evidence/records/policy 연결을 확인하되 UI 풀테스트 직접 조작, 30분/120분 longrun, `verify-release-metadata --published`, PR/main/tag/GitHub Release, field smoke PASS로 대체하지 않음 |
+| SAFE-081 | V300-S00 v3.0 baseline boundary | 비대상 | 필요 | 안정화 | `verify-v300-entry-baseline`가 source `3.0.0`, latest published `v2.9.0`, current roadmap `v3.0.0 Event Evidence Search MVP`, 1차 선택값/fallback/제외 대상, release records, inventory 연결을 확인하되 Event Evidence Contract, frame bundle, feature schema, search UI, UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release PASS로 대체하지 않음 |
+| SAFE-082 | V300-S01 evidence contract boundary | 비대상 | 필요 | 안정화 | `verify-v300-event-evidence-contract`가 EvidenceManifest, FrameRef, 7일 retention, pin cleanup 제외, raw prompt/response non-retention, identity feature 금지, non-VMS boundary를 확인하되 frame extraction, encoded clip/playback, VMS archive API, Search DSL, `/ops/events` UI, UI 풀테스트, 30분/120분, published metadata PASS로 대체하지 않음 |
+| SAFE-084 | V300-S02 frame bundle boundary | 비대상 | 필요 | 안정화 | `verify-analysis-state`가 V300-S02 EvidenceManifest와 frame bundle manifest의 eventFrame 필수, representativeImage selection 경계, bboxCrop reference, pre/event/post FrameRef, raw prompt/response non-retention, identity feature 금지, VMS/NVR archive API 금지, encoded clip/playback 비승격 경계를 확인하되 Search DSL, `/ops/events` UI, UI 풀테스트, 30분/120분, published metadata PASS로 대체하지 않음 |
+| SAFE-085 | V300-S03 privacy and identity boundary | 비대상 | 필요 | 안정화 | `verify-v300-feature-schema-privacy`가 FeatureSet privacy guard에서 raw LLM/VLM prompt, raw provider response, face recognition, watchlist, face embedding, person/account identity, license plate searchable identity를 금지하고 EventRecord/Event POST/WebRTC/SSE/WS/media path 변경 없음과 UI/longrun/published 비승격 경계를 확인함 |
+| SAFE-086 | V300-S04 VLM feature queue isolation boundary | 비대상 | 필요 | 안정화, 30분 | `verify-v300-vlm-feature-queue`가 missing-runtime, queue-timeout, invalid-output을 VLM-only failure로 닫고 media path, EventRecord, metadata fanout, Event POST dispatch, Event POST/WebRTC/SSE/WS schema, raw prompt/response retention으로 전파하지 않음을 확인함 |
+| SAFE-087 | V300-S05 raw prompt/response non-retention boundary | 비대상 | 필요 | 안정화 | `verify-v300-feature-only-retention`가 raw prompt, raw provider response, provider request body, credential, source URL, raw frame bytes를 durable FeatureSet retention에서 거부하고 provider replay, Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path 변경으로 전파하지 않음을 확인함 |
+| SAFE-088 | V300-S06 query convert privacy and boundary | 비대상 | 필요 | 안정화 | `verify-v300-search-dsl-query-convert`가 query conversion 중 raw prompt/raw provider response를 보존하지 않고 runtime provider call, vector search, Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path 변경으로 전파하지 않으며 identity/watchlist query를 거부함 |
+| SAFE-089 | V300-S07 search index privacy and boundary | 비대상 | 필요 | 안정화 | `verify-v300-feature-search-index`가 Feature/Search Index projection 중 raw prompt/raw provider response, identity feature, provider call, vector search, Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path 변경, viewer/client 노출을 만들지 않음을 확인함 |
+| SAFE-090 | V300-S08 Ops Events UI boundary | 비대상 | 필요 | 안정화 | `verify-v300-ops-events-ui`가 `/ops/events` UI shell/view model/script/CSS와 Ops-only redaction boundary를 확인하되 UI 풀테스트 직접 조작, 30분/120분, Retention/Pin/Cleanup lifecycle delete/dry-run/audit, Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path 변경 evidence로 쓰지 않음 |
+| SAFE-091 | V300-S09 retention cleanup boundary | 비대상 | 필요 | 안정화 | `verify-v300-retention-pin-cleanup`가 cleanup plan에서 EventRecord, EvidenceManifest, FeatureSet revision, SearchIndex entry를 일관되게 삭제/de-index 대상으로 묶고 pinned event를 자동 cleanup에서 제외하며 Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path, viewer/client 노출을 만들지 않음을 확인함 |
+| SAFE-092 | V300-S10 stabilization/release readiness boundary | 비대상 | 필요 | 안정화 | `verify-v300-stabilization-release-readiness`가 v3.0 local stabilization, release evidence/not-run 경계, close-out dry-run 기록을 확인하되 UI 풀테스트 직접 조작, 30분/120분, published metadata, release action PASS로 대체하지 않음을 확인함 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -780,6 +817,16 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | OPS-048 | V290-S07 public docs/assets refresh 게이트 | 비대상 | 필요 | 안정화 | `verify-v290-public-docs-assets-refresh`, `verify-docs-ui-assets`, `verify-docs-links`가 공개 첫 화면, docs index, UI guide, docs asset policy, release/version policy를 확인하되 image recapture, release publish, PR/main/tag/push, UI/longrun 실행 PASS로 대체하지 않음 |
 | OPS-049 | V290-S08 final stabilization run 게이트 | 비대상 | 필요 | 안정화 | `verify-v290-final-stabilization-run`가 release 순서의 build/auth/Ops-Client UI/rule/event/metadata/media-schema/docs-inventory 결과 기록을 확인하되 release publish, PR/main/tag/push, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
 | OPS-050 | V290-S09 owner release readiness 게이트 | 비대상 | 필요 | 안정화 | `verify-v290-owner-release-readiness`가 v2.9.0 S00~S09 local readiness, release close-out dry-run, policy/evidence/records/manual UI criteria 연결을 확인하되 release publish, PR/main/tag/push, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
+| OPS-051 | V300-S00 v3.0 baseline 게이트 | 비대상 | 필요 | 안정화 | `verify-v300-entry-baseline`가 VERSION/CMake/README/docs/backlog/source roadmap을 source `3.0.0`, latest published `v2.9.0`, current roadmap `v3.0.0 Event Evidence Search MVP` 기준으로 정렬했는지 확인하되 v3.0 기능 구현, release publish, PR/main/tag/push, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
+| OPS-052 | V300-S01 Event Evidence Contract 게이트 | 비대상 | 필요 | 안정화 | `verify-v300-event-evidence-contract`가 docs/event-evidence-contract.md, sample manifest fixture, stream verification, roadmap, release records, feature inventory, server dispatch 연결을 확인하되 runtime frame capture, encoded clip/playback, VMS archive API, Search DSL, `/ops/events` UI, release publish, UI/longrun 실행 PASS로 대체하지 않음 |
+| OPS-053 | V300-S03 feature schema privacy 게이트 | 비대상 | 필요 | 안정화 | `verify-v300-feature-schema-privacy`가 docs/event-feature-schema-privacy.md, FeatureSet fixture, stream verification, roadmap, release records, feature inventory, server dispatch 연결을 확인하되 VLM queue/runtime/provider success, Search DSL, `/ops/events` UI, release publish, UI/longrun 실행 PASS로 대체하지 않음 |
+| OPS-054 | V300-S04 VLM feature queue 게이트 | 비대상 | 필요 | 안정화 | `verify-v300-vlm-feature-queue`가 docs/v300-vlm-feature-queue.md, fixture, analysis smoke, stream verification, roadmap, release records, feature inventory, server dispatch 연결을 확인하되 provider success, Search DSL, `/ops/events` UI, release publish, UI/longrun 실행 PASS로 대체하지 않음 |
+| OPS-055 | V300-S05 feature-only retention 게이트 | 비대상 | 필요 | 안정화 | `verify-v300-feature-only-retention`가 docs/v300-feature-only-retention.md, fixture, analysis smoke, stream verification, roadmap, release records, feature inventory, server dispatch 연결을 확인하되 Search DSL, Retention/Pin/Cleanup, `/ops/events` UI, release publish, UI/longrun 실행 PASS로 대체하지 않음 |
+| OPS-056 | V300-S06 search DSL/query convert 게이트 | 비대상 | 필요 | 안정화 | `verify-v300-search-dsl-query-convert`가 docs/v300-search-dsl-query-convert.md, fixture, analysis smoke, stream verification, roadmap, release records, feature inventory, server dispatch 연결을 확인하되 Feature/Search Index, `/ops/events` UI, vector search, release publish, UI/longrun 실행 PASS로 대체하지 않음 |
+| OPS-057 | V300-S07 feature/search index 게이트 | 비대상 | 필요 | 안정화 | `verify-v300-feature-search-index`가 docs/v300-feature-search-index.md, fixture, analysis smoke, stream verification, roadmap, release records, feature inventory, server dispatch 연결을 확인하되 `/ops/events` UI, vector search, semantic provider rerank, retention cleanup execution, release publish, UI/longrun 실행 PASS로 대체하지 않음 |
+| OPS-058 | V300-S08 Ops Events UI 게이트 | 비대상 | 필요 | 안정화 | `verify-v300-ops-events-ui`가 `/ops/events` UI shell, eventEvidenceSearch view model, script rendering, CSS, ops smoke, backlog/stream verification/release records/server dispatch 연결을 확인하되 UI 풀테스트 직접 조작, 30분/120분, cleanup execution, release publish 실행 PASS로 대체하지 않음 |
+| OPS-059 | V300-S09 retention/pin/cleanup 게이트 | 비대상 | 필요 | 안정화 | `verify-v300-retention-pin-cleanup`가 docs/v300-retention-pin-cleanup.md, fixture, analysis smoke, stream verification, roadmap, release records, feature inventory, server dispatch 연결을 확인하되 destructive 운영 cleanup 실행, UI 풀테스트 직접 조작, 30분/120분, release publish 실행 PASS로 대체하지 않음 |
+| OPS-060 | V300-S10 stabilization/release readiness 게이트 | 비대상 | 필요 | 안정화 | `verify-v300-stabilization-release-readiness`가 v3.0 S00~S09 local gates, release policy/evidence index/test records, close-out dry-run command, server dispatch 연결을 확인하되 UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release 실행 PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 

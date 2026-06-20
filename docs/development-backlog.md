@@ -10,13 +10,222 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `2.9.0`
+- 현재 소스 버전: `3.0.0`
 - 최신 공개 GitHub Release: `v2.9.0`
 - `v2.9.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap: `v2.9.0 Final 2.x Closure & Compatibility Baseline`
+- 현재 source roadmap: `v3.0.0 Event Evidence Search MVP`
 
-## 현재 source roadmap: v2.9.0 Final 2.x Closure & Compatibility Baseline
+## 현재 source roadmap: v3.0.0 Event Evidence Search MVP
+
+상태: `V300-S00` source baseline 정렬 완료, `V300-S01` Event Evidence Contract
+완료, `V300-S02` Frame Bundle Extraction 완료, `V300-S03` Feature Schema and
+Privacy Policy 완료, `V300-S04` VLM Feature Queue 완료, `V300-S05` Feature-only
+Retention 완료, `V300-S06` Search DSL and Query Convert 직접 개발 완료, search
+index 완료, `V300-S08` Ops Events UI 직접 개발 완료, `V300-S09`
+Retention/Pin/Cleanup 직접 개발 완료, `V300-S10` Stabilization and Release
+Readiness 직접 개발 완료. 이 절은 v3.0.0 전체 기능 완료 evidence가 아니며, 실제 기능
+구현은 각 Step별 코드/UI/API/검증 evidence가 생긴 뒤에만 완료로 기록합니다.
+V300-S00 baseline 정렬 자체는 기능 구현 완료 evidence가 아닙니다.
+
+직접 답: v3.0.0의 1차 선택값은 `Event Evidence Search MVP`입니다. 이 방향은
+MediaServer를 VMS/NVR로 확장하지 않고, 실시간 VA 이벤트에서 검색 가능한 evidence
+bundle과 비식별 VLM feature를 생성해 운영자가 `/ops/events`에서 자연어로 사건을
+찾고 근거 frame을 검토할 수 있게 합니다.
+
+fallback 또는 축소 대안은 `Conservative Foundation`입니다. 이 대안은 schema/storage
+foundation만 두고 UI/search를 preview로 남기는 경로이며, 제품 체감이 약해 1차 선택값은
+아닙니다. `Archive/Playback Expansion`은 encoded clip, playback, archive 성격이 커서
+v3.1 확장 후보로 분리합니다.
+
+설계 기록: [docs/superpowers/specs/2026-06-20-v300-v310-event-evidence-search-roadmap-design.md](superpowers/specs/2026-06-20-v300-v310-event-evidence-search-roadmap-design.md)
+
+포함 범위:
+
+- 상시녹화가 아닌 이벤트 중심 evidence 저장
+- event frame 필수 저장, representative image 선택 저장
+- bbox crop, pre/event/post frame bundle, FrameRef contract
+- 확장 가능한 비식별 VLM feature schema
+- raw LLM/VLM prompt와 raw response 미저장
+- background-first VLM feature queue와 lazy fallback
+- 자연어 query를 제한된 Search DSL로 변환
+- text/tags/filter 기반 `/ops/events` 검색과 evidence detail UI
+- 기본 7일 retention, pin 보존, 운영자 설정 가능 cleanup
+
+제외 범위:
+
+- 24/7 상시녹화, VMS/NVR archive API
+- encoded MP4/WebM event clip과 clip playback
+- 얼굴 인식, 신원 식별, watchlist, face embedding
+- raw prompt/response/provider request body 보관
+- client/viewer 노출, cloud provider default-on, vector search 기본 탑재
+
+제외 대상과 제외 사유:
+
+- encoded MP4/WebM event clip과 clip playback: v3.0의 evidence image/search MVP보다
+  playback/archive 범위가 커서 v3.1로 분리합니다.
+- 24/7 상시녹화와 VMS/NVR archive API: 제품 정체성을 VMS/NVR로 확장하므로 제외합니다.
+- 얼굴 인식, 신원 식별, watchlist, face embedding: 비식별 feature 정책을 깨므로
+  제외합니다.
+- raw prompt/response/provider request body 보관: privacy와 provider retention 위험이
+  커서 feature-only durable retention으로 제한합니다.
+- client/viewer 노출과 cloud provider default-on: v3.0 MVP는 Ops-only, local-first,
+  explicit opt-in 경계를 유지합니다.
+
+리스크와 대응:
+
+- VMS/NVR 범위 확장 위험: 상시녹화와 broad archive/playback API를 제외합니다.
+- VLM 지연/실패 위험: media/EventRecord/evidence 경로와 VLM queue를 분리하고
+  VLM-only failure로 기록합니다.
+- privacy 노출 위험: feature-only retention을 사용하고 raw prompt/response를 저장하지
+  않습니다.
+- 재생/근거 추적 위험: evidence와 feature provenance에 FrameRef를 필수로 둡니다.
+- 검색 품질 검증 위험: v3.0은 설명 가능한 text/tags/filter 검색으로 시작하고,
+  vector search는 v3.1 optional default-off 후보로 둡니다.
+
+| Step | ID | Priority | 상태 | 묶음 | 개발 내용 | 완료 산출물 | 검증/evidence 경계 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 0 | V300-S00 | P0 | 완료 | v3.0 baseline | VERSION/CMake/README/docs/backlog/source roadmap을 v3.0 작업 기준으로 정렬 | source `3.0.0`, latest published `v2.9.0`, current roadmap `v3.0.0 Event Evidence Search MVP`, V300-S00 verifier 연결 | `./server.sh verify-v300-entry-baseline`, `verify-release-metadata`, docs/inventory gates. 기능 구현 완료 evidence가 아님 |
+| 1 | V300-S01 | P0 | 완료 | Event Evidence Contract | EvidenceManifest, FrameRef, retention lifecycle, non-VMS boundary 정의 | [docs/event-evidence-contract.md](event-evidence-contract.md), `test/fixtures/event_evidence_contract/evidence_manifest_sample.json`, `./server.sh verify-v300-event-evidence-contract` | encoded clip, playback, VMS API 완료 evidence가 아님 |
+| 2 | V300-S02 | P0 | 완료 | Frame Bundle Extraction | event frame 필수, representative image 선택, bbox crop, pre/event/post frame bundle 생성 | `evidence-manifest.json`, `frame-bundle-manifest.json`, eventFrame/representativeImage/bboxCrop/frameBundle sidecar | 영상 파일 playback 또는 MP4/WebM encoded clip evidence가 아님 |
+| 3 | V300-S03 | P0 | 완료 | Feature Schema and Privacy Policy | namespace 기반 feature envelope, 비식별 feature 허용, identity feature 금지 | [docs/event-feature-schema-privacy.md](event-feature-schema-privacy.md), `test/fixtures/event_feature_schema_privacy/feature_set_sample.json`, `./server.sh verify-v300-feature-schema-privacy` | 얼굴 인식/신원 식별/model 품질 PASS가 아님 |
+| 4 | V300-S04 | P0 | 완료 | VLM Feature Queue | background queue, lazy trigger, timeout/invalid-output/missing-runtime 상태 분리 | [docs/v300-vlm-feature-queue.md](v300-vlm-feature-queue.md), `test/fixtures/v300_vlm_feature_queue/cases.json`, `./server.sh verify-v300-vlm-feature-queue`, `verify-analysis-state` S04 smoke | real provider success나 default-on evidence가 아님 |
+| 5 | V300-S05 | P0 | 완료 | Feature-only Retention | raw prompt/response non-retention, feature revision, reanalysis policy | [docs/v300-feature-only-retention.md](v300-feature-only-retention.md), `test/fixtures/v300_feature_only_retention/cases.json`, `./server.sh verify-v300-feature-only-retention`, `verify-analysis-state` S05 smoke | raw response 보관이나 provider replay evidence가 아님 |
+| 6 | V300-S06 | P0 | 완료 | Search DSL and Query Convert | 자연어를 제한된 Search DSL JSON으로 변환하고 text/tags/filter 검색 수행. natural language to constrained Search DSL, text/tags/filter search | [docs/v300-search-dsl-query-convert.md](v300-search-dsl-query-convert.md), `test/fixtures/v300_search_dsl_query_convert/cases.json`, `./server.sh verify-v300-search-dsl-query-convert`, `verify-analysis-state` S06 smoke | raw LLM response 저장, Feature/Search Index, `/ops/events` UI, vector search 완료 evidence가 아님 |
+| 7 | V300-S07 | P1 | 완료 | Feature/Search Index | EventRecord, FeatureSet, EvidenceManifest, operator review state 검색 | [docs/v300-feature-search-index.md](v300-feature-search-index.md), `test/fixtures/v300_feature_search_index/cases.json`, `./server.sh verify-v300-feature-search-index`, `verify-analysis-state` S07 smoke | `/ops/events` UI나 vector search evidence가 아님 |
+| 8 | V300-S08 | P1 | 완료 | Ops Events UI | `/ops/events` 검색, evidence timeline, feature 근거, retry, pin, retention status | Ops-only search/detail UI, `eventEvidenceSearch` view model, `./server.sh verify-v300-ops-events-ui` | UI 직접 조작/브라우저 evidence 없이는 UI 풀테스트 PASS가 아님. Retention/Pin/Cleanup lifecycle delete/dry-run/audit는 S09 범위 |
+| 9 | V300-S09 | P1 | 완료 | Retention/Pin/Cleanup | 7일 기본 retention, pin 제외, 설정 가능 cleanup, dry-run/audit | [docs/v300-retention-pin-cleanup.md](v300-retention-pin-cleanup.md), `test/fixtures/v300_retention_pin_cleanup/cases.json`, `./server.sh verify-v300-retention-pin-cleanup`, `verify-analysis-state` S09 smoke | destructive cleanup 실행은 별도 승인과 evidence 필요. UI 풀테스트/30분/120분/published metadata 완료 evidence가 아님 |
+| 10 | V300-S10 | P0 | 완료 | Stabilization and Release Readiness | build/docs/verifier/UI 기준과 release readiness 기록 | v3.0 local stabilization, release evidence/not-run 경계, `./server.sh verify-v300-stabilization-release-readiness` | UI 풀테스트/30분/120분/published metadata는 실행한 경우만 PASS |
+
+## v3.0.0 S00 개발 기록
+
+- 범위: P0 `V300-S00 v3.0 baseline`.
+- `VERSION`, `CMakeLists.txt`: 현재 source version과 CMake project version을 `3.0.0`으로 정렬했습니다.
+- `README.md`, `README.en.md`, `docs/README.md`, `docs/en/README.md`, `docs/versioning-policy.md`, `docs/release-policy.md`, `docs/public-repo-final-review.md`, `docs/ui-guide.md`: 현재 source roadmap을 `v3.0.0 Event Evidence Search MVP`로 전환하고 latest published release는 `v2.9.0` source-only GitHub Release로 분리했습니다.
+- `docs/development-backlog.md`: V300 roadmap을 현재 source roadmap으로 승격하고 `V300-S00` 완료 상태, latest published `v2.9.0`, v3.0 기능 구현 미완료 경계를 기록했습니다.
+- `scripts/internal/verify_v300_entry_baseline.mjs`, `server.sh`: `./server.sh verify-v300-entry-baseline` 명령을 추가해 source `3.0.0`, latest published `v2.9.0`, current roadmap `v3.0.0 Event Evidence Search MVP`, 1차 선택값/fallback/제외 대상, feature inventory, release test records 연결을 정적 검증합니다.
+- `scripts/internal/verify_release_metadata_consistency.mjs`: `verify-release-metadata`가 source `3.0.0`, current roadmap `v3.0.0 Event Evidence Search MVP`, latest published `v2.9.0`을 분리 검증하도록 보정했습니다.
+- `config/docs_ui_assets.json`, `docs/assets/ui/README.md`: docs UI asset baseline의 source version을 `3.0.0`, latest published 기준을 `v2.9.0`으로 정렬했습니다. 이미지는 교체하지 않았고 대표 이미지가 UI 풀테스트/PASS/published evidence가 아니라는 경계는 유지했습니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`: `OPS-051`, `SAFE-081`, V300-S00 안정화 verifier, 저장소 보존형 테스트 결과를 추가했습니다.
+- `v3.0.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
+- 검증: 최초 `./server.sh verify-v300-entry-baseline`는 command 미구현으로 FAIL했습니다. 구현 후 `./server.sh verify-v300-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh build`, `git diff --check` 기준으로 재검증합니다.
+- 미실행/비대체: `verify-release-metadata --published`, tag/push/GitHub Release, PR/main merge, 30분/120분 장시간 테스트, UI 풀테스트 직접 조작, external TURN/WHEP, ONVIF 실기기, real cloud/VLM provider 호출은 S00 완료 근거가 아닙니다.
+
+## v3.0.0 S01 개발 기록
+
+- 범위: P0 `V300-S01 Event Evidence Contract`.
+- `docs/event-evidence-contract.md`: EvidenceManifest, FrameRef, eventFrame 필수/representativeImage 선택, bboxCrop, frameBundle contract, 기본 7일 retention, pin 제외, cleanup dry-run, raw prompt/response non-retention, identity feature 금지, non-VMS boundary를 정의했습니다.
+- `test/fixtures/event_evidence_contract/evidence_manifest_sample.json`: `media-server.event-evidence-contract.v1` sample manifest를 추가해 eventFrame, representativeImage, bboxCrop, pre/event/post frameBundle, retention/privacy/non-VMS guard를 검증 대상으로 만들었습니다.
+- `scripts/internal/verify_v300_event_evidence_contract.mjs`, `server.sh`: `./server.sh verify-v300-event-evidence-contract` 명령을 추가해 계약 문서, fixture, docs index, roadmap, stream verification, feature inventory, release records, server dispatch 연결을 정적 검증합니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`: `OPS-052`, `SAFE-082`, V300-S01 안정화 verifier, 저장소 보존형 테스트 결과와 미실행/제외 경계를 추가했습니다.
+- 검증: 최초 `./server.sh verify-v300-event-evidence-contract`는 command 미구현으로 FAIL했습니다. 구현 후 `./server.sh verify-v300-event-evidence-contract`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh verify-docs-links`, `./server.sh build`, `git diff --check` 기준으로 재검증합니다.
+- 미실행/비대체: Frame Bundle Extraction, encoded MP4/WebM event clip, clip playback, VMS/NVR archive API, Search DSL, `/ops/events` UI, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, real cloud/VLM provider 호출, published metadata는 S01 완료 근거가 아닙니다.
+
+## v3.0.0 S02 개발 기록
+
+- 범위: P0 `V300-S02 Frame Bundle Extraction`.
+- `src/analysis/event_storage.cpp`: EventRecord recorder clip hook이 frame cache에서 `frame-bundle-manifest.json`을 생성하도록 추가했습니다. manifest는 `media-server.va.frame-bundle.v1` schema, `pre`/`event`/`post` phase, source/channel/stream epoch/frameSeq/pts/wall-clock/relative event time FrameRef를 기록합니다.
+- `src/analysis/event_storage.cpp`: 같은 clip directory에 `evidence-manifest.json`을 생성하도록 추가했습니다. manifest는 `media-server.event-evidence-contract.v1` schema, required `eventFrame`, representativeImage selection status, `bboxCrops`, `frameBundle`, retention/privacy/non-VMS boundary를 기록합니다.
+- `src/analysis/event_storage.cpp`: EventRecord metadata의 `vlmEvidenceRefs`에 `evidenceManifest`와 `frameBundleManifest` reference를 추가했습니다. EventRecord top-level, Event POST/WebRTC/SSE/WS payload, RTSP/WebRTC media path는 변경하지 않았습니다.
+- `scripts/internal/analysis_state_smoke.cpp`: recorder smoke에 V300 evidence manifest, pre/event/post frame bundle manifest, FrameRef, privacy/non-VMS guard 검증을 추가했습니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`: `EVT-060`, `SAFE-084`, V300-S02 안정화 verifier와 저장소 보존형 테스트 항목을 추가했습니다.
+- 검증: 최초 `./server.sh verify-analysis-state`는 `Event recorder metadata must include V300 evidence manifest and frame bundle references`로 FAIL했습니다. 구현 후 `./server.sh verify-analysis-state`는 `pass=144 fail=0`으로 PASS했습니다. 추가 안정화는 `./server.sh build`, inventory/docs verifier, `git diff --check` 기준으로 재검증합니다.
+- 미실행/비대체: encoded MP4/WebM playback, VMS/NVR archive API, Search DSL, `/ops/events` UI, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, real cloud/VLM provider 호출, published metadata는 S02 완료 근거가 아닙니다.
+
+## v3.0.0 S03 개발 기록
+
+- 범위: P0 `V300-S03 Feature Schema and Privacy Policy`.
+- `docs/event-feature-schema-privacy.md`: FeatureSet envelope, `appearance`/`action`/`scene`/`spatial`/`event`/`operator`/`embedding` namespace, allowed/disallowed matrix, raw prompt/response non-retention, identity feature 금지, EventRecord/Event POST/WebRTC/SSE/WS/media path 불변 경계를 정의했습니다.
+- `test/fixtures/event_feature_schema_privacy/feature_set_sample.json`: `media-server.event-feature-set.v1` sample FeatureSet을 추가해 evidence refs, non-identifying feature values, confidence/uncertainty/provenance, disallowed identity matrix, privacy guard boolean을 검증 대상으로 만들었습니다.
+- `scripts/internal/verify_v300_feature_schema_privacy.mjs`, `server.sh`: `./server.sh verify-v300-feature-schema-privacy` 명령을 추가해 S03 정책 문서, fixture, docs index, roadmap, stream verification, feature inventory, release records, server dispatch 연결을 정적 검증합니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`: `LAB-083`, `SAFE-085`, `OPS-053`, V300-S03 안정화 verifier, 저장소 보존형 테스트 항목을 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v300_feature_schema_privacy.mjs`는 `docs/event-feature-schema-privacy.md`가 없어 FAIL했습니다. 구현 후 `./server.sh verify-v300-feature-schema-privacy`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh verify-docs-links`, `./server.sh build`, `git diff --check` 기준으로 재검증합니다.
+- 미실행/비대체: VLM Feature Queue, real VLM runtime/provider 호출, Search DSL, `/ops/events` UI, 얼굴 인식/신원 식별/model 품질 PASS, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata는 S03 완료 근거가 아닙니다.
+
+## v3.0.0 S04 개발 기록
+
+- 범위: P0 `V300-S04 VLM Feature Queue`.
+- `include/analysis/vlm_feature_queue.h`, `src/analysis/vlm_feature_queue.cpp`: `VlmFeatureQueueTask`, `VlmFeatureQueueOutcome`, `VlmFeatureQueue`를 추가했습니다. `EnqueueBackgroundTask()`는 bounded background queue와 `missing-runtime`/`queue-timeout` outcome을, `RunLazyTask()`는 explicit lazy trigger outcome을, `RunNext()`는 structured `media-server.event-feature-set.v1` FeatureSet revision 저장 대상을 검증합니다.
+- `scripts/internal/analysis_state_smoke.cpp`, `scripts/internal/verify_analysis_state_smoke.sh`: `VerifyV300VlmFeatureQueue()` smoke와 `vlm_feature_queue.cpp` 빌드 연결을 추가해 background enqueue, FeatureSet revision, lazy trigger, missing-runtime, queue-timeout, invalid-output을 C++ 단위로 확인합니다.
+- `docs/v300-vlm-feature-queue.md`, `test/fixtures/v300_vlm_feature_queue/cases.json`: S04 queue contract, outcome matrix, VLM-only failure, raw prompt/response non-retention, real provider 미실행 경계와 fixture case를 추가했습니다.
+- `scripts/internal/verify_v300_vlm_feature_queue.mjs`, `server.sh`: `./server.sh verify-v300-vlm-feature-queue` 명령을 추가해 S04 module/fixture/docs/backlog/stream verification/inventory/release records/server dispatch 연결을 정적 검증합니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`: `LAB-084`, `SAFE-086`, `OPS-054`, V300-S04 안정화 verifier와 저장소 보존형 테스트 항목을 추가했습니다.
+- 검증: 최초 `./server.sh verify-analysis-state`는 `src/analysis/vlm_feature_queue.cpp` 부재로 FAIL했습니다. 구현 후 `./server.sh build`, `./server.sh verify-analysis-state`(`pass=150 fail=0`), `./server.sh verify-v300-vlm-feature-queue`(`pass=6 fail=0`), `./server.sh verify-project-inventory`(`pass=13 fail=0`), `./server.sh verify-feature-inventory-coverage`(`pass=5 fail=0`), `./server.sh verify-script-inventory`(`pass=11 fail=0`), `./server.sh verify-docs-links`(`failures=0`), `./server.sh verify-docs-ui-assets`(`pass=10 fail=0`), `git diff --check` 기준으로 재검증했습니다.
+- 미실행/비대체: real VLM runtime/provider 호출, cloud provider success, model 품질 PASS, Search DSL, `/ops/events` UI, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata는 S04 완료 근거가 아닙니다.
+
+## v3.0.0 S05 개발 기록
+
+- 범위: P0 `V300-S05 Feature-only Retention`.
+- `include/analysis/vlm_feature_retention.h`, `src/analysis/vlm_feature_retention.cpp`: `VlmFeatureRetentionRequest`, `VlmFeatureRetentionOutcome`, `VlmFeatureRetentionStore`를 추가했습니다. `StoreRevision()`은 structured `media-server.event-feature-set.v1` revision만 `media-server.vlm-feature-retention-record.v1`로 보존하고, raw prompt/raw provider response/provider request body/credential/source URL/raw frame bytes가 있으면 `reject-raw-provider-material`로 거부합니다. `RequestReanalysis()`는 기존 revision을 덮어쓰지 않고 `store-reanalysis-revision`으로 새 revision과 `previousRevision`을 기록합니다.
+- `scripts/internal/analysis_state_smoke.cpp`, `scripts/internal/verify_analysis_state_smoke.sh`: `VerifyV300FeatureOnlyRetention()` smoke와 `vlm_feature_retention.cpp` 빌드 연결을 추가해 feature-only revision store, raw prompt rejection, raw provider response rejection, provider replay 없는 reanalysis, previous revision 보존을 C++ 단위로 확인합니다.
+- `docs/v300-feature-only-retention.md`, `test/fixtures/v300_feature_only_retention/cases.json`: S05 retention contract, raw prompt/response non-retention guard, reanalysis policy, provider replay 비범위, Search DSL/UI/cleanup lifecycle 비대체 경계와 fixture case를 추가했습니다.
+- `scripts/internal/verify_v300_feature_only_retention.mjs`, `server.sh`: `./server.sh verify-v300-feature-only-retention` 명령을 추가해 S05 module/fixture/docs/backlog/stream verification/inventory/release records/server dispatch 연결을 정적 검증합니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`: `LAB-085`, `SAFE-087`, `OPS-055`, V300-S05 안정화 verifier와 저장소 보존형 테스트 항목을 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v300_feature_only_retention.mjs`는 `include/analysis/vlm_feature_retention.h` 부재로 FAIL했습니다. 코드 리뷰 후 추가한 RED smoke는 `sourceEvidenceRefs` raw source URL 우회로 `./server.sh verify-analysis-state`가 `pass=129 fail=1`로 FAIL했습니다. 구현 보강 후 `./server.sh verify-v300-feature-only-retention`(`pass=6 fail=0`), `./server.sh verify-analysis-state`(`pass=158 fail=0`), `./server.sh build`, `./server.sh verify-project-inventory`(`featureRows=534`, `pass=13 fail=0`), `./server.sh verify-feature-inventory-coverage`(`covered=534`, `missing=0`, `pass=5 fail=0`), `./server.sh verify-script-inventory`(`pass=11 fail=0`), `./server.sh verify-docs-links`(`failures=0`), `git diff --check` 기준으로 재검증했습니다.
+- 미실행/비대체: raw prompt/raw provider response 보관, provider replay, Search DSL, `/ops/events` UI, Retention/Pin/Cleanup lifecycle delete/dry-run/audit, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata는 S05 완료 근거가 아닙니다.
+
+## v3.0.0 S06 개발 기록
+
+- 범위: P0 `V300-S06 Search DSL and Query Convert`.
+- `include/analysis/event_search_query.h`, `src/analysis/event_search_query.cpp`: `EventSearchDsl`, `EventSearchFilter`, `EventSearchDocument`, `EventSearchQueryOptions`와 `ConvertEventSearchQueryToDsl()`, `SearchEventDocuments()`, `EventSearchDslJson()`을 추가했습니다. 자연어 query의 text term, `tag:*`, 허용 filter를 `media-server.event-search-dsl.v1`로 변환하고 bounded `limit`/`offset`/`eventTimeDesc` 기본값을 적용합니다.
+- `src/analysis/event_search_query.cpp`: `status`, `sourceId`, `channelId`, `eventType`, `scenario`, `reviewState`, `zoneId`, `timestampMs`, `pinned`만 filter로 허용하고, unknown filter와 identity/watchlist query는 거부합니다. runtime provider call, vector search, Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path, viewer/client 노출은 모두 false invariant로 고정했습니다.
+- `scripts/internal/analysis_state_smoke.cpp`, `scripts/internal/verify_analysis_state_smoke.sh`: `VerifyV300SearchDslQueryConvert()` smoke와 `event_search_query.cpp` 빌드 연결을 추가해 natural language conversion, strict DSL defaults, text/tags/filter matching, identity query rejection, provider/schema/media boundary invariant를 C++ 단위로 확인합니다.
+- `docs/v300-search-dsl-query-convert.md`, `test/fixtures/v300_search_dsl_query_convert/cases.json`: S06 DSL contract, allowed token mapping, identity-query rejection, raw prompt/response non-retention, provider/vector/index/UI 비대체 경계와 fixture case를 추가했습니다.
+- `scripts/internal/verify_v300_search_dsl_query_convert.mjs`, `server.sh`: `./server.sh verify-v300-search-dsl-query-convert` 명령을 추가해 S06 module/fixture/docs/backlog/stream verification/inventory/release records/server dispatch 연결을 정적 검증합니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`: `LAB-086`, `SAFE-088`, `OPS-056`, V300-S06 안정화 verifier와 저장소 보존형 테스트 항목을 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v300_search_dsl_query_convert.mjs`는 `include/analysis/event_search_query.h` 부재로 FAIL했고, 최초 `./server.sh verify-analysis-state`는 `src/analysis/event_search_query.cpp` 부재로 FAIL했습니다. 구현 후 `./server.sh build`, `./server.sh verify-analysis-state`(`pass=162 fail=0`), `./server.sh verify-v300-search-dsl-query-convert`(`pass=6 fail=0`), `./server.sh verify-project-inventory`(`featureRows=537`, `pass=13 fail=0`), `./server.sh verify-feature-inventory-coverage`(`covered=537`, `missing=0`, `pass=5 fail=0`), `./server.sh verify-script-inventory`(`pass=11 fail=0`), `./server.sh verify-docs-links`(`failures=0`), `./server.sh verify-docs-ui-assets`(`pass=10 fail=0`), `git diff --check` 기준으로 재검증했습니다.
+- 미실행/비대체: Feature/Search Index, `/ops/events` UI 직접 조작, vector search/embedding, real LLM/VLM provider query conversion, raw prompt/raw provider response 보관, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata는 S06 완료 근거가 아닙니다. 이 단계는 search index나 `/ops/events` UI evidence가 아님을 명시합니다.
+
+## v3.0.0 S07 개발 기록
+
+- 범위: P1 `V300-S07 Feature/Search Index`.
+- `include/analysis/event_feature_search_index.h`, `src/analysis/event_feature_search_index.cpp`: `EventFeatureSearchIndex`, `EventFeatureSearchIndexRebuildInput`, `EventSearchIndexReport`를 추가했습니다. `Rebuild()`는 EventRecord를 기준 entry로 만들고 latest FeatureSet revision, EvidenceManifest, operator review state를 검색 projection에 붙입니다. orphan FeatureSet/EvidenceManifest/review state, stale FeatureSet revision, raw prompt/response 또는 identity/privacy 위반 입력은 index에서 제외합니다.
+- `src/analysis/event_feature_search_index.cpp`: `Search()`는 S06 `EventSearchDsl`과 `EventSearchDocumentMatches()`를 재사용해 text/tags/filter/sort/limit/offset 검색을 수행합니다. rebuild마다 이전 entry를 비워 stale result guard를 보장하고, report invariant는 provider call, vector search, Ops UI requirement, Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path, viewer/client 노출을 모두 false로 고정합니다.
+- `include/analysis/event_search_query.h`, `src/analysis/event_search_query.cpp`: S07 index가 EventRecord의 `zoneId`, `lineId`, `className`을 실제 filter/search 대상으로 넘길 수 있도록 `EventSearchDocument`와 `FieldValue()`/text haystack을 확장했습니다. 외부 Event POST payload, WebRTC/SSE/WS metadata schema, RTSP/WebRTC media path는 변경하지 않았습니다.
+- `scripts/internal/analysis_state_smoke.cpp`, `scripts/internal/verify_analysis_state_smoke.sh`: `VerifyV300FeatureSearchIndex()` smoke와 `event_feature_search_index.cpp` 빌드 연결을 추가해 EventRecord/FeatureSet/EvidenceManifest/review projection, latest revision selection, orphan/privacy guard, rebuild stale result guard, provider/schema/media/UI boundary invariant를 C++ 단위로 확인합니다.
+- `docs/v300-feature-search-index.md`, `test/fixtures/v300_feature_search_index/cases.json`: S07 index/rebuild/report contract, projection source, stale result guard, raw prompt/response non-retention, UI/vector/provider rerank 비대체 경계와 fixture case를 추가했습니다.
+- `scripts/internal/verify_v300_feature_search_index.mjs`, `server.sh`: `./server.sh verify-v300-feature-search-index` 명령을 추가해 S07 module/fixture/docs/backlog/stream verification/inventory/release records/server dispatch 연결을 정적 검증합니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`, `docs/README.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`: `LAB-087`, `SAFE-089`, `OPS-057`, V300-S07 안정화 verifier, docs index, 저장소 보존형 테스트 항목을 추가했습니다.
+- 검증: 최초 `./server.sh verify-v300-feature-search-index`는 `include/analysis/event_feature_search_index.h` 부재로 FAIL했고, 최초 `./server.sh verify-analysis-state`는 `src/analysis/event_feature_search_index.cpp` 부재로 FAIL했습니다. 구현 후 `./server.sh verify-analysis-state`(`pass=167 fail=0`), `./server.sh verify-v300-feature-search-index`(`pass=6 fail=0`), `./server.sh build`, `./server.sh verify-project-inventory`(`featureRows=540`, `pass=13 fail=0`), `./server.sh verify-feature-inventory-coverage`(`covered=540`, `missing=0`, `pass=5 fail=0`), `./server.sh verify-script-inventory`(`pass=11 fail=0`), `./server.sh verify-docs-links`(`failures=0`), `./server.sh verify-docs-ui-assets`(`pass=10 fail=0`), `git diff --check` 기준으로 재검증했습니다.
+- 임시 산출물 정리: `/private/tmp/media_server_analysis_state_smoke-*`와 `/private/tmp/media_server_analysis_state_dep_scan.txt`를 삭제하고 재조회에서 미검출을 확인했습니다.
+- 미실행/비대체: `/ops/events` UI 직접 조작, vector search/embedding, semantic provider rerank, Retention/Pin/Cleanup lifecycle delete/dry-run/audit, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata는 S07 완료 근거가 아닙니다. 이 단계는 Feature/Search Index projection과 stale result guard evidence이며 `/ops/events` UI evidence가 아님을 명시합니다.
+
+## v3.0.0 S08 개발 기록
+
+- 범위: P1 `V300-S08 Ops Events UI`.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/events`에 `data-testid="ops-v300-event-evidence-search-ui"` section을 추가하고 `OpsV300EventEvidenceSearchUiJson()` view model을 구성했습니다. 이 view model은 S07 `EventFeatureSearchIndex`를 사용해 EventRecord, FeatureSet, EvidenceManifest, operator review state projection을 검색하고 `evidenceTimeline`, `featureReasons`, `retryActions`, `pinStatus`, `retentionStatus`를 반환합니다.
+- `src/ingress/webrtc_http_server.cpp`: `eventEvidenceSearch` 응답에 `featureSearchIndexBacked:true`, `modelProviderDependency:false`, `vectorSearchPerformed:false`, `eventPostPayloadChanged:false`, `viewerClientExposureAdded:false`, `retentionCleanupExecuted:false` invariant를 포함했습니다. Event POST/WebRTC/SSE/WS metadata schema와 RTSP/WebRTC media path는 변경하지 않았습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `v300EventEvidenceSearchQueryParams()`, `renderV300EventEvidenceSearchUi()`와 `/ops/events` refresh wiring을 추가해 검색어, retry filter, pinned-only control, evidence detail card, timeline, feature reason, retry/pin/retention badges를 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`: `.v300-event-evidence-search-ui`, `.v300-event-evidence-card`, `.v300-evidence-timeline`, `.v300-feature-reason-grid`, `.v300-retention-status-grid`, `.v300-retry-action-list` 스타일을 추가해 고정 폭 card 없이 반응형 grid로 표시합니다.
+- `scripts/internal/verify_v300_ops_events_ui.mjs`, `server.sh`: `./server.sh verify-v300-ops-events-ui` 명령을 추가해 `/ops/events` UI shell, API view model, product UI script/CSS, ops static smoke, roadmap/stream verification/inventory/release records/server dispatch 연결을 정적 검증합니다.
+- `scripts/internal/verify_ops_client_ui_smoke.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`, `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`: `UI-059`, `SAFE-090`, `OPS-058`, V300-S08 안정화 verifier와 저장소 보존형 테스트 항목을 추가했습니다.
+- 검증: 최초 `./server.sh verify-v300-ops-events-ui`는 S08 UI shell/API/script/CSS/docs wiring 추가 전 `pass=0 fail=8`로 FAIL했습니다. 구현 후 `./server.sh verify-v300-ops-events-ui`는 `/ops/events` UI shell, `eventEvidenceSearch` view model, product UI script/CSS, ops static smoke, backlog/stream verification/inventory/release records/server dispatch 연결을 `pass=8 fail=0`으로 확인했습니다. `./server.sh build`는 `build-gst-onnx/media_server` target 생성으로 PASS, auth-off throwaway server의 `./server.sh verify-ops-client-ui --browser-mode static --http-base http://127.0.0.1:8081`은 `통과 18/실패 0`, `./server.sh verify-ops-client-ui --screenshots --browser-mode chrome --allow-chrome-fallback --http-base http://127.0.0.1:8081 --output-dir /tmp/media_server_v300_s08_ops_client_ui_screenshots`는 `/ops/events` visual checks 포함 `Ops/Client UI smoke 통과 24/실패 0`, screenshot smoke `통과 36/실패 0`, 추가 header/keyboard/audit/ONVIF visual smoke 모두 PASS로 확인했습니다. `MEDIA_SERVER_UI_BROWSER_MODE=chrome MEDIA_SERVER_ALLOW_CHROME_FALLBACK=1 ./server.sh verify-rule-ui --http-base http://127.0.0.1:8081 --output-dir /tmp/media_server_v300_s08_rule_ui_smoke`는 `ok:true`로 PASS했습니다. `./server.sh verify-project-inventory`(`featureRows=543`, `pass=13 fail=0`), `./server.sh verify-feature-inventory-coverage`(`covered=543`, `missing=0`, `pass=5 fail=0`), `./server.sh verify-script-inventory`(`pass=11 fail=0`), `./server.sh verify-docs-links`(`failures=0`), `./server.sh verify-docs-ui-assets`(`pass=10 fail=0`) 기준으로 재검증했습니다. auth 3종 verifier는 `MEDIA_SERVER_VERIFY_AUTH_*` password env 5개가 없어 실행하지 않았고 S08 완료 evidence로 사용하지 않습니다.
+- 미실행/비대체: UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, Retention/Pin/Cleanup lifecycle delete/dry-run/audit, published metadata, real provider/vector search는 S08 완료 근거가 아닙니다. 이 단계는 Ops-only `/ops/events` search/detail UI evidence이며 S09 cleanup 실행 evidence가 아님을 명시합니다.
+
+## v3.0.0 S09 개발 기록
+
+- 범위: P1 `V300-S09 Retention/Pin/Cleanup`.
+- `include/analysis/event_retention_cleanup.h`, `src/analysis/event_retention_cleanup.cpp`: `EventRetentionCleanupPolicy`, `EventRetentionCleanupItem`, `EventRetentionCleanupResult`와 `BuildEventRetentionCleanupPlan()`을 추가했습니다. 기본 7일 retention, source/rule override, pinned event automatic cleanup 제외, dry-run `would-delete`, apply `deleted`, audit action을 순수 cleanup contract로 모델링합니다.
+- `scripts/internal/analysis_state_smoke.cpp`, `scripts/internal/verify_analysis_state_smoke.sh`: `VerifyV300RetentionPinCleanup()` smoke와 `event_retention_cleanup.cpp` 빌드 연결을 추가해 expired non-pinned 후보, pinned 제외, apply lifecycle delete/de-index, audit trail, provider/schema/media/viewer boundary invariant를 C++ 단위로 확인합니다.
+- `docs/v300-retention-pin-cleanup.md`, `test/fixtures/v300_retention_pin_cleanup/cases.json`: S09 retention/pin/cleanup policy, fixture case, destructive 운영 cleanup 비대체 경계, UI/longrun/published 비대체 경계를 추가했습니다.
+- `scripts/internal/verify_v300_retention_pin_cleanup.mjs`, `server.sh`: `./server.sh verify-v300-retention-pin-cleanup` 명령을 추가해 S09 module/fixture/docs/backlog/stream verification/inventory/release records/server dispatch 연결을 정적 검증합니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`: `LAB-088`, `SAFE-091`, `OPS-059`, V300-S09 안정화 verifier와 저장소 보존형 테스트 항목을 추가했습니다.
+- 검증: 최초 `./server.sh verify-analysis-state`는 `include/analysis/event_retention_cleanup.h` 부재로 FAIL했습니다. 구현 후 `./server.sh verify-analysis-state`는 S09 smoke 포함 `pass=172 fail=0`으로 PASS했습니다. 최초 `node scripts/internal/verify_v300_retention_pin_cleanup.mjs`는 `docs/v300-retention-pin-cleanup.md` 부재로 FAIL했습니다. 최종 재검증은 `./server.sh verify-v300-retention-pin-cleanup`(`pass=6 fail=0`), `./server.sh build`, `./server.sh verify-project-inventory`(`featureRows=546`, `pass=13 fail=0`), `./server.sh verify-feature-inventory-coverage`(`covered=546`, `missing=0`, `pass=5 fail=0`), `./server.sh verify-script-inventory`(`pass=11 fail=0`), `./server.sh verify-docs-links`(`failures=0`), `./server.sh verify-docs-ui-assets`(`pass=10 fail=0`), `git diff --check` 기준으로 확인했습니다.
+- 미실행/비대체: destructive 운영 cleanup 실제 삭제, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, tag/push/GitHub Release는 S09 완료 근거가 아닙니다. S09는 local cleanup contract와 verifier evidence이며 V300-S10 Stabilization and Release Readiness 완료 evidence가 아닙니다.
+
+## v3.0.0 S10 개발 기록
+
+- 범위: P0 `V300-S10 Stabilization and Release Readiness`.
+- `scripts/internal/verify_v300_stabilization_release_readiness.mjs`, `server.sh`: `./server.sh verify-v300-stabilization-release-readiness` 명령을 추가해 v3.0.0 S10 roadmap, stream verification, feature inventory, release policy, release evidence index, release test records, close-out dry-run command, server dispatch 연결을 정적 검증합니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`: `SAFE-092`, `OPS-060`, V300-S10 안정화 verifier와 저장소 보존형 테스트 항목을 추가했습니다.
+- `docs/stream-verification.md`, `docs/release-policy.md`, `docs/release-evidence-index.md`, `docs/release-test-records.md`: S10이 v3.0 local stabilization과 release readiness 기록 gate이며 UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release, field smoke를 대체하지 않는다는 경계를 추가했습니다.
+- Companion local gates: `./server.sh verify-v300-stabilization-release-readiness`, `./server.sh build`, `./server.sh verify-v300-entry-baseline`, `./server.sh verify-v300-event-evidence-contract`, `./server.sh verify-v300-feature-schema-privacy`, `./server.sh verify-v300-vlm-feature-queue`, `./server.sh verify-v300-feature-only-retention`, `./server.sh verify-v300-search-dsl-query-convert`, `./server.sh verify-v300-feature-search-index`, `./server.sh verify-v300-ops-events-ui`, `./server.sh verify-v300-retention-pin-cleanup`, `./server.sh verify-analysis-state`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-release-evidence-index`, `./server.sh verify-release-closeout-helper --dry-run`, `./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run`, `./server.sh verify-script-inventory`, `git diff --check`.
+- 검증: 최초 `./server.sh verify-v300-stabilization-release-readiness`는 command 미구현으로 FAIL했습니다. 구현 후 `./server.sh verify-v300-stabilization-release-readiness`는 `pass=5 fail=0`으로 PASS했습니다. `./server.sh build`, V300-S00/S01/S03/S04/S05/S06/S07/S08/S09 verifier, `./server.sh verify-analysis-state`(`pass=172 fail=0`), `./server.sh verify-release-metadata`(`pass=16 fail=0`), docs/inventory/release evidence/script verifier, close-out dry-run 2종, `git diff --check` 기준으로 재검증했습니다.
+- 수정한 이슈: 최초 `./server.sh verify-release-closeout-helper --dry-run`는 `docs/release-policy.md`의 runbook 제목이 `v2.9.0 Release Close-out Runbook`으로 남아 있어 FAIL했습니다. S10 release readiness 기준인 `v3.0.0 Release Close-out Runbook`으로 정렬한 뒤 dry-run과 one-shot dry-run을 재실행해 PASS했습니다.
+- 임시 산출물: `verify-analysis-state`가 만든 `/tmp/media_server_analysis_state_smoke-52065` 4.4MB와 `/tmp/media_server_analysis_state_dep_scan.txt` 0B를 삭제하고, 삭제 후 두 경로가 없음을 확인했습니다.
+- 미실행/비대체: UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, `verify-release-metadata --published`, PR/main/tag/GitHub Release 생성/갱신, external TURN/WHEP, ONVIF 실기기, real cloud/VLM provider 호출은 S10 local readiness 완료 근거가 아닙니다.
+
+## 최신 공개 기준: v2.9.0 Source Release Baseline
 
 v2.9.0은 2.x 라인의 마지막 개발 릴리즈입니다. 3.0.0에서 다룰 녹화, VLM 검색,
 외부 VLM 연동 서버 연결 같은 대규모 기능은 v2.9.0에서 설계/구현하지 않습니다.
@@ -331,7 +540,7 @@ license/provenance/privacy/운영 제약:
 - 검증: `verify-v280-owner-release-readiness` 최초 RED는 S07 feature inventory mapping, manual UI criteria, backlog/evidence 진행 기록 누락으로 실패했고, 문서/inventory/server wiring 반영 후 GREEN으로 재실행합니다.
 - 미실행/비대체: UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, `verify-release-metadata --published`, tag/push/GitHub Release, PR merge/main sync/후속 브랜치 생성, 실기기 ONVIF, external TURN/WHEP, real cloud/VLM provider 호출은 S07 local readiness 완료 근거가 아닙니다.
 
-## 최신 공개 기준: v2.9.0 Source Release Baseline
+## 최신 공개 기준 요약: v2.9.0 Source Release Baseline
 
 v2.9.0은 source-only/live-only 제품 경계를 유지하면서 Final 2.x Closure &
 Compatibility Baseline을 닫은 최신 공개 릴리즈입니다. 이 기준은 2.x final line의

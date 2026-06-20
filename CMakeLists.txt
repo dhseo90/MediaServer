@@ -1,6 +1,6 @@
 # 파일 용도: CMake 빌드 옵션과 GStreamer 연동 타깃을 정의한다.
 cmake_minimum_required(VERSION 3.16)
-project(media_server VERSION 2.9.0 LANGUAGES CXX)
+project(media_server VERSION 3.0.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -20,8 +20,11 @@ add_executable(media_server
     src/analysis/detector_factory.cpp
     src/analysis/dummy_detector.cpp
     src/analysis/event_manager.cpp
+    src/analysis/event_feature_search_index.cpp
     src/analysis/event_post_dispatcher.cpp
+    src/analysis/event_retention_cleanup.cpp
     src/analysis/event_rule_engine.cpp
+    src/analysis/event_search_query.cpp
     src/analysis/event_storage.cpp
     src/analysis/incident_memory.cpp
     src/analysis/image_frame_loader.cpp
@@ -39,6 +42,8 @@ add_executable(media_server
     src/analysis/track_state_manager.cpp
     src/analysis/tracked_object_metadata.cpp
     src/analysis/va_runtime_metadata.cpp
+    src/analysis/vlm_feature_retention.cpp
+    src/analysis/vlm_feature_queue.cpp
     src/analysis/vlm_observation_store.cpp
     src/analysis/wrong_direction_scenario.cpp
     src/analysis/zone_occupancy_scenario.cpp

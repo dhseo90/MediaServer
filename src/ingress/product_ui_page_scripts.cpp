@@ -2459,6 +2459,21 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (endTimeMs) memoryParams.set('endTimeMs', endTimeMs);
         return memoryParams;
       }
+      function v300EventEvidenceSearchQueryParams(eventParams) {
+        const v300Params = new URLSearchParams(eventParams.toString());
+        const q = String(
+          document.getElementById('opsV300EventEvidenceSearchInput')?.value ||
+          document.getElementById('opsIncidentSearchInput')?.value ||
+          ''
+        ).trim();
+        const retryFilter = String(document.getElementById('opsV300EventEvidenceRetryFilter')?.value || '').trim();
+        if (q) v300Params.set('v300Q', q);
+        if (retryFilter) v300Params.set('v300RetryFilter', retryFilter);
+        if (document.getElementById('opsV300EventEvidencePinnedOnly')?.checked) {
+          v300Params.set('v300PinnedOnly', '1');
+        }
+        return v300Params;
+      }
       function incidentMemoryHighlightHtml(fragment, matchedTerms = []) {
         let html = escapeHtml(display(fragment || ''));
         for (const term of matchedTerms) {
@@ -2507,6 +2522,72 @@ void AppendOpsShellScript(std::ostringstream& out,
             </div>
             <div class="badge-row">${matchedTerms.map(term => `<span class="chip info">${escapeHtml(term)}</span>`).join('')}</div>
             <div class="incident-memory-fragments">${fragments.map(fragment => `<p>${incidentMemoryHighlightHtml(fragment, matchedTerms)}</p>`).join('')}</div>
+          </article>`;
+        }).join('');
+      }
+      function renderV300EventEvidenceSearchUi(eventEvidenceSearch = {}) {
+        const root = document.getElementById('opsV300EventEvidenceRows');
+        if (!root) return;
+        const items = Array.isArray(eventEvidenceSearch.items) ? eventEvidenceSearch.items : [];
+        const query = String(
+          eventEvidenceSearch.query ||
+          document.getElementById('opsV300EventEvidenceSearchInput')?.value ||
+          document.getElementById('opsIncidentSearchInput')?.value ||
+          ''
+        ).trim();
+        renderBadges('opsV300EventEvidenceSearchBadges', [
+          { text: eventEvidenceSearch.schema || 'media-server.ops.v300-event-evidence-search-ui.v1' },
+          { text: eventEvidenceSearch.featureSearchIndexBacked === true ? 'Feature/Search Index' : 'index 확인 필요', tone: eventEvidenceSearch.featureSearchIndexBacked === true ? 'info' : 'warn' },
+          { text: `hits ${items.length}`, tone: items.length > 0 ? '' : 'warn' },
+          { text: eventEvidenceSearch.modelProviderDependency === false ? 'no provider' : 'provider 확인 필요', tone: eventEvidenceSearch.modelProviderDependency === false ? 'info' : 'warn' },
+          { text: eventEvidenceSearch.vectorSearchPerformed === false ? 'no vector' : 'vector 확인 필요', tone: eventEvidenceSearch.vectorSearchPerformed === false ? 'info' : 'warn' },
+          { text: eventEvidenceSearch.viewerClientExposureAdded === false ? 'Ops only' : '노출 확인 필요', tone: eventEvidenceSearch.viewerClientExposureAdded === false ? 'info' : 'warn' },
+          { text: eventEvidenceSearch.retentionCleanupExecuted === false ? 'cleanup 미실행' : 'cleanup 확인 필요', tone: eventEvidenceSearch.retentionCleanupExecuted === false ? 'info' : 'warn' }
+        ]);
+        setText(
+          'opsV300EventEvidenceSearchSummary',
+          eventEvidenceSearch.searchDslValid === false
+            ? `V300 query rejected: ${display(eventEvidenceSearch.rejectionReason || 'invalid query')}`
+            : `V300 evidence detail${query ? ` · query "${query}"` : ''} · evidence timeline · feature reasons · retry/pin/retention status`
+        );
+        if (items.length === 0) {
+          root.innerHTML = '<p class="ops-rule-note">표시할 V300 evidence detail이 없습니다.</p>';
+          return;
+        }
+        root.innerHTML = items.map(item => {
+          const timeline = Array.isArray(item?.evidenceTimeline) ? item.evidenceTimeline : [];
+          const reasons = Array.isArray(item?.featureReasons) ? item.featureReasons : [];
+          const retry = item?.retryActions || {};
+          const pin = item?.pinStatus || {};
+          const retention = item?.retentionStatus || {};
+          return `<article class="v300-event-evidence-card" data-v300-event-evidence-card="${escapeHtml(item?.eventId || '')}">
+            <div class="table-cell-main">
+              <strong>${escapeHtml(display(item?.eventType || item?.eventId || 'event evidence'))}</strong>
+              <span>${escapeHtml(display(item?.eventId || '-'))} · ${escapeHtml(display(item?.sourceId || 'unknown-source'))} · review ${escapeHtml(display(item?.reviewState || 'new'))}</span>
+            </div>
+            <div class="v300-evidence-timeline" data-v300-evidence-timeline="${escapeHtml(item?.eventId || '')}">
+              ${timeline.map(point => `<div class="v300-evidence-timeline-point" data-v300-evidence-phase="${escapeHtml(point?.phase || '')}">
+                <span>${escapeHtml(display(point?.phase || 'phase'))}</span>
+                <strong>${escapeHtml(display(point?.status || 'unknown'))}</strong>
+                <p>${escapeHtml(display(point?.reason || point?.ref || 'local evidence'))}</p>
+              </div>`).join('')}
+            </div>
+            <div class="v300-feature-reason-grid">
+              ${reasons.map(reason => `<p data-v300-feature-reason="${escapeHtml(reason?.field || '')}">
+                <strong>${escapeHtml(display(reason?.field || 'feature'))}</strong>
+                <span>${escapeHtml(display(reason?.value || '-'))}</span>
+              </p>`).join('')}
+            </div>
+            <div class="v300-retention-status-grid">
+              <p><strong>retry</strong><span>${escapeHtml(display(retry.status || 'unknown'))} · write ${retry.retryWritePerformed === false ? 'not-run' : '확인 필요'}</span></p>
+              <p><strong>pin</strong><span>${pin.pinned === true ? 'pinned' : 'eligible'} · write ${pin.pinWritePerformed === false ? 'not-run' : '확인 필요'}</span></p>
+              <p><strong>retention</strong><span>${escapeHtml(display(retention.status || 'seven-day-window'))} · cleanup ${retention.retentionCleanupExecuted === false ? 'not-run' : '확인 필요'}</span></p>
+            </div>
+            <div class="v300-retry-action-list">
+              <span class="chip ${retry.status === 'retryable' ? 'info' : 'warn'}">retryActions ${escapeHtml(display(retry.status || 'unknown'))}</span>
+              <span class="chip ${pin.pinned === true ? 'info' : ''}">pinStatus ${pin.pinned === true ? 'pinned' : 'eligible-not-pinned'}</span>
+              <span class="chip info">retentionStatus ${escapeHtml(display(retention.status || 'seven-day-window'))}</span>
+            </div>
           </article>`;
         }).join('');
       }
@@ -3377,7 +3458,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           requestJson(`/ops/api/events/status?${eventParams.toString()}`),
           requestJson('/ops/api/alerts/deliveries').catch(error => ({ error: error.message, integrations: [], attempts: [] }))
         ]);
-        const reviewParams = incidentMemoryQueryParams(eventReviewQueryParams(eventParams));
+        const reviewParams = v300EventEvidenceSearchQueryParams(incidentMemoryQueryParams(eventReviewQueryParams(eventParams)));
         const reviewPayload = await requestJson(`/ops/api/events/reviews?${reviewParams.toString()}`)
           .catch(error => ({ error: error.message, records: [] }));
         const storage = payload.storage || {};
@@ -3445,6 +3526,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         renderRuleWhatIfPreview(reviewPayload.ruleWhatIfPreview || {});
         renderApprovalGatedRuleDraftReadiness(reviewPayload.approvalGatedRuleDraftReadiness || {});
         renderOperatorOutcomeMemory(reviewPayload.operatorOutcomeMemory || {});
+        renderV300EventEvidenceSearchUi(reviewPayload.eventEvidenceSearch || {});
         renderIncidentMemorySearch(reviewPayload.memorySearch || {});
         renderVlmSummaryCandidateReview(reviewPayload.memorySearch?.vlmSummaryCandidateReview || {});
         renderSimilarIncidentLookup(reviewPayload.similarIncidents || {});
@@ -3455,7 +3537,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (prevButton) prevButton.disabled = opsEventRecordsOffset <= 0;
         if (nextButton) nextButton.disabled = !records.hasMore;
         if (records.nextOffset != null) nextButton?.setAttribute('data-next-offset', String(records.nextOffset));
-        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, incidentTriageBoard: reviewPayload.incidentTriageBoard || {}, incidentDecisionScorecard: reviewPayload.incidentDecisionScorecard || {}, operationalActionPack: reviewPayload.operationalActionPack || {}, incidentActionReadinessQueue: reviewPayload.incidentActionReadinessQueue || {}, evidenceIntakeFieldReadiness: reviewPayload.evidenceIntakeFieldReadiness || {}, runtimeEvidenceWindow: reviewPayload.runtimeEvidenceWindow || {}, ruleWhatIfPreview: reviewPayload.ruleWhatIfPreview || {}, approvalGatedRuleDraftReadiness: reviewPayload.approvalGatedRuleDraftReadiness || {}, operatorOutcomeMemory: reviewPayload.operatorOutcomeMemory || {}, memorySearch: reviewPayload.memorySearch || {}, vlmSummaryCandidateReview: reviewPayload.memorySearch?.vlmSummaryCandidateReview || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
+        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, incidentTriageBoard: reviewPayload.incidentTriageBoard || {}, incidentDecisionScorecard: reviewPayload.incidentDecisionScorecard || {}, operationalActionPack: reviewPayload.operationalActionPack || {}, incidentActionReadinessQueue: reviewPayload.incidentActionReadinessQueue || {}, evidenceIntakeFieldReadiness: reviewPayload.evidenceIntakeFieldReadiness || {}, runtimeEvidenceWindow: reviewPayload.runtimeEvidenceWindow || {}, ruleWhatIfPreview: reviewPayload.ruleWhatIfPreview || {}, approvalGatedRuleDraftReadiness: reviewPayload.approvalGatedRuleDraftReadiness || {}, operatorOutcomeMemory: reviewPayload.operatorOutcomeMemory || {}, eventEvidenceSearch: reviewPayload.eventEvidenceSearch || {}, memorySearch: reviewPayload.memorySearch || {}, vlmSummaryCandidateReview: reviewPayload.memorySearch?.vlmSummaryCandidateReview || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
       }
       const itemId = item => display(item?.id || item?.ruleId || item?.profileId || '-');
       const opsRulesIdText = value => {
@@ -7411,6 +7493,16 @@ void AppendOpsShellScript(std::ostringstream& out,
         document.getElementById('opsIncidentSearchStatusFilter')?.addEventListener('change', () => {
           opsEventRecordsOffset = 0;
           refreshEvents().catch(error => setText('opsIncidentSearchSummary', error.message));
+        });
+        document.getElementById('opsV300EventEvidenceSearchInput')?.addEventListener('input', () => {
+          opsEventRecordsOffset = 0;
+          refreshEvents().catch(error => setText('opsV300EventEvidenceSearchSummary', error.message));
+        });
+        ['opsV300EventEvidenceRetryFilter', 'opsV300EventEvidencePinnedOnly'].forEach(id => {
+          document.getElementById(id)?.addEventListener('change', () => {
+            opsEventRecordsOffset = 0;
+            refreshEvents().catch(error => setText('opsV300EventEvidenceSearchSummary', error.message));
+          });
         });
         ['opsIncidentTriageLaneFilter', 'opsIncidentTriagePriorityFilter', 'opsIncidentTriageSort'].forEach(id => {
           document.getElementById(id)?.addEventListener('change', () => {
