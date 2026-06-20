@@ -1,0 +1,219 @@
+{
+  "schema": "media-server.event-feature-set.v1",
+  "policyVersion": 1,
+  "featureSetId": "features-evt-v300-s03-line-001",
+  "eventId": "evt-v300-s03-line-001",
+  "sourceId": "cam-lobby",
+  "channelId": "main",
+  "createdAtMs": 1781950200456,
+  "evidenceRefs": {
+    "schema": "media-server.vlm-event-evidence-refs.v1",
+    "evidenceManifest": "events/evt-v300-s03-line-001/evidence-manifest.json",
+    "eventFrame": "events/evt-v300-s03-line-001/event-frame.jpg",
+    "representativeImage": "events/evt-v300-s03-line-001/representative-frame.jpg",
+    "bboxCrop": "events/evt-v300-s03-line-001/bbox-crop-person-1.jpg",
+    "frameBundleManifest": "events/evt-v300-s03-line-001/frame-bundle-manifest.json"
+  },
+  "provenance": {
+    "runtimeMode": "fixture-only-no-provider-call",
+    "modelProfileRef": "not-run",
+    "rawPromptStored": false,
+    "rawProviderResponseStored": false,
+    "sourceFrameBytesInlined": false
+  },
+  "features": [
+    {
+      "featureId": "appearance-clothing-upper-color",
+      "namespace": "appearance",
+      "name": "upperClothingColor",
+      "valueType": "enum",
+      "value": "dark",
+      "confidence": 0.82,
+      "uncertainty": "low-light-frame",
+      "evidenceRef": "bboxCrop",
+      "identityRisk": "non-identifying",
+      "searchable": true,
+      "rawPromptFragmentStored": false,
+      "rawProviderResponseFragmentStored": false
+    },
+    {
+      "featureId": "appearance-headwear-present",
+      "namespace": "appearance",
+      "name": "headwearPresence",
+      "valueType": "boolean",
+      "value": true,
+      "confidence": 0.71,
+      "uncertainty": "partial-occlusion",
+      "evidenceRef": "representativeImage",
+      "identityRisk": "non-identifying",
+      "searchable": true,
+      "rawPromptFragmentStored": false,
+      "rawProviderResponseFragmentStored": false
+    },
+    {
+      "featureId": "action-carrying-object",
+      "namespace": "action",
+      "name": "carryingObject",
+      "valueType": "enum",
+      "value": "bag-like-object",
+      "confidence": 0.68,
+      "uncertainty": "small-object",
+      "evidenceRef": "bboxCrop",
+      "identityRisk": "non-identifying",
+      "searchable": true,
+      "rawPromptFragmentStored": false,
+      "rawProviderResponseFragmentStored": false
+    },
+    {
+      "featureId": "scene-lighting",
+      "namespace": "scene",
+      "name": "lightingCondition",
+      "valueType": "enum",
+      "value": "indoor-dim",
+      "confidence": 0.9,
+      "uncertainty": "none",
+      "evidenceRef": "eventFrame",
+      "identityRisk": "non-identifying",
+      "searchable": true,
+      "rawPromptFragmentStored": false,
+      "rawProviderResponseFragmentStored": false
+    },
+    {
+      "featureId": "spatial-line-relation",
+      "namespace": "spatial",
+      "name": "lineRelation",
+      "valueType": "object",
+      "value": {
+        "lineId": "line-main",
+        "relation": "crossed",
+        "direction": "A-to-B"
+      },
+      "confidence": 0.94,
+      "uncertainty": "rule-engine-derived",
+      "evidenceRef": "frameBundle",
+      "identityRisk": "non-identifying",
+      "searchable": true,
+      "rawPromptFragmentStored": false,
+      "rawProviderResponseFragmentStored": false
+    },
+    {
+      "featureId": "event-action-context",
+      "namespace": "event",
+      "name": "eventActionContext",
+      "valueType": "enum",
+      "value": "line-crossing",
+      "confidence": 1,
+      "uncertainty": "event-record-derived",
+      "evidenceRef": "eventFrame",
+      "identityRisk": "non-identifying",
+      "searchable": true,
+      "rawPromptFragmentStored": false,
+      "rawProviderResponseFragmentStored": false
+    },
+    {
+      "featureId": "operator-review-tag",
+      "namespace": "operator",
+      "name": "reviewTagCategory",
+      "valueType": "enum",
+      "value": "needs-review",
+      "confidence": 1,
+      "uncertainty": "operator-controlled-category",
+      "evidenceRef": "eventFrame",
+      "identityRisk": "non-identifying",
+      "searchable": true,
+      "rawPromptFragmentStored": false,
+      "rawProviderResponseFragmentStored": false
+    },
+    {
+      "featureId": "embedding-default-off-marker",
+      "namespace": "embedding",
+      "name": "defaultOffIndexEligibility",
+      "valueType": "boolean",
+      "value": false,
+      "confidence": 1,
+      "uncertainty": "policy-marker-no-vector-stored",
+      "evidenceRef": "eventFrame",
+      "identityRisk": "non-identifying",
+      "searchable": true,
+      "rawPromptFragmentStored": false,
+      "rawProviderResponseFragmentStored": false
+    }
+  ],
+  "privacy": {
+    "durableRetentionMode": "feature-only-structured-non-identifying",
+    "identityFeaturesAllowed": false,
+    "faceRecognitionAllowed": false,
+    "watchlistAllowed": false,
+    "faceEmbeddingStored": false,
+    "rawPromptStored": false,
+    "rawProviderResponseStored": false,
+    "sourceUrlStored": false,
+    "credentialStored": false,
+    "rawFrameBytesInlined": false,
+    "disallowedIdentityFeatures": [
+      {
+        "name": "personName",
+        "allowed": false,
+        "searchable": false,
+        "reason": "direct account or person identity"
+      },
+      {
+        "name": "accountIdentity",
+        "allowed": false,
+        "searchable": false,
+        "reason": "account-level identity material"
+      },
+      {
+        "name": "faceRecognitionMatch",
+        "allowed": false,
+        "searchable": false,
+        "reason": "biometric identity match"
+      },
+      {
+        "name": "faceEmbedding",
+        "allowed": false,
+        "searchable": false,
+        "reason": "biometric template material"
+      },
+      {
+        "name": "watchlistMatch",
+        "allowed": false,
+        "searchable": false,
+        "reason": "identity list membership"
+      },
+      {
+        "name": "longTermPersonReIdentification",
+        "allowed": false,
+        "searchable": false,
+        "reason": "cross-event identity tracking"
+      },
+      {
+        "name": "idCardNumber",
+        "allowed": false,
+        "searchable": false,
+        "reason": "direct identifier"
+      },
+      {
+        "name": "phoneNumber",
+        "allowed": false,
+        "searchable": false,
+        "reason": "direct identifier"
+      },
+      {
+        "name": "licensePlateIdentity",
+        "allowed": false,
+        "searchable": false,
+        "reason": "strong searchable identity"
+      }
+    ]
+  },
+  "contractInvariants": {
+    "eventRecordTopLevelChanged": false,
+    "eventPostPayloadChanged": false,
+    "webrtcDataChannelSchemaChanged": false,
+    "sseWsMetadataSchemaChanged": false,
+    "rtspWebrtcMediaPathChanged": false,
+    "vlmRuntimeProviderCallRequired": false,
+    "opsEventsUiImplementedByThisStep": false
+  }
+}
