@@ -51,6 +51,16 @@
 | V300-S00 | `./server.sh verify-v300-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | source `3.0.0`, latest published `v2.9.0`, current roadmap `v3.0.0 Event Evidence Search MVP` 정렬. v3.0 기능 구현, UI 풀테스트, 30분/120분, published metadata, tag, push, GitHub Release evidence가 아님 |
 | V300-S01 | `./server.sh verify-v300-event-evidence-contract` | EvidenceManifest, FrameRef, retention lifecycle, privacy/non-VMS boundary, fixture, inventory, release records 연결 확인. frame extraction, encoded clip, playback, VMS API, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
 
+## v3.1.0 verifier
+
+아래 명령은 v3.1.0 roadmap 구현 단계에서 추가되거나 재사용되는 verifier입니다. 각
+명령의 PASS는 해당 Scope에 적힌 범위만 의미하며 v3.1 전체 완료, UI 풀테스트,
+30분/120분, published metadata를 대체하지 않습니다.
+
+| Step | Command | Scope |
+| --- | --- | --- |
+| V310-S02 | `./server.sh verify-analysis-state` | Event recorder media hook이 bounded frame-bundle clip에서 `media-server.va.encoded-event-clip.v1` status manifest와 encoded clip artifact, frameMap, queueName/status, partial cleanup, non-VMS boundary를 생성하는지 확인합니다. V310-S00/S01, replay UI, client digest, scoped API, 24/7 recording, VMS/NVR archive API 완료 evidence가 아님 |
+
 ## 최신 published baseline v2.9.0 verifier
 
 아래 명령은 v2.9.0 roadmap 구현 단계에서 추가되는 verifier입니다. 아직 구현되지 않은

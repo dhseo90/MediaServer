@@ -119,8 +119,10 @@ v3.1 확장 후보로 분리합니다.
 
 ## 계획 roadmap: v3.1.0 Evidence Replay and Sharing Expansion
 
-상태: 계획 확정, 구현 전. v3.1.0은 v3.0.0의 Event Evidence Search MVP가 구현되고
-검증된 뒤 진행하는 후속 확장입니다. 이 절은 v3.1.0 기능 완료 evidence가 아닙니다.
+상태: 계획 확정, `V310-S02` Event Clip Encoder Pipeline 직접 개발 완료. v3.1.0은
+v3.0.0의 Event Evidence Search MVP가 구현되고 검증된 뒤 진행하는 후속 확장입니다.
+이 절은 v3.1.0 전체 기능 완료 evidence가 아니며, `V310-S00`, `V310-S01`,
+`V310-S03`~`V310-S09`는 별도 직접 evidence가 생기기 전까지 계획 상태입니다.
 
 직접 답: v3.1.0의 1차 선택값은 `Evidence Replay and Sharing Expansion`입니다.
 v3.0의 evidence/search 기반을 유지하면서 encoded event clip, 안전한 공유 요약,
@@ -148,7 +150,7 @@ scoped 연동 API, 운영자 feature 보정, 선택적 vector search를 확장�
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 0 | V310-S00 | P0 | 계획 | v3.1 baseline | VERSION/CMake/README/docs/backlog/source roadmap을 v3.1 작업 기준으로 정렬 | v3.1 source-of-truth 정렬 | v3.1 기능 구현 완료 evidence가 아님 |
 | 1 | V310-S01 | P0 | 계획 | Encoded Event Clip Contract | MP4/WebM clip manifest, FrameRef/PTS 매핑, non-VMS boundary | encoded clip contract와 verifier | 24/7 recording/VMS API 완료 evidence가 아님 |
-| 2 | V310-S02 | P0 | 계획 | Event Clip Encoder Pipeline | frame bundle 또는 bounded short segment에서 encoded clip 생성 | clip generation queue/status/cleanup | 장시간 recorder나 상시녹화 evidence가 아님 |
+| 2 | V310-S02 | P0 | 완료 | Event Clip Encoder Pipeline | frame bundle 또는 bounded short segment에서 encoded clip 생성 | clip generation queue/status/cleanup | 장시간 recorder나 상시녹화 evidence가 아님 |
 | 3 | V310-S03 | P0 | 계획 | Replay Timeline UI | event frame, representative image, frame bundle, encoded clip timeline 표출 | `/ops/events` replay timeline UI | 직접 브라우저 UI evidence 없이는 UI PASS가 아님 |
 | 4 | V310-S04 | P1 | 계획 | Client-safe Event Digest | viewer-safe redacted summary 제공 | client-safe digest schema/UI/API guard | 내부 feature/provenance/raw evidence 노출 evidence가 아님 |
 | 5 | V310-S05 | P1 | 계획 | Scoped Integrator Search API | scope 기반 외부 연동 검색 API | scoped search contract와 redaction guard | broad public archive API가 아님 |
@@ -156,6 +158,17 @@ scoped 연동 API, 운영자 feature 보정, 선택적 vector search를 확장�
 | 7 | V310-S07 | P2 | 계획 | Optional Vector Search | default-off embedding index, rebuild/quality gate | vector index optional gate | default search 또는 provider rerank PASS가 아님 |
 | 8 | V310-S08 | P1 | 계획 | Retention/Export Hardening | encoded clip 포함 lifecycle cleanup, export bundle, audit | export/redaction/cleanup verifier | raw evidence 무제한 export evidence가 아님 |
 | 9 | V310-S09 | P0 | 계획 | Stabilization and Release Readiness | build/docs/verifier/UI 기준과 release readiness 기록 | v3.1 local stabilization, release evidence/not-run 경계 | UI 풀테스트/30분/120분/published metadata는 실행한 경우만 PASS |
+
+## v3.1.0 S02 개발 기록
+
+- 범위: P0 `V310-S02 Event Clip Encoder Pipeline`.
+- `src/analysis/event_storage.cpp`: 기존 EventRecord frame-bundle clip hook 내부에 bounded short segment를 `event-clip.avi`로 쓰는 encoded clip artifact writer를 추가했습니다. `WriteClipMedia()`가 기존 `.clip/manifest.json`과 frame files를 유지한 뒤 `.clip/encoded/event-clip.avi`, `.clip/encoded/encoded-manifest.json`을 생성합니다.
+- `src/analysis/event_storage.cpp`: encoded manifest schema `media-server.va.encoded-event-clip.v1`에 `inputSource=frame-bundle`, `queueName=event-clip-encoder`, `status=completed`, `frameMap`, `cleanup.deletedEntries`, `nonVmsBoundary.boundedShortSegment=true`, `continuousRecording=false`, `archiveApi=false`를 기록합니다.
+- `src/analysis/event_storage.cpp`: encoded output directory를 job 시작 전에 정리해 stale/partial encoded output을 제거하고, 삭제 entry 수를 manifest와 frame-bundle manifest의 `encodedClip.cleanupDeletedEntries`에 남깁니다.
+- `scripts/internal/analysis_state_smoke.cpp`: Event recorder media hook smoke에 encoded clip artifact, encoded manifest, queue/status/frameMap/non-VMS boundary 확인 항목을 추가했습니다.
+- `docs/project-feature-test-inventory.md`, `docs/release-test-records.md`, `docs/stream-verification.md`: `EVT-059`, `SAFE-083`, V310-S02 안정화 확인 항목과 완료 evidence 경계를 추가했습니다.
+- 검증: 최초 `./server.sh verify-analysis-state`는 encoded clip job status/non-VMS boundary가 기존 manifest에 없어 fail했습니다. 최종 재검증은 `./server.sh verify-analysis-state` `pass=142 fail=0`, `./server.sh build`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh verify-docs-links`, `./server.sh verify-v300-event-evidence-contract`, `git diff --check` 기준 PASS입니다.
+- 미실행/비대체: v3.1 baseline 정렬, V310-S01 encoded clip contract, `/ops/events` replay timeline UI, client-safe digest, scoped integrator API, 30분/120분 장시간 테스트, UI 풀테스트 직접 조작, published metadata, PR/main/tag/GitHub Release는 S02 완료 근거가 아닙니다.
 
 ## 최신 공개 기준: v2.9.0 Source Release Baseline
 

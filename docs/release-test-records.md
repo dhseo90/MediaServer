@@ -94,6 +94,7 @@
 | V290 owner release readiness | v2.9 owner handoff와 release close-out 준비 gate가 local evidence로 연결됐는지 확인 | `./server.sh verify-v290-owner-release-readiness`, `./server.sh build`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-manual-ui-evidence`, `./server.sh verify-release-evidence-index`, `./server.sh verify-release-closeout-helper --dry-run`, `./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run`, `./server.sh verify-script-inventory`, `git diff --check`를 실행하고 PR/tag/GitHub Release/published metadata와 UI/30분/120분/field smoke를 대체하지 않는 문구 확인 | v2.9.0 |
 | V300 source-of-truth split | v3.0.0 source version과 latest published v2.9.0 기준 분리 확인 | `./server.sh verify-v300-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh build`, `git diff --check`로 source `3.0.0`, latest published `v2.9.0`, current roadmap `v3.0.0 Event Evidence Search MVP`을 확인. v3.0 기능 구현, published metadata, tag/push/GitHub Release, UI 풀테스트, 30분/120분 PASS로 승격하지 않음 | v3.0.0 |
 | V300 Event Evidence Contract | EvidenceManifest, FrameRef, retention lifecycle, privacy/non-VMS boundary contract 확인 | `./server.sh verify-v300-event-evidence-contract`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh verify-docs-links`, `./server.sh build`, `git diff --check`로 `docs/event-evidence-contract.md`, `test/fixtures/event_evidence_contract/evidence_manifest_sample.json`, `OPS-052`, `SAFE-082`, server dispatch 연결을 확인. frame extraction, encoded clip/playback, VMS archive API, Search DSL, `/ops/events` UI, UI 풀테스트, 30분/120분, published metadata PASS로 승격하지 않음 | v3.0.0 |
+| V310 Event Clip Encoder Pipeline | bounded EventRecord frame bundle에서 encoded clip artifact와 queue/status/cleanup manifest 확인 | `./server.sh verify-analysis-state`, `./server.sh build`, `./server.sh verify-feature-inventory-coverage`, `git diff --check`로 Event recorder media hook이 `media-server.va.encoded-event-clip.v1` manifest, `event-clip.avi` artifact, frameMap, queueName/status, partial cleanup, non-VMS boundary를 남기는지 확인. v3.1 baseline/S01 contract, replay UI, client digest, 24/7 recording, VMS/NVR archive API, UI 풀테스트, 30분/120분, published metadata PASS로 승격하지 않음 | v3.1.0 |
 
 ## Deprecated 테스트 항목
 
@@ -147,6 +148,29 @@
 | v300 S01 frame extraction | Frame Bundle Extraction, event frame capture, representative image selection, bbox crop generation | V300-S02 범위입니다. S01은 contract/fixture/verifier만 확인하며 완료 evidence로 사용하지 않음 |
 | v300 S01 encoded clip/playback | encoded MP4/WebM event clip, clip playback, replay timeline, VMS/NVR archive API | v3.0 S01 비범위이며 v3.1 후보입니다. S01 완료 evidence로 사용하지 않음 |
 | v300 S01 Search/UI/longrun/published | Search DSL, `/ops/events` UI 직접 조작, UI 풀테스트, 30분/120분 longrun, `verify-release-metadata --published`, tag/push/GitHub Release | 사용자 별도 승인/후속 스텝 범위가 필요합니다. S01 완료 evidence로 사용하지 않음 |
+
+### v3.1.0
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| v310 S02 RED encoder pipeline | 최초 `./server.sh verify-analysis-state`는 기존 frame-bundle clip manifest에 encoded clip job status/non-VMS boundary가 없어 fail. V310-S02 구현 전 기대 실패로 확인 | fail |
+| v310 S02 analysis state final | 구현 후 `./server.sh verify-analysis-state` 재실행. Event recorder media hook이 `media-server.va.encoded-event-clip.v1` manifest, `event-clip.avi`, frameMap, `queueName=event-clip-encoder`, `status=completed`, partial cleanup, non-VMS boundary를 생성함을 확인. summary `pass=142 fail=0` | pass |
+| v310 S02 build final | `./server.sh build` 실행. `src/analysis/event_storage.cpp` 재빌드 후 `build-gst-onnx/media_server` target 생성 확인 | pass |
+| v310 S02 project inventory final | `./server.sh verify-project-inventory` 실행. featureRows 523, pass 13/fail 0으로 `EVT-059`/`SAFE-083` inventory 연결 확인 | pass |
+| v310 S02 feature inventory coverage final | `./server.sh verify-feature-inventory-coverage` 실행. featureRows 523, covered 523, missing 0, pass 5/fail 0 확인 | pass |
+| v310 S02 script inventory final | `./server.sh verify-script-inventory` 실행. documented command/dispatch/script family guard pass 11/fail 0 확인 | pass |
+| v310 S02 docs links final | `./server.sh verify-docs-links` 실행. markdown 103, local links 573, local images 22, local anchors 96, failures 0 확인 | pass |
+| v310 S02 V300 contract boundary recheck | `./server.sh verify-v300-event-evidence-contract` 실행. V300-S01 contract gate pass 7/fail 0이며 encoded clip playback은 해당 명령에서 not-run-by-this-command로 남는지 확인 | pass |
+| v310 S02 diff check final | `git diff --check` 실행. whitespace error output 없음 확인 | pass |
+| v310 S02 temp cleanup final | 이번 `verify-analysis-state` 실행에서 남은 `/private/tmp/media_server_analysis_state_smoke-74278` 약 3.7MB와 `/private/tmp/media_server_analysis_state_smoke-74947` 약 3.8MB를 삭제하고, 같은 경로 재조회에서 미검출 확인. 다른 과거 `media_server*` 임시 산출물은 이번 스텝 산출물로 특정하지 않아 미삭제 | pass |
+
+미실행/제외:
+
+| 제목 | 수행내용 | 사유 |
+| --- | --- | --- |
+| v310 S02 v3.1 baseline/S01 contract | VERSION/CMake/README/docs/backlog source roadmap을 v3.1 기준으로 정렬하거나 MP4/WebM clip contract를 별도 완료 처리 | 이번 지시는 `V310-S02 Event Clip Encoder Pipeline` 범위입니다. V310-S00/S01 완료 evidence로 사용하지 않음 |
+| v310 S02 replay UI/client digest/scoped API | `/ops/events` replay timeline UI, client-safe event digest, scoped integrator search API | V310-S03 이후 범위입니다. S02 완료 evidence로 사용하지 않음 |
+| v310 S02 30분/120분/UI/published | UI 풀테스트 직접 조작, `verify-predev --soak-minutes 30`, `verify-predev --soak-minutes 120`, `verify-va-runtime-console-longrun --duration-minutes 120`, `verify-release-metadata --published`, PR/main/tag/GitHub Release | 사용자 별도 지시/승인 범위가 아닙니다. S02 안정화 PASS로 대체하지 않음 |
 
 ### v2.5.0
 

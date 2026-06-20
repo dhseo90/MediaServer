@@ -2013,6 +2013,37 @@ void VerifyEventRecorderMediaHooks() {
                manifest.find("\"eventFrame\"") != std::string::npos &&
                manifest.find("\"nextFrame\"") != std::string::npos,
            "Event recorder must write clip manifest and frame bytes");
+    Expect(manifest.find("\"encodedClip\"") != std::string::npos &&
+               manifest.find("\"schema\":\"media-server.va.encoded-event-clip.v1\"") !=
+                   std::string::npos &&
+               manifest.find("\"status\":\"completed\"") != std::string::npos &&
+               manifest.find("\"continuousRecording\":false") != std::string::npos,
+           "Event recorder clip manifest must include encoded clip job status and non-VMS boundary");
+
+    const std::filesystem::path encoded_manifest =
+        std::filesystem::path(snapshot.clip_dir) / "evt-recorder-smoke.clip" / "encoded" /
+        "encoded-manifest.json";
+    const std::filesystem::path encoded_media =
+        std::filesystem::path(snapshot.clip_dir) / "evt-recorder-smoke.clip" / "encoded" /
+        "event-clip.avi";
+    std::ifstream encoded_input(encoded_manifest);
+    std::string encoded_json((std::istreambuf_iterator<char>(encoded_input)),
+                             std::istreambuf_iterator<char>());
+    Expect(std::filesystem::exists(encoded_manifest, ec) && !ec &&
+               std::filesystem::exists(encoded_media, ec) && !ec,
+           "Event recorder encoded clip pipeline must write manifest and media artifact");
+    Expect(encoded_json.find("\"schema\":\"media-server.va.encoded-event-clip.v1\"") !=
+               std::string::npos &&
+               encoded_json.find("\"inputSource\":\"frame-bundle\"") != std::string::npos &&
+               encoded_json.find("\"queueName\":\"event-clip-encoder\"") != std::string::npos &&
+               encoded_json.find("\"status\":\"completed\"") != std::string::npos &&
+               encoded_json.find("\"format\":\"avi\"") != std::string::npos &&
+               encoded_json.find("\"codec\":\"raw-bgr24-dib\"") != std::string::npos &&
+               encoded_json.find("\"frameMap\"") != std::string::npos &&
+               encoded_json.find("\"boundedShortSegment\":true") != std::string::npos &&
+               encoded_json.find("\"continuousRecording\":false") != std::string::npos &&
+               encoded_json.find("\"archiveApi\":false") != std::string::npos,
+           "Event recorder encoded clip manifest must describe queue/status/frame mapping and non-VMS boundary");
 
     std::filesystem::remove(active_path, ec);
     ec.clear();
@@ -2023,6 +2054,8 @@ void VerifyEventRecorderMediaHooks() {
     Pass("Event recorder writes snapshot media");
     Pass("Event recorder writes bbox crop media");
     Pass("Event recorder writes clip media");
+    Pass("Event recorder encodes bounded event clip media");
+    Pass("Event recorder records encoded clip queue status");
     Pass("Event recorder records snapshot evidence path");
     Pass("Event recorder records VLM evidence refs");
     Pass("Event recorder records clip evidence path");
