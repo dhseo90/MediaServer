@@ -59,8 +59,13 @@ check("fixture covers V300-S05 feature-only retention matrix", () => {
     "store-feature-revision-only",
     "reject-raw-prompt",
     "reject-raw-provider-response",
+    "reject-provider-request-body",
+    "reject-source-url-evidence-ref",
+    "reject-credential-evidence-ref",
+    "reject-raw-frame-bytes",
     "reanalysis-new-revision",
     "preserve-previous-revision",
+    "reject-stale-reanalysis-revision",
   ]) {
     assert(ids.has(id), `fixture missing case: ${id}`);
   }
@@ -117,8 +122,11 @@ check("analysis-state smoke verifies S05 behavior and build links module", () =>
     "V300 S05 stores feature-only revision without raw prompt or response",
     "V300 S05 rejects raw prompt retention material",
     "V300 S05 rejects raw provider response retention material",
+    "V300 S05 rejects raw evidence reference retention material",
+    "V300 S05 rejects raw provider request bodies with whitespace",
     "V300 S05 reanalysis creates a new revision without provider replay",
     "V300 S05 previous revision is preserved for review history",
+    "V300 S05 stale reanalysis revision is rejected",
   ]) {
     assert(files.smoke.includes(snippet), `analysis_state_smoke missing S05 snippet: ${snippet}`);
   }

@@ -2079,6 +2079,34 @@ void VerifyV300FeatureOnlyRetention() {
                !raw_response.feature_set_stored && store.RevisionCount(task.event_id) == 1,
            "V300 S05 raw provider response material must be rejected without creating a new revision");
 
+    VlmFeatureRetentionRequest raw_evidence_refs = request;
+    raw_evidence_refs.source_evidence_refs_json =
+        "{\"schema\":\"media-server.vlm-event-evidence-refs.v1\","
+        "\"sourceUrl\":\"rtsp://operator:secret@example.invalid/live\"}";
+    const VlmFeatureRetentionOutcome raw_refs =
+        store.StoreRevision(raw_evidence_refs, BuildVlmFeatureSetFixtureJson(task, 2));
+    Expect(raw_refs.status == "rejected" &&
+               raw_refs.retention_action == "reject-raw-provider-material" &&
+               raw_refs.failure_reason == "raw-provider-material" &&
+               !raw_refs.feature_set_stored && store.RevisionCount(task.event_id) == 1,
+           "V300 S05 source evidence refs with raw source URL must be rejected before record retention");
+
+    const std::string spaced_provider_body_feature_set =
+        "{\"schema\":\"media-server.event-feature-set.v1\","
+        "\"eventId\":\"evt-v300-s05-line-001\","
+        "\"featureRevision\":2,"
+        "\"rawPromptStored\":false,"
+        "\"rawProviderResponseStored\":false,"
+        "\"identityFeaturesAllowed\":false,"
+        "\"providerRequestBody\" : {\"prompt\":\"must-not-be-retained\"}}";
+    const VlmFeatureRetentionOutcome spaced_provider_body =
+        store.StoreRevision(request, spaced_provider_body_feature_set);
+    Expect(spaced_provider_body.status == "rejected" &&
+               spaced_provider_body.retention_action == "reject-raw-provider-material" &&
+               spaced_provider_body.failure_reason == "raw-provider-material" &&
+               !spaced_provider_body.feature_set_stored && store.RevisionCount(task.event_id) == 1,
+           "V300 S05 raw material guard must reject provider request body with JSON whitespace");
+
     VlmFeatureQueueTask reanalysis_task = task;
     reanalysis_task.task_id = "vlm-feature-retention-task-evt-v300-s05-reanalysis";
     VlmFeatureRetentionRequest reanalysis_request = request;
@@ -2104,11 +2132,24 @@ void VerifyV300FeatureOnlyRetention() {
                reanalysis.record_json.find("\"previousRevision\":1") != std::string::npos,
            "V300 S05 previous revision must remain linked for review history");
 
+    VlmFeatureRetentionRequest stale_reanalysis_request = reanalysis_request;
+    stale_reanalysis_request.feature_set_id = "features-evt-v300-s05-line-001-r2-duplicate";
+    const VlmFeatureRetentionOutcome stale_reanalysis =
+        store.RequestReanalysis(stale_reanalysis_request, BuildVlmFeatureSetFixtureJson(reanalysis_task, 2));
+    Expect(stale_reanalysis.status == "rejected" &&
+               stale_reanalysis.retention_action == "reject-stale-reanalysis-revision" &&
+               stale_reanalysis.failure_reason == "stale-reanalysis-revision" &&
+               !stale_reanalysis.feature_set_stored && store.RevisionCount(task.event_id) == 2,
+           "V300 S05 reanalysis must reject stale revisions that do not advance latest revision");
+
     Pass("V300 S05 stores feature-only revision without raw prompt or response");
     Pass("V300 S05 rejects raw prompt retention material");
     Pass("V300 S05 rejects raw provider response retention material");
+    Pass("V300 S05 rejects raw evidence reference retention material");
+    Pass("V300 S05 rejects raw provider request bodies with whitespace");
     Pass("V300 S05 reanalysis creates a new revision without provider replay");
     Pass("V300 S05 previous revision is preserved for review history");
+    Pass("V300 S05 stale reanalysis revision is rejected");
 }
 
 void VerifyEventRecorderMediaHooks() {

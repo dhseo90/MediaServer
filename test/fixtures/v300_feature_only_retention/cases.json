@@ -98,6 +98,111 @@
       }
     },
     {
+      "id": "reject-provider-request-body",
+      "kind": "provider-request-body-rejection",
+      "input": {
+        "featureSetSchema": "media-server.event-feature-set.v1",
+        "providerRequestBody": "must-not-be-retained",
+        "jsonWhitespaceVariant": true
+      },
+      "expected": {
+        "status": "rejected",
+        "retentionAction": "reject-raw-provider-material",
+        "failureReason": "raw-provider-material",
+        "featureSetStored": false
+      },
+      "contractInvariants": {
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "providerRequestBodyStored": false,
+        "credentialStored": false,
+        "sourceUrlStored": false,
+        "runtimeProviderReplayPerformed": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelSchemaChanged": false,
+        "sseWsMetadataSchemaChanged": false,
+        "rtspWebrtcMediaPathChanged": false
+      }
+    },
+    {
+      "id": "reject-source-url-evidence-ref",
+      "kind": "source-evidence-ref-rejection",
+      "input": {
+        "sourceEvidenceRefsSchema": "media-server.vlm-event-evidence-refs.v1",
+        "sourceUrl": "must-not-be-retained"
+      },
+      "expected": {
+        "status": "rejected",
+        "retentionAction": "reject-raw-provider-material",
+        "failureReason": "raw-provider-material",
+        "featureSetStored": false
+      },
+      "contractInvariants": {
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "providerRequestBodyStored": false,
+        "credentialStored": false,
+        "sourceUrlStored": false,
+        "runtimeProviderReplayPerformed": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelSchemaChanged": false,
+        "sseWsMetadataSchemaChanged": false,
+        "rtspWebrtcMediaPathChanged": false
+      }
+    },
+    {
+      "id": "reject-credential-evidence-ref",
+      "kind": "credential-evidence-ref-rejection",
+      "input": {
+        "sourceEvidenceRefsSchema": "media-server.vlm-event-evidence-refs.v1",
+        "credential": "must-not-be-retained"
+      },
+      "expected": {
+        "status": "rejected",
+        "retentionAction": "reject-raw-provider-material",
+        "failureReason": "raw-provider-material",
+        "featureSetStored": false
+      },
+      "contractInvariants": {
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "providerRequestBodyStored": false,
+        "credentialStored": false,
+        "sourceUrlStored": false,
+        "runtimeProviderReplayPerformed": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelSchemaChanged": false,
+        "sseWsMetadataSchemaChanged": false,
+        "rtspWebrtcMediaPathChanged": false
+      }
+    },
+    {
+      "id": "reject-raw-frame-bytes",
+      "kind": "raw-frame-bytes-rejection",
+      "input": {
+        "featureSetSchema": "media-server.event-feature-set.v1",
+        "rawFrameBytesInlined": true
+      },
+      "expected": {
+        "status": "rejected",
+        "retentionAction": "reject-raw-provider-material",
+        "failureReason": "raw-provider-material",
+        "featureSetStored": false
+      },
+      "contractInvariants": {
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "providerRequestBodyStored": false,
+        "credentialStored": false,
+        "sourceUrlStored": false,
+        "runtimeProviderReplayPerformed": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelSchemaChanged": false,
+        "sseWsMetadataSchemaChanged": false,
+        "rtspWebrtcMediaPathChanged": false
+      }
+    },
+    {
       "id": "reanalysis-new-revision",
       "kind": "reanalysis-policy",
       "input": {
@@ -139,6 +244,33 @@
         "previousRevision": 1,
         "latestRevision": 2,
         "previousRevisionPreserved": true
+      },
+      "contractInvariants": {
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "providerRequestBodyStored": false,
+        "credentialStored": false,
+        "sourceUrlStored": false,
+        "runtimeProviderReplayPerformed": false,
+        "eventPostPayloadChanged": false,
+        "webrtcDataChannelSchemaChanged": false,
+        "sseWsMetadataSchemaChanged": false,
+        "rtspWebrtcMediaPathChanged": false
+      }
+    },
+    {
+      "id": "reject-stale-reanalysis-revision",
+      "kind": "reanalysis-policy",
+      "input": {
+        "existingFeatureRevision": 2,
+        "requestedFeatureRevision": 2,
+        "reanalysisReason": "operator-requested-action-context-refinement"
+      },
+      "expected": {
+        "status": "rejected",
+        "retentionAction": "reject-stale-reanalysis-revision",
+        "failureReason": "stale-reanalysis-revision",
+        "featureSetStored": false
       },
       "contractInvariants": {
         "rawPromptStored": false,

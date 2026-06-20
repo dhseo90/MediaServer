@@ -41,6 +41,42 @@ bool Contains(const std::string& text, const std::string& needle) {
     return text.find(needle) != std::string::npos;
 }
 
+bool IsJsonSpace(char ch) {
+    return ch == ' ' || ch == '\n' || ch == '\r' || ch == '\t';
+}
+
+std::size_t FindJsonKeyColon(const std::string& json, const std::string& key) {
+    const std::string quoted_key = "\"" + key + "\"";
+    std::size_t pos = 0;
+    while ((pos = json.find(quoted_key, pos)) != std::string::npos) {
+        std::size_t cursor = pos + quoted_key.size();
+        while (cursor < json.size() && IsJsonSpace(json[cursor])) {
+            ++cursor;
+        }
+        if (cursor < json.size() && json[cursor] == ':') {
+            return cursor;
+        }
+        ++pos;
+    }
+    return std::string::npos;
+}
+
+bool ContainsJsonKey(const std::string& json, const std::string& key) {
+    return FindJsonKeyColon(json, key) != std::string::npos;
+}
+
+bool ContainsJsonBooleanTrue(const std::string& json, const std::string& key) {
+    const std::size_t colon = FindJsonKeyColon(json, key);
+    if (colon == std::string::npos) {
+        return false;
+    }
+    std::size_t cursor = colon + 1;
+    while (cursor < json.size() && IsJsonSpace(json[cursor])) {
+        ++cursor;
+    }
+    return json.compare(cursor, 4, "true") == 0;
+}
+
 int ExtractFeatureRevision(const std::string& json) {
     const std::string key = "\"featureRevision\":";
     const std::size_t pos = json.find(key);
@@ -157,16 +193,25 @@ VlmFeatureRetentionOutcome VlmFeatureRetentionStore::StoreRevision(
     if (HasRawRetentionMaterial(feature_set_json)) {
         return MakeOutcome(request, "rejected", "reject-raw-provider-material", "raw-provider-material");
     }
+    if (HasRawRetentionMaterial(request.source_evidence_refs_json)) {
+        return MakeOutcome(request, "rejected", "reject-raw-provider-material", "raw-provider-material");
+    }
     if (!IsStructuredFeatureSet(feature_set_json, request.event_id)) {
         return MakeOutcome(request, "rejected", "reject-invalid-feature-set", "invalid-feature-set");
-    }
-    if (RevisionCount(request.event_id) >= options_.max_revisions_per_event) {
-        return MakeOutcome(request, "failed", "reject-feature-revision-limit", "feature-revision-limit");
     }
 
     const int parsed_revision = ExtractFeatureRevision(feature_set_json);
     const int feature_revision = std::max(1, parsed_revision > 0 ? parsed_revision : request.requested_revision);
     const int previous_revision = LatestRevision(request.event_id);
+    if (request.reanalysis_requested && feature_revision <= previous_revision) {
+        return MakeOutcome(request,
+                           "rejected",
+                           "reject-stale-reanalysis-revision",
+                           "stale-reanalysis-revision");
+    }
+    if (RevisionCount(request.event_id) >= options_.max_revisions_per_event) {
+        return MakeOutcome(request, "failed", "reject-feature-revision-limit", "feature-revision-limit");
+    }
 
     VlmFeatureRetentionOutcome outcome =
         MakeOutcome(request,
@@ -212,24 +257,31 @@ int VlmFeatureRetentionStore::LatestRevision(const std::string& event_id) const 
 }
 
 bool HasRawRetentionMaterial(const std::string& feature_set_json) {
-    for (const std::string& snippet : {
-             "\"rawPrompt\":",
-             "\"rawProviderResponse\":",
-             "\"rawResponse\":",
-             "\"providerRequestBody\":",
-             "\"credential\":",
-             "\"credentialMaterial\":",
-             "\"sourceUrl\":",
-             "\"rawFrameBytes\":",
-             "\"rawPromptStored\":true",
-             "\"rawProviderResponseStored\":true",
-             "\"providerRequestBodyStored\":true",
-             "\"credentialStored\":true",
-             "\"sourceUrlStored\":true",
-             "\"rawFrameBytesStored\":true",
-             "\"sourceFrameBytesInlined\":true",
+    for (const std::string& key : {
+             "rawPrompt",
+             "rawProviderResponse",
+             "rawResponse",
+             "providerRequestBody",
+             "credential",
+             "credentialMaterial",
+             "sourceUrl",
+             "rawFrameBytes",
          }) {
-        if (Contains(feature_set_json, snippet)) {
+        if (ContainsJsonKey(feature_set_json, key)) {
+            return true;
+        }
+    }
+    for (const std::string& key : {
+             "rawPromptStored",
+             "rawProviderResponseStored",
+             "providerRequestBodyStored",
+             "credentialStored",
+             "sourceUrlStored",
+             "rawFrameBytesStored",
+             "rawFrameBytesInlined",
+             "sourceFrameBytesInlined",
+         }) {
+        if (ContainsJsonBooleanTrue(feature_set_json, key)) {
             return true;
         }
     }

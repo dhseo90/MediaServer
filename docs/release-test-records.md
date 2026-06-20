@@ -166,15 +166,16 @@
 | v300 S04 diff check final | `git diff --check` 실행. whitespace error output 없음 확인 | pass |
 | v300 S04 temp cleanup final | `/tmp/media_server_analysis_state_smoke-*`와 `/tmp/media_server_analysis_state_dep_scan.txt` 재조회에서 미검출 확인. 삭제할 S04 임시 산출물 없음 | pass |
 | v300 S05 RED feature-only retention gate | 최초 `node scripts/internal/verify_v300_feature_only_retention.mjs`는 `include/analysis/vlm_feature_retention.h` 부재로 fail. V300-S05 retention module 구현 전 기대 실패로 확인 | fail |
-| v300 S05 analysis state final | `./server.sh verify-analysis-state` 실행. FeatureSet revision store, raw prompt rejection, raw provider response rejection, provider replay 없는 reanalysis, previous revision 보존 smoke 포함 summary `pass=155 fail=0` 확인 | pass |
+| v300 S05 review RED retention raw material guard | 코드 리뷰 후 추가한 `sourceEvidenceRefs` raw source URL, provider request body whitespace, stale reanalysis revision smoke 중 최초 `./server.sh verify-analysis-state`가 source evidence refs raw source URL 우회로 summary `pass=129 fail=1` 확인 | fail |
+| v300 S05 analysis state final | `./server.sh verify-analysis-state` 실행. FeatureSet revision store, raw prompt rejection, raw provider response rejection, source evidence refs raw material rejection, provider request body whitespace rejection, provider replay 없는 reanalysis, stale reanalysis rejection, previous revision 보존 smoke 포함 summary `pass=158 fail=0` 확인 | pass |
 | v300 S05 feature-only retention final | `./server.sh verify-v300-feature-only-retention` 실행. fixture, module, analysis-state smoke link, docs/roadmap/stream verification/inventory/release records/server dispatch 연결 summary `pass=6 fail=0` 확인 | pass |
 | v300 S05 build final | `./server.sh build` 실행. `src/analysis/vlm_feature_retention.cpp` 빌드와 `build-gst-onnx/media_server` target 생성 확인 | pass |
 | v300 S05 project inventory final | `./server.sh verify-project-inventory` 실행. featureRows 534, pass 13/fail 0으로 `LAB-085`/`SAFE-087`/`OPS-055` inventory 연결 확인 | pass |
 | v300 S05 feature inventory coverage final | `./server.sh verify-feature-inventory-coverage` 실행. featureRows 534, covered 534, missing 0, pass 5/fail 0으로 `verify-v300-feature-only-retention` coverage 연결 확인 | pass |
 | v300 S05 script inventory final | `./server.sh verify-script-inventory` 실행. server dispatch/script family guard pass 11/fail 0 확인 | pass |
-| v300 S05 docs links final | `./server.sh verify-docs-links` 실행. markdown 106, local links 579, local images 22, local anchors 96, indexed docs 70, failures 0으로 `docs/v300-feature-only-retention.md` 색인과 fixture/link 참조 확인 | pass |
+| v300 S05 docs links final | `./server.sh verify-docs-links` 실행. markdown 106, local links 579, local images 22, local anchors 96, indexed docs 71, failures 0으로 `docs/v300-feature-only-retention.md` 색인과 fixture/link 참조 확인 | pass |
 | v300 S05 diff check final | `git diff --check` 실행. whitespace error output 없음 확인 | pass |
-| v300 S05 temp cleanup final | 이번 `verify-analysis-state` 실행에서 남은 `/tmp/media_server_analysis_state_smoke-81250` 3.9MB와 `/tmp/media_server_analysis_state_dep_scan.txt` 0B를 삭제하고, 같은 경로 재조회에서 미검출 확인 | pass |
+| v300 S05 temp cleanup final | 이번 `verify-analysis-state` 실행에서 남은 `/tmp/media_server_analysis_state_smoke-81250`, `/tmp/media_server_analysis_state_smoke-2654`, `/tmp/media_server_analysis_state_smoke-4462` 각 3.9MB와 `/tmp/media_server_analysis_state_dep_scan.txt` 0B를 삭제하고, 같은 경로 재조회에서 미검출 확인 | pass |
 
 미실행/제외:
 
