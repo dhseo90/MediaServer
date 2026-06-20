@@ -92,6 +92,7 @@
 | V290 public docs/assets refresh | README, README.en, docs index, release/version policy, stream verification, UI guide, docs asset policy가 v2.9 source와 v2.8 published baseline을 분리하는지 확인 | `./server.sh verify-v290-public-docs-assets-refresh`, `./server.sh verify-docs-ui-assets`, `./server.sh verify-docs-links`, `./server.sh verify-release-metadata`로 public docs와 managed UI asset set을 확인. 대표 이미지 직접 재캡처, 직접 브라우저 검수, UI 풀테스트, 30분/120분, published metadata PASS로 승격하지 않음 | v2.9.0 |
 | V290 final stabilization run | v2.9 release 전 build/auth/Ops-Client UI/rule/event/metadata/media-schema/docs-inventory 안정화 묶음을 release 순서대로 실행했는지 확인 | `./server.sh build`, auth 3종, `verify-ops-client-ui`, `verify-rule-ui`, `verify-event-post`, metadata/media/schema/docs/inventory verifier, `./server.sh verify-v290-final-stabilization-run`, `git diff --check` 결과를 기록. UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, field smoke PASS로 승격하지 않음 | v2.9.0 |
 | V290 owner release readiness | v2.9 owner handoff와 release close-out 준비 gate가 local evidence로 연결됐는지 확인 | `./server.sh verify-v290-owner-release-readiness`, `./server.sh build`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-manual-ui-evidence`, `./server.sh verify-release-evidence-index`, `./server.sh verify-release-closeout-helper --dry-run`, `./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run`, `./server.sh verify-script-inventory`, `git diff --check`를 실행하고 PR/tag/GitHub Release/published metadata와 UI/30분/120분/field smoke를 대체하지 않는 문구 확인 | v2.9.0 |
+| V300 source-of-truth split | v3.0.0 source version과 latest published v2.9.0 기준 분리 확인 | `./server.sh verify-v300-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh build`, `git diff --check`로 source `3.0.0`, latest published `v2.9.0`, current roadmap `v3.0.0 Event Evidence Search MVP`을 확인. v3.0 기능 구현, published metadata, tag/push/GitHub Release, UI 풀테스트, 30분/120분 PASS로 승격하지 않음 | v3.0.0 |
 
 ## Deprecated 테스트 항목
 
@@ -103,6 +104,34 @@
 | 미실행 항목을 결과표 PASS/FAIL에 섞기 | 실행하지 않은 30분/120분/UI/field smoke를 결과표에 조건부 통과처럼 기록 | 결과표는 pass/fail만 쓰고, 미실행/제외는 별도 표에 사유와 완료 evidence로 쓸 수 없다는 경계를 기록 | v2.8.0 |
 
 ## 버전별 테스트 결과 기록
+
+### v3.0.0
+
+| 제목 | 수행내용 | 결과(pass/fail) |
+| --- | --- | --- |
+| v300 S00 RED command precheck | 최초 `./server.sh verify-v300-entry-baseline`는 command 미구현으로 fail. V300-S00 verifier/entrypoint 추가 전 기대 실패로 확인 | fail |
+| v300 S00 baseline wording fix | entrypoint 추가 후 `./server.sh verify-v300-entry-baseline`가 backlog의 기능 구현 완료 비승격 문구 누락으로 fail. 누락 문구를 추가하고 재검증 | fail |
+| v300 S00 release metadata drift fix | `./server.sh verify-release-metadata` 최초 실행에서 versioning policy의 source-only/live-only 문구, backlog publish boundary, UI guide roadmap boundary 3개가 fail. 문서 경계를 수정하고 재검증 | fail |
+| v300 S00 docs index fix | `./server.sh verify-docs-links` 최초 실행에서 v3/v3.1 roadmap design 문서의 docs index 항목 누락으로 fail. `docs/README.md` index를 갱신하고 재검증 | fail |
+| v300 S00 inventory fixture fix | `./server.sh verify-project-inventory` 최초 실행에서 manual UI VA seed fixture가 `v2.9.0`에 고정되어 fail. seed fixture target을 `v3.0.0`으로 정렬하고 재검증 | fail |
+| v300 S00 entry baseline final | `./server.sh verify-v300-entry-baseline` 최종 pass 7/fail 0. source `3.0.0`, latest published `v2.9.0`, current roadmap `v3.0.0 Event Evidence Search MVP` 확인. 기능 구현/UI/longrun/published metadata는 not-run으로 분리 | pass |
+| v300 S00 release metadata final | `./server.sh verify-release-metadata` 최종 pass 16/fail 0. source version/current tag와 published release boundary 확인 | pass |
+| v300 S00 docs links final | `./server.sh verify-docs-links` 최종 failures 0. markdown files 102, local links 571, images 22, anchors 96, indexed docs 67 확인 | pass |
+| v300 S00 docs UI assets final | `./server.sh verify-docs-ui-assets` 최종 pass 10/fail 0. 이미지 재캡처는 실행하지 않고 manifest/sourceVersion/published baseline 정합성 확인 | pass |
+| v300 S00 project inventory final | `./server.sh verify-project-inventory` 최종 pass 13/fail 0. featureRows 519와 seed fixture current release target 확인 | pass |
+| v300 S00 feature inventory coverage final | `./server.sh verify-feature-inventory-coverage` 최종 pass 5/fail 0. covered 519/missing 0 확인 | pass |
+| v300 S00 script inventory final | `./server.sh verify-script-inventory` 최종 pass 11/fail 0. `verify-v300-entry-baseline` dispatch/executable/documented command 정합성 확인 | pass |
+| v300 S00 build final | `./server.sh build` 최종 exit 0. `build-gst-onnx/media_server` target built 확인 | pass |
+| v300 S00 diff check final | `git diff --check` 최종 exit 0 확인 | pass |
+
+미실행/제외:
+
+| 제목 | 수행내용 | 사유 |
+| --- | --- | --- |
+| v300 S00 published metadata | `./server.sh verify-release-metadata --published` | GitHub Release publish 이후 외부 상태 확인용입니다. S00 local source-of-truth 완료 evidence로 사용하지 않음 |
+| v300 S00 UI 풀테스트 | 인앱 브라우저 route/control/action 직접 조작 | S00은 문서/source metadata 정렬 범위입니다. UI 직접 조작 PASS로 대체하지 않음 |
+| v300 S00 30분/120분 longrun | `verify-predev --soak-minutes 30`, `verify-predev --soak-minutes 120`, `verify-va-runtime-console-longrun --duration-minutes 120` | S00 source-of-truth 정렬 gate 자체에서는 실행하지 않음 |
+| v300 S00 field smoke | real ONVIF, external TURN/WHEP, real cloud/VLM provider call | endpoint/credential/실기기 조건 미제공. S00 완료 evidence로 사용하지 않음 |
 
 ### v2.5.0
 
@@ -482,6 +511,7 @@
 | v290 release runtime console 120분 | 120분 runtime console | 691,961 | 882,689 | 190,728 | durationSec 7200 | command summary plus Codex goal usage snapshots around the runtime console run |
 | v280 release local gates | 안정화 테스트 | 미집계 | 320,781 | 미집계 | goal snapshot 683s | Codex goal usage end snapshot; token start not captured |
 | v280 release UI fulltest | UI 풀테스트 | 320,781 | 649,423 | 328,642 | goal snapshot delta 1216s | Codex goal usage snapshots plus in-app evidence and wrapper output |
+| v300 S00 baseline alignment | 안정화 테스트 | 미집계 | 미집계 | 미집계 | command summaries only | V300-S00 command-level verification; token snapshot not captured in this document |
 
 ## 임시 산출물 정리 기록
 
@@ -495,6 +525,7 @@
 | v2.9.0 S07 public docs/assets refresh | 없음 | `verify-v290-public-docs-assets-refresh`, docs UI assets, release metadata, docs links, inventory/docs/script verifier, build, `git diff --check` 실행 중 최종 evidence로 보존할 `/tmp`/`/private/tmp` summary, screenshot, report를 생성하지 않음. image recapture도 실행하지 않음 | 삭제 대상 없음 | 없음 |
 | v2.9.0 S08 final stabilization run | `$TMPDIR/media_server_webrtc_va_metadata_summary_1781876018818.json` | S08 WebRTC VA metadata summary JSON, 삭제 전 4KB. Event POST/ICE/RTSP overlay verifier가 출력한 임시 summary 경로와 codec launcher log는 cleanup scan에서 S08 신규 보존 대상 없음으로 확인 | 결과 수치를 이 문서로 이관 후 삭제 | 삭제 완료. 삭제 후 `$TMPDIR/media_server_webrtc_va_metadata_summary_1781876018818.json` 없음 확인 |
 | v2.9.0 S09 owner release readiness | 없음 | S09 local readiness/docs/inventory/evidence/closeout dry-run verifier 실행 중 최종 evidence로 보존할 `/tmp`/`/private/tmp` summary, screenshot, report를 생성하지 않음 | 삭제 대상 없음 | 없음 |
+| v3.0.0 S00 baseline alignment | 없음 | `verify-v300-entry-baseline`, release/docs/inventory/script verifier, `./server.sh build`, `git diff --check` 실행 중 최종 evidence로 보존할 `/tmp`/`/private/tmp` summary, screenshot, report를 생성하지 않음. UI screenshot recapture도 실행하지 않음 | 삭제 대상 없음 | 없음 |
 | v2.9.0 release UI fulltest | `/tmp/media_server_v290_ui_fulltest_20260619_codex`, `/tmp/media_server_v290_ui_fulltest_wrapper_20260619_codex` | Codex 인앱 evidence/screenshot/auth throwaway seed와 one-shot wrapper summary/screenshots 임시 디렉터리, 삭제 전 11M와 256K | 결과 수치를 이 문서와 release evidence index로 이관 후 삭제 | 삭제 완료. 삭제 후 대상 경로 없음 확인 |
 | v2.9.0 release 30분 soak | `/tmp/media_server_v290_release_30min_20260619_summary.json`, `/tmp/media_server_v290_release_30min_20260619_report.md`, `/tmp/media_server_v290_release_30min_20260619_report.html`, `/tmp/media_server_predev-1781879587-1100` | 30분 predev summary/report/html/work dir, 삭제 전 56K/244K/268K/604K | 결과 수치를 이 문서와 release evidence index로 이관 후 삭제 | 삭제 완료. 삭제 후 대상 경로 없음 확인 |
 | v2.9.0 release 120분 predev | `/tmp/media_server_v290_release_120min_20260619_summary.json`, `/tmp/media_server_v290_release_120min_20260619_report.md`, `/tmp/media_server_v290_release_120min_20260619_report.html`, `/tmp/media_server_predev-1781882126-48487` | 120분 predev summary/report/html/work dir, 삭제 전 200K/372K/408K/2.3M | 결과 수치를 이 문서와 release evidence index로 이관 후 삭제 | 삭제 완료. 삭제 후 대상 경로 없음 확인 |

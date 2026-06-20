@@ -5,16 +5,17 @@
 
 ## 현재 기준
 
-- 현재 소스 버전: `2.9.0`
-- 현재 source roadmap: `v2.9.0 Final 2.x Closure & Compatibility Baseline`
+- 현재 소스 버전: `3.0.0`
+- 현재 source roadmap: `v3.0.0 Event Evidence Search MVP`
 - 최신 공개 GitHub Release: `v2.9.0 Final 2.x Closure & Compatibility Baseline`
 - v2.9.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- source-only release 기준 tag는 published tag `v2.9.0`와 현재 source tag `v2.9.0`를 분리해 기록합니다.
+- source-only release 기준 tag는 published tag `v2.9.0`와 현재 source tag `v3.0.0`를 분리해 기록합니다.
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
 
-현재 소스 트리의 `2.9.0` roadmap은 v2.9.0 source-only/live-only Final 2.x Closure & Compatibility Baseline
-published baseline입니다. v2.8.0 published evidence를 v2.9.0 완료 evidence로 재사용하지 않습니다. 기본 공개
-형태는 계속 source-only이며 binary/runtime/model bundle을 공개 asset으로 포함하지 않습니다.
+현재 소스 트리의 `3.0.0` roadmap은 v3.0.0 Event Evidence Search MVP source-only/live-only
+source baseline입니다. v2.9.0 published evidence를 v3.0.0 기능 완료 evidence로 재사용하지
+않습니다. 기본 공개 형태는 계속 source-only이며 binary/runtime/model bundle을 공개
+asset으로 포함하지 않습니다.
 
 ## 2.x runway / 3.0 전환 정책
 
@@ -30,29 +31,30 @@ published baseline입니다. v2.8.0 published evidence를 v2.9.0 완료 evidence
 - 3.0 전에는 자동 Rule/Profile 적용, 외부 알림 실제 발송 보장, VLM default-on,
   runtime/model bundle default 배포를 2.x 완료 조건으로 승격하지 않습니다.
 
-## 2.9.0 active source roadmap 범위
+## 3.0.0 active source roadmap 범위
 
-- v2.9.0 source-of-truth 정렬
-- 2.x final contract freeze
-- v2.8 기능군 회귀 묶음
-- 2.x compatibility gate
-- release test records enforcement
-- UI fulltest criteria freeze
-- release evidence hygiene
-- public docs/assets refresh
-- final stabilization
-- v2.9.0 owner release readiness
+- v3.0.0 source-of-truth 정렬
+- Event Evidence Contract
+- Frame Bundle Extraction
+- Feature Schema and Privacy Policy
+- VLM Feature Queue
+- Feature-only Retention
+- Search DSL and Query Convert
+- Feature/Search Index
+- Ops Events UI
+- Retention/Pin/Cleanup
+- Stabilization and Release Readiness
 
 위 항목은 구현과 검증 evidence가 생긴 뒤에만 `완료`로 기록합니다. GitHub Release,
 tag, 30분/120분 장시간 테스트, UI 풀테스트, 외부 field smoke는 별도 실행 evidence가
 있을 때만 완료로 씁니다.
 
-`public docs/assets refresh`는 `README.md`, `README.en.md`, `docs/README.md`,
+`v3.0.0 source-of-truth 정렬`은 `README.md`, `README.en.md`, `docs/README.md`,
 `docs/en/README.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`,
-release/version policy가 같은 v2.9 source와 v2.9 published baseline을 말하는지
+release/version policy가 source `3.0.0`와 latest published `v2.9.0`를 분리하는지
 확인하는 local gate입니다. 직전 v2.8 baseline은 historical reference입니다. 대표 UI 이미지는 `config/docs_ui_assets.json`의 managed
 asset list로 관리하며, image recapture, 직접 브라우저 검수 PASS, UI 풀테스트,
-published metadata, tag/push/GitHub Release는 `verify-v290-public-docs-assets-refresh`
+published metadata, tag/push/GitHub Release는 `verify-v300-entry-baseline`
 PASS로 대체하지 않습니다.
 
 ## v2.7.0 historical published source-only release 범위
@@ -108,11 +110,11 @@ PASS로 대체하지 않습니다.
 
 ## Tag와 GitHub Release 기준
 
-- 현재 공개 release tag 기준: `v2.8.0`
-- 현재 source tag 기준: `v2.9.0`
-- `v2.9.0` release tag는 public readiness, bundle policy, required Actions가 통과한
+- 현재 공개 release tag 기준: `v2.9.0`
+- 현재 source tag 기준: `v3.0.0`
+- `v3.0.0` release tag는 public readiness, bundle policy, required Actions가 통과한
   `main` 커밋에만 붙입니다.
-- `v2.9.0` release tag는 signed annotated tag로 생성합니다.
+- `v3.0.0` release tag는 signed annotated tag로 생성합니다.
 - 다음 신규 release tag는 signed annotated tag로 생성합니다.
 - unsigned annotated tag와 lightweight tag는 새 release tag로 사용하지 않습니다.
 - tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만 붙입니다.

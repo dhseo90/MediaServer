@@ -6,11 +6,11 @@
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `2.9.0`
+- 현재 소스 버전: `3.0.0`
 - 최신 공개 GitHub Release: `v2.9.0`
 - `v2.9.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap은 `v2.9.0 Final 2.x Closure & Compatibility Baseline`입니다.
+- 현재 source roadmap은 `v3.0.0 Event Evidence Search MVP`입니다.
 
 ## 기본 공개 범위
 
@@ -55,15 +55,16 @@ main merge를 수행하지 않습니다.
 
 ## Public Docs / Assets Refresh
 
-v2.9.0 S07 public docs/assets refresh는 공개 첫 진입점과 대표 UI 이미지 policy를
-정리하는 local gate입니다. 대상 문서는 `README.md`, `README.en.md`,
+v3.0.0 S00 source baseline alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
+source `3.0.0`, latest published `v2.9.0` 기준으로 분리하는 local gate입니다.
+대상 문서는 `README.md`, `README.en.md`,
 `docs/README.md`, `docs/en/README.md`, `docs/ui-guide.md`,
 `docs/assets/ui/README.md`, 이 정책 문서, [versioning-policy.md](versioning-policy.md)입니다.
 
 Companion local gate:
 
 ```bash
-./server.sh verify-v290-public-docs-assets-refresh
+./server.sh verify-v300-entry-baseline
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-docs-links
 ./server.sh verify-release-metadata
@@ -136,27 +137,28 @@ published metadata, release branch 삭제, Next branch sync는 각각 실행 evi
 close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 삭제 승인이 없으면
 수행하지 않습니다.
 
-## v2.9.0 Source Roadmap Scope
+## v3.0.0 Source Roadmap Scope
 
-현재 `2.9.0` source tree는 아래 roadmap 후보를 source 기능과 local verifier 기준으로
+현재 `3.0.0` source tree는 아래 roadmap 후보를 source 기능과 local verifier 기준으로
 정리합니다. 각 항목은 구현과 직접 evidence가 생긴 뒤에만 완료로 기록합니다. UI
 풀테스트, 30분, 120분, 외부 endpoint field smoke는 실행한 경우에만 release evidence로
 기록합니다.
 
-- v2.9.0 source-of-truth 정렬
-- 2.x final contract freeze
-- v2.8 기능군 회귀 묶음
-- 2.x compatibility gate
-- release test records enforcement
-- UI fulltest criteria freeze
-- release evidence hygiene
-- public docs/assets refresh
-- final stabilization
-- v2.9.0 owner release readiness
+- v3.0.0 source-of-truth 정렬
+- Event Evidence Contract
+- Frame Bundle Extraction
+- Feature Schema and Privacy Policy
+- VLM Feature Queue
+- Feature-only Retention
+- Search DSL and Query Convert
+- Feature/Search Index
+- Ops Events UI
+- Retention/Pin/Cleanup
+- Stabilization and Release Readiness
 
-`v2.9.0` publish 완료 여부는 tag, GitHub Release, published metadata 검증 evidence가
+`v3.0.0` publish 완료 여부는 tag, GitHub Release, published metadata 검증 evidence가
 있을 때만 완료로 기록합니다. 현재 latest published release는 `v2.9.0`입니다.
-현재 공개 release tag 기준은 `v2.9.0`입니다. 다음 준비 중인 source tag 기준은 `v2.9.0`입니다.
+현재 공개 release tag 기준은 `v2.9.0`입니다. 다음 준비 중인 source tag 기준은 `v3.0.0`입니다.
 
 ## 2.x runway / 3.0 전환 경계
 
@@ -167,34 +169,30 @@ close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 �
 - `3.0.0`은 route/API/config/schema, registry/storage, auth/scope, evidence storage,
   RTSP/WebRTC media path 같은 큰 변경을 별도 설계와 승인 후 다루는 major line입니다.
 
-## v2.9.0 owner release readiness
+## v3.0.0 baseline alignment
 
-S09 local readiness gate는 `media-server.v290-owner-release-readiness.v1` 기준으로
-v2.9.0 Final 2.x Closure & Compatibility Baseline Coverage Mapping, release test
-records, release evidence index, manual UI criteria, release close-out dry-run command를
-같은 범위로 묶습니다. 이 절은 source tree와 owner handoff 준비 상태를 확인할 뿐
-release action을 승인하거나 실행하지 않습니다.
+S00 local baseline gate는 `media-server.v300-entry-baseline.v1` 기준으로
+source `3.0.0`, latest published `v2.9.0`, current roadmap
+`v3.0.0 Event Evidence Search MVP`, feature inventory, release test records,
+stream verification을 같은 범위로 묶습니다. 이 절은 source tree의 v3.0 진입 기준을
+확인할 뿐 release action을 승인하거나 실행하지 않습니다.
 
 Companion local gate:
 
 ```bash
-./server.sh verify-v290-owner-release-readiness
+./server.sh verify-v300-entry-baseline
 ./server.sh build
 ./server.sh verify-release-metadata
 ./server.sh verify-docs-links
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-project-inventory
 ./server.sh verify-feature-inventory-coverage
-./server.sh verify-manual-ui-evidence
-./server.sh verify-release-evidence-index
-./server.sh verify-release-closeout-helper --dry-run
-./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
 ./server.sh verify-script-inventory
 git diff --check
 ```
 
-`verify-v290-owner-release-readiness`는 S09 local readiness gate입니다. 이 PASS는
-위 companion local gate와 문서 경계 연결만 뜻하며, publish/tag/push/UI/장시간
+`verify-v300-entry-baseline`은 S00 local baseline gate입니다. 이 PASS는
+위 companion local gate와 문서 경계 연결만 뜻하며, 기능 구현, publish/tag/push/UI/장시간
 테스트 PASS로 승격하지 않습니다.
 
 Not-run/excluded boundary:
@@ -244,9 +242,9 @@ Not-run/excluded boundary:
 
 ## Tag 전략
 
-- 현재 공개 release tag 기준은 `v2.8.0`입니다.
-- 다음 준비 중인 source tag 기준은 `v2.9.0`입니다.
-- `v2.9.0` release tag는 signed annotated tag로 생성합니다.
+- 현재 공개 release tag 기준은 `v2.9.0`입니다.
+- 다음 준비 중인 source tag 기준은 `v3.0.0`입니다.
+- `v3.0.0` release tag는 signed annotated tag로 생성합니다.
 - 다음 신규 release tag는 signed annotated tag로 생성합니다.
 - unsigned annotated tag와 lightweight tag는 새 release tag로 사용하지 않습니다.
 - tag는 `main`의 public readiness, bundle policy, required Actions가 통과한 커밋에만
@@ -296,47 +294,35 @@ Annotation JSON을 확보한 경우:
 ./server.sh verify-actions-security --annotations-json <annotations.json>
 ```
 
-## v2.9.0 Release Note Template
+## v3.0.0 Release Note Template
 
-아래 템플릿은 v2.9.0 source-only GitHub Release note 기준입니다. 실행하지 않은
+아래 템플릿은 v3.0.0 source-only GitHub Release note 기준입니다. 실행하지 않은
 장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다.
 
 ```markdown
-# Media Server v2.9.0
+# Media Server v3.0.0
 
 ## Scope
 
 - Source-only live media server release
-- Final 2.x closure and compatibility baseline source scope
-- 2.x final line: 2.9.0; 3.0.0 reserved for approved major changes
+- Event Evidence Search MVP source scope
+- Latest published baseline before this release: v2.9.0
 - Binary/runtime/model bundle: not included
 
 ## Verification
 
-- Local release gates: `v290-s09-owner-release-readiness-20260619` PASS
-- Local docs/release metadata: `verify-release-metadata`, `verify-docs-links`,
-  `verify-docs-ui-assets`, `verify-release-evidence-index` PASS
-- Local close-out dry-run: `verify-release-closeout-helper --dry-run` and
-  `verify-release-closeout-helper --dry-run --one-shot-dry-run` PASS
+- V300-S00 baseline gate: <fill after `verify-v300-entry-baseline`>
+- Local docs/release metadata: <fill after `verify-release-metadata`,
+  `verify-docs-links`, `verify-docs-ui-assets`, and required inventory gates>
+- Build: <fill after `./server.sh build`>
+- Local close-out dry-run: <fill only if this release cut runs close-out dry-run>
 - PR / GitHub Actions status check: <fill after PR checks>
 - Licensing and Artifact Guardrails: <fill after required check>
-- UI fulltest: `v290-release-ui-fulltest-20260619` PASS. Codex in-app
-  evidence route 16, interaction 17, failingInteractions 0; one-shot wrapper
-  PASS with widths 390/1180 and visualWidths 320/390/760/1180. Detailed item
-  results are retained in `docs/release-test-records.md`; temporary `/tmp`
-  outputs were deleted after value migration.
-- 30-minute soak: `v290-release-30min-20260619` PASS. status pass,
-  pass 119/fail 0/skip 1, durationSec 2363, soakMinutes 30, includeRedaction
-  true. External TURN hard gate was not requested, so it remains skipped and is
-  not PASS.
-- 120-minute predev: `v290-release-120min-predev-20260619` PASS. status pass,
-  pass 444/fail 0/skip 1, durationSec 7773, soakMinutes 120, 87 soak
-  iterations, ports-clean PASS. External TURN hard gate was not requested, so it
-  remains skipped and is not PASS.
-- 120-minute runtime console: `v290-release-runtime-console-120min-20260619`
-  PASS. status pass, pass 9/fail 0/skip 1, durationSec 7200, dashboard and
-  sidechannel included, runtimeIdle true, portsClean true, maxRssKb 457856.
-  RTSP overlay was intentionally not included in this run and is not PASS.
+- UI fulltest: <fill only after approved direct UI fulltest evidence>
+- 30-minute soak: <fill only after approved 30-minute run>
+- 120-minute predev: <fill only after approved 120-minute run>
+- 120-minute runtime console: <fill only after approved 120-minute runtime
+  console run>
 
 ## Not Run / Unverified
 

@@ -1,6 +1,6 @@
 # Project Feature Test Inventory
 
-이 문서는 현재 release 목표 `v2.9.0` 기준의 기능별 테스트 분류 기준표입니다.
+이 문서는 현재 release 목표 `v3.0.0` 기준의 기능별 테스트 분류 기준표입니다.
 독자는 개발/테스트 에이전트이며, lifecycle은 active release target 동안 유지되는 test inventory입니다.
 AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, 이 문서는 기능 ID와 테스트 영역만 관리합니다.
 
@@ -26,12 +26,12 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 517 |
+| 전체 기능 항목 | 519 |
 | UI 직접 필요 | 295 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 191 |
-| 테스트 필요 | 517 |
-| 안정화 대상 | 507 |
+| UI 비대상 | 193 |
+| 테스트 필요 | 519 |
+| 안정화 대상 | 509 |
 | UI 풀테스트 대상 | 315 |
 | 30분 soak 대상 | 47 |
 | 120분 대상 | 7 |
@@ -42,7 +42,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 517개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 519개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -53,12 +53,21 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | Coverage gate | `./server.sh verify-feature-inventory-coverage`가 `media-server.feature-inventory-coverage.v1` report로 기능 ID별 연결을 점검 | `missing coverage target` 누락 ID는 release gate에서 FAIL |
 | VLM current expansion | VLM route, control, action, runtime state, sidecar, privacy guard를 현재 기능 ID에 연결 | 실행 증거 아님 |
 
-## v2.9.0 Final 2.x Closure & Compatibility Baseline Coverage Mapping
+## v3.0.0 Event Evidence Search MVP Coverage Mapping
 
 이 절은 현재 active target의 계획 단계 연결만 남깁니다. 아래 행은 실행 evidence가
 아니며, 기능 구현 전에는 실제 기능 ID, route/control/action, verifier command를
 추가해야 합니다. 신규 기능 ID가 예약되어 있어도 안정화/UI 테스트를 PASS로 보고하지
 않습니다.
+
+| Roadmap scope | Feature IDs | 대표 안정화 verifier | release evidence boundary |
+| --- | --- | --- | --- |
+| V300-S00 Baseline/source-of-truth | `OPS-051`, `SAFE-081` | `verify-v300-entry-baseline`, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets` | source `3.0.0`, latest published `v2.9.0`, current roadmap `v3.0.0 Event Evidence Search MVP` 정렬 기준. v3.0 기능 구현, UI 풀테스트, 30분/120분, GitHub Release publish evidence가 아님 |
+
+## v2.9.0 Final 2.x Closure & Compatibility Baseline Coverage Mapping
+
+이 절은 latest published baseline의 기능 ID 연결입니다. 아래 행은 실행 evidence가
+아니며, v3.0.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 않습니다.
 
 | Roadmap scope | Feature IDs | 대표 안정화 verifier | release evidence boundary |
 | --- | --- | --- | --- |
@@ -172,8 +181,10 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | `CLIENT-001`~`CLIENT-024` | client/UI verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-021` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
 | `LAB-001`~`LAB-082` | lab/VLM/v250/v260/v270/v280 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-080` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-050` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
+| `SAFE-001`~`SAFE-081` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-051` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
+| `SAFE-001`~`SAFE-081` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-051` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
 
 ## VA Manual UI Seed Matrix
 
@@ -759,6 +770,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | SAFE-078 | V290-S07 public docs/assets refresh boundary | 비대상 | 필요 | 안정화 | `verify-v290-public-docs-assets-refresh`가 README/README.en/docs index/UI guide/docs asset policy/release-version policy와 managed asset set을 확인하되 대표 이미지 직접 재캡처, 직접 브라우저 검수 PASS, UI 풀테스트, 30분/120분, published metadata, tag/push/GitHub Release PASS로 대체하지 않음 |
 | SAFE-079 | V290-S08 final stabilization run boundary | 비대상 | 필요 | 안정화 | `verify-v290-final-stabilization-run`가 build/auth/Ops-Client UI/rule/event/metadata/media-schema/docs-inventory 안정화 실행 기록과 미실행 경계를 확인하되 UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, field smoke, tag/push/GitHub Release PASS로 대체하지 않음 |
 | SAFE-080 | V290-S09 owner release readiness boundary | 비대상 | 필요 | 안정화 | `verify-v290-owner-release-readiness`가 v2.9.0 local readiness, release close-out dry-run, evidence/records/policy 연결을 확인하되 UI 풀테스트 직접 조작, 30분/120분 longrun, `verify-release-metadata --published`, PR/main/tag/GitHub Release, field smoke PASS로 대체하지 않음 |
+| SAFE-081 | V300-S00 v3.0 baseline boundary | 비대상 | 필요 | 안정화 | `verify-v300-entry-baseline`가 source `3.0.0`, latest published `v2.9.0`, current roadmap `v3.0.0 Event Evidence Search MVP`, 1차 선택값/fallback/제외 대상, release records, inventory 연결을 확인하되 Event Evidence Contract, frame bundle, feature schema, search UI, UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release PASS로 대체하지 않음 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -780,6 +792,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | OPS-048 | V290-S07 public docs/assets refresh 게이트 | 비대상 | 필요 | 안정화 | `verify-v290-public-docs-assets-refresh`, `verify-docs-ui-assets`, `verify-docs-links`가 공개 첫 화면, docs index, UI guide, docs asset policy, release/version policy를 확인하되 image recapture, release publish, PR/main/tag/push, UI/longrun 실행 PASS로 대체하지 않음 |
 | OPS-049 | V290-S08 final stabilization run 게이트 | 비대상 | 필요 | 안정화 | `verify-v290-final-stabilization-run`가 release 순서의 build/auth/Ops-Client UI/rule/event/metadata/media-schema/docs-inventory 결과 기록을 확인하되 release publish, PR/main/tag/push, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
 | OPS-050 | V290-S09 owner release readiness 게이트 | 비대상 | 필요 | 안정화 | `verify-v290-owner-release-readiness`가 v2.9.0 S00~S09 local readiness, release close-out dry-run, policy/evidence/records/manual UI criteria 연결을 확인하되 release publish, PR/main/tag/push, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
+| OPS-051 | V300-S00 v3.0 baseline 게이트 | 비대상 | 필요 | 안정화 | `verify-v300-entry-baseline`가 VERSION/CMake/README/docs/backlog/source roadmap을 source `3.0.0`, latest published `v2.9.0`, current roadmap `v3.0.0 Event Evidence Search MVP` 기준으로 정렬했는지 확인하되 v3.0 기능 구현, release publish, PR/main/tag/push, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 

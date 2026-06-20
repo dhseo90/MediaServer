@@ -208,6 +208,8 @@ Usage:
                  v2.9.0 S08 final stabilization run 결과와 미실행 경계를 검증합니다.
   verify-v290-owner-release-readiness
                  v2.9.0 S09 owner release readiness와 close-out 준비 경계를 검증합니다.
+  verify-v300-entry-baseline
+                 v3.0.0 S00 source baseline과 latest published v2.9.0 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -308,6 +310,8 @@ Usage:
                  코드 기능/UI 접근 기능/검증 명령 inventory 문서가 현재 command/route 범위를 덮는지 점검합니다.
   verify-feature-inventory-coverage
                  기능 ID가 verifier/UI evidence/장시간 승인/field exclusion 중 하나에 연결됐는지 점검합니다.
+  verify-v300-entry-baseline
+                 v3.0.0 S00 source baseline과 latest published v2.9.0 경계를 검증합니다.
   verify-actions-security
                  GitHub Actions workflow 권한과 action 사용 정책을 검증합니다.
   verify-ci-local-gate-parity
@@ -1082,6 +1086,10 @@ case "${cmd}" in
   verify-v290-public-docs-assets-refresh)
     require_internal verify_v290_public_docs_assets_refresh.mjs
     exec "${INTERNAL_DIR}/verify_v290_public_docs_assets_refresh.mjs" "$@"
+    ;;
+  verify-v300-entry-baseline)
+    require_internal verify_v300_entry_baseline.mjs
+    exec "${INTERNAL_DIR}/verify_v300_entry_baseline.mjs" "$@"
     ;;
   verify-v290-final-stabilization-run)
     require_internal verify_v290_final_stabilization_run.mjs

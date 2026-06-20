@@ -10,22 +10,27 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `2.9.0`
+- 현재 소스 버전: `3.0.0`
 - 최신 공개 GitHub Release: `v2.9.0`
 - `v2.9.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap: `v2.9.0 Final 2.x Closure & Compatibility Baseline`
+- 현재 source roadmap: `v3.0.0 Event Evidence Search MVP`
 
-## 계획 roadmap: v3.0.0 Event Evidence Search MVP
+## 현재 source roadmap: v3.0.0 Event Evidence Search MVP
 
-상태: 계획 확정, 구현 전. 이 절은 v3.0.0 기능 완료 evidence가 아니며, 현재 source
-version을 `3.0.0`으로 승격하지 않습니다. 실제 구현은 각 Step별 코드/UI/API/검증
-evidence가 생긴 뒤에만 완료로 기록합니다.
+상태: `V300-S00` source baseline 정렬 완료, 기능 구현 전. 이 절은 v3.0.0 기능 완료
+evidence가 아니며, 기능 구현 완료 evidence가 아닙니다. 실제 기능 구현은 각 Step별
+코드/UI/API/검증 evidence가 생긴 뒤에만 완료로 기록합니다.
 
 직접 답: v3.0.0의 1차 선택값은 `Event Evidence Search MVP`입니다. 이 방향은
 MediaServer를 VMS/NVR로 확장하지 않고, 실시간 VA 이벤트에서 검색 가능한 evidence
 bundle과 비식별 VLM feature를 생성해 운영자가 `/ops/events`에서 자연어로 사건을
 찾고 근거 frame을 검토할 수 있게 합니다.
+
+fallback 또는 축소 대안은 `Conservative Foundation`입니다. 이 대안은 schema/storage
+foundation만 두고 UI/search를 preview로 남기는 경로이며, 제품 체감이 약해 1차 선택값은
+아닙니다. `Archive/Playback Expansion`은 encoded clip, playback, archive 성격이 커서
+v3.1 확장 후보로 분리합니다.
 
 설계 기록: [docs/superpowers/specs/2026-06-20-v300-v310-event-evidence-search-roadmap-design.md](superpowers/specs/2026-06-20-v300-v310-event-evidence-search-roadmap-design.md)
 
@@ -49,6 +54,18 @@ bundle과 비식별 VLM feature를 생성해 운영자가 `/ops/events`에서 �
 - raw prompt/response/provider request body 보관
 - client/viewer 노출, cloud provider default-on, vector search 기본 탑재
 
+제외 대상과 제외 사유:
+
+- encoded MP4/WebM event clip과 clip playback: v3.0의 evidence image/search MVP보다
+  playback/archive 범위가 커서 v3.1로 분리합니다.
+- 24/7 상시녹화와 VMS/NVR archive API: 제품 정체성을 VMS/NVR로 확장하므로 제외합니다.
+- 얼굴 인식, 신원 식별, watchlist, face embedding: 비식별 feature 정책을 깨므로
+  제외합니다.
+- raw prompt/response/provider request body 보관: privacy와 provider retention 위험이
+  커서 feature-only durable retention으로 제한합니다.
+- client/viewer 노출과 cloud provider default-on: v3.0 MVP는 Ops-only, local-first,
+  explicit opt-in 경계를 유지합니다.
+
 리스크와 대응:
 
 - VMS/NVR 범위 확장 위험: 상시녹화와 broad archive/playback API를 제외합니다.
@@ -62,7 +79,7 @@ bundle과 비식별 VLM feature를 생성해 운영자가 `/ops/events`에서 �
 
 | Step | ID | Priority | 상태 | 묶음 | 개발 내용 | 완료 산출물 | 검증/evidence 경계 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 0 | V300-S00 | P0 | 계획 | v3.0 baseline | VERSION/CMake/README/docs/backlog/source roadmap을 v3.0 작업 기준으로 정렬 | v3.0 source-of-truth 정렬, current/published 경계 분리 | release metadata/source version 정렬 gate. 기능 구현 완료 evidence가 아님 |
+| 0 | V300-S00 | P0 | 완료 | v3.0 baseline | VERSION/CMake/README/docs/backlog/source roadmap을 v3.0 작업 기준으로 정렬 | source `3.0.0`, latest published `v2.9.0`, current roadmap `v3.0.0 Event Evidence Search MVP`, V300-S00 verifier 연결 | `./server.sh verify-v300-entry-baseline`, `verify-release-metadata`, docs/inventory gates. 기능 구현 완료 evidence가 아님 |
 | 1 | V300-S01 | P0 | 계획 | Event Evidence Contract | EvidenceManifest, FrameRef, retention lifecycle, non-VMS boundary 정의 | evidence contract와 frame/time/source 매핑 문서/fixture/verifier | encoded clip, playback, VMS API 완료 evidence가 아님 |
 | 2 | V300-S02 | P0 | 계획 | Frame Bundle Extraction | event frame 필수, representative image 선택, bbox crop, pre/event/post frame bundle 생성 | eventFrame/representativeImage/bboxCrop/frameBundle manifest | 영상 파일 playback 또는 MP4/WebM encoded clip evidence가 아님 |
 | 3 | V300-S03 | P0 | 계획 | Feature Schema and Privacy Policy | namespace 기반 feature envelope, 비식별 feature 허용, identity feature 금지 | feature schema, allowed/disallowed matrix, privacy guard | 얼굴 인식/신원 식별/model 품질 PASS가 아님 |
@@ -73,6 +90,20 @@ bundle과 비식별 VLM feature를 생성해 운영자가 `/ops/events`에서 �
 | 8 | V300-S08 | P1 | 계획 | Ops Events UI | `/ops/events` 검색, evidence timeline, feature 근거, retry, pin, retention status | Ops-only search/detail UI와 client/viewer 비노출 | UI 직접 조작/브라우저 evidence 없이는 UI PASS가 아님 |
 | 9 | V300-S09 | P1 | 계획 | Retention/Pin/Cleanup | 7일 기본 retention, pin 제외, 설정 가능 cleanup, dry-run/audit | lifecycle cleanup, cleanup dry-run, audit trail | destructive cleanup 실행은 별도 승인과 evidence 필요 |
 | 10 | V300-S10 | P0 | 계획 | Stabilization and Release Readiness | build/docs/verifier/UI 기준과 release readiness 기록 | v3.0 local stabilization, release evidence/not-run 경계 | UI 풀테스트/30분/120분/published metadata는 실행한 경우만 PASS |
+
+## v3.0.0 S00 개발 기록
+
+- 범위: P0 `V300-S00 v3.0 baseline`.
+- `VERSION`, `CMakeLists.txt`: 현재 source version과 CMake project version을 `3.0.0`으로 정렬했습니다.
+- `README.md`, `README.en.md`, `docs/README.md`, `docs/en/README.md`, `docs/versioning-policy.md`, `docs/release-policy.md`, `docs/public-repo-final-review.md`, `docs/ui-guide.md`: 현재 source roadmap을 `v3.0.0 Event Evidence Search MVP`로 전환하고 latest published release는 `v2.9.0` source-only GitHub Release로 분리했습니다.
+- `docs/development-backlog.md`: V300 roadmap을 현재 source roadmap으로 승격하고 `V300-S00` 완료 상태, latest published `v2.9.0`, v3.0 기능 구현 미완료 경계를 기록했습니다.
+- `scripts/internal/verify_v300_entry_baseline.mjs`, `server.sh`: `./server.sh verify-v300-entry-baseline` 명령을 추가해 source `3.0.0`, latest published `v2.9.0`, current roadmap `v3.0.0 Event Evidence Search MVP`, 1차 선택값/fallback/제외 대상, feature inventory, release test records 연결을 정적 검증합니다.
+- `scripts/internal/verify_release_metadata_consistency.mjs`: `verify-release-metadata`가 source `3.0.0`, current roadmap `v3.0.0 Event Evidence Search MVP`, latest published `v2.9.0`을 분리 검증하도록 보정했습니다.
+- `config/docs_ui_assets.json`, `docs/assets/ui/README.md`: docs UI asset baseline의 source version을 `3.0.0`, latest published 기준을 `v2.9.0`으로 정렬했습니다. 이미지는 교체하지 않았고 대표 이미지가 UI 풀테스트/PASS/published evidence가 아니라는 경계는 유지했습니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`: `OPS-051`, `SAFE-081`, V300-S00 안정화 verifier, 저장소 보존형 테스트 결과를 추가했습니다.
+- `v3.0.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
+- 검증: 최초 `./server.sh verify-v300-entry-baseline`는 command 미구현으로 FAIL했습니다. 구현 후 `./server.sh verify-v300-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh build`, `git diff --check` 기준으로 재검증합니다.
+- 미실행/비대체: `verify-release-metadata --published`, tag/push/GitHub Release, PR/main merge, 30분/120분 장시간 테스트, UI 풀테스트 직접 조작, external TURN/WHEP, ONVIF 실기기, real cloud/VLM provider 호출은 S00 완료 근거가 아닙니다.
 
 ## 계획 roadmap: v3.1.0 Evidence Replay and Sharing Expansion
 
@@ -114,7 +145,7 @@ scoped 연동 API, 운영자 feature 보정, 선택적 vector search를 확장�
 | 8 | V310-S08 | P1 | 계획 | Retention/Export Hardening | encoded clip 포함 lifecycle cleanup, export bundle, audit | export/redaction/cleanup verifier | raw evidence 무제한 export evidence가 아님 |
 | 9 | V310-S09 | P0 | 계획 | Stabilization and Release Readiness | build/docs/verifier/UI 기준과 release readiness 기록 | v3.1 local stabilization, release evidence/not-run 경계 | UI 풀테스트/30분/120분/published metadata는 실행한 경우만 PASS |
 
-## 현재 source roadmap: v2.9.0 Final 2.x Closure & Compatibility Baseline
+## 최신 공개 기준: v2.9.0 Source Release Baseline
 
 v2.9.0은 2.x 라인의 마지막 개발 릴리즈입니다. 3.0.0에서 다룰 녹화, VLM 검색,
 외부 VLM 연동 서버 연결 같은 대규모 기능은 v2.9.0에서 설계/구현하지 않습니다.
@@ -429,7 +460,7 @@ license/provenance/privacy/운영 제약:
 - 검증: `verify-v280-owner-release-readiness` 최초 RED는 S07 feature inventory mapping, manual UI criteria, backlog/evidence 진행 기록 누락으로 실패했고, 문서/inventory/server wiring 반영 후 GREEN으로 재실행합니다.
 - 미실행/비대체: UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, `verify-release-metadata --published`, tag/push/GitHub Release, PR merge/main sync/후속 브랜치 생성, 실기기 ONVIF, external TURN/WHEP, real cloud/VLM provider 호출은 S07 local readiness 완료 근거가 아닙니다.
 
-## 최신 공개 기준: v2.9.0 Source Release Baseline
+## 최신 공개 기준 요약: v2.9.0 Source Release Baseline
 
 v2.9.0은 source-only/live-only 제품 경계를 유지하면서 Final 2.x Closure &
 Compatibility Baseline을 닫은 최신 공개 릴리즈입니다. 이 기준은 2.x final line의

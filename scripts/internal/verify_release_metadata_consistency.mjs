@@ -67,10 +67,10 @@ const report = {
 const version = readText("VERSION").trim();
 assert(/^\d+\.\d+\.\d+$/.test(version), `VERSION must be semver, got ${version}`);
 const currentTag = `v${version}`;
-const latestPublishedTag = currentTag;
+const latestPublishedTag = "v2.9.0";
 const latestPublishedVersion = latestPublishedTag.replace(/^v/, "");
-const currentRoadmap = `${currentTag} Final 2.x Closure & Compatibility Baseline`;
-const latestPublishedBaseline = `${latestPublishedTag} Final 2.x Closure & Compatibility Baseline`;
+const currentRoadmap = "v3.0.0 Event Evidence Search MVP";
+const latestPublishedBaseline = "v2.9.0 Final 2.x Closure & Compatibility Baseline";
 const previousPublishedTag = "v2.8.0";
 const previousPublishedBaseline = `${previousPublishedTag} Operator-Supervised Action Readiness`;
 const githubRepository = resolveGithubRepository();
@@ -324,10 +324,10 @@ check("versioning policy separates source version and published release", () => 
     `현재 source roadmap: \`${currentRoadmap}\``,
     `최신 공개 GitHub Release: \`${latestPublishedBaseline}\``,
     `${latestPublishedTag} 공개 상태: source-only GitHub Release`,
-    `현재 소스 트리의 \`${version}\` roadmap은 ${latestPublishedTag} source-only/live-only Final 2.x Closure & Compatibility Baseline`,
+    `현재 소스 트리의 \`${version}\` roadmap은 v3.0.0 Event Evidence Search MVP source`,
     `published tag \`${latestPublishedTag}\`와 현재 source tag \`${currentTag}\``,
     "## 2.x runway / 3.0 전환 정책",
-    `## ${version} active source roadmap 범위`,
+    "## 3.0.0 active source roadmap 범위",
   ]) {
     assert(doc.includes(snippet), `docs/versioning-policy.md missing snippet: ${snippet}`);
   }
@@ -395,23 +395,20 @@ check("development backlog pins current source roadmap and public release bounda
   const doc = readText("docs/development-backlog.md");
   for (const snippet of [
     `## 현재 source roadmap: ${currentRoadmap}`,
-    "| 0 | V290-S00 | P0 |",
-    "Operator-Supervised Action Readiness",
-    "2.x final contract freeze",
-    "v2.8 feature regression bundle",
+    "| 0 | V300-S00 | P0 | 완료 | v3.0 baseline |",
+    "Event Evidence Search MVP",
+    "Conservative Foundation",
+    "Archive/Playback Expansion",
+    "Event Evidence Contract",
+    "Frame Bundle Extraction",
     `## 최신 공개 기준: ${latestPublishedTag} Source Release Baseline`,
     `## 직전 공개 기준: ${previousPublishedTag} Source Release Baseline`,
-    "## 완료 roadmap: v2.7.0 Operational Incident Command Loop",
-    "## 완료 roadmap: v2.6.0 Operational Hardening & Incident Memory Productization",
-    "## 이전 공개 기준: v2.5.0 Source Release Baseline",
-    "Operator Event Review & Action",
     "기존 네 영역인 안정화 테스트, 30분 테스트, 120분 테스트, UI 풀테스트",
     `\`${currentTag}\` GitHub Release publish 완료는 tag, GitHub Release, \`verify-release-metadata --published\` evidence가 있을 때만 기록합니다.`,
   ]) {
     assert(doc.includes(snippet), `docs/development-backlog.md missing snippet: ${snippet}`);
   }
-  assert(/\| 0 \| V290-S00 \| P0 \| (진행|완료) \| v2\.9\.0 baseline \| VERSION\/CMake\/README\/docs index\/release metadata를 `2\.9\.0` source target/.test(doc),
-    "docs/development-backlog.md V290-S00 row must be 진행 or 완료");
+  assert(doc.includes("## v3.0.0 S00 개발 기록"), "docs/development-backlog.md missing V300-S00 record");
   return { file: "docs/development-backlog.md", currentTag, latestPublishedTag, previousPublishedTag };
 });
 
@@ -461,7 +458,7 @@ check("public entry docs keep release evidence source-of-truth deduped", () => {
   ]) {
     assert(docsIndex.includes(snippet), `docs/README.md missing source-of-truth link snippet: ${snippet}`);
   }
-  assert(releasePolicy.includes("## v2.9.0 Source Roadmap Scope"), "release policy must own the v2.9.0 source roadmap boundary");
+  assert(releasePolicy.includes("## v3.0.0 Source Roadmap Scope"), "release policy must own the v3.0.0 source roadmap boundary");
   assert(backlog.includes(`## 현재 source roadmap: ${currentRoadmap}`), `development backlog must own the ${currentTag} source roadmap`);
   assert(backlog.includes(`직전 공개 릴리즈입니다.`), "development backlog must preserve previous published release boundary");
   return {
@@ -483,7 +480,7 @@ check("UI guide pins current release wording", () => {
   const uiGuide = readText("docs/ui-guide.md");
   assert(uiGuide.includes(`현재 소스 버전은 \`${version}\`입니다.`), "docs/ui-guide.md source version drifted");
   assert(uiGuide.includes(`최신 공개 GitHub Release는 \`${latestPublishedTag}\` source-only`), "docs/ui-guide.md source-only release wording drifted");
-  assert(uiGuide.includes("v2.9.0 roadmap 경계"), "docs/ui-guide.md source roadmap boundary drifted");
+  assert(uiGuide.includes(`${currentRoadmap} roadmap 경계`), "docs/ui-guide.md source roadmap boundary drifted");
   return { file: "docs/ui-guide.md", currentTag, latestPublishedTag };
 });
 
