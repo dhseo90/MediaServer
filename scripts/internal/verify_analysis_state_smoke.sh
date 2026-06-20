@@ -17,6 +17,7 @@ echo "[verify] build analysis state smoke: ${BUILD_DIR}"
   "${ROOT_DIR}/src/analysis/category_tokens.cpp" \
   "${ROOT_DIR}/src/analysis/event_manager.cpp" \
   "${ROOT_DIR}/src/analysis/event_storage.cpp" \
+  "${ROOT_DIR}/src/analysis/event_search_query.cpp" \
   "${ROOT_DIR}/src/analysis/intrusion_after_line_crossing_scenario.cpp" \
   "${ROOT_DIR}/src/analysis/intrusion_dwell_scenario.cpp" \
   "${ROOT_DIR}/src/analysis/loitering_scenario.cpp" \

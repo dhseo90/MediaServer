@@ -10,6 +10,7 @@
 #include "analysis/metadata_subscription_filter.h"
 #include "analysis/object_tracker.h"
 #include "analysis/re_entry_scenario.h"
+#include "analysis/event_search_query.h"
 #include "analysis/scenario_engine.h"
 #include "analysis/scene_context_builder.h"
 #include "analysis/track_state_manager.h"
@@ -67,6 +68,22 @@ bool HasLifecycleCounters(const std::vector<EventLifecycleStateSnapshot>& states
         }
     }
     return false;
+}
+
+bool HasFilter(const EventSearchDsl& dsl,
+               const std::string& field,
+               const std::string& op,
+               const std::string& value) {
+    for (const auto& filter : dsl.filters) {
+        if (filter.field == field && filter.op == op && filter.value == value) {
+            return true;
+        }
+    }
+    return false;
+}
+
+bool HasTerm(const std::vector<std::string>& terms, const std::string& value) {
+    return std::find(terms.begin(), terms.end(), value) != terms.end();
 }
 
 TrackedObjectMetadata MakeObject(std::uint64_t track_id,
@@ -2152,6 +2169,85 @@ void VerifyV300FeatureOnlyRetention() {
     Pass("V300 S05 stale reanalysis revision is rejected");
 }
 
+void VerifyV300SearchDslQueryConvert() {
+    EventSearchQueryOptions options;
+    options.default_limit = 25;
+    options.max_limit = 100;
+    options.max_offset = 1000;
+
+    const EventSearchDsl dsl = ConvertEventSearchQueryToDsl(
+        "person red jacket tag:intrusion status:open source:cam-lobby after:1781950200000 pinned",
+        options);
+    Expect(dsl.valid && dsl.schema == "media-server.event-search-dsl.v1",
+           "V300 S06 natural language query must convert to a valid constrained Search DSL");
+    Expect(dsl.limit == 25 && dsl.offset == 0 && dsl.sort == "eventTimeDesc",
+           "V300 S06 DSL must apply bounded defaults");
+    Expect(HasTerm(dsl.text_terms, "person") && HasTerm(dsl.text_terms, "red") &&
+               HasTerm(dsl.text_terms, "jacket"),
+           "V300 S06 DSL must preserve searchable text terms");
+    Expect(HasTerm(dsl.tags, "intrusion") &&
+               HasFilter(dsl, "status", "eq", "open") &&
+               HasFilter(dsl, "sourceId", "eq", "cam-lobby") &&
+               HasFilter(dsl, "timestampMs", "gte", "1781950200000") &&
+               HasFilter(dsl, "pinned", "eq", "true"),
+           "V300 S06 DSL must constrain tags and allowed filters only");
+    Expect(!dsl.raw_llm_prompt_stored && !dsl.raw_provider_response_stored &&
+               !dsl.runtime_provider_call_performed && !dsl.vector_search_performed,
+           "V300 S06 query conversion must not retain raw prompts or call provider/vector search");
+
+    const EventSearchDsl bounded_dsl =
+        ConvertEventSearchQueryToDsl("vehicle zone:loading limit:999 offset:999999 sort:oldest", options);
+    Expect(bounded_dsl.valid && bounded_dsl.limit == 100 && bounded_dsl.offset == 1000 &&
+               bounded_dsl.sort == "eventTimeAsc" &&
+               HasFilter(bounded_dsl, "zoneId", "eq", "loading"),
+           "V300 S06 DSL must bound limit and offset while preserving allowed filters");
+
+    EventSearchDocument hit;
+    hit.event_id = "evt-v300-s06-hit";
+    hit.source_id = "cam-lobby";
+    hit.channel_id = "main";
+    hit.event_type = "intrusion";
+    hit.status = "open";
+    hit.review_state = "needs-review";
+    hit.timestamp_ms = 1781950200123LL;
+    hit.pinned = true;
+    hit.searchable_text = "person red jacket crossing lobby line";
+    hit.tags = {"intrusion", "person"};
+    hit.features = {{"appearance.color", "red"}, {"appearance.clothing", "jacket"}};
+
+    EventSearchDocument miss = hit;
+    miss.event_id = "evt-v300-s06-miss";
+    miss.source_id = "cam-roof";
+    miss.searchable_text = "vehicle blue driveway";
+    miss.tags = {"vehicle"};
+    miss.features = {{"appearance.color", "blue"}};
+
+    const std::vector<EventSearchDocument> results = SearchEventDocuments({hit, miss}, dsl);
+    Expect(results.size() == 1 && results[0].event_id == hit.event_id,
+           "V300 S06 text/tags/filter search must return only matching event documents");
+
+    const std::string dsl_json = EventSearchDslJson(dsl);
+    Expect(dsl_json.find("\"schema\":\"media-server.event-search-dsl.v1\"") != std::string::npos &&
+               dsl_json.find("\"strictStructuredOutput\":true") != std::string::npos &&
+               dsl_json.find("\"rawPromptStored\":false") != std::string::npos &&
+               dsl_json.find("\"rawProviderResponseStored\":false") != std::string::npos &&
+               dsl_json.find("\"vectorSearchPerformed\":false") != std::string::npos &&
+               dsl_json.find("\"eventPostPayloadChanged\":false") != std::string::npos &&
+               dsl_json.find("\"rtspWebrtcMediaPathChanged\":false") != std::string::npos,
+           "V300 S06 DSL JSON must expose strict structured and boundary invariants");
+
+    const EventSearchDsl rejected =
+        ConvertEventSearchQueryToDsl("face recognition match john watchlist", options);
+    Expect(!rejected.valid && rejected.rejection_reason == "identity-search-disallowed" &&
+               !rejected.runtime_provider_call_performed && !rejected.event_post_payload_changed,
+           "V300 S06 query conversion must reject identity/watchlist queries without side effects");
+
+    Pass("V300 S06 natural language query converts to constrained Search DSL");
+    Pass("V300 S06 text tags and filters match event documents");
+    Pass("V300 S06 rejects identity or watchlist search");
+    Pass("V300 S06 preserves provider/schema/media boundary invariants");
+}
+
 void VerifyEventRecorderMediaHooks() {
     const auto snapshot = GetEventStorageSnapshot();
     const std::filesystem::path active_path(snapshot.active_path.empty() ? snapshot.path
@@ -2630,6 +2726,7 @@ int main() {
         VerifyVlmObservationStore();
         VerifyV300VlmFeatureQueue();
         VerifyV300FeatureOnlyRetention();
+        VerifyV300SearchDslQueryConvert();
         VerifyEventRecorderMediaHooks();
         VerifyVaRuntimeMetadataBuilder();
         VerifyVaMetadataSubscriptionFilter();

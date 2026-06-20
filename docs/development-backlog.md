@@ -21,9 +21,9 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 상태: `V300-S00` source baseline 정렬 완료, `V300-S01` Event Evidence Contract
 완료, `V300-S02` Frame Bundle Extraction 완료, `V300-S03` Feature Schema and
 Privacy Policy 완료, `V300-S04` VLM Feature Queue 완료, `V300-S05` Feature-only
-Retention 완료, search/UI 기능 구현 전. 이 절은 v3.0.0 전체 기능 완료 evidence가
-아니며, 실제 기능 구현은 각 Step별 코드/UI/API/검증 evidence가 생긴 뒤에만 완료로
-기록합니다.
+Retention 완료, `V300-S06` Search DSL and Query Convert 직접 개발 완료, search
+index/UI 기능 구현 전. 이 절은 v3.0.0 전체 기능 완료 evidence가 아니며, 실제 기능
+구현은 각 Step별 코드/UI/API/검증 evidence가 생긴 뒤에만 완료로 기록합니다.
 V300-S00 baseline 정렬 자체는 기능 구현 완료 evidence가 아닙니다.
 
 직접 답: v3.0.0의 1차 선택값은 `Event Evidence Search MVP`입니다. 이 방향은
@@ -89,7 +89,7 @@ v3.1 확장 후보로 분리합니다.
 | 3 | V300-S03 | P0 | 완료 | Feature Schema and Privacy Policy | namespace 기반 feature envelope, 비식별 feature 허용, identity feature 금지 | [docs/event-feature-schema-privacy.md](event-feature-schema-privacy.md), `test/fixtures/event_feature_schema_privacy/feature_set_sample.json`, `./server.sh verify-v300-feature-schema-privacy` | 얼굴 인식/신원 식별/model 품질 PASS가 아님 |
 | 4 | V300-S04 | P0 | 완료 | VLM Feature Queue | background queue, lazy trigger, timeout/invalid-output/missing-runtime 상태 분리 | [docs/v300-vlm-feature-queue.md](v300-vlm-feature-queue.md), `test/fixtures/v300_vlm_feature_queue/cases.json`, `./server.sh verify-v300-vlm-feature-queue`, `verify-analysis-state` S04 smoke | real provider success나 default-on evidence가 아님 |
 | 5 | V300-S05 | P0 | 완료 | Feature-only Retention | raw prompt/response non-retention, feature revision, reanalysis policy | [docs/v300-feature-only-retention.md](v300-feature-only-retention.md), `test/fixtures/v300_feature_only_retention/cases.json`, `./server.sh verify-v300-feature-only-retention`, `verify-analysis-state` S05 smoke | raw response 보관이나 provider replay evidence가 아님 |
-| 6 | V300-S06 | P0 | 계획 | Search DSL and Query Convert | 자연어를 제한된 Search DSL JSON으로 변환하고 text/tags/filter 검색 수행 | query DSL, strict structured output guard, VA-only fallback | raw LLM response 저장 또는 vector search 완료 evidence가 아님 |
+| 6 | V300-S06 | P0 | 완료 | Search DSL and Query Convert | 자연어를 제한된 Search DSL JSON으로 변환하고 text/tags/filter 검색 수행. natural language to constrained Search DSL, text/tags/filter search | [docs/v300-search-dsl-query-convert.md](v300-search-dsl-query-convert.md), `test/fixtures/v300_search_dsl_query_convert/cases.json`, `./server.sh verify-v300-search-dsl-query-convert`, `verify-analysis-state` S06 smoke | raw LLM response 저장, Feature/Search Index, `/ops/events` UI, vector search 완료 evidence가 아님 |
 | 7 | V300-S07 | P1 | 계획 | Feature/Search Index | EventRecord, FeatureSet, EvidenceManifest, operator review state 검색 | index/rebuild/report와 stale result guard | 장시간 품질 평가나 semantic provider rerank evidence가 아님 |
 | 8 | V300-S08 | P1 | 계획 | Ops Events UI | `/ops/events` 검색, evidence timeline, feature 근거, retry, pin, retention status | Ops-only search/detail UI와 client/viewer 비노출 | UI 직접 조작/브라우저 evidence 없이는 UI PASS가 아님 |
 | 9 | V300-S09 | P1 | 계획 | Retention/Pin/Cleanup | 7일 기본 retention, pin 제외, 설정 가능 cleanup, dry-run/audit | lifecycle cleanup, cleanup dry-run, audit trail | destructive cleanup 실행은 별도 승인과 evidence 필요 |
@@ -161,6 +161,18 @@ v3.1 확장 후보로 분리합니다.
 - `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`: `LAB-085`, `SAFE-087`, `OPS-055`, V300-S05 안정화 verifier와 저장소 보존형 테스트 항목을 추가했습니다.
 - 검증: 최초 `node scripts/internal/verify_v300_feature_only_retention.mjs`는 `include/analysis/vlm_feature_retention.h` 부재로 FAIL했습니다. 코드 리뷰 후 추가한 RED smoke는 `sourceEvidenceRefs` raw source URL 우회로 `./server.sh verify-analysis-state`가 `pass=129 fail=1`로 FAIL했습니다. 구현 보강 후 `./server.sh verify-v300-feature-only-retention`(`pass=6 fail=0`), `./server.sh verify-analysis-state`(`pass=158 fail=0`), `./server.sh build`, `./server.sh verify-project-inventory`(`featureRows=534`, `pass=13 fail=0`), `./server.sh verify-feature-inventory-coverage`(`covered=534`, `missing=0`, `pass=5 fail=0`), `./server.sh verify-script-inventory`(`pass=11 fail=0`), `./server.sh verify-docs-links`(`failures=0`), `git diff --check` 기준으로 재검증했습니다.
 - 미실행/비대체: raw prompt/raw provider response 보관, provider replay, Search DSL, `/ops/events` UI, Retention/Pin/Cleanup lifecycle delete/dry-run/audit, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata는 S05 완료 근거가 아닙니다.
+
+## v3.0.0 S06 개발 기록
+
+- 범위: P0 `V300-S06 Search DSL and Query Convert`.
+- `include/analysis/event_search_query.h`, `src/analysis/event_search_query.cpp`: `EventSearchDsl`, `EventSearchFilter`, `EventSearchDocument`, `EventSearchQueryOptions`와 `ConvertEventSearchQueryToDsl()`, `SearchEventDocuments()`, `EventSearchDslJson()`을 추가했습니다. 자연어 query의 text term, `tag:*`, 허용 filter를 `media-server.event-search-dsl.v1`로 변환하고 bounded `limit`/`offset`/`eventTimeDesc` 기본값을 적용합니다.
+- `src/analysis/event_search_query.cpp`: `status`, `sourceId`, `channelId`, `eventType`, `scenario`, `reviewState`, `zoneId`, `timestampMs`, `pinned`만 filter로 허용하고, unknown filter와 identity/watchlist query는 거부합니다. runtime provider call, vector search, Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path, viewer/client 노출은 모두 false invariant로 고정했습니다.
+- `scripts/internal/analysis_state_smoke.cpp`, `scripts/internal/verify_analysis_state_smoke.sh`: `VerifyV300SearchDslQueryConvert()` smoke와 `event_search_query.cpp` 빌드 연결을 추가해 natural language conversion, strict DSL defaults, text/tags/filter matching, identity query rejection, provider/schema/media boundary invariant를 C++ 단위로 확인합니다.
+- `docs/v300-search-dsl-query-convert.md`, `test/fixtures/v300_search_dsl_query_convert/cases.json`: S06 DSL contract, allowed token mapping, identity-query rejection, raw prompt/response non-retention, provider/vector/index/UI 비대체 경계와 fixture case를 추가했습니다.
+- `scripts/internal/verify_v300_search_dsl_query_convert.mjs`, `server.sh`: `./server.sh verify-v300-search-dsl-query-convert` 명령을 추가해 S06 module/fixture/docs/backlog/stream verification/inventory/release records/server dispatch 연결을 정적 검증합니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`: `LAB-086`, `SAFE-088`, `OPS-056`, V300-S06 안정화 verifier와 저장소 보존형 테스트 항목을 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v300_search_dsl_query_convert.mjs`는 `include/analysis/event_search_query.h` 부재로 FAIL했고, 최초 `./server.sh verify-analysis-state`는 `src/analysis/event_search_query.cpp` 부재로 FAIL했습니다. 구현 후 `./server.sh build`, `./server.sh verify-analysis-state`(`pass=162 fail=0`), `./server.sh verify-v300-search-dsl-query-convert`(`pass=6 fail=0`), `./server.sh verify-project-inventory`(`featureRows=537`, `pass=13 fail=0`), `./server.sh verify-feature-inventory-coverage`(`covered=537`, `missing=0`, `pass=5 fail=0`), `./server.sh verify-script-inventory`(`pass=11 fail=0`), `./server.sh verify-docs-links`(`failures=0`), `./server.sh verify-docs-ui-assets`(`pass=10 fail=0`), `git diff --check` 기준으로 재검증했습니다.
+- 미실행/비대체: Feature/Search Index, `/ops/events` UI 직접 조작, vector search/embedding, real LLM/VLM provider query conversion, raw prompt/raw provider response 보관, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata는 S06 완료 근거가 아닙니다. 이 단계는 search index나 `/ops/events` UI evidence가 아님을 명시합니다.
 
 ## 계획 roadmap: v3.1.0 Evidence Replay and Sharing Expansion
 

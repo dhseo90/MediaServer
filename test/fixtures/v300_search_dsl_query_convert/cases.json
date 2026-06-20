@@ -1,0 +1,101 @@
+{
+  "schema": "media-server.v300-search-dsl-query-convert-fixtures.v1",
+  "targetStep": "V300-S06",
+  "cases": [
+    {
+      "id": "natural-language-text-tags-filter",
+      "query": "person red jacket tag:intrusion status:open source:cam-lobby after:1781950200000 pinned",
+      "expected": {
+        "status": "converted",
+        "schema": "media-server.event-search-dsl.v1",
+        "terms": ["person", "red", "jacket"],
+        "tags": ["intrusion"],
+        "filters": [
+          {"field": "status", "op": "eq", "value": "open"},
+          {"field": "sourceId", "op": "eq", "value": "cam-lobby"},
+          {"field": "timestampMs", "op": "gte", "value": "1781950200000"},
+          {"field": "pinned", "op": "eq", "value": "true"}
+        ]
+      },
+      "contractInvariants": {
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "runtimeProviderCallPerformed": false,
+        "vectorSearchPerformed": false,
+        "eventPostPayloadChanged": false,
+        "rtspWebrtcMediaPathChanged": false
+      }
+    },
+    {
+      "id": "strict-dsl-bounded-defaults",
+      "query": "vehicle zone:loading limit:999 offset:999999 sort:oldest",
+      "expected": {
+        "status": "converted",
+        "limit": 100,
+        "offset": 1000,
+        "sort": "eventTimeAsc",
+        "filters": [
+          {"field": "zoneId", "op": "eq", "value": "loading"}
+        ]
+      },
+      "contractInvariants": {
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "runtimeProviderCallPerformed": false,
+        "vectorSearchPerformed": false,
+        "eventPostPayloadChanged": false,
+        "rtspWebrtcMediaPathChanged": false
+      }
+    },
+    {
+      "id": "text-tags-filter-match",
+      "query": "person red tag:intrusion source:cam-lobby",
+      "expected": {
+        "status": "matched",
+        "matchedEventIds": ["evt-v300-s06-hit"],
+        "excludedEventIds": ["evt-v300-s06-miss"]
+      },
+      "contractInvariants": {
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "runtimeProviderCallPerformed": false,
+        "vectorSearchPerformed": false,
+        "eventPostPayloadChanged": false,
+        "rtspWebrtcMediaPathChanged": false
+      }
+    },
+    {
+      "id": "identity-query-rejected",
+      "query": "face recognition match john watchlist",
+      "expected": {
+        "status": "rejected",
+        "failureReason": "identity-search-disallowed"
+      },
+      "contractInvariants": {
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "runtimeProviderCallPerformed": false,
+        "vectorSearchPerformed": false,
+        "eventPostPayloadChanged": false,
+        "rtspWebrtcMediaPathChanged": false
+      }
+    },
+    {
+      "id": "provider-vector-not-run-boundary",
+      "query": "semantic similar red jacket",
+      "expected": {
+        "status": "converted",
+        "providerRuntimeCall": "not-run",
+        "vectorSearch": "not-run"
+      },
+      "contractInvariants": {
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "runtimeProviderCallPerformed": false,
+        "vectorSearchPerformed": false,
+        "eventPostPayloadChanged": false,
+        "rtspWebrtcMediaPathChanged": false
+      }
+    }
+  ]
+}

@@ -73,6 +73,7 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 | [video-analysis.md](video-analysis.md) | VA pipeline, rule, scenario, metadata |
 | [event-evidence-contract.md](event-evidence-contract.md) | v3.0 Event Evidence Contract와 FrameRef/retention/non-VMS 경계 |
 | [event-feature-schema-privacy.md](event-feature-schema-privacy.md) | v3.0 FeatureSet schema와 비식별 privacy guard |
+| [v300-search-dsl-query-convert.md](v300-search-dsl-query-convert.md) | v3.0 Search DSL/query convert 경계 |
 | [analysis-threshold-baselines.md](analysis-threshold-baselines.md) | 분석 threshold baseline |
 | [live-source-health.md](live-source-health.md) | live source health 상태 모델 |
 | [live-event-metadata-contracts.md](live-event-metadata-contracts.md) | Event POST, WebRTC, SSE, WS metadata contract |
