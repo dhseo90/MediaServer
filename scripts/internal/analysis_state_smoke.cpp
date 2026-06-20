@@ -173,7 +173,7 @@ void ConfigureEventStorageSmokeEnv() {
     ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_CLIP_HOOK_ENABLED", "1", 1);
     ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_CLIP_DIR", clip_dir.c_str(), 1);
     ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_PRE_EVENT_MS", "200", 1);
-    ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_POST_EVENT_MS", "0", 1);
+    ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_POST_EVENT_MS", "100", 1);
     ::setenv("MEDIA_SERVER_ANALYSIS_EVENT_CLIP_BUFFER_MS", "1000", 1);
 }
 
@@ -1982,6 +1982,10 @@ void VerifyEventRecorderMediaHooks() {
     Expect(record_json.find("\"bboxCrop\"") != std::string::npos &&
                record_json.find(".bbox-crop.") != std::string::npos,
            "Event recorder metadata must include bbox crop evidence reference");
+    Expect(record_json.find("\"evidenceManifest\"") != std::string::npos &&
+               record_json.find("evidence-manifest.json") != std::string::npos &&
+               record_json.find("frame-bundle-manifest.json") != std::string::npos,
+           "Event recorder metadata must include V300 evidence manifest and frame bundle references");
     Expect(record_json.find("\"rawMediaEmbedded\":false") != std::string::npos &&
                record_json.find("\"sourceUrlExposed\":false") != std::string::npos,
            "Event recorder VLM evidence refs must keep raw media/source URL redacted");
@@ -2020,6 +2024,46 @@ void VerifyEventRecorderMediaHooks() {
                manifest.find("\"continuousRecording\":false") != std::string::npos,
            "Event recorder clip manifest must include encoded clip job status and non-VMS boundary");
 
+    const std::filesystem::path evidence_manifest =
+        std::filesystem::path(snapshot.clip_dir) / "evt-recorder-smoke.clip" /
+        "evidence-manifest.json";
+    const std::filesystem::path frame_bundle_manifest =
+        std::filesystem::path(snapshot.clip_dir) / "evt-recorder-smoke.clip" /
+        "frame-bundle-manifest.json";
+    std::ifstream evidence_input(evidence_manifest);
+    std::string evidence_json((std::istreambuf_iterator<char>(evidence_input)),
+                              std::istreambuf_iterator<char>());
+    std::ifstream bundle_input(frame_bundle_manifest);
+    std::string bundle_json((std::istreambuf_iterator<char>(bundle_input)),
+                            std::istreambuf_iterator<char>());
+    Expect(std::filesystem::exists(evidence_manifest, ec) && !ec &&
+               std::filesystem::exists(frame_bundle_manifest, ec) && !ec,
+           "Event recorder must write V300 evidence and frame bundle manifests");
+    Expect(evidence_json.find("\"schema\":\"media-server.event-evidence-contract.v1\"") !=
+               std::string::npos &&
+               evidence_json.find("\"eventFrame\"") != std::string::npos &&
+               evidence_json.find("\"representativeImage\"") != std::string::npos &&
+               evidence_json.find("\"selectionReason\"") != std::string::npos &&
+               evidence_json.find("\"bboxCrops\"") != std::string::npos &&
+               evidence_json.find("\"frameBundle\"") != std::string::npos &&
+               evidence_json.find("\"rawPromptStored\":false") != std::string::npos &&
+               evidence_json.find("\"identityFeaturesAllowed\":false") != std::string::npos &&
+               evidence_json.find("\"archiveApi\":false") != std::string::npos,
+           "Event recorder evidence manifest must include event frame, representative selection, bbox crop, frame bundle, privacy, and non-VMS guards");
+    Expect(bundle_json.find("\"schema\":\"media-server.va.frame-bundle.v1\"") !=
+               std::string::npos &&
+               bundle_json.find("\"phase\":\"pre\"") != std::string::npos &&
+               bundle_json.find("\"phase\":\"event\"") != std::string::npos &&
+               bundle_json.find("\"phase\":\"post\"") != std::string::npos &&
+               bundle_json.find("\"sourceId\":\"stream-a\"") != std::string::npos &&
+               bundle_json.find("\"channelId\":\"stream-a\"") != std::string::npos &&
+               bundle_json.find("\"streamEpochId\"") != std::string::npos &&
+               bundle_json.find("\"frameSeq\"") != std::string::npos &&
+               bundle_json.find("\"relativeToEventMs\":-100") != std::string::npos &&
+               bundle_json.find("\"relativeToEventMs\":0") != std::string::npos &&
+               bundle_json.find("\"relativeToEventMs\":100") != std::string::npos,
+           "Event recorder frame bundle manifest must include pre/event/post FrameRef entries");
+
     const std::filesystem::path encoded_manifest =
         std::filesystem::path(snapshot.clip_dir) / "evt-recorder-smoke.clip" / "encoded" /
         "encoded-manifest.json";
@@ -2054,6 +2098,8 @@ void VerifyEventRecorderMediaHooks() {
     Pass("Event recorder writes snapshot media");
     Pass("Event recorder writes bbox crop media");
     Pass("Event recorder writes clip media");
+    Pass("Event recorder writes V300 evidence manifest");
+    Pass("Event recorder writes pre-event-post frame bundle manifest");
     Pass("Event recorder encodes bounded event clip media");
     Pass("Event recorder records encoded clip queue status");
     Pass("Event recorder records snapshot evidence path");

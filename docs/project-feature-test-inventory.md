@@ -26,12 +26,12 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 523 |
+| 전체 기능 항목 | 525 |
 | UI 직접 필요 | 295 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 197 |
-| 테스트 필요 | 523 |
-| 안정화 대상 | 513 |
+| UI 비대상 | 199 |
+| 테스트 필요 | 525 |
+| 안정화 대상 | 515 |
 | UI 풀테스트 대상 | 315 |
 | 30분 soak 대상 | 47 |
 | 120분 대상 | 7 |
@@ -42,7 +42,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 521개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 525개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -64,6 +64,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | --- | --- | --- | --- |
 | V300-S00 Baseline/source-of-truth | `OPS-051`, `SAFE-081` | `verify-v300-entry-baseline`, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets` | source `3.0.0`, latest published `v2.9.0`, current roadmap `v3.0.0 Event Evidence Search MVP` 정렬 기준. v3.0 기능 구현, UI 풀테스트, 30분/120분, GitHub Release publish evidence가 아님 |
 | V300-S01 Event Evidence Contract | `OPS-052`, `SAFE-082` | `verify-v300-event-evidence-contract` | EvidenceManifest, FrameRef, retention lifecycle, privacy/non-VMS boundary, fixture, docs/inventory/release records 연결 기준. frame extraction, encoded clip/playback, Search DSL, `/ops/events` UI, UI 풀테스트, 30분/120분, GitHub Release publish evidence가 아님 |
+| V300-S02 Frame Bundle Extraction | `EVT-060`, `SAFE-084` | `verify-analysis-state`, `./server.sh build`, `git diff --check` | EventRecord recorder가 eventFrame, representativeImage selection, bboxCrop, pre/event/post frameBundle manifest, EvidenceManifest sidecar를 생성하는지 확인합니다. encoded clip/playback, Search DSL, `/ops/events` UI, VMS/NVR archive API, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
 | V310-S02 Event Clip Encoder Pipeline | `EVT-059`, `SAFE-083` | `verify-analysis-state`, `./server.sh build`, `git diff --check` | 기존 frame-bundle hook에서 bounded encoded clip artifact, queue/status manifest, partial cleanup, non-VMS boundary를 확인합니다. v3.1 baseline/S01 contract, replay UI, client digest, VMS/NVR archive API, 24/7 recording, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
 
 ## v2.9.0 Final 2.x Closure & Compatibility Baseline Coverage Mapping
@@ -179,13 +180,13 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | `AUTH-001`~`AUTH-042` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
 | `SRC-001`~`SRC-032` | source/ONVIF/UI verifier family | ONVIF field success는 approved environment only |
 | `RULE-001`~`RULE-104` | rule/VA verifier family | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
-| `EVT-001`~`EVT-059` | event/VLM/v250/v260/v270/v280/v310 verifier family | event log 육안 확인은 UI 풀테스트 |
+| `EVT-001`~`EVT-060` | event/VLM/v250/v260/v270/v280/v300/v310 verifier family | event log 육안 확인은 UI 풀테스트 |
 | `CLIENT-001`~`CLIENT-024` | client/UI verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-021` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
 | `LAB-001`~`LAB-082` | lab/VLM/v250/v260/v270/v280 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-083` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `SAFE-001`~`SAFE-084` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
 | `OPS-035`~`OPS-052` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
-| `SAFE-001`~`SAFE-083` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `SAFE-001`~`SAFE-084` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
 | `OPS-035`~`OPS-052` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
 
 ## VA Manual UI Seed Matrix
@@ -546,6 +547,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | EVT-057 | Ops evidence intake field readiness view model | 필요 | 필요 | 안정화, UI | evidence intake/field readiness 상태가 passed/failed/blocked/not-run을 분리하고 credential/source/raw/debug/provider material을 EventRecord/Event POST/WebRTC/SSE/WS/client에 노출하지 않음 |
 | EVT-058 | Ops runtime evidence window view model | 필요 | 필요 | 안정화, UI | incident-linked runtime/source/event evidence window가 bounded summary만 제공하고 장기 저장소, 30분/120분 PASS, Event POST/WebRTC/SSE/WS/media path/client viewer 변경을 만들지 않음 |
 | EVT-059 | V310-S02 encoded event clip encoder pipeline | 비대상 | 필요 | 안정화 | EventRecord frame-bundle clip hook이 bounded short segment에서 encoded clip media artifact와 `media-server.va.encoded-event-clip.v1` status manifest를 생성하고, frameMap/queueName/status/non-VMS boundary/partial cleanup 결과를 남기며 EventRecord top-level, Event POST/WebRTC/SSE/WS payload, RTSP/WebRTC media path를 바꾸지 않음 |
+| EVT-060 | V300-S02 frame bundle extraction sidecar | 비대상 | 필요 | 안정화 | EventRecord recorder가 trigger-time eventFrame, representativeImage selection status, bboxCrop reference, pre/event/post frameBundle manifest, EvidenceManifest sidecar를 생성하고 FrameRef를 source/channel/stream epoch/frame/time/relative event 기준으로 남기며 EventRecord top-level, Event POST/WebRTC/SSE/WS payload, RTSP/WebRTC media path를 바꾸지 않음 |
 
 ## F. Client And Viewer
 
@@ -776,6 +778,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | SAFE-081 | V300-S00 v3.0 baseline boundary | 비대상 | 필요 | 안정화 | `verify-v300-entry-baseline`가 source `3.0.0`, latest published `v2.9.0`, current roadmap `v3.0.0 Event Evidence Search MVP`, 1차 선택값/fallback/제외 대상, release records, inventory 연결을 확인하되 Event Evidence Contract, frame bundle, feature schema, search UI, UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release PASS로 대체하지 않음 |
 | SAFE-082 | V300-S01 evidence contract boundary | 비대상 | 필요 | 안정화 | `verify-v300-event-evidence-contract`가 EvidenceManifest, FrameRef, 7일 retention, pin cleanup 제외, raw prompt/response non-retention, identity feature 금지, non-VMS boundary를 확인하되 frame extraction, encoded clip/playback, VMS archive API, Search DSL, `/ops/events` UI, UI 풀테스트, 30분/120분, published metadata PASS로 대체하지 않음 |
 | SAFE-083 | V310-S02 encoded clip non-VMS boundary | 비대상 | 필요 | 안정화 | `verify-analysis-state`가 encoded clip artifact와 queue/status manifest의 bounded short segment, `continuousRecording=false`, `archiveApi=false`, partial cleanup 기록을 확인하되 24/7 recording, VMS/NVR archive API, replay UI, client viewer exposure, Event POST/WebRTC/SSE/WS schema 변경, RTSP/WebRTC media path 변경 evidence로 쓰지 않음 |
+| SAFE-084 | V300-S02 frame bundle boundary | 비대상 | 필요 | 안정화 | `verify-analysis-state`가 V300-S02 EvidenceManifest와 frame bundle manifest의 eventFrame 필수, representativeImage selection 경계, bboxCrop reference, pre/event/post FrameRef, raw prompt/response non-retention, identity feature 금지, VMS/NVR archive API 금지, encoded clip/playback 비승격 경계를 확인하되 Search DSL, `/ops/events` UI, UI 풀테스트, 30분/120분, published metadata PASS로 대체하지 않음 |
 
 ## J. Ops Evidence And Release Readiness
 
