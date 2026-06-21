@@ -2488,13 +2488,16 @@ void VerifyEventRecorderMediaHooks() {
            "Event recorder query must succeed: " + error_message);
     Expect(query_result.records_json.size() == 1, "Event recorder must write one record");
     const std::string record_json = query_result.records_json[0];
+    const auto after_record_snapshot = GetEventStorageSnapshot();
     Expect(record_json.find("\"snapshotPath\":\"") != std::string::npos &&
                record_json.find("\"clipPath\":\"") != std::string::npos,
-           "Event recorder must fill snapshotPath and clipPath");
+           "Event recorder must fill snapshotPath and clipPath; lastClipError=" +
+               after_record_snapshot.last_clip_error);
     Expect(record_json.find(".snapshot.") != std::string::npos,
            "Event recorder snapshot path must point to actual media bytes");
     Expect(record_json.find(".clip/manifest.json") != std::string::npos,
-           "Event recorder clip path must point to clip manifest");
+           "Event recorder clip path must point to clip manifest; lastClipError=" +
+               after_record_snapshot.last_clip_error);
     Expect(record_json.find("\"vlmEvidenceRefs\"") != std::string::npos &&
                record_json.find("\"schema\":\"media-server.vlm-event-evidence-refs.v1\"") != std::string::npos,
            "Event recorder metadata must include VLM evidence refs");
@@ -2536,6 +2539,58 @@ void VerifyEventRecorderMediaHooks() {
                manifest.find("\"eventFrame\"") != std::string::npos &&
                manifest.find("\"nextFrame\"") != std::string::npos,
            "Event recorder must write clip manifest and frame bytes");
+    Expect(manifest.find("\"encodedClip\"") != std::string::npos &&
+               manifest.find("\"schema\":\"media-server.encoded-event-clip-contract.v1\"") !=
+                   std::string::npos &&
+               manifest.find("\"status\":\"completed\"") != std::string::npos &&
+               manifest.find("\"format\":\"webm\"") != std::string::npos &&
+               manifest.find("\"codec\":\"vp8\"") != std::string::npos &&
+               manifest.find("\"continuousRecording\":false") != std::string::npos,
+           "Event recorder clip manifest must include encoded clip job status and non-VMS boundary");
+
+    const std::filesystem::path encoded_manifest =
+        std::filesystem::path(snapshot.clip_dir) / "evt-recorder-smoke.clip" / "encoded" /
+        "encoded-manifest.json";
+    const std::filesystem::path encoded_media =
+        std::filesystem::path(snapshot.clip_dir) / "evt-recorder-smoke.clip" / "encoded" /
+        "event-clip.webm";
+    std::ifstream encoded_input(encoded_manifest);
+    std::string encoded_json((std::istreambuf_iterator<char>(encoded_input)),
+                             std::istreambuf_iterator<char>());
+    Expect(std::filesystem::exists(encoded_manifest, ec) && !ec &&
+               std::filesystem::exists(encoded_media, ec) && !ec,
+           "Event recorder encoded clip pipeline must write manifest and media artifact");
+    std::ifstream encoded_media_input(encoded_media, std::ios::binary);
+    unsigned char encoded_header[4] = {0, 0, 0, 0};
+    encoded_media_input.read(reinterpret_cast<char*>(encoded_header), sizeof(encoded_header));
+    Expect(encoded_media_input.gcount() == static_cast<std::streamsize>(sizeof(encoded_header)) &&
+               encoded_header[0] == 0x1A && encoded_header[1] == 0x45 &&
+               encoded_header[2] == 0xDF && encoded_header[3] == 0xA3,
+           "Event recorder encoded clip media must be a WebM/EBML artifact");
+    Expect(encoded_json.find("\"schema\":\"media-server.encoded-event-clip-contract.v1\"") !=
+               std::string::npos &&
+               encoded_json.find("\"contractVersion\":1") != std::string::npos &&
+               encoded_json.find("\"sampleKind\":\"runtime-output\"") != std::string::npos &&
+               encoded_json.find("\"inputSource\":\"frame-bundle\"") != std::string::npos &&
+               encoded_json.find("\"queueName\":\"event-clip-encoder\"") != std::string::npos &&
+               encoded_json.find("\"status\":\"completed\"") != std::string::npos &&
+               encoded_json.find("\"container\":\"webm\"") != std::string::npos &&
+               encoded_json.find("\"mimeType\":\"video/webm\"") != std::string::npos &&
+               encoded_json.find("\"videoCodec\":\"vp8\"") != std::string::npos &&
+               encoded_json.find("\"extension\":\".webm\"") != std::string::npos &&
+               encoded_json.find("\"allowedContainers\":[\"mp4\",\"webm\"]") != std::string::npos &&
+               encoded_json.find("\"ptsMapping\"") != std::string::npos &&
+               encoded_json.find("\"frameRef\"") != std::string::npos &&
+               encoded_json.find("\"eventClipPtsMs\"") != std::string::npos &&
+               encoded_json.find("\"evidenceLinks\"") != std::string::npos &&
+               encoded_json.find("\"frameMap\"") != std::string::npos &&
+               encoded_json.find("\"pipelineImplementedInThisStep\":true") != std::string::npos &&
+               encoded_json.find("\"queueStatusImplementedInThisStep\":true") != std::string::npos &&
+               encoded_json.find("\"partialOutputCleanupImplementedInThisStep\":true") != std::string::npos &&
+               encoded_json.find("\"boundedShortSegment\":true") != std::string::npos &&
+               encoded_json.find("\"continuousRecording\":false") != std::string::npos &&
+               encoded_json.find("\"archiveApi\":false") != std::string::npos,
+           "Event recorder encoded clip manifest must describe WebM format, PTS mapping, queue/status, and non-VMS boundary");
 
     const std::filesystem::path evidence_manifest =
         std::filesystem::path(snapshot.clip_dir) / "evt-recorder-smoke.clip" /
@@ -2586,6 +2641,8 @@ void VerifyEventRecorderMediaHooks() {
     Pass("Event recorder writes snapshot media");
     Pass("Event recorder writes bbox crop media");
     Pass("Event recorder writes clip media");
+    Pass("Event recorder encodes bounded event clip media");
+    Pass("Event recorder records encoded clip queue status");
     Pass("Event recorder writes V300 evidence manifest");
     Pass("Event recorder writes pre-event-post frame bundle manifest");
     Pass("Event recorder records snapshot evidence path");

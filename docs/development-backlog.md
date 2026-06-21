@@ -19,9 +19,10 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 ## 현재 source roadmap: v3.1.0 Encoded Event Clip and Safe Sharing Expansion
 
 상태: `V310-S00` source baseline 정렬 완료, `V310-S01` Encoded Event Clip Contract
-완료. 이 절은 v3.1.0 전체 기능 완료 evidence가 아니며, 실제 기능 구현은 각 Step별
-코드/UI/API/검증 evidence가 생긴 뒤에만 완료로 기록합니다. V310-S00 baseline 정렬
-자체는 기능 구현 완료 evidence가 아닙니다.
+완료, `V310-S02` Event Clip Encoder Pipeline 완료.
+이 절은 v3.1.0 전체 기능 완료 evidence가 아니며, 실제 기능 구현은 각 Step별 코드/UI/API/검증
+evidence가 생긴 뒤에만 완료로 기록합니다. V310-S00 baseline 정렬 자체는 기능 구현 완료
+evidence가 아닙니다.
 
 직접 답: v3.1.0의 1차 선택값은 `Encoded Event Clip and Safe Sharing Expansion`입니다.
 이 방향은 v3.0 Event Evidence Search MVP 위에 event-centered encoded clip,
@@ -65,7 +66,7 @@ scoped API, operator correction, vector search는 후속 step evidence가 생길
 - full internal feature/provenance/raw evidence client exposure: viewer-safe digest 경계를 깨므로 제외합니다.
 - 자동 rule 적용: operator correction/review와 별개로 approval 없는 write path를 늘리므로 제외합니다.
 - cloud provider default-on: local-first와 explicit opt-in 경계를 유지합니다.
-- `codex/v310-event-clip-encoder`의 선개발 Event Clip Encoder Pipeline: V310-S02 범위이므로 S00 baseline 정렬에서는 merge하거나 완료 evidence로 쓰지 않습니다.
+- `codex/v310-event-clip-encoder`의 선개발 Event Clip Encoder Pipeline: V310-S02 범위이므로 S00/S01 완료 evidence로 쓰지 않습니다. v3.1.0 S02 작업에서 local merge 확인 후 local branch를 삭제했습니다.
 
 license/provenance/privacy/운영 제약:
 
@@ -86,7 +87,7 @@ license/provenance/privacy/운영 제약:
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 0 | V310-S00 | P0 | 완료 | v3.1 baseline | VERSION/CMake/README/docs/backlog/source roadmap을 v3.1 작업 기준으로 정렬 | source `3.1.0`, latest published `v3.0.0`, current roadmap `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`, V310-S00 verifier 연결 | `./server.sh verify-v310-entry-baseline`, `verify-release-metadata`, docs/inventory gates. 기능 구현 완료 evidence가 아님 |
 | 1 | V310-S01 | P0 | 완료 | Encoded Event Clip Contract | MP4/WebM clip manifest, FrameRef/PTS mapping, non-VMS boundary 정의 | [docs/v310-encoded-event-clip-contract.md](v310-encoded-event-clip-contract.md), `test/fixtures/v310_event_clip_contract/encoded_clip_manifest_sample.json`, `./server.sh verify-v310-event-clip-contract` | encoder pipeline, replay timeline UI, cleanup 실행 완료 evidence가 아님 |
-| 2 | V310-S02 | P0 | 예정 | Event Clip Encoder Pipeline | bounded short segment 또는 frame bundle 기반 encoded clip generation, queue/status/cleanup | 미구현. 선개발 백업 branch `codex/v310-event-clip-encoder`는 S01에서 merge하지 않음 | S01 완료 evidence가 아님 |
+| 2 | V310-S02 | P0 | 완료 | Event Clip Encoder Pipeline | bounded short segment 또는 frame bundle 기반 encoded clip generation, queue/status/cleanup | `src/analysis/event_storage.cpp`의 frame-bundle hook이 `.clip/encoded/event-clip.webm`과 `.clip/encoded/encoded-manifest.json`을 생성하고 `scripts/internal/analysis_state_smoke.cpp`가 WebM/VP8, EBML header, FrameRef-PTS mapping, queue/status/frameMap/non-VMS boundary를 확인함 | replay UI, client digest, scoped API, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
 | 3 | V310-S03 | P0 | 예정 | Replay Timeline UI | `/ops/events` event frame, representative image, frame bundle, encoded clip timeline | 미구현 | S00 완료 evidence가 아님 |
 | 4 | V310-S04 | P1 | 예정 | Client-safe Event Digest | redacted viewer-safe summary | 미구현 | S00 완료 evidence가 아님 |
 | 5 | V310-S05 | P1 | 예정 | Scoped Integrator Search API | scope-gated search API와 redaction guard | 미구현 | S00 완료 evidence가 아님 |
@@ -145,6 +146,19 @@ license/provenance/privacy/운영 제약:
   `/ops/events` replay timeline UI, client-safe digest, scoped integrator API,
   UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, `verify-release-metadata --published`,
   tag/push/GitHub Release는 S01 완료 근거가 아닙니다.
+
+## v3.1.0 S02 개발 기록
+
+- 범위: P0 `V310-S02 Event Clip Encoder Pipeline`.
+- branch 처리: `codex/v310-event-clip-encoder`는 현재 `v3.1.0`의 조상이라 `git merge codex/v310-event-clip-encoder` 결과가 `Already up to date`였습니다. 이후 local branch `codex/v310-event-clip-encoder`를 삭제했습니다. remote branch 삭제는 push/ref deletion이므로 사용자 푸시 명시 승인 없이 수행하지 않았습니다.
+- `src/analysis/event_storage.cpp`: 기존 EventRecord frame-bundle clip hook 내부에 bounded short segment를 WebM/VP8 `event-clip.webm`으로 muxing하는 encoded clip artifact writer를 추가했습니다. `WriteClipMedia()`가 기존 `.clip/manifest.json`, `frame-bundle-manifest.json`, `evidence-manifest.json`, frame files를 유지한 뒤 `.clip/encoded/event-clip.webm`, `.clip/encoded/encoded-manifest.json`을 생성합니다.
+- `src/analysis/event_storage.cpp`: encoded status manifest schema `media-server.encoded-event-clip-contract.v1`에 `sampleKind=runtime-output`, WebM/VP8 format, `inputSource=frame-bundle`, `queueName=event-clip-encoder`, `status=completed`, `ptsMapping.frames[].frameRef`, `frameMap`, `cleanup.deletedEntries`, `nonVmsBoundary.boundedShortSegment=true`, `continuousRecording=false`, `archiveApi=false`를 기록합니다.
+- `src/analysis/event_storage.cpp`: encoded output directory를 job 시작 전에 정리해 stale/partial encoded output을 제거하고 삭제 entry 수를 clip manifest와 encoded manifest에 남깁니다.
+- `scripts/internal/analysis_state_smoke.cpp`: Event recorder media hook smoke에 encoded WebM EBML header, encoded manifest, queue/status/FrameRef-PTS/frameMap/non-VMS boundary 확인 항목을 추가했습니다.
+- `scripts/internal/verify_analysis_state_smoke.sh`: V310-S02 WebM clip encoding을 검증하기 위해 GStreamer appsrc/appsink compile/link flags를 추가했습니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`: `EVT-059`, `SAFE-083`, V310-S02 안정화 확인 항목과 완료 evidence 경계를 추가했습니다.
+- 검증: 최초 WebM pipeline 시도는 4x4 smoke frame에서 GStreamer `not-negotiated`로 실패했습니다. `videoscale`과 최소 16x16 even caps를 명시한 뒤 `./server.sh verify-analysis-state`가 `pass=172 fail=0`으로 WebM/VP8 encoded clip media artifact, EBML header, encoded clip queue status, V300 evidence manifest, frame bundle manifest를 확인했습니다. 이후 `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-docs-links`, `verify-v310-event-clip-contract`, `./server.sh build`, `verify-script-inventory`, `verify-v300-event-evidence-contract`도 통과했습니다.
+- 완료 경계: 이번 구현은 V310-S02 bounded WebM/VP8 encoder/status/partial cleanup pipeline입니다. `/ops/events` replay timeline UI, client-safe digest, scoped integrator API, 30분/120분 장시간 테스트, UI 풀테스트 직접 조작, published metadata, PR/main/tag/GitHub Release는 S02 완료 근거가 아닙니다.
 
 ## 최신 공개 기준 상세: v3.0.0 Event Evidence Search MVP
 

@@ -8,10 +8,22 @@ ROOT_DIR="$(cd "${SCRIPT_DIR}/../.." && pwd)"
 BUILD_DIR="${MEDIA_SERVER_VERIFY_ANALYSIS_STATE_BUILD_DIR:-/tmp/media_server_analysis_state_smoke-$$}"
 CXX_BIN="${CXX:-c++}"
 
+source "${SCRIPT_DIR}/env_common.sh"
+media_server_apply_homebrew_gst_env
+
+if ! command -v pkg-config >/dev/null 2>&1 ||
+   ! pkg-config --exists gstreamer-1.0 gstreamer-app-1.0 >/dev/null 2>&1; then
+  echo "[fail] verify-analysis-state requires GStreamer appsrc/appsink dev packages for V310-S02 WebM clip encoding"
+  exit 1
+fi
+
+read -r -a GST_CFLAGS <<<"$(pkg-config --cflags gstreamer-1.0 gstreamer-app-1.0)"
+read -r -a GST_LIBS <<<"$(pkg-config --libs gstreamer-1.0 gstreamer-app-1.0)"
+
 mkdir -p "${BUILD_DIR}"
 
 echo "[verify] build analysis state smoke: ${BUILD_DIR}"
-"${CXX_BIN}" -std=c++17 -I"${ROOT_DIR}/include" \
+"${CXX_BIN}" -std=c++17 -DMEDIA_SERVER_USE_GSTREAMER=1 -I"${ROOT_DIR}/include" "${GST_CFLAGS[@]}" \
   "${SCRIPT_DIR}/analysis_state_smoke.cpp" \
   "${ROOT_DIR}/src/analysis/appearance_extractor.cpp" \
   "${ROOT_DIR}/src/analysis/category_tokens.cpp" \
@@ -37,6 +49,7 @@ echo "[verify] build analysis state smoke: ${BUILD_DIR}"
   "${ROOT_DIR}/src/analysis/wrong_direction_scenario.cpp" \
   "${ROOT_DIR}/src/analysis/zone_occupancy_scenario.cpp" \
   "${ROOT_DIR}/src/app_config.cpp" \
+  "${GST_LIBS[@]}" \
   -o "${BUILD_DIR}/analysis_state_smoke"
 
 echo "[verify] check no TensorRT/OpenVINO dependency was added for appearance hooks"
