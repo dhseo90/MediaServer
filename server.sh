@@ -232,6 +232,8 @@ Usage:
                  v3.1.0 S00 source baseline과 latest published v3.0.0 경계를 검증합니다.
   verify-v310-event-clip-contract
                  v3.1.0 S01 Encoded Event Clip Contract와 FrameRef/PTS/non-VMS 경계를 검증합니다.
+  verify-v310-replay-timeline-ui
+                 v3.1.0 S03 Replay Timeline UI와 event frame/frame bundle/encoded clip timeline 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -356,6 +358,8 @@ Usage:
                  v3.1.0 S00 source baseline과 latest published v3.0.0 경계를 검증합니다.
   verify-v310-event-clip-contract
                  v3.1.0 S01 Encoded Event Clip Contract와 FrameRef/PTS/non-VMS 경계를 검증합니다.
+  verify-v310-replay-timeline-ui
+                 v3.1.0 S03 Replay Timeline UI와 event frame/frame bundle/encoded clip timeline 경계를 검증합니다.
   verify-actions-security
                  GitHub Actions workflow 권한과 action 사용 정책을 검증합니다.
   verify-ci-local-gate-parity
@@ -1178,6 +1182,10 @@ case "${cmd}" in
   verify-v310-event-clip-contract)
     require_internal verify_v310_event_clip_contract.mjs
     exec "${INTERNAL_DIR}/verify_v310_event_clip_contract.mjs" "$@"
+    ;;
+  verify-v310-replay-timeline-ui)
+    require_internal verify_v310_replay_timeline_ui.mjs
+    exec "${INTERNAL_DIR}/verify_v310_replay_timeline_ui.mjs" "$@"
     ;;
   verify-v290-final-stabilization-run)
     require_internal verify_v290_final_stabilization_run.mjs

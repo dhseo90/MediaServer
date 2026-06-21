@@ -2574,6 +2574,68 @@ std::string ProductUiCss() {
       gap: var(--space-2);
       align-items: center;
     }
+    .v310-replay-timeline-ui {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .v310-replay-timeline-results {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .v310-replay-timeline-card {
+      display: grid;
+      gap: var(--space-3);
+      min-width: 0;
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-bg-elevated);
+    }
+    .v310-replay-artifact-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: var(--space-2);
+    }
+    .v310-replay-artifact-grid p,
+    .v310-replay-timeline-point {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+      margin: 0;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: var(--color-surface-subtle);
+    }
+    .v310-replay-artifact-grid strong,
+    .v310-replay-timeline-point span {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+    .v310-replay-artifact-grid span,
+    .v310-replay-artifact-grid small,
+    .v310-replay-timeline-point p {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .v310-replay-artifact-grid small,
+    .v310-replay-timeline-point p {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .v310-replay-timeline-rail {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: var(--space-2);
+    }
+    .v310-replay-playback-segments {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      align-items: center;
+    }
     .incident-memory-results {
       display: grid;
       gap: var(--space-2);

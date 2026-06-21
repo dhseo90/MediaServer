@@ -3590,6 +3590,18 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <p class="ops-rule-note">EventRecord, FeatureSet, EvidenceManifest, review state를 불러오면 V300 evidence detail이 표시됩니다.</p>
         </div>
       </section>
+      <section class="section-card ops-workspace-wide v310-replay-timeline-ui" data-testid="ops-v310-replay-timeline-ui" data-v310-replay-timeline-ui="event-frame-frame-bundle-encoded-clip">
+        <div class="toolbar">
+          <div>
+            <h3>Encoded Clip Replay Timeline</h3>
+            <p id="opsV310ReplayTimelineSummary">event frame, representative image, frame bundle, encoded clip timeline을 Ops 전용으로 확인합니다.</p>
+          </div>
+          <div id="opsV310ReplayTimelineBadges" class="badge-row"><span class="chip">media-server.ops.v310-replay-timeline-ui.v1</span></div>
+        </div>
+        <div id="opsV310ReplayTimelineRows" class="v310-replay-timeline-results">
+          <p class="ops-rule-note">EventRecord evidence refs와 encoded clip manifest가 있으면 replay timeline이 표시됩니다.</p>
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide incident-triage-board" data-testid="ops-incident-triage-board" data-incident-triage-board="lane-filter-sort">
         <div class="toolbar">
           <div>
@@ -14746,6 +14758,264 @@ std::string OpsV300EvidenceRefPath(const std::string& event_json, const std::str
     return "";
 }
 
+std::string OpsV310EncodedManifestPath(const std::string& clip_manifest_path) {
+    if (clip_manifest_path.empty()) {
+        return "";
+    }
+    const std::filesystem::path manifest_path(clip_manifest_path);
+    if (manifest_path.filename().string() != "manifest.json") {
+        return "";
+    }
+    return (manifest_path.parent_path() / "encoded" / "encoded-manifest.json").string();
+}
+
+std::string OpsV310EncodedMediaPath(const std::string& clip_manifest_path) {
+    if (clip_manifest_path.empty()) {
+        return "";
+    }
+    const std::filesystem::path manifest_path(clip_manifest_path);
+    if (manifest_path.filename().string() != "manifest.json") {
+        return "";
+    }
+    return (manifest_path.parent_path() / "encoded" / "event-clip.webm").string();
+}
+
+std::string OpsV310ArtifactJson(const std::string& role,
+                                const std::string& status,
+                                const std::string& storage_key,
+                                const std::string& basis,
+                                const bool selected = false) {
+    std::ostringstream out;
+    out << "{"
+        << "\"role\":\"" << JsonEscape(role) << "\","
+        << "\"status\":\"" << JsonEscape(status) << "\","
+        << "\"available\":" << (storage_key.empty() ? "false" : "true") << ","
+        << "\"storageKey\":\"" << JsonEscape(storage_key.empty() ? "not-available" : storage_key) << "\","
+        << "\"basis\":\"" << JsonEscape(basis) << "\","
+        << "\"selected\":" << (selected ? "true" : "false")
+        << "}";
+    return out.str();
+}
+
+std::string OpsV310ReplayTimelinePointsJson(const std::string& event_frame,
+                                            const std::string& representative_image,
+                                            const std::string& frame_bundle,
+                                            const std::string& encoded_manifest,
+                                            const std::string& encoded_media) {
+    struct Point {
+        std::string phase;
+        std::string status;
+        std::string ref;
+        std::string label;
+    };
+    const std::vector<Point> points = {
+        {"eventFrame",
+         event_frame.empty() ? "missing" : "present",
+         event_frame,
+         "trigger-time event frame"},
+        {"representativeImage",
+         representative_image.empty() ? "missing" : "selected",
+         representative_image,
+         "representative image for evidence review"},
+        {"frameBundle",
+         frame_bundle.empty() ? "missing" : "present",
+         frame_bundle,
+         "pre/event/post FrameRef bundle"},
+        {"encodedClip",
+         encoded_media.empty() ? "missing" : "completed",
+         encoded_manifest.empty() ? encoded_media : encoded_manifest,
+         "bounded encoded clip timeline"},
+    };
+    std::ostringstream out;
+    out << "[";
+    for (std::size_t i = 0; i < points.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "{"
+            << "\"phase\":\"" << JsonEscape(points[i].phase) << "\","
+            << "\"status\":\"" << JsonEscape(points[i].status) << "\","
+            << "\"ref\":\"" << JsonEscape(points[i].ref.empty() ? "not-available" : points[i].ref) << "\","
+            << "\"label\":\"" << JsonEscape(points[i].label) << "\""
+            << "}";
+    }
+    out << "]";
+    return out.str();
+}
+
+std::string OpsV310PlaybackSegmentsJson(const std::int64_t pre_event_ms,
+                                        const std::int64_t post_event_ms,
+                                        const bool encoded_clip_available) {
+    struct Segment {
+        std::string key;
+        std::int64_t start_ms;
+        std::int64_t end_ms;
+        std::string status;
+    };
+    const std::vector<Segment> segments = {
+        {"pre", -pre_event_ms, -1, "frame-bundle"},
+        {"event", 0, 0, "event-frame"},
+        {"post", 1, post_event_ms, "frame-bundle"},
+        {"encodedClip", -pre_event_ms, post_event_ms, encoded_clip_available ? "completed" : "missing"},
+    };
+    std::ostringstream out;
+    out << "[";
+    for (std::size_t i = 0; i < segments.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "{"
+            << "\"key\":\"" << JsonEscape(segments[i].key) << "\","
+            << "\"startRelativeToEventMs\":" << segments[i].start_ms << ","
+            << "\"endRelativeToEventMs\":" << segments[i].end_ms << ","
+            << "\"status\":\"" << JsonEscape(segments[i].status) << "\""
+            << "}";
+    }
+    out << "]";
+    return out.str();
+}
+
+std::string OpsV310ReplayTimelineItemJson(const std::string& event_json,
+                                          const OpsEventReviewState& review,
+                                          const std::size_t index) {
+    std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+    if (!OpsEventReviewEventIdAllowed(event_id)) {
+        event_id = "event-" + std::to_string(index + 1);
+    }
+    const std::string event_type =
+        Trim(ParseStringField(event_json, "eventType")
+                 .value_or(ParseStringField(event_json, "className").value_or("event")));
+    const std::string source_id = OpsIncidentTriageBoardSourceId(event_json).empty()
+                                      ? "unknown-source"
+                                      : OpsIncidentTriageBoardSourceId(event_json);
+    const std::string event_frame = OpsV300EvidenceRefPath(event_json, "snapshotPath");
+    const std::string representative_image = event_frame;
+    const std::string evidence_manifest = OpsV300EvidenceRefPath(event_json, "evidenceManifest");
+    const std::string frame_bundle = OpsV300EvidenceRefPath(event_json, "frameBundleManifest");
+    const std::string clip_manifest = OpsV300EvidenceRefPath(event_json, "clipPath");
+    const std::string encoded_manifest = OpsV310EncodedManifestPath(clip_manifest);
+    const std::string encoded_media = OpsV310EncodedMediaPath(clip_manifest);
+    const std::int64_t start_ms = ParseInt64Field(event_json, "startTime").value_or(0);
+    const std::int64_t event_ms = ParseInt64Field(event_json, "updateTime").value_or(start_ms);
+    const std::int64_t end_ms = ParseInt64Field(event_json, "endTime").value_or(event_ms);
+    const std::int64_t pre_event_ms =
+        std::max<std::int64_t>(0, ParseInt64Field(event_json, "preEventMs").value_or(event_ms - start_ms));
+    const std::int64_t post_event_ms =
+        std::max<std::int64_t>(0, ParseInt64Field(event_json, "postEventMs").value_or(end_ms - event_ms));
+
+    std::ostringstream out;
+    out << "{"
+        << "\"eventId\":\"" << JsonEscape(event_id) << "\","
+        << "\"eventType\":\"" << JsonEscape(event_type.empty() ? "event" : event_type) << "\","
+        << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
+        << "\"reviewState\":\"" << JsonEscape(review.review_status.empty() ? "new" : review.review_status) << "\","
+        << "\"eventFrame\":" << OpsV310ArtifactJson("eventFrame",
+                                                      event_frame.empty() ? "missing" : "present",
+                                                      event_frame,
+                                                      "EventRecord snapshotPath",
+                                                      true)
+        << ",\"representativeImage\":"
+        << OpsV310ArtifactJson("representativeImage",
+                               representative_image.empty() ? "missing" : "selected",
+                               representative_image,
+                               "EvidenceManifest representativeImage",
+                               true)
+        << ",\"frameBundle\":"
+        << OpsV310ArtifactJson("frameBundle",
+                               frame_bundle.empty() ? "missing" : "present",
+                               frame_bundle,
+                               "vlmEvidenceRefs.temporalContext.frameBundleManifest")
+        << ",\"encodedClip\":{"
+        << "\"schema\":\"media-server.encoded-event-clip-contract.v1\","
+        << "\"status\":\"" << (encoded_media.empty() ? "missing" : "completed") << "\","
+        << "\"available\":" << (encoded_media.empty() ? "false" : "true") << ","
+        << "\"encodedClipManifestPath\":\"" << JsonEscape(encoded_manifest.empty() ? "not-available" : encoded_manifest) << "\","
+        << "\"encodedClipMediaPath\":\"" << JsonEscape(encoded_media.empty() ? "not-available" : encoded_media) << "\","
+        << "\"clipManifestPath\":\"" << JsonEscape(clip_manifest.empty() ? "not-available" : clip_manifest) << "\","
+        << "\"format\":\"webm\","
+        << "\"codec\":\"vp8\","
+        << "\"boundedShortSegment\":true,"
+        << "\"continuousRecording\":false,"
+        << "\"archiveApi\":false"
+        << "},"
+        << "\"frameRefPtsMapping\":{"
+        << "\"timescale\":1000,"
+        << "\"startMs\":" << std::max<std::int64_t>(0, event_ms - pre_event_ms) << ","
+        << "\"eventMs\":" << event_ms << ","
+        << "\"endMs\":" << (event_ms + post_event_ms) << ","
+        << "\"eventClipPtsMs\":" << pre_event_ms << ","
+        << "\"sourceFrameRefBasis\":\"EventRecord/vlmEvidenceRefs\""
+        << "},"
+        << "\"timelinePoints\":"
+        << OpsV310ReplayTimelinePointsJson(event_frame,
+                                           representative_image,
+                                           frame_bundle,
+                                           encoded_manifest,
+                                           encoded_media)
+        << ",\"playbackSegments\":"
+        << OpsV310PlaybackSegmentsJson(pre_event_ms, post_event_ms, !encoded_media.empty())
+        << ",\"evidenceManifestPath\":\"" << JsonEscape(evidence_manifest.empty() ? "not-available" : evidence_manifest) << "\","
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsV310ReplayTimelineUiJson(
+    const std::vector<std::string>& event_json_records,
+    const std::unordered_map<std::string, OpsEventReviewState>& reviews) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v310-replay-timeline-ui.v1\","
+        << "\"status\":\"ops-v310-replay-timeline-ui\","
+        << "\"opsOnly\":true,"
+        << "\"frameRefPtsMappingRequired\":true,"
+        << "\"encodedClipTimelineRequired\":true,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false,"
+        << "\"clientDigestImplemented\":false,"
+        << "\"scopedIntegratorApiImplemented\":false,"
+        << "\"cleanupExecutionPerformed\":false,"
+        << "\"items\":[";
+    std::size_t written = 0;
+    for (std::size_t index = 0; index < event_json_records.size(); ++index) {
+        const std::string& event_json = event_json_records[index];
+        const std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+        if (!OpsEventReviewEventIdAllowed(event_id)) {
+            continue;
+        }
+        const auto review_it = reviews.find(event_id);
+        const OpsEventReviewState review =
+            review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
+        if (written != 0) {
+            out << ",";
+        }
+        out << OpsV310ReplayTimelineItemJson(event_json, review, index);
+        ++written;
+        if (written >= 12U) {
+            break;
+        }
+    }
+    out << "],"
+        << "\"itemCount\":" << written
+        << "}";
+    return out.str();
+}
+
 analysis::EventSearchIndexEventRecord OpsV300IndexEventRecordFromJson(
     const std::string& event_json,
     const std::size_t index) {
@@ -15783,6 +16053,9 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         << ","
         << "\"eventEvidenceSearch\":"
         << OpsV300EventEvidenceSearchUiJson(event_result.records_json, reviews, query)
+        << ","
+        << "\"replayTimeline\":"
+        << OpsV310ReplayTimelineUiJson(event_result.records_json, reviews)
         << ","
         << "\"memorySearch\":" << OpsIncidentMemorySearchViewJson(event_result.records_json, reviews, query)
         << ","

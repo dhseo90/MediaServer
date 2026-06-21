@@ -127,6 +127,13 @@ const pageChecks = [
     mustNot: ['href="/ops/events"'],
   },
   {
+    name: "ops-events-replay-timeline",
+    path: "/ops/events",
+    visualSelector: '[data-testid="ops-v310-replay-timeline-ui"]',
+    must: ['data-testid="ops-events-page"', 'data-testid="ops-v310-replay-timeline-ui"', 'data-v310-replay-timeline-ui="event-frame-frame-bundle-encoded-clip"', 'id="opsV310ReplayTimelineSummary"', 'id="opsV310ReplayTimelineBadges"', 'id="opsV310ReplayTimelineRows"', 'replayTimeline', 'media-server.ops.v310-replay-timeline-ui.v1', 'event frame', 'representative image', 'frame bundle', 'encoded clip timeline', '/ops/api/events/reviews'],
+    mustNot: ['href="/ops/events"'],
+  },
+  {
     name: "ops-rules",
     path: "/ops/rules",
     visualSelector: '[data-testid="ops-rules-page"]',

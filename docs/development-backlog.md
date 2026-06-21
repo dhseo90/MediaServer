@@ -19,7 +19,7 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 ## 현재 source roadmap: v3.1.0 Encoded Event Clip and Safe Sharing Expansion
 
 상태: `V310-S00` source baseline 정렬 완료, `V310-S01` Encoded Event Clip Contract
-완료, `V310-S02` Event Clip Encoder Pipeline 완료.
+완료, `V310-S02` Event Clip Encoder Pipeline 완료, `V310-S03` Replay Timeline UI 완료.
 이 절은 v3.1.0 전체 기능 완료 evidence가 아니며, 실제 기능 구현은 각 Step별 코드/UI/API/검증
 evidence가 생긴 뒤에만 완료로 기록합니다. V310-S00 baseline 정렬 자체는 기능 구현 완료
 evidence가 아닙니다.
@@ -88,7 +88,7 @@ license/provenance/privacy/운영 제약:
 | 0 | V310-S00 | P0 | 완료 | v3.1 baseline | VERSION/CMake/README/docs/backlog/source roadmap을 v3.1 작업 기준으로 정렬 | source `3.1.0`, latest published `v3.0.0`, current roadmap `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`, V310-S00 verifier 연결 | `./server.sh verify-v310-entry-baseline`, `verify-release-metadata`, docs/inventory gates. 기능 구현 완료 evidence가 아님 |
 | 1 | V310-S01 | P0 | 완료 | Encoded Event Clip Contract | MP4/WebM clip manifest, FrameRef/PTS mapping, non-VMS boundary 정의 | [docs/v310-encoded-event-clip-contract.md](v310-encoded-event-clip-contract.md), `test/fixtures/v310_event_clip_contract/encoded_clip_manifest_sample.json`, `./server.sh verify-v310-event-clip-contract` | encoder pipeline, replay timeline UI, cleanup 실행 완료 evidence가 아님 |
 | 2 | V310-S02 | P0 | 완료 | Event Clip Encoder Pipeline | bounded short segment 또는 frame bundle 기반 encoded clip generation, queue/status/cleanup | `src/analysis/event_storage.cpp`의 frame-bundle hook이 `.clip/encoded/event-clip.webm`과 `.clip/encoded/encoded-manifest.json`을 생성하고 `scripts/internal/analysis_state_smoke.cpp`가 WebM/VP8, EBML header, FrameRef-PTS mapping, queue/status/frameMap/non-VMS boundary를 확인함 | replay UI, client digest, scoped API, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
-| 3 | V310-S03 | P0 | 예정 | Replay Timeline UI | `/ops/events` event frame, representative image, frame bundle, encoded clip timeline | 미구현 | S00 완료 evidence가 아님 |
+| 3 | V310-S03 | P0 | 완료 | Replay Timeline UI | `/ops/events` event frame, representative image, frame bundle, encoded clip timeline | `src/ingress/webrtc_http_server.cpp`의 `/ops/events` shell과 `OpsV310ReplayTimelineUiJson`, `src/ingress/product_ui_page_scripts.cpp`의 `renderV310ReplayTimelineUi`, `src/ingress/product_ui_css.cpp`의 replay timeline styles, `scripts/internal/verify_v310_replay_timeline_ui.mjs`와 `./server.sh verify-v310-replay-timeline-ui` | UI 풀테스트 직접 조작, 30분/120분, client digest, scoped API, cleanup 실행, published metadata evidence가 아님 |
 | 4 | V310-S04 | P1 | 예정 | Client-safe Event Digest | redacted viewer-safe summary | 미구현 | S00 완료 evidence가 아님 |
 | 5 | V310-S05 | P1 | 예정 | Scoped Integrator Search API | scope-gated search API와 redaction guard | 미구현 | S00 완료 evidence가 아님 |
 | 6 | V310-S06 | P1 | 예정 | Operator Feature Correction | feature correction, aliases, reanalysis request | 미구현 | S00 완료 evidence가 아님 |
@@ -159,6 +159,19 @@ license/provenance/privacy/운영 제약:
 - `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`: `EVT-059`, `SAFE-083`, V310-S02 안정화 확인 항목과 완료 evidence 경계를 추가했습니다.
 - 검증: 최초 WebM pipeline 시도는 4x4 smoke frame에서 GStreamer `not-negotiated`로 실패했습니다. `videoscale`과 최소 16x16 even caps를 명시한 뒤 `./server.sh verify-analysis-state`가 `pass=172 fail=0`으로 WebM/VP8 encoded clip media artifact, EBML header, encoded clip queue status, V300 evidence manifest, frame bundle manifest를 확인했습니다. 이후 `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-docs-links`, `verify-v310-event-clip-contract`, `./server.sh build`, `verify-script-inventory`, `verify-v300-event-evidence-contract`도 통과했습니다.
 - 완료 경계: 이번 구현은 V310-S02 bounded WebM/VP8 encoder/status/partial cleanup pipeline입니다. `/ops/events` replay timeline UI, client-safe digest, scoped integrator API, 30분/120분 장시간 테스트, UI 풀테스트 직접 조작, published metadata, PR/main/tag/GitHub Release는 S02 완료 근거가 아닙니다.
+
+## v3.1.0 S03 개발 기록
+
+- 범위: P0 `V310-S03 Replay Timeline UI`.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/events`에 `data-testid="ops-v310-replay-timeline-ui"` 섹션을 추가하고 `OpsV310ReplayTimelineUiJson`/`OpsV310ReplayTimelineItemJson` view model을 구성했습니다. 이 view model은 기존 EventRecord evidence refs와 review state에서 event frame, representative image, frame bundle, encoded clip timeline, FrameRef/PTS mapping, playback segments를 Ops-only summary로 파생합니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV310ReplayTimelineUi()`를 추가하고 `/ops/api/events/reviews` refresh flow에서 `replayTimeline`을 렌더링하도록 연결했습니다.
+- `src/ingress/product_ui_css.cpp`: `.v310-replay-timeline-ui`, artifact grid, timeline rail, playback segment UI 스타일을 추가했습니다.
+- `scripts/internal/verify_ops_client_ui_smoke.mjs`: `/ops/events` smoke coverage에 V310 replay timeline shell marker와 schema marker를 추가했습니다.
+- `scripts/internal/verify_v310_replay_timeline_ui.mjs`, `server.sh`: `./server.sh verify-v310-replay-timeline-ui` 명령을 추가해 `/ops/events` UI shell, replayTimeline view model, script rendering, CSS, ops smoke, docs/inventory/release records/server dispatch 연결을 정적 검증합니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`: `UI-060`, `OPS-063`, `SAFE-095`, V310-S03 안정화 확인 항목과 완료 evidence 경계를 추가했습니다.
+- 변경하지 않은 것: Event POST payload, WebRTC DataChannel schema, SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload, client/viewer route, client-safe digest, scoped integrator API, cleanup execution, published metadata는 변경하지 않았습니다.
+- 검증: 최초 `node scripts/internal/verify_v310_replay_timeline_ui.mjs`는 S03 UI shell/view model/script/CSS/docs/server dispatch가 없어서 `pass=0 fail=8`로 FAIL했습니다. 구현 후 `./server.sh verify-v310-replay-timeline-ui`는 `pass=8 fail=0`으로 통과했습니다. `./server.sh build`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh verify-docs-links`, `git diff --check`도 통과했습니다. `verify-ops-client-ui`는 서버 미기동/Node sandbox EPERM/auth-on 401 전제를 확인한 뒤 `MEDIA_SERVER_AUTH_MODE=off` 검증 서버에서 static smoke `pass=19 fail=0`, screenshot smoke `pass=25 fail=0` 및 visual/shell/client 세부 smoke fail 0으로 재검증했습니다. `verify-rule-ui`는 같은 auth-off 검증 서버와 Chrome fallback에서 `ok=true`로 통과했습니다.
+- 완료 경계: 이번 구현은 `/ops/events` event frame, representative image, frame bundle, encoded clip timeline 표시와 Ops-only replay summary입니다. UI 풀테스트 직접 조작, 30분/120분, client digest, scoped API, cleanup 실행, published metadata evidence가 아닙니다.
 
 ## 최신 공개 기준 상세: v3.0.0 Event Evidence Search MVP
 

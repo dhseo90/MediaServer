@@ -2591,6 +2591,65 @@ void AppendOpsShellScript(std::ostringstream& out,
           </article>`;
         }).join('');
       }
+      function renderV310ReplayTimelineUi(replayTimeline = {}) {
+        const root = document.getElementById('opsV310ReplayTimelineRows');
+        if (!root) return;
+        const items = Array.isArray(replayTimeline.items) ? replayTimeline.items : [];
+        renderBadges('opsV310ReplayTimelineBadges', [
+          { text: replayTimeline.schema || 'media-server.ops.v310-replay-timeline-ui.v1' },
+          { text: `events ${items.length}`, tone: items.length > 0 ? '' : 'warn' },
+          { text: replayTimeline.frameRefPtsMappingRequired === true ? 'FrameRef/PTS' : 'mapping 확인 필요', tone: replayTimeline.frameRefPtsMappingRequired === true ? 'info' : 'warn' },
+          { text: replayTimeline.encodedClipTimelineRequired === true ? 'encoded clip timeline' : 'clip 확인 필요', tone: replayTimeline.encodedClipTimelineRequired === true ? 'info' : 'warn' },
+          { text: replayTimeline.viewerClientExposureAdded === false ? 'Ops only' : '노출 확인 필요', tone: replayTimeline.viewerClientExposureAdded === false ? 'info' : 'warn' },
+          { text: replayTimeline.sourceUrlExposed === false && replayTimeline.rawJsonExposed === false && replayTimeline.debugMaterialExposed === false ? 'redacted refs' : 'redaction 확인 필요', tone: replayTimeline.sourceUrlExposed === false && replayTimeline.rawJsonExposed === false && replayTimeline.debugMaterialExposed === false ? 'info' : 'warn' }
+        ]);
+        setText(
+          'opsV310ReplayTimelineSummary',
+          items.length
+            ? `V310 replay timeline · ${items.length} event · event frame / representative image / frame bundle / encoded clip`
+            : 'EventRecord evidence refs와 encoded clip manifest가 있으면 replay timeline이 표시됩니다.'
+        );
+        if (items.length === 0) {
+          root.innerHTML = '<p class="ops-rule-note">표시할 V310 replay timeline이 없습니다.</p>';
+          return;
+        }
+        const artifactCard = (label, artifact = {}) => `<p data-v310-replay-artifact="${escapeHtml(label)}">
+          <strong>${escapeHtml(label)}</strong>
+          <span>${escapeHtml(display(artifact.status || (artifact.available ? 'present' : 'missing')))}</span>
+          <small>${escapeHtml(display(artifact.storageKey || artifact.encodedClipManifestPath || artifact.encodedClipMediaPath || 'not-available'))}</small>
+        </p>`;
+        root.innerHTML = items.map(item => {
+          const timelinePoints = Array.isArray(item?.timelinePoints) ? item.timelinePoints : [];
+          const playbackSegments = Array.isArray(item?.playbackSegments) ? item.playbackSegments : [];
+          const mapping = item?.frameRefPtsMapping || {};
+          const encodedClip = item?.encodedClip || {};
+          return `<article class="v310-replay-timeline-card" data-v310-replay-event="${escapeHtml(item?.eventId || '')}">
+            <div class="table-cell-main">
+              <strong>${escapeHtml(display(item?.eventType || item?.eventId || 'replay event'))}</strong>
+              <span>${escapeHtml(display(item?.eventId || '-'))} · ${escapeHtml(display(item?.sourceId || 'unknown-source'))} · review ${escapeHtml(display(item?.reviewState || 'new'))}</span>
+            </div>
+            <div class="v310-replay-artifact-grid">
+              ${artifactCard('eventFrame', item?.eventFrame)}
+              ${artifactCard('representativeImage', item?.representativeImage)}
+              ${artifactCard('frameBundle', item?.frameBundle)}
+              ${artifactCard('encodedClip', encodedClip)}
+            </div>
+            <div class="v310-replay-timeline-rail" data-v310-replay-timeline="${escapeHtml(item?.eventId || '')}">
+              ${timelinePoints.map(point => `<div class="v310-replay-timeline-point" data-v310-replay-phase="${escapeHtml(point?.phase || '')}">
+                <span>${escapeHtml(display(point?.phase || 'phase'))}</span>
+                <strong>${escapeHtml(display(point?.status || 'unknown'))}</strong>
+                <p>${escapeHtml(display(point?.label || point?.ref || 'evidence ref'))}</p>
+              </div>`).join('')}
+            </div>
+            <div class="v310-replay-playback-segments">
+              ${playbackSegments.map(segment => `<span class="chip ${segment?.status === 'completed' ? 'info' : ''}" data-v310-replay-segment="${escapeHtml(segment?.key || '')}">
+                ${escapeHtml(display(segment?.key || 'segment'))} ${escapeHtml(display(segment?.startRelativeToEventMs ?? '-'))}→${escapeHtml(display(segment?.endRelativeToEventMs ?? '-'))}ms · ${escapeHtml(display(segment?.status || 'unknown'))}
+              </span>`).join('')}
+            </div>
+            <p class="ops-rule-note">FrameRef/PTS eventClipPtsMs ${escapeHtml(display(mapping.eventClipPtsMs ?? '-'))} · encodedClipMediaPath ${escapeHtml(display(encodedClip.encodedClipMediaPath || 'not-available'))} · sourceUrlExposed ${item?.sourceUrlExposed === false ? 'false' : '확인 필요'} · rawJsonExposed ${item?.rawJsonExposed === false ? 'false' : '확인 필요'} · debugMaterialExposed ${item?.debugMaterialExposed === false ? 'false' : '확인 필요'}</p>
+          </article>`;
+        }).join('');
+      }
       function renderVlmSummaryCandidateReview(vlmSummaryCandidateReview = {}) {
         const root = document.getElementById('opsVlmSummaryCandidateRows');
         if (!root) return;
@@ -3527,6 +3586,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         renderApprovalGatedRuleDraftReadiness(reviewPayload.approvalGatedRuleDraftReadiness || {});
         renderOperatorOutcomeMemory(reviewPayload.operatorOutcomeMemory || {});
         renderV300EventEvidenceSearchUi(reviewPayload.eventEvidenceSearch || {});
+        renderV310ReplayTimelineUi(reviewPayload.replayTimeline || {});
         renderIncidentMemorySearch(reviewPayload.memorySearch || {});
         renderVlmSummaryCandidateReview(reviewPayload.memorySearch?.vlmSummaryCandidateReview || {});
         renderSimilarIncidentLookup(reviewPayload.similarIncidents || {});
@@ -3537,7 +3597,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (prevButton) prevButton.disabled = opsEventRecordsOffset <= 0;
         if (nextButton) nextButton.disabled = !records.hasMore;
         if (records.nextOffset != null) nextButton?.setAttribute('data-next-offset', String(records.nextOffset));
-        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, incidentTriageBoard: reviewPayload.incidentTriageBoard || {}, incidentDecisionScorecard: reviewPayload.incidentDecisionScorecard || {}, operationalActionPack: reviewPayload.operationalActionPack || {}, incidentActionReadinessQueue: reviewPayload.incidentActionReadinessQueue || {}, evidenceIntakeFieldReadiness: reviewPayload.evidenceIntakeFieldReadiness || {}, runtimeEvidenceWindow: reviewPayload.runtimeEvidenceWindow || {}, ruleWhatIfPreview: reviewPayload.ruleWhatIfPreview || {}, approvalGatedRuleDraftReadiness: reviewPayload.approvalGatedRuleDraftReadiness || {}, operatorOutcomeMemory: reviewPayload.operatorOutcomeMemory || {}, eventEvidenceSearch: reviewPayload.eventEvidenceSearch || {}, memorySearch: reviewPayload.memorySearch || {}, vlmSummaryCandidateReview: reviewPayload.memorySearch?.vlmSummaryCandidateReview || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
+        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, incidentTriageBoard: reviewPayload.incidentTriageBoard || {}, incidentDecisionScorecard: reviewPayload.incidentDecisionScorecard || {}, operationalActionPack: reviewPayload.operationalActionPack || {}, incidentActionReadinessQueue: reviewPayload.incidentActionReadinessQueue || {}, evidenceIntakeFieldReadiness: reviewPayload.evidenceIntakeFieldReadiness || {}, runtimeEvidenceWindow: reviewPayload.runtimeEvidenceWindow || {}, ruleWhatIfPreview: reviewPayload.ruleWhatIfPreview || {}, approvalGatedRuleDraftReadiness: reviewPayload.approvalGatedRuleDraftReadiness || {}, operatorOutcomeMemory: reviewPayload.operatorOutcomeMemory || {}, eventEvidenceSearch: reviewPayload.eventEvidenceSearch || {}, replayTimeline: reviewPayload.replayTimeline || {}, memorySearch: reviewPayload.memorySearch || {}, vlmSummaryCandidateReview: reviewPayload.memorySearch?.vlmSummaryCandidateReview || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
       }
       const itemId = item => display(item?.id || item?.ruleId || item?.profileId || '-');
       const opsRulesIdText = value => {
