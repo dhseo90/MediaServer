@@ -136,6 +136,7 @@ function isDocsIndexCoverageExcluded(file) {
   const normalized = file.replaceAll(path.sep, "/");
   return (
     normalized.startsWith("docs/superpowers/plans/") ||
+    normalized.startsWith("docs/release-artifacts/") ||
     normalized.startsWith("docs/v220-") ||
     normalized.startsWith("docs/v230-") ||
     normalized === "docs/release-evidence-index.md" ||

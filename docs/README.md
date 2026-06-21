@@ -9,13 +9,13 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 - 최신 공개 GitHub Release: [`v3.0.0`](https://github.com/dhseo90/MediaServer/releases/tag/v3.0.0)
 - 최신 published baseline: `v3.0.0 Event Evidence Search MVP`
 - 직전 published baseline: `v2.9.0 Final 2.x Closure & Compatibility Baseline`
-- 현재 소스 버전: `3.0.0`
+- 현재 소스 버전: `3.1.0`
 - v3.0.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- 현재 source roadmap: `v3.0.0 Event Evidence Search MVP`
+- 현재 source roadmap: `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`
 - 기본 공개 형태: source-only
 - 공개 문서/대표 asset 기준: `README.md`, `README.en.md`, `docs/README.md`,
-  `docs/en/README.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`는 v3.0
-  source baseline과 v3.0 published baseline을 정렬하고 직전 v2.9 baseline은
+  `docs/en/README.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`는 v3.1
+  source baseline과 v3.0 published baseline을 분리 정렬하고 직전 v2.9 baseline은
   historical reference로 유지합니다. 대표 이미지는
   `config/docs_ui_assets.json`과 `./server.sh verify-docs-ui-assets`로 관리하고,
   교체 시 직접 이미지 검수 기록을 별도로 남깁니다.
@@ -72,6 +72,7 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 | [project-feature-test-inventory.md](project-feature-test-inventory.md) | 기능별 테스트 영역 inventory. 실행 evidence가 아니라 coverage 기준 |
 | [video-analysis.md](video-analysis.md) | VA pipeline, rule, scenario, metadata |
 | [event-evidence-contract.md](event-evidence-contract.md) | v3.0 Event Evidence Contract와 FrameRef/retention/non-VMS 경계 |
+| [v310-encoded-event-clip-contract.md](v310-encoded-event-clip-contract.md) | v3.1 Encoded Event Clip Contract와 FrameRef/PTS/non-VMS 경계 |
 | [event-feature-schema-privacy.md](event-feature-schema-privacy.md) | v3.0 FeatureSet schema와 비식별 privacy guard |
 | [v300-search-dsl-query-convert.md](v300-search-dsl-query-convert.md) | v3.0 Search DSL/query convert 경계 |
 | [v300-feature-search-index.md](v300-feature-search-index.md) | v3.0 Feature/Search Index와 stale result guard 경계 |

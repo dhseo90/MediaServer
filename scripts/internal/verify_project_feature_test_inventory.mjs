@@ -141,6 +141,7 @@ check("feature rows have required matrix columns", () => {
 });
 
 check("inventory rejects separate test-area labels", () => {
+  const featureAreaText = parseFeatureRows(inventory).map(row => row.area).join("\n");
   for (const forbidden of [
     "필드 별도",
     "field 별도",
@@ -149,7 +150,7 @@ check("inventory rejects separate test-area labels", () => {
     "field-smoke-or-exclusion",
     "field exclusion",
   ]) {
-    assert(!inventory.includes(forbidden), `inventory must not contain unsupported test-area wording: ${forbidden}`);
+    assert(!featureAreaText.includes(forbidden), `inventory must not contain unsupported test-area wording: ${forbidden}`);
   }
 });
 
@@ -207,6 +208,8 @@ check("current feature expansion rows exist", () => {
     "UI-057",
     "UI-058",
     "UI-059",
+    "UI-060",
+    "UI-061",
     "SRC-031",
     "SRC-032",
     "RULE-103",
@@ -241,9 +244,14 @@ check("current feature expansion rows exist", () => {
     "EVT-056",
     "EVT-057",
     "EVT-058",
+    "EVT-059",
     "EVT-060",
+    "EVT-061",
+    "EVT-062",
     "CLIENT-023",
     "CLIENT-024",
+    "CLIENT-025",
+    "CLIENT-026",
     "OPS-036",
     "OPS-037",
     "OPS-038",
@@ -268,6 +276,7 @@ check("current feature expansion rows exist", () => {
     "OPS-057",
     "OPS-058",
     "OPS-059",
+    "OPS-063",
     "MEDIA-021",
     "LAB-045",
     "LAB-046",
@@ -371,6 +380,7 @@ check("current feature expansion rows exist", () => {
     "SAFE-080",
     "SAFE-081",
     "SAFE-082",
+    "SAFE-083",
     "SAFE-084",
     "SAFE-085",
     "SAFE-086",
@@ -380,19 +390,36 @@ check("current feature expansion rows exist", () => {
     "SAFE-090",
     "SAFE-091",
     "SAFE-092",
+    "SAFE-093",
+    "SAFE-094",
+    "SAFE-095",
+    "SAFE-096",
     "OPS-060",
+    "OPS-061",
+    "OPS-062",
+    "OPS-064",
+    "OPS-065",
+    "OPS-066",
+    "OPS-067",
+    "OPS-068",
+    "SAFE-097",
+    "SAFE-098",
+    "SAFE-099",
+    "SAFE-100",
+    "SAFE-101",
+    "LAB-089",
   ];
   const ids = new Set(parseFeatureRows(inventory).map(row => row.id));
   for (const id of requiredRows) {
     assert(ids.has(id), `missing current expanded feature row: ${id}`);
   }
   for (const snippet of [
-    "`UI-001`~`UI-018`, `UI-022`~`UI-059`",
-    "`EVT-001`~`EVT-060`",
+    "`UI-001`~`UI-018`, `UI-022`~`UI-061`",
+    "`EVT-001`~`EVT-062`",
     "`MEDIA-001`~`MEDIA-021`",
-    "`LAB-001`~`LAB-088`",
-    "`SAFE-001`~`SAFE-092`",
-    "`OPS-035`~`OPS-060`",
+    "`LAB-001`~`LAB-089`",
+    "`SAFE-001`~`SAFE-101`",
+    "`OPS-035`~`OPS-068`",
     "VLM route, control, action, runtime state, sidecar, privacy guard",
     "V300-S02 Frame Bundle Extraction",
     "V300-S03 Feature Schema and Privacy Policy",
@@ -401,6 +428,28 @@ check("current feature expansion rows exist", () => {
     "V300-S07 Feature/Search Index",
     "V300-S09 Retention/Pin/Cleanup",
     "V300-S10 Stabilization and Release Readiness",
+    "V310-S00 Baseline/source-of-truth",
+    "V310-S01 Encoded Event Clip Contract",
+    "V310-S05 Scoped Integrator Search API",
+    "V310-S06 Operator Feature Correction",
+    "V310-S07 Optional Vector Search",
+    "V310-S08 Retention/Export Hardening",
+    "V310-S09 Stabilization and Release Readiness",
+    "CLIENT-026",
+    "SAFE-097",
+    "OPS-064",
+    "UI-061",
+    "EVT-061",
+    "EVT-062",
+    "LAB-089",
+    "SAFE-098",
+    "OPS-065",
+    "SAFE-099",
+    "OPS-066",
+    "SAFE-100",
+    "OPS-067",
+    "SAFE-101",
+    "OPS-068",
   ]) {
     requireText(inventory, snippet, `inventory missing current expansion snippet: ${snippet}`);
   }

@@ -10,6 +10,8 @@ namespace analysis {
 namespace {
 
 constexpr std::int64_t kMsPerDay = 24LL * 60LL * 60LL * 1000LL;
+constexpr const char* kEncodedClipRetentionExportHardening =
+    "encoded-clip-retention-export-hardening";
 
 std::string JsonEscape(const std::string& value) {
     std::string out;
@@ -69,7 +71,8 @@ EventRetentionCleanupAuditEntry MakeAuditEntry(const EventRetentionCleanupResult
     entry.action = result.audit_action;
     entry.mode = result.dry_run ? "dry-run" : "apply";
     entry.event_id = "retention-cleanup-summary";
-    entry.reason = "expiredCandidates=" + std::to_string(action_count);
+    entry.reason = "expiredCandidates=" + std::to_string(action_count) +
+                   ";policy=" + kEncodedClipRetentionExportHardening;
     return entry;
 }
 
@@ -89,6 +92,8 @@ EventRetentionCleanupItem MakeRetentionCleanupItem(const std::string& event_id,
     item.event_time_ms = event_time_ms;
     item.pinned = pinned;
     item.evidence_manifest_count = 1;
+    item.encoded_clip_manifest_count = 1;
+    item.encoded_clip_media_count = 1;
     item.feature_revision_count = 2;
     item.search_indexed = true;
     return item;
@@ -146,10 +151,15 @@ EventRetentionCleanupResult BuildEventRetentionCleanupPlan(
             if (!request.dry_run) {
                 action.event_record_deleted = true;
                 action.evidence_manifests_deleted = item.evidence_manifest_count;
+                action.encoded_clip_manifest_deleted = item.encoded_clip_manifest_count > 0;
+                action.encoded_clip_manifests_deleted = item.encoded_clip_manifest_count;
+                action.encoded_clip_media_deleted = item.encoded_clip_media_count;
                 action.feature_revisions_deleted = item.feature_revision_count;
                 action.search_index_deindexed = item.search_indexed;
                 ++result.deleted_event_records;
                 result.deleted_evidence_manifests += item.evidence_manifest_count;
+                result.deleted_encoded_clip_manifests += item.encoded_clip_manifest_count;
+                result.deleted_encoded_clip_media += item.encoded_clip_media_count;
                 result.deleted_feature_revisions += item.feature_revision_count;
                 if (item.search_indexed) {
                     ++result.deindexed_search_entries;
@@ -194,6 +204,8 @@ std::string EventRetentionCleanupResultJson(const EventRetentionCleanupResult& r
         << "\"pinnedRetained\":" << result.pinned_retained << ","
         << "\"deletedEventRecords\":" << result.deleted_event_records << ","
         << "\"deletedEvidenceManifests\":" << result.deleted_evidence_manifests << ","
+        << "\"deletedEncodedClipManifests\":" << result.deleted_encoded_clip_manifests << ","
+        << "\"deletedEncodedClipMedia\":" << result.deleted_encoded_clip_media << ","
         << "\"deletedFeatureRevisions\":" << result.deleted_feature_revisions << ","
         << "\"deindexedSearchEntries\":" << result.deindexed_search_entries << ","
         << "\"auditAction\":\"" << JsonEscape(result.audit_action) << "\","
@@ -223,6 +235,8 @@ std::string EventRetentionCleanupResultJson(const EventRetentionCleanupResult& r
             << "\"action\":\"" << JsonEscape(action.action) << "\","
             << "\"reason\":\"" << JsonEscape(action.reason) << "\","
             << "\"retentionDays\":" << action.retention_days << ","
+            << "\"encodedClipManifestsDeleted\":" << action.encoded_clip_manifests_deleted << ","
+            << "\"encodedClipMediaDeleted\":" << action.encoded_clip_media_deleted << ","
             << "\"pinned\":" << (action.pinned ? "true" : "false")
             << "}";
     }

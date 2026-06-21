@@ -1,0 +1,5 @@
+[pass] product UI does not use native browser dialogs
+
+== Product UI native dialog guard summary ==
+- result: PASS
+- findings: 0

@@ -1,0 +1,18 @@
+[pass] in-app /ops/sources table layout evidence
+[pass] in-app /ops/rules table layout evidence
+[pass] in-app /ops/users table layout evidence
+[pass] in-app table generated-id and assignment interactions
+
+== Ops 데이터 테이블 레이아웃 요약 ==
+- 통과: 4
+- 실패: 0
+{
+  "mode": "in-app-evidence",
+  "evidence": "/Users/dhseo/Desktop/workspace/codexTest/mediaServer/docs/release-artifacts/v3.1.0/ui-fulltest-20260621/in-app-evidence.json",
+  "widths": [
+    320,
+    390,
+    760,
+    1180
+  ]
+}

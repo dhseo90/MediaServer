@@ -239,6 +239,10 @@ void AppendClientShellScript(std::ostringstream& out) {
       for (const item of digestItems) {
         lines.push(`요약: ${item.summaryText || 'viewer-safe event summary'} / ${item.severity || 'normal'}`);
       }
+      const eventDigestItems = Array.isArray(events.eventDigest?.digestItems) ? events.eventDigest.digestItems.slice(0, 3) : [];
+      for (const item of eventDigestItems) {
+        lines.push(`이벤트 digest: ${item.summaryText || 'viewer-safe event summary'} / ${item.severity || 'normal'} / ${item.timelineHint || 'recorded event'}`);
+      }
       return lines.join('\n');
     };
     const clientStatusSummaryText = (payload = {}) => {
@@ -311,6 +315,33 @@ void AppendClientShellScript(std::ostringstream& out) {
               <div>
                 <strong>${escapeHtml(item.summaryText || 'viewer-safe event summary')}</strong>
                 <span>${escapeHtml(item.eventType || 'event')} · ${escapeHtml(item.status || 'recorded')} · ${escapeHtml(formatTime(item.time))}</span>
+              </div>
+              <span class="chip ${item.severity === 'attention' ? 'warn' : 'info'}">${escapeHtml(item.severity || 'normal')}</span>
+            </article>`).join('')}
+        </div>
+      </section>`;
+    }
+    function renderClientSafeEventDigest(eventDigest = {}) {
+      const items = Array.isArray(eventDigest.digestItems) ? eventDigest.digestItems : [];
+      return `<section class="client-safe-event-digest" data-testid="client-safe-event-digest" data-client-event-digest="viewer-safe" aria-label="viewer-safe event digest" data-client-digest-schema="media-server.client.event-digest.v1">
+        <div class="toolbar">
+          <div>
+            <h3>이벤트 digest</h3>
+            <p>${eventDigest.viewerSafe === true ? '허용된 이벤트 요약만 표시됩니다.' : '이벤트 digest 상태 확인이 필요합니다.'}</p>
+          </div>
+          <div class="meta">
+            <span class="chip ${eventDigest.viewerSafe === true ? 'info' : 'warn'}">viewer-safe</span>
+            <span class="chip ${eventDigest.publishedViewScoped === true ? 'info' : 'warn'}">view scope</span>
+            <span class="chip ${eventDigest.encodedClipPathIncluded === false ? 'info' : 'warn'}">clip path ${eventDigest.encodedClipPathIncluded === false ? '숨김' : '확인'}</span>
+          </div>
+        </div>
+        <div class="client-safe-digest-list">
+          ${items.length === 0
+            ? emptyState('이벤트 digest 없음', '표시할 viewer-safe event digest가 없습니다.')
+            : items.map(item => `<article class="client-safe-digest-item">
+              <div>
+                <strong>${escapeHtml(item.summaryText || 'viewer-safe event summary')}</strong>
+                <span>${escapeHtml(item.eventType || 'event')} · ${escapeHtml(item.status || 'recorded')} · ${escapeHtml(item.timelineHint || 'recorded event')} · ${escapeHtml(formatTime(item.time))}</span>
               </div>
               <span class="chip ${item.severity === 'attention' ? 'warn' : 'info'}">${escapeHtml(item.severity || 'normal')}</span>
             </article>`).join('')}
@@ -817,6 +848,7 @@ void AppendClientShellScript(std::ostringstream& out) {
           <div class="meta">
             ${(events.countsByType || []).map(item => `<span class="chip">${escapeHtml(item.eventType || '이벤트')} ${escapeHtml(item.count)}</span>`).join('') || '<span class="chip info">이벤트 없음</span>'}
           </div>
+          ${renderClientSafeEventDigest(events.eventDigest || {})}
           ${renderClientSafeIncidentDigest(events.incidentDigest || {})}
           ${renderClientSafeFollowUpDigest(events.followUpDigest || {})}
           ${renderEvents(events.recent || [])}
@@ -898,6 +930,7 @@ void AppendClientShellScript(std::ostringstream& out) {
         <div class="meta">
           ${(events.countsByType || []).map(item => `<span class="chip">${escapeHtml(item.eventType || '이벤트')} ${escapeHtml(item.count)}</span>`).join('') || '<span class="chip info">이벤트 없음</span>'}
         </div>
+        ${renderClientSafeEventDigest(events.eventDigest || {})}
         ${renderClientSafeIncidentDigest(events.incidentDigest || {})}
         ${renderClientSafeFollowUpDigest(events.followUpDigest || {})}
         <section class="events client-viewer-event-feed">${renderEvents(events.recent || [])}</section>
@@ -1929,6 +1962,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	        <div class="meta">
 	          ${(events.countsByType || []).map(item => `<span class="chip">${escapeHtml(item.eventType || '이벤트')} ${escapeHtml(item.count)}</span>`).join('') || '<span class="chip info">이벤트 없음</span>'}
 	        </div>
+	        ${renderClientSafeEventDigest(events.eventDigest || {})}
 	        ${renderClientSafeIncidentDigest(events.incidentDigest || {})}
 	        ${renderClientSafeFollowUpDigest(events.followUpDigest || {})}
 	        <section class="live-dock-events">${liveDockEventItemsHtml(events.recent || [])}</section>

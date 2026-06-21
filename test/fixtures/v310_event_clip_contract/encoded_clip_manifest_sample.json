@@ -1,0 +1,130 @@
+{
+  "schema": "media-server.encoded-event-clip-contract.v1",
+  "contractVersion": 1,
+  "eventId": "event-20260621-encoded-0001",
+  "sourceId": "cam-lobby",
+  "channelId": "main",
+  "streamEpochId": "stream-20260621-090000",
+  "createdAtMs": 1782022800456,
+  "sampleKind": "contract-fixture-not-runtime-output",
+  "clip": {
+    "clipId": "clip-event-20260621-encoded-0001",
+    "role": "encodedEventClip",
+    "requiredWhenGenerated": true,
+    "storageKey": "events/event-20260621-encoded-0001/clips/event-window.mp4",
+    "manifestStorageKey": "events/event-20260621-encoded-0001/clips/encoded-clip-manifest.json",
+    "durationMs": 5000,
+    "startRelativeToEventMs": -2000,
+    "endRelativeToEventMs": 3000,
+    "byteLength": 524288,
+    "sha256": "0f7ad08d4f99d4ad7af9e29f4aa35d75a6e4d6b67bb3f38c7db863145f8a4c31"
+  },
+  "format": {
+    "container": "mp4",
+    "mimeType": "video/mp4",
+    "videoCodec": "h264",
+    "extension": ".mp4",
+    "allowedContainers": ["mp4", "webm"],
+    "allowedMimeTypes": ["video/mp4", "video/webm"]
+  },
+  "ptsMapping": {
+    "timescale": 1000,
+    "clipStartPtsMs": 101000,
+    "clipEndPtsMs": 106000,
+    "eventSourcePtsMs": 103000,
+    "eventClipPtsMs": 2000,
+    "frames": [
+      {
+        "phase": "pre",
+        "clipPtsMs": 0,
+        "relativeToEventMs": -2000,
+        "frameRef": {
+          "sourceId": "cam-lobby",
+          "channelId": "main",
+          "streamEpochId": "stream-20260621-090000",
+          "frameSeq": 3020,
+          "ptsMs": 101000,
+          "wallClockMs": 1782022798000,
+          "relativeToEventMs": -2000
+        },
+        "artifactRefs": []
+      },
+      {
+        "phase": "event",
+        "clipPtsMs": 2000,
+        "relativeToEventMs": 0,
+        "frameRef": {
+          "sourceId": "cam-lobby",
+          "channelId": "main",
+          "streamEpochId": "stream-20260621-090000",
+          "frameSeq": 3080,
+          "ptsMs": 103000,
+          "wallClockMs": 1782022800000,
+          "relativeToEventMs": 0
+        },
+        "artifactRefs": ["artifact-event-frame", "artifact-crop-person-1"]
+      },
+      {
+        "phase": "post",
+        "clipPtsMs": 5000,
+        "relativeToEventMs": 3000,
+        "frameRef": {
+          "sourceId": "cam-lobby",
+          "channelId": "main",
+          "streamEpochId": "stream-20260621-090000",
+          "frameSeq": 3170,
+          "ptsMs": 106000,
+          "wallClockMs": 1782022803000,
+          "relativeToEventMs": 3000
+        },
+        "artifactRefs": ["artifact-representative-image"]
+      }
+    ]
+  },
+  "evidenceLinks": {
+    "evidenceManifestStorageKey": "events/event-20260621-encoded-0001/evidence-manifest.json",
+    "frameBundleManifestStorageKey": "events/event-20260621-encoded-0001/frame-bundle-manifest.json",
+    "eventFrameArtifactId": "artifact-event-frame",
+    "representativeImageArtifactId": "artifact-representative-image",
+    "bboxCropArtifactIds": ["artifact-crop-person-1"]
+  },
+  "retention": {
+    "inheritsEventRetention": true,
+    "defaultDays": 7,
+    "pinned": false,
+    "pinnedExcludesAutomaticCleanup": true,
+    "cleanupRequiresDryRun": true,
+    "lifecycleGroup": [
+      "eventRecord",
+      "evidenceManifest",
+      "frameBundle",
+      "encodedClip",
+      "featureRevision",
+      "searchIndex",
+      "auditTrail"
+    ]
+  },
+  "privacy": {
+    "rawPromptStored": false,
+    "rawProviderResponseStored": false,
+    "providerCredentialStored": false,
+    "sourceUrlStored": false,
+    "identityFeaturesAllowed": false,
+    "allowedDurableFeatureMode": "structured-non-identifying-feature-only"
+  },
+  "nonVmsBoundary": {
+    "alwaysOnRecording": false,
+    "continuousSegmentIndex": false,
+    "vmsArchiveApi": false,
+    "broadArchivePlayback": false,
+    "onDemandArbitraryWindowExport": false,
+    "clientViewerExposure": false,
+    "cloudProviderDefaultOn": false
+  },
+  "generationBoundary": {
+    "pipelineImplementedInThisStep": false,
+    "queueStatusImplementedInThisStep": false,
+    "cleanupExecutionImplementedInThisStep": false,
+    "encoderPipelineStep": "V310-S02"
+  }
+}

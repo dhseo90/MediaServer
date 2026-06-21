@@ -1,0 +1,72 @@
+{
+  "sources": [
+    {
+      "sourceId": "9001",
+      "displayName": "UI Fulltest Sample H264",
+      "kind": "file",
+      "enabled": true,
+      "tags": [
+        "manual-ui-fulltest",
+        "throwaway"
+      ],
+      "ownerGroup": "Manual UI Fulltest",
+      "site": "QA Seed",
+      "group": "Manual UI",
+      "floor": "Fixture",
+      "zone": "Playback",
+      "canonicalSourceKey": "file:sample_h264.mp4",
+      "file": "sample_h264.mp4"
+    },
+    {
+      "sourceId": "9002",
+      "displayName": "UI Fulltest VA Four Scene",
+      "kind": "file",
+      "enabled": true,
+      "tags": [
+        "manual-ui-fulltest",
+        "throwaway"
+      ],
+      "ownerGroup": "Manual UI Fulltest",
+      "site": "QA Seed",
+      "group": "Manual UI",
+      "floor": "Fixture",
+      "zone": "VA Visual",
+      "canonicalSourceKey": "file:va_four_scene_sample.mp4",
+      "file": "va_four_scene_sample.mp4"
+    },
+    {
+      "sourceId": "9003",
+      "displayName": "UI Fulltest VA Tracking Event",
+      "kind": "file",
+      "enabled": true,
+      "tags": [
+        "manual-ui-fulltest",
+        "throwaway"
+      ],
+      "ownerGroup": "Manual UI Fulltest",
+      "site": "QA Seed",
+      "group": "Manual UI",
+      "floor": "Fixture",
+      "zone": "VA Events",
+      "canonicalSourceKey": "file:imports/va_tracking_event_1280x720_30fps_h264.mp4",
+      "file": "imports/va_tracking_event_1280x720_30fps_h264.mp4"
+    },
+    {
+      "sourceId": "9004",
+      "displayName": "UI Fulltest VA Tracking Long",
+      "kind": "file",
+      "enabled": true,
+      "tags": [
+        "manual-ui-fulltest",
+        "throwaway"
+      ],
+      "ownerGroup": "Manual UI Fulltest",
+      "site": "QA Seed",
+      "group": "Manual UI",
+      "floor": "Fixture",
+      "zone": "VA Long Events",
+      "canonicalSourceKey": "file:imports/va_tracking_event_long_1280x720_30fps_h264.mp4",
+      "file": "imports/va_tracking_event_long_1280x720_30fps_h264.mp4"
+    }
+  ]
+}

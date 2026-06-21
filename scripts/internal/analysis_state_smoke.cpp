@@ -2320,6 +2320,21 @@ EventSearchIndexReviewState MakeSearchIndexReview(const std::string& event_id) {
     return review;
 }
 
+EventOptionalVectorEmbedding MakeOptionalVectorEmbedding(const std::string& event_id,
+                                                        const std::string& embedding_id,
+                                                        const std::vector<float>& values,
+                                                        float quality) {
+    EventOptionalVectorEmbedding embedding;
+    embedding.event_id = event_id;
+    embedding.embedding_id = embedding_id;
+    embedding.namespace_name = "action";
+    embedding.model_id = "local-fixture-non-identifying";
+    embedding.evidence_ref = "bboxCrop";
+    embedding.values = values;
+    embedding.quality = quality;
+    return embedding;
+}
+
 void VerifyV300FeatureSearchIndex() {
     EventFeatureSearchIndex index;
     EventFeatureSearchIndexRebuildInput input;
@@ -2386,6 +2401,109 @@ void VerifyV300FeatureSearchIndex() {
     Pass("V300 S07 preserves provider/schema/media/UI boundary invariants");
 }
 
+void VerifyV310OptionalVectorSearch() {
+    EventFeatureSearchIndex index;
+    EventFeatureSearchIndexRebuildInput input;
+    input.events.push_back(MakeSearchIndexEvent("evt-v310-s07-hit", "cam-lobby", "loading", 1781950301000LL));
+    input.events.push_back(MakeSearchIndexEvent("evt-v310-s07-low-quality", "cam-lobby", "loading", 1781950300000LL));
+    input.events.push_back(MakeSearchIndexEvent("evt-v310-s07-face", "cam-lobby", "loading", 1781950299000LL));
+    input.events.push_back(MakeSearchIndexEvent("evt-v310-s07-dim", "cam-lobby", "loading", 1781950298000LL));
+    index.Rebuild(input);
+
+    std::vector<EventOptionalVectorEmbedding> default_off_embeddings;
+    default_off_embeddings.push_back(MakeOptionalVectorEmbedding(
+        "evt-v310-s07-hit", "emb-v310-s07-default-off", {0.9F, 0.1F, 0.0F}, 0.95F));
+    const EventOptionalVectorIndexReport default_report =
+        index.RebuildOptionalVectorIndex(default_off_embeddings, EventOptionalVectorIndexOptions{});
+    Expect(default_report.schema == "media-server.v310-optional-vector-search-report.v1",
+           "V310 S07 optional vector report schema must identify this step");
+    Expect(default_report.default_off && !default_report.vector_index_enabled &&
+               !default_report.rebuild_performed && default_report.indexed_embeddings == 0,
+           "V310 S07 optional vector index must remain default-off without explicit enablement");
+
+    EventOptionalVectorSearchQuery default_query;
+    default_query.enabled = true;
+    default_query.values = {1.0F, 0.0F, 0.0F};
+    const EventOptionalVectorSearchOutput default_output = index.SearchOptionalVector(default_query);
+    Expect(default_output.results.empty() && !default_output.report.vector_search_performed,
+           "V310 S07 default-off vector index must not perform vector search");
+
+    std::vector<EventOptionalVectorEmbedding> embeddings;
+    embeddings.push_back(MakeOptionalVectorEmbedding(
+        "evt-v310-s07-hit", "emb-v310-s07-good", {0.92F, 0.08F, 0.0F}, 0.93F));
+    embeddings.push_back(MakeOptionalVectorEmbedding(
+        "evt-v310-s07-low-quality", "emb-v310-s07-low", {0.89F, 0.11F, 0.0F}, 0.20F));
+    EventOptionalVectorEmbedding face = MakeOptionalVectorEmbedding(
+        "evt-v310-s07-face", "emb-v310-s07-face", {0.8F, 0.1F, 0.1F}, 0.91F);
+    face.face_embedding = true;
+    embeddings.push_back(face);
+    embeddings.push_back(MakeOptionalVectorEmbedding(
+        "evt-v310-s07-dim", "emb-v310-s07-dim", {0.5F, 0.5F}, 0.9F));
+    embeddings.push_back(MakeOptionalVectorEmbedding(
+        "evt-v310-s07-orphan", "emb-v310-s07-orphan", {0.9F, 0.1F, 0.0F}, 0.94F));
+
+    EventOptionalVectorIndexOptions options;
+    options.enabled = true;
+    options.expected_dimensions = 3;
+    options.min_quality = 0.75F;
+    const EventOptionalVectorIndexReport vector_report =
+        index.RebuildOptionalVectorIndex(embeddings, options);
+    Expect(vector_report.vector_index_enabled && vector_report.rebuild_performed,
+           "V310 S07 explicit opt-in must rebuild the optional vector index");
+    Expect(vector_report.embeddings_seen == 5 && vector_report.indexed_embeddings == 1,
+           "V310 S07 must index only quality-passing non-identifying embeddings");
+    Expect(vector_report.quality_rejected_embeddings == 1 &&
+               vector_report.dimension_rejected_embeddings == 1 &&
+               vector_report.privacy_rejected_embeddings == 1 &&
+               vector_report.orphan_embeddings_skipped == 1,
+           "V310 S07 quality, dimension, privacy, and orphan gates must be active");
+    Expect(vector_report.quality_gate_active && vector_report.dimension_gate_active &&
+               vector_report.identity_embeddings_rejected && vector_report.face_embeddings_rejected,
+           "V310 S07 report must expose quality and non-identifying embedding gates");
+
+    EventOptionalVectorSearchQuery query;
+    query.enabled = true;
+    query.values = {1.0F, 0.0F, 0.0F};
+    query.limit = 3;
+    query.min_score = 0.1F;
+    const EventOptionalVectorSearchOutput output = index.SearchOptionalVector(query);
+    Expect(output.report.vector_search_performed && output.results.size() == 1,
+           "V310 S07 explicit query must perform local optional vector search");
+    Expect(output.results[0].event_id == "evt-v310-s07-hit" && output.results[0].score > 0.99F,
+           "V310 S07 vector search must rank the closest local embedding first");
+    Expect(!EventOptionalVectorIndexReportContainsForbiddenMaterial(output.report),
+           "V310 S07 vector report must preserve provider/schema/media/client boundaries");
+
+    EventFeatureSearchIndexRebuildInput stale_input;
+    stale_input.events.push_back(MakeSearchIndexEvent("evt-v310-s07-old", "cam-lobby", "loading", 1781950302000LL));
+    stale_input.events.push_back(MakeSearchIndexEvent("evt-v310-s07-new", "cam-lobby", "loading", 1781950303000LL));
+    index.Rebuild(stale_input);
+    index.RebuildOptionalVectorIndex(
+        {MakeOptionalVectorEmbedding("evt-v310-s07-old", "emb-v310-s07-old", {1.0F, 0.0F, 0.0F}, 0.95F)},
+        options);
+    const auto old_before = index.SearchOptionalVector(query);
+    Expect(!old_before.results.empty() && old_before.results[0].event_id == "evt-v310-s07-old",
+           "V310 S07 stale guard setup must index the old vector before rebuild");
+    index.RebuildOptionalVectorIndex(
+        {MakeOptionalVectorEmbedding("evt-v310-s07-new", "emb-v310-s07-new", {0.0F, 1.0F, 0.0F}, 0.95F)},
+        options);
+    const auto old_after = index.SearchOptionalVector(query);
+    Expect(old_after.results.empty(),
+           "V310 S07 rebuild must clear stale vector entries from previous optional index generations");
+    EventOptionalVectorSearchQuery new_query;
+    new_query.enabled = true;
+    new_query.values = {0.0F, 1.0F, 0.0F};
+    const auto new_after = index.SearchOptionalVector(new_query);
+    Expect(!new_after.results.empty() && new_after.results[0].event_id == "evt-v310-s07-new",
+           "V310 S07 rebuild must keep only current optional vector entries");
+
+    Pass("V310 S07 keeps optional vector search default-off");
+    Pass("V310 S07 indexes only explicit non-identifying quality embeddings");
+    Pass("V310 S07 ranks optional vector results without provider calls");
+    Pass("V310 S07 rebuild clears stale vector entries");
+    Pass("V310 S07 preserves schema/media/client boundaries");
+}
+
 void VerifyV300RetentionPinCleanup() {
     EventRetentionCleanupPolicy policy;
     policy.default_retention_days = 7;
@@ -2427,13 +2545,15 @@ void VerifyV300RetentionPinCleanup() {
     Expect(!applied.dry_run && applied.destructive_cleanup_executed,
            "V300 S09 apply mode must mark lifecycle cleanup as executed");
     Expect(applied.deleted_event_records == 1 && applied.deleted_evidence_manifests == 1 &&
+               applied.deleted_encoded_clip_manifests == 1 && applied.deleted_encoded_clip_media == 1 &&
                applied.deleted_feature_revisions == 2 && applied.deindexed_search_entries == 1,
-           "V300 S09 apply must delete EventRecord/Evidence/Feature/SearchIndex lifecycle entries together");
+           "V300 S09/V310 S08 apply must delete EventRecord/Evidence/EncodedClip/Feature/SearchIndex lifecycle entries together");
     Expect(!EventRetentionCleanupResultContainsForbiddenMaterial(applied),
            "V300 S09 cleanup must preserve provider/schema/media/viewer boundary invariants");
     Pass("V300 S09 dry-run selects expired non-pinned events only");
     Pass("V300 S09 pin exclusion preserves pinned evidence");
     Pass("V300 S09 apply deletes evidence feature and search lifecycle together");
+    Pass("V310 S08 apply deletes encoded clip lifecycle entries with event retention cleanup");
     Pass("V300 S09 audit trail records dry-run and apply cleanup boundaries");
     Pass("V300 S09 preserves provider/schema/media/viewer boundary invariants");
 }
@@ -2488,13 +2608,16 @@ void VerifyEventRecorderMediaHooks() {
            "Event recorder query must succeed: " + error_message);
     Expect(query_result.records_json.size() == 1, "Event recorder must write one record");
     const std::string record_json = query_result.records_json[0];
+    const auto after_record_snapshot = GetEventStorageSnapshot();
     Expect(record_json.find("\"snapshotPath\":\"") != std::string::npos &&
                record_json.find("\"clipPath\":\"") != std::string::npos,
-           "Event recorder must fill snapshotPath and clipPath");
+           "Event recorder must fill snapshotPath and clipPath; lastClipError=" +
+               after_record_snapshot.last_clip_error);
     Expect(record_json.find(".snapshot.") != std::string::npos,
            "Event recorder snapshot path must point to actual media bytes");
     Expect(record_json.find(".clip/manifest.json") != std::string::npos,
-           "Event recorder clip path must point to clip manifest");
+           "Event recorder clip path must point to clip manifest; lastClipError=" +
+               after_record_snapshot.last_clip_error);
     Expect(record_json.find("\"vlmEvidenceRefs\"") != std::string::npos &&
                record_json.find("\"schema\":\"media-server.vlm-event-evidence-refs.v1\"") != std::string::npos,
            "Event recorder metadata must include VLM evidence refs");
@@ -2536,6 +2659,58 @@ void VerifyEventRecorderMediaHooks() {
                manifest.find("\"eventFrame\"") != std::string::npos &&
                manifest.find("\"nextFrame\"") != std::string::npos,
            "Event recorder must write clip manifest and frame bytes");
+    Expect(manifest.find("\"encodedClip\"") != std::string::npos &&
+               manifest.find("\"schema\":\"media-server.encoded-event-clip-contract.v1\"") !=
+                   std::string::npos &&
+               manifest.find("\"status\":\"completed\"") != std::string::npos &&
+               manifest.find("\"format\":\"webm\"") != std::string::npos &&
+               manifest.find("\"codec\":\"vp8\"") != std::string::npos &&
+               manifest.find("\"continuousRecording\":false") != std::string::npos,
+           "Event recorder clip manifest must include encoded clip job status and non-VMS boundary");
+
+    const std::filesystem::path encoded_manifest =
+        std::filesystem::path(snapshot.clip_dir) / "evt-recorder-smoke.clip" / "encoded" /
+        "encoded-manifest.json";
+    const std::filesystem::path encoded_media =
+        std::filesystem::path(snapshot.clip_dir) / "evt-recorder-smoke.clip" / "encoded" /
+        "event-clip.webm";
+    std::ifstream encoded_input(encoded_manifest);
+    std::string encoded_json((std::istreambuf_iterator<char>(encoded_input)),
+                             std::istreambuf_iterator<char>());
+    Expect(std::filesystem::exists(encoded_manifest, ec) && !ec &&
+               std::filesystem::exists(encoded_media, ec) && !ec,
+           "Event recorder encoded clip pipeline must write manifest and media artifact");
+    std::ifstream encoded_media_input(encoded_media, std::ios::binary);
+    unsigned char encoded_header[4] = {0, 0, 0, 0};
+    encoded_media_input.read(reinterpret_cast<char*>(encoded_header), sizeof(encoded_header));
+    Expect(encoded_media_input.gcount() == static_cast<std::streamsize>(sizeof(encoded_header)) &&
+               encoded_header[0] == 0x1A && encoded_header[1] == 0x45 &&
+               encoded_header[2] == 0xDF && encoded_header[3] == 0xA3,
+           "Event recorder encoded clip media must be a WebM/EBML artifact");
+    Expect(encoded_json.find("\"schema\":\"media-server.encoded-event-clip-contract.v1\"") !=
+               std::string::npos &&
+               encoded_json.find("\"contractVersion\":1") != std::string::npos &&
+               encoded_json.find("\"sampleKind\":\"runtime-output\"") != std::string::npos &&
+               encoded_json.find("\"inputSource\":\"frame-bundle\"") != std::string::npos &&
+               encoded_json.find("\"queueName\":\"event-clip-encoder\"") != std::string::npos &&
+               encoded_json.find("\"status\":\"completed\"") != std::string::npos &&
+               encoded_json.find("\"container\":\"webm\"") != std::string::npos &&
+               encoded_json.find("\"mimeType\":\"video/webm\"") != std::string::npos &&
+               encoded_json.find("\"videoCodec\":\"vp8\"") != std::string::npos &&
+               encoded_json.find("\"extension\":\".webm\"") != std::string::npos &&
+               encoded_json.find("\"allowedContainers\":[\"mp4\",\"webm\"]") != std::string::npos &&
+               encoded_json.find("\"ptsMapping\"") != std::string::npos &&
+               encoded_json.find("\"frameRef\"") != std::string::npos &&
+               encoded_json.find("\"eventClipPtsMs\"") != std::string::npos &&
+               encoded_json.find("\"evidenceLinks\"") != std::string::npos &&
+               encoded_json.find("\"frameMap\"") != std::string::npos &&
+               encoded_json.find("\"pipelineImplementedInThisStep\":true") != std::string::npos &&
+               encoded_json.find("\"queueStatusImplementedInThisStep\":true") != std::string::npos &&
+               encoded_json.find("\"partialOutputCleanupImplementedInThisStep\":true") != std::string::npos &&
+               encoded_json.find("\"boundedShortSegment\":true") != std::string::npos &&
+               encoded_json.find("\"continuousRecording\":false") != std::string::npos &&
+               encoded_json.find("\"archiveApi\":false") != std::string::npos,
+           "Event recorder encoded clip manifest must describe WebM format, PTS mapping, queue/status, and non-VMS boundary");
 
     const std::filesystem::path evidence_manifest =
         std::filesystem::path(snapshot.clip_dir) / "evt-recorder-smoke.clip" /
@@ -2586,6 +2761,8 @@ void VerifyEventRecorderMediaHooks() {
     Pass("Event recorder writes snapshot media");
     Pass("Event recorder writes bbox crop media");
     Pass("Event recorder writes clip media");
+    Pass("Event recorder encodes bounded event clip media");
+    Pass("Event recorder records encoded clip queue status");
     Pass("Event recorder writes V300 evidence manifest");
     Pass("Event recorder writes pre-event-post frame bundle manifest");
     Pass("Event recorder records snapshot evidence path");
@@ -2885,6 +3062,7 @@ int main() {
         VerifyV300FeatureOnlyRetention();
         VerifyV300SearchDslQueryConvert();
         VerifyV300FeatureSearchIndex();
+        VerifyV310OptionalVectorSearch();
         VerifyV300RetentionPinCleanup();
         VerifyEventRecorderMediaHooks();
         VerifyVaRuntimeMetadataBuilder();

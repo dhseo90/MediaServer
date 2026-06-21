@@ -86,6 +86,81 @@ struct EventSearchIndexEntry {
     std::vector<std::string> evidence_refs;
 };
 
+struct EventOptionalVectorEmbedding {
+    std::string event_id;
+    std::string embedding_id;
+    std::string namespace_name;
+    std::string model_id;
+    std::string evidence_ref;
+    std::vector<float> values;
+    float quality{0.0F};
+    bool searchable{true};
+    bool face_embedding{false};
+    bool identity_embedding{false};
+    bool raw_prompt_stored{false};
+    bool raw_provider_response_stored{false};
+    bool provider_request_body_stored{false};
+    bool provider_embedding_call_performed{false};
+    bool credential_stored{false};
+    bool source_url_stored{false};
+    bool raw_frame_bytes_stored{false};
+};
+
+struct EventOptionalVectorIndexOptions {
+    bool enabled{false};
+    float min_quality{0.75F};
+    std::size_t expected_dimensions{0};
+};
+
+struct EventOptionalVectorSearchQuery {
+    bool enabled{false};
+    std::vector<float> values;
+    std::size_t limit{10};
+    float min_score{0.0F};
+};
+
+struct EventOptionalVectorIndexReport {
+    std::string schema{"media-server.v310-optional-vector-search-report.v1"};
+    std::uint64_t generation{0};
+    bool default_off{true};
+    bool vector_index_enabled{false};
+    bool rebuild_performed{false};
+    bool vector_search_performed{false};
+    std::size_t embeddings_seen{0};
+    std::size_t indexed_embeddings{0};
+    std::size_t quality_rejected_embeddings{0};
+    std::size_t dimension_rejected_embeddings{0};
+    std::size_t privacy_rejected_embeddings{0};
+    std::size_t orphan_embeddings_skipped{0};
+    bool quality_gate_active{true};
+    bool dimension_gate_active{true};
+    bool identity_embeddings_rejected{true};
+    bool face_embeddings_rejected{true};
+    bool raw_prompt_stored{false};
+    bool raw_provider_response_stored{false};
+    bool runtime_provider_call_performed{false};
+    bool provider_embedding_call_performed{false};
+    bool event_post_payload_changed{false};
+    bool webrtc_data_channel_schema_changed{false};
+    bool sse_ws_metadata_schema_changed{false};
+    bool rtsp_webrtc_media_path_changed{false};
+    bool viewer_client_exposure_added{false};
+    std::string rejection_reason;
+};
+
+struct EventOptionalVectorSearchResult {
+    std::string event_id;
+    std::string embedding_id;
+    float score{0.0F};
+    std::size_t rank{0};
+    EventSearchDocument document;
+};
+
+struct EventOptionalVectorSearchOutput {
+    std::vector<EventOptionalVectorSearchResult> results;
+    EventOptionalVectorIndexReport report;
+};
+
 struct EventFeatureSearchIndexRebuildInput {
     std::vector<EventSearchIndexEventRecord> events;
     std::vector<EventSearchIndexFeatureSet> feature_sets;
@@ -127,16 +202,36 @@ class EventFeatureSearchIndex final {
 public:
     EventSearchIndexReport Rebuild(const EventFeatureSearchIndexRebuildInput& input);
     std::vector<EventSearchIndexEntry> Search(const EventSearchDsl& dsl) const;
+    EventOptionalVectorIndexReport RebuildOptionalVectorIndex(
+        const std::vector<EventOptionalVectorEmbedding>& embeddings,
+        const EventOptionalVectorIndexOptions& options = {});
+    EventOptionalVectorSearchOutput SearchOptionalVector(
+        const EventOptionalVectorSearchQuery& query) const;
     const EventSearchIndexReport& Report() const;
+    const EventOptionalVectorIndexReport& OptionalVectorReport() const;
     const std::vector<EventSearchIndexEntry>& Entries() const;
 
 private:
+    struct OptionalVectorIndexEntry {
+        std::string event_id;
+        std::string embedding_id;
+        std::vector<float> values;
+        float quality{0.0F};
+        EventSearchDocument document;
+    };
+
     std::uint64_t generation_{0};
+    std::uint64_t vector_generation_{0};
     EventSearchIndexReport report_;
+    EventOptionalVectorIndexReport vector_report_;
     std::vector<EventSearchIndexEntry> entries_;
+    std::vector<OptionalVectorIndexEntry> vector_entries_;
 };
 
 std::string EventFeatureSearchIndexReportJson(const EventSearchIndexReport& report);
 bool EventFeatureSearchIndexReportContainsForbiddenMaterial(const EventSearchIndexReport& report);
+std::string EventOptionalVectorIndexReportJson(const EventOptionalVectorIndexReport& report);
+bool EventOptionalVectorIndexReportContainsForbiddenMaterial(
+    const EventOptionalVectorIndexReport& report);
 
 }  // namespace analysis

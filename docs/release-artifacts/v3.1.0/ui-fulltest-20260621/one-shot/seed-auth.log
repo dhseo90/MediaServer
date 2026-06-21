@@ -1,0 +1,17 @@
+[pass] manual UI seed dry-run mode selected for full-test fixture
+[pass] manual UI seed dry-run emitted no HTTP requests
+- fixture: test/fixtures/manual_ui_fulltest_va_seed_matrix.json
+- mode: dry-run
+- httpRequests: 0
+- accounts: 4
+- sources: 6
+- profiles: 7
+- eventTemplates: 12
+- vaRules: 12
+- invalidPolicyCases: 1
+- trackerPairs: bytetrack/assist, bytetrack/off, kalman-lite/assist, kalman-lite/off, lite/assist, lite/off, none/off
+- eventTypes: enter, exit, intrusion-after-line-crossing, intrusion-dwell, line-crossing, loitering, presence, re-entry, wrong-direction, zone-occupancy
+- not-ui-test-evidence: browser click evidence is not produced by this seed helper
+- not-event-evidence: event occurrence review is not produced by this seed helper
+- emitPlan: written
+- emitRegistryDir: written

@@ -1,0 +1,53 @@
+{
+  "schema": "media-server.manual-ui-fulltest-registry-preconditions.v1",
+  "releaseTarget": "v3.1.0",
+  "fixture": "test/fixtures/manual_ui_fulltest_va_seed_matrix.json",
+  "notExecutionEvidence": true,
+  "browserUiTestEvidenceProduced": false,
+  "eventOccurrenceReviewEvidenceProduced": false,
+  "authUsersFile": {
+    "status": "required-separately",
+    "reason": "password hashes must be created with operator-provided password values; this script does not invent or store default passwords",
+    "requiredEnv": [
+      "MEDIA_SERVER_VERIFY_AUTH_TEST_PASSWORD",
+      "MEDIA_SERVER_VERIFY_AUTH_PREVIOUS_PASSWORD",
+      "MEDIA_SERVER_VERIFY_AUTH_SECOND_PREVIOUS_PASSWORD",
+      "MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_ONE",
+      "MEDIA_SERVER_VERIFY_AUTH_WRONG_PASSWORD_TWO"
+    ],
+    "accounts": [
+      {
+        "role": "admin",
+        "username": "ui_admin",
+        "purpose": "setup, users, sources, rules, event review, full ops access"
+      },
+      {
+        "role": "operator",
+        "username": "ui_operator",
+        "purpose": "ops operational access without admin-only account mutation"
+      },
+      {
+        "role": "viewer",
+        "username": "ui_viewer",
+        "purpose": "client live/dashboard scoped view and ops/lab denial"
+      },
+      {
+        "role": "integrator",
+        "username": "ui_integrator",
+        "purpose": "API/scope boundary and non-primary UI landing behavior"
+      }
+    ]
+  },
+  "files": {
+    "sourceRegistry": "sources.json",
+    "publishedViews": "views.json",
+    "analysisRegistry": "analysis.json"
+  },
+  "counts": {
+    "sources": 4,
+    "views": 4,
+    "profiles": 7,
+    "eventTemplates": 12,
+    "vaRules": 12
+  }
+}

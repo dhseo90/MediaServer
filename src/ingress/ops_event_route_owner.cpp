@@ -3,7 +3,8 @@
 // WebRTC DataChannel schema와 SSE/WS metadata schema도 변경하지 않는다.
 // RTSP/WebRTC media path 역시 변경하지 않는다.
 // Client summary owner는 /client/api/views/{id}/dashboard,
-// /client/api/views/{id}/events, /client/api/views/{id}/metadata를 담당한다.
+// 이벤트 summary owner는 /client/api/views/{id}/events, /client/api/views/{id}/events/search,
+// /client/api/views/{id}/metadata를 담당한다.
 // V250-S09 event memory/search route owner catalog는 route/schema/verifier 경계를
 // 한곳에 모으되 Event POST payload unchanged, WebRTC DataChannel schema unchanged,
 // SSE/WS metadata schema unchanged, RTSP/WebRTC media path unchanged를 유지한다.
@@ -24,6 +25,7 @@ constexpr const char* kLabEventEvidenceBundleTokenPath = "/lab/analysis/events/e
 constexpr const char* kLabEventEvidenceBundleDownloadPath = "/lab/analysis/events/evidence/bundle";
 constexpr const char* kClientDashboardSummarySubresource = "dashboard";
 constexpr const char* kClientEventsSummarySubresource = "events";
+constexpr const char* kClientEventsSearchSubresource = "events/search";
 constexpr const char* kClientMetadataSummarySubresource = "metadata";
 
 bool HasPrefix(const std::string& value, const std::string& prefix) {
@@ -165,6 +167,7 @@ bool IsLabEventEvidenceBundleDownloadRoute(const std::string& method, const std:
 bool IsClientViewSummaryRoute(const std::string& subresource) {
     return IsClientViewDashboardSummaryRoute(subresource) ||
            IsClientViewEventsSummaryRoute(subresource) ||
+           IsClientViewEventsSearchRoute(subresource) ||
            IsClientViewMetadataSummaryRoute(subresource);
 }
 
@@ -174,6 +177,10 @@ bool IsClientViewDashboardSummaryRoute(const std::string& subresource) {
 
 bool IsClientViewEventsSummaryRoute(const std::string& subresource) {
     return subresource == kClientEventsSummarySubresource;
+}
+
+bool IsClientViewEventsSearchRoute(const std::string& subresource) {
+    return subresource == kClientEventsSearchSubresource;
 }
 
 bool IsClientViewMetadataSummaryRoute(const std::string& subresource) {

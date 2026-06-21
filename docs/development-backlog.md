@@ -10,13 +10,280 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.0.0`
+- 현재 소스 버전: `3.1.0`
 - 최신 공개 GitHub Release: `v3.0.0`
 - `v3.0.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap: `v3.0.0 Event Evidence Search MVP`
+- 현재 source roadmap: `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`
 
-## 현재 source roadmap: v3.0.0 Event Evidence Search MVP
+## 현재 source roadmap: v3.1.0 Encoded Event Clip and Safe Sharing Expansion
+
+상태: `V310-S00` source baseline 정렬 완료, `V310-S01` Encoded Event Clip Contract
+완료, `V310-S02` Event Clip Encoder Pipeline 완료, `V310-S03` Replay Timeline UI 완료,
+`V310-S04` Client-safe Event Digest 완료, `V310-S05` Scoped Integrator Search API 완료,
+`V310-S06` Operator Feature Correction 완료, `V310-S08` Retention/Export Hardening 완료.
+`V310-S09` Stabilization and Release Readiness 완료.
+이 절은 v3.1.0 전체 기능 완료 evidence가 아니며, 실제 기능 구현은 각 Step별 코드/UI/API/검증
+evidence가 생긴 뒤에만 완료로 기록합니다. V310-S00 baseline 정렬 자체는 기능 구현 완료
+evidence가 아닙니다.
+
+직접 답: v3.1.0의 1차 선택값은 `Encoded Event Clip and Safe Sharing Expansion`입니다.
+이 방향은 v3.0 Event Evidence Search MVP 위에 event-centered encoded clip,
+safe sharing, scoped integrator access, operator correction, optional vector search를
+단계별로 얹되, MediaServer를 VMS/NVR이나 상시 녹화 제품으로 확장하지 않습니다.
+
+fallback 또는 축소 대안은 `Encoded Clip Foundation`입니다. 이 대안은 encoded clip
+contract, bounded encoder pipeline, FrameRef/PTS mapping만 먼저 닫고 safe sharing,
+scoped API, operator correction, vector search는 후속 step evidence가 생길 때까지
+보류합니다. 제품 체감은 작지만 VMS/NVR 범위 확장 위험을 가장 낮춥니다.
+
+설계 기록: [docs/superpowers/specs/2026-06-20-v300-v310-event-evidence-search-roadmap-design.md](superpowers/specs/2026-06-20-v300-v310-event-evidence-search-roadmap-design.md)
+
+포함 범위:
+
+- encoded event clip contract와 generation
+- `/ops/events` replay timeline
+- frame bundle과 encoded clip 사이의 FrameRef/PTS mapping
+- client-safe event digest
+- scoped integrator search API
+- operator feature correction과 aliases
+- optional vector/embedding index default-off
+- encoded clip lifecycle cleanup과 export hardening
+
+제외 범위:
+
+- 24/7 상시녹화와 VMS/NVR archive API
+- broad archive playback/search
+- 얼굴 인식, 신원 식별, watchlist, face embedding
+- raw prompt/response retention
+- client/viewer에 internal feature/provenance/raw evidence 전체 노출
+- 자동 rule 적용
+- cloud provider default-on
+
+제외 대상과 제외 사유:
+
+- 24/7 상시녹화와 VMS/NVR archive API: 제품 정체성을 VMS/NVR로 확장하므로 제외합니다.
+- broad archive playback/search: event-centered clip/replay 범위를 넘어 장기 archive 제품이 되므로 제외합니다.
+- 얼굴 인식, 신원 식별, watchlist, face embedding: 비식별 feature 정책을 깨므로 제외합니다.
+- raw prompt/response retention: privacy와 provider retention 위험이 커서 feature/evidence reference 중심으로 제한합니다.
+- full internal feature/provenance/raw evidence client exposure: viewer-safe digest 경계를 깨므로 제외합니다.
+- 자동 rule 적용: operator correction/review와 별개로 approval 없는 write path를 늘리므로 제외합니다.
+- cloud provider default-on: local-first와 explicit opt-in 경계를 유지합니다.
+- `codex/v310-event-clip-encoder`의 선개발 Event Clip Encoder Pipeline: V310-S02 범위이므로 S00/S01 완료 evidence로 쓰지 않습니다. v3.1.0 S02 작업에서 local merge 확인 후 local branch를 삭제했습니다.
+
+license/provenance/privacy/운영 제약:
+
+- 기본 공개 형태는 source-only이며 FFmpeg/GStreamer/ONNX/VLM/YOLO runtime/model binary를 release asset에 포함하지 않습니다.
+- encoded clip은 이후 step에서 event-centered bounded evidence로만 다루며 24/7 녹화나 broad archive API로 승격하지 않습니다.
+- provider credential, prompt/raw response/source URL/raw frame bytes는 문서, UI, client, event payload, release evidence에 원문 노출하지 않습니다.
+- external TURN/WHEP, ONVIF 실기기, real cloud/VLM provider는 endpoint/credential/명시 승인 없이는 field PASS 근거가 아닙니다.
+- 안정화, UI 풀테스트, 30분, 120분, published metadata는 서로 대체하지 않습니다.
+- Runtime/media longrun trigger matrix는 `media-server.runtime-media-longrun-trigger-matrix.v1`
+  및 `./server.sh verify-runtime-media-longrun-trigger-matrix`로 확인합니다. 이 기준은
+  V200-S17 안정화/장시간/UI 기준 정리 종료 기준을 v3.1 release 판단에도 재사용해
+  high-risk runtime/media 변경, memory/runtime drift, external field endpoint를
+  안정화/UI/30분 PASS와 분리합니다.
+
+불변 조건:
+
+- Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload schema를 요청 없이 바꾸지 않습니다.
+- viewer/client에 source URL, raw JSON, debug counter, internal feature/provenance/raw evidence를 노출하지 않습니다.
+- 실제 tag/push/PR/GitHub Release는 수동 승인 후에만 수행합니다.
+- `v3.1.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
+
+| Step | ID | Priority | 상태 | 묶음 | 개발 내용 | 완료 산출물 | 검증/evidence 경계 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 0 | V310-S00 | P0 | 완료 | v3.1 baseline | VERSION/CMake/README/docs/backlog/source roadmap을 v3.1 작업 기준으로 정렬 | source `3.1.0`, latest published `v3.0.0`, current roadmap `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`, V310-S00 verifier 연결 | `./server.sh verify-v310-entry-baseline`, `verify-release-metadata`, docs/inventory gates. 기능 구현 완료 evidence가 아님 |
+| 1 | V310-S01 | P0 | 완료 | Encoded Event Clip Contract | MP4/WebM clip manifest, FrameRef/PTS mapping, non-VMS boundary 정의 | [docs/v310-encoded-event-clip-contract.md](v310-encoded-event-clip-contract.md), `test/fixtures/v310_event_clip_contract/encoded_clip_manifest_sample.json`, `./server.sh verify-v310-event-clip-contract` | encoder pipeline, replay timeline UI, cleanup 실행 완료 evidence가 아님 |
+| 2 | V310-S02 | P0 | 완료 | Event Clip Encoder Pipeline | bounded short segment 또는 frame bundle 기반 encoded clip generation, queue/status/cleanup | `src/analysis/event_storage.cpp`의 frame-bundle hook이 `.clip/encoded/event-clip.webm`과 `.clip/encoded/encoded-manifest.json`을 생성하고 `scripts/internal/analysis_state_smoke.cpp`가 WebM/VP8, EBML header, FrameRef-PTS mapping, queue/status/frameMap/non-VMS boundary를 확인함 | replay UI, client digest, scoped API, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
+| 3 | V310-S03 | P0 | 완료 | Replay Timeline UI | `/ops/events` event frame, representative image, frame bundle, encoded clip timeline | `src/ingress/webrtc_http_server.cpp`의 `/ops/events` shell과 `OpsV310ReplayTimelineUiJson`, `src/ingress/product_ui_page_scripts.cpp`의 `renderV310ReplayTimelineUi`, `src/ingress/product_ui_css.cpp`의 replay timeline styles, `scripts/internal/verify_v310_replay_timeline_ui.mjs`와 `./server.sh verify-v310-replay-timeline-ui` | UI 풀테스트 직접 조작, 30분/120분, client digest, scoped API, cleanup 실행, published metadata evidence가 아님 |
+| 4 | V310-S04 | P1 | 완료 | Client-safe Event Digest | redacted viewer-safe summary | `src/ingress/webrtc_http_server.cpp`의 `/client/api/views/{id}/events` 응답에 `media-server.client.event-digest.v1` `eventDigest`를 추가하고, `src/ingress/product_ui_client_scripts.cpp`가 client live/dashboard/events에서 viewer-safe summaryText/eventType/status/severity/timelineHint/time만 렌더링함 | UI 풀테스트 직접 조작, 30분/120분, scoped API, cleanup execution, published metadata evidence가 아님 |
+| 5 | V310-S05 | P1 | 완료 | Scoped Integrator Search API | scope-gated search API와 redaction guard | `src/ingress/ops_event_route_owner.cpp`의 `events/search` route owner helper, `src/ingress/webrtc_http_server.cpp`의 `/client/api/views/{id}/events/search` integrator-only route와 `IntegratorScopedEventSearchJson`, `scripts/internal/verify_v310_scoped_integrator_search_api.mjs`와 `./server.sh verify-v310-scoped-integrator-search-api` | UI 풀테스트 직접 조작, 30분/120분, cleanup execution, vector search, published metadata evidence가 아님 |
+| 6 | V310-S06 | P1 | 완료 | Operator Feature Correction | feature correction, aliases, reanalysis request | `src/ingress/webrtc_http_server.cpp`의 `/ops/events` shell, `OpsEventReviewState` persistence, `/ops/api/events/reviews/{eventId}` correction payload/audit, `OpsV310OperatorFeatureCorrectionViewJson`, `src/ingress/product_ui_page_scripts.cpp`의 review row controls와 `renderV310OperatorFeatureCorrection`, `src/ingress/product_ui_css.cpp` styles, `scripts/internal/verify_v310_operator_feature_correction.mjs`와 `./server.sh verify-v310-operator-feature-correction` | UI 풀테스트 직접 조작, 30분/120분, vector search, cleanup execution, published metadata evidence가 아님 |
+| 7 | V310-S07 | P2 | 완료 | Optional Vector Search | default-off embedding index, rebuild, quality gates | `include/analysis/event_feature_search_index.h`, `src/analysis/event_feature_search_index.cpp`의 optional vector API/report, `scripts/internal/analysis_state_smoke.cpp`의 S07 default-off/quality gate/stale rebuild smoke, `scripts/internal/verify_v310_optional_vector_search.mjs`와 `./server.sh verify-v310-optional-vector-search` | provider embedding calls, UI 풀테스트 직접 조작, 30분/120분, client/viewer 노출, published metadata evidence가 아님 |
+| 8 | V310-S08 | P1 | 완료 | Retention/Export Hardening | encoded clip lifecycle cleanup, export bundle, audit | `include/analysis/event_retention_cleanup.h`, `src/analysis/event_retention_cleanup.cpp`의 encoded clip lifecycle cleanup counters, `src/analysis/event_storage.cpp`의 encoded manifest `media-server.v310.retention-export-hardening.v1`, `src/ingress/webrtc_http_server.cpp`의 release-safe export encoded media exclusion과 `export-bundle` audit hardening, `scripts/internal/verify_v310_retention_export_hardening.mjs`와 `./server.sh verify-v310-retention-export-hardening` | UI 풀테스트 직접 조작, 30분/120분, vector search, destructive operational cleanup, published metadata evidence가 아님 |
+| 9 | V310-S09 | P0 | 완료 | Stabilization and Release Readiness | build/docs/verifier/UI evidence boundary와 release readiness records | v3.1 local stabilization, release evidence/not-run 경계, `./server.sh verify-v310-stabilization-release-readiness` | UI 풀테스트/30분/120분/published metadata/release action은 실행한 경우만 PASS |
+
+## v3.1.0 S00 개발 기록
+
+- 범위: P0 `V310-S00 v3.1 baseline`.
+- `VERSION`, `CMakeLists.txt`: 현재 source version과 CMake project version을 `3.1.0`으로 정렬했습니다.
+- `README.md`, `README.en.md`, `docs/README.md`, `docs/en/README.md`, `docs/versioning-policy.md`, `docs/release-policy.md`, `docs/public-repo-final-review.md`, `docs/ui-guide.md`: 현재 source roadmap을 `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`으로 전환하고 latest published release는 `v3.0.0` source-only GitHub Release로 분리했습니다.
+- `docs/development-backlog.md`: V310 roadmap을 현재 source roadmap으로 승격하고 `V310-S00` 완료 상태, latest published `v3.0.0`, v3.1 기능 구현 미완료 경계를 기록했습니다.
+- `scripts/internal/verify_v310_entry_baseline.mjs`, `server.sh`: `./server.sh verify-v310-entry-baseline` 명령을 추가해 source `3.1.0`, latest published `v3.0.0`, current roadmap `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`, 1차 선택값/fallback/제외 대상, license/provenance/privacy/운영 제약, feature inventory, release test records 연결을 정적 검증합니다.
+- `scripts/internal/verify_release_metadata_consistency.mjs`: `verify-release-metadata`가 source `3.1.0`, current roadmap `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`, latest published `v3.0.0`을 분리 검증하도록 보정했습니다.
+- `config/docs_ui_assets.json`, `docs/assets/ui/README.md`: docs UI asset baseline의 source version을 `3.1.0`, latest published 기준을 `v3.0.0`으로 정렬했습니다. 이미지는 교체하지 않았고 대표 이미지가 UI 풀테스트/PASS/published evidence가 아니라는 경계는 유지했습니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`: `OPS-061`, `SAFE-093`, V310-S00 안정화 verifier, 저장소 보존형 테스트 결과를 추가했습니다.
+- `codex/v310-event-clip-encoder`에 백업된 선개발 Event Clip Encoder Pipeline은 V310-S02 범위이므로 이번 S00에서 merge하지 않았고 S00 완료 evidence로 사용하지 않습니다.
+- 검증: 최초 `./server.sh verify-v310-entry-baseline`는 VERSION/CMake/docs/backlog/inventory가 아직 v3.0 기준이라 `pass=0 fail=7`로 FAIL했습니다. 구현 후 `./server.sh verify-v310-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh build`, `git diff --check` 기준으로 재검증합니다.
+- 미실행/비대체: `verify-release-metadata --published`, tag/push/GitHub Release, PR/main merge, V310-S01~S09 기능 구현, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, external TURN/WHEP, ONVIF 실기기, real cloud/VLM provider 호출은 S00 완료 근거가 아닙니다.
+
+## v3.1.0 S01 개발 기록
+
+- 범위: P0 `V310-S01 Encoded Event Clip Contract`.
+- `docs/v310-encoded-event-clip-contract.md`: EncodedClipManifest, MP4/WebM format,
+  FrameRef/PTS mapping, EvidenceManifest/frame bundle/event frame link, retention
+  lifecycle, privacy/non-VMS boundary, S02/S03 비범위 경계를 정의했습니다.
+- `test/fixtures/v310_event_clip_contract/encoded_clip_manifest_sample.json`:
+  `media-server.encoded-event-clip-contract.v1` sample manifest를 추가했습니다.
+  fixture는 runtime output이 아니라 contract fixture이며, MP4 sample shape,
+  pre/event/post FrameRef와 `clipPtsMs`, event evidence artifact refs, retention,
+  privacy, generation boundary를 포함합니다.
+- `scripts/internal/verify_v310_event_clip_contract.mjs`, `server.sh`:
+  `./server.sh verify-v310-event-clip-contract` 명령을 추가했습니다. 이 verifier는
+  contract 문서, fixture, docs index, roadmap, stream verification, feature
+  inventory, release records, server dispatch 연결을 정적으로 확인합니다.
+- `docs/project-feature-test-inventory.md`,
+  `scripts/internal/verify_feature_inventory_coverage.mjs`,
+  `scripts/internal/verify_project_feature_test_inventory.mjs`: `OPS-062`와
+  `SAFE-094`를 V310-S01 안정화 gate로 추가하고 coverage target을
+  `verify-v310-event-clip-contract`에 연결했습니다. 제품 UI는
+  `비대상: UI 없어야 정상`입니다.
+- `docs/stream-verification.md`, `docs/release-test-records.md`, `docs/README.md`:
+  S01 verifier catalog, 저장소 보존형 테스트 항목/결과 위치, 공개 docs index link를
+  추가했습니다.
+- 변경하지 않은 것: Event POST payload, WebRTC DataChannel schema, SSE/WS metadata,
+  RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload, `/ops/events` UI,
+  client/viewer route, encoder runtime queue/status/cleanup은 변경하지 않았습니다.
+- 검증: 최초 `./server.sh verify-v310-event-clip-contract`는 command 미구현으로 FAIL했습니다.
+  구현 후 `./server.sh verify-v310-event-clip-contract`, `./server.sh verify-project-inventory`,
+  `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`,
+  `./server.sh verify-docs-links`, `./server.sh build`, `git diff --check` 기준으로
+  재검증합니다.
+- 미실행/비대체: encoder generation, runtime muxing, queue/status/cleanup,
+  `/ops/events` replay timeline UI, client-safe digest, scoped integrator API,
+  UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, `verify-release-metadata --published`,
+  tag/push/GitHub Release는 S01 완료 근거가 아닙니다.
+
+## v3.1.0 S02 개발 기록
+
+- 범위: P0 `V310-S02 Event Clip Encoder Pipeline`.
+- branch 처리: `codex/v310-event-clip-encoder`는 현재 `v3.1.0`의 조상이라 `git merge codex/v310-event-clip-encoder` 결과가 `Already up to date`였습니다. 이후 local branch `codex/v310-event-clip-encoder`를 삭제했습니다. remote branch 삭제는 push/ref deletion이므로 사용자 푸시 명시 승인 없이 수행하지 않았습니다.
+- `src/analysis/event_storage.cpp`: 기존 EventRecord frame-bundle clip hook 내부에 bounded short segment를 WebM/VP8 `event-clip.webm`으로 muxing하는 encoded clip artifact writer를 추가했습니다. `WriteClipMedia()`가 기존 `.clip/manifest.json`, `frame-bundle-manifest.json`, `evidence-manifest.json`, frame files를 유지한 뒤 `.clip/encoded/event-clip.webm`, `.clip/encoded/encoded-manifest.json`을 생성합니다.
+- `src/analysis/event_storage.cpp`: encoded status manifest schema `media-server.encoded-event-clip-contract.v1`에 `sampleKind=runtime-output`, WebM/VP8 format, `inputSource=frame-bundle`, `queueName=event-clip-encoder`, `status=completed`, `ptsMapping.frames[].frameRef`, `frameMap`, `cleanup.deletedEntries`, `nonVmsBoundary.boundedShortSegment=true`, `continuousRecording=false`, `archiveApi=false`를 기록합니다.
+- `src/analysis/event_storage.cpp`: encoded output directory를 job 시작 전에 정리해 stale/partial encoded output을 제거하고 삭제 entry 수를 clip manifest와 encoded manifest에 남깁니다.
+- `scripts/internal/analysis_state_smoke.cpp`: Event recorder media hook smoke에 encoded WebM EBML header, encoded manifest, queue/status/FrameRef-PTS/frameMap/non-VMS boundary 확인 항목을 추가했습니다.
+- `scripts/internal/verify_analysis_state_smoke.sh`: V310-S02 WebM clip encoding을 검증하기 위해 GStreamer appsrc/appsink compile/link flags를 추가했습니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`: `EVT-059`, `SAFE-083`, V310-S02 안정화 확인 항목과 완료 evidence 경계를 추가했습니다.
+- 검증: 최초 WebM pipeline 시도는 4x4 smoke frame에서 GStreamer `not-negotiated`로 실패했습니다. `videoscale`과 최소 16x16 even caps를 명시한 뒤 `./server.sh verify-analysis-state`가 `pass=172 fail=0`으로 WebM/VP8 encoded clip media artifact, EBML header, encoded clip queue status, V300 evidence manifest, frame bundle manifest를 확인했습니다. 이후 `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-docs-links`, `verify-v310-event-clip-contract`, `./server.sh build`, `verify-script-inventory`, `verify-v300-event-evidence-contract`도 통과했습니다.
+- 완료 경계: 이번 구현은 V310-S02 bounded WebM/VP8 encoder/status/partial cleanup pipeline입니다. `/ops/events` replay timeline UI, client-safe digest, scoped integrator API, 30분/120분 장시간 테스트, UI 풀테스트 직접 조작, published metadata, PR/main/tag/GitHub Release는 S02 완료 근거가 아닙니다.
+
+## v3.1.0 S03 개발 기록
+
+- 범위: P0 `V310-S03 Replay Timeline UI`.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/events`에 `data-testid="ops-v310-replay-timeline-ui"` 섹션을 추가하고 `OpsV310ReplayTimelineUiJson`/`OpsV310ReplayTimelineItemJson` view model을 구성했습니다. 이 view model은 기존 EventRecord evidence refs와 review state에서 event frame, representative image, frame bundle, encoded clip timeline, FrameRef/PTS mapping, playback segments를 Ops-only summary로 파생합니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV310ReplayTimelineUi()`를 추가하고 `/ops/api/events/reviews` refresh flow에서 `replayTimeline`을 렌더링하도록 연결했습니다.
+- `src/ingress/product_ui_css.cpp`: `.v310-replay-timeline-ui`, artifact grid, timeline rail, playback segment UI 스타일을 추가했습니다.
+- `scripts/internal/verify_ops_client_ui_smoke.mjs`: `/ops/events` smoke coverage에 V310 replay timeline shell marker와 schema marker를 추가했습니다.
+- `scripts/internal/verify_v310_replay_timeline_ui.mjs`, `server.sh`: `./server.sh verify-v310-replay-timeline-ui` 명령을 추가해 `/ops/events` UI shell, replayTimeline view model, script rendering, CSS, ops smoke, docs/inventory/release records/server dispatch 연결을 정적 검증합니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`: `UI-060`, `OPS-063`, `SAFE-095`, V310-S03 안정화 확인 항목과 완료 evidence 경계를 추가했습니다.
+- 변경하지 않은 것: Event POST payload, WebRTC DataChannel schema, SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload, client/viewer route, client-safe digest, scoped integrator API, cleanup execution, published metadata는 변경하지 않았습니다.
+- 검증: 최초 `node scripts/internal/verify_v310_replay_timeline_ui.mjs`는 S03 UI shell/view model/script/CSS/docs/server dispatch가 없어서 `pass=0 fail=8`로 FAIL했습니다. 구현 후 `./server.sh verify-v310-replay-timeline-ui`는 `pass=8 fail=0`으로 통과했습니다. `./server.sh build`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh verify-docs-links`, `git diff --check`도 통과했습니다. `verify-ops-client-ui`는 서버 미기동/Node sandbox EPERM/auth-on 401 전제를 확인한 뒤 `MEDIA_SERVER_AUTH_MODE=off` 검증 서버에서 static smoke `pass=19 fail=0`, screenshot smoke `pass=25 fail=0` 및 visual/shell/client 세부 smoke fail 0으로 재검증했습니다. `verify-rule-ui`는 같은 auth-off 검증 서버와 Chrome fallback에서 `ok=true`로 통과했습니다.
+- 완료 경계: 이번 구현은 `/ops/events` event frame, representative image, frame bundle, encoded clip timeline 표시와 Ops-only replay summary입니다. UI 풀테스트 직접 조작, 30분/120분, client digest, scoped API, cleanup 실행, published metadata evidence가 아닙니다.
+
+## v3.1.0 S04 개발 기록
+
+- 범위: P1 `V310-S04 Client-safe Event Digest`.
+- `src/ingress/webrtc_http_server.cpp`: 기존 PublishedView-scoped `/client/api/views/{id}/events` 응답의 `ClientEventSummary`에 `eventDigest`를 추가했습니다. `AppendClientSafeEventDigestJson`은 `media-server.client.event-digest.v1`, `viewerSafe:true`, `publishedViewScoped:true`, `sourceUrlIncluded:false`, `rawEvidenceIncluded:false`, `debugMaterialIncluded:false`, `providerMaterialIncluded:false`, `featureProvenanceIncluded:false`, `internalEvidenceIncluded:false`, `encodedClipPathIncluded:false`, `ruleEditorIncluded:false`, `actionControlsIncluded:false`, `eventPostPayloadChanged:false`, `eventSchemaChanged:false`, `mediaPathChanged:false`를 고정하고 digest item에는 `summaryText`, `eventType`, `status`, `severity`, `timelineHint`, `time`만 씁니다.
+- `src/ingress/product_ui_client_scripts.cpp`: `renderClientSafeEventDigest()`를 추가하고 `/client/live` dock, `/client/dashboard`, `/client/events`에 `data-testid="client-safe-event-digest"`와 `data-client-event-digest="viewer-safe"` card를 렌더링하도록 연결했습니다. renderer는 `eventDigest`의 허용 필드만 읽고 source/raw/debug/provider/feature provenance/encoded clip path/rule editor/action control 값을 읽지 않습니다.
+- `src/ingress/product_ui_css.cpp`: `.client-safe-event-digest`를 기존 client-safe digest card/grid 스타일에 포함했습니다.
+- `scripts/internal/verify_ops_client_ui_smoke.mjs`: client shell smoke marker에 `client-safe-event-digest`, `eventDigest`, `viewer-safe event digest`, `media-server.client.event-digest.v1`를 추가했습니다.
+- `scripts/internal/verify_v310_client_safe_event_digest.mjs`, `server.sh`: `./server.sh verify-v310-client-safe-event-digest` 명령을 추가해 API schema, client renderer, CSS, ops/client smoke, backlog, stream verification, feature inventory, manual UI checklist, release records, server dispatch 연결을 정적 검증합니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/manual-ui-checklist.md`, `docs/release-test-records.md`: `CLIENT-025`, `SAFE-096`, V310-S04 안정화 확인 항목, 수동 UI 대상 route, 완료 evidence 경계를 추가했습니다.
+- 변경하지 않은 것: Event POST payload, WebRTC DataChannel schema, SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload, encoded clip artifact path, scoped integrator API, cleanup execution, published metadata는 변경하지 않았습니다.
+- 검증: 최초 `./server.sh verify-v310-client-safe-event-digest`는 API 함수, client renderer, CSS/smoke marker, backlog final row, release records final row가 없어 `pass=1 fail=5`로 FAIL했습니다. 구현 후 `./server.sh verify-v310-client-safe-event-digest`는 `pass=6 fail=0`으로 통과했습니다. `./server.sh build`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh verify-docs-links`, `git diff --check`, 기존 `verify-v250-client-safe-incident-digest`, `verify-v280-client-safe-followup-digest`도 통과했습니다. `verify-ops-client-ui`는 sandbox fetch 제한을 확인한 뒤 권한 실행으로 static smoke `pass=19 fail=0`, screenshot smoke `pass=25 fail=0` 및 visual/shell/client 세부 smoke fail 0으로 재검증했습니다. `verify-rule-ui`는 Chrome fallback 환경변수 누락 precheck를 보정한 뒤 `ok=true`로 통과했고, auth 3종은 bootstrap `pass=14 fail=0`, users `pass=58 fail=0`, routes `pass=135 fail=0`으로 통과했습니다.
+- 완료 경계: 이번 구현은 client-safe event digest API/UI와 redaction boundary입니다. UI 풀테스트 직접 조작, 30분/120분, scoped API, cleanup 실행, published metadata evidence가 아닙니다.
+
+## v3.1.0 S05 개발 기록
+
+- 범위: P1 `V310-S05 Scoped Integrator Search API`.
+- `include/ingress/ops_event_route_owner.h`, `src/ingress/ops_event_route_owner.cpp`: client summary route owner에 `events/search` subresource와 `IsClientViewEventsSearchRoute()` helper를 추가했습니다.
+- `src/ingress/webrtc_http_server.cpp`: 기존 `/client/api/views/{id}` API router 안에 `/client/api/views/{id}/events/search` GET route를 추가했습니다. 이 route는 `auth::IsIntegrator()`로 integrator role을 요구하고 `SourceViewRegistry::ResolveClientViewAccess(..., "event:read")`로 `event:read:{viewId}` scope gate를 적용합니다.
+- `src/ingress/webrtc_http_server.cpp`: `IntegratorScopedEventSearchJson()`이 EventRecord를 PublishedView source stream 범위에서 읽고 기존 `EventFeatureSearchIndex`/Search DSL을 일시 재사용해 `media-server.integrator.scoped-event-search.v1` 응답을 생성합니다. 응답은 eventId/viewId와 `digest.summaryText`, `eventType`, `status`, `severity`, `timelineHint`, `time`만 반환하고 source URL, raw evidence, debug material, provider material, feature provenance, internal evidence refs, encoded clip path, rule/action controls는 포함하지 않습니다.
+- `scripts/internal/verify_v310_scoped_integrator_search_api.mjs`, `server.sh`: `./server.sh verify-v310-scoped-integrator-search-api` 명령을 추가해 route owner, API schema/redaction, docs/inventory/release records/server dispatch 연결을 정적 검증합니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`: `CLIENT-026`, `SAFE-097`, `OPS-064`, V310-S05 안정화 확인 항목과 완료 evidence 경계를 추가했습니다.
+- 변경하지 않은 것: Event POST payload, WebRTC DataChannel schema, SSE/WS metadata, RTSP/WebRTC media path, Rule/Profile payload, `/ops/events` UI, client shell UI, cleanup execution, vector/embedding search, published metadata는 변경하지 않았습니다.
+- 검증: 최초 `node scripts/internal/verify_v310_scoped_integrator_search_api.mjs`는 route owner, API 함수/schema, backlog/inventory/release records, server dispatch가 없어 `pass=0 fail=6`으로 FAIL했습니다. 구현 후 `./server.sh verify-v310-scoped-integrator-search-api`, `./server.sh build`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh verify-docs-links`, `git diff --check` 기준으로 재검증합니다.
+- 완료 경계: 이번 구현은 integrator-only PublishedView-scoped search API와 redacted digest payload입니다. UI 풀테스트 직접 조작, 30분/120분, cleanup execution, vector search, published metadata evidence가 아닙니다.
+
+## v3.1.0 S06 개발 기록
+
+- 범위: P1 `V310-S06 Operator Feature Correction`.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/events`에 `data-testid="ops-v310-operator-feature-correction"` shell을 추가하고, 기존 `OpsEventReviewState` JSONL persistence에 `corrected_feature_label`, `feature_aliases`, `reanalysis_requested`, `reanalysis_reason`을 추가했습니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/events/reviews/{eventId}` PUT/POST가 top-level과 nested `featureCorrection`의 `correctedFeatureLabel`, `featureAliases`, `reanalysisRequested`, `reanalysisReason`을 받아 기존 review state에만 저장하고 `operator-feature-correction-update` audit action을 남깁니다.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV310OperatorFeatureCorrectionItemJson`/`OpsV310OperatorFeatureCorrectionViewJson`을 추가하고 `/ops/api/events/reviews` 응답의 `operatorFeatureCorrection` view model로 correction count, alias count, reanalysis request count, `media-server.ops.operator-feature-correction.v1` boundary flags를 노출합니다.
+- `src/ingress/product_ui_page_scripts.cpp`: event review row에 `eventReviewFeatureCorrectionHtml()` controls를 추가하고 save payload에 `featureCorrection` object와 compatible top-level fields를 포함했습니다. `renderV310OperatorFeatureCorrection()`은 `/ops/events` summary section에 operator correction 상태를 표시합니다.
+- `src/ingress/product_ui_css.cpp`: `.v310-operator-feature-correction`, `.operator-feature-correction-list`, `.operator-feature-correction-card`, `.ops-feature-correction-controls` 스타일을 추가했습니다.
+- `scripts/internal/verify_v310_operator_feature_correction.mjs`, `server.sh`, `scripts/internal/verify_ops_client_ui_smoke.mjs`: `./server.sh verify-v310-operator-feature-correction` 명령과 `/ops/events` smoke marker를 추가했습니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/manual-ui-checklist.md`, `docs/release-test-records.md`: `UI-061`, `EVT-061`, `SAFE-098`, `OPS-065`와 V310-S06 안정화 확인 항목, 수동 UI 대상 route, 완료 evidence 경계를 추가했습니다.
+- 변경하지 않은 것: EventRecord top-level, Event POST payload, WebRTC DataChannel schema, SSE/WS metadata, RTSP/WebRTC media path, Rule/Profile payload, Auth/Role/Scope, client/viewer route, runtime provider call, vector search, cleanup execution, published metadata는 변경하지 않았습니다.
+- 검증: 최초 `./server.sh verify-v310-operator-feature-correction`는 S06 UI shell/state/API/view model/script/CSS/smoke/final docs가 없어 `pass=1 fail=9`로 FAIL했습니다. 구현 1차 후 같은 명령은 code/smoke 7개 check가 통과했지만 audit action source marker와 backlog/release records final row가 남아 `pass=7 fail=3`으로 FAIL했습니다. 문서/evidence 보정 후에는 audit summary source marker가 남아 `pass=9 fail=1`로 한 번 더 FAIL했고, summary 문자열 상수 보정 뒤 `./server.sh verify-v310-operator-feature-correction`가 `pass=10 fail=0`으로 통과했습니다. `./server.sh build`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh verify-docs-links`, `./server.sh verify-ops-client-ui --browser-mode static --http-base http://127.0.0.1:8081`, `./server.sh verify-ops-client-ui --screenshots --browser-mode chrome --allow-chrome-fallback --http-base http://127.0.0.1:8081`, `MEDIA_SERVER_UI_BROWSER_MODE=chrome MEDIA_SERVER_ALLOW_CHROME_FALLBACK=1 ./server.sh verify-rule-ui --http-base http://127.0.0.1:8081`도 통과했습니다. 서버 없는 `./server.sh verify-ops-client-ui`와 auto mode 인앱 evidence 전제 실행은 각각 `fail`로 기록하고 동일 범위에서 재실행했습니다.
+- 완료 경계: 이번 구현은 Ops-only operator feature correction persistence/UI/audit/view model입니다. UI 풀테스트 직접 조작, 30분/120분, optional vector search, cleanup execution, published metadata evidence가 아닙니다.
+
+## v3.1.0 S07 개발 기록
+
+- 범위: P2 `V310-S07 Optional Vector Search`.
+- `include/analysis/event_feature_search_index.h`, `src/analysis/event_feature_search_index.cpp`: 기존 V300 text/tags/filter `EventFeatureSearchIndex` 계약은 유지하고, 별도 optional vector API/report를 추가했습니다. `RebuildOptionalVectorIndex()`는 기본 `enabled=false`에서 index를 만들지 않으며, 명시 opt-in일 때만 EventRecord-backed non-identifying embedding을 quality/dimension gate로 인덱싱합니다.
+- `src/analysis/event_feature_search_index.cpp`: `SearchOptionalVector()`는 이미 전달된 local embedding vector만 사용해 cosine similarity를 계산합니다. runtime provider call, provider embedding call, raw prompt/response retention, face embedding, identity embedding, Event POST/WebRTC DataChannel/SSE/WS metadata schema, RTSP/WebRTC media path, client/viewer exposure는 모두 false invariant로 고정합니다.
+- `scripts/internal/analysis_state_smoke.cpp`: `VerifyV310OptionalVectorSearch()`를 추가해 default-off behavior, explicit opt-in, quality/dimension/privacy rejection, similarity ranking, rebuild stale vector cleanup, provider/schema/media/client boundary를 확인합니다.
+- `test/fixtures/v310_optional_vector_search/cases.json`, `scripts/internal/verify_v310_optional_vector_search.mjs`, `server.sh`: fixture와 `./server.sh verify-v310-optional-vector-search` 명령을 추가해 optional vector API/report, smoke, backlog/stream verification/inventory/release records/server dispatch 연결을 정적 검증합니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`: `LAB-089`, `SAFE-100`, `OPS-067`, V310-S07 안정화 확인 항목과 완료 evidence 경계를 추가했습니다.
+- 변경하지 않은 것: 기존 text/tags/filter Search DSL, `/client/api/views/{id}/events/search` redacted scoped API, EventRecord/Event POST payload, WebRTC DataChannel schema, SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload, `/ops/events` UI, client/viewer route, runtime provider 호출, provider embedding 호출, release publish state는 변경하지 않았습니다.
+- 검증: 최초 `./server.sh verify-v310-optional-vector-search`는 optional vector API/report와 analysis-state S07 smoke 구현 전이라 기대 실패로 기록했습니다. 구현 후 `./server.sh verify-v310-optional-vector-search`, `./server.sh verify-analysis-state`, `./server.sh build`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh verify-docs-links`, `git diff --check` 기준으로 재검증합니다.
+- 완료 경계: 이번 구현은 default-off local optional vector index/search와 quality gate입니다. provider embedding calls, UI 풀테스트 직접 조작, 30분/120분, client/viewer 노출, cleanup execution, published metadata evidence가 아닙니다.
+
+## v3.1.0 S08 개발 기록
+
+- 범위: P1 `V310-S08 Retention/Export Hardening`.
+- `include/analysis/event_retention_cleanup.h`, `src/analysis/event_retention_cleanup.cpp`: `EventRetentionCleanupItem`/`Action`/`Result`에 encoded clip manifest/media lifecycle counters를 추가했습니다. apply plan은 EventRecord, EvidenceManifest, encoded clip manifest/media, FeatureSet revision, SearchIndex를 같은 retention lifecycle group으로 삭제/de-index 대상으로 묶고 `encoded-clip-retention-export-hardening` marker와 JSON `encodedClipManifestsDeleted`/`encodedClipMediaDeleted`를 남깁니다.
+- `src/analysis/event_storage.cpp`: runtime encoded clip manifest에 `media-server.v310.retention-export-hardening.v1` `retentionExportHardening` block을 추가했습니다. 이 block은 `implementedInStep=V310-S08`, encoded clip lifecycle cleanup, export bundle audit coverage, release-safe encoded media exclusion, token-expiry no-server-file cleanup 경계를 기록합니다.
+- `src/ingress/webrtc_http_server.cpp`: release-safe incident evidence bundle manifest에 encoded clip media/path/manifest exclusion fields와 V310 hardening policy를 추가했습니다. 기존 `/lab/analysis/events/evidence/bundle-token`과 `/lab/analysis/events/evidence/bundle` route는 유지하고, raw route나 media path를 새로 만들지 않았습니다.
+- `src/ingress/webrtc_http_server.cpp`: bundle download audit를 `BuildEvidenceBundleAuditJson()`로 분리하고 `export-bundle` audit payload에 releaseSafe, signed-token expiry, token-expiry cleanup, encoded clip lifecycle cleanup policy를 남기도록 했습니다.
+- export-bundle audit coverage는 release-safe/raw bundle download 공통 audit payload가 V310 retention/export policy를 남기는지 확인하는 안정화 범위이며, UI 직접 다운로드 검수나 destructive cleanup 실행 근거가 아닙니다.
+- `scripts/internal/analysis_state_smoke.cpp`: retention apply smoke가 encoded clip manifest/media deletion counters를 확인합니다.
+- `scripts/internal/verify_v310_retention_export_hardening.mjs`, `server.sh`: `./server.sh verify-v310-retention-export-hardening` 명령을 추가해 cleanup model, encoded manifest, release-safe export manifest, audit payload, backlog/stream verification/inventory/release records/server dispatch 연결을 정적 검증합니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`: `EVT-062`, `SAFE-099`, `OPS-066`, V310-S08 안정화 확인 항목과 완료 evidence 경계를 추가했습니다.
+- 변경하지 않은 것: EventRecord top-level payload, Event POST payload, WebRTC DataChannel schema, SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload, client/viewer route, optional vector search, release publish state는 변경하지 않았습니다.
+- 검증: 최초 `./server.sh verify-v310-retention-export-hardening`는 cleanup model, encoded manifest policy, release-safe export marker, audit helper, backlog/release records, script inventory 연결이 없어 `pass=0 fail=7`로 기대 실패했습니다. 구현 후 `./server.sh verify-v310-retention-export-hardening`, `./server.sh verify-analysis-state`, `./server.sh build`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh verify-docs-links`, `git diff --check` 기준으로 재검증합니다.
+- 완료 경계: 이번 구현은 encoded clip lifecycle cleanup plan, release-safe export bundle hardening, `export-bundle` audit coverage입니다. UI 풀테스트 직접 조작, 30분/120분, optional vector search, destructive operational cleanup, published metadata evidence가 아닙니다.
+
+## v3.1.0 S09 개발 기록
+
+- 범위: P0 `V310-S09 Stabilization and Release Readiness`.
+- `scripts/internal/verify_v310_stabilization_release_readiness.mjs`: `media-server.v310-stabilization-release-readiness.v1` local readiness verifier를 추가했습니다. 이 verifier는 V310-S00~S08 companion local gates, release policy/evidence index/test records, feature inventory, stream verification, close-out dry-run command, server dispatch 연결을 확인합니다.
+- `server.sh`: `./server.sh verify-v310-stabilization-release-readiness` 사용법과 dispatch를 추가했습니다.
+- `docs/development-backlog.md`, `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`, `docs/release-test-records.md`, `docs/release-policy.md`, `docs/release-evidence-index.md`: V310-S09 local stabilization/release readiness 기록과 not-run 경계를 추가했습니다.
+- `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_project_feature_test_inventory.mjs`: `SAFE-101`, `OPS-068`, `verify-v310-stabilization-release-readiness` coverage를 추가했습니다.
+- Companion local gate:
+
+```bash
+./server.sh verify-v310-stabilization-release-readiness
+./server.sh build
+./server.sh verify-v310-entry-baseline
+./server.sh verify-v310-event-clip-contract
+./server.sh verify-analysis-state
+./server.sh verify-v310-replay-timeline-ui
+./server.sh verify-v310-client-safe-event-digest
+./server.sh verify-v310-scoped-integrator-search-api
+./server.sh verify-v310-operator-feature-correction
+./server.sh verify-v310-optional-vector-search
+./server.sh verify-v310-retention-export-hardening
+./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-project-inventory
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-release-evidence-index
+./server.sh verify-release-closeout-helper --dry-run
+./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
+./server.sh verify-script-inventory
+git diff --check
+```
+
+- 검증: 최초 `./server.sh verify-v310-stabilization-release-readiness`는 command 미구현으로 `알 수 없는 명령입니다: verify-v310-stabilization-release-readiness`를 출력하며 fail했습니다. 구현 후 위 companion local gate 기준으로 재검증합니다.
+- 완료 경계: 이번 구현은 V310-S09 local readiness gate wiring, release evidence records, not-run boundaries입니다. UI 풀테스트 직접 조작, 30분/120분 longrun, `verify-release-metadata --published`, PR/main/tag/GitHub Release, field smoke 실행 evidence가 아닙니다.
+
+## 최신 공개 기준 상세: v3.0.0 Event Evidence Search MVP
 
 상태: `V300-S00` source baseline 정렬 완료, `V300-S01` Event Evidence Contract
 완료, `V300-S02` Frame Bundle Extraction 완료, `V300-S03` Feature Schema and

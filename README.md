@@ -3,7 +3,7 @@
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
 [![Published Release](https://img.shields.io/badge/published-v3.0.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v3.0.0)
-![Source Version](https://img.shields.io/badge/source-3.0.0-informational)
+![Source Version](https://img.shields.io/badge/source-3.1.0-informational)
 
 RTSP/WebRTC live stream을 받아 다시 내보내고, 필요할 때 YOLO/ONNX 영상 분석
 overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다.
@@ -15,9 +15,9 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 - English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 - 전체 문서 색인: [docs/README.md](docs/README.md)
 - 최신 공개 GitHub Release: [v3.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.0.0)
-- 현재 소스 버전: `3.0.0`
+- 현재 소스 버전: `3.1.0`
 - v3.0.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- 현재 source roadmap: `v3.0.0 Event Evidence Search MVP`
+- 현재 source roadmap: `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`
 
 ## 한눈에 보기
 
@@ -29,32 +29,22 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
   live Event POST, runtime metadata를 제공합니다.
 - **Incident memory**: 현재 소스 트리는 EventRecord, audit, source health, alert dry-run을
   `/ops/events` 검색, timeline, 설명, 유사 사건 lookup으로 정리합니다.
-- **제외 범위**: VMS/NVR, 장기 녹화, playback/archive search, VLM default-on,
+- **제외 범위**: VMS/NVR, 장기 녹화, broad archive playback/search, VLM default-on,
   model/runtime bundle 배포, 실기기/외부 provider 성공 보장은 기본 공개 릴리즈에 포함하지 않습니다.
 
-## v3.0 Event Evidence Search MVP Baseline
+## v3.1 Source Baseline
 
-최신 공개 버전 `3.0.0`은 Event Evidence Search MVP source-only GitHub Release입니다.
-현재 source tree `3.0.0`은 v3.0.0 Event Evidence Search MVP의 source-of-truth baseline을
-공개합니다. 이번 baseline은 버전, 문서, backlog, verifier 기준을 v3.0 작업선으로 정렬하는 단계이며,
-Event Evidence Contract, frame bundle, feature schema, search DSL, `/ops/events`
-신규 UI 동작은 각 V300 step의 코드/UI/API/검증 evidence가 생긴 뒤에만 완료로
-기록합니다.
-
-v3.0의 1차 선택값은 `Event Evidence Search MVP`입니다. fallback은
-`Conservative Foundation`이며, encoded event clip/playback 확장은 v3.1 후보로
-분리합니다. 기존 Event POST, WebRTC DataChannel, SSE/WS metadata schema와
-RTSP/WebRTC media path는 요청 없이 변경하지 않습니다.
-
-2.x runway 기준은 단순합니다. `2.8.0`은 기존 계약을 유지한 operator-supervised action
-readiness, `2.9.0`은 3.0 전 마지막 안정화와 전환 준비, `3.0.0`은 별도 설계와 승인 후
-route/API/config/schema, 저장소, auth/scope, media path 같은 큰 변경을 다루는 선입니다.
-
-모델 선택 기준은 PC 사양과 privacy mode를 함께 봅니다. 현재 기준은 local standard
-`Qwen/Qwen3-VL-8B-Instruct`, low-spec fallback `Qwen/Qwen3-VL-4B-Instruct`,
-high-tier 평가 후보 `Qwen/Qwen3-VL-30B-A3B-Instruct`, cloud opt-in fallback
-`gemini-2.5-flash`입니다. 실제 모델/runtime 설치, cloud provider 호출 성공 보장,
-model/runtime bundle 배포와 default-on 승격은 기본 release에 포함하지 않습니다.
+- 최신 공개 릴리즈: `v3.0.0` Event Evidence Search MVP, source-only.
+- 현재 소스: `3.1.0` Encoded Event Clip and Safe Sharing Expansion.
+- 포함된 v3.1 로컬 구현: encoded clip contract/pipeline, `/ops/events` replay timeline,
+  client-safe digest, scoped integrator search API, operator feature correction,
+  optional vector gate, retention/export hardening, local readiness verifier.
+- 별도 evidence 필요: tag/GitHub Release/published metadata, UI 풀테스트 직접 조작,
+  30분/120분 장시간 테스트, 실기기/cloud/provider 성공.
+- 불변 조건: Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path는
+  요청 없이 변경하지 않습니다.
+- AI/model 경계: Qwen 8B local standard, Qwen 4B low-spec fallback, Qwen 30B 평가 후보,
+  Gemini cloud opt-in fallback 기준이며 runtime/model bundle 배포와 default-on 승격은 제외합니다.
 
 관련 문서:
 
@@ -133,7 +123,7 @@ README는 제품 개요와 빠른 시작만 담습니다. 세부 정책과 내�
 - release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
 - 최신 공개 릴리즈 노트: [v3.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.0.0)
 - 현재 source roadmap: [docs/development-backlog.md](docs/development-backlog.md)의
-  `v3.0.0 Event Evidence Search MVP`
+  `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`
 
 ## 대표 UI 미리보기
 

@@ -1,0 +1,9 @@
+[pass] roundtrip 9801: line-crossing
+[pass] roundtrip 9802: re-entry
+[pass] roundtrip 9803: intrusion-after-line-crossing
+[pass] roundtrip 9804: presence
+[pass] duplicate event template create rejects existing id
+[pass] duplicate vaRule create rejects existing id
+[pass] trackingPolicy validation rejects tracker=none + reid=assist
+[pass] trackingPolicy validation rejects reid=assist without explicit tracker
+[summary] ops-rules-roundtrip complete

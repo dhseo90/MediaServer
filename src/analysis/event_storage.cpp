@@ -6,6 +6,12 @@
 #include "analysis/snapshot_encoder.h"
 #include "app_config.h"
 
+#if MEDIA_SERVER_USE_GSTREAMER
+#include <gst/app/gstappsink.h>
+#include <gst/app/gstappsrc.h>
+#include <gst/gst.h>
+#endif
+
 #include <algorithm>
 #include <cctype>
 #include <chrono>
@@ -1332,6 +1338,561 @@ bool WriteBinaryFile(const std::filesystem::path& path,
     return true;
 }
 
+struct EncodedClipResult {
+    std::string job_id;
+    std::string manifest_path;
+    std::string media_path;
+    std::string format{"webm"};
+    std::string codec{"vp8"};
+    std::string content_type{"video/webm"};
+    std::string extension{".webm"};
+    std::size_t frame_count{0};
+    std::uint64_t byte_size{0};
+    int fps{1};
+    int duration_ms{0};
+    std::uint64_t cleanup_deleted_entries{0};
+};
+
+int EstimateClipFps(const std::vector<std::pair<BufferedEventFrame, std::filesystem::path>>& frames) {
+    if (frames.size() < 2U) {
+        return 1;
+    }
+    const std::int64_t first_ms = frames.front().first.timestamp_ms;
+    const std::int64_t last_ms = frames.back().first.timestamp_ms;
+    const std::int64_t span_ms = std::max<std::int64_t>(1, last_ms - first_ms);
+    const double average_delta_ms = static_cast<double>(span_ms) /
+                                    static_cast<double>(frames.size() - 1U);
+    const int estimated = static_cast<int>(std::llround(1000.0 / std::max(1.0, average_delta_ms)));
+    return std::clamp(estimated, 1, 30);
+}
+
+#if MEDIA_SERVER_USE_GSTREAMER
+
+std::string GstRawFrameFormat(PixelFormat format) {
+    switch (format) {
+        case PixelFormat::RGB:
+            return "RGB";
+        case PixelFormat::BGR:
+            return "BGR";
+        case PixelFormat::Gray8:
+            return "GRAY8";
+        case PixelFormat::I420:
+        case PixelFormat::Unknown:
+            return {};
+    }
+    return {};
+}
+
+#endif
+
+bool BuildWebmClip(const std::vector<std::pair<BufferedEventFrame, std::filesystem::path>>& frames,
+                   std::vector<unsigned char>* output,
+                   int* fps,
+                   int* duration_ms,
+                   std::string* error_message) {
+    if (output == nullptr || frames.empty()) {
+        if (error_message != nullptr) {
+            *error_message = "encoded clip requires at least one frame";
+        }
+        return false;
+    }
+    output->clear();
+    const int width = frames.front().first.frame.width;
+    const int height = frames.front().first.frame.height;
+    const PixelFormat format = frames.front().first.frame.format;
+    const int channels = PixelChannelCount(format);
+    if (width <= 0 || height <= 0 || channels <= 0) {
+        if (error_message != nullptr) {
+            *error_message = "encoded clip frame dimensions or format are invalid";
+        }
+        return false;
+    }
+    const std::size_t expected_bytes =
+        static_cast<std::size_t>(width) * static_cast<std::size_t>(height) *
+        static_cast<std::size_t>(channels);
+    for (const auto& item : frames) {
+        const RawVideoFrame& frame = item.first.frame;
+        if (frame.width != width || frame.height != height || frame.format != format ||
+            frame.data.size() < expected_bytes) {
+            if (error_message != nullptr) {
+                *error_message = "encoded clip frames must share dimensions, format, and raw byte size";
+            }
+            return false;
+        }
+    }
+
+    const int local_fps = EstimateClipFps(frames);
+    const int local_duration_ms = static_cast<int>(
+        (static_cast<std::int64_t>(frames.size()) * 1000LL) / std::max(1, local_fps));
+
+#if MEDIA_SERVER_USE_GSTREAMER
+    const std::string gst_format = GstRawFrameFormat(format);
+    if (gst_format.empty()) {
+        if (error_message != nullptr) {
+            *error_message = "WebM encoder supports RGB/BGR/Gray8 recorder frames only";
+        }
+        return false;
+    }
+
+    gst_init(nullptr, nullptr);
+    const int encoded_width = std::max(16, width + (width % 2));
+    const int encoded_height = std::max(16, height + (height % 2));
+    const std::string launch =
+        "appsrc name=src is-live=false format=time block=true do-timestamp=false "
+        "! videoconvert ! videoscale ! video/x-raw,format=I420,width=" +
+        std::to_string(encoded_width) + ",height=" + std::to_string(encoded_height) +
+        ",framerate=" + std::to_string(local_fps) + "/1 "
+        "! vp8enc deadline=1 keyframe-max-dist=1 "
+        "! webmmux streamable=true "
+        "! appsink name=sink emit-signals=false sync=false drop=false";
+
+    GError* pipeline_error = nullptr;
+    GstElement* pipeline = gst_parse_launch(launch.c_str(), &pipeline_error);
+    if (pipeline == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = pipeline_error != nullptr ? pipeline_error->message
+                                                       : "failed to create WebM encoder pipeline";
+        }
+        if (pipeline_error != nullptr) {
+            g_error_free(pipeline_error);
+        }
+        return false;
+    }
+
+    GstElement* appsrc = gst_bin_get_by_name(GST_BIN(pipeline), "src");
+    GstElement* appsink = gst_bin_get_by_name(GST_BIN(pipeline), "sink");
+    GstBus* bus = gst_element_get_bus(pipeline);
+    if (appsrc == nullptr || appsink == nullptr || bus == nullptr) {
+        if (bus != nullptr) {
+            gst_object_unref(bus);
+        }
+        if (appsrc != nullptr) {
+            gst_object_unref(appsrc);
+        }
+        if (appsink != nullptr) {
+            gst_object_unref(appsink);
+        }
+        gst_object_unref(pipeline);
+        if (error_message != nullptr) {
+            *error_message = "WebM encoder pipeline missing appsrc/appsink/bus";
+        }
+        return false;
+    }
+
+    GstCaps* caps = gst_caps_new_simple("video/x-raw",
+                                        "format",
+                                        G_TYPE_STRING,
+                                        gst_format.c_str(),
+                                        "width",
+                                        G_TYPE_INT,
+                                        width,
+                                        "height",
+                                        G_TYPE_INT,
+                                        height,
+                                        "framerate",
+                                        GST_TYPE_FRACTION,
+                                        local_fps,
+                                        1,
+                                        nullptr);
+    gst_app_src_set_caps(GST_APP_SRC(appsrc), caps);
+    gst_caps_unref(caps);
+    gst_app_src_set_stream_type(GST_APP_SRC(appsrc), GST_APP_STREAM_TYPE_STREAM);
+    gst_app_src_set_duration(
+        GST_APP_SRC(appsrc),
+        static_cast<GstClockTime>(local_duration_ms) * static_cast<GstClockTime>(GST_MSECOND));
+
+    bool ok = true;
+    std::string local_error;
+    if (gst_element_set_state(pipeline, GST_STATE_PLAYING) == GST_STATE_CHANGE_FAILURE) {
+        ok = false;
+        local_error = "failed to start WebM encoder pipeline";
+    }
+
+    const GstClockTime frame_duration =
+        static_cast<GstClockTime>(GST_SECOND / static_cast<guint64>(std::max(1, local_fps)));
+    for (std::size_t index = 0; ok && index < frames.size(); ++index) {
+        GstBuffer* buffer = gst_buffer_new_allocate(nullptr, expected_bytes, nullptr);
+        if (buffer == nullptr) {
+            ok = false;
+            local_error = "failed to allocate WebM input frame";
+            break;
+        }
+        gst_buffer_fill(buffer, 0, frames[index].first.frame.data.data(), expected_bytes);
+        GST_BUFFER_PTS(buffer) = static_cast<GstClockTime>(index) * frame_duration;
+        GST_BUFFER_DTS(buffer) = GST_BUFFER_PTS(buffer);
+        GST_BUFFER_DURATION(buffer) = frame_duration;
+        const GstFlowReturn flow = gst_app_src_push_buffer(GST_APP_SRC(appsrc), buffer);
+        if (flow != GST_FLOW_OK) {
+            ok = false;
+            local_error = "failed to push WebM input frame";
+        }
+    }
+    if (ok) {
+        const GstFlowReturn eos_flow = gst_app_src_end_of_stream(GST_APP_SRC(appsrc));
+        if (eos_flow != GST_FLOW_OK) {
+            ok = false;
+            local_error = "failed to finish WebM input stream";
+        }
+    }
+
+    const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(10);
+    while (ok && std::chrono::steady_clock::now() < deadline) {
+        bool pulled_sample = false;
+        while (GstSample* sample =
+                   gst_app_sink_try_pull_sample(GST_APP_SINK(appsink), 200 * GST_MSECOND)) {
+            pulled_sample = true;
+            GstBuffer* out_buffer = gst_sample_get_buffer(sample);
+            GstMapInfo map;
+            if (out_buffer == nullptr || gst_buffer_map(out_buffer, &map, GST_MAP_READ) != TRUE) {
+                ok = false;
+                local_error = "failed to map WebM encoder output";
+                gst_sample_unref(sample);
+                break;
+            }
+            output->insert(output->end(), map.data, map.data + map.size);
+            gst_buffer_unmap(out_buffer, &map);
+            gst_sample_unref(sample);
+        }
+        if (!ok) {
+            break;
+        }
+        GstMessage* message = gst_bus_pop_filtered(bus, static_cast<GstMessageType>(GST_MESSAGE_ERROR | GST_MESSAGE_EOS));
+        if (message != nullptr) {
+            if (GST_MESSAGE_TYPE(message) == GST_MESSAGE_ERROR) {
+                GError* err = nullptr;
+                gchar* debug = nullptr;
+                gst_message_parse_error(message, &err, &debug);
+                ok = false;
+                local_error = err != nullptr ? err->message : "WebM encoder pipeline error";
+                if (debug != nullptr && local_error.find(debug) == std::string::npos) {
+                    local_error += ": ";
+                    local_error += debug;
+                }
+                if (err != nullptr) {
+                    g_error_free(err);
+                }
+                if (debug != nullptr) {
+                    g_free(debug);
+                }
+            }
+            const bool saw_eos = GST_MESSAGE_TYPE(message) == GST_MESSAGE_EOS;
+            gst_message_unref(message);
+            if (saw_eos) {
+                break;
+            }
+        }
+        if (!pulled_sample && gst_app_sink_is_eos(GST_APP_SINK(appsink))) {
+            break;
+        }
+    }
+    if (ok && output->empty()) {
+        ok = false;
+        local_error = "WebM encoder produced no output";
+    }
+    if (ok && std::chrono::steady_clock::now() >= deadline && !gst_app_sink_is_eos(GST_APP_SINK(appsink))) {
+        ok = false;
+        local_error = "timed out waiting for WebM encoder output";
+    }
+
+    gst_element_set_state(pipeline, GST_STATE_NULL);
+    gst_object_unref(bus);
+    gst_object_unref(appsrc);
+    gst_object_unref(appsink);
+    gst_object_unref(pipeline);
+
+    if (!ok) {
+        if (error_message != nullptr) {
+            *error_message = std::move(local_error);
+        }
+        return false;
+    }
+    if (fps != nullptr) {
+        *fps = local_fps;
+    }
+    if (duration_ms != nullptr) {
+        *duration_ms = local_duration_ms;
+    }
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+#else
+    (void)local_fps;
+    (void)local_duration_ms;
+    if (error_message != nullptr) {
+        *error_message = "WebM event clip encoding requires MEDIA_SERVER_USE_GSTREAMER=ON";
+    }
+    return false;
+#endif
+}
+
+std::uint64_t CleanupEncodedClipOutput(const std::filesystem::path& encoded_dir) {
+    std::error_code ec;
+    if (encoded_dir.empty() || !std::filesystem::exists(encoded_dir, ec) || ec) {
+        return 0;
+    }
+    const std::uintmax_t removed = std::filesystem::remove_all(encoded_dir, ec);
+    if (ec) {
+        return 0;
+    }
+    return static_cast<std::uint64_t>(removed);
+}
+
+std::string FrameStreamEpochId(const EventRecord& record);
+
+const char* FrameBundlePhase(std::size_t index, std::size_t event_frame_index);
+
+void WriteFrameRefJson(std::ostream& out,
+                       const EventRecord& record,
+                       const BufferedEventFrame& frame);
+
+bool WriteEncodedClipManifest(const EventRecord& record,
+                              const EventMediaHookOptions& options,
+                              const std::filesystem::path& evidence_manifest_path,
+                              const std::filesystem::path& frame_bundle_manifest_path,
+                              const std::vector<std::pair<BufferedEventFrame, std::filesystem::path>>& frames,
+                              std::size_t event_frame_index,
+                              const EncodedClipResult& result,
+                              std::string* error_message) {
+    if (!EnsureParentDirectory(result.manifest_path, error_message)) {
+        return false;
+    }
+    std::ofstream manifest(result.manifest_path, std::ios::out | std::ios::trunc);
+    if (!manifest.good()) {
+        if (error_message != nullptr) {
+            *error_message = "failed to open encoded clip manifest";
+        }
+        return false;
+    }
+    const std::int64_t start_ms = std::max<std::int64_t>(0, record.update_time_ms - options.pre_event_ms);
+    const std::int64_t end_ms = std::max<std::int64_t>(record.update_time_ms,
+                                                       record.update_time_ms + options.post_event_ms);
+    const int frame_interval_ms = result.fps > 0 ? std::max(1, 1000 / result.fps) : 1000;
+    const std::size_t mapped_event_frame_index =
+        frames.empty() ? 0 : std::min(event_frame_index, frames.size() - 1U);
+    manifest << "{"
+             << "\"schema\":\"media-server.encoded-event-clip-contract.v1\","
+             << "\"contractVersion\":1,"
+             << "\"status\":\"completed\","
+             << "\"sampleKind\":\"runtime-output\","
+             << "\"inputSource\":\"frame-bundle\","
+             << "\"queueName\":\"event-clip-encoder\","
+             << "\"jobId\":\"" << JsonEscape(result.job_id) << "\","
+             << "\"eventId\":\"" << JsonEscape(record.event_id) << "\","
+             << "\"eventType\":\"" << JsonEscape(record.event_type) << "\","
+             << "\"sourceId\":\"" << JsonEscape(record.stream_id.empty() ? "unknown-source" : record.stream_id)
+             << "\","
+             << "\"streamId\":\"" << JsonEscape(record.stream_id) << "\","
+             << "\"channelId\":\"" << JsonEscape(record.channel_id.empty() ? "main" : record.channel_id)
+             << "\","
+             << "\"streamEpochId\":\"" << JsonEscape(FrameStreamEpochId(record)) << "\","
+             << "\"createdAtMs\":" << NowMs() << ","
+             << "\"captureWindow\":{"
+             << "\"startMs\":" << start_ms
+             << ",\"eventMs\":" << record.update_time_ms
+             << ",\"endMs\":" << end_ms
+             << "},"
+             << "\"clip\":{"
+             << "\"role\":\"encodedEventClip\","
+             << "\"requiredWhenGenerated\":true,"
+             << "\"storageKey\":\"" << JsonEscape(result.media_path) << "\","
+             << "\"manifestStorageKey\":\"" << JsonEscape(result.manifest_path) << "\","
+             << "\"durationMs\":" << result.duration_ms << ","
+             << "\"startRelativeToEventMs\":" << -options.pre_event_ms << ","
+             << "\"endRelativeToEventMs\":" << options.post_event_ms << ","
+             << "\"byteSize\":" << result.byte_size << ","
+             << "\"frameCount\":" << result.frame_count
+             << "},"
+             << "\"format\":{"
+             << "\"container\":\"" << JsonEscape(result.format) << "\","
+             << "\"mimeType\":\"" << JsonEscape(result.content_type) << "\","
+             << "\"videoCodec\":\"" << JsonEscape(result.codec) << "\","
+             << "\"extension\":\"" << JsonEscape(result.extension) << "\","
+             << "\"allowedContainers\":[\"mp4\",\"webm\"],"
+             << "\"allowedMimeTypes\":[\"video/mp4\",\"video/webm\"]"
+             << "},"
+             << "\"ptsMapping\":{"
+             << "\"timescale\":1000,"
+             << "\"clipStartPtsMs\":0,"
+             << "\"eventSourcePtsMs\":" << record.update_time_ms << ","
+             << "\"eventClipPtsMs\":"
+             << (mapped_event_frame_index * static_cast<std::size_t>(frame_interval_ms))
+             << ","
+             << "\"clipEndPtsMs\":" << result.duration_ms << ","
+             << "\"frames\":[";
+    for (std::size_t index = 0; index < frames.size(); ++index) {
+        if (index != 0) {
+            manifest << ",";
+        }
+        manifest << "{"
+                 << "\"phase\":\"" << FrameBundlePhase(index, mapped_event_frame_index) << "\","
+                 << "\"frameRef\":";
+        WriteFrameRefJson(manifest, record, frames[index].first);
+        manifest << ",\"clipPtsMs\":" << (index * static_cast<std::size_t>(frame_interval_ms))
+                 << ",\"relativeToEventMs\":"
+                 << (frames[index].first.timestamp_ms - record.update_time_ms);
+        if (index == mapped_event_frame_index) {
+            manifest << ",\"artifactRefs\":[\"event-frame\",\"representative-image\"]";
+        }
+        manifest << "}";
+    }
+    manifest << "]"
+             << "},"
+             << "\"evidenceLinks\":{"
+             << "\"evidenceManifestStorageKey\":\"" << JsonEscape(evidence_manifest_path.string()) << "\","
+             << "\"frameBundleManifestStorageKey\":\"" << JsonEscape(frame_bundle_manifest_path.string()) << "\","
+             << "\"eventFrameArtifactId\":\"event-frame\","
+             << "\"representativeImageArtifactId\":\"representative-image\","
+             << "\"bboxCropArtifactIds\":[";
+    if (!record.bbox_crop_path.empty()) {
+        manifest << "\"bbox-crop-1\"";
+    }
+    manifest << "]"
+             << "},"
+             << "\"input\":{"
+             << "\"frameBundleManifest\":\"" << JsonEscape(frame_bundle_manifest_path.string()) << "\","
+             << "\"frameCount\":" << result.frame_count
+             << "},"
+             << "\"output\":{"
+             << "\"path\":\"" << JsonEscape(result.media_path) << "\","
+             << "\"format\":\"" << JsonEscape(result.format) << "\","
+             << "\"codec\":\"" << JsonEscape(result.codec) << "\","
+             << "\"contentType\":\"" << JsonEscape(result.content_type) << "\","
+             << "\"byteSize\":" << result.byte_size << ","
+             << "\"fps\":" << result.fps << ","
+             << "\"durationMs\":" << result.duration_ms
+             << "},"
+             << "\"cleanup\":{"
+             << "\"partialOutputDeleted\":true,"
+             << "\"deletedEntries\":" << result.cleanup_deleted_entries
+             << "},"
+             << "\"frameMap\":[";
+    for (std::size_t index = 0; index < frames.size(); ++index) {
+        if (index != 0) {
+            manifest << ",";
+        }
+        manifest << "{"
+                 << "\"frameIndex\":" << index << ","
+                 << "\"sourceFrame\":\"" << JsonEscape(frames[index].second.string()) << "\","
+                 << "\"ptsMs\":" << frames[index].first.timestamp_ms << ","
+                 << "\"relativeToEventMs\":"
+                 << (frames[index].first.timestamp_ms - record.update_time_ms) << ","
+                 << "\"encodedFrameIndex\":" << index
+                 << "}";
+    }
+    manifest << "],"
+             << "\"retention\":{"
+             << "\"inheritsEventRetention\":true,"
+             << "\"defaultDays\":7,"
+             << "\"pinnedExcludesAutomaticCleanup\":true,"
+             << "\"cleanupRequiresDryRun\":true,"
+             << "\"lifecycleGroup\":[\"eventRecord\",\"evidenceManifest\",\"frameBundle\",\"encodedClip\",\"featureRevision\",\"searchIndex\",\"auditTrail\"]"
+             << "},"
+             << "\"retentionExportHardening\":{"
+             << "\"schema\":\"media-server.v310.retention-export-hardening.v1\","
+             << "\"implementedInStep\":\"V310-S08\","
+             << "\"encodedClipLifecycleCleanup\":true,"
+             << "\"retentionCleanupAction\":\"encoded-clip-retention-export-hardening\","
+             << "\"exportBundleAuditCoverage\":true,"
+             << "\"releaseSafeExportExcludesEncodedMedia\":true,"
+             << "\"tokenExpiryNoServerFile\":true"
+             << "},"
+             << "\"privacy\":{"
+             << "\"rawPromptStored\":false,"
+             << "\"rawProviderResponseStored\":false,"
+             << "\"providerCredentialStored\":false,"
+             << "\"sourceUrlStored\":false,"
+             << "\"identityFeaturesAllowed\":false,"
+             << "\"faceRecognitionAllowed\":false"
+             << "},"
+             << "\"nonVmsBoundary\":{"
+             << "\"boundedShortSegment\":true,"
+             << "\"alwaysOnRecording\":false,"
+             << "\"continuousRecording\":false,"
+             << "\"continuousSegmentIndex\":false,"
+             << "\"vmsArchiveApi\":false,"
+             << "\"broadArchivePlayback\":false,"
+             << "\"onDemandArbitraryWindowExport\":false,"
+             << "\"clientViewerExposure\":false,"
+             << "\"cloudProviderDefaultOn\":false,"
+             << "\"archiveApi\":false,"
+             << "\"maxOutputFrames\":" << kMaxClipOutputFrames
+             << "},"
+             << "\"generationBoundary\":{"
+             << "\"pipelineImplementedInThisStep\":true,"
+             << "\"queueStatusImplementedInThisStep\":true,"
+             << "\"partialOutputCleanupImplementedInThisStep\":true,"
+             << "\"encoderPipelineStep\":\"V310-S02\""
+             << "}"
+             << "}\n";
+    if (!manifest.good()) {
+        if (error_message != nullptr) {
+            *error_message = "failed to write encoded clip manifest";
+        }
+        return false;
+    }
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+}
+
+bool EncodeEventClipArtifact(const EventRecord& record,
+                             const EventMediaHookOptions& options,
+                             const std::filesystem::path& evidence_manifest_path,
+                             const std::filesystem::path& frame_bundle_manifest_path,
+                             const std::vector<std::pair<BufferedEventFrame, std::filesystem::path>>& frames,
+                             std::size_t event_frame_index,
+                             EncodedClipResult* result,
+                             std::string* error_message) {
+    if (result == nullptr) {
+        if (error_message != nullptr) {
+            *error_message = "missing encoded clip result";
+        }
+        return false;
+    }
+    *result = EncodedClipResult{};
+    result->job_id = SanitizePathToken(record.event_id) + "-" + std::to_string(NextSequence());
+    result->frame_count = frames.size();
+
+    const std::filesystem::path encoded_dir = frame_bundle_manifest_path.parent_path() / "encoded";
+    result->cleanup_deleted_entries = CleanupEncodedClipOutput(encoded_dir);
+    std::error_code ec;
+    std::filesystem::create_directories(encoded_dir, ec);
+    if (ec) {
+        if (error_message != nullptr) {
+            *error_message = ec.message();
+        }
+        return false;
+    }
+
+    std::vector<unsigned char> webm;
+    if (!BuildWebmClip(frames, &webm, &result->fps, &result->duration_ms, error_message)) {
+        return false;
+    }
+    const std::filesystem::path media_path = encoded_dir / "event-clip.webm";
+    if (!WriteBinaryFile(media_path, webm, error_message)) {
+        return false;
+    }
+    result->media_path = media_path.string();
+    result->byte_size = static_cast<std::uint64_t>(webm.size());
+    result->manifest_path = (encoded_dir / "encoded-manifest.json").string();
+    if (!WriteEncodedClipManifest(record,
+                                  options,
+                                  evidence_manifest_path,
+                                  frame_bundle_manifest_path,
+                                  frames,
+                                  event_frame_index,
+                                  *result,
+                                  error_message)) {
+        return false;
+    }
+    if (error_message != nullptr) {
+        error_message->clear();
+    }
+    return true;
+}
+
 std::string FrameStreamEpochId(const EventRecord& record) {
     const std::string source = record.stream_id.empty() ? "unknown-source" : record.stream_id;
     const std::string channel = record.channel_id.empty() ? "main" : record.channel_id;
@@ -2012,6 +2573,17 @@ bool WriteClipMedia(const EventRecord& record,
                                error_message)) {
         return false;
     }
+    EncodedClipResult encoded_clip;
+    if (!EncodeEventClipArtifact(record,
+                                 options,
+                                 evidence_manifest_path,
+                                 frame_bundle_manifest_path,
+                                 written_frames,
+                                 event_frame_index,
+                                 &encoded_clip,
+                                 error_message)) {
+        return false;
+    }
     std::ofstream manifest(manifest_path, std::ios::out | std::ios::trunc);
     if (!manifest.good()) {
         if (error_message != nullptr) {
@@ -2081,6 +2653,24 @@ bool WriteClipMedia(const EventRecord& record,
     manifest << ",";
     write_vlm_frame_ref("nextFrame", next_frame_index);
     manifest << "},"
+             << "\"encodedClip\":{"
+             << "\"schema\":\"media-server.encoded-event-clip-contract.v1\","
+             << "\"status\":\"completed\","
+             << "\"queueName\":\"event-clip-encoder\","
+             << "\"jobId\":\"" << JsonEscape(encoded_clip.job_id) << "\","
+             << "\"manifestPath\":\"" << JsonEscape(encoded_clip.manifest_path) << "\","
+             << "\"mediaPath\":\"" << JsonEscape(encoded_clip.media_path) << "\","
+             << "\"format\":\"" << JsonEscape(encoded_clip.format) << "\","
+             << "\"codec\":\"" << JsonEscape(encoded_clip.codec) << "\","
+             << "\"contentType\":\"" << JsonEscape(encoded_clip.content_type) << "\","
+             << "\"extension\":\"" << JsonEscape(encoded_clip.extension) << "\","
+             << "\"byteSize\":" << encoded_clip.byte_size << ","
+             << "\"frameCount\":" << encoded_clip.frame_count << ","
+             << "\"cleanupDeletedEntries\":" << encoded_clip.cleanup_deleted_entries << ","
+             << "\"boundedShortSegment\":true,"
+             << "\"continuousRecording\":false,"
+             << "\"archiveApi\":false"
+             << "},"
              << "\"eventStatus\":\"" << JsonEscape(record.status) << "\","
              << "\"zoneId\":\"" << JsonEscape(record.zone_id) << "\","
              << "\"lineId\":\"" << JsonEscape(record.line_id) << "\","

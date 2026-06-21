@@ -1299,6 +1299,7 @@ std::string ProductUiCss() {
     .badge.bad { background: var(--color-danger-bg); color: var(--color-danger); }
     .chip.info,
     .badge.info { background: var(--color-info-bg); color: var(--color-info); }
+    .client-safe-event-digest,
     .client-safe-incident-digest,
     .client-safe-followup-digest,
     .client-safe-digest-list {
@@ -1306,6 +1307,7 @@ std::string ProductUiCss() {
       gap: var(--space-3);
       min-width: 0;
     }
+    .client-safe-event-digest,
     .client-safe-incident-digest,
     .client-safe-followup-digest {
       padding: var(--space-3);
@@ -2574,6 +2576,85 @@ std::string ProductUiCss() {
       gap: var(--space-2);
       align-items: center;
     }
+    .v310-replay-timeline-ui {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .v310-operator-feature-correction {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .operator-feature-correction-list {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .operator-feature-correction-card {
+      display: grid;
+      gap: var(--space-2);
+      min-width: 0;
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-bg-elevated);
+    }
+    .v310-replay-timeline-results {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .v310-replay-timeline-card {
+      display: grid;
+      gap: var(--space-3);
+      min-width: 0;
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-bg-elevated);
+    }
+    .v310-replay-artifact-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: var(--space-2);
+    }
+    .v310-replay-artifact-grid p,
+    .v310-replay-timeline-point {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+      margin: 0;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: var(--color-surface-subtle);
+    }
+    .v310-replay-artifact-grid strong,
+    .v310-replay-timeline-point span {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+    .v310-replay-artifact-grid span,
+    .v310-replay-artifact-grid small,
+    .v310-replay-timeline-point p {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .v310-replay-artifact-grid small,
+    .v310-replay-timeline-point p {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .v310-replay-timeline-rail {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: var(--space-2);
+    }
+    .v310-replay-playback-segments {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      align-items: center;
+    }
     .incident-memory-results {
       display: grid;
       gap: var(--space-2);
@@ -3160,6 +3241,24 @@ std::string ProductUiCss() {
       align-items: end;
     }
     .ops-vlm-review-action-controls label {
+      display: grid;
+      gap: 3px;
+      min-width: 0;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .ops-feature-correction-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+      gap: 6px;
+      align-items: end;
+      min-width: 220px;
+      padding: 6px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: var(--color-surface-subtle);
+    }
+    .ops-feature-correction-controls label {
       display: grid;
       gap: 3px;
       min-width: 0;

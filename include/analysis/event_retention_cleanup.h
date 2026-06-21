@@ -25,6 +25,8 @@ struct EventRetentionCleanupItem {
     std::int64_t event_time_ms{0};
     bool pinned{false};
     std::size_t evidence_manifest_count{1};
+    std::size_t encoded_clip_manifest_count{1};
+    std::size_t encoded_clip_media_count{1};
     std::size_t feature_revision_count{2};
     bool search_indexed{true};
     bool raw_prompt_stored{false};
@@ -45,6 +47,9 @@ struct EventRetentionCleanupAction {
     bool pinned{false};
     bool event_record_deleted{false};
     std::size_t evidence_manifests_deleted{0};
+    bool encoded_clip_manifest_deleted{false};
+    std::size_t encoded_clip_manifests_deleted{0};
+    std::size_t encoded_clip_media_deleted{0};
     std::size_t feature_revisions_deleted{0};
     bool search_index_deindexed{false};
 };
@@ -73,6 +78,8 @@ struct EventRetentionCleanupResult {
     std::size_t pinned_retained{0};
     std::size_t deleted_event_records{0};
     std::size_t deleted_evidence_manifests{0};
+    std::size_t deleted_encoded_clip_manifests{0};
+    std::size_t deleted_encoded_clip_media{0};
     std::size_t deleted_feature_revisions{0};
     std::size_t deindexed_search_entries{0};
     std::string audit_action{"retention-cleanup-dry-run"};

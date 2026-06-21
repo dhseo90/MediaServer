@@ -1,0 +1,110 @@
+{
+  "schema": "media-server.v310-optional-vector-search-fixtures.v1",
+  "targetStep": "V310-S07",
+  "cases": [
+    {
+      "id": "default-off-no-vector-index",
+      "description": "Optional vector index remains disabled unless an explicit enabled flag is supplied.",
+      "input": {
+        "enabled": false,
+        "embeddings": [
+          {
+            "eventId": "evt-v310-s07-hit",
+            "embeddingId": "emb-v310-s07-action",
+            "kind": "action",
+            "values": [0.91, 0.09, 0.0],
+            "quality": 0.93
+          }
+        ]
+      },
+      "expected": {
+        "indexedEmbeddings": 0,
+        "vectorSearchPerformed": false,
+        "defaultOff": true
+      },
+      "contractInvariants": {
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "runtimeProviderCallPerformed": false,
+        "faceEmbeddingIndexed": false,
+        "identityEmbeddingIndexed": false,
+        "eventPostPayloadChanged": false,
+        "rtspWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false
+      }
+    },
+    {
+      "id": "enabled-quality-gated-vector-search",
+      "description": "Explicitly enabled vector search indexes only non-identifying, quality-passing embeddings.",
+      "input": {
+        "enabled": true,
+        "minQuality": 0.75,
+        "expectedDimensions": 3,
+        "query": [1.0, 0.0, 0.0],
+        "embeddings": [
+          {
+            "eventId": "evt-v310-s07-hit",
+            "embeddingId": "emb-v310-s07-action",
+            "kind": "action",
+            "values": [0.92, 0.08, 0.0],
+            "quality": 0.93
+          },
+          {
+            "eventId": "evt-v310-s07-low-quality",
+            "embeddingId": "emb-v310-s07-low",
+            "kind": "scene",
+            "values": [0.89, 0.11, 0.0],
+            "quality": 0.2
+          },
+          {
+            "eventId": "evt-v310-s07-face",
+            "embeddingId": "emb-v310-s07-face",
+            "kind": "face",
+            "values": [0.7, 0.2, 0.1],
+            "quality": 0.91,
+            "faceEmbedding": true
+          }
+        ]
+      },
+      "expected": {
+        "indexedEmbeddings": 1,
+        "qualityRejectedEmbeddings": 1,
+        "privacyRejectedEmbeddings": 1,
+        "topEventId": "evt-v310-s07-hit"
+      },
+      "contractInvariants": {
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "runtimeProviderCallPerformed": false,
+        "faceEmbeddingIndexed": false,
+        "identityEmbeddingIndexed": false,
+        "eventPostPayloadChanged": false,
+        "rtspWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false
+      }
+    },
+    {
+      "id": "rebuild-clears-stale-vector-results",
+      "description": "Rebuilding the optional vector index clears previous vector entries.",
+      "input": {
+        "enabled": true,
+        "firstEmbeddingEventId": "evt-v310-s07-old",
+        "secondEmbeddingEventId": "evt-v310-s07-new"
+      },
+      "expected": {
+        "oldEventReturnedAfterRebuild": false,
+        "newEventReturnedAfterRebuild": true
+      },
+      "contractInvariants": {
+        "rawPromptStored": false,
+        "rawProviderResponseStored": false,
+        "runtimeProviderCallPerformed": false,
+        "faceEmbeddingIndexed": false,
+        "identityEmbeddingIndexed": false,
+        "eventPostPayloadChanged": false,
+        "rtspWebrtcMediaPathChanged": false,
+        "viewerClientExposureAdded": false
+      }
+    }
+  ]
+}

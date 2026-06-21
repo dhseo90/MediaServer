@@ -3590,6 +3590,30 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <p class="ops-rule-note">EventRecord, FeatureSet, EvidenceManifest, review state를 불러오면 V300 evidence detail이 표시됩니다.</p>
         </div>
       </section>
+      <section class="section-card ops-workspace-wide v310-replay-timeline-ui" data-testid="ops-v310-replay-timeline-ui" data-v310-replay-timeline-ui="event-frame-frame-bundle-encoded-clip">
+        <div class="toolbar">
+          <div>
+            <h3>Encoded Clip Replay Timeline</h3>
+            <p id="opsV310ReplayTimelineSummary">event frame, representative image, frame bundle, encoded clip timeline을 Ops 전용으로 확인합니다.</p>
+          </div>
+          <div id="opsV310ReplayTimelineBadges" class="badge-row"><span class="chip">media-server.ops.v310-replay-timeline-ui.v1</span></div>
+        </div>
+        <div id="opsV310ReplayTimelineRows" class="v310-replay-timeline-results">
+          <p class="ops-rule-note">EventRecord evidence refs와 encoded clip manifest가 있으면 replay timeline이 표시됩니다.</p>
+        </div>
+      </section>
+      <section class="section-card ops-workspace-wide v310-operator-feature-correction" data-testid="ops-v310-operator-feature-correction" data-v310-operator-feature-correction="ops-only-feature-alias-reanalysis">
+        <div class="toolbar">
+          <div>
+            <h3>Operator Feature Correction</h3>
+            <p id="opsV310OperatorFeatureCorrectionSummary">feature correction, aliases, reanalysis request를 Ops review state에만 저장합니다.</p>
+          </div>
+          <div id="opsV310OperatorFeatureCorrectionBadges" class="badge-row"><span class="chip">media-server.ops.operator-feature-correction.v1</span></div>
+        </div>
+        <div id="opsV310OperatorFeatureCorrectionRows" class="operator-feature-correction-list">
+          <p class="ops-rule-note">운영자 feature correction 저장값과 reanalysis request가 있으면 표시됩니다.</p>
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide incident-triage-board" data-testid="ops-incident-triage-board" data-incident-triage-board="lane-filter-sort">
         <div class="toolbar">
           <div>
@@ -4651,6 +4675,79 @@ void AppendClientSafeIncidentDigestJson(std::ostringstream& out,
     out << "]}";
 }
 
+std::string ClientSafeEventDigestTimelineHint(const ClientEventItem& item) {
+    const std::string status = ClientSafeDigestValue(item.status, "recorded");
+    if (ClientEventStatusIsActive(status)) {
+        return "active event";
+    }
+    if (item.end_time_ms.has_value()) {
+        return "ended event";
+    }
+    if (item.update_time_ms.has_value()) {
+        return "updated event";
+    }
+    return "recorded event";
+}
+
+std::string ClientSafeEventDigestSummaryText(const ClientEventItem& item) {
+    std::string label = ClientSafeDigestValue(item.scenario_name, "");
+    if (label.empty()) {
+        label = ClientSafeDigestValue(item.class_name, "");
+    }
+    if (label.empty()) {
+        label = ClientSafeDigestValue(item.event_type, "event");
+    }
+    const std::string event_type = ClientSafeDigestValue(item.event_type, "event");
+    const std::string status = ClientSafeDigestValue(item.status, "recorded");
+    std::string summary = label + " / " + event_type + " / " + status;
+    if (analysis::IncidentProjectionContainsForbiddenMaterial(summary)) {
+        summary = "viewer-safe event summary";
+    }
+    return summary;
+}
+
+void AppendClientSafeEventDigestJson(std::ostringstream& out,
+                                     const ClientEventSummary& summary) {
+    out << "{"
+        << "\"schema\":\"media-server.client.event-digest.v1\","
+        << "\"provided\":" << (summary.provided ? "true" : "false") << ","
+        << "\"viewerSafe\":true,"
+        << "\"publishedViewScoped\":true,"
+        << "\"sourceUrlIncluded\":false,"
+        << "\"rawEvidenceIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"providerMaterialIncluded\":false,"
+        << "\"featureProvenanceIncluded\":false,"
+        << "\"internalEvidenceIncluded\":false,"
+        << "\"encodedClipPathIncluded\":false,"
+        << "\"ruleEditorIncluded\":false,"
+        << "\"actionControlsIncluded\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventSchemaChanged\":false,"
+        << "\"mediaPathChanged\":false,"
+        << "\"itemCount\":" << summary.recent.size() << ","
+        << "\"digestItems\":[";
+    const std::size_t limit = std::min<std::size_t>(summary.recent.size(), 5);
+    for (std::size_t i = 0; i < limit; ++i) {
+        const auto& item = summary.recent[i];
+        if (i != 0) {
+            out << ",";
+        }
+        out << "{"
+            << "\"digestId\":\"client-event-" << (i + 1) << "\","
+            << "\"summaryText\":\"" << JsonEscape(ClientSafeEventDigestSummaryText(item)) << "\","
+            << "\"eventType\":\"" << JsonEscape(ClientSafeDigestValue(item.event_type, "event")) << "\","
+            << "\"status\":\"" << JsonEscape(ClientSafeDigestValue(item.status, "recorded")) << "\","
+            << "\"severity\":\"" << JsonEscape(ClientSafeIncidentDigestSeverity(item)) << "\","
+            << "\"timelineHint\":\"" << JsonEscape(ClientSafeEventDigestTimelineHint(item)) << "\","
+            << "\"time\":";
+        AppendNullableInt64(out, item.update_time_ms.has_value() ? item.update_time_ms
+                                                                 : item.start_time_ms);
+        out << "}";
+    }
+    out << "]}";
+}
+
 std::string ClientSafeFollowUpDigestStatus(const ClientEventItem& item) {
     const std::string status = ClientSafeDigestValue(item.status, "recorded");
     if (status == "ended" || status == "resolved" || status == "closed" ||
@@ -4727,7 +4824,9 @@ void AppendClientEventSummaryJson(std::ostringstream& out, const ClientEventSumm
         }
         AppendClientEventItemJson(out, summary.recent[i]);
     }
-    out << "],\"incidentDigest\":";
+    out << "],\"eventDigest\":";
+    AppendClientSafeEventDigestJson(out, summary);
+    out << ",\"incidentDigest\":";
     AppendClientSafeIncidentDigestJson(out, summary);
     out << ",\"followUpDigest\":";
     AppendClientSafeFollowUpDigestJson(out, summary);
@@ -10230,6 +10329,10 @@ struct OpsEventReviewState {
     std::string vlm_action{"not-reviewed"};
     std::string vlm_action_target{"eventExplanation"};
     std::string vlm_action_note;
+    std::string corrected_feature_label;
+    std::vector<std::string> feature_aliases;
+    bool reanalysis_requested{false};
+    std::string reanalysis_reason;
     std::int64_t updated_at_ms{0};
     std::string actor;
     std::string role;
@@ -10427,6 +10530,52 @@ std::string NormalizeOpsEventReviewNote(std::string value) {
     return value;
 }
 
+std::string NormalizeOpsFeatureCorrectionValue(std::string value,
+                                               const std::string& fallback = "") {
+    value = Trim(std::move(value));
+    for (char& ch : value) {
+        if (ch == '\r' || ch == '\n' || ch == '\t' ||
+            static_cast<unsigned char>(ch) < 0x20) {
+            ch = ' ';
+        }
+    }
+    value = Trim(std::move(value));
+    constexpr std::size_t kMaxFeatureCorrectionBytes = 120;
+    if (value.size() > kMaxFeatureCorrectionBytes) {
+        value.resize(kMaxFeatureCorrectionBytes);
+        value = Trim(std::move(value));
+    }
+    if (value.empty()) {
+        return fallback;
+    }
+    if (OpsEventReviewNoteContainsSensitiveMaterial(value)) {
+        return fallback.empty() ? "[redacted-feature-correction]" : fallback;
+    }
+    return value;
+}
+
+std::vector<std::string> NormalizeOpsFeatureAliases(std::vector<std::string> values) {
+    std::vector<std::string> normalized;
+    std::set<std::string> seen;
+    for (std::string value : values) {
+        value = NormalizeOpsFeatureCorrectionValue(std::move(value));
+        if (value.empty() || seen.count(value) != 0) {
+            continue;
+        }
+        normalized.push_back(value);
+        seen.insert(value);
+        if (normalized.size() >= 6U) {
+            break;
+        }
+    }
+    return normalized;
+}
+
+bool OpsFeatureCorrectionHasContent(const OpsEventReviewState& state) {
+    return !state.corrected_feature_label.empty() || !state.feature_aliases.empty() ||
+           state.reanalysis_requested || !state.reanalysis_reason.empty();
+}
+
 OpsEventReviewState OpsEventReviewStateFromJsonLine(const std::string& line) {
     OpsEventReviewState state;
     state.event_id = Trim(ParseStringField(line, "eventId").value_or(""));
@@ -10457,6 +10606,26 @@ OpsEventReviewState OpsEventReviewStateFromJsonLine(const std::string& line) {
         state.vlm_action_note =
             NormalizeOpsEventReviewNote(ParseStringField(*vlm_action, "note").value_or(""));
     }
+    if (const auto feature_correction = ExtractObjectField(line, "featureCorrection");
+        feature_correction.has_value()) {
+        state.corrected_feature_label = NormalizeOpsFeatureCorrectionValue(
+            ParseStringField(*feature_correction, "correctedFeatureLabel").value_or(""));
+        state.feature_aliases =
+            NormalizeOpsFeatureAliases(StringArrayFieldValues(*feature_correction, "featureAliases"));
+        state.reanalysis_requested =
+            ParseBoolField(*feature_correction, "reanalysisRequested").value_or(false);
+        state.reanalysis_reason = NormalizeOpsFeatureCorrectionValue(
+            ParseStringField(*feature_correction, "reanalysisReason").value_or(""));
+    }
+    state.corrected_feature_label = NormalizeOpsFeatureCorrectionValue(
+        ParseStringField(line, "correctedFeatureLabel").value_or(state.corrected_feature_label));
+    if (auto aliases = StringArrayFieldValues(line, "featureAliases"); !aliases.empty()) {
+        state.feature_aliases = NormalizeOpsFeatureAliases(std::move(aliases));
+    }
+    state.reanalysis_requested =
+        ParseBoolField(line, "reanalysisRequested").value_or(state.reanalysis_requested);
+    state.reanalysis_reason = NormalizeOpsFeatureCorrectionValue(
+        ParseStringField(line, "reanalysisReason").value_or(state.reanalysis_reason));
     state.updated_at_ms = ParseInt64Field(line, "updatedAtMs").value_or(0);
     state.actor = Trim(ParseStringField(line, "actor").value_or(""));
     state.role = Trim(ParseStringField(line, "role").value_or(""));
@@ -10523,6 +10692,31 @@ std::string OpsEventReviewStateJson(const OpsEventReviewState& state) {
         << "\"separateFromEventRecords\":true,"
         << "\"eventPostPayloadChanged\":false"
         << "},"
+        << "\"correctedFeatureLabel\":\"" << JsonEscape(state.corrected_feature_label) << "\","
+        << "\"featureAliases\":" << JsonStringArray(state.feature_aliases) << ","
+        << "\"reanalysisRequested\":" << (state.reanalysis_requested ? "true" : "false") << ","
+        << "\"reanalysisReason\":\"" << JsonEscape(state.reanalysis_reason) << "\","
+        << "\"featureCorrection\":{"
+        << "\"schema\":\"media-server.ops.operator-feature-correction.v1\","
+        << "\"correctedFeatureLabel\":\"" << JsonEscape(state.corrected_feature_label) << "\","
+        << "\"featureAliases\":" << JsonStringArray(state.feature_aliases) << ","
+        << "\"reanalysisRequested\":" << (state.reanalysis_requested ? "true" : "false") << ","
+        << "\"reanalysisReason\":\"" << JsonEscape(state.reanalysis_reason) << "\","
+        << "\"persistent\":true,"
+        << "\"separateFromEventRecords\":true,"
+        << "\"separateFromEventPostPayload\":true,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"modelProviderDependency\":false,"
+        << "\"runtimeProviderCallPerformed\":false,"
+        << "\"featureRevisionWritePerformed\":false,"
+        << "\"automaticRuleApplied\":false"
+        << "},"
         << "\"updatedAtMs\":" << state.updated_at_ms << ","
         << "\"actor\":\"" << JsonEscape(state.actor) << "\","
         << "\"role\":\"" << JsonEscape(state.role) << "\""
@@ -10541,6 +10735,7 @@ OpsEventReviewState DefaultOpsEventReviewState(std::string event_id) {
     state.action_target = "operator-triage";
     state.vlm_action = "not-reviewed";
     state.vlm_action_target = "eventExplanation";
+    state.reanalysis_requested = false;
     return state;
 }
 
@@ -10606,6 +10801,10 @@ bool UpsertOpsEventReviewState(const app::AppConfig& config,
     next.vlm_action = NormalizeOpsVlmReviewAction(next.vlm_action);
     next.vlm_action_target = NormalizeOpsVlmReviewActionTarget(next.vlm_action_target);
     next.vlm_action_note = NormalizeOpsEventReviewNote(next.vlm_action_note);
+    next.corrected_feature_label =
+        NormalizeOpsFeatureCorrectionValue(next.corrected_feature_label);
+    next.feature_aliases = NormalizeOpsFeatureAliases(std::move(next.feature_aliases));
+    next.reanalysis_reason = NormalizeOpsFeatureCorrectionValue(next.reanalysis_reason);
     next.updated_at_ms = NowUnixMs();
     const std::filesystem::path path = OpsEventReviewStoragePath(config);
     std::error_code ec;
@@ -14746,6 +14945,378 @@ std::string OpsV300EvidenceRefPath(const std::string& event_json, const std::str
     return "";
 }
 
+std::string OpsV310EncodedManifestPath(const std::string& clip_manifest_path) {
+    if (clip_manifest_path.empty()) {
+        return "";
+    }
+    const std::filesystem::path manifest_path(clip_manifest_path);
+    if (manifest_path.filename().string() != "manifest.json") {
+        return "";
+    }
+    return (manifest_path.parent_path() / "encoded" / "encoded-manifest.json").string();
+}
+
+std::string OpsV310EncodedMediaPath(const std::string& clip_manifest_path) {
+    if (clip_manifest_path.empty()) {
+        return "";
+    }
+    const std::filesystem::path manifest_path(clip_manifest_path);
+    if (manifest_path.filename().string() != "manifest.json") {
+        return "";
+    }
+    return (manifest_path.parent_path() / "encoded" / "event-clip.webm").string();
+}
+
+std::string OpsV310ArtifactJson(const std::string& role,
+                                const std::string& status,
+                                const std::string& storage_key,
+                                const std::string& basis,
+                                const bool selected = false) {
+    std::ostringstream out;
+    out << "{"
+        << "\"role\":\"" << JsonEscape(role) << "\","
+        << "\"status\":\"" << JsonEscape(status) << "\","
+        << "\"available\":" << (storage_key.empty() ? "false" : "true") << ","
+        << "\"storageKey\":\"" << JsonEscape(storage_key.empty() ? "not-available" : storage_key) << "\","
+        << "\"basis\":\"" << JsonEscape(basis) << "\","
+        << "\"selected\":" << (selected ? "true" : "false")
+        << "}";
+    return out.str();
+}
+
+std::string OpsV310ReplayTimelinePointsJson(const std::string& event_frame,
+                                            const std::string& representative_image,
+                                            const std::string& frame_bundle,
+                                            const std::string& encoded_manifest,
+                                            const std::string& encoded_media) {
+    struct Point {
+        std::string phase;
+        std::string status;
+        std::string ref;
+        std::string label;
+    };
+    const std::vector<Point> points = {
+        {"eventFrame",
+         event_frame.empty() ? "missing" : "present",
+         event_frame,
+         "trigger-time event frame"},
+        {"representativeImage",
+         representative_image.empty() ? "missing" : "selected",
+         representative_image,
+         "representative image for evidence review"},
+        {"frameBundle",
+         frame_bundle.empty() ? "missing" : "present",
+         frame_bundle,
+         "pre/event/post FrameRef bundle"},
+        {"encodedClip",
+         encoded_media.empty() ? "missing" : "completed",
+         encoded_manifest.empty() ? encoded_media : encoded_manifest,
+         "bounded encoded clip timeline"},
+    };
+    std::ostringstream out;
+    out << "[";
+    for (std::size_t i = 0; i < points.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "{"
+            << "\"phase\":\"" << JsonEscape(points[i].phase) << "\","
+            << "\"status\":\"" << JsonEscape(points[i].status) << "\","
+            << "\"ref\":\"" << JsonEscape(points[i].ref.empty() ? "not-available" : points[i].ref) << "\","
+            << "\"label\":\"" << JsonEscape(points[i].label) << "\""
+            << "}";
+    }
+    out << "]";
+    return out.str();
+}
+
+std::string OpsV310PlaybackSegmentsJson(const std::int64_t pre_event_ms,
+                                        const std::int64_t post_event_ms,
+                                        const bool encoded_clip_available) {
+    struct Segment {
+        std::string key;
+        std::int64_t start_ms;
+        std::int64_t end_ms;
+        std::string status;
+    };
+    const std::vector<Segment> segments = {
+        {"pre", -pre_event_ms, -1, "frame-bundle"},
+        {"event", 0, 0, "event-frame"},
+        {"post", 1, post_event_ms, "frame-bundle"},
+        {"encodedClip", -pre_event_ms, post_event_ms, encoded_clip_available ? "completed" : "missing"},
+    };
+    std::ostringstream out;
+    out << "[";
+    for (std::size_t i = 0; i < segments.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "{"
+            << "\"key\":\"" << JsonEscape(segments[i].key) << "\","
+            << "\"startRelativeToEventMs\":" << segments[i].start_ms << ","
+            << "\"endRelativeToEventMs\":" << segments[i].end_ms << ","
+            << "\"status\":\"" << JsonEscape(segments[i].status) << "\""
+            << "}";
+    }
+    out << "]";
+    return out.str();
+}
+
+std::string OpsV310ReplayTimelineItemJson(const std::string& event_json,
+                                          const OpsEventReviewState& review,
+                                          const std::size_t index) {
+    std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+    if (!OpsEventReviewEventIdAllowed(event_id)) {
+        event_id = "event-" + std::to_string(index + 1);
+    }
+    const std::string event_type =
+        Trim(ParseStringField(event_json, "eventType")
+                 .value_or(ParseStringField(event_json, "className").value_or("event")));
+    const std::string source_id = OpsIncidentTriageBoardSourceId(event_json).empty()
+                                      ? "unknown-source"
+                                      : OpsIncidentTriageBoardSourceId(event_json);
+    const std::string event_frame = OpsV300EvidenceRefPath(event_json, "snapshotPath");
+    const std::string representative_image = event_frame;
+    const std::string evidence_manifest = OpsV300EvidenceRefPath(event_json, "evidenceManifest");
+    const std::string frame_bundle = OpsV300EvidenceRefPath(event_json, "frameBundleManifest");
+    const std::string clip_manifest = OpsV300EvidenceRefPath(event_json, "clipPath");
+    const std::string encoded_manifest = OpsV310EncodedManifestPath(clip_manifest);
+    const std::string encoded_media = OpsV310EncodedMediaPath(clip_manifest);
+    const std::int64_t start_ms = ParseInt64Field(event_json, "startTime").value_or(0);
+    const std::int64_t event_ms = ParseInt64Field(event_json, "updateTime").value_or(start_ms);
+    const std::int64_t end_ms = ParseInt64Field(event_json, "endTime").value_or(event_ms);
+    const std::int64_t pre_event_ms =
+        std::max<std::int64_t>(0, ParseInt64Field(event_json, "preEventMs").value_or(event_ms - start_ms));
+    const std::int64_t post_event_ms =
+        std::max<std::int64_t>(0, ParseInt64Field(event_json, "postEventMs").value_or(end_ms - event_ms));
+
+    std::ostringstream out;
+    out << "{"
+        << "\"eventId\":\"" << JsonEscape(event_id) << "\","
+        << "\"eventType\":\"" << JsonEscape(event_type.empty() ? "event" : event_type) << "\","
+        << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
+        << "\"reviewState\":\"" << JsonEscape(review.review_status.empty() ? "new" : review.review_status) << "\","
+        << "\"eventFrame\":" << OpsV310ArtifactJson("eventFrame",
+                                                      event_frame.empty() ? "missing" : "present",
+                                                      event_frame,
+                                                      "EventRecord snapshotPath",
+                                                      true)
+        << ",\"representativeImage\":"
+        << OpsV310ArtifactJson("representativeImage",
+                               representative_image.empty() ? "missing" : "selected",
+                               representative_image,
+                               "EvidenceManifest representativeImage",
+                               true)
+        << ",\"frameBundle\":"
+        << OpsV310ArtifactJson("frameBundle",
+                               frame_bundle.empty() ? "missing" : "present",
+                               frame_bundle,
+                               "vlmEvidenceRefs.temporalContext.frameBundleManifest")
+        << ",\"encodedClip\":{"
+        << "\"schema\":\"media-server.encoded-event-clip-contract.v1\","
+        << "\"status\":\"" << (encoded_media.empty() ? "missing" : "completed") << "\","
+        << "\"available\":" << (encoded_media.empty() ? "false" : "true") << ","
+        << "\"encodedClipManifestPath\":\"" << JsonEscape(encoded_manifest.empty() ? "not-available" : encoded_manifest) << "\","
+        << "\"encodedClipMediaPath\":\"" << JsonEscape(encoded_media.empty() ? "not-available" : encoded_media) << "\","
+        << "\"clipManifestPath\":\"" << JsonEscape(clip_manifest.empty() ? "not-available" : clip_manifest) << "\","
+        << "\"format\":\"webm\","
+        << "\"codec\":\"vp8\","
+        << "\"boundedShortSegment\":true,"
+        << "\"continuousRecording\":false,"
+        << "\"archiveApi\":false"
+        << "},"
+        << "\"frameRefPtsMapping\":{"
+        << "\"timescale\":1000,"
+        << "\"startMs\":" << std::max<std::int64_t>(0, event_ms - pre_event_ms) << ","
+        << "\"eventMs\":" << event_ms << ","
+        << "\"endMs\":" << (event_ms + post_event_ms) << ","
+        << "\"eventClipPtsMs\":" << pre_event_ms << ","
+        << "\"sourceFrameRefBasis\":\"EventRecord/vlmEvidenceRefs\""
+        << "},"
+        << "\"timelinePoints\":"
+        << OpsV310ReplayTimelinePointsJson(event_frame,
+                                           representative_image,
+                                           frame_bundle,
+                                           encoded_manifest,
+                                           encoded_media)
+        << ",\"playbackSegments\":"
+        << OpsV310PlaybackSegmentsJson(pre_event_ms, post_event_ms, !encoded_media.empty())
+        << ",\"evidenceManifestPath\":\"" << JsonEscape(evidence_manifest.empty() ? "not-available" : evidence_manifest) << "\","
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsV310ReplayTimelineUiJson(
+    const std::vector<std::string>& event_json_records,
+    const std::unordered_map<std::string, OpsEventReviewState>& reviews) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v310-replay-timeline-ui.v1\","
+        << "\"status\":\"ops-v310-replay-timeline-ui\","
+        << "\"opsOnly\":true,"
+        << "\"frameRefPtsMappingRequired\":true,"
+        << "\"encodedClipTimelineRequired\":true,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false,"
+        << "\"clientDigestImplemented\":false,"
+        << "\"scopedIntegratorApiImplemented\":false,"
+        << "\"cleanupExecutionPerformed\":false,"
+        << "\"items\":[";
+    std::size_t written = 0;
+    for (std::size_t index = 0; index < event_json_records.size(); ++index) {
+        const std::string& event_json = event_json_records[index];
+        const std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+        if (!OpsEventReviewEventIdAllowed(event_id)) {
+            continue;
+        }
+        const auto review_it = reviews.find(event_id);
+        const OpsEventReviewState review =
+            review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
+        if (written != 0) {
+            out << ",";
+        }
+        out << OpsV310ReplayTimelineItemJson(event_json, review, index);
+        ++written;
+        if (written >= 12U) {
+            break;
+        }
+    }
+    out << "],"
+        << "\"itemCount\":" << written
+        << "}";
+    return out.str();
+}
+
+std::string OpsV310OperatorFeatureCorrectionItemJson(const std::string& event_json,
+                                                     const OpsEventReviewState& review,
+                                                     const std::size_t index) {
+    std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(review.event_id));
+    if (!OpsEventReviewEventIdAllowed(event_id)) {
+        event_id = OpsEventReviewEventIdAllowed(review.event_id) ? review.event_id
+                                                                 : "event-" + std::to_string(index + 1);
+    }
+    const std::string event_type =
+        Trim(ParseStringField(event_json, "eventType")
+                 .value_or(ParseStringField(event_json, "className").value_or("event")));
+    const std::string original_feature_label =
+        Trim(ParseStringField(event_json, "className")
+                 .value_or(ParseStringField(event_json, "eventType").value_or("unclassified")));
+    const std::string source_id = OpsIncidentTriageBoardSourceId(event_json).empty()
+                                      ? "unknown-source"
+                                      : OpsIncidentTriageBoardSourceId(event_json);
+    const bool correction_present = OpsFeatureCorrectionHasContent(review);
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.operator-feature-correction.v1\","
+        << "\"eventId\":\"" << JsonEscape(event_id) << "\","
+        << "\"eventType\":\"" << JsonEscape(event_type.empty() ? "event" : event_type) << "\","
+        << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
+        << "\"originalFeatureLabel\":\""
+        << JsonEscape(original_feature_label.empty() ? "unclassified" : original_feature_label)
+        << "\","
+        << "\"correctedFeatureLabel\":\"" << JsonEscape(review.corrected_feature_label) << "\","
+        << "\"featureAliases\":" << JsonStringArray(review.feature_aliases) << ","
+        << "\"aliasCount\":" << review.feature_aliases.size() << ","
+        << "\"reanalysisRequested\":" << (review.reanalysis_requested ? "true" : "false") << ","
+        << "\"reanalysisReason\":\"" << JsonEscape(review.reanalysis_reason) << "\","
+        << "\"correctionPresent\":" << (correction_present ? "true" : "false") << ","
+        << "\"reviewStatus\":\"" << JsonEscape(review.review_status.empty() ? "new" : review.review_status) << "\","
+        << "\"classification\":\""
+        << JsonEscape(review.classification.empty() ? "unclassified" : review.classification) << "\","
+        << "\"operatorOnly\":true,"
+        << "\"persistent\":true,"
+        << "\"separateFromEventRecords\":true,"
+        << "\"separateFromEventPostPayload\":true,"
+        << "\"modelProviderDependency\":false,"
+        << "\"runtimeProviderCallPerformed\":false,"
+        << "\"featureRevisionWritePerformed\":false,"
+        << "\"automaticRuleApplied\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsV310OperatorFeatureCorrectionViewJson(
+    const std::vector<std::string>& event_json_records,
+    const std::unordered_map<std::string, OpsEventReviewState>& reviews) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.operator-feature-correction.v1\","
+        << "\"status\":\"ops-operator-feature-correction\","
+        << "\"opsOnly\":true,"
+        << "\"persistent\":true,"
+        << "\"separateFromEventRecords\":true,"
+        << "\"separateFromEventPostPayload\":true,"
+        << "\"modelProviderDependency\":false,"
+        << "\"runtimeProviderCallPerformed\":false,"
+        << "\"featureRevisionWritePerformed\":false,"
+        << "\"automaticRuleApplied\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"items\":[";
+    std::size_t written = 0;
+    std::size_t correction_count = 0;
+    std::size_t alias_count = 0;
+    std::size_t reanalysis_request_count = 0;
+    for (std::size_t index = 0; index < event_json_records.size(); ++index) {
+        const std::string& event_json = event_json_records[index];
+        const std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+        if (!OpsEventReviewEventIdAllowed(event_id)) {
+            continue;
+        }
+        const auto review_it = reviews.find(event_id);
+        const OpsEventReviewState review =
+            review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
+        if (OpsFeatureCorrectionHasContent(review)) {
+            ++correction_count;
+        }
+        alias_count += review.feature_aliases.size();
+        if (review.reanalysis_requested) {
+            ++reanalysis_request_count;
+        }
+        if (written != 0) {
+            out << ",";
+        }
+        out << OpsV310OperatorFeatureCorrectionItemJson(event_json, review, index);
+        ++written;
+        if (written >= 12U) {
+            break;
+        }
+    }
+    out << "],"
+        << "\"itemCount\":" << written << ","
+        << "\"correctionCount\":" << correction_count << ","
+        << "\"aliasCount\":" << alias_count << ","
+        << "\"reanalysisRequestCount\":" << reanalysis_request_count
+        << "}";
+    return out.str();
+}
+
 analysis::EventSearchIndexEventRecord OpsV300IndexEventRecordFromJson(
     const std::string& event_json,
     const std::size_t index) {
@@ -15118,6 +15689,200 @@ std::string OpsV300EventEvidenceSearchUiJson(
             out << ",";
         }
         out << items[i];
+    }
+    out << "]}";
+    return out.str();
+}
+
+struct IntegratorScopedEventSearchSource {
+    bool provided{false};
+    bool storage_enabled{false};
+    bool has_more{false};
+    std::string error;
+    std::vector<std::string> records_json;
+};
+
+IntegratorScopedEventSearchSource LoadIntegratorScopedEventSearchSource(
+    const SourceViewRegistry::ClientViewAccess& access,
+    std::size_t read_limit) {
+    IntegratorScopedEventSearchSource source;
+    analysis::EventRecordQueryResult selected_result;
+    bool selected = false;
+    for (const auto& stream_key : ClientEventStreamCandidates(access.source, nullptr)) {
+        if (stream_key.empty()) {
+            continue;
+        }
+        analysis::EventRecordQueryOptions options;
+        options.stream_id = stream_key;
+        options.limit = std::max<std::size_t>(read_limit, 200U);
+        analysis::EventRecordQueryResult result;
+        std::string error_message;
+        if (!analysis::QueryEventRecords(options, &result, &error_message)) {
+            source.error = error_message.empty() ? "failed to query event records" : error_message;
+            return source;
+        }
+        if (!selected || !result.records_json.empty()) {
+            selected_result = std::move(result);
+            selected = true;
+        }
+        if (!selected_result.records_json.empty()) {
+            break;
+        }
+    }
+    if (!selected) {
+        source.error = "source stream is unavailable";
+        return source;
+    }
+    source.provided = selected_result.storage.enabled && selected_result.file_exists;
+    source.storage_enabled = selected_result.storage.enabled;
+    source.has_more = selected_result.has_more;
+    source.records_json = std::move(selected_result.records_json);
+    return source;
+}
+
+ClientEventItem IntegratorScopedEventItemFromEntry(const analysis::EventSearchIndexEntry& entry,
+                                                   const std::string& event_json) {
+    ClientEventItem item = ParseClientEventItem(event_json);
+    if (item.event_id.empty()) {
+        item.event_id = entry.event_id;
+    }
+    if (item.event_type.empty()) {
+        item.event_type = entry.document.event_type;
+    }
+    if (item.status.empty()) {
+        item.status = entry.document.status.empty() ? "recorded" : entry.document.status;
+    }
+    if (item.class_name.empty()) {
+        item.class_name = entry.document.class_name;
+    }
+    if (item.scenario_name.empty()) {
+        item.scenario_name = entry.document.scenario;
+    }
+    if (!item.update_time_ms.has_value() && entry.document.timestamp_ms > 0) {
+        item.update_time_ms = entry.document.timestamp_ms;
+    }
+    return item;
+}
+
+std::string IntegratorScopedEventSearchItemJson(
+    const SourceViewRegistry::ClientViewAccess& access,
+    const analysis::EventSearchIndexEntry& entry,
+    const std::string& event_json,
+    std::size_t index) {
+    const ClientEventItem item = IntegratorScopedEventItemFromEntry(entry, event_json);
+    std::ostringstream out;
+    out << "{"
+        << "\"eventId\":\"" << JsonEscape(item.event_id.empty() ? entry.event_id : item.event_id) << "\","
+        << "\"viewId\":\"" << JsonEscape(access.view.view_id) << "\","
+        << "\"digest\":{"
+        << "\"digestId\":\"integrator-event-" << (index + 1) << "\","
+        << "\"summaryText\":\"" << JsonEscape(ClientSafeEventDigestSummaryText(item)) << "\","
+        << "\"eventType\":\"" << JsonEscape(ClientSafeDigestValue(item.event_type, "event")) << "\","
+        << "\"status\":\"" << JsonEscape(ClientSafeDigestValue(item.status, "recorded")) << "\","
+        << "\"severity\":\"" << JsonEscape(ClientSafeIncidentDigestSeverity(item)) << "\","
+        << "\"timelineHint\":\"" << JsonEscape(ClientSafeEventDigestTimelineHint(item)) << "\","
+        << "\"time\":";
+    AppendNullableInt64(out, item.update_time_ms.has_value() ? item.update_time_ms
+                                                             : item.start_time_ms);
+    out << "}}";
+    return out.str();
+}
+
+std::string IntegratorScopedEventSearchJson(
+    const SourceViewRegistry::ClientViewAccess& access,
+    const auth::Principal& principal,
+    const std::unordered_map<std::string, std::string>& query) {
+    const std::string search_query = OpsV300EventEvidenceSearchQueryValue(query, "q", "search");
+    analysis::EventSearchQueryOptions options;
+    options.default_limit = 10;
+    options.max_limit = 25;
+    options.max_offset = 500;
+    analysis::EventSearchDsl dsl = analysis::ConvertEventSearchQueryToDsl(search_query, options);
+    dsl.limit = static_cast<std::size_t>(
+        ParseClampedIntQuery(query, "limit", static_cast<int>(dsl.limit), 1, 25));
+    dsl.offset = static_cast<std::size_t>(
+        ParseClampedIntQuery(query, "offset", static_cast<int>(dsl.offset), 0, 500));
+    dsl.search_index_required = true;
+
+    IntegratorScopedEventSearchSource source =
+        LoadIntegratorScopedEventSearchSource(access, dsl.limit + dsl.offset);
+    analysis::EventFeatureSearchIndexRebuildInput input;
+    std::unordered_map<std::string, std::string> event_by_id;
+    input.events.reserve(source.records_json.size());
+    input.feature_sets.reserve(source.records_json.size());
+    input.evidence_manifests.reserve(source.records_json.size());
+    input.review_states.reserve(source.records_json.size());
+    for (std::size_t index = 0; index < source.records_json.size(); ++index) {
+        const std::string& event_json = source.records_json[index];
+        analysis::EventSearchIndexEventRecord event_record =
+            OpsV300IndexEventRecordFromJson(event_json, index);
+        const OpsEventReviewState review = DefaultOpsEventReviewState(event_record.event_id);
+        event_by_id[event_record.event_id] = event_json;
+        input.evidence_manifests.push_back(
+            OpsV300IndexEvidenceManifestFromJson(event_json, event_record.event_id));
+        input.feature_sets.push_back(
+            OpsV300IndexFeatureSetFromJson(event_json, review, event_record));
+        input.review_states.push_back(
+            OpsV300IndexReviewStateFromReview(event_json, review, event_record.event_id));
+        input.events.push_back(std::move(event_record));
+    }
+
+    analysis::EventFeatureSearchIndex index;
+    const analysis::EventSearchIndexReport report = index.Rebuild(input);
+    std::vector<analysis::EventSearchIndexEntry> hits =
+        dsl.valid ? index.Search(dsl) : std::vector<analysis::EventSearchIndexEntry>{};
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.integrator.scoped-event-search.v1\","
+        << "\"status\":\"integrator-scoped-event-search\","
+        << "\"route\":\"/client/api/views/{id}/events/search\","
+        << "\"role\":\"" << JsonEscape(principal.role) << "\","
+        << "\"integratorOnly\":true,"
+        << "\"publishedViewScoped\":true,"
+        << "\"scopeGate\":\"event:read\","
+        << "\"scope\":\"event:read:" << JsonEscape(access.view.view_id) << "\","
+        << "\"query\":\"" << JsonEscape(search_query) << "\","
+        << "\"limit\":" << dsl.limit << ","
+        << "\"offset\":" << dsl.offset << ","
+        << "\"searchDslValid\":" << (dsl.valid ? "true" : "false") << ","
+        << "\"rejectionReason\":\"" << JsonEscape(dsl.rejection_reason) << "\","
+        << "\"featureSearchIndexBacked\":true,"
+        << "\"indexedEntries\":" << report.indexed_entries << ","
+        << "\"modelProviderDependency\":false,"
+        << "\"runtimeProviderCallPerformed\":false,"
+        << "\"vectorSearchPerformed\":false,"
+        << "\"sourceUrlIncluded\":false,"
+        << "\"rawEvidenceIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"providerMaterialIncluded\":false,"
+        << "\"featureProvenanceIncluded\":false,"
+        << "\"internalEvidenceIncluded\":false,"
+        << "\"encodedClipPathIncluded\":false,"
+        << "\"ruleEditorIncluded\":false,"
+        << "\"actionControlsIncluded\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"view\":";
+    AppendClientViewIdentityJson(out, access);
+    out << ",\"storage\":{"
+        << "\"provided\":" << (source.provided ? "true" : "false") << ","
+        << "\"storageEnabled\":" << (source.storage_enabled ? "true" : "false") << ","
+        << "\"hasMore\":" << (source.has_more ? "true" : "false") << ","
+        << "\"error\":\"" << JsonEscape(source.error) << "\""
+        << "},\"hitCount\":" << hits.size()
+        << ",\"results\":[";
+    for (std::size_t i = 0; i < hits.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        const auto event_it = event_by_id.find(hits[i].event_id);
+        out << IntegratorScopedEventSearchItemJson(
+            access, hits[i], event_it == event_by_id.end() ? std::string() : event_it->second, i);
     }
     out << "]}";
     return out.str();
@@ -15784,6 +16549,12 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         << "\"eventEvidenceSearch\":"
         << OpsV300EventEvidenceSearchUiJson(event_result.records_json, reviews, query)
         << ","
+        << "\"replayTimeline\":"
+        << OpsV310ReplayTimelineUiJson(event_result.records_json, reviews)
+        << ","
+        << "\"operatorFeatureCorrection\":"
+        << OpsV310OperatorFeatureCorrectionViewJson(event_result.records_json, reviews)
+        << ","
         << "\"memorySearch\":" << OpsIncidentMemorySearchViewJson(event_result.records_json, reviews, query)
         << ","
         << "\"similarIncidents\":" << OpsSimilarIncidentLookupViewJson(event_result.records_json, reviews)
@@ -16422,6 +17193,19 @@ std::string BuildReleaseSafeIncidentEvidenceBundleManifest(const std::string& ev
         << "\"sseMetadataSchemaChanged\":false,"
         << "\"wsMetadataSchemaChanged\":false,"
         << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"encodedClipIncluded\":false,"
+        << "\"encodedClipManifestIncluded\":false,"
+        << "\"encodedClipPathIncluded\":false,"
+        << "\"encodedClipMediaIncluded\":false,"
+        << "\"retentionExportHardening\":{"
+        << "\"schema\":\"media-server.v310.retention-export-hardening.v1\","
+        << "\"implementedInStep\":\"V310-S08\","
+        << "\"releaseSafeExportExcludesEncodedMedia\":true,"
+        << "\"encodedClipLifecycleCleanup\":\"event-retention-cleanup\","
+        << "\"auditAction\":\"export-bundle\","
+        << "\"bundleExpiry\":\"signed-token-expiresAtMs\","
+        << "\"expiredBundleCleanup\":\"token-expiry-no-server-file\""
+        << "},"
         << "\"inputEvidence\":{\"snapshotProvided\":" << (snapshot_requested ? "true" : "false")
         << ",\"clipProvided\":" << (clip_requested ? "true" : "false") << "},"
         << "\"searchResults\":[{\"eventId\":\"" << JsonEscape(event_id)
@@ -16585,6 +17369,35 @@ bool BuildEventEvidenceBundleZip(const std::unordered_map<std::string, std::stri
     *download_name = std::string(release_safe_requested ? "redacted-incident-evidence-" : "event-evidence-") + safe_id + ".zip";
     *zip_body = std::move(zip);
     return true;
+}
+
+std::string BuildEvidenceBundleAuditJson(const std::string& event_id,
+                                         const std::string& download_name,
+                                         bool release_safe) {
+    constexpr const char* kV310ExportBundleAuditSummary =
+        "Export bundle downloaded with V310 retention/export hardening";
+    std::ostringstream audit_body;
+    audit_body
+        << "{"
+        << "\"area\":\"events\","
+        << "\"action\":\"export-bundle\","
+        << "\"target\":\"event:" << JsonEscape(event_id.empty() ? download_name : event_id) << "\","
+        << "\"summary\":\"" << kV310ExportBundleAuditSummary << "\","
+        << "\"before\":null,"
+        << "\"after\":{"
+        << "\"file\":\"" << JsonEscape(download_name) << "\","
+        << "\"releaseSafe\":" << (release_safe ? "true" : "false") << ","
+        << "\"retentionExportHardening\":{"
+        << "\"schema\":\"media-server.v310.retention-export-hardening.v1\","
+        << "\"implementedInStep\":\"V310-S08\","
+        << "\"bundleExpiry\":\"signed-token-expiresAtMs\","
+        << "\"expiredBundleCleanup\":\"token-expiry-no-server-file\","
+        << "\"encodedClipLifecycleCleanup\":\"event-retention-cleanup\","
+        << "\"releaseSafeExportExcludesEncodedMedia\":" << (release_safe ? "true" : "false")
+        << "}"
+        << "}"
+        << "}";
+    return audit_body.str();
 }
 
 // 파일명 규칙으로 검증 리포트 종류를 추정해 UI 필터 없이도 대략적인 맥락을 보여준다.
@@ -18502,6 +19315,32 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                    next.vlm_action_note = ParseStringField(*vlm_action, "note")
 	                                                               .value_or("");
 	                                }
+	                                next.corrected_feature_label =
+	                                    ParseStringField(request.body, "correctedFeatureLabel").value_or("");
+	                                next.feature_aliases =
+	                                    StringArrayFieldValues(request.body, "featureAliases");
+	                                next.reanalysis_requested =
+	                                    ParseBoolField(request.body, "reanalysisRequested").value_or(false);
+	                                next.reanalysis_reason =
+	                                    ParseStringField(request.body, "reanalysisReason").value_or("");
+	                                if (const auto feature_correction =
+	                                        ExtractObjectField(request.body, "featureCorrection");
+	                                    feature_correction.has_value()) {
+	                                    next.corrected_feature_label =
+	                                        ParseStringField(*feature_correction, "correctedFeatureLabel")
+	                                            .value_or(next.corrected_feature_label);
+	                                    if (auto aliases =
+	                                            StringArrayFieldValues(*feature_correction, "featureAliases");
+	                                        !aliases.empty()) {
+	                                        next.feature_aliases = std::move(aliases);
+	                                    }
+	                                    next.reanalysis_requested =
+	                                        ParseBoolField(*feature_correction, "reanalysisRequested")
+	                                            .value_or(next.reanalysis_requested);
+	                                    next.reanalysis_reason =
+	                                        ParseStringField(*feature_correction, "reanalysisReason")
+	                                            .value_or(next.reanalysis_reason);
+	                                }
 	                                next.actor = principal_result.principal.username.empty()
 	                                                 ? principal_result.principal.display_name
 	                                                 : principal_result.principal.username;
@@ -18554,6 +19393,27 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                (void)AppendOpsAuditRecord(
 	                                    config,
 	                                    OpsAuditRecordJson(incident_audit_body.str(),
+	                                                       principal_result.principal),
+	                                    &audit_error);
+	                                const char* kOpsOperatorFeatureCorrectionAuditAction =
+	                                    "operator-feature-correction-update";
+	                                const char* kOpsOperatorFeatureCorrectionAuditSummary =
+	                                    "Feature correction updated";
+	                                std::ostringstream feature_correction_audit_body;
+	                                feature_correction_audit_body
+	                                    << "{"
+	                                    << "\"area\":\"events\","
+	                                    << "\"action\":\"" << kOpsOperatorFeatureCorrectionAuditAction << "\","
+	                                    << "\"target\":\"event:" << JsonEscape(event_id) << "\","
+	                                    << "\"summary\":\"" << kOpsOperatorFeatureCorrectionAuditSummary << "\","
+	                                    << "\"before\":"
+	                                    << (previous.present ? OpsEventReviewStateJson(previous)
+	                                                         : std::string("null"))
+	                                    << ",\"after\":" << OpsEventReviewStateJson(saved)
+	                                    << "}";
+	                                (void)AppendOpsAuditRecord(
+	                                    config,
+	                                    OpsAuditRecordJson(feature_correction_audit_body.str(),
 	                                                       principal_result.principal),
 	                                    &audit_error);
 	                                HttpResponse ok = JsonResponse(
@@ -19135,7 +19995,39 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                         ClientViewDashboardJson(
                                             access,
                                             principal_result.principal,
-                                            impl_->session_manager.AnalysisTapSnapshots()));
+                                        impl_->session_manager.AnalysisTapSnapshots()));
+                                }
+                                if (IsClientViewSummaryRoute(subresource) &&
+                                    IsClientViewEventsSearchRoute(subresource)) {
+                                    if (!auth::IsIntegrator(principal_result.principal)) {
+                                        return JsonResponse(
+                                            403,
+                                            "Forbidden",
+                                            "{\"error\":\"Integrator scoped search requires integrator role\"}");
+                                    }
+                                    SourceViewRegistry::ClientViewAccess access;
+                                    const auto access_result =
+                                        SourceViewRegistry::Instance().ResolveClientViewAccess(
+                                            view_id,
+                                            principal_result.principal,
+                                            "event:read",
+                                            &access);
+                                    if (access_result.status != 200) {
+                                        return RegistryHttpResponse(access_result);
+                                    }
+                                    if (!access.view.show_events) {
+                                        return JsonResponse(
+                                            403,
+                                            "Forbidden",
+                                            "{\"error\":\"events search is not enabled for this view\"}");
+                                    }
+                                    return JsonResponse(
+                                        200,
+                                        "OK",
+                                        IntegratorScopedEventSearchJson(
+                                            access,
+                                            principal_result.principal,
+                                            ParseQueryString(request.query)));
                                 }
                                 if (IsClientViewSummaryRoute(subresource) &&
                                     IsClientViewEventsSummaryRoute(subresource)) {
@@ -19308,11 +20200,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             const std::string event_id =
                                 Trim(query.find("eventId") == query.end() ? "" : query.at("eventId"));
+                            const bool release_safe_requested = EvidenceBundleReleaseSafeRequested(query);
                             const std::string audit_body =
-                                "{\"area\":\"events\",\"action\":\"export-bundle\",\"target\":\"event:" +
-                                JsonEscape(event_id.empty() ? download_name : event_id) +
-                                "\",\"summary\":\"evidence zip bundle downloaded\",\"before\":null,\"after\":{\"file\":\"" +
-                                JsonEscape(download_name) + "\"}}";
+                                BuildEvidenceBundleAuditJson(event_id, download_name, release_safe_requested);
                             std::string audit_error;
                             (void)AppendOpsAuditRecord(config,
                                                        OpsAuditRecordJson(audit_body, principal_result.principal),
