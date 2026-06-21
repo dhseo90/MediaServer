@@ -20,7 +20,7 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 상태: `V310-S00` source baseline 정렬 완료, `V310-S01` Encoded Event Clip Contract
 완료, `V310-S02` Event Clip Encoder Pipeline 완료, `V310-S03` Replay Timeline UI 완료,
-`V310-S04` Client-safe Event Digest 완료.
+`V310-S04` Client-safe Event Digest 완료, `V310-S05` Scoped Integrator Search API 완료.
 이 절은 v3.1.0 전체 기능 완료 evidence가 아니며, 실제 기능 구현은 각 Step별 코드/UI/API/검증
 evidence가 생긴 뒤에만 완료로 기록합니다. V310-S00 baseline 정렬 자체는 기능 구현 완료
 evidence가 아닙니다.
@@ -91,7 +91,7 @@ license/provenance/privacy/운영 제약:
 | 2 | V310-S02 | P0 | 완료 | Event Clip Encoder Pipeline | bounded short segment 또는 frame bundle 기반 encoded clip generation, queue/status/cleanup | `src/analysis/event_storage.cpp`의 frame-bundle hook이 `.clip/encoded/event-clip.webm`과 `.clip/encoded/encoded-manifest.json`을 생성하고 `scripts/internal/analysis_state_smoke.cpp`가 WebM/VP8, EBML header, FrameRef-PTS mapping, queue/status/frameMap/non-VMS boundary를 확인함 | replay UI, client digest, scoped API, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
 | 3 | V310-S03 | P0 | 완료 | Replay Timeline UI | `/ops/events` event frame, representative image, frame bundle, encoded clip timeline | `src/ingress/webrtc_http_server.cpp`의 `/ops/events` shell과 `OpsV310ReplayTimelineUiJson`, `src/ingress/product_ui_page_scripts.cpp`의 `renderV310ReplayTimelineUi`, `src/ingress/product_ui_css.cpp`의 replay timeline styles, `scripts/internal/verify_v310_replay_timeline_ui.mjs`와 `./server.sh verify-v310-replay-timeline-ui` | UI 풀테스트 직접 조작, 30분/120분, client digest, scoped API, cleanup 실행, published metadata evidence가 아님 |
 | 4 | V310-S04 | P1 | 완료 | Client-safe Event Digest | redacted viewer-safe summary | `src/ingress/webrtc_http_server.cpp`의 `/client/api/views/{id}/events` 응답에 `media-server.client.event-digest.v1` `eventDigest`를 추가하고, `src/ingress/product_ui_client_scripts.cpp`가 client live/dashboard/events에서 viewer-safe summaryText/eventType/status/severity/timelineHint/time만 렌더링함 | UI 풀테스트 직접 조작, 30분/120분, scoped API, cleanup execution, published metadata evidence가 아님 |
-| 5 | V310-S05 | P1 | 예정 | Scoped Integrator Search API | scope-gated search API와 redaction guard | 미구현 | S00 완료 evidence가 아님 |
+| 5 | V310-S05 | P1 | 완료 | Scoped Integrator Search API | scope-gated search API와 redaction guard | `src/ingress/ops_event_route_owner.cpp`의 `events/search` route owner helper, `src/ingress/webrtc_http_server.cpp`의 `/client/api/views/{id}/events/search` integrator-only route와 `IntegratorScopedEventSearchJson`, `scripts/internal/verify_v310_scoped_integrator_search_api.mjs`와 `./server.sh verify-v310-scoped-integrator-search-api` | UI 풀테스트 직접 조작, 30분/120분, cleanup execution, vector search, published metadata evidence가 아님 |
 | 6 | V310-S06 | P1 | 예정 | Operator Feature Correction | feature correction, aliases, reanalysis request | 미구현 | S00 완료 evidence가 아님 |
 | 7 | V310-S07 | P2 | 예정 | Optional Vector Search | default-off embedding index, rebuild, quality gates | 미구현 | S00 완료 evidence가 아님 |
 | 8 | V310-S08 | P1 | 예정 | Retention/Export Hardening | encoded clip lifecycle cleanup, export bundle, audit | 미구현 | S00 완료 evidence가 아님 |
@@ -186,6 +186,18 @@ license/provenance/privacy/운영 제약:
 - 변경하지 않은 것: Event POST payload, WebRTC DataChannel schema, SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload, encoded clip artifact path, scoped integrator API, cleanup execution, published metadata는 변경하지 않았습니다.
 - 검증: 최초 `./server.sh verify-v310-client-safe-event-digest`는 API 함수, client renderer, CSS/smoke marker, backlog final row, release records final row가 없어 `pass=1 fail=5`로 FAIL했습니다. 구현 후 `./server.sh verify-v310-client-safe-event-digest`는 `pass=6 fail=0`으로 통과했습니다. `./server.sh build`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh verify-docs-links`, `git diff --check`, 기존 `verify-v250-client-safe-incident-digest`, `verify-v280-client-safe-followup-digest`도 통과했습니다. `verify-ops-client-ui`는 sandbox fetch 제한을 확인한 뒤 권한 실행으로 static smoke `pass=19 fail=0`, screenshot smoke `pass=25 fail=0` 및 visual/shell/client 세부 smoke fail 0으로 재검증했습니다. `verify-rule-ui`는 Chrome fallback 환경변수 누락 precheck를 보정한 뒤 `ok=true`로 통과했고, auth 3종은 bootstrap `pass=14 fail=0`, users `pass=58 fail=0`, routes `pass=135 fail=0`으로 통과했습니다.
 - 완료 경계: 이번 구현은 client-safe event digest API/UI와 redaction boundary입니다. UI 풀테스트 직접 조작, 30분/120분, scoped API, cleanup 실행, published metadata evidence가 아닙니다.
+
+## v3.1.0 S05 개발 기록
+
+- 범위: P1 `V310-S05 Scoped Integrator Search API`.
+- `include/ingress/ops_event_route_owner.h`, `src/ingress/ops_event_route_owner.cpp`: client summary route owner에 `events/search` subresource와 `IsClientViewEventsSearchRoute()` helper를 추가했습니다.
+- `src/ingress/webrtc_http_server.cpp`: 기존 `/client/api/views/{id}` API router 안에 `/client/api/views/{id}/events/search` GET route를 추가했습니다. 이 route는 `auth::IsIntegrator()`로 integrator role을 요구하고 `SourceViewRegistry::ResolveClientViewAccess(..., "event:read")`로 `event:read:{viewId}` scope gate를 적용합니다.
+- `src/ingress/webrtc_http_server.cpp`: `IntegratorScopedEventSearchJson()`이 EventRecord를 PublishedView source stream 범위에서 읽고 기존 `EventFeatureSearchIndex`/Search DSL을 일시 재사용해 `media-server.integrator.scoped-event-search.v1` 응답을 생성합니다. 응답은 eventId/viewId와 `digest.summaryText`, `eventType`, `status`, `severity`, `timelineHint`, `time`만 반환하고 source URL, raw evidence, debug material, provider material, feature provenance, internal evidence refs, encoded clip path, rule/action controls는 포함하지 않습니다.
+- `scripts/internal/verify_v310_scoped_integrator_search_api.mjs`, `server.sh`: `./server.sh verify-v310-scoped-integrator-search-api` 명령을 추가해 route owner, API schema/redaction, docs/inventory/release records/server dispatch 연결을 정적 검증합니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`: `CLIENT-026`, `SAFE-097`, `OPS-064`, V310-S05 안정화 확인 항목과 완료 evidence 경계를 추가했습니다.
+- 변경하지 않은 것: Event POST payload, WebRTC DataChannel schema, SSE/WS metadata, RTSP/WebRTC media path, Rule/Profile payload, `/ops/events` UI, client shell UI, cleanup execution, vector/embedding search, published metadata는 변경하지 않았습니다.
+- 검증: 최초 `node scripts/internal/verify_v310_scoped_integrator_search_api.mjs`는 route owner, API 함수/schema, backlog/inventory/release records, server dispatch가 없어 `pass=0 fail=6`으로 FAIL했습니다. 구현 후 `./server.sh verify-v310-scoped-integrator-search-api`, `./server.sh build`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh verify-docs-links`, `git diff --check` 기준으로 재검증합니다.
+- 완료 경계: 이번 구현은 integrator-only PublishedView-scoped search API와 redacted digest payload입니다. UI 풀테스트 직접 조작, 30분/120분, cleanup execution, vector search, published metadata evidence가 아닙니다.
 
 ## 최신 공개 기준 상세: v3.0.0 Event Evidence Search MVP
 

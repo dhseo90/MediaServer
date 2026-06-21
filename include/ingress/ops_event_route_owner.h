@@ -60,6 +60,7 @@ bool IsLabEventEvidenceBundleDownloadRoute(const std::string& method, const std:
 bool IsClientViewSummaryRoute(const std::string& subresource);
 bool IsClientViewDashboardSummaryRoute(const std::string& subresource);
 bool IsClientViewEventsSummaryRoute(const std::string& subresource);
+bool IsClientViewEventsSearchRoute(const std::string& subresource);
 bool IsClientViewMetadataSummaryRoute(const std::string& subresource);
 
 }  // namespace ingress

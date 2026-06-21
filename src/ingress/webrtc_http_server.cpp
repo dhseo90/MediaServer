@@ -15468,6 +15468,200 @@ std::string OpsV300EventEvidenceSearchUiJson(
     return out.str();
 }
 
+struct IntegratorScopedEventSearchSource {
+    bool provided{false};
+    bool storage_enabled{false};
+    bool has_more{false};
+    std::string error;
+    std::vector<std::string> records_json;
+};
+
+IntegratorScopedEventSearchSource LoadIntegratorScopedEventSearchSource(
+    const SourceViewRegistry::ClientViewAccess& access,
+    std::size_t read_limit) {
+    IntegratorScopedEventSearchSource source;
+    analysis::EventRecordQueryResult selected_result;
+    bool selected = false;
+    for (const auto& stream_key : ClientEventStreamCandidates(access.source, nullptr)) {
+        if (stream_key.empty()) {
+            continue;
+        }
+        analysis::EventRecordQueryOptions options;
+        options.stream_id = stream_key;
+        options.limit = std::max<std::size_t>(read_limit, 200U);
+        analysis::EventRecordQueryResult result;
+        std::string error_message;
+        if (!analysis::QueryEventRecords(options, &result, &error_message)) {
+            source.error = error_message.empty() ? "failed to query event records" : error_message;
+            return source;
+        }
+        if (!selected || !result.records_json.empty()) {
+            selected_result = std::move(result);
+            selected = true;
+        }
+        if (!selected_result.records_json.empty()) {
+            break;
+        }
+    }
+    if (!selected) {
+        source.error = "source stream is unavailable";
+        return source;
+    }
+    source.provided = selected_result.storage.enabled && selected_result.file_exists;
+    source.storage_enabled = selected_result.storage.enabled;
+    source.has_more = selected_result.has_more;
+    source.records_json = std::move(selected_result.records_json);
+    return source;
+}
+
+ClientEventItem IntegratorScopedEventItemFromEntry(const analysis::EventSearchIndexEntry& entry,
+                                                   const std::string& event_json) {
+    ClientEventItem item = ParseClientEventItem(event_json);
+    if (item.event_id.empty()) {
+        item.event_id = entry.event_id;
+    }
+    if (item.event_type.empty()) {
+        item.event_type = entry.document.event_type;
+    }
+    if (item.status.empty()) {
+        item.status = entry.document.status.empty() ? "recorded" : entry.document.status;
+    }
+    if (item.class_name.empty()) {
+        item.class_name = entry.document.class_name;
+    }
+    if (item.scenario_name.empty()) {
+        item.scenario_name = entry.document.scenario;
+    }
+    if (!item.update_time_ms.has_value() && entry.document.timestamp_ms > 0) {
+        item.update_time_ms = entry.document.timestamp_ms;
+    }
+    return item;
+}
+
+std::string IntegratorScopedEventSearchItemJson(
+    const SourceViewRegistry::ClientViewAccess& access,
+    const analysis::EventSearchIndexEntry& entry,
+    const std::string& event_json,
+    std::size_t index) {
+    const ClientEventItem item = IntegratorScopedEventItemFromEntry(entry, event_json);
+    std::ostringstream out;
+    out << "{"
+        << "\"eventId\":\"" << JsonEscape(item.event_id.empty() ? entry.event_id : item.event_id) << "\","
+        << "\"viewId\":\"" << JsonEscape(access.view.view_id) << "\","
+        << "\"digest\":{"
+        << "\"digestId\":\"integrator-event-" << (index + 1) << "\","
+        << "\"summaryText\":\"" << JsonEscape(ClientSafeEventDigestSummaryText(item)) << "\","
+        << "\"eventType\":\"" << JsonEscape(ClientSafeDigestValue(item.event_type, "event")) << "\","
+        << "\"status\":\"" << JsonEscape(ClientSafeDigestValue(item.status, "recorded")) << "\","
+        << "\"severity\":\"" << JsonEscape(ClientSafeIncidentDigestSeverity(item)) << "\","
+        << "\"timelineHint\":\"" << JsonEscape(ClientSafeEventDigestTimelineHint(item)) << "\","
+        << "\"time\":";
+    AppendNullableInt64(out, item.update_time_ms.has_value() ? item.update_time_ms
+                                                             : item.start_time_ms);
+    out << "}}";
+    return out.str();
+}
+
+std::string IntegratorScopedEventSearchJson(
+    const SourceViewRegistry::ClientViewAccess& access,
+    const auth::Principal& principal,
+    const std::unordered_map<std::string, std::string>& query) {
+    const std::string search_query = OpsV300EventEvidenceSearchQueryValue(query, "q", "search");
+    analysis::EventSearchQueryOptions options;
+    options.default_limit = 10;
+    options.max_limit = 25;
+    options.max_offset = 500;
+    analysis::EventSearchDsl dsl = analysis::ConvertEventSearchQueryToDsl(search_query, options);
+    dsl.limit = static_cast<std::size_t>(
+        ParseClampedIntQuery(query, "limit", static_cast<int>(dsl.limit), 1, 25));
+    dsl.offset = static_cast<std::size_t>(
+        ParseClampedIntQuery(query, "offset", static_cast<int>(dsl.offset), 0, 500));
+    dsl.search_index_required = true;
+
+    IntegratorScopedEventSearchSource source =
+        LoadIntegratorScopedEventSearchSource(access, dsl.limit + dsl.offset);
+    analysis::EventFeatureSearchIndexRebuildInput input;
+    std::unordered_map<std::string, std::string> event_by_id;
+    input.events.reserve(source.records_json.size());
+    input.feature_sets.reserve(source.records_json.size());
+    input.evidence_manifests.reserve(source.records_json.size());
+    input.review_states.reserve(source.records_json.size());
+    for (std::size_t index = 0; index < source.records_json.size(); ++index) {
+        const std::string& event_json = source.records_json[index];
+        analysis::EventSearchIndexEventRecord event_record =
+            OpsV300IndexEventRecordFromJson(event_json, index);
+        const OpsEventReviewState review = DefaultOpsEventReviewState(event_record.event_id);
+        event_by_id[event_record.event_id] = event_json;
+        input.evidence_manifests.push_back(
+            OpsV300IndexEvidenceManifestFromJson(event_json, event_record.event_id));
+        input.feature_sets.push_back(
+            OpsV300IndexFeatureSetFromJson(event_json, review, event_record));
+        input.review_states.push_back(
+            OpsV300IndexReviewStateFromReview(event_json, review, event_record.event_id));
+        input.events.push_back(std::move(event_record));
+    }
+
+    analysis::EventFeatureSearchIndex index;
+    const analysis::EventSearchIndexReport report = index.Rebuild(input);
+    std::vector<analysis::EventSearchIndexEntry> hits =
+        dsl.valid ? index.Search(dsl) : std::vector<analysis::EventSearchIndexEntry>{};
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.integrator.scoped-event-search.v1\","
+        << "\"status\":\"integrator-scoped-event-search\","
+        << "\"route\":\"/client/api/views/{id}/events/search\","
+        << "\"role\":\"" << JsonEscape(principal.role) << "\","
+        << "\"integratorOnly\":true,"
+        << "\"publishedViewScoped\":true,"
+        << "\"scopeGate\":\"event:read\","
+        << "\"scope\":\"event:read:" << JsonEscape(access.view.view_id) << "\","
+        << "\"query\":\"" << JsonEscape(search_query) << "\","
+        << "\"limit\":" << dsl.limit << ","
+        << "\"offset\":" << dsl.offset << ","
+        << "\"searchDslValid\":" << (dsl.valid ? "true" : "false") << ","
+        << "\"rejectionReason\":\"" << JsonEscape(dsl.rejection_reason) << "\","
+        << "\"featureSearchIndexBacked\":true,"
+        << "\"indexedEntries\":" << report.indexed_entries << ","
+        << "\"modelProviderDependency\":false,"
+        << "\"runtimeProviderCallPerformed\":false,"
+        << "\"vectorSearchPerformed\":false,"
+        << "\"sourceUrlIncluded\":false,"
+        << "\"rawEvidenceIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"providerMaterialIncluded\":false,"
+        << "\"featureProvenanceIncluded\":false,"
+        << "\"internalEvidenceIncluded\":false,"
+        << "\"encodedClipPathIncluded\":false,"
+        << "\"ruleEditorIncluded\":false,"
+        << "\"actionControlsIncluded\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"view\":";
+    AppendClientViewIdentityJson(out, access);
+    out << ",\"storage\":{"
+        << "\"provided\":" << (source.provided ? "true" : "false") << ","
+        << "\"storageEnabled\":" << (source.storage_enabled ? "true" : "false") << ","
+        << "\"hasMore\":" << (source.has_more ? "true" : "false") << ","
+        << "\"error\":\"" << JsonEscape(source.error) << "\""
+        << "},\"hitCount\":" << hits.size()
+        << ",\"results\":[";
+    for (std::size_t i = 0; i < hits.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        const auto event_it = event_by_id.find(hits[i].event_id);
+        out << IntegratorScopedEventSearchItemJson(
+            access, hits[i], event_it == event_by_id.end() ? std::string() : event_it->second, i);
+    }
+    out << "]}";
+    return out.str();
+}
+
 std::string OpsSimilarIncidentSafeValue(const std::string& value, const std::string& fallback) {
     const std::string trimmed = Trim(value);
     if (trimmed.empty() || OpsEventReviewNoteContainsSensitiveMaterial(trimmed) ||
@@ -19483,7 +19677,39 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                         ClientViewDashboardJson(
                                             access,
                                             principal_result.principal,
-                                            impl_->session_manager.AnalysisTapSnapshots()));
+                                        impl_->session_manager.AnalysisTapSnapshots()));
+                                }
+                                if (IsClientViewSummaryRoute(subresource) &&
+                                    IsClientViewEventsSearchRoute(subresource)) {
+                                    if (!auth::IsIntegrator(principal_result.principal)) {
+                                        return JsonResponse(
+                                            403,
+                                            "Forbidden",
+                                            "{\"error\":\"Integrator scoped search requires integrator role\"}");
+                                    }
+                                    SourceViewRegistry::ClientViewAccess access;
+                                    const auto access_result =
+                                        SourceViewRegistry::Instance().ResolveClientViewAccess(
+                                            view_id,
+                                            principal_result.principal,
+                                            "event:read",
+                                            &access);
+                                    if (access_result.status != 200) {
+                                        return RegistryHttpResponse(access_result);
+                                    }
+                                    if (!access.view.show_events) {
+                                        return JsonResponse(
+                                            403,
+                                            "Forbidden",
+                                            "{\"error\":\"events search is not enabled for this view\"}");
+                                    }
+                                    return JsonResponse(
+                                        200,
+                                        "OK",
+                                        IntegratorScopedEventSearchJson(
+                                            access,
+                                            principal_result.principal,
+                                            ParseQueryString(request.query)));
                                 }
                                 if (IsClientViewSummaryRoute(subresource) &&
                                     IsClientViewEventsSummaryRoute(subresource)) {

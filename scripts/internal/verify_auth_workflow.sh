@@ -906,6 +906,10 @@ run_routes() {
     *) pass "integrator client views list omits live views" ;;
   esac
   expect_eq "$(http_code -b "${INTEGRATOR_COOKIE}" "${BASE}/client/api/views/1/events?limit=1")" "200" "integrator event scope allowed"
+  expect_eq "$(http_code "${BASE}/client/api/views/1/events/search?q=presence&limit=1")" "401" "unauth scoped event search denied"
+  expect_eq "$(http_code -b "${VIEWER_COOKIE}" "${BASE}/client/api/views/1/events/search?q=presence&limit=1")" "403" "viewer scoped event search role denied"
+  expect_eq "$(http_code -b "${INTEGRATOR_COOKIE}" "${BASE}/client/api/views/1/events/search?q=presence&limit=1")" "200" "integrator scoped event search allowed"
+  expect_eq "$(http_code -b "${INTEGRATOR_COOKIE}" "${BASE}/client/api/views/2/events/search?q=presence&limit=1")" "403" "integrator scoped event search cross-view denied"
   expect_eq "$(http_code -b "${INTEGRATOR_COOKIE}" "${BASE}/client/api/views/1/metadata")" "200" "integrator metadata scope allowed"
   expect_eq "$(http_code -b "${INTEGRATOR_COOKIE}" "${BASE}/client/api/views/1/dashboard")" "403" "integrator dashboard scope denied"
   expect_eq "$(http_code -X POST "${BASE}/webrtc/session?file=sample_h264.mp4")" "401" "unauth generic WebRTC denied"
