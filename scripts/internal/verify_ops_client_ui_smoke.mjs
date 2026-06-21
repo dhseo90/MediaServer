@@ -102,6 +102,10 @@ const clientShellMust = [
   'aria-label="클라이언트 메뉴"',
   'id="views-data"',
   '<script type="application/json" id="views-data">',
+  'client-safe-event-digest',
+  'eventDigest',
+  'viewer-safe event digest',
+  'media-server.client.event-digest.v1',
 ];
 
 const pageChecks = [

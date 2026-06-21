@@ -4663,6 +4663,79 @@ void AppendClientSafeIncidentDigestJson(std::ostringstream& out,
     out << "]}";
 }
 
+std::string ClientSafeEventDigestTimelineHint(const ClientEventItem& item) {
+    const std::string status = ClientSafeDigestValue(item.status, "recorded");
+    if (ClientEventStatusIsActive(status)) {
+        return "active event";
+    }
+    if (item.end_time_ms.has_value()) {
+        return "ended event";
+    }
+    if (item.update_time_ms.has_value()) {
+        return "updated event";
+    }
+    return "recorded event";
+}
+
+std::string ClientSafeEventDigestSummaryText(const ClientEventItem& item) {
+    std::string label = ClientSafeDigestValue(item.scenario_name, "");
+    if (label.empty()) {
+        label = ClientSafeDigestValue(item.class_name, "");
+    }
+    if (label.empty()) {
+        label = ClientSafeDigestValue(item.event_type, "event");
+    }
+    const std::string event_type = ClientSafeDigestValue(item.event_type, "event");
+    const std::string status = ClientSafeDigestValue(item.status, "recorded");
+    std::string summary = label + " / " + event_type + " / " + status;
+    if (analysis::IncidentProjectionContainsForbiddenMaterial(summary)) {
+        summary = "viewer-safe event summary";
+    }
+    return summary;
+}
+
+void AppendClientSafeEventDigestJson(std::ostringstream& out,
+                                     const ClientEventSummary& summary) {
+    out << "{"
+        << "\"schema\":\"media-server.client.event-digest.v1\","
+        << "\"provided\":" << (summary.provided ? "true" : "false") << ","
+        << "\"viewerSafe\":true,"
+        << "\"publishedViewScoped\":true,"
+        << "\"sourceUrlIncluded\":false,"
+        << "\"rawEvidenceIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"providerMaterialIncluded\":false,"
+        << "\"featureProvenanceIncluded\":false,"
+        << "\"internalEvidenceIncluded\":false,"
+        << "\"encodedClipPathIncluded\":false,"
+        << "\"ruleEditorIncluded\":false,"
+        << "\"actionControlsIncluded\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventSchemaChanged\":false,"
+        << "\"mediaPathChanged\":false,"
+        << "\"itemCount\":" << summary.recent.size() << ","
+        << "\"digestItems\":[";
+    const std::size_t limit = std::min<std::size_t>(summary.recent.size(), 5);
+    for (std::size_t i = 0; i < limit; ++i) {
+        const auto& item = summary.recent[i];
+        if (i != 0) {
+            out << ",";
+        }
+        out << "{"
+            << "\"digestId\":\"client-event-" << (i + 1) << "\","
+            << "\"summaryText\":\"" << JsonEscape(ClientSafeEventDigestSummaryText(item)) << "\","
+            << "\"eventType\":\"" << JsonEscape(ClientSafeDigestValue(item.event_type, "event")) << "\","
+            << "\"status\":\"" << JsonEscape(ClientSafeDigestValue(item.status, "recorded")) << "\","
+            << "\"severity\":\"" << JsonEscape(ClientSafeIncidentDigestSeverity(item)) << "\","
+            << "\"timelineHint\":\"" << JsonEscape(ClientSafeEventDigestTimelineHint(item)) << "\","
+            << "\"time\":";
+        AppendNullableInt64(out, item.update_time_ms.has_value() ? item.update_time_ms
+                                                                 : item.start_time_ms);
+        out << "}";
+    }
+    out << "]}";
+}
+
 std::string ClientSafeFollowUpDigestStatus(const ClientEventItem& item) {
     const std::string status = ClientSafeDigestValue(item.status, "recorded");
     if (status == "ended" || status == "resolved" || status == "closed" ||
@@ -4739,7 +4812,9 @@ void AppendClientEventSummaryJson(std::ostringstream& out, const ClientEventSumm
         }
         AppendClientEventItemJson(out, summary.recent[i]);
     }
-    out << "],\"incidentDigest\":";
+    out << "],\"eventDigest\":";
+    AppendClientSafeEventDigestJson(out, summary);
+    out << ",\"incidentDigest\":";
     AppendClientSafeIncidentDigestJson(out, summary);
     out << ",\"followUpDigest\":";
     AppendClientSafeFollowUpDigestJson(out, summary);

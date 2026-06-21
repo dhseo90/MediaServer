@@ -1299,6 +1299,7 @@ std::string ProductUiCss() {
     .badge.bad { background: var(--color-danger-bg); color: var(--color-danger); }
     .chip.info,
     .badge.info { background: var(--color-info-bg); color: var(--color-info); }
+    .client-safe-event-digest,
     .client-safe-incident-digest,
     .client-safe-followup-digest,
     .client-safe-digest-list {
@@ -1306,6 +1307,7 @@ std::string ProductUiCss() {
       gap: var(--space-3);
       min-width: 0;
     }
+    .client-safe-event-digest,
     .client-safe-incident-digest,
     .client-safe-followup-digest {
       padding: var(--space-3);

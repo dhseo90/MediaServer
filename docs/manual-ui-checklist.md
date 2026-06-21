@@ -304,6 +304,13 @@ Codex 세션의 UI 조작 evidence는 인앱 브라우저 직접 조작을 우�
 | V280-S06 Client-safe Follow-up Digest | `CLIENT-024`, `SAFE-069` | `/client/live`, `/client/dashboard`, `/client/events` | Client-safe Follow-up Digest card, `followUpDigest`, `media-server.client.follow-up-digest.v1`, followUpStatus/severity/time만 표시, source/raw/debug/provider/rule editor/action control 비노출, viewer PublishedView scope 유지 | `verify-v280-client-safe-followup-digest`, `verify-v250-client-safe-incident-digest`, `verify-ops-client-ui` |
 | V280-S07 Release Readiness | `UI-055`~`UI-058`, `CLIENT-024`, `OPS-040`, `SAFE-070` | `/ops/events`, `/ops/rules`, `/client/live`, `/client/dashboard`, `/client/events`, release evidence 문서 | S02~S06 UI 기준과 release evidence/not-run 경계 연결 확인. 이 행은 기준 정리이며 실제 UI 직접 조작 미실행 상태를 PASS로 쓰지 않음 | `verify-v280-owner-release-readiness`, `verify-feature-inventory-coverage`, `verify-release-evidence-index` |
 
+아래 표는 v3.1.0 Encoded Event Clip and Safe Sharing Expansion UI 풀테스트 기준입니다. 각 행은
+인앱 브라우저에서 직접 클릭/타이핑/선택하고, 실제 화면 상태와 관련 로그 또는
+EventRecord/감사 이력에 반영됐을 때만 `PASS`입니다. raw JSON/API-only/static smoke/
+Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다.
+
+| V310-S04 Client-safe Event Digest | `CLIENT-025`, `SAFE-096` | `/client/live`, `/client/dashboard`, `/client/events` | Client-safe Event Digest card, `eventDigest`, `media-server.client.event-digest.v1`, summaryText/eventType/status/severity/timelineHint/time만 표시, source/raw/debug/provider/feature provenance/encoded clip path/rule editor/action control 비노출, viewer PublishedView scope 유지 | `verify-v310-client-safe-event-digest`, `verify-v250-client-safe-incident-digest`, `verify-v280-client-safe-followup-digest`, `verify-ops-client-ui` |
+
 ### v2.6.0 Operational Hardening UI 풀테스트 기준
 
 아래 표는 v2.6.0 UI route/control/action 누락을 막기 위한 기준입니다. 각 행은 인앱
