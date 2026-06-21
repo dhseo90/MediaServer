@@ -67,12 +67,12 @@ const report = {
 const version = readText("VERSION").trim();
 assert(/^\d+\.\d+\.\d+$/.test(version), `VERSION must be semver, got ${version}`);
 const currentTag = `v${version}`;
-const latestPublishedTag = "v3.0.0";
+const latestPublishedTag = "v3.1.0";
 const latestPublishedVersion = latestPublishedTag.replace(/^v/, "");
 const currentRoadmap = "v3.1.0 Encoded Event Clip and Safe Sharing Expansion";
-const latestPublishedBaseline = "v3.0.0 Event Evidence Search MVP";
-const previousPublishedTag = "v2.9.0";
-const previousPublishedBaseline = `${previousPublishedTag} Final 2.x Closure & Compatibility Baseline`;
+const latestPublishedBaseline = "v3.1.0 Encoded Event Clip and Safe Sharing Expansion";
+const previousPublishedTag = "v3.0.0";
+const previousPublishedBaseline = `${previousPublishedTag} Event Evidence Search MVP`;
 const githubRepository = resolveGithubRepository();
 const repositoryUrl = `https://github.com/${githubRepository}`;
 const expectedReleaseUrl = `https://github.com/${githubRepository}/releases/tag/${latestPublishedTag}`;

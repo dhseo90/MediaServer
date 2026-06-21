@@ -126,6 +126,14 @@ git diff --check
 V310-S09 stabilization/release readiness local gate는 UI 풀테스트 직접 조작, 30분/120분
 longrun, published metadata, release action evidence를 대체하지 않습니다.
 
+## v3.1.0 release publication evidence
+
+v3.1.0 publication evidence는 [release-test-records.md](./release-test-records.md)의
+`v310 release PR/main/ruleset/tag/GitHub Release`, `v310 release published metadata initial`,
+`v310 release published metadata correction` 행에서 관리합니다. PR #42 main merge,
+ruleset required checks 임시 제거/복구, SSH-signed annotated tag, GitHub Release,
+published metadata 재검증은 local readiness gate와 분리합니다.
+
 ## Test Token Usage Ledger
 
 테스트 실행 기록은 평균 비용 산출을 위해 아래 형식으로 누적합니다. 테스트 결과와
