@@ -54,6 +54,7 @@
 | V310-S03 | `./server.sh verify-v310-replay-timeline-ui` | Ops-only /ops/events replay timeline UI가 event frame, representative image, frame bundle, encoded clip timeline, FrameRef/PTS mapping을 표시하는지 확인합니다. UI 풀테스트 직접 조작, 30분/120분, client digest, scoped API, cleanup execution, published metadata evidence가 아님 |
 | V310-S04 | `./server.sh verify-v310-client-safe-event-digest` | `/client/api/views/{id}/events`와 client live/dashboard/events의 viewer-safe client event digest가 source/raw/debug/provider/feature provenance/encoded clip path/rule action material 없이 summaryText/eventType/status/severity/timelineHint/time만 표시하는지 확인합니다. UI 풀테스트 직접 조작, 30분/120분, scoped API, cleanup execution, published metadata evidence가 아님 |
 | V310-S05 | `./server.sh verify-v310-scoped-integrator-search-api` | `/client/api/views/{id}/events/search`가 integrator-only PublishedView-scoped event search API로 `event:read:{viewId}`를 요구하고 source/raw/debug/provider/feature provenance/encoded clip path 없이 digest summary만 반환하는지 확인합니다. UI 풀테스트 직접 조작, 30분/120분, cleanup execution, vector search, published metadata evidence가 아님 |
+| V310-S06 | `./server.sh verify-v310-operator-feature-correction` | `/ops/events` operator feature correction UI와 review API가 correctedFeatureLabel, aliases, reanalysis request를 Ops review state와 audit에만 저장하고 EventRecord/Event POST/WebRTC/SSE/WS/media path, Rule/Profile payload, client/viewer exposure를 변경하지 않는지 확인합니다. UI 풀테스트 직접 조작, 30분/120분, vector search, cleanup execution, published metadata evidence가 아님 |
 
 ## 최신 published baseline v3.0.0 verifier
 

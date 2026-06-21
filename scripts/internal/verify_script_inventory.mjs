@@ -428,6 +428,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_v310_replay_timeline_ui.mjs",
     "verify_v310_client_safe_event_digest.mjs",
     "verify_v310_scoped_integrator_search_api.mjs",
+    "verify_v310_operator_feature_correction.mjs",
     "verify_external_turn_whep_field_gate.mjs",
     "verify_vlm_runtime_status_ui.mjs",
     "verify_vlm_evaluation_result_workflow.mjs",

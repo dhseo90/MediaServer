@@ -20,7 +20,8 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 상태: `V310-S00` source baseline 정렬 완료, `V310-S01` Encoded Event Clip Contract
 완료, `V310-S02` Event Clip Encoder Pipeline 완료, `V310-S03` Replay Timeline UI 완료,
-`V310-S04` Client-safe Event Digest 완료, `V310-S05` Scoped Integrator Search API 완료.
+`V310-S04` Client-safe Event Digest 완료, `V310-S05` Scoped Integrator Search API 완료,
+`V310-S06` Operator Feature Correction 완료.
 이 절은 v3.1.0 전체 기능 완료 evidence가 아니며, 실제 기능 구현은 각 Step별 코드/UI/API/검증
 evidence가 생긴 뒤에만 완료로 기록합니다. V310-S00 baseline 정렬 자체는 기능 구현 완료
 evidence가 아닙니다.
@@ -92,7 +93,7 @@ license/provenance/privacy/운영 제약:
 | 3 | V310-S03 | P0 | 완료 | Replay Timeline UI | `/ops/events` event frame, representative image, frame bundle, encoded clip timeline | `src/ingress/webrtc_http_server.cpp`의 `/ops/events` shell과 `OpsV310ReplayTimelineUiJson`, `src/ingress/product_ui_page_scripts.cpp`의 `renderV310ReplayTimelineUi`, `src/ingress/product_ui_css.cpp`의 replay timeline styles, `scripts/internal/verify_v310_replay_timeline_ui.mjs`와 `./server.sh verify-v310-replay-timeline-ui` | UI 풀테스트 직접 조작, 30분/120분, client digest, scoped API, cleanup 실행, published metadata evidence가 아님 |
 | 4 | V310-S04 | P1 | 완료 | Client-safe Event Digest | redacted viewer-safe summary | `src/ingress/webrtc_http_server.cpp`의 `/client/api/views/{id}/events` 응답에 `media-server.client.event-digest.v1` `eventDigest`를 추가하고, `src/ingress/product_ui_client_scripts.cpp`가 client live/dashboard/events에서 viewer-safe summaryText/eventType/status/severity/timelineHint/time만 렌더링함 | UI 풀테스트 직접 조작, 30분/120분, scoped API, cleanup execution, published metadata evidence가 아님 |
 | 5 | V310-S05 | P1 | 완료 | Scoped Integrator Search API | scope-gated search API와 redaction guard | `src/ingress/ops_event_route_owner.cpp`의 `events/search` route owner helper, `src/ingress/webrtc_http_server.cpp`의 `/client/api/views/{id}/events/search` integrator-only route와 `IntegratorScopedEventSearchJson`, `scripts/internal/verify_v310_scoped_integrator_search_api.mjs`와 `./server.sh verify-v310-scoped-integrator-search-api` | UI 풀테스트 직접 조작, 30분/120분, cleanup execution, vector search, published metadata evidence가 아님 |
-| 6 | V310-S06 | P1 | 예정 | Operator Feature Correction | feature correction, aliases, reanalysis request | 미구현 | S00 완료 evidence가 아님 |
+| 6 | V310-S06 | P1 | 완료 | Operator Feature Correction | feature correction, aliases, reanalysis request | `src/ingress/webrtc_http_server.cpp`의 `/ops/events` shell, `OpsEventReviewState` persistence, `/ops/api/events/reviews/{eventId}` correction payload/audit, `OpsV310OperatorFeatureCorrectionViewJson`, `src/ingress/product_ui_page_scripts.cpp`의 review row controls와 `renderV310OperatorFeatureCorrection`, `src/ingress/product_ui_css.cpp` styles, `scripts/internal/verify_v310_operator_feature_correction.mjs`와 `./server.sh verify-v310-operator-feature-correction` | UI 풀테스트 직접 조작, 30분/120분, vector search, cleanup execution, published metadata evidence가 아님 |
 | 7 | V310-S07 | P2 | 예정 | Optional Vector Search | default-off embedding index, rebuild, quality gates | 미구현 | S00 완료 evidence가 아님 |
 | 8 | V310-S08 | P1 | 예정 | Retention/Export Hardening | encoded clip lifecycle cleanup, export bundle, audit | 미구현 | S00 완료 evidence가 아님 |
 | 9 | V310-S09 | P0 | 예정 | Stabilization and Release Readiness | build/docs/verifier/UI evidence boundary와 release readiness records | 미구현 | S00 완료 evidence가 아님 |
@@ -198,6 +199,20 @@ license/provenance/privacy/운영 제약:
 - 변경하지 않은 것: Event POST payload, WebRTC DataChannel schema, SSE/WS metadata, RTSP/WebRTC media path, Rule/Profile payload, `/ops/events` UI, client shell UI, cleanup execution, vector/embedding search, published metadata는 변경하지 않았습니다.
 - 검증: 최초 `node scripts/internal/verify_v310_scoped_integrator_search_api.mjs`는 route owner, API 함수/schema, backlog/inventory/release records, server dispatch가 없어 `pass=0 fail=6`으로 FAIL했습니다. 구현 후 `./server.sh verify-v310-scoped-integrator-search-api`, `./server.sh build`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh verify-docs-links`, `git diff --check` 기준으로 재검증합니다.
 - 완료 경계: 이번 구현은 integrator-only PublishedView-scoped search API와 redacted digest payload입니다. UI 풀테스트 직접 조작, 30분/120분, cleanup execution, vector search, published metadata evidence가 아닙니다.
+
+## v3.1.0 S06 개발 기록
+
+- 범위: P1 `V310-S06 Operator Feature Correction`.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/events`에 `data-testid="ops-v310-operator-feature-correction"` shell을 추가하고, 기존 `OpsEventReviewState` JSONL persistence에 `corrected_feature_label`, `feature_aliases`, `reanalysis_requested`, `reanalysis_reason`을 추가했습니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/events/reviews/{eventId}` PUT/POST가 top-level과 nested `featureCorrection`의 `correctedFeatureLabel`, `featureAliases`, `reanalysisRequested`, `reanalysisReason`을 받아 기존 review state에만 저장하고 `operator-feature-correction-update` audit action을 남깁니다.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV310OperatorFeatureCorrectionItemJson`/`OpsV310OperatorFeatureCorrectionViewJson`을 추가하고 `/ops/api/events/reviews` 응답의 `operatorFeatureCorrection` view model로 correction count, alias count, reanalysis request count, `media-server.ops.operator-feature-correction.v1` boundary flags를 노출합니다.
+- `src/ingress/product_ui_page_scripts.cpp`: event review row에 `eventReviewFeatureCorrectionHtml()` controls를 추가하고 save payload에 `featureCorrection` object와 compatible top-level fields를 포함했습니다. `renderV310OperatorFeatureCorrection()`은 `/ops/events` summary section에 operator correction 상태를 표시합니다.
+- `src/ingress/product_ui_css.cpp`: `.v310-operator-feature-correction`, `.operator-feature-correction-list`, `.operator-feature-correction-card`, `.ops-feature-correction-controls` 스타일을 추가했습니다.
+- `scripts/internal/verify_v310_operator_feature_correction.mjs`, `server.sh`, `scripts/internal/verify_ops_client_ui_smoke.mjs`: `./server.sh verify-v310-operator-feature-correction` 명령과 `/ops/events` smoke marker를 추가했습니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/manual-ui-checklist.md`, `docs/release-test-records.md`: `UI-061`, `EVT-061`, `SAFE-098`, `OPS-065`와 V310-S06 안정화 확인 항목, 수동 UI 대상 route, 완료 evidence 경계를 추가했습니다.
+- 변경하지 않은 것: EventRecord top-level, Event POST payload, WebRTC DataChannel schema, SSE/WS metadata, RTSP/WebRTC media path, Rule/Profile payload, Auth/Role/Scope, client/viewer route, runtime provider call, vector search, cleanup execution, published metadata는 변경하지 않았습니다.
+- 검증: 최초 `./server.sh verify-v310-operator-feature-correction`는 S06 UI shell/state/API/view model/script/CSS/smoke/final docs가 없어 `pass=1 fail=9`로 FAIL했습니다. 구현 1차 후 같은 명령은 code/smoke 7개 check가 통과했지만 audit action source marker와 backlog/release records final row가 남아 `pass=7 fail=3`으로 FAIL했습니다. 문서/evidence 보정 후에는 audit summary source marker가 남아 `pass=9 fail=1`로 한 번 더 FAIL했고, summary 문자열 상수 보정 뒤 `./server.sh verify-v310-operator-feature-correction`가 `pass=10 fail=0`으로 통과했습니다. `./server.sh build`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh verify-docs-links`, `./server.sh verify-ops-client-ui --browser-mode static --http-base http://127.0.0.1:8081`, `./server.sh verify-ops-client-ui --screenshots --browser-mode chrome --allow-chrome-fallback --http-base http://127.0.0.1:8081`, `MEDIA_SERVER_UI_BROWSER_MODE=chrome MEDIA_SERVER_ALLOW_CHROME_FALLBACK=1 ./server.sh verify-rule-ui --http-base http://127.0.0.1:8081`도 통과했습니다. 서버 없는 `./server.sh verify-ops-client-ui`와 auto mode 인앱 evidence 전제 실행은 각각 `fail`로 기록하고 동일 범위에서 재실행했습니다.
+- 완료 경계: 이번 구현은 Ops-only operator feature correction persistence/UI/audit/view model입니다. UI 풀테스트 직접 조작, 30분/120분, optional vector search, cleanup execution, published metadata evidence가 아닙니다.
 
 ## 최신 공개 기준 상세: v3.0.0 Event Evidence Search MVP
 

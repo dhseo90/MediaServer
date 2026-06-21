@@ -238,6 +238,8 @@ Usage:
                  v3.1.0 S04 Client-safe Event Digest와 viewer redaction 경계를 검증합니다.
   verify-v310-scoped-integrator-search-api
                  v3.1.0 S05 Scoped Integrator Search API와 integrator scope/redaction 경계를 검증합니다.
+  verify-v310-operator-feature-correction
+                 v3.1.0 S06 Operator Feature Correction과 alias/reanalysis request 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -368,6 +370,8 @@ Usage:
                  v3.1.0 S04 Client-safe Event Digest와 viewer redaction 경계를 검증합니다.
   verify-v310-scoped-integrator-search-api
                  v3.1.0 S05 Scoped Integrator Search API와 integrator scope/redaction 경계를 검증합니다.
+  verify-v310-operator-feature-correction
+                 v3.1.0 S06 Operator Feature Correction과 alias/reanalysis request 경계를 검증합니다.
   verify-actions-security
                  GitHub Actions workflow 권한과 action 사용 정책을 검증합니다.
   verify-ci-local-gate-parity
@@ -1202,6 +1206,10 @@ case "${cmd}" in
   verify-v310-scoped-integrator-search-api)
     require_internal verify_v310_scoped_integrator_search_api.mjs
     exec "${INTERNAL_DIR}/verify_v310_scoped_integrator_search_api.mjs" "$@"
+    ;;
+  verify-v310-operator-feature-correction)
+    require_internal verify_v310_operator_feature_correction.mjs
+    exec "${INTERNAL_DIR}/verify_v310_operator_feature_correction.mjs" "$@"
     ;;
   verify-v290-final-stabilization-run)
     require_internal verify_v290_final_stabilization_run.mjs

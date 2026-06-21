@@ -2580,6 +2580,23 @@ std::string ProductUiCss() {
       display: grid;
       gap: var(--space-3);
     }
+    .v310-operator-feature-correction {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .operator-feature-correction-list {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .operator-feature-correction-card {
+      display: grid;
+      gap: var(--space-2);
+      min-width: 0;
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-bg-elevated);
+    }
     .v310-replay-timeline-results {
       display: grid;
       gap: var(--space-3);
@@ -3224,6 +3241,24 @@ std::string ProductUiCss() {
       align-items: end;
     }
     .ops-vlm-review-action-controls label {
+      display: grid;
+      gap: 3px;
+      min-width: 0;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .ops-feature-correction-controls {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+      gap: 6px;
+      align-items: end;
+      min-width: 220px;
+      padding: 6px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: var(--color-surface-subtle);
+    }
+    .ops-feature-correction-controls label {
       display: grid;
       gap: 3px;
       min-width: 0;

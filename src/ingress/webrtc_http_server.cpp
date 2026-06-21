@@ -3602,6 +3602,18 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <p class="ops-rule-note">EventRecord evidence refs와 encoded clip manifest가 있으면 replay timeline이 표시됩니다.</p>
         </div>
       </section>
+      <section class="section-card ops-workspace-wide v310-operator-feature-correction" data-testid="ops-v310-operator-feature-correction" data-v310-operator-feature-correction="ops-only-feature-alias-reanalysis">
+        <div class="toolbar">
+          <div>
+            <h3>Operator Feature Correction</h3>
+            <p id="opsV310OperatorFeatureCorrectionSummary">feature correction, aliases, reanalysis request를 Ops review state에만 저장합니다.</p>
+          </div>
+          <div id="opsV310OperatorFeatureCorrectionBadges" class="badge-row"><span class="chip">media-server.ops.operator-feature-correction.v1</span></div>
+        </div>
+        <div id="opsV310OperatorFeatureCorrectionRows" class="operator-feature-correction-list">
+          <p class="ops-rule-note">운영자 feature correction 저장값과 reanalysis request가 있으면 표시됩니다.</p>
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide incident-triage-board" data-testid="ops-incident-triage-board" data-incident-triage-board="lane-filter-sort">
         <div class="toolbar">
           <div>
@@ -10317,6 +10329,10 @@ struct OpsEventReviewState {
     std::string vlm_action{"not-reviewed"};
     std::string vlm_action_target{"eventExplanation"};
     std::string vlm_action_note;
+    std::string corrected_feature_label;
+    std::vector<std::string> feature_aliases;
+    bool reanalysis_requested{false};
+    std::string reanalysis_reason;
     std::int64_t updated_at_ms{0};
     std::string actor;
     std::string role;
@@ -10514,6 +10530,52 @@ std::string NormalizeOpsEventReviewNote(std::string value) {
     return value;
 }
 
+std::string NormalizeOpsFeatureCorrectionValue(std::string value,
+                                               const std::string& fallback = "") {
+    value = Trim(std::move(value));
+    for (char& ch : value) {
+        if (ch == '\r' || ch == '\n' || ch == '\t' ||
+            static_cast<unsigned char>(ch) < 0x20) {
+            ch = ' ';
+        }
+    }
+    value = Trim(std::move(value));
+    constexpr std::size_t kMaxFeatureCorrectionBytes = 120;
+    if (value.size() > kMaxFeatureCorrectionBytes) {
+        value.resize(kMaxFeatureCorrectionBytes);
+        value = Trim(std::move(value));
+    }
+    if (value.empty()) {
+        return fallback;
+    }
+    if (OpsEventReviewNoteContainsSensitiveMaterial(value)) {
+        return fallback.empty() ? "[redacted-feature-correction]" : fallback;
+    }
+    return value;
+}
+
+std::vector<std::string> NormalizeOpsFeatureAliases(std::vector<std::string> values) {
+    std::vector<std::string> normalized;
+    std::set<std::string> seen;
+    for (std::string value : values) {
+        value = NormalizeOpsFeatureCorrectionValue(std::move(value));
+        if (value.empty() || seen.count(value) != 0) {
+            continue;
+        }
+        normalized.push_back(value);
+        seen.insert(value);
+        if (normalized.size() >= 6U) {
+            break;
+        }
+    }
+    return normalized;
+}
+
+bool OpsFeatureCorrectionHasContent(const OpsEventReviewState& state) {
+    return !state.corrected_feature_label.empty() || !state.feature_aliases.empty() ||
+           state.reanalysis_requested || !state.reanalysis_reason.empty();
+}
+
 OpsEventReviewState OpsEventReviewStateFromJsonLine(const std::string& line) {
     OpsEventReviewState state;
     state.event_id = Trim(ParseStringField(line, "eventId").value_or(""));
@@ -10544,6 +10606,26 @@ OpsEventReviewState OpsEventReviewStateFromJsonLine(const std::string& line) {
         state.vlm_action_note =
             NormalizeOpsEventReviewNote(ParseStringField(*vlm_action, "note").value_or(""));
     }
+    if (const auto feature_correction = ExtractObjectField(line, "featureCorrection");
+        feature_correction.has_value()) {
+        state.corrected_feature_label = NormalizeOpsFeatureCorrectionValue(
+            ParseStringField(*feature_correction, "correctedFeatureLabel").value_or(""));
+        state.feature_aliases =
+            NormalizeOpsFeatureAliases(StringArrayFieldValues(*feature_correction, "featureAliases"));
+        state.reanalysis_requested =
+            ParseBoolField(*feature_correction, "reanalysisRequested").value_or(false);
+        state.reanalysis_reason = NormalizeOpsFeatureCorrectionValue(
+            ParseStringField(*feature_correction, "reanalysisReason").value_or(""));
+    }
+    state.corrected_feature_label = NormalizeOpsFeatureCorrectionValue(
+        ParseStringField(line, "correctedFeatureLabel").value_or(state.corrected_feature_label));
+    if (auto aliases = StringArrayFieldValues(line, "featureAliases"); !aliases.empty()) {
+        state.feature_aliases = NormalizeOpsFeatureAliases(std::move(aliases));
+    }
+    state.reanalysis_requested =
+        ParseBoolField(line, "reanalysisRequested").value_or(state.reanalysis_requested);
+    state.reanalysis_reason = NormalizeOpsFeatureCorrectionValue(
+        ParseStringField(line, "reanalysisReason").value_or(state.reanalysis_reason));
     state.updated_at_ms = ParseInt64Field(line, "updatedAtMs").value_or(0);
     state.actor = Trim(ParseStringField(line, "actor").value_or(""));
     state.role = Trim(ParseStringField(line, "role").value_or(""));
@@ -10610,6 +10692,31 @@ std::string OpsEventReviewStateJson(const OpsEventReviewState& state) {
         << "\"separateFromEventRecords\":true,"
         << "\"eventPostPayloadChanged\":false"
         << "},"
+        << "\"correctedFeatureLabel\":\"" << JsonEscape(state.corrected_feature_label) << "\","
+        << "\"featureAliases\":" << JsonStringArray(state.feature_aliases) << ","
+        << "\"reanalysisRequested\":" << (state.reanalysis_requested ? "true" : "false") << ","
+        << "\"reanalysisReason\":\"" << JsonEscape(state.reanalysis_reason) << "\","
+        << "\"featureCorrection\":{"
+        << "\"schema\":\"media-server.ops.operator-feature-correction.v1\","
+        << "\"correctedFeatureLabel\":\"" << JsonEscape(state.corrected_feature_label) << "\","
+        << "\"featureAliases\":" << JsonStringArray(state.feature_aliases) << ","
+        << "\"reanalysisRequested\":" << (state.reanalysis_requested ? "true" : "false") << ","
+        << "\"reanalysisReason\":\"" << JsonEscape(state.reanalysis_reason) << "\","
+        << "\"persistent\":true,"
+        << "\"separateFromEventRecords\":true,"
+        << "\"separateFromEventPostPayload\":true,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"modelProviderDependency\":false,"
+        << "\"runtimeProviderCallPerformed\":false,"
+        << "\"featureRevisionWritePerformed\":false,"
+        << "\"automaticRuleApplied\":false"
+        << "},"
         << "\"updatedAtMs\":" << state.updated_at_ms << ","
         << "\"actor\":\"" << JsonEscape(state.actor) << "\","
         << "\"role\":\"" << JsonEscape(state.role) << "\""
@@ -10628,6 +10735,7 @@ OpsEventReviewState DefaultOpsEventReviewState(std::string event_id) {
     state.action_target = "operator-triage";
     state.vlm_action = "not-reviewed";
     state.vlm_action_target = "eventExplanation";
+    state.reanalysis_requested = false;
     return state;
 }
 
@@ -10693,6 +10801,10 @@ bool UpsertOpsEventReviewState(const app::AppConfig& config,
     next.vlm_action = NormalizeOpsVlmReviewAction(next.vlm_action);
     next.vlm_action_target = NormalizeOpsVlmReviewActionTarget(next.vlm_action_target);
     next.vlm_action_note = NormalizeOpsEventReviewNote(next.vlm_action_note);
+    next.corrected_feature_label =
+        NormalizeOpsFeatureCorrectionValue(next.corrected_feature_label);
+    next.feature_aliases = NormalizeOpsFeatureAliases(std::move(next.feature_aliases));
+    next.reanalysis_reason = NormalizeOpsFeatureCorrectionValue(next.reanalysis_reason);
     next.updated_at_ms = NowUnixMs();
     const std::filesystem::path path = OpsEventReviewStoragePath(config);
     std::error_code ec;
@@ -15091,6 +15203,120 @@ std::string OpsV310ReplayTimelineUiJson(
     return out.str();
 }
 
+std::string OpsV310OperatorFeatureCorrectionItemJson(const std::string& event_json,
+                                                     const OpsEventReviewState& review,
+                                                     const std::size_t index) {
+    std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(review.event_id));
+    if (!OpsEventReviewEventIdAllowed(event_id)) {
+        event_id = OpsEventReviewEventIdAllowed(review.event_id) ? review.event_id
+                                                                 : "event-" + std::to_string(index + 1);
+    }
+    const std::string event_type =
+        Trim(ParseStringField(event_json, "eventType")
+                 .value_or(ParseStringField(event_json, "className").value_or("event")));
+    const std::string original_feature_label =
+        Trim(ParseStringField(event_json, "className")
+                 .value_or(ParseStringField(event_json, "eventType").value_or("unclassified")));
+    const std::string source_id = OpsIncidentTriageBoardSourceId(event_json).empty()
+                                      ? "unknown-source"
+                                      : OpsIncidentTriageBoardSourceId(event_json);
+    const bool correction_present = OpsFeatureCorrectionHasContent(review);
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.operator-feature-correction.v1\","
+        << "\"eventId\":\"" << JsonEscape(event_id) << "\","
+        << "\"eventType\":\"" << JsonEscape(event_type.empty() ? "event" : event_type) << "\","
+        << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
+        << "\"originalFeatureLabel\":\""
+        << JsonEscape(original_feature_label.empty() ? "unclassified" : original_feature_label)
+        << "\","
+        << "\"correctedFeatureLabel\":\"" << JsonEscape(review.corrected_feature_label) << "\","
+        << "\"featureAliases\":" << JsonStringArray(review.feature_aliases) << ","
+        << "\"aliasCount\":" << review.feature_aliases.size() << ","
+        << "\"reanalysisRequested\":" << (review.reanalysis_requested ? "true" : "false") << ","
+        << "\"reanalysisReason\":\"" << JsonEscape(review.reanalysis_reason) << "\","
+        << "\"correctionPresent\":" << (correction_present ? "true" : "false") << ","
+        << "\"reviewStatus\":\"" << JsonEscape(review.review_status.empty() ? "new" : review.review_status) << "\","
+        << "\"classification\":\""
+        << JsonEscape(review.classification.empty() ? "unclassified" : review.classification) << "\","
+        << "\"operatorOnly\":true,"
+        << "\"persistent\":true,"
+        << "\"separateFromEventRecords\":true,"
+        << "\"separateFromEventPostPayload\":true,"
+        << "\"modelProviderDependency\":false,"
+        << "\"runtimeProviderCallPerformed\":false,"
+        << "\"featureRevisionWritePerformed\":false,"
+        << "\"automaticRuleApplied\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsV310OperatorFeatureCorrectionViewJson(
+    const std::vector<std::string>& event_json_records,
+    const std::unordered_map<std::string, OpsEventReviewState>& reviews) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.operator-feature-correction.v1\","
+        << "\"status\":\"ops-operator-feature-correction\","
+        << "\"opsOnly\":true,"
+        << "\"persistent\":true,"
+        << "\"separateFromEventRecords\":true,"
+        << "\"separateFromEventPostPayload\":true,"
+        << "\"modelProviderDependency\":false,"
+        << "\"runtimeProviderCallPerformed\":false,"
+        << "\"featureRevisionWritePerformed\":false,"
+        << "\"automaticRuleApplied\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"items\":[";
+    std::size_t written = 0;
+    std::size_t correction_count = 0;
+    std::size_t alias_count = 0;
+    std::size_t reanalysis_request_count = 0;
+    for (std::size_t index = 0; index < event_json_records.size(); ++index) {
+        const std::string& event_json = event_json_records[index];
+        const std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+        if (!OpsEventReviewEventIdAllowed(event_id)) {
+            continue;
+        }
+        const auto review_it = reviews.find(event_id);
+        const OpsEventReviewState review =
+            review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
+        if (OpsFeatureCorrectionHasContent(review)) {
+            ++correction_count;
+        }
+        alias_count += review.feature_aliases.size();
+        if (review.reanalysis_requested) {
+            ++reanalysis_request_count;
+        }
+        if (written != 0) {
+            out << ",";
+        }
+        out << OpsV310OperatorFeatureCorrectionItemJson(event_json, review, index);
+        ++written;
+        if (written >= 12U) {
+            break;
+        }
+    }
+    out << "],"
+        << "\"itemCount\":" << written << ","
+        << "\"correctionCount\":" << correction_count << ","
+        << "\"aliasCount\":" << alias_count << ","
+        << "\"reanalysisRequestCount\":" << reanalysis_request_count
+        << "}";
+    return out.str();
+}
+
 analysis::EventSearchIndexEventRecord OpsV300IndexEventRecordFromJson(
     const std::string& event_json,
     const std::size_t index) {
@@ -16325,6 +16551,9 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         << ","
         << "\"replayTimeline\":"
         << OpsV310ReplayTimelineUiJson(event_result.records_json, reviews)
+        << ","
+        << "\"operatorFeatureCorrection\":"
+        << OpsV310OperatorFeatureCorrectionViewJson(event_result.records_json, reviews)
         << ","
         << "\"memorySearch\":" << OpsIncidentMemorySearchViewJson(event_result.records_json, reviews, query)
         << ","
@@ -19044,6 +19273,32 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                    next.vlm_action_note = ParseStringField(*vlm_action, "note")
 	                                                               .value_or("");
 	                                }
+	                                next.corrected_feature_label =
+	                                    ParseStringField(request.body, "correctedFeatureLabel").value_or("");
+	                                next.feature_aliases =
+	                                    StringArrayFieldValues(request.body, "featureAliases");
+	                                next.reanalysis_requested =
+	                                    ParseBoolField(request.body, "reanalysisRequested").value_or(false);
+	                                next.reanalysis_reason =
+	                                    ParseStringField(request.body, "reanalysisReason").value_or("");
+	                                if (const auto feature_correction =
+	                                        ExtractObjectField(request.body, "featureCorrection");
+	                                    feature_correction.has_value()) {
+	                                    next.corrected_feature_label =
+	                                        ParseStringField(*feature_correction, "correctedFeatureLabel")
+	                                            .value_or(next.corrected_feature_label);
+	                                    if (auto aliases =
+	                                            StringArrayFieldValues(*feature_correction, "featureAliases");
+	                                        !aliases.empty()) {
+	                                        next.feature_aliases = std::move(aliases);
+	                                    }
+	                                    next.reanalysis_requested =
+	                                        ParseBoolField(*feature_correction, "reanalysisRequested")
+	                                            .value_or(next.reanalysis_requested);
+	                                    next.reanalysis_reason =
+	                                        ParseStringField(*feature_correction, "reanalysisReason")
+	                                            .value_or(next.reanalysis_reason);
+	                                }
 	                                next.actor = principal_result.principal.username.empty()
 	                                                 ? principal_result.principal.display_name
 	                                                 : principal_result.principal.username;
@@ -19096,6 +19351,27 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                (void)AppendOpsAuditRecord(
 	                                    config,
 	                                    OpsAuditRecordJson(incident_audit_body.str(),
+	                                                       principal_result.principal),
+	                                    &audit_error);
+	                                const char* kOpsOperatorFeatureCorrectionAuditAction =
+	                                    "operator-feature-correction-update";
+	                                const char* kOpsOperatorFeatureCorrectionAuditSummary =
+	                                    "Feature correction updated";
+	                                std::ostringstream feature_correction_audit_body;
+	                                feature_correction_audit_body
+	                                    << "{"
+	                                    << "\"area\":\"events\","
+	                                    << "\"action\":\"" << kOpsOperatorFeatureCorrectionAuditAction << "\","
+	                                    << "\"target\":\"event:" << JsonEscape(event_id) << "\","
+	                                    << "\"summary\":\"" << kOpsOperatorFeatureCorrectionAuditSummary << "\","
+	                                    << "\"before\":"
+	                                    << (previous.present ? OpsEventReviewStateJson(previous)
+	                                                         : std::string("null"))
+	                                    << ",\"after\":" << OpsEventReviewStateJson(saved)
+	                                    << "}";
+	                                (void)AppendOpsAuditRecord(
+	                                    config,
+	                                    OpsAuditRecordJson(feature_correction_audit_body.str(),
 	                                                       principal_result.principal),
 	                                    &audit_error);
 	                                HttpResponse ok = JsonResponse(

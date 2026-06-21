@@ -310,6 +310,7 @@ EventRecord/감사 이력에 반영됐을 때만 `PASS`입니다. raw JSON/API-o
 Chrome fallback은 UI 풀테스트 PASS로 쓰지 않습니다.
 
 | V310-S04 Client-safe Event Digest | `CLIENT-025`, `SAFE-096` | `/client/live`, `/client/dashboard`, `/client/events` | Client-safe Event Digest card, `eventDigest`, `media-server.client.event-digest.v1`, summaryText/eventType/status/severity/timelineHint/time만 표시, source/raw/debug/provider/feature provenance/encoded clip path/rule editor/action control 비노출, viewer PublishedView scope 유지 | `verify-v310-client-safe-event-digest`, `verify-v250-client-safe-incident-digest`, `verify-v280-client-safe-followup-digest`, `verify-ops-client-ui` |
+| V310-S06 Operator Feature Correction | `UI-061`, `EVT-061`, `SAFE-098`, `OPS-065` | `/ops/events` | Operator Feature Correction card, event review row의 correctedFeatureLabel/featureAliases/reanalysisRequested/reanalysisReason controls, 기존 review 저장 버튼 반영, audit `operator-feature-correction-update`, EventRecord/Event POST/WebRTC/SSE/WS/media path/client viewer 노출 변경 없음 | `verify-v310-operator-feature-correction`, `verify-ops-client-ui` |
 
 ### v2.6.0 Operational Hardening UI 풀테스트 기준
 

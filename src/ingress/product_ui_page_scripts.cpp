@@ -2270,6 +2270,27 @@ void AppendOpsShellScript(std::ostringstream& out,
           <input class="event-review-note-input" data-event-review-field="actionTarget" maxlength="160" value="${escapeHtml(actionTarget)}" placeholder="operator-triage" />
         </div>`;
       }
+      function eventReviewFeatureCorrectionHtml(review = {}) {
+        const correction = review?.featureCorrection || {};
+        const aliases = Array.isArray(correction.featureAliases)
+          ? correction.featureAliases
+          : (Array.isArray(review.featureAliases) ? review.featureAliases : []);
+        const correctedFeatureLabel = correction.correctedFeatureLabel || review.correctedFeatureLabel || '';
+        const reanalysisRequested = correction.reanalysisRequested === true || review.reanalysisRequested === true;
+        const reanalysisReason = correction.reanalysisReason || review.reanalysisReason || '';
+        return `<div class="ops-feature-correction-controls" data-testid="ops-event-feature-correction-controls" data-feature-correction-schema="media-server.ops.operator-feature-correction.v1">
+          <label>Correction
+            <input class="event-review-note-input" data-event-review-field="correctedFeatureLabel" maxlength="120" value="${escapeHtml(correctedFeatureLabel)}" placeholder="corrected feature label" />
+          </label>
+          <label>Aliases
+            <input class="event-review-note-input" data-event-review-field="featureAliases" maxlength="240" value="${escapeHtml(aliases.map(display).join(', '))}" placeholder="alias1, alias2" />
+          </label>
+          <label class="check-inline"><input data-event-review-field="reanalysisRequested" type="checkbox" ${reanalysisRequested ? 'checked' : ''} /> reanalysis request</label>
+          <label>Reason
+            <input class="event-review-note-input" data-event-review-field="reanalysisReason" maxlength="160" value="${escapeHtml(reanalysisReason)}" placeholder="why reanalysis is needed" />
+          </label>
+        </div>`;
+      }
       function renderIncidentRuleSuggestionReview(entry = {}) {
         const review = entry?.incidentRuleSuggestionReview || {};
         const report = review.sourceCandidateReport || {};
@@ -2328,7 +2349,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             <label>Action target ${eventReviewSelectHtml('vlmActionTarget', VLM_REVIEW_ACTION_TARGETS, vlmAction.target || 'eventExplanation')}</label>
             <input class="event-review-note-input" data-event-review-field="vlmActionNote" maxlength="300" value="${escapeHtml(vlmAction.note || '')}" placeholder="VLM action note" />
           </div>
-        </div>${renderIncidentRuleSuggestionReview(entry)}`;
+        </div>${eventReviewFeatureCorrectionHtml(review)}${renderIncidentRuleSuggestionReview(entry)}`;
       }
       function renderEventReviewRows(items) {
         const tbody = document.getElementById('eventReviewRows');
@@ -2372,6 +2393,14 @@ void AppendOpsShellScript(std::ostringstream& out,
               setText('eventReviewSummary', 'eventId가 없어 review를 저장할 수 없습니다.');
               return;
             }
+            const featureAliases = String(row.querySelector('[data-event-review-field="featureAliases"]')?.value || '')
+              .split(',')
+              .map(value => value.trim())
+              .filter(Boolean)
+              .slice(0, 6);
+            const correctedFeatureLabel = row.querySelector('[data-event-review-field="correctedFeatureLabel"]')?.value || '';
+            const reanalysisRequested = row.querySelector('[data-event-review-field="reanalysisRequested"]')?.checked === true;
+            const reanalysisReason = row.querySelector('[data-event-review-field="reanalysisReason"]')?.value || '';
             const payload = {
               reviewStatus: row.querySelector('[data-event-review-field="reviewStatus"]')?.value || 'reviewing',
               classification: row.querySelector('[data-event-review-field="classification"]')?.value || 'unclassified',
@@ -2384,7 +2413,18 @@ void AppendOpsShellScript(std::ostringstream& out,
                 action: row.querySelector('[data-event-review-field="vlmAction"]')?.value || 'not-reviewed',
                 target: row.querySelector('[data-event-review-field="vlmActionTarget"]')?.value || 'eventExplanation',
                 note: row.querySelector('[data-event-review-field="vlmActionNote"]')?.value || ''
-              }
+              },
+              featureCorrection: {
+                schema: 'media-server.ops.operator-feature-correction.v1',
+                correctedFeatureLabel: correctedFeatureLabel,
+                featureAliases: featureAliases,
+                reanalysisRequested: reanalysisRequested,
+                reanalysisReason: reanalysisReason
+              },
+              correctedFeatureLabel: correctedFeatureLabel,
+              featureAliases: featureAliases,
+              reanalysisRequested: reanalysisRequested,
+              reanalysisReason: reanalysisReason
             };
             button.disabled = true;
             try {
@@ -2647,6 +2687,49 @@ void AppendOpsShellScript(std::ostringstream& out,
               </span>`).join('')}
             </div>
             <p class="ops-rule-note">FrameRef/PTS eventClipPtsMs ${escapeHtml(display(mapping.eventClipPtsMs ?? '-'))} · encodedClipMediaPath ${escapeHtml(display(encodedClip.encodedClipMediaPath || 'not-available'))} · sourceUrlExposed ${item?.sourceUrlExposed === false ? 'false' : '확인 필요'} · rawJsonExposed ${item?.rawJsonExposed === false ? 'false' : '확인 필요'} · debugMaterialExposed ${item?.debugMaterialExposed === false ? 'false' : '확인 필요'}</p>
+          </article>`;
+        }).join('');
+      }
+      function renderV310OperatorFeatureCorrection(operatorFeatureCorrection = {}) {
+        const root = document.getElementById('opsV310OperatorFeatureCorrectionRows');
+        if (!root) return;
+        const items = Array.isArray(operatorFeatureCorrection.items) ? operatorFeatureCorrection.items : [];
+        renderBadges('opsV310OperatorFeatureCorrectionBadges', [
+          { text: operatorFeatureCorrection.schema || 'media-server.ops.operator-feature-correction.v1' },
+          { text: `events ${items.length}`, tone: items.length > 0 ? '' : 'warn' },
+          { text: `corrections ${operatorFeatureCorrection.correctionCount ?? 0}`, tone: (operatorFeatureCorrection.correctionCount ?? 0) > 0 ? 'info' : '' },
+          { text: `aliases ${operatorFeatureCorrection.aliasCount ?? 0}` },
+          { text: `reanalysis ${operatorFeatureCorrection.reanalysisRequestCount ?? 0}`, tone: (operatorFeatureCorrection.reanalysisRequestCount ?? 0) > 0 ? 'warn' : '' },
+          { text: operatorFeatureCorrection.modelProviderDependency === false ? 'no provider call' : 'provider 확인 필요', tone: operatorFeatureCorrection.modelProviderDependency === false ? 'info' : 'warn' },
+          { text: operatorFeatureCorrection.viewerClientExposureAdded === false ? 'Ops only' : 'client 노출 확인 필요', tone: operatorFeatureCorrection.viewerClientExposureAdded === false ? 'info' : 'warn' }
+        ]);
+        setText(
+          'opsV310OperatorFeatureCorrectionSummary',
+          items.length
+            ? `Operator feature correction · ${operatorFeatureCorrection.correctionCount ?? 0} correction · ${operatorFeatureCorrection.aliasCount ?? 0} aliases · ${operatorFeatureCorrection.reanalysisRequestCount ?? 0} reanalysis request`
+            : 'feature correction, aliases, reanalysis request를 Ops review state에만 저장합니다.'
+        );
+        if (items.length === 0) {
+          root.innerHTML = '<p class="ops-rule-note">표시할 Operator Feature Correction 항목이 없습니다.</p>';
+          return;
+        }
+        root.innerHTML = items.map(item => {
+          const aliases = Array.isArray(item?.featureAliases) ? item.featureAliases : [];
+          const corrected = item?.correctedFeatureLabel || '미지정';
+          const original = item?.originalFeatureLabel || item?.eventType || 'unclassified';
+          return `<article class="operator-feature-correction-card" data-operator-feature-correction-event="${escapeHtml(item?.eventId || '')}">
+            <div class="table-cell-main">
+              <strong>${escapeHtml(display(corrected))}</strong>
+              <span>${escapeHtml(display(item?.eventId || '-'))} · original ${escapeHtml(display(original))} · review ${escapeHtml(display(item?.reviewStatus || 'new'))}</span>
+            </div>
+            <div class="badge-row">
+              <span class="chip ${item?.correctionPresent ? 'info' : ''}">feature correction ${item?.correctionPresent ? 'set' : 'pending'}</span>
+              <span class="chip">aliases ${aliases.length}</span>
+              <span class="chip ${item?.reanalysisRequested ? 'warn' : 'info'}">reanalysis request ${item?.reanalysisRequested ? 'yes' : 'no'}</span>
+              <span class="chip info">eventPost unchanged</span>
+            </div>
+            <p class="ops-rule-note">aliases: ${escapeHtml(aliases.length ? aliases.map(display).join(', ') : 'none')}</p>
+            <p class="ops-rule-note">reason: ${escapeHtml(display(item?.reanalysisReason || 'none'))}</p>
           </article>`;
         }).join('');
       }
@@ -3587,6 +3670,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         renderOperatorOutcomeMemory(reviewPayload.operatorOutcomeMemory || {});
         renderV300EventEvidenceSearchUi(reviewPayload.eventEvidenceSearch || {});
         renderV310ReplayTimelineUi(reviewPayload.replayTimeline || {});
+        renderV310OperatorFeatureCorrection(reviewPayload.operatorFeatureCorrection || {});
         renderIncidentMemorySearch(reviewPayload.memorySearch || {});
         renderVlmSummaryCandidateReview(reviewPayload.memorySearch?.vlmSummaryCandidateReview || {});
         renderSimilarIncidentLookup(reviewPayload.similarIncidents || {});
@@ -3597,7 +3681,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (prevButton) prevButton.disabled = opsEventRecordsOffset <= 0;
         if (nextButton) nextButton.disabled = !records.hasMore;
         if (records.nextOffset != null) nextButton?.setAttribute('data-next-offset', String(records.nextOffset));
-        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, incidentTriageBoard: reviewPayload.incidentTriageBoard || {}, incidentDecisionScorecard: reviewPayload.incidentDecisionScorecard || {}, operationalActionPack: reviewPayload.operationalActionPack || {}, incidentActionReadinessQueue: reviewPayload.incidentActionReadinessQueue || {}, evidenceIntakeFieldReadiness: reviewPayload.evidenceIntakeFieldReadiness || {}, runtimeEvidenceWindow: reviewPayload.runtimeEvidenceWindow || {}, ruleWhatIfPreview: reviewPayload.ruleWhatIfPreview || {}, approvalGatedRuleDraftReadiness: reviewPayload.approvalGatedRuleDraftReadiness || {}, operatorOutcomeMemory: reviewPayload.operatorOutcomeMemory || {}, eventEvidenceSearch: reviewPayload.eventEvidenceSearch || {}, replayTimeline: reviewPayload.replayTimeline || {}, memorySearch: reviewPayload.memorySearch || {}, vlmSummaryCandidateReview: reviewPayload.memorySearch?.vlmSummaryCandidateReview || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
+        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, incidentTriageBoard: reviewPayload.incidentTriageBoard || {}, incidentDecisionScorecard: reviewPayload.incidentDecisionScorecard || {}, operationalActionPack: reviewPayload.operationalActionPack || {}, incidentActionReadinessQueue: reviewPayload.incidentActionReadinessQueue || {}, evidenceIntakeFieldReadiness: reviewPayload.evidenceIntakeFieldReadiness || {}, runtimeEvidenceWindow: reviewPayload.runtimeEvidenceWindow || {}, ruleWhatIfPreview: reviewPayload.ruleWhatIfPreview || {}, approvalGatedRuleDraftReadiness: reviewPayload.approvalGatedRuleDraftReadiness || {}, operatorOutcomeMemory: reviewPayload.operatorOutcomeMemory || {}, eventEvidenceSearch: reviewPayload.eventEvidenceSearch || {}, replayTimeline: reviewPayload.replayTimeline || {}, operatorFeatureCorrection: reviewPayload.operatorFeatureCorrection || {}, memorySearch: reviewPayload.memorySearch || {}, vlmSummaryCandidateReview: reviewPayload.memorySearch?.vlmSummaryCandidateReview || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
       }
       const itemId = item => display(item?.id || item?.ruleId || item?.profileId || '-');
       const opsRulesIdText = value => {
