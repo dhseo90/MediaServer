@@ -26,12 +26,12 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 567 |
+| 전체 기능 항목 | 570 |
 | UI 직접 필요 | 301 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 235 |
-| 테스트 필요 | 567 |
-| 안정화 대상 | 557 |
+| UI 비대상 | 238 |
+| 테스트 필요 | 570 |
+| 안정화 대상 | 560 |
 | UI 풀테스트 대상 | 321 |
 | 30분 soak 대상 | 49 |
 | 120분 대상 | 7 |
@@ -69,6 +69,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | V310-S04 Client-safe Event Digest | `CLIENT-025`, `SAFE-096` | `verify-v310-client-safe-event-digest`, `verify-ops-client-ui` | `/client/api/views/{id}/events`와 client live/dashboard/events가 `media-server.client.event-digest.v1` viewer-safe digest를 표시하고 source/raw/debug/provider/feature provenance/encoded clip path/rule action material을 노출하지 않는지 확인합니다. UI 풀테스트 직접 조작, 30분/120분, scoped API, cleanup execution, published metadata evidence가 아님 |
 | V310-S05 Scoped Integrator Search API | `CLIENT-026`, `SAFE-097`, `OPS-064` | `verify-v310-scoped-integrator-search-api`, `verify-auth-routes` | `/client/api/views/{id}/events/search`가 integrator-only PublishedView-scoped event search API로 `event:read:{viewId}`를 요구하고 `media-server.integrator.scoped-event-search.v1` digest만 반환하는지 확인합니다. UI 풀테스트 직접 조작, 30분/120분, cleanup execution, vector search, published metadata evidence가 아님 |
 | V310-S06 Operator Feature Correction | `UI-061`, `EVT-061`, `SAFE-098`, `OPS-065` | `verify-v310-operator-feature-correction`, `verify-ops-client-ui` | `/ops/events`가 operator-only correctedFeatureLabel/featureAliases/reanalysisRequested 상태를 기존 review state에 저장하고 `media-server.ops.operator-feature-correction.v1` view model로 표시합니다. UI 풀테스트 직접 조작, 30분/120분, vector search, cleanup execution, published metadata evidence가 아님 |
+| V310-S07 Optional Vector Search | `LAB-089`, `SAFE-100`, `OPS-067` | `verify-v310-optional-vector-search`, `verify-analysis-state` | default-off optional embedding index가 명시 opt-in일 때만 non-identifying embedding을 quality gate와 dimension gate로 인덱싱하고 rebuild stale vector entry를 제거하는지 확인합니다. provider embedding calls, UI 풀테스트 직접 조작, 30분/120분, client/viewer 노출, published metadata evidence가 아님 |
 | V310-S08 Retention/Export Hardening | `EVT-062`, `SAFE-099`, `OPS-066` | `verify-v310-retention-export-hardening`, `verify-analysis-state` | encoded clip lifecycle cleanup이 EventRecord/EvidenceManifest/FeatureSet/SearchIndex cleanup 계획에 묶이고 release-safe export bundle이 encoded media/path/material을 제외하며 `export-bundle` audit coverage를 남기는지 확인합니다. UI 풀테스트 직접 조작, 30분/120분, vector search, destructive operational cleanup, published metadata evidence가 아님 |
 
 ## v3.0.0 Event Evidence Search MVP Coverage Mapping
@@ -207,9 +208,9 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | `EVT-001`~`EVT-062` | event/VLM/v250/v260/v270/v280/v300/v310 verifier family | event log 육안 확인은 UI 풀테스트 |
 | `CLIENT-001`~`CLIENT-026` | client/UI verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-021` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
-| `LAB-001`~`LAB-088` | lab/VLM/v250/v260/v270/v280/v300 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-099` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-066` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
+| `LAB-001`~`LAB-089` | lab/VLM/v250/v260/v270/v280/v300/v310 fixture verifier family | 제품 UI 비대상 |
+| `SAFE-001`~`SAFE-100` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-067` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
 
 ## VA Manual UI Seed Matrix
 
@@ -725,6 +726,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | LAB-086 | V300-S06 search DSL/query convert fixture | 비대상 | 필요 | 안정화 | `verify-v300-search-dsl-query-convert`와 `verify-analysis-state`가 natural language to constrained Search DSL, strict structured output, text/tags/filter matching, identity-query rejection을 검증하되 Feature/Search Index, `/ops/events` UI, vector search를 만들지 않음 |
 | LAB-087 | V300-S07 feature/search index fixture | 비대상 | 필요 | 안정화 | `verify-v300-feature-search-index`와 `verify-analysis-state`가 EventRecord, FeatureSet, EvidenceManifest, operator review state projection, latest revision selection, orphan/privacy guard, stale result guard를 검증하되 `/ops/events` UI, vector search, provider rerank를 만들지 않음 |
 | LAB-088 | V300-S09 retention/pin/cleanup fixture | 비대상 | 필요 | 안정화 | `verify-v300-retention-pin-cleanup`와 `verify-analysis-state`가 7일 기본 retention, source/rule override, pinned event cleanup 제외, dry-run 후보 산출, apply lifecycle delete/de-index, audit trail을 검증하되 destructive 운영 삭제, UI 풀테스트, 30분/120분을 만들지 않음 |
+| LAB-089 | V310-S07 optional vector search fixture | 비대상 | 필요 | 안정화 | `verify-v310-optional-vector-search`와 `verify-analysis-state`가 default-off embedding index, explicit opt-in, quality/dimension gate, face/identity embedding rejection, rebuild stale vector result guard를 검증하되 provider embedding call, 제품 UI, client/viewer 노출을 만들지 않음 |
 
 ## I. Safety, Boundary, Invariant Contract
 
@@ -829,6 +831,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | SAFE-097 | V310-S05 scoped integrator search redaction boundary | 비대상 | 필요 | 안정화 | `verify-v310-scoped-integrator-search-api`가 integrator-only search API에서 Event POST/WebRTC DataChannel/SSE/WS metadata schema, RTSP/WebRTC media path, Rule/Profile payload, source URL/raw JSON/debug/provider/feature provenance/internal evidence/encoded clip path 노출을 변경하지 않음을 확인하되 UI 풀테스트 직접 조작, 30분/120분, cleanup execution, vector search, published metadata PASS로 대체하지 않음 |
 | SAFE-098 | V310-S06 operator correction boundary | 필요 | 필요 | 안정화, UI | `verify-v310-operator-feature-correction`가 operator correction/alias/reanalysis request가 Ops review state와 audit에만 저장되고 EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata schema, RTSP/WebRTC media path, Rule/Profile payload, client/viewer exposure, runtime provider replay, vector search를 변경하지 않음을 확인하되 UI 풀테스트 직접 조작, 30분/120분, cleanup execution, published metadata PASS로 대체하지 않음 |
 | SAFE-099 | V310-S08 retention/export boundary | 비대상 | 필요 | 안정화 | `verify-v310-retention-export-hardening`이 release-safe export bundle에서 encoded clip media/path/material, source URL, raw evidence, provider/debug material을 제외하고 signed token expiry와 `export-bundle` audit coverage를 확인하되 UI 풀테스트 직접 조작, 30분/120분, vector search, destructive operational cleanup, published metadata PASS로 대체하지 않음 |
+| SAFE-100 | V310-S07 optional vector search boundary | 비대상 | 필요 | 안정화 | `verify-v310-optional-vector-search`가 optional vector index/search를 기본 off로 유지하고 명시 opt-in에서도 raw prompt/raw provider response/runtime provider call/face embedding/identity embedding/Event POST/WebRTC/SSE/WS schema/RTSP-WebRTC media path/client-viewer 노출을 만들지 않음을 확인하되 provider embedding calls, UI 풀테스트 직접 조작, 30분/120분, published metadata PASS로 대체하지 않음 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -866,6 +869,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | OPS-064 | V310-S05 Scoped Integrator Search API 게이트 | 비대상 | 필요 | 안정화 | `verify-v310-scoped-integrator-search-api`가 `/client/api/views/{id}/events/search` route, integrator role guard, `event:read:{viewId}` scope gate, redacted digest payload, backlog/stream verification/release records/server dispatch 연결을 확인하되 UI 풀테스트 직접 조작, 30분/120분, cleanup execution, vector search, release publish 실행 PASS로 대체하지 않음 |
 | OPS-065 | V310-S06 Operator Feature Correction 게이트 | 비대상 | 필요 | 안정화 | `verify-v310-operator-feature-correction`가 `/ops/events` correction UI shell, review state persistence, alias/reanalysis request fields, product script/CSS, ops smoke, backlog/stream verification/release records/server dispatch 연결을 확인하되 UI 풀테스트 직접 조작, 30분/120분, cleanup execution, vector search, release publish 실행 PASS로 대체하지 않음 |
 | OPS-066 | V310-S08 Retention/Export Hardening 게이트 | 비대상 | 필요 | 안정화 | `verify-v310-retention-export-hardening`가 encoded clip lifecycle cleanup, release-safe export bundle encoded media exclusion, `export-bundle` audit coverage, backlog/stream verification/release records/server dispatch 연결을 확인하되 UI 풀테스트 직접 조작, 30분/120분, vector search, destructive operational cleanup, release publish 실행 PASS로 대체하지 않음 |
+| OPS-067 | V310-S07 Optional Vector Search 게이트 | 비대상 | 필요 | 안정화 | `verify-v310-optional-vector-search`가 optional vector fixture, EventFeatureSearchIndex optional vector API/report, analysis-state smoke, backlog/stream verification/release records/server dispatch 연결을 확인하되 provider embedding calls, UI 풀테스트 직접 조작, 30분/120분, client/viewer 노출, release publish 실행 PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 

@@ -136,8 +136,8 @@ check("feature inventory and release records map V310-S08", () => {
     "SAFE-099 | V310-S08 retention/export boundary",
     "OPS-066 | V310-S08 Retention/Export Hardening 게이트",
     "`EVT-001`~`EVT-062`",
-    "`SAFE-001`~`SAFE-099`",
-    "`OPS-035`~`OPS-066`",
+    "`SAFE-001`~`SAFE-100`",
+    "`OPS-035`~`OPS-067`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory V310-S08");
   }

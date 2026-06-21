@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <cmath>
 #include <sstream>
 #include <unordered_map>
 
@@ -102,6 +103,50 @@ bool HasPrivacyViolation(const EventSearchIndexEvidenceManifest& evidence) {
            evidence.identity_features_allowed || evidence.archive_api;
 }
 
+bool HasPrivacyViolation(const EventOptionalVectorEmbedding& embedding) {
+    return embedding.face_embedding || embedding.identity_embedding || embedding.raw_prompt_stored ||
+           embedding.raw_provider_response_stored || embedding.provider_request_body_stored ||
+           embedding.provider_embedding_call_performed || embedding.credential_stored ||
+           embedding.source_url_stored || embedding.raw_frame_bytes_stored;
+}
+
+bool HasFiniteVector(const std::vector<float>& values) {
+    if (values.empty()) {
+        return false;
+    }
+    for (const float value : values) {
+        if (!std::isfinite(value)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+bool DimensionsMatch(const std::vector<float>& values, std::size_t expected_dimensions) {
+    if (!HasFiniteVector(values)) {
+        return false;
+    }
+    return expected_dimensions == 0 || values.size() == expected_dimensions;
+}
+
+float CosineSimilarity(const std::vector<float>& left, const std::vector<float>& right) {
+    if (left.empty() || left.size() != right.size()) {
+        return 0.0F;
+    }
+    double dot = 0.0;
+    double left_norm = 0.0;
+    double right_norm = 0.0;
+    for (std::size_t i = 0; i < left.size(); ++i) {
+        dot += static_cast<double>(left[i]) * static_cast<double>(right[i]);
+        left_norm += static_cast<double>(left[i]) * static_cast<double>(left[i]);
+        right_norm += static_cast<double>(right[i]) * static_cast<double>(right[i]);
+    }
+    if (left_norm <= 0.0 || right_norm <= 0.0) {
+        return 0.0F;
+    }
+    return static_cast<float>(dot / (std::sqrt(left_norm) * std::sqrt(right_norm)));
+}
+
 EventSearchIndexReport MakeEmptyReport(std::uint64_t generation,
                                        const EventFeatureSearchIndexRebuildInput& input) {
     EventSearchIndexReport report;
@@ -116,6 +161,29 @@ EventSearchIndexReport MakeEmptyReport(std::uint64_t generation,
     report.runtime_provider_call_performed = false;
     report.vector_search_performed = false;
     report.ops_events_ui_required = false;
+    report.event_post_payload_changed = false;
+    report.webrtc_data_channel_schema_changed = false;
+    report.sse_ws_metadata_schema_changed = false;
+    report.rtsp_webrtc_media_path_changed = false;
+    report.viewer_client_exposure_added = false;
+    return report;
+}
+
+EventOptionalVectorIndexReport MakeOptionalVectorReport(std::uint64_t generation) {
+    EventOptionalVectorIndexReport report;
+    report.generation = generation;
+    report.default_off = true;
+    report.vector_index_enabled = false;
+    report.rebuild_performed = false;
+    report.vector_search_performed = false;
+    report.quality_gate_active = true;
+    report.dimension_gate_active = true;
+    report.identity_embeddings_rejected = true;
+    report.face_embeddings_rejected = true;
+    report.raw_prompt_stored = false;
+    report.raw_provider_response_stored = false;
+    report.runtime_provider_call_performed = false;
+    report.provider_embedding_call_performed = false;
     report.event_post_payload_changed = false;
     report.webrtc_data_channel_schema_changed = false;
     report.sse_ws_metadata_schema_changed = false;
@@ -338,8 +406,112 @@ std::vector<EventSearchIndexEntry> EventFeatureSearchIndex::Search(const EventSe
         matches.begin() + static_cast<std::ptrdiff_t>(end));
 }
 
+EventOptionalVectorIndexReport EventFeatureSearchIndex::RebuildOptionalVectorIndex(
+    const std::vector<EventOptionalVectorEmbedding>& embeddings,
+    const EventOptionalVectorIndexOptions& options) {
+    ++vector_generation_;
+    vector_entries_.clear();
+    vector_report_ = MakeOptionalVectorReport(vector_generation_);
+    vector_report_.embeddings_seen = embeddings.size();
+    vector_report_.vector_index_enabled = options.enabled;
+    if (!options.enabled) {
+        vector_report_.rejection_reason = "optional-vector-index-disabled-default-off";
+        return vector_report_;
+    }
+
+    vector_report_.rebuild_performed = true;
+    std::unordered_map<std::string, const EventSearchIndexEntry*> entry_by_event_id;
+    for (const auto& entry : entries_) {
+        entry_by_event_id[entry.event_id] = &entry;
+    }
+
+    for (const auto& embedding : embeddings) {
+        const auto found = entry_by_event_id.find(embedding.event_id);
+        if (found == entry_by_event_id.end()) {
+            ++vector_report_.orphan_embeddings_skipped;
+            continue;
+        }
+        if (!embedding.searchable || HasPrivacyViolation(embedding)) {
+            ++vector_report_.privacy_rejected_embeddings;
+            continue;
+        }
+        if (embedding.quality < options.min_quality) {
+            ++vector_report_.quality_rejected_embeddings;
+            continue;
+        }
+        if (!DimensionsMatch(embedding.values, options.expected_dimensions)) {
+            ++vector_report_.dimension_rejected_embeddings;
+            continue;
+        }
+
+        OptionalVectorIndexEntry vector_entry;
+        vector_entry.event_id = embedding.event_id;
+        vector_entry.embedding_id = embedding.embedding_id;
+        vector_entry.values = embedding.values;
+        vector_entry.quality = embedding.quality;
+        vector_entry.document = found->second->document;
+        vector_entries_.push_back(vector_entry);
+        ++vector_report_.indexed_embeddings;
+    }
+    return vector_report_;
+}
+
+EventOptionalVectorSearchOutput EventFeatureSearchIndex::SearchOptionalVector(
+    const EventOptionalVectorSearchQuery& query) const {
+    EventOptionalVectorSearchOutput output;
+    output.report = vector_report_;
+    output.report.vector_search_performed = false;
+    if (!query.enabled) {
+        output.report.rejection_reason = "optional-vector-query-disabled";
+        return output;
+    }
+    if (!vector_report_.vector_index_enabled || vector_entries_.empty()) {
+        output.report.rejection_reason = "optional-vector-index-disabled-or-empty";
+        return output;
+    }
+    if (!HasFiniteVector(query.values)) {
+        output.report.rejection_reason = "invalid-query-vector";
+        return output;
+    }
+
+    output.report.vector_search_performed = true;
+    const std::size_t limit = query.limit == 0 ? 10 : query.limit;
+    for (const auto& entry : vector_entries_) {
+        if (entry.values.size() != query.values.size()) {
+            continue;
+        }
+        const float score = CosineSimilarity(query.values, entry.values);
+        if (score <= query.min_score) {
+            continue;
+        }
+        EventOptionalVectorSearchResult result;
+        result.event_id = entry.event_id;
+        result.embedding_id = entry.embedding_id;
+        result.score = score;
+        result.document = entry.document;
+        output.results.push_back(result);
+    }
+    std::sort(output.results.begin(), output.results.end(), [](const auto& left, const auto& right) {
+        if (left.score != right.score) {
+            return left.score > right.score;
+        }
+        return left.document.timestamp_ms > right.document.timestamp_ms;
+    });
+    if (output.results.size() > limit) {
+        output.results.resize(limit);
+    }
+    for (std::size_t i = 0; i < output.results.size(); ++i) {
+        output.results[i].rank = i + 1;
+    }
+    return output;
+}
+
 const EventSearchIndexReport& EventFeatureSearchIndex::Report() const {
     return report_;
+}
+
+const EventOptionalVectorIndexReport& EventFeatureSearchIndex::OptionalVectorReport() const {
+    return vector_report_;
 }
 
 const std::vector<EventSearchIndexEntry>& EventFeatureSearchIndex::Entries() const {
@@ -398,6 +570,60 @@ bool EventFeatureSearchIndexReportContainsForbiddenMaterial(const EventSearchInd
            report.ops_events_ui_required || report.event_post_payload_changed ||
            report.webrtc_data_channel_schema_changed || report.sse_ws_metadata_schema_changed ||
            report.rtsp_webrtc_media_path_changed || report.viewer_client_exposure_added;
+}
+
+std::string EventOptionalVectorIndexReportJson(const EventOptionalVectorIndexReport& report) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"" << JsonEscape(report.schema) << "\","
+        << "\"generation\":" << report.generation << ","
+        << "\"defaultOff\":" << (report.default_off ? "true" : "false") << ","
+        << "\"vectorIndexEnabled\":" << (report.vector_index_enabled ? "true" : "false") << ","
+        << "\"rebuildPerformed\":" << (report.rebuild_performed ? "true" : "false") << ","
+        << "\"vectorSearchPerformed\":" << (report.vector_search_performed ? "true" : "false") << ","
+        << "\"embeddingsSeen\":" << report.embeddings_seen << ","
+        << "\"indexedEmbeddings\":" << report.indexed_embeddings << ","
+        << "\"qualityRejectedEmbeddings\":" << report.quality_rejected_embeddings << ","
+        << "\"dimensionRejectedEmbeddings\":" << report.dimension_rejected_embeddings << ","
+        << "\"privacyRejectedEmbeddings\":" << report.privacy_rejected_embeddings << ","
+        << "\"orphanEmbeddingsSkipped\":" << report.orphan_embeddings_skipped << ","
+        << "\"qualityGateActive\":" << (report.quality_gate_active ? "true" : "false") << ","
+        << "\"dimensionGateActive\":" << (report.dimension_gate_active ? "true" : "false") << ","
+        << "\"identityEmbeddingsRejected\":"
+        << (report.identity_embeddings_rejected ? "true" : "false") << ","
+        << "\"faceEmbeddingsRejected\":" << (report.face_embeddings_rejected ? "true" : "false") << ","
+        << "\"rejectionReason\":\"" << JsonEscape(report.rejection_reason) << "\","
+        << "\"contractInvariants\":{"
+        << "\"rawPromptStored\":" << (report.raw_prompt_stored ? "true" : "false") << ","
+        << "\"rawProviderResponseStored\":"
+        << (report.raw_provider_response_stored ? "true" : "false") << ","
+        << "\"runtimeProviderCallPerformed\":"
+        << (report.runtime_provider_call_performed ? "true" : "false") << ","
+        << "\"providerEmbeddingCallPerformed\":"
+        << (report.provider_embedding_call_performed ? "true" : "false") << ","
+        << "\"eventPostPayloadChanged\":"
+        << (report.event_post_payload_changed ? "true" : "false") << ","
+        << "\"webrtcDataChannelSchemaChanged\":"
+        << (report.webrtc_data_channel_schema_changed ? "true" : "false") << ","
+        << "\"sseWsMetadataSchemaChanged\":"
+        << (report.sse_ws_metadata_schema_changed ? "true" : "false") << ","
+        << "\"rtspWebrtcMediaPathChanged\":"
+        << (report.rtsp_webrtc_media_path_changed ? "true" : "false") << ","
+        << "\"viewerClientExposureAdded\":"
+        << (report.viewer_client_exposure_added ? "true" : "false")
+        << "}"
+        << "}";
+    return out.str();
+}
+
+bool EventOptionalVectorIndexReportContainsForbiddenMaterial(
+    const EventOptionalVectorIndexReport& report) {
+    return report.raw_prompt_stored || report.raw_provider_response_stored ||
+           report.runtime_provider_call_performed || report.provider_embedding_call_performed ||
+           !report.identity_embeddings_rejected || !report.face_embeddings_rejected ||
+           report.event_post_payload_changed || report.webrtc_data_channel_schema_changed ||
+           report.sse_ws_metadata_schema_changed || report.rtsp_webrtc_media_path_changed ||
+           report.viewer_client_exposure_added;
 }
 
 }  // namespace analysis

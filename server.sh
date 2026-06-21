@@ -240,6 +240,8 @@ Usage:
                  v3.1.0 S05 Scoped Integrator Search API와 integrator scope/redaction 경계를 검증합니다.
   verify-v310-operator-feature-correction
                  v3.1.0 S06 Operator Feature Correction과 alias/reanalysis request 경계를 검증합니다.
+  verify-v310-optional-vector-search
+                 v3.1.0 S07 Optional Vector Search의 default-off embedding index와 quality gate 경계를 검증합니다.
   verify-v310-retention-export-hardening
                  v3.1.0 S08 Retention/Export Hardening과 encoded clip cleanup/export/audit 경계를 검증합니다.
   verify-onvif-live-import-contract
@@ -374,6 +376,8 @@ Usage:
                  v3.1.0 S05 Scoped Integrator Search API와 integrator scope/redaction 경계를 검증합니다.
   verify-v310-operator-feature-correction
                  v3.1.0 S06 Operator Feature Correction과 alias/reanalysis request 경계를 검증합니다.
+  verify-v310-optional-vector-search
+                 v3.1.0 S07 Optional Vector Search의 default-off embedding index와 quality gate 경계를 검증합니다.
   verify-v310-retention-export-hardening
                  v3.1.0 S08 Retention/Export Hardening과 encoded clip cleanup/export/audit 경계를 검증합니다.
   verify-actions-security
@@ -1214,6 +1218,10 @@ case "${cmd}" in
   verify-v310-operator-feature-correction)
     require_internal verify_v310_operator_feature_correction.mjs
     exec "${INTERNAL_DIR}/verify_v310_operator_feature_correction.mjs" "$@"
+    ;;
+  verify-v310-optional-vector-search)
+    require_internal verify_v310_optional_vector_search.mjs
+    exec "${INTERNAL_DIR}/verify_v310_optional_vector_search.mjs" "$@"
     ;;
   verify-v310-retention-export-hardening)
     require_internal verify_v310_retention_export_hardening.mjs
