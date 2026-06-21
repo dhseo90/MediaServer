@@ -17193,6 +17193,19 @@ std::string BuildReleaseSafeIncidentEvidenceBundleManifest(const std::string& ev
         << "\"sseMetadataSchemaChanged\":false,"
         << "\"wsMetadataSchemaChanged\":false,"
         << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"encodedClipIncluded\":false,"
+        << "\"encodedClipManifestIncluded\":false,"
+        << "\"encodedClipPathIncluded\":false,"
+        << "\"encodedClipMediaIncluded\":false,"
+        << "\"retentionExportHardening\":{"
+        << "\"schema\":\"media-server.v310.retention-export-hardening.v1\","
+        << "\"implementedInStep\":\"V310-S08\","
+        << "\"releaseSafeExportExcludesEncodedMedia\":true,"
+        << "\"encodedClipLifecycleCleanup\":\"event-retention-cleanup\","
+        << "\"auditAction\":\"export-bundle\","
+        << "\"bundleExpiry\":\"signed-token-expiresAtMs\","
+        << "\"expiredBundleCleanup\":\"token-expiry-no-server-file\""
+        << "},"
         << "\"inputEvidence\":{\"snapshotProvided\":" << (snapshot_requested ? "true" : "false")
         << ",\"clipProvided\":" << (clip_requested ? "true" : "false") << "},"
         << "\"searchResults\":[{\"eventId\":\"" << JsonEscape(event_id)
@@ -17356,6 +17369,35 @@ bool BuildEventEvidenceBundleZip(const std::unordered_map<std::string, std::stri
     *download_name = std::string(release_safe_requested ? "redacted-incident-evidence-" : "event-evidence-") + safe_id + ".zip";
     *zip_body = std::move(zip);
     return true;
+}
+
+std::string BuildEvidenceBundleAuditJson(const std::string& event_id,
+                                         const std::string& download_name,
+                                         bool release_safe) {
+    constexpr const char* kV310ExportBundleAuditSummary =
+        "Export bundle downloaded with V310 retention/export hardening";
+    std::ostringstream audit_body;
+    audit_body
+        << "{"
+        << "\"area\":\"events\","
+        << "\"action\":\"export-bundle\","
+        << "\"target\":\"event:" << JsonEscape(event_id.empty() ? download_name : event_id) << "\","
+        << "\"summary\":\"" << kV310ExportBundleAuditSummary << "\","
+        << "\"before\":null,"
+        << "\"after\":{"
+        << "\"file\":\"" << JsonEscape(download_name) << "\","
+        << "\"releaseSafe\":" << (release_safe ? "true" : "false") << ","
+        << "\"retentionExportHardening\":{"
+        << "\"schema\":\"media-server.v310.retention-export-hardening.v1\","
+        << "\"implementedInStep\":\"V310-S08\","
+        << "\"bundleExpiry\":\"signed-token-expiresAtMs\","
+        << "\"expiredBundleCleanup\":\"token-expiry-no-server-file\","
+        << "\"encodedClipLifecycleCleanup\":\"event-retention-cleanup\","
+        << "\"releaseSafeExportExcludesEncodedMedia\":" << (release_safe ? "true" : "false")
+        << "}"
+        << "}"
+        << "}";
+    return audit_body.str();
 }
 
 // 파일명 규칙으로 검증 리포트 종류를 추정해 UI 필터 없이도 대략적인 맥락을 보여준다.
@@ -20158,11 +20200,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             }
                             const std::string event_id =
                                 Trim(query.find("eventId") == query.end() ? "" : query.at("eventId"));
+                            const bool release_safe_requested = EvidenceBundleReleaseSafeRequested(query);
                             const std::string audit_body =
-                                "{\"area\":\"events\",\"action\":\"export-bundle\",\"target\":\"event:" +
-                                JsonEscape(event_id.empty() ? download_name : event_id) +
-                                "\",\"summary\":\"evidence zip bundle downloaded\",\"before\":null,\"after\":{\"file\":\"" +
-                                JsonEscape(download_name) + "\"}}";
+                                BuildEvidenceBundleAuditJson(event_id, download_name, release_safe_requested);
                             std::string audit_error;
                             (void)AppendOpsAuditRecord(config,
                                                        OpsAuditRecordJson(audit_body, principal_result.principal),

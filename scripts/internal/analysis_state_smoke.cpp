@@ -2427,13 +2427,15 @@ void VerifyV300RetentionPinCleanup() {
     Expect(!applied.dry_run && applied.destructive_cleanup_executed,
            "V300 S09 apply mode must mark lifecycle cleanup as executed");
     Expect(applied.deleted_event_records == 1 && applied.deleted_evidence_manifests == 1 &&
+               applied.deleted_encoded_clip_manifests == 1 && applied.deleted_encoded_clip_media == 1 &&
                applied.deleted_feature_revisions == 2 && applied.deindexed_search_entries == 1,
-           "V300 S09 apply must delete EventRecord/Evidence/Feature/SearchIndex lifecycle entries together");
+           "V300 S09/V310 S08 apply must delete EventRecord/Evidence/EncodedClip/Feature/SearchIndex lifecycle entries together");
     Expect(!EventRetentionCleanupResultContainsForbiddenMaterial(applied),
            "V300 S09 cleanup must preserve provider/schema/media/viewer boundary invariants");
     Pass("V300 S09 dry-run selects expired non-pinned events only");
     Pass("V300 S09 pin exclusion preserves pinned evidence");
     Pass("V300 S09 apply deletes evidence feature and search lifecycle together");
+    Pass("V310 S08 apply deletes encoded clip lifecycle entries with event retention cleanup");
     Pass("V300 S09 audit trail records dry-run and apply cleanup boundaries");
     Pass("V300 S09 preserves provider/schema/media/viewer boundary invariants");
 }
