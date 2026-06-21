@@ -34,35 +34,21 @@ and runtime/model bundle distribution are outside the default public release.
   default-on, model/runtime bundle distribution, and guaranteed real-device or
   external-provider success are not included in the default public release.
 
-## v3.1 Encoded Event Clip And Safe Sharing Baseline
+## v3.1 Source Baseline
 
-Latest published version `3.0.0` is the Event Evidence Search MVP source-only
-GitHub Release. The current `3.1.0` source tree publishes the v3.1 Encoded Event
-Clip and Safe Sharing Expansion source-of-truth baseline. The current source tree
-includes V310-S01 encoded event clip contract docs, fixture, and verifier
-evidence. The encoder pipeline, replay timeline, client-safe digest, scoped
-integrator API, operator correction, optional vector search, and retention/export
-hardening are complete only after their own V310 code/UI/API/verifier evidence
-exists.
-
-The primary v3.1 choice is `Encoded Event Clip and Safe Sharing Expansion`. The
-fallback is `Encoded Clip Foundation`; safe sharing/API/correction/vector work is
-promoted only with step-level evidence. Existing Event POST, WebRTC DataChannel,
-SSE/WS metadata schemas, and RTSP/WebRTC media paths remain unchanged unless
-explicitly requested.
-
-The 2.x runway is intentionally narrow: `2.8.0` is for action readiness under
-existing contracts, `2.9.0` is the final stabilization and 3.0 transition release,
-and `3.0.0` is the line for approved major route/API/config/schema, storage,
-auth/scope, and media-path changes.
-
-Model recommendation is based on both PC capability and privacy mode. The current
-baseline is `Qwen/Qwen3-VL-8B-Instruct` for local standard hardware,
-`Qwen/Qwen3-VL-4B-Instruct` as the low-spec fallback,
-`Qwen/Qwen3-VL-30B-A3B-Instruct` as a high-tier evaluation candidate, and
-`gemini-2.5-flash` as the explicit cloud opt-in fallback. Real model/runtime
-installation, guaranteed cloud provider success, model/runtime bundle
-distribution, and default-on promotion are outside the default release.
+- Latest published release: `v3.0.0` Event Evidence Search MVP, source-only.
+- Current source: `3.1.0` Encoded Event Clip and Safe Sharing Expansion.
+- Included v3.1 local implementation: encoded clip contract/pipeline,
+  `/ops/events` replay timeline, client-safe digest, scoped integrator search
+  API, operator feature correction, optional vector gate, retention/export
+  hardening, and local readiness verifier.
+- Separate evidence required: tag/GitHub Release/published metadata, direct UI
+  fulltest, 30/120-minute long runs, and real device/cloud/provider success.
+- Invariants: Event POST, WebRTC DataChannel, SSE/WS metadata, and RTSP/WebRTC
+  media paths are unchanged unless explicitly requested.
+- AI/model boundary: Qwen 8B local standard, Qwen 4B low-spec fallback, Qwen 30B
+  evaluation candidate, and Gemini cloud opt-in fallback; runtime/model bundles
+  and default-on promotion are excluded.
 
 Related docs:
 
@@ -148,7 +134,7 @@ records live in dedicated docs.
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - Release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
 - Latest published release notes: [v3.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.0.0)
-- Current source roadmap: `v3.0.0 Event Evidence Search MVP` in
+- Current source roadmap: `v3.1.0 Encoded Event Clip and Safe Sharing Expansion` in
   [docs/development-backlog.md](docs/development-backlog.md)
 
 ## UI Preview
