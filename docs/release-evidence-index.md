@@ -89,6 +89,43 @@ Ops/Client UI smoke, rule UI, Event POST, SSE/WS metadata, media/schema, docs/in
 - 실행하지 않은 field/publish/longrun/UI 항목은 S08 PASS/FAIL 표가 아니라
   미실행/제외 기록으로 남깁니다.
 
+## v3.1.0 S09 local readiness gate records
+
+V310-S09 stabilization/release readiness는
+`media-server.v310-stabilization-release-readiness.v1` 기준으로 v3.1.0 S00~S08
+local verifier와 release records를 묶는 색인입니다. 이 섹션은 release action을
+승인하거나 실행하지 않고, UI 풀테스트 직접 조작, 30분/120분 longrun, published
+metadata, release action evidence를 대체하지 않습니다.
+
+Companion local gate:
+
+```bash
+./server.sh verify-v310-stabilization-release-readiness
+./server.sh build
+./server.sh verify-v310-entry-baseline
+./server.sh verify-v310-event-clip-contract
+./server.sh verify-analysis-state
+./server.sh verify-v310-replay-timeline-ui
+./server.sh verify-v310-client-safe-event-digest
+./server.sh verify-v310-scoped-integrator-search-api
+./server.sh verify-v310-operator-feature-correction
+./server.sh verify-v310-optional-vector-search
+./server.sh verify-v310-retention-export-hardening
+./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-project-inventory
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-release-evidence-index
+./server.sh verify-release-closeout-helper --dry-run
+./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
+./server.sh verify-script-inventory
+git diff --check
+```
+
+V310-S09 stabilization/release readiness local gate는 UI 풀테스트 직접 조작, 30분/120분
+longrun, published metadata, release action evidence를 대체하지 않습니다.
+
 ## Test Token Usage Ledger
 
 테스트 실행 기록은 평균 비용 산출을 위해 아래 형식으로 누적합니다. 테스트 결과와
@@ -97,6 +134,7 @@ Ops/Client UI smoke, rule UI, Event POST, SSE/WS metadata, media/schema, docs/in
 
 | date | run id | test area | scope | verdict | token start | token end | token consumed | elapsed | token usage source | evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| 2026-06-21 | v310-s09-stabilization-release-readiness-20260621 | 안정화 테스트 | V310-S09 local readiness gate, S00~S08 companion verifiers, release metadata/docs/assets/inventory/evidence/script/closeout dry-run, temp cleanup, `git diff --check`. UI 풀테스트/30분/120분/published metadata/release actions/field smoke는 미실행 | PASS | 미집계 | 미집계 | 미집계 | command summaries only | manual-not-available; final goal snapshot은 최종 보고에서 별도 확인 | [release-test-records.md](./release-test-records.md) v3.1.0 section |
 | 2026-05-25 | stability-script-smoke-20260525 | 안정화 테스트 | build, manual UI seed dry-run, auth bootstrap/users/routes, ops/client UI smoke+screenshot, rule UI, rules roundtrip, analysis state, VA replay, VA events, runtime console, SSE/WS/WebRTC metadata, `git diff --check` | PASS | 0 | 147,501 | 147,501 | 10m 5s | Codex goal usage | [release-test-records.md](./release-test-records.md) pre-v2.0 historical imported runs section |
 | 2026-05-25 | predev-30min-20260525 | 30분 soak | `./server.sh verify-predev --soak-minutes 30 --rtsp-port 8568 --http-port 8094`; integrated smoke, 22 soak iterations of VA events/Event POST schema/Event POST recovery/redaction/runtime idle, queue mode, port cleanup | PASS | 0 | 86,657 | 86,657 | 39m 29s test / 41m 42s goal snapshot | Codex goal usage snapshot after evidence verification before closeout | [release-test-records.md](./release-test-records.md) pre-v2.0 historical imported runs section |
 | 2026-05-25 | ui-fulltest-restart-20260525-oehkFG | UI 풀테스트 | 새 throwaway data로 `/setup`, `/login`, `/ops/*`, `/client/*` 브라우저 조작, 56개 responsive/theme screenshot, EventRecord sample 대조, UI 대상 기능 ID 220개 PASS. UI 비대상 간접 안정화 행 `RULE-099` 포함 결과표 221 PASS / 0 FAIL. `/ops/events` rule/scenario별 EventRecord history coverage 390px/1180px 대조, WHEP/source/rule/client/auth scope 보강, native dialog guard와 `SAFE-021` blocking dialog policy 확인 | PASS | 916,832 | 2,608,727 | 1,691,895 | goal continuation; 후속 30분 predev durationSec=2399 | Codex goal usage | [release-test-records.md](./release-test-records.md) pre-v2.0 historical imported runs section |

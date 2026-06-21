@@ -152,8 +152,8 @@ check("feature inventory and release records map V310-S07", () => {
     "SAFE-100 | V310-S07 optional vector search boundary",
     "OPS-067 | V310-S07 Optional Vector Search 게이트",
     "`LAB-001`~`LAB-089`",
-    "`SAFE-001`~`SAFE-100`",
-    "`OPS-035`~`OPS-067`",
+    "`SAFE-001`~`SAFE-101`",
+    "`OPS-035`~`OPS-068`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory V310-S07");
   }

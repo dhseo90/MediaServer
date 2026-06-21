@@ -152,8 +152,8 @@ check("feature inventory and release records map V310-S05", () => {
     "SAFE-097 | V310-S05 scoped integrator search redaction boundary",
     "OPS-064 | V310-S05 Scoped Integrator Search API 게이트",
     "`CLIENT-001`~`CLIENT-026`",
-    "`SAFE-001`~`SAFE-100`",
-    "`OPS-035`~`OPS-067`",
+    "`SAFE-001`~`SAFE-101`",
+    "`OPS-035`~`OPS-068`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory V310-S05");
   }

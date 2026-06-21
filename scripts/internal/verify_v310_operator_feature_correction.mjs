@@ -202,9 +202,9 @@ check("feature inventory, manual UI checklist, and release records map V310-S06"
     "SAFE-098 | V310-S06 operator correction boundary",
     "OPS-065 | V310-S06 Operator Feature Correction 게이트",
     "`UI-001`~`UI-018`, `UI-022`~`UI-061`",
-    "`EVT-001`~`EVT-061`",
-    "`SAFE-001`~`SAFE-098`",
-    "`OPS-035`~`OPS-065`",
+    "`EVT-001`~`EVT-062`",
+    "`SAFE-001`~`SAFE-101`",
+    "`OPS-035`~`OPS-068`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory V310-S06");
   }

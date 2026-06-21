@@ -22,6 +22,7 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 완료, `V310-S02` Event Clip Encoder Pipeline 완료, `V310-S03` Replay Timeline UI 완료,
 `V310-S04` Client-safe Event Digest 완료, `V310-S05` Scoped Integrator Search API 완료,
 `V310-S06` Operator Feature Correction 완료, `V310-S08` Retention/Export Hardening 완료.
+`V310-S09` Stabilization and Release Readiness 완료.
 이 절은 v3.1.0 전체 기능 완료 evidence가 아니며, 실제 기능 구현은 각 Step별 코드/UI/API/검증
 evidence가 생긴 뒤에만 완료로 기록합니다. V310-S00 baseline 정렬 자체는 기능 구현 완료
 evidence가 아닙니다.
@@ -96,7 +97,7 @@ license/provenance/privacy/운영 제약:
 | 6 | V310-S06 | P1 | 완료 | Operator Feature Correction | feature correction, aliases, reanalysis request | `src/ingress/webrtc_http_server.cpp`의 `/ops/events` shell, `OpsEventReviewState` persistence, `/ops/api/events/reviews/{eventId}` correction payload/audit, `OpsV310OperatorFeatureCorrectionViewJson`, `src/ingress/product_ui_page_scripts.cpp`의 review row controls와 `renderV310OperatorFeatureCorrection`, `src/ingress/product_ui_css.cpp` styles, `scripts/internal/verify_v310_operator_feature_correction.mjs`와 `./server.sh verify-v310-operator-feature-correction` | UI 풀테스트 직접 조작, 30분/120분, vector search, cleanup execution, published metadata evidence가 아님 |
 | 7 | V310-S07 | P2 | 완료 | Optional Vector Search | default-off embedding index, rebuild, quality gates | `include/analysis/event_feature_search_index.h`, `src/analysis/event_feature_search_index.cpp`의 optional vector API/report, `scripts/internal/analysis_state_smoke.cpp`의 S07 default-off/quality gate/stale rebuild smoke, `scripts/internal/verify_v310_optional_vector_search.mjs`와 `./server.sh verify-v310-optional-vector-search` | provider embedding calls, UI 풀테스트 직접 조작, 30분/120분, client/viewer 노출, published metadata evidence가 아님 |
 | 8 | V310-S08 | P1 | 완료 | Retention/Export Hardening | encoded clip lifecycle cleanup, export bundle, audit | `include/analysis/event_retention_cleanup.h`, `src/analysis/event_retention_cleanup.cpp`의 encoded clip lifecycle cleanup counters, `src/analysis/event_storage.cpp`의 encoded manifest `media-server.v310.retention-export-hardening.v1`, `src/ingress/webrtc_http_server.cpp`의 release-safe export encoded media exclusion과 `export-bundle` audit hardening, `scripts/internal/verify_v310_retention_export_hardening.mjs`와 `./server.sh verify-v310-retention-export-hardening` | UI 풀테스트 직접 조작, 30분/120분, vector search, destructive operational cleanup, published metadata evidence가 아님 |
-| 9 | V310-S09 | P0 | 예정 | Stabilization and Release Readiness | build/docs/verifier/UI evidence boundary와 release readiness records | 미구현 | S00 완료 evidence가 아님 |
+| 9 | V310-S09 | P0 | 완료 | Stabilization and Release Readiness | build/docs/verifier/UI evidence boundary와 release readiness records | v3.1 local stabilization, release evidence/not-run 경계, `./server.sh verify-v310-stabilization-release-readiness` | UI 풀테스트/30분/120분/published metadata/release action은 실행한 경우만 PASS |
 
 ## v3.1.0 S00 개발 기록
 
@@ -240,6 +241,42 @@ license/provenance/privacy/운영 제약:
 - 변경하지 않은 것: EventRecord top-level payload, Event POST payload, WebRTC DataChannel schema, SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload, client/viewer route, optional vector search, release publish state는 변경하지 않았습니다.
 - 검증: 최초 `./server.sh verify-v310-retention-export-hardening`는 cleanup model, encoded manifest policy, release-safe export marker, audit helper, backlog/release records, script inventory 연결이 없어 `pass=0 fail=7`로 기대 실패했습니다. 구현 후 `./server.sh verify-v310-retention-export-hardening`, `./server.sh verify-analysis-state`, `./server.sh build`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh verify-docs-links`, `git diff --check` 기준으로 재검증합니다.
 - 완료 경계: 이번 구현은 encoded clip lifecycle cleanup plan, release-safe export bundle hardening, `export-bundle` audit coverage입니다. UI 풀테스트 직접 조작, 30분/120분, optional vector search, destructive operational cleanup, published metadata evidence가 아닙니다.
+
+## v3.1.0 S09 개발 기록
+
+- 범위: P0 `V310-S09 Stabilization and Release Readiness`.
+- `scripts/internal/verify_v310_stabilization_release_readiness.mjs`: `media-server.v310-stabilization-release-readiness.v1` local readiness verifier를 추가했습니다. 이 verifier는 V310-S00~S08 companion local gates, release policy/evidence index/test records, feature inventory, stream verification, close-out dry-run command, server dispatch 연결을 확인합니다.
+- `server.sh`: `./server.sh verify-v310-stabilization-release-readiness` 사용법과 dispatch를 추가했습니다.
+- `docs/development-backlog.md`, `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`, `docs/release-test-records.md`, `docs/release-policy.md`, `docs/release-evidence-index.md`: V310-S09 local stabilization/release readiness 기록과 not-run 경계를 추가했습니다.
+- `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_project_feature_test_inventory.mjs`: `SAFE-101`, `OPS-068`, `verify-v310-stabilization-release-readiness` coverage를 추가했습니다.
+- Companion local gate:
+
+```bash
+./server.sh verify-v310-stabilization-release-readiness
+./server.sh build
+./server.sh verify-v310-entry-baseline
+./server.sh verify-v310-event-clip-contract
+./server.sh verify-analysis-state
+./server.sh verify-v310-replay-timeline-ui
+./server.sh verify-v310-client-safe-event-digest
+./server.sh verify-v310-scoped-integrator-search-api
+./server.sh verify-v310-operator-feature-correction
+./server.sh verify-v310-optional-vector-search
+./server.sh verify-v310-retention-export-hardening
+./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-project-inventory
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-release-evidence-index
+./server.sh verify-release-closeout-helper --dry-run
+./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
+./server.sh verify-script-inventory
+git diff --check
+```
+
+- 검증: 최초 `./server.sh verify-v310-stabilization-release-readiness`는 command 미구현으로 `알 수 없는 명령입니다: verify-v310-stabilization-release-readiness`를 출력하며 fail했습니다. 구현 후 위 companion local gate 기준으로 재검증합니다.
+- 완료 경계: 이번 구현은 V310-S09 local readiness gate wiring, release evidence records, not-run boundaries입니다. UI 풀테스트 직접 조작, 30분/120분 longrun, `verify-release-metadata --published`, PR/main/tag/GitHub Release, field smoke 실행 evidence가 아닙니다.
 
 ## 최신 공개 기준 상세: v3.0.0 Event Evidence Search MVP
 

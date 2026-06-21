@@ -244,6 +244,49 @@ git diff --check
 위 companion local gate와 문서 경계 연결만 뜻하며, 기능 구현, publish/tag/push/UI/장시간
 테스트 PASS로 승격하지 않습니다.
 
+## v3.1.0 stabilization and release readiness
+
+V310-S09 local readiness gate는 `media-server.v310-stabilization-release-readiness.v1`
+기준으로 v3.1.0 Encoded Event Clip and Safe Sharing Expansion의 S00~S08 local gates,
+release policy, release evidence index, release test records, close-out dry-run command를
+같은 범위로 묶습니다. 이 절은 source tree 준비 상태를 확인할 뿐 release action을
+승인하거나 실행하지 않습니다.
+
+Companion local gate:
+
+```bash
+./server.sh verify-v310-stabilization-release-readiness
+./server.sh build
+./server.sh verify-v310-entry-baseline
+./server.sh verify-v310-event-clip-contract
+./server.sh verify-analysis-state
+./server.sh verify-v310-replay-timeline-ui
+./server.sh verify-v310-client-safe-event-digest
+./server.sh verify-v310-scoped-integrator-search-api
+./server.sh verify-v310-operator-feature-correction
+./server.sh verify-v310-optional-vector-search
+./server.sh verify-v310-retention-export-hardening
+./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-project-inventory
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-release-evidence-index
+./server.sh verify-release-closeout-helper --dry-run
+./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
+./server.sh verify-script-inventory
+git diff --check
+```
+
+Not-run/excluded boundary:
+
+- UI 풀테스트 직접 조작 미실행은 S09 local readiness PASS로 대체하지 않습니다.
+- 30분 테스트 미실행은 S09 local readiness PASS가 아닙니다.
+- 120분 테스트 미실행은 S09 local readiness PASS가 아닙니다.
+- PR/main/tag/GitHub Release 실행은 S09 local readiness gate PASS로 대체하지 않습니다.
+- `verify-release-metadata --published` 미실행 상태는 GitHub Release publish 전에는 PASS로 기록하지 않습니다.
+- ONVIF 실기기, external TURN/WHEP, real cloud/VLM provider 호출은 endpoint/credential/승인 없이는 제외 상태입니다.
+
 Not-run/excluded boundary:
 
 - UI 풀테스트 직접 조작 미실행은 local readiness PASS로 대체하지 않습니다.

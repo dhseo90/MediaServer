@@ -57,6 +57,7 @@
 | V310-S06 | `./server.sh verify-v310-operator-feature-correction` | `/ops/events` operator feature correction UI와 review API가 correctedFeatureLabel, aliases, reanalysis request를 Ops review state와 audit에만 저장하고 EventRecord/Event POST/WebRTC/SSE/WS/media path, Rule/Profile payload, client/viewer exposure를 변경하지 않는지 확인합니다. UI 풀테스트 직접 조작, 30분/120분, vector search, cleanup execution, published metadata evidence가 아님 |
 | V310-S07 | `./server.sh verify-v310-optional-vector-search` | default-off optional embedding index가 명시 opt-in일 때만 non-identifying embedding을 quality gate와 dimension gate로 인덱싱하고 rebuild stale vector entry를 제거하는지 확인합니다. provider embedding calls, UI 풀테스트 직접 조작, 30분/120분, client/viewer 노출, published metadata evidence가 아님 |
 | V310-S08 | `./server.sh verify-v310-retention-export-hardening` | encoded clip lifecycle cleanup이 EventRecord/EvidenceManifest/FeatureSet/SearchIndex cleanup 계획에 묶이고 release-safe export bundle이 encoded media/path/material을 제외하며 export-bundle audit coverage를 남기는지 확인합니다. UI 풀테스트 직접 조작, 30분/120분, vector search, destructive operational cleanup, published metadata evidence가 아님 |
+| V310-S09 | `./server.sh verify-v310-stabilization-release-readiness` | v3.1.0 local stabilization and release readiness records, companion gate wiring, release evidence/not-run boundary, close-out dry-run 연결을 확인합니다. UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release release action evidence를 대체하지 않음 |
 
 ## 최신 published baseline v3.0.0 verifier
 
