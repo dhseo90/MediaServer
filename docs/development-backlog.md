@@ -11,8 +11,8 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 ## 현재 공개 상태
 
 - 현재 소스 버전: `3.1.0`
-- 최신 공개 GitHub Release: `v3.0.0`
-- `v3.0.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
+- 최신 공개 GitHub Release: `v3.1.0`
+- `v3.1.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
 - 현재 source roadmap: `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`
 
@@ -88,12 +88,15 @@ license/provenance/privacy/운영 제약:
 
 - Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload schema를 요청 없이 바꾸지 않습니다.
 - viewer/client에 source URL, raw JSON, debug counter, internal feature/provenance/raw evidence를 노출하지 않습니다.
-- 실제 tag/push/PR/GitHub Release는 수동 승인 후에만 수행합니다.
+- release action 완료는 실제 tag/push/PR/GitHub Release와 `verify-release-metadata --published`
+  evidence가 있을 때만 기록합니다.
 - `v3.1.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
+- `v3.1.0` GitHub Release publish 완료는 PR #42 main merge, signed annotated tag,
+  GitHub Release, published metadata correction evidence로 분리 기록합니다.
 
 | Step | ID | Priority | 상태 | 묶음 | 개발 내용 | 완료 산출물 | 검증/evidence 경계 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 0 | V310-S00 | P0 | 완료 | v3.1 baseline | VERSION/CMake/README/docs/backlog/source roadmap을 v3.1 작업 기준으로 정렬 | source `3.1.0`, latest published `v3.0.0`, current roadmap `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`, V310-S00 verifier 연결 | `./server.sh verify-v310-entry-baseline`, `verify-release-metadata`, docs/inventory gates. 기능 구현 완료 evidence가 아님 |
+| 0 | V310-S00 | P0 | 완료 | v3.1 baseline | VERSION/CMake/README/docs/backlog/source roadmap을 v3.1 작업 기준으로 정렬 | source `3.1.0`, latest published `v3.1.0`, current roadmap `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`, V310-S00 verifier 연결 | `./server.sh verify-v310-entry-baseline`, `verify-release-metadata`, docs/inventory gates. 기능 구현 완료 evidence가 아님 |
 | 1 | V310-S01 | P0 | 완료 | Encoded Event Clip Contract | MP4/WebM clip manifest, FrameRef/PTS mapping, non-VMS boundary 정의 | [docs/v310-encoded-event-clip-contract.md](v310-encoded-event-clip-contract.md), `test/fixtures/v310_event_clip_contract/encoded_clip_manifest_sample.json`, `./server.sh verify-v310-event-clip-contract` | encoder pipeline, replay timeline UI, cleanup 실행 완료 evidence가 아님 |
 | 2 | V310-S02 | P0 | 완료 | Event Clip Encoder Pipeline | bounded short segment 또는 frame bundle 기반 encoded clip generation, queue/status/cleanup | `src/analysis/event_storage.cpp`의 frame-bundle hook이 `.clip/encoded/event-clip.webm`과 `.clip/encoded/encoded-manifest.json`을 생성하고 `scripts/internal/analysis_state_smoke.cpp`가 WebM/VP8, EBML header, FrameRef-PTS mapping, queue/status/frameMap/non-VMS boundary를 확인함 | replay UI, client digest, scoped API, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
 | 3 | V310-S03 | P0 | 완료 | Replay Timeline UI | `/ops/events` event frame, representative image, frame bundle, encoded clip timeline | `src/ingress/webrtc_http_server.cpp`의 `/ops/events` shell과 `OpsV310ReplayTimelineUiJson`, `src/ingress/product_ui_page_scripts.cpp`의 `renderV310ReplayTimelineUi`, `src/ingress/product_ui_css.cpp`의 replay timeline styles, `scripts/internal/verify_v310_replay_timeline_ui.mjs`와 `./server.sh verify-v310-replay-timeline-ui` | UI 풀테스트 직접 조작, 30분/120분, client digest, scoped API, cleanup 실행, published metadata evidence가 아님 |
@@ -108,11 +111,11 @@ license/provenance/privacy/운영 제약:
 
 - 범위: P0 `V310-S00 v3.1 baseline`.
 - `VERSION`, `CMakeLists.txt`: 현재 source version과 CMake project version을 `3.1.0`으로 정렬했습니다.
-- `README.md`, `README.en.md`, `docs/README.md`, `docs/en/README.md`, `docs/versioning-policy.md`, `docs/release-policy.md`, `docs/public-repo-final-review.md`, `docs/ui-guide.md`: 현재 source roadmap을 `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`으로 전환하고 latest published release는 `v3.0.0` source-only GitHub Release로 분리했습니다.
-- `docs/development-backlog.md`: V310 roadmap을 현재 source roadmap으로 승격하고 `V310-S00` 완료 상태, latest published `v3.0.0`, v3.1 기능 구현 미완료 경계를 기록했습니다.
-- `scripts/internal/verify_v310_entry_baseline.mjs`, `server.sh`: `./server.sh verify-v310-entry-baseline` 명령을 추가해 source `3.1.0`, latest published `v3.0.0`, current roadmap `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`, 1차 선택값/fallback/제외 대상, license/provenance/privacy/운영 제약, feature inventory, release test records 연결을 정적 검증합니다.
-- `scripts/internal/verify_release_metadata_consistency.mjs`: `verify-release-metadata`가 source `3.1.0`, current roadmap `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`, latest published `v3.0.0`을 분리 검증하도록 보정했습니다.
-- `config/docs_ui_assets.json`, `docs/assets/ui/README.md`: docs UI asset baseline의 source version을 `3.1.0`, latest published 기준을 `v3.0.0`으로 정렬했습니다. 이미지는 교체하지 않았고 대표 이미지가 UI 풀테스트/PASS/published evidence가 아니라는 경계는 유지했습니다.
+- `README.md`, `README.en.md`, `docs/README.md`, `docs/en/README.md`, `docs/versioning-policy.md`, `docs/release-policy.md`, `docs/public-repo-final-review.md`, `docs/ui-guide.md`: 현재 source roadmap을 `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`으로 전환하고 latest published release는 release publish 전에는 `v3.0.0`, publish 후에는 `v3.1.0` source-only GitHub Release로 분리했습니다.
+- `docs/development-backlog.md`: V310 roadmap을 현재 source roadmap으로 승격하고 `V310-S00` 완료 상태, latest published `v3.1.0`, v3.1 기능 구현 완료 경계를 기록했습니다.
+- `scripts/internal/verify_v310_entry_baseline.mjs`, `server.sh`: `./server.sh verify-v310-entry-baseline` 명령을 추가해 source `3.1.0`, latest published `v3.1.0`, current roadmap `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`, 1차 선택값/fallback/제외 대상, license/provenance/privacy/운영 제약, feature inventory, release test records 연결을 정적 검증합니다.
+- `scripts/internal/verify_release_metadata_consistency.mjs`: `verify-release-metadata`가 source `3.1.0`, current roadmap `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`, latest published `v3.1.0`을 분리 검증하도록 보정했습니다.
+- `config/docs_ui_assets.json`, `docs/assets/ui/README.md`: docs UI asset baseline의 source version을 `3.1.0`, latest published 기준을 `v3.1.0`으로 정렬했습니다. 이미지는 교체하지 않았고 대표 이미지가 UI 풀테스트/PASS/published evidence가 아니라는 경계는 유지했습니다.
 - `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`: `OPS-061`, `SAFE-093`, V310-S00 안정화 verifier, 저장소 보존형 테스트 결과를 추가했습니다.
 - `codex/v310-event-clip-encoder`에 백업된 선개발 Event Clip Encoder Pipeline은 V310-S02 범위이므로 이번 S00에서 merge하지 않았고 S00 완료 evidence로 사용하지 않습니다.
 - 검증: 최초 `./server.sh verify-v310-entry-baseline`는 VERSION/CMake/docs/backlog/inventory가 아직 v3.0 기준이라 `pass=0 fail=7`로 FAIL했습니다. 구현 후 `./server.sh verify-v310-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh build`, `git diff --check` 기준으로 재검증합니다.
@@ -283,7 +286,21 @@ git diff --check
 - 검증: 최초 `./server.sh verify-v310-stabilization-release-readiness`는 command 미구현으로 `알 수 없는 명령입니다: verify-v310-stabilization-release-readiness`를 출력하며 fail했습니다. 구현 후 위 companion local gate 기준으로 재검증합니다.
 - 완료 경계: 이번 구현은 V310-S09 local readiness gate wiring, release evidence records, not-run boundaries입니다. UI 풀테스트 직접 조작, 30분/120분 longrun, `verify-release-metadata --published`, PR/main/tag/GitHub Release, field smoke 실행 evidence가 아닙니다.
 
-## 최신 공개 기준 상세: v3.0.0 Event Evidence Search MVP
+## 최신 공개 기준: v3.1.0 Source Release Baseline
+
+v3.1.0은 Encoded Event Clip and Safe Sharing Expansion source-only 공개 릴리즈입니다.
+이 기준은 encoded clip contract/generation, replay timeline UI, client-safe event digest,
+scoped integrator search API, operator feature correction, optional vector search,
+retention/export hardening, stabilization readiness를 local evidence와 함께 닫은 최신
+published baseline입니다. 120분 longrun과 external field smoke는 실행하지 않은 영역으로
+계속 분리합니다.
+
+## 직전 공개 기준: v3.0.0 Source Release Baseline
+
+v3.0.0은 Event Evidence Search MVP source-only 직전 공개 릴리즈입니다. 이 기준은
+v3.1.0의 완료 evidence로 재사용하지 않는 historical baseline입니다. 직전 공개 릴리즈입니다.
+
+## 직전 공개 기준 상세: v3.0.0 Event Evidence Search MVP
 
 상태: `V300-S00` source baseline 정렬 완료, `V300-S01` Event Evidence Contract
 완료, `V300-S02` Frame Bundle Extraction 완료, `V300-S03` Feature Schema and
@@ -492,12 +509,12 @@ v3.1 확장 후보로 분리합니다.
 - 임시 산출물: `verify-analysis-state`가 만든 `/tmp/media_server_analysis_state_smoke-52065` 4.4MB와 `/tmp/media_server_analysis_state_dep_scan.txt` 0B를 삭제하고, 삭제 후 두 경로가 없음을 확인했습니다.
 - 미실행/비대체: UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, `verify-release-metadata --published`, PR/main/tag/GitHub Release 생성/갱신, external TURN/WHEP, ONVIF 실기기, real cloud/VLM provider 호출은 S10 local readiness 완료 근거가 아닙니다.
 
-## 최신 공개 기준: v3.0.0 Source Release Baseline
+## 직전 공개 기준 상세: v3.0.0 Source Release Baseline
 
-v3.0.0은 Event Evidence Search MVP source-only 공개 릴리즈입니다. 이 기준은
+v3.0.0은 Event Evidence Search MVP source-only 직전 공개 릴리즈입니다. 이 기준은
 Event Evidence Contract, frame bundle, feature schema/privacy, VLM feature queue,
 feature-only retention, Search DSL, feature search index, Ops Events UI,
-retention/pin/cleanup, stabilization readiness를 local evidence와 함께 닫은 최신
+retention/pin/cleanup, stabilization readiness를 local evidence와 함께 닫은 직전
 published baseline입니다. UI 직접 풀테스트, 120분 longrun, external field smoke는
 실행하지 않은 영역으로 계속 분리합니다.
 
@@ -816,23 +833,23 @@ license/provenance/privacy/운영 제약:
 - 검증: `verify-v280-owner-release-readiness` 최초 RED는 S07 feature inventory mapping, manual UI criteria, backlog/evidence 진행 기록 누락으로 실패했고, 문서/inventory/server wiring 반영 후 GREEN으로 재실행합니다.
 - 미실행/비대체: UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, `verify-release-metadata --published`, tag/push/GitHub Release, PR merge/main sync/후속 브랜치 생성, 실기기 ONVIF, external TURN/WHEP, real cloud/VLM provider 호출은 S07 local readiness 완료 근거가 아닙니다.
 
-## 최신 공개 기준 요약: v3.0.0 Source Release Baseline
+## 최신 공개 기준 요약: v3.1.0 Source Release Baseline
+
+v3.1.0은 source-only/live-only 제품 경계를 유지하면서 Encoded Event Clip and Safe
+Sharing Expansion을 닫은 최신 공개 릴리즈입니다. 이 기준은 v3.1.0 published
+baseline입니다.
+
+## 직전 공개 기준 요약: v3.0.0 Source Release Baseline
 
 v3.0.0은 source-only/live-only 제품 경계를 유지하면서 Event Evidence Search MVP를
-닫은 최신 공개 릴리즈입니다. 이 기준은 v3.0.0 published baseline이며,
-후속 v3.1.0 작업의 완료 evidence로 재사용하지 않습니다.
+닫은 직전 공개 릴리즈입니다. 이 기준은 v3.0.0 published baseline이며,
+v3.1.0의 완료 evidence로 재사용하지 않습니다.
 
-## 직전 공개 기준 요약: v2.9.0 Source Release Baseline
+## 이전 공개 기준: v2.9.0 Source Release Baseline
 
 v2.9.0은 source-only/live-only 제품 경계를 유지하면서 Final 2.x Closure &
-Compatibility Baseline을 닫은 직전 공개 릴리즈입니다. 이 기준은 2.x final line의
+Compatibility Baseline을 닫은 이전 공개 릴리즈입니다. 이 기준은 2.x final line의
 published baseline이며, v3.0.0의 완료 evidence로 재사용하지 않습니다.
-
-## 이전 공개 기준: v2.8.0 Source Release Baseline
-
-v2.8.0은 source-only/live-only 제품 경계를 유지하면서 Operator-Supervised Action
-Readiness를 닫은 직전 공개 릴리즈입니다. 이 기준은 v2.9.0의 시작 baseline이며,
-v2.9.0의 예정 항목 완료 evidence로 재사용하지 않습니다.
 
 ## 이전 공개 기준: v2.7.0 Source Release Baseline
 

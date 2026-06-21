@@ -6,16 +6,16 @@ ledger, 수동 UI 결과 템플릿, Superpowers plan, 과거 UI archive 문서�
 
 ## 현재 상태
 
-- 최신 공개 GitHub Release: [`v3.0.0`](https://github.com/dhseo90/MediaServer/releases/tag/v3.0.0)
-- 최신 published baseline: `v3.0.0 Event Evidence Search MVP`
-- 직전 published baseline: `v2.9.0 Final 2.x Closure & Compatibility Baseline`
+- 최신 공개 GitHub Release: [`v3.1.0`](https://github.com/dhseo90/MediaServer/releases/tag/v3.1.0)
+- 최신 published baseline: `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`
+- 직전 published baseline: `v3.0.0 Event Evidence Search MVP`
 - 현재 소스 버전: `3.1.0`
-- v3.0.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
+- v3.1.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
 - 현재 source roadmap: `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`
 - 기본 공개 형태: source-only
 - 공개 문서/대표 asset 기준: `README.md`, `README.en.md`, `docs/README.md`,
   `docs/en/README.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`는 v3.1
-  source baseline과 v3.0 published baseline을 분리 정렬하고 직전 v2.9 baseline은
+  source baseline과 v3.1 published baseline을 정렬하고 직전 v3.0 baseline은
   historical reference로 유지합니다. 대표 이미지는
   `config/docs_ui_assets.json`과 `./server.sh verify-docs-ui-assets`로 관리하고,
   교체 시 직접 이미지 검수 기록을 별도로 남깁니다.

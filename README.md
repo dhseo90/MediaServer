@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Published Release](https://img.shields.io/badge/published-v3.0.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v3.0.0)
+[![Published Release](https://img.shields.io/badge/published-v3.1.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v3.1.0)
 ![Source Version](https://img.shields.io/badge/source-3.1.0-informational)
 
 RTSP/WebRTC live stream을 받아 다시 내보내고, 필요할 때 YOLO/ONNX 영상 분석
@@ -14,9 +14,9 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 
 - English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 - 전체 문서 색인: [docs/README.md](docs/README.md)
-- 최신 공개 GitHub Release: [v3.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.0.0)
+- 최신 공개 GitHub Release: [v3.1.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.1.0)
 - 현재 소스 버전: `3.1.0`
-- v3.0.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
+- v3.1.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
 - 현재 source roadmap: `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`
 
 ## 한눈에 보기
@@ -34,13 +34,12 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 
 ## v3.1 Source Baseline
 
-- 최신 공개 릴리즈: `v3.0.0` Event Evidence Search MVP, source-only.
+- 최신 공개 릴리즈: `v3.1.0` Encoded Event Clip and Safe Sharing Expansion, source-only.
 - 현재 소스: `3.1.0` Encoded Event Clip and Safe Sharing Expansion.
 - 포함된 v3.1 로컬 구현: encoded clip contract/pipeline, `/ops/events` replay timeline,
   client-safe digest, scoped integrator search API, operator feature correction,
   optional vector gate, retention/export hardening, local readiness verifier.
-- 별도 evidence 필요: tag/GitHub Release/published metadata, UI 풀테스트 직접 조작,
-  30분/120분 장시간 테스트, 실기기/cloud/provider 성공.
+- 별도 evidence 필요: 120분 장시간 테스트와 실기기/cloud/provider 성공.
 - 불변 조건: Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path는
   요청 없이 변경하지 않습니다.
 - AI/model 경계: Qwen 8B local standard, Qwen 4B low-spec fallback, Qwen 30B 평가 후보,
@@ -121,7 +120,7 @@ README는 제품 개요와 빠른 시작만 담습니다. 세부 정책과 내�
 - release/version 기준: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
-- 최신 공개 릴리즈 노트: [v3.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.0.0)
+- 최신 공개 릴리즈 노트: [v3.1.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.1.0)
 - 현재 source roadmap: [docs/development-backlog.md](docs/development-backlog.md)의
   `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`
 

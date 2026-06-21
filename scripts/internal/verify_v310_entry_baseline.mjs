@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v3.1.0 S00 source baseline 정렬과 v3.0.0 published metadata 경계를 검증한다.
+// 파일 용도: v3.1.0 source baseline 정렬과 v3.1.0 published metadata 경계를 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -19,7 +19,7 @@ Usage:
   ./server.sh verify-v310-entry-baseline
 
 Checks:
-  - VERSION/CMake and public docs identify source 3.1.0 while latest published release remains v3.0.0
+  - VERSION/CMake and public docs identify source 3.1.0 while latest published release is v3.1.0
   - v3.1.0 roadmap selection is Encoded Event Clip and Safe Sharing Expansion with explicit fallback/exclusions
   - V310-S00 is recorded as completed local source baseline alignment, not feature/UI/longrun/published evidence
   - server entrypoint, stream verification, feature inventory, and release records expose this gate
@@ -31,9 +31,9 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 const checks = [];
 const version = readText("VERSION").trim();
 const currentTag = "v3.1.0";
-const latestPublishedTag = "v3.0.0";
+const latestPublishedTag = "v3.1.0";
 const currentRoadmap = "v3.1.0 Encoded Event Clip and Safe Sharing Expansion";
-const latestPublishedBaseline = "v3.0.0 Event Evidence Search MVP";
+const latestPublishedBaseline = "v3.1.0 Encoded Event Clip and Safe Sharing Expansion";
 
 const files = {
   cmake: readText("CMakeLists.txt"),
@@ -62,7 +62,7 @@ check("source version is v3.1.0 and CMake matches", () => {
   assert(files.cmake.includes("project(media_server VERSION 3.1.0 LANGUAGES CXX)"), "CMake project version must be 3.1.0");
 });
 
-check("public entry docs pin source v3.1.0 and published v3.0.0", () => {
+check("public entry docs pin source v3.1.0 and published v3.1.0", () => {
   for (const [label, text, sourceSnippet, roadmapSnippet] of [
     ["README.md", files.readme, "현재 소스 버전: `3.1.0`", `현재 source roadmap: \`${currentRoadmap}\``],
     ["README.en.md", files.readmeEn, "Current source version: `3.1.0`", `Current source roadmap: \`${currentRoadmap}\``],
@@ -75,7 +75,7 @@ check("public entry docs pin source v3.1.0 and published v3.0.0", () => {
   }
 });
 
-check("policy docs pin v3.1 active source and v3.0 published release", () => {
+check("policy docs pin v3.1 active source and v3.1 published release", () => {
   for (const [label, text] of [
     ["docs/versioning-policy.md", files.versioning],
     ["docs/release-policy.md", files.releasePolicy],
@@ -108,14 +108,14 @@ check("roadmap records V310-S00 as completed baseline alignment only", () => {
   }
 });
 
-check("release metadata and docs UI asset verifiers know source v3.1 and published v3.0 baseline", () => {
-  assert(files.releaseMetadataVerifier.includes('const latestPublishedTag = "v3.0.0";'), "release metadata verifier must keep latest published v3.0.0");
+check("release metadata and docs UI asset verifiers know source v3.1 and published v3.1 baseline", () => {
+  assert(files.releaseMetadataVerifier.includes('const latestPublishedTag = "v3.1.0";'), "release metadata verifier must keep latest published v3.1.0");
   assert(files.releaseMetadataVerifier.includes(`const currentRoadmap = "${currentRoadmap}";`), "release metadata verifier missing v3.1 current roadmap");
-  assert(files.docsUiAssetsVerifier.includes('const latestPublishedTag = "v3.0.0";'), "docs UI assets verifier must preserve latest published v3.0.0");
+  assert(files.docsUiAssetsVerifier.includes('const latestPublishedTag = "v3.1.0";'), "docs UI assets verifier must preserve latest published v3.1.0");
   const manifest = JSON.parse(files.docsUiAssetsManifest);
   assert(manifest.baseline?.sourceVersion === "3.1.0", "docs UI asset manifest source version must be 3.1.0");
-  assert(manifest.baseline?.publishedRelease === latestPublishedTag, "docs UI asset manifest published release must stay v3.0.0");
-  assert(manifest.baseline?.publicReleaseStatus === "v3.0.0-published-source-only", "docs UI asset manifest public release status must stay v3.0.0 source-only");
+  assert(manifest.baseline?.publishedRelease === latestPublishedTag, "docs UI asset manifest published release must stay v3.1.0");
+  assert(manifest.baseline?.publicReleaseStatus === "v3.1.0-published-source-only", "docs UI asset manifest public release status must stay v3.1.0 source-only");
 });
 
 check("stream verification, feature inventory, and release records expose V310-S00 gate", () => {

@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Published Release](https://img.shields.io/badge/published-v3.0.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v3.0.0)
+[![Published Release](https://img.shields.io/badge/published-v3.1.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v3.1.0)
 ![Source Version](https://img.shields.io/badge/source-3.1.0-informational)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
@@ -14,9 +14,9 @@ and runtime/model bundle distribution are outside the default public release.
 
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
-- Latest published GitHub Release: [v3.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.0.0)
+- Latest published GitHub Release: [v3.1.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.1.0)
 - Current source version: `3.1.0`
-- v3.0.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
+- v3.1.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
 - Current source roadmap: `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`
 
 ## At a Glance
@@ -36,14 +36,14 @@ and runtime/model bundle distribution are outside the default public release.
 
 ## v3.1 Source Baseline
 
-- Latest published release: `v3.0.0` Event Evidence Search MVP, source-only.
+- Latest published release: `v3.1.0` Encoded Event Clip and Safe Sharing Expansion, source-only.
 - Current source: `3.1.0` Encoded Event Clip and Safe Sharing Expansion.
 - Included v3.1 local implementation: encoded clip contract/pipeline,
   `/ops/events` replay timeline, client-safe digest, scoped integrator search
   API, operator feature correction, optional vector gate, retention/export
   hardening, and local readiness verifier.
-- Separate evidence required: tag/GitHub Release/published metadata, direct UI
-  fulltest, 30/120-minute long runs, and real device/cloud/provider success.
+- Separate evidence required: 120-minute long runs and real
+  device/cloud/provider success.
 - Invariants: Event POST, WebRTC DataChannel, SSE/WS metadata, and RTSP/WebRTC
   media paths are unchanged unless explicitly requested.
 - AI/model boundary: Qwen 8B local standard, Qwen 4B low-spec fallback, Qwen 30B
@@ -133,7 +133,7 @@ records live in dedicated docs.
 - Release/version policy: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - Release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
-- Latest published release notes: [v3.0.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.0.0)
+- Latest published release notes: [v3.1.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.1.0)
 - Current source roadmap: `v3.1.0 Encoded Event Clip and Safe Sharing Expansion` in
   [docs/development-backlog.md](docs/development-backlog.md)
 
