@@ -138,6 +138,16 @@ evidence로 재사용하지 않습니다.
 | V260-S05 | `./server.sh verify-v260-scenario-cross-zone-reentry` | ReEntry `configured-zones` A→B 후보, rule payload parser, analysis-state/replay fixture, UI marker, schema/media/client 비범위를 확인 |
 | V260-S06 | `./server.sh verify-v260-owner-release-readiness` | v2.6.0 local release readiness gate, feature inventory, UI criteria, evidence index, not-run/published boundary를 확인 |
 
+## Runtime/media longrun trigger matrix
+
+장기 테스트 실행 여부는 `media-server.runtime-media-longrun-trigger-matrix.v1` 기준으로
+short stability, 30분 soak, 120분 predev, 120분 runtime console, UI 풀테스트를
+분리해 판단합니다. `docs-policy-only`, `rtsp-gstreamer-webrtc-session-lifecycle`,
+`runtime-dashboard-metadata-fanout`, `VLM longrun trigger matrix`,
+`vlm-queue-timeout-nonblocking`, `vlm-memory-runtime-cache`,
+`vlm-provider-timeout-cloud`, `vlm-model-install-state`는 trigger matrix의 대표
+분류입니다. 30분 soak는 120분 longrun PASS를 대체하지 않습니다.
+
 ## 장기 테스트 명령
 
 장기 테스트는 명시 지시 또는 승인 없이 실행하지 않습니다.
@@ -149,8 +159,10 @@ evidence로 재사용하지 않습니다.
 | `./server.sh verify-uri-longrun` | URI source longrun |
 | `./server.sh verify-event-post-longrun` | Event POST longrun |
 | `./server.sh verify-va-runtime-console-longrun` | VA runtime console longrun |
+| `./server.sh verify-va-runtime-console-longrun --duration-minutes 120` | VA runtime console 120분 longrun |
 | `./server.sh verify-va-runtime-console-cycles` | VA runtime cycle 검증 |
 | `./server.sh verify-longrun-separation` | short/longrun 분리 guard |
+| `./server.sh verify-runtime-dashboard-longrun-template` | runtime dashboard 120분 longrun template guard |
 | `./server.sh verify-runtime-media-longrun-trigger-matrix` | `media-server.runtime-media-longrun-trigger-matrix.v1` trigger matrix |
 | `./server.sh verify-rc-release-gate` | RC release gate summary |
 

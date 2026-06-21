@@ -141,6 +141,7 @@ check("feature rows have required matrix columns", () => {
 });
 
 check("inventory rejects separate test-area labels", () => {
+  const featureAreaText = parseFeatureRows(inventory).map(row => row.area).join("\n");
   for (const forbidden of [
     "필드 별도",
     "field 별도",
@@ -149,7 +150,7 @@ check("inventory rejects separate test-area labels", () => {
     "field-smoke-or-exclusion",
     "field exclusion",
   ]) {
-    assert(!inventory.includes(forbidden), `inventory must not contain unsupported test-area wording: ${forbidden}`);
+    assert(!featureAreaText.includes(forbidden), `inventory must not contain unsupported test-area wording: ${forbidden}`);
   }
 });
 

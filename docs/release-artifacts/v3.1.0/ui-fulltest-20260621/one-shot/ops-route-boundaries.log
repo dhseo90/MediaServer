@@ -1,0 +1,16 @@
+[pass] ops-home-shell
+[pass] ops-dashboard-shell
+[pass] ops-events-operator-review-route-shell
+[pass] ops-sources-shell
+[pass] ops-rules-shell
+[pass] ops-users-shell
+[pass] client-live-shell
+[pass] client-dashboard-shell
+[pass] client-events-shell
+[pass] lab-analysis-api-remains-open
+[pass] ops-api-boundary
+[pass] client-api-viewer-contract
+
+== Ops/Client/Lab route boundary 요약 ==
+- 통과: 12
+- 실패: 0

@@ -1,0 +1,99 @@
+{
+  "views": [
+    {
+      "viewId": "9001",
+      "displayName": "UI Fulltest Playback",
+      "sourceId": "9001",
+      "defaultRuleId": "",
+      "allowedRuleIds": [],
+      "allowedOverlayModes": [
+        "raw",
+        "va-overlay",
+        "va-rule"
+      ],
+      "showDashboard": true,
+      "showEvents": true,
+      "showMetadataSummary": true,
+      "clientGroups": [
+        "manual-ui-fulltest"
+      ],
+      "maxTiles": 1,
+      "enabled": true
+    },
+    {
+      "viewId": "9002",
+      "displayName": "UI Fulltest VA Visual Matrix",
+      "sourceId": "9002",
+      "defaultRuleId": "9301",
+      "allowedRuleIds": [
+        "9301"
+      ],
+      "allowedOverlayModes": [
+        "raw",
+        "va-overlay",
+        "va-rule"
+      ],
+      "showDashboard": true,
+      "showEvents": true,
+      "showMetadataSummary": true,
+      "clientGroups": [
+        "manual-ui-fulltest"
+      ],
+      "maxTiles": 4,
+      "enabled": true
+    },
+    {
+      "viewId": "9003",
+      "displayName": "UI Fulltest VA Event Matrix",
+      "sourceId": "9003",
+      "defaultRuleId": "9302",
+      "allowedRuleIds": [
+        "9302",
+        "9303",
+        "9304",
+        "9305",
+        "9306",
+        "9307",
+        "9309",
+        "9310",
+        "9311",
+        "9312"
+      ],
+      "allowedOverlayModes": [
+        "raw",
+        "va-overlay",
+        "va-rule"
+      ],
+      "showDashboard": true,
+      "showEvents": true,
+      "showMetadataSummary": true,
+      "clientGroups": [
+        "manual-ui-fulltest"
+      ],
+      "maxTiles": 1,
+      "enabled": true
+    },
+    {
+      "viewId": "9004",
+      "displayName": "UI Fulltest Re-entry Matrix",
+      "sourceId": "9004",
+      "defaultRuleId": "9308",
+      "allowedRuleIds": [
+        "9308"
+      ],
+      "allowedOverlayModes": [
+        "raw",
+        "va-overlay",
+        "va-rule"
+      ],
+      "showDashboard": true,
+      "showEvents": true,
+      "showMetadataSummary": true,
+      "clientGroups": [
+        "manual-ui-fulltest"
+      ],
+      "maxTiles": 1,
+      "enabled": true
+    }
+  ]
+}

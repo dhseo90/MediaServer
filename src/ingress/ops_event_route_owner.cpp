@@ -3,7 +3,7 @@
 // WebRTC DataChannel schema와 SSE/WS metadata schema도 변경하지 않는다.
 // RTSP/WebRTC media path 역시 변경하지 않는다.
 // Client summary owner는 /client/api/views/{id}/dashboard,
-// /client/api/views/{id}/events, /client/api/views/{id}/events/search,
+// 이벤트 summary owner는 /client/api/views/{id}/events, /client/api/views/{id}/events/search,
 // /client/api/views/{id}/metadata를 담당한다.
 // V250-S09 event memory/search route owner catalog는 route/schema/verifier 경계를
 // 한곳에 모으되 Event POST payload unchanged, WebRTC DataChannel schema unchanged,

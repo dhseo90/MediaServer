@@ -1,0 +1,27 @@
+[env] skipped local override: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/scripts/.media_server.env
+run mode: foreground
+listen: rtsp://127.0.0.1:18671/dhseo
+ops: http://127.0.0.1:18197/ops/home
+client: http://127.0.0.1:18197/client/live
+file root: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/video
+default file: /Users/dhseo/Desktop/workspace/codexTest/mediaServer/video/sample_h264.mp4
+file test url: rtsp://127.0.0.1:18671/dhseo?file=sample_h264.mp4
+stop: Ctrl-C
+media-server skeleton (C++)
+default route: /dhseo
+[gst] forcing RTSP lower transport to TCP only
+[gst] forcing RTSP lower transport to TCP only
+[gst] forcing RTSP lower transport to TCP only
+[gst] forcing RTSP lower transport to TCP only
+[gst] forcing RTSP lower transport to TCP only
+[gst] forcing RTSP lower transport to TCP only
+[gst] forcing RTSP lower transport to TCP only
+[gst] forcing RTSP lower transport to TCP only
+[gst] forcing RTSP lower transport to TCP only
+gstreamer rtsp server started: yes
+webrtc http server started: yes
+listen: rtsp://127.0.0.1:18671/dhseo
+ops console: http://127.0.0.1:18197/ops/home
+client live: http://127.0.0.1:18197/client/live
+file test url: rtsp://127.0.0.1:18671/dhseo?file=sample_h264.mp4
+running... (SIGINT/SIGTERM to stop)

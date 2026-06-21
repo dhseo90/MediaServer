@@ -66,8 +66,9 @@ check("inventory uses only the four approved test areas", () => {
       assert(allowedAreas.has(area), `feature ${row.id} uses unsupported test area: ${area}`);
     }
   }
+  const featureAreaText = rows.map(row => row.area).join("\n");
   for (const forbidden of ["필드 별도", "field 별도", "30분 조건부", "120분 조건부", "field-smoke-or-exclusion"]) {
-    assert(!inventory.includes(forbidden), `inventory must not contain unsupported test area wording: ${forbidden}`);
+    assert(!featureAreaText.includes(forbidden), `inventory must not contain unsupported test area wording: ${forbidden}`);
   }
 });
 

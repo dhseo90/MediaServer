@@ -78,6 +78,11 @@ license/provenance/privacy/운영 제약:
 - provider credential, prompt/raw response/source URL/raw frame bytes는 문서, UI, client, event payload, release evidence에 원문 노출하지 않습니다.
 - external TURN/WHEP, ONVIF 실기기, real cloud/VLM provider는 endpoint/credential/명시 승인 없이는 field PASS 근거가 아닙니다.
 - 안정화, UI 풀테스트, 30분, 120분, published metadata는 서로 대체하지 않습니다.
+- Runtime/media longrun trigger matrix는 `media-server.runtime-media-longrun-trigger-matrix.v1`
+  및 `./server.sh verify-runtime-media-longrun-trigger-matrix`로 확인합니다. 이 기준은
+  V200-S17 안정화/장시간/UI 기준 정리 종료 기준을 v3.1 release 판단에도 재사용해
+  high-risk runtime/media 변경, memory/runtime drift, external field endpoint를
+  안정화/UI/30분 PASS와 분리합니다.
 
 불변 조건:
 

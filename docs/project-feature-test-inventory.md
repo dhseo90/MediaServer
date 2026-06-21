@@ -226,6 +226,9 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 
 ## 30-Minute And 120-Minute Mapping
 
+120분 조건부 대상은 memory growth, runtime drift, fanout/media path 고위험 변경,
+VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분리해 기록합니다.
+
 | 영역 | 대상 기능 | 실행 기준 |
 | --- | --- | --- |
 | 30분 soak | media/session/runtime, client live, selected rule/event/runtime queue rows | 사용자 장기간 테스트 지시 또는 명시 요청된 경우 `verify-predev --soak-minutes 30` 계열. 요청이 없으면 미실행으로 기록 |
