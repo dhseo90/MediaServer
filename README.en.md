@@ -38,9 +38,9 @@ and runtime/model bundle distribution are outside the default public release.
 
 Latest published version `3.0.0` is the Event Evidence Search MVP source-only
 GitHub Release. The current `3.1.0` source tree publishes the v3.1 Encoded Event
-Clip and Safe Sharing Expansion source-of-truth baseline. This baseline aligns
-version, docs, backlog, and verifier gates for v3.1 work; encoded event clip
-contracts, encoder pipeline, replay timeline, client-safe digest, scoped
+Clip and Safe Sharing Expansion source-of-truth baseline. The current source tree
+includes V310-S01 encoded event clip contract docs, fixture, and verifier
+evidence. The encoder pipeline, replay timeline, client-safe digest, scoped
 integrator API, operator correction, optional vector search, and retention/export
 hardening are complete only after their own V310 code/UI/API/verifier evidence
 exists.

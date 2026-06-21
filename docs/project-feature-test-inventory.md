@@ -26,12 +26,12 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 548 |
+| 전체 기능 항목 | 550 |
 | UI 직접 필요 | 296 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 221 |
-| 테스트 필요 | 548 |
-| 안정화 대상 | 538 |
+| UI 비대상 | 223 |
+| 테스트 필요 | 550 |
+| 안정화 대상 | 540 |
 | UI 풀테스트 대상 | 316 |
 | 30분 soak 대상 | 49 |
 | 120분 대상 | 7 |
@@ -42,7 +42,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 546개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 550개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -63,6 +63,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | Roadmap scope | Feature IDs | 대표 안정화 verifier | release evidence boundary |
 | --- | --- | --- | --- |
 | V310-S00 Baseline/source-of-truth | `OPS-061`, `SAFE-093` | `verify-v310-entry-baseline`, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets` | source `3.1.0`, latest published `v3.0.0`, current roadmap `v3.1.0 Encoded Event Clip and Safe Sharing Expansion` 정렬 기준. v3.1 기능 구현, UI 풀테스트, 30분/120분, GitHub Release publish evidence가 아님 |
+| V310-S01 Encoded Event Clip Contract | `OPS-062`, `SAFE-094` | `verify-v310-event-clip-contract` | EncodedClipManifest, MP4/WebM format, FrameRef/PTS mapping, evidence links, retention/privacy/non-VMS boundary, fixture, docs/inventory/release records 연결 기준. encoder generation, replay UI, cleanup execution, client digest, scoped API, UI 풀테스트, 30분/120분, GitHub Release publish evidence가 아님 |
 
 ## v3.0.0 Event Evidence Search MVP Coverage Mapping
 
@@ -201,8 +202,8 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | `CLIENT-001`~`CLIENT-024` | client/UI verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-021` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
 | `LAB-001`~`LAB-088` | lab/VLM/v250/v260/v270/v280/v300 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-093` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-061` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
+| `SAFE-001`~`SAFE-094` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-062` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
 
 ## VA Manual UI Seed Matrix
 
@@ -808,6 +809,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | SAFE-091 | V300-S09 retention cleanup boundary | 비대상 | 필요 | 안정화 | `verify-v300-retention-pin-cleanup`가 cleanup plan에서 EventRecord, EvidenceManifest, FeatureSet revision, SearchIndex entry를 일관되게 삭제/de-index 대상으로 묶고 pinned event를 자동 cleanup에서 제외하며 Event POST/WebRTC/SSE/WS schema, RTSP/WebRTC media path, viewer/client 노출을 만들지 않음을 확인함 |
 | SAFE-092 | V300-S10 stabilization/release readiness boundary | 비대상 | 필요 | 안정화 | `verify-v300-stabilization-release-readiness`가 v3.0 local stabilization, release evidence/not-run 경계, close-out dry-run 기록을 확인하되 UI 풀테스트 직접 조작, 30분/120분, published metadata, release action PASS로 대체하지 않음을 확인함 |
 | SAFE-093 | V310-S00 v3.1 baseline boundary | 비대상 | 필요 | 안정화 | `verify-v310-entry-baseline`가 source `3.1.0`, latest published `v3.0.0`, current roadmap `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`, 1차 선택값/fallback/제외 대상, license/provenance/privacy/운영 제약, release records, inventory 연결을 확인하되 encoded clip contract/pipeline/replay UI/client digest/scoped API/operator correction/vector search/export hardening, UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release PASS로 대체하지 않음 |
+| SAFE-094 | V310-S01 encoded clip contract boundary | 비대상 | 필요 | 안정화 | `verify-v310-event-clip-contract`가 EncodedClipManifest, MP4/WebM format, FrameRef/PTS mapping, evidence links, 7일 retention, raw prompt/response non-retention, identity feature 금지, non-VMS boundary를 확인하되 encoder generation, replay UI, cleanup execution, client digest, scoped API, UI 풀테스트, 30분/120분, published metadata PASS로 대체하지 않음 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -840,6 +842,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | OPS-059 | V300-S09 retention/pin/cleanup 게이트 | 비대상 | 필요 | 안정화 | `verify-v300-retention-pin-cleanup`가 docs/v300-retention-pin-cleanup.md, fixture, analysis smoke, stream verification, roadmap, release records, feature inventory, server dispatch 연결을 확인하되 destructive 운영 cleanup 실행, UI 풀테스트 직접 조작, 30분/120분, release publish 실행 PASS로 대체하지 않음 |
 | OPS-060 | V300-S10 stabilization/release readiness 게이트 | 비대상 | 필요 | 안정화 | `verify-v300-stabilization-release-readiness`가 v3.0 S00~S09 local gates, release policy/evidence index/test records, close-out dry-run command, server dispatch 연결을 확인하되 UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release 실행 PASS로 대체하지 않음 |
 | OPS-061 | V310-S00 v3.1 baseline 게이트 | 비대상 | 필요 | 안정화 | `verify-v310-entry-baseline`가 VERSION/CMake/README/docs/backlog/source roadmap을 source `3.1.0`, latest published `v3.0.0`, current roadmap `v3.1.0 Encoded Event Clip and Safe Sharing Expansion` 기준으로 정렬했는지 확인하되 v3.1 기능 구현, release publish, PR/main/tag/push, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
+| OPS-062 | V310-S01 Encoded Event Clip Contract 게이트 | 비대상 | 필요 | 안정화 | `verify-v310-event-clip-contract`가 docs/v310-encoded-event-clip-contract.md, sample encoded clip manifest fixture, stream verification, roadmap, release records, feature inventory, server dispatch 연결을 확인하되 runtime encoder generation, replay UI, VMS archive API, cleanup execution, release publish, UI/longrun 실행 PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 

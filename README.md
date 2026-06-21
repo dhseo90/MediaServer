@@ -36,11 +36,11 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 
 최신 공개 버전 `3.0.0`은 Event Evidence Search MVP source-only GitHub Release입니다.
 현재 source tree `3.1.0`은 v3.1.0 Encoded Event Clip and Safe Sharing Expansion의
-source-of-truth baseline을 공개합니다. 이번 baseline은 버전, 문서, backlog,
-verifier 기준을 v3.1 작업선으로 정렬하는 단계이며, encoded event clip contract,
-encoder pipeline, replay timeline, client-safe digest, scoped integrator API,
-operator correction, optional vector search, retention/export hardening은 각 V310
-step의 코드/UI/API/검증 evidence가 생긴 뒤에만 완료로 기록합니다.
+source-of-truth baseline을 공개합니다. 현재 source tree에는 V310-S01 encoded event
+clip contract의 문서/fixture/verifier evidence가 포함되어 있습니다. encoder pipeline,
+replay timeline, client-safe digest, scoped integrator API, operator correction,
+optional vector search, retention/export hardening은 각 V310 step의 코드/UI/API/검증
+evidence가 생긴 뒤에만 완료로 기록합니다.
 
 v3.1의 1차 선택값은 `Encoded Event Clip and Safe Sharing Expansion`입니다. fallback은
 `Encoded Clip Foundation`이며, safe sharing/API/correction/vector 확장은 단계별

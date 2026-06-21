@@ -49,6 +49,7 @@
 | Step | Command | Scope |
 | --- | --- | --- |
 | V310-S00 | `./server.sh verify-v310-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | source `3.1.0`, latest published `v3.0.0`, current roadmap `v3.1.0 Encoded Event Clip and Safe Sharing Expansion` 정렬. v3.1 기능 구현, UI 풀테스트, 30분/120분, published metadata, tag, push, GitHub Release evidence가 아님 |
+| V310-S01 | `./server.sh verify-v310-event-clip-contract` | EncodedClipManifest, MP4/WebM format, FrameRef/PTS mapping, evidence links, retention/privacy/non-VMS boundary, fixture, inventory, release records 연결 확인. encoder generation, replay UI, cleanup execution, client digest, scoped API, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
 
 ## 최신 published baseline v3.0.0 verifier
 
