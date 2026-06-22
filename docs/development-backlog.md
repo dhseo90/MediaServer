@@ -19,7 +19,8 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 ## 현재 source roadmap: v3.2.0 Operations Resolution Workspace
 
 상태: `v3.2.0` Step 1 source baseline 정렬, Step 2 Resolution State Contract,
-Step 3 Unified Ops Events Workspace, Step 4 Evidence Quality Layer, Step 5 Source Reliability Context local/static 구현 완료. 이 절은 v3.2.0 전체 기능
+Step 3 Unified Ops Events Workspace, Step 4 Evidence Quality Layer, Step 5 Source Reliability Context,
+Step 6 AI Review Quality Context local/static 구현 완료. 이 절은 v3.2.0 전체 기능
 완료 evidence가 아니며, 실제 기능 구현은 각 Step별 코드/UI/API/검증 evidence가 생긴
 뒤에만 완료로 기록합니다. Step 1 baseline 정렬 자체는 후속 v3.2 기능 구현 완료
 evidence가 아닙니다.
@@ -84,7 +85,7 @@ license/provenance/privacy/운영 제약:
 | 3 | v3.2.0 (3) Unified Ops Events Workspace | P0 | 완료 | `/ops/events` resolution queue/detail/timeline workspace |
 | 4 | v3.2.0 (4) Evidence Quality Layer | P0 | 완료 | evidence completeness/confidence/replay coverage hint |
 | 5 | v3.2.0 (5) Source Reliability Context | P1 | 완료 | source health, recent failure, operator recheck hint |
-| 6 | v3.2.0 (6) AI Review Quality Context | P1 | 대기 | correction/review signal, uncertainty reason, quality badge |
+| 6 | v3.2.0 (6) AI Review Quality Context | P1 | 완료 | correction/review signal, uncertainty reason, quality badge |
 | 7 | v3.2.0 (7) Operator Resolution Flow | P1 | 대기 | assign, note, close, reopen, audit trail |
 | 8 | v3.2.0 (8) Action Readiness Checklist | P1 | 대기 | rule draft/evidence bundle/notification readiness checklist |
 | 9 | v3.2.0 (9) Client-safe Resolution Digest | P1 | 대기 | viewer-safe status summary and redaction boundary |
@@ -162,6 +163,22 @@ license/provenance/privacy/운영 제약:
 - `docs/project-feature-test-inventory.md`: `UI-064`, `EVT-066`, `SAFE-106`, `OPS-073`을 추가하고 v3.2.0 (5) mapping을 `verify-v320-source-reliability-context`, `verify-ops-client-ui`에 연결했습니다.
 - `docs/stream-verification.md`, `docs/release-test-records.md`: Step 5 verifier와 RED/final/안정화 결과 기록, 미실행/제외 경계를 추가했습니다.
 - 완료 경계: 이번 Step 5는 Ops-only source reliability context hint layer입니다. AI Review Quality Context, Operator Resolution Flow, Action Readiness Checklist, Client-safe Resolution Digest, Resolution Search & Metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님을 분리합니다.
+
+## v3.2.0 Step 6 개발 기록
+
+- 범위: P1 `v3.2.0 (6) AI Review Quality Context`.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/events/reviews`의 기존 `unifiedResolutionWorkspace` item에 `media-server.ops.v320-ai-review-quality-context.v1` `aiReviewQuality` 객체를 추가했습니다. `OpsV320AiReviewQualityInfoFor`, `OpsV320AiReviewQualityContextJson`, `OpsV320AiReviewQualitySummaryJson`이 기존 Ops review state, evidence quality, source reliability context만 읽어 `correctionReviewSignal`, `uncertaintyReason`, `qualityBadge`, `qualityScore`, reanalysis/correction signal과 provider-free boundary flag를 계산합니다.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV320DetailSectionsJson`, `OpsV320TimelineMarkersJson`, `OpsV320UnifiedResolutionWorkspaceItemJson`, `OpsV320UnifiedOpsEventsWorkspaceJson`에 AI review quality detail/timeline marker와 `aiReviewQualitySummary`, `aiReviewQualityContextImplemented:true`, `actionReadinessChecklistImplemented:false`를 연결했습니다.
+- `/ops/api/events/reviews`: 새 write route, runtime provider call, raw provider material, EventRecord top-level, Event POST payload, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path, Rule/Profile payload, client/viewer 출력을 변경하지 않습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV320AiReviewQualityContext`가 `/ops/events` unified resolution detail 안에 correction/review signal, uncertainty reason, quality badge, provider-free/source URL/raw JSON/debug 비노출 boundary를 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`: `.v320-ai-review-quality-grid`, `.v320-ai-review-quality-card`, `.v320-ai-review-quality-signals`, `.v320-ai-review-quality-signal` 스타일을 추가해 기존 v3.2 workspace 흐름 안에서 반응형으로 표시합니다.
+- `scripts/internal/verify_v320_ai_review_quality_context.mjs`, `server.sh`: `./server.sh verify-v320-ai-review-quality-context` 명령을 추가해 payload, UI script/CSS, ops smoke, 문서, feature inventory, release records, dispatch 연결을 정적으로 검증합니다.
+- `scripts/internal/verify_ops_client_ui_smoke.mjs`: `/ops/events` static smoke 대상에 `ops-events-ai-review-quality-context` marker와 `media-server.ops.v320-ai-review-quality-context.v1` 문자열을 추가했습니다.
+- `docs/project-feature-test-inventory.md`: `UI-065`, `EVT-067`, `SAFE-107`, `OPS-074`를 추가하고 v3.2.0 (6) mapping을 `verify-v320-ai-review-quality-context`, `verify-ops-client-ui`에 연결했습니다.
+- `docs/stream-verification.md`, `docs/release-test-records.md`: Step 6 verifier와 RED/final/안정화 결과 기록, 미실행/제외 경계를 추가했습니다.
+- 검증: `./server.sh verify-v320-ai-review-quality-context`, `./server.sh verify-v320-unified-ops-events-workspace`, `./server.sh verify-v320-evidence-quality-layer`, `./server.sh verify-v320-source-reliability-context`, `./server.sh build`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh verify-docs-links`, `./server.sh verify-auth-bootstrap`, `./server.sh verify-auth-users`, `./server.sh verify-auth-routes`, `./server.sh verify-ops-client-ui --browser-mode static --http-base http://127.0.0.1:8081`, `./server.sh verify-ops-client-ui --screenshots --browser-mode chrome --allow-chrome-fallback --http-base http://127.0.0.1:8081`, `MEDIA_SERVER_UI_BROWSER_MODE=chrome MEDIA_SERVER_ALLOW_CHROME_FALLBACK=1 ./server.sh verify-rule-ui --http-base http://127.0.0.1:8081`, `git diff --check`.
+- 수정한 이슈: Step 6 적용 후 Step 4/5 verifier가 `aiReviewQualityContextImplemented:false`를 고정 기대해 누적 호환성 확인이 실패했습니다. 제품 view model은 Step 6 이후 true가 맞으므로 두 verifier는 플래그 존재를 확인하도록 좁혔고, 각 command summary의 `not-run-by-this-command` 경계는 유지했습니다. UI static smoke는 local env auth-on 서버를 대상으로 한 최초 실행에서 401/login redirect로 실패해 `MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_AUTH_MODE=off` throwaway 서버로 재검증했습니다.
+- 완료 경계: 이번 Step 6은 Ops-only AI review quality context hint layer입니다. Operator Resolution Flow, Action Readiness Checklist, Client-safe Resolution Digest, Resolution Search & Metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님을 분리합니다.
 
 ## 최신 공개 기준 상세: v3.1.0 Encoded Event Clip and Safe Sharing Expansion
 

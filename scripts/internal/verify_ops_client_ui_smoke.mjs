@@ -159,6 +159,13 @@ const pageChecks = [
     mustNot: ['href="/ops/events"'],
   },
   {
+    name: "ops-events-ai-review-quality-context",
+    path: "/ops/events",
+    visualSelector: '[data-testid="ops-v320-unified-events-workspace"]',
+    must: ['data-testid="ops-events-page"', 'data-testid="ops-v320-unified-events-workspace"', 'id="v320AiReviewQualityGrid"', 'data-v320-ai-review-quality', 'data-v320-ai-review-signal', 'aiReviewQualitySummary', 'aiReviewQuality', 'media-server.ops.v320-ai-review-quality-context.v1', 'correction review', 'uncertainty reason', 'quality badge', 'runtimeProviderCallPerformed', 'rawProviderMaterialExposed', '/ops/api/events/reviews'],
+    mustNot: ['href="/ops/events"'],
+  },
+  {
     name: "ops-rules",
     path: "/ops/rules",
     visualSelector: '[data-testid="ops-rules-page"]',

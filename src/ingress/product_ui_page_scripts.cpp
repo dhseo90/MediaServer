@@ -2706,6 +2706,41 @@ void AppendOpsShellScript(std::ostringstream& out,
           </div>
         </div>`;
       }
+      function renderV320AiReviewQualityContext(selectedDetail = {}, aiReviewQualitySummary = {}) {
+        const aiReviewQuality = selectedDetail?.aiReviewQuality || {};
+        const signals = Array.isArray(aiReviewQuality.signals) ? aiReviewQuality.signals : [];
+        const boundary = aiReviewQuality.runtimeProviderCallPerformed === false &&
+          aiReviewQuality.rawProviderMaterialExposed === false &&
+          aiReviewQuality.sourceUrlExposed === false &&
+          aiReviewQuality.rawJsonExposed === false &&
+          aiReviewQuality.debugMaterialExposed === false;
+        return `<div id="v320AiReviewQualityGrid" class="v320-ai-review-quality-grid" data-v320-ai-review-quality="${escapeHtml(aiReviewQuality.schema || 'media-server.ops.v320-ai-review-quality-context.v1')}">
+          <p class="v320-ai-review-quality-card">
+            <strong>correction review</strong>
+            <span>${escapeHtml(display(aiReviewQuality.correctionReviewSignal || 'pending-review'))}</span>
+            <small>corrections ${escapeHtml(display(aiReviewQualitySummary.correctionSignalCount ?? 0))} · reanalysis ${aiReviewQuality.reanalysisRequested === true ? 'yes' : 'no'} · aliases ${escapeHtml(display(aiReviewQuality.featureAliasCount ?? 0))}</small>
+          </p>
+          <p class="v320-ai-review-quality-card">
+            <strong>uncertainty reason</strong>
+            <span>${escapeHtml(display(aiReviewQuality.uncertaintyReason || 'not-reviewed'))}</span>
+            <small>review ${escapeHtml(display(aiReviewQuality.reviewStatus || 'new'))} · class ${escapeHtml(display(aiReviewQuality.classification || 'unclassified'))} · VLM ${escapeHtml(display(aiReviewQuality.vlmAction || 'not-reviewed'))}</small>
+          </p>
+          <p class="v320-ai-review-quality-card">
+            <strong>quality badge</strong>
+            <span>${escapeHtml(display(aiReviewQuality.qualityBadge || 'review-required'))}</span>
+            <small>${escapeHtml(display(aiReviewQuality.qualityScore ?? 0))}/100 · ok ${escapeHtml(display(aiReviewQualitySummary.qualityOk ?? 0))} · uncertain ${escapeHtml(display(aiReviewQualitySummary.uncertain ?? 0))} · checked ${escapeHtml(display(aiReviewQualitySummary.operatorChecked ?? 0))}</small>
+          </p>
+          <p class="v320-ai-review-quality-card">
+            <strong>boundary</strong>
+            <span>${boundary ? 'provider-free Ops-only' : 'boundary 확인 필요'}</span>
+            <small>runtimeProviderCallPerformed ${aiReviewQuality.runtimeProviderCallPerformed === false ? 'false' : '확인 필요'} · rawProviderMaterialExposed ${aiReviewQuality.rawProviderMaterialExposed === false ? 'false' : '확인 필요'}</small>
+          </p>
+          <div class="v320-ai-review-quality-signals">
+            ${(signals.length ? signals : ['no-correction-signal']).map(item => `<span class="chip v320-ai-review-quality-signal ${item === 'no-correction-signal' ? 'info' : 'warn'}" data-v320-ai-review-signal="${escapeHtml(item)}">${escapeHtml(display(item))}</span>`).join('')}
+          </div>
+          <p class="ops-rule-note">${escapeHtml(display(aiReviewQuality.operatorHint || 'Review AI quality context before resolution closure.'))}</p>
+        </div>`;
+      }
       function renderV320UnifiedOpsEventsWorkspace(unifiedResolutionWorkspace = {}) {
         const queueRoot = document.getElementById('opsV320ResolutionQueue');
         const detailRoot = document.getElementById('opsV320ResolutionDetail');
@@ -2725,6 +2760,8 @@ void AppendOpsShellScript(std::ostringstream& out,
           { text: unifiedResolutionWorkspace.evidenceQualitySummary?.schema || 'media-server.ops.v320-evidence-quality.v1' },
           { text: unifiedResolutionWorkspace.sourceReliabilityContextImplemented === true ? 'source reliability' : 'source reliability 확인 필요', tone: unifiedResolutionWorkspace.sourceReliabilityContextImplemented === true ? 'info' : 'warn' },
           { text: unifiedResolutionWorkspace.sourceReliabilitySummary?.schema || 'media-server.ops.v320-source-reliability-context.v1' },
+          { text: unifiedResolutionWorkspace.aiReviewQualityContextImplemented === true ? 'AI review quality' : 'AI review 확인 필요', tone: unifiedResolutionWorkspace.aiReviewQualityContextImplemented === true ? 'info' : 'warn' },
+          { text: unifiedResolutionWorkspace.aiReviewQualitySummary?.schema || 'media-server.ops.v320-ai-review-quality-context.v1' },
           { text: unifiedResolutionWorkspace.viewerClientExposureAdded === false ? 'Ops only' : 'client 노출 확인 필요', tone: unifiedResolutionWorkspace.viewerClientExposureAdded === false ? 'info' : 'warn' },
           { text: unifiedResolutionWorkspace.eventPostPayloadChanged === false ? 'Event POST unchanged' : 'payload 확인 필요', tone: unifiedResolutionWorkspace.eventPostPayloadChanged === false ? 'info' : 'warn' },
           { text: unifiedResolutionWorkspace.sourceUrlExposed === false && unifiedResolutionWorkspace.rawJsonExposed === false && unifiedResolutionWorkspace.debugMaterialExposed === false ? 'redacted' : 'redaction 확인 필요', tone: unifiedResolutionWorkspace.sourceUrlExposed === false && unifiedResolutionWorkspace.rawJsonExposed === false && unifiedResolutionWorkspace.debugMaterialExposed === false ? 'info' : 'warn' }
@@ -2732,7 +2769,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         setText(
           'opsV320UnifiedWorkspaceSummary',
           resolutionQueue.length
-            ? `Unified resolution workspace · resolution queue ${resolutionQueue.length} · evidence quality · source reliability · detail/timeline Ops-only`
+            ? `Unified resolution workspace · resolution queue ${resolutionQueue.length} · evidence quality · source reliability · AI review quality · detail/timeline Ops-only`
             : 'resolution queue, resolution detail, resolution timeline을 `/ops/events` 안에서 Ops 전용으로 확인합니다.'
         );
         if (resolutionQueue.length === 0) {
@@ -2746,6 +2783,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           const lifecycle = item?.closeReopenLifecycle?.closeReopenLifecycle || resolutionState.closeReopenLifecycle || {};
           const evidenceQuality = item?.evidenceQuality || {};
           const sourceReliability = item?.sourceReliability || {};
+          const aiReviewQuality = item?.aiReviewQuality || {};
           const active = selectedDetail && item?.eventId === selectedDetail.eventId;
           return `<article class="v320-resolution-queue-card${active ? ' is-active' : ''}" data-v320-resolution-event="${escapeHtml(item?.eventId || '')}">
             <div class="table-cell-main">
@@ -2759,6 +2797,7 @@ void AppendOpsShellScript(std::ostringstream& out,
               <span class="chip ${evidenceQuality.evidenceCompleteness === 'complete' ? 'info' : 'warn'}">${escapeHtml(display(evidenceQuality.evidenceCompleteness || 'missing'))}</span>
               <span class="chip">${escapeHtml(display(evidenceQuality.replayCoverage || 'missing'))}</span>
               <span class="chip ${sourceReliability.sourceHealthStatus === 'live' ? 'info' : 'warn'}">${escapeHtml(display(sourceReliability.sourceHealthStatus || 'source-missing'))}</span>
+              <span class="chip ${aiReviewQuality.qualityBadge === 'quality-ok' || aiReviewQuality.qualityBadge === 'operator-checked' ? 'info' : 'warn'}">${escapeHtml(display(aiReviewQuality.qualityBadge || 'review-required'))}</span>
             </div>
             <p class="ops-rule-note">canClose ${lifecycle.canClose === true ? 'true' : 'false'} · canReopen ${lifecycle.canReopen === true ? 'true' : 'false'} · transition ${escapeHtml(display(resolutionState.transition || 'none'))}</p>
           </article>`;
@@ -2779,6 +2818,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           </div>
           ${renderV320EvidenceQualityLayer(selectedDetail, unifiedResolutionWorkspace.evidenceQualitySummary || {})}
           ${renderV320SourceReliabilityContext(selectedDetail, unifiedResolutionWorkspace.sourceReliabilitySummary || {})}
+          ${renderV320AiReviewQualityContext(selectedDetail, unifiedResolutionWorkspace.aiReviewQualitySummary || {})}
           <p class="ops-rule-note">resolutionStatus ${escapeHtml(display(selectedResolution.status || 'open'))} · resolutionReason ${escapeHtml(display(selectedResolution.reason || 'unreviewed'))} · sourceUrlExposed ${selectedDetail?.sourceUrlExposed === false ? 'false' : '확인 필요'} · rawJsonExposed ${selectedDetail?.rawJsonExposed === false ? 'false' : '확인 필요'} · debugMaterialExposed ${selectedDetail?.debugMaterialExposed === false ? 'false' : '확인 필요'}</p>
         </article>`;
         const timelineItems = resolutionTimeline.flatMap(item => Array.isArray(item?.timelineMarkers)

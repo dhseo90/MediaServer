@@ -15667,6 +15667,203 @@ std::string OpsV320SourceReliabilitySummaryJson(
     return out.str();
 }
 
+struct OpsV320AiReviewQualityInfo {
+    std::string correction_review_signal{"pending-review"};
+    std::string uncertainty_reason{"not-reviewed"};
+    std::string quality_badge{"review-required"};
+    std::string operator_hint{"review AI/operator quality context before final closure"};
+    std::string review_status{"new"};
+    std::string classification{"unclassified"};
+    std::string vlm_action{"not-reviewed"};
+    std::string reanalysis_reason;
+    int quality_score{35};
+    bool corrected_feature_label_present{false};
+    int feature_alias_count{0};
+    bool reanalysis_requested{false};
+    std::vector<std::string> signals;
+};
+
+OpsV320AiReviewQualityInfo OpsV320AiReviewQualityInfoFor(
+    const OpsEventReviewState& review,
+    const OpsV320EvidenceQualityInfo& evidence_quality,
+    const OpsV320SourceReliabilityInfo& source_reliability) {
+    OpsV320AiReviewQualityInfo info;
+    info.review_status = review.review_status.empty() ? "new" : review.review_status;
+    info.classification = review.classification.empty() ? "unclassified" : review.classification;
+    info.vlm_action = review.vlm_action.empty() ? "not-reviewed" : review.vlm_action;
+    info.corrected_feature_label_present = !Trim(review.corrected_feature_label).empty();
+    info.feature_alias_count = static_cast<int>(review.feature_aliases.size());
+    info.reanalysis_requested = review.reanalysis_requested;
+    info.reanalysis_reason = review.reanalysis_reason;
+
+    if (info.corrected_feature_label_present) {
+        info.signals.push_back("corrected-feature-label");
+    }
+    if (info.feature_alias_count > 0) {
+        info.signals.push_back("feature-aliases");
+    }
+    if (info.reanalysis_requested) {
+        info.signals.push_back("reanalysis-requested");
+    }
+    if (info.vlm_action != "not-reviewed") {
+        info.signals.push_back("vlm-action:" + info.vlm_action);
+    }
+    if (evidence_quality.evidence_confidence == "low") {
+        info.signals.push_back("low-evidence-confidence");
+    }
+    if (source_reliability.source_health_status != "live" || !source_reliability.warnings.empty()) {
+        info.signals.push_back("source-context-needs-review");
+    }
+
+    if (info.corrected_feature_label_present || info.feature_alias_count > 0 ||
+        info.reanalysis_requested) {
+        info.correction_review_signal = "correction-review";
+        info.uncertainty_reason =
+            info.reanalysis_reason.empty() ? "operator-correction-present" : info.reanalysis_reason;
+        info.quality_badge = "correction-needed";
+        info.quality_score = 45;
+        info.operator_hint =
+            "operator correction or reanalysis request exists; review AI output before closure";
+    } else if (info.vlm_action == "review-needed" || info.review_status == "needs-follow-up") {
+        info.correction_review_signal = "needs-human-review";
+        info.uncertainty_reason = "operator-review-needed";
+        info.quality_badge = "review-required";
+        info.quality_score = 40;
+        info.operator_hint = "AI review action requires human follow-up before final closure";
+    } else if (review.resolution_reason == "evidence-insufficient" ||
+               evidence_quality.evidence_confidence == "low") {
+        info.correction_review_signal = "evidence-uncertain";
+        info.uncertainty_reason = review.resolution_reason == "evidence-insufficient"
+                                      ? "evidence-insufficient"
+                                      : "low-evidence-confidence";
+        info.quality_badge = "uncertain";
+        info.quality_score = 35;
+        info.operator_hint = "AI quality is limited by evidence confidence; collect more context";
+    } else if (source_reliability.source_health_status != "live" ||
+               !source_reliability.warnings.empty()) {
+        info.correction_review_signal = "source-context-uncertain";
+        info.uncertainty_reason = source_reliability.recent_failure_context;
+        info.quality_badge = "uncertain";
+        info.quality_score = 50;
+        info.operator_hint = "source reliability context should be reviewed before trusting AI signals";
+    } else if (info.vlm_action == "accept" || info.review_status == "confirmed" ||
+               info.classification == "true-positive") {
+        info.correction_review_signal = "accepted-review";
+        info.uncertainty_reason = "none";
+        info.quality_badge = evidence_quality.evidence_confidence == "high" ? "quality-ok"
+                                                                            : "operator-checked";
+        info.quality_score = evidence_quality.evidence_confidence == "high" ? 90 : 75;
+        info.operator_hint = "AI/operator review signal is accepted with available local evidence";
+    } else if (info.vlm_action == "dismiss" || info.review_status == "dismissed" ||
+               info.classification == "false-positive") {
+        info.correction_review_signal = "dismissed-review";
+        info.uncertainty_reason = "false-positive-review";
+        info.quality_badge = "operator-checked";
+        info.quality_score = 70;
+        info.operator_hint = "operator dismissed the AI/event signal; retain review context only";
+    } else if (info.classification == "needs-tuning") {
+        info.correction_review_signal = "needs-tuning";
+        info.uncertainty_reason = "model-rule-needs-tuning";
+        info.quality_badge = "uncertain";
+        info.quality_score = 45;
+        info.operator_hint = "rule or model tuning is indicated before trusting this signal";
+    }
+    if (info.signals.empty()) {
+        info.signals.push_back("no-correction-signal");
+    }
+    return info;
+}
+
+void AppendOpsV320AiReviewSignalsJson(std::ostringstream& out,
+                                       const std::vector<std::string>& signals) {
+    out << "[";
+    for (std::size_t i = 0; i < signals.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "\"" << JsonEscape(signals[i]) << "\"";
+    }
+    out << "]";
+}
+
+std::string OpsV320AiReviewQualityContextJson(const OpsV320AiReviewQualityInfo& info) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v320-ai-review-quality-context.v1\","
+        << "\"correctionReviewSignal\":\"" << JsonEscape(info.correction_review_signal) << "\","
+        << "\"uncertaintyReason\":\"" << JsonEscape(info.uncertainty_reason) << "\","
+        << "\"qualityBadge\":\"" << JsonEscape(info.quality_badge) << "\","
+        << "\"qualityScore\":" << info.quality_score << ","
+        << "\"operatorHint\":\"" << JsonEscape(info.operator_hint) << "\","
+        << "\"reviewStatus\":\"" << JsonEscape(info.review_status) << "\","
+        << "\"classification\":\"" << JsonEscape(info.classification) << "\","
+        << "\"vlmAction\":\"" << JsonEscape(info.vlm_action) << "\","
+        << "\"correctedFeatureLabelPresent\":"
+        << (info.corrected_feature_label_present ? "true" : "false") << ","
+        << "\"featureAliasCount\":" << info.feature_alias_count << ","
+        << "\"reanalysisRequested\":" << (info.reanalysis_requested ? "true" : "false") << ","
+        << "\"reanalysisReason\":\"" << JsonEscape(info.reanalysis_reason) << "\","
+        << "\"signals\":";
+    AppendOpsV320AiReviewSignalsJson(out, info.signals);
+    out << ",\"runtimeProviderCallPerformed\":false,"
+        << "\"rawProviderMaterialExposed\":false,"
+        << "\"opsOnly\":true,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsV320AiReviewQualitySummaryJson(
+    const std::vector<OpsV320AiReviewQualityInfo>& items) {
+    int correction = 0;
+    int review_required = 0;
+    int uncertain = 0;
+    int quality_ok = 0;
+    int operator_checked = 0;
+    for (const auto& item : items) {
+        if (item.correction_review_signal == "correction-review") {
+            ++correction;
+        }
+        if (item.quality_badge == "review-required") {
+            ++review_required;
+        } else if (item.quality_badge == "uncertain" || item.quality_badge == "correction-needed") {
+            ++uncertain;
+        } else if (item.quality_badge == "quality-ok") {
+            ++quality_ok;
+        } else if (item.quality_badge == "operator-checked") {
+            ++operator_checked;
+        }
+    }
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v320-ai-review-quality-context.v1\","
+        << "\"status\":\"ops-v320-ai-review-quality-context\","
+        << "\"itemCount\":" << items.size() << ","
+        << "\"correctionSignalCount\":" << correction << ","
+        << "\"reviewRequired\":" << review_required << ","
+        << "\"uncertain\":" << uncertain << ","
+        << "\"qualityOk\":" << quality_ok << ","
+        << "\"operatorChecked\":" << operator_checked << ","
+        << "\"runtimeProviderCallPerformed\":false,"
+        << "\"rawProviderMaterialExposed\":false,"
+        << "\"opsOnly\":true,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false"
+        << "}";
+    return out.str();
+}
+
 std::string OpsV320ResolutionQueueStatus(const OpsEventReviewState& review) {
     const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
     if (resolution_state.resolution_status == "open") {
@@ -15690,7 +15887,8 @@ std::string OpsV320ResolutionQueueStatus(const OpsEventReviewState& review) {
 std::string OpsV320TimelineMarkersJson(const std::string& event_json,
                                        const OpsEventReviewState& review,
                                        const OpsV320EvidenceQualityInfo& evidence_quality,
-                                       const OpsV320SourceReliabilityInfo& source_reliability) {
+                                       const OpsV320SourceReliabilityInfo& source_reliability,
+                                       const OpsV320AiReviewQualityInfo& ai_review_quality) {
     const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
     const std::int64_t event_ms =
         ParseInt64Field(event_json, "updateTime")
@@ -15739,6 +15937,15 @@ std::string OpsV320TimelineMarkersJson(const std::string& event_json,
         << "\"timeMs\":" << event_ms << ","
         << "\"recentFailureContext\":\"" << JsonEscape(source_reliability.recent_failure_context) << "\","
         << "\"opsOnly\":true"
+        << "},"
+        << "{"
+        << "\"key\":\"ai-review-quality\","
+        << "\"label\":\"AI review quality\","
+        << "\"status\":\"" << JsonEscape(ai_review_quality.quality_badge) << "\","
+        << "\"timeMs\":" << review_ms << ","
+        << "\"correctionReviewSignal\":\""
+        << JsonEscape(ai_review_quality.correction_review_signal) << "\","
+        << "\"opsOnly\":true"
         << "}"
         << "]";
     return out.str();
@@ -15747,7 +15954,8 @@ std::string OpsV320TimelineMarkersJson(const std::string& event_json,
 std::string OpsV320DetailSectionsJson(const std::string& event_json,
                                       const OpsEventReviewState& review,
                                       const OpsV320EvidenceQualityInfo& evidence_quality,
-                                      const OpsV320SourceReliabilityInfo& source_reliability) {
+                                      const OpsV320SourceReliabilityInfo& source_reliability,
+                                      const OpsV320AiReviewQualityInfo& ai_review_quality) {
     const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
     const std::string event_type =
         Trim(ParseStringField(event_json, "eventType")
@@ -15794,6 +16002,13 @@ std::string OpsV320DetailSectionsJson(const std::string& event_json,
         << "\"status\":\"" << JsonEscape(source_reliability.source_health_status) << "\","
         << "\"detail\":\"recent failure " << JsonEscape(source_reliability.recent_failure_context)
         << " / recheck " << JsonEscape(source_reliability.operator_recheck_route) << "\""
+        << "},"
+        << "{"
+        << "\"key\":\"ai-review-quality\","
+        << "\"label\":\"AI Review Quality\","
+        << "\"status\":\"" << JsonEscape(ai_review_quality.quality_badge) << "\","
+        << "\"detail\":\"signal " << JsonEscape(ai_review_quality.correction_review_signal)
+        << " / uncertainty " << JsonEscape(ai_review_quality.uncertainty_reason) << "\""
         << "}"
         << "]";
     return out.str();
@@ -15803,7 +16018,8 @@ std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_j
                                                       const OpsEventReviewState& review,
                                                       const std::size_t index,
                                                       const OpsV320EvidenceQualityInfo& evidence_quality,
-                                                      const OpsV320SourceReliabilityInfo& source_reliability) {
+                                                      const OpsV320SourceReliabilityInfo& source_reliability,
+                                                      const OpsV320AiReviewQualityInfo& ai_review_quality) {
     std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(review.event_id));
     if (!OpsEventReviewEventIdAllowed(event_id)) {
         event_id = OpsEventReviewEventIdAllowed(review.event_id) ? review.event_id
@@ -15829,8 +16045,15 @@ std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_j
         << "\"closeReopenLifecycle\":" << OpsResolutionStateJson(resolution_state) << ","
         << "\"evidenceQuality\":" << OpsV320EvidenceQualityJson(evidence_quality) << ","
         << "\"sourceReliability\":" << OpsV320SourceReliabilityContextJson(source_reliability) << ","
-        << "\"detailSections\":" << OpsV320DetailSectionsJson(event_json, resolution_state, evidence_quality, source_reliability) << ","
-        << "\"timelineMarkers\":" << OpsV320TimelineMarkersJson(event_json, resolution_state, evidence_quality, source_reliability) << ","
+        << "\"aiReviewQuality\":" << OpsV320AiReviewQualityContextJson(ai_review_quality) << ","
+        << "\"detailSections\":"
+        << OpsV320DetailSectionsJson(
+               event_json, resolution_state, evidence_quality, source_reliability, ai_review_quality)
+        << ","
+        << "\"timelineMarkers\":"
+        << OpsV320TimelineMarkersJson(
+               event_json, resolution_state, evidence_quality, source_reliability, ai_review_quality)
+        << ","
         << "\"opsOnly\":true,"
         << "\"persistentReviewState\":true,"
         << "\"eventPostPayloadChanged\":false,"
@@ -15854,9 +16077,11 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
     std::vector<std::string> items;
     std::vector<OpsV320EvidenceQualityInfo> evidence_quality_items;
     std::vector<OpsV320SourceReliabilityInfo> source_reliability_items;
+    std::vector<OpsV320AiReviewQualityInfo> ai_review_quality_items;
     items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
     evidence_quality_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
     source_reliability_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
+    ai_review_quality_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
     for (std::size_t index = 0; index < event_json_records.size(); ++index) {
         const std::string& event_json = event_json_records[index];
         const std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
@@ -15870,10 +16095,13 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
             OpsV320EvidenceQualityInfoFor(event_json, review);
         const OpsV320SourceReliabilityInfo source_reliability =
             OpsV320SourceReliabilityInfoFor(event_json, source_health_snapshot);
+        const OpsV320AiReviewQualityInfo ai_review_quality =
+            OpsV320AiReviewQualityInfoFor(review, evidence_quality, source_reliability);
         items.push_back(OpsV320UnifiedResolutionWorkspaceItemJson(
-            event_json, review, index, evidence_quality, source_reliability));
+            event_json, review, index, evidence_quality, source_reliability, ai_review_quality));
         evidence_quality_items.push_back(evidence_quality);
         source_reliability_items.push_back(source_reliability);
+        ai_review_quality_items.push_back(ai_review_quality);
         if (items.size() >= 12U) {
             break;
         }
@@ -15898,6 +16126,8 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
         << OpsV320EvidenceQualitySummaryJson(evidence_quality_items) << ","
         << "\"sourceReliabilitySummary\":"
         << OpsV320SourceReliabilitySummaryJson(source_reliability_items) << ","
+        << "\"aiReviewQualitySummary\":"
+        << OpsV320AiReviewQualitySummaryJson(ai_review_quality_items) << ","
         << "\"itemCount\":" << items.size() << ","
         << "\"eventPostPayloadChanged\":false,"
         << "\"webrtcDataChannelSchemaChanged\":false,"
@@ -15911,8 +16141,9 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
         << "\"debugMaterialExposed\":false,"
         << "\"evidenceQualityLayerImplemented\":true,"
         << "\"sourceReliabilityContextImplemented\":true,"
-        << "\"aiReviewQualityContextImplemented\":false,"
+        << "\"aiReviewQualityContextImplemented\":true,"
         << "\"operatorAssignmentFlowImplemented\":false,"
+        << "\"actionReadinessChecklistImplemented\":false,"
         << "\"clientDigestImplemented\":false,"
         << "\"searchMetricsImplemented\":false"
         << "}";
