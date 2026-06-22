@@ -145,6 +145,13 @@ const pageChecks = [
     mustNot: ['href="/ops/events"'],
   },
   {
+    name: "ops-events-evidence-quality-layer",
+    path: "/ops/events",
+    visualSelector: '[data-testid="ops-v320-unified-events-workspace"]',
+    must: ['data-testid="ops-events-page"', 'data-testid="ops-v320-unified-events-workspace"', 'id="v320EvidenceQualityGrid"', 'data-v320-evidence-quality', 'data-v320-evidence-quality-ref', 'evidenceQualitySummary', 'evidenceQuality', 'media-server.ops.v320-evidence-quality.v1', 'evidence completeness', 'evidence confidence', 'replay coverage', 'fullReplayEngineExecuted', 'rawEvidenceMaterialExposed', '/ops/api/events/reviews'],
+    mustNot: ['href="/ops/events"'],
+  },
+  {
     name: "ops-rules",
     path: "/ops/rules",
     visualSelector: '[data-testid="ops-rules-page"]',

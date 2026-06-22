@@ -2658,6 +2658,47 @@ std::string ProductUiCss() {
       font-size: 12px;
       line-height: 1.45;
     }
+    .v320-evidence-quality-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+      gap: var(--space-2);
+      min-width: 0;
+    }
+    .v320-evidence-quality-card {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+      margin: 0;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: var(--color-surface);
+      overflow-wrap: anywhere;
+    }
+    .v320-evidence-quality-card strong {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+    .v320-evidence-quality-card span,
+    .v320-evidence-quality-card small {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .v320-evidence-quality-card small {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .v320-evidence-quality-refs {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      min-width: 0;
+    }
+    .v320-evidence-quality-ref {
+      overflow-wrap: anywhere;
+    }
     .v310-replay-timeline-ui {
       display: grid;
       gap: var(--space-3);

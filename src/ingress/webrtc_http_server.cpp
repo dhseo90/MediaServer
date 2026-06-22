@@ -15318,6 +15318,171 @@ std::string OpsV310PlaybackSegmentsJson(const std::int64_t pre_event_ms,
     return out.str();
 }
 
+struct OpsV320EvidenceQualityInfo {
+    bool snapshot_path_present = false;
+    bool event_frame_present = false;
+    bool evidence_manifest_present = false;
+    bool frame_bundle_present = false;
+    bool encoded_clip_present = false;
+    bool bbox_crop_present = false;
+    bool vlm_evidence_refs_present = false;
+    std::string evidence_completeness = "missing";
+    std::string evidence_confidence = "low";
+    std::string replay_coverage = "missing";
+    std::string replay_coverage_hint = "no event evidence reference is available";
+    std::string operator_hint = "capture or attach event evidence before closing this incident";
+    int completeness_score = 0;
+    int confidence_score = 20;
+};
+
+OpsV320EvidenceQualityInfo OpsV320EvidenceQualityInfoFor(const std::string& event_json,
+                                                         const OpsEventReviewState& review) {
+    OpsV320EvidenceQualityInfo info;
+    const std::string snapshot_path = OpsV300EvidenceRefPath(event_json, "snapshotPath");
+    const std::string evidence_manifest = OpsV300EvidenceRefPath(event_json, "evidenceManifest");
+    const std::string frame_bundle = OpsV300EvidenceRefPath(event_json, "frameBundleManifest");
+    const std::string clip_manifest = OpsV300EvidenceRefPath(event_json, "clipPath");
+    const std::string bbox_crop = OpsV300EvidenceRefPath(event_json, "bboxCrop");
+    const std::string encoded_media = OpsV310EncodedMediaPath(clip_manifest);
+    const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
+
+    info.snapshot_path_present = !snapshot_path.empty();
+    info.evidence_manifest_present = !evidence_manifest.empty();
+    info.event_frame_present = info.snapshot_path_present || info.evidence_manifest_present;
+    info.frame_bundle_present = !frame_bundle.empty();
+    info.encoded_clip_present = !encoded_media.empty() || !clip_manifest.empty();
+    info.bbox_crop_present = !bbox_crop.empty();
+    info.vlm_evidence_refs_present = ExtractObjectField(event_json, "vlmEvidenceRefs").has_value();
+
+    int evidence_points = 0;
+    evidence_points += info.event_frame_present ? 1 : 0;
+    evidence_points += info.evidence_manifest_present ? 1 : 0;
+    evidence_points += info.frame_bundle_present ? 1 : 0;
+    evidence_points += info.encoded_clip_present ? 1 : 0;
+    evidence_points += info.bbox_crop_present ? 1 : 0;
+    info.completeness_score = std::min(100, evidence_points * 20);
+
+    if (info.completeness_score >= 80) {
+        info.evidence_completeness = "complete";
+        info.operator_hint = "evidence refs cover event frame, manifest, replay, and object-local review signals";
+    } else if (info.completeness_score > 0) {
+        info.evidence_completeness = "partial";
+        info.operator_hint = "review available refs and capture missing replay coverage before final closure";
+    }
+
+    if (info.encoded_clip_present) {
+        info.replay_coverage = "encoded-clip";
+        info.replay_coverage_hint = "bounded encoded clip or clip manifest is available";
+    } else if (info.frame_bundle_present) {
+        info.replay_coverage = "frame-bundle";
+        info.replay_coverage_hint = "pre/event/post frame bundle is available; encoded clip is missing";
+    } else if (info.event_frame_present) {
+        info.replay_coverage = "event-frame-only";
+        info.replay_coverage_hint = "trigger-time event frame is available; replay context is missing";
+    }
+
+    info.confidence_score = info.evidence_completeness == "complete" ? 90
+                            : info.evidence_completeness == "partial" ? 60
+                                                                        : 20;
+    if (resolution_state.resolution_reason == "evidence-insufficient") {
+        info.confidence_score = std::min(info.confidence_score, 35);
+        info.operator_hint = "resolution reason is evidence-insufficient; collect more refs before closure";
+    } else if (OpsResolutionStatusIsClosed(resolution_state.resolution_status) &&
+               info.evidence_completeness == "complete") {
+        info.confidence_score = 95;
+    }
+    info.evidence_confidence = info.confidence_score >= 80 ? "high"
+                               : info.confidence_score >= 50 ? "medium"
+                                                             : "low";
+    return info;
+}
+
+std::string OpsV320EvidenceQualityJson(const OpsV320EvidenceQualityInfo& info) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v320-evidence-quality.v1\","
+        << "\"evidenceCompleteness\":\"" << JsonEscape(info.evidence_completeness) << "\","
+        << "\"evidenceConfidence\":\"" << JsonEscape(info.evidence_confidence) << "\","
+        << "\"replayCoverage\":\"" << JsonEscape(info.replay_coverage) << "\","
+        << "\"replayCoverageHint\":\"" << JsonEscape(info.replay_coverage_hint) << "\","
+        << "\"operatorHint\":\"" << JsonEscape(info.operator_hint) << "\","
+        << "\"completenessScore\":" << info.completeness_score << ","
+        << "\"confidenceScore\":" << info.confidence_score << ","
+        << "\"snapshotPathPresent\":" << (info.snapshot_path_present ? "true" : "false") << ","
+        << "\"eventFramePresent\":" << (info.event_frame_present ? "true" : "false") << ","
+        << "\"evidenceManifestPresent\":" << (info.evidence_manifest_present ? "true" : "false") << ","
+        << "\"frameBundlePresent\":" << (info.frame_bundle_present ? "true" : "false") << ","
+        << "\"encodedClipPresent\":" << (info.encoded_clip_present ? "true" : "false") << ","
+        << "\"bboxCropPresent\":" << (info.bbox_crop_present ? "true" : "false") << ","
+        << "\"vlmEvidenceRefsPresent\":" << (info.vlm_evidence_refs_present ? "true" : "false") << ","
+        << "\"fullReplayEngineExecuted\":false,"
+        << "\"opsOnly\":true,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false,"
+        << "\"rawEvidenceMaterialExposed\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsV320EvidenceQualitySummaryJson(const std::vector<OpsV320EvidenceQualityInfo>& items) {
+    int complete = 0;
+    int partial = 0;
+    int missing = 0;
+    int high = 0;
+    int medium = 0;
+    int low = 0;
+    int encoded_clip = 0;
+    int frame_bundle = 0;
+    int event_frame_only = 0;
+    int replay_missing = 0;
+    for (const auto& item : items) {
+        if (item.evidence_completeness == "complete") ++complete;
+        else if (item.evidence_completeness == "partial") ++partial;
+        else ++missing;
+
+        if (item.evidence_confidence == "high") ++high;
+        else if (item.evidence_confidence == "medium") ++medium;
+        else ++low;
+
+        if (item.replay_coverage == "encoded-clip") ++encoded_clip;
+        else if (item.replay_coverage == "frame-bundle") ++frame_bundle;
+        else if (item.replay_coverage == "event-frame-only") ++event_frame_only;
+        else ++replay_missing;
+    }
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v320-evidence-quality.v1\","
+        << "\"status\":\"ops-v320-evidence-quality-layer\","
+        << "\"itemCount\":" << items.size() << ","
+        << "\"complete\":" << complete << ","
+        << "\"partial\":" << partial << ","
+        << "\"missing\":" << missing << ","
+        << "\"highConfidence\":" << high << ","
+        << "\"mediumConfidence\":" << medium << ","
+        << "\"lowConfidence\":" << low << ","
+        << "\"encodedClipCoverage\":" << encoded_clip << ","
+        << "\"frameBundleCoverage\":" << frame_bundle << ","
+        << "\"eventFrameOnlyCoverage\":" << event_frame_only << ","
+        << "\"missingReplayCoverage\":" << replay_missing << ","
+        << "\"fullReplayEngineExecuted\":false,"
+        << "\"opsOnly\":true,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false,"
+        << "\"rawEvidenceMaterialExposed\":false"
+        << "}";
+    return out.str();
+}
+
 std::string OpsV320ResolutionQueueStatus(const OpsEventReviewState& review) {
     const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
     if (resolution_state.resolution_status == "open") {
@@ -15339,7 +15504,8 @@ std::string OpsV320ResolutionQueueStatus(const OpsEventReviewState& review) {
 }
 
 std::string OpsV320TimelineMarkersJson(const std::string& event_json,
-                                       const OpsEventReviewState& review) {
+                                       const OpsEventReviewState& review,
+                                       const OpsV320EvidenceQualityInfo& evidence_quality) {
     const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
     const std::int64_t event_ms =
         ParseInt64Field(event_json, "updateTime")
@@ -15372,13 +15538,22 @@ std::string OpsV320TimelineMarkersJson(const std::string& event_json,
         << "\"timeMs\":" << resolution_ms << ","
         << "\"transition\":\"" << JsonEscape(resolution_state.resolution_transition) << "\","
         << "\"opsOnly\":true"
+        << "},"
+        << "{"
+        << "\"key\":\"evidence-quality\","
+        << "\"label\":\"Evidence quality\","
+        << "\"status\":\"" << JsonEscape(evidence_quality.evidence_confidence) << "\","
+        << "\"timeMs\":" << event_ms << ","
+        << "\"replayCoverage\":\"" << JsonEscape(evidence_quality.replay_coverage) << "\","
+        << "\"opsOnly\":true"
         << "}"
         << "]";
     return out.str();
 }
 
 std::string OpsV320DetailSectionsJson(const std::string& event_json,
-                                      const OpsEventReviewState& review) {
+                                      const OpsEventReviewState& review,
+                                      const OpsV320EvidenceQualityInfo& evidence_quality) {
     const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
     const std::string event_type =
         Trim(ParseStringField(event_json, "eventType")
@@ -15411,6 +15586,13 @@ std::string OpsV320DetailSectionsJson(const std::string& event_json,
         << "\"status\":\"" << JsonEscape(resolution_state.resolution_status) << "\","
         << "\"detail\":\"reason " << JsonEscape(resolution_state.resolution_reason)
         << " / transition " << JsonEscape(resolution_state.resolution_transition) << "\""
+        << "},"
+        << "{"
+        << "\"key\":\"evidence-quality\","
+        << "\"label\":\"Evidence Quality\","
+        << "\"status\":\"" << JsonEscape(evidence_quality.evidence_completeness) << "\","
+        << "\"detail\":\"confidence " << JsonEscape(evidence_quality.evidence_confidence)
+        << " / replay " << JsonEscape(evidence_quality.replay_coverage) << "\""
         << "}"
         << "]";
     return out.str();
@@ -15418,7 +15600,8 @@ std::string OpsV320DetailSectionsJson(const std::string& event_json,
 
 std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_json,
                                                       const OpsEventReviewState& review,
-                                                      const std::size_t index) {
+                                                      const std::size_t index,
+                                                      const OpsV320EvidenceQualityInfo& evidence_quality) {
     std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(review.event_id));
     if (!OpsEventReviewEventIdAllowed(event_id)) {
         event_id = OpsEventReviewEventIdAllowed(review.event_id) ? review.event_id
@@ -15442,8 +15625,9 @@ std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_j
         << "\"reviewState\":\"" << JsonEscape(review.review_status.empty() ? "new" : review.review_status) << "\","
         << "\"resolutionState\":" << OpsResolutionStateJson(resolution_state) << ","
         << "\"closeReopenLifecycle\":" << OpsResolutionStateJson(resolution_state) << ","
-        << "\"detailSections\":" << OpsV320DetailSectionsJson(event_json, resolution_state) << ","
-        << "\"timelineMarkers\":" << OpsV320TimelineMarkersJson(event_json, resolution_state) << ","
+        << "\"evidenceQuality\":" << OpsV320EvidenceQualityJson(evidence_quality) << ","
+        << "\"detailSections\":" << OpsV320DetailSectionsJson(event_json, resolution_state, evidence_quality) << ","
+        << "\"timelineMarkers\":" << OpsV320TimelineMarkersJson(event_json, resolution_state, evidence_quality) << ","
         << "\"opsOnly\":true,"
         << "\"persistentReviewState\":true,"
         << "\"eventPostPayloadChanged\":false,"
@@ -15464,7 +15648,9 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
     const std::vector<std::string>& event_json_records,
     const std::unordered_map<std::string, OpsEventReviewState>& reviews) {
     std::vector<std::string> items;
+    std::vector<OpsV320EvidenceQualityInfo> evidence_quality_items;
     items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
+    evidence_quality_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
     for (std::size_t index = 0; index < event_json_records.size(); ++index) {
         const std::string& event_json = event_json_records[index];
         const std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
@@ -15474,7 +15660,11 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
         const auto review_it = reviews.find(event_id);
         const OpsEventReviewState review =
             review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
-        items.push_back(OpsV320UnifiedResolutionWorkspaceItemJson(event_json, review, index));
+        const OpsV320EvidenceQualityInfo evidence_quality =
+            OpsV320EvidenceQualityInfoFor(event_json, review);
+        items.push_back(OpsV320UnifiedResolutionWorkspaceItemJson(
+            event_json, review, index, evidence_quality));
+        evidence_quality_items.push_back(evidence_quality);
         if (items.size() >= 12U) {
             break;
         }
@@ -15495,6 +15685,8 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
     out << "],"
         << "\"selectedDetail\":" << (items.empty() ? "null" : items.front()) << ","
         << "\"resolutionTimeline\":" << (items.empty() ? "[]" : "[" + items.front() + "]") << ","
+        << "\"evidenceQualitySummary\":"
+        << OpsV320EvidenceQualitySummaryJson(evidence_quality_items) << ","
         << "\"itemCount\":" << items.size() << ","
         << "\"eventPostPayloadChanged\":false,"
         << "\"webrtcDataChannelSchemaChanged\":false,"
@@ -15506,7 +15698,7 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
         << "\"sourceUrlExposed\":false,"
         << "\"rawJsonExposed\":false,"
         << "\"debugMaterialExposed\":false,"
-        << "\"evidenceQualityLayerImplemented\":false,"
+        << "\"evidenceQualityLayerImplemented\":true,"
         << "\"sourceReliabilityContextImplemented\":false,"
         << "\"aiReviewQualityContextImplemented\":false,"
         << "\"operatorAssignmentFlowImplemented\":false,"

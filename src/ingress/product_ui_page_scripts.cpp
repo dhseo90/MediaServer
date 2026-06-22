@@ -2631,6 +2631,48 @@ void AppendOpsShellScript(std::ostringstream& out,
           </article>`;
         }).join('');
       }
+      function renderV320EvidenceQualityLayer(selectedDetail = {}, evidenceQualitySummary = {}) {
+        const evidenceQuality = selectedDetail?.evidenceQuality || {};
+        const refs = [
+          ['event frame', evidenceQuality.eventFramePresent],
+          ['snapshot', evidenceQuality.snapshotPathPresent],
+          ['manifest', evidenceQuality.evidenceManifestPresent],
+          ['frame bundle', evidenceQuality.frameBundlePresent],
+          ['encoded clip', evidenceQuality.encodedClipPresent],
+          ['bbox crop', evidenceQuality.bboxCropPresent],
+          ['VLM refs', evidenceQuality.vlmEvidenceRefsPresent]
+        ];
+        const boundary = evidenceQuality.rawEvidenceMaterialExposed === false &&
+          evidenceQuality.sourceUrlExposed === false &&
+          evidenceQuality.rawJsonExposed === false &&
+          evidenceQuality.debugMaterialExposed === false;
+        return `<div id="v320EvidenceQualityGrid" class="v320-evidence-quality-grid" data-v320-evidence-quality="${escapeHtml(evidenceQuality.schema || 'media-server.ops.v320-evidence-quality.v1')}">
+          <p class="v320-evidence-quality-card">
+            <strong>evidence completeness</strong>
+            <span>${escapeHtml(display(evidenceQuality.evidenceCompleteness || 'missing'))}</span>
+            <small>${escapeHtml(display(evidenceQuality.completenessScore ?? 0))}/100 · complete ${escapeHtml(display(evidenceQualitySummary.complete ?? 0))} · partial ${escapeHtml(display(evidenceQualitySummary.partial ?? 0))} · missing ${escapeHtml(display(evidenceQualitySummary.missing ?? 0))}</small>
+          </p>
+          <p class="v320-evidence-quality-card">
+            <strong>evidence confidence</strong>
+            <span>${escapeHtml(display(evidenceQuality.evidenceConfidence || 'low'))}</span>
+            <small>${escapeHtml(display(evidenceQuality.confidenceScore ?? 0))}/100 · deterministic evidence-ref confidence</small>
+          </p>
+          <p class="v320-evidence-quality-card">
+            <strong>replay coverage</strong>
+            <span>${escapeHtml(display(evidenceQuality.replayCoverage || 'missing'))}</span>
+            <small>${escapeHtml(display(evidenceQuality.replayCoverageHint || 'no replay coverage hint'))}</small>
+          </p>
+          <p class="v320-evidence-quality-card">
+            <strong>boundary</strong>
+            <span>${boundary ? 'redacted Ops-only' : 'redaction 확인 필요'}</span>
+            <small>fullReplayEngineExecuted ${evidenceQuality.fullReplayEngineExecuted === false ? 'false' : '확인 필요'} · rawEvidenceMaterialExposed ${evidenceQuality.rawEvidenceMaterialExposed === false ? 'false' : '확인 필요'}</small>
+          </p>
+          <div class="v320-evidence-quality-refs">
+            ${refs.map(([label, present]) => `<span class="chip v320-evidence-quality-ref ${present ? 'info' : 'warn'}" data-v320-evidence-quality-ref="${escapeHtml(label)}">${escapeHtml(label)} ${present ? 'present' : 'missing'}</span>`).join('')}
+          </div>
+          <p class="ops-rule-note">${escapeHtml(display(evidenceQuality.operatorHint || 'Review evidence quality before resolution closure.'))}</p>
+        </div>`;
+      }
       function renderV320UnifiedOpsEventsWorkspace(unifiedResolutionWorkspace = {}) {
         const queueRoot = document.getElementById('opsV320ResolutionQueue');
         const detailRoot = document.getElementById('opsV320ResolutionDetail');
@@ -2646,6 +2688,8 @@ void AppendOpsShellScript(std::ostringstream& out,
         renderBadges('opsV320UnifiedWorkspaceBadges', [
           { text: unifiedResolutionWorkspace.schema || 'media-server.ops.v320-unified-events-workspace.v1' },
           { text: `queue ${resolutionQueue.length}`, tone: resolutionQueue.length > 0 ? '' : 'warn' },
+          { text: unifiedResolutionWorkspace.evidenceQualityLayerImplemented === true ? 'evidence quality' : 'evidence quality 확인 필요', tone: unifiedResolutionWorkspace.evidenceQualityLayerImplemented === true ? 'info' : 'warn' },
+          { text: unifiedResolutionWorkspace.evidenceQualitySummary?.schema || 'media-server.ops.v320-evidence-quality.v1' },
           { text: unifiedResolutionWorkspace.viewerClientExposureAdded === false ? 'Ops only' : 'client 노출 확인 필요', tone: unifiedResolutionWorkspace.viewerClientExposureAdded === false ? 'info' : 'warn' },
           { text: unifiedResolutionWorkspace.eventPostPayloadChanged === false ? 'Event POST unchanged' : 'payload 확인 필요', tone: unifiedResolutionWorkspace.eventPostPayloadChanged === false ? 'info' : 'warn' },
           { text: unifiedResolutionWorkspace.sourceUrlExposed === false && unifiedResolutionWorkspace.rawJsonExposed === false && unifiedResolutionWorkspace.debugMaterialExposed === false ? 'redacted' : 'redaction 확인 필요', tone: unifiedResolutionWorkspace.sourceUrlExposed === false && unifiedResolutionWorkspace.rawJsonExposed === false && unifiedResolutionWorkspace.debugMaterialExposed === false ? 'info' : 'warn' }
@@ -2653,7 +2697,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         setText(
           'opsV320UnifiedWorkspaceSummary',
           resolutionQueue.length
-            ? `Unified resolution workspace · resolution queue ${resolutionQueue.length} · detail/timeline Ops-only`
+            ? `Unified resolution workspace · resolution queue ${resolutionQueue.length} · evidence quality · detail/timeline Ops-only`
             : 'resolution queue, resolution detail, resolution timeline을 `/ops/events` 안에서 Ops 전용으로 확인합니다.'
         );
         if (resolutionQueue.length === 0) {
@@ -2665,6 +2709,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         queueRoot.innerHTML = resolutionQueue.map((item, index) => {
           const resolutionState = item?.resolutionState || {};
           const lifecycle = item?.closeReopenLifecycle?.closeReopenLifecycle || resolutionState.closeReopenLifecycle || {};
+          const evidenceQuality = item?.evidenceQuality || {};
           const active = selectedDetail && item?.eventId === selectedDetail.eventId;
           return `<article class="v320-resolution-queue-card${active ? ' is-active' : ''}" data-v320-resolution-event="${escapeHtml(item?.eventId || '')}">
             <div class="table-cell-main">
@@ -2675,6 +2720,8 @@ void AppendOpsShellScript(std::ostringstream& out,
               <span class="chip ${item?.queueStatus === 'closed' ? 'info' : 'warn'}">${escapeHtml(display(item?.queueStatus || 'needs-resolution'))}</span>
               <span class="chip">${escapeHtml(display(resolutionState.status || 'open'))}</span>
               <span class="chip">${escapeHtml(display(resolutionState.reason || 'unreviewed'))}</span>
+              <span class="chip ${evidenceQuality.evidenceCompleteness === 'complete' ? 'info' : 'warn'}">${escapeHtml(display(evidenceQuality.evidenceCompleteness || 'missing'))}</span>
+              <span class="chip">${escapeHtml(display(evidenceQuality.replayCoverage || 'missing'))}</span>
             </div>
             <p class="ops-rule-note">canClose ${lifecycle.canClose === true ? 'true' : 'false'} · canReopen ${lifecycle.canReopen === true ? 'true' : 'false'} · transition ${escapeHtml(display(resolutionState.transition || 'none'))}</p>
           </article>`;
@@ -2693,6 +2740,7 @@ void AppendOpsShellScript(std::ostringstream& out,
               <small>${escapeHtml(display(section?.detail || 'Ops review state'))}</small>
             </p>`).join('')}
           </div>
+          ${renderV320EvidenceQualityLayer(selectedDetail, unifiedResolutionWorkspace.evidenceQualitySummary || {})}
           <p class="ops-rule-note">resolutionStatus ${escapeHtml(display(selectedResolution.status || 'open'))} · resolutionReason ${escapeHtml(display(selectedResolution.reason || 'unreviewed'))} · sourceUrlExposed ${selectedDetail?.sourceUrlExposed === false ? 'false' : '확인 필요'} · rawJsonExposed ${selectedDetail?.rawJsonExposed === false ? 'false' : '확인 필요'} · debugMaterialExposed ${selectedDetail?.debugMaterialExposed === false ? 'false' : '확인 필요'}</p>
         </article>`;
         const timelineItems = resolutionTimeline.flatMap(item => Array.isArray(item?.timelineMarkers)

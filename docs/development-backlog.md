@@ -19,7 +19,7 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 ## 현재 source roadmap: v3.2.0 Operations Resolution Workspace
 
 상태: `v3.2.0` Step 1 source baseline 정렬, Step 2 Resolution State Contract,
-Step 3 Unified Ops Events Workspace local/static 구현 완료. 이 절은 v3.2.0 전체 기능
+Step 3 Unified Ops Events Workspace, Step 4 Evidence Quality Layer local/static 구현 완료. 이 절은 v3.2.0 전체 기능
 완료 evidence가 아니며, 실제 기능 구현은 각 Step별 코드/UI/API/검증 evidence가 생긴
 뒤에만 완료로 기록합니다. Step 1 baseline 정렬 자체는 후속 v3.2 기능 구현 완료
 evidence가 아닙니다.
@@ -82,7 +82,7 @@ license/provenance/privacy/운영 제약:
 | 1 | v3.2.0 (1) v3.2.0 baseline 정렬 | P0 | 완료 | VERSION/docs/backlog/source roadmap 정렬 |
 | 2 | v3.2.0 (2) Resolution State Contract | P0 | 완료 | `media-server.ops.resolution-state.v1` 사건 상태, 판정 reason, close/reopen lifecycle contract |
 | 3 | v3.2.0 (3) Unified Ops Events Workspace | P0 | 완료 | `/ops/events` resolution queue/detail/timeline workspace |
-| 4 | v3.2.0 (4) Evidence Quality Layer | P0 | 대기 | evidence completeness/confidence/replay coverage hint |
+| 4 | v3.2.0 (4) Evidence Quality Layer | P0 | 완료 | evidence completeness/confidence/replay coverage hint |
 | 5 | v3.2.0 (5) Source Reliability Context | P1 | 대기 | source health, recent failure, operator recheck hint |
 | 6 | v3.2.0 (6) AI Review Quality Context | P1 | 대기 | correction/review signal, uncertainty reason, quality badge |
 | 7 | v3.2.0 (7) Operator Resolution Flow | P1 | 대기 | assign, note, close, reopen, audit trail |
@@ -133,6 +133,20 @@ license/provenance/privacy/운영 제약:
 - 검증: `./server.sh build`, `verify-v320-unified-ops-events-workspace`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-ops-client-ui --browser-mode static --http-base http://127.0.0.1:8081`, `verify-ops-client-ui --screenshots --browser-mode chrome --allow-chrome-fallback --http-base http://127.0.0.1:8081`, `MEDIA_SERVER_UI_BROWSER_MODE=chrome MEDIA_SERVER_ALLOW_CHROME_FALLBACK=1 ./server.sh verify-rule-ui --http-base http://127.0.0.1:8081`, `verify-project-inventory`, `verify-feature-inventory-coverage`, `verify-script-inventory`, `verify-docs-links`, `git diff --check` 기준 PASS입니다. 로컬 UI/API verifier는 auth-off throwaway 서버와 권한 실행으로 확인했습니다.
 - 수정한 이슈: 최초 `verify-auth-bootstrap`은 test operator password env 누락으로 fail했고, 일회성 throwaway env를 명령 환경에만 주입해 auth 3종을 재실행했습니다. sandbox 기본 실행은 RTSP bind `Operation not permitted`로 fail해 권한 실행으로 재검증했습니다. 최초 `verify-ops-client-ui`는 실행 중인 server base와 Codex 인앱 evidence가 없어 fail했으며 auth-off throwaway 서버의 static/screenshot smoke로 재실행했습니다. inventory summary는 Step 3 기능 ID 4개 추가 뒤 `577`에 남아 fail했고 실제 row `581` 기준으로 정렬했습니다.
 - 완료 경계: 이번 Step 3은 Ops-only `/ops/events` resolution queue/detail/timeline workspace local/static 구현입니다. Evidence Quality Layer, Source Reliability Context, AI Review Quality Context, Operator Resolution Flow, Client-safe Resolution Digest, Resolution Search & Metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님을 분리합니다.
+
+## v3.2.0 Step 4 개발 기록
+
+- 범위: P0 `v3.2.0 (4) Evidence Quality Layer`.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/events/reviews`의 기존 `unifiedResolutionWorkspace` item에 `media-server.ops.v320-evidence-quality.v1` `evidenceQuality` 객체를 추가했습니다. `OpsV320EvidenceQualityInfoFor`, `OpsV320EvidenceQualityJson`, `OpsV320EvidenceQualitySummaryJson`이 기존 EventRecord evidence refs와 Ops review JSONL state만 읽어 `evidenceCompleteness`, `evidenceConfidence`, `replayCoverage`, score, ref 존재 여부, redaction boundary flag를 계산합니다.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV320DetailSectionsJson`, `OpsV320TimelineMarkersJson`, `OpsV320UnifiedResolutionWorkspaceItemJson`, `OpsV320UnifiedOpsEventsWorkspaceJson`에 evidence quality detail/timeline marker와 `evidenceQualitySummary`, `evidenceQualityLayerImplemented:true`를 연결했습니다.
+- `/ops/api/events/reviews`: 새 write route, EventRecord top-level, Event POST payload, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path, Rule/Profile payload, client/viewer 출력을 변경하지 않습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV320EvidenceQualityLayer`가 `/ops/events` unified resolution detail 안에 evidence completeness, evidence confidence, replay coverage hint, ref coverage chip, raw evidence/source URL/raw JSON/debug 비노출 boundary를 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`: `.v320-evidence-quality-grid`, `.v320-evidence-quality-card`, `.v320-evidence-quality-refs`, `.v320-evidence-quality-ref` 스타일을 추가해 760px 이하 기존 v3.2 workspace 흐름 안에서 깨지지 않게 했습니다.
+- `scripts/internal/verify_v320_evidence_quality_layer.mjs`, `server.sh`: `./server.sh verify-v320-evidence-quality-layer` 명령을 추가해 payload, UI script/CSS, ops smoke, 문서, feature inventory, release records, dispatch 연결을 정적으로 검증합니다.
+- `scripts/internal/verify_ops_client_ui_smoke.mjs`: `/ops/events` static smoke 대상에 `ops-events-evidence-quality-layer` marker와 `media-server.ops.v320-evidence-quality.v1` 문자열을 추가했습니다.
+- `docs/project-feature-test-inventory.md`: `UI-063`, `EVT-065`, `SAFE-105`, `OPS-072`를 추가하고 v3.2.0 (4) mapping을 `verify-v320-evidence-quality-layer`, `verify-ops-client-ui`에 연결했습니다.
+- `docs/stream-verification.md`, `docs/release-test-records.md`: Step 4 verifier와 RED/final/안정화 결과 기록, 미실행/제외 경계를 추가했습니다.
+- 완료 경계: 이번 Step 4는 Ops-only evidence quality hint layer입니다. Source Reliability Context, AI Review Quality Context, Operator Resolution Flow, Action Readiness Checklist, Client-safe Resolution Digest, Resolution Search & Metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님을 분리합니다.
 
 ## 최신 공개 기준 상세: v3.1.0 Encoded Event Clip and Safe Sharing Expansion
 
