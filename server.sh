@@ -248,6 +248,8 @@ Usage:
                  v3.2.0 Step 1 source baseline과 latest published v3.1.0 경계를 검증합니다.
   verify-v320-resolution-state-contract
                  v3.2.0 Step 2 Resolution State Contract와 close/reopen lifecycle 경계를 검증합니다.
+  verify-v320-unified-ops-events-workspace
+                 v3.2.0 Step 3 Unified Ops Events Workspace와 resolution queue/detail/timeline UI 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -390,6 +392,8 @@ Usage:
                  v3.2.0 Step 1 source baseline과 latest published v3.1.0 경계를 검증합니다.
   verify-v320-resolution-state-contract
                  v3.2.0 Step 2 Resolution State Contract와 close/reopen lifecycle 경계를 검증합니다.
+  verify-v320-unified-ops-events-workspace
+                 v3.2.0 Step 3 Unified Ops Events Workspace와 resolution queue/detail/timeline UI 경계를 검증합니다.
   verify-actions-security
                  GitHub Actions workflow 권한과 action 사용 정책을 검증합니다.
   verify-ci-local-gate-parity
@@ -1248,6 +1252,10 @@ case "${cmd}" in
   verify-v320-resolution-state-contract)
     require_internal verify_v320_resolution_state_contract.mjs
     exec "${INTERNAL_DIR}/verify_v320_resolution_state_contract.mjs" "$@"
+    ;;
+  verify-v320-unified-ops-events-workspace)
+    require_internal verify_v320_unified_ops_events_workspace.mjs
+    exec "${INTERNAL_DIR}/verify_v320_unified_ops_events_workspace.mjs" "$@"
     ;;
   verify-v290-final-stabilization-run)
     require_internal verify_v290_final_stabilization_run.mjs

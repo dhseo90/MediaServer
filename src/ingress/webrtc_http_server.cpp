@@ -3590,6 +3590,35 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <p class="ops-rule-note">EventRecord, FeatureSet, EvidenceManifest, review state를 불러오면 V300 evidence detail이 표시됩니다.</p>
         </div>
       </section>
+      <section class="section-card ops-workspace-wide v320-unified-events-workspace" data-testid="ops-v320-unified-events-workspace" data-v320-unified-events-workspace="resolution-queue-detail-timeline">
+        <div class="toolbar">
+          <div>
+            <h3>Unified Resolution Workspace</h3>
+            <p id="opsV320UnifiedWorkspaceSummary">resolution queue, resolution detail, resolution timeline을 `/ops/events` 안에서 Ops 전용으로 확인합니다.</p>
+          </div>
+          <div id="opsV320UnifiedWorkspaceBadges" class="badge-row"><span class="chip">media-server.ops.v320-unified-events-workspace.v1</span></div>
+        </div>
+        <div class="v320-resolution-workspace-grid">
+          <div class="v320-resolution-workspace-column" data-v320-resolution-column="queue">
+            <h4>resolution queue</h4>
+            <div id="opsV320ResolutionQueue" class="v320-resolution-queue">
+              <p class="ops-rule-note">EventRecord와 resolution state를 불러오면 queue가 표시됩니다.</p>
+            </div>
+          </div>
+          <div class="v320-resolution-workspace-column" data-v320-resolution-column="detail">
+            <h4>resolution detail</h4>
+            <div id="opsV320ResolutionDetail" class="v320-resolution-detail">
+              <p class="ops-rule-note">queue 첫 항목의 상태, reason, close/reopen lifecycle이 표시됩니다.</p>
+            </div>
+          </div>
+          <div class="v320-resolution-workspace-column" data-v320-resolution-column="timeline">
+            <h4>resolution timeline</h4>
+            <div id="opsV320ResolutionTimeline" class="v320-resolution-timeline">
+              <p class="ops-rule-note">event, review, resolution transition marker가 표시됩니다.</p>
+            </div>
+          </div>
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide v310-replay-timeline-ui" data-testid="ops-v310-replay-timeline-ui" data-v310-replay-timeline-ui="event-frame-frame-bundle-encoded-clip">
         <div class="toolbar">
           <div>
@@ -15289,6 +15318,204 @@ std::string OpsV310PlaybackSegmentsJson(const std::int64_t pre_event_ms,
     return out.str();
 }
 
+std::string OpsV320ResolutionQueueStatus(const OpsEventReviewState& review) {
+    const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
+    if (resolution_state.resolution_status == "open") {
+        return "needs-resolution";
+    }
+    if (resolution_state.resolution_status == "in-progress") {
+        return "active-resolution";
+    }
+    if (resolution_state.resolution_status == "triaged") {
+        return "triaged";
+    }
+    if (resolution_state.resolution_status == "reopened") {
+        return "reopened";
+    }
+    if (OpsResolutionStatusIsClosed(resolution_state.resolution_status)) {
+        return "closed";
+    }
+    return "needs-review";
+}
+
+std::string OpsV320TimelineMarkersJson(const std::string& event_json,
+                                       const OpsEventReviewState& review) {
+    const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
+    const std::int64_t event_ms =
+        ParseInt64Field(event_json, "updateTime")
+            .value_or(ParseInt64Field(event_json, "startTime").value_or(0));
+    const std::int64_t review_ms = review.updated_at_ms;
+    const std::int64_t resolution_ms =
+        resolution_state.resolution_status == "reopened"
+            ? resolution_state.resolution_reopened_at_ms
+            : resolution_state.resolution_closed_at_ms;
+    std::ostringstream out;
+    out << "["
+        << "{"
+        << "\"key\":\"event-record\","
+        << "\"label\":\"EventRecord\","
+        << "\"status\":\"recorded\","
+        << "\"timeMs\":" << event_ms << ","
+        << "\"opsOnly\":true"
+        << "},"
+        << "{"
+        << "\"key\":\"review-state\","
+        << "\"label\":\"Review state\","
+        << "\"status\":\"" << JsonEscape(review.review_status.empty() ? "new" : review.review_status) << "\","
+        << "\"timeMs\":" << review_ms << ","
+        << "\"opsOnly\":true"
+        << "},"
+        << "{"
+        << "\"key\":\"resolution-state\","
+        << "\"label\":\"Resolution state\","
+        << "\"status\":\"" << JsonEscape(resolution_state.resolution_status) << "\","
+        << "\"timeMs\":" << resolution_ms << ","
+        << "\"transition\":\"" << JsonEscape(resolution_state.resolution_transition) << "\","
+        << "\"opsOnly\":true"
+        << "}"
+        << "]";
+    return out.str();
+}
+
+std::string OpsV320DetailSectionsJson(const std::string& event_json,
+                                      const OpsEventReviewState& review) {
+    const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
+    const std::string event_type =
+        Trim(ParseStringField(event_json, "eventType")
+                 .value_or(ParseStringField(event_json, "className").value_or("event")));
+    const std::string source_id = OpsIncidentTriageBoardSourceId(event_json).empty()
+                                      ? "unknown-source"
+                                      : OpsIncidentTriageBoardSourceId(event_json);
+    const std::string rule_id =
+        Trim(ParseStringField(event_json, "ruleId")
+                 .value_or(ParseStringField(event_json, "rule").value_or("not-available")));
+    std::ostringstream out;
+    out << "["
+        << "{"
+        << "\"key\":\"event\","
+        << "\"label\":\"Event\","
+        << "\"status\":\"" << JsonEscape(event_type.empty() ? "event" : event_type) << "\","
+        << "\"detail\":\"source " << JsonEscape(source_id) << " / rule "
+        << JsonEscape(rule_id.empty() ? "not-available" : rule_id) << "\""
+        << "},"
+        << "{"
+        << "\"key\":\"review\","
+        << "\"label\":\"Review\","
+        << "\"status\":\"" << JsonEscape(review.review_status.empty() ? "new" : review.review_status) << "\","
+        << "\"detail\":\"classification "
+        << JsonEscape(review.classification.empty() ? "unclassified" : review.classification) << "\""
+        << "},"
+        << "{"
+        << "\"key\":\"resolution\","
+        << "\"label\":\"Resolution\","
+        << "\"status\":\"" << JsonEscape(resolution_state.resolution_status) << "\","
+        << "\"detail\":\"reason " << JsonEscape(resolution_state.resolution_reason)
+        << " / transition " << JsonEscape(resolution_state.resolution_transition) << "\""
+        << "}"
+        << "]";
+    return out.str();
+}
+
+std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_json,
+                                                      const OpsEventReviewState& review,
+                                                      const std::size_t index) {
+    std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(review.event_id));
+    if (!OpsEventReviewEventIdAllowed(event_id)) {
+        event_id = OpsEventReviewEventIdAllowed(review.event_id) ? review.event_id
+                                                                 : "event-" + std::to_string(index + 1);
+    }
+    const std::string event_type =
+        Trim(ParseStringField(event_json, "eventType")
+                 .value_or(ParseStringField(event_json, "className").value_or("event")));
+    const std::string source_id = OpsIncidentTriageBoardSourceId(event_json).empty()
+                                      ? "unknown-source"
+                                      : OpsIncidentTriageBoardSourceId(event_json);
+    const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
+    const std::string queue_status = OpsV320ResolutionQueueStatus(resolution_state);
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v320-unified-events-workspace.v1\","
+        << "\"eventId\":\"" << JsonEscape(event_id) << "\","
+        << "\"eventType\":\"" << JsonEscape(event_type.empty() ? "event" : event_type) << "\","
+        << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
+        << "\"queueStatus\":\"" << JsonEscape(queue_status) << "\","
+        << "\"reviewState\":\"" << JsonEscape(review.review_status.empty() ? "new" : review.review_status) << "\","
+        << "\"resolutionState\":" << OpsResolutionStateJson(resolution_state) << ","
+        << "\"closeReopenLifecycle\":" << OpsResolutionStateJson(resolution_state) << ","
+        << "\"detailSections\":" << OpsV320DetailSectionsJson(event_json, resolution_state) << ","
+        << "\"timelineMarkers\":" << OpsV320TimelineMarkersJson(event_json, resolution_state) << ","
+        << "\"opsOnly\":true,"
+        << "\"persistentReviewState\":true,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsV320UnifiedOpsEventsWorkspaceJson(
+    const std::vector<std::string>& event_json_records,
+    const std::unordered_map<std::string, OpsEventReviewState>& reviews) {
+    std::vector<std::string> items;
+    items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
+    for (std::size_t index = 0; index < event_json_records.size(); ++index) {
+        const std::string& event_json = event_json_records[index];
+        const std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+        if (!OpsEventReviewEventIdAllowed(event_id)) {
+            continue;
+        }
+        const auto review_it = reviews.find(event_id);
+        const OpsEventReviewState review =
+            review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
+        items.push_back(OpsV320UnifiedResolutionWorkspaceItemJson(event_json, review, index));
+        if (items.size() >= 12U) {
+            break;
+        }
+    }
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v320-unified-events-workspace.v1\","
+        << "\"status\":\"ops-v320-unified-events-workspace\","
+        << "\"opsOnly\":true,"
+        << "\"workspace\":\"resolution-queue-detail-timeline\","
+        << "\"resolutionQueue\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << items[i];
+    }
+    out << "],"
+        << "\"selectedDetail\":" << (items.empty() ? "null" : items.front()) << ","
+        << "\"resolutionTimeline\":" << (items.empty() ? "[]" : "[" + items.front() + "]") << ","
+        << "\"itemCount\":" << items.size() << ","
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false,"
+        << "\"evidenceQualityLayerImplemented\":false,"
+        << "\"sourceReliabilityContextImplemented\":false,"
+        << "\"aiReviewQualityContextImplemented\":false,"
+        << "\"operatorAssignmentFlowImplemented\":false,"
+        << "\"clientDigestImplemented\":false,"
+        << "\"searchMetricsImplemented\":false"
+        << "}";
+    return out.str();
+}
+
 std::string OpsV310ReplayTimelineItemJson(const std::string& event_json,
                                           const OpsEventReviewState& review,
                                           const std::size_t index) {
@@ -16778,6 +17005,9 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         << ","
         << "\"eventEvidenceSearch\":"
         << OpsV300EventEvidenceSearchUiJson(event_result.records_json, reviews, query)
+        << ","
+        << "\"unifiedResolutionWorkspace\":"
+        << OpsV320UnifiedOpsEventsWorkspaceJson(event_result.records_json, reviews)
         << ","
         << "\"replayTimeline\":"
         << OpsV310ReplayTimelineUiJson(event_result.records_json, reviews)

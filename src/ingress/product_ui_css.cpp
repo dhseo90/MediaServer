@@ -2576,6 +2576,88 @@ std::string ProductUiCss() {
       gap: var(--space-2);
       align-items: center;
     }
+    .v320-unified-events-workspace {
+      display: grid;
+      gap: var(--space-3);
+    }
+    .v320-resolution-workspace-grid {
+      display: grid;
+      grid-template-columns: minmax(220px, 0.95fr) minmax(240px, 1.05fr) minmax(220px, 1fr);
+      gap: var(--space-3);
+      align-items: stretch;
+    }
+    .v320-resolution-workspace-column {
+      display: grid;
+      align-content: start;
+      gap: var(--space-2);
+      min-width: 0;
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-subtle);
+    }
+    .v320-resolution-workspace-column h4 {
+      margin: 0;
+      color: var(--color-text);
+      font-size: 13px;
+      text-transform: uppercase;
+    }
+    .v320-resolution-queue,
+    .v320-resolution-detail,
+    .v320-resolution-timeline {
+      display: grid;
+      gap: var(--space-2);
+      min-width: 0;
+    }
+    .v320-resolution-queue-card,
+    .v320-resolution-detail-card,
+    .v320-resolution-timeline-marker {
+      display: grid;
+      gap: var(--space-2);
+      min-width: 0;
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: var(--color-bg-elevated);
+      overflow-wrap: anywhere;
+    }
+    .v320-resolution-queue-card.is-active {
+      border-color: var(--color-primary);
+      box-shadow: inset 3px 0 0 var(--color-primary);
+    }
+    .v320-resolution-detail-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: var(--space-2);
+    }
+    .v320-resolution-detail-grid p {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+      margin: 0;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: var(--color-surface);
+    }
+    .v320-resolution-detail-grid strong,
+    .v320-resolution-timeline-marker span {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+    .v320-resolution-detail-grid span,
+    .v320-resolution-detail-grid small,
+    .v320-resolution-timeline-marker p {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .v320-resolution-detail-grid small,
+    .v320-resolution-timeline-marker p {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
     .v310-replay-timeline-ui {
       display: grid;
       gap: var(--space-3);
@@ -3825,7 +3907,8 @@ std::string ProductUiCss() {
       body.ops-shell .rules-workspace-assist-grid,
       body.ops-shell .rules-workspace-catalog-grid,
       body.ops-shell .ops-metric-grid,
-      body.ops-shell .ops-dashboard-card-grid {
+      body.ops-shell .ops-dashboard-card-grid,
+      body.ops-shell .v320-resolution-workspace-grid {
         grid-template-columns: minmax(0, 1fr);
       }
       body.ops-shell .ops-workspace-hero.panel-title-toolbar,

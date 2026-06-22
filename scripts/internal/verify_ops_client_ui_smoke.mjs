@@ -138,6 +138,13 @@ const pageChecks = [
     mustNot: ['href="/ops/events"'],
   },
   {
+    name: "ops-events-unified-resolution-workspace",
+    path: "/ops/events",
+    visualSelector: '[data-testid="ops-v320-unified-events-workspace"]',
+    must: ['data-testid="ops-events-page"', 'data-testid="ops-v320-unified-events-workspace"', 'data-v320-unified-events-workspace="resolution-queue-detail-timeline"', 'id="opsV320UnifiedWorkspaceSummary"', 'id="opsV320UnifiedWorkspaceBadges"', 'id="opsV320ResolutionQueue"', 'id="opsV320ResolutionDetail"', 'id="opsV320ResolutionTimeline"', 'unifiedResolutionWorkspace', 'media-server.ops.v320-unified-events-workspace.v1', 'resolution queue', 'resolution detail', 'resolution timeline', '/ops/api/events/reviews'],
+    mustNot: ['href="/ops/events"'],
+  },
+  {
     name: "ops-rules",
     path: "/ops/rules",
     visualSelector: '[data-testid="ops-rules-page"]',

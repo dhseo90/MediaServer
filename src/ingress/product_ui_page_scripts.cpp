@@ -2631,6 +2631,81 @@ void AppendOpsShellScript(std::ostringstream& out,
           </article>`;
         }).join('');
       }
+      function renderV320UnifiedOpsEventsWorkspace(unifiedResolutionWorkspace = {}) {
+        const queueRoot = document.getElementById('opsV320ResolutionQueue');
+        const detailRoot = document.getElementById('opsV320ResolutionDetail');
+        const timelineRoot = document.getElementById('opsV320ResolutionTimeline');
+        if (!queueRoot || !detailRoot || !timelineRoot) return;
+        const resolutionQueue = Array.isArray(unifiedResolutionWorkspace.resolutionQueue)
+          ? unifiedResolutionWorkspace.resolutionQueue
+          : [];
+        const selectedDetail = unifiedResolutionWorkspace.selectedDetail || resolutionQueue[0] || null;
+        const resolutionTimeline = Array.isArray(unifiedResolutionWorkspace.resolutionTimeline)
+          ? unifiedResolutionWorkspace.resolutionTimeline
+          : (selectedDetail ? [selectedDetail] : []);
+        renderBadges('opsV320UnifiedWorkspaceBadges', [
+          { text: unifiedResolutionWorkspace.schema || 'media-server.ops.v320-unified-events-workspace.v1' },
+          { text: `queue ${resolutionQueue.length}`, tone: resolutionQueue.length > 0 ? '' : 'warn' },
+          { text: unifiedResolutionWorkspace.viewerClientExposureAdded === false ? 'Ops only' : 'client 노출 확인 필요', tone: unifiedResolutionWorkspace.viewerClientExposureAdded === false ? 'info' : 'warn' },
+          { text: unifiedResolutionWorkspace.eventPostPayloadChanged === false ? 'Event POST unchanged' : 'payload 확인 필요', tone: unifiedResolutionWorkspace.eventPostPayloadChanged === false ? 'info' : 'warn' },
+          { text: unifiedResolutionWorkspace.sourceUrlExposed === false && unifiedResolutionWorkspace.rawJsonExposed === false && unifiedResolutionWorkspace.debugMaterialExposed === false ? 'redacted' : 'redaction 확인 필요', tone: unifiedResolutionWorkspace.sourceUrlExposed === false && unifiedResolutionWorkspace.rawJsonExposed === false && unifiedResolutionWorkspace.debugMaterialExposed === false ? 'info' : 'warn' }
+        ]);
+        setText(
+          'opsV320UnifiedWorkspaceSummary',
+          resolutionQueue.length
+            ? `Unified resolution workspace · resolution queue ${resolutionQueue.length} · detail/timeline Ops-only`
+            : 'resolution queue, resolution detail, resolution timeline을 `/ops/events` 안에서 Ops 전용으로 확인합니다.'
+        );
+        if (resolutionQueue.length === 0) {
+          queueRoot.innerHTML = '<p class="ops-rule-note">표시할 resolution queue 항목이 없습니다.</p>';
+          detailRoot.innerHTML = '<p class="ops-rule-note">선택된 resolution detail이 없습니다.</p>';
+          timelineRoot.innerHTML = '<p class="ops-rule-note">표시할 resolution timeline이 없습니다.</p>';
+          return;
+        }
+        queueRoot.innerHTML = resolutionQueue.map((item, index) => {
+          const resolutionState = item?.resolutionState || {};
+          const lifecycle = item?.closeReopenLifecycle?.closeReopenLifecycle || resolutionState.closeReopenLifecycle || {};
+          const active = selectedDetail && item?.eventId === selectedDetail.eventId;
+          return `<article class="v320-resolution-queue-card${active ? ' is-active' : ''}" data-v320-resolution-event="${escapeHtml(item?.eventId || '')}">
+            <div class="table-cell-main">
+              <strong>${escapeHtml(display(item?.eventType || item?.eventId || `event ${index + 1}`))}</strong>
+              <span>${escapeHtml(display(item?.eventId || '-'))} · ${escapeHtml(display(item?.sourceId || 'unknown-source'))}</span>
+            </div>
+            <div class="badge-row">
+              <span class="chip ${item?.queueStatus === 'closed' ? 'info' : 'warn'}">${escapeHtml(display(item?.queueStatus || 'needs-resolution'))}</span>
+              <span class="chip">${escapeHtml(display(resolutionState.status || 'open'))}</span>
+              <span class="chip">${escapeHtml(display(resolutionState.reason || 'unreviewed'))}</span>
+            </div>
+            <p class="ops-rule-note">canClose ${lifecycle.canClose === true ? 'true' : 'false'} · canReopen ${lifecycle.canReopen === true ? 'true' : 'false'} · transition ${escapeHtml(display(resolutionState.transition || 'none'))}</p>
+          </article>`;
+        }).join('');
+        const detailSections = Array.isArray(selectedDetail?.detailSections) ? selectedDetail.detailSections : [];
+        const selectedResolution = selectedDetail?.resolutionState || {};
+        detailRoot.innerHTML = `<article class="v320-resolution-detail-card" data-v320-resolution-detail="${escapeHtml(selectedDetail?.eventId || '')}">
+          <div class="table-cell-main">
+            <strong>${escapeHtml(display(selectedDetail?.eventId || 'resolution detail'))}</strong>
+            <span>${escapeHtml(display(selectedDetail?.eventType || 'event'))} · review ${escapeHtml(display(selectedDetail?.reviewState || 'new'))}</span>
+          </div>
+          <div class="v320-resolution-detail-grid">
+            ${detailSections.map(section => `<p data-v320-resolution-detail-section="${escapeHtml(section?.key || '')}">
+              <strong>${escapeHtml(display(section?.label || section?.key || 'section'))}</strong>
+              <span>${escapeHtml(display(section?.status || 'unknown'))}</span>
+              <small>${escapeHtml(display(section?.detail || 'Ops review state'))}</small>
+            </p>`).join('')}
+          </div>
+          <p class="ops-rule-note">resolutionStatus ${escapeHtml(display(selectedResolution.status || 'open'))} · resolutionReason ${escapeHtml(display(selectedResolution.reason || 'unreviewed'))} · sourceUrlExposed ${selectedDetail?.sourceUrlExposed === false ? 'false' : '확인 필요'} · rawJsonExposed ${selectedDetail?.rawJsonExposed === false ? 'false' : '확인 필요'} · debugMaterialExposed ${selectedDetail?.debugMaterialExposed === false ? 'false' : '확인 필요'}</p>
+        </article>`;
+        const timelineItems = resolutionTimeline.flatMap(item => Array.isArray(item?.timelineMarkers)
+          ? item.timelineMarkers.map(marker => ({ ...marker, eventId: item.eventId }))
+          : []);
+        timelineRoot.innerHTML = timelineItems.length === 0
+          ? '<p class="ops-rule-note">표시할 resolution timeline marker가 없습니다.</p>'
+          : timelineItems.map(marker => `<div class="v320-resolution-timeline-marker" data-v320-resolution-timeline-marker="${escapeHtml(marker?.key || '')}">
+              <span>${escapeHtml(display(marker?.label || marker?.key || 'marker'))}</span>
+              <strong>${escapeHtml(display(marker?.status || 'unknown'))}</strong>
+              <p>${escapeHtml(display(marker?.eventId || '-'))} · ${escapeHtml(display(marker?.transition || 'none'))} · ${escapeHtml(display(marker?.timeMs ?? 0))}ms</p>
+            </div>`).join('');
+      }
       function renderV310ReplayTimelineUi(replayTimeline = {}) {
         const root = document.getElementById('opsV310ReplayTimelineRows');
         if (!root) return;
@@ -3669,6 +3744,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         renderApprovalGatedRuleDraftReadiness(reviewPayload.approvalGatedRuleDraftReadiness || {});
         renderOperatorOutcomeMemory(reviewPayload.operatorOutcomeMemory || {});
         renderV300EventEvidenceSearchUi(reviewPayload.eventEvidenceSearch || {});
+        renderV320UnifiedOpsEventsWorkspace(reviewPayload.unifiedResolutionWorkspace || {});
         renderV310ReplayTimelineUi(reviewPayload.replayTimeline || {});
         renderV310OperatorFeatureCorrection(reviewPayload.operatorFeatureCorrection || {});
         renderIncidentMemorySearch(reviewPayload.memorySearch || {});
@@ -3681,7 +3757,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (prevButton) prevButton.disabled = opsEventRecordsOffset <= 0;
         if (nextButton) nextButton.disabled = !records.hasMore;
         if (records.nextOffset != null) nextButton?.setAttribute('data-next-offset', String(records.nextOffset));
-        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, incidentTriageBoard: reviewPayload.incidentTriageBoard || {}, incidentDecisionScorecard: reviewPayload.incidentDecisionScorecard || {}, operationalActionPack: reviewPayload.operationalActionPack || {}, incidentActionReadinessQueue: reviewPayload.incidentActionReadinessQueue || {}, evidenceIntakeFieldReadiness: reviewPayload.evidenceIntakeFieldReadiness || {}, runtimeEvidenceWindow: reviewPayload.runtimeEvidenceWindow || {}, ruleWhatIfPreview: reviewPayload.ruleWhatIfPreview || {}, approvalGatedRuleDraftReadiness: reviewPayload.approvalGatedRuleDraftReadiness || {}, operatorOutcomeMemory: reviewPayload.operatorOutcomeMemory || {}, eventEvidenceSearch: reviewPayload.eventEvidenceSearch || {}, replayTimeline: reviewPayload.replayTimeline || {}, operatorFeatureCorrection: reviewPayload.operatorFeatureCorrection || {}, memorySearch: reviewPayload.memorySearch || {}, vlmSummaryCandidateReview: reviewPayload.memorySearch?.vlmSummaryCandidateReview || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
+        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, incidentTriageBoard: reviewPayload.incidentTriageBoard || {}, incidentDecisionScorecard: reviewPayload.incidentDecisionScorecard || {}, operationalActionPack: reviewPayload.operationalActionPack || {}, incidentActionReadinessQueue: reviewPayload.incidentActionReadinessQueue || {}, evidenceIntakeFieldReadiness: reviewPayload.evidenceIntakeFieldReadiness || {}, runtimeEvidenceWindow: reviewPayload.runtimeEvidenceWindow || {}, ruleWhatIfPreview: reviewPayload.ruleWhatIfPreview || {}, approvalGatedRuleDraftReadiness: reviewPayload.approvalGatedRuleDraftReadiness || {}, operatorOutcomeMemory: reviewPayload.operatorOutcomeMemory || {}, eventEvidenceSearch: reviewPayload.eventEvidenceSearch || {}, unifiedResolutionWorkspace: reviewPayload.unifiedResolutionWorkspace || {}, replayTimeline: reviewPayload.replayTimeline || {}, operatorFeatureCorrection: reviewPayload.operatorFeatureCorrection || {}, memorySearch: reviewPayload.memorySearch || {}, vlmSummaryCandidateReview: reviewPayload.memorySearch?.vlmSummaryCandidateReview || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
       }
       const itemId = item => display(item?.id || item?.ruleId || item?.profileId || '-');
       const opsRulesIdText = value => {
