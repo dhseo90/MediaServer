@@ -1,6 +1,6 @@
 # Project Feature Test Inventory
 
-이 문서는 현재 release 목표 `v3.1.0` 기준의 기능별 테스트 분류 기준표입니다.
+이 문서는 현재 release 목표 `v3.2.0` 기준의 기능별 테스트 분류 기준표입니다.
 독자는 개발/테스트 에이전트이며, lifecycle은 active release target 동안 유지되는 test inventory입니다.
 AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, 이 문서는 기능 ID와 테스트 영역만 관리합니다.
 
@@ -52,6 +52,27 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | UI 풀테스트 결과 | 기능 ID별 result template 기록란은 별도 문서가 관리 | 결과 문서 없이 inventory만으로 UI PASS 판정 불가 |
 | Coverage gate | `./server.sh verify-feature-inventory-coverage`가 `media-server.feature-inventory-coverage.v1` report로 기능 ID별 연결을 점검 | `missing coverage target` 누락 ID는 release gate에서 FAIL |
 | VLM current expansion | VLM route, control, action, runtime state, sidecar, privacy guard, feature-only retention을 현재 기능 ID에 연결 | 실행 증거 아님 |
+
+## v3.2.0 Operations Resolution Workspace Coverage Mapping
+
+이 절은 현재 active target의 계획 단계 연결만 남깁니다. 아래 행은 실행 evidence가
+아니며, 기능 구현 전에는 실제 기능 ID, route/control/action, verifier command를
+추가해야 합니다. 신규 기능 ID가 예약되어 있어도 안정화/UI 테스트를 PASS로 보고하지
+않습니다.
+
+| Roadmap scope | Feature IDs | 대표 안정화 verifier | release evidence boundary |
+| --- | --- | --- | --- |
+| v3.2.0 (1) v3.2.0 baseline 정렬 | 기존 docs/release metadata gate | `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets`, `git diff --check` | source `3.2.0`, latest published `v3.1.0`, current roadmap `v3.2.0 Operations Resolution Workspace` 정렬 기준. v3.2 기능 구현, UI 풀테스트, 30분/120분, GitHub Release publish evidence가 아님 |
+| v3.2.0 (2) Resolution State Contract | 후속 구현 시 배정 | 후속 구현 시 배정 | 사건 상태, 판정 reason, close/reopen lifecycle contract를 실제 API/schema/verifier와 연결한 뒤에만 완료 |
+| v3.2.0 (3) Unified Ops Events Workspace | 후속 구현 시 배정 | 후속 구현 시 배정 | `/ops/events` resolution queue/detail/timeline workspace를 실제 UI/verifier와 연결한 뒤에만 완료 |
+| v3.2.0 (4) Evidence Quality Layer | 후속 구현 시 배정 | 후속 구현 시 배정 | evidence completeness/confidence/replay coverage hint를 실제 payload/UI/verifier와 연결한 뒤에만 완료 |
+| v3.2.0 (5) Source Reliability Context | 후속 구현 시 배정 | 후속 구현 시 배정 | source health와 recent failure context를 사건 판단 화면에 연결한 뒤에만 완료 |
+| v3.2.0 (6) AI Review Quality Context | 후속 구현 시 배정 | 후속 구현 시 배정 | correction/review signal, uncertainty reason, quality badge를 실제 UI/verifier와 연결한 뒤에만 완료 |
+| v3.2.0 (7) Operator Resolution Flow | 후속 구현 시 배정 | 후속 구현 시 배정 | assign, note, close, reopen, audit trail을 실제 write path/verifier와 연결한 뒤에만 완료 |
+| v3.2.0 (8) Action Readiness Checklist | 후속 구현 시 배정 | 후속 구현 시 배정 | rule draft/evidence bundle/notification readiness checklist를 실제 UI/verifier와 연결한 뒤에만 완료 |
+| v3.2.0 (9) Client-safe Resolution Digest | 후속 구현 시 배정 | 후속 구현 시 배정 | viewer-safe status summary와 redaction boundary를 실제 client API/UI/verifier와 연결한 뒤에만 완료 |
+| v3.2.0 (10) Resolution Search & Metrics | 후속 구현 시 배정 | 후속 구현 시 배정 | resolution filters, saved views, 운영 metric summary를 실제 검색/metric verifier와 연결한 뒤에만 완료 |
+| v3.2.0 (11) Stabilization and Release Readiness | 후속 구현 시 배정 | 후속 구현 시 배정 | v3.2 local readiness와 release evidence/not-run boundary를 실제 gate와 연결한 뒤에만 완료 |
 
 ## v3.1.0 Encoded Event Clip and Safe Sharing Expansion Coverage Mapping
 

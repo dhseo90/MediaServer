@@ -10,8 +10,8 @@
 - 이 문서는 검증 명령 catalog입니다. PASS 보고는 실제 실행 output이 있을 때만 가능합니다.
 - 기능별 테스트 영역과 coverage 기준은 [project-feature-test-inventory.md](./project-feature-test-inventory.md)가 관리합니다. 이 inventory는 실행 evidence가 아닙니다.
 - 안정화, 30분, 120분, UI 풀테스트는 서로 대체하지 않습니다.
-- 외부 source/TURN/장시간 테스트는 별도 gate로 분리합니다.
-- external TURN/WHEP, ONVIF 실기기, real cloud/VLM provider는 endpoint/credential/승인 없이는 PASS 근거가 아닙니다.
+- 외부 조건이 필요한 테스트와 장시간 테스트는 별도 gate로 분리합니다.
+- endpoint, credential, runtime 승인 같은 사전 조건이 필요한 항목은 조건과 실행 evidence가 있을 때만 PASS 근거가 됩니다.
 
 ## 빠른 실행 경계
 
@@ -40,7 +40,27 @@
 | V250-S08 | `./server.sh verify-v250-redacted-incident-evidence-bundle` | release-safe manifest-only evidence bundle guard |
 | V250-S09 | `./server.sh verify-v250-owner-release-readiness` | owner decomposition/release readiness local gate |
 
-## 현재 v3.1.0 verifier
+## 현재 v3.2.0 verifier
+
+아래 명령은 v3.2.0 roadmap의 현재 문서/source baseline gate입니다. 후속 항목은
+각 step 구현 때 실제 command, route/control/action, script inventory를 연결한 뒤에만
+PASS 근거로 사용합니다.
+
+| Step | Command | Scope |
+| --- | --- | --- |
+| v3.2.0 (1) | `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, `git diff --check` | source `3.2.0`, latest published `v3.1.0`, current roadmap `v3.2.0 Operations Resolution Workspace` 정렬. v3.2 기능 구현, UI 풀테스트, 30분/120분, published metadata, tag, push, GitHub Release evidence가 아님 |
+| v3.2.0 (2) | 후속 구현 시 배정 | Resolution State Contract. 실제 API/schema/verifier 연결 전에는 PASS 근거가 아님 |
+| v3.2.0 (3) | 후속 구현 시 배정 | Unified Ops Events Workspace. 실제 UI/verifier 연결 전에는 PASS 근거가 아님 |
+| v3.2.0 (4) | 후속 구현 시 배정 | Evidence Quality Layer. 실제 payload/UI/verifier 연결 전에는 PASS 근거가 아님 |
+| v3.2.0 (5) | 후속 구현 시 배정 | Source Reliability Context. 실제 source context UI/verifier 연결 전에는 PASS 근거가 아님 |
+| v3.2.0 (6) | 후속 구현 시 배정 | AI Review Quality Context. 실제 review quality UI/verifier 연결 전에는 PASS 근거가 아님 |
+| v3.2.0 (7) | 후속 구현 시 배정 | Operator Resolution Flow. 실제 write path/audit/verifier 연결 전에는 PASS 근거가 아님 |
+| v3.2.0 (8) | 후속 구현 시 배정 | Action Readiness Checklist. 실제 UI/verifier 연결 전에는 PASS 근거가 아님 |
+| v3.2.0 (9) | 후속 구현 시 배정 | Client-safe Resolution Digest. 실제 client API/UI/verifier 연결 전에는 PASS 근거가 아님 |
+| v3.2.0 (10) | 후속 구현 시 배정 | Resolution Search & Metrics. 실제 검색/metric verifier 연결 전에는 PASS 근거가 아님 |
+| v3.2.0 (11) | 후속 구현 시 배정 | Stabilization and Release Readiness. 실제 release readiness gate 연결 전에는 PASS 근거가 아님 |
+
+## 최신 published baseline v3.1.0 verifier
 
 아래 명령은 v3.1.0 roadmap 구현 단계에서 추가되는 verifier입니다. 아직 구현되지 않은
 항목은 문서 gate 또는 후보로만 남기며 PASS 근거가 아닙니다. 실제 실행 가능 여부는 각 스텝 구현 때

@@ -6,11 +6,11 @@
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.1.0`
+- 현재 소스 버전: `3.2.0`
 - 최신 공개 GitHub Release: `v3.1.0`
 - `v3.1.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap은 `v3.1.0 Encoded Event Clip and Safe Sharing Expansion`입니다.
+- 현재 source roadmap은 `v3.2.0 Operations Resolution Workspace`입니다.
 
 ## 기본 공개 범위
 
@@ -55,8 +55,9 @@ main merge를 수행하지 않습니다.
 
 ## Public Docs / Assets Refresh
 
-v3.1.0 S00 source baseline alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
-source `3.1.0`, latest published `v3.1.0` 기준으로 분리 정렬하는 local gate입니다.
+v3.2.0 Step 1 source baseline alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
+source `3.2.0`, current roadmap `v3.2.0 Operations Resolution Workspace`,
+latest published `v3.1.0` 기준으로 분리 정렬하는 local gate입니다.
 대상 문서는 `README.md`, `README.en.md`,
 `docs/README.md`, `docs/en/README.md`, `docs/ui-guide.md`,
 `docs/assets/ui/README.md`, 이 정책 문서, [versioning-policy.md](versioning-policy.md)입니다.
@@ -64,7 +65,6 @@ source `3.1.0`, latest published `v3.1.0` 기준으로 분리 정렬하는 local
 Companion local gate:
 
 ```bash
-./server.sh verify-v310-entry-baseline
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-docs-links
 ./server.sh verify-release-metadata
@@ -137,27 +137,28 @@ published metadata, release branch 삭제, Next branch sync는 각각 실행 evi
 close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 삭제 승인이 없으면
 수행하지 않습니다.
 
-## v3.1.0 Source Roadmap Scope
+## v3.2.0 Source Roadmap Scope
 
-현재 `3.1.0` source tree는 아래 roadmap 후보를 source 기능과 local verifier 기준으로
+현재 `3.2.0` source tree는 아래 roadmap 후보를 source 기능과 local verifier 기준으로
 정리합니다. 각 항목은 구현과 직접 evidence가 생긴 뒤에만 완료로 기록합니다. UI
 풀테스트, 30분, 120분, 외부 endpoint field smoke는 실행한 경우에만 release evidence로
 기록합니다.
 
-- v3.1.0 source-of-truth 정렬
-- Encoded Event Clip Contract
-- Event Clip Encoder Pipeline
-- Replay Timeline UI
-- Client-safe Event Digest
-- Scoped Integrator Search API
-- Operator Feature Correction
-- Optional Vector Search
-- Retention/Export Hardening
+- v3.2.0 source-of-truth 정렬
+- Resolution State Contract
+- Unified Ops Events Workspace
+- Evidence Quality Layer
+- Source Reliability Context
+- AI Review Quality Context
+- Operator Resolution Flow
+- Action Readiness Checklist
+- Client-safe Resolution Digest
+- Resolution Search & Metrics
 - Stabilization and Release Readiness
 
-`v3.1.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
+`v3.2.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
 있을 때만 완료로 기록합니다. 현재 latest published release는 `v3.1.0`입니다.
-현재 공개 release tag 기준은 `v3.1.0`입니다. 다음 준비 중인 source tag 기준은 `v3.1.0`입니다.
+현재 공개 release tag 기준은 `v3.1.0`입니다. 다음 준비 중인 source tag 기준은 `v3.2.0`입니다.
 
 ## v3.0.0 Previous Published Baseline Scope
 
@@ -335,7 +336,7 @@ Not-run/excluded boundary:
 ## Tag 전략
 
 - 현재 공개 release tag 기준은 `v3.1.0`입니다.
-- 다음 준비 중인 source tag 기준은 `v3.1.0`입니다.
+- 다음 준비 중인 source tag 기준은 `v3.2.0`입니다.
 - `v3.1.0` release tag는 signed annotated tag로 생성했습니다.
 - 다음 신규 release tag는 signed annotated tag로 생성합니다.
 - unsigned annotated tag와 lightweight tag는 새 release tag로 사용하지 않습니다.
@@ -386,24 +387,24 @@ Annotation JSON을 확보한 경우:
 ./server.sh verify-actions-security --annotations-json <annotations.json>
 ```
 
-## v3.1.0 Release Note Template
+## v3.2.0 Release Note Template
 
-아래 템플릿은 v3.1.0 source-only GitHub Release note 기준입니다. 실행하지 않은
+아래 템플릿은 v3.2.0 source-only GitHub Release note 기준입니다. 실행하지 않은
 장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다.
 
 ```markdown
-# Media Server v3.1.0
+# Media Server v3.2.0
 
 ## Scope
 
 - Source-only live media server release
-- Encoded Event Clip and Safe Sharing Expansion source scope
-- Latest published baseline before this release: v3.0.0
+- Operations Resolution Workspace source scope
+- Latest published baseline before this release: v3.1.0
 - Binary/runtime/model bundle: not included
 
 ## Verification
 
-- V310-S00 baseline gate: <fill after `verify-v310-entry-baseline`>
+- v3.2.0 baseline alignment: <fill after docs/release metadata gates>
 - Local docs/release metadata: <fill after `verify-release-metadata`,
   `verify-docs-links`, `verify-docs-ui-assets`, and required inventory gates>
 - Build: <fill after `./server.sh build`>
