@@ -10325,6 +10325,12 @@ struct OpsEventReviewState {
     std::string incident_id;
     std::string incident_status{"new"};
     std::string action_target{"operator-triage"};
+    std::string resolution_status{"open"};
+    std::string resolution_reason{"unreviewed"};
+    std::string resolution_note;
+    std::string resolution_transition{"none"};
+    std::int64_t resolution_closed_at_ms{0};
+    std::int64_t resolution_reopened_at_ms{0};
     std::string note;
     std::string vlm_action{"not-reviewed"};
     std::string vlm_action_target{"eventExplanation"};
@@ -10415,6 +10421,41 @@ bool OpsIncidentStatusAllowed(const std::string& value) {
     return kAllowed.count(value) != 0;
 }
 
+bool OpsResolutionStatusAllowed(const std::string& value) {
+    static const std::unordered_set<std::string> kAllowed = {
+        "open",
+        "triaged",
+        "in-progress",
+        "resolved",
+        "reopened",
+        "false-positive",
+    };
+    return kAllowed.count(value) != 0;
+}
+
+bool OpsResolutionReasonAllowed(const std::string& value) {
+    static const std::unordered_set<std::string> kAllowed = {
+        "unreviewed",
+        "operator-confirmed",
+        "evidence-insufficient",
+        "false-positive",
+        "duplicate",
+        "source-unreliable",
+        "rule-tuning",
+        "manual-reopen",
+    };
+    return kAllowed.count(value) != 0;
+}
+
+bool OpsResolutionTransitionAllowed(const std::string& value) {
+    static const std::unordered_set<std::string> kAllowed = {
+        "none",
+        "close",
+        "reopen",
+    };
+    return kAllowed.count(value) != 0;
+}
+
 std::string NormalizeOpsEventReviewStatus(std::string value) {
     value = LowerAscii(Trim(std::move(value)));
     return OpsEventReviewStatusAllowed(value) ? value : "new";
@@ -10440,6 +10481,26 @@ std::string NormalizeOpsIncidentStatus(std::string value) {
     return OpsIncidentStatusAllowed(value) ? value : "new";
 }
 
+std::string NormalizeOpsResolutionStatus(std::string value) {
+    value = LowerAscii(Trim(std::move(value)));
+    return OpsResolutionStatusAllowed(value) ? value : "open";
+}
+
+std::string NormalizeOpsResolutionReason(std::string value) {
+    value = LowerAscii(Trim(std::move(value)));
+    return OpsResolutionReasonAllowed(value) ? value : "unreviewed";
+}
+
+std::string NormalizeOpsResolutionTransition(std::string value) {
+    value = LowerAscii(Trim(std::move(value)));
+    return OpsResolutionTransitionAllowed(value) ? value : "none";
+}
+
+bool OpsResolutionStatusIsClosed(const std::string& value) {
+    const std::string status = NormalizeOpsResolutionStatus(value);
+    return status == "resolved" || status == "false-positive";
+}
+
 std::string NormalizeOpsIncidentId(std::string value, const std::string& event_id) {
     value = Trim(std::move(value));
     if (!OpsEventReviewEventIdAllowed(value)) {
@@ -10449,6 +10510,7 @@ std::string NormalizeOpsIncidentId(std::string value, const std::string& event_i
 }
 
 bool OpsEventReviewNoteContainsSensitiveMaterial(const std::string& value);
+std::string NormalizeOpsEventReviewNote(std::string value);
 
 std::string NormalizeOpsEventActionTarget(std::string value) {
     value = Trim(std::move(value));
@@ -10471,6 +10533,115 @@ std::string NormalizeOpsEventActionTarget(std::string value) {
         return "[redacted-action-target]";
     }
     return value;
+}
+
+std::string NormalizeOpsResolutionNote(std::string value) {
+    value = NormalizeOpsEventReviewNote(std::move(value));
+    constexpr std::size_t kMaxResolutionNoteBytes = 240;
+    if (value.size() > kMaxResolutionNoteBytes) {
+        value.resize(kMaxResolutionNoteBytes);
+        value = Trim(std::move(value));
+    }
+    return value;
+}
+
+OpsEventReviewState OpsResolutionStateFromReview(OpsEventReviewState state) {
+    state.resolution_status = NormalizeOpsResolutionStatus(state.resolution_status);
+    state.resolution_reason = NormalizeOpsResolutionReason(state.resolution_reason);
+    state.resolution_transition = NormalizeOpsResolutionTransition(state.resolution_transition);
+    state.resolution_note = NormalizeOpsResolutionNote(state.resolution_note);
+    const std::string review_status = NormalizeOpsEventReviewStatus(state.review_status);
+    const std::string classification = NormalizeOpsEventReviewClassification(state.classification);
+    const std::string incident_status = NormalizeOpsIncidentStatus(state.incident_status);
+
+    if (state.resolution_transition == "close" && state.resolution_status == "open") {
+        state.resolution_status =
+            incident_status == "false-positive" || classification == "false-positive"
+                ? "false-positive"
+                : "resolved";
+    } else if (state.resolution_transition == "reopen" &&
+               OpsResolutionStatusIsClosed(state.resolution_status)) {
+        state.resolution_status = "reopened";
+    }
+
+    if (state.resolution_status == "open" && state.resolution_reason == "unreviewed") {
+        if (incident_status == "closed" || review_status == "confirmed") {
+            state.resolution_status = "resolved";
+            state.resolution_reason = "operator-confirmed";
+            state.resolution_transition = "close";
+        } else if (incident_status == "false-positive" || classification == "false-positive") {
+            state.resolution_status = "false-positive";
+            state.resolution_reason = "false-positive";
+            state.resolution_transition = "close";
+        } else if (classification == "duplicate") {
+            state.resolution_status = "triaged";
+            state.resolution_reason = "duplicate";
+        } else if (classification == "needs-tuning") {
+            state.resolution_status = "triaged";
+            state.resolution_reason = "rule-tuning";
+        } else if (review_status == "needs-follow-up" || incident_status == "review-needed") {
+            state.resolution_status = "triaged";
+            state.resolution_reason = "evidence-insufficient";
+        } else if (incident_status == "acknowledged" || incident_status == "in-progress") {
+            state.resolution_status = "in-progress";
+            state.resolution_reason = "operator-confirmed";
+        } else if (review_status == "reviewing") {
+            state.resolution_status = "triaged";
+        }
+    }
+
+    if (OpsResolutionStatusIsClosed(state.resolution_status) &&
+        state.resolution_transition == "none") {
+        state.resolution_transition = "close";
+    }
+    if (state.resolution_status == "reopened") {
+        state.resolution_transition = "reopen";
+        if (state.resolution_reason == "unreviewed") {
+            state.resolution_reason = "manual-reopen";
+        }
+    }
+    return state;
+}
+
+std::string OpsResolutionStateJson(const OpsEventReviewState& raw_state) {
+    const OpsEventReviewState state = OpsResolutionStateFromReview(raw_state);
+    const bool closed = OpsResolutionStatusIsClosed(state.resolution_status);
+    const bool can_reopen = closed || state.resolution_status == "reopened";
+    const bool can_close = !closed;
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.resolution-state.v1\","
+        << "\"status\":\"" << JsonEscape(state.resolution_status) << "\","
+        << "\"reason\":\"" << JsonEscape(state.resolution_reason) << "\","
+        << "\"note\":\"" << JsonEscape(state.resolution_note) << "\","
+        << "\"transition\":\"" << JsonEscape(state.resolution_transition) << "\","
+        << "\"closedAtMs\":" << state.resolution_closed_at_ms << ","
+        << "\"reopenedAtMs\":" << state.resolution_reopened_at_ms << ","
+        << "\"closeReopenLifecycle\":{"
+        << "\"canClose\":" << (can_close ? "true" : "false") << ","
+        << "\"canReopen\":" << (can_reopen ? "true" : "false") << ","
+        << "\"reasonRequired\":true,"
+        << "\"closeAction\":\"resolution-state-update\","
+        << "\"reopenAction\":\"resolution-state-update\","
+        << "\"resolutionTransition\":\"" << JsonEscape(state.resolution_transition) << "\""
+        << "},"
+        << "\"contract\":{"
+        << "\"persistent\":true,"
+        << "\"separateFromEventRecords\":true,"
+        << "\"separateFromEventPostPayload\":true,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"operatorAssignmentFlowIncluded\":false,"
+        << "\"clientDigestIncluded\":false,"
+        << "\"searchMetricsIncluded\":false"
+        << "}"
+        << "}";
+    return out.str();
 }
 
 bool OpsEventReviewNoteContainsSensitiveMaterial(const std::string& value) {
@@ -10597,6 +10768,32 @@ OpsEventReviewState OpsEventReviewStateFromJsonLine(const std::string& line) {
         ParseStringField(line, "incidentStatus").value_or(state.incident_status));
     state.action_target =
         NormalizeOpsEventActionTarget(ParseStringField(line, "actionTarget").value_or(state.action_target));
+    if (const auto resolution = ExtractObjectField(line, "resolution"); resolution.has_value()) {
+        state.resolution_status = NormalizeOpsResolutionStatus(
+            ParseStringField(*resolution, "status").value_or(state.resolution_status));
+        state.resolution_reason = NormalizeOpsResolutionReason(
+            ParseStringField(*resolution, "reason").value_or(state.resolution_reason));
+        state.resolution_note =
+            NormalizeOpsResolutionNote(ParseStringField(*resolution, "note").value_or(""));
+        state.resolution_transition = NormalizeOpsResolutionTransition(
+            ParseStringField(*resolution, "transition").value_or(state.resolution_transition));
+        state.resolution_closed_at_ms =
+            ParseInt64Field(*resolution, "closedAtMs").value_or(state.resolution_closed_at_ms);
+        state.resolution_reopened_at_ms =
+            ParseInt64Field(*resolution, "reopenedAtMs").value_or(state.resolution_reopened_at_ms);
+    }
+    state.resolution_status = NormalizeOpsResolutionStatus(
+        ParseStringField(line, "resolutionStatus").value_or(state.resolution_status));
+    state.resolution_reason = NormalizeOpsResolutionReason(
+        ParseStringField(line, "resolutionReason").value_or(state.resolution_reason));
+    state.resolution_note = NormalizeOpsResolutionNote(
+        ParseStringField(line, "resolutionNote").value_or(state.resolution_note));
+    state.resolution_transition = NormalizeOpsResolutionTransition(
+        ParseStringField(line, "resolutionTransition").value_or(state.resolution_transition));
+    state.resolution_closed_at_ms =
+        ParseInt64Field(line, "resolutionClosedAtMs").value_or(state.resolution_closed_at_ms);
+    state.resolution_reopened_at_ms =
+        ParseInt64Field(line, "resolutionReopenedAtMs").value_or(state.resolution_reopened_at_ms);
     state.note = NormalizeOpsEventReviewNote(ParseStringField(line, "note").value_or(""));
     if (const auto vlm_action = ExtractObjectField(line, "vlmAction"); vlm_action.has_value()) {
         state.vlm_action = NormalizeOpsVlmReviewAction(
@@ -10634,6 +10831,7 @@ OpsEventReviewState OpsEventReviewStateFromJsonLine(const std::string& line) {
 }
 
 std::string OpsEventReviewStateJson(const OpsEventReviewState& state) {
+    const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(state);
     std::ostringstream out;
     out << "{"
         << "\"schema\":\"media-server.ops.event-review-state.v1\","
@@ -10677,6 +10875,13 @@ std::string OpsEventReviewStateJson(const OpsEventReviewState& state) {
         << "\"separateFromEventPostPayload\":true,"
         << "\"eventPostPayloadChanged\":false"
         << "},"
+        << "\"resolutionStatus\":\"" << JsonEscape(resolution_state.resolution_status) << "\","
+        << "\"resolutionReason\":\"" << JsonEscape(resolution_state.resolution_reason) << "\","
+        << "\"resolutionNote\":\"" << JsonEscape(resolution_state.resolution_note) << "\","
+        << "\"resolutionTransition\":\"" << JsonEscape(resolution_state.resolution_transition) << "\","
+        << "\"resolutionClosedAtMs\":" << resolution_state.resolution_closed_at_ms << ","
+        << "\"resolutionReopenedAtMs\":" << resolution_state.resolution_reopened_at_ms << ","
+        << "\"resolution\":" << OpsResolutionStateJson(resolution_state) << ","
         << "\"note\":\"" << JsonEscape(state.note) << "\","
         << "\"vlmAction\":{"
         << "\"schema\":\"media-server.ops.vlm-review-action-state.v1\","
@@ -10801,6 +11006,10 @@ bool UpsertOpsEventReviewState(const app::AppConfig& config,
     next.vlm_action = NormalizeOpsVlmReviewAction(next.vlm_action);
     next.vlm_action_target = NormalizeOpsVlmReviewActionTarget(next.vlm_action_target);
     next.vlm_action_note = NormalizeOpsEventReviewNote(next.vlm_action_note);
+    next.resolution_status = NormalizeOpsResolutionStatus(next.resolution_status);
+    next.resolution_reason = NormalizeOpsResolutionReason(next.resolution_reason);
+    next.resolution_note = NormalizeOpsResolutionNote(next.resolution_note);
+    next.resolution_transition = NormalizeOpsResolutionTransition(next.resolution_transition);
     next.corrected_feature_label =
         NormalizeOpsFeatureCorrectionValue(next.corrected_feature_label);
     next.feature_aliases = NormalizeOpsFeatureAliases(std::move(next.feature_aliases));
@@ -10820,9 +11029,22 @@ bool UpsertOpsEventReviewState(const app::AppConfig& config,
     if (!LoadOpsEventReviewStatesLocked(path, &states, error_message)) {
         return false;
     }
+    OpsEventReviewState previous_state = DefaultOpsEventReviewState(next.event_id);
+    if (const auto it = states.find(next.event_id); it != states.end()) {
+        previous_state = it->second;
+    }
     if (previous != nullptr) {
-        const auto it = states.find(next.event_id);
-        *previous = it == states.end() ? DefaultOpsEventReviewState(next.event_id) : it->second;
+        *previous = previous_state;
+    }
+    next = OpsResolutionStateFromReview(next);
+    if (OpsResolutionStatusIsClosed(next.resolution_status) &&
+        next.resolution_closed_at_ms == 0) {
+        next.resolution_closed_at_ms = previous_state.resolution_closed_at_ms > 0
+                                           ? previous_state.resolution_closed_at_ms
+                                           : next.updated_at_ms;
+    }
+    if (next.resolution_status == "reopened" && next.resolution_reopened_at_ms == 0) {
+        next.resolution_reopened_at_ms = next.updated_at_ms;
     }
     std::ofstream out(path, std::ios::app);
     if (!out) {
@@ -10849,7 +11071,12 @@ std::string OpsEventReviewCatalogJson() {
            "\"accept\",\"dismiss\",\"review-needed\"],\"vlmActionTargets\":[\"summary\","
            "\"eventExplanation\",\"falsePositiveHints\",\"operatorReviewQuestions\"],"
            "\"incidentStatuses\":[\"new\",\"review-needed\",\"acknowledged\",\"in-progress\","
-           "\"closed\",\"false-positive\"]}";
+           "\"closed\",\"false-positive\"],\"resolutionStatuses\":["
+           "\"open\",\"triaged\",\"in-progress\",\"resolved\",\"reopened\",\"false-positive\"],"
+           "\"resolutionReasons\":[\"unreviewed\",\"operator-confirmed\","
+           "\"evidence-insufficient\",\"false-positive\",\"duplicate\",\"source-unreliable\","
+           "\"rule-tuning\",\"manual-reopen\"],\"resolutionTransitions\":["
+           "\"none\",\"close\",\"reopen\"]}";
 }
 
 bool OpsEventReviewMatchesFilters(const OpsEventReviewState& state,
@@ -16515,9 +16742,12 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         << "\"vlmReviewActionPersistent\":true,"
         << "\"incidentActionSchema\":\"media-server.ops.incident-action-state.v1\","
         << "\"incidentActionPersistent\":true,"
+        << "\"resolutionStateSchema\":\"media-server.ops.resolution-state.v1\","
+        << "\"resolutionStatePersistent\":true,"
         << "\"auditArea\":\"events\","
         << "\"auditAction\":\"event-review-update\","
-        << "\"incidentAuditAction\":\"incident-action-update\""
+        << "\"incidentAuditAction\":\"incident-action-update\","
+        << "\"resolutionAuditAction\":\"resolution-state-update\""
         << "},"
         << "\"catalog\":" << OpsEventReviewCatalogJson() << ","
         << "\"incidentTriageBoard\":" << OpsIncidentTriageBoardViewJson(event_result.records_json, reviews)
@@ -19305,6 +19535,51 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                        ParseStringField(*incident_workflow, "actionTarget")
 	                                            .value_or(next.action_target);
 	                                }
+	                                OpsEventReviewState resolution_defaults =
+	                                    DefaultOpsEventReviewState(event_id);
+	                                {
+	                                    std::unordered_map<std::string, OpsEventReviewState>
+	                                        existing_reviews;
+	                                    if (LoadOpsEventReviewStates(config, &existing_reviews, nullptr)) {
+	                                        if (const auto existing_it = existing_reviews.find(event_id);
+	                                            existing_it != existing_reviews.end()) {
+	                                            resolution_defaults =
+	                                                OpsResolutionStateFromReview(existing_it->second);
+	                                        }
+	                                    }
+	                                }
+	                                next.resolution_status =
+	                                    ParseStringField(request.body, "resolutionStatus")
+	                                        .value_or(resolution_defaults.resolution_status);
+	                                next.resolution_reason =
+	                                    ParseStringField(request.body, "resolutionReason")
+	                                        .value_or(resolution_defaults.resolution_reason);
+	                                next.resolution_note =
+	                                    ParseStringField(request.body, "resolutionNote")
+	                                        .value_or(resolution_defaults.resolution_note);
+	                                next.resolution_transition =
+	                                    ParseStringField(request.body, "resolutionTransition")
+	                                        .value_or(resolution_defaults.resolution_transition);
+	                                next.resolution_closed_at_ms =
+	                                    resolution_defaults.resolution_closed_at_ms;
+	                                next.resolution_reopened_at_ms =
+	                                    resolution_defaults.resolution_reopened_at_ms;
+	                                if (const auto resolution =
+	                                        ExtractObjectField(request.body, "resolution");
+	                                    resolution.has_value()) {
+	                                    next.resolution_status =
+	                                        ParseStringField(*resolution, "status")
+	                                            .value_or(next.resolution_status);
+	                                    next.resolution_reason =
+	                                        ParseStringField(*resolution, "reason")
+	                                            .value_or(next.resolution_reason);
+	                                    next.resolution_note =
+	                                        ParseStringField(*resolution, "note")
+	                                            .value_or(next.resolution_note);
+	                                    next.resolution_transition =
+	                                        ParseStringField(*resolution, "transition")
+	                                            .value_or(next.resolution_transition);
+	                                }
 	                                next.note = ParseStringField(request.body, "note").value_or("");
 	                                if (const auto vlm_action = ExtractObjectField(request.body, "vlmAction");
 	                                    vlm_action.has_value()) {
@@ -19414,6 +19689,27 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                (void)AppendOpsAuditRecord(
 	                                    config,
 	                                    OpsAuditRecordJson(feature_correction_audit_body.str(),
+	                                                       principal_result.principal),
+	                                    &audit_error);
+	                                const char* kOpsResolutionStateAuditAction =
+	                                    "resolution-state-update";
+	                                const char* kOpsResolutionStateAuditSummary =
+	                                    "Resolution state updated";
+	                                std::ostringstream resolution_audit_body;
+	                                resolution_audit_body
+	                                    << "{"
+	                                    << "\"area\":\"events\","
+	                                    << "\"action\":\"" << kOpsResolutionStateAuditAction << "\","
+	                                    << "\"target\":\"event:" << JsonEscape(event_id) << "\","
+	                                    << "\"summary\":\"" << kOpsResolutionStateAuditSummary << "\","
+	                                    << "\"before\":"
+	                                    << (previous.present ? OpsEventReviewStateJson(previous)
+	                                                         : std::string("null"))
+	                                    << ",\"after\":" << OpsEventReviewStateJson(saved)
+	                                    << "}";
+	                                (void)AppendOpsAuditRecord(
+	                                    config,
+	                                    OpsAuditRecordJson(resolution_audit_body.str(),
 	                                                       principal_result.principal),
 	                                    &audit_error);
 	                                HttpResponse ok = JsonResponse(

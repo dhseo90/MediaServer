@@ -246,6 +246,8 @@ Usage:
                  v3.1.0 S08 Retention/Export Hardening과 encoded clip cleanup/export/audit 경계를 검증합니다.
   verify-v320-entry-baseline
                  v3.2.0 Step 1 source baseline과 latest published v3.1.0 경계를 검증합니다.
+  verify-v320-resolution-state-contract
+                 v3.2.0 Step 2 Resolution State Contract와 close/reopen lifecycle 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -386,6 +388,8 @@ Usage:
                  v3.1.0 S09 Stabilization and Release Readiness와 local release gate 경계를 검증합니다.
   verify-v320-entry-baseline
                  v3.2.0 Step 1 source baseline과 latest published v3.1.0 경계를 검증합니다.
+  verify-v320-resolution-state-contract
+                 v3.2.0 Step 2 Resolution State Contract와 close/reopen lifecycle 경계를 검증합니다.
   verify-actions-security
                  GitHub Actions workflow 권한과 action 사용 정책을 검증합니다.
   verify-ci-local-gate-parity
@@ -1240,6 +1244,10 @@ case "${cmd}" in
   verify-v320-entry-baseline)
     require_internal verify_v320_entry_baseline.mjs
     exec "${INTERNAL_DIR}/verify_v320_entry_baseline.mjs" "$@"
+    ;;
+  verify-v320-resolution-state-contract)
+    require_internal verify_v320_resolution_state_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v320_resolution_state_contract.mjs" "$@"
     ;;
   verify-v290-final-stabilization-run)
     require_internal verify_v290_final_stabilization_run.mjs

@@ -26,12 +26,12 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 574 |
+| 전체 기능 항목 | 577 |
 | UI 직접 필요 | 301 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 242 |
-| 테스트 필요 | 574 |
-| 안정화 대상 | 564 |
+| UI 비대상 | 245 |
+| 테스트 필요 | 577 |
+| 안정화 대상 | 567 |
 | UI 풀테스트 대상 | 321 |
 | 30분 soak 대상 | 49 |
 | 120분 대상 | 7 |
@@ -63,7 +63,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | Roadmap scope | Feature IDs | 대표 안정화 verifier | release evidence boundary |
 | --- | --- | --- | --- |
 | v3.2.0 (1) v3.2.0 baseline 정렬 | `OPS-069`, `SAFE-102` | `verify-v320-entry-baseline`, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets` | source `3.2.0`, latest published `v3.1.0`, current roadmap `v3.2.0 Operations Resolution Workspace` 정렬 기준. v3.2 기능 구현, UI 풀테스트, 30분/120분, GitHub Release publish evidence가 아님 |
-| v3.2.0 (2) Resolution State Contract | 후속 구현 시 배정 | 후속 구현 시 배정 | 사건 상태, 판정 reason, close/reopen lifecycle contract를 실제 API/schema/verifier와 연결한 뒤에만 완료 |
+| v3.2.0 (2) Resolution State Contract | `EVT-063`, `SAFE-103`, `OPS-070` | `verify-v320-resolution-state-contract` | 사건 상태, 판정 reason, close/reopen lifecycle contract를 `/ops/api/events/reviews`의 `media-server.ops.resolution-state.v1` Ops-only state/API/verifier와 연결합니다. Unified Ops Events Workspace, UI 풀테스트 직접 조작, 30분/120분, operator assignment flow, client digest, search/metrics, published metadata evidence가 아님 |
 | v3.2.0 (3) Unified Ops Events Workspace | 후속 구현 시 배정 | 후속 구현 시 배정 | `/ops/events` resolution queue/detail/timeline workspace를 실제 UI/verifier와 연결한 뒤에만 완료 |
 | v3.2.0 (4) Evidence Quality Layer | 후속 구현 시 배정 | 후속 구현 시 배정 | evidence completeness/confidence/replay coverage hint를 실제 payload/UI/verifier와 연결한 뒤에만 완료 |
 | v3.2.0 (5) Source Reliability Context | 후속 구현 시 배정 | 후속 구현 시 배정 | source health와 recent failure context를 사건 판단 화면에 연결한 뒤에만 완료 |
@@ -227,12 +227,12 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | `AUTH-001`~`AUTH-042` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
 | `SRC-001`~`SRC-032` | source/ONVIF/UI verifier family | ONVIF field success는 approved environment only |
 | `RULE-001`~`RULE-104` | rule/VA verifier family | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
-| `EVT-001`~`EVT-062` | event/VLM/v250/v260/v270/v280/v300/v310 verifier family | event log 육안 확인은 UI 풀테스트 |
+| `EVT-001`~`EVT-063` | event/VLM/v250/v260/v270/v280/v300/v310/v320 verifier family | event log 육안 확인은 UI 풀테스트 |
 | `CLIENT-001`~`CLIENT-026` | client/UI verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-021` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
 | `LAB-001`~`LAB-089` | lab/VLM/v250/v260/v270/v280/v300/v310 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-102` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-069` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
+| `SAFE-001`~`SAFE-103` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-070` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
 
 ## VA Manual UI Seed Matrix
 
@@ -601,6 +601,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | EVT-060 | V300-S02 frame bundle extraction sidecar | 비대상 | 필요 | 안정화 | EventRecord recorder가 trigger-time eventFrame, representativeImage selection status, bboxCrop reference, pre/event/post frameBundle manifest, EvidenceManifest sidecar를 생성하고 FrameRef를 source/channel/stream epoch/frame/time/relative event 기준으로 남기며 EventRecord top-level, Event POST/WebRTC/SSE/WS payload, RTSP/WebRTC media path를 바꾸지 않음 |
 | EVT-061 | V310-S06 operator feature correction state | 필요 | 필요 | 안정화, UI | `/ops/api/events/reviews`가 correctedFeatureLabel, featureAliases, reanalysisRequested/reanalysisReason을 기존 Ops review JSONL에만 저장하고 operatorFeatureCorrection view model로 요약하되 EventRecord top-level, Event POST/WebRTC/SSE/WS payload, RTSP/WebRTC media path, Rule/Profile payload를 바꾸지 않음 |
 | EVT-062 | V310-S08 encoded clip lifecycle cleanup | 비대상 | 필요 | 안정화 | retention cleanup plan이 encoded clip manifest/media를 EventRecord, EvidenceManifest, FeatureSet revision, SearchIndex와 같은 lifecycle group으로 묶고 pinned event 자동 cleanup 제외, dry-run/apply audit, Event POST/WebRTC/SSE/WS payload, RTSP/WebRTC media path 불변 조건을 유지함 |
+| EVT-063 | V320 Step 2 resolution state contract | 비대상 | 필요 | 안정화 | `/ops/api/events/reviews`가 `media-server.ops.resolution-state.v1`로 resolutionStatus/resolutionReason/resolution.transition, close/reopen lifecycle, resolution note/timestamps를 Ops review JSONL에만 저장하고 EventRecord top-level, Event POST/WebRTC DataChannel/SSE/WS metadata, RTSP/WebRTC media path, Rule/Profile payload, client/viewer 출력을 바꾸지 않음 |
 
 ## F. Client And Viewer
 
@@ -859,6 +860,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SAFE-100 | V310-S07 optional vector search boundary | 비대상 | 필요 | 안정화 | `verify-v310-optional-vector-search`가 optional vector index/search를 기본 off로 유지하고 명시 opt-in에서도 raw prompt/raw provider response/runtime provider call/face embedding/identity embedding/Event POST/WebRTC/SSE/WS schema/RTSP-WebRTC media path/client-viewer 노출을 만들지 않음을 확인하되 provider embedding calls, UI 풀테스트 직접 조작, 30분/120분, published metadata PASS로 대체하지 않음 |
 | SAFE-101 | V310-S09 stabilization/release readiness boundary | 비대상 | 필요 | 안정화 | `verify-v310-stabilization-release-readiness`가 v3.1 local stabilization, release evidence/not-run 경계, close-out dry-run 기록을 확인하되 UI 풀테스트 직접 조작, 30분/120분, published metadata, release action PASS로 대체하지 않음을 확인함 |
 | SAFE-102 | V320 Step 1 v3.2 baseline boundary | 비대상 | 필요 | 안정화 | `verify-v320-entry-baseline`가 source `3.2.0`, latest published `v3.1.0`, current roadmap `v3.2.0 Operations Resolution Workspace`, 1차 선택값/fallback/제외 대상, license/provenance/privacy/운영 제약, release records, inventory 연결을 확인하되 resolution state contract/unified workspace/evidence quality/source reliability/AI review/operator flow/action checklist/client digest/search metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release PASS로 대체하지 않음 |
+| SAFE-103 | V320 Step 2 resolution boundary | 비대상 | 필요 | 안정화 | `verify-v320-resolution-state-contract`가 resolution state contract가 Ops review state/audit에만 저장되고 EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata, RTSP/WebRTC media path, Rule/Profile payload, client/viewer exposure, operator assignment flow, search/metrics를 변경하지 않음을 확인하되 UI 풀테스트 직접 조작, 30분/120분, published metadata PASS로 대체하지 않음 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -899,6 +901,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | OPS-067 | V310-S07 Optional Vector Search 게이트 | 비대상 | 필요 | 안정화 | `verify-v310-optional-vector-search`가 optional vector fixture, EventFeatureSearchIndex optional vector API/report, analysis-state smoke, backlog/stream verification/release records/server dispatch 연결을 확인하되 provider embedding calls, UI 풀테스트 직접 조작, 30분/120분, client/viewer 노출, release publish 실행 PASS로 대체하지 않음 |
 | OPS-068 | V310-S09 stabilization/release readiness 게이트 | 비대상 | 필요 | 안정화 | `verify-v310-stabilization-release-readiness`가 v3.1 S00~S08 local gates, release policy/evidence index/test records, close-out dry-run command, server dispatch 연결을 확인하되 UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release 실행 PASS로 대체하지 않음 |
 | OPS-069 | V320 Step 1 v3.2 baseline 게이트 | 비대상 | 필요 | 안정화 | `verify-v320-entry-baseline`가 VERSION/CMake/README/docs/backlog/source roadmap을 source `3.2.0`, latest published `v3.1.0`, current roadmap `v3.2.0 Operations Resolution Workspace` 기준으로 정렬했는지 확인하되 v3.2 기능 구현, release publish, PR/main/tag/push, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
+| OPS-070 | V320 Step 2 Resolution State Contract 게이트 | 비대상 | 필요 | 안정화 | `verify-v320-resolution-state-contract`가 `/ops/api/events/reviews`의 `media-server.ops.resolution-state.v1`, status/reason/close-reopen lifecycle catalog, review JSONL persistence, resolution audit, backlog/stream verification/release records/server dispatch 연결을 확인하되 Unified Ops Events Workspace, UI 풀테스트 직접 조작, 30분/120분, operator assignment flow, client digest, search/metrics, published metadata PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 

@@ -78,7 +78,7 @@ license/provenance/privacy/운영 제약:
 | Step | 제목 | 우선순위 | 상태 | 산출물 |
 | --- | --- | --- | --- | --- |
 | 1 | v3.2.0 (1) v3.2.0 baseline 정렬 | P0 | 완료 | VERSION/docs/backlog/source roadmap 정렬 |
-| 2 | v3.2.0 (2) Resolution State Contract | P0 | 대기 | 사건 상태, 판정 reason, close/reopen lifecycle contract |
+| 2 | v3.2.0 (2) Resolution State Contract | P0 | 완료 | `media-server.ops.resolution-state.v1` 사건 상태, 판정 reason, close/reopen lifecycle contract |
 | 3 | v3.2.0 (3) Unified Ops Events Workspace | P0 | 대기 | `/ops/events` resolution queue/detail/timeline workspace |
 | 4 | v3.2.0 (4) Evidence Quality Layer | P0 | 대기 | evidence completeness/confidence/replay coverage hint |
 | 5 | v3.2.0 (5) Source Reliability Context | P1 | 대기 | source health, recent failure, operator recheck hint |
@@ -103,6 +103,19 @@ license/provenance/privacy/운영 제약:
 - `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`: `OPS-069`, `SAFE-102`, V320 Step 1 안정화 verifier, 저장소 보존형 테스트 결과를 추가했습니다.
 - 검증: 최초 `./server.sh verify-release-metadata`는 backlog publish evidence 문구 누락으로 `pass=15 fail=1`로 FAIL했고, 최초 `./server.sh verify-project-inventory`는 manual UI seed fixture releaseTarget drift로 `pass=12 fail=1`로 FAIL했습니다. 최초 `./server.sh verify-v320-entry-baseline`는 command 미구현으로 FAIL했습니다. 보정 후 `./server.sh verify-v320-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-project-inventory`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh build`, `git diff --check` 기준으로 재검증했습니다.
 - 완료 경계: 이번 Step 1은 source/version/docs/backlog/verification metadata 정렬입니다. v3.2 기능 구현, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다.
+
+## v3.2.0 Step 2 개발 기록
+
+- 범위: P0 `v3.2.0 (2) Resolution State Contract`.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/events/reviews`의 기존 Ops review state에 `media-server.ops.resolution-state.v1` resolution 객체를 추가했습니다. `resolutionStatus/resolutionReason/resolution.transition`, resolution note, close/reopen timestamp, `closeReopenLifecycle.canClose/canReopen/reasonRequired`를 `OpsEventReviewStateJson`, `OpsResolutionStateJson`, `OpsResolutionStateFromReview`에서 계산합니다.
+- `/ops/api/events/reviews/{eventId}` PUT/POST: top-level `resolutionStatus`, `resolutionReason`, `resolutionNote`, `resolutionTransition` 또는 nested `resolution.status/reason/note/transition` payload를 읽어 Ops review JSONL에만 저장합니다.
+- 기존 클라이언트 경계: 요청 payload에 resolution 필드가 없으면 저장된 `media-server.ops.resolution-state.v1` 값을 기본값으로 사용해 legacy review update가 close/reopen 상태를 덮어쓰지 않도록 했습니다.
+- `/ops/api/events/reviews` catalog: `resolutionStatuses`, `resolutionReasons`, `resolutionTransitions`를 추가해 close/reopen lifecycle contract의 허용값을 고정했습니다.
+- Ops audit: event review 저장 시 `resolution-state-update` audit action과 `Resolution state updated` summary를 남겨 close/reopen lifecycle이 EventRecord payload와 분리된 운영 감사 흐름에 남도록 했습니다.
+- `scripts/internal/verify_v320_resolution_state_contract.mjs`, `server.sh`: `./server.sh verify-v320-resolution-state-contract` 명령을 추가해 server/API contract, catalog, audit, 문서, feature inventory, release records, dispatch 연결을 정적으로 검증합니다.
+- `docs/project-feature-test-inventory.md`: `EVT-063`, `SAFE-103`, `OPS-070`을 추가하고 v3.2.0 (2) mapping을 `verify-v320-resolution-state-contract`에 연결했습니다.
+- `docs/stream-verification.md`, `docs/release-test-records.md`: Step 2 verifier와 RED/final 결과 기록, 미실행/제외 경계를 추가했습니다.
+- 완료 경계: 이번 Step 2는 Ops review API/state contract입니다. Unified Ops Events Workspace, UI 풀테스트 직접 조작, 30분/120분, operator assignment flow, client digest, search/metrics, published metadata evidence가 아님을 분리합니다.
 
 ## 최신 공개 기준 상세: v3.1.0 Encoded Event Clip and Safe Sharing Expansion
 
