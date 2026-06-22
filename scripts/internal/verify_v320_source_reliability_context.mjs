@@ -139,15 +139,18 @@ check("docs and roadmap expose v3.2 Step 5 scope without overclaim", () => {
     "| 5 | v3.2.0 (5) Source Reliability Context | P1 | 완료 |",
     "source health, recent failure, operator recheck hint",
     "`./server.sh verify-v320-source-reliability-context`",
+    "`./server.sh verify-v320-source-reliability-runtime-sample --http-base <running-server>`",
     "AI Review Quality Context, Operator Resolution Flow, Action Readiness Checklist, Client-safe Resolution Digest, Resolution Search & Metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님",
     "## v3.2.0 Step 5 개발 기록",
   ]) {
     assertIncludes(files.backlog, snippet, "backlog v3.2 Step 5");
   }
   for (const snippet of [
-    "| v3.2.0 (5) | `./server.sh verify-v320-source-reliability-context` |",
+    "| v3.2.0 (5) | `./server.sh verify-v320-source-reliability-context`; 실행 중인 서버 대상",
+    "`./server.sh verify-v320-source-reliability-runtime-sample --http-base <running-server>`",
     "Source Reliability Context",
     "source health와 recent failure context",
+    "fixture EventRecord item",
     "source registry write",
     "AI review quality, operator assignment flow, client digest, search/metrics",
   ]) {
@@ -157,7 +160,7 @@ check("docs and roadmap expose v3.2 Step 5 scope without overclaim", () => {
 
 check("feature inventory and release records map v3.2 Step 5", () => {
   for (const snippet of [
-    "v3.2.0 (5) Source Reliability Context | `UI-064`, `EVT-066`, `SAFE-106`, `OPS-073` | `verify-v320-source-reliability-context`, `verify-ops-client-ui`",
+    "v3.2.0 (5) Source Reliability Context | `UI-064`, `EVT-066`, `SAFE-106`, `OPS-073` | `verify-v320-source-reliability-context`, `verify-v320-source-reliability-runtime-sample`, `verify-ops-client-ui`",
     "UI-064 | V320 Step 5 Source Reliability Context UI",
     "EVT-066 | V320 Step 5 source reliability view model",
     "SAFE-106 | V320 Step 5 source reliability boundary",
@@ -172,7 +175,9 @@ check("feature inventory and release records map v3.2 Step 5", () => {
   for (const snippet of [
     "V320 Source Reliability Context",
     "`./server.sh verify-v320-source-reliability-context`",
+    "`./server.sh verify-v320-source-reliability-runtime-sample --http-base http://127.0.0.1:8081`",
     "v320 Step 5 RED source reliability context gate",
+    "v320 Step 5 RED source reliability runtime sample command",
     "v320 Step 5 UI 풀테스트",
     "v320 Step 5 30분/120분 longrun",
   ]) {
@@ -183,11 +188,15 @@ check("feature inventory and release records map v3.2 Step 5", () => {
 check("server entrypoint and inventory verifiers include v3.2 Step 5 command", () => {
   assertIncludes(files.serverSh, command, "server.sh command");
   assertIncludes(files.serverSh, "verify_v320_source_reliability_context.mjs", "server.sh script dispatch");
+  assertIncludes(files.serverSh, "verify-v320-source-reliability-runtime-sample", "server.sh runtime sample command");
+  assertIncludes(files.serverSh, "verify_v320_source_reliability_runtime_sample.mjs", "server.sh runtime sample dispatch");
   assertIncludes(files.featureCoverageVerifier, command, "feature coverage verifier");
+  assertIncludes(files.featureCoverageVerifier, "verify-v320-source-reliability-runtime-sample", "feature coverage runtime sample verifier");
   for (const id of ["UI-064", "EVT-066", "SAFE-106", "OPS-073"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
   assertIncludes(files.scriptInventory, "verify_v320_source_reliability_context.mjs", "script inventory");
+  assertIncludes(files.scriptInventory, "verify_v320_source_reliability_runtime_sample.mjs", "script inventory runtime sample");
 });
 
 const results = runChecks();

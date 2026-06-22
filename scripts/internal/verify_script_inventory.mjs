@@ -435,6 +435,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_v320_unified_ops_events_workspace.mjs",
     "verify_v320_evidence_quality_layer.mjs",
     "verify_v320_source_reliability_context.mjs",
+    "verify_v320_source_reliability_runtime_sample.mjs",
     "verify_external_turn_whep_field_gate.mjs",
     "verify_vlm_runtime_status_ui.mjs",
     "verify_vlm_evaluation_result_workflow.mjs",
