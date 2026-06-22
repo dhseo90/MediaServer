@@ -395,7 +395,7 @@ check("development backlog pins current source roadmap and public release bounda
   const doc = readText("docs/development-backlog.md");
   for (const snippet of [
     `## 현재 source roadmap: ${currentRoadmap}`,
-    "| 1 | v3.2.0 (1) v3.2.0 baseline 정렬 | P0 | VERSION/docs/backlog/source roadmap 정렬 |",
+    "| 1 | v3.2.0 (1) v3.2.0 baseline 정렬 | P0 | 완료 | VERSION/docs/backlog/source roadmap 정렬 |",
     "Resolution State Contract",
     "Unified Ops Events Workspace",
     "Evidence Quality Layer",

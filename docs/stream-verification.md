@@ -48,7 +48,7 @@ PASS 근거로 사용합니다.
 
 | Step | Command | Scope |
 | --- | --- | --- |
-| v3.2.0 (1) | `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, `git diff --check` | source `3.2.0`, latest published `v3.1.0`, current roadmap `v3.2.0 Operations Resolution Workspace` 정렬. v3.2 기능 구현, UI 풀테스트, 30분/120분, published metadata, tag, push, GitHub Release evidence가 아님 |
+| v3.2.0 (1) | `./server.sh verify-v320-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | source `3.2.0`, latest published `v3.1.0`, current roadmap `v3.2.0 Operations Resolution Workspace` 정렬. v3.2 기능 구현, UI 풀테스트, 30분/120분, published metadata, tag, push, GitHub Release evidence가 아님 |
 | v3.2.0 (2) | 후속 구현 시 배정 | Resolution State Contract. 실제 API/schema/verifier 연결 전에는 PASS 근거가 아님 |
 | v3.2.0 (3) | 후속 구현 시 배정 | Unified Ops Events Workspace. 실제 UI/verifier 연결 전에는 PASS 근거가 아님 |
 | v3.2.0 (4) | 후속 구현 시 배정 | Evidence Quality Layer. 실제 payload/UI/verifier 연결 전에는 PASS 근거가 아님 |

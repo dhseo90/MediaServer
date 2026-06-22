@@ -18,9 +18,9 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 source roadmap: v3.2.0 Operations Resolution Workspace
 
-상태: `v3.2.0` source baseline 정렬을 시작했습니다. 이 절은 v3.2.0 전체 기능 완료
+상태: `v3.2.0` Step 1 source baseline 정렬 완료. 이 절은 v3.2.0 전체 기능 완료
 evidence가 아니며, 실제 기능 구현은 각 Step별 코드/UI/API/검증 evidence가 생긴 뒤에만
-완료로 기록합니다. Step 1 baseline 정렬 자체는 기능 구현 완료 evidence가 아닙니다.
+완료로 기록합니다. Step 1 baseline 정렬 자체는 후속 v3.2 기능 구현 완료 evidence가 아닙니다.
 
 직접 답: v3.2.0의 1차 선택값은 `Operations Resolution Workspace`입니다. v3.0이
 이벤트 증거를 만들고 검색하는 단계였고 v3.1이 증거를 재생·공유하는 단계였다면,
@@ -59,19 +59,35 @@ correction 품질의 context로 둡니다.
 - raw provider material 또는 내부 debug material 노출
 - 장시간 실행 evidence를 local baseline gate로 대체
 
-| Step | 제목 | 우선순위 | 산출물 |
-| --- | --- | --- | --- |
-| 1 | v3.2.0 (1) v3.2.0 baseline 정렬 | P0 | VERSION/docs/backlog/source roadmap 정렬 |
-| 2 | v3.2.0 (2) Resolution State Contract | P0 | 사건 상태, 판정 reason, close/reopen lifecycle contract |
-| 3 | v3.2.0 (3) Unified Ops Events Workspace | P0 | `/ops/events` resolution queue/detail/timeline workspace |
-| 4 | v3.2.0 (4) Evidence Quality Layer | P0 | evidence completeness/confidence/replay coverage hint |
-| 5 | v3.2.0 (5) Source Reliability Context | P1 | source health, recent failure, operator recheck hint |
-| 6 | v3.2.0 (6) AI Review Quality Context | P1 | correction/review signal, uncertainty reason, quality badge |
-| 7 | v3.2.0 (7) Operator Resolution Flow | P1 | assign, note, close, reopen, audit trail |
-| 8 | v3.2.0 (8) Action Readiness Checklist | P1 | rule draft/evidence bundle/notification readiness checklist |
-| 9 | v3.2.0 (9) Client-safe Resolution Digest | P1 | viewer-safe status summary and redaction boundary |
-| 10 | v3.2.0 (10) Resolution Search & Metrics | P2 | resolution filters, saved views, 운영 metric summary |
-| 11 | v3.2.0 (11) Stabilization and Release Readiness | P0 | build/docs/metadata/inventory/release readiness records |
+제외 대상과 제외 사유:
+
+- 새 저장소 제품군으로의 확장: MediaServer의 current source target을 운영 resolution workspace로 제한하기 위해 제외합니다.
+- 자동 승인/자동 조치 적용: operator closure와 manual review 경계를 깨므로 제외합니다.
+- viewer/client에 내부 판단 근거 전체 노출: viewer-safe digest와 redaction boundary를 깨므로 제외합니다.
+- raw provider material 또는 내부 debug material 노출: privacy/provenance/source URL/debug material 원문 노출 위험이 있어 제외합니다.
+- 장시간 실행 evidence를 local baseline gate로 대체: 안정화, UI, 30분, 120분, published metadata evidence는 서로 대체할 수 없으므로 제외합니다.
+
+license/provenance/privacy/운영 제약:
+
+- 기본 공개 형태는 source-only이며 Binary, runtime, model bundle을 release asset에 포함하지 않습니다.
+- provider credential, raw prompt/response, source URL, raw frame bytes, 내부 debug material은 문서/UI/client/event payload/release evidence에 원문 노출하지 않습니다.
+- `/client`와 viewer-facing digest는 resolution summary만 노출하며 내부 판단 근거 전체와 raw/debug/provenance material을 노출하지 않습니다.
+- external TURN/WHEP, ONVIF 실기기, real cloud/VLM provider는 endpoint/credential/명시 승인 없이는 field PASS 근거가 아닙니다.
+- 안정화, UI 풀테스트, 30분, 120분, published metadata는 서로 대체하지 않습니다.
+
+| Step | 제목 | 우선순위 | 상태 | 산출물 |
+| --- | --- | --- | --- | --- |
+| 1 | v3.2.0 (1) v3.2.0 baseline 정렬 | P0 | 완료 | VERSION/docs/backlog/source roadmap 정렬 |
+| 2 | v3.2.0 (2) Resolution State Contract | P0 | 대기 | 사건 상태, 판정 reason, close/reopen lifecycle contract |
+| 3 | v3.2.0 (3) Unified Ops Events Workspace | P0 | 대기 | `/ops/events` resolution queue/detail/timeline workspace |
+| 4 | v3.2.0 (4) Evidence Quality Layer | P0 | 대기 | evidence completeness/confidence/replay coverage hint |
+| 5 | v3.2.0 (5) Source Reliability Context | P1 | 대기 | source health, recent failure, operator recheck hint |
+| 6 | v3.2.0 (6) AI Review Quality Context | P1 | 대기 | correction/review signal, uncertainty reason, quality badge |
+| 7 | v3.2.0 (7) Operator Resolution Flow | P1 | 대기 | assign, note, close, reopen, audit trail |
+| 8 | v3.2.0 (8) Action Readiness Checklist | P1 | 대기 | rule draft/evidence bundle/notification readiness checklist |
+| 9 | v3.2.0 (9) Client-safe Resolution Digest | P1 | 대기 | viewer-safe status summary and redaction boundary |
+| 10 | v3.2.0 (10) Resolution Search & Metrics | P2 | 대기 | resolution filters, saved views, 운영 metric summary |
+| 11 | v3.2.0 (11) Stabilization and Release Readiness | P0 | 대기 | build/docs/metadata/inventory/release readiness records |
 
 `v3.2.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
 
@@ -80,10 +96,12 @@ correction 품질의 context로 둡니다.
 - 범위: P0 `v3.2.0 (1) v3.2.0 baseline 정렬`.
 - `VERSION`, `CMakeLists.txt`: 현재 source version과 CMake project version을 `3.2.0`으로 정렬했습니다.
 - `README.md`, `README.en.md`, `docs/README.md`, `docs/en/README.md`, `docs/versioning-policy.md`, `docs/release-policy.md`, `docs/public-repo-final-review.md`, `docs/ui-guide.md`: 현재 source roadmap을 `v3.2.0 Operations Resolution Workspace`로 전환하고 latest published release는 `v3.1.0` source-only GitHub Release로 보존했습니다.
-- `docs/development-backlog.md`: v3.2.0 current roadmap을 `Step | 제목 | 우선순위 | 산출물` 구조로 추가하고, Event Resolution Workspace, Source Reliability Workspace, AI Review Quality Workspace를 `Operations Resolution Workspace` 안의 resolution/source/AI quality context로 통합했습니다.
+- `docs/development-backlog.md`: v3.2.0 current roadmap을 `Step | 제목 | 우선순위 | 상태 | 산출물` 구조로 정렬하고, Event Resolution Workspace, Source Reliability Workspace, AI Review Quality Workspace를 `Operations Resolution Workspace` 안의 resolution/source/AI quality context로 통합했습니다.
 - `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`, `docs/assets/ui/README.md`, `config/docs_ui_assets.json`, `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`: current release target, docs asset baseline, seed fixture, verification catalog, release records를 source `3.2.0`와 latest published `v3.1.0` 분리 기준으로 정렬했습니다.
 - `scripts/internal/verify_release_metadata_consistency.mjs`: `verify-release-metadata`가 source `3.2.0`, current roadmap `v3.2.0 Operations Resolution Workspace`, latest published `v3.1.0`을 분리 검증하도록 보정했습니다.
-- 검증: 최초 `./server.sh verify-release-metadata`는 backlog publish evidence 문구 누락으로 `pass=15 fail=1`로 FAIL했고, 최초 `./server.sh verify-project-inventory`는 manual UI seed fixture releaseTarget drift로 `pass=12 fail=1`로 FAIL했습니다. 보정 후 `./server.sh verify-release-metadata`, `./server.sh verify-project-inventory`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, `./server.sh verify-feature-inventory-coverage`, `./server.sh build`, `git diff --check` 기준으로 재검증했습니다.
+- `scripts/internal/verify_v320_entry_baseline.mjs`, `server.sh`: `./server.sh verify-v320-entry-baseline` 명령을 추가해 source `3.2.0`, latest published `v3.1.0`, current roadmap `v3.2.0 Operations Resolution Workspace`, 1차 선택값/fallback/제외 대상, license/provenance/privacy/운영 제약, feature inventory, release test records 연결을 정적 검증합니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`: `OPS-069`, `SAFE-102`, V320 Step 1 안정화 verifier, 저장소 보존형 테스트 결과를 추가했습니다.
+- 검증: 최초 `./server.sh verify-release-metadata`는 backlog publish evidence 문구 누락으로 `pass=15 fail=1`로 FAIL했고, 최초 `./server.sh verify-project-inventory`는 manual UI seed fixture releaseTarget drift로 `pass=12 fail=1`로 FAIL했습니다. 최초 `./server.sh verify-v320-entry-baseline`는 command 미구현으로 FAIL했습니다. 보정 후 `./server.sh verify-v320-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-project-inventory`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh build`, `git diff --check` 기준으로 재검증했습니다.
 - 완료 경계: 이번 Step 1은 source/version/docs/backlog/verification metadata 정렬입니다. v3.2 기능 구현, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다.
 
 ## 최신 공개 기준 상세: v3.1.0 Encoded Event Clip and Safe Sharing Expansion

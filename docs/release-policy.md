@@ -64,7 +64,10 @@ latest published `v3.1.0` 기준으로 분리 정렬하는 local gate입니다.
 
 Companion local gate:
 
+전용 companion command는 `./server.sh verify-v320-entry-baseline`입니다.
+
 ```bash
+./server.sh verify-v320-entry-baseline
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-docs-links
 ./server.sh verify-release-metadata
