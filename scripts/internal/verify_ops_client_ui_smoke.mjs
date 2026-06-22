@@ -152,6 +152,13 @@ const pageChecks = [
     mustNot: ['href="/ops/events"'],
   },
   {
+    name: "ops-events-source-reliability-context",
+    path: "/ops/events",
+    visualSelector: '[data-testid="ops-v320-unified-events-workspace"]',
+    must: ['data-testid="ops-events-page"', 'data-testid="ops-v320-unified-events-workspace"', 'id="v320SourceReliabilityGrid"', 'data-v320-source-reliability', 'data-v320-source-reliability-warning', 'sourceReliabilitySummary', 'sourceReliability', 'media-server.ops.v320-source-reliability-context.v1', 'source health', 'recent failure', 'operator recheck', 'sourceRegistryWritePerformed', 'operatorRecheckRoute', '/ops/api/events/reviews'],
+    mustNot: ['href="/ops/events"'],
+  },
+  {
     name: "ops-rules",
     path: "/ops/rules",
     visualSelector: '[data-testid="ops-rules-page"]',

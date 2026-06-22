@@ -173,10 +173,10 @@ check("feature inventory and release records map v3.2 Step 3", () => {
     "EVT-064 | V320 Step 3 unified resolution workspace view model",
     "SAFE-104 | V320 Step 3 unified workspace boundary",
     "OPS-071 | V320 Step 3 Unified Ops Events Workspace 게이트",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-062`",
-    "`EVT-001`~`EVT-064`",
-    "`SAFE-001`~`SAFE-104`",
-    "`OPS-035`~`OPS-071`",
+    "`UI-001`~`UI-018`, `UI-022`~`UI-064`",
+    "`EVT-001`~`EVT-066`",
+    "`SAFE-001`~`SAFE-106`",
+    "`OPS-035`~`OPS-073`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.2 Step 3");
   }

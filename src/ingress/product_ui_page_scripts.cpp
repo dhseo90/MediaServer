@@ -2673,6 +2673,39 @@ void AppendOpsShellScript(std::ostringstream& out,
           <p class="ops-rule-note">${escapeHtml(display(evidenceQuality.operatorHint || 'Review evidence quality before resolution closure.'))}</p>
         </div>`;
       }
+      function renderV320SourceReliabilityContext(selectedDetail = {}, sourceReliabilitySummary = {}) {
+        const sourceReliability = selectedDetail?.sourceReliability || {};
+        const warnings = Array.isArray(sourceReliability.warnings) ? sourceReliability.warnings : [];
+        const boundary = sourceReliability.sourceRegistryWritePerformed === false &&
+          sourceReliability.sourceUrlExposed === false &&
+          sourceReliability.rawJsonExposed === false &&
+          sourceReliability.debugMaterialExposed === false;
+        return `<div id="v320SourceReliabilityGrid" class="v320-source-reliability-grid" data-v320-source-reliability="${escapeHtml(sourceReliability.schema || 'media-server.ops.v320-source-reliability-context.v1')}">
+          <p class="v320-source-reliability-card">
+            <strong>source health</strong>
+            <span>${escapeHtml(display(sourceReliability.sourceHealthStatus || 'source-missing'))}</span>
+            <small>${escapeHtml(display(sourceReliability.sourceHealthReason || 'source-id-missing'))} · live ${escapeHtml(display(sourceReliabilitySummary.live ?? 0))} · recheck ${escapeHtml(display(sourceReliabilitySummary.needsRecheck ?? 0))} · blocked ${escapeHtml(display(sourceReliabilitySummary.blocked ?? 0))}</small>
+          </p>
+          <p class="v320-source-reliability-card">
+            <strong>recent failure</strong>
+            <span>${escapeHtml(display(sourceReliability.recentFailureContext || 'source-id-missing'))}</span>
+            <small>reconnect ${escapeHtml(display(sourceReliability.reconnectCount ?? 0))} · frame age ${escapeHtml(display(sourceReliability.lastFrameAgeMs ?? 'n/a'))} · metadata age ${escapeHtml(display(sourceReliability.lastMetadataAgeMs ?? 'n/a'))}</small>
+          </p>
+          <p class="v320-source-reliability-card">
+            <strong>operator recheck</strong>
+            <span>${escapeHtml(display(sourceReliability.operatorRecheckRoute || '/ops/api/source-health'))}</span>
+            <small>${escapeHtml(display(sourceReliability.operatorRecheckHint || 'Run source health recheck before final closure.'))}</small>
+          </p>
+          <p class="v320-source-reliability-card">
+            <strong>boundary</strong>
+            <span>${boundary ? 'check only' : 'boundary 확인 필요'}</span>
+            <small>sourceRegistryWritePerformed ${sourceReliability.sourceRegistryWritePerformed === false ? 'false' : '확인 필요'} · sourceUrlExposed ${sourceReliability.sourceUrlExposed === false ? 'false' : '확인 필요'}</small>
+          </p>
+          <div class="v320-source-reliability-warnings">
+            ${(warnings.length ? warnings : ['no-warning-context']).map(item => `<span class="chip v320-source-reliability-warning ${item === 'no-warning-context' ? 'info' : 'warn'}" data-v320-source-reliability-warning="${escapeHtml(item)}">${escapeHtml(display(item))}</span>`).join('')}
+          </div>
+        </div>`;
+      }
       function renderV320UnifiedOpsEventsWorkspace(unifiedResolutionWorkspace = {}) {
         const queueRoot = document.getElementById('opsV320ResolutionQueue');
         const detailRoot = document.getElementById('opsV320ResolutionDetail');
@@ -2690,6 +2723,8 @@ void AppendOpsShellScript(std::ostringstream& out,
           { text: `queue ${resolutionQueue.length}`, tone: resolutionQueue.length > 0 ? '' : 'warn' },
           { text: unifiedResolutionWorkspace.evidenceQualityLayerImplemented === true ? 'evidence quality' : 'evidence quality 확인 필요', tone: unifiedResolutionWorkspace.evidenceQualityLayerImplemented === true ? 'info' : 'warn' },
           { text: unifiedResolutionWorkspace.evidenceQualitySummary?.schema || 'media-server.ops.v320-evidence-quality.v1' },
+          { text: unifiedResolutionWorkspace.sourceReliabilityContextImplemented === true ? 'source reliability' : 'source reliability 확인 필요', tone: unifiedResolutionWorkspace.sourceReliabilityContextImplemented === true ? 'info' : 'warn' },
+          { text: unifiedResolutionWorkspace.sourceReliabilitySummary?.schema || 'media-server.ops.v320-source-reliability-context.v1' },
           { text: unifiedResolutionWorkspace.viewerClientExposureAdded === false ? 'Ops only' : 'client 노출 확인 필요', tone: unifiedResolutionWorkspace.viewerClientExposureAdded === false ? 'info' : 'warn' },
           { text: unifiedResolutionWorkspace.eventPostPayloadChanged === false ? 'Event POST unchanged' : 'payload 확인 필요', tone: unifiedResolutionWorkspace.eventPostPayloadChanged === false ? 'info' : 'warn' },
           { text: unifiedResolutionWorkspace.sourceUrlExposed === false && unifiedResolutionWorkspace.rawJsonExposed === false && unifiedResolutionWorkspace.debugMaterialExposed === false ? 'redacted' : 'redaction 확인 필요', tone: unifiedResolutionWorkspace.sourceUrlExposed === false && unifiedResolutionWorkspace.rawJsonExposed === false && unifiedResolutionWorkspace.debugMaterialExposed === false ? 'info' : 'warn' }
@@ -2697,7 +2732,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         setText(
           'opsV320UnifiedWorkspaceSummary',
           resolutionQueue.length
-            ? `Unified resolution workspace · resolution queue ${resolutionQueue.length} · evidence quality · detail/timeline Ops-only`
+            ? `Unified resolution workspace · resolution queue ${resolutionQueue.length} · evidence quality · source reliability · detail/timeline Ops-only`
             : 'resolution queue, resolution detail, resolution timeline을 `/ops/events` 안에서 Ops 전용으로 확인합니다.'
         );
         if (resolutionQueue.length === 0) {
@@ -2710,6 +2745,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           const resolutionState = item?.resolutionState || {};
           const lifecycle = item?.closeReopenLifecycle?.closeReopenLifecycle || resolutionState.closeReopenLifecycle || {};
           const evidenceQuality = item?.evidenceQuality || {};
+          const sourceReliability = item?.sourceReliability || {};
           const active = selectedDetail && item?.eventId === selectedDetail.eventId;
           return `<article class="v320-resolution-queue-card${active ? ' is-active' : ''}" data-v320-resolution-event="${escapeHtml(item?.eventId || '')}">
             <div class="table-cell-main">
@@ -2722,6 +2758,7 @@ void AppendOpsShellScript(std::ostringstream& out,
               <span class="chip">${escapeHtml(display(resolutionState.reason || 'unreviewed'))}</span>
               <span class="chip ${evidenceQuality.evidenceCompleteness === 'complete' ? 'info' : 'warn'}">${escapeHtml(display(evidenceQuality.evidenceCompleteness || 'missing'))}</span>
               <span class="chip">${escapeHtml(display(evidenceQuality.replayCoverage || 'missing'))}</span>
+              <span class="chip ${sourceReliability.sourceHealthStatus === 'live' ? 'info' : 'warn'}">${escapeHtml(display(sourceReliability.sourceHealthStatus || 'source-missing'))}</span>
             </div>
             <p class="ops-rule-note">canClose ${lifecycle.canClose === true ? 'true' : 'false'} · canReopen ${lifecycle.canReopen === true ? 'true' : 'false'} · transition ${escapeHtml(display(resolutionState.transition || 'none'))}</p>
           </article>`;
@@ -2741,6 +2778,7 @@ void AppendOpsShellScript(std::ostringstream& out,
             </p>`).join('')}
           </div>
           ${renderV320EvidenceQualityLayer(selectedDetail, unifiedResolutionWorkspace.evidenceQualitySummary || {})}
+          ${renderV320SourceReliabilityContext(selectedDetail, unifiedResolutionWorkspace.sourceReliabilitySummary || {})}
           <p class="ops-rule-note">resolutionStatus ${escapeHtml(display(selectedResolution.status || 'open'))} · resolutionReason ${escapeHtml(display(selectedResolution.reason || 'unreviewed'))} · sourceUrlExposed ${selectedDetail?.sourceUrlExposed === false ? 'false' : '확인 필요'} · rawJsonExposed ${selectedDetail?.rawJsonExposed === false ? 'false' : '확인 필요'} · debugMaterialExposed ${selectedDetail?.debugMaterialExposed === false ? 'false' : '확인 필요'}</p>
         </article>`;
         const timelineItems = resolutionTimeline.flatMap(item => Array.isArray(item?.timelineMarkers)

@@ -15483,6 +15483,190 @@ std::string OpsV320EvidenceQualitySummaryJson(const std::vector<OpsV320EvidenceQ
     return out.str();
 }
 
+struct OpsV320SourceReliabilityInfo {
+    std::string source_id{"unknown-source"};
+    std::string source_health_status{"source-missing"};
+    std::string source_health_reason{"source-id-missing"};
+    std::string recent_failure_context{"source-id-missing"};
+    std::string operator_recheck_hint{"link this event to a source before final closure"};
+    std::string operator_recheck_route{"/ops/api/source-health"};
+    std::string checked_at;
+    std::optional<std::int64_t> last_frame_age_ms;
+    std::optional<std::int64_t> last_metadata_age_ms;
+    int reconnect_count{0};
+    bool source_health_present{false};
+    std::vector<std::string> warnings;
+};
+
+const OpsSourceHealthItem* OpsV320SourceHealthForSource(const OpsSourceHealthSnapshot& snapshot,
+                                                       const std::string& source_id) {
+    if (source_id.empty() || source_id == "unknown-source") {
+        return nullptr;
+    }
+    const auto it = std::find_if(snapshot.items.begin(), snapshot.items.end(), [&](const auto& item) {
+        return item.source_id == source_id;
+    });
+    return it == snapshot.items.end() ? nullptr : &*it;
+}
+
+std::string OpsV320RecentFailureContext(const OpsSourceHealthItem& item) {
+    if (std::find(item.warnings.begin(), item.warnings.end(), "high-reconnect") != item.warnings.end()) {
+        return "high-reconnect";
+    }
+    if (std::find(item.warnings.begin(), item.warnings.end(), "repeated-stale") != item.warnings.end()) {
+        return "repeated-stale";
+    }
+    if (item.status == "live" && item.warnings.empty()) {
+        return "none";
+    }
+    if (!item.warnings.empty()) {
+        return "warning:" + item.warnings.front();
+    }
+    return item.status + ":" + item.reason;
+}
+
+std::string OpsV320SourceReliabilityHint(const OpsV320SourceReliabilityInfo& info) {
+    if (!info.source_health_present) {
+        if (info.source_health_status == "source-health-unavailable") {
+            return "source health snapshot unavailable; check source registry before closing this incident";
+        }
+        if (info.source_health_status == "not-registered") {
+            return "confirm source registry and PublishedView mapping before closing this incident";
+        }
+        return "link this event to a source before final closure";
+    }
+    if (info.source_health_status == "live" && info.warnings.empty()) {
+        return "source is live; continue resolution with evidence quality context";
+    }
+    return "run source health recheck and inspect /ops/sources before final closure";
+}
+
+OpsV320SourceReliabilityInfo OpsV320SourceReliabilityInfoFor(
+    const std::string& event_json,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    OpsV320SourceReliabilityInfo info;
+    const std::string source_id = OpsIncidentTriageBoardSourceId(event_json);
+    info.source_id = source_id.empty() ? "unknown-source" : source_id;
+    if (source_id.empty()) {
+        info.operator_recheck_hint = OpsV320SourceReliabilityHint(info);
+        return info;
+    }
+    if (!source_health_snapshot.ok) {
+        info.source_health_status = "source-health-unavailable";
+        info.source_health_reason = "source-health-snapshot-error";
+        info.recent_failure_context = "source-health-snapshot-unavailable";
+        info.operator_recheck_hint = OpsV320SourceReliabilityHint(info);
+        return info;
+    }
+    const auto* health = OpsV320SourceHealthForSource(source_health_snapshot, source_id);
+    if (health == nullptr) {
+        info.source_health_status = "not-registered";
+        info.source_health_reason = "source-health-missing";
+        info.recent_failure_context = "source-not-found";
+        info.operator_recheck_hint = OpsV320SourceReliabilityHint(info);
+        return info;
+    }
+    info.source_health_present = true;
+    info.source_health_status = health->status;
+    info.source_health_reason = health->reason;
+    info.recent_failure_context = OpsV320RecentFailureContext(*health);
+    info.checked_at = health->checked_at;
+    info.last_frame_age_ms = health->last_frame_age_ms;
+    info.last_metadata_age_ms = health->last_metadata_age_ms;
+    info.reconnect_count = health->reconnect_count;
+    info.warnings = health->warnings;
+    info.operator_recheck_hint = OpsV320SourceReliabilityHint(info);
+    return info;
+}
+
+void AppendOpsV320SourceReliabilityWarningsJson(std::ostringstream& out,
+                                                const std::vector<std::string>& warnings) {
+    out << "[";
+    for (std::size_t i = 0; i < warnings.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "\"" << JsonEscape(warnings[i]) << "\"";
+    }
+    out << "]";
+}
+
+std::string OpsV320SourceReliabilityContextJson(const OpsV320SourceReliabilityInfo& info) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v320-source-reliability-context.v1\","
+        << "\"sourceId\":\"" << JsonEscape(info.source_id) << "\","
+        << "\"sourceHealthStatus\":\"" << JsonEscape(info.source_health_status) << "\","
+        << "\"sourceHealthReason\":\"" << JsonEscape(info.source_health_reason) << "\","
+        << "\"recentFailureContext\":\"" << JsonEscape(info.recent_failure_context) << "\","
+        << "\"operatorRecheckHint\":\"" << JsonEscape(info.operator_recheck_hint) << "\","
+        << "\"operatorRecheckRoute\":\"/ops/api/source-health\","
+        << "\"sourceHealthPresent\":" << (info.source_health_present ? "true" : "false") << ","
+        << "\"sourceHealthCheckedAt\":";
+    AppendNullableJsonString(out, info.checked_at);
+    out << ",\"lastFrameAgeMs\":";
+    AppendNullableInt64(out, info.last_frame_age_ms);
+    out << ",\"lastMetadataAgeMs\":";
+    AppendNullableInt64(out, info.last_metadata_age_ms);
+    out << ",\"reconnectCount\":" << info.reconnect_count
+        << ",\"warnings\":";
+    AppendOpsV320SourceReliabilityWarningsJson(out, info.warnings);
+    out << ",\"sourceRegistryWritePerformed\":false,"
+        << "\"opsOnly\":true,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsV320SourceReliabilitySummaryJson(
+    const std::vector<OpsV320SourceReliabilityInfo>& items) {
+    int live = 0;
+    int needs_recheck = 0;
+    int blocked = 0;
+    int warnings = 0;
+    for (const auto& item : items) {
+        if (item.source_health_status == "live" && item.warnings.empty()) {
+            ++live;
+        } else if (item.source_health_status == "source-missing" ||
+                   item.source_health_status == "not-registered" ||
+                   item.source_health_status == "source-health-unavailable") {
+            ++blocked;
+        } else {
+            ++needs_recheck;
+        }
+        if (!item.warnings.empty()) {
+            ++warnings;
+        }
+    }
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v320-source-reliability-context.v1\","
+        << "\"status\":\"ops-v320-source-reliability-context\","
+        << "\"itemCount\":" << items.size() << ","
+        << "\"live\":" << live << ","
+        << "\"needsRecheck\":" << needs_recheck << ","
+        << "\"blocked\":" << blocked << ","
+        << "\"warningContext\":" << warnings << ","
+        << "\"operatorRecheckRoute\":\"/ops/api/source-health\","
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"opsOnly\":true,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false"
+        << "}";
+    return out.str();
+}
+
 std::string OpsV320ResolutionQueueStatus(const OpsEventReviewState& review) {
     const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
     if (resolution_state.resolution_status == "open") {
@@ -15505,7 +15689,8 @@ std::string OpsV320ResolutionQueueStatus(const OpsEventReviewState& review) {
 
 std::string OpsV320TimelineMarkersJson(const std::string& event_json,
                                        const OpsEventReviewState& review,
-                                       const OpsV320EvidenceQualityInfo& evidence_quality) {
+                                       const OpsV320EvidenceQualityInfo& evidence_quality,
+                                       const OpsV320SourceReliabilityInfo& source_reliability) {
     const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
     const std::int64_t event_ms =
         ParseInt64Field(event_json, "updateTime")
@@ -15546,6 +15731,14 @@ std::string OpsV320TimelineMarkersJson(const std::string& event_json,
         << "\"timeMs\":" << event_ms << ","
         << "\"replayCoverage\":\"" << JsonEscape(evidence_quality.replay_coverage) << "\","
         << "\"opsOnly\":true"
+        << "},"
+        << "{"
+        << "\"key\":\"source-reliability\","
+        << "\"label\":\"Source reliability\","
+        << "\"status\":\"" << JsonEscape(source_reliability.source_health_status) << "\","
+        << "\"timeMs\":" << event_ms << ","
+        << "\"recentFailureContext\":\"" << JsonEscape(source_reliability.recent_failure_context) << "\","
+        << "\"opsOnly\":true"
         << "}"
         << "]";
     return out.str();
@@ -15553,7 +15746,8 @@ std::string OpsV320TimelineMarkersJson(const std::string& event_json,
 
 std::string OpsV320DetailSectionsJson(const std::string& event_json,
                                       const OpsEventReviewState& review,
-                                      const OpsV320EvidenceQualityInfo& evidence_quality) {
+                                      const OpsV320EvidenceQualityInfo& evidence_quality,
+                                      const OpsV320SourceReliabilityInfo& source_reliability) {
     const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
     const std::string event_type =
         Trim(ParseStringField(event_json, "eventType")
@@ -15593,6 +15787,13 @@ std::string OpsV320DetailSectionsJson(const std::string& event_json,
         << "\"status\":\"" << JsonEscape(evidence_quality.evidence_completeness) << "\","
         << "\"detail\":\"confidence " << JsonEscape(evidence_quality.evidence_confidence)
         << " / replay " << JsonEscape(evidence_quality.replay_coverage) << "\""
+        << "},"
+        << "{"
+        << "\"key\":\"source-reliability\","
+        << "\"label\":\"Source Reliability\","
+        << "\"status\":\"" << JsonEscape(source_reliability.source_health_status) << "\","
+        << "\"detail\":\"recent failure " << JsonEscape(source_reliability.recent_failure_context)
+        << " / recheck " << JsonEscape(source_reliability.operator_recheck_route) << "\""
         << "}"
         << "]";
     return out.str();
@@ -15601,7 +15802,8 @@ std::string OpsV320DetailSectionsJson(const std::string& event_json,
 std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_json,
                                                       const OpsEventReviewState& review,
                                                       const std::size_t index,
-                                                      const OpsV320EvidenceQualityInfo& evidence_quality) {
+                                                      const OpsV320EvidenceQualityInfo& evidence_quality,
+                                                      const OpsV320SourceReliabilityInfo& source_reliability) {
     std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(review.event_id));
     if (!OpsEventReviewEventIdAllowed(event_id)) {
         event_id = OpsEventReviewEventIdAllowed(review.event_id) ? review.event_id
@@ -15626,8 +15828,9 @@ std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_j
         << "\"resolutionState\":" << OpsResolutionStateJson(resolution_state) << ","
         << "\"closeReopenLifecycle\":" << OpsResolutionStateJson(resolution_state) << ","
         << "\"evidenceQuality\":" << OpsV320EvidenceQualityJson(evidence_quality) << ","
-        << "\"detailSections\":" << OpsV320DetailSectionsJson(event_json, resolution_state, evidence_quality) << ","
-        << "\"timelineMarkers\":" << OpsV320TimelineMarkersJson(event_json, resolution_state, evidence_quality) << ","
+        << "\"sourceReliability\":" << OpsV320SourceReliabilityContextJson(source_reliability) << ","
+        << "\"detailSections\":" << OpsV320DetailSectionsJson(event_json, resolution_state, evidence_quality, source_reliability) << ","
+        << "\"timelineMarkers\":" << OpsV320TimelineMarkersJson(event_json, resolution_state, evidence_quality, source_reliability) << ","
         << "\"opsOnly\":true,"
         << "\"persistentReviewState\":true,"
         << "\"eventPostPayloadChanged\":false,"
@@ -15646,11 +15849,14 @@ std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_j
 
 std::string OpsV320UnifiedOpsEventsWorkspaceJson(
     const std::vector<std::string>& event_json_records,
-    const std::unordered_map<std::string, OpsEventReviewState>& reviews) {
+    const std::unordered_map<std::string, OpsEventReviewState>& reviews,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
     std::vector<std::string> items;
     std::vector<OpsV320EvidenceQualityInfo> evidence_quality_items;
+    std::vector<OpsV320SourceReliabilityInfo> source_reliability_items;
     items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
     evidence_quality_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
+    source_reliability_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
     for (std::size_t index = 0; index < event_json_records.size(); ++index) {
         const std::string& event_json = event_json_records[index];
         const std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
@@ -15662,9 +15868,12 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
             review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
         const OpsV320EvidenceQualityInfo evidence_quality =
             OpsV320EvidenceQualityInfoFor(event_json, review);
+        const OpsV320SourceReliabilityInfo source_reliability =
+            OpsV320SourceReliabilityInfoFor(event_json, source_health_snapshot);
         items.push_back(OpsV320UnifiedResolutionWorkspaceItemJson(
-            event_json, review, index, evidence_quality));
+            event_json, review, index, evidence_quality, source_reliability));
         evidence_quality_items.push_back(evidence_quality);
+        source_reliability_items.push_back(source_reliability);
         if (items.size() >= 12U) {
             break;
         }
@@ -15687,6 +15896,8 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
         << "\"resolutionTimeline\":" << (items.empty() ? "[]" : "[" + items.front() + "]") << ","
         << "\"evidenceQualitySummary\":"
         << OpsV320EvidenceQualitySummaryJson(evidence_quality_items) << ","
+        << "\"sourceReliabilitySummary\":"
+        << OpsV320SourceReliabilitySummaryJson(source_reliability_items) << ","
         << "\"itemCount\":" << items.size() << ","
         << "\"eventPostPayloadChanged\":false,"
         << "\"webrtcDataChannelSchemaChanged\":false,"
@@ -15699,7 +15910,7 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
         << "\"rawJsonExposed\":false,"
         << "\"debugMaterialExposed\":false,"
         << "\"evidenceQualityLayerImplemented\":true,"
-        << "\"sourceReliabilityContextImplemented\":false,"
+        << "\"sourceReliabilityContextImplemented\":true,"
         << "\"aiReviewQualityContextImplemented\":false,"
         << "\"operatorAssignmentFlowImplemented\":false,"
         << "\"clientDigestImplemented\":false,"
@@ -17077,6 +17288,7 @@ std::string OpsExplainableIncidentBriefViewJson(
 }
 
 bool OpsEventReviewInboxJson(const app::AppConfig& config,
+                             const OpsSourceHealthSnapshot& source_health_snapshot,
                              const std::unordered_map<std::string, std::string>& query,
                              std::string* body,
                              std::string* error_message) {
@@ -17199,7 +17411,7 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         << OpsV300EventEvidenceSearchUiJson(event_result.records_json, reviews, query)
         << ","
         << "\"unifiedResolutionWorkspace\":"
-        << OpsV320UnifiedOpsEventsWorkspaceJson(event_result.records_json, reviews)
+        << OpsV320UnifiedOpsEventsWorkspaceJson(event_result.records_json, reviews, source_health_snapshot)
         << ","
         << "\"replayTimeline\":"
         << OpsV310ReplayTimelineUiJson(event_result.records_json, reviews)
@@ -19888,7 +20100,14 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            }
 	                            std::string body;
 	                            std::string error_message;
-	                            if (!OpsEventReviewInboxJson(config, query, &body, &error_message)) {
+	                            const auto source_health_snapshot =
+	                                BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+	                                                             WebRtcSourceRegistry::Instance().Snapshots(),
+	                                                             impl_->session_manager.SourceDescriptorSnapshots(),
+	                                                             impl_->session_manager.SourceReconnectStatsSnapshot(),
+	                                                             impl_->session_manager.SourceEgressStatsSnapshot());
+	                            if (!OpsEventReviewInboxJson(
+                                        config, source_health_snapshot, query, &body, &error_message)) {
 	                                return JsonResponse(400,
 	                                                    "Bad Request",
 	                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
@@ -19914,7 +20133,17 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                review_query["eventId"] = event_id;
 	                                std::string body;
 	                                std::string error_message;
-	                                if (!OpsEventReviewInboxJson(config, review_query, &body, &error_message)) {
+	                                const auto source_health_snapshot =
+	                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+	                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+	                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+	                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+	                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+	                                if (!OpsEventReviewInboxJson(config,
+                                                                 source_health_snapshot,
+                                                                 review_query,
+                                                                 &body,
+                                                                 &error_message)) {
 	                                    return JsonResponse(400,
 	                                                        "Bad Request",
 	                                                        "{\"error\":\"" + JsonEscape(error_message) + "\"}");

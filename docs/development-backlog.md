@@ -19,7 +19,7 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 ## 현재 source roadmap: v3.2.0 Operations Resolution Workspace
 
 상태: `v3.2.0` Step 1 source baseline 정렬, Step 2 Resolution State Contract,
-Step 3 Unified Ops Events Workspace, Step 4 Evidence Quality Layer local/static 구현 완료. 이 절은 v3.2.0 전체 기능
+Step 3 Unified Ops Events Workspace, Step 4 Evidence Quality Layer, Step 5 Source Reliability Context local/static 구현 완료. 이 절은 v3.2.0 전체 기능
 완료 evidence가 아니며, 실제 기능 구현은 각 Step별 코드/UI/API/검증 evidence가 생긴
 뒤에만 완료로 기록합니다. Step 1 baseline 정렬 자체는 후속 v3.2 기능 구현 완료
 evidence가 아닙니다.
@@ -83,7 +83,7 @@ license/provenance/privacy/운영 제약:
 | 2 | v3.2.0 (2) Resolution State Contract | P0 | 완료 | `media-server.ops.resolution-state.v1` 사건 상태, 판정 reason, close/reopen lifecycle contract |
 | 3 | v3.2.0 (3) Unified Ops Events Workspace | P0 | 완료 | `/ops/events` resolution queue/detail/timeline workspace |
 | 4 | v3.2.0 (4) Evidence Quality Layer | P0 | 완료 | evidence completeness/confidence/replay coverage hint |
-| 5 | v3.2.0 (5) Source Reliability Context | P1 | 대기 | source health, recent failure, operator recheck hint |
+| 5 | v3.2.0 (5) Source Reliability Context | P1 | 완료 | source health, recent failure, operator recheck hint |
 | 6 | v3.2.0 (6) AI Review Quality Context | P1 | 대기 | correction/review signal, uncertainty reason, quality badge |
 | 7 | v3.2.0 (7) Operator Resolution Flow | P1 | 대기 | assign, note, close, reopen, audit trail |
 | 8 | v3.2.0 (8) Action Readiness Checklist | P1 | 대기 | rule draft/evidence bundle/notification readiness checklist |
@@ -147,6 +147,20 @@ license/provenance/privacy/운영 제약:
 - `docs/project-feature-test-inventory.md`: `UI-063`, `EVT-065`, `SAFE-105`, `OPS-072`를 추가하고 v3.2.0 (4) mapping을 `verify-v320-evidence-quality-layer`, `verify-ops-client-ui`에 연결했습니다.
 - `docs/stream-verification.md`, `docs/release-test-records.md`: Step 4 verifier와 RED/final/안정화 결과 기록, 미실행/제외 경계를 추가했습니다.
 - 완료 경계: 이번 Step 4는 Ops-only evidence quality hint layer입니다. Source Reliability Context, AI Review Quality Context, Operator Resolution Flow, Action Readiness Checklist, Client-safe Resolution Digest, Resolution Search & Metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님을 분리합니다.
+
+## v3.2.0 Step 5 개발 기록
+
+- 범위: P1 `v3.2.0 (5) Source Reliability Context`.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/events/reviews`의 기존 `unifiedResolutionWorkspace` item에 `media-server.ops.v320-source-reliability-context.v1` `sourceReliability` 객체를 추가했습니다. `OpsV320SourceReliabilityInfoFor`, `OpsV320SourceReliabilityContextJson`, `OpsV320SourceReliabilitySummaryJson`이 SourceRegistry source health snapshot과 EventRecord source identifier만 읽어 `sourceHealthStatus`, `recentFailureContext`, `operatorRecheckHint`, `/ops/api/source-health` recheck route를 계산합니다.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV320DetailSectionsJson`, `OpsV320TimelineMarkersJson`, `OpsV320UnifiedResolutionWorkspaceItemJson`, `OpsV320UnifiedOpsEventsWorkspaceJson`에 source reliability detail/timeline marker와 `sourceReliabilitySummary`, `sourceReliabilityContextImplemented:true`를 연결했습니다.
+- `/ops/api/events/reviews`: 새 write route, source registry write, EventRecord top-level, Event POST payload, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path, Rule/Profile payload, client/viewer 출력을 변경하지 않습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV320SourceReliabilityContext`가 `/ops/events` unified resolution detail 안에 source health, recent failure context, operator recheck hint, source registry write 없음/source URL 비노출 boundary를 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`: `.v320-source-reliability-grid`, `.v320-source-reliability-card`, `.v320-source-reliability-warnings`, `.v320-source-reliability-warning` 스타일을 추가해 기존 v3.2 workspace 흐름 안에서 반응형으로 표시합니다.
+- `scripts/internal/verify_v320_source_reliability_context.mjs`, `server.sh`: `./server.sh verify-v320-source-reliability-context` 명령을 추가해 payload, UI script/CSS, ops smoke, 문서, feature inventory, release records, dispatch 연결을 정적으로 검증합니다.
+- `scripts/internal/verify_ops_client_ui_smoke.mjs`: `/ops/events` static smoke 대상에 `ops-events-source-reliability-context` marker와 `media-server.ops.v320-source-reliability-context.v1` 문자열을 추가했습니다.
+- `docs/project-feature-test-inventory.md`: `UI-064`, `EVT-066`, `SAFE-106`, `OPS-073`을 추가하고 v3.2.0 (5) mapping을 `verify-v320-source-reliability-context`, `verify-ops-client-ui`에 연결했습니다.
+- `docs/stream-verification.md`, `docs/release-test-records.md`: Step 5 verifier와 RED/final/안정화 결과 기록, 미실행/제외 경계를 추가했습니다.
+- 완료 경계: 이번 Step 5는 Ops-only source reliability context hint layer입니다. AI Review Quality Context, Operator Resolution Flow, Action Readiness Checklist, Client-safe Resolution Digest, Resolution Search & Metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님을 분리합니다.
 
 ## 최신 공개 기준 상세: v3.1.0 Encoded Event Clip and Safe Sharing Expansion
 
