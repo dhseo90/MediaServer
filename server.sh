@@ -244,6 +244,30 @@ Usage:
                  v3.1.0 S07 Optional Vector Search의 default-off embedding index와 quality gate 경계를 검증합니다.
   verify-v310-retention-export-hardening
                  v3.1.0 S08 Retention/Export Hardening과 encoded clip cleanup/export/audit 경계를 검증합니다.
+  verify-v320-entry-baseline
+                 v3.2.0 Step 1 source baseline과 latest published v3.1.0 경계를 검증합니다.
+  verify-v320-resolution-state-contract
+                 v3.2.0 Step 2 Resolution State Contract와 close/reopen lifecycle 경계를 검증합니다.
+  verify-v320-unified-ops-events-workspace
+                 v3.2.0 Step 3 Unified Ops Events Workspace와 resolution queue/detail/timeline UI 경계를 검증합니다.
+  verify-v320-evidence-quality-layer
+                 v3.2.0 Step 4 Evidence Quality Layer와 completeness/confidence/replay coverage hint 경계를 검증합니다.
+  verify-v320-source-reliability-context
+                 v3.2.0 Step 5 Source Reliability Context와 source health/recent failure/recheck hint 경계를 검증합니다.
+  verify-v320-source-reliability-runtime-sample
+                 v3.2.0 Step 5 fixture EventRecord item의 sourceReliability 런타임 샘플을 검증합니다.
+  verify-v320-ai-review-quality-context
+                 v3.2.0 Step 6 AI Review Quality Context와 correction/review signal, uncertainty reason, quality badge 경계를 검증합니다.
+  verify-v320-operator-resolution-flow
+                 v3.2.0 Step 7 Operator Resolution Flow와 assign/note/close/reopen/audit 경계를 검증합니다.
+  verify-v320-action-readiness-checklist
+                 v3.2.0 Step 8 Action Readiness Checklist와 rule draft/evidence bundle/notification readiness 경계를 검증합니다.
+  verify-v320-client-safe-resolution-digest
+                 v3.2.0 Step 9 Client-safe Resolution Digest와 viewer redaction 경계를 검증합니다.
+  verify-v320-resolution-search-metrics
+                 v3.2.0 Step 10 Resolution Search & Metrics와 filter/saved view/metric summary 경계를 검증합니다.
+  verify-v320-stabilization-release-readiness
+                 v3.2.0 Step 11 Stabilization and Release Readiness와 local release gate 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -382,6 +406,28 @@ Usage:
                  v3.1.0 S08 Retention/Export Hardening과 encoded clip cleanup/export/audit 경계를 검증합니다.
   verify-v310-stabilization-release-readiness
                  v3.1.0 S09 Stabilization and Release Readiness와 local release gate 경계를 검증합니다.
+  verify-v320-entry-baseline
+                 v3.2.0 Step 1 source baseline과 latest published v3.1.0 경계를 검증합니다.
+  verify-v320-resolution-state-contract
+                 v3.2.0 Step 2 Resolution State Contract와 close/reopen lifecycle 경계를 검증합니다.
+  verify-v320-unified-ops-events-workspace
+                 v3.2.0 Step 3 Unified Ops Events Workspace와 resolution queue/detail/timeline UI 경계를 검증합니다.
+  verify-v320-evidence-quality-layer
+                 v3.2.0 Step 4 Evidence Quality Layer와 completeness/confidence/replay coverage hint 경계를 검증합니다.
+  verify-v320-source-reliability-context
+                 v3.2.0 Step 5 Source Reliability Context와 source health/recent failure/recheck hint 경계를 검증합니다.
+  verify-v320-source-reliability-runtime-sample
+                 v3.2.0 Step 5 fixture EventRecord item의 sourceReliability 런타임 샘플을 검증합니다.
+  verify-v320-ai-review-quality-context
+                 v3.2.0 Step 6 AI Review Quality Context와 correction/review signal, uncertainty reason, quality badge 경계를 검증합니다.
+  verify-v320-operator-resolution-flow
+                 v3.2.0 Step 7 Operator Resolution Flow와 assign/note/close/reopen/audit 경계를 검증합니다.
+  verify-v320-action-readiness-checklist
+                 v3.2.0 Step 8 Action Readiness Checklist와 rule draft/evidence bundle/notification readiness 경계를 검증합니다.
+  verify-v320-client-safe-resolution-digest
+                 v3.2.0 Step 9 Client-safe Resolution Digest와 viewer redaction 경계를 검증합니다.
+  verify-v320-stabilization-release-readiness
+                 v3.2.0 Step 11 Stabilization and Release Readiness와 local release gate 경계를 검증합니다.
   verify-actions-security
                  GitHub Actions workflow 권한과 action 사용 정책을 검증합니다.
   verify-ci-local-gate-parity
@@ -1232,6 +1278,54 @@ case "${cmd}" in
   verify-v310-stabilization-release-readiness)
     require_internal verify_v310_stabilization_release_readiness.mjs
     exec "${INTERNAL_DIR}/verify_v310_stabilization_release_readiness.mjs" "$@"
+    ;;
+  verify-v320-entry-baseline)
+    require_internal verify_v320_entry_baseline.mjs
+    exec "${INTERNAL_DIR}/verify_v320_entry_baseline.mjs" "$@"
+    ;;
+  verify-v320-resolution-state-contract)
+    require_internal verify_v320_resolution_state_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v320_resolution_state_contract.mjs" "$@"
+    ;;
+  verify-v320-unified-ops-events-workspace)
+    require_internal verify_v320_unified_ops_events_workspace.mjs
+    exec "${INTERNAL_DIR}/verify_v320_unified_ops_events_workspace.mjs" "$@"
+    ;;
+  verify-v320-evidence-quality-layer)
+    require_internal verify_v320_evidence_quality_layer.mjs
+    exec "${INTERNAL_DIR}/verify_v320_evidence_quality_layer.mjs" "$@"
+    ;;
+  verify-v320-source-reliability-context)
+    require_internal verify_v320_source_reliability_context.mjs
+    exec "${INTERNAL_DIR}/verify_v320_source_reliability_context.mjs" "$@"
+    ;;
+  verify-v320-source-reliability-runtime-sample)
+    require_internal verify_v320_source_reliability_runtime_sample.mjs
+    exec "${INTERNAL_DIR}/verify_v320_source_reliability_runtime_sample.mjs" "$@"
+    ;;
+  verify-v320-ai-review-quality-context)
+    require_internal verify_v320_ai_review_quality_context.mjs
+    exec "${INTERNAL_DIR}/verify_v320_ai_review_quality_context.mjs" "$@"
+    ;;
+  verify-v320-operator-resolution-flow)
+    require_internal verify_v320_operator_resolution_flow.mjs
+    exec "${INTERNAL_DIR}/verify_v320_operator_resolution_flow.mjs" "$@"
+    ;;
+  verify-v320-action-readiness-checklist)
+    require_internal verify_v320_action_readiness_checklist.mjs
+    exec "${INTERNAL_DIR}/verify_v320_action_readiness_checklist.mjs" "$@"
+    ;;
+  verify-v320-client-safe-resolution-digest)
+    require_internal verify_v320_client_safe_resolution_digest.mjs
+    exec "${INTERNAL_DIR}/verify_v320_client_safe_resolution_digest.mjs" "$@"
+    ;;
+  verify-v320-resolution-search-metrics)
+    require_internal verify_v320_resolution_search_metrics.mjs
+    exec "${INTERNAL_DIR}/verify_v320_resolution_search_metrics.mjs" "$@"
+    ;;
+  verify-v320-stabilization-release-readiness)
+    require_internal verify_v320_stabilization_release_readiness.mjs
+    exec "${INTERNAL_DIR}/verify_v320_stabilization_release_readiness.mjs" "$@"
     ;;
   verify-v290-final-stabilization-run)
     require_internal verify_v290_final_stabilization_run.mjs

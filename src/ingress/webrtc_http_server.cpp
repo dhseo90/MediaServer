@@ -3590,6 +3590,35 @@ void AppendOpsEventsPage(std::ostringstream& out) {
           <p class="ops-rule-note">EventRecord, FeatureSet, EvidenceManifest, review state를 불러오면 V300 evidence detail이 표시됩니다.</p>
         </div>
       </section>
+      <section class="section-card ops-workspace-wide v320-unified-events-workspace" data-testid="ops-v320-unified-events-workspace" data-v320-unified-events-workspace="resolution-queue-detail-timeline">
+        <div class="toolbar">
+          <div>
+            <h3>Unified Resolution Workspace</h3>
+            <p id="opsV320UnifiedWorkspaceSummary">resolution queue, resolution detail, resolution timeline을 `/ops/events` 안에서 Ops 전용으로 확인합니다.</p>
+          </div>
+          <div id="opsV320UnifiedWorkspaceBadges" class="badge-row"><span class="chip">media-server.ops.v320-unified-events-workspace.v1</span></div>
+        </div>
+        <div class="v320-resolution-workspace-grid">
+          <div class="v320-resolution-workspace-column" data-v320-resolution-column="queue">
+            <h4>resolution queue</h4>
+            <div id="opsV320ResolutionQueue" class="v320-resolution-queue">
+              <p class="ops-rule-note">EventRecord와 resolution state를 불러오면 queue가 표시됩니다.</p>
+            </div>
+          </div>
+          <div class="v320-resolution-workspace-column" data-v320-resolution-column="detail">
+            <h4>resolution detail</h4>
+            <div id="opsV320ResolutionDetail" class="v320-resolution-detail">
+              <p class="ops-rule-note">queue 첫 항목의 상태, reason, close/reopen lifecycle이 표시됩니다.</p>
+            </div>
+          </div>
+          <div class="v320-resolution-workspace-column" data-v320-resolution-column="timeline">
+            <h4>resolution timeline</h4>
+            <div id="opsV320ResolutionTimeline" class="v320-resolution-timeline">
+              <p class="ops-rule-note">event, review, resolution transition marker가 표시됩니다.</p>
+            </div>
+          </div>
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide v310-replay-timeline-ui" data-testid="ops-v310-replay-timeline-ui" data-v310-replay-timeline-ui="event-frame-frame-bundle-encoded-clip">
         <div class="toolbar">
           <div>
@@ -4797,6 +4826,105 @@ void AppendClientSafeFollowUpDigestJson(std::ostringstream& out,
     out << "]}";
 }
 
+std::string ClientSafeResolutionDigestStatus(const ClientEventItem& item) {
+    const std::string status = ClientSafeDigestValue(item.status, "recorded");
+    if (!ClientEventStatusIsActive(status)) {
+        return "closed";
+    }
+    if (status == "new" || status == "open" || status == "active" ||
+        status == "needs-follow-up" || status == "review-needed") {
+        return "open";
+    }
+    return "review-needed";
+}
+
+std::string ClientSafeResolutionDigestLabel(const std::string& resolution_status) {
+    if (resolution_status == "closed") {
+        return "closed";
+    }
+    if (resolution_status == "open") {
+        return "open";
+    }
+    return "review needed";
+}
+
+std::string ClientSafeResolutionDigestTimelineHint(const ClientEventItem& item,
+                                                   const std::string& resolution_status) {
+    if (resolution_status == "closed") {
+        if (item.end_time_ms.has_value()) {
+            return "closed event";
+        }
+        return "closed summary";
+    }
+    if (item.update_time_ms.has_value()) {
+        return "updated resolution";
+    }
+    return "active resolution";
+}
+
+std::string ClientSafeResolutionDigestSummaryText(const ClientEventItem& item,
+                                                  const std::string& resolution_status) {
+    std::string label = ClientSafeDigestValue(item.scenario_name, "");
+    if (label.empty()) {
+        label = ClientSafeDigestValue(item.class_name, "");
+    }
+    if (label.empty()) {
+        label = ClientSafeDigestValue(item.event_type, "event");
+    }
+    std::string summary = label + " / " + ClientSafeResolutionDigestLabel(resolution_status);
+    if (analysis::IncidentProjectionContainsForbiddenMaterial(summary)) {
+        summary = "viewer-safe resolution summary";
+    }
+    return summary;
+}
+
+void AppendClientSafeResolutionDigestJson(std::ostringstream& out,
+                                          const ClientEventSummary& summary) {
+    out << "{"
+        << "\"schema\":\"media-server.client.resolution-digest.v1\","
+        << "\"provided\":" << (summary.provided ? "true" : "false") << ","
+        << "\"viewerSafe\":true,"
+        << "\"publishedViewScoped\":true,"
+        << "\"sourceUrlIncluded\":false,"
+        << "\"rawEvidenceIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"providerMaterialIncluded\":false,"
+        << "\"featureProvenanceIncluded\":false,"
+        << "\"internalEvidenceIncluded\":false,"
+        << "\"operatorNotesIncluded\":false,"
+        << "\"ruleEditorIncluded\":false,"
+        << "\"actionControlsIncluded\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventSchemaChanged\":false,"
+        << "\"mediaPathChanged\":false,"
+        << "\"resolutionStateWritePerformed\":false,"
+        << "\"itemCount\":" << summary.recent.size() << ","
+        << "\"digestItems\":[";
+    const std::size_t limit = std::min<std::size_t>(summary.recent.size(), 5);
+    for (std::size_t i = 0; i < limit; ++i) {
+        const auto& item = summary.recent[i];
+        const std::string resolution_status = ClientSafeResolutionDigestStatus(item);
+        if (i != 0) {
+            out << ",";
+        }
+        out << "{"
+            << "\"digestId\":\"client-resolution-" << (i + 1) << "\","
+            << "\"resolutionStatus\":\"" << JsonEscape(resolution_status) << "\","
+            << "\"resolutionLabel\":\""
+            << JsonEscape(ClientSafeResolutionDigestLabel(resolution_status)) << "\","
+            << "\"summaryText\":\""
+            << JsonEscape(ClientSafeResolutionDigestSummaryText(item, resolution_status)) << "\","
+            << "\"severity\":\"" << JsonEscape(ClientSafeIncidentDigestSeverity(item)) << "\","
+            << "\"timelineHint\":\""
+            << JsonEscape(ClientSafeResolutionDigestTimelineHint(item, resolution_status)) << "\","
+            << "\"time\":";
+        AppendNullableInt64(out, item.update_time_ms.has_value() ? item.update_time_ms
+                                                                 : item.start_time_ms);
+        out << "}";
+    }
+    out << "]}";
+}
+
 void AppendClientEventSummaryJson(std::ostringstream& out, const ClientEventSummary& summary) {
     out << "{"
         << "\"provided\":" << (summary.provided ? "true" : "false") << ","
@@ -4826,6 +4954,8 @@ void AppendClientEventSummaryJson(std::ostringstream& out, const ClientEventSumm
     }
     out << "],\"eventDigest\":";
     AppendClientSafeEventDigestJson(out, summary);
+    out << ",\"resolutionDigest\":";
+    AppendClientSafeResolutionDigestJson(out, summary);
     out << ",\"incidentDigest\":";
     AppendClientSafeIncidentDigestJson(out, summary);
     out << ",\"followUpDigest\":";
@@ -10325,6 +10455,12 @@ struct OpsEventReviewState {
     std::string incident_id;
     std::string incident_status{"new"};
     std::string action_target{"operator-triage"};
+    std::string resolution_status{"open"};
+    std::string resolution_reason{"unreviewed"};
+    std::string resolution_note;
+    std::string resolution_transition{"none"};
+    std::int64_t resolution_closed_at_ms{0};
+    std::int64_t resolution_reopened_at_ms{0};
     std::string note;
     std::string vlm_action{"not-reviewed"};
     std::string vlm_action_target{"eventExplanation"};
@@ -10415,6 +10551,41 @@ bool OpsIncidentStatusAllowed(const std::string& value) {
     return kAllowed.count(value) != 0;
 }
 
+bool OpsResolutionStatusAllowed(const std::string& value) {
+    static const std::unordered_set<std::string> kAllowed = {
+        "open",
+        "triaged",
+        "in-progress",
+        "resolved",
+        "reopened",
+        "false-positive",
+    };
+    return kAllowed.count(value) != 0;
+}
+
+bool OpsResolutionReasonAllowed(const std::string& value) {
+    static const std::unordered_set<std::string> kAllowed = {
+        "unreviewed",
+        "operator-confirmed",
+        "evidence-insufficient",
+        "false-positive",
+        "duplicate",
+        "source-unreliable",
+        "rule-tuning",
+        "manual-reopen",
+    };
+    return kAllowed.count(value) != 0;
+}
+
+bool OpsResolutionTransitionAllowed(const std::string& value) {
+    static const std::unordered_set<std::string> kAllowed = {
+        "none",
+        "close",
+        "reopen",
+    };
+    return kAllowed.count(value) != 0;
+}
+
 std::string NormalizeOpsEventReviewStatus(std::string value) {
     value = LowerAscii(Trim(std::move(value)));
     return OpsEventReviewStatusAllowed(value) ? value : "new";
@@ -10440,6 +10611,26 @@ std::string NormalizeOpsIncidentStatus(std::string value) {
     return OpsIncidentStatusAllowed(value) ? value : "new";
 }
 
+std::string NormalizeOpsResolutionStatus(std::string value) {
+    value = LowerAscii(Trim(std::move(value)));
+    return OpsResolutionStatusAllowed(value) ? value : "open";
+}
+
+std::string NormalizeOpsResolutionReason(std::string value) {
+    value = LowerAscii(Trim(std::move(value)));
+    return OpsResolutionReasonAllowed(value) ? value : "unreviewed";
+}
+
+std::string NormalizeOpsResolutionTransition(std::string value) {
+    value = LowerAscii(Trim(std::move(value)));
+    return OpsResolutionTransitionAllowed(value) ? value : "none";
+}
+
+bool OpsResolutionStatusIsClosed(const std::string& value) {
+    const std::string status = NormalizeOpsResolutionStatus(value);
+    return status == "resolved" || status == "false-positive";
+}
+
 std::string NormalizeOpsIncidentId(std::string value, const std::string& event_id) {
     value = Trim(std::move(value));
     if (!OpsEventReviewEventIdAllowed(value)) {
@@ -10449,6 +10640,7 @@ std::string NormalizeOpsIncidentId(std::string value, const std::string& event_i
 }
 
 bool OpsEventReviewNoteContainsSensitiveMaterial(const std::string& value);
+std::string NormalizeOpsEventReviewNote(std::string value);
 
 std::string NormalizeOpsEventActionTarget(std::string value) {
     value = Trim(std::move(value));
@@ -10471,6 +10663,115 @@ std::string NormalizeOpsEventActionTarget(std::string value) {
         return "[redacted-action-target]";
     }
     return value;
+}
+
+std::string NormalizeOpsResolutionNote(std::string value) {
+    value = NormalizeOpsEventReviewNote(std::move(value));
+    constexpr std::size_t kMaxResolutionNoteBytes = 240;
+    if (value.size() > kMaxResolutionNoteBytes) {
+        value.resize(kMaxResolutionNoteBytes);
+        value = Trim(std::move(value));
+    }
+    return value;
+}
+
+OpsEventReviewState OpsResolutionStateFromReview(OpsEventReviewState state) {
+    state.resolution_status = NormalizeOpsResolutionStatus(state.resolution_status);
+    state.resolution_reason = NormalizeOpsResolutionReason(state.resolution_reason);
+    state.resolution_transition = NormalizeOpsResolutionTransition(state.resolution_transition);
+    state.resolution_note = NormalizeOpsResolutionNote(state.resolution_note);
+    const std::string review_status = NormalizeOpsEventReviewStatus(state.review_status);
+    const std::string classification = NormalizeOpsEventReviewClassification(state.classification);
+    const std::string incident_status = NormalizeOpsIncidentStatus(state.incident_status);
+
+    if (state.resolution_transition == "close" && state.resolution_status == "open") {
+        state.resolution_status =
+            incident_status == "false-positive" || classification == "false-positive"
+                ? "false-positive"
+                : "resolved";
+    } else if (state.resolution_transition == "reopen" &&
+               OpsResolutionStatusIsClosed(state.resolution_status)) {
+        state.resolution_status = "reopened";
+    }
+
+    if (state.resolution_status == "open" && state.resolution_reason == "unreviewed") {
+        if (incident_status == "closed" || review_status == "confirmed") {
+            state.resolution_status = "resolved";
+            state.resolution_reason = "operator-confirmed";
+            state.resolution_transition = "close";
+        } else if (incident_status == "false-positive" || classification == "false-positive") {
+            state.resolution_status = "false-positive";
+            state.resolution_reason = "false-positive";
+            state.resolution_transition = "close";
+        } else if (classification == "duplicate") {
+            state.resolution_status = "triaged";
+            state.resolution_reason = "duplicate";
+        } else if (classification == "needs-tuning") {
+            state.resolution_status = "triaged";
+            state.resolution_reason = "rule-tuning";
+        } else if (review_status == "needs-follow-up" || incident_status == "review-needed") {
+            state.resolution_status = "triaged";
+            state.resolution_reason = "evidence-insufficient";
+        } else if (incident_status == "acknowledged" || incident_status == "in-progress") {
+            state.resolution_status = "in-progress";
+            state.resolution_reason = "operator-confirmed";
+        } else if (review_status == "reviewing") {
+            state.resolution_status = "triaged";
+        }
+    }
+
+    if (OpsResolutionStatusIsClosed(state.resolution_status) &&
+        state.resolution_transition == "none") {
+        state.resolution_transition = "close";
+    }
+    if (state.resolution_status == "reopened") {
+        state.resolution_transition = "reopen";
+        if (state.resolution_reason == "unreviewed") {
+            state.resolution_reason = "manual-reopen";
+        }
+    }
+    return state;
+}
+
+std::string OpsResolutionStateJson(const OpsEventReviewState& raw_state) {
+    const OpsEventReviewState state = OpsResolutionStateFromReview(raw_state);
+    const bool closed = OpsResolutionStatusIsClosed(state.resolution_status);
+    const bool can_reopen = closed || state.resolution_status == "reopened";
+    const bool can_close = !closed;
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.resolution-state.v1\","
+        << "\"status\":\"" << JsonEscape(state.resolution_status) << "\","
+        << "\"reason\":\"" << JsonEscape(state.resolution_reason) << "\","
+        << "\"note\":\"" << JsonEscape(state.resolution_note) << "\","
+        << "\"transition\":\"" << JsonEscape(state.resolution_transition) << "\","
+        << "\"closedAtMs\":" << state.resolution_closed_at_ms << ","
+        << "\"reopenedAtMs\":" << state.resolution_reopened_at_ms << ","
+        << "\"closeReopenLifecycle\":{"
+        << "\"canClose\":" << (can_close ? "true" : "false") << ","
+        << "\"canReopen\":" << (can_reopen ? "true" : "false") << ","
+        << "\"reasonRequired\":true,"
+        << "\"closeAction\":\"resolution-state-update\","
+        << "\"reopenAction\":\"resolution-state-update\","
+        << "\"resolutionTransition\":\"" << JsonEscape(state.resolution_transition) << "\""
+        << "},"
+        << "\"contract\":{"
+        << "\"persistent\":true,"
+        << "\"separateFromEventRecords\":true,"
+        << "\"separateFromEventPostPayload\":true,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"operatorAssignmentFlowIncluded\":false,"
+        << "\"clientDigestIncluded\":false,"
+        << "\"searchMetricsIncluded\":false"
+        << "}"
+        << "}";
+    return out.str();
 }
 
 bool OpsEventReviewNoteContainsSensitiveMaterial(const std::string& value) {
@@ -10597,6 +10898,32 @@ OpsEventReviewState OpsEventReviewStateFromJsonLine(const std::string& line) {
         ParseStringField(line, "incidentStatus").value_or(state.incident_status));
     state.action_target =
         NormalizeOpsEventActionTarget(ParseStringField(line, "actionTarget").value_or(state.action_target));
+    if (const auto resolution = ExtractObjectField(line, "resolution"); resolution.has_value()) {
+        state.resolution_status = NormalizeOpsResolutionStatus(
+            ParseStringField(*resolution, "status").value_or(state.resolution_status));
+        state.resolution_reason = NormalizeOpsResolutionReason(
+            ParseStringField(*resolution, "reason").value_or(state.resolution_reason));
+        state.resolution_note =
+            NormalizeOpsResolutionNote(ParseStringField(*resolution, "note").value_or(""));
+        state.resolution_transition = NormalizeOpsResolutionTransition(
+            ParseStringField(*resolution, "transition").value_or(state.resolution_transition));
+        state.resolution_closed_at_ms =
+            ParseInt64Field(*resolution, "closedAtMs").value_or(state.resolution_closed_at_ms);
+        state.resolution_reopened_at_ms =
+            ParseInt64Field(*resolution, "reopenedAtMs").value_or(state.resolution_reopened_at_ms);
+    }
+    state.resolution_status = NormalizeOpsResolutionStatus(
+        ParseStringField(line, "resolutionStatus").value_or(state.resolution_status));
+    state.resolution_reason = NormalizeOpsResolutionReason(
+        ParseStringField(line, "resolutionReason").value_or(state.resolution_reason));
+    state.resolution_note = NormalizeOpsResolutionNote(
+        ParseStringField(line, "resolutionNote").value_or(state.resolution_note));
+    state.resolution_transition = NormalizeOpsResolutionTransition(
+        ParseStringField(line, "resolutionTransition").value_or(state.resolution_transition));
+    state.resolution_closed_at_ms =
+        ParseInt64Field(line, "resolutionClosedAtMs").value_or(state.resolution_closed_at_ms);
+    state.resolution_reopened_at_ms =
+        ParseInt64Field(line, "resolutionReopenedAtMs").value_or(state.resolution_reopened_at_ms);
     state.note = NormalizeOpsEventReviewNote(ParseStringField(line, "note").value_or(""));
     if (const auto vlm_action = ExtractObjectField(line, "vlmAction"); vlm_action.has_value()) {
         state.vlm_action = NormalizeOpsVlmReviewAction(
@@ -10634,6 +10961,7 @@ OpsEventReviewState OpsEventReviewStateFromJsonLine(const std::string& line) {
 }
 
 std::string OpsEventReviewStateJson(const OpsEventReviewState& state) {
+    const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(state);
     std::ostringstream out;
     out << "{"
         << "\"schema\":\"media-server.ops.event-review-state.v1\","
@@ -10677,6 +11005,13 @@ std::string OpsEventReviewStateJson(const OpsEventReviewState& state) {
         << "\"separateFromEventPostPayload\":true,"
         << "\"eventPostPayloadChanged\":false"
         << "},"
+        << "\"resolutionStatus\":\"" << JsonEscape(resolution_state.resolution_status) << "\","
+        << "\"resolutionReason\":\"" << JsonEscape(resolution_state.resolution_reason) << "\","
+        << "\"resolutionNote\":\"" << JsonEscape(resolution_state.resolution_note) << "\","
+        << "\"resolutionTransition\":\"" << JsonEscape(resolution_state.resolution_transition) << "\","
+        << "\"resolutionClosedAtMs\":" << resolution_state.resolution_closed_at_ms << ","
+        << "\"resolutionReopenedAtMs\":" << resolution_state.resolution_reopened_at_ms << ","
+        << "\"resolution\":" << OpsResolutionStateJson(resolution_state) << ","
         << "\"note\":\"" << JsonEscape(state.note) << "\","
         << "\"vlmAction\":{"
         << "\"schema\":\"media-server.ops.vlm-review-action-state.v1\","
@@ -10801,6 +11136,10 @@ bool UpsertOpsEventReviewState(const app::AppConfig& config,
     next.vlm_action = NormalizeOpsVlmReviewAction(next.vlm_action);
     next.vlm_action_target = NormalizeOpsVlmReviewActionTarget(next.vlm_action_target);
     next.vlm_action_note = NormalizeOpsEventReviewNote(next.vlm_action_note);
+    next.resolution_status = NormalizeOpsResolutionStatus(next.resolution_status);
+    next.resolution_reason = NormalizeOpsResolutionReason(next.resolution_reason);
+    next.resolution_note = NormalizeOpsResolutionNote(next.resolution_note);
+    next.resolution_transition = NormalizeOpsResolutionTransition(next.resolution_transition);
     next.corrected_feature_label =
         NormalizeOpsFeatureCorrectionValue(next.corrected_feature_label);
     next.feature_aliases = NormalizeOpsFeatureAliases(std::move(next.feature_aliases));
@@ -10820,9 +11159,22 @@ bool UpsertOpsEventReviewState(const app::AppConfig& config,
     if (!LoadOpsEventReviewStatesLocked(path, &states, error_message)) {
         return false;
     }
+    OpsEventReviewState previous_state = DefaultOpsEventReviewState(next.event_id);
+    if (const auto it = states.find(next.event_id); it != states.end()) {
+        previous_state = it->second;
+    }
     if (previous != nullptr) {
-        const auto it = states.find(next.event_id);
-        *previous = it == states.end() ? DefaultOpsEventReviewState(next.event_id) : it->second;
+        *previous = previous_state;
+    }
+    next = OpsResolutionStateFromReview(next);
+    if (OpsResolutionStatusIsClosed(next.resolution_status) &&
+        next.resolution_closed_at_ms == 0) {
+        next.resolution_closed_at_ms = previous_state.resolution_closed_at_ms > 0
+                                           ? previous_state.resolution_closed_at_ms
+                                           : next.updated_at_ms;
+    }
+    if (next.resolution_status == "reopened" && next.resolution_reopened_at_ms == 0) {
+        next.resolution_reopened_at_ms = next.updated_at_ms;
     }
     std::ofstream out(path, std::ios::app);
     if (!out) {
@@ -10849,7 +11201,12 @@ std::string OpsEventReviewCatalogJson() {
            "\"accept\",\"dismiss\",\"review-needed\"],\"vlmActionTargets\":[\"summary\","
            "\"eventExplanation\",\"falsePositiveHints\",\"operatorReviewQuestions\"],"
            "\"incidentStatuses\":[\"new\",\"review-needed\",\"acknowledged\",\"in-progress\","
-           "\"closed\",\"false-positive\"]}";
+           "\"closed\",\"false-positive\"],\"resolutionStatuses\":["
+           "\"open\",\"triaged\",\"in-progress\",\"resolved\",\"reopened\",\"false-positive\"],"
+           "\"resolutionReasons\":[\"unreviewed\",\"operator-confirmed\","
+           "\"evidence-insufficient\",\"false-positive\",\"duplicate\",\"source-unreliable\","
+           "\"rule-tuning\",\"manual-reopen\"],\"resolutionTransitions\":["
+           "\"none\",\"close\",\"reopen\"]}";
 }
 
 bool OpsEventReviewMatchesFilters(const OpsEventReviewState& state,
@@ -15062,6 +15419,1552 @@ std::string OpsV310PlaybackSegmentsJson(const std::int64_t pre_event_ms,
     return out.str();
 }
 
+struct OpsV320EvidenceQualityInfo {
+    bool snapshot_path_present = false;
+    bool event_frame_present = false;
+    bool evidence_manifest_present = false;
+    bool frame_bundle_present = false;
+    bool encoded_clip_present = false;
+    bool bbox_crop_present = false;
+    bool vlm_evidence_refs_present = false;
+    std::string evidence_completeness = "missing";
+    std::string evidence_confidence = "low";
+    std::string replay_coverage = "missing";
+    std::string replay_coverage_hint = "no event evidence reference is available";
+    std::string operator_hint = "capture or attach event evidence before closing this incident";
+    int completeness_score = 0;
+    int confidence_score = 20;
+};
+
+OpsV320EvidenceQualityInfo OpsV320EvidenceQualityInfoFor(const std::string& event_json,
+                                                         const OpsEventReviewState& review) {
+    OpsV320EvidenceQualityInfo info;
+    const std::string snapshot_path = OpsV300EvidenceRefPath(event_json, "snapshotPath");
+    const std::string evidence_manifest = OpsV300EvidenceRefPath(event_json, "evidenceManifest");
+    const std::string frame_bundle = OpsV300EvidenceRefPath(event_json, "frameBundleManifest");
+    const std::string clip_manifest = OpsV300EvidenceRefPath(event_json, "clipPath");
+    const std::string bbox_crop = OpsV300EvidenceRefPath(event_json, "bboxCrop");
+    const std::string encoded_media = OpsV310EncodedMediaPath(clip_manifest);
+    const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
+
+    info.snapshot_path_present = !snapshot_path.empty();
+    info.evidence_manifest_present = !evidence_manifest.empty();
+    info.event_frame_present = info.snapshot_path_present || info.evidence_manifest_present;
+    info.frame_bundle_present = !frame_bundle.empty();
+    info.encoded_clip_present = !encoded_media.empty() || !clip_manifest.empty();
+    info.bbox_crop_present = !bbox_crop.empty();
+    info.vlm_evidence_refs_present = ExtractObjectField(event_json, "vlmEvidenceRefs").has_value();
+
+    int evidence_points = 0;
+    evidence_points += info.event_frame_present ? 1 : 0;
+    evidence_points += info.evidence_manifest_present ? 1 : 0;
+    evidence_points += info.frame_bundle_present ? 1 : 0;
+    evidence_points += info.encoded_clip_present ? 1 : 0;
+    evidence_points += info.bbox_crop_present ? 1 : 0;
+    info.completeness_score = std::min(100, evidence_points * 20);
+
+    if (info.completeness_score >= 80) {
+        info.evidence_completeness = "complete";
+        info.operator_hint = "evidence refs cover event frame, manifest, replay, and object-local review signals";
+    } else if (info.completeness_score > 0) {
+        info.evidence_completeness = "partial";
+        info.operator_hint = "review available refs and capture missing replay coverage before final closure";
+    }
+
+    if (info.encoded_clip_present) {
+        info.replay_coverage = "encoded-clip";
+        info.replay_coverage_hint = "bounded encoded clip or clip manifest is available";
+    } else if (info.frame_bundle_present) {
+        info.replay_coverage = "frame-bundle";
+        info.replay_coverage_hint = "pre/event/post frame bundle is available; encoded clip is missing";
+    } else if (info.event_frame_present) {
+        info.replay_coverage = "event-frame-only";
+        info.replay_coverage_hint = "trigger-time event frame is available; replay context is missing";
+    }
+
+    info.confidence_score = info.evidence_completeness == "complete" ? 90
+                            : info.evidence_completeness == "partial" ? 60
+                                                                        : 20;
+    if (resolution_state.resolution_reason == "evidence-insufficient") {
+        info.confidence_score = std::min(info.confidence_score, 35);
+        info.operator_hint = "resolution reason is evidence-insufficient; collect more refs before closure";
+    } else if (OpsResolutionStatusIsClosed(resolution_state.resolution_status) &&
+               info.evidence_completeness == "complete") {
+        info.confidence_score = 95;
+    }
+    info.evidence_confidence = info.confidence_score >= 80 ? "high"
+                               : info.confidence_score >= 50 ? "medium"
+                                                             : "low";
+    return info;
+}
+
+std::string OpsV320EvidenceQualityJson(const OpsV320EvidenceQualityInfo& info) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v320-evidence-quality.v1\","
+        << "\"evidenceCompleteness\":\"" << JsonEscape(info.evidence_completeness) << "\","
+        << "\"evidenceConfidence\":\"" << JsonEscape(info.evidence_confidence) << "\","
+        << "\"replayCoverage\":\"" << JsonEscape(info.replay_coverage) << "\","
+        << "\"replayCoverageHint\":\"" << JsonEscape(info.replay_coverage_hint) << "\","
+        << "\"operatorHint\":\"" << JsonEscape(info.operator_hint) << "\","
+        << "\"completenessScore\":" << info.completeness_score << ","
+        << "\"confidenceScore\":" << info.confidence_score << ","
+        << "\"snapshotPathPresent\":" << (info.snapshot_path_present ? "true" : "false") << ","
+        << "\"eventFramePresent\":" << (info.event_frame_present ? "true" : "false") << ","
+        << "\"evidenceManifestPresent\":" << (info.evidence_manifest_present ? "true" : "false") << ","
+        << "\"frameBundlePresent\":" << (info.frame_bundle_present ? "true" : "false") << ","
+        << "\"encodedClipPresent\":" << (info.encoded_clip_present ? "true" : "false") << ","
+        << "\"bboxCropPresent\":" << (info.bbox_crop_present ? "true" : "false") << ","
+        << "\"vlmEvidenceRefsPresent\":" << (info.vlm_evidence_refs_present ? "true" : "false") << ","
+        << "\"fullReplayEngineExecuted\":false,"
+        << "\"opsOnly\":true,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false,"
+        << "\"rawEvidenceMaterialExposed\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsV320EvidenceQualitySummaryJson(const std::vector<OpsV320EvidenceQualityInfo>& items) {
+    int complete = 0;
+    int partial = 0;
+    int missing = 0;
+    int high = 0;
+    int medium = 0;
+    int low = 0;
+    int encoded_clip = 0;
+    int frame_bundle = 0;
+    int event_frame_only = 0;
+    int replay_missing = 0;
+    for (const auto& item : items) {
+        if (item.evidence_completeness == "complete") ++complete;
+        else if (item.evidence_completeness == "partial") ++partial;
+        else ++missing;
+
+        if (item.evidence_confidence == "high") ++high;
+        else if (item.evidence_confidence == "medium") ++medium;
+        else ++low;
+
+        if (item.replay_coverage == "encoded-clip") ++encoded_clip;
+        else if (item.replay_coverage == "frame-bundle") ++frame_bundle;
+        else if (item.replay_coverage == "event-frame-only") ++event_frame_only;
+        else ++replay_missing;
+    }
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v320-evidence-quality.v1\","
+        << "\"status\":\"ops-v320-evidence-quality-layer\","
+        << "\"itemCount\":" << items.size() << ","
+        << "\"complete\":" << complete << ","
+        << "\"partial\":" << partial << ","
+        << "\"missing\":" << missing << ","
+        << "\"highConfidence\":" << high << ","
+        << "\"mediumConfidence\":" << medium << ","
+        << "\"lowConfidence\":" << low << ","
+        << "\"encodedClipCoverage\":" << encoded_clip << ","
+        << "\"frameBundleCoverage\":" << frame_bundle << ","
+        << "\"eventFrameOnlyCoverage\":" << event_frame_only << ","
+        << "\"missingReplayCoverage\":" << replay_missing << ","
+        << "\"fullReplayEngineExecuted\":false,"
+        << "\"opsOnly\":true,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false,"
+        << "\"rawEvidenceMaterialExposed\":false"
+        << "}";
+    return out.str();
+}
+
+struct OpsV320SourceReliabilityInfo {
+    std::string source_id{"unknown-source"};
+    std::string source_health_status{"source-missing"};
+    std::string source_health_reason{"source-id-missing"};
+    std::string recent_failure_context{"source-id-missing"};
+    std::string operator_recheck_hint{"link this event to a source before final closure"};
+    std::string operator_recheck_route{"/ops/api/source-health"};
+    std::string checked_at;
+    std::optional<std::int64_t> last_frame_age_ms;
+    std::optional<std::int64_t> last_metadata_age_ms;
+    int reconnect_count{0};
+    bool source_health_present{false};
+    std::vector<std::string> warnings;
+};
+
+const OpsSourceHealthItem* OpsV320SourceHealthForSource(const OpsSourceHealthSnapshot& snapshot,
+                                                       const std::string& source_id) {
+    if (source_id.empty() || source_id == "unknown-source") {
+        return nullptr;
+    }
+    const auto it = std::find_if(snapshot.items.begin(), snapshot.items.end(), [&](const auto& item) {
+        return item.source_id == source_id;
+    });
+    return it == snapshot.items.end() ? nullptr : &*it;
+}
+
+std::string OpsV320RecentFailureContext(const OpsSourceHealthItem& item) {
+    if (std::find(item.warnings.begin(), item.warnings.end(), "high-reconnect") != item.warnings.end()) {
+        return "high-reconnect";
+    }
+    if (std::find(item.warnings.begin(), item.warnings.end(), "repeated-stale") != item.warnings.end()) {
+        return "repeated-stale";
+    }
+    if (item.status == "live" && item.warnings.empty()) {
+        return "none";
+    }
+    if (!item.warnings.empty()) {
+        return "warning:" + item.warnings.front();
+    }
+    return item.status + ":" + item.reason;
+}
+
+std::string OpsV320SourceReliabilityHint(const OpsV320SourceReliabilityInfo& info) {
+    if (!info.source_health_present) {
+        if (info.source_health_status == "source-health-unavailable") {
+            return "source health snapshot unavailable; check source registry before closing this incident";
+        }
+        if (info.source_health_status == "not-registered") {
+            return "confirm source registry and PublishedView mapping before closing this incident";
+        }
+        return "link this event to a source before final closure";
+    }
+    if (info.source_health_status == "live" && info.warnings.empty()) {
+        return "source is live; continue resolution with evidence quality context";
+    }
+    return "run source health recheck and inspect /ops/sources before final closure";
+}
+
+OpsV320SourceReliabilityInfo OpsV320SourceReliabilityInfoFor(
+    const std::string& event_json,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    OpsV320SourceReliabilityInfo info;
+    const std::string source_id = OpsIncidentTriageBoardSourceId(event_json);
+    info.source_id = source_id.empty() ? "unknown-source" : source_id;
+    if (source_id.empty()) {
+        info.operator_recheck_hint = OpsV320SourceReliabilityHint(info);
+        return info;
+    }
+    if (!source_health_snapshot.ok) {
+        info.source_health_status = "source-health-unavailable";
+        info.source_health_reason = "source-health-snapshot-error";
+        info.recent_failure_context = "source-health-snapshot-unavailable";
+        info.operator_recheck_hint = OpsV320SourceReliabilityHint(info);
+        return info;
+    }
+    const auto* health = OpsV320SourceHealthForSource(source_health_snapshot, source_id);
+    if (health == nullptr) {
+        info.source_health_status = "not-registered";
+        info.source_health_reason = "source-health-missing";
+        info.recent_failure_context = "source-not-found";
+        info.operator_recheck_hint = OpsV320SourceReliabilityHint(info);
+        return info;
+    }
+    info.source_health_present = true;
+    info.source_health_status = health->status;
+    info.source_health_reason = health->reason;
+    info.recent_failure_context = OpsV320RecentFailureContext(*health);
+    info.checked_at = health->checked_at;
+    info.last_frame_age_ms = health->last_frame_age_ms;
+    info.last_metadata_age_ms = health->last_metadata_age_ms;
+    info.reconnect_count = health->reconnect_count;
+    info.warnings = health->warnings;
+    info.operator_recheck_hint = OpsV320SourceReliabilityHint(info);
+    return info;
+}
+
+void AppendOpsV320SourceReliabilityWarningsJson(std::ostringstream& out,
+                                                const std::vector<std::string>& warnings) {
+    out << "[";
+    for (std::size_t i = 0; i < warnings.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "\"" << JsonEscape(warnings[i]) << "\"";
+    }
+    out << "]";
+}
+
+std::string OpsV320SourceReliabilityContextJson(const OpsV320SourceReliabilityInfo& info) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v320-source-reliability-context.v1\","
+        << "\"sourceId\":\"" << JsonEscape(info.source_id) << "\","
+        << "\"sourceHealthStatus\":\"" << JsonEscape(info.source_health_status) << "\","
+        << "\"sourceHealthReason\":\"" << JsonEscape(info.source_health_reason) << "\","
+        << "\"recentFailureContext\":\"" << JsonEscape(info.recent_failure_context) << "\","
+        << "\"operatorRecheckHint\":\"" << JsonEscape(info.operator_recheck_hint) << "\","
+        << "\"operatorRecheckRoute\":\"/ops/api/source-health\","
+        << "\"sourceHealthPresent\":" << (info.source_health_present ? "true" : "false") << ","
+        << "\"sourceHealthCheckedAt\":";
+    AppendNullableJsonString(out, info.checked_at);
+    out << ",\"lastFrameAgeMs\":";
+    AppendNullableInt64(out, info.last_frame_age_ms);
+    out << ",\"lastMetadataAgeMs\":";
+    AppendNullableInt64(out, info.last_metadata_age_ms);
+    out << ",\"reconnectCount\":" << info.reconnect_count
+        << ",\"warnings\":";
+    AppendOpsV320SourceReliabilityWarningsJson(out, info.warnings);
+    out << ",\"sourceRegistryWritePerformed\":false,"
+        << "\"opsOnly\":true,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsV320SourceReliabilitySummaryJson(
+    const std::vector<OpsV320SourceReliabilityInfo>& items) {
+    int live = 0;
+    int needs_recheck = 0;
+    int blocked = 0;
+    int warnings = 0;
+    for (const auto& item : items) {
+        if (item.source_health_status == "live" && item.warnings.empty()) {
+            ++live;
+        } else if (item.source_health_status == "source-missing" ||
+                   item.source_health_status == "not-registered" ||
+                   item.source_health_status == "source-health-unavailable") {
+            ++blocked;
+        } else {
+            ++needs_recheck;
+        }
+        if (!item.warnings.empty()) {
+            ++warnings;
+        }
+    }
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v320-source-reliability-context.v1\","
+        << "\"status\":\"ops-v320-source-reliability-context\","
+        << "\"itemCount\":" << items.size() << ","
+        << "\"live\":" << live << ","
+        << "\"needsRecheck\":" << needs_recheck << ","
+        << "\"blocked\":" << blocked << ","
+        << "\"warningContext\":" << warnings << ","
+        << "\"operatorRecheckRoute\":\"/ops/api/source-health\","
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"opsOnly\":true,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false"
+        << "}";
+    return out.str();
+}
+
+struct OpsV320AiReviewQualityInfo {
+    std::string correction_review_signal{"pending-review"};
+    std::string uncertainty_reason{"not-reviewed"};
+    std::string quality_badge{"review-required"};
+    std::string operator_hint{"review AI/operator quality context before final closure"};
+    std::string review_status{"new"};
+    std::string classification{"unclassified"};
+    std::string vlm_action{"not-reviewed"};
+    std::string reanalysis_reason;
+    int quality_score{35};
+    bool corrected_feature_label_present{false};
+    int feature_alias_count{0};
+    bool reanalysis_requested{false};
+    std::vector<std::string> signals;
+};
+
+OpsV320AiReviewQualityInfo OpsV320AiReviewQualityInfoFor(
+    const OpsEventReviewState& review,
+    const OpsV320EvidenceQualityInfo& evidence_quality,
+    const OpsV320SourceReliabilityInfo& source_reliability) {
+    OpsV320AiReviewQualityInfo info;
+    info.review_status = review.review_status.empty() ? "new" : review.review_status;
+    info.classification = review.classification.empty() ? "unclassified" : review.classification;
+    info.vlm_action = review.vlm_action.empty() ? "not-reviewed" : review.vlm_action;
+    info.corrected_feature_label_present = !Trim(review.corrected_feature_label).empty();
+    info.feature_alias_count = static_cast<int>(review.feature_aliases.size());
+    info.reanalysis_requested = review.reanalysis_requested;
+    info.reanalysis_reason = review.reanalysis_reason;
+
+    if (info.corrected_feature_label_present) {
+        info.signals.push_back("corrected-feature-label");
+    }
+    if (info.feature_alias_count > 0) {
+        info.signals.push_back("feature-aliases");
+    }
+    if (info.reanalysis_requested) {
+        info.signals.push_back("reanalysis-requested");
+    }
+    if (info.vlm_action != "not-reviewed") {
+        info.signals.push_back("vlm-action:" + info.vlm_action);
+    }
+    if (evidence_quality.evidence_confidence == "low") {
+        info.signals.push_back("low-evidence-confidence");
+    }
+    if (source_reliability.source_health_status != "live" || !source_reliability.warnings.empty()) {
+        info.signals.push_back("source-context-needs-review");
+    }
+
+    if (info.corrected_feature_label_present || info.feature_alias_count > 0 ||
+        info.reanalysis_requested) {
+        info.correction_review_signal = "correction-review";
+        info.uncertainty_reason =
+            info.reanalysis_reason.empty() ? "operator-correction-present" : info.reanalysis_reason;
+        info.quality_badge = "correction-needed";
+        info.quality_score = 45;
+        info.operator_hint =
+            "operator correction or reanalysis request exists; review AI output before closure";
+    } else if (info.vlm_action == "review-needed" || info.review_status == "needs-follow-up") {
+        info.correction_review_signal = "needs-human-review";
+        info.uncertainty_reason = "operator-review-needed";
+        info.quality_badge = "review-required";
+        info.quality_score = 40;
+        info.operator_hint = "AI review action requires human follow-up before final closure";
+    } else if (review.resolution_reason == "evidence-insufficient" ||
+               evidence_quality.evidence_confidence == "low") {
+        info.correction_review_signal = "evidence-uncertain";
+        info.uncertainty_reason = review.resolution_reason == "evidence-insufficient"
+                                      ? "evidence-insufficient"
+                                      : "low-evidence-confidence";
+        info.quality_badge = "uncertain";
+        info.quality_score = 35;
+        info.operator_hint = "AI quality is limited by evidence confidence; collect more context";
+    } else if (source_reliability.source_health_status != "live" ||
+               !source_reliability.warnings.empty()) {
+        info.correction_review_signal = "source-context-uncertain";
+        info.uncertainty_reason = source_reliability.recent_failure_context;
+        info.quality_badge = "uncertain";
+        info.quality_score = 50;
+        info.operator_hint = "source reliability context should be reviewed before trusting AI signals";
+    } else if (info.vlm_action == "accept" || info.review_status == "confirmed" ||
+               info.classification == "true-positive") {
+        info.correction_review_signal = "accepted-review";
+        info.uncertainty_reason = "none";
+        info.quality_badge = evidence_quality.evidence_confidence == "high" ? "quality-ok"
+                                                                            : "operator-checked";
+        info.quality_score = evidence_quality.evidence_confidence == "high" ? 90 : 75;
+        info.operator_hint = "AI/operator review signal is accepted with available local evidence";
+    } else if (info.vlm_action == "dismiss" || info.review_status == "dismissed" ||
+               info.classification == "false-positive") {
+        info.correction_review_signal = "dismissed-review";
+        info.uncertainty_reason = "false-positive-review";
+        info.quality_badge = "operator-checked";
+        info.quality_score = 70;
+        info.operator_hint = "operator dismissed the AI/event signal; retain review context only";
+    } else if (info.classification == "needs-tuning") {
+        info.correction_review_signal = "needs-tuning";
+        info.uncertainty_reason = "model-rule-needs-tuning";
+        info.quality_badge = "uncertain";
+        info.quality_score = 45;
+        info.operator_hint = "rule or model tuning is indicated before trusting this signal";
+    }
+    if (info.signals.empty()) {
+        info.signals.push_back("no-correction-signal");
+    }
+    return info;
+}
+
+void AppendOpsV320AiReviewSignalsJson(std::ostringstream& out,
+                                       const std::vector<std::string>& signals) {
+    out << "[";
+    for (std::size_t i = 0; i < signals.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "\"" << JsonEscape(signals[i]) << "\"";
+    }
+    out << "]";
+}
+
+std::string OpsV320AiReviewQualityContextJson(const OpsV320AiReviewQualityInfo& info) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v320-ai-review-quality-context.v1\","
+        << "\"correctionReviewSignal\":\"" << JsonEscape(info.correction_review_signal) << "\","
+        << "\"uncertaintyReason\":\"" << JsonEscape(info.uncertainty_reason) << "\","
+        << "\"qualityBadge\":\"" << JsonEscape(info.quality_badge) << "\","
+        << "\"qualityScore\":" << info.quality_score << ","
+        << "\"operatorHint\":\"" << JsonEscape(info.operator_hint) << "\","
+        << "\"reviewStatus\":\"" << JsonEscape(info.review_status) << "\","
+        << "\"classification\":\"" << JsonEscape(info.classification) << "\","
+        << "\"vlmAction\":\"" << JsonEscape(info.vlm_action) << "\","
+        << "\"correctedFeatureLabelPresent\":"
+        << (info.corrected_feature_label_present ? "true" : "false") << ","
+        << "\"featureAliasCount\":" << info.feature_alias_count << ","
+        << "\"reanalysisRequested\":" << (info.reanalysis_requested ? "true" : "false") << ","
+        << "\"reanalysisReason\":\"" << JsonEscape(info.reanalysis_reason) << "\","
+        << "\"signals\":";
+    AppendOpsV320AiReviewSignalsJson(out, info.signals);
+    out << ",\"runtimeProviderCallPerformed\":false,"
+        << "\"rawProviderMaterialExposed\":false,"
+        << "\"opsOnly\":true,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsV320AiReviewQualitySummaryJson(
+    const std::vector<OpsV320AiReviewQualityInfo>& items) {
+    int correction = 0;
+    int review_required = 0;
+    int uncertain = 0;
+    int quality_ok = 0;
+    int operator_checked = 0;
+    for (const auto& item : items) {
+        if (item.correction_review_signal == "correction-review") {
+            ++correction;
+        }
+        if (item.quality_badge == "review-required") {
+            ++review_required;
+        } else if (item.quality_badge == "uncertain" || item.quality_badge == "correction-needed") {
+            ++uncertain;
+        } else if (item.quality_badge == "quality-ok") {
+            ++quality_ok;
+        } else if (item.quality_badge == "operator-checked") {
+            ++operator_checked;
+        }
+    }
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v320-ai-review-quality-context.v1\","
+        << "\"status\":\"ops-v320-ai-review-quality-context\","
+        << "\"itemCount\":" << items.size() << ","
+        << "\"correctionSignalCount\":" << correction << ","
+        << "\"reviewRequired\":" << review_required << ","
+        << "\"uncertain\":" << uncertain << ","
+        << "\"qualityOk\":" << quality_ok << ","
+        << "\"operatorChecked\":" << operator_checked << ","
+        << "\"runtimeProviderCallPerformed\":false,"
+        << "\"rawProviderMaterialExposed\":false,"
+        << "\"opsOnly\":true,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false"
+        << "}";
+    return out.str();
+}
+
+struct OpsV320OperatorResolutionFlowInfo {
+    std::string assignment_target{"operator-triage"};
+    std::string assignment_flow_status{"triage-lane"};
+    std::string resolution_status{"open"};
+    std::string resolution_reason{"unreviewed"};
+    std::string resolution_transition{"none"};
+    std::string operator_hint{"assign an operator lane, add review notes, then close or reopen with audit"};
+    std::string actor;
+    std::string role;
+    std::int64_t updated_at_ms{0};
+    bool operator_note_present{false};
+    bool resolution_note_present{false};
+    bool close_action_available{true};
+    bool reopen_action_available{false};
+    bool audit_trail_required{true};
+    std::vector<std::string> audit_actions{
+        "event-review-update",
+        "incident-action-update",
+        "resolution-state-update",
+        "operator-resolution-flow-update",
+    };
+};
+
+OpsV320OperatorResolutionFlowInfo OpsV320OperatorResolutionFlowInfoFor(
+    const OpsEventReviewState& review) {
+    OpsV320OperatorResolutionFlowInfo info;
+    const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
+    info.assignment_target = review.action_target.empty() ? "operator-triage" : review.action_target;
+    info.resolution_status = resolution_state.resolution_status;
+    info.resolution_reason = resolution_state.resolution_reason;
+    info.resolution_transition = resolution_state.resolution_transition;
+    info.actor = review.actor;
+    info.role = review.role;
+    info.updated_at_ms = review.updated_at_ms;
+    info.operator_note_present = !Trim(review.note).empty();
+    info.resolution_note_present = !Trim(resolution_state.resolution_note).empty();
+    const bool closed = OpsResolutionStatusIsClosed(resolution_state.resolution_status);
+    info.close_action_available = !closed;
+    info.reopen_action_available = closed || resolution_state.resolution_status == "reopened";
+
+    if (info.assignment_target == "operator-triage") {
+        info.assignment_flow_status = "triage-lane";
+    } else {
+        info.assignment_flow_status = "assigned";
+    }
+    if (closed) {
+        info.operator_hint = "resolution is closed; audit trail is available and reopen remains operator-gated";
+    } else if (resolution_state.resolution_status == "reopened") {
+        info.operator_hint = "resolution was reopened; add operator note before closing again";
+    } else if (info.operator_note_present || info.resolution_note_present) {
+        info.operator_hint = "operator note is present; close or keep in progress with audited state";
+    } else {
+        info.operator_hint = "add an operator note before final close or reopen decision";
+    }
+    return info;
+}
+
+std::string OpsV320OperatorResolutionFlowJson(const OpsV320OperatorResolutionFlowInfo& info) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v320-operator-resolution-flow.v1\","
+        << "\"assignmentTarget\":\"" << JsonEscape(info.assignment_target) << "\","
+        << "\"assignmentFlowStatus\":\"" << JsonEscape(info.assignment_flow_status) << "\","
+        << "\"operatorNotePresent\":" << (info.operator_note_present ? "true" : "false") << ","
+        << "\"resolutionNotePresent\":" << (info.resolution_note_present ? "true" : "false") << ","
+        << "\"resolutionStatus\":\"" << JsonEscape(info.resolution_status) << "\","
+        << "\"resolutionReason\":\"" << JsonEscape(info.resolution_reason) << "\","
+        << "\"resolutionTransition\":\"" << JsonEscape(info.resolution_transition) << "\","
+        << "\"closeActionAvailable\":" << (info.close_action_available ? "true" : "false") << ","
+        << "\"reopenActionAvailable\":" << (info.reopen_action_available ? "true" : "false") << ","
+        << "\"auditTrailRequired\":true,"
+        << "\"auditTrailReady\":true,"
+        << "\"auditActions\":" << JsonStringArray(info.audit_actions) << ","
+        << "\"operatorResolutionFlowWritePath\":\"/ops/api/events/reviews/{eventId}\","
+        << "\"operatorHint\":\"" << JsonEscape(info.operator_hint) << "\","
+        << "\"actor\":\"" << JsonEscape(info.actor) << "\","
+        << "\"role\":\"" << JsonEscape(info.role) << "\","
+        << "\"updatedAtMs\":" << info.updated_at_ms << ","
+        << "\"persistentReviewState\":true,"
+        << "\"opsOnly\":true,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false,"
+        << "\"autoActionApplied\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsV320OperatorResolutionFlowSummaryJson(
+    const std::vector<OpsV320OperatorResolutionFlowInfo>& items) {
+    int assigned = 0;
+    int note_present = 0;
+    int closable = 0;
+    int reopenable = 0;
+    int audit_ready = 0;
+    for (const auto& item : items) {
+        if (item.assignment_flow_status == "assigned") {
+            ++assigned;
+        }
+        if (item.operator_note_present || item.resolution_note_present) {
+            ++note_present;
+        }
+        if (item.close_action_available) {
+            ++closable;
+        }
+        if (item.reopen_action_available) {
+            ++reopenable;
+        }
+        if (item.audit_trail_required) {
+            ++audit_ready;
+        }
+    }
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v320-operator-resolution-flow.v1\","
+        << "\"status\":\"ops-v320-operator-resolution-flow\","
+        << "\"itemCount\":" << items.size() << ","
+        << "\"assigned\":" << assigned << ","
+        << "\"notePresent\":" << note_present << ","
+        << "\"closeActionAvailable\":" << closable << ","
+        << "\"reopenActionAvailable\":" << reopenable << ","
+        << "\"auditTrailReady\":" << audit_ready << ","
+        << "\"operatorResolutionFlowWritePath\":\"/ops/api/events/reviews/{eventId}\","
+        << "\"auditActions\":[\"event-review-update\",\"incident-action-update\","
+        << "\"resolution-state-update\",\"operator-resolution-flow-update\"],"
+        << "\"opsOnly\":true,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false"
+        << "}";
+    return out.str();
+}
+
+struct OpsV320ActionReadinessChecklistInfo {
+    std::string readiness_status{"blocked"};
+    std::string rule_draft_status{"blocked"};
+    std::string evidence_bundle_status{"blocked"};
+    std::string notification_status{"blocked"};
+    std::string operator_hint{
+        "complete the action readiness checklist before operator approval"};
+    bool rule_draft_ready{false};
+    bool evidence_bundle_ready{false};
+    bool notification_ready{false};
+    bool manual_approval_required{true};
+    bool notification_dry_run_required{true};
+    std::vector<std::string> readiness_blockers;
+    std::vector<std::string> checklist_items;
+};
+
+OpsV320ActionReadinessChecklistInfo OpsV320ActionReadinessChecklistInfoFor(
+    const OpsV320EvidenceQualityInfo& evidence_quality,
+    const OpsV320SourceReliabilityInfo& source_reliability,
+    const OpsV320AiReviewQualityInfo& ai_review_quality,
+    const OpsV320OperatorResolutionFlowInfo& operator_resolution_flow) {
+    OpsV320ActionReadinessChecklistInfo info;
+    const bool operator_note_ready =
+        operator_resolution_flow.operator_note_present ||
+        operator_resolution_flow.resolution_note_present ||
+        operator_resolution_flow.assignment_flow_status == "assigned";
+    const bool ai_quality_ready =
+        ai_review_quality.quality_badge == "quality-ok" ||
+        ai_review_quality.quality_badge == "operator-checked";
+    const bool source_ready =
+        source_reliability.source_health_status == "live" &&
+        source_reliability.warnings.empty();
+
+    info.evidence_bundle_ready =
+        evidence_quality.evidence_completeness == "complete" &&
+        evidence_quality.evidence_confidence != "low" &&
+        evidence_quality.replay_coverage != "missing";
+    info.rule_draft_ready = operator_note_ready && ai_quality_ready;
+    info.notification_ready =
+        info.evidence_bundle_ready && info.rule_draft_ready && source_ready;
+
+    info.evidence_bundle_status =
+        info.evidence_bundle_ready ? "ready" : "needs-evidence-bundle";
+    info.rule_draft_status = info.rule_draft_ready ? "ready" : "needs-rule-draft";
+    info.notification_status =
+        info.notification_ready ? "ready" : "needs-notification-review";
+
+    if (!info.evidence_bundle_ready) {
+        info.readiness_blockers.push_back("evidence-bundle-not-ready");
+    }
+    if (!operator_note_ready) {
+        info.readiness_blockers.push_back("operator-note-required");
+    }
+    if (!ai_quality_ready) {
+        info.readiness_blockers.push_back("ai-quality-review-required");
+    }
+    if (!source_ready) {
+        info.readiness_blockers.push_back("source-health-not-live");
+    }
+    if (!info.notification_ready) {
+        info.readiness_blockers.push_back("notification-review-required");
+    }
+
+    info.checklist_items.push_back(info.rule_draft_ready ? "rule-draft:ready"
+                                                         : "rule-draft:blocked");
+    info.checklist_items.push_back(info.evidence_bundle_ready
+                                       ? "evidence-bundle:ready"
+                                       : "evidence-bundle:blocked");
+    info.checklist_items.push_back(info.notification_ready ? "notification:ready"
+                                                          : "notification:blocked");
+    info.checklist_items.push_back("manual-approval-required");
+    info.checklist_items.push_back("notification-dry-run-required");
+
+    if (info.evidence_bundle_ready && info.rule_draft_ready && info.notification_ready) {
+        info.readiness_status = "ready-for-operator-approval";
+        info.operator_hint =
+            "rule draft, evidence bundle, and notification dry-run prerequisites are ready";
+    } else if (!info.evidence_bundle_ready) {
+        info.readiness_status = "needs-evidence-bundle";
+        info.operator_hint = "complete evidence bundle coverage before approving action";
+    } else if (!info.rule_draft_ready) {
+        info.readiness_status = "needs-rule-draft";
+        info.operator_hint = "add operator note and resolve AI quality review before rule draft";
+    } else {
+        info.readiness_status = "needs-notification-review";
+        info.operator_hint =
+            "review notification dry-run and source health before external delivery approval";
+    }
+    return info;
+}
+
+std::string OpsV320ActionReadinessChecklistJson(
+    const OpsV320ActionReadinessChecklistInfo& info) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v320-action-readiness-checklist.v1\","
+        << "\"readinessStatus\":\"" << JsonEscape(info.readiness_status) << "\","
+        << "\"ruleDraftReady\":" << (info.rule_draft_ready ? "true" : "false") << ","
+        << "\"ruleDraftStatus\":\"" << JsonEscape(info.rule_draft_status) << "\","
+        << "\"ruleDraftRoute\":\"/ops/rules\","
+        << "\"ruleDraftCreated\":false,"
+        << "\"evidenceBundleReady\":" << (info.evidence_bundle_ready ? "true" : "false") << ","
+        << "\"evidenceBundleStatus\":\"" << JsonEscape(info.evidence_bundle_status) << "\","
+        << "\"evidenceBundleBasis\":\"EventRecord/vlmEvidenceRefs\","
+        << "\"notificationReady\":" << (info.notification_ready ? "true" : "false") << ","
+        << "\"notificationStatus\":\"" << JsonEscape(info.notification_status) << "\","
+        << "\"notificationDryRunRequired\":true,"
+        << "\"notificationDryRunRoute\":\"/ops/api/alerts/deliveries/dry-run\","
+        << "\"notificationSent\":false,"
+        << "\"manualApprovalRequired\":true,"
+        << "\"readinessBlockers\":" << JsonStringArray(info.readiness_blockers) << ","
+        << "\"checklistItems\":" << JsonStringArray(info.checklist_items) << ","
+        << "\"operatorHint\":\"" << JsonEscape(info.operator_hint) << "\","
+        << "\"opsOnly\":true,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false,"
+        << "\"autoActionApplied\":false,"
+        << "\"autoActionWritePerformed\":false,"
+        << "\"externalDeliveryPerformed\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsV320ActionReadinessChecklistSummaryJson(
+    const std::vector<OpsV320ActionReadinessChecklistInfo>& items) {
+    int ready = 0;
+    int blocked = 0;
+    int rule_draft_ready = 0;
+    int evidence_bundle_ready = 0;
+    int notification_ready = 0;
+    for (const auto& item : items) {
+        if (item.readiness_status == "ready-for-operator-approval") {
+            ++ready;
+        } else {
+            ++blocked;
+        }
+        if (item.rule_draft_ready) {
+            ++rule_draft_ready;
+        }
+        if (item.evidence_bundle_ready) {
+            ++evidence_bundle_ready;
+        }
+        if (item.notification_ready) {
+            ++notification_ready;
+        }
+    }
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v320-action-readiness-checklist.v1\","
+        << "\"status\":\"ops-v320-action-readiness-checklist\","
+        << "\"itemCount\":" << items.size() << ","
+        << "\"readyForOperatorApproval\":" << ready << ","
+        << "\"blocked\":" << blocked << ","
+        << "\"ruleDraftReady\":" << rule_draft_ready << ","
+        << "\"evidenceBundleReady\":" << evidence_bundle_ready << ","
+        << "\"notificationReady\":" << notification_ready << ","
+        << "\"manualApprovalRequired\":true,"
+        << "\"notificationDryRunRequired\":true,"
+        << "\"ruleDraftRoute\":\"/ops/rules\","
+        << "\"notificationDryRunRoute\":\"/ops/api/alerts/deliveries/dry-run\","
+        << "\"ruleDraftCreated\":false,"
+        << "\"autoActionApplied\":false,"
+        << "\"autoActionWritePerformed\":false,"
+        << "\"externalDeliveryPerformed\":false,"
+        << "\"notificationSent\":false,"
+        << "\"opsOnly\":true,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsV320ResolutionQueueStatus(const OpsEventReviewState& review) {
+    const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
+    if (resolution_state.resolution_status == "open") {
+        return "needs-resolution";
+    }
+    if (resolution_state.resolution_status == "in-progress") {
+        return "active-resolution";
+    }
+    if (resolution_state.resolution_status == "triaged") {
+        return "triaged";
+    }
+    if (resolution_state.resolution_status == "reopened") {
+        return "reopened";
+    }
+    if (OpsResolutionStatusIsClosed(resolution_state.resolution_status)) {
+        return "closed";
+    }
+    return "needs-review";
+}
+
+struct OpsV320ResolutionSearchMetricsInfo {
+    std::string event_id;
+    std::string event_type{"event"};
+    std::string source_id{"unknown-source"};
+    std::string rule_id{"not-available"};
+    std::string queue_status{"needs-resolution"};
+    std::string resolution_status{"open"};
+    std::string resolution_reason{"unreviewed"};
+    std::string review_status{"new"};
+    std::string classification{"unclassified"};
+    std::string evidence_confidence{"low"};
+    std::string source_health_status{"source-missing"};
+    std::string ai_quality_badge{"review-required"};
+    std::string action_readiness_status{"blocked"};
+    std::int64_t event_time_ms{0};
+    bool ready_for_approval{false};
+    bool source_recheck_required{true};
+    bool review_required{true};
+    std::vector<std::string> filter_tokens;
+    std::vector<std::string> saved_view_matches;
+};
+
+OpsV320ResolutionSearchMetricsInfo OpsV320ResolutionSearchMetricsInfoFor(
+    const std::string& event_json,
+    const OpsEventReviewState& review,
+    const OpsV320EvidenceQualityInfo& evidence_quality,
+    const OpsV320SourceReliabilityInfo& source_reliability,
+    const OpsV320AiReviewQualityInfo& ai_review_quality,
+    const OpsV320ActionReadinessChecklistInfo& action_readiness_checklist) {
+    OpsV320ResolutionSearchMetricsInfo info;
+    info.event_id = Trim(ParseStringField(event_json, "eventId").value_or(review.event_id));
+    info.event_type =
+        Trim(ParseStringField(event_json, "eventType")
+                 .value_or(ParseStringField(event_json, "className").value_or("event")));
+    if (info.event_type.empty()) {
+        info.event_type = "event";
+    }
+    const std::string source_id = OpsIncidentTriageBoardSourceId(event_json);
+    info.source_id = source_id.empty() ? "unknown-source" : source_id;
+    const std::string rule_id = OpsIncidentMemoryEventRuleId(event_json);
+    info.rule_id = rule_id.empty() ? "not-available" : rule_id;
+    const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
+    info.queue_status = OpsV320ResolutionQueueStatus(resolution_state);
+    info.resolution_status = resolution_state.resolution_status;
+    info.resolution_reason = resolution_state.resolution_reason;
+    info.review_status = review.review_status.empty() ? "new" : review.review_status;
+    info.classification = review.classification.empty() ? "unclassified" : review.classification;
+    info.evidence_confidence = evidence_quality.evidence_confidence;
+    info.source_health_status = source_reliability.source_health_status;
+    info.ai_quality_badge = ai_review_quality.quality_badge;
+    info.action_readiness_status = action_readiness_checklist.readiness_status;
+    info.event_time_ms =
+        ParseInt64Field(event_json, "updateTime")
+            .value_or(ParseInt64Field(event_json, "startTime").value_or(0));
+    info.ready_for_approval =
+        action_readiness_checklist.readiness_status == "ready-for-operator-approval";
+    info.source_recheck_required =
+        source_reliability.source_health_status != "live" || !source_reliability.warnings.empty();
+    info.review_required =
+        ai_review_quality.quality_badge == "review-required" ||
+        ai_review_quality.quality_badge == "uncertain" ||
+        ai_review_quality.quality_badge == "correction-needed" ||
+        info.review_status == "needs-follow-up" || info.review_status == "new";
+
+    info.filter_tokens = {
+        "event:" + info.event_type,
+        "source:" + info.source_id,
+        "rule:" + info.rule_id,
+        "queue:" + info.queue_status,
+        "resolution:" + info.resolution_status,
+        "reason:" + info.resolution_reason,
+        "review:" + info.review_status,
+        "classification:" + info.classification,
+        "evidence:" + info.evidence_confidence,
+        "source-health:" + info.source_health_status,
+        "ai-quality:" + info.ai_quality_badge,
+        "action-readiness:" + info.action_readiness_status,
+    };
+    if (info.resolution_status == "open" || info.resolution_status == "triaged" ||
+        info.resolution_status == "in-progress" || info.resolution_status == "reopened") {
+        info.saved_view_matches.push_back("open-resolution");
+    }
+    if (info.ready_for_approval) {
+        info.saved_view_matches.push_back("ready-for-approval");
+    }
+    if (info.source_recheck_required) {
+        info.saved_view_matches.push_back("source-recheck");
+    }
+    if (info.review_required) {
+        info.saved_view_matches.push_back("review-required");
+    }
+    if (info.saved_view_matches.empty()) {
+        info.saved_view_matches.push_back("closed-resolution");
+    }
+    return info;
+}
+
+std::string OpsV320ResolutionSearchMetricsJson(
+    const OpsV320ResolutionSearchMetricsInfo& info) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v320-resolution-search-metrics.v1\","
+        << "\"eventId\":\"" << JsonEscape(info.event_id) << "\","
+        << "\"eventType\":\"" << JsonEscape(info.event_type) << "\","
+        << "\"sourceId\":\"" << JsonEscape(info.source_id) << "\","
+        << "\"ruleId\":\"" << JsonEscape(info.rule_id) << "\","
+        << "\"queueStatus\":\"" << JsonEscape(info.queue_status) << "\","
+        << "\"resolutionStatus\":\"" << JsonEscape(info.resolution_status) << "\","
+        << "\"resolutionReason\":\"" << JsonEscape(info.resolution_reason) << "\","
+        << "\"reviewStatus\":\"" << JsonEscape(info.review_status) << "\","
+        << "\"classification\":\"" << JsonEscape(info.classification) << "\","
+        << "\"evidenceConfidence\":\"" << JsonEscape(info.evidence_confidence) << "\","
+        << "\"sourceHealthStatus\":\"" << JsonEscape(info.source_health_status) << "\","
+        << "\"aiQualityBadge\":\"" << JsonEscape(info.ai_quality_badge) << "\","
+        << "\"actionReadinessStatus\":\"" << JsonEscape(info.action_readiness_status) << "\","
+        << "\"readyForApproval\":" << (info.ready_for_approval ? "true" : "false") << ","
+        << "\"sourceRecheckRequired\":" << (info.source_recheck_required ? "true" : "false") << ","
+        << "\"reviewRequired\":" << (info.review_required ? "true" : "false") << ","
+        << "\"eventTimeMs\":" << info.event_time_ms << ","
+        << "\"filterTokens\":" << JsonStringArray(info.filter_tokens) << ","
+        << "\"savedViewMatches\":" << JsonStringArray(info.saved_view_matches) << ","
+        << "\"opsOnly\":true,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false,"
+        << "\"clientDigestChanged\":false,"
+        << "\"savedViewWritePerformed\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsV320ResolutionSearchFilterValue(
+    const std::unordered_map<std::string, std::string>& query,
+    const std::string& key) {
+    const auto it = query.find(key);
+    return it == query.end() ? std::string() : Trim(it->second);
+}
+
+std::string OpsV320ActiveResolutionFiltersJson(
+    const std::unordered_map<std::string, std::string>& query) {
+    const std::vector<std::string> filter_keys = {
+        "eventId",
+        "reviewStatus",
+        "classification",
+        "incidentStatus",
+        "ruleId",
+        "sourceId",
+        "eventType",
+        "q",
+        "query",
+    };
+    int filter_count = 0;
+    for (const auto& key : filter_keys) {
+        if (!OpsV320ResolutionSearchFilterValue(query, key).empty()) {
+            ++filter_count;
+        }
+    }
+    const bool include_archives = ParseBoolQuery(query, "includeArchives", false) ||
+                                  ParseBoolQuery(query, "archive", false);
+    if (include_archives) {
+        ++filter_count;
+    }
+    const std::string limit = OpsV320ResolutionSearchFilterValue(query, "limit");
+    std::ostringstream out;
+    out << "{"
+        << "\"eventId\":\"" << JsonEscape(OpsV320ResolutionSearchFilterValue(query, "eventId")) << "\","
+        << "\"reviewStatus\":\"" << JsonEscape(OpsV320ResolutionSearchFilterValue(query, "reviewStatus")) << "\","
+        << "\"classification\":\"" << JsonEscape(OpsV320ResolutionSearchFilterValue(query, "classification")) << "\","
+        << "\"incidentStatus\":\"" << JsonEscape(OpsV320ResolutionSearchFilterValue(query, "incidentStatus")) << "\","
+        << "\"ruleId\":\"" << JsonEscape(OpsV320ResolutionSearchFilterValue(query, "ruleId")) << "\","
+        << "\"sourceId\":\"" << JsonEscape(OpsV320ResolutionSearchFilterValue(query, "sourceId")) << "\","
+        << "\"eventType\":\"" << JsonEscape(OpsV320ResolutionSearchFilterValue(query, "eventType")) << "\","
+        << "\"textQuery\":\""
+        << JsonEscape(OpsV320ResolutionSearchFilterValue(query, "q").empty()
+                          ? OpsV320ResolutionSearchFilterValue(query, "query")
+                          : OpsV320ResolutionSearchFilterValue(query, "q"))
+        << "\","
+        << "\"includeArchives\":" << (include_archives ? "true" : "false") << ","
+        << "\"limit\":\"" << JsonEscape(limit.empty() ? "25" : limit) << "\","
+        << "\"filterCount\":" << filter_count << ","
+        << "\"queryApplied\":" << (filter_count > 0 ? "true" : "false")
+        << "}";
+    return out.str();
+}
+
+std::string OpsV320ResolutionSavedViewsJson() {
+    return "["
+           "{\"id\":\"open-resolution\",\"label\":\"Open resolutions\","
+           "\"description\":\"Open, triaged, in-progress, and reopened resolution queue\","
+           "\"href\":\"/ops/events?reviewStatus=new&includeArchives=1\","
+           "\"filterToken\":\"resolution:open\",\"savedViewsPersisted\":false,"
+           "\"savedViewWritePerformed\":false},"
+           "{\"id\":\"ready-for-approval\",\"label\":\"Ready for approval\","
+           "\"description\":\"Action readiness items with rule draft, evidence bundle, and notification prerequisites ready\","
+           "\"href\":\"/ops/events?classification=true-positive&includeArchives=1\","
+           "\"filterToken\":\"action-readiness:ready-for-operator-approval\","
+           "\"savedViewsPersisted\":false,\"savedViewWritePerformed\":false},"
+           "{\"id\":\"source-recheck\",\"label\":\"Source recheck\","
+           "\"description\":\"Resolution items whose source reliability context needs operator recheck\","
+           "\"href\":\"/ops/events?includeArchives=1&sourceId=\","
+           "\"filterToken\":\"source-health:recheck\",\"savedViewsPersisted\":false,"
+           "\"savedViewWritePerformed\":false},"
+           "{\"id\":\"review-required\",\"label\":\"Review required\","
+           "\"description\":\"AI quality or operator review signals still need human review\","
+           "\"href\":\"/ops/events?reviewStatus=needs-follow-up&includeArchives=1\","
+           "\"filterToken\":\"ai-quality:review-required\",\"savedViewsPersisted\":false,"
+           "\"savedViewWritePerformed\":false}"
+           "]";
+}
+
+std::string OpsV320ResolutionOperationsMetricSummaryJson(
+    const std::vector<OpsV320ResolutionSearchMetricsInfo>& items) {
+    int open = 0;
+    int closed = 0;
+    int ready = 0;
+    int blocked = 0;
+    int source_recheck = 0;
+    int review_required = 0;
+    for (const auto& item : items) {
+        if (item.resolution_status == "resolved" || item.resolution_status == "false-positive") {
+            ++closed;
+        } else {
+            ++open;
+        }
+        if (item.ready_for_approval) {
+            ++ready;
+        } else {
+            ++blocked;
+        }
+        if (item.source_recheck_required) {
+            ++source_recheck;
+        }
+        if (item.review_required) {
+            ++review_required;
+        }
+    }
+    std::ostringstream out;
+    out << "{"
+        << "\"matchedQueueCount\":" << items.size() << ","
+        << "\"openResolutionCount\":" << open << ","
+        << "\"closedResolutionCount\":" << closed << ","
+        << "\"readyForApprovalCount\":" << ready << ","
+        << "\"blockedActionCount\":" << blocked << ","
+        << "\"sourceRecheckCount\":" << source_recheck << ","
+        << "\"reviewRequiredCount\":" << review_required << ","
+        << "\"metricBasis\":\"EventRecord + Ops review state + v3.2 context\","
+        << "\"operationsNextAction\":\"filter saved views, inspect blocked action readiness, then close or reopen with audit\","
+        << "\"metricWritePerformed\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsV320ResolutionSearchMetricsSummaryJson(
+    const std::vector<OpsV320ResolutionSearchMetricsInfo>& items,
+    const std::unordered_map<std::string, std::string>& query) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v320-resolution-search-metrics.v1\","
+        << "\"status\":\"ops-v320-resolution-search-metrics\","
+        << "\"itemCount\":" << items.size() << ","
+        << "\"activeResolutionFilters\":" << OpsV320ActiveResolutionFiltersJson(query) << ","
+        << "\"savedViews\":" << OpsV320ResolutionSavedViewsJson() << ","
+        << "\"operationsMetricSummary\":"
+        << OpsV320ResolutionOperationsMetricSummaryJson(items) << ","
+        << "\"savedViewsPersisted\":false,"
+        << "\"savedViewWritePerformed\":false,"
+        << "\"opsOnly\":true,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false,"
+        << "\"clientDigestChanged\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsV320TimelineMarkersJson(const std::string& event_json,
+                                       const OpsEventReviewState& review,
+                                       const OpsV320EvidenceQualityInfo& evidence_quality,
+                                       const OpsV320SourceReliabilityInfo& source_reliability,
+                                       const OpsV320AiReviewQualityInfo& ai_review_quality,
+                                       const OpsV320OperatorResolutionFlowInfo& operator_resolution_flow,
+                                       const OpsV320ActionReadinessChecklistInfo& action_readiness_checklist) {
+    const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
+    const std::int64_t event_ms =
+        ParseInt64Field(event_json, "updateTime")
+            .value_or(ParseInt64Field(event_json, "startTime").value_or(0));
+    const std::int64_t review_ms = review.updated_at_ms;
+    const std::int64_t resolution_ms =
+        resolution_state.resolution_status == "reopened"
+            ? resolution_state.resolution_reopened_at_ms
+            : resolution_state.resolution_closed_at_ms;
+    std::ostringstream out;
+    out << "["
+        << "{"
+        << "\"key\":\"event-record\","
+        << "\"label\":\"EventRecord\","
+        << "\"status\":\"recorded\","
+        << "\"timeMs\":" << event_ms << ","
+        << "\"opsOnly\":true"
+        << "},"
+        << "{"
+        << "\"key\":\"review-state\","
+        << "\"label\":\"Review state\","
+        << "\"status\":\"" << JsonEscape(review.review_status.empty() ? "new" : review.review_status) << "\","
+        << "\"timeMs\":" << review_ms << ","
+        << "\"opsOnly\":true"
+        << "},"
+        << "{"
+        << "\"key\":\"resolution-state\","
+        << "\"label\":\"Resolution state\","
+        << "\"status\":\"" << JsonEscape(resolution_state.resolution_status) << "\","
+        << "\"timeMs\":" << resolution_ms << ","
+        << "\"transition\":\"" << JsonEscape(resolution_state.resolution_transition) << "\","
+        << "\"opsOnly\":true"
+        << "},"
+        << "{"
+        << "\"key\":\"evidence-quality\","
+        << "\"label\":\"Evidence quality\","
+        << "\"status\":\"" << JsonEscape(evidence_quality.evidence_confidence) << "\","
+        << "\"timeMs\":" << event_ms << ","
+        << "\"replayCoverage\":\"" << JsonEscape(evidence_quality.replay_coverage) << "\","
+        << "\"opsOnly\":true"
+        << "},"
+        << "{"
+        << "\"key\":\"source-reliability\","
+        << "\"label\":\"Source reliability\","
+        << "\"status\":\"" << JsonEscape(source_reliability.source_health_status) << "\","
+        << "\"timeMs\":" << event_ms << ","
+        << "\"recentFailureContext\":\"" << JsonEscape(source_reliability.recent_failure_context) << "\","
+        << "\"opsOnly\":true"
+        << "},"
+        << "{"
+        << "\"key\":\"ai-review-quality\","
+        << "\"label\":\"AI review quality\","
+        << "\"status\":\"" << JsonEscape(ai_review_quality.quality_badge) << "\","
+        << "\"timeMs\":" << review_ms << ","
+        << "\"correctionReviewSignal\":\""
+        << JsonEscape(ai_review_quality.correction_review_signal) << "\","
+        << "\"opsOnly\":true"
+        << "},"
+        << "{"
+        << "\"key\":\"operator-resolution-flow\","
+        << "\"label\":\"Operator resolution flow\","
+        << "\"status\":\"" << JsonEscape(operator_resolution_flow.assignment_flow_status) << "\","
+        << "\"timeMs\":" << operator_resolution_flow.updated_at_ms << ","
+        << "\"assignmentTarget\":\""
+        << JsonEscape(operator_resolution_flow.assignment_target) << "\","
+        << "\"auditTrailRequired\":true,"
+        << "\"opsOnly\":true"
+        << "},"
+        << "{"
+        << "\"key\":\"action-readiness-checklist\","
+        << "\"label\":\"Action readiness checklist\","
+        << "\"status\":\"" << JsonEscape(action_readiness_checklist.readiness_status) << "\","
+        << "\"timeMs\":" << operator_resolution_flow.updated_at_ms << ","
+        << "\"ruleDraftReady\":" << (action_readiness_checklist.rule_draft_ready ? "true" : "false") << ","
+        << "\"evidenceBundleReady\":"
+        << (action_readiness_checklist.evidence_bundle_ready ? "true" : "false") << ","
+        << "\"notificationReady\":"
+        << (action_readiness_checklist.notification_ready ? "true" : "false") << ","
+        << "\"opsOnly\":true"
+        << "}"
+        << "]";
+    return out.str();
+}
+
+std::string OpsV320DetailSectionsJson(const std::string& event_json,
+                                      const OpsEventReviewState& review,
+                                      const OpsV320EvidenceQualityInfo& evidence_quality,
+                                      const OpsV320SourceReliabilityInfo& source_reliability,
+                                      const OpsV320AiReviewQualityInfo& ai_review_quality,
+                                      const OpsV320OperatorResolutionFlowInfo& operator_resolution_flow,
+                                      const OpsV320ActionReadinessChecklistInfo& action_readiness_checklist) {
+    const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
+    const std::string event_type =
+        Trim(ParseStringField(event_json, "eventType")
+                 .value_or(ParseStringField(event_json, "className").value_or("event")));
+    const std::string source_id = OpsIncidentTriageBoardSourceId(event_json).empty()
+                                      ? "unknown-source"
+                                      : OpsIncidentTriageBoardSourceId(event_json);
+    const std::string rule_id =
+        Trim(ParseStringField(event_json, "ruleId")
+                 .value_or(ParseStringField(event_json, "rule").value_or("not-available")));
+    std::ostringstream out;
+    out << "["
+        << "{"
+        << "\"key\":\"event\","
+        << "\"label\":\"Event\","
+        << "\"status\":\"" << JsonEscape(event_type.empty() ? "event" : event_type) << "\","
+        << "\"detail\":\"source " << JsonEscape(source_id) << " / rule "
+        << JsonEscape(rule_id.empty() ? "not-available" : rule_id) << "\""
+        << "},"
+        << "{"
+        << "\"key\":\"review\","
+        << "\"label\":\"Review\","
+        << "\"status\":\"" << JsonEscape(review.review_status.empty() ? "new" : review.review_status) << "\","
+        << "\"detail\":\"classification "
+        << JsonEscape(review.classification.empty() ? "unclassified" : review.classification) << "\""
+        << "},"
+        << "{"
+        << "\"key\":\"resolution\","
+        << "\"label\":\"Resolution\","
+        << "\"status\":\"" << JsonEscape(resolution_state.resolution_status) << "\","
+        << "\"detail\":\"reason " << JsonEscape(resolution_state.resolution_reason)
+        << " / transition " << JsonEscape(resolution_state.resolution_transition) << "\""
+        << "},"
+        << "{"
+        << "\"key\":\"evidence-quality\","
+        << "\"label\":\"Evidence Quality\","
+        << "\"status\":\"" << JsonEscape(evidence_quality.evidence_completeness) << "\","
+        << "\"detail\":\"confidence " << JsonEscape(evidence_quality.evidence_confidence)
+        << " / replay " << JsonEscape(evidence_quality.replay_coverage) << "\""
+        << "},"
+        << "{"
+        << "\"key\":\"source-reliability\","
+        << "\"label\":\"Source Reliability\","
+        << "\"status\":\"" << JsonEscape(source_reliability.source_health_status) << "\","
+        << "\"detail\":\"recent failure " << JsonEscape(source_reliability.recent_failure_context)
+        << " / recheck " << JsonEscape(source_reliability.operator_recheck_route) << "\""
+        << "},"
+        << "{"
+        << "\"key\":\"ai-review-quality\","
+        << "\"label\":\"AI Review Quality\","
+        << "\"status\":\"" << JsonEscape(ai_review_quality.quality_badge) << "\","
+        << "\"detail\":\"signal " << JsonEscape(ai_review_quality.correction_review_signal)
+        << " / uncertainty " << JsonEscape(ai_review_quality.uncertainty_reason) << "\""
+        << "},"
+        << "{"
+        << "\"key\":\"operator-resolution-flow\","
+        << "\"label\":\"Operator Resolution Flow\","
+        << "\"status\":\"" << JsonEscape(operator_resolution_flow.assignment_flow_status) << "\","
+        << "\"detail\":\"assignment " << JsonEscape(operator_resolution_flow.assignment_target)
+        << " / audit operator-resolution-flow-update\""
+        << "},"
+        << "{"
+        << "\"key\":\"action-readiness-checklist\","
+        << "\"label\":\"Action Readiness Checklist\","
+        << "\"status\":\"" << JsonEscape(action_readiness_checklist.readiness_status) << "\","
+        << "\"detail\":\"rule draft " << JsonEscape(action_readiness_checklist.rule_draft_status)
+        << " / evidence bundle " << JsonEscape(action_readiness_checklist.evidence_bundle_status)
+        << " / notification " << JsonEscape(action_readiness_checklist.notification_status) << "\""
+        << "}"
+        << "]";
+    return out.str();
+}
+
+std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_json,
+                                                      const OpsEventReviewState& review,
+                                                      const std::size_t index,
+                                                      const OpsV320EvidenceQualityInfo& evidence_quality,
+                                                      const OpsV320SourceReliabilityInfo& source_reliability,
+                                                      const OpsV320AiReviewQualityInfo& ai_review_quality,
+                                                      const OpsV320OperatorResolutionFlowInfo& operator_resolution_flow,
+                                                      const OpsV320ActionReadinessChecklistInfo& action_readiness_checklist,
+                                                      const OpsV320ResolutionSearchMetricsInfo& resolution_search_metrics) {
+    std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(review.event_id));
+    if (!OpsEventReviewEventIdAllowed(event_id)) {
+        event_id = OpsEventReviewEventIdAllowed(review.event_id) ? review.event_id
+                                                                 : "event-" + std::to_string(index + 1);
+    }
+    const std::string event_type =
+        Trim(ParseStringField(event_json, "eventType")
+                 .value_or(ParseStringField(event_json, "className").value_or("event")));
+    const std::string source_id = OpsIncidentTriageBoardSourceId(event_json).empty()
+                                      ? "unknown-source"
+                                      : OpsIncidentTriageBoardSourceId(event_json);
+    const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
+    const std::string queue_status = OpsV320ResolutionQueueStatus(resolution_state);
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v320-unified-events-workspace.v1\","
+        << "\"eventId\":\"" << JsonEscape(event_id) << "\","
+        << "\"eventType\":\"" << JsonEscape(event_type.empty() ? "event" : event_type) << "\","
+        << "\"sourceId\":\"" << JsonEscape(source_id) << "\","
+        << "\"queueStatus\":\"" << JsonEscape(queue_status) << "\","
+        << "\"reviewState\":\"" << JsonEscape(review.review_status.empty() ? "new" : review.review_status) << "\","
+        << "\"resolutionState\":" << OpsResolutionStateJson(resolution_state) << ","
+        << "\"closeReopenLifecycle\":" << OpsResolutionStateJson(resolution_state) << ","
+        << "\"evidenceQuality\":" << OpsV320EvidenceQualityJson(evidence_quality) << ","
+        << "\"sourceReliability\":" << OpsV320SourceReliabilityContextJson(source_reliability) << ","
+        << "\"aiReviewQuality\":" << OpsV320AiReviewQualityContextJson(ai_review_quality) << ","
+        << "\"operatorResolutionFlow\":"
+        << OpsV320OperatorResolutionFlowJson(operator_resolution_flow) << ","
+        << "\"actionReadinessChecklist\":"
+        << OpsV320ActionReadinessChecklistJson(action_readiness_checklist) << ","
+        << "\"resolutionSearchMetrics\":"
+        << OpsV320ResolutionSearchMetricsJson(resolution_search_metrics) << ","
+        << "\"detailSections\":"
+        << OpsV320DetailSectionsJson(
+               event_json,
+               resolution_state,
+               evidence_quality,
+               source_reliability,
+               ai_review_quality,
+               operator_resolution_flow,
+               action_readiness_checklist)
+        << ","
+        << "\"timelineMarkers\":"
+        << OpsV320TimelineMarkersJson(
+               event_json,
+               resolution_state,
+               evidence_quality,
+               source_reliability,
+               ai_review_quality,
+               operator_resolution_flow,
+               action_readiness_checklist)
+        << ","
+        << "\"opsOnly\":true,"
+        << "\"persistentReviewState\":true,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsV320UnifiedOpsEventsWorkspaceJson(
+    const std::vector<std::string>& event_json_records,
+    const std::unordered_map<std::string, OpsEventReviewState>& reviews,
+    const OpsSourceHealthSnapshot& source_health_snapshot,
+    const std::unordered_map<std::string, std::string>& query) {
+    std::vector<std::string> items;
+    std::vector<OpsV320EvidenceQualityInfo> evidence_quality_items;
+    std::vector<OpsV320SourceReliabilityInfo> source_reliability_items;
+    std::vector<OpsV320AiReviewQualityInfo> ai_review_quality_items;
+    std::vector<OpsV320OperatorResolutionFlowInfo> operator_resolution_flow_items;
+    std::vector<OpsV320ActionReadinessChecklistInfo> action_readiness_checklist_items;
+    std::vector<OpsV320ResolutionSearchMetricsInfo> resolution_search_metrics_items;
+    items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
+    evidence_quality_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
+    source_reliability_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
+    ai_review_quality_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
+    operator_resolution_flow_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
+    action_readiness_checklist_items.reserve(
+        std::min<std::size_t>(event_json_records.size(), 12U));
+    resolution_search_metrics_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
+    for (std::size_t index = 0; index < event_json_records.size(); ++index) {
+        const std::string& event_json = event_json_records[index];
+        const std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+        if (!OpsEventReviewEventIdAllowed(event_id)) {
+            continue;
+        }
+        const auto review_it = reviews.find(event_id);
+        const OpsEventReviewState review =
+            review_it == reviews.end() ? DefaultOpsEventReviewState(event_id) : review_it->second;
+        const OpsV320EvidenceQualityInfo evidence_quality =
+            OpsV320EvidenceQualityInfoFor(event_json, review);
+        const OpsV320SourceReliabilityInfo source_reliability =
+            OpsV320SourceReliabilityInfoFor(event_json, source_health_snapshot);
+        const OpsV320AiReviewQualityInfo ai_review_quality =
+            OpsV320AiReviewQualityInfoFor(review, evidence_quality, source_reliability);
+        const OpsV320OperatorResolutionFlowInfo operator_resolution_flow =
+            OpsV320OperatorResolutionFlowInfoFor(review);
+        const OpsV320ActionReadinessChecklistInfo action_readiness_checklist =
+            OpsV320ActionReadinessChecklistInfoFor(
+                evidence_quality,
+                source_reliability,
+                ai_review_quality,
+                operator_resolution_flow);
+        const OpsV320ResolutionSearchMetricsInfo resolution_search_metrics =
+            OpsV320ResolutionSearchMetricsInfoFor(event_json,
+                                                  review,
+                                                  evidence_quality,
+                                                  source_reliability,
+                                                  ai_review_quality,
+                                                  action_readiness_checklist);
+        items.push_back(OpsV320UnifiedResolutionWorkspaceItemJson(
+            event_json,
+            review,
+            index,
+            evidence_quality,
+            source_reliability,
+            ai_review_quality,
+            operator_resolution_flow,
+            action_readiness_checklist,
+            resolution_search_metrics));
+        evidence_quality_items.push_back(evidence_quality);
+        source_reliability_items.push_back(source_reliability);
+        ai_review_quality_items.push_back(ai_review_quality);
+        operator_resolution_flow_items.push_back(operator_resolution_flow);
+        action_readiness_checklist_items.push_back(action_readiness_checklist);
+        resolution_search_metrics_items.push_back(resolution_search_metrics);
+        if (items.size() >= 12U) {
+            break;
+        }
+    }
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v320-unified-events-workspace.v1\","
+        << "\"status\":\"ops-v320-unified-events-workspace\","
+        << "\"opsOnly\":true,"
+        << "\"workspace\":\"resolution-queue-detail-timeline\","
+        << "\"resolutionQueue\":[";
+    for (std::size_t i = 0; i < items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << items[i];
+    }
+    out << "],"
+        << "\"selectedDetail\":" << (items.empty() ? "null" : items.front()) << ","
+        << "\"resolutionTimeline\":" << (items.empty() ? "[]" : "[" + items.front() + "]") << ","
+        << "\"evidenceQualitySummary\":"
+        << OpsV320EvidenceQualitySummaryJson(evidence_quality_items) << ","
+        << "\"sourceReliabilitySummary\":"
+        << OpsV320SourceReliabilitySummaryJson(source_reliability_items) << ","
+        << "\"aiReviewQualitySummary\":"
+        << OpsV320AiReviewQualitySummaryJson(ai_review_quality_items) << ","
+        << "\"operatorResolutionFlowSummary\":"
+        << OpsV320OperatorResolutionFlowSummaryJson(operator_resolution_flow_items) << ","
+        << "\"actionReadinessChecklistSummary\":"
+        << OpsV320ActionReadinessChecklistSummaryJson(action_readiness_checklist_items) << ","
+        << "\"resolutionSearchMetricsSummary\":"
+        << OpsV320ResolutionSearchMetricsSummaryJson(resolution_search_metrics_items, query) << ","
+        << "\"itemCount\":" << items.size() << ","
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false,"
+        << "\"evidenceQualityLayerImplemented\":true,"
+        << "\"sourceReliabilityContextImplemented\":true,"
+        << "\"aiReviewQualityContextImplemented\":true,"
+        << "\"operatorAssignmentFlowImplemented\":true,"
+        << "\"actionReadinessChecklistImplemented\":true,"
+        << "\"clientDigestImplemented\":false,"
+        << "\"searchMetricsImplemented\":true"
+        << "}";
+    return out.str();
+}
+
 std::string OpsV310ReplayTimelineItemJson(const std::string& event_json,
                                           const OpsEventReviewState& review,
                                           const std::size_t index) {
@@ -16431,6 +18334,7 @@ std::string OpsExplainableIncidentBriefViewJson(
 }
 
 bool OpsEventReviewInboxJson(const app::AppConfig& config,
+                             const OpsSourceHealthSnapshot& source_health_snapshot,
                              const std::unordered_map<std::string, std::string>& query,
                              std::string* body,
                              std::string* error_message) {
@@ -16515,9 +18419,12 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         << "\"vlmReviewActionPersistent\":true,"
         << "\"incidentActionSchema\":\"media-server.ops.incident-action-state.v1\","
         << "\"incidentActionPersistent\":true,"
+        << "\"resolutionStateSchema\":\"media-server.ops.resolution-state.v1\","
+        << "\"resolutionStatePersistent\":true,"
         << "\"auditArea\":\"events\","
         << "\"auditAction\":\"event-review-update\","
-        << "\"incidentAuditAction\":\"incident-action-update\""
+        << "\"incidentAuditAction\":\"incident-action-update\","
+        << "\"resolutionAuditAction\":\"resolution-state-update\""
         << "},"
         << "\"catalog\":" << OpsEventReviewCatalogJson() << ","
         << "\"incidentTriageBoard\":" << OpsIncidentTriageBoardViewJson(event_result.records_json, reviews)
@@ -16548,6 +18455,13 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         << ","
         << "\"eventEvidenceSearch\":"
         << OpsV300EventEvidenceSearchUiJson(event_result.records_json, reviews, query)
+        << ","
+        << "\"unifiedResolutionWorkspace\":"
+        << OpsV320UnifiedOpsEventsWorkspaceJson(
+               event_result.records_json,
+               reviews,
+               source_health_snapshot,
+               query)
         << ","
         << "\"replayTimeline\":"
         << OpsV310ReplayTimelineUiJson(event_result.records_json, reviews)
@@ -19236,7 +21150,14 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                            }
 	                            std::string body;
 	                            std::string error_message;
-	                            if (!OpsEventReviewInboxJson(config, query, &body, &error_message)) {
+	                            const auto source_health_snapshot =
+	                                BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+	                                                             WebRtcSourceRegistry::Instance().Snapshots(),
+	                                                             impl_->session_manager.SourceDescriptorSnapshots(),
+	                                                             impl_->session_manager.SourceReconnectStatsSnapshot(),
+	                                                             impl_->session_manager.SourceEgressStatsSnapshot());
+	                            if (!OpsEventReviewInboxJson(
+                                        config, source_health_snapshot, query, &body, &error_message)) {
 	                                return JsonResponse(400,
 	                                                    "Bad Request",
 	                                                    "{\"error\":\"" + JsonEscape(error_message) + "\"}");
@@ -19262,7 +21183,17 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                review_query["eventId"] = event_id;
 	                                std::string body;
 	                                std::string error_message;
-	                                if (!OpsEventReviewInboxJson(config, review_query, &body, &error_message)) {
+	                                const auto source_health_snapshot =
+	                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+	                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+	                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+	                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+	                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+	                                if (!OpsEventReviewInboxJson(config,
+                                                                 source_health_snapshot,
+                                                                 review_query,
+                                                                 &body,
+                                                                 &error_message)) {
 	                                    return JsonResponse(400,
 	                                                        "Bad Request",
 	                                                        "{\"error\":\"" + JsonEscape(error_message) + "\"}");
@@ -19305,9 +21236,79 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                        ParseStringField(*incident_workflow, "actionTarget")
 	                                            .value_or(next.action_target);
 	                                }
-	                                next.note = ParseStringField(request.body, "note").value_or("");
-	                                if (const auto vlm_action = ExtractObjectField(request.body, "vlmAction");
-	                                    vlm_action.has_value()) {
+	                                OpsEventReviewState resolution_defaults =
+	                                    DefaultOpsEventReviewState(event_id);
+	                                {
+	                                    std::unordered_map<std::string, OpsEventReviewState>
+	                                        existing_reviews;
+	                                    if (LoadOpsEventReviewStates(config, &existing_reviews, nullptr)) {
+	                                        if (const auto existing_it = existing_reviews.find(event_id);
+	                                            existing_it != existing_reviews.end()) {
+	                                            resolution_defaults =
+	                                                OpsResolutionStateFromReview(existing_it->second);
+	                                        }
+	                                    }
+	                                }
+	                                next.resolution_status =
+	                                    ParseStringField(request.body, "resolutionStatus")
+	                                        .value_or(resolution_defaults.resolution_status);
+	                                next.resolution_reason =
+	                                    ParseStringField(request.body, "resolutionReason")
+	                                        .value_or(resolution_defaults.resolution_reason);
+	                                next.resolution_note =
+	                                    ParseStringField(request.body, "resolutionNote")
+	                                        .value_or(resolution_defaults.resolution_note);
+	                                next.resolution_transition =
+	                                    ParseStringField(request.body, "resolutionTransition")
+	                                        .value_or(resolution_defaults.resolution_transition);
+	                                next.resolution_closed_at_ms =
+	                                    resolution_defaults.resolution_closed_at_ms;
+	                                next.resolution_reopened_at_ms =
+	                                    resolution_defaults.resolution_reopened_at_ms;
+		                                if (const auto resolution =
+		                                        ExtractObjectField(request.body, "resolution");
+		                                    resolution.has_value()) {
+	                                    next.resolution_status =
+	                                        ParseStringField(*resolution, "status")
+	                                            .value_or(next.resolution_status);
+	                                    next.resolution_reason =
+	                                        ParseStringField(*resolution, "reason")
+	                                            .value_or(next.resolution_reason);
+	                                    next.resolution_note =
+	                                        ParseStringField(*resolution, "note")
+	                                            .value_or(next.resolution_note);
+		                                    next.resolution_transition =
+		                                        ParseStringField(*resolution, "transition")
+		                                            .value_or(next.resolution_transition);
+		                                }
+		                                next.note = ParseStringField(request.body, "note").value_or("");
+		                                if (const auto operator_resolution_flow =
+		                                        ExtractObjectField(request.body, "operatorResolutionFlow");
+		                                    operator_resolution_flow.has_value()) {
+		                                    next.action_target =
+		                                        ParseStringField(*operator_resolution_flow, "assignmentTarget")
+		                                            .value_or(ParseStringField(*operator_resolution_flow,
+		                                                                      "actionTarget")
+		                                                          .value_or(next.action_target));
+		                                    next.note =
+		                                        ParseStringField(*operator_resolution_flow, "operatorNote")
+		                                            .value_or(ParseStringField(*operator_resolution_flow, "note")
+		                                                          .value_or(next.note));
+		                                    next.resolution_note =
+		                                        ParseStringField(*operator_resolution_flow, "resolutionNote")
+		                                            .value_or(next.resolution_note);
+		                                    next.resolution_transition =
+		                                        ParseStringField(*operator_resolution_flow, "resolutionTransition")
+		                                            .value_or(next.resolution_transition);
+		                                    next.resolution_reason =
+		                                        ParseStringField(*operator_resolution_flow, "resolutionReason")
+		                                            .value_or(next.resolution_reason);
+		                                    next.resolution_status =
+		                                        ParseStringField(*operator_resolution_flow, "resolutionStatus")
+		                                            .value_or(next.resolution_status);
+		                                }
+		                                if (const auto vlm_action = ExtractObjectField(request.body, "vlmAction");
+		                                    vlm_action.has_value()) {
 	                                    next.vlm_action = ParseStringField(*vlm_action, "action")
 	                                                          .value_or("not-reviewed");
 	                                    next.vlm_action_target = ParseStringField(*vlm_action, "target")
@@ -19416,13 +21417,58 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                    OpsAuditRecordJson(feature_correction_audit_body.str(),
 	                                                       principal_result.principal),
 	                                    &audit_error);
-	                                HttpResponse ok = JsonResponse(
-	                                    200,
-	                                    "OK",
-	                                    std::string("{\"status\":\"ops-event-review\",\"persistent\":true,")
-	                                        + "\"audit\":{\"area\":\"events\",\"action\":\"event-review-update\"},"
-	                                        + "\"review\":" +
-	                                        OpsEventReviewStateJson(saved) + "}");
+	                                const char* kOpsResolutionStateAuditAction =
+	                                    "resolution-state-update";
+	                                const char* kOpsResolutionStateAuditSummary =
+	                                    "Resolution state updated";
+	                                std::ostringstream resolution_audit_body;
+	                                resolution_audit_body
+	                                    << "{"
+	                                    << "\"area\":\"events\","
+	                                    << "\"action\":\"" << kOpsResolutionStateAuditAction << "\","
+	                                    << "\"target\":\"event:" << JsonEscape(event_id) << "\","
+	                                    << "\"summary\":\"" << kOpsResolutionStateAuditSummary << "\","
+	                                    << "\"before\":"
+	                                    << (previous.present ? OpsEventReviewStateJson(previous)
+	                                                         : std::string("null"))
+	                                    << ",\"after\":" << OpsEventReviewStateJson(saved)
+	                                    << "}";
+		                                (void)AppendOpsAuditRecord(
+		                                    config,
+		                                    OpsAuditRecordJson(resolution_audit_body.str(),
+		                                                       principal_result.principal),
+		                                    &audit_error);
+		                                const char* kOpsOperatorResolutionFlowAuditAction =
+		                                    "operator-resolution-flow-update";
+		                                const char* kOpsOperatorResolutionFlowAuditSummary =
+		                                    "Operator resolution flow updated";
+		                                std::ostringstream operator_resolution_audit_body;
+		                                operator_resolution_audit_body
+		                                    << "{"
+		                                    << "\"area\":\"events\","
+		                                    << "\"action\":\"" << kOpsOperatorResolutionFlowAuditAction << "\","
+		                                    << "\"target\":\"event:" << JsonEscape(event_id) << "\","
+		                                    << "\"summary\":\"" << kOpsOperatorResolutionFlowAuditSummary
+		                                    << "\","
+		                                    << "\"before\":"
+		                                    << (previous.present ? OpsEventReviewStateJson(previous)
+		                                                         : std::string("null"))
+		                                    << ",\"after\":" << OpsEventReviewStateJson(saved)
+		                                    << "}";
+		                                (void)AppendOpsAuditRecord(
+		                                    config,
+		                                    OpsAuditRecordJson(operator_resolution_audit_body.str(),
+		                                                       principal_result.principal),
+		                                    &audit_error);
+		                                HttpResponse ok = JsonResponse(
+		                                    200,
+		                                    "OK",
+		                                    std::string("{\"status\":\"ops-event-review\",\"persistent\":true,")
+		                                        + "\"audit\":{\"area\":\"events\",\"action\":\"event-review-update\"},"
+		                                        + "\"operatorResolutionFlow\":" +
+		                                        OpsV320OperatorResolutionFlowJson(
+		                                            OpsV320OperatorResolutionFlowInfoFor(saved)) +
+		                                        ",\"review\":" + OpsEventReviewStateJson(saved) + "}");
 	                                ok.headers["Cache-Control"] = "no-store";
 	                                return ok;
 	                            }

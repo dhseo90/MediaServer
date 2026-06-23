@@ -10,8 +10,8 @@
 - 이 문서는 검증 명령 catalog입니다. PASS 보고는 실제 실행 output이 있을 때만 가능합니다.
 - 기능별 테스트 영역과 coverage 기준은 [project-feature-test-inventory.md](./project-feature-test-inventory.md)가 관리합니다. 이 inventory는 실행 evidence가 아닙니다.
 - 안정화, 30분, 120분, UI 풀테스트는 서로 대체하지 않습니다.
-- 외부 source/TURN/장시간 테스트는 별도 gate로 분리합니다.
-- external TURN/WHEP, ONVIF 실기기, real cloud/VLM provider는 endpoint/credential/승인 없이는 PASS 근거가 아닙니다.
+- 외부 조건이 필요한 테스트와 장시간 테스트는 별도 gate로 분리합니다.
+- endpoint, credential, runtime 승인 같은 사전 조건이 필요한 항목은 조건과 실행 evidence가 있을 때만 PASS 근거가 됩니다.
 
 ## 빠른 실행 경계
 
@@ -40,7 +40,27 @@
 | V250-S08 | `./server.sh verify-v250-redacted-incident-evidence-bundle` | release-safe manifest-only evidence bundle guard |
 | V250-S09 | `./server.sh verify-v250-owner-release-readiness` | owner decomposition/release readiness local gate |
 
-## 현재 v3.1.0 verifier
+## 현재 v3.2.0 verifier
+
+아래 명령은 v3.2.0 roadmap의 현재 문서/source baseline gate입니다. 후속 항목은
+각 step 구현 때 실제 command, route/control/action, script inventory를 연결한 뒤에만
+PASS 근거로 사용합니다.
+
+| Step | Command | Scope |
+| --- | --- | --- |
+| v3.2.0 (1) | `./server.sh verify-v320-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | source `3.2.0`, latest published `v3.1.0`, current roadmap `v3.2.0 Operations Resolution Workspace` 정렬. v3.2 기능 구현, UI 풀테스트, 30분/120분, published metadata, tag, push, GitHub Release evidence가 아님 |
+| v3.2.0 (2) | `./server.sh verify-v320-resolution-state-contract` | Resolution State Contract. `/ops/api/events/reviews`의 `media-server.ops.resolution-state.v1` status/reason/close-reopen lifecycle, Ops review JSONL persistence, resolution audit, EventRecord/Event POST/WebRTC/SSE/WS/media path 불변 경계를 확인합니다. UI 풀테스트 직접 조작, 30분/120분, operator assignment flow, client digest, search/metrics, published metadata evidence가 아님 |
+| v3.2.0 (3) | `./server.sh verify-v320-unified-ops-events-workspace` | Unified Ops Events Workspace. `/ops/events` resolution queue/detail/timeline workspace UI shell, `unifiedResolutionWorkspace` view model, script/CSS, ops smoke, inventory/release record 연결을 확인합니다. UI 풀테스트 직접 조작, 30분/120분, evidence quality, source reliability, AI review quality, operator assignment flow, client digest, search/metrics, published metadata evidence가 아님 |
+| v3.2.0 (4) | `./server.sh verify-v320-evidence-quality-layer` | Evidence Quality Layer. `/ops/api/events/reviews` `unifiedResolutionWorkspace.evidenceQuality`와 `/ops/events` UI가 evidence completeness/confidence/replay coverage hint를 Ops-only로 표시하는지 확인합니다. full replay engine, source reliability, AI review quality, operator assignment flow, client digest, search/metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
+| v3.2.0 (5) | `./server.sh verify-v320-source-reliability-context`; 실행 중인 서버 대상 `./server.sh verify-v320-source-reliability-runtime-sample --http-base <running-server>` | Source Reliability Context. `/ops/api/events/reviews` `unifiedResolutionWorkspace.sourceReliability`와 `/ops/events` UI가 source health와 recent failure context, operator recheck hint를 Ops-only로 표시하는지 확인합니다. runtime sample은 fixture EventRecord item을 심고 복원해 개별 item `sourceReliability`가 source id, recheck route, source registry write/source URL/raw JSON/debug/client exposure boundary를 지키는지 확인합니다. source registry write, AI review quality, operator assignment flow, client digest, search/metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
+| v3.2.0 (6) | `./server.sh verify-v320-ai-review-quality-context` | AI Review Quality Context. `/ops/api/events/reviews` `unifiedResolutionWorkspace.aiReviewQuality`와 `/ops/events` UI가 correction/review signal, uncertainty reason, quality badge를 Ops-only로 표시하는지 확인합니다. provider call, raw provider material, operator assignment flow, action readiness checklist, client digest, search/metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
+| v3.2.0 (7) | `./server.sh verify-v320-operator-resolution-flow` | Operator Resolution Flow. `/ops/api/events/reviews/{eventId}` write path, `unifiedResolutionWorkspace.operatorResolutionFlow`, `/ops/events` assign, note, close, reopen, audit trail UI, `operator-resolution-flow-update` audit를 확인합니다. action checklist, client digest, search/metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
+| v3.2.0 (8) | `./server.sh verify-v320-action-readiness-checklist` | Action Readiness Checklist. `/ops/api/events/reviews` `unifiedResolutionWorkspace.actionReadinessChecklist`와 `/ops/events` UI가 rule draft, evidence bundle, notification readiness checklist를 Ops-only로 표시하는지 확인합니다. auto action, external delivery, client digest, search/metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
+| v3.2.0 (9) | `./server.sh verify-v320-client-safe-resolution-digest` | Client-safe Resolution Digest. `/client/api/views/{id}/events` `resolutionDigest`와 client live/dashboard/events UI가 resolutionStatus/resolutionLabel/summaryText/severity/timelineHint/time만 viewer-safe로 표시하는지 확인합니다. source/raw/debug/provider/operator material, action controls, UI 풀테스트 직접 조작, 30분/120분, search/metrics, published metadata evidence가 아님 |
+| v3.2.0 (10) | `./server.sh verify-v320-resolution-search-metrics` | Resolution Search & Metrics. `/ops/api/events/reviews` `unifiedResolutionWorkspace.resolutionSearchMetrics`와 `/ops/events` UI가 active resolution filters, saved view presets, operations metric summary를 Ops-only로 표시하는지 확인합니다. saved view write, client digest, EventRecord/Event POST/WebRTC/SSE/WS/media path/Rule/Profile payload 변경, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
+| v3.2.0 (11) | `./server.sh verify-v320-stabilization-release-readiness` | v3.2.0 local stabilization and release readiness. Step 1~10 local gate, release evidence records, inventory, script dispatch, close-out dry-run command 연결을 확인합니다. UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release release action evidence를 대체하지 않음 |
+
+## 최신 published baseline v3.1.0 verifier
 
 아래 명령은 v3.1.0 roadmap 구현 단계에서 추가되는 verifier입니다. 아직 구현되지 않은
 항목은 문서 gate 또는 후보로만 남기며 PASS 근거가 아닙니다. 실제 실행 가능 여부는 각 스텝 구현 때

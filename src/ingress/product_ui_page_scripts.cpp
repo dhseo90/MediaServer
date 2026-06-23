@@ -2631,6 +2631,373 @@ void AppendOpsShellScript(std::ostringstream& out,
           </article>`;
         }).join('');
       }
+      function renderV320EvidenceQualityLayer(selectedDetail = {}, evidenceQualitySummary = {}) {
+        const evidenceQuality = selectedDetail?.evidenceQuality || {};
+        const refs = [
+          ['event frame', evidenceQuality.eventFramePresent],
+          ['snapshot', evidenceQuality.snapshotPathPresent],
+          ['manifest', evidenceQuality.evidenceManifestPresent],
+          ['frame bundle', evidenceQuality.frameBundlePresent],
+          ['encoded clip', evidenceQuality.encodedClipPresent],
+          ['bbox crop', evidenceQuality.bboxCropPresent],
+          ['VLM refs', evidenceQuality.vlmEvidenceRefsPresent]
+        ];
+        const boundary = evidenceQuality.rawEvidenceMaterialExposed === false &&
+          evidenceQuality.sourceUrlExposed === false &&
+          evidenceQuality.rawJsonExposed === false &&
+          evidenceQuality.debugMaterialExposed === false;
+        return `<div id="v320EvidenceQualityGrid" class="v320-evidence-quality-grid" data-v320-evidence-quality="${escapeHtml(evidenceQuality.schema || 'media-server.ops.v320-evidence-quality.v1')}">
+          <p class="v320-evidence-quality-card">
+            <strong>evidence completeness</strong>
+            <span>${escapeHtml(display(evidenceQuality.evidenceCompleteness || 'missing'))}</span>
+            <small>${escapeHtml(display(evidenceQuality.completenessScore ?? 0))}/100 · complete ${escapeHtml(display(evidenceQualitySummary.complete ?? 0))} · partial ${escapeHtml(display(evidenceQualitySummary.partial ?? 0))} · missing ${escapeHtml(display(evidenceQualitySummary.missing ?? 0))}</small>
+          </p>
+          <p class="v320-evidence-quality-card">
+            <strong>evidence confidence</strong>
+            <span>${escapeHtml(display(evidenceQuality.evidenceConfidence || 'low'))}</span>
+            <small>${escapeHtml(display(evidenceQuality.confidenceScore ?? 0))}/100 · deterministic evidence-ref confidence</small>
+          </p>
+          <p class="v320-evidence-quality-card">
+            <strong>replay coverage</strong>
+            <span>${escapeHtml(display(evidenceQuality.replayCoverage || 'missing'))}</span>
+            <small>${escapeHtml(display(evidenceQuality.replayCoverageHint || 'no replay coverage hint'))}</small>
+          </p>
+          <p class="v320-evidence-quality-card">
+            <strong>boundary</strong>
+            <span>${boundary ? 'redacted Ops-only' : 'redaction 확인 필요'}</span>
+            <small>fullReplayEngineExecuted ${evidenceQuality.fullReplayEngineExecuted === false ? 'false' : '확인 필요'} · rawEvidenceMaterialExposed ${evidenceQuality.rawEvidenceMaterialExposed === false ? 'false' : '확인 필요'}</small>
+          </p>
+          <div class="v320-evidence-quality-refs">
+            ${refs.map(([label, present]) => `<span class="chip v320-evidence-quality-ref ${present ? 'info' : 'warn'}" data-v320-evidence-quality-ref="${escapeHtml(label)}">${escapeHtml(label)} ${present ? 'present' : 'missing'}</span>`).join('')}
+          </div>
+          <p class="ops-rule-note">${escapeHtml(display(evidenceQuality.operatorHint || 'Review evidence quality before resolution closure.'))}</p>
+        </div>`;
+      }
+      function renderV320SourceReliabilityContext(selectedDetail = {}, sourceReliabilitySummary = {}) {
+        const sourceReliability = selectedDetail?.sourceReliability || {};
+        const warnings = Array.isArray(sourceReliability.warnings) ? sourceReliability.warnings : [];
+        const boundary = sourceReliability.sourceRegistryWritePerformed === false &&
+          sourceReliability.sourceUrlExposed === false &&
+          sourceReliability.rawJsonExposed === false &&
+          sourceReliability.debugMaterialExposed === false;
+        return `<div id="v320SourceReliabilityGrid" class="v320-source-reliability-grid" data-v320-source-reliability="${escapeHtml(sourceReliability.schema || 'media-server.ops.v320-source-reliability-context.v1')}">
+          <p class="v320-source-reliability-card">
+            <strong>source health</strong>
+            <span>${escapeHtml(display(sourceReliability.sourceHealthStatus || 'source-missing'))}</span>
+            <small>${escapeHtml(display(sourceReliability.sourceHealthReason || 'source-id-missing'))} · live ${escapeHtml(display(sourceReliabilitySummary.live ?? 0))} · recheck ${escapeHtml(display(sourceReliabilitySummary.needsRecheck ?? 0))} · blocked ${escapeHtml(display(sourceReliabilitySummary.blocked ?? 0))}</small>
+          </p>
+          <p class="v320-source-reliability-card">
+            <strong>recent failure</strong>
+            <span>${escapeHtml(display(sourceReliability.recentFailureContext || 'source-id-missing'))}</span>
+            <small>reconnect ${escapeHtml(display(sourceReliability.reconnectCount ?? 0))} · frame age ${escapeHtml(display(sourceReliability.lastFrameAgeMs ?? 'n/a'))} · metadata age ${escapeHtml(display(sourceReliability.lastMetadataAgeMs ?? 'n/a'))}</small>
+          </p>
+          <p class="v320-source-reliability-card">
+            <strong>operator recheck</strong>
+            <span>${escapeHtml(display(sourceReliability.operatorRecheckRoute || '/ops/api/source-health'))}</span>
+            <small>${escapeHtml(display(sourceReliability.operatorRecheckHint || 'Run source health recheck before final closure.'))}</small>
+          </p>
+          <p class="v320-source-reliability-card">
+            <strong>boundary</strong>
+            <span>${boundary ? 'check only' : 'boundary 확인 필요'}</span>
+            <small>sourceRegistryWritePerformed ${sourceReliability.sourceRegistryWritePerformed === false ? 'false' : '확인 필요'} · sourceUrlExposed ${sourceReliability.sourceUrlExposed === false ? 'false' : '확인 필요'}</small>
+          </p>
+          <div class="v320-source-reliability-warnings">
+            ${(warnings.length ? warnings : ['no-warning-context']).map(item => `<span class="chip v320-source-reliability-warning ${item === 'no-warning-context' ? 'info' : 'warn'}" data-v320-source-reliability-warning="${escapeHtml(item)}">${escapeHtml(display(item))}</span>`).join('')}
+          </div>
+        </div>`;
+      }
+      function renderV320AiReviewQualityContext(selectedDetail = {}, aiReviewQualitySummary = {}) {
+        const aiReviewQuality = selectedDetail?.aiReviewQuality || {};
+        const signals = Array.isArray(aiReviewQuality.signals) ? aiReviewQuality.signals : [];
+        const boundary = aiReviewQuality.runtimeProviderCallPerformed === false &&
+          aiReviewQuality.rawProviderMaterialExposed === false &&
+          aiReviewQuality.sourceUrlExposed === false &&
+          aiReviewQuality.rawJsonExposed === false &&
+          aiReviewQuality.debugMaterialExposed === false;
+        return `<div id="v320AiReviewQualityGrid" class="v320-ai-review-quality-grid" data-v320-ai-review-quality="${escapeHtml(aiReviewQuality.schema || 'media-server.ops.v320-ai-review-quality-context.v1')}">
+          <p class="v320-ai-review-quality-card">
+            <strong>correction review</strong>
+            <span>${escapeHtml(display(aiReviewQuality.correctionReviewSignal || 'pending-review'))}</span>
+            <small>corrections ${escapeHtml(display(aiReviewQualitySummary.correctionSignalCount ?? 0))} · reanalysis ${aiReviewQuality.reanalysisRequested === true ? 'yes' : 'no'} · aliases ${escapeHtml(display(aiReviewQuality.featureAliasCount ?? 0))}</small>
+          </p>
+          <p class="v320-ai-review-quality-card">
+            <strong>uncertainty reason</strong>
+            <span>${escapeHtml(display(aiReviewQuality.uncertaintyReason || 'not-reviewed'))}</span>
+            <small>review ${escapeHtml(display(aiReviewQuality.reviewStatus || 'new'))} · class ${escapeHtml(display(aiReviewQuality.classification || 'unclassified'))} · VLM ${escapeHtml(display(aiReviewQuality.vlmAction || 'not-reviewed'))}</small>
+          </p>
+          <p class="v320-ai-review-quality-card">
+            <strong>quality badge</strong>
+            <span>${escapeHtml(display(aiReviewQuality.qualityBadge || 'review-required'))}</span>
+            <small>${escapeHtml(display(aiReviewQuality.qualityScore ?? 0))}/100 · ok ${escapeHtml(display(aiReviewQualitySummary.qualityOk ?? 0))} · uncertain ${escapeHtml(display(aiReviewQualitySummary.uncertain ?? 0))} · checked ${escapeHtml(display(aiReviewQualitySummary.operatorChecked ?? 0))}</small>
+          </p>
+          <p class="v320-ai-review-quality-card">
+            <strong>boundary</strong>
+            <span>${boundary ? 'provider-free Ops-only' : 'boundary 확인 필요'}</span>
+            <small>runtimeProviderCallPerformed ${aiReviewQuality.runtimeProviderCallPerformed === false ? 'false' : '확인 필요'} · rawProviderMaterialExposed ${aiReviewQuality.rawProviderMaterialExposed === false ? 'false' : '확인 필요'}</small>
+          </p>
+          <div class="v320-ai-review-quality-signals">
+            ${(signals.length ? signals : ['no-correction-signal']).map(item => `<span class="chip v320-ai-review-quality-signal ${item === 'no-correction-signal' ? 'info' : 'warn'}" data-v320-ai-review-signal="${escapeHtml(item)}">${escapeHtml(display(item))}</span>`).join('')}
+          </div>
+          <p class="ops-rule-note">${escapeHtml(display(aiReviewQuality.operatorHint || 'Review AI quality context before resolution closure.'))}</p>
+        </div>`;
+      }
+      function renderV320OperatorResolutionFlow(selectedDetail = {}, operatorResolutionFlowSummary = {}) {
+        const operatorResolutionFlow = selectedDetail?.operatorResolutionFlow || {};
+        const auditActions = Array.isArray(operatorResolutionFlow.auditActions)
+          ? operatorResolutionFlow.auditActions
+          : [];
+        const boundary = operatorResolutionFlow.viewerClientExposureAdded === false &&
+          operatorResolutionFlow.sourceUrlExposed === false &&
+          operatorResolutionFlow.rawJsonExposed === false &&
+          operatorResolutionFlow.debugMaterialExposed === false;
+        return `<div id="v320OperatorResolutionFlowGrid" class="v320-operator-resolution-flow-grid" data-v320-operator-resolution-flow="${escapeHtml(operatorResolutionFlow.schema || 'media-server.ops.v320-operator-resolution-flow.v1')}">
+          <p class="v320-operator-resolution-flow-card">
+            <strong>assignment target</strong>
+            <span>${escapeHtml(display(operatorResolutionFlow.assignmentTarget || 'operator-triage'))}</span>
+            <small>assigned ${escapeHtml(display(operatorResolutionFlowSummary.assigned ?? 0))} · status ${escapeHtml(display(operatorResolutionFlow.assignmentFlowStatus || 'triage-lane'))}</small>
+          </p>
+          <p class="v320-operator-resolution-flow-card">
+            <strong>operator note</strong>
+            <span>${operatorResolutionFlow.operatorNotePresent === true || operatorResolutionFlow.resolutionNotePresent === true ? 'present' : 'missing'}</span>
+            <small>operatorNotePresent ${operatorResolutionFlow.operatorNotePresent === true ? 'true' : 'false'} · resolutionNotePresent ${operatorResolutionFlow.resolutionNotePresent === true ? 'true' : 'false'} · notes ${escapeHtml(display(operatorResolutionFlowSummary.notePresent ?? 0))}</small>
+          </p>
+          <p class="v320-operator-resolution-flow-card">
+            <strong>close / reopen</strong>
+            <span>close ${operatorResolutionFlow.closeActionAvailable === true ? 'available' : 'locked'} · reopen ${operatorResolutionFlow.reopenActionAvailable === true ? 'available' : 'locked'}</span>
+            <small>${escapeHtml(display(operatorResolutionFlow.resolutionStatus || 'open'))} · ${escapeHtml(display(operatorResolutionFlow.resolutionReason || 'unreviewed'))} · ${escapeHtml(display(operatorResolutionFlow.resolutionTransition || 'none'))}</small>
+          </p>
+          <p class="v320-operator-resolution-flow-card">
+            <strong>audit trail</strong>
+            <span>${operatorResolutionFlow.auditTrailRequired === true ? 'required' : '확인 필요'}</span>
+            <small>${boundary ? 'Ops-only redacted' : 'boundary 확인 필요'} · write ${escapeHtml(display(operatorResolutionFlow.operatorResolutionFlowWritePath || '/ops/api/events/reviews/{eventId}'))}</small>
+          </p>
+          <div class="v320-operator-resolution-audit">
+            ${(auditActions.length ? auditActions : ['operator-resolution-flow-update']).map(item => `<span class="chip v320-operator-resolution-audit-chip" data-v320-operator-resolution-audit="${escapeHtml(item)}">${escapeHtml(display(item))}</span>`).join('')}
+          </div>
+          <p class="ops-rule-note">${escapeHtml(display(operatorResolutionFlow.operatorHint || 'Assign, note, close, or reopen with Ops audit trail.'))}</p>
+        </div>`;
+      }
+      function renderV320ActionReadinessChecklist(selectedDetail = {}, actionReadinessChecklistSummary = {}) {
+        const actionReadinessChecklist = selectedDetail?.actionReadinessChecklist || {};
+        const blockers = Array.isArray(actionReadinessChecklist.readinessBlockers)
+          ? actionReadinessChecklist.readinessBlockers
+          : [];
+        const checklistItems = Array.isArray(actionReadinessChecklist.checklistItems)
+          ? actionReadinessChecklist.checklistItems
+          : [];
+        const boundary = actionReadinessChecklist.autoActionWritePerformed === false &&
+          actionReadinessChecklist.externalDeliveryPerformed === false &&
+          actionReadinessChecklist.ruleDraftCreated === false &&
+          actionReadinessChecklist.notificationSent === false &&
+          actionReadinessChecklist.viewerClientExposureAdded === false;
+        return `<div id="v320ActionReadinessChecklistGrid" class="v320-action-readiness-checklist-grid" data-v320-action-readiness-checklist="${escapeHtml(actionReadinessChecklist.schema || 'media-server.ops.v320-action-readiness-checklist.v1')}">
+          <p class="v320-action-readiness-checklist-card">
+            <strong>readiness status</strong>
+            <span>${escapeHtml(display(actionReadinessChecklist.readinessStatus || 'blocked'))}</span>
+            <small>ready ${escapeHtml(display(actionReadinessChecklistSummary.readyForOperatorApproval ?? 0))} · blocked ${escapeHtml(display(actionReadinessChecklistSummary.blocked ?? 0))}</small>
+          </p>
+          <p class="v320-action-readiness-checklist-card">
+            <strong>rule draft</strong>
+            <span>${actionReadinessChecklist.ruleDraftReady === true ? 'ready' : 'blocked'}</span>
+            <small>${escapeHtml(display(actionReadinessChecklist.ruleDraftStatus || 'needs-rule-draft'))} · route ${escapeHtml(display(actionReadinessChecklist.ruleDraftRoute || '/ops/rules'))}</small>
+          </p>
+          <p class="v320-action-readiness-checklist-card">
+            <strong>evidence bundle</strong>
+            <span>${actionReadinessChecklist.evidenceBundleReady === true ? 'ready' : 'blocked'}</span>
+            <small>${escapeHtml(display(actionReadinessChecklist.evidenceBundleStatus || 'needs-evidence-bundle'))} · basis ${escapeHtml(display(actionReadinessChecklist.evidenceBundleBasis || 'EventRecord/vlmEvidenceRefs'))}</small>
+          </p>
+          <p class="v320-action-readiness-checklist-card">
+            <strong>notification readiness</strong>
+            <span>${actionReadinessChecklist.notificationReady === true ? 'ready' : 'blocked'}</span>
+            <small>dry-run ${actionReadinessChecklist.notificationDryRunRequired === true ? 'required' : '확인 필요'} · manual ${actionReadinessChecklist.manualApprovalRequired === true ? 'required' : '확인 필요'}</small>
+          </p>
+          <p class="v320-action-readiness-checklist-card">
+            <strong>boundary</strong>
+            <span>${boundary ? 'Ops-only checklist' : 'boundary 확인 필요'}</span>
+            <small>autoActionWritePerformed ${actionReadinessChecklist.autoActionWritePerformed === false ? 'false' : '확인 필요'} · externalDeliveryPerformed ${actionReadinessChecklist.externalDeliveryPerformed === false ? 'false' : '확인 필요'}</small>
+          </p>
+          <div class="v320-action-readiness-items">
+            ${(checklistItems.length ? checklistItems : ['manual-approval-required']).map(item => `<span class="chip v320-action-readiness-item" data-v320-action-readiness-item="${escapeHtml(item)}">${escapeHtml(display(item))}</span>`).join('')}
+          </div>
+          <div class="v320-action-readiness-items">
+            ${(blockers.length ? blockers : ['no-readiness-blocker']).map(item => `<span class="chip v320-action-readiness-blocker ${item === 'no-readiness-blocker' ? 'info' : 'warn'}" data-v320-action-readiness-blocker="${escapeHtml(item)}">${escapeHtml(display(item))}</span>`).join('')}
+          </div>
+          <p class="ops-rule-note">${escapeHtml(display(actionReadinessChecklist.operatorHint || 'Review action readiness before operator approval.'))}</p>
+        </div>`;
+      }
+      function renderV320ResolutionSearchMetrics(unifiedResolutionWorkspace = {}, selectedDetail = {}) {
+        const resolutionSearchMetricsSummary = unifiedResolutionWorkspace.resolutionSearchMetricsSummary || {};
+        const resolutionSearchMetrics = selectedDetail?.resolutionSearchMetrics || {};
+        const filters = resolutionSearchMetricsSummary.activeResolutionFilters || {};
+        const savedViews = Array.isArray(resolutionSearchMetricsSummary.savedViews)
+          ? resolutionSearchMetricsSummary.savedViews
+          : [];
+        const metrics = resolutionSearchMetricsSummary.operationsMetricSummary || {};
+        const filterEntries = [
+          ['reviewStatus', filters.reviewStatus],
+          ['classification', filters.classification],
+          ['incidentStatus', filters.incidentStatus],
+          ['ruleId', filters.ruleId],
+          ['sourceId', filters.sourceId],
+          ['eventType', filters.eventType],
+          ['eventId', filters.eventId],
+          ['textQuery', filters.textQuery],
+          ['includeArchives', filters.includeArchives === true ? 'true' : 'false'],
+          ['limit', filters.limit]
+        ].filter(([, value]) => value !== undefined && value !== null && String(value).length > 0);
+        const metricCards = [
+          ['matchedQueueCount', metrics.matchedQueueCount ?? resolutionSearchMetricsSummary.itemCount ?? 0],
+          ['readyForApprovalCount', metrics.readyForApprovalCount ?? 0],
+          ['blockedActionCount', metrics.blockedActionCount ?? 0],
+          ['sourceRecheckCount', metrics.sourceRecheckCount ?? 0],
+          ['reviewRequiredCount', metrics.reviewRequiredCount ?? 0]
+        ];
+        const boundary = resolutionSearchMetricsSummary.savedViewsPersisted === false &&
+          resolutionSearchMetricsSummary.savedViewWritePerformed === false &&
+          resolutionSearchMetricsSummary.viewerClientExposureAdded === false &&
+          resolutionSearchMetricsSummary.sourceUrlExposed === false &&
+          resolutionSearchMetricsSummary.rawJsonExposed === false &&
+          resolutionSearchMetricsSummary.debugMaterialExposed === false &&
+          resolutionSearchMetricsSummary.clientDigestChanged === false;
+        return `<div id="v320ResolutionSearchMetricsGrid" class="v320-resolution-search-metrics-grid" data-v320-resolution-search-metrics="${escapeHtml(resolutionSearchMetricsSummary.schema || 'media-server.ops.v320-resolution-search-metrics.v1')}">
+          <article class="v320-resolution-search-card">
+            <strong>resolution filters</strong>
+            <span>${escapeHtml(display(filters.queryApplied === true ? 'active filters' : 'default queue'))}</span>
+            <small>filterCount ${escapeHtml(display(filters.filterCount ?? 0))} · selected ${escapeHtml(display(resolutionSearchMetrics.eventId || selectedDetail?.eventId || 'none'))}</small>
+            <div class="v320-resolution-filter-list">
+              ${(filterEntries.length ? filterEntries : [['default', 'unfiltered']]).map(([key, value]) => `<span class="chip" data-v320-resolution-filter="${escapeHtml(key)}">${escapeHtml(key)} ${escapeHtml(display(value))}</span>`).join('')}
+            </div>
+          </article>
+          <article class="v320-resolution-search-card">
+            <strong>saved views</strong>
+            <span>${escapeHtml(display(savedViews.length))} presets</span>
+            <small>savedViewsPersisted ${resolutionSearchMetricsSummary.savedViewsPersisted === false ? 'false' : '확인 필요'} · savedViewWritePerformed ${resolutionSearchMetricsSummary.savedViewWritePerformed === false ? 'false' : '확인 필요'}</small>
+            <div class="v320-resolution-saved-views">
+              ${(savedViews.length ? savedViews : [{ id: 'open-resolution', label: 'Open resolutions' }]).map(view => `<span class="chip" data-v320-saved-view="${escapeHtml(view.id || '')}">${escapeHtml(display(view.label || view.id || 'saved view'))}</span>`).join('')}
+            </div>
+          </article>
+          <article class="v320-resolution-search-card">
+            <strong>operations metric summary</strong>
+            <span>${escapeHtml(display(metrics.metricBasis || 'EventRecord + Ops review state + v3.2 context'))}</span>
+            <small>${escapeHtml(display(metrics.operationsNextAction || 'filter saved views, inspect blocked action readiness, then close or reopen with audit'))}</small>
+            <div class="v320-resolution-filter-list">
+              ${metricCards.map(([key, value]) => `<span class="v320-resolution-metric-card" data-v320-resolution-metric="${escapeHtml(key)}"><strong>${escapeHtml(display(value))}</strong><small>${escapeHtml(key)}</small></span>`).join('')}
+            </div>
+          </article>
+          <article class="v320-resolution-search-card">
+            <strong>boundary</strong>
+            <span>${boundary ? 'Ops-only search metrics' : 'boundary 확인 필요'}</span>
+            <small>clientDigestChanged ${resolutionSearchMetricsSummary.clientDigestChanged === false ? 'false' : '확인 필요'} · sourceUrlExposed ${resolutionSearchMetricsSummary.sourceUrlExposed === false ? 'false' : '확인 필요'} · rawJsonExposed ${resolutionSearchMetricsSummary.rawJsonExposed === false ? 'false' : '확인 필요'}</small>
+            <div class="v320-resolution-saved-views">
+              ${(Array.isArray(resolutionSearchMetrics.savedViewMatches) ? resolutionSearchMetrics.savedViewMatches : ['open-resolution']).map(view => `<span class="chip info" data-v320-saved-view="${escapeHtml(view)}">${escapeHtml(display(view))}</span>`).join('')}
+            </div>
+          </article>
+        </div>`;
+      }
+      function renderV320UnifiedOpsEventsWorkspace(unifiedResolutionWorkspace = {}) {
+        const queueRoot = document.getElementById('opsV320ResolutionQueue');
+        const detailRoot = document.getElementById('opsV320ResolutionDetail');
+        const timelineRoot = document.getElementById('opsV320ResolutionTimeline');
+        if (!queueRoot || !detailRoot || !timelineRoot) return;
+        const resolutionQueue = Array.isArray(unifiedResolutionWorkspace.resolutionQueue)
+          ? unifiedResolutionWorkspace.resolutionQueue
+          : [];
+        const selectedDetail = unifiedResolutionWorkspace.selectedDetail || resolutionQueue[0] || null;
+        const resolutionTimeline = Array.isArray(unifiedResolutionWorkspace.resolutionTimeline)
+          ? unifiedResolutionWorkspace.resolutionTimeline
+          : (selectedDetail ? [selectedDetail] : []);
+        renderBadges('opsV320UnifiedWorkspaceBadges', [
+          { text: unifiedResolutionWorkspace.schema || 'media-server.ops.v320-unified-events-workspace.v1' },
+          { text: `queue ${resolutionQueue.length}`, tone: resolutionQueue.length > 0 ? '' : 'warn' },
+          { text: unifiedResolutionWorkspace.evidenceQualityLayerImplemented === true ? 'evidence quality' : 'evidence quality 확인 필요', tone: unifiedResolutionWorkspace.evidenceQualityLayerImplemented === true ? 'info' : 'warn' },
+          { text: unifiedResolutionWorkspace.evidenceQualitySummary?.schema || 'media-server.ops.v320-evidence-quality.v1' },
+          { text: unifiedResolutionWorkspace.sourceReliabilityContextImplemented === true ? 'source reliability' : 'source reliability 확인 필요', tone: unifiedResolutionWorkspace.sourceReliabilityContextImplemented === true ? 'info' : 'warn' },
+          { text: unifiedResolutionWorkspace.sourceReliabilitySummary?.schema || 'media-server.ops.v320-source-reliability-context.v1' },
+          { text: unifiedResolutionWorkspace.aiReviewQualityContextImplemented === true ? 'AI review quality' : 'AI review 확인 필요', tone: unifiedResolutionWorkspace.aiReviewQualityContextImplemented === true ? 'info' : 'warn' },
+          { text: unifiedResolutionWorkspace.aiReviewQualitySummary?.schema || 'media-server.ops.v320-ai-review-quality-context.v1' },
+          { text: unifiedResolutionWorkspace.operatorAssignmentFlowImplemented === true ? 'operator flow' : 'operator flow 확인 필요', tone: unifiedResolutionWorkspace.operatorAssignmentFlowImplemented === true ? 'info' : 'warn' },
+          { text: unifiedResolutionWorkspace.operatorResolutionFlowSummary?.schema || 'media-server.ops.v320-operator-resolution-flow.v1' },
+          { text: unifiedResolutionWorkspace.actionReadinessChecklistImplemented === true ? 'action readiness' : 'action readiness 확인 필요', tone: unifiedResolutionWorkspace.actionReadinessChecklistImplemented === true ? 'info' : 'warn' },
+          { text: unifiedResolutionWorkspace.actionReadinessChecklistSummary?.schema || 'media-server.ops.v320-action-readiness-checklist.v1' },
+          { text: unifiedResolutionWorkspace.searchMetricsImplemented === true ? 'search metrics' : 'search metrics 확인 필요', tone: unifiedResolutionWorkspace.searchMetricsImplemented === true ? 'info' : 'warn' },
+          { text: unifiedResolutionWorkspace.resolutionSearchMetricsSummary?.schema || 'media-server.ops.v320-resolution-search-metrics.v1' },
+          { text: unifiedResolutionWorkspace.viewerClientExposureAdded === false ? 'Ops only' : 'client 노출 확인 필요', tone: unifiedResolutionWorkspace.viewerClientExposureAdded === false ? 'info' : 'warn' },
+          { text: unifiedResolutionWorkspace.eventPostPayloadChanged === false ? 'Event POST unchanged' : 'payload 확인 필요', tone: unifiedResolutionWorkspace.eventPostPayloadChanged === false ? 'info' : 'warn' },
+          { text: unifiedResolutionWorkspace.sourceUrlExposed === false && unifiedResolutionWorkspace.rawJsonExposed === false && unifiedResolutionWorkspace.debugMaterialExposed === false ? 'redacted' : 'redaction 확인 필요', tone: unifiedResolutionWorkspace.sourceUrlExposed === false && unifiedResolutionWorkspace.rawJsonExposed === false && unifiedResolutionWorkspace.debugMaterialExposed === false ? 'info' : 'warn' }
+        ]);
+        setText(
+          'opsV320UnifiedWorkspaceSummary',
+          resolutionQueue.length
+            ? `Unified resolution workspace · resolution queue ${resolutionQueue.length} · evidence quality · source reliability · AI review quality · action readiness checklist · detail/timeline Ops-only`
+            : 'resolution queue, resolution detail, resolution timeline을 `/ops/events` 안에서 Ops 전용으로 확인합니다.'
+        );
+        if (resolutionQueue.length === 0) {
+          queueRoot.innerHTML = '<p class="ops-rule-note">표시할 resolution queue 항목이 없습니다.</p>';
+          detailRoot.innerHTML = '<p class="ops-rule-note">선택된 resolution detail이 없습니다.</p>';
+          timelineRoot.innerHTML = '<p class="ops-rule-note">표시할 resolution timeline이 없습니다.</p>';
+          return;
+        }
+        queueRoot.innerHTML = resolutionQueue.map((item, index) => {
+          const resolutionState = item?.resolutionState || {};
+          const lifecycle = item?.closeReopenLifecycle?.closeReopenLifecycle || resolutionState.closeReopenLifecycle || {};
+          const evidenceQuality = item?.evidenceQuality || {};
+          const sourceReliability = item?.sourceReliability || {};
+          const aiReviewQuality = item?.aiReviewQuality || {};
+          const operatorResolutionFlow = item?.operatorResolutionFlow || {};
+          const actionReadinessChecklist = item?.actionReadinessChecklist || {};
+          const active = selectedDetail && item?.eventId === selectedDetail.eventId;
+          return `<article class="v320-resolution-queue-card${active ? ' is-active' : ''}" data-v320-resolution-event="${escapeHtml(item?.eventId || '')}">
+            <div class="table-cell-main">
+              <strong>${escapeHtml(display(item?.eventType || item?.eventId || `event ${index + 1}`))}</strong>
+              <span>${escapeHtml(display(item?.eventId || '-'))} · ${escapeHtml(display(item?.sourceId || 'unknown-source'))}</span>
+            </div>
+            <div class="badge-row">
+              <span class="chip ${item?.queueStatus === 'closed' ? 'info' : 'warn'}">${escapeHtml(display(item?.queueStatus || 'needs-resolution'))}</span>
+              <span class="chip">${escapeHtml(display(resolutionState.status || 'open'))}</span>
+              <span class="chip">${escapeHtml(display(resolutionState.reason || 'unreviewed'))}</span>
+              <span class="chip ${evidenceQuality.evidenceCompleteness === 'complete' ? 'info' : 'warn'}">${escapeHtml(display(evidenceQuality.evidenceCompleteness || 'missing'))}</span>
+              <span class="chip">${escapeHtml(display(evidenceQuality.replayCoverage || 'missing'))}</span>
+              <span class="chip ${sourceReliability.sourceHealthStatus === 'live' ? 'info' : 'warn'}">${escapeHtml(display(sourceReliability.sourceHealthStatus || 'source-missing'))}</span>
+              <span class="chip ${aiReviewQuality.qualityBadge === 'quality-ok' || aiReviewQuality.qualityBadge === 'operator-checked' ? 'info' : 'warn'}">${escapeHtml(display(aiReviewQuality.qualityBadge || 'review-required'))}</span>
+              <span class="chip">${escapeHtml(display(operatorResolutionFlow.assignmentTarget || 'operator-triage'))}</span>
+              <span class="chip ${actionReadinessChecklist.readinessStatus === 'ready-for-operator-approval' ? 'info' : 'warn'}">${escapeHtml(display(actionReadinessChecklist.readinessStatus || 'blocked'))}</span>
+            </div>
+            <p class="ops-rule-note">canClose ${lifecycle.canClose === true ? 'true' : 'false'} · canReopen ${lifecycle.canReopen === true ? 'true' : 'false'} · transition ${escapeHtml(display(resolutionState.transition || 'none'))}</p>
+          </article>`;
+        }).join('');
+        const detailSections = Array.isArray(selectedDetail?.detailSections) ? selectedDetail.detailSections : [];
+        const selectedResolution = selectedDetail?.resolutionState || {};
+        detailRoot.innerHTML = `<article class="v320-resolution-detail-card" data-v320-resolution-detail="${escapeHtml(selectedDetail?.eventId || '')}">
+          <div class="table-cell-main">
+            <strong>${escapeHtml(display(selectedDetail?.eventId || 'resolution detail'))}</strong>
+            <span>${escapeHtml(display(selectedDetail?.eventType || 'event'))} · review ${escapeHtml(display(selectedDetail?.reviewState || 'new'))}</span>
+          </div>
+          <div class="v320-resolution-detail-grid">
+            ${detailSections.map(section => `<p data-v320-resolution-detail-section="${escapeHtml(section?.key || '')}">
+              <strong>${escapeHtml(display(section?.label || section?.key || 'section'))}</strong>
+              <span>${escapeHtml(display(section?.status || 'unknown'))}</span>
+              <small>${escapeHtml(display(section?.detail || 'Ops review state'))}</small>
+            </p>`).join('')}
+          </div>
+          ${renderV320EvidenceQualityLayer(selectedDetail, unifiedResolutionWorkspace.evidenceQualitySummary || {})}
+          ${renderV320SourceReliabilityContext(selectedDetail, unifiedResolutionWorkspace.sourceReliabilitySummary || {})}
+          ${renderV320AiReviewQualityContext(selectedDetail, unifiedResolutionWorkspace.aiReviewQualitySummary || {})}
+          ${renderV320OperatorResolutionFlow(selectedDetail, unifiedResolutionWorkspace.operatorResolutionFlowSummary || {})}
+          ${renderV320ActionReadinessChecklist(selectedDetail, unifiedResolutionWorkspace.actionReadinessChecklistSummary || {})}
+          ${renderV320ResolutionSearchMetrics(unifiedResolutionWorkspace, selectedDetail)}
+          <p class="ops-rule-note">resolutionStatus ${escapeHtml(display(selectedResolution.status || 'open'))} · resolutionReason ${escapeHtml(display(selectedResolution.reason || 'unreviewed'))} · sourceUrlExposed ${selectedDetail?.sourceUrlExposed === false ? 'false' : '확인 필요'} · rawJsonExposed ${selectedDetail?.rawJsonExposed === false ? 'false' : '확인 필요'} · debugMaterialExposed ${selectedDetail?.debugMaterialExposed === false ? 'false' : '확인 필요'}</p>
+        </article>`;
+        const timelineItems = resolutionTimeline.flatMap(item => Array.isArray(item?.timelineMarkers)
+          ? item.timelineMarkers.map(marker => ({ ...marker, eventId: item.eventId }))
+          : []);
+        timelineRoot.innerHTML = timelineItems.length === 0
+          ? '<p class="ops-rule-note">표시할 resolution timeline marker가 없습니다.</p>'
+          : timelineItems.map(marker => `<div class="v320-resolution-timeline-marker" data-v320-resolution-timeline-marker="${escapeHtml(marker?.key || '')}">
+              <span>${escapeHtml(display(marker?.label || marker?.key || 'marker'))}</span>
+              <strong>${escapeHtml(display(marker?.status || 'unknown'))}</strong>
+              <p>${escapeHtml(display(marker?.eventId || '-'))} · ${escapeHtml(display(marker?.transition || 'none'))} · ${escapeHtml(display(marker?.timeMs ?? 0))}ms</p>
+            </div>`).join('');
+      }
       function renderV310ReplayTimelineUi(replayTimeline = {}) {
         const root = document.getElementById('opsV310ReplayTimelineRows');
         if (!root) return;
@@ -3669,6 +4036,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         renderApprovalGatedRuleDraftReadiness(reviewPayload.approvalGatedRuleDraftReadiness || {});
         renderOperatorOutcomeMemory(reviewPayload.operatorOutcomeMemory || {});
         renderV300EventEvidenceSearchUi(reviewPayload.eventEvidenceSearch || {});
+        renderV320UnifiedOpsEventsWorkspace(reviewPayload.unifiedResolutionWorkspace || {});
         renderV310ReplayTimelineUi(reviewPayload.replayTimeline || {});
         renderV310OperatorFeatureCorrection(reviewPayload.operatorFeatureCorrection || {});
         renderIncidentMemorySearch(reviewPayload.memorySearch || {});
@@ -3681,7 +4049,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         if (prevButton) prevButton.disabled = opsEventRecordsOffset <= 0;
         if (nextButton) nextButton.disabled = !records.hasMore;
         if (records.nextOffset != null) nextButton?.setAttribute('data-next-offset', String(records.nextOffset));
-        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, incidentTriageBoard: reviewPayload.incidentTriageBoard || {}, incidentDecisionScorecard: reviewPayload.incidentDecisionScorecard || {}, operationalActionPack: reviewPayload.operationalActionPack || {}, incidentActionReadinessQueue: reviewPayload.incidentActionReadinessQueue || {}, evidenceIntakeFieldReadiness: reviewPayload.evidenceIntakeFieldReadiness || {}, runtimeEvidenceWindow: reviewPayload.runtimeEvidenceWindow || {}, ruleWhatIfPreview: reviewPayload.ruleWhatIfPreview || {}, approvalGatedRuleDraftReadiness: reviewPayload.approvalGatedRuleDraftReadiness || {}, operatorOutcomeMemory: reviewPayload.operatorOutcomeMemory || {}, eventEvidenceSearch: reviewPayload.eventEvidenceSearch || {}, replayTimeline: reviewPayload.replayTimeline || {}, operatorFeatureCorrection: reviewPayload.operatorFeatureCorrection || {}, memorySearch: reviewPayload.memorySearch || {}, vlmSummaryCandidateReview: reviewPayload.memorySearch?.vlmSummaryCandidateReview || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
+        renderRaw('opsEventsRaw', 'opsEventsPretty', { storage, post, alertDelivery: alertPayload, records, reviews: reviewPayload, incidentTriageBoard: reviewPayload.incidentTriageBoard || {}, incidentDecisionScorecard: reviewPayload.incidentDecisionScorecard || {}, operationalActionPack: reviewPayload.operationalActionPack || {}, incidentActionReadinessQueue: reviewPayload.incidentActionReadinessQueue || {}, evidenceIntakeFieldReadiness: reviewPayload.evidenceIntakeFieldReadiness || {}, runtimeEvidenceWindow: reviewPayload.runtimeEvidenceWindow || {}, ruleWhatIfPreview: reviewPayload.ruleWhatIfPreview || {}, approvalGatedRuleDraftReadiness: reviewPayload.approvalGatedRuleDraftReadiness || {}, operatorOutcomeMemory: reviewPayload.operatorOutcomeMemory || {}, eventEvidenceSearch: reviewPayload.eventEvidenceSearch || {}, unifiedResolutionWorkspace: reviewPayload.unifiedResolutionWorkspace || {}, replayTimeline: reviewPayload.replayTimeline || {}, operatorFeatureCorrection: reviewPayload.operatorFeatureCorrection || {}, memorySearch: reviewPayload.memorySearch || {}, vlmSummaryCandidateReview: reviewPayload.memorySearch?.vlmSummaryCandidateReview || {}, similarIncidents: reviewPayload.similarIncidents || {}, timelineGraph: reviewPayload.timelineGraph || {}, incidentBrief: reviewPayload.incidentBrief || {} });
       }
       const itemId = item => display(item?.id || item?.ruleId || item?.profileId || '-');
       const opsRulesIdText = value => {
