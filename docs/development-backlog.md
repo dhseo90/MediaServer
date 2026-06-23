@@ -11,8 +11,8 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 ## 현재 공개 상태
 
 - 현재 소스 버전: `3.2.0`
-- 최신 공개 GitHub Release: `v3.1.0`
-- `v3.1.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
+- 최신 공개 GitHub Release: `v3.2.0`
+- `v3.2.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
 - 현재 source roadmap: `v3.2.0 Operations Resolution Workspace`
 
@@ -95,6 +95,21 @@ license/provenance/privacy/운영 제약:
 | 11 | v3.2.0 (11) Stabilization and Release Readiness | P0 | 완료 | build/docs/metadata/inventory/release readiness records |
 
 `v3.2.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
+
+## 최신 공개 기준: v3.2.0 Source Release Baseline
+
+v3.2.0은 Operations Resolution Workspace source-only 공개 릴리즈입니다. 이 기준은
+resolution state contract, unified Ops Events workspace, evidence quality, source
+reliability, AI review quality, operator resolution flow, action readiness checklist,
+client-safe resolution digest, resolution search/metrics, release readiness를 local
+evidence와 함께 닫은 최신 published baseline입니다. 120분 longrun과 external field
+smoke는 실행하지 않은 영역으로 계속 분리합니다.
+
+## 직전 공개 기준: v3.1.0 Source Release Baseline
+
+v3.1.0은 Encoded Event Clip and Safe Sharing Expansion source-only 직전 공개
+릴리즈입니다. 이 기준은 v3.2.0의 완료 evidence로 재사용하지 않는 historical
+baseline입니다.
 
 ## v3.2.0 Step 1 개발 기록
 
@@ -276,7 +291,7 @@ git diff --check
 
 - 완료 경계: 이번 Step 11은 v3.2 local stabilization, release evidence/not-run 경계, close-out dry-run 기록 연결입니다. UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, PR/main/tag/GitHub Release, field smoke 실행 evidence가 아니며 Step 11 local readiness PASS로 대체하지 않습니다.
 
-## 최신 공개 기준 상세: v3.1.0 Encoded Event Clip and Safe Sharing Expansion
+## 직전 공개 기준 상세: v3.1.0 Encoded Event Clip and Safe Sharing Expansion
 
 상태: `V310-S00` source baseline 정렬 완료, `V310-S01` Encoded Event Clip Contract
 완료, `V310-S02` Event Clip Encoder Pipeline 완료, `V310-S03` Replay Timeline UI 완료,
@@ -546,19 +561,19 @@ git diff --check
 - 검증: 최초 `./server.sh verify-v310-stabilization-release-readiness`는 command 미구현으로 `알 수 없는 명령입니다: verify-v310-stabilization-release-readiness`를 출력하며 fail했습니다. 구현 후 위 companion local gate 기준으로 재검증합니다.
 - 완료 경계: 이번 구현은 V310-S09 local readiness gate wiring, release evidence records, not-run boundaries입니다. UI 풀테스트 직접 조작, 30분/120분 longrun, `verify-release-metadata --published`, PR/main/tag/GitHub Release, field smoke 실행 evidence가 아닙니다.
 
-## 최신 공개 기준: v3.1.0 Source Release Baseline
+## v3.1.0 공개 기준 기록: v3.1.0 Source Release Baseline
 
-v3.1.0은 Encoded Event Clip and Safe Sharing Expansion source-only 공개 릴리즈입니다.
+v3.1.0은 Encoded Event Clip and Safe Sharing Expansion source-only 직전 공개 릴리즈입니다.
 이 기준은 encoded clip contract/generation, replay timeline UI, client-safe event digest,
 scoped integrator search API, operator feature correction, optional vector search,
-retention/export hardening, stabilization readiness를 local evidence와 함께 닫은 최신
+retention/export hardening, stabilization readiness를 local evidence와 함께 닫은 직전
 published baseline입니다. 120분 longrun과 external field smoke는 실행하지 않은 영역으로
 계속 분리합니다.
 
-## 직전 공개 기준: v3.0.0 Source Release Baseline
+## v3.0.0 공개 기준 기록: v3.0.0 Source Release Baseline
 
-v3.0.0은 Event Evidence Search MVP source-only 직전 공개 릴리즈입니다. 이 기준은
-v3.1.0의 완료 evidence로 재사용하지 않는 historical baseline입니다. 직전 공개 릴리즈입니다.
+v3.0.0은 Event Evidence Search MVP source-only historical 공개 릴리즈입니다. 이 기준은
+v3.1.0의 완료 evidence로 재사용하지 않는 historical baseline입니다.
 
 ## 직전 공개 기준 상세: v3.0.0 Event Evidence Search MVP
 
@@ -1093,16 +1108,16 @@ license/provenance/privacy/운영 제약:
 - 검증: `verify-v280-owner-release-readiness` 최초 RED는 S07 feature inventory mapping, manual UI criteria, backlog/evidence 진행 기록 누락으로 실패했고, 문서/inventory/server wiring 반영 후 GREEN으로 재실행합니다.
 - 미실행/비대체: UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, `verify-release-metadata --published`, tag/push/GitHub Release, PR merge/main sync/후속 브랜치 생성, 실기기 ONVIF, external TURN/WHEP, real cloud/VLM provider 호출은 S07 local readiness 완료 근거가 아닙니다.
 
-## 최신 공개 기준 요약: v3.1.0 Source Release Baseline
+## v3.1.0 공개 기준 요약: v3.1.0 Source Release Baseline
 
 v3.1.0은 source-only/live-only 제품 경계를 유지하면서 Encoded Event Clip and Safe
-Sharing Expansion을 닫은 최신 공개 릴리즈입니다. 이 기준은 v3.1.0 published
+Sharing Expansion을 닫은 직전 공개 릴리즈입니다. 이 기준은 v3.1.0 published
 baseline입니다.
 
-## 직전 공개 기준 요약: v3.0.0 Source Release Baseline
+## v3.0.0 공개 기준 요약: v3.0.0 Source Release Baseline
 
 v3.0.0은 source-only/live-only 제품 경계를 유지하면서 Event Evidence Search MVP를
-닫은 직전 공개 릴리즈입니다. 이 기준은 v3.0.0 published baseline이며,
+닫은 historical 공개 릴리즈입니다. 이 기준은 v3.0.0 published baseline이며,
 v3.1.0의 완료 evidence로 재사용하지 않습니다.
 
 ## 이전 공개 기준: v2.9.0 Source Release Baseline

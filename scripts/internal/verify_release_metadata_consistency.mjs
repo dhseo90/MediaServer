@@ -67,12 +67,12 @@ const report = {
 const version = readText("VERSION").trim();
 assert(/^\d+\.\d+\.\d+$/.test(version), `VERSION must be semver, got ${version}`);
 const currentTag = `v${version}`;
-const latestPublishedTag = "v3.1.0";
+const latestPublishedTag = "v3.2.0";
 const latestPublishedVersion = latestPublishedTag.replace(/^v/, "");
 const currentRoadmap = "v3.2.0 Operations Resolution Workspace";
-const latestPublishedBaseline = "v3.1.0 Encoded Event Clip and Safe Sharing Expansion";
-const previousPublishedTag = "v3.0.0";
-const previousPublishedBaseline = `${previousPublishedTag} Event Evidence Search MVP`;
+const latestPublishedBaseline = "v3.2.0 Operations Resolution Workspace";
+const previousPublishedTag = "v3.1.0";
+const previousPublishedBaseline = `${previousPublishedTag} Encoded Event Clip and Safe Sharing Expansion`;
 const githubRepository = resolveGithubRepository();
 const repositoryUrl = `https://github.com/${githubRepository}`;
 const expectedReleaseUrl = `https://github.com/${githubRepository}/releases/tag/${latestPublishedTag}`;
@@ -355,7 +355,7 @@ check("release policy separates source version and published release", () => {
     `현재 source roadmap은 \`${currentRoadmap}\`입니다.`,
     `현재 latest published release는 \`${latestPublishedTag}\`입니다.`,
     `현재 공개 release tag 기준은 \`${latestPublishedTag}\`입니다.`,
-    `다음 준비 중인 source tag 기준은 \`${currentTag}\`입니다.`,
+    `현재 source tag 기준은 \`${currentTag}\`입니다.`,
   ]) {
     assert(doc.includes(snippet), `docs/release-policy.md missing snippet: ${snippet}`);
   }
