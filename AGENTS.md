@@ -438,6 +438,17 @@ update, force push, GitHub Release 삭제, rollback성 destructive 조치는 사
 - 릴리즈 테스트는 자동으로 넓혀 실행하지 않는다. 안정화 테스트, 30분 테스트,
   UI 풀테스트, 120분 테스트는 사용자가 직접 어느 묶음을 실행하라고 지시했거나,
   에이전트가 실행 여부와 범위를 물어 사용자가 승인한 경우에만 실행한다.
+- 릴리즈 완료/출시 가능 판정에서 30분 테스트와 UI 풀테스트는 필수 release
+  evidence다. 두 항목 중 하나라도 미실행, FAIL, 미확인 상태이면 사용자가 해당
+  blocker를 알고도 강제로 진행하라고 최신 지시에서 명시 승인한 경우를 제외하고
+  PR, main merge, tag, GitHub Release, published metadata 재검증, 후속 브랜치
+  생성으로 넘어갈 수 없다.
+- 30분 테스트와 UI 풀테스트가 "사용자 승인 전 실행 금지"라는 말은 "조건부",
+  "선택", "생략 가능"이라는 뜻이 아니다. 승인 전에는 실행하지 않고, 실행 전까지는
+  릴리즈 blocker이자 `미실행 필수 항목`으로 보고한다.
+- 120분 테스트는 조건부 항목이다. 7장의 120분 진행 조건 또는 현재 release
+  policy/roadmap/evidence의 필수 gate 명시가 없으면 120분을 필수 release gate로
+  단정하지 않는다.
 - 사용자가 `필수 로컬 안정화 전체`처럼 묶음 실행을 지시한 경우에는 `./server.sh build`,
   `git diff --check`, 현재 버전 entry/baseline verifier, release metadata/evidence,
   docs links/assets, feature/script inventory, release close-out dry-run을 포함한다.
@@ -451,8 +462,9 @@ update, force push, GitHub Release 삭제, rollback성 destructive 조치는 사
   endpoint와 실행 승인을 제공한 경우에만 field smoke로 실행하고, 아니면
   release notes와 evidence에 `미실행/제외`로 분리한다.
 - 릴리즈 후보 evidence는 안정화, 30분, UI 풀테스트, 필요 시 120분을 서로 대체하지
-  않는다. 각 영역은 실행한 경우에만 PASS/FAIL을 보고하고, 실행하지 않은 영역은
-  `미실행`으로 남긴다.
+  않는다. 30분 테스트와 UI 풀테스트는 릴리즈 필수 항목이므로 실행하지 않은 경우
+  `미실행 필수 blocker`로 남긴다. 120분은 조건부 항목으로, 조건을 충족하지 않아
+  실행하지 않은 경우 `조건부 미실행`으로 남긴다.
 - 테스트 종료 후 릴리즈 보고, release evidence 정리, PR/tag/GitHub Release 준비
   전에 테스트 임시 산출물을 반드시 정리한다. `/tmp`, `/private/tmp`, build/test
   output dir, browser screenshot dir, event `core-clips`, `core-snapshots`,
@@ -517,9 +529,11 @@ update, force push, GitHub Release 삭제, rollback성 destructive 조치는 사
      실행하고, 확보하지 못했으면 annotation 상태를 `미확인`으로 보고한다.
    - PR check, required check, optional check, warning annotation, local verifier 결과를
      서로 대체하지 않고 각각 PASS/FAIL/미확인으로 기록한다.
-   - 30분 테스트, UI 풀테스트, 120분 테스트는 사용자가 릴리즈 준비 지시와 함께
-     실행을 승인했거나 별도 지시가 있는 경우에만 실행한다. 실행하지 않은 장시간/UI
-     테스트는 미실행으로 분리해 보고한다.
+   - 30분 테스트와 UI 풀테스트는 릴리즈 필수 항목이다. 실행 자체는 사용자가 릴리즈
+     준비 지시와 함께 승인했거나 별도 지시가 있는 경우에만 수행하지만, 미실행 또는
+     FAIL이면 사용자의 강제 진행 승인 없이는 릴리즈를 진행할 수 없다.
+   - 120분 테스트는 조건부 항목이다. 7장의 120분 진행 조건이 충족됐거나 사용자가
+     별도 지시한 경우에만 실행 대상으로 보고하고 수행한다.
    - 빌드 또는 핵심 release gate가 실패하면 PR, main merge, tag, GitHub Release,
      후속 브랜치 생성을 진행하지 않는다.
 5. PR 생성과 main 머지
@@ -854,9 +868,9 @@ summary/report/log/screenshot/evidence JSON의 필요한 값은
 | 영역 | 역할 | 완료로 인정되는 evidence | 완료로 인정하지 않는 것 |
 | --- | --- | --- | --- |
 | 안정화 테스트 | build, static, API/schema, auth route, media path, verifier 중심의 선수 테스트. 30분/120분/UI 테스트 전에 먼저 통과해야 하며, 로드맵 각 스텝 종료 시 수행 대상이다. 릴리즈 close-out에서는 사용자 지시 또는 승인 범위만 실행한다 | 실제 실행한 명령, exit code, summary/report, 로그, 실패/skip 사유 | 30분/120분 장시간 PASS, 브라우저 UI 직접 조작 주장 |
-| 30분 테스트 | 장기간 테스트 지시 시 기본으로 수행하는 soak. 각 버전별 로드맵 개발 완료 시 수행 대상이지만 사용자 승인 없이 자동 실행하지 않는다 | `verify-predev --soak-minutes 30` summary/report/log | 안정화 테스트, 120분 메모리 감시, UI 풀테스트 |
+| 30분 테스트 | 장기간 테스트 지시 시 기본으로 수행하는 soak. 각 버전별 로드맵 개발 완료와 릴리즈 완료/출시 가능 판정의 필수 evidence다. 사용자 승인 없이 자동 실행하지 않지만, 미실행/FAIL이면 사용자 강제 진행 승인 전 릴리즈 불가다 | `verify-predev --soak-minutes 30` summary/report/log | 안정화 테스트, 120분 메모리 감시, UI 풀테스트 |
 | 120분 테스트 | 메모리 릭, 장시간 누수, runtime drift 감시용. 무조건 실행하지 않고 필요 시 사용자에게 먼저 말한다 | `verify-predev --soak-minutes 120`, `verify-va-runtime-console-longrun --duration-minutes 120` summary/report/log | 안정화 테스트, 30분 기본 soak, UI 풀테스트 |
-| UI 풀테스트 | 인앱 브라우저에서 제품 화면을 직접 열고 클릭/타이핑/선택/반응형/시각 품질/role guard 확인 | 실제 조작한 route, 계정/권한, viewport/theme, screenshot/artifact, 재검수 결과 | 30분/120분 안정화 통과, raw JSON/API-only 확인, 자동 screenshot만 생성 |
+| UI 풀테스트 | 인앱 브라우저에서 제품 화면을 직접 열고 클릭/타이핑/선택/반응형/시각 품질/role guard 확인. 각 버전별 로드맵 개발 완료와 릴리즈 완료/출시 가능 판정의 필수 evidence다. 사용자 승인 없이 자동 실행하지 않지만, 미실행/FAIL이면 사용자 강제 진행 승인 전 릴리즈 불가다 | 실제 조작한 route, 계정/권한, viewport/theme, screenshot/artifact, 재검수 결과 | 30분/120분 안정화 통과, raw JSON/API-only 확인, 자동 screenshot만 생성 |
 
 보고 시에는 아래 항목을 별도 섹션으로 나눈다.
 
@@ -884,11 +898,16 @@ UI 풀테스트:
 안정화 테스트, 30분 테스트, UI 풀테스트, 120분 테스트는 릴리즈/로드맵 close-out에서
 자동 실행하지 않는다. 사용자가 직접 어느 묶음을 실행하라고 지시했거나, 에이전트가
 진행 여부를 물어 사용자가 승인한 범위만 실행한다.
-30분 테스트는 장기간 테스트 지시가 있을 때의 기본 soak이다. 버전별 로드맵 완료
-close-out에서도 실행하지 않았으면 미실행으로 분리해 보고한다.
+30분 테스트는 장기간 테스트 지시가 있을 때의 기본 soak이며, 버전별 로드맵 완료와
+릴리즈 완료/출시 가능 판정의 필수 항목이다. 실행 승인이 없으면 실행하지 않지만,
+실행 전까지는 `미실행 필수 blocker`로 보고한다. 미실행/FAIL 상태에서는 사용자가
+그 blocker를 알고도 강제로 릴리즈 진행을 명시 승인하지 않는 한 릴리즈는 원천적으로
+불가능하다.
 120분 테스트는 메모리 릭/장시간 누수 감시가 필요할 때 사용자에게 먼저 말하고 지시를 받은 뒤 수행한다.
-UI 풀테스트도 버전별 로드맵 개발 완료 시 수행 대상이지만, 실행 전 사용자 지시 또는
-승인을 확인한다.
+UI 풀테스트도 버전별 로드맵 개발 완료와 릴리즈 완료/출시 가능 판정의 필수 항목이다.
+실행 전 사용자 지시 또는 승인을 확인하지만, 실행 전까지는 `미실행 필수 blocker`로
+보고한다. 미실행/FAIL 상태에서는 사용자가 그 blocker를 알고도 강제로 릴리즈 진행을
+명시 승인하지 않는 한 릴리즈는 원천적으로 불가능하다.
 30분/120분 테스트를 통과해도 UI 풀테스트 완료가 아니며, UI 풀테스트를 모두 수행해도
 30분/120분 안정화 테스트 완료가 아니다.
 
@@ -922,6 +941,11 @@ Auth verifier는 테스트 실행자가 지정한 비밀번호 환경변수를 �
 ./server.sh verify-predev --soak-minutes 120
 ./server.sh verify-va-runtime-console-longrun --duration-minutes 120
 ```
+
+30분 `verify-predev`는 릴리즈 완료/출시 가능 판정의 필수 장시간 항목이다. 명시
+요청이 없으면 실행하지 않지만, 실행하지 않은 상태는 생략 가능이 아니라
+`미실행 필수 blocker`다. 120분 장시간 테스트는 조건부 항목이며, 7장의 120분 진행
+조건 또는 사용자 명시 지시가 있을 때만 릴리즈 필수/진행 대상으로 말한다.
 
 장시간 테스트를 실행하지 않았다면 반드시 보고한다.
 
@@ -964,6 +988,10 @@ verify-predev: 실행하지 않음
 해당 버전의 로드맵에 명시된 개발 내용을 모두 마친 경우, 완료 판정은 스크립트만으로
 대체하지 않는다. 단, UI 풀테스트 실행은 사용자가 직접 지시했거나 에이전트가
 진행 여부를 물어 승인받은 경우에만 수행한다.
+UI 풀테스트는 릴리즈 완료/출시 가능 판정의 필수 항목이다. 사용자가 실행을 승인하기
+전에는 실행하지 않지만, 실행하지 않은 상태는 조건부/선택/생략 가능이 아니라
+`미실행 필수 blocker`다. 사용자가 그 blocker를 알고도 강제로 릴리즈 진행을 명시
+승인하지 않는 한 릴리즈는 원천적으로 불가능하다.
 
 1. 브라우저에서 제품 UI를 직접 열고 로드맵에 포함된 기능을 하나하나 눌러 실행한다.
 2. `/setup`, `/login`, `/ops`, `/client`, 관련 rule/source/dashboard 흐름을 해당
