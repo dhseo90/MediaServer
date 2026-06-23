@@ -78,7 +78,7 @@ check("source reliability context preserves schema, media, and viewer boundaries
     "\\\"debugMaterialExposed\\\":false",
     "\\\"sourceReliabilityContextImplemented\\\":true",
     "\\\"aiReviewQualityContextImplemented\\\":",
-    "\\\"operatorAssignmentFlowImplemented\\\":false",
+    "\\\"operatorAssignmentFlowImplemented\\\":",
     "\\\"clientDigestImplemented\\\":false",
     "\\\"searchMetricsImplemented\\\":false",
   ]) {
@@ -165,10 +165,10 @@ check("feature inventory and release records map v3.2 Step 5", () => {
     "EVT-066 | V320 Step 5 source reliability view model",
     "SAFE-106 | V320 Step 5 source reliability boundary",
     "OPS-073 | V320 Step 5 Source Reliability Context 게이트",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-065`",
-    "`EVT-001`~`EVT-067`",
-    "`SAFE-001`~`SAFE-107`",
-    "`OPS-035`~`OPS-074`",
+    "`UI-001`~`UI-018`, `UI-022`~`UI-066`",
+    "`EVT-001`~`EVT-068`",
+    "`SAFE-001`~`SAFE-108`",
+    "`OPS-035`~`OPS-075`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.2 Step 5");
   }

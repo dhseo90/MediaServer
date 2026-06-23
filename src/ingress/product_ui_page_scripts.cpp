@@ -2741,6 +2741,42 @@ void AppendOpsShellScript(std::ostringstream& out,
           <p class="ops-rule-note">${escapeHtml(display(aiReviewQuality.operatorHint || 'Review AI quality context before resolution closure.'))}</p>
         </div>`;
       }
+      function renderV320OperatorResolutionFlow(selectedDetail = {}, operatorResolutionFlowSummary = {}) {
+        const operatorResolutionFlow = selectedDetail?.operatorResolutionFlow || {};
+        const auditActions = Array.isArray(operatorResolutionFlow.auditActions)
+          ? operatorResolutionFlow.auditActions
+          : [];
+        const boundary = operatorResolutionFlow.viewerClientExposureAdded === false &&
+          operatorResolutionFlow.sourceUrlExposed === false &&
+          operatorResolutionFlow.rawJsonExposed === false &&
+          operatorResolutionFlow.debugMaterialExposed === false;
+        return `<div id="v320OperatorResolutionFlowGrid" class="v320-operator-resolution-flow-grid" data-v320-operator-resolution-flow="${escapeHtml(operatorResolutionFlow.schema || 'media-server.ops.v320-operator-resolution-flow.v1')}">
+          <p class="v320-operator-resolution-flow-card">
+            <strong>assignment target</strong>
+            <span>${escapeHtml(display(operatorResolutionFlow.assignmentTarget || 'operator-triage'))}</span>
+            <small>assigned ${escapeHtml(display(operatorResolutionFlowSummary.assigned ?? 0))} · status ${escapeHtml(display(operatorResolutionFlow.assignmentFlowStatus || 'triage-lane'))}</small>
+          </p>
+          <p class="v320-operator-resolution-flow-card">
+            <strong>operator note</strong>
+            <span>${operatorResolutionFlow.operatorNotePresent === true || operatorResolutionFlow.resolutionNotePresent === true ? 'present' : 'missing'}</span>
+            <small>operatorNotePresent ${operatorResolutionFlow.operatorNotePresent === true ? 'true' : 'false'} · resolutionNotePresent ${operatorResolutionFlow.resolutionNotePresent === true ? 'true' : 'false'} · notes ${escapeHtml(display(operatorResolutionFlowSummary.notePresent ?? 0))}</small>
+          </p>
+          <p class="v320-operator-resolution-flow-card">
+            <strong>close / reopen</strong>
+            <span>close ${operatorResolutionFlow.closeActionAvailable === true ? 'available' : 'locked'} · reopen ${operatorResolutionFlow.reopenActionAvailable === true ? 'available' : 'locked'}</span>
+            <small>${escapeHtml(display(operatorResolutionFlow.resolutionStatus || 'open'))} · ${escapeHtml(display(operatorResolutionFlow.resolutionReason || 'unreviewed'))} · ${escapeHtml(display(operatorResolutionFlow.resolutionTransition || 'none'))}</small>
+          </p>
+          <p class="v320-operator-resolution-flow-card">
+            <strong>audit trail</strong>
+            <span>${operatorResolutionFlow.auditTrailRequired === true ? 'required' : '확인 필요'}</span>
+            <small>${boundary ? 'Ops-only redacted' : 'boundary 확인 필요'} · write ${escapeHtml(display(operatorResolutionFlow.operatorResolutionFlowWritePath || '/ops/api/events/reviews/{eventId}'))}</small>
+          </p>
+          <div class="v320-operator-resolution-audit">
+            ${(auditActions.length ? auditActions : ['operator-resolution-flow-update']).map(item => `<span class="chip v320-operator-resolution-audit-chip" data-v320-operator-resolution-audit="${escapeHtml(item)}">${escapeHtml(display(item))}</span>`).join('')}
+          </div>
+          <p class="ops-rule-note">${escapeHtml(display(operatorResolutionFlow.operatorHint || 'Assign, note, close, or reopen with Ops audit trail.'))}</p>
+        </div>`;
+      }
       function renderV320UnifiedOpsEventsWorkspace(unifiedResolutionWorkspace = {}) {
         const queueRoot = document.getElementById('opsV320ResolutionQueue');
         const detailRoot = document.getElementById('opsV320ResolutionDetail');
@@ -2762,6 +2798,8 @@ void AppendOpsShellScript(std::ostringstream& out,
           { text: unifiedResolutionWorkspace.sourceReliabilitySummary?.schema || 'media-server.ops.v320-source-reliability-context.v1' },
           { text: unifiedResolutionWorkspace.aiReviewQualityContextImplemented === true ? 'AI review quality' : 'AI review 확인 필요', tone: unifiedResolutionWorkspace.aiReviewQualityContextImplemented === true ? 'info' : 'warn' },
           { text: unifiedResolutionWorkspace.aiReviewQualitySummary?.schema || 'media-server.ops.v320-ai-review-quality-context.v1' },
+          { text: unifiedResolutionWorkspace.operatorAssignmentFlowImplemented === true ? 'operator flow' : 'operator flow 확인 필요', tone: unifiedResolutionWorkspace.operatorAssignmentFlowImplemented === true ? 'info' : 'warn' },
+          { text: unifiedResolutionWorkspace.operatorResolutionFlowSummary?.schema || 'media-server.ops.v320-operator-resolution-flow.v1' },
           { text: unifiedResolutionWorkspace.viewerClientExposureAdded === false ? 'Ops only' : 'client 노출 확인 필요', tone: unifiedResolutionWorkspace.viewerClientExposureAdded === false ? 'info' : 'warn' },
           { text: unifiedResolutionWorkspace.eventPostPayloadChanged === false ? 'Event POST unchanged' : 'payload 확인 필요', tone: unifiedResolutionWorkspace.eventPostPayloadChanged === false ? 'info' : 'warn' },
           { text: unifiedResolutionWorkspace.sourceUrlExposed === false && unifiedResolutionWorkspace.rawJsonExposed === false && unifiedResolutionWorkspace.debugMaterialExposed === false ? 'redacted' : 'redaction 확인 필요', tone: unifiedResolutionWorkspace.sourceUrlExposed === false && unifiedResolutionWorkspace.rawJsonExposed === false && unifiedResolutionWorkspace.debugMaterialExposed === false ? 'info' : 'warn' }
@@ -2784,6 +2822,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           const evidenceQuality = item?.evidenceQuality || {};
           const sourceReliability = item?.sourceReliability || {};
           const aiReviewQuality = item?.aiReviewQuality || {};
+          const operatorResolutionFlow = item?.operatorResolutionFlow || {};
           const active = selectedDetail && item?.eventId === selectedDetail.eventId;
           return `<article class="v320-resolution-queue-card${active ? ' is-active' : ''}" data-v320-resolution-event="${escapeHtml(item?.eventId || '')}">
             <div class="table-cell-main">
@@ -2798,6 +2837,7 @@ void AppendOpsShellScript(std::ostringstream& out,
               <span class="chip">${escapeHtml(display(evidenceQuality.replayCoverage || 'missing'))}</span>
               <span class="chip ${sourceReliability.sourceHealthStatus === 'live' ? 'info' : 'warn'}">${escapeHtml(display(sourceReliability.sourceHealthStatus || 'source-missing'))}</span>
               <span class="chip ${aiReviewQuality.qualityBadge === 'quality-ok' || aiReviewQuality.qualityBadge === 'operator-checked' ? 'info' : 'warn'}">${escapeHtml(display(aiReviewQuality.qualityBadge || 'review-required'))}</span>
+              <span class="chip">${escapeHtml(display(operatorResolutionFlow.assignmentTarget || 'operator-triage'))}</span>
             </div>
             <p class="ops-rule-note">canClose ${lifecycle.canClose === true ? 'true' : 'false'} · canReopen ${lifecycle.canReopen === true ? 'true' : 'false'} · transition ${escapeHtml(display(resolutionState.transition || 'none'))}</p>
           </article>`;
@@ -2819,6 +2859,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           ${renderV320EvidenceQualityLayer(selectedDetail, unifiedResolutionWorkspace.evidenceQualitySummary || {})}
           ${renderV320SourceReliabilityContext(selectedDetail, unifiedResolutionWorkspace.sourceReliabilitySummary || {})}
           ${renderV320AiReviewQualityContext(selectedDetail, unifiedResolutionWorkspace.aiReviewQualitySummary || {})}
+          ${renderV320OperatorResolutionFlow(selectedDetail, unifiedResolutionWorkspace.operatorResolutionFlowSummary || {})}
           <p class="ops-rule-note">resolutionStatus ${escapeHtml(display(selectedResolution.status || 'open'))} · resolutionReason ${escapeHtml(display(selectedResolution.reason || 'unreviewed'))} · sourceUrlExposed ${selectedDetail?.sourceUrlExposed === false ? 'false' : '확인 필요'} · rawJsonExposed ${selectedDetail?.rawJsonExposed === false ? 'false' : '확인 필요'} · debugMaterialExposed ${selectedDetail?.debugMaterialExposed === false ? 'false' : '확인 필요'}</p>
         </article>`;
         const timelineItems = resolutionTimeline.flatMap(item => Array.isArray(item?.timelineMarkers)

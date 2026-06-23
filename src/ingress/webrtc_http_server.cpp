@@ -15864,6 +15864,147 @@ std::string OpsV320AiReviewQualitySummaryJson(
     return out.str();
 }
 
+struct OpsV320OperatorResolutionFlowInfo {
+    std::string assignment_target{"operator-triage"};
+    std::string assignment_flow_status{"triage-lane"};
+    std::string resolution_status{"open"};
+    std::string resolution_reason{"unreviewed"};
+    std::string resolution_transition{"none"};
+    std::string operator_hint{"assign an operator lane, add review notes, then close or reopen with audit"};
+    std::string actor;
+    std::string role;
+    std::int64_t updated_at_ms{0};
+    bool operator_note_present{false};
+    bool resolution_note_present{false};
+    bool close_action_available{true};
+    bool reopen_action_available{false};
+    bool audit_trail_required{true};
+    std::vector<std::string> audit_actions{
+        "event-review-update",
+        "incident-action-update",
+        "resolution-state-update",
+        "operator-resolution-flow-update",
+    };
+};
+
+OpsV320OperatorResolutionFlowInfo OpsV320OperatorResolutionFlowInfoFor(
+    const OpsEventReviewState& review) {
+    OpsV320OperatorResolutionFlowInfo info;
+    const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
+    info.assignment_target = review.action_target.empty() ? "operator-triage" : review.action_target;
+    info.resolution_status = resolution_state.resolution_status;
+    info.resolution_reason = resolution_state.resolution_reason;
+    info.resolution_transition = resolution_state.resolution_transition;
+    info.actor = review.actor;
+    info.role = review.role;
+    info.updated_at_ms = review.updated_at_ms;
+    info.operator_note_present = !Trim(review.note).empty();
+    info.resolution_note_present = !Trim(resolution_state.resolution_note).empty();
+    const bool closed = OpsResolutionStatusIsClosed(resolution_state.resolution_status);
+    info.close_action_available = !closed;
+    info.reopen_action_available = closed || resolution_state.resolution_status == "reopened";
+
+    if (info.assignment_target == "operator-triage") {
+        info.assignment_flow_status = "triage-lane";
+    } else {
+        info.assignment_flow_status = "assigned";
+    }
+    if (closed) {
+        info.operator_hint = "resolution is closed; audit trail is available and reopen remains operator-gated";
+    } else if (resolution_state.resolution_status == "reopened") {
+        info.operator_hint = "resolution was reopened; add operator note before closing again";
+    } else if (info.operator_note_present || info.resolution_note_present) {
+        info.operator_hint = "operator note is present; close or keep in progress with audited state";
+    } else {
+        info.operator_hint = "add an operator note before final close or reopen decision";
+    }
+    return info;
+}
+
+std::string OpsV320OperatorResolutionFlowJson(const OpsV320OperatorResolutionFlowInfo& info) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v320-operator-resolution-flow.v1\","
+        << "\"assignmentTarget\":\"" << JsonEscape(info.assignment_target) << "\","
+        << "\"assignmentFlowStatus\":\"" << JsonEscape(info.assignment_flow_status) << "\","
+        << "\"operatorNotePresent\":" << (info.operator_note_present ? "true" : "false") << ","
+        << "\"resolutionNotePresent\":" << (info.resolution_note_present ? "true" : "false") << ","
+        << "\"resolutionStatus\":\"" << JsonEscape(info.resolution_status) << "\","
+        << "\"resolutionReason\":\"" << JsonEscape(info.resolution_reason) << "\","
+        << "\"resolutionTransition\":\"" << JsonEscape(info.resolution_transition) << "\","
+        << "\"closeActionAvailable\":" << (info.close_action_available ? "true" : "false") << ","
+        << "\"reopenActionAvailable\":" << (info.reopen_action_available ? "true" : "false") << ","
+        << "\"auditTrailRequired\":true,"
+        << "\"auditTrailReady\":true,"
+        << "\"auditActions\":" << JsonStringArray(info.audit_actions) << ","
+        << "\"operatorResolutionFlowWritePath\":\"/ops/api/events/reviews/{eventId}\","
+        << "\"operatorHint\":\"" << JsonEscape(info.operator_hint) << "\","
+        << "\"actor\":\"" << JsonEscape(info.actor) << "\","
+        << "\"role\":\"" << JsonEscape(info.role) << "\","
+        << "\"updatedAtMs\":" << info.updated_at_ms << ","
+        << "\"persistentReviewState\":true,"
+        << "\"opsOnly\":true,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false,"
+        << "\"autoActionApplied\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsV320OperatorResolutionFlowSummaryJson(
+    const std::vector<OpsV320OperatorResolutionFlowInfo>& items) {
+    int assigned = 0;
+    int note_present = 0;
+    int closable = 0;
+    int reopenable = 0;
+    int audit_ready = 0;
+    for (const auto& item : items) {
+        if (item.assignment_flow_status == "assigned") {
+            ++assigned;
+        }
+        if (item.operator_note_present || item.resolution_note_present) {
+            ++note_present;
+        }
+        if (item.close_action_available) {
+            ++closable;
+        }
+        if (item.reopen_action_available) {
+            ++reopenable;
+        }
+        if (item.audit_trail_required) {
+            ++audit_ready;
+        }
+    }
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v320-operator-resolution-flow.v1\","
+        << "\"status\":\"ops-v320-operator-resolution-flow\","
+        << "\"itemCount\":" << items.size() << ","
+        << "\"assigned\":" << assigned << ","
+        << "\"notePresent\":" << note_present << ","
+        << "\"closeActionAvailable\":" << closable << ","
+        << "\"reopenActionAvailable\":" << reopenable << ","
+        << "\"auditTrailReady\":" << audit_ready << ","
+        << "\"operatorResolutionFlowWritePath\":\"/ops/api/events/reviews/{eventId}\","
+        << "\"auditActions\":[\"event-review-update\",\"incident-action-update\","
+        << "\"resolution-state-update\",\"operator-resolution-flow-update\"],"
+        << "\"opsOnly\":true,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false"
+        << "}";
+    return out.str();
+}
+
 std::string OpsV320ResolutionQueueStatus(const OpsEventReviewState& review) {
     const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
     if (resolution_state.resolution_status == "open") {
@@ -15888,7 +16029,8 @@ std::string OpsV320TimelineMarkersJson(const std::string& event_json,
                                        const OpsEventReviewState& review,
                                        const OpsV320EvidenceQualityInfo& evidence_quality,
                                        const OpsV320SourceReliabilityInfo& source_reliability,
-                                       const OpsV320AiReviewQualityInfo& ai_review_quality) {
+                                       const OpsV320AiReviewQualityInfo& ai_review_quality,
+                                       const OpsV320OperatorResolutionFlowInfo& operator_resolution_flow) {
     const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
     const std::int64_t event_ms =
         ParseInt64Field(event_json, "updateTime")
@@ -15946,6 +16088,16 @@ std::string OpsV320TimelineMarkersJson(const std::string& event_json,
         << "\"correctionReviewSignal\":\""
         << JsonEscape(ai_review_quality.correction_review_signal) << "\","
         << "\"opsOnly\":true"
+        << "},"
+        << "{"
+        << "\"key\":\"operator-resolution-flow\","
+        << "\"label\":\"Operator resolution flow\","
+        << "\"status\":\"" << JsonEscape(operator_resolution_flow.assignment_flow_status) << "\","
+        << "\"timeMs\":" << operator_resolution_flow.updated_at_ms << ","
+        << "\"assignmentTarget\":\""
+        << JsonEscape(operator_resolution_flow.assignment_target) << "\","
+        << "\"auditTrailRequired\":true,"
+        << "\"opsOnly\":true"
         << "}"
         << "]";
     return out.str();
@@ -15955,7 +16107,8 @@ std::string OpsV320DetailSectionsJson(const std::string& event_json,
                                       const OpsEventReviewState& review,
                                       const OpsV320EvidenceQualityInfo& evidence_quality,
                                       const OpsV320SourceReliabilityInfo& source_reliability,
-                                      const OpsV320AiReviewQualityInfo& ai_review_quality) {
+                                      const OpsV320AiReviewQualityInfo& ai_review_quality,
+                                      const OpsV320OperatorResolutionFlowInfo& operator_resolution_flow) {
     const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
     const std::string event_type =
         Trim(ParseStringField(event_json, "eventType")
@@ -16009,6 +16162,13 @@ std::string OpsV320DetailSectionsJson(const std::string& event_json,
         << "\"status\":\"" << JsonEscape(ai_review_quality.quality_badge) << "\","
         << "\"detail\":\"signal " << JsonEscape(ai_review_quality.correction_review_signal)
         << " / uncertainty " << JsonEscape(ai_review_quality.uncertainty_reason) << "\""
+        << "},"
+        << "{"
+        << "\"key\":\"operator-resolution-flow\","
+        << "\"label\":\"Operator Resolution Flow\","
+        << "\"status\":\"" << JsonEscape(operator_resolution_flow.assignment_flow_status) << "\","
+        << "\"detail\":\"assignment " << JsonEscape(operator_resolution_flow.assignment_target)
+        << " / audit operator-resolution-flow-update\""
         << "}"
         << "]";
     return out.str();
@@ -16019,7 +16179,8 @@ std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_j
                                                       const std::size_t index,
                                                       const OpsV320EvidenceQualityInfo& evidence_quality,
                                                       const OpsV320SourceReliabilityInfo& source_reliability,
-                                                      const OpsV320AiReviewQualityInfo& ai_review_quality) {
+                                                      const OpsV320AiReviewQualityInfo& ai_review_quality,
+                                                      const OpsV320OperatorResolutionFlowInfo& operator_resolution_flow) {
     std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(review.event_id));
     if (!OpsEventReviewEventIdAllowed(event_id)) {
         event_id = OpsEventReviewEventIdAllowed(review.event_id) ? review.event_id
@@ -16046,13 +16207,25 @@ std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_j
         << "\"evidenceQuality\":" << OpsV320EvidenceQualityJson(evidence_quality) << ","
         << "\"sourceReliability\":" << OpsV320SourceReliabilityContextJson(source_reliability) << ","
         << "\"aiReviewQuality\":" << OpsV320AiReviewQualityContextJson(ai_review_quality) << ","
+        << "\"operatorResolutionFlow\":"
+        << OpsV320OperatorResolutionFlowJson(operator_resolution_flow) << ","
         << "\"detailSections\":"
         << OpsV320DetailSectionsJson(
-               event_json, resolution_state, evidence_quality, source_reliability, ai_review_quality)
+               event_json,
+               resolution_state,
+               evidence_quality,
+               source_reliability,
+               ai_review_quality,
+               operator_resolution_flow)
         << ","
         << "\"timelineMarkers\":"
         << OpsV320TimelineMarkersJson(
-               event_json, resolution_state, evidence_quality, source_reliability, ai_review_quality)
+               event_json,
+               resolution_state,
+               evidence_quality,
+               source_reliability,
+               ai_review_quality,
+               operator_resolution_flow)
         << ","
         << "\"opsOnly\":true,"
         << "\"persistentReviewState\":true,"
@@ -16078,10 +16251,12 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
     std::vector<OpsV320EvidenceQualityInfo> evidence_quality_items;
     std::vector<OpsV320SourceReliabilityInfo> source_reliability_items;
     std::vector<OpsV320AiReviewQualityInfo> ai_review_quality_items;
+    std::vector<OpsV320OperatorResolutionFlowInfo> operator_resolution_flow_items;
     items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
     evidence_quality_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
     source_reliability_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
     ai_review_quality_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
+    operator_resolution_flow_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
     for (std::size_t index = 0; index < event_json_records.size(); ++index) {
         const std::string& event_json = event_json_records[index];
         const std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
@@ -16097,11 +16272,20 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
             OpsV320SourceReliabilityInfoFor(event_json, source_health_snapshot);
         const OpsV320AiReviewQualityInfo ai_review_quality =
             OpsV320AiReviewQualityInfoFor(review, evidence_quality, source_reliability);
+        const OpsV320OperatorResolutionFlowInfo operator_resolution_flow =
+            OpsV320OperatorResolutionFlowInfoFor(review);
         items.push_back(OpsV320UnifiedResolutionWorkspaceItemJson(
-            event_json, review, index, evidence_quality, source_reliability, ai_review_quality));
+            event_json,
+            review,
+            index,
+            evidence_quality,
+            source_reliability,
+            ai_review_quality,
+            operator_resolution_flow));
         evidence_quality_items.push_back(evidence_quality);
         source_reliability_items.push_back(source_reliability);
         ai_review_quality_items.push_back(ai_review_quality);
+        operator_resolution_flow_items.push_back(operator_resolution_flow);
         if (items.size() >= 12U) {
             break;
         }
@@ -16128,6 +16312,8 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
         << OpsV320SourceReliabilitySummaryJson(source_reliability_items) << ","
         << "\"aiReviewQualitySummary\":"
         << OpsV320AiReviewQualitySummaryJson(ai_review_quality_items) << ","
+        << "\"operatorResolutionFlowSummary\":"
+        << OpsV320OperatorResolutionFlowSummaryJson(operator_resolution_flow_items) << ","
         << "\"itemCount\":" << items.size() << ","
         << "\"eventPostPayloadChanged\":false,"
         << "\"webrtcDataChannelSchemaChanged\":false,"
@@ -16142,7 +16328,7 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
         << "\"evidenceQualityLayerImplemented\":true,"
         << "\"sourceReliabilityContextImplemented\":true,"
         << "\"aiReviewQualityContextImplemented\":true,"
-        << "\"operatorAssignmentFlowImplemented\":false,"
+        << "\"operatorAssignmentFlowImplemented\":true,"
         << "\"actionReadinessChecklistImplemented\":false,"
         << "\"clientDigestImplemented\":false,"
         << "\"searchMetricsImplemented\":false"
@@ -20446,9 +20632,9 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                    resolution_defaults.resolution_closed_at_ms;
 	                                next.resolution_reopened_at_ms =
 	                                    resolution_defaults.resolution_reopened_at_ms;
-	                                if (const auto resolution =
-	                                        ExtractObjectField(request.body, "resolution");
-	                                    resolution.has_value()) {
+		                                if (const auto resolution =
+		                                        ExtractObjectField(request.body, "resolution");
+		                                    resolution.has_value()) {
 	                                    next.resolution_status =
 	                                        ParseStringField(*resolution, "status")
 	                                            .value_or(next.resolution_status);
@@ -20458,13 +20644,38 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                    next.resolution_note =
 	                                        ParseStringField(*resolution, "note")
 	                                            .value_or(next.resolution_note);
-	                                    next.resolution_transition =
-	                                        ParseStringField(*resolution, "transition")
-	                                            .value_or(next.resolution_transition);
-	                                }
-	                                next.note = ParseStringField(request.body, "note").value_or("");
-	                                if (const auto vlm_action = ExtractObjectField(request.body, "vlmAction");
-	                                    vlm_action.has_value()) {
+		                                    next.resolution_transition =
+		                                        ParseStringField(*resolution, "transition")
+		                                            .value_or(next.resolution_transition);
+		                                }
+		                                next.note = ParseStringField(request.body, "note").value_or("");
+		                                if (const auto operator_resolution_flow =
+		                                        ExtractObjectField(request.body, "operatorResolutionFlow");
+		                                    operator_resolution_flow.has_value()) {
+		                                    next.action_target =
+		                                        ParseStringField(*operator_resolution_flow, "assignmentTarget")
+		                                            .value_or(ParseStringField(*operator_resolution_flow,
+		                                                                      "actionTarget")
+		                                                          .value_or(next.action_target));
+		                                    next.note =
+		                                        ParseStringField(*operator_resolution_flow, "operatorNote")
+		                                            .value_or(ParseStringField(*operator_resolution_flow, "note")
+		                                                          .value_or(next.note));
+		                                    next.resolution_note =
+		                                        ParseStringField(*operator_resolution_flow, "resolutionNote")
+		                                            .value_or(next.resolution_note);
+		                                    next.resolution_transition =
+		                                        ParseStringField(*operator_resolution_flow, "resolutionTransition")
+		                                            .value_or(next.resolution_transition);
+		                                    next.resolution_reason =
+		                                        ParseStringField(*operator_resolution_flow, "resolutionReason")
+		                                            .value_or(next.resolution_reason);
+		                                    next.resolution_status =
+		                                        ParseStringField(*operator_resolution_flow, "resolutionStatus")
+		                                            .value_or(next.resolution_status);
+		                                }
+		                                if (const auto vlm_action = ExtractObjectField(request.body, "vlmAction");
+		                                    vlm_action.has_value()) {
 	                                    next.vlm_action = ParseStringField(*vlm_action, "action")
 	                                                          .value_or("not-reviewed");
 	                                    next.vlm_action_target = ParseStringField(*vlm_action, "target")
@@ -20589,18 +20800,42 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
 	                                                         : std::string("null"))
 	                                    << ",\"after\":" << OpsEventReviewStateJson(saved)
 	                                    << "}";
-	                                (void)AppendOpsAuditRecord(
-	                                    config,
-	                                    OpsAuditRecordJson(resolution_audit_body.str(),
-	                                                       principal_result.principal),
-	                                    &audit_error);
-	                                HttpResponse ok = JsonResponse(
-	                                    200,
-	                                    "OK",
-	                                    std::string("{\"status\":\"ops-event-review\",\"persistent\":true,")
-	                                        + "\"audit\":{\"area\":\"events\",\"action\":\"event-review-update\"},"
-	                                        + "\"review\":" +
-	                                        OpsEventReviewStateJson(saved) + "}");
+		                                (void)AppendOpsAuditRecord(
+		                                    config,
+		                                    OpsAuditRecordJson(resolution_audit_body.str(),
+		                                                       principal_result.principal),
+		                                    &audit_error);
+		                                const char* kOpsOperatorResolutionFlowAuditAction =
+		                                    "operator-resolution-flow-update";
+		                                const char* kOpsOperatorResolutionFlowAuditSummary =
+		                                    "Operator resolution flow updated";
+		                                std::ostringstream operator_resolution_audit_body;
+		                                operator_resolution_audit_body
+		                                    << "{"
+		                                    << "\"area\":\"events\","
+		                                    << "\"action\":\"" << kOpsOperatorResolutionFlowAuditAction << "\","
+		                                    << "\"target\":\"event:" << JsonEscape(event_id) << "\","
+		                                    << "\"summary\":\"" << kOpsOperatorResolutionFlowAuditSummary
+		                                    << "\","
+		                                    << "\"before\":"
+		                                    << (previous.present ? OpsEventReviewStateJson(previous)
+		                                                         : std::string("null"))
+		                                    << ",\"after\":" << OpsEventReviewStateJson(saved)
+		                                    << "}";
+		                                (void)AppendOpsAuditRecord(
+		                                    config,
+		                                    OpsAuditRecordJson(operator_resolution_audit_body.str(),
+		                                                       principal_result.principal),
+		                                    &audit_error);
+		                                HttpResponse ok = JsonResponse(
+		                                    200,
+		                                    "OK",
+		                                    std::string("{\"status\":\"ops-event-review\",\"persistent\":true,")
+		                                        + "\"audit\":{\"area\":\"events\",\"action\":\"event-review-update\"},"
+		                                        + "\"operatorResolutionFlow\":" +
+		                                        OpsV320OperatorResolutionFlowJson(
+		                                            OpsV320OperatorResolutionFlowInfoFor(saved)) +
+		                                        ",\"review\":" + OpsEventReviewStateJson(saved) + "}");
 	                                ok.headers["Cache-Control"] = "no-store";
 	                                return ok;
 	                            }

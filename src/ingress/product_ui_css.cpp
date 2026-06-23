@@ -2781,6 +2781,47 @@ std::string ProductUiCss() {
     .v320-ai-review-quality-signal {
       overflow-wrap: anywhere;
     }
+    .v320-operator-resolution-flow-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+      gap: var(--space-2);
+      min-width: 0;
+    }
+    .v320-operator-resolution-flow-card {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+      margin: 0;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: var(--color-surface);
+      overflow-wrap: anywhere;
+    }
+    .v320-operator-resolution-flow-card strong {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+    .v320-operator-resolution-flow-card span,
+    .v320-operator-resolution-flow-card small {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .v320-operator-resolution-flow-card small {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .v320-operator-resolution-audit {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      min-width: 0;
+    }
+    .v320-operator-resolution-audit-chip {
+      overflow-wrap: anywhere;
+    }
     .v310-replay-timeline-ui {
       display: grid;
       gap: var(--space-3);
