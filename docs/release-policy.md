@@ -463,8 +463,12 @@ Annotation JSON을 확보한 경우:
 
 ## Not Run / Unverified
 
-- Release tag / GitHub Release / published metadata: completed for this release
-  cut; future release notes must only mark these as PASS after execution
+- Release tag / GitHub Release / published metadata: not run for this template;
+  mark PASS only after tag creation, GitHub Release publication, and
+  `verify-release-metadata --published` execution for the actual release cut
+- 120-minute predev/runtime console: not run unless the actual release cut
+  triggers the AGENTS.md conditional 120-minute criteria; do not treat
+  30-minute soak or UI fulltest PASS as a 120-minute PASS
 - Real ONVIF device field smoke: not run; endpoint/device not provided
 - External TURN/WHEP credential operation: not run; endpoint/credential not
   provided
