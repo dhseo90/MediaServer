@@ -2825,6 +2825,75 @@ void AppendOpsShellScript(std::ostringstream& out,
           <p class="ops-rule-note">${escapeHtml(display(actionReadinessChecklist.operatorHint || 'Review action readiness before operator approval.'))}</p>
         </div>`;
       }
+      function renderV320ResolutionSearchMetrics(unifiedResolutionWorkspace = {}, selectedDetail = {}) {
+        const resolutionSearchMetricsSummary = unifiedResolutionWorkspace.resolutionSearchMetricsSummary || {};
+        const resolutionSearchMetrics = selectedDetail?.resolutionSearchMetrics || {};
+        const filters = resolutionSearchMetricsSummary.activeResolutionFilters || {};
+        const savedViews = Array.isArray(resolutionSearchMetricsSummary.savedViews)
+          ? resolutionSearchMetricsSummary.savedViews
+          : [];
+        const metrics = resolutionSearchMetricsSummary.operationsMetricSummary || {};
+        const filterEntries = [
+          ['reviewStatus', filters.reviewStatus],
+          ['classification', filters.classification],
+          ['incidentStatus', filters.incidentStatus],
+          ['ruleId', filters.ruleId],
+          ['sourceId', filters.sourceId],
+          ['eventType', filters.eventType],
+          ['eventId', filters.eventId],
+          ['textQuery', filters.textQuery],
+          ['includeArchives', filters.includeArchives === true ? 'true' : 'false'],
+          ['limit', filters.limit]
+        ].filter(([, value]) => value !== undefined && value !== null && String(value).length > 0);
+        const metricCards = [
+          ['matchedQueueCount', metrics.matchedQueueCount ?? resolutionSearchMetricsSummary.itemCount ?? 0],
+          ['readyForApprovalCount', metrics.readyForApprovalCount ?? 0],
+          ['blockedActionCount', metrics.blockedActionCount ?? 0],
+          ['sourceRecheckCount', metrics.sourceRecheckCount ?? 0],
+          ['reviewRequiredCount', metrics.reviewRequiredCount ?? 0]
+        ];
+        const boundary = resolutionSearchMetricsSummary.savedViewsPersisted === false &&
+          resolutionSearchMetricsSummary.savedViewWritePerformed === false &&
+          resolutionSearchMetricsSummary.viewerClientExposureAdded === false &&
+          resolutionSearchMetricsSummary.sourceUrlExposed === false &&
+          resolutionSearchMetricsSummary.rawJsonExposed === false &&
+          resolutionSearchMetricsSummary.debugMaterialExposed === false &&
+          resolutionSearchMetricsSummary.clientDigestChanged === false;
+        return `<div id="v320ResolutionSearchMetricsGrid" class="v320-resolution-search-metrics-grid" data-v320-resolution-search-metrics="${escapeHtml(resolutionSearchMetricsSummary.schema || 'media-server.ops.v320-resolution-search-metrics.v1')}">
+          <article class="v320-resolution-search-card">
+            <strong>resolution filters</strong>
+            <span>${escapeHtml(display(filters.queryApplied === true ? 'active filters' : 'default queue'))}</span>
+            <small>filterCount ${escapeHtml(display(filters.filterCount ?? 0))} · selected ${escapeHtml(display(resolutionSearchMetrics.eventId || selectedDetail?.eventId || 'none'))}</small>
+            <div class="v320-resolution-filter-list">
+              ${(filterEntries.length ? filterEntries : [['default', 'unfiltered']]).map(([key, value]) => `<span class="chip" data-v320-resolution-filter="${escapeHtml(key)}">${escapeHtml(key)} ${escapeHtml(display(value))}</span>`).join('')}
+            </div>
+          </article>
+          <article class="v320-resolution-search-card">
+            <strong>saved views</strong>
+            <span>${escapeHtml(display(savedViews.length))} presets</span>
+            <small>savedViewsPersisted ${resolutionSearchMetricsSummary.savedViewsPersisted === false ? 'false' : '확인 필요'} · savedViewWritePerformed ${resolutionSearchMetricsSummary.savedViewWritePerformed === false ? 'false' : '확인 필요'}</small>
+            <div class="v320-resolution-saved-views">
+              ${(savedViews.length ? savedViews : [{ id: 'open-resolution', label: 'Open resolutions' }]).map(view => `<span class="chip" data-v320-saved-view="${escapeHtml(view.id || '')}">${escapeHtml(display(view.label || view.id || 'saved view'))}</span>`).join('')}
+            </div>
+          </article>
+          <article class="v320-resolution-search-card">
+            <strong>operations metric summary</strong>
+            <span>${escapeHtml(display(metrics.metricBasis || 'EventRecord + Ops review state + v3.2 context'))}</span>
+            <small>${escapeHtml(display(metrics.operationsNextAction || 'filter saved views, inspect blocked action readiness, then close or reopen with audit'))}</small>
+            <div class="v320-resolution-filter-list">
+              ${metricCards.map(([key, value]) => `<span class="v320-resolution-metric-card" data-v320-resolution-metric="${escapeHtml(key)}"><strong>${escapeHtml(display(value))}</strong><small>${escapeHtml(key)}</small></span>`).join('')}
+            </div>
+          </article>
+          <article class="v320-resolution-search-card">
+            <strong>boundary</strong>
+            <span>${boundary ? 'Ops-only search metrics' : 'boundary 확인 필요'}</span>
+            <small>clientDigestChanged ${resolutionSearchMetricsSummary.clientDigestChanged === false ? 'false' : '확인 필요'} · sourceUrlExposed ${resolutionSearchMetricsSummary.sourceUrlExposed === false ? 'false' : '확인 필요'} · rawJsonExposed ${resolutionSearchMetricsSummary.rawJsonExposed === false ? 'false' : '확인 필요'}</small>
+            <div class="v320-resolution-saved-views">
+              ${(Array.isArray(resolutionSearchMetrics.savedViewMatches) ? resolutionSearchMetrics.savedViewMatches : ['open-resolution']).map(view => `<span class="chip info" data-v320-saved-view="${escapeHtml(view)}">${escapeHtml(display(view))}</span>`).join('')}
+            </div>
+          </article>
+        </div>`;
+      }
       function renderV320UnifiedOpsEventsWorkspace(unifiedResolutionWorkspace = {}) {
         const queueRoot = document.getElementById('opsV320ResolutionQueue');
         const detailRoot = document.getElementById('opsV320ResolutionDetail');
@@ -2850,6 +2919,8 @@ void AppendOpsShellScript(std::ostringstream& out,
           { text: unifiedResolutionWorkspace.operatorResolutionFlowSummary?.schema || 'media-server.ops.v320-operator-resolution-flow.v1' },
           { text: unifiedResolutionWorkspace.actionReadinessChecklistImplemented === true ? 'action readiness' : 'action readiness 확인 필요', tone: unifiedResolutionWorkspace.actionReadinessChecklistImplemented === true ? 'info' : 'warn' },
           { text: unifiedResolutionWorkspace.actionReadinessChecklistSummary?.schema || 'media-server.ops.v320-action-readiness-checklist.v1' },
+          { text: unifiedResolutionWorkspace.searchMetricsImplemented === true ? 'search metrics' : 'search metrics 확인 필요', tone: unifiedResolutionWorkspace.searchMetricsImplemented === true ? 'info' : 'warn' },
+          { text: unifiedResolutionWorkspace.resolutionSearchMetricsSummary?.schema || 'media-server.ops.v320-resolution-search-metrics.v1' },
           { text: unifiedResolutionWorkspace.viewerClientExposureAdded === false ? 'Ops only' : 'client 노출 확인 필요', tone: unifiedResolutionWorkspace.viewerClientExposureAdded === false ? 'info' : 'warn' },
           { text: unifiedResolutionWorkspace.eventPostPayloadChanged === false ? 'Event POST unchanged' : 'payload 확인 필요', tone: unifiedResolutionWorkspace.eventPostPayloadChanged === false ? 'info' : 'warn' },
           { text: unifiedResolutionWorkspace.sourceUrlExposed === false && unifiedResolutionWorkspace.rawJsonExposed === false && unifiedResolutionWorkspace.debugMaterialExposed === false ? 'redacted' : 'redaction 확인 필요', tone: unifiedResolutionWorkspace.sourceUrlExposed === false && unifiedResolutionWorkspace.rawJsonExposed === false && unifiedResolutionWorkspace.debugMaterialExposed === false ? 'info' : 'warn' }
@@ -2913,6 +2984,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           ${renderV320AiReviewQualityContext(selectedDetail, unifiedResolutionWorkspace.aiReviewQualitySummary || {})}
           ${renderV320OperatorResolutionFlow(selectedDetail, unifiedResolutionWorkspace.operatorResolutionFlowSummary || {})}
           ${renderV320ActionReadinessChecklist(selectedDetail, unifiedResolutionWorkspace.actionReadinessChecklistSummary || {})}
+          ${renderV320ResolutionSearchMetrics(unifiedResolutionWorkspace, selectedDetail)}
           <p class="ops-rule-note">resolutionStatus ${escapeHtml(display(selectedResolution.status || 'open'))} · resolutionReason ${escapeHtml(display(selectedResolution.reason || 'unreviewed'))} · sourceUrlExposed ${selectedDetail?.sourceUrlExposed === false ? 'false' : '확인 필요'} · rawJsonExposed ${selectedDetail?.rawJsonExposed === false ? 'false' : '확인 필요'} · debugMaterialExposed ${selectedDetail?.debugMaterialExposed === false ? 'false' : '확인 필요'}</p>
         </article>`;
         const timelineItems = resolutionTimeline.flatMap(item => Array.isArray(item?.timelineMarkers)

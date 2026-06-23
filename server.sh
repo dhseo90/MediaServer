@@ -264,6 +264,8 @@ Usage:
                  v3.2.0 Step 8 Action Readiness Checklist와 rule draft/evidence bundle/notification readiness 경계를 검증합니다.
   verify-v320-client-safe-resolution-digest
                  v3.2.0 Step 9 Client-safe Resolution Digest와 viewer redaction 경계를 검증합니다.
+  verify-v320-resolution-search-metrics
+                 v3.2.0 Step 10 Resolution Search & Metrics와 filter/saved view/metric summary 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -1312,6 +1314,10 @@ case "${cmd}" in
   verify-v320-client-safe-resolution-digest)
     require_internal verify_v320_client_safe_resolution_digest.mjs
     exec "${INTERNAL_DIR}/verify_v320_client_safe_resolution_digest.mjs" "$@"
+    ;;
+  verify-v320-resolution-search-metrics)
+    require_internal verify_v320_resolution_search_metrics.mjs
+    exec "${INTERNAL_DIR}/verify_v320_resolution_search_metrics.mjs" "$@"
     ;;
   verify-v290-final-stabilization-run)
     require_internal verify_v290_final_stabilization_run.mjs

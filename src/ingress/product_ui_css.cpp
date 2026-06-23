@@ -2866,6 +2866,58 @@ std::string ProductUiCss() {
     .v320-action-readiness-blocker {
       overflow-wrap: anywhere;
     }
+    .v320-resolution-search-metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      gap: var(--space-2);
+      min-width: 0;
+    }
+    .v320-resolution-search-card {
+      display: grid;
+      gap: var(--space-2);
+      min-width: 0;
+      margin: 0;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: var(--color-surface);
+      overflow-wrap: anywhere;
+    }
+    .v320-resolution-search-card strong {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+    .v320-resolution-search-card span,
+    .v320-resolution-search-card small {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .v320-resolution-search-card small {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .v320-resolution-filter-list,
+    .v320-resolution-saved-views {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      min-width: 0;
+    }
+    .v320-resolution-metric-card {
+      display: grid;
+      min-width: 96px;
+      gap: 2px;
+      padding: 6px 8px;
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: var(--color-surface-muted);
+    }
+    .v320-resolution-metric-card strong,
+    .v320-resolution-metric-card small {
+      overflow-wrap: anywhere;
+    }
     .v310-replay-timeline-ui {
       display: grid;
       gap: var(--space-3);

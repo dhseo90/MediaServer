@@ -83,7 +83,7 @@ check("AI review quality context preserves schema, media, provider, and viewer b
     "\\\"operatorAssignmentFlowImplemented\\\":",
     "\\\"actionReadinessChecklistImplemented\\\":",
     "\\\"clientDigestImplemented\\\":false",
-    "\\\"searchMetricsImplemented\\\":false",
+    "\\\"searchMetricsImplemented\\\":",
   ]) {
     assertIncludes(files.server, snippet, "V320 AI review quality boundary flags");
   }
@@ -165,10 +165,10 @@ check("feature inventory and release records map v3.2 Step 6", () => {
     "EVT-067 | V320 Step 6 AI review quality view model",
     "SAFE-107 | V320 Step 6 AI review quality boundary",
     "OPS-074 | V320 Step 6 AI Review Quality Context 게이트",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-068`",
-    "`EVT-001`~`EVT-069`",
-    "`SAFE-001`~`SAFE-110`",
-    "`OPS-035`~`OPS-077`",
+    "`UI-001`~`UI-018`, `UI-022`~`UI-069`",
+    "`EVT-001`~`EVT-070`",
+    "`SAFE-001`~`SAFE-111`",
+    "`OPS-035`~`OPS-078`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.2 Step 6");
   }

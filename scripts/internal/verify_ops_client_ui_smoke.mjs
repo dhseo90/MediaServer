@@ -184,6 +184,13 @@ const pageChecks = [
     mustNot: ['href="/ops/events"'],
   },
   {
+    name: "ops-events-resolution-search-metrics",
+    path: "/ops/events",
+    visualSelector: '[data-testid="ops-v320-unified-events-workspace"]',
+    must: ['data-testid="ops-events-page"', 'data-testid="ops-v320-unified-events-workspace"', 'id="v320ResolutionSearchMetricsGrid"', 'data-v320-resolution-search-metrics', 'data-v320-resolution-filter', 'data-v320-saved-view', 'data-v320-resolution-metric', 'resolutionSearchMetricsSummary', 'resolutionSearchMetrics', 'media-server.ops.v320-resolution-search-metrics.v1', 'resolution filters', 'saved views', 'operations metric summary', 'savedViewsPersisted', 'savedViewWritePerformed', '/ops/api/events/reviews'],
+    mustNot: ['href="/ops/events"'],
+  },
+  {
     name: "ops-rules",
     path: "/ops/rules",
     visualSelector: '[data-testid="ops-rules-page"]',
