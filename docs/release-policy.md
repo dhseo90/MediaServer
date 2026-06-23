@@ -109,7 +109,7 @@ gate 실패 또는 미확인으로 보고하며 제품 runtime/media 회귀와 �
 
 ## GitHub Releases 운영
 
-### v3.1.0 Release Close-out Runbook
+### v3.2.0 Release Close-out Runbook
 
 아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
 순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
@@ -162,6 +162,47 @@ close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 �
 `v3.2.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
 있을 때만 완료로 기록합니다. 현재 latest published release는 `v3.1.0`입니다.
 현재 공개 release tag 기준은 `v3.1.0`입니다. 다음 준비 중인 source tag 기준은 `v3.2.0`입니다.
+
+## v3.2.0 stabilization and release readiness
+
+v3.2.0 Step 11 local readiness gate는 `media-server.v320-stabilization-release-readiness.v1`
+기준으로 v3.2.0 Operations Resolution Workspace의 Step 1~10 local gates, release policy,
+release evidence index, release test records, close-out dry-run command를 같은 범위로
+묶습니다. 이 절은 source tree 준비 상태를 확인할 뿐 release action을 승인하거나
+실행하지 않습니다.
+
+Companion local gate:
+
+```bash
+./server.sh verify-v320-stabilization-release-readiness
+./server.sh build
+./server.sh verify-v320-entry-baseline
+./server.sh verify-v320-resolution-state-contract
+./server.sh verify-v320-unified-ops-events-workspace
+./server.sh verify-v320-evidence-quality-layer
+./server.sh verify-v320-source-reliability-context
+./server.sh verify-v320-source-reliability-runtime-sample
+./server.sh verify-v320-ai-review-quality-context
+./server.sh verify-v320-operator-resolution-flow
+./server.sh verify-v320-action-readiness-checklist
+./server.sh verify-v320-client-safe-resolution-digest
+./server.sh verify-v320-resolution-search-metrics
+./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-project-inventory
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-release-evidence-index
+./server.sh verify-release-closeout-helper --dry-run
+./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
+./server.sh verify-script-inventory
+git diff --check
+```
+
+v3.2.0 Step 11 local readiness gate는 UI 풀테스트 직접 조작, 30분/120분 longrun,
+published metadata, PR/main/tag/GitHub Release, field smoke evidence를 대체하지 않습니다.
+`verify-release-metadata --published` 미실행, release action 미실행, UI/longrun 미실행은
+release test records와 evidence index의 미실행/제외 기록으로 분리합니다.
 
 ## v3.0.0 Previous Published Baseline Scope
 

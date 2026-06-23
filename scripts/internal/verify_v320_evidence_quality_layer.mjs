@@ -175,8 +175,8 @@ check("feature inventory and release records map v3.2 Step 4", () => {
     "OPS-072 | V320 Step 4 Evidence Quality Layer 게이트",
     "`UI-001`~`UI-018`, `UI-022`~`UI-069`",
     "`EVT-001`~`EVT-070`",
-    "`SAFE-001`~`SAFE-111`",
-    "`OPS-035`~`OPS-078`",
+    "`SAFE-001`~`SAFE-112`",
+    "`OPS-035`~`OPS-079`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.2 Step 4");
   }

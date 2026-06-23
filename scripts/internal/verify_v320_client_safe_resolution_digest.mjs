@@ -177,8 +177,8 @@ check("feature inventory, manual UI checklist, and release records map v3.2 Step
     "OPS-077 | V320 Step 9 Client-safe Resolution Digest 게이트",
     "`UI-001`~`UI-018`, `UI-022`~`UI-069`",
     "`CLIENT-001`~`CLIENT-027`",
-    "`SAFE-001`~`SAFE-111`",
-    "`OPS-035`~`OPS-078`",
+    "`SAFE-001`~`SAFE-112`",
+    "`OPS-035`~`OPS-079`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.2 Step 9");
   }

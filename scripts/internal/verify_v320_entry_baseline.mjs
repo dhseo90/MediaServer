@@ -94,7 +94,7 @@ check("policy docs pin v3.2 active source and v3.1 published release", () => {
 check("roadmap records v3.2 Step 1 as completed baseline alignment only", () => {
   for (const snippet of [
     "## 현재 source roadmap: v3.2.0 Operations Resolution Workspace",
-    "상태: `v3.2.0` Step 1 source baseline 정렬 완료.",
+    "Step 11 Stabilization and Release Readiness local gate 연결 완료.",
     "직접 답: v3.2.0의 1차 선택값은 `Operations Resolution Workspace`입니다.",
     "fallback 또는 축소 대안은 `Resolution Core Baseline`입니다.",
     "제외 대상과 제외 사유",
@@ -104,7 +104,7 @@ check("roadmap records v3.2 Step 1 as completed baseline alignment only", () => 
     "기본 공개 형태는 source-only이며 Binary, runtime, model bundle을 release asset에 포함하지 않습니다.",
     "provider credential, raw prompt/response, source URL, raw frame bytes, 내부 debug material은 문서/UI/client/event payload/release evidence에 원문 노출하지 않습니다.",
     "| 1 | v3.2.0 (1) v3.2.0 baseline 정렬 | P0 | 완료 |",
-    "| 2 | v3.2.0 (2) Resolution State Contract | P0 | 대기 |",
+    "| 2 | v3.2.0 (2) Resolution State Contract | P0 | 완료 |",
     "`./server.sh verify-v320-entry-baseline`",
   ]) {
     assert(files.backlog.includes(snippet), `backlog missing snippet: ${snippet}`);
@@ -151,8 +151,8 @@ check("stream verification, feature inventory, and release records expose v3.2 S
 check("inventory coverage and server entrypoint include v3.2 Step 1", () => {
   assert(files.featureCoverageVerifier.includes("verify-v320-entry-baseline"), "feature coverage verifier missing V320 command");
   assert(files.projectInventoryVerifier.includes("SAFE-102") && files.projectInventoryVerifier.includes("OPS-069"), "project inventory verifier missing V320 IDs");
-  assert(files.projectInventoryVerifier.includes("`SAFE-001`~`SAFE-102`"), "project inventory verifier missing V320 SAFE range");
-  assert(files.projectInventoryVerifier.includes("`OPS-035`~`OPS-069`"), "project inventory verifier missing V320 OPS range");
+  assert(files.projectInventoryVerifier.includes("`SAFE-001`~`SAFE-112`"), "project inventory verifier missing V320 SAFE range");
+  assert(files.projectInventoryVerifier.includes("`OPS-035`~`OPS-079`"), "project inventory verifier missing V320 OPS range");
   assert(files.server.includes("verify-v320-entry-baseline"), "server.sh missing V320 command");
   assert(files.server.includes("verify_v320_entry_baseline.mjs"), "server.sh missing V320 script dispatch");
 });

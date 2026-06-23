@@ -26,12 +26,12 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 609 |
+| 전체 기능 항목 | 611 |
 | UI 직접 필요 | 325 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 253 |
-| 테스트 필요 | 609 |
-| 안정화 대상 | 599 |
+| UI 비대상 | 255 |
+| 테스트 필요 | 611 |
+| 안정화 대상 | 601 |
 | UI 풀테스트 대상 | 345 |
 | 30분 soak 대상 | 49 |
 | 120분 대상 | 7 |
@@ -42,7 +42,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 609개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 611개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -72,7 +72,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | v3.2.0 (8) Action Readiness Checklist | `UI-067`, `EVT-069`, `SAFE-109`, `OPS-076` | `verify-v320-action-readiness-checklist`, `verify-ops-client-ui` | rule draft/evidence bundle/notification readiness checklist를 `/ops/events` UI와 `/ops/api/events/reviews` `unifiedResolutionWorkspace.actionReadinessChecklist` payload/verifier에 연결합니다. Client-safe Resolution Digest, Resolution Search & Metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 | v3.2.0 (9) Client-safe Resolution Digest | `UI-068`, `CLIENT-027`, `SAFE-110`, `OPS-077` | `verify-v320-client-safe-resolution-digest`, `verify-ops-client-ui` | viewer-safe status summary와 redaction boundary를 `/client/api/views/{id}/events` `resolutionDigest`, client live/dashboard/events UI, 정적 verifier에 연결합니다. Resolution Search & Metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 | v3.2.0 (10) Resolution Search & Metrics | `UI-069`, `EVT-070`, `SAFE-111`, `OPS-078` | `verify-v320-resolution-search-metrics`, `verify-ops-client-ui` | active resolution filters, saved view presets, 운영 metric summary를 `/ops/events` UI와 `/ops/api/events/reviews` `unifiedResolutionWorkspace.resolutionSearchMetrics` payload/verifier에 연결합니다. Stabilization and Release Readiness, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
-| v3.2.0 (11) Stabilization and Release Readiness | 후속 구현 시 배정 | 후속 구현 시 배정 | v3.2 local readiness와 release evidence/not-run boundary를 실제 gate와 연결한 뒤에만 완료 |
+| v3.2.0 (11) Stabilization and Release Readiness | `SAFE-112`, `OPS-079` | `verify-v320-stabilization-release-readiness`, `verify-release-metadata`, `verify-release-evidence-index`, `verify-release-closeout-helper --dry-run` | v3.2 local stabilization gate, release evidence/not-run boundary, close-out dry-run 기록을 확인합니다. UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release 실행 evidence가 아님 |
 
 ## v3.1.0 Encoded Event Clip and Safe Sharing Expansion Coverage Mapping
 
@@ -231,8 +231,8 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | `CLIENT-001`~`CLIENT-027` | client/UI verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-021` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
 | `LAB-001`~`LAB-089` | lab/VLM/v250/v260/v270/v280/v300/v310 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-111` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-078` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
+| `SAFE-001`~`SAFE-112` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-079` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
 
 ## VA Manual UI Seed Matrix
 
@@ -885,6 +885,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SAFE-109 | V320 Step 8 action readiness boundary | 필요 | 필요 | 안정화, UI | `verify-v320-action-readiness-checklist`가 actionReadinessChecklist context가 기존 EventRecord/source/AI/operator context를 deterministic checklist로만 요약하고 EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata schema, RTSP/WebRTC media path, Rule/Profile payload, viewer/client exposure, source URL/raw JSON/debug material, rule draft 생성, 자동 조치, external delivery를 변경하지 않음을 확인하되 UI 풀테스트 직접 조작, 30분/120분, client digest, search/metrics, published metadata PASS로 대체하지 않음 |
 | SAFE-110 | V320 Step 9 client-safe resolution digest boundary | 필요 | 필요 | 안정화, UI | `verify-v320-client-safe-resolution-digest`가 `/client/api/views/{id}/events`와 client live/dashboard/events에 viewer-safe resolution digest만 추가하고 EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata schema, RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload, source URL/raw JSON/debug/provider/feature provenance/internal evidence/operator note/action control 노출을 변경하지 않음을 확인하되 UI 풀테스트 직접 조작, 30분/120분, search/metrics, published metadata PASS로 대체하지 않음 |
 | SAFE-111 | V320 Step 10 resolution search metrics boundary | 필요 | 필요 | 안정화, UI | `verify-v320-resolution-search-metrics`가 resolutionSearchMetrics context가 기존 EventRecord/Ops review/v3.2 context를 deterministic search/metric view로만 요약하고 saved view write, client digest, source URL/raw JSON/debug material, EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata schema, RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload를 변경하지 않음을 확인하되 Stabilization and Release Readiness, UI 풀테스트 직접 조작, 30분/120분, published metadata PASS로 대체하지 않음 |
+| SAFE-112 | V320 Step 11 stabilization/release readiness boundary | 비대상 | 필요 | 안정화 | `verify-v320-stabilization-release-readiness`가 v3.2 local stabilization, release evidence/not-run 경계, close-out dry-run 기록을 확인하되 UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release, field smoke PASS로 대체하지 않음을 확인함 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -934,6 +935,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | OPS-076 | V320 Step 8 Action Readiness Checklist 게이트 | 비대상 | 필요 | 안정화 | `verify-v320-action-readiness-checklist`가 `/ops/events` action readiness UI, `unifiedResolutionWorkspace.actionReadinessChecklist` view model, rule draft/evidence bundle/notification readiness checklist, CSS, ops smoke, backlog/stream verification/release records/server dispatch 연결을 확인하되 Client-safe Resolution Digest, Resolution Search & Metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata PASS로 대체하지 않음 |
 | OPS-077 | V320 Step 9 Client-safe Resolution Digest 게이트 | 비대상 | 필요 | 안정화 | `verify-v320-client-safe-resolution-digest`가 `/client/api/views/{id}/events` `resolutionDigest`, client live/dashboard/events renderer, CSS, ops/client smoke, backlog/stream verification/release records/server dispatch 연결을 확인하되 Resolution Search & Metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata PASS로 대체하지 않음 |
 | OPS-078 | V320 Step 10 Resolution Search & Metrics 게이트 | 비대상 | 필요 | 안정화 | `verify-v320-resolution-search-metrics`가 `/ops/events` resolution search metrics UI, unifiedResolutionWorkspace.resolutionSearchMetrics view model, active filters/saved view presets/operations metrics, CSS, ops smoke, backlog/stream verification/release records/server dispatch 연결을 확인하되 Stabilization and Release Readiness, UI 풀테스트 직접 조작, 30분/120분, published metadata PASS로 대체하지 않음 |
+| OPS-079 | V320 Step 11 Stabilization and Release Readiness 게이트 | 비대상 | 필요 | 안정화 | `verify-v320-stabilization-release-readiness`가 v3.2 Step 1~10 local gates, release policy/evidence index/test records, close-out dry-run command, server dispatch 연결을 확인하되 UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release, field smoke 실행 PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 

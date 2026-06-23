@@ -156,9 +156,9 @@ check("feature inventory and release records map v3.2 Step 2", () => {
     "EVT-063 | V320 Step 2 resolution state contract",
     "SAFE-103 | V320 Step 2 resolution boundary",
     "OPS-070 | V320 Step 2 Resolution State Contract 게이트",
-    "`EVT-001`~`EVT-063`",
-    "`SAFE-001`~`SAFE-103`",
-    "`OPS-035`~`OPS-070`",
+    "`EVT-001`~`EVT-070`",
+    "`SAFE-001`~`SAFE-112`",
+    "`OPS-035`~`OPS-079`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.2 Step 2");
   }

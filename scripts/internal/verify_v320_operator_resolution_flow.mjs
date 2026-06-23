@@ -179,8 +179,8 @@ check("feature inventory and release records map v3.2 Step 7", () => {
     "OPS-075 | V320 Step 7 Operator Resolution Flow 게이트",
     "`UI-001`~`UI-018`, `UI-022`~`UI-069`",
     "`EVT-001`~`EVT-070`",
-    "`SAFE-001`~`SAFE-111`",
-    "`OPS-035`~`OPS-078`",
+    "`SAFE-001`~`SAFE-112`",
+    "`OPS-035`~`OPS-079`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.2 Step 7");
   }
