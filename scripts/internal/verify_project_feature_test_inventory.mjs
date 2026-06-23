@@ -443,12 +443,12 @@ check("current feature expansion rows exist", () => {
     assert(ids.has(id), `missing current expanded feature row: ${id}`);
   }
   for (const snippet of [
-    "`UI-001`~`UI-018`, `UI-022`~`UI-067`",
+    "`UI-001`~`UI-018`, `UI-022`~`UI-068`",
     "`EVT-001`~`EVT-069`",
     "`MEDIA-001`~`MEDIA-021`",
     "`LAB-001`~`LAB-089`",
-    "`SAFE-001`~`SAFE-109`",
-    "`OPS-035`~`OPS-076`",
+    "`SAFE-001`~`SAFE-110`",
+    "`OPS-035`~`OPS-077`",
     "VLM route, control, action, runtime state, sidecar, privacy guard",
     "V300-S02 Frame Bundle Extraction",
     "V300-S03 Feature Schema and Privacy Policy",
@@ -516,6 +516,11 @@ check("current feature expansion rows exist", () => {
     "EVT-069",
     "SAFE-109",
     "OPS-076",
+    "v3.2.0 (9) Client-safe Resolution Digest",
+    "UI-068",
+    "CLIENT-027",
+    "SAFE-110",
+    "OPS-077",
   ]) {
     requireText(inventory, snippet, `inventory missing current expansion snippet: ${snippet}`);
   }

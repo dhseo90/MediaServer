@@ -167,8 +167,8 @@ check("feature inventory, manual UI checklist, and release records map V310-S04"
     "V310-S04 Client-safe Event Digest | `CLIENT-025`, `SAFE-096` | `verify-v310-client-safe-event-digest`, `verify-ops-client-ui`",
     "CLIENT-025 | V310-S04 Client-safe event digest API/UI",
     "SAFE-096 | V310-S04 client-safe event digest boundary",
-    "`CLIENT-001`~`CLIENT-026`",
-    "`SAFE-001`~`SAFE-101`",
+    "`CLIENT-001`~`CLIENT-027`",
+    "`SAFE-001`~`SAFE-110`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory V310-S04");
   }

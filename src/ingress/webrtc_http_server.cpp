@@ -4826,6 +4826,105 @@ void AppendClientSafeFollowUpDigestJson(std::ostringstream& out,
     out << "]}";
 }
 
+std::string ClientSafeResolutionDigestStatus(const ClientEventItem& item) {
+    const std::string status = ClientSafeDigestValue(item.status, "recorded");
+    if (!ClientEventStatusIsActive(status)) {
+        return "closed";
+    }
+    if (status == "new" || status == "open" || status == "active" ||
+        status == "needs-follow-up" || status == "review-needed") {
+        return "open";
+    }
+    return "review-needed";
+}
+
+std::string ClientSafeResolutionDigestLabel(const std::string& resolution_status) {
+    if (resolution_status == "closed") {
+        return "closed";
+    }
+    if (resolution_status == "open") {
+        return "open";
+    }
+    return "review needed";
+}
+
+std::string ClientSafeResolutionDigestTimelineHint(const ClientEventItem& item,
+                                                   const std::string& resolution_status) {
+    if (resolution_status == "closed") {
+        if (item.end_time_ms.has_value()) {
+            return "closed event";
+        }
+        return "closed summary";
+    }
+    if (item.update_time_ms.has_value()) {
+        return "updated resolution";
+    }
+    return "active resolution";
+}
+
+std::string ClientSafeResolutionDigestSummaryText(const ClientEventItem& item,
+                                                  const std::string& resolution_status) {
+    std::string label = ClientSafeDigestValue(item.scenario_name, "");
+    if (label.empty()) {
+        label = ClientSafeDigestValue(item.class_name, "");
+    }
+    if (label.empty()) {
+        label = ClientSafeDigestValue(item.event_type, "event");
+    }
+    std::string summary = label + " / " + ClientSafeResolutionDigestLabel(resolution_status);
+    if (analysis::IncidentProjectionContainsForbiddenMaterial(summary)) {
+        summary = "viewer-safe resolution summary";
+    }
+    return summary;
+}
+
+void AppendClientSafeResolutionDigestJson(std::ostringstream& out,
+                                          const ClientEventSummary& summary) {
+    out << "{"
+        << "\"schema\":\"media-server.client.resolution-digest.v1\","
+        << "\"provided\":" << (summary.provided ? "true" : "false") << ","
+        << "\"viewerSafe\":true,"
+        << "\"publishedViewScoped\":true,"
+        << "\"sourceUrlIncluded\":false,"
+        << "\"rawEvidenceIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"providerMaterialIncluded\":false,"
+        << "\"featureProvenanceIncluded\":false,"
+        << "\"internalEvidenceIncluded\":false,"
+        << "\"operatorNotesIncluded\":false,"
+        << "\"ruleEditorIncluded\":false,"
+        << "\"actionControlsIncluded\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventSchemaChanged\":false,"
+        << "\"mediaPathChanged\":false,"
+        << "\"resolutionStateWritePerformed\":false,"
+        << "\"itemCount\":" << summary.recent.size() << ","
+        << "\"digestItems\":[";
+    const std::size_t limit = std::min<std::size_t>(summary.recent.size(), 5);
+    for (std::size_t i = 0; i < limit; ++i) {
+        const auto& item = summary.recent[i];
+        const std::string resolution_status = ClientSafeResolutionDigestStatus(item);
+        if (i != 0) {
+            out << ",";
+        }
+        out << "{"
+            << "\"digestId\":\"client-resolution-" << (i + 1) << "\","
+            << "\"resolutionStatus\":\"" << JsonEscape(resolution_status) << "\","
+            << "\"resolutionLabel\":\""
+            << JsonEscape(ClientSafeResolutionDigestLabel(resolution_status)) << "\","
+            << "\"summaryText\":\""
+            << JsonEscape(ClientSafeResolutionDigestSummaryText(item, resolution_status)) << "\","
+            << "\"severity\":\"" << JsonEscape(ClientSafeIncidentDigestSeverity(item)) << "\","
+            << "\"timelineHint\":\""
+            << JsonEscape(ClientSafeResolutionDigestTimelineHint(item, resolution_status)) << "\","
+            << "\"time\":";
+        AppendNullableInt64(out, item.update_time_ms.has_value() ? item.update_time_ms
+                                                                 : item.start_time_ms);
+        out << "}";
+    }
+    out << "]}";
+}
+
 void AppendClientEventSummaryJson(std::ostringstream& out, const ClientEventSummary& summary) {
     out << "{"
         << "\"provided\":" << (summary.provided ? "true" : "false") << ","
@@ -4855,6 +4954,8 @@ void AppendClientEventSummaryJson(std::ostringstream& out, const ClientEventSumm
     }
     out << "],\"eventDigest\":";
     AppendClientSafeEventDigestJson(out, summary);
+    out << ",\"resolutionDigest\":";
+    AppendClientSafeResolutionDigestJson(out, summary);
     out << ",\"incidentDigest\":";
     AppendClientSafeIncidentDigestJson(out, summary);
     out << ",\"followUpDigest\":";

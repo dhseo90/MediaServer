@@ -177,10 +177,10 @@ check("feature inventory and release records map v3.2 Step 7", () => {
     "EVT-068 | V320 Step 7 operator resolution flow view model",
     "SAFE-108 | V320 Step 7 operator resolution boundary",
     "OPS-075 | V320 Step 7 Operator Resolution Flow 게이트",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-067`",
+    "`UI-001`~`UI-018`, `UI-022`~`UI-068`",
     "`EVT-001`~`EVT-069`",
-    "`SAFE-001`~`SAFE-109`",
-    "`OPS-035`~`OPS-076`",
+    "`SAFE-001`~`SAFE-110`",
+    "`OPS-035`~`OPS-077`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.2 Step 7");
   }

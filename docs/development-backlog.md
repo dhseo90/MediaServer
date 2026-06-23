@@ -20,7 +20,8 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 상태: `v3.2.0` Step 1 source baseline 정렬, Step 2 Resolution State Contract,
 Step 3 Unified Ops Events Workspace, Step 4 Evidence Quality Layer, Step 5 Source Reliability Context,
-Step 6 AI Review Quality Context, Step 7 Operator Resolution Flow, Step 8 Action Readiness Checklist local/static 구현 완료. 이 절은 v3.2.0 전체 기능
+Step 6 AI Review Quality Context, Step 7 Operator Resolution Flow, Step 8 Action Readiness Checklist,
+Step 9 Client-safe Resolution Digest local/static 구현 완료. 이 절은 v3.2.0 전체 기능
 완료 evidence가 아니며, 실제 기능 구현은 각 Step별 코드/UI/API/검증 evidence가 생긴
 뒤에만 완료로 기록합니다. Step 1 baseline 정렬 자체는 후속 v3.2 기능 구현 완료
 evidence가 아닙니다.
@@ -88,7 +89,7 @@ license/provenance/privacy/운영 제약:
 | 6 | v3.2.0 (6) AI Review Quality Context | P1 | 완료 | correction/review signal, uncertainty reason, quality badge |
 | 7 | v3.2.0 (7) Operator Resolution Flow | P1 | 완료 | assign, note, close, reopen, audit trail |
 | 8 | v3.2.0 (8) Action Readiness Checklist | P1 | 완료 | rule draft/evidence bundle/notification readiness checklist |
-| 9 | v3.2.0 (9) Client-safe Resolution Digest | P1 | 대기 | viewer-safe status summary and redaction boundary |
+| 9 | v3.2.0 (9) Client-safe Resolution Digest | P1 | 완료 | viewer-safe status summary and redaction boundary |
 | 10 | v3.2.0 (10) Resolution Search & Metrics | P2 | 대기 | resolution filters, saved views, 운영 metric summary |
 | 11 | v3.2.0 (11) Stabilization and Release Readiness | P0 | 대기 | build/docs/metadata/inventory/release readiness records |
 
@@ -207,6 +208,21 @@ license/provenance/privacy/운영 제약:
 - `docs/project-feature-test-inventory.md`: `UI-067`, `EVT-069`, `SAFE-109`, `OPS-076`을 추가하고 v3.2.0 (8) mapping을 `verify-v320-action-readiness-checklist`, `verify-ops-client-ui`에 연결했습니다.
 - `docs/stream-verification.md`, `docs/release-test-records.md`: Step 8 verifier와 RED/final 결과 기록, 미실행/제외 경계를 추가했습니다.
 - 완료 경계: 이번 Step 8은 Ops-only action readiness checklist view model/UI/static gate 연결입니다. Client-safe Resolution Digest, Resolution Search & Metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님을 분리합니다.
+
+## v3.2.0 Step 9 개발 기록
+
+- 범위: P1 `v3.2.0 (9) Client-safe Resolution Digest`.
+- `src/ingress/webrtc_http_server.cpp`: `/client/api/views/{id}/events`의 기존 PublishedView-scoped 이벤트 응답에 `media-server.client.resolution-digest.v1` `resolutionDigest`를 추가했습니다. `AppendClientSafeResolutionDigestJson`, `ClientSafeResolutionDigestStatus`, `ClientSafeResolutionDigestLabel`, `ClientSafeResolutionDigestTimelineHint`, `ClientSafeResolutionDigestSummaryText`가 기존 `ClientEventItem` status/time/type만 읽어 `resolutionStatus`, `resolutionLabel`, `summaryText`, `severity`, `timelineHint`, `time`만 산출합니다.
+- `/client/api/views/{id}/events`: 새 client route, Ops review write, EventRecord top-level, Event POST payload, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload를 변경하지 않습니다. `resolutionDigest`는 `viewerSafe:true`, `publishedViewScoped:true`, `sourceUrlIncluded:false`, `rawEvidenceIncluded:false`, `debugMaterialIncluded:false`, `providerMaterialIncluded:false`, `featureProvenanceIncluded:false`, `internalEvidenceIncluded:false`, `operatorNotesIncluded:false`, `ruleEditorIncluded:false`, `actionControlsIncluded:false`, `resolutionStateWritePerformed:false` 경계를 고정합니다.
+- `src/ingress/product_ui_client_scripts.cpp`: `renderClientSafeResolutionDigest`가 `/client/live` live dock, `/client/dashboard`, `/client/events`에 `data-testid="client-safe-resolution-digest"`와 `data-client-resolution-digest="viewer-safe"` card를 렌더링합니다. renderer는 `resolutionDigest`의 허용 필드만 읽고 source/raw/debug/provider/feature provenance/internal evidence/operator note/rule editor/action control 값을 읽지 않습니다.
+- `src/ingress/product_ui_css.cpp`: `.client-safe-resolution-digest`를 기존 client-safe digest grid/card 스타일에 포함했습니다.
+- `scripts/internal/verify_ops_client_ui_smoke.mjs`: client shell, live/dashboard/events static smoke marker에 `client-safe-resolution-digest`, `resolutionDigest`, `viewer-safe resolution digest`, `media-server.client.resolution-digest.v1`를 추가했습니다.
+- `scripts/internal/verify_v320_client_safe_resolution_digest.mjs`, `server.sh`: `./server.sh verify-v320-client-safe-resolution-digest` 명령을 추가해 API schema, client renderer, CSS, ops/client smoke, backlog, stream verification, feature inventory, manual UI checklist, release records, server dispatch 연결을 정적 검증합니다.
+- `docs/project-feature-test-inventory.md`: `UI-068`, `CLIENT-027`, `SAFE-110`, `OPS-077`을 추가하고 v3.2.0 (9) mapping을 `verify-v320-client-safe-resolution-digest`, `verify-ops-client-ui`에 연결했습니다.
+- `docs/stream-verification.md`, `docs/manual-ui-checklist.md`, `docs/release-test-records.md`: Step 9 verifier와 RED/final 결과 기록, 미실행/제외 경계를 추가했습니다.
+- 검증: `./server.sh verify-v320-client-safe-resolution-digest`, `./server.sh verify-v320-unified-ops-events-workspace`, `./server.sh verify-v320-evidence-quality-layer`, `./server.sh verify-v320-source-reliability-context`, `./server.sh verify-v320-ai-review-quality-context`, `./server.sh verify-v320-operator-resolution-flow`, `./server.sh verify-v320-action-readiness-checklist`, `./server.sh verify-v310-client-safe-event-digest`, `./server.sh verify-v280-client-safe-followup-digest`, `./server.sh verify-v250-client-safe-incident-digest`, `./server.sh build`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets`, `./server.sh verify-auth-bootstrap`, `./server.sh verify-auth-users`, `./server.sh verify-auth-routes`, `./server.sh verify-ops-client-ui --browser-mode in-app --in-app-evidence /tmp/media_server_v320_step9_inapp_evidence/in-app-evidence.json --http-base http://127.0.0.1:8081`, `./server.sh verify-ops-client-ui --browser-mode in-app --screenshots --in-app-evidence /tmp/media_server_v320_step9_inapp_evidence/in-app-evidence.json --http-base http://127.0.0.1:8081`, `./server.sh verify-rule-ui --in-app-evidence /tmp/media_server_v320_step9_inapp_evidence/in-app-evidence.json --http-base http://127.0.0.1:8081`, `git diff --check` 기준 PASS입니다. UI/API verifier는 auth-off throwaway 서버와 Codex 인앱 브라우저 evidence로 확인했습니다.
+- 수정한 이슈: 최초 Step 9 verifier는 stream verification 문구 순서가 기대 문자열과 달라 fail했고 문구를 정렬했습니다. Step 9 기능 ID 추가 뒤 project inventory summary와 기존 v3.2 verifier owner range가 이전 `UI-067`/`SAFE-109`/`OPS-076`에 남아 fail 가능성이 있어 실제 `UI-068`/`SAFE-110`/`OPS-077` 기준으로 정렬했습니다. 최초 Auth verifier는 password env 누락과 sandbox RTSP bind 제한으로 fail했고, 일회성 throwaway env를 명령 환경에만 주입한 뒤 권한 실행으로 재검증했습니다. 최초 Ops/Client UI와 Rule UI smoke는 server/evidence 전제 미충족으로 fail했고 auth-off throwaway 서버와 인앱 evidence로 재실행했습니다.
+- 완료 경계: 이번 Step 9는 viewer-safe client resolution digest API/UI/static gate 연결입니다. Resolution Search & Metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님을 분리합니다.
 
 ## 최신 공개 기준 상세: v3.1.0 Encoded Event Clip and Safe Sharing Expansion
 
