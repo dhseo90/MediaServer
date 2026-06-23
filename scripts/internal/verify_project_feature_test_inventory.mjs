@@ -433,18 +433,22 @@ check("current feature expansion rows exist", () => {
     "EVT-068",
     "SAFE-108",
     "OPS-075",
+    "UI-067",
+    "EVT-069",
+    "SAFE-109",
+    "OPS-076",
   ];
   const ids = new Set(parseFeatureRows(inventory).map(row => row.id));
   for (const id of requiredRows) {
     assert(ids.has(id), `missing current expanded feature row: ${id}`);
   }
   for (const snippet of [
-    "`UI-001`~`UI-018`, `UI-022`~`UI-066`",
-    "`EVT-001`~`EVT-068`",
+    "`UI-001`~`UI-018`, `UI-022`~`UI-067`",
+    "`EVT-001`~`EVT-069`",
     "`MEDIA-001`~`MEDIA-021`",
     "`LAB-001`~`LAB-089`",
-    "`SAFE-001`~`SAFE-108`",
-    "`OPS-035`~`OPS-075`",
+    "`SAFE-001`~`SAFE-109`",
+    "`OPS-035`~`OPS-076`",
     "VLM route, control, action, runtime state, sidecar, privacy guard",
     "V300-S02 Frame Bundle Extraction",
     "V300-S03 Feature Schema and Privacy Policy",
@@ -507,6 +511,11 @@ check("current feature expansion rows exist", () => {
     "EVT-068",
     "SAFE-108",
     "OPS-075",
+    "v3.2.0 (8) Action Readiness Checklist",
+    "UI-067",
+    "EVT-069",
+    "SAFE-109",
+    "OPS-076",
   ]) {
     requireText(inventory, snippet, `inventory missing current expansion snippet: ${snippet}`);
   }

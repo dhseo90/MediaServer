@@ -26,13 +26,13 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 597 |
-| UI 직접 필요 | 316 |
+| 전체 기능 항목 | 601 |
+| UI 직접 필요 | 319 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 250 |
-| 테스트 필요 | 597 |
-| 안정화 대상 | 587 |
-| UI 풀테스트 대상 | 336 |
+| UI 비대상 | 251 |
+| 테스트 필요 | 601 |
+| 안정화 대상 | 591 |
+| UI 풀테스트 대상 | 339 |
 | 30분 soak 대상 | 49 |
 | 120분 대상 | 7 |
 
@@ -42,7 +42,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 597개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 601개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -69,7 +69,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | v3.2.0 (5) Source Reliability Context | `UI-064`, `EVT-066`, `SAFE-106`, `OPS-073` | `verify-v320-source-reliability-context`, `verify-v320-source-reliability-runtime-sample`, `verify-ops-client-ui` | source health와 recent failure context를 `/ops/events` UI와 `/ops/api/events/reviews` `unifiedResolutionWorkspace.sourceReliability` payload/verifier에 연결합니다. runtime sample은 fixture EventRecord item을 사용해 개별 item `sourceReliability`를 확인합니다. AI Review Quality Context, Operator Resolution Flow, Action Readiness Checklist, Client-safe Resolution Digest, Resolution Search & Metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 | v3.2.0 (6) AI Review Quality Context | `UI-065`, `EVT-067`, `SAFE-107`, `OPS-074` | `verify-v320-ai-review-quality-context`, `verify-ops-client-ui` | correction/review signal, uncertainty reason, quality badge를 `/ops/events` UI와 `/ops/api/events/reviews` `unifiedResolutionWorkspace.aiReviewQuality` payload/verifier에 연결합니다. Operator Resolution Flow, Action Readiness Checklist, Client-safe Resolution Digest, Resolution Search & Metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 | v3.2.0 (7) Operator Resolution Flow | `UI-066`, `EVT-068`, `SAFE-108`, `OPS-075` | `verify-v320-operator-resolution-flow`, `verify-ops-client-ui` | assign, note, close, reopen, audit trail을 `/ops/events` UI와 `/ops/api/events/reviews` write path/verifier에 연결합니다. Action Readiness Checklist, Client-safe Resolution Digest, Resolution Search & Metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
-| v3.2.0 (8) Action Readiness Checklist | 후속 구현 시 배정 | 후속 구현 시 배정 | rule draft/evidence bundle/notification readiness checklist를 실제 UI/verifier와 연결한 뒤에만 완료 |
+| v3.2.0 (8) Action Readiness Checklist | `UI-067`, `EVT-069`, `SAFE-109`, `OPS-076` | `verify-v320-action-readiness-checklist`, `verify-ops-client-ui` | rule draft/evidence bundle/notification readiness checklist를 `/ops/events` UI와 `/ops/api/events/reviews` `unifiedResolutionWorkspace.actionReadinessChecklist` payload/verifier에 연결합니다. Client-safe Resolution Digest, Resolution Search & Metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 | v3.2.0 (9) Client-safe Resolution Digest | 후속 구현 시 배정 | 후속 구현 시 배정 | viewer-safe status summary와 redaction boundary를 실제 client API/UI/verifier와 연결한 뒤에만 완료 |
 | v3.2.0 (10) Resolution Search & Metrics | 후속 구현 시 배정 | 후속 구현 시 배정 | resolution filters, saved views, 운영 metric summary를 실제 검색/metric verifier와 연결한 뒤에만 완료 |
 | v3.2.0 (11) Stabilization and Release Readiness | 후속 구현 시 배정 | 후속 구현 시 배정 | v3.2 local readiness와 release evidence/not-run boundary를 실제 gate와 연결한 뒤에만 완료 |
@@ -223,16 +223,16 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 
 | 기능 ID 범위 | 안정화 verifier 후보 | 비고 |
 | --- | --- | --- |
-| `UI-001`~`UI-018`, `UI-022`~`UI-066` | auth, Ops, Client, VLM, v250/v260/v270/v280/v300/v310/v320 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
+| `UI-001`~`UI-018`, `UI-022`~`UI-067` | auth, Ops, Client, VLM, v250/v260/v270/v280/v300/v310/v320 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
 | `AUTH-001`~`AUTH-042` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
 | `SRC-001`~`SRC-032` | source/ONVIF/UI verifier family | ONVIF field success는 approved environment only |
 | `RULE-001`~`RULE-104` | rule/VA verifier family | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
-| `EVT-001`~`EVT-068` | event/VLM/v250/v260/v270/v280/v300/v310/v320 verifier family | event log 육안 확인은 UI 풀테스트 |
+| `EVT-001`~`EVT-069` | event/VLM/v250/v260/v270/v280/v300/v310/v320 verifier family | event log 육안 확인은 UI 풀테스트 |
 | `CLIENT-001`~`CLIENT-026` | client/UI verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-021` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
 | `LAB-001`~`LAB-089` | lab/VLM/v250/v260/v270/v280/v300/v310 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-108` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-075` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
+| `SAFE-001`~`SAFE-109` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-076` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
 
 ## VA Manual UI Seed Matrix
 
@@ -346,6 +346,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | UI-064 | V320 Step 5 Source Reliability Context UI | 필요 | 필요 | 안정화, UI | `/ops/events`가 `media-server.ops.v320-source-reliability-context.v1` 기반 source health, recent failure, operator recheck hint를 unified resolution detail 안에 표시하고 source URL/raw JSON/debug/client exposure/source registry write 없이 유지함 |
 | UI-065 | V320 Step 6 AI Review Quality Context UI | 필요 | 필요 | 안정화, UI | `/ops/events`가 `media-server.ops.v320-ai-review-quality-context.v1` 기반 correction/review signal, uncertainty reason, quality badge를 unified resolution detail 안에 표시하고 source URL/raw JSON/debug/client exposure/provider call 없이 유지함 |
 | UI-066 | V320 Step 7 Operator Resolution Flow UI | 필요 | 필요 | 안정화, UI | `/ops/events`가 `media-server.ops.v320-operator-resolution-flow.v1` 기반 assignment target, operator note, close/reopen 가능 상태, audit trail을 unified resolution detail 안에 표시하고 source URL/raw JSON/debug/client exposure 없이 유지함 |
+| UI-067 | V320 Step 8 Action Readiness Checklist UI | 필요 | 필요 | 안정화, UI | `/ops/events`가 `media-server.ops.v320-action-readiness-checklist.v1` 기반 readiness status, rule draft, evidence bundle, notification readiness checklist와 blocker chip을 unified resolution detail 안에 표시하고 자동 action write, external delivery, source URL/raw JSON/debug/client exposure 없이 유지함 |
 
 ## B. Auth, Account, Role, Scope
 
@@ -612,6 +613,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | EVT-066 | V320 Step 5 source reliability view model | 필요 | 필요 | 안정화, UI | `/ops/api/events/reviews` 응답의 `unifiedResolutionWorkspace.sourceReliability`가 SourceRegistry source health snapshot과 EventRecord source identifier만 읽어 source health, recent failure context, operator recheck hint를 요약하고, `verify-v320-source-reliability-runtime-sample`이 fixture EventRecord item의 개별 `sourceReliability` 런타임 샘플을 확인하며 EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata, RTSP/WebRTC media path, Rule/Profile payload, client/viewer 출력을 바꾸지 않음 |
 | EVT-067 | V320 Step 6 AI review quality view model | 필요 | 필요 | 안정화, UI | `/ops/api/events/reviews` 응답의 `unifiedResolutionWorkspace.aiReviewQuality`가 기존 Ops review state와 EventRecord evidence/source context만 읽어 correction/review signal, uncertainty reason, quality badge를 요약하고 EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata, RTSP/WebRTC media path, Rule/Profile payload, client/viewer 출력을 바꾸지 않음 |
 | EVT-068 | V320 Step 7 operator resolution flow view model | 필요 | 필요 | 안정화, UI | `/ops/api/events/reviews` write path와 응답의 `unifiedResolutionWorkspace.operatorResolutionFlow`가 기존 Ops review JSONL과 audit log만 사용해 assignment target, note presence, close/reopen availability, audit actions를 요약하고 EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata, RTSP/WebRTC media path, Rule/Profile payload, client/viewer 출력을 바꾸지 않음 |
+| EVT-069 | V320 Step 8 action readiness checklist view model | 필요 | 필요 | 안정화, UI | `/ops/api/events/reviews` 응답의 `unifiedResolutionWorkspace.actionReadinessChecklist`가 기존 EventRecord evidence refs, source reliability, AI review quality, operator resolution flow만 읽어 rule draft/evidence bundle/notification readiness와 blocker를 요약하고 EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata, RTSP/WebRTC media path, Rule/Profile payload, client/viewer 출력을 바꾸지 않음 |
 
 ## F. Client And Viewer
 
@@ -876,6 +878,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SAFE-106 | V320 Step 5 source reliability boundary | 필요 | 필요 | 안정화, UI | `verify-v320-source-reliability-context`와 `verify-v320-source-reliability-runtime-sample`이 sourceReliability context가 SourceRegistry source health snapshot과 EventRecord source identifier를 deterministic hint로만 요약하고 EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata schema, RTSP/WebRTC media path, Rule/Profile payload, viewer/client exposure, source URL/raw JSON/debug material, source registry write를 변경하지 않음을 확인하되 UI 풀테스트 직접 조작, 30분/120분, AI review quality, operator assignment flow, client digest, search/metrics, published metadata PASS로 대체하지 않음 |
 | SAFE-107 | V320 Step 6 AI review quality boundary | 필요 | 필요 | 안정화, UI | `verify-v320-ai-review-quality-context`가 aiReviewQuality context가 기존 Ops review state, evidence quality, source reliability context를 deterministic hint로만 요약하고 EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata schema, RTSP/WebRTC media path, Rule/Profile payload, viewer/client exposure, source URL/raw JSON/debug material, runtime provider call, raw provider material을 변경하지 않음을 확인하되 UI 풀테스트 직접 조작, 30분/120분, operator assignment flow, action checklist, client digest, search/metrics, published metadata PASS로 대체하지 않음 |
 | SAFE-108 | V320 Step 7 operator resolution boundary | 필요 | 필요 | 안정화, UI | `verify-v320-operator-resolution-flow`가 operatorResolutionFlow context와 nested write payload가 Ops review JSONL/audit에만 저장되고 EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata schema, RTSP/WebRTC media path, Rule/Profile payload, viewer/client exposure, source URL/raw JSON/debug material, 자동 조치를 변경하지 않음을 확인하되 UI 풀테스트 직접 조작, 30분/120분, action checklist, client digest, search/metrics, published metadata PASS로 대체하지 않음 |
+| SAFE-109 | V320 Step 8 action readiness boundary | 필요 | 필요 | 안정화, UI | `verify-v320-action-readiness-checklist`가 actionReadinessChecklist context가 기존 EventRecord/source/AI/operator context를 deterministic checklist로만 요약하고 EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata schema, RTSP/WebRTC media path, Rule/Profile payload, viewer/client exposure, source URL/raw JSON/debug material, rule draft 생성, 자동 조치, external delivery를 변경하지 않음을 확인하되 UI 풀테스트 직접 조작, 30분/120분, client digest, search/metrics, published metadata PASS로 대체하지 않음 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -922,6 +925,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | OPS-073 | V320 Step 5 Source Reliability Context 게이트 | 비대상 | 필요 | 안정화 | `verify-v320-source-reliability-context`가 `/ops/events` source reliability UI, `unifiedResolutionWorkspace.sourceReliability` view model, source health/recent failure/operator recheck hint, CSS, ops smoke, backlog/stream verification/release records/server dispatch 연결을 확인하고, `verify-v320-source-reliability-runtime-sample`이 실행 중인 서버에서 fixture EventRecord item의 개별 `sourceReliability` 샘플과 cleanup을 확인하되 AI Review Quality Context, Operator Resolution Flow, Client-safe Resolution Digest, Resolution Search & Metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata PASS로 대체하지 않음 |
 | OPS-074 | V320 Step 6 AI Review Quality Context 게이트 | 비대상 | 필요 | 안정화 | `verify-v320-ai-review-quality-context`가 `/ops/events` AI review quality UI, `unifiedResolutionWorkspace.aiReviewQuality` view model, correction/review signal, uncertainty reason, quality badge, CSS, ops smoke, backlog/stream verification/release records/server dispatch 연결을 확인하되 Operator Resolution Flow, Action Readiness Checklist, Client-safe Resolution Digest, Resolution Search & Metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata PASS로 대체하지 않음 |
 | OPS-075 | V320 Step 7 Operator Resolution Flow 게이트 | 비대상 | 필요 | 안정화 | `verify-v320-operator-resolution-flow`가 `/ops/events` operator resolution UI, `unifiedResolutionWorkspace.operatorResolutionFlow` view model, nested write payload, `operator-resolution-flow-update` audit, CSS, ops smoke, backlog/stream verification/release records/server dispatch 연결을 확인하되 Action Readiness Checklist, Client-safe Resolution Digest, Resolution Search & Metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata PASS로 대체하지 않음 |
+| OPS-076 | V320 Step 8 Action Readiness Checklist 게이트 | 비대상 | 필요 | 안정화 | `verify-v320-action-readiness-checklist`가 `/ops/events` action readiness UI, `unifiedResolutionWorkspace.actionReadinessChecklist` view model, rule draft/evidence bundle/notification readiness checklist, CSS, ops smoke, backlog/stream verification/release records/server dispatch 연결을 확인하되 Client-safe Resolution Digest, Resolution Search & Metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 

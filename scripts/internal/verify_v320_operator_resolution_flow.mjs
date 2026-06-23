@@ -90,7 +90,7 @@ check("operator resolution write path accepts assign, note, close, and reopen wi
     "\\\"rawJsonExposed\\\":false",
     "\\\"debugMaterialExposed\\\":false",
     "\\\"operatorAssignmentFlowImplemented\\\":true",
-    "\\\"actionReadinessChecklistImplemented\\\":false",
+    "\\\"actionReadinessChecklistImplemented\\\":",
     "\\\"clientDigestImplemented\\\":false",
     "\\\"searchMetricsImplemented\\\":false",
   ]) {
@@ -177,10 +177,10 @@ check("feature inventory and release records map v3.2 Step 7", () => {
     "EVT-068 | V320 Step 7 operator resolution flow view model",
     "SAFE-108 | V320 Step 7 operator resolution boundary",
     "OPS-075 | V320 Step 7 Operator Resolution Flow 게이트",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-066`",
-    "`EVT-001`~`EVT-068`",
-    "`SAFE-001`~`SAFE-108`",
-    "`OPS-035`~`OPS-075`",
+    "`UI-001`~`UI-018`, `UI-022`~`UI-067`",
+    "`EVT-001`~`EVT-069`",
+    "`SAFE-001`~`SAFE-109`",
+    "`OPS-035`~`OPS-076`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.2 Step 7");
   }

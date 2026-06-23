@@ -173,10 +173,10 @@ check("feature inventory and release records map v3.2 Step 4", () => {
     "EVT-065 | V320 Step 4 evidence quality view model",
     "SAFE-105 | V320 Step 4 evidence quality boundary",
     "OPS-072 | V320 Step 4 Evidence Quality Layer 게이트",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-066`",
-    "`EVT-001`~`EVT-068`",
-    "`SAFE-001`~`SAFE-108`",
-    "`OPS-035`~`OPS-075`",
+    "`UI-001`~`UI-018`, `UI-022`~`UI-067`",
+    "`EVT-001`~`EVT-069`",
+    "`SAFE-001`~`SAFE-109`",
+    "`OPS-035`~`OPS-076`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.2 Step 4");
   }

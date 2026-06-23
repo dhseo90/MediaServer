@@ -20,7 +20,7 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 상태: `v3.2.0` Step 1 source baseline 정렬, Step 2 Resolution State Contract,
 Step 3 Unified Ops Events Workspace, Step 4 Evidence Quality Layer, Step 5 Source Reliability Context,
-Step 6 AI Review Quality Context, Step 7 Operator Resolution Flow local/static 구현 완료. 이 절은 v3.2.0 전체 기능
+Step 6 AI Review Quality Context, Step 7 Operator Resolution Flow, Step 8 Action Readiness Checklist local/static 구현 완료. 이 절은 v3.2.0 전체 기능
 완료 evidence가 아니며, 실제 기능 구현은 각 Step별 코드/UI/API/검증 evidence가 생긴
 뒤에만 완료로 기록합니다. Step 1 baseline 정렬 자체는 후속 v3.2 기능 구현 완료
 evidence가 아닙니다.
@@ -87,7 +87,7 @@ license/provenance/privacy/운영 제약:
 | 5 | v3.2.0 (5) Source Reliability Context | P1 | 완료 | source health, recent failure, operator recheck hint |
 | 6 | v3.2.0 (6) AI Review Quality Context | P1 | 완료 | correction/review signal, uncertainty reason, quality badge |
 | 7 | v3.2.0 (7) Operator Resolution Flow | P1 | 완료 | assign, note, close, reopen, audit trail |
-| 8 | v3.2.0 (8) Action Readiness Checklist | P1 | 대기 | rule draft/evidence bundle/notification readiness checklist |
+| 8 | v3.2.0 (8) Action Readiness Checklist | P1 | 완료 | rule draft/evidence bundle/notification readiness checklist |
 | 9 | v3.2.0 (9) Client-safe Resolution Digest | P1 | 대기 | viewer-safe status summary and redaction boundary |
 | 10 | v3.2.0 (10) Resolution Search & Metrics | P2 | 대기 | resolution filters, saved views, 운영 metric summary |
 | 11 | v3.2.0 (11) Stabilization and Release Readiness | P0 | 대기 | build/docs/metadata/inventory/release readiness records |
@@ -193,6 +193,20 @@ license/provenance/privacy/운영 제약:
 - `docs/project-feature-test-inventory.md`: `UI-066`, `EVT-068`, `SAFE-108`, `OPS-075`를 추가하고 v3.2.0 (7) mapping을 `verify-v320-operator-resolution-flow`, `verify-ops-client-ui`에 연결했습니다.
 - `docs/stream-verification.md`, `docs/release-test-records.md`: Step 7 verifier와 RED/final 결과 기록, 미실행/제외 경계를 추가했습니다.
 - 완료 경계: 이번 Step 7은 Ops-only operator resolution write path/view model/UI/audit 연결입니다. Action Readiness Checklist, Client-safe Resolution Digest, Resolution Search & Metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님을 분리합니다.
+
+## v3.2.0 Step 8 개발 기록
+
+- 범위: P1 `v3.2.0 (8) Action Readiness Checklist`.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/events/reviews`의 기존 `unifiedResolutionWorkspace` item에 `media-server.ops.v320-action-readiness-checklist.v1` `actionReadinessChecklist` 객체를 추가했습니다. `OpsV320ActionReadinessChecklistInfoFor`, `OpsV320ActionReadinessChecklistJson`, `OpsV320ActionReadinessChecklistSummaryJson`이 기존 EventRecord evidence refs, source reliability context, AI review quality context, operator resolution flow만 읽어 rule draft/evidence bundle/notification readiness, blocker, checklist item을 계산합니다.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV320DetailSectionsJson`, `OpsV320TimelineMarkersJson`, `OpsV320UnifiedResolutionWorkspaceItemJson`, `OpsV320UnifiedOpsEventsWorkspaceJson`에 action readiness detail/timeline marker와 `actionReadinessChecklistSummary`, `actionReadinessChecklistImplemented:true`를 연결했습니다.
+- `/ops/api/events/reviews`: 새 write route, Rule/Profile registry write, external notification delivery, EventRecord top-level, Event POST payload, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path, client/viewer 출력을 변경하지 않습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV320ActionReadinessChecklist`가 `/ops/events` unified resolution detail 안에 readiness status, rule draft, evidence bundle, notification readiness, blocker chip, manual approval/external delivery/auto action boundary를 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`: `.v320-action-readiness-checklist-grid`, `.v320-action-readiness-checklist-card`, `.v320-action-readiness-items`, `.v320-action-readiness-item`, `.v320-action-readiness-blocker` 스타일을 추가해 기존 v3.2 workspace 흐름 안에서 반응형으로 표시합니다.
+- `scripts/internal/verify_v320_action_readiness_checklist.mjs`, `server.sh`: `./server.sh verify-v320-action-readiness-checklist` 명령을 추가해 payload, UI script/CSS, ops smoke, backlog/stream verification/release records, feature inventory, script inventory, server dispatch 연결을 정적으로 검증합니다.
+- `scripts/internal/verify_ops_client_ui_smoke.mjs`: `/ops/events` static smoke 대상에 `ops-events-action-readiness-checklist` marker와 `media-server.ops.v320-action-readiness-checklist.v1` 문자열을 추가했습니다.
+- `docs/project-feature-test-inventory.md`: `UI-067`, `EVT-069`, `SAFE-109`, `OPS-076`을 추가하고 v3.2.0 (8) mapping을 `verify-v320-action-readiness-checklist`, `verify-ops-client-ui`에 연결했습니다.
+- `docs/stream-verification.md`, `docs/release-test-records.md`: Step 8 verifier와 RED/final 결과 기록, 미실행/제외 경계를 추가했습니다.
+- 완료 경계: 이번 Step 8은 Ops-only action readiness checklist view model/UI/static gate 연결입니다. Client-safe Resolution Digest, Resolution Search & Metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님을 분리합니다.
 
 ## 최신 공개 기준 상세: v3.1.0 Encoded Event Clip and Safe Sharing Expansion
 

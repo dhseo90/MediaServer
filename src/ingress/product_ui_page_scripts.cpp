@@ -2777,6 +2777,54 @@ void AppendOpsShellScript(std::ostringstream& out,
           <p class="ops-rule-note">${escapeHtml(display(operatorResolutionFlow.operatorHint || 'Assign, note, close, or reopen with Ops audit trail.'))}</p>
         </div>`;
       }
+      function renderV320ActionReadinessChecklist(selectedDetail = {}, actionReadinessChecklistSummary = {}) {
+        const actionReadinessChecklist = selectedDetail?.actionReadinessChecklist || {};
+        const blockers = Array.isArray(actionReadinessChecklist.readinessBlockers)
+          ? actionReadinessChecklist.readinessBlockers
+          : [];
+        const checklistItems = Array.isArray(actionReadinessChecklist.checklistItems)
+          ? actionReadinessChecklist.checklistItems
+          : [];
+        const boundary = actionReadinessChecklist.autoActionWritePerformed === false &&
+          actionReadinessChecklist.externalDeliveryPerformed === false &&
+          actionReadinessChecklist.ruleDraftCreated === false &&
+          actionReadinessChecklist.notificationSent === false &&
+          actionReadinessChecklist.viewerClientExposureAdded === false;
+        return `<div id="v320ActionReadinessChecklistGrid" class="v320-action-readiness-checklist-grid" data-v320-action-readiness-checklist="${escapeHtml(actionReadinessChecklist.schema || 'media-server.ops.v320-action-readiness-checklist.v1')}">
+          <p class="v320-action-readiness-checklist-card">
+            <strong>readiness status</strong>
+            <span>${escapeHtml(display(actionReadinessChecklist.readinessStatus || 'blocked'))}</span>
+            <small>ready ${escapeHtml(display(actionReadinessChecklistSummary.readyForOperatorApproval ?? 0))} · blocked ${escapeHtml(display(actionReadinessChecklistSummary.blocked ?? 0))}</small>
+          </p>
+          <p class="v320-action-readiness-checklist-card">
+            <strong>rule draft</strong>
+            <span>${actionReadinessChecklist.ruleDraftReady === true ? 'ready' : 'blocked'}</span>
+            <small>${escapeHtml(display(actionReadinessChecklist.ruleDraftStatus || 'needs-rule-draft'))} · route ${escapeHtml(display(actionReadinessChecklist.ruleDraftRoute || '/ops/rules'))}</small>
+          </p>
+          <p class="v320-action-readiness-checklist-card">
+            <strong>evidence bundle</strong>
+            <span>${actionReadinessChecklist.evidenceBundleReady === true ? 'ready' : 'blocked'}</span>
+            <small>${escapeHtml(display(actionReadinessChecklist.evidenceBundleStatus || 'needs-evidence-bundle'))} · basis ${escapeHtml(display(actionReadinessChecklist.evidenceBundleBasis || 'EventRecord/vlmEvidenceRefs'))}</small>
+          </p>
+          <p class="v320-action-readiness-checklist-card">
+            <strong>notification readiness</strong>
+            <span>${actionReadinessChecklist.notificationReady === true ? 'ready' : 'blocked'}</span>
+            <small>dry-run ${actionReadinessChecklist.notificationDryRunRequired === true ? 'required' : '확인 필요'} · manual ${actionReadinessChecklist.manualApprovalRequired === true ? 'required' : '확인 필요'}</small>
+          </p>
+          <p class="v320-action-readiness-checklist-card">
+            <strong>boundary</strong>
+            <span>${boundary ? 'Ops-only checklist' : 'boundary 확인 필요'}</span>
+            <small>autoActionWritePerformed ${actionReadinessChecklist.autoActionWritePerformed === false ? 'false' : '확인 필요'} · externalDeliveryPerformed ${actionReadinessChecklist.externalDeliveryPerformed === false ? 'false' : '확인 필요'}</small>
+          </p>
+          <div class="v320-action-readiness-items">
+            ${(checklistItems.length ? checklistItems : ['manual-approval-required']).map(item => `<span class="chip v320-action-readiness-item" data-v320-action-readiness-item="${escapeHtml(item)}">${escapeHtml(display(item))}</span>`).join('')}
+          </div>
+          <div class="v320-action-readiness-items">
+            ${(blockers.length ? blockers : ['no-readiness-blocker']).map(item => `<span class="chip v320-action-readiness-blocker ${item === 'no-readiness-blocker' ? 'info' : 'warn'}" data-v320-action-readiness-blocker="${escapeHtml(item)}">${escapeHtml(display(item))}</span>`).join('')}
+          </div>
+          <p class="ops-rule-note">${escapeHtml(display(actionReadinessChecklist.operatorHint || 'Review action readiness before operator approval.'))}</p>
+        </div>`;
+      }
       function renderV320UnifiedOpsEventsWorkspace(unifiedResolutionWorkspace = {}) {
         const queueRoot = document.getElementById('opsV320ResolutionQueue');
         const detailRoot = document.getElementById('opsV320ResolutionDetail');
@@ -2800,6 +2848,8 @@ void AppendOpsShellScript(std::ostringstream& out,
           { text: unifiedResolutionWorkspace.aiReviewQualitySummary?.schema || 'media-server.ops.v320-ai-review-quality-context.v1' },
           { text: unifiedResolutionWorkspace.operatorAssignmentFlowImplemented === true ? 'operator flow' : 'operator flow 확인 필요', tone: unifiedResolutionWorkspace.operatorAssignmentFlowImplemented === true ? 'info' : 'warn' },
           { text: unifiedResolutionWorkspace.operatorResolutionFlowSummary?.schema || 'media-server.ops.v320-operator-resolution-flow.v1' },
+          { text: unifiedResolutionWorkspace.actionReadinessChecklistImplemented === true ? 'action readiness' : 'action readiness 확인 필요', tone: unifiedResolutionWorkspace.actionReadinessChecklistImplemented === true ? 'info' : 'warn' },
+          { text: unifiedResolutionWorkspace.actionReadinessChecklistSummary?.schema || 'media-server.ops.v320-action-readiness-checklist.v1' },
           { text: unifiedResolutionWorkspace.viewerClientExposureAdded === false ? 'Ops only' : 'client 노출 확인 필요', tone: unifiedResolutionWorkspace.viewerClientExposureAdded === false ? 'info' : 'warn' },
           { text: unifiedResolutionWorkspace.eventPostPayloadChanged === false ? 'Event POST unchanged' : 'payload 확인 필요', tone: unifiedResolutionWorkspace.eventPostPayloadChanged === false ? 'info' : 'warn' },
           { text: unifiedResolutionWorkspace.sourceUrlExposed === false && unifiedResolutionWorkspace.rawJsonExposed === false && unifiedResolutionWorkspace.debugMaterialExposed === false ? 'redacted' : 'redaction 확인 필요', tone: unifiedResolutionWorkspace.sourceUrlExposed === false && unifiedResolutionWorkspace.rawJsonExposed === false && unifiedResolutionWorkspace.debugMaterialExposed === false ? 'info' : 'warn' }
@@ -2807,7 +2857,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         setText(
           'opsV320UnifiedWorkspaceSummary',
           resolutionQueue.length
-            ? `Unified resolution workspace · resolution queue ${resolutionQueue.length} · evidence quality · source reliability · AI review quality · detail/timeline Ops-only`
+            ? `Unified resolution workspace · resolution queue ${resolutionQueue.length} · evidence quality · source reliability · AI review quality · action readiness checklist · detail/timeline Ops-only`
             : 'resolution queue, resolution detail, resolution timeline을 `/ops/events` 안에서 Ops 전용으로 확인합니다.'
         );
         if (resolutionQueue.length === 0) {
@@ -2823,6 +2873,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           const sourceReliability = item?.sourceReliability || {};
           const aiReviewQuality = item?.aiReviewQuality || {};
           const operatorResolutionFlow = item?.operatorResolutionFlow || {};
+          const actionReadinessChecklist = item?.actionReadinessChecklist || {};
           const active = selectedDetail && item?.eventId === selectedDetail.eventId;
           return `<article class="v320-resolution-queue-card${active ? ' is-active' : ''}" data-v320-resolution-event="${escapeHtml(item?.eventId || '')}">
             <div class="table-cell-main">
@@ -2838,6 +2889,7 @@ void AppendOpsShellScript(std::ostringstream& out,
               <span class="chip ${sourceReliability.sourceHealthStatus === 'live' ? 'info' : 'warn'}">${escapeHtml(display(sourceReliability.sourceHealthStatus || 'source-missing'))}</span>
               <span class="chip ${aiReviewQuality.qualityBadge === 'quality-ok' || aiReviewQuality.qualityBadge === 'operator-checked' ? 'info' : 'warn'}">${escapeHtml(display(aiReviewQuality.qualityBadge || 'review-required'))}</span>
               <span class="chip">${escapeHtml(display(operatorResolutionFlow.assignmentTarget || 'operator-triage'))}</span>
+              <span class="chip ${actionReadinessChecklist.readinessStatus === 'ready-for-operator-approval' ? 'info' : 'warn'}">${escapeHtml(display(actionReadinessChecklist.readinessStatus || 'blocked'))}</span>
             </div>
             <p class="ops-rule-note">canClose ${lifecycle.canClose === true ? 'true' : 'false'} · canReopen ${lifecycle.canReopen === true ? 'true' : 'false'} · transition ${escapeHtml(display(resolutionState.transition || 'none'))}</p>
           </article>`;
@@ -2860,6 +2912,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           ${renderV320SourceReliabilityContext(selectedDetail, unifiedResolutionWorkspace.sourceReliabilitySummary || {})}
           ${renderV320AiReviewQualityContext(selectedDetail, unifiedResolutionWorkspace.aiReviewQualitySummary || {})}
           ${renderV320OperatorResolutionFlow(selectedDetail, unifiedResolutionWorkspace.operatorResolutionFlowSummary || {})}
+          ${renderV320ActionReadinessChecklist(selectedDetail, unifiedResolutionWorkspace.actionReadinessChecklistSummary || {})}
           <p class="ops-rule-note">resolutionStatus ${escapeHtml(display(selectedResolution.status || 'open'))} · resolutionReason ${escapeHtml(display(selectedResolution.reason || 'unreviewed'))} · sourceUrlExposed ${selectedDetail?.sourceUrlExposed === false ? 'false' : '확인 필요'} · rawJsonExposed ${selectedDetail?.rawJsonExposed === false ? 'false' : '확인 필요'} · debugMaterialExposed ${selectedDetail?.debugMaterialExposed === false ? 'false' : '확인 필요'}</p>
         </article>`;
         const timelineItems = resolutionTimeline.flatMap(item => Array.isArray(item?.timelineMarkers)

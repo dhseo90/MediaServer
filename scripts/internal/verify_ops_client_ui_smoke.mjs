@@ -173,6 +173,13 @@ const pageChecks = [
     mustNot: ['href="/ops/events"'],
   },
   {
+    name: "ops-events-action-readiness-checklist",
+    path: "/ops/events",
+    visualSelector: '[data-testid="ops-v320-unified-events-workspace"]',
+    must: ['data-testid="ops-events-page"', 'data-testid="ops-v320-unified-events-workspace"', 'id="v320ActionReadinessChecklistGrid"', 'data-v320-action-readiness-checklist', 'data-v320-action-readiness-blocker', 'data-v320-action-readiness-item', 'actionReadinessChecklistSummary', 'actionReadinessChecklist', 'media-server.ops.v320-action-readiness-checklist.v1', 'readiness status', 'rule draft', 'evidence bundle', 'notification readiness', 'manualApprovalRequired', 'autoActionWritePerformed', 'externalDeliveryPerformed', '/ops/api/events/reviews'],
+    mustNot: ['href="/ops/events"'],
+  },
+  {
     name: "ops-rules",
     path: "/ops/rules",
     visualSelector: '[data-testid="ops-rules-page"]',

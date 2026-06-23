@@ -16005,6 +16005,188 @@ std::string OpsV320OperatorResolutionFlowSummaryJson(
     return out.str();
 }
 
+struct OpsV320ActionReadinessChecklistInfo {
+    std::string readiness_status{"blocked"};
+    std::string rule_draft_status{"blocked"};
+    std::string evidence_bundle_status{"blocked"};
+    std::string notification_status{"blocked"};
+    std::string operator_hint{
+        "complete the action readiness checklist before operator approval"};
+    bool rule_draft_ready{false};
+    bool evidence_bundle_ready{false};
+    bool notification_ready{false};
+    bool manual_approval_required{true};
+    bool notification_dry_run_required{true};
+    std::vector<std::string> readiness_blockers;
+    std::vector<std::string> checklist_items;
+};
+
+OpsV320ActionReadinessChecklistInfo OpsV320ActionReadinessChecklistInfoFor(
+    const OpsV320EvidenceQualityInfo& evidence_quality,
+    const OpsV320SourceReliabilityInfo& source_reliability,
+    const OpsV320AiReviewQualityInfo& ai_review_quality,
+    const OpsV320OperatorResolutionFlowInfo& operator_resolution_flow) {
+    OpsV320ActionReadinessChecklistInfo info;
+    const bool operator_note_ready =
+        operator_resolution_flow.operator_note_present ||
+        operator_resolution_flow.resolution_note_present ||
+        operator_resolution_flow.assignment_flow_status == "assigned";
+    const bool ai_quality_ready =
+        ai_review_quality.quality_badge == "quality-ok" ||
+        ai_review_quality.quality_badge == "operator-checked";
+    const bool source_ready =
+        source_reliability.source_health_status == "live" &&
+        source_reliability.warnings.empty();
+
+    info.evidence_bundle_ready =
+        evidence_quality.evidence_completeness == "complete" &&
+        evidence_quality.evidence_confidence != "low" &&
+        evidence_quality.replay_coverage != "missing";
+    info.rule_draft_ready = operator_note_ready && ai_quality_ready;
+    info.notification_ready =
+        info.evidence_bundle_ready && info.rule_draft_ready && source_ready;
+
+    info.evidence_bundle_status =
+        info.evidence_bundle_ready ? "ready" : "needs-evidence-bundle";
+    info.rule_draft_status = info.rule_draft_ready ? "ready" : "needs-rule-draft";
+    info.notification_status =
+        info.notification_ready ? "ready" : "needs-notification-review";
+
+    if (!info.evidence_bundle_ready) {
+        info.readiness_blockers.push_back("evidence-bundle-not-ready");
+    }
+    if (!operator_note_ready) {
+        info.readiness_blockers.push_back("operator-note-required");
+    }
+    if (!ai_quality_ready) {
+        info.readiness_blockers.push_back("ai-quality-review-required");
+    }
+    if (!source_ready) {
+        info.readiness_blockers.push_back("source-health-not-live");
+    }
+    if (!info.notification_ready) {
+        info.readiness_blockers.push_back("notification-review-required");
+    }
+
+    info.checklist_items.push_back(info.rule_draft_ready ? "rule-draft:ready"
+                                                         : "rule-draft:blocked");
+    info.checklist_items.push_back(info.evidence_bundle_ready
+                                       ? "evidence-bundle:ready"
+                                       : "evidence-bundle:blocked");
+    info.checklist_items.push_back(info.notification_ready ? "notification:ready"
+                                                          : "notification:blocked");
+    info.checklist_items.push_back("manual-approval-required");
+    info.checklist_items.push_back("notification-dry-run-required");
+
+    if (info.evidence_bundle_ready && info.rule_draft_ready && info.notification_ready) {
+        info.readiness_status = "ready-for-operator-approval";
+        info.operator_hint =
+            "rule draft, evidence bundle, and notification dry-run prerequisites are ready";
+    } else if (!info.evidence_bundle_ready) {
+        info.readiness_status = "needs-evidence-bundle";
+        info.operator_hint = "complete evidence bundle coverage before approving action";
+    } else if (!info.rule_draft_ready) {
+        info.readiness_status = "needs-rule-draft";
+        info.operator_hint = "add operator note and resolve AI quality review before rule draft";
+    } else {
+        info.readiness_status = "needs-notification-review";
+        info.operator_hint =
+            "review notification dry-run and source health before external delivery approval";
+    }
+    return info;
+}
+
+std::string OpsV320ActionReadinessChecklistJson(
+    const OpsV320ActionReadinessChecklistInfo& info) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v320-action-readiness-checklist.v1\","
+        << "\"readinessStatus\":\"" << JsonEscape(info.readiness_status) << "\","
+        << "\"ruleDraftReady\":" << (info.rule_draft_ready ? "true" : "false") << ","
+        << "\"ruleDraftStatus\":\"" << JsonEscape(info.rule_draft_status) << "\","
+        << "\"ruleDraftRoute\":\"/ops/rules\","
+        << "\"ruleDraftCreated\":false,"
+        << "\"evidenceBundleReady\":" << (info.evidence_bundle_ready ? "true" : "false") << ","
+        << "\"evidenceBundleStatus\":\"" << JsonEscape(info.evidence_bundle_status) << "\","
+        << "\"evidenceBundleBasis\":\"EventRecord/vlmEvidenceRefs\","
+        << "\"notificationReady\":" << (info.notification_ready ? "true" : "false") << ","
+        << "\"notificationStatus\":\"" << JsonEscape(info.notification_status) << "\","
+        << "\"notificationDryRunRequired\":true,"
+        << "\"notificationDryRunRoute\":\"/ops/api/alerts/deliveries/dry-run\","
+        << "\"notificationSent\":false,"
+        << "\"manualApprovalRequired\":true,"
+        << "\"readinessBlockers\":" << JsonStringArray(info.readiness_blockers) << ","
+        << "\"checklistItems\":" << JsonStringArray(info.checklist_items) << ","
+        << "\"operatorHint\":\"" << JsonEscape(info.operator_hint) << "\","
+        << "\"opsOnly\":true,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false,"
+        << "\"autoActionApplied\":false,"
+        << "\"autoActionWritePerformed\":false,"
+        << "\"externalDeliveryPerformed\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsV320ActionReadinessChecklistSummaryJson(
+    const std::vector<OpsV320ActionReadinessChecklistInfo>& items) {
+    int ready = 0;
+    int blocked = 0;
+    int rule_draft_ready = 0;
+    int evidence_bundle_ready = 0;
+    int notification_ready = 0;
+    for (const auto& item : items) {
+        if (item.readiness_status == "ready-for-operator-approval") {
+            ++ready;
+        } else {
+            ++blocked;
+        }
+        if (item.rule_draft_ready) {
+            ++rule_draft_ready;
+        }
+        if (item.evidence_bundle_ready) {
+            ++evidence_bundle_ready;
+        }
+        if (item.notification_ready) {
+            ++notification_ready;
+        }
+    }
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v320-action-readiness-checklist.v1\","
+        << "\"status\":\"ops-v320-action-readiness-checklist\","
+        << "\"itemCount\":" << items.size() << ","
+        << "\"readyForOperatorApproval\":" << ready << ","
+        << "\"blocked\":" << blocked << ","
+        << "\"ruleDraftReady\":" << rule_draft_ready << ","
+        << "\"evidenceBundleReady\":" << evidence_bundle_ready << ","
+        << "\"notificationReady\":" << notification_ready << ","
+        << "\"manualApprovalRequired\":true,"
+        << "\"notificationDryRunRequired\":true,"
+        << "\"ruleDraftRoute\":\"/ops/rules\","
+        << "\"notificationDryRunRoute\":\"/ops/api/alerts/deliveries/dry-run\","
+        << "\"ruleDraftCreated\":false,"
+        << "\"autoActionApplied\":false,"
+        << "\"autoActionWritePerformed\":false,"
+        << "\"externalDeliveryPerformed\":false,"
+        << "\"notificationSent\":false,"
+        << "\"opsOnly\":true,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false"
+        << "}";
+    return out.str();
+}
+
 std::string OpsV320ResolutionQueueStatus(const OpsEventReviewState& review) {
     const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
     if (resolution_state.resolution_status == "open") {
@@ -16030,7 +16212,8 @@ std::string OpsV320TimelineMarkersJson(const std::string& event_json,
                                        const OpsV320EvidenceQualityInfo& evidence_quality,
                                        const OpsV320SourceReliabilityInfo& source_reliability,
                                        const OpsV320AiReviewQualityInfo& ai_review_quality,
-                                       const OpsV320OperatorResolutionFlowInfo& operator_resolution_flow) {
+                                       const OpsV320OperatorResolutionFlowInfo& operator_resolution_flow,
+                                       const OpsV320ActionReadinessChecklistInfo& action_readiness_checklist) {
     const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
     const std::int64_t event_ms =
         ParseInt64Field(event_json, "updateTime")
@@ -16098,6 +16281,18 @@ std::string OpsV320TimelineMarkersJson(const std::string& event_json,
         << JsonEscape(operator_resolution_flow.assignment_target) << "\","
         << "\"auditTrailRequired\":true,"
         << "\"opsOnly\":true"
+        << "},"
+        << "{"
+        << "\"key\":\"action-readiness-checklist\","
+        << "\"label\":\"Action readiness checklist\","
+        << "\"status\":\"" << JsonEscape(action_readiness_checklist.readiness_status) << "\","
+        << "\"timeMs\":" << operator_resolution_flow.updated_at_ms << ","
+        << "\"ruleDraftReady\":" << (action_readiness_checklist.rule_draft_ready ? "true" : "false") << ","
+        << "\"evidenceBundleReady\":"
+        << (action_readiness_checklist.evidence_bundle_ready ? "true" : "false") << ","
+        << "\"notificationReady\":"
+        << (action_readiness_checklist.notification_ready ? "true" : "false") << ","
+        << "\"opsOnly\":true"
         << "}"
         << "]";
     return out.str();
@@ -16108,7 +16303,8 @@ std::string OpsV320DetailSectionsJson(const std::string& event_json,
                                       const OpsV320EvidenceQualityInfo& evidence_quality,
                                       const OpsV320SourceReliabilityInfo& source_reliability,
                                       const OpsV320AiReviewQualityInfo& ai_review_quality,
-                                      const OpsV320OperatorResolutionFlowInfo& operator_resolution_flow) {
+                                      const OpsV320OperatorResolutionFlowInfo& operator_resolution_flow,
+                                      const OpsV320ActionReadinessChecklistInfo& action_readiness_checklist) {
     const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
     const std::string event_type =
         Trim(ParseStringField(event_json, "eventType")
@@ -16169,6 +16365,14 @@ std::string OpsV320DetailSectionsJson(const std::string& event_json,
         << "\"status\":\"" << JsonEscape(operator_resolution_flow.assignment_flow_status) << "\","
         << "\"detail\":\"assignment " << JsonEscape(operator_resolution_flow.assignment_target)
         << " / audit operator-resolution-flow-update\""
+        << "},"
+        << "{"
+        << "\"key\":\"action-readiness-checklist\","
+        << "\"label\":\"Action Readiness Checklist\","
+        << "\"status\":\"" << JsonEscape(action_readiness_checklist.readiness_status) << "\","
+        << "\"detail\":\"rule draft " << JsonEscape(action_readiness_checklist.rule_draft_status)
+        << " / evidence bundle " << JsonEscape(action_readiness_checklist.evidence_bundle_status)
+        << " / notification " << JsonEscape(action_readiness_checklist.notification_status) << "\""
         << "}"
         << "]";
     return out.str();
@@ -16180,7 +16384,8 @@ std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_j
                                                       const OpsV320EvidenceQualityInfo& evidence_quality,
                                                       const OpsV320SourceReliabilityInfo& source_reliability,
                                                       const OpsV320AiReviewQualityInfo& ai_review_quality,
-                                                      const OpsV320OperatorResolutionFlowInfo& operator_resolution_flow) {
+                                                      const OpsV320OperatorResolutionFlowInfo& operator_resolution_flow,
+                                                      const OpsV320ActionReadinessChecklistInfo& action_readiness_checklist) {
     std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(review.event_id));
     if (!OpsEventReviewEventIdAllowed(event_id)) {
         event_id = OpsEventReviewEventIdAllowed(review.event_id) ? review.event_id
@@ -16209,6 +16414,8 @@ std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_j
         << "\"aiReviewQuality\":" << OpsV320AiReviewQualityContextJson(ai_review_quality) << ","
         << "\"operatorResolutionFlow\":"
         << OpsV320OperatorResolutionFlowJson(operator_resolution_flow) << ","
+        << "\"actionReadinessChecklist\":"
+        << OpsV320ActionReadinessChecklistJson(action_readiness_checklist) << ","
         << "\"detailSections\":"
         << OpsV320DetailSectionsJson(
                event_json,
@@ -16216,7 +16423,8 @@ std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_j
                evidence_quality,
                source_reliability,
                ai_review_quality,
-               operator_resolution_flow)
+               operator_resolution_flow,
+               action_readiness_checklist)
         << ","
         << "\"timelineMarkers\":"
         << OpsV320TimelineMarkersJson(
@@ -16225,7 +16433,8 @@ std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_j
                evidence_quality,
                source_reliability,
                ai_review_quality,
-               operator_resolution_flow)
+               operator_resolution_flow,
+               action_readiness_checklist)
         << ","
         << "\"opsOnly\":true,"
         << "\"persistentReviewState\":true,"
@@ -16252,11 +16461,14 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
     std::vector<OpsV320SourceReliabilityInfo> source_reliability_items;
     std::vector<OpsV320AiReviewQualityInfo> ai_review_quality_items;
     std::vector<OpsV320OperatorResolutionFlowInfo> operator_resolution_flow_items;
+    std::vector<OpsV320ActionReadinessChecklistInfo> action_readiness_checklist_items;
     items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
     evidence_quality_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
     source_reliability_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
     ai_review_quality_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
     operator_resolution_flow_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
+    action_readiness_checklist_items.reserve(
+        std::min<std::size_t>(event_json_records.size(), 12U));
     for (std::size_t index = 0; index < event_json_records.size(); ++index) {
         const std::string& event_json = event_json_records[index];
         const std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
@@ -16274,6 +16486,12 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
             OpsV320AiReviewQualityInfoFor(review, evidence_quality, source_reliability);
         const OpsV320OperatorResolutionFlowInfo operator_resolution_flow =
             OpsV320OperatorResolutionFlowInfoFor(review);
+        const OpsV320ActionReadinessChecklistInfo action_readiness_checklist =
+            OpsV320ActionReadinessChecklistInfoFor(
+                evidence_quality,
+                source_reliability,
+                ai_review_quality,
+                operator_resolution_flow);
         items.push_back(OpsV320UnifiedResolutionWorkspaceItemJson(
             event_json,
             review,
@@ -16281,11 +16499,13 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
             evidence_quality,
             source_reliability,
             ai_review_quality,
-            operator_resolution_flow));
+            operator_resolution_flow,
+            action_readiness_checklist));
         evidence_quality_items.push_back(evidence_quality);
         source_reliability_items.push_back(source_reliability);
         ai_review_quality_items.push_back(ai_review_quality);
         operator_resolution_flow_items.push_back(operator_resolution_flow);
+        action_readiness_checklist_items.push_back(action_readiness_checklist);
         if (items.size() >= 12U) {
             break;
         }
@@ -16314,6 +16534,8 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
         << OpsV320AiReviewQualitySummaryJson(ai_review_quality_items) << ","
         << "\"operatorResolutionFlowSummary\":"
         << OpsV320OperatorResolutionFlowSummaryJson(operator_resolution_flow_items) << ","
+        << "\"actionReadinessChecklistSummary\":"
+        << OpsV320ActionReadinessChecklistSummaryJson(action_readiness_checklist_items) << ","
         << "\"itemCount\":" << items.size() << ","
         << "\"eventPostPayloadChanged\":false,"
         << "\"webrtcDataChannelSchemaChanged\":false,"
@@ -16329,7 +16551,7 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
         << "\"sourceReliabilityContextImplemented\":true,"
         << "\"aiReviewQualityContextImplemented\":true,"
         << "\"operatorAssignmentFlowImplemented\":true,"
-        << "\"actionReadinessChecklistImplemented\":false,"
+        << "\"actionReadinessChecklistImplemented\":true,"
         << "\"clientDigestImplemented\":false,"
         << "\"searchMetricsImplemented\":false"
         << "}";
