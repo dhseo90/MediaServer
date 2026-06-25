@@ -959,6 +959,152 @@ std::string ClientPublishedViewJson(const SourceViewRegistry::PublishedViewRecor
     return out.str();
 }
 
+SourceViewRegistry::SourceIdentityPublishedView ToSourceIdentityPublishedView(
+    const SourceViewRegistry::PublishedViewRecord& view) {
+    SourceViewRegistry::SourceIdentityPublishedView identity;
+    identity.view_id = view.view_id;
+    identity.display_name = view.display_name;
+    identity.default_rule_id = view.default_rule_id;
+    identity.allowed_rule_ids = view.allowed_rule_ids;
+    identity.allowed_overlay_modes = view.allowed_overlay_modes;
+    identity.client_groups = view.client_groups;
+    identity.max_tiles = view.max_tiles;
+    identity.enabled = view.enabled;
+    identity.show_dashboard = view.show_dashboard;
+    identity.show_events = view.show_events;
+    identity.show_metadata_summary = view.show_metadata_summary;
+    return identity;
+}
+
+std::vector<SourceViewRegistry::SourceIdentitySnapshot> BuildSourceIdentitySnapshot(
+    const std::vector<SourceViewRegistry::SourceRecord>& sources,
+    const std::vector<SourceViewRegistry::PublishedViewRecord>& views) {
+    std::vector<SourceViewRegistry::SourceIdentitySnapshot> sourceIdentity;
+    sourceIdentity.reserve(sources.size());
+    for (const auto& source : sources) {
+        SourceViewRegistry::SourceIdentitySnapshot item;
+        item.source_id = source.source_id;
+        item.display_name = source.display_name;
+        item.source_kind = source.kind;
+        item.canonical_source_key = source.canonical_source_key;
+        item.enabled = source.enabled;
+        item.tags = source.tags;
+        item.owner_group = source.owner_group;
+        item.site = source.site;
+        item.group = source.group;
+        item.floor = source.floor;
+        item.zone = source.zone;
+        for (const auto& view : views) {
+            if (view.source_id == source.source_id) {
+                item.published_views.push_back(ToSourceIdentityPublishedView(view));
+            }
+        }
+        sourceIdentity.push_back(std::move(item));
+    }
+    return sourceIdentity;
+}
+
+bool SourceIdExists(const std::vector<SourceViewRegistry::SourceRecord>& sources,
+                    const std::string& source_id) {
+    return std::any_of(sources.begin(), sources.end(), [&](const auto& source) {
+        return source.source_id == source_id;
+    });
+}
+
+SourceViewRegistry::SourceIdentitySummary BuildSourceIdentitySummary(
+    const std::vector<SourceViewRegistry::SourceRecord>& sources,
+    const std::vector<SourceViewRegistry::PublishedViewRecord>& views,
+    const std::vector<SourceViewRegistry::SourceIdentitySnapshot>& sourceIdentity) {
+    SourceViewRegistry::SourceIdentitySummary summary;
+    summary.source_count = static_cast<int>(sources.size());
+    summary.published_view_count = static_cast<int>(views.size());
+    for (const auto& source : sources) {
+        if (source.enabled) {
+            ++summary.enabled_source_count;
+        } else {
+            ++summary.disabled_source_count;
+        }
+    }
+    for (const auto& view : views) {
+        if (SourceIdExists(sources, view.source_id)) {
+            ++summary.linked_published_view_count;
+        } else {
+            ++summary.published_views_without_source;
+        }
+        if (!view.enabled) {
+            ++summary.disabled_published_view_count;
+        }
+    }
+    for (const auto& item : sourceIdentity) {
+        if (item.published_views.empty()) {
+            ++summary.sources_without_published_view;
+        }
+    }
+    return summary;
+}
+
+void AppendSourceIdentitySummaryJson(std::ostringstream& out,
+                                     const SourceViewRegistry::SourceIdentitySummary& summary) {
+    out << "{"
+        << "\"sourceCount\":" << summary.source_count << ","
+        << "\"enabledSourceCount\":" << summary.enabled_source_count << ","
+        << "\"disabledSourceCount\":" << summary.disabled_source_count << ","
+        << "\"publishedViewCount\":" << summary.published_view_count << ","
+        << "\"linkedPublishedViewCount\":" << summary.linked_published_view_count << ","
+        << "\"disabledPublishedViewCount\":" << summary.disabled_published_view_count << ","
+        << "\"sourcesWithoutPublishedView\":" << summary.sources_without_published_view << ","
+        << "\"publishedViewsWithoutSource\":" << summary.published_views_without_source
+        << "}";
+}
+
+void AppendSourceIdentityPublishedViewJson(
+    std::ostringstream& out,
+    const SourceViewRegistry::SourceIdentityPublishedView& view) {
+    out << "{"
+        << "\"viewId\":\"" << JsonEscape(view.view_id) << "\","
+        << "\"displayName\":\"" << JsonEscape(view.display_name) << "\","
+        << "\"defaultRuleId\":\"" << JsonEscape(view.default_rule_id) << "\","
+        << "\"allowedRuleIds\":";
+    AppendStringArray(out, view.allowed_rule_ids);
+    out << ",\"allowedOverlayModes\":";
+    AppendStringArray(out, view.allowed_overlay_modes);
+    out << ",\"clientGroups\":";
+    AppendStringArray(out, view.client_groups);
+    out << ",\"maxTiles\":" << view.max_tiles
+        << ",\"enabled\":" << (view.enabled ? "true" : "false")
+        << ",\"showDashboard\":" << (view.show_dashboard ? "true" : "false")
+        << ",\"showEvents\":" << (view.show_events ? "true" : "false")
+        << ",\"showMetadataSummary\":" << (view.show_metadata_summary ? "true" : "false")
+        << "}";
+}
+
+void AppendSourceIdentitySnapshotJson(std::ostringstream& out,
+                                      const SourceViewRegistry::SourceIdentitySnapshot& sourceIdentity) {
+    out << "{"
+        << "\"sourceId\":\"" << JsonEscape(sourceIdentity.source_id) << "\","
+        << "\"displayName\":\"" << JsonEscape(sourceIdentity.display_name) << "\","
+        << "\"sourceKind\":\"" << JsonEscape(sourceIdentity.source_kind) << "\","
+        << "\"canonicalSourceKey\":\"" << JsonEscape(sourceIdentity.canonical_source_key) << "\","
+        << "\"enabled\":" << (sourceIdentity.enabled ? "true" : "false") << ","
+        << "\"tags\":";
+    AppendStringArray(out, sourceIdentity.tags);
+    out << ",\"ownerContext\":{"
+        << "\"ownerGroup\":\"" << JsonEscape(sourceIdentity.owner_group) << "\","
+        << "\"site\":\"" << JsonEscape(sourceIdentity.site) << "\","
+        << "\"group\":\"" << JsonEscape(sourceIdentity.group) << "\","
+        << "\"floor\":\"" << JsonEscape(sourceIdentity.floor) << "\","
+        << "\"zone\":\"" << JsonEscape(sourceIdentity.zone) << "\""
+        << "},\"publishedViewCount\":" << sourceIdentity.published_views.size()
+        << ",\"publishedViews\":[";
+    for (std::size_t i = 0; i < sourceIdentity.published_views.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendSourceIdentityPublishedViewJson(out, sourceIdentity.published_views[i]);
+    }
+    out << "]}";
+}
+
 RegistryResult JsonResult(int status, const std::string& status_text, const std::string& body) {
     return RegistryResult{status, status_text, body};
 }
@@ -1318,6 +1464,55 @@ RegistryResult SourceViewRegistry::ViewsJson() {
         out << PublishedViewJson(views_[i]);
     }
     out << "]}";
+    return JsonResult(200, "OK", out.str());
+}
+
+RegistryResult SourceViewRegistry::SourceRegistrySnapshotIdentityJson() {
+    std::lock_guard lock(mu_);
+    std::string load_error;
+    if (!EnsureLoadedLocked(&load_error)) {
+        return ErrorResult(500, "Internal Server Error", load_error);
+    }
+    const auto sourceIdentity = BuildSourceIdentitySnapshot(sources_, views_);
+    const auto summary = BuildSourceIdentitySummary(sources_, views_, sourceIdentity);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v330-source-registry-snapshot-identity.v1\","
+        << "\"status\":\"source-registry-snapshot-identity\","
+        << "\"storage\":{"
+        << "\"sourceRegistryPath\":\"" << JsonEscape(source_storage_path_.string()) << "\","
+        << "\"publishedViewsPath\":\"" << JsonEscape(views_storage_path_.string()) << "\""
+        << "},\"summary\":";
+    AppendSourceIdentitySummaryJson(out, summary);
+    out << ",\"sourceIdentity\":[";
+    for (std::size_t i = 0; i < sourceIdentity.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendSourceIdentitySnapshotJson(out, sourceIdentity[i]);
+    }
+    out << "],\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"onboardingQualityImplemented\":false,"
+        << "\"reliabilityTimelineImplemented\":false,"
+        << "\"incidentCorrelationImplemented\":false,"
+        << "\"recoveryQueueImplemented\":false,"
+        << "\"clientSafeDigestImplemented\":false,"
+        << "\"searchMetricsImplemented\":false"
+        << "}}";
     return JsonResult(200, "OK", out.str());
 }
 

@@ -58,10 +58,51 @@ public:
         SourceRecord source;
     };
 
+    struct SourceIdentityPublishedView {
+        std::string view_id;
+        std::string display_name;
+        std::string default_rule_id;
+        std::vector<std::string> allowed_rule_ids;
+        std::vector<std::string> allowed_overlay_modes;
+        std::vector<std::string> client_groups;
+        int max_tiles{1};
+        bool enabled{true};
+        bool show_dashboard{true};
+        bool show_events{true};
+        bool show_metadata_summary{true};
+    };
+
+    struct SourceIdentitySnapshot {
+        std::string source_id;
+        std::string display_name;
+        std::string source_kind;
+        std::string canonical_source_key;
+        bool enabled{true};
+        std::vector<std::string> tags;
+        std::string owner_group;
+        std::string site;
+        std::string group;
+        std::string floor;
+        std::string zone;
+        std::vector<SourceIdentityPublishedView> published_views;
+    };
+
+    struct SourceIdentitySummary {
+        int source_count{0};
+        int enabled_source_count{0};
+        int disabled_source_count{0};
+        int published_view_count{0};
+        int linked_published_view_count{0};
+        int disabled_published_view_count{0};
+        int sources_without_published_view{0};
+        int published_views_without_source{0};
+    };
+
     static SourceViewRegistry& Instance();
 
     RegistryResult SourcesJson();
     RegistryResult ViewsJson();
+    RegistryResult SourceRegistrySnapshotIdentityJson();
     RegistryResult ClientViewsJson(const auth::Principal& principal);
     RegistryResult ClientViewJson(const std::string& view_id, const auth::Principal& principal);
     RegistryResult ResolveClientViewAccess(const std::string& view_id,

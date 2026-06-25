@@ -19,10 +19,10 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 source roadmap: v3.3.0 Live Source Reliability Workspace
 
-상태: Step 1 source/version/docs/backlog/verification metadata 정렬 완료. Step 2 이후
-기능 구현은 미착수입니다. 현재 source version은 `3.3.0`이고, 최신 published baseline은
+상태: Step 1 source/version/docs/backlog/verification metadata 정렬 완료. Step 2
+Source Registry Snapshot and Identity 구현 완료. Step 3 이후 기능 구현은 미착수입니다. 현재 source version은 `3.3.0`이고, 최신 published baseline은
 `v3.2.0` Operations Resolution Workspace입니다. 이 절은 v3.3.0 개발 이슈와 현재
-step evidence를 정리한 문서이며, Step 2 이후 기능 구현 완료 evidence가 아닙니다.
+step evidence를 정리한 문서이며, Step 3 이후 기능 구현 완료 evidence가 아닙니다.
 
 직접 답: v3.3.0의 1차 선택값은 `Live Source Reliability Workspace`입니다.
 v3.0이 이벤트 증거와 검색을 만들고, v3.1이 재생/공유를 보강하고, v3.2가 사건을
@@ -91,7 +91,7 @@ license/provenance/privacy/운영 검토 결과:
 | Step | 제목 | 우선순위 | 상태 | 산출물 |
 | --- | --- | --- | --- | --- |
 | 1 | v3.3.0 (1) v3.3.0 roadmap/source baseline 정렬 | P0 | 완료 | VERSION/CMake/docs/backlog/source roadmap과 `verify-v330-entry-baseline` 기준 정렬 |
-| 2 | v3.3.0 (2) Source Registry Snapshot and Identity | P0 | 미착수 | sourceId, source kind, PublishedView 연결, canonical source key, owner/site/group context를 읽기 모델로 정리 |
+| 2 | v3.3.0 (2) Source Registry Snapshot and Identity | P0 | 완료 | `/ops/api/source-registry/snapshot`에서 sourceId, source kind, PublishedView 연결, canonical source key, owner/site/group context를 Ops-only 읽기 모델로 정리 |
 | 3 | v3.3.0 (3) Source Onboarding Quality Summary | P0 | 미착수 | 채널 저장 전 validation, 중복/충돌/누락/ready 상태, ONVIF/WHEP/RTSP 입력 품질 요약 |
 | 4 | v3.3.0 (4) Reliability Timeline and Health History | P0 | 미착수 | live/stale/offline/reconnect/source warning 변화 이력과 Ops audit 연결 |
 | 5 | v3.3.0 (5) Incident-to-Source Correlation Layer | P1 | 미착수 | v3.2 resolution event detail에서 source reliability 원인/context를 함께 표시 |
@@ -102,7 +102,8 @@ license/provenance/privacy/운영 검토 결과:
 | 10 | v3.3.0 (10) Operator Runbook and Reliability Handoff | P1 | 미착수 | source reliability workspace 사용 흐름, 운영자 runbook, docs index/UI guide/config/backup 문서 연결 |
 
 완료 경계: Step 1은 source/version/docs/backlog/verification metadata 정렬입니다.
-Step 2 이후 각 step은 실제 코드/UI/API/문서 산출물이 생긴 뒤에만 완료로 기록합니다.
+Step 2는 source registry identity read model/API/verifier 연결입니다. Step 3 이후 각
+step은 실제 코드/UI/API/문서 산출물이 생긴 뒤에만 완료로 기록합니다.
 현재 Step 1 기록은 source registry snapshot, onboarding quality, reliability timeline,
 incident correlation, recovery queue, client digest, search/metrics 구현 완료 evidence가 아닙니다.
 `v3.3.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
@@ -119,6 +120,17 @@ incident correlation, recovery queue, client digest, search/metrics 구현 완�
 - `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`: `OPS-080`, `SAFE-113`, V330 Step 1 안정화 verifier, 저장소 보존형 테스트 결과를 추가했습니다.
 - 검증: 최초 `node scripts/internal/verify_v330_entry_baseline.mjs`는 source version/docs/inventory/server dispatch가 아직 v3.3 기준이 아니어서 `pass=0 fail=7`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v330 Step 1 결과 행에 기록합니다.
 - 완료 경계: 이번 Step 1은 source/version/docs/backlog/verification metadata 정렬입니다. v3.3 기능 구현, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다.
+
+## v3.3.0 Step 2 개발 기록
+
+- 범위: P0 `v3.3.0 (2) Source Registry Snapshot and Identity`.
+- `include/ingress/source_view_registry.h`: `SourceIdentityPublishedView`, `SourceIdentitySnapshot`, `SourceIdentitySummary`, `SourceRegistrySnapshotIdentityJson`을 추가해 sourceId, source kind, PublishedView 연결, canonical source key, owner/site/group context를 읽기 모델 계약으로 선언했습니다.
+- `src/ingress/source_view_registry.cpp`: `BuildSourceIdentitySnapshot`, `AppendSourceIdentitySnapshotJson`, `SourceViewRegistry::SourceRegistrySnapshotIdentityJson`을 추가했습니다. 이 로직은 기존 SourceRegistry와 PublishedView snapshot을 읽기 전용으로 조합하고 `media-server.ops.v330-source-registry-snapshot-identity.v1` schema, `sourceIdentity`, `summary`, `boundaries`를 반환합니다.
+- `src/ingress/webrtc_http_server.cpp`: `GET /ops/api/source-registry/snapshot` route를 추가했습니다. 이 route는 `require_ops_principal()`로 보호되고 `Cache-Control: no-store`를 설정하며, source registry write 또는 PublishedView write를 수행하지 않습니다.
+- `scripts/internal/verify_v330_source_registry_snapshot_identity.mjs`, `server.sh`: `./server.sh verify-v330-source-registry-snapshot-identity` 명령을 추가해 read model, route guard, no-store, client/viewer 비노출 경계, backlog/stream verification/release records/feature inventory/server dispatch 연결을 정적 검증합니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`: `SRC-033`, `SAFE-114`, `OPS-081` 기능/경계/gate 항목을 추가하고 안정화 verifier 연결을 갱신했습니다.
+- 검증: 최초 `node scripts/internal/verify_v330_source_registry_snapshot_identity.mjs`는 Step 2 read model, route, docs/inventory/server dispatch가 아직 없어서 `pass=0 fail=9`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v330 Step 2 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 2는 Source Registry Snapshot and Identity read model/API/verifier 연결입니다. Source Onboarding Quality Summary, Reliability Timeline and Health History, Incident-to-Source Correlation Layer, Operator Recheck and Recovery Queue, Client-safe Source Status Digest, Source Reliability Search and Metrics 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence도 아닙니다.
 
 ## 최신 published baseline 상세: v3.2.0 Operations Resolution Workspace
 

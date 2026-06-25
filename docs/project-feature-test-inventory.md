@@ -26,12 +26,12 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 613 |
+| 전체 기능 항목 | 616 |
 | UI 직접 필요 | 325 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 257 |
-| 테스트 필요 | 613 |
-| 안정화 대상 | 603 |
+| UI 비대상 | 260 |
+| 테스트 필요 | 616 |
+| 안정화 대상 | 606 |
 | UI 풀테스트 대상 | 345 |
 | 30분 soak 대상 | 49 |
 | 120분 대상 | 7 |
@@ -42,7 +42,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 611개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 616개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -63,6 +63,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | Roadmap scope | Feature IDs | 대표 안정화 verifier | release evidence boundary |
 | --- | --- | --- | --- |
 | v3.3.0 (1) v3.3.0 roadmap/source baseline 정렬 | `OPS-080`, `SAFE-113` | `verify-v330-entry-baseline`, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets` | source `3.3.0`, latest published `v3.2.0`, current roadmap `v3.3.0 Live Source Reliability Workspace` 정렬 기준. v3.3 기능 구현, UI 풀테스트, 30분/120분, GitHub Release publish evidence가 아님 |
+| v3.3.0 (2) Source Registry Snapshot and Identity | `SRC-033`, `SAFE-114`, `OPS-081` | `verify-v330-source-registry-snapshot-identity` | `/ops/api/source-registry/snapshot`의 Ops-only read model이 sourceId, source kind, PublishedView 연결, canonical source key, owner/site/group context를 조합하는지 확인합니다. source registry write, PublishedView write, viewer/client 노출, onboarding quality, reliability timeline, incident correlation, recovery queue, client digest, search/metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 
 ## v3.2.0 Operations Resolution Workspace Coverage Mapping
 
@@ -219,7 +220,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | --- | --- | --- | --- |
 | `UI-*` | `src/ingress/product_ui_*`, `src/ingress/webrtc_http_server.cpp` | Auth/Ops/Client shell | UI/auth/ops/v250 verifier family |
 | `AUTH-*` | `src/ingress/http_auth.cpp`, product auth pages/users scripts | `/setup`, `/login`, `/password/change`, `/invite/setup`, `/ops/users` | auth verifier family |
-| `SRC-*` | source registry/factory/ONVIF import/ops source scripts | `/ops/sources`, `/client/live`, `/client/dashboard` | source/ONVIF/UI verifier family |
+| `SRC-*` | source registry/factory/ONVIF import/ops source scripts | `/ops/sources`, `/ops/api/source-registry/snapshot`, `/client/live`, `/client/dashboard` | source/ONVIF/UI verifier family |
 | `RULE-*` | analysis query/scenario/rule engine | `/ops/rules`, `/client/live` overlay | rule/VA verifier family |
 | `EVT-*` | event manager/storage/webrtc HTTP server | `/ops/dashboard`, `/ops/events`, `/ops/home` | event/VLM/v250 verifier family |
 | `CLIENT-*` | client UI scripts/CSS, WebRTC egress/session | `/client/live`, `/client/dashboard`, `/client/request-access` | client/UI verifier family |
@@ -234,14 +235,14 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | --- | --- | --- |
 | `UI-001`~`UI-018`, `UI-022`~`UI-069` | auth, Ops, Client, VLM, v250/v260/v270/v280/v300/v310/v320 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
 | `AUTH-001`~`AUTH-042` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
-| `SRC-001`~`SRC-032` | source/ONVIF/UI verifier family | ONVIF field success는 approved environment only |
+| `SRC-001`~`SRC-033` | source/ONVIF/UI verifier family | ONVIF field success는 approved environment only |
 | `RULE-001`~`RULE-104` | rule/VA verifier family | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
 | `EVT-001`~`EVT-070` | event/VLM/v250/v260/v270/v280/v300/v310/v320 verifier family | event log 육안 확인은 UI 풀테스트 |
 | `CLIENT-001`~`CLIENT-027` | client/UI verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-021` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
 | `LAB-001`~`LAB-089` | lab/VLM/v250/v260/v270/v280/v300/v310 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-113` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-080` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
+| `SAFE-001`~`SAFE-114` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-081` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
 
 ## VA Manual UI Seed Matrix
 
@@ -442,6 +443,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SRC-030 | viewer에게 developer URL 비노출 | 필요 | 필요 | 안정화, UI | client 화면에 Developer URL이 보이지 않음 |
 | SRC-031 | ONVIF credential binding/store gate | 간접 | 필요 | 안정화, UI | `/ops/api/onvif/import-draft`가 `credentialGate` summary만 반환하고 `source:write` guard, URL credential reject, SourceRegistry/PublishedView secret field 비저장을 유지함 |
 | SRC-032 | Evidence intake source health readiness | 간접 | 필요 | 안정화, UI | v2.8.0 evidence intake가 source health recheck 준비 상태를 표시하되 source registry write, credential 원문 저장, external endpoint 성공 보장, Event POST/WebRTC/SSE/WS/media path 변경을 만들지 않음 |
+| SRC-033 | V330 Step 2 Source Registry Snapshot and Identity | 비대상 | 필요 | 안정화 | 비대상: 제품 UI 없어야 정상. `/ops/api/source-registry/snapshot`이 sourceId, source kind, PublishedView 연결, canonical source key, owner/site/group context를 Ops-only read model로 반환하고 source registry/PublishedView write와 viewer/client 노출을 만들지 않음 |
 
 ## D. Rule, Profile, Scenario, Tracker
 
@@ -896,6 +898,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SAFE-111 | V320 Step 10 resolution search metrics boundary | 필요 | 필요 | 안정화, UI | `verify-v320-resolution-search-metrics`가 resolutionSearchMetrics context가 기존 EventRecord/Ops review/v3.2 context를 deterministic search/metric view로만 요약하고 saved view write, client digest, source URL/raw JSON/debug material, EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata schema, RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload를 변경하지 않음을 확인하되 Stabilization and Release Readiness, UI 풀테스트 직접 조작, 30분/120분, published metadata PASS로 대체하지 않음 |
 | SAFE-112 | V320 Step 11 stabilization/release readiness boundary | 비대상 | 필요 | 안정화 | `verify-v320-stabilization-release-readiness`가 v3.2 local stabilization, release evidence/not-run 경계, close-out dry-run 기록을 확인하되 UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release, field smoke PASS로 대체하지 않음을 확인함 |
 | SAFE-113 | V330 Step 1 v3.3 baseline boundary | 비대상 | 필요 | 안정화 | `verify-v330-entry-baseline`가 source `3.3.0`, latest published `v3.2.0`, current roadmap `v3.3.0 Live Source Reliability Workspace`, 1차 선택값/fallback/제외 대상, license/provenance/privacy/운영 제약, release records, inventory 연결을 확인하되 source registry snapshot/onboarding quality/reliability timeline/incident correlation/recovery queue/client digest/search metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release PASS로 대체하지 않음 |
+| SAFE-114 | V330 Step 2 source registry snapshot boundary | 비대상 | 필요 | 안정화 | `verify-v330-source-registry-snapshot-identity`가 SourceViewRegistry의 Ops-only snapshot identity read model과 `/ops/api/source-registry/snapshot` route가 sourceId/source kind/PublishedView/canonical source key/owner context를 읽기 전용으로 조합하고 source registry write, PublishedView write, EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata schema, RTSP/WebRTC media path, Rule/Profile payload, viewer/client output을 변경하지 않음을 확인하되 onboarding quality, reliability timeline, incident correlation, recovery queue, client digest, search/metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata PASS로 대체하지 않음 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -947,6 +950,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | OPS-078 | V320 Step 10 Resolution Search & Metrics 게이트 | 비대상 | 필요 | 안정화 | `verify-v320-resolution-search-metrics`가 `/ops/events` resolution search metrics UI, unifiedResolutionWorkspace.resolutionSearchMetrics view model, active filters/saved view presets/operations metrics, CSS, ops smoke, backlog/stream verification/release records/server dispatch 연결을 확인하되 Stabilization and Release Readiness, UI 풀테스트 직접 조작, 30분/120분, published metadata PASS로 대체하지 않음 |
 | OPS-079 | V320 Step 11 Stabilization and Release Readiness 게이트 | 비대상 | 필요 | 안정화 | `verify-v320-stabilization-release-readiness`가 v3.2 Step 1~10 local gates, release policy/evidence index/test records, close-out dry-run command, server dispatch 연결을 확인하되 UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release, field smoke 실행 PASS로 대체하지 않음 |
 | OPS-080 | V330 Step 1 v3.3 baseline 게이트 | 비대상 | 필요 | 안정화 | `verify-v330-entry-baseline`가 VERSION/CMake/README/docs/backlog/source roadmap을 source `3.3.0`, latest published `v3.2.0`, current roadmap `v3.3.0 Live Source Reliability Workspace` 기준으로 정렬했는지 확인하되 v3.3 기능 구현, release publish, PR/main/tag/push, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
+| OPS-081 | V330 Step 2 Source Registry Snapshot and Identity 게이트 | 비대상 | 필요 | 안정화 | `verify-v330-source-registry-snapshot-identity`가 SourceViewRegistry read model, `/ops/api/source-registry/snapshot` Ops-only route, backlog/stream verification/release records/server dispatch 연결을 확인하되 source registry write, PublishedView write, viewer/client 노출, onboarding quality, reliability timeline, incident correlation, recovery queue, client digest, search/metrics, release publish, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 

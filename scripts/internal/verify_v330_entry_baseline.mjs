@@ -106,7 +106,7 @@ check("roadmap records v3.3 Step 1 as completed baseline alignment only", () => 
     "license/provenance/privacy/운영 검토 결과",
     "viewer/client에는 source 상태 요약과 viewer-safe digest만 제공하고, 운영자용 locator,",
     "| 1 | v3.3.0 (1) v3.3.0 roadmap/source baseline 정렬 | P0 | 완료 |",
-    "| 2 | v3.3.0 (2) Source Registry Snapshot and Identity | P0 | 미착수 |",
+    "| 2 | v3.3.0 (2) Source Registry Snapshot and Identity | P0 | 완료 |",
     "`./server.sh verify-v330-entry-baseline`",
     "## v3.3.0 Step 1 개발 기록",
     "Step 1은 source/version/docs/backlog/verification metadata 정렬입니다.",
@@ -156,8 +156,8 @@ check("stream verification, feature inventory, and release records expose v3.3 S
 check("inventory coverage and server entrypoint include v3.3 Step 1", () => {
   assert(files.featureCoverageVerifier.includes("verify-v330-entry-baseline"), "feature coverage verifier missing V330 command");
   assert(files.projectInventoryVerifier.includes("SAFE-113") && files.projectInventoryVerifier.includes("OPS-080"), "project inventory verifier missing V330 IDs");
-  assert(files.projectInventoryVerifier.includes("`SAFE-001`~`SAFE-113`"), "project inventory verifier missing V330 SAFE range");
-  assert(files.projectInventoryVerifier.includes("`OPS-035`~`OPS-080`"), "project inventory verifier missing V330 OPS range");
+  assert(files.projectInventoryVerifier.includes("`SAFE-001`~`SAFE-114`"), "project inventory verifier missing V330 SAFE range");
+  assert(files.projectInventoryVerifier.includes("`OPS-035`~`OPS-081`"), "project inventory verifier missing V330 OPS range");
   assert(files.server.includes("verify-v330-entry-baseline"), "server.sh missing V330 command");
   assert(files.server.includes("verify_v330_entry_baseline.mjs"), "server.sh missing V330 script dispatch");
 });
