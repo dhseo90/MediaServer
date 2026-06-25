@@ -40,11 +40,20 @@
 | V250-S08 | `./server.sh verify-v250-redacted-incident-evidence-bundle` | release-safe manifest-only evidence bundle guard |
 | V250-S09 | `./server.sh verify-v250-owner-release-readiness` | owner decomposition/release readiness local gate |
 
-## 현재 v3.2.0 verifier
+## 현재 v3.3.0 verifier
 
-아래 명령은 v3.2.0 roadmap의 현재 문서/source baseline gate입니다. 후속 항목은
+아래 명령은 v3.3.0 roadmap의 현재 문서/source baseline gate입니다. 후속 항목은
 각 step 구현 때 실제 command, route/control/action, script inventory를 연결한 뒤에만
 PASS 근거로 사용합니다.
+
+| Step | Command | Scope |
+| --- | --- | --- |
+| v3.3.0 (1) | `./server.sh verify-v330-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | source `3.3.0`, latest published `v3.2.0`, current roadmap `v3.3.0 Live Source Reliability Workspace` 정렬. v3.3 기능 구현, UI 풀테스트, 30분/120분, published metadata, tag, push, GitHub Release evidence가 아님 |
+
+## 최신 published baseline v3.2.0 verifier
+
+아래 명령은 v3.2.0 published baseline 구현 단계에서 추가된 verifier입니다. v3.3.0
+완료 evidence로 재사용하지 않습니다.
 
 | Step | Command | Scope |
 | --- | --- | --- |

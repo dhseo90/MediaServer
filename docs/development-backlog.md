@@ -10,22 +10,126 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.2.0`
+- 현재 소스 버전: `3.3.0`
 - 최신 공개 GitHub Release: `v3.2.0`
 - `v3.2.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap: `v3.2.0 Operations Resolution Workspace`
+- 현재 source roadmap: `v3.3.0 Live Source Reliability Workspace`
+- 최신 published baseline: `v3.2.0 Operations Resolution Workspace`
 
-## 현재 source roadmap: v3.2.0 Operations Resolution Workspace
+## 현재 source roadmap: v3.3.0 Live Source Reliability Workspace
+
+상태: Step 1 source/version/docs/backlog/verification metadata 정렬 완료. Step 2 이후
+기능 구현은 미착수입니다. 현재 source version은 `3.3.0`이고, 최신 published baseline은
+`v3.2.0` Operations Resolution Workspace입니다. 이 절은 v3.3.0 개발 이슈와 현재
+step evidence를 정리한 문서이며, Step 2 이후 기능 구현 완료 evidence가 아닙니다.
+
+직접 답: v3.3.0의 1차 선택값은 `Live Source Reliability Workspace`입니다.
+v3.0이 이벤트 증거와 검색을 만들고, v3.1이 재생/공유를 보강하고, v3.2가 사건을
+닫는 운영 workspace를 정리했다면, v3.3은 사건의 원인이 된 live source 상태와
+source 등록 품질을 운영자가 같은 흐름에서 재확인하고 닫는 단계가 자연스럽습니다.
+
+fallback 또는 축소 대안은 `Source Reliability Core`입니다. 이 대안은 source registry
+snapshot, source onboarding quality summary, reliability timeline까지만 먼저 닫고
+incident correlation, recovery queue, client digest, metrics는 후속 step evidence가
+생길 때까지 보류합니다.
+
+브레인스토밍 후보:
+
+| 후보 | 판단 | 이유 |
+| --- | --- | --- |
+| Live Source Reliability Workspace | 1차 선택 | README와 docs가 현재 제품 경계를 live source onboarding, live source health, live VA event 품질로 설명하고, v3.2 `/ops/events` resolution workspace 뒤에 source 원인/재확인 흐름을 붙이기 좋음 |
+| ONVIF Field Readiness Workspace | 보류 | ONVIF fixture와 정책 문서는 충분하지만 실장비 endpoint/credential 의존도가 커서 source-only local roadmap의 중심축으로 삼기에는 외부 조건이 큼 |
+| VLM Operator Assist Expansion | 보류 | VLM 후보, profile, evaluation, review action 문서가 이미 많지만 runtime/model/provider 품질과 외부 전송 판단이 따라와야 하므로 v3.3의 기본 축보다는 보조 개선에 가까움 |
+| Runtime/Model Bundle RC Expansion | 제외 | 현재 공개 형태가 source-only이고 runtime/model bundle RC는 별도 rehearsal 성격이 강해 live 운영 문제 해결 흐름보다 우선순위가 낮음 |
+
+포함 범위:
+
+- v3.3.0 source roadmap baseline 정렬
+- source registry snapshot과 source identity/read model
+- source onboarding quality summary와 pre-save validation 결과 표시
+- source reliability timeline과 health history
+- v3.2 resolution event와 source reliability context의 연결
+- operator recheck/retry/recovery queue
+- client-safe source status digest
+- source reliability search, filters, and metrics
+- backup/recovery handoff에 필요한 source registry/health 검증 입력
+- operator runbook과 source reliability handoff 문서
+
+비범위:
+
+- VMS/NVR 제품군으로 확장
+- 장기 녹화, broad archive playback/search, Profile G recording/replay
+- 자동 승인/자동 조치 적용
+- runtime/model bundle 배포
+- VLM runtime/provider 또는 ONVIF 실장비 성공 보장
+- viewer/client에 운영자용 source locator, credential, 내부 진단 원문 노출
+
+제외 대상과 제외 사유:
+
+- ONVIF 실장비 중심 roadmap: 실장비와 credential 준비가 source-only local 개발 범위의
+  기본 전제가 아니므로 v3.3 중심축에서 제외합니다. 단, source onboarding quality와
+  field readiness 상태는 v3.3 source workspace 안의 context로 연결할 수 있습니다.
+- VLM default-on 또는 provider 품질 중심 roadmap: 모델/runtime/provider 품질 판단이
+  필요하고 source reliability 문제 해결과 직접 연결되는 범위가 제한적이어서 제외합니다.
+- Runtime/model bundle release: 배포 형태 변경과 artifact provenance 검토가 핵심이라
+  live 운영 workflow 개선인 v3.3 목적과 다릅니다.
+- 자동 recovery/action 적용: v3.3은 운영자가 source 상태를 재확인하고 조치 후보를
+  판단하는 workspace이며, 자동 mutation이나 외부 조치 실행을 기본 산출물로 삼지 않습니다.
+
+license/provenance/privacy/운영 검토 결과:
+
+- 기본 공개 형태는 source-only이며 binary, runtime, model bundle을 v3.3 기본 release
+  asset으로 포함하지 않습니다.
+- source registry, PublishedView, source health, EventRecord, Ops audit에 이미 존재하는
+  저장/노출 경계를 우선 재사용합니다.
+- viewer/client에는 source 상태 요약과 viewer-safe digest만 제공하고, 운영자용 locator,
+  credential reference, raw diagnostic material은 포함하지 않습니다.
+- 외부 ONVIF, WHEP, TURN, cloud/VLM provider 결과는 endpoint와 credential이 있는
+  별도 field evidence가 있을 때만 운영 사실로 분리합니다.
+
+| Step | 제목 | 우선순위 | 상태 | 산출물 |
+| --- | --- | --- | --- | --- |
+| 1 | v3.3.0 (1) v3.3.0 roadmap/source baseline 정렬 | P0 | 완료 | VERSION/CMake/docs/backlog/source roadmap과 `verify-v330-entry-baseline` 기준 정렬 |
+| 2 | v3.3.0 (2) Source Registry Snapshot and Identity | P0 | 미착수 | sourceId, source kind, PublishedView 연결, canonical source key, owner/site/group context를 읽기 모델로 정리 |
+| 3 | v3.3.0 (3) Source Onboarding Quality Summary | P0 | 미착수 | 채널 저장 전 validation, 중복/충돌/누락/ready 상태, ONVIF/WHEP/RTSP 입력 품질 요약 |
+| 4 | v3.3.0 (4) Reliability Timeline and Health History | P0 | 미착수 | live/stale/offline/reconnect/source warning 변화 이력과 Ops audit 연결 |
+| 5 | v3.3.0 (5) Incident-to-Source Correlation Layer | P1 | 미착수 | v3.2 resolution event detail에서 source reliability 원인/context를 함께 표시 |
+| 6 | v3.3.0 (6) Operator Recheck and Recovery Queue | P1 | 미착수 | failed-only recheck, retry candidate, recovery checklist, dry-run 결과와 operator note 연결 |
+| 7 | v3.3.0 (7) Client-safe Source Status Digest | P1 | 미착수 | viewer/client에 허용되는 source status summary와 connection health digest |
+| 8 | v3.3.0 (8) Source Reliability Search and Metrics | P2 | 미착수 | source health filter, saved reliability view, reconnect/stale/offline metric summary |
+| 9 | v3.3.0 (9) Ops Backup and Recovery Source Handoff | P2 | 미착수 | source registry, PublishedView, source health snapshot, recovery validation plan 연결 |
+| 10 | v3.3.0 (10) Operator Runbook and Reliability Handoff | P1 | 미착수 | source reliability workspace 사용 흐름, 운영자 runbook, docs index/UI guide/config/backup 문서 연결 |
+
+완료 경계: Step 1은 source/version/docs/backlog/verification metadata 정렬입니다.
+Step 2 이후 각 step은 실제 코드/UI/API/문서 산출물이 생긴 뒤에만 완료로 기록합니다.
+현재 Step 1 기록은 source registry snapshot, onboarding quality, reliability timeline,
+incident correlation, recovery queue, client digest, search/metrics 구현 완료 evidence가 아닙니다.
+`v3.3.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
+
+## v3.3.0 Step 1 개발 기록
+
+- 범위: P0 `v3.3.0 (1) v3.3.0 roadmap/source baseline 정렬`.
+- `VERSION`, `CMakeLists.txt`: 현재 source version과 CMake project version을 `3.3.0`으로 정렬했습니다.
+- `README.md`, `README.en.md`, `docs/README.md`, `docs/en/README.md`, `docs/versioning-policy.md`, `docs/release-policy.md`, `docs/public-repo-final-review.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`: 현재 source roadmap을 `v3.3.0 Live Source Reliability Workspace`로 전환하고 latest published release는 `v3.2.0` source-only GitHub Release로 보존했습니다.
+- `docs/development-backlog.md`: v3.3.0 current roadmap을 `Step | 제목 | 우선순위 | 상태 | 산출물` 구조로 정렬하고, `Live Source Reliability Workspace` 1차 선택값, `Source Reliability Core` fallback, 제외 대상, license/provenance/privacy/운영 제약을 기록했습니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`, `config/docs_ui_assets.json`, `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`: current release target, docs asset baseline, seed fixture, verification catalog, release records를 source `3.3.0`와 latest published `v3.2.0` 분리 기준으로 정렬했습니다.
+- `scripts/internal/verify_release_metadata_consistency.mjs`: `verify-release-metadata`가 source `3.3.0`, current roadmap `v3.3.0 Live Source Reliability Workspace`, latest published `v3.2.0`을 분리 검증하도록 보정했습니다.
+- `scripts/internal/verify_v330_entry_baseline.mjs`, `server.sh`: `./server.sh verify-v330-entry-baseline` 명령을 추가해 source `3.3.0`, latest published `v3.2.0`, current roadmap `v3.3.0 Live Source Reliability Workspace`, 1차 선택값/fallback/제외 대상, license/provenance/privacy/운영 제약, feature inventory, release test records 연결을 정적 검증합니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`: `OPS-080`, `SAFE-113`, V330 Step 1 안정화 verifier, 저장소 보존형 테스트 결과를 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v330_entry_baseline.mjs`는 source version/docs/inventory/server dispatch가 아직 v3.3 기준이 아니어서 `pass=0 fail=7`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v330 Step 1 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 1은 source/version/docs/backlog/verification metadata 정렬입니다. v3.3 기능 구현, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다.
+
+## 최신 published baseline 상세: v3.2.0 Operations Resolution Workspace
 
 상태: `v3.2.0` Step 1 source baseline 정렬, Step 2 Resolution State Contract,
 Step 3 Unified Ops Events Workspace, Step 4 Evidence Quality Layer, Step 5 Source Reliability Context,
 Step 6 AI Review Quality Context, Step 7 Operator Resolution Flow, Step 8 Action Readiness Checklist,
 Step 9 Client-safe Resolution Digest, Step 10 Resolution Search & Metrics local/static 구현 완료,
-Step 11 Stabilization and Release Readiness local gate 연결 완료. 이 절은 v3.2.0 전체 기능
-완료 evidence가 아니며, 실제 기능 구현은 각 Step별 코드/UI/API/검증 evidence가 생긴
-뒤에만 완료로 기록합니다. Step 1 baseline 정렬 자체는 후속 v3.2 기능 구현 완료
-evidence가 아닙니다.
+Step 11 Stabilization and Release Readiness local gate 연결 완료 후 published baseline으로
+보존합니다. 이 절은 v3.3.0 current roadmap 완료 evidence가 아니며, v3.3 신규 기능은
+각 Step별 코드/UI/API/검증 evidence가 생긴 뒤에만 완료로 기록합니다. v3.2 Step 1
+baseline 정렬 자체도 후속 v3.3 기능 구현 완료 evidence가 아닙니다.
 
 직접 답: v3.2.0의 1차 선택값은 `Operations Resolution Workspace`입니다. v3.0이
 이벤트 증거를 만들고 검색하는 단계였고 v3.1이 증거를 재생·공유하는 단계였다면,

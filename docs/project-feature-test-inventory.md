@@ -1,6 +1,6 @@
 # Project Feature Test Inventory
 
-이 문서는 현재 release 목표 `v3.2.0` 기준의 기능별 테스트 분류 기준표입니다.
+이 문서는 현재 release 목표 `v3.3.0` 기준의 기능별 테스트 분류 기준표입니다.
 독자는 개발/테스트 에이전트이며, lifecycle은 active release target 동안 유지되는 test inventory입니다.
 AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, 이 문서는 기능 ID와 테스트 영역만 관리합니다.
 
@@ -26,12 +26,12 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 611 |
+| 전체 기능 항목 | 613 |
 | UI 직접 필요 | 325 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 255 |
-| 테스트 필요 | 611 |
-| 안정화 대상 | 601 |
+| UI 비대상 | 257 |
+| 테스트 필요 | 613 |
+| 안정화 대상 | 603 |
 | UI 풀테스트 대상 | 345 |
 | 30분 soak 대상 | 49 |
 | 120분 대상 | 7 |
@@ -53,12 +53,21 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | Coverage gate | `./server.sh verify-feature-inventory-coverage`가 `media-server.feature-inventory-coverage.v1` report로 기능 ID별 연결을 점검 | `missing coverage target` 누락 ID는 release gate에서 FAIL |
 | VLM current expansion | VLM route, control, action, runtime state, sidecar, privacy guard, feature-only retention을 현재 기능 ID에 연결 | 실행 증거 아님 |
 
-## v3.2.0 Operations Resolution Workspace Coverage Mapping
+## v3.3.0 Live Source Reliability Workspace Coverage Mapping
 
 이 절은 현재 active target의 계획 단계 연결만 남깁니다. 아래 행은 실행 evidence가
 아니며, 기능 구현 전에는 실제 기능 ID, route/control/action, verifier command를
 추가해야 합니다. 신규 기능 ID가 예약되어 있어도 안정화/UI 테스트를 PASS로 보고하지
 않습니다.
+
+| Roadmap scope | Feature IDs | 대표 안정화 verifier | release evidence boundary |
+| --- | --- | --- | --- |
+| v3.3.0 (1) v3.3.0 roadmap/source baseline 정렬 | `OPS-080`, `SAFE-113` | `verify-v330-entry-baseline`, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets` | source `3.3.0`, latest published `v3.2.0`, current roadmap `v3.3.0 Live Source Reliability Workspace` 정렬 기준. v3.3 기능 구현, UI 풀테스트, 30분/120분, GitHub Release publish evidence가 아님 |
+
+## v3.2.0 Operations Resolution Workspace Coverage Mapping
+
+이 절은 최신 published baseline의 기능 ID 연결입니다. 아래 행은 실행 evidence가
+아니며, v3.3.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 않습니다.
 
 | Roadmap scope | Feature IDs | 대표 안정화 verifier | release evidence boundary |
 | --- | --- | --- | --- |
@@ -231,8 +240,8 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | `CLIENT-001`~`CLIENT-027` | client/UI verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-021` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
 | `LAB-001`~`LAB-089` | lab/VLM/v250/v260/v270/v280/v300/v310 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-112` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-079` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
+| `SAFE-001`~`SAFE-113` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-080` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
 
 ## VA Manual UI Seed Matrix
 
@@ -886,6 +895,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SAFE-110 | V320 Step 9 client-safe resolution digest boundary | 필요 | 필요 | 안정화, UI | `verify-v320-client-safe-resolution-digest`가 `/client/api/views/{id}/events`와 client live/dashboard/events에 viewer-safe resolution digest만 추가하고 EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata schema, RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload, source URL/raw JSON/debug/provider/feature provenance/internal evidence/operator note/action control 노출을 변경하지 않음을 확인하되 UI 풀테스트 직접 조작, 30분/120분, search/metrics, published metadata PASS로 대체하지 않음 |
 | SAFE-111 | V320 Step 10 resolution search metrics boundary | 필요 | 필요 | 안정화, UI | `verify-v320-resolution-search-metrics`가 resolutionSearchMetrics context가 기존 EventRecord/Ops review/v3.2 context를 deterministic search/metric view로만 요약하고 saved view write, client digest, source URL/raw JSON/debug material, EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata schema, RTSP/WebRTC media path, Auth/Role/Scope, Rule/Profile payload를 변경하지 않음을 확인하되 Stabilization and Release Readiness, UI 풀테스트 직접 조작, 30분/120분, published metadata PASS로 대체하지 않음 |
 | SAFE-112 | V320 Step 11 stabilization/release readiness boundary | 비대상 | 필요 | 안정화 | `verify-v320-stabilization-release-readiness`가 v3.2 local stabilization, release evidence/not-run 경계, close-out dry-run 기록을 확인하되 UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release, field smoke PASS로 대체하지 않음을 확인함 |
+| SAFE-113 | V330 Step 1 v3.3 baseline boundary | 비대상 | 필요 | 안정화 | `verify-v330-entry-baseline`가 source `3.3.0`, latest published `v3.2.0`, current roadmap `v3.3.0 Live Source Reliability Workspace`, 1차 선택값/fallback/제외 대상, license/provenance/privacy/운영 제약, release records, inventory 연결을 확인하되 source registry snapshot/onboarding quality/reliability timeline/incident correlation/recovery queue/client digest/search metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release PASS로 대체하지 않음 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -936,6 +946,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | OPS-077 | V320 Step 9 Client-safe Resolution Digest 게이트 | 비대상 | 필요 | 안정화 | `verify-v320-client-safe-resolution-digest`가 `/client/api/views/{id}/events` `resolutionDigest`, client live/dashboard/events renderer, CSS, ops/client smoke, backlog/stream verification/release records/server dispatch 연결을 확인하되 Resolution Search & Metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata PASS로 대체하지 않음 |
 | OPS-078 | V320 Step 10 Resolution Search & Metrics 게이트 | 비대상 | 필요 | 안정화 | `verify-v320-resolution-search-metrics`가 `/ops/events` resolution search metrics UI, unifiedResolutionWorkspace.resolutionSearchMetrics view model, active filters/saved view presets/operations metrics, CSS, ops smoke, backlog/stream verification/release records/server dispatch 연결을 확인하되 Stabilization and Release Readiness, UI 풀테스트 직접 조작, 30분/120분, published metadata PASS로 대체하지 않음 |
 | OPS-079 | V320 Step 11 Stabilization and Release Readiness 게이트 | 비대상 | 필요 | 안정화 | `verify-v320-stabilization-release-readiness`가 v3.2 Step 1~10 local gates, release policy/evidence index/test records, close-out dry-run command, server dispatch 연결을 확인하되 UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release, field smoke 실행 PASS로 대체하지 않음 |
+| OPS-080 | V330 Step 1 v3.3 baseline 게이트 | 비대상 | 필요 | 안정화 | `verify-v330-entry-baseline`가 VERSION/CMake/README/docs/backlog/source roadmap을 source `3.3.0`, latest published `v3.2.0`, current roadmap `v3.3.0 Live Source Reliability Workspace` 기준으로 정렬했는지 확인하되 v3.3 기능 구현, release publish, PR/main/tag/push, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 
