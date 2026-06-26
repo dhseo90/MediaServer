@@ -1986,6 +1986,31 @@ std::string ProductUiCss() {
       line-height: 1.5;
       overflow-wrap: anywhere;
     }
+    .source-reliability-timeline-list {
+      display: grid;
+      gap: var(--space-2);
+    }
+    .source-reliability-timeline-item {
+      display: grid;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-raised);
+      overflow-wrap: anywhere;
+    }
+    .source-reliability-timeline-head {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: var(--space-2);
+      align-items: center;
+    }
+    .source-reliability-timeline-item p,
+    .source-reliability-timeline-item small {
+      margin: 0;
+      color: var(--color-text-muted);
+      line-height: 1.45;
+    }
     .validation-item.warn {
       border-color: color-mix(in srgb, var(--color-warning) 56%, var(--color-border));
     }
