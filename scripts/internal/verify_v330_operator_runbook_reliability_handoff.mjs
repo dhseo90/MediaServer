@@ -51,7 +51,7 @@ const checks = [];
 check("roadmap records v3.3 Step 8 as Operator Runbook and keeps later steps in user-provided order", () => {
   for (const snippet of [
     "| 8 | v3.3.0 (8) Operator Runbook and Reliability Handoff | P1 | 완료 | source reliability workspace 사용 흐름, 운영자 runbook, docs index/UI guide/config/backup 문서 연결 |",
-    "| 9 | v3.3.0 (9) Source Reliability Search and Metrics | P2 | 미착수 | source health filter, saved reliability view, reconnect/stale/offline metric summary |",
+    "| 9 | v3.3.0 (9) Source Reliability Search and Metrics | P2 | 완료 | source health filter, saved reliability view, reconnect/stale/offline metric summary |",
     "| 10 | v3.3.0 (10) Ops Backup and Recovery Source Handoff | P2 | 미착수 | source registry, PublishedView, source health snapshot, recovery validation plan 연결 |",
     "## v3.3.0 Step 8 개발 기록",
     "docs/live-source-health.md",
@@ -134,8 +134,8 @@ check("stream verification, feature inventory, and release records map v3.3 Step
     `v3.3.0 (8) Operator Runbook and Reliability Handoff | \`SAFE-120\`, \`OPS-087\` | \`${command}\`, \`verify-docs-links\``,
     "SAFE-120 | V330 Step 8 operator runbook reliability handoff boundary",
     "OPS-087 | V330 Step 8 Operator Runbook and Reliability Handoff 게이트",
-    "`SAFE-001`~`SAFE-120`",
-    "`OPS-035`~`OPS-087`",
+    "`SAFE-001`~`SAFE-121`",
+    "`OPS-035`~`OPS-088`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.3 Step 8");
   }
@@ -157,8 +157,8 @@ check("server entrypoint and inventory verifiers include v3.3 Step 8 command", (
   for (const id of ["SAFE-120", "OPS-087"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
-  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-120`", "project inventory SAFE range");
-  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-087`", "project inventory OPS range");
+  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-121`", "project inventory SAFE range");
+  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-088`", "project inventory OPS range");
   assertIncludes(files.scriptInventory, "verify_v330_operator_runbook_reliability_handoff.mjs", "script inventory");
 });
 

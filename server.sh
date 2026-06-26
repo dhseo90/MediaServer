@@ -284,6 +284,8 @@ Usage:
                  v3.3.0 Step 7 Client-safe Source Status Digest와 viewer redaction 경계를 검증합니다.
   verify-v330-operator-runbook-reliability-handoff
                  v3.3.0 Step 8 Operator Runbook and Reliability Handoff 문서 연결 경계를 검증합니다.
+  verify-v330-source-reliability-search-metrics
+                 v3.3.0 Step 9 Source Reliability Search and Metrics API/UI 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -1390,6 +1392,10 @@ case "${cmd}" in
   verify-v330-operator-runbook-reliability-handoff)
     require_internal verify_v330_operator_runbook_reliability_handoff.mjs
     exec "${INTERNAL_DIR}/verify_v330_operator_runbook_reliability_handoff.mjs" "$@"
+    ;;
+  verify-v330-source-reliability-search-metrics)
+    require_internal verify_v330_source_reliability_search_metrics.mjs
+    exec "${INTERNAL_DIR}/verify_v330_source_reliability_search_metrics.mjs" "$@"
     ;;
   verify-v290-final-stabilization-run)
     require_internal verify_v290_final_stabilization_run.mjs

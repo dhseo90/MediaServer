@@ -13,6 +13,10 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     const onboardingQualityList = document.querySelector('#source-onboarding-quality-list');
     const reliabilityTimelineStatus = document.querySelector('#source-reliability-timeline-status');
     const reliabilityTimelineList = document.querySelector('#source-reliability-timeline-list');
+    const sourceReliabilitySearchStatus = document.querySelector('#source-reliability-search-status');
+    const sourceReliabilitySearchFilterList = document.querySelector('#source-reliability-search-filter-list');
+    const sourceReliabilitySavedViewList = document.querySelector('#source-reliability-saved-view-list');
+    const sourceReliabilitySearchResultList = document.querySelector('#source-reliability-search-result-list');
     const channelBody = document.querySelector('#channels-body');
     const channelForm = document.querySelector('#channel-form');
     const channelPanel = document.querySelector('#channel-detail-panel');
@@ -437,6 +441,67 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
           <small>history ${escapeHtml(item.statusTransitionCount ?? 0)} · warnings ${escapeHtml(warningsText)} · latest ${escapeHtml(latest.summary || 'current health')}</small>
         </article>`;
       }).join('');
+    }
+    function renderSourceReliabilitySearchMetrics(payload = {}) {
+      const summary = payload.sourceReliabilitySearchMetricsSummary || {};
+      const filters = Array.isArray(payload.sourceHealthFilters) ? payload.sourceHealthFilters : [];
+      const savedViews = Array.isArray(payload.savedReliabilityViews) ? payload.savedReliabilityViews : [];
+      const results = Array.isArray(payload.sourceReliabilitySearchResults) ? payload.sourceReliabilitySearchResults : [];
+      const reconnectMetricSummary = payload.reconnectMetricSummary || {};
+      const staleMetricSummary = payload.staleMetricSummary || {};
+      const offlineMetricSummary = payload.offlineMetricSummary || {};
+      const boundaries = payload.boundaries || {};
+      setMetricText('sourceReliabilityMatchedMetricCount', summary.matchedSourceCount ?? 0);
+      setMetricText('sourceReliabilityReconnectMetricCount', reconnectMetricSummary.sources ?? summary.reconnectSources ?? 0);
+      setMetricText('sourceReliabilityStaleMetricCount', staleMetricSummary.sources ?? summary.stale ?? 0);
+      setMetricText('sourceReliabilityOfflineMetricCount', offlineMetricSummary.sources ?? summary.offline ?? 0);
+      setMetricText('sourceReliabilitySavedViewCount', savedViews.length || summary.savedViewCount || 0);
+      if (sourceReliabilitySearchStatus) {
+        sourceReliabilitySearchStatus.textContent =
+          `${summary.sourceCount ?? results.length ?? 0}개 source / matched ${summary.matchedSourceCount ?? 0} / reconnect ${reconnectMetricSummary.sources ?? 0} / stale ${staleMetricSummary.sources ?? 0} / offline ${offlineMetricSummary.sources ?? 0}`;
+      }
+      if (sourceReliabilitySearchFilterList) {
+        sourceReliabilitySearchFilterList.innerHTML = filters.map(filter => (
+          `<span class="source-reliability-search-card" data-source-reliability-filter="${escapeHtml(filter.key || 'all')}">
+            <strong>${escapeHtml(filter.label || filter.key || 'filter')}</strong>
+            <span>${escapeHtml(filter.matchedSourceCount ?? 0)} sources</span>
+          </span>`
+        )).join('') || '<span class="empty">filter 없음</span>';
+      }
+      if (sourceReliabilitySavedViewList) {
+        sourceReliabilitySavedViewList.innerHTML = savedViews.map(view => (
+          `<a class="source-reliability-search-card" href="${escapeHtml(view.route || '/ops/sources')}" data-source-reliability-saved-view="${escapeHtml(view.key || 'view')}">
+            <strong>${escapeHtml(view.label || view.key || 'saved view')}</strong>
+            <span>${escapeHtml(view.description || 'read-only preset')} · ${escapeHtml(view.matchedSourceCount ?? 0)} matches</span>
+          </a>`
+        )).join('') || '<span class="empty">saved view preset 없음</span>';
+      }
+      if (!sourceReliabilitySearchResultList) return;
+      const visibleItems = results
+        .filter(item => item?.healthStatus !== 'live' || Number(item?.sourceWarningCount || 0) > 0 || Number(item?.reconnectCount || 0) > 0)
+        .slice(0, 8);
+      if (visibleItems.length === 0) {
+        sourceReliabilitySearchResultList.innerHTML = '<div class="empty"><strong>live</strong><span>현재 검색 결과에 재확인 대상이 없습니다.</span></div>';
+        return;
+      }
+      sourceReliabilitySearchResultList.innerHTML = visibleItems.map(item => {
+        const warningsText = Array.isArray(item.warnings) && item.warnings.length > 0
+          ? item.warnings.join(' / ')
+          : 'warning 없음';
+        const tone = reliabilityTimelineTone(item.healthStatus, item.sourceWarningCount);
+        return `<article class="source-reliability-search-result" data-source-reliability-metric="${escapeHtml(item.filterKey || 'needs-attention')}">
+          <div class="source-reliability-timeline-head">
+            <span class="chip ${tone}">${escapeHtml(item.healthStatus || 'unknown')}</span>
+            <strong>${escapeHtml(item.displayName || item.sourceId || '-')}</strong>
+            <a class="button button-secondary button-compact" href="${escapeHtml(item.auditRoute || '/ops/sources#auditArea=channels&auditPreset=source-health-state-change')}">Audit</a>
+          </div>
+          <p>${escapeHtml(item.healthReason || 'not-checked')} · ${escapeHtml(item.sourceKind || '-')} · reconnect ${escapeHtml(item.reconnectCount ?? 0)} · score ${escapeHtml(item.attentionScore ?? 0)}</p>
+          <small>transitions ${escapeHtml(item.statusTransitionCount ?? 0)} · warnings ${escapeHtml(warningsText)}</small>
+        </article>`;
+      }).join('') + `<div class="source-reliability-search-boundary" data-source-reliability-metric="boundary">
+        <span>savedViewsPersisted: ${escapeHtml(boundaries.savedViewsPersisted === true ? 'true' : 'false')}</span>
+        <span>savedViewWritePerformed: ${escapeHtml(boundaries.savedViewWritePerformed === true ? 'true' : 'false')}</span>
+      </div>`;
     }
     function setFormDisabled(disabled) {
       const writable = canWriteSources();
@@ -892,12 +957,13 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       return { channelId, sourcePayload, viewPayload };
     }
     async function loadAll() {
-      const [sources, views, clientViews, onboardingQuality, reliabilityTimeline, principal] = await Promise.all([
+      const [sources, views, clientViews, onboardingQuality, reliabilityTimeline, reliabilitySearchMetrics, principal] = await Promise.all([
         requestJson('/ops/api/sources'),
         requestJson('/ops/api/views'),
         requestJson('/client/api/views'),
         requestJson('/ops/api/source-registry/onboarding-quality'),
         requestJson('/ops/api/source-registry/reliability-timeline'),
+        requestJson('/ops/api/source-registry/reliability-search-metrics'),
         requestJson('/auth/whoami').catch(() => null)
       ]);
       opsPrincipal = principal;
@@ -906,6 +972,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       applySourceWriteAccessUi();
       renderOnboardingQualitySummary(onboardingQuality);
       renderReliabilityTimelineHealthHistory(reliabilityTimeline);
+      renderSourceReliabilitySearchMetrics(reliabilitySearchMetrics);
       renderChannels(loadedSources, loadedViews);
       renderOpsAuditTrail('channel-audit-list', 'channels');
       if (!initializedHashChannel) {

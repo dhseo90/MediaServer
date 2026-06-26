@@ -156,8 +156,8 @@ check("stream verification, feature inventory, and release records expose v3.3 S
 check("inventory coverage and server entrypoint include v3.3 Step 1", () => {
   assert(files.featureCoverageVerifier.includes("verify-v330-entry-baseline"), "feature coverage verifier missing V330 command");
   assert(files.projectInventoryVerifier.includes("SAFE-113") && files.projectInventoryVerifier.includes("OPS-080"), "project inventory verifier missing V330 IDs");
-  assert(files.projectInventoryVerifier.includes("`SAFE-001`~`SAFE-120`"), "project inventory verifier missing V330 SAFE range");
-  assert(files.projectInventoryVerifier.includes("`OPS-035`~`OPS-087`"), "project inventory verifier missing V330 OPS range");
+  assert(files.projectInventoryVerifier.includes("`SAFE-001`~`SAFE-121`"), "project inventory verifier missing V330 SAFE range");
+  assert(files.projectInventoryVerifier.includes("`OPS-035`~`OPS-088`"), "project inventory verifier missing V330 OPS range");
   assert(files.server.includes("verify-v330-entry-baseline"), "server.sh missing V330 command");
   assert(files.server.includes("verify_v330_entry_baseline.mjs"), "server.sh missing V330 script dispatch");
 });
