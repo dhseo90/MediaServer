@@ -23,7 +23,7 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 Source Registry Snapshot and Identity 구현 완료. Step 3 Source Onboarding Quality Summary
 구현 완료. Step 4 Reliability Timeline and Health History 구현 완료. Step 5
 Incident-to-Source Correlation Layer 구현 완료. Step 6 Operator Recheck and Recovery Queue
-구현 완료. 현재 source version은 `3.3.0`이고, 최신 published baseline은 `v3.2.0`
+구현 완료. Step 7 Client-safe Source Status Digest 구현 완료. 현재 source version은 `3.3.0`이고, 최신 published baseline은 `v3.2.0`
 Operations Resolution Workspace입니다. 이 절은 v3.3.0 개발 이슈와 현재 step evidence를
 정리한 문서이며, 각 step은 실제 코드/UI/API/검증 산출물이 생긴 뒤에만 완료로 기록합니다.
 
@@ -99,7 +99,7 @@ license/provenance/privacy/운영 검토 결과:
 | 4 | v3.3.0 (4) Reliability Timeline and Health History | P0 | 완료 | live/stale/offline/reconnect/source warning 변화 이력과 Ops audit 연결 |
 | 5 | v3.3.0 (5) Incident-to-Source Correlation Layer | P1 | 완료 | v3.2 resolution event detail에서 source reliability 원인/context를 함께 표시 |
 | 6 | v3.3.0 (6) Operator Recheck and Recovery Queue | P1 | 완료 | failed-only recheck, retry candidate, recovery checklist, dry-run 결과와 operator note 연결 |
-| 7 | v3.3.0 (7) Client-safe Source Status Digest | P1 | 미착수 | viewer/client에 허용되는 source status summary와 connection health digest |
+| 7 | v3.3.0 (7) Client-safe Source Status Digest | P1 | 완료 | viewer/client에 허용되는 source status summary와 connection health digest |
 | 8 | v3.3.0 (8) Source Reliability Search and Metrics | P2 | 미착수 | source health filter, saved reliability view, reconnect/stale/offline metric summary |
 | 9 | v3.3.0 (9) Ops Backup and Recovery Source Handoff | P2 | 미착수 | source registry, PublishedView, source health snapshot, recovery validation plan 연결 |
 | 10 | v3.3.0 (10) Operator Runbook and Reliability Handoff | P1 | 미착수 | source reliability workspace 사용 흐름, 운영자 runbook, docs index/UI guide/config/backup 문서 연결 |
@@ -109,7 +109,8 @@ Step 2는 source registry identity read model/API/verifier 연결입니다. Step
 onboarding quality read model/API/UI/verifier 연결입니다. Step 4는 reliability timeline
 and health history read model/API/UI/verifier 연결입니다. Step 5는 incident-to-source
 correlation read model/UI/verifier 연결입니다. Step 6는 operator recheck recovery queue
-read model/UI/verifier 연결입니다. 아직 완료 기록이 없는 항목은 실제 코드/UI/API/문서
+read model/UI/verifier 연결입니다. Step 7은 client-safe source status digest API/UI/verifier
+연결입니다. 아직 완료 기록이 없는 항목은 실제 코드/UI/API/문서
 산출물이 생긴 뒤에만 완료로 기록합니다.
 현재 Step 1 기록은 source registry snapshot, onboarding quality, reliability timeline,
 recovery queue, client digest, search/metrics 구현 완료 evidence가 아닙니다.
@@ -188,6 +189,18 @@ recovery queue, client digest, search/metrics 구현 완료 evidence가 아닙�
 - 후속 수정: Step 6 inventory 확장 뒤 기존 v3.3 Step 1~5 verifier가 예전 누적 range 문자열을 고정 검사하지 않도록 `scripts/internal/verify_v330_entry_baseline.mjs`, `scripts/internal/verify_v330_source_registry_snapshot_identity.mjs`, `scripts/internal/verify_v330_source_onboarding_quality_summary.mjs`, `scripts/internal/verify_v330_reliability_timeline_health_history.mjs`, `scripts/internal/verify_v330_incident_source_correlation_layer.mjs`의 range 기대값을 `UI-071`/`SRC-037`/`EVT-072`/`SAFE-118`/`OPS-085` 기준으로 보정했습니다.
 - 검증: 최초 `node scripts/internal/verify_v330_operator_recheck_recovery_queue.mjs`는 Step 6 server view model, UI renderer, ops smoke marker, backlog 완료 기록, stream verification, release records, server dispatch가 아직 없어서 `pass=1 fail=8`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v330 Step 6 결과 행에 기록합니다.
 - 완료 경계: 이번 Step 6은 Operator Recheck and Recovery Queue read model/UI/verifier 연결입니다. 이번 Step 6 범위 밖 기능 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence도 아닙니다.
+
+## v3.3.0 Step 7 개발 기록
+
+- 범위: P1 `v3.3.0 (7) Client-safe Source Status Digest`.
+- `src/ingress/webrtc_http_server.cpp`: `ClientSourceStatusDigest`, `ClientSourceStatusDigestFor`, `AppendClientSafeSourceStatusDigestJson`, `ClientSourceStatusDigestJson`을 추가했습니다. 이 로직은 기존 PublishedView-scoped client access와 analysis tap snapshot을 읽어 `media-server.client.source-status-digest.v1` `sourceStatusDigest`로 sourceStatus, connectionStatus, videoFrameStatus, metadataStatus, summaryText, severity, timelineHint, lastFrameAgeMs, metadataAgeMs만 반환합니다.
+- `src/ingress/webrtc_http_server.cpp`: `ClientViewEventsJson`과 `ClientViewDashboardJson`의 `events.sourceStatusDigest`에 viewer-safe digest를 연결했습니다. 이 경로는 source registry write, PublishedView write, EventRecord write, Event POST/WebRTC DataChannel/SSE/WS metadata, RTSP/WebRTC media path, Rule/Profile payload, search/metrics를 변경하지 않습니다.
+- `src/ingress/product_ui_client_scripts.cpp`, `src/ingress/product_ui_css.cpp`: `/client/live`, `/client/dashboard`, `/client/events`에 `renderClientSafeSourceStatusDigest`, `data-testid="client-safe-source-status-digest"`, `media-server.client.source-status-digest.v1` card를 추가했습니다. UI는 source URL, raw locator, raw JSON, debug material, credential material, operator material, rule editor, action control을 읽거나 표시하지 않습니다.
+- `scripts/internal/verify_ops_client_ui_smoke.mjs`: client live/dashboard/events static smoke에 `client-safe-source-status-digest`, `sourceStatusDigest`, `viewer-safe source status digest` marker를 추가했습니다.
+- `scripts/internal/verify_v330_client_safe_source_status_digest.mjs`, `server.sh`: `./server.sh verify-v330-client-safe-source-status-digest` 명령을 추가해 client-safe source status digest API/UI/redaction 경계, backlog/stream verification/release records/manual UI/feature inventory/server dispatch 연결을 정적 검증합니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`, `docs/stream-verification.md`, `docs/manual-ui-checklist.md`, `docs/release-test-records.md`: `UI-072`, `CLIENT-028`, `SRC-038`, `SAFE-119`, `OPS-086` 기능/경계/gate 항목과 Step 7 verifier 연결을 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v330_client_safe_source_status_digest.mjs`는 Step 7 server digest, client renderer, CSS/smoke marker, backlog 완료 기록, stream verification, release records, server dispatch가 아직 없어 `pass=0 fail=7`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v330 Step 7 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 7은 Client-safe Source Status Digest API/UI/verifier 연결입니다. 이번 Step 7 범위 밖 기능 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence도 아닙니다.
 
 ## 최신 published baseline 상세: v3.2.0 Operations Resolution Workspace
 

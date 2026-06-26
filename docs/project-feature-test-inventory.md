@@ -26,13 +26,13 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 632 |
-| UI 직접 필요 | 335 |
+| 전체 기능 항목 | 637 |
+| UI 직접 필요 | 339 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 266 |
-| 테스트 필요 | 632 |
-| 안정화 대상 | 622 |
-| UI 풀테스트 대상 | 355 |
+| UI 비대상 | 267 |
+| 테스트 필요 | 637 |
+| 안정화 대상 | 627 |
+| UI 풀테스트 대상 | 359 |
 | 30분 soak 대상 | 49 |
 | 120분 대상 | 7 |
 
@@ -42,7 +42,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 632개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 637개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -68,6 +68,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | v3.3.0 (4) Reliability Timeline and Health History | `SRC-035`, `SAFE-116`, `OPS-083` | `verify-v330-reliability-timeline-health-history` | `/ops/api/source-registry/reliability-timeline`과 `/ops/sources`가 live/stale/offline/reconnect/source warning 변화 이력과 Ops audit 연결을 Ops-only로 표시하는지 확인합니다. source registry write, PublishedView write, viewer/client 노출, API/schema/media 변경, 30분/120분, published metadata evidence가 아님 |
 | v3.3.0 (5) Incident-to-Source Correlation Layer | `UI-070`, `SRC-036`, `EVT-071`, `SAFE-117`, `OPS-084` | `verify-v330-incident-source-correlation-layer`, `verify-ops-client-ui` | `/ops/api/events/reviews`와 `/ops/events`가 v3.2 resolution detail에 source reliability 원인/context, closure impact, source audit/recheck handoff를 Ops-only로 연결하는지 확인합니다. source registry write, PublishedView write, viewer/client 노출, EventRecord/Event POST/API/schema/media 변경, recovery queue, client digest, search/metrics, 30분/120분, published metadata evidence가 아님 |
 | v3.3.0 (6) Operator Recheck and Recovery Queue | `UI-071`, `SRC-037`, `EVT-072`, `SAFE-118`, `OPS-085` | `verify-v330-operator-recheck-recovery-queue`, `verify-ops-client-ui` | `/ops/api/events/reviews`와 `/ops/events`가 failed-only recheck, retry candidate, recovery checklist, dry-run 결과, operator note link를 Ops-only로 연결하는지 확인합니다. source registry write, PublishedView write, viewer/client 노출, EventRecord/Event POST/API/schema/media 변경, persistent recovery queue write, client digest, search/metrics, 30분/120분, published metadata evidence가 아님 |
+| v3.3.0 (7) Client-safe Source Status Digest | `UI-072`, `CLIENT-028`, `SRC-038`, `SAFE-119`, `OPS-086` | `verify-v330-client-safe-source-status-digest`, `verify-ops-client-ui` | `/client/api/views/{id}/events`와 client live/dashboard/events가 viewer-safe source status와 connection health digest를 표시하는지 확인합니다. source URL/raw locator/raw JSON/debug/credential/operator material, source registry write, PublishedView write, EventRecord/Event POST/API/schema/media 변경, search/metrics, 30분/120분, published metadata evidence가 아님 |
 
 ## v3.2.0 Operations Resolution Workspace Coverage Mapping
 
@@ -237,16 +238,16 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 
 | 기능 ID 범위 | 안정화 verifier 후보 | 비고 |
 | --- | --- | --- |
-| `UI-001`~`UI-018`, `UI-022`~`UI-071` | auth, Ops, Client, VLM, v250/v260/v270/v280/v300/v310/v320/v330 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
+| `UI-001`~`UI-018`, `UI-022`~`UI-072` | auth, Ops, Client, VLM, v250/v260/v270/v280/v300/v310/v320/v330 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
 | `AUTH-001`~`AUTH-042` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
-| `SRC-001`~`SRC-037` | source/ONVIF/UI verifier family | ONVIF field success는 approved environment only |
+| `SRC-001`~`SRC-038` | source/ONVIF/UI verifier family | ONVIF field success는 approved environment only |
 | `RULE-001`~`RULE-104` | rule/VA verifier family | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
 | `EVT-001`~`EVT-072` | event/VLM/v250/v260/v270/v280/v300/v310/v320/v330 verifier family | event log 육안 확인은 UI 풀테스트 |
-| `CLIENT-001`~`CLIENT-027` | client/UI verifier family | viewer 비노출은 브라우저 확인 필요 |
+| `CLIENT-001`~`CLIENT-028` | client/UI verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-021` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
 | `LAB-001`~`LAB-089` | lab/VLM/v250/v260/v270/v280/v300/v310 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-118` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-085` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
+| `SAFE-001`~`SAFE-119` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-086` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
 
 ## VA Manual UI Seed Matrix
 
@@ -365,6 +366,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | UI-069 | V320 Step 10 Resolution Search & Metrics UI | 필요 | 필요 | 안정화, UI | `/ops/events`가 `media-server.ops.v320-resolution-search-metrics.v1` 기반 active resolution filters, saved view presets, operations metric summary를 unified resolution detail 안에 표시하고 saved view write/source URL/raw JSON/debug/client exposure 없이 유지함 |
 | UI-070 | V330 Step 5 Incident-to-Source Correlation UI | 필요 | 필요 | 안정화, UI | `/ops/events`가 `media-server.ops.v330-incident-source-correlation.v1` 기반 source cause, closure impact, source handoff를 unified resolution detail 안에 표시하고 source URL/raw JSON/debug/client exposure 없이 유지함 |
 | UI-071 | V330 Step 6 Operator Recheck and Recovery Queue UI | 필요 | 필요 | 안정화, UI | `/ops/events`가 `media-server.ops.v330-operator-recheck-recovery-queue.v1` 기반 failed-only recheck, retry candidate, recovery checklist, dry-run result, operator note link를 unified resolution detail 안에 표시하고 source URL/raw JSON/debug/client exposure/자동 recovery 없이 유지함 |
+| UI-072 | V330 Step 7 Client-safe Source Status Digest UI | 필요 | 필요 | 안정화, UI | `/client/live`, `/client/dashboard`, `/client/events`가 `media-server.client.source-status-digest.v1` 기반 sourceStatus/connectionStatus/videoFrameStatus/metadataStatus/summaryText/severity/timelineHint만 표시하고 source URL/raw locator/raw JSON/debug/credential/operator material/action control을 노출하지 않음 |
 
 ## B. Auth, Account, Role, Scope
 
@@ -454,6 +456,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SRC-035 | V330 Step 4 Reliability Timeline and Health History | 필요 | 필요 | 안정화, UI | `/ops/api/source-registry/reliability-timeline`과 `/ops/sources`가 live/stale/offline/reconnect/source warning 변화 이력과 Ops audit 연결을 표시하고 raw locator/credential/client exposure/source registry write를 만들지 않음 |
 | SRC-036 | V330 Step 5 Incident-to-Source Correlation source context | 필요 | 필요 | 안정화, UI | `/ops/api/events/reviews`의 incidentSourceCorrelation이 기존 sourceReliability와 source-health-state-change audit handoff만 읽어 source 원인/context를 연결하고 raw locator/credential/client exposure/source registry write를 만들지 않음 |
 | SRC-037 | V330 Step 6 Operator Recheck and Recovery source context | 필요 | 필요 | 안정화, UI | `/ops/api/events/reviews`의 operatorRecheckRecoveryQueue가 기존 sourceReliability와 incidentSourceCorrelation만 읽어 failed-only source recheck와 retry candidate를 요약하고 raw locator/credential/client exposure/source registry write를 만들지 않음 |
+| SRC-038 | V330 Step 7 client-safe source status context | 필요 | 필요 | 안정화, UI | `/client/api/views/{id}/events`와 client dashboard payload가 PublishedView-scoped source/tap 상태만 읽어 source status와 connection health를 요약하고 source URL/raw locator/credential/client scope 외 노출/source registry write를 만들지 않음 |
 
 ## D. Rule, Profile, Scenario, Tracker
 
@@ -672,6 +675,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | CLIENT-025 | V310-S04 Client-safe event digest API/UI | 필요 | 필요 | 안정화, UI | viewer 할당 PublishedView 범위 안에서 event summaryText/eventType/status/severity/timelineHint/time만 `media-server.client.event-digest.v1`로 표시하고 source URL, raw evidence, debug material, provider material, feature provenance, encoded clip path, rule editor/action controls를 노출하지 않음 |
 | CLIENT-026 | V310-S05 Scoped Integrator Search API | 비대상 | 필요 | 안정화 | UI가 없어야 정상인 integrator-only API입니다. integrator role과 `event:read:{viewId}` scope가 있는 API client만 `/client/api/views/{id}/events/search`를 호출할 수 있고, 결과는 eventId/viewId와 digest summaryText/eventType/status/severity/timelineHint/time만 포함하며 source URL/raw evidence/debug/provider/feature provenance/encoded clip path/rule/action controls를 노출하지 않음 |
 | CLIENT-027 | V320 Step 9 Client-safe resolution digest API/UI | 필요 | 필요 | 안정화, UI | viewer 할당 PublishedView 범위 안에서 resolutionStatus/resolutionLabel/summaryText/severity/timelineHint/time만 `media-server.client.resolution-digest.v1`로 표시하고 source URL, raw evidence, debug material, provider material, feature provenance, internal evidence, operator note, rule editor/action controls를 노출하지 않음 |
+| CLIENT-028 | V330 Step 7 Client-safe source status digest API/UI | 필요 | 필요 | 안정화, UI | viewer 할당 PublishedView 범위 안에서 sourceStatus/connectionStatus/videoFrameStatus/metadataStatus/summaryText/severity/timelineHint/lastFrameAgeMs/metadataAgeMs만 `media-server.client.source-status-digest.v1`로 표시하고 source URL, raw locator, raw JSON, debug material, credential material, operator material, rule editor/action controls를 노출하지 않음 |
 
 ## G. Media And Streaming
 
@@ -915,6 +919,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SAFE-116 | V330 Step 4 reliability timeline boundary | 비대상 | 필요 | 안정화 | `verify-v330-reliability-timeline-health-history`가 current source health snapshot과 `source-health-state-change` Ops audit history를 Ops-only timeline으로 요약하고 source registry write, PublishedView write, EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata schema, RTSP/WebRTC media path, Rule/Profile payload, viewer/client output, raw locator/credential 노출을 변경하지 않음을 확인하되 incident correlation, recovery queue, client digest, search/metrics, 30분/120분, published metadata PASS로 대체하지 않음 |
 | SAFE-117 | V330 Step 5 incident source correlation boundary | 필요 | 필요 | 안정화, UI | `verify-v330-incident-source-correlation-layer`가 incidentSourceCorrelation context가 기존 resolution detail/sourceReliability/source health audit handoff를 deterministic hint로만 요약하고 source registry write, PublishedView write, EventRecord write, EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata schema, RTSP/WebRTC media path, Rule/Profile payload, recovery queue, client digest, search/metrics, viewer/client output, source URL/raw JSON/debug/raw locator/credential 노출을 변경하지 않음을 확인하되 UI 풀테스트 직접 조작, 30분/120분, published metadata PASS로 대체하지 않음 |
 | SAFE-118 | V330 Step 6 operator recheck recovery boundary | 필요 | 필요 | 안정화, UI | `verify-v330-operator-recheck-recovery-queue`가 operatorRecheckRecoveryQueue context가 기존 resolution detail/sourceReliability/incidentSourceCorrelation/operator note 상태를 deterministic queue hint로만 요약하고 source registry write, PublishedView write, EventRecord write, EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata schema, RTSP/WebRTC media path, Rule/Profile payload, persistent recovery queue write, client digest, search/metrics, viewer/client output, source URL/raw JSON/debug/raw locator/credential 노출, 자동 recovery를 변경하지 않음을 확인하되 UI 풀테스트 직접 조작, 30분/120분, published metadata PASS로 대체하지 않음 |
+| SAFE-119 | V330 Step 7 client-safe source status digest boundary | 필요 | 필요 | 안정화, UI | `verify-v330-client-safe-source-status-digest`가 `/client/api/views/{id}/events`와 client live/dashboard/events에 viewer-safe sourceStatusDigest만 추가하고 source registry write, PublishedView write, EventRecord write, EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata schema, RTSP/WebRTC media path, Rule/Profile payload, search/metrics, source URL/raw locator/raw JSON/debug/credential/operator material/action control 노출을 변경하지 않음을 확인하되 UI 풀테스트 직접 조작, 30분/120분, published metadata PASS로 대체하지 않음 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -971,6 +976,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | OPS-083 | V330 Step 4 Reliability Timeline and Health History 게이트 | 비대상 | 필요 | 안정화 | `verify-v330-reliability-timeline-health-history`가 `/ops/api/source-registry/reliability-timeline` Ops-only route, `/ops/sources` timeline/history UI, current source health snapshot, source-health-state-change Ops audit history, backlog/stream verification/release records/server dispatch 연결을 확인하되 source registry write, PublishedView write, viewer/client 노출, incident correlation, recovery queue, client digest, search/metrics, release publish, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
 | OPS-084 | V330 Step 5 Incident-to-Source Correlation Layer 게이트 | 비대상 | 필요 | 안정화 | `verify-v330-incident-source-correlation-layer`가 `/ops/api/events/reviews` incidentSourceCorrelation view model, `/ops/events` source cause/closure impact/source handoff UI, CSS, ops smoke, backlog/stream verification/release records/server dispatch 연결을 확인하되 source registry write, PublishedView write, viewer/client 노출, EventRecord/Event POST/API/schema/media 변경, recovery queue, client digest, search/metrics, release publish, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
 | OPS-085 | V330 Step 6 Operator Recheck and Recovery Queue 게이트 | 비대상 | 필요 | 안정화 | `verify-v330-operator-recheck-recovery-queue`가 `/ops/api/events/reviews` operatorRecheckRecoveryQueue view model, `/ops/events` failed-only recheck/retry candidate/recovery checklist/dry-run/operator note UI, CSS, ops smoke, backlog/stream verification/release records/server dispatch 연결을 확인하되 source registry write, PublishedView write, viewer/client 노출, EventRecord/Event POST/API/schema/media 변경, persistent recovery queue write, client digest, search/metrics, release publish, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
+| OPS-086 | V330 Step 7 Client-safe Source Status Digest 게이트 | 비대상 | 필요 | 안정화 | `verify-v330-client-safe-source-status-digest`가 `/client/api/views/{id}/events` sourceStatusDigest, client live/dashboard/events renderer, CSS, ops/client smoke, backlog/stream verification/release records/manual UI/feature inventory/server dispatch 연결을 확인하되 source registry write, PublishedView write, viewer/client 범위 밖 노출, EventRecord/Event POST/API/schema/media 변경, search/metrics, release publish, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 

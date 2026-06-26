@@ -4507,6 +4507,19 @@ struct ClientEventSummary {
     std::optional<std::int64_t> latest_event_time_ms;
 };
 
+struct ClientSourceStatusDigest {
+    bool provided{true};
+    std::string source_status{"offline"};
+    std::string connection_status{"disconnected"};
+    std::string video_frame_status{"unavailable"};
+    std::string metadata_status{"unavailable"};
+    std::string summary_text{"source offline"};
+    std::string severity{"attention"};
+    std::string timeline_hint{"source unavailable"};
+    std::optional<std::int64_t> last_frame_age_ms;
+    std::optional<std::int64_t> metadata_age_ms;
+};
+
 std::string ClientSafeDigestValue(const std::string& value, const std::string& fallback) {
     const std::string trimmed = Trim(value);
     if (trimmed.empty() || analysis::IncidentProjectionContainsForbiddenMaterial(trimmed)) {
@@ -4525,6 +4538,149 @@ bool ClientEventStatusIsActive(const std::string& status) {
     });
     return normalized != "ended" && normalized != "resolved" && normalized != "closed" &&
            normalized != "completed" && normalized != "inactive";
+}
+
+std::string ClientSourceStatusDigestSeverity(const std::string& source_status) {
+    if (source_status == "live") {
+        return "normal";
+    }
+    if (source_status == "connecting") {
+        return "info";
+    }
+    return "attention";
+}
+
+std::string ClientSourceStatusDigestSummaryText(const std::string& source_status,
+                                                const std::string& connection_status) {
+    std::string summary;
+    if (source_status == "live") {
+        summary = "source live / " + connection_status;
+    } else if (source_status == "stale") {
+        summary = "source signal stale / " + connection_status;
+    } else if (source_status == "connecting") {
+        summary = "source connecting / " + connection_status;
+    } else {
+        summary = "source offline / " + connection_status;
+    }
+    if (analysis::IncidentProjectionContainsForbiddenMaterial(summary)) {
+        return "viewer-safe source status summary";
+    }
+    return summary;
+}
+
+std::string ClientSourceStatusDigestTimelineHint(const std::string& source_status) {
+    if (source_status == "live") {
+        return "signal fresh";
+    }
+    if (source_status == "stale") {
+        return "signal delay";
+    }
+    if (source_status == "connecting") {
+        return "waiting for signal";
+    }
+    return "source unavailable";
+}
+
+ClientSourceStatusDigest ClientSourceStatusDigestFor(
+    const SourceViewRegistry::ClientViewAccess& access,
+    const auth::Principal& principal,
+    const std::vector<analysis::AnalysisManager::TapSnapshot>& taps) {
+    const auto stream_key_candidates = ClientStreamKeyCandidates(access.source);
+    const auto* tap = SelectClientDashboardTap(access, taps, stream_key_candidates);
+    const bool has_tap = tap != nullptr;
+    const bool has_frame = has_tap && tap->has_latest_frame;
+    const bool metadata_allowed =
+        access.view.show_metadata_summary &&
+        ClientPrincipalCanAccessFeature(principal, access.view.view_id, "metadata:read");
+    const bool has_metadata = has_tap && tap->latest_result.has_value();
+    const std::optional<std::int64_t> last_frame_age =
+        has_frame ? std::optional<std::int64_t>(tap->latest_frame_age_ms) : std::nullopt;
+    const std::optional<std::int64_t> metadata_age =
+        has_metadata && metadata_allowed ? std::optional<std::int64_t>(tap->latest_result_age_ms)
+                                         : std::nullopt;
+    const bool frame_stale = last_frame_age.has_value() && *last_frame_age > kClientDashboardStaleMs;
+    const bool metadata_stale = metadata_age.has_value() && *metadata_age > kClientDashboardStaleMs;
+    const bool frame_fresh = last_frame_age.has_value() && *last_frame_age <= kClientDashboardStaleMs;
+    const bool metadata_fresh = metadata_age.has_value() && *metadata_age <= kClientDashboardStaleMs;
+
+    ClientSourceStatusDigest digest;
+    digest.last_frame_age_ms = last_frame_age;
+    digest.metadata_age_ms = metadata_age;
+    if (has_tap) {
+        if (frame_fresh || metadata_fresh) {
+            digest.source_status = "live";
+        } else if (last_frame_age.has_value() || metadata_age.has_value()) {
+            digest.source_status = "stale";
+        } else {
+            digest.source_status = "connecting";
+        }
+    }
+    digest.connection_status =
+        !has_tap ? "disconnected" : (digest.source_status == "connecting" ? "connecting" : "connected");
+    digest.video_frame_status =
+        !has_tap ? "unavailable" : (!has_frame ? "connecting" : (frame_stale ? "stale" : "receiving"));
+    digest.metadata_status =
+        !metadata_allowed
+            ? "unavailable"
+            : (!has_tap ? "unavailable"
+                        : (!has_metadata ? "connecting" : (metadata_stale ? "stale" : "fresh")));
+    digest.severity = ClientSourceStatusDigestSeverity(digest.source_status);
+    digest.summary_text =
+        ClientSourceStatusDigestSummaryText(digest.source_status, digest.connection_status);
+    digest.timeline_hint = ClientSourceStatusDigestTimelineHint(digest.source_status);
+    return digest;
+}
+
+void AppendClientSafeSourceStatusDigestJson(std::ostringstream& out,
+                                            const ClientSourceStatusDigest& digest) {
+    out << "{"
+        << "\"schema\":\"media-server.client.source-status-digest.v1\","
+        << "\"provided\":" << (digest.provided ? "true" : "false") << ","
+        << "\"viewerSafe\":true,"
+        << "\"publishedViewScoped\":true,"
+        << "\"sourceUrlIncluded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"operatorMaterialIncluded\":false,"
+        << "\"ruleEditorIncluded\":false,"
+        << "\"actionControlsIncluded\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"searchMetricsChanged\":false,"
+        << "\"itemCount\":1,"
+        << "\"digestItems\":[{"
+        << "\"digestId\":\"client-source-status-1\","
+        << "\"sourceStatus\":\"" << JsonEscape(digest.source_status) << "\","
+        << "\"connectionStatus\":\"" << JsonEscape(digest.connection_status) << "\","
+        << "\"videoFrameStatus\":\"" << JsonEscape(digest.video_frame_status) << "\","
+        << "\"metadataStatus\":\"" << JsonEscape(digest.metadata_status) << "\","
+        << "\"summaryText\":\"" << JsonEscape(digest.summary_text) << "\","
+        << "\"severity\":\"" << JsonEscape(digest.severity) << "\","
+        << "\"timelineHint\":\"" << JsonEscape(digest.timeline_hint) << "\","
+        << "\"lastFrameAgeMs\":";
+    AppendNullableInt64(out, digest.last_frame_age_ms);
+    out << ",\"metadataAgeMs\":";
+    AppendNullableInt64(out, digest.metadata_age_ms);
+    out << "}]}";
+}
+
+std::string ClientSourceStatusDigestJson(
+    const SourceViewRegistry::ClientViewAccess& access,
+    const auth::Principal& principal,
+    const std::vector<analysis::AnalysisManager::TapSnapshot>& taps) {
+    std::ostringstream out;
+    AppendClientSafeSourceStatusDigestJson(out, ClientSourceStatusDigestFor(access, principal, taps));
+    return out.str();
 }
 
 ClientEventItem ParseClientEventItem(const std::string& raw) {
@@ -4925,7 +5081,9 @@ void AppendClientSafeResolutionDigestJson(std::ostringstream& out,
     out << "]}";
 }
 
-void AppendClientEventSummaryJson(std::ostringstream& out, const ClientEventSummary& summary) {
+void AppendClientEventSummaryJson(std::ostringstream& out,
+                                  const ClientEventSummary& summary,
+                                  const std::string& source_status_digest_json = "") {
     out << "{"
         << "\"provided\":" << (summary.provided ? "true" : "false") << ","
         << "\"storageEnabled\":" << (summary.storage_enabled ? "true" : "false") << ","
@@ -4960,6 +5118,9 @@ void AppendClientEventSummaryJson(std::ostringstream& out, const ClientEventSumm
     AppendClientSafeIncidentDigestJson(out, summary);
     out << ",\"followUpDigest\":";
     AppendClientSafeFollowUpDigestJson(out, summary);
+    if (!source_status_digest_json.empty()) {
+        out << ",\"sourceStatusDigest\":" << source_status_digest_json;
+    }
     out << "}";
 }
 
@@ -4999,13 +5160,18 @@ std::vector<std::string> ClientEventStreamCandidates(
     return candidates;
 }
 
-std::string ClientViewEventsJson(const SourceViewRegistry::ClientViewAccess& access, int limit) {
+std::string ClientViewEventsJson(
+    const SourceViewRegistry::ClientViewAccess& access,
+    const auth::Principal& principal,
+    const std::vector<analysis::AnalysisManager::TapSnapshot>& taps,
+    int limit) {
     const auto summary = LoadClientEventSummary(ClientEventStreamCandidates(access.source, nullptr), limit);
+    const auto source_status_digest_json = ClientSourceStatusDigestJson(access, principal, taps);
     std::ostringstream out;
     out << "{\"ok\":true,\"view\":";
     AppendClientViewIdentityJson(out, access);
     out << ",\"events\":";
-    AppendClientEventSummaryJson(out, summary);
+    AppendClientEventSummaryJson(out, summary, source_status_digest_json);
     out << "}";
     return out.str();
 }
@@ -5143,6 +5309,7 @@ std::string ClientViewDashboardJson(const SourceViewRegistry::ClientViewAccess& 
     if (include_events) {
         event_summary = LoadClientEventSummary(ClientEventStreamCandidates(access.source, tap), 10);
     }
+    const auto source_status_digest_json = ClientSourceStatusDigestJson(access, principal, taps);
     const std::optional<std::int64_t> latest_event_time =
         event_summary.latest_event_time_ms.has_value()
             ? event_summary.latest_event_time_ms
@@ -5182,7 +5349,7 @@ std::string ClientViewDashboardJson(const SourceViewRegistry::ClientViewAccess& 
     out << ",\"lastFrameAgeMs\":";
     AppendNullableInt64(out, last_frame_age);
     out << "},\"events\":";
-    AppendClientEventSummaryJson(out, event_summary);
+    AppendClientEventSummaryJson(out, event_summary, source_status_digest_json);
     out << "}";
     return out.str();
 }
@@ -22881,7 +23048,14 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     }
                                     const auto event_query = ParseQueryString(request.query);
                                     const int limit = ParseClampedIntQuery(event_query, "limit", 20, 1, 50);
-                                    return JsonResponse(200, "OK", ClientViewEventsJson(access, limit));
+                                    return JsonResponse(
+                                        200,
+                                        "OK",
+                                        ClientViewEventsJson(
+                                            access,
+                                            principal_result.principal,
+                                            impl_->session_manager.AnalysisTapSnapshots(),
+                                            limit));
                                 }
                                 if (IsClientViewSummaryRoute(subresource) &&
                                     IsClientViewMetadataSummaryRoute(subresource)) {

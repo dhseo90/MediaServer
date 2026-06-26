@@ -1302,6 +1302,7 @@ std::string ProductUiCss() {
     .client-safe-event-digest,
     .client-safe-incident-digest,
     .client-safe-resolution-digest,
+    .client-safe-source-status-digest,
     .client-safe-followup-digest,
     .client-safe-digest-list {
       display: grid;
@@ -1311,6 +1312,7 @@ std::string ProductUiCss() {
     .client-safe-event-digest,
     .client-safe-incident-digest,
     .client-safe-resolution-digest,
+    .client-safe-source-status-digest,
     .client-safe-followup-digest {
       padding: var(--space-3);
       border: 1px solid var(--color-border);
