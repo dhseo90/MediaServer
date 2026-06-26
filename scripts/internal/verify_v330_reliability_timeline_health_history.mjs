@@ -221,9 +221,9 @@ check("server entrypoint and inventory verifiers include v3.3 Step 4 command", (
   for (const id of ["SRC-035", "SAFE-116", "OPS-083"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
-  assertIncludes(files.projectInventoryVerifier, "`SRC-001`~`SRC-035`", "project inventory SRC range");
-  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-116`", "project inventory SAFE range");
-  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-083`", "project inventory OPS range");
+  assertIncludes(files.projectInventoryVerifier, "`SRC-001`~`SRC-036`", "project inventory SRC range");
+  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-117`", "project inventory SAFE range");
+  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-084`", "project inventory OPS range");
   assertIncludes(files.scriptInventory, "verify_v330_reliability_timeline_health_history.mjs", "script inventory");
 });
 

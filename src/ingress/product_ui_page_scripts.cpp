@@ -2706,6 +2706,45 @@ void AppendOpsShellScript(std::ostringstream& out,
           </div>
         </div>`;
       }
+      function renderV330IncidentSourceCorrelationLayer(selectedDetail = {}, incidentSourceCorrelationSummary = {}) {
+        const incidentSourceCorrelation = selectedDetail?.incidentSourceCorrelation || {};
+        const signals = Array.isArray(incidentSourceCorrelation.correlationSignals)
+          ? incidentSourceCorrelation.correlationSignals
+          : [];
+        const boundary = incidentSourceCorrelation.sourceRegistryWritePerformed === false &&
+          incidentSourceCorrelation.publishedViewWritePerformed === false &&
+          incidentSourceCorrelation.eventRecordWritePerformed === false &&
+          incidentSourceCorrelation.viewerClientExposureAdded === false &&
+          incidentSourceCorrelation.sourceUrlExposed === false &&
+          incidentSourceCorrelation.rawJsonExposed === false &&
+          incidentSourceCorrelation.debugMaterialExposed === false;
+        return `<div id="v330IncidentSourceCorrelationGrid" class="v330-incident-source-correlation-grid" data-v330-incident-source-correlation="${escapeHtml(incidentSourceCorrelation.schema || 'media-server.ops.v330-incident-source-correlation.v1')}">
+          <p class="v330-incident-source-correlation-card">
+            <strong>source cause</strong>
+            <span>${escapeHtml(display(incidentSourceCorrelation.sourceCauseCategory || 'source-context-missing'))}</span>
+            <small>${escapeHtml(display(incidentSourceCorrelation.sourceCauseSummary || 'source reliability context is missing for this incident'))}</small>
+          </p>
+          <p class="v330-incident-source-correlation-card">
+            <strong>closure impact</strong>
+            <span>${escapeHtml(display(incidentSourceCorrelation.resolutionClosureImpact || 'block-closure'))}</span>
+            <small>recheck ${incidentSourceCorrelation.sourceRecheckRequired === false ? 'not-required' : 'required'} · blocked ${escapeHtml(display(incidentSourceCorrelationSummary.closureBlocked ?? 0))} · clear ${escapeHtml(display(incidentSourceCorrelationSummary.sourceClear ?? 0))}</small>
+          </p>
+          <p class="v330-incident-source-correlation-card">
+            <strong>source handoff</strong>
+            <span>${escapeHtml(display(incidentSourceCorrelation.sourceAuditRoute || '/ops/sources#auditArea=channels&auditPreset=source-health-state-change'))}</span>
+            <small>recheck ${escapeHtml(display(incidentSourceCorrelation.sourceRecheckRoute || '/ops/api/source-health'))} · audit linked ${incidentSourceCorrelation.sourceHealthAuditLinked === true ? 'true' : '확인 필요'}</small>
+          </p>
+          <p class="v330-incident-source-correlation-card">
+            <strong>boundary</strong>
+            <span>${boundary ? 'Ops-only correlation' : 'boundary 확인 필요'}</span>
+            <small>sourceRegistryWritePerformed ${incidentSourceCorrelation.sourceRegistryWritePerformed === false ? 'false' : '확인 필요'} · eventRecordWritePerformed ${incidentSourceCorrelation.eventRecordWritePerformed === false ? 'false' : '확인 필요'}</small>
+          </p>
+          <div class="v330-correlation-signal-list">
+            ${(signals.length ? signals : ['source-health:missing']).map(item => `<span class="chip v330-correlation-signal ${String(item).includes('required') || String(item).includes('missing') ? 'warn' : 'info'}" data-v330-correlation-signal="${escapeHtml(item)}">${escapeHtml(display(item))}</span>`).join('')}
+          </div>
+          <p class="ops-rule-note">resolutionDetailAttached ${incidentSourceCorrelation.resolutionDetailAttached === true ? 'true' : '확인 필요'} · sourceReliabilityContextReused ${incidentSourceCorrelation.sourceReliabilityContextReused === true ? 'true' : '확인 필요'} · sourceHealthAuditLinked ${incidentSourceCorrelation.sourceHealthAuditLinked === true ? 'true' : '확인 필요'}</p>
+        </div>`;
+      }
       function renderV320AiReviewQualityContext(selectedDetail = {}, aiReviewQualitySummary = {}) {
         const aiReviewQuality = selectedDetail?.aiReviewQuality || {};
         const signals = Array.isArray(aiReviewQuality.signals) ? aiReviewQuality.signals : [];
@@ -2913,6 +2952,8 @@ void AppendOpsShellScript(std::ostringstream& out,
           { text: unifiedResolutionWorkspace.evidenceQualitySummary?.schema || 'media-server.ops.v320-evidence-quality.v1' },
           { text: unifiedResolutionWorkspace.sourceReliabilityContextImplemented === true ? 'source reliability' : 'source reliability 확인 필요', tone: unifiedResolutionWorkspace.sourceReliabilityContextImplemented === true ? 'info' : 'warn' },
           { text: unifiedResolutionWorkspace.sourceReliabilitySummary?.schema || 'media-server.ops.v320-source-reliability-context.v1' },
+          { text: unifiedResolutionWorkspace.incidentSourceCorrelationLayerImplemented === true ? 'incident source correlation' : 'source correlation 확인 필요', tone: unifiedResolutionWorkspace.incidentSourceCorrelationLayerImplemented === true ? 'info' : 'warn' },
+          { text: unifiedResolutionWorkspace.incidentSourceCorrelationSummary?.schema || 'media-server.ops.v330-incident-source-correlation.v1' },
           { text: unifiedResolutionWorkspace.aiReviewQualityContextImplemented === true ? 'AI review quality' : 'AI review 확인 필요', tone: unifiedResolutionWorkspace.aiReviewQualityContextImplemented === true ? 'info' : 'warn' },
           { text: unifiedResolutionWorkspace.aiReviewQualitySummary?.schema || 'media-server.ops.v320-ai-review-quality-context.v1' },
           { text: unifiedResolutionWorkspace.operatorAssignmentFlowImplemented === true ? 'operator flow' : 'operator flow 확인 필요', tone: unifiedResolutionWorkspace.operatorAssignmentFlowImplemented === true ? 'info' : 'warn' },
@@ -2928,7 +2969,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         setText(
           'opsV320UnifiedWorkspaceSummary',
           resolutionQueue.length
-            ? `Unified resolution workspace · resolution queue ${resolutionQueue.length} · evidence quality · source reliability · AI review quality · action readiness checklist · detail/timeline Ops-only`
+            ? `Unified resolution workspace · resolution queue ${resolutionQueue.length} · evidence quality · source reliability · incident source correlation · AI review quality · action readiness checklist · detail/timeline Ops-only`
             : 'resolution queue, resolution detail, resolution timeline을 `/ops/events` 안에서 Ops 전용으로 확인합니다.'
         );
         if (resolutionQueue.length === 0) {
@@ -2981,6 +3022,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           </div>
           ${renderV320EvidenceQualityLayer(selectedDetail, unifiedResolutionWorkspace.evidenceQualitySummary || {})}
           ${renderV320SourceReliabilityContext(selectedDetail, unifiedResolutionWorkspace.sourceReliabilitySummary || {})}
+          ${renderV330IncidentSourceCorrelationLayer(selectedDetail, unifiedResolutionWorkspace.incidentSourceCorrelationSummary || {})}
           ${renderV320AiReviewQualityContext(selectedDetail, unifiedResolutionWorkspace.aiReviewQualitySummary || {})}
           ${renderV320OperatorResolutionFlow(selectedDetail, unifiedResolutionWorkspace.operatorResolutionFlowSummary || {})}
           ${renderV320ActionReadinessChecklist(selectedDetail, unifiedResolutionWorkspace.actionReadinessChecklistSummary || {})}

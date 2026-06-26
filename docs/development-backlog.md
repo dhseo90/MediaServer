@@ -21,7 +21,8 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 상태: Step 1 source/version/docs/backlog/verification metadata 정렬 완료. Step 2
 Source Registry Snapshot and Identity 구현 완료. Step 3 Source Onboarding Quality Summary
-구현 완료. Step 4 이후 기능 구현은 미착수입니다. 현재 source version은 `3.3.0`이고, 최신 published baseline은
+구현 완료. Step 4 Reliability Timeline and Health History 구현 완료. Step 5
+Incident-to-Source Correlation Layer 구현 완료. Step 6 이후 기능 구현은 미착수입니다. 현재 source version은 `3.3.0`이고, 최신 published baseline은
 `v3.2.0` Operations Resolution Workspace입니다. 이 절은 v3.3.0 개발 이슈와 현재
 step evidence를 정리한 문서이며, Step 3 이후 기능 구현 완료 evidence가 아닙니다.
 
@@ -95,7 +96,7 @@ license/provenance/privacy/운영 검토 결과:
 | 2 | v3.3.0 (2) Source Registry Snapshot and Identity | P0 | 완료 | `/ops/api/source-registry/snapshot`에서 sourceId, source kind, PublishedView 연결, canonical source key, owner/site/group context를 Ops-only 읽기 모델로 정리 |
 | 3 | v3.3.0 (3) Source Onboarding Quality Summary | P0 | 완료 | 채널 저장 전 validation, 중복/충돌/누락/ready 상태, ONVIF/WHEP/RTSP 입력 품질 요약 |
 | 4 | v3.3.0 (4) Reliability Timeline and Health History | P0 | 완료 | live/stale/offline/reconnect/source warning 변화 이력과 Ops audit 연결 |
-| 5 | v3.3.0 (5) Incident-to-Source Correlation Layer | P1 | 미착수 | v3.2 resolution event detail에서 source reliability 원인/context를 함께 표시 |
+| 5 | v3.3.0 (5) Incident-to-Source Correlation Layer | P1 | 완료 | v3.2 resolution event detail에서 source reliability 원인/context를 함께 표시 |
 | 6 | v3.3.0 (6) Operator Recheck and Recovery Queue | P1 | 미착수 | failed-only recheck, retry candidate, recovery checklist, dry-run 결과와 operator note 연결 |
 | 7 | v3.3.0 (7) Client-safe Source Status Digest | P1 | 미착수 | viewer/client에 허용되는 source status summary와 connection health digest |
 | 8 | v3.3.0 (8) Source Reliability Search and Metrics | P2 | 미착수 | source health filter, saved reliability view, reconnect/stale/offline metric summary |
@@ -104,10 +105,12 @@ license/provenance/privacy/운영 검토 결과:
 
 완료 경계: Step 1은 source/version/docs/backlog/verification metadata 정렬입니다.
 Step 2는 source registry identity read model/API/verifier 연결입니다. Step 3은 source
-onboarding quality read model/API/UI/verifier 연결입니다. Step 4 이후 각
+onboarding quality read model/API/UI/verifier 연결입니다. Step 4는 reliability timeline
+and health history read model/API/UI/verifier 연결입니다. Step 5는 incident-to-source
+correlation read model/UI/verifier 연결입니다. Step 6 이후 각
 step은 실제 코드/UI/API/문서 산출물이 생긴 뒤에만 완료로 기록합니다.
 현재 Step 1 기록은 source registry snapshot, onboarding quality, reliability timeline,
-incident correlation, recovery queue, client digest, search/metrics 구현 완료 evidence가 아닙니다.
+recovery queue, client digest, search/metrics 구현 완료 evidence가 아닙니다.
 `v3.3.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
 
 ## v3.3.0 Step 1 개발 기록
@@ -158,6 +161,18 @@ incident correlation, recovery queue, client digest, search/metrics 구현 완�
 - 후속 수정: 새 timeline API가 `/ops/sources` `loadAll()`에 추가되며 초기 principal 로드 전 `채널 추가` 클릭이 먼저 처리되는 timing issue가 screenshot smoke에서 드러났습니다. `resetChannelForm()`이 필요 시 `/auth/whoami`를 먼저 로드하도록 보정해 ONVIF hint/tool smoke를 재통과시켰습니다.
 - 검증: 최초 `node scripts/internal/verify_v330_reliability_timeline_health_history.mjs`는 Step 4 read model, route, UI, docs/inventory/server dispatch가 아직 없어서 `pass=0 fail=8`로 기대 실패했습니다. 최종 검증 결과와 런타임 API/UI smoke 결과는 `docs/release-test-records.md`의 v330 Step 4 결과 행에 기록합니다.
 - 완료 경계: 이번 Step 4는 Reliability Timeline and Health History read model/API/UI/verifier 연결입니다. 이번 Step 4 범위 밖 기능 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence도 아닙니다.
+
+## v3.3.0 Step 5 개발 기록
+
+- 범위: P1 `v3.3.0 (5) Incident-to-Source Correlation Layer`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV330IncidentSourceCorrelationInfo`, `OpsV330IncidentSourceCorrelationInfoFor`, `OpsV330IncidentSourceCorrelationJson`, `OpsV330IncidentSourceCorrelationSummaryJson`을 추가했습니다. 이 로직은 기존 `/ops/api/events/reviews` `unifiedResolutionWorkspace` 안에서 v3.2 `sourceReliability`, resolution state, source-health-state-change audit handoff를 읽어 `media-server.ops.v330-incident-source-correlation.v1` `incidentSourceCorrelation`과 `incidentSourceCorrelationSummary`를 반환합니다.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV320UnifiedResolutionWorkspaceItemJson`, `OpsV320DetailSectionsJson`, `OpsV320UnifiedOpsEventsWorkspaceJson`에 `incidentSourceCorrelation` item/detail section/summary와 `incidentSourceCorrelationLayerImplemented` flag를 연결했습니다. 이 경로는 source registry write, PublishedView write, EventRecord write, Event POST/WebRTC DataChannel/SSE/WS metadata, RTSP/WebRTC media path, Rule/Profile payload를 변경하지 않습니다.
+- `src/ingress/product_ui_page_scripts.cpp`, `src/ingress/product_ui_css.cpp`: `/ops/events` unified resolution detail에 `renderV330IncidentSourceCorrelationLayer`, `v330IncidentSourceCorrelationGrid`, source cause, closure impact, source handoff, boundary, correlation signal chip을 추가했습니다. source URL/raw JSON/debug/client exposure는 표시하지 않습니다.
+- `scripts/internal/verify_v330_incident_source_correlation_layer.mjs`, `server.sh`: `./server.sh verify-v330-incident-source-correlation-layer` 명령을 추가해 read model, UI hook/CSS, client/viewer 비노출 경계, backlog/stream verification/release records/feature inventory/server dispatch 연결을 정적 검증합니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`, `docs/stream-verification.md`, `docs/release-test-records.md`: `UI-070`, `SRC-036`, `EVT-071`, `SAFE-117`, `OPS-084` 기능/경계/gate 항목과 Step 5 verifier 연결을 추가했습니다.
+- 후속 수정: Step 5 inventory 확장 뒤 기존 v3.3 Step 1~4 verifier가 예전 누적 range 문자열을 고정 검사하지 않도록 `scripts/internal/verify_v330_entry_baseline.mjs`, `scripts/internal/verify_v330_source_registry_snapshot_identity.mjs`, `scripts/internal/verify_v330_source_onboarding_quality_summary.mjs`, `scripts/internal/verify_v330_reliability_timeline_health_history.mjs`의 range 기대값을 `UI-070`/`SRC-036`/`EVT-071`/`SAFE-117`/`OPS-084` 기준으로 보정했습니다.
+- 검증: 최초 `node scripts/internal/verify_v330_incident_source_correlation_layer.mjs`는 Step 5 read model, boundary block, UI renderer, backlog 완료 기록, release records final/RED 연결이 아직 없어서 `pass=4 fail=5`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v330 Step 5 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 5는 Incident-to-Source Correlation Layer read model/UI/verifier 연결입니다. 이번 Step 5 범위 밖 기능 완료 evidence가 아닙니다. Operator Recheck and Recovery Queue, Client-safe Source Status Digest, Source Reliability Search and Metrics 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence도 아닙니다.
 
 ## 최신 published baseline 상세: v3.2.0 Operations Resolution Workspace
 

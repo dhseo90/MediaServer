@@ -16086,6 +16086,182 @@ std::string OpsV320SourceReliabilitySummaryJson(
     return out.str();
 }
 
+struct OpsV330IncidentSourceCorrelationInfo {
+    std::string event_id{"unknown-event"};
+    std::string source_id{"unknown-source"};
+    std::string source_cause_category{"source-context-missing"};
+    std::string source_cause_summary{"source reliability context is missing for this incident"};
+    std::string resolution_closure_impact{"block-closure"};
+    std::string source_health_status{"source-missing"};
+    std::string source_health_reason{"source-id-missing"};
+    std::string recent_failure_context{"source-id-missing"};
+    std::string correlation_confidence{"low"};
+    int reconnect_count{0};
+    bool source_recheck_required{true};
+    bool resolution_detail_attached{true};
+    bool source_reliability_context_reused{true};
+    bool source_health_audit_linked{true};
+    std::vector<std::string> correlation_signals;
+};
+
+OpsV330IncidentSourceCorrelationInfo OpsV330IncidentSourceCorrelationInfoFor(
+    const std::string& event_json,
+    const OpsEventReviewState& resolution_state,
+    const OpsV320SourceReliabilityInfo& source_reliability) {
+    OpsV330IncidentSourceCorrelationInfo info;
+    info.event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+    if (info.event_id.empty()) {
+        info.event_id = "unknown-event";
+    }
+    info.source_id = source_reliability.source_id.empty() ? "unknown-source" : source_reliability.source_id;
+    info.source_health_status = source_reliability.source_health_status;
+    info.source_health_reason = source_reliability.source_health_reason;
+    info.recent_failure_context = source_reliability.recent_failure_context;
+    info.reconnect_count = source_reliability.reconnect_count;
+
+    const bool missing_context =
+        info.source_id == "unknown-source" ||
+        info.source_health_status == "source-missing" ||
+        info.source_health_status == "not-registered" ||
+        info.source_health_status == "source-health-unavailable";
+    const bool source_live = info.source_health_status == "live" && source_reliability.warnings.empty();
+    const bool source_warning = !source_reliability.warnings.empty();
+    info.source_recheck_required = missing_context || !source_live || source_warning;
+
+    if (missing_context) {
+        info.source_cause_category = "source-context-missing";
+        info.source_cause_summary =
+            "source registry or source health context is missing for this resolution detail";
+        info.resolution_closure_impact = "block-closure";
+        info.correlation_confidence = "low";
+    } else if (info.source_health_status != "live") {
+        info.source_cause_category = "source-health-degraded";
+        info.source_cause_summary =
+            "source health is degraded and should be checked before final resolution closure";
+        info.resolution_closure_impact =
+            OpsResolutionStatusIsClosed(resolution_state.resolution_status)
+                ? "review-closed-resolution"
+                : "requires-source-recheck";
+        info.correlation_confidence = "medium";
+    } else if (source_warning) {
+        info.source_cause_category = "source-warning";
+        info.source_cause_summary =
+            "source is live but warning context may explain this incident";
+        info.resolution_closure_impact = "review-before-closure";
+        info.correlation_confidence = "medium";
+    } else {
+        info.source_cause_category = "source-clear";
+        info.source_cause_summary =
+            "source is live with no recent source reliability warning context";
+        info.resolution_closure_impact = "supports-resolution";
+        info.correlation_confidence = "high";
+    }
+
+    info.correlation_signals.push_back("source-health:" + info.source_health_status);
+    info.correlation_signals.push_back("recent-failure:" + info.recent_failure_context);
+    info.correlation_signals.push_back("resolution:" + resolution_state.resolution_status);
+    info.correlation_signals.push_back(info.source_recheck_required ? "recheck:required"
+                                                                    : "recheck:not-required");
+    info.correlation_signals.push_back("audit:source-health-state-change");
+    return info;
+}
+
+std::string OpsV330IncidentSourceCorrelationJson(
+    const OpsV330IncidentSourceCorrelationInfo& info) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v330-incident-source-correlation.v1\","
+        << "\"eventId\":\"" << JsonEscape(info.event_id) << "\","
+        << "\"sourceId\":\"" << JsonEscape(info.source_id) << "\","
+        << "\"sourceCauseCategory\":\"" << JsonEscape(info.source_cause_category) << "\","
+        << "\"sourceCauseSummary\":\"" << JsonEscape(info.source_cause_summary) << "\","
+        << "\"resolutionClosureImpact\":\"" << JsonEscape(info.resolution_closure_impact) << "\","
+        << "\"sourceHealthStatus\":\"" << JsonEscape(info.source_health_status) << "\","
+        << "\"sourceHealthReason\":\"" << JsonEscape(info.source_health_reason) << "\","
+        << "\"recentFailureContext\":\"" << JsonEscape(info.recent_failure_context) << "\","
+        << "\"correlationConfidence\":\"" << JsonEscape(info.correlation_confidence) << "\","
+        << "\"reconnectCount\":" << info.reconnect_count << ","
+        << "\"sourceRecheckRequired\":" << (info.source_recheck_required ? "true" : "false") << ","
+        << "\"sourceAuditRoute\":\"/ops/sources#auditArea=channels&auditPreset=source-health-state-change\","
+        << "\"sourceRecheckRoute\":\"/ops/api/source-health\","
+        << "\"correlationSignals\":" << JsonStringArray(info.correlation_signals) << ","
+        << "\"resolutionDetailAttached\":true,"
+        << "\"sourceReliabilityContextReused\":true,"
+        << "\"sourceHealthAuditLinked\":true,"
+        << "\"opsOnly\":true,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false,"
+        << "\"rawLocatorExposed\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"recoveryQueueCreated\":false,"
+        << "\"clientDigestChanged\":false,"
+        << "\"searchMetricsChanged\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsV330IncidentSourceCorrelationSummaryJson(
+    const std::vector<OpsV330IncidentSourceCorrelationInfo>& items) {
+    int source_recheck_required = 0;
+    int closure_blocked = 0;
+    int source_clear = 0;
+    int source_warning = 0;
+    for (const auto& item : items) {
+        if (item.source_recheck_required) {
+            ++source_recheck_required;
+        }
+        if (item.resolution_closure_impact == "block-closure" ||
+            item.resolution_closure_impact == "requires-source-recheck") {
+            ++closure_blocked;
+        }
+        if (item.source_cause_category == "source-clear") {
+            ++source_clear;
+        }
+        if (item.source_cause_category == "source-warning" ||
+            item.source_cause_category == "source-health-degraded") {
+            ++source_warning;
+        }
+    }
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v330-incident-source-correlation.v1\","
+        << "\"status\":\"ops-v330-incident-source-correlation\","
+        << "\"itemCount\":" << items.size() << ","
+        << "\"sourceRecheckRequired\":" << source_recheck_required << ","
+        << "\"closureBlocked\":" << closure_blocked << ","
+        << "\"sourceClear\":" << source_clear << ","
+        << "\"sourceWarning\":" << source_warning << ","
+        << "\"sourceAuditRoute\":\"/ops/sources#auditArea=channels&auditPreset=source-health-state-change\","
+        << "\"sourceRecheckRoute\":\"/ops/api/source-health\","
+        << "\"resolutionDetailAttached\":true,"
+        << "\"sourceReliabilityContextReused\":true,"
+        << "\"sourceHealthAuditLinked\":true,"
+        << "\"opsOnly\":true,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false,"
+        << "\"recoveryQueueCreated\":false,"
+        << "\"clientDigestChanged\":false,"
+        << "\"searchMetricsChanged\":false"
+        << "}";
+    return out.str();
+}
+
 struct OpsV320AiReviewQualityInfo {
     std::string correction_review_signal{"pending-review"};
     std::string uncertainty_reason{"not-reviewed"};
@@ -17010,6 +17186,7 @@ std::string OpsV320DetailSectionsJson(const std::string& event_json,
                                       const OpsEventReviewState& review,
                                       const OpsV320EvidenceQualityInfo& evidence_quality,
                                       const OpsV320SourceReliabilityInfo& source_reliability,
+                                      const OpsV330IncidentSourceCorrelationInfo& incident_source_correlation,
                                       const OpsV320AiReviewQualityInfo& ai_review_quality,
                                       const OpsV320OperatorResolutionFlowInfo& operator_resolution_flow,
                                       const OpsV320ActionReadinessChecklistInfo& action_readiness_checklist) {
@@ -17061,6 +17238,13 @@ std::string OpsV320DetailSectionsJson(const std::string& event_json,
         << " / recheck " << JsonEscape(source_reliability.operator_recheck_route) << "\""
         << "},"
         << "{"
+        << "\"key\":\"incident-source-correlation\","
+        << "\"label\":\"Incident Source Correlation\","
+        << "\"status\":\"" << JsonEscape(incident_source_correlation.source_cause_category) << "\","
+        << "\"detail\":\"closure impact " << JsonEscape(incident_source_correlation.resolution_closure_impact)
+        << " / handoff /ops/sources source-health-state-change\""
+        << "},"
+        << "{"
         << "\"key\":\"ai-review-quality\","
         << "\"label\":\"AI Review Quality\","
         << "\"status\":\"" << JsonEscape(ai_review_quality.quality_badge) << "\","
@@ -17091,6 +17275,7 @@ std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_j
                                                       const std::size_t index,
                                                       const OpsV320EvidenceQualityInfo& evidence_quality,
                                                       const OpsV320SourceReliabilityInfo& source_reliability,
+                                                      const OpsV330IncidentSourceCorrelationInfo& incident_source_correlation,
                                                       const OpsV320AiReviewQualityInfo& ai_review_quality,
                                                       const OpsV320OperatorResolutionFlowInfo& operator_resolution_flow,
                                                       const OpsV320ActionReadinessChecklistInfo& action_readiness_checklist,
@@ -17120,6 +17305,8 @@ std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_j
         << "\"closeReopenLifecycle\":" << OpsResolutionStateJson(resolution_state) << ","
         << "\"evidenceQuality\":" << OpsV320EvidenceQualityJson(evidence_quality) << ","
         << "\"sourceReliability\":" << OpsV320SourceReliabilityContextJson(source_reliability) << ","
+        << "\"incidentSourceCorrelation\":"
+        << OpsV330IncidentSourceCorrelationJson(incident_source_correlation) << ","
         << "\"aiReviewQuality\":" << OpsV320AiReviewQualityContextJson(ai_review_quality) << ","
         << "\"operatorResolutionFlow\":"
         << OpsV320OperatorResolutionFlowJson(operator_resolution_flow) << ","
@@ -17133,6 +17320,7 @@ std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_j
                resolution_state,
                evidence_quality,
                source_reliability,
+               incident_source_correlation,
                ai_review_quality,
                operator_resolution_flow,
                action_readiness_checklist)
@@ -17171,6 +17359,7 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
     std::vector<std::string> items;
     std::vector<OpsV320EvidenceQualityInfo> evidence_quality_items;
     std::vector<OpsV320SourceReliabilityInfo> source_reliability_items;
+    std::vector<OpsV330IncidentSourceCorrelationInfo> incident_source_correlation_items;
     std::vector<OpsV320AiReviewQualityInfo> ai_review_quality_items;
     std::vector<OpsV320OperatorResolutionFlowInfo> operator_resolution_flow_items;
     std::vector<OpsV320ActionReadinessChecklistInfo> action_readiness_checklist_items;
@@ -17178,6 +17367,8 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
     items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
     evidence_quality_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
     source_reliability_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
+    incident_source_correlation_items.reserve(
+        std::min<std::size_t>(event_json_records.size(), 12U));
     ai_review_quality_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
     operator_resolution_flow_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
     action_readiness_checklist_items.reserve(
@@ -17196,6 +17387,12 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
             OpsV320EvidenceQualityInfoFor(event_json, review);
         const OpsV320SourceReliabilityInfo source_reliability =
             OpsV320SourceReliabilityInfoFor(event_json, source_health_snapshot);
+        const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
+        const OpsV330IncidentSourceCorrelationInfo incident_source_correlation =
+            OpsV330IncidentSourceCorrelationInfoFor(
+                event_json,
+                resolution_state,
+                source_reliability);
         const OpsV320AiReviewQualityInfo ai_review_quality =
             OpsV320AiReviewQualityInfoFor(review, evidence_quality, source_reliability);
         const OpsV320OperatorResolutionFlowInfo operator_resolution_flow =
@@ -17219,12 +17416,14 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
             index,
             evidence_quality,
             source_reliability,
+            incident_source_correlation,
             ai_review_quality,
             operator_resolution_flow,
             action_readiness_checklist,
             resolution_search_metrics));
         evidence_quality_items.push_back(evidence_quality);
         source_reliability_items.push_back(source_reliability);
+        incident_source_correlation_items.push_back(incident_source_correlation);
         ai_review_quality_items.push_back(ai_review_quality);
         operator_resolution_flow_items.push_back(operator_resolution_flow);
         action_readiness_checklist_items.push_back(action_readiness_checklist);
@@ -17253,6 +17452,8 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
         << OpsV320EvidenceQualitySummaryJson(evidence_quality_items) << ","
         << "\"sourceReliabilitySummary\":"
         << OpsV320SourceReliabilitySummaryJson(source_reliability_items) << ","
+        << "\"incidentSourceCorrelationSummary\":"
+        << OpsV330IncidentSourceCorrelationSummaryJson(incident_source_correlation_items) << ","
         << "\"aiReviewQualitySummary\":"
         << OpsV320AiReviewQualitySummaryJson(ai_review_quality_items) << ","
         << "\"operatorResolutionFlowSummary\":"
@@ -17274,6 +17475,7 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
         << "\"debugMaterialExposed\":false,"
         << "\"evidenceQualityLayerImplemented\":true,"
         << "\"sourceReliabilityContextImplemented\":true,"
+        << "\"incidentSourceCorrelationLayerImplemented\":true,"
         << "\"aiReviewQualityContextImplemented\":true,"
         << "\"operatorAssignmentFlowImplemented\":true,"
         << "\"actionReadinessChecklistImplemented\":true,"

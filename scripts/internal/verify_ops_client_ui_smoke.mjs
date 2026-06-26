@@ -163,6 +163,13 @@ const pageChecks = [
     mustNot: ['href="/ops/events"'],
   },
   {
+    name: "ops-events-incident-source-correlation-layer",
+    path: "/ops/events",
+    visualSelector: '[data-testid="ops-v320-unified-events-workspace"]',
+    must: ['data-testid="ops-events-page"', 'data-testid="ops-v320-unified-events-workspace"', 'id="v330IncidentSourceCorrelationGrid"', 'data-v330-incident-source-correlation', 'data-v330-correlation-signal', 'incidentSourceCorrelationSummary', 'incidentSourceCorrelation', 'media-server.ops.v330-incident-source-correlation.v1', 'source cause', 'closure impact', 'source handoff', 'sourceRegistryWritePerformed', 'sourceRecheckRoute', '/ops/api/events/reviews'],
+    mustNot: ['href="/ops/events"'],
+  },
+  {
     name: "ops-events-ai-review-quality-context",
     path: "/ops/events",
     visualSelector: '[data-testid="ops-v320-unified-events-workspace"]',

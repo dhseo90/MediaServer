@@ -2767,6 +2767,47 @@ std::string ProductUiCss() {
     .v320-source-reliability-warning {
       overflow-wrap: anywhere;
     }
+    .v330-incident-source-correlation-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+      gap: var(--space-2);
+      min-width: 0;
+    }
+    .v330-incident-source-correlation-card {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+      margin: 0;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: var(--color-surface);
+      overflow-wrap: anywhere;
+    }
+    .v330-incident-source-correlation-card strong {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+    .v330-incident-source-correlation-card span,
+    .v330-incident-source-correlation-card small {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .v330-incident-source-correlation-card small {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .v330-correlation-signal-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      min-width: 0;
+    }
+    .v330-correlation-signal {
+      overflow-wrap: anywhere;
+    }
     .v320-ai-review-quality-grid {
       display: grid;
       grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
