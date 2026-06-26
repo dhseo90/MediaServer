@@ -130,6 +130,49 @@ incident-to-source correlation, operator recheck recovery queue, client-safe dig
 source health snapshot 보존, recovery validation plan까지 완료했다는 뜻은 아닙니다.
 Ops Backup and Recovery Source Handoff는 별도 roadmap step evidence가 있어야 완료로 기록합니다.
 
+## Ops Backup and Recovery Source Handoff
+
+독자: 운영자, on-call, backup/recovery reviewer.
+Lifecycle: v3.3.0 Step 10 Ops Backup and Recovery Source Handoff의 source-of-truth입니다.
+이 절은 source reliability workspace 결과를 복구 handoff ticket에 묶는 기준이며,
+실제 운영 백업 생성, production restore cutover, 자동 recovery 완료 evidence가 아닙니다.
+
+검증 route:
+
+```text
+/ops/api/source-registry/backup-recovery-handoff
+```
+
+handoff bundle에 연결할 입력:
+
+| 입력 | 확인 위치 | handoff에 남길 내용 | 완료로 보지 않는 것 |
+| --- | --- | --- | --- |
+| source registry snapshot | `/ops/api/source-registry/snapshot`, `/ops/sources` | sourceId, source kind, canonical source key, owner/site/group context, enabled state | source registry write, restore 적용 |
+| PublishedView registry | `/ops/api/views`, `/ops/sources` | viewId, sourceId 연결, dashboard/events flag, allowed rules/overlays, client group, maxTiles | PublishedView write, viewer scope 자동 승인 |
+| source health snapshot | `/ops/api/source-health`, `/ops/sources` | live/connecting/stale/offline count, reconnect count, warnings, generatedAt | source health snapshot 파일 보존, 장시간 안정화 PASS |
+| recovery validation plan | `/ops/api/source-registry/backup-recovery-handoff` | registry restore validation, PublishedView restore validation, source health snapshot validation, viewer scope validation | production restore cutover, 자동 recovery |
+
+recovery validation plan은 아래 순서로 같은 change ticket에 기록합니다.
+
+1. registry restore validation: staging runtime에서 source registry를 먼저 읽고 sourceId,
+   source kind, canonical source key, owner/site/group context, JSON parse 오류를 확인합니다.
+2. PublishedView restore validation: PublishedView registry를 source registry와 함께 읽고
+   sourceId link, enabled state, dashboard/events flag, maxTiles, client scope를 확인합니다.
+3. source health snapshot validation: 복구 후 fresh source health snapshot을 캡처하고
+   handoff ticket의 stale/offline/reconnect/warning 상태와 비교합니다.
+4. viewer scope validation: `/client/api/views`와 scoped client route를 확인한 뒤 외부
+   viewer나 integrator traffic을 다시 붙입니다.
+
+경계:
+
+- 이 handoff는 source registry, PublishedView, EventRecord, Event POST payload,
+  WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path, Rule/Profile payload를 변경하지 않습니다.
+- 이 handoff는 source URL, raw locator, raw JSON, debug material, credential material을
+  client/viewer에게 노출하지 않습니다.
+- 이 handoff는 `verify-ops-backup-restore-dry-run` staging drill, real operational
+  backup, external storage replication, production restore cutover, UI 풀테스트,
+  30분/120분 장시간 안정화, published metadata 검증을 대체하지 않습니다.
+
 ## 실패 시 롤백
 
 - JSON parse 오류, 중복 source/view id, 존재하지 않는 `sourceId` 참조가 나오면 복원 파일을 덮어쓰지 말고 백업본을 그대로 보존합니다.

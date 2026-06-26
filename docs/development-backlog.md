@@ -25,7 +25,7 @@ Source Registry Snapshot and Identity 구현 완료. Step 3 Source Onboarding Qu
 Incident-to-Source Correlation Layer 구현 완료. Step 6 Operator Recheck and Recovery Queue
 구현 완료. Step 7 Client-safe Source Status Digest 구현 완료. Step 8 Operator Runbook
 and Reliability Handoff 문서 연결 완료. Step 9 Source Reliability Search and Metrics
-구현 완료. 현재 source version은 `3.3.0`이고, 최신 published baseline은 `v3.2.0`
+구현 완료. Step 10 Ops Backup and Recovery Source Handoff 구현 완료. 현재 source version은 `3.3.0`이고, 최신 published baseline은 `v3.2.0`
 Operations Resolution Workspace입니다. 이 절은 v3.3.0 개발 이슈와 현재 step evidence를
 정리한 문서이며, 각 step은 실제 코드/UI/API/검증 산출물이 생긴 뒤에만 완료로 기록합니다.
 
@@ -104,7 +104,7 @@ license/provenance/privacy/운영 검토 결과:
 | 7 | v3.3.0 (7) Client-safe Source Status Digest | P1 | 완료 | viewer/client에 허용되는 source status summary와 connection health digest |
 | 8 | v3.3.0 (8) Operator Runbook and Reliability Handoff | P1 | 완료 | source reliability workspace 사용 흐름, 운영자 runbook, docs index/UI guide/config/backup 문서 연결 |
 | 9 | v3.3.0 (9) Source Reliability Search and Metrics | P2 | 완료 | source health filter, saved reliability view, reconnect/stale/offline metric summary |
-| 10 | v3.3.0 (10) Ops Backup and Recovery Source Handoff | P2 | 미착수 | source registry, PublishedView, source health snapshot, recovery validation plan 연결 |
+| 10 | v3.3.0 (10) Ops Backup and Recovery Source Handoff | P2 | 완료 | source registry, PublishedView, source health snapshot, recovery validation plan 연결 |
 
 완료 경계: Step 1은 source/version/docs/backlog/verification metadata 정렬입니다.
 Step 2는 source registry identity read model/API/verifier 연결입니다. Step 3은 source
@@ -114,7 +114,8 @@ correlation read model/UI/verifier 연결입니다. Step 6는 operator recheck r
 read model/UI/verifier 연결입니다. Step 7은 client-safe source status digest API/UI/verifier
 연결입니다. Step 8은 operator runbook과 reliability handoff 문서 연결입니다. Step 9는
 Source Reliability Search and Metrics read model/API/UI/verifier 연결입니다. 아직 완료
-기록이 없는 Step 10은 실제 코드/UI/API/문서 산출물이 생긴 뒤에만 완료로 기록합니다.
+기록이 있는 Step 10은 Ops Backup and Recovery Source Handoff read model/API/UI/verifier
+연결입니다.
 현재 Step 1 기록은 source registry snapshot, onboarding quality, reliability timeline,
 recovery queue, client digest, search/metrics 구현 완료 evidence가 아닙니다.
 `v3.3.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
@@ -227,6 +228,18 @@ recovery queue, client digest, search/metrics 구현 완료 evidence가 아닙�
 - 후속 수정: Step 9 inventory 확장 뒤 coverage verifier와 project inventory verifier의 v3.3 feature range를 `UI-073`/`SRC-039`/`SAFE-121`/`OPS-088` 기준으로 보정했습니다.
 - 검증: 최초 `./server.sh verify-v330-source-reliability-search-metrics`는 Step 9 read model, route, UI, docs/inventory/server dispatch가 아직 없어서 `pass=0 fail=8`로 기대 실패했습니다. 코드/API/UI 추가 뒤에는 문서/inventory 연결 전 `pass=4 fail=4`로 중간 실패를 확인했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v330 Step 9 결과 행에 기록합니다.
 - 완료 경계: 이번 Step 9는 Source Reliability Search and Metrics read model/API/UI/verifier 연결입니다. Ops Backup and Recovery Source Handoff 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action, real backup/restore, field smoke 완료 evidence도 아닙니다.
+
+## v3.3.0 Step 10 개발 기록
+
+- 범위: P2 `v3.3.0 (10) Ops Backup and Recovery Source Handoff`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV330BackupRecoverySourceHandoffJson`, `BuildV330BackupRecoverySourceHandoffInputs`, `BuildV330BackupRecoveryValidationPlan`을 추가했습니다. 이 read model은 기존 SourceRegistry/PublishedView snapshot과 Ops source health snapshot을 읽어 `media-server.ops.v330-backup-recovery-source-handoff.v1` `sourceHandoffInputs`, `sourceHealthSnapshotSummary`, `recoveryValidationPlan`, `boundaries`로 반환합니다.
+- `src/ingress/webrtc_http_server.cpp`: `GET /ops/api/source-registry/backup-recovery-handoff` route를 추가했습니다. 이 route는 `require_ops_principal()`로 보호되고 `Cache-Control: no-store`를 설정하며, source registry write, PublishedView write, backup artifact persistence, recovery mutation을 수행하지 않습니다.
+- `src/ingress/webrtc_http_server.cpp`, `src/ingress/product_ui_ops_sources_script.cpp`, `src/ingress/product_ui_css.cpp`: `/ops/sources`에 `data-testid="source-backup-recovery-handoff"`, handoff input list, recovery validation plan list, source health snapshot summary, boundary flag UI를 추가했습니다. UI는 source URL/raw locator/raw JSON/debug/credential/client material을 표시하지 않습니다.
+- `docs/ops-backup-recovery.md`: Step 10 source-of-truth로 `Ops Backup and Recovery Source Handoff` 절을 추가해 source registry snapshot, PublishedView registry, source health snapshot, recovery validation plan의 확인 순서와 실제 운영 백업/production restore/자동 recovery 미완료 경계를 정리했습니다.
+- `scripts/internal/verify_v330_ops_backup_recovery_source_handoff.mjs`, `server.sh`: `./server.sh verify-v330-ops-backup-recovery-source-handoff` 명령을 추가해 read model, route guard, UI hook/CSS, backup/write/client/schema/media 불변 경계, backlog/backup guide/stream verification/release records/feature inventory/server dispatch 연결을 정적 검증합니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`, `docs/stream-verification.md`, `docs/release-test-records.md`: `UI-074`, `SRC-040`, `SAFE-122`, `OPS-089` 기능/경계/gate 항목과 Step 10 verifier 연결을 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v330_ops_backup_recovery_source_handoff.mjs`는 Step 10 read model, boundary block, route, `/ops/sources` UI, docs/inventory/server dispatch가 아직 없어 `pass=0 fail=8`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v330 Step 10 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 10은 Ops Backup and Recovery Source Handoff read model/API/UI/verifier 연결입니다. real backup/restore 완료 evidence가 아닙니다. production restore cutover, source registry/PublishedView write, source health snapshot persistence, recovery validation plan persistence, automatic recovery, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action, field smoke 완료 evidence도 아닙니다.
 
 ## 최신 published baseline 상세: v3.2.0 Operations Resolution Workspace
 

@@ -254,11 +254,11 @@ check("server entrypoint and inventory verifiers include v3.3 Step 6 command", (
   for (const id of ["UI-071", "SRC-037", "EVT-072", "SAFE-118", "OPS-085"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
-  assertIncludes(files.projectInventoryVerifier, "`UI-001`~`UI-018`, `UI-022`~`UI-073`", "project inventory UI range");
-  assertIncludes(files.projectInventoryVerifier, "`SRC-001`~`SRC-039`", "project inventory SRC range");
+  assertIncludes(files.projectInventoryVerifier, "`UI-001`~`UI-018`, `UI-022`~`UI-074`", "project inventory UI range");
+  assertIncludes(files.projectInventoryVerifier, "`SRC-001`~`SRC-040`", "project inventory SRC range");
   assertIncludes(files.projectInventoryVerifier, "`EVT-001`~`EVT-072`", "project inventory EVT range");
-  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-121`", "project inventory SAFE range");
-  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-088`", "project inventory OPS range");
+  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-122`", "project inventory SAFE range");
+  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-089`", "project inventory OPS range");
   assertIncludes(files.scriptInventory, "verify_v330_operator_recheck_recovery_queue.mjs", "script inventory");
 });
 

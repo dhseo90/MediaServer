@@ -17,6 +17,9 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     const sourceReliabilitySearchFilterList = document.querySelector('#source-reliability-search-filter-list');
     const sourceReliabilitySavedViewList = document.querySelector('#source-reliability-saved-view-list');
     const sourceReliabilitySearchResultList = document.querySelector('#source-reliability-search-result-list');
+    const sourceBackupHandoffStatus = document.querySelector('#source-backup-handoff-status');
+    const sourceBackupHandoffInputList = document.querySelector('#source-backup-handoff-input-list');
+    const sourceRecoveryValidationPlanList = document.querySelector('#source-recovery-validation-plan-list');
     const channelBody = document.querySelector('#channels-body');
     const channelForm = document.querySelector('#channel-form');
     const channelPanel = document.querySelector('#channel-detail-panel');
@@ -503,6 +506,42 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         <span>savedViewWritePerformed: ${escapeHtml(boundaries.savedViewWritePerformed === true ? 'true' : 'false')}</span>
       </div>`;
     }
+    function renderBackupRecoverySourceHandoff(payload = {}) {
+      const summary = payload.backupRecoverySourceHandoffSummary || {};
+      const sourceHealthSnapshotSummary = payload.sourceHealthSnapshotSummary || {};
+      const inputs = Array.isArray(payload.sourceHandoffInputs) ? payload.sourceHandoffInputs : [];
+      const recoveryValidationPlan = Array.isArray(payload.recoveryValidationPlan) ? payload.recoveryValidationPlan : [];
+      const boundaries = payload.boundaries || {};
+      setMetricText('sourceBackupHandoffInputCount', inputs.length);
+      setMetricText('sourceBackupHandoffRecoveryPlanCount', summary.recoveryValidationPlanCount ?? recoveryValidationPlan.length);
+      setMetricText('sourceBackupHandoffStaleCount', sourceHealthSnapshotSummary.stale ?? summary.staleSourceCount ?? 0);
+      setMetricText('sourceBackupHandoffOfflineCount', sourceHealthSnapshotSummary.offline ?? summary.offlineSourceCount ?? 0);
+      setMetricText('sourceBackupHandoffValidationReadyCount', summary.validationReadyCount ?? 0);
+      if (sourceBackupHandoffStatus) {
+        sourceBackupHandoffStatus.textContent =
+          `${summary.sourceCount ?? 0}개 source / PublishedView ${summary.publishedViewCount ?? 0} / validation ready ${summary.validationReadyCount ?? 0}`;
+      }
+      if (sourceBackupHandoffInputList) {
+        sourceBackupHandoffInputList.innerHTML = inputs.map(input => (
+          `<a class="source-backup-handoff-card" href="${escapeHtml(input.route || '/ops/sources')}" data-source-backup-handoff-input="${escapeHtml(input.key || 'input')}">
+            <strong>${escapeHtml(input.label || input.key || 'handoff input')}</strong>
+            <span>${escapeHtml(input.validationStatus || 'unknown')} · ${escapeHtml(input.validationSummary || 'restore input')}</span>
+            <small>${escapeHtml(input.source || 'source')} · affected ${escapeHtml(input.affectedSourceCount ?? 0)}</small>
+          </a>`
+        )).join('') || '<span class="empty">handoff input 없음</span>';
+      }
+      if (!sourceRecoveryValidationPlanList) return;
+      sourceRecoveryValidationPlanList.innerHTML = recoveryValidationPlan.map(item => (
+        `<a class="source-backup-handoff-card" href="${escapeHtml(item.route || '/ops/sources')}" data-source-recovery-validation-plan="${escapeHtml(item.key || 'validation')}">
+          <strong>${escapeHtml(item.label || item.key || 'validation')}</strong>
+          <span>${escapeHtml(item.status || 'unknown')}</span>
+          <small>${escapeHtml(item.summary || 'restore validation')}</small>
+        </a>`
+      )).join('') + `<div class="source-backup-handoff-boundary" data-source-recovery-validation-plan="boundary">
+        <span>sourceHealthSnapshotPersisted: ${escapeHtml(boundaries.sourceHealthSnapshotPersisted === true ? 'true' : 'false')}</span>
+        <span>recoveryValidationPlanPersisted: ${escapeHtml(boundaries.recoveryValidationPlanPersisted === true ? 'true' : 'false')}</span>
+      </div>`;
+    }
     function setFormDisabled(disabled) {
       const writable = canWriteSources();
       for (const element of Array.from(channelForm.elements)) {
@@ -957,13 +996,14 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       return { channelId, sourcePayload, viewPayload };
     }
     async function loadAll() {
-      const [sources, views, clientViews, onboardingQuality, reliabilityTimeline, reliabilitySearchMetrics, principal] = await Promise.all([
+      const [sources, views, clientViews, onboardingQuality, reliabilityTimeline, reliabilitySearchMetrics, backupRecoveryHandoff, principal] = await Promise.all([
         requestJson('/ops/api/sources'),
         requestJson('/ops/api/views'),
         requestJson('/client/api/views'),
         requestJson('/ops/api/source-registry/onboarding-quality'),
         requestJson('/ops/api/source-registry/reliability-timeline'),
         requestJson('/ops/api/source-registry/reliability-search-metrics'),
+        requestJson('/ops/api/source-registry/backup-recovery-handoff'),
         requestJson('/auth/whoami').catch(() => null)
       ]);
       opsPrincipal = principal;
@@ -973,6 +1013,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       renderOnboardingQualitySummary(onboardingQuality);
       renderReliabilityTimelineHealthHistory(reliabilityTimeline);
       renderSourceReliabilitySearchMetrics(reliabilitySearchMetrics);
+      renderBackupRecoverySourceHandoff(backupRecoveryHandoff);
       renderChannels(loadedSources, loadedViews);
       renderOpsAuditTrail('channel-audit-list', 'channels');
       if (!initializedHashChannel) {

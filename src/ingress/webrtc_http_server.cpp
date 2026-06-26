@@ -5788,6 +5788,31 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
           </div>
         </div>
       </section>
+      <section class="section-card ops-workspace-wide" data-channel-task="source-backup-recovery-handoff" data-testid="source-backup-recovery-handoff">
+        <div class="toolbar">
+          <div>
+            <h3>Backup Handoff</h3>
+            <p id="source-backup-handoff-status">backup/recovery source handoff를 확인 중입니다.</p>
+          </div>
+        </div>
+        <div id="source-backup-handoff-summary" class="metric-grid">
+          <div class="metric-card"><span>Inputs</span><strong id="sourceBackupHandoffInputCount">-</strong></div>
+          <div class="metric-card"><span>Plan</span><strong id="sourceBackupHandoffRecoveryPlanCount">-</strong></div>
+          <div class="metric-card"><span>Stale</span><strong id="sourceBackupHandoffStaleCount">-</strong></div>
+          <div class="metric-card"><span>Offline</span><strong id="sourceBackupHandoffOfflineCount">-</strong></div>
+          <div class="metric-card"><span>Ready</span><strong id="sourceBackupHandoffValidationReadyCount">-</strong></div>
+        </div>
+        <div class="source-backup-handoff-grid" data-source-backup-recovery-handoff="media-server.ops.v330-backup-recovery-source-handoff.v1">
+          <div>
+            <h4>handoff inputs</h4>
+            <div id="source-backup-handoff-input-list" class="source-backup-handoff-input-list"></div>
+          </div>
+          <div>
+            <h4>recovery validation plan</h4>
+            <div id="source-recovery-validation-plan-list" class="source-recovery-validation-plan-list"></div>
+          </div>
+        </div>
+      </section>
       <section class="section-card ops-channels-list-panel" data-channel-task="list">
         <div class="toolbar">
           <div>
@@ -13220,6 +13245,253 @@ std::string OpsV330SourceReliabilitySearchMetricsJson(
         << "\"rtspOrWebrtcMediaPathChanged\":false,"
         << "\"ruleProfilePayloadChanged\":false,"
         << "\"automaticRecoveryPerformed\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV330BackupRecoverySourceHandoffInput {
+    std::string key;
+    std::string label;
+    std::string source;
+    std::string route;
+    std::string validation_status;
+    std::string validation_summary;
+    int source_count{0};
+    int published_view_count{0};
+    int affected_source_count{0};
+};
+
+struct OpsV330BackupRecoveryValidationPlanItem {
+    std::string key;
+    std::string label;
+    std::string status;
+    std::string summary;
+    std::string route;
+};
+
+struct OpsV330BackupRecoverySourceHandoffSummary {
+    int source_count{0};
+    int published_view_count{0};
+    int source_health_snapshot_count{0};
+    int stale_source_count{0};
+    int offline_source_count{0};
+    int recovery_validation_plan_count{0};
+    int validation_ready_count{0};
+};
+
+std::vector<OpsV330BackupRecoveryValidationPlanItem> BuildV330BackupRecoveryValidationPlan(
+    const OpsSourceHealthSnapshot& source_health_snapshot,
+    int source_count,
+    int published_view_count) {
+    return {
+        {"registryRestoreValidation",
+         "Registry restore validation",
+         source_count >= 0 ? "ready" : "blocked",
+         "Restore SourceRegistry in staging, then verify source IDs, kinds, canonical keys, owner/site/group context, and parse errors before production traffic.",
+         "/ops/api/source-registry/snapshot"},
+        {"publishedViewRestoreValidation",
+         "PublishedView restore validation",
+         published_view_count >= 0 ? "ready" : "blocked",
+         "Restore PublishedView registry with the source registry and verify sourceId links, enabled state, dashboard/events flags, maxTiles, and viewer scopes.",
+         "/ops/api/views"},
+        {"sourceHealthSnapshotValidation",
+         "Source health snapshot validation",
+         source_health_snapshot.ok ? "ready" : "blocked",
+         "Capture a fresh Ops source health snapshot after restore and compare live/stale/offline/reconnect counts against the handoff ticket.",
+         "/ops/api/source-health"},
+        {"viewerScopeValidation",
+         "Viewer scope validation",
+         published_view_count >= 0 ? "ready" : "blocked",
+         "Verify restored client views through scoped client APIs before reconnecting external viewer or integrator traffic.",
+         "/client/api/views"},
+    };
+}
+
+std::vector<OpsV330BackupRecoverySourceHandoffInput> BuildV330BackupRecoverySourceHandoffInputs(
+    const OpsSourceHealthSnapshot& source_health_snapshot,
+    int source_count,
+    int published_view_count,
+    int validation_plan_count) {
+    return {
+        {"source-registry-snapshot",
+         "Source registry snapshot",
+         "SourceRegistry",
+         "/ops/api/source-registry/snapshot",
+         source_count >= 0 ? "ready" : "blocked",
+         "sourceId, source kind, canonical source key, owner/site/group context, and enabled state are captured as restore input.",
+         source_count,
+         published_view_count,
+         source_count},
+        {"published-view-registry",
+         "PublishedView registry",
+         "PublishedView",
+         "/ops/api/views",
+         published_view_count >= 0 ? "ready" : "blocked",
+         "viewId, sourceId link, scope-facing flags, allowed rules, overlays, client groups, and maxTiles are captured as restore input.",
+         source_count,
+         published_view_count,
+         published_view_count},
+        {"source-health-snapshot",
+         "Source health snapshot",
+         "Ops source health",
+         "/ops/api/source-health",
+         source_health_snapshot.ok ? "ready" : "blocked",
+         "live, connecting, stale, offline, reconnect, and warning state are captured for post-restore comparison.",
+         source_count,
+         published_view_count,
+         static_cast<int>(source_health_snapshot.items.size())},
+        {"recovery-validation-plan",
+         "Recovery validation plan",
+         "Ops backup/recovery",
+         "/ops/api/source-registry/backup-recovery-handoff",
+         validation_plan_count > 0 ? "ready" : "blocked",
+         "registry restore, PublishedView restore, source health snapshot, and viewer scope validation are linked before production cutover.",
+         source_count,
+         published_view_count,
+         validation_plan_count},
+    };
+}
+
+OpsV330BackupRecoverySourceHandoffSummary BuildV330BackupRecoverySourceHandoffSummary(
+    const OpsSourceHealthSnapshot& source_health_snapshot,
+    int source_count,
+    int published_view_count,
+    const std::vector<OpsV330BackupRecoveryValidationPlanItem>& validation_plan) {
+    OpsV330BackupRecoverySourceHandoffSummary summary;
+    summary.source_count = source_count;
+    summary.published_view_count = published_view_count;
+    summary.source_health_snapshot_count = static_cast<int>(source_health_snapshot.items.size());
+    summary.stale_source_count = source_health_snapshot.stale_count;
+    summary.offline_source_count = source_health_snapshot.offline_count;
+    summary.recovery_validation_plan_count = static_cast<int>(validation_plan.size());
+    for (const auto& item : validation_plan) {
+        if (item.status == "ready") {
+            ++summary.validation_ready_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV330BackupRecoverySourceHandoffInputJson(
+    std::ostringstream& out,
+    const OpsV330BackupRecoverySourceHandoffInput& input) {
+    out << "{"
+        << "\"key\":\"" << JsonEscape(input.key) << "\","
+        << "\"label\":\"" << JsonEscape(input.label) << "\","
+        << "\"source\":\"" << JsonEscape(input.source) << "\","
+        << "\"route\":\"" << JsonEscape(input.route) << "\","
+        << "\"validationStatus\":\"" << JsonEscape(input.validation_status) << "\","
+        << "\"validationSummary\":\"" << JsonEscape(input.validation_summary) << "\","
+        << "\"sourceCount\":" << input.source_count << ","
+        << "\"publishedViewCount\":" << input.published_view_count << ","
+        << "\"affectedSourceCount\":" << input.affected_source_count
+        << "}";
+}
+
+void AppendV330BackupRecoveryValidationPlanJson(
+    std::ostringstream& out,
+    const OpsV330BackupRecoveryValidationPlanItem& item) {
+    out << "{"
+        << "\"key\":\"" << JsonEscape(item.key) << "\","
+        << "\"label\":\"" << JsonEscape(item.label) << "\","
+        << "\"status\":\"" << JsonEscape(item.status) << "\","
+        << "\"summary\":\"" << JsonEscape(item.summary) << "\","
+        << "\"route\":\"" << JsonEscape(item.route) << "\""
+        << "}";
+}
+
+void AppendV330BackupRecoverySourceHandoffSummaryJson(
+    std::ostringstream& out,
+    const OpsV330BackupRecoverySourceHandoffSummary& summary) {
+    out << "{"
+        << "\"sourceCount\":" << summary.source_count << ","
+        << "\"publishedViewCount\":" << summary.published_view_count << ","
+        << "\"sourceHealthSnapshotCount\":" << summary.source_health_snapshot_count << ","
+        << "\"staleSourceCount\":" << summary.stale_source_count << ","
+        << "\"offlineSourceCount\":" << summary.offline_source_count << ","
+        << "\"recoveryValidationPlanCount\":" << summary.recovery_validation_plan_count << ","
+        << "\"validationReadyCount\":" << summary.validation_ready_count
+        << "}";
+}
+
+std::string OpsV330BackupRecoverySourceHandoffJson(
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    if (!source_health_snapshot.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v330-backup-recovery-source-handoff.v1\",\"error\":\"" +
+               JsonEscape(source_health_snapshot.error) + "\"}";
+    }
+
+    std::vector<SourceViewRegistry::SourceRecord> sources;
+    std::vector<SourceViewRegistry::PublishedViewRecord> views;
+    std::string load_error;
+    if (!SourceViewRegistry::Instance().Snapshot(&sources, &views, &load_error)) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v330-backup-recovery-source-handoff.v1\",\"error\":\"" +
+               JsonEscape(load_error.empty() ? "source registry load failed" : load_error) + "\"}";
+    }
+
+    const int source_count = static_cast<int>(sources.size());
+    const int published_view_count = static_cast<int>(views.size());
+    const auto recoveryValidationPlan =
+        BuildV330BackupRecoveryValidationPlan(source_health_snapshot, source_count, published_view_count);
+    const auto sourceHandoffInputs = BuildV330BackupRecoverySourceHandoffInputs(
+        source_health_snapshot,
+        source_count,
+        published_view_count,
+        static_cast<int>(recoveryValidationPlan.size()));
+    const auto summary = BuildV330BackupRecoverySourceHandoffSummary(
+        source_health_snapshot,
+        source_count,
+        published_view_count,
+        recoveryValidationPlan);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v330-backup-recovery-source-handoff.v1\","
+        << "\"status\":\"backup-recovery-source-handoff\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"sourceRegistrySnapshotRoute\":\"/ops/api/source-registry/snapshot\","
+        << "\"publishedViewRegistryRoute\":\"/ops/api/views\","
+        << "\"sourceHealthSnapshotRoute\":\"/ops/api/source-health\","
+        << "\"recoveryValidationPlanRoute\":\"/ops/api/source-registry/backup-recovery-handoff\","
+        << "\"backupRecoverySourceHandoffSummary\":";
+    AppendV330BackupRecoverySourceHandoffSummaryJson(out, summary);
+    out << ",\"sourceHealthSnapshotSummary\":";
+    AppendOpsSourceHealthSummaryJson(out, source_health_snapshot);
+    out << ",\"sourceHandoffInputs\":[";
+    for (std::size_t i = 0; i < sourceHandoffInputs.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV330BackupRecoverySourceHandoffInputJson(out, sourceHandoffInputs[i]);
+    }
+    out << "],\"recoveryValidationPlan\":[";
+    for (std::size_t i = 0; i < recoveryValidationPlan.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV330BackupRecoveryValidationPlanJson(out, recoveryValidationPlan[i]);
+    }
+    out << "],\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"sourceHealthSnapshotPersisted\":false,"
+        << "\"recoveryValidationPlanPersisted\":false,"
+        << "\"realBackupPerformed\":false,"
+        << "\"productionRestorePerformed\":false,"
+        << "\"automaticRecoveryPerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
         << "}}";
     return out.str();
 }
@@ -22957,6 +23229,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV330SourceReliabilitySearchMetricsJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/source-registry/backup-recovery-handoff") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV330BackupRecoverySourceHandoffJson(source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

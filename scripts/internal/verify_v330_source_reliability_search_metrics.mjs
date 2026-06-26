@@ -242,10 +242,10 @@ check("feature inventory and release records map v3.3 Step 9", () => {
     "SRC-039 | V330 Step 9 source reliability search metrics view model",
     "SAFE-121 | V330 Step 9 source reliability search metrics boundary",
     "OPS-088 | V330 Step 9 Source Reliability Search and Metrics 게이트",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-073`",
-    "`SRC-001`~`SRC-039`",
-    "`SAFE-001`~`SAFE-121`",
-    "`OPS-035`~`OPS-088`",
+    "`UI-001`~`UI-018`, `UI-022`~`UI-074`",
+    "`SRC-001`~`SRC-040`",
+    "`SAFE-001`~`SAFE-122`",
+    "`OPS-035`~`OPS-089`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.3 Step 9");
   }
@@ -268,10 +268,10 @@ check("server entrypoint and inventory verifiers include v3.3 Step 9 command", (
   for (const id of ["UI-073", "SRC-039", "SAFE-121", "OPS-088"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
-  assertIncludes(files.projectInventoryVerifier, "`UI-001`~`UI-018`, `UI-022`~`UI-073`", "project inventory UI range");
-  assertIncludes(files.projectInventoryVerifier, "`SRC-001`~`SRC-039`", "project inventory SRC range");
-  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-121`", "project inventory SAFE range");
-  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-088`", "project inventory OPS range");
+  assertIncludes(files.projectInventoryVerifier, "`UI-001`~`UI-018`, `UI-022`~`UI-074`", "project inventory UI range");
+  assertIncludes(files.projectInventoryVerifier, "`SRC-001`~`SRC-040`", "project inventory SRC range");
+  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-122`", "project inventory SAFE range");
+  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-089`", "project inventory OPS range");
   assertIncludes(files.scriptInventory, "verify_v330_source_reliability_search_metrics.mjs", "script inventory");
 });
 

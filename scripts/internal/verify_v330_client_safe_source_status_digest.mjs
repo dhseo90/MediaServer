@@ -194,11 +194,11 @@ check("feature inventory, manual UI checklist, and release records map v3.3 Step
     "SRC-038 | V330 Step 7 client-safe source status context",
     "SAFE-119 | V330 Step 7 client-safe source status digest boundary",
     "OPS-086 | V330 Step 7 Client-safe Source Status Digest 게이트",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-073`",
+    "`UI-001`~`UI-018`, `UI-022`~`UI-074`",
     "`CLIENT-001`~`CLIENT-028`",
-    "`SRC-001`~`SRC-039`",
-    "`SAFE-001`~`SAFE-121`",
-    "`OPS-035`~`OPS-088`",
+    "`SRC-001`~`SRC-040`",
+    "`SAFE-001`~`SAFE-122`",
+    "`OPS-035`~`OPS-089`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.3 Step 7");
   }
@@ -228,11 +228,11 @@ check("server entrypoint and inventory verifiers include v3.3 Step 7 command", (
   for (const id of ["UI-072", "CLIENT-028", "SRC-038", "SAFE-119", "OPS-086"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
-  assertIncludes(files.projectInventoryVerifier, "`UI-001`~`UI-018`, `UI-022`~`UI-073`", "project inventory UI range");
+  assertIncludes(files.projectInventoryVerifier, "`UI-001`~`UI-018`, `UI-022`~`UI-074`", "project inventory UI range");
   assertIncludes(files.projectInventoryVerifier, "`CLIENT-001`~`CLIENT-028`", "project inventory CLIENT range");
-  assertIncludes(files.projectInventoryVerifier, "`SRC-001`~`SRC-039`", "project inventory SRC range");
-  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-121`", "project inventory SAFE range");
-  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-088`", "project inventory OPS range");
+  assertIncludes(files.projectInventoryVerifier, "`SRC-001`~`SRC-040`", "project inventory SRC range");
+  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-122`", "project inventory SAFE range");
+  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-089`", "project inventory OPS range");
   assertIncludes(files.scriptInventory, "verify_v330_client_safe_source_status_digest.mjs", "script inventory");
 });
 

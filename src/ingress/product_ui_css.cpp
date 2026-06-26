@@ -2055,6 +2055,41 @@ std::string ProductUiCss() {
       grid-column: 1 / -1;
       min-width: 0;
     }
+    .source-backup-handoff-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: var(--space-3);
+      align-items: start;
+    }
+    .source-backup-handoff-grid h4 {
+      margin: 0 0 var(--space-2);
+      font-size: 13px;
+      color: var(--color-text-muted);
+    }
+    .source-backup-handoff-card,
+    .source-backup-handoff-boundary {
+      display: grid;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-raised);
+      color: var(--color-text);
+      text-decoration: none;
+      overflow-wrap: anywhere;
+    }
+    .source-backup-handoff-input-list,
+    .source-recovery-validation-plan-list {
+      display: grid;
+      gap: var(--space-2);
+    }
+    .source-backup-handoff-card span,
+    .source-backup-handoff-card small,
+    .source-backup-handoff-boundary span {
+      margin: 0;
+      color: var(--color-text-muted);
+      line-height: 1.45;
+    }
     .validation-item.warn {
       border-color: color-mix(in srgb, var(--color-warning) 56%, var(--color-border));
     }

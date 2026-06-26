@@ -450,6 +450,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_v330_client_safe_source_status_digest.mjs",
     "verify_v330_operator_runbook_reliability_handoff.mjs",
     "verify_v330_source_reliability_search_metrics.mjs",
+    "verify_v330_ops_backup_recovery_source_handoff.mjs",
     "verify_external_turn_whep_field_gate.mjs",
     "verify_vlm_runtime_status_ui.mjs",
     "verify_vlm_evaluation_result_workflow.mjs",
