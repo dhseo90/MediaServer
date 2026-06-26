@@ -170,6 +170,13 @@ const pageChecks = [
     mustNot: ['href="/ops/events"'],
   },
   {
+    name: "ops-events-operator-recheck-recovery-queue",
+    path: "/ops/events",
+    visualSelector: '[data-testid="ops-v320-unified-events-workspace"]',
+    must: ['data-testid="ops-events-page"', 'data-testid="ops-v320-unified-events-workspace"', 'id="v330OperatorRecheckRecoveryQueueGrid"', 'data-v330-operator-recheck-recovery-queue', 'data-v330-recovery-checklist-item', 'operatorRecheckRecoveryQueueSummary', 'operatorRecheckRecoveryQueue', 'media-server.ops.v330-operator-recheck-recovery-queue.v1', 'failed-only recheck', 'retry candidate', 'recovery checklist', 'dry-run result', 'operator note', 'persistentRecoveryQueueCreated', 'sourceRecheckRoute', '/ops/api/events/reviews'],
+    mustNot: ['href="/ops/events"'],
+  },
+  {
     name: "ops-events-ai-review-quality-context",
     path: "/ops/events",
     visualSelector: '[data-testid="ops-v320-unified-events-workspace"]',

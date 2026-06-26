@@ -16262,6 +16262,199 @@ std::string OpsV330IncidentSourceCorrelationSummaryJson(
     return out.str();
 }
 
+struct OpsV330OperatorRecheckRecoveryQueueInfo {
+    std::string event_id{"unknown-event"};
+    std::string source_id{"unknown-source"};
+    std::string queue_status{"queued-operator-note-required"};
+    std::string recheck_status{"required"};
+    std::string retry_candidate{"source-health-recheck"};
+    std::string retry_candidate_reason{"source-recheck-required"};
+    std::string dry_run_result_status{"blocked-not-run"};
+    std::string dry_run_result_summary{"operator note required before retry dry-run"};
+    std::string operator_note_status{"required"};
+    std::string operator_note_route{"/ops/api/events/reviews/{eventId}"};
+    std::string source_recheck_route{"/ops/api/source-health"};
+    std::string recovery_queue_reason{"source reliability context requires operator recheck"};
+    bool failed_only_recheck{true};
+    bool retry_candidate_available{true};
+    bool operator_note_linked{true};
+    bool operator_note_present{false};
+    bool recovery_queue_read_model_created{true};
+    std::vector<std::string> recovery_checklist;
+};
+
+OpsV330OperatorRecheckRecoveryQueueInfo OpsV330OperatorRecheckRecoveryQueueInfoFor(
+    const std::string& event_json,
+    const OpsEventReviewState& review,
+    const OpsV320SourceReliabilityInfo& source_reliability,
+    const OpsV330IncidentSourceCorrelationInfo& incident_source_correlation) {
+    OpsV330OperatorRecheckRecoveryQueueInfo info;
+    info.event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+    if (info.event_id.empty()) {
+        info.event_id = "unknown-event";
+    }
+    info.source_id = incident_source_correlation.source_id.empty()
+                         ? "unknown-source"
+                         : incident_source_correlation.source_id;
+    const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
+    info.operator_note_present =
+        !Trim(review.note).empty() || !Trim(resolution_state.resolution_note).empty();
+    info.operator_note_status = info.operator_note_present ? "present" : "required";
+
+    if (!incident_source_correlation.source_recheck_required) {
+        info.queue_status = "cleared";
+        info.recheck_status = "not-required";
+        info.retry_candidate = "none";
+        info.retry_candidate_reason = "source-recheck-not-required";
+        info.retry_candidate_available = false;
+        info.dry_run_result_status = "not-required";
+        info.dry_run_result_summary = "source reliability context does not require recovery retry";
+        info.recovery_queue_reason = "source reliability context supports resolution";
+    } else {
+        info.queue_status =
+            info.operator_note_present ? "ready-for-dry-run" : "queued-operator-note-required";
+        info.recheck_status = "required";
+        info.retry_candidate = source_reliability.source_health_present
+                                   ? "source-health-recheck"
+                                   : "source-mapping-recheck";
+        info.retry_candidate_reason =
+            incident_source_correlation.source_cause_category + ":" +
+            incident_source_correlation.resolution_closure_impact;
+        info.dry_run_result_status =
+            info.operator_note_present ? "ready-not-run" : "blocked-not-run";
+        info.dry_run_result_summary =
+            info.operator_note_present
+                ? "source health recheck dry-run is ready but not executed by this read model"
+                : "operator note is required before retry dry-run";
+        info.recovery_queue_reason = incident_source_correlation.source_cause_summary;
+    }
+
+    info.recovery_checklist = {
+        std::string("failed-only-recheck:") +
+            (incident_source_correlation.source_recheck_required ? "required" : "not-required"),
+        "retry-candidate:" + info.retry_candidate,
+        "dry-run:" + info.dry_run_result_status,
+        "operator-note:" + info.operator_note_status,
+        "source-health:" + incident_source_correlation.source_health_status,
+    };
+    return info;
+}
+
+std::string OpsV330OperatorRecheckRecoveryQueueJson(
+    const OpsV330OperatorRecheckRecoveryQueueInfo& info) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v330-operator-recheck-recovery-queue.v1\","
+        << "\"eventId\":\"" << JsonEscape(info.event_id) << "\","
+        << "\"sourceId\":\"" << JsonEscape(info.source_id) << "\","
+        << "\"queueStatus\":\"" << JsonEscape(info.queue_status) << "\","
+        << "\"failedOnlyRecheck\":" << (info.failed_only_recheck ? "true" : "false") << ","
+        << "\"recheckStatus\":\"" << JsonEscape(info.recheck_status) << "\","
+        << "\"retryCandidate\":\"" << JsonEscape(info.retry_candidate) << "\","
+        << "\"retryCandidateAvailable\":"
+        << (info.retry_candidate_available ? "true" : "false") << ","
+        << "\"retryCandidateReason\":\"" << JsonEscape(info.retry_candidate_reason) << "\","
+        << "\"recoveryChecklist\":" << JsonStringArray(info.recovery_checklist) << ","
+        << "\"dryRunResultStatus\":\"" << JsonEscape(info.dry_run_result_status) << "\","
+        << "\"dryRunResultSummary\":\"" << JsonEscape(info.dry_run_result_summary) << "\","
+        << "\"operatorNoteStatus\":\"" << JsonEscape(info.operator_note_status) << "\","
+        << "\"operatorNotePresent\":" << (info.operator_note_present ? "true" : "false") << ","
+        << "\"operatorNoteRoute\":\"/ops/api/events/reviews/{eventId}\","
+        << "\"sourceRecheckRoute\":\"/ops/api/source-health\","
+        << "\"recoveryQueueReason\":\"" << JsonEscape(info.recovery_queue_reason) << "\","
+        << "\"operatorNoteLinked\":true,"
+        << "\"recoveryQueueReadModelCreated\":true,"
+        << "\"persistentRecoveryQueueCreated\":false,"
+        << "\"recoveryQueueWritePerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false,"
+        << "\"rawLocatorExposed\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"autoRecoveryApplied\":false,"
+        << "\"externalRecoveryPerformed\":false,"
+        << "\"clientDigestChanged\":false,"
+        << "\"searchMetricsChanged\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsV330OperatorRecheckRecoveryQueueSummaryJson(
+    const std::vector<OpsV330OperatorRecheckRecoveryQueueInfo>& items) {
+    int queued = 0;
+    int retry_candidates = 0;
+    int operator_notes_required = 0;
+    int operator_notes_present = 0;
+    int dry_run_ready = 0;
+    int dry_run_not_run = 0;
+    int cleared = 0;
+    for (const auto& item : items) {
+        if (item.recheck_status == "required") {
+            ++queued;
+        }
+        if (item.retry_candidate_available) {
+            ++retry_candidates;
+        }
+        if (item.operator_note_present) {
+            ++operator_notes_present;
+        } else {
+            ++operator_notes_required;
+        }
+        if (item.dry_run_result_status == "ready-not-run") {
+            ++dry_run_ready;
+        }
+        if (item.dry_run_result_status == "ready-not-run" ||
+            item.dry_run_result_status == "blocked-not-run") {
+            ++dry_run_not_run;
+        }
+        if (item.queue_status == "cleared") {
+            ++cleared;
+        }
+    }
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v330-operator-recheck-recovery-queue.v1\","
+        << "\"status\":\"ops-v330-operator-recheck-recovery-queue\","
+        << "\"itemCount\":" << items.size() << ","
+        << "\"queuedForRecheck\":" << queued << ","
+        << "\"retryCandidates\":" << retry_candidates << ","
+        << "\"operatorNotesRequired\":" << operator_notes_required << ","
+        << "\"operatorNotesPresent\":" << operator_notes_present << ","
+        << "\"dryRunReady\":" << dry_run_ready << ","
+        << "\"dryRunNotRun\":" << dry_run_not_run << ","
+        << "\"cleared\":" << cleared << ","
+        << "\"failedOnlyRecheck\":true,"
+        << "\"operatorNoteRoute\":\"/ops/api/events/reviews/{eventId}\","
+        << "\"sourceRecheckRoute\":\"/ops/api/source-health\","
+        << "\"operatorNoteLinked\":true,"
+        << "\"recoveryQueueReadModelCreated\":true,"
+        << "\"persistentRecoveryQueueCreated\":false,"
+        << "\"recoveryQueueWritePerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false,"
+        << "\"autoRecoveryApplied\":false,"
+        << "\"externalRecoveryPerformed\":false,"
+        << "\"clientDigestChanged\":false,"
+        << "\"searchMetricsChanged\":false"
+        << "}";
+    return out.str();
+}
+
 struct OpsV320AiReviewQualityInfo {
     std::string correction_review_signal{"pending-review"};
     std::string uncertainty_reason{"not-reviewed"};
@@ -17187,6 +17380,7 @@ std::string OpsV320DetailSectionsJson(const std::string& event_json,
                                       const OpsV320EvidenceQualityInfo& evidence_quality,
                                       const OpsV320SourceReliabilityInfo& source_reliability,
                                       const OpsV330IncidentSourceCorrelationInfo& incident_source_correlation,
+                                      const OpsV330OperatorRecheckRecoveryQueueInfo& operator_recheck_recovery_queue,
                                       const OpsV320AiReviewQualityInfo& ai_review_quality,
                                       const OpsV320OperatorResolutionFlowInfo& operator_resolution_flow,
                                       const OpsV320ActionReadinessChecklistInfo& action_readiness_checklist) {
@@ -17245,6 +17439,16 @@ std::string OpsV320DetailSectionsJson(const std::string& event_json,
         << " / handoff /ops/sources source-health-state-change\""
         << "},"
         << "{"
+        << "\"key\":\"operator-recheck-recovery-queue\","
+        << "\"label\":\"Operator Recheck Recovery Queue\","
+        << "\"status\":\"" << JsonEscape(operator_recheck_recovery_queue.queue_status) << "\","
+        << "\"detail\":\"failed-only recheck "
+        << JsonEscape(operator_recheck_recovery_queue.recheck_status)
+        << " / retry " << JsonEscape(operator_recheck_recovery_queue.retry_candidate)
+        << " / note " << JsonEscape(operator_recheck_recovery_queue.operator_note_status)
+        << "\""
+        << "},"
+        << "{"
         << "\"key\":\"ai-review-quality\","
         << "\"label\":\"AI Review Quality\","
         << "\"status\":\"" << JsonEscape(ai_review_quality.quality_badge) << "\","
@@ -17276,6 +17480,7 @@ std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_j
                                                       const OpsV320EvidenceQualityInfo& evidence_quality,
                                                       const OpsV320SourceReliabilityInfo& source_reliability,
                                                       const OpsV330IncidentSourceCorrelationInfo& incident_source_correlation,
+                                                      const OpsV330OperatorRecheckRecoveryQueueInfo& operator_recheck_recovery_queue,
                                                       const OpsV320AiReviewQualityInfo& ai_review_quality,
                                                       const OpsV320OperatorResolutionFlowInfo& operator_resolution_flow,
                                                       const OpsV320ActionReadinessChecklistInfo& action_readiness_checklist,
@@ -17307,6 +17512,8 @@ std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_j
         << "\"sourceReliability\":" << OpsV320SourceReliabilityContextJson(source_reliability) << ","
         << "\"incidentSourceCorrelation\":"
         << OpsV330IncidentSourceCorrelationJson(incident_source_correlation) << ","
+        << "\"operatorRecheckRecoveryQueue\":"
+        << OpsV330OperatorRecheckRecoveryQueueJson(operator_recheck_recovery_queue) << ","
         << "\"aiReviewQuality\":" << OpsV320AiReviewQualityContextJson(ai_review_quality) << ","
         << "\"operatorResolutionFlow\":"
         << OpsV320OperatorResolutionFlowJson(operator_resolution_flow) << ","
@@ -17321,6 +17528,7 @@ std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_j
                evidence_quality,
                source_reliability,
                incident_source_correlation,
+               operator_recheck_recovery_queue,
                ai_review_quality,
                operator_resolution_flow,
                action_readiness_checklist)
@@ -17360,6 +17568,7 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
     std::vector<OpsV320EvidenceQualityInfo> evidence_quality_items;
     std::vector<OpsV320SourceReliabilityInfo> source_reliability_items;
     std::vector<OpsV330IncidentSourceCorrelationInfo> incident_source_correlation_items;
+    std::vector<OpsV330OperatorRecheckRecoveryQueueInfo> operator_recheck_recovery_queue_items;
     std::vector<OpsV320AiReviewQualityInfo> ai_review_quality_items;
     std::vector<OpsV320OperatorResolutionFlowInfo> operator_resolution_flow_items;
     std::vector<OpsV320ActionReadinessChecklistInfo> action_readiness_checklist_items;
@@ -17368,6 +17577,8 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
     evidence_quality_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
     source_reliability_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
     incident_source_correlation_items.reserve(
+        std::min<std::size_t>(event_json_records.size(), 12U));
+    operator_recheck_recovery_queue_items.reserve(
         std::min<std::size_t>(event_json_records.size(), 12U));
     ai_review_quality_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
     operator_resolution_flow_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
@@ -17393,6 +17604,12 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
                 event_json,
                 resolution_state,
                 source_reliability);
+        const OpsV330OperatorRecheckRecoveryQueueInfo operator_recheck_recovery_queue =
+            OpsV330OperatorRecheckRecoveryQueueInfoFor(
+                event_json,
+                review,
+                source_reliability,
+                incident_source_correlation);
         const OpsV320AiReviewQualityInfo ai_review_quality =
             OpsV320AiReviewQualityInfoFor(review, evidence_quality, source_reliability);
         const OpsV320OperatorResolutionFlowInfo operator_resolution_flow =
@@ -17417,6 +17634,7 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
             evidence_quality,
             source_reliability,
             incident_source_correlation,
+            operator_recheck_recovery_queue,
             ai_review_quality,
             operator_resolution_flow,
             action_readiness_checklist,
@@ -17424,6 +17642,7 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
         evidence_quality_items.push_back(evidence_quality);
         source_reliability_items.push_back(source_reliability);
         incident_source_correlation_items.push_back(incident_source_correlation);
+        operator_recheck_recovery_queue_items.push_back(operator_recheck_recovery_queue);
         ai_review_quality_items.push_back(ai_review_quality);
         operator_resolution_flow_items.push_back(operator_resolution_flow);
         action_readiness_checklist_items.push_back(action_readiness_checklist);
@@ -17454,6 +17673,9 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
         << OpsV320SourceReliabilitySummaryJson(source_reliability_items) << ","
         << "\"incidentSourceCorrelationSummary\":"
         << OpsV330IncidentSourceCorrelationSummaryJson(incident_source_correlation_items) << ","
+        << "\"operatorRecheckRecoveryQueueSummary\":"
+        << OpsV330OperatorRecheckRecoveryQueueSummaryJson(operator_recheck_recovery_queue_items)
+        << ","
         << "\"aiReviewQualitySummary\":"
         << OpsV320AiReviewQualitySummaryJson(ai_review_quality_items) << ","
         << "\"operatorResolutionFlowSummary\":"
@@ -17476,6 +17698,7 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
         << "\"evidenceQualityLayerImplemented\":true,"
         << "\"sourceReliabilityContextImplemented\":true,"
         << "\"incidentSourceCorrelationLayerImplemented\":true,"
+        << "\"operatorRecheckRecoveryQueueImplemented\":true,"
         << "\"aiReviewQualityContextImplemented\":true,"
         << "\"operatorAssignmentFlowImplemented\":true,"
         << "\"actionReadinessChecklistImplemented\":true,"

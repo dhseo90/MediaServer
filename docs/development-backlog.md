@@ -22,9 +22,10 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 상태: Step 1 source/version/docs/backlog/verification metadata 정렬 완료. Step 2
 Source Registry Snapshot and Identity 구현 완료. Step 3 Source Onboarding Quality Summary
 구현 완료. Step 4 Reliability Timeline and Health History 구현 완료. Step 5
-Incident-to-Source Correlation Layer 구현 완료. Step 6 이후 기능 구현은 미착수입니다. 현재 source version은 `3.3.0`이고, 최신 published baseline은
-`v3.2.0` Operations Resolution Workspace입니다. 이 절은 v3.3.0 개발 이슈와 현재
-step evidence를 정리한 문서이며, Step 3 이후 기능 구현 완료 evidence가 아닙니다.
+Incident-to-Source Correlation Layer 구현 완료. Step 6 Operator Recheck and Recovery Queue
+구현 완료. 현재 source version은 `3.3.0`이고, 최신 published baseline은 `v3.2.0`
+Operations Resolution Workspace입니다. 이 절은 v3.3.0 개발 이슈와 현재 step evidence를
+정리한 문서이며, 각 step은 실제 코드/UI/API/검증 산출물이 생긴 뒤에만 완료로 기록합니다.
 
 직접 답: v3.3.0의 1차 선택값은 `Live Source Reliability Workspace`입니다.
 v3.0이 이벤트 증거와 검색을 만들고, v3.1이 재생/공유를 보강하고, v3.2가 사건을
@@ -97,7 +98,7 @@ license/provenance/privacy/운영 검토 결과:
 | 3 | v3.3.0 (3) Source Onboarding Quality Summary | P0 | 완료 | 채널 저장 전 validation, 중복/충돌/누락/ready 상태, ONVIF/WHEP/RTSP 입력 품질 요약 |
 | 4 | v3.3.0 (4) Reliability Timeline and Health History | P0 | 완료 | live/stale/offline/reconnect/source warning 변화 이력과 Ops audit 연결 |
 | 5 | v3.3.0 (5) Incident-to-Source Correlation Layer | P1 | 완료 | v3.2 resolution event detail에서 source reliability 원인/context를 함께 표시 |
-| 6 | v3.3.0 (6) Operator Recheck and Recovery Queue | P1 | 미착수 | failed-only recheck, retry candidate, recovery checklist, dry-run 결과와 operator note 연결 |
+| 6 | v3.3.0 (6) Operator Recheck and Recovery Queue | P1 | 완료 | failed-only recheck, retry candidate, recovery checklist, dry-run 결과와 operator note 연결 |
 | 7 | v3.3.0 (7) Client-safe Source Status Digest | P1 | 미착수 | viewer/client에 허용되는 source status summary와 connection health digest |
 | 8 | v3.3.0 (8) Source Reliability Search and Metrics | P2 | 미착수 | source health filter, saved reliability view, reconnect/stale/offline metric summary |
 | 9 | v3.3.0 (9) Ops Backup and Recovery Source Handoff | P2 | 미착수 | source registry, PublishedView, source health snapshot, recovery validation plan 연결 |
@@ -107,8 +108,9 @@ license/provenance/privacy/운영 검토 결과:
 Step 2는 source registry identity read model/API/verifier 연결입니다. Step 3은 source
 onboarding quality read model/API/UI/verifier 연결입니다. Step 4는 reliability timeline
 and health history read model/API/UI/verifier 연결입니다. Step 5는 incident-to-source
-correlation read model/UI/verifier 연결입니다. Step 6 이후 각
-step은 실제 코드/UI/API/문서 산출물이 생긴 뒤에만 완료로 기록합니다.
+correlation read model/UI/verifier 연결입니다. Step 6는 operator recheck recovery queue
+read model/UI/verifier 연결입니다. 아직 완료 기록이 없는 항목은 실제 코드/UI/API/문서
+산출물이 생긴 뒤에만 완료로 기록합니다.
 현재 Step 1 기록은 source registry snapshot, onboarding quality, reliability timeline,
 recovery queue, client digest, search/metrics 구현 완료 evidence가 아닙니다.
 `v3.3.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
@@ -173,6 +175,19 @@ recovery queue, client digest, search/metrics 구현 완료 evidence가 아닙�
 - 후속 수정: Step 5 inventory 확장 뒤 기존 v3.3 Step 1~4 verifier가 예전 누적 range 문자열을 고정 검사하지 않도록 `scripts/internal/verify_v330_entry_baseline.mjs`, `scripts/internal/verify_v330_source_registry_snapshot_identity.mjs`, `scripts/internal/verify_v330_source_onboarding_quality_summary.mjs`, `scripts/internal/verify_v330_reliability_timeline_health_history.mjs`의 range 기대값을 `UI-070`/`SRC-036`/`EVT-071`/`SAFE-117`/`OPS-084` 기준으로 보정했습니다.
 - 검증: 최초 `node scripts/internal/verify_v330_incident_source_correlation_layer.mjs`는 Step 5 read model, boundary block, UI renderer, backlog 완료 기록, release records final/RED 연결이 아직 없어서 `pass=4 fail=5`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v330 Step 5 결과 행에 기록합니다.
 - 완료 경계: 이번 Step 5는 Incident-to-Source Correlation Layer read model/UI/verifier 연결입니다. 이번 Step 5 범위 밖 기능 완료 evidence가 아닙니다. Operator Recheck and Recovery Queue, Client-safe Source Status Digest, Source Reliability Search and Metrics 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence도 아닙니다.
+
+## v3.3.0 Step 6 개발 기록
+
+- 범위: P1 `v3.3.0 (6) Operator Recheck and Recovery Queue`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV330OperatorRecheckRecoveryQueueInfo`, `OpsV330OperatorRecheckRecoveryQueueInfoFor`, `OpsV330OperatorRecheckRecoveryQueueJson`, `OpsV330OperatorRecheckRecoveryQueueSummaryJson`을 추가했습니다. 이 로직은 기존 `/ops/api/events/reviews` `unifiedResolutionWorkspace` 안에서 v3.2 resolution detail, sourceReliability, v3.3 incidentSourceCorrelation, operator note 상태를 읽어 `media-server.ops.v330-operator-recheck-recovery-queue.v1` `operatorRecheckRecoveryQueue`와 `operatorRecheckRecoveryQueueSummary`를 반환합니다.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV320UnifiedResolutionWorkspaceItemJson`, `OpsV320DetailSectionsJson`, `OpsV320UnifiedOpsEventsWorkspaceJson`에 `operatorRecheckRecoveryQueue` item/detail section/summary와 `operatorRecheckRecoveryQueueImplemented` flag를 연결했습니다. 이 경로는 source registry write, PublishedView write, persistent recovery queue write, EventRecord write, Event POST/WebRTC DataChannel/SSE/WS metadata, RTSP/WebRTC media path, Rule/Profile payload, client digest, search/metrics를 변경하지 않습니다.
+- `src/ingress/product_ui_page_scripts.cpp`, `src/ingress/product_ui_css.cpp`: `/ops/events` unified resolution detail에 `renderV330OperatorRecheckRecoveryQueue`, `v330OperatorRecheckRecoveryQueueGrid`, failed-only recheck, retry candidate, recovery checklist, dry-run result, operator note, source recheck, boundary card를 추가했습니다. source URL/raw JSON/debug/raw locator/credential/client exposure는 표시하지 않습니다.
+- `scripts/internal/verify_v330_operator_recheck_recovery_queue.mjs`, `server.sh`: `./server.sh verify-v330-operator-recheck-recovery-queue` 명령을 추가해 read model, UI hook/CSS, client/viewer 비노출 경계, backlog/stream verification/release records/feature inventory/server dispatch 연결을 정적 검증합니다.
+- `scripts/internal/verify_ops_client_ui_smoke.mjs`: `/ops/events` static smoke에 `ops-events-operator-recheck-recovery-queue` 체크를 추가해 Step 6 UI marker, schema, recovery checklist, dry-run result, operator note 표시가 포함되는지 확인합니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`, `docs/stream-verification.md`, `docs/release-test-records.md`: `UI-071`, `SRC-037`, `EVT-072`, `SAFE-118`, `OPS-085` 기능/경계/gate 항목과 Step 6 verifier 연결을 추가했습니다.
+- 후속 수정: Step 6 inventory 확장 뒤 기존 v3.3 Step 1~5 verifier가 예전 누적 range 문자열을 고정 검사하지 않도록 `scripts/internal/verify_v330_entry_baseline.mjs`, `scripts/internal/verify_v330_source_registry_snapshot_identity.mjs`, `scripts/internal/verify_v330_source_onboarding_quality_summary.mjs`, `scripts/internal/verify_v330_reliability_timeline_health_history.mjs`, `scripts/internal/verify_v330_incident_source_correlation_layer.mjs`의 range 기대값을 `UI-071`/`SRC-037`/`EVT-072`/`SAFE-118`/`OPS-085` 기준으로 보정했습니다.
+- 검증: 최초 `node scripts/internal/verify_v330_operator_recheck_recovery_queue.mjs`는 Step 6 server view model, UI renderer, ops smoke marker, backlog 완료 기록, stream verification, release records, server dispatch가 아직 없어서 `pass=1 fail=8`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v330 Step 6 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 6은 Operator Recheck and Recovery Queue read model/UI/verifier 연결입니다. 이번 Step 6 범위 밖 기능 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence도 아닙니다.
 
 ## 최신 published baseline 상세: v3.2.0 Operations Resolution Workspace
 

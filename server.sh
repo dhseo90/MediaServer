@@ -278,6 +278,8 @@ Usage:
                  v3.3.0 Step 4 Reliability Timeline and Health History API/UI 경계를 검증합니다.
   verify-v330-incident-source-correlation-layer
                  v3.3.0 Step 5 Incident-to-Source Correlation Layer API/UI 경계를 검증합니다.
+  verify-v330-operator-recheck-recovery-queue
+                 v3.3.0 Step 6 Operator Recheck and Recovery Queue API/UI 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -448,6 +450,8 @@ Usage:
                  v3.3.0 Step 4 Reliability Timeline and Health History API/UI 경계를 검증합니다.
   verify-v330-incident-source-correlation-layer
                  v3.3.0 Step 5 Incident-to-Source Correlation Layer API/UI 경계를 검증합니다.
+  verify-v330-operator-recheck-recovery-queue
+                 v3.3.0 Step 6 Operator Recheck and Recovery Queue API/UI 경계를 검증합니다.
   verify-actions-security
                  GitHub Actions workflow 권한과 action 사용 정책을 검증합니다.
   verify-ci-local-gate-parity
@@ -1366,6 +1370,10 @@ case "${cmd}" in
   verify-v330-incident-source-correlation-layer)
     require_internal verify_v330_incident_source_correlation_layer.mjs
     exec "${INTERNAL_DIR}/verify_v330_incident_source_correlation_layer.mjs" "$@"
+    ;;
+  verify-v330-operator-recheck-recovery-queue)
+    require_internal verify_v330_operator_recheck_recovery_queue.mjs
+    exec "${INTERNAL_DIR}/verify_v330_operator_recheck_recovery_queue.mjs" "$@"
     ;;
   verify-v290-final-stabilization-run)
     require_internal verify_v290_final_stabilization_run.mjs
