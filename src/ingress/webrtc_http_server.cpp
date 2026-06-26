@@ -5560,6 +5560,22 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
         </div>
       </div>
       <div class="ops-channels-main-grid">
+      <section class="section-card ops-workspace-wide" data-channel-task="onboarding-quality" data-testid="source-onboarding-quality-summary">
+        <div class="toolbar">
+          <div>
+            <h3>Onboarding 품질</h3>
+            <p id="source-onboarding-quality-status">채널 입력 품질을 확인 중입니다.</p>
+          </div>
+        </div>
+        <div id="source-onboarding-quality-summary" class="metric-grid">
+          <div class="metric-card"><span>Ready</span><strong id="sourceOnboardingReadyCount">-</strong></div>
+          <div class="metric-card"><span>Warning</span><strong id="sourceOnboardingWarningCount">-</strong></div>
+          <div class="metric-card"><span>Blocked</span><strong id="sourceOnboardingBlockedCount">-</strong></div>
+          <div class="metric-card"><span>Duplicate</span><strong id="sourceOnboardingDuplicateCount">-</strong></div>
+          <div class="metric-card"><span>Missing view</span><strong id="sourceOnboardingMissingViewCount">-</strong></div>
+        </div>
+        <div id="source-onboarding-quality-list" class="validation-list"></div>
+      </section>
       <section class="section-card ops-channels-list-panel" data-channel-task="list">
         <div class="toolbar">
           <div>
@@ -21612,6 +21628,18 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                 revoke_auth_sessions_for(result.username);
                             }
                             return AuthUserHttpResponse(result);
+                        }
+
+                        if (request.path == "/ops/api/source-registry/onboarding-quality") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = RegistryHttpResponse(
+                                    SourceViewRegistry::Instance().SourceOnboardingQualitySummaryJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
                         }
 
                         if (request.path == "/ops/api/source-registry/snapshot") {

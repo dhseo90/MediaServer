@@ -1043,6 +1043,225 @@ SourceViewRegistry::SourceIdentitySummary BuildSourceIdentitySummary(
     return summary;
 }
 
+bool HasSourceTag(const SourceViewRegistry::SourceRecord& source, const std::string& tag) {
+    const std::string wanted = ToLower(Trim(tag));
+    return std::any_of(source.tags.begin(), source.tags.end(), [&](const auto& item) {
+        return ToLower(Trim(item)) == wanted;
+    });
+}
+
+std::string LocatorKindForSource(const SourceViewRegistry::SourceRecord& source) {
+    if (!source.file.empty()) {
+        return "file";
+    }
+    if (!source.rtsp_url.empty()) {
+        return HasSourceTag(source, "onvif") ? "onvif-rtsp" : "rtsp";
+    }
+    if (!source.webrtc_source_id.empty()) {
+        return "webrtc";
+    }
+    if (!source.whep_url.empty()) {
+        return "whep";
+    }
+    if (!source.http_url.empty()) {
+        return HasSourceTag(source, "onvif") ? "onvif-http" : "http";
+    }
+    return std::string();
+}
+
+std::string LocatorValueForSource(const SourceViewRegistry::SourceRecord& source) {
+    if (!source.file.empty()) {
+        return source.file;
+    }
+    if (!source.rtsp_url.empty()) {
+        return source.rtsp_url;
+    }
+    if (!source.webrtc_source_id.empty()) {
+        return source.webrtc_source_id;
+    }
+    if (!source.whep_url.empty()) {
+        return source.whep_url;
+    }
+    if (!source.http_url.empty()) {
+        return source.http_url;
+    }
+    return std::string();
+}
+
+std::string LocatorSchemeForSource(const SourceViewRegistry::SourceRecord& source) {
+    if (!source.file.empty()) {
+        return "file";
+    }
+    if (!source.webrtc_source_id.empty()) {
+        return "webrtc-id";
+    }
+    const std::string locator = LocatorValueForSource(source);
+    const std::size_t pos = locator.find("://");
+    return pos == std::string::npos ? std::string() : ToLower(locator.substr(0, pos));
+}
+
+bool HasValidSourceLocatorScheme(const SourceViewRegistry::SourceRecord& source) {
+    const std::string locator = ToLower(Trim(LocatorValueForSource(source)));
+    if (!source.file.empty() || !source.webrtc_source_id.empty()) {
+        return true;
+    }
+    if (!source.rtsp_url.empty()) {
+        return locator.rfind("rtsp://", 0) == 0 || locator.rfind("rtsps://", 0) == 0;
+    }
+    if (!source.whep_url.empty()) {
+        return HasHttpOrHttpsScheme(source.whep_url);
+    }
+    if (!source.http_url.empty()) {
+        return HasHttpOrHttpsScheme(source.http_url);
+    }
+    return false;
+}
+
+void AddOnboardingIssue(std::vector<SourceViewRegistry::SourceOnboardingQualityIssue>* issues,
+                        std::string code,
+                        std::string severity,
+                        std::string message) {
+    if (issues == nullptr) {
+        return;
+    }
+    issues->push_back(SourceViewRegistry::SourceOnboardingQualityIssue{
+        std::move(code), std::move(severity), std::move(message)});
+}
+
+bool HasIssueSeverity(const std::vector<SourceViewRegistry::SourceOnboardingQualityIssue>& issues,
+                      const std::string& severity) {
+    return std::any_of(issues.begin(), issues.end(), [&](const auto& issue) {
+        return issue.severity == severity;
+    });
+}
+
+std::vector<SourceViewRegistry::SourceOnboardingQualityItem> BuildSourceOnboardingQualityItems(
+    const std::vector<SourceViewRegistry::SourceRecord>& sources,
+    const std::vector<SourceViewRegistry::PublishedViewRecord>& views) {
+    std::vector<SourceViewRegistry::SourceOnboardingQualityItem> items;
+    items.reserve(sources.size());
+    for (const auto& source : sources) {
+        SourceViewRegistry::SourceOnboardingQualityItem item;
+        item.source_id = source.source_id;
+        item.display_name = source.display_name;
+        item.source_kind = source.kind;
+        item.enabled = source.enabled;
+        item.locator_kind = LocatorKindForSource(source);
+        item.locator_present = !LocatorValueForSource(source).empty();
+        item.locator_scheme = LocatorSchemeForSource(source);
+        item.duplicate_canonical_source_key =
+            !source.canonical_source_key.empty() &&
+            FindDuplicateSourceId(sources, source.canonical_source_key, source.source_id).has_value();
+
+        for (const auto& view : views) {
+            if (view.source_id != source.source_id) {
+                continue;
+            }
+            ++item.published_view_count;
+            if (view.enabled) {
+                item.has_enabled_published_view = true;
+            }
+        }
+
+        if (!source.enabled) {
+            AddOnboardingIssue(&item.validation_issues,
+                               "source-disabled",
+                               "warning",
+                               "Source is disabled and will not be ready for client assignment");
+        }
+        if (!item.locator_present) {
+            AddOnboardingIssue(&item.validation_issues,
+                               "missing-locator",
+                               "blocker",
+                               "Source requires exactly one locator before save");
+        } else if (!HasValidSourceLocatorScheme(source)) {
+            const std::string code = !source.whep_url.empty()
+                                         ? "whep-url-invalid-scheme"
+                                         : (!source.rtsp_url.empty() ? "rtsp-url-invalid-scheme"
+                                                                     : "http-url-invalid-scheme");
+            AddOnboardingIssue(&item.validation_issues,
+                               code,
+                               "blocker",
+                               "Source locator scheme is not accepted for the selected input kind");
+        }
+        if (SourceLocatorCount(source) != 1 || !SourceKindMatchesLocator(source)) {
+            AddOnboardingIssue(&item.validation_issues,
+                               "source-kind-locator-conflict",
+                               "blocker",
+                               "Source kind must match exactly one locator field");
+        }
+        if (item.duplicate_canonical_source_key) {
+            AddOnboardingIssue(&item.validation_issues,
+                               "duplicate-canonical-source-key",
+                               "blocker",
+                               "Another source already uses the same canonical input key");
+        }
+        if (item.published_view_count == 0 || !item.has_enabled_published_view) {
+            AddOnboardingIssue(&item.validation_issues,
+                               "missing-published-view",
+                               "warning",
+                               "Source has no enabled PublishedView for operator/client assignment");
+        }
+        if (HasSourceTag(source, "onvif") &&
+            source.rtsp_url.empty() &&
+            source.http_url.empty() &&
+            source.whep_url.empty()) {
+            AddOnboardingIssue(&item.validation_issues,
+                               "onvif-tag-without-live-locator",
+                               "blocker",
+                               "ONVIF-tagged sources require an RTSP, HTTP/HLS, or WHEP live locator summary");
+        }
+
+        const bool blocked = HasIssueSeverity(item.validation_issues, "blocker");
+        const bool warning = HasIssueSeverity(item.validation_issues, "warning");
+        item.readiness_status = blocked ? "blocked" : (warning ? "warning" : "ready");
+        item.input_quality_status = blocked ? "invalid" : (warning ? "review" : "ready");
+        item.pre_save_validation_ready = item.enabled && item.readiness_status == "ready";
+        items.push_back(std::move(item));
+    }
+    return items;
+}
+
+SourceViewRegistry::SourceOnboardingQualitySummary BuildSourceOnboardingQualitySummary(
+    const std::vector<SourceViewRegistry::SourceOnboardingQualityItem>& items) {
+    SourceViewRegistry::SourceOnboardingQualitySummary summary;
+    summary.source_count = static_cast<int>(items.size());
+    for (const auto& item : items) {
+        if (item.readiness_status == "ready") {
+            ++summary.ready_sources;
+        } else if (item.readiness_status == "blocked") {
+            ++summary.blocked_sources;
+        } else {
+            ++summary.warning_sources;
+        }
+        if (!item.enabled) {
+            ++summary.disabled_source_count;
+        }
+        if (item.duplicate_canonical_source_key) {
+            ++summary.duplicate_canonical_source_keys;
+        }
+        if (!item.locator_present) {
+            ++summary.missing_locator_count;
+        }
+        if (item.input_quality_status == "invalid") {
+            ++summary.invalid_locator_count;
+        }
+        if (item.published_view_count == 0 || !item.has_enabled_published_view) {
+            ++summary.missing_published_view_count;
+        }
+        if (item.locator_kind.rfind("onvif", 0) == 0) {
+            ++summary.onvif_sources;
+        }
+        if (item.locator_kind == "rtsp" || item.locator_kind == "onvif-rtsp") {
+            ++summary.rtsp_sources;
+        }
+        if (item.locator_kind == "whep") {
+            ++summary.whep_sources;
+        }
+    }
+    return summary;
+}
+
 void AppendSourceIdentitySummaryJson(std::ostringstream& out,
                                      const SourceViewRegistry::SourceIdentitySummary& summary) {
     out << "{"
@@ -1101,6 +1320,66 @@ void AppendSourceIdentitySnapshotJson(std::ostringstream& out,
             out << ",";
         }
         AppendSourceIdentityPublishedViewJson(out, sourceIdentity.published_views[i]);
+    }
+    out << "]}";
+}
+
+void AppendSourceOnboardingQualitySummaryJson(
+    std::ostringstream& out,
+    const SourceViewRegistry::SourceOnboardingQualitySummary& summary) {
+    out << "{"
+        << "\"sourceCount\":" << summary.source_count << ","
+        << "\"readySources\":" << summary.ready_sources << ","
+        << "\"warningSources\":" << summary.warning_sources << ","
+        << "\"blockedSources\":" << summary.blocked_sources << ","
+        << "\"duplicateCanonicalSourceKeys\":" << summary.duplicate_canonical_source_keys << ","
+        << "\"missingLocatorCount\":" << summary.missing_locator_count << ","
+        << "\"invalidLocatorCount\":" << summary.invalid_locator_count << ","
+        << "\"missingPublishedViewCount\":" << summary.missing_published_view_count << ","
+        << "\"disabledSourceCount\":" << summary.disabled_source_count << ","
+        << "\"onvifSources\":" << summary.onvif_sources << ","
+        << "\"rtspSources\":" << summary.rtsp_sources << ","
+        << "\"whepSources\":" << summary.whep_sources
+        << "}";
+}
+
+void AppendSourceOnboardingQualityIssueJson(
+    std::ostringstream& out,
+    const SourceViewRegistry::SourceOnboardingQualityIssue& issue) {
+    out << "{"
+        << "\"code\":\"" << JsonEscape(issue.code) << "\","
+        << "\"severity\":\"" << JsonEscape(issue.severity) << "\","
+        << "\"message\":\"" << JsonEscape(issue.message) << "\""
+        << "}";
+}
+
+void AppendSourceOnboardingQualityItemJson(
+    std::ostringstream& out,
+    const SourceViewRegistry::SourceOnboardingQualityItem& item) {
+    out << "{"
+        << "\"sourceId\":\"" << JsonEscape(item.source_id) << "\","
+        << "\"displayName\":\"" << JsonEscape(item.display_name) << "\","
+        << "\"sourceKind\":\"" << JsonEscape(item.source_kind) << "\","
+        << "\"enabled\":" << (item.enabled ? "true" : "false") << ","
+        << "\"readinessStatus\":\"" << JsonEscape(item.readiness_status) << "\","
+        << "\"publishedViewCount\":" << item.published_view_count << ","
+        << "\"hasEnabledPublishedView\":" << (item.has_enabled_published_view ? "true" : "false") << ","
+        << "\"preSaveValidation\":{"
+        << "\"ready\":" << (item.pre_save_validation_ready ? "true" : "false") << ","
+        << "\"issueCount\":" << item.validation_issues.size()
+        << "},"
+        << "\"inputQuality\":{"
+        << "\"kind\":\"" << JsonEscape(item.locator_kind) << "\","
+        << "\"locatorPresent\":" << (item.locator_present ? "true" : "false") << ","
+        << "\"locatorScheme\":\"" << JsonEscape(item.locator_scheme) << "\","
+        << "\"status\":\"" << JsonEscape(item.input_quality_status) << "\""
+        << "},"
+        << "\"validationIssues\":[";
+    for (std::size_t i = 0; i < item.validation_issues.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendSourceOnboardingQualityIssueJson(out, item.validation_issues[i]);
     }
     out << "]}";
 }
@@ -1507,6 +1786,56 @@ RegistryResult SourceViewRegistry::SourceRegistrySnapshotIdentityJson() {
         << "\"rtspOrWebrtcMediaPathChanged\":false,"
         << "\"ruleProfilePayloadChanged\":false,"
         << "\"onboardingQualityImplemented\":false,"
+        << "\"reliabilityTimelineImplemented\":false,"
+        << "\"incidentCorrelationImplemented\":false,"
+        << "\"recoveryQueueImplemented\":false,"
+        << "\"clientSafeDigestImplemented\":false,"
+        << "\"searchMetricsImplemented\":false"
+        << "}}";
+    return JsonResult(200, "OK", out.str());
+}
+
+RegistryResult SourceViewRegistry::SourceOnboardingQualitySummaryJson() {
+    std::lock_guard lock(mu_);
+    std::string load_error;
+    if (!EnsureLoadedLocked(&load_error)) {
+        return ErrorResult(500, "Internal Server Error", load_error);
+    }
+    const auto sourceOnboardingQuality = BuildSourceOnboardingQualityItems(sources_, views_);
+    const auto summary = BuildSourceOnboardingQualitySummary(sourceOnboardingQuality);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v330-source-onboarding-quality-summary.v1\","
+        << "\"status\":\"source-onboarding-quality-summary\","
+        << "\"storage\":{"
+        << "\"sourceRegistryPath\":\"" << JsonEscape(source_storage_path_.string()) << "\","
+        << "\"publishedViewsPath\":\"" << JsonEscape(views_storage_path_.string()) << "\""
+        << "},\"onboardingQualitySummary\":";
+    AppendSourceOnboardingQualitySummaryJson(out, summary);
+    out << ",\"sourceOnboardingQuality\":[";
+    for (std::size_t i = 0; i < sourceOnboardingQuality.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendSourceOnboardingQualityItemJson(out, sourceOnboardingQuality[i]);
+    }
+    out << "],\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
         << "\"reliabilityTimelineImplemented\":false,"
         << "\"incidentCorrelationImplemented\":false,"
         << "\"recoveryQueueImplemented\":false,"

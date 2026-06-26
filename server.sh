@@ -272,6 +272,8 @@ Usage:
                  v3.3.0 Step 1 source baseline과 latest published v3.2.0 경계를 검증합니다.
   verify-v330-source-registry-snapshot-identity
                  v3.3.0 Step 2 Source Registry Snapshot and Identity read model 경계를 검증합니다.
+  verify-v330-source-onboarding-quality-summary
+                 v3.3.0 Step 3 Source Onboarding Quality Summary API/UI 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -436,6 +438,8 @@ Usage:
                  v3.3.0 Step 1 source baseline과 latest published v3.2.0 경계를 검증합니다.
   verify-v330-source-registry-snapshot-identity
                  v3.3.0 Step 2 Source Registry Snapshot and Identity read model 경계를 검증합니다.
+  verify-v330-source-onboarding-quality-summary
+                 v3.3.0 Step 3 Source Onboarding Quality Summary API/UI 경계를 검증합니다.
   verify-actions-security
                  GitHub Actions workflow 권한과 action 사용 정책을 검증합니다.
   verify-ci-local-gate-parity
@@ -1342,6 +1346,10 @@ case "${cmd}" in
   verify-v330-source-registry-snapshot-identity)
     require_internal verify_v330_source_registry_snapshot_identity.mjs
     exec "${INTERNAL_DIR}/verify_v330_source_registry_snapshot_identity.mjs" "$@"
+    ;;
+  verify-v330-source-onboarding-quality-summary)
+    require_internal verify_v330_source_onboarding_quality_summary.mjs
+    exec "${INTERNAL_DIR}/verify_v330_source_onboarding_quality_summary.mjs" "$@"
     ;;
   verify-v290-final-stabilization-run)
     require_internal verify_v290_final_stabilization_run.mjs

@@ -98,11 +98,50 @@ public:
         int published_views_without_source{0};
     };
 
+    struct SourceOnboardingQualityIssue {
+        std::string code;
+        std::string severity;
+        std::string message;
+    };
+
+    struct SourceOnboardingQualityItem {
+        std::string source_id;
+        std::string display_name;
+        std::string source_kind;
+        bool enabled{true};
+        std::string readiness_status;
+        int published_view_count{0};
+        bool has_enabled_published_view{false};
+        bool duplicate_canonical_source_key{false};
+        bool pre_save_validation_ready{false};
+        std::string locator_kind;
+        bool locator_present{false};
+        std::string locator_scheme;
+        std::string input_quality_status;
+        std::vector<SourceOnboardingQualityIssue> validation_issues;
+    };
+
+    struct SourceOnboardingQualitySummary {
+        int source_count{0};
+        int ready_sources{0};
+        int warning_sources{0};
+        int blocked_sources{0};
+        int duplicate_canonical_source_keys{0};
+        int missing_locator_count{0};
+        int invalid_locator_count{0};
+        int missing_published_view_count{0};
+        int disabled_source_count{0};
+        int onvif_sources{0};
+        int rtsp_sources{0};
+        int whep_sources{0};
+    };
+
     static SourceViewRegistry& Instance();
 
     RegistryResult SourcesJson();
     RegistryResult ViewsJson();
     RegistryResult SourceRegistrySnapshotIdentityJson();
+    RegistryResult SourceOnboardingQualitySummaryJson();
     RegistryResult ClientViewsJson(const auth::Principal& principal);
     RegistryResult ClientViewJson(const std::string& view_id, const auth::Principal& principal);
     RegistryResult ResolveClientViewAccess(const std::string& view_id,

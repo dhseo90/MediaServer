@@ -9,6 +9,8 @@ namespace ingress {
 void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stream_route_json, int rtsp_port) {
     out << R"OPSSOURCES(  <script>
     const statusEl = document.querySelector('#status');
+    const onboardingQualityStatus = document.querySelector('#source-onboarding-quality-status');
+    const onboardingQualityList = document.querySelector('#source-onboarding-quality-list');
     const channelBody = document.querySelector('#channels-body');
     const channelForm = document.querySelector('#channel-form');
     const channelPanel = document.querySelector('#channel-detail-panel');
@@ -340,6 +342,48 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         return aId.localeCompare(bId);
       });
       return rows;
+    }
+    function setMetricText(id, value) {
+      const element = document.getElementById(id);
+      if (element) element.textContent = String(value ?? '-');
+    }
+    function onboardingIssueText(issue) {
+      const code = String(issue?.code || '').trim();
+      const message = String(issue?.message || '').trim();
+      return message || code || 'validation issue';
+    }
+    function renderOnboardingQualitySummary(payload = {}) {
+      const summary = payload.onboardingQualitySummary || {};
+      const items = Array.isArray(payload.sourceOnboardingQuality) ? payload.sourceOnboardingQuality : [];
+      setMetricText('sourceOnboardingReadyCount', summary.readySources ?? 0);
+      setMetricText('sourceOnboardingWarningCount', summary.warningSources ?? 0);
+      setMetricText('sourceOnboardingBlockedCount', summary.blockedSources ?? 0);
+      setMetricText('sourceOnboardingDuplicateCount', summary.duplicateCanonicalSourceKeys ?? 0);
+      setMetricText('sourceOnboardingMissingViewCount', summary.missingPublishedViewCount ?? 0);
+      const total = Number(summary.sourceCount || items.length || 0);
+      const blocked = Number(summary.blockedSources || 0);
+      const warning = Number(summary.warningSources || 0);
+      if (onboardingQualityStatus) {
+        onboardingQualityStatus.textContent = `${total}개 source / ready ${summary.readySources ?? 0} / warning ${warning} / blocked ${blocked}`;
+      }
+      if (!onboardingQualityList) return;
+      const visibleItems = items.filter(item => item?.readinessStatus !== 'ready').slice(0, 6);
+      if (visibleItems.length === 0) {
+        onboardingQualityList.innerHTML = '<div class="empty"><strong>ready</strong><span>저장 전 validation 이슈가 없습니다.</span></div>';
+        return;
+      }
+      onboardingQualityList.innerHTML = visibleItems.map(item => {
+        const issues = Array.isArray(item.validationIssues) ? item.validationIssues : [];
+        const issueText = issues.map(onboardingIssueText).join(' / ') || 'review required';
+        const inputQuality = item.inputQuality || {};
+        const tone = item.readinessStatus === 'blocked' ? 'bad' : 'warn';
+        return `<div class="validation-item" data-source-onboarding-quality="${escapeHtml(item.readinessStatus || 'warning')}">
+          <span class="chip ${tone}">${escapeHtml(item.readinessStatus || 'warning')}</span>
+          <strong>${escapeHtml(item.displayName || item.sourceId || '-')}</strong>
+          <span>${escapeHtml(item.sourceKind || '-')} / ${escapeHtml(inputQuality.kind || '-')} / ${escapeHtml(inputQuality.locatorScheme || '-')}</span>
+          <small>${escapeHtml(issueText)}</small>
+        </div>`;
+      }).join('');
     }
     function setFormDisabled(disabled) {
       const writable = canWriteSources();
@@ -794,16 +838,18 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       return { channelId, sourcePayload, viewPayload };
     }
     async function loadAll() {
-      const [sources, views, clientViews, principal] = await Promise.all([
+      const [sources, views, clientViews, onboardingQuality, principal] = await Promise.all([
         requestJson('/ops/api/sources'),
         requestJson('/ops/api/views'),
         requestJson('/client/api/views'),
+        requestJson('/ops/api/source-registry/onboarding-quality'),
         requestJson('/auth/whoami').catch(() => null)
       ]);
       opsPrincipal = principal;
       loadedSources = sources.sources || [];
       loadedViews = views.views || [];
       applySourceWriteAccessUi();
+      renderOnboardingQualitySummary(onboardingQuality);
       renderChannels(loadedSources, loadedViews);
       renderOpsAuditTrail('channel-audit-list', 'channels');
       if (!initializedHashChannel) {
