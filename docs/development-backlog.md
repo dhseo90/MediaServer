@@ -23,7 +23,8 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 Source Registry Snapshot and Identity 구현 완료. Step 3 Source Onboarding Quality Summary
 구현 완료. Step 4 Reliability Timeline and Health History 구현 완료. Step 5
 Incident-to-Source Correlation Layer 구현 완료. Step 6 Operator Recheck and Recovery Queue
-구현 완료. Step 7 Client-safe Source Status Digest 구현 완료. 현재 source version은 `3.3.0`이고, 최신 published baseline은 `v3.2.0`
+구현 완료. Step 7 Client-safe Source Status Digest 구현 완료. Step 8 Operator Runbook
+and Reliability Handoff 문서 연결 완료. 현재 source version은 `3.3.0`이고, 최신 published baseline은 `v3.2.0`
 Operations Resolution Workspace입니다. 이 절은 v3.3.0 개발 이슈와 현재 step evidence를
 정리한 문서이며, 각 step은 실제 코드/UI/API/검증 산출물이 생긴 뒤에만 완료로 기록합니다.
 
@@ -55,9 +56,9 @@ incident correlation, recovery queue, client digest, metrics는 후속 step evid
 - v3.2 resolution event와 source reliability context의 연결
 - operator recheck/retry/recovery queue
 - client-safe source status digest
+- operator runbook과 source reliability handoff 문서
 - source reliability search, filters, and metrics
 - backup/recovery handoff에 필요한 source registry/health 검증 입력
-- operator runbook과 source reliability handoff 문서
 
 비범위:
 
@@ -100,9 +101,9 @@ license/provenance/privacy/운영 검토 결과:
 | 5 | v3.3.0 (5) Incident-to-Source Correlation Layer | P1 | 완료 | v3.2 resolution event detail에서 source reliability 원인/context를 함께 표시 |
 | 6 | v3.3.0 (6) Operator Recheck and Recovery Queue | P1 | 완료 | failed-only recheck, retry candidate, recovery checklist, dry-run 결과와 operator note 연결 |
 | 7 | v3.3.0 (7) Client-safe Source Status Digest | P1 | 완료 | viewer/client에 허용되는 source status summary와 connection health digest |
-| 8 | v3.3.0 (8) Source Reliability Search and Metrics | P2 | 미착수 | source health filter, saved reliability view, reconnect/stale/offline metric summary |
-| 9 | v3.3.0 (9) Ops Backup and Recovery Source Handoff | P2 | 미착수 | source registry, PublishedView, source health snapshot, recovery validation plan 연결 |
-| 10 | v3.3.0 (10) Operator Runbook and Reliability Handoff | P1 | 미착수 | source reliability workspace 사용 흐름, 운영자 runbook, docs index/UI guide/config/backup 문서 연결 |
+| 8 | v3.3.0 (8) Operator Runbook and Reliability Handoff | P1 | 완료 | source reliability workspace 사용 흐름, 운영자 runbook, docs index/UI guide/config/backup 문서 연결 |
+| 9 | v3.3.0 (9) Source Reliability Search and Metrics | P2 | 미착수 | source health filter, saved reliability view, reconnect/stale/offline metric summary |
+| 10 | v3.3.0 (10) Ops Backup and Recovery Source Handoff | P2 | 미착수 | source registry, PublishedView, source health snapshot, recovery validation plan 연결 |
 
 완료 경계: Step 1은 source/version/docs/backlog/verification metadata 정렬입니다.
 Step 2는 source registry identity read model/API/verifier 연결입니다. Step 3은 source
@@ -110,7 +111,7 @@ onboarding quality read model/API/UI/verifier 연결입니다. Step 4는 reliabi
 and health history read model/API/UI/verifier 연결입니다. Step 5는 incident-to-source
 correlation read model/UI/verifier 연결입니다. Step 6는 operator recheck recovery queue
 read model/UI/verifier 연결입니다. Step 7은 client-safe source status digest API/UI/verifier
-연결입니다. 아직 완료 기록이 없는 항목은 실제 코드/UI/API/문서
+연결입니다. Step 8은 operator runbook과 reliability handoff 문서 연결입니다. 아직 완료 기록이 없는 항목은 실제 코드/UI/API/문서
 산출물이 생긴 뒤에만 완료로 기록합니다.
 현재 Step 1 기록은 source registry snapshot, onboarding quality, reliability timeline,
 recovery queue, client digest, search/metrics 구현 완료 evidence가 아닙니다.
@@ -201,6 +202,17 @@ recovery queue, client digest, search/metrics 구현 완료 evidence가 아닙�
 - `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`, `docs/stream-verification.md`, `docs/manual-ui-checklist.md`, `docs/release-test-records.md`: `UI-072`, `CLIENT-028`, `SRC-038`, `SAFE-119`, `OPS-086` 기능/경계/gate 항목과 Step 7 verifier 연결을 추가했습니다.
 - 검증: 최초 `node scripts/internal/verify_v330_client_safe_source_status_digest.mjs`는 Step 7 server digest, client renderer, CSS/smoke marker, backlog 완료 기록, stream verification, release records, server dispatch가 아직 없어 `pass=0 fail=7`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v330 Step 7 결과 행에 기록합니다.
 - 완료 경계: 이번 Step 7은 Client-safe Source Status Digest API/UI/verifier 연결입니다. 이번 Step 7 범위 밖 기능 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence도 아닙니다.
+
+## v3.3.0 Step 8 개발 기록
+
+- 범위: P1 `v3.3.0 (8) Operator Runbook and Reliability Handoff`.
+- `docs/live-source-health.md`: `Operator Runbook and Reliability Handoff` 섹션을 추가해 source reliability workspace 사용 흐름, 운영자 handoff checklist, boundary/rollback 기준을 source-of-truth로 정리했습니다.
+- `docs/README.md`, `docs/ui-guide.md`, `docs/config-reference.md`, `docs/ops-backup-recovery.md`: runbook source-of-truth를 `docs/live-source-health.md#operator-runbook-and-reliability-handoff`로 연결하고, 각 문서는 화면 위치, env/bundle 수집, 복구 입력 경계만 설명하도록 역할을 나눴습니다.
+- `docs/development-backlog.md`, `docs/versioning-policy.md`, `docs/release-policy.md`: 사용자 최신 roadmap 순서에 맞춰 Step 8을 Operator Runbook and Reliability Handoff, Step 9를 Source Reliability Search and Metrics, Step 10을 Ops Backup and Recovery Source Handoff로 정렬했습니다.
+- `scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs`, `server.sh`: `./server.sh verify-v330-operator-runbook-reliability-handoff` 명령을 추가해 runbook source-of-truth, docs index/UI guide/config/backup 연결, inventory/release records/server dispatch 연결, no-overclaim 경계를 정적 검증합니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`, `docs/stream-verification.md`, `docs/release-test-records.md`: `SAFE-120`, `OPS-087` 기능/경계/gate 항목과 Step 8 verifier 연결을 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v330_operator_runbook_reliability_handoff.mjs`는 로컬 backlog 순서가 사용자 최신 roadmap과 달랐고 runbook/docs/inventory/server dispatch 연결이 없어 `pass=0 fail=6`으로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v330 Step 8 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 8은 operator runbook과 reliability handoff 문서 연결입니다. Source Reliability Search and Metrics, Ops Backup and Recovery Source Handoff 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action, real backup/restore, field smoke 완료 evidence도 아닙니다.
 
 ## 최신 published baseline 상세: v3.2.0 Operations Resolution Workspace
 

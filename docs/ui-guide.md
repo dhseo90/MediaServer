@@ -353,6 +353,9 @@ Route 역할:
     live source health 초안은 [live-source-health.md](./live-source-health.md)를
     기준으로 `/ops/dashboard`와 source health API에서 다루며, client/viewer에는
     sanitized dashboard summary만 노출합니다.
+    Live Source Reliability Workspace 사용 흐름은
+    [Operator Runbook and Reliability Handoff](./live-source-health.md#operator-runbook-and-reliability-handoff)를
+    source-of-truth로 봅니다. UI guide는 화면 위치와 조작 순서만 설명하고 runbook source-of-truth는 live-source-health.md에 둡니다.
     원본 source URL, ONVIF endpoint, raw diagnostic JSON은 viewer/client에 숨깁니다.
   - `/ops/rules`: 채널 분석 설정, 이벤트 템플릿, 분석 프로파일 목록
 

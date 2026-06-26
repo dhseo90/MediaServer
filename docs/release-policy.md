@@ -154,9 +154,9 @@ close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 �
 - Incident-to-Source Correlation Layer
 - Operator Recheck and Recovery Queue
 - Client-safe Source Status Digest
+- Operator Runbook and Reliability Handoff
 - Source Reliability Search and Metrics
 - Ops Backup and Recovery Source Handoff
-- Operator Runbook and Reliability Handoff
 
 `v3.3.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
 있을 때만 완료로 기록합니다. 현재 latest published release는 `v3.2.0`입니다.

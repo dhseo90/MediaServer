@@ -49,9 +49,9 @@ binary/runtime/model bundle을 공개 asset으로 포함하지 않습니다.
 - Incident-to-Source Correlation Layer
 - Operator Recheck and Recovery Queue
 - Client-safe Source Status Digest
+- Operator Runbook and Reliability Handoff
 - Source Reliability Search and Metrics
 - Ops Backup and Recovery Source Handoff
-- Operator Runbook and Reliability Handoff
 
 위 항목은 구현과 검증 evidence가 생긴 뒤에만 `완료`로 기록합니다. GitHub Release,
 tag, 30분/120분 장시간 테스트, UI 풀테스트, 외부 field smoke는 별도 실행 evidence가

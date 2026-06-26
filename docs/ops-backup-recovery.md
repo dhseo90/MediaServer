@@ -118,6 +118,18 @@ EventRecord storage나 snapshot/clip hook을 운영에서 꺼 둔 환경은
 `verify-ops-client-ui`, `verify-ops-click-e2e`, `verify-ops-tables-layout`도 같이
 실행합니다.
 
+## Source reliability handoff
+
+Source reliability handoff는 복구용 백업 완료 evidence가 아니라 operator handoff 입력입니다.
+운영자는 [Operator Runbook and Reliability Handoff](./live-source-health.md#operator-runbook-and-reliability-handoff)의
+checklist를 따라 source registry snapshot, onboarding quality, reliability timeline,
+incident-to-source correlation, operator recheck recovery queue, client-safe digest를
+같은 change ticket에 연결합니다.
+
+이 handoff는 복구 후보를 좁히는 입력이며, 실제 registry 복원, PublishedView 복원,
+source health snapshot 보존, recovery validation plan까지 완료했다는 뜻은 아닙니다.
+Ops Backup and Recovery Source Handoff는 별도 roadmap step evidence가 있어야 완료로 기록합니다.
+
 ## 실패 시 롤백
 
 - JSON parse 오류, 중복 source/view id, 존재하지 않는 `sourceId` 참조가 나오면 복원 파일을 덮어쓰지 말고 백업본을 그대로 보존합니다.
