@@ -7,14 +7,14 @@
 
 - 현재 소스 버전: `3.3.0`
 - 현재 source roadmap: `v3.3.0 Live Source Reliability Workspace`
-- 최신 공개 GitHub Release: `v3.2.0 Operations Resolution Workspace`
-- v3.2.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- source-only release 기준 tag는 published tag `v3.2.0`와 현재 source tag `v3.3.0`를 함께 기록합니다.
+- 최신 공개 GitHub Release: `v3.3.0 Live Source Reliability Workspace`
+- v3.3.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
+- source-only release 기준 tag는 published tag `v3.3.0`와 현재 source tag `v3.3.0`를 함께 기록합니다.
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
 
 현재 소스 트리의 `3.3.0` roadmap은 v3.3.0 Live Source Reliability Workspace
-source-only/live-only active source baseline입니다. v3.2.0 최신 published baseline,
-v3.1.0 previous published evidence와 v3.3 기능별 완료 evidence는 계속 분리해 기록합니다. 기본 공개 형태는 계속 source-only이며
+source-only/live-only active source baseline입니다. v3.3.0 최신 published baseline,
+v3.2.0 previous published evidence와 후속 기능별 완료 evidence는 계속 분리해 기록합니다. 기본 공개 형태는 계속 source-only이며
 binary/runtime/model bundle을 공개 asset으로 포함하지 않습니다.
 
 ## 2.x runway / 3.0 전환 정책
@@ -60,13 +60,30 @@ tag, 30분/120분 장시간 테스트, UI 풀테스트, 외부 field smoke는 �
 `v3.3.0 source-of-truth 정렬`은 `README.md`, `README.en.md`, `docs/README.md`,
 `docs/en/README.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`,
 release/version policy가 source `3.3.0`, current roadmap
-`v3.3.0 Live Source Reliability Workspace`, latest published `v3.2.0`를 분리 정렬하는지
-확인하는 local gate입니다. v3.2 published baseline은 최신 공개 기준입니다. 대표 UI 이미지는 `config/docs_ui_assets.json`의 managed
+`v3.3.0 Live Source Reliability Workspace`, latest published `v3.3.0`를 분리 정렬하는지
+확인하는 local gate입니다. v3.3 published baseline은 최신 공개 기준입니다. 대표 UI 이미지는 `config/docs_ui_assets.json`의 managed
 asset list로 관리하며, image recapture, 직접 브라우저 검수 PASS, UI 풀테스트,
 published metadata, tag/push/GitHub Release는 source baseline 정렬 PASS로 대체하지
 않습니다.
 
-## v3.2.0 latest published source-only release 범위
+## v3.3.0 latest published source-only release 범위
+
+- v3.3.0 source roadmap baseline 정렬
+- Source Registry Snapshot and Identity
+- Source Onboarding Quality Summary
+- Reliability Timeline and Health History
+- Incident-to-Source Correlation Layer
+- Operator Recheck and Recovery Queue
+- Client-safe Source Status Digest
+- Operator Runbook and Reliability Handoff
+- Source Reliability Search and Metrics
+- Ops Backup and Recovery Source Handoff
+- Stabilization and Release Readiness
+
+위 항목은 최신 published baseline입니다. 후속 릴리즈 신규 기능 완료 근거가 아니며,
+후속 버전에서는 historical reference로만 참조합니다.
+
+## v3.2.0 previous published source-only release 범위
 
 - v3.2.0 source-of-truth 정렬
 - Resolution State Contract
@@ -80,10 +97,10 @@ published metadata, tag/push/GitHub Release는 source baseline 정렬 PASS로 �
 - Resolution Search & Metrics
 - Stabilization and Release Readiness
 
-위 항목은 최신 published baseline입니다. v3.3.0 신규 기능 완료 근거가 아니며,
+위 항목은 직전 published baseline입니다. v3.3.0 신규 기능 완료 근거가 아니며,
 v3.3에서는 historical reference로만 참조합니다.
 
-## v3.1.0 previous published source-only release 범위
+## v3.1.0 historical published source-only release 범위
 
 - v3.1.0 source-of-truth 정렬
 - Encoded Event Clip Contract
@@ -96,7 +113,7 @@ v3.3에서는 historical reference로만 참조합니다.
 - Retention/Export Hardening
 - Stabilization and Release Readiness
 
-위 항목은 직전 published baseline입니다. v3.0.0 baseline은 historical 공개 기준으로 보존합니다.
+위 항목은 historical published baseline입니다. v3.0.0 baseline은 historical 공개 기준으로 보존합니다.
 
 ## v3.0.0 historical published source-only release 범위
 
@@ -167,9 +184,9 @@ v3.3에서는 historical reference로만 참조합니다.
 
 ## Tag와 GitHub Release 기준
 
-- 현재 공개 release tag 기준: `v3.2.0`
+- 현재 공개 release tag 기준: `v3.3.0`
 - 현재 source tag 기준: `v3.3.0`
-- `v3.2.0` release tag는 signed annotated tag로 생성했습니다.
+- `v3.3.0` release tag는 annotated tag로 생성했습니다.
 - 6월 정책상 GitHub Actions가 disabled여서 required Actions check는 생성되지 않았고,
   main ruleset required checks를 임시 제거해 PR merge 후 원복했습니다.
 - 다음 신규 release tag는 signed annotated tag로 생성합니다.
