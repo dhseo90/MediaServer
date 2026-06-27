@@ -6,8 +6,8 @@
 [video-analysis.md](./video-analysis.md)를 봅니다.
 제품 화면은 Ops/Client 기준으로 두고, 개발/검증 API는 별도로 유지합니다.
 
-현재 소스 버전은 `3.2.0`입니다. 최신 공개 GitHub Release는 `v3.2.0` source-only
-release이며, 이 문서는 현재 source tree의 UI 구조와 v3.2.0 Operations Resolution Workspace roadmap 경계를 설명합니다.
+현재 소스 버전은 `3.3.0`입니다. 최신 공개 GitHub Release는 `v3.2.0` source-only
+release이며, 이 문서는 현재 source tree의 UI 구조와 v3.3.0 Live Source Reliability Workspace roadmap 경계를 설명합니다.
 UI 풀테스트 직접 조작 evidence는 별도 실행한 경우에만 PASS로 기록합니다.
 
 ## 목차
@@ -353,6 +353,9 @@ Route 역할:
     live source health 초안은 [live-source-health.md](./live-source-health.md)를
     기준으로 `/ops/dashboard`와 source health API에서 다루며, client/viewer에는
     sanitized dashboard summary만 노출합니다.
+    Live Source Reliability Workspace 사용 흐름은
+    [Operator Runbook and Reliability Handoff](./live-source-health.md#operator-runbook-and-reliability-handoff)를
+    source-of-truth로 봅니다. UI guide는 화면 위치와 조작 순서만 설명하고 runbook source-of-truth는 live-source-health.md에 둡니다.
     원본 source URL, ONVIF endpoint, raw diagnostic JSON은 viewer/client에 숨깁니다.
   - `/ops/rules`: 채널 분석 설정, 이벤트 템플릿, 분석 프로파일 목록
 

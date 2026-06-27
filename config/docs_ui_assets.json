@@ -1,7 +1,7 @@
 {
   "schema": "media-server.docs-ui-assets.v1",
   "baseline": {
-    "sourceVersion": "3.2.0",
+    "sourceVersion": "3.3.0",
     "publishedRelease": "v3.2.0",
     "publicReleaseStatus": "v3.2.0-published-source-only",
     "capturedAt": "2026-05-23",

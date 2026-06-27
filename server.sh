@@ -268,6 +268,28 @@ Usage:
                  v3.2.0 Step 10 Resolution Search & Metrics와 filter/saved view/metric summary 경계를 검증합니다.
   verify-v320-stabilization-release-readiness
                  v3.2.0 Step 11 Stabilization and Release Readiness와 local release gate 경계를 검증합니다.
+  verify-v330-entry-baseline
+                 v3.3.0 Step 1 source baseline과 latest published v3.2.0 경계를 검증합니다.
+  verify-v330-source-registry-snapshot-identity
+                 v3.3.0 Step 2 Source Registry Snapshot and Identity read model 경계를 검증합니다.
+  verify-v330-source-onboarding-quality-summary
+                 v3.3.0 Step 3 Source Onboarding Quality Summary API/UI 경계를 검증합니다.
+  verify-v330-reliability-timeline-health-history
+                 v3.3.0 Step 4 Reliability Timeline and Health History API/UI 경계를 검증합니다.
+  verify-v330-incident-source-correlation-layer
+                 v3.3.0 Step 5 Incident-to-Source Correlation Layer API/UI 경계를 검증합니다.
+  verify-v330-operator-recheck-recovery-queue
+                 v3.3.0 Step 6 Operator Recheck and Recovery Queue API/UI 경계를 검증합니다.
+  verify-v330-client-safe-source-status-digest
+                 v3.3.0 Step 7 Client-safe Source Status Digest와 viewer redaction 경계를 검증합니다.
+  verify-v330-operator-runbook-reliability-handoff
+                 v3.3.0 Step 8 Operator Runbook and Reliability Handoff 문서 연결 경계를 검증합니다.
+  verify-v330-source-reliability-search-metrics
+                 v3.3.0 Step 9 Source Reliability Search and Metrics API/UI 경계를 검증합니다.
+  verify-v330-ops-backup-recovery-source-handoff
+                 v3.3.0 Step 10 Ops Backup and Recovery Source Handoff API/UI 경계를 검증합니다.
+  verify-v330-stabilization-release-readiness
+                 v3.3.0 Step 11 Stabilization and Release Readiness와 local release gate 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -428,6 +450,26 @@ Usage:
                  v3.2.0 Step 9 Client-safe Resolution Digest와 viewer redaction 경계를 검증합니다.
   verify-v320-stabilization-release-readiness
                  v3.2.0 Step 11 Stabilization and Release Readiness와 local release gate 경계를 검증합니다.
+  verify-v330-entry-baseline
+                 v3.3.0 Step 1 source baseline과 latest published v3.2.0 경계를 검증합니다.
+  verify-v330-source-registry-snapshot-identity
+                 v3.3.0 Step 2 Source Registry Snapshot and Identity read model 경계를 검증합니다.
+  verify-v330-source-onboarding-quality-summary
+                 v3.3.0 Step 3 Source Onboarding Quality Summary API/UI 경계를 검증합니다.
+  verify-v330-reliability-timeline-health-history
+                 v3.3.0 Step 4 Reliability Timeline and Health History API/UI 경계를 검증합니다.
+  verify-v330-incident-source-correlation-layer
+                 v3.3.0 Step 5 Incident-to-Source Correlation Layer API/UI 경계를 검증합니다.
+  verify-v330-operator-recheck-recovery-queue
+                 v3.3.0 Step 6 Operator Recheck and Recovery Queue API/UI 경계를 검증합니다.
+  verify-v330-client-safe-source-status-digest
+                 v3.3.0 Step 7 Client-safe Source Status Digest와 viewer redaction 경계를 검증합니다.
+  verify-v330-operator-runbook-reliability-handoff
+                 v3.3.0 Step 8 Operator Runbook and Reliability Handoff 문서 연결 경계를 검증합니다.
+  verify-v330-source-reliability-search-metrics
+                 v3.3.0 Step 9 Source Reliability Search and Metrics API/UI 경계를 검증합니다.
+  verify-v330-ops-backup-recovery-source-handoff
+                 v3.3.0 Step 10 Ops Backup and Recovery Source Handoff API/UI 경계를 검증합니다.
   verify-actions-security
                  GitHub Actions workflow 권한과 action 사용 정책을 검증합니다.
   verify-ci-local-gate-parity
@@ -1326,6 +1368,50 @@ case "${cmd}" in
   verify-v320-stabilization-release-readiness)
     require_internal verify_v320_stabilization_release_readiness.mjs
     exec "${INTERNAL_DIR}/verify_v320_stabilization_release_readiness.mjs" "$@"
+    ;;
+  verify-v330-entry-baseline)
+    require_internal verify_v330_entry_baseline.mjs
+    exec "${INTERNAL_DIR}/verify_v330_entry_baseline.mjs" "$@"
+    ;;
+  verify-v330-source-registry-snapshot-identity)
+    require_internal verify_v330_source_registry_snapshot_identity.mjs
+    exec "${INTERNAL_DIR}/verify_v330_source_registry_snapshot_identity.mjs" "$@"
+    ;;
+  verify-v330-source-onboarding-quality-summary)
+    require_internal verify_v330_source_onboarding_quality_summary.mjs
+    exec "${INTERNAL_DIR}/verify_v330_source_onboarding_quality_summary.mjs" "$@"
+    ;;
+  verify-v330-reliability-timeline-health-history)
+    require_internal verify_v330_reliability_timeline_health_history.mjs
+    exec "${INTERNAL_DIR}/verify_v330_reliability_timeline_health_history.mjs" "$@"
+    ;;
+  verify-v330-incident-source-correlation-layer)
+    require_internal verify_v330_incident_source_correlation_layer.mjs
+    exec "${INTERNAL_DIR}/verify_v330_incident_source_correlation_layer.mjs" "$@"
+    ;;
+  verify-v330-operator-recheck-recovery-queue)
+    require_internal verify_v330_operator_recheck_recovery_queue.mjs
+    exec "${INTERNAL_DIR}/verify_v330_operator_recheck_recovery_queue.mjs" "$@"
+    ;;
+  verify-v330-client-safe-source-status-digest)
+    require_internal verify_v330_client_safe_source_status_digest.mjs
+    exec "${INTERNAL_DIR}/verify_v330_client_safe_source_status_digest.mjs" "$@"
+    ;;
+  verify-v330-operator-runbook-reliability-handoff)
+    require_internal verify_v330_operator_runbook_reliability_handoff.mjs
+    exec "${INTERNAL_DIR}/verify_v330_operator_runbook_reliability_handoff.mjs" "$@"
+    ;;
+  verify-v330-source-reliability-search-metrics)
+    require_internal verify_v330_source_reliability_search_metrics.mjs
+    exec "${INTERNAL_DIR}/verify_v330_source_reliability_search_metrics.mjs" "$@"
+    ;;
+  verify-v330-ops-backup-recovery-source-handoff)
+    require_internal verify_v330_ops_backup_recovery_source_handoff.mjs
+    exec "${INTERNAL_DIR}/verify_v330_ops_backup_recovery_source_handoff.mjs" "$@"
+    ;;
+  verify-v330-stabilization-release-readiness)
+    require_internal verify_v330_stabilization_release_readiness.mjs
+    exec "${INTERNAL_DIR}/verify_v330_stabilization_release_readiness.mjs" "$@"
     ;;
   verify-v290-final-stabilization-run)
     require_internal verify_v290_final_stabilization_run.mjs

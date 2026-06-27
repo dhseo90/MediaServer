@@ -350,6 +350,12 @@ Ops audit trail:
 | `MEDIA_SERVER_SKIP_ENV_CHECK` | unset | pkg-config 등 환경 점검 생략 |
 | `HOMEBREW_PREFIX` | system default | Homebrew prefix override |
 
+Source reliability handoff bundle 기준:
+
+- `./server.sh ops-bundle --http-base ...`는 source registry snapshot, onboarding quality, reliability timeline, incident correlation, recovery queue, client-safe digest 확인에 필요한 runtime/config/log 단서를 redacted bundle로 모읍니다.
+- source registry snapshot, onboarding quality, reliability timeline, incident correlation, recovery queue, client-safe digest는 운영자 handoff checklist의 입력입니다.
+- config reference는 env와 bundle 수집 기준만 설명하고 runbook 판단 기준은 live-source-health.md에 둡니다.
+
 ## RTSP/WebRTC env
 
 ### 공통 transport/session

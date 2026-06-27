@@ -260,6 +260,57 @@ registry rollback 대상은 없고, partial failure는 실패 source만 구성 �
 `source-health-state-change` action만 빠르게 필터링할 수 있습니다.
 client/viewer 응답에는 audit 세부를 노출하지 않습니다.
 
+## Operator Runbook and Reliability Handoff
+
+독자: 운영자, on-call, release handoff reviewer.
+Lifecycle: v3.3.0 Live Source Reliability Workspace 동안 유지되는 운영 runbook입니다.
+Source-of-truth: 이 섹션은 source reliability workspace 사용 흐름의 기준이고,
+[UI Guide](./ui-guide.md)는 화면 위치와 조작 순서, [Config Reference](./config-reference.md)는
+env와 bundle 수집 기준, [Ops Backup / Recovery Guide](./ops-backup-recovery.md)는
+복구 입력 경계만 보조로 설명합니다.
+
+### Runbook quick path
+
+1. `/ops/sources`에서 Source Registry Snapshot and Identity를 확인합니다.
+   sourceId, source kind, PublishedView 연결, canonical source key, owner/site/group
+   context가 같은 source를 가리키는지 확인합니다.
+2. Source Onboarding Quality Summary에서 저장 전 validation, 중복, 충돌, 누락, ready 상태를 확인합니다.
+   ONVIF/WHEP/RTSP 입력 품질이 `ready`가 아니면 registry를 바로 고치기 전에
+   validation issue와 field evidence 조건을 분리합니다.
+3. Reliability Timeline and Health History에서 live/stale/offline/reconnect 변화와 Ops audit handoff를 확인합니다.
+   같은 source의 상태 변화가 반복되면 `source-health-state-change` audit,
+   last frame age, metadata age, reconnect count를 함께 기록합니다.
+4. `/ops/events`에서 Incident-to-Source Correlation Layer와 Operator Recheck and Recovery Queue를 함께 확인합니다.
+   source 원인/context, closure impact, failed-only recheck, retry candidate,
+   recovery checklist, dry-run 결과, operator note link를 같은 incident ticket에 묶습니다.
+5. `/client/live`, `/client/dashboard`, `/client/events`에서 viewer-safe Source Status Digest만 노출되는지 확인합니다.
+   viewer에게 source URL, raw locator, raw JSON, debug material, credential,
+   operator note, recovery/action control이 보이면 release blocker로 분리합니다.
+
+### Handoff checklist
+
+| 항목 | 확인 위치 | handoff에 남길 내용 | 완료로 보지 않는 것 |
+| --- | --- | --- | --- |
+| source registry snapshot | `/ops/api/source-registry/snapshot`, `/ops/sources` | sourceId/source kind/PublishedView/canonical key/owner context | source registry write 완료 |
+| onboarding quality summary | `/ops/api/source-registry/onboarding-quality`, `/ops/sources` | validation issue, duplicate/conflict/missing/ready, input quality | 실기기 field success |
+| reliability timeline | `/ops/api/source-registry/reliability-timeline`, `/ops/sources` | live/stale/offline/reconnect 변화, audit target, 반복 stale 여부 | 장시간 안정화 PASS |
+| incident-to-source correlation | `/ops/api/events/reviews`, `/ops/events` | source cause, closure impact, source handoff, correlation signal | EventRecord/Event POST schema 변경 |
+| operator recheck recovery queue | `/ops/api/events/reviews`, `/ops/events` | failed-only recheck, retry candidate, recovery checklist, dry-run result, operator note link | persistent recovery queue write, 자동 recovery |
+| client-safe source status digest | `/client/live`, `/client/dashboard`, `/client/events` | sourceStatus, connectionStatus, videoFrameStatus, metadataStatus, summaryText, severity, timelineHint | source URL/raw locator/raw JSON/debug/credential/operator material 노출 |
+
+### Boundary and rollback
+
+자동 recovery, 자동 registry mutation, PublishedView write, EventRecord/Event POST schema 변경은 이 runbook 범위가 아닙니다.
+runbook 확인 중 source registry나 PublishedView를 수정해야 한다고 판단되면
+별도 change ticket과 백업/복구 절차로 분리합니다.
+
+- 이 runbook은 UI 풀테스트 PASS가 아닙니다.
+- 이 runbook은 30분/120분 장시간 안정화 PASS가 아닙니다.
+- 이 runbook은 GitHub Release publish 또는 published metadata PASS가 아닙니다.
+- 이 runbook은 real ONVIF/WHEP/TURN/cloud field smoke PASS가 아닙니다.
+- 이 runbook은 Source Reliability Search and Metrics 완료가 아닙니다.
+- 이 runbook은 Ops Backup and Recovery Source Handoff 완료가 아닙니다.
+
 ## Verification Plan
 
 문서/초안 단계:

@@ -1302,6 +1302,7 @@ std::string ProductUiCss() {
     .client-safe-event-digest,
     .client-safe-incident-digest,
     .client-safe-resolution-digest,
+    .client-safe-source-status-digest,
     .client-safe-followup-digest,
     .client-safe-digest-list {
       display: grid;
@@ -1311,6 +1312,7 @@ std::string ProductUiCss() {
     .client-safe-event-digest,
     .client-safe-incident-digest,
     .client-safe-resolution-digest,
+    .client-safe-source-status-digest,
     .client-safe-followup-digest {
       padding: var(--space-3);
       border: 1px solid var(--color-border);
@@ -1985,6 +1987,108 @@ std::string ProductUiCss() {
       font-size: 13px;
       line-height: 1.5;
       overflow-wrap: anywhere;
+    }
+    .source-reliability-timeline-list {
+      display: grid;
+      gap: var(--space-2);
+    }
+    .source-reliability-timeline-item {
+      display: grid;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-raised);
+      overflow-wrap: anywhere;
+    }
+    .source-reliability-timeline-head {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      gap: var(--space-2);
+      align-items: center;
+    }
+    .source-reliability-timeline-item p,
+    .source-reliability-timeline-item small {
+      margin: 0;
+      color: var(--color-text-muted);
+      line-height: 1.45;
+    }
+    .source-reliability-search-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: var(--space-3);
+      align-items: start;
+    }
+    .source-reliability-search-grid h4 {
+      margin: 0 0 var(--space-2);
+      font-size: 13px;
+      color: var(--color-text-muted);
+    }
+    .source-reliability-search-card,
+    .source-reliability-search-result,
+    .source-reliability-search-boundary {
+      display: grid;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-raised);
+      color: var(--color-text);
+      text-decoration: none;
+      overflow-wrap: anywhere;
+    }
+    .source-reliability-filter-list,
+    .source-reliability-saved-views,
+    .source-reliability-search-result-list {
+      display: grid;
+      gap: var(--space-2);
+    }
+    .source-reliability-search-result p,
+    .source-reliability-search-result small,
+    .source-reliability-search-card span,
+    .source-reliability-search-boundary span {
+      margin: 0;
+      color: var(--color-text-muted);
+      line-height: 1.45;
+    }
+    .source-reliability-search-results {
+      grid-column: 1 / -1;
+      min-width: 0;
+    }
+    .source-backup-handoff-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: var(--space-3);
+      align-items: start;
+    }
+    .source-backup-handoff-grid h4 {
+      margin: 0 0 var(--space-2);
+      font-size: 13px;
+      color: var(--color-text-muted);
+    }
+    .source-backup-handoff-card,
+    .source-backup-handoff-boundary {
+      display: grid;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-md);
+      background: var(--color-surface-raised);
+      color: var(--color-text);
+      text-decoration: none;
+      overflow-wrap: anywhere;
+    }
+    .source-backup-handoff-input-list,
+    .source-recovery-validation-plan-list {
+      display: grid;
+      gap: var(--space-2);
+    }
+    .source-backup-handoff-card span,
+    .source-backup-handoff-card small,
+    .source-backup-handoff-boundary span {
+      margin: 0;
+      color: var(--color-text-muted);
+      line-height: 1.45;
     }
     .validation-item.warn {
       border-color: color-mix(in srgb, var(--color-warning) 56%, var(--color-border));
@@ -2740,6 +2844,88 @@ std::string ProductUiCss() {
       min-width: 0;
     }
     .v320-source-reliability-warning {
+      overflow-wrap: anywhere;
+    }
+    .v330-incident-source-correlation-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+      gap: var(--space-2);
+      min-width: 0;
+    }
+    .v330-incident-source-correlation-card {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+      margin: 0;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: var(--color-surface);
+      overflow-wrap: anywhere;
+    }
+    .v330-incident-source-correlation-card strong {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+    .v330-incident-source-correlation-card span,
+    .v330-incident-source-correlation-card small {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .v330-incident-source-correlation-card small {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .v330-correlation-signal-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      min-width: 0;
+    }
+    .v330-correlation-signal {
+      overflow-wrap: anywhere;
+    }
+    .v330-operator-recheck-recovery-queue-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(132px, 1fr));
+      gap: var(--space-2);
+      min-width: 0;
+    }
+    .v330-operator-recheck-recovery-queue-card {
+      display: grid;
+      gap: 4px;
+      min-width: 0;
+      margin: 0;
+      padding: var(--space-2);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-sm);
+      background: var(--color-surface);
+      overflow-wrap: anywhere;
+    }
+    .v330-operator-recheck-recovery-queue-card strong {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      text-transform: uppercase;
+    }
+    .v330-operator-recheck-recovery-queue-card span,
+    .v330-operator-recheck-recovery-queue-card small {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .v330-operator-recheck-recovery-queue-card small {
+      color: var(--color-text-muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+    .v330-recovery-checklist-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--space-2);
+      min-width: 0;
+    }
+    .v330-recovery-checklist-item {
       overflow-wrap: anywhere;
     }
     .v320-ai-review-quality-grid {

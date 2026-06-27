@@ -110,6 +110,10 @@ const clientShellMust = [
   'resolutionDigest',
   'viewer-safe resolution digest',
   'media-server.client.resolution-digest.v1',
+  'client-safe-source-status-digest',
+  'sourceStatusDigest',
+  'viewer-safe source status digest',
+  'media-server.client.source-status-digest.v1',
 ];
 
 const pageChecks = [
@@ -160,6 +164,20 @@ const pageChecks = [
     path: "/ops/events",
     visualSelector: '[data-testid="ops-v320-unified-events-workspace"]',
     must: ['data-testid="ops-events-page"', 'data-testid="ops-v320-unified-events-workspace"', 'id="v320SourceReliabilityGrid"', 'data-v320-source-reliability', 'data-v320-source-reliability-warning', 'sourceReliabilitySummary', 'sourceReliability', 'media-server.ops.v320-source-reliability-context.v1', 'source health', 'recent failure', 'operator recheck', 'sourceRegistryWritePerformed', 'operatorRecheckRoute', '/ops/api/events/reviews'],
+    mustNot: ['href="/ops/events"'],
+  },
+  {
+    name: "ops-events-incident-source-correlation-layer",
+    path: "/ops/events",
+    visualSelector: '[data-testid="ops-v320-unified-events-workspace"]',
+    must: ['data-testid="ops-events-page"', 'data-testid="ops-v320-unified-events-workspace"', 'id="v330IncidentSourceCorrelationGrid"', 'data-v330-incident-source-correlation', 'data-v330-correlation-signal', 'incidentSourceCorrelationSummary', 'incidentSourceCorrelation', 'media-server.ops.v330-incident-source-correlation.v1', 'source cause', 'closure impact', 'source handoff', 'sourceRegistryWritePerformed', 'sourceRecheckRoute', '/ops/api/events/reviews'],
+    mustNot: ['href="/ops/events"'],
+  },
+  {
+    name: "ops-events-operator-recheck-recovery-queue",
+    path: "/ops/events",
+    visualSelector: '[data-testid="ops-v320-unified-events-workspace"]',
+    must: ['data-testid="ops-events-page"', 'data-testid="ops-v320-unified-events-workspace"', 'id="v330OperatorRecheckRecoveryQueueGrid"', 'data-v330-operator-recheck-recovery-queue', 'data-v330-recovery-checklist-item', 'operatorRecheckRecoveryQueueSummary', 'operatorRecheckRecoveryQueue', 'media-server.ops.v330-operator-recheck-recovery-queue.v1', 'failed-only recheck', 'retry candidate', 'recovery checklist', 'dry-run result', 'operator note', 'persistentRecoveryQueueCreated', 'sourceRecheckRoute', '/ops/api/events/reviews'],
     mustNot: ['href="/ops/events"'],
   },
   {
@@ -221,7 +239,7 @@ const pageChecks = [
     name: "client-live",
     path: "/client/live",
     visualSelector: '[data-testid="client-shell-page"]',
-    must: ['data-testid="client-shell-page"', 'data-client-active="live"', 'id="views"', 'id="detail"', '/webrtc/config', 'peerConnectionConfig', 'viewMaxTiles', 'maxTiles', 'id="liveDensity"', 'id="liveSummary"', 'data-testid="client-live-action-reduction"', 'data-action-model="source-drag,tile-selection,icon-actions,keyboard-shortcuts"', 'data-disconnect-contract="tile-disconnect-clears-slot,workspace-disconnect-keeps-layout"', 'data-disconnect-scope="tile"', 'disconnectLiveTile', 'clearLiveTileSlot', '전체 연결 해제', 'data-testid="client-live-workspace"', 'data-workspace-model="source-tree,drag-drop-grid,multi-source"', 'data-testid="client-live-source-tree"', 'data-tree-model="group/site/floor/source"', 'data-tree-level="site"', 'data-tree-level="floor"', 'data-testid="client-live-dock-event-feed"', 'data-redaction="viewer-safe-events"', 'client-safe-resolution-digest', 'resolutionDigest', 'viewer-safe resolution digest', 'client-safe-incident-digest', 'incidentDigest', 'viewer-safe incident digest', 'client-safe-followup-digest', 'followUpDigest', 'viewer-safe follow-up digest', 'id="liveDockSide"', 'mediaServerClientLiveDockSide', 'id="liveInfoOverlayToggle"', 'mediaServerClientLiveInfoOverlay', 'data-testid="client-live-tile-info-overlay"', 'data-overlay-trigger="info-toggle"', 'data-testid="client-live-va-overlay-toggle"', 'data-role="mode-buttons"', 'data-mode-action="raw"', 'data-mode-action="va-overlay"', 'setTileOverlayMode', 'toggleLiveTilePlayback', 'data-action="toggle-playback"', 'data-role="tile-playback-icon"', 'data-role="status"', 'data-testid="client-live-layout-presets"', 'data-preset-contract="user-preference,role-preset"', 'liveLayoutPreferenceEndpoint', '/client/api/preferences/live-layout', 'liveCurrentLayoutSnapshot', 'applyLiveLayoutPreference', 'selectedSources', 'overlayDefaults', 'refreshTilePlaybackStats', 'framesPerSecond', 'bytesReceived', 'framesDropped', 'refreshLiveDockEventFeed', '/events?limit=6', 'data-source-view="${escapeHtml(view.viewId)}"', 'draggable="true"', 'assignViewToTile', 'assignSourceToSelectedTile', 'data-drop-state="idle"', 'dataTransfer.setData', "root.addEventListener('drop'", "root.addEventListener('dragover'", 'class="workspace-actions"', 'class="icon-button tile-action-primary"', 'data-action="restart"', 'data-action="stop"', 'restartLiveTile', "event.key === 's'", "event.key === 'Delete'", 'tabindex="0"', 'focusLiveTile', 'ArrowRight', 'aria-describedby="liveTileStatus${tile.index}"', 'data-role="a11y-status"', 'aria-live="polite"', 'aria-atomic="true"', 'liveTileA11yStatus', 'liveTileConnectionLabel', 'clientDynamicText', 'data-client-copy="status"', 'data-client-copy="events"', '타일 ${tile.index + 1} 재생', '타일 ${tile.index + 1} 연결 해제'],
+    must: ['data-testid="client-shell-page"', 'data-client-active="live"', 'id="views"', 'id="detail"', '/webrtc/config', 'peerConnectionConfig', 'viewMaxTiles', 'maxTiles', 'id="liveDensity"', 'id="liveSummary"', 'data-testid="client-live-action-reduction"', 'data-action-model="source-drag,tile-selection,icon-actions,keyboard-shortcuts"', 'data-disconnect-contract="tile-disconnect-clears-slot,workspace-disconnect-keeps-layout"', 'data-disconnect-scope="tile"', 'disconnectLiveTile', 'clearLiveTileSlot', '전체 연결 해제', 'data-testid="client-live-workspace"', 'data-workspace-model="source-tree,drag-drop-grid,multi-source"', 'data-testid="client-live-source-tree"', 'data-tree-model="group/site/floor/source"', 'data-tree-level="site"', 'data-tree-level="floor"', 'data-testid="client-live-dock-event-feed"', 'data-redaction="viewer-safe-events"', 'client-safe-source-status-digest', 'sourceStatusDigest', 'viewer-safe source status digest', 'client-safe-resolution-digest', 'resolutionDigest', 'viewer-safe resolution digest', 'client-safe-incident-digest', 'incidentDigest', 'viewer-safe incident digest', 'client-safe-followup-digest', 'followUpDigest', 'viewer-safe follow-up digest', 'id="liveDockSide"', 'mediaServerClientLiveDockSide', 'id="liveInfoOverlayToggle"', 'mediaServerClientLiveInfoOverlay', 'data-testid="client-live-tile-info-overlay"', 'data-overlay-trigger="info-toggle"', 'data-testid="client-live-va-overlay-toggle"', 'data-role="mode-buttons"', 'data-mode-action="raw"', 'data-mode-action="va-overlay"', 'setTileOverlayMode', 'toggleLiveTilePlayback', 'data-action="toggle-playback"', 'data-role="tile-playback-icon"', 'data-role="status"', 'data-testid="client-live-layout-presets"', 'data-preset-contract="user-preference,role-preset"', 'liveLayoutPreferenceEndpoint', '/client/api/preferences/live-layout', 'liveCurrentLayoutSnapshot', 'applyLiveLayoutPreference', 'selectedSources', 'overlayDefaults', 'refreshTilePlaybackStats', 'framesPerSecond', 'bytesReceived', 'framesDropped', 'refreshLiveDockEventFeed', '/events?limit=6', 'data-source-view="${escapeHtml(view.viewId)}"', 'draggable="true"', 'assignViewToTile', 'assignSourceToSelectedTile', 'data-drop-state="idle"', 'dataTransfer.setData', "root.addEventListener('drop'", "root.addEventListener('dragover'", 'class="workspace-actions"', 'class="icon-button tile-action-primary"', 'data-action="restart"', 'data-action="stop"', 'restartLiveTile', "event.key === 's'", "event.key === 'Delete'", 'tabindex="0"', 'focusLiveTile', 'ArrowRight', 'aria-describedby="liveTileStatus${tile.index}"', 'data-role="a11y-status"', 'aria-live="polite"', 'aria-atomic="true"', 'liveTileA11yStatus', 'liveTileConnectionLabel', 'clientDynamicText', 'data-client-copy="status"', 'data-client-copy="events"', '타일 ${tile.index + 1} 재생', '타일 ${tile.index + 1} 연결 해제'],
     shellMust: clientShellMust,
     mustNot: [...clientForbiddenText(), 'new RTCPeerConnection({ iceServers: [] })', 'id="liveAllStart"', 'id="liveAllRestart"'],
   },
@@ -229,14 +247,14 @@ const pageChecks = [
     name: "client-dashboard",
     path: "/client/dashboard",
     visualSelector: '[data-testid="client-shell-page"]',
-    must: ['data-testid="client-shell-page"', 'data-client-active="dashboard"', 'id="views"', 'id="detail"', 'data-testid="client-dashboard-compare"', 'loadClientDashboardCompare', 'client-safe-resolution-digest', 'resolutionDigest', 'viewer-safe resolution digest', 'client-safe-incident-digest', 'incidentDigest', 'viewer-safe incident digest', 'client-safe-followup-digest', 'followUpDigest', 'viewer-safe follow-up digest', 'data-client-copy="status"', 'data-client-copy="events"'],
+    must: ['data-testid="client-shell-page"', 'data-client-active="dashboard"', 'id="views"', 'id="detail"', 'data-testid="client-dashboard-compare"', 'loadClientDashboardCompare', 'client-safe-source-status-digest', 'sourceStatusDigest', 'viewer-safe source status digest', 'client-safe-resolution-digest', 'resolutionDigest', 'viewer-safe resolution digest', 'client-safe-incident-digest', 'incidentDigest', 'viewer-safe incident digest', 'client-safe-followup-digest', 'followUpDigest', 'viewer-safe follow-up digest', 'data-client-copy="status"', 'data-client-copy="events"'],
     shellMust: clientShellMust,
     mustNot: clientForbiddenText(),
   },
   {
     name: "client-events",
     path: "/client/events",
-    must: ['data-testid="client-shell-page"', 'data-client-active="events"', 'id="views"', 'id="detail"', 'client-viewer-events', 'data-viewer-flow="events-first"', 'client-safe-resolution-digest', 'resolutionDigest', 'viewer-safe resolution digest', 'client-safe-incident-digest', 'incidentDigest', 'viewer-safe incident digest', 'client-safe-followup-digest', 'followUpDigest', 'viewer-safe follow-up digest'],
+    must: ['data-testid="client-shell-page"', 'data-client-active="events"', 'id="views"', 'id="detail"', 'client-viewer-events', 'data-viewer-flow="events-first"', 'client-safe-source-status-digest', 'sourceStatusDigest', 'viewer-safe source status digest', 'client-safe-resolution-digest', 'resolutionDigest', 'viewer-safe resolution digest', 'client-safe-incident-digest', 'incidentDigest', 'viewer-safe incident digest', 'client-safe-followup-digest', 'followUpDigest', 'viewer-safe follow-up digest'],
     shellMust: clientShellMust,
     mustNot: clientForbiddenText(),
   },

@@ -4507,6 +4507,19 @@ struct ClientEventSummary {
     std::optional<std::int64_t> latest_event_time_ms;
 };
 
+struct ClientSourceStatusDigest {
+    bool provided{true};
+    std::string source_status{"offline"};
+    std::string connection_status{"disconnected"};
+    std::string video_frame_status{"unavailable"};
+    std::string metadata_status{"unavailable"};
+    std::string summary_text{"source offline"};
+    std::string severity{"attention"};
+    std::string timeline_hint{"source unavailable"};
+    std::optional<std::int64_t> last_frame_age_ms;
+    std::optional<std::int64_t> metadata_age_ms;
+};
+
 std::string ClientSafeDigestValue(const std::string& value, const std::string& fallback) {
     const std::string trimmed = Trim(value);
     if (trimmed.empty() || analysis::IncidentProjectionContainsForbiddenMaterial(trimmed)) {
@@ -4525,6 +4538,149 @@ bool ClientEventStatusIsActive(const std::string& status) {
     });
     return normalized != "ended" && normalized != "resolved" && normalized != "closed" &&
            normalized != "completed" && normalized != "inactive";
+}
+
+std::string ClientSourceStatusDigestSeverity(const std::string& source_status) {
+    if (source_status == "live") {
+        return "normal";
+    }
+    if (source_status == "connecting") {
+        return "info";
+    }
+    return "attention";
+}
+
+std::string ClientSourceStatusDigestSummaryText(const std::string& source_status,
+                                                const std::string& connection_status) {
+    std::string summary;
+    if (source_status == "live") {
+        summary = "source live / " + connection_status;
+    } else if (source_status == "stale") {
+        summary = "source signal stale / " + connection_status;
+    } else if (source_status == "connecting") {
+        summary = "source connecting / " + connection_status;
+    } else {
+        summary = "source offline / " + connection_status;
+    }
+    if (analysis::IncidentProjectionContainsForbiddenMaterial(summary)) {
+        return "viewer-safe source status summary";
+    }
+    return summary;
+}
+
+std::string ClientSourceStatusDigestTimelineHint(const std::string& source_status) {
+    if (source_status == "live") {
+        return "signal fresh";
+    }
+    if (source_status == "stale") {
+        return "signal delay";
+    }
+    if (source_status == "connecting") {
+        return "waiting for signal";
+    }
+    return "source unavailable";
+}
+
+ClientSourceStatusDigest ClientSourceStatusDigestFor(
+    const SourceViewRegistry::ClientViewAccess& access,
+    const auth::Principal& principal,
+    const std::vector<analysis::AnalysisManager::TapSnapshot>& taps) {
+    const auto stream_key_candidates = ClientStreamKeyCandidates(access.source);
+    const auto* tap = SelectClientDashboardTap(access, taps, stream_key_candidates);
+    const bool has_tap = tap != nullptr;
+    const bool has_frame = has_tap && tap->has_latest_frame;
+    const bool metadata_allowed =
+        access.view.show_metadata_summary &&
+        ClientPrincipalCanAccessFeature(principal, access.view.view_id, "metadata:read");
+    const bool has_metadata = has_tap && tap->latest_result.has_value();
+    const std::optional<std::int64_t> last_frame_age =
+        has_frame ? std::optional<std::int64_t>(tap->latest_frame_age_ms) : std::nullopt;
+    const std::optional<std::int64_t> metadata_age =
+        has_metadata && metadata_allowed ? std::optional<std::int64_t>(tap->latest_result_age_ms)
+                                         : std::nullopt;
+    const bool frame_stale = last_frame_age.has_value() && *last_frame_age > kClientDashboardStaleMs;
+    const bool metadata_stale = metadata_age.has_value() && *metadata_age > kClientDashboardStaleMs;
+    const bool frame_fresh = last_frame_age.has_value() && *last_frame_age <= kClientDashboardStaleMs;
+    const bool metadata_fresh = metadata_age.has_value() && *metadata_age <= kClientDashboardStaleMs;
+
+    ClientSourceStatusDigest digest;
+    digest.last_frame_age_ms = last_frame_age;
+    digest.metadata_age_ms = metadata_age;
+    if (has_tap) {
+        if (frame_fresh || metadata_fresh) {
+            digest.source_status = "live";
+        } else if (last_frame_age.has_value() || metadata_age.has_value()) {
+            digest.source_status = "stale";
+        } else {
+            digest.source_status = "connecting";
+        }
+    }
+    digest.connection_status =
+        !has_tap ? "disconnected" : (digest.source_status == "connecting" ? "connecting" : "connected");
+    digest.video_frame_status =
+        !has_tap ? "unavailable" : (!has_frame ? "connecting" : (frame_stale ? "stale" : "receiving"));
+    digest.metadata_status =
+        !metadata_allowed
+            ? "unavailable"
+            : (!has_tap ? "unavailable"
+                        : (!has_metadata ? "connecting" : (metadata_stale ? "stale" : "fresh")));
+    digest.severity = ClientSourceStatusDigestSeverity(digest.source_status);
+    digest.summary_text =
+        ClientSourceStatusDigestSummaryText(digest.source_status, digest.connection_status);
+    digest.timeline_hint = ClientSourceStatusDigestTimelineHint(digest.source_status);
+    return digest;
+}
+
+void AppendClientSafeSourceStatusDigestJson(std::ostringstream& out,
+                                            const ClientSourceStatusDigest& digest) {
+    out << "{"
+        << "\"schema\":\"media-server.client.source-status-digest.v1\","
+        << "\"provided\":" << (digest.provided ? "true" : "false") << ","
+        << "\"viewerSafe\":true,"
+        << "\"publishedViewScoped\":true,"
+        << "\"sourceUrlIncluded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"operatorMaterialIncluded\":false,"
+        << "\"ruleEditorIncluded\":false,"
+        << "\"actionControlsIncluded\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"searchMetricsChanged\":false,"
+        << "\"itemCount\":1,"
+        << "\"digestItems\":[{"
+        << "\"digestId\":\"client-source-status-1\","
+        << "\"sourceStatus\":\"" << JsonEscape(digest.source_status) << "\","
+        << "\"connectionStatus\":\"" << JsonEscape(digest.connection_status) << "\","
+        << "\"videoFrameStatus\":\"" << JsonEscape(digest.video_frame_status) << "\","
+        << "\"metadataStatus\":\"" << JsonEscape(digest.metadata_status) << "\","
+        << "\"summaryText\":\"" << JsonEscape(digest.summary_text) << "\","
+        << "\"severity\":\"" << JsonEscape(digest.severity) << "\","
+        << "\"timelineHint\":\"" << JsonEscape(digest.timeline_hint) << "\","
+        << "\"lastFrameAgeMs\":";
+    AppendNullableInt64(out, digest.last_frame_age_ms);
+    out << ",\"metadataAgeMs\":";
+    AppendNullableInt64(out, digest.metadata_age_ms);
+    out << "}]}";
+}
+
+std::string ClientSourceStatusDigestJson(
+    const SourceViewRegistry::ClientViewAccess& access,
+    const auth::Principal& principal,
+    const std::vector<analysis::AnalysisManager::TapSnapshot>& taps) {
+    std::ostringstream out;
+    AppendClientSafeSourceStatusDigestJson(out, ClientSourceStatusDigestFor(access, principal, taps));
+    return out.str();
 }
 
 ClientEventItem ParseClientEventItem(const std::string& raw) {
@@ -4925,7 +5081,9 @@ void AppendClientSafeResolutionDigestJson(std::ostringstream& out,
     out << "]}";
 }
 
-void AppendClientEventSummaryJson(std::ostringstream& out, const ClientEventSummary& summary) {
+void AppendClientEventSummaryJson(std::ostringstream& out,
+                                  const ClientEventSummary& summary,
+                                  const std::string& source_status_digest_json = "") {
     out << "{"
         << "\"provided\":" << (summary.provided ? "true" : "false") << ","
         << "\"storageEnabled\":" << (summary.storage_enabled ? "true" : "false") << ","
@@ -4960,6 +5118,9 @@ void AppendClientEventSummaryJson(std::ostringstream& out, const ClientEventSumm
     AppendClientSafeIncidentDigestJson(out, summary);
     out << ",\"followUpDigest\":";
     AppendClientSafeFollowUpDigestJson(out, summary);
+    if (!source_status_digest_json.empty()) {
+        out << ",\"sourceStatusDigest\":" << source_status_digest_json;
+    }
     out << "}";
 }
 
@@ -4999,13 +5160,18 @@ std::vector<std::string> ClientEventStreamCandidates(
     return candidates;
 }
 
-std::string ClientViewEventsJson(const SourceViewRegistry::ClientViewAccess& access, int limit) {
+std::string ClientViewEventsJson(
+    const SourceViewRegistry::ClientViewAccess& access,
+    const auth::Principal& principal,
+    const std::vector<analysis::AnalysisManager::TapSnapshot>& taps,
+    int limit) {
     const auto summary = LoadClientEventSummary(ClientEventStreamCandidates(access.source, nullptr), limit);
+    const auto source_status_digest_json = ClientSourceStatusDigestJson(access, principal, taps);
     std::ostringstream out;
     out << "{\"ok\":true,\"view\":";
     AppendClientViewIdentityJson(out, access);
     out << ",\"events\":";
-    AppendClientEventSummaryJson(out, summary);
+    AppendClientEventSummaryJson(out, summary, source_status_digest_json);
     out << "}";
     return out.str();
 }
@@ -5143,6 +5309,7 @@ std::string ClientViewDashboardJson(const SourceViewRegistry::ClientViewAccess& 
     if (include_events) {
         event_summary = LoadClientEventSummary(ClientEventStreamCandidates(access.source, tap), 10);
     }
+    const auto source_status_digest_json = ClientSourceStatusDigestJson(access, principal, taps);
     const std::optional<std::int64_t> latest_event_time =
         event_summary.latest_event_time_ms.has_value()
             ? event_summary.latest_event_time_ms
@@ -5182,7 +5349,7 @@ std::string ClientViewDashboardJson(const SourceViewRegistry::ClientViewAccess& 
     out << ",\"lastFrameAgeMs\":";
     AppendNullableInt64(out, last_frame_age);
     out << "},\"events\":";
-    AppendClientEventSummaryJson(out, event_summary);
+    AppendClientEventSummaryJson(out, event_summary, source_status_digest_json);
     out << "}";
     return out.str();
 }
@@ -5560,6 +5727,92 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
         </div>
       </div>
       <div class="ops-channels-main-grid">
+      <section class="section-card ops-workspace-wide" data-channel-task="onboarding-quality" data-testid="source-onboarding-quality-summary">
+        <div class="toolbar">
+          <div>
+            <h3>Onboarding 품질</h3>
+            <p id="source-onboarding-quality-status">채널 입력 품질을 확인 중입니다.</p>
+          </div>
+        </div>
+        <div id="source-onboarding-quality-summary" class="metric-grid">
+          <div class="metric-card"><span>Ready</span><strong id="sourceOnboardingReadyCount">-</strong></div>
+          <div class="metric-card"><span>Warning</span><strong id="sourceOnboardingWarningCount">-</strong></div>
+          <div class="metric-card"><span>Blocked</span><strong id="sourceOnboardingBlockedCount">-</strong></div>
+          <div class="metric-card"><span>Duplicate</span><strong id="sourceOnboardingDuplicateCount">-</strong></div>
+          <div class="metric-card"><span>Missing view</span><strong id="sourceOnboardingMissingViewCount">-</strong></div>
+        </div>
+        <div id="source-onboarding-quality-list" class="validation-list"></div>
+      </section>
+      <section class="section-card ops-workspace-wide" data-channel-task="reliability-timeline" data-testid="source-reliability-timeline-health-history">
+        <div class="toolbar">
+          <div>
+            <h3>Reliability Timeline</h3>
+            <p id="source-reliability-timeline-status">source health history를 확인 중입니다.</p>
+          </div>
+        </div>
+        <div id="source-reliability-timeline-summary" class="metric-grid">
+          <div class="metric-card"><span>Live</span><strong id="sourceReliabilityLiveCount">-</strong></div>
+          <div class="metric-card"><span>Stale</span><strong id="sourceReliabilityStaleCount">-</strong></div>
+          <div class="metric-card"><span>Offline</span><strong id="sourceReliabilityOfflineCount">-</strong></div>
+          <div class="metric-card"><span>Warnings</span><strong id="sourceReliabilityWarningCount">-</strong></div>
+          <div class="metric-card"><span>Transitions</span><strong id="sourceReliabilityTransitionCount">-</strong></div>
+        </div>
+        <div id="source-reliability-timeline-list" class="source-reliability-timeline-list"></div>
+      </section>
+      <section class="section-card ops-workspace-wide" data-channel-task="source-reliability-search-metrics" data-testid="source-reliability-search-metrics">
+        <div class="toolbar">
+          <div>
+            <h3>Reliability Search</h3>
+            <p id="source-reliability-search-status">source reliability search metrics를 확인 중입니다.</p>
+          </div>
+        </div>
+        <div id="source-reliability-search-summary" class="metric-grid">
+          <div class="metric-card"><span>Matched</span><strong id="sourceReliabilityMatchedMetricCount">-</strong></div>
+          <div class="metric-card"><span>Reconnect</span><strong id="sourceReliabilityReconnectMetricCount">-</strong></div>
+          <div class="metric-card"><span>Stale</span><strong id="sourceReliabilityStaleMetricCount">-</strong></div>
+          <div class="metric-card"><span>Offline</span><strong id="sourceReliabilityOfflineMetricCount">-</strong></div>
+          <div class="metric-card"><span>Views</span><strong id="sourceReliabilitySavedViewCount">-</strong></div>
+        </div>
+        <div class="source-reliability-search-grid" data-source-reliability-search-metrics="media-server.ops.v330-source-reliability-search-metrics.v1">
+          <div>
+            <h4>source health filters</h4>
+            <div id="source-reliability-search-filter-list" class="source-reliability-filter-list"></div>
+          </div>
+          <div>
+            <h4>saved reliability views</h4>
+            <div id="source-reliability-saved-view-list" class="source-reliability-saved-views"></div>
+          </div>
+          <div class="source-reliability-search-results">
+            <h4>reconnect/stale/offline metric summary</h4>
+            <div id="source-reliability-search-result-list" class="source-reliability-search-result-list"></div>
+          </div>
+        </div>
+      </section>
+      <section class="section-card ops-workspace-wide" data-channel-task="source-backup-recovery-handoff" data-testid="source-backup-recovery-handoff">
+        <div class="toolbar">
+          <div>
+            <h3>Backup Handoff</h3>
+            <p id="source-backup-handoff-status">backup/recovery source handoff를 확인 중입니다.</p>
+          </div>
+        </div>
+        <div id="source-backup-handoff-summary" class="metric-grid">
+          <div class="metric-card"><span>Inputs</span><strong id="sourceBackupHandoffInputCount">-</strong></div>
+          <div class="metric-card"><span>Plan</span><strong id="sourceBackupHandoffRecoveryPlanCount">-</strong></div>
+          <div class="metric-card"><span>Stale</span><strong id="sourceBackupHandoffStaleCount">-</strong></div>
+          <div class="metric-card"><span>Offline</span><strong id="sourceBackupHandoffOfflineCount">-</strong></div>
+          <div class="metric-card"><span>Ready</span><strong id="sourceBackupHandoffValidationReadyCount">-</strong></div>
+        </div>
+        <div class="source-backup-handoff-grid" data-source-backup-recovery-handoff="media-server.ops.v330-backup-recovery-source-handoff.v1">
+          <div>
+            <h4>handoff inputs</h4>
+            <div id="source-backup-handoff-input-list" class="source-backup-handoff-input-list"></div>
+          </div>
+          <div>
+            <h4>recovery validation plan</h4>
+            <div id="source-recovery-validation-plan-list" class="source-recovery-validation-plan-list"></div>
+          </div>
+        </div>
+      </section>
       <section class="section-card ops-channels-list-panel" data-channel-task="list">
         <div class="toolbar">
           <div>
@@ -12341,6 +12594,908 @@ OpsAuditQueryResult QueryOpsAuditEntries(const app::AppConfig& config,
     return result;
 }
 
+struct OpsV330ReliabilityTimelineEvent {
+    std::string type;
+    std::string at;
+    std::string source_id;
+    std::string status;
+    std::string reason;
+    std::string summary;
+    std::string audit_id;
+    std::string audit_target;
+    std::vector<std::string> warnings;
+};
+
+struct OpsV330ReliabilityTimelineItem {
+    std::string source_id;
+    std::string display_name;
+    std::string source_kind;
+    std::string current_health_status;
+    std::string current_health_reason;
+    std::string checked_at;
+    int reconnect_count{0};
+    std::string last_reconnect_at;
+    int source_warning_count{0};
+    int status_transition_count{0};
+    std::string audit_route;
+    std::vector<std::string> warnings;
+    std::vector<OpsV330ReliabilityTimelineEvent> health_history;
+};
+
+struct OpsV330ReliabilityTimelineSummary {
+    int source_count{0};
+    int live_count{0};
+    int stale_count{0};
+    int offline_count{0};
+    int connecting_count{0};
+    int warning_source_count{0};
+    int status_transition_count{0};
+    int reconnect_source_count{0};
+    int health_history_event_count{0};
+};
+
+OpsV330ReliabilityTimelineEvent OpsV330CurrentHealthEvent(const OpsSourceHealthItem& health) {
+    OpsV330ReliabilityTimelineEvent event;
+    event.type = "current-health";
+    event.at = health.checked_at;
+    event.source_id = health.source_id;
+    event.status = health.status;
+    event.reason = health.reason;
+    event.summary = "current source health is " + health.status + " (" + health.reason + ")";
+    event.warnings = health.warnings;
+    return event;
+}
+
+std::unordered_map<std::string, std::vector<OpsV330ReliabilityTimelineEvent>>
+OpsV330SourceHealthAuditHistory(const app::AppConfig& config) {
+    std::unordered_map<std::string, std::string> query{
+        {"area", "channels"},
+        {"action", "source-health-state-change"},
+        {"limit", "200"},
+    };
+    const OpsAuditQueryResult audit = QueryOpsAuditEntries(config, query);
+
+    std::unordered_map<std::string, std::vector<OpsV330ReliabilityTimelineEvent>> by_source;
+    for (const std::string& entry : audit.entries) {
+        const std::string target = ParseStringField(entry, "target").value_or("");
+        constexpr const char* kSourcePrefix = "source:";
+        if (target.rfind(kSourcePrefix, 0) != 0) {
+            continue;
+        }
+        const std::string source_id = target.substr(std::strlen(kSourcePrefix));
+        if (source_id.empty()) {
+            continue;
+        }
+
+        const std::string after = ExtractJsonValueField(entry, "after").value_or("{}");
+        OpsV330ReliabilityTimelineEvent event;
+        event.type = "audit-status-change";
+        event.at = ParseStringField(entry, "at").value_or("");
+        event.source_id = source_id;
+        event.status = ParseStringField(after, "status").value_or("");
+        event.reason = ParseStringField(after, "reason").value_or("");
+        event.summary = ParseStringField(entry, "summary").value_or("source health state changed");
+        event.audit_id = ParseStringField(entry, "id").value_or("");
+        event.audit_target = target;
+        event.warnings = StringArrayFieldValues(after, "warnings");
+        by_source[source_id].push_back(std::move(event));
+    }
+    return by_source;
+}
+
+OpsV330ReliabilityTimelineSummary BuildV330ReliabilityTimelineHealthHistorySummary(
+    const std::vector<OpsV330ReliabilityTimelineItem>& items) {
+    OpsV330ReliabilityTimelineSummary summary;
+    summary.source_count = static_cast<int>(items.size());
+    for (const auto& item : items) {
+        if (item.current_health_status == "live") {
+            ++summary.live_count;
+        } else if (item.current_health_status == "stale") {
+            ++summary.stale_count;
+        } else if (item.current_health_status == "offline") {
+            ++summary.offline_count;
+        } else if (item.current_health_status == "connecting") {
+            ++summary.connecting_count;
+        }
+        if (item.source_warning_count > 0) {
+            ++summary.warning_source_count;
+        }
+        if (item.reconnect_count > 0) {
+            ++summary.reconnect_source_count;
+        }
+        summary.status_transition_count += item.status_transition_count;
+        summary.health_history_event_count += static_cast<int>(item.health_history.size());
+    }
+    return summary;
+}
+
+std::vector<OpsV330ReliabilityTimelineItem> BuildV330ReliabilityTimelineHealthHistory(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    std::vector<SourceViewRegistry::SourceRecord> sources;
+    std::vector<SourceViewRegistry::PublishedViewRecord> views;
+    std::string load_error;
+    (void)SourceViewRegistry::Instance().Snapshot(&sources, &views, &load_error);
+
+    std::unordered_map<std::string, SourceViewRegistry::SourceRecord> source_by_id;
+    for (const auto& source : sources) {
+        source_by_id[source.source_id] = source;
+    }
+
+    const auto audit_by_source = OpsV330SourceHealthAuditHistory(config);
+    std::vector<OpsV330ReliabilityTimelineItem> items;
+    items.reserve(source_health_snapshot.items.size());
+    for (const auto& health : source_health_snapshot.items) {
+        OpsV330ReliabilityTimelineItem item;
+        item.source_id = health.source_id;
+        item.display_name = health.source_id;
+        item.source_kind = "unknown";
+        if (const auto source_it = source_by_id.find(health.source_id); source_it != source_by_id.end()) {
+            item.display_name = source_it->second.display_name.empty()
+                                    ? source_it->second.source_id
+                                    : source_it->second.display_name;
+            item.source_kind = source_it->second.kind;
+        }
+        item.current_health_status = health.status;
+        item.current_health_reason = health.reason;
+        item.checked_at = health.checked_at;
+        item.reconnect_count = health.reconnect_count;
+        item.last_reconnect_at = health.last_reconnect_at;
+        item.warnings = health.warnings;
+        item.source_warning_count = static_cast<int>(health.warnings.size());
+        item.audit_route = "/ops/sources#auditArea=channels&auditPreset=source-health-state-change"
+                           "&auditAction=source-health-state-change&auditTarget=" +
+                           UrlEncode("source:" + health.source_id);
+        item.health_history.push_back(OpsV330CurrentHealthEvent(health));
+        if (const auto audit_it = audit_by_source.find(health.source_id); audit_it != audit_by_source.end()) {
+            item.status_transition_count = static_cast<int>(audit_it->second.size());
+            for (const auto& event : audit_it->second) {
+                item.health_history.push_back(event);
+            }
+        }
+        items.push_back(std::move(item));
+    }
+    std::sort(items.begin(), items.end(), [](const auto& lhs, const auto& rhs) {
+        const bool lhs_needs_attention = lhs.current_health_status != "live" || lhs.source_warning_count > 0;
+        const bool rhs_needs_attention = rhs.current_health_status != "live" || rhs.source_warning_count > 0;
+        if (lhs_needs_attention != rhs_needs_attention) {
+            return lhs_needs_attention && !rhs_needs_attention;
+        }
+        if (lhs.status_transition_count != rhs.status_transition_count) {
+            return lhs.status_transition_count > rhs.status_transition_count;
+        }
+        return lhs.source_id < rhs.source_id;
+    });
+    return items;
+}
+
+void AppendV330ReliabilityTimelineEventJson(std::ostringstream& out,
+                                            const OpsV330ReliabilityTimelineEvent& event) {
+    out << "{"
+        << "\"type\":\"" << JsonEscape(event.type) << "\","
+        << "\"at\":";
+    AppendNullableJsonString(out, event.at);
+    out << ",\"sourceId\":\"" << JsonEscape(event.source_id) << "\","
+        << "\"status\":\"" << JsonEscape(event.status) << "\","
+        << "\"reason\":\"" << JsonEscape(event.reason) << "\","
+        << "\"summary\":\"" << JsonEscape(event.summary) << "\","
+        << "\"auditId\":";
+    AppendNullableJsonString(out, event.audit_id);
+    out << ",\"auditTarget\":";
+    AppendNullableJsonString(out, event.audit_target);
+    out << ",\"warnings\":";
+    AppendJsonStringArray(out, event.warnings);
+    out << "}";
+}
+
+void AppendV330ReliabilityTimelineItemJson(std::ostringstream& out,
+                                           const OpsV330ReliabilityTimelineItem& item) {
+    out << "{"
+        << "\"sourceId\":\"" << JsonEscape(item.source_id) << "\","
+        << "\"displayName\":\"" << JsonEscape(item.display_name) << "\","
+        << "\"sourceKind\":\"" << JsonEscape(item.source_kind) << "\","
+        << "\"currentHealthStatus\":\"" << JsonEscape(item.current_health_status) << "\","
+        << "\"currentHealthReason\":\"" << JsonEscape(item.current_health_reason) << "\","
+        << "\"checkedAt\":";
+    AppendNullableJsonString(out, item.checked_at);
+    out << ",\"reconnectCount\":" << item.reconnect_count
+        << ",\"lastReconnectAt\":";
+    AppendNullableJsonString(out, item.last_reconnect_at);
+    out << ",\"sourceWarningCount\":" << item.source_warning_count
+        << ",\"statusTransitionCount\":" << item.status_transition_count
+        << ",\"auditRoute\":\"" << JsonEscape(item.audit_route) << "\","
+        << "\"warnings\":";
+    AppendJsonStringArray(out, item.warnings);
+    out << ",\"healthHistory\":[";
+    for (std::size_t i = 0; i < item.health_history.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV330ReliabilityTimelineEventJson(out, item.health_history[i]);
+    }
+    out << "]}";
+}
+
+void AppendV330ReliabilityTimelineSummaryJson(std::ostringstream& out,
+                                              const OpsV330ReliabilityTimelineSummary& summary) {
+    out << "{"
+        << "\"sourceCount\":" << summary.source_count << ","
+        << "\"live\":" << summary.live_count << ","
+        << "\"stale\":" << summary.stale_count << ","
+        << "\"offline\":" << summary.offline_count << ","
+        << "\"connecting\":" << summary.connecting_count << ","
+        << "\"warningSources\":" << summary.warning_source_count << ","
+        << "\"statusTransitionCount\":" << summary.status_transition_count << ","
+        << "\"reconnectSources\":" << summary.reconnect_source_count << ","
+        << "\"healthHistoryEvents\":" << summary.health_history_event_count
+        << "}";
+}
+
+std::string OpsV330ReliabilityTimelineHealthHistoryJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    if (!source_health_snapshot.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v330-reliability-timeline-health-history.v1\",\"error\":\"" +
+               JsonEscape(source_health_snapshot.error) + "\"}";
+    }
+    const auto reliabilityTimeline = BuildV330ReliabilityTimelineHealthHistory(config, source_health_snapshot);
+    const auto summary = BuildV330ReliabilityTimelineHealthHistorySummary(reliabilityTimeline);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v330-reliability-timeline-health-history.v1\","
+        << "\"status\":\"reliability-timeline-health-history\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"auditLinkage\":{"
+        << "\"area\":\"channels\","
+        << "\"action\":\"source-health-state-change\","
+        << "\"auditRoute\":\"/ops/api/audit?area=channels&action=source-health-state-change\","
+        << "\"rawAuditBodyIncluded\":false"
+        << "},\"reliabilityTimelineSummary\":";
+    AppendV330ReliabilityTimelineSummaryJson(out, summary);
+    out << ",\"reliabilityTimeline\":[";
+    for (std::size_t i = 0; i < reliabilityTimeline.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV330ReliabilityTimelineItemJson(out, reliabilityTimeline[i]);
+    }
+    out << "],\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV330SourceReliabilitySearchMetricItem {
+    std::string source_id;
+    std::string display_name;
+    std::string source_kind;
+    std::string health_status;
+    std::string health_reason;
+    std::string checked_at;
+    std::string filter_key;
+    int reconnect_count{0};
+    std::string last_reconnect_at;
+    int source_warning_count{0};
+    int status_transition_count{0};
+    int attention_score{0};
+    std::string audit_route;
+    std::vector<std::string> warnings;
+};
+
+struct OpsV330SourceReliabilitySavedView {
+    std::string key;
+    std::string label;
+    std::string description;
+    std::string filter_key;
+    int matched_source_count{0};
+    std::string route;
+};
+
+struct OpsV330SourceReliabilitySearchMetricsSummary {
+    int source_count{0};
+    int matched_source_count{0};
+    int live_count{0};
+    int connecting_count{0};
+    int stale_count{0};
+    int offline_count{0};
+    int warning_source_count{0};
+    int reconnect_source_count{0};
+    int reconnect_total{0};
+    int high_reconnect_source_count{0};
+    int repeated_stale_source_count{0};
+    int status_transition_count{0};
+    int saved_view_count{0};
+};
+
+bool OpsV330SourceReliabilityHasWarning(const OpsV330SourceReliabilitySearchMetricItem& item,
+                                        const std::string& warning) {
+    return std::find(item.warnings.begin(), item.warnings.end(), warning) != item.warnings.end();
+}
+
+std::string OpsV330SourceReliabilityFilterKey(const OpsSourceHealthItem& health) {
+    if (health.status == "offline") {
+        return "offline";
+    }
+    if (health.status == "stale") {
+        return "stale";
+    }
+    if (health.reconnect_count > 0) {
+        return "reconnect-watch";
+    }
+    if (!health.warnings.empty()) {
+        return "warning";
+    }
+    if (health.status == "live") {
+        return "live";
+    }
+    return "needs-attention";
+}
+
+int OpsV330SourceReliabilityAttentionScore(
+    const OpsSourceHealthItem& health,
+    int status_transition_count) {
+    int score = 0;
+    if (health.status == "offline") {
+        score += 40;
+    } else if (health.status == "stale") {
+        score += 30;
+    } else if (health.status == "connecting") {
+        score += 16;
+    }
+    score += std::min(30, health.reconnect_count * 5);
+    score += std::min(20, static_cast<int>(health.warnings.size()) * 5);
+    score += std::min(10, status_transition_count * 2);
+    return score;
+}
+
+std::vector<OpsV330SourceReliabilitySearchMetricItem> BuildV330SourceReliabilitySearchMetrics(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    std::vector<SourceViewRegistry::SourceRecord> sources;
+    std::vector<SourceViewRegistry::PublishedViewRecord> views;
+    std::string load_error;
+    (void)SourceViewRegistry::Instance().Snapshot(&sources, &views, &load_error);
+
+    std::unordered_map<std::string, SourceViewRegistry::SourceRecord> source_by_id;
+    for (const auto& source : sources) {
+        source_by_id[source.source_id] = source;
+    }
+
+    const auto audit_by_source = OpsV330SourceHealthAuditHistory(config);
+    std::vector<OpsV330SourceReliabilitySearchMetricItem> items;
+    items.reserve(source_health_snapshot.items.size());
+    for (const auto& health : source_health_snapshot.items) {
+        OpsV330SourceReliabilitySearchMetricItem item;
+        item.source_id = health.source_id;
+        item.display_name = health.source_id;
+        item.source_kind = "unknown";
+        if (const auto source_it = source_by_id.find(health.source_id); source_it != source_by_id.end()) {
+            item.display_name = source_it->second.display_name.empty()
+                                    ? source_it->second.source_id
+                                    : source_it->second.display_name;
+            item.source_kind = source_it->second.kind;
+        }
+        item.health_status = health.status;
+        item.health_reason = health.reason;
+        item.checked_at = health.checked_at;
+        item.filter_key = OpsV330SourceReliabilityFilterKey(health);
+        item.reconnect_count = health.reconnect_count;
+        item.last_reconnect_at = health.last_reconnect_at;
+        item.warnings = health.warnings;
+        item.source_warning_count = static_cast<int>(health.warnings.size());
+        if (const auto audit_it = audit_by_source.find(health.source_id); audit_it != audit_by_source.end()) {
+            item.status_transition_count = static_cast<int>(audit_it->second.size());
+        }
+        item.attention_score = OpsV330SourceReliabilityAttentionScore(health, item.status_transition_count);
+        item.audit_route = "/ops/sources#auditArea=channels&auditPreset=source-health-state-change"
+                           "&auditAction=source-health-state-change&auditTarget=" +
+                           UrlEncode("source:" + health.source_id);
+        items.push_back(std::move(item));
+    }
+    std::sort(items.begin(), items.end(), [](const auto& lhs, const auto& rhs) {
+        if (lhs.attention_score != rhs.attention_score) {
+            return lhs.attention_score > rhs.attention_score;
+        }
+        if (lhs.reconnect_count != rhs.reconnect_count) {
+            return lhs.reconnect_count > rhs.reconnect_count;
+        }
+        return lhs.source_id < rhs.source_id;
+    });
+    return items;
+}
+
+OpsV330SourceReliabilitySearchMetricsSummary BuildV330SourceReliabilitySearchMetricsSummary(
+    const std::vector<OpsV330SourceReliabilitySearchMetricItem>& items) {
+    OpsV330SourceReliabilitySearchMetricsSummary summary;
+    summary.source_count = static_cast<int>(items.size());
+    for (const auto& item : items) {
+        if (item.health_status == "live") {
+            ++summary.live_count;
+        } else if (item.health_status == "connecting") {
+            ++summary.connecting_count;
+        } else if (item.health_status == "stale") {
+            ++summary.stale_count;
+        } else if (item.health_status == "offline") {
+            ++summary.offline_count;
+        }
+        if (item.health_status != "live" || item.source_warning_count > 0 || item.reconnect_count > 0) {
+            ++summary.matched_source_count;
+        }
+        if (item.source_warning_count > 0) {
+            ++summary.warning_source_count;
+        }
+        if (item.reconnect_count > 0) {
+            ++summary.reconnect_source_count;
+            summary.reconnect_total += item.reconnect_count;
+        }
+        if (OpsV330SourceReliabilityHasWarning(item, "high-reconnect")) {
+            ++summary.high_reconnect_source_count;
+        }
+        if (OpsV330SourceReliabilityHasWarning(item, "repeated-stale")) {
+            ++summary.repeated_stale_source_count;
+        }
+        summary.status_transition_count += item.status_transition_count;
+    }
+    return summary;
+}
+
+int OpsV330SourceReliabilitySavedViewMatchCount(
+    const std::vector<OpsV330SourceReliabilitySearchMetricItem>& items,
+    const std::string& filter_key) {
+    int count = 0;
+    for (const auto& item : items) {
+        if (filter_key == "all" ||
+            (filter_key == "needs-attention" &&
+             (item.health_status != "live" || item.source_warning_count > 0 || item.reconnect_count > 0)) ||
+            (filter_key == "reconnect-watch" && item.reconnect_count > 0) ||
+            (filter_key == "stale-offline" &&
+             (item.health_status == "stale" || item.health_status == "offline")) ||
+            (filter_key == "warning" && item.source_warning_count > 0)) {
+            ++count;
+        }
+    }
+    return count;
+}
+
+std::vector<OpsV330SourceReliabilitySavedView> BuildV330SourceReliabilitySavedViews(
+    const std::vector<OpsV330SourceReliabilitySearchMetricItem>& items) {
+    std::vector<OpsV330SourceReliabilitySavedView> views = {
+        {"all-sources", "All sources", "All source health rows in reliability order", "all", 0,
+         "/ops/sources#sourceReliabilityView=all-sources"},
+        {"needs-attention", "Needs attention", "Non-live, warning, or reconnecting sources", "needs-attention", 0,
+         "/ops/sources#sourceReliabilityView=needs-attention"},
+        {"reconnect-watch", "Reconnect watch", "Sources with reconnect count above zero", "reconnect-watch", 0,
+         "/ops/sources#sourceReliabilityView=reconnect-watch"},
+        {"stale-offline", "Stale/offline", "Sources currently stale or offline", "stale-offline", 0,
+         "/ops/sources#sourceReliabilityView=stale-offline"},
+        {"warning-sources", "Warning sources", "Sources carrying source health warnings", "warning", 0,
+         "/ops/sources#sourceReliabilityView=warning-sources"},
+    };
+    for (auto& view : views) {
+        view.matched_source_count = OpsV330SourceReliabilitySavedViewMatchCount(items, view.filter_key);
+    }
+    return views;
+}
+
+void AppendV330SourceReliabilitySearchMetricItemJson(
+    std::ostringstream& out,
+    const OpsV330SourceReliabilitySearchMetricItem& item) {
+    out << "{"
+        << "\"sourceId\":\"" << JsonEscape(item.source_id) << "\","
+        << "\"displayName\":\"" << JsonEscape(item.display_name) << "\","
+        << "\"sourceKind\":\"" << JsonEscape(item.source_kind) << "\","
+        << "\"healthStatus\":\"" << JsonEscape(item.health_status) << "\","
+        << "\"healthReason\":\"" << JsonEscape(item.health_reason) << "\","
+        << "\"checkedAt\":";
+    AppendNullableJsonString(out, item.checked_at);
+    out << ",\"filterKey\":\"" << JsonEscape(item.filter_key) << "\","
+        << "\"reconnectCount\":" << item.reconnect_count
+        << ",\"lastReconnectAt\":";
+    AppendNullableJsonString(out, item.last_reconnect_at);
+    out << ",\"sourceWarningCount\":" << item.source_warning_count
+        << ",\"statusTransitionCount\":" << item.status_transition_count
+        << ",\"attentionScore\":" << item.attention_score
+        << ",\"auditRoute\":\"" << JsonEscape(item.audit_route) << "\","
+        << "\"warnings\":";
+    AppendJsonStringArray(out, item.warnings);
+    out << "}";
+}
+
+void AppendV330SourceReliabilitySavedViewJson(
+    std::ostringstream& out,
+    const OpsV330SourceReliabilitySavedView& view) {
+    out << "{"
+        << "\"key\":\"" << JsonEscape(view.key) << "\","
+        << "\"label\":\"" << JsonEscape(view.label) << "\","
+        << "\"description\":\"" << JsonEscape(view.description) << "\","
+        << "\"filterKey\":\"" << JsonEscape(view.filter_key) << "\","
+        << "\"matchedSourceCount\":" << view.matched_source_count << ","
+        << "\"route\":\"" << JsonEscape(view.route) << "\""
+        << "}";
+}
+
+void AppendV330SourceReliabilitySearchMetricsSummaryJson(
+    std::ostringstream& out,
+    const OpsV330SourceReliabilitySearchMetricsSummary& summary) {
+    out << "{"
+        << "\"sourceCount\":" << summary.source_count << ","
+        << "\"matchedSourceCount\":" << summary.matched_source_count << ","
+        << "\"live\":" << summary.live_count << ","
+        << "\"connecting\":" << summary.connecting_count << ","
+        << "\"stale\":" << summary.stale_count << ","
+        << "\"offline\":" << summary.offline_count << ","
+        << "\"warningSources\":" << summary.warning_source_count << ","
+        << "\"reconnectSources\":" << summary.reconnect_source_count << ","
+        << "\"reconnectTotal\":" << summary.reconnect_total << ","
+        << "\"highReconnectSources\":" << summary.high_reconnect_source_count << ","
+        << "\"repeatedStaleSources\":" << summary.repeated_stale_source_count << ","
+        << "\"statusTransitionCount\":" << summary.status_transition_count << ","
+        << "\"savedViewCount\":" << summary.saved_view_count
+        << "}";
+}
+
+void AppendV330SourceReliabilityFilterJson(std::ostringstream& out,
+                                           const std::string& key,
+                                           const std::string& label,
+                                           int count) {
+    out << "{"
+        << "\"key\":\"" << JsonEscape(key) << "\","
+        << "\"label\":\"" << JsonEscape(label) << "\","
+        << "\"matchedSourceCount\":" << count
+        << "}";
+}
+
+void AppendV330SourceReliabilityFilterListJson(
+    std::ostringstream& out,
+    const OpsV330SourceReliabilitySearchMetricsSummary& summary) {
+    out << "[";
+    AppendV330SourceReliabilityFilterJson(out, "all", "All", summary.source_count);
+    out << ",";
+    AppendV330SourceReliabilityFilterJson(out, "needs-attention", "Needs attention", summary.matched_source_count);
+    out << ",";
+    AppendV330SourceReliabilityFilterJson(out, "live", "Live", summary.live_count);
+    out << ",";
+    AppendV330SourceReliabilityFilterJson(out, "stale", "Stale", summary.stale_count);
+    out << ",";
+    AppendV330SourceReliabilityFilterJson(out, "offline", "Offline", summary.offline_count);
+    out << ",";
+    AppendV330SourceReliabilityFilterJson(out, "reconnect-watch", "Reconnect watch", summary.reconnect_source_count);
+    out << ",";
+    AppendV330SourceReliabilityFilterJson(out, "warning", "Warnings", summary.warning_source_count);
+    out << "]";
+}
+
+std::string OpsV330SourceReliabilitySearchMetricsJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    if (!source_health_snapshot.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v330-source-reliability-search-metrics.v1\",\"error\":\"" +
+               JsonEscape(source_health_snapshot.error) + "\"}";
+    }
+    const auto sourceReliabilitySearchResults =
+        BuildV330SourceReliabilitySearchMetrics(config, source_health_snapshot);
+    auto summary = BuildV330SourceReliabilitySearchMetricsSummary(sourceReliabilitySearchResults);
+    const auto savedReliabilityViews =
+        BuildV330SourceReliabilitySavedViews(sourceReliabilitySearchResults);
+    summary.saved_view_count = static_cast<int>(savedReliabilityViews.size());
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v330-source-reliability-search-metrics.v1\","
+        << "\"status\":\"source-reliability-search-metrics\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"sourceReliabilitySearchMetricsSummary\":";
+    AppendV330SourceReliabilitySearchMetricsSummaryJson(out, summary);
+    out << ",\"sourceHealthFilters\":";
+    AppendV330SourceReliabilityFilterListJson(out, summary);
+    out << ",\"savedReliabilityViews\":[";
+    for (std::size_t i = 0; i < savedReliabilityViews.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV330SourceReliabilitySavedViewJson(out, savedReliabilityViews[i]);
+    }
+    out << "],\"sourceReliabilitySearchResults\":[";
+    for (std::size_t i = 0; i < sourceReliabilitySearchResults.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV330SourceReliabilitySearchMetricItemJson(out, sourceReliabilitySearchResults[i]);
+    }
+    out << "],\"reconnectMetricSummary\":{"
+        << "\"sources\":" << summary.reconnect_source_count << ","
+        << "\"reconnectTotal\":" << summary.reconnect_total << ","
+        << "\"highReconnectSources\":" << summary.high_reconnect_source_count
+        << "},\"staleMetricSummary\":{"
+        << "\"sources\":" << summary.stale_count << ","
+        << "\"repeatedStaleSources\":" << summary.repeated_stale_source_count
+        << "},\"offlineMetricSummary\":{"
+        << "\"sources\":" << summary.offline_count
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"savedViewsPersisted\":false,"
+        << "\"savedViewWritePerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"automaticRecoveryPerformed\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV330BackupRecoverySourceHandoffInput {
+    std::string key;
+    std::string label;
+    std::string source;
+    std::string route;
+    std::string validation_status;
+    std::string validation_summary;
+    int source_count{0};
+    int published_view_count{0};
+    int affected_source_count{0};
+};
+
+struct OpsV330BackupRecoveryValidationPlanItem {
+    std::string key;
+    std::string label;
+    std::string status;
+    std::string summary;
+    std::string route;
+};
+
+struct OpsV330BackupRecoverySourceHandoffSummary {
+    int source_count{0};
+    int published_view_count{0};
+    int source_health_snapshot_count{0};
+    int stale_source_count{0};
+    int offline_source_count{0};
+    int recovery_validation_plan_count{0};
+    int validation_ready_count{0};
+};
+
+std::vector<OpsV330BackupRecoveryValidationPlanItem> BuildV330BackupRecoveryValidationPlan(
+    const OpsSourceHealthSnapshot& source_health_snapshot,
+    int source_count,
+    int published_view_count) {
+    return {
+        {"registryRestoreValidation",
+         "Registry restore validation",
+         source_count >= 0 ? "ready" : "blocked",
+         "Restore SourceRegistry in staging, then verify source IDs, kinds, canonical keys, owner/site/group context, and parse errors before production traffic.",
+         "/ops/api/source-registry/snapshot"},
+        {"publishedViewRestoreValidation",
+         "PublishedView restore validation",
+         published_view_count >= 0 ? "ready" : "blocked",
+         "Restore PublishedView registry with the source registry and verify sourceId links, enabled state, dashboard/events flags, maxTiles, and viewer scopes.",
+         "/ops/api/views"},
+        {"sourceHealthSnapshotValidation",
+         "Source health snapshot validation",
+         source_health_snapshot.ok ? "ready" : "blocked",
+         "Capture a fresh Ops source health snapshot after restore and compare live/stale/offline/reconnect counts against the handoff ticket.",
+         "/ops/api/source-health"},
+        {"viewerScopeValidation",
+         "Viewer scope validation",
+         published_view_count >= 0 ? "ready" : "blocked",
+         "Verify restored client views through scoped client APIs before reconnecting external viewer or integrator traffic.",
+         "/client/api/views"},
+    };
+}
+
+std::vector<OpsV330BackupRecoverySourceHandoffInput> BuildV330BackupRecoverySourceHandoffInputs(
+    const OpsSourceHealthSnapshot& source_health_snapshot,
+    int source_count,
+    int published_view_count,
+    int validation_plan_count) {
+    return {
+        {"source-registry-snapshot",
+         "Source registry snapshot",
+         "SourceRegistry",
+         "/ops/api/source-registry/snapshot",
+         source_count >= 0 ? "ready" : "blocked",
+         "sourceId, source kind, canonical source key, owner/site/group context, and enabled state are captured as restore input.",
+         source_count,
+         published_view_count,
+         source_count},
+        {"published-view-registry",
+         "PublishedView registry",
+         "PublishedView",
+         "/ops/api/views",
+         published_view_count >= 0 ? "ready" : "blocked",
+         "viewId, sourceId link, scope-facing flags, allowed rules, overlays, client groups, and maxTiles are captured as restore input.",
+         source_count,
+         published_view_count,
+         published_view_count},
+        {"source-health-snapshot",
+         "Source health snapshot",
+         "Ops source health",
+         "/ops/api/source-health",
+         source_health_snapshot.ok ? "ready" : "blocked",
+         "live, connecting, stale, offline, reconnect, and warning state are captured for post-restore comparison.",
+         source_count,
+         published_view_count,
+         static_cast<int>(source_health_snapshot.items.size())},
+        {"recovery-validation-plan",
+         "Recovery validation plan",
+         "Ops backup/recovery",
+         "/ops/api/source-registry/backup-recovery-handoff",
+         validation_plan_count > 0 ? "ready" : "blocked",
+         "registry restore, PublishedView restore, source health snapshot, and viewer scope validation are linked before production cutover.",
+         source_count,
+         published_view_count,
+         validation_plan_count},
+    };
+}
+
+OpsV330BackupRecoverySourceHandoffSummary BuildV330BackupRecoverySourceHandoffSummary(
+    const OpsSourceHealthSnapshot& source_health_snapshot,
+    int source_count,
+    int published_view_count,
+    const std::vector<OpsV330BackupRecoveryValidationPlanItem>& validation_plan) {
+    OpsV330BackupRecoverySourceHandoffSummary summary;
+    summary.source_count = source_count;
+    summary.published_view_count = published_view_count;
+    summary.source_health_snapshot_count = static_cast<int>(source_health_snapshot.items.size());
+    summary.stale_source_count = source_health_snapshot.stale_count;
+    summary.offline_source_count = source_health_snapshot.offline_count;
+    summary.recovery_validation_plan_count = static_cast<int>(validation_plan.size());
+    for (const auto& item : validation_plan) {
+        if (item.status == "ready") {
+            ++summary.validation_ready_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV330BackupRecoverySourceHandoffInputJson(
+    std::ostringstream& out,
+    const OpsV330BackupRecoverySourceHandoffInput& input) {
+    out << "{"
+        << "\"key\":\"" << JsonEscape(input.key) << "\","
+        << "\"label\":\"" << JsonEscape(input.label) << "\","
+        << "\"source\":\"" << JsonEscape(input.source) << "\","
+        << "\"route\":\"" << JsonEscape(input.route) << "\","
+        << "\"validationStatus\":\"" << JsonEscape(input.validation_status) << "\","
+        << "\"validationSummary\":\"" << JsonEscape(input.validation_summary) << "\","
+        << "\"sourceCount\":" << input.source_count << ","
+        << "\"publishedViewCount\":" << input.published_view_count << ","
+        << "\"affectedSourceCount\":" << input.affected_source_count
+        << "}";
+}
+
+void AppendV330BackupRecoveryValidationPlanJson(
+    std::ostringstream& out,
+    const OpsV330BackupRecoveryValidationPlanItem& item) {
+    out << "{"
+        << "\"key\":\"" << JsonEscape(item.key) << "\","
+        << "\"label\":\"" << JsonEscape(item.label) << "\","
+        << "\"status\":\"" << JsonEscape(item.status) << "\","
+        << "\"summary\":\"" << JsonEscape(item.summary) << "\","
+        << "\"route\":\"" << JsonEscape(item.route) << "\""
+        << "}";
+}
+
+void AppendV330BackupRecoverySourceHandoffSummaryJson(
+    std::ostringstream& out,
+    const OpsV330BackupRecoverySourceHandoffSummary& summary) {
+    out << "{"
+        << "\"sourceCount\":" << summary.source_count << ","
+        << "\"publishedViewCount\":" << summary.published_view_count << ","
+        << "\"sourceHealthSnapshotCount\":" << summary.source_health_snapshot_count << ","
+        << "\"staleSourceCount\":" << summary.stale_source_count << ","
+        << "\"offlineSourceCount\":" << summary.offline_source_count << ","
+        << "\"recoveryValidationPlanCount\":" << summary.recovery_validation_plan_count << ","
+        << "\"validationReadyCount\":" << summary.validation_ready_count
+        << "}";
+}
+
+std::string OpsV330BackupRecoverySourceHandoffJson(
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    if (!source_health_snapshot.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v330-backup-recovery-source-handoff.v1\",\"error\":\"" +
+               JsonEscape(source_health_snapshot.error) + "\"}";
+    }
+
+    std::vector<SourceViewRegistry::SourceRecord> sources;
+    std::vector<SourceViewRegistry::PublishedViewRecord> views;
+    std::string load_error;
+    if (!SourceViewRegistry::Instance().Snapshot(&sources, &views, &load_error)) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v330-backup-recovery-source-handoff.v1\",\"error\":\"" +
+               JsonEscape(load_error.empty() ? "source registry load failed" : load_error) + "\"}";
+    }
+
+    const int source_count = static_cast<int>(sources.size());
+    const int published_view_count = static_cast<int>(views.size());
+    const auto recoveryValidationPlan =
+        BuildV330BackupRecoveryValidationPlan(source_health_snapshot, source_count, published_view_count);
+    const auto sourceHandoffInputs = BuildV330BackupRecoverySourceHandoffInputs(
+        source_health_snapshot,
+        source_count,
+        published_view_count,
+        static_cast<int>(recoveryValidationPlan.size()));
+    const auto summary = BuildV330BackupRecoverySourceHandoffSummary(
+        source_health_snapshot,
+        source_count,
+        published_view_count,
+        recoveryValidationPlan);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v330-backup-recovery-source-handoff.v1\","
+        << "\"status\":\"backup-recovery-source-handoff\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"sourceRegistrySnapshotRoute\":\"/ops/api/source-registry/snapshot\","
+        << "\"publishedViewRegistryRoute\":\"/ops/api/views\","
+        << "\"sourceHealthSnapshotRoute\":\"/ops/api/source-health\","
+        << "\"recoveryValidationPlanRoute\":\"/ops/api/source-registry/backup-recovery-handoff\","
+        << "\"backupRecoverySourceHandoffSummary\":";
+    AppendV330BackupRecoverySourceHandoffSummaryJson(out, summary);
+    out << ",\"sourceHealthSnapshotSummary\":";
+    AppendOpsSourceHealthSummaryJson(out, source_health_snapshot);
+    out << ",\"sourceHandoffInputs\":[";
+    for (std::size_t i = 0; i < sourceHandoffInputs.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV330BackupRecoverySourceHandoffInputJson(out, sourceHandoffInputs[i]);
+    }
+    out << "],\"recoveryValidationPlan\":[";
+    for (std::size_t i = 0; i < recoveryValidationPlan.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV330BackupRecoveryValidationPlanJson(out, recoveryValidationPlan[i]);
+    }
+    out << "],\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"sourceHealthSnapshotPersisted\":false,"
+        << "\"recoveryValidationPlanPersisted\":false,"
+        << "\"realBackupPerformed\":false,"
+        << "\"productionRestorePerformed\":false,"
+        << "\"automaticRecoveryPerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 std::string OpsAuditSearchIndexJson() {
     return "{\"caseInsensitive\":true,"
            "\"filters\":[\"area\",\"actor\",\"user\",\"target\",\"action\",\"q\",\"fromMs\",\"toMs\"],"
@@ -15768,6 +16923,375 @@ std::string OpsV320SourceReliabilitySummaryJson(
     return out.str();
 }
 
+struct OpsV330IncidentSourceCorrelationInfo {
+    std::string event_id{"unknown-event"};
+    std::string source_id{"unknown-source"};
+    std::string source_cause_category{"source-context-missing"};
+    std::string source_cause_summary{"source reliability context is missing for this incident"};
+    std::string resolution_closure_impact{"block-closure"};
+    std::string source_health_status{"source-missing"};
+    std::string source_health_reason{"source-id-missing"};
+    std::string recent_failure_context{"source-id-missing"};
+    std::string correlation_confidence{"low"};
+    int reconnect_count{0};
+    bool source_recheck_required{true};
+    bool resolution_detail_attached{true};
+    bool source_reliability_context_reused{true};
+    bool source_health_audit_linked{true};
+    std::vector<std::string> correlation_signals;
+};
+
+OpsV330IncidentSourceCorrelationInfo OpsV330IncidentSourceCorrelationInfoFor(
+    const std::string& event_json,
+    const OpsEventReviewState& resolution_state,
+    const OpsV320SourceReliabilityInfo& source_reliability) {
+    OpsV330IncidentSourceCorrelationInfo info;
+    info.event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+    if (info.event_id.empty()) {
+        info.event_id = "unknown-event";
+    }
+    info.source_id = source_reliability.source_id.empty() ? "unknown-source" : source_reliability.source_id;
+    info.source_health_status = source_reliability.source_health_status;
+    info.source_health_reason = source_reliability.source_health_reason;
+    info.recent_failure_context = source_reliability.recent_failure_context;
+    info.reconnect_count = source_reliability.reconnect_count;
+
+    const bool missing_context =
+        info.source_id == "unknown-source" ||
+        info.source_health_status == "source-missing" ||
+        info.source_health_status == "not-registered" ||
+        info.source_health_status == "source-health-unavailable";
+    const bool source_live = info.source_health_status == "live" && source_reliability.warnings.empty();
+    const bool source_warning = !source_reliability.warnings.empty();
+    info.source_recheck_required = missing_context || !source_live || source_warning;
+
+    if (missing_context) {
+        info.source_cause_category = "source-context-missing";
+        info.source_cause_summary =
+            "source registry or source health context is missing for this resolution detail";
+        info.resolution_closure_impact = "block-closure";
+        info.correlation_confidence = "low";
+    } else if (info.source_health_status != "live") {
+        info.source_cause_category = "source-health-degraded";
+        info.source_cause_summary =
+            "source health is degraded and should be checked before final resolution closure";
+        info.resolution_closure_impact =
+            OpsResolutionStatusIsClosed(resolution_state.resolution_status)
+                ? "review-closed-resolution"
+                : "requires-source-recheck";
+        info.correlation_confidence = "medium";
+    } else if (source_warning) {
+        info.source_cause_category = "source-warning";
+        info.source_cause_summary =
+            "source is live but warning context may explain this incident";
+        info.resolution_closure_impact = "review-before-closure";
+        info.correlation_confidence = "medium";
+    } else {
+        info.source_cause_category = "source-clear";
+        info.source_cause_summary =
+            "source is live with no recent source reliability warning context";
+        info.resolution_closure_impact = "supports-resolution";
+        info.correlation_confidence = "high";
+    }
+
+    info.correlation_signals.push_back("source-health:" + info.source_health_status);
+    info.correlation_signals.push_back("recent-failure:" + info.recent_failure_context);
+    info.correlation_signals.push_back("resolution:" + resolution_state.resolution_status);
+    info.correlation_signals.push_back(info.source_recheck_required ? "recheck:required"
+                                                                    : "recheck:not-required");
+    info.correlation_signals.push_back("audit:source-health-state-change");
+    return info;
+}
+
+std::string OpsV330IncidentSourceCorrelationJson(
+    const OpsV330IncidentSourceCorrelationInfo& info) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v330-incident-source-correlation.v1\","
+        << "\"eventId\":\"" << JsonEscape(info.event_id) << "\","
+        << "\"sourceId\":\"" << JsonEscape(info.source_id) << "\","
+        << "\"sourceCauseCategory\":\"" << JsonEscape(info.source_cause_category) << "\","
+        << "\"sourceCauseSummary\":\"" << JsonEscape(info.source_cause_summary) << "\","
+        << "\"resolutionClosureImpact\":\"" << JsonEscape(info.resolution_closure_impact) << "\","
+        << "\"sourceHealthStatus\":\"" << JsonEscape(info.source_health_status) << "\","
+        << "\"sourceHealthReason\":\"" << JsonEscape(info.source_health_reason) << "\","
+        << "\"recentFailureContext\":\"" << JsonEscape(info.recent_failure_context) << "\","
+        << "\"correlationConfidence\":\"" << JsonEscape(info.correlation_confidence) << "\","
+        << "\"reconnectCount\":" << info.reconnect_count << ","
+        << "\"sourceRecheckRequired\":" << (info.source_recheck_required ? "true" : "false") << ","
+        << "\"sourceAuditRoute\":\"/ops/sources#auditArea=channels&auditPreset=source-health-state-change\","
+        << "\"sourceRecheckRoute\":\"/ops/api/source-health\","
+        << "\"correlationSignals\":" << JsonStringArray(info.correlation_signals) << ","
+        << "\"resolutionDetailAttached\":true,"
+        << "\"sourceReliabilityContextReused\":true,"
+        << "\"sourceHealthAuditLinked\":true,"
+        << "\"opsOnly\":true,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false,"
+        << "\"rawLocatorExposed\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"recoveryQueueCreated\":false,"
+        << "\"clientDigestChanged\":false,"
+        << "\"searchMetricsChanged\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsV330IncidentSourceCorrelationSummaryJson(
+    const std::vector<OpsV330IncidentSourceCorrelationInfo>& items) {
+    int source_recheck_required = 0;
+    int closure_blocked = 0;
+    int source_clear = 0;
+    int source_warning = 0;
+    for (const auto& item : items) {
+        if (item.source_recheck_required) {
+            ++source_recheck_required;
+        }
+        if (item.resolution_closure_impact == "block-closure" ||
+            item.resolution_closure_impact == "requires-source-recheck") {
+            ++closure_blocked;
+        }
+        if (item.source_cause_category == "source-clear") {
+            ++source_clear;
+        }
+        if (item.source_cause_category == "source-warning" ||
+            item.source_cause_category == "source-health-degraded") {
+            ++source_warning;
+        }
+    }
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v330-incident-source-correlation.v1\","
+        << "\"status\":\"ops-v330-incident-source-correlation\","
+        << "\"itemCount\":" << items.size() << ","
+        << "\"sourceRecheckRequired\":" << source_recheck_required << ","
+        << "\"closureBlocked\":" << closure_blocked << ","
+        << "\"sourceClear\":" << source_clear << ","
+        << "\"sourceWarning\":" << source_warning << ","
+        << "\"sourceAuditRoute\":\"/ops/sources#auditArea=channels&auditPreset=source-health-state-change\","
+        << "\"sourceRecheckRoute\":\"/ops/api/source-health\","
+        << "\"resolutionDetailAttached\":true,"
+        << "\"sourceReliabilityContextReused\":true,"
+        << "\"sourceHealthAuditLinked\":true,"
+        << "\"opsOnly\":true,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false,"
+        << "\"recoveryQueueCreated\":false,"
+        << "\"clientDigestChanged\":false,"
+        << "\"searchMetricsChanged\":false"
+        << "}";
+    return out.str();
+}
+
+struct OpsV330OperatorRecheckRecoveryQueueInfo {
+    std::string event_id{"unknown-event"};
+    std::string source_id{"unknown-source"};
+    std::string queue_status{"queued-operator-note-required"};
+    std::string recheck_status{"required"};
+    std::string retry_candidate{"source-health-recheck"};
+    std::string retry_candidate_reason{"source-recheck-required"};
+    std::string dry_run_result_status{"blocked-not-run"};
+    std::string dry_run_result_summary{"operator note required before retry dry-run"};
+    std::string operator_note_status{"required"};
+    std::string operator_note_route{"/ops/api/events/reviews/{eventId}"};
+    std::string source_recheck_route{"/ops/api/source-health"};
+    std::string recovery_queue_reason{"source reliability context requires operator recheck"};
+    bool failed_only_recheck{true};
+    bool retry_candidate_available{true};
+    bool operator_note_linked{true};
+    bool operator_note_present{false};
+    bool recovery_queue_read_model_created{true};
+    std::vector<std::string> recovery_checklist;
+};
+
+OpsV330OperatorRecheckRecoveryQueueInfo OpsV330OperatorRecheckRecoveryQueueInfoFor(
+    const std::string& event_json,
+    const OpsEventReviewState& review,
+    const OpsV320SourceReliabilityInfo& source_reliability,
+    const OpsV330IncidentSourceCorrelationInfo& incident_source_correlation) {
+    OpsV330OperatorRecheckRecoveryQueueInfo info;
+    info.event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+    if (info.event_id.empty()) {
+        info.event_id = "unknown-event";
+    }
+    info.source_id = incident_source_correlation.source_id.empty()
+                         ? "unknown-source"
+                         : incident_source_correlation.source_id;
+    const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
+    info.operator_note_present =
+        !Trim(review.note).empty() || !Trim(resolution_state.resolution_note).empty();
+    info.operator_note_status = info.operator_note_present ? "present" : "required";
+
+    if (!incident_source_correlation.source_recheck_required) {
+        info.queue_status = "cleared";
+        info.recheck_status = "not-required";
+        info.retry_candidate = "none";
+        info.retry_candidate_reason = "source-recheck-not-required";
+        info.retry_candidate_available = false;
+        info.dry_run_result_status = "not-required";
+        info.dry_run_result_summary = "source reliability context does not require recovery retry";
+        info.recovery_queue_reason = "source reliability context supports resolution";
+    } else {
+        info.queue_status =
+            info.operator_note_present ? "ready-for-dry-run" : "queued-operator-note-required";
+        info.recheck_status = "required";
+        info.retry_candidate = source_reliability.source_health_present
+                                   ? "source-health-recheck"
+                                   : "source-mapping-recheck";
+        info.retry_candidate_reason =
+            incident_source_correlation.source_cause_category + ":" +
+            incident_source_correlation.resolution_closure_impact;
+        info.dry_run_result_status =
+            info.operator_note_present ? "ready-not-run" : "blocked-not-run";
+        info.dry_run_result_summary =
+            info.operator_note_present
+                ? "source health recheck dry-run is ready but not executed by this read model"
+                : "operator note is required before retry dry-run";
+        info.recovery_queue_reason = incident_source_correlation.source_cause_summary;
+    }
+
+    info.recovery_checklist = {
+        std::string("failed-only-recheck:") +
+            (incident_source_correlation.source_recheck_required ? "required" : "not-required"),
+        "retry-candidate:" + info.retry_candidate,
+        "dry-run:" + info.dry_run_result_status,
+        "operator-note:" + info.operator_note_status,
+        "source-health:" + incident_source_correlation.source_health_status,
+    };
+    return info;
+}
+
+std::string OpsV330OperatorRecheckRecoveryQueueJson(
+    const OpsV330OperatorRecheckRecoveryQueueInfo& info) {
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v330-operator-recheck-recovery-queue.v1\","
+        << "\"eventId\":\"" << JsonEscape(info.event_id) << "\","
+        << "\"sourceId\":\"" << JsonEscape(info.source_id) << "\","
+        << "\"queueStatus\":\"" << JsonEscape(info.queue_status) << "\","
+        << "\"failedOnlyRecheck\":" << (info.failed_only_recheck ? "true" : "false") << ","
+        << "\"recheckStatus\":\"" << JsonEscape(info.recheck_status) << "\","
+        << "\"retryCandidate\":\"" << JsonEscape(info.retry_candidate) << "\","
+        << "\"retryCandidateAvailable\":"
+        << (info.retry_candidate_available ? "true" : "false") << ","
+        << "\"retryCandidateReason\":\"" << JsonEscape(info.retry_candidate_reason) << "\","
+        << "\"recoveryChecklist\":" << JsonStringArray(info.recovery_checklist) << ","
+        << "\"dryRunResultStatus\":\"" << JsonEscape(info.dry_run_result_status) << "\","
+        << "\"dryRunResultSummary\":\"" << JsonEscape(info.dry_run_result_summary) << "\","
+        << "\"operatorNoteStatus\":\"" << JsonEscape(info.operator_note_status) << "\","
+        << "\"operatorNotePresent\":" << (info.operator_note_present ? "true" : "false") << ","
+        << "\"operatorNoteRoute\":\"/ops/api/events/reviews/{eventId}\","
+        << "\"sourceRecheckRoute\":\"/ops/api/source-health\","
+        << "\"recoveryQueueReason\":\"" << JsonEscape(info.recovery_queue_reason) << "\","
+        << "\"operatorNoteLinked\":true,"
+        << "\"recoveryQueueReadModelCreated\":true,"
+        << "\"persistentRecoveryQueueCreated\":false,"
+        << "\"recoveryQueueWritePerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false,"
+        << "\"rawLocatorExposed\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"autoRecoveryApplied\":false,"
+        << "\"externalRecoveryPerformed\":false,"
+        << "\"clientDigestChanged\":false,"
+        << "\"searchMetricsChanged\":false"
+        << "}";
+    return out.str();
+}
+
+std::string OpsV330OperatorRecheckRecoveryQueueSummaryJson(
+    const std::vector<OpsV330OperatorRecheckRecoveryQueueInfo>& items) {
+    int queued = 0;
+    int retry_candidates = 0;
+    int operator_notes_required = 0;
+    int operator_notes_present = 0;
+    int dry_run_ready = 0;
+    int dry_run_not_run = 0;
+    int cleared = 0;
+    for (const auto& item : items) {
+        if (item.recheck_status == "required") {
+            ++queued;
+        }
+        if (item.retry_candidate_available) {
+            ++retry_candidates;
+        }
+        if (item.operator_note_present) {
+            ++operator_notes_present;
+        } else {
+            ++operator_notes_required;
+        }
+        if (item.dry_run_result_status == "ready-not-run") {
+            ++dry_run_ready;
+        }
+        if (item.dry_run_result_status == "ready-not-run" ||
+            item.dry_run_result_status == "blocked-not-run") {
+            ++dry_run_not_run;
+        }
+        if (item.queue_status == "cleared") {
+            ++cleared;
+        }
+    }
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v330-operator-recheck-recovery-queue.v1\","
+        << "\"status\":\"ops-v330-operator-recheck-recovery-queue\","
+        << "\"itemCount\":" << items.size() << ","
+        << "\"queuedForRecheck\":" << queued << ","
+        << "\"retryCandidates\":" << retry_candidates << ","
+        << "\"operatorNotesRequired\":" << operator_notes_required << ","
+        << "\"operatorNotesPresent\":" << operator_notes_present << ","
+        << "\"dryRunReady\":" << dry_run_ready << ","
+        << "\"dryRunNotRun\":" << dry_run_not_run << ","
+        << "\"cleared\":" << cleared << ","
+        << "\"failedOnlyRecheck\":true,"
+        << "\"operatorNoteRoute\":\"/ops/api/events/reviews/{eventId}\","
+        << "\"sourceRecheckRoute\":\"/ops/api/source-health\","
+        << "\"operatorNoteLinked\":true,"
+        << "\"recoveryQueueReadModelCreated\":true,"
+        << "\"persistentRecoveryQueueCreated\":false,"
+        << "\"recoveryQueueWritePerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceUrlExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false,"
+        << "\"autoRecoveryApplied\":false,"
+        << "\"externalRecoveryPerformed\":false,"
+        << "\"clientDigestChanged\":false,"
+        << "\"searchMetricsChanged\":false"
+        << "}";
+    return out.str();
+}
+
 struct OpsV320AiReviewQualityInfo {
     std::string correction_review_signal{"pending-review"};
     std::string uncertainty_reason{"not-reviewed"};
@@ -16692,6 +18216,8 @@ std::string OpsV320DetailSectionsJson(const std::string& event_json,
                                       const OpsEventReviewState& review,
                                       const OpsV320EvidenceQualityInfo& evidence_quality,
                                       const OpsV320SourceReliabilityInfo& source_reliability,
+                                      const OpsV330IncidentSourceCorrelationInfo& incident_source_correlation,
+                                      const OpsV330OperatorRecheckRecoveryQueueInfo& operator_recheck_recovery_queue,
                                       const OpsV320AiReviewQualityInfo& ai_review_quality,
                                       const OpsV320OperatorResolutionFlowInfo& operator_resolution_flow,
                                       const OpsV320ActionReadinessChecklistInfo& action_readiness_checklist) {
@@ -16743,6 +18269,23 @@ std::string OpsV320DetailSectionsJson(const std::string& event_json,
         << " / recheck " << JsonEscape(source_reliability.operator_recheck_route) << "\""
         << "},"
         << "{"
+        << "\"key\":\"incident-source-correlation\","
+        << "\"label\":\"Incident Source Correlation\","
+        << "\"status\":\"" << JsonEscape(incident_source_correlation.source_cause_category) << "\","
+        << "\"detail\":\"closure impact " << JsonEscape(incident_source_correlation.resolution_closure_impact)
+        << " / handoff /ops/sources source-health-state-change\""
+        << "},"
+        << "{"
+        << "\"key\":\"operator-recheck-recovery-queue\","
+        << "\"label\":\"Operator Recheck Recovery Queue\","
+        << "\"status\":\"" << JsonEscape(operator_recheck_recovery_queue.queue_status) << "\","
+        << "\"detail\":\"failed-only recheck "
+        << JsonEscape(operator_recheck_recovery_queue.recheck_status)
+        << " / retry " << JsonEscape(operator_recheck_recovery_queue.retry_candidate)
+        << " / note " << JsonEscape(operator_recheck_recovery_queue.operator_note_status)
+        << "\""
+        << "},"
+        << "{"
         << "\"key\":\"ai-review-quality\","
         << "\"label\":\"AI Review Quality\","
         << "\"status\":\"" << JsonEscape(ai_review_quality.quality_badge) << "\","
@@ -16773,6 +18316,8 @@ std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_j
                                                       const std::size_t index,
                                                       const OpsV320EvidenceQualityInfo& evidence_quality,
                                                       const OpsV320SourceReliabilityInfo& source_reliability,
+                                                      const OpsV330IncidentSourceCorrelationInfo& incident_source_correlation,
+                                                      const OpsV330OperatorRecheckRecoveryQueueInfo& operator_recheck_recovery_queue,
                                                       const OpsV320AiReviewQualityInfo& ai_review_quality,
                                                       const OpsV320OperatorResolutionFlowInfo& operator_resolution_flow,
                                                       const OpsV320ActionReadinessChecklistInfo& action_readiness_checklist,
@@ -16802,6 +18347,10 @@ std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_j
         << "\"closeReopenLifecycle\":" << OpsResolutionStateJson(resolution_state) << ","
         << "\"evidenceQuality\":" << OpsV320EvidenceQualityJson(evidence_quality) << ","
         << "\"sourceReliability\":" << OpsV320SourceReliabilityContextJson(source_reliability) << ","
+        << "\"incidentSourceCorrelation\":"
+        << OpsV330IncidentSourceCorrelationJson(incident_source_correlation) << ","
+        << "\"operatorRecheckRecoveryQueue\":"
+        << OpsV330OperatorRecheckRecoveryQueueJson(operator_recheck_recovery_queue) << ","
         << "\"aiReviewQuality\":" << OpsV320AiReviewQualityContextJson(ai_review_quality) << ","
         << "\"operatorResolutionFlow\":"
         << OpsV320OperatorResolutionFlowJson(operator_resolution_flow) << ","
@@ -16815,6 +18364,8 @@ std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_j
                resolution_state,
                evidence_quality,
                source_reliability,
+               incident_source_correlation,
+               operator_recheck_recovery_queue,
                ai_review_quality,
                operator_resolution_flow,
                action_readiness_checklist)
@@ -16853,6 +18404,8 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
     std::vector<std::string> items;
     std::vector<OpsV320EvidenceQualityInfo> evidence_quality_items;
     std::vector<OpsV320SourceReliabilityInfo> source_reliability_items;
+    std::vector<OpsV330IncidentSourceCorrelationInfo> incident_source_correlation_items;
+    std::vector<OpsV330OperatorRecheckRecoveryQueueInfo> operator_recheck_recovery_queue_items;
     std::vector<OpsV320AiReviewQualityInfo> ai_review_quality_items;
     std::vector<OpsV320OperatorResolutionFlowInfo> operator_resolution_flow_items;
     std::vector<OpsV320ActionReadinessChecklistInfo> action_readiness_checklist_items;
@@ -16860,6 +18413,10 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
     items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
     evidence_quality_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
     source_reliability_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
+    incident_source_correlation_items.reserve(
+        std::min<std::size_t>(event_json_records.size(), 12U));
+    operator_recheck_recovery_queue_items.reserve(
+        std::min<std::size_t>(event_json_records.size(), 12U));
     ai_review_quality_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
     operator_resolution_flow_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
     action_readiness_checklist_items.reserve(
@@ -16878,6 +18435,18 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
             OpsV320EvidenceQualityInfoFor(event_json, review);
         const OpsV320SourceReliabilityInfo source_reliability =
             OpsV320SourceReliabilityInfoFor(event_json, source_health_snapshot);
+        const OpsEventReviewState resolution_state = OpsResolutionStateFromReview(review);
+        const OpsV330IncidentSourceCorrelationInfo incident_source_correlation =
+            OpsV330IncidentSourceCorrelationInfoFor(
+                event_json,
+                resolution_state,
+                source_reliability);
+        const OpsV330OperatorRecheckRecoveryQueueInfo operator_recheck_recovery_queue =
+            OpsV330OperatorRecheckRecoveryQueueInfoFor(
+                event_json,
+                review,
+                source_reliability,
+                incident_source_correlation);
         const OpsV320AiReviewQualityInfo ai_review_quality =
             OpsV320AiReviewQualityInfoFor(review, evidence_quality, source_reliability);
         const OpsV320OperatorResolutionFlowInfo operator_resolution_flow =
@@ -16901,12 +18470,16 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
             index,
             evidence_quality,
             source_reliability,
+            incident_source_correlation,
+            operator_recheck_recovery_queue,
             ai_review_quality,
             operator_resolution_flow,
             action_readiness_checklist,
             resolution_search_metrics));
         evidence_quality_items.push_back(evidence_quality);
         source_reliability_items.push_back(source_reliability);
+        incident_source_correlation_items.push_back(incident_source_correlation);
+        operator_recheck_recovery_queue_items.push_back(operator_recheck_recovery_queue);
         ai_review_quality_items.push_back(ai_review_quality);
         operator_resolution_flow_items.push_back(operator_resolution_flow);
         action_readiness_checklist_items.push_back(action_readiness_checklist);
@@ -16935,6 +18508,11 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
         << OpsV320EvidenceQualitySummaryJson(evidence_quality_items) << ","
         << "\"sourceReliabilitySummary\":"
         << OpsV320SourceReliabilitySummaryJson(source_reliability_items) << ","
+        << "\"incidentSourceCorrelationSummary\":"
+        << OpsV330IncidentSourceCorrelationSummaryJson(incident_source_correlation_items) << ","
+        << "\"operatorRecheckRecoveryQueueSummary\":"
+        << OpsV330OperatorRecheckRecoveryQueueSummaryJson(operator_recheck_recovery_queue_items)
+        << ","
         << "\"aiReviewQualitySummary\":"
         << OpsV320AiReviewQualitySummaryJson(ai_review_quality_items) << ","
         << "\"operatorResolutionFlowSummary\":"
@@ -16956,6 +18534,8 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
         << "\"debugMaterialExposed\":false,"
         << "\"evidenceQualityLayerImplemented\":true,"
         << "\"sourceReliabilityContextImplemented\":true,"
+        << "\"incidentSourceCorrelationLayerImplemented\":true,"
+        << "\"operatorRecheckRecoveryQueueImplemented\":true,"
         << "\"aiReviewQualityContextImplemented\":true,"
         << "\"operatorAssignmentFlowImplemented\":true,"
         << "\"actionReadinessChecklistImplemented\":true,"
@@ -21614,6 +23194,90 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                             return AuthUserHttpResponse(result);
                         }
 
+                        if (request.path == "/ops/api/source-registry/reliability-timeline") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV330ReliabilityTimelineHealthHistoryJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/source-registry/reliability-search-metrics") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV330SourceReliabilitySearchMetricsJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/source-registry/backup-recovery-handoff") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV330BackupRecoverySourceHandoffJson(source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/source-registry/onboarding-quality") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = RegistryHttpResponse(
+                                    SourceViewRegistry::Instance().SourceOnboardingQualitySummaryJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/source-registry/snapshot") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = RegistryHttpResponse(
+                                    SourceViewRegistry::Instance().SourceRegistrySnapshotIdentityJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
                         if (request.path == "/ops/api/sources") {
                             if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
                                 return *auth_response;
@@ -22094,7 +23758,14 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     }
                                     const auto event_query = ParseQueryString(request.query);
                                     const int limit = ParseClampedIntQuery(event_query, "limit", 20, 1, 50);
-                                    return JsonResponse(200, "OK", ClientViewEventsJson(access, limit));
+                                    return JsonResponse(
+                                        200,
+                                        "OK",
+                                        ClientViewEventsJson(
+                                            access,
+                                            principal_result.principal,
+                                            impl_->session_manager.AnalysisTapSnapshots(),
+                                            limit));
                                 }
                                 if (IsClientViewSummaryRoute(subresource) &&
                                     IsClientViewMetadataSummaryRoute(subresource)) {
