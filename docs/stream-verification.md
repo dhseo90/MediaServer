@@ -48,7 +48,7 @@ PASS 근거로 사용합니다.
 
 | Step | Command | Scope |
 | --- | --- | --- |
-| v3.3.0 (1) | `./server.sh verify-v330-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | source `3.3.0`, latest published `v3.2.0`, current roadmap `v3.3.0 Live Source Reliability Workspace` 정렬. v3.3 기능 구현, UI 풀테스트, 30분/120분, published metadata, tag, push, GitHub Release evidence가 아님 |
+| v3.3.0 (1) | `./server.sh verify-v330-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | source `3.3.0`, latest published `v3.3.0`, current roadmap `v3.3.0 Live Source Reliability Workspace` 정렬. v3.3 기능 구현, UI 풀테스트, 30분/120분, published metadata, tag, push, GitHub Release evidence가 아님 |
 | v3.3.0 (2) | `./server.sh verify-v330-source-registry-snapshot-identity` | Source Registry Snapshot and Identity. `/ops/api/source-registry/snapshot` Ops-only read model이 sourceId, source kind, canonical source key, PublishedView 연결, owner/site/group context를 조합하는지 확인합니다. viewer/client 노출, source registry write, onboarding quality, reliability timeline, incident correlation, recovery queue, client digest, search/metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 | v3.3.0 (3) | `./server.sh verify-v330-source-onboarding-quality-summary` | Source Onboarding Quality Summary. `/ops/api/source-registry/onboarding-quality`와 `/ops/sources`가 pre-save validation, duplicate/conflict/missing/ready, ONVIF/WHEP/RTSP input quality를 Ops-only로 요약하는지 확인합니다. viewer/client 노출, source registry write, reliability timeline, incident correlation, recovery queue, client digest, search/metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 | v3.3.0 (4) | `./server.sh verify-v330-reliability-timeline-health-history` | Reliability Timeline and Health History. `/ops/api/source-registry/reliability-timeline`와 `/ops/sources`가 live/stale/offline/reconnect/source warning 변화 이력과 Ops audit 연결을 Ops-only로 요약하는지 확인합니다. source registry write, PublishedView write, viewer/client 노출, API/schema/media 변경, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
@@ -60,7 +60,7 @@ PASS 근거로 사용합니다.
 | v3.3.0 (10) | `./server.sh verify-v330-ops-backup-recovery-source-handoff` | Ops Backup and Recovery Source Handoff. `/ops/api/source-registry/backup-recovery-handoff`와 `/ops/sources`가 source registry snapshot, PublishedView registry, source health snapshot, recovery validation plan을 Ops-only handoff 입력으로 연결하는지 확인합니다. source registry write, PublishedView write, real backup/restore, automatic recovery, viewer/client 노출, API/schema/media 변경, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 | v3.3.0 (11) | `./server.sh verify-v330-stabilization-release-readiness` | v3.3.0 local stabilization and release readiness. v3.3 Step 1~10 local gates, release policy/evidence index/test records, close-out dry-run, script inventory 연결을 확인합니다. UI 풀테스트 직접 조작, 30분/120분, published metadata, release action evidence를 대체하지 않음 |
 
-## 최신 published baseline v3.2.0 verifier
+## 직전 published baseline v3.2.0 verifier
 
 아래 명령은 v3.2.0 published baseline 구현 단계에서 추가된 verifier입니다. v3.3.0
 완료 evidence로 재사용하지 않습니다.

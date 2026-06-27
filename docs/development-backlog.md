@@ -11,11 +11,11 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 ## 현재 공개 상태
 
 - 현재 소스 버전: `3.3.0`
-- 최신 공개 GitHub Release: `v3.2.0`
-- `v3.2.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
+- 최신 공개 GitHub Release: `v3.3.0`
+- `v3.3.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
 - 현재 source roadmap: `v3.3.0 Live Source Reliability Workspace`
-- 최신 published baseline: `v3.2.0 Operations Resolution Workspace`
+- 최신 published baseline: `v3.3.0 Live Source Reliability Workspace`
 
 ## 현재 source roadmap: v3.3.0 Live Source Reliability Workspace
 
@@ -26,8 +26,8 @@ Incident-to-Source Correlation Layer 구현 완료. Step 6 Operator Recheck and 
 구현 완료. Step 7 Client-safe Source Status Digest 구현 완료. Step 8 Operator Runbook
 and Reliability Handoff 문서 연결 완료. Step 9 Source Reliability Search and Metrics
 구현 완료. Step 10 Ops Backup and Recovery Source Handoff 구현 완료. Step 11
-Stabilization and Release Readiness local gate 연결 완료. 현재 source version은 `3.3.0`이고, 최신 published baseline은 `v3.2.0`
-Operations Resolution Workspace입니다. 이 절은 v3.3.0 개발 이슈와 현재 step evidence를
+Stabilization and Release Readiness local gate 연결 완료. 현재 source version은 `3.3.0`이고, 최신 published baseline은 `v3.3.0`
+Live Source Reliability Workspace입니다. 이 절은 v3.3.0 개발 이슈와 현재 step evidence를
 정리한 문서이며, 각 step은 실제 코드/UI/API/검증 산출물이 생긴 뒤에만 완료로 기록합니다.
 
 직접 답: v3.3.0의 1차 선택값은 `Live Source Reliability Workspace`입니다.
@@ -122,6 +122,20 @@ close-out dry-run, script inventory, `git diff --check` 연결입니다.
 현재 Step 1 기록은 source registry snapshot, onboarding quality, reliability timeline,
 recovery queue, client digest, search/metrics 구현 완료 evidence가 아닙니다.
 `v3.3.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
+
+## 최신 공개 기준: v3.3.0 Source Release Baseline
+
+v3.3.0은 Live Source Reliability Workspace source-only 공개 릴리즈입니다. 이 기준은
+source registry snapshot, onboarding quality, reliability timeline, incident-to-source
+correlation, operator recheck/recovery queue, client-safe source digest, reliability
+search/metrics, backup/recovery source handoff, release readiness를 local evidence와
+함께 닫은 최신 published baseline입니다. 120분 longrun과 external field smoke는
+실행하지 않은 영역으로 계속 분리합니다.
+
+## 직전 공개 기준: v3.2.0 Source Release Baseline
+
+v3.2.0은 Operations Resolution Workspace source-only 직전 공개 릴리즈입니다. 이 기준은
+v3.3.0의 완료 evidence로 재사용하지 않는 historical baseline입니다.
 
 ## v3.3.0 Step 1 개발 기록
 
@@ -356,18 +370,18 @@ license/provenance/privacy/운영 제약:
 
 `v3.2.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
 
-## 최신 공개 기준: v3.2.0 Source Release Baseline
+## v3.2.0 공개 기준 기록: v3.2.0 Source Release Baseline
 
 v3.2.0은 Operations Resolution Workspace source-only 공개 릴리즈입니다. 이 기준은
 resolution state contract, unified Ops Events workspace, evidence quality, source
 reliability, AI review quality, operator resolution flow, action readiness checklist,
 client-safe resolution digest, resolution search/metrics, release readiness를 local
-evidence와 함께 닫은 최신 published baseline입니다. 120분 longrun과 external field
+evidence와 함께 닫은 published baseline입니다. 120분 longrun과 external field
 smoke는 실행하지 않은 영역으로 계속 분리합니다.
 
-## 직전 공개 기준: v3.1.0 Source Release Baseline
+## v3.1.0 공개 기준 기록: v3.1.0 Source Release Baseline
 
-v3.1.0은 Encoded Event Clip and Safe Sharing Expansion source-only 직전 공개
+v3.1.0은 Encoded Event Clip and Safe Sharing Expansion source-only historical 공개
 릴리즈입니다. 이 기준은 v3.2.0의 완료 evidence로 재사용하지 않는 historical
 baseline입니다.
 
