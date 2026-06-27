@@ -25,7 +25,8 @@ Source Registry Snapshot and Identity 구현 완료. Step 3 Source Onboarding Qu
 Incident-to-Source Correlation Layer 구현 완료. Step 6 Operator Recheck and Recovery Queue
 구현 완료. Step 7 Client-safe Source Status Digest 구현 완료. Step 8 Operator Runbook
 and Reliability Handoff 문서 연결 완료. Step 9 Source Reliability Search and Metrics
-구현 완료. Step 10 Ops Backup and Recovery Source Handoff 구현 완료. 현재 source version은 `3.3.0`이고, 최신 published baseline은 `v3.2.0`
+구현 완료. Step 10 Ops Backup and Recovery Source Handoff 구현 완료. Step 11
+Stabilization and Release Readiness local gate 연결 완료. 현재 source version은 `3.3.0`이고, 최신 published baseline은 `v3.2.0`
 Operations Resolution Workspace입니다. 이 절은 v3.3.0 개발 이슈와 현재 step evidence를
 정리한 문서이며, 각 step은 실제 코드/UI/API/검증 산출물이 생긴 뒤에만 완료로 기록합니다.
 
@@ -105,6 +106,7 @@ license/provenance/privacy/운영 검토 결과:
 | 8 | v3.3.0 (8) Operator Runbook and Reliability Handoff | P1 | 완료 | source reliability workspace 사용 흐름, 운영자 runbook, docs index/UI guide/config/backup 문서 연결 |
 | 9 | v3.3.0 (9) Source Reliability Search and Metrics | P2 | 완료 | source health filter, saved reliability view, reconnect/stale/offline metric summary |
 | 10 | v3.3.0 (10) Ops Backup and Recovery Source Handoff | P2 | 완료 | source registry, PublishedView, source health snapshot, recovery validation plan 연결 |
+| 11 | v3.3.0 (11) Stabilization and Release Readiness | P0 | 완료 | v3.3 local stabilization, release evidence/not-run 경계, close-out dry-run 기록 |
 
 완료 경계: Step 1은 source/version/docs/backlog/verification metadata 정렬입니다.
 Step 2는 source registry identity read model/API/verifier 연결입니다. Step 3은 source
@@ -115,7 +117,8 @@ read model/UI/verifier 연결입니다. Step 7은 client-safe source status dige
 연결입니다. Step 8은 operator runbook과 reliability handoff 문서 연결입니다. Step 9는
 Source Reliability Search and Metrics read model/API/UI/verifier 연결입니다. 아직 완료
 기록이 있는 Step 10은 Ops Backup and Recovery Source Handoff read model/API/UI/verifier
-연결입니다.
+연결입니다. Step 11은 v3.3.0 Step 1~10 local verifier, release metadata/docs/inventory/evidence,
+close-out dry-run, script inventory, `git diff --check` 연결입니다.
 현재 Step 1 기록은 source registry snapshot, onboarding quality, reliability timeline,
 recovery queue, client digest, search/metrics 구현 완료 evidence가 아닙니다.
 `v3.3.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
@@ -240,6 +243,38 @@ recovery queue, client digest, search/metrics 구현 완료 evidence가 아닙�
 - `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`, `docs/stream-verification.md`, `docs/release-test-records.md`: `UI-074`, `SRC-040`, `SAFE-122`, `OPS-089` 기능/경계/gate 항목과 Step 10 verifier 연결을 추가했습니다.
 - 검증: 최초 `node scripts/internal/verify_v330_ops_backup_recovery_source_handoff.mjs`는 Step 10 read model, boundary block, route, `/ops/sources` UI, docs/inventory/server dispatch가 아직 없어 `pass=0 fail=8`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v330 Step 10 결과 행에 기록합니다.
 - 완료 경계: 이번 Step 10은 Ops Backup and Recovery Source Handoff read model/API/UI/verifier 연결입니다. real backup/restore 완료 evidence가 아닙니다. production restore cutover, source registry/PublishedView write, source health snapshot persistence, recovery validation plan persistence, automatic recovery, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action, field smoke 완료 evidence도 아닙니다.
+
+## v3.3.0 Step 11 개발 기록
+
+- 범위: P0 `v3.3.0 (11) Stabilization and Release Readiness`.
+- `scripts/internal/verify_v330_stabilization_release_readiness.mjs`, `server.sh`: `./server.sh verify-v330-stabilization-release-readiness` 명령을 추가해 v3.3 Step 11 roadmap, stream verification, feature inventory, release policy, release evidence index, release records, server dispatch, script inventory 연결을 검증합니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`: `SAFE-123`, `OPS-090` 안정화 항목과 Step 11 verifier/coverage/script inventory 연결을 추가했습니다.
+- `docs/stream-verification.md`, `docs/release-policy.md`, `docs/release-evidence-index.md`, `docs/release-test-records.md`: Step 11 local readiness gate와 미실행 경계를 기록했습니다. 이 기록은 UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, PR/main/tag/GitHub Release, field smoke 실행 evidence를 대체하지 않습니다.
+- Companion local gate:
+  - `./server.sh verify-v330-stabilization-release-readiness`
+  - `./server.sh build`
+  - `./server.sh verify-v330-entry-baseline`
+  - `./server.sh verify-v330-source-registry-snapshot-identity`
+  - `./server.sh verify-v330-source-onboarding-quality-summary`
+  - `./server.sh verify-v330-reliability-timeline-health-history`
+  - `./server.sh verify-v330-incident-source-correlation-layer`
+  - `./server.sh verify-v330-operator-recheck-recovery-queue`
+  - `./server.sh verify-v330-client-safe-source-status-digest`
+  - `./server.sh verify-v330-operator-runbook-reliability-handoff`
+  - `./server.sh verify-v330-source-reliability-search-metrics`
+  - `./server.sh verify-v330-ops-backup-recovery-source-handoff`
+  - `./server.sh verify-release-metadata`
+  - `./server.sh verify-docs-links`
+  - `./server.sh verify-docs-ui-assets`
+  - `./server.sh verify-project-inventory`
+  - `./server.sh verify-feature-inventory-coverage`
+  - `./server.sh verify-release-evidence-index`
+  - `./server.sh verify-release-closeout-helper --dry-run`
+  - `./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run`
+  - `./server.sh verify-script-inventory`
+  - `git diff --check`
+- 검증: 최초 `./server.sh verify-v330-stabilization-release-readiness`는 command 미구현으로 `알 수 없는 명령입니다: verify-v330-stabilization-release-readiness`를 출력해 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v330 Step 11 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 11은 v3.3.0 local stabilization gate wiring, release evidence records, not-run boundary 연결입니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, PR/main/tag/GitHub Release, field smoke 완료 evidence가 아닙니다.
 
 ## 최신 published baseline 상세: v3.2.0 Operations Resolution Workspace
 

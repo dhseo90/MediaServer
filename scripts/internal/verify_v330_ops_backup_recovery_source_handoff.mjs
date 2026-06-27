@@ -260,8 +260,8 @@ check("feature inventory and release records map v3.3 Step 10", () => {
     "OPS-089 | V330 Step 10 Ops Backup and Recovery Source Handoff 게이트",
     "`UI-001`~`UI-018`, `UI-022`~`UI-074`",
     "`SRC-001`~`SRC-040`",
-    "`SAFE-001`~`SAFE-122`",
-    "`OPS-035`~`OPS-089`",
+    "`SAFE-001`~`SAFE-123`",
+    "`OPS-035`~`OPS-090`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.3 Step 10");
   }
@@ -286,8 +286,8 @@ check("server entrypoint and inventory verifiers include v3.3 Step 10 command", 
   }
   assertIncludes(files.projectInventoryVerifier, "`UI-001`~`UI-018`, `UI-022`~`UI-074`", "project inventory UI range");
   assertIncludes(files.projectInventoryVerifier, "`SRC-001`~`SRC-040`", "project inventory SRC range");
-  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-122`", "project inventory SAFE range");
-  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-089`", "project inventory OPS range");
+  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-123`", "project inventory SAFE range");
+  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-090`", "project inventory OPS range");
   assertIncludes(files.scriptInventory, "verify_v330_ops_backup_recovery_source_handoff.mjs", "script inventory");
 });
 

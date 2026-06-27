@@ -157,10 +157,51 @@ close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 �
 - Operator Runbook and Reliability Handoff
 - Source Reliability Search and Metrics
 - Ops Backup and Recovery Source Handoff
+- Stabilization and Release Readiness
 
 `v3.3.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
 있을 때만 완료로 기록합니다. 현재 latest published release는 `v3.2.0`입니다.
 현재 공개 release tag 기준은 `v3.2.0`입니다. 현재 source tag 기준은 `v3.3.0`입니다.
+
+## v3.3.0 stabilization and release readiness
+
+v3.3.0 Step 11 local readiness gate는 `media-server.v330-stabilization-release-readiness.v1`
+기준으로 v3.3.0 Live Source Reliability Workspace의 Step 1~10 local gates, release policy,
+release evidence index, release test records, close-out dry-run command를 같은 범위로
+묶습니다. 이 절은 source tree 준비 상태를 확인할 뿐 release action을 승인하거나
+실행하지 않습니다.
+
+Companion local gate:
+
+```bash
+./server.sh verify-v330-stabilization-release-readiness
+./server.sh build
+./server.sh verify-v330-entry-baseline
+./server.sh verify-v330-source-registry-snapshot-identity
+./server.sh verify-v330-source-onboarding-quality-summary
+./server.sh verify-v330-reliability-timeline-health-history
+./server.sh verify-v330-incident-source-correlation-layer
+./server.sh verify-v330-operator-recheck-recovery-queue
+./server.sh verify-v330-client-safe-source-status-digest
+./server.sh verify-v330-operator-runbook-reliability-handoff
+./server.sh verify-v330-source-reliability-search-metrics
+./server.sh verify-v330-ops-backup-recovery-source-handoff
+./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-project-inventory
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-release-evidence-index
+./server.sh verify-release-closeout-helper --dry-run
+./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
+./server.sh verify-script-inventory
+git diff --check
+```
+
+v3.3.0 Step 11 local readiness gate는 UI 풀테스트 직접 조작, 30분/120분 longrun,
+published metadata, PR/main/tag/GitHub Release, field smoke evidence를 대체하지 않습니다.
+`verify-release-metadata --published` 미실행, release action 미실행, UI/longrun 미실행은
+release test records와 evidence index의 미실행/제외 기록으로 분리합니다.
 
 ## v3.2.0 stabilization and release readiness
 

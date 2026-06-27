@@ -26,12 +26,12 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 647 |
+| 전체 기능 항목 | 649 |
 | UI 직접 필요 | 345 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 271 |
-| 테스트 필요 | 647 |
-| 안정화 대상 | 637 |
+| UI 비대상 | 273 |
+| 테스트 필요 | 649 |
+| 안정화 대상 | 639 |
 | UI 풀테스트 대상 | 365 |
 | 30분 soak 대상 | 49 |
 | 120분 대상 | 7 |
@@ -42,7 +42,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 643개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 649개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -72,6 +72,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | v3.3.0 (8) Operator Runbook and Reliability Handoff | `SAFE-120`, `OPS-087` | `verify-v330-operator-runbook-reliability-handoff`, `verify-docs-links` | `docs/live-source-health.md`의 operator runbook source-of-truth와 docs index/UI guide/config/backup 문서 연결을 확인합니다. 제품 API/UI schema, source registry write, PublishedView write, real backup/restore, search/metrics, 30분/120분, published metadata evidence가 아님 |
 | v3.3.0 (9) Source Reliability Search and Metrics | `UI-073`, `SRC-039`, `SAFE-121`, `OPS-088` | `verify-v330-source-reliability-search-metrics`, `verify-ops-client-ui` | `/ops/api/source-registry/reliability-search-metrics`와 `/ops/sources`가 source health filters, saved reliability view presets, reconnect/stale/offline metric summary를 Ops-only로 표시하는지 확인합니다. source registry write, PublishedView write, saved view write, viewer/client 노출, API/schema/media 변경, 30분/120분, published metadata evidence가 아님 |
 | v3.3.0 (10) Ops Backup and Recovery Source Handoff | `UI-074`, `SRC-040`, `SAFE-122`, `OPS-089` | `verify-v330-ops-backup-recovery-source-handoff`, `verify-ops-client-ui` | `/ops/api/source-registry/backup-recovery-handoff`와 `/ops/sources`가 source registry snapshot, PublishedView registry, source health snapshot, recovery validation plan을 Ops-only handoff 입력으로 연결하는지 확인합니다. source registry write, PublishedView write, backup artifact persistence, automatic recovery, viewer/client 노출, API/schema/media 변경, 30분/120분, published metadata evidence가 아님 |
+| v3.3.0 (11) Stabilization and Release Readiness | `SAFE-123`, `OPS-090` | `verify-v330-stabilization-release-readiness`, `verify-release-metadata`, `verify-release-evidence-index`, `verify-release-closeout-helper --dry-run` | v3.3 local stabilization gate, release evidence/not-run boundary, close-out dry-run 기록을 확인합니다. UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release 실행 evidence가 아님 |
 
 ## v3.2.0 Operations Resolution Workspace Coverage Mapping
 
@@ -249,8 +250,8 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | `CLIENT-001`~`CLIENT-028` | client/UI verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-021` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
 | `LAB-001`~`LAB-089` | lab/VLM/v250/v260/v270/v280/v300/v310 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-122` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-089` | ops evidence/readiness verifier family | real operational backup, release publish, UI 풀테스트 evidence가 아님 |
+| `SAFE-001`~`SAFE-123` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-090` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
 
 ## VA Manual UI Seed Matrix
 
@@ -930,6 +931,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SAFE-120 | V330 Step 8 operator runbook reliability handoff boundary | 비대상 | 필요 | 안정화 | `verify-v330-operator-runbook-reliability-handoff`가 operator runbook과 reliability handoff 문서 연결만 확인하고 제품 API/UI schema, EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata schema, RTSP/WebRTC media path, SourceRegistry/PublishedView write, automatic recovery, real backup/restore, search/metrics, UI 풀테스트 직접 조작, 30분/120분, published metadata PASS로 대체하지 않음을 확인함 |
 | SAFE-121 | V330 Step 9 source reliability search metrics boundary | 필요 | 필요 | 안정화, UI | `verify-v330-source-reliability-search-metrics`가 sourceReliabilitySearchMetrics context가 기존 source health snapshot과 source-health-state-change audit history를 deterministic search/metric view로만 요약하고 source registry write, PublishedView write, saved view write, EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata schema, RTSP/WebRTC media path, Rule/Profile payload, viewer/client output, source URL/raw JSON/debug/raw locator/credential 노출, 자동 recovery를 변경하지 않음을 확인하되 Ops Backup and Recovery Source Handoff, UI 풀테스트 직접 조작, 30분/120분, published metadata PASS로 대체하지 않음 |
 | SAFE-122 | V330 Step 10 backup recovery source handoff boundary | 필요 | 필요 | 안정화, UI | `verify-v330-ops-backup-recovery-source-handoff`가 backupRecoverySourceHandoff context가 기존 SourceRegistry/PublishedView snapshot과 source health snapshot을 deterministic recovery validation plan 입력으로만 요약하고 source registry write, PublishedView write, source health snapshot persistence, recovery validation plan persistence, real backup/restore, EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata schema, RTSP/WebRTC media path, Rule/Profile payload, viewer/client output, source URL/raw JSON/debug/raw locator/credential 노출, 자동 recovery를 변경하지 않음을 확인하되 UI 풀테스트 직접 조작, 30분/120분, published metadata PASS로 대체하지 않음 |
+| SAFE-123 | V330 Step 11 stabilization/release readiness boundary | 비대상 | 필요 | 안정화 | `verify-v330-stabilization-release-readiness`가 v3.3 local stabilization, release evidence/not-run 경계, close-out dry-run 기록을 확인하되 UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release, field smoke PASS로 대체하지 않음을 확인함 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -990,6 +992,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | OPS-087 | V330 Step 8 Operator Runbook and Reliability Handoff 게이트 | 비대상 | 필요 | 안정화 | `verify-v330-operator-runbook-reliability-handoff`가 `docs/live-source-health.md` runbook source-of-truth, docs index/UI guide/config/backup handoff, backlog/stream verification/release records/feature inventory/server dispatch 연결을 확인하되 Source Reliability Search and Metrics, Ops Backup and Recovery Source Handoff, real backup/restore, release publish, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
 | OPS-088 | V330 Step 9 Source Reliability Search and Metrics 게이트 | 비대상 | 필요 | 안정화 | `verify-v330-source-reliability-search-metrics`가 `/ops/api/source-registry/reliability-search-metrics` Ops-only route, `/ops/sources` source health filters/saved reliability views/reconnect-stale-offline metrics UI, CSS, backlog/stream verification/release records/feature inventory/server dispatch 연결을 확인하되 source registry write, PublishedView write, saved view write, viewer/client 노출, API/schema/media 변경, Ops Backup and Recovery Source Handoff, release publish, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
 | OPS-089 | V330 Step 10 Ops Backup and Recovery Source Handoff 게이트 | 비대상 | 필요 | 안정화 | `verify-v330-ops-backup-recovery-source-handoff`가 `/ops/api/source-registry/backup-recovery-handoff` Ops-only route, `/ops/sources` handoff input/recovery validation plan UI, CSS, backup guide, backlog/stream verification/release records/feature inventory/server dispatch 연결을 확인하되 source registry write, PublishedView write, backup artifact persistence, real backup/restore, automatic recovery, viewer/client 노출, API/schema/media 변경, release publish, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
+| OPS-090 | V330 Step 11 Stabilization and Release Readiness 게이트 | 비대상 | 필요 | 안정화 | `verify-v330-stabilization-release-readiness`가 v3.3 Step 1~10 local gates, release policy/evidence index/test records, close-out dry-run command, server dispatch 연결을 확인하되 UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release, field smoke 실행 PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 

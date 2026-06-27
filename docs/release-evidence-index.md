@@ -46,7 +46,7 @@
 | Release close-out runbook | branch close, PR merge, main sync, tag, GitHub Release, Latest 확인, release branch 삭제, next branch sync, `media-server.release-closeout-one-shot-gate.v1` fail-stop rehearsal | `./server.sh verify-release-closeout-helper --dry-run`, `./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run` | dry-run은 planned/manual-not-run, 실제 publish 결과는 release publication evidence row로 분리 |
 | Feature scope decision gate | 새 기능 후보를 v1.8 안정화 gate 안에서 구현으로 승격하지 않는 절차 | `./server.sh verify-feature-scope-gate` | `PASS` 또는 `FAIL` |
 | PR checks | Preflight, licensing/artifact guardrails, required checks | GitHub Actions UI/API | 실행 확인 시 `PASS` 또는 `FAIL`; 열지 않은 Actions는 별도 `미확인` |
-| Release notes | source-only scope, non-goals, verification, not-run/unverified | [release-policy.md](./release-policy.md) | 검토 행은 `PASS` 또는 `FAIL`; 실행하지 않은 gate는 별도 `미실행` |
+| Release notes | source-only scope, non-goals, verification, not-run/unverified | [release-policy.md](./release-policy.md), current draft [release-notes-draft.md](./release-artifacts/v3.3.0/release-notes-draft.md) | 검토 행은 `PASS` 또는 `FAIL`; 실행하지 않은 gate는 별도 `미실행` |
 | VLM close-out readiness | `media-server.vlm-close-out-readiness.v1` report, script/UI/30분/120분/provider/publish gate 분리, V200-S18 boundary | [vlm-close-out-readiness.md](./vlm-close-out-readiness.md), `./server.sh verify-vlm-closeout-readiness` | report/verifier는 `PASS` 또는 `FAIL`; UI/30분/120분 미실행은 별도 실행 상태 |
 | Script smoke/stability | build/static/auth/API/media verifier, short smoke, skip reason | `./server.sh build`, 범위별 `verify-*` 명령 | 실행한 테스트 행은 `PASS` 또는 `FAIL`; 실행하지 않은 명령은 별도 `미실행` |
 | 30분 soak | 사용자 명시 요청 시 30분 안정성 테스트 | `./server.sh verify-predev --soak-minutes 30` | 실행한 테스트 행은 `PASS` 또는 `FAIL`; 요청이 없으면 별도 `미실행` |
@@ -143,6 +143,43 @@ ruleset required checks 임시 제거/복구, SSH-signed annotated tag, GitHub R
 published metadata 재검증은 Step 11 local readiness gate와 분리합니다. Release branch
 삭제는 별도 승인되지 않아 수행하지 않았습니다.
 
+## v3.3.0 Step 11 local readiness gate records
+
+v3.3.0 Step 11 stabilization/release readiness는
+`media-server.v330-stabilization-release-readiness.v1` 기준으로 v3.3.0 Step 1~10
+local verifier와 release records를 묶는 색인입니다. 이 섹션은 release action을
+승인하거나 실행하지 않고, UI 풀테스트 직접 조작, 30분/120분 longrun, published
+metadata, release action evidence를 대체하지 않습니다.
+
+Companion local gate:
+
+```bash
+./server.sh verify-v330-stabilization-release-readiness
+./server.sh build
+./server.sh verify-v330-entry-baseline
+./server.sh verify-v330-source-registry-snapshot-identity
+./server.sh verify-v330-source-onboarding-quality-summary
+./server.sh verify-v330-reliability-timeline-health-history
+./server.sh verify-v330-incident-source-correlation-layer
+./server.sh verify-v330-operator-recheck-recovery-queue
+./server.sh verify-v330-client-safe-source-status-digest
+./server.sh verify-v330-operator-runbook-reliability-handoff
+./server.sh verify-v330-source-reliability-search-metrics
+./server.sh verify-v330-ops-backup-recovery-source-handoff
+./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-project-inventory
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-release-evidence-index
+./server.sh verify-release-closeout-helper --dry-run
+./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
+./server.sh verify-script-inventory
+git diff --check
+```
+
+v3.3.0 Step 11 stabilization/release readiness local gate는 UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence를 대체하지 않습니다.
+
 ## v3.2.0 Step 11 local readiness gate records
 
 v3.2.0 Step 11 stabilization/release readiness는
@@ -191,6 +228,10 @@ v3.2.0 Step 11 stabilization/release readiness local gate는 UI 풀테스트 직
 | date | run id | test area | scope | verdict | token start | token end | token consumed | elapsed | token usage source | evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 2026-06-21 | v310-s09-stabilization-release-readiness-20260621 | 안정화 테스트 | V310-S09 local readiness gate, S00~S08 companion verifiers, release metadata/docs/assets/inventory/evidence/script/closeout dry-run, temp cleanup, `git diff --check`. UI 풀테스트/30분/120분/published metadata/release actions/field smoke는 미실행 | PASS | 미집계 | 미집계 | 미집계 | command summaries only | manual-not-available; final goal snapshot은 최종 보고에서 별도 확인 | [release-test-records.md](./release-test-records.md) v3.1.0 section |
+| 2026-06-27 | v330-step11-stabilization-release-readiness-20260627 | 안정화 테스트 | v3.3.0 Step 11 local readiness gate, Step 1~10 companion verifiers, release metadata/docs/assets/inventory/evidence/script/closeout dry-run, temp cleanup, `git diff --check`. UI 풀테스트/30분/120분/published metadata/release actions/field smoke는 미실행 | PASS | 212,259 | 448,622 | 236,363 | goal snapshot delta 869s | Codex goal usage snapshot after v3.3 Step 11 local readiness gates; command-level token/elapsed split 미집계 | [release-test-records.md](./release-test-records.md) v3.3.0 section |
+| 2026-06-27 | v330-release-30min-sandbox-precheck-20260627 | 30분 soak | `./server.sh verify-predev --soak-minutes 30` sandbox precheck. RTSP bind `127.0.0.1:8555`가 `Operation not permitted`로 실패했고, 권한 상승 재실행은 최신 명시 테스트 실행 승인 부족으로 거절. 30분 soak는 미완료 release blocker이며 임시 summary/report/log는 cleanup 필요 | FAIL | 448,622 | 480,994 | 32,372 | goal snapshot delta 185s | Local readiness record finalization through failed sandbox precheck and escalation rejection; command-level token/elapsed split 미집계 | [release-test-records.md](./release-test-records.md) v3.3.0 section |
+| 2026-06-27 | v330-release-30min-20260627 | 30분 soak | 권한 상승 `./server.sh verify-predev --soak-minutes 30` 최종 run. status pass, pass 119, fail 0, skip 1, durationSec 2363, soakMinutes 30, includeRedaction true. External TURN hard gate는 요청하지 않아 skip이며 PASS로 대체하지 않음. Summary/report/html은 `docs/release-artifacts/v3.3.0/predev-1782548179-72502/`에 보존했고 `/tmp` 원본과 최초 실패 산출물은 cleanup 완료 | PASS | 480,994 | 1,150,237 | 669,243 | durationSec 2363; goal snapshot delta 2662s | command summary and preserved report; command-level token split 미집계 | [release-test-records.md](./release-test-records.md) v3.3.0 section, [predev summary](./release-artifacts/v3.3.0/predev-1782548179-72502/summary.json), [predev report](./release-artifacts/v3.3.0/predev-1782548179-72502/report.md) |
+| 2026-06-27 | v330-release-ui-fulltest-20260627 | UI 풀테스트 | Codex 인앱 브라우저 직접 검수. route 15개, screenshot 40개, interaction 16개, failed interaction 0, failures 0. `verify-ui-fulltest-one-shot --browser-mode in-app --in-app-evidence docs/release-artifacts/v3.3.0/ui-fulltest-20260627/in-app-evidence.json --skip-build --skip-manual-result` result PASS, runId `ui-fulltest-one-shot-1782551961234-500`, 20 PASS steps, 5 SKIPPED boundary steps. raw auth/registry/log/ports/seed plan/partial evidence는 cleanup 완료. 30분 soak는 별도 PASS row, 120분/field/published/release actions는 본 run에서 실행하지 않음 | PASS | 1,150,237 | 1,485,343 | 335,106 | one-shot runId `ui-fulltest-one-shot-1782551961234-500`; goal snapshot delta 1434s | Codex goal usage snapshot after v3.3 UI fulltest evidence preservation/cleanup plus in-app evidence and one-shot wrapper output; command-level token split 미집계 | [release-test-records.md](./release-test-records.md) v3.3.0 section, [ui evidence](./release-artifacts/v3.3.0/ui-fulltest-20260627/in-app-evidence.json), [one-shot summary](./release-artifacts/v3.3.0/ui-fulltest-20260627/one-shot/summary.json) |
 | 2026-06-23 | v320-step11-stabilization-release-readiness-20260623 | 안정화 테스트 | v3.2.0 Step 11 local readiness gate, Step 1~10 companion verifiers, release metadata/docs/assets/inventory/evidence/script/closeout dry-run, temp cleanup, `git diff --check`. UI 풀테스트/30분/120분/published metadata/release actions/field smoke는 미실행 | PASS | 미집계 | 미집계 | 미집계 | command summaries only | command-level token/elapsed split 미집계; final goal snapshot은 최종 보고에서 별도 확인 | [release-test-records.md](./release-test-records.md) v3.2.0 section |
 | 2026-06-23 | v320-release-30min-20260623 | 30분 soak | `./server.sh verify-predev --soak-minutes 30` v3.2.0 release required run. 최종 status pass, pass 119, fail 0, skip 1, durationSec 2379, soakMinutes 30, steps 120. External TURN hard gate는 요청하지 않아 skip이며 PASS로 대체하지 않음. Summary/report는 `docs/release-artifacts/v3.2.0/predev-1782224337-10773/summary.json`와 `docs/release-artifacts/v3.2.0/predev-1782224337-10773/report.md`로 보존 | PASS | 미집계 | 미집계 | 미집계 | durationSec 2379 | command summary and preserved report; token start/end snapshot not captured for this individual run | [release-test-records.md](./release-test-records.md) v3.2.0 section, [predev summary](./release-artifacts/v3.2.0/predev-1782224337-10773/summary.json), [predev report](./release-artifacts/v3.2.0/predev-1782224337-10773/report.md) |
 | 2026-06-23 | v320-release-ui-fulltest-20260623 | UI 풀테스트 | Codex 인앱 브라우저 직접 검수. route 15개, screenshot 40개, interaction 16개, failed interaction 0, failures 0. `verify-ui-fulltest-one-shot --browser-mode in-app --in-app-evidence docs/release-artifacts/v3.2.0/ui-fulltest-20260623/in-app-evidence.json --skip-build --skip-manual-result` result PASS, 20 PASS steps, 5 SKIPPED boundary steps. `/ops/users` screenshot 4장은 auth material 최소화를 위해 상단 1000px evidence로 교체했고 raw auth/log/registry 산출물은 cleanup 완료. 30분/120분 longrun은 wrapper 범위가 아니며 별도 실행/조건부 판단 결과와 분리 | PASS | 미집계 | 미집계 | 미집계 | one-shot runId `ui-fulltest-one-shot-1782227752861-9595` | in-app evidence plus one-shot output; token start/end snapshot not captured for this individual run | [release-test-records.md](./release-test-records.md) v3.2.0 section, [ui evidence](./release-artifacts/v3.2.0/ui-fulltest-20260623/in-app-evidence.json), [one-shot summary](./release-artifacts/v3.2.0/ui-fulltest-20260623/one-shot/summary.json) |
@@ -316,6 +357,17 @@ Not run for `v250-release-stability-20260613`: 30분 soak와 UI 풀테스트는 
 Not run for `v250-release-30min-20260613`: 안정성 테스트와 UI 풀테스트는 별도 `v250-release-stability-20260613`, `v250-release-ui-fulltest-20260613`에서 실행. External TURN hard gate는 요청하지 않아 skip이며 PASS가 아닙니다. 120분 longrun, `verify-va-runtime-console-longrun --duration-minutes 120`, real ONVIF, external WHEP/WHIP/TURN endpoint, real cloud provider call, PR merge, main sync, tag, GitHub Release 생성, published metadata 재검증은 이 30분 soak run에서 실행하지 않았습니다.
 Not run for `v250-release-ui-fulltest-20260613`: 안정성 테스트와 30분 soak는 별도 `v250-release-stability-20260613`, `v250-release-30min-20260613`에서 실행. release-safe bundle 실제 OS/browser download event는 Codex 인앱 브라우저 downloads 미지원으로 본 UI 풀테스트 run 안에서는 관측하지 않았고, Chrome 실제 download event와 동일 UI payload의 HTTP attachment/zip manifest는 별도 `v250-release-safe-bundle-download-followup-20260613`에서 확인했습니다. 120분 longrun, `verify-va-runtime-console-longrun --duration-minutes 120`, 실기기 ONVIF, external WHEP/WHIP/TURN endpoint, real cloud provider call, 실제 외부 alert delivery, PR merge, main sync, tag, GitHub Release 생성, published metadata 재검증은 UI 풀테스트 run에서 실행하지 않았습니다.
 Not run for `v250-release-safe-bundle-download-followup-20260613`: 120분 longrun, `verify-va-runtime-console-longrun --duration-minutes 120`, 실기기 ONVIF, external WHEP/WHIP/TURN endpoint, real cloud provider call, 실제 외부 alert delivery, PR merge, main sync, tag, GitHub Release 생성, published metadata 재검증. 이 follow-up은 Chrome 실제 download event 관측과 HTTP attachment/manifest 검증만 수행했습니다.
+
+## v3.3.0 Release Test Category Judgment 2026-06-27
+
+| 테스트 카테고리 | 판정 | 직접 근거 | 근거 파일/행/기능 ID | 실행 승인 상태 |
+| --- | --- | --- | --- | --- |
+| 안정화 테스트 | 진행 대상 | v3.3.0 Step 11 local readiness gate와 v3.3.0 Live Source Reliability Workspace Step 1~10 companion verifier가 release prep 범위에 직접 해당합니다. | `v330-step11-stabilization-release-readiness-20260627`, `V330 Step 1`~`V330 Step 11`, `OPS-080`~`OPS-090`, `SAFE-113`~`SAFE-123` | 실행 완료. 결과는 [release-test-records.md](./release-test-records.md) v3.3.0 section에 기록했습니다. |
+| 30분 테스트 | 진행 대상 | AGENTS.md에서 30분 soak는 릴리즈 완료/출시 가능 판정의 필수 장시간 항목이며, 이번 release cut에서 `verify-predev --soak-minutes 30`을 실행했습니다. External TURN hard gate는 요청하지 않아 skip이며 PASS가 아닙니다. | `v330-release-30min-20260627`; [predev summary](./release-artifacts/v3.3.0/predev-1782548179-72502/summary.json) | 실행 완료. 결과는 [release-test-records.md](./release-test-records.md) v3.3.0 section에 기록했습니다. |
+| UI 풀테스트 | 진행 대상 | AGENTS.md의 UI 직접 확인 경계를 만족하도록 Codex 인앱 브라우저 route/control/action evidence와 one-shot wrapper를 함께 실행했습니다. | `v330-release-ui-fulltest-20260627`; [ui evidence](./release-artifacts/v3.3.0/ui-fulltest-20260627/in-app-evidence.json), [one-shot summary](./release-artifacts/v3.3.0/ui-fulltest-20260627/one-shot/summary.json) | 실행 완료. 결과는 [release-test-records.md](./release-test-records.md) v3.3.0 section에 기록했습니다. |
+| 120분 테스트 | 미진행 | 최신 지시가 120분 실행을 명시하지 않았고, 현재 v3.3.0 release policy/roadmap/evidence가 120분을 이번 cut 필수 gate로 명시하지 않았습니다. 이번 변경은 RTSP/WebRTC/WHEP/WHIP media path, source worker lifecycle, shared stream reuse, runtime/metadata fanout, cleanup/port lifecycle을 직접 변경하지 않았고 30분/UI 결과에서 memory/runtime/session drift high-risk signal도 확인되지 않았습니다. | `v330-release-30min-20260627`, `v330-release-ui-fulltest-20260627`, `v330 Step 11 local readiness gate records` | 실행 대상 아님. 30분/UI PASS를 120분 PASS로 대체하지 않음. |
+| Field smoke | 조건부/미진행 | real ONVIF, external TURN/WHEP, external WHEP playback, real cloud/VLM provider, YouTube real URL relay, external alert delivery는 endpoint/credential/실기기 조건이 필요합니다. | `v330 release field smoke` not-run row | 조건 미제공으로 미실행. PASS로 대체하지 않음. |
+| Release publication | 사용자 승인 필요/미진행 | PR/main/tag/GitHub Release/published metadata/후속 브랜치는 local evidence와 별도 release action이며 AGENTS.md 4/5장 기준 각 action별 최신 명시 승인이 필요합니다. | `v330 release PR/main/tag/GitHub Release/published metadata/후속 브랜치` not-run row | 미실행. 커밋/푸시/PR/main/tag/GitHub Release/published metadata/후속 브랜치 모두 승인 전 실행하지 않음. |
 
 ## v2.9.0 Release Test Category Judgment 2026-06-19
 

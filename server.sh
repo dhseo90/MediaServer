@@ -288,6 +288,8 @@ Usage:
                  v3.3.0 Step 9 Source Reliability Search and Metrics API/UI 경계를 검증합니다.
   verify-v330-ops-backup-recovery-source-handoff
                  v3.3.0 Step 10 Ops Backup and Recovery Source Handoff API/UI 경계를 검증합니다.
+  verify-v330-stabilization-release-readiness
+                 v3.3.0 Step 11 Stabilization and Release Readiness와 local release gate 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -1406,6 +1408,10 @@ case "${cmd}" in
   verify-v330-ops-backup-recovery-source-handoff)
     require_internal verify_v330_ops_backup_recovery_source_handoff.mjs
     exec "${INTERNAL_DIR}/verify_v330_ops_backup_recovery_source_handoff.mjs" "$@"
+    ;;
+  verify-v330-stabilization-release-readiness)
+    require_internal verify_v330_stabilization_release_readiness.mjs
+    exec "${INTERNAL_DIR}/verify_v330_stabilization_release_readiness.mjs" "$@"
     ;;
   verify-v290-final-stabilization-run)
     require_internal verify_v290_final_stabilization_run.mjs

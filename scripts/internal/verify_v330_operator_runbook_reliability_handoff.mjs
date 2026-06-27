@@ -134,8 +134,8 @@ check("stream verification, feature inventory, and release records map v3.3 Step
     `v3.3.0 (8) Operator Runbook and Reliability Handoff | \`SAFE-120\`, \`OPS-087\` | \`${command}\`, \`verify-docs-links\``,
     "SAFE-120 | V330 Step 8 operator runbook reliability handoff boundary",
     "OPS-087 | V330 Step 8 Operator Runbook and Reliability Handoff 게이트",
-    "`SAFE-001`~`SAFE-122`",
-    "`OPS-035`~`OPS-089`",
+    "`SAFE-001`~`SAFE-123`",
+    "`OPS-035`~`OPS-090`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.3 Step 8");
   }
@@ -157,8 +157,8 @@ check("server entrypoint and inventory verifiers include v3.3 Step 8 command", (
   for (const id of ["SAFE-120", "OPS-087"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
-  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-122`", "project inventory SAFE range");
-  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-089`", "project inventory OPS range");
+  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-123`", "project inventory SAFE range");
+  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-090`", "project inventory OPS range");
   assertIncludes(files.scriptInventory, "verify_v330_operator_runbook_reliability_handoff.mjs", "script inventory");
 });
 
