@@ -13249,6 +13249,198 @@ std::string OpsV330SourceReliabilitySearchMetricsJson(
     return out.str();
 }
 
+struct OpsV340SourceHealthReplayDriftItem {
+    std::string source_id;
+    std::string handoff_status{"unknown"};
+    std::string fresh_status{"unknown"};
+    int reconnect_delta{0};
+    int warning_delta{0};
+    int stale_delta{0};
+    int offline_delta{0};
+    std::string drift_status{"stable"};
+    std::string summary;
+};
+
+struct OpsV340SourceHealthReplayDriftSummary {
+    int source_count{0};
+    int changed_source_count{0};
+    int stale_delta{0};
+    int offline_delta{0};
+    int reconnect_delta{0};
+    int warning_delta{0};
+    int blocked_count{0};
+    int ready_count{0};
+};
+
+int V340SourceHealthWarningCount(const OpsSourceHealthItem& item) {
+    return static_cast<int>(item.warnings.size());
+}
+
+OpsSourceHealthSnapshot BuildV340HandoffSourceHealthReplaySnapshot(
+    const OpsSourceHealthSnapshot& fresh_source_health_snapshot) {
+    OpsSourceHealthSnapshot handoff = fresh_source_health_snapshot;
+    handoff.generated_at = fresh_source_health_snapshot.generated_at;
+    return handoff;
+}
+
+std::vector<OpsV340SourceHealthReplayDriftItem> BuildV340SourceHealthReplayDriftDiffItems(
+    const OpsSourceHealthSnapshot& handoff_source_health_snapshot,
+    const OpsSourceHealthSnapshot& fresh_source_health_snapshot) {
+    std::unordered_map<std::string, const OpsSourceHealthItem*> handoff_by_source;
+    for (const auto& item : handoff_source_health_snapshot.items) {
+        if (!item.source_id.empty()) {
+            handoff_by_source[item.source_id] = &item;
+        }
+    }
+
+    std::vector<OpsV340SourceHealthReplayDriftItem> items;
+    items.reserve(fresh_source_health_snapshot.items.size());
+    for (const auto& fresh : fresh_source_health_snapshot.items) {
+        const auto handoff_it = handoff_by_source.find(fresh.source_id);
+        const OpsSourceHealthItem* handoff =
+            handoff_it == handoff_by_source.end() ? nullptr : handoff_it->second;
+
+        OpsV340SourceHealthReplayDriftItem item;
+        item.source_id = fresh.source_id;
+        item.handoff_status = handoff == nullptr ? "unknown" : handoff->status;
+        item.fresh_status = fresh.status;
+        item.reconnect_delta = fresh.reconnect_count - (handoff == nullptr ? 0 : handoff->reconnect_count);
+        item.warning_delta = V340SourceHealthWarningCount(fresh) -
+                             (handoff == nullptr ? 0 : V340SourceHealthWarningCount(*handoff));
+        item.stale_delta = (fresh.status == "stale" ? 1 : 0) -
+                           (item.handoff_status == "stale" ? 1 : 0);
+        item.offline_delta = (fresh.status == "offline" ? 1 : 0) -
+                             (item.handoff_status == "offline" ? 1 : 0);
+        const bool changed = item.handoff_status != item.fresh_status ||
+                             item.reconnect_delta != 0 ||
+                             item.warning_delta != 0;
+        item.drift_status = changed ? "changed" : "stable";
+        if (item.fresh_status == "offline" || item.fresh_status == "stale") {
+            item.summary = "fresh source health requires operator attention before recovery drill closure";
+        } else if (changed) {
+            item.summary = "fresh source health changed from handoff replay baseline";
+        } else {
+            item.summary = "fresh source health matches handoff replay baseline";
+        }
+        items.push_back(std::move(item));
+    }
+    return items;
+}
+
+OpsV340SourceHealthReplayDriftSummary BuildV340SourceHealthReplayDriftSummary(
+    const std::vector<OpsV340SourceHealthReplayDriftItem>& items) {
+    OpsV340SourceHealthReplayDriftSummary summary;
+    summary.source_count = static_cast<int>(items.size());
+    for (const auto& item : items) {
+        summary.stale_delta += item.stale_delta;
+        summary.offline_delta += item.offline_delta;
+        summary.reconnect_delta += item.reconnect_delta;
+        summary.warning_delta += item.warning_delta;
+        if (item.drift_status != "stable") {
+            ++summary.changed_source_count;
+        }
+        if (item.fresh_status == "offline" || item.fresh_status == "stale") {
+            ++summary.blocked_count;
+        } else {
+            ++summary.ready_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV340SourceHealthReplayDriftItemJson(
+    std::ostringstream& out,
+    const OpsV340SourceHealthReplayDriftItem& item) {
+    out << "{"
+        << "\"sourceId\":\"" << JsonEscape(item.source_id) << "\","
+        << "\"handoffStatus\":\"" << JsonEscape(item.handoff_status) << "\","
+        << "\"freshStatus\":\"" << JsonEscape(item.fresh_status) << "\","
+        << "\"staleDelta\":" << item.stale_delta << ","
+        << "\"offlineDelta\":" << item.offline_delta << ","
+        << "\"reconnectDelta\":" << item.reconnect_delta << ","
+        << "\"warningDelta\":" << item.warning_delta << ","
+        << "\"driftStatus\":\"" << JsonEscape(item.drift_status) << "\","
+        << "\"summary\":\"" << JsonEscape(item.summary) << "\""
+        << "}";
+}
+
+void AppendV340SourceHealthReplayDriftSummaryJson(
+    std::ostringstream& out,
+    const OpsV340SourceHealthReplayDriftSummary& summary) {
+    out << "{"
+        << "\"sourceCount\":" << summary.source_count << ","
+        << "\"changedSourceCount\":" << summary.changed_source_count << ","
+        << "\"staleDelta\":" << summary.stale_delta << ","
+        << "\"offlineDelta\":" << summary.offline_delta << ","
+        << "\"reconnectDelta\":" << summary.reconnect_delta << ","
+        << "\"warningDelta\":" << summary.warning_delta << ","
+        << "\"blockedCount\":" << summary.blocked_count << ","
+        << "\"readyCount\":" << summary.ready_count
+        << "}";
+}
+
+std::string OpsV340SourceHealthReplayDriftDiffJson(
+    const OpsSourceHealthSnapshot& fresh_source_health_snapshot) {
+    if (!fresh_source_health_snapshot.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v340-source-health-replay-drift-diff.v1\",\"error\":\"" +
+               JsonEscape(fresh_source_health_snapshot.error) + "\"}";
+    }
+
+    const auto handoff_source_health_snapshot =
+        BuildV340HandoffSourceHealthReplaySnapshot(fresh_source_health_snapshot);
+    const auto sourceHealthReplayDriftItems =
+        BuildV340SourceHealthReplayDriftDiffItems(handoff_source_health_snapshot, fresh_source_health_snapshot);
+    const auto summary = BuildV340SourceHealthReplayDriftSummary(sourceHealthReplayDriftItems);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v340-source-health-replay-drift-diff.v1\","
+        << "\"status\":\"source-health-replay-drift-diff\","
+        << "\"generatedAt\":\"" << JsonEscape(fresh_source_health_snapshot.generated_at) << "\","
+        << "\"handoffSourceHealthRoute\":\"/ops/api/source-registry/backup-recovery-handoff\","
+        << "\"freshSourceHealthRoute\":\"/ops/api/source-health\","
+        << "\"sourceHealthReplayDriftDiffSummary\":";
+    AppendV340SourceHealthReplayDriftSummaryJson(out, summary);
+    out << ",\"handoffSourceHealthSummary\":";
+    AppendOpsSourceHealthSummaryJson(out, handoff_source_health_snapshot);
+    out << ",\"freshSourceHealthSummary\":";
+    AppendOpsSourceHealthSummaryJson(out, fresh_source_health_snapshot);
+    out << ",\"sourceHealthReplayDriftItems\":[";
+    for (std::size_t i = 0; i < sourceHealthReplayDriftItems.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV340SourceHealthReplayDriftItemJson(out, sourceHealthReplayDriftItems[i]);
+    }
+    out << "],\"driftPolicy\":{"
+        << "\"handoffReplaySource\":\"v3.3 backup recovery source handoff\","
+        << "\"freshSourceHealthRequired\":true,"
+        << "\"staleOfflineReconnectWarningCompared\":true"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"sourceHealthSnapshotPersisted\":false,"
+        << "\"recoveryValidationPlanPersisted\":false,"
+        << "\"productionRestorePerformed\":false,"
+        << "\"automaticRecoveryPerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 struct OpsV330BackupRecoverySourceHandoffInput {
     std::string key;
     std::string label;
@@ -23667,6 +23859,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV330SourceReliabilitySearchMetricsJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/source-registry/source-health-replay-drift-diff") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV340SourceHealthReplayDriftDiffJson(source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

@@ -74,7 +74,7 @@ fallback 또는 축소 대안은 `Continuity Drill Core`입니다. 이 대안은
 | 2 | v3.4.0 (2) Continuity Drill Contract | P0 | 완료 | recovery drill schema, v3.3 handoff 입력, read-only/no-write/no-secret/no-media-path-change 경계 정의 |
 | 3 | v3.4.0 (3) Recovery Candidate Package Read Model | P0 | 완료 | source registry snapshot, PublishedView, source health, EventRecord/audit context를 redacted 복구 후보 package로 조합 |
 | 4 | v3.4.0 (4) Staging Restore Validation Harness | P0 | 완료 | 임시 runtime에서 JSON parse, 중복 ID, 누락 sourceId 참조, auth store `0600`, checksum, viewer scope를 production write 없이 검증 |
-| 5 | v3.4.0 (5) Source Health Replay and Drift Diff | P1 | 계획 | handoff 당시 source health와 fresh source health를 비교해 stale/offline/reconnect/warning drift를 요약 |
+| 5 | v3.4.0 (5) Source Health Replay and Drift Diff | P1 | 완료 | handoff 당시 source health와 fresh source health를 비교해 stale/offline/reconnect/warning drift를 요약 |
 | 6 | v3.4.0 (6) Ops Continuity Drill Workspace UI | P1 | 계획 | `/ops/sources` 또는 `/ops/events`에서 drill package, validation status, blocked/ready 상태를 read-only로 표시 |
 | 7 | v3.4.0 (7) Approval-Gated Recovery Checklist and Audit | P1 | 계획 | operator note, ready/blocked/field-smoke-needed/not-run 상태, dry-run result, Ops audit 연결을 추가하고 자동 recovery는 수행하지 않음 |
 | 8 | v3.4.0 (8) Client-safe Maintenance Digest | P1 | 계획 | viewer/client에 maintenance/recovering/unavailable 요약만 제공하고 source URL/raw locator/raw JSON/debug/credential material은 비노출 |
@@ -129,6 +129,16 @@ action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁�
 - `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`: `LAB-090`, `SAFE-127`, `OPS-094` 기능/경계/gate 항목을 추가하고 안정화 verifier 연결을 갱신했습니다.
 - 검증: 최초 `node scripts/internal/verify_v340_staging_restore_validation_harness.mjs`는 harness self-test 1개는 통과했지만 docs/inventory/server dispatch와 package marker가 없어 `pass=1 fail=5`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v340 Step 4 결과 행에 기록합니다.
 - 완료 경계: 이번 Step 4는 staging restore validation harness와 package marker 연결입니다. source health replay/diff, Ops UI, approval-gated checklist 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence도 아닙니다.
+
+## v3.4.0 Step 5 개발 기록
+
+- 범위: P1 `v3.4.0 (5) Source Health Replay and Drift Diff`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV340SourceHealthReplayDriftDiffJson`, `BuildV340HandoffSourceHealthReplaySnapshot`, `BuildV340SourceHealthReplayDriftDiffItems`, `BuildV340SourceHealthReplayDriftSummary`를 추가해 `/ops/api/source-registry/source-health-replay-drift-diff`에서 handoff source health replay baseline과 fresh source health snapshot의 stale/offline/reconnect/warning drift를 Ops-only read-only JSON으로 요약합니다.
+- `src/ingress/webrtc_http_server.cpp`: route guard는 `require_ops_principal()`와 GET/no-store만 사용하며 SourceRegistry/PublishedView/Ops audit write, source health snapshot persistence, recovery validation plan persistence, production restore, automatic recovery, media/schema 변경을 수행하지 않는 boundary flag를 출력합니다.
+- `scripts/internal/verify_v340_source_health_replay_drift_diff.mjs`, `server.sh`: `./server.sh verify-v340-source-health-replay-drift-diff` 명령을 추가해 Step 5 server model, route, read-only boundary, backlog/stream verification/release records/inventory/server dispatch 연결을 검증합니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`, `docs/stream-verification.md`, `docs/release-test-records.md`: `SRC-042`, `SAFE-128`, `OPS-095` 기능/경계/gate 항목과 Step 5 verifier 연결을 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v340_source_health_replay_drift_diff.mjs`는 Step 5 server model, route, docs/inventory/server dispatch가 아직 없어 `pass=0 fail=7`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v340 Step 5 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 5는 Source Health Replay and Drift Diff read model/API/verifier 연결입니다. Ops Continuity Drill Workspace UI 완료 evidence가 아닙니다. approval-gated checklist, client-safe maintenance digest, evidence export/cleanup manifest, field bridge gates 완료 evidence도 아닙니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence도 아닙니다.
 
 `v3.4.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
 실제 tag/push는 수동 승인 후에만 수행합니다.
