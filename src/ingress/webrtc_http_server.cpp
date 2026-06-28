@@ -5964,6 +5964,34 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
           </div>
         </div>
       </section>
+      <section class="section-card ops-workspace-wide" data-channel-task="ops-drill-evidence-export-cleanup-manifest" data-testid="ops-drill-evidence-export-cleanup-manifest">
+        <div class="toolbar">
+          <div>
+            <h3>Drill Evidence Export and Cleanup Manifest</h3>
+            <p id="source-drill-evidence-manifest-status">redacted drill artifact manifest와 cleanup 경계를 확인 중입니다.</p>
+          </div>
+        </div>
+        <div id="source-drill-evidence-manifest-summary" class="metric-grid">
+          <div class="metric-card"><span>Retained</span><strong id="source-drill-evidence-retained-count">-</strong></div>
+          <div class="metric-card"><span>Artifacts</span><strong id="source-drill-evidence-artifact-count">-</strong></div>
+          <div class="metric-card"><span>Cleanup</span><strong id="source-drill-evidence-cleanup-count">-</strong></div>
+          <div class="metric-card"><span>Scan</span><strong id="source-drill-evidence-scan-count">-</strong></div>
+        </div>
+        <div class="source-drill-evidence-manifest-grid" data-source-drill-evidence-manifest="media-server.ops.v340-drill-evidence-export-cleanup-manifest.v1">
+          <div>
+            <h4>redacted drill artifact manifest</h4>
+            <div id="source-drill-evidence-artifact-list" class="source-drill-evidence-manifest-list"></div>
+          </div>
+          <div>
+            <h4>/tmp cleanup manifest</h4>
+            <div id="source-drill-evidence-cleanup-list" class="source-drill-evidence-manifest-list"></div>
+          </div>
+          <div>
+            <h4>sensitive material scan</h4>
+            <div id="source-drill-evidence-scan-list" class="source-drill-evidence-manifest-list"></div>
+          </div>
+        </div>
+      </section>
       <section class="section-card ops-channels-list-panel" data-channel-task="list">
         <div class="toolbar">
           <div>
@@ -14487,6 +14515,288 @@ std::string OpsV340ApprovalGatedRecoveryChecklistJson(
         << "\"debugMaterialExposed\":false,"
         << "\"rtspOrWebrtcMediaPathChanged\":false,"
         << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV340DrillEvidenceArtifact {
+    std::string artifact_key;
+    std::string label;
+    std::string route;
+    std::string retention_reason;
+    bool retained{true};
+};
+
+struct OpsV340DrillCleanupManifestItem {
+    std::string cleanup_key;
+    std::string label;
+    std::string scope;
+    std::string path_pattern;
+    std::string status{"not-run"};
+    std::string reason;
+    bool cleanup_execution_performed{false};
+};
+
+struct OpsV340DrillEvidenceExportCleanupSummary {
+    int retained_evidence_count{0};
+    int artifact_count{0};
+    int cleanup_candidate_count{0};
+    int sensitive_scan_pattern_count{0};
+};
+
+std::vector<OpsV340DrillEvidenceArtifact> BuildV340DrillEvidenceArtifactManifest(
+    const std::vector<OpsV340RecoveryCandidatePackageItem>& candidates,
+    const std::vector<OpsV340ApprovalGatedRecoveryChecklistItem>& checklist_items) {
+    std::vector<OpsV340DrillEvidenceArtifact> artifacts{
+        {"continuity-drill-contract",
+         "Continuity Drill Contract",
+         "/ops/api/source-registry/continuity-drill/contract",
+         "Retain schema, handoff input, and read-only/no-write boundary summary"},
+        {"recovery-candidate-package",
+         "Recovery Candidate Package",
+         "/ops/api/source-registry/recovery-candidate-package",
+         "Retain redacted candidate readiness and source health summary"},
+        {"source-health-replay-drift-diff",
+         "Source Health Replay Drift Diff",
+         "/ops/api/source-registry/source-health-replay-drift-diff",
+         "Retain stale/offline/reconnect/warning drift summary"},
+        {"approval-gated-recovery-checklist",
+         "Approval-Gated Recovery Checklist",
+         "/ops/api/source-registry/approval-gated-recovery-checklist",
+         "Retain operator note, readiness status, dry-run result, and Ops audit linkage summary"},
+    };
+    if (!candidates.empty()) {
+        artifacts.push_back({"recovery-candidate-count",
+                             "Recovery Candidate Count",
+                             "/ops/api/source-registry/recovery-candidate-package",
+                             "Retain candidate count only; source locator and credential material stay excluded"});
+    }
+    if (!checklist_items.empty()) {
+        artifacts.push_back({"approval-checklist-count",
+                             "Approval Checklist Count",
+                             "/ops/api/source-registry/approval-gated-recovery-checklist",
+                             "Retain checklist count only; raw audit body and recovery action material stay excluded"});
+    }
+    return artifacts;
+}
+
+std::vector<OpsV340DrillCleanupManifestItem> BuildV340DrillCleanupManifest() {
+    return {
+        {"tmp-drill-staging-runtime",
+         "temporary staging runtime",
+         "/tmp",
+         "/tmp/media-server-v340-drill-*",
+         "not-run",
+         "Cleanup candidate recorded for operator review; this verifier does not delete files"},
+        {"private-tmp-drill-staging-runtime",
+         "private temporary staging runtime",
+         "/private/tmp",
+         "/private/tmp/media-server-v340-drill-*",
+         "not-run",
+         "Cleanup candidate recorded for operator review; this verifier does not delete files"},
+        {"core-clips",
+         "throwaway core clips",
+         "event core-clips",
+         "core-clips/*",
+         "not-run",
+         "Raw clip cleanup is documented but not executed by the drill manifest"},
+        {"core-snapshots",
+         "throwaway core snapshots",
+         "event core-snapshots",
+         "core-snapshots/*",
+         "not-run",
+         "Raw snapshot cleanup is documented but not executed by the drill manifest"},
+        {"throwaway-registry",
+         "throwaway registry",
+         "source/view registry fixture",
+         "source-registry-throwaway/*.json",
+         "not-run",
+         "Fixture registry cleanup is documented but not executed by the drill manifest"},
+    };
+}
+
+std::vector<std::string> BuildV340DrillSensitiveMaterialScanPatterns() {
+    return {"source URL",
+            "raw locator",
+            "raw JSON",
+            "debug material",
+            "credential material",
+            "raw audit body",
+            "provider material",
+            "client viewer material"};
+}
+
+OpsV340DrillEvidenceExportCleanupSummary BuildV340DrillEvidenceExportCleanupSummary(
+    const std::vector<OpsV340DrillEvidenceArtifact>& artifacts,
+    const std::vector<OpsV340DrillCleanupManifestItem>& cleanup_items,
+    const std::vector<std::string>& scan_patterns) {
+    OpsV340DrillEvidenceExportCleanupSummary summary;
+    summary.artifact_count = static_cast<int>(artifacts.size());
+    summary.cleanup_candidate_count = static_cast<int>(cleanup_items.size());
+    summary.sensitive_scan_pattern_count = static_cast<int>(scan_patterns.size());
+    for (const auto& artifact : artifacts) {
+        if (artifact.retained) {
+            ++summary.retained_evidence_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV340DrillEvidenceArtifactJson(std::ostringstream& out,
+                                         const OpsV340DrillEvidenceArtifact& artifact) {
+    out << "{"
+        << "\"artifactKey\":\"" << JsonEscape(artifact.artifact_key) << "\","
+        << "\"label\":\"" << JsonEscape(artifact.label) << "\","
+        << "\"route\":\"" << JsonEscape(artifact.route) << "\","
+        << "\"retained\":" << (artifact.retained ? "true" : "false") << ","
+        << "\"retentionReason\":\"" << JsonEscape(artifact.retention_reason) << "\","
+        << "\"sourceUrlIncluded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"rawAuditBodyIncluded\":false,"
+        << "\"providerMaterialIncluded\":false,"
+        << "\"clientViewerMaterialIncluded\":false"
+        << "}";
+}
+
+void AppendV340DrillCleanupManifestItemJson(std::ostringstream& out,
+                                            const OpsV340DrillCleanupManifestItem& item) {
+    out << "{"
+        << "\"cleanupKey\":\"" << JsonEscape(item.cleanup_key) << "\","
+        << "\"label\":\"" << JsonEscape(item.label) << "\","
+        << "\"scope\":\"" << JsonEscape(item.scope) << "\","
+        << "\"pathPattern\":\"" << JsonEscape(item.path_pattern) << "\","
+        << "\"status\":\"" << JsonEscape(item.status) << "\","
+        << "\"reason\":\"" << JsonEscape(item.reason) << "\","
+        << "\"cleanupExecutionPerformed\":"
+        << (item.cleanup_execution_performed ? "true" : "false")
+        << "}";
+}
+
+void AppendV340DrillEvidenceExportCleanupSummaryJson(
+    std::ostringstream& out,
+    const OpsV340DrillEvidenceExportCleanupSummary& summary) {
+    out << "{"
+        << "\"retainedEvidenceCount\":" << summary.retained_evidence_count << ","
+        << "\"artifactCount\":" << summary.artifact_count << ","
+        << "\"cleanupCandidateCount\":" << summary.cleanup_candidate_count << ","
+        << "\"sensitiveScanPatternCount\":" << summary.sensitive_scan_pattern_count
+        << "}";
+}
+
+std::string OpsV340DrillEvidenceExportCleanupManifestJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    if (!source_health_snapshot.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v340-drill-evidence-export-cleanup-manifest.v1\",\"error\":\"" +
+               JsonEscape(source_health_snapshot.error) + "\"}";
+    }
+
+    std::vector<SourceViewRegistry::SourceRecord> sources;
+    std::vector<SourceViewRegistry::PublishedViewRecord> views;
+    std::string load_error;
+    if (!SourceViewRegistry::Instance().Snapshot(&sources, &views, &load_error)) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v340-drill-evidence-export-cleanup-manifest.v1\",\"error\":\"" +
+               JsonEscape(load_error.empty() ? "source registry load failed" : load_error) + "\"}";
+    }
+
+    const auto context = BuildV340RecoveryCandidateContext(views, source_health_snapshot, config);
+    const auto recoveryCandidates = BuildV340RecoveryCandidatePackages(sources, context);
+    const auto approvalGatedRecoveryChecklistItems =
+        BuildV340ApprovalGatedRecoveryChecklist(recoveryCandidates);
+    const auto artifacts = BuildV340DrillEvidenceArtifactManifest(
+        recoveryCandidates, approvalGatedRecoveryChecklistItems);
+    const auto cleanup_items = BuildV340DrillCleanupManifest();
+    const auto scan_patterns = BuildV340DrillSensitiveMaterialScanPatterns();
+    const auto summary =
+        BuildV340DrillEvidenceExportCleanupSummary(artifacts, cleanup_items, scan_patterns);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v340-drill-evidence-export-cleanup-manifest.v1\","
+        << "\"status\":\"drill-evidence-export-cleanup-manifest\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"packageRoute\":\"/ops/api/source-registry/recovery-candidate-package\","
+        << "\"approvalChecklistRoute\":\"/ops/api/source-registry/approval-gated-recovery-checklist\","
+        << "\"drillEvidenceExportCleanupSummary\":";
+    AppendV340DrillEvidenceExportCleanupSummaryJson(out, summary);
+    out << ",\"redactedDrillArtifactManifest\":{"
+        << "\"schema\":\"media-server.ops.v340-drill-evidence-artifact-manifest.v1\","
+        << "\"manifestOnly\":true,"
+        << "\"artifactExportExecuted\":false,"
+        << "\"artifactItems\":[";
+    for (std::size_t i = 0; i < artifacts.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV340DrillEvidenceArtifactJson(out, artifacts[i]);
+    }
+    out << "]},\"minimumRetainedEvidence\":[";
+    for (std::size_t i = 0; i < artifacts.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV340DrillEvidenceArtifactJson(out, artifacts[i]);
+    }
+    out << "],\"tmpCleanupManifest\":{"
+        << "\"cleanupExecutionPerformed\":false,"
+        << "\"temporaryCleanupExecuted\":false,"
+        << "\"dryRunOnly\":true,"
+        << "\"cleanupCandidates\":[";
+    for (std::size_t i = 0; i < cleanup_items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV340DrillCleanupManifestItemJson(out, cleanup_items[i]);
+    }
+    out << "]},\"sensitiveMaterialScanBoundary\":{"
+        << "\"sensitiveScanPatternCount\":" << scan_patterns.size() << ","
+        << "\"scanPatterns\":";
+    AppendV340RecoveryCandidateStringListJson(out, scan_patterns);
+    out << ",\"sourceUrlIncluded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"rawAuditBodyIncluded\":false,"
+        << "\"providerMaterialIncluded\":false,"
+        << "\"clientViewerMaterialIncluded\":false"
+        << "},\"redactionPolicy\":{"
+        << "\"redacted\":true,"
+        << "\"manifestOnly\":true,"
+        << "\"sourceUrlIncluded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"rawAuditBodyIncluded\":false,"
+        << "\"providerMaterialIncluded\":false,"
+        << "\"clientViewerMaterialIncluded\":false"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"manifestOnly\":true,"
+        << "\"artifactExportExecuted\":false,"
+        << "\"cleanupExecutionPerformed\":false,"
+        << "\"temporaryCleanupExecuted\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"productionRestorePerformed\":false,"
+        << "\"automaticRecoveryPerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"searchMetricsChanged\":false"
         << "}}";
     return out.str();
 }
@@ -24298,6 +24608,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV340ApprovalGatedRecoveryChecklistJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/source-registry/drill-evidence-export-cleanup-manifest") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV340DrillEvidenceExportCleanupManifestJson(config, source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

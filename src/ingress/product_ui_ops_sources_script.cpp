@@ -26,6 +26,10 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     const sourceContinuityDrillDriftList = document.querySelector('#source-continuity-drill-drift-list');
     const sourceRecoveryChecklistStatus = document.querySelector('#source-recovery-checklist-status');
     const sourceRecoveryChecklistList = document.querySelector('#source-recovery-checklist-list');
+    const sourceDrillEvidenceManifestStatus = document.querySelector('#source-drill-evidence-manifest-status');
+    const sourceDrillEvidenceArtifactList = document.querySelector('#source-drill-evidence-artifact-list');
+    const sourceDrillEvidenceCleanupList = document.querySelector('#source-drill-evidence-cleanup-list');
+    const sourceDrillEvidenceScanList = document.querySelector('#source-drill-evidence-scan-list');
     const channelBody = document.querySelector('#channels-body');
     const channelForm = document.querySelector('#channel-form');
     const channelPanel = document.querySelector('#channel-detail-panel');
@@ -628,6 +632,54 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         <span>opsAuditWritePerformed: ${escapeHtml(boundaries.opsAuditWritePerformed === true ? 'true' : 'false')}</span>
       </div>`;
     }
+    function renderDrillEvidenceExportCleanupManifest(payload = {}) {
+      const summary = payload.drillEvidenceExportCleanupSummary || {};
+      const artifactManifest = payload.redactedDrillArtifactManifest || {};
+      const artifacts = Array.isArray(artifactManifest.artifactItems) ? artifactManifest.artifactItems : [];
+      const cleanupManifest = payload.tmpCleanupManifest || {};
+      const cleanupCandidates = Array.isArray(cleanupManifest.cleanupCandidates) ? cleanupManifest.cleanupCandidates : [];
+      const scanBoundary = payload.sensitiveMaterialScanBoundary || {};
+      const scanPatterns = Array.isArray(scanBoundary.scanPatterns) ? scanBoundary.scanPatterns : [];
+      const boundaries = payload.boundaries || {};
+      setMetricText('source-drill-evidence-retained-count', summary.retainedEvidenceCount ?? artifacts.length);
+      setMetricText('source-drill-evidence-artifact-count', summary.artifactCount ?? artifacts.length);
+      setMetricText('source-drill-evidence-cleanup-count', summary.cleanupCandidateCount ?? cleanupCandidates.length);
+      setMetricText('source-drill-evidence-scan-count', summary.sensitiveScanPatternCount ?? scanPatterns.length);
+      if (sourceDrillEvidenceManifestStatus) {
+        sourceDrillEvidenceManifestStatus.textContent =
+          `${summary.retainedEvidenceCount ?? artifacts.length} retained evidence / cleanup ${summary.cleanupCandidateCount ?? cleanupCandidates.length} / scan ${summary.sensitiveScanPatternCount ?? scanPatterns.length}`;
+      }
+      if (sourceDrillEvidenceArtifactList) {
+        sourceDrillEvidenceArtifactList.innerHTML = artifacts.slice(0, 8).map(item => (
+          `<article class="source-drill-evidence-manifest-card" data-source-drill-evidence-artifact="${escapeHtml(item.artifactKey || 'artifact')}">
+            <strong>${escapeHtml(item.label || item.artifactKey || 'artifact')}</strong>
+            <span>${escapeHtml(item.retained === true ? 'retained' : 'not-retained')} · ${escapeHtml(item.route || '/ops/sources')}</span>
+            <small>${escapeHtml(item.retentionReason || 'minimum retained evidence')}</small>
+          </article>`
+        )).join('') || '<span class="empty">retained drill evidence 없음</span>';
+      }
+      if (sourceDrillEvidenceCleanupList) {
+        sourceDrillEvidenceCleanupList.innerHTML = cleanupCandidates.slice(0, 8).map(item => (
+          `<article class="source-drill-evidence-manifest-card" data-source-drill-evidence-cleanup="${escapeHtml(item.cleanupKey || 'cleanup')}">
+            <strong>${escapeHtml(item.label || item.cleanupKey || 'cleanup')}</strong>
+            <span>${escapeHtml(item.status || 'not-run')} · ${escapeHtml(item.scope || '/tmp')}</span>
+            <small>${escapeHtml(item.reason || 'cleanup recorded; not executed')}</small>
+          </article>`
+        )).join('') || '<span class="empty">cleanup candidate 없음</span>';
+      }
+      if (!sourceDrillEvidenceScanList) return;
+      sourceDrillEvidenceScanList.innerHTML = scanPatterns.slice(0, 8).map(pattern => (
+        `<article class="source-drill-evidence-manifest-card" data-source-drill-evidence-scan="${escapeHtml(pattern || 'pattern')}">
+          <strong>${escapeHtml(pattern || 'sensitive material')}</strong>
+          <span>excluded from redacted manifest</span>
+          <small>viewer/client/API raw material 비노출 경계</small>
+        </article>`
+      )).join('') + `<div class="source-drill-evidence-manifest-boundary" data-source-drill-evidence-cleanup="boundary">
+        <span>artifactExportExecuted: ${escapeHtml(boundaries.artifactExportExecuted === true ? 'true' : 'false')}</span>
+        <span>cleanupExecutionPerformed: ${escapeHtml(boundaries.cleanupExecutionPerformed === true ? 'true' : 'false')}</span>
+        <span>temporaryCleanupExecuted: ${escapeHtml(boundaries.temporaryCleanupExecuted === true ? 'true' : 'false')}</span>
+      </div>`;
+    }
     function setFormDisabled(disabled) {
       const writable = canWriteSources();
       for (const element of Array.from(channelForm.elements)) {
@@ -1082,7 +1134,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       return { channelId, sourcePayload, viewPayload };
     }
     async function loadAll() {
-      const [sources, views, clientViews, onboardingQuality, reliabilityTimeline, reliabilitySearchMetrics, backupRecoveryHandoff, continuityDrillContract, recoveryCandidatePackage, sourceHealthReplayDriftDiff, approvalGatedRecoveryChecklist, principal] = await Promise.all([
+      const [sources, views, clientViews, onboardingQuality, reliabilityTimeline, reliabilitySearchMetrics, backupRecoveryHandoff, continuityDrillContract, recoveryCandidatePackage, sourceHealthReplayDriftDiff, approvalGatedRecoveryChecklist, drillEvidenceExportCleanupManifest, principal] = await Promise.all([
         requestJson('/ops/api/sources'),
         requestJson('/ops/api/views'),
         requestJson('/client/api/views'),
@@ -1094,6 +1146,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         requestJson('/ops/api/source-registry/recovery-candidate-package'),
         requestJson('/ops/api/source-registry/source-health-replay-drift-diff'),
         requestJson('/ops/api/source-registry/approval-gated-recovery-checklist'),
+        requestJson('/ops/api/source-registry/drill-evidence-export-cleanup-manifest'),
         requestJson('/auth/whoami').catch(() => null)
       ]);
       opsPrincipal = principal;
@@ -1106,6 +1159,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       renderBackupRecoverySourceHandoff(backupRecoveryHandoff);
       renderOpsContinuityDrillWorkspace(continuityDrillContract, recoveryCandidatePackage, sourceHealthReplayDriftDiff);
       renderApprovalGatedRecoveryChecklistAudit(approvalGatedRecoveryChecklist);
+      renderDrillEvidenceExportCleanupManifest(drillEvidenceExportCleanupManifest);
       renderChannels(loadedSources, loadedViews);
       renderOpsAuditTrail('channel-audit-list', 'channels');
       if (!initializedHashChannel) {

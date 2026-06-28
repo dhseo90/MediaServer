@@ -1409,6 +1409,39 @@ std::string ProductUiCss() {
       color: var(--color-text-muted);
       line-height: 1.45;
     }
+    .source-drill-evidence-manifest-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: var(--space-3);
+      align-items: start;
+    }
+    .source-drill-evidence-manifest-grid h4 {
+      margin: 0 0 var(--space-2);
+      font-size: 13px;
+      color: var(--color-text-muted);
+    }
+    .source-drill-evidence-manifest-list {
+      display: grid;
+      gap: var(--space-2);
+    }
+    .source-drill-evidence-manifest-card,
+    .source-drill-evidence-manifest-boundary {
+      display: grid;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-raised);
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .source-drill-evidence-manifest-card span,
+    .source-drill-evidence-manifest-card small,
+    .source-drill-evidence-manifest-boundary span {
+      margin: 0;
+      color: var(--color-text-muted);
+      line-height: 1.45;
+    }
     form,
     .form-grid {
       display: grid;
