@@ -4683,6 +4683,97 @@ std::string ClientSourceStatusDigestJson(
     return out.str();
 }
 
+struct ClientMaintenanceDigest {
+    bool provided{true};
+    std::string maintenance_state{"unavailable"};
+    std::string summary_text{"maintenance status unavailable"};
+    std::string severity{"attention"};
+    std::string timeline_hint{"source unavailable"};
+};
+
+std::string ClientMaintenanceDigestStateFor(const ClientSourceStatusDigest& source_status) {
+    if (source_status.source_status == "live") {
+        return "maintenance";
+    }
+    if (source_status.source_status == "connecting" || source_status.source_status == "stale") {
+        return "recovering";
+    }
+    return "unavailable";
+}
+
+std::string ClientMaintenanceDigestSummaryTextFor(const std::string& maintenance_state) {
+    if (maintenance_state == "maintenance") {
+        return "maintenance summary available";
+    }
+    if (maintenance_state == "recovering") {
+        return "recovering signal summary";
+    }
+    return "service unavailable summary";
+}
+
+std::string ClientMaintenanceDigestTimelineHintFor(const std::string& maintenance_state) {
+    if (maintenance_state == "maintenance") {
+        return "maintenance watch";
+    }
+    if (maintenance_state == "recovering") {
+        return "recovering";
+    }
+    return "unavailable";
+}
+
+ClientMaintenanceDigest ClientMaintenanceDigestFor(const ClientSourceStatusDigest& source_status) {
+    ClientMaintenanceDigest digest;
+    digest.maintenance_state = ClientMaintenanceDigestStateFor(source_status);
+    digest.summary_text = ClientMaintenanceDigestSummaryTextFor(digest.maintenance_state);
+    digest.severity = digest.maintenance_state == "maintenance" ? "info" : "attention";
+    digest.timeline_hint = ClientMaintenanceDigestTimelineHintFor(digest.maintenance_state);
+    return digest;
+}
+
+void AppendClientSafeMaintenanceDigestJson(std::ostringstream& out,
+                                           const ClientMaintenanceDigest& digest) {
+    out << "{"
+        << "\"schema\":\"media-server.client.v340-maintenance-digest.v1\","
+        << "\"provided\":" << (digest.provided ? "true" : "false") << ","
+        << "\"viewerSafe\":true,"
+        << "\"publishedViewScoped\":true,"
+        << "\"sourceUrlIncluded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"operatorMaterialIncluded\":false,"
+        << "\"opsAuditLinkageIncluded\":false,"
+        << "\"dryRunResultIncluded\":false,"
+        << "\"approvalChecklistIncluded\":false,"
+        << "\"recoveryActionIncluded\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"searchMetricsChanged\":false,"
+        << "\"itemCount\":1,"
+        << "\"digestItems\":[{"
+        << "\"digestId\":\"client-maintenance-1\","
+        << "\"maintenanceState\":\"" << JsonEscape(digest.maintenance_state) << "\","
+        << "\"summaryText\":\"" << JsonEscape(digest.summary_text) << "\","
+        << "\"severity\":\"" << JsonEscape(digest.severity) << "\","
+        << "\"timelineHint\":\"" << JsonEscape(digest.timeline_hint) << "\""
+        << "}]}";
+}
+
+std::string ClientMaintenanceDigestJson(const ClientSourceStatusDigest& source_status) {
+    std::ostringstream out;
+    AppendClientSafeMaintenanceDigestJson(out, ClientMaintenanceDigestFor(source_status));
+    return out.str();
+}
+
 ClientEventItem ParseClientEventItem(const std::string& raw) {
     ClientEventItem item;
     item.event_id = ParseStringField(raw, "eventId").value_or("");
@@ -5083,7 +5174,8 @@ void AppendClientSafeResolutionDigestJson(std::ostringstream& out,
 
 void AppendClientEventSummaryJson(std::ostringstream& out,
                                   const ClientEventSummary& summary,
-                                  const std::string& source_status_digest_json = "") {
+                                  const std::string& source_status_digest_json = "",
+                                  const std::string& maintenance_digest_json = "") {
     out << "{"
         << "\"provided\":" << (summary.provided ? "true" : "false") << ","
         << "\"storageEnabled\":" << (summary.storage_enabled ? "true" : "false") << ","
@@ -5120,6 +5212,9 @@ void AppendClientEventSummaryJson(std::ostringstream& out,
     AppendClientSafeFollowUpDigestJson(out, summary);
     if (!source_status_digest_json.empty()) {
         out << ",\"sourceStatusDigest\":" << source_status_digest_json;
+    }
+    if (!maintenance_digest_json.empty()) {
+        out << ",\"maintenanceDigest\":" << maintenance_digest_json;
     }
     out << "}";
 }
@@ -5166,12 +5261,16 @@ std::string ClientViewEventsJson(
     const std::vector<analysis::AnalysisManager::TapSnapshot>& taps,
     int limit) {
     const auto summary = LoadClientEventSummary(ClientEventStreamCandidates(access.source, nullptr), limit);
-    const auto source_status_digest_json = ClientSourceStatusDigestJson(access, principal, taps);
+    const auto source_status_digest = ClientSourceStatusDigestFor(access, principal, taps);
+    std::ostringstream source_status_digest_out;
+    AppendClientSafeSourceStatusDigestJson(source_status_digest_out, source_status_digest);
+    const auto source_status_digest_json = source_status_digest_out.str();
+    const auto maintenance_digest_json = ClientMaintenanceDigestJson(source_status_digest);
     std::ostringstream out;
     out << "{\"ok\":true,\"view\":";
     AppendClientViewIdentityJson(out, access);
     out << ",\"events\":";
-    AppendClientEventSummaryJson(out, summary, source_status_digest_json);
+    AppendClientEventSummaryJson(out, summary, source_status_digest_json, maintenance_digest_json);
     out << "}";
     return out.str();
 }
@@ -5309,7 +5408,11 @@ std::string ClientViewDashboardJson(const SourceViewRegistry::ClientViewAccess& 
     if (include_events) {
         event_summary = LoadClientEventSummary(ClientEventStreamCandidates(access.source, tap), 10);
     }
-    const auto source_status_digest_json = ClientSourceStatusDigestJson(access, principal, taps);
+    const auto source_status_digest = ClientSourceStatusDigestFor(access, principal, taps);
+    std::ostringstream source_status_digest_out;
+    AppendClientSafeSourceStatusDigestJson(source_status_digest_out, source_status_digest);
+    const auto source_status_digest_json = source_status_digest_out.str();
+    const auto maintenance_digest_json = ClientMaintenanceDigestJson(source_status_digest);
     const std::optional<std::int64_t> latest_event_time =
         event_summary.latest_event_time_ms.has_value()
             ? event_summary.latest_event_time_ms
@@ -5349,7 +5452,7 @@ std::string ClientViewDashboardJson(const SourceViewRegistry::ClientViewAccess& 
     out << ",\"lastFrameAgeMs\":";
     AppendNullableInt64(out, last_frame_age);
     out << "},\"events\":";
-    AppendClientEventSummaryJson(out, event_summary, source_status_digest_json);
+    AppendClientEventSummaryJson(out, event_summary, source_status_digest_json, maintenance_digest_json);
     out << "}";
     return out.str();
 }

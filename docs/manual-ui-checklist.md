@@ -332,12 +332,13 @@ UI 풀테스트 기준입니다. 정적 verifier나 API 응답만으로 PASS 처
 
 | V330 Step 7 Client-safe Source Status Digest | `UI-072`, `CLIENT-028`, `SRC-038`, `SAFE-119`, `OPS-086` | `/client/live`, `/client/dashboard`, `/client/events` | Client-safe Source Status Digest card, `sourceStatusDigest`, `media-server.client.source-status-digest.v1`, sourceStatus/connectionStatus/videoFrameStatus/metadataStatus/summaryText/severity/timelineHint만 표시, source URL/raw locator/raw JSON/debug/credential/operator material/rule editor/action control 비노출, viewer PublishedView scope 유지 | `verify-v330-client-safe-source-status-digest`, `verify-v320-client-safe-resolution-digest`, `verify-ops-client-ui` |
 
-아래 행은 v3.4.0 Operations Continuity Drill Workspace Step 6~7 UI 풀테스트 기준입니다.
-정적 verifier나 API 응답만으로 PASS 처리하지 않고, 인앱 브라우저에서 실제 Ops route를
-열어 `Ops Continuity Drill Workspace`, `Approval-Gated Recovery Checklist`와 비노출 경계를 확인해야 합니다.
+아래 행은 v3.4.0 Operations Continuity Drill Workspace Step 6~8 UI 풀테스트 기준입니다.
+정적 verifier나 API 응답만으로 PASS 처리하지 않고, 인앱 브라우저에서 실제 Ops/Client route를
+열어 `Ops Continuity Drill Workspace`, `Approval-Gated Recovery Checklist`, `Client-safe Maintenance Digest`와 비노출 경계를 확인해야 합니다.
 
 | V340 Step 6 Ops Continuity Drill Workspace UI | `UI-075`, `SAFE-129`, `OPS-096` | `/ops/sources` | `Ops Continuity Drill Workspace`, `source-continuity-drill-status`, `media-server.ops.v340-continuity-drill-workspace-ui.v1`, drill package/validation status/blocked-ready/source health drift 표시, source URL/raw locator/raw JSON/debug/credential material 비노출, 자동 recovery/source registry write 없음 | `verify-v340-ops-continuity-drill-workspace-ui`, `verify-ops-client-ui` |
 | V340 Step 7 Approval-Gated Recovery Checklist and Audit | `UI-076`, `SAFE-130`, `OPS-097` | `/ops/sources` | `Approval-Gated Recovery Checklist`, `source-recovery-checklist-status`, `media-server.ops.v340-approval-gated-recovery-checklist.v1`, operator note, ready/blocked/field-smoke-needed/not-run 상태, dry-run result, Ops audit link 표시, source URL/raw locator/raw JSON/debug/credential material 비노출, 자동 recovery/source registry write 없음 | `verify-v340-approval-gated-recovery-checklist-audit`, `verify-ops-client-ui` |
+| V340 Step 8 Client-safe Maintenance Digest | `UI-077`, `CLIENT-029`, `SAFE-131`, `OPS-098` | `/client/live`, `/client/dashboard`, `/client/events` | `Client-safe Maintenance Digest`, `media-server.client.v340-maintenance-digest.v1`, maintenance/recovering/unavailable viewer-safe digest 표시, source URL/raw locator/raw JSON/debug/credential material/operator note/Ops audit/dry-run/recovery action 비노출 | `verify-v340-client-safe-maintenance-digest`, `verify-ops-client-ui` |
 
 ### v2.6.0 Operational Hardening UI 풀테스트 기준
 
