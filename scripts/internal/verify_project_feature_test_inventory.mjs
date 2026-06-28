@@ -481,6 +481,17 @@ check("current feature expansion rows exist", () => {
     "OPS-089",
     "SAFE-123",
     "OPS-090",
+    "SAFE-124",
+    "OPS-091",
+    "SAFE-125",
+    "OPS-092",
+    "SRC-041",
+    "EVT-073",
+    "SAFE-126",
+    "OPS-093",
+    "LAB-090",
+    "SAFE-127",
+    "OPS-094",
   ];
   const ids = new Set(parseFeatureRows(inventory).map(row => row.id));
   for (const id of requiredRows) {
@@ -488,13 +499,13 @@ check("current feature expansion rows exist", () => {
   }
   for (const snippet of [
     "`UI-001`~`UI-018`, `UI-022`~`UI-074`",
-    "`SRC-001`~`SRC-040`",
+    "`SRC-001`~`SRC-041`",
     "`CLIENT-001`~`CLIENT-028`",
-    "`EVT-001`~`EVT-072`",
+    "`EVT-001`~`EVT-073`",
     "`MEDIA-001`~`MEDIA-021`",
-    "`LAB-001`~`LAB-089`",
-    "`SAFE-001`~`SAFE-123`",
-    "`OPS-035`~`OPS-090`",
+    "`LAB-001`~`LAB-090`",
+    "`SAFE-001`~`SAFE-127`",
+    "`OPS-035`~`OPS-094`",
     "VLM route, control, action, runtime state, sidecar, privacy guard",
     "V300-S02 Frame Bundle Extraction",
     "V300-S03 Feature Schema and Privacy Policy",
@@ -624,6 +635,21 @@ check("current feature expansion rows exist", () => {
     "v3.3.0 (11) Stabilization and Release Readiness",
     "SAFE-123",
     "OPS-090",
+    "v3.4.0 (1) v3.4.0 baseline 정렬",
+    "SAFE-124",
+    "OPS-091",
+    "v3.4.0 (2) Continuity Drill Contract",
+    "SAFE-125",
+    "OPS-092",
+    "v3.4.0 (3) Recovery Candidate Package Read Model",
+    "SRC-041",
+    "EVT-073",
+    "SAFE-126",
+    "OPS-093",
+    "v3.4.0 (4) Staging Restore Validation Harness",
+    "LAB-090",
+    "SAFE-127",
+    "OPS-094",
   ]) {
     requireText(inventory, snippet, `inventory missing current expansion snippet: ${snippet}`);
   }

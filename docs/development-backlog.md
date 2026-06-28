@@ -10,14 +10,130 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.3.0`
+- 현재 소스 버전: `3.4.0`
 - 최신 공개 GitHub Release: `v3.3.0`
 - `v3.3.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap: `v3.3.0 Live Source Reliability Workspace`
+- 현재 source roadmap: `v3.4.0 Operations Continuity Drill Workspace`
 - 최신 published baseline: `v3.3.0 Live Source Reliability Workspace`
 
-## 현재 source roadmap: v3.3.0 Live Source Reliability Workspace
+## 현재 source roadmap: v3.4.0 Operations Continuity Drill Workspace
+
+상태: Step 1 source/version/docs/backlog/verification metadata 정렬 완료. Step 2
+Continuity Drill Contract 구현 완료. Step 3 Recovery Candidate Package Read Model
+구현 완료. Step 4 Staging Restore Validation Harness 구현 완료. Step 5~11은 아직
+계획 상태입니다. 이 절은 v3.4.0 source roadmap이며, 각 step은 실제 코드/API/문서
+변경, 기능 ID/test inventory 등록, 해당 verifier와 release test record evidence가
+생긴 뒤에만 완료로 기록합니다.
+
+직접 답: v3.4.0의 1차 선택값은 `Operations Continuity Drill Workspace`입니다.
+v3.3이 live source reliability와 backup/recovery handoff 입력을 정리했다면, v3.4는
+그 handoff를 실제 운영 복구 리허설로 이어가되 production registry, PublishedView,
+EventRecord, media path를 자동 변경하지 않는 안전한 dry-run 작업공간으로 확장합니다.
+
+fallback 또는 축소 대안은 `Continuity Drill Core`입니다. 이 대안은 v3.4.0 baseline
+정렬, drill contract, recovery candidate package, staging restore validation까지만 먼저
+닫고 Ops UI, client-safe digest, field bridge, evidence export는 후속 step evidence가
+생길 때까지 보류합니다.
+
+브레인스토밍 후보:
+
+| 후보 | 판단 | 이유 |
+| --- | --- | --- |
+| Operations Continuity Drill Workspace | 1차 선택 | v3.3 source reliability/handoff를 실제 운영 복구 리허설로 이어가는 자연스러운 다음 단계입니다. 운영자가 장애 원인, source/view 연결, health drift, 복구 준비 상태를 production write 없이 검증할 수 있습니다. |
+| ONVIF Field Readiness Workspace | 보류 | ONVIF fixture와 정책은 충분하지만 실장비 endpoint/credential 의존도가 커서 v3.4 source-only local roadmap의 중심축으로 삼기에는 외부 조건이 큽니다. |
+| VLM Operator Assist Expansion | 보류 | VLM profile/runtime/provider 문서는 많지만 default-off, provider credential, privacy transfer, runtime quality 판단이 필요하므로 v3.4 기본축보다는 조건부 보조축에 가깝습니다. |
+
+포함 범위:
+
+- v3.4.0 source roadmap baseline 정렬
+- operations continuity drill contract와 no-write/no-secret/no-media-path-change 경계
+- recovery candidate package read model
+- staging restore validation harness
+- source health replay/diff와 drift summary
+- Ops continuity drill workspace UI
+- approval-gated recovery checklist와 audit
+- client-safe maintenance digest
+- redacted drill evidence export와 cleanup manifest
+- field bridge condition gate
+- stabilization and release readiness local gate
+
+비범위:
+
+- production restore cutover 자동 수행
+- source registry 또는 PublishedView 자동 write
+- EventRecord, Event POST payload, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC
+  media path, Rule/Profile payload schema 변경
+- VMS/NVR 제품군, 장기 녹화, broad archive playback/search
+- ONVIF 실기기, external TURN/WHEP, real cloud/VLM provider 성공 보장
+- viewer/client에 source locator, credential, raw diagnostic JSON, debug material 노출
+
+| Step | 제목 | 우선순위 | 상태 | 산출물 |
+| --- | --- | --- | --- | --- |
+| 1 | v3.4.0 (1) v3.4.0 baseline 정렬 | P0 | 완료 | VERSION/CMake/docs/backlog/source roadmap과 `verify-v340-entry-baseline` 기준 정렬 |
+| 2 | v3.4.0 (2) Continuity Drill Contract | P0 | 완료 | recovery drill schema, v3.3 handoff 입력, read-only/no-write/no-secret/no-media-path-change 경계 정의 |
+| 3 | v3.4.0 (3) Recovery Candidate Package Read Model | P0 | 완료 | source registry snapshot, PublishedView, source health, EventRecord/audit context를 redacted 복구 후보 package로 조합 |
+| 4 | v3.4.0 (4) Staging Restore Validation Harness | P0 | 완료 | 임시 runtime에서 JSON parse, 중복 ID, 누락 sourceId 참조, auth store `0600`, checksum, viewer scope를 production write 없이 검증 |
+| 5 | v3.4.0 (5) Source Health Replay and Drift Diff | P1 | 계획 | handoff 당시 source health와 fresh source health를 비교해 stale/offline/reconnect/warning drift를 요약 |
+| 6 | v3.4.0 (6) Ops Continuity Drill Workspace UI | P1 | 계획 | `/ops/sources` 또는 `/ops/events`에서 drill package, validation status, blocked/ready 상태를 read-only로 표시 |
+| 7 | v3.4.0 (7) Approval-Gated Recovery Checklist and Audit | P1 | 계획 | operator note, ready/blocked/field-smoke-needed/not-run 상태, dry-run result, Ops audit 연결을 추가하고 자동 recovery는 수행하지 않음 |
+| 8 | v3.4.0 (8) Client-safe Maintenance Digest | P1 | 계획 | viewer/client에 maintenance/recovering/unavailable 요약만 제공하고 source URL/raw locator/raw JSON/debug/credential material은 비노출 |
+| 9 | v3.4.0 (9) Drill Evidence Export and Cleanup Manifest | P1 | 계획 | redacted drill artifact manifest, 최소 보존 evidence, `/tmp` cleanup, 민감 정보 scan 경계를 기록 |
+| 10 | v3.4.0 (10) Field Bridge Condition Gates | P2 | 계획 | ONVIF 실기기, external WHEP/TURN, real cloud/VLM provider는 endpoint/credential/승인 조건부 field smoke로 분리하고 source-only PASS로 대체하지 않음 |
+| 11 | v3.4.0 (11) Stabilization and Release Readiness | P0 | 계획 | v3.4 local gates, feature inventory, release records, docs links/assets, release evidence index, close-out dry-run, script inventory, `git diff --check` 연결 |
+
+완료 경계: 위 표는 v3.4.0 개발 순서와 우선순위입니다. 각 step은 실제 코드/UI/API/문서
+변경, 기능 ID/test inventory 등록, 해당 verifier와 release test record evidence가 생긴 뒤에만
+완료로 기록합니다. UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release
+action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁니다.
+
+## v3.4.0 Step 1 개발 기록
+
+- 범위: P0 `v3.4.0 (1) v3.4.0 baseline 정렬`.
+- `VERSION`, `CMakeLists.txt`: 현재 source version과 CMake project version을 `3.4.0`으로 정렬했습니다.
+- `README.md`, `README.en.md`, `docs/README.md`, `docs/en/README.md`, `docs/versioning-policy.md`, `docs/release-policy.md`, `docs/public-repo-final-review.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`: 현재 source roadmap을 `v3.4.0 Operations Continuity Drill Workspace`로 전환하고 latest published release는 `v3.3.0` source-only GitHub Release로 보존했습니다.
+- `docs/development-backlog.md`: v3.4.0 current roadmap을 `Step | 제목 | 우선순위 | 상태 | 산출물` 구조로 정렬하고, `Operations Continuity Drill Workspace` 1차 선택값, `Continuity Drill Core` fallback, 제외 대상과 no-write/no-secret/no-media-path-change 경계를 기록했습니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`, `config/docs_ui_assets.json`: current release target, docs asset baseline, verification catalog, release records를 source `3.4.0`와 latest published `v3.3.0` 분리 기준으로 정렬했습니다.
+- `scripts/internal/verify_release_metadata_consistency.mjs`, `scripts/internal/verify_docs_ui_assets.mjs`: release metadata와 docs UI asset verifier가 source `3.4.0`, current roadmap `v3.4.0 Operations Continuity Drill Workspace`, latest published `v3.3.0`을 분리 검증하도록 보정했습니다.
+- `scripts/internal/verify_v340_entry_baseline.mjs`, `server.sh`: `./server.sh verify-v340-entry-baseline` 명령을 추가해 source `3.4.0`, latest published `v3.3.0`, current roadmap `v3.4.0 Operations Continuity Drill Workspace`, 1차 선택값/fallback/제외 대상, release records, feature inventory, server dispatch 연결을 정적 검증합니다.
+- 검증: 최초 `node scripts/internal/verify_v340_entry_baseline.mjs`는 source version/docs/inventory/server dispatch가 아직 v3.4 기준이 아니어서 `pass=0 fail=9`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v340 Step 1 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 1은 source/version/docs/backlog/verification metadata 정렬입니다. v3.4 기능 구현, UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다. UI 직접 조작 evidence도 별도 실행 기록이 있을 때만 완료로 씁니다.
+
+## v3.4.0 Step 2 개발 기록
+
+- 범위: P0 `v3.4.0 (2) Continuity Drill Contract`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV340ContinuityDrillContractJson`을 추가해 `media-server.ops.v340-continuity-drill-contract.v1` recovery drill schema, `v330HandoffInputs`, `drillBoundaries`를 Ops-only read-only JSON으로 반환합니다.
+- `src/ingress/webrtc_http_server.cpp`: `GET /ops/api/source-registry/continuity-drill/contract` route를 추가했습니다. 이 route는 `require_ops_principal()`로 보호되고 `Cache-Control: no-store`를 설정하며 source registry write, PublishedView write, EventRecord write, Ops audit write, production restore, automatic recovery, RTSP/WebRTC media path 변경을 수행하지 않습니다.
+- `scripts/internal/verify_v340_continuity_drill_contract.mjs`, `server.sh`: `./server.sh verify-v340-continuity-drill-contract` 명령을 추가해 recovery drill schema, v3.3 handoff 입력, read-only/no-write/no-secret/no-media-path-change 경계, docs/inventory/release records/server dispatch 연결을 검증합니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`: `SAFE-125`, `OPS-092` 기능/경계/gate 항목을 추가하고 안정화 verifier 연결을 갱신했습니다.
+- 검증: 최초 `node scripts/internal/verify_v340_continuity_drill_contract.mjs`는 Step 2 server model, route, docs/inventory/server dispatch가 아직 없어서 `pass=0 fail=7`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v340 Step 2 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 2는 Continuity Drill Contract read model/API/verifier 연결입니다. Recovery Candidate Package Read Model, Staging Restore Validation Harness 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence도 아닙니다.
+
+## v3.4.0 Step 3 개발 기록
+
+- 범위: P0 `v3.4.0 (3) Recovery Candidate Package Read Model`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV340RecoveryCandidatePackageJson`을 추가해 SourceRegistry snapshot, PublishedView, source health snapshot, EventRecord query summary, redacted Ops audit context를 `media-server.ops.v340-recovery-candidate-package.v1` package로 조합합니다.
+- `src/ingress/webrtc_http_server.cpp`: `GET /ops/api/source-registry/recovery-candidate-package` route를 추가했습니다. 이 route는 `require_ops_principal()`로 보호되고 `Cache-Control: no-store`를 설정하며 source locator, credential material, raw audit body, media path, client/viewer material을 package에 포함하지 않습니다.
+- `src/ingress/webrtc_http_server.cpp`: package에 `stagingRestoreValidationHarness` command, `redactionPolicy`, `boundaries`를 포함해 production write, automatic recovery, EventRecord/Event POST/WebRTC/SSE/WS/media schema 변경이 없음을 명시했습니다.
+- `scripts/internal/verify_v340_recovery_candidate_package.mjs`, `server.sh`: `./server.sh verify-v340-recovery-candidate-package` 명령을 추가해 read model, route guard, redaction, no-store, docs/inventory/release records/server dispatch 연결을 정적 검증합니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`: `SRC-041`, `EVT-073`, `SAFE-126`, `OPS-093` 기능/경계/gate 항목을 추가하고 안정화 verifier 연결을 갱신했습니다.
+- 검증: 최초 `node scripts/internal/verify_v340_recovery_candidate_package.mjs`는 Step 3 server model, route, docs/inventory/server dispatch가 아직 없어서 `pass=0 fail=8`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v340 Step 3 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 3은 Recovery Candidate Package read model/API/verifier 연결입니다. Staging Restore Validation Harness 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence도 아닙니다.
+
+## v3.4.0 Step 4 개발 기록
+
+- 범위: P0 `v3.4.0 (4) Staging Restore Validation Harness`.
+- `scripts/internal/verify_v340_staging_restore_validation_harness.mjs`: 임시 runtime directory를 만들고 삭제하는 self-test harness를 추가했습니다. 이 harness는 JSON parse, duplicate sourceId, missing PublishedView sourceId reference, auth store `0600`, checksum mismatch, viewer scope missing을 production write 없이 검증합니다.
+- `src/ingress/webrtc_http_server.cpp`: recovery candidate package의 `stagingRestoreValidationHarness`에 `./server.sh verify-v340-staging-restore-validation-harness`, `stagingOnly`, `productionWritePerformed=false`, `authStoreMode0600`, `checksumVerified`, `viewerScopeVerified`, `duplicateSourceIdRejected`, `missingSourceIdReferenceRejected` marker를 포함했습니다.
+- `server.sh`: `./server.sh verify-v340-staging-restore-validation-harness` dispatch를 추가했습니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`: `LAB-090`, `SAFE-127`, `OPS-094` 기능/경계/gate 항목을 추가하고 안정화 verifier 연결을 갱신했습니다.
+- 검증: 최초 `node scripts/internal/verify_v340_staging_restore_validation_harness.mjs`는 harness self-test 1개는 통과했지만 docs/inventory/server dispatch와 package marker가 없어 `pass=1 fail=5`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v340 Step 4 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 4는 staging restore validation harness와 package marker 연결입니다. source health replay/diff, Ops UI, approval-gated checklist 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence도 아닙니다.
+
+`v3.4.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
+실제 tag/push는 수동 승인 후에만 수행합니다.
+
+## 최신 published baseline 상세: v3.3.0 Live Source Reliability Workspace
 
 상태: Step 1 source/version/docs/backlog/verification metadata 정렬 완료. Step 2
 Source Registry Snapshot and Identity 구현 완료. Step 3 Source Onboarding Quality Summary

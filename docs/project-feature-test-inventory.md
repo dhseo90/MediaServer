@@ -1,6 +1,6 @@
 # Project Feature Test Inventory
 
-이 문서는 현재 release 목표 `v3.3.0` 기준의 기능별 테스트 분류 기준표입니다.
+이 문서는 현재 release 목표 `v3.4.0` 기준의 기능별 테스트 분류 기준표입니다.
 독자는 개발/테스트 에이전트이며, lifecycle은 active release target 동안 유지되는 test inventory입니다.
 AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, 이 문서는 기능 ID와 테스트 영역만 관리합니다.
 
@@ -26,12 +26,12 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 649 |
+| 전체 기능 항목 | 660 |
 | UI 직접 필요 | 345 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 273 |
-| 테스트 필요 | 649 |
-| 안정화 대상 | 639 |
+| UI 비대상 | 284 |
+| 테스트 필요 | 660 |
+| 안정화 대상 | 650 |
 | UI 풀테스트 대상 | 365 |
 | 30분 soak 대상 | 49 |
 | 120분 대상 | 7 |
@@ -42,7 +42,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 649개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 660개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -51,7 +51,21 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | VA seed 데이터 | `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`로 numeric ID/API payload 기준 full UI seed matrix를 고정 | 준비 기준일 뿐 실행 증거 아님 |
 | UI 풀테스트 결과 | 기능 ID별 result template 기록란은 별도 문서가 관리 | 결과 문서 없이 inventory만으로 UI PASS 판정 불가 |
 | Coverage gate | `./server.sh verify-feature-inventory-coverage`가 `media-server.feature-inventory-coverage.v1` report로 기능 ID별 연결을 점검 | `missing coverage target` 누락 ID는 release gate에서 FAIL |
-| VLM current expansion | VLM route, control, action, runtime state, sidecar, privacy guard, feature-only retention을 현재 기능 ID에 연결 | 실행 증거 아님 |
+| VLM current expansion | VLM route, control, action, runtime state, sidecar, privacy guard, feature-only retention과 v3.4 continuity drill read model을 현재 기능 ID에 연결 | 실행 증거 아님 |
+
+## v3.4.0 Operations Continuity Drill Workspace Coverage Mapping
+
+이 절은 현재 active target의 계획/구현 단계 연결만 남깁니다. 아래 행은 실행 evidence가
+아니며, 기능 구현 전에는 실제 기능 ID, route/control/action, verifier command를
+추가해야 합니다. 신규 기능 ID가 예약되어 있어도 안정화/UI 테스트를 PASS로 보고하지
+않습니다.
+
+| Roadmap scope | Feature IDs | 대표 안정화 verifier | release evidence boundary |
+| --- | --- | --- | --- |
+| v3.4.0 (1) v3.4.0 baseline 정렬 | `OPS-091`, `SAFE-124` | `verify-v340-entry-baseline`, `verify-release-metadata`, `verify-docs-links`, `verify-docs-ui-assets` | source `3.4.0`, latest published `v3.3.0`, current roadmap `v3.4.0 Operations Continuity Drill Workspace` 정렬 기준. v3.4 기능 구현, UI 풀테스트, 30분/120분, GitHub Release publish evidence가 아님 |
+| v3.4.0 (2) Continuity Drill Contract | `SAFE-125`, `OPS-092` | `verify-v340-continuity-drill-contract` | `/ops/api/source-registry/continuity-drill/contract`가 recovery drill schema와 v3.3 handoff 입력을 Ops-only read-only contract로 노출하는지 확인합니다. source registry write, PublishedView write, EventRecord write, Ops audit write, secret/client exposure, media path/schema 변경, Recovery Candidate Package, Staging Restore Validation Harness, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
+| v3.4.0 (3) Recovery Candidate Package Read Model | `SRC-041`, `EVT-073`, `SAFE-126`, `OPS-093` | `verify-v340-recovery-candidate-package` | `/ops/api/source-registry/recovery-candidate-package`가 SourceRegistry snapshot, PublishedView, source health, EventRecord/audit context를 redacted recovery candidate package로 조합하는지 확인합니다. source locator/credential/raw audit body/media path/client material 노출, production restore, write path, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
+| v3.4.0 (4) Staging Restore Validation Harness | `LAB-090`, `SAFE-127`, `OPS-094` | `verify-v340-staging-restore-validation-harness` | temporary staging runtime에서 JSON parse, duplicate sourceId, missing sourceId reference, auth store `0600`, checksum, viewer scope를 production write 없이 검증합니다. source health replay/diff, Ops UI, approval-gated checklist, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
 
 ## v3.3.0 Live Source Reliability Workspace Coverage Mapping
 
@@ -244,14 +258,14 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | --- | --- | --- |
 | `UI-001`~`UI-018`, `UI-022`~`UI-074` | auth, Ops, Client, VLM, v250/v260/v270/v280/v300/v310/v320/v330 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
 | `AUTH-001`~`AUTH-042` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
-| `SRC-001`~`SRC-040` | source/ONVIF/UI verifier family | ONVIF field success는 approved environment only |
+| `SRC-001`~`SRC-041` | source/ONVIF/UI/v340 verifier family | ONVIF field success는 approved environment only |
 | `RULE-001`~`RULE-104` | rule/VA verifier family | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
-| `EVT-001`~`EVT-072` | event/VLM/v250/v260/v270/v280/v300/v310/v320/v330 verifier family | event log 육안 확인은 UI 풀테스트 |
+| `EVT-001`~`EVT-073` | event/VLM/v250/v260/v270/v280/v300/v310/v320/v330/v340 verifier family | event log 육안 확인은 UI 풀테스트 |
 | `CLIENT-001`~`CLIENT-028` | client/UI verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-021` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
-| `LAB-001`~`LAB-089` | lab/VLM/v250/v260/v270/v280/v300/v310 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-123` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-090` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
+| `LAB-001`~`LAB-090` | lab/VLM/v250/v260/v270/v280/v300/v310/v340 fixture verifier family | 제품 UI 비대상 |
+| `SAFE-001`~`SAFE-127` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-094` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
 
 ## VA Manual UI Seed Matrix
 
@@ -465,6 +479,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SRC-038 | V330 Step 7 client-safe source status context | 필요 | 필요 | 안정화, UI | `/client/api/views/{id}/events`와 client dashboard payload가 PublishedView-scoped source/tap 상태만 읽어 source status와 connection health를 요약하고 source URL/raw locator/credential/client scope 외 노출/source registry write를 만들지 않음 |
 | SRC-039 | V330 Step 9 source reliability search metrics view model | 필요 | 필요 | 안정화, UI | `/ops/api/source-registry/reliability-search-metrics`가 기존 source health snapshot과 source-health-state-change audit history만 읽어 source health filters, saved reliability view presets, reconnect/stale/offline metric summary를 요약하고 source registry write/PublishedView write/saved view write/raw locator/credential/client exposure를 만들지 않음 |
 | SRC-040 | V330 Step 10 backup recovery source handoff view model | 필요 | 필요 | 안정화, UI | `/ops/api/source-registry/backup-recovery-handoff`가 기존 SourceRegistry/PublishedView snapshot과 source health snapshot만 읽어 recovery validation plan 입력을 요약하고 source registry write/PublishedView write/backup artifact persistence/raw locator/credential/client exposure를 만들지 않음 |
+| SRC-041 | V340 Step 3 recovery candidate package read model | 비대상 | 필요 | 안정화 | `verify-v340-recovery-candidate-package`가 SourceRegistry snapshot, PublishedView, source health를 redacted recovery candidate package로 조합하고 source registry write/PublishedView write/source locator 노출이 없음을 확인 |
 
 ## D. Rule, Profile, Scenario, Tracker
 
@@ -651,6 +666,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | EVT-070 | V320 Step 10 resolution search metrics view model | 필요 | 필요 | 안정화, UI | `/ops/api/events/reviews` 응답의 `unifiedResolutionWorkspace.resolutionSearchMetrics`가 기존 EventRecord, Ops review, v3.2 context만 읽어 active filters, saved view matches, 운영 metric summary를 요약하고 EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata, RTSP/WebRTC media path, Rule/Profile payload, client/viewer 출력을 바꾸지 않음 |
 | EVT-071 | V330 Step 5 incident source correlation view model | 필요 | 필요 | 안정화, UI | `/ops/api/events/reviews` 응답의 `unifiedResolutionWorkspace.incidentSourceCorrelation`이 기존 resolution detail, sourceReliability, source health audit handoff만 읽어 source cause/closure impact/correlation signal을 요약하고 EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata, RTSP/WebRTC media path, Rule/Profile payload, client/viewer 출력을 바꾸지 않음 |
 | EVT-072 | V330 Step 6 operator recheck recovery queue view model | 필요 | 필요 | 안정화, UI | `/ops/api/events/reviews` 응답의 `unifiedResolutionWorkspace.operatorRecheckRecoveryQueue`가 기존 resolution detail, sourceReliability, incidentSourceCorrelation, operator note 상태만 읽어 failed-only recheck/retry candidate/recovery checklist/dry-run status/operator note link를 요약하고 EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata, RTSP/WebRTC media path, Rule/Profile payload, client/viewer 출력을 바꾸지 않음 |
+| EVT-073 | V340 Step 3 EventRecord/audit context projection | 비대상 | 필요 | 안정화 | `verify-v340-recovery-candidate-package`가 EventRecord query summary와 redacted Ops audit context를 package에 연결하되 EventRecord/Event POST schema, raw audit body, media path를 변경하지 않음 |
 
 ## F. Client And Viewer
 
@@ -804,6 +820,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | LAB-087 | V300-S07 feature/search index fixture | 비대상 | 필요 | 안정화 | `verify-v300-feature-search-index`와 `verify-analysis-state`가 EventRecord, FeatureSet, EvidenceManifest, operator review state projection, latest revision selection, orphan/privacy guard, stale result guard를 검증하되 `/ops/events` UI, vector search, provider rerank를 만들지 않음 |
 | LAB-088 | V300-S09 retention/pin/cleanup fixture | 비대상 | 필요 | 안정화 | `verify-v300-retention-pin-cleanup`와 `verify-analysis-state`가 7일 기본 retention, source/rule override, pinned event cleanup 제외, dry-run 후보 산출, apply lifecycle delete/de-index, audit trail을 검증하되 destructive 운영 삭제, UI 풀테스트, 30분/120분을 만들지 않음 |
 | LAB-089 | V310-S07 optional vector search fixture | 비대상 | 필요 | 안정화 | `verify-v310-optional-vector-search`와 `verify-analysis-state`가 default-off embedding index, explicit opt-in, quality/dimension gate, face/identity embedding rejection, rebuild stale vector result guard를 검증하되 provider embedding call, 제품 UI, client/viewer 노출을 만들지 않음 |
+| LAB-090 | V340 Step 4 staging restore validation harness | 비대상 | 필요 | 안정화 | `verify-v340-staging-restore-validation-harness`가 temporary staging runtime에서 JSON parse, duplicate sourceId, missing sourceId reference, auth store `0600`, checksum, viewer scope를 production write 없이 검증 |
 
 ## I. Safety, Boundary, Invariant Contract
 
@@ -932,6 +949,10 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SAFE-121 | V330 Step 9 source reliability search metrics boundary | 필요 | 필요 | 안정화, UI | `verify-v330-source-reliability-search-metrics`가 sourceReliabilitySearchMetrics context가 기존 source health snapshot과 source-health-state-change audit history를 deterministic search/metric view로만 요약하고 source registry write, PublishedView write, saved view write, EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata schema, RTSP/WebRTC media path, Rule/Profile payload, viewer/client output, source URL/raw JSON/debug/raw locator/credential 노출, 자동 recovery를 변경하지 않음을 확인하되 Ops Backup and Recovery Source Handoff, UI 풀테스트 직접 조작, 30분/120분, published metadata PASS로 대체하지 않음 |
 | SAFE-122 | V330 Step 10 backup recovery source handoff boundary | 필요 | 필요 | 안정화, UI | `verify-v330-ops-backup-recovery-source-handoff`가 backupRecoverySourceHandoff context가 기존 SourceRegistry/PublishedView snapshot과 source health snapshot을 deterministic recovery validation plan 입력으로만 요약하고 source registry write, PublishedView write, source health snapshot persistence, recovery validation plan persistence, real backup/restore, EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata schema, RTSP/WebRTC media path, Rule/Profile payload, viewer/client output, source URL/raw JSON/debug/raw locator/credential 노출, 자동 recovery를 변경하지 않음을 확인하되 UI 풀테스트 직접 조작, 30분/120분, published metadata PASS로 대체하지 않음 |
 | SAFE-123 | V330 Step 11 stabilization/release readiness boundary | 비대상 | 필요 | 안정화 | `verify-v330-stabilization-release-readiness`가 v3.3 local stabilization, release evidence/not-run 경계, close-out dry-run 기록을 확인하되 UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release, field smoke PASS로 대체하지 않음을 확인함 |
+| SAFE-124 | V340 Step 1 v3.4 baseline boundary | 비대상 | 필요 | 안정화 | `verify-v340-entry-baseline`가 source `3.4.0`, latest published `v3.3.0`, current roadmap `v3.4.0 Operations Continuity Drill Workspace`, release records, inventory, server dispatch 연결을 확인하되 v3.4 기능 구현, UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release PASS로 대체하지 않음 |
+| SAFE-125 | V340 Step 2 continuity drill contract boundary | 비대상 | 필요 | 안정화 | `verify-v340-continuity-drill-contract`가 recovery drill contract를 Ops-only read-only/no-write/no-secret/no-media-path-change 입력으로 노출하고 SourceRegistry/PublishedView/EventRecord/Ops audit write, automatic recovery, viewer/client exposure, schema/media path 변경이 없음을 확인 |
+| SAFE-126 | V340 Step 3 recovery candidate redaction boundary | 비대상 | 필요 | 안정화 | `verify-v340-recovery-candidate-package`가 redacted recovery candidate package에 source locator, credential material, raw audit body, media path, client/viewer material을 포함하지 않고 EventRecord/Event POST/WebRTC/SSE/WS/media schema를 변경하지 않음을 확인 |
+| SAFE-127 | V340 Step 4 staging restore no-production-write boundary | 비대상 | 필요 | 안정화 | `verify-v340-staging-restore-validation-harness`가 temporary staging runtime validation만 수행하고 production registry, PublishedView, auth store, media path write를 수행하지 않음을 확인 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -993,6 +1014,10 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | OPS-088 | V330 Step 9 Source Reliability Search and Metrics 게이트 | 비대상 | 필요 | 안정화 | `verify-v330-source-reliability-search-metrics`가 `/ops/api/source-registry/reliability-search-metrics` Ops-only route, `/ops/sources` source health filters/saved reliability views/reconnect-stale-offline metrics UI, CSS, backlog/stream verification/release records/feature inventory/server dispatch 연결을 확인하되 source registry write, PublishedView write, saved view write, viewer/client 노출, API/schema/media 변경, Ops Backup and Recovery Source Handoff, release publish, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
 | OPS-089 | V330 Step 10 Ops Backup and Recovery Source Handoff 게이트 | 비대상 | 필요 | 안정화 | `verify-v330-ops-backup-recovery-source-handoff`가 `/ops/api/source-registry/backup-recovery-handoff` Ops-only route, `/ops/sources` handoff input/recovery validation plan UI, CSS, backup guide, backlog/stream verification/release records/feature inventory/server dispatch 연결을 확인하되 source registry write, PublishedView write, backup artifact persistence, real backup/restore, automatic recovery, viewer/client 노출, API/schema/media 변경, release publish, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
 | OPS-090 | V330 Step 11 Stabilization and Release Readiness 게이트 | 비대상 | 필요 | 안정화 | `verify-v330-stabilization-release-readiness`가 v3.3 Step 1~10 local gates, release policy/evidence index/test records, close-out dry-run command, server dispatch 연결을 확인하되 UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release, field smoke 실행 PASS로 대체하지 않음 |
+| OPS-091 | V340 Step 1 v3.4 baseline 게이트 | 비대상 | 필요 | 안정화 | `verify-v340-entry-baseline`가 VERSION/CMake/README/docs/backlog/source roadmap을 source `3.4.0`, latest published `v3.3.0`, current roadmap `v3.4.0 Operations Continuity Drill Workspace` 기준으로 정렬했는지 확인하되 v3.4 기능 구현, release publish, PR/main/tag/push, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
+| OPS-092 | V340 Step 2 Continuity Drill Contract 게이트 | 비대상 | 필요 | 안정화 | `verify-v340-continuity-drill-contract`가 `/ops/api/source-registry/continuity-drill/contract` Ops-only route, recovery drill schema, v3.3 handoff 입력, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 Recovery Candidate Package, Staging Restore Validation Harness, release publish, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
+| OPS-093 | V340 Step 3 Recovery Candidate Package 게이트 | 비대상 | 필요 | 안정화 | `verify-v340-recovery-candidate-package`가 `/ops/api/source-registry/recovery-candidate-package` Ops-only route, SourceRegistry/PublishedView/source health/EventRecord/audit context read model, redaction, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 production restore, release publish, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
+| OPS-094 | V340 Step 4 Staging Restore Validation Harness 게이트 | 비대상 | 필요 | 안정화 | `verify-v340-staging-restore-validation-harness`가 temporary staging runtime validation, package marker, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 production write, release publish, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 
