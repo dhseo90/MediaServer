@@ -5992,6 +5992,30 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
           </div>
         </div>
       </section>
+      <section class="section-card ops-workspace-wide" data-channel-task="ops-field-bridge-condition-gates" data-testid="ops-field-bridge-condition-gates">
+        <div class="toolbar">
+          <div>
+            <h3>Field Bridge Condition Gates</h3>
+            <p id="source-field-bridge-gate-status">ONVIF 실기기, external WHEP/TURN, real cloud/VLM provider 조건을 확인 중입니다.</p>
+          </div>
+        </div>
+        <div id="source-field-bridge-gate-summary" class="metric-grid">
+          <div class="metric-card"><span>Gates</span><strong id="source-field-bridge-gate-count">-</strong></div>
+          <div class="metric-card"><span>Field Smoke</span><strong id="source-field-bridge-field-smoke-count">-</strong></div>
+          <div class="metric-card"><span>Blocked</span><strong id="source-field-bridge-blocked-count">-</strong></div>
+          <div class="metric-card"><span>Approvals</span><strong id="source-field-bridge-approval-count">-</strong></div>
+        </div>
+        <div class="source-field-bridge-gate-grid" data-source-field-bridge-gates="media-server.ops.v340-field-bridge-condition-gates.v1">
+          <div>
+            <h4>condition gates</h4>
+            <div id="source-field-bridge-gate-list" class="source-field-bridge-gate-list"></div>
+          </div>
+          <div>
+            <h4>source-only PASS boundary</h4>
+            <div id="source-field-bridge-boundary-list" class="source-field-bridge-gate-list"></div>
+          </div>
+        </div>
+      </section>
       <section class="section-card ops-channels-list-panel" data-channel-task="list">
         <div class="toolbar">
           <div>
@@ -14782,6 +14806,228 @@ std::string OpsV340DrillEvidenceExportCleanupManifestJson(
         << "\"artifactExportExecuted\":false,"
         << "\"cleanupExecutionPerformed\":false,"
         << "\"temporaryCleanupExecuted\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"productionRestorePerformed\":false,"
+        << "\"automaticRecoveryPerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"searchMetricsChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV340FieldBridgeConditionGate {
+    std::string gate_key;
+    std::string bridge_kind;
+    std::string label;
+    std::string field_smoke_status{"field-smoke-needed"};
+    std::string execution_status{"not-run"};
+    std::string source_only_pass_result{"blocked"};
+    std::string field_smoke_command;
+    std::string condition_summary;
+    bool endpoint_required{true};
+    bool credential_required{true};
+    bool operator_approval_required{true};
+    bool source_only_pass_accepted{false};
+    bool field_smoke_executed{false};
+};
+
+struct OpsV340FieldBridgeConditionGateSummary {
+    int gate_count{0};
+    int field_smoke_needed_count{0};
+    int blocked_count{0};
+    int not_run_count{0};
+    int endpoint_required_count{0};
+    int credential_required_count{0};
+    int approval_required_count{0};
+};
+
+std::vector<OpsV340FieldBridgeConditionGate> BuildV340FieldBridgeConditionGates() {
+    return {
+        {"onvif-real-device",
+         "onvif-real-device",
+         "ONVIF real device field smoke",
+         "field-smoke-needed",
+         "not-run",
+         "blocked",
+         "approved field smoke with real ONVIF endpoint and credential",
+         "Requires an operator-approved ONVIF device endpoint, credential material supplied out of band, and a real device smoke run before release PASS eligibility.",
+         true,
+         true,
+         true,
+         false,
+         false},
+        {"external-whep-turn",
+         "external-whep-turn",
+         "External WHEP/TURN field smoke",
+         "field-smoke-needed",
+         "not-run",
+         "blocked",
+         "approved field smoke with external WHEP endpoint and TURN relay credential",
+         "Requires approved WHEP playback endpoint, TURN relay credential, and external network smoke evidence; local ICE/source-only PASS is not a substitute.",
+         true,
+         true,
+         true,
+         false,
+         false},
+        {"real-cloud-vlm-provider",
+         "real-cloud-vlm-provider",
+         "Real cloud/VLM provider field smoke",
+         "field-smoke-needed",
+         "not-run",
+         "blocked",
+         "approved field smoke with real cloud/VLM provider credential",
+         "Requires approved provider endpoint, credential, and field smoke evidence; local fixture/VLM boundary PASS is not promoted to provider PASS.",
+         true,
+         true,
+         true,
+         false,
+         false},
+    };
+}
+
+OpsV340FieldBridgeConditionGateSummary BuildV340FieldBridgeConditionGateSummary(
+    const std::vector<OpsV340FieldBridgeConditionGate>& gates) {
+    OpsV340FieldBridgeConditionGateSummary summary;
+    summary.gate_count = static_cast<int>(gates.size());
+    for (const auto& gate : gates) {
+        if (gate.field_smoke_status == "field-smoke-needed") {
+            ++summary.field_smoke_needed_count;
+        }
+        if (gate.source_only_pass_result == "blocked") {
+            ++summary.blocked_count;
+        }
+        if (gate.execution_status == "not-run") {
+            ++summary.not_run_count;
+        }
+        if (gate.endpoint_required) {
+            ++summary.endpoint_required_count;
+        }
+        if (gate.credential_required) {
+            ++summary.credential_required_count;
+        }
+        if (gate.operator_approval_required) {
+            ++summary.approval_required_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV340FieldBridgeConditionGateJson(std::ostringstream& out,
+                                            const OpsV340FieldBridgeConditionGate& gate) {
+    out << "{"
+        << "\"gateKey\":\"" << JsonEscape(gate.gate_key) << "\","
+        << "\"bridgeKind\":\"" << JsonEscape(gate.bridge_kind) << "\","
+        << "\"label\":\"" << JsonEscape(gate.label) << "\","
+        << "\"fieldSmokeStatus\":\"" << JsonEscape(gate.field_smoke_status) << "\","
+        << "\"executionStatus\":\"" << JsonEscape(gate.execution_status) << "\","
+        << "\"sourceOnlyPassResult\":\"" << JsonEscape(gate.source_only_pass_result) << "\","
+        << "\"fieldSmokeCommand\":\"" << JsonEscape(gate.field_smoke_command) << "\","
+        << "\"conditionSummary\":\"" << JsonEscape(gate.condition_summary) << "\","
+        << "\"endpointRequired\":" << (gate.endpoint_required ? "true" : "false") << ","
+        << "\"credentialRequired\":" << (gate.credential_required ? "true" : "false") << ","
+        << "\"operatorApprovalRequired\":" << (gate.operator_approval_required ? "true" : "false") << ","
+        << "\"sourceOnlyPassAccepted\":" << (gate.source_only_pass_accepted ? "true" : "false") << ","
+        << "\"fieldSmokeExecuted\":" << (gate.field_smoke_executed ? "true" : "false") << ","
+        << "\"endpointUrlIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"providerMaterialIncluded\":false,"
+        << "\"rawTurnCredentialsIncluded\":false,"
+        << "\"rawVlmPromptIncluded\":false,"
+        << "\"rawProviderResponseIncluded\":false"
+        << "}";
+}
+
+void AppendV340FieldBridgeConditionGateSummaryJson(
+    std::ostringstream& out,
+    const OpsV340FieldBridgeConditionGateSummary& summary) {
+    out << "{"
+        << "\"gateCount\":" << summary.gate_count << ","
+        << "\"fieldSmokeNeededCount\":" << summary.field_smoke_needed_count << ","
+        << "\"blockedCount\":" << summary.blocked_count << ","
+        << "\"notRunCount\":" << summary.not_run_count << ","
+        << "\"endpointRequiredCount\":" << summary.endpoint_required_count << ","
+        << "\"credentialRequiredCount\":" << summary.credential_required_count << ","
+        << "\"approvalRequiredCount\":" << summary.approval_required_count
+        << "}";
+}
+
+std::string OpsV340FieldBridgeConditionGatesJson(
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    if (!source_health_snapshot.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v340-field-bridge-condition-gates.v1\",\"error\":\"" +
+               JsonEscape(source_health_snapshot.error) + "\"}";
+    }
+
+    const auto gates = BuildV340FieldBridgeConditionGates();
+    const auto summary = BuildV340FieldBridgeConditionGateSummary(gates);
+    const std::vector<std::string> field_smoke_conditions{
+        "operator approval",
+        "field endpoint configured",
+        "credential supplied out of band",
+        "real field smoke executed",
+        "source-only PASS not accepted"};
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v340-field-bridge-condition-gates.v1\","
+        << "\"status\":\"field-bridge-condition-gates\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"drillEvidenceRoute\":\"/ops/api/source-registry/drill-evidence-export-cleanup-manifest\","
+        << "\"fieldBridgeConditionGateSummary\":";
+    AppendV340FieldBridgeConditionGateSummaryJson(out, summary);
+    out << ",\"fieldBridgeConditionGates\":[";
+    for (std::size_t i = 0; i < gates.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV340FieldBridgeConditionGateJson(out, gates[i]);
+    }
+    out << "],\"sourceOnlyPassPolicy\":{"
+        << "\"sourceOnlyPassAccepted\":false,"
+        << "\"localVerifierPassSubstitutesFieldSmoke\":false,"
+        << "\"sourceOnlyPassResult\":\"blocked\","
+        << "\"fieldSmokeRequiredForReleasePass\":true"
+        << "},\"fieldSmokeConditions\":";
+    AppendV340RecoveryCandidateStringListJson(out, field_smoke_conditions);
+    out << ",\"redactionPolicy\":{"
+        << "\"redacted\":true,"
+        << "\"endpointUrlIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"providerMaterialIncluded\":false,"
+        << "\"rawTurnCredentialsIncluded\":false,"
+        << "\"rawVlmPromptIncluded\":false,"
+        << "\"rawProviderResponseIncluded\":false,"
+        << "\"clientViewerMaterialIncluded\":false"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"conditionalFieldSmokeOnly\":true,"
+        << "\"sourceOnlyPassAccepted\":false,"
+        << "\"localVerifierPassSubstitutesFieldSmoke\":false,"
+        << "\"fieldSmokeExecuted\":false,"
+        << "\"endpointProbePerformed\":false,"
+        << "\"credentialProbePerformed\":false,"
+        << "\"onvifDeviceContacted\":false,"
+        << "\"externalWhepTurnContacted\":false,"
+        << "\"cloudProviderContacted\":false,"
+        << "\"vlmProviderCalled\":false,"
         << "\"sourceRegistryWritePerformed\":false,"
         << "\"publishedViewWritePerformed\":false,"
         << "\"eventRecordWritePerformed\":false,"
@@ -24628,6 +24874,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV340DrillEvidenceExportCleanupManifestJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/source-registry/field-bridge-condition-gates") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV340FieldBridgeConditionGatesJson(source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }
