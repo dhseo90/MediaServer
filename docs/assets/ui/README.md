@@ -4,7 +4,7 @@
 파일명으로 보관합니다.
 
 현재 README 대표 이미지는 제품 shell 설명용입니다. 현재 source tree는 `v3.4.0`
-Operations Continuity Drill Workspace를 가리키고 최신 공개 GitHub Release는 `v3.3.0`
+Operations Continuity Drill Workspace를 가리키고 최신 공개 GitHub Release는 `v3.4.0`
 Live Source Reliability Workspace를 가리키지만, 이 이미지를 v3.4.0 source baseline,
 UI 풀테스트, 공개 릴리즈 증거로 쓰지 않습니다. 특히
 Client Live 이미지는 source tree, dock event feed, workspace preset,
@@ -46,7 +46,7 @@ Step 1 기준 공개 문서 묶음:
 
 Step 1 기준:
 
-- v3.4.0 source roadmap과 v3.3.0 published source-only baseline을 분리 정렬하고,
+- v3.4.0 source roadmap과 v3.4.0 published source-only baseline을 정렬하고,
   직전 v3.2.0 baseline은 historical reference로만 둡니다.
 - 대표 이미지는 `config/docs_ui_assets.json`의 managed asset list 안에서만 README와
   UI guide에 노출합니다.

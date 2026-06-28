@@ -11,11 +11,11 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 ## 현재 공개 상태
 
 - 현재 소스 버전: `3.4.0`
-- 최신 공개 GitHub Release: `v3.3.0`
-- `v3.3.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
+- 최신 공개 GitHub Release: `v3.4.0`
+- `v3.4.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
 - 현재 source roadmap: `v3.4.0 Operations Continuity Drill Workspace`
-- 최신 published baseline: `v3.3.0 Live Source Reliability Workspace`
+- 최신 published baseline: `v3.4.0 Operations Continuity Drill Workspace`
 
 ## 현재 source roadmap: v3.4.0 Operations Continuity Drill Workspace
 
@@ -95,11 +95,11 @@ action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁�
 
 - 범위: P0 `v3.4.0 (1) v3.4.0 baseline 정렬`.
 - `VERSION`, `CMakeLists.txt`: 현재 source version과 CMake project version을 `3.4.0`으로 정렬했습니다.
-- `README.md`, `README.en.md`, `docs/README.md`, `docs/en/README.md`, `docs/versioning-policy.md`, `docs/release-policy.md`, `docs/public-repo-final-review.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`: 현재 source roadmap을 `v3.4.0 Operations Continuity Drill Workspace`로 전환하고 latest published release는 `v3.3.0` source-only GitHub Release로 보존했습니다.
+- `README.md`, `README.en.md`, `docs/README.md`, `docs/en/README.md`, `docs/versioning-policy.md`, `docs/release-policy.md`, `docs/public-repo-final-review.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`: 현재 source roadmap을 `v3.4.0 Operations Continuity Drill Workspace`로 전환했고 release publish 이후 latest published release를 `v3.4.0` source-only GitHub Release로 정렬했습니다.
 - `docs/development-backlog.md`: v3.4.0 current roadmap을 `Step | 제목 | 우선순위 | 상태 | 산출물` 구조로 정렬하고, `Operations Continuity Drill Workspace` 1차 선택값, `Continuity Drill Core` fallback, 제외 대상과 no-write/no-secret/no-media-path-change 경계를 기록했습니다.
-- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`, `config/docs_ui_assets.json`: current release target, docs asset baseline, verification catalog, release records를 source `3.4.0`와 latest published `v3.3.0` 분리 기준으로 정렬했습니다.
-- `scripts/internal/verify_release_metadata_consistency.mjs`, `scripts/internal/verify_docs_ui_assets.mjs`: release metadata와 docs UI asset verifier가 source `3.4.0`, current roadmap `v3.4.0 Operations Continuity Drill Workspace`, latest published `v3.3.0`을 분리 검증하도록 보정했습니다.
-- `scripts/internal/verify_v340_entry_baseline.mjs`, `server.sh`: `./server.sh verify-v340-entry-baseline` 명령을 추가해 source `3.4.0`, latest published `v3.3.0`, current roadmap `v3.4.0 Operations Continuity Drill Workspace`, 1차 선택값/fallback/제외 대상, release records, feature inventory, server dispatch 연결을 정적 검증합니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`, `config/docs_ui_assets.json`: current release target, docs asset baseline, verification catalog, release records를 source `3.4.0`와 latest published `v3.4.0` 기준으로 정렬했습니다.
+- `scripts/internal/verify_release_metadata_consistency.mjs`, `scripts/internal/verify_docs_ui_assets.mjs`: release metadata와 docs UI asset verifier가 source `3.4.0`, current roadmap `v3.4.0 Operations Continuity Drill Workspace`, latest published `v3.4.0`을 검증하도록 보정했습니다.
+- `scripts/internal/verify_v340_entry_baseline.mjs`, `server.sh`: `./server.sh verify-v340-entry-baseline` 명령을 추가해 source `3.4.0`, latest published `v3.4.0`, current roadmap `v3.4.0 Operations Continuity Drill Workspace`, 1차 선택값/fallback/제외 대상, release records, feature inventory, server dispatch 연결을 정적 검증합니다.
 - 검증: 최초 `node scripts/internal/verify_v340_entry_baseline.mjs`는 source version/docs/inventory/server dispatch가 아직 v3.4 기준이 아니어서 `pass=0 fail=9`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v340 Step 1 결과 행에 기록합니다.
 - 완료 경계: 이번 Step 1은 source/version/docs/backlog/verification metadata 정렬입니다. v3.4 기능 구현, UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다. UI 직접 조작 evidence도 별도 실행 기록이 있을 때만 완료로 씁니다.
 
@@ -352,18 +352,28 @@ close-out dry-run, script inventory, `git diff --check` 연결입니다.
 recovery queue, client digest, search/metrics 구현 완료 evidence가 아닙니다.
 `v3.3.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
 
-## 최신 공개 기준: v3.3.0 Source Release Baseline
+## 최신 공개 기준: v3.4.0 Source Release Baseline
 
-v3.3.0은 Live Source Reliability Workspace source-only 공개 릴리즈입니다. 이 기준은
+v3.4.0은 Operations Continuity Drill Workspace source-only 공개 릴리즈입니다. 이 기준은
+continuity drill contract, recovery candidate package, staging restore validation,
+source health replay/drift diff, Ops drill workspace UI, approval-gated checklist,
+client-safe maintenance digest, evidence export cleanup manifest, field bridge
+condition gates, release readiness를 local evidence와 함께 닫은 최신 published
+baseline입니다. 120분 longrun과 external field smoke는 실행하지 않은 영역으로 계속
+분리합니다.
+
+## 직전 공개 기준: v3.3.0 Source Release Baseline
+
+v3.3.0은 Live Source Reliability Workspace source-only 직전 공개 릴리즈입니다. 이 기준은
 source registry snapshot, onboarding quality, reliability timeline, incident-to-source
 correlation, operator recheck/recovery queue, client-safe source digest, reliability
 search/metrics, backup/recovery source handoff, release readiness를 local evidence와
-함께 닫은 최신 published baseline입니다. 120분 longrun과 external field smoke는
-실행하지 않은 영역으로 계속 분리합니다.
+함께 닫은 historical baseline입니다. 120분 longrun과 external field smoke는
+실행하지 않은 영역으로 계속 분리했습니다.
 
-## 직전 공개 기준: v3.2.0 Source Release Baseline
+## 이전 공개 기준: v3.2.0 Source Release Baseline
 
-v3.2.0은 Operations Resolution Workspace source-only 직전 공개 릴리즈입니다. 이 기준은
+v3.2.0은 Operations Resolution Workspace source-only 이전 공개 릴리즈입니다. 이 기준은
 v3.3.0의 완료 evidence로 재사용하지 않는 historical baseline입니다.
 
 ## v3.3.0 Step 1 개발 기록
