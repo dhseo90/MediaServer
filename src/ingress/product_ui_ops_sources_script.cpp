@@ -24,6 +24,8 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     const sourceContinuityDrillPackageList = document.querySelector('#source-continuity-drill-package-list');
     const sourceContinuityDrillValidationList = document.querySelector('#source-continuity-drill-validation-list');
     const sourceContinuityDrillDriftList = document.querySelector('#source-continuity-drill-drift-list');
+    const sourceRecoveryChecklistStatus = document.querySelector('#source-recovery-checklist-status');
+    const sourceRecoveryChecklistList = document.querySelector('#source-recovery-checklist-list');
     const channelBody = document.querySelector('#channels-body');
     const channelForm = document.querySelector('#channel-form');
     const channelPanel = document.querySelector('#channel-detail-panel');
@@ -595,6 +597,37 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         <span>sourceRegistryWritePerformed: ${escapeHtml(packageBoundaries.sourceRegistryWritePerformed === true ? 'true' : 'false')}</span>
       </div>`;
     }
+    function renderApprovalGatedRecoveryChecklistAudit(payload = {}) {
+      const summary = payload.approvalGatedRecoveryChecklistSummary || {};
+      const items = Array.isArray(payload.approvalGatedRecoveryChecklistItems) ? payload.approvalGatedRecoveryChecklistItems : [];
+      const boundaries = payload.boundaries || {};
+      setMetricText('source-recovery-checklist-ready-count', summary.readyCount ?? 0);
+      setMetricText('source-recovery-checklist-blocked-count', summary.blockedCount ?? 0);
+      setMetricText('source-recovery-checklist-field-smoke-needed-count', summary.fieldSmokeNeededCount ?? 0);
+      setMetricText('source-recovery-checklist-not-run-count', summary.notRunCount ?? 0);
+      if (sourceRecoveryChecklistStatus) {
+        sourceRecoveryChecklistStatus.textContent =
+          `${summary.itemCount ?? items.length} checklist items / ready ${summary.readyCount ?? 0} / blocked ${summary.blockedCount ?? 0} / field-smoke-needed ${summary.fieldSmokeNeededCount ?? 0} / not-run ${summary.notRunCount ?? 0}`;
+      }
+      if (!sourceRecoveryChecklistList) return;
+      const cards = items.slice(0, 10).map(item => {
+        const opsAuditLinkage = item.opsAuditLinkage || {};
+        return `<article class="source-recovery-checklist-card" data-source-recovery-checklist-item="${escapeHtml(item.sourceId || 'source')}" data-source-recovery-checklist-status="${escapeHtml(item.readinessStatus || 'not-run')}">
+          <div>
+            <strong>${escapeHtml(item.displayName || item.sourceId || 'source')}</strong>
+            <span>${escapeHtml(item.readinessStatus || 'not-run')} · ${escapeHtml(item.sourceKind || 'unknown')}</span>
+          </div>
+          <p>${escapeHtml(item.operatorNote || 'operator note required before manual recovery')}</p>
+          <small>${escapeHtml(item.dryRunResult || 'dry-run result not-run')}</small>
+          <a class="button button-secondary button-compact" href="${escapeHtml(opsAuditLinkage.auditRoute || '/ops/sources#auditArea=channels')}">Audit</a>
+        </article>`;
+      }).join('') || '<span class="empty">approval-gated recovery checklist 없음</span>';
+      sourceRecoveryChecklistList.innerHTML = cards + `<div class="source-recovery-checklist-boundary" data-source-recovery-checklist-status="boundary">
+        <span>automaticRecoveryPerformed: ${escapeHtml(boundaries.automaticRecoveryPerformed === true ? 'true' : 'false')}</span>
+        <span>sourceRegistryWritePerformed: ${escapeHtml(boundaries.sourceRegistryWritePerformed === true ? 'true' : 'false')}</span>
+        <span>opsAuditWritePerformed: ${escapeHtml(boundaries.opsAuditWritePerformed === true ? 'true' : 'false')}</span>
+      </div>`;
+    }
     function setFormDisabled(disabled) {
       const writable = canWriteSources();
       for (const element of Array.from(channelForm.elements)) {
@@ -1049,7 +1082,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       return { channelId, sourcePayload, viewPayload };
     }
     async function loadAll() {
-      const [sources, views, clientViews, onboardingQuality, reliabilityTimeline, reliabilitySearchMetrics, backupRecoveryHandoff, continuityDrillContract, recoveryCandidatePackage, sourceHealthReplayDriftDiff, principal] = await Promise.all([
+      const [sources, views, clientViews, onboardingQuality, reliabilityTimeline, reliabilitySearchMetrics, backupRecoveryHandoff, continuityDrillContract, recoveryCandidatePackage, sourceHealthReplayDriftDiff, approvalGatedRecoveryChecklist, principal] = await Promise.all([
         requestJson('/ops/api/sources'),
         requestJson('/ops/api/views'),
         requestJson('/client/api/views'),
@@ -1060,6 +1093,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         requestJson('/ops/api/source-registry/continuity-drill/contract'),
         requestJson('/ops/api/source-registry/recovery-candidate-package'),
         requestJson('/ops/api/source-registry/source-health-replay-drift-diff'),
+        requestJson('/ops/api/source-registry/approval-gated-recovery-checklist'),
         requestJson('/auth/whoami').catch(() => null)
       ]);
       opsPrincipal = principal;
@@ -1071,6 +1105,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       renderSourceReliabilitySearchMetrics(reliabilitySearchMetrics);
       renderBackupRecoverySourceHandoff(backupRecoveryHandoff);
       renderOpsContinuityDrillWorkspace(continuityDrillContract, recoveryCandidatePackage, sourceHealthReplayDriftDiff);
+      renderApprovalGatedRecoveryChecklistAudit(approvalGatedRecoveryChecklist);
       renderChannels(loadedSources, loadedViews);
       renderOpsAuditTrail('channel-audit-list', 'channels');
       if (!initializedHashChannel) {

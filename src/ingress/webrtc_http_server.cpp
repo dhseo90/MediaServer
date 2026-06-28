@@ -5841,6 +5841,26 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
           </div>
         </div>
       </section>
+      <section class="section-card ops-workspace-wide" data-channel-task="ops-approval-gated-recovery-checklist" data-testid="ops-approval-gated-recovery-checklist">
+        <div class="toolbar">
+          <div>
+            <h3>Approval-Gated Recovery Checklist</h3>
+            <p id="source-recovery-checklist-status">operator note, dry-run result, Ops audit 연결을 확인 중입니다.</p>
+          </div>
+        </div>
+        <div id="source-recovery-checklist-summary" class="metric-grid">
+          <div class="metric-card"><span>Ready</span><strong id="source-recovery-checklist-ready-count">-</strong></div>
+          <div class="metric-card"><span>Blocked</span><strong id="source-recovery-checklist-blocked-count">-</strong></div>
+          <div class="metric-card"><span>Field Smoke</span><strong id="source-recovery-checklist-field-smoke-needed-count">-</strong></div>
+          <div class="metric-card"><span>Not Run</span><strong id="source-recovery-checklist-not-run-count">-</strong></div>
+        </div>
+        <div class="source-recovery-checklist-grid" data-source-recovery-checklist="media-server.ops.v340-approval-gated-recovery-checklist.v1">
+          <div>
+            <h4>approval checklist</h4>
+            <div id="source-recovery-checklist-list" class="source-recovery-checklist-list"></div>
+          </div>
+        </div>
+      </section>
       <section class="section-card ops-channels-list-panel" data-channel-task="list">
         <div class="toolbar">
           <div>
@@ -14148,6 +14168,220 @@ std::string OpsV340RecoveryCandidatePackageJson(
         << "\"webrtcDataChannelSchemaChanged\":false,"
         << "\"sseMetadataSchemaChanged\":false,"
         << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV340ApprovalGatedRecoveryChecklistItem {
+    std::string source_id;
+    std::string display_name;
+    std::string source_kind;
+    std::string readiness_status{"not-run"};
+    std::string operator_note;
+    std::string dry_run_result;
+    std::string audit_route;
+    int audit_entry_count{0};
+    bool field_smoke_required{false};
+};
+
+struct OpsV340ApprovalGatedRecoveryChecklistSummary {
+    int item_count{0};
+    int ready_count{0};
+    int blocked_count{0};
+    int field_smoke_needed_count{0};
+    int not_run_count{0};
+    int audit_linked_count{0};
+};
+
+std::string JoinV340ApprovalRecoveryStrings(const std::vector<std::string>& values,
+                                            const std::string& delimiter) {
+    std::ostringstream out;
+    for (std::size_t i = 0; i < values.size(); ++i) {
+        if (i != 0) {
+            out << delimiter;
+        }
+        out << values[i];
+    }
+    return out.str();
+}
+
+std::string V340ApprovalRecoveryStatusFor(const OpsV340RecoveryCandidatePackageItem& candidate) {
+    if (candidate.recovery_readiness == "blocked") {
+        return "blocked";
+    }
+    if (candidate.source_kind == "onvif" || candidate.source_kind == "whep") {
+        return "field-smoke-needed";
+    }
+    if (candidate.recovery_readiness == "ready") {
+        return "ready";
+    }
+    return "not-run";
+}
+
+std::string V340ApprovalRecoveryDryRunResultFor(
+    const OpsV340RecoveryCandidatePackageItem& candidate,
+    const std::string& readiness_status) {
+    if (readiness_status == "blocked") {
+        return "blocked: " + JoinV340ApprovalRecoveryStrings(candidate.readiness_reasons, ", ");
+    }
+    if (readiness_status == "field-smoke-needed") {
+        return "field-smoke-needed: endpoint/credential approval required before recovery";
+    }
+    if (readiness_status == "ready") {
+        return "dry-run-ready: staging validation can be reviewed before manual approval";
+    }
+    return "not-run: operator approval and dry-run review are still required";
+}
+
+std::vector<OpsV340ApprovalGatedRecoveryChecklistItem> BuildV340ApprovalGatedRecoveryChecklist(
+    const std::vector<OpsV340RecoveryCandidatePackageItem>& candidates) {
+    std::vector<OpsV340ApprovalGatedRecoveryChecklistItem> items;
+    items.reserve(candidates.size());
+    for (const auto& candidate : candidates) {
+        OpsV340ApprovalGatedRecoveryChecklistItem item;
+        item.source_id = candidate.source_id;
+        item.display_name = candidate.display_name.empty() ? candidate.source_id : candidate.display_name;
+        item.source_kind = candidate.source_kind;
+        item.audit_entry_count = candidate.audit_entry_count;
+        item.readiness_status = V340ApprovalRecoveryStatusFor(candidate);
+        item.field_smoke_required = item.readiness_status == "field-smoke-needed";
+        item.operator_note = "Operator must review recovery checklist for source " + candidate.source_id +
+                             " before any manual recovery. Automatic recovery is disabled.";
+        item.dry_run_result = V340ApprovalRecoveryDryRunResultFor(candidate, item.readiness_status);
+        item.audit_route = "/ops/sources#auditArea=channels&auditPreset=source-recovery-approval"
+                           "&auditAction=source-recovery-approval-checklist&auditTarget=" +
+                           UrlEncode("source:" + candidate.source_id);
+        items.push_back(std::move(item));
+    }
+    return items;
+}
+
+OpsV340ApprovalGatedRecoveryChecklistSummary BuildV340ApprovalGatedRecoveryChecklistSummary(
+    const std::vector<OpsV340ApprovalGatedRecoveryChecklistItem>& items) {
+    OpsV340ApprovalGatedRecoveryChecklistSummary summary;
+    summary.item_count = static_cast<int>(items.size());
+    for (const auto& item : items) {
+        if (item.readiness_status == "ready") {
+            ++summary.ready_count;
+        } else if (item.readiness_status == "blocked") {
+            ++summary.blocked_count;
+        } else if (item.readiness_status == "field-smoke-needed") {
+            ++summary.field_smoke_needed_count;
+        } else {
+            ++summary.not_run_count;
+        }
+        if (item.audit_entry_count > 0) {
+            ++summary.audit_linked_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV340ApprovalGatedRecoveryChecklistSummaryJson(
+    std::ostringstream& out,
+    const OpsV340ApprovalGatedRecoveryChecklistSummary& summary) {
+    out << "{"
+        << "\"itemCount\":" << summary.item_count << ","
+        << "\"readyCount\":" << summary.ready_count << ","
+        << "\"blockedCount\":" << summary.blocked_count << ","
+        << "\"fieldSmokeNeededCount\":" << summary.field_smoke_needed_count << ","
+        << "\"notRunCount\":" << summary.not_run_count << ","
+        << "\"auditLinkedCount\":" << summary.audit_linked_count
+        << "}";
+}
+
+void AppendV340ApprovalGatedRecoveryChecklistItemJson(
+    std::ostringstream& out,
+    const OpsV340ApprovalGatedRecoveryChecklistItem& item) {
+    out << "{"
+        << "\"sourceId\":\"" << JsonEscape(item.source_id) << "\","
+        << "\"displayName\":\"" << JsonEscape(item.display_name) << "\","
+        << "\"sourceKind\":\"" << JsonEscape(item.source_kind) << "\","
+        << "\"readinessStatus\":\"" << JsonEscape(item.readiness_status) << "\","
+        << "\"operatorNote\":\"" << JsonEscape(item.operator_note) << "\","
+        << "\"dryRunResult\":\"" << JsonEscape(item.dry_run_result) << "\","
+        << "\"fieldSmokeRequired\":" << (item.field_smoke_required ? "true" : "false") << ","
+        << "\"opsAuditLinkage\":{"
+        << "\"area\":\"channels\","
+        << "\"action\":\"source-recovery-approval-checklist\","
+        << "\"target\":\"source:" << JsonEscape(item.source_id) << "\","
+        << "\"auditRoute\":\"" << JsonEscape(item.audit_route) << "\","
+        << "\"auditEntryCount\":" << item.audit_entry_count << ","
+        << "\"rawAuditBodyIncluded\":false"
+        << "},\"automaticRecoveryPerformed\":false"
+        << "}";
+}
+
+std::string OpsV340ApprovalGatedRecoveryChecklistJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    if (!source_health_snapshot.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v340-approval-gated-recovery-checklist.v1\",\"error\":\"" +
+               JsonEscape(source_health_snapshot.error) + "\"}";
+    }
+
+    std::vector<SourceViewRegistry::SourceRecord> sources;
+    std::vector<SourceViewRegistry::PublishedViewRecord> views;
+    std::string load_error;
+    if (!SourceViewRegistry::Instance().Snapshot(&sources, &views, &load_error)) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v340-approval-gated-recovery-checklist.v1\",\"error\":\"" +
+               JsonEscape(load_error.empty() ? "source registry load failed" : load_error) + "\"}";
+    }
+
+    const auto context = BuildV340RecoveryCandidateContext(views, source_health_snapshot, config);
+    const auto recoveryCandidates = BuildV340RecoveryCandidatePackages(sources, context);
+    const auto approvalGatedRecoveryChecklistItems =
+        BuildV340ApprovalGatedRecoveryChecklist(recoveryCandidates);
+    const auto summary =
+        BuildV340ApprovalGatedRecoveryChecklistSummary(approvalGatedRecoveryChecklistItems);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v340-approval-gated-recovery-checklist.v1\","
+        << "\"status\":\"approval-gated-recovery-checklist\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"packageRoute\":\"/ops/api/source-registry/recovery-candidate-package\","
+        << "\"dryRunRoute\":\"/ops/api/source-registry/recovery-candidate-package\","
+        << "\"approvalRequired\":true,"
+        << "\"opsAuditLinkage\":{"
+        << "\"area\":\"channels\","
+        << "\"action\":\"source-recovery-approval-checklist\","
+        << "\"auditRoute\":\"/ops/api/audit?area=channels&action=source-recovery-approval-checklist\","
+        << "\"rawAuditBodyIncluded\":false"
+        << "},\"approvalGatedRecoveryChecklistSummary\":";
+    AppendV340ApprovalGatedRecoveryChecklistSummaryJson(out, summary);
+    out << ",\"approvalGatedRecoveryChecklistItems\":[";
+    for (std::size_t i = 0; i < approvalGatedRecoveryChecklistItems.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV340ApprovalGatedRecoveryChecklistItemJson(out, approvalGatedRecoveryChecklistItems[i]);
+    }
+    out << "],\"redactionPolicy\":{"
+        << "\"redacted\":true,"
+        << "\"sourceLocatorIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"rawAuditBodyIncluded\":false,"
+        << "\"clientViewerMaterialIncluded\":false"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"productionRestorePerformed\":false,"
+        << "\"automaticRecoveryPerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceLocatorExposed\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false,"
         << "\"rtspOrWebrtcMediaPathChanged\":false,"
         << "\"ruleProfilePayloadChanged\":false"
         << "}}";
@@ -23941,6 +24175,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV340RecoveryCandidatePackageJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/source-registry/approval-gated-recovery-checklist") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV340ApprovalGatedRecoveryChecklistJson(config, source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

@@ -302,6 +302,8 @@ Usage:
                  v3.4.0 Step 5 Source Health Replay and Drift Diff read-only 경계를 검증합니다.
   verify-v340-ops-continuity-drill-workspace-ui
                  v3.4.0 Step 6 Ops Continuity Drill Workspace UI read-only 경계를 검증합니다.
+  verify-v340-approval-gated-recovery-checklist-audit
+                 v3.4.0 Step 7 Approval-Gated Recovery Checklist and Audit no-auto-recovery 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -494,6 +496,8 @@ Usage:
                  v3.4.0 Step 5 Source Health Replay and Drift Diff read-only 경계를 검증합니다.
   verify-v340-ops-continuity-drill-workspace-ui
                  v3.4.0 Step 6 Ops Continuity Drill Workspace UI read-only 경계를 검증합니다.
+  verify-v340-approval-gated-recovery-checklist-audit
+                 v3.4.0 Step 7 Approval-Gated Recovery Checklist and Audit no-auto-recovery 경계를 검증합니다.
   verify-actions-security
                  GitHub Actions workflow 권한과 action 사용 정책을 검증합니다.
   verify-ci-local-gate-parity
@@ -1460,6 +1464,10 @@ case "${cmd}" in
   verify-v340-ops-continuity-drill-workspace-ui)
     require_internal verify_v340_ops_continuity_drill_workspace_ui.mjs
     exec "${INTERNAL_DIR}/verify_v340_ops_continuity_drill_workspace_ui.mjs" "$@"
+    ;;
+  verify-v340-approval-gated-recovery-checklist-audit)
+    require_internal verify_v340_approval_gated_recovery_checklist_audit.mjs
+    exec "${INTERNAL_DIR}/verify_v340_approval_gated_recovery_checklist_audit.mjs" "$@"
     ;;
   verify-v290-final-stabilization-run)
     require_internal verify_v290_final_stabilization_run.mjs
