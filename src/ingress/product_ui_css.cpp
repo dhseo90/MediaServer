@@ -1338,6 +1338,41 @@ std::string ProductUiCss() {
       color: var(--color-text-muted);
       overflow-wrap: anywhere;
     }
+    .source-continuity-drill-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: var(--space-3);
+      align-items: start;
+    }
+    .source-continuity-drill-grid h4 {
+      margin: 0 0 var(--space-2);
+      font-size: 13px;
+      color: var(--color-text-muted);
+    }
+    .source-continuity-drill-list {
+      display: grid;
+      gap: var(--space-2);
+    }
+    .source-continuity-drill-card,
+    .source-continuity-drill-boundary {
+      display: grid;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-raised);
+      color: var(--color-text);
+      text-decoration: none;
+      overflow-wrap: anywhere;
+      min-width: 0;
+    }
+    .source-continuity-drill-card span,
+    .source-continuity-drill-card small,
+    .source-continuity-drill-boundary span {
+      margin: 0;
+      color: var(--color-text-muted);
+      line-height: 1.45;
+    }
     form,
     .form-grid {
       display: grid;

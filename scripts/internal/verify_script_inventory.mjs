@@ -457,6 +457,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_v340_recovery_candidate_package.mjs",
     "verify_v340_staging_restore_validation_harness.mjs",
     "verify_v340_source_health_replay_drift_diff.mjs",
+    "verify_v340_ops_continuity_drill_workspace_ui.mjs",
     "verify_external_turn_whep_field_gate.mjs",
     "verify_vlm_runtime_status_ui.mjs",
     "verify_vlm_evaluation_result_workflow.mjs",

@@ -21,8 +21,9 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 상태: Step 1 source/version/docs/backlog/verification metadata 정렬 완료. Step 2
 Continuity Drill Contract 구현 완료. Step 3 Recovery Candidate Package Read Model
-구현 완료. Step 4 Staging Restore Validation Harness 구현 완료. Step 5~11은 아직
-계획 상태입니다. 이 절은 v3.4.0 source roadmap이며, 각 step은 실제 코드/API/문서
+구현 완료. Step 4 Staging Restore Validation Harness 구현 완료. Step 5 Source Health
+Replay and Drift Diff 구현 완료. Step 6 Ops Continuity Drill Workspace UI 구현 완료.
+Step 7~11은 아직 계획 상태입니다. 이 절은 v3.4.0 source roadmap이며, 각 step은 실제 코드/API/문서
 변경, 기능 ID/test inventory 등록, 해당 verifier와 release test record evidence가
 생긴 뒤에만 완료로 기록합니다.
 
@@ -75,7 +76,7 @@ fallback 또는 축소 대안은 `Continuity Drill Core`입니다. 이 대안은
 | 3 | v3.4.0 (3) Recovery Candidate Package Read Model | P0 | 완료 | source registry snapshot, PublishedView, source health, EventRecord/audit context를 redacted 복구 후보 package로 조합 |
 | 4 | v3.4.0 (4) Staging Restore Validation Harness | P0 | 완료 | 임시 runtime에서 JSON parse, 중복 ID, 누락 sourceId 참조, auth store `0600`, checksum, viewer scope를 production write 없이 검증 |
 | 5 | v3.4.0 (5) Source Health Replay and Drift Diff | P1 | 완료 | handoff 당시 source health와 fresh source health를 비교해 stale/offline/reconnect/warning drift를 요약 |
-| 6 | v3.4.0 (6) Ops Continuity Drill Workspace UI | P1 | 계획 | `/ops/sources` 또는 `/ops/events`에서 drill package, validation status, blocked/ready 상태를 read-only로 표시 |
+| 6 | v3.4.0 (6) Ops Continuity Drill Workspace UI | P1 | 완료 | `/ops/sources`에서 drill package, validation status, blocked/ready 상태를 read-only로 표시 |
 | 7 | v3.4.0 (7) Approval-Gated Recovery Checklist and Audit | P1 | 계획 | operator note, ready/blocked/field-smoke-needed/not-run 상태, dry-run result, Ops audit 연결을 추가하고 자동 recovery는 수행하지 않음 |
 | 8 | v3.4.0 (8) Client-safe Maintenance Digest | P1 | 계획 | viewer/client에 maintenance/recovering/unavailable 요약만 제공하고 source URL/raw locator/raw JSON/debug/credential material은 비노출 |
 | 9 | v3.4.0 (9) Drill Evidence Export and Cleanup Manifest | P1 | 계획 | redacted drill artifact manifest, 최소 보존 evidence, `/tmp` cleanup, 민감 정보 scan 경계를 기록 |
@@ -139,6 +140,17 @@ action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁�
 - `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`, `docs/stream-verification.md`, `docs/release-test-records.md`: `SRC-042`, `SAFE-128`, `OPS-095` 기능/경계/gate 항목과 Step 5 verifier 연결을 추가했습니다.
 - 검증: 최초 `node scripts/internal/verify_v340_source_health_replay_drift_diff.mjs`는 Step 5 server model, route, docs/inventory/server dispatch가 아직 없어 `pass=0 fail=7`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v340 Step 5 결과 행에 기록합니다.
 - 완료 경계: 이번 Step 5는 Source Health Replay and Drift Diff read model/API/verifier 연결입니다. Ops Continuity Drill Workspace UI 완료 evidence가 아닙니다. approval-gated checklist, client-safe maintenance digest, evidence export/cleanup manifest, field bridge gates 완료 evidence도 아닙니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence도 아닙니다.
+
+## v3.4.0 Step 6 개발 기록
+
+- 범위: P1 `v3.4.0 (6) Ops Continuity Drill Workspace UI`.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/sources`에 `ops-continuity-drill-workspace` section, `source-continuity-drill-status`, package/ready/blocked/drift metric, `media-server.ops.v340-continuity-drill-workspace-ui.v1` marker를 추가해 drill package, validation status, blocked/ready 상태를 read-only로 표시했습니다.
+- `src/ingress/product_ui_ops_sources_script.cpp`: `renderOpsContinuityDrillWorkspace`를 추가해 `continuity-drill/contract`, `recovery-candidate-package`, `source-health-replay-drift-diff` read model을 함께 읽고 `recoveryCandidatePackageSummary`, `recoveryCandidates`, `sourceHealthReplayDriftDiffSummary`, `sourceHealthReplayDriftItems`, `drillPackageReady`, `validationReady`, `blockedSources`, `automaticRecoveryPerformed` boundary를 UI 카드로 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`, `scripts/internal/verify_ops_client_ui_smoke.mjs`: Step 6 workspace card/list/boundary 스타일과 Ops/Client static smoke marker를 추가했습니다. viewer/client route에는 drill package, source URL/raw locator/raw JSON/debug/credential material을 노출하지 않습니다.
+- `scripts/internal/verify_v340_ops_continuity_drill_workspace_ui.mjs`, `server.sh`: `./server.sh verify-v340-ops-continuity-drill-workspace-ui` 명령을 추가해 `/ops/sources` shell, renderer, CSS, client 비노출, backlog/stream verification/manual UI/release records/inventory/server dispatch 연결을 검증합니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`, `docs/stream-verification.md`, `docs/release-test-records.md`, `docs/manual-ui-checklist.md`: `UI-075`, `SAFE-129`, `OPS-096` 기능/경계/gate 항목과 Step 6 verifier 연결을 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v340_ops_continuity_drill_workspace_ui.mjs`는 Step 6 UI shell/renderer/CSS/docs/inventory/server dispatch가 아직 없어 `pass=1 fail=7`로 기대 실패했습니다. 구현 후 `./server.sh verify-v340-ops-continuity-drill-workspace-ui`는 `pass=8 fail=0`으로 통과했습니다. `./server.sh build`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `git diff --check`도 통과했습니다. `verify-ops-client-ui --browser-mode static`은 서버 미기동 fetch 실패와 auth-on 401 전제를 확인한 뒤 `MEDIA_SERVER_AUTH_MODE=off` 검증 서버에서 route/API/redaction smoke `통과 28/실패 0`으로 재검증했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v340 Step 6 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 6은 Ops Continuity Drill Workspace UI read-only 표시와 static verifier 연결입니다. Approval-Gated Recovery Checklist and Audit 완료 evidence가 아닙니다. client-safe maintenance digest, evidence export/cleanup manifest, field bridge gates 완료 evidence도 아닙니다. 자동 recovery, production restore, source registry/PublishedView/Ops audit write를 수행하지 않습니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence도 아닙니다.
 
 `v3.4.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
 실제 tag/push는 수동 승인 후에만 수행합니다.

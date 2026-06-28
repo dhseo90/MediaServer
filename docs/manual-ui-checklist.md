@@ -332,6 +332,12 @@ UI 풀테스트 기준입니다. 정적 verifier나 API 응답만으로 PASS 처
 
 | V330 Step 7 Client-safe Source Status Digest | `UI-072`, `CLIENT-028`, `SRC-038`, `SAFE-119`, `OPS-086` | `/client/live`, `/client/dashboard`, `/client/events` | Client-safe Source Status Digest card, `sourceStatusDigest`, `media-server.client.source-status-digest.v1`, sourceStatus/connectionStatus/videoFrameStatus/metadataStatus/summaryText/severity/timelineHint만 표시, source URL/raw locator/raw JSON/debug/credential/operator material/rule editor/action control 비노출, viewer PublishedView scope 유지 | `verify-v330-client-safe-source-status-digest`, `verify-v320-client-safe-resolution-digest`, `verify-ops-client-ui` |
 
+아래 행은 v3.4.0 Operations Continuity Drill Workspace Step 6 UI 풀테스트 기준입니다.
+정적 verifier나 API 응답만으로 PASS 처리하지 않고, 인앱 브라우저에서 실제 Ops route를
+열어 `Ops Continuity Drill Workspace`와 비노출 경계를 확인해야 합니다.
+
+| V340 Step 6 Ops Continuity Drill Workspace UI | `UI-075`, `SAFE-129`, `OPS-096` | `/ops/sources` | `Ops Continuity Drill Workspace`, `source-continuity-drill-status`, `media-server.ops.v340-continuity-drill-workspace-ui.v1`, drill package/validation status/blocked-ready/source health drift 표시, source URL/raw locator/raw JSON/debug/credential material 비노출, 자동 recovery/source registry write 없음 | `verify-v340-ops-continuity-drill-workspace-ui`, `verify-ops-client-ui` |
+
 ### v2.6.0 Operational Hardening UI 풀테스트 기준
 
 아래 표는 v2.6.0 UI route/control/action 누락을 막기 위한 기준입니다. 각 행은 인앱

@@ -5813,6 +5813,34 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
           </div>
         </div>
       </section>
+      <section class="section-card ops-workspace-wide" data-channel-task="ops-continuity-drill-workspace" data-testid="ops-continuity-drill-workspace">
+        <div class="toolbar">
+          <div>
+            <h3>Ops Continuity Drill Workspace</h3>
+            <p id="source-continuity-drill-status">continuity drill package와 validation 상태를 확인 중입니다.</p>
+          </div>
+        </div>
+        <div id="source-continuity-drill-summary" class="metric-grid">
+          <div class="metric-card"><span>Packages</span><strong id="source-continuity-drill-package-count">-</strong></div>
+          <div class="metric-card"><span>Ready</span><strong id="source-continuity-drill-validation-ready-count">-</strong></div>
+          <div class="metric-card"><span>Blocked</span><strong id="source-continuity-drill-blocked-count">-</strong></div>
+          <div class="metric-card"><span>Drift</span><strong id="source-continuity-drill-drift-count">-</strong></div>
+        </div>
+        <div class="source-continuity-drill-grid" data-source-continuity-drill-workspace="media-server.ops.v340-continuity-drill-workspace-ui.v1">
+          <div>
+            <h4>drill package</h4>
+            <div id="source-continuity-drill-package-list" class="source-continuity-drill-list"></div>
+          </div>
+          <div>
+            <h4>validation status</h4>
+            <div id="source-continuity-drill-validation-list" class="source-continuity-drill-list"></div>
+          </div>
+          <div>
+            <h4>source health drift</h4>
+            <div id="source-continuity-drill-drift-list" class="source-continuity-drill-list"></div>
+          </div>
+        </div>
+      </section>
       <section class="section-card ops-channels-list-panel" data-channel-task="list">
         <div class="toolbar">
           <div>

@@ -20,6 +20,10 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     const sourceBackupHandoffStatus = document.querySelector('#source-backup-handoff-status');
     const sourceBackupHandoffInputList = document.querySelector('#source-backup-handoff-input-list');
     const sourceRecoveryValidationPlanList = document.querySelector('#source-recovery-validation-plan-list');
+    const sourceContinuityDrillStatus = document.querySelector('#source-continuity-drill-status');
+    const sourceContinuityDrillPackageList = document.querySelector('#source-continuity-drill-package-list');
+    const sourceContinuityDrillValidationList = document.querySelector('#source-continuity-drill-validation-list');
+    const sourceContinuityDrillDriftList = document.querySelector('#source-continuity-drill-drift-list');
     const channelBody = document.querySelector('#channels-body');
     const channelForm = document.querySelector('#channel-form');
     const channelPanel = document.querySelector('#channel-detail-panel');
@@ -542,6 +546,55 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         <span>recoveryValidationPlanPersisted: ${escapeHtml(boundaries.recoveryValidationPlanPersisted === true ? 'true' : 'false')}</span>
       </div>`;
     }
+    function renderOpsContinuityDrillWorkspace(contractPayload = {}, packagePayload = {}, driftPayload = {}) {
+      const packageSummary = packagePayload.recoveryCandidatePackageSummary || {};
+      const candidates = Array.isArray(packagePayload.recoveryCandidates) ? packagePayload.recoveryCandidates : [];
+      const contractInputs = Array.isArray(contractPayload.v330HandoffInputs) ? contractPayload.v330HandoffInputs : [];
+      const driftSummary = driftPayload.sourceHealthReplayDriftDiffSummary || {};
+      const driftItems = Array.isArray(driftPayload.sourceHealthReplayDriftItems) ? driftPayload.sourceHealthReplayDriftItems : [];
+      const packageBoundaries = packagePayload.boundaries || {};
+      const validationReady = contractInputs.filter(item => item?.key || item?.label).length;
+      const drillPackageReady = candidates.filter(item => item?.recoveryReadiness === 'ready').length;
+      const blockedSources = candidates.filter(item => item?.recoveryReadiness === 'blocked').length + Number(driftSummary.blockedCount || 0);
+      const driftChanged = Number(driftSummary.changedSourceCount || 0);
+      setMetricText('source-continuity-drill-package-count', packageSummary.candidateCount ?? candidates.length);
+      setMetricText('source-continuity-drill-validation-ready-count', validationReady);
+      setMetricText('source-continuity-drill-blocked-count', blockedSources);
+      setMetricText('source-continuity-drill-drift-count', driftChanged);
+      if (sourceContinuityDrillStatus) {
+        sourceContinuityDrillStatus.textContent =
+          `${packageSummary.candidateCount ?? candidates.length} drill package sources / ready ${drillPackageReady} / blocked ${blockedSources} / drift ${driftChanged}`;
+      }
+      if (sourceContinuityDrillPackageList) {
+        sourceContinuityDrillPackageList.innerHTML = candidates.slice(0, 8).map(item => (
+          `<article class="source-continuity-drill-card" data-source-continuity-drill-package="${escapeHtml(item.recoveryReadiness || 'unknown')}">
+            <strong>${escapeHtml(item.displayName || item.sourceId || 'source')}</strong>
+            <span>${escapeHtml(item.recoveryReadiness || 'unknown')} · ${escapeHtml(item.sourceHealth?.status || 'unknown')}</span>
+            <small>${escapeHtml(Array.isArray(item.readinessReasons) ? item.readinessReasons.join(' / ') : 'read-only package')}</small>
+          </article>`
+        )).join('') || '<span class="empty">drill package source 없음</span>';
+      }
+      if (sourceContinuityDrillValidationList) {
+        sourceContinuityDrillValidationList.innerHTML = contractInputs.map(input => (
+          `<a class="source-continuity-drill-card" href="${escapeHtml(input.route || '/ops/sources')}" data-source-continuity-drill-validation="${escapeHtml(input.key || 'validation')}">
+            <strong>${escapeHtml(input.label || input.key || 'validation')}</strong>
+            <span>${escapeHtml(input.boundary || 'read-only/no-write')}</span>
+            <small>${escapeHtml(input.requiredFor || 'validation status')}</small>
+          </a>`
+        )).join('') || '<span class="empty">validation input 없음</span>';
+      }
+      if (!sourceContinuityDrillDriftList) return;
+      sourceContinuityDrillDriftList.innerHTML = driftItems.slice(0, 8).map(item => (
+        `<article class="source-continuity-drill-card" data-source-continuity-drill-drift="${escapeHtml(item.driftStatus || 'stable')}">
+          <strong>${escapeHtml(item.sourceId || 'source')}</strong>
+          <span>${escapeHtml(item.handoffStatus || 'unknown')} → ${escapeHtml(item.freshStatus || 'unknown')}</span>
+          <small>stale ${escapeHtml(item.staleDelta ?? 0)} · offline ${escapeHtml(item.offlineDelta ?? 0)} · reconnect ${escapeHtml(item.reconnectDelta ?? 0)} · warning ${escapeHtml(item.warningDelta ?? 0)}</small>
+        </article>`
+      )).join('') + `<div class="source-continuity-drill-boundary" data-source-continuity-drill-drift="boundary">
+        <span>automaticRecoveryPerformed: ${escapeHtml(packageBoundaries.automaticRecoveryPerformed === true ? 'true' : 'false')}</span>
+        <span>sourceRegistryWritePerformed: ${escapeHtml(packageBoundaries.sourceRegistryWritePerformed === true ? 'true' : 'false')}</span>
+      </div>`;
+    }
     function setFormDisabled(disabled) {
       const writable = canWriteSources();
       for (const element of Array.from(channelForm.elements)) {
@@ -996,7 +1049,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       return { channelId, sourcePayload, viewPayload };
     }
     async function loadAll() {
-      const [sources, views, clientViews, onboardingQuality, reliabilityTimeline, reliabilitySearchMetrics, backupRecoveryHandoff, principal] = await Promise.all([
+      const [sources, views, clientViews, onboardingQuality, reliabilityTimeline, reliabilitySearchMetrics, backupRecoveryHandoff, continuityDrillContract, recoveryCandidatePackage, sourceHealthReplayDriftDiff, principal] = await Promise.all([
         requestJson('/ops/api/sources'),
         requestJson('/ops/api/views'),
         requestJson('/client/api/views'),
@@ -1004,6 +1057,9 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         requestJson('/ops/api/source-registry/reliability-timeline'),
         requestJson('/ops/api/source-registry/reliability-search-metrics'),
         requestJson('/ops/api/source-registry/backup-recovery-handoff'),
+        requestJson('/ops/api/source-registry/continuity-drill/contract'),
+        requestJson('/ops/api/source-registry/recovery-candidate-package'),
+        requestJson('/ops/api/source-registry/source-health-replay-drift-diff'),
         requestJson('/auth/whoami').catch(() => null)
       ]);
       opsPrincipal = principal;
@@ -1014,6 +1070,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       renderReliabilityTimelineHealthHistory(reliabilityTimeline);
       renderSourceReliabilitySearchMetrics(reliabilitySearchMetrics);
       renderBackupRecoverySourceHandoff(backupRecoveryHandoff);
+      renderOpsContinuityDrillWorkspace(continuityDrillContract, recoveryCandidatePackage, sourceHealthReplayDriftDiff);
       renderChannels(loadedSources, loadedViews);
       renderOpsAuditTrail('channel-audit-list', 'channels');
       if (!initializedHashChannel) {
