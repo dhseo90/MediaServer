@@ -9,14 +9,14 @@ points to the current public sources.
 - Latest published GitHub Release: [v3.3.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.3.0)
 - Latest published baseline: `v3.3.0 Live Source Reliability Workspace`
 - Previous published baseline: `v3.2.0 Operations Resolution Workspace`
-- Current source version: `3.3.0`
+- Current source version: `3.4.0`
 - v3.3.0 public status: source-only GitHub Release. Binary, runtime, and model
   bundles are not included.
-- Current source roadmap: `v3.3.0 Live Source Reliability Workspace`
+- Current source roadmap: `v3.4.0 Operations Continuity Drill Workspace`
 - Default public distribution: source-only
 - Public docs/assets baseline: `README.md`, `README.en.md`, `docs/README.md`,
   `docs/en/README.md`, `docs/ui-guide.md`, and `docs/assets/ui/README.md`
-  separate the v3.3 source roadmap from the v3.3 published baseline while
+  separate the v3.4 source roadmap from the v3.3 published baseline while
   keeping the v3.2 baseline as historical reference. Representative
   screenshots are managed by `config/docs_ui_assets.json` and
   `./server.sh verify-docs-ui-assets`; replacements require a separate direct
@@ -42,8 +42,8 @@ points to the current public sources.
 
 - The main product boundary is live source onboarding, live source health, and
   live VA event quality.
-- The current source tree tracks the `v3.3.0 Live Source Reliability Workspace`
-  roadmap baseline. Feature completion still requires the corresponding v3.3
+- The current source tree tracks the `v3.4.0 Operations Continuity Drill Workspace`
+  roadmap baseline. Feature completion still requires the corresponding v3.4
   code/UI/API/verifier evidence.
 - Binary, runtime, and model bundles are excluded from the default public release.
 - Long-term recording, VMS/NVR, playback/archive search, ONVIF Profile G

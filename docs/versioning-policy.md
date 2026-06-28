@@ -5,14 +5,14 @@
 
 ## 현재 기준
 
-- 현재 소스 버전: `3.3.0`
-- 현재 source roadmap: `v3.3.0 Live Source Reliability Workspace`
+- 현재 소스 버전: `3.4.0`
+- 현재 source roadmap: `v3.4.0 Operations Continuity Drill Workspace`
 - 최신 공개 GitHub Release: `v3.3.0 Live Source Reliability Workspace`
-- v3.3.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- source-only release 기준 tag는 published tag `v3.3.0`와 현재 source tag `v3.3.0`를 함께 기록합니다.
+- `v3.3.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
+- source-only release 기준 tag는 published tag `v3.3.0`와 현재 source tag `v3.4.0`를 함께 기록합니다.
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
 
-현재 소스 트리의 `3.3.0` roadmap은 v3.3.0 Live Source Reliability Workspace
+현재 소스 트리의 `3.4.0` roadmap은 v3.4.0 Operations Continuity Drill Workspace
 source-only/live-only active source baseline입니다. v3.3.0 최신 published baseline,
 v3.2.0 previous published evidence와 후속 기능별 완료 evidence는 계속 분리해 기록합니다. 기본 공개 형태는 계속 source-only이며
 binary/runtime/model bundle을 공개 asset으로 포함하지 않습니다.
@@ -37,30 +37,34 @@ binary/runtime/model bundle을 공개 asset으로 포함하지 않습니다.
 - `3.3.0`은 v3.2 Operations Resolution Workspace 위에서 live source registry,
   onboarding quality, source health history, incident-to-source context를 운영자가
   같은 흐름에서 재확인하는 minor line입니다.
+- `3.4.0`은 v3.3 Live Source Reliability Workspace 위에서 source reliability/handoff
+  입력을 production write 없이 continuity drill, recovery candidate package, staging
+  restore validation으로 리허설하는 minor line입니다.
 - 3.0 전에는 자동 Rule/Profile 적용, 외부 알림 실제 발송 보장, VLM default-on,
   runtime/model bundle default 배포를 2.x 완료 조건으로 승격하지 않습니다.
 
-## 3.3.0 active source roadmap 범위
+## 3.4.0 active source roadmap 범위
 
-- v3.3.0 source roadmap baseline 정렬
-- Source Registry Snapshot and Identity
-- Source Onboarding Quality Summary
-- Reliability Timeline and Health History
-- Incident-to-Source Correlation Layer
-- Operator Recheck and Recovery Queue
-- Client-safe Source Status Digest
-- Operator Runbook and Reliability Handoff
-- Source Reliability Search and Metrics
-- Ops Backup and Recovery Source Handoff
+- v3.4.0 source roadmap baseline 정렬
+- Continuity Drill Contract
+- Recovery Candidate Package Read Model
+- Staging Restore Validation Harness
+- Source Health Replay and Drift Diff
+- Ops Continuity Drill Workspace UI
+- Approval-Gated Recovery Checklist and Audit
+- Client-safe Maintenance Digest
+- Drill Evidence Export and Cleanup Manifest
+- Field Bridge Condition Gates
+- Stabilization and Release Readiness
 
 위 항목은 구현과 검증 evidence가 생긴 뒤에만 `완료`로 기록합니다. GitHub Release,
 tag, 30분/120분 장시간 테스트, UI 풀테스트, 외부 field smoke는 별도 실행 evidence가
 있을 때만 완료로 씁니다.
 
-`v3.3.0 source-of-truth 정렬`은 `README.md`, `README.en.md`, `docs/README.md`,
+`v3.4.0 source-of-truth 정렬`은 `README.md`, `README.en.md`, `docs/README.md`,
 `docs/en/README.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`,
-release/version policy가 source `3.3.0`, current roadmap
-`v3.3.0 Live Source Reliability Workspace`, latest published `v3.3.0`를 분리 정렬하는지
+release/version policy가 source `3.4.0`, current roadmap
+`v3.4.0 Operations Continuity Drill Workspace`, latest published `v3.3.0`를 분리 정렬하는지
 확인하는 local gate입니다. v3.3 published baseline은 최신 공개 기준입니다. 대표 UI 이미지는 `config/docs_ui_assets.json`의 managed
 asset list로 관리하며, image recapture, 직접 브라우저 검수 PASS, UI 풀테스트,
 published metadata, tag/push/GitHub Release는 source baseline 정렬 PASS로 대체하지

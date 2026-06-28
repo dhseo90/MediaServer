@@ -3,7 +3,7 @@
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
 [![Published Release](https://img.shields.io/badge/published-v3.3.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v3.3.0)
-![Source Version](https://img.shields.io/badge/source-3.3.0-informational)
+![Source Version](https://img.shields.io/badge/source-3.4.0-informational)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
 video analytics overlays and rule/scenario live events when analytics are enabled.
@@ -15,9 +15,9 @@ and runtime/model bundle distribution are outside the default public release.
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
 - Latest published GitHub Release: [v3.3.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.3.0)
-- Current source version: `3.3.0`
+- Current source version: `3.4.0`
 - v3.3.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
-- Current source roadmap: `v3.3.0 Live Source Reliability Workspace`
+- Current source roadmap: `v3.4.0 Operations Continuity Drill Workspace`
 
 ## At a Glance
 
@@ -34,13 +34,14 @@ and runtime/model bundle distribution are outside the default public release.
   default-on, model/runtime bundle distribution, and guaranteed real-device or
   external-provider success are not included in the default public release.
 
-## v3.3 Source Roadmap
+## v3.4 Source Roadmap
 
 - Latest published release: `v3.3.0` Live Source Reliability Workspace, source-only.
-- Current source: `3.3.0` Live Source Reliability Workspace.
-- v3.3 roadmap: organize live source registry snapshots, onboarding quality,
-  health history, incident-to-source context, recovery queues, client-safe source
-  digests, and source reliability search/metrics into the operator workflow.
+- Current source: `3.4.0` Operations Continuity Drill Workspace.
+- v3.4 roadmap: extends the v3.3 source reliability and backup/recovery handoff
+  inputs into a read-only continuity drill contract, redacted recovery candidate
+  package, staging restore validation, drift diff, approval checklist, and
+  evidence cleanup flow.
 - Latest published baseline: v3.3.0 remains the published source baseline, and
   follow-up changes are recorded complete only after their own
   code/UI/API/verification evidence exists.
@@ -134,7 +135,7 @@ records live in dedicated docs.
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - Release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
 - Latest published release notes: [v3.3.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.3.0)
-- Current source roadmap: `v3.3.0 Live Source Reliability Workspace` in
+- Current source roadmap: `v3.4.0 Operations Continuity Drill Workspace` in
   [docs/development-backlog.md](docs/development-backlog.md)
 
 ## UI Preview

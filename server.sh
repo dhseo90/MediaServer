@@ -290,6 +290,28 @@ Usage:
                  v3.3.0 Step 10 Ops Backup and Recovery Source Handoff API/UI 경계를 검증합니다.
   verify-v330-stabilization-release-readiness
                  v3.3.0 Step 11 Stabilization and Release Readiness와 local release gate 경계를 검증합니다.
+  verify-v340-entry-baseline
+                 v3.4.0 Step 1 source baseline과 latest published v3.3.0 경계를 검증합니다.
+  verify-v340-continuity-drill-contract
+                 v3.4.0 Step 2 Continuity Drill Contract read-only/no-write 경계를 검증합니다.
+  verify-v340-recovery-candidate-package
+                 v3.4.0 Step 3 Recovery Candidate Package redacted read model 경계를 검증합니다.
+  verify-v340-staging-restore-validation-harness
+                 v3.4.0 Step 4 Staging Restore Validation Harness temporary-only 경계를 검증합니다.
+  verify-v340-source-health-replay-drift-diff
+                 v3.4.0 Step 5 Source Health Replay and Drift Diff read-only 경계를 검증합니다.
+  verify-v340-ops-continuity-drill-workspace-ui
+                 v3.4.0 Step 6 Ops Continuity Drill Workspace UI read-only 경계를 검증합니다.
+  verify-v340-approval-gated-recovery-checklist-audit
+                 v3.4.0 Step 7 Approval-Gated Recovery Checklist and Audit no-auto-recovery 경계를 검증합니다.
+  verify-v340-client-safe-maintenance-digest
+                 v3.4.0 Step 8 Client-safe Maintenance Digest redaction 경계를 검증합니다.
+  verify-v340-drill-evidence-export-cleanup-manifest
+                 v3.4.0 Step 9 Drill Evidence Export and Cleanup Manifest 경계를 검증합니다.
+  verify-v340-field-bridge-condition-gates
+                 v3.4.0 Step 10 Field Bridge Condition Gates 조건부 field smoke 경계를 검증합니다.
+  verify-v340-stabilization-release-readiness
+                 v3.4.0 Step 11 Stabilization and Release Readiness local gate 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -470,6 +492,28 @@ Usage:
                  v3.3.0 Step 9 Source Reliability Search and Metrics API/UI 경계를 검증합니다.
   verify-v330-ops-backup-recovery-source-handoff
                  v3.3.0 Step 10 Ops Backup and Recovery Source Handoff API/UI 경계를 검증합니다.
+  verify-v340-entry-baseline
+                 v3.4.0 Step 1 source baseline과 latest published v3.3.0 경계를 검증합니다.
+  verify-v340-continuity-drill-contract
+                 v3.4.0 Step 2 Continuity Drill Contract read-only/no-write 경계를 검증합니다.
+  verify-v340-recovery-candidate-package
+                 v3.4.0 Step 3 Recovery Candidate Package redacted read model 경계를 검증합니다.
+  verify-v340-staging-restore-validation-harness
+                 v3.4.0 Step 4 Staging Restore Validation Harness temporary-only 경계를 검증합니다.
+  verify-v340-source-health-replay-drift-diff
+                 v3.4.0 Step 5 Source Health Replay and Drift Diff read-only 경계를 검증합니다.
+  verify-v340-ops-continuity-drill-workspace-ui
+                 v3.4.0 Step 6 Ops Continuity Drill Workspace UI read-only 경계를 검증합니다.
+  verify-v340-approval-gated-recovery-checklist-audit
+                 v3.4.0 Step 7 Approval-Gated Recovery Checklist and Audit no-auto-recovery 경계를 검증합니다.
+  verify-v340-client-safe-maintenance-digest
+                 v3.4.0 Step 8 Client-safe Maintenance Digest redaction 경계를 검증합니다.
+  verify-v340-drill-evidence-export-cleanup-manifest
+                 v3.4.0 Step 9 Drill Evidence Export and Cleanup Manifest 경계를 검증합니다.
+  verify-v340-field-bridge-condition-gates
+                 v3.4.0 Step 10 Field Bridge Condition Gates 조건부 field smoke 경계를 검증합니다.
+  verify-v340-stabilization-release-readiness
+                 v3.4.0 Step 11 Stabilization and Release Readiness local gate 경계를 검증합니다.
   verify-actions-security
                  GitHub Actions workflow 권한과 action 사용 정책을 검증합니다.
   verify-ci-local-gate-parity
@@ -1412,6 +1456,50 @@ case "${cmd}" in
   verify-v330-stabilization-release-readiness)
     require_internal verify_v330_stabilization_release_readiness.mjs
     exec "${INTERNAL_DIR}/verify_v330_stabilization_release_readiness.mjs" "$@"
+    ;;
+  verify-v340-entry-baseline)
+    require_internal verify_v340_entry_baseline.mjs
+    exec "${INTERNAL_DIR}/verify_v340_entry_baseline.mjs" "$@"
+    ;;
+  verify-v340-continuity-drill-contract)
+    require_internal verify_v340_continuity_drill_contract.mjs
+    exec "${INTERNAL_DIR}/verify_v340_continuity_drill_contract.mjs" "$@"
+    ;;
+  verify-v340-recovery-candidate-package)
+    require_internal verify_v340_recovery_candidate_package.mjs
+    exec "${INTERNAL_DIR}/verify_v340_recovery_candidate_package.mjs" "$@"
+    ;;
+  verify-v340-staging-restore-validation-harness)
+    require_internal verify_v340_staging_restore_validation_harness.mjs
+    exec "${INTERNAL_DIR}/verify_v340_staging_restore_validation_harness.mjs" "$@"
+    ;;
+  verify-v340-source-health-replay-drift-diff)
+    require_internal verify_v340_source_health_replay_drift_diff.mjs
+    exec "${INTERNAL_DIR}/verify_v340_source_health_replay_drift_diff.mjs" "$@"
+    ;;
+  verify-v340-ops-continuity-drill-workspace-ui)
+    require_internal verify_v340_ops_continuity_drill_workspace_ui.mjs
+    exec "${INTERNAL_DIR}/verify_v340_ops_continuity_drill_workspace_ui.mjs" "$@"
+    ;;
+  verify-v340-approval-gated-recovery-checklist-audit)
+    require_internal verify_v340_approval_gated_recovery_checklist_audit.mjs
+    exec "${INTERNAL_DIR}/verify_v340_approval_gated_recovery_checklist_audit.mjs" "$@"
+    ;;
+  verify-v340-client-safe-maintenance-digest)
+    require_internal verify_v340_client_safe_maintenance_digest.mjs
+    exec "${INTERNAL_DIR}/verify_v340_client_safe_maintenance_digest.mjs" "$@"
+    ;;
+  verify-v340-drill-evidence-export-cleanup-manifest)
+    require_internal verify_v340_drill_evidence_export_cleanup_manifest.mjs
+    exec "${INTERNAL_DIR}/verify_v340_drill_evidence_export_cleanup_manifest.mjs" "$@"
+    ;;
+  verify-v340-field-bridge-condition-gates)
+    require_internal verify_v340_field_bridge_condition_gates.mjs
+    exec "${INTERNAL_DIR}/verify_v340_field_bridge_condition_gates.mjs" "$@"
+    ;;
+  verify-v340-stabilization-release-readiness)
+    require_internal verify_v340_stabilization_release_readiness.mjs
+    exec "${INTERNAL_DIR}/verify_v340_stabilization_release_readiness.mjs" "$@"
     ;;
   verify-v290-final-stabilization-run)
     require_internal verify_v290_final_stabilization_run.mjs

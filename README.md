@@ -3,7 +3,7 @@
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
 [![Published Release](https://img.shields.io/badge/published-v3.3.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v3.3.0)
-![Source Version](https://img.shields.io/badge/source-3.3.0-informational)
+![Source Version](https://img.shields.io/badge/source-3.4.0-informational)
 
 RTSP/WebRTC live stream을 받아 다시 내보내고, 필요할 때 YOLO/ONNX 영상 분석
 overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다.
@@ -15,9 +15,9 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 - English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 - 전체 문서 색인: [docs/README.md](docs/README.md)
 - 최신 공개 GitHub Release: [v3.3.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.3.0)
-- 현재 소스 버전: `3.3.0`
+- 현재 소스 버전: `3.4.0`
 - v3.3.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- 현재 source roadmap: `v3.3.0 Live Source Reliability Workspace`
+- 현재 source roadmap: `v3.4.0 Operations Continuity Drill Workspace`
 
 ## 한눈에 보기
 
@@ -32,13 +32,13 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 - **제외 범위**: VMS/NVR, 장기 녹화, broad archive playback/search, VLM default-on,
   model/runtime bundle 배포, 실기기/외부 provider 성공 보장은 기본 공개 릴리즈에 포함하지 않습니다.
 
-## v3.3 Source Roadmap
+## v3.4 Source Roadmap
 
 - 최신 공개 릴리즈: `v3.3.0` Live Source Reliability Workspace, source-only.
-- 현재 소스: `3.3.0` Live Source Reliability Workspace.
-- v3.3 로드맵: live source registry snapshot, onboarding quality, health history,
-  incident-to-source context, recovery queue, client-safe source digest, source
-  reliability search/metrics를 운영자가 같은 흐름에서 재확인하도록 정리합니다.
+- 현재 소스: `3.4.0` Operations Continuity Drill Workspace.
+- v3.4 로드맵: v3.3 source reliability/handoff 입력을 운영 복구 리허설 계약,
+  redacted recovery candidate package, staging restore validation, drift diff,
+  승인 기반 checklist와 evidence cleanup 흐름으로 확장합니다.
 - 최신 공개 기준: v3.3.0 Live Source Reliability Workspace는 published baseline으로 보존하고, 후속 변경은
   코드/UI/API/검증 evidence가 생긴 뒤에만 완료로 기록합니다.
 - 불변 조건: Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path는
@@ -123,7 +123,7 @@ README는 제품 개요와 빠른 시작만 담습니다. 세부 정책과 내�
 - release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
 - 최신 공개 릴리즈 노트: [v3.3.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.3.0)
 - 현재 source roadmap: [docs/development-backlog.md](docs/development-backlog.md)의
-  `v3.3.0 Live Source Reliability Workspace`
+  `v3.4.0 Operations Continuity Drill Workspace`
 
 ## 대표 UI 미리보기
 

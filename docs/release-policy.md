@@ -6,11 +6,11 @@
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.3.0`
+- 현재 소스 버전: `3.4.0`
 - 최신 공개 GitHub Release: `v3.3.0`
 - `v3.3.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap은 `v3.3.0 Live Source Reliability Workspace`입니다.
+- 현재 source roadmap은 `v3.4.0 Operations Continuity Drill Workspace`입니다.
 
 ## 기본 공개 범위
 
@@ -55,8 +55,8 @@ main merge를 수행하지 않습니다.
 
 ## Public Docs / Assets Refresh
 
-v3.3.0 Step 1 source baseline alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
-source `3.3.0`, current roadmap `v3.3.0 Live Source Reliability Workspace`,
+v3.4.0 Step 1 source baseline alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
+source `3.4.0`, current roadmap `v3.4.0 Operations Continuity Drill Workspace`,
 latest published `v3.3.0` 기준으로 분리 정렬하는 local gate입니다.
 대상 문서는 `README.md`, `README.en.md`,
 `docs/README.md`, `docs/en/README.md`, `docs/ui-guide.md`,
@@ -64,10 +64,10 @@ latest published `v3.3.0` 기준으로 분리 정렬하는 local gate입니다.
 
 Companion local gate:
 
-전용 companion command는 `./server.sh verify-v330-entry-baseline`입니다.
+전용 companion command는 `./server.sh verify-v340-entry-baseline`입니다.
 
 ```bash
-./server.sh verify-v330-entry-baseline
+./server.sh verify-v340-entry-baseline
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-docs-links
 ./server.sh verify-release-metadata
@@ -109,7 +109,7 @@ gate 실패 또는 미확인으로 보고하며 제품 runtime/media 회귀와 �
 
 ## GitHub Releases 운영
 
-### v3.3.0 Release Close-out Runbook
+### v3.4.0 Release Close-out Runbook
 
 아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
 순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
@@ -140,28 +140,68 @@ published metadata, release branch 삭제, Next branch sync는 각각 실행 evi
 close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 삭제 승인이 없으면
 수행하지 않습니다.
 
-## v3.3.0 Source Roadmap Scope
+## v3.4.0 Source Roadmap Scope
 
-현재 `3.3.0` source tree는 아래 roadmap 후보를 source 기능과 local verifier 기준으로
+현재 `3.4.0` source tree는 아래 roadmap 후보를 source 기능과 local verifier 기준으로
 정리합니다. 각 항목은 구현과 직접 evidence가 생긴 뒤에만 완료로 기록합니다. UI
 풀테스트, 30분, 120분, 외부 endpoint field smoke는 실행한 경우에만 release evidence로
 기록합니다.
 
-- v3.3.0 source roadmap baseline 정렬
-- Source Registry Snapshot and Identity
-- Source Onboarding Quality Summary
-- Reliability Timeline and Health History
-- Incident-to-Source Correlation Layer
-- Operator Recheck and Recovery Queue
-- Client-safe Source Status Digest
-- Operator Runbook and Reliability Handoff
-- Source Reliability Search and Metrics
-- Ops Backup and Recovery Source Handoff
+- v3.4.0 source roadmap baseline 정렬
+- Continuity Drill Contract
+- Recovery Candidate Package Read Model
+- Staging Restore Validation Harness
+- Source Health Replay and Drift Diff
+- Ops Continuity Drill Workspace UI
+- Approval-Gated Recovery Checklist and Audit
+- Client-safe Maintenance Digest
+- Drill Evidence Export and Cleanup Manifest
+- Field Bridge Condition Gates
 - Stabilization and Release Readiness
 
-`v3.3.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
+`v3.4.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
 있을 때만 완료로 기록합니다. 현재 latest published release는 `v3.3.0`입니다.
-현재 공개 release tag 기준은 `v3.3.0`입니다. 현재 source tag 기준은 `v3.3.0`입니다.
+현재 공개 release tag 기준은 `v3.3.0`입니다. 현재 source tag 기준은 `v3.4.0`입니다.
+
+## v3.4.0 stabilization and release readiness
+
+v3.4.0 Step 11 local readiness gate는 `media-server.v340-stabilization-release-readiness.v1`
+기준으로 v3.4.0 Operations Continuity Drill Workspace의 Step 1~10 local gates, release
+policy, release evidence index, release test records, docs links/assets, feature/script
+inventory, close-out dry-run command를 같은 범위로 묶습니다. 이 절은 source tree 준비
+상태를 확인할 뿐 release action을 승인하거나 실행하지 않습니다.
+
+Companion local gate:
+
+```bash
+./server.sh verify-v340-stabilization-release-readiness
+./server.sh build
+./server.sh verify-v340-entry-baseline
+./server.sh verify-v340-continuity-drill-contract
+./server.sh verify-v340-recovery-candidate-package
+./server.sh verify-v340-staging-restore-validation-harness
+./server.sh verify-v340-source-health-replay-drift-diff
+./server.sh verify-v340-ops-continuity-drill-workspace-ui
+./server.sh verify-v340-approval-gated-recovery-checklist-audit
+./server.sh verify-v340-client-safe-maintenance-digest
+./server.sh verify-v340-drill-evidence-export-cleanup-manifest
+./server.sh verify-v340-field-bridge-condition-gates
+./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-project-inventory
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-release-evidence-index
+./server.sh verify-release-closeout-helper --dry-run
+./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
+./server.sh verify-script-inventory
+git diff --check
+```
+
+v3.4.0 Step 11 local readiness gate는 UI 풀테스트 직접 조작, 30분/120분 longrun,
+published metadata, PR/main/tag/GitHub Release, field smoke evidence를 대체하지 않습니다.
+`verify-release-metadata --published` 미실행, release action 미실행, UI/longrun 미실행은
+release test records와 evidence index의 미실행/제외 기록으로 분리합니다.
 
 ## v3.3.0 stabilization and release readiness
 
@@ -473,22 +513,22 @@ Annotation JSON을 확보한 경우:
 
 ## v3.3.0 Release Note Template
 
-아래 템플릿은 v3.3.0 source-only GitHub Release note 기준입니다. 실행하지 않은
+아래 템플릿은 v3.4.0 source-only GitHub Release note 기준입니다. 실행하지 않은
 장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다.
 
 ```markdown
-# Media Server v3.3.0
+# Media Server v3.4.0
 
 ## Scope
 
 - Source-only live media server release
-- Live Source Reliability Workspace source scope
-- Latest published baseline before this release: v3.2.0
+- Operations Continuity Drill Workspace source scope
+- Latest published baseline before this release: v3.3.0
 - Binary/runtime/model bundle: not included
 
 ## Verification
 
-- v3.3.0 baseline alignment: <fill after docs/release metadata gates>
+- v3.4.0 baseline alignment: <fill after docs/release metadata gates>
 - Local docs/release metadata: <fill after `verify-release-metadata`,
   `verify-docs-links`, `verify-docs-ui-assets`, and required inventory gates>
 - Build: <fill after `./server.sh build`>

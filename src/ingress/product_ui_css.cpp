@@ -1303,6 +1303,7 @@ std::string ProductUiCss() {
     .client-safe-incident-digest,
     .client-safe-resolution-digest,
     .client-safe-source-status-digest,
+    .client-safe-maintenance-digest,
     .client-safe-followup-digest,
     .client-safe-digest-list {
       display: grid;
@@ -1313,6 +1314,7 @@ std::string ProductUiCss() {
     .client-safe-incident-digest,
     .client-safe-resolution-digest,
     .client-safe-source-status-digest,
+    .client-safe-maintenance-digest,
     .client-safe-followup-digest {
       padding: var(--space-3);
       border: 1px solid var(--color-border);
@@ -1337,6 +1339,144 @@ std::string ProductUiCss() {
     .client-safe-digest-item span {
       color: var(--color-text-muted);
       overflow-wrap: anywhere;
+    }
+    .source-continuity-drill-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: var(--space-3);
+      align-items: start;
+    }
+    .source-continuity-drill-grid h4 {
+      margin: 0 0 var(--space-2);
+      font-size: 13px;
+      color: var(--color-text-muted);
+    }
+    .source-continuity-drill-list {
+      display: grid;
+      gap: var(--space-2);
+    }
+    .source-continuity-drill-card,
+    .source-continuity-drill-boundary {
+      display: grid;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-raised);
+      color: var(--color-text);
+      text-decoration: none;
+      overflow-wrap: anywhere;
+      min-width: 0;
+    }
+    .source-continuity-drill-card span,
+    .source-continuity-drill-card small,
+    .source-continuity-drill-boundary span {
+      margin: 0;
+      color: var(--color-text-muted);
+      line-height: 1.45;
+    }
+    .source-recovery-checklist-grid {
+      display: grid;
+      gap: var(--space-3);
+      align-items: start;
+    }
+    .source-recovery-checklist-grid h4 {
+      margin: 0 0 var(--space-2);
+      font-size: 13px;
+      color: var(--color-text-muted);
+    }
+    .source-recovery-checklist-list {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: var(--space-2);
+    }
+    .source-recovery-checklist-card,
+    .source-recovery-checklist-boundary {
+      display: grid;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-raised);
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .source-recovery-checklist-card p,
+    .source-recovery-checklist-card span,
+    .source-recovery-checklist-card small,
+    .source-recovery-checklist-boundary span {
+      margin: 0;
+      color: var(--color-text-muted);
+      line-height: 1.45;
+    }
+    .source-drill-evidence-manifest-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: var(--space-3);
+      align-items: start;
+    }
+    .source-drill-evidence-manifest-grid h4 {
+      margin: 0 0 var(--space-2);
+      font-size: 13px;
+      color: var(--color-text-muted);
+    }
+    .source-drill-evidence-manifest-list {
+      display: grid;
+      gap: var(--space-2);
+    }
+    .source-drill-evidence-manifest-card,
+    .source-drill-evidence-manifest-boundary {
+      display: grid;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-raised);
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .source-drill-evidence-manifest-card span,
+    .source-drill-evidence-manifest-card small,
+    .source-drill-evidence-manifest-boundary span {
+      margin: 0;
+      color: var(--color-text-muted);
+      line-height: 1.45;
+    }
+    .source-field-bridge-gate-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: var(--space-3);
+      align-items: start;
+    }
+    .source-field-bridge-gate-grid h4 {
+      margin: 0 0 var(--space-2);
+      font-size: 13px;
+      color: var(--color-text-muted);
+    }
+    .source-field-bridge-gate-list {
+      display: grid;
+      gap: var(--space-2);
+    }
+    .source-field-bridge-gate-card,
+    .source-field-bridge-gate-boundary {
+      display: grid;
+      gap: var(--space-2);
+      padding: var(--space-3);
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: var(--color-surface-raised);
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .source-field-bridge-gate-boundary {
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    }
+    .source-field-bridge-gate-card span,
+    .source-field-bridge-gate-card small,
+    .source-field-bridge-gate-boundary span {
+      margin: 0;
+      color: var(--color-text-muted);
+      line-height: 1.45;
     }
     form,
     .form-grid {

@@ -10,14 +10,243 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.3.0`
+- 현재 소스 버전: `3.4.0`
 - 최신 공개 GitHub Release: `v3.3.0`
 - `v3.3.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap: `v3.3.0 Live Source Reliability Workspace`
+- 현재 source roadmap: `v3.4.0 Operations Continuity Drill Workspace`
 - 최신 published baseline: `v3.3.0 Live Source Reliability Workspace`
 
-## 현재 source roadmap: v3.3.0 Live Source Reliability Workspace
+## 현재 source roadmap: v3.4.0 Operations Continuity Drill Workspace
+
+상태: Step 1 source/version/docs/backlog/verification metadata 정렬 완료. Step 2
+Continuity Drill Contract 구현 완료. Step 3 Recovery Candidate Package Read Model
+구현 완료. Step 4 Staging Restore Validation Harness 구현 완료. Step 5 Source Health
+Replay and Drift Diff 구현 완료. Step 6 Ops Continuity Drill Workspace UI 구현 완료.
+Step 7 Approval-Gated Recovery Checklist and Audit, Step 8 Client-safe Maintenance
+Digest, Step 9 Drill Evidence Export and Cleanup Manifest, Step 10 Field Bridge
+Condition Gates, Step 11 Stabilization and Release Readiness local gate 연결까지
+완료했습니다. 이 절은 v3.4.0 source roadmap이며, 각 step은 실제 코드/API/문서
+변경, 기능 ID/test inventory 등록, 해당 verifier와 release test record evidence가
+생긴 뒤에만 완료로 기록합니다.
+
+직접 답: v3.4.0의 1차 선택값은 `Operations Continuity Drill Workspace`입니다.
+v3.3이 live source reliability와 backup/recovery handoff 입력을 정리했다면, v3.4는
+그 handoff를 실제 운영 복구 리허설로 이어가되 production registry, PublishedView,
+EventRecord, media path를 자동 변경하지 않는 안전한 dry-run 작업공간으로 확장합니다.
+
+fallback 또는 축소 대안은 `Continuity Drill Core`입니다. 이 대안은 v3.4.0 baseline
+정렬, drill contract, recovery candidate package, staging restore validation까지만 먼저
+닫고 Ops UI, client-safe digest, field bridge, evidence export는 후속 step evidence가
+생길 때까지 보류합니다.
+
+브레인스토밍 후보:
+
+| 후보 | 판단 | 이유 |
+| --- | --- | --- |
+| Operations Continuity Drill Workspace | 1차 선택 | v3.3 source reliability/handoff를 실제 운영 복구 리허설로 이어가는 자연스러운 다음 단계입니다. 운영자가 장애 원인, source/view 연결, health drift, 복구 준비 상태를 production write 없이 검증할 수 있습니다. |
+| ONVIF Field Readiness Workspace | 보류 | ONVIF fixture와 정책은 충분하지만 실장비 endpoint/credential 의존도가 커서 v3.4 source-only local roadmap의 중심축으로 삼기에는 외부 조건이 큽니다. |
+| VLM Operator Assist Expansion | 보류 | VLM profile/runtime/provider 문서는 많지만 default-off, provider credential, privacy transfer, runtime quality 판단이 필요하므로 v3.4 기본축보다는 조건부 보조축에 가깝습니다. |
+
+포함 범위:
+
+- v3.4.0 source roadmap baseline 정렬
+- operations continuity drill contract와 no-write/no-secret/no-media-path-change 경계
+- recovery candidate package read model
+- staging restore validation harness
+- source health replay/diff와 drift summary
+- Ops continuity drill workspace UI
+- approval-gated recovery checklist와 audit
+- client-safe maintenance digest
+- redacted drill evidence export와 cleanup manifest
+- field bridge condition gate
+- stabilization and release readiness local gate
+
+비범위:
+
+- production restore cutover 자동 수행
+- source registry 또는 PublishedView 자동 write
+- EventRecord, Event POST payload, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC
+  media path, Rule/Profile payload schema 변경
+- VMS/NVR 제품군, 장기 녹화, broad archive playback/search
+- ONVIF 실기기, external TURN/WHEP, real cloud/VLM provider 성공 보장
+- viewer/client에 source locator, credential, raw diagnostic JSON, debug material 노출
+
+| Step | 제목 | 우선순위 | 상태 | 산출물 |
+| --- | --- | --- | --- | --- |
+| 1 | v3.4.0 (1) v3.4.0 baseline 정렬 | P0 | 완료 | VERSION/CMake/docs/backlog/source roadmap과 `verify-v340-entry-baseline` 기준 정렬 |
+| 2 | v3.4.0 (2) Continuity Drill Contract | P0 | 완료 | recovery drill schema, v3.3 handoff 입력, read-only/no-write/no-secret/no-media-path-change 경계 정의 |
+| 3 | v3.4.0 (3) Recovery Candidate Package Read Model | P0 | 완료 | source registry snapshot, PublishedView, source health, EventRecord/audit context를 redacted 복구 후보 package로 조합 |
+| 4 | v3.4.0 (4) Staging Restore Validation Harness | P0 | 완료 | 임시 runtime에서 JSON parse, 중복 ID, 누락 sourceId 참조, auth store `0600`, checksum, viewer scope를 production write 없이 검증 |
+| 5 | v3.4.0 (5) Source Health Replay and Drift Diff | P1 | 완료 | handoff 당시 source health와 fresh source health를 비교해 stale/offline/reconnect/warning drift를 요약 |
+| 6 | v3.4.0 (6) Ops Continuity Drill Workspace UI | P1 | 완료 | `/ops/sources`에서 drill package, validation status, blocked/ready 상태를 read-only로 표시 |
+| 7 | v3.4.0 (7) Approval-Gated Recovery Checklist and Audit | P1 | 완료 | operator note, ready/blocked/field-smoke-needed/not-run 상태, dry-run result, Ops audit 연결을 추가하고 자동 recovery는 수행하지 않음 |
+| 8 | v3.4.0 (8) Client-safe Maintenance Digest | P1 | 완료 | viewer/client에 maintenance/recovering/unavailable 요약만 제공하고 source URL/raw locator/raw JSON/debug/credential material은 비노출 |
+| 9 | v3.4.0 (9) Drill Evidence Export and Cleanup Manifest | P1 | 완료 | redacted drill artifact manifest, 최소 보존 evidence, `/tmp` cleanup, 민감 정보 scan 경계를 기록 |
+| 10 | v3.4.0 (10) Field Bridge Condition Gates | P2 | 완료 | ONVIF 실기기, external WHEP/TURN, real cloud/VLM provider는 endpoint/credential/승인 조건부 field smoke로 분리하고 source-only PASS로 대체하지 않음 |
+| 11 | v3.4.0 (11) Stabilization and Release Readiness | P0 | 완료 | v3.4 local gates, feature inventory, release records, docs links/assets, release evidence index, close-out dry-run, script inventory, `git diff --check` 연결 |
+
+완료 경계: 위 표는 v3.4.0 개발 순서와 우선순위입니다. 각 step은 실제 코드/UI/API/문서
+변경, 기능 ID/test inventory 등록, 해당 verifier와 release test record evidence가 생긴 뒤에만
+완료로 기록합니다. UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release
+action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁니다.
+
+## v3.4.0 Step 1 개발 기록
+
+- 범위: P0 `v3.4.0 (1) v3.4.0 baseline 정렬`.
+- `VERSION`, `CMakeLists.txt`: 현재 source version과 CMake project version을 `3.4.0`으로 정렬했습니다.
+- `README.md`, `README.en.md`, `docs/README.md`, `docs/en/README.md`, `docs/versioning-policy.md`, `docs/release-policy.md`, `docs/public-repo-final-review.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`: 현재 source roadmap을 `v3.4.0 Operations Continuity Drill Workspace`로 전환하고 latest published release는 `v3.3.0` source-only GitHub Release로 보존했습니다.
+- `docs/development-backlog.md`: v3.4.0 current roadmap을 `Step | 제목 | 우선순위 | 상태 | 산출물` 구조로 정렬하고, `Operations Continuity Drill Workspace` 1차 선택값, `Continuity Drill Core` fallback, 제외 대상과 no-write/no-secret/no-media-path-change 경계를 기록했습니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`, `config/docs_ui_assets.json`: current release target, docs asset baseline, verification catalog, release records를 source `3.4.0`와 latest published `v3.3.0` 분리 기준으로 정렬했습니다.
+- `scripts/internal/verify_release_metadata_consistency.mjs`, `scripts/internal/verify_docs_ui_assets.mjs`: release metadata와 docs UI asset verifier가 source `3.4.0`, current roadmap `v3.4.0 Operations Continuity Drill Workspace`, latest published `v3.3.0`을 분리 검증하도록 보정했습니다.
+- `scripts/internal/verify_v340_entry_baseline.mjs`, `server.sh`: `./server.sh verify-v340-entry-baseline` 명령을 추가해 source `3.4.0`, latest published `v3.3.0`, current roadmap `v3.4.0 Operations Continuity Drill Workspace`, 1차 선택값/fallback/제외 대상, release records, feature inventory, server dispatch 연결을 정적 검증합니다.
+- 검증: 최초 `node scripts/internal/verify_v340_entry_baseline.mjs`는 source version/docs/inventory/server dispatch가 아직 v3.4 기준이 아니어서 `pass=0 fail=9`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v340 Step 1 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 1은 source/version/docs/backlog/verification metadata 정렬입니다. v3.4 기능 구현, UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다. UI 직접 조작 evidence도 별도 실행 기록이 있을 때만 완료로 씁니다.
+
+## v3.4.0 Step 2 개발 기록
+
+- 범위: P0 `v3.4.0 (2) Continuity Drill Contract`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV340ContinuityDrillContractJson`을 추가해 `media-server.ops.v340-continuity-drill-contract.v1` recovery drill schema, `v330HandoffInputs`, `drillBoundaries`를 Ops-only read-only JSON으로 반환합니다.
+- `src/ingress/webrtc_http_server.cpp`: `GET /ops/api/source-registry/continuity-drill/contract` route를 추가했습니다. 이 route는 `require_ops_principal()`로 보호되고 `Cache-Control: no-store`를 설정하며 source registry write, PublishedView write, EventRecord write, Ops audit write, production restore, automatic recovery, RTSP/WebRTC media path 변경을 수행하지 않습니다.
+- `scripts/internal/verify_v340_continuity_drill_contract.mjs`, `server.sh`: `./server.sh verify-v340-continuity-drill-contract` 명령을 추가해 recovery drill schema, v3.3 handoff 입력, read-only/no-write/no-secret/no-media-path-change 경계, docs/inventory/release records/server dispatch 연결을 검증합니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`: `SAFE-125`, `OPS-092` 기능/경계/gate 항목을 추가하고 안정화 verifier 연결을 갱신했습니다.
+- 검증: 최초 `node scripts/internal/verify_v340_continuity_drill_contract.mjs`는 Step 2 server model, route, docs/inventory/server dispatch가 아직 없어서 `pass=0 fail=7`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v340 Step 2 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 2는 Continuity Drill Contract read model/API/verifier 연결입니다. Recovery Candidate Package Read Model, Staging Restore Validation Harness 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence도 아닙니다.
+
+## v3.4.0 Step 3 개발 기록
+
+- 범위: P0 `v3.4.0 (3) Recovery Candidate Package Read Model`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV340RecoveryCandidatePackageJson`을 추가해 SourceRegistry snapshot, PublishedView, source health snapshot, EventRecord query summary, redacted Ops audit context를 `media-server.ops.v340-recovery-candidate-package.v1` package로 조합합니다.
+- `src/ingress/webrtc_http_server.cpp`: `GET /ops/api/source-registry/recovery-candidate-package` route를 추가했습니다. 이 route는 `require_ops_principal()`로 보호되고 `Cache-Control: no-store`를 설정하며 source locator, credential material, raw audit body, media path, client/viewer material을 package에 포함하지 않습니다.
+- `src/ingress/webrtc_http_server.cpp`: package에 `stagingRestoreValidationHarness` command, `redactionPolicy`, `boundaries`를 포함해 production write, automatic recovery, EventRecord/Event POST/WebRTC/SSE/WS/media schema 변경이 없음을 명시했습니다.
+- `scripts/internal/verify_v340_recovery_candidate_package.mjs`, `server.sh`: `./server.sh verify-v340-recovery-candidate-package` 명령을 추가해 read model, route guard, redaction, no-store, docs/inventory/release records/server dispatch 연결을 정적 검증합니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`: `SRC-041`, `EVT-073`, `SAFE-126`, `OPS-093` 기능/경계/gate 항목을 추가하고 안정화 verifier 연결을 갱신했습니다.
+- 검증: 최초 `node scripts/internal/verify_v340_recovery_candidate_package.mjs`는 Step 3 server model, route, docs/inventory/server dispatch가 아직 없어서 `pass=0 fail=8`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v340 Step 3 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 3은 Recovery Candidate Package read model/API/verifier 연결입니다. Staging Restore Validation Harness 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence도 아닙니다.
+
+## v3.4.0 Step 4 개발 기록
+
+- 범위: P0 `v3.4.0 (4) Staging Restore Validation Harness`.
+- `scripts/internal/verify_v340_staging_restore_validation_harness.mjs`: 임시 runtime directory를 만들고 삭제하는 self-test harness를 추가했습니다. 이 harness는 JSON parse, duplicate sourceId, missing PublishedView sourceId reference, auth store `0600`, checksum mismatch, viewer scope missing을 production write 없이 검증합니다.
+- `src/ingress/webrtc_http_server.cpp`: recovery candidate package의 `stagingRestoreValidationHarness`에 `./server.sh verify-v340-staging-restore-validation-harness`, `stagingOnly`, `productionWritePerformed=false`, `authStoreMode0600`, `checksumVerified`, `viewerScopeVerified`, `duplicateSourceIdRejected`, `missingSourceIdReferenceRejected` marker를 포함했습니다.
+- `server.sh`: `./server.sh verify-v340-staging-restore-validation-harness` dispatch를 추가했습니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`: `LAB-090`, `SAFE-127`, `OPS-094` 기능/경계/gate 항목을 추가하고 안정화 verifier 연결을 갱신했습니다.
+- 검증: 최초 `node scripts/internal/verify_v340_staging_restore_validation_harness.mjs`는 harness self-test 1개는 통과했지만 docs/inventory/server dispatch와 package marker가 없어 `pass=1 fail=5`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v340 Step 4 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 4는 staging restore validation harness와 package marker 연결입니다. source health replay/diff, Ops UI, approval-gated checklist 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence도 아닙니다.
+
+## v3.4.0 Step 5 개발 기록
+
+- 범위: P1 `v3.4.0 (5) Source Health Replay and Drift Diff`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV340SourceHealthReplayDriftDiffJson`, `BuildV340HandoffSourceHealthReplaySnapshot`, `BuildV340SourceHealthReplayDriftDiffItems`, `BuildV340SourceHealthReplayDriftSummary`를 추가해 `/ops/api/source-registry/source-health-replay-drift-diff`에서 handoff source health replay baseline과 fresh source health snapshot의 stale/offline/reconnect/warning drift를 Ops-only read-only JSON으로 요약합니다.
+- `src/ingress/webrtc_http_server.cpp`: route guard는 `require_ops_principal()`와 GET/no-store만 사용하며 SourceRegistry/PublishedView/Ops audit write, source health snapshot persistence, recovery validation plan persistence, production restore, automatic recovery, media/schema 변경을 수행하지 않는 boundary flag를 출력합니다.
+- `scripts/internal/verify_v340_source_health_replay_drift_diff.mjs`, `server.sh`: `./server.sh verify-v340-source-health-replay-drift-diff` 명령을 추가해 Step 5 server model, route, read-only boundary, backlog/stream verification/release records/inventory/server dispatch 연결을 검증합니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`, `docs/stream-verification.md`, `docs/release-test-records.md`: `SRC-042`, `SAFE-128`, `OPS-095` 기능/경계/gate 항목과 Step 5 verifier 연결을 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v340_source_health_replay_drift_diff.mjs`는 Step 5 server model, route, docs/inventory/server dispatch가 아직 없어 `pass=0 fail=7`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v340 Step 5 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 5는 Source Health Replay and Drift Diff read model/API/verifier 연결입니다. Ops Continuity Drill Workspace UI 완료 evidence가 아닙니다. approval-gated checklist, client-safe maintenance digest, evidence export/cleanup manifest, field bridge gates 완료 evidence도 아닙니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence도 아닙니다.
+
+## v3.4.0 Step 6 개발 기록
+
+- 범위: P1 `v3.4.0 (6) Ops Continuity Drill Workspace UI`.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/sources`에 `ops-continuity-drill-workspace` section, `source-continuity-drill-status`, package/ready/blocked/drift metric, `media-server.ops.v340-continuity-drill-workspace-ui.v1` marker를 추가해 drill package, validation status, blocked/ready 상태를 read-only로 표시했습니다.
+- `src/ingress/product_ui_ops_sources_script.cpp`: `renderOpsContinuityDrillWorkspace`를 추가해 `continuity-drill/contract`, `recovery-candidate-package`, `source-health-replay-drift-diff` read model을 함께 읽고 `recoveryCandidatePackageSummary`, `recoveryCandidates`, `sourceHealthReplayDriftDiffSummary`, `sourceHealthReplayDriftItems`, `drillPackageReady`, `validationReady`, `blockedSources`, `automaticRecoveryPerformed` boundary를 UI 카드로 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`, `scripts/internal/verify_ops_client_ui_smoke.mjs`: Step 6 workspace card/list/boundary 스타일과 Ops/Client static smoke marker를 추가했습니다. viewer/client route에는 drill package, source URL/raw locator/raw JSON/debug/credential material을 노출하지 않습니다.
+- `scripts/internal/verify_v340_ops_continuity_drill_workspace_ui.mjs`, `server.sh`: `./server.sh verify-v340-ops-continuity-drill-workspace-ui` 명령을 추가해 `/ops/sources` shell, renderer, CSS, client 비노출, backlog/stream verification/manual UI/release records/inventory/server dispatch 연결을 검증합니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`, `docs/stream-verification.md`, `docs/release-test-records.md`, `docs/manual-ui-checklist.md`: `UI-075`, `SAFE-129`, `OPS-096` 기능/경계/gate 항목과 Step 6 verifier 연결을 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v340_ops_continuity_drill_workspace_ui.mjs`는 Step 6 UI shell/renderer/CSS/docs/inventory/server dispatch가 아직 없어 `pass=1 fail=7`로 기대 실패했습니다. 구현 후 `./server.sh verify-v340-ops-continuity-drill-workspace-ui`는 `pass=8 fail=0`으로 통과했습니다. `./server.sh build`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `git diff --check`도 통과했습니다. `verify-ops-client-ui --browser-mode static`은 서버 미기동 fetch 실패와 auth-on 401 전제를 확인한 뒤 `MEDIA_SERVER_AUTH_MODE=off` 검증 서버에서 route/API/redaction smoke `통과 28/실패 0`으로 재검증했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v340 Step 6 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 6은 Ops Continuity Drill Workspace UI read-only 표시와 static verifier 연결입니다. Approval-Gated Recovery Checklist and Audit 완료 evidence가 아닙니다. client-safe maintenance digest, evidence export/cleanup manifest, field bridge gates 완료 evidence도 아닙니다. 자동 recovery, production restore, source registry/PublishedView/Ops audit write를 수행하지 않습니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence도 아닙니다.
+
+## v3.4.0 Step 7 개발 기록
+
+- 범위: P1 `v3.4.0 (7) Approval-Gated Recovery Checklist and Audit`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV340ApprovalGatedRecoveryChecklistJson`, `BuildV340ApprovalGatedRecoveryChecklist`, `BuildV340ApprovalGatedRecoveryChecklistSummary`를 추가해 `/ops/api/source-registry/approval-gated-recovery-checklist`에서 recovery candidate package와 fresh source health를 기반으로 operator note, ready/blocked/field-smoke-needed/not-run 상태, dry-run result, Ops audit link를 read-only JSON으로 조합했습니다.
+- `src/ingress/webrtc_http_server.cpp`: route guard는 `require_ops_principal()`와 GET/no-store만 사용하며 `automaticRecoveryPerformed=false`, `sourceRegistryWritePerformed=false`, `publishedViewWritePerformed=false`, `opsAuditWritePerformed=false` boundary를 출력합니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/sources`에 `ops-approval-gated-recovery-checklist` section, `source-recovery-checklist-status`, ready/blocked/field-smoke-needed/not-run metric, `media-server.ops.v340-approval-gated-recovery-checklist.v1` marker를 추가했습니다.
+- `src/ingress/product_ui_ops_sources_script.cpp`: `renderApprovalGatedRecoveryChecklistAudit`를 추가해 checklist summary/items를 카드로 렌더링하고 operator note, dry-run result, Ops audit link, no-auto-recovery boundary를 UI에 표시합니다.
+- `src/ingress/product_ui_css.cpp`, `scripts/internal/verify_ops_client_ui_smoke.mjs`: Step 7 checklist card/list/boundary 스타일과 Ops/Client static smoke marker를 추가했습니다. viewer/client route에는 approval-gated checklist, source URL/raw locator/raw JSON/debug/credential material을 노출하지 않습니다.
+- `scripts/internal/verify_v340_approval_gated_recovery_checklist_audit.mjs`, `server.sh`: `./server.sh verify-v340-approval-gated-recovery-checklist-audit` 명령을 추가해 Ops API, `/ops/sources` shell, renderer, CSS, client 비노출, backlog/stream verification/manual UI/release records/inventory/server dispatch 연결을 검증합니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`, `docs/stream-verification.md`, `docs/release-test-records.md`, `docs/manual-ui-checklist.md`: `UI-076`, `SAFE-130`, `OPS-097` 기능/경계/gate 항목과 Step 7 verifier 연결을 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v340_approval_gated_recovery_checklist_audit.mjs`는 Step 7 server/API/UI/docs/inventory/server dispatch가 아직 없어 `pass=1 fail=8`로 기대 실패했습니다. 구현 후 `./server.sh verify-v340-approval-gated-recovery-checklist-audit`는 `pass=9 fail=0`으로 통과했습니다. `./server.sh build`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `git diff --check`도 통과했습니다. `MEDIA_SERVER_AUTH_MODE=off` 검증 서버에서 `verify-ops-client-ui --browser-mode static`은 route/API/redaction smoke `통과 28/실패 0`으로 재검증했고, 최종 검증 결과는 `docs/release-test-records.md`의 v340 Step 7 결과 행에 기록했습니다.
+- 완료 경계: 이번 Step 7은 Approval-Gated Recovery Checklist and Audit read-only 표시와 static verifier 연결입니다. Client-safe Maintenance Digest 완료 evidence가 아닙니다. Drill Evidence Export and Cleanup Manifest, Field Bridge Condition Gates 완료 evidence도 아닙니다. 자동 recovery, production restore, source registry/PublishedView/Ops audit write를 수행하지 않습니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence도 아닙니다.
+
+## v3.4.0 Step 8 개발 기록
+
+- 범위: P1 `v3.4.0 (8) Client-safe Maintenance Digest`.
+- `src/ingress/webrtc_http_server.cpp`: `ClientMaintenanceDigestJson`, `ClientMaintenanceDigestFor`, `AppendClientSafeMaintenanceDigestJson`을 추가해 `/client/api/views/{id}/events`와 dashboard event summary payload에 `media-server.client.v340-maintenance-digest.v1` `maintenanceDigest`를 붙였습니다. digest는 `maintenanceState`, `summaryText`, `severity`, `timelineHint`와 viewer-safe boundary flag만 노출합니다.
+- `src/ingress/webrtc_http_server.cpp`: `maintenanceDigest`는 PublishedView-scoped client payload에만 포함되고 `sourceUrlIncluded=false`, `rawLocatorIncluded=false`, `rawJsonIncluded=false`, `debugMaterialIncluded=false`, `credentialMaterialIncluded=false`, `operatorMaterialIncluded=false`, `opsAuditLinkageIncluded=false`, `dryRunResultIncluded=false`, `approvalChecklistIncluded=false`, `recoveryActionIncluded=false`를 출력합니다. SourceRegistry/PublishedView/EventRecord/Event POST/WebRTC DataChannel/SSE/WS metadata/RTSP-WebRTC media path/Rule/Profile/search-metrics 변경은 수행하지 않습니다.
+- `src/ingress/product_ui_client_scripts.cpp`: `renderClientSafeMaintenanceDigest`를 추가하고 `/client/live`, `/client/dashboard`, `/client/events`의 event feed/detail 흐름에 viewer-safe maintenance/recovering/unavailable digest를 표시했습니다. renderer는 source URL, raw locator, raw JSON, debug material, credential material, operator note, Ops audit, dry-run result, approval checklist, recovery action을 읽지 않습니다.
+- `src/ingress/product_ui_css.cpp`, `scripts/internal/verify_ops_client_ui_smoke.mjs`: client-safe maintenance digest panel/list/item 스타일과 Ops/Client static smoke marker를 추가했습니다.
+- `scripts/internal/verify_v340_client_safe_maintenance_digest.mjs`, `server.sh`: `./server.sh verify-v340-client-safe-maintenance-digest` 명령을 추가해 client API/schema/UI renderer/CSS/redaction boundary, backlog/stream verification/manual UI/release records/inventory/server dispatch 연결을 검증합니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`, `docs/stream-verification.md`, `docs/release-test-records.md`, `docs/manual-ui-checklist.md`: `UI-077`, `CLIENT-029`, `SAFE-131`, `OPS-098` 기능/경계/gate 항목과 Step 8 verifier 연결을 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v340_client_safe_maintenance_digest.mjs`는 Step 8 client API/UI/docs/inventory/server dispatch가 아직 없어 `pass=0 fail=7`로 기대 실패했습니다. 구현 후 `./server.sh verify-v340-client-safe-maintenance-digest`는 `pass=7 fail=0`으로 통과했습니다. `./server.sh build`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `git diff --check`도 통과했습니다. `MEDIA_SERVER_AUTH_MODE=off` 검증 서버에서 `verify-ops-client-ui --browser-mode static`은 route/API/redaction smoke `통과 28/실패 0`으로 재검증했고, 최종 검증 결과는 `docs/release-test-records.md`의 v340 Step 8 결과 행에 기록했습니다.
+- 완료 경계: 이번 Step 8은 Client-safe Maintenance Digest API/UI와 redaction boundary 연결입니다. Drill Evidence Export and Cleanup Manifest 완료 evidence가 아닙니다. Field Bridge Condition Gates 완료 evidence도 아닙니다. source registry write, PublishedView write, EventRecord write, Event POST/API/schema/media/search 변경을 수행하지 않습니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence도 아닙니다.
+
+## v3.4.0 Step 9 개발 기록
+
+- 범위: P1 `v3.4.0 (9) Drill Evidence Export and Cleanup Manifest`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV340DrillEvidenceExportCleanupManifestJson`, `BuildV340DrillEvidenceArtifactManifest`, `BuildV340DrillCleanupManifest`, `BuildV340DrillEvidenceExportCleanupSummary`를 추가해 `/ops/api/source-registry/drill-evidence-export-cleanup-manifest`에서 redacted drill artifact manifest, minimum retained evidence, `/tmp` cleanup manifest, sensitive material scan boundary를 Ops-only read-only JSON으로 기록했습니다.
+- `src/ingress/webrtc_http_server.cpp`: manifest는 `cleanupExecutionPerformed=false`, `artifactExportExecuted=false`, `temporaryCleanupExecuted=false`를 명시하고 source URL, raw locator, raw JSON, debug material, credential material, raw audit body, provider material, client/viewer material을 포함하지 않습니다. SourceRegistry/PublishedView/EventRecord/Ops audit write, Event POST/WebRTC DataChannel/SSE/WS metadata, RTSP/WebRTC media path, Rule/Profile/search-metrics 변경도 수행하지 않습니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/sources`에 `ops-drill-evidence-export-cleanup-manifest` section, `source-drill-evidence-manifest-status`, retained/artifact/cleanup/scan metric, `media-server.ops.v340-drill-evidence-export-cleanup-manifest.v1` marker를 추가했습니다.
+- `src/ingress/product_ui_ops_sources_script.cpp`: `renderDrillEvidenceExportCleanupManifest`를 추가해 retained evidence, cleanup candidates, sensitive scan patterns를 read-only 카드로 렌더링합니다. renderer는 drill manifest의 source URL/raw locator/raw JSON/debug/credential/raw audit body/provider material을 읽지 않습니다.
+- `src/ingress/product_ui_css.cpp`, `scripts/internal/verify_ops_client_ui_smoke.mjs`: Step 9 manifest card/list/boundary 스타일과 Ops/Client static smoke marker를 추가했습니다.
+- `scripts/internal/verify_v340_drill_evidence_export_cleanup_manifest.mjs`, `server.sh`: `./server.sh verify-v340-drill-evidence-export-cleanup-manifest` 명령을 추가해 Ops API, `/ops/sources` shell, renderer, CSS, client 비노출, backlog/stream verification/manual UI/release records/inventory/server dispatch 연결을 검증합니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`, `docs/stream-verification.md`, `docs/release-test-records.md`, `docs/manual-ui-checklist.md`: `UI-078`, `SAFE-132`, `OPS-099` 기능/경계/gate 항목과 Step 9 verifier 연결을 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v340_drill_evidence_export_cleanup_manifest.mjs`는 Step 9 server/API/UI/docs/inventory/server dispatch가 아직 없어 `pass=0 fail=7`로 기대 실패했습니다. 구현 후 `./server.sh verify-v340-drill-evidence-export-cleanup-manifest`는 `pass=7 fail=0`으로 통과했습니다. `./server.sh build`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `git diff --check`도 통과했습니다. `MEDIA_SERVER_AUTH_MODE=off` 검증 서버에서 `verify-ops-client-ui --browser-mode static`은 route/API/redaction smoke `통과 28/실패 0`으로 재검증했고, 최종 검증 결과는 `docs/release-test-records.md`의 v340 Step 9 결과 행에 기록했습니다.
+- 완료 경계: 이번 Step 9는 Drill Evidence Export and Cleanup Manifest API/UI와 redaction/cleanup boundary 연결입니다. Field Bridge Condition Gates 완료 evidence가 아닙니다. cleanupExecutionPerformed=false이며 artifact export, `/tmp` cleanup, production restore, automatic recovery를 수행하지 않습니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, field smoke, published metadata, release action 완료 evidence도 아닙니다.
+
+## v3.4.0 Step 10 개발 기록
+
+- 범위: P2 `v3.4.0 (10) Field Bridge Condition Gates`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV340FieldBridgeConditionGatesJson`, `BuildV340FieldBridgeConditionGates`, `BuildV340FieldBridgeConditionGateSummary`를 추가해 `/ops/api/source-registry/field-bridge-condition-gates`에서 ONVIF 실기기, external WHEP/TURN, real cloud/VLM provider를 endpoint/credential/operator approval 조건부 field smoke gate로 분리했습니다.
+- `src/ingress/webrtc_http_server.cpp`: gate payload는 `fieldSmokeStatus=field-smoke-needed`, `executionStatus=not-run`, `sourceOnlyPassAccepted=false`, `localVerifierPassSubstitutesFieldSmoke=false`, `fieldSmokeExecuted=false`를 명시하고 endpoint probe, credential probe, ONVIF device contact, external WHEP/TURN contact, cloud provider/VLM provider call을 수행하지 않습니다.
+- `src/ingress/webrtc_http_server.cpp`: endpoint URL, credential material, raw locator, raw JSON, debug material, provider material, raw TURN credential, raw VLM prompt/provider response를 JSON/UI/client에 포함하지 않으며 SourceRegistry/PublishedView/EventRecord/Ops audit write, Event POST/WebRTC DataChannel/SSE/WS metadata, RTSP/WebRTC media path, Rule/Profile/search-metrics 변경도 수행하지 않습니다.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/sources`에 `ops-field-bridge-condition-gates` section, `source-field-bridge-gate-status`, gate/field-smoke/blocked/approval metric, `media-server.ops.v340-field-bridge-condition-gates.v1` marker를 추가했습니다.
+- `src/ingress/product_ui_ops_sources_script.cpp`: `renderFieldBridgeConditionGates`를 추가해 condition gates, source-only PASS boundary, field smoke 조건을 read-only 카드로 렌더링합니다. renderer는 field bridge payload의 endpoint URL/raw locator/raw JSON/debug/credential/provider material을 읽지 않습니다.
+- `src/ingress/product_ui_css.cpp`, `scripts/internal/verify_ops_client_ui_smoke.mjs`: Step 10 gate card/list/boundary 스타일과 Ops/Client static smoke marker를 추가했습니다.
+- `scripts/internal/verify_v340_field_bridge_condition_gates.mjs`, `server.sh`: `./server.sh verify-v340-field-bridge-condition-gates` 명령을 추가해 Ops API, `/ops/sources` shell, renderer, CSS, client 비노출, backlog/stream verification/manual UI/release records/inventory/server dispatch 연결을 검증합니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`, `docs/stream-verification.md`, `docs/release-test-records.md`, `docs/manual-ui-checklist.md`: `UI-079`, `SRC-043`, `MEDIA-022`, `LAB-091`, `SAFE-133`, `OPS-100` 기능/경계/gate 항목과 Step 10 verifier 연결을 추가했습니다.
+- 검증: 최초 `node scripts/internal/verify_v340_field_bridge_condition_gates.mjs`는 Step 10 server/API/UI/docs/inventory/server dispatch가 아직 없어 `pass=0 fail=7`로 기대 실패했습니다. 구현 후 `./server.sh verify-v340-field-bridge-condition-gates`는 `pass=7 fail=0`으로 통과했습니다. `./server.sh build`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `git diff --check`도 통과했습니다. `MEDIA_SERVER_AUTH_MODE=off` 검증 서버에서 `verify-ops-client-ui --browser-mode static`은 route/API/redaction smoke `통과 28/실패 0`으로 재검증했고, 최종 검증 결과는 `docs/release-test-records.md`의 v340 Step 10 결과 행에 기록했습니다.
+- 완료 경계: 이번 Step 10은 Field Bridge Condition Gates API/UI와 조건부 field smoke boundary 연결입니다. ONVIF 실기기, external WHEP/TURN, real cloud/VLM provider field smoke 실행 evidence가 아닙니다. fieldSmokeExecuted=false, sourceOnlyPassAccepted=false이며 endpoint probe, credential probe, provider call, media path 변경, source-only PASS 승격을 수행하지 않습니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence도 아닙니다.
+
+## v3.4.0 Step 11 개발 기록
+
+- 범위: P0 `v3.4.0 (11) Stabilization and Release Readiness`.
+- `scripts/internal/verify_v340_stabilization_release_readiness.mjs`, `server.sh`: `./server.sh verify-v340-stabilization-release-readiness` 명령을 추가해 v3.4 Step 11 roadmap, stream verification, feature inventory, release policy, release evidence index, release records, server dispatch, script inventory 연결을 검증합니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`: `SAFE-134`, `OPS-101` 안정화 항목과 Step 11 verifier/coverage/script inventory 연결을 추가했습니다.
+- `docs/stream-verification.md`, `docs/release-policy.md`, `docs/release-evidence-index.md`, `docs/release-test-records.md`: v3.4 local stabilization, release evidence/not-run 경계와 close-out dry-run 기록을 추가했습니다. 이 기록은 UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, PR/main/tag/GitHub Release, field smoke 실행 evidence를 대체하지 않습니다.
+- Companion local gate:
+
+```bash
+./server.sh verify-v340-stabilization-release-readiness
+./server.sh build
+./server.sh verify-v340-entry-baseline
+./server.sh verify-v340-continuity-drill-contract
+./server.sh verify-v340-recovery-candidate-package
+./server.sh verify-v340-staging-restore-validation-harness
+./server.sh verify-v340-source-health-replay-drift-diff
+./server.sh verify-v340-ops-continuity-drill-workspace-ui
+./server.sh verify-v340-approval-gated-recovery-checklist-audit
+./server.sh verify-v340-client-safe-maintenance-digest
+./server.sh verify-v340-drill-evidence-export-cleanup-manifest
+./server.sh verify-v340-field-bridge-condition-gates
+./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-project-inventory
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-release-evidence-index
+./server.sh verify-release-closeout-helper --dry-run
+./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
+./server.sh verify-script-inventory
+git diff --check
+```
+
+- 검증: 최초 `node scripts/internal/verify_v340_stabilization_release_readiness.mjs`는 Step 11 docs/inventory/server dispatch가 아직 없어 `pass=1 fail=5`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v340 Step 11 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 11은 v3.4 local stabilization, release evidence/not-run 경계, close-out dry-run 기록 연결입니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, PR/main/tag/GitHub Release, field smoke 실행 evidence가 아니며 Step 11 local readiness PASS로 대체하지 않습니다.
+
+`v3.4.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
+실제 tag/push는 수동 승인 후에만 수행합니다.
+
+## 최신 published baseline 상세: v3.3.0 Live Source Reliability Workspace
 
 상태: Step 1 source/version/docs/backlog/verification metadata 정렬 완료. Step 2
 Source Registry Snapshot and Identity 구현 완료. Step 3 Source Onboarding Quality Summary

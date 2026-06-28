@@ -20,6 +20,19 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
     const sourceBackupHandoffStatus = document.querySelector('#source-backup-handoff-status');
     const sourceBackupHandoffInputList = document.querySelector('#source-backup-handoff-input-list');
     const sourceRecoveryValidationPlanList = document.querySelector('#source-recovery-validation-plan-list');
+    const sourceContinuityDrillStatus = document.querySelector('#source-continuity-drill-status');
+    const sourceContinuityDrillPackageList = document.querySelector('#source-continuity-drill-package-list');
+    const sourceContinuityDrillValidationList = document.querySelector('#source-continuity-drill-validation-list');
+    const sourceContinuityDrillDriftList = document.querySelector('#source-continuity-drill-drift-list');
+    const sourceRecoveryChecklistStatus = document.querySelector('#source-recovery-checklist-status');
+    const sourceRecoveryChecklistList = document.querySelector('#source-recovery-checklist-list');
+    const sourceDrillEvidenceManifestStatus = document.querySelector('#source-drill-evidence-manifest-status');
+    const sourceDrillEvidenceArtifactList = document.querySelector('#source-drill-evidence-artifact-list');
+    const sourceDrillEvidenceCleanupList = document.querySelector('#source-drill-evidence-cleanup-list');
+    const sourceDrillEvidenceScanList = document.querySelector('#source-drill-evidence-scan-list');
+    const sourceFieldBridgeGateStatus = document.querySelector('#source-field-bridge-gate-status');
+    const sourceFieldBridgeGateList = document.querySelector('#source-field-bridge-gate-list');
+    const sourceFieldBridgeBoundaryList = document.querySelector('#source-field-bridge-boundary-list');
     const channelBody = document.querySelector('#channels-body');
     const channelForm = document.querySelector('#channel-form');
     const channelPanel = document.querySelector('#channel-detail-panel');
@@ -542,6 +555,179 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         <span>recoveryValidationPlanPersisted: ${escapeHtml(boundaries.recoveryValidationPlanPersisted === true ? 'true' : 'false')}</span>
       </div>`;
     }
+    function renderOpsContinuityDrillWorkspace(contractPayload = {}, packagePayload = {}, driftPayload = {}) {
+      const packageSummary = packagePayload.recoveryCandidatePackageSummary || {};
+      const candidates = Array.isArray(packagePayload.recoveryCandidates) ? packagePayload.recoveryCandidates : [];
+      const contractInputs = Array.isArray(contractPayload.v330HandoffInputs) ? contractPayload.v330HandoffInputs : [];
+      const driftSummary = driftPayload.sourceHealthReplayDriftDiffSummary || {};
+      const driftItems = Array.isArray(driftPayload.sourceHealthReplayDriftItems) ? driftPayload.sourceHealthReplayDriftItems : [];
+      const packageBoundaries = packagePayload.boundaries || {};
+      const validationReady = contractInputs.filter(item => item?.key || item?.label).length;
+      const drillPackageReady = candidates.filter(item => item?.recoveryReadiness === 'ready').length;
+      const blockedSources = candidates.filter(item => item?.recoveryReadiness === 'blocked').length + Number(driftSummary.blockedCount || 0);
+      const driftChanged = Number(driftSummary.changedSourceCount || 0);
+      setMetricText('source-continuity-drill-package-count', packageSummary.candidateCount ?? candidates.length);
+      setMetricText('source-continuity-drill-validation-ready-count', validationReady);
+      setMetricText('source-continuity-drill-blocked-count', blockedSources);
+      setMetricText('source-continuity-drill-drift-count', driftChanged);
+      if (sourceContinuityDrillStatus) {
+        sourceContinuityDrillStatus.textContent =
+          `${packageSummary.candidateCount ?? candidates.length} drill package sources / ready ${drillPackageReady} / blocked ${blockedSources} / drift ${driftChanged}`;
+      }
+      if (sourceContinuityDrillPackageList) {
+        sourceContinuityDrillPackageList.innerHTML = candidates.slice(0, 8).map(item => (
+          `<article class="source-continuity-drill-card" data-source-continuity-drill-package="${escapeHtml(item.recoveryReadiness || 'unknown')}">
+            <strong>${escapeHtml(item.displayName || item.sourceId || 'source')}</strong>
+            <span>${escapeHtml(item.recoveryReadiness || 'unknown')} · ${escapeHtml(item.sourceHealth?.status || 'unknown')}</span>
+            <small>${escapeHtml(Array.isArray(item.readinessReasons) ? item.readinessReasons.join(' / ') : 'read-only package')}</small>
+          </article>`
+        )).join('') || '<span class="empty">drill package source 없음</span>';
+      }
+      if (sourceContinuityDrillValidationList) {
+        sourceContinuityDrillValidationList.innerHTML = contractInputs.map(input => (
+          `<a class="source-continuity-drill-card" href="${escapeHtml(input.route || '/ops/sources')}" data-source-continuity-drill-validation="${escapeHtml(input.key || 'validation')}">
+            <strong>${escapeHtml(input.label || input.key || 'validation')}</strong>
+            <span>${escapeHtml(input.boundary || 'read-only/no-write')}</span>
+            <small>${escapeHtml(input.requiredFor || 'validation status')}</small>
+          </a>`
+        )).join('') || '<span class="empty">validation input 없음</span>';
+      }
+      if (!sourceContinuityDrillDriftList) return;
+      sourceContinuityDrillDriftList.innerHTML = driftItems.slice(0, 8).map(item => (
+        `<article class="source-continuity-drill-card" data-source-continuity-drill-drift="${escapeHtml(item.driftStatus || 'stable')}">
+          <strong>${escapeHtml(item.sourceId || 'source')}</strong>
+          <span>${escapeHtml(item.handoffStatus || 'unknown')} → ${escapeHtml(item.freshStatus || 'unknown')}</span>
+          <small>stale ${escapeHtml(item.staleDelta ?? 0)} · offline ${escapeHtml(item.offlineDelta ?? 0)} · reconnect ${escapeHtml(item.reconnectDelta ?? 0)} · warning ${escapeHtml(item.warningDelta ?? 0)}</small>
+        </article>`
+      )).join('') + `<div class="source-continuity-drill-boundary" data-source-continuity-drill-drift="boundary">
+        <span>automaticRecoveryPerformed: ${escapeHtml(packageBoundaries.automaticRecoveryPerformed === true ? 'true' : 'false')}</span>
+        <span>sourceRegistryWritePerformed: ${escapeHtml(packageBoundaries.sourceRegistryWritePerformed === true ? 'true' : 'false')}</span>
+      </div>`;
+    }
+    function renderApprovalGatedRecoveryChecklistAudit(payload = {}) {
+      const summary = payload.approvalGatedRecoveryChecklistSummary || {};
+      const items = Array.isArray(payload.approvalGatedRecoveryChecklistItems) ? payload.approvalGatedRecoveryChecklistItems : [];
+      const boundaries = payload.boundaries || {};
+      setMetricText('source-recovery-checklist-ready-count', summary.readyCount ?? 0);
+      setMetricText('source-recovery-checklist-blocked-count', summary.blockedCount ?? 0);
+      setMetricText('source-recovery-checklist-field-smoke-needed-count', summary.fieldSmokeNeededCount ?? 0);
+      setMetricText('source-recovery-checklist-not-run-count', summary.notRunCount ?? 0);
+      if (sourceRecoveryChecklistStatus) {
+        sourceRecoveryChecklistStatus.textContent =
+          `${summary.itemCount ?? items.length} checklist items / ready ${summary.readyCount ?? 0} / blocked ${summary.blockedCount ?? 0} / field-smoke-needed ${summary.fieldSmokeNeededCount ?? 0} / not-run ${summary.notRunCount ?? 0}`;
+      }
+      if (!sourceRecoveryChecklistList) return;
+      const cards = items.slice(0, 10).map(item => {
+        const opsAuditLinkage = item.opsAuditLinkage || {};
+        return `<article class="source-recovery-checklist-card" data-source-recovery-checklist-item="${escapeHtml(item.sourceId || 'source')}" data-source-recovery-checklist-status="${escapeHtml(item.readinessStatus || 'not-run')}">
+          <div>
+            <strong>${escapeHtml(item.displayName || item.sourceId || 'source')}</strong>
+            <span>${escapeHtml(item.readinessStatus || 'not-run')} · ${escapeHtml(item.sourceKind || 'unknown')}</span>
+          </div>
+          <p>${escapeHtml(item.operatorNote || 'operator note required before manual recovery')}</p>
+          <small>${escapeHtml(item.dryRunResult || 'dry-run result not-run')}</small>
+          <a class="button button-secondary button-compact" href="${escapeHtml(opsAuditLinkage.auditRoute || '/ops/sources#auditArea=channels')}">Audit</a>
+        </article>`;
+      }).join('') || '<span class="empty">approval-gated recovery checklist 없음</span>';
+      sourceRecoveryChecklistList.innerHTML = cards + `<div class="source-recovery-checklist-boundary" data-source-recovery-checklist-status="boundary">
+        <span>automaticRecoveryPerformed: ${escapeHtml(boundaries.automaticRecoveryPerformed === true ? 'true' : 'false')}</span>
+        <span>sourceRegistryWritePerformed: ${escapeHtml(boundaries.sourceRegistryWritePerformed === true ? 'true' : 'false')}</span>
+        <span>opsAuditWritePerformed: ${escapeHtml(boundaries.opsAuditWritePerformed === true ? 'true' : 'false')}</span>
+      </div>`;
+    }
+    function renderDrillEvidenceExportCleanupManifest(payload = {}) {
+      const summary = payload.drillEvidenceExportCleanupSummary || {};
+      const artifactManifest = payload.redactedDrillArtifactManifest || {};
+      const artifacts = Array.isArray(artifactManifest.artifactItems) ? artifactManifest.artifactItems : [];
+      const cleanupManifest = payload.tmpCleanupManifest || {};
+      const cleanupCandidates = Array.isArray(cleanupManifest.cleanupCandidates) ? cleanupManifest.cleanupCandidates : [];
+      const scanBoundary = payload.sensitiveMaterialScanBoundary || {};
+      const scanPatterns = Array.isArray(scanBoundary.scanPatterns) ? scanBoundary.scanPatterns : [];
+      const boundaries = payload.boundaries || {};
+      setMetricText('source-drill-evidence-retained-count', summary.retainedEvidenceCount ?? artifacts.length);
+      setMetricText('source-drill-evidence-artifact-count', summary.artifactCount ?? artifacts.length);
+      setMetricText('source-drill-evidence-cleanup-count', summary.cleanupCandidateCount ?? cleanupCandidates.length);
+      setMetricText('source-drill-evidence-scan-count', summary.sensitiveScanPatternCount ?? scanPatterns.length);
+      if (sourceDrillEvidenceManifestStatus) {
+        sourceDrillEvidenceManifestStatus.textContent =
+          `${summary.retainedEvidenceCount ?? artifacts.length} retained evidence / cleanup ${summary.cleanupCandidateCount ?? cleanupCandidates.length} / scan ${summary.sensitiveScanPatternCount ?? scanPatterns.length}`;
+      }
+      if (sourceDrillEvidenceArtifactList) {
+        sourceDrillEvidenceArtifactList.innerHTML = artifacts.slice(0, 8).map(item => (
+          `<article class="source-drill-evidence-manifest-card" data-source-drill-evidence-artifact="${escapeHtml(item.artifactKey || 'artifact')}">
+            <strong>${escapeHtml(item.label || item.artifactKey || 'artifact')}</strong>
+            <span>${escapeHtml(item.retained === true ? 'retained' : 'not-retained')} · ${escapeHtml(item.route || '/ops/sources')}</span>
+            <small>${escapeHtml(item.retentionReason || 'minimum retained evidence')}</small>
+          </article>`
+        )).join('') || '<span class="empty">retained drill evidence 없음</span>';
+      }
+      if (sourceDrillEvidenceCleanupList) {
+        sourceDrillEvidenceCleanupList.innerHTML = cleanupCandidates.slice(0, 8).map(item => (
+          `<article class="source-drill-evidence-manifest-card" data-source-drill-evidence-cleanup="${escapeHtml(item.cleanupKey || 'cleanup')}">
+            <strong>${escapeHtml(item.label || item.cleanupKey || 'cleanup')}</strong>
+            <span>${escapeHtml(item.status || 'not-run')} · ${escapeHtml(item.scope || '/tmp')}</span>
+            <small>${escapeHtml(item.reason || 'cleanup recorded; not executed')}</small>
+          </article>`
+        )).join('') || '<span class="empty">cleanup candidate 없음</span>';
+      }
+      if (!sourceDrillEvidenceScanList) return;
+      sourceDrillEvidenceScanList.innerHTML = scanPatterns.slice(0, 8).map(pattern => (
+        `<article class="source-drill-evidence-manifest-card" data-source-drill-evidence-scan="${escapeHtml(pattern || 'pattern')}">
+          <strong>${escapeHtml(pattern || 'sensitive material')}</strong>
+          <span>excluded from redacted manifest</span>
+          <small>viewer/client/API raw material 비노출 경계</small>
+        </article>`
+      )).join('') + `<div class="source-drill-evidence-manifest-boundary" data-source-drill-evidence-cleanup="boundary">
+        <span>artifactExportExecuted: ${escapeHtml(boundaries.artifactExportExecuted === true ? 'true' : 'false')}</span>
+        <span>cleanupExecutionPerformed: ${escapeHtml(boundaries.cleanupExecutionPerformed === true ? 'true' : 'false')}</span>
+        <span>temporaryCleanupExecuted: ${escapeHtml(boundaries.temporaryCleanupExecuted === true ? 'true' : 'false')}</span>
+      </div>`;
+    }
+    function renderFieldBridgeConditionGates(payload = {}) {
+      const summary = payload.fieldBridgeConditionGateSummary || {};
+      const gates = Array.isArray(payload.fieldBridgeConditionGates) ? payload.fieldBridgeConditionGates : [];
+      const sourceOnlyPassPolicy = payload.sourceOnlyPassPolicy || {};
+      const conditions = Array.isArray(payload.fieldSmokeConditions) ? payload.fieldSmokeConditions : [];
+      const boundaries = payload.boundaries || {};
+      setMetricText('source-field-bridge-gate-count', summary.gateCount ?? gates.length);
+      setMetricText('source-field-bridge-field-smoke-count', summary.fieldSmokeNeededCount ?? gates.length);
+      setMetricText('source-field-bridge-blocked-count', summary.blockedCount ?? gates.length);
+      setMetricText('source-field-bridge-approval-count', summary.approvalRequiredCount ?? gates.length);
+      if (sourceFieldBridgeGateStatus) {
+        sourceFieldBridgeGateStatus.textContent =
+          `${summary.gateCount ?? gates.length} gates / field-smoke-needed ${summary.fieldSmokeNeededCount ?? gates.length} / source-only PASS accepted ${sourceOnlyPassPolicy.sourceOnlyPassAccepted === true ? 'true' : 'false'}`;
+      }
+      if (sourceFieldBridgeGateList) {
+        sourceFieldBridgeGateList.innerHTML = gates.slice(0, 8).map(gate => (
+          `<article class="source-field-bridge-gate-card" data-source-field-bridge-gate="${escapeHtml(gate.gateKey || 'gate')}">
+            <strong>${escapeHtml(gate.label || gate.gateKey || 'field bridge')}</strong>
+            <span>${escapeHtml(gate.fieldSmokeStatus || 'field-smoke-needed')} · ${escapeHtml(gate.executionStatus || 'not-run')} · ${escapeHtml(gate.bridgeKind || 'bridge')}</span>
+            <small>${escapeHtml(gate.conditionSummary || 'endpoint, credential, and operator approval required')}</small>
+            <div class="source-field-bridge-gate-boundary">
+              <span>endpointRequired: ${escapeHtml(gate.endpointRequired === true ? 'true' : 'false')}</span>
+              <span>credentialRequired: ${escapeHtml(gate.credentialRequired === true ? 'true' : 'false')}</span>
+              <span>operatorApprovalRequired: ${escapeHtml(gate.operatorApprovalRequired === true ? 'true' : 'false')}</span>
+            </div>
+          </article>`
+        )).join('') || '<span class="empty">field bridge condition gate 없음</span>';
+      }
+      if (!sourceFieldBridgeBoundaryList) return;
+      sourceFieldBridgeBoundaryList.innerHTML = `<article class="source-field-bridge-gate-card" data-source-field-bridge-boundary="source-only-pass">
+        <strong>source-only PASS boundary</strong>
+        <span>sourceOnlyPassAccepted: ${escapeHtml(sourceOnlyPassPolicy.sourceOnlyPassAccepted === true ? 'true' : 'false')}</span>
+        <small>local/source-only PASS는 ONVIF 실기기, external WHEP/TURN, real cloud/VLM provider field smoke PASS로 승격하지 않습니다.</small>
+      </article>` + conditions.slice(0, 8).map(condition => (
+        `<article class="source-field-bridge-gate-card" data-source-field-bridge-condition="${escapeHtml(condition || 'condition')}">
+          <strong>${escapeHtml(condition || 'field smoke condition')}</strong>
+          <span>required before release PASS</span>
+          <small>fieldSmokeExecuted: ${escapeHtml(boundaries.fieldSmokeExecuted === true ? 'true' : 'false')}</small>
+        </article>`
+      )).join('') + `<div class="source-field-bridge-gate-boundary" data-source-field-bridge-boundary="execution">
+        <span>endpointProbePerformed: ${escapeHtml(boundaries.endpointProbePerformed === true ? 'true' : 'false')}</span>
+        <span>credentialProbePerformed: ${escapeHtml(boundaries.credentialProbePerformed === true ? 'true' : 'false')}</span>
+        <span>vlmProviderCalled: ${escapeHtml(boundaries.vlmProviderCalled === true ? 'true' : 'false')}</span>
+      </div>`;
+    }
     function setFormDisabled(disabled) {
       const writable = canWriteSources();
       for (const element of Array.from(channelForm.elements)) {
@@ -996,7 +1182,7 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       return { channelId, sourcePayload, viewPayload };
     }
     async function loadAll() {
-      const [sources, views, clientViews, onboardingQuality, reliabilityTimeline, reliabilitySearchMetrics, backupRecoveryHandoff, principal] = await Promise.all([
+      const [sources, views, clientViews, onboardingQuality, reliabilityTimeline, reliabilitySearchMetrics, backupRecoveryHandoff, continuityDrillContract, recoveryCandidatePackage, sourceHealthReplayDriftDiff, approvalGatedRecoveryChecklist, drillEvidenceExportCleanupManifest, fieldBridgeConditionGates, principal] = await Promise.all([
         requestJson('/ops/api/sources'),
         requestJson('/ops/api/views'),
         requestJson('/client/api/views'),
@@ -1004,6 +1190,12 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
         requestJson('/ops/api/source-registry/reliability-timeline'),
         requestJson('/ops/api/source-registry/reliability-search-metrics'),
         requestJson('/ops/api/source-registry/backup-recovery-handoff'),
+        requestJson('/ops/api/source-registry/continuity-drill/contract'),
+        requestJson('/ops/api/source-registry/recovery-candidate-package'),
+        requestJson('/ops/api/source-registry/source-health-replay-drift-diff'),
+        requestJson('/ops/api/source-registry/approval-gated-recovery-checklist'),
+        requestJson('/ops/api/source-registry/drill-evidence-export-cleanup-manifest'),
+        requestJson('/ops/api/source-registry/field-bridge-condition-gates'),
         requestJson('/auth/whoami').catch(() => null)
       ]);
       opsPrincipal = principal;
@@ -1014,6 +1206,10 @@ void AppendOpsSourcesPageScript(std::ostringstream& out, const std::string& stre
       renderReliabilityTimelineHealthHistory(reliabilityTimeline);
       renderSourceReliabilitySearchMetrics(reliabilitySearchMetrics);
       renderBackupRecoverySourceHandoff(backupRecoveryHandoff);
+      renderOpsContinuityDrillWorkspace(continuityDrillContract, recoveryCandidatePackage, sourceHealthReplayDriftDiff);
+      renderApprovalGatedRecoveryChecklistAudit(approvalGatedRecoveryChecklist);
+      renderDrillEvidenceExportCleanupManifest(drillEvidenceExportCleanupManifest);
+      renderFieldBridgeConditionGates(fieldBridgeConditionGates);
       renderChannels(loadedSources, loadedViews);
       renderOpsAuditTrail('channel-audit-list', 'channels');
       if (!initializedHashChannel) {

@@ -5,10 +5,10 @@ Settings 화면에서 직접 눌러야 하는 항목은 자동화하지 않고 �
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.3.0`
+- 현재 소스 버전: `3.4.0`
 - 최신 공개 GitHub Release: `v3.3.0`
 - `v3.3.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않습니다.
-- 현재 source roadmap: `v3.3.0 Live Source Reliability Workspace`
+- 현재 source roadmap: `v3.4.0 Operations Continuity Drill Workspace`
 - public repository 기준은 source-only 공개입니다.
 
 ## 공개 대상
@@ -16,6 +16,7 @@ Settings 화면에서 직접 눌러야 하는 항목은 자동화하지 않고 �
 - Apache-2.0 source code
 - 문서, 설정 예시, 검증 스크립트
 - allowlist된 생성 sample fixture
+- cleanup과 민감정보 스캔을 마친 release UI full-test in-app screenshot evidence
 
 ## 공개 제외 대상
 
@@ -28,6 +29,9 @@ Settings 화면에서 직접 눌러야 하는 항목은 자동화하지 않고 �
 현재 추적되는 `video/*.mp4`와 allowlist된
 `video/imports/va_tracking_event_1280x720_30fps_h264.mp4`는 재현용 생성 fixture로만
 취급합니다.
+릴리즈 UI full-test 스크린샷은 `docs/release-artifacts/v<version>/ui-fulltest-<date>/in-app-screenshots/`
+아래의 최종 evidence 경로만 허용하며, raw auth/registry/log/ports/seed 산출물과 운영
+snapshot/clip bundle은 공개 대상이 아닙니다.
 
 ## 자동 확인
 

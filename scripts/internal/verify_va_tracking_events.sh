@@ -26,6 +26,10 @@ TAP_ID=""
 RULE_IDS=()
 LONG_MODE=0
 DISPATCH_RECORDS="${MEDIA_SERVER_VERIFY_VA_EVENTS_DISPATCH_RECORDS:-0}"
+CURL_CONNECT_TIMEOUT_S="${MEDIA_SERVER_VERIFY_VA_EVENTS_CURL_CONNECT_TIMEOUT_S:-2}"
+CURL_MAX_TIME_S="${MEDIA_SERVER_VERIFY_VA_EVENTS_CURL_MAX_TIME_S:-5}"
+export MEDIA_SERVER_VERIFY_VA_EVENTS_CURL_CONNECT_TIMEOUT_S="${CURL_CONNECT_TIMEOUT_S}"
+export MEDIA_SERVER_VERIFY_VA_EVENTS_CURL_MAX_TIME_S="${CURL_MAX_TIME_S}"
 
 log_info() {
   echo "[info] $*"
@@ -39,6 +43,12 @@ log_pass() {
 log_fail() {
   echo "[fail] $*"
   FAIL_COUNT=$((FAIL_COUNT + 1))
+}
+
+# 반복 soak 중 HTTP 응답이 닫히지 않아 전체 predev가 멈추지 않도록 curl 시간을 제한한다.
+curl_timed() {
+  curl -fsS --connect-timeout "${CURL_CONNECT_TIMEOUT_S}" --max-time "${CURL_MAX_TIME_S}" \
+    ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} "$@"
 }
 
 require_cmd() {
@@ -110,11 +120,11 @@ PY
 cleanup_runtime_documents() {
   # 파일은 삭제하지 않는다. 테스트 중 서버 registry에 만든 runtime 문서/tap만 API로 정리한다.
   if [[ -n "${TAP_ID}" ]]; then
-    curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} -X DELETE "${HTTP_BASE}/lab/analysis/taps/${TAP_ID}" >/dev/null 2>&1 || true
+    curl_timed -X DELETE "${HTTP_BASE}/lab/analysis/taps/${TAP_ID}" >/dev/null 2>&1 || true
   fi
   for rule_id in "${RULE_IDS[@]:-}"; do
     [[ -n "${rule_id}" ]] || continue
-    curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} -X DELETE "${HTTP_BASE}/lab/analysis/rules/${rule_id}" >/dev/null 2>&1 || true
+    curl_timed -X DELETE "${HTTP_BASE}/lab/analysis/rules/${rule_id}" >/dev/null 2>&1 || true
   done
 }
 trap cleanup_runtime_documents EXIT
@@ -235,6 +245,7 @@ log_info "file=${FILE_TOKEN}"
 log_info "local_file=${LOCAL_FILE}"
 log_info "poll=${POLL_COUNT} interval=${POLL_INTERVAL_S}s"
 log_info "dispatch_records=${DISPATCH_RECORDS}"
+log_info "curl_timeout=${CURL_CONNECT_TIMEOUT_S}/${CURL_MAX_TIME_S}s"
 if [[ ! "${DISPATCH_EVERY_N}" =~ ^[0-9]+$ || "${DISPATCH_EVERY_N}" -lt 1 ]]; then
   log_fail "MEDIA_SERVER_VERIFY_VA_EVENTS_DISPATCH_EVERY_N 값이 잘못되었습니다: ${DISPATCH_EVERY_N}"
   exit 1
@@ -249,14 +260,14 @@ if [[ ! -f "${LOCAL_FILE}" ]]; then
   exit 1
 fi
 
-if ! curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} --max-time 3 "${HTTP_BASE}/health" >/dev/null; then
+if ! curl_timed --max-time 3 "${HTTP_BASE}/health" >/dev/null; then
   log_fail "HTTP health check 실패: ${HTTP_BASE}/health"
   exit 1
 fi
 log_pass "HTTP health ok"
 
 if [[ "${DISPATCH_RECORDS}" == "1" ]]; then
-  STORAGE_STATUS="$(curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} --max-time 3 "${HTTP_BASE}/lab/analysis/event-storage/status")"
+  STORAGE_STATUS="$(curl_timed --max-time 3 "${HTTP_BASE}/lab/analysis/event-storage/status")"
   STORAGE_ENABLED="$(python3 -c 'import json,sys; print("1" if json.load(sys.stdin).get("enabled") is True else "0")' <<<"${STORAGE_STATUS}")"
   if [[ "${STORAGE_ENABLED}" != "1" ]]; then
     log_fail "EventRecord storage is disabled; enable MEDIA_SERVER_ANALYSIS_EVENT_STORAGE_ENABLED=1 before --dispatch-records"
@@ -278,7 +289,7 @@ create_rule() {
   RULE_IDS+=("${rule_id}")
   printf '%s\t%s\n' "${alias}" "${rule_id}" >> "${RULE_MAP_FILE}"
   printf '%s' "${body}" > "/tmp/media_server_${RUN_ID}_${rule_id}.json"
-  curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} -X PUT "${HTTP_BASE}/lab/analysis/rules/${rule_id}" \
+  curl_timed -X PUT "${HTTP_BASE}/lab/analysis/rules/${rule_id}" \
     -H 'Content-Type: application/json' \
     --data-binary "@/tmp/media_server_${RUN_ID}_${rule_id}.json" >/dev/null
   log_pass "rule 저장: ${rule_id}"
@@ -335,7 +346,7 @@ create_rule "${exit_rule_id}" \
   "exit-center"
 
 ENCODED_FILE="$(urlencode_file_token "${FILE_TOKEN}")"
-TAP_RESPONSE="$(curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} -X POST "${HTTP_BASE}/lab/analysis/taps?file=${ENCODED_FILE}&va=1&fps=8&maxQueue=1&trackIds=1&trackTrails=1")"
+TAP_RESPONSE="$(curl_timed -X POST "${HTTP_BASE}/lab/analysis/taps?file=${ENCODED_FILE}&va=1&fps=8&maxQueue=1&trackIds=1&trackTrails=1")"
 TAP_ID="$(python3 -c 'import json,sys; print(json.load(sys.stdin).get("tapId",""))' <<<"${TAP_RESPONSE}")"
 if [[ -z "${TAP_ID}" ]]; then
   log_fail "analysis tap 생성 실패"
@@ -355,20 +366,28 @@ for POLL_INDEX in $(seq 1 "${POLL_COUNT}"); do
     REQUEST_PATH="${EVENTS_DISPATCH_PATH}"
     DISPATCH_REQUEST_COUNT=$((DISPATCH_REQUEST_COUNT + 1))
   fi
-  EVENT_PAYLOAD="$(curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} "${REQUEST_PATH}")"
+  EVENT_PAYLOAD="$(curl_timed "${REQUEST_PATH}")"
   printf '%s\n' "${EVENT_PAYLOAD}" >> "${EVENTS_FILE}"
 done
 if [[ "${DISPATCH_RECORDS}" == "1" ]]; then
   log_info "event_record_dispatch_requests=${DISPATCH_REQUEST_COUNT}"
   python3 - "${HTTP_BASE}" "${COOKIE_FILE}" <<'PY'
 import json
+import os
 import subprocess
 import sys
 import time
 
 http_base = sys.argv[1].rstrip("/")
 cookie_file = sys.argv[2]
-curl = ["curl", "-fsS"]
+curl = [
+    "curl",
+    "-fsS",
+    "--connect-timeout",
+    os.environ.get("MEDIA_SERVER_VERIFY_VA_EVENTS_CURL_CONNECT_TIMEOUT_S", "2"),
+    "--max-time",
+    os.environ.get("MEDIA_SERVER_VERIFY_VA_EVENTS_CURL_MAX_TIME_S", "5"),
+]
 if cookie_file:
     curl += ["-b", cookie_file]
 url = f"{http_base}/lab/analysis/event-storage/status"
@@ -394,12 +413,12 @@ while time.time() < deadline:
 print(f"[fail] EventRecord queue drain timeout: {json.dumps(last, ensure_ascii=False)[:400]}", file=sys.stderr)
 raise SystemExit(1)
 PY
-  curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} \
+curl_timed \
     "${HTTP_BASE}/lab/analysis/events/records?limit=5000&includeArchives=1" > "${EVENT_RECORDS_FILE}"
 fi
-curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} "${HTTP_BASE}/lab/analysis/taps/${TAP_ID}" > "${SNAPSHOT_FILE}"
-curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} "${HTTP_BASE}/lab/analysis/taps" > "${TAPS_FILE}"
-curl -fsS ${CURL_AUTH_ARGS+"${CURL_AUTH_ARGS[@]}"} "${HTTP_BASE}/lab/analysis/taps/${TAP_ID}/overlay.jpg?quality=88&thickness=4&drawLabels=1&labelLang=ko&trackIds=1&trackTrails=1" \
+curl_timed "${HTTP_BASE}/lab/analysis/taps/${TAP_ID}" > "${SNAPSHOT_FILE}"
+curl_timed "${HTTP_BASE}/lab/analysis/taps" > "${TAPS_FILE}"
+curl_timed "${HTTP_BASE}/lab/analysis/taps/${TAP_ID}/overlay.jpg?quality=88&thickness=4&drawLabels=1&labelLang=ko&trackIds=1&trackTrails=1" \
   -o "${OVERLAY_FILE}"
 
 python3 - \
@@ -420,6 +439,7 @@ python3 - \
   "${COOKIE_FILE}" <<'PY'
 import collections
 import json
+import os
 import pathlib
 import subprocess
 import sys
@@ -599,7 +619,14 @@ if dispatch_records:
         print("event_record_counts=", dict(record_counts))
         print("event_record_rule_counts=", dict(record_rule_counts))
         print("event_record_tracks=", sorted(record_tracks))
-        curl_base = ["curl", "-fsS"]
+        curl_base = [
+            "curl",
+            "-fsS",
+            "--connect-timeout",
+            os.environ.get("MEDIA_SERVER_VERIFY_VA_EVENTS_CURL_CONNECT_TIMEOUT_S", "2"),
+            "--max-time",
+            os.environ.get("MEDIA_SERVER_VERIFY_VA_EVENTS_CURL_MAX_TIME_S", "5"),
+        ]
         if cookie_file:
             curl_base += ["-b", cookie_file]
 

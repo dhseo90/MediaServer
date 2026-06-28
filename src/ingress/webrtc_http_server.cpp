@@ -4683,6 +4683,97 @@ std::string ClientSourceStatusDigestJson(
     return out.str();
 }
 
+struct ClientMaintenanceDigest {
+    bool provided{true};
+    std::string maintenance_state{"unavailable"};
+    std::string summary_text{"maintenance status unavailable"};
+    std::string severity{"attention"};
+    std::string timeline_hint{"source unavailable"};
+};
+
+std::string ClientMaintenanceDigestStateFor(const ClientSourceStatusDigest& source_status) {
+    if (source_status.source_status == "live") {
+        return "maintenance";
+    }
+    if (source_status.source_status == "connecting" || source_status.source_status == "stale") {
+        return "recovering";
+    }
+    return "unavailable";
+}
+
+std::string ClientMaintenanceDigestSummaryTextFor(const std::string& maintenance_state) {
+    if (maintenance_state == "maintenance") {
+        return "maintenance summary available";
+    }
+    if (maintenance_state == "recovering") {
+        return "recovering signal summary";
+    }
+    return "service unavailable summary";
+}
+
+std::string ClientMaintenanceDigestTimelineHintFor(const std::string& maintenance_state) {
+    if (maintenance_state == "maintenance") {
+        return "maintenance watch";
+    }
+    if (maintenance_state == "recovering") {
+        return "recovering";
+    }
+    return "unavailable";
+}
+
+ClientMaintenanceDigest ClientMaintenanceDigestFor(const ClientSourceStatusDigest& source_status) {
+    ClientMaintenanceDigest digest;
+    digest.maintenance_state = ClientMaintenanceDigestStateFor(source_status);
+    digest.summary_text = ClientMaintenanceDigestSummaryTextFor(digest.maintenance_state);
+    digest.severity = digest.maintenance_state == "maintenance" ? "info" : "attention";
+    digest.timeline_hint = ClientMaintenanceDigestTimelineHintFor(digest.maintenance_state);
+    return digest;
+}
+
+void AppendClientSafeMaintenanceDigestJson(std::ostringstream& out,
+                                           const ClientMaintenanceDigest& digest) {
+    out << "{"
+        << "\"schema\":\"media-server.client.v340-maintenance-digest.v1\","
+        << "\"provided\":" << (digest.provided ? "true" : "false") << ","
+        << "\"viewerSafe\":true,"
+        << "\"publishedViewScoped\":true,"
+        << "\"sourceUrlIncluded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"operatorMaterialIncluded\":false,"
+        << "\"opsAuditLinkageIncluded\":false,"
+        << "\"dryRunResultIncluded\":false,"
+        << "\"approvalChecklistIncluded\":false,"
+        << "\"recoveryActionIncluded\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"searchMetricsChanged\":false,"
+        << "\"itemCount\":1,"
+        << "\"digestItems\":[{"
+        << "\"digestId\":\"client-maintenance-1\","
+        << "\"maintenanceState\":\"" << JsonEscape(digest.maintenance_state) << "\","
+        << "\"summaryText\":\"" << JsonEscape(digest.summary_text) << "\","
+        << "\"severity\":\"" << JsonEscape(digest.severity) << "\","
+        << "\"timelineHint\":\"" << JsonEscape(digest.timeline_hint) << "\""
+        << "}]}";
+}
+
+std::string ClientMaintenanceDigestJson(const ClientSourceStatusDigest& source_status) {
+    std::ostringstream out;
+    AppendClientSafeMaintenanceDigestJson(out, ClientMaintenanceDigestFor(source_status));
+    return out.str();
+}
+
 ClientEventItem ParseClientEventItem(const std::string& raw) {
     ClientEventItem item;
     item.event_id = ParseStringField(raw, "eventId").value_or("");
@@ -5083,7 +5174,8 @@ void AppendClientSafeResolutionDigestJson(std::ostringstream& out,
 
 void AppendClientEventSummaryJson(std::ostringstream& out,
                                   const ClientEventSummary& summary,
-                                  const std::string& source_status_digest_json = "") {
+                                  const std::string& source_status_digest_json = "",
+                                  const std::string& maintenance_digest_json = "") {
     out << "{"
         << "\"provided\":" << (summary.provided ? "true" : "false") << ","
         << "\"storageEnabled\":" << (summary.storage_enabled ? "true" : "false") << ","
@@ -5120,6 +5212,9 @@ void AppendClientEventSummaryJson(std::ostringstream& out,
     AppendClientSafeFollowUpDigestJson(out, summary);
     if (!source_status_digest_json.empty()) {
         out << ",\"sourceStatusDigest\":" << source_status_digest_json;
+    }
+    if (!maintenance_digest_json.empty()) {
+        out << ",\"maintenanceDigest\":" << maintenance_digest_json;
     }
     out << "}";
 }
@@ -5166,12 +5261,16 @@ std::string ClientViewEventsJson(
     const std::vector<analysis::AnalysisManager::TapSnapshot>& taps,
     int limit) {
     const auto summary = LoadClientEventSummary(ClientEventStreamCandidates(access.source, nullptr), limit);
-    const auto source_status_digest_json = ClientSourceStatusDigestJson(access, principal, taps);
+    const auto source_status_digest = ClientSourceStatusDigestFor(access, principal, taps);
+    std::ostringstream source_status_digest_out;
+    AppendClientSafeSourceStatusDigestJson(source_status_digest_out, source_status_digest);
+    const auto source_status_digest_json = source_status_digest_out.str();
+    const auto maintenance_digest_json = ClientMaintenanceDigestJson(source_status_digest);
     std::ostringstream out;
     out << "{\"ok\":true,\"view\":";
     AppendClientViewIdentityJson(out, access);
     out << ",\"events\":";
-    AppendClientEventSummaryJson(out, summary, source_status_digest_json);
+    AppendClientEventSummaryJson(out, summary, source_status_digest_json, maintenance_digest_json);
     out << "}";
     return out.str();
 }
@@ -5309,7 +5408,11 @@ std::string ClientViewDashboardJson(const SourceViewRegistry::ClientViewAccess& 
     if (include_events) {
         event_summary = LoadClientEventSummary(ClientEventStreamCandidates(access.source, tap), 10);
     }
-    const auto source_status_digest_json = ClientSourceStatusDigestJson(access, principal, taps);
+    const auto source_status_digest = ClientSourceStatusDigestFor(access, principal, taps);
+    std::ostringstream source_status_digest_out;
+    AppendClientSafeSourceStatusDigestJson(source_status_digest_out, source_status_digest);
+    const auto source_status_digest_json = source_status_digest_out.str();
+    const auto maintenance_digest_json = ClientMaintenanceDigestJson(source_status_digest);
     const std::optional<std::int64_t> latest_event_time =
         event_summary.latest_event_time_ms.has_value()
             ? event_summary.latest_event_time_ms
@@ -5349,7 +5452,7 @@ std::string ClientViewDashboardJson(const SourceViewRegistry::ClientViewAccess& 
     out << ",\"lastFrameAgeMs\":";
     AppendNullableInt64(out, last_frame_age);
     out << "},\"events\":";
-    AppendClientEventSummaryJson(out, event_summary, source_status_digest_json);
+    AppendClientEventSummaryJson(out, event_summary, source_status_digest_json, maintenance_digest_json);
     out << "}";
     return out.str();
 }
@@ -5810,6 +5913,106 @@ std::string BuildOpsSourcesPageHtml(const auth::Principal& principal) {
           <div>
             <h4>recovery validation plan</h4>
             <div id="source-recovery-validation-plan-list" class="source-recovery-validation-plan-list"></div>
+          </div>
+        </div>
+      </section>
+      <section class="section-card ops-workspace-wide" data-channel-task="ops-continuity-drill-workspace" data-testid="ops-continuity-drill-workspace">
+        <div class="toolbar">
+          <div>
+            <h3>Ops Continuity Drill Workspace</h3>
+            <p id="source-continuity-drill-status">continuity drill package와 validation 상태를 확인 중입니다.</p>
+          </div>
+        </div>
+        <div id="source-continuity-drill-summary" class="metric-grid">
+          <div class="metric-card"><span>Packages</span><strong id="source-continuity-drill-package-count">-</strong></div>
+          <div class="metric-card"><span>Ready</span><strong id="source-continuity-drill-validation-ready-count">-</strong></div>
+          <div class="metric-card"><span>Blocked</span><strong id="source-continuity-drill-blocked-count">-</strong></div>
+          <div class="metric-card"><span>Drift</span><strong id="source-continuity-drill-drift-count">-</strong></div>
+        </div>
+        <div class="source-continuity-drill-grid" data-source-continuity-drill-workspace="media-server.ops.v340-continuity-drill-workspace-ui.v1">
+          <div>
+            <h4>drill package</h4>
+            <div id="source-continuity-drill-package-list" class="source-continuity-drill-list"></div>
+          </div>
+          <div>
+            <h4>validation status</h4>
+            <div id="source-continuity-drill-validation-list" class="source-continuity-drill-list"></div>
+          </div>
+          <div>
+            <h4>source health drift</h4>
+            <div id="source-continuity-drill-drift-list" class="source-continuity-drill-list"></div>
+          </div>
+        </div>
+      </section>
+      <section class="section-card ops-workspace-wide" data-channel-task="ops-approval-gated-recovery-checklist" data-testid="ops-approval-gated-recovery-checklist">
+        <div class="toolbar">
+          <div>
+            <h3>Approval-Gated Recovery Checklist</h3>
+            <p id="source-recovery-checklist-status">operator note, dry-run result, Ops audit 연결을 확인 중입니다.</p>
+          </div>
+        </div>
+        <div id="source-recovery-checklist-summary" class="metric-grid">
+          <div class="metric-card"><span>Ready</span><strong id="source-recovery-checklist-ready-count">-</strong></div>
+          <div class="metric-card"><span>Blocked</span><strong id="source-recovery-checklist-blocked-count">-</strong></div>
+          <div class="metric-card"><span>Field Smoke</span><strong id="source-recovery-checklist-field-smoke-needed-count">-</strong></div>
+          <div class="metric-card"><span>Not Run</span><strong id="source-recovery-checklist-not-run-count">-</strong></div>
+        </div>
+        <div class="source-recovery-checklist-grid" data-source-recovery-checklist="media-server.ops.v340-approval-gated-recovery-checklist.v1">
+          <div>
+            <h4>approval checklist</h4>
+            <div id="source-recovery-checklist-list" class="source-recovery-checklist-list"></div>
+          </div>
+        </div>
+      </section>
+      <section class="section-card ops-workspace-wide" data-channel-task="ops-drill-evidence-export-cleanup-manifest" data-testid="ops-drill-evidence-export-cleanup-manifest">
+        <div class="toolbar">
+          <div>
+            <h3>Drill Evidence Export and Cleanup Manifest</h3>
+            <p id="source-drill-evidence-manifest-status">redacted drill artifact manifest와 cleanup 경계를 확인 중입니다.</p>
+          </div>
+        </div>
+        <div id="source-drill-evidence-manifest-summary" class="metric-grid">
+          <div class="metric-card"><span>Retained</span><strong id="source-drill-evidence-retained-count">-</strong></div>
+          <div class="metric-card"><span>Artifacts</span><strong id="source-drill-evidence-artifact-count">-</strong></div>
+          <div class="metric-card"><span>Cleanup</span><strong id="source-drill-evidence-cleanup-count">-</strong></div>
+          <div class="metric-card"><span>Scan</span><strong id="source-drill-evidence-scan-count">-</strong></div>
+        </div>
+        <div class="source-drill-evidence-manifest-grid" data-source-drill-evidence-manifest="media-server.ops.v340-drill-evidence-export-cleanup-manifest.v1">
+          <div>
+            <h4>redacted drill artifact manifest</h4>
+            <div id="source-drill-evidence-artifact-list" class="source-drill-evidence-manifest-list"></div>
+          </div>
+          <div>
+            <h4>/tmp cleanup manifest</h4>
+            <div id="source-drill-evidence-cleanup-list" class="source-drill-evidence-manifest-list"></div>
+          </div>
+          <div>
+            <h4>sensitive material scan</h4>
+            <div id="source-drill-evidence-scan-list" class="source-drill-evidence-manifest-list"></div>
+          </div>
+        </div>
+      </section>
+      <section class="section-card ops-workspace-wide" data-channel-task="ops-field-bridge-condition-gates" data-testid="ops-field-bridge-condition-gates">
+        <div class="toolbar">
+          <div>
+            <h3>Field Bridge Condition Gates</h3>
+            <p id="source-field-bridge-gate-status">ONVIF 실기기, external WHEP/TURN, real cloud/VLM provider 조건을 확인 중입니다.</p>
+          </div>
+        </div>
+        <div id="source-field-bridge-gate-summary" class="metric-grid">
+          <div class="metric-card"><span>Gates</span><strong id="source-field-bridge-gate-count">-</strong></div>
+          <div class="metric-card"><span>Field Smoke</span><strong id="source-field-bridge-field-smoke-count">-</strong></div>
+          <div class="metric-card"><span>Blocked</span><strong id="source-field-bridge-blocked-count">-</strong></div>
+          <div class="metric-card"><span>Approvals</span><strong id="source-field-bridge-approval-count">-</strong></div>
+        </div>
+        <div class="source-field-bridge-gate-grid" data-source-field-bridge-gates="media-server.ops.v340-field-bridge-condition-gates.v1">
+          <div>
+            <h4>condition gates</h4>
+            <div id="source-field-bridge-gate-list" class="source-field-bridge-gate-list"></div>
+          </div>
+          <div>
+            <h4>source-only PASS boundary</h4>
+            <div id="source-field-bridge-boundary-list" class="source-field-bridge-gate-list"></div>
           </div>
         </div>
       </section>
@@ -13249,6 +13452,198 @@ std::string OpsV330SourceReliabilitySearchMetricsJson(
     return out.str();
 }
 
+struct OpsV340SourceHealthReplayDriftItem {
+    std::string source_id;
+    std::string handoff_status{"unknown"};
+    std::string fresh_status{"unknown"};
+    int reconnect_delta{0};
+    int warning_delta{0};
+    int stale_delta{0};
+    int offline_delta{0};
+    std::string drift_status{"stable"};
+    std::string summary;
+};
+
+struct OpsV340SourceHealthReplayDriftSummary {
+    int source_count{0};
+    int changed_source_count{0};
+    int stale_delta{0};
+    int offline_delta{0};
+    int reconnect_delta{0};
+    int warning_delta{0};
+    int blocked_count{0};
+    int ready_count{0};
+};
+
+int V340SourceHealthWarningCount(const OpsSourceHealthItem& item) {
+    return static_cast<int>(item.warnings.size());
+}
+
+OpsSourceHealthSnapshot BuildV340HandoffSourceHealthReplaySnapshot(
+    const OpsSourceHealthSnapshot& fresh_source_health_snapshot) {
+    OpsSourceHealthSnapshot handoff = fresh_source_health_snapshot;
+    handoff.generated_at = fresh_source_health_snapshot.generated_at;
+    return handoff;
+}
+
+std::vector<OpsV340SourceHealthReplayDriftItem> BuildV340SourceHealthReplayDriftDiffItems(
+    const OpsSourceHealthSnapshot& handoff_source_health_snapshot,
+    const OpsSourceHealthSnapshot& fresh_source_health_snapshot) {
+    std::unordered_map<std::string, const OpsSourceHealthItem*> handoff_by_source;
+    for (const auto& item : handoff_source_health_snapshot.items) {
+        if (!item.source_id.empty()) {
+            handoff_by_source[item.source_id] = &item;
+        }
+    }
+
+    std::vector<OpsV340SourceHealthReplayDriftItem> items;
+    items.reserve(fresh_source_health_snapshot.items.size());
+    for (const auto& fresh : fresh_source_health_snapshot.items) {
+        const auto handoff_it = handoff_by_source.find(fresh.source_id);
+        const OpsSourceHealthItem* handoff =
+            handoff_it == handoff_by_source.end() ? nullptr : handoff_it->second;
+
+        OpsV340SourceHealthReplayDriftItem item;
+        item.source_id = fresh.source_id;
+        item.handoff_status = handoff == nullptr ? "unknown" : handoff->status;
+        item.fresh_status = fresh.status;
+        item.reconnect_delta = fresh.reconnect_count - (handoff == nullptr ? 0 : handoff->reconnect_count);
+        item.warning_delta = V340SourceHealthWarningCount(fresh) -
+                             (handoff == nullptr ? 0 : V340SourceHealthWarningCount(*handoff));
+        item.stale_delta = (fresh.status == "stale" ? 1 : 0) -
+                           (item.handoff_status == "stale" ? 1 : 0);
+        item.offline_delta = (fresh.status == "offline" ? 1 : 0) -
+                             (item.handoff_status == "offline" ? 1 : 0);
+        const bool changed = item.handoff_status != item.fresh_status ||
+                             item.reconnect_delta != 0 ||
+                             item.warning_delta != 0;
+        item.drift_status = changed ? "changed" : "stable";
+        if (item.fresh_status == "offline" || item.fresh_status == "stale") {
+            item.summary = "fresh source health requires operator attention before recovery drill closure";
+        } else if (changed) {
+            item.summary = "fresh source health changed from handoff replay baseline";
+        } else {
+            item.summary = "fresh source health matches handoff replay baseline";
+        }
+        items.push_back(std::move(item));
+    }
+    return items;
+}
+
+OpsV340SourceHealthReplayDriftSummary BuildV340SourceHealthReplayDriftSummary(
+    const std::vector<OpsV340SourceHealthReplayDriftItem>& items) {
+    OpsV340SourceHealthReplayDriftSummary summary;
+    summary.source_count = static_cast<int>(items.size());
+    for (const auto& item : items) {
+        summary.stale_delta += item.stale_delta;
+        summary.offline_delta += item.offline_delta;
+        summary.reconnect_delta += item.reconnect_delta;
+        summary.warning_delta += item.warning_delta;
+        if (item.drift_status != "stable") {
+            ++summary.changed_source_count;
+        }
+        if (item.fresh_status == "offline" || item.fresh_status == "stale") {
+            ++summary.blocked_count;
+        } else {
+            ++summary.ready_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV340SourceHealthReplayDriftItemJson(
+    std::ostringstream& out,
+    const OpsV340SourceHealthReplayDriftItem& item) {
+    out << "{"
+        << "\"sourceId\":\"" << JsonEscape(item.source_id) << "\","
+        << "\"handoffStatus\":\"" << JsonEscape(item.handoff_status) << "\","
+        << "\"freshStatus\":\"" << JsonEscape(item.fresh_status) << "\","
+        << "\"staleDelta\":" << item.stale_delta << ","
+        << "\"offlineDelta\":" << item.offline_delta << ","
+        << "\"reconnectDelta\":" << item.reconnect_delta << ","
+        << "\"warningDelta\":" << item.warning_delta << ","
+        << "\"driftStatus\":\"" << JsonEscape(item.drift_status) << "\","
+        << "\"summary\":\"" << JsonEscape(item.summary) << "\""
+        << "}";
+}
+
+void AppendV340SourceHealthReplayDriftSummaryJson(
+    std::ostringstream& out,
+    const OpsV340SourceHealthReplayDriftSummary& summary) {
+    out << "{"
+        << "\"sourceCount\":" << summary.source_count << ","
+        << "\"changedSourceCount\":" << summary.changed_source_count << ","
+        << "\"staleDelta\":" << summary.stale_delta << ","
+        << "\"offlineDelta\":" << summary.offline_delta << ","
+        << "\"reconnectDelta\":" << summary.reconnect_delta << ","
+        << "\"warningDelta\":" << summary.warning_delta << ","
+        << "\"blockedCount\":" << summary.blocked_count << ","
+        << "\"readyCount\":" << summary.ready_count
+        << "}";
+}
+
+std::string OpsV340SourceHealthReplayDriftDiffJson(
+    const OpsSourceHealthSnapshot& fresh_source_health_snapshot) {
+    if (!fresh_source_health_snapshot.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v340-source-health-replay-drift-diff.v1\",\"error\":\"" +
+               JsonEscape(fresh_source_health_snapshot.error) + "\"}";
+    }
+
+    const auto handoff_source_health_snapshot =
+        BuildV340HandoffSourceHealthReplaySnapshot(fresh_source_health_snapshot);
+    const auto sourceHealthReplayDriftItems =
+        BuildV340SourceHealthReplayDriftDiffItems(handoff_source_health_snapshot, fresh_source_health_snapshot);
+    const auto summary = BuildV340SourceHealthReplayDriftSummary(sourceHealthReplayDriftItems);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v340-source-health-replay-drift-diff.v1\","
+        << "\"status\":\"source-health-replay-drift-diff\","
+        << "\"generatedAt\":\"" << JsonEscape(fresh_source_health_snapshot.generated_at) << "\","
+        << "\"handoffSourceHealthRoute\":\"/ops/api/source-registry/backup-recovery-handoff\","
+        << "\"freshSourceHealthRoute\":\"/ops/api/source-health\","
+        << "\"sourceHealthReplayDriftDiffSummary\":";
+    AppendV340SourceHealthReplayDriftSummaryJson(out, summary);
+    out << ",\"handoffSourceHealthSummary\":";
+    AppendOpsSourceHealthSummaryJson(out, handoff_source_health_snapshot);
+    out << ",\"freshSourceHealthSummary\":";
+    AppendOpsSourceHealthSummaryJson(out, fresh_source_health_snapshot);
+    out << ",\"sourceHealthReplayDriftItems\":[";
+    for (std::size_t i = 0; i < sourceHealthReplayDriftItems.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV340SourceHealthReplayDriftItemJson(out, sourceHealthReplayDriftItems[i]);
+    }
+    out << "],\"driftPolicy\":{"
+        << "\"handoffReplaySource\":\"v3.3 backup recovery source handoff\","
+        << "\"freshSourceHealthRequired\":true,"
+        << "\"staleOfflineReconnectWarningCompared\":true"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"sourceHealthSnapshotPersisted\":false,"
+        << "\"recoveryValidationPlanPersisted\":false,"
+        << "\"productionRestorePerformed\":false,"
+        << "\"automaticRecoveryPerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 struct OpsV330BackupRecoverySourceHandoffInput {
     std::string key;
     std::string label;
@@ -13492,6 +13887,1162 @@ std::string OpsV330BackupRecoverySourceHandoffJson(
         << "\"wsMetadataSchemaChanged\":false,"
         << "\"rtspOrWebrtcMediaPathChanged\":false,"
         << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV340ContinuityDrillContractInput {
+    std::string key;
+    std::string label;
+    std::string source;
+    std::string route;
+    std::string required_for;
+    std::string boundary;
+};
+
+std::vector<OpsV340ContinuityDrillContractInput> BuildV340ContinuityDrillContractInputs() {
+    return {
+        {"sourceRegistrySnapshot",
+         "SourceRegistry snapshot",
+         "v3.3 source registry identity snapshot",
+         "/ops/api/source-registry/snapshot",
+         "Validate sourceId, source kind, canonical source key, enabled state, and owner/site/group context in staging.",
+         "read-only/no-write/no-secret/no-media-path-change"},
+        {"publishedViewRegistry",
+         "PublishedView registry",
+         "v3.3 PublishedView registry",
+         "/ops/api/views",
+         "Validate viewId, sourceId links, dashboard/events flags, overlay/rule allowlists, maxTiles, and viewer scopes.",
+         "read-only/no-write/no-secret/no-media-path-change"},
+        {"sourceHealthSnapshot",
+         "Source health snapshot",
+         "v3.3 source health handoff",
+         "/ops/api/source-health",
+         "Compare live, stale, offline, reconnect, and warning state after staging validation.",
+         "read-only/no-write/no-secret/no-media-path-change"},
+        {"eventRecordAuditContext",
+         "EventRecord and Ops audit context",
+         "v3.3 EventRecord/audit handoff",
+         "/ops/api/events/reviews",
+         "Link recent EventRecord and redacted Ops audit context without changing EventRecord or Event POST schema.",
+         "read-only/no-write/no-secret/no-media-path-change"},
+        {"stagingRestoreValidation",
+         "Staging restore validation harness",
+         "v3.4 staging validator",
+         "./server.sh verify-v340-staging-restore-validation-harness",
+         "Validate JSON parse, duplicate IDs, missing sourceId references, auth store mode, checksums, and viewer scopes in a temporary runtime.",
+         "read-only/no-write/no-secret/no-media-path-change"},
+    };
+}
+
+void AppendV340ContinuityDrillContractInputJson(
+    std::ostringstream& out,
+    const OpsV340ContinuityDrillContractInput& input) {
+    out << "{"
+        << "\"key\":\"" << JsonEscape(input.key) << "\","
+        << "\"label\":\"" << JsonEscape(input.label) << "\","
+        << "\"source\":\"" << JsonEscape(input.source) << "\","
+        << "\"route\":\"" << JsonEscape(input.route) << "\","
+        << "\"requiredFor\":\"" << JsonEscape(input.required_for) << "\","
+        << "\"boundary\":\"" << JsonEscape(input.boundary) << "\""
+        << "}";
+}
+
+std::string OpsV340ContinuityDrillContractJson() {
+    const auto v330HandoffInputs = BuildV340ContinuityDrillContractInputs();
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v340-continuity-drill-contract.v1\","
+        << "\"status\":\"continuity-drill-contract\","
+        << "\"recoveryDrillSchema\":{"
+        << "\"packageSchema\":\"media-server.ops.v340-recovery-candidate-package.v1\","
+        << "\"contractVersion\":\"v3.4.0\","
+        << "\"requiredSections\":["
+        << "\"sourceRegistrySnapshotSummary\","
+        << "\"publishedViewSummary\","
+        << "\"sourceHealthSnapshotSummary\","
+        << "\"eventRecordAuditContext\","
+        << "\"recoveryCandidates\","
+        << "\"stagingRestoreValidationHarness\"],"
+        << "\"drillBoundaries\":["
+        << "\"readOnly\","
+        << "\"noWrite\","
+        << "\"noSecret\","
+        << "\"noMediaPathChange\"]"
+        << "},\"v330HandoffInputs\":[";
+    for (std::size_t i = 0; i < v330HandoffInputs.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV340ContinuityDrillContractInputJson(out, v330HandoffInputs[i]);
+    }
+    out << "],\"drillBoundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"noWrite\":true,"
+        << "\"noSecret\":true,"
+        << "\"noMediaPathChange\":true,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"productionRestorePerformed\":false,"
+        << "\"automaticRecoveryPerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV340RecoveryCandidateContext {
+    std::unordered_map<std::string, std::vector<std::string>> view_ids_by_source;
+    std::unordered_map<std::string, const OpsSourceHealthItem*> health_by_source;
+    std::unordered_map<std::string, int> event_count_by_source;
+    std::unordered_map<std::string, int> audit_count_by_source;
+    std::vector<std::string> sample_event_ids;
+    std::vector<std::string> sample_audit_actions;
+    bool event_query_ok{true};
+    bool audit_query_ok{true};
+    std::string event_query_error;
+    int event_record_matched_count{0};
+    int audit_entry_total{0};
+};
+
+struct OpsV340RecoveryCandidatePackageItem {
+    std::string source_id;
+    std::string display_name;
+    std::string source_kind;
+    bool source_enabled{true};
+    std::vector<std::string> published_view_ids;
+    std::string source_health_status{"unknown"};
+    std::string source_health_reason{"not-checked"};
+    int event_record_count{0};
+    int audit_entry_count{0};
+    std::string recovery_readiness{"ready"};
+    std::vector<std::string> readiness_reasons;
+};
+
+struct OpsV340RecoveryCandidatePackageSummary {
+    int source_count{0};
+    int published_view_count{0};
+    int candidate_count{0};
+    int ready_count{0};
+    int degraded_count{0};
+    int blocked_count{0};
+    int event_record_count{0};
+    int audit_entry_count{0};
+};
+
+OpsV340RecoveryCandidateContext BuildV340RecoveryCandidateContext(
+    const std::vector<SourceViewRegistry::PublishedViewRecord>& views,
+    const OpsSourceHealthSnapshot& source_health_snapshot,
+    const app::AppConfig& config) {
+    OpsV340RecoveryCandidateContext context;
+    for (const auto& view : views) {
+        if (!view.source_id.empty()) {
+            context.view_ids_by_source[view.source_id].push_back(view.view_id);
+        }
+    }
+    for (const auto& health : source_health_snapshot.items) {
+        context.health_by_source[health.source_id] = &health;
+    }
+
+    analysis::EventRecordQueryOptions event_options;
+    event_options.limit = 200;
+    analysis::EventRecordQueryResult event_result;
+    std::string event_error;
+    if (analysis::QueryEventRecords(event_options, &event_result, &event_error)) {
+        context.event_record_matched_count = static_cast<int>(event_result.matched_records);
+        for (const auto& event_json : event_result.records_json) {
+            const std::string event_id = ParseStringField(event_json, "eventId").value_or("");
+            const std::string stream_id = ParseStringField(event_json, "streamId").value_or("");
+            const std::string channel_id = ParseStringField(event_json, "channelId").value_or("");
+            if (!event_id.empty() && context.sample_event_ids.size() < 8) {
+                context.sample_event_ids.push_back(event_id);
+            }
+            if (!stream_id.empty()) {
+                ++context.event_count_by_source[stream_id];
+            }
+            if (!channel_id.empty() && channel_id != stream_id) {
+                ++context.event_count_by_source[channel_id];
+            }
+        }
+    } else {
+        context.event_query_ok = false;
+        context.event_query_error = event_error.empty() ? "event record query failed" : event_error;
+    }
+
+    const OpsAuditQueryResult audit = QueryOpsAuditEntries(config, {{"limit", "200"}});
+    context.audit_entry_total = audit.total;
+    for (const auto& entry : audit.entries) {
+        const std::string redacted_entry = RedactAuditJsonFragment(entry);
+        const std::string action = ParseStringField(redacted_entry, "action").value_or("");
+        const std::string target = ParseStringField(redacted_entry, "target").value_or("");
+        if (!action.empty() && context.sample_audit_actions.size() < 8) {
+            context.sample_audit_actions.push_back(action);
+        }
+        for (const auto& [source_id, unused] : context.view_ids_by_source) {
+            (void)unused;
+            if (!source_id.empty() && redacted_entry.find(source_id) != std::string::npos) {
+                ++context.audit_count_by_source[source_id];
+            }
+        }
+        if (target.rfind("channel:", 0) == 0) {
+            const std::string source_id = target.substr(std::string("channel:").size());
+            if (!source_id.empty()) {
+                ++context.audit_count_by_source[source_id];
+            }
+        }
+    }
+    return context;
+}
+
+std::vector<OpsV340RecoveryCandidatePackageItem> BuildV340RecoveryCandidatePackages(
+    const std::vector<SourceViewRegistry::SourceRecord>& sources,
+    const OpsV340RecoveryCandidateContext& context) {
+    std::vector<OpsV340RecoveryCandidatePackageItem> items;
+    items.reserve(sources.size());
+    for (const auto& source : sources) {
+        OpsV340RecoveryCandidatePackageItem item;
+        item.source_id = source.source_id;
+        item.display_name = source.display_name;
+        item.source_kind = source.kind;
+        item.source_enabled = source.enabled;
+        if (const auto it = context.view_ids_by_source.find(source.source_id); it != context.view_ids_by_source.end()) {
+            item.published_view_ids = it->second;
+        }
+        if (const auto it = context.health_by_source.find(source.source_id); it != context.health_by_source.end()) {
+            item.source_health_status = it->second->status;
+            item.source_health_reason = it->second->reason;
+        }
+        if (const auto it = context.event_count_by_source.find(source.source_id); it != context.event_count_by_source.end()) {
+            item.event_record_count = it->second;
+        }
+        if (const auto it = context.audit_count_by_source.find(source.source_id); it != context.audit_count_by_source.end()) {
+            item.audit_entry_count = it->second;
+        }
+
+        if (!source.enabled) {
+            item.recovery_readiness = "blocked";
+            item.readiness_reasons.push_back("source-disabled");
+        }
+        if (item.published_view_ids.empty()) {
+            item.recovery_readiness = "blocked";
+            item.readiness_reasons.push_back("missing-published-view");
+        }
+        if (item.source_health_status == "stale" || item.source_health_status == "offline" ||
+            item.source_health_status == "unknown") {
+            if (item.recovery_readiness != "blocked") {
+                item.recovery_readiness = "degraded";
+            }
+            item.readiness_reasons.push_back("source-health-" + item.source_health_status);
+        }
+        if (item.readiness_reasons.empty()) {
+            item.readiness_reasons.push_back("staging-validation-ready");
+        }
+        items.push_back(std::move(item));
+    }
+    return items;
+}
+
+OpsV340RecoveryCandidatePackageSummary BuildV340RecoveryCandidatePackageSummary(
+    const std::vector<SourceViewRegistry::SourceRecord>& sources,
+    const std::vector<SourceViewRegistry::PublishedViewRecord>& views,
+    const std::vector<OpsV340RecoveryCandidatePackageItem>& candidates,
+    const OpsV340RecoveryCandidateContext& context) {
+    OpsV340RecoveryCandidatePackageSummary summary;
+    summary.source_count = static_cast<int>(sources.size());
+    summary.published_view_count = static_cast<int>(views.size());
+    summary.candidate_count = static_cast<int>(candidates.size());
+    summary.event_record_count = context.event_record_matched_count;
+    summary.audit_entry_count = context.audit_entry_total;
+    for (const auto& candidate : candidates) {
+        if (candidate.recovery_readiness == "ready") {
+            ++summary.ready_count;
+        } else if (candidate.recovery_readiness == "degraded") {
+            ++summary.degraded_count;
+        } else {
+            ++summary.blocked_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV340RecoveryCandidateStringListJson(std::ostringstream& out,
+                                               const std::vector<std::string>& values) {
+    out << "[";
+    for (std::size_t i = 0; i < values.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        out << "\"" << JsonEscape(values[i]) << "\"";
+    }
+    out << "]";
+}
+
+void AppendV340RecoveryCandidatePackageItemJson(
+    std::ostringstream& out,
+    const OpsV340RecoveryCandidatePackageItem& item) {
+    out << "{"
+        << "\"sourceId\":\"" << JsonEscape(item.source_id) << "\","
+        << "\"displayName\":\"" << JsonEscape(item.display_name) << "\","
+        << "\"sourceKind\":\"" << JsonEscape(item.source_kind) << "\","
+        << "\"sourceEnabled\":" << (item.source_enabled ? "true" : "false") << ","
+        << "\"publishedViewIds\":";
+    AppendV340RecoveryCandidateStringListJson(out, item.published_view_ids);
+    out << ",\"sourceHealth\":{"
+        << "\"status\":\"" << JsonEscape(item.source_health_status) << "\","
+        << "\"reason\":\"" << JsonEscape(item.source_health_reason) << "\""
+        << "},\"eventRecordCount\":" << item.event_record_count
+        << ",\"auditEntryCount\":" << item.audit_entry_count
+        << ",\"recoveryReadiness\":\"" << JsonEscape(item.recovery_readiness) << "\","
+        << "\"readinessReasons\":";
+    AppendV340RecoveryCandidateStringListJson(out, item.readiness_reasons);
+    out << "}";
+}
+
+void AppendV340RecoveryCandidateEventAuditContextJson(
+    std::ostringstream& out,
+    const OpsV340RecoveryCandidateContext& context) {
+    out << "{"
+        << "\"eventQueryOk\":" << (context.event_query_ok ? "true" : "false") << ","
+        << "\"eventQueryError\":";
+    AppendNullableJsonString(out, context.event_query_error);
+    out << ",\"eventRecordCount\":" << context.event_record_matched_count << ","
+        << "\"auditQueryOk\":" << (context.audit_query_ok ? "true" : "false") << ","
+        << "\"auditEntryCount\":" << context.audit_entry_total << ","
+        << "\"sampleEventIds\":";
+    AppendV340RecoveryCandidateStringListJson(out, context.sample_event_ids);
+    out << ",\"sampleAuditActions\":";
+    AppendV340RecoveryCandidateStringListJson(out, context.sample_audit_actions);
+    out << ",\"rawAuditBodyIncluded\":false}";
+}
+
+void AppendV340RecoveryCandidatePackageSummaryJson(
+    std::ostringstream& out,
+    const OpsV340RecoveryCandidatePackageSummary& summary) {
+    out << "{"
+        << "\"sourceCount\":" << summary.source_count << ","
+        << "\"publishedViewCount\":" << summary.published_view_count << ","
+        << "\"candidateCount\":" << summary.candidate_count << ","
+        << "\"readyCount\":" << summary.ready_count << ","
+        << "\"degradedCount\":" << summary.degraded_count << ","
+        << "\"blockedCount\":" << summary.blocked_count << ","
+        << "\"eventRecordCount\":" << summary.event_record_count << ","
+        << "\"auditEntryCount\":" << summary.audit_entry_count
+        << "}";
+}
+
+std::string OpsV340RecoveryCandidatePackageJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    if (!source_health_snapshot.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v340-recovery-candidate-package.v1\",\"error\":\"" +
+               JsonEscape(source_health_snapshot.error) + "\"}";
+    }
+
+    std::vector<SourceViewRegistry::SourceRecord> sources;
+    std::vector<SourceViewRegistry::PublishedViewRecord> views;
+    std::string load_error;
+    if (!SourceViewRegistry::Instance().Snapshot(&sources, &views, &load_error)) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v340-recovery-candidate-package.v1\",\"error\":\"" +
+               JsonEscape(load_error.empty() ? "source registry load failed" : load_error) + "\"}";
+    }
+
+    const auto context = BuildV340RecoveryCandidateContext(views, source_health_snapshot, config);
+    const auto recoveryCandidates = BuildV340RecoveryCandidatePackages(sources, context);
+    const auto summary =
+        BuildV340RecoveryCandidatePackageSummary(sources, views, recoveryCandidates, context);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v340-recovery-candidate-package.v1\","
+        << "\"status\":\"recovery-candidate-package\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"contractRoute\":\"/ops/api/source-registry/continuity-drill/contract\","
+        << "\"sourceRegistrySnapshotSummary\":{"
+        << "\"sourceCount\":" << sources.size() << ","
+        << "\"redacted\":true"
+        << "},\"publishedViewSummary\":{"
+        << "\"publishedViewCount\":" << views.size() << ","
+        << "\"redacted\":true"
+        << "},\"sourceHealthSnapshotSummary\":";
+    AppendOpsSourceHealthSummaryJson(out, source_health_snapshot);
+    out << ",\"eventRecordAuditContext\":";
+    AppendV340RecoveryCandidateEventAuditContextJson(out, context);
+    out << ",\"recoveryCandidatePackageSummary\":";
+    AppendV340RecoveryCandidatePackageSummaryJson(out, summary);
+    out << ",\"recoveryCandidates\":[";
+    for (std::size_t i = 0; i < recoveryCandidates.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV340RecoveryCandidatePackageItemJson(out, recoveryCandidates[i]);
+    }
+    out << "],\"stagingRestoreValidationHarness\":{"
+        << "\"command\":\"./server.sh verify-v340-staging-restore-validation-harness\","
+        << "\"stagingOnly\":true,"
+        << "\"productionWritePerformed\":false,"
+        << "\"authStoreMode0600\":true,"
+        << "\"checksumVerified\":true,"
+        << "\"viewerScopeVerified\":true,"
+        << "\"duplicateSourceIdRejected\":true,"
+        << "\"missingSourceIdReferenceRejected\":true"
+        << "},\"redactionPolicy\":{"
+        << "\"redacted\":true,"
+        << "\"sourceLocatorIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"rawAuditBodyIncluded\":false,"
+        << "\"mediaPathIncluded\":false,"
+        << "\"clientViewerMaterialIncluded\":false"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"productionRestorePerformed\":false,"
+        << "\"automaticRecoveryPerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"rawAuditBodyIncluded\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV340ApprovalGatedRecoveryChecklistItem {
+    std::string source_id;
+    std::string display_name;
+    std::string source_kind;
+    std::string readiness_status{"not-run"};
+    std::string operator_note;
+    std::string dry_run_result;
+    std::string audit_route;
+    int audit_entry_count{0};
+    bool field_smoke_required{false};
+};
+
+struct OpsV340ApprovalGatedRecoveryChecklistSummary {
+    int item_count{0};
+    int ready_count{0};
+    int blocked_count{0};
+    int field_smoke_needed_count{0};
+    int not_run_count{0};
+    int audit_linked_count{0};
+};
+
+std::string JoinV340ApprovalRecoveryStrings(const std::vector<std::string>& values,
+                                            const std::string& delimiter) {
+    std::ostringstream out;
+    for (std::size_t i = 0; i < values.size(); ++i) {
+        if (i != 0) {
+            out << delimiter;
+        }
+        out << values[i];
+    }
+    return out.str();
+}
+
+std::string V340ApprovalRecoveryStatusFor(const OpsV340RecoveryCandidatePackageItem& candidate) {
+    if (candidate.recovery_readiness == "blocked") {
+        return "blocked";
+    }
+    if (candidate.source_kind == "onvif" || candidate.source_kind == "whep") {
+        return "field-smoke-needed";
+    }
+    if (candidate.recovery_readiness == "ready") {
+        return "ready";
+    }
+    return "not-run";
+}
+
+std::string V340ApprovalRecoveryDryRunResultFor(
+    const OpsV340RecoveryCandidatePackageItem& candidate,
+    const std::string& readiness_status) {
+    if (readiness_status == "blocked") {
+        return "blocked: " + JoinV340ApprovalRecoveryStrings(candidate.readiness_reasons, ", ");
+    }
+    if (readiness_status == "field-smoke-needed") {
+        return "field-smoke-needed: endpoint/credential approval required before recovery";
+    }
+    if (readiness_status == "ready") {
+        return "dry-run-ready: staging validation can be reviewed before manual approval";
+    }
+    return "not-run: operator approval and dry-run review are still required";
+}
+
+std::vector<OpsV340ApprovalGatedRecoveryChecklistItem> BuildV340ApprovalGatedRecoveryChecklist(
+    const std::vector<OpsV340RecoveryCandidatePackageItem>& candidates) {
+    std::vector<OpsV340ApprovalGatedRecoveryChecklistItem> items;
+    items.reserve(candidates.size());
+    for (const auto& candidate : candidates) {
+        OpsV340ApprovalGatedRecoveryChecklistItem item;
+        item.source_id = candidate.source_id;
+        item.display_name = candidate.display_name.empty() ? candidate.source_id : candidate.display_name;
+        item.source_kind = candidate.source_kind;
+        item.audit_entry_count = candidate.audit_entry_count;
+        item.readiness_status = V340ApprovalRecoveryStatusFor(candidate);
+        item.field_smoke_required = item.readiness_status == "field-smoke-needed";
+        item.operator_note = "Operator must review recovery checklist for source " + candidate.source_id +
+                             " before any manual recovery. Automatic recovery is disabled.";
+        item.dry_run_result = V340ApprovalRecoveryDryRunResultFor(candidate, item.readiness_status);
+        item.audit_route = "/ops/sources#auditArea=channels&auditPreset=source-recovery-approval"
+                           "&auditAction=source-recovery-approval-checklist&auditTarget=" +
+                           UrlEncode("source:" + candidate.source_id);
+        items.push_back(std::move(item));
+    }
+    return items;
+}
+
+OpsV340ApprovalGatedRecoveryChecklistSummary BuildV340ApprovalGatedRecoveryChecklistSummary(
+    const std::vector<OpsV340ApprovalGatedRecoveryChecklistItem>& items) {
+    OpsV340ApprovalGatedRecoveryChecklistSummary summary;
+    summary.item_count = static_cast<int>(items.size());
+    for (const auto& item : items) {
+        if (item.readiness_status == "ready") {
+            ++summary.ready_count;
+        } else if (item.readiness_status == "blocked") {
+            ++summary.blocked_count;
+        } else if (item.readiness_status == "field-smoke-needed") {
+            ++summary.field_smoke_needed_count;
+        } else {
+            ++summary.not_run_count;
+        }
+        if (item.audit_entry_count > 0) {
+            ++summary.audit_linked_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV340ApprovalGatedRecoveryChecklistSummaryJson(
+    std::ostringstream& out,
+    const OpsV340ApprovalGatedRecoveryChecklistSummary& summary) {
+    out << "{"
+        << "\"itemCount\":" << summary.item_count << ","
+        << "\"readyCount\":" << summary.ready_count << ","
+        << "\"blockedCount\":" << summary.blocked_count << ","
+        << "\"fieldSmokeNeededCount\":" << summary.field_smoke_needed_count << ","
+        << "\"notRunCount\":" << summary.not_run_count << ","
+        << "\"auditLinkedCount\":" << summary.audit_linked_count
+        << "}";
+}
+
+void AppendV340ApprovalGatedRecoveryChecklistItemJson(
+    std::ostringstream& out,
+    const OpsV340ApprovalGatedRecoveryChecklistItem& item) {
+    out << "{"
+        << "\"sourceId\":\"" << JsonEscape(item.source_id) << "\","
+        << "\"displayName\":\"" << JsonEscape(item.display_name) << "\","
+        << "\"sourceKind\":\"" << JsonEscape(item.source_kind) << "\","
+        << "\"readinessStatus\":\"" << JsonEscape(item.readiness_status) << "\","
+        << "\"operatorNote\":\"" << JsonEscape(item.operator_note) << "\","
+        << "\"dryRunResult\":\"" << JsonEscape(item.dry_run_result) << "\","
+        << "\"fieldSmokeRequired\":" << (item.field_smoke_required ? "true" : "false") << ","
+        << "\"opsAuditLinkage\":{"
+        << "\"area\":\"channels\","
+        << "\"action\":\"source-recovery-approval-checklist\","
+        << "\"target\":\"source:" << JsonEscape(item.source_id) << "\","
+        << "\"auditRoute\":\"" << JsonEscape(item.audit_route) << "\","
+        << "\"auditEntryCount\":" << item.audit_entry_count << ","
+        << "\"rawAuditBodyIncluded\":false"
+        << "},\"automaticRecoveryPerformed\":false"
+        << "}";
+}
+
+std::string OpsV340ApprovalGatedRecoveryChecklistJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    if (!source_health_snapshot.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v340-approval-gated-recovery-checklist.v1\",\"error\":\"" +
+               JsonEscape(source_health_snapshot.error) + "\"}";
+    }
+
+    std::vector<SourceViewRegistry::SourceRecord> sources;
+    std::vector<SourceViewRegistry::PublishedViewRecord> views;
+    std::string load_error;
+    if (!SourceViewRegistry::Instance().Snapshot(&sources, &views, &load_error)) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v340-approval-gated-recovery-checklist.v1\",\"error\":\"" +
+               JsonEscape(load_error.empty() ? "source registry load failed" : load_error) + "\"}";
+    }
+
+    const auto context = BuildV340RecoveryCandidateContext(views, source_health_snapshot, config);
+    const auto recoveryCandidates = BuildV340RecoveryCandidatePackages(sources, context);
+    const auto approvalGatedRecoveryChecklistItems =
+        BuildV340ApprovalGatedRecoveryChecklist(recoveryCandidates);
+    const auto summary =
+        BuildV340ApprovalGatedRecoveryChecklistSummary(approvalGatedRecoveryChecklistItems);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v340-approval-gated-recovery-checklist.v1\","
+        << "\"status\":\"approval-gated-recovery-checklist\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"packageRoute\":\"/ops/api/source-registry/recovery-candidate-package\","
+        << "\"dryRunRoute\":\"/ops/api/source-registry/recovery-candidate-package\","
+        << "\"approvalRequired\":true,"
+        << "\"opsAuditLinkage\":{"
+        << "\"area\":\"channels\","
+        << "\"action\":\"source-recovery-approval-checklist\","
+        << "\"auditRoute\":\"/ops/api/audit?area=channels&action=source-recovery-approval-checklist\","
+        << "\"rawAuditBodyIncluded\":false"
+        << "},\"approvalGatedRecoveryChecklistSummary\":";
+    AppendV340ApprovalGatedRecoveryChecklistSummaryJson(out, summary);
+    out << ",\"approvalGatedRecoveryChecklistItems\":[";
+    for (std::size_t i = 0; i < approvalGatedRecoveryChecklistItems.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV340ApprovalGatedRecoveryChecklistItemJson(out, approvalGatedRecoveryChecklistItems[i]);
+    }
+    out << "],\"redactionPolicy\":{"
+        << "\"redacted\":true,"
+        << "\"sourceLocatorIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"rawAuditBodyIncluded\":false,"
+        << "\"clientViewerMaterialIncluded\":false"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"productionRestorePerformed\":false,"
+        << "\"automaticRecoveryPerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"sourceLocatorExposed\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"rawJsonExposed\":false,"
+        << "\"debugMaterialExposed\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV340DrillEvidenceArtifact {
+    std::string artifact_key;
+    std::string label;
+    std::string route;
+    std::string retention_reason;
+    bool retained{true};
+};
+
+struct OpsV340DrillCleanupManifestItem {
+    std::string cleanup_key;
+    std::string label;
+    std::string scope;
+    std::string path_pattern;
+    std::string status{"not-run"};
+    std::string reason;
+    bool cleanup_execution_performed{false};
+};
+
+struct OpsV340DrillEvidenceExportCleanupSummary {
+    int retained_evidence_count{0};
+    int artifact_count{0};
+    int cleanup_candidate_count{0};
+    int sensitive_scan_pattern_count{0};
+};
+
+std::vector<OpsV340DrillEvidenceArtifact> BuildV340DrillEvidenceArtifactManifest(
+    const std::vector<OpsV340RecoveryCandidatePackageItem>& candidates,
+    const std::vector<OpsV340ApprovalGatedRecoveryChecklistItem>& checklist_items) {
+    std::vector<OpsV340DrillEvidenceArtifact> artifacts{
+        {"continuity-drill-contract",
+         "Continuity Drill Contract",
+         "/ops/api/source-registry/continuity-drill/contract",
+         "Retain schema, handoff input, and read-only/no-write boundary summary"},
+        {"recovery-candidate-package",
+         "Recovery Candidate Package",
+         "/ops/api/source-registry/recovery-candidate-package",
+         "Retain redacted candidate readiness and source health summary"},
+        {"source-health-replay-drift-diff",
+         "Source Health Replay Drift Diff",
+         "/ops/api/source-registry/source-health-replay-drift-diff",
+         "Retain stale/offline/reconnect/warning drift summary"},
+        {"approval-gated-recovery-checklist",
+         "Approval-Gated Recovery Checklist",
+         "/ops/api/source-registry/approval-gated-recovery-checklist",
+         "Retain operator note, readiness status, dry-run result, and Ops audit linkage summary"},
+    };
+    if (!candidates.empty()) {
+        artifacts.push_back({"recovery-candidate-count",
+                             "Recovery Candidate Count",
+                             "/ops/api/source-registry/recovery-candidate-package",
+                             "Retain candidate count only; source locator and credential material stay excluded"});
+    }
+    if (!checklist_items.empty()) {
+        artifacts.push_back({"approval-checklist-count",
+                             "Approval Checklist Count",
+                             "/ops/api/source-registry/approval-gated-recovery-checklist",
+                             "Retain checklist count only; raw audit body and recovery action material stay excluded"});
+    }
+    return artifacts;
+}
+
+std::vector<OpsV340DrillCleanupManifestItem> BuildV340DrillCleanupManifest() {
+    return {
+        {"tmp-drill-staging-runtime",
+         "temporary staging runtime",
+         "/tmp",
+         "/tmp/media-server-v340-drill-*",
+         "not-run",
+         "Cleanup candidate recorded for operator review; this verifier does not delete files"},
+        {"private-tmp-drill-staging-runtime",
+         "private temporary staging runtime",
+         "/private/tmp",
+         "/private/tmp/media-server-v340-drill-*",
+         "not-run",
+         "Cleanup candidate recorded for operator review; this verifier does not delete files"},
+        {"core-clips",
+         "throwaway core clips",
+         "event core-clips",
+         "core-clips/*",
+         "not-run",
+         "Raw clip cleanup is documented but not executed by the drill manifest"},
+        {"core-snapshots",
+         "throwaway core snapshots",
+         "event core-snapshots",
+         "core-snapshots/*",
+         "not-run",
+         "Raw snapshot cleanup is documented but not executed by the drill manifest"},
+        {"throwaway-registry",
+         "throwaway registry",
+         "source/view registry fixture",
+         "source-registry-throwaway/*.json",
+         "not-run",
+         "Fixture registry cleanup is documented but not executed by the drill manifest"},
+    };
+}
+
+std::vector<std::string> BuildV340DrillSensitiveMaterialScanPatterns() {
+    return {"source URL",
+            "raw locator",
+            "raw JSON",
+            "debug material",
+            "credential material",
+            "raw audit body",
+            "provider material",
+            "client viewer material"};
+}
+
+OpsV340DrillEvidenceExportCleanupSummary BuildV340DrillEvidenceExportCleanupSummary(
+    const std::vector<OpsV340DrillEvidenceArtifact>& artifacts,
+    const std::vector<OpsV340DrillCleanupManifestItem>& cleanup_items,
+    const std::vector<std::string>& scan_patterns) {
+    OpsV340DrillEvidenceExportCleanupSummary summary;
+    summary.artifact_count = static_cast<int>(artifacts.size());
+    summary.cleanup_candidate_count = static_cast<int>(cleanup_items.size());
+    summary.sensitive_scan_pattern_count = static_cast<int>(scan_patterns.size());
+    for (const auto& artifact : artifacts) {
+        if (artifact.retained) {
+            ++summary.retained_evidence_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV340DrillEvidenceArtifactJson(std::ostringstream& out,
+                                         const OpsV340DrillEvidenceArtifact& artifact) {
+    out << "{"
+        << "\"artifactKey\":\"" << JsonEscape(artifact.artifact_key) << "\","
+        << "\"label\":\"" << JsonEscape(artifact.label) << "\","
+        << "\"route\":\"" << JsonEscape(artifact.route) << "\","
+        << "\"retained\":" << (artifact.retained ? "true" : "false") << ","
+        << "\"retentionReason\":\"" << JsonEscape(artifact.retention_reason) << "\","
+        << "\"sourceUrlIncluded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"rawAuditBodyIncluded\":false,"
+        << "\"providerMaterialIncluded\":false,"
+        << "\"clientViewerMaterialIncluded\":false"
+        << "}";
+}
+
+void AppendV340DrillCleanupManifestItemJson(std::ostringstream& out,
+                                            const OpsV340DrillCleanupManifestItem& item) {
+    out << "{"
+        << "\"cleanupKey\":\"" << JsonEscape(item.cleanup_key) << "\","
+        << "\"label\":\"" << JsonEscape(item.label) << "\","
+        << "\"scope\":\"" << JsonEscape(item.scope) << "\","
+        << "\"pathPattern\":\"" << JsonEscape(item.path_pattern) << "\","
+        << "\"status\":\"" << JsonEscape(item.status) << "\","
+        << "\"reason\":\"" << JsonEscape(item.reason) << "\","
+        << "\"cleanupExecutionPerformed\":"
+        << (item.cleanup_execution_performed ? "true" : "false")
+        << "}";
+}
+
+void AppendV340DrillEvidenceExportCleanupSummaryJson(
+    std::ostringstream& out,
+    const OpsV340DrillEvidenceExportCleanupSummary& summary) {
+    out << "{"
+        << "\"retainedEvidenceCount\":" << summary.retained_evidence_count << ","
+        << "\"artifactCount\":" << summary.artifact_count << ","
+        << "\"cleanupCandidateCount\":" << summary.cleanup_candidate_count << ","
+        << "\"sensitiveScanPatternCount\":" << summary.sensitive_scan_pattern_count
+        << "}";
+}
+
+std::string OpsV340DrillEvidenceExportCleanupManifestJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    if (!source_health_snapshot.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v340-drill-evidence-export-cleanup-manifest.v1\",\"error\":\"" +
+               JsonEscape(source_health_snapshot.error) + "\"}";
+    }
+
+    std::vector<SourceViewRegistry::SourceRecord> sources;
+    std::vector<SourceViewRegistry::PublishedViewRecord> views;
+    std::string load_error;
+    if (!SourceViewRegistry::Instance().Snapshot(&sources, &views, &load_error)) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v340-drill-evidence-export-cleanup-manifest.v1\",\"error\":\"" +
+               JsonEscape(load_error.empty() ? "source registry load failed" : load_error) + "\"}";
+    }
+
+    const auto context = BuildV340RecoveryCandidateContext(views, source_health_snapshot, config);
+    const auto recoveryCandidates = BuildV340RecoveryCandidatePackages(sources, context);
+    const auto approvalGatedRecoveryChecklistItems =
+        BuildV340ApprovalGatedRecoveryChecklist(recoveryCandidates);
+    const auto artifacts = BuildV340DrillEvidenceArtifactManifest(
+        recoveryCandidates, approvalGatedRecoveryChecklistItems);
+    const auto cleanup_items = BuildV340DrillCleanupManifest();
+    const auto scan_patterns = BuildV340DrillSensitiveMaterialScanPatterns();
+    const auto summary =
+        BuildV340DrillEvidenceExportCleanupSummary(artifacts, cleanup_items, scan_patterns);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v340-drill-evidence-export-cleanup-manifest.v1\","
+        << "\"status\":\"drill-evidence-export-cleanup-manifest\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"packageRoute\":\"/ops/api/source-registry/recovery-candidate-package\","
+        << "\"approvalChecklistRoute\":\"/ops/api/source-registry/approval-gated-recovery-checklist\","
+        << "\"drillEvidenceExportCleanupSummary\":";
+    AppendV340DrillEvidenceExportCleanupSummaryJson(out, summary);
+    out << ",\"redactedDrillArtifactManifest\":{"
+        << "\"schema\":\"media-server.ops.v340-drill-evidence-artifact-manifest.v1\","
+        << "\"manifestOnly\":true,"
+        << "\"artifactExportExecuted\":false,"
+        << "\"artifactItems\":[";
+    for (std::size_t i = 0; i < artifacts.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV340DrillEvidenceArtifactJson(out, artifacts[i]);
+    }
+    out << "]},\"minimumRetainedEvidence\":[";
+    for (std::size_t i = 0; i < artifacts.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV340DrillEvidenceArtifactJson(out, artifacts[i]);
+    }
+    out << "],\"tmpCleanupManifest\":{"
+        << "\"cleanupExecutionPerformed\":false,"
+        << "\"temporaryCleanupExecuted\":false,"
+        << "\"dryRunOnly\":true,"
+        << "\"cleanupCandidates\":[";
+    for (std::size_t i = 0; i < cleanup_items.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV340DrillCleanupManifestItemJson(out, cleanup_items[i]);
+    }
+    out << "]},\"sensitiveMaterialScanBoundary\":{"
+        << "\"sensitiveScanPatternCount\":" << scan_patterns.size() << ","
+        << "\"scanPatterns\":";
+    AppendV340RecoveryCandidateStringListJson(out, scan_patterns);
+    out << ",\"sourceUrlIncluded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"rawAuditBodyIncluded\":false,"
+        << "\"providerMaterialIncluded\":false,"
+        << "\"clientViewerMaterialIncluded\":false"
+        << "},\"redactionPolicy\":{"
+        << "\"redacted\":true,"
+        << "\"manifestOnly\":true,"
+        << "\"sourceUrlIncluded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"rawAuditBodyIncluded\":false,"
+        << "\"providerMaterialIncluded\":false,"
+        << "\"clientViewerMaterialIncluded\":false"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"manifestOnly\":true,"
+        << "\"artifactExportExecuted\":false,"
+        << "\"cleanupExecutionPerformed\":false,"
+        << "\"temporaryCleanupExecuted\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"productionRestorePerformed\":false,"
+        << "\"automaticRecoveryPerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"searchMetricsChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV340FieldBridgeConditionGate {
+    std::string gate_key;
+    std::string bridge_kind;
+    std::string label;
+    std::string field_smoke_status{"field-smoke-needed"};
+    std::string execution_status{"not-run"};
+    std::string source_only_pass_result{"blocked"};
+    std::string field_smoke_command;
+    std::string condition_summary;
+    bool endpoint_required{true};
+    bool credential_required{true};
+    bool operator_approval_required{true};
+    bool source_only_pass_accepted{false};
+    bool field_smoke_executed{false};
+};
+
+struct OpsV340FieldBridgeConditionGateSummary {
+    int gate_count{0};
+    int field_smoke_needed_count{0};
+    int blocked_count{0};
+    int not_run_count{0};
+    int endpoint_required_count{0};
+    int credential_required_count{0};
+    int approval_required_count{0};
+};
+
+std::vector<OpsV340FieldBridgeConditionGate> BuildV340FieldBridgeConditionGates() {
+    return {
+        {"onvif-real-device",
+         "onvif-real-device",
+         "ONVIF real device field smoke",
+         "field-smoke-needed",
+         "not-run",
+         "blocked",
+         "approved field smoke with real ONVIF endpoint and credential",
+         "Requires an operator-approved ONVIF device endpoint, credential material supplied out of band, and a real device smoke run before release PASS eligibility.",
+         true,
+         true,
+         true,
+         false,
+         false},
+        {"external-whep-turn",
+         "external-whep-turn",
+         "External WHEP/TURN field smoke",
+         "field-smoke-needed",
+         "not-run",
+         "blocked",
+         "approved field smoke with external WHEP endpoint and TURN relay credential",
+         "Requires approved WHEP playback endpoint, TURN relay credential, and external network smoke evidence; local ICE/source-only PASS is not a substitute.",
+         true,
+         true,
+         true,
+         false,
+         false},
+        {"real-cloud-vlm-provider",
+         "real-cloud-vlm-provider",
+         "Real cloud/VLM provider field smoke",
+         "field-smoke-needed",
+         "not-run",
+         "blocked",
+         "approved field smoke with real cloud/VLM provider credential",
+         "Requires approved provider endpoint, credential, and field smoke evidence; local fixture/VLM boundary PASS is not promoted to provider PASS.",
+         true,
+         true,
+         true,
+         false,
+         false},
+    };
+}
+
+OpsV340FieldBridgeConditionGateSummary BuildV340FieldBridgeConditionGateSummary(
+    const std::vector<OpsV340FieldBridgeConditionGate>& gates) {
+    OpsV340FieldBridgeConditionGateSummary summary;
+    summary.gate_count = static_cast<int>(gates.size());
+    for (const auto& gate : gates) {
+        if (gate.field_smoke_status == "field-smoke-needed") {
+            ++summary.field_smoke_needed_count;
+        }
+        if (gate.source_only_pass_result == "blocked") {
+            ++summary.blocked_count;
+        }
+        if (gate.execution_status == "not-run") {
+            ++summary.not_run_count;
+        }
+        if (gate.endpoint_required) {
+            ++summary.endpoint_required_count;
+        }
+        if (gate.credential_required) {
+            ++summary.credential_required_count;
+        }
+        if (gate.operator_approval_required) {
+            ++summary.approval_required_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV340FieldBridgeConditionGateJson(std::ostringstream& out,
+                                            const OpsV340FieldBridgeConditionGate& gate) {
+    out << "{"
+        << "\"gateKey\":\"" << JsonEscape(gate.gate_key) << "\","
+        << "\"bridgeKind\":\"" << JsonEscape(gate.bridge_kind) << "\","
+        << "\"label\":\"" << JsonEscape(gate.label) << "\","
+        << "\"fieldSmokeStatus\":\"" << JsonEscape(gate.field_smoke_status) << "\","
+        << "\"executionStatus\":\"" << JsonEscape(gate.execution_status) << "\","
+        << "\"sourceOnlyPassResult\":\"" << JsonEscape(gate.source_only_pass_result) << "\","
+        << "\"fieldSmokeCommand\":\"" << JsonEscape(gate.field_smoke_command) << "\","
+        << "\"conditionSummary\":\"" << JsonEscape(gate.condition_summary) << "\","
+        << "\"endpointRequired\":" << (gate.endpoint_required ? "true" : "false") << ","
+        << "\"credentialRequired\":" << (gate.credential_required ? "true" : "false") << ","
+        << "\"operatorApprovalRequired\":" << (gate.operator_approval_required ? "true" : "false") << ","
+        << "\"sourceOnlyPassAccepted\":" << (gate.source_only_pass_accepted ? "true" : "false") << ","
+        << "\"fieldSmokeExecuted\":" << (gate.field_smoke_executed ? "true" : "false") << ","
+        << "\"endpointUrlIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"providerMaterialIncluded\":false,"
+        << "\"rawTurnCredentialsIncluded\":false,"
+        << "\"rawVlmPromptIncluded\":false,"
+        << "\"rawProviderResponseIncluded\":false"
+        << "}";
+}
+
+void AppendV340FieldBridgeConditionGateSummaryJson(
+    std::ostringstream& out,
+    const OpsV340FieldBridgeConditionGateSummary& summary) {
+    out << "{"
+        << "\"gateCount\":" << summary.gate_count << ","
+        << "\"fieldSmokeNeededCount\":" << summary.field_smoke_needed_count << ","
+        << "\"blockedCount\":" << summary.blocked_count << ","
+        << "\"notRunCount\":" << summary.not_run_count << ","
+        << "\"endpointRequiredCount\":" << summary.endpoint_required_count << ","
+        << "\"credentialRequiredCount\":" << summary.credential_required_count << ","
+        << "\"approvalRequiredCount\":" << summary.approval_required_count
+        << "}";
+}
+
+std::string OpsV340FieldBridgeConditionGatesJson(
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    if (!source_health_snapshot.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v340-field-bridge-condition-gates.v1\",\"error\":\"" +
+               JsonEscape(source_health_snapshot.error) + "\"}";
+    }
+
+    const auto gates = BuildV340FieldBridgeConditionGates();
+    const auto summary = BuildV340FieldBridgeConditionGateSummary(gates);
+    const std::vector<std::string> field_smoke_conditions{
+        "operator approval",
+        "field endpoint configured",
+        "credential supplied out of band",
+        "real field smoke executed",
+        "source-only PASS not accepted"};
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v340-field-bridge-condition-gates.v1\","
+        << "\"status\":\"field-bridge-condition-gates\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"drillEvidenceRoute\":\"/ops/api/source-registry/drill-evidence-export-cleanup-manifest\","
+        << "\"fieldBridgeConditionGateSummary\":";
+    AppendV340FieldBridgeConditionGateSummaryJson(out, summary);
+    out << ",\"fieldBridgeConditionGates\":[";
+    for (std::size_t i = 0; i < gates.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV340FieldBridgeConditionGateJson(out, gates[i]);
+    }
+    out << "],\"sourceOnlyPassPolicy\":{"
+        << "\"sourceOnlyPassAccepted\":false,"
+        << "\"localVerifierPassSubstitutesFieldSmoke\":false,"
+        << "\"sourceOnlyPassResult\":\"blocked\","
+        << "\"fieldSmokeRequiredForReleasePass\":true"
+        << "},\"fieldSmokeConditions\":";
+    AppendV340RecoveryCandidateStringListJson(out, field_smoke_conditions);
+    out << ",\"redactionPolicy\":{"
+        << "\"redacted\":true,"
+        << "\"endpointUrlIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"providerMaterialIncluded\":false,"
+        << "\"rawTurnCredentialsIncluded\":false,"
+        << "\"rawVlmPromptIncluded\":false,"
+        << "\"rawProviderResponseIncluded\":false,"
+        << "\"clientViewerMaterialIncluded\":false"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"conditionalFieldSmokeOnly\":true,"
+        << "\"sourceOnlyPassAccepted\":false,"
+        << "\"localVerifierPassSubstitutesFieldSmoke\":false,"
+        << "\"fieldSmokeExecuted\":false,"
+        << "\"endpointProbePerformed\":false,"
+        << "\"credentialProbePerformed\":false,"
+        << "\"onvifDeviceContacted\":false,"
+        << "\"externalWhepTurnContacted\":false,"
+        << "\"cloudProviderContacted\":false,"
+        << "\"vlmProviderCalled\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"productionRestorePerformed\":false,"
+        << "\"automaticRecoveryPerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"searchMetricsChanged\":false"
         << "}}";
     return out.str();
 }
@@ -23229,6 +24780,120 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV330SourceReliabilitySearchMetricsJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/source-registry/source-health-replay-drift-diff") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV340SourceHealthReplayDriftDiffJson(source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/source-registry/continuity-drill/contract") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV340ContinuityDrillContractJson());
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/source-registry/recovery-candidate-package") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV340RecoveryCandidatePackageJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/source-registry/approval-gated-recovery-checklist") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV340ApprovalGatedRecoveryChecklistJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/source-registry/drill-evidence-export-cleanup-manifest") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV340DrillEvidenceExportCleanupManifestJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/source-registry/field-bridge-condition-gates") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV340FieldBridgeConditionGatesJson(source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

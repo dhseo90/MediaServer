@@ -3,9 +3,9 @@
 이 디렉터리는 README와 `docs/ui-guide.md`에서 사용할 제품 UI 스크린샷을 역할 기준
 파일명으로 보관합니다.
 
-현재 README 대표 이미지는 제품 shell 설명용입니다. 현재 source tree는 `v3.3.0`
-Live Source Reliability Workspace를 가리키고 최신 공개 GitHub Release도 `v3.3.0`
-Live Source Reliability Workspace를 가리키지만, 이 이미지를 v3.3.0 source baseline,
+현재 README 대표 이미지는 제품 shell 설명용입니다. 현재 source tree는 `v3.4.0`
+Operations Continuity Drill Workspace를 가리키고 최신 공개 GitHub Release는 `v3.3.0`
+Live Source Reliability Workspace를 가리키지만, 이 이미지를 v3.4.0 source baseline,
 UI 풀테스트, 공개 릴리즈 증거로 쓰지 않습니다. 특히
 Client Live 이미지는 source tree, dock event feed, workspace preset,
 tile-level disconnect/action, VA overlay tile이 보이는 제품 구조를 설명합니다.
@@ -27,7 +27,7 @@ README, README.en, `docs/ui-guide.md`, `docs/video-analysis.md`에서 참조하�
 `scripts/internal/rule_preview_fixture_helpers.mjs`의 공통 profile/event/VA rule
 fixture를 사용해 preview prerequisite drift를 막습니다.
 
-## v3.3.0 Step 1 source baseline alignment
+## v3.4.0 Step 1 source baseline alignment
 
 이번 Step 1에서는 이미지 파일을 새로 교체하지 않았습니다. public entry 문서와
 UI guide가 같은 managed asset set을 참조하는지, 그리고 대표 이미지가 release
@@ -46,7 +46,7 @@ Step 1 기준 공개 문서 묶음:
 
 Step 1 기준:
 
-- v3.3.0 source roadmap과 v3.3.0 published source-only baseline을 분리 정렬하고,
+- v3.4.0 source roadmap과 v3.3.0 published source-only baseline을 분리 정렬하고,
   직전 v3.2.0 baseline은 historical reference로만 둡니다.
 - 대표 이미지는 `config/docs_ui_assets.json`의 managed asset list 안에서만 README와
   UI guide에 노출합니다.

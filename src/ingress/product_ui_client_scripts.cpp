@@ -251,6 +251,10 @@ void AppendClientShellScript(std::ostringstream& out) {
       for (const item of sourceStatusDigestItems) {
         lines.push(`소스 상태 digest: ${item.summaryText || 'viewer-safe source status summary'} / ${item.sourceStatus || 'offline'} / ${item.connectionStatus || 'disconnected'}`);
       }
+      const maintenanceDigestItems = Array.isArray(events.maintenanceDigest?.digestItems) ? events.maintenanceDigest.digestItems.slice(0, 3) : [];
+      for (const item of maintenanceDigestItems) {
+        lines.push(`정비 digest: ${item.summaryText || 'viewer-safe maintenance summary'} / ${item.maintenanceState || 'unavailable'} / ${item.timelineHint || 'unavailable'}`);
+      }
       return lines.join('\n');
     };
     const clientStatusSummaryText = (payload = {}) => {
@@ -404,6 +408,33 @@ void AppendClientShellScript(std::ostringstream& out) {
               <div>
                 <strong>${escapeHtml(item.summaryText || 'viewer-safe source status summary')}</strong>
                 <span>${escapeHtml(item.sourceStatus || 'offline')} · ${escapeHtml(item.connectionStatus || 'disconnected')} · video ${escapeHtml(item.videoFrameStatus || 'unavailable')} · metadata ${escapeHtml(item.metadataStatus || 'unavailable')} · ${escapeHtml(item.timelineHint || 'source unavailable')}</span>
+              </div>
+              <span class="chip ${item.severity === 'attention' ? 'warn' : 'info'}">${escapeHtml(item.severity || 'attention')}</span>
+            </article>`).join('')}
+        </div>
+      </section>`;
+    }
+    function renderClientSafeMaintenanceDigest(maintenanceDigest = {}) {
+      const items = Array.isArray(maintenanceDigest.digestItems) ? maintenanceDigest.digestItems : [];
+      return `<section class="client-safe-maintenance-digest" data-testid="client-safe-maintenance-digest" data-client-maintenance-digest="viewer-safe" aria-label="viewer-safe maintenance digest" data-client-digest-schema="media-server.client.v340-maintenance-digest.v1">
+        <div class="toolbar">
+          <div>
+            <h3>정비 상태 digest</h3>
+            <p>${maintenanceDigest.viewerSafe === true ? '정비/복구/미제공 요약만 표시됩니다.' : '정비 상태 digest 확인이 필요합니다.'}</p>
+          </div>
+          <div class="meta">
+            <span class="chip ${maintenanceDigest.viewerSafe === true ? 'info' : 'warn'}">viewer-safe</span>
+            <span class="chip ${maintenanceDigest.publishedViewScoped === true ? 'info' : 'warn'}">view scope</span>
+            <span class="chip info">raw 숨김</span>
+          </div>
+        </div>
+        <div class="client-safe-digest-list">
+          ${items.length === 0
+            ? emptyState('정비 상태 digest 없음', '표시할 viewer-safe maintenance digest가 없습니다.')
+            : items.map(item => `<article class="client-safe-digest-item">
+              <div>
+                <strong>${escapeHtml(item.summaryText || 'viewer-safe maintenance summary')}</strong>
+                <span>${escapeHtml(item.maintenanceState || 'unavailable')} · ${escapeHtml(item.timelineHint || 'unavailable')}</span>
               </div>
               <span class="chip ${item.severity === 'attention' ? 'warn' : 'info'}">${escapeHtml(item.severity || 'attention')}</span>
             </article>`).join('')}
@@ -911,6 +942,7 @@ void AppendClientShellScript(std::ostringstream& out) {
             ${(events.countsByType || []).map(item => `<span class="chip">${escapeHtml(item.eventType || '이벤트')} ${escapeHtml(item.count)}</span>`).join('') || '<span class="chip info">이벤트 없음</span>'}
           </div>
           ${renderClientSafeSourceStatusDigest(events.sourceStatusDigest || {})}
+          ${renderClientSafeMaintenanceDigest(events.maintenanceDigest || {})}
           ${renderClientSafeEventDigest(events.eventDigest || {})}
           ${renderClientSafeResolutionDigest(events.resolutionDigest || {})}
           ${renderClientSafeIncidentDigest(events.incidentDigest || {})}
@@ -995,6 +1027,7 @@ void AppendClientShellScript(std::ostringstream& out) {
           ${(events.countsByType || []).map(item => `<span class="chip">${escapeHtml(item.eventType || '이벤트')} ${escapeHtml(item.count)}</span>`).join('') || '<span class="chip info">이벤트 없음</span>'}
         </div>
         ${renderClientSafeSourceStatusDigest(events.sourceStatusDigest || {})}
+        ${renderClientSafeMaintenanceDigest(events.maintenanceDigest || {})}
         ${renderClientSafeEventDigest(events.eventDigest || {})}
         ${renderClientSafeResolutionDigest(events.resolutionDigest || {})}
         ${renderClientSafeIncidentDigest(events.incidentDigest || {})}
@@ -2029,6 +2062,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	          ${(events.countsByType || []).map(item => `<span class="chip">${escapeHtml(item.eventType || '이벤트')} ${escapeHtml(item.count)}</span>`).join('') || '<span class="chip info">이벤트 없음</span>'}
 	        </div>
 	        ${renderClientSafeSourceStatusDigest(events.sourceStatusDigest || {})}
+	        ${renderClientSafeMaintenanceDigest(events.maintenanceDigest || {})}
 	        ${renderClientSafeEventDigest(events.eventDigest || {})}
 	        ${renderClientSafeResolutionDigest(events.resolutionDigest || {})}
 	        ${renderClientSafeIncidentDigest(events.incidentDigest || {})}
