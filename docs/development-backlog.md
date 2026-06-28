@@ -23,7 +23,10 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 Continuity Drill Contract 구현 완료. Step 3 Recovery Candidate Package Read Model
 구현 완료. Step 4 Staging Restore Validation Harness 구현 완료. Step 5 Source Health
 Replay and Drift Diff 구현 완료. Step 6 Ops Continuity Drill Workspace UI 구현 완료.
-Step 7~11은 아직 계획 상태입니다. 이 절은 v3.4.0 source roadmap이며, 각 step은 실제 코드/API/문서
+Step 7 Approval-Gated Recovery Checklist and Audit, Step 8 Client-safe Maintenance
+Digest, Step 9 Drill Evidence Export and Cleanup Manifest, Step 10 Field Bridge
+Condition Gates, Step 11 Stabilization and Release Readiness local gate 연결까지
+완료했습니다. 이 절은 v3.4.0 source roadmap이며, 각 step은 실제 코드/API/문서
 변경, 기능 ID/test inventory 등록, 해당 verifier와 release test record evidence가
 생긴 뒤에만 완료로 기록합니다.
 
@@ -81,7 +84,7 @@ fallback 또는 축소 대안은 `Continuity Drill Core`입니다. 이 대안은
 | 8 | v3.4.0 (8) Client-safe Maintenance Digest | P1 | 완료 | viewer/client에 maintenance/recovering/unavailable 요약만 제공하고 source URL/raw locator/raw JSON/debug/credential material은 비노출 |
 | 9 | v3.4.0 (9) Drill Evidence Export and Cleanup Manifest | P1 | 완료 | redacted drill artifact manifest, 최소 보존 evidence, `/tmp` cleanup, 민감 정보 scan 경계를 기록 |
 | 10 | v3.4.0 (10) Field Bridge Condition Gates | P2 | 완료 | ONVIF 실기기, external WHEP/TURN, real cloud/VLM provider는 endpoint/credential/승인 조건부 field smoke로 분리하고 source-only PASS로 대체하지 않음 |
-| 11 | v3.4.0 (11) Stabilization and Release Readiness | P0 | 계획 | v3.4 local gates, feature inventory, release records, docs links/assets, release evidence index, close-out dry-run, script inventory, `git diff --check` 연결 |
+| 11 | v3.4.0 (11) Stabilization and Release Readiness | P0 | 완료 | v3.4 local gates, feature inventory, release records, docs links/assets, release evidence index, close-out dry-run, script inventory, `git diff --check` 연결 |
 
 완료 경계: 위 표는 v3.4.0 개발 순서와 우선순위입니다. 각 step은 실제 코드/UI/API/문서
 변경, 기능 ID/test inventory 등록, 해당 verifier와 release test record evidence가 생긴 뒤에만
@@ -203,6 +206,42 @@ action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁�
 - `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`, `docs/stream-verification.md`, `docs/release-test-records.md`, `docs/manual-ui-checklist.md`: `UI-079`, `SRC-043`, `MEDIA-022`, `LAB-091`, `SAFE-133`, `OPS-100` 기능/경계/gate 항목과 Step 10 verifier 연결을 추가했습니다.
 - 검증: 최초 `node scripts/internal/verify_v340_field_bridge_condition_gates.mjs`는 Step 10 server/API/UI/docs/inventory/server dispatch가 아직 없어 `pass=0 fail=7`로 기대 실패했습니다. 구현 후 `./server.sh verify-v340-field-bridge-condition-gates`는 `pass=7 fail=0`으로 통과했습니다. `./server.sh build`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `git diff --check`도 통과했습니다. `MEDIA_SERVER_AUTH_MODE=off` 검증 서버에서 `verify-ops-client-ui --browser-mode static`은 route/API/redaction smoke `통과 28/실패 0`으로 재검증했고, 최종 검증 결과는 `docs/release-test-records.md`의 v340 Step 10 결과 행에 기록했습니다.
 - 완료 경계: 이번 Step 10은 Field Bridge Condition Gates API/UI와 조건부 field smoke boundary 연결입니다. ONVIF 실기기, external WHEP/TURN, real cloud/VLM provider field smoke 실행 evidence가 아닙니다. fieldSmokeExecuted=false, sourceOnlyPassAccepted=false이며 endpoint probe, credential probe, provider call, media path 변경, source-only PASS 승격을 수행하지 않습니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence도 아닙니다.
+
+## v3.4.0 Step 11 개발 기록
+
+- 범위: P0 `v3.4.0 (11) Stabilization and Release Readiness`.
+- `scripts/internal/verify_v340_stabilization_release_readiness.mjs`, `server.sh`: `./server.sh verify-v340-stabilization-release-readiness` 명령을 추가해 v3.4 Step 11 roadmap, stream verification, feature inventory, release policy, release evidence index, release records, server dispatch, script inventory 연결을 검증합니다.
+- `docs/project-feature-test-inventory.md`, `scripts/internal/verify_project_feature_test_inventory.mjs`, `scripts/internal/verify_feature_inventory_coverage.mjs`, `scripts/internal/verify_script_inventory.mjs`: `SAFE-134`, `OPS-101` 안정화 항목과 Step 11 verifier/coverage/script inventory 연결을 추가했습니다.
+- `docs/stream-verification.md`, `docs/release-policy.md`, `docs/release-evidence-index.md`, `docs/release-test-records.md`: v3.4 local stabilization, release evidence/not-run 경계와 close-out dry-run 기록을 추가했습니다. 이 기록은 UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, PR/main/tag/GitHub Release, field smoke 실행 evidence를 대체하지 않습니다.
+- Companion local gate:
+
+```bash
+./server.sh verify-v340-stabilization-release-readiness
+./server.sh build
+./server.sh verify-v340-entry-baseline
+./server.sh verify-v340-continuity-drill-contract
+./server.sh verify-v340-recovery-candidate-package
+./server.sh verify-v340-staging-restore-validation-harness
+./server.sh verify-v340-source-health-replay-drift-diff
+./server.sh verify-v340-ops-continuity-drill-workspace-ui
+./server.sh verify-v340-approval-gated-recovery-checklist-audit
+./server.sh verify-v340-client-safe-maintenance-digest
+./server.sh verify-v340-drill-evidence-export-cleanup-manifest
+./server.sh verify-v340-field-bridge-condition-gates
+./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-project-inventory
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-release-evidence-index
+./server.sh verify-release-closeout-helper --dry-run
+./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
+./server.sh verify-script-inventory
+git diff --check
+```
+
+- 검증: 최초 `node scripts/internal/verify_v340_stabilization_release_readiness.mjs`는 Step 11 docs/inventory/server dispatch가 아직 없어 `pass=1 fail=5`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v340 Step 11 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 11은 v3.4 local stabilization, release evidence/not-run 경계, close-out dry-run 기록 연결입니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata, PR/main/tag/GitHub Release, field smoke 실행 evidence가 아니며 Step 11 local readiness PASS로 대체하지 않습니다.
 
 `v3.4.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
 실제 tag/push는 수동 승인 후에만 수행합니다.

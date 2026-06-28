@@ -218,8 +218,8 @@ check("feature inventory, manual UI, and release records map v3.4 Step 10", () =
     "`SRC-001`~`SRC-043`",
     "`MEDIA-001`~`MEDIA-022`",
     "`LAB-001`~`LAB-091`",
-    "`SAFE-001`~`SAFE-133`",
-    "`OPS-035`~`OPS-100`",
+    "`SAFE-001`~`SAFE-134`",
+    "`OPS-035`~`OPS-101`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.4 Step 10");
   }
@@ -257,8 +257,8 @@ check("server entrypoint and inventory verifiers include v3.4 Step 10 command", 
   assertIncludes(files.projectInventoryVerifier, "`SRC-001`~`SRC-043`", "project inventory SRC range");
   assertIncludes(files.projectInventoryVerifier, "`MEDIA-001`~`MEDIA-022`", "project inventory MEDIA range");
   assertIncludes(files.projectInventoryVerifier, "`LAB-001`~`LAB-091`", "project inventory LAB range");
-  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-133`", "project inventory SAFE range");
-  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-100`", "project inventory OPS range");
+  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-134`", "project inventory SAFE range");
+  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-101`", "project inventory OPS range");
   assertIncludes(files.scriptInventory, "verify_v340_field_bridge_condition_gates.mjs", "script inventory");
 });
 

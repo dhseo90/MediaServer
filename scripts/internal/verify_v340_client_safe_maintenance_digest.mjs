@@ -193,10 +193,10 @@ check("feature inventory, manual UI, and release records map v3.4 Step 8", () =>
     "CLIENT-029 | V340 Step 8 client-safe maintenance digest API/UI",
     "SAFE-131 | V340 Step 8 client-safe maintenance digest boundary",
     "OPS-098 | V340 Step 8 Client-safe Maintenance Digest 게이트",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-077`",
+    "`UI-001`~`UI-018`, `UI-022`~`UI-079`",
     "`CLIENT-001`~`CLIENT-029`",
-    "`SAFE-001`~`SAFE-131`",
-    "`OPS-035`~`OPS-098`",
+    "`SAFE-001`~`SAFE-134`",
+    "`OPS-035`~`OPS-101`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.4 Step 8");
   }
@@ -226,10 +226,10 @@ check("server entrypoint and inventory verifiers include v3.4 Step 8 command", (
   for (const id of ["UI-077", "CLIENT-029", "SAFE-131", "OPS-098"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
-  assertIncludes(files.projectInventoryVerifier, "`UI-001`~`UI-018`, `UI-022`~`UI-077`", "project inventory UI range");
+  assertIncludes(files.projectInventoryVerifier, "`UI-001`~`UI-018`, `UI-022`~`UI-079`", "project inventory UI range");
   assertIncludes(files.projectInventoryVerifier, "`CLIENT-001`~`CLIENT-029`", "project inventory CLIENT range");
-  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-131`", "project inventory SAFE range");
-  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-098`", "project inventory OPS range");
+  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-134`", "project inventory SAFE range");
+  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-101`", "project inventory OPS range");
   assertIncludes(files.scriptInventory, "verify_v340_client_safe_maintenance_digest.mjs", "script inventory");
 });
 

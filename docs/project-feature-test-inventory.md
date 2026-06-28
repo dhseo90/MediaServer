@@ -26,12 +26,12 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 682 |
+| 전체 기능 항목 | 684 |
 | UI 직접 필요 | 355 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 296 |
-| 테스트 필요 | 682 |
-| 안정화 대상 | 672 |
+| UI 비대상 | 298 |
+| 테스트 필요 | 684 |
+| 안정화 대상 | 674 |
 | UI 풀테스트 대상 | 375 |
 | 30분 soak 대상 | 49 |
 | 120분 대상 | 7 |
@@ -42,7 +42,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 682개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 684개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -72,6 +72,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | v3.4.0 (8) Client-safe Maintenance Digest | `UI-077`, `CLIENT-029`, `SAFE-131`, `OPS-098` | `verify-v340-client-safe-maintenance-digest`, `verify-ops-client-ui` | `/client/api/views/{id}/events`와 client live/dashboard/events가 maintenance/recovering/unavailable viewer-safe digest만 표시합니다. source URL/raw locator/raw JSON/debug/credential material, operator note/Ops audit/dry-run/recovery action 노출, source registry write, PublishedView write, EventRecord/Event POST/API/schema/media 변경, evidence export, field bridge, 30분/120분, published metadata evidence가 아님 |
 | v3.4.0 (9) Drill Evidence Export and Cleanup Manifest | `UI-078`, `SAFE-132`, `OPS-099` | `verify-v340-drill-evidence-export-cleanup-manifest`, `verify-ops-client-ui` | `/ops/api/source-registry/drill-evidence-export-cleanup-manifest`와 `/ops/sources`가 redacted drill artifact manifest, minimum retained evidence, /tmp cleanup manifest, sensitive material scan boundary를 read-only로 표시합니다. cleanupExecutionPerformed=false, artifact export 실행, source URL/raw locator/raw JSON/debug/credential material/raw audit body 노출, field bridge, 30분/120분, published metadata evidence가 아님 |
 | v3.4.0 (10) Field Bridge Condition Gates | `UI-079`, `SRC-043`, `MEDIA-022`, `LAB-091`, `SAFE-133`, `OPS-100` | `verify-v340-field-bridge-condition-gates`, `verify-ops-client-ui` | `/ops/api/source-registry/field-bridge-condition-gates`와 `/ops/sources`가 ONVIF 실기기, external WHEP/TURN, real cloud/VLM provider를 endpoint/credential/approval 조건부 field smoke로 분리합니다. source-only PASS는 field bridge PASS로 대체하지 않고 fieldSmokeExecuted=false, endpoint probe/provider call/media path 변경, source URL/raw locator/raw JSON/debug/credential/provider material 노출, 30분/120분, published metadata evidence가 아님 |
+| v3.4.0 (11) Stabilization and Release Readiness | `SAFE-134`, `OPS-101` | `verify-v340-stabilization-release-readiness`, `verify-release-metadata`, `verify-release-evidence-index`, `verify-release-closeout-helper --dry-run` | v3.4 Step 1~10 local gates, release policy/evidence index/test records, docs links/assets, feature/script inventory, close-out dry-run, `git diff --check`를 같은 local readiness gate로 묶습니다. UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release, field smoke 실행 PASS를 대체하지 않음 |
 
 ## v3.3.0 Live Source Reliability Workspace Coverage Mapping
 
@@ -270,8 +271,8 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | `CLIENT-001`~`CLIENT-029` | client/UI verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-022` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
 | `LAB-001`~`LAB-091` | lab/VLM/v250/v260/v270/v280/v300/v310/v340 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-133` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-100` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
+| `SAFE-001`~`SAFE-134` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-101` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
 
 ## VA Manual UI Seed Matrix
 
@@ -975,6 +976,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SAFE-131 | V340 Step 8 client-safe maintenance digest boundary | 필요 | 필요 | 안정화, UI | `verify-v340-client-safe-maintenance-digest`가 client maintenance digest에서 source URL/raw locator/raw JSON/debug/credential material/operator note/Ops audit/dry-run/recovery action을 숨기고 source registry/PublishedView/EventRecord/Event POST/schema/media/search 변경을 수행하지 않음을 확인 |
 | SAFE-132 | V340 Step 9 drill evidence export cleanup boundary | 필요 | 필요 | 안정화, UI | `verify-v340-drill-evidence-export-cleanup-manifest`가 redacted drill artifact manifest, minimum retained evidence, /tmp cleanup manifest, sensitive material scan boundary를 기록하되 artifact export 실행, cleanup 실행, SourceRegistry/PublishedView/EventRecord/Ops audit write, Event POST/WebRTC/SSE/WS/media schema 변경, source URL/raw locator/raw JSON/debug/credential material/raw audit body 노출을 수행하지 않음을 확인 |
 | SAFE-133 | V340 Step 10 source-only PASS and credential boundary | 비대상 | 필요 | 안정화 | `verify-v340-field-bridge-condition-gates`가 sourceOnlyPassAccepted=false, localVerifierPassSubstitutesFieldSmoke=false, fieldSmokeExecuted=false를 고정하고 endpoint URL, credential material, raw locator/raw JSON/debug/provider material, raw TURN credential, raw VLM prompt/response를 노출하지 않음을 확인 |
+| SAFE-134 | V340 Step 11 stabilization/release readiness boundary | 비대상 | 필요 | 안정화 | `verify-v340-stabilization-release-readiness`가 v3.4 Step 1~10 local verifier, release metadata/docs/assets/inventory/evidence/script/closeout dry-run 연결을 확인하되 UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release, field smoke PASS로 대체하지 않음을 확인 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -1046,6 +1048,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | OPS-098 | V340 Step 8 Client-safe Maintenance Digest 게이트 | 비대상 | 필요 | 안정화 | `verify-v340-client-safe-maintenance-digest`가 client maintenance digest API/UI, renderer/CSS, ops/client smoke, backlog/stream verification/manual UI/release records/inventory/server dispatch 연결을 확인하되 evidence export, field bridge, release publish, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
 | OPS-099 | V340 Step 9 Drill Evidence Export and Cleanup Manifest 게이트 | 비대상 | 필요 | 안정화 | `verify-v340-drill-evidence-export-cleanup-manifest`가 `/ops/api/source-registry/drill-evidence-export-cleanup-manifest` Ops-only route, `/ops/sources` redacted manifest UI, CSS, ops/client smoke, backlog/stream verification/manual UI/release records/inventory/server dispatch 연결을 확인하되 cleanup 실행, artifact export 실행, field bridge, release publish, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
 | OPS-100 | V340 Step 10 Field Bridge Condition Gates 게이트 | 비대상 | 필요 | 안정화 | `verify-v340-field-bridge-condition-gates`가 `/ops/api/source-registry/field-bridge-condition-gates` Ops-only route, `/ops/sources` condition gate UI, CSS, ops/client smoke, backlog/stream verification/manual UI/release records/inventory/server dispatch 연결을 확인하되 ONVIF 실기기, external WHEP/TURN, real cloud/VLM provider field smoke 실행, endpoint probe, provider call, release publish, UI 풀테스트, 30분/120분을 PASS로 대체하지 않음 |
+| OPS-101 | V340 Step 11 Stabilization and Release Readiness 게이트 | 비대상 | 필요 | 안정화 | `verify-v340-stabilization-release-readiness`가 v3.4 local readiness command, roadmap/stream verification/release policy/evidence index/release records/server dispatch/script inventory 연결을 확인하되 release action, published metadata, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 

@@ -197,9 +197,9 @@ check("feature inventory, manual UI, and release records map v3.4 Step 9", () =>
     "UI-078 | V340 Step 9 Drill Evidence Export and Cleanup Manifest UI",
     "SAFE-132 | V340 Step 9 drill evidence export cleanup boundary",
     "OPS-099 | V340 Step 9 Drill Evidence Export and Cleanup Manifest 게이트",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-078`",
-    "`SAFE-001`~`SAFE-132`",
-    "`OPS-035`~`OPS-099`",
+    "`UI-001`~`UI-018`, `UI-022`~`UI-079`",
+    "`SAFE-001`~`SAFE-134`",
+    "`OPS-035`~`OPS-101`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.4 Step 9");
   }
@@ -229,9 +229,9 @@ check("server entrypoint and inventory verifiers include v3.4 Step 9 command", (
   for (const id of ["UI-078", "SAFE-132", "OPS-099"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
-  assertIncludes(files.projectInventoryVerifier, "`UI-001`~`UI-018`, `UI-022`~`UI-078`", "project inventory UI range");
-  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-132`", "project inventory SAFE range");
-  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-099`", "project inventory OPS range");
+  assertIncludes(files.projectInventoryVerifier, "`UI-001`~`UI-018`, `UI-022`~`UI-079`", "project inventory UI range");
+  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-134`", "project inventory SAFE range");
+  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-101`", "project inventory OPS range");
   assertIncludes(files.scriptInventory, "verify_v340_drill_evidence_export_cleanup_manifest.mjs", "script inventory");
 });
 

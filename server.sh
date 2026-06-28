@@ -310,6 +310,8 @@ Usage:
                  v3.4.0 Step 9 Drill Evidence Export and Cleanup Manifest 경계를 검증합니다.
   verify-v340-field-bridge-condition-gates
                  v3.4.0 Step 10 Field Bridge Condition Gates 조건부 field smoke 경계를 검증합니다.
+  verify-v340-stabilization-release-readiness
+                 v3.4.0 Step 11 Stabilization and Release Readiness local gate 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -510,6 +512,8 @@ Usage:
                  v3.4.0 Step 9 Drill Evidence Export and Cleanup Manifest 경계를 검증합니다.
   verify-v340-field-bridge-condition-gates
                  v3.4.0 Step 10 Field Bridge Condition Gates 조건부 field smoke 경계를 검증합니다.
+  verify-v340-stabilization-release-readiness
+                 v3.4.0 Step 11 Stabilization and Release Readiness local gate 경계를 검증합니다.
   verify-actions-security
                  GitHub Actions workflow 권한과 action 사용 정책을 검증합니다.
   verify-ci-local-gate-parity
@@ -1492,6 +1496,10 @@ case "${cmd}" in
   verify-v340-field-bridge-condition-gates)
     require_internal verify_v340_field_bridge_condition_gates.mjs
     exec "${INTERNAL_DIR}/verify_v340_field_bridge_condition_gates.mjs" "$@"
+    ;;
+  verify-v340-stabilization-release-readiness)
+    require_internal verify_v340_stabilization_release_readiness.mjs
+    exec "${INTERNAL_DIR}/verify_v340_stabilization_release_readiness.mjs" "$@"
     ;;
   verify-v290-final-stabilization-run)
     require_internal verify_v290_final_stabilization_run.mjs

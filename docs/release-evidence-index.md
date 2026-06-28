@@ -153,6 +153,43 @@ annotated tag, GitHub Release, published metadata 재검증은 Step 11 local rea
 분리합니다. Release branch 삭제와 v3.4.0 branch creation은 문서 보정 후 별도 action으로
 분리합니다.
 
+## v3.4.0 Step 11 local readiness gate records
+
+v3.4.0 Step 11 stabilization/release readiness는
+`media-server.v340-stabilization-release-readiness.v1` 기준으로 v3.4.0 Step 1~10
+local verifier와 release records를 묶는 색인입니다. 이 섹션은 release action을
+승인하거나 실행하지 않고, UI 풀테스트 직접 조작, 30분/120분 longrun, published
+metadata, release action evidence를 대체하지 않습니다.
+
+Companion local gate:
+
+```bash
+./server.sh verify-v340-stabilization-release-readiness
+./server.sh build
+./server.sh verify-v340-entry-baseline
+./server.sh verify-v340-continuity-drill-contract
+./server.sh verify-v340-recovery-candidate-package
+./server.sh verify-v340-staging-restore-validation-harness
+./server.sh verify-v340-source-health-replay-drift-diff
+./server.sh verify-v340-ops-continuity-drill-workspace-ui
+./server.sh verify-v340-approval-gated-recovery-checklist-audit
+./server.sh verify-v340-client-safe-maintenance-digest
+./server.sh verify-v340-drill-evidence-export-cleanup-manifest
+./server.sh verify-v340-field-bridge-condition-gates
+./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-project-inventory
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-release-evidence-index
+./server.sh verify-release-closeout-helper --dry-run
+./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
+./server.sh verify-script-inventory
+git diff --check
+```
+
+v3.4.0 Step 11 stabilization/release readiness local gate는 UI 풀테스트 직접 조작, 30분/120분 longrun, published metadata, release action evidence를 대체하지 않습니다.
+
 ## v3.3.0 Step 11 local readiness gate records
 
 v3.3.0 Step 11 stabilization/release readiness는
@@ -238,6 +275,7 @@ v3.2.0 Step 11 stabilization/release readiness local gate는 UI 풀테스트 직
 | date | run id | test area | scope | verdict | token start | token end | token consumed | elapsed | token usage source | evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 2026-06-21 | v310-s09-stabilization-release-readiness-20260621 | 안정화 테스트 | V310-S09 local readiness gate, S00~S08 companion verifiers, release metadata/docs/assets/inventory/evidence/script/closeout dry-run, temp cleanup, `git diff --check`. UI 풀테스트/30분/120분/published metadata/release actions/field smoke는 미실행 | PASS | 미집계 | 미집계 | 미집계 | command summaries only | manual-not-available; final goal snapshot은 최종 보고에서 별도 확인 | [release-test-records.md](./release-test-records.md) v3.1.0 section |
+| 2026-06-28 | v340-step11-stabilization-release-readiness-20260628 | 안정화 테스트 | v3.4.0 Step 11 local readiness gate, Step 1~10 companion verifiers, release metadata/docs/assets/inventory/evidence/script/closeout dry-run, temp cleanup, `git diff --check`. UI 풀테스트/30분/120분/published metadata/release actions/field smoke는 미실행 | PASS | 미집계 | 미집계 | 미집계 | command summaries only | command-level usage 미집계; local gate evidence only | [release-test-records.md](./release-test-records.md) v3.4.0 section |
 | 2026-06-27 | v330-step11-stabilization-release-readiness-20260627 | 안정화 테스트 | v3.3.0 Step 11 local readiness gate, Step 1~10 companion verifiers, release metadata/docs/assets/inventory/evidence/script/closeout dry-run, temp cleanup, `git diff --check`. UI 풀테스트/30분/120분/published metadata/release actions/field smoke는 미실행 | PASS | 212,259 | 448,622 | 236,363 | goal snapshot delta 869s | Codex goal usage snapshot after v3.3 Step 11 local readiness gates; command-level token/elapsed split 미집계 | [release-test-records.md](./release-test-records.md) v3.3.0 section |
 | 2026-06-27 | v330-release-30min-sandbox-precheck-20260627 | 30분 soak | `./server.sh verify-predev --soak-minutes 30` sandbox precheck. RTSP bind `127.0.0.1:8555`가 `Operation not permitted`로 실패했고, 권한 상승 재실행은 최신 명시 테스트 실행 승인 부족으로 거절. 30분 soak는 미완료 release blocker이며 임시 summary/report/log는 cleanup 필요 | FAIL | 448,622 | 480,994 | 32,372 | goal snapshot delta 185s | Local readiness record finalization through failed sandbox precheck and escalation rejection; command-level token/elapsed split 미집계 | [release-test-records.md](./release-test-records.md) v3.3.0 section |
 | 2026-06-27 | v330-release-30min-20260627 | 30분 soak | 권한 상승 `./server.sh verify-predev --soak-minutes 30` 최종 run. status pass, pass 119, fail 0, skip 1, durationSec 2363, soakMinutes 30, includeRedaction true. External TURN hard gate는 요청하지 않아 skip이며 PASS로 대체하지 않음. Summary/report/html은 `docs/release-artifacts/v3.3.0/predev-1782548179-72502/`에 보존했고 `/tmp` 원본과 최초 실패 산출물은 cleanup 완료 | PASS | 480,994 | 1,150,237 | 669,243 | durationSec 2363; goal snapshot delta 2662s | command summary and preserved report; command-level token split 미집계 | [release-test-records.md](./release-test-records.md) v3.3.0 section, [predev summary](./release-artifacts/v3.3.0/predev-1782548179-72502/summary.json), [predev report](./release-artifacts/v3.3.0/predev-1782548179-72502/report.md) |

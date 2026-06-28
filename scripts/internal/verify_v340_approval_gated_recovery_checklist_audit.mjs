@@ -184,9 +184,9 @@ check("feature inventory, manual UI, and release records map v3.4 Step 7", () =>
     "UI-076 | V340 Step 7 Approval-Gated Recovery Checklist and Audit UI",
     "SAFE-130 | V340 Step 7 approval-gated recovery no-auto boundary",
     "OPS-097 | V340 Step 7 Approval-Gated Recovery Checklist and Audit 게이트",
-    "`UI-001`~`UI-018`, `UI-022`~`UI-076`",
-    "`SAFE-001`~`SAFE-130`",
-    "`OPS-035`~`OPS-097`",
+    "`UI-001`~`UI-018`, `UI-022`~`UI-079`",
+    "`SAFE-001`~`SAFE-134`",
+    "`OPS-035`~`OPS-101`",
   ]) {
     assertIncludes(files.featureInventory, snippet, "feature inventory v3.4 Step 7");
   }
@@ -216,9 +216,9 @@ check("server entrypoint and inventory verifiers include v3.4 Step 7 command", (
   for (const id of ["UI-076", "SAFE-130", "OPS-097"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
-  assertIncludes(files.projectInventoryVerifier, "`UI-001`~`UI-018`, `UI-022`~`UI-076`", "project inventory UI range");
-  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-130`", "project inventory SAFE range");
-  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-097`", "project inventory OPS range");
+  assertIncludes(files.projectInventoryVerifier, "`UI-001`~`UI-018`, `UI-022`~`UI-079`", "project inventory UI range");
+  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-134`", "project inventory SAFE range");
+  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-101`", "project inventory OPS range");
   assertIncludes(files.scriptInventory, "verify_v340_approval_gated_recovery_checklist_audit.mjs", "script inventory");
 });
 
