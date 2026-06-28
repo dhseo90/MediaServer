@@ -522,13 +522,13 @@ Annotation JSON을 확보한 경우:
 ## Scope
 
 - Source-only live media server release
-- Live Source Reliability Workspace source scope
-- Latest published baseline before this release: v3.2.0
+- Operations Continuity Drill Workspace source scope
+- Latest published baseline before this release: v3.3.0
 - Binary/runtime/model bundle: not included
 
 ## Verification
 
-- v3.3.0 baseline alignment: <fill after docs/release metadata gates>
+- v3.4.0 baseline alignment: <fill after docs/release metadata gates>
 - Local docs/release metadata: <fill after `verify-release-metadata`,
   `verify-docs-links`, `verify-docs-ui-assets`, and required inventory gates>
 - Build: <fill after `./server.sh build`>

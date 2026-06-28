@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Verifies v3.4.0 Step 11 stabilization/release readiness records and not-run boundaries.
+// 파일 용도: v3.4.0 Step 11 안정화/release readiness 기록과 미실행 경계를 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";

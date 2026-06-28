@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Verifies v3.4.0 Step 10 field bridge condition gate wiring.
+// 파일 용도: v3.4.0 Step 10 field bridge condition gate 연결을 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";

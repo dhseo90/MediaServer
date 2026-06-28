@@ -135,7 +135,7 @@ records live in dedicated docs.
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - Release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
 - Latest published release notes: [v3.3.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.3.0)
-- Current source roadmap: `v3.3.0 Live Source Reliability Workspace` in
+- Current source roadmap: `v3.4.0 Operations Continuity Drill Workspace` in
   [docs/development-backlog.md](docs/development-backlog.md)
 
 ## UI Preview

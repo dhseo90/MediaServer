@@ -123,7 +123,7 @@ README는 제품 개요와 빠른 시작만 담습니다. 세부 정책과 내�
 - release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
 - 최신 공개 릴리즈 노트: [v3.3.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.3.0)
 - 현재 source roadmap: [docs/development-backlog.md](docs/development-backlog.md)의
-  `v3.3.0 Live Source Reliability Workspace`
+  `v3.4.0 Operations Continuity Drill Workspace`
 
 ## 대표 UI 미리보기
 
