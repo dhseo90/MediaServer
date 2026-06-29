@@ -10,12 +10,142 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.4.0`
+- 현재 소스 버전: `3.5.0`
 - 최신 공개 GitHub Release: `v3.4.0`
 - `v3.4.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap: `v3.4.0 Operations Continuity Drill Workspace`
+- 현재 source roadmap: `v3.5.0 Live Operations Control Plane`
 - 최신 published baseline: `v3.4.0 Operations Continuity Drill Workspace`
+
+## 현재 source roadmap: v3.5.0 Live Operations Control Plane
+
+상태: Step 1 source/version/docs/backlog/verification metadata 정렬 완료. Step 2
+Live Operations Graph Contract 구현 완료. Step 3 Operations Command Plan Contract
+구현 완료. Step 4 Incident-to-Command Handoff 구현 완료. Step 5 Staged Change Plan
+and Impact Preview 구현 완료. Step 6 이후는 아직 예정입니다. 현재 source version은
+`3.5.0`이고 latest published baseline은 `v3.4.0`입니다. 각 step은 실제 코드/API/UI/문서/검증
+산출물이 생긴 뒤에만 완료로 기록합니다.
+
+직접 답: v3.5.0의 1차 선택값은 `Live Operations Control Plane`입니다. v3.2가
+사건 resolution workspace를 정리하고, v3.3이 live source reliability를 붙이고, v3.4가
+continuity drill과 recovery handoff를 만들었다면, v3.5는 이 재료를 운영자가 실제로
+판단하고 실행 전 검토할 수 있는 하나의 제어면으로 묶는 단계가 자연스럽습니다.
+
+fallback 또는 축소 대안은 `Operations Command Core`입니다. 이 대안은 Live Operations
+Graph, Command Plan Contract, Incident-to-Command Handoff, Staged Change Plan까지만
+먼저 닫고, Client impact forecast, field evidence intake, VLM-assisted explanation,
+export bundle은 후속 step evidence가 생길 때까지 보류합니다.
+
+브레인스토밍 후보:
+
+| 후보 | 판단 | 이유 |
+| --- | --- | --- |
+| Live Operations Control Plane | 1차 선택 | v3.2~v3.4에서 만든 사건, source reliability, recovery drill, client digest를 하나의 운영 제어 흐름으로 연결해 버전 단위의 제품 무게가 충분합니다. |
+| Operational Command and Impact Workspace | 보조 이름 | UI와 운영 판단 흐름은 선명하지만 control plane보다 제품 범위가 좁게 읽힙니다. |
+| Source Recovery Control Plane | 보류 | source 복구에는 강하지만 incident, client impact, field evidence, VLM 보조 설명까지 담기에는 이름이 좁습니다. |
+| VLM Operator Assist Expansion | 보류 | default-off 보조 기능으로는 가치가 있지만 v3.5 전체 축으로 삼기에는 runtime/provider 품질과 외부 조건 의존도가 큽니다. |
+| Field Readiness Evidence Capture | 보조축 | ONVIF, external WHEP/TURN, cloud/VLM provider field evidence를 담는 기능은 필요하지만 v3.5 중심축보다는 조건부 evidence intake가 적절합니다. |
+
+포함 범위:
+
+- v3.5.0 source roadmap baseline 정렬
+- EventRecord, SourceRegistry, PublishedView, source health, continuity drill, client impact를 묶는 Live Operations Graph
+- source recheck, recovery, maintenance, client notice, rule follow-up 후보를 담는 Operations Command Plan
+- `/ops/events` incident detail에서 command plan으로 이어지는 handoff
+- source/view 변경 전 staged change plan과 영향도 preview
+- `/ops` command workspace UI
+- continuity drill run ledger와 run comparison
+- client impact forecast와 viewer-safe operations notice
+- ONVIF, external WHEP/TURN, cloud/VLM provider field evidence intake
+- default-off VLM-assisted operator explanation
+- command plan, drill ledger, field evidence, client impact를 묶는 operations export bundle
+
+비범위:
+
+- 자동 source registry mutation 또는 PublishedView 자동 변경
+- 자동 recovery cutover 또는 외부 action 자동 실행
+- VMS/NVR 제품군, 장기 녹화, broad archive playback/search
+- real ONVIF, external TURN/WHEP, cloud/VLM provider 성공 보장
+- viewer/client에 source locator, credential, raw diagnostic JSON, raw provider material, debug material 노출
+- VLM default-on 승격 또는 runtime/model bundle 배포
+
+제외 대상과 제외 사유:
+
+- 자동 운영 조치 실행: v3.5는 operator가 staged plan을 검토하고 승인 전 evidence를 확인하는 제어면이며, 자동 적용 제품군으로 확장하지 않습니다.
+- VMS/NVR archive 제품화: 현재 live source와 event evidence 운영 흐름에서 벗어나므로 제외합니다.
+- VLM 중심 roadmap: 설명/요약 보조는 포함하되, provider 품질과 모델 배포 판단이 필요한 default-on 제품축은 제외합니다.
+- field-success 중심 roadmap: 외부 endpoint와 credential 의존성이 커서 source-only local 개발의 기본 완료 기준으로 삼지 않습니다.
+
+license/provenance/privacy/운영 검토 결과:
+
+- 기본 공개 형태는 source-only이며 binary, runtime, model bundle을 v3.5 기본 release asset으로 포함하지 않습니다.
+- EventRecord, SourceRegistry, PublishedView, source health, Ops audit에 이미 존재하는 저장/노출 경계를 우선 재사용합니다.
+- field evidence와 VLM explanation은 redacted summary와 operator review material만 다루며 raw credential, raw provider response, raw prompt, source URL 원문을 client/viewer 또는 export bundle에 포함하지 않습니다.
+- client/viewer에는 운영자용 command detail이 아니라 viewer-safe notice와 영향 요약만 제공합니다.
+
+| Step | 제목 | 우선순위 | 상태 | 산출물 |
+| --- | --- | --- | --- | --- |
+| 1 | v3.5.0 (1) v3.5.0 baseline 정렬 | P0 | 완료 | VERSION/CMake/docs/backlog/source roadmap과 `verify-v350-entry-baseline` 기준 정렬 |
+| 2 | v3.5.0 (2) Live Operations Graph Contract | P0 | 완료 | EventRecord, SourceRegistry, PublishedView, source health, continuity drill, client impact를 Ops-only graph read model로 연결 |
+| 3 | v3.5.0 (3) Operations Command Plan Contract | P0 | 완료 | source recheck, recovery, maintenance, client notice, rule follow-up 후보를 command plan으로 표현 |
+| 4 | v3.5.0 (4) Incident-to-Command Handoff | P0 | 완료 | `/ops/events` 사건 detail에서 source 원인, drill 후보, command plan 초안으로 이어지는 handoff |
+| 5 | v3.5.0 (5) Staged Change Plan and Impact Preview | P0 | 완료 | source/view/rule follow-up 변경 후보를 적용 전 staging plan으로 만들고 영향도와 blocker 표시 |
+| 6 | v3.5.0 (6) Ops Command Workspace UI | P1 | 예정 | `/ops`에서 incident, source, drill, staged plan, client impact를 한 흐름으로 탐색하는 command workspace |
+| 7 | v3.5.0 (7) Drill Run Ledger and Plan Comparison | P1 | 예정 | drill run id, operator note, blocker, evidence refs, 이전 run 대비 차이를 누적 표시 |
+| 8 | v3.5.0 (8) Client Impact Forecast | P1 | 예정 | 특정 source/view/command plan이 client live/dashboard/event digest에 주는 영향을 viewer-safe summary로 계산 |
+| 9 | v3.5.0 (9) Client-safe Operations Notice | P1 | 예정 | viewer/client에 maintenance, degraded, recovering, available 상태와 timeline hint만 노출 |
+| 10 | v3.5.0 (10) Field Evidence Intake | P2 | 예정 | ONVIF, external WHEP/TURN, cloud/VLM provider 결과를 redacted field evidence로 수집하고 실행 조건과 미실행 상태를 분리 |
+| 11 | v3.5.0 (11) VLM-assisted Ops Explanation | P2 | 예정 | default-off VLM 보조 설명으로 command plan blocker, incident/source relation, operator review hint를 요약 |
+| 12 | v3.5.0 (12) Operations Export Bundle and Handoff Map | P1 | 예정 | command plan, drill ledger, field evidence, client impact forecast를 release-safe export bundle과 handoff map으로 조합 |
+
+완료 경계: 위 표는 v3.5.0 개발 순서와 우선순위입니다. 각 step은 실제 코드/UI/API/문서
+변경, 기능 ID/test inventory 등록, 해당 verifier와 release test record evidence가 생긴 뒤에만
+완료로 기록합니다. UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release
+action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁니다.
+
+## v3.5.0 Step 1 개발 기록
+
+- 범위: P0 `v3.5.0 (1) v3.5.0 baseline 정렬`.
+- `VERSION`, `CMakeLists.txt`: 현재 source version과 CMake project version을 `3.5.0`으로 정렬했습니다.
+- `README.md`, `README.en.md`, `docs/README.md`, `docs/en/README.md`, `docs/versioning-policy.md`, `docs/release-policy.md`, `docs/public-repo-final-review.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`: 현재 source roadmap을 `v3.5.0 Live Operations Control Plane`로 전환했고 latest published release는 `v3.4.0` source-only GitHub Release로 유지했습니다.
+- `docs/development-backlog.md`: v3.5.0 current roadmap을 `Step | 제목 | 우선순위 | 상태 | 산출물` 구조로 승격하고, `Live Operations Control Plane` 1차 선택값, `Operations Command Core` fallback, 제외 대상과 no-auto-write/no-client-secret/no-media-path-change 경계를 기록했습니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`, `config/docs_ui_assets.json`: current release target, docs asset baseline, verification catalog, release records를 source `3.5.0`와 latest published `v3.4.0` 기준으로 정렬했습니다.
+- `scripts/internal/verify_release_metadata_consistency.mjs`, `scripts/internal/verify_docs_ui_assets.mjs`: release metadata와 docs UI asset verifier가 source `3.5.0`, current roadmap `v3.5.0 Live Operations Control Plane`, latest published `v3.4.0`을 검증하도록 보정했습니다.
+- `scripts/internal/verify_v350_entry_baseline.mjs`, `server.sh`: `./server.sh verify-v350-entry-baseline` 명령을 추가해 source `3.5.0`, latest published `v3.4.0`, current roadmap `v3.5.0 Live Operations Control Plane`, release records, feature inventory, server dispatch 연결을 정적 검증합니다.
+- 검증: 최초 `node scripts/internal/verify_v350_entry_baseline.mjs`는 source version/docs/inventory/server dispatch가 아직 v3.5 기준이 아니어서 `pass=0 fail=9`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v350 Step 1 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 1은 source/version/docs/backlog/verification metadata 정렬입니다. v3.5 기능 구현, UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다. `v3.5.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
+
+## v3.5.0 Step 2 개발 기록
+
+- 범위: P0 `v3.5.0 (2) Live Operations Graph Contract`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV350LiveOperationsGraphJson`을 추가해 `media-server.ops.v350-live-operations-graph.v1` read model로 EventRecord, SourceRegistry, PublishedView, source health, continuity drill, client impact를 graph nodes/edges로 연결했습니다.
+- `src/ingress/webrtc_http_server.cpp`: `GET /ops/api/live-operations/graph` route를 추가했습니다. 이 route는 `require_ops_principal()`로 보호되고 `Cache-Control: no-store`를 설정하며 source locator/credential/raw diagnostic JSON/media path를 노출하지 않습니다.
+- `scripts/internal/verify_v350_live_operations_graph_contract.mjs`, `server.sh`: `./server.sh verify-v350-live-operations-graph-contract` 명령을 추가해 graph read model, route guard, redaction, docs/inventory/release records/server dispatch 연결을 검증합니다.
+- 완료 경계: 이번 Step 2는 Live Operations Graph Contract read model/API/verifier 연결입니다. Operations Command Plan Contract, Incident-to-Command Handoff, Staged Change Plan 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata evidence도 아닙니다.
+
+## v3.5.0 Step 3 개발 기록
+
+- 범위: P0 `v3.5.0 (3) Operations Command Plan Contract`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV350CommandPlanJson`을 추가해 source recheck, recovery, maintenance, client notice, rule follow-up 후보를 draft-only command plan으로 표현했습니다.
+- `src/ingress/webrtc_http_server.cpp`: `GET /ops/api/live-operations/command-plan` route를 추가했습니다. 이 route는 `require_ops_principal()`로 보호되고 `Cache-Control: no-store`를 설정하며 source/view/rule/client/EventRecord/Ops audit/media mutation을 수행하지 않습니다.
+- `scripts/internal/verify_v350_operations_command_plan_contract.mjs`, `server.sh`: `./server.sh verify-v350-operations-command-plan-contract` 명령을 추가해 command plan contract, no-execution boundary, docs/inventory/release records/server dispatch 연결을 검증합니다.
+- 완료 경계: 이번 Step 3은 Operations Command Plan Contract read model/API/verifier 연결입니다. Incident-to-Command Handoff, Staged Change Plan 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata evidence도 아닙니다.
+
+## v3.5.0 Step 4 개발 기록
+
+- 범위: P0 `v3.5.0 (4) Incident-to-Command Handoff`.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/events/reviews`와 /ops/events 사건 detail에서 source 원인, drill 후보, command plan 초안으로 이어지는 handoff를 `unifiedResolutionWorkspace.selectedDetail`의 `OpsV350IncidentCommandHandoff`로 추가하고 command plan candidate id를 연결했습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `/ops/events` selected detail renderer에 `incident-command-handoff` section을 추가해 source cause, continuity drill, command plan draft, read-only boundary를 표시합니다.
+- `scripts/internal/verify_v350_incident_to_command_handoff.mjs`, `server.sh`: `./server.sh verify-v350-incident-to-command-handoff` 명령을 추가해 handoff JSON, selected detail/detailSections/UI marker, docs/inventory/release records/server dispatch 연결을 검증합니다.
+- 완료 경계: 이번 Step 4는 `/ops/events` 사건 detail handoff read model/UI marker/verifier 연결입니다. Staged Change Plan and Impact Preview 완료 evidence가 아닙니다. source/view/rule/EventRecord/Ops audit/client/media mutation을 수행하지 않습니다.
+
+## v3.5.0 Step 5 개발 기록
+
+- 범위: P0 `v3.5.0 (5) Staged Change Plan and Impact Preview`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV350StagedChangePlanImpactPreviewJson`을 추가해 source/view/rule follow-up 변경 후보를 적용 전 staging plan으로 만들고 `impactPreview`, `blockers`, `applyBlocked`를 표시합니다.
+- `src/ingress/webrtc_http_server.cpp`: `GET /ops/api/live-operations/staged-change-plan-impact-preview` route를 추가했습니다. 이 route는 `require_ops_principal()`로 보호되고 `Cache-Control: no-store`를 설정하며 source/view/rule/EventRecord/Ops audit/client/media mutation을 수행하지 않습니다.
+- `scripts/internal/verify_v350_staged_change_plan_impact_preview.mjs`, `server.sh`: `./server.sh verify-v350-staged-change-plan-impact-preview` 명령을 추가해 staging-only/read-only boundary, docs/inventory/release records/server dispatch 연결을 검증합니다.
+- 완료 경계: 이번 Step 5는 staging plan impact preview read model/API/verifier 연결입니다. 변경 적용, source/view/rule write, client notice 발송 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata evidence도 아닙니다.
 
 ## 현재 source roadmap: v3.4.0 Operations Continuity Drill Workspace
 

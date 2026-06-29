@@ -5,10 +5,10 @@ Settings 화면에서 직접 눌러야 하는 항목은 자동화하지 않고 �
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.4.0`
+- 현재 소스 버전: `3.5.0`
 - 최신 공개 GitHub Release: `v3.4.0`
 - `v3.4.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않습니다.
-- 현재 source roadmap: `v3.4.0 Operations Continuity Drill Workspace`
+- 현재 source roadmap: `v3.5.0 Live Operations Control Plane`
 - public repository 기준은 source-only 공개입니다.
 
 ## 공개 대상

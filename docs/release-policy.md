@@ -6,11 +6,11 @@
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.4.0`
+- 현재 소스 버전: `3.5.0`
 - 최신 공개 GitHub Release: `v3.4.0`
 - `v3.4.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap은 `v3.4.0 Operations Continuity Drill Workspace`입니다.
+- 현재 source roadmap은 `v3.5.0 Live Operations Control Plane`입니다.
 
 ## 기본 공개 범위
 
@@ -55,8 +55,8 @@ main merge를 수행하지 않습니다.
 
 ## Public Docs / Assets Refresh
 
-v3.4.0 Step 1 source baseline alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
-source `3.4.0`, current roadmap `v3.4.0 Operations Continuity Drill Workspace`,
+v3.5.0 Step 1 source baseline alignment는 공개 첫 진입점과 대표 UI 이미지 policy를
+source `3.5.0`, current roadmap `v3.5.0 Live Operations Control Plane`,
 latest published `v3.4.0` 기준으로 정렬하는 local gate입니다.
 대상 문서는 `README.md`, `README.en.md`,
 `docs/README.md`, `docs/en/README.md`, `docs/ui-guide.md`,
@@ -64,10 +64,10 @@ latest published `v3.4.0` 기준으로 정렬하는 local gate입니다.
 
 Companion local gate:
 
-전용 companion command는 `./server.sh verify-v340-entry-baseline`입니다.
+전용 companion command는 `./server.sh verify-v350-entry-baseline`입니다.
 
 ```bash
-./server.sh verify-v340-entry-baseline
+./server.sh verify-v350-entry-baseline
 ./server.sh verify-docs-ui-assets
 ./server.sh verify-docs-links
 ./server.sh verify-release-metadata
@@ -140,28 +140,22 @@ published metadata, release branch 삭제, Next branch sync는 각각 실행 evi
 close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 삭제 승인이 없으면
 수행하지 않습니다.
 
-## v3.4.0 Source Roadmap Scope
+## v3.5.0 Source Roadmap Scope
 
-현재 `3.4.0` source tree는 아래 roadmap 후보를 source 기능과 local verifier 기준으로
+현재 `3.5.0` source tree는 아래 roadmap 후보를 source 기능과 local verifier 기준으로
 정리합니다. 각 항목은 구현과 직접 evidence가 생긴 뒤에만 완료로 기록합니다. UI
 풀테스트, 30분, 120분, 외부 endpoint field smoke는 실행한 경우에만 release evidence로
 기록합니다.
 
-- v3.4.0 source roadmap baseline 정렬
-- Continuity Drill Contract
-- Recovery Candidate Package Read Model
-- Staging Restore Validation Harness
-- Source Health Replay and Drift Diff
-- Ops Continuity Drill Workspace UI
-- Approval-Gated Recovery Checklist and Audit
-- Client-safe Maintenance Digest
-- Drill Evidence Export and Cleanup Manifest
-- Field Bridge Condition Gates
-- Stabilization and Release Readiness
+- v3.5.0 Step 1 source baseline alignment
+- Live Operations Graph Contract
+- Operations Command Plan Contract
+- Incident-to-Command Handoff
+- Staged Change Plan and Impact Preview
 
-`v3.4.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
+`v3.5.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
 있을 때만 완료로 기록합니다. 현재 latest published release는 `v3.4.0`입니다.
-현재 공개 release tag 기준은 `v3.4.0`입니다. 현재 source tag 기준은 `v3.4.0`입니다.
+현재 공개 release tag 기준은 `v3.4.0`입니다. 현재 source tag 기준은 `v3.5.0`입니다.
 
 ## v3.4.0 stabilization and release readiness
 
@@ -511,24 +505,24 @@ Annotation JSON을 확보한 경우:
 ./server.sh verify-actions-security --annotations-json <annotations.json>
 ```
 
-## v3.3.0 Release Note Template
+## v3.5.0 Release Note Template
 
-아래 템플릿은 v3.4.0 source-only GitHub Release note 기준입니다. 실행하지 않은
+아래 템플릿은 v3.5.0 source-only GitHub Release note 기준입니다. 실행하지 않은
 장시간/UI/field smoke 테스트는 PASS로 쓰지 않습니다.
 
 ```markdown
-# Media Server v3.4.0
+# Media Server v3.5.0
 
 ## Scope
 
 - Source-only live media server release
-- Operations Continuity Drill Workspace source scope
-- Latest published baseline before this release: v3.3.0
+- Live Operations Control Plane source scope
+- Latest published baseline before this release: v3.4.0
 - Binary/runtime/model bundle: not included
 
 ## Verification
 
-- v3.4.0 baseline alignment: <fill after docs/release metadata gates>
+- v3.5.0 baseline alignment: <fill after docs/release metadata gates>
 - Local docs/release metadata: <fill after `verify-release-metadata`,
   `verify-docs-links`, `verify-docs-ui-assets`, and required inventory gates>
 - Build: <fill after `./server.sh build`>

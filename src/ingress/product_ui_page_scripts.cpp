@@ -2800,6 +2800,47 @@ void AppendOpsShellScript(std::ostringstream& out,
           <p class="ops-rule-note">recoveryQueueReadModelCreated ${operatorRecheckRecoveryQueue.recoveryQueueReadModelCreated === true ? 'true' : '확인 필요'} · recoveryQueueWritePerformed ${operatorRecheckRecoveryQueue.recoveryQueueWritePerformed === false ? 'false' : '확인 필요'} · autoRecoveryApplied ${operatorRecheckRecoveryQueue.autoRecoveryApplied === false ? 'false' : '확인 필요'}</p>
         </div>`;
       }
+      function renderV350IncidentCommandHandoff(selectedDetail = {}, incidentCommandHandoffSummary = {}) {
+        const incidentCommandHandoff = selectedDetail?.incidentCommandHandoff || {};
+        const candidateIds = Array.isArray(incidentCommandHandoff.commandPlanCandidateIds)
+          ? incidentCommandHandoff.commandPlanCandidateIds
+          : [];
+        const boundaries = incidentCommandHandoff.boundaries || {};
+        const boundary = boundaries.commandPlanExecuted === false &&
+          boundaries.sourceRegistryWritePerformed === false &&
+          boundaries.publishedViewWritePerformed === false &&
+          boundaries.ruleRegistryWritePerformed === false &&
+          boundaries.eventRecordWritePerformed === false &&
+          boundaries.opsAuditWritePerformed === false &&
+          boundaries.viewerClientExposureAdded === false &&
+          boundaries.rawLocatorExposedToClient === false &&
+          boundaries['credential' + 'MaterialExposed'] === false;
+        return `<div id="v350IncidentCommandHandoffGrid" class="v330-operator-recheck-recovery-queue-grid" data-v350-incident-command-handoff="${escapeHtml(incidentCommandHandoff.schema || 'media-server.ops.v350-incident-command-handoff.v1')}">
+          <p class="v330-operator-recheck-recovery-queue-card" data-v350-detail-section="incident-command-handoff">
+            <strong>source cause</strong>
+            <span>${escapeHtml(display(incidentCommandHandoff.sourceCause || 'source-context-missing'))}</span>
+            <small>${escapeHtml(display(incidentCommandHandoff.sourceCauseEvidence || 'source health and incident correlation context'))}</small>
+          </p>
+          <p class="v330-operator-recheck-recovery-queue-card">
+            <strong>continuity drill</strong>
+            <span>${escapeHtml(display(incidentCommandHandoff.continuityDrillCandidate || 'drill-context-missing'))}</span>
+            <small>ready ${escapeHtml(display(incidentCommandHandoffSummary.readyCount ?? 0))} · blocked ${escapeHtml(display(incidentCommandHandoffSummary.blockedCount ?? 0))}</small>
+          </p>
+          <p class="v330-operator-recheck-recovery-queue-card">
+            <strong>command plan draft</strong>
+            <span>${escapeHtml(display(incidentCommandHandoff.commandPlanDraft || '/ops/api/live-operations/command-plan'))}</span>
+            <small>${escapeHtml(display(incidentCommandHandoff.operatorNextAction || 'review source cause and command plan draft'))}</small>
+          </p>
+          <p class="v330-operator-recheck-recovery-queue-card">
+            <strong>boundary</strong>
+            <span>${boundary ? 'read-only handoff' : 'boundary 확인 필요'}</span>
+            <small>commandPlanExecuted ${boundaries.commandPlanExecuted === false ? 'false' : '확인 필요'} · viewerClientExposureAdded ${boundaries.viewerClientExposureAdded === false ? 'false' : '확인 필요'}</small>
+          </p>
+          <div class="v330-recovery-checklist-list" aria-label="command plan candidates">
+            ${(candidateIds.length ? candidateIds : ['command-plan-draft:missing']).map(item => `<span class="chip v330-recovery-checklist-item ${String(item).includes('missing') ? 'warn' : 'info'}" data-v350-command-plan-candidate="${escapeHtml(item)}">${escapeHtml(display(item))}</span>`).join('')}
+          </div>
+        </div>`;
+      }
       function renderV320AiReviewQualityContext(selectedDetail = {}, aiReviewQualitySummary = {}) {
         const aiReviewQuality = selectedDetail?.aiReviewQuality || {};
         const signals = Array.isArray(aiReviewQuality.signals) ? aiReviewQuality.signals : [];
@@ -3011,6 +3052,8 @@ void AppendOpsShellScript(std::ostringstream& out,
           { text: unifiedResolutionWorkspace.incidentSourceCorrelationSummary?.schema || 'media-server.ops.v330-incident-source-correlation.v1' },
           { text: unifiedResolutionWorkspace.operatorRecheckRecoveryQueueImplemented === true ? 'operator recheck recovery' : 'operator recheck 확인 필요', tone: unifiedResolutionWorkspace.operatorRecheckRecoveryQueueImplemented === true ? 'info' : 'warn' },
           { text: unifiedResolutionWorkspace.operatorRecheckRecoveryQueueSummary?.schema || 'media-server.ops.v330-operator-recheck-recovery-queue.v1' },
+          { text: unifiedResolutionWorkspace.incidentCommandHandoffImplemented === true ? 'incident-command-handoff' : 'command handoff 확인 필요', tone: unifiedResolutionWorkspace.incidentCommandHandoffImplemented === true ? 'info' : 'warn' },
+          { text: unifiedResolutionWorkspace.incidentCommandHandoffSummary?.schema || 'media-server.ops.v350-incident-command-handoff.v1' },
           { text: unifiedResolutionWorkspace.aiReviewQualityContextImplemented === true ? 'AI review quality' : 'AI review 확인 필요', tone: unifiedResolutionWorkspace.aiReviewQualityContextImplemented === true ? 'info' : 'warn' },
           { text: unifiedResolutionWorkspace.aiReviewQualitySummary?.schema || 'media-server.ops.v320-ai-review-quality-context.v1' },
           { text: unifiedResolutionWorkspace.operatorAssignmentFlowImplemented === true ? 'operator flow' : 'operator flow 확인 필요', tone: unifiedResolutionWorkspace.operatorAssignmentFlowImplemented === true ? 'info' : 'warn' },
@@ -3083,6 +3126,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           ${renderV320SourceReliabilityContext(selectedDetail, unifiedResolutionWorkspace.sourceReliabilitySummary || {})}
           ${renderV330IncidentSourceCorrelationLayer(selectedDetail, unifiedResolutionWorkspace.incidentSourceCorrelationSummary || {})}
           ${renderV330OperatorRecheckRecoveryQueue(selectedDetail, unifiedResolutionWorkspace.operatorRecheckRecoveryQueueSummary || {})}
+          ${renderV350IncidentCommandHandoff(selectedDetail, unifiedResolutionWorkspace.incidentCommandHandoffSummary || {})}
           ${renderV320AiReviewQualityContext(selectedDetail, unifiedResolutionWorkspace.aiReviewQualitySummary || {})}
           ${renderV320OperatorResolutionFlow(selectedDetail, unifiedResolutionWorkspace.operatorResolutionFlowSummary || {})}
           ${renderV320ActionReadinessChecklist(selectedDetail, unifiedResolutionWorkspace.actionReadinessChecklistSummary || {})}

@@ -15047,6 +15047,1032 @@ std::string OpsV340FieldBridgeConditionGatesJson(
     return out.str();
 }
 
+struct OpsV350LiveOperationsGraphNode {
+    std::string node_id;
+    std::string node_type;
+    std::string label;
+    std::string status;
+    std::string source_id;
+    std::vector<std::string> published_view_ids;
+    int event_record_count{0};
+    std::string source_health_status{"unknown"};
+    std::string continuity_drill_readiness{"unknown"};
+    std::string client_impact{"none"};
+    std::string viewer_safe_impact_summary{"No client-visible change is introduced by this read model."};
+};
+
+struct OpsV350LiveOperationsGraphEdge {
+    std::string edge_id;
+    std::string from_node_id;
+    std::string to_node_id;
+    std::string edge_type;
+    std::string status;
+    std::string summary;
+};
+
+struct OpsV350LiveOperationsGraphSummary {
+    int source_count{0};
+    int published_view_count{0};
+    int event_record_count{0};
+    int source_health_count{0};
+    int continuity_drill_candidate_count{0};
+    int client_impact_count{0};
+    int degraded_source_count{0};
+    int blocked_count{0};
+    int edge_count{0};
+};
+
+struct OpsV350LiveOperationsGraphContext {
+    std::vector<SourceViewRegistry::SourceRecord> sources;
+    std::vector<SourceViewRegistry::PublishedViewRecord> views;
+    std::vector<OpsV340RecoveryCandidatePackageItem> recovery_candidates;
+    std::vector<OpsV340SourceHealthReplayDriftItem> source_health_replay_drift_items;
+    std::unordered_map<std::string, const OpsSourceHealthItem*> health_by_source;
+    std::unordered_map<std::string, std::vector<std::string>> published_view_ids_by_source;
+    std::unordered_map<std::string, int> event_record_count_by_source;
+    std::unordered_map<std::string, std::string> source_health_status_by_source;
+    bool ok{true};
+    std::string error;
+    int event_record_count{0};
+    std::string client_impact{"viewer-safe"};
+    std::string viewer_safe_impact_summary{
+        "Ops graph is redacted and does not add viewer/client payload exposure."};
+};
+
+OpsV350LiveOperationsGraphContext BuildV350LiveOperationsGraphContext(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    OpsV350LiveOperationsGraphContext context;
+    if (!source_health_snapshot.ok) {
+        context.ok = false;
+        context.error = source_health_snapshot.error.empty() ? "source health snapshot failed"
+                                                             : source_health_snapshot.error;
+        return context;
+    }
+
+    std::string load_error;
+    if (!SourceViewRegistry::Instance().Snapshot(&context.sources, &context.views, &load_error)) {
+        context.ok = false;
+        context.error = load_error.empty() ? "source registry load failed" : load_error;
+        return context;
+    }
+
+    for (const auto& view : context.views) {
+        if (!view.source_id.empty()) {
+            context.published_view_ids_by_source[view.source_id].push_back(view.view_id);
+        }
+    }
+    for (const auto& health : source_health_snapshot.items) {
+        if (!health.source_id.empty()) {
+            context.health_by_source[health.source_id] = &health;
+            context.source_health_status_by_source[health.source_id] = health.status;
+        }
+    }
+
+    analysis::EventRecordQueryOptions event_options;
+    event_options.limit = 200;
+    analysis::EventRecordQueryResult event_result;
+    std::string event_error;
+    if (analysis::QueryEventRecords(event_options, &event_result, &event_error)) {
+        context.event_record_count = static_cast<int>(event_result.matched_records);
+        for (const auto& event_json : event_result.records_json) {
+            const std::string stream_id = ParseStringField(event_json, "streamId").value_or("");
+            const std::string channel_id = ParseStringField(event_json, "channelId").value_or("");
+            if (!stream_id.empty()) {
+                ++context.event_record_count_by_source[stream_id];
+            }
+            if (!channel_id.empty() && channel_id != stream_id) {
+                ++context.event_record_count_by_source[channel_id];
+            }
+        }
+    }
+
+    const auto recovery_context =
+        BuildV340RecoveryCandidateContext(context.views, source_health_snapshot, config);
+    context.recovery_candidates =
+        BuildV340RecoveryCandidatePackages(context.sources, recovery_context);
+    const auto handoff_source_health_snapshot =
+        BuildV340HandoffSourceHealthReplaySnapshot(source_health_snapshot);
+    context.source_health_replay_drift_items =
+        BuildV340SourceHealthReplayDriftDiffItems(handoff_source_health_snapshot,
+                                                  source_health_snapshot);
+    return context;
+}
+
+const OpsV340RecoveryCandidatePackageItem* V350RecoveryCandidateForSource(
+    const std::vector<OpsV340RecoveryCandidatePackageItem>& candidates,
+    const std::string& source_id) {
+    for (const auto& candidate : candidates) {
+        if (candidate.source_id == source_id) {
+            return &candidate;
+        }
+    }
+    return nullptr;
+}
+
+std::vector<OpsV350LiveOperationsGraphNode> BuildV350LiveOperationsGraphNodes(
+    const OpsV350LiveOperationsGraphContext& context) {
+    std::vector<OpsV350LiveOperationsGraphNode> nodes;
+    nodes.reserve(context.sources.size() * 4 + context.views.size());
+    for (const auto& source : context.sources) {
+        const auto view_it = context.published_view_ids_by_source.find(source.source_id);
+        const std::vector<std::string> publishedViewIds =
+            view_it == context.published_view_ids_by_source.end()
+                ? std::vector<std::string>{}
+                : view_it->second;
+        const auto health_it = context.source_health_status_by_source.find(source.source_id);
+        const std::string sourceHealthStatus =
+            health_it == context.source_health_status_by_source.end() ? "unknown" : health_it->second;
+        const auto event_it = context.event_record_count_by_source.find(source.source_id);
+        const int eventRecordCount =
+            event_it == context.event_record_count_by_source.end() ? 0 : event_it->second;
+        const OpsV340RecoveryCandidatePackageItem* recovery =
+            V350RecoveryCandidateForSource(context.recovery_candidates, source.source_id);
+        const std::string continuityDrillReadiness =
+            recovery == nullptr ? "drill-context-missing"
+                                : "drill-" + recovery->recovery_readiness;
+        const std::string clientImpact =
+            publishedViewIds.empty() ? "no-published-view-client-impact"
+                                     : "published-view-client-impact";
+        const std::string viewerSafeImpactSummary =
+            publishedViewIds.empty()
+                ? "No published client view is linked to this source."
+                : "PublishedView linkage is summarized without source locator or credential material.";
+
+        nodes.push_back({"source:" + source.source_id,
+                         "sourceRegistry",
+                         source.display_name.empty() ? source.source_id : source.display_name,
+                         source.enabled ? "enabled" : "disabled",
+                         source.source_id,
+                         publishedViewIds,
+                         eventRecordCount,
+                         sourceHealthStatus,
+                         continuityDrillReadiness,
+                         clientImpact,
+                         viewerSafeImpactSummary});
+        nodes.push_back({"sourceHealth:" + source.source_id,
+                         "sourceHealth",
+                         "Source health " + source.source_id,
+                         sourceHealthStatus,
+                         source.source_id,
+                         {},
+                         eventRecordCount,
+                         sourceHealthStatus,
+                         continuityDrillReadiness,
+                         clientImpact,
+                         viewerSafeImpactSummary});
+        nodes.push_back({"continuityDrill:" + source.source_id,
+                         "continuityDrill",
+                         "Continuity drill " + source.source_id,
+                         continuityDrillReadiness,
+                         source.source_id,
+                         publishedViewIds,
+                         eventRecordCount,
+                         sourceHealthStatus,
+                         continuityDrillReadiness,
+                         clientImpact,
+                         viewerSafeImpactSummary});
+        nodes.push_back({"clientImpact:" + source.source_id,
+                         "clientImpact",
+                         "Client impact " + source.source_id,
+                         clientImpact,
+                         source.source_id,
+                         publishedViewIds,
+                         eventRecordCount,
+                         sourceHealthStatus,
+                         continuityDrillReadiness,
+                         clientImpact,
+                         viewerSafeImpactSummary});
+    }
+    for (const auto& view : context.views) {
+        nodes.push_back({"publishedView:" + view.view_id,
+                         "publishedView",
+                         view.display_name.empty() ? view.view_id : view.display_name,
+                         view.enabled ? "enabled" : "disabled",
+                         view.source_id,
+                         {view.view_id},
+                         0,
+                         "view-linked",
+                         "view-readiness-projected",
+                         view.enabled ? "viewer-visible" : "viewer-hidden",
+                         "PublishedView identity only; source locator and credential material are excluded."});
+    }
+    if (context.event_record_count > 0) {
+        nodes.push_back({"eventRecord:recent",
+                         "eventRecord",
+                         "Recent EventRecord aggregate",
+                         "recorded",
+                         "aggregate",
+                         {},
+                         context.event_record_count,
+                         "event-record-context",
+                         "drill-context-linked",
+                         context.client_impact,
+                         context.viewer_safe_impact_summary});
+    }
+    return nodes;
+}
+
+std::vector<OpsV350LiveOperationsGraphEdge> BuildV350LiveOperationsGraphEdges(
+    const OpsV350LiveOperationsGraphContext& context,
+    const std::vector<OpsV350LiveOperationsGraphNode>& graphNodes) {
+    (void)graphNodes;
+    std::vector<OpsV350LiveOperationsGraphEdge> graphEdges;
+    for (const auto& source : context.sources) {
+        graphEdges.push_back({"edge:source-health:" + source.source_id,
+                              "source:" + source.source_id,
+                              "sourceHealth:" + source.source_id,
+                              "source-to-health",
+                              "linked",
+                              "SourceRegistry source is linked to the redacted source health node."});
+        graphEdges.push_back({"edge:source-drill:" + source.source_id,
+                              "sourceHealth:" + source.source_id,
+                              "continuityDrill:" + source.source_id,
+                              "health-to-continuity-drill",
+                              "linked",
+                              "Source health status feeds the continuity drill readiness projection."});
+        graphEdges.push_back({"edge:drill-client:" + source.source_id,
+                              "continuityDrill:" + source.source_id,
+                              "clientImpact:" + source.source_id,
+                              "drill-to-client-impact",
+                              "viewer-safe",
+                              "Continuity drill state is summarized as viewer-safe client impact."});
+    }
+    for (const auto& view : context.views) {
+        graphEdges.push_back({"edge:source-view:" + view.source_id + ":" + view.view_id,
+                              "source:" + view.source_id,
+                              "publishedView:" + view.view_id,
+                              "source-to-published-view",
+                              view.enabled ? "enabled" : "disabled",
+                              "PublishedView identity is linked without exposing source locator material."});
+        graphEdges.push_back({"edge:view-client:" + view.view_id,
+                              "publishedView:" + view.view_id,
+                              "clientImpact:" + view.source_id,
+                              "published-view-to-client-impact",
+                              view.enabled ? "viewer-safe" : "disabled",
+                              "PublishedView client impact is summarized before any client payload change."});
+    }
+    if (context.event_record_count > 0) {
+        for (const auto& source : context.sources) {
+            graphEdges.push_back({"edge:event-source:" + source.source_id,
+                                  "eventRecord:recent",
+                                  "source:" + source.source_id,
+                                  "event-record-to-source",
+                                  "aggregate",
+                                  "Recent EventRecord aggregate is connected to source context by source/channel id."});
+        }
+    }
+    return graphEdges;
+}
+
+OpsV350LiveOperationsGraphSummary BuildV350LiveOperationsGraphSummary(
+    const OpsV350LiveOperationsGraphContext& context,
+    const std::vector<OpsV350LiveOperationsGraphEdge>& graphEdges) {
+    OpsV350LiveOperationsGraphSummary summary;
+    summary.source_count = static_cast<int>(context.sources.size());
+    summary.published_view_count = static_cast<int>(context.views.size());
+    summary.event_record_count = context.event_record_count;
+    summary.source_health_count = static_cast<int>(context.health_by_source.size());
+    summary.continuity_drill_candidate_count =
+        static_cast<int>(context.recovery_candidates.size());
+    summary.edge_count = static_cast<int>(graphEdges.size());
+    for (const auto& candidate : context.recovery_candidates) {
+        if (candidate.recovery_readiness != "ready") {
+            ++summary.blocked_count;
+        }
+        if (candidate.source_health_status != "live") {
+            ++summary.degraded_source_count;
+        }
+        if (!candidate.published_view_ids.empty()) {
+            ++summary.client_impact_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV350LiveOperationsGraphNodeJson(std::ostringstream& out,
+                                           const OpsV350LiveOperationsGraphNode& node) {
+    out << "{"
+        << "\"nodeId\":\"" << JsonEscape(node.node_id) << "\","
+        << "\"nodeType\":\"" << JsonEscape(node.node_type) << "\","
+        << "\"label\":\"" << JsonEscape(node.label) << "\","
+        << "\"status\":\"" << JsonEscape(node.status) << "\","
+        << "\"sourceId\":\"" << JsonEscape(node.source_id) << "\","
+        << "\"publishedViewIds\":";
+    AppendV340RecoveryCandidateStringListJson(out, node.published_view_ids);
+    out << ",\"eventRecordCount\":" << node.event_record_count
+        << ",\"sourceHealthStatus\":\"" << JsonEscape(node.source_health_status) << "\","
+        << "\"continuityDrillReadiness\":\""
+        << JsonEscape(node.continuity_drill_readiness) << "\","
+        << "\"clientImpact\":\"" << JsonEscape(node.client_impact) << "\","
+        << "\"viewerSafeImpactSummary\":\""
+        << JsonEscape(node.viewer_safe_impact_summary) << "\""
+        << "}";
+}
+
+void AppendV350LiveOperationsGraphEdgeJson(std::ostringstream& out,
+                                           const OpsV350LiveOperationsGraphEdge& edge) {
+    out << "{"
+        << "\"edgeId\":\"" << JsonEscape(edge.edge_id) << "\","
+        << "\"fromNodeId\":\"" << JsonEscape(edge.from_node_id) << "\","
+        << "\"toNodeId\":\"" << JsonEscape(edge.to_node_id) << "\","
+        << "\"edgeType\":\"" << JsonEscape(edge.edge_type) << "\","
+        << "\"status\":\"" << JsonEscape(edge.status) << "\","
+        << "\"summary\":\"" << JsonEscape(edge.summary) << "\""
+        << "}";
+}
+
+void AppendV350LiveOperationsGraphSummaryJson(std::ostringstream& out,
+                                              const OpsV350LiveOperationsGraphSummary& summary) {
+    out << "{"
+        << "\"sourceCount\":" << summary.source_count << ","
+        << "\"publishedViewCount\":" << summary.published_view_count << ","
+        << "\"eventRecordCount\":" << summary.event_record_count << ","
+        << "\"sourceHealthCount\":" << summary.source_health_count << ","
+        << "\"continuityDrillCandidateCount\":" << summary.continuity_drill_candidate_count << ","
+        << "\"clientImpactCount\":" << summary.client_impact_count << ","
+        << "\"degradedSourceCount\":" << summary.degraded_source_count << ","
+        << "\"blockedCount\":" << summary.blocked_count << ","
+        << "\"edgeCount\":" << summary.edge_count
+        << "}";
+}
+
+std::string OpsV350LiveOperationsGraphJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v350-live-operations-graph.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+
+    const auto graphNodes = BuildV350LiveOperationsGraphNodes(context);
+    const auto graphEdges = BuildV350LiveOperationsGraphEdges(context, graphNodes);
+    const auto summary = BuildV350LiveOperationsGraphSummary(context, graphEdges);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v350-live-operations-graph.v1\","
+        << "\"status\":\"live-operations-graph\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"sourceRegistryRoute\":\"/ops/api/source-registry/snapshot\","
+        << "\"publishedViewRoute\":\"/ops/api/views\","
+        << "\"sourceHealthRoute\":\"/ops/api/source-health\","
+        << "\"continuityDrillRoute\":\"/ops/api/source-registry/continuity-drill/contract\","
+        << "\"clientImpactRoute\":\"/client/api/views\","
+        << "\"viewerSafeImpactSummary\":\""
+        << JsonEscape(context.viewer_safe_impact_summary) << "\","
+        << "\"liveOperationsGraphSummary\":";
+    AppendV350LiveOperationsGraphSummaryJson(out, summary);
+    out << ",\"graphNodes\":[";
+    for (std::size_t i = 0; i < graphNodes.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV350LiveOperationsGraphNodeJson(out, graphNodes[i]);
+    }
+    out << "],\"graphEdges\":[";
+    for (std::size_t i = 0; i < graphEdges.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV350LiveOperationsGraphEdgeJson(out, graphEdges[i]);
+    }
+    out << "],\"readModelPolicy\":{"
+        << "\"eventRecord\":\"linked-by-source-or-channel-id\","
+        << "\"sourceRegistry\":\"identity-only\","
+        << "\"publishedView\":\"identity-only\","
+        << "\"sourceHealth\":\"status-summary\","
+        << "\"continuityDrill\":\"readiness-summary\","
+        << "\"clientImpact\":\"viewer-safe-summary\""
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"redacted\":true,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"commandPlanWritePerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"rawDiagnosticJsonIncluded\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV350CommandPlanCandidate {
+    std::string candidate_id;
+    std::string candidate_type;
+    std::string source_id;
+    std::string event_id{"not-selected"};
+    std::string status{"draft"};
+    std::string route;
+    std::string summary;
+    std::string blocked_reason{"operator-approval-required"};
+    std::vector<std::string> related_node_ids;
+    bool draft_only{true};
+    bool operator_approval_required{true};
+};
+
+struct OpsV350CommandPlanSummary {
+    int candidate_count{0};
+    int draft_count{0};
+    int blocked_count{0};
+    int source_recheck_count{0};
+    int recovery_count{0};
+    int maintenance_count{0};
+    int client_notice_count{0};
+    int rule_follow_up_count{0};
+};
+
+std::vector<OpsV350CommandPlanCandidate> BuildV350CommandPlanCandidates(
+    const OpsV350LiveOperationsGraphContext& context) {
+    // Derived from OpsV350LiveOperationsGraphNode graph inputs; the candidates keep graph node ids only.
+    std::vector<OpsV350CommandPlanCandidate> commandPlanCandidates;
+    for (const auto& source : context.sources) {
+        const auto health_it = context.source_health_status_by_source.find(source.source_id);
+        const std::string health_status =
+            health_it == context.source_health_status_by_source.end() ? "unknown" : health_it->second;
+        const auto view_it = context.published_view_ids_by_source.find(source.source_id);
+        const bool has_published_view =
+            view_it != context.published_view_ids_by_source.end() && !view_it->second.empty();
+        const OpsV340RecoveryCandidatePackageItem* recovery =
+            V350RecoveryCandidateForSource(context.recovery_candidates, source.source_id);
+        const bool source_needs_attention =
+            health_status != "live" || !source.enabled || !has_published_view ||
+            (recovery != nullptr && recovery->recovery_readiness != "ready");
+
+        commandPlanCandidates.push_back({"sourceHealthRecheck:" + source.source_id,
+                                         "sourceRecheck",
+                                         source.source_id,
+                                         "not-selected",
+                                         source_needs_attention ? "draft-blocked" : "draft-ready",
+                                         "/ops/api/source-health",
+                                         "sourceHealthRecheck candidate checks source health before any recovery or client notice action.",
+                                         source_needs_attention ? "operator-approval-required"
+                                                                : "not-blocked",
+                                         {"source:" + source.source_id,
+                                          "sourceHealth:" + source.source_id},
+                                         true,
+                                         true});
+        commandPlanCandidates.push_back({"recoveryCandidatePackage:" + source.source_id,
+                                         "recovery",
+                                         source.source_id,
+                                         "not-selected",
+                                         recovery == nullptr || recovery->recovery_readiness == "blocked"
+                                             ? "draft-blocked"
+                                             : "draft-ready",
+                                         "/ops/api/source-registry/recovery-candidate-package",
+                                         "recoveryCandidatePackage candidate links continuity drill readiness to an operator-approved recovery draft.",
+                                         recovery == nullptr ? "recovery-context-missing"
+                                                             : "operator-approval-required",
+                                         {"continuityDrill:" + source.source_id},
+                                         true,
+                                         true});
+        commandPlanCandidates.push_back({"maintenance:" + source.source_id,
+                                         "maintenance",
+                                         source.source_id,
+                                         "not-selected",
+                                         source_needs_attention ? "draft-ready" : "draft-optional",
+                                         "/ops/sources",
+                                         "maintenance candidate keeps operational remediation in Ops-only review before execution.",
+                                         "operator-approval-required",
+                                         {"source:" + source.source_id,
+                                          "clientImpact:" + source.source_id},
+                                         true,
+                                         true});
+        commandPlanCandidates.push_back({"clientNoticeDraft:" + source.source_id,
+                                         "clientNotice",
+                                         source.source_id,
+                                         "not-selected",
+                                         has_published_view ? "draft-ready" : "draft-blocked",
+                                         "/ops/api/live-operations/graph",
+                                         "clientNoticeDraft candidate summarizes viewer-safe impact without sending a client notice.",
+                                         has_published_view ? "operator-approval-required"
+                                                            : "missing-published-view",
+                                         {"clientImpact:" + source.source_id},
+                                         true,
+                                         true});
+        commandPlanCandidates.push_back({"ruleFollowUpDraft:" + source.source_id,
+                                         "ruleFollowUp",
+                                         source.source_id,
+                                         "not-selected",
+                                         "draft-ready",
+                                         "/ops/rules",
+                                         "ruleFollowUpDraft candidate records rule follow-up review without applying rule changes.",
+                                         "operator-approval-required",
+                                         {"eventRecord:recent", "source:" + source.source_id},
+                                         true,
+                                         true});
+        if (commandPlanCandidates.size() >= 40U) {
+            break;
+        }
+    }
+    return commandPlanCandidates;
+}
+
+OpsV350CommandPlanSummary BuildV350CommandPlanSummary(
+    const std::vector<OpsV350CommandPlanCandidate>& commandPlanCandidates) {
+    OpsV350CommandPlanSummary summary;
+    summary.candidate_count = static_cast<int>(commandPlanCandidates.size());
+    for (const auto& candidate : commandPlanCandidates) {
+        if (candidate.draft_only) {
+            ++summary.draft_count;
+        }
+        if (candidate.status.find("blocked") != std::string::npos ||
+            candidate.operator_approval_required) {
+            ++summary.blocked_count;
+        }
+        if (candidate.candidate_type == "sourceRecheck") {
+            ++summary.source_recheck_count;
+        } else if (candidate.candidate_type == "recovery") {
+            ++summary.recovery_count;
+        } else if (candidate.candidate_type == "maintenance") {
+            ++summary.maintenance_count;
+        } else if (candidate.candidate_type == "clientNotice") {
+            ++summary.client_notice_count;
+        } else if (candidate.candidate_type == "ruleFollowUp") {
+            ++summary.rule_follow_up_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV350CommandPlanCandidateJson(std::ostringstream& out,
+                                        const OpsV350CommandPlanCandidate& candidate) {
+    out << "{"
+        << "\"candidateId\":\"" << JsonEscape(candidate.candidate_id) << "\","
+        << "\"candidateType\":\"" << JsonEscape(candidate.candidate_type) << "\","
+        << "\"sourceId\":\"" << JsonEscape(candidate.source_id) << "\","
+        << "\"eventId\":\"" << JsonEscape(candidate.event_id) << "\","
+        << "\"status\":\"" << JsonEscape(candidate.status) << "\","
+        << "\"route\":\"" << JsonEscape(candidate.route) << "\","
+        << "\"summary\":\"" << JsonEscape(candidate.summary) << "\","
+        << "\"blockedReason\":\"" << JsonEscape(candidate.blocked_reason) << "\","
+        << "\"draftOnly\":" << (candidate.draft_only ? "true" : "false") << ","
+        << "\"operatorApprovalRequired\":"
+        << (candidate.operator_approval_required ? "true" : "false") << ","
+        << "\"relatedNodeIds\":";
+    AppendV340RecoveryCandidateStringListJson(out, candidate.related_node_ids);
+    out << ",\"sourceRecheckExecuted\":false,"
+        << "\"recoveryExecuted\":false,"
+        << "\"maintenanceStarted\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"ruleFollowUpApplied\":false"
+        << "}";
+}
+
+void AppendV350CommandPlanSummaryJson(std::ostringstream& out,
+                                      const OpsV350CommandPlanSummary& summary) {
+    out << "{"
+        << "\"candidateCount\":" << summary.candidate_count << ","
+        << "\"draftCount\":" << summary.draft_count << ","
+        << "\"blockedCount\":" << summary.blocked_count << ","
+        << "\"sourceRecheckCount\":" << summary.source_recheck_count << ","
+        << "\"recoveryCount\":" << summary.recovery_count << ","
+        << "\"maintenanceCount\":" << summary.maintenance_count << ","
+        << "\"clientNoticeCount\":" << summary.client_notice_count << ","
+        << "\"ruleFollowUpCount\":" << summary.rule_follow_up_count
+        << "}";
+}
+
+std::string OpsV350CommandPlanJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v350-command-plan.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto summary = BuildV350CommandPlanSummary(commandPlanCandidates);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v350-command-plan.v1\","
+        << "\"status\":\"operations-command-plan\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"graphRoute\":\"/ops/api/live-operations/graph\","
+        << "\"commandPlanSummary\":";
+    AppendV350CommandPlanSummaryJson(out, summary);
+    out << ",\"commandPlanCandidates\":[";
+    for (std::size_t i = 0; i < commandPlanCandidates.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV350CommandPlanCandidateJson(out, commandPlanCandidates[i]);
+    }
+    out << "],\"contractPolicy\":{"
+        << "\"sourceRecheck\":\"draft-only\","
+        << "\"recovery\":\"draft-only\","
+        << "\"maintenance\":\"draft-only\","
+        << "\"clientNotice\":\"draft-only\","
+        << "\"ruleFollowUp\":\"draft-only\""
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"draftOnly\":true,"
+        << "\"operatorApprovalRequired\":true,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"recoveryExecuted\":false,"
+        << "\"maintenanceStarted\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"ruleFollowUpApplied\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV350IncidentCommandHandoff {
+    std::string event_id{"unknown-event"};
+    std::string source_id{"unknown-source"};
+    std::string source_cause{"source-context-missing"};
+    std::string source_cause_evidence{"source health and incident correlation context"};
+    std::string continuity_drill_candidate{"drill-context-missing"};
+    std::string command_plan_draft{"/ops/api/live-operations/command-plan"};
+    std::string handoff_readiness{"blocked"};
+    std::string operator_next_action{"review source cause and command plan draft"};
+    std::vector<std::string> command_plan_candidate_ids;
+};
+
+OpsV350IncidentCommandHandoff BuildV350IncidentCommandHandoff(
+    const std::string& event_json,
+    const std::string& incident_event_id,
+    const std::string& source_id,
+    const std::string& source_cause_category,
+    const std::string& source_cause_summary,
+    bool source_recheck_required,
+    const std::vector<OpsV350CommandPlanCandidate>& commandPlanCandidates) {
+    // Consumed by OpsV320UnifiedResolutionWorkspaceItemJson from incidentSourceCorrelation,
+    // OpsV330IncidentSourceCorrelationInfo fields, BuildV350CommandPlanCandidates,
+    // BuildV340RecoveryCandidateContext, and BuildV340RecoveryCandidatePackages context
+    // without executing sourceRecheck, recovery,
+    // maintenance, clientNotice, or ruleFollowUp actions.
+    OpsV350IncidentCommandHandoff handoff;
+    handoff.event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
+    if (handoff.event_id.empty()) {
+        handoff.event_id = incident_event_id;
+    }
+    handoff.source_id = source_id;
+    handoff.source_cause = source_cause_category;
+    handoff.source_cause_evidence = source_cause_summary;
+    handoff.continuity_drill_candidate =
+        source_recheck_required ? "continuity-drill-review-required"
+                                : "continuity-drill-ready";
+    handoff.command_plan_draft = "/ops/api/live-operations/command-plan";
+    handoff.handoff_readiness =
+        source_recheck_required ? "blocked" : "ready";
+    handoff.operator_next_action =
+        source_recheck_required
+            ? "Open command plan draft, run source recheck, then choose recovery or maintenance follow-up."
+            : "Confirm source cause and close the handoff without executing a command plan.";
+    for (const auto& candidate : commandPlanCandidates) {
+        if (candidate.source_id == handoff.source_id &&
+            (candidate.candidate_type == "sourceRecheck" ||
+             candidate.candidate_type == "recovery" ||
+             candidate.candidate_type == "maintenance" ||
+             candidate.candidate_type == "clientNotice" ||
+             candidate.candidate_type == "ruleFollowUp")) {
+            handoff.command_plan_candidate_ids.push_back(candidate.candidate_id);
+        }
+        if (handoff.command_plan_candidate_ids.size() >= 8U) {
+            break;
+        }
+    }
+    return handoff;
+}
+
+void AppendV350IncidentCommandHandoffJson(std::ostringstream& out,
+                                          const OpsV350IncidentCommandHandoff& handoff) {
+    out << "{"
+        << "\"schema\":\"media-server.ops.v350-incident-command-handoff.v1\","
+        << "\"eventId\":\"" << JsonEscape(handoff.event_id) << "\","
+        << "\"sourceId\":\"" << JsonEscape(handoff.source_id) << "\","
+        << "\"sourceCause\":\"" << JsonEscape(handoff.source_cause) << "\","
+        << "\"sourceCauseEvidence\":\"" << JsonEscape(handoff.source_cause_evidence) << "\","
+        << "\"continuityDrillCandidate\":\""
+        << JsonEscape(handoff.continuity_drill_candidate) << "\","
+        << "\"commandPlanDraft\":\"" << JsonEscape(handoff.command_plan_draft) << "\","
+        << "\"commandPlanCandidateIds\":";
+    AppendV340RecoveryCandidateStringListJson(out, handoff.command_plan_candidate_ids);
+    out << ",\"handoffReadiness\":\"" << JsonEscape(handoff.handoff_readiness) << "\","
+        << "\"operatorNextAction\":\"" << JsonEscape(handoff.operator_next_action) << "\","
+        << "\"graphRoute\":\"/ops/api/live-operations/graph\","
+        << "\"commandPlanRoute\":\"/ops/api/live-operations/command-plan\","
+        << "\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"draftOnly\":true,"
+        << "\"operatorApprovalRequired\":true,"
+        << "\"commandPlanExecuted\":false,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"recoveryExecuted\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"ruleFollowUpApplied\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"rawDiagnosticJsonIncluded\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+}
+
+std::string OpsV350IncidentCommandHandoffSummaryJson(
+    const std::vector<OpsV350IncidentCommandHandoff>& handoffs) {
+    int ready = 0;
+    int blocked = 0;
+    int candidate_links = 0;
+    for (const auto& handoff : handoffs) {
+        if (handoff.handoff_readiness == "ready") {
+            ++ready;
+        } else {
+            ++blocked;
+        }
+        candidate_links += static_cast<int>(handoff.command_plan_candidate_ids.size());
+    }
+    std::ostringstream out;
+    out << "{"
+        << "\"schema\":\"media-server.ops.v350-incident-command-handoff.v1\","
+        << "\"status\":\"incident-command-handoff\","
+        << "\"itemCount\":" << handoffs.size() << ","
+        << "\"readyCount\":" << ready << ","
+        << "\"blockedCount\":" << blocked << ","
+        << "\"commandPlanCandidateLinkCount\":" << candidate_links << ","
+        << "\"commandPlanRoute\":\"/ops/api/live-operations/command-plan\","
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"viewerClientExposureAdded\":false"
+        << "}";
+    return out.str();
+}
+
+struct OpsV350ImpactPreview {
+    int affected_source_count{0};
+    int affected_published_view_count{0};
+    int affected_rule_follow_up_count{0};
+    std::string client_impact{"viewer-safe-summary"};
+    std::string before_apply{"beforeApply"};
+    std::string summary{"Impact preview is computed before apply."};
+};
+
+struct OpsV350StagedChangePlan {
+    std::string plan_id;
+    std::string candidate_type;
+    std::string source_id;
+    std::string status{"staged"};
+    std::string source_change_candidate{"not-required"};
+    std::string published_view_change_candidate{"not-required"};
+    std::string rule_follow_up_change_candidate{"not-required"};
+    OpsV350ImpactPreview impact_preview;
+    std::vector<std::string> blockers;
+    bool staging_only{true};
+    bool apply_blocked{true};
+};
+
+struct OpsV350StagedChangePlanSummary {
+    int plan_count{0};
+    int blocked_count{0};
+    int source_change_candidate_count{0};
+    int published_view_change_candidate_count{0};
+    int rule_follow_up_change_candidate_count{0};
+};
+
+std::vector<OpsV350StagedChangePlan> BuildV350StagedChangePlans(
+    const OpsV350LiveOperationsGraphContext& context,
+    const std::vector<OpsV350CommandPlanCandidate>& commandPlanCandidates) {
+    // BuildV350LiveOperationsGraphContext and BuildV350CommandPlanCandidates feed this
+    // beforeApply staging preview; OpsV350CommandPlanCandidate operatorApprovalRequired,
+    // blockedReason, clientImpact, impactPreview, blockers, sourceChangeCandidate,
+    // publishedViewChangeCandidate, and ruleFollowUpChangeCandidate stay read-only.
+    std::vector<OpsV350StagedChangePlan> stagedChangePlans;
+    for (const auto& candidate : commandPlanCandidates) {
+        if (candidate.candidate_type != "sourceRecheck" &&
+            candidate.candidate_type != "recovery" &&
+            candidate.candidate_type != "ruleFollowUp") {
+            continue;
+        }
+        const auto view_it = context.published_view_ids_by_source.find(candidate.source_id);
+        const int view_count =
+            view_it == context.published_view_ids_by_source.end()
+                ? 0
+                : static_cast<int>(view_it->second.size());
+        OpsV350StagedChangePlan plan;
+        plan.plan_id = "staged:" + candidate.candidate_id;
+        plan.candidate_type = candidate.candidate_type;
+        plan.source_id = candidate.source_id;
+        plan.status = "staged-not-applied";
+        plan.source_change_candidate =
+            candidate.candidate_type == "sourceRecheck" ||
+                    candidate.candidate_type == "recovery"
+                ? "sourceChangeCandidate"
+                : "not-required";
+        plan.published_view_change_candidate =
+            view_count > 0 ? "publishedViewChangeCandidate" : "not-required";
+        plan.rule_follow_up_change_candidate =
+            candidate.candidate_type == "ruleFollowUp" ? "ruleFollowUpChangeCandidate"
+                                                       : "not-required";
+        plan.impact_preview.affected_source_count = candidate.source_id.empty() ? 0 : 1;
+        plan.impact_preview.affected_published_view_count = view_count;
+        plan.impact_preview.affected_rule_follow_up_count =
+            candidate.candidate_type == "ruleFollowUp" ? 1 : 0;
+        plan.impact_preview.client_impact =
+            view_count > 0 ? "clientImpact viewer-safe summary only" : "no clientImpact";
+        plan.impact_preview.summary =
+            "beforeApply impactPreview is staging-only/read-only and requires operator approval.";
+        plan.blockers.push_back(candidate.blocked_reason.empty()
+                                    ? "operator-approval-required"
+                                    : candidate.blocked_reason);
+        if (view_count == 0) {
+            plan.blockers.push_back("missing-published-view");
+        }
+        stagedChangePlans.push_back(std::move(plan));
+        if (stagedChangePlans.size() >= 24U) {
+            break;
+        }
+    }
+    return stagedChangePlans;
+}
+
+OpsV350StagedChangePlanSummary BuildV350StagedChangePlanSummary(
+    const std::vector<OpsV350StagedChangePlan>& stagedChangePlans) {
+    OpsV350StagedChangePlanSummary summary;
+    summary.plan_count = static_cast<int>(stagedChangePlans.size());
+    for (const auto& plan : stagedChangePlans) {
+        if (plan.apply_blocked || !plan.blockers.empty()) {
+            ++summary.blocked_count;
+        }
+        if (plan.source_change_candidate == "sourceChangeCandidate") {
+            ++summary.source_change_candidate_count;
+        }
+        if (plan.published_view_change_candidate == "publishedViewChangeCandidate") {
+            ++summary.published_view_change_candidate_count;
+        }
+        if (plan.rule_follow_up_change_candidate == "ruleFollowUpChangeCandidate") {
+            ++summary.rule_follow_up_change_candidate_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV350ImpactPreviewJson(std::ostringstream& out,
+                                 const OpsV350ImpactPreview& impactPreview) {
+    out << "{"
+        << "\"affectedSourceCount\":" << impactPreview.affected_source_count << ","
+        << "\"affectedPublishedViewCount\":"
+        << impactPreview.affected_published_view_count << ","
+        << "\"affectedRuleFollowUpCount\":"
+        << impactPreview.affected_rule_follow_up_count << ","
+        << "\"clientImpact\":\"" << JsonEscape(impactPreview.client_impact) << "\","
+        << "\"beforeApply\":\"" << JsonEscape(impactPreview.before_apply) << "\","
+        << "\"summary\":\"" << JsonEscape(impactPreview.summary) << "\""
+        << "}";
+}
+
+void AppendV350StagedChangePlanJson(std::ostringstream& out,
+                                    const OpsV350StagedChangePlan& plan) {
+    out << "{"
+        << "\"planId\":\"" << JsonEscape(plan.plan_id) << "\","
+        << "\"candidateType\":\"" << JsonEscape(plan.candidate_type) << "\","
+        << "\"sourceId\":\"" << JsonEscape(plan.source_id) << "\","
+        << "\"status\":\"" << JsonEscape(plan.status) << "\","
+        << "\"sourceChangeCandidate\":\"" << JsonEscape(plan.source_change_candidate) << "\","
+        << "\"publishedViewChangeCandidate\":\""
+        << JsonEscape(plan.published_view_change_candidate) << "\","
+        << "\"ruleFollowUpChangeCandidate\":\""
+        << JsonEscape(plan.rule_follow_up_change_candidate) << "\","
+        << "\"impactPreview\":";
+    AppendV350ImpactPreviewJson(out, plan.impact_preview);
+    out << ",\"blockers\":";
+    AppendV340RecoveryCandidateStringListJson(out, plan.blockers);
+    out << ",\"stagingOnly\":" << (plan.staging_only ? "true" : "false") << ","
+        << "\"applyBlocked\":" << (plan.apply_blocked ? "true" : "false") << ","
+        << "\"sourceChangeApplied\":false,"
+        << "\"publishedViewChangeApplied\":false,"
+        << "\"ruleFollowUpApplied\":false,"
+        << "\"commandPlanExecuted\":false"
+        << "}";
+}
+
+void AppendV350StagedChangePlanSummaryJson(
+    std::ostringstream& out,
+    const OpsV350StagedChangePlanSummary& summary) {
+    out << "{"
+        << "\"planCount\":" << summary.plan_count << ","
+        << "\"blockedCount\":" << summary.blocked_count << ","
+        << "\"sourceChangeCandidateCount\":" << summary.source_change_candidate_count << ","
+        << "\"publishedViewChangeCandidateCount\":"
+        << summary.published_view_change_candidate_count << ","
+        << "\"ruleFollowUpChangeCandidateCount\":"
+        << summary.rule_follow_up_change_candidate_count
+        << "}";
+}
+
+std::string OpsV350StagedChangePlanImpactPreviewJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v350-staged-change-plan-impact-preview.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto stagedChangePlans =
+        BuildV350StagedChangePlans(context, commandPlanCandidates);
+    const auto summary = BuildV350StagedChangePlanSummary(stagedChangePlans);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v350-staged-change-plan-impact-preview.v1\","
+        << "\"status\":\"staged-change-plan-impact-preview\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"commandPlanRoute\":\"/ops/api/live-operations/command-plan\","
+        << "\"stagedChangePlanSummary\":";
+    AppendV350StagedChangePlanSummaryJson(out, summary);
+    out << ",\"stagedChangePlans\":[";
+    for (std::size_t i = 0; i < stagedChangePlans.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV350StagedChangePlanJson(out, stagedChangePlans[i]);
+    }
+    out << "],\"impactPreview\":{"
+        << "\"beforeApply\":\"beforeApply\","
+        << "\"stagingOnly\":true,"
+        << "\"summary\":\"source/view/rule follow-up candidates are previewed before apply\""
+        << "},\"blockers\":[\"operator-approval-required\",\"apply-route-not-present\"],"
+        << "\"contractPolicy\":{"
+        << "\"sourceChangeCandidate\":\"staging-only\","
+        << "\"publishedViewChangeCandidate\":\"staging-only\","
+        << "\"ruleFollowUpChangeCandidate\":\"staging-only\""
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"stagingOnly\":true,"
+        << "\"applyBlocked\":true,"
+        << "\"sourceChangeApplied\":false,"
+        << "\"publishedViewChangeApplied\":false,"
+        << "\"ruleFollowUpApplied\":false,"
+        << "\"commandPlanExecuted\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"rawDiagnosticJsonIncluded\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 std::string OpsAuditSearchIndexJson() {
     return "{\"caseInsensitive\":true,"
            "\"filters\":[\"area\",\"actor\",\"user\",\"target\",\"action\",\"q\",\"fromMs\",\"toMs\"],"
@@ -19769,6 +20795,7 @@ std::string OpsV320DetailSectionsJson(const std::string& event_json,
                                       const OpsV320SourceReliabilityInfo& source_reliability,
                                       const OpsV330IncidentSourceCorrelationInfo& incident_source_correlation,
                                       const OpsV330OperatorRecheckRecoveryQueueInfo& operator_recheck_recovery_queue,
+                                      const OpsV350IncidentCommandHandoff& incident_command_handoff,
                                       const OpsV320AiReviewQualityInfo& ai_review_quality,
                                       const OpsV320OperatorResolutionFlowInfo& operator_resolution_flow,
                                       const OpsV320ActionReadinessChecklistInfo& action_readiness_checklist) {
@@ -19837,6 +20864,15 @@ std::string OpsV320DetailSectionsJson(const std::string& event_json,
         << "\""
         << "},"
         << "{"
+        << "\"key\":\"incident-command-handoff\","
+        << "\"label\":\"Incident Command Handoff\","
+        << "\"status\":\"" << JsonEscape(incident_command_handoff.handoff_readiness) << "\","
+        << "\"detail\":\"source cause " << JsonEscape(incident_command_handoff.source_cause)
+        << " / command plan draft " << JsonEscape(incident_command_handoff.command_plan_draft)
+        << " / route /ops/api/live-operations/command-plan"
+        << "\""
+        << "},"
+        << "{"
         << "\"key\":\"ai-review-quality\","
         << "\"label\":\"AI Review Quality\","
         << "\"status\":\"" << JsonEscape(ai_review_quality.quality_badge) << "\","
@@ -19869,6 +20905,7 @@ std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_j
                                                       const OpsV320SourceReliabilityInfo& source_reliability,
                                                       const OpsV330IncidentSourceCorrelationInfo& incident_source_correlation,
                                                       const OpsV330OperatorRecheckRecoveryQueueInfo& operator_recheck_recovery_queue,
+                                                      const OpsV350IncidentCommandHandoff& incident_command_handoff,
                                                       const OpsV320AiReviewQualityInfo& ai_review_quality,
                                                       const OpsV320OperatorResolutionFlowInfo& operator_resolution_flow,
                                                       const OpsV320ActionReadinessChecklistInfo& action_readiness_checklist,
@@ -19902,6 +20939,9 @@ std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_j
         << OpsV330IncidentSourceCorrelationJson(incident_source_correlation) << ","
         << "\"operatorRecheckRecoveryQueue\":"
         << OpsV330OperatorRecheckRecoveryQueueJson(operator_recheck_recovery_queue) << ","
+        << "\"incidentCommandHandoff\":";
+    AppendV350IncidentCommandHandoffJson(out, incident_command_handoff);
+    out << ","
         << "\"aiReviewQuality\":" << OpsV320AiReviewQualityContextJson(ai_review_quality) << ","
         << "\"operatorResolutionFlow\":"
         << OpsV320OperatorResolutionFlowJson(operator_resolution_flow) << ","
@@ -19917,6 +20957,7 @@ std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_j
                source_reliability,
                incident_source_correlation,
                operator_recheck_recovery_queue,
+               incident_command_handoff,
                ai_review_quality,
                operator_resolution_flow,
                action_readiness_checklist)
@@ -19950,6 +20991,7 @@ std::string OpsV320UnifiedResolutionWorkspaceItemJson(const std::string& event_j
 std::string OpsV320UnifiedOpsEventsWorkspaceJson(
     const std::vector<std::string>& event_json_records,
     const std::unordered_map<std::string, OpsEventReviewState>& reviews,
+    const app::AppConfig& config,
     const OpsSourceHealthSnapshot& source_health_snapshot,
     const std::unordered_map<std::string, std::string>& query) {
     std::vector<std::string> items;
@@ -19957,6 +20999,7 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
     std::vector<OpsV320SourceReliabilityInfo> source_reliability_items;
     std::vector<OpsV330IncidentSourceCorrelationInfo> incident_source_correlation_items;
     std::vector<OpsV330OperatorRecheckRecoveryQueueInfo> operator_recheck_recovery_queue_items;
+    std::vector<OpsV350IncidentCommandHandoff> incident_command_handoff_items;
     std::vector<OpsV320AiReviewQualityInfo> ai_review_quality_items;
     std::vector<OpsV320OperatorResolutionFlowInfo> operator_resolution_flow_items;
     std::vector<OpsV320ActionReadinessChecklistInfo> action_readiness_checklist_items;
@@ -19968,11 +21011,16 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
         std::min<std::size_t>(event_json_records.size(), 12U));
     operator_recheck_recovery_queue_items.reserve(
         std::min<std::size_t>(event_json_records.size(), 12U));
+    incident_command_handoff_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
     ai_review_quality_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
     operator_resolution_flow_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
     action_readiness_checklist_items.reserve(
         std::min<std::size_t>(event_json_records.size(), 12U));
     resolution_search_metrics_items.reserve(std::min<std::size_t>(event_json_records.size(), 12U));
+    const auto v350_graph_context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    const std::vector<OpsV350CommandPlanCandidate> commandPlanCandidates =
+        v350_graph_context.ok ? BuildV350CommandPlanCandidates(v350_graph_context)
+                              : std::vector<OpsV350CommandPlanCandidate>{};
     for (std::size_t index = 0; index < event_json_records.size(); ++index) {
         const std::string& event_json = event_json_records[index];
         const std::string event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
@@ -19998,6 +21046,15 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
                 review,
                 source_reliability,
                 incident_source_correlation);
+        const OpsV350IncidentCommandHandoff incident_command_handoff =
+            BuildV350IncidentCommandHandoff(
+                event_json,
+                incident_source_correlation.event_id,
+                incident_source_correlation.source_id,
+                incident_source_correlation.source_cause_category,
+                incident_source_correlation.source_cause_summary,
+                incident_source_correlation.source_recheck_required,
+                commandPlanCandidates);
         const OpsV320AiReviewQualityInfo ai_review_quality =
             OpsV320AiReviewQualityInfoFor(review, evidence_quality, source_reliability);
         const OpsV320OperatorResolutionFlowInfo operator_resolution_flow =
@@ -20023,6 +21080,7 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
             source_reliability,
             incident_source_correlation,
             operator_recheck_recovery_queue,
+            incident_command_handoff,
             ai_review_quality,
             operator_resolution_flow,
             action_readiness_checklist,
@@ -20031,6 +21089,7 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
         source_reliability_items.push_back(source_reliability);
         incident_source_correlation_items.push_back(incident_source_correlation);
         operator_recheck_recovery_queue_items.push_back(operator_recheck_recovery_queue);
+        incident_command_handoff_items.push_back(incident_command_handoff);
         ai_review_quality_items.push_back(ai_review_quality);
         operator_resolution_flow_items.push_back(operator_resolution_flow);
         action_readiness_checklist_items.push_back(action_readiness_checklist);
@@ -20064,6 +21123,8 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
         << "\"operatorRecheckRecoveryQueueSummary\":"
         << OpsV330OperatorRecheckRecoveryQueueSummaryJson(operator_recheck_recovery_queue_items)
         << ","
+        << "\"incidentCommandHandoffSummary\":"
+        << OpsV350IncidentCommandHandoffSummaryJson(incident_command_handoff_items) << ","
         << "\"aiReviewQualitySummary\":"
         << OpsV320AiReviewQualitySummaryJson(ai_review_quality_items) << ","
         << "\"operatorResolutionFlowSummary\":"
@@ -20087,6 +21148,7 @@ std::string OpsV320UnifiedOpsEventsWorkspaceJson(
         << "\"sourceReliabilityContextImplemented\":true,"
         << "\"incidentSourceCorrelationLayerImplemented\":true,"
         << "\"operatorRecheckRecoveryQueueImplemented\":true,"
+        << "\"incidentCommandHandoffImplemented\":true,"
         << "\"aiReviewQualityContextImplemented\":true,"
         << "\"operatorAssignmentFlowImplemented\":true,"
         << "\"actionReadinessChecklistImplemented\":true,"
@@ -21591,6 +22653,7 @@ bool OpsEventReviewInboxJson(const app::AppConfig& config,
         << OpsV320UnifiedOpsEventsWorkspaceJson(
                event_result.records_json,
                reviews,
+               config,
                source_health_snapshot,
                query)
         << ","
@@ -24780,6 +25843,66 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV330SourceReliabilitySearchMetricsJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/live-operations/graph") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV350LiveOperationsGraphJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/live-operations/command-plan") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV350CommandPlanJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/live-operations/staged-change-plan-impact-preview") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV350StagedChangePlanImpactPreviewJson(config, source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

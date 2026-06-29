@@ -40,7 +40,21 @@
 | V250-S08 | `./server.sh verify-v250-redacted-incident-evidence-bundle` | release-safe manifest-only evidence bundle guard |
 | V250-S09 | `./server.sh verify-v250-owner-release-readiness` | owner decomposition/release readiness local gate |
 
-## 현재 v3.4.0 verifier
+## 현재 v3.5.0 verifier
+
+아래 명령은 v3.5.0 Live Operations Control Plane의 현재 source gate입니다.
+UI 풀테스트, 30분/120분, published metadata, release action, field smoke는 실행 evidence가
+있을 때만 별도로 PASS 근거가 됩니다.
+
+| Step | Command | Scope |
+| --- | --- | --- |
+| v3.5.0 (1) | `./server.sh verify-v350-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` | source `3.5.0`, latest published `v3.4.0`, current roadmap `v3.5.0 Live Operations Control Plane` 정렬. v3.5 기능 구현, UI 풀테스트, 30분/120분, tag, push, GitHub Release evidence와는 별도 gate입니다 |
+| v3.5.0 (2) | `./server.sh verify-v350-live-operations-graph-contract` | Live Operations Graph Contract. `/ops/api/live-operations/graph`가 EventRecord, SourceRegistry, PublishedView, source health, continuity drill, client impact를 하나의 Ops-only graph read model로 연결하고 source locator/credential/raw diagnostic JSON/media path 비노출 경계를 확인합니다. Operations Command Plan Contract, Incident-to-Command Handoff, Staged Change Plan, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
+| v3.5.0 (3) | `./server.sh verify-v350-operations-command-plan-contract` | Operations Command Plan Contract. `/ops/api/live-operations/command-plan`이 source recheck, recovery, maintenance, client notice, rule follow-up 후보를 draft-only command plan으로 정의하고 source/view/rule/client/EventRecord/Ops audit/media mutation 미수행 경계를 확인합니다. Incident-to-Command Handoff, Staged Change Plan, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
+| v3.5.0 (4) | `./server.sh verify-v350-incident-to-command-handoff` | Incident-to-Command Handoff. `/ops/api/events/reviews`와 `/ops/events` selected detail handoff가 source 원인, continuity drill 후보, command plan 초안으로 이어지는지 확인하고 source/view/rule/EventRecord/Ops audit/client/media mutation 미수행 경계를 확인합니다. Staged Change Plan, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
+| v3.5.0 (5) | `./server.sh verify-v350-staged-change-plan-impact-preview` | Staged Change Plan and Impact Preview. `/ops/api/live-operations/staged-change-plan-impact-preview`가 source/view/rule follow-up 변경 후보를 before-apply impact preview로 만들고 blocker를 staging-only/read-only로 표시하며 source/view/rule/EventRecord/Ops audit/client/media mutation 미수행 경계를 확인합니다. 실제 apply, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
+
+## 직전 published baseline v3.4.0 verifier
 
 아래 명령은 v3.4.0 Operations Continuity Drill Workspace의 현재 source gate입니다.
 UI 풀테스트, 30분/120분, published metadata, release action, field smoke는 실행 evidence가
