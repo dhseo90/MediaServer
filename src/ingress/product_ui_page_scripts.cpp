@@ -580,6 +580,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         const drillLedger = payload.drillLedger || {};
         const exportBundle = payload.exportBundle || {};
         const fieldEvidenceIntake = payload.fieldEvidenceIntake || {};
+        const vlmAssistedExplanation = payload.vlmAssistedExplanation || {};
         const reviews = payload.reviews || {};
         const graphNodes = v350CommandWorkspaceList(liveOperationsGraph.graphNodes);
         const commandPlanCandidates = v350CommandWorkspaceList(commandPlan.commandPlanCandidates);
@@ -589,6 +590,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         const handoffMapEntries = v350CommandWorkspaceList(exportBundle.handoffMapEntries || exportBundle.handoffMap?.entries);
         const fieldEvidenceIntakeRecords = v350CommandWorkspaceList(fieldEvidenceIntake.fieldEvidenceIntakeRecords);
         const fieldEvidenceExecutionConditions = v350CommandWorkspaceList(fieldEvidenceIntake.fieldEvidenceExecutionConditions);
+        const vlmAssistedOpsExplanations = v350CommandWorkspaceList(vlmAssistedExplanation.vlmAssistedOpsExplanations);
         const records = v350CommandWorkspaceList(reviews?.items || reviews?.reviews || reviews?.records?.records);
         const selectedReview = v350CommandWorkspaceFirst(records);
         const incidentCommandHandoff = selectedReview?.selectedDetail?.incidentCommandHandoff || selectedReview?.incidentCommandHandoff || {};
@@ -614,6 +616,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           drillLedgerRoute: payload.drillLedgerRoute || '/ops/api/live-operations/drill-run-ledger',
           exportBundleRoute: payload.exportBundleRoute || '/ops/api/live-operations/export-bundle-handoff-map',
           fieldEvidenceRoute: payload.fieldEvidenceRoute || '/ops/api/live-operations/field-evidence-intake',
+          vlmExplanationRoute: payload.vlmExplanationRoute || '/ops/api/live-operations/vlm-assisted-explanation',
           reviewRoute: payload.reviewRoute || '/ops/api/events/reviews'
         };
         renderBadges('dashCommandWorkspaceBadges', [
@@ -626,12 +629,13 @@ void AppendOpsShellScript(std::ostringstream& out,
           { text: `bundle ${operationsExportBundle.length}` },
           { text: `handoff ${handoffMapEntries.length}` },
           { text: `field evidence ${fieldEvidenceIntakeRecords.length}`, tone: fieldEvidenceIntakeRecords.length > 0 ? '' : 'warn' },
+          { text: `VLM explain ${vlmAssistedOpsExplanations.length}`, tone: vlmAssistedExplanation.defaultEnabled === false ? 'info' : 'warn' },
           { text: boundaryOk ? 'read-only' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
         ]);
         setText('dashCommandWorkspaceText',
           payload.error
             ? `command workspace 로드 실패: ${payload.error}`
-            : `incident ${records.length} · command plan ${commandSummary.candidateCount ?? commandPlanCandidates.length} · staged ${stagedSummary.planCount ?? stagedChangePlans.length} · drill ledger ${drillRunLedgerEntries.length} · field evidence ${fieldEvidenceIntakeRecords.length}`);
+            : `incident ${records.length} · command plan ${commandSummary.candidateCount ?? commandPlanCandidates.length} · staged ${stagedSummary.planCount ?? stagedChangePlans.length} · drill ledger ${drillRunLedgerEntries.length} · field evidence ${fieldEvidenceIntakeRecords.length} · VLM explanation ${vlmAssistedOpsExplanations.length}`);
         const flow = document.getElementById('dashCommandWorkspaceFlow');
         if (flow) {
           flow.setAttribute('data-v350-command-workspace-flow', 'incident-source-drill-staged-plan-client-impact');
@@ -733,8 +737,27 @@ void AppendOpsShellScript(std::ostringstream& out,
               </p>`
             : '<div class="empty">Field Evidence Intake record가 아직 없습니다.</div>';
         }
+        const vlmExplanationList = document.getElementById('dashCommandWorkspaceVlmAssistedExplanation');
+        if (vlmExplanationList) {
+          vlmExplanationList.setAttribute('data-v350-vlm-assisted-explanation', 'media-server.ops.v350-vlm-assisted-explanation.v1');
+          const explanationBoundary = vlmAssistedExplanation.boundaries || {};
+          vlmExplanationList.innerHTML = vlmAssistedOpsExplanations.length > 0
+            ? vlmAssistedOpsExplanations.slice(0, 6).map(item => {
+                const evidenceRefs = v350CommandWorkspaceList(item.evidenceRefs).slice(0, 3).join(', ') || 'evidence refs pending';
+                return `<p class="ops-vlm-assisted-explanation-entry" data-v350-vlm-assisted-explanation-item="${escapeHtml(item.explanationId || item.explanationType || 'vlm-assisted-explanation')}">
+                  <strong>${escapeHtml(display(item.title || item.explanationType || 'VLM-assisted Ops Explanation'))}</strong>
+                  <span>${escapeHtml(display(item.commandPlanBlockerSummary || 'command plan blocker summary pending'))}</span>
+                  <small>incident/source relation=${escapeHtml(display(item.incidentSourceRelationSummary || 'incident/source relation pending'))} · operator review hint=${escapeHtml(display(item.operatorReviewHint || 'operator review hint pending'))} · defaultEnabled=${item.defaultEnabled === false ? 'false' : '확인 필요'} · vlmProviderCallPerformed=${item.vlmProviderCallPerformed === false ? 'false' : '확인 필요'} · evidence=${escapeHtml(display(evidenceRefs))}</small>
+                </p>`;
+              }).join('') + `<p class="ops-vlm-assisted-explanation-entry ops-vlm-explanation-boundary" data-v350-vlm-assisted-explanation-boundary="default-off">
+                <strong>default-off VLM</strong>
+                <span>command plan blocker · incident/source relation · operator review hint</span>
+                <small>defaultEnabled=${vlmAssistedExplanation.defaultEnabled === false ? 'false' : '확인 필요'} · vlmRuntimeCallPerformed=${explanationBoundary.vlmRuntimeCallPerformed === false ? 'false' : '확인 필요'} · rawVlmPromptIncluded=${explanationBoundary.rawVlmPromptIncluded === false ? 'false' : '확인 필요'}</small>
+              </p>`
+            : '<div class="empty">VLM-assisted Ops Explanation 항목이 아직 없습니다.</div>';
+        }
         setText('dashCommandWorkspaceBoundary',
-          `graph=${display(v350CommandWorkspaceState.graphRoute)} · plan=${display(v350CommandWorkspaceState.commandPlanRoute)} · staged=${display(v350CommandWorkspaceState.stagedPlanRoute)} · ledger=${display(v350CommandWorkspaceState.drillLedgerRoute)} · export=${display(v350CommandWorkspaceState.exportBundleRoute)} · fieldEvidence=${display(v350CommandWorkspaceState.fieldEvidenceRoute)} · commandPlanExecuted=${commandPlan.boundaries?.commandPlanExecuted === false ? 'false' : '확인 필요'} · drillRunWritePerformed=${drillLedger.boundaries?.drillRunWritePerformed === false ? 'false' : '확인 필요'} · artifactExportExecuted=${exportBundle.boundaries?.artifactExportExecuted === false ? 'false' : '확인 필요'} · handoffWritePerformed=${exportBundle.boundaries?.handoffWritePerformed === false ? 'false' : '확인 필요'} · fieldSmokeExecuted=${fieldEvidenceIntake.boundaries?.fieldSmokeExecuted === false ? 'false' : '확인 필요'} · fieldEvidenceWritePerformed=${fieldEvidenceIntake.boundaries?.fieldEvidenceWritePerformed === false ? 'false' : '확인 필요'} · viewerClientExposureAdded=${stagedPlan.boundaries?.viewerClientExposureAdded === false ? 'false' : '확인 필요'}`);
+          `graph=${display(v350CommandWorkspaceState.graphRoute)} · plan=${display(v350CommandWorkspaceState.commandPlanRoute)} · staged=${display(v350CommandWorkspaceState.stagedPlanRoute)} · ledger=${display(v350CommandWorkspaceState.drillLedgerRoute)} · export=${display(v350CommandWorkspaceState.exportBundleRoute)} · fieldEvidence=${display(v350CommandWorkspaceState.fieldEvidenceRoute)} · vlmExplanation=${display(v350CommandWorkspaceState.vlmExplanationRoute)} · commandPlanExecuted=${commandPlan.boundaries?.commandPlanExecuted === false ? 'false' : '확인 필요'} · drillRunWritePerformed=${drillLedger.boundaries?.drillRunWritePerformed === false ? 'false' : '확인 필요'} · artifactExportExecuted=${exportBundle.boundaries?.artifactExportExecuted === false ? 'false' : '확인 필요'} · handoffWritePerformed=${exportBundle.boundaries?.handoffWritePerformed === false ? 'false' : '확인 필요'} · fieldSmokeExecuted=${fieldEvidenceIntake.boundaries?.fieldSmokeExecuted === false ? 'false' : '확인 필요'} · fieldEvidenceWritePerformed=${fieldEvidenceIntake.boundaries?.fieldEvidenceWritePerformed === false ? 'false' : '확인 필요'} · vlmProviderCallPerformed=${vlmAssistedExplanation.boundaries?.vlmProviderCallPerformed === false ? 'false' : '확인 필요'} · defaultEnabled=${vlmAssistedExplanation.defaultEnabled === false ? 'false' : '확인 필요'} · viewerClientExposureAdded=${stagedPlan.boundaries?.viewerClientExposureAdded === false ? 'false' : '확인 필요'}`);
       };
       const refreshV350OpsCommandWorkspace = async ({
         graphRoute = '/ops/api/live-operations/graph',
@@ -743,18 +766,20 @@ void AppendOpsShellScript(std::ostringstream& out,
         drillLedgerRoute = '/ops/api/live-operations/drill-run-ledger',
         exportBundleRoute = '/ops/api/live-operations/export-bundle-handoff-map',
         fieldEvidenceRoute = '/ops/api/live-operations/field-evidence-intake',
+        vlmExplanationRoute = '/ops/api/live-operations/vlm-assisted-explanation',
         reviewRoute = '/ops/api/events/reviews'
       } = {}) => {
-        const [liveOperationsGraph, commandPlan, stagedPlan, drillLedger, exportBundle, fieldEvidenceIntake, reviews] = await Promise.all([
+        const [liveOperationsGraph, commandPlan, stagedPlan, drillLedger, exportBundle, fieldEvidenceIntake, vlmAssistedExplanation, reviews] = await Promise.all([
           requestJson(graphRoute).catch(error => ({ error: error.message, graphNodes: [], boundaries: {} })),
           requestJson(commandPlanRoute).catch(error => ({ error: error.message, commandPlanCandidates: [], boundaries: {} })),
           requestJson(stagedPlanRoute).catch(error => ({ error: error.message, stagedChangePlans: [], boundaries: {} })),
           requestJson(drillLedgerRoute).catch(error => ({ error: error.message, drillRunLedgerEntries: [], boundaries: {} })),
           requestJson(exportBundleRoute).catch(error => ({ error: error.message, operationsExportBundle: [], handoffMapEntries: [], boundaries: {} })),
           requestJson(fieldEvidenceRoute).catch(error => ({ error: error.message, fieldEvidenceIntakeRecords: [], fieldEvidenceExecutionConditions: [], boundaries: {} })),
+          requestJson(vlmExplanationRoute).catch(error => ({ error: error.message, vlmAssistedOpsExplanations: [], boundaries: {} })),
           requestJson(`${reviewRoute}?limit=5`).catch(error => ({ error: error.message, items: [] }))
         ]);
-        renderV350OpsCommandWorkspace({ liveOperationsGraph, commandPlan, stagedPlan, drillLedger, exportBundle, fieldEvidenceIntake, reviews, graphRoute, commandPlanRoute, stagedPlanRoute, drillLedgerRoute, exportBundleRoute, fieldEvidenceRoute, reviewRoute });
+        renderV350OpsCommandWorkspace({ liveOperationsGraph, commandPlan, stagedPlan, drillLedger, exportBundle, fieldEvidenceIntake, vlmAssistedExplanation, reviews, graphRoute, commandPlanRoute, stagedPlanRoute, drillLedgerRoute, exportBundleRoute, fieldEvidenceRoute, vlmExplanationRoute, reviewRoute });
       };
       const renderDashboardRootCause = (runtime, principal, eventsStatus = {}, browserConfig = {}, diagnosticLog = {}, sourceHealth = {}) => {
         const items = dashboardRootCauseItems(runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth);

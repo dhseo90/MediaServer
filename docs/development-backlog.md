@@ -99,7 +99,7 @@ license/provenance/privacy/운영 검토 결과:
 | 9 | v3.5.0 (9) Client-safe Operations Notice | P1 | 완료 | viewer/client에 maintenance, degraded, recovering, available 상태와 timeline hint만 노출 |
 | 10 | v3.5.0 (10) Operations Export Bundle and Handoff Map | P1 | 완료 | command plan, drill ledger, field evidence, client impact forecast를 release-safe export bundle과 handoff map으로 조합 |
 | 11 | v3.5.0 (11) Field Evidence Intake | P2 | 완료 | ONVIF, external WHEP/TURN, cloud/VLM provider 결과를 redacted field evidence로 수집하고 실행 조건과 미실행 상태를 분리 |
-| 12 | v3.5.0 (12) VLM-assisted Ops Explanation | P2 | 예정 | default-off VLM 보조 설명으로 command plan blocker, incident/source relation, operator review hint를 요약 |
+| 12 | v3.5.0 (12) VLM-assisted Ops Explanation | P2 | 완료 | default-off VLM 보조 설명으로 command plan blocker, incident/source relation, operator review hint를 요약 |
 
 완료 경계: 위 표는 v3.5.0 개발 순서와 우선순위입니다. 각 step은 실제 코드/UI/API/문서
 변경, 기능 ID/test inventory 등록, 해당 verifier와 release test record evidence가 생긴 뒤에만
@@ -215,6 +215,18 @@ action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁�
 - `scripts/internal/verify_v350_field_evidence_intake.mjs`, `server.sh`: `./server.sh verify-v350-field-evidence-intake` 명령을 추가해 field evidence intake API/UI, redaction/not-run boundary, client 비노출, backlog/stream verification/release records/inventory/server dispatch 연결을 검증합니다.
 - 검증: 최초 `node scripts/internal/verify_v350_field_evidence_intake.mjs`는 Step 11 server/API/UI/docs/inventory/server dispatch가 아직 없어 `pass=1 fail=11`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v350 Step 11 결과 행에 기록합니다.
 - 완료 경계: 이번 Step 11은 Field Evidence Intake read model/API/UI/verifier 연결입니다. VLM-assisted Ops Explanation 완료 evidence가 아닙니다. field smoke 실행 evidence가 아닙니다. ONVIF 실기기 접촉, external WHEP/TURN 접속, cloud/VLM provider 호출, endpoint probe, credential probe, source/view/EventRecord/Ops audit/client/media mutation, raw endpoint/credential/provider/VLM/client material 노출, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata evidence가 아닙니다.
+
+## v3.5.0 Step 12 개발 기록
+
+- 범위: P2 `v3.5.0 (12) VLM-assisted Ops Explanation`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV350VlmAssistedOpsExplanationJson`과 `GET /ops/api/live-operations/vlm-assisted-explanation` route를 추가했습니다. 이 route는 `BuildV350LiveOperationsGraphContext()`와 `BuildV350CommandPlanCandidates()`를 기반으로 command plan blocker, incident/source relation, operator review hint를 요약하고 `require_ops_principal()`, `Cache-Control: no-store`를 적용합니다.
+- `src/ingress/webrtc_http_server.cpp`: explanation payload는 `defaultEnabled=false`, `defaultOff=true`, `runtimeOptInRequired=true`, `vlmProviderCallPerformed=false`, `vlmRuntimeCallPerformed=false`, raw prompt/provider response/credential material 미포함, command/source/view/EventRecord/Ops audit/client/media write 미수행 경계를 함께 기록합니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV350OpsCommandWorkspace`와 `refreshV350OpsCommandWorkspace`가 `/ops/api/live-operations/vlm-assisted-explanation`을 함께 읽고 `/ops` dashboard command workspace 안의 `dashCommandWorkspaceVlmAssistedExplanation`에 command plan blocker, incident/source relation, operator review hint, evidence refs, default-off boundary를 표시합니다.
+- `src/ingress/product_ui_css.cpp`, `scripts/internal/verify_ops_client_ui_smoke.mjs`: `.ops-vlm-assisted-explanation-list`, `.ops-vlm-assisted-explanation-entry`, `.ops-vlm-explanation-boundary` 스타일과 Ops/Client static smoke marker를 추가했습니다.
+- `docs/project-feature-test-inventory.md`: `UI-087`, `SRC-048`, `EVT-076`, `LAB-094`, `SAFE-146`, `OPS-113`을 추가하고 Step 12를 `verify-v350-vlm-assisted-ops-explanation`, `verify-ops-client-ui`에 연결했습니다.
+- `scripts/internal/verify_v350_vlm_assisted_ops_explanation.mjs`, `server.sh`: `./server.sh verify-v350-vlm-assisted-ops-explanation` 명령을 추가해 default-off VLM 보조 설명 API/UI, no-call/no-write boundary, client 비노출, backlog/stream verification/release records/inventory/server dispatch 연결을 검증합니다.
+- 검증: 최초 `node scripts/internal/verify_v350_vlm_assisted_ops_explanation.mjs`는 Step 12 server/API/UI/docs/inventory/server dispatch가 아직 없어 `pass=1 fail=11`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v350 Step 12 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 12는 default-off VLM 보조 설명 read model/API/UI/verifier 연결입니다. VLM/provider 호출 evidence가 아닙니다. 실제 VLM runtime opt-in, raw prompt/response 저장, command execution, operator review write, source/view/EventRecord/Ops audit/client/media mutation, client notice send, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata evidence가 아닙니다.
 
 ## 현재 source roadmap: v3.4.0 Operations Continuity Drill Workspace
 

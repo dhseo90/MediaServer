@@ -2786,6 +2786,12 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
               <div class="empty">ONVIF, external WHEP/TURN, cloud/VLM provider의 redacted field evidence와 execution conditions, not-run 상태를 기다립니다.</div>
             </div>
           </div>
+          <div>
+            <h4>VLM-assisted Ops Explanation</h4>
+            <div id="dashCommandWorkspaceVlmAssistedExplanation" class="ops-vlm-assisted-explanation-list" data-v350-vlm-assisted-explanation="media-server.ops.v350-vlm-assisted-explanation.v1">
+              <div class="empty">default-off VLM 보조 설명으로 command plan blocker, incident/source relation, operator review hint 요약을 기다립니다.</div>
+            </div>
+          </div>
         </div>
         <div id="dashCommandWorkspaceBoundary" class="ops-command-boundary">
           commandPlanExecuted=false · source/view/rule write=false · client/viewer raw material=false
@@ -17324,6 +17330,282 @@ std::string OpsV350FieldEvidenceIntakeJson(
     return out.str();
 }
 
+struct OpsV350VlmAssistedOpsExplanationItem {
+    std::string explanation_id;
+    std::string explanation_type;
+    std::string title;
+    std::string command_plan_blocker_summary;
+    std::string incident_source_relation_summary;
+    std::string operator_review_hint;
+    std::string source_id{"unknown-source"};
+    std::string event_id{"eventRecord:recent"};
+    std::string command_plan_ref{"/ops/api/live-operations/command-plan"};
+    std::vector<std::string> evidence_refs;
+    bool default_off{true};
+    bool default_enabled{false};
+    bool runtime_opt_in_required{true};
+    bool vlm_provider_call_performed{false};
+    bool vlm_runtime_call_performed{false};
+};
+
+struct OpsV350VlmAssistedOpsExplanationSummary {
+    int explanation_count{0};
+    int command_plan_blocker_count{0};
+    int incident_source_relation_count{0};
+    int operator_review_hint_count{0};
+    int default_off_count{0};
+    int provider_call_count{0};
+};
+
+std::string V350VlmExplanationSourceHealth(
+    const OpsV350LiveOperationsGraphContext& context,
+    const std::string& source_id) {
+    const auto it = context.source_health_status_by_source.find(source_id);
+    return it == context.source_health_status_by_source.end() ? "unknown" : it->second;
+}
+
+int V350VlmExplanationEventRecordCount(
+    const OpsV350LiveOperationsGraphContext& context,
+    const std::string& source_id) {
+    const auto it = context.event_record_count_by_source.find(source_id);
+    return it == context.event_record_count_by_source.end() ? 0 : it->second;
+}
+
+std::vector<OpsV350VlmAssistedOpsExplanationItem>
+BuildV350VlmAssistedOpsExplanationItems(
+    const OpsV350LiveOperationsGraphContext& context,
+    const std::vector<OpsV350CommandPlanCandidate>& commandPlanCandidates) {
+    const OpsV350CommandPlanCandidate* first_candidate = nullptr;
+    for (const auto& candidate : commandPlanCandidates) {
+        if (first_candidate == nullptr ||
+            candidate.status.find("blocked") != std::string::npos) {
+            first_candidate = &candidate;
+            if (candidate.status.find("blocked") != std::string::npos) {
+                break;
+            }
+        }
+    }
+
+    std::string source_id = first_candidate == nullptr ? "" : first_candidate->source_id;
+    if (source_id.empty() && !context.sources.empty()) {
+        source_id = context.sources.front().source_id;
+    }
+    if (source_id.empty()) {
+        source_id = "unknown-source";
+    }
+    const std::string health_status = V350VlmExplanationSourceHealth(context, source_id);
+    const int event_record_count = V350VlmExplanationEventRecordCount(context, source_id);
+    const std::string candidate_id =
+        first_candidate == nullptr ? "commandPlan:pending" : first_candidate->candidate_id;
+    const std::string candidate_type =
+        first_candidate == nullptr ? "commandPlan" : first_candidate->candidate_type;
+    const std::string blocked_reason =
+        first_candidate == nullptr ? "operator-approval-required"
+                                  : first_candidate->blocked_reason;
+
+    std::vector<OpsV350VlmAssistedOpsExplanationItem> items;
+    OpsV350VlmAssistedOpsExplanationItem blocker_item;
+    blocker_item.explanation_id = "vlm-explanation:command-plan-blocker";
+    blocker_item.explanation_type = "command-plan-blocker";
+    blocker_item.title = "command plan blocker";
+    blocker_item.source_id = source_id;
+    blocker_item.command_plan_ref = candidate_id;
+    blocker_item.command_plan_blocker_summary =
+        "blockedReason " + blocked_reason + " keeps " + candidate_type +
+        " draft-only until operator approval.";
+    blocker_item.incident_source_relation_summary =
+        "source " + source_id + " sourceHealth " + health_status +
+        " has eventRecord count " + std::to_string(event_record_count) +
+        " in the live operations graph.";
+    blocker_item.operator_review_hint =
+        "operator review hint: inspect blockedReason, sourceHealth, and command plan draft before any opt-in VLM assistance.";
+    blocker_item.evidence_refs = {"/ops/api/live-operations/command-plan",
+                                  "/ops/api/live-operations/graph",
+                                  candidate_id};
+    items.push_back(std::move(blocker_item));
+
+    OpsV350VlmAssistedOpsExplanationItem relation_item;
+    relation_item.explanation_id = "vlm-explanation:incident-source-relation";
+    relation_item.explanation_type = "incident-source-relation";
+    relation_item.title = "incident/source relation";
+    relation_item.source_id = source_id;
+    relation_item.command_plan_ref = candidate_id;
+    relation_item.command_plan_blocker_summary =
+        "command plan blocker remains " + blocked_reason + ".";
+    relation_item.incident_source_relation_summary =
+        "incident/source relation uses sourceHealth " + health_status +
+        ", eventRecord count " + std::to_string(event_record_count) +
+        ", and graph sourceId " + source_id + " without VLM/provider calls.";
+    relation_item.operator_review_hint =
+        "operator review hint: compare incident/source relation with source health and recent EventRecord evidence.";
+    relation_item.evidence_refs = {"/ops/api/live-operations/graph",
+                                   "sourceHealth:" + source_id,
+                                   "eventRecord:recent"};
+    items.push_back(std::move(relation_item));
+
+    OpsV350VlmAssistedOpsExplanationItem review_item;
+    review_item.explanation_id = "vlm-explanation:operator-review-hint";
+    review_item.explanation_type = "operator-review-hint";
+    review_item.title = "operator review hint";
+    review_item.source_id = source_id;
+    review_item.command_plan_ref = candidate_id;
+    review_item.command_plan_blocker_summary =
+        "command plan blocker summary is deterministic and default-off.";
+    review_item.incident_source_relation_summary =
+        "incident/source relation summary is redacted from ops read models only.";
+    review_item.operator_review_hint =
+        "operator review hint: VLM assistance is default-off; use this summary as a checklist and do not execute command plans from it.";
+    review_item.evidence_refs = {"/ops/api/live-operations/command-plan",
+                                 "/ops/api/live-operations/graph",
+                                 "/ops/api/events/reviews"};
+    items.push_back(std::move(review_item));
+
+    return items;
+}
+
+OpsV350VlmAssistedOpsExplanationSummary
+BuildV350VlmAssistedOpsExplanationSummary(
+    const std::vector<OpsV350VlmAssistedOpsExplanationItem>& items) {
+    OpsV350VlmAssistedOpsExplanationSummary summary;
+    summary.explanation_count = static_cast<int>(items.size());
+    for (const auto& item : items) {
+        if (item.explanation_type == "command-plan-blocker") {
+            ++summary.command_plan_blocker_count;
+        } else if (item.explanation_type == "incident-source-relation") {
+            ++summary.incident_source_relation_count;
+        } else if (item.explanation_type == "operator-review-hint") {
+            ++summary.operator_review_hint_count;
+        }
+        if (item.default_off && !item.default_enabled) {
+            ++summary.default_off_count;
+        }
+        if (item.vlm_provider_call_performed || item.vlm_runtime_call_performed) {
+            ++summary.provider_call_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV350VlmAssistedOpsExplanationItemJson(
+    std::ostringstream& out,
+    const OpsV350VlmAssistedOpsExplanationItem& item) {
+    out << "{"
+        << "\"explanationId\":\"" << JsonEscape(item.explanation_id) << "\","
+        << "\"explanationType\":\"" << JsonEscape(item.explanation_type) << "\","
+        << "\"title\":\"" << JsonEscape(item.title) << "\","
+        << "\"sourceId\":\"" << JsonEscape(item.source_id) << "\","
+        << "\"eventId\":\"" << JsonEscape(item.event_id) << "\","
+        << "\"commandPlanRef\":\"" << JsonEscape(item.command_plan_ref) << "\","
+        << "\"commandPlanBlockerSummary\":\""
+        << JsonEscape(item.command_plan_blocker_summary) << "\","
+        << "\"incidentSourceRelationSummary\":\""
+        << JsonEscape(item.incident_source_relation_summary) << "\","
+        << "\"operatorReviewHint\":\""
+        << JsonEscape(item.operator_review_hint) << "\","
+        << "\"defaultOff\":" << (item.default_off ? "true" : "false") << ","
+        << "\"defaultEnabled\":"
+        << (item.default_enabled ? "true" : "false") << ","
+        << "\"runtimeOptInRequired\":"
+        << (item.runtime_opt_in_required ? "true" : "false") << ","
+        << "\"vlmProviderCallPerformed\":"
+        << (item.vlm_provider_call_performed ? "true" : "false") << ","
+        << "\"vlmRuntimeCallPerformed\":"
+        << (item.vlm_runtime_call_performed ? "true" : "false") << ","
+        << "\"rawVlmPromptIncluded\":false,"
+        << "\"rawProviderResponseIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"evidenceRefs\":";
+    AppendV340RecoveryCandidateStringListJson(out, item.evidence_refs);
+    out << "}";
+}
+
+void AppendV350VlmAssistedOpsExplanationSummaryJson(
+    std::ostringstream& out,
+    const OpsV350VlmAssistedOpsExplanationSummary& summary) {
+    out << "{"
+        << "\"explanationCount\":" << summary.explanation_count << ","
+        << "\"commandPlanBlockerCount\":"
+        << summary.command_plan_blocker_count << ","
+        << "\"incidentSourceRelationCount\":"
+        << summary.incident_source_relation_count << ","
+        << "\"operatorReviewHintCount\":"
+        << summary.operator_review_hint_count << ","
+        << "\"defaultOffCount\":" << summary.default_off_count << ","
+        << "\"providerCallCount\":" << summary.provider_call_count
+        << "}";
+}
+
+std::string OpsV350VlmAssistedOpsExplanationJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v350-vlm-assisted-explanation.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto explanations =
+        BuildV350VlmAssistedOpsExplanationItems(context, commandPlanCandidates);
+    const auto summary = BuildV350VlmAssistedOpsExplanationSummary(explanations);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v350-vlm-assisted-explanation.v1\","
+        << "\"status\":\"vlm-assisted-ops-explanation\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"commandPlanRoute\":\"/ops/api/live-operations/command-plan\","
+        << "\"graphRoute\":\"/ops/api/live-operations/graph\","
+        << "\"defaultOff\":true,"
+        << "\"defaultEnabled\":false,"
+        << "\"runtimeOptInRequired\":true,"
+        << "\"vlmAssistedOpsExplanationSummary\":";
+    AppendV350VlmAssistedOpsExplanationSummaryJson(out, summary);
+    out << ",\"vlmAssistedOpsExplanations\":[";
+    for (std::size_t i = 0; i < explanations.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV350VlmAssistedOpsExplanationItemJson(out, explanations[i]);
+    }
+    out << "],\"explanationPolicy\":{"
+        << "\"defaultOff\":true,"
+        << "\"defaultEnabled\":false,"
+        << "\"runtimeOptInRequired\":true,"
+        << "\"summaryMode\":\"deterministic-read-model\","
+        << "\"commandPlanBlockerSummary\":\"blockedReason and draft-only command plan context\","
+        << "\"incidentSourceRelationSummary\":\"sourceHealth and eventRecord relation summary\","
+        << "\"operatorReviewHint\":\"operator review hint only; no automatic action\""
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"defaultOff\":true,"
+        << "\"defaultEnabled\":false,"
+        << "\"runtimeOptInRequired\":true,"
+        << "\"vlmProviderCallPerformed\":false,"
+        << "\"vlmRuntimeCallPerformed\":false,"
+        << "\"rawVlmPromptIncluded\":false,"
+        << "\"rawProviderResponseIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"commandPlanExecuted\":false,"
+        << "\"operatorReviewWritePerformed\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 std::string OpsAuditSearchIndexJson() {
     return "{\"caseInsensitive\":true,"
            "\"filters\":[\"area\",\"actor\",\"user\",\"target\",\"action\",\"q\",\"fromMs\",\"toMs\"],"
@@ -27214,6 +27496,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV350FieldEvidenceIntakeJson(source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/live-operations/vlm-assisted-explanation") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV350VlmAssistedOpsExplanationJson(config, source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

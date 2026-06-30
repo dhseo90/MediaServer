@@ -635,7 +635,8 @@ std::string ProductUiCss() {
     body.ops-shell .ops-command-workspace .ops-export-bundle-list,
     body.ops-shell .ops-command-workspace .ops-handoff-map-list,
     body.ops-shell .ops-command-workspace .ops-field-evidence-intake-list,
-    body.ops-shell .ops-command-workspace .ops-field-evidence-condition-list {
+    body.ops-shell .ops-command-workspace .ops-field-evidence-condition-list,
+    body.ops-shell .ops-command-workspace .ops-vlm-assisted-explanation-list {
       min-width: 0;
     }
     body.ops-shell .ops-channels-workspace {
@@ -1203,7 +1204,8 @@ std::string ProductUiCss() {
     .ops-export-bundle-list,
     .ops-handoff-map-list,
     .ops-field-evidence-intake-list,
-    .ops-field-evidence-condition-list {
+    .ops-field-evidence-condition-list,
+    .ops-vlm-assisted-explanation-list {
       display: grid;
       gap: var(--space-2);
     }
@@ -1214,7 +1216,8 @@ std::string ProductUiCss() {
     .ops-command-flow-card,
     .ops-command-ledger-entry,
     .ops-handoff-map-entry,
-    .ops-field-evidence-intake-entry {
+    .ops-field-evidence-intake-entry,
+    .ops-vlm-assisted-explanation-entry {
       min-width: 0;
       margin: 0;
       padding: 11px 12px;
@@ -1236,6 +1239,9 @@ std::string ProductUiCss() {
     .ops-field-evidence-intake-entry strong,
     .ops-field-evidence-intake-entry span,
     .ops-field-evidence-intake-entry small,
+    .ops-vlm-assisted-explanation-entry strong,
+    .ops-vlm-assisted-explanation-entry span,
+    .ops-vlm-assisted-explanation-entry small,
     .ops-command-boundary {
       min-width: 0;
       overflow-wrap: anywhere;
@@ -1243,7 +1249,8 @@ std::string ProductUiCss() {
     .ops-command-flow-card strong,
     .ops-command-ledger-entry strong,
     .ops-handoff-map-entry strong,
-    .ops-field-evidence-intake-entry strong {
+    .ops-field-evidence-intake-entry strong,
+    .ops-vlm-assisted-explanation-entry strong {
       font-size: 13px;
       line-height: 1.2;
     }
@@ -1255,10 +1262,16 @@ std::string ProductUiCss() {
     .ops-handoff-map-entry small,
     .ops-field-evidence-intake-entry span,
     .ops-field-evidence-intake-entry small,
+    .ops-vlm-assisted-explanation-entry span,
+    .ops-vlm-assisted-explanation-entry small,
     .ops-command-boundary {
       color: var(--color-muted);
       font-size: 12px;
       line-height: 1.35;
+    }
+    .ops-vlm-explanation-boundary {
+      border-style: dashed;
+      background: color-mix(in srgb, var(--color-surface) 90%, transparent);
     }
     .ops-command-flow-card.warn {
       border-color: color-mix(in srgb, var(--color-warning) 56%, var(--color-border));

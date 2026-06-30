@@ -334,6 +334,8 @@ Usage:
                  v3.5.0 Step 10 Operations Export Bundle and Handoff Map release-safe 경계를 검증합니다.
   verify-v350-field-evidence-intake
                  v3.5.0 Step 11 Field Evidence Intake redacted/not-run 경계를 검증합니다.
+  verify-v350-vlm-assisted-ops-explanation
+                 v3.5.0 Step 12 VLM-assisted Ops Explanation default-off 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -1582,6 +1584,10 @@ case "${cmd}" in
   verify-v350-field-evidence-intake)
     require_internal verify_v350_field_evidence_intake.mjs
     exec "${INTERNAL_DIR}/verify_v350_field_evidence_intake.mjs" "$@"
+    ;;
+  verify-v350-vlm-assisted-ops-explanation)
+    require_internal verify_v350_vlm_assisted_ops_explanation.mjs
+    exec "${INTERNAL_DIR}/verify_v350_vlm_assisted_ops_explanation.mjs" "$@"
     ;;
   verify-v290-final-stabilization-run)
     require_internal verify_v290_final_stabilization_run.mjs
