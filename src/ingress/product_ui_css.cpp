@@ -628,8 +628,11 @@ std::string ProductUiCss() {
       gap: var(--space-3);
     }
     body.ops-shell .ops-command-workspace .ops-command-workspace-detail-grid {
-      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-columns: repeat(3, minmax(0, 1fr));
       gap: var(--space-3);
+    }
+    body.ops-shell .ops-command-workspace .ops-command-ledger-list {
+      min-width: 0;
     }
     body.ops-shell .ops-channels-workspace {
       display: grid;
@@ -1191,7 +1194,8 @@ std::string ProductUiCss() {
     }
     .ops-command-flow-grid,
     .ops-command-plan-list,
-    .ops-command-impact-list {
+    .ops-command-impact-list,
+    .ops-command-ledger-list {
       display: grid;
       gap: var(--space-2);
     }
@@ -1199,7 +1203,8 @@ std::string ProductUiCss() {
       grid-template-columns: repeat(5, minmax(0, 1fr));
       align-items: stretch;
     }
-    .ops-command-flow-card {
+    .ops-command-flow-card,
+    .ops-command-ledger-entry {
       min-width: 0;
       margin: 0;
       padding: 11px 12px;
@@ -1212,16 +1217,22 @@ std::string ProductUiCss() {
     .ops-command-flow-card strong,
     .ops-command-flow-card span,
     .ops-command-flow-card small,
+    .ops-command-ledger-entry strong,
+    .ops-command-ledger-entry span,
+    .ops-command-ledger-entry small,
     .ops-command-boundary {
       min-width: 0;
       overflow-wrap: anywhere;
     }
-    .ops-command-flow-card strong {
+    .ops-command-flow-card strong,
+    .ops-command-ledger-entry strong {
       font-size: 13px;
       line-height: 1.2;
     }
     .ops-command-flow-card span,
     .ops-command-flow-card small,
+    .ops-command-ledger-entry span,
+    .ops-command-ledger-entry small,
     .ops-command-boundary {
       color: var(--color-muted);
       font-size: 12px;

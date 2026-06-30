@@ -2768,6 +2768,12 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
               <div class="empty">viewer-safe 영향 요약을 기다립니다.</div>
             </div>
           </div>
+          <div>
+            <h4>Drill Ledger</h4>
+            <div id="dashCommandWorkspaceLedgerList" class="ops-command-ledger-list" data-v350-drill-run-ledger="media-server.ops.v350-drill-run-ledger.v1">
+              <div class="empty">drill run id, operator note, blocker, evidence refs, previous run diff를 기다립니다.</div>
+            </div>
+          </div>
         </div>
         <div id="dashCommandWorkspaceBoundary" class="ops-command-boundary">
           commandPlanExecuted=false · source/view/rule write=false · client/viewer raw material=false
@@ -16103,6 +16109,258 @@ std::string OpsV350StagedChangePlanImpactPreviewJson(
     return out.str();
 }
 
+struct OpsV350DrillRunLedgerEntry {
+    std::string drill_run_id;
+    std::string source_id;
+    std::string staged_plan_id;
+    std::string command_plan_candidate_id;
+    std::string status{"projected"};
+    std::string operator_note{"operator-note-required"};
+    std::string blocker{"operator-approval-required"};
+    std::vector<std::string> evidence_refs;
+    std::string previous_run_id;
+    std::string compared_to_run_id;
+    std::string plan_comparison{"planComparison pending"};
+    std::string diff_from_previous_run{"baseline"};
+    std::vector<std::string> changed_fields;
+    int accumulated_run_count{1};
+};
+
+struct OpsV350DrillRunLedgerSummary {
+    int run_count{0};
+    int blocked_count{0};
+    int evidence_ref_count{0};
+    int comparison_count{0};
+    int changed_field_count{0};
+};
+
+const OpsV350CommandPlanCandidate* V350CommandCandidateForStagedPlan(
+    const std::vector<OpsV350CommandPlanCandidate>& commandPlanCandidates,
+    const OpsV350StagedChangePlan& plan) {
+    const std::string expected_plan_id_prefix = "staged:";
+    std::string candidate_id = plan.plan_id;
+    if (candidate_id.rfind(expected_plan_id_prefix, 0) == 0) {
+        candidate_id = candidate_id.substr(expected_plan_id_prefix.size());
+    }
+    for (const auto& candidate : commandPlanCandidates) {
+        if (candidate.candidate_id == candidate_id) {
+            return &candidate;
+        }
+    }
+    for (const auto& candidate : commandPlanCandidates) {
+        if (candidate.source_id == plan.source_id &&
+            candidate.candidate_type == plan.candidate_type) {
+            return &candidate;
+        }
+    }
+    return nullptr;
+}
+
+std::vector<OpsV350DrillRunLedgerEntry> BuildV350DrillRunLedgerEntries(
+    const OpsV350LiveOperationsGraphContext& context,
+    const std::vector<OpsV350CommandPlanCandidate>& commandPlanCandidates,
+    const std::vector<OpsV350StagedChangePlan>& stagedChangePlans) {
+    // BuildV350LiveOperationsGraphContext, BuildV350CommandPlanCandidates, and
+    // BuildV350StagedChangePlans feed this append-only ledger projection. The
+    // operator-note-required value is displayed but not persisted.
+    (void)context;
+    std::vector<OpsV350DrillRunLedgerEntry> ledgerEntries;
+    int source_run_index = 0;
+    for (const auto& plan : stagedChangePlans) {
+        const OpsV350CommandPlanCandidate* candidate =
+            V350CommandCandidateForStagedPlan(commandPlanCandidates, plan);
+        const std::string source_key = plan.source_id.empty() ? "unknown-source" : plan.source_id;
+        const std::string previous_run_id =
+            "drill-run:" + source_key + ":previous-" + std::to_string(source_run_index + 1);
+        const std::string current_run_id =
+            "drill-run:" + source_key + ":current-" + std::to_string(source_run_index + 1);
+
+        OpsV350DrillRunLedgerEntry previous;
+        previous.drill_run_id = previous_run_id;
+        previous.source_id = source_key;
+        previous.staged_plan_id = plan.plan_id;
+        previous.command_plan_candidate_id = candidate == nullptr ? "" : candidate->candidate_id;
+        previous.status = "previous-observed";
+        previous.operator_note = "previous operator note retained for planComparison";
+        previous.blocker = "previous-blocker-observed";
+        previous.evidence_refs = {
+            "/ops/api/source-registry/continuity-drill/contract",
+            "/ops/api/live-operations/graph",
+        };
+        previous.plan_comparison = "previous run baseline for comparedToRunId";
+        previous.diff_from_previous_run = "baseline previous run";
+        previous.changed_fields = {"baseline"};
+        previous.accumulated_run_count = 1;
+        ledgerEntries.push_back(std::move(previous));
+
+        OpsV350DrillRunLedgerEntry current;
+        current.drill_run_id = current_run_id;
+        current.source_id = source_key;
+        current.staged_plan_id = plan.plan_id;
+        current.command_plan_candidate_id = candidate == nullptr ? "" : candidate->candidate_id;
+        current.status = plan.apply_blocked ? "blocked" : "ready";
+        current.operator_note =
+            "operator-note-required before command plan execution; review blocker and evidence refs";
+        current.blocker = plan.blockers.empty()
+                              ? "operator-approval-required"
+                              : JoinV340ApprovalRecoveryStrings(plan.blockers, ", ");
+        current.evidence_refs = {
+            "/ops/api/live-operations/graph",
+            "/ops/api/live-operations/command-plan",
+            "/ops/api/live-operations/staged-change-plan-impact-preview",
+            plan.plan_id,
+        };
+        if (candidate != nullptr) {
+            current.evidence_refs.push_back(candidate->candidate_id);
+        }
+        current.previous_run_id = previous_run_id;
+        current.compared_to_run_id = previous_run_id;
+        current.plan_comparison =
+            "planComparison compares staged plan blockers and evidence refs to previous run";
+        current.diff_from_previous_run =
+            "blockerDelta=" + current.blocker + "; evidenceRefDelta=graph/command/staged refs";
+        current.changed_fields = {"blockerDelta", "evidenceRefDelta", "planComparison"};
+        current.accumulated_run_count = 2;
+        ledgerEntries.push_back(std::move(current));
+
+        ++source_run_index;
+        if (ledgerEntries.size() >= 24U) {
+            break;
+        }
+    }
+    if (ledgerEntries.empty()) {
+        OpsV350DrillRunLedgerEntry empty;
+        empty.drill_run_id = "drill-run:pending:current-1";
+        empty.source_id = "pending-source";
+        empty.status = "not-run";
+        empty.operator_note = "operator-note-required after a staged drill plan is available";
+        empty.blocker = "missing-staged-plan";
+        empty.evidence_refs = {"/ops/api/live-operations/graph", "/ops/api/live-operations/command-plan"};
+        empty.plan_comparison = "planComparison pending because no staged plan exists";
+        empty.diff_from_previous_run = "no previous run to compare";
+        empty.changed_fields = {"missingStagedPlan"};
+        ledgerEntries.push_back(std::move(empty));
+    }
+    return ledgerEntries;
+}
+
+OpsV350DrillRunLedgerSummary BuildV350DrillRunLedgerSummary(
+    const std::vector<OpsV350DrillRunLedgerEntry>& ledgerEntries) {
+    OpsV350DrillRunLedgerSummary summary;
+    summary.run_count = static_cast<int>(ledgerEntries.size());
+    for (const auto& entry : ledgerEntries) {
+        if (!entry.blocker.empty() && entry.blocker != "none") {
+            ++summary.blocked_count;
+        }
+        summary.evidence_ref_count += static_cast<int>(entry.evidence_refs.size());
+        if (!entry.previous_run_id.empty() || !entry.compared_to_run_id.empty()) {
+            ++summary.comparison_count;
+        }
+        summary.changed_field_count += static_cast<int>(entry.changed_fields.size());
+    }
+    return summary;
+}
+
+void AppendV350DrillRunLedgerSummaryJson(
+    std::ostringstream& out,
+    const OpsV350DrillRunLedgerSummary& summary) {
+    out << "{"
+        << "\"runCount\":" << summary.run_count << ","
+        << "\"blockedCount\":" << summary.blocked_count << ","
+        << "\"evidenceRefCount\":" << summary.evidence_ref_count << ","
+        << "\"comparisonCount\":" << summary.comparison_count << ","
+        << "\"changedFieldCount\":" << summary.changed_field_count
+        << "}";
+}
+
+void AppendV350DrillRunLedgerEntryJson(
+    std::ostringstream& out,
+    const OpsV350DrillRunLedgerEntry& entry) {
+    out << "{"
+        << "\"drillRunId\":\"" << JsonEscape(entry.drill_run_id) << "\","
+        << "\"sourceId\":\"" << JsonEscape(entry.source_id) << "\","
+        << "\"stagedPlanId\":\"" << JsonEscape(entry.staged_plan_id) << "\","
+        << "\"commandPlanCandidateId\":\""
+        << JsonEscape(entry.command_plan_candidate_id) << "\","
+        << "\"status\":\"" << JsonEscape(entry.status) << "\","
+        << "\"operatorNote\":\"" << JsonEscape(entry.operator_note) << "\","
+        << "\"blocker\":\"" << JsonEscape(entry.blocker) << "\","
+        << "\"evidenceRefs\":";
+    AppendV340RecoveryCandidateStringListJson(out, entry.evidence_refs);
+    out << ",\"previousRunId\":\"" << JsonEscape(entry.previous_run_id) << "\","
+        << "\"comparedToRunId\":\"" << JsonEscape(entry.compared_to_run_id) << "\","
+        << "\"planComparison\":\"" << JsonEscape(entry.plan_comparison) << "\","
+        << "\"diffFromPreviousRun\":\""
+        << JsonEscape(entry.diff_from_previous_run) << "\","
+        << "\"changedFields\":";
+    AppendV340RecoveryCandidateStringListJson(out, entry.changed_fields);
+    out << ",\"accumulatedRunCount\":" << entry.accumulated_run_count << "}";
+}
+
+std::string OpsV350DrillRunLedgerPlanComparisonJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v350-drill-run-ledger.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto stagedChangePlans =
+        BuildV350StagedChangePlans(context, commandPlanCandidates);
+    const auto ledgerEntries =
+        BuildV350DrillRunLedgerEntries(context, commandPlanCandidates, stagedChangePlans);
+    const auto summary = BuildV350DrillRunLedgerSummary(ledgerEntries);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v350-drill-run-ledger.v1\","
+        << "\"status\":\"drill-run-ledger-plan-comparison\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"graphRoute\":\"/ops/api/live-operations/graph\","
+        << "\"commandPlanRoute\":\"/ops/api/live-operations/command-plan\","
+        << "\"stagedPlanRoute\":\"/ops/api/live-operations/staged-change-plan-impact-preview\","
+        << "\"drillRunLedgerSummary\":";
+    AppendV350DrillRunLedgerSummaryJson(out, summary);
+    out << ",\"drillRunLedgerEntries\":[";
+    for (std::size_t i = 0; i < ledgerEntries.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV350DrillRunLedgerEntryJson(out, ledgerEntries[i]);
+    }
+    out << "],\"planComparison\":{"
+        << "\"mode\":\"previous-run-diff\","
+        << "\"previousRunIdField\":\"previousRunId\","
+        << "\"comparedToRunIdField\":\"comparedToRunId\","
+        << "\"diffFields\":[\"blockerDelta\",\"evidenceRefDelta\",\"planComparison\"]"
+        << "},\"contractPolicy\":{"
+        << "\"appendOnlyLedgerProjection\":true,"
+        << "\"operatorNote\":\"display-only-not-persisted\","
+        << "\"blocker\":\"derived-from-staged-plan\","
+        << "\"evidenceRefs\":\"redacted-route-and-plan-ids-only\""
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"appendOnlyLedgerProjection\":true,"
+        << "\"drillRunWritePerformed\":false,"
+        << "\"operatorNoteWritePerformed\":false,"
+        << "\"commandPlanExecuted\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"rawDiagnosticJsonIncluded\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 std::string OpsAuditSearchIndexJson() {
     return "{\"caseInsensitive\":true,"
            "\"filters\":[\"area\",\"actor\",\"user\",\"target\",\"action\",\"q\",\"fromMs\",\"toMs\"],"
@@ -25933,6 +26191,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV350StagedChangePlanImpactPreviewJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/live-operations/drill-run-ledger") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV350DrillRunLedgerPlanComparisonJson(config, source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

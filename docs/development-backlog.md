@@ -91,7 +91,7 @@ license/provenance/privacy/운영 검토 결과:
 | 4 | v3.5.0 (4) Incident-to-Command Handoff | P0 | 완료 | `/ops/events` 사건 detail에서 source 원인, drill 후보, command plan 초안으로 이어지는 handoff |
 | 5 | v3.5.0 (5) Staged Change Plan and Impact Preview | P0 | 완료 | source/view/rule follow-up 변경 후보를 적용 전 staging plan으로 만들고 영향도와 blocker 표시 |
 | 6 | v3.5.0 (6) Ops Command Workspace UI | P1 | 완료 | `/ops`에서 incident, source, drill, staged plan, client impact를 한 흐름으로 탐색하는 command workspace |
-| 7 | v3.5.0 (7) Drill Run Ledger and Plan Comparison | P1 | 예정 | drill run id, operator note, blocker, evidence refs, 이전 run 대비 차이를 누적 표시 |
+| 7 | v3.5.0 (7) Drill Run Ledger and Plan Comparison | P1 | 완료 | drill run id, operator note, blocker, evidence refs, 이전 run 대비 차이를 누적 표시 |
 | 8 | v3.5.0 (8) Client Impact Forecast | P1 | 예정 | 특정 source/view/command plan이 client live/dashboard/event digest에 주는 영향을 viewer-safe summary로 계산 |
 | 9 | v3.5.0 (9) Client-safe Operations Notice | P1 | 예정 | viewer/client에 maintenance, degraded, recovering, available 상태와 timeline hint만 노출 |
 | 10 | v3.5.0 (10) Operations Export Bundle and Handoff Map | P1 | 예정 | command plan, drill ledger, field evidence, client impact forecast를 release-safe export bundle과 handoff map으로 조합 |
@@ -157,6 +157,17 @@ action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁�
 - `scripts/internal/verify_v350_ops_command_workspace_ui.mjs`, `server.sh`: `./server.sh verify-v350-ops-command-workspace-ui` 명령을 추가해 dashboard shell, renderer/API 연결, CSS, client/viewer 비노출, docs/inventory/release records/server dispatch 연결을 검증합니다.
 - 검증: 최초 `node scripts/internal/verify_v350_ops_command_workspace_ui.mjs`는 Step 6 UI shell/renderer/CSS/docs/inventory/server dispatch가 아직 없어 `pass=1 fail=8`로 기대 실패했습니다. 구현 후 `./server.sh verify-v350-ops-command-workspace-ui`는 `pass=9 fail=0`으로 통과했습니다. `./server.sh build`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `git diff --check`도 통과했습니다. `verify-ops-client-ui --browser-mode static`은 서버 미기동/Node sandbox localhost fetch/auth-on login redirect 전제를 확인한 뒤 `MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_AUTH_MODE=off` 검증 서버에서 권한 실행해 route/API/redaction smoke `통과 28/실패 0`으로 재검증했습니다.
 - 완료 경계: 이번 Step 6은 `/ops` command workspace UI와 static verifier 연결입니다. Drill Run Ledger and Plan Comparison 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata evidence도 아닙니다.
+
+## v3.5.0 Step 7 개발 기록
+
+- 범위: P1 `v3.5.0 (7) Drill Run Ledger and Plan Comparison`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV350DrillRunLedgerPlanComparisonJson`과 `GET /ops/api/live-operations/drill-run-ledger` route를 추가해 drill run id, operator note, blocker, evidence refs, 이전 run 대비 차이를 append-only/read-only projection으로 누적 표시합니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV350OpsCommandWorkspace`와 `refreshV350OpsCommandWorkspace`가 drill ledger read model을 함께 읽고 `/ops` dashboard command workspace 안에 `dashCommandWorkspaceLedgerList`로 planComparison, previousRunId, diffFromPreviousRun, evidenceRefs를 표시합니다.
+- `src/ingress/product_ui_css.cpp`: `.ops-command-ledger-list`, `.ops-command-ledger-entry` 스타일을 추가해 ledger 항목이 desktop/mobile command workspace에서 안정적으로 쌓이게 했습니다.
+- `docs/project-feature-test-inventory.md`: `UI-082`, `SAFE-141`, `OPS-108`을 추가하고 Step 7을 `verify-v350-drill-run-ledger-plan-comparison`, `verify-ops-client-ui`에 연결했습니다.
+- `scripts/internal/verify_v350_drill_run_ledger_plan_comparison.mjs`, `server.sh`: `./server.sh verify-v350-drill-run-ledger-plan-comparison` 명령을 추가해 drill run ledger API/UI, previous run diff, redacted evidence refs, docs/inventory/release records/server dispatch 연결을 검증합니다.
+- 검증: 최초 `node scripts/internal/verify_v350_drill_run_ledger_plan_comparison.mjs`는 Step 7 server/API/UI/docs/inventory/server dispatch가 아직 없어 `pass=1 fail=11`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v350 Step 7 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 7은 drill run ledger와 plan comparison read model/UI/verifier 연결입니다. Client Impact Forecast 완료 evidence가 아닙니다. drill run write/operator note write/command execution, source/view/rule/EventRecord/Ops audit/client/media mutation, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata evidence가 아닙니다.
 
 ## 현재 source roadmap: v3.4.0 Operations Continuity Drill Workspace
 
