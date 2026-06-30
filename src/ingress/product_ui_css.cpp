@@ -628,12 +628,14 @@ std::string ProductUiCss() {
       gap: var(--space-3);
     }
     body.ops-shell .ops-command-workspace .ops-command-workspace-detail-grid {
-      grid-template-columns: repeat(4, minmax(0, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: var(--space-3);
     }
     body.ops-shell .ops-command-workspace .ops-command-ledger-list,
     body.ops-shell .ops-command-workspace .ops-export-bundle-list,
-    body.ops-shell .ops-command-workspace .ops-handoff-map-list {
+    body.ops-shell .ops-command-workspace .ops-handoff-map-list,
+    body.ops-shell .ops-command-workspace .ops-field-evidence-intake-list,
+    body.ops-shell .ops-command-workspace .ops-field-evidence-condition-list {
       min-width: 0;
     }
     body.ops-shell .ops-channels-workspace {
@@ -1199,7 +1201,9 @@ std::string ProductUiCss() {
     .ops-command-impact-list,
     .ops-command-ledger-list,
     .ops-export-bundle-list,
-    .ops-handoff-map-list {
+    .ops-handoff-map-list,
+    .ops-field-evidence-intake-list,
+    .ops-field-evidence-condition-list {
       display: grid;
       gap: var(--space-2);
     }
@@ -1209,7 +1213,8 @@ std::string ProductUiCss() {
     }
     .ops-command-flow-card,
     .ops-command-ledger-entry,
-    .ops-handoff-map-entry {
+    .ops-handoff-map-entry,
+    .ops-field-evidence-intake-entry {
       min-width: 0;
       margin: 0;
       padding: 11px 12px;
@@ -1228,13 +1233,17 @@ std::string ProductUiCss() {
     .ops-handoff-map-entry strong,
     .ops-handoff-map-entry span,
     .ops-handoff-map-entry small,
+    .ops-field-evidence-intake-entry strong,
+    .ops-field-evidence-intake-entry span,
+    .ops-field-evidence-intake-entry small,
     .ops-command-boundary {
       min-width: 0;
       overflow-wrap: anywhere;
     }
     .ops-command-flow-card strong,
     .ops-command-ledger-entry strong,
-    .ops-handoff-map-entry strong {
+    .ops-handoff-map-entry strong,
+    .ops-field-evidence-intake-entry strong {
       font-size: 13px;
       line-height: 1.2;
     }
@@ -1244,6 +1253,8 @@ std::string ProductUiCss() {
     .ops-command-ledger-entry small,
     .ops-handoff-map-entry span,
     .ops-handoff-map-entry small,
+    .ops-field-evidence-intake-entry span,
+    .ops-field-evidence-intake-entry small,
     .ops-command-boundary {
       color: var(--color-muted);
       font-size: 12px;

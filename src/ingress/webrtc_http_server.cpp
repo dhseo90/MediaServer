@@ -2780,6 +2780,12 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
               <div class="empty">command plan refs, drill ledger refs, field evidence refs, client impact refs 기반 Handoff Map을 기다립니다.</div>
             </div>
           </div>
+          <div>
+            <h4>Field Evidence Intake</h4>
+            <div id="dashCommandWorkspaceFieldEvidenceIntake" class="ops-field-evidence-intake-list ops-field-evidence-condition-list" data-v350-field-evidence-intake="media-server.ops.v350-field-evidence-intake.v1">
+              <div class="empty">ONVIF, external WHEP/TURN, cloud/VLM provider의 redacted field evidence와 execution conditions, not-run 상태를 기다립니다.</div>
+            </div>
+          </div>
         </div>
         <div id="dashCommandWorkspaceBoundary" class="ops-command-boundary">
           commandPlanExecuted=false · source/view/rule write=false · client/viewer raw material=false
@@ -17000,6 +17006,324 @@ std::string OpsV350OperationsExportBundleHandoffMapJson(
     return out.str();
 }
 
+struct OpsV350FieldEvidenceExecutionCondition {
+    std::string condition_id;
+    std::string evidence_id;
+    std::string bridge_kind;
+    std::string condition_kind;
+    std::string condition_status{"missing"};
+    std::string execution_status{"not-run"};
+    std::string summary;
+    bool endpoint_required{false};
+    bool credential_required{false};
+    bool operator_approval_required{false};
+    bool field_smoke_executed{false};
+};
+
+struct OpsV350FieldEvidenceIntakeRecord {
+    std::string evidence_id;
+    std::string bridge_kind;
+    std::string label;
+    std::string evidence_intake_status{"condition-gated"};
+    std::string execution_status{"not-run"};
+    std::string field_smoke_status{"field-smoke-needed"};
+    std::string not_run_reason;
+    std::string redacted_field_evidence;
+    std::string result_summary;
+    bool endpoint_required{true};
+    bool credential_required{true};
+    bool operator_approval_required{true};
+    bool field_smoke_executed{false};
+    std::vector<std::string> evidence_refs;
+};
+
+struct OpsV350FieldEvidenceIntakeSummary {
+    int evidence_record_count{0};
+    int execution_condition_count{0};
+    int not_run_count{0};
+    int condition_gated_count{0};
+    int redacted_count{0};
+    int field_smoke_needed_count{0};
+    int endpoint_required_count{0};
+    int credential_required_count{0};
+    int approval_required_count{0};
+};
+
+std::string V350FieldEvidenceNotRunReason(
+    const OpsV340FieldBridgeConditionGate& gate) {
+    if (gate.bridge_kind == "onvif-real-device") {
+        return "not-run: approved ONVIF real device endpoint, credential, and operator approval are required";
+    }
+    if (gate.bridge_kind == "external-whep-turn") {
+        return "not-run: approved external WHEP endpoint, TURN relay credential, and operator approval are required";
+    }
+    if (gate.bridge_kind == "real-cloud-vlm-provider") {
+        return "not-run: approved cloud/VLM provider endpoint, credential, and operator approval are required";
+    }
+    return "not-run: endpoint, credential, and operator approval are required before field smoke";
+}
+
+std::vector<OpsV350FieldEvidenceIntakeRecord> BuildV350FieldEvidenceIntakeRecords(
+    const std::vector<OpsV340FieldBridgeConditionGate>& fieldBridgeConditionGates) {
+    std::vector<OpsV350FieldEvidenceIntakeRecord> records;
+    for (const auto& gate : fieldBridgeConditionGates) {
+        OpsV350FieldEvidenceIntakeRecord record;
+        record.evidence_id = "field-evidence:" + gate.gate_key;
+        record.bridge_kind = gate.bridge_kind;
+        record.label = gate.label;
+        record.evidence_intake_status = "condition-gated";
+        record.execution_status = gate.execution_status;
+        record.field_smoke_status = gate.field_smoke_status;
+        record.not_run_reason = V350FieldEvidenceNotRunReason(gate);
+        record.redacted_field_evidence =
+            "redacted field evidence: no endpoint, credential, raw locator, raw provider response, or VLM prompt captured";
+        record.result_summary =
+            "condition-gated redacted field evidence only; field smoke remains not-run";
+        record.endpoint_required = gate.endpoint_required;
+        record.credential_required = gate.credential_required;
+        record.operator_approval_required = gate.operator_approval_required;
+        record.field_smoke_executed = gate.field_smoke_executed;
+        record.evidence_refs = {"/ops/api/source-registry/field-bridge-condition-gates",
+                                gate.gate_key + ":" + gate.execution_status};
+        records.push_back(std::move(record));
+    }
+    return records;
+}
+
+std::vector<OpsV350FieldEvidenceExecutionCondition> BuildV350FieldEvidenceExecutionConditions(
+    const std::vector<OpsV350FieldEvidenceIntakeRecord>& fieldEvidenceIntakeRecords) {
+    std::vector<OpsV350FieldEvidenceExecutionCondition> conditions;
+    for (const auto& record : fieldEvidenceIntakeRecords) {
+        conditions.push_back({record.evidence_id + ":endpoint",
+                              record.evidence_id,
+                              record.bridge_kind,
+                              "endpointRequired",
+                              record.endpoint_required ? "missing" : "not-required",
+                              record.execution_status,
+                              "field endpoint must be supplied out of band before field smoke",
+                              record.endpoint_required,
+                              false,
+                              false,
+                              record.field_smoke_executed});
+        conditions.push_back({record.evidence_id + ":credential",
+                              record.evidence_id,
+                              record.bridge_kind,
+                              "credentialRequired",
+                              record.credential_required ? "missing" : "not-required",
+                              record.execution_status,
+                              "credential material must stay out of band and is never captured in the intake",
+                              false,
+                              record.credential_required,
+                              false,
+                              record.field_smoke_executed});
+        conditions.push_back({record.evidence_id + ":operator-approval",
+                              record.evidence_id,
+                              record.bridge_kind,
+                              "operatorApprovalRequired",
+                              record.operator_approval_required ? "missing" : "not-required",
+                              record.execution_status,
+                              "operator approval is required before any real field smoke or provider call",
+                              false,
+                              false,
+                              record.operator_approval_required,
+                              record.field_smoke_executed});
+    }
+    return conditions;
+}
+
+OpsV350FieldEvidenceIntakeSummary BuildV350FieldEvidenceIntakeSummary(
+    const std::vector<OpsV350FieldEvidenceIntakeRecord>& records,
+    const std::vector<OpsV350FieldEvidenceExecutionCondition>& conditions) {
+    OpsV350FieldEvidenceIntakeSummary summary;
+    summary.evidence_record_count = static_cast<int>(records.size());
+    summary.execution_condition_count = static_cast<int>(conditions.size());
+    for (const auto& record : records) {
+        if (record.execution_status == "not-run") {
+            ++summary.not_run_count;
+        }
+        if (record.evidence_intake_status == "condition-gated") {
+            ++summary.condition_gated_count;
+        }
+        if (!record.redacted_field_evidence.empty()) {
+            ++summary.redacted_count;
+        }
+        if (record.field_smoke_status == "field-smoke-needed") {
+            ++summary.field_smoke_needed_count;
+        }
+        if (record.endpoint_required) {
+            ++summary.endpoint_required_count;
+        }
+        if (record.credential_required) {
+            ++summary.credential_required_count;
+        }
+        if (record.operator_approval_required) {
+            ++summary.approval_required_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV350FieldEvidenceExecutionConditionJson(
+    std::ostringstream& out,
+    const OpsV350FieldEvidenceExecutionCondition& condition) {
+    out << "{"
+        << "\"conditionId\":\"" << JsonEscape(condition.condition_id) << "\","
+        << "\"evidenceId\":\"" << JsonEscape(condition.evidence_id) << "\","
+        << "\"bridgeKind\":\"" << JsonEscape(condition.bridge_kind) << "\","
+        << "\"conditionKind\":\"" << JsonEscape(condition.condition_kind) << "\","
+        << "\"conditionStatus\":\"" << JsonEscape(condition.condition_status) << "\","
+        << "\"executionStatus\":\"" << JsonEscape(condition.execution_status) << "\","
+        << "\"summary\":\"" << JsonEscape(condition.summary) << "\","
+        << "\"endpointRequired\":" << (condition.endpoint_required ? "true" : "false") << ","
+        << "\"credentialRequired\":" << (condition.credential_required ? "true" : "false") << ","
+        << "\"operatorApprovalRequired\":"
+        << (condition.operator_approval_required ? "true" : "false") << ","
+        << "\"fieldSmokeExecuted\":"
+        << (condition.field_smoke_executed ? "true" : "false")
+        << "}";
+}
+
+void AppendV350FieldEvidenceIntakeRecordJson(
+    std::ostringstream& out,
+    const OpsV350FieldEvidenceIntakeRecord& record) {
+    out << "{"
+        << "\"evidenceId\":\"" << JsonEscape(record.evidence_id) << "\","
+        << "\"bridgeKind\":\"" << JsonEscape(record.bridge_kind) << "\","
+        << "\"label\":\"" << JsonEscape(record.label) << "\","
+        << "\"evidenceIntakeStatus\":\""
+        << JsonEscape(record.evidence_intake_status) << "\","
+        << "\"executionStatus\":\"" << JsonEscape(record.execution_status) << "\","
+        << "\"fieldSmokeStatus\":\"" << JsonEscape(record.field_smoke_status) << "\","
+        << "\"notRunReason\":\"" << JsonEscape(record.not_run_reason) << "\","
+        << "\"redactedFieldEvidence\":\""
+        << JsonEscape(record.redacted_field_evidence) << "\","
+        << "\"resultSummary\":\"" << JsonEscape(record.result_summary) << "\","
+        << "\"endpointRequired\":" << (record.endpoint_required ? "true" : "false") << ","
+        << "\"credentialRequired\":" << (record.credential_required ? "true" : "false") << ","
+        << "\"operatorApprovalRequired\":"
+        << (record.operator_approval_required ? "true" : "false") << ","
+        << "\"fieldSmokeExecuted\":"
+        << (record.field_smoke_executed ? "true" : "false") << ","
+        << "\"endpointUrlIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"providerMaterialIncluded\":false,"
+        << "\"rawTurnCredentialsIncluded\":false,"
+        << "\"rawVlmPromptIncluded\":false,"
+        << "\"rawProviderResponseIncluded\":false,"
+        << "\"clientViewerMaterialIncluded\":false,"
+        << "\"evidenceRefs\":";
+    AppendV340RecoveryCandidateStringListJson(out, record.evidence_refs);
+    out << "}";
+}
+
+void AppendV350FieldEvidenceIntakeSummaryJson(
+    std::ostringstream& out,
+    const OpsV350FieldEvidenceIntakeSummary& summary) {
+    out << "{"
+        << "\"evidenceRecordCount\":" << summary.evidence_record_count << ","
+        << "\"executionConditionCount\":" << summary.execution_condition_count << ","
+        << "\"notRunCount\":" << summary.not_run_count << ","
+        << "\"conditionGatedCount\":" << summary.condition_gated_count << ","
+        << "\"redactedCount\":" << summary.redacted_count << ","
+        << "\"fieldSmokeNeededCount\":" << summary.field_smoke_needed_count << ","
+        << "\"endpointRequiredCount\":" << summary.endpoint_required_count << ","
+        << "\"credentialRequiredCount\":" << summary.credential_required_count << ","
+        << "\"approvalRequiredCount\":" << summary.approval_required_count
+        << "}";
+}
+
+std::string OpsV350FieldEvidenceIntakeJson(
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    if (!source_health_snapshot.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v350-field-evidence-intake.v1\",\"error\":\"" +
+               JsonEscape(source_health_snapshot.error) + "\"}";
+    }
+
+    const auto fieldBridgeConditionGates = BuildV340FieldBridgeConditionGates();
+    const auto fieldEvidenceIntakeRecords =
+        BuildV350FieldEvidenceIntakeRecords(fieldBridgeConditionGates);
+    const auto fieldEvidenceExecutionConditions =
+        BuildV350FieldEvidenceExecutionConditions(fieldEvidenceIntakeRecords);
+    const auto summary = BuildV350FieldEvidenceIntakeSummary(
+        fieldEvidenceIntakeRecords, fieldEvidenceExecutionConditions);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v350-field-evidence-intake.v1\","
+        << "\"status\":\"field-evidence-intake\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"fieldBridgeConditionGateRoute\":\"/ops/api/source-registry/field-bridge-condition-gates\","
+        << "\"fieldEvidenceIntakeSummary\":";
+    AppendV350FieldEvidenceIntakeSummaryJson(out, summary);
+    out << ",\"fieldEvidenceExecutionConditions\":[";
+    for (std::size_t i = 0; i < fieldEvidenceExecutionConditions.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV350FieldEvidenceExecutionConditionJson(
+            out, fieldEvidenceExecutionConditions[i]);
+    }
+    out << "],\"fieldEvidenceIntakeRecords\":[";
+    for (std::size_t i = 0; i < fieldEvidenceIntakeRecords.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV350FieldEvidenceIntakeRecordJson(out, fieldEvidenceIntakeRecords[i]);
+    }
+    out << "],\"evidenceIntakePolicy\":{"
+        << "\"intakeStatus\":\"condition-gated\","
+        << "\"executionStatus\":\"not-run\","
+        << "\"redactedFieldEvidence\":\"redacted field evidence only\","
+        << "\"executionConditions\":\"endpointRequired, credentialRequired, operatorApprovalRequired\","
+        << "\"notRunReason\":\"field smoke/provider call requires approved endpoint, credential, and operator approval\","
+        << "\"onvifRealDevice\":\"not-run\","
+        << "\"externalWhepTurn\":\"not-run\","
+        << "\"realCloudVlmProvider\":\"not-run\""
+        << "},\"redactionPolicy\":{"
+        << "\"redacted\":true,"
+        << "\"endpointUrlIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"providerMaterialIncluded\":false,"
+        << "\"rawTurnCredentialsIncluded\":false,"
+        << "\"rawVlmPromptIncluded\":false,"
+        << "\"rawProviderResponseIncluded\":false,"
+        << "\"clientViewerMaterialIncluded\":false"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"fieldEvidencePersisted\":false,"
+        << "\"fieldEvidenceWritePerformed\":false,"
+        << "\"fieldSmokeExecuted\":false,"
+        << "\"endpointProbePerformed\":false,"
+        << "\"credentialProbePerformed\":false,"
+        << "\"onvifDeviceContacted\":false,"
+        << "\"externalWhepTurnContacted\":false,"
+        << "\"cloudProviderContacted\":false,"
+        << "\"vlmProviderCalled\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"artifactExportExecuted\":false,"
+        << "\"commandPlanExecuted\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 std::string OpsAuditSearchIndexJson() {
     return "{\"caseInsensitive\":true,"
            "\"filters\":[\"area\",\"actor\",\"user\",\"target\",\"action\",\"q\",\"fromMs\",\"toMs\"],"
@@ -26870,6 +27194,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV350OperationsExportBundleHandoffMapJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/live-operations/field-evidence-intake") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV350FieldEvidenceIntakeJson(source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }
