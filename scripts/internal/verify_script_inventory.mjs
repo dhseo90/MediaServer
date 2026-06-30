@@ -468,6 +468,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_v350_operations_command_plan_contract.mjs",
     "verify_v350_incident_to_command_handoff.mjs",
     "verify_v350_staged_change_plan_impact_preview.mjs",
+    "verify_v350_ops_command_workspace_ui.mjs",
     "verify_external_turn_whep_field_gate.mjs",
     "verify_vlm_runtime_status_ui.mjs",
     "verify_vlm_evaluation_result_workflow.mjs",

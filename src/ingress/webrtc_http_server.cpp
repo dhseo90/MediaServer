@@ -2743,6 +2743,36 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
           <div class="empty">최근 인시던트 단서를 불러오는 중입니다.</div>
         </div>
       </section>
+      <section class="section-card ops-workspace-wide ops-command-workspace" data-testid="ops-command-workspace" data-v350-command-workspace="media-server.ops.v350-command-workspace-ui.v1">
+        <div class="toolbar">
+          <div>
+            <h3>Command Workspace</h3>
+            <p>incident, source, drill, staged plan, client impact를 하나의 read-only 흐름으로 봅니다.</p>
+          </div>
+        </div>
+        <div id="dashCommandWorkspaceBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        <p id="dashCommandWorkspaceText">command workspace read model을 불러오는 중입니다.</p>
+        <div id="dashCommandWorkspaceFlow" class="ops-command-flow-grid" data-v350-command-workspace-flow="incident-source-drill-staged-plan-client-impact">
+          <div class="empty">incident/source/drill/staged plan/client impact 흐름을 기다립니다.</div>
+        </div>
+        <div class="grid ops-command-workspace-detail-grid">
+          <div>
+            <h4>Staged Plans</h4>
+            <div id="dashCommandWorkspacePlanList" class="ops-command-plan-list">
+              <div class="empty">staged plan 후보를 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Client Impact</h4>
+            <div id="dashCommandWorkspaceImpactList" class="ops-command-impact-list">
+              <div class="empty">viewer-safe 영향 요약을 기다립니다.</div>
+            </div>
+          </div>
+        </div>
+        <div id="dashCommandWorkspaceBoundary" class="ops-command-boundary">
+          commandPlanExecuted=false · source/view/rule write=false · client/viewer raw material=false
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide" data-testid="ops-runtime-operations-console">
         <div class="toolbar">
           <div>

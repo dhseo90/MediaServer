@@ -623,6 +623,14 @@ std::string ProductUiCss() {
     body.ops-shell .ops-workspace-wide {
       grid-column: 1 / -1;
     }
+    body.ops-shell .ops-command-workspace {
+      display: grid;
+      gap: var(--space-3);
+    }
+    body.ops-shell .ops-command-workspace .ops-command-workspace-detail-grid {
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: var(--space-3);
+    }
     body.ops-shell .ops-channels-workspace {
       display: grid;
       gap: var(--space-4);
@@ -1180,6 +1188,53 @@ std::string ProductUiCss() {
     .runtime-trend-card {
       display: grid;
       gap: var(--space-2);
+    }
+    .ops-command-flow-grid,
+    .ops-command-plan-list,
+    .ops-command-impact-list {
+      display: grid;
+      gap: var(--space-2);
+    }
+    .ops-command-flow-grid {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      align-items: stretch;
+    }
+    .ops-command-flow-card {
+      min-width: 0;
+      margin: 0;
+      padding: 11px 12px;
+      border: 1px solid var(--color-border);
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--color-surface-raised) 94%, transparent);
+      display: grid;
+      gap: 5px;
+    }
+    .ops-command-flow-card strong,
+    .ops-command-flow-card span,
+    .ops-command-flow-card small,
+    .ops-command-boundary {
+      min-width: 0;
+      overflow-wrap: anywhere;
+    }
+    .ops-command-flow-card strong {
+      font-size: 13px;
+      line-height: 1.2;
+    }
+    .ops-command-flow-card span,
+    .ops-command-flow-card small,
+    .ops-command-boundary {
+      color: var(--color-muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+    .ops-command-flow-card.warn {
+      border-color: color-mix(in srgb, var(--color-warning) 56%, var(--color-border));
+    }
+    .ops-command-boundary {
+      padding: 9px 10px;
+      border: 1px dashed var(--color-border);
+      border-radius: 8px;
+      background: color-mix(in srgb, var(--color-surface) 88%, transparent);
     }
     .runtime-sparkline {
       display: flex;
@@ -4486,6 +4541,8 @@ std::string ProductUiCss() {
       body.ops-shell .ops-workspace-action-grid,
       body.ops-shell .ops-workspace-diagnostic-grid,
       body.ops-shell .ops-workspace-event-grid,
+      body.ops-shell .ops-command-flow-grid,
+      body.ops-shell .ops-command-workspace .ops-command-workspace-detail-grid,
       body.ops-shell .ops-channels-main-grid,
       body.ops-shell .ops-users-access-grid,
       body.ops-shell .ops-vlm-containment-grid,

@@ -322,6 +322,8 @@ Usage:
                  v3.5.0 Step 4 Incident-to-Command Handoff selected detail 경계를 검증합니다.
   verify-v350-staged-change-plan-impact-preview
                  v3.5.0 Step 5 Staged Change Plan and Impact Preview staging-only 경계를 검증합니다.
+  verify-v350-ops-command-workspace-ui
+                 v3.5.0 Step 6 Ops Command Workspace UI read-only 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -534,6 +536,8 @@ Usage:
                  v3.5.0 Step 4 Incident-to-Command Handoff selected detail 경계를 검증합니다.
   verify-v350-staged-change-plan-impact-preview
                  v3.5.0 Step 5 Staged Change Plan and Impact Preview staging-only 경계를 검증합니다.
+  verify-v350-ops-command-workspace-ui
+                 v3.5.0 Step 6 Ops Command Workspace UI read-only 경계를 검증합니다.
   verify-actions-security
                  GitHub Actions workflow 권한과 action 사용 정책을 검증합니다.
   verify-ci-local-gate-parity
@@ -1540,6 +1544,10 @@ case "${cmd}" in
   verify-v350-staged-change-plan-impact-preview)
     require_internal verify_v350_staged_change_plan_impact_preview.mjs
     exec "${INTERNAL_DIR}/verify_v350_staged_change_plan_impact_preview.mjs" "$@"
+    ;;
+  verify-v350-ops-command-workspace-ui)
+    require_internal verify_v350_ops_command_workspace_ui.mjs
+    exec "${INTERNAL_DIR}/verify_v350_ops_command_workspace_ui.mjs" "$@"
     ;;
   verify-v290-final-stabilization-run)
     require_internal verify_v290_final_stabilization_run.mjs

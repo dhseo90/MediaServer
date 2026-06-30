@@ -564,6 +564,110 @@ void AppendOpsShellScript(std::ostringstream& out,
           '상세 조치는 /ops/users와 TURN/ICE 설정에서 수행합니다.'
         ], logs);
       };
+      let v350CommandWorkspaceState = {};
+      const v350CommandWorkspaceList = value => Array.isArray(value) ? value : [];
+      const v350CommandWorkspaceFirst = value => v350CommandWorkspaceList(value)[0] || {};
+      const v350CommandWorkspaceCard = (step, title, detail, evidence, tone = 'info') =>
+        `<p class="ops-command-flow-card ${escapeHtml(tone)}" data-command-workspace-step="${escapeHtml(step)}">
+          <strong>${escapeHtml(title)}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(evidence))}</small>
+        </p>`;
+      const renderV350OpsCommandWorkspace = (payload = {}) => {
+        const liveOperationsGraph = payload.liveOperationsGraph || {};
+        const commandPlan = payload.commandPlan || {};
+        const stagedPlan = payload.stagedPlan || {};
+        const reviews = payload.reviews || {};
+        const graphNodes = v350CommandWorkspaceList(liveOperationsGraph.graphNodes);
+        const commandPlanCandidates = v350CommandWorkspaceList(commandPlan.commandPlanCandidates);
+        const stagedChangePlans = v350CommandWorkspaceList(stagedPlan.stagedChangePlans);
+        const records = v350CommandWorkspaceList(reviews?.items || reviews?.reviews || reviews?.records?.records);
+        const selectedReview = v350CommandWorkspaceFirst(records);
+        const incidentCommandHandoff = selectedReview?.selectedDetail?.incidentCommandHandoff || selectedReview?.incidentCommandHandoff || {};
+        const sourceNode = graphNodes.find(node => String(node?.type || '').toLowerCase().includes('source')) || v350CommandWorkspaceFirst(graphNodes);
+        const drillNode = graphNodes.find(node => String(node?.type || '').toLowerCase().includes('drill')) || graphNodes.find(node => String(node?.label || '').toLowerCase().includes('drill')) || {};
+        const clientImpact = liveOperationsGraph.viewerSafeImpactSummary || liveOperationsGraph.liveOperationsGraphSummary?.clientImpactSummary || commandPlan.commandPlanSummary?.clientImpactSummary || stagedPlan.impactPreview?.summary || 'viewer-safe impact summary pending';
+        const stagedSummary = stagedPlan.stagedChangePlanSummary || {};
+        const commandSummary = commandPlan.commandPlanSummary || {};
+        const boundaryOk = liveOperationsGraph.boundaries?.readOnly === true &&
+          commandPlan.boundaries?.commandPlanExecuted === false &&
+          stagedPlan.boundaries?.commandPlanExecuted === false &&
+          stagedPlan.boundaries?.viewerClientExposureAdded === false;
+        v350CommandWorkspaceState = {
+          liveOperationsGraph,
+          commandPlan,
+          stagedPlan,
+          reviews,
+          graphRoute: payload.graphRoute || '/ops/api/live-operations/graph',
+          commandPlanRoute: payload.commandPlanRoute || '/ops/api/live-operations/command-plan',
+          stagedPlanRoute: payload.stagedPlanRoute || '/ops/api/live-operations/staged-change-plan-impact-preview',
+          reviewRoute: payload.reviewRoute || '/ops/api/events/reviews'
+        };
+        renderBadges('dashCommandWorkspaceBadges', [
+          { text: `incident ${records.length}`, tone: records.length > 0 ? '' : 'info' },
+          { text: `source ${graphNodes.length}` },
+          { text: `drill ${drillNode.id || incidentCommandHandoff.continuityDrillCandidate ? 'linked' : 'pending'}`, tone: drillNode.id || incidentCommandHandoff.continuityDrillCandidate ? '' : 'warn' },
+          { text: `plan ${commandPlanCandidates.length}` },
+          { text: `staged ${stagedChangePlans.length}` },
+          { text: boundaryOk ? 'read-only' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashCommandWorkspaceText',
+          payload.error
+            ? `command workspace 로드 실패: ${payload.error}`
+            : `incident ${records.length} · command plan ${commandSummary.candidateCount ?? commandPlanCandidates.length} · staged ${stagedSummary.planCount ?? stagedChangePlans.length}`);
+        const flow = document.getElementById('dashCommandWorkspaceFlow');
+        if (flow) {
+          flow.setAttribute('data-v350-command-workspace-flow', 'incident-source-drill-staged-plan-client-impact');
+          flow.innerHTML = [
+            v350CommandWorkspaceCard('incident', 'incident', selectedReview.eventId || selectedReview.id || incidentCommandHandoff.sourceCause || 'recent incident pending', incidentCommandHandoff.operatorNextAction || payload.reviewRoute || '/ops/api/events/reviews'),
+            v350CommandWorkspaceCard('source', 'source', opsSafeSourceLabel(sourceNode.sourceId || sourceNode.id || incidentCommandHandoff.sourceCause || 'source context pending'), sourceNode.summary || incidentCommandHandoff.sourceCauseEvidence || payload.graphRoute || '/ops/api/live-operations/graph'),
+            v350CommandWorkspaceCard('drill', 'continuity drill', incidentCommandHandoff.continuityDrillCandidate || drillNode.label || 'drill candidate pending', liveOperationsGraph.continuityDrillRoute || 'continuityDrill read model'),
+            v350CommandWorkspaceCard('staged-plan', 'staged plan', stagedChangePlans[0]?.planId || stagedChangePlans[0]?.candidateId || 'staged plan pending', stagedPlan.impactPreview?.summary || payload.stagedPlanRoute || '/ops/api/live-operations/staged-change-plan-impact-preview'),
+            v350CommandWorkspaceCard('client-impact', 'client impact', clientImpact, 'viewer-safe summary only')
+          ].join('');
+        }
+        const planList = document.getElementById('dashCommandWorkspacePlanList');
+        if (planList) {
+          planList.innerHTML = stagedChangePlans.length > 0
+            ? stagedChangePlans.slice(0, 4).map(plan => `<p class="ops-command-flow-card" data-v350-command-workspace-plan="${escapeHtml(plan.planId || plan.candidateId || 'staged-plan')}">
+                <strong>${escapeHtml(display(plan.planId || plan.candidateId || 'staged plan'))}</strong>
+                <span>${escapeHtml(display(plan.status || plan.readiness || 'staging-only'))}</span>
+                <small>${escapeHtml(display(v350CommandWorkspaceList(plan.blockers).join(', ') || stagedPlan.blockers?.join(', ') || 'operator approval required'))}</small>
+              </p>`).join('')
+            : '<div class="empty">staged plan 후보가 아직 없습니다.</div>';
+        }
+        const impactList = document.getElementById('dashCommandWorkspaceImpactList');
+        if (impactList) {
+          const impacts = [
+            liveOperationsGraph.viewerSafeImpactSummary,
+            commandPlan.commandPlanSummary?.viewerSafeSummary,
+            stagedPlan.impactPreview?.summary,
+            clientImpact
+          ].filter(Boolean);
+          impactList.innerHTML = [...new Set(impacts)].slice(0, 4)
+            .map((impact, index) => `<p class="ops-command-flow-card" data-v350-command-workspace-impact="${index + 1}">
+              <strong>viewer-safe impact</strong>
+              <span>${escapeHtml(display(impact))}</span>
+              <small>client live/dashboard/event digest raw material 없음</small>
+            </p>`).join('');
+        }
+        setText('dashCommandWorkspaceBoundary',
+          `graph=${display(v350CommandWorkspaceState.graphRoute)} · plan=${display(v350CommandWorkspaceState.commandPlanRoute)} · staged=${display(v350CommandWorkspaceState.stagedPlanRoute)} · commandPlanExecuted=${commandPlan.boundaries?.commandPlanExecuted === false ? 'false' : '확인 필요'} · viewerClientExposureAdded=${stagedPlan.boundaries?.viewerClientExposureAdded === false ? 'false' : '확인 필요'}`);
+      };
+      const refreshV350OpsCommandWorkspace = async ({
+        graphRoute = '/ops/api/live-operations/graph',
+        commandPlanRoute = '/ops/api/live-operations/command-plan',
+        stagedPlanRoute = '/ops/api/live-operations/staged-change-plan-impact-preview',
+        reviewRoute = '/ops/api/events/reviews'
+      } = {}) => {
+        const [liveOperationsGraph, commandPlan, stagedPlan, reviews] = await Promise.all([
+          requestJson(graphRoute).catch(error => ({ error: error.message, graphNodes: [], boundaries: {} })),
+          requestJson(commandPlanRoute).catch(error => ({ error: error.message, commandPlanCandidates: [], boundaries: {} })),
+          requestJson(stagedPlanRoute).catch(error => ({ error: error.message, stagedChangePlans: [], boundaries: {} })),
+          requestJson(`${reviewRoute}?limit=5`).catch(error => ({ error: error.message, items: [] }))
+        ]);
+        renderV350OpsCommandWorkspace({ liveOperationsGraph, commandPlan, stagedPlan, reviews, graphRoute, commandPlanRoute, stagedPlanRoute, reviewRoute });
+      };
       const renderDashboardRootCause = (runtime, principal, eventsStatus = {}, browserConfig = {}, diagnosticLog = {}, sourceHealth = {}) => {
         const items = dashboardRootCauseItems(runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth);
         const warnCount = items.filter(item => item.level === 'warn' || item.level === 'bad').length;
@@ -1518,6 +1622,12 @@ void AppendOpsShellScript(std::ostringstream& out,
           `프로파일 ${runtime?.analysisMatching?.profileDocumentCount ?? 0} · 룰 ${runtime?.analysisMatching?.ruleDocumentCount ?? 0} · 발행 ${counts.publish} · 송출 ${counts.egress}`);
         const rootCauseItems = renderDashboardRootCause(runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth);
         renderDashboardIncidentTimeline(rootCauseItems, eventsStatus, diagnosticLog, sourceHealth, runtime, catalog);
+        await refreshV350OpsCommandWorkspace({
+          graphRoute: '/ops/api/live-operations/graph',
+          commandPlanRoute: '/ops/api/live-operations/command-plan',
+          stagedPlanRoute: '/ops/api/live-operations/staged-change-plan-impact-preview',
+          reviewRoute: '/ops/api/events/reviews'
+        }).catch(error => renderV350OpsCommandWorkspace({ error: error.message }));
         await refreshDashboardVaQuality(runtime, eventsStatus).catch(renderDashboardVaQualityError);
         renderRaw('opsDashboardRaw', 'opsDashboardPretty', runtime);
         window.MediaServerUi?.translatePage?.();
