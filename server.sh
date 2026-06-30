@@ -328,6 +328,8 @@ Usage:
                  v3.5.0 Step 7 Drill Run Ledger and Plan Comparison read-only 경계를 검증합니다.
   verify-v350-client-impact-forecast
                  v3.5.0 Step 8 Client Impact Forecast viewer-safe 경계를 검증합니다.
+  verify-v350-client-safe-operations-notice
+                 v3.5.0 Step 9 Client-safe Operations Notice viewer-safe 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -1564,6 +1566,10 @@ case "${cmd}" in
   verify-v350-client-impact-forecast)
     require_internal verify_v350_client_impact_forecast.mjs
     exec "${INTERNAL_DIR}/verify_v350_client_impact_forecast.mjs" "$@"
+    ;;
+  verify-v350-client-safe-operations-notice)
+    require_internal verify_v350_client_safe_operations_notice.mjs
+    exec "${INTERNAL_DIR}/verify_v350_client_safe_operations_notice.mjs" "$@"
     ;;
   verify-v290-final-stabilization-run)
     require_internal verify_v290_final_stabilization_run.mjs

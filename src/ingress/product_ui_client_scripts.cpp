@@ -259,6 +259,10 @@ void AppendClientShellScript(std::ostringstream& out) {
       for (const item of impactForecastItems) {
         lines.push(`영향 forecast: ${item.summaryText || 'viewer-safe client impact forecast'} / ${item.liveImpact || 'client live unchanged'} / ${item.eventDigestImpact || 'event digest unchanged'}`);
       }
+      const operationsNoticeItems = Array.isArray(events.clientOperationsNotice?.noticeItems) ? events.clientOperationsNotice.noticeItems.slice(0, 3) : [];
+      for (const item of operationsNoticeItems) {
+        lines.push(`운영 notice: ${item.operationsStatus || 'degraded'} / ${item.timelineHint || 'degraded'}`);
+      }
       return lines.join('\n');
     };
     const clientStatusSummaryText = (payload = {}) => {
@@ -441,6 +445,30 @@ void AppendClientShellScript(std::ostringstream& out) {
                 <span>${escapeHtml(item.maintenanceState || 'unavailable')} · ${escapeHtml(item.timelineHint || 'unavailable')}</span>
               </div>
               <span class="chip ${item.severity === 'attention' ? 'warn' : 'info'}">${escapeHtml(item.severity || 'attention')}</span>
+            </article>`).join('')}
+        </div>
+      </section>`;
+    }
+    function renderClientOperationsNotice(clientOperationsNotice = {}) {
+      const items = Array.isArray(clientOperationsNotice.noticeItems) ? clientOperationsNotice.noticeItems : [];
+      return `<section class="client-operations-notice" data-testid="client-operations-notice" data-client-operations-notice="viewer-safe" aria-label="viewer-safe operations notice" data-client-digest-schema="media-server.client.v350-operations-notice.v1">
+        <div class="toolbar">
+          <div>
+            <h3>운영 notice</h3>
+            <p>${clientOperationsNotice.viewerSafe === true ? '운영 상태와 timeline hint만 표시됩니다.' : '운영 notice 확인이 필요합니다.'}</p>
+          </div>
+          <div class="meta">
+            <span class="chip ${clientOperationsNotice.viewerSafe === true ? 'info' : 'warn'}">viewer-safe</span>
+            <span class="chip ${clientOperationsNotice.publishedViewScoped === true ? 'info' : 'warn'}">view scope</span>
+            <span class="chip info">status/timeline only</span>
+          </div>
+        </div>
+        <div class="client-operations-notice-list">
+          ${items.length === 0
+            ? emptyState('운영 notice 없음', '표시할 viewer-safe operations notice가 없습니다.')
+            : items.map(item => `<article class="client-operations-notice-item">
+              <strong>${escapeHtml(item.operationsStatus || 'degraded')}</strong>
+              <span>${escapeHtml(item.timelineHint || 'degraded')}</span>
             </article>`).join('')}
         </div>
       </section>`;
@@ -975,6 +1003,7 @@ void AppendClientShellScript(std::ostringstream& out) {
           </div>
           ${renderClientSafeSourceStatusDigest(events.sourceStatusDigest || {})}
           ${renderClientSafeMaintenanceDigest(events.maintenanceDigest || {})}
+          ${renderClientOperationsNotice(events.clientOperationsNotice || {})}
           ${renderClientImpactForecast(events.clientImpactForecast || {})}
           ${renderClientSafeEventDigest(events.eventDigest || {})}
           ${renderClientSafeResolutionDigest(events.resolutionDigest || {})}
@@ -1061,6 +1090,7 @@ void AppendClientShellScript(std::ostringstream& out) {
         </div>
         ${renderClientSafeSourceStatusDigest(events.sourceStatusDigest || {})}
         ${renderClientSafeMaintenanceDigest(events.maintenanceDigest || {})}
+        ${renderClientOperationsNotice(events.clientOperationsNotice || {})}
         ${renderClientImpactForecast(events.clientImpactForecast || {})}
         ${renderClientSafeEventDigest(events.eventDigest || {})}
         ${renderClientSafeResolutionDigest(events.resolutionDigest || {})}
@@ -2097,6 +2127,7 @@ void AppendClientShellScript(std::ostringstream& out) {
 	        </div>
         ${renderClientSafeSourceStatusDigest(events.sourceStatusDigest || {})}
         ${renderClientSafeMaintenanceDigest(events.maintenanceDigest || {})}
+        ${renderClientOperationsNotice(events.clientOperationsNotice || {})}
         ${renderClientImpactForecast(events.clientImpactForecast || {})}
         ${renderClientSafeEventDigest(events.eventDigest || {})}
 	        ${renderClientSafeResolutionDigest(events.resolutionDigest || {})}

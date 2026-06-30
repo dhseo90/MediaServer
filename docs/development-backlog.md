@@ -93,7 +93,7 @@ license/provenance/privacy/운영 검토 결과:
 | 6 | v3.5.0 (6) Ops Command Workspace UI | P1 | 완료 | `/ops`에서 incident, source, drill, staged plan, client impact를 한 흐름으로 탐색하는 command workspace |
 | 7 | v3.5.0 (7) Drill Run Ledger and Plan Comparison | P1 | 완료 | drill run id, operator note, blocker, evidence refs, 이전 run 대비 차이를 누적 표시 |
 | 8 | v3.5.0 (8) Client Impact Forecast | P1 | 완료 | 특정 source/view/command plan이 client live/dashboard/event digest에 주는 영향을 viewer-safe summary로 계산 |
-| 9 | v3.5.0 (9) Client-safe Operations Notice | P1 | 예정 | viewer/client에 maintenance, degraded, recovering, available 상태와 timeline hint만 노출 |
+| 9 | v3.5.0 (9) Client-safe Operations Notice | P1 | 완료 | viewer/client에 maintenance, degraded, recovering, available 상태와 timeline hint만 노출 |
 | 10 | v3.5.0 (10) Operations Export Bundle and Handoff Map | P1 | 예정 | command plan, drill ledger, field evidence, client impact forecast를 release-safe export bundle과 handoff map으로 조합 |
 | 11 | v3.5.0 (11) Field Evidence Intake | P2 | 예정 | ONVIF, external WHEP/TURN, cloud/VLM provider 결과를 redacted field evidence로 수집하고 실행 조건과 미실행 상태를 분리 |
 | 12 | v3.5.0 (12) VLM-assisted Ops Explanation | P2 | 예정 | default-off VLM 보조 설명으로 command plan blocker, incident/source relation, operator review hint를 요약 |
@@ -179,6 +179,17 @@ action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁�
 - `scripts/internal/verify_v350_client_impact_forecast.mjs`, `server.sh`: `./server.sh verify-v350-client-impact-forecast` 명령을 추가해 client API/schema/UI renderer/CSS/redaction boundary, docs/inventory/release records/server dispatch 연결을 검증합니다.
 - 검증: 최초 `node scripts/internal/verify_v350_client_impact_forecast.mjs`는 Step 8 client API/UI/docs/inventory/server dispatch가 아직 없어 `pass=0 fail=7`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v350 Step 8 결과 행에 기록합니다.
 - 완료 경계: 이번 Step 8은 Client Impact Forecast API/UI/verifier 연결입니다. Client-safe Operations Notice 완료 evidence가 아닙니다. notice 상태 노출, command execution, source/view/rule/EventRecord/Ops audit/client/media mutation, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata evidence가 아닙니다.
+
+## v3.5.0 Step 9 개발 기록
+
+- 범위: P1 `v3.5.0 (9) Client-safe Operations Notice`.
+- `src/ingress/webrtc_http_server.cpp`: `ClientOperationsNoticeJson`을 추가해 `/client/api/views/{id}/events`와 `/client/dashboard` event summary payload에 `clientOperationsNotice`를 붙였습니다. notice item은 `operationsStatus`와 `timelineHint`만 노출하고 status 값은 `maintenance`, `degraded`, `recovering`, `available`로 제한합니다.
+- `src/ingress/product_ui_client_scripts.cpp`: `renderClientOperationsNotice`를 추가하고 `/client/live`, `/client/dashboard`, `/client/events` digest stack에 operations notice card를 표시합니다. renderer는 source URL, raw locator, raw JSON, debug material, credential material, operator note, command plan details, incident details, action controls를 읽지 않습니다.
+- `src/ingress/product_ui_css.cpp`, `scripts/internal/verify_ops_client_ui_smoke.mjs`: `.client-operations-notice` 스타일과 Ops/Client static smoke marker를 추가했습니다.
+- `docs/project-feature-test-inventory.md`: `UI-084`, `CLIENT-032`, `SAFE-143`, `OPS-110`을 추가하고 Step 9를 `verify-v350-client-safe-operations-notice`, `verify-ops-client-ui`에 연결했습니다.
+- `scripts/internal/verify_v350_client_safe_operations_notice.mjs`, `server.sh`: `./server.sh verify-v350-client-safe-operations-notice` 명령을 추가해 client API/schema/UI renderer/CSS/redaction boundary, docs/inventory/release records/server dispatch 연결을 검증합니다.
+- 검증: 최초 `node scripts/internal/verify_v350_client_safe_operations_notice.mjs`는 Step 9 client API/UI/docs/inventory/server dispatch가 아직 없어 `pass=0 fail=7`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v350 Step 9 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 9는 Client-safe Operations Notice API/UI/verifier 연결입니다. Operations Export Bundle and Handoff Map 완료 evidence가 아닙니다. Field Evidence Intake 완료 evidence가 아닙니다. command execution, source/view/rule/EventRecord/Ops audit/client/media mutation, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata evidence가 아닙니다.
 
 ## 현재 source roadmap: v3.4.0 Operations Continuity Drill Workspace
 

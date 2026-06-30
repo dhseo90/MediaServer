@@ -1371,8 +1371,10 @@ std::string ProductUiCss() {
     .client-safe-source-status-digest,
     .client-safe-maintenance-digest,
     .client-impact-forecast,
+    .client-operations-notice,
     .client-safe-followup-digest,
-    .client-safe-digest-list {
+    .client-safe-digest-list,
+    .client-operations-notice-list {
       display: grid;
       gap: var(--space-3);
       min-width: 0;
@@ -1383,13 +1385,15 @@ std::string ProductUiCss() {
     .client-safe-source-status-digest,
     .client-safe-maintenance-digest,
     .client-impact-forecast,
+    .client-operations-notice,
     .client-safe-followup-digest {
       padding: var(--space-3);
       border: 1px solid var(--color-border);
       border-radius: 8px;
       background: var(--color-surface-subtle);
     }
-    .client-safe-digest-item {
+    .client-safe-digest-item,
+    .client-operations-notice-item {
       display: grid;
       grid-template-columns: minmax(0, 1fr) auto;
       gap: var(--space-2);
@@ -1404,7 +1408,8 @@ std::string ProductUiCss() {
       display: grid;
       gap: 2px;
     }
-    .client-safe-digest-item span {
+    .client-safe-digest-item span,
+    .client-operations-notice-item span {
       color: var(--color-text-muted);
       overflow-wrap: anywhere;
     }

@@ -4918,6 +4918,103 @@ std::string ClientImpactForecastJson(
     return out.str();
 }
 
+struct ClientOperationsNotice {
+    bool provided{true};
+    std::string operations_status{"degraded"};
+    std::string timeline_hint{"status unavailable"};
+};
+
+std::string ClientOperationsNoticeStatusFor(
+    const SourceViewRegistry::ClientViewAccess& access,
+    const ClientSourceStatusDigest& source_status,
+    const ClientEventSummary& event_summary) {
+    if (!access.view.enabled) {
+        return "degraded";
+    }
+    if (source_status.source_status == "connecting" || source_status.source_status == "stale") {
+        return "recovering";
+    }
+    if (source_status.source_status != "live") {
+        return "degraded";
+    }
+    if (event_summary.warning) {
+        return "maintenance";
+    }
+    return "available";
+}
+
+std::string ClientOperationsNoticeTimelineHintFor(const std::string& operations_status) {
+    if (operations_status == "maintenance") {
+        return "maintenance window";
+    }
+    if (operations_status == "recovering") {
+        return "recovering signal";
+    }
+    if (operations_status == "available") {
+        return "available";
+    }
+    return "degraded";
+}
+
+ClientOperationsNotice ClientOperationsNoticeFor(
+    const SourceViewRegistry::ClientViewAccess& access,
+    const ClientSourceStatusDigest& source_status,
+    const ClientMaintenanceDigest&,
+    const ClientEventSummary& event_summary) {
+    ClientOperationsNotice notice;
+    notice.operations_status =
+        ClientOperationsNoticeStatusFor(access, source_status, event_summary);
+    notice.timeline_hint = ClientOperationsNoticeTimelineHintFor(notice.operations_status);
+    return notice;
+}
+
+void AppendClientOperationsNoticeJson(std::ostringstream& out,
+                                      const ClientOperationsNotice& notice) {
+    out << "{"
+        << "\"schema\":\"media-server.client.v350-operations-notice.v1\","
+        << "\"provided\":" << (notice.provided ? "true" : "false") << ","
+        << "\"viewerSafe\":true,"
+        << "\"publishedViewScoped\":true,"
+        << "\"sourceUrlIncluded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"operatorMaterialIncluded\":false,"
+        << "\"commandPlanDetailsIncluded\":false,"
+        << "\"incidentDetailsIncluded\":false,"
+        << "\"actionControlsIncluded\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"searchMetricsChanged\":false,"
+        << "\"itemCount\":1,"
+        << "\"noticeItems\":[{"
+        << "\"noticeId\":\"client-operations-notice-1\","
+        << "\"operationsStatus\":\"" << JsonEscape(notice.operations_status) << "\","
+        << "\"timelineHint\":\"" << JsonEscape(notice.timeline_hint) << "\""
+        << "}]}";
+}
+
+std::string ClientOperationsNoticeJson(
+    const SourceViewRegistry::ClientViewAccess& access,
+    const ClientSourceStatusDigest& source_status,
+    const ClientMaintenanceDigest& maintenance_digest,
+    const ClientEventSummary& event_summary) {
+    std::ostringstream out;
+    AppendClientOperationsNoticeJson(
+        out,
+        ClientOperationsNoticeFor(access, source_status, maintenance_digest, event_summary));
+    return out.str();
+}
+
 ClientEventItem ParseClientEventItem(const std::string& raw) {
     ClientEventItem item;
     item.event_id = ParseStringField(raw, "eventId").value_or("");
@@ -5320,7 +5417,8 @@ void AppendClientEventSummaryJson(std::ostringstream& out,
                                   const ClientEventSummary& summary,
                                   const std::string& source_status_digest_json = "",
                                   const std::string& maintenance_digest_json = "",
-                                  const std::string& client_impact_forecast_json = "") {
+                                  const std::string& client_impact_forecast_json = "",
+                                  const std::string& client_operations_notice_json = "") {
     out << "{"
         << "\"provided\":" << (summary.provided ? "true" : "false") << ","
         << "\"storageEnabled\":" << (summary.storage_enabled ? "true" : "false") << ","
@@ -5363,6 +5461,9 @@ void AppendClientEventSummaryJson(std::ostringstream& out,
     }
     if (!client_impact_forecast_json.empty()) {
         out << ",\"clientImpactForecast\":" << client_impact_forecast_json;
+    }
+    if (!client_operations_notice_json.empty()) {
+        out << ",\"clientOperationsNotice\":" << client_operations_notice_json;
     }
     out << "}";
 }
@@ -5417,6 +5518,8 @@ std::string ClientViewEventsJson(
     const auto maintenance_digest_json = ClientMaintenanceDigestJson(source_status_digest);
     const auto client_impact_forecast_json =
         ClientImpactForecastJson(access, source_status_digest, maintenance_digest, summary);
+    const auto client_operations_notice_json =
+        ClientOperationsNoticeJson(access, source_status_digest, maintenance_digest, summary);
     std::ostringstream out;
     out << "{\"ok\":true,\"view\":";
     AppendClientViewIdentityJson(out, access);
@@ -5425,7 +5528,8 @@ std::string ClientViewEventsJson(
                                  summary,
                                  source_status_digest_json,
                                  maintenance_digest_json,
-                                 client_impact_forecast_json);
+                                 client_impact_forecast_json,
+                                 client_operations_notice_json);
     out << "}";
     return out.str();
 }
@@ -5571,6 +5675,8 @@ std::string ClientViewDashboardJson(const SourceViewRegistry::ClientViewAccess& 
     const auto maintenance_digest_json = ClientMaintenanceDigestJson(source_status_digest);
     const auto client_impact_forecast_json =
         ClientImpactForecastJson(access, source_status_digest, maintenance_digest, event_summary);
+    const auto client_operations_notice_json =
+        ClientOperationsNoticeJson(access, source_status_digest, maintenance_digest, event_summary);
     const std::optional<std::int64_t> latest_event_time =
         event_summary.latest_event_time_ms.has_value()
             ? event_summary.latest_event_time_ms
@@ -5614,7 +5720,8 @@ std::string ClientViewDashboardJson(const SourceViewRegistry::ClientViewAccess& 
                                  event_summary,
                                  source_status_digest_json,
                                  maintenance_digest_json,
-                                 client_impact_forecast_json);
+                                 client_impact_forecast_json,
+                                 client_operations_notice_json);
     out << "}";
     return out.str();
 }

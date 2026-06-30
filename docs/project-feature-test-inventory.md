@@ -26,13 +26,13 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 714 |
-| UI 직접 필요 | 363 |
+| 전체 기능 항목 | 718 |
+| UI 직접 필요 | 365 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 320 |
-| 테스트 필요 | 714 |
-| 안정화 대상 | 704 |
-| UI 풀테스트 대상 | 383 |
+| UI 비대상 | 322 |
+| 테스트 필요 | 718 |
+| 안정화 대상 | 708 |
+| UI 풀테스트 대상 | 385 |
 | 30분 soak 대상 | 49 |
 | 120분 대상 | 7 |
 
@@ -42,7 +42,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 704개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 718개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -51,7 +51,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | VA seed 데이터 | `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`로 numeric ID/API payload 기준 full UI seed matrix를 고정 | 준비 기준일 뿐 실행 증거 아님 |
 | UI 풀테스트 결과 | 기능 ID별 result template 기록란은 별도 문서가 관리 | 결과 문서 없이 inventory만으로 UI PASS 판정 불가 |
 | Coverage gate | `./server.sh verify-feature-inventory-coverage`가 `media-server.feature-inventory-coverage.v1` report로 기능 ID별 연결을 점검 | `missing coverage target` 누락 ID는 release gate에서 FAIL |
-| VLM current expansion | VLM route, control, action, runtime state, sidecar, privacy guard, feature-only retention과 v3.5 live operations graph/command plan/handoff/staged impact preview/drill ledger/client impact forecast를 현재 기능 ID에 연결 | 실행 증거 아님 |
+| VLM current expansion | VLM route, control, action, runtime state, sidecar, privacy guard, feature-only retention과 v3.5 live operations graph/command plan/handoff/staged impact preview/drill ledger/client impact forecast/client-safe operations notice를 현재 기능 ID에 연결 | 실행 증거 아님 |
 
 ## v3.5.0 Live Operations Control Plane Coverage Mapping
 
@@ -70,6 +70,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | v3.5.0 (6) Ops Command Workspace UI | `UI-081`, `SAFE-140`, `OPS-107` | `verify-v350-ops-command-workspace-ui`, `verify-ops-client-ui` | `/ops` dashboard가 incident, source, continuity drill, staged plan, client impact를 한 command workspace 흐름으로 read-only 표시합니다. command execution, source/view/rule/EventRecord/Ops audit/client/media mutation, source URL/raw locator/raw JSON/debug/credential material 노출, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 | v3.5.0 (7) Drill Run Ledger and Plan Comparison | `UI-082`, `SAFE-141`, `OPS-108` | `verify-v350-drill-run-ledger-plan-comparison`, `verify-ops-client-ui` | `/ops/api/live-operations/drill-run-ledger`와 `/ops` dashboard가 drill run id, operator note, blocker, evidence refs, 이전 run 대비 차이를 append-only/read-only projection으로 누적 표시합니다. drill run write/operator note write/command execution, source/view/rule/EventRecord/Ops audit/client/media mutation, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 | v3.5.0 (8) Client Impact Forecast | `UI-083`, `CLIENT-031`, `SAFE-142`, `OPS-109` | `verify-v350-client-impact-forecast`, `verify-ops-client-ui` | `/client/api/views/{id}/events`와 client live/dashboard/events가 source/view/command plan이 client live/dashboard/event digest에 주는 영향을 `clientImpactForecast` viewer-safe summary로 표시합니다. source URL/raw locator/raw JSON/debug/credential/operator material, command plan detail 노출, command execution, 30분/120분, published metadata evidence가 아님 |
+| v3.5.0 (9) Client-safe Operations Notice | `UI-084`, `CLIENT-032`, `SAFE-143`, `OPS-110` | `verify-v350-client-safe-operations-notice`, `verify-ops-client-ui` | `/client/api/views/{id}/events`와 client live/dashboard/events가 `clientOperationsNotice`로 maintenance/degraded/recovering/available 상태와 timeline hint만 표시합니다. source URL/raw locator/raw JSON/debug/credential/operator material, command plan detail, incident detail 노출, command execution, 30분/120분, published metadata evidence가 아님 |
 
 ## 직전 published baseline v3.4.0 Operations Continuity Drill Workspace Coverage Mapping
 
@@ -279,16 +280,16 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 
 | 기능 ID 범위 | 안정화 verifier 후보 | 비고 |
 | --- | --- | --- |
-| `UI-001`~`UI-018`, `UI-022`~`UI-083` | auth, Ops, Client, VLM, v250/v260/v270/v280/v300/v310/v320/v330/v340/v350 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
+| `UI-001`~`UI-018`, `UI-022`~`UI-084` | auth, Ops, Client, VLM, v250/v260/v270/v280/v300/v310/v320/v330/v340/v350 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
 | `AUTH-001`~`AUTH-042` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
 | `SRC-001`~`SRC-046` | source/ONVIF/UI/v340/v350 verifier family | ONVIF field success는 approved environment only |
 | `RULE-001`~`RULE-106` | rule/VA/v350 verifier family | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
 | `EVT-001`~`EVT-075` | event/VLM/v250/v260/v270/v280/v300/v310/v320/v330/v340/v350 verifier family | event log 육안 확인은 UI 풀테스트 |
-| `CLIENT-001`~`CLIENT-031` | client/UI/v350 verifier family | viewer 비노출은 브라우저 확인 필요 |
+| `CLIENT-001`~`CLIENT-032` | client/UI/v350 verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-022` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
 | `LAB-001`~`LAB-092` | lab/VLM/v250/v260/v270/v280/v300/v310/v340/v350 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-142` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-109` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
+| `SAFE-001`~`SAFE-143` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-110` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
 
 ## VA Manual UI Seed Matrix
 
@@ -419,6 +420,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | UI-081 | V350 Step 6 Ops Command Workspace UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v350-command-workspace-ui.v1` 기반 incident, source, drill, staged plan, client impact flow를 read-only로 표시하고 source URL/raw locator/raw JSON/debug/credential material과 command execution/source-view-rule write를 노출하지 않음 |
 | UI-082 | V350 Step 7 Drill Run Ledger and Plan Comparison UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v350-drill-run-ledger.v1` 기반 drill run id, operator note, blocker, evidence refs, previous run diff를 read-only로 표시하고 drill run write/operator note write/command execution을 수행하지 않음 |
 | UI-083 | V350 Step 8 Client Impact Forecast UI | 필요 | 필요 | 안정화, UI | `/client/live`, `/client/dashboard`, `/client/events`가 `media-server.client.v350-impact-forecast.v1` 기반 source/view/command plan 영향 forecast를 viewer-safe로 표시하고 source URL/raw locator/debug/operator/command detail을 노출하지 않음 |
+| UI-084 | V350 Step 9 Client-safe Operations Notice UI | 필요 | 필요 | 안정화, UI | `/client/live`, `/client/dashboard`, `/client/events`가 `media-server.client.v350-operations-notice.v1` 기반 maintenance/degraded/recovering/available 상태와 timeline hint만 표시하고 source URL/raw locator/debug/operator/command/incident detail을 노출하지 않음 |
 
 ## B. Auth, Account, Role, Scope
 
@@ -744,6 +746,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | CLIENT-029 | V340 Step 8 client-safe maintenance digest API/UI | 필요 | 필요 | 안정화, UI | `/client/api/views/{id}/events`와 dashboard events payload가 maintenanceState/summaryText/severity/timelineHint만 `media-server.client.v340-maintenance-digest.v1`로 노출하고 source URL/raw locator/raw JSON/debug/credential material/operator note/Ops audit/dry-run/recovery action을 포함하지 않음 |
 | CLIENT-030 | V350 Step 2 client impact graph projection boundary | 비대상 | 필요 | 안정화 | `verify-v350-live-operations-graph-contract`가 PublishedView/client impact summary를 Ops-only graph read model 안에서만 표시하고 client route/API/viewer payload, Auth/Role/Scope, source URL/raw locator/debug material 노출을 변경하지 않음을 확인 |
 | CLIENT-031 | V350 Step 8 client impact forecast API/UI | 필요 | 필요 | 안정화, UI | `/client/api/views/{id}/events`와 dashboard events payload가 `clientImpactForecast` viewer-safe source/view/command plan impact만 노출하고 command plan details, source URL/raw locator/raw JSON/debug/credential/operator material/action controls를 포함하지 않음 |
+| CLIENT-032 | V350 Step 9 client-safe operations notice API/UI | 필요 | 필요 | 안정화, UI | `/client/api/views/{id}/events`와 dashboard events payload가 `clientOperationsNotice`로 operationsStatus/timelineHint만 노출하고 source URL/raw locator/raw JSON/debug/credential/operator material/command plan detail/incident detail/action controls를 포함하지 않음 |
 
 ## G. Media And Streaming
 
@@ -1015,6 +1018,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SAFE-140 | V350 Step 6 Ops command workspace UI boundary | 필요 | 필요 | 안정화, UI | `verify-v350-ops-command-workspace-ui`가 `/ops` command workspace에서 incident/source/drill/staged plan/client impact를 read-only로 묶어 표시하고 commandPlanExecuted, source/view/rule/EventRecord/Ops audit/client/media mutation과 raw locator/credential/debug 노출을 수행하지 않음을 확인 |
 | SAFE-141 | V350 Step 7 drill run ledger boundary | 비대상 | 필요 | 안정화 | `verify-v350-drill-run-ledger-plan-comparison`이 drill run ledger를 append-only/read-only projection으로 산출하고 drillRunWritePerformed, operatorNoteWritePerformed, commandPlanExecuted, source/view/rule/EventRecord/Ops audit/client/media mutation과 raw locator/credential/debug 노출을 수행하지 않음을 확인 |
 | SAFE-142 | V350 Step 8 client impact forecast boundary | 비대상 | 필요 | 안정화 | `verify-v350-client-impact-forecast`가 clientImpactForecast를 viewer-safe PublishedView-scoped digest로만 표시하고 source URL/raw locator/raw JSON/debug/credential/operator material, command plan details/action controls, source/view/rule/EventRecord/Ops audit/client/media mutation을 수행하지 않음을 확인 |
+| SAFE-143 | V350 Step 9 client-safe operations notice boundary | 비대상 | 필요 | 안정화 | `verify-v350-client-safe-operations-notice`가 clientOperationsNotice를 viewer-safe PublishedView-scoped notice로만 표시하고 operationsStatus/timelineHint 외 source URL/raw locator/raw JSON/debug/credential/operator material, command plan detail, incident detail/action controls, source/view/rule/EventRecord/Ops audit/client/media mutation을 수행하지 않음을 확인 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -1095,6 +1099,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | OPS-107 | V350 Step 6 Ops Command Workspace UI 게이트 | 비대상 | 필요 | 안정화 | `verify-v350-ops-command-workspace-ui`가 `/ops` dashboard command workspace shell, renderer/CSS, graph/command/staged/review read model 연결, client 비노출, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 command execution, UI 풀테스트 직접 조작, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-108 | V350 Step 7 Drill Run Ledger and Plan Comparison 게이트 | 비대상 | 필요 | 안정화 | `verify-v350-drill-run-ledger-plan-comparison`이 `/ops/api/live-operations/drill-run-ledger` route, `/ops` ledger UI, drill run id/operator note/blocker/evidence refs/previous run diff, append-only boundary, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 drill run write, command execution, UI 풀테스트 직접 조작, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-109 | V350 Step 8 Client Impact Forecast 게이트 | 비대상 | 필요 | 안정화 | `verify-v350-client-impact-forecast`가 client impact forecast API/UI/schema, viewer-safe redaction boundary, Ops/Client smoke marker, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 notice 상태 노출, command execution, UI 풀테스트 직접 조작, 30분/120분, release publish PASS로 대체하지 않음 |
+| OPS-110 | V350 Step 9 Client-safe Operations Notice 게이트 | 비대상 | 필요 | 안정화 | `verify-v350-client-safe-operations-notice`가 client operations notice API/UI/schema, status/timeline-only redaction boundary, Ops/Client smoke marker, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 export bundle, field evidence, command execution, UI 풀테스트 직접 조작, 30분/120분, release publish PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 
