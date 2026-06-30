@@ -22,7 +22,10 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 상태: Step 1 source/version/docs/backlog/verification metadata 정렬 완료. Step 2
 Live Operations Graph Contract 구현 완료. Step 3 Operations Command Plan Contract
 구현 완료. Step 4 Incident-to-Command Handoff 구현 완료. Step 5 Staged Change Plan
-and Impact Preview 구현 완료. Step 6 이후는 아직 예정입니다. 현재 source version은
+and Impact Preview 구현 완료. Step 6 Ops Command Workspace UI, Step 7 Drill Run
+Ledger and Plan Comparison, Step 8 Client Impact Forecast, Step 9 Client-safe Operations
+Notice, Step 10 Operations Export Bundle and Handoff Map 구현 완료. Step 11 이후는 아직
+예정입니다. 현재 source version은
 `3.5.0`이고 latest published baseline은 `v3.4.0`입니다. 각 step은 실제 코드/API/UI/문서/검증
 산출물이 생긴 뒤에만 완료로 기록합니다.
 
@@ -94,7 +97,7 @@ license/provenance/privacy/운영 검토 결과:
 | 7 | v3.5.0 (7) Drill Run Ledger and Plan Comparison | P1 | 완료 | drill run id, operator note, blocker, evidence refs, 이전 run 대비 차이를 누적 표시 |
 | 8 | v3.5.0 (8) Client Impact Forecast | P1 | 완료 | 특정 source/view/command plan이 client live/dashboard/event digest에 주는 영향을 viewer-safe summary로 계산 |
 | 9 | v3.5.0 (9) Client-safe Operations Notice | P1 | 완료 | viewer/client에 maintenance, degraded, recovering, available 상태와 timeline hint만 노출 |
-| 10 | v3.5.0 (10) Operations Export Bundle and Handoff Map | P1 | 예정 | command plan, drill ledger, field evidence, client impact forecast를 release-safe export bundle과 handoff map으로 조합 |
+| 10 | v3.5.0 (10) Operations Export Bundle and Handoff Map | P1 | 완료 | command plan, drill ledger, field evidence, client impact forecast를 release-safe export bundle과 handoff map으로 조합 |
 | 11 | v3.5.0 (11) Field Evidence Intake | P2 | 예정 | ONVIF, external WHEP/TURN, cloud/VLM provider 결과를 redacted field evidence로 수집하고 실행 조건과 미실행 상태를 분리 |
 | 12 | v3.5.0 (12) VLM-assisted Ops Explanation | P2 | 예정 | default-off VLM 보조 설명으로 command plan blocker, incident/source relation, operator review hint를 요약 |
 
@@ -190,6 +193,17 @@ action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁�
 - `scripts/internal/verify_v350_client_safe_operations_notice.mjs`, `server.sh`: `./server.sh verify-v350-client-safe-operations-notice` 명령을 추가해 client API/schema/UI renderer/CSS/redaction boundary, docs/inventory/release records/server dispatch 연결을 검증합니다.
 - 검증: 최초 `node scripts/internal/verify_v350_client_safe_operations_notice.mjs`는 Step 9 client API/UI/docs/inventory/server dispatch가 아직 없어 `pass=0 fail=7`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v350 Step 9 결과 행에 기록합니다.
 - 완료 경계: 이번 Step 9는 Client-safe Operations Notice API/UI/verifier 연결입니다. Operations Export Bundle and Handoff Map 완료 evidence가 아닙니다. Field Evidence Intake 완료 evidence가 아닙니다. command execution, source/view/rule/EventRecord/Ops audit/client/media mutation, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata evidence가 아닙니다.
+
+## v3.5.0 Step 10 개발 기록
+
+- 범위: P1 `v3.5.0 (10) Operations Export Bundle and Handoff Map`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV350OperationsExportBundleHandoffMapJson`과 `GET /ops/api/live-operations/export-bundle-handoff-map` route를 추가했습니다. 이 route는 command plan, drill ledger, field evidence, client impact forecast를 route/id refs 기반 release-safe export bundle과 handoff map으로 조합하고 `require_ops_principal()`, `Cache-Control: no-store`를 적용합니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV350OpsCommandWorkspace`와 `refreshV350OpsCommandWorkspace`가 `/ops/api/live-operations/export-bundle-handoff-map`을 함께 읽고 `/ops` dashboard command workspace 안에 `dashCommandWorkspaceExportBundleMap`으로 `operationsExportBundle`, `handoffMapEntries`, `commandPlanRefs`, `drillLedgerRefs`, `fieldEvidenceRefs`, `clientImpactForecastRefs`를 표시합니다.
+- `src/ingress/product_ui_css.cpp`, `scripts/internal/verify_ops_client_ui_smoke.mjs`: `.ops-export-bundle-list`, `.ops-handoff-map-list`, `.ops-handoff-map-entry` 스타일과 Ops/Client static smoke marker를 추가했습니다.
+- `docs/project-feature-test-inventory.md`: `UI-085`, `SAFE-144`, `OPS-111`을 추가하고 Step 10을 `verify-v350-operations-export-bundle-handoff-map`, `verify-ops-client-ui`에 연결했습니다.
+- `scripts/internal/verify_v350_operations_export_bundle_handoff_map.mjs`, `server.sh`: `./server.sh verify-v350-operations-export-bundle-handoff-map` 명령을 추가해 export bundle/handoff map API/UI, release-safe boundary, client 비노출, backlog/stream verification/release records/inventory/server dispatch 연결을 검증합니다.
+- 검증: 최초 `node scripts/internal/verify_v350_operations_export_bundle_handoff_map.mjs`는 Step 10 server/API/UI/docs/inventory/server dispatch가 아직 없어 `pass=1 fail=11`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v350 Step 10 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 10은 Operations Export Bundle and Handoff Map read model/API/UI/verifier 연결입니다. Field Evidence Intake 완료 evidence가 아닙니다. VLM-assisted Ops Explanation 완료 evidence가 아닙니다. artifact export 실행, handoff write, field smoke/provider call, command execution, source/view/EventRecord/Ops audit/client/media mutation, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata evidence가 아닙니다.
 
 ## 현재 source roadmap: v3.4.0 Operations Continuity Drill Workspace
 

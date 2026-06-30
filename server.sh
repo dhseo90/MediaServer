@@ -330,6 +330,8 @@ Usage:
                  v3.5.0 Step 8 Client Impact Forecast viewer-safe 경계를 검증합니다.
   verify-v350-client-safe-operations-notice
                  v3.5.0 Step 9 Client-safe Operations Notice viewer-safe 경계를 검증합니다.
+  verify-v350-operations-export-bundle-handoff-map
+                 v3.5.0 Step 10 Operations Export Bundle and Handoff Map release-safe 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -1570,6 +1572,10 @@ case "${cmd}" in
   verify-v350-client-safe-operations-notice)
     require_internal verify_v350_client_safe_operations_notice.mjs
     exec "${INTERNAL_DIR}/verify_v350_client_safe_operations_notice.mjs" "$@"
+    ;;
+  verify-v350-operations-export-bundle-handoff-map)
+    require_internal verify_v350_operations_export_bundle_handoff_map.mjs
+    exec "${INTERNAL_DIR}/verify_v350_operations_export_bundle_handoff_map.mjs" "$@"
     ;;
   verify-v290-final-stabilization-run)
     require_internal verify_v290_final_stabilization_run.mjs

@@ -2774,6 +2774,12 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
               <div class="empty">drill run id, operator note, blocker, evidence refs, previous run diff를 기다립니다.</div>
             </div>
           </div>
+          <div>
+            <h4>Operations Export Bundle</h4>
+            <div id="dashCommandWorkspaceExportBundleMap" class="ops-export-bundle-list ops-handoff-map-list" data-v350-export-bundle-handoff-map="media-server.ops.v350-export-bundle-handoff-map.v1">
+              <div class="empty">command plan refs, drill ledger refs, field evidence refs, client impact refs 기반 Handoff Map을 기다립니다.</div>
+            </div>
+          </div>
         </div>
         <div id="dashCommandWorkspaceBoundary" class="ops-command-boundary">
           commandPlanExecuted=false · source/view/rule write=false · client/viewer raw material=false
@@ -16594,6 +16600,406 @@ std::string OpsV350DrillRunLedgerPlanComparisonJson(
     return out.str();
 }
 
+struct OpsV350OperationsExportBundleItem {
+    std::string bundle_item_id;
+    std::string item_type;
+    std::string label;
+    std::string status{"release-safe"};
+    std::string route;
+    std::string summary;
+    std::string blocked_reason{"operator-review-required"};
+    std::vector<std::string> command_plan_refs;
+    std::vector<std::string> drill_ledger_refs;
+    std::vector<std::string> field_evidence_refs;
+    std::vector<std::string> client_impact_forecast_refs;
+    std::vector<std::string> evidence_refs;
+    bool release_safe{true};
+};
+
+struct OpsV350HandoffMapEntry {
+    std::string handoff_entry_id;
+    std::string from_bundle_item_id;
+    std::string to_bundle_item_id;
+    std::string handoff_status{"blocked"};
+    std::string next_operator_role{"ops-operator"};
+    std::string blocked_reason{"operator-review-required"};
+    std::vector<std::string> evidence_refs;
+    bool release_safe{true};
+};
+
+struct OpsV350OperationsExportBundleSummary {
+    int bundle_item_count{0};
+    int release_safe_count{0};
+    int handoff_entry_count{0};
+    int command_plan_ref_count{0};
+    int drill_ledger_ref_count{0};
+    int field_evidence_ref_count{0};
+    int client_impact_forecast_ref_count{0};
+    int blocked_count{0};
+};
+
+std::vector<std::string> FirstV350CommandPlanRefs(
+    const std::vector<OpsV350CommandPlanCandidate>& commandPlanCandidates) {
+    std::vector<std::string> refs;
+    for (const auto& candidate : commandPlanCandidates) {
+        refs.push_back(candidate.candidate_id);
+        if (refs.size() >= 8U) {
+            break;
+        }
+    }
+    if (refs.empty()) {
+        refs.push_back("/ops/api/live-operations/command-plan");
+    }
+    return refs;
+}
+
+std::vector<std::string> FirstV350DrillLedgerRefs(
+    const std::vector<OpsV350DrillRunLedgerEntry>& ledgerEntries) {
+    std::vector<std::string> refs;
+    for (const auto& entry : ledgerEntries) {
+        refs.push_back(entry.drill_run_id);
+        if (refs.size() >= 8U) {
+            break;
+        }
+    }
+    if (refs.empty()) {
+        refs.push_back("/ops/api/live-operations/drill-run-ledger");
+    }
+    return refs;
+}
+
+std::vector<std::string> V350FieldEvidenceRefs(
+    const std::vector<OpsV340FieldBridgeConditionGate>& fieldBridgeConditionGates) {
+    std::vector<std::string> refs;
+    for (const auto& gate : fieldBridgeConditionGates) {
+        refs.push_back(gate.gate_key + ":" + gate.execution_status);
+    }
+    if (refs.empty()) {
+        refs.push_back("/ops/api/source-registry/field-bridge-condition-gates");
+    }
+    return refs;
+}
+
+std::vector<std::string> V350ClientImpactForecastRefs(
+    const OpsV350LiveOperationsGraphContext& context) {
+    std::vector<std::string> refs;
+    for (const auto& view : context.views) {
+        refs.push_back("clientImpactForecast:" + view.view_id);
+        if (refs.size() >= 8U) {
+            break;
+        }
+    }
+    if (refs.empty()) {
+        for (const auto& source : context.sources) {
+            refs.push_back("clientImpactForecast:source:" + source.source_id);
+            if (refs.size() >= 8U) {
+                break;
+            }
+        }
+    }
+    if (refs.empty()) {
+        refs.push_back("/client/api/views");
+    }
+    return refs;
+}
+
+std::vector<OpsV350OperationsExportBundleItem> BuildV350OperationsExportBundleItems(
+    const OpsV350LiveOperationsGraphContext& context,
+    const std::vector<OpsV350CommandPlanCandidate>& commandPlanCandidates,
+    const std::vector<OpsV350DrillRunLedgerEntry>& ledgerEntries,
+    const std::vector<OpsV340FieldBridgeConditionGate>& fieldBridgeConditionGates) {
+    const auto command_plan_refs = FirstV350CommandPlanRefs(commandPlanCandidates);
+    const auto drill_ledger_refs = FirstV350DrillLedgerRefs(ledgerEntries);
+    const auto field_evidence_refs = V350FieldEvidenceRefs(fieldBridgeConditionGates);
+    const auto client_impact_refs = V350ClientImpactForecastRefs(context);
+
+    std::vector<OpsV350OperationsExportBundleItem> items;
+    OpsV350OperationsExportBundleItem command_plan_item;
+    command_plan_item.bundle_item_id = "bundle:command-plan";
+    command_plan_item.item_type = "command-plan";
+    command_plan_item.label = "Command Plan refs";
+    command_plan_item.route = "/ops/api/live-operations/command-plan";
+    command_plan_item.summary =
+        "release-safe commandPlanRefs only; command plan execution is not performed";
+    command_plan_item.command_plan_refs = command_plan_refs;
+    command_plan_item.evidence_refs = {"/ops/api/live-operations/graph",
+                                       "/ops/api/live-operations/command-plan"};
+    items.push_back(std::move(command_plan_item));
+
+    OpsV350OperationsExportBundleItem drill_ledger_item;
+    drill_ledger_item.bundle_item_id = "bundle:drill-ledger";
+    drill_ledger_item.item_type = "drill-ledger";
+    drill_ledger_item.label = "Drill Ledger refs";
+    drill_ledger_item.route = "/ops/api/live-operations/drill-run-ledger";
+    drill_ledger_item.summary =
+        "drillLedgerRefs include run ids and evidence refs without creating a run";
+    drill_ledger_item.command_plan_refs = command_plan_refs;
+    drill_ledger_item.drill_ledger_refs = drill_ledger_refs;
+    drill_ledger_item.evidence_refs = {"/ops/api/live-operations/drill-run-ledger"};
+    items.push_back(std::move(drill_ledger_item));
+
+    OpsV350OperationsExportBundleItem field_evidence_item;
+    field_evidence_item.bundle_item_id = "bundle:field-evidence";
+    field_evidence_item.item_type = "field-evidence";
+    field_evidence_item.label = "Field Evidence refs";
+    field_evidence_item.status = "condition-gated";
+    field_evidence_item.route = "/ops/api/source-registry/field-bridge-condition-gates";
+    field_evidence_item.summary =
+        "fieldEvidenceRefs are redacted condition gate keys; field smoke remains not-run";
+    field_evidence_item.blocked_reason = "field-smoke-conditions-not-run";
+    field_evidence_item.command_plan_refs = command_plan_refs;
+    field_evidence_item.drill_ledger_refs = drill_ledger_refs;
+    field_evidence_item.field_evidence_refs = field_evidence_refs;
+    field_evidence_item.evidence_refs = {"/ops/api/source-registry/field-bridge-condition-gates"};
+    items.push_back(std::move(field_evidence_item));
+
+    OpsV350OperationsExportBundleItem client_impact_item;
+    client_impact_item.bundle_item_id = "bundle:client-impact-forecast";
+    client_impact_item.item_type = "client-impact-forecast";
+    client_impact_item.label = "Client Impact Forecast refs";
+    client_impact_item.route = "/client/api/views";
+    client_impact_item.summary =
+        "clientImpactForecastRefs point to viewer-safe digest projections only";
+    client_impact_item.command_plan_refs = command_plan_refs;
+    client_impact_item.drill_ledger_refs = drill_ledger_refs;
+    client_impact_item.client_impact_forecast_refs = client_impact_refs;
+    client_impact_item.evidence_refs = {"/client/api/views",
+                                        "/client/api/views/{id}/events"};
+    items.push_back(std::move(client_impact_item));
+
+    return items;
+}
+
+std::vector<OpsV350HandoffMapEntry> BuildV350OperationsHandoffMapEntries(
+    const std::vector<OpsV350OperationsExportBundleItem>& items) {
+    std::vector<OpsV350HandoffMapEntry> entries;
+    if (items.size() < 2U) {
+        return entries;
+    }
+    const auto find_id = [&](const std::string& item_type) -> std::string {
+        for (const auto& item : items) {
+            if (item.item_type == item_type) {
+                return item.bundle_item_id;
+            }
+        }
+        return "";
+    };
+
+    const std::string command_plan_id = find_id("command-plan");
+    const std::string drill_ledger_id = find_id("drill-ledger");
+    const std::string field_evidence_id = find_id("field-evidence");
+    const std::string client_impact_id = find_id("client-impact-forecast");
+
+    if (!command_plan_id.empty() && !drill_ledger_id.empty()) {
+        entries.push_back({"handoff:command-plan:drill-ledger",
+                           command_plan_id,
+                           drill_ledger_id,
+                           "operator-review-required",
+                           "ops-operator",
+                           "operator-note-required",
+                           {"/ops/api/live-operations/command-plan",
+                            "/ops/api/live-operations/drill-run-ledger"},
+                           true});
+    }
+    if (!drill_ledger_id.empty() && !field_evidence_id.empty()) {
+        entries.push_back({"handoff:drill-ledger:field-evidence",
+                           drill_ledger_id,
+                           field_evidence_id,
+                           "blocked",
+                           "field-operator",
+                           "field-smoke-conditions-not-run",
+                           {"/ops/api/live-operations/drill-run-ledger",
+                            "/ops/api/source-registry/field-bridge-condition-gates"},
+                           true});
+    }
+    if (!command_plan_id.empty() && !client_impact_id.empty()) {
+        entries.push_back({"handoff:command-plan:client-impact-forecast",
+                           command_plan_id,
+                           client_impact_id,
+                           "viewer-safe-review",
+                           "client-ops-reviewer",
+                           "client-notice-not-sent",
+                           {"/ops/api/live-operations/command-plan",
+                            "/client/api/views",
+                            "/client/api/views/{id}/events"},
+                           true});
+    }
+    return entries;
+}
+
+OpsV350OperationsExportBundleSummary BuildV350OperationsExportBundleSummary(
+    const std::vector<OpsV350OperationsExportBundleItem>& items,
+    const std::vector<OpsV350HandoffMapEntry>& handoffMapEntries) {
+    OpsV350OperationsExportBundleSummary summary;
+    summary.bundle_item_count = static_cast<int>(items.size());
+    summary.handoff_entry_count = static_cast<int>(handoffMapEntries.size());
+    for (const auto& item : items) {
+        if (item.release_safe) {
+            ++summary.release_safe_count;
+        }
+        if (!item.blocked_reason.empty() && item.blocked_reason != "not-blocked") {
+            ++summary.blocked_count;
+        }
+        summary.command_plan_ref_count += static_cast<int>(item.command_plan_refs.size());
+        summary.drill_ledger_ref_count += static_cast<int>(item.drill_ledger_refs.size());
+        summary.field_evidence_ref_count += static_cast<int>(item.field_evidence_refs.size());
+        summary.client_impact_forecast_ref_count +=
+            static_cast<int>(item.client_impact_forecast_refs.size());
+    }
+    return summary;
+}
+
+void AppendV350OperationsExportBundleItemJson(
+    std::ostringstream& out,
+    const OpsV350OperationsExportBundleItem& item) {
+    out << "{"
+        << "\"bundleItemId\":\"" << JsonEscape(item.bundle_item_id) << "\","
+        << "\"itemType\":\"" << JsonEscape(item.item_type) << "\","
+        << "\"label\":\"" << JsonEscape(item.label) << "\","
+        << "\"status\":\"" << JsonEscape(item.status) << "\","
+        << "\"route\":\"" << JsonEscape(item.route) << "\","
+        << "\"summary\":\"" << JsonEscape(item.summary) << "\","
+        << "\"blockedReason\":\"" << JsonEscape(item.blocked_reason) << "\","
+        << "\"releaseSafe\":" << (item.release_safe ? "true" : "false") << ","
+        << "\"commandPlanRefs\":";
+    AppendV340RecoveryCandidateStringListJson(out, item.command_plan_refs);
+    out << ",\"drillLedgerRefs\":";
+    AppendV340RecoveryCandidateStringListJson(out, item.drill_ledger_refs);
+    out << ",\"fieldEvidenceRefs\":";
+    AppendV340RecoveryCandidateStringListJson(out, item.field_evidence_refs);
+    out << ",\"clientImpactForecastRefs\":";
+    AppendV340RecoveryCandidateStringListJson(out, item.client_impact_forecast_refs);
+    out << ",\"evidenceRefs\":";
+    AppendV340RecoveryCandidateStringListJson(out, item.evidence_refs);
+    out << "}";
+}
+
+void AppendV350OperationsHandoffMapEntryJson(
+    std::ostringstream& out,
+    const OpsV350HandoffMapEntry& entry) {
+    out << "{"
+        << "\"handoffEntryId\":\"" << JsonEscape(entry.handoff_entry_id) << "\","
+        << "\"fromBundleItemId\":\"" << JsonEscape(entry.from_bundle_item_id) << "\","
+        << "\"toBundleItemId\":\"" << JsonEscape(entry.to_bundle_item_id) << "\","
+        << "\"handoffStatus\":\"" << JsonEscape(entry.handoff_status) << "\","
+        << "\"nextOperatorRole\":\"" << JsonEscape(entry.next_operator_role) << "\","
+        << "\"blockedReason\":\"" << JsonEscape(entry.blocked_reason) << "\","
+        << "\"releaseSafe\":" << (entry.release_safe ? "true" : "false") << ","
+        << "\"evidenceRefs\":";
+    AppendV340RecoveryCandidateStringListJson(out, entry.evidence_refs);
+    out << "}";
+}
+
+void AppendV350OperationsExportBundleSummaryJson(
+    std::ostringstream& out,
+    const OpsV350OperationsExportBundleSummary& summary) {
+    out << "{"
+        << "\"bundleItemCount\":" << summary.bundle_item_count << ","
+        << "\"releaseSafeCount\":" << summary.release_safe_count << ","
+        << "\"handoffEntryCount\":" << summary.handoff_entry_count << ","
+        << "\"commandPlanRefCount\":" << summary.command_plan_ref_count << ","
+        << "\"drillLedgerRefCount\":" << summary.drill_ledger_ref_count << ","
+        << "\"fieldEvidenceRefCount\":" << summary.field_evidence_ref_count << ","
+        << "\"clientImpactForecastRefCount\":"
+        << summary.client_impact_forecast_ref_count << ","
+        << "\"blockedCount\":" << summary.blocked_count
+        << "}";
+}
+
+std::string OpsV350OperationsExportBundleHandoffMapJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v350-export-bundle-handoff-map.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto stagedChangePlans =
+        BuildV350StagedChangePlans(context, commandPlanCandidates);
+    const auto ledgerEntries =
+        BuildV350DrillRunLedgerEntries(context, commandPlanCandidates, stagedChangePlans);
+    const auto fieldBridgeConditionGates = BuildV340FieldBridgeConditionGates();
+    const auto operationsExportBundle =
+        BuildV350OperationsExportBundleItems(context,
+                                             commandPlanCandidates,
+                                             ledgerEntries,
+                                             fieldBridgeConditionGates);
+    const auto handoffMapEntries =
+        BuildV350OperationsHandoffMapEntries(operationsExportBundle);
+    const auto summary =
+        BuildV350OperationsExportBundleSummary(operationsExportBundle, handoffMapEntries);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v350-export-bundle-handoff-map.v1\","
+        << "\"status\":\"operations-export-bundle-handoff-map\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"commandPlanRoute\":\"/ops/api/live-operations/command-plan\","
+        << "\"drillLedgerRoute\":\"/ops/api/live-operations/drill-run-ledger\","
+        << "\"fieldEvidenceRoute\":\"/ops/api/source-registry/field-bridge-condition-gates\","
+        << "\"clientImpactForecastRoute\":\"/client/api/views\","
+        << "\"operationsExportBundleSummary\":";
+    AppendV350OperationsExportBundleSummaryJson(out, summary);
+    out << ",\"operationsExportBundle\":[";
+    for (std::size_t i = 0; i < operationsExportBundle.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV350OperationsExportBundleItemJson(out, operationsExportBundle[i]);
+    }
+    out << "],\"handoffMap\":{"
+        << "\"releaseSafe\":true,"
+        << "\"handoffMapPolicy\":\"release-safe route/id refs only\","
+        << "\"entries\":[";
+    for (std::size_t i = 0; i < handoffMapEntries.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV350OperationsHandoffMapEntryJson(out, handoffMapEntries[i]);
+    }
+    out << "]},\"handoffMapEntries\":[";
+    for (std::size_t i = 0; i < handoffMapEntries.size(); ++i) {
+        if (i != 0) {
+            out << ",";
+        }
+        AppendV350OperationsHandoffMapEntryJson(out, handoffMapEntries[i]);
+    }
+    out << "],\"contractPolicy\":{"
+        << "\"commandPlanRefs\":\"route-and-candidate-id-only\","
+        << "\"drillLedgerRefs\":\"run-id-only\","
+        << "\"fieldEvidenceRefs\":\"condition-gate-key-and-status-only\","
+        << "\"clientImpactForecastRefs\":\"viewer-safe-view-or-source-ids-only\","
+        << "\"releaseSafe\":true"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"releaseSafe\":true,"
+        << "\"artifactExportExecuted\":false,"
+        << "\"handoffWritePerformed\":false,"
+        << "\"fieldEvidenceExecutionPerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"commandPlanExecuted\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"rawProviderResponseIncluded\":false,"
+        << "\"rawVlmPromptIncluded\":false,"
+        << "\"clientViewerRawMaterialIncluded\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 std::string OpsAuditSearchIndexJson() {
     return "{\"caseInsensitive\":true,"
            "\"filters\":[\"area\",\"actor\",\"user\",\"target\",\"action\",\"q\",\"fromMs\",\"toMs\"],"
@@ -26444,6 +26850,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV350DrillRunLedgerPlanComparisonJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/live-operations/export-bundle-handoff-map") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV350OperationsExportBundleHandoffMapJson(config, source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }
