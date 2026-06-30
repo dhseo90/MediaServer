@@ -94,9 +94,9 @@ license/provenance/privacy/운영 검토 결과:
 | 7 | v3.5.0 (7) Drill Run Ledger and Plan Comparison | P1 | 예정 | drill run id, operator note, blocker, evidence refs, 이전 run 대비 차이를 누적 표시 |
 | 8 | v3.5.0 (8) Client Impact Forecast | P1 | 예정 | 특정 source/view/command plan이 client live/dashboard/event digest에 주는 영향을 viewer-safe summary로 계산 |
 | 9 | v3.5.0 (9) Client-safe Operations Notice | P1 | 예정 | viewer/client에 maintenance, degraded, recovering, available 상태와 timeline hint만 노출 |
-| 10 | v3.5.0 (10) Field Evidence Intake | P2 | 예정 | ONVIF, external WHEP/TURN, cloud/VLM provider 결과를 redacted field evidence로 수집하고 실행 조건과 미실행 상태를 분리 |
-| 11 | v3.5.0 (11) VLM-assisted Ops Explanation | P2 | 예정 | default-off VLM 보조 설명으로 command plan blocker, incident/source relation, operator review hint를 요약 |
-| 12 | v3.5.0 (12) Operations Export Bundle and Handoff Map | P1 | 예정 | command plan, drill ledger, field evidence, client impact forecast를 release-safe export bundle과 handoff map으로 조합 |
+| 10 | v3.5.0 (10) Operations Export Bundle and Handoff Map | P1 | 예정 | command plan, drill ledger, field evidence, client impact forecast를 release-safe export bundle과 handoff map으로 조합 |
+| 11 | v3.5.0 (11) Field Evidence Intake | P2 | 예정 | ONVIF, external WHEP/TURN, cloud/VLM provider 결과를 redacted field evidence로 수집하고 실행 조건과 미실행 상태를 분리 |
+| 12 | v3.5.0 (12) VLM-assisted Ops Explanation | P2 | 예정 | default-off VLM 보조 설명으로 command plan blocker, incident/source relation, operator review hint를 요약 |
 
 완료 경계: 위 표는 v3.5.0 개발 순서와 우선순위입니다. 각 step은 실제 코드/UI/API/문서
 변경, 기능 ID/test inventory 등록, 해당 verifier와 release test record evidence가 생긴 뒤에만
