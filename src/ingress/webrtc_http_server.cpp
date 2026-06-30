@@ -15784,7 +15784,7 @@ struct OpsV350CommandPlanSummary {
 
 std::vector<OpsV350CommandPlanCandidate> BuildV350CommandPlanCandidates(
     const OpsV350LiveOperationsGraphContext& context) {
-    // Derived from OpsV350LiveOperationsGraphNode graph inputs; the candidates keep graph node ids only.
+    // live operations graph 입력에서 command 후보를 만들되 graph node id만 보존합니다.
     std::vector<OpsV350CommandPlanCandidate> commandPlanCandidates;
     for (const auto& source : context.sources) {
         const auto health_it = context.source_health_status_by_source.find(source.source_id);
@@ -16015,11 +16015,8 @@ OpsV350IncidentCommandHandoff BuildV350IncidentCommandHandoff(
     const std::string& source_cause_summary,
     bool source_recheck_required,
     const std::vector<OpsV350CommandPlanCandidate>& commandPlanCandidates) {
-    // Consumed by OpsV320UnifiedResolutionWorkspaceItemJson from incidentSourceCorrelation,
-    // OpsV330IncidentSourceCorrelationInfo fields, BuildV350CommandPlanCandidates,
-    // BuildV340RecoveryCandidateContext, and BuildV340RecoveryCandidatePackages context
-    // without executing sourceRecheck, recovery,
-    // maintenance, clientNotice, or ruleFollowUp actions.
+    // incident source correlation과 command/recovery context를 읽기 전용 handoff로 묶습니다.
+    // sourceRecheck, recovery, maintenance, clientNotice, ruleFollowUp action은 실행하지 않습니다.
     OpsV350IncidentCommandHandoff handoff;
     handoff.event_id = Trim(ParseStringField(event_json, "eventId").value_or(""));
     if (handoff.event_id.empty()) {
@@ -16166,10 +16163,8 @@ struct OpsV350StagedChangePlanSummary {
 std::vector<OpsV350StagedChangePlan> BuildV350StagedChangePlans(
     const OpsV350LiveOperationsGraphContext& context,
     const std::vector<OpsV350CommandPlanCandidate>& commandPlanCandidates) {
-    // BuildV350LiveOperationsGraphContext and BuildV350CommandPlanCandidates feed this
-    // beforeApply staging preview; OpsV350CommandPlanCandidate operatorApprovalRequired,
-    // blockedReason, clientImpact, impactPreview, blockers, sourceChangeCandidate,
-    // publishedViewChangeCandidate, and ruleFollowUpChangeCandidate stay read-only.
+    // graph context와 command 후보를 beforeApply staging preview로 투영합니다.
+    // 승인, 차단, 영향, 변경 후보 필드는 read-only 상태를 유지합니다.
     std::vector<OpsV350StagedChangePlan> stagedChangePlans;
     for (const auto& candidate : commandPlanCandidates) {
         if (candidate.candidate_type != "sourceRecheck" &&
@@ -16411,9 +16406,8 @@ std::vector<OpsV350DrillRunLedgerEntry> BuildV350DrillRunLedgerEntries(
     const OpsV350LiveOperationsGraphContext& context,
     const std::vector<OpsV350CommandPlanCandidate>& commandPlanCandidates,
     const std::vector<OpsV350StagedChangePlan>& stagedChangePlans) {
-    // BuildV350LiveOperationsGraphContext, BuildV350CommandPlanCandidates, and
-    // BuildV350StagedChangePlans feed this append-only ledger projection. The
-    // operator-note-required value is displayed but not persisted.
+    // graph, command, staged plan을 append-only ledger projection으로 합칩니다.
+    // operator-note-required 값은 표시만 하고 저장하지 않습니다.
     (void)context;
     std::vector<OpsV350DrillRunLedgerEntry> ledgerEntries;
     int source_run_index = 0;

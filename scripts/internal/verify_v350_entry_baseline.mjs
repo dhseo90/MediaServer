@@ -163,8 +163,8 @@ check("server entrypoint and inventory verifiers include v3.5 Step 1", () => {
   for (const id of ["SAFE-135", "OPS-102"]) {
     assertIncludes(files.projectInventoryVerifier, id, `project inventory verifier ${id}`);
   }
-  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-139`", "project inventory SAFE range");
-  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-106`", "project inventory OPS range");
+  assertIncludes(files.projectInventoryVerifier, "`SAFE-001`~`SAFE-147`", "project inventory SAFE range");
+  assertIncludes(files.projectInventoryVerifier, "`OPS-035`~`OPS-114`", "project inventory OPS range");
   assertIncludes(files.scriptInventory, "verify_v350_entry_baseline.mjs", "script inventory");
 });
 

@@ -109,6 +109,37 @@ gate 실패 또는 미확인으로 보고하며 제품 runtime/media 회귀와 �
 
 ## GitHub Releases 운영
 
+### v3.5.0 Release Close-out Runbook
+
+아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
+순서와 문서 경계를 확인할 뿐, 실제 release action을 실행하지 않습니다.
+
+Dry-run checklist:
+
+- `./server.sh verify-release-closeout-helper --dry-run --report <report.md> --json-report <report.json>`
+- `./server.sh verify-release-closeout-helper --one-shot-dry-run`
+- one-shot schema: `media-server.release-closeout-one-shot-gate.v1`
+- fail-stop: 실패 단계 이후의 release action은 건너뜁니다.
+
+Real close-out checklist:
+
+- Branch close
+- PR merge
+- Main fast-forward/sync
+- public-readiness, bundle policy, Actions status check
+- Tag 전략에 맞춘 signed annotated tag 생성
+- GitHub Release 생성/갱신
+- Latest 확인
+- published metadata 재검증
+- release branch 삭제(별도 명시 승인 시에만)
+- Next branch sync
+
+Do not list an item as pass unless it was actually executed. tag, GitHub Release,
+published metadata, release branch 삭제, Next branch sync는 각각 실행 evidence가
+있을 때만 완료로 기록합니다. AGENTS.md 우선 규칙상 release branch 삭제는 릴리즈
+close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 삭제 승인이 없으면
+수행하지 않습니다.
+
 ### v3.4.0 Release Close-out Runbook
 
 아래 runbook은 수동으로만 진행합니다. `verify-release-closeout-helper`의 dry-run은
@@ -148,14 +179,63 @@ close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 �
 기록합니다.
 
 - v3.5.0 Step 1 source baseline alignment
-- Live Operations Graph Contract
-- Operations Command Plan Contract
-- Incident-to-Command Handoff
-- Staged Change Plan and Impact Preview
+- v3.5.0 Step 2 Live Operations Graph Contract
+- v3.5.0 Step 3 Operations Command Plan Contract
+- v3.5.0 Step 4 Incident-to-Command Handoff
+- v3.5.0 Step 5 Staged Change Plan and Impact Preview
+- v3.5.0 Step 6 Ops Command Workspace UI
+- v3.5.0 Step 7 Drill Run Ledger and Plan Comparison
+- v3.5.0 Step 8 Client Impact Forecast
+- v3.5.0 Step 9 Client-safe Operations Notice
+- v3.5.0 Step 10 Operations Export Bundle and Handoff Map
+- v3.5.0 Step 11 Field Evidence Intake
+- v3.5.0 Step 12 VLM-assisted Ops Explanation
+- v3.5.0 Step 13 Stabilization and Release Readiness
 
 `v3.5.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
 있을 때만 완료로 기록합니다. 현재 latest published release는 `v3.4.0`입니다.
 현재 공개 release tag 기준은 `v3.4.0`입니다. 현재 source tag 기준은 `v3.5.0`입니다.
+
+## v3.5.0 stabilization and release readiness
+
+v3.5.0 local readiness gate는 `media-server.v350-stabilization-release-readiness.v1`
+기준으로 v3.5.0 Live Operations Control Plane의 Step 1~12 local gates, release policy,
+release evidence index, release test records, docs links/assets, feature/script inventory,
+close-out dry-run command를 같은 범위로 묶습니다. 이 절은 source tree 준비 상태를
+확인할 뿐 release action을 승인하거나 실행하지 않습니다. `verify-release-metadata --published` 미실행
+상태는 local readiness PASS로 완료 처리하지 않습니다.
+
+Companion local gate:
+
+```bash
+./server.sh verify-v350-stabilization-release-readiness
+./server.sh build
+./server.sh verify-v350-entry-baseline
+./server.sh verify-v350-live-operations-graph-contract
+./server.sh verify-v350-operations-command-plan-contract
+./server.sh verify-v350-incident-to-command-handoff
+./server.sh verify-v350-staged-change-plan-impact-preview
+./server.sh verify-v350-ops-command-workspace-ui
+./server.sh verify-v350-drill-run-ledger-plan-comparison
+./server.sh verify-v350-client-impact-forecast
+./server.sh verify-v350-client-safe-operations-notice
+./server.sh verify-v350-operations-export-bundle-handoff-map
+./server.sh verify-v350-field-evidence-intake
+./server.sh verify-v350-vlm-assisted-ops-explanation
+./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-project-inventory
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-release-evidence-index
+./server.sh verify-release-closeout-helper --dry-run
+./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
+./server.sh verify-script-inventory
+git diff --check
+```
+
+v3.5.0 local readiness gate는 UI 풀테스트 직접 조작, 30분/120분 longrun, published
+metadata, PR/main/tag/GitHub Release, field smoke 실행 evidence를 대체하지 않습니다.
 
 ## v3.4.0 stabilization and release readiness
 

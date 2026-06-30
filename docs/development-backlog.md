@@ -24,8 +24,9 @@ Live Operations Graph Contract 구현 완료. Step 3 Operations Command Plan Con
 구현 완료. Step 4 Incident-to-Command Handoff 구현 완료. Step 5 Staged Change Plan
 and Impact Preview 구현 완료. Step 6 Ops Command Workspace UI, Step 7 Drill Run
 Ledger and Plan Comparison, Step 8 Client Impact Forecast, Step 9 Client-safe Operations
-Notice, Step 10 Operations Export Bundle and Handoff Map 구현 완료. Step 11 이후는 아직
-예정입니다. 현재 source version은
+Notice, Step 10 Operations Export Bundle and Handoff Map, Step 11 Field Evidence Intake,
+Step 12 VLM-assisted Ops Explanation 구현 완료. Step 13 Stabilization and Release Readiness
+local gate 연결 완료. 현재 source version은
 `3.5.0`이고 latest published baseline은 `v3.4.0`입니다. 각 step은 실제 코드/API/UI/문서/검증
 산출물이 생긴 뒤에만 완료로 기록합니다.
 
@@ -100,6 +101,7 @@ license/provenance/privacy/운영 검토 결과:
 | 10 | v3.5.0 (10) Operations Export Bundle and Handoff Map | P1 | 완료 | command plan, drill ledger, field evidence, client impact forecast를 release-safe export bundle과 handoff map으로 조합 |
 | 11 | v3.5.0 (11) Field Evidence Intake | P2 | 완료 | ONVIF, external WHEP/TURN, cloud/VLM provider 결과를 redacted field evidence로 수집하고 실행 조건과 미실행 상태를 분리 |
 | 12 | v3.5.0 (12) VLM-assisted Ops Explanation | P2 | 완료 | default-off VLM 보조 설명으로 command plan blocker, incident/source relation, operator review hint를 요약 |
+| 13 | v3.5.0 (13) Stabilization and Release Readiness | P0 | 완료 | v3.5 local stabilization, release evidence/not-run 경계, close-out dry-run, inventory/script/metadata 연결 |
 
 완료 경계: 위 표는 v3.5.0 개발 순서와 우선순위입니다. 각 step은 실제 코드/UI/API/문서
 변경, 기능 ID/test inventory 등록, 해당 verifier와 release test record evidence가 생긴 뒤에만
@@ -227,6 +229,44 @@ action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁�
 - `scripts/internal/verify_v350_vlm_assisted_ops_explanation.mjs`, `server.sh`: `./server.sh verify-v350-vlm-assisted-ops-explanation` 명령을 추가해 default-off VLM 보조 설명 API/UI, no-call/no-write boundary, client 비노출, backlog/stream verification/release records/inventory/server dispatch 연결을 검증합니다.
 - 검증: 최초 `node scripts/internal/verify_v350_vlm_assisted_ops_explanation.mjs`는 Step 12 server/API/UI/docs/inventory/server dispatch가 아직 없어 `pass=1 fail=11`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v350 Step 12 결과 행에 기록합니다.
 - 완료 경계: 이번 Step 12는 default-off VLM 보조 설명 read model/API/UI/verifier 연결입니다. VLM/provider 호출 evidence가 아닙니다. 실제 VLM runtime opt-in, raw prompt/response 저장, command execution, operator review write, source/view/EventRecord/Ops audit/client/media mutation, client notice send, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata evidence가 아닙니다.
+
+## v3.5.0 Step 13 개발 기록
+
+- 범위: P0 `v3.5.0 (13) Stabilization and Release Readiness`.
+- `scripts/internal/verify_v350_stabilization_release_readiness.mjs`, `server.sh`: `./server.sh verify-v350-stabilization-release-readiness` 명령을 추가해 v3.5 Step 1~12 local verifier, release policy/evidence index/test records, docs links/assets, feature/script inventory, close-out dry-run, `git diff --check` 연결을 검증합니다.
+- `docs/development-backlog.md`, `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`: Step 13을 `SAFE-147`, `OPS-114` local readiness boundary로 등록하고, release action, published metadata, UI 풀테스트 직접 조작, 30분/120분, field smoke 실행 evidence와 분리했습니다.
+- `docs/release-policy.md`, `docs/release-evidence-index.md`, `docs/release-test-records.md`: v3.5 local readiness gate와 미실행/조건부 gate 경계를 분리하고, release close-out dry-run과 published metadata 미실행 상태를 같은 완료 evidence로 승격하지 않도록 기록했습니다.
+- Companion local gate:
+
+```bash
+./server.sh verify-v350-stabilization-release-readiness
+./server.sh build
+./server.sh verify-v350-entry-baseline
+./server.sh verify-v350-live-operations-graph-contract
+./server.sh verify-v350-operations-command-plan-contract
+./server.sh verify-v350-incident-to-command-handoff
+./server.sh verify-v350-staged-change-plan-impact-preview
+./server.sh verify-v350-ops-command-workspace-ui
+./server.sh verify-v350-drill-run-ledger-plan-comparison
+./server.sh verify-v350-client-impact-forecast
+./server.sh verify-v350-client-safe-operations-notice
+./server.sh verify-v350-operations-export-bundle-handoff-map
+./server.sh verify-v350-field-evidence-intake
+./server.sh verify-v350-vlm-assisted-ops-explanation
+./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-project-inventory
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-release-evidence-index
+./server.sh verify-release-closeout-helper --dry-run
+./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
+./server.sh verify-script-inventory
+git diff --check
+```
+
+- 검증: 최초 `node scripts/internal/verify_v350_stabilization_release_readiness.mjs`는 Step 13 roadmap/stream verification/inventory/release policy/evidence/test records/server dispatch/script inventory 연결이 아직 없어 `pass=1 fail=5`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v350 stabilization/release readiness 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 13은 v3.5 local readiness wiring과 release evidence/not-run 경계입니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, `verify-release-metadata --published`, PR/main/tag/GitHub Release, field smoke, external endpoint/credential/provider 호출 PASS를 대체하지 않습니다.
 
 ## 현재 source roadmap: v3.4.0 Operations Continuity Drill Workspace
 

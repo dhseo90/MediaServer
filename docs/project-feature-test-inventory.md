@@ -26,12 +26,12 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 733 |
+| 전체 기능 항목 | 735 |
 | UI 직접 필요 | 368 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 334 |
-| 테스트 필요 | 733 |
-| 안정화 대상 | 723 |
+| UI 비대상 | 336 |
+| 테스트 필요 | 735 |
+| 안정화 대상 | 725 |
 | UI 풀테스트 대상 | 388 |
 | 30분 soak 대상 | 49 |
 | 120분 대상 | 7 |
@@ -42,7 +42,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 현재 상태 | 결론 |
 | --- | --- | --- |
-| 기능 ID 목록 | 733개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
+| 기능 ID 목록 | 735개 기능 ID를 `UI-*`, `AUTH-*`, `SRC-*`, `RULE-*`, `EVT-*`, `CLIENT-*`, `MEDIA-*`, `LAB-*`, `SAFE-*`, `OPS-*`로 분리 | 기준표 작성 완료 |
 | 코드 로직 위치 | ID prefix별 owner source를 지정 | 실행 증거 아님 |
 | 제품 UI 위치 | UI 필요/간접/비대상을 분리 | inventory 단독으로 UI PASS 판정 불가 |
 | 안정화 테스트 매핑 | verifier family를 ID prefix별로 지정 | 기준표 작성 완료 |
@@ -51,7 +51,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | VA seed 데이터 | `test/fixtures/manual_ui_fulltest_va_seed_matrix.json`로 numeric ID/API payload 기준 full UI seed matrix를 고정 | 준비 기준일 뿐 실행 증거 아님 |
 | UI 풀테스트 결과 | 기능 ID별 result template 기록란은 별도 문서가 관리 | 결과 문서 없이 inventory만으로 UI PASS 판정 불가 |
 | Coverage gate | `./server.sh verify-feature-inventory-coverage`가 `media-server.feature-inventory-coverage.v1` report로 기능 ID별 연결을 점검 | `missing coverage target` 누락 ID는 release gate에서 FAIL |
-| VLM current expansion | VLM route, control, action, runtime state, sidecar, privacy guard, feature-only retention과 v3.5 live operations graph/command plan/handoff/staged impact preview/drill ledger/client impact forecast/client-safe operations notice/operations export bundle/field evidence intake/VLM-assisted ops explanation을 현재 기능 ID에 연결 | 실행 증거 아님 |
+| VLM current expansion | VLM route, control, action, runtime state, sidecar, privacy guard, feature-only retention과 v3.5 live operations graph/command plan/handoff/staged impact preview/drill ledger/client impact forecast/client-safe operations notice/operations export bundle/field evidence intake/VLM-assisted ops explanation/stabilization release readiness를 현재 기능 ID에 연결 | 실행 증거 아님 |
 
 ## v3.5.0 Live Operations Control Plane Coverage Mapping
 
@@ -74,6 +74,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | v3.5.0 (10) Operations Export Bundle and Handoff Map | `UI-085`, `SAFE-144`, `OPS-111` | `verify-v350-operations-export-bundle-handoff-map`, `verify-ops-client-ui` | `/ops/api/live-operations/export-bundle-handoff-map`와 `/ops` dashboard가 command plan, drill ledger, field evidence, client impact forecast refs를 release-safe export bundle과 handoff map으로 조합합니다. artifact export/write/field smoke/provider call/command execution, source/view/EventRecord/Ops audit/client/media mutation, raw locator/credential/provider/VLM/client viewer material 노출, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 | v3.5.0 (11) Field Evidence Intake | `UI-086`, `SRC-047`, `MEDIA-023`, `LAB-093`, `SAFE-145`, `OPS-112` | `verify-v350-field-evidence-intake`, `verify-ops-client-ui` | `/ops/api/live-operations/field-evidence-intake`와 `/ops` dashboard가 ONVIF, external WHEP/TURN, cloud/VLM provider 결과를 redacted field evidence와 execution conditions/not-run 상태로 분리합니다. field smoke/provider call/endpoint probe/credential probe, source/view/EventRecord/Ops audit/client/media mutation, raw endpoint/credential/provider/VLM/client material 노출, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 | v3.5.0 (12) VLM-assisted Ops Explanation | `UI-087`, `SRC-048`, `EVT-076`, `LAB-094`, `SAFE-146`, `OPS-113` | `verify-v350-vlm-assisted-ops-explanation`, `verify-ops-client-ui` | `/ops/api/live-operations/vlm-assisted-explanation`와 `/ops` dashboard가 default-off VLM 보조 설명으로 command plan blocker, incident/source relation, operator review hint를 요약합니다. VLM/provider/runtime call, raw prompt/provider response/credential material, command execution, operator review write, source/view/EventRecord/Ops audit/client/media mutation, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
+| v3.5.0 (13) Stabilization and Release Readiness | `SAFE-147`, `OPS-114` | `verify-v350-stabilization-release-readiness`, `verify-release-metadata`, `verify-release-evidence-index`, `verify-release-closeout-helper --dry-run` | v3.5 Step 1~12 local gates, release policy/evidence index/test records, docs links/assets, feature/script inventory, close-out dry-run, `git diff --check`를 같은 local readiness gate로 묶음. UI 풀테스트 직접 조작, 30분/120분, published metadata, PR/main/tag/GitHub Release, field smoke 실행 PASS를 대체하지 않음 |
 
 ## 직전 published baseline v3.4.0 Operations Continuity Drill Workspace Coverage Mapping
 
@@ -291,8 +292,8 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 | `CLIENT-001`~`CLIENT-032` | client/UI/v350 verifier family | viewer 비노출은 브라우저 확인 필요 |
 | `MEDIA-001`~`MEDIA-023` | codec/WebRTC/external TURN/WHEP verifier family | 30분/120분은 사용자 지시 필요 |
 | `LAB-001`~`LAB-094` | lab/VLM/v250/v260/v270/v280/v300/v310/v340/v350 fixture verifier family | 제품 UI 비대상 |
-| `SAFE-001`~`SAFE-146` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
-| `OPS-035`~`OPS-113` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
+| `SAFE-001`~`SAFE-147` | safety/boundary verifier family | schema/media/auth/UI automation 불변 조건 |
+| `OPS-035`~`OPS-114` | ops evidence/readiness verifier family | PR/main/tag/GitHub Release 실행 evidence와 분리 |
 
 ## VA Manual UI Seed Matrix
 
@@ -1034,6 +1035,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SAFE-144 | V350 Step 10 operations export bundle boundary | 비대상 | 필요 | 안정화 | `verify-v350-operations-export-bundle-handoff-map`이 release-safe export bundle과 handoff map을 route/id refs만으로 구성하고 artifactExportExecuted, handoffWritePerformed, fieldEvidenceExecutionPerformed, commandPlanExecuted, source/view/EventRecord/Ops audit/client/media mutation, raw locator/credential/provider/VLM/client viewer material 노출을 수행하지 않음을 확인 |
 | SAFE-145 | V350 Step 11 field evidence redaction boundary | 비대상 | 필요 | 안정화 | `verify-v350-field-evidence-intake`가 redacted field evidence와 execution conditions/not-run 상태만 산출하고 fieldEvidenceWritePerformed, fieldSmokeExecuted, endpointProbePerformed, credentialProbePerformed, onvifDeviceContacted, externalWhepTurnContacted, cloudProviderContacted, vlmProviderCalled, source/view/EventRecord/Ops audit/client/media mutation, raw endpoint/credential/provider/VLM material 노출을 수행하지 않음을 확인 |
 | SAFE-146 | V350 Step 12 VLM-assisted ops explanation boundary | 비대상 | 필요 | 안정화 | `verify-v350-vlm-assisted-ops-explanation`이 default-off VLM 보조 설명을 산출하면서 defaultEnabled=false, vlmProviderCallPerformed=false, vlmRuntimeCallPerformed=false, rawVlmPromptIncluded=false, rawProviderResponseIncluded=false, credentialMaterialIncluded=false, commandPlanExecuted=false, operatorReviewWritePerformed=false, source/view/EventRecord/Ops audit/client/media mutation 미수행을 확인 |
+| SAFE-147 | V350 Step 13 stabilization/release readiness boundary | 비대상 | 필요 | 안정화 | `verify-v350-stabilization-release-readiness`가 v3.5 local readiness command, roadmap/stream verification/release policy/evidence index/release records/server dispatch/script inventory 연결을 확인하되 release action, published metadata, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -1118,6 +1120,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | OPS-111 | V350 Step 10 Operations Export Bundle and Handoff Map 게이트 | 비대상 | 필요 | 안정화 | `verify-v350-operations-export-bundle-handoff-map`이 `/ops/api/live-operations/export-bundle-handoff-map` Ops-only route, `/ops` dashboard export bundle/handoff map UI, release-safe boundary, CSS, ops/client smoke, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 artifact export 실행, handoff write, field smoke/provider call, command execution, UI 풀테스트 직접 조작, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-112 | V350 Step 11 Field Evidence Intake 게이트 | 비대상 | 필요 | 안정화 | `verify-v350-field-evidence-intake`가 `/ops/api/live-operations/field-evidence-intake` Ops-only route, `/ops` dashboard field evidence intake UI, redaction/not-run boundary, CSS, ops/client smoke, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 field smoke 실행, endpoint probe, credential probe, provider call, command execution, UI 풀테스트 직접 조작, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-113 | V350 Step 12 VLM-assisted Ops Explanation 게이트 | 비대상 | 필요 | 안정화 | `verify-v350-vlm-assisted-ops-explanation`이 `/ops/api/live-operations/vlm-assisted-explanation` Ops-only route, `/ops` dashboard VLM-assisted Ops Explanation UI, default-off/no-call boundary, CSS, ops/client smoke, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 VLM/provider 실행, command execution, operator review write, UI 풀테스트 직접 조작, 30분/120분, release publish PASS로 대체하지 않음 |
+| OPS-114 | V350 Step 13 Stabilization and Release Readiness 게이트 | 비대상 | 필요 | 안정화 | `verify-v350-stabilization-release-readiness`가 v3.5 local readiness command, roadmap/stream verification/release policy/evidence index/release records/server dispatch/script inventory 연결을 확인하되 release action, published metadata, UI 풀테스트, 30분/120분, field smoke 실행 PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 
