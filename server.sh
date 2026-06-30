@@ -326,6 +326,8 @@ Usage:
                  v3.5.0 Step 6 Ops Command Workspace UI read-only 경계를 검증합니다.
   verify-v350-drill-run-ledger-plan-comparison
                  v3.5.0 Step 7 Drill Run Ledger and Plan Comparison read-only 경계를 검증합니다.
+  verify-v350-client-impact-forecast
+                 v3.5.0 Step 8 Client Impact Forecast viewer-safe 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -542,6 +544,8 @@ Usage:
                  v3.5.0 Step 6 Ops Command Workspace UI read-only 경계를 검증합니다.
   verify-v350-drill-run-ledger-plan-comparison
                  v3.5.0 Step 7 Drill Run Ledger and Plan Comparison read-only 경계를 검증합니다.
+  verify-v350-client-impact-forecast
+                 v3.5.0 Step 8 Client Impact Forecast viewer-safe 경계를 검증합니다.
   verify-actions-security
                  GitHub Actions workflow 권한과 action 사용 정책을 검증합니다.
   verify-ci-local-gate-parity
@@ -1556,6 +1560,10 @@ case "${cmd}" in
   verify-v350-drill-run-ledger-plan-comparison)
     require_internal verify_v350_drill_run_ledger_plan_comparison.mjs
     exec "${INTERNAL_DIR}/verify_v350_drill_run_ledger_plan_comparison.mjs" "$@"
+    ;;
+  verify-v350-client-impact-forecast)
+    require_internal verify_v350_client_impact_forecast.mjs
+    exec "${INTERNAL_DIR}/verify_v350_client_impact_forecast.mjs" "$@"
     ;;
   verify-v290-final-stabilization-run)
     require_internal verify_v290_final_stabilization_run.mjs

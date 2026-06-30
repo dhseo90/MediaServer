@@ -255,6 +255,10 @@ void AppendClientShellScript(std::ostringstream& out) {
       for (const item of maintenanceDigestItems) {
         lines.push(`정비 digest: ${item.summaryText || 'viewer-safe maintenance summary'} / ${item.maintenanceState || 'unavailable'} / ${item.timelineHint || 'unavailable'}`);
       }
+      const impactForecastItems = Array.isArray(events.clientImpactForecast?.digestItems) ? events.clientImpactForecast.digestItems.slice(0, 3) : [];
+      for (const item of impactForecastItems) {
+        lines.push(`영향 forecast: ${item.summaryText || 'viewer-safe client impact forecast'} / ${item.liveImpact || 'client live unchanged'} / ${item.eventDigestImpact || 'event digest unchanged'}`);
+      }
       return lines.join('\n');
     };
     const clientStatusSummaryText = (payload = {}) => {
@@ -437,6 +441,34 @@ void AppendClientShellScript(std::ostringstream& out) {
                 <span>${escapeHtml(item.maintenanceState || 'unavailable')} · ${escapeHtml(item.timelineHint || 'unavailable')}</span>
               </div>
               <span class="chip ${item.severity === 'attention' ? 'warn' : 'info'}">${escapeHtml(item.severity || 'attention')}</span>
+            </article>`).join('')}
+        </div>
+      </section>`;
+    }
+    function renderClientImpactForecast(clientImpactForecast = {}) {
+      const items = Array.isArray(clientImpactForecast.digestItems) ? clientImpactForecast.digestItems : [];
+      return `<section class="client-impact-forecast" data-testid="client-impact-forecast" data-client-impact-forecast="viewer-safe" aria-label="viewer-safe client impact forecast" data-client-digest-schema="media-server.client.v350-impact-forecast.v1">
+        <div class="toolbar">
+          <div>
+            <h3>영향 forecast</h3>
+            <p>${clientImpactForecast.viewerSafe === true ? 'source/view/command plan 영향이 안전 요약으로 표시됩니다.' : '영향 forecast 확인이 필요합니다.'}</p>
+          </div>
+          <div class="meta">
+            <span class="chip ${clientImpactForecast.viewerSafe === true ? 'info' : 'warn'}">viewer-safe</span>
+            <span class="chip ${clientImpactForecast.publishedViewScoped === true ? 'info' : 'warn'}">view scope</span>
+            <span class="chip info">command detail 숨김</span>
+          </div>
+        </div>
+        <div class="client-safe-digest-list">
+          ${items.length === 0
+            ? emptyState('영향 forecast 없음', '표시할 viewer-safe client impact forecast가 없습니다.')
+            : items.map(item => `<article class="client-safe-digest-item">
+              <div>
+                <strong>${escapeHtml(item.summaryText || 'viewer-safe client impact forecast')}</strong>
+                <span>${escapeHtml(item.sourceImpact || 'source impact unavailable')} · ${escapeHtml(item.viewImpact || 'view impact unavailable')} · ${escapeHtml(item.commandPlanImpact || 'command plan impact pending')}</span>
+                <span>${escapeHtml(item.liveImpact || 'client live unchanged')} · ${escapeHtml(item.dashboardImpact || 'dashboard unchanged')} · ${escapeHtml(item.eventDigestImpact || 'event digest unchanged')} · ${escapeHtml(item.timelineHint || 'available')}</span>
+              </div>
+              <span class="chip ${item.severity === 'attention' ? 'warn' : 'info'}">${escapeHtml(item.severity || 'info')}</span>
             </article>`).join('')}
         </div>
       </section>`;
@@ -943,6 +975,7 @@ void AppendClientShellScript(std::ostringstream& out) {
           </div>
           ${renderClientSafeSourceStatusDigest(events.sourceStatusDigest || {})}
           ${renderClientSafeMaintenanceDigest(events.maintenanceDigest || {})}
+          ${renderClientImpactForecast(events.clientImpactForecast || {})}
           ${renderClientSafeEventDigest(events.eventDigest || {})}
           ${renderClientSafeResolutionDigest(events.resolutionDigest || {})}
           ${renderClientSafeIncidentDigest(events.incidentDigest || {})}
@@ -1028,6 +1061,7 @@ void AppendClientShellScript(std::ostringstream& out) {
         </div>
         ${renderClientSafeSourceStatusDigest(events.sourceStatusDigest || {})}
         ${renderClientSafeMaintenanceDigest(events.maintenanceDigest || {})}
+        ${renderClientImpactForecast(events.clientImpactForecast || {})}
         ${renderClientSafeEventDigest(events.eventDigest || {})}
         ${renderClientSafeResolutionDigest(events.resolutionDigest || {})}
         ${renderClientSafeIncidentDigest(events.incidentDigest || {})}
@@ -2061,9 +2095,10 @@ void AppendClientShellScript(std::ostringstream& out) {
 	        <div class="meta">
 	          ${(events.countsByType || []).map(item => `<span class="chip">${escapeHtml(item.eventType || '이벤트')} ${escapeHtml(item.count)}</span>`).join('') || '<span class="chip info">이벤트 없음</span>'}
 	        </div>
-	        ${renderClientSafeSourceStatusDigest(events.sourceStatusDigest || {})}
-	        ${renderClientSafeMaintenanceDigest(events.maintenanceDigest || {})}
-	        ${renderClientSafeEventDigest(events.eventDigest || {})}
+        ${renderClientSafeSourceStatusDigest(events.sourceStatusDigest || {})}
+        ${renderClientSafeMaintenanceDigest(events.maintenanceDigest || {})}
+        ${renderClientImpactForecast(events.clientImpactForecast || {})}
+        ${renderClientSafeEventDigest(events.eventDigest || {})}
 	        ${renderClientSafeResolutionDigest(events.resolutionDigest || {})}
 	        ${renderClientSafeIncidentDigest(events.incidentDigest || {})}
 	        ${renderClientSafeFollowUpDigest(events.followUpDigest || {})}

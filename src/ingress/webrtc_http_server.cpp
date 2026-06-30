@@ -4810,6 +4810,114 @@ std::string ClientMaintenanceDigestJson(const ClientSourceStatusDigest& source_s
     return out.str();
 }
 
+struct ClientImpactForecast {
+    bool provided{true};
+    std::string source_impact{"source impact unavailable"};
+    std::string view_impact{"view impact unavailable"};
+    std::string command_plan_impact{"command plan impact pending"};
+    std::string live_impact{"client live unchanged"};
+    std::string dashboard_impact{"dashboard digest unchanged"};
+    std::string event_digest_impact{"event digest unchanged"};
+    std::string summary_text{"viewer-safe client impact forecast"};
+    std::string severity{"info"};
+    std::string timeline_hint{"available"};
+};
+
+ClientImpactForecast ClientImpactForecastFor(
+    const SourceViewRegistry::ClientViewAccess& access,
+    const ClientSourceStatusDigest& source_status,
+    const ClientMaintenanceDigest& maintenance_digest,
+    const ClientEventSummary& event_summary) {
+    ClientImpactForecast forecast;
+    forecast.source_impact =
+        source_status.source_status == "live" ? "source available" : "source may affect live view";
+    forecast.view_impact =
+        access.view.enabled ? "published view available" : "published view unavailable";
+    forecast.command_plan_impact =
+        "command plan impact is summarized without command plan details";
+    forecast.live_impact =
+        source_status.source_status == "live" ? "client live remains available"
+                                              : "client live may show degraded signal";
+    forecast.dashboard_impact =
+        maintenance_digest.maintenance_state == "maintenance"
+            ? "dashboard shows available maintenance summary"
+            : "dashboard shows degraded or recovering summary";
+    forecast.event_digest_impact =
+        event_summary.provided ? "event digest remains viewer-safe"
+                               : "event digest unavailable for this view";
+    if (source_status.source_status == "live" && access.view.enabled) {
+        forecast.summary_text =
+            "viewer-safe forecast: live, dashboard, and event digest remain available.";
+        forecast.severity = "normal";
+        forecast.timeline_hint = "available";
+    } else if (source_status.source_status == "connecting" ||
+               source_status.source_status == "stale") {
+        forecast.summary_text =
+            "viewer-safe forecast: client surfaces may show degraded or recovering status.";
+        forecast.severity = "attention";
+        forecast.timeline_hint = "degraded";
+    } else {
+        forecast.summary_text =
+            "viewer-safe forecast: client surfaces may show unavailable status.";
+        forecast.severity = "attention";
+        forecast.timeline_hint = "unavailable";
+    }
+    return forecast;
+}
+
+void AppendClientImpactForecastJson(std::ostringstream& out,
+                                    const ClientImpactForecast& forecast) {
+    out << "{"
+        << "\"schema\":\"media-server.client.v350-impact-forecast.v1\","
+        << "\"provided\":" << (forecast.provided ? "true" : "false") << ","
+        << "\"viewerSafe\":true,"
+        << "\"publishedViewScoped\":true,"
+        << "\"sourceUrlIncluded\":false,"
+        << "\"rawLocatorIncluded\":false,"
+        << "\"rawJsonIncluded\":false,"
+        << "\"debugMaterialIncluded\":false,"
+        << "\"credentialMaterialIncluded\":false,"
+        << "\"operatorMaterialIncluded\":false,"
+        << "\"commandPlanDetailsIncluded\":false,"
+        << "\"actionControlsIncluded\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"eventSchemaChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false,"
+        << "\"searchMetricsChanged\":false,"
+        << "\"itemCount\":1,"
+        << "\"digestItems\":[{"
+        << "\"digestId\":\"client-impact-forecast-1\","
+        << "\"sourceImpact\":\"" << JsonEscape(forecast.source_impact) << "\","
+        << "\"viewImpact\":\"" << JsonEscape(forecast.view_impact) << "\","
+        << "\"commandPlanImpact\":\"" << JsonEscape(forecast.command_plan_impact) << "\","
+        << "\"liveImpact\":\"" << JsonEscape(forecast.live_impact) << "\","
+        << "\"dashboardImpact\":\"" << JsonEscape(forecast.dashboard_impact) << "\","
+        << "\"eventDigestImpact\":\"" << JsonEscape(forecast.event_digest_impact) << "\","
+        << "\"summaryText\":\"" << JsonEscape(forecast.summary_text) << "\","
+        << "\"severity\":\"" << JsonEscape(forecast.severity) << "\","
+        << "\"timelineHint\":\"" << JsonEscape(forecast.timeline_hint) << "\""
+        << "}]}";
+}
+
+std::string ClientImpactForecastJson(
+    const SourceViewRegistry::ClientViewAccess& access,
+    const ClientSourceStatusDigest& source_status,
+    const ClientMaintenanceDigest& maintenance_digest,
+    const ClientEventSummary& event_summary) {
+    std::ostringstream out;
+    AppendClientImpactForecastJson(
+        out,
+        ClientImpactForecastFor(access, source_status, maintenance_digest, event_summary));
+    return out.str();
+}
+
 ClientEventItem ParseClientEventItem(const std::string& raw) {
     ClientEventItem item;
     item.event_id = ParseStringField(raw, "eventId").value_or("");
@@ -5211,7 +5319,8 @@ void AppendClientSafeResolutionDigestJson(std::ostringstream& out,
 void AppendClientEventSummaryJson(std::ostringstream& out,
                                   const ClientEventSummary& summary,
                                   const std::string& source_status_digest_json = "",
-                                  const std::string& maintenance_digest_json = "") {
+                                  const std::string& maintenance_digest_json = "",
+                                  const std::string& client_impact_forecast_json = "") {
     out << "{"
         << "\"provided\":" << (summary.provided ? "true" : "false") << ","
         << "\"storageEnabled\":" << (summary.storage_enabled ? "true" : "false") << ","
@@ -5251,6 +5360,9 @@ void AppendClientEventSummaryJson(std::ostringstream& out,
     }
     if (!maintenance_digest_json.empty()) {
         out << ",\"maintenanceDigest\":" << maintenance_digest_json;
+    }
+    if (!client_impact_forecast_json.empty()) {
+        out << ",\"clientImpactForecast\":" << client_impact_forecast_json;
     }
     out << "}";
 }
@@ -5301,12 +5413,19 @@ std::string ClientViewEventsJson(
     std::ostringstream source_status_digest_out;
     AppendClientSafeSourceStatusDigestJson(source_status_digest_out, source_status_digest);
     const auto source_status_digest_json = source_status_digest_out.str();
+    const auto maintenance_digest = ClientMaintenanceDigestFor(source_status_digest);
     const auto maintenance_digest_json = ClientMaintenanceDigestJson(source_status_digest);
+    const auto client_impact_forecast_json =
+        ClientImpactForecastJson(access, source_status_digest, maintenance_digest, summary);
     std::ostringstream out;
     out << "{\"ok\":true,\"view\":";
     AppendClientViewIdentityJson(out, access);
     out << ",\"events\":";
-    AppendClientEventSummaryJson(out, summary, source_status_digest_json, maintenance_digest_json);
+    AppendClientEventSummaryJson(out,
+                                 summary,
+                                 source_status_digest_json,
+                                 maintenance_digest_json,
+                                 client_impact_forecast_json);
     out << "}";
     return out.str();
 }
@@ -5448,7 +5567,10 @@ std::string ClientViewDashboardJson(const SourceViewRegistry::ClientViewAccess& 
     std::ostringstream source_status_digest_out;
     AppendClientSafeSourceStatusDigestJson(source_status_digest_out, source_status_digest);
     const auto source_status_digest_json = source_status_digest_out.str();
+    const auto maintenance_digest = ClientMaintenanceDigestFor(source_status_digest);
     const auto maintenance_digest_json = ClientMaintenanceDigestJson(source_status_digest);
+    const auto client_impact_forecast_json =
+        ClientImpactForecastJson(access, source_status_digest, maintenance_digest, event_summary);
     const std::optional<std::int64_t> latest_event_time =
         event_summary.latest_event_time_ms.has_value()
             ? event_summary.latest_event_time_ms
@@ -5488,7 +5610,11 @@ std::string ClientViewDashboardJson(const SourceViewRegistry::ClientViewAccess& 
     out << ",\"lastFrameAgeMs\":";
     AppendNullableInt64(out, last_frame_age);
     out << "},\"events\":";
-    AppendClientEventSummaryJson(out, event_summary, source_status_digest_json, maintenance_digest_json);
+    AppendClientEventSummaryJson(out,
+                                 event_summary,
+                                 source_status_digest_json,
+                                 maintenance_digest_json,
+                                 client_impact_forecast_json);
     out << "}";
     return out.str();
 }
