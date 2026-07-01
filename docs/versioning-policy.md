@@ -10,6 +10,7 @@
 - 최신 공개 GitHub Release: `v3.5.0 Live Operations Control Plane`
 - `v3.5.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
 - source-only release 기준 tag는 published tag `v3.5.0`와 현재 source tag `v3.5.0`를 함께 기록합니다.
+- `v3.5.0` release tag는 SSH-signed annotated tag이며 GitHub API tag verification `verified=true`/`reason=valid`로 확인했습니다.
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
 
 현재 소스 트리의 `3.5.0` roadmap은 v3.5.0 Live Operations Control Plane
