@@ -3,9 +3,8 @@
 이 디렉터리는 README와 `docs/ui-guide.md`에서 사용할 제품 UI 스크린샷을 역할 기준
 파일명으로 보관합니다.
 
-현재 README 대표 이미지는 제품 shell 설명용입니다. 현재 source tree는 `v3.5.0`
-Live Operations Control Plane을 가리키고 최신 공개 GitHub Release는 `v3.4.0`
-Operations Continuity Drill Workspace를 가리키지만, 이 이미지를 v3.5.0 source baseline,
+현재 README 대표 이미지는 제품 shell 설명용입니다. 현재 source tree와 최신 공개 GitHub Release는
+`v3.5.0` Live Operations Control Plane을 가리키지만, 이 이미지를 v3.5.0 source baseline,
 UI 풀테스트, 공개 릴리즈 증거로 쓰지 않습니다. 특히
 Client Live 이미지는 source tree, dock event feed, workspace preset,
 tile-level disconnect/action, VA overlay tile이 보이는 제품 구조를 설명합니다.

@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// 파일 용도: v3.5.0 source baseline 정렬과 v3.4.0 published baseline 경계를 검증한다.
+// 파일 용도: v3.5.0 source baseline 정렬과 v3.5.0 published baseline 경계를 검증한다.
 
 import fs from "node:fs";
 import path from "node:path";
@@ -20,7 +20,7 @@ Usage:
 
 Checks:
   - VERSION/CMake and public docs identify source 3.5.0
-  - latest published release remains v3.4.0 source-only
+  - latest published release is v3.5.0 source-only
   - v3.5.0 roadmap selection is Live Operations Control Plane
   - backlog, stream verification, feature inventory, release records, release metadata, and server dispatch expose this gate
 `);
@@ -31,9 +31,9 @@ assertKnownOptions(rawArgs, ["h", "help"]);
 const command = "verify-v350-entry-baseline";
 const version = readText("VERSION").trim();
 const currentTag = "v3.5.0";
-const latestPublishedTag = "v3.4.0";
+const latestPublishedTag = "v3.5.0";
 const currentRoadmap = "v3.5.0 Live Operations Control Plane";
-const latestPublishedBaseline = "v3.4.0 Operations Continuity Drill Workspace";
+const latestPublishedBaseline = "v3.5.0 Live Operations Control Plane";
 const files = {
   cmake: readText("CMakeLists.txt"),
   readme: readText("README.md"),
@@ -65,7 +65,7 @@ check("source version is v3.5.0 and CMake matches", () => {
   assertIncludes(files.cmake, "project(media_server VERSION 3.5.0 LANGUAGES CXX)", "CMake project version");
 });
 
-check("public entry docs pin source v3.5.0 and published v3.4.0", () => {
+check("public entry docs pin source v3.5.0 and published v3.5.0", () => {
   for (const [label, text, sourceSnippet, roadmapSnippet] of [
     ["README.md", files.readme, "현재 소스 버전: `3.5.0`", `현재 source roadmap: \`${currentRoadmap}\``],
     ["README.en.md", files.readmeEn, "Current source version: `3.5.0`", `Current source roadmap: \`${currentRoadmap}\``],
@@ -79,25 +79,25 @@ check("public entry docs pin source v3.5.0 and published v3.4.0", () => {
   }
 });
 
-check("versioning and release policy pin v3.5 source and v3.4 published baseline", () => {
+check("versioning and release policy pin v3.5 source and v3.5 published baseline", () => {
   for (const snippet of [
     "현재 소스 버전: `3.5.0`",
     `현재 source roadmap: \`${currentRoadmap}\``,
     `최신 공개 GitHub Release: \`${latestPublishedBaseline}\``,
-    "`v3.4.0` 공개 상태: source-only GitHub Release",
+    "`v3.5.0` 공개 상태: source-only GitHub Release",
     "현재 소스 트리의 `3.5.0` roadmap은 v3.5.0 Live Operations Control Plane",
-    "published tag `v3.4.0`와 현재 source tag `v3.5.0`",
+    "published tag `v3.5.0`와 현재 source tag `v3.5.0`",
     "## 3.5.0 active source roadmap 범위",
-    "## v3.4.0 latest published source-only release 범위",
+    "## v3.5.0 latest published source-only release 범위",
   ]) {
     assertIncludes(files.versioning, snippet, "versioning policy");
   }
   for (const snippet of [
     "현재 소스 버전: `3.5.0`",
-    "최신 공개 GitHub Release: `v3.4.0`",
+    "최신 공개 GitHub Release: `v3.5.0`",
     `현재 source roadmap은 \`${currentRoadmap}\`입니다.`,
-    "현재 latest published release는 `v3.4.0`입니다.",
-    "현재 공개 release tag 기준은 `v3.4.0`입니다.",
+    "현재 latest published release는 `v3.5.0`입니다.",
+    "현재 공개 release tag 기준은 `v3.5.0`입니다.",
     "현재 source tag 기준은 `v3.5.0`입니다.",
     "## v3.5.0 Source Roadmap Scope",
     "v3.5.0 Step 1 source baseline alignment",
@@ -123,13 +123,13 @@ check("roadmap records v3.5 Step 1 as completed baseline alignment only", () => 
 });
 
 check("metadata, asset, stream, inventory, and records expose v3.5 Step 1 gate", () => {
-  assertIncludes(files.releaseMetadataVerifier, 'const latestPublishedTag = "v3.4.0";', "release metadata verifier");
+  assertIncludes(files.releaseMetadataVerifier, 'const latestPublishedTag = "v3.5.0";', "release metadata verifier");
   assertIncludes(files.releaseMetadataVerifier, `const currentRoadmap = "${currentRoadmap}";`, "release metadata verifier");
   assertIncludes(files.releaseMetadataVerifier, `const latestPublishedBaseline = "${latestPublishedBaseline}";`, "release metadata verifier");
-  assertIncludes(files.docsUiAssetsVerifier, 'const latestPublishedTag = "v3.4.0";', "docs UI assets verifier");
+  assertIncludes(files.docsUiAssetsVerifier, 'const latestPublishedTag = "v3.5.0";', "docs UI assets verifier");
   const manifest = JSON.parse(files.docsUiAssetsManifest);
   assert(manifest.baseline?.sourceVersion === "3.5.0", "docs UI asset manifest source version must be 3.5.0");
-  assert(manifest.baseline?.publishedRelease === "v3.4.0", "docs UI asset manifest published release must be v3.4.0");
+  assert(manifest.baseline?.publishedRelease === "v3.5.0", "docs UI asset manifest published release must be v3.5.0");
   for (const snippet of [
     "| v3.5.0 (1) | `./server.sh verify-v350-entry-baseline`, `./server.sh verify-release-metadata`, `./server.sh verify-docs-links`, `./server.sh verify-docs-ui-assets` |",
     `source \`3.5.0\`, latest published \`${latestPublishedTag}\`, current roadmap \`${currentRoadmap}\` 정렬`,

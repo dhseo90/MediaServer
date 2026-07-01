@@ -7,8 +7,8 @@
 ## 현재 공개 상태
 
 - 현재 소스 버전: `3.5.0`
-- 최신 공개 GitHub Release: `v3.4.0`
-- `v3.4.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
+- 최신 공개 GitHub Release: `v3.5.0`
+- `v3.5.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
 - 현재 source roadmap은 `v3.5.0 Live Operations Control Plane`입니다.
 
@@ -193,8 +193,8 @@ close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 �
 - v3.5.0 Step 13 Stabilization and Release Readiness
 
 `v3.5.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
-있을 때만 완료로 기록합니다. 현재 latest published release는 `v3.4.0`입니다.
-현재 공개 release tag 기준은 `v3.4.0`입니다. 현재 source tag 기준은 `v3.5.0`입니다.
+있을 때만 완료로 기록합니다. 현재 latest published release는 `v3.5.0`입니다.
+현재 공개 release tag 기준은 `v3.5.0`입니다. 현재 source tag 기준은 `v3.5.0`입니다.
 
 ## v3.5.0 stabilization and release readiness
 
