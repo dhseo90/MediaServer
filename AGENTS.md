@@ -356,9 +356,14 @@ external TURN/WHEP, cloud provider, ONVIF 실기기, 외부 VLM/provider 호출�
    - merge에 실패하거나 CI가 실패하면 tag/GitHub Release/후속 브랜치를 진행하지 않는다.
 6. 릴리즈 tag 생성
    - 이 단계는 사용자가 tag 생성을 명시 승인한 경우에만 수행한다.
-   - PR이 main에 merge된 뒤 main의 최신 release commit에 annotated 릴리즈 tag를 만든다.
+   - PR이 main에 merge된 뒤 main의 최신 release commit에 signed annotated 릴리즈 tag를 만든다.
+   - `annotated`만 된 unsigned tag, lightweight tag, GitHub UI/API가 자동 생성한 unsigned tag는 신규 릴리즈 tag로 사용하지 않는다.
+   - tag 생성 전 local signing 설정과 GitHub에 등록된 signing key가 확인되지 않으면 tag 생성을 중단하고 blocker로 보고한다.
+   - tag push 전 `git tag -v <tag>` 또는 동등한 local signature verification으로 tag object에 서명이 있음을 확인한다.
+   - tag push 후 GitHub Tags/Releases의 `Verified` 표시 또는 GitHub API tag verification `verified=true`/`reason=valid` evidence를 확인한다. 확인 전에는 tag/GitHub Release/published metadata를 완료로 보고하지 않는다.
    - 예: `1.9.0` 릴리즈면 main의 마지막 릴리즈 커밋에 `v1.9.0` tag가 있어야 한다.
    - 동일 tag가 local 또는 remote에 이미 있으면 덮어쓰거나 force update하지 않고 즉시 중단해 충돌 상태를 보고한다.
+   - 이미 생성된 unsigned release tag를 signed/Verified tag로 교체하는 작업은 tag force update에 해당하므로, 사용자가 해당 tag 교체와 force update를 명시 승인한 경우에만 수행한다.
    - tag 대상 commit hash를 확인하고, tag를 push하기 전후 hash를 보고한다.
 7. GitHub Release 업데이트와 published metadata 재검증
    - 이 단계는 사용자가 GitHub Release 생성/갱신을 명시 승인한 경우에만 수행한다.
