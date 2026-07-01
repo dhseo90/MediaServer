@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Published Release](https://img.shields.io/badge/published-v3.4.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v3.4.0)
+[![Published Release](https://img.shields.io/badge/published-v3.5.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v3.5.0)
 ![Source Version](https://img.shields.io/badge/source-3.5.0-informational)
 
 RTSP/WebRTC live stream을 받아 다시 내보내고, 필요할 때 YOLO/ONNX 영상 분석
@@ -14,9 +14,9 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 
 - English documentation: [README.en.md](README.en.md), [docs/en/README.md](docs/en/README.md)
 - 전체 문서 색인: [docs/README.md](docs/README.md)
-- 최신 공개 GitHub Release: [v3.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.4.0)
+- 최신 공개 GitHub Release: [v3.5.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.5.0)
 - 현재 소스 버전: `3.5.0`
-- v3.4.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
+- v3.5.0 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
 - 현재 source roadmap: `v3.5.0 Live Operations Control Plane`
 
 ## 한눈에 보기
@@ -34,12 +34,12 @@ overlay와 Rule/Scenario live event를 붙이는 C++17 미디어 서버입니다
 
 ## v3.5 Source Roadmap
 
-- 최신 공개 릴리즈: `v3.4.0` Operations Continuity Drill Workspace, source-only.
+- 최신 공개 릴리즈: `v3.5.0` Live Operations Control Plane, source-only.
 - 현재 소스: `3.5.0` Live Operations Control Plane.
 - v3.5 로드맵: EventRecord, SourceRegistry, PublishedView, source health,
   continuity drill, client impact를 Ops-only graph와 command plan, incident handoff,
   staged change preview로 묶습니다.
-- 최신 공개 기준: v3.4.0 Operations Continuity Drill Workspace는 published baseline으로 보존하고, 후속 변경은
+- 최신 공개 기준: v3.5.0 Live Operations Control Plane은 published baseline으로 보존하고, 후속 변경은
   코드/UI/API/검증 evidence가 생긴 뒤에만 완료로 기록합니다.
 - 불변 조건: Event POST, WebRTC DataChannel, SSE/WS metadata, RTSP/WebRTC media path는
   요청 없이 변경하지 않습니다.
@@ -121,7 +121,7 @@ README는 제품 개요와 빠른 시작만 담습니다. 세부 정책과 내�
 - release/version 기준: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
-- 최신 공개 릴리즈 노트: [v3.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.4.0)
+- 최신 공개 릴리즈 노트: [v3.5.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.5.0)
 - 현재 source roadmap: [docs/development-backlog.md](docs/development-backlog.md)의
   `v3.5.0 Live Operations Control Plane`
 

@@ -11,11 +11,11 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 ## 현재 공개 상태
 
 - 현재 소스 버전: `3.5.0`
-- 최신 공개 GitHub Release: `v3.4.0`
-- `v3.4.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
+- 최신 공개 GitHub Release: `v3.5.0`
+- `v3.5.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
 - 현재 source roadmap: `v3.5.0 Live Operations Control Plane`
-- 최신 published baseline: `v3.4.0 Operations Continuity Drill Workspace`
+- 최신 published baseline: `v3.5.0 Live Operations Control Plane`
 
 ## 현재 source roadmap: v3.5.0 Live Operations Control Plane
 
@@ -27,7 +27,7 @@ Ledger and Plan Comparison, Step 8 Client Impact Forecast, Step 9 Client-safe Op
 Notice, Step 10 Operations Export Bundle and Handoff Map, Step 11 Field Evidence Intake,
 Step 12 VLM-assisted Ops Explanation 구현 완료. Step 13 Stabilization and Release Readiness
 local gate 연결 완료. 현재 source version은
-`3.5.0`이고 latest published baseline은 `v3.4.0`입니다. 각 step은 실제 코드/API/UI/문서/검증
+`3.5.0`이고 latest published baseline은 `v3.5.0`입니다. 각 step은 실제 코드/API/UI/문서/검증
 산출물이 생긴 뒤에만 완료로 기록합니다.
 
 직접 답: v3.5.0의 1차 선택값은 `Live Operations Control Plane`입니다. v3.2가
@@ -603,7 +603,17 @@ close-out dry-run, script inventory, `git diff --check` 연결입니다.
 recovery queue, client digest, search/metrics 구현 완료 evidence가 아닙니다.
 `v3.3.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
 
-## 최신 공개 기준: v3.4.0 Source Release Baseline
+## 최신 공개 기준: v3.5.0 Source Release Baseline
+
+v3.5.0은 Live Operations Control Plane source-only 공개 릴리즈입니다. 이 기준은
+Live Operations Graph, Operations Command Plan, Incident-to-Command Handoff,
+Staged Change Plan and Impact Preview, Ops Command Workspace, Drill Run Ledger,
+Client Impact Forecast, Client-safe Operations Notice, Operations Export Bundle,
+Field Evidence Intake, VLM-assisted Ops Explanation, release readiness를 local evidence와
+함께 닫은 최신 published baseline입니다. 120분 longrun과 external field smoke는
+실행하지 않은 영역으로 계속 분리합니다.
+
+## 직전 공개 기준: v3.4.0 Source Release Baseline
 
 v3.4.0은 Operations Continuity Drill Workspace source-only 공개 릴리즈입니다. 이 기준은
 continuity drill contract, recovery candidate package, staging restore validation,
@@ -613,7 +623,7 @@ condition gates, release readiness를 local evidence와 함께 닫은 최신 pub
 baseline입니다. 120분 longrun과 external field smoke는 실행하지 않은 영역으로 계속
 분리합니다.
 
-## 직전 공개 기준: v3.3.0 Source Release Baseline
+## 이전 공개 기준: v3.3.0 Source Release Baseline
 
 v3.3.0은 Live Source Reliability Workspace source-only 직전 공개 릴리즈입니다. 이 기준은
 source registry snapshot, onboarding quality, reliability timeline, incident-to-source

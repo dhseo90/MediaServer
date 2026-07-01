@@ -2,7 +2,7 @@
 
 [![Preflight](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/preflight.yml)
 [![Licensing and Artifact Guardrails](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml/badge.svg?branch=main)](https://github.com/dhseo90/MediaServer/actions/workflows/licensing-artifact-guardrails.yml)
-[![Published Release](https://img.shields.io/badge/published-v3.4.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v3.4.0)
+[![Published Release](https://img.shields.io/badge/published-v3.5.0-blue)](https://github.com/dhseo90/MediaServer/releases/tag/v3.5.0)
 ![Source Version](https://img.shields.io/badge/source-3.5.0-informational)
 
 Media Server is a C++17 RTSP/WebRTC live stream relay. It can add YOLO/ONNX
@@ -14,9 +14,9 @@ and runtime/model bundle distribution are outside the default public release.
 
 - Korean documentation: [README.md](README.md)
 - Documentation index: [docs/README.md](docs/README.md)
-- Latest published GitHub Release: [v3.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.4.0)
+- Latest published GitHub Release: [v3.5.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.5.0)
 - Current source version: `3.5.0`
-- v3.4.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
+- v3.5.0 public status: source-only GitHub Release. Binary, runtime, and model bundles are not included.
 - Current source roadmap: `v3.5.0 Live Operations Control Plane`
 
 ## At a Glance
@@ -36,12 +36,12 @@ and runtime/model bundle distribution are outside the default public release.
 
 ## v3.5 Source Roadmap
 
-- Latest published release: `v3.4.0` Operations Continuity Drill Workspace, source-only.
+- Latest published release: `v3.5.0` Live Operations Control Plane, source-only.
 - Current source: `3.5.0` Live Operations Control Plane.
 - v3.5 roadmap: connects EventRecord, SourceRegistry, PublishedView, source
   health, continuity drill, and client impact into an Ops-only graph, command
   plan, incident handoff, and staged change preview.
-- Latest published baseline: v3.4.0 remains the published source baseline, and
+- Latest published baseline: v3.5.0 remains the published source baseline, and
   follow-up changes are recorded complete only after their own
   code/UI/API/verification evidence exists.
 - Invariants: Event POST, WebRTC DataChannel, SSE/WS metadata, and RTSP/WebRTC
@@ -133,7 +133,7 @@ records live in dedicated docs.
 - Release/version policy: [docs/release-policy.md](docs/release-policy.md),
   [docs/versioning-policy.md](docs/versioning-policy.md)
 - Release roadmap/archive: [docs/development-backlog.md](docs/development-backlog.md)
-- Latest published release notes: [v3.4.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.4.0)
+- Latest published release notes: [v3.5.0](https://github.com/dhseo90/MediaServer/releases/tag/v3.5.0)
 - Current source roadmap: `v3.5.0 Live Operations Control Plane` in
   [docs/development-backlog.md](docs/development-backlog.md)
 

@@ -7,14 +7,14 @@
 
 - 현재 소스 버전: `3.5.0`
 - 현재 source roadmap: `v3.5.0 Live Operations Control Plane`
-- 최신 공개 GitHub Release: `v3.4.0 Operations Continuity Drill Workspace`
-- `v3.4.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
-- source-only release 기준 tag는 published tag `v3.4.0`와 현재 source tag `v3.5.0`를 함께 기록합니다.
+- 최신 공개 GitHub Release: `v3.5.0 Live Operations Control Plane`
+- `v3.5.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은 포함하지 않음
+- source-only release 기준 tag는 published tag `v3.5.0`와 현재 source tag `v3.5.0`를 함께 기록합니다.
 - `VERSION` 파일과 `CMakeLists.txt`의 `project(... VERSION ...)` 값은 같은 값을 유지합니다.
 
 현재 소스 트리의 `3.5.0` roadmap은 v3.5.0 Live Operations Control Plane
-source-only/live-only active source baseline입니다. v3.4.0 최신 published baseline,
-v3.3.0 previous published evidence와 후속 기능별 완료 evidence는 계속 분리해 기록합니다. 기본 공개 형태는 계속 source-only이며
+source-only/live-only active source baseline입니다. v3.5.0 최신 published baseline,
+v3.4.0 previous published evidence와 후속 기능별 완료 evidence는 계속 분리해 기록합니다. 기본 공개 형태는 계속 source-only이며
 binary/runtime/model bundle을 공개 asset으로 포함하지 않습니다.
 
 ## 2.x runway / 3.0 전환 정책
@@ -61,13 +61,32 @@ tag, 30분/120분 장시간 테스트, UI 풀테스트, 외부 field smoke는 �
 `v3.5.0 source-of-truth 정렬`은 `README.md`, `README.en.md`, `docs/README.md`,
 `docs/en/README.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`,
 release/version policy가 source `3.5.0`, current roadmap
-`v3.5.0 Live Operations Control Plane`, latest published `v3.4.0`를 정렬하는지
-확인하는 local gate입니다. v3.4 published baseline은 최신 공개 기준입니다. 대표 UI 이미지는 `config/docs_ui_assets.json`의 managed
+`v3.5.0 Live Operations Control Plane`, latest published `v3.5.0`를 정렬하는지
+확인하는 local gate입니다. v3.5 published baseline은 최신 공개 기준입니다. 대표 UI 이미지는 `config/docs_ui_assets.json`의 managed
 asset list로 관리하며, image recapture, 직접 브라우저 검수 PASS, UI 풀테스트,
 published metadata, tag/push/GitHub Release는 source baseline 정렬 PASS로 대체하지
 않습니다.
 
-## v3.4.0 latest published source-only release 범위
+## v3.5.0 latest published source-only release 범위
+
+- v3.5.0 source roadmap baseline 정렬
+- Live Operations Graph Contract
+- Operations Command Plan Contract
+- Incident-to-Command Handoff
+- Staged Change Plan and Impact Preview
+- Ops Command Workspace UI
+- Drill Run Ledger and Plan Comparison
+- Client Impact Forecast
+- Client-safe Operations Notice
+- Operations Export Bundle and Handoff Map
+- Field Evidence Intake
+- VLM-assisted Ops Explanation
+- Stabilization and Release Readiness
+
+위 항목은 최신 published baseline입니다. 120분 longrun과 외부 field smoke는 실행하지
+않은 영역으로 계속 분리합니다.
+
+## v3.4.0 previous published source-only release 범위
 
 - v3.4.0 source roadmap baseline 정렬
 - Continuity Drill Contract
@@ -81,10 +100,10 @@ published metadata, tag/push/GitHub Release는 source baseline 정렬 PASS로 �
 - Field Bridge Condition Gates
 - Stabilization and Release Readiness
 
-위 항목은 최신 published baseline입니다. 120분 longrun과 외부 field smoke는 실행하지
+위 항목은 직전 published baseline입니다. 120분 longrun과 외부 field smoke는 실행하지
 않은 영역으로 계속 분리합니다.
 
-## v3.3.0 previous published source-only release 범위
+## v3.3.0 historical published source-only release 범위
 
 - v3.3.0 source roadmap baseline 정렬
 - Source Registry Snapshot and Identity
