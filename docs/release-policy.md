@@ -195,6 +195,8 @@ close-out runbook에 포함되어 있어도 최신 사용자 지시에 별도 �
 `v3.5.0` publish 완료는 tag, GitHub Release, published metadata 검증 evidence가
 있을 때만 완료로 기록합니다. 현재 latest published release는 `v3.5.0`입니다.
 현재 공개 release tag 기준은 `v3.5.0`입니다. 현재 source tag 기준은 `v3.5.0`입니다.
+`v3.5.0` release tag는 SSH-signed annotated tag이며 GitHub API tag verification
+`verified=true`/`reason=valid`로 확인했습니다.
 
 ## v3.5.0 stabilization and release readiness
 
