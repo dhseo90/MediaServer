@@ -1,7 +1,7 @@
 {
   "schema": "media-server.manual-ui-fulltest-va-seed-matrix.v1",
-  "description": "Throwaway VA seed matrix for v3.4.0 manual UI full test preparation. This is not execution evidence and not production data.",
-  "releaseTarget": "v3.4.0",
+  "description": "Throwaway VA seed matrix for v3.5.0 manual UI full test preparation. This is not execution evidence and not production data.",
+  "releaseTarget": "v3.5.0",
   "usageBoundary": {
     "authMode": "auto",
     "dataScope": "throwaway",

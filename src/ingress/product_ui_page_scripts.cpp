@@ -564,6 +564,223 @@ void AppendOpsShellScript(std::ostringstream& out,
           '상세 조치는 /ops/users와 TURN/ICE 설정에서 수행합니다.'
         ], logs);
       };
+      let v350CommandWorkspaceState = {};
+      const v350CommandWorkspaceList = value => Array.isArray(value) ? value : [];
+      const v350CommandWorkspaceFirst = value => v350CommandWorkspaceList(value)[0] || {};
+      const v350CommandWorkspaceCard = (step, title, detail, evidence, tone = 'info') =>
+        `<p class="ops-command-flow-card ${escapeHtml(tone)}" data-command-workspace-step="${escapeHtml(step)}">
+          <strong>${escapeHtml(title)}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(evidence))}</small>
+        </p>`;
+      const renderV350OpsCommandWorkspace = (payload = {}) => {
+        const liveOperationsGraph = payload.liveOperationsGraph || {};
+        const commandPlan = payload.commandPlan || {};
+        const stagedPlan = payload.stagedPlan || {};
+        const drillLedger = payload.drillLedger || {};
+        const exportBundle = payload.exportBundle || {};
+        const fieldEvidenceIntake = payload.fieldEvidenceIntake || {};
+        const vlmAssistedExplanation = payload.vlmAssistedExplanation || {};
+        const reviews = payload.reviews || {};
+        const graphNodes = v350CommandWorkspaceList(liveOperationsGraph.graphNodes);
+        const commandPlanCandidates = v350CommandWorkspaceList(commandPlan.commandPlanCandidates);
+        const stagedChangePlans = v350CommandWorkspaceList(stagedPlan.stagedChangePlans);
+        const drillRunLedgerEntries = v350CommandWorkspaceList(drillLedger.drillRunLedgerEntries);
+        const operationsExportBundle = v350CommandWorkspaceList(exportBundle.operationsExportBundle);
+        const handoffMapEntries = v350CommandWorkspaceList(exportBundle.handoffMapEntries || exportBundle.handoffMap?.entries);
+        const fieldEvidenceIntakeRecords = v350CommandWorkspaceList(fieldEvidenceIntake.fieldEvidenceIntakeRecords);
+        const fieldEvidenceExecutionConditions = v350CommandWorkspaceList(fieldEvidenceIntake.fieldEvidenceExecutionConditions);
+        const vlmAssistedOpsExplanations = v350CommandWorkspaceList(vlmAssistedExplanation.vlmAssistedOpsExplanations);
+        const records = v350CommandWorkspaceList(reviews?.items || reviews?.reviews || reviews?.records?.records);
+        const selectedReview = v350CommandWorkspaceFirst(records);
+        const incidentCommandHandoff = selectedReview?.selectedDetail?.incidentCommandHandoff || selectedReview?.incidentCommandHandoff || {};
+        const sourceNode = graphNodes.find(node => String(node?.type || '').toLowerCase().includes('source')) || v350CommandWorkspaceFirst(graphNodes);
+        const drillNode = graphNodes.find(node => String(node?.type || '').toLowerCase().includes('drill')) || graphNodes.find(node => String(node?.label || '').toLowerCase().includes('drill')) || {};
+        const clientImpact = liveOperationsGraph.viewerSafeImpactSummary || liveOperationsGraph.liveOperationsGraphSummary?.clientImpactSummary || commandPlan.commandPlanSummary?.clientImpactSummary || stagedPlan.impactPreview?.summary || 'viewer-safe impact summary pending';
+        const stagedSummary = stagedPlan.stagedChangePlanSummary || {};
+        const commandSummary = commandPlan.commandPlanSummary || {};
+        const boundaryOk = liveOperationsGraph.boundaries?.readOnly === true &&
+          commandPlan.boundaries?.commandPlanExecuted === false &&
+          stagedPlan.boundaries?.commandPlanExecuted === false &&
+          stagedPlan.boundaries?.viewerClientExposureAdded === false;
+        v350CommandWorkspaceState = {
+          liveOperationsGraph,
+          commandPlan,
+          stagedPlan,
+          drillLedger,
+          exportBundle,
+          reviews,
+          graphRoute: payload.graphRoute || '/ops/api/live-operations/graph',
+          commandPlanRoute: payload.commandPlanRoute || '/ops/api/live-operations/command-plan',
+          stagedPlanRoute: payload.stagedPlanRoute || '/ops/api/live-operations/staged-change-plan-impact-preview',
+          drillLedgerRoute: payload.drillLedgerRoute || '/ops/api/live-operations/drill-run-ledger',
+          exportBundleRoute: payload.exportBundleRoute || '/ops/api/live-operations/export-bundle-handoff-map',
+          fieldEvidenceRoute: payload.fieldEvidenceRoute || '/ops/api/live-operations/field-evidence-intake',
+          vlmExplanationRoute: payload.vlmExplanationRoute || '/ops/api/live-operations/vlm-assisted-explanation',
+          reviewRoute: payload.reviewRoute || '/ops/api/events/reviews'
+        };
+        renderBadges('dashCommandWorkspaceBadges', [
+          { text: `incident ${records.length}`, tone: records.length > 0 ? '' : 'info' },
+          { text: `source ${graphNodes.length}` },
+          { text: `drill ${drillNode.id || incidentCommandHandoff.continuityDrillCandidate ? 'linked' : 'pending'}`, tone: drillNode.id || incidentCommandHandoff.continuityDrillCandidate ? '' : 'warn' },
+          { text: `plan ${commandPlanCandidates.length}` },
+          { text: `staged ${stagedChangePlans.length}` },
+          { text: `ledger ${drillRunLedgerEntries.length}` },
+          { text: `bundle ${operationsExportBundle.length}` },
+          { text: `handoff ${handoffMapEntries.length}` },
+          { text: `field evidence ${fieldEvidenceIntakeRecords.length}`, tone: fieldEvidenceIntakeRecords.length > 0 ? '' : 'warn' },
+          { text: `VLM explain ${vlmAssistedOpsExplanations.length}`, tone: vlmAssistedExplanation.defaultEnabled === false ? 'info' : 'warn' },
+          { text: boundaryOk ? 'read-only' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashCommandWorkspaceText',
+          payload.error
+            ? `command workspace 로드 실패: ${payload.error}`
+            : `incident ${records.length} · command plan ${commandSummary.candidateCount ?? commandPlanCandidates.length} · staged ${stagedSummary.planCount ?? stagedChangePlans.length} · drill ledger ${drillRunLedgerEntries.length} · field evidence ${fieldEvidenceIntakeRecords.length} · VLM explanation ${vlmAssistedOpsExplanations.length}`);
+        const flow = document.getElementById('dashCommandWorkspaceFlow');
+        if (flow) {
+          flow.setAttribute('data-v350-command-workspace-flow', 'incident-source-drill-staged-plan-client-impact');
+          flow.innerHTML = [
+            v350CommandWorkspaceCard('incident', 'incident', selectedReview.eventId || selectedReview.id || incidentCommandHandoff.sourceCause || 'recent incident pending', incidentCommandHandoff.operatorNextAction || payload.reviewRoute || '/ops/api/events/reviews'),
+            v350CommandWorkspaceCard('source', 'source', opsSafeSourceLabel(sourceNode.sourceId || sourceNode.id || incidentCommandHandoff.sourceCause || 'source context pending'), sourceNode.summary || incidentCommandHandoff.sourceCauseEvidence || payload.graphRoute || '/ops/api/live-operations/graph'),
+            v350CommandWorkspaceCard('drill', 'continuity drill', incidentCommandHandoff.continuityDrillCandidate || drillNode.label || 'drill candidate pending', liveOperationsGraph.continuityDrillRoute || 'continuityDrill read model'),
+            v350CommandWorkspaceCard('staged-plan', 'staged plan', stagedChangePlans[0]?.planId || stagedChangePlans[0]?.candidateId || 'staged plan pending', stagedPlan.impactPreview?.summary || payload.stagedPlanRoute || '/ops/api/live-operations/staged-change-plan-impact-preview'),
+            v350CommandWorkspaceCard('client-impact', 'client impact', clientImpact, 'viewer-safe summary only')
+          ].join('');
+        }
+        const planList = document.getElementById('dashCommandWorkspacePlanList');
+        if (planList) {
+          planList.innerHTML = stagedChangePlans.length > 0
+            ? stagedChangePlans.slice(0, 4).map(plan => `<p class="ops-command-flow-card" data-v350-command-workspace-plan="${escapeHtml(plan.planId || plan.candidateId || 'staged-plan')}">
+                <strong>${escapeHtml(display(plan.planId || plan.candidateId || 'staged plan'))}</strong>
+                <span>${escapeHtml(display(plan.status || plan.readiness || 'staging-only'))}</span>
+                <small>${escapeHtml(display(v350CommandWorkspaceList(plan.blockers).join(', ') || stagedPlan.blockers?.join(', ') || 'operator approval required'))}</small>
+              </p>`).join('')
+            : '<div class="empty">staged plan 후보가 아직 없습니다.</div>';
+        }
+        const impactList = document.getElementById('dashCommandWorkspaceImpactList');
+        if (impactList) {
+          const impacts = [
+            liveOperationsGraph.viewerSafeImpactSummary,
+            commandPlan.commandPlanSummary?.viewerSafeSummary,
+            stagedPlan.impactPreview?.summary,
+            clientImpact
+          ].filter(Boolean);
+          impactList.innerHTML = [...new Set(impacts)].slice(0, 4)
+            .map((impact, index) => `<p class="ops-command-flow-card" data-v350-command-workspace-impact="${index + 1}">
+              <strong>viewer-safe impact</strong>
+              <span>${escapeHtml(display(impact))}</span>
+              <small>client live/dashboard/event digest raw material 없음</small>
+            </p>`).join('');
+        }
+        const ledgerList = document.getElementById('dashCommandWorkspaceLedgerList');
+        if (ledgerList) {
+          ledgerList.innerHTML = drillRunLedgerEntries.length > 0
+            ? drillRunLedgerEntries.slice(0, 6).map(entry => {
+                const evidenceRefs = v350CommandWorkspaceList(entry.evidenceRefs).slice(0, 3).join(', ') || 'evidence refs pending';
+                return `<p class="ops-command-ledger-entry" data-v350-drill-run-ledger-entry="${escapeHtml(entry.drillRunId || 'drill-run')}">
+                  <strong>${escapeHtml(display(entry.drillRunId || 'drill run id pending'))}</strong>
+                  <span>${escapeHtml(display(entry.operatorNote || 'operator note pending'))}</span>
+                  <small>blocker=${escapeHtml(display(entry.blocker || 'none'))} · previous=${escapeHtml(display(entry.previousRunId || entry.comparedToRunId || 'baseline'))} · diff=${escapeHtml(display(entry.diffFromPreviousRun || entry.planComparison || 'previous run diff pending'))} · evidence=${escapeHtml(display(evidenceRefs))}</small>
+                </p>`;
+              }).join('')
+            : '<div class="empty">drill run ledger 누적 항목이 아직 없습니다.</div>';
+        }
+        const exportBundleList = document.getElementById('dashCommandWorkspaceExportBundleMap');
+        if (exportBundleList) {
+          exportBundleList.setAttribute('data-v350-export-bundle-handoff-map', 'media-server.ops.v350-export-bundle-handoff-map.v1');
+          const bundleHtml = operationsExportBundle.length > 0
+            ? operationsExportBundle.slice(0, 4).map(item => {
+                const commandPlanRefs = v350CommandWorkspaceList(item.commandPlanRefs).slice(0, 2).join(', ') || 'command plan refs pending';
+                const drillLedgerRefs = v350CommandWorkspaceList(item.drillLedgerRefs).slice(0, 2).join(', ') || 'drill ledger refs pending';
+                const fieldEvidenceRefs = v350CommandWorkspaceList(item.fieldEvidenceRefs).slice(0, 2).join(', ') || 'field evidence refs pending';
+                const clientImpactForecastRefs = v350CommandWorkspaceList(item.clientImpactForecastRefs).slice(0, 2).join(', ') || 'client impact forecast refs pending';
+                return `<p class="ops-command-flow-card" data-v350-export-bundle-item="${escapeHtml(item.bundleItemId || item.itemType || 'operations-export-bundle')}">
+                  <strong>${escapeHtml(display(item.label || item.itemType || 'Operations Export Bundle'))}</strong>
+                  <span>${escapeHtml(display(item.summary || item.status || 'release-safe bundle item'))}</span>
+                  <small>releaseSafe=${item.releaseSafe === true ? 'true' : '확인 필요'} · commandPlanRefs=${escapeHtml(display(commandPlanRefs))} · drillLedgerRefs=${escapeHtml(display(drillLedgerRefs))} · fieldEvidenceRefs=${escapeHtml(display(fieldEvidenceRefs))} · clientImpactForecastRefs=${escapeHtml(display(clientImpactForecastRefs))}</small>
+                </p>`;
+              }).join('')
+            : '<div class="empty">Operations Export Bundle 항목이 아직 없습니다.</div>';
+          const handoffHtml = handoffMapEntries.length > 0
+            ? handoffMapEntries.slice(0, 4).map(entry => {
+                const evidenceRefs = v350CommandWorkspaceList(entry.evidenceRefs).slice(0, 3).join(', ') || 'evidence refs pending';
+                return `<p class="ops-handoff-map-entry" data-v350-handoff-map-entry="${escapeHtml(entry.handoffEntryId || 'handoff-map')}">
+                  <strong>${escapeHtml(display(entry.handoffStatus || 'Handoff Map'))}</strong>
+                  <span>${escapeHtml(display(`${entry.fromBundleItemId || 'from'} -> ${entry.toBundleItemId || 'to'}`))}</span>
+                  <small>nextOperatorRole=${escapeHtml(display(entry.nextOperatorRole || 'ops-operator'))} · blockedReason=${escapeHtml(display(entry.blockedReason || 'operator-review-required'))} · evidence=${escapeHtml(display(evidenceRefs))}</small>
+                </p>`;
+              }).join('')
+            : '<div class="empty">Handoff Map entry가 아직 없습니다.</div>';
+          exportBundleList.innerHTML = `${bundleHtml}${handoffHtml}`;
+        }
+        const fieldEvidenceList = document.getElementById('dashCommandWorkspaceFieldEvidenceIntake');
+        if (fieldEvidenceList) {
+          fieldEvidenceList.setAttribute('data-v350-field-evidence-intake', 'media-server.ops.v350-field-evidence-intake.v1');
+          const conditionSummary = fieldEvidenceExecutionConditions.length > 0
+            ? fieldEvidenceExecutionConditions
+                .slice(0, 6)
+                .map(condition => `${condition.conditionKind || 'execution conditions'}=${condition.conditionStatus || condition.executionStatus || 'not-run'}`)
+                .join(' · ')
+            : 'execution conditions pending';
+          fieldEvidenceList.innerHTML = fieldEvidenceIntakeRecords.length > 0
+            ? fieldEvidenceIntakeRecords.slice(0, 6).map(record => {
+                const evidenceRefs = v350CommandWorkspaceList(record.evidenceRefs).slice(0, 2).join(', ') || 'evidence refs pending';
+                return `<p class="ops-field-evidence-intake-entry" data-v350-field-evidence-record="${escapeHtml(record.evidenceId || record.bridgeKind || 'field-evidence')}">
+                  <strong>${escapeHtml(display(record.label || record.bridgeKind || 'Field Evidence Intake'))}</strong>
+                  <span>${escapeHtml(display(record.redactedFieldEvidence || 'redacted field evidence'))}</span>
+                  <small>executionStatus=${escapeHtml(display(record.executionStatus || 'not-run'))} · fieldSmokeStatus=${escapeHtml(display(record.fieldSmokeStatus || 'field-smoke-needed'))} · notRunReason=${escapeHtml(display(record.notRunReason || 'endpoint/credential/operator approval required'))} · endpointRequired=${record.endpointRequired === true ? 'true' : 'false'} · credentialRequired=${record.credentialRequired === true ? 'true' : 'false'} · operatorApprovalRequired=${record.operatorApprovalRequired === true ? 'true' : 'false'} · evidence=${escapeHtml(display(evidenceRefs))}</small>
+                </p>`;
+              }).join('') + `<p class="ops-field-evidence-intake-entry" data-v350-field-evidence-conditions="execution-conditions">
+                <strong>execution conditions</strong>
+                <span>${escapeHtml(display(conditionSummary))}</span>
+                <small>ONVIF · external WHEP/TURN · cloud/VLM provider 상태는 not-run과 redaction boundary로 분리됩니다.</small>
+              </p>`
+            : '<div class="empty">Field Evidence Intake record가 아직 없습니다.</div>';
+        }
+        const vlmExplanationList = document.getElementById('dashCommandWorkspaceVlmAssistedExplanation');
+        if (vlmExplanationList) {
+          vlmExplanationList.setAttribute('data-v350-vlm-assisted-explanation', 'media-server.ops.v350-vlm-assisted-explanation.v1');
+          const explanationBoundary = vlmAssistedExplanation.boundaries || {};
+          vlmExplanationList.innerHTML = vlmAssistedOpsExplanations.length > 0
+            ? vlmAssistedOpsExplanations.slice(0, 6).map(item => {
+                const evidenceRefs = v350CommandWorkspaceList(item.evidenceRefs).slice(0, 3).join(', ') || 'evidence refs pending';
+                return `<p class="ops-vlm-assisted-explanation-entry" data-v350-vlm-assisted-explanation-item="${escapeHtml(item.explanationId || item.explanationType || 'vlm-assisted-explanation')}">
+                  <strong>${escapeHtml(display(item.title || item.explanationType || 'VLM-assisted Ops Explanation'))}</strong>
+                  <span>${escapeHtml(display(item.commandPlanBlockerSummary || 'command plan blocker summary pending'))}</span>
+                  <small>incident/source relation=${escapeHtml(display(item.incidentSourceRelationSummary || 'incident/source relation pending'))} · operator review hint=${escapeHtml(display(item.operatorReviewHint || 'operator review hint pending'))} · defaultEnabled=${item.defaultEnabled === false ? 'false' : '확인 필요'} · vlmProviderCallPerformed=${item.vlmProviderCallPerformed === false ? 'false' : '확인 필요'} · evidence=${escapeHtml(display(evidenceRefs))}</small>
+                </p>`;
+              }).join('') + `<p class="ops-vlm-assisted-explanation-entry ops-vlm-explanation-boundary" data-v350-vlm-assisted-explanation-boundary="default-off">
+                <strong>default-off VLM</strong>
+                <span>command plan blocker · incident/source relation · operator review hint</span>
+                <small>defaultEnabled=${vlmAssistedExplanation.defaultEnabled === false ? 'false' : '확인 필요'} · vlmRuntimeCallPerformed=${explanationBoundary.vlmRuntimeCallPerformed === false ? 'false' : '확인 필요'} · rawVlmPromptIncluded=${explanationBoundary.rawVlmPromptIncluded === false ? 'false' : '확인 필요'}</small>
+              </p>`
+            : '<div class="empty">VLM-assisted Ops Explanation 항목이 아직 없습니다.</div>';
+        }
+        setText('dashCommandWorkspaceBoundary',
+          `graph=${display(v350CommandWorkspaceState.graphRoute)} · plan=${display(v350CommandWorkspaceState.commandPlanRoute)} · staged=${display(v350CommandWorkspaceState.stagedPlanRoute)} · ledger=${display(v350CommandWorkspaceState.drillLedgerRoute)} · export=${display(v350CommandWorkspaceState.exportBundleRoute)} · fieldEvidence=${display(v350CommandWorkspaceState.fieldEvidenceRoute)} · vlmExplanation=${display(v350CommandWorkspaceState.vlmExplanationRoute)} · commandPlanExecuted=${commandPlan.boundaries?.commandPlanExecuted === false ? 'false' : '확인 필요'} · drillRunWritePerformed=${drillLedger.boundaries?.drillRunWritePerformed === false ? 'false' : '확인 필요'} · artifactExportExecuted=${exportBundle.boundaries?.artifactExportExecuted === false ? 'false' : '확인 필요'} · handoffWritePerformed=${exportBundle.boundaries?.handoffWritePerformed === false ? 'false' : '확인 필요'} · fieldSmokeExecuted=${fieldEvidenceIntake.boundaries?.fieldSmokeExecuted === false ? 'false' : '확인 필요'} · fieldEvidenceWritePerformed=${fieldEvidenceIntake.boundaries?.fieldEvidenceWritePerformed === false ? 'false' : '확인 필요'} · vlmProviderCallPerformed=${vlmAssistedExplanation.boundaries?.vlmProviderCallPerformed === false ? 'false' : '확인 필요'} · defaultEnabled=${vlmAssistedExplanation.defaultEnabled === false ? 'false' : '확인 필요'} · viewerClientExposureAdded=${stagedPlan.boundaries?.viewerClientExposureAdded === false ? 'false' : '확인 필요'}`);
+      };
+      const refreshV350OpsCommandWorkspace = async ({
+        graphRoute = '/ops/api/live-operations/graph',
+        commandPlanRoute = '/ops/api/live-operations/command-plan',
+        stagedPlanRoute = '/ops/api/live-operations/staged-change-plan-impact-preview',
+        drillLedgerRoute = '/ops/api/live-operations/drill-run-ledger',
+        exportBundleRoute = '/ops/api/live-operations/export-bundle-handoff-map',
+        fieldEvidenceRoute = '/ops/api/live-operations/field-evidence-intake',
+        vlmExplanationRoute = '/ops/api/live-operations/vlm-assisted-explanation',
+        reviewRoute = '/ops/api/events/reviews'
+      } = {}) => {
+        const [liveOperationsGraph, commandPlan, stagedPlan, drillLedger, exportBundle, fieldEvidenceIntake, vlmAssistedExplanation, reviews] = await Promise.all([
+          requestJson(graphRoute).catch(error => ({ error: error.message, graphNodes: [], boundaries: {} })),
+          requestJson(commandPlanRoute).catch(error => ({ error: error.message, commandPlanCandidates: [], boundaries: {} })),
+          requestJson(stagedPlanRoute).catch(error => ({ error: error.message, stagedChangePlans: [], boundaries: {} })),
+          requestJson(drillLedgerRoute).catch(error => ({ error: error.message, drillRunLedgerEntries: [], boundaries: {} })),
+          requestJson(exportBundleRoute).catch(error => ({ error: error.message, operationsExportBundle: [], handoffMapEntries: [], boundaries: {} })),
+          requestJson(fieldEvidenceRoute).catch(error => ({ error: error.message, fieldEvidenceIntakeRecords: [], fieldEvidenceExecutionConditions: [], boundaries: {} })),
+          requestJson(vlmExplanationRoute).catch(error => ({ error: error.message, vlmAssistedOpsExplanations: [], boundaries: {} })),
+          requestJson(`${reviewRoute}?limit=5`).catch(error => ({ error: error.message, items: [] }))
+        ]);
+        renderV350OpsCommandWorkspace({ liveOperationsGraph, commandPlan, stagedPlan, drillLedger, exportBundle, fieldEvidenceIntake, vlmAssistedExplanation, reviews, graphRoute, commandPlanRoute, stagedPlanRoute, drillLedgerRoute, exportBundleRoute, fieldEvidenceRoute, vlmExplanationRoute, reviewRoute });
+      };
       const renderDashboardRootCause = (runtime, principal, eventsStatus = {}, browserConfig = {}, diagnosticLog = {}, sourceHealth = {}) => {
         const items = dashboardRootCauseItems(runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth);
         const warnCount = items.filter(item => item.level === 'warn' || item.level === 'bad').length;
@@ -1518,6 +1735,12 @@ void AppendOpsShellScript(std::ostringstream& out,
           `프로파일 ${runtime?.analysisMatching?.profileDocumentCount ?? 0} · 룰 ${runtime?.analysisMatching?.ruleDocumentCount ?? 0} · 발행 ${counts.publish} · 송출 ${counts.egress}`);
         const rootCauseItems = renderDashboardRootCause(runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth);
         renderDashboardIncidentTimeline(rootCauseItems, eventsStatus, diagnosticLog, sourceHealth, runtime, catalog);
+        await refreshV350OpsCommandWorkspace({
+          graphRoute: '/ops/api/live-operations/graph',
+          commandPlanRoute: '/ops/api/live-operations/command-plan',
+          stagedPlanRoute: '/ops/api/live-operations/staged-change-plan-impact-preview',
+          reviewRoute: '/ops/api/events/reviews'
+        }).catch(error => renderV350OpsCommandWorkspace({ error: error.message }));
         await refreshDashboardVaQuality(runtime, eventsStatus).catch(renderDashboardVaQualityError);
         renderRaw('opsDashboardRaw', 'opsDashboardPretty', runtime);
         window.MediaServerUi?.translatePage?.();
@@ -2800,6 +3023,47 @@ void AppendOpsShellScript(std::ostringstream& out,
           <p class="ops-rule-note">recoveryQueueReadModelCreated ${operatorRecheckRecoveryQueue.recoveryQueueReadModelCreated === true ? 'true' : '확인 필요'} · recoveryQueueWritePerformed ${operatorRecheckRecoveryQueue.recoveryQueueWritePerformed === false ? 'false' : '확인 필요'} · autoRecoveryApplied ${operatorRecheckRecoveryQueue.autoRecoveryApplied === false ? 'false' : '확인 필요'}</p>
         </div>`;
       }
+      function renderV350IncidentCommandHandoff(selectedDetail = {}, incidentCommandHandoffSummary = {}) {
+        const incidentCommandHandoff = selectedDetail?.incidentCommandHandoff || {};
+        const candidateIds = Array.isArray(incidentCommandHandoff.commandPlanCandidateIds)
+          ? incidentCommandHandoff.commandPlanCandidateIds
+          : [];
+        const boundaries = incidentCommandHandoff.boundaries || {};
+        const boundary = boundaries.commandPlanExecuted === false &&
+          boundaries.sourceRegistryWritePerformed === false &&
+          boundaries.publishedViewWritePerformed === false &&
+          boundaries.ruleRegistryWritePerformed === false &&
+          boundaries.eventRecordWritePerformed === false &&
+          boundaries.opsAuditWritePerformed === false &&
+          boundaries.viewerClientExposureAdded === false &&
+          boundaries.rawLocatorExposedToClient === false &&
+          boundaries['credential' + 'MaterialExposed'] === false;
+        return `<div id="v350IncidentCommandHandoffGrid" class="v330-operator-recheck-recovery-queue-grid" data-v350-incident-command-handoff="${escapeHtml(incidentCommandHandoff.schema || 'media-server.ops.v350-incident-command-handoff.v1')}">
+          <p class="v330-operator-recheck-recovery-queue-card" data-v350-detail-section="incident-command-handoff">
+            <strong>source cause</strong>
+            <span>${escapeHtml(display(incidentCommandHandoff.sourceCause || 'source-context-missing'))}</span>
+            <small>${escapeHtml(display(incidentCommandHandoff.sourceCauseEvidence || 'source health and incident correlation context'))}</small>
+          </p>
+          <p class="v330-operator-recheck-recovery-queue-card">
+            <strong>continuity drill</strong>
+            <span>${escapeHtml(display(incidentCommandHandoff.continuityDrillCandidate || 'drill-context-missing'))}</span>
+            <small>ready ${escapeHtml(display(incidentCommandHandoffSummary.readyCount ?? 0))} · blocked ${escapeHtml(display(incidentCommandHandoffSummary.blockedCount ?? 0))}</small>
+          </p>
+          <p class="v330-operator-recheck-recovery-queue-card">
+            <strong>command plan draft</strong>
+            <span>${escapeHtml(display(incidentCommandHandoff.commandPlanDraft || '/ops/api/live-operations/command-plan'))}</span>
+            <small>${escapeHtml(display(incidentCommandHandoff.operatorNextAction || 'review source cause and command plan draft'))}</small>
+          </p>
+          <p class="v330-operator-recheck-recovery-queue-card">
+            <strong>boundary</strong>
+            <span>${boundary ? 'read-only handoff' : 'boundary 확인 필요'}</span>
+            <small>commandPlanExecuted ${boundaries.commandPlanExecuted === false ? 'false' : '확인 필요'} · viewerClientExposureAdded ${boundaries.viewerClientExposureAdded === false ? 'false' : '확인 필요'}</small>
+          </p>
+          <div class="v330-recovery-checklist-list" aria-label="command plan candidates">
+            ${(candidateIds.length ? candidateIds : ['command-plan-draft:missing']).map(item => `<span class="chip v330-recovery-checklist-item ${String(item).includes('missing') ? 'warn' : 'info'}" data-v350-command-plan-candidate="${escapeHtml(item)}">${escapeHtml(display(item))}</span>`).join('')}
+          </div>
+        </div>`;
+      }
       function renderV320AiReviewQualityContext(selectedDetail = {}, aiReviewQualitySummary = {}) {
         const aiReviewQuality = selectedDetail?.aiReviewQuality || {};
         const signals = Array.isArray(aiReviewQuality.signals) ? aiReviewQuality.signals : [];
@@ -3011,6 +3275,8 @@ void AppendOpsShellScript(std::ostringstream& out,
           { text: unifiedResolutionWorkspace.incidentSourceCorrelationSummary?.schema || 'media-server.ops.v330-incident-source-correlation.v1' },
           { text: unifiedResolutionWorkspace.operatorRecheckRecoveryQueueImplemented === true ? 'operator recheck recovery' : 'operator recheck 확인 필요', tone: unifiedResolutionWorkspace.operatorRecheckRecoveryQueueImplemented === true ? 'info' : 'warn' },
           { text: unifiedResolutionWorkspace.operatorRecheckRecoveryQueueSummary?.schema || 'media-server.ops.v330-operator-recheck-recovery-queue.v1' },
+          { text: unifiedResolutionWorkspace.incidentCommandHandoffImplemented === true ? 'incident-command-handoff' : 'command handoff 확인 필요', tone: unifiedResolutionWorkspace.incidentCommandHandoffImplemented === true ? 'info' : 'warn' },
+          { text: unifiedResolutionWorkspace.incidentCommandHandoffSummary?.schema || 'media-server.ops.v350-incident-command-handoff.v1' },
           { text: unifiedResolutionWorkspace.aiReviewQualityContextImplemented === true ? 'AI review quality' : 'AI review 확인 필요', tone: unifiedResolutionWorkspace.aiReviewQualityContextImplemented === true ? 'info' : 'warn' },
           { text: unifiedResolutionWorkspace.aiReviewQualitySummary?.schema || 'media-server.ops.v320-ai-review-quality-context.v1' },
           { text: unifiedResolutionWorkspace.operatorAssignmentFlowImplemented === true ? 'operator flow' : 'operator flow 확인 필요', tone: unifiedResolutionWorkspace.operatorAssignmentFlowImplemented === true ? 'info' : 'warn' },
@@ -3083,6 +3349,7 @@ void AppendOpsShellScript(std::ostringstream& out,
           ${renderV320SourceReliabilityContext(selectedDetail, unifiedResolutionWorkspace.sourceReliabilitySummary || {})}
           ${renderV330IncidentSourceCorrelationLayer(selectedDetail, unifiedResolutionWorkspace.incidentSourceCorrelationSummary || {})}
           ${renderV330OperatorRecheckRecoveryQueue(selectedDetail, unifiedResolutionWorkspace.operatorRecheckRecoveryQueueSummary || {})}
+          ${renderV350IncidentCommandHandoff(selectedDetail, unifiedResolutionWorkspace.incidentCommandHandoffSummary || {})}
           ${renderV320AiReviewQualityContext(selectedDetail, unifiedResolutionWorkspace.aiReviewQualitySummary || {})}
           ${renderV320OperatorResolutionFlow(selectedDetail, unifiedResolutionWorkspace.operatorResolutionFlowSummary || {})}
           ${renderV320ActionReadinessChecklist(selectedDetail, unifiedResolutionWorkspace.actionReadinessChecklistSummary || {})}

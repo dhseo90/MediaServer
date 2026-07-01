@@ -10,12 +10,263 @@ UI 풀테스트, 30분, 120분 evidence는 해당 실행 증거가 있을 때만
 
 ## 현재 공개 상태
 
-- 현재 소스 버전: `3.4.0`
+- 현재 소스 버전: `3.5.0`
 - 최신 공개 GitHub Release: `v3.4.0`
 - `v3.4.0` 공개 상태: source-only GitHub Release. Binary, runtime, model bundle은
   포함하지 않습니다.
-- 현재 source roadmap: `v3.4.0 Operations Continuity Drill Workspace`
+- 현재 source roadmap: `v3.5.0 Live Operations Control Plane`
 - 최신 published baseline: `v3.4.0 Operations Continuity Drill Workspace`
+
+## 현재 source roadmap: v3.5.0 Live Operations Control Plane
+
+상태: Step 1 source/version/docs/backlog/verification metadata 정렬 완료. Step 2
+Live Operations Graph Contract 구현 완료. Step 3 Operations Command Plan Contract
+구현 완료. Step 4 Incident-to-Command Handoff 구현 완료. Step 5 Staged Change Plan
+and Impact Preview 구현 완료. Step 6 Ops Command Workspace UI, Step 7 Drill Run
+Ledger and Plan Comparison, Step 8 Client Impact Forecast, Step 9 Client-safe Operations
+Notice, Step 10 Operations Export Bundle and Handoff Map, Step 11 Field Evidence Intake,
+Step 12 VLM-assisted Ops Explanation 구현 완료. Step 13 Stabilization and Release Readiness
+local gate 연결 완료. 현재 source version은
+`3.5.0`이고 latest published baseline은 `v3.4.0`입니다. 각 step은 실제 코드/API/UI/문서/검증
+산출물이 생긴 뒤에만 완료로 기록합니다.
+
+직접 답: v3.5.0의 1차 선택값은 `Live Operations Control Plane`입니다. v3.2가
+사건 resolution workspace를 정리하고, v3.3이 live source reliability를 붙이고, v3.4가
+continuity drill과 recovery handoff를 만들었다면, v3.5는 이 재료를 운영자가 실제로
+판단하고 실행 전 검토할 수 있는 하나의 제어면으로 묶는 단계가 자연스럽습니다.
+
+fallback 또는 축소 대안은 `Operations Command Core`입니다. 이 대안은 Live Operations
+Graph, Command Plan Contract, Incident-to-Command Handoff, Staged Change Plan까지만
+먼저 닫고, Client impact forecast, field evidence intake, VLM-assisted explanation,
+export bundle은 후속 step evidence가 생길 때까지 보류합니다.
+
+브레인스토밍 후보:
+
+| 후보 | 판단 | 이유 |
+| --- | --- | --- |
+| Live Operations Control Plane | 1차 선택 | v3.2~v3.4에서 만든 사건, source reliability, recovery drill, client digest를 하나의 운영 제어 흐름으로 연결해 버전 단위의 제품 무게가 충분합니다. |
+| Operational Command and Impact Workspace | 보조 이름 | UI와 운영 판단 흐름은 선명하지만 control plane보다 제품 범위가 좁게 읽힙니다. |
+| Source Recovery Control Plane | 보류 | source 복구에는 강하지만 incident, client impact, field evidence, VLM 보조 설명까지 담기에는 이름이 좁습니다. |
+| VLM Operator Assist Expansion | 보류 | default-off 보조 기능으로는 가치가 있지만 v3.5 전체 축으로 삼기에는 runtime/provider 품질과 외부 조건 의존도가 큽니다. |
+| Field Readiness Evidence Capture | 보조축 | ONVIF, external WHEP/TURN, cloud/VLM provider field evidence를 담는 기능은 필요하지만 v3.5 중심축보다는 조건부 evidence intake가 적절합니다. |
+
+포함 범위:
+
+- v3.5.0 source roadmap baseline 정렬
+- EventRecord, SourceRegistry, PublishedView, source health, continuity drill, client impact를 묶는 Live Operations Graph
+- source recheck, recovery, maintenance, client notice, rule follow-up 후보를 담는 Operations Command Plan
+- `/ops/events` incident detail에서 command plan으로 이어지는 handoff
+- source/view 변경 전 staged change plan과 영향도 preview
+- `/ops` command workspace UI
+- continuity drill run ledger와 run comparison
+- client impact forecast와 viewer-safe operations notice
+- ONVIF, external WHEP/TURN, cloud/VLM provider field evidence intake
+- default-off VLM-assisted operator explanation
+- command plan, drill ledger, field evidence, client impact를 묶는 operations export bundle
+
+비범위:
+
+- 자동 source registry mutation 또는 PublishedView 자동 변경
+- 자동 recovery cutover 또는 외부 action 자동 실행
+- VMS/NVR 제품군, 장기 녹화, broad archive playback/search
+- real ONVIF, external TURN/WHEP, cloud/VLM provider 성공 보장
+- viewer/client에 source locator, credential, raw diagnostic JSON, raw provider material, debug material 노출
+- VLM default-on 승격 또는 runtime/model bundle 배포
+
+제외 대상과 제외 사유:
+
+- 자동 운영 조치 실행: v3.5는 operator가 staged plan을 검토하고 승인 전 evidence를 확인하는 제어면이며, 자동 적용 제품군으로 확장하지 않습니다.
+- VMS/NVR archive 제품화: 현재 live source와 event evidence 운영 흐름에서 벗어나므로 제외합니다.
+- VLM 중심 roadmap: 설명/요약 보조는 포함하되, provider 품질과 모델 배포 판단이 필요한 default-on 제품축은 제외합니다.
+- field-success 중심 roadmap: 외부 endpoint와 credential 의존성이 커서 source-only local 개발의 기본 완료 기준으로 삼지 않습니다.
+
+license/provenance/privacy/운영 검토 결과:
+
+- 기본 공개 형태는 source-only이며 binary, runtime, model bundle을 v3.5 기본 release asset으로 포함하지 않습니다.
+- EventRecord, SourceRegistry, PublishedView, source health, Ops audit에 이미 존재하는 저장/노출 경계를 우선 재사용합니다.
+- field evidence와 VLM explanation은 redacted summary와 operator review material만 다루며 raw credential, raw provider response, raw prompt, source URL 원문을 client/viewer 또는 export bundle에 포함하지 않습니다.
+- client/viewer에는 운영자용 command detail이 아니라 viewer-safe notice와 영향 요약만 제공합니다.
+
+| Step | 제목 | 우선순위 | 상태 | 산출물 |
+| --- | --- | --- | --- | --- |
+| 1 | v3.5.0 (1) v3.5.0 baseline 정렬 | P0 | 완료 | VERSION/CMake/docs/backlog/source roadmap과 `verify-v350-entry-baseline` 기준 정렬 |
+| 2 | v3.5.0 (2) Live Operations Graph Contract | P0 | 완료 | EventRecord, SourceRegistry, PublishedView, source health, continuity drill, client impact를 Ops-only graph read model로 연결 |
+| 3 | v3.5.0 (3) Operations Command Plan Contract | P0 | 완료 | source recheck, recovery, maintenance, client notice, rule follow-up 후보를 command plan으로 표현 |
+| 4 | v3.5.0 (4) Incident-to-Command Handoff | P0 | 완료 | `/ops/events` 사건 detail에서 source 원인, drill 후보, command plan 초안으로 이어지는 handoff |
+| 5 | v3.5.0 (5) Staged Change Plan and Impact Preview | P0 | 완료 | source/view/rule follow-up 변경 후보를 적용 전 staging plan으로 만들고 영향도와 blocker 표시 |
+| 6 | v3.5.0 (6) Ops Command Workspace UI | P1 | 완료 | `/ops`에서 incident, source, drill, staged plan, client impact를 한 흐름으로 탐색하는 command workspace |
+| 7 | v3.5.0 (7) Drill Run Ledger and Plan Comparison | P1 | 완료 | drill run id, operator note, blocker, evidence refs, 이전 run 대비 차이를 누적 표시 |
+| 8 | v3.5.0 (8) Client Impact Forecast | P1 | 완료 | 특정 source/view/command plan이 client live/dashboard/event digest에 주는 영향을 viewer-safe summary로 계산 |
+| 9 | v3.5.0 (9) Client-safe Operations Notice | P1 | 완료 | viewer/client에 maintenance, degraded, recovering, available 상태와 timeline hint만 노출 |
+| 10 | v3.5.0 (10) Operations Export Bundle and Handoff Map | P1 | 완료 | command plan, drill ledger, field evidence, client impact forecast를 release-safe export bundle과 handoff map으로 조합 |
+| 11 | v3.5.0 (11) Field Evidence Intake | P2 | 완료 | ONVIF, external WHEP/TURN, cloud/VLM provider 결과를 redacted field evidence로 수집하고 실행 조건과 미실행 상태를 분리 |
+| 12 | v3.5.0 (12) VLM-assisted Ops Explanation | P2 | 완료 | default-off VLM 보조 설명으로 command plan blocker, incident/source relation, operator review hint를 요약 |
+| 13 | v3.5.0 (13) Stabilization and Release Readiness | P0 | 완료 | v3.5 local stabilization, release evidence/not-run 경계, close-out dry-run, inventory/script/metadata 연결 |
+
+완료 경계: 위 표는 v3.5.0 개발 순서와 우선순위입니다. 각 step은 실제 코드/UI/API/문서
+변경, 기능 ID/test inventory 등록, 해당 verifier와 release test record evidence가 생긴 뒤에만
+완료로 기록합니다. UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release
+action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁니다.
+
+## v3.5.0 Step 1 개발 기록
+
+- 범위: P0 `v3.5.0 (1) v3.5.0 baseline 정렬`.
+- `VERSION`, `CMakeLists.txt`: 현재 source version과 CMake project version을 `3.5.0`으로 정렬했습니다.
+- `README.md`, `README.en.md`, `docs/README.md`, `docs/en/README.md`, `docs/versioning-policy.md`, `docs/release-policy.md`, `docs/public-repo-final-review.md`, `docs/ui-guide.md`, `docs/assets/ui/README.md`: 현재 source roadmap을 `v3.5.0 Live Operations Control Plane`로 전환했고 latest published release는 `v3.4.0` source-only GitHub Release로 유지했습니다.
+- `docs/development-backlog.md`: v3.5.0 current roadmap을 `Step | 제목 | 우선순위 | 상태 | 산출물` 구조로 승격하고, `Live Operations Control Plane` 1차 선택값, `Operations Command Core` fallback, 제외 대상과 no-auto-write/no-client-secret/no-media-path-change 경계를 기록했습니다.
+- `docs/project-feature-test-inventory.md`, `docs/stream-verification.md`, `docs/release-test-records.md`, `config/docs_ui_assets.json`: current release target, docs asset baseline, verification catalog, release records를 source `3.5.0`와 latest published `v3.4.0` 기준으로 정렬했습니다.
+- `scripts/internal/verify_release_metadata_consistency.mjs`, `scripts/internal/verify_docs_ui_assets.mjs`: release metadata와 docs UI asset verifier가 source `3.5.0`, current roadmap `v3.5.0 Live Operations Control Plane`, latest published `v3.4.0`을 검증하도록 보정했습니다.
+- `scripts/internal/verify_v350_entry_baseline.mjs`, `server.sh`: `./server.sh verify-v350-entry-baseline` 명령을 추가해 source `3.5.0`, latest published `v3.4.0`, current roadmap `v3.5.0 Live Operations Control Plane`, release records, feature inventory, server dispatch 연결을 정적 검증합니다.
+- 검증: 최초 `node scripts/internal/verify_v350_entry_baseline.mjs`는 source version/docs/inventory/server dispatch가 아직 v3.5 기준이 아니어서 `pass=0 fail=9`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v350 Step 1 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 1은 source/version/docs/backlog/verification metadata 정렬입니다. v3.5 기능 구현, UI 풀테스트, 30분/120분 장시간 테스트, published metadata, release action 완료 evidence가 아닙니다. `v3.5.0` GitHub Release publish 완료는 tag, GitHub Release, `verify-release-metadata --published` evidence가 있을 때만 기록합니다.
+
+## v3.5.0 Step 2 개발 기록
+
+- 범위: P0 `v3.5.0 (2) Live Operations Graph Contract`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV350LiveOperationsGraphJson`을 추가해 `media-server.ops.v350-live-operations-graph.v1` read model로 EventRecord, SourceRegistry, PublishedView, source health, continuity drill, client impact를 graph nodes/edges로 연결했습니다.
+- `src/ingress/webrtc_http_server.cpp`: `GET /ops/api/live-operations/graph` route를 추가했습니다. 이 route는 `require_ops_principal()`로 보호되고 `Cache-Control: no-store`를 설정하며 source locator/credential/raw diagnostic JSON/media path를 노출하지 않습니다.
+- `scripts/internal/verify_v350_live_operations_graph_contract.mjs`, `server.sh`: `./server.sh verify-v350-live-operations-graph-contract` 명령을 추가해 graph read model, route guard, redaction, docs/inventory/release records/server dispatch 연결을 검증합니다.
+- 완료 경계: 이번 Step 2는 Live Operations Graph Contract read model/API/verifier 연결입니다. Operations Command Plan Contract, Incident-to-Command Handoff, Staged Change Plan 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata evidence도 아닙니다.
+
+## v3.5.0 Step 3 개발 기록
+
+- 범위: P0 `v3.5.0 (3) Operations Command Plan Contract`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV350CommandPlanJson`을 추가해 source recheck, recovery, maintenance, client notice, rule follow-up 후보를 draft-only command plan으로 표현했습니다.
+- `src/ingress/webrtc_http_server.cpp`: `GET /ops/api/live-operations/command-plan` route를 추가했습니다. 이 route는 `require_ops_principal()`로 보호되고 `Cache-Control: no-store`를 설정하며 source/view/rule/client/EventRecord/Ops audit/media mutation을 수행하지 않습니다.
+- `scripts/internal/verify_v350_operations_command_plan_contract.mjs`, `server.sh`: `./server.sh verify-v350-operations-command-plan-contract` 명령을 추가해 command plan contract, no-execution boundary, docs/inventory/release records/server dispatch 연결을 검증합니다.
+- 완료 경계: 이번 Step 3은 Operations Command Plan Contract read model/API/verifier 연결입니다. Incident-to-Command Handoff, Staged Change Plan 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata evidence도 아닙니다.
+
+## v3.5.0 Step 4 개발 기록
+
+- 범위: P0 `v3.5.0 (4) Incident-to-Command Handoff`.
+- `src/ingress/webrtc_http_server.cpp`: `/ops/api/events/reviews`와 /ops/events 사건 detail에서 source 원인, drill 후보, command plan 초안으로 이어지는 handoff를 `unifiedResolutionWorkspace.selectedDetail`의 `OpsV350IncidentCommandHandoff`로 추가하고 command plan candidate id를 연결했습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `/ops/events` selected detail renderer에 `incident-command-handoff` section을 추가해 source cause, continuity drill, command plan draft, read-only boundary를 표시합니다.
+- `scripts/internal/verify_v350_incident_to_command_handoff.mjs`, `server.sh`: `./server.sh verify-v350-incident-to-command-handoff` 명령을 추가해 handoff JSON, selected detail/detailSections/UI marker, docs/inventory/release records/server dispatch 연결을 검증합니다.
+- 완료 경계: 이번 Step 4는 `/ops/events` 사건 detail handoff read model/UI marker/verifier 연결입니다. Staged Change Plan and Impact Preview 완료 evidence가 아닙니다. source/view/rule/EventRecord/Ops audit/client/media mutation을 수행하지 않습니다.
+
+## v3.5.0 Step 5 개발 기록
+
+- 범위: P0 `v3.5.0 (5) Staged Change Plan and Impact Preview`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV350StagedChangePlanImpactPreviewJson`을 추가해 source/view/rule follow-up 변경 후보를 적용 전 staging plan으로 만들고 `impactPreview`, `blockers`, `applyBlocked`를 표시합니다.
+- `src/ingress/webrtc_http_server.cpp`: `GET /ops/api/live-operations/staged-change-plan-impact-preview` route를 추가했습니다. 이 route는 `require_ops_principal()`로 보호되고 `Cache-Control: no-store`를 설정하며 source/view/rule/EventRecord/Ops audit/client/media mutation을 수행하지 않습니다.
+- `scripts/internal/verify_v350_staged_change_plan_impact_preview.mjs`, `server.sh`: `./server.sh verify-v350-staged-change-plan-impact-preview` 명령을 추가해 staging-only/read-only boundary, docs/inventory/release records/server dispatch 연결을 검증합니다.
+- 완료 경계: 이번 Step 5는 staging plan impact preview read model/API/verifier 연결입니다. 변경 적용, source/view/rule write, client notice 발송 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata evidence도 아닙니다.
+
+## v3.5.0 Step 6 개발 기록
+
+- 범위: P1 `v3.5.0 (6) Ops Command Workspace UI`.
+- `src/ingress/webrtc_http_server.cpp`: `AppendOpsDashboardPage`에 `/ops` dashboard `ops-command-workspace` section을 추가해 incident, source, drill, staged plan, client impact flow, staged plan list, viewer-safe impact list, read-only boundary를 한 화면에서 탐색하게 했습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV350OpsCommandWorkspace`와 `refreshV350OpsCommandWorkspace`를 추가해 `/ops/api/live-operations/graph`, `/ops/api/live-operations/command-plan`, `/ops/api/live-operations/staged-change-plan-impact-preview`, `/ops/api/events/reviews`를 GET read model로 불러오고 command workspace flow card로 렌더링합니다.
+- `src/ingress/product_ui_css.cpp`: `.ops-command-workspace`, `.ops-command-flow-grid`, `.ops-command-flow-card`, `.ops-command-plan-list`, `.ops-command-impact-list`, `.ops-command-boundary` 스타일을 추가해 desktop/mobile에서 command workspace가 안정적으로 표시되게 했습니다.
+- `docs/project-feature-test-inventory.md`: `UI-081`, `SAFE-140`, `OPS-107`을 추가하고 Step 6을 `verify-v350-ops-command-workspace-ui`, `verify-ops-client-ui`에 연결했습니다.
+- `scripts/internal/verify_v350_ops_command_workspace_ui.mjs`, `server.sh`: `./server.sh verify-v350-ops-command-workspace-ui` 명령을 추가해 dashboard shell, renderer/API 연결, CSS, client/viewer 비노출, docs/inventory/release records/server dispatch 연결을 검증합니다.
+- 검증: 최초 `node scripts/internal/verify_v350_ops_command_workspace_ui.mjs`는 Step 6 UI shell/renderer/CSS/docs/inventory/server dispatch가 아직 없어 `pass=1 fail=8`로 기대 실패했습니다. 구현 후 `./server.sh verify-v350-ops-command-workspace-ui`는 `pass=9 fail=0`으로 통과했습니다. `./server.sh build`, `./server.sh verify-project-inventory`, `./server.sh verify-feature-inventory-coverage`, `./server.sh verify-script-inventory`, `git diff --check`도 통과했습니다. `verify-ops-client-ui --browser-mode static`은 서버 미기동/Node sandbox localhost fetch/auth-on login redirect 전제를 확인한 뒤 `MEDIA_SERVER_SKIP_LOCAL_ENV=1 MEDIA_SERVER_AUTH_MODE=off` 검증 서버에서 권한 실행해 route/API/redaction smoke `통과 28/실패 0`으로 재검증했습니다.
+- 완료 경계: 이번 Step 6은 `/ops` command workspace UI와 static verifier 연결입니다. Drill Run Ledger and Plan Comparison 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata evidence도 아닙니다.
+
+## v3.5.0 Step 7 개발 기록
+
+- 범위: P1 `v3.5.0 (7) Drill Run Ledger and Plan Comparison`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV350DrillRunLedgerPlanComparisonJson`과 `GET /ops/api/live-operations/drill-run-ledger` route를 추가해 drill run id, operator note, blocker, evidence refs, 이전 run 대비 차이를 append-only/read-only projection으로 누적 표시합니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV350OpsCommandWorkspace`와 `refreshV350OpsCommandWorkspace`가 drill ledger read model을 함께 읽고 `/ops` dashboard command workspace 안에 `dashCommandWorkspaceLedgerList`로 planComparison, previousRunId, diffFromPreviousRun, evidenceRefs를 표시합니다.
+- `src/ingress/product_ui_css.cpp`: `.ops-command-ledger-list`, `.ops-command-ledger-entry` 스타일을 추가해 ledger 항목이 desktop/mobile command workspace에서 안정적으로 쌓이게 했습니다.
+- `docs/project-feature-test-inventory.md`: `UI-082`, `SAFE-141`, `OPS-108`을 추가하고 Step 7을 `verify-v350-drill-run-ledger-plan-comparison`, `verify-ops-client-ui`에 연결했습니다.
+- `scripts/internal/verify_v350_drill_run_ledger_plan_comparison.mjs`, `server.sh`: `./server.sh verify-v350-drill-run-ledger-plan-comparison` 명령을 추가해 drill run ledger API/UI, previous run diff, redacted evidence refs, docs/inventory/release records/server dispatch 연결을 검증합니다.
+- 검증: 최초 `node scripts/internal/verify_v350_drill_run_ledger_plan_comparison.mjs`는 Step 7 server/API/UI/docs/inventory/server dispatch가 아직 없어 `pass=1 fail=11`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v350 Step 7 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 7은 drill run ledger와 plan comparison read model/UI/verifier 연결입니다. Client Impact Forecast 완료 evidence가 아닙니다. drill run write/operator note write/command execution, source/view/rule/EventRecord/Ops audit/client/media mutation, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata evidence가 아닙니다.
+
+## v3.5.0 Step 8 개발 기록
+
+- 범위: P1 `v3.5.0 (8) Client Impact Forecast`.
+- `src/ingress/webrtc_http_server.cpp`: `ClientImpactForecastJson`을 추가해 `/client/api/views/{id}/events`와 `/client/dashboard` event summary payload에 `clientImpactForecast`를 붙였습니다. forecast는 source/view/command plan이 client live/dashboard/event digest에 주는 영향을 viewer-safe summary로만 계산합니다.
+- `src/ingress/product_ui_client_scripts.cpp`: `renderClientImpactForecast`를 추가하고 `/client/live`, `/client/dashboard`, `/client/events` digest stack에 client impact forecast card를 표시합니다. renderer는 source URL, raw locator, raw JSON, debug material, credential material, operator note, command plan details, action controls를 읽지 않습니다.
+- `src/ingress/product_ui_css.cpp`, `scripts/internal/verify_ops_client_ui_smoke.mjs`: `.client-impact-forecast` 스타일과 Ops/Client static smoke marker를 추가했습니다.
+- `docs/project-feature-test-inventory.md`: `UI-083`, `CLIENT-031`, `SAFE-142`, `OPS-109`를 추가하고 Step 8을 `verify-v350-client-impact-forecast`, `verify-ops-client-ui`에 연결했습니다.
+- `scripts/internal/verify_v350_client_impact_forecast.mjs`, `server.sh`: `./server.sh verify-v350-client-impact-forecast` 명령을 추가해 client API/schema/UI renderer/CSS/redaction boundary, docs/inventory/release records/server dispatch 연결을 검증합니다.
+- 검증: 최초 `node scripts/internal/verify_v350_client_impact_forecast.mjs`는 Step 8 client API/UI/docs/inventory/server dispatch가 아직 없어 `pass=0 fail=7`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v350 Step 8 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 8은 Client Impact Forecast API/UI/verifier 연결입니다. Client-safe Operations Notice 완료 evidence가 아닙니다. notice 상태 노출, command execution, source/view/rule/EventRecord/Ops audit/client/media mutation, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata evidence가 아닙니다.
+
+## v3.5.0 Step 9 개발 기록
+
+- 범위: P1 `v3.5.0 (9) Client-safe Operations Notice`.
+- `src/ingress/webrtc_http_server.cpp`: `ClientOperationsNoticeJson`을 추가해 `/client/api/views/{id}/events`와 `/client/dashboard` event summary payload에 `clientOperationsNotice`를 붙였습니다. notice item은 `operationsStatus`와 `timelineHint`만 노출하고 status 값은 `maintenance`, `degraded`, `recovering`, `available`로 제한합니다.
+- `src/ingress/product_ui_client_scripts.cpp`: `renderClientOperationsNotice`를 추가하고 `/client/live`, `/client/dashboard`, `/client/events` digest stack에 operations notice card를 표시합니다. renderer는 source URL, raw locator, raw JSON, debug material, credential material, operator note, command plan details, incident details, action controls를 읽지 않습니다.
+- `src/ingress/product_ui_css.cpp`, `scripts/internal/verify_ops_client_ui_smoke.mjs`: `.client-operations-notice` 스타일과 Ops/Client static smoke marker를 추가했습니다.
+- `docs/project-feature-test-inventory.md`: `UI-084`, `CLIENT-032`, `SAFE-143`, `OPS-110`을 추가하고 Step 9를 `verify-v350-client-safe-operations-notice`, `verify-ops-client-ui`에 연결했습니다.
+- `scripts/internal/verify_v350_client_safe_operations_notice.mjs`, `server.sh`: `./server.sh verify-v350-client-safe-operations-notice` 명령을 추가해 client API/schema/UI renderer/CSS/redaction boundary, docs/inventory/release records/server dispatch 연결을 검증합니다.
+- 검증: 최초 `node scripts/internal/verify_v350_client_safe_operations_notice.mjs`는 Step 9 client API/UI/docs/inventory/server dispatch가 아직 없어 `pass=0 fail=7`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v350 Step 9 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 9는 Client-safe Operations Notice API/UI/verifier 연결입니다. Operations Export Bundle and Handoff Map 완료 evidence가 아닙니다. Field Evidence Intake 완료 evidence가 아닙니다. command execution, source/view/rule/EventRecord/Ops audit/client/media mutation, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata evidence가 아닙니다.
+
+## v3.5.0 Step 10 개발 기록
+
+- 범위: P1 `v3.5.0 (10) Operations Export Bundle and Handoff Map`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV350OperationsExportBundleHandoffMapJson`과 `GET /ops/api/live-operations/export-bundle-handoff-map` route를 추가했습니다. 이 route는 command plan, drill ledger, field evidence, client impact forecast를 route/id refs 기반 release-safe export bundle과 handoff map으로 조합하고 `require_ops_principal()`, `Cache-Control: no-store`를 적용합니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV350OpsCommandWorkspace`와 `refreshV350OpsCommandWorkspace`가 `/ops/api/live-operations/export-bundle-handoff-map`을 함께 읽고 `/ops` dashboard command workspace 안에 `dashCommandWorkspaceExportBundleMap`으로 `operationsExportBundle`, `handoffMapEntries`, `commandPlanRefs`, `drillLedgerRefs`, `fieldEvidenceRefs`, `clientImpactForecastRefs`를 표시합니다.
+- `src/ingress/product_ui_css.cpp`, `scripts/internal/verify_ops_client_ui_smoke.mjs`: `.ops-export-bundle-list`, `.ops-handoff-map-list`, `.ops-handoff-map-entry` 스타일과 Ops/Client static smoke marker를 추가했습니다.
+- `docs/project-feature-test-inventory.md`: `UI-085`, `SAFE-144`, `OPS-111`을 추가하고 Step 10을 `verify-v350-operations-export-bundle-handoff-map`, `verify-ops-client-ui`에 연결했습니다.
+- `scripts/internal/verify_v350_operations_export_bundle_handoff_map.mjs`, `server.sh`: `./server.sh verify-v350-operations-export-bundle-handoff-map` 명령을 추가해 export bundle/handoff map API/UI, release-safe boundary, client 비노출, backlog/stream verification/release records/inventory/server dispatch 연결을 검증합니다.
+- 검증: 최초 `node scripts/internal/verify_v350_operations_export_bundle_handoff_map.mjs`는 Step 10 server/API/UI/docs/inventory/server dispatch가 아직 없어 `pass=1 fail=11`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v350 Step 10 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 10은 Operations Export Bundle and Handoff Map read model/API/UI/verifier 연결입니다. Field Evidence Intake 완료 evidence가 아닙니다. VLM-assisted Ops Explanation 완료 evidence가 아닙니다. artifact export 실행, handoff write, field smoke/provider call, command execution, source/view/EventRecord/Ops audit/client/media mutation, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata evidence가 아닙니다.
+
+## v3.5.0 Step 11 개발 기록
+
+- 범위: P2 `v3.5.0 (11) Field Evidence Intake`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV350FieldEvidenceIntakeJson`과 `GET /ops/api/live-operations/field-evidence-intake` route를 추가했습니다. 이 route는 `BuildV340FieldBridgeConditionGates()`의 ONVIF, external WHEP/TURN, cloud/VLM provider 조건을 `fieldEvidenceIntakeRecords`, `fieldEvidenceExecutionConditions`, `notRunReason`, `redactedFieldEvidence`로 분리하고 `require_ops_principal()`, `Cache-Control: no-store`를 적용합니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV350OpsCommandWorkspace`와 `refreshV350OpsCommandWorkspace`가 `/ops/api/live-operations/field-evidence-intake`를 함께 읽고 `/ops` dashboard command workspace 안의 `dashCommandWorkspaceFieldEvidenceIntake`에 executionStatus, fieldSmokeStatus, endpointRequired, credentialRequired, operatorApprovalRequired, evidenceRefs를 표시합니다.
+- `src/ingress/product_ui_css.cpp`, `scripts/internal/verify_ops_client_ui_smoke.mjs`: `.ops-field-evidence-intake-list`, `.ops-field-evidence-condition-list`, `.ops-field-evidence-intake-entry` 스타일과 Ops/Client static smoke marker를 추가했습니다.
+- `docs/project-feature-test-inventory.md`: `UI-086`, `SRC-047`, `MEDIA-023`, `LAB-093`, `SAFE-145`, `OPS-112`를 추가하고 Step 11을 `verify-v350-field-evidence-intake`, `verify-ops-client-ui`에 연결했습니다.
+- `scripts/internal/verify_v350_field_evidence_intake.mjs`, `server.sh`: `./server.sh verify-v350-field-evidence-intake` 명령을 추가해 field evidence intake API/UI, redaction/not-run boundary, client 비노출, backlog/stream verification/release records/inventory/server dispatch 연결을 검증합니다.
+- 검증: 최초 `node scripts/internal/verify_v350_field_evidence_intake.mjs`는 Step 11 server/API/UI/docs/inventory/server dispatch가 아직 없어 `pass=1 fail=11`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v350 Step 11 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 11은 Field Evidence Intake read model/API/UI/verifier 연결입니다. VLM-assisted Ops Explanation 완료 evidence가 아닙니다. field smoke 실행 evidence가 아닙니다. ONVIF 실기기 접촉, external WHEP/TURN 접속, cloud/VLM provider 호출, endpoint probe, credential probe, source/view/EventRecord/Ops audit/client/media mutation, raw endpoint/credential/provider/VLM/client material 노출, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata evidence가 아닙니다.
+
+## v3.5.0 Step 12 개발 기록
+
+- 범위: P2 `v3.5.0 (12) VLM-assisted Ops Explanation`.
+- `src/ingress/webrtc_http_server.cpp`: `OpsV350VlmAssistedOpsExplanationJson`과 `GET /ops/api/live-operations/vlm-assisted-explanation` route를 추가했습니다. 이 route는 `BuildV350LiveOperationsGraphContext()`와 `BuildV350CommandPlanCandidates()`를 기반으로 command plan blocker, incident/source relation, operator review hint를 요약하고 `require_ops_principal()`, `Cache-Control: no-store`를 적용합니다.
+- `src/ingress/webrtc_http_server.cpp`: explanation payload는 `defaultEnabled=false`, `defaultOff=true`, `runtimeOptInRequired=true`, `vlmProviderCallPerformed=false`, `vlmRuntimeCallPerformed=false`, raw prompt/provider response/credential material 미포함, command/source/view/EventRecord/Ops audit/client/media write 미수행 경계를 함께 기록합니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV350OpsCommandWorkspace`와 `refreshV350OpsCommandWorkspace`가 `/ops/api/live-operations/vlm-assisted-explanation`을 함께 읽고 `/ops` dashboard command workspace 안의 `dashCommandWorkspaceVlmAssistedExplanation`에 command plan blocker, incident/source relation, operator review hint, evidence refs, default-off boundary를 표시합니다.
+- `src/ingress/product_ui_css.cpp`, `scripts/internal/verify_ops_client_ui_smoke.mjs`: `.ops-vlm-assisted-explanation-list`, `.ops-vlm-assisted-explanation-entry`, `.ops-vlm-explanation-boundary` 스타일과 Ops/Client static smoke marker를 추가했습니다.
+- `docs/project-feature-test-inventory.md`: `UI-087`, `SRC-048`, `EVT-076`, `LAB-094`, `SAFE-146`, `OPS-113`을 추가하고 Step 12를 `verify-v350-vlm-assisted-ops-explanation`, `verify-ops-client-ui`에 연결했습니다.
+- `scripts/internal/verify_v350_vlm_assisted_ops_explanation.mjs`, `server.sh`: `./server.sh verify-v350-vlm-assisted-ops-explanation` 명령을 추가해 default-off VLM 보조 설명 API/UI, no-call/no-write boundary, client 비노출, backlog/stream verification/release records/inventory/server dispatch 연결을 검증합니다.
+- 검증: 최초 `node scripts/internal/verify_v350_vlm_assisted_ops_explanation.mjs`는 Step 12 server/API/UI/docs/inventory/server dispatch가 아직 없어 `pass=1 fail=11`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v350 Step 12 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 12는 default-off VLM 보조 설명 read model/API/UI/verifier 연결입니다. VLM/provider 호출 evidence가 아닙니다. 실제 VLM runtime opt-in, raw prompt/response 저장, command execution, operator review write, source/view/EventRecord/Ops audit/client/media mutation, client notice send, UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, published metadata evidence가 아닙니다.
+
+## v3.5.0 Step 13 개발 기록
+
+- 범위: P0 `v3.5.0 (13) Stabilization and Release Readiness`.
+- `scripts/internal/verify_v350_stabilization_release_readiness.mjs`, `server.sh`: `./server.sh verify-v350-stabilization-release-readiness` 명령을 추가해 v3.5 Step 1~12 local verifier, release policy/evidence index/test records, docs links/assets, feature/script inventory, close-out dry-run, `git diff --check` 연결을 검증합니다.
+- `docs/development-backlog.md`, `docs/stream-verification.md`, `docs/project-feature-test-inventory.md`: Step 13을 `SAFE-147`, `OPS-114` local readiness boundary로 등록하고, release action, published metadata, UI 풀테스트 직접 조작, 30분/120분, field smoke 실행 evidence와 분리했습니다.
+- `docs/release-policy.md`, `docs/release-evidence-index.md`, `docs/release-test-records.md`: v3.5 local readiness gate와 미실행/조건부 gate 경계를 분리하고, release close-out dry-run과 published metadata 미실행 상태를 같은 완료 evidence로 승격하지 않도록 기록했습니다.
+- Companion local gate:
+
+```bash
+./server.sh verify-v350-stabilization-release-readiness
+./server.sh build
+./server.sh verify-v350-entry-baseline
+./server.sh verify-v350-live-operations-graph-contract
+./server.sh verify-v350-operations-command-plan-contract
+./server.sh verify-v350-incident-to-command-handoff
+./server.sh verify-v350-staged-change-plan-impact-preview
+./server.sh verify-v350-ops-command-workspace-ui
+./server.sh verify-v350-drill-run-ledger-plan-comparison
+./server.sh verify-v350-client-impact-forecast
+./server.sh verify-v350-client-safe-operations-notice
+./server.sh verify-v350-operations-export-bundle-handoff-map
+./server.sh verify-v350-field-evidence-intake
+./server.sh verify-v350-vlm-assisted-ops-explanation
+./server.sh verify-release-metadata
+./server.sh verify-docs-links
+./server.sh verify-docs-ui-assets
+./server.sh verify-project-inventory
+./server.sh verify-feature-inventory-coverage
+./server.sh verify-release-evidence-index
+./server.sh verify-release-closeout-helper --dry-run
+./server.sh verify-release-closeout-helper --dry-run --one-shot-dry-run
+./server.sh verify-script-inventory
+git diff --check
+```
+
+- 검증: 최초 `node scripts/internal/verify_v350_stabilization_release_readiness.mjs`는 Step 13 roadmap/stream verification/inventory/release policy/evidence/test records/server dispatch/script inventory 연결이 아직 없어 `pass=1 fail=5`로 기대 실패했습니다. 최종 검증 결과는 `docs/release-test-records.md`의 v350 stabilization/release readiness 결과 행에 기록합니다.
+- 완료 경계: 이번 Step 13은 v3.5 local readiness wiring과 release evidence/not-run 경계입니다. UI 풀테스트 직접 조작, 30분/120분 장시간 테스트, `verify-release-metadata --published`, PR/main/tag/GitHub Release, field smoke, external endpoint/credential/provider 호출 PASS를 대체하지 않습니다.
 
 ## 현재 source roadmap: v3.4.0 Operations Continuity Drill Workspace
 
