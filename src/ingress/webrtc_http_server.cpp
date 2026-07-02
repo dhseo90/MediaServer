@@ -17600,6 +17600,903 @@ std::string OpsV350VlmAssistedOpsExplanationJson(
     return out.str();
 }
 
+struct OpsV360SimulationInputPackItem {
+    std::string input_id;
+    std::string input_type;
+    std::string source_route;
+    std::string snapshot_status{"available"};
+    std::string write_guard{"read-only"};
+    std::vector<std::string> included_fields;
+    int record_count{0};
+    bool read_only{true};
+};
+
+struct OpsV360SimulationInputPackSummary {
+    int input_count{0};
+    int event_record_count{0};
+    int source_registry_count{0};
+    int published_view_count{0};
+    int command_plan_candidate_count{0};
+    int staged_plan_count{0};
+    std::vector<std::string> derivation_sources;
+};
+
+std::vector<OpsV360SimulationInputPackItem> BuildV360SimulationInputPackItems(
+    const OpsV350LiveOperationsGraphContext& context,
+    const std::vector<OpsV350CommandPlanCandidate>& commandPlanCandidates,
+    const std::vector<OpsV350StagedChangePlan>& stagedChangePlans) {
+    std::vector<OpsV360SimulationInputPackItem> items;
+
+    items.push_back({"input:event-record",
+                     "EventRecord",
+                     "/ops/api/events/reviews",
+                     context.event_record_count > 0 ? "available" : "empty",
+                     "read-only EventRecord aggregate; no EventRecord write",
+                     {"eventId", "streamId", "channelId", "eventType", "createdAtMs"},
+                     context.event_record_count,
+                     true});
+    items.push_back({"input:source-registry",
+                     "SourceRegistry",
+                     "/ops/api/source-registry/snapshot",
+                     context.sources.empty() ? "empty" : "available",
+                     "read-only SourceRegistry identity; no source registry write",
+                     {"sourceId", "displayName", "enabled", "sourceKind"},
+                     static_cast<int>(context.sources.size()),
+                     true});
+    items.push_back({"input:published-view",
+                     "PublishedView",
+                     "/ops/api/views",
+                     context.views.empty() ? "empty" : "available",
+                     "read-only PublishedView identity; no PublishedView write",
+                     {"viewId", "sourceId", "displayName", "enabled"},
+                     static_cast<int>(context.views.size()),
+                     true});
+    items.push_back({"input:command-plan",
+                     "commandPlan",
+                     "/ops/api/live-operations/command-plan",
+                     commandPlanCandidates.empty() ? "empty" : "available",
+                     "draft-only command plan input; command plan is not executed",
+                     {"candidateId", "candidateType", "sourceId", "blockedReason", "operatorApprovalRequired"},
+                     static_cast<int>(commandPlanCandidates.size()),
+                     true});
+    items.push_back({"input:staged-plan",
+                     "stagedPlan",
+                     "/ops/api/live-operations/staged-change-plan-impact-preview",
+                     stagedChangePlans.empty() ? "empty" : "available",
+                     "staging-only staged plan input; staged plan is not applied",
+                     {"planId", "candidateType", "sourceId", "impactPreview", "blockers"},
+                     static_cast<int>(stagedChangePlans.size()),
+                     true});
+    return items;
+}
+
+OpsV360SimulationInputPackSummary BuildV360SimulationInputPackSummary(
+    const std::vector<OpsV360SimulationInputPackItem>& items) {
+    OpsV360SimulationInputPackSummary summary;
+    summary.derivation_sources = {
+        "BuildV350LiveOperationsGraphContext",
+        "BuildV350CommandPlanCandidates",
+        "BuildV350StagedChangePlans",
+    };
+    summary.input_count = static_cast<int>(items.size());
+    for (const auto& item : items) {
+        if (item.input_type == "EventRecord") {
+            summary.event_record_count = item.record_count;
+        } else if (item.input_type == "SourceRegistry") {
+            summary.source_registry_count = item.record_count;
+        } else if (item.input_type == "PublishedView") {
+            summary.published_view_count = item.record_count;
+        } else if (item.input_type == "commandPlan") {
+            summary.command_plan_candidate_count = item.record_count;
+        } else if (item.input_type == "stagedPlan") {
+            summary.staged_plan_count = item.record_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV360SimulationInputPackItemJson(
+    std::ostringstream& out,
+    const OpsV360SimulationInputPackItem& item) {
+    out << "{"
+        << "\"inputId\":\"" << JsonEscape(item.input_id) << "\","
+        << "\"inputType\":\"" << JsonEscape(item.input_type) << "\","
+        << "\"sourceRoute\":\"" << JsonEscape(item.source_route) << "\","
+        << "\"snapshotStatus\":\"" << JsonEscape(item.snapshot_status) << "\","
+        << "\"recordCount\":" << item.record_count << ","
+        << "\"includedFields\":";
+    AppendV340RecoveryCandidateStringListJson(out, item.included_fields);
+    out << ",\"writeGuard\":\"" << JsonEscape(item.write_guard) << "\","
+        << "\"readOnly\":" << (item.read_only ? "true" : "false")
+        << "}";
+}
+
+void AppendV360SimulationInputPackSummaryJson(
+    std::ostringstream& out,
+    const OpsV360SimulationInputPackSummary& summary) {
+    out << "{"
+        << "\"inputCount\":" << summary.input_count << ","
+        << "\"eventRecordCount\":" << summary.event_record_count << ","
+        << "\"sourceRegistryCount\":" << summary.source_registry_count << ","
+        << "\"publishedViewCount\":" << summary.published_view_count << ","
+        << "\"commandPlanCandidateCount\":" << summary.command_plan_candidate_count << ","
+        << "\"stagedPlanCount\":" << summary.staged_plan_count << ","
+        << "\"derivationSources\":";
+    AppendV340RecoveryCandidateStringListJson(out, summary.derivation_sources);
+    out << "}";
+}
+
+std::string OpsV360SimulationInputPackJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v360-simulation-input-pack.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto stagedChangePlans = BuildV350StagedChangePlans(context, commandPlanCandidates);
+    const auto inputPackItems =
+        BuildV360SimulationInputPackItems(context, commandPlanCandidates, stagedChangePlans);
+    const auto summary = BuildV360SimulationInputPackSummary(inputPackItems);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v360-simulation-input-pack.v1\","
+        << "\"status\":\"read-only-simulation-input-pack\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"readOnlySimulationInputPack\":true,"
+        << "\"eventRecordRoute\":\"/ops/api/events/reviews\","
+        << "\"sourceRegistryRoute\":\"/ops/api/source-registry/snapshot\","
+        << "\"publishedViewRoute\":\"/ops/api/views\","
+        << "\"commandPlanRoute\":\"/ops/api/live-operations/command-plan\","
+        << "\"stagedPlanRoute\":\"/ops/api/live-operations/staged-change-plan-impact-preview\","
+        << "\"simulationInputPackSummary\":";
+    AppendV360SimulationInputPackSummaryJson(out, summary);
+    out << ",\"simulationInputPackItems\":[";
+    for (std::size_t i = 0; i < inputPackItems.size(); ++i) {
+        if (i != 0) out << ",";
+        AppendV360SimulationInputPackItemJson(out, inputPackItems[i]);
+    }
+    out << "],\"contractPolicy\":{"
+        << "\"EventRecord\":\"read-only aggregate input\","
+        << "\"SourceRegistry\":\"identity-only input\","
+        << "\"PublishedView\":\"identity-only input\","
+        << "\"commandPlan\":\"draft-only input\","
+        << "\"stagedPlan\":\"staging-only input\""
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"readOnlySimulationInputPack\":true,"
+        << "\"simulationInputPersisted\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"commandPlanExecuted\":false,"
+        << "\"stagedPlanApplied\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV360SimulationRunContract {
+    std::string simulation_run_id{"simulation-run:contract:v360"};
+    std::vector<std::string> simulation_route_family;
+    std::vector<std::string> allowed_readiness_states;
+    std::string input_pack_route{"/ops/api/live-operations/simulation/input-pack"};
+    std::string result_status{"not-run"};
+};
+
+struct OpsV360SimulationResultEnvelope {
+    std::string simulation_run_id{"simulation-run:contract:v360"};
+    std::string result_status{"not-run"};
+    std::string ready_status{"not-run"};
+    std::string summary{"simulation result envelope is defined but not persisted"};
+    std::vector<std::string> blockers;
+};
+
+OpsV360SimulationRunContract BuildV360SimulationRunContract() {
+    OpsV360SimulationRunContract contract;
+    contract.simulation_route_family = {
+        "/ops/api/live-operations/simulation/input-pack",
+        "/ops/api/live-operations/simulation/run-contract",
+        "/ops/api/live-operations/simulation/command-plan-dry-run",
+        "/ops/api/live-operations/simulation/impact-diff",
+        "/ops/api/live-operations/simulation/safe-apply-readiness",
+    };
+    contract.allowed_readiness_states = {
+        "ready",
+        "blocked",
+        "approval-needed",
+        "field-needed",
+        "not-run",
+    };
+    return contract;
+}
+
+OpsV360SimulationResultEnvelope BuildV360SimulationResultEnvelope(
+    const OpsV360SimulationInputPackSummary& input_summary) {
+    OpsV360SimulationResultEnvelope envelope;
+    envelope.ready_status = input_summary.input_count > 0 ? "not-run" : "blocked";
+    envelope.blockers = {"simulation-not-executed", "safe-apply-readiness-not-approved"};
+    if (input_summary.source_registry_count == 0) {
+        envelope.blockers.push_back("source-registry-empty");
+    }
+    if (input_summary.command_plan_candidate_count == 0) {
+        envelope.blockers.push_back("command-plan-candidate-empty");
+    }
+    return envelope;
+}
+
+void AppendV360SimulationRunContractJson(
+    std::ostringstream& out,
+    const OpsV360SimulationRunContract& contract) {
+    out << "{"
+        << "\"simulationRunId\":\"" << JsonEscape(contract.simulation_run_id) << "\","
+        << "\"inputPackRoute\":\"" << JsonEscape(contract.input_pack_route) << "\","
+        << "\"resultStatus\":\"" << JsonEscape(contract.result_status) << "\","
+        << "\"simulationRouteFamily\":";
+    AppendV340RecoveryCandidateStringListJson(out, contract.simulation_route_family);
+    out << ",\"allowedReadinessStates\":";
+    AppendV340RecoveryCandidateStringListJson(out, contract.allowed_readiness_states);
+    out << "}";
+}
+
+void AppendV360SimulationResultEnvelopeJson(
+    std::ostringstream& out,
+    const OpsV360SimulationResultEnvelope& envelope) {
+    out << "{"
+        << "\"simulationRunId\":\"" << JsonEscape(envelope.simulation_run_id) << "\","
+        << "\"resultStatus\":\"" << JsonEscape(envelope.result_status) << "\","
+        << "\"readyStatus\":\"" << JsonEscape(envelope.ready_status) << "\","
+        << "\"summary\":\"" << JsonEscape(envelope.summary) << "\","
+        << "\"blockers\":";
+    AppendV340RecoveryCandidateStringListJson(out, envelope.blockers);
+    out << ",\"resultEnvelopePersisted\":false}";
+}
+
+std::string OpsV360OperationsSimulationRunContractJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v360-simulation-run-contract.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto stagedChangePlans = BuildV350StagedChangePlans(context, commandPlanCandidates);
+    const auto inputPackItems =
+        BuildV360SimulationInputPackItems(context, commandPlanCandidates, stagedChangePlans);
+    const auto inputSummary = BuildV360SimulationInputPackSummary(inputPackItems);
+    const auto simulationRunSchema = BuildV360SimulationRunContract();
+    const auto simulationResultEnvelope = BuildV360SimulationResultEnvelope(inputSummary);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v360-simulation-run-contract.v1\","
+        << "\"status\":\"operations-simulation-run-contract\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"simulationRunSchema\":";
+    AppendV360SimulationRunContractJson(out, simulationRunSchema);
+    out << ",\"simulationResultEnvelope\":";
+    AppendV360SimulationResultEnvelopeJson(out, simulationResultEnvelope);
+    out << ",\"contractPolicy\":{"
+        << "\"runMode\":\"read-only\","
+        << "\"resultStatus\":\"not-run\","
+        << "\"inputPackRoute\":\"/ops/api/live-operations/simulation/input-pack\","
+        << "\"resultEnvelope\":\"schema-only-not-persisted\""
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"simulationRunPersisted\":false,"
+        << "\"simulationRunExecuted\":false,"
+        << "\"resultEnvelopePersisted\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"commandPlanExecuted\":false,"
+        << "\"automaticApplyPerformed\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV360CommandPlanDryRunResult {
+    std::string result_id;
+    std::string candidate_id;
+    std::string candidate_type;
+    std::string source_id;
+    std::string dry_run_status{"dryRunComputed"};
+    std::string predicted_result{"no-write candidate result"};
+    std::string write_plan{"writePlan: no write will be performed"};
+    std::vector<std::string> blockers;
+    bool dry_run_computed{true};
+};
+
+struct OpsV360CommandPlanDryRunSummary {
+    int result_count{0};
+    int source_recheck_count{0};
+    int recovery_count{0};
+    int maintenance_count{0};
+    int client_notice_count{0};
+    int rule_follow_up_count{0};
+    int blocked_count{0};
+    std::string derivation_source{"BuildV350CommandPlanCandidates"};
+};
+
+std::vector<OpsV360CommandPlanDryRunResult> BuildV360CommandPlanDryRunResults(
+    const std::vector<OpsV350CommandPlanCandidate>& commandPlanCandidates) {
+    std::vector<OpsV360CommandPlanDryRunResult> results;
+    const auto append_result = [&](const std::string& candidate_id,
+                                   const std::string& candidate_type,
+                                   const std::string& source_id,
+                                   const std::string& blocked_reason) {
+        OpsV360CommandPlanDryRunResult result;
+        result.result_id = "dry-run:" + candidate_id;
+        result.candidate_id = candidate_id;
+        result.candidate_type = candidate_type;
+        result.source_id = source_id.empty() ? "unknown-source" : source_id;
+        result.dry_run_status = "dryRunComputed";
+        result.predicted_result = candidate_type + " dry-run result computed without write";
+        result.write_plan = candidate_type + " writePlan: read-only simulation, no mutation";
+        result.blockers.push_back(blocked_reason.empty() ? "operator-approval-required"
+                                                         : blocked_reason);
+        results.push_back(std::move(result));
+    };
+
+    for (const auto& candidate : commandPlanCandidates) {
+        if (candidate.candidate_type == "sourceRecheck" ||
+            candidate.candidate_type == "recovery" ||
+            candidate.candidate_type == "maintenance" ||
+            candidate.candidate_type == "clientNotice" ||
+            candidate.candidate_type == "ruleFollowUp") {
+            append_result(candidate.candidate_id,
+                          candidate.candidate_type,
+                          candidate.source_id,
+                          candidate.blocked_reason);
+        }
+        if (results.size() >= 40U) {
+            break;
+        }
+    }
+
+    const std::vector<std::string> required_types = {
+        "sourceRecheck", "recovery", "maintenance", "clientNotice", "ruleFollowUp"};
+    for (const auto& type : required_types) {
+        bool exists = false;
+        for (const auto& result : results) {
+            if (result.candidate_type == type) {
+                exists = true;
+                break;
+            }
+        }
+        if (!exists) {
+            append_result("candidate:default:" + type, type, "pending-source", "not-run");
+        }
+    }
+    return results;
+}
+
+OpsV360CommandPlanDryRunSummary BuildV360CommandPlanDryRunSummary(
+    const std::vector<OpsV360CommandPlanDryRunResult>& results) {
+    OpsV360CommandPlanDryRunSummary summary;
+    summary.result_count = static_cast<int>(results.size());
+    for (const auto& result : results) {
+        if (result.candidate_type == "sourceRecheck") {
+            ++summary.source_recheck_count;
+        } else if (result.candidate_type == "recovery") {
+            ++summary.recovery_count;
+        } else if (result.candidate_type == "maintenance") {
+            ++summary.maintenance_count;
+        } else if (result.candidate_type == "clientNotice") {
+            ++summary.client_notice_count;
+        } else if (result.candidate_type == "ruleFollowUp") {
+            ++summary.rule_follow_up_count;
+        }
+        if (!result.blockers.empty()) {
+            ++summary.blocked_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV360CommandPlanDryRunResultJson(
+    std::ostringstream& out,
+    const OpsV360CommandPlanDryRunResult& result) {
+    out << "{"
+        << "\"resultId\":\"" << JsonEscape(result.result_id) << "\","
+        << "\"candidateId\":\"" << JsonEscape(result.candidate_id) << "\","
+        << "\"candidateType\":\"" << JsonEscape(result.candidate_type) << "\","
+        << "\"sourceId\":\"" << JsonEscape(result.source_id) << "\","
+        << "\"dryRunStatus\":\"" << JsonEscape(result.dry_run_status) << "\","
+        << "\"predictedResult\":\"" << JsonEscape(result.predicted_result) << "\","
+        << "\"writePlan\":\"" << JsonEscape(result.write_plan) << "\","
+        << "\"blockers\":";
+    AppendV340RecoveryCandidateStringListJson(out, result.blockers);
+    out << ",\"dryRunComputed\":" << (result.dry_run_computed ? "true" : "false") << ","
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"recoveryExecuted\":false,"
+        << "\"maintenanceStarted\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"ruleFollowUpApplied\":false"
+        << "}";
+}
+
+void AppendV360CommandPlanDryRunSummaryJson(
+    std::ostringstream& out,
+    const OpsV360CommandPlanDryRunSummary& summary) {
+    out << "{"
+        << "\"resultCount\":" << summary.result_count << ","
+        << "\"sourceRecheckCount\":" << summary.source_recheck_count << ","
+        << "\"recoveryCount\":" << summary.recovery_count << ","
+        << "\"maintenanceCount\":" << summary.maintenance_count << ","
+        << "\"clientNoticeCount\":" << summary.client_notice_count << ","
+        << "\"ruleFollowUpCount\":" << summary.rule_follow_up_count << ","
+        << "\"blockedCount\":" << summary.blocked_count << ","
+        << "\"derivationSource\":\"" << JsonEscape(summary.derivation_source) << "\""
+        << "}";
+}
+
+std::string OpsV360CommandPlanDryRunSimulatorJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v360-command-plan-dry-run.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto dryRunResults = BuildV360CommandPlanDryRunResults(commandPlanCandidates);
+    const auto summary = BuildV360CommandPlanDryRunSummary(dryRunResults);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v360-command-plan-dry-run.v1\","
+        << "\"status\":\"command-plan-dry-run-simulator\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"simulationInputPackRoute\":\"/ops/api/live-operations/simulation/input-pack\","
+        << "\"commandPlanRoute\":\"/ops/api/live-operations/command-plan\","
+        << "\"commandPlanDryRunSummary\":";
+    AppendV360CommandPlanDryRunSummaryJson(out, summary);
+    out << ",\"commandPlanDryRunResults\":[";
+    for (std::size_t i = 0; i < dryRunResults.size(); ++i) {
+        if (i != 0) out << ",";
+        AppendV360CommandPlanDryRunResultJson(out, dryRunResults[i]);
+    }
+    out << "],\"candidatePolicy\":{"
+        << "\"sourceRecheck\":\"dry-run-only\","
+        << "\"recovery\":\"dry-run-only\","
+        << "\"maintenance\":\"dry-run-only\","
+        << "\"clientNotice\":\"dry-run-only\","
+        << "\"ruleFollowUp\":\"dry-run-only\""
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"dryRunOnly\":true,"
+        << "\"sourceRecheckExecuted\":false,"
+        << "\"recoveryExecuted\":false,"
+        << "\"maintenanceStarted\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"ruleFollowUpApplied\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"commandPlanExecuted\":false,"
+        << "\"automaticApplyPerformed\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV360SourceRuleImpactDiff {
+    std::string diff_id;
+    std::string source_id;
+    std::string candidate_id;
+    std::string candidate_type;
+    std::string before_state{"beforeState: current"};
+    std::string after_state{"afterState: simulated"};
+    std::string source_health_diff{"sourceHealthDiff: no persisted change"};
+    std::string event_risk_diff{"eventRiskDiff: no EventRecord mutation"};
+    std::string client_impact_diff{"clientImpactDiff: viewer-safe summary only"};
+    std::string source_change_candidate{"not-required"};
+    std::string rule_change_candidate{"not-required"};
+    std::vector<std::string> blockers;
+};
+
+struct OpsV360SourceRuleImpactDiffSummary {
+    int diff_count{0};
+    int source_health_diff_count{0};
+    int event_risk_diff_count{0};
+    int client_impact_diff_count{0};
+    int rule_change_candidate_count{0};
+    int blocked_count{0};
+    std::vector<std::string> derivation_sources;
+};
+
+std::vector<OpsV360SourceRuleImpactDiff> BuildV360SourceRuleImpactDiffs(
+    const OpsV350LiveOperationsGraphContext& context,
+    const std::vector<OpsV350CommandPlanCandidate>& commandPlanCandidates,
+    const std::vector<OpsV350StagedChangePlan>& stagedChangePlans) {
+    (void)context;
+    const auto dryRunResults = BuildV360CommandPlanDryRunResults(commandPlanCandidates);
+    std::vector<OpsV360SourceRuleImpactDiff> diffs;
+    for (const auto& result : dryRunResults) {
+        OpsV360SourceRuleImpactDiff diff;
+        diff.diff_id = "impact-diff:" + result.candidate_id;
+        diff.source_id = result.source_id;
+        diff.candidate_id = result.candidate_id;
+        diff.candidate_type = result.candidate_type;
+        diff.before_state = "beforeState: current source/view/rule projection";
+        diff.after_state = "afterState: simulated " + result.candidate_type + " projection";
+        diff.source_health_diff =
+            result.candidate_type == "sourceRecheck" || result.candidate_type == "recovery"
+                ? "sourceHealthDiff: simulated health may improve after operator action"
+                : "sourceHealthDiff: no source health change";
+        diff.event_risk_diff =
+            result.candidate_type == "ruleFollowUp"
+                ? "eventRiskDiff: simulated rule follow-up may reduce repeat event risk"
+                : "eventRiskDiff: no EventRecord payload change";
+        diff.client_impact_diff =
+            result.candidate_type == "clientNotice"
+                ? "clientImpactDiff: viewer-safe notice candidate"
+                : "clientImpactDiff: viewer-safe summary only";
+        diff.source_change_candidate =
+            result.candidate_type == "sourceRecheck" || result.candidate_type == "recovery"
+                ? "sourceChangeCandidate"
+                : "not-required";
+        diff.rule_change_candidate =
+            result.candidate_type == "ruleFollowUp" ? "ruleChangeCandidate" : "not-required";
+        diff.blockers = result.blockers;
+        for (const auto& plan : stagedChangePlans) {
+            if (plan.source_id == result.source_id && plan.candidate_type == result.candidate_type) {
+                diff.after_state = "afterState: simulated staged plan " + plan.plan_id;
+                break;
+            }
+        }
+        diffs.push_back(std::move(diff));
+        if (diffs.size() >= 40U) {
+            break;
+        }
+    }
+    return diffs;
+}
+
+OpsV360SourceRuleImpactDiffSummary BuildV360SourceRuleImpactDiffSummary(
+    const std::vector<OpsV360SourceRuleImpactDiff>& diffs) {
+    OpsV360SourceRuleImpactDiffSummary summary;
+    summary.derivation_sources = {
+        "BuildV350CommandPlanCandidates",
+        "BuildV350StagedChangePlans",
+        "BuildV360CommandPlanDryRunResults",
+    };
+    summary.diff_count = static_cast<int>(diffs.size());
+    for (const auto& diff : diffs) {
+        if (diff.source_health_diff.find("no source health change") == std::string::npos) {
+            ++summary.source_health_diff_count;
+        }
+        if (diff.event_risk_diff.find("no EventRecord") == std::string::npos) {
+            ++summary.event_risk_diff_count;
+        }
+        if (diff.client_impact_diff.find("viewer-safe") != std::string::npos) {
+            ++summary.client_impact_diff_count;
+        }
+        if (diff.rule_change_candidate == "ruleChangeCandidate") {
+            ++summary.rule_change_candidate_count;
+        }
+        if (!diff.blockers.empty()) {
+            ++summary.blocked_count;
+        }
+    }
+    return summary;
+}
+
+void AppendV360SourceRuleImpactDiffJson(
+    std::ostringstream& out,
+    const OpsV360SourceRuleImpactDiff& diff) {
+    out << "{"
+        << "\"diffId\":\"" << JsonEscape(diff.diff_id) << "\","
+        << "\"sourceId\":\"" << JsonEscape(diff.source_id) << "\","
+        << "\"candidateId\":\"" << JsonEscape(diff.candidate_id) << "\","
+        << "\"candidateType\":\"" << JsonEscape(diff.candidate_type) << "\","
+        << "\"beforeState\":\"" << JsonEscape(diff.before_state) << "\","
+        << "\"afterState\":\"" << JsonEscape(diff.after_state) << "\","
+        << "\"sourceHealthDiff\":\"" << JsonEscape(diff.source_health_diff) << "\","
+        << "\"eventRiskDiff\":\"" << JsonEscape(diff.event_risk_diff) << "\","
+        << "\"clientImpactDiff\":\"" << JsonEscape(diff.client_impact_diff) << "\","
+        << "\"sourceChangeCandidate\":\"" << JsonEscape(diff.source_change_candidate) << "\","
+        << "\"ruleChangeCandidate\":\"" << JsonEscape(diff.rule_change_candidate) << "\","
+        << "\"blockers\":";
+    AppendV340RecoveryCandidateStringListJson(out, diff.blockers);
+    out << "}";
+}
+
+void AppendV360SourceRuleImpactDiffSummaryJson(
+    std::ostringstream& out,
+    const OpsV360SourceRuleImpactDiffSummary& summary) {
+    out << "{"
+        << "\"diffCount\":" << summary.diff_count << ","
+        << "\"sourceHealthDiffCount\":" << summary.source_health_diff_count << ","
+        << "\"eventRiskDiffCount\":" << summary.event_risk_diff_count << ","
+        << "\"clientImpactDiffCount\":" << summary.client_impact_diff_count << ","
+        << "\"ruleChangeCandidateCount\":" << summary.rule_change_candidate_count << ","
+        << "\"blockedCount\":" << summary.blocked_count << ","
+        << "\"derivationSources\":";
+    AppendV340RecoveryCandidateStringListJson(out, summary.derivation_sources);
+    out << "}";
+}
+
+std::string OpsV360SourceRuleImpactDiffJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v360-source-rule-impact-diff.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto stagedChangePlans = BuildV350StagedChangePlans(context, commandPlanCandidates);
+    const auto diffs =
+        BuildV360SourceRuleImpactDiffs(context, commandPlanCandidates, stagedChangePlans);
+    const auto summary = BuildV360SourceRuleImpactDiffSummary(diffs);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v360-source-rule-impact-diff.v1\","
+        << "\"status\":\"source-rule-impact-diff\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"commandPlanDryRunRoute\":\"/ops/api/live-operations/simulation/command-plan-dry-run\","
+        << "\"stagedPlanRoute\":\"/ops/api/live-operations/staged-change-plan-impact-preview\","
+        << "\"sourceRuleImpactDiffSummary\":";
+    AppendV360SourceRuleImpactDiffSummaryJson(out, summary);
+    out << ",\"sourceRuleImpactDiffs\":[";
+    for (std::size_t i = 0; i < diffs.size(); ++i) {
+        if (i != 0) out << ",";
+        AppendV360SourceRuleImpactDiffJson(out, diffs[i]);
+    }
+    out << "],\"diffPolicy\":{"
+        << "\"beforeState\":\"current read model\","
+        << "\"afterState\":\"simulated projection\","
+        << "\"sourceHealthDiff\":\"computed-only\","
+        << "\"eventRiskDiff\":\"computed-only\","
+        << "\"clientImpactDiff\":\"viewer-safe computed-only\""
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"diffOnly\":true,"
+        << "\"sourceHealthChangedPersisted\":false,"
+        << "\"eventRiskChangedPersisted\":false,"
+        << "\"clientImpactChangedPersisted\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"sourceChangeApplied\":false,"
+        << "\"ruleFollowUpApplied\":false,"
+        << "\"automaticApplyPerformed\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV360SafeApplyReadinessItem {
+    std::string readiness_id;
+    std::string candidate_id;
+    std::string candidate_type;
+    std::string source_id;
+    std::string readiness_state{"not-run"};
+    std::vector<std::string> blockers;
+    bool operator_approval_required{true};
+    bool field_evidence_required{false};
+};
+
+struct OpsV360SafeApplyReadinessSummary {
+    int item_count{0};
+    int ready_count{0};
+    int blocked_count{0};
+    int approval_needed_count{0};
+    int field_needed_count{0};
+    int not_run_count{0};
+    int blocker_count{0};
+    std::vector<std::string> derivation_sources;
+};
+
+std::vector<OpsV360SafeApplyReadinessItem> BuildV360SafeApplyReadinessItems(
+    const std::vector<OpsV360CommandPlanDryRunResult>& dryRunResults,
+    const std::vector<OpsV360SourceRuleImpactDiff>& diffs) {
+    std::vector<OpsV360SafeApplyReadinessItem> items;
+    for (const auto& result : dryRunResults) {
+        OpsV360SafeApplyReadinessItem item;
+        item.readiness_id = "safe-apply:" + result.candidate_id;
+        item.candidate_id = result.candidate_id;
+        item.candidate_type = result.candidate_type;
+        item.source_id = result.source_id;
+        item.blockers = result.blockers;
+        item.operator_approval_required = true;
+        if (result.candidate_type == "clientNotice") {
+            item.readiness_state = "ready";
+            item.operator_approval_required = false;
+            item.blockers.clear();
+        } else if (result.candidate_type == "sourceRecheck") {
+            item.readiness_state = "approval-needed";
+        } else if (result.candidate_type == "maintenance") {
+            item.readiness_state = "field-needed";
+            item.field_evidence_required = true;
+            item.blockers.push_back("field-evidence-required");
+        } else if (result.candidate_type == "ruleFollowUp") {
+            item.readiness_state = "not-run";
+            item.blockers.push_back("dry-run-not-run");
+        } else {
+            item.readiness_state = "blocked";
+        }
+        for (const auto& diff : diffs) {
+            if (diff.candidate_id == result.candidate_id &&
+                diff.client_impact_diff.find("viewer-safe") == std::string::npos) {
+                item.blockers.push_back("client-impact-not-viewer-safe");
+            }
+        }
+        items.push_back(std::move(item));
+        if (items.size() >= 40U) {
+            break;
+        }
+    }
+    return items;
+}
+
+OpsV360SafeApplyReadinessSummary BuildV360SafeApplyReadinessSummary(
+    const std::vector<OpsV360SafeApplyReadinessItem>& items) {
+    OpsV360SafeApplyReadinessSummary summary;
+    summary.derivation_sources = {
+        "BuildV360CommandPlanDryRunResults",
+        "BuildV360SourceRuleImpactDiffs",
+    };
+    summary.item_count = static_cast<int>(items.size());
+    for (const auto& item : items) {
+        if (item.readiness_state == "ready") {
+            ++summary.ready_count;
+        } else if (item.readiness_state == "blocked") {
+            ++summary.blocked_count;
+        } else if (item.readiness_state == "approval-needed") {
+            ++summary.approval_needed_count;
+        } else if (item.readiness_state == "field-needed") {
+            ++summary.field_needed_count;
+        } else if (item.readiness_state == "not-run") {
+            ++summary.not_run_count;
+        }
+        summary.blocker_count += static_cast<int>(item.blockers.size());
+    }
+    return summary;
+}
+
+void AppendV360SafeApplyReadinessItemJson(
+    std::ostringstream& out,
+    const OpsV360SafeApplyReadinessItem& item) {
+    out << "{"
+        << "\"readinessId\":\"" << JsonEscape(item.readiness_id) << "\","
+        << "\"candidateId\":\"" << JsonEscape(item.candidate_id) << "\","
+        << "\"candidateType\":\"" << JsonEscape(item.candidate_type) << "\","
+        << "\"sourceId\":\"" << JsonEscape(item.source_id) << "\","
+        << "\"readinessState\":\"" << JsonEscape(item.readiness_state) << "\","
+        << "\"operatorApprovalRequired\":"
+        << (item.operator_approval_required ? "true" : "false") << ","
+        << "\"fieldEvidenceRequired\":"
+        << (item.field_evidence_required ? "true" : "false") << ","
+        << "\"blockers\":";
+    AppendV340RecoveryCandidateStringListJson(out, item.blockers);
+    out << "}";
+}
+
+void AppendV360SafeApplyReadinessSummaryJson(
+    std::ostringstream& out,
+    const OpsV360SafeApplyReadinessSummary& summary) {
+    out << "{"
+        << "\"itemCount\":" << summary.item_count << ","
+        << "\"readyCount\":" << summary.ready_count << ","
+        << "\"blockedCount\":" << summary.blocked_count << ","
+        << "\"approvalNeededCount\":" << summary.approval_needed_count << ","
+        << "\"fieldNeededCount\":" << summary.field_needed_count << ","
+        << "\"notRunCount\":" << summary.not_run_count << ","
+        << "\"blockerCount\":" << summary.blocker_count << ","
+        << "\"derivationSources\":";
+    AppendV340RecoveryCandidateStringListJson(out, summary.derivation_sources);
+    out << "}";
+}
+
+std::string OpsV360SafeApplyReadinessGateJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v360-safe-apply-readiness.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto stagedChangePlans = BuildV350StagedChangePlans(context, commandPlanCandidates);
+    const auto dryRunResults = BuildV360CommandPlanDryRunResults(commandPlanCandidates);
+    const auto diffs =
+        BuildV360SourceRuleImpactDiffs(context, commandPlanCandidates, stagedChangePlans);
+    const auto readinessItems = BuildV360SafeApplyReadinessItems(dryRunResults, diffs);
+    const auto summary = BuildV360SafeApplyReadinessSummary(readinessItems);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v360-safe-apply-readiness.v1\","
+        << "\"status\":\"safe-apply-readiness-gate\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"commandPlanDryRunRoute\":\"/ops/api/live-operations/simulation/command-plan-dry-run\","
+        << "\"impactDiffRoute\":\"/ops/api/live-operations/simulation/impact-diff\","
+        << "\"safeApplyReadinessSummary\":";
+    AppendV360SafeApplyReadinessSummaryJson(out, summary);
+    out << ",\"readinessStateCatalog\":[\"ready\",\"blocked\",\"approval-needed\",\"field-needed\",\"not-run\"],"
+        << "\"safeApplyReadinessItems\":[";
+    for (std::size_t i = 0; i < readinessItems.size(); ++i) {
+        if (i != 0) out << ",";
+        AppendV360SafeApplyReadinessItemJson(out, readinessItems[i]);
+    }
+    out << "],\"gatePolicy\":{"
+        << "\"safeApplyGateOnly\":true,"
+        << "\"ready\":\"dry-run computed and no blockers\","
+        << "\"blocked\":\"blocker present\","
+        << "\"approval-needed\":\"operator approval required\","
+        << "\"field-needed\":\"field evidence required\","
+        << "\"not-run\":\"simulation not executed\""
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"safeApplyGateOnly\":true,"
+        << "\"automaticApplyPerformed\":false,"
+        << "\"safeApplyPerformed\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"fieldSmokeExecuted\":false,"
+        << "\"commandPlanExecuted\":false,"
+        << "\"sourceChangeApplied\":false,"
+        << "\"ruleFollowUpApplied\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
 std::string OpsAuditSearchIndexJson() {
     return "{\"caseInsensitive\":true,"
            "\"filters\":[\"area\",\"actor\",\"user\",\"target\",\"action\",\"q\",\"fromMs\",\"toMs\"],"
@@ -27510,6 +28407,106 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV350VlmAssistedOpsExplanationJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/live-operations/simulation/input-pack") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV360SimulationInputPackJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/live-operations/simulation/run-contract") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV360OperationsSimulationRunContractJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/live-operations/simulation/command-plan-dry-run") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV360CommandPlanDryRunSimulatorJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/live-operations/simulation/impact-diff") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV360SourceRuleImpactDiffJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/live-operations/simulation/safe-apply-readiness") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV360SafeApplyReadinessGateJson(config, source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }
