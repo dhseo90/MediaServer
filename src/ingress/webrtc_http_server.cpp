@@ -2820,6 +2820,12 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
             </div>
           </div>
           <div>
+            <h4>Simulation Ledger</h4>
+            <div id="dashSimulationWorkspaceLedgerList" class="ops-simulation-ledger-list" data-v360-simulation-run-ledger="media-server.ops.v360-simulation-run-ledger.v1">
+              <div class="empty">simulation run id, input ref, result diff, operator note, previous run diff를 기다립니다.</div>
+            </div>
+          </div>
+          <div>
             <h4>Impact Diff</h4>
             <div id="dashSimulationWorkspaceImpactList" class="ops-simulation-workspace-list">
               <div class="empty">source/rule impact diff를 기다립니다.</div>
@@ -17854,6 +17860,7 @@ OpsV360SimulationRunContract BuildV360SimulationRunContract() {
         "/ops/api/live-operations/simulation/command-plan-dry-run",
         "/ops/api/live-operations/simulation/impact-diff",
         "/ops/api/live-operations/simulation/safe-apply-readiness",
+        "/ops/api/live-operations/simulation/run-ledger",
     };
     contract.allowed_readiness_states = {
         "ready",
@@ -18532,6 +18539,290 @@ std::string OpsV360SafeApplyReadinessGateJson(
         << "\"sseMetadataSchemaChanged\":false,"
         << "\"wsMetadataSchemaChanged\":false,"
         << "\"rtspOrWebrtcMediaPathChanged\":false"
+        << "}}";
+    return out.str();
+}
+
+struct OpsV360SimulationRunLedgerEntry {
+    std::string simulation_run_id;
+    std::string input_ref;
+    std::string source_id;
+    std::string candidate_id;
+    std::string readiness_state{"not-run"};
+    std::string result_diff{"baseline"};
+    std::string operator_note{"operator-note-required"};
+    std::string blocker{"simulation-not-executed"};
+    std::vector<std::string> evidence_refs;
+    std::string previous_run_id;
+    std::string compared_to_run_id;
+    std::vector<std::string> changed_fields;
+    int accumulated_run_count{1};
+    bool read_only{true};
+};
+
+struct OpsV360SimulationRunLedgerSummary {
+    int run_count{0};
+    int comparison_count{0};
+    int blocker_count{0};
+    int operator_note_count{0};
+    int changed_field_count{0};
+};
+
+std::vector<OpsV360SimulationRunLedgerEntry> BuildV360SimulationRunLedgerEntries(
+    const OpsV350LiveOperationsGraphContext& context,
+    const std::vector<OpsV360SimulationInputPackItem>& inputPackItems,
+    const OpsV360SimulationRunContract& simulationRunContract,
+    const OpsV360SimulationResultEnvelope& simulationResultEnvelope,
+    const std::vector<OpsV360CommandPlanDryRunResult>& dryRunResults,
+    const std::vector<OpsV360SourceRuleImpactDiff>& impactDiffs,
+    const std::vector<OpsV360SafeApplyReadinessItem>& readinessItems) {
+    // Simulation run ledger는 기존 read model을 append-only projection처럼 보여줄 뿐 저장하지 않습니다.
+    (void)context;
+    (void)simulationRunContract;
+    (void)simulationResultEnvelope;
+    std::vector<OpsV360SimulationRunLedgerEntry> entries;
+    int run_index = 0;
+    const std::string default_input_ref =
+        inputPackItems.empty() ? "/ops/api/live-operations/simulation/input-pack"
+                               : inputPackItems.front().input_id;
+
+    for (const auto& result : dryRunResults) {
+        const auto diff_it = std::find_if(
+            impactDiffs.begin(),
+            impactDiffs.end(),
+            [&](const OpsV360SourceRuleImpactDiff& diff) {
+                return diff.candidate_id == result.candidate_id;
+            });
+        const auto readiness_it = std::find_if(
+            readinessItems.begin(),
+            readinessItems.end(),
+            [&](const OpsV360SafeApplyReadinessItem& item) {
+                return item.candidate_id == result.candidate_id;
+            });
+        const std::string source_key =
+            result.source_id.empty() ? "unknown-source" : result.source_id;
+        const std::string input_ref =
+            "inputRef:" + default_input_ref + ":" + result.candidate_id;
+        const std::string previous_run_id =
+            "simulation-run:" + source_key + ":previous-" + std::to_string(run_index + 1);
+        const std::string current_run_id =
+            "simulation-run:" + source_key + ":current-" + std::to_string(run_index + 1);
+
+        OpsV360SimulationRunLedgerEntry previous;
+        previous.simulation_run_id = previous_run_id;
+        previous.input_ref = input_ref;
+        previous.source_id = source_key;
+        previous.candidate_id = result.candidate_id;
+        previous.readiness_state = "previous-observed";
+        previous.result_diff = "baseline previous simulation result";
+        previous.operator_note = "previous operator note retained for resultDiff comparison";
+        previous.blocker = "previous-blocker-observed";
+        previous.evidence_refs = {
+            "/ops/api/live-operations/simulation/input-pack",
+            "/ops/api/live-operations/simulation/run-contract",
+        };
+        previous.changed_fields = {"baseline"};
+        previous.accumulated_run_count = 1;
+        entries.push_back(std::move(previous));
+
+        OpsV360SimulationRunLedgerEntry current;
+        current.simulation_run_id = current_run_id;
+        current.input_ref = input_ref;
+        current.source_id = source_key;
+        current.candidate_id = result.candidate_id;
+        current.readiness_state =
+            readiness_it == readinessItems.end() ? "not-run" : readiness_it->readiness_state;
+        current.operator_note =
+            "operator-note-required before simulation promotion; review resultDiff and readiness blockers";
+        std::vector<std::string> blockers = result.blockers;
+        if (readiness_it != readinessItems.end()) {
+            blockers.insert(blockers.end(),
+                            readiness_it->blockers.begin(),
+                            readiness_it->blockers.end());
+        }
+        current.blocker = blockers.empty() ? "none" : JoinV340ApprovalRecoveryStrings(blockers, ", ");
+        current.result_diff =
+            "resultDiff compares dry-run output, impact diff, readiness blocker to previous run";
+        if (diff_it != impactDiffs.end()) {
+            current.result_diff += "; " + diff_it->source_health_diff + "; " +
+                                   diff_it->event_risk_diff + "; " +
+                                   diff_it->client_impact_diff;
+        }
+        current.evidence_refs = {
+            "/ops/api/live-operations/simulation/input-pack",
+            "/ops/api/live-operations/simulation/run-contract",
+            "/ops/api/live-operations/simulation/command-plan-dry-run",
+            "/ops/api/live-operations/simulation/impact-diff",
+            "/ops/api/live-operations/simulation/safe-apply-readiness",
+            result.candidate_id,
+        };
+        if (diff_it != impactDiffs.end()) {
+            current.evidence_refs.push_back(diff_it->diff_id);
+        }
+        current.previous_run_id = previous_run_id;
+        current.compared_to_run_id = previous_run_id;
+        current.changed_fields = {"inputRefDelta", "resultDiffDelta", "readinessBlockerDelta"};
+        current.accumulated_run_count = 2;
+        entries.push_back(std::move(current));
+
+        ++run_index;
+        if (entries.size() >= 24U) {
+            break;
+        }
+    }
+
+    if (entries.empty()) {
+        OpsV360SimulationRunLedgerEntry empty;
+        empty.simulation_run_id = "simulation-run:pending:current-1";
+        empty.input_ref = default_input_ref;
+        empty.source_id = "pending-source";
+        empty.result_diff = "resultDiff pending because no dry-run result exists";
+        empty.operator_note = "operator-note-required after simulation dry-run result is available";
+        empty.blocker = "dry-run-result-missing";
+        empty.evidence_refs = {
+            "/ops/api/live-operations/simulation/input-pack",
+            "/ops/api/live-operations/simulation/command-plan-dry-run",
+        };
+        empty.changed_fields = {"missingDryRunResult"};
+        entries.push_back(std::move(empty));
+    }
+    return entries;
+}
+
+OpsV360SimulationRunLedgerSummary BuildV360SimulationRunLedgerSummary(
+    const std::vector<OpsV360SimulationRunLedgerEntry>& entries) {
+    OpsV360SimulationRunLedgerSummary summary;
+    summary.run_count = static_cast<int>(entries.size());
+    for (const auto& entry : entries) {
+        if (!entry.previous_run_id.empty() || !entry.compared_to_run_id.empty()) {
+            ++summary.comparison_count;
+        }
+        if (!entry.blocker.empty() && entry.blocker != "none") {
+            ++summary.blocker_count;
+        }
+        if (!entry.operator_note.empty()) {
+            ++summary.operator_note_count;
+        }
+        summary.changed_field_count += static_cast<int>(entry.changed_fields.size());
+    }
+    return summary;
+}
+
+void AppendV360SimulationRunLedgerSummaryJson(
+    std::ostringstream& out,
+    const OpsV360SimulationRunLedgerSummary& summary) {
+    out << "{"
+        << "\"runCount\":" << summary.run_count << ","
+        << "\"comparisonCount\":" << summary.comparison_count << ","
+        << "\"blockerCount\":" << summary.blocker_count << ","
+        << "\"operatorNoteCount\":" << summary.operator_note_count << ","
+        << "\"changedFieldCount\":" << summary.changed_field_count
+        << "}";
+}
+
+void AppendV360SimulationRunLedgerEntryJson(
+    std::ostringstream& out,
+    const OpsV360SimulationRunLedgerEntry& entry) {
+    out << "{"
+        << "\"simulationRunId\":\"" << JsonEscape(entry.simulation_run_id) << "\","
+        << "\"inputRef\":\"" << JsonEscape(entry.input_ref) << "\","
+        << "\"sourceId\":\"" << JsonEscape(entry.source_id) << "\","
+        << "\"candidateId\":\"" << JsonEscape(entry.candidate_id) << "\","
+        << "\"readinessState\":\"" << JsonEscape(entry.readiness_state) << "\","
+        << "\"resultDiff\":\"" << JsonEscape(entry.result_diff) << "\","
+        << "\"operatorNote\":\"" << JsonEscape(entry.operator_note) << "\","
+        << "\"blocker\":\"" << JsonEscape(entry.blocker) << "\","
+        << "\"evidenceRefs\":";
+    AppendV340RecoveryCandidateStringListJson(out, entry.evidence_refs);
+    out << ",\"previousRunId\":\"" << JsonEscape(entry.previous_run_id) << "\","
+        << "\"comparedToRunId\":\"" << JsonEscape(entry.compared_to_run_id) << "\","
+        << "\"changedFields\":";
+    AppendV340RecoveryCandidateStringListJson(out, entry.changed_fields);
+    out << ",\"accumulatedRunCount\":" << entry.accumulated_run_count << ","
+        << "\"readOnly\":" << (entry.read_only ? "true" : "false")
+        << "}";
+}
+
+std::string OpsV360SimulationRunLedgerComparisonJson(
+    const app::AppConfig& config,
+    const OpsSourceHealthSnapshot& source_health_snapshot) {
+    const auto context = BuildV350LiveOperationsGraphContext(config, source_health_snapshot);
+    if (!context.ok) {
+        return "{\"ok\":false,\"schema\":\"media-server.ops.v360-simulation-run-ledger.v1\",\"error\":\"" +
+               JsonEscape(context.error) + "\"}";
+    }
+    const auto commandPlanCandidates = BuildV350CommandPlanCandidates(context);
+    const auto stagedChangePlans = BuildV350StagedChangePlans(context, commandPlanCandidates);
+    const auto inputPackItems =
+        BuildV360SimulationInputPackItems(context, commandPlanCandidates, stagedChangePlans);
+    const auto inputSummary = BuildV360SimulationInputPackSummary(inputPackItems);
+    const auto simulationRunContract = BuildV360SimulationRunContract();
+    const auto simulationResultEnvelope = BuildV360SimulationResultEnvelope(inputSummary);
+    const auto dryRunResults = BuildV360CommandPlanDryRunResults(commandPlanCandidates);
+    const auto impactDiffs =
+        BuildV360SourceRuleImpactDiffs(context, commandPlanCandidates, stagedChangePlans);
+    const auto readinessItems = BuildV360SafeApplyReadinessItems(dryRunResults, impactDiffs);
+    const auto ledgerEntries =
+        BuildV360SimulationRunLedgerEntries(context,
+                                            inputPackItems,
+                                            simulationRunContract,
+                                            simulationResultEnvelope,
+                                            dryRunResults,
+                                            impactDiffs,
+                                            readinessItems);
+    const auto summary = BuildV360SimulationRunLedgerSummary(ledgerEntries);
+
+    std::ostringstream out;
+    out << "{"
+        << "\"ok\":true,"
+        << "\"schema\":\"media-server.ops.v360-simulation-run-ledger.v1\","
+        << "\"status\":\"simulation-run-ledger-comparison\","
+        << "\"generatedAt\":\"" << JsonEscape(source_health_snapshot.generated_at) << "\","
+        << "\"inputPackRoute\":\"/ops/api/live-operations/simulation/input-pack\","
+        << "\"runContractRoute\":\"/ops/api/live-operations/simulation/run-contract\","
+        << "\"commandPlanDryRunRoute\":\"/ops/api/live-operations/simulation/command-plan-dry-run\","
+        << "\"impactDiffRoute\":\"/ops/api/live-operations/simulation/impact-diff\","
+        << "\"readinessRoute\":\"/ops/api/live-operations/simulation/safe-apply-readiness\","
+        << "\"simulationRunLedgerSummary\":";
+    AppendV360SimulationRunLedgerSummaryJson(out, summary);
+    out << ",\"simulationRunLedgerEntries\":[";
+    for (std::size_t i = 0; i < ledgerEntries.size(); ++i) {
+        if (i != 0) out << ",";
+        AppendV360SimulationRunLedgerEntryJson(out, ledgerEntries[i]);
+    }
+    out << "],\"comparisonPolicy\":{"
+        << "\"mode\":\"previous-run-diff\","
+        << "\"inputRefField\":\"inputRef\","
+        << "\"resultDiffField\":\"resultDiff\","
+        << "\"operatorNote\":\"display-only-not-persisted\","
+        << "\"previousRunIdField\":\"previousRunId\","
+        << "\"comparedToRunIdField\":\"comparedToRunId\","
+        << "\"diffFields\":[\"inputRefDelta\",\"resultDiffDelta\",\"readinessBlockerDelta\"]"
+        << "},\"boundaries\":{"
+        << "\"opsOnly\":true,"
+        << "\"readOnly\":true,"
+        << "\"appendOnlyLedgerProjection\":true,"
+        << "\"simulationRunPersisted\":false,"
+        << "\"simulationRunExecuted\":false,"
+        << "\"operatorNoteWritePerformed\":false,"
+        << "\"resultDiffPersisted\":false,"
+        << "\"sourceRegistryWritePerformed\":false,"
+        << "\"publishedViewWritePerformed\":false,"
+        << "\"ruleRegistryWritePerformed\":false,"
+        << "\"eventRecordWritePerformed\":false,"
+        << "\"opsAuditWritePerformed\":false,"
+        << "\"clientNoticeSent\":false,"
+        << "\"viewerClientExposureAdded\":false,"
+        << "\"rawLocatorExposedToClient\":false,"
+        << "\"credentialMaterialExposed\":false,"
+        << "\"rawDiagnosticJsonIncluded\":false,"
+        << "\"eventRecordSchemaChanged\":false,"
+        << "\"eventPostPayloadChanged\":false,"
+        << "\"webrtcDataChannelSchemaChanged\":false,"
+        << "\"sseMetadataSchemaChanged\":false,"
+        << "\"wsMetadataSchemaChanged\":false,"
+        << "\"rtspOrWebrtcMediaPathChanged\":false,"
+        << "\"ruleProfilePayloadChanged\":false"
         << "}}";
     return out.str();
 }
@@ -28546,6 +28837,26 @@ bool WebRtcHttpServer::Start(const std::string& listen_address, std::uint16_t po
                                     200,
                                     "OK",
                                     OpsV360SafeApplyReadinessGateJson(config, source_health_snapshot));
+                                ok.headers["Cache-Control"] = "no-store";
+                                return ok;
+                            }
+                        }
+
+                        if (request.path == "/ops/api/live-operations/simulation/run-ledger") {
+                            if (const auto auth_response = require_ops_principal(); auth_response.has_value()) {
+                                return *auth_response;
+                            }
+                            if (request.method == "GET") {
+                                const auto source_health_snapshot =
+                                    BuildOpsSourceHealthSnapshot(impl_->session_manager.AnalysisTapSnapshots(),
+                                                                 WebRtcSourceRegistry::Instance().Snapshots(),
+                                                                 impl_->session_manager.SourceDescriptorSnapshots(),
+                                                                 impl_->session_manager.SourceReconnectStatsSnapshot(),
+                                                                 impl_->session_manager.SourceEgressStatsSnapshot());
+                                HttpResponse ok = JsonResponse(
+                                    200,
+                                    "OK",
+                                    OpsV360SimulationRunLedgerComparisonJson(config, source_health_snapshot));
                                 ok.headers["Cache-Control"] = "no-store";
                                 return ok;
                             }

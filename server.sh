@@ -352,6 +352,8 @@ Usage:
                  v3.6.0 Step 6 Safe Apply Readiness Gate no-auto-apply 경계를 검증합니다.
   verify-v360-ops-simulation-workspace-ui
                  v3.6.0 Step 7 Ops Simulation Workspace UI read-only 경계를 검증합니다.
+  verify-v360-simulation-run-ledger-comparison
+                 v3.6.0 Step 8 Simulation Run Ledger and Comparison read-only 경계를 검증합니다.
   verify-onvif-live-import-contract
                  카메라 없이 ONVIF live import fixture가 내부 import draft 계약을 지키는지 검증합니다.
   verify-onvif-protocol-support-matrix
@@ -586,6 +588,8 @@ Usage:
                  v3.6.0 Step 6 Safe Apply Readiness Gate no-auto-apply 경계를 검증합니다.
   verify-v360-ops-simulation-workspace-ui
                  v3.6.0 Step 7 Ops Simulation Workspace UI read-only 경계를 검증합니다.
+  verify-v360-simulation-run-ledger-comparison
+                 v3.6.0 Step 8 Simulation Run Ledger and Comparison read-only 경계를 검증합니다.
   verify-actions-security
                  GitHub Actions workflow 권한과 action 사용 정책을 검증합니다.
   verify-ci-local-gate-parity
@@ -1652,6 +1656,10 @@ case "${cmd}" in
   verify-v360-ops-simulation-workspace-ui)
     require_internal verify_v360_ops_simulation_workspace_ui.mjs
     exec "${INTERNAL_DIR}/verify_v360_ops_simulation_workspace_ui.mjs" "$@"
+    ;;
+  verify-v360-simulation-run-ledger-comparison)
+    require_internal verify_v360_simulation_run_ledger_comparison.mjs
+    exec "${INTERNAL_DIR}/verify_v360_simulation_run_ledger_comparison.mjs" "$@"
     ;;
   verify-v290-final-stabilization-run)
     require_internal verify_v290_final_stabilization_run.mjs

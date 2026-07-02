@@ -483,6 +483,7 @@ check("user-facing JS option parsers reject unknown options", () => {
     "verify_v360_source_rule_impact_diff.mjs",
     "verify_v360_safe_apply_readiness_gate.mjs",
     "verify_v360_ops_simulation_workspace_ui.mjs",
+    "verify_v360_simulation_run_ledger_comparison.mjs",
     "verify_external_turn_whep_field_gate.mjs",
     "verify_vlm_runtime_status_ui.mjs",
     "verify_vlm_evaluation_result_workflow.mjs",

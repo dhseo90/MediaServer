@@ -792,10 +792,12 @@ void AppendOpsShellScript(std::ostringstream& out,
       const renderV360OpsSimulationWorkspace = (payload = {}) => {
         const inputPack = payload.inputPack || {};
         const simulationRun = payload.simulationRun || {};
+        const simulationRunLedger = payload.simulationRunLedger || {};
         const dryRun = payload.dryRun || {};
         const impactDiff = payload.impactDiff || {};
         const readiness = payload.readiness || {};
         const simulationInputPackItems = v360SimulationWorkspaceList(inputPack.simulationInputPackItems);
+        const simulationRunLedgerEntries = v360SimulationWorkspaceList(simulationRunLedger.simulationRunLedgerEntries);
         const commandPlanDryRunResults = v360SimulationWorkspaceList(dryRun.commandPlanDryRunResults);
         const sourceRuleImpactDiffs = v360SimulationWorkspaceList(impactDiff.sourceRuleImpactDiffs);
         const safeApplyReadinessItems = v360SimulationWorkspaceList(readiness.safeApplyReadinessItems);
@@ -804,23 +806,28 @@ void AppendOpsShellScript(std::ostringstream& out,
         v360SimulationWorkspaceState = {
           inputPack,
           simulationRun,
+          simulationRunLedger,
           dryRun,
           impactDiff,
           readiness,
           inputPackRoute: payload.inputPackRoute || '/ops/api/live-operations/simulation/input-pack',
           runContractRoute: payload.runContractRoute || '/ops/api/live-operations/simulation/run-contract',
+          simulationRunLedgerRoute: payload.simulationRunLedgerRoute || '/ops/api/live-operations/simulation/run-ledger',
           dryRunRoute: payload.dryRunRoute || '/ops/api/live-operations/simulation/command-plan-dry-run',
           impactDiffRoute: payload.impactDiffRoute || '/ops/api/live-operations/simulation/impact-diff',
           readinessRoute: payload.readinessRoute || '/ops/api/live-operations/simulation/safe-apply-readiness'
         };
         const boundaryOk = inputPack.boundaries?.readOnly === true &&
           simulationRun.boundaries?.simulationRunExecuted === false &&
+          simulationRunLedger.boundaries?.simulationRunExecuted === false &&
+          simulationRunLedger.boundaries?.operatorNoteWritePerformed === false &&
           dryRun.boundaries?.commandPlanExecuted === false &&
           impactDiff.boundaries?.sourceChangeApplied === false &&
           readiness.boundaries?.safeApplyPerformed === false &&
           readiness.boundaries?.clientNoticeSent === false;
         renderBadges('dashSimulationWorkspaceBadges', [
           { text: `input ${simulationInputPackItems.length}` },
+          { text: `ledger ${simulationRunLedgerEntries.length}` },
           { text: `dry-run ${commandPlanDryRunResults.length}` },
           { text: `diff ${sourceRuleImpactDiffs.length}` },
           { text: `readiness ${safeApplyReadinessItems.length}` },
@@ -830,7 +837,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         setText('dashSimulationWorkspaceText',
           payload.error
             ? `simulation workspace 로드 실패: ${payload.error}`
-            : `input ${simulationInputPackItems.length} · dry-run ${commandPlanDryRunResults.length} · impact diff ${sourceRuleImpactDiffs.length} · readiness ${safeApplyReadinessItems.length}`);
+            : `input ${simulationInputPackItems.length} · ledger ${simulationRunLedgerEntries.length} · dry-run ${commandPlanDryRunResults.length} · impact diff ${sourceRuleImpactDiffs.length} · readiness ${safeApplyReadinessItems.length}`);
         const inputList = document.getElementById('dashSimulationWorkspaceInputList');
         if (inputList) {
           inputList.innerHTML = simulationInputPackItems.length > 0
@@ -845,7 +852,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         }
         const runList = document.getElementById('dashSimulationWorkspaceRunList');
         if (runList) {
-          const routeFamily = v360SimulationWorkspaceList(simulationRun.simulationRunSchema?.simulationRouteFamily).slice(0, 5).join(', ');
+          const routeFamily = v360SimulationWorkspaceList(simulationRun.simulationRunSchema?.simulationRouteFamily).slice(0, 6).join(', ');
           runList.innerHTML = [
             v360SimulationWorkspaceEntry(
               'simulation-run',
@@ -858,6 +865,19 @@ void AppendOpsShellScript(std::ostringstream& out,
               routeFamily || 'simulation route family pending',
               `input=${v360SimulationWorkspaceState.inputPackRoute} · run=${v360SimulationWorkspaceState.runContractRoute}`)
           ].join('');
+        }
+        const ledgerList = document.getElementById('dashSimulationWorkspaceLedgerList');
+        if (ledgerList) {
+          ledgerList.innerHTML = simulationRunLedgerEntries.length > 0
+            ? simulationRunLedgerEntries.slice(0, 6).map(entry => {
+                const changedFields = v360SimulationWorkspaceList(entry.changedFields).slice(0, 3).join(', ') || 'changed fields pending';
+                return `<p class="ops-simulation-ledger-entry" data-v360-simulation-run-ledger-entry="${escapeHtml(entry.simulationRunId || 'simulation-run')}">
+                  <strong>${escapeHtml(display(entry.simulationRunId || 'simulation run id pending'))}</strong>
+                  <span>${escapeHtml(display(entry.operatorNote || 'operator note pending'))}</span>
+                  <small>inputRef=${escapeHtml(display(entry.inputRef || 'input ref pending'))} · resultDiff=${escapeHtml(display(entry.resultDiff || 'result diff pending'))} · previous=${escapeHtml(display(entry.previousRunId || entry.comparedToRunId || 'baseline'))} · blocker=${escapeHtml(display(entry.blocker || 'none'))} · changedFields=${escapeHtml(display(changedFields))}</small>
+                </p>`;
+              }).join('')
+            : '<div class="empty">simulation run ledger 누적 항목이 아직 없습니다.</div>';
         }
         const impactList = document.getElementById('dashSimulationWorkspaceImpactList');
         if (impactList) {
@@ -886,23 +906,25 @@ void AppendOpsShellScript(std::ostringstream& out,
             : '<div class="empty">Safe Apply Readiness blocker 항목이 아직 없습니다.</div>';
         }
         setText('dashSimulationWorkspaceBoundary',
-          `input=${display(v360SimulationWorkspaceState.inputPackRoute)} · run=${display(v360SimulationWorkspaceState.runContractRoute)} · dryRun=${display(v360SimulationWorkspaceState.dryRunRoute)} · impact=${display(v360SimulationWorkspaceState.impactDiffRoute)} · readiness=${display(v360SimulationWorkspaceState.readinessRoute)} · simulationRunExecuted=${simulationRun.boundaries?.simulationRunExecuted === false ? 'false' : '확인 필요'} · commandPlanExecuted=${dryRun.boundaries?.commandPlanExecuted === false ? 'false' : '확인 필요'} · sourceChangeApplied=${impactDiff.boundaries?.sourceChangeApplied === false ? 'false' : '확인 필요'} · safeApplyPerformed=${readiness.boundaries?.safeApplyPerformed === false ? 'false' : '확인 필요'} · clientNoticeSent=${readiness.boundaries?.clientNoticeSent === false ? 'false' : '확인 필요'}`);
+          `input=${display(v360SimulationWorkspaceState.inputPackRoute)} · run=${display(v360SimulationWorkspaceState.runContractRoute)} · ledger=${display(v360SimulationWorkspaceState.simulationRunLedgerRoute)} · dryRun=${display(v360SimulationWorkspaceState.dryRunRoute)} · impact=${display(v360SimulationWorkspaceState.impactDiffRoute)} · readiness=${display(v360SimulationWorkspaceState.readinessRoute)} · simulationRunExecuted=${simulationRun.boundaries?.simulationRunExecuted === false && simulationRunLedger.boundaries?.simulationRunExecuted === false ? 'false' : '확인 필요'} · operatorNoteWritePerformed=${simulationRunLedger.boundaries?.operatorNoteWritePerformed === false ? 'false' : '확인 필요'} · commandPlanExecuted=${dryRun.boundaries?.commandPlanExecuted === false ? 'false' : '확인 필요'} · sourceChangeApplied=${impactDiff.boundaries?.sourceChangeApplied === false ? 'false' : '확인 필요'} · safeApplyPerformed=${readiness.boundaries?.safeApplyPerformed === false ? 'false' : '확인 필요'} · clientNoticeSent=${readiness.boundaries?.clientNoticeSent === false || simulationRunLedger.boundaries?.clientNoticeSent === false ? 'false' : '확인 필요'}`);
       };
       const refreshV360OpsSimulationWorkspace = async ({
         inputPackRoute = '/ops/api/live-operations/simulation/input-pack',
         runContractRoute = '/ops/api/live-operations/simulation/run-contract',
+        simulationRunLedgerRoute = '/ops/api/live-operations/simulation/run-ledger',
         dryRunRoute = '/ops/api/live-operations/simulation/command-plan-dry-run',
         impactDiffRoute = '/ops/api/live-operations/simulation/impact-diff',
         readinessRoute = '/ops/api/live-operations/simulation/safe-apply-readiness'
       } = {}) => {
-        const [inputPack, simulationRun, dryRun, impactDiff, readiness] = await Promise.all([
+        const [inputPack, simulationRun, simulationRunLedger, dryRun, impactDiff, readiness] = await Promise.all([
           requestJson(inputPackRoute).catch(error => ({ error: error.message, simulationInputPackItems: [], boundaries: {} })),
           requestJson(runContractRoute).catch(error => ({ error: error.message, simulationResultEnvelope: {}, boundaries: {} })),
+          requestJson(simulationRunLedgerRoute).catch(error => ({ error: error.message, simulationRunLedgerEntries: [], boundaries: {} })),
           requestJson(dryRunRoute).catch(error => ({ error: error.message, commandPlanDryRunResults: [], boundaries: {} })),
           requestJson(impactDiffRoute).catch(error => ({ error: error.message, sourceRuleImpactDiffs: [], boundaries: {} })),
           requestJson(readinessRoute).catch(error => ({ error: error.message, safeApplyReadinessItems: [], boundaries: {} }))
         ]);
-        renderV360OpsSimulationWorkspace({ inputPack, simulationRun, dryRun, impactDiff, readiness, inputPackRoute, runContractRoute, dryRunRoute, impactDiffRoute, readinessRoute });
+        renderV360OpsSimulationWorkspace({ inputPack, simulationRun, simulationRunLedger, dryRun, impactDiff, readiness, inputPackRoute, runContractRoute, simulationRunLedgerRoute, dryRunRoute, impactDiffRoute, readinessRoute });
       };
       const renderDashboardRootCause = (runtime, principal, eventsStatus = {}, browserConfig = {}, diagnosticLog = {}, sourceHealth = {}) => {
         const items = dashboardRootCauseItems(runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth);
@@ -1867,6 +1889,7 @@ void AppendOpsShellScript(std::ostringstream& out,
         await refreshV360OpsSimulationWorkspace({
           inputPackRoute: '/ops/api/live-operations/simulation/input-pack',
           runContractRoute: '/ops/api/live-operations/simulation/run-contract',
+          simulationRunLedgerRoute: '/ops/api/live-operations/simulation/run-ledger',
           dryRunRoute: '/ops/api/live-operations/simulation/command-plan-dry-run',
           impactDiffRoute: '/ops/api/live-operations/simulation/impact-diff',
           readinessRoute: '/ops/api/live-operations/simulation/safe-apply-readiness'

@@ -645,7 +645,8 @@ std::string ProductUiCss() {
     body.ops-shell .ops-command-workspace .ops-field-evidence-intake-list,
     body.ops-shell .ops-command-workspace .ops-field-evidence-condition-list,
     body.ops-shell .ops-command-workspace .ops-vlm-assisted-explanation-list,
-    body.ops-shell .ops-simulation-workspace .ops-simulation-workspace-list {
+    body.ops-shell .ops-simulation-workspace .ops-simulation-workspace-list,
+    body.ops-shell .ops-simulation-workspace .ops-simulation-ledger-list {
       min-width: 0;
     }
     body.ops-shell .ops-channels-workspace {
@@ -1215,7 +1216,8 @@ std::string ProductUiCss() {
     .ops-field-evidence-intake-list,
     .ops-field-evidence-condition-list,
     .ops-vlm-assisted-explanation-list,
-    .ops-simulation-workspace-list {
+    .ops-simulation-workspace-list,
+    .ops-simulation-ledger-list {
       display: grid;
       gap: var(--space-2);
     }
@@ -1228,7 +1230,8 @@ std::string ProductUiCss() {
     .ops-handoff-map-entry,
     .ops-field-evidence-intake-entry,
     .ops-vlm-assisted-explanation-entry,
-    .ops-simulation-workspace-entry {
+    .ops-simulation-workspace-entry,
+    .ops-simulation-ledger-entry {
       min-width: 0;
       margin: 0;
       padding: 11px 12px;
@@ -1256,6 +1259,9 @@ std::string ProductUiCss() {
     .ops-simulation-workspace-entry strong,
     .ops-simulation-workspace-entry span,
     .ops-simulation-workspace-entry small,
+    .ops-simulation-ledger-entry strong,
+    .ops-simulation-ledger-entry span,
+    .ops-simulation-ledger-entry small,
     .ops-command-boundary,
     .ops-simulation-boundary {
       min-width: 0;
@@ -1266,7 +1272,8 @@ std::string ProductUiCss() {
     .ops-handoff-map-entry strong,
     .ops-field-evidence-intake-entry strong,
     .ops-vlm-assisted-explanation-entry strong,
-    .ops-simulation-workspace-entry strong {
+    .ops-simulation-workspace-entry strong,
+    .ops-simulation-ledger-entry strong {
       font-size: 13px;
       line-height: 1.2;
     }
@@ -1282,6 +1289,8 @@ std::string ProductUiCss() {
     .ops-vlm-assisted-explanation-entry small,
     .ops-simulation-workspace-entry span,
     .ops-simulation-workspace-entry small,
+    .ops-simulation-ledger-entry span,
+    .ops-simulation-ledger-entry small,
     .ops-command-boundary,
     .ops-simulation-boundary {
       color: var(--color-muted);
