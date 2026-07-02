@@ -49,6 +49,7 @@ production write 없이 simulation input, dry-run, impact diff, safe apply readi
 | 4 | v3.6.0 (4) Command Plan Dry-run Simulator | P0 | 완료 | source recheck, recovery, maintenance, client notice, rule follow-up 후보를 실제 write 없이 dry-run 결과로 계산 |
 | 5 | v3.6.0 (5) Source/Rule Impact Diff | P0 | 완료 | source/view/rule 변경 전후의 source health, event risk, client 영향 차이를 diff로 표시 |
 | 6 | v3.6.0 (6) Safe Apply Readiness Gate | P0 | 완료 | 자동 적용 없이 ready, blocked, approval-needed, field-needed, not-run 상태와 blocker를 산출 |
+| 7 | v3.6.0 (7) Ops Simulation Workspace UI | P1 | 완료 | `/ops` command workspace에 simulation input, run, impact diff, readiness blocker 탐색 화면 추가 |
 
 완료 경계: 위 표는 v3.6.0 P0 개발 순서와 우선순위입니다. 각 step은 실제 코드/API/문서
 변경, 기능 ID/test inventory 등록, 해당 verifier와 release test record evidence가 생긴 뒤에만
@@ -106,6 +107,15 @@ action, field smoke는 실행 evidence가 있을 때만 별도로 완료로 씁�
 - `src/ingress/webrtc_http_server.cpp`: `GET /ops/api/live-operations/simulation/safe-apply-readiness` route를 추가했습니다. 이 route는 `require_ops_principal()`로 보호되고 `Cache-Control: no-store`를 설정하며 automatic apply, safe apply, client notice, field smoke, source/view/rule/EventRecord/Ops audit/client/media mutation을 수행하지 않습니다.
 - `scripts/internal/verify_v360_safe_apply_readiness_gate.mjs`, `server.sh`: `./server.sh verify-v360-safe-apply-readiness-gate` 명령을 추가해 readiness state, blocker, no-auto-apply boundary, docs/inventory/release records/server dispatch 연결을 검증합니다.
 - 완료 경계: 이번 Step 6은 Safe Apply Readiness Gate API/verifier 연결입니다. 자동 적용, operator approval 수행, field smoke 실행, release action 완료 evidence가 아닙니다.
+
+## v3.6.0 Step 7 개발 기록
+
+- 범위: P1 `v3.6.0 (7) Ops Simulation Workspace UI`.
+- `src/ingress/webrtc_http_server.cpp`: `AppendOpsDashboardPage`에 `ops-simulation-workspace` section을 추가했습니다. 이 화면은 `/ops` command workspace 아래에서 simulation input, simulation run envelope, impact diff, safe apply readiness blocker를 표시하며 write/action control을 제공하지 않습니다.
+- `src/ingress/product_ui_page_scripts.cpp`: `renderV360OpsSimulationWorkspace`와 `refreshV360OpsSimulationWorkspace`를 추가했습니다. renderer는 `/ops/api/live-operations/simulation/input-pack`, `/run-contract`, `/command-plan-dry-run`, `/impact-diff`, `/safe-apply-readiness`를 `requestJson`으로 읽고 `simulationInputPackItems`, `simulationResultEnvelope`, `commandPlanDryRunResults`, `sourceRuleImpactDiffs`, `safeApplyReadinessItems`를 화면에 표시합니다.
+- `src/ingress/product_ui_css.cpp`: `ops-simulation-workspace`, `ops-simulation-workspace-grid`, `ops-simulation-workspace-list`, `ops-simulation-workspace-entry`, `ops-simulation-boundary` 스타일을 추가해 긴 route/blocker 텍스트가 카드 밖으로 넘치지 않게 했습니다.
+- `scripts/internal/verify_v360_ops_simulation_workspace_ui.mjs`, `server.sh`: `./server.sh verify-v360-ops-simulation-workspace-ui` 명령을 추가해 UI shell, renderer, CSS, client/viewer 비노출, docs/inventory/release records/server dispatch 연결을 검증합니다.
+- 완료 경계: 이번 Step 7은 `/ops` simulation workspace 정적 UI와 read-only renderer 연결입니다. Simulation Run Ledger and Comparison 완료 evidence가 아닙니다. UI 풀테스트 직접 조작, 30분/120분 longrun, release action, field smoke PASS를 대체하지 않습니다.
 
 ## 최신 published baseline 상세: v3.5.0 Live Operations Control Plane
 

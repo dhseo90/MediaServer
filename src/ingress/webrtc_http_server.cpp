@@ -2797,6 +2797,45 @@ void AppendOpsDashboardPage(std::ostringstream& out) {
           commandPlanExecuted=false · source/view/rule write=false · client/viewer raw material=false
         </div>
       </section>
+      <section class="section-card ops-workspace-wide ops-simulation-workspace" data-testid="ops-simulation-workspace" data-v360-simulation-workspace="media-server.ops.v360-simulation-workspace-ui.v1">
+        <div class="toolbar">
+          <div>
+            <h3>Simulation Workspace</h3>
+            <p>simulation input, run, impact diff, readiness blocker를 read-only로 탐색합니다.</p>
+          </div>
+        </div>
+        <div id="dashSimulationWorkspaceBadges" class="badge-row"><span class="chip">로딩 중</span></div>
+        <p id="dashSimulationWorkspaceText">simulation workspace read model을 불러오는 중입니다.</p>
+        <div class="grid ops-simulation-workspace-grid">
+          <div>
+            <h4>Simulation Input</h4>
+            <div id="dashSimulationWorkspaceInputList" class="ops-simulation-workspace-list">
+              <div class="empty">input pack 항목을 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Simulation Run</h4>
+            <div id="dashSimulationWorkspaceRunList" class="ops-simulation-workspace-list">
+              <div class="empty">simulation run envelope를 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Impact Diff</h4>
+            <div id="dashSimulationWorkspaceImpactList" class="ops-simulation-workspace-list">
+              <div class="empty">source/rule impact diff를 기다립니다.</div>
+            </div>
+          </div>
+          <div>
+            <h4>Readiness Blockers</h4>
+            <div id="dashSimulationWorkspaceReadinessList" class="ops-simulation-workspace-list">
+              <div class="empty">safe apply readiness blocker를 기다립니다.</div>
+            </div>
+          </div>
+        </div>
+        <div id="dashSimulationWorkspaceBoundary" class="ops-simulation-boundary">
+          simulationRunExecuted=false · safeApplyPerformed=false · clientNoticeSent=false
+        </div>
+      </section>
       <section class="section-card ops-workspace-wide" data-testid="ops-runtime-operations-console">
         <div class="toolbar">
           <div>

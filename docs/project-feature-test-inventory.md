@@ -26,13 +26,13 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 
 | 항목 | 수 |
 | --- | ---: |
-| 전체 기능 항목 | 755 |
-| UI 직접 필요 | 368 |
+| 전체 기능 항목 | 758 |
+| UI 직접 필요 | 369 |
 | UI 간접 필요 | 31 |
-| UI 비대상 | 356 |
-| 테스트 필요 | 755 |
-| 안정화 대상 | 745 |
-| UI 풀테스트 대상 | 388 |
+| UI 비대상 | 358 |
+| 테스트 필요 | 758 |
+| 안정화 대상 | 748 |
+| UI 풀테스트 대상 | 389 |
 | 30분 soak 대상 | 49 |
 | 120분 대상 | 7 |
 
@@ -68,6 +68,7 @@ AGENTS.md가 개발/테스트/보고/커밋 권한의 최상위 규칙이고, �
 | v3.6.0 (4) Command Plan Dry-run Simulator | `SRC-050`, `RULE-107`, `SAFE-151`, `OPS-118` | `verify-v360-command-plan-dry-run-simulator` | `/ops/api/live-operations/simulation/command-plan-dry-run`이 source recheck, recovery, maintenance, client notice, rule follow-up 후보를 실제 write 없이 dry-run 결과로 계산합니다. command execution, source/view/rule/EventRecord/Ops audit/client/media mutation, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
 | v3.6.0 (5) Source/Rule Impact Diff | `SRC-051`, `RULE-108`, `CLIENT-033`, `SAFE-152`, `OPS-119` | `verify-v360-source-rule-impact-diff` | `/ops/api/live-operations/simulation/impact-diff`가 source/view/rule 변경 전후의 source health, event risk, client 영향 차이를 read-only diff로 표시합니다. source/rule apply, client notice send, source/view/rule/EventRecord/Ops audit/client/media mutation, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
 | v3.6.0 (6) Safe Apply Readiness Gate | `SAFE-153`, `OPS-120` | `verify-v360-safe-apply-readiness-gate` | `/ops/api/live-operations/simulation/safe-apply-readiness`가 ready, blocked, approval-needed, field-needed, not-run 상태와 blocker를 산출합니다. automatic apply, safe apply, client notice, field smoke, source/view/rule/EventRecord/Ops audit/client/media mutation, UI 풀테스트, 30분/120분, published metadata evidence가 아님 |
+| v3.6.0 (7) Ops Simulation Workspace UI | `UI-088`, `SAFE-154`, `OPS-121` | `verify-v360-ops-simulation-workspace-ui`, `verify-ops-client-ui` | `/ops` dashboard가 simulation input, run, impact diff, readiness blocker를 read-only command workspace 화면으로 표시합니다. source URL/raw locator/raw JSON/debug/credential material, command execution, source/view/rule/EventRecord/Ops audit/client/media mutation, UI 풀테스트 직접 조작, 30분/120분, published metadata evidence가 아님 |
 
 ## 최신 published baseline v3.5.0 Live Operations Control Plane Coverage Mapping
 
@@ -300,7 +301,7 @@ v2.7.0 완료 근거 또는 UI 풀테스트/30분/120분 PASS로 대체하지 �
 
 | 기능 ID 범위 | 안정화 verifier 후보 | 비고 |
 | --- | --- | --- |
-| `UI-001`~`UI-018`, `UI-022`~`UI-087` | auth, Ops, Client, VLM, v250/v260/v270/v280/v300/v310/v320/v330/v340/v350 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
+| `UI-001`~`UI-018`, `UI-022`~`UI-088` | auth, Ops, Client, VLM, v250/v260/v270/v280/v300/v310/v320/v330/v340/v350/v360 UI verifier family | route/control/action 단위 UI 풀테스트는 별도 evidence 필요 |
 | `AUTH-001`~`AUTH-042` | `verify-auth-regression-matrix`, `verify-auth-bootstrap`, `verify-auth-users`, `verify-auth-routes`, `verify-auth-ui-smoke`, `verify-auth-scope-picker` | role/scope별 브라우저 증거는 별도 |
 | `SRC-001`~`SRC-051` | source/ONVIF/UI/v340/v350/v360 verifier family | ONVIF field success는 approved environment only |
 | `RULE-001`~`RULE-108` | rule/VA/v350/v360 verifier family | 실제 UI 이벤트 발생 전수 evidence 없음. 실제 UI 이벤트 발생 전수 evidence 없으면 FAIL |
@@ -444,6 +445,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | UI-085 | V350 Step 10 Operations Export Bundle and Handoff Map UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v350-export-bundle-handoff-map.v1` 기반 Operations Export Bundle과 Handoff Map을 표시하고 command plan refs, drill ledger refs, field evidence refs, client impact forecast refs를 release-safe/read-only로만 노출함 |
 | UI-086 | V350 Step 11 Field Evidence Intake UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v350-field-evidence-intake.v1` 기반 Field Evidence Intake를 표시하고 ONVIF, external WHEP/TURN, cloud/VLM provider의 redacted field evidence, execution conditions, not-run 상태를 raw endpoint/credential/provider/VLM material 없이 노출함 |
 | UI-087 | V350 Step 12 VLM-assisted Ops Explanation UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v350-vlm-assisted-explanation.v1` 기반 VLM-assisted Ops Explanation을 default-off로 표시하고 command plan blocker, incident/source relation, operator review hint를 raw prompt/provider response/credential material 없이 노출함 |
+| UI-088 | V360 Step 7 Ops Simulation Workspace UI | 필요 | 필요 | 안정화, UI | `/ops` dashboard가 `media-server.ops.v360-simulation-workspace-ui.v1` 기반 simulation input, run, impact diff, readiness blocker를 read-only로 표시하고 command execution/source-view-rule write/client notice 발송을 수행하지 않음 |
 
 ## B. Auth, Account, Role, Scope
 
@@ -1066,6 +1068,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | SAFE-151 | V360 Step 4 dry-run no-execution boundary | 비대상 | 필요 | 안정화 | `verify-v360-command-plan-dry-run-simulator`가 source recheck, recovery, maintenance, client notice, rule follow-up 후보를 dry-runOnly로 계산하고 실행, write, client notice 발송, media path 변경을 수행하지 않음을 확인 |
 | SAFE-152 | V360 Step 5 impact diff no-apply boundary | 비대상 | 필요 | 안정화 | `verify-v360-source-rule-impact-diff`가 source health/event risk/client impact diff를 diffOnly로 표시하고 sourceHealthChangedPersisted=false, sourceChangeApplied=false, ruleFollowUpApplied=false, automaticApplyPerformed=false를 확인 |
 | SAFE-153 | V360 Step 6 safe apply readiness no-auto-apply boundary | 비대상 | 필요 | 안정화 | `verify-v360-safe-apply-readiness-gate`가 ready/blocked/approval-needed/field-needed/not-run 상태와 blocker를 산출하되 automaticApplyPerformed=false, safeApplyPerformed=false, clientNoticeSent=false, fieldSmokeExecuted=false를 확인 |
+| SAFE-154 | V360 Step 7 simulation workspace UI boundary | 비대상 | 필요 | 안정화 | `verify-v360-ops-simulation-workspace-ui`가 `/ops` simulation workspace shell/renderer/CSS/client 비노출을 확인하되 source URL/raw locator/raw JSON/debug/credential material, command execution, source/view/rule/EventRecord/Ops audit/client/media mutation을 UI 경로에서 추가하지 않음을 확인 |
 
 ## J. Ops Evidence And Release Readiness
 
@@ -1157,6 +1160,7 @@ VLM queue/backpressure 신호가 있을 때 안정화/30분/UI evidence와 분�
 | OPS-118 | V360 Step 4 Command Plan Dry-run Simulator 게이트 | 비대상 | 필요 | 안정화 | `verify-v360-command-plan-dry-run-simulator`가 `/ops/api/live-operations/simulation/command-plan-dry-run` Ops-only route, source recheck/recovery/maintenance/client notice/rule follow-up dry-run, no-execution boundary, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 command execution, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-119 | V360 Step 5 Source/Rule Impact Diff 게이트 | 비대상 | 필요 | 안정화 | `verify-v360-source-rule-impact-diff`가 `/ops/api/live-operations/simulation/impact-diff` Ops-only route, source health/event risk/client impact diff, no-apply boundary, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 source/rule apply, client notice 발송, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
 | OPS-120 | V360 Step 6 Safe Apply Readiness Gate 게이트 | 비대상 | 필요 | 안정화 | `verify-v360-safe-apply-readiness-gate`가 `/ops/api/live-operations/simulation/safe-apply-readiness` Ops-only route, ready/blocked/approval-needed/field-needed/not-run 상태와 blocker, no-auto-apply boundary, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 automatic apply, field smoke, UI 풀테스트, 30분/120분, release publish PASS로 대체하지 않음 |
+| OPS-121 | V360 Step 7 Ops Simulation Workspace UI 게이트 | 비대상 | 필요 | 안정화 | `verify-v360-ops-simulation-workspace-ui`가 `/ops` dashboard simulation workspace shell, renderer/CSS, input/run/dry-run/impact/readiness read model 연결, client 비노출, backlog/stream verification/release records/inventory/server dispatch 연결을 확인하되 UI 풀테스트 직접 조작, command execution, safe apply, client notice 발송, 30분/120분, release publish PASS로 대체하지 않음 |
 
 ## Coverage Review To Do
 

@@ -627,7 +627,15 @@ std::string ProductUiCss() {
       display: grid;
       gap: var(--space-3);
     }
+    body.ops-shell .ops-simulation-workspace {
+      display: grid;
+      gap: var(--space-3);
+    }
     body.ops-shell .ops-command-workspace .ops-command-workspace-detail-grid {
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: var(--space-3);
+    }
+    body.ops-shell .ops-simulation-workspace .ops-simulation-workspace-grid {
       grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
       gap: var(--space-3);
     }
@@ -636,7 +644,8 @@ std::string ProductUiCss() {
     body.ops-shell .ops-command-workspace .ops-handoff-map-list,
     body.ops-shell .ops-command-workspace .ops-field-evidence-intake-list,
     body.ops-shell .ops-command-workspace .ops-field-evidence-condition-list,
-    body.ops-shell .ops-command-workspace .ops-vlm-assisted-explanation-list {
+    body.ops-shell .ops-command-workspace .ops-vlm-assisted-explanation-list,
+    body.ops-shell .ops-simulation-workspace .ops-simulation-workspace-list {
       min-width: 0;
     }
     body.ops-shell .ops-channels-workspace {
@@ -1205,7 +1214,8 @@ std::string ProductUiCss() {
     .ops-handoff-map-list,
     .ops-field-evidence-intake-list,
     .ops-field-evidence-condition-list,
-    .ops-vlm-assisted-explanation-list {
+    .ops-vlm-assisted-explanation-list,
+    .ops-simulation-workspace-list {
       display: grid;
       gap: var(--space-2);
     }
@@ -1217,7 +1227,8 @@ std::string ProductUiCss() {
     .ops-command-ledger-entry,
     .ops-handoff-map-entry,
     .ops-field-evidence-intake-entry,
-    .ops-vlm-assisted-explanation-entry {
+    .ops-vlm-assisted-explanation-entry,
+    .ops-simulation-workspace-entry {
       min-width: 0;
       margin: 0;
       padding: 11px 12px;
@@ -1242,7 +1253,11 @@ std::string ProductUiCss() {
     .ops-vlm-assisted-explanation-entry strong,
     .ops-vlm-assisted-explanation-entry span,
     .ops-vlm-assisted-explanation-entry small,
-    .ops-command-boundary {
+    .ops-simulation-workspace-entry strong,
+    .ops-simulation-workspace-entry span,
+    .ops-simulation-workspace-entry small,
+    .ops-command-boundary,
+    .ops-simulation-boundary {
       min-width: 0;
       overflow-wrap: anywhere;
     }
@@ -1250,7 +1265,8 @@ std::string ProductUiCss() {
     .ops-command-ledger-entry strong,
     .ops-handoff-map-entry strong,
     .ops-field-evidence-intake-entry strong,
-    .ops-vlm-assisted-explanation-entry strong {
+    .ops-vlm-assisted-explanation-entry strong,
+    .ops-simulation-workspace-entry strong {
       font-size: 13px;
       line-height: 1.2;
     }
@@ -1264,7 +1280,10 @@ std::string ProductUiCss() {
     .ops-field-evidence-intake-entry small,
     .ops-vlm-assisted-explanation-entry span,
     .ops-vlm-assisted-explanation-entry small,
-    .ops-command-boundary {
+    .ops-simulation-workspace-entry span,
+    .ops-simulation-workspace-entry small,
+    .ops-command-boundary,
+    .ops-simulation-boundary {
       color: var(--color-muted);
       font-size: 12px;
       line-height: 1.35;
@@ -1273,10 +1292,12 @@ std::string ProductUiCss() {
       border-style: dashed;
       background: color-mix(in srgb, var(--color-surface) 90%, transparent);
     }
-    .ops-command-flow-card.warn {
+    .ops-command-flow-card.warn,
+    .ops-simulation-workspace-entry.warn {
       border-color: color-mix(in srgb, var(--color-warning) 56%, var(--color-border));
     }
-    .ops-command-boundary {
+    .ops-command-boundary,
+    .ops-simulation-boundary {
       padding: 9px 10px;
       border: 1px dashed var(--color-border);
       border-radius: 8px;

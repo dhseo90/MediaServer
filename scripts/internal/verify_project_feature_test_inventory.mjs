@@ -593,7 +593,7 @@ check("current feature expansion rows exist", () => {
     assert(ids.has(id), `missing current expanded feature row: ${id}`);
   }
   for (const snippet of [
-    "`UI-001`~`UI-018`, `UI-022`~`UI-087`",
+    "`UI-001`~`UI-018`, `UI-022`~`UI-088`",
     "`SRC-001`~`SRC-051`",
     "`CLIENT-001`~`CLIENT-033`",
     "`EVT-001`~`EVT-077`",
@@ -866,6 +866,10 @@ check("current feature expansion rows exist", () => {
     "v3.6.0 (6) Safe Apply Readiness Gate",
     "SAFE-153",
     "OPS-120",
+    "v3.6.0 (7) Ops Simulation Workspace UI",
+    "UI-088",
+    "SAFE-154",
+    "OPS-121",
   ]) {
     requireText(inventory, snippet, `inventory missing current expansion snippet: ${snippet}`);
   }

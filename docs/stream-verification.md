@@ -54,6 +54,7 @@ UI 풀테스트, 30분/120분, published metadata, release action, field smoke�
 | v3.6.0 (4) | `./server.sh verify-v360-command-plan-dry-run-simulator` | Command Plan Dry-run Simulator. `/ops/api/live-operations/simulation/command-plan-dry-run`이 source recheck, recovery, maintenance, client notice, rule follow-up 후보를 실제 write 없이 dry-run 결과로 계산하고 command execution 미수행 경계를 확인합니다 |
 | v3.6.0 (5) | `./server.sh verify-v360-source-rule-impact-diff` | Source/Rule Impact Diff. `/ops/api/live-operations/simulation/impact-diff`가 source/view/rule 변경 전후의 source health, event risk, client impact diff를 read-only로 표시하고 source/rule apply 미수행 경계를 확인합니다 |
 | v3.6.0 (6) | `./server.sh verify-v360-safe-apply-readiness-gate` | Safe Apply Readiness Gate. `/ops/api/live-operations/simulation/safe-apply-readiness`가 ready, blocked, approval-needed, field-needed, not-run 상태와 blocker를 산출하고 automatic apply/client notice/field smoke 미수행 경계를 확인합니다 |
+| v3.6.0 (7) | `./server.sh verify-v360-ops-simulation-workspace-ui` | Ops Simulation Workspace UI. `/ops`가 simulation input, run, impact diff, readiness blocker를 read-only command workspace 화면으로 표시하고 source URL/raw locator/raw JSON/debug/credential material, command execution, source/view/rule/EventRecord/Ops audit/client/media mutation 비노출/미수행 경계를 확인합니다. UI 풀테스트 직접 조작, 30분/120분, release action evidence를 대체하지 않음 |
 
 ## 최신 published baseline v3.5.0 verifier
 

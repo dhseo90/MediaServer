@@ -781,6 +781,129 @@ void AppendOpsShellScript(std::ostringstream& out,
         ]);
         renderV350OpsCommandWorkspace({ liveOperationsGraph, commandPlan, stagedPlan, drillLedger, exportBundle, fieldEvidenceIntake, vlmAssistedExplanation, reviews, graphRoute, commandPlanRoute, stagedPlanRoute, drillLedgerRoute, exportBundleRoute, fieldEvidenceRoute, vlmExplanationRoute, reviewRoute });
       };
+      let v360SimulationWorkspaceState = {};
+      const v360SimulationWorkspaceList = value => Array.isArray(value) ? value : [];
+      const v360SimulationWorkspaceEntry = (kind, title, detail, meta, tone = '') =>
+        `<p class="ops-simulation-workspace-entry ${escapeHtml(tone)}" data-v360-simulation-workspace-entry="${escapeHtml(kind)}">
+          <strong>${escapeHtml(display(title))}</strong>
+          <span>${escapeHtml(display(detail))}</span>
+          <small>${escapeHtml(display(meta))}</small>
+        </p>`;
+      const renderV360OpsSimulationWorkspace = (payload = {}) => {
+        const inputPack = payload.inputPack || {};
+        const simulationRun = payload.simulationRun || {};
+        const dryRun = payload.dryRun || {};
+        const impactDiff = payload.impactDiff || {};
+        const readiness = payload.readiness || {};
+        const simulationInputPackItems = v360SimulationWorkspaceList(inputPack.simulationInputPackItems);
+        const commandPlanDryRunResults = v360SimulationWorkspaceList(dryRun.commandPlanDryRunResults);
+        const sourceRuleImpactDiffs = v360SimulationWorkspaceList(impactDiff.sourceRuleImpactDiffs);
+        const safeApplyReadinessItems = v360SimulationWorkspaceList(readiness.safeApplyReadinessItems);
+        const simulationResultEnvelope = simulationRun.simulationResultEnvelope || {};
+        const readinessBlockers = safeApplyReadinessItems.flatMap(item => v360SimulationWorkspaceList(item.blockers));
+        v360SimulationWorkspaceState = {
+          inputPack,
+          simulationRun,
+          dryRun,
+          impactDiff,
+          readiness,
+          inputPackRoute: payload.inputPackRoute || '/ops/api/live-operations/simulation/input-pack',
+          runContractRoute: payload.runContractRoute || '/ops/api/live-operations/simulation/run-contract',
+          dryRunRoute: payload.dryRunRoute || '/ops/api/live-operations/simulation/command-plan-dry-run',
+          impactDiffRoute: payload.impactDiffRoute || '/ops/api/live-operations/simulation/impact-diff',
+          readinessRoute: payload.readinessRoute || '/ops/api/live-operations/simulation/safe-apply-readiness'
+        };
+        const boundaryOk = inputPack.boundaries?.readOnly === true &&
+          simulationRun.boundaries?.simulationRunExecuted === false &&
+          dryRun.boundaries?.commandPlanExecuted === false &&
+          impactDiff.boundaries?.sourceChangeApplied === false &&
+          readiness.boundaries?.safeApplyPerformed === false &&
+          readiness.boundaries?.clientNoticeSent === false;
+        renderBadges('dashSimulationWorkspaceBadges', [
+          { text: `input ${simulationInputPackItems.length}` },
+          { text: `dry-run ${commandPlanDryRunResults.length}` },
+          { text: `diff ${sourceRuleImpactDiffs.length}` },
+          { text: `readiness ${safeApplyReadinessItems.length}` },
+          { text: `blocker ${readinessBlockers.length}`, tone: readinessBlockers.length > 0 ? 'warn' : 'info' },
+          { text: boundaryOk ? 'read-only' : 'boundary 확인 필요', tone: boundaryOk ? 'info' : 'warn' }
+        ]);
+        setText('dashSimulationWorkspaceText',
+          payload.error
+            ? `simulation workspace 로드 실패: ${payload.error}`
+            : `input ${simulationInputPackItems.length} · dry-run ${commandPlanDryRunResults.length} · impact diff ${sourceRuleImpactDiffs.length} · readiness ${safeApplyReadinessItems.length}`);
+        const inputList = document.getElementById('dashSimulationWorkspaceInputList');
+        if (inputList) {
+          inputList.innerHTML = simulationInputPackItems.length > 0
+            ? simulationInputPackItems.slice(0, 6).map(item =>
+                v360SimulationWorkspaceEntry(
+                  item.inputId || item.inputType || 'simulation-input',
+                  item.inputType || 'Simulation Input',
+                  item.sourceRoute || 'source route pending',
+                  `records=${item.recordCount ?? 0} · status=${item.snapshotStatus || 'snapshot'} · writeGuard=${item.writeGuard || 'read-only'}`))
+              .join('')
+            : '<div class="empty">Simulation Input Pack 항목이 아직 없습니다.</div>';
+        }
+        const runList = document.getElementById('dashSimulationWorkspaceRunList');
+        if (runList) {
+          const routeFamily = v360SimulationWorkspaceList(simulationRun.simulationRunSchema?.simulationRouteFamily).slice(0, 5).join(', ');
+          runList.innerHTML = [
+            v360SimulationWorkspaceEntry(
+              'simulation-run',
+              simulationRun.simulationRunSchema?.simulationRunId || simulationResultEnvelope.simulationRunId || 'simulation run id pending',
+              simulationResultEnvelope.summary || 'simulation result envelope is not persisted',
+              `resultStatus=${simulationResultEnvelope.resultStatus || 'not-run'} · readyStatus=${simulationResultEnvelope.readyStatus || 'not-run'} · blockers=${v360SimulationWorkspaceList(simulationResultEnvelope.blockers).join(', ') || 'none'}`),
+            v360SimulationWorkspaceEntry(
+              'simulation-route-family',
+              'route family',
+              routeFamily || 'simulation route family pending',
+              `input=${v360SimulationWorkspaceState.inputPackRoute} · run=${v360SimulationWorkspaceState.runContractRoute}`)
+          ].join('');
+        }
+        const impactList = document.getElementById('dashSimulationWorkspaceImpactList');
+        if (impactList) {
+          impactList.innerHTML = sourceRuleImpactDiffs.length > 0
+            ? sourceRuleImpactDiffs.slice(0, 6).map(diff =>
+                v360SimulationWorkspaceEntry(
+                  diff.diffId || diff.candidateId || 'impact-diff',
+                  diff.candidateType || 'impact diff',
+                  diff.clientImpactDiff || diff.sourceHealthDiff || 'viewer-safe impact diff pending',
+                  `before=${diff.beforeState || 'current'} · after=${diff.afterState || 'simulated'} · blocker=${v360SimulationWorkspaceList(diff.blockers).join(', ') || 'none'}`,
+                  v360SimulationWorkspaceList(diff.blockers).length > 0 ? 'warn' : ''))
+              .join('')
+            : '<div class="empty">Impact Diff 항목이 아직 없습니다.</div>';
+        }
+        const readinessList = document.getElementById('dashSimulationWorkspaceReadinessList');
+        if (readinessList) {
+          readinessList.innerHTML = safeApplyReadinessItems.length > 0
+            ? safeApplyReadinessItems.slice(0, 8).map(item =>
+                v360SimulationWorkspaceEntry(
+                  item.readinessId || item.candidateId || 'safe-apply-readiness',
+                  item.readinessState || 'not-run',
+                  item.candidateType || 'candidate',
+                  `operatorApprovalRequired=${item.operatorApprovalRequired === true ? 'true' : 'false'} · fieldEvidenceRequired=${item.fieldEvidenceRequired === true ? 'true' : 'false'} · blockers=${v360SimulationWorkspaceList(item.blockers).join(', ') || 'none'}`,
+                  item.readinessState === 'ready' ? '' : 'warn'))
+              .join('')
+            : '<div class="empty">Safe Apply Readiness blocker 항목이 아직 없습니다.</div>';
+        }
+        setText('dashSimulationWorkspaceBoundary',
+          `input=${display(v360SimulationWorkspaceState.inputPackRoute)} · run=${display(v360SimulationWorkspaceState.runContractRoute)} · dryRun=${display(v360SimulationWorkspaceState.dryRunRoute)} · impact=${display(v360SimulationWorkspaceState.impactDiffRoute)} · readiness=${display(v360SimulationWorkspaceState.readinessRoute)} · simulationRunExecuted=${simulationRun.boundaries?.simulationRunExecuted === false ? 'false' : '확인 필요'} · commandPlanExecuted=${dryRun.boundaries?.commandPlanExecuted === false ? 'false' : '확인 필요'} · sourceChangeApplied=${impactDiff.boundaries?.sourceChangeApplied === false ? 'false' : '확인 필요'} · safeApplyPerformed=${readiness.boundaries?.safeApplyPerformed === false ? 'false' : '확인 필요'} · clientNoticeSent=${readiness.boundaries?.clientNoticeSent === false ? 'false' : '확인 필요'}`);
+      };
+      const refreshV360OpsSimulationWorkspace = async ({
+        inputPackRoute = '/ops/api/live-operations/simulation/input-pack',
+        runContractRoute = '/ops/api/live-operations/simulation/run-contract',
+        dryRunRoute = '/ops/api/live-operations/simulation/command-plan-dry-run',
+        impactDiffRoute = '/ops/api/live-operations/simulation/impact-diff',
+        readinessRoute = '/ops/api/live-operations/simulation/safe-apply-readiness'
+      } = {}) => {
+        const [inputPack, simulationRun, dryRun, impactDiff, readiness] = await Promise.all([
+          requestJson(inputPackRoute).catch(error => ({ error: error.message, simulationInputPackItems: [], boundaries: {} })),
+          requestJson(runContractRoute).catch(error => ({ error: error.message, simulationResultEnvelope: {}, boundaries: {} })),
+          requestJson(dryRunRoute).catch(error => ({ error: error.message, commandPlanDryRunResults: [], boundaries: {} })),
+          requestJson(impactDiffRoute).catch(error => ({ error: error.message, sourceRuleImpactDiffs: [], boundaries: {} })),
+          requestJson(readinessRoute).catch(error => ({ error: error.message, safeApplyReadinessItems: [], boundaries: {} }))
+        ]);
+        renderV360OpsSimulationWorkspace({ inputPack, simulationRun, dryRun, impactDiff, readiness, inputPackRoute, runContractRoute, dryRunRoute, impactDiffRoute, readinessRoute });
+      };
       const renderDashboardRootCause = (runtime, principal, eventsStatus = {}, browserConfig = {}, diagnosticLog = {}, sourceHealth = {}) => {
         const items = dashboardRootCauseItems(runtime, principal, eventsStatus, browserConfig, diagnosticLog, sourceHealth);
         const warnCount = items.filter(item => item.level === 'warn' || item.level === 'bad').length;
@@ -1741,6 +1864,13 @@ void AppendOpsShellScript(std::ostringstream& out,
           stagedPlanRoute: '/ops/api/live-operations/staged-change-plan-impact-preview',
           reviewRoute: '/ops/api/events/reviews'
         }).catch(error => renderV350OpsCommandWorkspace({ error: error.message }));
+        await refreshV360OpsSimulationWorkspace({
+          inputPackRoute: '/ops/api/live-operations/simulation/input-pack',
+          runContractRoute: '/ops/api/live-operations/simulation/run-contract',
+          dryRunRoute: '/ops/api/live-operations/simulation/command-plan-dry-run',
+          impactDiffRoute: '/ops/api/live-operations/simulation/impact-diff',
+          readinessRoute: '/ops/api/live-operations/simulation/safe-apply-readiness'
+        }).catch(error => renderV360OpsSimulationWorkspace({ error: error.message }));
         await refreshDashboardVaQuality(runtime, eventsStatus).catch(renderDashboardVaQualityError);
         renderRaw('opsDashboardRaw', 'opsDashboardPretty', runtime);
         window.MediaServerUi?.translatePage?.();
